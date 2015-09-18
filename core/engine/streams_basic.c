@@ -68,7 +68,7 @@ void init_streams(void)
   root_stream_ptr->backward=root_stream_ptr;
   root_stream_ptr->last_nl_pos = 0;               /* used for tty streams */
   root_stream_ptr->nl_count = 0;
-  root_stream_ptr->char_count = 0;
+  root_stream_ptr->rune_count = 0;
 
   stream_user_input = new_stream(ERRORTAG, "r", stdin);
   stream_user_output = new_stream(ERRORTAG, "a", stdout);
@@ -109,7 +109,7 @@ stream_node_t *new_stream(tagged_t streamname,
   s = checkalloc_TYPE(stream_node_t);
   s->streamname = streamname;
   s->streammode = streammode[0];
-  s->pending_char = CHAR_VOID;
+  s->pending_rune = RUNE_VOID;
   s->socket_eof = FALSE;
   update_stream(s,streamfile);
 
@@ -135,7 +135,7 @@ void update_stream(stream_node_t *s,
     s = root_stream_ptr;
   s->last_nl_pos = 0;
   s->nl_count = 0;
-  s->char_count = 0;		/* less than perfect */
+  s->rune_count = 0;		/* less than perfect */
 }
 
 #if 0 /* Not used */
@@ -744,7 +744,7 @@ CBOOL__PROTO(character_count)
 
   if (stream->isatty)
     stream = root_stream_ptr;
-  return cunify(Arg,MakeInteger(Arg,stream->char_count),X(1));
+  return cunify(Arg,MakeInteger(Arg,stream->rune_count),X(1));
 }
 
 
@@ -761,7 +761,7 @@ CBOOL__PROTO(line_position)
 
   if (stream->isatty)
     stream = root_stream_ptr;
-  return cunify(Arg,MakeInteger(Arg,stream->char_count-stream->last_nl_pos),X(1));
+  return cunify(Arg,MakeInteger(Arg,stream->rune_count-stream->last_nl_pos),X(1));
 }
 
 

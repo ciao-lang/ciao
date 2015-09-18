@@ -33,21 +33,26 @@
 #include <ciao/bignum.h>
 #include <ciao/stacks.h>
 
-/* Own version of getc() that normalizes EOF (<0) to Ciao's CHAR_EOF (-1) */
-#if (EOF == CHAR_EOF)
+/* local declarations */
+
+/* Own version of getc() that normalizes EOF (<0) to -1 */
+#if (EOF == -1)
 static inline int c_getc(FILE *f) {
   return getc(f);
 }
 #else
 static inline int c_getc(FILE *f) {
   int i = getc(f);
-  return (i < 0 ? CHAR_EOF : i);
+  return (i < 0 ? -1 : i);
 }
 #endif
 
-static int readchar(stream_node_t *s, int type, definition_t *pred_address);
-static void writechar(int ch, stream_node_t *s);
-static void writecharn(int ch, int i, stream_node_t *s);
+#define BYTE_EOF       (-1)
+#define BYTE_PAST_EOF  (-2)
+
+static c_rune_t readrune(stream_node_t *s, int type, definition_t *pred_address);
+static void writerune(c_rune_t r, stream_node_t *s);
+static void writerunen(c_rune_t r, int i, stream_node_t *s);
 static int readbyte(stream_node_t *s, definition_t *pred_address);
 static void writebyte(int ch, stream_node_t *s);
 
@@ -55,20 +60,20 @@ CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 
 #define CheckGetCharacterCode(X,C,ArgNo) {                              \
     if (TagIsSmall(X)) {                                                \
-      if ((C = GetSmall(X)) & ~255) {					\
-        BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), X, ArgNo);  \
+      if (!ValidRune(C = GetSmall(X))) {					\
+        BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo)); \
       }									\
     }                                                                   \
     else if (TagIsLarge(X) && !LargeIsFloat(X)) { /* bigint */		\
-      BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), X, ArgNo);    \
+      BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo)); \
     }                                                                   \
     else {                                                              \
-      ERROR_IN_ARG(X, ArgNo, INTEGER);                                  \
+      ERROR_IN_ARG((X), (ArgNo), INTEGER);				\
     }                                                                   \
   }
 
 #define CheckGetByte(X,C,ArgNo)					\
-  if (!TagIsSmall((X)) || ((C) = GetSmall((X))) & ~255) {	\
+  if (!TagIsSmall((X)) || !ValidRune((C) = GetSmall((X)))) {	\
     ERROR_IN_ARG((X), (ArgNo), (TY_BYTE));			\
   }
 
@@ -86,23 +91,23 @@ CBOOL__PROTO(code_class)
   DEREF(X(0), X(0));
   CheckGetCharacterCode(X(0),i,1);
 
-  return cunify(Arg,X(1),MakeSmall(symbolchar[i]));
+  return cunify(Arg,X(1),MakeSmall(symbolrune[i]));
 }
 
 static inline void inc_counts(int ch, stream_node_t * stream){
-  stream->char_count++;
+  stream->rune_count++;
   if (ch == 0xd) {
-    stream->last_nl_pos = stream->char_count;
+    stream->last_nl_pos = stream->rune_count;
     stream->nl_count++;
   } else if (ch == 0xa) {
-    stream->last_nl_pos = stream->char_count;
-    if (stream->previous_char != 0xd)
+    stream->last_nl_pos = stream->rune_count;
+    if (stream->previous_rune != 0xd)
       stream->nl_count++;
   }
-  stream->previous_char = ch;
+  stream->previous_rune = ch;
 }
 
-static void writechar(int ch, stream_node_t *s) {
+static void writerune(int ch, stream_node_t *s) {
   FILE *f = s->streamfile;
   if (s->isatty) {
     s = root_stream_ptr;
@@ -110,21 +115,21 @@ static void writechar(int ch, stream_node_t *s) {
     putc(ch, f);
   } else if (s->streammode != 's') { /* Not a socket */
     if (putc(ch, f) < 0) {
-      IO_ERROR("putc() in writechar()");
+      IO_ERROR("putc() in writerune()");
     }
   } else {
     char p;
     p = (char)ch;
     if (write(GetInteger(s->label), &p, (size_t)1) < 0) {
-      IO_ERROR("write() in writechar()");
+      IO_ERROR("write() in writerune()");
     }
   }
   inc_counts(ch,s);
 }
 
-static void writecharn(int ch, int i, stream_node_t *s) {
+static void writerunen(int ch, int i, stream_node_t *s) {
   while (--i >= 0) {
-    writechar(ch, s);
+    writerune(ch, s);
   }
 }
 
@@ -153,107 +158,107 @@ static void writebyte(int ch, stream_node_t *s) {
 #define GET1   -2
 #define SKIPLN -1
 
-#define EXITCOND(op,i) \
-  ( op<GET1 || i==CHAR_EOF || (op==GET1 && symbolchar[i]>0) || \
-    (op==SKIPLN && (i==0xa || i==0xd)) || op==i )
+#define EXITCOND(Op,R) \
+    ( (Op)<GET1 || (R)==RUNE_EOF || ((Op)==GET1 && symbolrune[(R)]>0) || \
+      ((Op)==SKIPLN && ((R)==0xa || (R)==0xd)) || (Op)==(R) )
 
-#define GIVEBACKCOND(op,i) \
-  (op==PEEK || (op==SKIPLN && i==CHAR_EOF) || (op==DELRET && i!=0xa))
+#define GIVEBACKCOND(Op,R) \
+  ((Op)==PEEK || ((Op)==SKIPLN && (R)==RUNE_EOF) || ((Op)==DELRET && (R)!=0xa))
 
-/* Returns CHAR_PAST_EOF when attempting to read past end of file)
+/* Returns RUNE_PAST_EOF when attempting to read past end of file)
 
    op_type: DELRET, PEEK, GET, GET1, SKIPLN, or >= 0 for SKIP
  */
-static int readchar(stream_node_t *s,
+static int readrune(stream_node_t *s,
 		    int op_type,
 		    definition_t *pred_address)
 {
   FILE *f = s->streamfile;
-  int i;
+  c_rune_t r;
 
   if (s->isatty) {
     int_address = pred_address;
     while (TRUE) {
-      if (root_stream_ptr->char_count==root_stream_ptr->last_nl_pos){
+      if (root_stream_ptr->rune_count==root_stream_ptr->last_nl_pos){
         print_string(stream_user_output,GetString(current_prompt));
           /* fflush(stdout); into print_string() MCL */
       }
 
-      if (s->pending_char == CHAR_VOID) { /* There is no char returned by peek */
+      if (s->pending_rune == RUNE_VOID) { /* There is no char returned by peek */
 	/* ignore errors in tty */
-	i = c_getc(f);
+	r = c_getc(f);
       } else {
-	i = s->pending_char;
-        s->pending_char = CHAR_VOID;
+	r = s->pending_rune;
+        s->pending_rune = RUNE_VOID;
       }
       
-      if GIVEBACKCOND(op_type,i)
-        s->pending_char = i;
+      if GIVEBACKCOND(op_type,r)
+        s->pending_rune = r;
       else
-        inc_counts(i,root_stream_ptr);
+        inc_counts(r,root_stream_ptr);
 
-      if (i==CHAR_EOF) clearerr(f);
+      if (r==RUNE_EOF) clearerr(f);
 
-      if (EXITCOND(op_type,i)) {
+      if (EXITCOND(op_type,r)) {
         int_address = NULL; 
-        return i;
+        return r;
       }
     }
   } else if (s->streammode != 's') { /* Not a socket */
 
-    if (feof(f) && s->pending_char == CHAR_VOID) {
-      return CHAR_PAST_EOF; /* attempt to read past end of stream */
+    if (feof(f) && s->pending_rune == RUNE_VOID) {
+      return RUNE_PAST_EOF; /* attempt to read past end of stream */
     }
     
     while (TRUE) {
-      if (s->pending_char != CHAR_VOID) { /* There is a char returned by peek */
-        i = s->pending_char;
-        s->pending_char = CHAR_VOID;
+      if (s->pending_rune != RUNE_VOID) { /* There is a char returned by peek */
+        r = s->pending_rune;
+        s->pending_rune = RUNE_VOID;
       } else {
-	i = c_getc(f);
-	if (i < 0 && ferror(f)) {
-	  IO_ERROR("getc() in readchar()");
+	r = c_getc(f);
+	if (r < 0 && ferror(f)) {
+	  IO_ERROR("getc() in readrune()");
 	}
       }
 
-      if GIVEBACKCOND(op_type,i)
-        s->pending_char = i;
+      if GIVEBACKCOND(op_type,r)
+        s->pending_rune = r;
       else
-        inc_counts(i,s);
+        inc_counts(r,s);
       
-      if (EXITCOND(op_type,i)) return i;
+      if (EXITCOND(op_type,r)) return r;
     }
   } else {                                                  /* A socket */
     int fildes = GetInteger(s->label);
     
-    if (s->socket_eof) return CHAR_PAST_EOF; /* attempt to read past end of stream */
+    if (s->socket_eof) return RUNE_PAST_EOF; /* attempt to read past end of stream */
     
     while (TRUE) {
       unsigned char ch;
-      if (s->pending_char == CHAR_VOID) { /* There is a char returned by peek */
+      if (s->pending_rune == RUNE_VOID) { /* There is a char returned by peek */
         switch(read(fildes, (void *)&ch, 1)){
         case 0:
-          i = CHAR_EOF;
+          r = RUNE_EOF;
           break;
         case 1: 
-          i = (int)ch;
+          r = (int)ch;
           break;
         default:
-          IO_ERROR("read() in readchar()");
+          IO_ERROR("read() in readrune()");
         }
       } else {
-	i = s->pending_char;
-        s->pending_char = CHAR_VOID;
+	r = s->pending_rune;
+        s->pending_rune = RUNE_VOID;
       }
       
-      if GIVEBACKCOND(op_type,i)
-        s->pending_char = i;
+      if GIVEBACKCOND(op_type,r)
+        s->pending_rune = r;
       else {
-        inc_counts(i,s);
-        if (i==CHAR_EOF) s->socket_eof = TRUE;
+        inc_counts(r,s);
+        if (r==RUNE_EOF) s->socket_eof = TRUE;
       }
 
-      if (EXITCOND(op_type,i)) return i;
+      if (EXITCOND(op_type,r)) return r;
 
     }
   }
@@ -267,21 +272,21 @@ static int readbyte(stream_node_t *s,
 
   if (s->isatty) {
     int_address = pred_address;
-    if (root_stream_ptr->char_count==root_stream_ptr->last_nl_pos){
+    if (root_stream_ptr->rune_count==root_stream_ptr->last_nl_pos){
       print_string(stream_user_output,GetString(current_prompt));
       /* fflush(stdout); into print_string() MCL */
     }
 
     /* ignore errors in tty */
     i = c_getc(f);
-    if (i==CHAR_EOF) clearerr(f);
+    if (i==BYTE_EOF) clearerr(f);
     
     int_address = NULL; 
     return i;
     
   } else if (s->streammode != 's') { /* Not a socket */
 
-    if (feof(f)) return CHAR_PAST_EOF; /* attempt to read past end of stream */
+    if (feof(f)) return BYTE_PAST_EOF; /* attempt to read past end of stream */
     i = c_getc(f);
     if (i < 0 && ferror(f)) {
       IO_ERROR("getc() in readbyte()");
@@ -292,11 +297,11 @@ static int readbyte(stream_node_t *s,
     unsigned char ch;
     int fildes = GetInteger(s->label);
     
-    if (s->socket_eof) return CHAR_PAST_EOF; /* attempt to read past end of stream */
+    if (s->socket_eof) return BYTE_PAST_EOF; /* attempt to read past end of stream */
     
     switch(read(fildes, (void *)&ch, 1)){
     case 0:
-      i = CHAR_EOF;
+      i = BYTE_EOF;
       break;
     case 1: 
       i = (int)ch;
@@ -305,7 +310,7 @@ static int readbyte(stream_node_t *s,
       IO_ERROR("read() in readbyte()");
     }
 
-    if (i==CHAR_EOF) s->socket_eof = TRUE;
+    if (i==BYTE_EOF) s->socket_eof = TRUE;
 
     return i;
 
@@ -348,16 +353,16 @@ CBOOL__PROTO(flush_output1)
 CBOOL__PROTO(getct)
 {
   ERR__FUNCTOR("io_basic:getct", 2);
-  int i;
+  c_rune_t r;
 
-  i = readchar(Input_Stream_Ptr,GET,address_getct);
+  r = readrune(Input_Stream_Ptr,GET,address_getct);
 
-  if (i == CHAR_PAST_EOF) {
+  if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
-  return cunify(Arg,X(0),MakeSmall(i)) 
-         && cunify(Arg,X(1),MakeSmall(i == CHAR_EOF ? -1 : symbolchar[i]));
+  return cunify(Arg,X(0),MakeSmall(r)) 
+    && cunify(Arg,X(1),MakeSmall(r == RUNE_EOF ? -1 : symbolrune[r]));
 }
 
 
@@ -366,16 +371,16 @@ CBOOL__PROTO(getct)
 CBOOL__PROTO(getct1)
 {
   ERR__FUNCTOR("io_basic:getct1", 2);
-  int i;
+  c_rune_t r;
   
-  i = readchar(Input_Stream_Ptr,GET1,address_getct1); /* skip whitespace */
+  r = readrune(Input_Stream_Ptr,GET1,address_getct1); /* skip whitespace */
 
-  if (i == CHAR_PAST_EOF) {
+  if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
-  return cunify(Arg,X(0),MakeSmall(i)) 
-         && cunify(Arg,X(1),MakeSmall(i == CHAR_EOF ? -1 : symbolchar[i]));
+  return cunify(Arg,X(0),MakeSmall(r)) 
+         && cunify(Arg,X(1),MakeSmall(r == RUNE_EOF ? -1 : symbolrune[r]));
 }
 
 
@@ -384,15 +389,15 @@ CBOOL__PROTO(getct1)
 CBOOL__PROTO(get)
 {
   ERR__FUNCTOR("io_basic:get_code", 1);
-  int i;
+  c_rune_t r;
 
-  i = readchar(Input_Stream_Ptr,GET,address_get);
+  r = readrune(Input_Stream_Ptr,GET,address_get);
 
-  if (i == CHAR_PAST_EOF) {
+  if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
-  return cunify(Arg,X(0),MakeSmall(i));
+  return cunify(Arg,X(0),MakeSmall(r));
 }
 
 /*----------------------------------------------------------------*/
@@ -400,21 +405,22 @@ CBOOL__PROTO(get)
 CBOOL__PROTO(get2)
 {
   ERR__FUNCTOR("io_basic:get_code", 2);
-  int i;
+  c_rune_t r;
+  int errcode;
   stream_node_t *s;
   
-  s = stream_to_ptr_check(X(0), 'r', &i);
+  s = stream_to_ptr_check(X(0), 'r', &errcode);
   if (!s) {
-    BUILTIN_ERROR(i,X(0),1);
+    BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  i = readchar(s,GET,address_get2);
+  r = readrune(s,GET,address_get2);
 
-  if (i == CHAR_PAST_EOF) {
+  if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
 
-  return cunify(Arg,X(1),MakeSmall(i));
+  return cunify(Arg,X(1),MakeSmall(r));
 }
 
 /*----------------------------------------------------------------*/
@@ -422,15 +428,15 @@ CBOOL__PROTO(get2)
 CBOOL__PROTO(get1)
 {
   ERR__FUNCTOR("io_basic:get1_code", 1);
-  int i;
+  c_rune_t r;
   
-  i = readchar(Input_Stream_Ptr,GET1,address_get1); /* skip whitespace */
+  r = readrune(Input_Stream_Ptr,GET1,address_get1); /* skip whitespace */
 
-  if (i == CHAR_PAST_EOF) {
+  if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
-  return cunify(Arg,X(0),MakeSmall(i));
+  return cunify(Arg,X(0),MakeSmall(r));
 }
 
 
@@ -440,21 +446,22 @@ CBOOL__PROTO(get1)
 CBOOL__PROTO(get12)
 {
   ERR__FUNCTOR("io_basic:get1_code", 2);
-  int i;
+  c_rune_t r;
+  int errcode;
   stream_node_t *s;
   
-  s = stream_to_ptr_check(X(0), 'r', &i);
+  s = stream_to_ptr_check(X(0), 'r', &errcode);
   if (!s) {
-    BUILTIN_ERROR(i,X(0),1);
+    BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  i = readchar(s,GET1,address_get12); /* skip whitespace */
+  r = readrune(s,GET1,address_get12); /* skip whitespace */
 
-  if (i == CHAR_PAST_EOF) {
+  if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
 
-  return cunify(Arg,X(1),MakeSmall(i));
+  return cunify(Arg,X(1),MakeSmall(r));
 }
 
 
@@ -463,15 +470,15 @@ CBOOL__PROTO(get12)
 CBOOL__PROTO(peek)
 {
   ERR__FUNCTOR("io_basic:peek_code", 1);
-  int i;
+  c_rune_t r;
 
-  i = readchar(Input_Stream_Ptr,PEEK,address_peek);
+  r = readrune(Input_Stream_Ptr,PEEK,address_peek);
 
-  if (i == CHAR_PAST_EOF) {
+  if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
-  return cunify(Arg,X(0),MakeSmall(i));
+  return cunify(Arg,X(0),MakeSmall(r));
 }
 
 /*----------------------------------------------------------------*/
@@ -479,28 +486,29 @@ CBOOL__PROTO(peek)
 CBOOL__PROTO(peek2)
 {
   ERR__FUNCTOR("io_basic:peek_code", 2);
-  int i;
+  c_rune_t r;
+  int errcode;
   stream_node_t *s;
   
-  s = stream_to_ptr_check(X(0), 'r', &i);
+  s = stream_to_ptr_check(X(0), 'r', &errcode);
   if (!s) {
-    BUILTIN_ERROR(i,X(0),1);
+    BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  i = readchar(s,PEEK,address_peek2);
+  r = readrune(s,PEEK,address_peek2);
 
-  if (i == CHAR_PAST_EOF) {
+  if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
 
-  return cunify(Arg,X(1),MakeSmall(i));
+  return cunify(Arg,X(1),MakeSmall(r));
 }
 
 /*----------------------------------------------------------------*/
 
 CBOOL__PROTO(nl)
 {
-  writechar('\n',Output_Stream_Ptr);
+  writerune('\n',Output_Stream_Ptr);
   return TRUE;
 }
 
@@ -518,7 +526,7 @@ CBOOL__PROTO(nl1)
     BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  writechar('\n',s);
+  writerune('\n',s);
   return TRUE;
 }
 
@@ -527,11 +535,11 @@ CBOOL__PROTO(nl1)
 CBOOL__PROTO(put)
 {
   ERR__FUNCTOR("io_basic:put_code", 1);
-  int i;
+  c_rune_t r;
 
   DEREF(X(0), X(0));
-  CheckGetCharacterCode(X(0),i,1);
-  writechar(i,Output_Stream_Ptr);
+  CheckGetCharacterCode(X(0),r,1);
+  writerune(r,Output_Stream_Ptr);
 
   return TRUE;
 }
@@ -541,17 +549,18 @@ CBOOL__PROTO(put)
 CBOOL__PROTO(put2)
 {
   ERR__FUNCTOR("io_basic:put_code", 2);
-  int i;
+  c_rune_t r;
+  int errcode;
   stream_node_t *s;
 
-  s = stream_to_ptr_check(X(0), 'w', &i);
+  s = stream_to_ptr_check(X(0), 'w', &errcode);
   if (!s) {
-    BUILTIN_ERROR(i,X(0),1);
+    BUILTIN_ERROR(errcode,X(0),1);
   }
 
   DEREF(X(1), X(1));
-  CheckGetCharacterCode(X(1),i,2);
-  writechar(i,s);
+  CheckGetCharacterCode(X(1),r,2);
+  writerune(r,s);
 
   return TRUE;
 }
@@ -567,7 +576,7 @@ CBOOL__PROTO(tab)
     ERROR_IN_ARG(X(0),1,INTEGER);
   }
 
-  writecharn(' ',GetInteger(X(0)),Output_Stream_Ptr);
+  writerunen(' ',GetInteger(X(0)),Output_Stream_Ptr);
   return TRUE;
 }
 
@@ -590,7 +599,7 @@ CBOOL__PROTO(tab2)
     ERROR_IN_ARG(X(1),2,INTEGER);
   }
 
-  writecharn(' ',GetInteger(X(1)),s);
+  writerunen(' ',GetInteger(X(1)),s);
   return TRUE;
 }
 
@@ -599,15 +608,15 @@ CBOOL__PROTO(tab2)
 CBOOL__PROTO(skip)
 {
   ERR__FUNCTOR("io_basic:skip_code", 1);
-  int i, ch;
+  c_rune_t r, r1;
 
   DEREF(X(0),X(0));
-  CheckGetCharacterCode(X(0),i,1);
+  CheckGetCharacterCode(X(0),r,1);
 
-  for (ch=i+1; ch!=i && ch != CHAR_PAST_EOF;)
-    ch = readchar(Input_Stream_Ptr,i,address_skip);
+  for (r1=r+1; r1!=r && r1 != RUNE_PAST_EOF;)
+    r1 = readrune(Input_Stream_Ptr,r,address_skip);
 
-  if (ch == CHAR_PAST_EOF) {
+  if (r1 == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
@@ -620,21 +629,22 @@ CBOOL__PROTO(skip)
 CBOOL__PROTO(skip2)
 {
   ERR__FUNCTOR("io_basic:skip_code", 2);
-  int i, ch;
+  c_rune_t r, r1;
+  int errcode;
   stream_node_t *s;
   
-  s = stream_to_ptr_check(X(0), 'r', &i);
+  s = stream_to_ptr_check(X(0), 'r', &errcode);
   if (!s) {
-    BUILTIN_ERROR(i,X(0),1);
+    BUILTIN_ERROR(errcode,X(0),1);
   }
 
   DEREF(X(1),X(1))
-  CheckGetCharacterCode(X(1),i,2);
+  CheckGetCharacterCode(X(1),r,2);
 
-  for (ch=i+1; ch!=i && ch != CHAR_PAST_EOF;)
-    ch = readchar(s,i,address_skip2);
+  for (r1=r+1; r1!=r && r1 != RUNE_PAST_EOF;)
+    r1 = readrune(s,r,address_skip2);
 
-  if (ch == CHAR_PAST_EOF) {
+  if (r1 == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
 
@@ -646,13 +656,13 @@ CBOOL__PROTO(skip2)
 CBOOL__PROTO(skip_line)
 {
   // ERR__FUNCTOR("io_basic:skip_line", 0);
-  int ch;
+  int r;
 
-  for (ch=0; ch!=0xa && ch!=0xd && ch>=0;)
-    ch = readchar(Input_Stream_Ptr,SKIPLN,address_skip_line);
+  for (r=0; r!=0xa && r!=0xd && r>=0;)
+    r = readrune(Input_Stream_Ptr,SKIPLN,address_skip_line);
 
-  if (ch == 0xd) /* Delete a possible 0xa (win end-of-line) */
-    readchar(Input_Stream_Ptr,DELRET,address_skip_line);
+  if (r == 0xd) /* Delete a possible 0xa (win end-of-line) */
+    readrune(Input_Stream_Ptr,DELRET,address_skip_line);
 
   return TRUE;
 }
@@ -663,7 +673,8 @@ CBOOL__PROTO(skip_line)
 CBOOL__PROTO(skip_line1)
 {
   ERR__FUNCTOR("io_basic:skip_line", 1);
-  int errcode, ch;
+  int errcode;
+  c_rune_t r;
   stream_node_t *s;
   
   s = stream_to_ptr_check(X(0), 'r', &errcode);
@@ -671,11 +682,11 @@ CBOOL__PROTO(skip_line1)
     BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  for (ch=0; ch!=0xa && ch!=0xd && ch>=0;)
-    ch = readchar(s,SKIPLN,address_skip_line1);
+  for (r=0; r!=0xa && r!=0xd && r>=0;)
+    r = readrune(s,SKIPLN,address_skip_line1);
 
-  if (ch == 0xd) /* Delete a possible 0xa (win end-of-line) */
-    readchar(s,DELRET,address_skip_line1);
+  if (r == 0xd) /* Delete a possible 0xa (win end-of-line) */
+    readrune(s,DELRET,address_skip_line1);
 
   return TRUE;
 }
@@ -689,7 +700,7 @@ CBOOL__PROTO(get_byte1)
 
   i = readbyte(Input_Stream_Ptr,address_get);
 
-  if (i == CHAR_PAST_EOF) {
+  if (i == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
@@ -701,17 +712,17 @@ CBOOL__PROTO(get_byte1)
 CBOOL__PROTO(get_byte2)
 {
   ERR__FUNCTOR("io_basic:get_byte", 2);
-  int i;
+  int i, errcode;
   stream_node_t *s;
   
-  s = stream_to_ptr_check(X(0), 'r', &i);
+  s = stream_to_ptr_check(X(0), 'r', &errcode);
   if (!s) {
-    BUILTIN_ERROR(i,X(0),1);
+    BUILTIN_ERROR(errcode,X(0),1);
   }
 
   i = readbyte(s,address_get2);
 
-  if (i == CHAR_PAST_EOF) {
+  if (i == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
 
@@ -737,17 +748,17 @@ CBOOL__PROTO(put_byte1)
 CBOOL__PROTO(put_byte2)
 {
   ERR__FUNCTOR("io_basic:put_byte", 2);
-  int i;
+  int i, errcode;
   stream_node_t *s;
 
-  s = stream_to_ptr_check(X(0), 'w', &i);
+  s = stream_to_ptr_check(X(0), 'w', &errcode);
   if (!s) {
-    BUILTIN_ERROR(i,X(0),1);
+    BUILTIN_ERROR(errcode,X(0),1);
   }
 
   DEREF(X(1),X(1));
   CheckGetByte(X(1),i,2);;
-  writechar(i,s);
+  writerune(i,s);
 
   return TRUE;
 }
@@ -763,28 +774,28 @@ void print_string(stream_node_t *stream,
 		  char *p)
 {
   FILE *fileptr = stream->streamfile;
-  int i;
+  c_rune_t r;
 
   if (stream->isatty) {
     stream = root_stream_ptr;
-    for (i = *p++; i; i = *p++) {
+    for (r = *p++; r; r = *p++) {
       /* ignore errors on tty */
-      putc(i,fileptr);
-      inc_counts(i,stream);
+      putc(r,fileptr);
+      inc_counts(r,stream);
     }
   } else if (stream->streammode != 's') {                      /* Is not a socket */
-    for (i = *p++; i; i = *p++) {
-      if (putc(i,fileptr) < 0) {
+    for (r = *p++; r; r = *p++) {
+      if (putc(r,fileptr) < 0) {
 	IO_ERROR("putc() in in print_string()");
       }
-      inc_counts(i,stream);
+      inc_counts(r,stream);
     }
   } else {
     size_t size = 0;
     char *q = p;
 
-    for (i = *q++; i; i = *q++) {
-      inc_counts(i,stream);
+    for (r = *q++; r; r = *q++) {
+      inc_counts(r,stream);
       size++;
     }
     if (write(GetInteger(stream->label), p, size) < 0) {
@@ -809,7 +820,7 @@ CVOID__PROTO(print_number, stream_node_t *stream, tagged_t term)
 
 #define FULL_ESCAPE_QUOTED_ATOMS 1
 
-#define PRINT_CONTROL_CHAR(X) { *bp++ = '\\'; *bp++ = (X); }
+#define PRINT_CONTROL_RUNE(X) { *bp++ = '\\'; *bp++ = (X); }
 
 CVOID__PROTO(print_atom, stream_node_t *stream, tagged_t term)
 {
@@ -826,53 +837,52 @@ CVOID__PROTO(print_atom, stream_node_t *stream, tagged_t term)
 #endif
       unsigned char *ch = (unsigned char *)atomptr->name;
       char *bp = buf;
-      int i;
+      c_rune_t r;
       
       *bp++ = '\'';
 #if defined(FULL_ESCAPE_QUOTED_ATOMS)
-      while ((i = *ch++)) {
-	extern char symbolchar[256];
+      while ((r = *ch++)) {
 
 	/* See tokenize.pl for table of symbolic control chars */
-	if (symbolchar[i] == 0) {
-	  switch (i) {
-	  case 7: PRINT_CONTROL_CHAR('a'); break;
-	  case 8: PRINT_CONTROL_CHAR('b'); break;
-	  case 9: PRINT_CONTROL_CHAR('t'); break;
-	  case 10: PRINT_CONTROL_CHAR('n'); break;
-	  case 11: PRINT_CONTROL_CHAR('v'); break;
-	  case 12: PRINT_CONTROL_CHAR('f'); break;
-	  case 13: PRINT_CONTROL_CHAR('r'); break;
-	  /* case 27: PRINT_CONTROL_CHAR('e'); break; */
+	if (symbolrune[r] == 0) {
+	  switch (r) {
+	  case 7: PRINT_CONTROL_RUNE('a'); break;
+	  case 8: PRINT_CONTROL_RUNE('b'); break;
+	  case 9: PRINT_CONTROL_RUNE('t'); break;
+	  case 10: PRINT_CONTROL_RUNE('n'); break;
+	  case 11: PRINT_CONTROL_RUNE('v'); break;
+	  case 12: PRINT_CONTROL_RUNE('f'); break;
+	  case 13: PRINT_CONTROL_RUNE('r'); break;
+	  /* case 27: PRINT_CONTROL_RUNE('e'); break; */
 	  case 32: *bp++ = ' '; break;
-	  /* case 127: PRINT_CONTROL_CHAR('d'); break; */
+	  /* case 127: PRINT_CONTROL_RUNE('d'); break; */
 	  default:
 	    *bp++ = '\\';
-	    *bp++ = '0' + ((i >> 6) & 7);
-	    *bp++ = '0' + ((i >> 3) & 7);
-	    *bp++ = '0' + (i & 7);
+	    *bp++ = '0' + ((r >> 6) & 7);
+	    *bp++ = '0' + ((r >> 3) & 7);
+	    *bp++ = '0' + (r & 7);
 	    *bp++ = '\\';
 	  }
 	} else {
-	  if (i=='\'' || i=='\\')
-	    *bp++ = i;
-	  *bp++ = i;
+	  if (r=='\'' || r=='\\')
+	    *bp++ = r;
+	  *bp++ = r;
 	}
       }
 #else
       if (atomptr->has_squote)
-	while ((i = *ch++))
+	while ((r = *ch++))
 	  {
-	    if (i=='\'' || i=='\\')
-	      *bp++ = i;
-	    *bp++ = i;
+	    if (r=='\'' || r=='\\')
+	      *bp++ = r;
+	    *bp++ = r;
 	  }
       else
-	while ((i = *ch++))
+	while ((r = *ch++))
 	  {
-	    if (i=='\\')
-	      *bp++ = i;
-            *bp++ = i;
+	    if (r=='\\')
+	      *bp++ = r;
+            *bp++ = r;
           }
 #endif
       *bp++ = '\'';
@@ -896,34 +906,34 @@ CVOID__PROTO(display_term,
 
   switch (TagOf(term)) {
   case LST:
-    writechar('[',stream);
+    writerune('[',stream);
     DerefCar(aux,term);
     display_term(Arg,aux, stream, quoted);
     DerefCdr(term,term);
     while(TagIsLST(term)) {
-      writechar(',',stream);
+      writerune(',',stream);
       DerefCar(aux,term);
       display_term(Arg,aux, stream, quoted);
       DerefCdr(term,term);
     }
     if (term!=atom_nil){
-      writechar('|',stream);
+      writerune('|',stream);
       display_term(Arg,term, stream, quoted);
     }
-    writechar(']',stream);
+    writerune(']',stream);
     break;
   case STR:
     if (STRIsLarge(term))
       goto number;
     display_term(Arg,TagToHeadfunctor(term),stream, quoted);
-    writechar('(',stream);
+    writerune('(',stream);
     arity = Arity(TagToHeadfunctor(term));
     for(i=1; i<=arity; i++){
-      if (i>1) writechar(',',stream);
+      if (i>1) writerune(',',stream);
       DerefArg(aux,term,i);
       display_term(Arg,aux, stream, quoted);
     }
-    writechar(')',stream);
+    writerune(')',stream);
     break;
   case UBV:
   case SVA:
@@ -1034,7 +1044,7 @@ CBOOL__PROTO(prolog_fast_read_in_c)
  /* NULL as predaddress (really did not bother to find out what to put)  */
 
   i = readbyte(Input_Stream_Ptr, NULL);
-  if (i == CHAR_PAST_EOF) {
+  if (i == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
   if (i != FASTRW_VERSION) return FALSE;
@@ -1067,7 +1077,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
   int base;
   
   k = readbyte(Input_Stream_Ptr, NULL);
-  if (k == CHAR_PAST_EOF) {
+  if (k == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
@@ -1096,7 +1106,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
 	s = (unsigned char *)Atom_Buffer+i;
       }
       j = readbyte(Input_Stream_Ptr, NULL);
-      if (j == CHAR_PAST_EOF) {
+      if (j == BYTE_PAST_EOF) {
 	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
       }
       *s++ = j;
@@ -1148,7 +1158,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       return TRUE;
     case 'S':
       i = readbyte(Input_Stream_Ptr, NULL);
-      if (i == CHAR_PAST_EOF) {
+      if (i == BYTE_PAST_EOF) {
 	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
       }
           /*

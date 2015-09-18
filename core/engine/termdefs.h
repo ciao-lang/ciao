@@ -520,9 +520,14 @@ struct numstack_ {
 
 /* Other data structures */
 
-#define CHAR_EOF                (-1)
-#define CHAR_PAST_EOF           (-2)
-#define CHAR_VOID               (-100)
+typedef int32_t c_rune_t;
+
+#define RUNE_EOF                (-1)
+#define RUNE_PAST_EOF           (-2)
+#define RUNE_VOID               (-100)
+
+/* For now, valid runes are LATIN1 (i.e. between 0 and 255) */
+#define ValidRune(X)            (!((X) & ~0xff)) 
 
 /* TODO: this is commonly known as 'intrusive map container based on
    doubly linked circular lists' of streams */
@@ -534,14 +539,14 @@ struct stream_node_ {
   stream_node_t *forward;
   tagged_t streamname;
   char streammode;
-  int pending_char;  /* From peek'ing. CHAR_VOID value indicates no pending char. */
+  c_rune_t pending_rune;  /* From peek'ing. RUNE_VOID value indicates no pending char. */
   unsigned int isatty:1;
   unsigned int socket_eof:1;
   /*  unsigned int socket_is_unbuffered:1; -- Not used (DCG) */
-  int previous_char; /* To correctly count lines in Mac, Win, Unix (DCG) */
+  c_rune_t previous_rune; /* To correctly count lines in Mac, Win, Unix (DCG) */
   intmach_t last_nl_pos;
   intmach_t nl_count;
-  intmach_t char_count;
+  intmach_t rune_count;
   FILE *streamfile;                               /* Not used for sockets */
 };
 

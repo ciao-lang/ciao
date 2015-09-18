@@ -203,14 +203,14 @@ float time_at_event_start = 0.0;
 
 /* support for tokenizer and for writing out atoms */
 
-#define IsLowerChar(X)  (symbolchar[X]==1)
-#define IsUpperChar(X)  (symbolchar[X]==2)
-#define IsDigit(X)      (symbolchar[X]==3)
-#define IsSymbolChar(X) (symbolchar[X]==4)
+#define RuneIsLowerCase(X)   (symbolrune[(X)]==1)
+#define RuneIsUpperCase(X)   (symbolrune[(X)]==2)
+#define RuneIsDigit(X)       (symbolrune[(X)]==3)
+#define RuneIsSymbol(X)      (symbolrune[(X)]==4)
 
 /* Shared .... */
 
-char symbolchar[256];
+char symbolrune[256];
 
 #if defined(MARKERS)
 tagged_t atom_success;
@@ -376,23 +376,24 @@ definition_t *address_ucc;
 
 static void classify_atom(atom_t *s)
 {
+
   unsigned char *cp = (unsigned char *)s->name;
-  unsigned char c0 = cp[0];
-  unsigned char c1 = cp[1];
-  unsigned char c2 = cp[2];
-  unsigned char c;
+  c_rune_t r0 = cp[0];
+  c_rune_t r1 = cp[1];
+  c_rune_t r2 = cp[2];
+  c_rune_t r;
   bool_t seen_alpha = FALSE;
   bool_t seen_symbol = FALSE;
   
   s->has_dquote = FALSE;	/* TRUE if symbolchars only */
   s->has_squote = FALSE;	/* TRUE if ! ; [] {} OR contains a "'" */
   s->has_special = FALSE;	/* TRUE if needs quoting */
-  while ((c = *cp++)) {
-    if (c=='\'')
+  while ((r = *cp++)) {
+    if (r=='\'')
       s->has_squote = s->has_special = TRUE;
-    else if (IsLowerChar(c) || IsUpperChar(c) || IsDigit(c))
+    else if (RuneIsLowerCase(r) || RuneIsUpperCase(r) || RuneIsDigit(r))
       seen_alpha = TRUE;
-    else if (IsSymbolChar(c))
+    else if (RuneIsSymbol(r))
       seen_symbol = TRUE;
     else s->has_special = TRUE;
   }
@@ -404,16 +405,16 @@ static void classify_atom(atom_t *s)
   /* NB: No point in quoting '... * /' */
     
   if (s->has_special && !s->has_squote &&
-      ((c0=='!' && c1==0) ||
-       (c0==';' && c1==0) ||
-       (c0=='[' && c1==']' && c2==0) ||
-       (c0=='{' && c1=='}' && c2==0)))
+      ((r0=='!' && r1==0) ||
+       (r0==';' && r1==0) ||
+       (r0=='[' && r1==']' && r2==0) ||
+       (r0=='{' && r1=='}' && r2==0)))
     s->has_special=FALSE, s->has_squote=TRUE;
   else if (!s->has_special &&
-	   (IsUpperChar(c0) ||
-	    IsDigit(c0) ||
-	    (c0=='.' && c1==0) ||
-	    (c0=='/' && c1=='*')))
+	   (RuneIsUpperCase(r0) ||
+	    RuneIsDigit(r0) ||
+	    (r0=='.' && r1==0) ||
+	    (r0=='/' && r1=='*')))
     s->has_special=TRUE;
 }
 
@@ -744,42 +745,42 @@ static void define_functions(void)
 
 void init_kanji(void)
 {
-  int i;
+  c_rune_t i;
   char *cp;
 
   for (i=0; i<128; i++)		/* default: whitespace */
-      symbolchar[i] = 0;
+      symbolrune[i] = 0;
   for (i=128; i<256; i++)
-    symbolchar[i] = 1;		/* accept 128..255 as lowercase */
+    symbolrune[i] = 1;		/* accept 128..255 as lowercase */
   
   for (cp="abcdefghijklmnopqrstuvwxyz"; (i = *cp++); )
-    symbolchar[i]=1;		/* lowercase */
+    symbolrune[i]=1;		/* lowercase */
   for (cp="ABCDEFGHIJKLMNOPQRSTUVWXYZ_"; (i = *cp++); )
-    symbolchar[i]=2;		/* uppercase */
+    symbolrune[i]=2;		/* uppercase */
   for (cp="0123456789"; (i = *cp++); )
-    symbolchar[i]=3;		/* digits */
+    symbolrune[i]=3;		/* digits */
   for (cp="#$&*+-./:<=>?@^\\`~"; (i = *cp++); )
-    symbolchar[i]=4;		/* symbolchars */
+    symbolrune[i]=4;		/* symbolchars */
   for (cp="!;\"'%(),[]{|}"; (i = *cp++); )
-    symbolchar[i]=5;		/* punctuation */
+    symbolrune[i]=5;		/* punctuation */
 }
 
 
 void init_latin1(void)
 {
-  int i;
+  c_rune_t i;
 
   init_kanji();
   for (i=128; i<161; i++)	/* 128..160 are whitespace */
-    symbolchar[i]=0;
+    symbolrune[i]=0;
   for (i=161; i<192; i++)	/* 161..191 are symbolchars */
-    symbolchar[i]=4;
+    symbolrune[i]=4;
   for (i=192; i<223; i++)	/* 192..222 are uppercase */
-    symbolchar[i]=2;
+    symbolrune[i]=2;
   for (i=223; i<256; i++)	/* 223..255 are lowercase */
-    symbolchar[i]=1;
-  symbolchar[215]=4;		/* 215 (mult sign) is a symbolchar */
-  symbolchar[247]=4;		/* 247 (div sign) is a symbolchar */
+    symbolrune[i]=1;
+  symbolrune[215]=4;		/* 215 (mult sign) is a symbolchar */
+  symbolrune[247]=4;		/* 247 (div sign) is a symbolchar */
 }
 
 
