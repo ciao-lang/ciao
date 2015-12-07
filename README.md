@@ -1,4 +1,4 @@
-Public read-only mirror for Ciao source code.
+Public read-only mirror for [Ciao](http://ciao-lang.org) source code.
 
 # NOTES
 
@@ -10,5 +10,6 @@ Please, do not fork this repository:
 
  - commit ids will not be stable (history may be rewritten)
  - commit logs are still not available
+ - some advanced or experimental features are not available
 
 -- Ciao Development Team
