@@ -1,0 +1,6 @@
+
+use_module(library(system)).
+cd('/home/herme/lpmake').
+use_module(lpmake).
+cd('/home/herme/lpmake/make/example').
+catch(parse_args(['-m','MakefileExample.pl',datafile_simple],lpmake), E, handle_make_error(E)).

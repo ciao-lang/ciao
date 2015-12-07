@@ -1,0 +1,49 @@
+
+CiaoDHT
+========
+
+CiaoDHT is a simple implementation of distributed hash tables (DHT)
+using native CiaoProlog primitives.
+
+Compilation
+===========
+Compilation step consists of two parts: 
+ - compilation of server
+
+ - compilation of client.
+
+Both files are supplied in this directory. In order to compile them
+you may use following command:
+
+ciaoc *.pl
+
+
+Distribution
+============
+At this step it is important to understand that full power of any DHT
+is its distibuted performance. Therefore, to play with it you would
+probaly like to have several machines at your disposal. If that is the
+case you  can go on with any of following ways:
+ - install a CiaoProlog distribution on each of them and compile
+   server.pl and client.pl two files separately.
+
+ - compile server.pl once and redistribute it to other hosts in
+   whatever manner you preffer (floppy disks, FTP, SSH, or printing
+   out the binary and then give it to your secretary to type - just
+   jocking)
+
+Startup
+=======
+Once distribution step is performed, you start nodes of your DHT one
+by one. First of them can be simply started with following command:
+
+server
+
+Each subsequent node should be started with some reference to
+existing nodes. Such reference may be specified as '--join-host'
+command line option:
+
+server --join-host <address>
+
+In this template <address> may be an optional IP or DNS address of any
+machine on which a DHT server is already running.

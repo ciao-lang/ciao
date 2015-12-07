@@ -1,0 +1,288 @@
+Thu Apr 18 15:03:36 CEST 2002
+
+Added to the main description (at the end of the message) all comments
+below by Manuel and German; traversed changelog until 1*7+198.
+
+--MCL
+
+Date: Mon, 7 Jan 2002 19:24:41 +0100
+
+I found this message from German summarizing the changes since 1.6 in
+May of this year. I checked this against the stuff currently in
+/home/clip/Systems/ciao/doc/common/NewIn1.8 and I note that some
+things could perhaps be better explained than in 'NewIn1.8'. In
+particular:
+
+- Mention the improved Java interface (this should be explained better).
+
+- Explain better all the changes to persdb. Note that some (for
+  example the fact that fewer things need to be declared now) may
+  affect code that is already written by users and should be explained
+  well.
+
+Also, note that lots of things have been added *after* the last time
+we updated 'NewIn1.8': we need to add all those before release.
+
+Man
+
+------- Start of forwarded message -------
+Date: Wed, 16 May 2001 20:12:25 +0200
+From: "A. German Puebla Sanchez" <german>
+To: ciao
+Subject: Improvements from 1.6 to 1.8 
+
+I've traversed the changelog of Ciao and got the following main
+changes. Please check that I do not forget anything. Note that this
+must be *very* brief.
+
+In paranthesis I add some comments.
+
+By the way, I did not find any comment regarding the improvements on
+the database interface (!).
+
+German
+- ---------------------------------------
+New Java interface
+
+Mac OS X and Power PC now supported
+(Added patches to compile in Power PC contributed by Paulo Moura)
+
+Many improvements to concurrency
+
+Improved SQL interface.
+
+Improved Ciao executables as CGIs under IIS
+(The installation program in Windows now adds an entry in the registry 
+ for running)
+
+Improved compiler error generation
+(Now syntax errors disable .itf generation and compilation.  This way,
+   the next time the file is treated, errors will appear again)
+
+Many improvements to persdb.
+(@begin{itemize}
+
+   @item Implemented passerta_fact/1 (asserta_fact/1).
+
+   @item Now it is never necessary to explicitly call init_persdb, a call
+         to initialize_db is only needed after dynamically defining facts
+         of persistent_dir/2.  Thus, pcurrent_fact/1 predicate eliminated.
+
+   @item Facts of persistent predicates included in the program code are
+         now included in the persistent database when it is created.
+         They are ignored in successive executions.
+
+   @item Files where persistent predicates reside are now created inside
+         a directory named as the module where the persistent predicates
+         are defined, and are named as F_A* for predicate F/A.
+
+   @item Now there are two packages: persdb and 'persdb/ll' (for low
+         level).  In the first, the standard builtins asserta_fact/1,
+         assertz_fact/1, and retract_fact/1 are replaced by new versions
+         which handle persistent data predicates, behaving as usual for
+         normal data predicates.  In the second package, predicates with
+         names starting with 'p' are defined, so that there is not
+         overhead in calling the standard builtins.
+
+   @item Needed declarations for persistent_dir/2 are now included in
+         the packages.
+
+   @end{itemize}
+   (Daniel Cabeza Gras)").
+
+Improved syntax for higher order
+
+
+
+-----
+
+
+@item Improvements related to supported platforms:
+    @begin{itemize}
+    @item Support for Mac OS X 10.1, based on the Darwin kernel.
+    @item Initial support for compilation on Linux for Power PC
+        (contributed by @index{Paulo Moura}).
+    @item Workaround for incorrect C compilation while using newer
+         (> 2.95) gcc compilers.
+    @item .bat files generated in Windows.
+    @end{itemize}
+
+@item Changes in compiler behavior and user interface:
+    @begin{itemize}
+    @item Corrected a bug which caused wrong code generation in some cases.
+    @item Changed execution of initialization directives.  Now the
+            initialization of a module/file never runs before the
+            initializations of the modules from which the module/file
+            imports (excluding circular dependences).
+    @item The engine is more intelligent when looking for an engine to
+    execute bytecode; this caters for a variety of situations when
+    setting explicitly the CIAOLIB environment variable.
+    @item Fixed bugs in the toplevel: behaviour of @{module:main} calls and 
+            initialization of a module (now happens after related
+	    modules are loaded).
+    @item Layout char not needed any more to end Prolog files.
+    @item Syntax errors now disable .itf creation, so that they show next
+        time the code is used without change.
+    @item Redefinition warnings now issued only when an unqualified call
+          is seen. 
+    @item Context menu in Windows can now load a file into the toplevel.
+    @item Updated Windows installation in order to run CGI executables under
+            Windows: a new information item is added to the registry.
+    @item Added new directories found in recent Linux distributions to
+            INFOPATH. 
+
+    @item Emacs-based environment and debugger improved:
+	@begin{itemize}
+        @item Errors located immediataly after code loading.
+        @item Improved ciao-check-types-modes (preprocessor progress
+              now visible). 
+        @item Fixed loading regions repeatedly (no more predicate
+              redefinition warnings).
+        @item Added entries in @apl{ciaopp} menu to set verbosity of output.
+        @item Fixed some additional xemacs compatibility issues
+              (related to searches). 
+        @item Errors reported by inferior processes are now explored in
+         forward order (i.e., the first error rewported is the first
+         one highlighted). Improved tracking of errors. 
+	@item Specific tool bar now available, with icons for main fuctions 
+	(works from emacs 21.1 on). Also, other minor adaptations for 
+        working with emacs 21.1 and later.
+        @item Debugger faces are now locally defined (and better
+         customization). This also improves comtability with xemacs
+         (which has different faces).
+        @item Direct access to a common use of the preprocessor
+         (checking modes/types and locating errors) from toolbar.
+   	@item Inferior modes for Ciao and CiaoPP improved: contextual
+         help turned on by default.
+	@item Fixes to set-query. Also, previous query now appears in prompt.
+        @item Improved behaviour of stored query.
+        @item Improved behaviour of recentering, finding errors, etc.
+        @item Wait for prompt has better termination characteristics.
+	@item Added new interactive entry points (M-x): ciao, prolog, ciaopp.
+	@item Better tracking of last inferior buffer used.
+        @item Miscellanous bugs removed; some colors changed to
+              adapt to different Emacs versions.
+        @item Fixed some remaining incompatibilities with xemacs.
+        @item @tt{:- doc} now also supported and highlighted.
+        @item Eliminated need for calendar.el
+        @item Added some missing library directives to fontlock list, organized
+         this better.
+	@end{itemize}
+
+    @end{itemize}
+
+@item New libraries added to the system:
+    @begin{itemize}
+    @item hiord: new library which needs to be loaded in order to use
+            higher-order call/N and P(X) syntax. Improved model for predicate
+            abstractions. 
+    @item fuzzy: allows representing fuzzy information in the form or
+            Prolog rules.
+    @item use_url: allows loading a module remotely by using a WWW
+            address of the module source code
+    @item andorra: alternative search method where goals which become
+            deterministic at run time are executed before others.
+    @item iterative deepening (id): alternative search method which makes a
+            depth-first search until a predetermined depth is reached.
+            Complete but in general cheaper than breadth first.
+    @item det_hook: allows making actions when a deterministic
+            situation is reached.
+    @item ProVRML: read VRML code and translate it into Prolog terms,
+            and the other way around.
+    @item io_alias_redirection: change where stdin/stdout/stderr point to
+            from within Ciao programs.
+    @item tcl_tk: an interface to Tcl/Tk programs.
+    @item tcl_tk_obj: object-based interface to Tcl/Tk graphical
+    objects.
+    @item CiaoPP: options to interface with the CiaoPP Prolog preprocessor.
+    @end{itemize}
+
+@item Some libraries greatly improved:
+    @begin{itemize}
+    @item WebDB: utilities to create WWW-based database interfaces.
+    @item Improved java interface implementation (this forced
+            renaming some interface primitives). 
+    @item User-transparent persistent predicate database revamped:
+
+    @begin{itemize}
+        @item Implemented passerta_fact/1 (asserta_fact/1).
+
+        @item Now it is never necessary to explicitly call init_persdb, a call
+         to initialize_db is only needed after dynamically defining facts
+         of persistent_dir/2.  Thus, pcurrent_fact/1 predicate eliminated.
+
+         @item Facts of persistent predicates included in the program code are
+         now included in the persistent database when it is created.
+         They are ignored in successive executions.
+
+         @item Files where persistent predicates reside are now created inside
+         a directory named as the module where the persistent predicates
+         are defined, and are named as F_A* for predicate F/A.
+
+         @item Now there are two packages: persdb and 'persdb/ll' (for low
+         level).  In the first, the standard builtins asserta_fact/1,
+         assertz_fact/1, and retract_fact/1 are replaced by new versions
+         which handle persistent data predicates, behaving as usual for
+         normal data predicates.  In the second package, predicates with
+         names starting with 'p' are defined, so that there is not
+         overhead in calling the standard builtins.
+
+         @item Needed declarations for persistent_dir/2 are now included in
+         the packages.
+   @end{itemize}
+
+   @item SQL now works with mysql.
+   @item system: expanded to contain more predicates which act as
+   interface to the underlying system /  operating system.  
+@end{itemize}
+
+@item Other libraries improved:
+    @begin{itemize}
+    @item xref: creates cross-references among Prolog files.
+    @item concurrency: new predicates to create new concurrent
+          predicates on-the-fly.
+    @item sockets: bugs corrected.
+    @item objects: concurrent facts now properly recognized.
+    @item fast read/write: bugs corrected.
+    @item Added 'webbased' protocol for active modules: publication of
+            active module address can now be made through WWW.
+    @item Predicates in library(dynmods) moved to library(compiler).
+    @item Expansion and meta predicates improved.
+    @item Pretty printing.
+    @item Assertion processing.
+    @item Module-qualified function calls expansion improved.
+    @item Module expansion calls goal expansion even at runtime.
+    @end{itemize}
+
+@item Updates to builtins (there are a few more; these are the most relevant):
+    @begin{itemize}
+    @item Added a prolog_flag to retrieve the version and patch.
+    @item current_predicate/1 in library(dynamic) now enumerates
+            non-engine modules, prolog_sys:current_predicate/2 no longer
+            exists.
+    @item exec/* bug fixed.
+    @item srandom/1 bug fixed.
+    @end{itemize}
+
+@item Updates for C interface:
+      @begin{itemize}
+      @item Fixed bugs in already existing code.
+      @item Added support for creation and traversing of Prolog data
+      structures from C predicates.
+      @item Added support for raising Prolog exceptions from C
+      predicates. 
+      @item Preliminary support for calling Prolog from C.
+      @end{itemize}
+
+@item Miscellaneous updates:
+      @begin{itemize}
+      @item Installation made more robust.
+      @item Some pending documentation added.
+      @item 'ciao' script now adds (locally) to path the place where
+      it has been installed, so that other programs can be located
+      without being explicitly in the $PATH.
+      @item Loading programs is somewhat faster now.
+      @item Some improvement in printing path names in Windows.
+      @end{itemize}
+@end{itemize}
+

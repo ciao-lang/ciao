@@ -1,0 +1,27 @@
+# $Id$
+
+PortSystem          1.0
+
+name                ciao
+version             {{Version}}
+categories          lang
+maintainers         clip.dia.fi.upm.es:clip
+description         The Ciao Prolog Development Environment 
+long_description    A next generation multi-paradigm programming environment
+homepage            {{HomeURL}}
+platforms           darwin
+master_sites        {{MasterURL}}
+distname  	    {{VersionedPackName}}
+
+checksums           md5 {{MD5CheckSum}}
+
+configure.cmd       ./ciao-boot.sh configure
+configure.args-append		--lpdoc:htmldir=${prefix}/share/doc/ciao/html
+
+build.cmd           ./ciao-boot.sh
+build.target        build
+
+destroot.target     install
+destroot.destdir    --destdir=${destroot}
+
+

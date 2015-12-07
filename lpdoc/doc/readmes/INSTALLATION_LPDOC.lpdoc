@@ -1,0 +1,83 @@
+@comment{ @apl{lpdoc} can be obtained as either a source or binary
+          distribution. }
+
+The source and binaries distributions of @apl{lpdoc} are currently
+included in @apl{Ciao} (@href{http://ciao-lang.org}). Please, refer to
+the @apl{Ciao} installation instructions for more details regarding
+the building and installation process.
+
+@comment{
+
+@section{Other software packages required (lpdoc)}
+
+The most basic functionality of @apl{lpdoc} (generating manuals in
+@tt{.texi} format, short manual entries in @tt{.manl} format,
+generating @em{index} files) is essentially self contained.  However,
+using the full capabilities of @apl{lpdoc} requires having several
+other software packages installed in the system. Fortunately, all of
+these packages are public domain software and they will normally be
+already installed in, e.g., a standard @apl{Linux} distribution. It
+should be relatively easy to get and install the required packages in
+other Unix-like packages or even in Windows, under the Cygwin
+environment.
+
+@begin{itemize} 
+
+@item @bf{Generating} @tt{.dvi} @bf{files:} @apl{lpdoc} normally
+      generates @tt{.texi} files (actually, a number of @tt{.texic}
+      files). From the @tt{.texi} files, @tt{.dvi} files are generated
+      using the standard @apl{tex} package directly. The @tt{.dvi}
+      files can also be generated with the GNU @apl{Texinfo} package,
+      which provides, among others, the @apl{texi2dvi}
+      command. However, @apl{Texinfo} itself requires the standard
+      @apl{tex} document processing package. 
+
+      @comment{ In order to use
+      @apl{texi2dvi} instead of @apl{tex} when processing documents
+      you should change the variable @tt{TEX} in the
+      @tt{Makefile.skel} file in the @tt{lib} directory before
+      installing @apl{lpdoc}. }
+
+      Generating the @tt{.dvi} file requires that the @tt{texinfo.tex}
+      file (containing the relevant macros) be available to
+      @apl{tex}. This file is normally included with modern @apl{tex}
+      distributions, although it may be obsolete. An appropriate and
+      up-to-date one for @apl{lpdoc} is provided with the @tt{lpdoc}
+      distribution, stored in the @tt{lpdoc} library during
+      installation, and used automatically when @apl{lpdoc} runs
+      @apl{tex}. The @apl{texindex} package is required in order to
+      process the indices. If you use @concept{references} in your
+      manual, then the @apl{bibtex} package is also
+      needed. @apl{texindex} and @apl{bibtex} are included with most
+      @apl{tex} distributions.
+
+@item @bf{Generating} @tt{.ps} @bf{files:} @tt{.ps} files are
+      generated from the @tt{.dvi} files using the @apl{dvips} command
+      (this, again, can be changed in the @tt{Makefile.skel} file in the
+      @tt{lib} directory).  This command is included with standard
+      @apl{tex} distributions.
+
+@item @bf{Generating} @tt{.pdf} @bf{files:} @tt{.pdf} files are
+      currently generated from the @tt{.texi} file using the
+      @apl{pdftex} command (this, again, can be changed in the
+      @tt{Makefile.skel} file in the @tt{lib} directory).  This
+      command is included in current @apl{Linux} distributions.
+
+@item @bf{Generating} @tt{.info} @bf{files:} @tt{.info} files are also
+      generated directly from the @tt{.texi} file using the
+      @apl{makeinfo} command (this, again, can be changed in the
+      @tt{Makefile.skel} file in the @tt{lib} directory).  This
+      command is included in the @apl{Texinfo} distribution.
+      Resolving the link references in the @tt{.texi} file is also
+      required as above.
+
+@item @bf{Generating} @tt{.html} @bf{files:} @tt{.html} files are
+      generated directly from the HTML @apl{lpdoc} backend.
+
+@item If pictures are used in the manual, the command @apl{convert}
+      (@href{http://www.imagemagick.org}{ImageMagick}) is required in
+      order to convert figures from several common graphical formats.
+
+@end{itemize}
+
+}

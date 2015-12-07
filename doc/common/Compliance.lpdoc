@@ -1,0 +1,44 @@
+
+One of the innovative features of Ciao is that it has been designed to
+subsume @index{ISO-Prolog} (International Standard ISO/IEC 13211-1,
+PROLOG: Part 1--General Core @cite{iso-prolog}), while at the same
+time extending it in many important ways. The intention is to ensure
+that all ISO-compliant Prolog programs run correctly under Ciao. At
+the same time, the Ciao module system (see [PART II - The Ciao basic
+language (engine)] and @cite{ciao-modules-cl2000} for a discussion of
+the motivations behind the design) allows selectively avoiding the
+loading of most ISO-builtins (and changing some other ISO
+characteristics) when not needed, so that it is possible to work with
+purer subsets of Prolog and also to build small executables.  Also,
+this module system makes it possible to develop extensions using these
+purer subsets (or even the full ISO-standard) as a starting
+point. Using these features, the Ciao distribution includes libraries
+which significantly extend the language both syntactically and
+semantically.
+
+@comment{Given that the final version of the ISO standard has only
+been recently published,} 
+
+Compliance with ISO is still not complete: currently there are some
+minor deviations in, e.g., the treatment of characters, the syntax,
+some of the arithmetic functions, and part of the error system. On the
+other hand, Ciao has been reported by independent sources (members of
+the standarization body) to be one of the most conforming Prologs at
+the moment of this writing, and the first one to be able to compile
+all the standard-conforming test cases.  Also, Ciao does not offer a
+strictly conforming mode which rejects uses of non-ISO
+features. However, in order to aid programmers who wish to write
+standard compliant programs, library predicates that correspond to
+those in the ISO-Prolog standard are marked specially in the manuals,
+and differences between the Ciao and the prescribed ISO-Prolog
+behaviours, if any, are commented appropriately.
+
+The intention of the Ciao developers is to progressively complete the
+compliance of Ciao with the published parts of the ISO standard as
+well as with other reasonable extensions of the standard may be
+published in the future.  However, since one of the design objectives
+of Ciao is to address some shortcomings of previous implementations of
+Prolog and logic programming in general, we also hope that some of the
+better ideas present in the system will make it eventually into 
+other systems and the standards. 
+

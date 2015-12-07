@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# This returns the number of processors we are going to use in the
+# compilation process.  I general, the number of processors avaialble
+# minus one, except if we have just one processor, of course.  If we
+# do not knwow how to work out the number of processors, we'll use
+# just one.
+
+# TODO: Use C to detect this number (it is more portable)
+# TODO: missing detection for Win32 (cygwin)
+
+case $1 in
+Solaris*)    echo `/usr/bin/mpstat | /usr/bin/wc -l` 1 - p | dc ;;
+Win32*)      echo 1 ;; 
+LINUX*)      if (test -e /proc/cpuinfo) && (test -e /bin/grep) ;
+	     then echo `/bin/grep processor /proc/cpuinfo | wc --lines` ;
+	     else if (test -e /proc/cpuinfo) && (test -e /usr/bin/grep) ;
+	     then echo `/usr/bin/grep processor /proc/cpuinfo | wc --lines` ;
+	     else echo 1; fi ; fi ;;
+DARWIN*)     echo `sysctl -n hw.physicalcpu` ;;
+*)           echo 1 ;;
+esac

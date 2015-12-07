@@ -1,0 +1,670 @@
+* COMMENT Org Header
+#+STARTUP: content
+#+STARTUP: hidestars
+#+STARTUP: odd
+#+TODO: TODO(t) WAITING(w) | CANCELLED(c) DONE(d)
+* Task list
+*** TODO Fix the Ciao bug that doesn't permit debugging the library. 
+    This doesn't work:
+
+    ?- set_prolog_flag(check_cycles,on).
+*** TODO How to make Ciao do that inlining automatically:
+    min(X, Min):-
+	get_range(X, Range),
+	fd_range:get_min(Range, Min).
+
+    Ideally, the compiler should inline get_range to obtain a
+    specialized version:
+
+    min(fd_var(_,R, _), Min):-
+	fd_range:get_min(R, Min).
+
+*** TODO Kill the integration roadmap below. Mainly documentation work.
+*** TODO Benchmark the pure-fd_var branch. (The one without a term)
+*** TODO Remove duplicate code for supporting optim comp and js_backend
+*** TODO Clean up the mess in the CLPFD to FD compilation.
+    Right now there is a translation module (written by Mcarro) and an
+    interpretation. Kill the interpreter. We need to implement also
+    the idea of meta information on definitions of fd_constraints.
+*** TODO Implement a optimization from Diaz, Codognet
+*** TODO Better study the implications of allowing empty ranges. 
+    EG: My initial guess is that current behavior is not problematic.
+*** TODO Implement a range module using trees with a pivot.
+*** TODO Bits range Still not working on all benchs.
+*** TODO We need more benchmarks.
+*** TODO Implement instrumentation and debug.
+    EG: I had some ideas here, will try to recover.
+* Design of the library
+  Primary reference: paper on CICLOPs 2012
+
+  The library is based on the indexicals paradigms (See [Diaz, Codognet])
+*** Principles of design
+    The library is split in several parts:
+***** compiler from clpfd to indexicals [clpfd, clpfd_tr]:
+      This part extends Ciao syntax in order to support CLPFD expressions.
+
+      Main work is to analize a CLPFD expression and translate it into
+      a set of indexicals. Usually, translation requires linearization
+      of predicates.
+***** indexicals library [clpfd_idx]:
+      The main library, it should export information about the
+      available indexicals such that the compiler can perform in an
+      optimal fashion.
+***** compiler from indexicals to prolog [indexicals_tr]:
+      Indexicals are defined using a custom language, so the compiler
+      must translate each indexical to a set of indexicals primitives.
+***** indexicals runtime [indexicals_rt]:
+      Support predicates such as fd_tell, it includes the attributed
+      variables logic.
+***** range [clpfd_ranges]:
+      Implementation of FD ranges. Two implementations are available.
+
+      Clear candidate to rewriting to C
+***** clpfd runtime [clpfd_rt]:
+      Here we have support routines and main CLPFD predicates, such as
+      labelling, in, etc...
+*** Design objetives:
+    - Prolog implementación.
+    - Use of attributed variables.
+    - Integration with CiaoPP.
+    - FD Expression compatibility with existing solvers.
+    - Reasonable speed.
+    - Easy to hack around.
+    - Uses the package facility in order to extend syntax.
+*** Indexicals
+*** CLPFD
+* Integration roadmap
+*** "Administrative" tasks
+***** DONE Commit to the Ciao repository
+      I've committed it under contrib.
+***** DONE How to test the library?
+      I don't know how to compile the library once it is integrated
+      into CIAO's main repository. Should I use make?
+***** TODO How to test documentation?
+      Emilio couldn't figure out how to test the
+      documentation. Please, write here the command I should use to
+      generate the docs and I will start writing some.
+***** TODO Write documentation
+*** Technical problems & Development
+    We have some technical problems preventing a release-quality
+    constraint solver. Ordered by priority.
+***** [#A] Fast metacall
+      Finite domain variables must execute some predicates when
+      unified. Right now we are using call_in_module which is very
+      slow. We should investigate a faster approach. See metacall_test
+      for more details.
+******* Call approach
+      :- meta_predicate wrapper(:)
+      wrapper(X) :- call(X).
+      X = mod:pred(...)
+******* Jfran's commit 14266 appers to solve that.
+***** [#A] Enhance IDX library
+      We need to add many more indexicals.
+***** [#A] Finish FD -> IDX translation
+      The translation of fd expressions into indexicals is not really
+      smart. It should detect the indexicals available in the library
+      and use them.
+***** [#C] Term attributes
+      We need to record when a variable became instantiated, in the
+      term if possible. I'm afraid this is hard to do given the nature
+      of unification and term sharing, what would happen in
+      a = A, expensive, a = B
+      ?
+      Of course the solution is that attach_term_attribute performs a copy_term.
+***** [#C] C interface (write a new range implementation)
+* Benchs (may be out of date)
+*** Pure disequality systems:
+---------------------------
+
+Old Fd. system:
+
+?- statistics(runtime,_), length(L, 100), domain(L, 1, 100), all_different(L), labeling(L), statistics(runtime,[_,Time]).
+
+L = [1..100]
+Time = 6252.39 ? 
+
+The new one:
+
+?- statistics(runtime,_), length(L, 100), domain(L, 1, 100), all_different(L), labeling(L), statistics(runtime,[_,Time]).
+
+L = [1..100]
+Time = 620.039 ? 
+
+Complexity evaluation:
+----------------------
+
+Old system:
+
+?- statistics(runtime,_), length(L, 200), domain(L, 1, 200), all_different(L), labeling(L), statistics(runtime,[_,Time]).
+
+L = [1..200]
+Time = 134176.383 ? ;
+
+L = [...]
+Time = 900.056 ? ;
+
+L = [...]
+Time = 912.057 ? 
+
+New one:
+
+yes
+?- statistics(runtime,_), length(L, 200), domain(L, 1, 200), all_different(L), labeling(L), statistics(runtime,[_,Time]).
+
+L = [1..200]
+Time = 3640.227 ? ;
+
+L = [...]
+Time = 1208.076 ? ;
+
+L = [...]
+Time = 1220.076 ? 
+
+Note however that we are very slow in backtracking, and we use
+call_in_module, etc.... We could speed up the solver easily 10X-50X.
+
+*** Naive queens (preliminar):
+
+
+?- ensure_loaded('/home/egallego/fuentes/ciao/ciao-clpfd/queens.pl').
+
+yes
+?- queens(12, R).
+Used 1776 milliseconds
+
+R = [1,3,5,8,10,12,6,11,2,7,9,4] ? ;
+Used 1236 milliseconds
+
+R = [1,3,5,10,8,11,2,12,6,9,7,4] ? ;
+Used 16 milliseconds
+
+R = [1,3,5,10,8,11,2,12,7,9,4,6] ? 
+
+Old one:
+
+?- queens(12, R).
+Used 452 milliseconds
+
+R = [1,3,5,8,10,12,6,11,2,7,9,4] ? ;
+Used 316 milliseconds
+
+R = [1,3,5,10,8,11,2,12,6,9,7,4] ? ;
+Used 0 milliseconds
+
+R = [1,3,5,10,8,11,2,12,7,9,4,6] ? 
+
+Umm, this is because we lack of more indexicals for sure. Should profile.
+
+Complexity:
+
+Queens | Old  | Ratio |   New  | Ratio  | Custom | Ratio |
+----------------------------------------------------------
+12     |  452 |  1.00 |   1876 |   1.00 |    692 |   1.00
+14     | 3800 |  8.40 |  18789 |  10.01 |   6512 |   9.41
+15     | 4340 |  9.60 |  16917 |   9.01 |   4704 |   6.79
+16     |37882 | 83.80 | 139820 |  74.53 |  38090 |  55.04
+
+A simple custom idx is incredible!
+
+*** Chain call stats:
+
+Constraint reexecution is our weak performance point.
+
+?- queens(5,R), fd_chain_stats(Calls).
+Used 4 milliseconds
+Calls = 125,
+R = [1,3,5,2,4] ? 
+
+?- queens(6,R), fd_chain_stats(Calls).
+Used 36 milliseconds
+Calls = 1080,
+R = [2,4,6,1,3,5] ? 
+
+?- queens(7,R), fd_chain_stats(Calls).
+Used 16 milliseconds
+Calls = 399,
+R = [1,3,5,7,2,4,6] ? 
+
+?- queens(8,R), fd_chain_stats(Calls).
+Used 212 milliseconds
+Calls = 6542,
+R = [1,5,8,6,3,7,2,4] ? 
+
+?- queens(9,R), fd_chain_stats(Calls).
+Used 112 milliseconds
+Calls = 3076,
+R = [1,3,6,8,2,4,9,7,5] ? 
+
+?- queens(10,R), fd_chain_stats(Calls).
+Used 332 milliseconds
+Calls = 30703,
+R = [1,3,6,8,10,5,9,2,4,7] ? 
+
+?- queens(11,R), fd_chain_stats(Calls).
+Used 184 milliseconds
+Calls = 5642,
+R = [1,3,5,7,9,11,2,4,6,8,10] ? ;
+Used 604 milliseconds
+Calls = 21144,
+R = [1,3,6,9,2,8,11,4,7,5,10] ? 
+
+?- queens(12,R), fd_chain_stats(Calls).
+Used 944 milliseconds
+Calls = 31722,
+R = [1,3,5,8,10,12,6,11,2,7,9,4] ? 
+
+?- queens(13,R), fd_chain_stats(Calls).
+Used 468 milliseconds
+Calls = 15336,
+R = [1,3,5,2,9,12,10,13,4,6,8,11,7] ? 
+
+?- queens(14,R), fd_chain_stats(Calls).
+Used 10644 milliseconds
+Calls = 270706,
+R = [1,3,5,7,12,10,13,4,14,9,2,6,8,11] ? 
+
+?- statistics(runtime,_), length(L, 100), domain(L, 1, 100), all_different(L), labeling(L), statistics(runtime,[_,Time]), fd_chain_stats(Calls).
+
+Calls = 19800,
+Time = 3660.228 ? 
+
+yes
+?- statistics(runtime,_), length(L, 200), domain(L, 1, 200), all_different(L), labeling(L), statistics(runtime,[_,Time]), fd_chain_stats(Calls).
+
+Calls = 39800,
+Time = 48167.01 ? 
+
+Queens | Old  | Ratio |   New  | Ratio  | Custom | Ratio |
+----------------------------------------------------------
+12     |  452 |  1.00 |   1876 |   1.00 |    692 |   1.00
+14     | 3800 |  8.40 |  18789 |  10.01 |   6512 |   9.41
+15     | 4340 |  9.60 |  16917 |   9.01 |   4704 |   6.79
+16     |37882 | 83.80 | 139820 |  74.53 |  38090 |  55.04
+
+- Bit vectors against List for small ranges.
+
+Queens | Custom | Ratio | Bits  | Ratio | Delay2 (Bits)   | Delay2 (Nobits)
+---------------------------------------------------------------------------
+12     |    692 |  1.00 |   528 |  1.00	|   448  |  1.000 |   540 |  1.000
+14     |   6512 |  9.41 |  4780 |  9.04	|  3912  |  8.732 |  4772 |  8.837
+15     |   4704 |  6.79 |  4068 |  7.70	|  3080  |  6.875 |  3948 |  7.311
+16     |  38090 | 55.04 | 29441 | 55.75	| 24441  | 54.555 | 32542 | 60.262
+
+Queens | NewIdx | Ratio | 
+---------------------------------------------------------------------------
+12     |     92 |  1.00 | 
+14     |    744 |  8.26 | 
+15     |    580 |  6.30 | 
+16     |   4632 | 50.34 | 
+
+*** Bits + Delay2
+
+?- statistics(runtime,_), length(L, 100), domain(L, 1, 100), all_different(L), labeling(L), statistics(runtime,[_,Time]).
+L = [...]
+Time = 1080.071 ? ;
+L = [...]
+Time = 56.003 ? 
+
+yes
+?- statistics(runtime,_), length(L, 200), domain(L, 1, 200), all_different(L), labeling(L), statistics(runtime,[_,Time]).
+L = [...]
+Time = 8708.544 ? ;
+L = [...]
+Time = 576.036 ? ;
+
+*** Bits + Delay1
+
+?- statistics(runtime,_), length(L, 100), domain(L, 1, 100), all_different(L), labeling(L), statistics(runtime,[_,Time]).
+L = [...]
+Time = 1484.091 ? ;
+L = [...]
+Time = 56.003 ? 
+
+?- statistics(runtime,_), length(L, 200), domain(L, 1, 200), all_different(L), labeling(L), statistics(runtime,[_,Time]).
+
+L = [...]
+Time = 11916.745 ? ;
+L = [...]
+Time = 568.035 ? ;
+Time = 580.037 ? 
+
+*** Delay2 + Nobits.
+
+?- statistics(runtime,_), length(L, 100), domain(L, 1, 100), all_different(L), labeling(L), statistics(runtime,[_,Time]).
+L = [...]
+Time = 384.024 ? ;
+L = [...]
+Time = 68.004 ? 
+
+?- statistics(runtime,_), length(L, 200), domain(L, 1, 200), all_different(L), labeling(L), statistics(runtime,[_,Time]).
+
+L = [...]
+Time = 2216.139 ? ;
+L = [...]
+Time = 584.037 ? ;
+
+*** Constant parameters versus dynamic ones. (Only 1)
+
+?- queens(16,R), fd_chain_stats(Calls).
+Used 11380 milliseconds in labeling 8 in constraining
+
+Calls = 381045,
+R = [1,3,5,2,13,9,14,12,15,6,16,7,4,11,8,10] ? 
+
+?- queens(16,R), fd_chain_stats(Calls).
+Used 7228 milliseconds in labeling 4 in constraining
+
+Calls = 241768,
+R = [1,3,5,2,13,9,14,12,15,6,16,7,4,11,8,10] ? 
+
+- Super custom idx for queens:
+
+?- queens(16,[], R), clpfd_stats.
+Used 6380 milliseconds in labeling 4 in constraining
+int_tell_succ value: 165696
+var_tell_succ value: 77211
+var_tell_fail value: 76836
+int_tell_fail value: 167156
+chain_calls value: 0
+
+R = [1,3,5,2,13,9,14,12,15,6,16,7,4,11,8,10] ? ;
+Used 216 milliseconds in labeling 4 in constraining
+int_tell_succ value: 5775
+var_tell_succ value: 2452
+var_tell_fail value: 2472
+int_tell_fail value: 5818
+chain_calls value: 0
+
+R = [1,3,5,2,13,10,12,15,6,16,14,8,4,7,9,11] ? 
+
+yes
+?- queens(16,[], R), clpfd_stats.
+Used 5476 milliseconds in labeling 4 in constraining
+int_tell_succ value: 107678
+var_tell_succ value: 60355
+var_tell_fail value: 60268
+int_tell_fail value: 109090
+chain_calls value: 0
+
+R = [1,3,5,2,13,9,14,12,15,6,16,7,4,11,8,10] ? ;
+Used 184 milliseconds in labeling 4 in constraining
+int_tell_succ value: 3839
+var_tell_succ value: 1932
+var_tell_fail value: 1945
+int_tell_fail value: 3889
+chain_calls value: 0
+
+R = [1,3,5,2,13,10,12,15,6,16,14,8,4,7,9,11] ? 
+* Old documentation
+*** Initial message from Emilio
+Date: Wed, 04 Oct 2006 20:35:47 +0200
+
+The code is living in the svn at
+clip:/home/egallego/clip/repos/ciao-clpfd and I'm reasonably happy
+with it:
+
+?- queens(16,R).
+Used 4180 milliseconds in labeling 8 in constraining
+R = [1,3,5,2,13,9,14,12,15,6,16,7,4,11,8,10] ?
+
+?- queens_old(16,R).
+Used 38934 milliseconds
+R = [1,3,5,2,13,9,14,12,15,6,16,7,4,11,8,10] ? ;
+
+Status of the solver:
+--------------------
+
+"the first 1000 lines of code are the hardest to write", indeed, this
+has been my case, as my first approach was to write the solver at the
+WAM level, which was proved to be not the right choice.
+
+After speaking with jfran (big thanks to him too), it was clear to me
+that writing the solver in C would not succeed, so a pure Prolog
+approach was taken.
+
+Basically, the solver has two packages, namely indexicals.pl and
+clpfd.pl which allow to write indexicals and high level fd code.
+
+The indexicals package compiles all to special fd code, generating
+lots of new predicates, that's all.
+
+Then the module indexicals_rt contains all the primitive indexicals
+operations.
+
+Two auxiliary modules are needed, namely clpfd_range and
+clpfd_chain. Both define an interface for fd ranges and fd call
+chains, so the core remains completely abstracted from implementation
+details.
+
+The clpfd package is very basic at the moment, just compiling full fd
+expression to suitable indexicals ones. More on that later on.
+
+A very informal test on performance can be found in the Doc file.
+
+I'd say that I've really enjoyed developing this solver, although the
+start was a little hard (due to my non-knowledge about constraint
+solving in general), I've had to learn a whole lot about the topic and
+it's been a really interesting learning experience.
+
+Open issues:
+------------
+
+I consider the solver ready for performing small demos, and its
+performance is not that bad, but there are a lot of open questions:
+
+- Chains:
+
+  The core of the solver is the constraint re-execution code found in
+  clpfd_chains.pl. Given that any FD variable can contain an arbitrary
+  number of primitive constraints to be called.
+
+  The primitives constraints are compiled to a Prolog predicate, and
+  the chain is represented using a list. This has the big advantage
+  that the prim constraint closure is represented just by the term
+  itself, as attr vars don't perform a copy_term in the attributes.
+
+  Unfortunately, this implies that constraint calling have to be
+  performed using $meta_call, which is *very slow* from my preliminary
+  tests.
+
+  As chains are completely abstracted by the clpfd_chain module, one
+  possible solution would be to have a special $fd_fast_call pred,
+  which goes the fast path.
+
+- Ranges:
+
+  Writing chain handling code was a little tedious at first, but the
+  solver has two different chain implementations, one based on range
+  lists and the other one using arbitrary bit vectors.
+
+  Two points should be noted:
+
+  - It seems that performance improvements by using the bit vectors
+    are not so big, and what is more, are constant, as can be seen in
+    the following table:
+
+  | Queens | Lists | Bits | Ratio  |
+  | 16     | 4372  | 3464 | 126.2% |
+  | 17     | 2652  | 2180 | 126.6% |
+
+  - The clpfd_range* case is an ideal use case of herme's proposal
+    "modules as objects". In this case both modules provide the same
+    interface, but there's no clear way to use one or another in
+    runtime, without adding non trivial execution overhead.
+
+  Note that some new range operations are not implemented yet in the
+  bit-using module.
+
+  Ideally, coding ranges in C should be very easy.
+
+- Documentation:
+
+  Yes, I'm a lazy ********, and the code as is now includes no
+  documentation nor assertions for the final user. However, it is
+  reasonably commented.
+
+  I promise I'll write that shortly, once I the solver is more stable
+  than now.
+
+- Compiling high level expressions and special indexicals.
+
+  Basing the solver in the indexicals method, means that high level fd
+  constraints are compiled to primitive ones, which are defined by
+  means of the indexicals.
+
+  Indexicals language is very powerful in the sense that you have
+  absolute control about the var's range, instantiation state, etc...,
+  but is also means that lots of special indexicals should be written
+  to get an efficient solver. 
+
+  A common case is when one of the parameters is known to be ground in
+  advance, which results in one primitive constraint less in the
+  system, compare:
+
+'a<>b+c'(X, Y, Z) +:
+	X in -{val(Y)+val(Z)},
+	Y in -{val(X)-val(Z)},
+	Z in -{val(X)-val(Y)}.
+
+vs.
+
+'a<>b+t'(X, Y, Z) +:
+	X in -{val(Y)+c(Z)},
+	Y in -{val(X)-c(Z)}.
+
+  Just you can feel the importance of using the right indexical, see
+  the numbers in the queens bench using a special one:
+
+Queens 17:
+
+idx used    |  Time |
+a<>b+t      |  2652 |
+a<>b+c      |  3768 |
+a<>b, a+b=c | 50307 |
+
+(t means t is not a var, a<>b, a+b=c means no special idx for the
+sum+diseq case exist, so a new var must be created)
+
+  Choosing the right indexical can be done either at compile time or
+  at runtime.
+
+  But, this is were the original M. Hermenegildo's idea comes to play,
+  using CiaoPP and assertions to greatly improve the solver's
+  performance.
+
+  Abstract domains that come now to my mind are:
+
+  - Standard ones for groundness, etc...
+  - "Continuous ranges" I mean E in {1..3} vs E in {1,3,5}
+  - Domain modifications: Lattices like bot -> min -> tot, etc...
+                                            \> max />
+
+  Anyways, the high level compiler needs lots of work, my preliminary
+  plan is to provide misinformation about the indexicals to the HL
+  compiler, so it can profit automatically from new added indexicals.
+
+  The next step would mean integrating this with ciaoPP.
+
+- Non linear constraints:
+
+  Non-linear constraints are very tricky, as you have to trade domain
+  consistency against speed.
+
+  I'm also working on this, and I believe that very big improvements
+  could be made, mostly in cooperation with the previous point.
+
+- Profiler and writing a c solver:
+
+  I've really missed a profiler for Ciao :) Yes, I know you know about
+  this, but for this kind of program profiling is a must, you can
+  really see the big picture and modify/adapt the design in basis to
+  the present hotspots.
+
+  At one point I started to write my own stupid profiler, but then I
+  had a look to the existing one (profiler package) and I realized
+  that is almost identical to what I was going to do.
+
+  So I'd like to hack in that profiler, also it should be a good point
+  to start adding C code to the solver. I know the profiler is a work
+  in progress, so maybe getting in touch with the person writing it
+  and having a short talk would be a good start for me, I you don't
+  mind.
+
+- Reification
+
+  I've not implemented constraint reification yet. My reasons are:
+
+  - I'm writing a BDD solver in Prolog, and I'd like to explore the
+    space of solver cooperation in this case. (I'm aware about
+    Shamir's interface to the BDD library)
+
+  - Is not top priority IMHO.
+
+- Future work
+
+  My plan is to actively work in the solver for a long time, after all
+  it is my child :) But I'm afraid I won't have the time to turn it
+  into a really state of the art FD solver in the next times. It's
+  just too much work ATM.
+
+  But I'd like to say I think the solver is reasonably clean and could
+  be a good starting point if any other person is interested in FD
+  constraint programming. IMVHO it almost could be a Sistemas
+  Informáticos/TFC topic such as "Advanced FD constraint solving". As
+  I've already said, for me working in this has been a great learning
+  experience. :)
+*** Message to Elvira and Micky
+The solver is written in Prolog and has two parts:
+
+- Indexicals: Basically is finished, but some important optimizations
+  are missing. (more on that below)
+
+- High-level FD-constraints to indexicals compilation: It is in early
+  stages of development. It works, but more work is needed to achieve a
+  good translation. Also the indexicals library should grow.
+
+IMHO before working in the last part, integration with Ciao should be
+addressed (this is where I got stuck). Issues:
+
+- When I tried to integrate the library the build system was quite
+  unstable and I couldn't get clpfd to build with Ciao.
+
+- I couldn't make lpdoc work for me, so (end-user) documentation is
+  mostly missing. The code however should be reasonably commented.
+
+- "src" type installation was not working for me (again unstable build
+  system back then) so I couldn't play with the C engine.
+
+I believe all the build system and libraries issues a fixed now, so
+integrating it should not be very troublesome.
+
+- There's an additional problem with Ciao, licensing information is not
+  clear enough (most file are missing the GPL header/copyright and so
+  on) In this state Ciao is not distributable by Ubuntu/Debian.
+
+Once the library is living in contrib/ there are two main lines of work:
+
+- Optimize the indexicals engine: The main problem is we cannot
+  timestamp ground terms in a "transparent" way. Attributed terms would
+  be wonderful for this, and would result in a *very fast*
+  pure-in-Prolog indexical engine. Other issue is indexical wakeup, I'm
+  pretty much sure we can speed this a lot using some special version
+  for call/1. (All indexicals are immutable and known at compile time)
+
+  After that, the main "bottleneck" would be range representation. If we
+  had a bit-manipulation library we could implement a fast bit-vector
+  version. Going to C we can use liboil (uses the FP engine of the
+  processors). this gives us 2048-bit ranges, and all the
+  operations are "free".
+
+- Optimize the FD to idx translation. This is the place where static
+  analysis should be hooked. IMHO the translator should perform the
+  basic checks and let the rest to an specialized tool. I don't know a
+  lot about CiaoPP, but I recall some papers for AI of FD programs.
+
+- Labeling algorithms: I didn't research a lot here. The library
+  supports FF and seq. It seems some advanced algorithms are difficult
+  to code in pure Prolog.
+
+
+

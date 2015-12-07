@@ -1,0 +1,5 @@
+-> In tmpbased_common, change the directory in the fact common_directory/1
+   to point to a directory readable system wide (typically in NFS).
+
+-> In webbased_common, change the fact server_public_address/2 to an
+   address reachable by httpd. See the manual.

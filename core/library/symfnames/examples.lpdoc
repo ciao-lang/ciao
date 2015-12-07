@@ -1,0 +1,34 @@
+
+The example discussed here is included in the distribution files. There is
+a main application file which uses module @tt{mm}. This module reads a line
+from a file; the main predicate in the main file then prints this line.
+The important thing is that the file read is named by a symbolic name
+"@tt{file}". The main application file declares another file where the
+symbolic names are assigned actual file names:
+
+@begin{verbatim}
+@includeverbatim{symfnames/examples/main.pl}
+@end{verbatim}
+
+Now, the file @tt{myfiles.pl} can be used to change the file you want to 
+read from without having to recompile the application. The current 
+assignment is:
+
+@begin{verbatim}
+@includeverbatim{symfnames/examples/myfiles.pl}
+@end{verbatim}
+
+@noindent
+so the execution of the application will show the first line of
+@tt{mm.pl}. However, you can change to:
+
+@begin{verbatim}
+file_alias(file,'main.pl').
+
+@end{verbatim}
+
+@noindent
+and then execution of the same executable will show the first line of 
+@tt{main.pl}. 
+
+

@@ -1,0 +1,59 @@
+
+      @begin{itemize} 
+ 
+      @item For users a @index{csh-compatible shell} (@apl{csh},
+            @apl{tcsh}, ...), add to @file{~/.cshrc}:
+
+@begin{verbatim}
+        if ( -e <libroot>/ciao/DOTcshrc ) then
+           source <libroot>/ciao/DOTcshrc
+        endif
+@end{verbatim}
+
+@bf{Note}: while this is recognized by the terminal shell, and
+therefore by the text-mode Emacs which comes with Mac OS X, the Aqua
+native Emacs 21 does not recognize that initialization.  It is thus
+necessary, at this moment, to set manually the Ciao shell (ciaosh) and
+Ciao library location by hand.  This can be done from the Ciao menu
+within Emacs after a Ciao file has been loaded.  We believe 
+that the reason is that Mac OS X does not actually consult the
+per-user initialization files on startup.  It should also be possible
+to put the right initializations in the .emacs file using the
+@tt{setenv} function of Emacs-lisp, as in
+
+@begin{verbatim}
+(setenv "CIAOLIB" "<libroot>/ciao")
+@end{verbatim}
+
+The same can be done for the rest of the variables initialized in
+@tt{<libroot>/ciao/DOTcshrc}
+
+
+
+      @item For users of an @index{sh-compatible shell} (@apl{sh}, @apl{bash},
+      ...), the installer will add to @file{~/.bashrc} the next lines:
+
+@begin{verbatim}
+        if [ -f <libroot>/ciao/DOTprofile ]; then
+           . <libroot>/ciao/DOTprofile
+        fi
+@end{verbatim}
+
+            This will set up things so that the Ciao executables are
+            found and you can access the Ciao system manuals using the
+            @apl{info} command. Note that, depending on your shell,
+            @em{you may have to log out and back in} for the changes
+            to take effect.
+
+      @item Also, if you use @apl{emacs} (highly recommended) the
+            install will add the next line to your @file{~/.emacs}
+            file:
+
+@begin{verbatim}
+        (load-file "<libroot>/ciao/ciao-site-file.el")
+        (if (file-exists-p "<libroot>/ciao/ciao-site-file.el")
+          (load-file "<libroot>/ciao/ciao-site-file.el")
+        )
+@end{verbatim}
+
+      @end{itemize}

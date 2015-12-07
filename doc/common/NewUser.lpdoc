@@ -1,0 +1,28 @@
+
+@comment{---------------------------------------------------------}
+@comment{Do not delete this file / be careful with it}
+@comment{It is used by installation to generate info for new users}
+@comment{that ends up in the lib directory}
+@comment{---------------------------------------------------------}
+
+@section{Information for first-time Ciao users under Unix}
+
+The following are instructions for new Ciao users (users are referred
+to these instructions when the @tt{ciao} command is issued, but the
+startup files --@tt{.cshrc}, @tt{.profile}, @tt{.emacs}, etc.-- have
+not been set up fully for using Ciao):
+
+Welcome to the Ciao Development System!
+
+@bf{WARNING}: your shell initialization scripts have not ben properly
+modified for locating the Ciao on-line documentation. Please add 
+the following lines to your shell initialization script(s):
+
+@include{UserSetup.lpdoc}
+
+The manuals are available by typing @key{^h} @key{i} in @apl{emacs} or
+starting @apl{info} in a shell.
+
+@include{MailWWWBugs.lpdoc}
+
+

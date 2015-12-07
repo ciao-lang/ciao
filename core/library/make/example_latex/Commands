@@ -1,0 +1,16 @@
+
+lpmake 
+
+(Calls default: generate paper.dvi from paper.tex, paper.ps from
+paper.dvi, and call viewer)
+
+lpmake paper.ps
+
+(just generate paper.ps and ancestors if needed)
+
+lpmake realclean
+(Cleanup)
+
+lpmake -h
+(Help on general use of lpmake and commands available in Makefile.pl)
+

@@ -1,0 +1,219 @@
+% This code is included in builtin.pl and in compiler.pl.
+% It uses the following facts (defined either in builtin or in compiler):
+%  imports/5   - MODULE imports from MODULE2 F/A, which resides in ENDMODULE
+%  meta_args/2 - MODULE has meta declaration META
+%  multifile/3 - MODULE defines multifile F/A
+%  defines/3   - MODULE defines F/A
+
+body_expansion(V, M, QM, NA) :- var(V), !,
+        body_expansion(call(V), M, QM, NA).
+body_expansion(QM:G, M, QM0, NG) :- !,
+        ( atom(QM) ->
+            body_expansion(G, M, QM, NG)
+        ; body_expansion(call(QM:G), M, QM0, NG)
+        ).
+body_expansion((A,B), M, QM, (NA,NB)):- !,
+	body_expansion(A, M, QM, NA),
+	body_expansion(B, M, QM, NB).
+body_expansion((A;B),M,QM,(NA;NB)):- !,
+	body_expansion(A,M,QM,NA),
+	body_expansion(B,M,QM,NB).
+body_expansion((A->B),M,QM,(NA->NB)):- !,
+	body_expansion(A,M,QM,NA),
+	body_expansion(B,M,QM,NB).
+body_expansion((X^A),M,QM,(X^NA)):- !,
+	body_expansion(A,M,QM,NA).
+body_expansion((\+ A),M,QM,(\+ NA)):- !,
+	body_expansion(A,M,QM,NA).
+body_expansion(if(A,B,C),M,QM,if(NA,NB,NC)) :- !,
+	body_expansion(A,M,QM,NA),
+	body_expansion(B,M,QM,NB),
+        body_expansion(C,M,QM,NC).
+body_expansion(Call,M,QM,NCall) :-
+        functor(Call, call, N), N > 1, !, % call/n
+        Call =.. [_, P| LAs],
+        As =.. [(\:)| LAs],
+        N1 is N-1,
+        meta_expansion_arg1(P, pred(N1), M, QM, true, NP, NCall, call(NP,As)).
+body_expansion(!,_M,_QM,!):- !.
+body_expansion(A, M, QM, NA) :-
+        atom_expansion_add_goals(A, M, QM, A1, NA, A1).
+
+atom_expansion_add_goals(V, _, _, _, _, _) :- var(V), !, fail.
+atom_expansion_add_goals('$meta_call'(X), M, -, call(X), G, G) :-
+        accessible_in(M, internals, '$meta_call', 1), !.
+atom_expansion_add_goals(A, M, QM, NA, G, G_) :-
+        functor(A, F, N),
+        atom_expansion(A, F, N, M, QM, A1, RM),
+        possibly_meta_expansion(F, N, A1, M, RM, NA, G, G_).
+
+accessible_in(M, M, _, _) :- !.
+accessible_in(M, EM, F, A) :-
+        imports(M, _, F, A, EM).
+
+atom_expansion(_, F, _, _, _, NA, error) :- number(F), !, NA = F.
+atom_expansion(A, F, N, M, -, NA, RM) :- !,
+        unqualified_atom_expansion(A, F, N, M, NA, RM).
+atom_expansion(A, F, N, M, M, NA, RM) :- !,
+        atom_expansion_here(A, F, N, M, NA),
+        RM = M.
+atom_expansion(A, F, N, M, QM, NA, RM) :-
+        M = user(_), QM = user, !,
+        atom_expansion_here(A, F, N, M, NA),
+        RM = M.
+atom_expansion(A, F, N, M, QM, NA, RM) :-
+        ( imports(M, QM, F, N, EM) ->
+              module_concat(EM, A, NA),
+              RM = EM
+        ; module_warning(not_imported(F, N, M, QM)),
+          atom_expansion_here(A, F, N, M, NA),
+          RM = M
+        ).
+
+% This is not recursive since we want the expansion not depending on the
+% imports of the modules used
+unqualified_atom_expansion(A, F, N, M, NA, RM) :-
+        multifile(M, F, N), !,
+        module_concat(multifile, A, NA),
+        RM = M.
+unqualified_atom_expansion(A, F, N, M, NA, RM) :-
+        ( defines(M, F, N) ->  % local defined have priority
+              module_concat(M, A, NA),
+              RM = M
+        ; imports(M,_IM, F, N, EM) ->
+              module_concat(EM, A, NA),
+              RM = EM
+        ; ( M = user(_) -> true
+          ; module_warning(not_defined(F, N, M))
+          ),
+          module_concat(M, A, NA),
+          RM = M
+        ).
+
+atom_expansion_here(A, F, N, M, NA) :-
+        multifile(M, F, N), !,
+        module_concat(multifile, A, NA).
+atom_expansion_here(A,_F,_N, M, NA) :-
+        module_concat(M, A, NA).
+
+possibly_meta_expansion(F, N, A1, M, RM, NA, G, G_) :-
+        functor(Meta, F, N),
+        meta_args(RM, Meta), !,
+        (primitive_meta_predicate(Meta,RM) -> Primitive=true ; Primitive=fail),
+        functor(A1, F_, N_),
+        meta_expansion_args(1, N_, A1, M, Meta, Primitive, NAL, G, G_),
+        NA =.. [F_|NAL].
+possibly_meta_expansion(_F,_N, A1,_M,_RM, A1, G, G). % No meta expansion
+
+meta_expansion_args(N, Max,_G,_M,_Meta,_Primitive, [], NG, NG) :-
+        N > Max, !.
+meta_expansion_args(N, Max, G, M, Meta, Primitive, AL, NG, R) :-
+        arg(N, Meta, Type),
+        arg(N, G, X),
+        meta_expansion_arg(Type, X, M, Primitive, AL, AL_, NG, NG_),
+        N1 is N+1,
+        meta_expansion_args(N1, Max, G, M, Meta, Primitive, AL_, NG_, R).
+
+meta_expansion_arg(?, X, _M, _Pr, [X|AL], AL, R, R) :- !.
+meta_expansion_arg(addmodule, X, M, _Pr, [X,M|AL], AL, R, R) :- !.
+meta_expansion_arg(Type, X, M, Pr, [NX|AL], AL, NG, NG_) :-
+        meta_expansion_arg1(X, Type, M, -, Pr, NX, NG, NG_).
+
+meta_expansion_arg1(A, Type, M, QM, Primitive, NA, R, R) :-
+        expand_meta(A, Type, M, QM, XA), !,
+        ( Primitive = true ->
+              NA = XA
+        ; term_to_meta(XA, NA)
+        ).
+meta_expansion_arg1(X, Type, M, QM, Pr, NX, G, R) :-
+        runtime_module_expansion(G, Type, Pr, M, QM, X, NX, R).
+
+% Predicate fails if expansion has to be done at runtime
+expand_meta(V,_Type,_M,_QM,_NA) :- var(V), !, fail.
+expand_meta(QM:A, Type, M, _OldQM, NA) :- !,
+        atom(QM),
+        expand_meta(A, Type, M, QM, NA).
+expand_meta(A, Type, M, QM, NA) :-
+        expand_meta_of_type(Type, A, M, QM, NA).
+
+expand_meta_of_type(clause, C, M, QM, NC) :- !,
+        expand_clause(C, M, QM, NC).
+expand_meta_of_type(spec, S, M, QM, NS):- !,
+        spec_expansion(S, M, QM, NS).
+expand_meta_of_type(fact, Atom, M, QM, NAtom):- !,
+	atom_expansion_add_goals(Atom, M, QM, NAtom, no, no).
+expand_meta_of_type(goal, Goal, M, QM, NGoal):- !,
+	body_expansion(Goal, M, QM, NGoal).
+expand_meta_of_type(pred(0), Goal, M, QM, NGoal):- !,
+	body_expansion(Goal, M, QM, NGoal).
+expand_meta_of_type(pred(N), P, M, QM, NP):-
+        integer(N),
+        pred_expansion(P, N, M, QM, NP).
+
+expand_clause((H:-B), M, QM, (NH:-NB)):- !,
+	atom_expansion_add_goals(H, M, QM, NH, no, no),
+	body_expansion(B, M, QM, NB).
+expand_clause(H, M, QM, NH):- !,
+	atom_expansion_add_goals(H, M, QM, NH, no, no).
+
+spec_expansion(F/A, M, QM, NF/A) :-
+	atom(F),
+	integer(A),
+	functor(G,F,A),
+	atom_expansion(G, F, A, M, QM, NG, _),
+	functor(NG,NF,A).
+
+pred_expansion(PredAbs, N, M, QM, :-(NH,NB)) :-
+        PredAbs = :-(H,_B), !,
+        functor(H,Hf,Ha),
+        ( Hf = (\:), ! ; module_warning(bad_pred_abs(PredAbs)) ),
+        check_pred_arity(Ha,N,PredAbs),
+        copy_term(PredAbs, :-(NH,RB)),
+        body_expansion(RB, M, QM, NB).
+pred_expansion(P, N, M, QM, R) :-
+        nonvar(P),
+        functor(P, F, A),
+        pred_expansion_(F, A, P, N, M, QM, R).
+
+pred_expansion_((\:), A, P, N,_M,_QM, :-(NH,true)) :- !,
+        check_pred_arity(A, N, P),
+        copy_term(P,NH).
+pred_expansion_(F,   A, P, N, M, QM, NP/N) :-
+        atom(F),
+        T is N+A,
+        functor(G, F, T),
+        unify_args(A, P, T, G),
+        atom_expansion(G, F, T, M, QM, G1, RM),
+	possibly_meta_expansion(F, T, G1, M, RM, NG, no, no),
+        functor(NG, NF, NT),
+        NA is NT-N,
+        functor(NP, NF, NA),
+        unify_args(NA, NP, NT, NG).
+
+check_pred_arity(A, N, PredAbs) :-
+        compare(R,A,N),
+        ( R = (=) -> true
+        ; R = (<) ->
+            module_warning(short_pred_abs(PredAbs, N))
+        ;%R = (>) ->
+            module_warning(big_pred_abs(PredAbs, N))
+        ).
+
+unify_args(0,_F,_A,_G) :- !.
+unify_args(N, F, A, G) :- 
+        arg(N, F, X),
+        arg(A, G, X),
+        N1 is N-1,
+        A1 is A-1,
+        unify_args(N1, F, A1, G).
+
+runtime_module_expansion((P, R), Type, Primitive, M, QM, X, NX, R) :- !,
+        % This predicate is defined diff. in compiler.pl and builtin.pl
+        uses_runtime_module_expansion,
+        ( Primitive = true ->
+            P = last_module_exp(X, Type, M, QM, NX)
+        ; P = mid_module_exp(X, Type, M, QM, NX)
+        ).
+runtime_module_expansion(G,_Type,_Primitive,_M,_QM, X, X, G). % no runtime exp.
+
+% module_warning/1 now defined elsewhere

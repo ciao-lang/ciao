@@ -1,0 +1,2 @@
+nitf::head::docdata::'doc-id'@val('id-string',"020918050")::(Y), 
+                     body::'body.head'::abstract::p(X)

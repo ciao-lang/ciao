@@ -1,0 +1,17 @@
+You need to put the file swi-minisat.tgz in a directory where you want
+the solver and the interface and then do:
+
+% tar zxvf swi-minisat.tgz
+% ./configure.sh
+% make
+% make clean
+
+The paths in Makefile are good for the most recent SWI (5.6.7) installed
+from the standard Linux package (RPM). Otherwise, it may require manual
+tuning of paths in Makefile. It also takes a reasonably fresh 'gcc'.
+
+In the Prolog files which use the library you need to (a) tell SWI
+Prolog where the library is installed and (b) load the library:
+
+:- assertz(user:library_directory('/put_here_the_path_to/swi-minisat')).
+:- use_module([library(minisat)]).

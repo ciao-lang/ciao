@@ -1,0 +1,212 @@
+
+@cindex{installation, Windows, from binaries}
+
+This describes the installation of Ciao after downloading the Windows
+@em{binary} (i.e., @em{precompiled}) distribution.  It includes the
+installation of libraries and manuals and applies to Windows
+95/98/NT/2000/XP systems. This is the simplest Windows installation,
+since it requires no compilation and is highly recommended. However,
+it is also possible to compile Ciao from the source distribution on
+these systems (please refer to @ref{Installing Ciao from the source
+distribution} for details).
+
+If you find any problems during installation, please refer to
+@ref{Troubleshooting (nasty messages and nifty workarounds)}.
+@cindex{troubleshooting} See also @ref{Downloading new versions} and
+@ref{Reporting bugs}.
+
+@section{Win32 binary installation summary}
+
+@noindent Please follow these steps (below we use the terms
+@em{folder} and @em{directory} interchangeably):
+
+@begin{enumerate} 
+
+@item Download the precompiled distribution and unpack it into any
+      suitable folder, such as, e.g., @tt{C:\Program Files}.
+
+      This will create there a folder whose name reflects the Ciao
+      version. Due to limitations of Windows related to file
+      associations, do not put Ciao too deep in the folder hierarchy.
+      For unpacking you will need a recent version of a zip archive
+      manager -- there are many freely available such as @apl{WinZip},
+      @apl{unzip}, @apl{pkunzip}, etc. (see for example
+      @tt{www.winzip.com}). Some users have reported some problems
+      with version 6.2 of WinZip, but no problems with, e.g., version
+      7. With WinZip, simply click on ``Extract'' and select the
+      extraction folder as indicated above.
+
+@item Stop any Ciao-related  applications.
+
+      If you have a previous version of Ciao installed, make sure you
+      do not have any Ciao applications (including, e.g., a toplevel
+      shell) running, or the extraction process may not be able to
+      complete. You may also want to delete the entire folder of the
+      previous installation to save space.
+
+@item Open the Ciao source directory created during extraction and run
+      (e.g. by double-clicking on it) the @tt{install}(@tt{.bat})
+      script. Answer ``yes'' to the dialog that pops up and type any
+      character in the installation window to finish the process. You
+      may need to reboot for the changes in the registry to take
+      effect.
+
+      This will update the windows registry (the file @tt{ciao}(@tt{.reg})
+      lists the additions) and also create some @tt{.bat} files which
+      may be useful for running Ciao executables from the command
+      line.  It also creates initialization scripts for the
+      @apl{emacs} editor. The actions performed by the installation
+      script are reported in the installation window.
+
+@item You may want to add a @index{windows shortcut} @cindex{shortcut,
+      windows} in a convenient place, such as the desktop, to
+      @apl{ciaosh.cpx}, the standard interactive toplevel shell. It is
+      located inside the @tt{shell} folder (e.g., click on the file
+      @apl{ciaosh.cpx} with the right mouse button and select the
+      appropriate option, @tt{Send to->Desktop as shortcut}).
+
+@item You may also want to add another shortcut to the file
+      @file{ciao}(@tt{.html}) located inside
+      @tt{doc\reference\ciao_html} so that you can open the
+      Ciao manual by simply double-clicking on this shortcut. 
+
+@item Finally, if the (freely available) @apl{emacs}
+      editor/environment is not installed in your system, we
+      @em{highly recommend} that you also install it at this point.
+      While it is easy to use Ciao with any editor of your choice, the
+      Ciao distribution includes a very powerful @cindex{development
+      environment} @em{application development environment} which is
+      based on @apl{emacs} and which enables, e.g., source-level
+      debugging, syntax coloring, context-sensitive on-line help,
+      etc. If you are not convinced, consider that many programmers 
+      inside Micros*ft use @tt{emacs} for developing their programs.
+
+@include{EmacsDownload.lpdoc}
+
+      @cindex{emacs mode, setting up, Win32} You need to tell
+      @apl{emacs} how to load the Ciao mode automatically when editing
+      and how to access the on-line documentation: 
+
+      @begin{itemize}
+
+      @item Start @apl{emacs} (double click on the icon or from the
+            @tt{Start} menu). Open (menu @tt{Files->Open File} or
+            simply @key{^X}@key{^F}) the file @file{ForEmacs.txt} that
+            the installation script has created in directory where you
+            installed the Ciao distribution.
+
+      @item Copy the lines in the file (select with the mouse and then
+            menu @tt{Edit->Copy}). Open/Create using @apl{emacs} (menu
+            @tt{Files->Open File} or simply @key{^X}@key{^F}) the file
+            @file{~/.emacs} (or, if this fails, @file{c:/.emacs}).
+
+      @item Paste the two lines (menu @tt{Edit->Paste} or simply
+            @key{^Y}) into the file and save (menu @tt{Files->Save
+            Buffer} or simply @key{^X}@key{^S}).
+
+      @item Exit @apl{emacs} and start it again.
+
+      @end{itemize}
+
+      @noindent @apl{emacs} should not report any errors (at least
+      related to Ciao) on startup. At this point the @apl{emacs}
+      checks in the following section should work.
+
+@end{enumerate}
+
+@section{Checking for correct installation on Win32}
+
+After the actions and registry changes performed by the installation
+procedure, you should check that the following should work correctly:
+
+@include{InstallTestWin32bin.lpdoc}
+
+@noindent
+Finally, if @apl{emacs} is installed, after starting it
+(double-clicking on the @tt{emacs} icon or from the @tt{Start} menu)
+the following should work:
+
+@include{EmacsTesting.lpdoc}
+
+If you find that everything works but @tt{emacs} cannot start the Ciao
+toplevel you may want to check if you can open a normal Windows shell
+within @tt{emacs} (just do @key{M-x} @tt{shell}). If you cannot, it is
+possible that you are using some anti-virus software which is causing
+problems. See
+@href{http://www.gnu.org/software/emac/windows/faq3.html#anti-virus}
+for a workaround.
+
+In some Windows versions it is possible that you had to change the
+@em{first} backslashes in the ciao-mode-init.el file in the Ciao
+Directory.  E.g., assuming you have installed in drive @tt{c:},
+instances of @tt{c:\} need to be changed to @tt{c:/}.  For example:
+@tt{c:\prolog/ciao-1.7p30Win32/shell/ciaosh.bat} should be changed to
+@tt{c:/prolog/ciao-1.7p30Win32/shell/ciaosh.bat}.
+
+
+@section{Compiling the miscellaneous utilities under Windows}
+
+The @file{cmds} folder contains a number of utilities, documented in
+the manual in @em{PART V - Miscellaneous Standalone Utilities}.  In
+the Win32 distribution these utilities are not compiled by the
+installation process.  You can create the executable for each of them
+when needed by compiling the corresponding @tt{.pl} file.
+
+@section{Server installation under Windows}
+
+@cindex{installation, Windows clients}
+@cindex{installation, Windows server}
+
+If you would like to install Ciao on a server machine, used by several
+clients, the following steps are recommended:
+
+@begin{itemize}
+
+@item Follow the standard installation procedure on the server. When
+      selecting the folder in which Ciao is installed make sure you
+      select a folder that is visible by the client machines. Also
+      make sure that the functionality specified in the previous
+      sections is now available on the server.
+
+@item Perform a @index{client installation} on each client, by running
+      (e.g., double-click on it) the @file{client.bat} script. This
+      should update the registry of each client. At this point all the
+      functionality should also be available on the clients.
+
+@end{itemize}
+
+@section{CGI execution under IIS}
+
+The standard installation procedure updates the windows registry so
+that Ciao executables (ending in @tt{.cpx}) are directly executable as
+CGIs under Microsoft's IIS, i.e., so that you make applications
+written in Ciao available on the WWW (see the @lib{pillow} library for
+specific support for this task).  In the event you re-install IIS, you
+probably would lose the entries in the registry which allow this.  In
+that case, processing the file @file{ciao.reg} produced during the
+installation (or simply reinstalling Ciao) will add those entries
+again.
+
+@section{Uninstallation under Windows}
+
+@comment{*** Should have an uninstall script also...}
+
+To uninstall Ciao under Windows, simply delete the directory in which
+you put the Ciao distribution.  If you also want to delete the
+registry entries created by the Ciao installation (not strictly
+needed) this must currently be done by hand.  The installation leaves
+a list of these entries in the file @file{ciao.reg} to aid in this
+task. Also, all the register entries contain the word @em{ciao}.
+Thus, to delete all Ciao entries, run the application @apl{regedit}
+(for example, by selecting @tt{Run} from the Windows @tt{Start} menu),
+search (@key{^F}) for @em{ciao} in all registry entries (i.e., select
+all of @tt{Keys}, @tt{Values}, and @tt{Data} in the @tt{Edit->Find}
+dialog), and delete each matching key (click on the left window to
+find the matching key for each entry found).
+
+
+%% Local Variables: 
+%% mode: CIAO
+%% update-version-comments: "off"
+%% End:
+

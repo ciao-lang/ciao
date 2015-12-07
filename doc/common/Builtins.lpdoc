@@ -1,0 +1,10 @@
+
+This part documents the @index{Ciao basic builtins}. These predefined
+predicates and declarations are available in every program, unless the
+@lib{pure} package is used (by using a @tt{:- module(_,_,[pure]).}
+declaration or @tt{:- use_package(pure).}). These predicates are
+contained in the @tt{engine} directory @cindex{engine directory}
+within the @tt{lib} library. @cindex{lib library} The rest of the
+library predicates, including the packages that provide most of the
+@concept{ISO-Prolog builtins}, are documented in subsequent parts.
+

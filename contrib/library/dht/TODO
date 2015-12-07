@@ -1,0 +1,142 @@
+  - dht_client:
+    Pairs of blocking/non-blocking calls.
+    read, read_nb, require, require_nb 
+    Are those current calls working???
+
+  - Should dht_store be fully bound?
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%DONE%%%%%%%%%%%%%%%%%%
+
+  - document node_id/2 structure.
+     take a look at 
+      :- regtype(dht_rpr_node(ID)).
+% Essentially (let me look for a better example to copy):
+-> regular type
+
+:- regtype node_id/1.
+:- comment(doinclude, node_id_type/1).
+
+:- pred dht_rpr_node(NodeID): node_id #
+    "".
+node_id(node_id(NodeID, IP)):- integer(NodeIP), atom(IP).
+
+     DONE.
+
+  - fully document existing source code.
+    - dht_client.pl
+      is it possible to write something like
+      {term,var}??? if no, is there any way to express terms that may contain
+      free variables?
+    DONE
+
+
+  - develop clean dht_rpr interface. probably following predicates
+    would become useful.
+     dht_rpr_register_node( Id, Ip). 
+      not only register but also replace info once old entry exists.
+
+     dht_rpr_node(Id, node_id(Id, Ip)).
+     dht_rpr_call(Id, Pred).
+     dht_rpr_call(node_id(_Id, Ip), Pred).
+
+    In fact, I would like to hide node_id somewhere deep into "dht_rpr" module,
+    so that no predicate from dht_logic would never use it explicitly
+    :].
+    
+     DONE.
+
+  - dht_logic.pl
+     should we re-export dht_storage???
+     By this time the only way we use dht_storage re-exportation is by 
+     calling it remotely from "dht_find_and_*" family of predicates.
+     DONE.
+
+  - dht_logic.pl
+     move finger_table to a separate module.
+          if so do the same to predecessor link
+             so do the same to own id 
+    DONE.
+
+  - comment directive. Which style should be used:
+      predicate/1
+         or
+      predicate(Term)
+    DONE.
+
+  - add functional syntax to avoid node_id/2 presence in 
+    dht_logic.pl
+
+% ..., p(X, Y), q(Y),...
+% ..., q(~p(X)), ...
+    DONE.
+
+  - SVN commit
+
+    use_module(dht_logic) -> use_module(library(dht/dht_logic))
+
+    DONE
+
+========================================
+  - Remote start: 
+     - Different communication protocols
+     - Ask for password/store
+        remote_start(Protocol, User, Password, Env, Command, Args, IS, OS, ES).
+        Protocol: SSH [, RSH, Telnet], Ciao.
+        Password: Explicit, Read from terminal, No password.
+        Env: VAR1=Value1, VAR2=Value2,...
+
+========================================
+  - Remote backtracking: DHT -> DR
+     - Recomputation: Keeping track of computation.
+     - Suspending/Resuming: Start new WAM
+     - client:
+        1.  .., c_f(g(X)), ..
+            c_f(G):- <save info on DB>,
+                     c_f_1(G).
+            c_f_1(G):- 
+                  repeat, 
+                    <get info for call to G>,
+                    remotly call G,
+                    <save new info>
+                    <fail if more sulutions>
+
+        2.  '$undo'/1
+             prepare_info(G, Id),'$undo'(release(Id)),
+
+      
+          1.  .., c_f(g(X)), ..
+            c_f(G):- 
+                functor(G, Key, _Arity),
+		dht_call(Key, Info),  % Info: which node / remote Id / etc.
+	        '$undo'(do_release(Info)),
+                c_f_1(G, Info).
+
+	    c_f_1(G, Info):-
+                  dht_relation(G, Info).
+% OPTION A for the second clause
+            c_f_1(G, Info):- 
+		  repeat,
+                     dht_next_sol(G, Info, Result),
+		  (is_failure(Result) -> !, fail; true).
+% OPTION B for the second clause
+            c_f_1(G, Info):- 
+		  'METACHOICE'(Choice),
+		  repeat,
+                     dht_next_sol(G, Info, Result),
+      	          (is_failure(Result) -> 'METACUT'(Choice), fail; true).
+
+
+	    c_f_1(G, Info):-
+                  dht_relation(G, Info).
+            c_f_1(G, Info):- 
+                  c_f_2(G, Info).
+		    		
+            c_f_2(G, Info):-
+                  dht_next_sol(G, Info, Result),
+                  is_failure(Reustl).
+            c_f_2(G, Info):-
+                  c_f_2(G, Info).
+

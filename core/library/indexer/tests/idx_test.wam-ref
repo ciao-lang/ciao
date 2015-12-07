@@ -1,0 +1,1035 @@
+poversion(version(67)).
+
+:- multifile(/('multifile:$primitive_meta_predicate',2)).
+:- multifile(/('multifile:$current_module',1)).
+:- dynamic(/('multifile:$current_module',1)).
+:- multifile(/('multifile:$ldlibs',1)).
+:- multifile(/('multifile:$multifile',3)).
+:- multifile(/('multifile:$load_libs',0)).
+:- multifile(/('multifile:$meta_args',2)).
+:- dynamic(/('multifile:$meta_args',2)).
+:- multifile(/('multifile:$u',2)).
+:- multifile(/('multifile:$initialization',1)).
+:- multifile(/('multifile:$on_abort',1)).
+:- multifile(/('multifile:$imports',5)).
+:- dynamic(/('multifile:$imports',5)).
+:- multifile(/('multifile:$defines',3)).
+clause('idx_test:foo/4/0$$0/4/1', 
+   [builtin_1(23,3)
+   ,neck(4)
+   ,allocate
+   ,choice_y(6)
+   ,get_y_variable(1,3)
+   ,get_y_variable(5,2)
+   ,get_y_variable(4,1)
+   ,get_y_variable(0,0)
+   ,put_x_value(2,0)
+   ,init([2,3])
+   ,call(/('term_typing:ground',1),7)
+   ,put_y_value(4,0)
+   ,builtin_1(24,0)
+   ,cut_y(6)
+   ,put_y_value(5,0)
+   ,put_y_value(2,1)
+   ,call(/('hash:hash_term',2),5)
+   ,heapmargin_call(258,0)
+   ,put_y_value(4,1)
+   ,put_x_variable(0,2)
+   ,put_x_void(3)
+   ,builtin_3(43,1,2,3)
+   ,put_y_value(3,1)
+   ,call(/('hash:hash_term',2),4)
+   ,put_y_value(2,0)
+   ,put_y_value(3,1)
+   ,function_2(13,1,0,1,0,2)
+   ,put_y_value(1,0)
+   ,function_2(13,0,0,1,0,2)
+   ,put_y_value(0,1)
+   ,deallocate
+   ,execute(/('idx_test:indexer_foo/4_index_1',2))]).
+
+clause('idx_test:foo/4/0$$0/4/2', 
+   [builtin_1(23,3)
+   ,cutb
+   ,neck(4)
+   ,get_x_variable(1,0)
+   ,put_x_value(3,0)
+   ,execute(/('idx_test:indexer_foo/4_index_2',2))]).
+
+clause('idx_test:foo/4/0$$0/4/3', 
+   [ifshallow
+   ,neck(4)
+   ,else
+   ,endif
+   ,proceed]).
+
+predicate(/('idx_test:foo/4/0$$0',4), 
+   [choice
+   ,switch_on_term([/(/('idx_test:foo/4/0$$0',4),1),/(/('idx_test:foo/4/0$$0',4),2),/(/('idx_test:foo/4/0$$0',4),3)],[/(/('idx_test:foo/4/0$$0',4),1),/(/('idx_test:foo/4/0$$0',4),2),/(/('idx_test:foo/4/0$$0',4),3)],[],[/(/('idx_test:foo/4/0$$0',4),1),/(/('idx_test:foo/4/0$$0',4),2),/(/('idx_test:foo/4/0$$0',4),3)])]).
+
+clause('idx_test:foo/4/1', 
+   [ifshallow
+   ,neck(4)
+   ,else
+   ,endif
+   ,allocate
+   ,get_y_variable(4,3)
+   ,get_y_variable(3,2)
+   ,get_y_variable(2,1)
+   ,get_y_variable(1,0)
+   ,put_y_variable(0,0)
+   ,put_y_value(1,1)
+   ,init([])
+   ,call(/('idx_test:foo/4/0$$0',4),5)
+   ,put_y_unsafe_value(0,0)
+   ,put_y_value(1,1)
+   ,put_y_value(2,2)
+   ,put_y_value(3,3)
+   ,put_y_value(4,4)
+   ,deallocate
+   ,execute(/('idx_test:indexer_foo/4',5))]).
+
+clause('idx_test:indexer_foo/4/5/1', 
+   [get_constant_x0(0)
+   ,get_constant(a,1)
+   ,get_constant(b,2)
+   ,get_structure(/(c,1),3)
+   ,unify_constant(d)
+   ,get_constant(9,4)
+   ,neck(5)
+   ,proceed]).
+
+clause('idx_test:indexer_foo/4_index_1/2/1', 
+   [get_large_x0(4262624028)
+   ,get_constant(0,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('idx_test:indexer_foo/4_index_2/2/1', 
+   [get_constant_x0(9)
+   ,get_constant(0,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('idx_test:indexer_foo/4/5/2', 
+   [get_constant_x0(1)
+   ,get_constant(e,1)
+   ,get_constant(f,2)
+   ,get_structure(/(g,1),3)
+   ,unify_constant(h)
+   ,get_constant(11,4)
+   ,neck(5)
+   ,put_constant(a,0)
+   ,put_constant(b,1)
+   ,put_structure(/(c,1),2)
+   ,unify_constant(d)
+   ,put_constant(9,3)
+   ,execute(/('idx_test:foo',4))]).
+
+clause('idx_test:indexer_foo/4_index_1/2/2', 
+   [get_large_x0(2474874642)
+   ,get_constant(1,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('idx_test:indexer_foo/4_index_2/2/2', 
+   [get_constant_x0(11)
+   ,get_constant(1,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('idx_test:indexer_foo/4/5/3', 
+   [get_constant_x0(2)
+   ,get_constant(z,2)
+   ,neck(5)
+   ,execute(/('idx_test:baz',0))]).
+
+clause('idx_test:indexer_foo/4_index_1/2/3', 
+   [get_constant(2,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('idx_test:indexer_foo/4_index_2/2/3', 
+   [get_constant(2,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('idx_test:baz/0/1', 
+   [ifshallow
+   ,neck(0)
+   ,else
+   ,endif
+   ,proceed]).
+
+clause('idx_test:idx1/4/1', 
+   [get_constant_x0(a)
+   ,get_constant(b,1)
+   ,get_structure(/(c,1),2)
+   ,unify_constant(d)
+   ,get_constant(9,3)
+   ,neck(4)
+   ,proceed]).
+
+clause('idx_test:idx1/4/2', 
+   [get_constant_x0(e)
+   ,get_constant(f,1)
+   ,get_structure(/(g,1),2)
+   ,unify_constant(h)
+   ,get_constant(11,3)
+   ,neck(4)
+   ,put_constant(a,0)
+   ,put_constant(b,1)
+   ,put_structure(/(c,1),2)
+   ,unify_constant(d)
+   ,put_constant(9,3)
+   ,execute(/('idx_test:idx1',4))]).
+
+clause('idx_test:idx1/4/3', 
+   [get_constant(z,1)
+   ,neck(4)
+   ,execute(/('idx_test:baz',0))]).
+
+clause('idx_test:idx2/4/1', 
+   [ifshallow
+   ,neck(4)
+   ,else
+   ,endif
+   ,get_x_variable(4,0)
+   ,put_x_value(1,0)
+   ,put_x_value(4,1)
+   ,execute(/('idx_test:indexer_idx2/4',4))]).
+
+clause('idx_test:indexer_idx2/4/4/1', 
+   [get_constant_x0(b)
+   ,get_constant(a,1)
+   ,get_structure(/(c,1),2)
+   ,unify_constant(d)
+   ,get_constant(9,3)
+   ,neck(4)
+   ,proceed]).
+
+clause('idx_test:indexer_idx2/4/4/2', 
+   [get_constant_x0(f)
+   ,get_constant(e,1)
+   ,get_structure(/(g,1),2)
+   ,unify_constant(h)
+   ,get_constant(11,3)
+   ,neck(4)
+   ,put_constant(b,0)
+   ,put_constant(a,1)
+   ,put_structure(/(c,1),2)
+   ,unify_constant(d)
+   ,put_constant(9,3)
+   ,execute(/('idx_test:indexer_idx2/4',4))]).
+
+clause('idx_test:indexer_idx2/4/4/3', 
+   [ifshallow
+   ,neck(4)
+   ,else
+   ,endif
+   ,get_constant_x0(z)
+   ,execute(/('idx_test:baz',0))]).
+
+clause('idx_test:mymaplist/2/1', 
+   [ifshallow
+   ,neck(2)
+   ,else
+   ,endif
+   ,allocate
+   ,get_y_variable(0,1)
+   ,put_structure(/(pred,1),1)
+   ,unify_constant(1)
+   ,put_constant(idx_test,2)
+   ,put_constant(-,3)
+   ,put_constant(fail,4)
+   ,put_y_variable(1,5)
+   ,init([])
+   ,call(/('internals:rt_module_exp',6),2)
+   ,put_y_value(0,0)
+   ,put_y_unsafe_value(1,1)
+   ,deallocate
+   ,execute(/('idx_test:indexer_mymaplist/2',2))]).
+
+clause('idx_test:indexer_mymaplist/2/2/1', 
+   [ifshallow
+   ,neck(2)
+   ,else
+   ,endif
+   ,get_nil_x0
+   ,proceed]).
+
+clause('idx_test:indexer_mymaplist/2/2/2', 
+   [ifshallow
+   ,neck(2)
+   ,else
+   ,endif
+   ,get_list_x0
+   ,allocate
+   ,get_y_variable(2,1)
+   ,unify_y_variable(4)
+   ,unify_y_variable(0)
+   ,put_structure(/(pred,1),1)
+   ,unify_constant(1)
+   ,put_constant(idx_test,2)
+   ,put_constant(-,3)
+   ,put_constant(true,4)
+   ,put_y_value(2,0)
+   ,put_y_variable(3,5)
+   ,init([1])
+   ,call(/('internals:rt_module_exp',6),5)
+   ,put_structure(/('',1),1)
+   ,unify_y_value(4)
+   ,put_y_unsafe_value(3,0)
+   ,call(/('hiord_rt:call',2),3)
+   ,put_structure(/(pred,1),1)
+   ,unify_constant(1)
+   ,put_constant(idx_test,2)
+   ,put_constant(-,3)
+   ,put_constant(fail,4)
+   ,put_y_value(2,0)
+   ,put_y_value(1,5)
+   ,call(/('internals:rt_module_exp',6),2)
+   ,put_y_value(0,0)
+   ,put_y_unsafe_value(1,1)
+   ,deallocate
+   ,execute(/('idx_test:indexer_mymaplist/2',2))]).
+
+clause('multifile:$ldlibs/1/1', 
+   [ifshallow
+   ,neck(1)
+   ,else
+   ,endif
+   ,get_constant_x0(idx_test)
+   ,put_constant(hash,0)
+   ,put_structure(/(library,1),1)
+   ,unify_structure(/(indexer,1))
+   ,unify_constant(hash)
+   ,execute(/('internals:load_lib',2))]).
+
+clause('multifile:$u/2/1', 
+   [get_constant_x0(idx_test)
+   ,get_constant(term_basic,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/2', 
+   [get_constant_x0(idx_test)
+   ,get_constant(arithmetic,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/3', 
+   [get_constant_x0(idx_test)
+   ,get_constant(atomic_basic,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/4', 
+   [get_constant_x0(idx_test)
+   ,get_constant(attributes,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/5', 
+   [get_constant_x0(idx_test)
+   ,get_constant(basic_props,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/6', 
+   [get_constant_x0(idx_test)
+   ,get_constant(basiccontrol,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/7', 
+   [get_constant_x0(idx_test)
+   ,get_constant(data_facts,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/8', 
+   [get_constant_x0(idx_test)
+   ,get_constant(exceptions,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/9', 
+   [get_constant_x0(idx_test)
+   ,get_constant(io_aux,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/10', 
+   [get_constant_x0(idx_test)
+   ,get_constant(io_basic,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/11', 
+   [get_constant_x0(idx_test)
+   ,get_constant(prolog_flags,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/12', 
+   [get_constant_x0(idx_test)
+   ,get_constant(streams_basic,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/13', 
+   [get_constant_x0(idx_test)
+   ,get_constant(system_info,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/14', 
+   [get_constant_x0(idx_test)
+   ,get_constant(term_compare,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/15', 
+   [get_constant_x0(idx_test)
+   ,get_constant(term_typing,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/16', 
+   [get_constant_x0(idx_test)
+   ,get_constant(hiord_rt,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/17', 
+   [get_constant_x0(idx_test)
+   ,get_constant(debugger_support,1)
+   ,neck(2)
+   ,proceed]).
+
+clause('multifile:$u/2/18', 
+   [get_constant_x0(idx_test)
+   ,get_constant(hash,1)
+   ,neck(2)
+   ,proceed]).
+
+'multifile:$current_module'(idx_test) :-
+        'basiccontrol:true'.
+'multifile:$meta_args'(idx_test,mymaplist(pred(1),?)) :-
+        'basiccontrol:true'.
+'multifile:$meta_args'(idx_test,'indexer_mymaplist/2'(?,pred(1))) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,hash,hash_term,2,hash) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,debugger_support,srcdbg_spy,7,debugger_support) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,hiord_rt,call,1,hiord_rt) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_basic,functor,3,term_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,hiord_rt,'$meta_call',1,hiord_rt) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,hiord_rt,'$nodebug_call',1,hiord_rt) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,hiord_rt,'SYSCALL',1,hiord_rt) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,hiord_rt,call,2,hiord_rt) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,hiord_rt,call,1,hiord_rt) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_typing,type,2,term_typing) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_typing,ground,1,term_typing) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_typing,atomic,1,term_typing) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_typing,number,1,term_typing) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_typing,float,1,term_typing) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_typing,integer,1,term_typing) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_typing,atom,1,term_typing) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_typing,nonvar,1,term_typing) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_typing,var,1,term_typing) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_compare,comparator,1,term_compare) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_compare,compare,3,term_compare) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_compare,@>=,2,term_compare) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_compare,@>,2,term_compare) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_compare,@=<,2,term_compare) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_compare,@<,2,term_compare) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_compare,\==,2,term_compare) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_compare,==,2,term_compare) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_basic,list_functor,1,term_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_basic,const_head,1,term_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_basic,'C',3,term_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_basic,copy_term_nat,2,term_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_basic,copy_term,2,term_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_basic,non_empty_list,1,term_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_basic,=..,2,term_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_basic,functor,3,term_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_basic,arg,3,term_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_basic,\=,2,term_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,term_basic,=,2,term_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,internal_module_id,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,ciao_lib_dir,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,ciao_c_headers_dir,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,current_module,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,this_module,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,get_so_ext,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,get_exec_ext,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,get_ciao_ext,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,get_eng_location,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,get_debug,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,get_platform,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,get_os,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,system_info,get_arch,1,system_info) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,atm_or_int,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,io_mode,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,stream_alias,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,stream,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,sourcename,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,pipe,2,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,absolute_file_name,7,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,absolute_file_name,2,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,stream_code,2,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,current_stream,3,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,clearerr,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,flush_output,0,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,flush_output,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,line_position,2,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,line_count,2,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,character_count,2,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,current_output,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,set_output,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,current_input,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,set_input,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,close,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,open_option_list,1,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,open,4,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,streams_basic,open,3,streams_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,nofileerrors,0,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,fileerrors,0,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,nogc,0,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,gc,0,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,prompt,2,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,pop_ciao_flag,1,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,push_ciao_flag,2,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,ciao_flag,3,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,current_ciao_flag,2,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,set_ciao_flag,2,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,pop_prolog_flag,1,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,push_prolog_flag,2,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,prolog_flag,3,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,current_prolog_flag,2,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,prolog_flags,set_prolog_flag,2,prolog_flags) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,displayq,1,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,displayq,2,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,display,1,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,display,2,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,getct1,2,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,getct,2,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,code_class,2,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,tab,1,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,tab,2,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,nl,0,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,nl,1,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,put_code,1,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,put_code,2,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,skip_line,0,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,skip_line,1,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,skip_code,1,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,skip_code,2,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,peek_code,1,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,peek_code,2,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,get1_code,1,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,get1_code,2,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,get_code,1,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_basic,get_code,2,io_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,add_lines,4,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,message_type,1,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,message_info,1,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,display_term,1,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,display_list,1,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,display_string,1,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,inform_user,1,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,debug,1,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,message,1,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,note,1,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,warning,1,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,error,1,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,messages,1,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,message_lns,4,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,io_aux,message,2,io_aux) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,exceptions,abort,0,exceptions) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,exceptions,halt,1,exceptions) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,exceptions,halt,0,exceptions) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,exceptions,send_silent_signal,1,exceptions) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,exceptions,send_signal,1,exceptions) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,exceptions,throw,1,exceptions) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,exceptions,intercept,3,exceptions) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,exceptions,catch,3,exceptions) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,reference,1,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,erase,1,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,set_fact,1,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,open_predicate,1,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,close_predicate,1,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,retract_fact_nb,1,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,current_fact_nb,1,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,retractall_fact,1,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,retract_fact,1,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,current_fact,2,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,current_fact,1,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,assertz_fact,2,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,assertz_fact,1,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,asserta_fact,2,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,data_facts,asserta_fact,1,data_facts) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,debug_goal,1,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,undefined_goal,1,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,interpret_compiled_goal,2,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,interpret_goal,2,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,'$metacut',1,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,'$metachoice',1,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,otherwise,0,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,false,0,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,repeat,0,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,fail,0,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,true,0,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,if,3,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,\+,1,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,!,0,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,->,2,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,;,2,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basiccontrol,',',2,basiccontrol) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,pe_type,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,flag_values,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,filter,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,memo,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,error_free,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,bind_ins,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,equiv,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,eval,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,no_rtcheck,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,rtcheck,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,rtcheck,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,native,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,native,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,regtype,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,sideff,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,not_further_inst,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,deprecated,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,iso,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,inst,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,compat,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,atm_or_atm_list,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,predname,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,num_code,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,string,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,character_code,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,sequence_or_list,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,sequence,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,member,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,nlist,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,list,2,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,list,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,operator_specifier,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,callable,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,constant,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,gndstr,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,gnd,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,struct,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,atm,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,num,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,flt,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,nnegint,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,int,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,basic_props,term,1,basic_props) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,attributes,detach_attribute,1,attributes) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,attributes,update_attribute,2,attributes) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,attributes,get_attribute,2,attributes) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,attributes,attach_attribute,2,attributes) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,atomic_basic,valid_base,1,atomic_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,atomic_basic,sub_atom,4,atomic_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,atomic_basic,atom_concat,3,atomic_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,atomic_basic,atom_length,2,atomic_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,atomic_basic,atom_number,3,atomic_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,atomic_basic,atom_number,2,atomic_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,atomic_basic,number_codes,3,atomic_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,atomic_basic,number_codes,2,atomic_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,atomic_basic,atom_codes,2,atomic_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,atomic_basic,name,2,atomic_basic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,arithmetic,intexpression,1,arithmetic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,arithmetic,arithexpression,1,arithmetic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,arithmetic,=\=,2,arithmetic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,arithmetic,=:=,2,arithmetic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,arithmetic,>=,2,arithmetic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,arithmetic,>,2,arithmetic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,arithmetic,=<,2,arithmetic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,arithmetic,<,2,arithmetic) :-
+        'basiccontrol:true'.
+'multifile:$imports'(idx_test,arithmetic,is,2,arithmetic) :-
+        'basiccontrol:true'.
+clause('multifile:$multifile/3/1', 
+   [get_constant_x0(idx_test)
+   ,get_constant('$primitive_meta_predicate',1)
+   ,get_constant(2,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$multifile/3/2', 
+   [get_constant_x0(idx_test)
+   ,get_constant('$current_module',1)
+   ,get_constant(1,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$multifile/3/3', 
+   [get_constant_x0(idx_test)
+   ,get_constant('$ldlibs',1)
+   ,get_constant(1,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$multifile/3/4', 
+   [get_constant_x0(idx_test)
+   ,get_constant('$multifile',1)
+   ,get_constant(3,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$multifile/3/5', 
+   [get_constant_x0(idx_test)
+   ,get_constant('$load_libs',1)
+   ,get_constant(0,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$multifile/3/6', 
+   [get_constant_x0(idx_test)
+   ,get_constant('$meta_args',1)
+   ,get_constant(2,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$multifile/3/7', 
+   [get_constant_x0(idx_test)
+   ,get_constant('$u',1)
+   ,get_constant(2,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$multifile/3/8', 
+   [get_constant_x0(idx_test)
+   ,get_constant('$initialization',1)
+   ,get_constant(1,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$multifile/3/9', 
+   [get_constant_x0(idx_test)
+   ,get_constant('$on_abort',1)
+   ,get_constant(1,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$multifile/3/10', 
+   [get_constant_x0(idx_test)
+   ,get_constant('$imports',1)
+   ,get_constant(5,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$multifile/3/11', 
+   [get_constant_x0(idx_test)
+   ,get_constant('$defines',1)
+   ,get_constant(3,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$defines/3/1', 
+   [get_constant_x0(idx_test)
+   ,get_constant(foo,1)
+   ,get_constant(4,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$defines/3/2', 
+   [get_constant_x0(idx_test)
+   ,get_constant('indexer_foo/4',1)
+   ,get_constant(5,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$defines/3/3', 
+   [get_constant_x0(idx_test)
+   ,get_constant('indexer_foo/4_index_1',1)
+   ,get_constant(2,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$defines/3/4', 
+   [get_constant_x0(idx_test)
+   ,get_constant('indexer_foo/4_index_2',1)
+   ,get_constant(2,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$defines/3/5', 
+   [get_constant_x0(idx_test)
+   ,get_constant(baz,1)
+   ,get_constant(0,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$defines/3/6', 
+   [get_constant_x0(idx_test)
+   ,get_constant(idx1,1)
+   ,get_constant(4,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$defines/3/7', 
+   [get_constant_x0(idx_test)
+   ,get_constant(idx2,1)
+   ,get_constant(4,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$defines/3/8', 
+   [get_constant_x0(idx_test)
+   ,get_constant('indexer_idx2/4',1)
+   ,get_constant(4,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$defines/3/9', 
+   [get_constant_x0(idx_test)
+   ,get_constant(mymaplist,1)
+   ,get_constant(2,2)
+   ,neck(3)
+   ,proceed]).
+
+clause('multifile:$defines/3/10', 
+   [get_constant_x0(idx_test)
+   ,get_constant('indexer_mymaplist/2',1)
+   ,get_constant(2,2)
+   ,neck(3)
+   ,proceed]).
+

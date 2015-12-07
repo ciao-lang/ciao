@@ -1,0 +1,2 @@
+This tells the automatic installation procedure not to dig into this
+directory in search of files to compile.  Do not remove it.

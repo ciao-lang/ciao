@@ -1,0 +1,12 @@
+
+@cindex{emacs, download}
+@cindex{downloading emacs}
+
+Official relases for the latest @apl{emacs} versions can be downloaded
+from @href{https://www.gnu.org/software/emacs/#Obtaining} (See the
+@tt{gnu/emacs} and @tt{gnu/windows/emacs} directories in FTP mirrors).
+You can find answers to frequently asked questions (FAQ) about
+@apl{emacs} in general at
+@href{http://www.gnu.org/software/emacs/manual/efaq.html} and about
+the Windows version at
+@href{http://www.gnu.org/software/emacs/manual/efaq-w32.html}.

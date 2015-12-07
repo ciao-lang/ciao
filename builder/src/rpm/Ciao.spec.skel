@@ -1,0 +1,659 @@
+## This is the build specification template for Ciao RPM packages.
+##
+## %files, %post, %preun sections must be up to date with Ciao
+## Main package (Ciao) must be sync'ed with core/ciaopp/lpdoc/etc. subpackages
+## See gen_pbundle__rpm.pl for more details.
+
+## Copyright © 2007 José Luis González / The CLIP Group
+## Facultad de Informática, Universidad Politécnica de Madrid.
+
+
+########################################################################
+
+## Switches controlling features/behaviour of RPM generation.
+## These can be set from the rpmbuild command line and
+## *** MUST both be declared with ciaorpm_opttype/2 and listed into
+## rpm_options/1 in gen_pbundle__rpm.pl ***
+
+## Defaults are provided here for those not explicitly set outside:
+
+# Do we want a versioned package? (1/0)
+# (This supports installing more than one version of Ciao on the same machine.)
+%if %{!?versionp:1}0
+%define versionp 0
+%endif
+
+# Do we want separate packages for core, ciaopp and lpdoc? (1/0)
+%if %{!?subpackages:1}0
+%define subpackages 1
+%endif
+
+# Build a vendor-independent package? (installable in all RPM distros) (1/0)
+# (If 0 the package will be vendor-dependent for the build distro, and paths
+#  options must be set explicitly if they differ from defaults - see below.)
+%if %{!?vendor_independent:1}0
+%define vendor_independent 1
+%endif
+
+
+## Vendor-dependent paths/filenames (we default to Fedora/Redhat):
+
+%if %{!?install_info_cmd:1}0
+# So far this is the same in all mainstream RPM-based linux distributions:
+%define install_info_cmd /sbin/install-info
+%endif
+# Debian (and derivatives):
+#define install_info_cmd /usr/sbin/install-info
+
+%if %{!?emacs_sitestart_dir:1}0
+# Fedora/RedHat:
+%define emacs_sitestart_dir %{_datadir}/emacs/site-lisp/site-start.d
+%endif
+# SuSE (requires suse-start-*.el):
+#define emacs_sitestart_dir %{_datadir}/emacs/site-lisp/
+# Mandriva, Debian, etc:
+#define emacs_sitestart_dir /etc/emacs/site-start.d
+#
+# Since we want a single RPM package that works everywhere, the pre/postun
+# scripts take care of copying ciao-mode-init.el in non Fedora/RedHat systems.
+
+%if %{!?emacs_sitestart_filename:1}0
+# Fedora/RedHat, Mandriva, etc.:
+%define emacs_sitestart_filename ciao-mode-init.el
+%endif
+# *SuSE (requires suse-start-*.el):
+#define emacs_sitestart_filename suse-start-ciao.el
+# Debian (and Ubuntu, etc.), requires a prefix number for loading order:
+#define emacs_sitestart_filename 50ciao-mode-init.el
+
+## Ciao project details:
+
+# Ciao's subversion repository directory name
+%if %{!?repo_dirname:1}0
+%define repo_dirname Ciao
+%endif
+
+# Ciao's subversion repository URI (for doing checkout)
+%if %{!?repo_uri:1}0
+%define repo_uri file:///home/clip/SvnReps/Systems/CiaoDE/trunk
+%endif
+
+# Ciao bibliography's subversion repository directory name
+%if %{!?bibrepo_dirname:1}0
+%define bibrepo_dirname %{repo_dirname}/bibtex_clip
+%endif
+
+# Ciao bibliography's subversion repository URI (for doing checkout)
+%if %{!?bibrepo_uri:1}0
+%define bibrepo_uri file:///home/clip/SvnReps/bibtex/clip
+%endif
+
+########################################################################
+
+## Package names depend on whether the package is versioned:
+
+%if %{versionp}
+
+{{BundleVersionedNames}}
+
+%else
+
+{{BundleNames}}
+
+%endif
+
+########################################################################
+
+Summary: The Ciao Prolog development environment
+Name: Ciao
+Version: {{Version}}
+Release: {{Release}}
+License: LGPL (Ciao) / GPL (CiaoPP, lpdoc)
+Vendor: CLIP Lab
+Group: Development/Languages
+URL: http://ciao-lang.org
+Packager: Ciao Dev. Team <ciao@clip.dia.fi.upm.es>
+Source: {{VersionedPackName}}-bin-{{OsArch}}.tar.gz
+Requires: coreutils %{install_info_cmd}
+%if !%{subpackages}
+Provides: ciao-{{CiaoPathVersion}}
+%endif
+BuildRequires: mktemp coreutils findutils gcc make emacs
+#BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+
+%define ciaodocdir %{_defaultdocdir}/%{name}
+
+%description
+Ciao is a public domain next generation multi-paradigm programming
+environment with a unique set of features:
+
+ * A complete Prolog system, supporting ISO-Prolog.
+
+ * Support for both restricting and extending the language. Restrictions
+   and extensions can be activated separately on each program module so
+   that several extensions can coexist in the same application for
+   different modules.
+
+ * Support for programming with functions, higher-order (with predicate
+   abstractions), constraints, and objects, as well as feature terms
+   (records), persistence, several control rules (breadth-first search,
+   iterative deepening, ...), concurrency (threads/engines), a good base
+   for distributed execution (agents), and parallel execution. Libraries
+   also support WWW programming, sockets, external interfaces (C, Java,
+   TclTk, relational databases, etc.), etc.
+
+ * Support for programming in the large with a robust module/object
+   system, module-based separate/incremental compilation (automatically
+   --no need for makefiles), an assertion language for declaring
+   (optional) program properties (including types and modes, but also
+   determinacy, non-failure, cost, etc.), automatic static inference and
+   static/dynamic checking of such assertions, etc.
+
+ * Support for programming in the small producing small executables
+   (including only those builtins used by the program) and for writing
+   scripts in Prolog.
+
+ * The environment includes a classical top-level and a rich emacs
+   interface with an embeddable source-level debugger and a number of
+   execution visualization tools.
+
+ * The Ciao compiler (which can be run outside the top level shell)
+   generates several forms of architecture-independent and standalone
+   executables, which run with speed, efficiency and executable size
+   which are very competitive with other commercial and academic
+   Prolog/CLP systems. Library modules can be compiled into compact
+   bytecode or C source files, and linked statically, dynamically, or
+   autoloaded.
+
+ * The novel modular design of Ciao enables, in addition to modular
+   program development, effective global program analysis and static
+   debugging and optimization via source to source program
+   transformation. These tasks are performed by the Ciao preprocessor
+   (ciaopp).
+
+ * An automatic documentation generator for LP/CLP programs (lpdoc). It
+   processes Prolog files adorned with (Ciao) assertions and
+   machine-readable comments and generates manuals in many formats
+   including postscript, pdf, texinfo, info, HTML, man, etc. , as well
+   as on-line help, ascii README files, entries for indices of manuals
+   (info, WWW, ...), and maintains WWW distribution sites.
+%if %{versionp}
+
+This is a versioned package. You may install it along with other
+Ciao packages, provided they are all different versions.
+%endif
+
+%prep
+
+%setup -q -n {{VersionedPackName}}
+
+%build
+
+./ciao-boot.sh configure \
+   --instype=global --install_prefix=%{_prefix} \
+   --core:update_bashrc=no --core:update_cshrc=no \
+%if %{versionp}
+   --core:with_emacs_mode=no --core:update_dotemacs=no \
+%else
+   --core:with_emacs_mode=yes --core:update_dotemacs=no \
+   --core:emacs_site_start=%{emacs_sitestart_dir} \
+   --core:emacsinitfile=%{emacs_sitestart_filename} \
+%endif
+   --core:with_mysql=%{?with_mysql}%{!?with_mysql:no} \
+   --core:with_java_interface=%{?with_java_interface}%{!?with_java_interface:no} \
+   --contrib:with_gsl=%{?with_gsl}%{!?with_gsl:no} \
+   --contrib:with_ppl=no \
+   --lpdoc:docdir=%{ciaodocdir} \
+   --lpdoc:mandir=%{_mandir} --lpdoc:infodir=%{_infodir} \
+   --lpdoc:htmldir=%{ciaodocdir}/html \
+   --core:pillow_base_htmldir=/tmp \
+   --core:install_prolog_name=no \
+   --execmode=755 --datamode=644
+./ciao-boot.sh build_nodocs
+
+%install
+rm -rf %{buildroot}
+./ciao-boot.sh install --destdir=%{buildroot}
+
+# These are unnecessary in an RPM package:
+rm -rf %{buildroot}/tmp # Pillow Web images
+rm -rf %{buildroot}%{ciaodocdir}/dir %{buildroot}%{ciaodocdir}/html
+rm -f %{buildroot}%{_libdir}/ciao/DOT*
+rm -f %{buildroot}%{_infodir}/dir
+
+mkdir -p %{buildroot}%{_mandir}/man1
+
+%if %{versionp}
+
+find %{buildroot}%{_bindir} -type l -print | xargs rm
+rm -rf %{buildroot}%{_includedir}
+
+{{BundleMoveManVersions}}
+
+%else
+
+{{BundleMoveMans}}
+
+%endif
+
+# Integrate .infoindex entries into .info documents so that install-info
+# works with them without non-portable arguments:
+
+{{BundleIntegrateInfoindexes}}
+
+# Now we don't need the .infoindex files anymore:
+rm -f %{buildroot}%{ciaodocdir}/*.infoindex
+
+%clean
+rm -rf %{buildroot}
+
+%if !%{subpackages} && !%{versionp}
+
+# WARNING: Changes to these scripts MUST be applied to all subpackages as well.
+
+%post
+if type install-info >/dev/null 2>&1
+then
+{{BundleInstallInfoCmds}}
+fi
+
+%if %{vendor_independent}
+# %{emacs_sitestart_dir} defaults to Fedora/RedHat. If we want a single
+# RPM package that works everywhere this takes care of other systems:
+if [ -f /etc/SuSE-release ]
+then ln -sf %{emacs_sitestart_dir}/%{emacs_sitestart_filename} \
+	%{_datadir}/emacs/site-lisp/suse-start-ciao.el
+elif [ -d /etc/emacs/site-start.d -a \
+	! -e /etc/emacs/site-start.d/50ciao-mode-init.el ]
+then ln -s %{emacs_sitestart_dir}/%{emacs_sitestart_filename} \
+        /etc/emacs/site-start.d/50ciao-mode-init.el
+fi
+%endif
+
+%preun
+if type install-info >/dev/null 2>&1
+then
+{{BundleInstallInfoCmdsRemove}}
+fi
+
+%if %{vendor_independent}
+# %{emacs_sitestart_dir} defaults to Fedora/RedHat. If we want a
+# single RPM package that works everywhere this takes care of other systems:
+if [ -L %{_datadir}/emacs/site-lisp/suse-start-ciao.el ]
+then rm -f %{_datadir}/emacs/site-lisp/suse-start-ciao.el
+elif [ -L /etc/emacs/site-start.d/50ciao-mode-init.el ]
+then rm -f /etc/emacs/site-start.d/50ciao-mode-init.el
+fi
+%endif
+
+%endif # !%{subpackages} && !%{versionp}
+
+#%verifyscript
+
+%if !%{subpackages}
+# Omitting the main files section precludes the creation of the main Ciao.rpm
+
+%files
+%defattr(-,root,root,-)
+
+%if %{versionp}
+%{error:Versioned packages need subpackages}
+%endif
+
+# WARNING: Changes to this list MUST be applied to all subpackages as well.
+# wildcards are necessary for the package not to own the directories
+%{_bindir}/*
+%if !%{versionp}
+%{_libdir}/ciao/*.el*
+%endif
+{{BundleFiles}}
+%dir %{ciaodocdir}
+%{_mandir}/*/*
+%{_infodir}/*
+%if ! %{versionp}
+%{_includedir}/*
+%config %{emacs_sitestart_dir}/%{emacs_sitestart_filename}
+%endif
+
+
+%else
+# Subpackages = yes
+
+
+%if %{ciao}0
+
+%package -n %{ciaoname}
+Summary: The Ciao Prolog System
+Version: {{CiaoVersion}}
+License: LGPL
+Group: Development/Languages
+Requires: coreutils %{install_info_cmd}
+Provides: ciao-{{CiaoPathVersion}}
+%if ! %{versionp}
+Conflicts: ciao-v{{CiaoPathVersion}}
+%endif
+
+# %description -n %{ciaoname}
+# Ciao is a general-purpose programming language which supports logic,
+# constraint, functional, higher-order, and object-oriented programming
+# styles. Its main design objectives are high expressive power,
+# extensibility, safety, reliability, and efficient execution. As a
+# library, Ciao includes a very complete and powerful ISO-Prolog system.
+
+%description -n %{ciaoname}
+The Ciao Prolog system is a public domain next generation multi-paradigm
+programming environment with a unique set of features:
+
+ * A complete Prolog system, supporting ISO-Prolog.
+
+ * Support for both restricting and extending the language. Restrictions
+   and extensions can be activated separately on each program module so
+   that several extensions can coexist in the same application for
+   different modules.
+
+ * Support for programming with functions, higher-order (with predicate
+   abstractions), constraints, and objects, as well as feature terms
+   (records), persistence, several control rules (breadth-first search,
+   iterative deepening, ...), concurrency (threads/engines), a good base
+   for distributed execution (agents), and parallel execution. Libraries
+   also support WWW programming, sockets, external interfaces (C, Java,
+   TclTk, relational databases, etc.), etc.
+
+ * Support for programming in the large with a robust module/object
+   system, module-based separate/incremental compilation (automatically
+   --no need for makefiles), an assertion language for declaring
+   (optional) program properties (including types and modes, but also
+   determinacy, non-failure, cost, etc.), automatic static inference and
+   static/dynamic checking of such assertions, etc.
+
+ * Support for programming in the small producing small executables
+   (including only those builtins used by the program) and for writing
+   scripts in Prolog.
+
+ * The environment includes a classical top-level and a rich emacs
+   interface with an embeddable source-level debugger and a number of
+   execution visualization tools.
+
+ * The Ciao compiler (which can be run outside the top level shell)
+   generates several forms of architecture-independent and standalone
+   executables, which run with speed, efficiency and executable size
+   which are very competitive with other commercial and academic
+   Prolog/CLP systems. Library modules can be compiled into compact
+   bytecode or C source files, and linked statically, dynamically, or
+   autoloaded.
+%if %{versionp}
+
+This is a versioned package. You may install it along with other
+Ciao packages, provided they are all different versions.
+%endif
+
+%if ! %{versionp}
+
+%post -n %{ciaoname}
+if type install-info >/dev/null 2>&1
+then
+	install-info --dir-file=%{_infodir}/dir \
+		%{_infodir}/ciao-{{CiaoVersion}}.info
+fi
+
+%if %{vendor_independent}
+# %{emacs_sitestart_dir} defaults to Fedora/RedHat. If we want a
+# single RPM package that works everywhere this takes care of other systems:
+if [ -f /etc/SuSE-release ]
+then ln -sf %{emacs_sitestart_dir}/%{emacs_sitestart_filename} \
+	%{_datadir}/emacs/site-lisp/suse-start-ciao.el
+elif [ -d /etc/emacs/site-start.d -a \
+	! -e /etc/emacs/site-start.d/50ciao-mode-init.el ]
+then ln -s %{emacs_sitestart_dir}/%{emacs_sitestart_filename} \
+	/etc/emacs/site-start.d/50ciao-mode-init.el
+fi
+%endif
+
+%preun -n %{ciaoname}
+if type install-info >/dev/null 2>&1
+then
+	install-info --remove --dir-file=%{_infodir}/dir \
+		%{_infodir}/ciao-{{CiaoVersion}}.info
+fi
+%if %{vendor_independent}
+# %{emacs_sitestart_dir} defaults to Fedora/RedHat. If we want a
+# single RPM package that works everywhere this takes care of other systems:
+if [ -a -L %{_datadir}/emacs/site-lisp/suse-start-ciao.el ]
+then rm -f %{_datadir}/emacs/site-lisp/suse-start-ciao.el
+elif [ -a -L /etc/emacs/site-start.d/50ciao-mode-init.el ]
+then rm -f /etc/emacs/site-start.d/50ciao-mode-init.el
+fi
+%endif
+
+%endif
+
+%files -n %{ciaoname}
+%defattr(-,root,root,-)
+%if ! %{versionp}
+%{_bindir}/ciao
+%{_bindir}/ciao-shell
+%{_bindir}/ciao_sysconf
+%{_bindir}/ciaoc
+%{_bindir}/ciaosh
+%{_bindir}/compiler_output
+%{_bindir}/fileinfo
+%{_bindir}/lpmake
+%{_bindir}/pldiff
+%{_bindir}/show_asr
+%{_bindir}/show_deps
+%{_bindir}/viewpo
+%{_bindir}/cleandirs
+%{_bindir}/synch_actions
+%endif
+%{_bindir}/ciao-{{CiaoPathVersion}}
+%{_bindir}/ciao-shell-{{CiaoPathVersion}}
+%{_bindir}/ciao_sysconf-{{CiaoPathVersion}}
+%{_bindir}/ciaoc-{{CiaoPathVersion}}
+%{_bindir}/ciaosh-{{CiaoPathVersion}}
+%{_bindir}/compiler_output-{{CiaoPathVersion}}
+%{_bindir}/fileinfo-{{CiaoPathVersion}}
+%{_bindir}/lpmake-{{CiaoPathVersion}}
+%{_bindir}/pldiff-{{CiaoPathVersion}}
+%{_bindir}/show_asr-{{CiaoPathVersion}}
+%{_bindir}/show_deps-{{CiaoPathVersion}}
+%{_bindir}/viewpo-{{CiaoPathVersion}}
+%{_bindir}/cleandirs-{{CiaoPathVersion}}
+%{_bindir}/synch_actions-{{CiaoPathVersion}}
+%if ! %{versionp}
+# wildcard necessary for the package not to own the directory
+%{_includedir}/*
+%{_libdir}/ciao/*.el*
+%endif
+%{_libdir}/ciao/core-{{CiaoPathVersion}}
+%{ciaodocdir}/ciao-{{CiaoVersion}}.pdf
+%if %{versionp}
+# wildcard worksaround an rpmbuild bug (man/info files get gzipped)
+%{_mandir}/man1/ciao-{{CiaoVersion}}.1*
+%else
+%{_mandir}/man1/ciao.1*
+%endif
+%{_infodir}/ciao-{{CiaoVersion}}.info*
+%if !%{versionp}
+%config %{emacs_sitestart_dir}/%{emacs_sitestart_filename}
+%endif
+
+%endif # if %{ciao}
+
+
+%if %{ciaopp}0
+
+%package -n %{ciaoppname}
+Summary: The Ciao Prolog Preprocessor
+Version: {{CiaoPPVersion}}
+License: GPL
+Group: Development/Languages
+Requires: coreutils, %{install_info_cmd}, ciao-{{CiaoPathVersion}}
+Provides: ciaopp-{{CiaoPPPathVersion}}
+%if ! %{versionp}
+Conflicts: ciaopp-v{{CiaoPPPathVersion}}
+%endif
+
+%description -n %{ciaoppname}
+ciaopp is the precompiler of the Ciao Prolog development environment.
+ciaopp can perform a number of program debugging, analysis and
+source-to-source transformation tasks on (Ciao) Prolog programs. These
+tasks include:
+
+ * Inference of properties of the predicates and literals of the progam,
+   including types, modes and other variable instantiation properties,
+   non-failure, determinacy, bounds on computational cost, bounds on
+   sizes of terms in the program, etc.
+
+ * Certain kinds of static debugging, finding errors before running the
+   program. This includes checking the ways in which programs call the
+   system library predicates and also checking the assertions present in
+   the program or in other modules used by the program. Such assertions
+   essentially represent partial specifications of the program.
+
+ * Several kinds of source to source program transformations such as
+   program specialization, program parallelization (including
+   granularity control), inclusion of run-time tests for assertions
+   which cannot be checked completely at compile-time, etc.
+
+The information generated by analysis, the assertions in the system
+libraries, and the assertions optionally included in user programs as
+specifications are all written in the same assertion language, which is
+in turn also used by the CIAO system documentation generator, lpdoc.
+%if %{versionp}
+
+This is a versioned package. You may install it along with other
+Ciaopp packages, provided they are all different versions.
+%endif
+
+%if ! %{versionp}
+
+%post -n %{ciaoppname}
+if type install-info >/dev/null 2>&1
+then
+	install-info --dir-file=%{_infodir}/dir \
+		%{_infodir}/ciaopp-{{CiaoPPVersion}}.info
+fi
+%preun -n %{ciaoppname}
+if type install-info >/dev/null 2>&1
+then
+	install-info --remove --dir-file=%{_infodir}/dir \
+		%{_infodir}/ciaopp-{{CiaoPPVersion}}.info
+fi
+
+%endif
+
+%files -n %{ciaoppname}
+%defattr(-,root,root,-)
+%if ! %{versionp}
+%{_bindir}/ciaopp
+%endif
+%{_bindir}/ciaopp-{{CiaoPPPathVersion}}
+%{_libdir}/ciaopp/ciaopp-{{CiaoPPPathVersion}}
+%{ciaodocdir}/ciaopp-{{CiaoPPVersion}}.pdf
+%if %{versionp}
+%{_mandir}/man1/ciaopp-{{CiaoPPVersion}}.1*
+%else
+%{_mandir}/man1/ciaopp.1*
+%endif
+%{_infodir}/ciaopp-{{CiaoPPVersion}}.info*
+
+%endif # if %{ciaopp}
+
+
+%if %{lpdoc}0
+
+%package -n %{lpdocname}
+Summary: An automatic program documentation generator for (C)LP systems
+Version: {{LPdocVersion}}
+License: GPL
+Group: Development/Languages
+Requires: coreutils, %{install_info_cmd}, ciao-{{CiaoPathVersion}}
+Provides: lpdoc-{{LPdocPathVersion}}
+%if ! %{versionp}
+Conflicts: lpdoc-v{{LPdocPathVersion}}
+%endif
+
+%description -n %{lpdocname}
+lpdoc is an automatic program documentation generator for (C)LP systems.
+
+lpdoc generates a reference manual automatically from one or more source
+files for a logic program (including ISO-Prolog, Ciao, many CLP systems,
+...). It is particularly useful for documenting library modules, for
+which it automatically generates a description of the module interface.
+However, lpdoc can also be used quite successfully to document full
+applications and to generate nicely formatted plain ascii ``readme''
+files. A fundamental advantage of using lpdoc to document programs is
+that it is much easier to maintain a true correspondence between the
+program and its documentation, and to identify precisely to what version
+of the program a given printed manual corresponds.
+
+The quality of the documentation generated can be greatly enhanced by
+including within the program text:
+
+ * assertions (types, modes, etc. ...) for the predicates in the program, and
+ * machine-readable comments (in the ``literate programming'' style).
+
+The assertions and comments included in the source file need to be
+written using the Ciao system assertion language. A simple compatibility
+library is available to make traditional (constraint) logic programming
+systems ignore these assertions and comments allowing normal treatment
+of programs documented in this way.
+
+The documentation is currently generated first in texinfo format. From
+the texinfo output, printed and on-line manuals in several formats (dvi,
+ps, info, html, etc.) can be easily generated automatically, using
+publicly available tools. lpdoc can also generate 'man' pages (Unix man
+page format) as well as brief descriptions in html or emacs info formats
+suitable for inclusion in an on-line index of applications. In
+particular, lpdoc can create and maintain fully automatically WWW and
+info sites containing on-line versions of the documents it produces.
+%if %{versionp}
+
+This is a versioned package. You may install it along with other
+Ciaopp packages, provided they are all different versions.
+%endif
+
+%if ! %{versionp}
+
+%post -n %{lpdocname}
+if type install-info >/dev/null 2>&1
+then
+	install-info --dir-file=%{_infodir}/dir \
+		%{_infodir}/lpdoc-{{LPdocVersion}}.info
+fi
+%preun -n %{lpdocname}
+if type install-info >/dev/null 2>&1
+then
+	install-info --remove --dir-file=%{_infodir}/dir \
+		%{_infodir}/lpdoc-{{LPdocVersion}}.info
+fi
+
+%endif
+
+%files -n %{lpdocname}
+%defattr(-,root,root,-)
+%if ! %{versionp}
+%{_bindir}/lpdoc
+%endif
+%{_bindir}/lpdoc-{{LPdocPathVersion}}
+%{_libdir}/lpdoc/lpdoc-{{LPdocPathVersion}}
+%{ciaodocdir}/lpdoc-{{LPdocVersion}}.pdf
+%if %{versionp}
+%{_mandir}/man1/lpdoc-{{LPdocVersion}}.1*
+%else
+%{_mandir}/man1/lpdoc.1*
+%endif
+%{_infodir}/lpdoc-{{LPdocVersion}}.info*
+
+%endif # if %{lpdoc}
+
+
+%endif # %{subpackages}
+
+
+# Entries should only mention user-visible changes:
+%changelog
+* Tue Oct 11 2011 Ciao development team <ciao@clip.dia.fi.upm.es>
+- Check the documentation or visit http://ciao-lang.org for the
+  release notes for this version.

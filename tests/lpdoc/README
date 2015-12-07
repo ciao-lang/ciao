@@ -1,0 +1,21 @@
+Show help on tests command for LPdoc:
+  $ ciao oc:tests lpdoc
+
+Example of use (for 'ciaotest' test):
+
+  # Update lpdoc, if needed
+  $ ciao build_nodocs lpdoc
+
+  # Generate the output
+  $ ciao oc:tests lpdoc check ciaotest
+
+  # Compare or view the output
+  $ export DIFFCMD=meld # (optional, command for diff)
+  $ ciao oc:tests lpdoc compare ciaotest
+  $ ciao oc:tests lpdoc open-html ciaotest
+  $ ciao oc:tests lpdoc open-info ciaotest
+  $ ciao oc:tests lpdoc open-pdf ciaotest
+
+  # Clean the output
+  $ ciao oc:tests lpdoc clean ciaotest
+

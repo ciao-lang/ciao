@@ -1,0 +1,118 @@
+global PathToResources
+set PathToResources to POSIX path of (path to me) & "/Contents/Resources"
+--set PathToResources to "/Users/remy/work/ciao/beta/package/Ciao.app/Contents/Resources"
+
+global DotEmacs
+set DotEmacs to POSIX path of (path to home folder) & ".emacs"
+
+on CheckApp(a)
+	try
+		tell application id "com.apple.finder" to application file id a as alias
+		return true
+	on error
+		return false
+	end try
+end CheckApp
+
+on MkTmpPL()
+	set TmpPL to (do shell script "mktemp -u -t Ciao_") & ".pl"
+	do shell script "cp \"" & PathToResources & "{{BUNDLEDIR_CORE}}/sample.pl\" " & TmpPL
+	return TmpPL
+end MkTmpPL
+
+
+on Defaults(Cmd, Tail)
+	return do shell script "defaults " & Cmd & " " & "{{DOMAIN}}" & " " & Tail
+end Defaults
+
+on CheckVersion(version)
+	return true
+end CheckVersion
+
+on CheckDotEmacs(OldDotEmacsMD5)
+	return OldDotEmacsMD5 = (do shell script "md5 -q " & DotEmacs)
+end CheckDotEmacs
+
+on ModifyDOTemacs(EmacsID)
+	set Emacs to name of application id EmacsID
+	if button returned of (display dialog "Ciao needs to modify you emacs configuration script and restart " & Emacs & ".
+		
+Click \"Cancel\" to abort " & Emacs & " configuration.
+Click \"OK\" to proceed with configuration.
+" buttons {"Cancel", "OK"} default button 1) = "OK" then
+		if application id EmacsID is running then
+			tell application id EmacsID to quit
+		end if
+		
+		do shell script "CIAOLIB=\"" & PathToResources & "{{BUNDLEDIR_CORE}}\" CIAOENGINE=\"" & PathToResources & "{{CIAOENGINE}}\" \"" & PathToResources & "{{BINDIR}}/configure_dotemacs\" --install " & DotEmacs
+		
+	end if
+	set DotEmacsMD5 to do shell script "md5 -q " & DotEmacs
+	Defaults("write", "CiaoVersion {{VERSION}}")
+	Defaults("write ", "emacs " & EmacsID)
+	Defaults("write", "DotEmacsMD5 " & DotEmacsMD5)
+end ModifyDOTemacs
+
+on Init()
+	set AppsList to {"org.gnu.Emacs", "org.gnu.AquamacsEmacs"}
+	
+	repeat with Emacs in AppsList
+		if CheckApp(Emacs) then
+			set DotEmacsMD5 to ModifyDOTemacs(Emacs)
+			CallEmacs(Emacs)
+			return
+		end if
+	end repeat
+	
+	set answer to button returned of (display dialog "*** Emacs has not been found. ***
+
+Ciao needs Emacs or Aquamacs. If none of them is installed on your computer please download it, drop it to your applications folder and restart Ciao application. For better compatility, we recommend Carbon Emacs.
+
+If Emacs is already installed you can look for it manually by clicking \"Look Manually for Emacs\".
+
+" buttons {"Get Carbon Emacs", "Get Aquamacs", "Look Manually for Emacs"} default button 1)
+	
+	if answer = "Get Carbon Emacs" then
+		open location "http://www.apple.com/downloads/macosx/unix_open_source/carbonemacspackage.html"
+	else if answer = "Get Aquamacs" then
+		open location "http://www.apple.com/downloads/macosx/productivity_tools/aquamacsemacs.html"
+	else
+		set EmacsID to id of (choose application)
+		if (EmacsID = "org.gnu.Emacs") or (EmacsID = "org.gnu.AquamacsEmacs") then
+			ModifyDOTemacs(Emacs)
+			CallEmacs()
+		else
+			display dialog "The choosen application does not seem to be neither Emacs nor Aquamacs. Configuration Aborted."
+		end if
+	end if
+	say "Ciao is now installed on your machine." using "Bad News"
+end Init
+
+
+on CallEmacs(Emacs)
+	if CheckApp(Emacs) then
+		set TmpPL to MkTmpPL()
+		tell application id Emacs to open TmpPL
+	else
+		Init()
+	end if
+end CallEmacs
+
+
+try
+	set EmacsID to Defaults("read", "emacs")
+	set CiaoVersion to Defaults("read", "CiaoVersion")
+	set DotEmacsMD5 to Defaults("read", "DotEmacsMD5")
+on error
+	Init()
+	return
+end try
+
+if not CheckVersion(CiaoVersion) then
+	Init()
+else if not CheckDotEmacs(DotEmacsMD5) then
+	display dialog "Your " & (name of application id EmacsID) & " configuration script changed since the last time you launch Ciao. The system will verify your configuration is still OK."
+	Init()
+else
+	CallEmacs(EmacsID)
+end if

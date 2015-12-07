@@ -1,0 +1,63 @@
+:-module(idx_test_co,[],[]).
+'$applied_packages'([prelude,nonpure,hiord,indexer,expander]).
+:-add_clause_trans(expand_clause/4,9910).
+:-export(foo/4).
+:-discontiguous 'indexer_foo/4_index_1'/2.
+:-discontiguous 'indexer_foo/4_index_2'/2.
+:-discontiguous 'indexer_foo/4'/5.
+:-use_module(library(indexer(hash)),[hash_term/2]).
+:-export(idx1/4).
+:-export(idx2/4).
+:-export(mymaplist/2).
+:-meta_predicate mymaplist(pred(1),?).
+:-meta_predicate 'indexer_mymaplist/2'(?,pred(1)).
+
+foo(_3,_9,_2,_1) :-
+        (
+            term_typing:integer(_1),
+            term_typing:ground(_2),
+            term_typing:nonvar(_3) ->
+            hash:hash_term(_2,_5),
+            term_basic:functor(_3,_4,_),
+            hash:hash_term(_4,_6),
+            _7 is _1#(_5#_6),
+            idx_test:'indexer_foo/4_index_1'(_7,_8)
+        ;
+            (
+                term_typing:integer(_1) ->
+                idx_test:'indexer_foo/4_index_2'(_1,_8)
+            ;
+                true
+            )
+        ),
+        'indexer_foo/4'(_8,_3,_9,_2,_1).
+'indexer_foo/4'(0,a,b,c(d),9).
+'indexer_foo/4_index_1'(4262624028,0).
+'indexer_foo/4_index_2'(9,0).
+'indexer_foo/4'(1,e,f,g(h),11) :-
+        foo(a,b,c(d),9).
+'indexer_foo/4_index_1'(2474874642,1).
+'indexer_foo/4_index_2'(11,1).
+'indexer_foo/4'(2,_,z,_,_) :-
+        baz.
+'indexer_foo/4_index_1'(_,2).
+'indexer_foo/4_index_2'(_,2).
+baz.
+idx1(a,b,c(d),9).
+idx1(e,f,g(h),11) :-
+        idx1(a,b,c(d),9).
+idx1(_,z,_,_) :-
+        baz.
+idx2(_2,_1,_3,_4) :-
+        'indexer_idx2/4'(_1,_2,_3,_4).
+'indexer_idx2/4'(b,a,c(d),9).
+'indexer_idx2/4'(f,e,g(h),11) :-
+        idx2(a,b,c(d),9).
+'indexer_idx2/4'(z,_,_,_) :-
+        baz.
+mymaplist(_2,_1) :-
+        'indexer_mymaplist/2'(_1,_2).
+'indexer_mymaplist/2'([],_).
+'indexer_mymaplist/2'([Elem|Tail],Goal) :-
+        call(Goal,Elem),
+        mymaplist(Goal,Tail).

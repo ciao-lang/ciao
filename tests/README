@@ -1,0 +1,21 @@
+===========================================================================
+                    A GENERAL TESTS SUITE FOR CIAO
+===========================================================================
+
+This is a general test suite for Ciao, which contains tests for the
+language and its implementation, which allows measuring:
+
+ - correctness of compiler, optimizer, analyzer, etc. (including
+   parser, pretty print, output, ...)
+
+ - performance (time, memory consumption) of the engine, runtime, libraries,
+   compiler and analysis
+
+ - comparison with other languages and implementations
+
+Other tests that are NOT found in this tests suite are:
+
+ - unit tests (better placed close to the code)
+ - tests for very specific (such as GUIs, bindings to third part
+   foreign libraries, etc.) or experimental parts
+

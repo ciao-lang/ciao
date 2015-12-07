@@ -1,0 +1,4 @@
+
+This part documents the @index{iso} package which provides to Ciao
+programs (most of) the ISO-Prolog functionality, including the
+@index{ISO-Prolog builtins} not covered by the basic library.

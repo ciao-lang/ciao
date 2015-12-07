@@ -1,0 +1,23 @@
+The PiLLoW library (``Programming in Logic Languages on the Web'') is a
+public domain Internet/WWW programming library for Logic Programming
+Systems which simplifies the process of writing applications for such
+environment.  The library provides facilities for generating HTML or XML
+structured documents by handling them as Herbrand terms, producing HTML
+forms, writing form handlers, processing HTML templates, accessing and
+parsing WWW documents (either HTML or XML), accessing code posted at
+HTTP addresses, etc.
+@p
+The PiLLoW library has been developed in the context of the &-Prolog and
+Ciao systems, but it has been adapted to a number of popular Logic
+Programming systems.  Note, however, that this manual is written for the
+Ciao system, so if you use it in other systems, minor details in the
+documentation may not completely agree.  For example, whereas in Ciao
+the library is a package which loads modules @tt{html} and @tt{http}, in
+the other systems it is just one module @tt{pillow}.  Thus, do not
+consider the @em{Library usage} information in other systems.
+@p
+PiLLoW is distributed under the @concept{GNU Library General Public
+License}.
+
+@comment{, version 2, as published by the Free Software Foundation,
+Inc., 675 Mass Ave, Cambridge, MA 02139, USA.}

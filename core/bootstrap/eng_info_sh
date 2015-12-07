@@ -1,0 +1,4 @@
+ENG_STUBMAIN="main.c"
+ENG_CFILES="wam.c format.c io_basic.c misc.c startgoal.c nondet.c objareas.c streams_basic.c timing.c wambuiltin.c os_utils.c attr.c dynlink.c tasks.c locks.c own_malloc.c own_mmap.c win32_mman.c alloc.c wam_alloc.c heapgc.c indexing.c initial.c stacks.c support.c term_support.c wamsupport.c qread.c eng_dbg.c interrupt.c gauge.c bignum.c float_consts.c float_tostr.c ciao_prolog.c start.c version.c eng_build_info.c"
+ENG_HFILES="datadefs.h configure.h alloc_init.h termdefs.h access.h locks_prim.h objdefs.h absmach_predef.h support_macros.h eng_dbg.h global_defs.h os_signal.h ciao_gluecode.h threads.h task_areas.h profile_hooks.h tabling.h wam_macros.h instrdefs.h wam.h io_basic.h startgoal.h nondet.h streams_basic.h timing.h attr.h tasks.h alloc.h wam_alloc.h initial.h registers.h stacks.h support.h term_support.h wamsupport.h eng_dbg.h float_consts.h float_tostr.h start.h version.h"
+ENG_HFILES_NOALIAS="ciao_prolog.h"

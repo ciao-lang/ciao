@@ -1,0 +1,106 @@
+* Machine exodo4:
+  Core Duo
+** rev 14744
+*** SWI:
+    queens(16,[step]).
+    time 1050ms
+    queens(90,[ff]).
+    time : 1071 ms
+*** Bits:
+    test 0: 0.916	(queens, n=16, lab=step, diff=clpfd)
+    test 1: 0.572	(queens, n=16, lab=step, diff=fd)
+    test 2: 0.388	(queens, n=16, lab=step, diff=idx)
+    test 3: 0.224	(queens, n=16, lab=step, diff=kernel)
+    test 4: 2.080	(queens, n=90, lab=ff,  diff=clpfd)
+    test 5: 1.112	(queens, n=90, lab=ff,  diff=fd)
+    test 6: 0.752	(queens, n=90, lab=ff,  diff=idx)
+    test 7: 0.388	(queens, n=90, lab=ff,  diff=kernel)
+*** Finite Interval:
+    test 0: 1.144	(queens, n=16, lab=step, diff=clpfd)
+    test 1: 0.848	(queens, n=16, lab=step, diff=fd)
+    test 2: 0.648	(queens, n=16, lab=step, diff=idx)
+    test 3: 0.336	(queens, n=16, lab=step, diff=kernel)
+    test 4: 2.052	(queens, n=90, lab=ff,  diff=clpfd)
+    test 5: 1.272	(queens, n=90, lab=ff,  diff=fd)
+    test 6: 1.124	(queens, n=90, lab=ff,  diff=idx)
+    test 7: 0.408	(queens, n=90, lab=ff,  diff=kernel)
+    test 8: 2.036	(bridge)
+*** Infinite Interval:
+    test 0: 1.432	(queens, n=16, lab=step, diff=clpfd)
+    test 1: 1.104	(queens, n=16, lab=step, diff=fd)
+    test 2: 0.916	(queens, n=16, lab=step, diff=idx)
+    test 3: 0.368	(queens, n=16, lab=step, diff=kernel)
+    test 4: 2.484	(queens, n=90, lab=ff,  diff=clpfd)
+    test 5: 1.592	(queens, n=90, lab=ff,  diff=fd)
+    test 6: 1.588	(queens, n=90, lab=ff,  diff=idx)
+    test 7: 0.432	(queens, n=90, lab=ff,  diff=kernel)
+    test 8: 2.396	(bridge)
+* Machine Baal:
+  Xeon CPU
+** rev 14773
+*** Bits:
+    test 0: 1.148	(queens, n=16, lab=step, diff=clpfd)
+    test 1: 0.720	(queens, n=16, lab=step, diff=fd)
+    test 2: 0.484	(queens, n=16, lab=step, diff=idx)
+    test 3: 0.288	(queens, n=16, lab=step, diff=kernel)
+    test 4: 2.600	(queens, n=90, lab=ff,  diff=clpfd)
+    test 5: 1.368	(queens, n=90, lab=ff,  diff=fd)
+    test 6: 0.944	(queens, n=90, lab=ff,  diff=idx)
+    test 7: 0.508	(queens, n=90, lab=ff,  diff=kernel)
+    Brigde is broken
+*** Finite intervals:
+    test 0: 1.456	(queens, n=16, lab=step, diff=clpfd)
+    test 1: 1.088	(queens, n=16, lab=step, diff=fd)
+    test 2: 0.828	(queens, n=16, lab=step, diff=idx)
+    test 3: 0.436	(queens, n=16, lab=step, diff=kernel)
+    test 4: 2.588	(queens, n=90, lab=ff,  diff=clpfd)
+    test 5: 1.608	(queens, n=90, lab=ff,  diff=fd)
+    test 6: 1.428	(queens, n=90, lab=ff,  diff=idx)
+    test 7: 0.512	(queens, n=90, lab=ff,  diff=kernel)
+    test 8: 2.604	(bridge)
+*** Infinite intervals: 
+
+** rev 14769 
+*** Finite intervals:
+    test 0: 1.444	(queens, n=16, lab=step, diff=clpfd)
+    test 1: 1.068	(queens, n=16, lab=step, diff=fd)
+    test 2: 0.816	(queens, n=16, lab=step, diff=idx)
+    test 3: 0.424	(queens, n=16, lab=step, diff=kernel)
+    test 4: 2.604	(queens, n=90, lab=ff,  diff=clpfd)
+    test 5: 1.600	(queens, n=90, lab=ff,  diff=fd)
+    test 6: 1.404	(queens, n=90, lab=ff,  diff=idx)
+    test 7: 0.512	(queens, n=90, lab=ff,  diff=kernel)
+    test 8: 2.512	(bridge)
+*** Infinite intervals
+    test 0: 1.824	(queens, n=16, lab=step, diff=clpfd)
+    test 1: 1.412	(queens, n=16, lab=step, diff=fd)
+    test 2: 1.180	(queens, n=16, lab=step, diff=idx)
+    test 3: 0.468	(queens, n=16, lab=step, diff=kernel)
+    test 4: 3.168	(queens, n=90, lab=ff,  diff=clpfd)
+    test 5: 2.036	(queens, n=90, lab=ff,  diff=fd)
+    test 6: 2.048	(queens, n=90, lab=ff,  diff=idx)
+    test 7: 0.548	(queens, n=90, lab=ff,  diff=kernel)
+    test 8: 3.024	(bridge)
+** rev 14767
+*** Finite intervals:
+    test 0: 1.328	(queens, n=16, lab=step, diff=clpfd)
+    test 1: 1.004	(queens, n=16, lab=step, diff=fd)
+    test 2: 1.980	(queens, n=16, lab=step, diff=idx)
+    test 3: 0.428	(queens, n=16, lab=step, diff=kernel)
+    test 4: 2.316	(queens, n=90, lab=ff,  diff=clpfd)
+    test 5: 1.488	(queens, n=90, lab=ff,  diff=fd)
+    test 6: 3.868	(queens, n=90, lab=ff,  diff=idx)
+    test 7: 0.512	(queens, n=90, lab=ff,  diff=kernel)
+    test 8: 2.648	(bridge)
+*** Infinite intervals:
+    test 0: 1.684	(queens, n=16, lab=step, diff=clpfd)
+    test 1: 1.348	(queens, n=16, lab=step, diff=fd)
+    test 2: 2.876	(queens, n=16, lab=step, diff=idx)
+    test 3: 0.468	(queens, n=16, lab=step, diff=kernel)
+    test 4: 2.828	(queens, n=90, lab=ff,  diff=clpfd)
+    test 5: 1.904	(queens, n=90, lab=ff,  diff=fd)
+    test 6: 5.520	(queens, n=90, lab=ff,  diff=idx)
+    test 7: 0.552	(queens, n=90, lab=ff,  diff=kernel)
+    test 8: 3.124	(bridge)
+*** Bits:
+    Broken.

@@ -1,0 +1,13 @@
+
+lpmake -m MakefileExample.pl hwhw
+(Generate file hwhw --needs to generate file hw first)
+
+lpmake -m MakefileExample.pl datafile.double
+(Generate file datafile.double --needs to generate file
+datafile.simple first)
+
+lpmake -m MakefileExample.pl realclean
+(Cleanup)
+
+lpmake -h -m MakefileExample.pl
+(Help on general use of lpmake and commands available in MakefileExample.pl)

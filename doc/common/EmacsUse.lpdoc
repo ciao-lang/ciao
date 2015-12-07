@@ -1,0 +1,51 @@
+
+@cindex{emacs, intro} While it is easy to use Ciao with any editor of
+your choice, using it within the @apl{emacs} editor/program
+development system is highly recommended: Ciao includes an @apl{emacs}
+@em{mode} which provides a very complete @cindex{development
+environment} @em{application development environment} which greatly
+simplifies many program development tasks. See @ref{Using Ciao inside
+GNU emacs} for details on the capabilities of @apl{ciao}/@apl{emacs}
+combination.
+
+If the (freely available) @apl{emacs} editor/environment is not
+installed in your system, we highly recommend that you also install it
+at this point (there are instructions for where to find @apl{emacs}
+and how to install it in the Ciao installation instructions).  After
+having done this you can try for example the following things:
+
+@begin{itemize}
+
+@item A few basic things: 
+
+      @include{EmacsTesting.lpdoc} 
+
+      (if these things do not work the system or emacs may not be
+      installed properly).
+
+@item You can go to the location of most of the errors that may be
+      reported during compilation by typing @key{^C} @key{`}.
+
+@item You can also, e.g., create executables from the @tt{Ciao/Prolog}
+      menu, as well as compile individual files, or generate active
+      modules.
+
+@item Loading a file for source-level debugging using the
+      @tt{Ciao/Prolog} menu (or typing @key{^C} @key{d}) and then
+      issuing a query should start the source-level debugger and move
+      a marker on the code in a window while execution is stepped
+      through in the window running the Ciao top level.
+
+@item You can add the lines needed in Unix for turning any file
+      defining @pred{main/1} into a script from the Ciao/Prolog menu
+      or by typing @key{^C} @key{I} @key{S}.
+
+@item You can also work with the preprocessor and auto-documenter
+      directly from emacs: see their manuals or browse through the
+      corresponding menus that appear when editing @tt{.pl} files.
+
+@end{itemize}
+
+We encourage you once more to read @ref{Using Ciao inside GNU emacs}
+to discover the many other functionalities of this environment.
+

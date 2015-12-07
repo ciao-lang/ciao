@@ -1,0 +1,132 @@
+
+This manual assumes some familiarity with logic programming and the
+Prolog language.  @comment{and, as a reference manual, is not meant to
+be an introduction to the Prolog language.}  The reader is referred to
+standard textbooks on logic programming and Prolog (such as, e.g.,
+@cite{SterlingShapiro86,Clome81,apt-log-to-pl,Hogger84}) for
+background.  However, we would like to refresh herein some concepts
+for the sake of establishing terminology.  Also, we will briefly
+introduce a few of the extensions that Ciao brings to the Prolog
+language.
+
+@subsection{Predicates and their components}
+
+Procedures are called @em{predicates} and predicate calls
+@em{literals}. They all have the classical syntax of procedures (and
+of logic predications and of mathematical functions). Predicates are
+identified in this manual by a keyword 'PREDICATE' at the right margin
+of the place where they are documented.
+
+Program instructions are expressions made up of control constructs
+(@ref{Control constructs/predicates}) and literals, and are called
+@em{goals}. Literals are also (atomic) goals.
+
+A predicate definition is a sequence of clauses. A clause has the form
+``@tt{H :- B.}'' (ending in '@tt{.}'), where @tt{H} is syntactically the
+same as a literal and is called the clause @em{head}, and @tt{B} is a
+goal and is called the clause @em{body}. A clause with no body is
+written ``@tt{H.}'' and is called a @em{fact}. Clauses with body are also
+called @em{rules}. A program is a sequence of predicate definitions.
+
+@subsection{Characters and character strings}
+
+We adopt the following convention for delineating character strings in
+the text of this manual: when a string is being used as an atom it is
+written thus: @tt{user} or @tt{'user'}; but in all other circumstances
+double quotes are used (as in @tt{"hello"}).
+
+@cindex{keyboard} When referring to keyboard characters, printing
+characters are written thus: @key{a}, while control characters are
+written like this: @key{^A}.  Thus @key{^C} is the character you get by
+holding down the @key{CTL} key while you type @key{c}.  Finally, the
+special control characters carriage-return, line-feed and space are
+often abbreviated to @key{RET}, @key{LFD} and @key{SPC} respectively.
+
+@subsection{Predicate specs}
+
+Predicates are distinguished by their name @em{and} their arity.  We
+will call @tt{name/arity} a @concept{@em{predicate spec}}.  The
+notation @tt{name/arity} is therefore used when it is necessary to
+refer to a predicate unambiguously. For example, @tt{concatenate/3}
+specifies the predicate which is named ``concatenate'' and which takes
+3 arguments.
+
+(Note that different predicates may have the same name and different
+arity. Conversely, of course, they may have the same arity and different
+name.)
+
+@subsection{Modes}
+
+When documenting a predicate, we will often describe its usage with a
+@concept{mode spec} which has the form @tt{name(Arg1, ..., ArgN)}
+where each @var{Arg} may be preceded by a @concept{@em{mode}}.  A mode
+is a functor which is wrapped around an argument (or prepended if
+defined as an operator).  Such a mode allows documenting in a compact
+way the @concept{instantiation state} on call and exit of the argument
+to which it is applied.  The set of modes which can be used in Ciao is
+not fixed. Instead, arbitrary modes can be defined by in programs
+using the @decl{modedef/1} declarations of the Ciao
+@concept{@em{assertion language}} (@ref{The Ciao assertion language}
+for details).  Modes are identified in this manual by a keyword
+'MODE'.
+
+Herein, we will use the set of modes defined in the Ciao
+@lib{isomodes} library, which is essentially the same as those used in
+the @concept{ISO-Prolog} standard (@ref{ISO-Prolog modes}).
+
+@subsection{Properties and types}
+
+Although Ciao is @em{not} a typed language, it allows writing
+(and using) types, as well as (more general) properties. There may be
+properties of the states and of the computation. Properties of the
+states allow expressing characteristics of the program variables
+during computation, like in @tt{sorted(X)} (@tt{X} is a sorted list).
+Properties of the computation allow expressing characteristics of a
+whole computation, like in @tt{is_det(p(X,Y))} (such calls yield only
+one solution). Properties are just a special form of predicates
+(@ref{Declaring regular types}) and are identified in this manual by a
+keyword 'PROPERTY'.
+
+Ciao types are @em{regular types} (@ref{Declaring regular types}),
+which are a special form of properties themselves. They are identified
+in this manual by a keyword 'REGTYPE'.
+
+@subsection{Declarations}
+
+A @em{declaration} provides information to one of the Ciao environment
+tools. Declarations are interspersed in the code of a program.
+Usually the target tool is either the compiler (telling it that a
+predicate is dynamic, or a meta-predicate, etc.), the preprocessor
+(which understands declarations of properties and types, assertions,
+etc.), or the autodocumenter (which understands the previous
+declarations and also certain ``comment'' declarations).
+
+A declaration has the form @tt{:- D.} where @tt{D} is syntactically
+the same as a literal. Declarations are identified in this manual by a
+keyword 'DECLARATION'.
+
+In Ciao users can define (and document) new declarations. New
+declarations are typically useful when defining extensions to the
+language (which in Ciao are called packages). Such extensions are
+often implemented as @concept{expansions} (see @ref{Extending the
+syntax}). There are many such extensions in Ciao. The @lib{functions}
+library, which provides fuctional syntax, is an example. The fact that
+in Ciao expansions are local to modules (as operators, see below)
+makes it possible to use a certain language extension in one module
+without affecting other modules.
+
+@subsection{Operators}
+
+An @em{operator} is a functor (or predicate name) which has been declared
+as such, thus allowing its use in a prefix, infix, or suffix fashion,
+instead of the standard procedure-like fashion. E.g., declaring @tt{+}
+as an infix operator allows writing @tt{X+Y} instead of @tt{'+'(X,Y)}
+(which may still, of course, be written).
+
+@em{Operators in Ciao are local to the module/file where they are
+declared}.  However, some operators are standard and allowed in every
+program (see @ref{Defining operators}). This manual documents the
+operator declarations in each (library) module where they are
+included. As with expansions, the fact that in Ciao operators are
+local to modules makes it possible to use a certain language extension
+in one module without affecting other modules.

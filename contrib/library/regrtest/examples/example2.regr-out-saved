@@ -1,0 +1,16 @@
+
+
+yes
+
+{In $CIAOROOT/contrib/library/regrtest/examples/example2.pl
+ERROR: (lns 4-5) Run-time check failure in assertion for:
+	example2:p(N).
+In *calls*, unsatisfied property: 
+	int(N).
+Because: 
+	['N'=1.0].
+ERROR: (lns 6-7) Failed in example2:p(N).
+}
+test_output: 1.0
+
+yes

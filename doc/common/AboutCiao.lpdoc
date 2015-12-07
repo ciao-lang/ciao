@@ -1,0 +1,78 @@
+
+The Ciao system is a full programming environment for developing
+programs in the Prolog language and in several other languages which
+are extensions and modifications of Prolog and (Constraint) Logic
+Programming in several interesting and useful directions.
+@comment{The Ciao system is a full programming environment for developing
+programs in the Prolog language (including standard @bf{ISO-Prolog})
+as well as in several other languages which are extensions and
+modifications of Prolog in several interesting and useful
+directions. Ciao is both a next generation logic programming
+environment and a multiparadigm programming system, since it also
+allows programming in the functional-, constraint-, and
+object-oriented programming styles. These styles and many other
+extensions are supported via libraries, thanks to its novel modular
+design. As a result, Ciao allows working with @em{fully declarative
+subsets} of Prolog and also to @em{extend} these subsets (or
+ISO-Prolog) both syntactically and semantically. Most importantly,
+these restrictions and extensions can be activated separately on each
+program module so that several extensions can coexist in the same
+application for different modules.}
+The programming environment offers a number of tools such as the Ciao
+standalone compiler (@tt{ciaoc}), a traditional-style top-level
+interactive shell (@tt{ciaosh} or @tt{ciao}), an interpreter of
+scripts written in Ciao (@tt{ciao-shell}), a Ciao (and Prolog) 
+@tt{emacs} mode
+(which greatly helps the task of developing programs with support for
+editing, debugging, version/change tracking, etc.), numerous
+libraries, a powerful program preprocessor (@tt{ciaopp}
+@cite{effofai-toplas,ciaopp-manual,ciaopp-iclp99-tut}, which supports
+static debugging and optimization from program analysis via source to
+source program transformation), and an automatic documentation
+generator (@tt{lpdoc}) @cite{lpdoc-reference,lpdoc-cl2000}.  A number
+of execution visualization tools
+@cite{visandor-iclp93,apt-disciplbook,vifid-trifid-disciplbook} are
+also available.
+
+This manual documents the first four of the tools mentioned above [see
+PART I - The program development environment], and the Ciao 
+language and libraries. The @tt{ciaopp} and @tt{lpdoc} tools are
+documented in separate manuals.
+
+
+The Ciao language [see PART II - The Ciao basic language (engine)] has
+been designed from the ground up to be small, but to also allow
+extensions and restrictions in a modular way. The first objective
+allows producing small executables (including only those builtins used
+by the program), providing basic support for pure logic programming,
+and being able to write scripts in Ciao. The second one allows
+supporting standard ISO-Prolog [see PART III - ISO-Prolog library
+(iso)], as well as powerful extensions such as constraint logic
+programming, functional logic programming, and object-oriented logic
+programming [see PART VII - Ciao extensions], and restrictions
+such as working with pure horn clauses.
+
+The design of Ciao has also focused on allowing modular program
+development, as well as automatic program manipulation and
+optimization. Ciao includes a robust module system
+@cite{ciao-modules-cl2000}, module-based automatic incremental compilation
+@cite{ciaoc-ws}, and modular global program analysis, debugging and
+optimization @cite{ciao-modules-analspec-ws}, based on a rich
+assertion language [see PART V - Assertions, Properties, Types, Modes, 
+Comments 
+(assertions)] for declaring (optional) program properties (including
+types and modes), which can be checked either statically or
+dynamically.  The program analysis, static debugging and optimization
+tasks related to these assertions are performed by the @tt{ciaopp}
+preprocessor, as mentioned above. These assertions (together with
+special comment-style declarations) are also the ones used by the
+@tt{lpdoc} autodocumenter to generate documentation for programs (the
+comment-style declarations are documented in the @tt{lpdoc} manual).
+
+Ciao also includes several other features and utilities, such as
+support for several forms of executables, concurrency (threads),
+distributed and parallel execution, higher-order, WWW programming
+(PiLLoW @cite{pillow-ws}), interfaces to other languages like C and
+Java, database interfaces, graphical interfaces, etc., etc. [see PARTS
+VI to XI].
+

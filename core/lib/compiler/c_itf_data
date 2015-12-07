@@ -1,0 +1,35 @@
+- read_record_file/4 generates:
+  * While reading file:
+    defines_module/2
+    decl/2
+    uses/2
+    adds/2
+    uses_builtins/1
+    imports_all_1/2 (by store_imports/5, used also by use_mod/3)
+    imports_expl/4 (by store_imports/5, used also by use_mod/3)
+    includes/2
+    loads/2
+    clause_of/7 (before also in check_itf_data/2 to make bridge predicates)
+    package/2
+    defines_pred/3
+    impl_defines/3
+    dyn_decl/4
+    meta_pred/4
+    imports_nocheck/4
+    exports_pred/3
+    multifile_pred/3
++   reexports_from/2
++   reexports_all/2
++   reexports/4
+  * Just after closing:
+    exports/5 (by gen_exports/1, consumes exports_pred/3)
+    def_multifile/4 (by gen_def_multifile/1, consumes multifile_pred/3)
+
+- check_itf_data/2 (done just before treating file and creating itf) generates:
++   imports_pred_1/6 (by gen_imports/1)
+
+- generate_module_data/2 (done while treating file) generates:
++   imports/5
+    meta_args/2
+    multifile/4
+    defines/3

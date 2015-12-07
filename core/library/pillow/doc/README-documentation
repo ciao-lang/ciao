@@ -1,0 +1,27 @@
+Documentation on Pillow can be found in the following papers and web
+addresses: 
+
+
+D. Cabeza, M. Hermenegildo. Distributed WWW Programming using
+(Ciao-)Prolog and the PiLLoW Library. Theory and Practice of Logic
+Programming, Vol. 1, Num. 3, pages 251-282, Cambridge U. Press, May
+2001.
+
+Paper online:
+
+http://clip.dia.fi.upm.es/papers/pillow-tplp_bitmap.pdf
+http://clip.dia.fi.upm.es/papers/pillow-tplp.ps
+
+
+
+D. Cabeza, M. Hermenegildo, S. Varma. The PiLLoW/Ciao Library for
+INTERNET/WWW Programming using Computational Logic Systems(also
+available in ps). Proceedings of the 1st Workshop on Logic Programming
+Tools for INTERNET Applications, pages 72-90, September 1996.
+
+Text and code available from:
+http://www.clip.dia.fi.upm.es/miscdocs/pillow/pillow.html. 
+
+Paper online:
+http://clip.dia.fi.upm.es/papers/pillow-ws-dist_bitmap.pdf
+http://clip.dia.fi.upm.es/papers/pillow-ws-dist.ps

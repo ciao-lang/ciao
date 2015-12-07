@@ -1,0 +1,49 @@
+
+:- use_package([]).
+% This adds all assertions to the documentation!
+%:- use_package([assertions]).
+%
+% This avoids compiler error messages
+% but includes comment/2 in the documentation!
+%:- new_declaration(comment/2).
+
+:- comment(filetype,package).
+
+:- comment(title,"Declaring regular types").
+ 
+:- comment(author,"Manuel Hermenegildo").
+
+:- comment(module,"This library package adds some new declaration
+   definitions and new operator definitions to user programs. These
+   new declarations and operators provide some very simple syntactic
+   sugar to support @concept{regular type definitions} in source code.
+   Regular types are just properties which have the additional 
+   characteristic of being @concept{regular types}
+   (@pred{regtype/1}). Regular types can be used as properties to describe
+   predicates and play an essential role in program debugging (see the 
+   Ciao Prolog Preprocessor (@tt{ciaopp}) manual).
+
+   The exact @concept{syntax of regular types}
+   is described in @ref{Program assertions}.
+
+   This library package allows writing:
+   @begin{verbatim}
+   :- regtype tree(X) # ""@var{X} is a tree."".
+   @end{verbatim}
+   instead of the more combersome:
+   @begin{verbatim}
+   :- prop tree(X) + regtype # ""@var{X} is a tree."".
+   @end{verbatim}
+   Note that checking of types should be done with the preprocessor.
+").
+
+% :- comment(usage,":- use_package(regtypes).").
+
+:- include(library(regtypes)).
+%
+:- comment(regtype/1,"See @ref{Program assertions}.").
+:- comment(regtype/2,"See @ref{Program assertions}.").
+
+:- comment(version_maintenance,dir('../../version')).
+
+

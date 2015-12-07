@@ -1,0 +1,215 @@
+
+@section{Defining properties}
+
+Given the classes of assertions in the Ciao assertion language, there
+are two fundamental classes of properties. Properties used in
+assertions which refer to execution states (i.e., @tt{calls/1},
+@tt{success/1}, and the like) are called @index{properties of
+execution states}. Properties used in assertions related to
+computations (i.e., @tt{comp/1}) are called @index{properties of
+computations}.  Different considerations apply when writing a property
+of the former or of the latter kind.
+
+Consider a definition of the predicate @tt{string_concat/3} which
+concatenates two character strings (represented as lists of ASCII codes):
+@begin{verbatim}
+string_concat([],L,L).
+string_concat([X|Xs],L,[X|NL]):- string_concat(Xs,L,NL).
+@end{verbatim}
+
+Assume that we would like to state in an assertion that each argument
+``is a list of integers.'' However, we must decide which one of the
+following two possibilities we mean exactly: ``the argument is
+@em{instantiated} to a list of integers'' (let us call this property
+@tt{instantiated_to_intlist/1}), or ``if any part of the argument is
+instantiated, this instantiation must be compatible with the argument
+being a list of integers'' (we will call this property 
+@tt{compatible_with_intlist/1}).  For example,
+@tt{instantiated_to_intlist/1} should be true for the terms
+@tt{[]} and @tt{[1,2]}, but should not for @tt{X}, @tt{[a,2]},
+and @tt{[X,2]}.  In turn, @tt{compatible_with_intlist/1} should
+be true for @tt{[]}, @tt{X}, @tt{[1,2]}, and
+@tt{[X,2]}, but should not be for @tt{[X|1]}, @tt{[a,2]}, and 
+@tt{1}.  We refer to properties such as
+@tt{instantiated_to_intlist/1} above as @index{instantiation properties}
+and to those such as @tt{compatible_with_intlist/1} as 
+@index{compatibility properties} (corresponding to the traditional notions
+of ``instantiation types'' and ``compatibility types''). 
+
+It turns out that both of these notions are quite useful in practice.
+In the example above, we probably would like to use
+ @tt{compatible_with_intlist/1} to state that on success of 
+ @tt{string_concat/3} all three argument must be compatible with lists
+of integers in an assertion like:
+
+@begin{verbatim}
+:- success string_concat(A,B,C) => ( compatible_with_intlist(A),
+                                     compatible_with_intlist(B),
+                                     compatible_with_intlist(C) ).
+@end{verbatim}
+
+With this assertion, no error will be flagged for a call
+to @tt{string_concat/3}
+such as @tt{string_concat([20],L,R)}, which on success
+produces the resulting atom @tt{string_concat([20],L,[20|L])}, but a
+call @tt{string_concat([],a,R)} would indeed flag an error.
+
+On the other hand, and assuming that we are running on a Prolog
+system, we would probably like to use @tt{instantiated_to_intlist/1}
+for @tt{sumlist/2} as follows:
+
+@begin{verbatim}
+:- calls sumlist(L,N) : instantiated_to_intlist(L).
+
+sumlist([],0).
+sumlist([X|R],S) :- sumlist(R,PS), S is PS+X.
+@end{verbatim}
+
+@noindent
+to describe the type of calls for which the program has been designed,
+i.e., those in which the first argument of @tt{sumlist/2} is indeed a
+list of integers.
+
+The property @tt{instantiated_to_intlist/1} might be written as in
+the following (Prolog) definition:
+
+@begin{verbatim}
+:- prop instantiated_to_intlist/1.
+
+instantiated_to_intlist(X) :- 
+       nonvar(X), instantiated_to_intlist_aux(X).
+
+instantiated_to_intlist_aux([]).
+instantiated_to_intlist_aux([X|T]) :-
+       integer(X), instantiated_to_intlist(T).
+@end{verbatim}
+
+(Recall that the Prolog builtin @tt{integer/1} itself implements
+an instantiation check, failing if called with a variable as the
+argument.)
+
+The property @tt{compatible_with_intlist/1} might in
+turn be written as follows (also in Prolog):
+
+@begin{verbatim}
+:- prop compatible_with_intlist/1.
+
+compatible_with_intlist(X) :- var(X).
+compatible_with_intlist(X) :- 
+       nonvar(X), compatible_with_intlist_aux(X).
+
+compatible_with_intlist_aux([]).
+compatible_with_intlist_aux([X|T]) :-
+       int_compat(X), compatible_with_intlist(T).
+
+int_compat(X) :- var(X).
+int_compat(X) :- nonvar(X), integer(X).
+@end{verbatim}
+
+Note that these predicates meet the criteria for being properties and
+thus the @tt{prop/1} declaration is correct. 
+
+Ensuring that a property meets the criteria for ``not affecting the
+computation'' can sometimes make its coding somewhat tedious.  In some
+ways, one would like to be able to write simply:
+
+@begin{verbatim}
+intlist([]).
+intlist([X|R]) :- int(X), intlist(R).
+@end{verbatim}
+
+@noindent
+(Incidentally, note that the above definition, provided that it suits
+the requirements for being a property and that @tt{int/1} is a regular
+type, meets the criteria for being a regular type. Thus, it could be
+declared @tt{:- regtype intlist/1}.)
+
+But note that (independently of the definition of @tt{int/1}) the
+definition above is not the correct instantiation check, since it
+would succeed for a call such as @tt{intlist(X)}.  In fact, it is
+not strictly correct as a compatibility property either, because, while it
+would fail or succeed as expected, it would perform instantiations
+(e.g., if called with @tt{intlist(X)} it would bind @tt{X} to
+@tt{[]}). In practice, it is convenient to provide some run-time support
+to aid in this task. 
+
+The run-time support of the Ciao system 
+ (see @ref{Run-time checking of assertions})
+ensures that the execution of properties is performed in
+such a way that properties written as above can be used directly as
+instantiation checks. Thus, writing:
+
+@begin{verbatim}
+:- calls sumlist(L,N) : intlist(L).
+@end{verbatim}
+
+@noindent
+has the desired effect. Also, the same properties can often be used as
+compatibility checks by writing them in the assertions as
+@tt{compat(Property)} (@tt{basic_props:compat/1}). Thus, writing:
+
+@begin{verbatim}
+:- success string_concat(A,B,C) => ( compat(intlist(A)),
+                                     compat(intlist(B)),
+                                     compat(intlist(C)) ).
+@end{verbatim}
+
+@noindent
+also has the desired effect.
+
+As a general rule, the properties that
+can be used directly for checking for compatibility should be 
+@em{downwards closed}, i.e., once they hold they will keep on
+holding in every state accessible in forwards execution.
+There are certain predicates which are inherently
+@em{instantiation} checks and should not be used as 
+@em{compatibility} properties nor appear in the definition of a property
+that is to be used with @tt{compat}. Examples of such predicates
+(for Prolog) are @tt{==}, @tt{ground}, @tt{nonvar},
+@tt{integer}, @tt{atom}, @tt{>}, etc. as they require a certain
+instantiation degree of their arguments in order to succeed.
+
+In contrast with properties of execution states,
+@em{properties of computations} refer to the entire
+execution of the call(s) that the assertion relates to.
+One such property is, for example, @tt{not_fail/1}
+(note that although it has been used as in
+@tt{:- comp append(Xs,Ys,Zs) + not_fail}, it is in fact read
+as @tt{not_fail(append(Xs,Ys,Zs))};
+ see @tt{assertions_props:complex_goal_property/1}).
+For this property, which should be
+interpreted as ``execution of the predicate either succeeds at least
+once or loops,'' we can use the following predicate
+@tt{not_fail/1} for run-time checking:
+
+@begin{verbatim}
+not_fail(Goal):-
+      if( call(Goal),
+          true,            %% then
+          warning(Goal) ). %% else
+@end{verbatim}
+
+@noindent
+where the @tt{warning/1} (library) predicate simply prints a warning
+message. 
+
+In this simple case, implementation of the predicate is not very
+difficult using the (non-standard) @tt{if/3} builtin predicate present
+in many Prolog systems.
+
+@comment{
+ In Standard Prolog it would be more
+intrincate, but still possible, e.g. (in a simplified version which
+omits some necessary bookkeeping):
+
+@begin{verbatim}
+not_fail(Goal):- call(Goal), assert(succeeded(Goal)).
+not_fail(Goal):- retract(succeeded(Goal)), !, fail.
+not_fail(Goal):- warning(Goal).
+@end{verbatim}
+}
+
+However, it is not so easy to code predicates which check other
+properties of the computation and we may in general need to program a
+meta-interpreter for this purpose. 
+

@@ -1,0 +1,3800 @@
+:- doc(version(1*15+0,2011/07/08,11:48*01+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*14+0,2011/07/08,10:51*55+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*13+1,2011/03/15,20:08*35+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*13+0,2005/07/03,19:05*53+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*12+0,2005/07/03,18:50*50+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*11+336,2005/07/01,19:39*28+'CEST'),
+   "../lib/cyclic_terms.pl").
+
+:- doc(version(1*11+335,2005/06/30,11:29*51+'MST'),
+   "../library/functions/functions_doc.pl").
+
+:- doc(version(1*11+334,2005/06/28,21:33*04+'MST'),
+   "../library/functions/functions_doc.pl").
+
+:- doc(version(1*11+333,2005/06/24,19:21*08+'CEST'),
+   "../lib/format.pl").
+
+:- doc(version(1*11+332,2005/06/13,17:46*53+'CEST'),
+   "../library/functions/functions_doc.pl").
+
+:- doc(version(1*11+331,2005/06/03,11:37*22+'CEST'),
+   "../library/make/make_rt.pl").
+
+:- doc(version(1*11+330,2005/05/24,18:05*16+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+329,2005/05/17,19:42*21+'CEST'),
+   "../lib/compiler/compiler.pl").
+
+:- doc(version(1*11+328,2005/05/16,23:43*25+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+327,2005/05/16,23:42*33+'CEST'),
+   "../Makefile.pl").
+
+:- doc(version(1*11+326,2005/05/04,17:33*36+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+325,2005/04/18,19:31*16+'CEST'),
+   "../lib/cyclic_terms.pl").
+
+:- doc(version(1*11+324,2005/04/13,19:08*21+'CEST'),
+   "../lib/engine/term_basic.pl").
+
+:- doc(version(1*11+323,2005/04/13,19:07*40+'CEST'),
+   "../lib/engine/arithmetic.pl").
+
+:- doc(version(1*11+322,2005/04/13,19:06*40+'CEST'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*11+321,2005/04/13,18:36*58+'CEST'),
+   "../library/toplevel/toplevel.pl").
+
+:- doc(version(1*11+320,2005/04/13,18:05*26+'CEST'),
+   "../library/pretty_print.pl").
+
+:- doc(version(1*11+319,2005/04/12,18:28*56+'CEST'),
+   "../lib/assertions/assrt_write.pl").
+
+:- doc(version(1*11+318,2005/04/12,16:04*43+'CEST'),
+   "../library/actmods/actmods_doc.pl").
+
+:- doc(version(1*11+317,2005/04/11,19:57*53+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+316,2005/04/09,20:57*45+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+315,2005/04/07,17:51*31+'CEST'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*11+314,2005/03/25,03:31*07+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+313,2005/03/25,03:28*25+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+312,2005/03/25,02:09*20+'CET'),
+   "../CIAOSETTINGS.pl").
+
+:- doc(version(1*11+311,2005/03/24,15:48*11+'CET'),
+   "../library/make/make_rt.pl").
+
+:- doc(version(1*11+310,2005/03/24,14:31*13+'CET'),
+   "../etc/lpmake.pl").
+
+:- doc(version(1*11+309,2005/03/16,16:41*12+'CET'),
+   "../library/javall/javart.pl").
+
+:- doc(version(1*11+308,2005/03/10,13:46*54+'CET'),
+   "../library/terms_check.pl").
+
+:- doc(version(1*11+307,2005/03/10,13:35*50+'CET'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*11+306,2005/03/03,18:52*55+'CET'),
+   "../lib/regtypes/regtypes_doc.pl").
+
+:- doc(version(1*11+305,2005/01/19,16:36*02+'CET'),
+   "../lib/filenames.pl").
+
+:- doc(version(1*11+304,2005/01/18,15:23*34+'CET'),
+   "../library/rtchecks/rtchecks_mod.pl").
+
+:- doc(version(1*11+303,2005/01/18,15:20*37+'CET'),
+   "../library/rtchecks/rtchecks_mod.pl").
+
+:- doc(version(1*11+302,2004/12/14,03:23*00+'CET'),
+   "../library/toplevel/toplevel.pl").
+
+:- doc(version(1*11+301,2004/12/03,19:21*24+'CET'),
+   "../library/indexer/indexer_doc.pl").
+
+:- doc(version(1*11+300,2004/11/27,11:19*43+'CET'),
+   "../lib/engine/atomic_basic.pl").
+
+:- doc(version(1*11+299,2004/11/26,15:06*29+'CET'),
+   "../library/functions/functions_doc.pl").
+
+:- doc(version(1*11+298,2004/11/14,21:12*55+'CET'),
+   "../lib/foreign_interface/build_foreign_interface.pl").
+
+:- doc(version(1*11+297,2004/11/14,21:10*46+'CET'),
+   "../lib/engine/system_info.pl").
+
+:- doc(version(1*11+296,2004/11/09,19:13*50+'CET'),
+   "../etc/lpmake.pl").
+
+:- doc(version(1*11+295,2004/10/29,18:56*08+'CEST'),
+   "../lib/filenames.pl").
+
+:- doc(version(1*11+294,2004/10/29,18:20*32+'CEST'),
+   "../library/make/make_rt.pl").
+
+:- doc(version(1*11+293,2004/10/29,11:55*44+'CEST'),
+   "../Makefile.pl").
+
+:- doc(version(1*11+292,2004/10/28,15:50*05+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+291,2004/10/28,15:49*39+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+290,2004/10/28,15:48*17+'CEST'),
+   "../library/make/make_tr.pl").
+
+:- doc(version(1*11+289,2004/10/28,15:46*12+'CEST'),
+   "../library/make/make_rt.pl").
+
+:- doc(version(1*11+288,2004/10/28,15:45*57+'CEST'),
+   "../library/make/make_rt.pl").
+
+:- doc(version(1*11+287,2004/10/28,15:45*07+'CEST'),
+   "../library/make/make_rt.pl").
+
+:- doc(version(1*11+286,2004/10/28,15:44*41+'CEST'),
+   "../library/make/make_rt.pl").
+
+:- doc(version(1*11+285,2004/10/28,15:42*17+'CEST'),
+   "../library/make/make_tr.pl").
+
+:- doc(version(1*11+284,2004/10/28,15:41*56+'CEST'),
+   "../library/make/make_tr.pl").
+
+:- doc(version(1*11+283,2004/10/28,15:41*28+'CEST'),
+   "../library/make/make_tr.pl").
+
+:- doc(version(1*11+282,2004/10/28,14:00*51+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+281,2004/10/27,06:32*51+'CEST'),
+   "../lib/engine/term_typing.pl").
+
+:- doc(version(1*11+280,2004/10/25,16:49*16+'CEST'),
+   "../library/argnames/argnames_trans.pl").
+
+:- doc(version(1*11+279,2004/10/20,11:40*18+'CEST'),
+   "../lib/engine/term_typing.pl").
+
+:- doc(version(1*11+278,2004/10/18,12:26*58+'CEST'),
+   "../lib/assertions/assrt_write.pl").
+
+:- doc(version(1*11+277,2004/10/11,19:43*25+'CEST'),
+   "../lib/engine/streams_basic.pl").
+
+:- doc(version(1*11+276,2004/10/11,11:04*24+'CEST'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*11+275,2004/10/10,00:48*11+'CEST'),
+   "../lib/engine/term_typing.pl").
+
+:- doc(version(1*11+274,2004/10/09,19:52*24+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+273,2004/10/09,19:28*39+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+272,2004/10/09,01:12*25+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+271,2004/10/09,01:12*12+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+270,2004/10/09,01:11*33+'CEST'),
+   "../library/make/make_rt.pl").
+
+:- doc(version(1*11+269,2004/10/09,01:10*54+'CEST'),
+   "../lib/system.pl").
+
+:- doc(version(1*11+268,2004/10/09,01:10*00+'CEST'),
+   "../lib/file_utils.pl").
+
+:- doc(version(1*11+267,2004/10/09,01:08*27+'CEST'),
+   "../lib/engine/mexpand.pl").
+
+:- doc(version(1*11+266,2004/10/09,01:04*29+'CEST'),
+   "../etc/lpmake.pl").
+
+:- doc(version(1*11+265,2004/10/09,01:03*42+'CEST'),
+   "../etc/Makefile.pl").
+
+:- doc(version(1*11+264,2004/10/09,01:01*47+'CEST'),
+   "../Makefile.pl").
+
+:- doc(version(1*11+263,2004/10/02,13:25*16+'CEST'),
+   "../lib/engine/term_basic.pl").
+
+:- doc(version(1*11+262,2004/09/24,11:24*58+'CEST'),
+   "../lib/assertions/assrt_write.pl").
+
+:- doc(version(1*11+261,2004/08/31,15:11*58+'CEST'),
+   "../lib/assertions/assrt_write.pl").
+
+:- doc(version(1*11+260,2004/08/31,15:10*12+'CEST'),
+   "../lib/assertions/assrt_write.pl").
+
+:- doc(version(1*11+259,2004/08/21,22:42*01+'CEST'),
+   "../library/vndict.pl").
+
+:- doc(version(1*11+258,2004/08/12,15:46*59+'CEST'),
+   "../library/pretty_print.pl").
+
+:- doc(version(1*11+257,2004/08/07,21:47*28+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+256,2004/08/05,10:42*34+'CEST'),
+   "../lib/engine/term_basic.pl").
+
+:- doc(version(1*11+255,2004/07/20,13:56*00+'CEST'),
+   "../lib/system.pl").
+
+:- doc(version(1*11+254,2004/07/19,11:19*40+'CEST'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*11+253,2004/07/19,11:19*15+'CEST'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*11+252,2004/07/16,20:11*05+'CEST'),
+   "../etc/Makefile.pl").
+
+:- doc(version(1*11+251,2004/07/16,12:15*05+'CEST'),
+   "../SETTINGS.pl").
+
+:- doc(version(1*11+250,2004/07/16,12:03*09+'CEST'),
+   "../Makefile.pl").
+
+:- doc(version(1*11+249,2004/07/14,12:03*02+'CEST'),
+   "../lib/debugger/debugger_doc.pl").
+
+:- doc(version(1*11+248,2004/07/13,00:15*20+'CEST'),
+   "../lib/assertions/assrt_write0.pl").
+
+:- doc(version(1*11+247,2004/07/02,13:27*33+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*11+246,2004/07/02,10:59*00+'CEST'),
+   "../lib/format.pl").
+
+:- doc(version(1*11+244,2004/06/30,17:17*08+'CEST'),
+   "../contrib/ddlist/ddlist.pl").
+
+:- doc(version(1*11+243,2004/06/30,17:00*44+'CEST'),
+   "../lib/format.pl").
+
+:- doc(version(1*11+242,2004/06/29,21:06*33+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+241,2004/06/29,21:05*53+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+240,2004/06/24,15:38*11+'CEST'),
+   "../shell/ciaosh.pl").
+
+:- doc(version(1*11+239,2004/06/23,17:12*34+'CEST'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*11+238,2004/06/23,15:09*03+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+237,2004/06/22,16:08*01+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+236,2004/06/08,13:05*05+'CEST'),
+   "../contrib/profiler/profiler_tr.pl").
+
+:- doc(version(1*11+235,2004/06/08,12:05*37+'CEST'),
+   "../library/tcltk/tcltk_low_level.pl").
+
+:- doc(version(1*11+234,2004/06/01,19:19*51+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+233,2004/05/27,17:43*49+'CEST'),
+   "../lib/messages.pl").
+
+:- doc(version(1*11+232,2004/05/27,17:07*39+'CEST'),
+   "../lib/engine/streams_basic.pl").
+
+:- doc(version(1*11+231,2004/05/27,17:07*04+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+230,2004/05/27,17:02*20+'CEST'),
+   "../lib/format.pl").
+
+:- doc(version(1*11+229,2004/05/17,17:35*34+'CEST'),
+   "../library/persdb_mysql_op/pl2sql.pl").
+
+:- doc(version(1*11+228,2004/05/17,17:35*05+'CEST'),
+   "../library/persdb_sql_common/pl2sqlinsert.pl").
+
+:- doc(version(1*11+227,2004/05/17,13:43*35+'CEST'),
+   "../library/persdb/persdbrt.pl").
+
+:- doc(version(1*11+226,2004/05/10,19:38*43+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+225,2004/05/10,16:08*21+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+224,2004/04/30,12:26*56+'CEST'),
+   "../library/terms_check.pl").
+
+:- doc(version(1*11+223,2004/04/30,12:08*40+'CEST'),
+   "../library/terms_check.pl").
+
+:- doc(version(1*11+222,2004/04/29,12:57*14+'CEST'),
+   "../lib/engine/exceptions.pl").
+
+:- doc(version(1*11+221,2004/04/21,18:42*25+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+220,2004/04/21,18:40*22+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+219,2004/04/21,17:02*01+'CEST'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*11+218,2004/04/13,18:31*33+'CEST'),
+   "../lib/foreign_interface/build_foreign_interface.pl").
+
+:- doc(version(1*11+217,2004/04/12,16:20*13+'CEST'),
+   "../library/bf/bftr.pl").
+
+:- doc(version(1*11+216,2004/03/26,20:08*06+'CET'),
+   "../lib/foreign_interface/foreign_interface_properties.pl").
+
+:- doc(version(1*11+215,2004/03/26,19:43*28+'CET'),
+   "../lib/foreign_interface/foreign_inliner_tr.pl").
+
+:- doc(version(1*11+214,2004/03/26,19:41*58+'CET'),
+   "../lib/engine/exceptions.pl").
+
+:- doc(version(1*11+213,2004/03/25,11:53*27+'CET'),
+   "../library/persdb/persdbrt.pl").
+
+:- doc(version(1*11+212,2004/03/24,16:43*01+'CET'),
+   "../library/persdb/persdbrt.pl").
+
+:- doc(version(1*11+211,2004/03/18,13:02*53+'CET'),
+   "../contrib/math/stat.pl").
+
+:- doc(version(1*11+210,2004/03/18,13:01*01+'CET'),
+   "../contrib/math/mmatrix.pl").
+
+:- doc(version(1*11+209,2004/03/10,01:44*08+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+208,2004/03/08,18:35*50+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+207,2004/03/04,23:00*37+'CET'),
+   "../lib/compiler/c_itf_internal.pl").
+
+:- doc(version(1*11+206,2004/03/03,18:25*25+'CET'),
+   "../lib/assertions/assrt_write0.pl").
+
+:- doc(version(1*11+205,2004/03/03,15:09*06+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+204,2004/02/27,19:38*32+'CET'),
+   "../lib/engine/basiccontrol.pl").
+
+:- doc(version(1*11+203,2004/02/27,16:00*43+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+202,2004/02/27,00:02*29+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+201,2004/02/26,15:42*27+'CET'),
+   "../library/fuzzy/fuzzy_doc.pl").
+
+:- doc(version(1*11+200,2004/02/19,16:00*40+'CET'),
+   "../library/tcltk/tcltk_low_level.pl").
+
+:- doc(version(1*11+199,2004/02/17,17:20*14+'CET'),
+   "../lib/iso_misc.pl").
+
+:- doc(version(1*11+198,2004/02/16,17:28*46+'CET'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+197,2004/02/16,17:26*17+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+196,2004/02/16,17:20*13+'CET'),
+   "../lib/tokenize.pl").
+
+:- doc(version(1*11+195,2004/02/16,17:16*35+'CET'),
+   "../lib/tokenize.pl").
+
+:- doc(version(1*11+194,2004/02/16,17:12*33+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+193,2004/02/16,17:10*43+'CET'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*11+192,2004/02/16,17:04*37+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+191,2004/02/16,17:03*30+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+190,2004/02/16,16:57*29+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+189,2004/02/16,12:12*59+'CET'),
+   "../library/tcltk/tcltk.pl").
+
+:- doc(version(1*11+188,2004/02/16,12:10*23+'CET'),
+   "../library/tcltk/tcltk.pl").
+
+:- doc(version(1*11+187,2004/02/16,12:06*04+'CET'),
+   "../library/tcltk/tcltk_low_level.pl").
+
+:- doc(version(1*11+186,2004/02/13,15:30*52+'CET'),
+   "../library/rtchecks_doc.pl").
+
+:- doc(version(1*11+185,2004/02/13,15:27*40+'CET'),
+   "../lib/messages.pl").
+
+:- doc(version(1*11+184,2004/02/11,18:35*28+'CET'),
+   "../lib/system.pl").
+
+:- doc(version(1*11+183,2004/02/11,18:34*05+'CET'),
+   "../lib/system.pl").
+
+:- doc(version(1*11+182,2004/02/10,13:16*07+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+181,2004/02/09,15:39*00+'CET'),
+   "../lib/system.pl").
+
+:- doc(version(1*11+180,2004/02/08,15:54*56+'CET'),
+   "../lib/system.pl").
+
+:- doc(version(1*11+179,2004/02/07,23:17*36+'CET'),
+   "../lib/system.pl").
+
+:- doc(version(1*11+178,2004/02/04,18:55*32+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+177,2004/02/04,18:52*34+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+176,2004/02/04,18:29*18+'CET'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+175,2004/02/04,17:39*58+'CET'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+174,2004/02/04,16:56*33+'CET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(1*11+173,2004/02/04,12:59*46+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+172,2004/02/03,22:45*01+'CET'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+171,2004/02/03,21:45*08+'CET'),
+   "../lib/engine/term_compare.pl").
+
+:- doc(version(1*11+170,2004/02/03,21:41*49+'CET'),
+   "../lib/engine/term_basic.pl").
+
+:- doc(version(1*11+169,2004/02/03,21:36*40+'CET'),
+   "../lib/engine/atomic_basic.pl").
+
+:- doc(version(1*11+168,2004/02/03,21:28*52+'CET'),
+   "../lib/engine/arithmetic.pl").
+
+:- doc(version(1*11+167,2004/02/03,21:15*56+'CET'),
+   "../lib/engine/term_typing.pl").
+
+:- doc(version(1*11+166,2004/02/03,21:12*16+'CET'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*11+165,2004/02/03,19:20*51+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+164,2004/02/03,11:25*03+'CET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(1*11+163,2004/01/30,17:45*33+'CET'),
+   "../library/tcltk/tcltk_low_level.pl").
+
+:- doc(version(1*11+162,2004/01/30,11:56*22+'CET'),
+   "../library/tcltk/tcltk_low_level.pl").
+
+:- doc(version(1*11+161,2004/01/30,11:37*58+'CET'),
+   "../library/tcltk/tcltk.pl").
+
+:- doc(version(1*11+160,2004/01/09,18:06*15+'CET'),
+   "../shell/ciaosh.pl").
+
+:- doc(version(1*11+159,2004/01/09,16:54*42+'CET'),
+   "../lib/between.pl").
+
+:- doc(version(1*11+158,2004/01/09,15:28*52+'CET'),
+   "../lib/between.pl").
+
+:- doc(version(1*11+157,2004/01/09,15:21*39+'CET'),
+   "../doc/common/GetStartWin32.pl").
+
+:- doc(version(1*11+156,2004/01/09,15:18*56+'CET'),
+   "../doc/common/DevEnv.pl").
+
+:- doc(version(1*11+155,2004/01/07,20:09*58+'CET'),
+   "../library/persdb_mysql/mysql_client.pl").
+
+:- doc(version(1*11+154,2004/01/07,15:44*30+'CET'),
+   "../contrib/chartlib/genmultibar.pl").
+
+:- doc(version(1*11+153,2004/01/07,13:31*25+'CET'),
+   "../contrib/mycin/mycin_doc.pl").
+
+:- doc(version(1*11+152,2004/01/02,00:33*58+'CET'),
+   "../engine/metaengine.pl").
+
+:- doc(version(1*11+151,2004/01/02,00:26*33+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+150,2004/01/01,14:21*58+'CET'),
+   "../contrib/chartlib/genmultibar.pl").
+
+:- doc(version(1*11+149,2004/01/01,14:19*37+'CET'),
+   "../contrib/chartlib/gengraph2.pl").
+
+:- doc(version(1*11+148,2004/01/01,14:17*31+'CET'),
+   "../contrib/chartlib/gengraph1.pl").
+
+:- doc(version(1*11+147,2004/01/01,14:16*00+'CET'),
+   "../contrib/chartlib/genbar4.pl").
+
+:- doc(version(1*11+146,2004/01/01,14:09*17+'CET'),
+   "../contrib/chartlib/genbar3.pl").
+
+:- doc(version(1*11+145,2004/01/01,14:01*41+'CET'),
+   "../library/idlists.pl").
+
+:- doc(version(1*11+144,2003/12/31,19:02*09+'CET'),
+   "../lib/assertions/native_props.pl").
+
+:- doc(version(1*11+143,2003/12/31,16:44*44+'CET'),
+   "../doc/common/Contrib.pl").
+
+:- doc(version(1*11+142,2003/12/31,12:29*49+'CET'),
+   "../lib/lists.pl").
+
+:- doc(version(1*11+141,2003/12/31,11:56*25+'CET'),
+   "../lib/iso_incomplete.pl").
+
+:- doc(version(1*11+140,2003/12/31,11:50*14+'CET'),
+   "../lib/iso_misc.pl").
+
+:- doc(version(1*11+139,2003/12/31,11:48*35+'CET'),
+   "../lib/iso_misc.pl").
+
+:- doc(version(1*11+138,2003/12/31,01:11*29+'CET'),
+   "../doc/common/Append.pl").
+
+:- doc(version(1*11+137,2003/12/31,00:14*02+'CET'),
+   "../contrib/chartlib/genbar1.pl").
+
+:- doc(version(1*11+136,2003/12/30,23:51*20+'CET'),
+   "../etc/pldiff.pl").
+
+:- doc(version(1*11+135,2003/12/30,23:50*08+'CET'),
+   "../library/xrefs/doc/xrefs_doc.pl").
+
+:- doc(version(1*11+134,2003/12/30,23:45*39+'CET'),
+   "../library/graphs/lgraphs.pl").
+
+:- doc(version(1*11+133,2003/12/30,23:32*28+'CET'),
+   "../library/patterns.pl").
+
+:- doc(version(1*11+132,2003/12/30,23:15*54+'CET'),
+   "../library/persdb/persdbrt.pl").
+
+:- doc(version(1*11+131,2003/12/30,22:44*12+'CET'),
+   "../library/pillow/pillow_types.pl").
+
+:- doc(version(1*11+130,2003/12/30,22:15*22+'CET'),
+   "../lib/foreign_interface/build_foreign_interface.pl").
+
+:- doc(version(1*11+129,2003/12/30,22:08*24+'CET'),
+   "../library/make/make_rt.pl").
+
+:- doc(version(1*11+128,2003/12/30,22:04*03+'CET'),
+   "../library/make/make_rt.pl").
+
+:- doc(version(1*11+127,2003/12/30,22:01*35+'CET'),
+   "../lib/messages.pl").
+
+:- doc(version(1*11+126,2003/12/30,21:52*16+'CET'),
+   "../library/pretty_print.pl").
+
+:- doc(version(1*11+125,2003/12/29,18:52*30+'CET'),
+   "../lib/engine/streams_basic.pl").
+
+:- doc(version(1*11+124,2003/12/26,20:06*44+'CET'),
+   "../lib/engine/term_typing.pl").
+
+:- doc(version(1*11+123,2003/12/24,17:02*07+'CET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(1*11+122,2003/12/24,16:37*14+'CET'),
+   "../lib/assertions/assrt_write0.pl").
+
+:- doc(version(1*11+121,2003/12/24,16:25*05+'CET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(1*11+120,2003/12/22,23:35*35+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+119,2003/12/22,19:28*15+'CET'),
+   "../doc/common/Interfaces.pl").
+
+:- doc(version(1*11+118,2003/12/22,19:23*01+'CET'),
+   "../library/functions/functions_doc.pl").
+
+:- doc(version(1*11+117,2003/12/22,18:58*12+'CET'),
+   "../library/sockets/sockets_io.pl").
+
+:- doc(version(1*11+116,2003/12/22,18:52*05+'CET'),
+   "../lib/dict.pl").
+
+:- doc(version(1*11+115,2003/12/22,18:32*34+'CET'),
+   "../lib/sets.pl").
+
+:- doc(version(1*11+114,2003/12/22,18:25*48+'CET'),
+   "../library/graphs/graphs.pl").
+
+:- doc(version(1*11+113,2003/12/22,18:22*36+'CET'),
+   "../library/numlists.pl").
+
+:- doc(version(1*11+112,2003/12/22,18:18*22+'CET'),
+   "../library/arrays.pl").
+
+:- doc(version(1*11+111,2003/12/22,18:15*44+'CET'),
+   "../doc/common/ADTs.pl").
+
+:- doc(version(1*11+110,2003/12/22,18:14*00+'CET'),
+   "../library/emacs/emacs.pl").
+
+:- doc(version(1*11+109,2003/12/22,18:08*09+'CET'),
+   "../library/persdb_mysql/db_client_types.pl").
+
+:- doc(version(1*11+108,2003/12/22,18:03*39+'CET'),
+   "../library/persdb/Examples.pl").
+
+:- doc(version(1*11+107,2003/12/22,17:59*44+'CET'),
+   "../library/pillow/pillow_doc.pl").
+
+:- doc(version(1*11+106,2003/12/22,17:46*22+'CET'),
+   "../lib/foreign_interface/build_foreign_interface.pl").
+
+:- doc(version(1*11+105,2003/12/22,17:37*54+'CET'),
+   "../lib/foreign_interface/foreign_interface_properties.pl").
+
+:- doc(version(1*11+104,2003/12/22,17:09*19+'CET'),
+   "../library/remote/remote_doc.pl").
+
+:- doc(version(1*11+103,2003/12/22,16:56*50+'CET'),
+   "../library/clpr/clpr_doc.pl").
+
+:- doc(version(1*11+102,2003/12/22,16:52*51+'CET'),
+   "../lib/engine/hiord_rt.pl").
+
+:- doc(version(1*11+101,2003/12/21,20:21*31+'CET'),
+   "../library/indexer/indexer_doc.pl").
+
+:- doc(version(1*11+100,2003/12/21,20:16*33+'CET'),
+   "../lib/pure_doc.pl").
+
+:- doc(version(1*11+99,2003/12/21,20:14*00+'CET'),
+   "../doc/common/ExtendProlog.pl").
+
+:- doc(version(1*11+98,2003/12/21,20:10*12+'CET'),
+   "../library/make/make_doc.pl").
+
+:- doc(version(1*11+97,2003/12/21,20:07*18+'CET'),
+   "../library/conc_aggregates.pl").
+
+:- doc(version(1*11+96,2003/12/21,18:58*37+'CET'),
+   "../library/terms_vars.pl").
+
+:- doc(version(1*11+95,2003/12/21,18:52*02+'CET'),
+   "../library/terms_check.pl").
+
+:- doc(version(1*11+94,2003/12/21,18:44*37+'CET'),
+   "../lib/terms.pl").
+
+:- doc(version(1*11+93,2003/12/21,02:30*33+'CET'),
+   "../lib/file_utils.pl").
+
+:- doc(version(1*11+92,2003/12/21,02:27*29+'CET'),
+   "../library/atom2term.pl").
+
+:- doc(version(1*11+91,2003/12/21,02:22*41+'CET'),
+   "../doc/common/MiscProlog.pl").
+
+:- doc(version(1*11+90,2003/12/21,02:20*48+'CET'),
+   "../library/old_database.pl").
+
+:- doc(version(1*11+89,2003/12/21,02:17*58+'CET'),
+   "../lib/format.pl").
+
+:- doc(version(1*11+88,2003/12/21,02:13*47+'CET'),
+   "../lib/sort.pl").
+
+:- doc(version(1*11+87,2003/12/21,02:09*27+'CET'),
+   "../lib/dcg_expansion.pl").
+
+:- doc(version(1*11+86,2003/12/21,02:03*40+'CET'),
+   "../lib/dcg_doc.pl").
+
+:- doc(version(1*11+85,2003/12/21,02:00*26+'CET'),
+   "../lib/classic_doc.pl").
+
+:- doc(version(1*11+84,2003/12/21,01:57*34+'CET'),
+   "../doc/common/ClassicProlog.pl").
+
+:- doc(version(1*11+83,2003/12/20,14:47*06+'CET'),
+   "../library/rtchecks_doc.pl").
+
+:- doc(version(1*11+82,2003/12/20,14:43*14+'CET'),
+   "../library/rtchecks.pl").
+
+:- doc(version(1*11+81,2003/12/20,14:36*02+'CET'),
+   "../doc/common/AnnotatedProlog.pl").
+
+:- doc(version(1*11+80,2003/12/20,14:33*04+'CET'),
+   "../lib/runtime_ops_doc.pl").
+
+:- doc(version(1*11+79,2003/12/20,14:27*33+'CET'),
+   "../lib/iso_byte_char.pl").
+
+:- doc(version(1*11+78,2003/12/20,01:52*48+'CET'),
+   "../lib/read.pl").
+
+:- doc(version(1*11+77,2003/12/19,18:22*48+'CET'),
+   "../lib/read.pl").
+
+:- doc(version(1*11+76,2003/12/19,18:19*01+'CET'),
+   "../lib/engine/term_compare.pl").
+
+:- doc(version(1*11+75,2003/12/19,17:04*51+'CET'),
+   "../lib/dynamic.pl").
+
+:- doc(version(1*11+74,2003/12/19,17:01*05+'CET'),
+   "../lib/iso_doc.pl").
+
+:- doc(version(1*11+73,2003/12/19,16:59*51+'CET'),
+   "../doc/common/IsoProlog.pl").
+
+:- doc(version(1*11+72,2003/12/19,16:56*14+'CET'),
+   "../lib/engine/io_aux.pl").
+
+:- doc(version(1*11+71,2003/12/19,16:54*53+'CET'),
+   "../lib/engine/syntax_extensions.pl").
+
+:- doc(version(1*11+70,2003/12/19,16:49*37+'CET'),
+   "../lib/engine/io_basic.pl").
+
+:- doc(version(1*11+69,2003/12/19,16:45*58+'CET'),
+   "../lib/engine/atomic_basic.pl").
+
+:- doc(version(1*11+68,2003/12/19,16:34*14+'CET'),
+   "../lib/engine/term_basic.pl").
+
+:- doc(version(1*11+67,2003/12/19,16:11*38+'CET'),
+   "../lib/debugger/debugger_doc.pl").
+
+:- doc(version(1*11+66,2003/12/19,16:09*45+'CET'),
+   "../lib/libpaths.pl").
+
+:- doc(version(1*11+65,2003/12/10,01:19*38+'CET'),
+   "../library/xrefs/callgraph.pl").
+
+:- doc(version(1*11+64,2003/12/09,07:11*15+'CET'),
+   "../library/graphs/ugraphs.pl").
+
+:- doc(version(1*11+63,2003/11/29,02:26*35+'CET'),
+   "../library/persdb_sql_common/pl2sqlinsert.pl").
+
+:- doc(version(1*11+62,2003/11/27,21:24*17+'CET'),
+   "../library/persdb_mysql/persdb_mysql.pl").
+
+:- doc(version(1*11+61,2003/11/27,21:23*22+'CET'),
+   "../library/persdb_mysql/persdbrt_mysql.pl").
+
+:- doc(version(1*11+60,2003/11/27,21:23*00+'CET'),
+   "../library/persdb_mysql/pl2sql.pl").
+
+:- doc(version(1*11+59,2003/11/26,03:11*51+'CET'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*11+58,2003/11/24,18:48*20+'CET'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*11+57,2003/11/24,18:03*15+'CET'),
+   "../lib/prolog_sys.pl").
+
+:- doc(version(1*11+56,2003/11/10,18:50*46+'CET'),
+   "../library/p2p/sha1lib.pl").
+
+:- doc(version(1*11+55,2003/10/30,20:13*21+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+54,2003/10/28,16:58*58+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+53,2003/10/28,16:57*00+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+52,2003/10/27,14:41*44+'CET'),
+   "/home/clip/Systems/ciao-1.11/lib/engine/internals.pl").
+
+:- doc(version(1*11+51,2003/10/21,19:39*52+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+50,2003/10/15,05:36*15+'CEST'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*11+49,2003/09/26,18:05*44+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*11+48,2003/09/25,18:47*37+'CEST'),
+   "../lib/prolog_sys.pl").
+
+:- doc(version(1*11+47,2003/09/25,17:34*08+'CEST'),
+   "../lib/engine/basiccontrol.pl").
+
+:- doc(version(1*11+46,2003/09/23,15:44*27+'CEST'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*11+45,2003/09/23,12:58*15+'CEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*11+44,2003/09/23,12:57*07+'CEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*11+43,2003/09/19,18:35*22+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+42,2003/09/19,17:33*43+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+41,2003/09/17,17:38*14+'CEST'),
+   "../library/pretty_print.pl").
+
+:- doc(version(1*11+40,2003/09/09,18:30*52+'CEST'),
+   "../library/terms_check.pl").
+
+:- doc(version(1*11+39,2003/09/04,18:01*37+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+38,2003/09/04,16:00*33+'CEST'),
+   "../library/terms_vars.pl").
+
+:- doc(version(1*11+37,2003/08/29,14:55*55+'CEST'),
+   "../lib/streams.pl").
+
+:- doc(version(1*11+36,2003/08/28,21:07*51+'CEST'),
+   "../library/old_database.pl").
+
+:- doc(version(1*11+35,2003/08/28,16:15*20+'CEST'),
+   "../library/vndict.pl").
+
+:- doc(version(1*11+34,2003/08/21,17:46*13+'CEST'),
+   "../library/argnames/argnames_trans.pl").
+
+:- doc(version(1*11+33,2003/07/29,17:32*51+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+32,2003/07/28,13:10*09+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+31,2003/07/24,14:26*06+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+30,2003/07/23,12:34*03+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+29,2003/07/22,16:53*59+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*11+28,2003/07/17,18:18*16+'CEST'),
+   "../lib/assertions/native_props.pl").
+
+:- doc(version(1*11+27,2003/07/16,18:07*31+'CEST'),
+   "../lib/llists.pl").
+
+:- doc(version(1*11+26,2003/07/15,19:02*36+'CEST'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*11+25,2003/05/31,13:10*45+'CEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*11+24,2003/05/28,21:22*09+'CEST'),
+   "../lib/engine/streams_basic.pl").
+
+:- doc(version(1*11+23,2003/05/28,17:59*31+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+22,2003/05/28,17:58*05+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+21,2003/05/28,17:57*39+'CEST'),
+   "../lib/engine/streams_basic.pl").
+
+:- doc(version(1*11+20,2003/05/27,20:54*51+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*11+19,2003/05/27,20:53*59+'CEST'),
+   "../lib/errhandle.pl").
+
+:- doc(version(1*11+18,2003/05/27,20:53*03+'CEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*11+17,2003/05/21,19:11*58+'CEST'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*11+16,2003/04/08,04:35*48+'CEST'),
+   "../library/expansion_tools.pl").
+
+:- doc(version(1*11+15,2003/04/07,21:10*47+'CEST'),
+   "../lib/dynamic.pl").
+
+:- doc(version(1*11+14,2003/04/07,21:05*35+'CEST'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*11+13,2003/04/07,19:21*10+'CEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*11+12,2003/04/07,19:08*17+'CEST'),
+   "../lib/compiler/pl2wam.pl").
+
+:- doc(version(1*11+11,2003/04/07,19:01*26+'CEST'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(1*11+10,2003/04/07,18:55*46+'CEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*11+9,2003/04/07,14:01*46+'CEST'),
+   "../lib/engine/system_info.pl").
+
+:- doc(version(1*11+8,2003/04/07,13:59*25+'CEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*11+7,2003/04/07,13:57*48+'CEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*11+6,2003/04/07,13:56*48+'CEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*11+5,2003/04/07,13:54*05+'CEST'),
+   "../lib/engine/hiord_rt.pl").
+
+:- doc(version(1*11+4,2003/04/07,13:52*50+'CEST'),
+   "../lib/engine/exceptions.pl").
+
+:- doc(version(1*11+3,2003/04/07,13:48*19+'CEST'),
+   "../lib/engine/data_facts.pl").
+
+:- doc(version(1*11+2,2003/04/07,13:45*59+'CEST'),
+   "../lib/engine/basiccontrol.pl").
+
+:- doc(version(1*11+1,2003/04/04,18:30*31+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*10+5,2004/08/04,12:15*00+'CEST'),
+   "../library/clpr/clpr_rt.pl").
+
+:- doc(version(1*10+4,2004/08/04,12:14*22+'CEST'),
+   "../library/clpq/clpq_rt.pl").
+
+:- doc(version(1*10+3,2004/08/04,11:52*38+'CEST'),
+   "../library/factsdb/factsdb_rt.pl").
+
+:- doc(version(1*10+2,2004/08/02,19:25*49+'CEST'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*10+1,2003/04/04,18:29*07+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*10+0,2004/07/29,16:12*03+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*9+365,2004/07/28,01:10*31+'CEST'),
+   "../lib/system.pl").
+
+:- doc(version(1*9+364,2004/07/20,17:16*52+'CEST'),
+   "../library/persdb/persdbcache.pl").
+
+:- doc(version(1*9+360,2004/07/14,16:14*41+'CEST'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*9+356,2004/07/14,09:37*07+'CEST'),
+   "../lib/debugger/debugger_doc.pl").
+
+:- doc(version(1*9+355,2004/07/02,13:28*02+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*9+354,2004/07/01,17:25*00+'CEST'),
+   "../library/persdb/persdbcache.pl").
+
+:- doc(version(1*9+349,2004/06/10,17:59*22+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+348,2004/06/08,12:06*40+'CEST'),
+   "../library/tcltk/tcltk_low_level.pl").
+
+:- doc(version(1*9+347,2004/05/17,17:35*59+'CEST'),
+   "../library/persdb_mysql_op/pl2sql.pl").
+
+:- doc(version(1*9+346,2004/05/17,13:35*59+'CEST'),
+   "../library/persdb/persdbrt.pl").
+
+:- doc(version(1*9+345,2004/05/04,15:31*00+'CEST'),
+   "../library/persdb_sql_common/pl2sqlinsert.pl").
+
+:- doc(version(1*9+343,2004/04/29,11:55*29+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+342,2004/04/24,20:30*39+'CEST'),
+   "../lib/system.pl").
+
+:- doc(version(1*9+341,2004/04/24,20:21*54+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+340,2004/04/22,16:22*25+'CEST'),
+   "../lib/system.pl").
+
+:- doc(version(1*9+339,2004/04/22,07:49*09+'CEST'),
+   "../library/fuzzy/fuzzy_doc.pl").
+
+:- doc(version(1*9+338,2004/04/22,06:11*20+'CEST'),
+   "../lib/system.pl").
+
+:- doc(version(1*9+337,2004/04/22,05:47*28+'CEST'),
+   "../lib/system.pl").
+
+:- doc(version(1*9+336,2004/04/22,05:21*27+'CEST'),
+   "../lib/system.pl").
+
+:- doc(version(1*9+335,2004/04/16,16:18*08+'CEST'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*9+330,2004/03/25,16:54*55+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+327,2004/03/24,16:39*18+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+326,2004/03/16,16:18*08+'CET'),
+   "../lib/system.pl").
+
+:- doc(version(1*9+325,2004/03/15,17:44*11+'CET'),
+   "../shell/ciaosh.pl").
+
+:- doc(version(1*9+324,2004/03/10,01:40*39+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+323,2004/03/08,18:37*17+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+322,2004/03/04,22:59*18+'CET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*9+319,2004/02/26,23:59*45+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+318,2004/02/26,15:46*54+'CET'),
+   "../lib/lists.pl").
+
+:- doc(version(1*9+317,2004/02/26,15:40*56+'CET'),
+   "../lib/compiler/pl2wam.pl").
+
+:- doc(version(1*9+316,2004/02/25,19:16*01+'CET'),
+   "../lib/engine/debugger_support.pl").
+
+:- doc(version(1*9+304,2004/02/17,17:20*04+'CET'),
+   "../lib/iso_misc.pl").
+
+:- doc(version(1*9+302,2004/02/16,18:48*01+'CET'),
+   "../lib/dcg_expansion.pl").
+
+:- doc(version(1*9+301,2004/02/16,17:26*09+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+300,2004/02/16,17:19*40+'CET'),
+   "../lib/tokenize.pl").
+
+:- doc(version(1*9+299,2004/02/16,17:15*48+'CET'),
+   "../lib/tokenize.pl").
+
+:- doc(version(1*9+298,2004/02/16,17:13*26+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+297,2004/02/16,17:10*29+'CET'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*9+296,2004/02/16,17:04*20+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+295,2004/02/16,17:01*45+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+294,2004/02/16,16:57*21+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+293,2004/02/16,16:55*37+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+292,2004/02/16,14:52*52+'CET'),
+   "../lib/isomodes_doc.pl").
+
+:- doc(version(1*9+291,2004/02/13,20:46*08+'CET'),
+   "../library/functions/functions_doc.pl").
+
+:- doc(version(1*9+290,2004/02/13,20:20*03+'CET'),
+   "../lib/write.pl").
+
+:- doc(version(1*9+289,2004/02/13,19:46*27+'CET'),
+   "../lib/read.pl").
+
+:- doc(version(1*9+288,2004/02/13,19:29*21+'CET'),
+   "../lib/tokenize.pl").
+
+:- doc(version(1*9+287,2004/02/13,18:59*04+'CET'),
+   "../lib/operators.pl").
+
+:- doc(version(1*9+286,2004/02/13,17:54*55+'CET'),
+   "../lib/tokenize.pl").
+
+:- doc(version(1*9+285,2004/02/13,17:36*09+'CET'),
+   "../lib/engine/io_basic.pl").
+
+:- doc(version(1*9+284,2004/02/13,17:32*26+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+281,2004/02/02,15:51*32+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+280,2004/02/02,15:51*10+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+279,2004/02/02,15:50*46+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+278,2004/02/02,15:48*21+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+277,2004/01/09,17:45*58+'CET'),
+   "../shell/ciaosh.pl").
+
+:- doc(version(1*9+276,2004/01/09,16:37*11+'CET'),
+   "../lib/between.pl").
+
+:- doc(version(1*9+275,2004/01/09,16:25*09+'CET'),
+   "../library/random/random.pl").
+
+:- doc(version(1*9+274,2004/01/09,16:01*17+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+273,2004/01/05,20:14*41+'CET'),
+   "../lib/dec10_io.pl").
+
+:- doc(version(1*9+272,2004/01/05,19:40*06+'CET'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*9+187,2003/12/10,21:19*39+'CET'),
+   "../library/tcltk_obj/poly_class_doc.pl").
+
+:- doc(version(1*9+110,2003/09/25,21:32*13+'CEST'),
+   "../lib/old_database.pl").
+
+:- doc(version(1*9+109,2003/09/23,15:42*22+'CEST'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*9+98,2003/08/27,12:39*15+'CEST'),
+   "../ciaoc/ciaoc.pl").
+
+:- doc(version(1*9+94,2003/08/04,17:53*02+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+83,2003/06/05,01:13*41+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+73,2003/04/04,14:11*41+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+72,2003/04/03,20:45*55+'CEST'),
+   "../etc/components.pl").
+
+:- doc(version(1*9+71,2003/03/27,19:32*10+'CET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*9+70,2003/03/21,19:54*14+'CET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*9+69,2003/03/18,19:32*08+'CET'),
+   "../library/ciaoPP/p_unit/p_asr.pl").
+
+:- doc(version(1*9+68,2003/03/14,12:49*51+'CET'),
+   "../library/javall/javall_doc.pl").
+
+:- doc(version(1*9+67,2003/03/14,12:48*36+'CET'),
+   "../library/javall/javart.pl").
+
+:- doc(version(1*9+66,2003/03/14,12:48*24+'CET'),
+   "../library/javall/javasock.pl").
+
+:- doc(version(1*9+65,2003/03/14,12:48*10+'CET'),
+   "../library/javall/jtopl.pl").
+
+:- doc(version(1*9+64,2003/03/06,12:52*22+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+63,2003/02/28,16:42*43+'CET'),
+   "../lib/foreign_interface/foreign_interface_tr.pl").
+
+:- doc(version(1*9+62,2003/02/26,19:12*32+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+61,2003/02/25,12:24*25+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+60,2003/02/21,22:35*38+'CET'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*9+59,2003/02/11,19:22*53+'CET'),
+   "../library/javall/jtopl.pl").
+
+:- doc(version(1*9+58,2003/02/05,10:44*19+'CET'),
+   "../library/persdb_mysql/persdbrt_mysql.pl").
+
+:- doc(version(1*9+57,2003/02/03,19:45*33+'CET'),
+   "../lib/read.pl").
+
+:- doc(version(1*9+56,2003/02/03,19:38*26+'CET'),
+   "../lib/tokenize.pl").
+
+:- doc(version(1*9+55,2003/01/18,00:08*21+'CET'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*9+54,2003/01/17,23:55*53+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+53,2003/01/10,19:19*44+'CET'),
+   "../lib/lists.pl").
+
+:- doc(version(1*9+52,2003/01/10,18:45*24+'CET'),
+   "../library/persdb/persdbrt.pl").
+
+:- doc(version(1*9+51,2003/01/09,17:57*00+'CET'),
+   "../lib/engine/streams_basic.pl").
+
+:- doc(version(1*9+50,2003/01/09,17:47*46+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+49,2003/01/09,14:21*59+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+48,2003/01/07,14:27*09+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+47,2003/01/07,14:22*36+'CET'),
+   "../lib/foreign_interface/foreign_interface_doc.pl").
+
+:- doc(version(1*9+46,2003/01/07,13:07*03+'CET'),
+   "../lib/foreign_interface/foreign_interface_doc.pl").
+
+:- doc(version(1*9+45,2003/01/07,13:01*02+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+44,2002/12/17,18:58*34+'CET'),
+   "../library/persdb_mysql/persdbrt_mysql.pl").
+
+:- doc(version(1*9+43,2002/12/16,10:48*42+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+42,2002/12/13,17:55*42+'CET'),
+   "../library/persdb_sql_common/persdbtr_sql.pl").
+
+:- doc(version(1*9+41,2002/12/12,21:51*40+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+40,2002/12/12,20:48*37+'CET'),
+   "../lib/assertions/native_props.pl").
+
+:- doc(version(1*9+39,2002/12/12,20:47*57+'CET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*9+38,2002/12/12,20:06*26+'CET'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*9+37,2002/12/11,17:20*36+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+36,2002/12/09,13:27*10+'CET'),
+   "../library/xrefs/xrefsbuild.pl").
+
+:- doc(version(1*9+35,2002/12/08,10:07*34+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+34,2002/11/30,14:42*45+'CET'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*9+33,2002/11/30,14:37*10+'CET'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*9+32,2002/11/21,12:54*26+'CET'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*9+31,2002/11/21,12:41*47+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+30,2002/11/20,14:15*12+'CET'),
+   "../lib/engine/loading_code.pl").
+
+:- doc(version(1*9+29,2002/11/20,14:04*17+'CET'),
+   "../lib/engine/builtin_directives.pl").
+
+:- doc(version(1*9+28,2002/11/20,14:03*05+'CET'),
+   "../lib/engine/modules.pl").
+
+:- doc(version(1*9+27,2002/11/20,13:04*12+'CET'),
+   "../etc/lpmake.pl").
+
+:- doc(version(1*9+26,2002/11/20,12:57*08+'CET'),
+   "../library/make/make_rt.pl").
+
+:- doc(version(1*9+25,2002/11/20,12:55*34+'CET'),
+   "../library/make/make_rt.pl").
+
+:- doc(version(1*9+24,2002/11/20,12:52*12+'CET'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*9+23,2002/11/18,14:28*24+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+22,2002/11/18,13:03*59+'CET'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*9+21,2002/11/15,17:11*14+'CET'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*9+20,2002/11/13,19:18*05+'CET'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*9+19,2002/11/11,12:26*20+'CET'),
+   "../library/atom2term.pl").
+
+:- doc(version(1*9+18,2002/10/20,18:33*20+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+17,2002/10/13,12:29*38+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+16,2002/10/10,20:41*38+'CEST'),
+   "../lib/assertions/meta_props.pl").
+
+:- doc(version(1*9+15,2002/10/09,08:58*38+'CEST'),
+   "../library/sockets/sockets_io.pl").
+
+:- doc(version(1*9+14,2002/07/11,16:50*46+'CEST'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*9+13,2002/07/11,16:50*01+'CEST'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*9+12,2002/05/31,18:53*09+'CEST'),
+   "../library/remote/ciao_server.pl").
+
+:- doc(version(1*9+11,2002/05/31,18:34*25+'CEST'),
+   "../library/remote/ciao_client.pl").
+
+:- doc(version(1*9+10,2002/05/30,19:46*08+'CEST'),
+   "../library/factsdb/factsdb_rt.pl").
+
+:- doc(version(1*9+9,2002/05/28,19:11*29+'CEST'),
+   "../library/symfnames/symfnames.pl").
+
+:- doc(version(1*9+8,2002/05/27,16:57*51+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*9+7,2002/05/26,12:45*28+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+6,2002/05/26,12:35*54+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+5,2002/05/26,12:34*06+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*9+4,2002/05/24,19:30*52+'CEST'),
+   "../lib/lists.pl").
+
+:- doc(version(1*9+3,2002/05/23,21:32*30+'CEST'),
+   "../library/arrays.pl").
+
+:- doc(version(1*9+2,2002/05/23,17:48*34+'CEST'),
+   "../library/actmods/actmods_doc.pl").
+
+:- doc(version(1*9+1,2002/05/23,17:47*59+'CEST'),
+   "../library/actmods/actmods_doc.pl").
+
+:- doc(version(1*9+0,2002/05/16,23:17*34+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*8+0,2002/05/16,21:20*27+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*7+220,2002/05/16,16:13*52+'CEST'),
+   "../lib/compiler/pl2wam.pl").
+
+:- doc(version(1*7+219,2002/05/15,22:46*11+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+218,2002/05/15,22:46*02+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+217,2002/05/15,22:41*45+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+216,2002/05/15,22:40*16+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+215,2002/05/15,22:40*05+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+214,2002/05/15,22:36*31+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+213,2002/05/14,18:11*29+'CEST'),
+   "../lib/engine/prolog_flags.pl").
+
+:- doc(version(1*7+212,2002/05/06,01:12*02+'CEST'),
+   "../lib/foreign_interface/build_foreign_interface.pl").
+
+:- doc(version(1*7+211,2002/04/30,20:40*19+'CEST'),
+   "../lib/system.pl").
+
+:- doc(version(1*7+210,2002/04/29,16:15*21+'CEST'),
+   "../library/persdb_mysql/mysql_use_client.pl").
+
+:- doc(version(1*7+209,2002/04/24,14:50*46+'CEST'),
+   "../library/persdb_mysql/mysql_client.pl").
+
+:- doc(version(1*7+208,2002/04/23,19:09*14+'CEST'),
+   "../library/hiordlib.pl").
+
+:- doc(version(1*7+207,2002/04/23,18:58*09+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+206,2002/04/22,21:00*27+'CEST'),
+   "../lib/foreign_interface/foreign_interface_doc.pl").
+
+:- doc(version(1*7+205,2002/04/22,20:52*09+'CEST'),
+   "../library/actmods/actmods_doc.pl").
+
+:- doc(version(1*7+204,2002/04/22,18:42*18+'CEST'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*7+203,2002/04/20,13:38*54+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*7+202,2002/04/19,19:34*03+'CEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*7+201,2002/04/18,19:40*51+'CEST'),
+   "../lib/foreign_interface/foreign_interface_doc.pl").
+
+:- doc(version(1*7+200,2002/04/18,19:23*04+'CEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*7+199,2002/04/18,18:05*46+'CEST'),
+   "../library/fuzzy/fuzzy_doc.pl").
+
+:- doc(version(1*7+198,2002/04/17,20:13*07+'CEST'),
+   "../lib/operators.pl").
+
+:- doc(version(1*7+197,2002/04/17,20:02*28+'CEST'),
+   "../lib/write.pl").
+
+:- doc(version(1*7+196,2002/04/17,20:00*32+'CEST'),
+   "../lib/read.pl").
+
+:- doc(version(1*7+195,2002/04/12,14:21*57+'CEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*7+194,2002/04/04,21:08*41+'CEST'),
+   "../library/random/random.pl").
+
+:- doc(version(1*7+193,2002/03/25,11:51*37+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+192,2002/03/15,10:55*23+'CET'),
+   "../library/fuzzy/fuzzy_doc.pl").
+
+:- doc(version(1*7+191,2002/03/12,13:46*08+'CET'),
+   "../library/fuzzy/fuzzy_doc.pl").
+
+:- doc(version(1*7+190,2002/03/06,18:39*52+'CET'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*7+189,2002/02/14,17:16*46+'CET'),
+   "../library/atom2term.pl").
+
+:- doc(version(1*7+188,2002/02/08,20:06*47+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+187,2002/02/08,18:42*46+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+186,2002/02/04,19:11*45+'CET'),
+   "../library/functions/functions_doc.pl").
+
+:- doc(version(1*7+185,2002/02/04,18:45*52+'CET'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*7+184,2002/01/31,19:49*14+'CET'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(1*7+183,2002/01/31,19:15*16+'CET'),
+   "../library/functions/functions_doc.pl").
+
+:- doc(version(1*7+182,2002/01/31,19:11*26+'CET'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*7+181,2002/01/25,20:14*06+'Hora estándar romance'),
+   "../lib/system.pl").
+
+:- doc(version(1*7+180,2002/01/25,20:08*39+'Hora estándar romance'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*7+179,2002/01/18,12:05*05+'CET'),
+   "../library/ciaoPP/output_flags.pl").
+
+:- doc(version(1*7+178,2002/01/18,12:02*18+'CET'),
+   "../library/ciaoPP/output_flags.pl").
+
+:- doc(version(1*7+177,2002/01/17,19:45*19+'CET'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(1*7+176,2002/01/14,17:27*00+'CET'),
+   "../lib/compiler/compiler.pl").
+
+:- doc(version(1*7+175,2002/01/14,17:24*34+'CET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*7+174,2002/01/09,18:08*25+'CET'),
+   "../library/ciaoPP/options.pl").
+
+:- doc(version(1*7+173,2002/01/09,18:04*34+'CET'),
+   "../library/ciaoPP/database.pl").
+
+:- doc(version(1*7+172,2002/01/03,21:45*17+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+171,2002/01/03,18:20*29+'CET'),
+   "../contrib/provrml/tokeniser.pl").
+
+:- doc(version(1*7+170,2002/01/03,18:17*59+'CET'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*7+169,2002/01/03,17:57*18+'CET'),
+   "../lib/system.pl").
+
+:- doc(version(1*7+168,2002/01/03,17:45*02+'CET'),
+   "../lib/engine/modules.pl").
+
+:- doc(version(1*7+167,2002/01/03,17:43*50+'CET'),
+   "../lib/assertions/meta_props.pl").
+
+:- doc(version(1*7+166,2002/01/03,17:42*31+'CET'),
+   "../lib/engine/loading_code.pl").
+
+:- doc(version(1*7+165,2002/01/03,17:38*59+'CET'),
+   "../lib/engine/builtin_directives.pl").
+
+:- doc(version(1*7+164,2002/01/03,17:32*25+'CET'),
+   "../doc/common/Builtins.pl").
+
+:- doc(version(1*7+163,2002/01/03,12:09*10+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+162,2001/12/04,16:02*58+'CET'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*7+161,2001/11/27,12:53*26+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+160,2001/11/27,12:35*53+'CET'),
+   "../library/andprolog/andprolog_doc.pl").
+
+:- doc(version(1*7+159,2001/11/27,11:58*24+'CET'),
+   "../library/file_locks/file_locks.pl").
+
+:- doc(version(1*7+158,2001/11/27,10:12*07+'CET'),
+   "../lib/system.pl").
+
+:- doc(version(1*7+157,2001/11/26,18:43*01+'CET'),
+   "../library/file_locks/file_locks.pl").
+
+:- doc(version(1*7+156,2001/11/24,13:23*30+'CET'),
+   "../lib/assertions/assertions_props.pl").
+
+:- doc(version(1*7+155,2001/11/24,11:53*36+'CET'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*7+154,2001/11/23,18:02*30+'CET'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*7+153,2001/11/23,17:42*44+'CET'),
+   "../library/persdb/persdbrt.pl").
+
+:- doc(version(1*7+152,2001/11/23,16:11*27+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+151,2001/11/23,15:08*49+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+150,2001/11/23,14:57*54+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+149,2001/11/19,19:17*51+'CET'),
+   "../library/det_hook/det_hook_rt.pl").
+
+:- doc(version(1*7+148,2001/11/17,20:40*45+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+147,2001/11/15,19:38*07+'CET'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*7+146,2001/11/15,19:32*38+'CET'),
+   "../lib/engine/hiord_rt.pl").
+
+:- doc(version(1*7+145,2001/11/12,19:13*34+'CET'),
+   "../lib/attrdump.pl").
+
+:- doc(version(1*7+144,2001/11/12,17:57*47+'CET'),
+   "../library/andorra/andorra_doc.pl").
+
+:- doc(version(1*7+143,2001/11/12,17:51*00+'CET'),
+   "../library/terms_check.pl").
+
+:- doc(version(1*7+142,2001/11/12,17:49*44+'CET'),
+   "../library/terms_vars.pl").
+
+:- doc(version(1*7+141,2001/11/12,17:47*36+'CET'),
+   "../lib/terms.pl").
+
+:- doc(version(1*7+140,2001/11/12,17:27*51+'CET'),
+   "../lib/runtime_ops_doc.pl").
+
+:- doc(version(1*7+139,2001/11/12,17:24*35+'CET'),
+   "../lib/dict.pl").
+
+:- doc(version(1*7+138,2001/11/08,19:50*32+'CET'),
+   "../library/concurrency/concurrency.pl").
+
+:- doc(version(1*7+137,2001/11/02,21:24*56+'CET'),
+   "../library/fuzzy/fuzzy_doc.pl").
+
+:- doc(version(1*7+136,2001/11/02,18:19*07+'CET'),
+   "../library/fuzzy/fuzzy_doc.pl").
+
+:- doc(version(1*7+135,2001/11/02,18:18*35+'CET'),
+   "../library/fuzzy/fuzzy_doc.pl").
+
+:- doc(version(1*7+134,2001/11/02,18:18*19+'CET'),
+   "../library/fuzzy/fuzzy_doc.pl").
+
+:- doc(version(1*7+133,2001/11/01,16:34*06+'CET'),
+   "../doc/common/GetStartUnix.pl").
+
+:- doc(version(1*7+132,2001/10/31,10:14*18+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+131,2001/10/29,20:47*56+'CET'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*7+130,2001/10/28,17:06*47+'CET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*7+129,2001/10/28,15:38*52+'CET'),
+   "../shell/ciaosh_doc.pl").
+
+:- doc(version(1*7+128,2001/10/26,18:27*47+'CEST'),
+   "../library/make/system_extra.pl").
+
+:- doc(version(1*7+127,2001/10/26,14:52*05+'CEST'),
+   "../library/persdb_sql_common/sqltypes.pl").
+
+:- doc(version(1*7+126,2001/10/26,14:51*32+'CEST'),
+   "../library/persdb_mysql/persdbrt_mysql.pl").
+
+:- doc(version(1*7+125,2001/10/17,13:42*47+'CEST'),
+   "../library/javall/jtopl.pl").
+
+:- doc(version(1*7+124,2001/09/02,14:14*25+'CEST'),
+   "../library/tcltk/tcltk_low_level.pl").
+
+:- doc(version(1*7+123,2001/09/02,14:13*25+'CEST'),
+   "../library/tcltk/tcltk.pl").
+
+:- doc(version(1*7+122,2001/08/30,20:49*07+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+121,2001/08/30,17:43*34+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+120,2001/08/28,18:08*13+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+119,2001/08/28,15:39*01+'CEST'),
+   "../library/id/id_doc.pl").
+
+:- doc(version(1*7+118,2001/08/28,15:07*22+'CEST'),
+   "../library/argnames/argnames_doc.pl").
+
+:- doc(version(1*7+117,2001/08/28,14:41*20+'CEST'),
+   "../library/use_url.pl").
+
+:- doc(version(1*7+116,2001/08/09,17:56*37+'CEST'),
+   "../library/tcltk/tcltk_low_level.pl").
+
+:- doc(version(1*7+115,2001/07/09,19:10*00+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+114,2001/07/09,13:20*42+'CEST'),
+   "../library/concurrency/concurrency.pl").
+
+:- doc(version(1*7+113,2001/07/05,17:10*06+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+112,2001/06/25,17:34*09+'CEST'),
+   "../library/pretty_print.pl").
+
+:- doc(version(1*7+111,2001/06/20,18:58*51+'CEST'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*7+110,2001/06/20,18:40*04+'CEST'),
+   "../shell/ciaosh.pl").
+
+:- doc(version(1*7+109,2001/06/03,17:08*19+'CEST'),
+   "../library/persdb_mysql/persdbrt_mysql.pl").
+
+:- doc(version(1*7+108,2001/06/02,12:17*18+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*7+107,2001/05/31,14:12*58+'CEST'),
+   "../lib/engine/exceptions.pl").
+
+:- doc(version(1*7+106,2001/05/28,20:06*27+'CEST'),
+   "../lib/operators.pl").
+
+:- doc(version(1*7+105,2001/05/28,11:16*19+'CEST'),
+   "../library/persdb_mysql/mysql_client.pl").
+
+:- doc(version(1*7+104,2001/05/24,20:42*02+'CEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*7+103,2001/05/21,19:22*58+'CEST'),
+   "../library/functions/functions_doc.pl").
+
+:- doc(version(1*7+102,2001/05/21,19:11*20+'CEST'),
+   "../contrib/ProVRML/ProVRML_intro.pl").
+
+:- doc(version(1*7+101,2001/05/15,17:34*09+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*7+100,2001/05/13,15:48*57+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*7+99,2001/05/10,21:06*35+'CEST'),
+   "../lib/hiord_rt.pl").
+
+:- doc(version(1*7+98,2001/05/10,20:57*09+'CEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*7+97,2001/05/03,16:10*19+'CEST'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*7+96,2001/05/02,12:29*31+'CEST'),
+   "../library/persdb/persdbrt.pl").
+
+:- doc(version(1*7+95,2001/05/02,12:18*06+'CEST'),
+   "../lib/engine/data_facts.pl").
+
+:- doc(version(1*7+94,2001/04/27,08:37*49+'CEST'),
+   "../library/andprolog/andprolog.pl").
+
+:- doc(version(1*7+93,2001/04/24,19:02*53+'CEST'),
+   "../lib/dynamic.pl").
+
+:- doc(version(1*7+92,2001/04/23,18:40*54+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*7+91,2001/04/23,18:19*24+'CEST'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*7+90,2001/04/20,21:08*01+'CEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*7+89,2001/04/19,13:15*47+'CEST'),
+   "../lib/assertions/c_itf_props.pl").
+
+:- doc(version(1*7+88,2001/04/09,16:22*12+'CEST'),
+   "../library/persdb_mysql/mysql_client.pl").
+
+:- doc(version(1*7+87,2001/04/08,15:15*18+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*7+86,2001/04/05,22:10*12+'CEST'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(1*7+85,2001/04/05,11:16*53+'CEST'),
+   "../lib/compiler/compiler.pl").
+
+:- doc(version(1*7+84,2001/04/05,11:07*12+'CEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*7+83,2001/04/02,14:30*17+'CEST'),
+   "../library/det_hook/det_hook_rt.pl").
+
+:- doc(version(1*7+82,2001/03/30,13:16*44+'CEST'),
+   "../library/javall/javasock.pl").
+
+:- doc(version(1*7+81,2001/03/28,16:39*55+'CEST'),
+   "../library/concurrency/concurrency.pl").
+
+:- doc(version(1*7+80,2001/03/28,13:02*11+'CEST'),
+   "../library/concurrency/concurrency.pl").
+
+:- doc(version(1*7+79,2001/03/28,12:52*17+'CEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*7+78,2001/03/26,19:25*24+'CEST'),
+   "../library/concurrency/concurrency.pl").
+
+:- doc(version(1*7+77,2001/03/26,18:45*31+'CEST'),
+   "../lib/foreign_interface/foreign_interface_properties.pl").
+
+:- doc(version(1*7+76,2001/03/26,18:08*57+'CEST'),
+   "../lib/foreign_interface/foreign_interface_doc.pl").
+
+:- doc(version(1*7+75,2001/03/26,17:08*47+'CEST'),
+   "../lib/foreign_interface/build_foreign_interface.pl").
+
+:- doc(version(1*7+74,2001/03/26,12:12*29+'CEST'),
+   "../library/javall/javart.pl").
+
+:- doc(version(1*7+73,2001/03/26,12:10*31+'CEST'),
+   "../library/javall/javart.pl").
+
+:- doc(version(1*7+72,2001/03/25,19:56*27+'CEST'),
+   "../shell/ciaosh_doc.pl").
+
+:- doc(version(1*7+71,2001/03/23,12:53*31+'CET'),
+   "../library/javall/javasock.pl").
+
+:- doc(version(1*7+70,2001/03/23,11:30*20+'CET'),
+   "../library/javall/javart.pl").
+
+:- doc(version(1*7+69,2001/03/23,11:29*10+'CET'),
+   "../library/javall/javart.pl").
+
+:- doc(version(1*7+68,2001/03/22,17:28*29+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+67,2001/03/21,12:28*26+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+66,2001/03/15,20:47*55+'CET'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*7+65,2001/03/05,16:21*45+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+64,2001/03/05,12:54*14+'MET'),
+   "../lib/foreign_interface/foreign_interface_properties.pl").
+
+:- doc(version(1*7+63,2001/03/03,01:02*08+'CET'),
+   "../shell/ciaosh.pl").
+
+:- doc(version(1*7+62,2001/03/02,23:00*48+'CET'),
+   "../library/persdb/persdbrt.pl").
+
+:- doc(version(1*7+61,2001/02/23,14:27*54+'CET'),
+   "../library/xrefs/xrefs.pl").
+
+:- doc(version(1*7+60,2001/02/12,18:09*03+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+59,2001/02/12,16:52*47+'CET'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(1*7+58,2001/02/08,11:46*41+'CET'),
+   "../library/sockets/sockets.pl").
+
+:- doc(version(1*7+57,2001/02/07,16:12*10+'CET'),
+   "../lib/assertions/assrt_norm.pl").
+
+:- doc(version(1*7+56,2001/02/01,15:59*48+'CET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*7+55,2001/01/26,17:36*30+'CET'),
+   "../doc/common/BeyondInstall.pl").
+
+:- doc(version(1*7+54,2001/01/26,15:35*02+'CET'),
+   "../library/sockets/sockets.pl").
+
+:- doc(version(1*7+53,2001/01/26,15:34*44+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+52,2001/01/26,15:34*13+'CET'),
+   "../library/io_alias_redirection.pl").
+
+:- doc(version(1*7+51,2001/01/25,21:33*00+'CET'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*7+50,2001/01/23,10:32*14+'CET'),
+   "../library/io_alias_redirection.pl").
+
+:- doc(version(1*7+49,2001/01/22,12:23*39+'CET'),
+   "../library/io_alias_redirection.pl").
+
+:- doc(version(1*7+48,2001/01/22,12:21*43+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+47,2001/01/22,10:24*23+'CET'),
+   "../lib/engine/streams_basic.pl").
+
+:- doc(version(1*7+46,2001/01/19,19:43*48+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+45,2001/01/18,16:38*51+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+44,2001/01/17,19:41*30+'CET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*7+43,2001/01/15,17:34*58+'CET'),
+   "../lib/read.pl").
+
+:- doc(version(1*7+42,2001/01/15,14:20*54+'CET'),
+   "../library/javall/jtopl.pl").
+
+:- doc(version(1*7+41,2001/01/12,22:30*28+'CET'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*7+40,2001/01/05,19:07*40+'CET'),
+   "../library/expansion_tools.pl").
+
+:- doc(version(1*7+39,2001/01/05,19:04*12+'CET'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*7+38,2001/01/05,18:30*05+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+37,2001/01/02,16:47*03+'CET'),
+   "../lib/engine/basiccontrol.pl").
+
+:- doc(version(1*7+36,2000/12/31,18:35*26+'CET'),
+   "../lib/read.pl").
+
+:- doc(version(1*7+35,2000/12/28,18:20*50+'CET'),
+   "../library/actmods/actmods_doc.pl").
+
+:- doc(version(1*7+34,2000/12/23,16:42*52+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+33,2000/12/20,18:23*23+'CET'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(1*7+32,2000/11/14,13:13*15+'CET'),
+   "../library/objects/objects_doc.pl").
+
+:- doc(version(1*7+31,2000/11/10,17:33*31+'CET'),
+   "../library/persdb/persdbrt.pl").
+
+:- doc(version(1*7+30,2000/11/03,16:42*01+'CET'),
+   "../ciaoc/ciaoc.pl").
+
+:- doc(version(1*7+29,2000/11/03,15:07*41+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+28,2000/11/03,10:45*01+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+27,2000/10/30,19:22*49+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+26,2000/10/24,18:24*26+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+25,2000/10/23,15:52*30+'CEST'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*7+24,2000/10/13,12:43*39+'CEST'),
+   "../lib/dynamic.pl").
+
+:- doc(version(1*7+23,2000/10/05,13:45*26+'CEST'),
+   "../lib/dynamic.pl").
+
+:- doc(version(1*7+22,2000/10/05,13:30*16+'CEST'),
+   "../lib/dynamic.pl").
+
+:- doc(version(1*7+21,2000/09/26,13:37*17+'CEST'),
+   "../library/librowser/librowser.pl").
+
+:- doc(version(1*7+20,2000/09/13,17:28*41+'CEST'),
+   "../library/persdb/persdbrt.pl").
+
+:- doc(version(1*7+19,2000/09/11,21:27*01+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+17,2000/09/11,16:58*15+'CEST'),
+   "../library/remote/ciao_remote.pl").
+
+:- doc(version(1*7+16,2000/08/29,13:44*18+'CEST'),
+   "../lib/fastrw.pl").
+
+:- doc(version(1*7+15,2000/08/29,13:43*34+'CEST'),
+   "../lib/fastrw.pl").
+
+:- doc(version(1*7+14,2000/08/29,12:16*12+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*7+13,2000/08/24,18:41*05+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+12,2000/08/22,18:16*33+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*7+11,2000/08/21,13:27*33+'CEST'),
+   "../library/sockets/sockets.pl").
+
+:- doc(version(1*7+10,2000/08/16,12:10*56+'CEST'),
+   "../shell/toplev.pl").
+
+:- doc(version(1*7+9,2000/08/16,12:07*48+'CEST'),
+   "../library/concurrency/concurrency.pl").
+
+:- doc(version(1*7+8,2000/08/16,11:45*04+'CEST'),
+   "../lib/dynamic.pl").
+
+:- doc(version(1*7+7,2000/08/04,18:50*42+'CEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*7+6,2000/07/25,18:08*23+'CEST'),
+   "../library/remote/ciao_server_rt.pl").
+
+:- doc(version(1*7+5,2000/07/25,18:06*22+'CEST'),
+   "../library/remote/ciao_client_rt.pl").
+
+:- doc(version(1*7+4,2000/07/25,18:05*17+'CEST'),
+   "../library/hlc/hlconc_rt.pl").
+
+:- doc(version(1*7+3,2000/07/21,11:54*59+'CEST'),
+   "../library/when/when.pl").
+
+:- doc(version(1*7+2,2000/07/19,14:15*15+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+1,2000/07/18,15:47*04+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*7+0,2000/07/12,19:01*20+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*6+0,2000/07/12,18:55*50+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*5+172,2000/07/12,16:45*31+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+171,2000/07/07,16:10*17+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+170,2000/07/07,11:33*32+'CEST'),
+   "../doc/common/PortNotes.pl").
+
+:- doc(version(1*5+169,2000/07/06,13:27*35+'CEST'),
+   "../library/sockets/sockets.pl").
+
+:- doc(version(1*5+168,2000/07/05,16:24*21+'CEST'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*5+167,2000/06/29,16:19*20+'CEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*5+166,2000/06/27,16:03*35+'CEST'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*5+165,2000/06/26,17:11*16+'CEST'),
+   "../library/when/when.pl").
+
+:- doc(version(1*5+164,2000/06/22,19:48*58+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+163,2000/06/21,18:01*36+'CEST'),
+   "../library/when/when.pl").
+
+:- doc(version(1*5+162,2000/06/14,17:07*15+'CEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*5+161,2000/06/01,20:23*24+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+160,2000/06/01,12:27*49+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+159,2000/05/31,10:52*49+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*5+158,2000/05/30,13:08*10+'CEST'),
+   "../lib/write.pl").
+
+:- doc(version(1*5+157,2000/05/30,13:04*47+'CEST'),
+   "../lib/engine/attributes.pl").
+
+:- doc(version(1*5+156,2000/05/30,11:00*51+'CEST'),
+   "../library/clpqr_src/clpq_doc.pl").
+
+:- doc(version(1*5+155,2000/05/29,19:34*30+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+154,2000/05/29,18:57*52+'CEST'),
+   "../library/tcltk/tcltk_low_level.pl").
+
+:- doc(version(1*5+153,2000/05/29,10:24*35+'CEST'),
+   "../lib/prolog_sys.pl").
+
+:- doc(version(1*5+152,2000/05/26,13:36*48+'CEST'),
+   "../library/javall/javasock.pl").
+
+:- doc(version(1*5+151,2000/05/26,12:27*05+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*5+150,2000/05/24,20:00*38+'CEST'),
+   "../library/random/random.pl").
+
+:- doc(version(1*5+149,2000/05/24,20:00*09+'CEST'),
+   "../library/sockets/sockets.pl").
+
+:- doc(version(1*5+148,2000/05/24,11:26*32+'CEST'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*5+147,2000/05/24,11:15*57+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*5+146,2000/05/19,21:01*42+'CEST'),
+   "../lib/dynamic.pl").
+
+:- doc(version(1*5+145,2000/05/18,16:13*40+'CEST'),
+   "../library/concurrency/concurrency.pl").
+
+:- doc(version(1*5+144,2000/05/17,21:08*21+'CEST'),
+   "../lib/write.pl").
+
+:- doc(version(1*5+143,2000/05/12,13:54*34+'CEST'),
+   "../library/bf/bf_doc.pl").
+
+:- doc(version(1*5+142,2000/05/11,14:11*20+'CEST'),
+   "../ciaoc/ciaoc.pl").
+
+:- doc(version(1*5+141,2000/05/11,13:33*29+'CEST'),
+   "../library/actmods/actmod_doc.pl").
+
+:- doc(version(1*5+140,2000/05/11,13:30*51+'CEST'),
+   "../library/actmods/actmodtr.pl").
+
+:- doc(version(1*5+139,2000/05/11,13:29*09+'CEST'),
+   "../library/actmods/actmodrt.pl").
+
+:- doc(version(1*5+138,2000/05/11,13:28*28+'CEST'),
+   "../library/actmods/actmod_server.pl").
+
+:- doc(version(1*5+137,2000/05/10,11:29*26+'CEST'),
+   "../lib/foreign_interface/foreign_interface.pl").
+
+:- doc(version(1*5+136,2000/05/09,14:16*01+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+135,2000/05/09,12:49*25+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+134,2000/05/09,11:52*13+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*5+133,2000/05/05,17:32*14+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+132,2000/05/05,17:29*54+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+131,2000/05/04,19:46*36+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+130,2000/05/03,20:19*04+'CEST'),
+   "../shell/ciao-shell.pl").
+
+:- doc(version(1*5+129,2000/05/02,20:46*52+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+128,2000/05/02,18:04*14+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+127,2000/05/02,16:50*36+'CEST'),
+   "../library/sockets/sockets.pl").
+
+:- doc(version(1*5+126,2000/05/02,16:47*23+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+125,2000/04/28,21:37*08+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+124,2000/04/28,21:16*05+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+123,2000/04/28,17:24*44+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+122,2000/04/28,17:22*01+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+121,2000/04/28,14:25*20+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+120,2000/04/28,14:24*59+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+119,2000/04/28,14:23*49+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+118,2000/04/19,18:13*43+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*5+117,2000/04/12,18:35*57+'CEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*5+116,2000/04/12,13:44*55+'CEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*5+115,2000/04/12,12:17*22+'CEST'),
+   "../lib/aggregates.pl").
+
+:- doc(version(1*5+114,2000/04/11,20:23*43+'CEST'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*5+113,2000/04/10,17:35*36+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*5+112,2000/04/07,17:44*20+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+111,2000/04/07,17:43*52+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+110,2000/04/07,13:44*28+'CEST'),
+   "../library/id/id_rt.pl").
+
+:- doc(version(1*5+109,2000/04/07,13:41*48+'CEST'),
+   "../library/id/id.pl").
+
+:- doc(version(1*5+108,2000/04/07,11:02*54+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*5+107,2000/04/05,09:55*16+'CEST'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*5+106,2000/04/03,14:46*56+'CEST'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*5+105,2000/04/03,14:21*58+'CEST'),
+   "../library/persdb_sql/persdbrt_sql.pl").
+
+:- doc(version(1*5+104,2000/04/03,10:41*02+'CEST'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*5+103,2000/04/02,23:22*37+'CEST'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*5+102,2000/04/02,23:17*24+'CEST'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*5+101,2000/03/31,12:31*30+'CEST'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*5+100,2000/03/30,18:01*28+'CEST'),
+   "../lib/read.pl").
+
+:- doc(version(1*5+99,2000/03/30,16:19*56+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*5+98,2000/03/30,14:58*35+'CEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+97,2000/03/30,11:17*28+'CEST'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*5+96,2000/03/29,20:32*24+'CEST'),
+   "../lib/compiler/translation.pl").
+
+:- doc(version(1*5+95,2000/03/29,15:03*26+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*5+94,2000/03/28,23:19*20+'CEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*5+93,2000/03/28,18:12*08+'CEST'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*5+92,2000/03/28,17:41*25+'CEST'),
+   "../doc/common/InstallWin32bin.pl").
+
+:- doc(version(1*5+91,2000/03/24,17:18*52+'CET'),
+   "../ciaoc/ciaoc.pl").
+
+:- doc(version(1*5+90,2000/03/24,14:29*27+'CET'),
+   "../library/objects/objects_doc.pl").
+
+:- doc(version(1*5+89,2000/03/24,14:24*48+'CET'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*5+88,2000/03/24,13:18*46+'CET'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*5+87,2000/03/24,12:37*02+'CET'),
+   "../ciaoc/ciaoc.pl").
+
+:- doc(version(1*5+86,2000/03/24,10:11*51+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*5+85,2000/03/24,10:05*24+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*5+84,2000/03/23,19:26*08+'CET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*5+83,2000/03/23,19:23*58+'CET'),
+   "../library/graphs/graphs.pl").
+
+:- doc(version(1*5+82,2000/03/23,18:27*00+'CET'),
+   "../ciaoc/ciaoc.pl").
+
+:- doc(version(1*5+81,2000/03/23,16:37*17+'CET'),
+   "../lib/fastrw.pl").
+
+:- doc(version(1*5+80,2000/03/23,14:34*33+'CET'),
+   "../emacs-mode/CiaoMode.pl").
+
+:- doc(version(1*5+79,2000/03/23,11:46*02+'CET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*5+78,2000/03/23,10:53*30+'CET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*5+77,2000/03/22,18:43*46+'CET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*5+76,2000/03/21,12:06*21+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+75,2000/03/21,12:06*05+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+74,2000/03/20,16:49*45+'CET'),
+   "../lib/read.pl").
+
+:- doc(version(1*5+73,2000/03/19,19:54*31+'CET'),
+   "../library/tcltk/tcltk.pl").
+
+:- doc(version(1*5+72,2000/03/19,19:09*14+'CET'),
+   "../library/freeze/freeze.pl").
+
+:- doc(version(1*5+71,2000/03/17,20:02*19+'CET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*5+70,2000/03/17,16:26*37+'CET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*5+69,2000/03/17,16:25*55+'CET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*5+68,2000/03/17,14:47*31+'CET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*5+67,2000/03/17,14:46*42+'CET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*5+66,2000/03/16,17:03*30+'CET'),
+   "../lib/engine/basiccontrol.pl").
+
+:- doc(version(1*5+65,2000/03/15,22:09*28+'CET'),
+   "../library/hiordlib.pl").
+
+:- doc(version(1*5+64,2000/03/15,22:07*53+'CET'),
+   "../library/hiordlib.pl").
+
+:- doc(version(1*5+63,2000/03/13,18:43*45+'CET'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*5+62,2000/03/10,21:17*05+'CET'),
+   "../lib/fastrw/fastrw.pl").
+
+:- doc(version(1*5+61,2000/03/09,09:45*14+'CET'),
+   "../lib/compiler/srcdbg.pl").
+
+:- doc(version(1*5+60,2000/03/08,17:36*34+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+59,2000/02/29,14:51*54+'CET'),
+   "../library/mycin/mycin_doc.pl").
+
+:- doc(version(1*5+58,2000/02/28,10:32*04+'CET'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*5+57,2000/02/26,14:07*00+'CET'),
+   "../library/ho.pl").
+
+:- doc(version(1*5+56,2000/02/16,21:27*41+'CET'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*5+55,2000/02/11,21:19*43+'CET'),
+   "../lib/file_utils.pl").
+
+:- doc(version(1*5+54,2000/02/10,21:32*23+'CET'),
+   "../library/emacs/emacs.pl").
+
+:- doc(version(1*5+53,2000/02/10,20:27*23+'CET'),
+   "../lib/file_utils.pl").
+
+:- doc(version(1*5+52,2000/02/10,20:08*28+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+51,2000/02/10,18:42*31+'CET'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(1*5+50,2000/02/10,18:12*18+'CET'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*5+49,2000/02/08,16:35*38+'CET'),
+   "../library/javall/javasock.pl").
+
+:- doc(version(1*5+48,2000/02/08,13:01*04+'CET'),
+   "../lib/compiler/srcdbg.pl").
+
+:- doc(version(1*5+47,2000/02/07,20:18*32+'CET'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(1*5+46,2000/02/07,11:05*53+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+45,2000/02/05,20:53*37+'CET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*5+44,2000/02/04,20:03*24+'CET'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*5+43,2000/02/04,19:53*51+'CET'),
+   "../library/metaterms.pl").
+
+:- doc(version(1*5+42,2000/02/04,14:02*36+'CET'),
+   "../lib/compiler/srcdbg.pl").
+
+:- doc(version(1*5+41,2000/02/04,13:34*24+'CET'),
+   "../lib/lists.pl").
+
+:- doc(version(1*5+40,2000/02/03,10:53*03+'CET'),
+   "../library/javall/javall_doc.pl").
+
+:- doc(version(1*5+39,2000/02/02,13:17*35+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+38,2000/02/01,19:05*58+'CET'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(1*5+37,2000/01/26,13:12*16+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+36,2000/01/25,16:37*41+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+35,2000/01/25,14:16*47+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+34,1999/12/31,18:49*41+'CET'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*5+33,2000/01/03,17:08*17+'MET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+32,2000/01/03,13:37*19+'MET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+31,1999/12/29,15:44*18+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+30,1999/12/29,15:41*00+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+29,1999/12/29,15:40*48+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+28,1999/12/29,15:40*30+'CET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+27,1999/12/29,15:09*45+'CET'),
+   "../lib/prolog_sys.pl").
+
+:- doc(version(1*5+26,1999/12/29,15:07*59+'CET'),
+   "../library/random/random.pl").
+
+:- doc(version(1*5+25,1999/12/29,12:46*08+'CET'),
+   "../lib/assertions/assertions_props.pl").
+
+:- doc(version(1*5+24,1999/12/28,13:18*53+'CET'),
+   "../lib/compiler/srcdbg.pl").
+
+:- doc(version(1*5+23,1999/12/21,18:42*19+'MET'),
+   "../etc/xmrefs.pl").
+
+:- doc(version(1*5+22,1999/12/17,16:59*51+'MET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+21,1999/12/17,16:28*20+'MET'),
+   "../library/davinci.pl").
+
+:- doc(version(1*5+20,1999/12/16,18:23*29+'MET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+19,1999/12/16,17:55*37+'MET'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*5+18,1999/12/15,10:48*32+'MET'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*5+17,1999/12/14,22:28*52+'MET'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*5+16,1999/12/14,17:12*49+'MET'),
+   "../library/tcltk/tcltk.pl").
+
+:- doc(version(1*5+15,1999/12/14,15:30*23+'MET'),
+   "../library/class/class_error_doc.pl").
+
+:- doc(version(1*5+14,1999/12/14,15:29*55+'MET'),
+   "../library/objects/objects_error_doc.pl").
+
+:- doc(version(1*5+13,1999/12/14,13:37*34+'MET'),
+   "../lib/engine/basiccontrol.pl").
+
+:- doc(version(1*5+12,1999/12/14,13:27*49+'MET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*5+11,1999/12/14,13:14*36+'MET'),
+   "../shell/ciaosh_doc.pl").
+
+:- doc(version(1*5+10,1999/12/14,13:09*14+'MET'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*5+9,1999/12/09,21:57*42+'MET'),
+   "../lib/regtypes/regtypes_doc.pl").
+
+:- doc(version(1*5+8,1999/12/09,21:01*11+'MET'),
+   "../lib/assertions/assertions_doc.pl").
+
+:- doc(version(1*5+7,1999/12/09,09:46*03+'MET'),
+   "../lib/prolog_sys.pl").
+
+:- doc(version(1*5+6,1999/12/06,14:50*37+'MET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+5,1999/12/06,14:47*35+'MET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*5+4,1999/11/29,19:11*21+'MET'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*5+3,1999/11/29,18:06*27+'MET'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*5+2,1999/11/29,18:02*53+'MET'),
+   "../lib/assertions/assrt_write.pl").
+
+:- doc(version(1*5+1,1999/11/29,17:12*34+'MET'),
+   "../lib/assertions/native_props.pl").
+
+:- doc(version(1*4+0,1999/11/27,19:00*00+'MEST'), 
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*3+124,1999/11/27,04:04*05+'MET'),
+   "../lib/terms.pl").
+
+:- doc(version(1*3+123,1999/11/27,03:03*55+'MET'),
+   "../lib/foreign_interface/foreign_interface.pl").
+
+:- doc(version(1*3+122,1999/11/27,03:02*54+'MET'),
+   "../lib/foreign_interface/foreign_interface.pl").
+
+:- doc(version(1*3+121,1999/11/26,20:23*11+'MET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*3+120,1999/11/26,12:05*17+'MET'),
+   "../library/andprolog/andprolog.pl").
+
+:- doc(version(1*3+119,1999/11/26,11:48*19+'MET'),
+   "../etc/ciao-utilities.pl").
+
+:- doc(version(1*3+118,1999/11/25,19:28*06+'MET'),
+   "../lib/engine/concurrency.pl").
+
+:- doc(version(1*3+117,1999/11/25,01:44*07+'MET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*3+116,1999/11/24,19:27*13+'MET'),
+   "../lib/engine/concurrency.pl").
+
+:- doc(version(1*3+115,1999/11/24,00:58*36+'MET'),
+   "../library/pillow/html.pl").
+
+:- doc(version(1*3+114,1999/11/24,00:57*16+'MET'),
+   "../library/pillow/http.pl").
+
+:- doc(version(1*3+113,1999/11/23,17:27*10+'MET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*3+112,1999/11/23,01:08*50+'MET'),
+   "../lib/isomodes_doc.pl").
+
+:- doc(version(1*3+111,1999/11/22,13:00*41+'MET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*3+110,1999/11/22,11:52*54+'MET'),
+   "../library/expansion_tools.pl").
+
+:- doc(version(1*3+109,1999/11/22,10:44*43+'MET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*3+108,1999/11/18,13:48*03+'MET'),
+   "../lib/messages.pl").
+
+:- doc(version(1*3+107,1999/11/18,13:06*14+'MET'),
+   "../lib/engine/loading_code.pl").
+
+:- doc(version(1*3+106,1999/11/18,12:48*54+'MET'),
+   "../shell/ciao-shell.pl").
+
+:- doc(version(1*3+105,1999/11/18,12:44*18+'MET'),
+   "../shell/ciaosh_doc.pl").
+
+:- doc(version(1*3+104,1999/11/17,22:05*53+'MET'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(1*3+103,1999/11/17,11:18*32+'MET'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*3+102,1999/11/15,17:04*55+'MET'),
+   "../Win32/wsetup.pl").
+
+:- doc(version(1*3+101,1999/11/13,18:07*58+'MET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*3+100,1999/11/12,17:14*25+'MET'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(1*3+99,1999/11/12,16:28*06+'MET'),
+   "../lib/engine/basiccontrol.pl").
+
+:- doc(version(1*3+98,1999/11/11,19:07*10+'MET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*3+97,1999/11/11,12:28*17+'MET'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*3+96,1999/11/10,17:38*35+'MET'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+95,1999/11/08,18:37*30+'MET'),
+   "../lib/odd.pl").
+
+:- doc(version(1*3+94,1999/11/08,18:36*07+'MET'),
+   "../lib/prolog_sys.pl").
+
+:- doc(version(1*3+93,1999/11/07,19:05*33+'MET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*3+92,1999/11/07,01:08*10+'MET'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*3+91,1999/11/03,16:35*49+'MET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*3+90,1999/10/29,20:48*53+'MEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*3+89,1999/10/22,17:17*03+'MEST'),
+   "../doc/reference/Install.pl").
+
+:- doc(version(1*3+88,1999/10/22,14:21*30+'MEST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(1*3+87,1999/10/21,19:54*14+'MEST'),
+   "../doc/common/Install.pl").
+
+:- doc(version(1*3+86,1999/10/21,19:11*21+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*3+85,1999/10/19,13:20*53+'MEST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(1*3+84,1999/10/19,13:13*23+'MEST'),
+   "../library/tracing/traces.pl").
+
+:- doc(version(1*3+83,1999/10/18,17:39*22+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*3+82,1999/10/18,17:03*05+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*3+81,1999/10/15,18:48*17+'MEST'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(1*3+80,1999/10/15,16:03*58+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*3+79,1999/10/13,18:48*00+'MEST'),
+   "../library/objects/objects_error_doc.pl").
+
+:- doc(version(1*3+78,1999/10/13,18:31*08+'MEST'),
+   "../library/objects/objects_doc.pl").
+
+:- doc(version(1*3+77,1999/10/13,18:30*20+'MEST'),
+   "../library/objects/objects_doc.pl").
+
+:- doc(version(1*3+76,1999/10/13,18:29*01+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+75,1999/10/13,16:03*21+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+74,1999/10/07,10:58*02+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*3+73,1999/10/06,15:27*28+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+72,1999/10/06,15:17*15+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+71,1999/10/06,15:14*08+'MEST'),
+   "../library/objects/objects_error_doc.pl").
+
+:- doc(version(1*3+70,1999/10/06,14:59*20+'MEST'),
+   "../library/objects/objects_doc.pl").
+
+:- doc(version(1*3+69,1999/10/04,20:53*26+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+68,1999/10/04,15:54*19+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+67,1999/09/30,14:10*03+'MEST'),
+   "../library/objects/objects_error_doc.pl").
+
+:- doc(version(1*3+66,1999/09/30,13:19*04+'MEST'),
+   "../library/class/class_error_doc.pl").
+
+:- doc(version(1*3+65,1999/09/30,12:41*00+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+64,1999/09/29,20:00*56+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+63,1999/09/29,19:54*17+'MEST'),
+   "../library/objects/ociao_doc.pl").
+
+:- doc(version(1*3+62,1999/09/29,18:05*39+'MEST'),
+   "../library/arrays.pl").
+
+:- doc(version(1*3+61,1999/09/27,16:09*04+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*3+60,1999/09/27,15:29*55+'MEST'),
+   "../library/expansion_tools.pl").
+
+:- doc(version(1*3+59,1999/09/24,14:48*00+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+58,1999/09/23,12:56*31+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+57,1999/09/21,14:24*41+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+56,1999/09/16,20:09*31+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*3+55,1999/09/16,18:45*29+'MEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*3+54,1999/09/16,15:29*51+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*3+53,1999/09/15,23:37*55+'MEST'),
+   "../library/persdb_sql/db_client_new.pl").
+
+:- doc(version(1*3+52,1999/09/14,20:28*59+'MEST'),
+   "../library/objects/objects_doc.pl").
+
+:- doc(version(1*3+51,1999/09/09,16:28*44+'MEST'),
+   "../lib/filenames.pl").
+
+:- doc(version(1*3+50,1999/09/08,22:35*15+'MEST'),
+   "../lib/system.pl").
+
+:- doc(version(1*3+49,1999/09/08,21:08*09+'MEST'),
+   "../library/patterns.pl").
+
+:- doc(version(1*3+48,1999/09/02,18:02*53+'MEST'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(1*3+47,1999/08/18,11:34*44+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*3+46,1999/08/07,13:44*00+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*3+45,1999/08/05,14:43*07+'MEST'),
+   "../lib/assertions/assrt_write.pl").
+
+:- doc(version(1*3+44,1999/08/03,16:46*29+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(1*3+43,1999/08/02,19:45*06+'MEST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(1*3+42,1999/07/26,17:17*42+'MEST'),
+   "../library/objects/objects_error_doc.pl").
+
+:- doc(version(1*3+41,1999/07/26,17:16*58+'MEST'),
+   "../library/class/class_error_doc.pl").
+
+:- doc(version(1*3+40,1999/07/25,19:41*01+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*3+39,1999/07/21,12:08*04+'MEST'),
+   "../library/librowser/librowser.pl").
+
+:- doc(version(1*3+38,1999/07/21,10:41*44+'MEST'),
+   "../library/objects/ociao_doc.pl").
+
+:- doc(version(1*3+37,1999/07/21,09:56*33+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+36,1999/07/20,10:37*31+'MEST'),
+   "../lib/foreign_compilation.pl").
+
+:- doc(version(1*3+35,1999/07/15,17:36*45+'MEST'),
+   "../library/objects/objects_doc.pl").
+
+:- doc(version(1*3+34,1999/07/14,20:09*38+'MEST'),
+   "../lib/system.pl").
+
+:- doc(version(1*3+33,1999/07/14,16:24*13+'MEST'),
+   "../library/interface/interface_doc.pl").
+
+:- doc(version(1*3+32,1999/07/14,14:56*35+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+31,1999/07/12,19:13*05+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+30,1999/07/12,18:50*23+'MEST'),
+   "../lib/regtypes/regtypes_tr.pl").
+
+:- doc(version(1*3+29,1999/07/12,15:43*08+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+28,1999/07/12,15:41*55+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+27,1999/07/09,20:25*50+'MEST'),
+   "../lib/format.pl").
+
+:- doc(version(1*3+26,1999/07/09,13:41*50+'MEST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(1*3+25,1999/07/08,17:33*53+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*3+24,1999/07/07,20:17*10+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*3+23,1999/07/07,12:41*50+'MEST'),
+   "../library/objects/objects_doc.pl").
+
+:- doc(version(1*3+22,1999/07/07,11:25*38+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+21,1999/07/07,10:27*51+'MEST'),
+   "../library/dynclasses.pl").
+
+:- doc(version(1*3+20,1999/07/07,09:14*48+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+19,1999/07/06,12:21*10+'MEST'),
+   "../library/persdb_sql/sqltypes.pl").
+
+:- doc(version(1*3+18,1999/07/05,19:34*47+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+17,1999/07/05,18:47*59+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+16,1999/07/05,14:55*19+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+15,1999/07/05,14:54*37+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+14,1999/07/05,14:54*20+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+13,1999/07/02,18:49*49+'MEST'),
+   "../lib/engine/system_info.pl").
+
+:- doc(version(1*3+12,1999/07/02,17:39*30+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*3+11,1999/07/01,18:40*29+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+10,1999/07/01,18:39*21+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+9,1999/07/01,16:57*12+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*3+8,1999/06/29,17:12*44+'MEST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(1*3+7,1999/06/28,16:45*19+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+6,1999/06/24,21:22*35+'MEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*3+5,1999/06/21,14:22*42+'MEST'),
+   "../library/sockets/sockets.pl").
+
+:- doc(version(1*3+3,1999/06/16,18:06*36+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(1*3+2,1999/06/16,18:05*42+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(1*3+0,1999/06/16,17:05*58+'MEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*2+0,1999/06/14,16:54*55+'MEST'),
+   "../doc/common/ciao.pl").
+
+:- doc(version(1*1+6,1999/06/14,16:54*55+'MEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(1*1+5,1999/06/10,18:20*45+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*1+4,1999/06/10,17:52*01+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*1+3,1999/06/09,16:59*32+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(1*1+2,1999/06/09,13:35*33+'MEST'),
+   "../lib/prolog_sys.pl").
+
+:- doc(version(1*1+1,1999/06/09,13:09*08+'MEST'),
+   "../lib/prolog_sys.pl").
+
+:- doc(version(1*1+0,1999/06/04,13:30*37+'MEST'),
+   "../doc/reference/ciao.pl").
+
+:- doc(version(1*0+0,1999/06/04,13:27*42+'MEST'),
+   "../doc/reference/ciao.pl").
+
+:- doc(version(0*9+105,1999/06/04,12:24*49+'MEST'),
+   "../library/ugraphs.pl").
+
+:- doc(version(0*9+104,1999/05/31,14:37*47+'MEST'),
+   "../lib/prolog_sys.pl").
+
+:- doc(version(0*9+103,1999/05/30,19:14*54+'MEST'),
+   "../ciaoc/ciaoc.pl").
+
+:- doc(version(0*9+102,1999/05/27,19:29*59+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*9+101,1999/05/26,13:33*03+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*9+100,1999/05/26,12:36*46+'MEST'),
+   "../library/pretty_print.pl").
+
+:- doc(version(0*9+99,1999/05/26,11:33*15+'MEST'),
+   "../library/numlists.pl").
+
+:- doc(version(0*9+98,1999/05/25,17:01*28+'MEST'),
+   "../lib/assertions/assrt_props.pl").
+
+:- doc(version(0*9+97,1999/05/21,20:37*22+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*9+96,1999/05/21,19:53*48+'MEST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*9+95,1999/05/21,19:44*46+'MEST'),
+   "../library/persdb_sql/sqltypes.pl").
+
+:- doc(version(0*9+94,1999/05/21,19:37*42+'MEST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*9+93,1999/05/18,13:49*38+'MEST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*9+92,1999/05/14,20:58*45+'MEST'),
+   "../lib/engine/system_info.pl").
+
+:- doc(version(0*9+91,1999/05/13,16:36*05+'MEST'),
+   "../lib/filenames.pl").
+
+:- doc(version(0*9+90,1999/05/11,18:41*14+'MEST'),
+   "../lib/attrdump.pl").
+
+:- doc(version(0*9+89,1999/05/10,21:10*14+'MEST'),
+   "../library/librowser/librowser.pl").
+
+:- doc(version(0*9+88,1999/05/10,20:48*42+'MEST'),
+   "../lib/engine/system_info.pl").
+
+:- doc(version(0*9+87,1999/05/10,20:46*28+'MEST'),
+   "../lib/engine/system_info.pl").
+
+:- doc(version(0*9+86,1999/05/07,23:25*34+'MEST'),
+   "../library/sockets/sockets.pl").
+
+:- doc(version(0*9+85,1999/05/07,19:55*11+'MEST'),
+   "../library/tcltk/tcltk.pl").
+
+:- doc(version(0*9+84,1999/05/07,19:54*57+'MEST'),
+   "../library/tcltk/tcltk.pl").
+
+:- doc(version(0*9+83,1999/05/07,19:54*21+'MEST'),
+   "../library/tcltk/tcltk.pl").
+
+:- doc(version(0*9+82,1999/05/07,19:53*49+'MEST'),
+   "../library/tcltk/tcltk.pl").
+
+:- doc(version(0*9+81,1999/05/07,19:30*28+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*9+80,1999/05/07,17:50*46+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*9+79,1999/05/04,20:18*41+'MEST'),
+   "../library/tcltk/tcltk_low_level.pl").
+
+:- doc(version(0*9+78,1999/05/03,19:19*27+'MEST'),
+   "../library/atom2term.pl").
+
+:- doc(version(0*9+77,1999/05/03,19:10*27+'MEST'),
+   "../library/librowser/librowser.pl").
+
+:- doc(version(0*9+76,1999/05/03,18:52*33+'MEST'),
+   "../library/librowser/librowser.pl").
+
+:- doc(version(0*9+75,1999/04/30,16:36*02+'MEST'),
+   "../lib/foreign_compilation.pl").
+
+:- doc(version(0*9+74,1999/04/30,13:33*04+'MEST'),
+   "../lib/compile_options_auto.pl").
+
+:- doc(version(0*9+73,1999/04/30,13:27*15+'MEST'),
+   "../lib/system.pl").
+
+:- doc(version(0*9+72,1999/04/30,11:53*40+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*9+71,1999/04/30,11:41*22+'MEST'),
+   "../lib/engine/system_info.pl").
+
+:- doc(version(0*9+70,1999/04/30,11:40*23+'MEST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(0*9+69,1999/04/29,15:50*55+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*9+68,1999/04/29,12:31*43+'MEST'),
+   "../library/lsets.pl").
+
+:- doc(version(0*9+67,1999/04/29,12:30*56+'MEST'),
+   "../library/lsets.pl").
+
+:- doc(version(0*9+66,1999/04/29,12:28*00+'MEST'),
+   "../library/linda.pl").
+
+:- doc(version(0*9+65,1999/04/29,12:27*20+'MEST'),
+   "../library/linda.pl").
+
+:- doc(version(0*9+64,1999/04/29,12:25*58+'MEST'),
+   "../library/keys.pl").
+
+:- doc(version(0*9+63,1999/04/28,16:11*31+'MEST'),
+   "../lib/lists.pl").
+
+:- doc(version(0*9+62,1999/04/26,20:31*30+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*9+61,1999/04/26,15:28*08+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(0*9+60,1999/04/26,15:27*45+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(0*9+59,1999/04/26,14:11*25+'MEST'),
+   "../lib/messages.pl").
+
+:- doc(version(0*9+58,1999/04/26,13:08*40+'MEST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*9+57,1999/04/26,13:07*12+'MEST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*9+56,1999/04/22,16:38*41+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(0*9+55,1999/04/22,16:38*10+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(0*9+54,1999/04/21,21:54*24+'MEST'),
+   "../lib/system.pl").
+
+:- doc(version(0*9+53,1999/04/15,17:27*17+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(0*9+52,1999/04/15,17:13*29+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(0*9+51,1999/04/14,17:18*02+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*9+50,1999/04/14,16:49*09+'MEST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*9+49,1999/04/14,12:02*12+'MEST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*9+48,1999/04/13,15:36*15+'MEST'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(0*9+47,1999/04/13,15:34*20+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(0*9+46,1999/04/13,15:33*14+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(0*9+45,1999/04/13,15:32*41+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(0*9+44,1999/04/13,12:24*07+'MEST'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(0*9+43,1999/04/08,20:26*58+'MEST'),
+   "../lib/system.pl").
+
+:- doc(version(0*9+42,1999/04/08,02:14*11+'MEST'),
+   "../lib/isomodes_doc.pl").
+
+:- doc(version(0*9+41,1999/04/07,22:25*54+'MEST'),
+   "../library/atom2term.pl").
+
+:- doc(version(0*9+40,1999/04/07,20:34*14+'MEST'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(0*9+39,1999/04/07,09:20*47+'MEST'),
+   "../library/atom2term.pl").
+
+:- doc(version(0*9+38,1999/04/06,20:33*52+'MEST'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(0*9+37,1999/04/06,14:26*43+'MEST'),
+   "../library/persdb_sql/db_client.pl").
+
+:- doc(version(0*9+36,1999/04/06,14:02*00+'MEST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*9+35,1999/04/06,13:52*16+'MEST'),
+   "../library/persdb_sql/persdbrt_sql.pl").
+
+:- doc(version(0*9+34,1999/04/06,13:50*09+'MEST'),
+   "../library/persdb_sql/db_client.pl").
+
+:- doc(version(0*9+33,1999/04/06,12:14*13+'MEST'),
+   "../lib/engine/concurrency.pl").
+
+:- doc(version(0*9+32,1999/04/05,20:38*17+'MEST'),
+   "../doc/reference/ciao.pl").
+
+:- doc(version(0*9+31,1999/04/05,20:00*53+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(0*9+30,1999/04/05,10:45*21+'MEST'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(0*9+29,1999/03/30,19:37*24+'MEST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*9+28,1999/03/27,15:02*07+'MET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*9+27,1999/03/26,19:12*08+'MET'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(0*9+26,1999/03/26,14:43*08+'MET'),
+   "../lib/assertions/assrt_write.pl").
+
+:- doc(version(0*9+25,1999/03/25,17:50*48+'MET'),
+   "../library/ociao/ociao_rt.pl").
+
+:- doc(version(0*9+24,1999/03/25,17:46*45+'MET'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(0*9+23,1999/03/25,17:36*37+'MET'),
+   "../library/objects/objects_doc.pl").
+
+:- doc(version(0*9+22,1999/03/25,17:27*54+'MET'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(0*9+21,1999/03/25,17:07*44+'MET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*9+20,1999/03/25,16:53*51+'MET'),
+   "../library/objects/objects_rt.pl").
+
+:- doc(version(0*9+19,1999/03/25,16:32*32+'MET'),
+   "../lib/engine/basic_props.pl").
+
+:- doc(version(0*9+18,1999/03/23,21:06*13+'MET'),
+   "../lib/engine/arithmetic.pl").
+
+:- doc(version(0*9+17,1999/03/23,20:57*20+'MET'),
+   "../lib/sets.pl").
+
+:- doc(version(0*9+16,1999/03/22,21:17*06+'MET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*9+15,1999/03/22,19:45*59+'MET'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(0*9+14,1999/03/22,19:32*37+'MET'),
+   "../library/ociao/ociao_doc.pl").
+
+:- doc(version(0*9+13,1999/03/22,17:58*36+'MET'),
+   "../library/ociao/ociao.pl").
+
+:- doc(version(0*9+12,1999/03/20,09:53*31+'MET'),
+   "../library/persdb_sql/db_client.pl").
+
+:- doc(version(0*9+11,1999/03/18,21:28*24+'MET'),
+   "../lib/engine/builtin_directives.pl").
+
+:- doc(version(0*9+10,1999/03/18,19:23*42+'MET'),
+   "../library/persdb_sql/persdbrt_sql.pl").
+
+:- doc(version(0*9+9,1999/03/18,19:21*05+'MET'),
+   "../library/persdb_sql/db_client.pl").
+
+:- doc(version(0*9+9,1999/03/18,19:20*30+'MET'),
+   "../library/ociao/ociao.pl").
+
+:- doc(version(0*9+8,1999/03/18,14:01*40+'MET'),
+   "../lib/lists.pl").
+
+:- doc(version(0*9+7,1999/03/17,17:29*23+'MET'),
+   "../lib/operators.pl").
+
+:- doc(version(0*9+6,1999/03/12,18:32*43+'MET'),
+   "../lib/engine/builtin_directives.pl").
+
+:- doc(version(0*9+5,1999/03/12,12:55*56+'MET'),
+   "../library/class/class_doc.pl").
+
+:- doc(version(0*9+4,1999/03/10,21:51*24+'MET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*9+3,1999/03/10,21:37*04+'MET'),
+   "../lib/engine/builtin_directives.pl").
+
+:- doc(version(0*9+2,1999/03/10,21:11*10+'MET'),
+   "../lib/compiler/translation.pl").
+
+:- doc(version(0*9+1,1999/03/10,20:49*58+'MET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*9+0,1999/03/10,17:03*49+'CET'),
+   "../doc/reference/ciao.pl").
+
+:- doc(version(0*8+33,1999/01/20,10:35*55+'MET'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*8+43,1999/01/19,18:58*32+'MET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*8+32,1999/01/04,20:38*52+'MET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*8+42,1999/01/03,18:11*24+'MST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*8+41,1999/01/03,17:51*21+'MST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*8+40,1999/01/02,17:20*20+'MST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*8+39,1999/01/02,17:02*15+'MST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*8+38,1999/01/02,16:34*30+'MST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*8+37,1999/01/02,16:33*41+'MST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*8+36,1999/01/02,12:59*45+'MST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*8+35,1998/12/29,10:53*05+'MST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*8+31,1998/12/27,19:17*20+'MET'),
+   "../library/persdb/persdbrt.pl").
+
+:- doc(version(0*8+34,1998/12/26,12:27*00+'MST'),
+   "../lib/engine/concurrency.pl").
+
+:- doc(version(0*8+33,1998/12/26,12:11*43+'MST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*8+32,1998/12/23,16:56*53+'MST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*8+31,1998/12/23,16:54*32+'MST'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*8+30,1998/12/17,09:55*33+'MET'),
+   "../library/metaterms.pl").
+
+:- doc(version(0*8+29,1998/12/15,11:23*09+'MET'),
+   "../library/persdb_sql/db_client.pl").
+
+:- doc(version(0*8+28,1998/12/07,17:46*53+'MET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*8+27,1998/12/07,17:41*10+'MET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*8+26,1998/12/07,17:15*00+'MET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*8+25,1998/12/04,20:42*08+'MET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*8+24,1998/12/04,18:43*27+'MET'),
+   "../lib/messages.pl").
+
+:- doc(version(0*8+23,1998/12/03,20:22*34+'MET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*8+22,1998/12/03,19:16*36+'MET'),
+   "../lib/messages.pl").
+
+:- doc(version(0*8+21,1998/12/03,14:40*18+'MET'),
+   "../lib/messages.pl").
+
+:- doc(version(0*8+20,1998/12/03,13:00*00+'MET'),
+   "../library/pretty_print.pl").
+
+:- doc(version(0*8+19,1998/12/03,12:53*16+'MET'),
+   "../library/vndict.pl").
+
+:- doc(version(0*8+18,1998/12/03,12:09*03+'MET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*8+17,1998/12/03,10:33*44+'MET'),
+   "../lib/basicprops.pl").
+
+:- doc(version(0*8+16,1998/12/03,10:09*23+'MET'),
+   "../lib/lists.pl").
+
+:- doc(version(0*8+15,1998/12/02,18:40*04+'MET'),
+   "../lib/regtypes/regtypes_rt.pl").
+
+:- doc(version(0*8+14,1998/12/02,18:22*05+'MET'),
+   "../lib/regtypes/regtypes_tr.pl").
+
+:- doc(version(0*8+13,1998/12/02,13:55*27+'MET'),
+   "../lib/messages.pl").
+
+:- doc(version(0*8+12,1998/12/01,18:03*07+'MET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*8+11,1998/12/01,13:25*39+'MET'),
+   "../lib/assertions/assrt_props.pl").
+
+:- doc(version(0*8+10,1998/11/24,17:52*05+'MET'),
+   "../lib/read.pl").
+
+:- doc(version(0*8+9,1998/11/24,17:50*00+'MET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*8+8,1998/11/18,14:08*42+'MET'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*8+7,1998/11/18,14:07*13+'MET'),
+   "../library/persdb_sql/persdbrt_sql.pl").
+
+:- doc(version(0*8+6,1998/11/18,14:03*34+'MET'),
+   "../library/persdb_sql/db_client.pl").
+
+:- doc(version(0*8+5,1998/11/11,20:56*13+'MET'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*8+4,1998/11/11,18:14*26+'MET'),
+   "../lib/read.pl").
+
+:- doc(version(0*8+3,1998/11/05,22:35*06+'MET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*8+2,1998/11/05,14:44*48+'MET'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*8+1,1998/11/05,12:13*47+'MET'),
+   "../engine/ciaoengine.pl").
+
+:- doc(version(0*7+25,1998/10/22,20:13*20+'MEST'),
+   "../lib/engine/concurrency.pl").
+
+:- doc(version(0*7+24,1998/10/22,15:50*41+'MEST'),
+   "../lib/system.pl").
+
+:- doc(version(0*7+23,1998/10/22,13:31*37+'MEST'),
+   "../lib/system.pl").
+
+:- doc(version(0*7+22,1998/10/20,20:06*03+'MEST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*7+21,1998/10/20,16:42*29+'MEST'),
+   "../library/numlists.pl").
+
+:- doc(version(0*7+20,1998/10/12,16:56*21+'MEST'),
+   "../lib/engine/concurrency.pl").
+
+:- doc(version(0*7+19,1998/10/09,11:45*58+'MEST'),
+   "../library/sockets/sockets.pl").
+
+:- doc(version(0*7+18,1998/10/07,13:40*33+'MEST'),
+   "../library/persdb_sql/persdbrt_sql.pl").
+
+:- doc(version(0*7+17,1998/10/01,10:29*56+'MET DST'),
+   "../library/persdb_sql/persdbtr_sql.pl").
+
+:- doc(version(0*7+16,1998/10/01,10:29*11+'MET DST'),
+   "../library/persdb_sql/persdbrt_sql.pl").
+
+:- doc(version(0*7+14,1998/09/30,19:04*31+'MET DST'),
+   "../library/formulae.pl").
+
+:- doc(version(0*7+13,1998/09/30,18:14*26+'MET DST'),
+   "../library/metaterms.pl").
+
+:- doc(version(0*7+12,1998/09/25,16:12*18+'MEST'),
+   "../lib/read.pl").
+
+:- doc(version(0*7+11,1998/09/25,11:30*29+'MEST'),
+   "../lib/lists.pl").
+
+:- doc(version(0*7+10,1998/09/24,11:37*32+'MEST'),
+   "../lib/engine/concurrency.pl").
+
+:- doc(version(0*7+9,1998/09/23,19:34*28+'MEST'),
+   "../lib/aggregates.pl").
+
+:- doc(version(0*7+8,1998/09/23,19:21*44+'MEST'),
+   "../lib/engine/term_typing.pl").
+
+:- doc(version(0*7+7,1998/09/22,14:49*27+'MEST'),
+   "../lib/engine/concurrency.pl").
+
+:- doc(version(0*7+6,1998/09/22,14:43*50+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*7+5,1998/09/22,13:22*13+'MEST'),
+   "../lib/engine/concurrency.pl").
+
+:- doc(version(0*7+4,1998/09/21,12:58*08+'MEST'),
+   "../lib/engine/concurrency.pl").
+
+:- doc(version(0*7+3,1998/09/18,21:10*20+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*7+2,1998/09/15,16:03*29+'MEST'),
+   "../library/sockets/sockets.pl").
+
+:- doc(version(0*7+1,1998/09/15,16:00*12+'MEST'),
+   "../lib/system.pl").
+
+:- doc(version(0*6+18,1998/09/14,12:53*02+'MEST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*6+17,1998/09/11,09:25*20+'MEST'),
+   "../library/sockets/sockets.pl").
+
+:- doc(version(0*6+15,1998/08/04,14:12*46+'MET DST'),
+   "../library/persdb_sql/persdbrt_sql.pl").
+
+:- doc(version(0*6+14,1998/08/04,13:17*00+'MET DST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*6+13,1998/08/04,12:06*35+'MET DST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*6+12,1998/08/04,11:32*29+'MET DST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*6+11,1998/08/04,10:58*56+'MET DST'),
+   "../lib/types/basictypes.pl").
+
+:- doc(version(0*6+10,1998/08/03,13:52*14+'MET DST'),
+   "../lib/types/type_exp.pl").
+
+:- doc(version(0*6+9,1998/07/31,17:50*52+'MET DST'),
+   "../lib/types/type_exp.pl").
+
+:- doc(version(0*6+8,1998/07/30,16:52*01+'MET DST'),
+   "../library/persdb_sql/persdbrt_sql.pl").
+
+:- doc(version(0*6+7,1998/07/27,19:05*50+'MET DST'),
+   "../library/persdb_sql/db_client.pl").
+
+:- doc(version(0*6+6,1998/07/27,15:40*12+'MET DST'),
+   "../lib/compiler/compiler.pl").
+
+:- doc(version(0*6+5,1998/07/24,19:46*11+'MET DST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*6+4,1998/07/21,16:21*26+'MET DST'),
+   "../lib/compiler/compiler.pl").
+
+:- doc(version(0*6+3,1998/07/20,18:51*25+'MET DST'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(0*6+2,1998/07/20,18:44*34+'MET DST'),
+   "../lib/compiler/compiler.pl").
+
+:- doc(version(0*6+1,1998/07/20,18:18*07+'MET DST'),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(0*5+50,1998/07/14,20:36*08+'MET DST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(0*5+49,1998/07/14,20:03*24+'MET DST'),
+   "../lib/write.pl").
+
+:- doc(version(0*5+48,1998/07/10,13:47*33+'MET DST'),
+   "../library/persdb_sql/persdbrt_sql.pl").
+
+:- doc(version(0*5+47,1998/07/08,16:48*24+'MET DST'),
+   "../lib/assertions/assrt_props.pl").
+
+:- doc(version(0*5+46,1998/07/08,16:46*44+'MET DST'),
+   "../lib/assertions/assrt_lib.pl").
+
+:- doc(version(0*5+45,1998/07/08,12:00*47+'MET DST'),
+   "../library/persdb_sql/persdbrt_sql.pl").
+
+:- doc(version(0*5+44,1998/07/07,13:38*16+'MET DST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*5+43,1998/07/07,12:32*38+'MET DST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*5+42,1998/07/07,12:12*09+'MET DST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*5+41,1998/07/07,11:18*02+'MET DST'),
+   "../lib/messages.pl").
+
+:- doc(version(0*5+40,1998/07/07,11:03*54+'MET DST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*5+39,1998/07/06,20:01*31+'MET DST'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(0*5+38,1998/07/06,16:06*02+'MET DST'),
+   "../library/pretty_print.pl").
+
+:- doc(version(0*5+37,1998/07/02,18:54*40+'MET DST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*5+36,1998/07/02,12:22*14+'MET DST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*5+35,1998/07/01,17:21*26+'MET DST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*5+34,1998/06/30,19:23*34+'MET DST'),
+   "../library/persdb_sql/persdbtr.pl").
+
+:- doc(version(0*5+33,1998/06/30,19:00*19+'MET DST'),
+   "../lib/compiler/compiler.pl").
+
+:- doc(version(0*5+32,1998/06/30,18:22*43+'MET DST'),
+   "../lib/messages.pl").
+
+:- doc(version(0*5+31,1998/06/30,14:37*07+'MET DST'),
+   "../lib/compiler/compiler.pl").
+
+:- doc(version(0*5+30,1998/06/30,14:23*36+'MET DST'),
+   "../lib/dynamic.pl").
+
+:- doc(version(0*5+29,1998/06/30,11:29*20+'MET DST'),
+   "../lib/messages.pl").
+
+:- doc(version(0*5+28,1998/06/29,13:40*09+'MET DST'),
+   "../lib/types/basictypes.pl").
+
+:- doc(version(0*5+27,1998/06/29,13:25*36+'MET DST'),
+   "../lib/types/basictypes.pl").
+
+:- doc(version(0*5+26,1998/06/25,20:10*07+'MET DST'),
+   "../lib/types/type_exp.pl").
+
+:- doc(version(0*5+25,1998/06/24,10:00*09+'MET DST'),
+   "../library/persdb_sql/db_client.pl").
+
+:- doc(version(0*5+24,1998/06/24,09:39*21+'MET DST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*5+23,1998/06/24,09:27*14+'MET DST'),
+   "../library/persdb_sql/persdbtr.pl").
+
+:- doc(version(0*5+22,1998/06/24,09:26*06+'MET DST'),
+   "../library/persdb_sql/persdbrt_sql.pl").
+
+:- doc(version(0*5+21,1998/06/24,09:24*35+'MET DST'),
+   "../library/persdb_sql/pl2sql.pl").
+
+:- doc(version(0*5+20,1998/06/24,09:23*06+'MET DST'),
+   "../library/persdb_sql/db_client.pl").
+
+:- doc(version(0*5+19,1998/06/24,09:22*02+'MET DST'),
+   "../library/persdb_sql/db_client.pl").
+
+:- doc(version(0*5+18,1998/06/19,13:41*19+'MET DST'),
+   "../lib/compiler/compiler.pl").
+
+:- doc(version(0*5+17,1998/06/11,21:04*59+'MET DST'),
+   "../lib/file_utils.pl").
+
+:- doc(version(0*5+16,1998/06/10,17:55*49+'MET DST'),
+   "../lib/lists.pl").
+
+:- doc(version(0*5+15,1998/06/09,16:30*52+'MET DST'),
+   "../lib/streams.pl").
+
+:- doc(version(0*5+14,1998/06/05,17:10*29+'MET DST'),
+   "../lib/read.pl").
+
+:- doc(version(0*5+13,1998/06/04,21:33*23+'MET DST'),
+   "../lib/compiler/exemaker.pl").
+
+:- doc(version(0*5+12,1998/06/03,16:23*03+'MET DST'),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*5+11,1998/05/23,19:30*25+'MET DST'),
+   "../lib/dynamic.pl").
+
+:- doc(version(0*5+10,1998/05/07,14:19*17+'MET DST'),
+   "../lib/messages.pl").
+
+:- doc(version(0*5+9,1998/05/04,17:57*48+'MET DST'),
+   "../lib/engine/builtin.pl").
+
+:- doc(version(0*5+8,1998/04/29,21:02*35+'MET DST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(0*5+6,1998/04/17,21:13*03+'MET DST'),
+   "../lib/compiler/compiler.pl").
+
+:- doc(version(0*5+6,1998/04/17,20:36*39+'MET DST'),
+   "../lib/engine/internals.pl").
+
+:- doc(version(0*5+5,1998/4/2),
+   "../library/xrefs/mrefs.pl").
+
+:- doc(version(0*5+4,1998/4/1),
+   "../lib/basicprops.pl").
+
+:- doc(version(0*5+3,1998/4/1),
+   "../lib/types/basictypes.pl").
+
+:- doc(version(0*5+2,1998/3/31),
+   "../lib/terms.pl").
+
+:- doc(version(0*5+1,1998/3/31),
+   "../lib/compiler/c_itf.pl").
+
+:- doc(version(0*4+12,1998/3/13),
+   "../lib/m_fdtypes.pl").
+
+:- doc(version(0*4+11,1998/3/12),
+   "../lib/debugger/debugger.pl").
+
+:- doc(version(0*4+10,1998/3/9),
+   "../lib/engine/internals.pl").
+
+:- doc(version(0*4+9,1998/3/6),
+   "../lib/engine/internals.pl").
+
+:- doc(version(0*4+8,1998/2/26),
+   "../lib/engine/internals.pl").
+
+:- doc(version(0*4+7,1998/2/25),
+   "../lib/xrefs/xrefs.pl").
+
+:- doc(version(0*4+6,1998/2/25),
+   "../lib/autodoc/autodoc.pl").
+
+%% Local Variables: 
+%% mode: CIAO
+%% update-version-comments: "off"
+%% End:
+

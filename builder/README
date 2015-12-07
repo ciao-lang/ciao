@@ -1,0 +1,37 @@
+Ciao Builder: build automation for Ciao
+=======================================
+
+See doc/ for detailed documentation regarding the Ciao Builder.
+
+This build system is mostly written in Ciao, with the exception of
+some shell script code needed to bootstrap, perform platform-dependent
+configuration, and interact with existing C compilers to generate
+native code.
+
+Code is organized as follows:
+
+  cmds/         command-line builder, in Ciao
+  src/          Ciao source of the builder modules
+  sh_boot/      sh scripts for bootstrap
+  sh_src/       sh scripts for incremental native code build and
+                platform-dependent configuration
+
+All shell scripts are POSIX (/bin/sh) portable. Additional
+dependencies are some modern C compiler (like GCC or clang/LLVM), GNU
+binutils, and GNU make. Code at sh_boot/ should only be needed during
+first build, while code under sh_src/ is needed if you wish Ciao to
+compile to native code (executables, shared or dynamic libraries).
+
+Portability notes
+-----------------
+
+Porting to non-POSIX systems would require specific versions of code
+in sh_boot/ and sh_src/. Keep code at sh_src/ as simple as possible
+and do not try to port it to Prolog:
+
+ - Code at sh_src/ is needed for sh_boot/ (so we will have duplicates)
+ - No additional dependency would be removed from those required by
+   the C toolchain.
+
+
+-- Jose F. Morales

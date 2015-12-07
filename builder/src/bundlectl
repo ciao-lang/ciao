@@ -1,0 +1,86 @@
+#!/usr/bin/env ciao-shell
+% -*- mode: ciao; -*-
+
+:- use_package(assertions).
+:- use_package(fsyntax).
+:- use_package(dcg).
+
+:- doc(title, "Bundle Control Script (bundlectl)").
+:- doc(author, "Jose F. Morales").
+
+:- doc(module, "Script to control bundle actions.").
+
+:- doc(bug, "use ciaobot and distapp code to make this simpler").
+	
+:- use_module(ciaobld(bundlectl_aux)).
+:- use_module(library(bundle)).
+:- use_module(library(strings), [write_string/1]).
+
+main(Args) :-
+	catch(main_(Args), E, treat_error(E)).
+
+treat_error(error(Msg)) :-
+	message(error, Msg),
+	halt(1).
+
+main_(['configure']) :- !,
+	BundleDir = ~current_bundle_root,
+	bundle_configure(BundleDir).
+main_(['info']) :- !,
+	BundleDir = ~current_bundle_root,
+	bundle_info(BundleDir).
+main_(['ciaoc-bundle-opts']) :- !,
+	BundleDir = ~current_bundle_root,
+	bundle_ciaoc_opts(BundleDir).
+main_(['ciaoc-bundle-mods']) :- !,
+	BundleDir = ~current_bundle_root,
+	bundle_ciaoc_mods(BundleDir).
+main_(['clean']) :- !,
+	BundleDir = ~current_bundle_root,
+	bundle_clean(BundleDir).
+main_(['run', Exec|Args]) :- !,
+	BundleDir = ~current_bundle_root,
+	bundle_run(BundleDir, Exec, Args).
+main_(['build']) :- !,
+	BundleDir = ~current_bundle_root,
+	bundle_build(BundleDir).
+main_(['test']) :- !,
+	show_test_help.
+main_(['test', Action]) :- !,
+	BundleDir = ~current_bundle_root,
+	bundle_test(BundleDir, Action).
+main_(['help']) :- !,
+	show_help.
+main_(_) :-
+	throw(error(['Wrong usage. See \'help\''])).
+
+show_help :-
+	write_string(
+"Usage: bundlectl ACTION
+
+Where ACTION is one of:
+
+  run EXEC
+  build
+  test TESTACTION (nothing for help)
+  clean
+  info
+  ciaoc-bundle-opts
+  ciaoc-bundle-mods
+  configure
+").
+
+show_test_help :-
+	write_string(
+"Usage: bundlectl test ACTION
+
+Where ACTION is one of:
+  check
+  compare
+  briefcompare
+  save
+  bench
+").
+
+
+

@@ -1,0 +1,11 @@
+*~
+*.po
+*.itf
+*.asr
+*.ast
+*.elc
+/build-boot/
+/build/
+/third-party/
+/core_OC/bootstrap/backup/
+/tmp/

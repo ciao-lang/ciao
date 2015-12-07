@@ -1,0 +1,882 @@
+% -*- mode: ciao; -*-
+
+:- module(_,[],[assertions]).
+
+:- comment(title,"The DMCAI CLP Library").
+:- comment(subtitle,"").
+
+:- comment(copyright,"Copyright @copyright{} 1992 DMCAI
+
+Department of Medical Cybernetics and Artificial Intelligence 
+University of Vienna 
+Freyung 6 
+A-1010 Vienna, Austria
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by the DMCAI.
+
+").
+
+This file documents a variant of SICStus Prolog, featuring extensible
+unification. 
+
+:- comment(subtitle,"Version 1.2").
+:- comment(subtitle,"March 1992").
+
+:- comment(author,"Christian Holzbaur").
+:- comment(author,"Daniel Cabeza").
+
+@comment   Include the Distribution inside the titlepage so
+@c that headings are turned off.
+
+@page
+@vskip 0pt plus 1filll
+@node Basic predicates, Meta-structures, Intro, Top    
+@comment  node-name,  next,  previous,  up
+@chapter Manipulation of attributed variables
+The following predicates provide for the introduction, detection, and
+manipulation of attributed variables.
+
+@table @code
+@item get_attribute(@var{X},@var{C})
+@findex get_attribute/2
+If @var{X} is an attributed variable, unify the corresponding attribute 
+with @var{C}, otherwise the predicate fails.
+
+
+@item attach_attribute(@var{X},@var{C})
+@findex attach_attribute/2
+Turn the free variable @var{X} into an attributed with attribute @var{C}.
+@var{C} must @strong{not} be a variable. Note that attaching an attribute
+to variable changes the identity of the variable. Example:
+
+@example
+| ?- write(X),nl,attach_attribute(X,prime),write(X),nl.
+_40
+_219
+@end example
+
+@noindent
+In terms of Logic, this change of identity does no harm as it takes place
+consistently. That is, all occurrences of the affected variable get the new
+identity. If some application depends on the ordering of terms, and variables
+in particular, attaching attributes to variables might invalidate the ordering
+of ordered data structures.
+
+
+@item detach_attribute(@var{X})
+@findex detach_attribute/1
+Remove the attribute from an attributed variable, turning it into a free
+variable. Note that detaching the attribute from a variable changes the
+identity of the variable. Example:
+
+@example
+| ?- attach_attribute(X,prime),write(X),nl,
+     detach_attribute(X),write(X),nl.
+_328
+_337
+@end example
+
+@noindent
+In terms of Logic, this change of identity does no harm as it takes
+place consistently. That is, all occurrences of the affected variable get
+the new identity. If some application depends on the ordering of terms,
+and variables in particular, detaching attributes from variables might
+invalidate the ordering of ordered data structures.
+
+
+@item update_attribute(@var{X},@var{C})
+@findex update_attribute/2
+Change the attribute of the attributed variable @var{X} to @var{C}.
+Acts as if defined below, but might be more (memory) efficient. @var{C}
+must @strong{not} be a variable. Note that updating the attribute of an
+attributed variable changes the identity of the variable.
+
+@example
+update_attribute( X, C) :-
+  detach_attribute( X),
+  attach_attribute( X, C).
+@end example
+@end table
+
+@node Meta-structures, Source transformations, Basic predicates, Top
+@comment  node-name,  next,  previous,  up
+@chapter Attributed variables vs. Meta-structures
+@cindex Meta-structures
+In @cite{[Holzbaur 90]} meta-structures on top of C-Prolog were applied
+for the specification and implementation of a variety of instances of
+the CLP scheme. The quality and the availability of SICStus Prolog
+motivated the migration to SICStus Prolog, entailing a compiler, garbage
+collector, and better arithmetics. In order to keep the implementation
+efforts within reasonable bounds, we decided to provide extensible
+unification on top of SICStus Prolog through the use of attributed
+variables as described above.  Although attributed variables and
+meta-structures share some properties, there are differences.
+
+@quotation
+Meta-structures are ordinary, non-variable Prolog terms with the sole
+difference that they can be detected as members of this special sort.
+Meta-structures are introduced by a declaration @code{:- meta_functor
+N/A}, where @code{N/A} denotes any functor.  The behavior of
+meta-structures during unifications can be specified precisely through a
+Prolog meta interpreter which makes unification explicit, and makes some
+further conventions integral parts of the specification @cite{[Holzbaur
+90]}.
+
+The implementations of many CLP instances require the functionality that
+is achieved with destructive updates in traditional, procedural
+realizations.  In logic programming, this functionality is provided in a
+sound fashion by either copying or @dfn{modifying by variable
+substitution}.  The latter option can be applied to meta-structures
+through the convention that one particular argument of the structure is
+a free variable, which will eventually be bound to another
+meta-structure, obeying the same convention.  Therefore, sequences of
+modifications lead to meta-structure chains. The current 'value' of a
+meta-structure is to be found at the end of the chain.  Traversing this
+chains could of course be left to the user, but it is so common a
+pattern, that is has been made part of the specification.
+@end quotation
+
+@noindent
+Please compare the implementation of @code{freeze/2} via
+meta-structures with the one via attributed variables:
+
+@example
+:- meta_functor( frozen/2). 
+   
+freeze( frozen(_,Goal), Goal).
+   
+meta_term_unify( frozen(Value,Goal), Value) :- 
+  call( Goal).
+
+meta_meta_unify( frozen(V,G1), frozen(V,G2)) :- 
+  V = frozen(_,(G1,G2)).
+@end example
+
+@noindent
+The above encoding of @code{freeze/2} with meta-structures assumes the
+specification from @cite{[Holzbaur 90]} being in force.
+Within the framework documented in this manual, @code{freeze/2} can be
+coded like this:
+
+@example
+freeze( X, Goal) :-
+  attach_attribute( V, frozen(V,Goal)),
+  X = V.
+
+verify_attribute( frozen(Var,Goal), Value) :-
+  detach_attribute( Var),
+  Var = Value, 
+  call(Goal).
+
+combine_attributes( frozen(V1,G1), frozen(V2,G2)) :-
+  detach_attribute( V1),
+  detach_attribute( V2),
+  V1 = V2,
+  attach_attribute( V1, frozen(V1,(G1,G2))).
+@end example
+
+@node Source transformations,  Unification of attributed variables , Meta-structures, Top    
+@comment  node-name,  next,  previous,  up
+@section Source transformations
+The most significant difference between meta-structures and attributed
+variables is that interpreted terms can be represented directly through
+meta-structures. When we realize interpreted terms via attributed
+variables, we have to replace interpreted terms through attributed
+variables with the interpreted terms as their attributes, say.
+For a given CLP instance with a given set of interpreted functors, one
+would typically use the @code{term_expansion/2} mechanism to perform
+this transformation. The same transformation applies to queries.
+In order to enable the user to toggle between a Prolog system which
+recognizes interpreted functors and one that does not, we provide an
+alternative toplevel, @pxref{Toplevel}.
+
+@node Unification of attributed variables, User-defined predicates, Source transformations, Top   
+@comment  node-name,  next,  previous,  up
+@chapter Unification in the presence of attributed variables
+Once attributed variables have been created, they have to be dealt with
+during unification. The following procedural description lists the 
+sequence of events from the point of view of the @dfn{WAM}. 
+
+@itemize @bullet
+@item
+A unification between an unbound variable and an attributed variable
+binds the unbound variable to the attributed variable.
+
+@item 
+When an @emph{attributed variable} is about to be bound during
+unification because it is equated with a non-variable Prolog term or
+another attributed variable, the attributed variable and the value it
+should be bound to are recorded in some internal data structure.
+
+@item 
+If there is more than one binding event for attributed variables between
+two inference steps, a list of attributed variable-value pairs is
+collected in some internal data structure.
+
+@item 
+At the next inference step, the abstract machine takes measures to feed
+the attributed variable-value pairs to user-supplied predicates. The
+data structures for the representation of the list of variable-value
+pairs can be reclaimed at this point.
+@end itemize
+
+@node User-defined predicates, Unification, Unification of attributed variables, Top    
+@comment  node-name,  next,  previous,  up
+@section User-defined predicates
+The following predicates have to be supplied by the user. They
+specify the behavior, i.e., the meaning of attributed variables during
+unification.
+
+
+@node Unification, Printing, User-defined predicates, Top   
+@comment  node-name,  next,  previous,  up
+@subsection Specifying unification for interpreted terms
+@table @code
+@item verify_attribute(@var{C},@var{T})
+@findex verify_attribute/2
+This predicate is called when an attributed
+variable with attribute @var{C} is about to be unified with the
+non-variable term @var{T}.
+
+@item combine_attributes(@var{C1},@var{C2})
+@findex combine_attributes/2
+This predicate is called when two attributed variables with attributes
+@var{C1,C2} are about to be unified.
+@end table
+
+Note that the two predicates are are not called with the attributed
+variables involved, but with the corresponding attributes instead.  The
+reasons are:
+
+@itemize -
+@item 
+There are simple applications which only refer to the attributes.
+
+@item 
+If the application wants to refer to the attributed variables
+themselves, they can be made part the attribute term.  The
+implementation of @code{freeze/2} (@xref{Meta-structures}) utilizes this
+technique.  Note that this does not lead to cyclic structures, as the
+connection between an attributed variable and it's attribute is
+invisible to the pure parts of the Prolog implementation.
+    
+@item 
+If attributed variables were passed as arguments, the user's code would
+have to refer to the attributes through an extra call to
+@code{get_attribute/2}.
+
+@item 
+As the/one attribute is the first argument to each of the two
+predicates, indexing applies. Note that attributed variables themselves
+look like variables to the indexing mechanism.
+@end itemize
+
+@node Printing, Dumping, Unification, User-defined predicates    
+@comment  node-name,  next,  previous,  up
+@subsection Printing
+In order to gain control over the printing of attributed variables, the
+user may define the predicate:
+
+@table @code
+@item portray_attribute(@var{A},@var{V})
+@findex portray_attribute/2
+The predicate should either print something based on @var{A} or @var{V},
+or do nothing and fail. In the latter case, the default printer
+(@code{write/1}) will print the attributed variable like an unbound
+variable, e.g. @samp{_673}.  @var{A} is the attribute of the attributed
+variable @var{V}.
+@end table
+
+@node Dumping, , Printing, User-defined predicates    
+@comment  node-name,  next,  previous,  up
+@subsection Dumping
+Also related to the presentation of the results of computations is the 
+user-supplied predicate:
+
+@table @code
+@item dump(@var{Term},@var{Copy},@var{Constraints})
+@findex dump/3
+@code{dump/3} is intended to do almost the same as @code{copy_term/2} (a
+SICStus builtin predicate), with the difference that besides a copy a
+@strong{list} with some representation of the constraints associated
+with the variables in the copy is produced. @var{Copy} and
+@var{Constraints} must not contain any attributed variables. Speaking in
+global terms, this predicate should produce a @dfn{domain specific
+representation} of the constraints.
+@cindex Domain specific representation
+Because @var{Copy} and @var{Constraints} do not contain attributed
+variables, these terms are @strong{pure} Prolog objects and can dealt
+with correspondingly. You might for example want to assert or retract
+constraints or process them in some other way with @strong{pure} Prolog
+programs that don't know about attributed variables.
+
+The new toplevel supplied with this patch tries to call @code{dump/3} to
+present the answer constraints. @xref{Toplevel}. If it fails, some
+domain independent representation of the constraints, i.e. attributed
+variables, gets printed instead.
+@end table
+
+
+@node Toplevel, Random extensions, User-defined predicates, Top    
+@comment  node-name,  next,  previous,  up
+@chapter New toplevel
+@cindex Toplevel interaction
+The new toplevel is needed because the original one does not know about
+the new uses of attributed variables. Example:
+
+@example
+| ?- attach_attribute(X,prime).
+
+prolog:prime
+@end example
+
+@noindent
+The printout produced by the original toplevel is pretty useless.
+The new one shows us the relation between @var{X} and its attribute:
+
+@example
+top.
+[Clp] ?- attach_attribute(X,prime).
+
+attach_attribute(X,prime)
+@end example
+
+@noindent
+If not customized further via @code{dump/3} (@xref{Dumping}.), this is
+nothing but the description for the reconstruction of the answer
+constraints. This is all we can expect in the general case.  A suitable
+definition of @code{dump/3} will be able to produce the following
+'theory' specific result:
+
+@example
+top.
+[Clp] ?- attach_attribute(X,prime).
+
+prime(X)
+@end example
+
+@table @code
+@item top
+@findex top/0
+Calling @code{top/0} enters a toplevel that differs from the original
+one in the following ways:
+
+@itemize -
+@item
+The prompt @code{[Clp] ?-} indicates that the new toplevel is executing.
+In fact, the prompt @var{P} can be set via
+@code{unset(prompt(_),set(prompt(@var{P}))}. @xref{Flags}.
+
+@item
+@cindex Answer constraints
+Answer substitutions are presented in the usual way. @dfn{Answer
+constraints} are extracted via @code{dump/3} and printed.
+
+@item 
+Once entered, the flag @code{expansion(clp)} (@xref{Flags}.) is set and
+remains set until the toplevel is left when @code{end_of_file} is read
+from the current input stream. This flag enables @code{term_expansion/2}
+to 'know' whether the expansion has to deal with interpreted functors or
+not.
+@end itemize
+@end table
+
+@noindent 
+The new toplevel catches exceptions. When left via @code{abort},
+the flag indicating the expansion mode is not cleared. In this
+hopefully rare cases, the flag has to be cleared manually with
+@code{unset(expansion(_))}.
+
+@node Random extensions, Flags, Toplevel, Top    
+@comment  node-name,  next,  previous,  up
+@chapter Other additions to SICStus2.1
+Although not directly related to the general CLP scheme provided with 
+this patch, some utility predicates have been added also.
+
+@node Flags, Numerical functions, , Random extensions
+@comment  node-name,  next,  previous,  up
+@section Global flags
+A simple mechanism for @dfn{global flags} is provided:
+
+@table @code
+@item set(@var{Flag})
+Sets @var{Flag} which can be any Prolog term.
+@findex set/1
+
+@item unset(@var{Flag})
+Clears all flags that unify with @var{Flag}.
+@findex unset/1
+
+@item setting(@var{Flag})
+@findex setting/1
+Nondeterministically unifies @var{Flag} with any flag set via
+@code{set/1}.
+@end table
+
+@node Numerical functions, Type recognition, Flags, Random extensions    
+@comment  node-name,  next,  previous,  up
+@section Numerical functions
+
+@table @code
+@item gcd(@var{A},@var{B})
+@findex gcd/2
+The numerical function @code{gcd/2} has been added to the set of
+functions recognized by @code{is/2} and the predicates that perform
+numerical comparisons. The function computes the greatest common divisor
+of the two integer arguments @var{A} and @var{B}. Non-integer arguments
+rise a condition. Example:
+
+@example
+| ?-  X is gcd( 2376446732, -23764).
+
+X = 4 
+@end example
+@end table
+
+@noindent
+The motivation for the existence of this predicate is the absence of
+arithmetic functions and comparison predicates for rational numbers in
+SICStus2.1. Writing a rational evaluator in Prolog is easy, but
+efficiency is awful if @code{gcd/2} has to be coded in Prolog. Once
+SICStus reaches the numerical maturity of Commonlisp, patches like this
+one will be obsolete.
+
+@node Type recognition, , Numerical functions, Random extensions
+@comment  node-name,  next,  previous,  up
+@section Type recognition predicate
+@table @code
+@item type(@var{X},@var{Type})
+@findex type/2
+The meta-logical predicate determines the type of @var{X} and unifies
+@var{Type} with one of the atoms @code{var}, @code{cva}, @code{float},
+@code{integer}, @code{structure}, @code{atom}, @code{list}. @code{cva}
+means that @var{X} is an attributed variable.  The remaining type names
+should be self explaining.  The motivation for the existence of this
+predicate is that indexing in SICStus2.1 is not exhaustive on this list
+of types.  With the help of this predicate we can write code like below,
+in order to get the benefits of indexing.
+
+@example
+sample( X) :-
+  type( X, Type),
+  sample( Type, X).
+
+  sample( var,     X) :- format( "~p is a variable", [X]).
+  sample( atom,    X) :- format( "~p is an atom", [X]).
+  sample( integer, X) :- format( "~p is an integer", [X]).
+  sample( list,    X) :- format( "~p is a list", [X]).
+@end example
+@end table
+
+@node References
+@comment  node-name,  next,  previous,  up
+@unnumbered References
+
+@table @cite
+@item [Carlsson & Widen 90]
+Carlsson M., Widen J.: Sicstus Prolog Users Manual, Swedish Institute of
+Computer Science, SICS/R-88/88007C, 1990.
+
+@item [Holzbaur 90]
+Holzbaur C.: Specification of Constraint Based Inference Mechanisms through
+Extended Unification, Dept. of Medical Cybernetics & AI, University of Vienna,
+Dissertation, 1990.
+
+@item [Jaffar & Michaylov 87]
+Jaffar J., Michaylov S.: Methodology and Implementation of a CLP System, in
+Lassez J.L.(ed.), Logic Programming - Proceedings of the 4th
+International Conference - Volume 1, MIT Press, Cambridge, MA, 1987.
+ 
+@item [Neumerkel 90]
+Neumerkel U.: Extensible Unification by Metastructures, Proc. META90, 1990.
+@end table
+
+@node A complete example    
+@comment  node-name,  next,  previous,  up
+@appendix complete example
+This example illustrates the realization of a very simple type system
+with the DMCAI CLP package. The types we want to deal with are
+@code{odd} and @code{even}. They partition the Prolog type @code{integer} 
+into two disjoint sets. The syntax for associating a type with a term
+shall be @code{odd(X)} and @code{even(X)} respectively. Therefore,
+@code{odd/1} and @code{even/1} are our interpreted functors.
+
+@node Sample session    
+@comment  node-name,  next,  previous,  up
+@appendixsec Sample session
+
+@example
+SICStus 2.1 #4 [DMCAI Clp]: Mon Mar 23 18:27:18 MET 1992
+| ?- use_module(types).
+{compiling types.pl...}
+{compiling settings.pl...}
+{settings.pl compiled in module settings, 117 msec 10544 bytes}
+{compiling clp.pl...}
+{compiling dump.pl...}
+{dump.pl compiled in module clp, 1117 msec 5616 bytes}
+{compiling toplevel.pl...}
+{toplevel.pl compiled in module clp, 917 msec 5888 bytes}
+{clp.pl compiled in module clp, 2200 msec 20320 bytes}
+{types.pl compiled, 3884 msec 40720 bytes}
+
+yes
+| ?- top.
+[Clp] ?- f(odd(X),even(Y)) = Z.
+
+Z = f(X,Y),
+even(Y),
+odd(X) ? ;
+
+no
+[Clp] ?- f(odd(X),even(Y)) = Z, Z = f(13,_).
+
+X = 13,
+Z = f(13,Y),
+even(Y)
+@end example
+
+@node Necessary definitions    
+@comment  node-name,  next,  previous,  up
+@appendixsec Necessary definitions
+We start the example by importing the new toplevel (@xref{Toplevel}).
+@example
+     1 %
+     2 % Simple type theory to demonstrate some CLP basics
+     3 %
+     4	     
+     5 :- use_module( settings).
+     6 :- use_module( clp).
+@end example
+
+@noindent
+Next, we specify the source transformations that replace interpreted
+terms with attributed variables (@xref{Source transformations}.):
+
+@example
+     1	term_expansion( A, B) :-
+     2	  setting( expansion( clp)),
+     3	  our_term_expansion( A, B).
+     4	       
+     5	our_term_expansion( X,       X) :- var( X), !.
+     6	our_term_expansion( odd(X),  New) :- !, 
+     7	  attach_attribute( New, odd(New)),  
+     8	  New = X.
+     9	our_term_expansion( even(X), New) :- !, 
+    10	  attach_attribute( New, even(New)), 
+    11	  New = X.
+    12	our_term_expansion( Old,     New) :- 
+    13	  functor( Old, N, A),
+    14	  functor( New, N, A),
+    15	  our_term_expansion( A, Old, New).
+    16	
+    17	our_term_expansion( 0, _,   _) :- !.
+    18	our_term_expansion( N, Old, New) :-
+    19	  arg( N, Old, Oa),
+    20	  arg( N, New, Na),
+    21	  our_term_expansion( Oa, Na),
+    22	  N1 is N-1,
+    23	  our_term_expansion( N1, Old, New).
+@end example
+
+@noindent
+In line 2 above, we test whether our interpreted functors should be
+interpreted indeed. The actual transformation takes place in lines 6 to
+11. You might wonder why the code in lines 6--8 is not just:
+
+@example
+     1	our_term_expansion( odd(X),  X) :- !, 
+     2	  attach_attribute( X, odd(X)).
+@end example
+
+@noindent
+Well, this is because we want the term @code{odd(33)}, which is
+equivalent to @code{33} in our 'theory', to be translated correctly.
+Therefore we introduce a fresh attributed variable @var{New} (lines 7
+and 10) and unify it with @var{X} (lines 8 and 11). Note that in our
+example the transformation of @code{odd(33)} yields @code{33} after the
+call to @code{verify_attribute/2} (@xref{Unification}), triggered by the
+unification in line 8, has verified the 'oddness' of 33. The rest of the
+transformation is straightforward.
+
+@noindent
+Now we specify how the interpreted terms are to be unified with the pure
+Prolog data types (lines 1 to 10) and with each other (lines 12 to 17).
+
+@example
+     1	verify_attribute( odd(X), Term) :-
+     2	  integer( Term),
+     3	  0 =\= Term mod 2,
+     4	  detach_attribute( X),
+     5	  X = Term.   
+     6	verify_attribute( even(X), Term) :-
+     7	  integer( Term),
+     8	  0 =:= Term mod 2,
+     9	  detach_attribute( X),
+    10	  X = Term.
+    11	
+    12	combine_attributes( even(X), even(Y)) :-
+    13	  detach_attribute( X),
+    14	  X = Y.   
+    15	combine_attributes( odd(X),  odd(Y)) :-
+    16	  detach_attribute( X),
+    17	  X = Y.
+@end example
+
+@noindent
+The only Prolog data type compatible with our types are the integer
+numbers (lines 2 and 7). @code{Odd} and @code{even} have the usual
+semantics (lines 3 and 8). If an integer is compatible with the type of
+@var{X}, we detach the attribute and unify @var{X} which is a free
+variable with the integer @var{Term} (lines 5 and 10).  All other
+attempted unifications between @code{odd} and @code{even} typed
+variables and the remaining Prolog data types fail as they are not
+covered by @code{verify_attribute/2}.
+
+@noindent
+Unifications between typed variables are dealt with by
+@code{combine_attributes}. Both variables must be of the same type
+(lines 12 and 15). Besides verifying compatibility, we must not forget
+that the attributed variables are to be the same --- because of this
+very unification. We detach the attribute of one of the two attributed
+variables involved (lines 13 and 16). The choice is arbitrary.  Then the
+variables can be unified without rising another call to
+@code{combine_attributes/2} (lines 14 and 17).
+
+@noindent
+With the definitions up to this point, we would get the following
+interaction:
+
+@example
+[Clp] ?- f(odd(X),even(Y)) = Z.
+
+Z = f(X,Y),
+attach_attribute(Y,even(Y)),
+attach_attribute(X,odd(X)) 
+
+[Clp] ?- f(odd(X),even(Y)) = Z, Z = f(13,_).
+
+X = 13,
+Z = f(13,Y),
+attach_attribute(Y,even(Y)) ? 
+@end example
+
+@noindent
+In order to get the more appealing output that was shown in the session
+transcript (@xref{Sample session}), @code{dump/3} has to be coded,
+@pxref{Dumping}.
+
+@noindent
+The following encoding of @code{dump/3} uses a binary tree as dictionary
+to represent the association between the (attributed) variables in the original
+@var{Term} and the variables in the @var{Copy} and the list of @var{Constraints}.
+The code as presented gets fooled by cyclic structures. It is a trivial matter
+to make it cycle-proof with the very same dictionary that is used for the 
+variables (left as an exercise).
+
+Once the copy has been produced (line 2), the dictionary is traversed to
+collect the attributes associated with the variables in the copy via
+@code{collect_constraints/3} (lines 39--45), which is formulated as a DCG.
+
+@example
+     1	dump( Term, Copy, Constraints) :-
+     2	  copy( Term, Copy, Dict),
+     3	  collect_constraints( Dict, Constraints, []).
+     4	
+     5	copy( Term, Copy, Dict) :-
+     6	  type( Term, Tt), 
+     7	  copy( Tt, Term, Copy, Dict).
+     8	
+     9	copy( cva,       Cva,    Copy,     Dict) :- 
+    10	  get_attribute( Cva, Attrib), 
+    11	  copy_cva( Attrib, Copy, Dict).
+    12	copy( var,       V,      Copy,     Dict) :- 
+    13	  dict_insert( Dict, v(V,Copy), _).
+    14	copy( integer,   I,      I,        _). 
+    15	copy( float,     F,      F,        _).
+    16	copy( atom,      A,      A,        _).
+    17	copy( list,      [X|Xt], [Xc|Xct], Dict) :- 
+    18	  type( X, Xtype),   copy( Xtype, X, Xc, Dict), 
+    19	  type( Xt, Xttype), copy( Xttype, Xt, Xct, Dict).
+    20	copy( structure, Term,   Copy,     Dict) :-
+    21	  functor( Term, N, A),
+    22	  functor( Copy, N, A),
+    23	  copy_arg( A, Copy, Dict, Term).
+    24	
+    25	copy_arg( 0, _,    _,    _) :- !.
+    26	copy_arg( N, Copy, Dict, Term) :- 
+    27	  N1 is N-1, 
+    28	  arg( N, Copy, Ac),
+    29	  arg( N, Term, At),
+    30	  type( At, Att), 
+    31	  copy( Att, At, Ac, Dict),
+    32	  copy_arg( N1, Copy, Dict, Term). 
+    33	
+    34	copy_cva( odd(X), Copy, Dict) :-
+    35	  dict_insert( Dict, cva(X,Copy,odd(Copy)), _).  
+    36	copy_cva( even(X), Copy, Dict) :-
+    37	  dict_insert( Dict, cva(X,Copy,even(Copy)), _).
+    38	
+    39	collect_constraints( Dict)        --> {var(Dict)}, !.
+    40	collect_constraints( t(L,Key,R) ) --> 
+    41	  ( { Key = v(_,_) }
+    42	  ; { Key = cva(_,_,Pred) }, [ Pred ]
+    43	  ),
+    44	  collect_constraints( L),
+    45	  collect_constraints( R).
+@end example
+
+@noindent
+The dictionary operations on the binary tree can be performed with
+the following predicate:
+
+@example
+     1	% insert a F(Key,...) elem into the a binary tree
+     2	%
+     3	dict_insert( Tree, Key, Occ) :- var(Tree), !,
+     4	  Tree = t(_,Key,_), 
+     5	  Occ = new.
+     6	dict_insert( t(L,Key0,R), Key, Occ) :- 
+     7	  arg( 1, Key, Ak),
+     8	  arg( 1, Key0, Ak0),
+     9	  compare( Rel, Ak, Ak0),
+    10	  ( Rel = =, Occ = old, Key = Key0
+    11	  ; Rel = <, dict_insert( L, Key, Occ)
+    12	  ; Rel = >, dict_insert( R, Key, Occ)
+    13	  ). 
+@end example
+
+@noindent
+What is still missing is how to print our attributed variables that
+stand for interpreted terms, @pxref{Printing}. In general it is a good
+idea to use @code{dump/3} for that purpose. In @strong{this} simple case
+however, it is not useful to apply the full dump machinery. Therefore:
+
+@example
+     1	portray_attribute( odd(X),  _) :- write( odd(X)).
+     2	portray_attribute( even(X), _) :- write( even(X)).
+@end example
+
+@noindent
+Note the use of @code{write/1}! If @code{print/1} is used instead, nothing
+will be printed (guess why).
+
+@noindent
+Taken together, these code fragments implement our type 'theory'.  
+
+@noindent
+@cindex Common mistake
+Warning: 
+@itemize @bullet
+@item
+Because this code contains interpreted terms (@code{odd/1} and
+@code{even/1} functors occur in some predicates), it @strong{must} be
+loaded from the original SICStus Prolog toplevel. Only after consulting
+or compiling the file, you would enter the new toplevel via
+@code{top/0}. If your programs behave strange, it is quite likely that a
+'pure' program has been loaded into a context with interpreted terms, or
+vice versa.
+@end itemize
+
+@node How to produce the DMCAI CLP clone    
+@comment  node-name,  next,  previous,  up
+@appendix How to produce the DMCAI CLP clone
+The following procedure assumes that you have got SICStus2.1 at patchlevel
+#3 or later. We will try to keep up with future versions of SICStus2.1.
+
+@enumerate
+@item
+Produce a copy of your original SICStus2.1 directory tree.  Assuming
+that that the original resides in the directory @file{sicstus2.1}, and
+that you want to call the clone @file{sicstus2.1.clp}, you might use the
+commands:
+
+@example                                                                 
+mkdir sicstus2.1.clp
+(cd sicstus2.1; tar cf - .) | (cd sicstus2.1.clp; tar xf -)
+@end example
+
+@item     
+@code{cd sicstus2.1.clp}
+      
+@item
+execute the patch script 
+
+@example       
+patch < clp.2.1.6.patch
+@end example
+    
+The last digit in @file{clp.2.1.6.patch} identifies the SICStus2.1 
+patchlevel to which the patch applies.
+If you get messages about failed hunks (most likely for Makefiles), the
+corresponding patches must be applied by hand. You can check for failed
+patches with
+
+@example      
+find . -name '*.rej' -print 
+@end example
+      
+@item
+@code{cd Compiler; make} @* 
+This step assumes that the executable of your original SICStus2.1 
+is installed as @code{sicstus}. If this is not so, 
+type @code{make SICSTUS=someothername}
+      
+@item
+@code{cd Library; make}
+      
+@item
+@code{cd Emulator; make clean}
+      
+@item
+@code{cd} to the root of the copy (@file{sicstus2.1.clp}), ensure that the 
+@var{OPTIONS} in the Makefile @emph{do not} include @code{-DBDD},
+and type:
+
+@example
+setenv SP_PATH `pwd`
+make all SICSTUS=$SP_PATH/sicstus
+@end example
+
+@end enumerate
+@noindent
+Please let us know about how your installation went. Address correspondence
+to:
+
+@display
+    Christian Holzbaur
+    Dept. of Medical Cybernetics & Artificial Intelligence (DMCAI)
+    University of Vienna
+    Freyung 6
+    A-1010 Vienna
+    Austria
+    Email: christian@@ai.univie.ac.at
+@end display
+
+@node Predicate Index
+@comment  node-name,  next,  previous,  up
+@unnumbered Predicate Index
+@printindex fn
+
+@node Concept Index
+@comment  node-name,  next,  previous,  up
+@unnumbered Concept Index
+@printindex cp
+
+@contents
+
+@bye
+
+:- comment(version_maintenance,off).
+

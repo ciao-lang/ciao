@@ -1,0 +1,4 @@
+product@val(product_name,"car")::(quantity(X), 
+                                  'time-left'(Y), 
+                                  negotiation::preference::price(Z)) 
+       with X * Z .>. Y

@@ -1,0 +1,6 @@
+
+To use, e.g., queue.pl, compile it to an executable (do 
+
+ciaoc queue
+
+) and then simply run it.

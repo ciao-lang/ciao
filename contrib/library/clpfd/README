@@ -1,0 +1,11 @@
+The documention is in the file clpfd.org
+
+Old history is in the svn repos clip:/home/egallego/clip/repos/ciao-clpfd
+
+For questions write to egallego (ANTISPAM () at) babel.ls.fi.upm.es
+
+NOTES (MCL)
+- Added indexicals for some lacking cases of constants.
+- Compiled user-level constraints into indexicals.
+- The 'a=b*c' indexical needs attention - using it close to the limits
+  gives unexpected results.

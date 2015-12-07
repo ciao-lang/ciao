@@ -1,0 +1,29 @@
+      @begin{itemize}
+
+      @item Typing @key{^H} @key{i} (or in the menus
+            @tt{Help->Manuals->Browse Manuals with Info}) should open
+            a list of manuals in info format in which the Ciao
+            manual(s) should appear.
+
+      @item When opening a Ciao file, i.e., a file with @tt{.pl} or
+            @tt{.pls} ending, using @key{^X}@key{^F}@tt{filename} (or
+            using the menus) the code should appear highlighted
+            according to syntax (e.g., comments in red), and
+            @tt{Ciao/Prolog} menus should appear in the menu bar on
+            top of the @apl{emacs} window.
+
+      @item Loading the file using the @tt{Ciao/Prolog} menu (or
+            typing @key{^C} @key{l}) should start in another emacs
+            buffer the Ciao toplevel shell and load the file. You
+            should now be able to switch the the toplevel shell and
+            make queries from within @apl{emacs}.
+
+      @end{itemize}
+
+      @noindent @bf{Note}: when using @apl{emacs} it is @em{very
+      convenient} to swap the locations of the (normally not very
+      useful) @key{Caps Lock} key and the (very useful in @apl{emacs})
+      @key{Ctrl} key on the keyboard.  How to do this is explained in
+      the @apl{emacs} frequently asked questions FAQs (see the
+      @apl{emacs} download instructions for their location).
+

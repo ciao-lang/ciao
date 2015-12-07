@@ -1,0 +1,7 @@
+This part documents some Ciao libraries which provide additional
+predicates and functionalities that, despite not being in the ISO
+standard, are present in many popular Prolog systems. This includes
+definite clause grammars (DCGs), ``Quintus-style'' internal database,
+list processing predicates, DEC-10 Prolog-style input/output, formatted
+output, dynamic loading of modules, activation of operators at run-time,
+etc.

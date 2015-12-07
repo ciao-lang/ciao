@@ -1,0 +1,25 @@
+* List of the examples for testing the automatic CC configuration tool
+** Small examples
+*** bignums_test.pl
+*** color_map_test.pl
+*** flat_test.pl 
+*** guardians_test.pl
+*** hanoi_test.pl
+*** jugs_test.pl
+*** knights_test.pl
+*** module_test.pl
+   For testing a simple modular program.
+*** mqu_test.pl
+   For testing the automatic CC configuration of an implementation of
+   'N queens'. 
+*** qsort_test.pl
+*** schedule_test.pl
+   It takes up a looooooong time.
+*** size_test.pl
+*** subst_exp_test.pl
+*** sudoku_test.pl  
+*** zebra_argnames_test.pl
+** Big examples
+*** prof_lpdoc.pl 
+   For testing the automatic CC configuration of lpdoc.   
+*** wumpus_test.pl

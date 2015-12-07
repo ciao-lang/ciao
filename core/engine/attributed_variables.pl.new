@@ -1,0 +1,70 @@
+:- multifile 
+        verify_attribute/2,
+        combine_attributes/2.
+
+
+
+:- use_module( engine(attributes) ).
+
+%
+% called from the emulator
+% if there is just one single pending unification
+%
+uvc(A, B) :- verify_attribute(A, B).
+ucc(A, B) :- combine_attributes(A, B). 
+
+% there are more pending unifications (relatively rare)
+%
+pending_unifications([]).
+pending_unifications([ [Var|Val] |Cs]) :-
+  pending_unification(Var, Val),
+  pending_unifications(Cs).
+
+pending_unification( X , Y ) :-
+	get_attribute( X, simple_attr( XA , _New , N ) ),	
+	N > 0,
+	get_attribute( X, simple_attr( YA , _New , N2 ) ),	
+	N2 > 0,
+	int_pending_unification( XA , YA , X , Y ).
+
+
+%% There is unification iff both variables are NO LOCKED and have attributes
+int_pending_unification( simple_attr( A1 ) , simple_attr( A2 ) , X , Y ) :-
+	int_combine_attr( A1 , A2 , X , Y ).
+
+
+int_combine_attr( [ ] , B , X , Y ) :-
+	int_verify_attr( X , Y , B ).
+
+int_combine_attr( B , [ ] , X , Y ) :-
+	int_verify_attr( Y , X , B ).
+
+% belongs to the same module
+int_combine_attr( [ A | BR ] , [ B | BR ] , X , Y ) :-
+	functor( A , N , _ ),
+	functor( B , N , _ ),
+	!,
+	local_combine_attr( A , B , X , Y ).
+
+
+
+int_verify_attr( X , Y , [YA|YAR] ) :- 
+	verify_attribute( X , Y , YA ),
+	!,
+	int_verify_attr( X , Y , YAR ).
+
+int_verify_attr( X , Y , [_|YAR] ) :- 
+	!,
+	int_verify_attr( X , Y , YAR ).
+	
+int_verify_attr( _X , _Y , [] ) :- !.
+
+
+%% --- TEMPORALY. Till we have _LOCAL_ multiattributes
+local_combine_attr( A , B , _X , _Y ) :-
+	arg( 1 , A , XA ),
+	arg( 1 , B , XB ),
+	combine_attributes( XA , XB ).
+
+verify_attribute( X , _Y , YA ) :-
+	verify_attribute( X , YA ).

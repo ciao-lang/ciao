@@ -1,0 +1,11 @@
+'phone_book:phb'(maria,9222222) .
+'phone_book:phb'(juan,913333333) .
+'phone_book:phb'(montse,4545454) .
+'phone_book:phb'(man,626966718) .
+'phone_book:phb'(jaja,123123123) .
+'phone_book:phb'(juan,rwkeroweok) .
+'phone_book:phb'(jose,888888888) .
+'phone_book:phb'(werwre,456456456456) .
+'phone_book:phb'(joe,999999999) .
+'phone_book:phb'(werwre,456456456456) .
+'phone_book:phb'(new,913367448) .

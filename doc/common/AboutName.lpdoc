@@ -1,0 +1,18 @@
+
+Ciao is often referred to as ``Ciao Prolog,'' a name which has an
+interesting (and not unintended) interpretation.  @comment{After
+reading the previous sections the sharp reader may have already seen
+the logic behind the 'Ciao Prolog' name.}  Ciao is an interesting word
+which means both @em{hello} and @em{goodbye}. 'Ciao Prolog' intends to
+be a really good, all-round, freely available ISO-Prolog system which
+can be used as a classical Prolog, in both academic and industrial
+environments (and, in particular, to introduce users to Prolog and to
+constraint and logic programming --the @em{hello} part). An indeed
+many programmers use it just that way. But Ciao is also a
+new-generation, multiparadigm programming language and program
+development system which goes well beyond Prolog and other classical
+logic programming languages. And it has the advantage (when compared
+to other new-generation LP systems) that it does so while keeping full
+Prolog compatibility when needed.
+
+

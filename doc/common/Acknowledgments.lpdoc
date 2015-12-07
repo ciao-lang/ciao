@@ -1,0 +1,83 @@
+
+The Ciao system is a joint effort on one side of some present
+(@author{Francisco Bueno}, @author{Manuel Carro}, @author{Manuel
+Hermenegildo}, @cindex{Pedro Lopez} @em{Pedro L@'{o}pez}, and
+@cindex{German Puebla} @em{Germ@'{a}n Puebla}) and past
+(@author{Daniel Cabeza}, @cindex{Maria Jose Garcia de la Banda}
+@em{Mar@'{i}a Jos@'{e} Garc@'{i}a de la Banda}) members of the
+@index{CLIP group} at the School of Computer Science, @index{Technical
+University of Madrid} and at the @index{IMDEA Software Institute}, and
+on the other side of several colleagues and students that have
+collaborated with us over the years of its development. The following
+is an (inevitably incomplete) list of those that have contributed most
+significantly to the development of Ciao:
+
+@begin{itemize}
+
+@item The @index{Ciao engine}, compiler, preprocessor, libraries, 
+and documentation, 
+although completely rewritten at this point, have their origins in the
+@index{&-Prolog} @index{parallel Prolog} engine and
+@index{parallelizing compiler}, developed by @author{Manuel
+Hermenegildo}, @author{Kevin Greene}, @author{Kalyan Muthukumar}, and
+@author{Roger Nasr} at @index{MCC} and later at @index{UPM}.  The
+&-Prolog engine and low-level (@index{WAM}) compilers in turn were
+derived from early versions (0.5 to 0.7) of @index{SICStus Prolog}
+@cite{Sicstus}. SICStus is an excellent, high performance Prolog
+system, developed by @author{Mats Carlsson} and colleagues at the
+@index{Swedish Institute of Computer Science} (@index{SICS}), that
+every user of Prolog should check out @cite{Sicstus3,Sicstus-library}.
+Very special thanks are due to @author{Seif Haridi}, @author{Mats
+Carlsson}, and colleagues at SICS for allowing the SICStus 0.5-0.7
+components in @index{&-Prolog} and its successor, Ciao, to be
+distributed freely. Parts of the parallel abstract machine have been
+developed in collaboration with @author{Gopal Gupta} and @author{Enrico
+Pontelli} (@index{New Mexico State University}).
+
+@item Many aspects of the analyzers in the @index{Ciao preprocessor}
+(@apl{ciaopp}) have been developed in collaboration with @author{Peter
+Stuckey} (@index{Melbourne U.}), @author{Kim Marriott} (@index{Monash
+U.}), @author{Maurice Bruynooghe}, @author{Gerda Janssens}, @author{Anne
+Mulkers}, and @author{Veroniek Dumortier} (@index{K.U. Leuven}), and
+@author{Saumya Debray} (@index{U. of Arizona}).  The assertion system
+has been developed in collaboration with @author{Jan Maluzynski} and
+@author{Wlodek Drabent} (@index{Linkoping U.}) and @author{Pierre
+Deransart} (@index{INRIA}). The core of type inference system derives
+from the system developed by @author{John Gallagher}
+@cite{gallagher-types-iclp94} (@index{Bristol University}) and later
+adapted to CLP(FD) by @author{Pawel Pietrzak} (@index{Linkoping U.}).
+
+@item The constraint solvers for @em{R} and @em{Q} are derived from
+the code developed by @author{Christian Holzbauer} (@index{Austrian
+Research Institute for AI} in Vienna)
+@cite{holzbaur-clone,holzbaur-phd,holzbaur-plilp92}.
+
+@item The Ciao manuals include material from the @index{DECsystem-10
+Prolog User's Manual} by @author{D.L. Bowen} (editor), @author{L. Byrd},
+@author{F.C.N. Pereira}, @author{L.M. Pereira}, and
+@author{D.H.D. Warren} @cite{BoByPeWa81}. They also contain material
+from the SICStus Prolog user manuals for SICStus versions 0.5-0.7 by
+@author{Mats Carlsson} and @author{Johan Widen} @cite{Sicstus}, as well
+as from the Prolog ISO standard documentation @cite{iso-prolog}.
+
+@item Ciao is designed to be highly extendable in a modular way. Many
+of the libraries distributed with Ciao have been developed by other
+people all of which is impossible to mention here. Individual author
+names are included in the documentation of each library and appear in
+the indices.
+
+@item The development of the Ciao system has been supported in part by
+European research projects @concept{PEPMA}, @concept{ACCLAIM},
+@concept{PARFORCE}, @concept{DISCIPL}, @concept{AMOS}, @concept{ASAP},
+@concept{MOBIUS}, and @concept{SCUBE}; by @concept{MICYT} projects
+@concept{IPL-D}, @concept{ELLA}, @concept{EDIPIA}, @concept{CUBICO},
+@concept{MERIT}, and @concept{DOVES}; and by @concept{CM} projects
+@concept{PROMESAS} and @concept{PROMETIDOS}.
+
+@end{itemize}
+
+If you feel you have contributed to the development of Ciao and we
+have forgotten to add your name to this list or to the
+acknowledgements given in the different chapters and indices, please
+let us know and we will be glad to give proper credits.
+

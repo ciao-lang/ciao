@@ -1,0 +1,568 @@
+:- module(dictionary, [dictionary/6],
+	              [assertions,isomodes,regtypes,iso]).
+
+:- doc(author, "G@..{o}ran Smedb@..{a}ck").
+
+%:- use_module(library(iso_char)).
+%:- use_module(library(basicprops)).
+
+:- use_module(library(provrml/internal_types)).
+
+
+:- doc(module,"This module contains the fixed dictionary. All the nodes
+                   in VRML with their associated fields.").
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+:- pred dictionary(?NodeTypeId,?AccessType,?FieldTypeId,?FieldId,-Init_value,
+	           -Boundary)
+   :: atm * atm * atm * atm * list(atm) * bound
+   # "To lookup information about the nodes, getting their properties.
+      Note that the type returned for the bound can be of two different types
+      bound or bound_double. The rotation type have one bound for the 
+      directions and one for the degree of rotation.".
+
+:- pred dictionary(?NodeTypeId,?AccessType,?FieldTypeId,?FieldId,-Init_value,
+	           -Boundary)
+   :: atm * atm * atm * atm * list(atm) * bound_double
+   # "To lookup information about the nodes, getting their properties.
+      Note that the type returned for the bound can be of two different types
+      bound or bound_double. The rotation type have one bound for the 
+      directions and one for the degree of rotation.".
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+dictionary('Anchor',eventIn,'MFNode',addChildren,[],[]).
+dictionary('Anchor',eventIn,'MFNode',removeChildren,[],[]).
+dictionary('Anchor',exposedField,'MFNode',children,[[]],
+	[children_nodes]).
+dictionary('Anchor',exposedField,'SFString',description,[''],[]).
+dictionary('Anchor',exposedField,'MFString',parameter,[[]],[]).
+dictionary('Anchor',exposedField,'MFString',url,[[]],[]).
+dictionary('Anchor',field,'SFVec3f',bboxCenter,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Anchor',field,'SFVec3f',bboxSize,[-1,-1,-1],
+	bound(excl(0),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('Appearance',exposedField,'SFNode',material,['NULL'],
+	['Material']).
+dictionary('Appearance',exposedField,'SFNode',texture,['NULL'],
+	['ImageTexture','MovieTexture','PixelTexture']).
+dictionary('Appearance',exposedField,'SFNode',textureTransform,['NULL'],
+	['TextureTransform']).
+%%%%%%%%%%%%%%%%
+dictionary('AudioClip',exposedField,'SFString',description,[''],[]).
+dictionary('AudioClip',exposedField,'SFBool',loop,'FALSE',[]).
+dictionary('AudioClip',exposedField,'SFFloat',pitch,[1.0],
+	bound(excl(0),excl(inf))).
+dictionary('AudioClip',exposedField,'SFTime',startTime,[0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('AudioClip',exposedField,'SFTime',stopTime,[0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('AudioClip',exposedField,'MFString',url,[[]],[]).
+dictionary('AudioClip',eventOut,'SFTime',duration_changed,[],[]).
+dictionary('AudioClip',eventOut,'SFBool',isActive,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('Background',eventIn,'SFBool',set_bind,[],[]).
+dictionary('Background',exposedField,'MFFloat',groundAngle,[[]],
+	bound(incl(0),incl(pi_div2))).
+dictionary('Background',exposedField,'MFColor',groundColor,[[]],
+	bound(incl(0),incl(1))).
+dictionary('Background',exposedField,'MFString',backUrl,[[]],[]).
+dictionary('Background',exposedField,'MFString',bottomUrl,[[]],[]).
+dictionary('Background',exposedField,'MFString',frontUrl,[[]],[]).
+dictionary('Background',exposedField,'MFString',leftUrl,[[]],[]).
+dictionary('Background',exposedField,'MFString',rightUrl,[[]],[]).
+dictionary('Background',exposedField,'MFString',topUrl,[[]],[]).
+dictionary('Background',exposedField,'MFFloat',skyAngle,[[]],
+	bound(incl(0),incl(pi))).
+dictionary('Background',exposedField,'MFColor',skyColor,[0,0,0],
+	bound(incl(0),incl(1))).
+dictionary('Background',eventOut,'SFBool',isBound,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('Billboard',eventIn,'MFNode',addChildren,[],[]).
+dictionary('Billboard',eventIn,'MFNode',removeChildren,[],[]).
+dictionary('Billboard',exposedField,'SFVec3f',axisOfRotation,[0,1,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Billboard',exposedField,'MFNode',children,[[]],
+	[children_nodes]).
+dictionary('Billboard',field,'SFVec3f',bboxCenter,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Billboard',field,'SFVec3f',bboxSize,[-1,-1,-1],
+	bound(excl(0),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('Box',field,'SFVec3f',size,[2,2,2],
+	bound(excl(0),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('Collision',eventIn,'MFNode',addChildren,[],[]).
+dictionary('Collision',eventIn,'MFNode',removeChildren,[],[]).
+dictionary('Collision',exposedField,'MFNode',children,[[]],
+	[children_nodes]).
+dictionary('Collision',exposedField,'SFBool',collide,['TRUE'],[]).
+dictionary('Collision',field,'SFVec3f',bboxCenter,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Collision',field,'SFVec3f',bboxSize,[-1,-1,-1],
+	bound(excl(0),excl(inf))).
+dictionary('Collision',field,'SFNode',proxy,['NULL'],
+	[children_nodes]).
+dictionary('Collision',eventOut,'SFTime',collideTime,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('Color',exposedField,'MFColor',color,[[]],	
+	bound(incl(0),incl(1))).
+%%%%%%%%%%%%%%%%
+dictionary('ColorInterpolator',eventIn,'SFFloat',set_fraction,[],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('ColorInterpolator',exposedField,'MFFloat',key,[[]],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('ColorInterpolator',exposedField,'MFColor',keyValue,[[]],
+	bound(incl(0),incl(1))).
+dictionary('ColorInterpolator',eventOut,'SFColor',value_changed,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('Cone',field,'SFFloat',bottomRadius,[1],
+	bound(excl(0),excl(inf))).
+dictionary('Cone',field,'SFFloat',height,[2],
+	bound(excl(0),excl(inf))).
+dictionary('Cone',field,'SFBool',side,'TRUE',[]).
+dictionary('Cone',field,'SFBool',bottom,'TRUE',[]).
+%%%%%%%%%%%%%%%%
+dictionary('Coordinate',exposedField,'MFVec3f',point,[],
+	bound(excl(inf_neg),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('CoordinateInterpolator',eventIn,'SFFloat',set_fraction,[],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('CoordinateInterpolator',exposedField,'MFFloat',key,[],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('CoordinateInterpolator',exposedField,'MFVec3f',keyValue,[],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('CoordinateInterpolator',eventOut,'MFVec3f',value_changed,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('Cylinder',field,'SFBool',bottom,'TRUE',[]).
+dictionary('Cylinder',field,'SFFloat',height,[2],
+	bound(excl(0),excl(inf))).
+dictionary('Cylinder',field,'SFFloat',radius,[1],
+	bound(excl(0),excl(inf))).
+dictionary('Cylinder',field,'SFBool',side,'TRUE',[]).
+dictionary('Cylinder',field,'SFBool',top,'TRUE',[]).
+%%%%%%%%%%%%%%%%
+dictionary('CylinderSensor',exposedField,'SFBool',autoOffset,'TRUE',[]).
+dictionary('CylinderSensor',exposedField,'SFFloat',diskAngle,[0.262],
+	bound(excl(0),excl(pi_div2))).
+dictionary('CylinderSensor',exposedField,'SFBool',enabled,'TRUE',[]).
+dictionary('CylinderSensor',exposedField,'SFFloat',maxAngle,[-1],
+	bound(excl(pi_mult2_neg),excl(pi_mult2))).
+dictionary('CylinderSensor',exposedField,'SFFloat',minAngle,[0],
+	bound(excl(pi_mult2_neg),excl(pi_mult2))).
+dictionary('CylinderSensor',exposedField,'SFFloat',offset,[0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('CylinderSensor',eventOut,'SFBool',isActive,[],[]).
+dictionary('CylinderSensor',eventOut,'SFRotation',rotation_changed,[],[]).
+dictionary('CylinderSensor',eventOut,'SFVec3f',trackPoint_changed,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('DirectionalLight',exposedField,'SFFloat',ambientIntensity,[0],
+	bound(incl(0),incl(1))).
+dictionary('DirectionalLight',exposedField,'SFColor',color,[1,1,1],
+	bound(incl(0),incl(1))).
+dictionary('DirectionalLight',exposedField,'SFVec3f',direction,[0,0,-1],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('DirectionalLight',exposedField,'SFFloat',intensity,[1],
+	boound(incl(0),incl(1))).
+dictionary('DirectionalLight',exposedField,'SFBool',on,'TRUE',[]).
+%%%%%%%%%%%%%%%%
+dictionary('ElevationGrid',eventIn,'MFFloat',set_height,[],[]).
+dictionary('ElevationGrid',exposedField,'SFNode',color,['NULL'],
+	['Color']).
+dictionary('ElevationGrid',exposedField,'SFNode',normal,['NULL'],
+	['Normal']).
+dictionary('ElevationGrid',exposedField,'SFNode',texCoord,['NULL'],
+	['TextureCoordinate']).
+dictionary('ElevationGrid',field,'MFFloat',height,[[]],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('ElevationGrid',field,'SFBool',ccw,['TRUE'],[]).
+dictionary('ElevationGrid',field,'SFBool',colorPerVertex,['TRUE'],[]).
+dictionary('ElevationGrid',field,'SFFloat',creaseAngle,[0],
+	bound(incl(0),excl(inf))).
+dictionary('ElevationGrid',field,'SFBool',normalPerVertex,['TRUE'],[]).
+dictionary('ElevationGrid',field,'SFBool',solid,['TRUE'],[]).
+dictionary('ElevationGrid',field,'SFInt32',xDimension,[0],
+	bound(incl(0),excl(inf))).
+dictionary('ElevationGrid',field,'SFFloat',xSpacing,[1.0],
+	bound(excl(0),excl(inf))).
+dictionary('ElevationGrid',field,'SFInt32',zDimension,[0],
+	bound(incl(0),excl(inf))).
+dictionary('ElevationGrid',field,'SFFloat',zSpacing,[1.0],
+	bound(excl(0),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('Extrusion',eventIn,'MFVec2f',set_crossSection,[],[]).
+dictionary('Extrusion',eventIn,'MFRotation',set_orientation,[],[]).
+dictionary('Extrusion',eventIn,'MFVec2f',set_scale,[],[]).
+dictionary('Extrusion',eventIn,'MFVec3f',set_spine,[],[]).
+dictionary('Extrusion',field,'SFBool',beginCap,['TRUE'],[]).
+dictionary('Extrusion',field,'SFBool',ccw,['TRUE'],[]).
+dictionary('Extrusion',field,'SFBool',convex,['TRUE'],[]).
+dictionary('Extrusion',field,'SFFloat',creaseAngle,[0],
+	bound(incl(0),excl(inf))).
+dictionary('Extrusion',field,'MFVec2f',crossSection,[1,1,1,-1,-1,-1,-1,1,1,1],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Extrusion',field,'SFBool',endCap,['TRUE'],[]).
+dictionary('Extrusion',field,'MFRotation',orientation,[0,0,1,0],
+	bound(incl(-1),incl(1),excl(inf_neg),excl(inf))).
+dictionary('Extrusion',field,'MFVec2f',scale,[1,1],
+	bound(excl(0),excl(inf))).
+dictionary('Extrusion',field,'SFBool',solid,['TRUE'],[]).
+dictionary('Extrusion',field,'MFVec3f',spine,[0,0,0,0,1,0],
+	bound(excl(inf_neg),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('Fog',exposedField,'SFColor',color,[1,1,1],
+	bound(incl(0),incl(1))).
+dictionary('Fog',exposedField,'SFString',fogType,['LINEAR'],[]).
+dictionary('Fog',exposedField,'SFFloat',visabilityRange,[0],
+	bound(incl(0),excl(inf))).
+dictionary('Fog',eventIn,'SFBool',set_bind,[],[]).
+dictionary('Fog',eventOut,'SFBool',isBound,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('FontStyle',field,'MFString',family,[['SERIF']],[]).
+dictionary('FontStyle',field,'SFBool',horizontal,['TRUE'],[]).
+dictionary('FontStyle',field,'MFString',justify,['BEGIN'],[]).
+dictionary('FontStyle',field,'SFString',language,[''],[]).
+dictionary('FontStyle',field,'SFBool',leftToRight,['TRUE'],[]).
+dictionary('FontStyle',field,'SFFloat',size,[1.0],
+	bound(excl(0),excl(inf))).
+dictionary('FontStyle',field,'SFFloat',spacing,[1.0],
+	bound(incl(0),excl(inf))).
+dictionary('FontStyle',field,'SFString',style,['PLAIN'],[]).
+dictionary('FontStyle',field,'SFBool',topToBottom,['TRUE'],[]).
+%%%%%%%%%%%%%%%%
+dictionary('Group',eventIn,'MFNode',addChildren,[],[]).
+dictionary('Group',eventIn,'MFNode',removeChildren,[],[]).
+dictionary('Group',exposedField,'MFNode',children,[[]],
+	[children_nodes]).
+dictionary('Group',field,'SFVec3f',bboxCenter,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Group',field,'SFVec3f',bboxSize,[-1,-1,-1],
+	bound(excl(0),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('ImageTexture',exposedField,'MFString',url,[[]],[]).
+dictionary('ImageTexture',field,'SFBool',repeatS,['TRUE'],[]).
+dictionary('ImageTexture',field,'SFBool',repeatT,['TRUE'],[]).
+%%%%%%%%%%%%%%%%
+dictionary('IndexedFaceSet',eventIn,'MFInt32',set_colorIndex,[],[]).
+dictionary('IndexedFaceSet',eventIn,'MFInt32',set_coordIndex,[],[]).
+dictionary('IndexedFaceSet',eventIn,'MFInt32',set_normalIndex,[],[]).
+dictionary('IndexedFaceSet',eventIn,'MFInt32',set_texCoordIndex,[],[]).
+dictionary('IndexedFaceSet',exposedField,'SFNode',color,['NULL'],
+	['Color']).
+dictionary('IndexedFaceSet',exposedField,'SFNode',coord,['NULL'],
+	['Coordinate']).
+dictionary('IndexedFaceSet',exposedField,'SFNode',normal,['NULL'],
+	['Normal']).
+dictionary('IndexedFaceSet',exposedField,'SFNode',texCoord,['NULL'],
+	['TextureCoordinate']).
+dictionary('IndexedFaceSet',field,'SFBool',ccw,['TRUE'],[]).
+dictionary('IndexedFaceSet',field,'MFInt32',colorIndex,[[]],
+	bound(incl(-1),excl(inf))).
+dictionary('IndexedFaceSet',field,'SFBool',colorPerVertex,['TRUE'],[]).
+dictionary('IndexedFaceSet',field,'SFBool',convex,['TRUE'],[]).
+dictionary('IndexedFaceSet',field,'MFInt32',coordIndex,[[]],
+	bound(incl(-1),excl(inf))).
+dictionary('IndexedFaceSet',field,'SFFloat',creaseAngle,[0],
+	bound(incl(0),excl(inf))).
+dictionary('IndexedFaceSet',field,'MFInt32',normalIndex,[[]],
+	bound(incl(-1),excl(inf))).
+dictionary('IndexedFaceSet',field,'SFBool',normalPerVertex,['TRUE'],[]).
+dictionary('IndexedFaceSet',field,'SFBool',solid,['TRUE'],[]).
+dictionary('IndexedFaceSet',field,'MFInt32',texCoordIndex,[[]],
+	bound(incl(-1),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('IndexedLineSet',eventIn,'MFInt32',set_colorIndex,[],[]).
+dictionary('IndexedLineSet',eventIn,'MFInt32',set_coordIndex,[],[]).
+dictionary('IndexedLineSet',exposedField,'SFNode',color,['NULL'],
+	['Color']).
+dictionary('IndexedLineSet',exposedField,'SFNode',coord,['NULL'],
+	['Coordinate']).
+dictionary('IndexedLineSet',field,'MFInt32',colorIndex,[[]],
+	bound(incl(-1),excl(inf))).
+dictionary('IndexedLineSet',field,'SFBool',colorPerVertex,['TRUE'],[]).
+dictionary('IndexedLineSet',field,'MFInt32',coordIndex,[[]],
+	bound(incl(-1),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('Inline',exposedField,'MFString',url,[[]],[]).
+dictionary('Inline',field,'SFVec3f',bboxCenter,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Inline',field,'SFVec3f',bboxSize,[-1,-1,-1],
+	bound(excl(0),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('LOD',exposedField,'MFNode',level,[[]],
+	[children_nodes]).
+dictionary('LOD',field,'SFVec3f',center,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('LOD',field,'MFFloat',range,[[]],
+	bound(excl(0),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('Material',exposedField,'SFFloat',ambientIntensity,[0.2],
+	bound(incl(0),incl(1))).
+dictionary('Material',exposedField,'SFColor',diffuseColor,[0.8,0.8,0.8],
+	bound(incl(0),incl(1))).
+dictionary('Material',exposedField,'SFColor',emissiveColor,[0,0,0],
+	bound(incl(0),incl(1))).
+dictionary('Material',exposedField,'SFFloat',shininess,[0.2],
+	bound(incl(0),incl(1))).
+dictionary('Material',exposedField,'SFColor',specularColor,[0,0,0],
+	bound(incl(0),incl(1))).
+dictionary('Material',exposedField,'SFFloat',transparency,[0],
+	bound(incl(0),incl(1))).
+%%%%%%%%%%%%%%%%
+dictionary('MovieTexture',exposedField,'SFBool',loop,['FALSE'],[]).
+dictionary('MovieTexture',exposedField,'SFFloat',speed,[1.0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('MovieTexture',exposedField,'SFTime',startTime,[0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('MovieTexture',exposedField,'SFTime',stopTime,[0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('MovieTexture',exposedField,'MFString',url,[[]],[]).
+dictionary('MovieTexture',field,'SFBool',repeatS,['TRUE'],[]).
+dictionary('MovieTexture',field,'SFBool',repeatT,['TRUE'],[]).
+dictionary('MovieTexture',eventOut,'SFTime',duration_changed,[],[]).
+dictionary('MovieTexture',eventOut,'SFBool',isActive,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('NavigationInfo',eventIn,'SFBool',set_bind,[],[]).
+dictionary('NavigationInfo',exposedField,'MFFloat',avatarSize,[0.25,1.6,0.75],
+	bound(incl(0),excl(inf))).
+dictionary('NavigationInfo',exposedField,'SFBool',headlight,['TRUE'],[]).
+dictionary('NavigationInfo',exposedField,'SFFloat',speed,[1.0],
+	bound(incl(0),excl(inf))).
+dictionary('NavigationInfo',exposedField,'MFString',type,['WALK','ANY'],[]).
+dictionary('NavigationInfo',exposedField,'SFFloat',visabilityLimit,[0.0],
+	bound(incl(0),excl(inf))).
+dictionary('NavigationInfo',eventOut,'SFBool',isBound,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('Normal',exposedField,'MFVec3f',vector,[[]],
+	bound(excl(inf_neg),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('NormalInterpolator',eventIn,'SFFloat',set_fraction,[],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('NormalInterpolator',exposedField,'MFFloat',key,[],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('NormalInterpolator',exposedField,'MFVec3f',keyValue,[],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('NormalInterpolator',eventOut,'MFVec3f',value_changed,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('OrientationInterpolator',eventIn,'SFFloat',set_fraction,[],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('OrientationInterpolator',exposedField,'MFFloat',key,[],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('OrientationInterpolator',exposedField,'MFRotation',keyValue,[],
+	bound(incl(-1),incl(1),excl(inf_neg),excl(inf))).
+dictionary('OrientationInterpolator',eventOut,'SFRotation',value_changed,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('PixelTexture',exposedField,'SFImage',image,[0,0,0],[]).
+dictionary('PixelTexture',field,'SFBool',repeatS,['TRUE'],[]).
+dictionary('PixelTexture',field,'SFBool',repeatT,['TRUE'],[]).
+%%%%%%%%%%%%%%%%
+dictionary('PlaneSensor',exposedField,'SFBool',autoOffset,['TRUE'],[]).
+dictionary('PlaneSensor',exposedField,'SFBool',enabled,['TRUE'],[]).
+dictionary('PlaneSensor',exposedField,'SFVec2f',maxPosition,[-1, -1],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('PlaneSensor',exposedField,'SFVec2f',minPosition,[0, 0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('PlaneSensor',exposedField,'SFVec3f',offset,[0, 0, 0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('PlaneSensor',eventOut,'SFBool',isActive,[],[]).
+dictionary('PlaneSensor',eventOut,'SFVec3f',trackPoint_changed,[],[]).
+dictionary('PlaneSensor',eventOut,'SFVec3f',translation_changed,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('PointLight',exposedField,'SFFloat',ambientIntensity,[0],
+	bound(incl(0),incl(1))).
+dictionary('PointLight',exposedField,'SFVec3f',attenuation,[1,0,0],
+	bound(incl(0),excl(inf))).
+dictionary('PointLight',exposedField,'SFColor',color,[1,1,1],
+	bound(incl(0),incl(1))).
+dictionary('PointLight',exposedField,'SFFloat',intensity,[1],
+	bound(incl(0),incl(1))).
+dictionary('PointLight',exposedField,'SFVec3f',location,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('PointLight',exposedField,'SFBool',on,['TRUE'],[]).
+dictionary('PointLight',exposedField,'SFFloat',radius,[100],
+	bound(incl(0),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('PointSet',exposedField,'SFNode',color,['NULL'],
+	['Color']).
+dictionary('PointSet',exposedField,'SFNode',coord,['NULL'],
+	['Coordinate']).
+%%%%%%%%%%%%%%%%
+dictionary('PositionInterpolator',eventIn,'SFFloat',set_fraction,[],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('PositionInterpolator',exposedField,'MFFloat',key,[[]],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('PositionInterpolator',exposedField,'MFVec3f',keyValue,[[]],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('PositionInterpolator',eventOut,'SFVec3f',value_changed,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('ProximitySensor',exposedField,'SFVec3f',center,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('ProximitySensor',exposedField,'SFVec3f',size,[0,0,0],
+	bound(incl(0),excl(inf))).
+dictionary('ProximitySensor',exposedField,'SFBool',enabled,['TRUE'],[]).
+dictionary('ProximitySensor',eventOut,'SFBool',isActive,[],[]).
+dictionary('ProximitySensor',eventOut,'SFVec3f',position_changed,[],[]).
+dictionary('ProximitySensor',eventOut,'SFRotation',orientation_changed,[],[]).
+dictionary('ProximitySensor',eventOut,'SFTime',enterTime,[],[]).
+dictionary('ProximitySensor',eventOut,'SFTime',exitTime,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('ScalarInterpolator',eventIn,'SFFloat',set_fraction,[[]],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('ScalarInterpolator',exposedField,'MFFloat',key,[[]],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('ScalarInterpolator',exposedField,'MFFloat',keyValue,[[]],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('ScalarInterpolator',eventOut,'SFFloat',value_changed,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('Script',exposedField,'MFString',url,[[]],[]).
+dictionary('Script',field,'SFBool',directOutput,['FALSE'],[]).
+dictionary('Script',field,'SFBool',mustEvaluate,['FALSE'],[]).
+%dictionary('Script',eventIn,_eventTypeName,_eventName,[],_Bound).
+%dictionary('Script',field,_fieldTypeName,_fieldName,_initialValue,_Bound).
+%dictionary('Script',eventOut,_eventTypeName,_eventName,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('Shape',exposedField,'SFNode',appearance,['NULL'],
+	['Appearance']).       
+dictionary('Shape',exposedField,'SFNode',geometry,['NULL'],[]).       
+%%%%%%%%%%%%%%%%
+dictionary('Sound',exposedField,'SFVec3f',direction,[0,0,1],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Sound',exposedField,'SFFloat',intensity,[1],
+	bound(incl(0),incl(1))).
+dictionary('Sound',exposedField,'SFVec3f',location,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Sound',exposedField,'SFFloat',maxBack,[10],
+	bound(incl(0),excl(inf))).
+dictionary('Sound',exposedField,'SFFloat',maxFront,[10],
+	bound(incl(0),excl(inf))).
+dictionary('Sound',exposedField,'SFFloat',minBack,[1],
+	bound(incl(0),excl(inf))).
+dictionary('Sound',exposedField,'SFFloat',minFront,[1],
+	bound(incl(0),excl(inf))).
+dictionary('Sound',exposedField,'SFFloat',priority,[0],
+	bound(incl(0),incl(1))).
+dictionary('Sound',exposedField,'SFNode',source,['NULL'],
+	['AudioClip','MovieTexture']).
+dictionary('Sound',field,'SFBool',spatialize,['TRUE'],[]).
+%%%%%%%%%%%%%%%%
+dictionary('Sphere',field,'SFFloat',radius,[1],
+	bound(excl(0),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('SphereSensor',exposedField,'SFBool',autoOffset,['TRUE'],[]).
+dictionary('SphereSensor',exposedField,'SFBool',enabled,['TRUE'],[]).
+dictionary('SphereSensor',exposedField,'SFRotation',offset,[0,1,0,0],
+	bound(incl(-1),incl(1),excl(inf_neg),excl(inf))).
+dictionary('SphereSensor',eventOut,'SFBool',isActive,[],[]).
+dictionary('SphereSensor',eventOut,'SFRotation',rotation_changed,[],[]).
+dictionary('SphereSensor',eventOut,'SFVec3f',trackPoint_changed,[],[]).
+%%%%%%%%%%%%%%%
+dictionary('SpotLight',exposedField,'SFFloat',ambientIntensity,[0],
+	bound(incl(0),incl(1))).
+dictionary('SpotLight',exposedField,'SFVec3f',attenuation,[1,0,0],
+	bound(incl(0),excl(inf))).
+dictionary('SpotLight',exposedField,'SFFloat',beamWidth,[1.570796],
+	bound(excl(0),incl(pi_div2))).
+dictionary('SpotLight',exposedField,'SFColor',color,[1,1,1],
+	bound(incl(0),incl(1))).
+dictionary('SpotLight',exposedField,'SFFloat',cutOffAngle,[0.785398],
+	bound(excl(0),incl(pi_div2))).
+dictionary('SpotLight',exposedField,'SFVec3f',direction,[0,0,-1],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('SpotLight',exposedField,'SFFloat',intensity,[1],
+	bound(incl(0),incl(1))).
+dictionary('SpotLight',exposedField,'SFVec3f',location,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('SpotLight',exposedField,'SFBool',on,['TRUE'],[]).
+dictionary('SpotLight',exposedField,'SFFloat',radius,[100],
+	bound(incl(0),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('Switch',exposedField,'MFNode',choice,[[]],
+	[children_nodes]).
+dictionary('Switch',exposedField,'SFInt32',whichChoice,[-1],
+	bound(incl(-1),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('Text',exposedField,'MFString',string,[[]],[]).
+dictionary('Text',exposedField,'SFNode',fontStyle,['NULL'],
+	['FontStyle']).
+dictionary('Text',exposedField,'MFFloat',length,[[]],
+	bound(incl(0),excl(inf))).
+dictionary('Text',exposedField,'SFFloat',maxExtent,[0.0],
+	bound(incl(0),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('TextureCoordinate',exposedField,'MFVec2f',point,[[]],
+	bound(excl(inf_neg),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('TextureTransform',exposedField,'SFVec2f',center,[0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('TextureTransform',exposedField,'SFFloat',rotation,[0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('TextureTransform',exposedField,'SFVec2f',scale,[1,1],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('TextureTransform',exposedField,'SFVec2f',translation,[0,0],
+	bound(excl(inf_neg),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('TimeSensor',exposedField,'SFTime',cycleInterval,[1],
+	bound(excl(0),excl(inf))).
+dictionary('TimeSensor',exposedField,'SFBool',enabled,['TRUE'],[]).
+dictionary('TimeSensor',exposedField,'SFBool',loop,['FALSE'],[]).
+dictionary('TimeSensor',exposedField,'SFTime',startTime,[0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('TimeSensor',exposedField,'SFTime',stopTime,[0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('TimeSensor',eventOut,'SFTime',cycleTime,[],[]).
+dictionary('TimeSensor',eventOut,'SFFloat',fraction_changed,[],[]).
+dictionary('TimeSensor',eventOut,'SFBool',isActive,[],[]).
+dictionary('TimeSensor',eventOut,'SFTime',time,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('TouchSensor',exposedField,'SFBool',enabled,['TRUE'],[]).
+dictionary('TouchSensor',eventOut,'SFVec3f',hitNormal_changed,[],[]).
+dictionary('TouchSensor',eventOut,'SFVec3f',hitPoint_changed,[],[]).
+dictionary('TouchSensor',eventOut,'SFVec2f',hitTexCoord_changed,[],[]).
+dictionary('TouchSensor',eventOut,'SFBool',isActive,[],[]).
+dictionary('TouchSensor',eventOut,'SFBool',isOver,[],[]).
+dictionary('TouchSensor',eventOut,'SFTime',touchTime,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('Transform',eventIn,'MFNode',addChildren,[],[]).
+dictionary('Transform',eventIn,'MFNode',removeChildren,[],[]).
+dictionary('Transform',exposedField,'SFVec3f',center,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Transform',exposedField,'MFNode',children,[[]],
+	[children_nodes]).
+dictionary('Transform',exposedField,'SFRotation',rotation,[0,0,1,0],
+	bound(incl(-1),incl(1),excl(inf_neg),excl(inf))).
+dictionary('Transform',exposedField,'SFVec3f',scale,[1,1,1],
+	bound(excl(0),excl(inf))).
+dictionary('Transform',exposedField,'SFRotation',scaleOrientation,[0,0,1,0],
+	bound(incl(-1),incl(1),excl(inf_neg),excl(inf))).
+dictionary('Transform',exposedField,'SFVec3f',translation,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Transform',field,'SFVec3f',bboxCenter,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Transform',field,'SFVec3f',bboxSize,[-1,-1,-1],
+	bound(excl(0),excl(inf))).
+%%%%%%%%%%%%%%%%
+dictionary('Viewpoint',eventIn,'SFBool',set_bind,[],[]).
+dictionary('Viewpoint',exposedField,'SFFloat',fieldOfView,[0.785398],
+	bound(excl(0),excl(pi))).
+dictionary('Viewpoint',exposedField,'SFBool',jump,['TRUE'],[]).
+dictionary('Viewpoint',exposedField,'SFRotation',orientation,[0,0,1,0],
+	bound(incl(-1),incl(1),excl(inf_neg),excl(inf))).
+dictionary('Viewpoint',exposedField,'SFVec3f',position,[0,0,10],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('Viewpoint',field,'SFString',description,[''],[]).
+dictionary('Viewpoint',eventOut,'SFTime',bindTime,[],[]).
+dictionary('Viewpoint',eventOut,'SFBool',isBound,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('VisibilitySensor',exposedField,'SFVec3f',center,[0,0,0],
+	bound(excl(inf_neg),excl(inf))).
+dictionary('VisibilitySensor',exposedField,'SFBool',enabled,['TRUE'],[]).
+dictionary('VisibilitySensor',exposedField,'SFVec3f',size,[0,0,0],
+	bound(incl(0),excl(inf))).
+dictionary('VisibilitySensor',eventOut,'SFTime',enterTime,[],[]).
+dictionary('VisibilitySensor',eventOut,'SFTime',exitTime,[],[]).
+dictionary('VisibilitySensor',eventOut,'SFBool',isActive,[],[]).
+%%%%%%%%%%%%%%%%
+dictionary('WorldInfo',field,'MFString',info,[[]],[]).
+dictionary('WorldInfo',field,'SFString',title,[''],[]).

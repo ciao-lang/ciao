@@ -1,0 +1,139 @@
+#!/bin/sh
+#
+#  ciao
+#
+#  The ciao super-command.
+#
+#  Copyright (C) 2015 Ciao Developer team
+#
+
+# Physical directory where the script is located
+_base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
+        cd "$d";done;cd "$(dirname "$e")";pwd -P)
+
+# ----------------------------------------------------------------
+
+use_rlwrap=yes # TODO: Turn into an option
+
+ciaosh_bin="$_base"/{{ciaosh_cmd}}
+ciao_shell_bin="$_base"/{{ciao_shell_cmd}}
+ciaoc_bin="$_base"/{{ciaoc_cmd}}
+ciaopp_bin="$_base"/{{ciaopp_cmd}}
+lpdoc_bin="$_base"/{{lpdoc_cmd}}
+#
+boot_ciaolib={{boot_ciaolib}}
+boot_bindir={{boot_bindir}}
+boot_ciaohdir={{boot_ciaohdir}}
+boot_ciaoengine={{boot_ciaoengine}}
+
+# ----------------------------------------------------------------
+# exec wrapper using rlwrap (if needed)
+
+if [ x"$use_rlwrap" = x"yes" ] && [ "${INSIDE_EMACS:-0}" = "0" ] && \
+   stty > /dev/null 2>&1 && \
+   which rlwrap > /dev/null 2>&1; then
+    enable_rlwrap=yes
+else
+    enable_rlwrap=no
+fi
+
+rlexec() {
+    if [ x"$enable_rlwrap" = x"yes" ]; then
+	exec rlwrap -O "\?[- ]" -p'1;34' -w -1 "$@"
+    else
+	exec "$@"
+    fi
+}
+
+# ----------------------------------------------------------------
+
+if [ "${PATH:-0}" = "0" ] ; then
+    PATH=$_base
+else
+    case $PATH in
+	$_base:* | *:$_base | *:$_base:* ) ;;
+	* )
+	    PATH=$_base:$PATH ;;
+    esac
+fi
+
+# ---------------------------------------------------------------------------
+# Access to the builder
+
+exec_builder() {
+    unset CIAOALIASPATH
+    export CIAOLIB=$boot_ciaolib
+    export CIAOHDIR=$boot_ciaohdir
+    export CIAOENGINE=$boot_ciaoengine
+    exec "$CIAOENGINE" "$@" -C -b "$boot_bindir/ciao_builder.sta"
+}
+
+rlexec_builder() {
+    unset CIAOALIASPATH
+    export CIAOLIB=$boot_ciaolib
+    export CIAOHDIR=$boot_ciaohdir
+    export CIAOENGINE=$boot_ciaoengine
+    rlexec "$CIAOENGINE" "$@" -C -b "$boot_bindir/ciao_builder.sta"
+}
+
+# ----------------------------------------------------------------
+# NOTE: General help driver is in builder/src/ciaocl_help.pl
+
+do_help() {
+    action=$1
+    shift
+    case $action in
+	'')       exec_builder help ;;
+	toplevel) exec "$ciaosh_bin" -h ;;
+	run) # TODO: This command has no help
+	    cat <<EOF
+Usage: ciao-shell <program>
+EOF
+	    ;;
+	comp)     exec "$ciaoc_bin" -h ;;
+	pp)       exec "$ciaopp_bin" -h ;;
+	doc)      exec "$lpdoc_bin" -h ;;
+	*)        exec_builder help "$action"
+    esac
+    exit 1
+}
+
+# ----------------------------------------------------------------
+
+# Detect calls to OptimComp builder (note: opts may be before action!)
+# TODO: UNDOCUMENTED! (move 'oc:' into the target, not the action)
+needs_oc_builder() {
+    while [ $# -gt 0 ]; do
+	case $1 in
+	    --cache-dir) shift ;;
+	    --rtchecks|--stats|--verbose|--profile) true ;;
+	    oc:*) return 0 ;; # An oc:* action 
+	    *)    break
+	esac
+	shift
+    done
+    return 1 # Not an oc:* action 
+}
+
+if needs_oc_builder "$@"; then
+    # TODO: port
+    exec "$boot_ciaolib"/../builder/src/oc_builder.bash "$@"
+fi
+
+if [ $# = 0 ]; then
+    action=toplevel
+else
+    action=$1
+    shift
+fi
+case $action in
+    # TODO: move ExtraCommands to a file that is read by ciaosh directly
+    toplevel) rlexec "$ciaosh_bin" "$@" {{ExtraCommands}} ;;
+    run)      exec "$ciao_shell_bin" "$@" ;;
+    comp)     exec "$ciaoc_bin" "$@" ;;
+    pp)       rlexec "$ciaopp_bin" "$@" ;;
+    doc)      exec "$lpdoc_bin" "$@" ;;
+    help|-h|--help) do_help "$@" ;;
+    *)        rlexec_builder "$action" "$@"
+esac
+

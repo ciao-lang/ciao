@@ -1,0 +1,10 @@
+ This compiler FAILS BECAUSE pl2sql creates table aliases, e.g: 
+
+SELECT * FROM table rel1 WHERE rel1.Id=1
+
+If we use the FROM and WHERE clauses into a deletion sentence, SQL
+Anywhere returns a syntax error. 'From clauses' are not consistent in
+SQL Anywhere 5.0 (they are different in select and deletion
+statements, despite their documentation says), and that make the
+deletion statement to fail.
+

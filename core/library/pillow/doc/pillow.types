@@ -1,0 +1,216 @@
+% Translate html format and send to stdout
+pred output_html(+html_term).
+    
+% Translates html terms to list of characters and vice-versa
+pred html2terms(-string, +html_term).
+pred html2terms(+string, -list(html_simple_term)).
+
+% Hook predicate to define macros for html2terms(-,+)
+pred html_expansion(+html_term, -html_term)
+
+% Report an error through HTML
+pred html_report_error(+html_term).
+
+html_term ===
+    # start |
+    # end |
+    # -- |
+    # \\ |
+    # $ |
+    # comment(string) |
+    # declare(string) |
+    # image(html_item) |
+    # image(html_item, list(attrib)) |
+    # ref(html_item, html_term) |
+    # label(html_item, html_term) |
+    # heading(integer, html_term) |
+    # itemize(list(html_term)) |
+    # enumerate(list(html_term)) |
+    # description(list(html_description)) |
+    # nice_itemize(html_item, list(html_term)) |
+    # preformatted(list(html_term)) |
+    # entity(html_item) |
+    # start_form |
+    # start_form(html_item) |
+    # start_form(html_item, list(attrib)) |
+    # end_form |
+    # checkbox(html_item, state) |
+    # radio(html_item, html_item, html_item) |
+    # input(html_item, list(attrib)) |
+    # textinput(html_item, list(attrib), string) |
+    # menu(html_item, list(attrib), list(option)) |
+    # cgi_reply |
+    # verbatim(html_item) |
+    # nl |
+    # begin(tag) |
+    # begin(tag, list(attrib)) |
+    # end(tag) |
+    # env(tag, list(attrib), html_term) |
+    # $(tag,list(attrib)) |
+    list(html_term) |
+    any(html_term) |
+    any(list(attrib), html_term) |
+    string |
+    term.
+
+html_simple_term ===
+    # comment(string) |
+    # declare(string) |
+    # env(tag, list(attrib), list(html_simple_term)) |
+    # $(tag,list(attrib)) |
+    string.
+
+html_description === #(html_term , html_description) | html_term.
+
+tag === atom.
+
+option === # $(html_item) | html_item.
+
+state === # on | # off.
+
+attrib === atom | #(atom = html_item).
+
+html_item === atom | string.
+
+% Transforms form data to a dictionary
+pred get_form_input(-dict).
+
+% Get values in dictionary
+pred get_form_value(+dict, +dict_name, -dict_value).
+
+% Transform input from a text area to a list of lines
+pred text_lines(+dict_value,-list(string))
+
+% Checks that a value is empty
+pred form_empty_value(+dict_value).
+
+% Set form defaults
+pred form_default(+term, +term, -term).
+
+% Gives request method of the form
+pred form_request_method(-atom).
+
+% Gives the URL of the form
+pred my_url(-string).
+
+% Database of useful image addresses
+pred icon_address(+atom, -string).
+
+% Computes GET parameters for CGI's
+pred url_query(+dict, -string).
+
+dict === list(#(dict_name = dict_value))
+
+dict_name === atom
+
+dict_value === # '$empty' | atomic | list(string) | # file(atom,list(string)).
+
+% Extracts information from a URL, or creates a URL from information
+pred url_info(+url, -url_info).
+pred url_info(-string, +url_info).
+
+% Extracts information from a URL, relative to a base URL
+pred url_info_relative(+url, +url_info, -url_info)
+
+url === atom | string.
+
+url_info === # http(host, port, document).
+
+host === atom.
+
+port === integer.
+
+document === string.
+
+% Fetch a document from an HTTP server
+pred fetch_url(+url, +list(http_request), -list(http_response)).
+
+http_request ===
+    # head |              % If we don't what the document, only the header
+    # timeout(integer) |  % Time to wait for the response
+    # if_modified_since(date) |   % Get document only if newer
+    # user_agent(atom) |  % Provide a user-agent field
+    # authorization(scheme, auth_params) |  % For authentication
+    any(atom).            % Any other option (for example from('user@machine'))
+
+http_response ===
+    # content(string) |   % Document content
+    % Type of response, status code and reason phrase
+    # status(status_type,status_code,reason_phrase) |
+    # pragma(string) |    % Misc. data
+    # message_date(date) |    % Date of the response
+    # location(atom) |    % Where has moved the document
+    # http_server(string) |   % Server responding
+    # authenticate(list(challenge)) |  % Request for authentication
+    # allow(list(atom)) | % Methods allowed by the server
+    # content_encoding(atom) |
+    # content_length(integer) |
+    # content_type(type,subtype,list(content_type_param)) |
+    % Date/time after which the entity should be considered stale
+    # expires(date) |
+    % Date/time at which the sender believes the resource was last modified
+    # last_modified(date) |
+    any(string).    %  Any other functor is an extension header
+
+status_type ===
+    # informational  |
+    # success        |
+    # redirection    |
+    # request_error  |
+    # server_error   |
+    # extension_code.
+
+status_code === integer.
+
+reason_phrase === string.
+
+challenge === # challenge(scheme,realm,challenge_params)
+
+scheme === # basic | atom.
+
+auth_params === string | list(#(atom = string)).
+
+realm = string.
+
+challenge_params === list(#(atom = string)).
+
+type === atom.
+
+subtype === atom.
+
+content_type_param === #(atom = (atom|string)).
+
+date === # date(weekday,day,month,year,hour)
+
+weekday ===
+    # 'Monday'    |
+    # 'Tuesday'   |
+    # 'Wednesday' |
+    # 'Thursday'  |
+    # 'Friday'    |
+    # 'Saturday'  |
+    # 'Sunday'.
+
+day === integer. % From 1 to 31
+
+month ===
+    # 'January'   |
+    # 'February'  |
+    # 'March'     |
+    # 'April'     |
+    # 'May'       |
+    # 'June'      |
+    # 'July'      |
+    # 'August'    |
+    # 'September' |
+    # 'October'   |
+    # 'November'  |
+    # 'December'.
+
+year === integer. % >= 1000
+
+hour === atom. % Of the form '06:14:02'
+
+% Protect a goal for cgi-bin execution
+pred html_protect(+callable).
+

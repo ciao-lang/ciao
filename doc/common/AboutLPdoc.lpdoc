@@ -1,0 +1,34 @@
+
+This manual has been generated using the @index{LPdoc} semi-automatic
+documentation generator for LP/CLP programs
+@cite{lpdoc-reference,lpdoc-cl2000}. @apl{lpdoc} processes Ciao files
+(and files in Prolog and other CLP languages) adorned with assertions 
+and machine-readable comments, which should be written in the Ciao 
+@concept{assertion language}
+@cite{assert-lang-ws,assert-lang-disciplbook}.  From these, it
+generates manuals in many formats including @tt{postscript}, @tt{pdf},
+@tt{texinfo}, @tt{info}, @tt{HTML}, @tt{man}, etc., as well as on-line
+help, ascii @tt{README} files, entries for indices of manuals
+(@tt{info}, WWW, ...), and maintains WWW distribution sites.
+
+The big advantage of this approach is that it is easier to keep the
+on-line and printed documentation in sync with the source code
+@cite{knuth-lit}.  As a result, @em{this manual changes continually as
+the source code is modified}. Because of this, the manual has a
+version number. You should make sure the manual you are reading,
+whether it be printed or on-line, coincides with the version of the
+software that you are using. 
+
+The approach also implies that there is often a variability in the
+degree to which different libraries or system components are
+documented.  Many libraries offer abundant documentation, but a few
+will offer little. The latter is due to the fact that we tend to
+include libraries in the manual if the code is found to be useful,
+even if they may still contain sparse documentation. This is because
+including a library in the manual will at the bare minimum provide
+formal information (such as the names of exported predicates and their
+arity, which other modules it loads, etc.), create index entries,
+pointers for on-line help in the electronic versions of the manuals,
+and command-line completion capabilities inside @apl{emacs}.  Again,
+the manual is being updated continuously as the different libraries
+(and machine-readable documentation in them) are improved.

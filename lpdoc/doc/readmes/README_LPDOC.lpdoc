@@ -1,0 +1,50 @@
+@apl{lpdoc} is an @em{automatic program documentation generator} for
+(C)LP systems.
+
+@apl{lpdoc} generates a reference manual automatically from one or
+more source files for a logic program (including ISO-Prolog, Ciao,
+many CLP systems, ...).  It is particularly useful for documenting
+library modules, for which it automatically generates a description of
+the module interface. However, @apl{lpdoc} can also be used quite
+successfully to document full applications and to generate nicely
+formatted plain ascii ``readme'' files. A fundamental advantage of
+using @apl{lpdoc} to document programs is that it is much easier to
+maintain a true correspondence between the program and its
+documentation, and to identify precisely to what version of the
+program a given printed manual corresponds.
+
+The quality of the documentation generated can be greatly enhanced by
+including within the program text:
+
+@begin{itemize}
+
+@item @em{assertions} (types, modes, etc. ...) for the predicates in
+the program, and 
+
+@item @em{machine-readable comments} (in the ``literate programming''
+style). 
+
+@end{itemize}
+
+The assertions and comments included in the source file need to be
+written using the Ciao system @em{assertion language}.  A simple
+compatibility library is available to make traditional (constraint)
+logic programming systems ignore these assertions and comments
+allowing normal treatment of programs documented in this way.
+
+The documentation is currently generated in @apl{HTML} or
+@apl{texinfo} format. From the @apl{texinfo} output, printed and
+on-line manuals in several formats (dvi, ps, info, etc.) can be easily
+generated automatically, using publicly available tools. @apl{lpdoc}
+can also generate 'man' pages (Unix man page format) as well as brief
+descriptions in html or emacs info formats suitable for inclusion in
+an on-line index of applications.  In particular, @apl{lpdoc} can
+create and maintain fully automatically @concept{WWW} and
+@concept{info} sites containing on-line versions of the documents it
+produces.
+
+The @apl{lpdoc} manual (and the Ciao system manuals) are generated
+by @apl{lpdoc}.
+
+@apl{lpdoc} is distributed under the @concept{GNU general public
+license}.

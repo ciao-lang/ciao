@@ -1,0 +1,17 @@
+The following interfaces to/from Ciao are
+documented in this part:
+
+	@begin{itemize}
+	@item @concept{External interface} (e.g., to C).
+	@item @concept{Socket interface}.
+	@item @concept{Tcl/tk interface}.
+	@item @concept{Web interface} (http, html, xml, etc.);
+	@item @concept{Persistent predicate} databases (interface 
+              between the Ciao internal database and the external 
+              file system).
+	@item @concept{SQL-like database interface} (interface 
+              between the Ciao internal database and external 
+              SQL/ODBC systems).
+	@item @concept{Java interface}.
+	@item @concept{Calling emacs} from Ciao.
+	@end{itemize}

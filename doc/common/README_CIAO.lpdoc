@@ -1,0 +1,19 @@
+
+This is the source directory of the Ciao system.
+
+@begin{itemize}
+
+   @item See the file INSTALLATION for installation instructions.
+
+   @item The latest version of Ciao is available from
+   @href{http://ciao-lang.org}.
+
+   @item Please report bugs or installation difficulties to
+   @email{ciao-bug@@clip.dia.fi.upm.es}.
+
+@end{itemize}
+
+@section{The Ciao System}
+
+@include{CiaoDesc.lpdoc}
+

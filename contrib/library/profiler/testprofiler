@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Clean the profiler to ensure complete recompilation
+make -f /home/edison/mnt/CiaoDE/Makefile recursiveclean
+# Compile the example 2 times due to a bug in the compiler
+ciaoc examples/school
+ciaoc examples/school
+
+# Execute the program and verify that it works well
+examples/school > test_co.pl
+
+# Verify that the profiler output is reentrant compiling the output
+ciaoc test_co.pl

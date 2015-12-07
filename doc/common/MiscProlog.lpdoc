@@ -1,0 +1,10 @@
+This part documents several Ciao libraries which provide different
+useful additional functionality. Such functionality includes
+performing operating system calls, gathering statistics from the
+Ciao engine, file and filename manipulation, error and exception
+handling, fast reading and writing of terms (@concept{marshalling} and
+@concept{unmarshalling}), file locking, issuing program and error messages,
+pretty-printing programs and assertions, a browser of the system
+libraries, additional expansion utilities, concurrent aggregates,
+graph visualization, etc.
+

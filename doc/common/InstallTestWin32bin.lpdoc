@@ -1,0 +1,46 @@
+
+@begin{itemize} 
+
+@item Ciao-related file types (@tt{.pl} source files, @tt{.cpx}
+      executables, @tt{.itf,.po,.asr} interface files, @tt{.pls}
+      scripts, etc.) should have specific icons associated with them
+      (you can look at the files in the folders in the Ciao
+      distribution to check).
+
+@item Double-clicking on the shortcut to @apl{ciaosh}(@tt{.cpx}) on
+      the desktop should start the typical Prolog-style top-level
+      shell in a window. If this shortcut has not been created on the
+      desktop, then double-clicking on the @apl{ciaosh}(@tt{.cpx})
+      icon inside the @tt{shell} folder within the Ciao source folder
+      should have the same effect.
+
+@item In the top-level shell, Ciao library modules should load
+      correctly. Type for example @tt{use_module(library(dec10_io)).}
+      at the Ciao top-level prompt --you should get back a prompt with
+      no errors reported.
+
+@item To exit the top level shell, type @tt{halt.} as usual, or
+      @key{^D}.
+
+@end{itemize}
+
+@noindent
+Also, the following documentation-related actions should work:
+
+@begin{itemize} 
+
+@item Double-clicking on the shortcut to @tt{ciao}(@tt{.html}) which appears
+      on the desktop should show the Ciao manual in your default WWW
+      browser.  If this shortcut has not been created you can
+      double-click on the @tt{ciao}(@tt{.html}) file in the
+      @tt{doc\reference\ciao_html} folder inside the Ciao source
+      folder.
+
+      @cindex{help}
+
+@item The @tt{doc\reference} folder contains the manual also in the
+      other formats present in the distribution, such as @tt{info}
+      (very convenient for users of the @apl{emacs} editor/program
+      development system) and @tt{pdf}.
+
+@end{itemize}

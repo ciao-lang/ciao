@@ -1,0 +1,15 @@
+:- module(_trigger_no_active_occurrence,[trigger_no_active_occurrence/0]).
+
+%% Ciao begin
+:- use_package(chr).
+%% Ciao end
+
+:- chr_constraint a/1, b/2.
+
+a(X) # ID , b(X,R) <=> R = 1 pragma passive(ID).
+
+trigger_no_active_occurrence :-
+	a(X),
+	X = 1,
+	b(1,R),
+	R == 1.

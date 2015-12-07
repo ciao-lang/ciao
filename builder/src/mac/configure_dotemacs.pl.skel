@@ -1,0 +1,24 @@
+:- module(_, _, [dcg]).
+
+:- use_module(ciaobld(register_in_script), [register_in_script/3, unregister_from_script/3]).
+
+main(['--install', DotEmacs]):-
+	emacs_lines(Text),
+	register_in_script(DotEmacs, ";", Text),
+	halt(0).
+main(['--uninstall', DotEmacs]):-	
+	unregister_from_script(DotEmacs, ";"),
+	halt(0).
+main(_):- halt(1).
+
+emacs_lines(Text) :- emacs_lines_(Text, []).
+
+emacs_lines_ -->
+	start_message(";", Key),
+"(setq ciao-root-dir (concat (substring (shell-command-to-string \"osascript -e 'tell application id \\\"com.apple.finder\\\" to POSIX path of (application file id \\\"{{DOMAIN}}\\\" as alias)'\") 0 -2 )  \"/Contents/Resources\" ))
+(setenv \"PATH\" (concat ciao-root-dir \"{{BINDIR}}:\" (getenv \"PATH\")))
+(setenv \"CIAOENGINE\" (concat ciao-root-dir \"{{CIAOENGINE}}\"))
+(setenv \"CIAOLIB\" (concat ciao-root-dir \"{{BUNDLEDIR_CORE}}\"))
+(load-file (concat ciao-root-dir \"{{BUNDLEDIR_CORE}}/ciao-mode-init.el\"))\n",
+	end_message(";", Key).
+

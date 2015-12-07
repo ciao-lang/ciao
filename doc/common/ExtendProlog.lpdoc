@@ -1,0 +1,20 @@
+The libraries documented in this part extend the
+Ciao language in several different ways. The extensions include:
+
+	@begin{itemize}
+	@item @concept{pure Prolog} programming (well, this can  be  
+              viewed more as a restriction than an extension);
+	@item @concept{feature terms} or @index{records} (i.e., 
+              structures with names for each field);
+	@item @concept{parallel programming} (e.g., &-Prolog style);
+	@item @concept{functional syntax};
+	@item @concept{higher-order};
+	@item @concept{global variables};
+	@item @tt{setarg} and @tt{undo};
+	@item @concept{delaying predicate execution};
+	@item @concept{active modules};
+	@item @concept{breadth-first execution};
+	@item @concept{iterative deepening-based execution};
+	@item @concept{constraint logic programming};
+	@item @concept{object oriented programming}.
+	@end{itemize}

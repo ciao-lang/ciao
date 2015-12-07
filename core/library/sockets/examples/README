@@ -1,0 +1,9 @@
+
+* client/server: a server and a client written in Ciao Prolog and
+communicating using TCP/IP sockets.  The client is threaded; it is
+started specifying the number of threads to start.  It returns the
+number of socket it is listening to.  The clients are started
+specifying the number of requests to make, the machine the server is
+running on, and the port to connect to.  Every request is just two
+numbers in two different lines which are added by the client, and
+result returned to the client, which checks this result.

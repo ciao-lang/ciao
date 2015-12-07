@@ -1,0 +1,4 @@
+@cindex{contributed libraries} This part includes a number of
+libraries which have contributed by users of the Ciao system. Over
+time, some of these libraries are moved to the main library
+directories of the system.

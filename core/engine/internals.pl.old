@@ -1,0 +1,608 @@
+:- module(internals, [
+        builtin_module/1,
+        load_lib/2, load_so/2, dynlink/2, dynunlink/1,
+        initialize_module/1,
+        term_to_meta/2,
+        module_concat/3,
+        last_module_exp/5,
+        '$atom_mode'/2, /* write.pl */
+        '$nodebug_call'/1,
+        '$meta_call'/1, % This is transformed by mexpand to call/1
+        '$bootversion'/0, '$open'/3,
+        '$purge'/1, '$erase'/1, '$ptr_ref'/2, '$inserta'/2,
+        '$insertz'/2, '$make_bytecode_object'/4, '$abolish'/1,
+        '$compile_term'/2,'$instance'/3,
+        '$define_predicate'/2, '$erase_clause'/1, '$clause_number'/2,
+        '$compiled_clause'/4, '$empty_gcdef_bin'/0, '$set_property'/2,
+        '$ddt'/1, '$qread'/2, '$push_qlinfo'/0, '$pop_qlinfo'/0,
+        '$prompt'/2, '$frozen'/2, '$defrost'/2, '$setarg'/4,
+        '$undo_goal'/1, '$metachoice'/1, '$metacut'/1, '$retry_cut'/2,
+        '$exit'/1,
+        '$unknown'/2,
+        '$compiling'/2,
+        '$ferror_flag'/2,
+        '$quiet_flag'/2,
+        '$spypoint'/3, '$debugger_state'/2, '$debugger_mode'/0,
+        '$prolog_radix'/2, '$constraint_list'/2, '$eq'/2,
+        '$large_data'/3, '$interpreted_clause'/2,
+        '$set_global_logical_var'/2, '$get_global_logical_var'/2,
+        '$erase_atom'/1,
+        /* system.pl */
+        '$unix_popen'/3, '$exec'/4,
+        '$unix_argv'/1,
+        '$load_foreign_files'/4, '$prepare_foreign_files'/3,
+        '$foreign_base'/1, '$find_file'/8,
+        '$format_print_float'/3, '$format_print_integer'/3, /* format.pl */
+        '$runtime'/1, '$walltime'/1, 
+        '$termheap_usage'/1, '$envstack_usage'/1,
+        '$trail_usage'/1, '$choice_usage'/1, '$stack_shift_usage'/1,
+        '$internal_symbol_usage'/1,
+        '$program_usage'/1, '$total_usage'/1, '$gc_mode'/2, '$gc_trace'/2,
+        '$gc_margin'/2, '$gc_usage'/1, '$predicate_property'/3,
+        '$current_clauses'/2, '$first_instance'/2, '$current_instance'/5,
+        '$emulated_clause_counters'/4, '$counter_values'/3,
+        '$close_predicate'/1, '$open_predicate'/1, '$unlock_predicate'/1,
+        '$reset_counters'/2, poversion/1, undefined_goal/1,
+        initialization/1, on_abort/1,                  % implicit
+        imports/5, meta_args/2, multifile/3, defines/3 %
+        ],
+	[assertions, .(metadefs)]).
+
+:- use_module(user, [main/0, main/1, aborting/0]).
+
+:- import(debugger, [debug_trace/1]).
+
+:- comment(title,"Engine Internal Predicates").  
+
+:- comment(module,"
+
+This library lists a set of internal predicates (written in C) used by
+the system code. They should not be used in user code. The file itself
+provides handles for the module system into the internal definitions.
+
+").
+
+:- impl_defined([dynlink/2, dynunlink/1,
+        '$atom_mode'/2, '$nodebug_call'/1, '$meta_call'/1,
+        '$bootversion'/0, '$open'/3, '$purge'/1, '$erase'/1, '$ptr_ref'/2,
+        '$inserta'/2, '$insertz'/2, '$make_bytecode_object'/4, '$abolish'/1,
+        '$compile_term'/2, '$instance'/3, '$define_predicate'/2,
+        '$erase_clause'/1, '$clause_number'/2, '$compiled_clause'/4,
+        '$empty_gcdef_bin'/0, '$set_property'/2, '$ddt'/1, '$qread'/2,
+        '$push_qlinfo'/0, '$pop_qlinfo'/0, '$prompt'/2, '$frozen'/2,
+        '$defrost'/2, '$setarg'/4, '$undo_goal'/1, '$metachoice'/1,
+        '$metacut'/1, '$retry_cut'/2, '$exit'/1, '$unknown'/2, '$compiling'/2,
+        '$ferror_flag'/2, '$quiet_flag'/2, '$spypoint'/3, '$debugger_state'/2,
+        '$debugger_mode'/0, '$prolog_radix'/2, '$constraint_list'/2, '$eq'/2,
+        '$large_data'/3, '$interpreted_clause'/2, '$unix_popen'/3,
+        '$exec'/4, '$unix_argv'/1, '$load_foreign_files'/4,
+        '$prepare_foreign_files'/3, '$foreign_base'/1, '$find_file'/8,
+        '$format_print_float'/3, '$format_print_integer'/3, 
+        '$set_global_logical_var'/2, '$get_global_logical_var'/2,
+        '$erase_atom'/1,
+        '$runtime'/1, '$walltime'/1,
+        '$termheap_usage'/1, '$envstack_usage'/1, '$trail_usage'/1,
+        '$choice_usage'/1, '$stack_shift_usage'/1, '$program_usage'/1,
+        '$internal_symbol_usage'/1,
+        '$total_usage'/1, '$gc_mode'/2, '$gc_trace'/2, '$gc_margin'/2,
+        '$gc_usage'/1, '$predicate_property'/3, '$current_clauses'/2,
+        '$first_instance'/2, '$current_instance'/5,
+        '$emulated_clause_counters'/4, '$counter_values'/3,
+        '$close_predicate'/1, '$open_predicate'/1, '$unlock_predicate'/1,
+        '$reset_counters'/2, initialization/1, on_abort/1,
+        imports/5, meta_args/2, multifile/3, defines/3, ldlibs/1, 'SYSCALL'/1,
+        'CHOICE IDIOM'/1, 'CUT IDIOM'/1]).
+
+:- primitive_meta_predicate('$nodebug_call'(goal)).
+
+:- multifile load_libs/0.
+
+:- data all_loaded/0.
+
+boot:-
+        initialize_debugger_state,
+        setup_paths,
+        ( load_libs ; true),
+	initialize,
+        asserta_fact(all_loaded),
+        gomain.
+boot:-
+        message(error,'Predicates user:main/0 and user:main/1 undefined, exiting...'),
+        halt(1).
+
+% This has to be done before any choicepoint
+initialize_debugger_state :-
+	'$debugger_state'(_, s(off,off,1000000,0,[])),
+	'$debugger_mode'.
+
+gomain :-
+        '$predicate_property'('user:main',_,_), !,
+	( '$nodebug_call'(main) -> true ; global_failure ).
+gomain :-
+        '$predicate_property'('user:main'(_),_,_), !,
+        current_prolog_flag(argv, Args),
+        ( '$nodebug_call'(main(Args)) -> true ; global_failure ).
+
+global_failure :-
+        message('{Program ended with failure}'),
+        halt(2).
+
+reboot:-
+        all_loaded,
+        initialize_debugger_state,
+	reinitialize,
+	'$nodebug_call'(aborting), !.
+
+initialize:-
+	initialization(_),
+	fail.
+initialize.
+
+reinitialize:-
+	on_abort(_),
+	fail.
+reinitialize.
+
+:- initialization(fail).
+:- on_abort(fail).
+
+control_c_handler :- throw(control_c).
+
+%% Module expansion
+
+% Called from engine(mexpand)
+uses_runtime_module_expansion.
+
+:- include(mexpand).
+
+module_warning(not_defined(F, N, M)) :- !,
+        message(warning, ['Predicate ',~~(F/N),' undefined in module ',M]).
+module_warning(not_imported(F, N, M, QM)) :- !,
+        message(warning, ['Module qualification of ',~~(F/N),
+                          ' ignored, module ',M,
+                          ' does not import the predicate from module ',QM]).
+module_warning(bad_pred_abs(PA)) :- !,
+        message(error, ['Bad predicate abstraction ',~~(PA),
+                          ' : head functor should be ''\\:''']).
+module_warning(big_pred_abs(PA, N)) :- !,
+        message(error, ['Predicate abstraction ',~~(PA),
+                          ' has too many arguments: should be ',N]).
+module_warning(short_pred_abs(PA, N)) :- !,
+        message(error, ['Predicate abstraction ',~~(PA),
+                          ' has too few arguments: should be ',N]).
+
+:- pred term_to_meta/2 # "Transforms a normal term to a meta-term.".
+
+term_to_meta(X, '$:'(X)).
+
+last_module_exp(V, _Type, _M, _QM, V) :- var(V), !.
+last_module_exp(QM:T, Type, M,_QM, NT) :- !,
+        ( var(QM) -> expand_meta(T, Type, M, QM, NT)
+        ; last_module_exp(T, Type, M, QM, NT)
+        ).
+last_module_exp('$:'(T), _Type, _M, _QM, T) :- !. % already expanded
+last_module_exp(T, Type, M, QM, NT) :-
+        do_module_exp(QM, T, M, Type, NT), !.
+last_module_exp(T, _Type, _M, _QM, T).
+
+mid_module_exp(V, _Type, _M, _QM, V) :- var(V), !.
+mid_module_exp(QM:T, Type, M,_QM, NT) :- nonvar(QM), !,
+        mid_module_exp(T, Type, M, QM, NT).
+mid_module_exp(T, _Type, _M, _QM, T) :-
+        T = '$:'(_), !. % already expanded
+mid_module_exp(T, Type, M, QM, NT) :-
+        do_module_exp(QM, T, M, Type, T1), !,
+        term_to_meta(T1, NT).
+mid_module_exp(T, _Type, _M, _QM, T).
+
+do_module_exp(QM, T, M, Type, NT) :-
+        nonvar(QM),
+        functor(QM, XM, 1), !,
+%        accessible_in(M, XM, mod_exp, 5),
+        arg(1, QM, XQM),
+        atom_concat(XM, ':mod_exp', PX), % XM:mod_exp/5 makes the expansion
+        functor(GEXP, PX, 5),
+        '$predicate_property'(GEXP, _, _),
+        arg(1,GEXP,Type),
+        arg(2,GEXP,T),
+        arg(3,GEXP,M),
+        arg(4,GEXP,XQM),
+        arg(5,GEXP,NT),
+        '$meta_call'(GEXP).
+do_module_exp(QM, T, M, Type, NT) :-
+        expand_meta(T, Type, M, QM, NT). %,
+%        \+ recursive(NT).
+
+% recursive((last_module_exp(_,_,_,_,_),_)).
+% recursive((mid_module_exp(_,_,_,_,_),_)).
+
+:- include(builtin_modules).
+
+module_concat(internals, A, A) :- !.
+module_concat(user(_), A, NA) :- !,
+        module_concat(user, A, NA).
+module_concat(BTIN, A, NA) :-
+        builtin_module(BTIN), !,
+        NA = A.
+module_concat(M, A, NA) :-
+	A=..[F|Args],
+        atom(F), !,
+	atom_concat(M, ':', Mc),
+	atom_concat(Mc, F, NF),
+	NA=..[NF|Args].
+module_concat(_, A, A). % If a number, do not change to complain later
+
+% Support for call/n, see mexpand & read
+
+call(V, _) :- var(V), !, throw(error(instantiation_error, call/n-1)).
+call(:-(H,B), A) :-
+        copy_term(:-(H,B), :-(A,NB)),
+        '$meta_call'(NB).
+call(Pred/N, A) :-
+        functor(A, _, NA),
+        ( NA=N ->
+            functor(Pred, F, M),
+            T is N+M,
+            functor(Goal, F, T),
+            unify_args(N, A, N, Goal),
+            unify_args(M, Pred, T, Goal),
+            '$meta_call'(Goal)
+        ; throw(error(type_error(pred(NA),Pred), call/n-1))
+        ).
+
+%------ call with continuations -----%
+% Called from within the emulator, as possible boot goal for a wam
+
+call_with_cont([](Goal, OnSuccess, _OnFailure)):-
+        'SYSCALL'(Goal),
+        'SYSCALL'(OnSuccess).
+call_with_cont([](_Goal_, _OnSuccess, OnFailure)):-
+        'SYSCALL'(OnFailure).
+
+%------ paths ------%
+
+:- multifile file_search_path/2, library_directory/1.
+
+:- dynamic file_search_path/2, library_directory/1.
+
+file_search_path(library, Lib) :- library_directory(Lib).
+file_search_path(.,.).
+
+setup_paths :-
+        ciaolibdir(Path),
+        atom_concat(Path,'/lib',LibPath),
+        assertz_fact(library_directory(LibPath)),
+        atom_concat(Path,'/library',LibraryPath),
+        assertz_fact(library_directory(LibraryPath)),
+        atom_concat(Path,'/contrib',ContribPath),
+        assertz_fact(library_directory(ContribPath)),
+        atom_concat(LibPath, '/engine', Engine),
+        assertz_fact(file_search_path(engine, Engine)).
+
+%------ load_lib ------%
+
+load_lib(Module,_File) :-
+        current_module(Module), !.
+load_lib(Module, File) :- % loads both .so and .po - JFMC
+        prolog_flag(fileerrors, OldFE, off),
+        ( getOsArchSuf(OsArchSuff),
+          absolute_file_name(File, OsArchSuff, '.so', '.', Abs, Base, _),
+          Abs \== Base, % Has .so extension
+	    dynlink(Abs, Module),
+%            assertz_fact(current_module(Module)),
+	    fail
+	; true
+	),
+        ( absolute_file_name(File, '_opt', '.po', '.', Abs, Base, _),
+          Abs \== Base, % Has .po extension
+            poload(Abs),
+            ldlibs(Module),
+	    fail
+        ; true
+	),
+        set_prolog_flag(fileerrors, OldFE),
+        check_module_loaded(Module, File).
+
+%------ load_lib for lazy load ------%
+
+load_lib_lazy(Module,_File) :-
+        current_module(Module), !.
+load_lib_lazy(Module, File) :- % loads both .so and .po - JFMC
+        del_stumps(Module),
+        prolog_flag(fileerrors, OldFE, off),
+        ( absolute_file_name(File, '_opt', '.po', '.', Abs, Base, _),
+          Abs \== Base, % Has .po extension
+            poload(Abs),
+            initialize_module(Module),
+	    fail
+        ; true
+	),
+	( getOsArchSuf(OsArchSuff),
+          absolute_file_name(File, OsArchSuff, '.so', '.', Abs, Base, _),
+          Abs \== Base, % Has .so extension
+	    dynlink(Abs, Module),
+%            assertz_fact(current_module(Module)),
+	    fail
+        ; true
+	),
+        set_prolog_flag(fileerrors, OldFE),
+        check_module_loaded(Module, File).
+
+getOsArchSuf(OsArchSuff) :-
+        get_os(Os),
+        get_arch(Arch),
+        atom_concat(Os, Arch, OsArch),
+        atom_concat('_', OsArch, OsArchSuff).
+
+check_module_loaded(Module,_File) :- current_module(Module), !.
+check_module_loaded(_Module,File) :-
+        message(error,['library ',File,' not found, exiting...']),
+        halt(1).
+
+:- multifile stump/2.
+:- data stump/2.
+
+del_stumps(Module) :-
+        retract_fact(stump(Module, Pred)),
+        '$abolish'(Pred),
+        fail.
+del_stumps(_).
+
+initialize_module(M) :-
+        initialization(M),
+        fail.
+initialize_module(_).
+
+%------ low-level loading of objects ------%
+
+poload(AbsName) :-
+	'$push_qlinfo',
+        '$open'(AbsName, read, Stream),            % Gives errors
+	'$qread'(Stream, Version),
+	poversion(Version), !,
+	repeat,
+	  '$qread'(Stream, Goal),
+          (   Goal= -1
+          ;   'SYSCALL'(Goal), fail
+          ), !,
+	'$pop_qlinfo',
+	close(Stream).
+poload(AbsName) :-
+        message(error,[AbsName,' - wrong .po version number']),
+        halt(1).
+
+load_so(Module, File) :-
+        get_arch(A),
+        get_os(O),
+        atom_concat(O, A, OsArch),
+        atom_concat('_', OsArch, OsArchSuff),
+        absolute_file_name(File, OsArchSuff, '.so', '.', Abs, _, _),
+        dynlink(Abs, Module).
+
+load_po(File) :-
+        absolute_file_name(File, '_opt', '.po', '.', Abs, _, _),
+        poload(Abs).
+
+poversion(version(66)).
+
+%------ attributed variables ------%
+
+:- multifile 
+        verify_attribute/2,
+        combine_attributes/2.
+
+%
+% called from the emulator
+% if there is just one single pending unification
+%
+uvc(A, B) :- verify_attribute(A, B).
+ucc(A, B) :- combine_attributes(A, B). 
+
+% there are more pending unifications (relatively rare)
+%
+pending_unifications([]).
+pending_unifications([ [Var|Val] |Cs]) :-
+  pending_unification(Var, Val),
+  pending_unifications(Cs).
+
+pending_unification(A, B) :-
+  get_attribute(A, Ac),
+  get_attribute(B, Bc),
+  !,
+  combine_attributes(Ac, Bc). 
+pending_unification(A, B) :-
+  get_attribute(A, Ac),
+  !,
+  verify_attribute(Ac, B). 
+pending_unification(A, B) :-
+  get_attribute(B, Bc),
+  !,
+  verify_attribute(Bc, A).
+%
+pending_unification(A, A).		% reduced to syntactic unification
+
+%------ internal builtin errors ------%
+
+% Called from within the emulator
+error(Type, PredName, PredArity, Arg, Culprit) :-
+        error_term(Type, Culprit, Error_Term),
+        where_term(Arg, PredName, PredArity, Where_Error),
+        throw(error(Error_Term, Where_Error)).
+
+/* Error codes <-> error terms, xref support.h */
+error_term(1, _, instantiation_error) :- !.
+error_term(2, C, permission_error(input,past_end_of_stream,S)) :- !,
+        culprit_stream(C,S).
+error_term(3, S, permission_error(input,stream,S)) :- !.
+error_term(4, S, permission_error(output,stream,S)) :- !.
+error_term(5, S, existence_error(source_sink, S)) :- !.
+error_term(6, S, permission_error(open, source_sink, S)) :- !.
+error_term(N, Culprit, T) :-
+        Code is N-32,
+        (
+            type_code(Code, Type) ->
+                T = type_error(Type, Culprit)
+        ;   domain_code(Code, Domain) ->
+                T = domain_error(Domain, Culprit)
+        ).
+
+culprit_stream([], S) :- !, current_input(S).
+culprit_stream(S,S).
+
+type_code(0, atom).
+type_code(1, atomic).
+type_code(2, byte).
+type_code(3, callable).
+type_code(4, compound).
+type_code(5, evaluable).
+type_code(6, in_byte).
+type_code(7, integer).
+type_code(8, list).
+type_code(9, number).
+type_code(10, predicate_indicator).
+type_code(11, variable).
+
+domain_code(32, character_code_list).
+domain_code(33, stream_or_alias).
+
+where_term(0, PredName, PredArity, PredName/PredArity) :- !.
+where_term(Arg, PredName, PredArity, PredName/PredArity-Arg).
+
+%------ interpreter ------%
+
+% called from within the emulator
+
+interpret_goal(Head, Root) :-
+	'CHOICE IDIOM'(Cut),
+	'$current_instance'(Head, Body, Root, _, no_block),
+        '$unlock_predicate'(Root),
+	metacall(Body, Cut, interpret).
+
+interpret_compiled_goal(Head, _) :- debug_trace(Head).
+
+undefined_goal(X) :- 'CHOICE IDIOM'(Cut), metacall(X, Cut, undefined).
+
+debug_goal(X) :- 'CHOICE IDIOM'(Cut), metacall(X, Cut, debug).
+
+metacall(X, _, _) :-
+	var(X), !,
+        throw(error(instantiation_error, call/1-1)).
+metacall(true, _, _) :- !.
+metacall(!, ?, _) :- !,
+        message(warning, '! illegal in \\+ or if-parts of ->, if; ignored').
+metacall(!, Cut, _) :- !,
+	'CUT IDIOM'(Cut).
+metacall((X, Y), Cut, _) :- !,
+	metacall(X, Cut, interpret),
+	metacall(Y, Cut, interpret).
+metacall((X->Y;Z), Cut, _) :- !,
+	(   metacall(X, ?, interpret) ->
+	    metacall(Y, Cut, interpret)
+	;   metacall(Z, Cut, interpret)
+	).
+metacall((X->Y), Cut, _) :- !,
+	(   metacall(X, ?, interpret) ->
+	    metacall(Y, Cut, interpret)
+	).
+metacall((X;Y), Cut, _) :- !,
+	(   metacall(X, Cut, interpret)
+	;   metacall(Y, Cut, interpret)
+	).
+metacall((\+ X), _, _) :- !,
+	\+ metacall(X, ?, interpret).
+metacall(if(P,Q,R), Cut, _) :- !,
+	if(metacall(P, ?, interpret),
+	   metacall(Q, Cut, interpret),
+	   metacall(R, Cut, interpret)).
+metacall((_^G), Cut, _) :- !,
+	metacall(G, Cut, interpret).
+metacall(X, _, _) :-
+	number(X), !,
+	throw(error(type_error(callable,X), 'in metacall')).
+metacall(X, _, Mode) :-
+	metacall2(Mode, X).
+
+metacall2(interpret, X) :- '$meta_call'(X).
+metacall2(undefined, X) :- '$unknown'(F, F), do_undefined(F, X).
+metacall2(debug, X) :- debug_trace(X).
+
+do_undefined(error, X) :-
+        functor(X, F, A),
+        throw(error(existence_error(procedure, F/A), F/A)).
+do_undefined(warning, X) :-
+        message(warning, ['The predicate ', X, ' is undefined']),
+        fail.
+% do_undefined(fail, X) :- fail.
+
+:- comment(version_maintenance,dir('../../version')).
+
+:- comment(version(1*5+116,2000/04/12,13:44*55+'CEST'), "Added
+   initialization of debugger state at boot time.  (Daniel Cabeza
+   Gras & Manuel Carro Liñares & Manuel Carlos Rodríguez)").
+
+:- comment(version(1*5+63,2000/03/13,18:43*45+'CET'), "Changed mexpand
+   to allow using user:pred to call pred from one user file to another,
+   useful if pred is also imported from a module. (Daniel Cabeza
+   Gras)").
+
+:- comment(version(1*5+56,2000/02/16,21:27*41+'CET'), "Added check to
+   exit the executable when an abort occurs before all object code is
+   loaded.  (Daniel Cabeza Gras)").
+
+:- comment(version(1*5+50,2000/02/10,18:12*18+'CET'), "Fixed bug in the
+   startup of executables which failed when libraries where composed of
+   prolog and C code. (Daniel Cabeza Gras)").
+
+:- comment(version(1*5+44,2000/02/04,20:03*24+'CET'), "Fixed a bug
+   introduced in version 1*3+55 which disallowed undetermined calls
+   inside an undetermined call (which happens mainly in the toplevel).
+   (Daniel Cabeza Gras)").
+
+:- comment(version(1*5+34,1999/12/31,18:49*41+'CET'), "Changed predicate
+   abstractions to have the head with functor '\:', and to have separate
+   name space of variables. (Daniel Cabeza Gras)").
+
+:- comment(version(1*3+90,1999/10/29,20:48*53+'MEST'), "Reverted the
+   possibility to call a dynamically loaded predicate as _:pred.  (Daniel
+   Cabeza Gras)").
+
+:- comment(version(1*3+55,1999/09/16,18:45*29+'MEST'), "Added suport for
+   runtime module expansions by external code expansors (like object).
+   (Daniel Cabeza Gras)").
+
+:- comment(version(1*3+6,1999/06/24,21:22*35+'MEST'), "Added support for
+   predicate abstractions in call/N.  (Daniel Cabeza Gras)").
+
+:- comment(version(1*1+6,1999/06/14,16:49*54+'MEST'), "Changed
+   '$current_instance'/5 in interpret_goal/2 to be non-blocking, to
+   solve deadlock problems in interpreted code (Daniel Cabeza Gras &
+   Manuel Carro Liñares)").
+
+:- comment(version(0*9+70,1999/04/30,11:40*23+'MEST'), "Updated to
+   take into account get_arch/1 and get_os/1 (the latter is new).
+   (MCL)").
+
+:- comment(version(0*5+50,1998/07/14,20:36*12+'MET DST'), "Translated
+   call_in_module/2 to debugger.  (Daniel Cabeza Gras)").
+
+:- comment(version(0*5+8,1998/04/29,21:02*35+'MET DST'), "Now
+   executables can start at main/1.  (Daniel Cabeza Gras)").
+
+:- comment(version(0*5+6,1998/04/17,20:36*39+'MET DST'), "Added support
+   for lazy loading (Daniel Cabeza Gras)").
+
+:- comment(version(0*4+10,1998/3/9), "Added interpret_compiled_goal/1 to
+   call the debugger when tracing (Daniel Cabeza Gras)").
+
+:- comment(version(0*4+9,1998/3/6), "Added call_in_module/2 to be used in
+   the shell.  (Daniel Cabeza Gras)").
+
+:- comment(version(0*4+8,1998/2/26), "Changed ciaolibdir/1 to point to
+   ciao.  (Manuel Hermenegildo)").
+
+:- comment(version(0*1+1,1998/1/20), "Unified documented and
+   non-documented system versions (eliminating engine.doc
+   directory). (Manuel Hermenegildo)").
+
+:- comment(version(0*1+0,1997/9/30), "Started in-code
+   documentation. (Manuel Hermenegildo)").

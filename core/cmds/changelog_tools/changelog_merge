@@ -1,0 +1,353 @@
+#!/usr/bin/env ciao-shell
+% -*- mode: ciao; -*-
+
+:- use_package(assertions).
+:- use_module(library(lists), [append/3, length/2]).
+:- use_module(library(read)).
+:- use_module(library(strings)).
+:- use_module(library(terms)).
+:- use_module(library(format)).
+:- use_module(library(system)).
+:- use_module(library(write)).
+
+main(['--check']):- check.
+main(['--repair']):- repair.
+main(['--update']):- update.
+main(['--help']):- main([]).
+main(_):- 
+        usage_message(M),
+        format(M, [changelog_merge]).
+
+usage_message(X):-
+        X =
+"
+Usage: ~w [--check|--repair|--update|--help]
+Use this program to manage the synchronization between the GlobalChangeLog
+file and the different files it refers to.  The program analyzes the patch
+numbers associated to each change and tests the consistency in the different
+files they refer to.  The available options are:
+
+  --help:  what you are reading.
+  --check: just check and give a message when any inconsisteny is found.
+  --repair: repair (some) inconsistencies (e.g., use GlobalChangeLog as
+            master and rewrite patch numbers in files).  This can take
+            some time, and is not intended to be used very often.  The
+            GlobalPatch file is updated.
+  --update: fetch the GlobalChangeLog file from CVS, merge it with the
+            local one, and patch up the inconsistencies in the files.
+            Should not take very long, as it is incremental.
+
+".
+
+check:- 
+        set_prolog_flag(write_strings, on),
+        format("Checking GlobalChangeLog file~n", []),
+        LocalLog = 'GlobalChangeLog',
+        read_changelog_file(LocalLog, LocalList),
+        check_file_consistency(LocalList, check).
+
+repair:- 
+        set_prolog_flag(write_strings, on),
+        format("Checking GlobalChangeLog file~n", []),
+        LocalLog = 'GlobalChangeLog',
+        read_changelog_file(LocalLog, LocalList),
+        check_file_consistency(LocalList, repair).
+
+update:-
+        ChLog = 'GlobalChangeLog',
+        PrevLog = 'GlobalChangeLog.prev',
+        UpdLog  = 'GlobalChangeLog.upd',
+        prepare_files(ChLog, PrevLog, UpdLog),
+	read_changelog_file(PrevLog, PrevList),
+ 	read_changelog_file(UpdLog, UpdList),
+        locate_difference(PrevList, UpdList, PrevRest),
+        append(_PreRL, [C], UpdList),
+        C = comment(version(LastPatch, _, _), _),
+        adjust_log(PrevRest, LastPatch, PrevAdjusted, HighestPatch),
+        HighestPatch = _Maj*_Min+Patch,
+        % rename_file('GlobalPatch', 'GlobalPatch.bak'),
+        open('GlobalPatch', write, PatchFile),
+        format(PatchFile, "~w", [Patch]),
+        close(PatchFile),
+        open(ChLog, write, Output),
+        write_log_messages(PrevAdjusted, Output),
+        write_log_messages(UpdList, Output),
+        format(Output,
+               "~n~s~n~s~n~s~n~s~n",
+               [
+                   "%% Local Variables: ",
+                   "%% mode: CIAO",
+                   "%% update-version-comments: \"off\"",
+                   "%% End:"
+               ]),
+        close(Output),
+        check_file_consistency(PrevAdjusted, repair).
+
+
+
+
+prepare_files(ChLog, PrevLog, UpdLog):-
+        rename_file(ChLog, PrevLog),
+        format("~s~n", [
+"Retrieving GlobalChangeLog from repository.  New GlobalChangeLog will be 
+left in place. GlobalPatch and affected files are
+automatically updated.  Please pay attention to the messages."
+        ]),
+        atom_concat('cvs update ', ChLog,  Command),
+        system(Command),
+        rename_file(ChLog, UpdLog).
+
+
+check_file_consistency([], _Action).
+check_file_consistency([C|Cs], Action):-
+        check_one_file(C, Action),
+        check_file_consistency(Cs, Action).
+
+
+number_str_fill(Num, Str):-
+        number_codes(Num, NumStr),
+        (
+            NumStr = [_] ->   % Add one zero
+            Str = "0"||NumStr
+        ;
+            NumStr = Str
+        ).
+
+number_str(Num, NumStr):-
+        number_codes(Num, NumStr).
+
+multiappend([], []).
+multiappend([L|Ls], A):-
+        multiappend(Ls, Ar),
+        append(L, Ar, A).
+
+date_to_str(Y/M/D, Hour:Min*Sec+_TimeZone, StrDate):-
+        number_str_fill(Y, Ya),
+        number_str_fill(M, Ma),
+        number_str_fill(D, Da),
+        number_str_fill(Hour, Houra),
+        number_str_fill(Min, Mina),
+        number_str_fill(Sec, Seca),
+        multiappend([Ya, "/", Ma, "/", Da, ",", 
+                     Houra, ":", Mina, "*", Seca], StrDate).
+
+version_to_str(Maj*Min+Patch, StrVersion):-
+        number_str(Maj, Maja),
+        number_str(Min, Mina),
+        number_str(Patch, Patcha),
+        multiappend([Maja, "*", Mina, "+", Patcha], StrVersion).
+
+update_file(F, CodeList, Date, NewVersion):-
+        atom_concat(F, '.upd_bak', FBack),
+        rename_file(F, FBack),
+        format("Version not found in ~w; updating file~n", [F]),
+        format("Backup left in ~w (please check before committing)~n", 
+               [FBack]),
+        % Find the smallest region which encloses (version(...,Date
+        append(BefVersion, "(version("||AfterVersion, CodeList),
+        first_colon(AfterVersion, AfterComma),
+        append(Date, _AfterDate, AfterComma),
+        multiappend([BefVersion, "(version(", NewVersion, ","||AfterComma],
+                     NewFileCode), 
+        write_file(F, NewFileCode).
+
+first_colon(","||AfterComma, AfterComma):- !.
+first_colon([_|NoCommas], Rest):-
+        first_colon(NoCommas, Rest).
+
+check_one_file(C, Action):-
+        C = comment(version(Version, Date, Hour), File),
+        atom_codes(AtomFile, File),
+        (
+            file_exists(AtomFile) ->  % File found
+            date_to_str(Date, Hour, DateStr),
+            grep(AtomFile, DateStr, Res, CodeList),
+            (
+                Res = found ->   % Date found, go ahead
+                version_to_str(Version, VersStr),
+                append(VersStr, ","||DateStr, FullStr),
+                test_line(CodeList, FullStr, FullRes),
+                (
+                    FullRes = found ->  % Date and version found, do nothing
+                    true
+                ; % Version not found: should we patch or check?
+                    (
+                        Action = check ->
+                        format("Version not found in file ~w~n", [AtomFile])
+                    ;   
+                        update_file(AtomFile, CodeList, DateStr, VersStr)
+                    ),
+                    true
+                )
+            ;
+                (
+                    Action = check ->
+                    format("Date ~w not found in file ~s~n", [DateStr, File])
+                ;
+                    true
+                )
+            )
+        ;
+            (
+                Action = check ->
+                format("File ~s not found!~n", [File])
+            ;
+                true
+            )
+        ).
+
+
+% I am using a sublist search, instead of pattern matching
+% --- the expression I want to locate is quite simple (does not have
+% wildcards, etc.)
+
+test_line(Line, Expression, Result):-
+        (
+            sublist(Expression, Line, _Before, _After) ->
+            Result = found
+        ;
+            Result = not_found
+        ).
+
+sublist(Sub, List, Before, After):-
+        append(Before, Post, List),
+        append(Sub, After, Post).
+
+% I have measured reading one line each time vs. reading the whole
+% file.  In an example, the former gives taks 1m36s while the latter
+% takes 2m25s.  Since a-file-at-a-time gives shorter and clearer code,
+% I'll go for this one.
+
+% Grep expression and return file (useful in case it has to be patched).
+
+grep(File, Expression, Result, InFile):-
+        open(File, read, S),
+        get_code(S, Code),
+        read_file(Code, S, InFile),
+        close(S),
+        test_line(InFile, Expression, Result).
+
+read_file(-1, _Stream, []):- !.
+read_file(Code, S, [Code|Codes]):-
+        get_code(S, NewCode),
+        read_file(NewCode, S, Codes).
+
+
+write_file(FileName, List):-
+        open(FileName, write, S),
+        write_code_list(List, S),
+        close(S).
+
+write_code_list([], _Stream).
+write_code_list([Code|Codes], Stream):-
+        put_code(Stream, Code),
+        write_code_list(Codes, Stream).
+        
+
+grep_loop(end_of_file, _Stream, _Exp, not_found):- !.
+grep_loop(Line, S, Expression, Result):-
+        test_line(Line, Expression, ThisResult),
+        (
+            ThisResult = found ->
+            Result = ThisResult,
+            true
+        ;
+            get_line(S, NewLine),
+            grep_loop(NewLine, S, Expression, Result)
+        ).
+        
+
+% Find the first place where the global and local changelogs differ,
+% and return the rest of the local changelog.
+locate_difference([], _Repository, []).
+locate_difference(Local, [], Local):-
+        Local = [_|_], !.
+locate_difference([L|Ls], [L|Rs], LR):- !,
+        locate_difference(Ls, Rs, LR).
+locate_difference([L|Ls], [R|_Rs], [L|Ls]):- 
+        L \== R.
+
+% Readjust (a fragment of) the local changelog in order to put correct
+% version numbers.
+adjust_log([], Version, [], Version).
+adjust_log([C|Cs], InVersion, [NewC|NewCs], OutVersion):-
+        adjust_version(C, NewC, InVersion, MidVersion),
+        adjust_log(Cs, MidVersion, NewCs, OutVersion).
+
+adjust_version(Comment, NewComment, CurrVersion, NewVersion):-
+        Comment =    comment(version(MajorMinor+P,        Date, Hour), File),
+        NewComment = comment(version(MajorMinor+NewPatch, Date, Hour), File),
+        CurrVersion = MajMin+Patch,
+        NewVersion  = MajorMinor+NewPatch,
+        (
+            MajMin = MajorMinor ->
+            NewPatch is Patch + 1
+        ;
+            NewPatch = P
+        ).
+
+
+% Read all the comments into a list of structures
+read_changelog_file(File, List) :-
+	open(File, read, S),
+	read_stream(S, [], List),
+	close(S).
+
+read_stream(S, Accum, List) :-
+	read(S, Term),
+	process(Term, S, Accum, List).
+
+
+%% Reading strips out the ":-" neck, just in order to make its
+%% processing more readable.  It will be recovered when writing.
+
+process(end_of_file, _, List, List):- 
+	!.
+% Read a complete line
+process(Token, S, Accum, Out):-
+        Token = (:- Comment),
+        Comment = comment(version(_Ma*_Mi+_P,_Y/_M/_D,_H:_Mn*_Sc+_T), _FName),
+	!,
+	read_stream(S, [Comment|Accum], Out).
+% Read an old-style line, without time information, and fake it
+process(Token, S, Accum, Out):-
+        Token = (:- doc(version(Ma*Mi+P,Y/M/D), FName )),
+	!,
+        NewToken = comment(version(Ma*Mi+P,Y/M/D,0:0*0+'MET'), FName),
+	read_stream(S, [NewToken|Accum], Out).
+% An unreconized input has been found.  Report an error.
+process(Token, S, _Accum, Out):-
+	error(['unrecognized version format ', Token, ' found']),
+	read_stream(S, Out).
+
+
+write_log_messages([],_).
+write_log_messages([C|Rest],S) :-
+	write_log_messages(Rest,S),
+        write_comment(C, S).
+
+write_comment(C, S):-
+        C = comment(version(Ma*Mi+P,Y/M/D,H:Min*Sec+T),File),
+	format(S,":- doc(version(~w*~w+~w,~w/", [Ma,Mi,P,Y]),
+	write_two_digits(S,M),
+	write(S,'/'),
+	write_two_digits(S,D),
+	write(S,','),
+	write_two_digits(S,H),
+	write(S,':'),
+	write_two_digits(S,Min),
+	write(S,'*'),
+	write_two_digits(S,Sec),
+	format(S,"+~q),\n", [T]),
+	format(S,"   \"~s\").\n\n",[File]).
+
+write_two_digits(S,M) :- 
+	M < 10,
+	!,
+	write(S,'0'),
+	write(S,M).
+write_two_digits(S,M) :- 
+	M >= 10,
+	write(S,M).
+
+

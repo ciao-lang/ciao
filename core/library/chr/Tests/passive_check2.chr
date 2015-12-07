@@ -1,0 +1,15 @@
+:- module(_passive_check2,[passive_check2/0]).
+
+%% Ciao begin
+:- use_package(chr).
+%% Ciao end
+
+:- chr_constraint a/1, b/2.
+
+:- chr_option(debug,off).
+:- chr_option(optimize,full).
+
+a(X) # ID, b(X,R) <=> R = 1 pragma passive(ID).
+
+passive_check2 :-
+	a(X), b(X,R), R == 1.

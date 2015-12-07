@@ -1,0 +1,83 @@
+
+Ciao Bindings for ZeroMQ v2.2.0 Installation Instructions
+---------------------------------------------------------
+
+1. We assume that you are in the directory where this file is
+   located, i.e.:
+
+   <CIAO_HOME>/contrib/library/zeromq
+
+2. Create new directory named "zmq_2.2.0_32":
+
+   $ mkdir zmq_2.2.0_32
+   $ cd zmq_2.2.0_32
+
+3. Download the source tarball of ZeroMQ version 2.2.0:
+
+   $ wget http://download.zeromq.org/zeromq-2.2.0.tar.gz
+
+   (or download the corresponding file from the ZeroMQ web site at
+   zeromq.org)
+
+4. Unpack the source tarball:
+
+   $ tar xzvf zeromq-2.2.0.tar.gz
+
+   This will create a directory named "zeromq-2.2.0".  Enter it:
+
+   $ cd zeromq-2.2.0
+
+5. Configure, build and install ZeroMQ.  Below we are just using
+   "-m32" compiler option to force 32 bit code.  Other options, such
+   as "-march=i686" may be necessary on some platforms.
+
+   $ ./configure --prefix=<CIAO_HOME>/contrib/library/zeromq/zeromq_2.2.0_32 \
+     CCFLAGS=-m32 CXXFLAGS=-m32
+   $ make
+   $ make install
+
+6. Go back to the starting directory <CIAO_HOME>/contrib/library/zeromq.
+   If you have used any additional CCFLAGS or CXXFLAGS options in the
+   previous step, uncomment and/or add the corresponding lines in file
+   named "compiler_options.pl".
+
+7. Start ciao and try to load the zeromq library:
+
+   $ ciao
+   Ciao 1.15-1908-g2a09cb4: Tue Sep 24 15:22:23 CEST 2013
+   ?- use_module(library(zeromq)).
+   
+   if everything goes well, after a couple of seconds (the time
+   necessary to generate, compile and link the glue code) the Ciao
+   toplevel will answer with:
+
+   yes
+   ?-
+
+   If any warning or error messages occur, exit the Ciao shell with
+   Ctrl-D, correct the compiler options in the previous steps,
+   recompile ZeroMQ library as necessary and do:
+
+   $ touch zeromq.pl
+
+   to force new attempt, and repeat this step.
+
+8. If the previous step has completed correctly, you can run a demo.
+   In ciao shell execute:
+
+   ?- demo_responder.
+
+   Open another terminal window and execute:
+
+   $ ciao
+   Ciao 1.15-1908-g2a09cb4: Tue Sep 24 15:22:23 CEST 2013
+   ?- use_module(library(zeromq)).
+
+   yes
+   ?- demo_requester("Hello!").
+
+   This will send messages back and forth.  You can stop a demo with:
+
+   ?- demo_requester("").
+
+

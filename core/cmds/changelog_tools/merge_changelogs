@@ -1,0 +1,88 @@
+#!/usr/bin/env ciao-shell
+% -*- mode: ciao; -*-
+
+:- use_module(library(dec10_io)).
+:- use_module(library(ttyout)).
+:- use_module(library(read)).
+:- use_module(library(format)).
+:- use_module(library(lists)).
+
+%----------------------------------------------------------------------
+% Increases a number in a file (good for maintaining version numbers)
+%----------------------------------------------------------------------
+
+main([File1,File2,Target]) :- 
+	read_file(File1,List1),
+ 	read_file(File2,List2),
+ 	merge_lists(List1,List2,Merged),
+	write_file(Target,Merged).
+
+merge_lists(List1,List2,Merged) :-
+	append(List1,List2,Merged).
+	
+
+read_file(File,List) :-
+	open(File,read,S),
+	read_stream(S,List),
+	close(S),
+	!.
+
+read_stream(S,List) :-
+	read(S,Term),
+	process(Term,S,List).
+
+process(end_of_file,_,[]) :- 
+	!.
+process( ( :- doc( version(Ma*Mi+P,Y/M/D,H:Min*Sec+T), FName )) , S,
+       [ ( :- doc( version(Ma*Mi+P,Y/M/D,H:Min*Sec+T), FName )) | Rest ]):-
+	!,
+	read_stream(S,Rest).
+process( ( :- doc( version(Ma*Mi+P,Y/M/D),             FName )) , S,
+       [ ( :- doc( version(Ma*Mi+P,Y/M/D,0:0*0+'MET'), FName )) | Rest ]):-
+	!,
+	read_stream(S,Rest).
+process(  Input , S, Rest ) :-
+	!,
+	error(['unrecognized version format ', Input, ' found']),
+	read_stream(S,Rest).
+
+write_file(File,List) :-
+	open(File,write,S),
+	set_prolog_flag(write_strings, on),
+	write_stream(List,S),
+	write(S,'
+%% Local Variables: 
+%% mode: CIAO
+%% update-version-comments: "off"
+%% End:
+	       \n'),
+	close(S).
+
+write_stream([],_).
+write_stream([( :- doc(version(Ma*Mi+P,Y/M/D,H:Min*Sec+T),File) )
+	     | Rest],S) :-
+	format(S,":- doc(version(~w*~w+~w,~w/",
+	         [Ma,Mi,P,Y]),
+	write_two_digits(S,M),
+	write(S,'/'),
+	write_two_digits(S,D),
+	write(S,','),
+	write_two_digits(S,H),
+	write(S,':'),
+	write_two_digits(S,Min),
+	write(S,'*'),
+	write_two_digits(S,Sec),
+	format(S,"+~q),\n",
+	         [T]),
+	format(S,"   \"~s\").\n\n",[File]), 
+	write_stream(Rest,S).
+
+write_two_digits(S,M) :- 
+	M < 10,
+	!,
+	write(S,'0'),
+	write(S,M).
+write_two_digits(S,M) :- 
+	M >= 10,
+	write(S,M).
+

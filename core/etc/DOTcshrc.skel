@@ -1,0 +1,91 @@
+# -*- mode: sh; -*-
+# --------------------------------------------------------------------
+# Warning: this file has been edited automatically during installation
+# This file is meant for inclusion in user initialization scripts
+# --------------------------------------------------------------------
+#
+# Setting paths for the executables:
+#
+
+# if ( ${?CIAOBINDIR} != 0 ) then
+#     echo "{WARNING: redefining CIAOBINDIR environment variable}"
+# # exit 1
+# endif
+
+# Used to see if we are using this script
+setenv CIAOSCRIPT yes
+
+setenv CIAOBINDIR {{CiaoBinDir}}
+
+if ( ${?PATH} == 0 ) then
+    setenv PATH ${CIAOBINDIR}
+else
+    setenv PATH ${CIAOBINDIR}:`echo ${PATH}|sed -e s:'\:'${CIAOBINDIR}::g`
+#         switch (${PATH})
+# 	case ${CIAOBINDIR}:*:      # it is first one
+# 	     breaksw
+# 	case *:${CIAOBINDIR}:      # it is last one
+# 	     breaksw
+# 	case *:${CIAOBINDIR}:*:    # it is in the middle
+# 	     breaksw
+# 	default:
+# 	     setenv PATH ${CIAOBINDIR}:${PATH}
+# 	     breaksw
+# 	endsw
+endif
+#
+# Setting engine related paths: 
+# 
+# Setting this variable allows you to run the same Ciao executables in
+# different architectures, provided you have compiled and installed
+# the corresponding engine (and libraries, if the executable is not
+# static and/or .so libraries are used).
+#
+if ( ${?CIAOOS} == 0 ) then
+   setenv CIAOOS `ciao_sysconf --os`
+endif
+if ( ${?CIAOARCH} == 0 ) then
+   setenv CIAOARCH `ciao_sysconf --arch`
+endif
+#
+# Documentation-related paths:
+#
+# Setting this variable makes the manuals accessible to emacs (via M-x
+# info), the GNU info standalone manuals browser (type info at the
+# command line), the unix man command, etc.
+# 
+setenv CIAODOCDIR {{CiaoDocDir}}
+# Set MANPATH (checking that we do not add it twice)
+# The colon at the end is needed so that default paths are found!
+if ( ${?MANPATH} == 0 ) then
+        setenv MANPATH ${CIAODOCDIR}:
+else
+	switch (${MANPATH})
+	case ${CIAODOCDIR}:*:      # it is first one
+	     breaksw
+	case *:${CIAODOCDIR}:      # it is last one
+	     breaksw
+	case *:${CIAODOCDIR}:*:    # it is in the middle
+	     breaksw
+	default:
+	     setenv MANPATH ${CIAODOCDIR}:${MANPATH}
+	     breaksw
+	endsw
+endif
+# Set INFOPATH (checking that we do not add it twice)
+if ( ${?INFOPATH} == 0 ) then
+        setenv INFOPATH ${CIAODOCDIR}:/usr/info:/usr/share/info:/usr/local/info
+else
+	switch (${INFOPATH})
+	case ${CIAODOCDIR}:*:      # it is first one
+	     breaksw
+	case *:${CIAODOCDIR}:      # it is last one
+	     breaksw
+	case *:${CIAODOCDIR}:*:    # it is in the middle
+	     breaksw
+	default:
+	     setenv INFOPATH ${INFOPATH}:${CIAODOCDIR}
+	     breaksw
+	endsw
+endif
+

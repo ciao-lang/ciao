@@ -1,0 +1,11 @@
+@techreport{ciao-reference-manual-tr,
+  author =       {F. Bueno and D. Cabeza and M. Carro and M. Hermenegildo 
+                  and P. L\'{o}pez-Garc\'{\i}a and G. Puebla},
+  title =        {The Ciao System. Reference Manual},
+  institution =  {School of Computer Science, T. U. of Madrid (UPM) 
+                  and IMDEA Software Institute},
+  year =         1997,
+  month =        {August},
+  number =       {{CLIP}3/1997.2011},
+  note =         {Available from http://www.cliplab.org/}
+}

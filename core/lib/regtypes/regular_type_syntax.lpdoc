@@ -1,0 +1,87 @@
+
+A regular program is defined by a set of clauses, each of the
+form:
+@begin{verbatim}
+p(x, v_1, ..., v_n)  :- body_1, ..., body_k.
+@end{verbatim}
+where:
+@begin{enumerate}
+@item @tt{x} is a term whose variables (which are called @em{term
+   variables}) are unique, i.e., it is not allowed to introduce
+   equality constraints between the variables of @tt{x}.
+
+   For example,
+    @tt{p(f(X, Y)) :- ...} is valid, but
+    @tt{p(f(X, X)) :- ...} is not. 
+
+@item in all clauses defining @tt{p/n+1} the terms @tt{x} do not unify
+   except maybe for one single clause in which @tt{x} is a variable.
+
+@item @tt{n} >= 0 and @tt{p/n} is a
+  @index{parametric type functor} (whereas the predicate defined by the
+  clauses is @tt{p/n}+1).
+  
+@item @tt{v_1}, ..., @tt{v_n} are unique variables, which are
+  called @em{parametric variables}.
+     
+ @item Each @tt{body_i} is of the form:
+
+  @begin{enumerate}
+    @item @tt{t(z)} where @tt{z} is one of the
+      @em{term variables} and @tt{t} is a
+      @em{regular type expression}; 
+
+    @item @tt{q(y, t_1, ..., t_m)} where @tt{m} >= 0, @tt{q/m}
+      is a @em{parametric type functor}, not in the set of functors
+       @tt{=/2}, @tt{^/2}, @tt{./3}.
+
+        @tt{t_1, ..., t_m} are @em{regular type expressions},
+        and @tt{y} is a @em{term variable}.
+  @end{enumerate}
+
+ @item Each term variable occurs at most once in the clause's body
+   (and should be as the first argument of a literal). 
+@end{enumerate}
+A @index{regular type expression} is either a parametric variable or a
+parametric type functor applied to some of the parametric variables.
+
+A parametric type functor is a regular type, defined by a regular
+program, or a basic type.
+Basic types are defined in @ref{Basic data types and properties}.
+
+@comment{
+The basic types are:
+@begin{itemize}
+@item @tt{term}, the type of all terms;
+@item @tt{var}, the type of all variables;
+@item @tt{struct}, the type of all functor terms;
+@item @tt{gnd}, the type of all ground terms;
+@item @tt{atm}, the type of all atomic terms;
+@item @tt{anyfd}, the type of all finite domain variables;
+@item @tt{num}, the type of all numbers;
+@item @tt{rat}, the type of all rational numbers;
+@item @tt{flt}, the type of all floating point numbers;
+@item @tt{int}, the type of all integers;
+@item @tt{nnegint}, the type of all non-negative integers.
+@end{itemize}
+}
+
+@comment{
+%%                term
+%% _________________|_______________
+%% |                |               |
+%% var            struct           gnd
+%% _________________|________ 
+%% |          |             |
+%% atm      anyfd          num 
+%%            |     ________|_________ 
+%%            |     |                |
+%%            |    rat              flt
+%%            |     | 
+%%            |    int 
+%%            |_____| 
+%%               |
+%%            nnegint
+%% 
+}
+

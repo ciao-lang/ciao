@@ -1,0 +1,13 @@
+It is recommended to run these examples interactively by loading the
+main classes (those mentioned below) into ciaosh.
+
+pseudo_stack.pl - A generic class for item storage keeping a history of
+                  the item values. This is done via a stack, but
+                  the class has the interface of class "generic".
+
+rogue_sorcerer.pl - A very very simple example of interface implementation:
+		    a rogue_sorcerer is both a rogue and a sorcerer, thus
+		    the class implements both interfaces "rogue" and
+		    "sorcerer" (which is to say, inherits from both classes
+		    --though an interface has nothing to inherit, except
+		    the names of the methods).

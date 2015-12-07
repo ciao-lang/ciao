@@ -1,0 +1,13 @@
+This manual includes the complete reference to the low-level Prolog to Java
+interface. This interface allows a Prolog program to start a Java process
+and manipulate Java objects.
+
+In this document we present an interface between Ciao Prolog and Java to take
+advantage of the capabilities of the java programming language, avoiding
+problems related to compile-time linking, system dependencies, and static
+references. This interface fully achieves the objectives using a simple but
+powerful protocol between both languages. The communication is established
+by means of sockets, allowing the processes to be in separated machines, and
+thus providing a means for distributed processing.
+
+

@@ -1,0 +1,36 @@
+/* XPM */
+/* Drawn  by Mark Donohoe for the K Desktop Environment */
+/* See http://www.kde.org */
+static char*contents[]={
+"22 22 8 1",
+"# c #000080",
+"a c #585858",
+"b c #000000",
+"c c #ffffff",
+"d c #ffffff",
+"e c #ffffff",
+"f c #000000",
+". c None",
+"......................",
+"......................",
+".............#####a...",
+"............##..a##a..",
+"...........##a...###..",
+"...........##a...###..",
+"...........a##..a##a..",
+"...bb...........##a...",
+"..bacb....bbb..##a....",
+"..badcb.bbccba##a.....",
+"..bacccbadccba##a.....",
+"..baecdbcccdbab.......",
+"..bacccbacccba###.....",
+"..badcdbcecdfa###.....",
+"..bacecbacccbaf.......",
+"..baccdbcccdbab.......",
+"...badcbacdbbab.......",
+"....bacbcbbccab.......",
+".....babbaaaaab.......",
+".....bbabbbbbbb.......",
+"......bb..............",
+"......................"};
+

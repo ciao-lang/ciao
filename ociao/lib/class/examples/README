@@ -1,0 +1,12 @@
+
+generic.pl  - A generic class to perform item storage
+              (exemplifies hiding of assert/retract via objects)
+specific.pl - This class inherits from "generic" and extends it with
+	      additional functionality
+	      (exemplifies inheritance)
+stack.pl    - A class that implements stacks
+	      (exemplifies ADTs via classes)
+multiple_inh  includes several simple examples of multiple inheritance
+	      through interfaces
+geometry      includes several simple examples of O'Ciao objects which are
+	      associated to objects drawn in a window (via Tcl/Tk)

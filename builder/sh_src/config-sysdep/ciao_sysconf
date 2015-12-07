@@ -1,0 +1,71 @@
+#!/bin/sh
+#
+#  ciao_sysconf
+#
+#  Detect current operating system parameters (flavor, architecture,
+#  etc.).
+#
+#  Copyright (C) 2015 Ciao Developer team
+#
+
+# Get the $os and $arch from uname
+os=`uname -s`
+arch=`uname -m`
+
+# Normalize $os
+case "$os" in
+    *BSD)        os=BSD ;;
+    SunOS)       os=Solaris ;;
+    Linux)       os=LINUX ;;
+    CYGWIN_*)    os=Win32 ;;
+    MSYS_NT*)    os=Win32 ;;
+    MINGW32_NT*) os=Win32 ;;
+    Darwin)      os=DARWIN ;;
+esac
+
+# Normalize $arch
+case "$arch" in
+    alpha)     arch=alpha ;;
+    sun4v)     arch=Sparc64 ;;
+    sun4u)     arch=Sparc64 ;;
+    sun4*)     arch=Sparc ;;
+    sparc)     arch=Sparc ;;
+    sparc64)   arch=Sparc64 ;;
+    ppc)       arch=ppc ;;
+    ppc64)     arch=ppc64 ;;
+    powerpc)   arch=ppc ;;
+    "Power Macintosh") arch=ppc ;;
+    i[3456]86) arch=i686 ;;
+    i86pc)     arch=i686 ;;
+    x86_64)    arch=x86_64 ;;
+    amd64)     arch=x86_64 ;;
+    arm)       arch=arm ;;
+    armv4l)    arch=armv4l ;;
+    armv5tel)  arch=armv5tel ;;
+    armv6l)    arch=arm ;;
+esac
+
+# Mark 64-bit architectures
+is64=no
+case $arch in
+    Sparc64) is64=yes ;;
+    x86_64)  is64=yes ;;
+    ppc64)   is64=yes ;;
+esac
+
+# If CIAO64 is not 'yes', set 32 bit compatibility mode for 64 bit
+# architectures.
+if [ x"$CIAO64" != x"yes" -a x"$is64" = x"yes" ] ; then
+    arch="$arch"m32
+fi
+
+case "$1" in
+    --os)
+	printf "%s" "$os" ;;
+    --arch)
+	printf "%s" "$arch" ;;
+    --osarch)
+	printf "%s" "$os$arch" ;;
+    *)
+	printf "error: wrong parameters to ciao_sysconf\n" 1>&2 ;;
+esac

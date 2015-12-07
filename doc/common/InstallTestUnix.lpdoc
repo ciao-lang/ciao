@@ -1,0 +1,47 @@
+
+@begin{itemize}
+
+@item Typing @apl{ciao} (or @apl{ciaosh}) should start the typical
+      Prolog-style top-level shell. 
+
+@item In the top-level shell, Ciao library modules should load
+      correctly. Type for example @tt{use_module(library(dec10_io))} --you
+      should get back a prompt with no errors reported.
+
+@item To exit the top level shell, type @tt{halt.} as usual, or
+      @key{^D}.
+
+@item Typing @apl{ciaoc} should produce the help message from the Ciao
+      @concept{standalone compiler}.
+
+@item Typing @apl{ciao-shell} should produce a message saying
+      that no code was found. This is a Ciao application which can be
+      used to write @concept{scripts} written in Ciao, i.e., files
+      which do not need any explicit compilation to be run. 
+
+@end{itemize}
+
+@noindent 
+Also, the following documentation-related actions should work:
+
+@begin{itemize} 
+
+@item If the @apl{info} program is installed, typing @tt{info} should
+      produce a list of manuals which @em{should include Ciao
+      manual(s) in a separate area} (you may need to log out and back
+      in so that your shell variables are reinitialized for this to
+      work).
+
+@item Opening with a @concept{WWW browser} the directory or @tt{URL}
+      corresponding to the @tt{lpdoc:docdir} setting should show a
+      series of Ciao-related manuals.
+
+@item Typing @tt{man ciao} should produce a man page with some very
+      basic general information on Ciao (and pointing to the on-line
+      manuals).
+
+@item The @tt{lpdoc:docdir} directory should contain the manual also
+      in the other formats such as @tt{pdf}.
+
+@end{itemize}
+

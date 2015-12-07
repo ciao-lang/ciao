@@ -1,0 +1,14 @@
+
+A Few Examples/Tests of Ciao features
+-------------------------------------
+
+This directory contains a few very basic examples.  More examples of
+the different Ciao features are included in the different libraries
+(located under the directories lib and library of the distribution).
+You are strongly encouraged to explore the manual and those
+directories and try out those examples.
+
+The Makefile in this directory is not provided for the purpose of
+compiling/executing the examples in it, but for installation purposes.
+It is not useful outside the Ciao Prolog sources.
+
