@@ -31,6 +31,7 @@ mysql_installed :-
 % ---------------------------------------------------------------------------
 
 :- use_module(library(messages), [warning_message/1]).
+:- use_module(library(system), [find_executable/2]).
 
 :- bundle_flag(mysql_client_directory, [
     comment("MySQL client library path"),
@@ -54,7 +55,8 @@ get_mysql_dir('/usr/lib/mysql') :-
 % TODO: Use mysql_config
 % TODO: REMOVE! 'locate' IS NOT available in many platforms (e.g., Mac OS X)
 locate_file(FileName, FileDir) :-
-	process_call(path(locate), [FileName],
+	find_executable('locate', LocateExec), % (silently fail if no 'locate')
+	process_call(LocateExec, [FileName],
 	             [status(_), stdout(string(S))]),
 	atom_codes(FileName, SFileName),
 	append(SFileName, "\n", SFileNameN),
