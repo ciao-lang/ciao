@@ -207,6 +207,7 @@ core_desc := [
   ciaocl_,
   core_cmds,
   %
+  lib(core, 'engine'),
   lib(core, 'lib'),
   lib(core, 'library'),
   pillow_,
