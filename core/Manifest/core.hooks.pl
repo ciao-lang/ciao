@@ -241,7 +241,7 @@ core_cmd('ciao', shscript). % TODO: twice?!
 
 install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 
-:- use_module(ciaobld(config_common), [bld_eng_path/4, cmdname_ver/4]).
+:- use_module(ciaobld(config_common), [bld_eng_path/4, cmdname_ver/5]).
 
 % Generate 'ciao' super-command
 '$builder_hook'(ciaocl:item_build_nodocs) :-
@@ -250,11 +250,11 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	wr_template(k(shscript), ~cmds_dir, 'ciao', [
 	    'ExtraCommands' = ~ciao_extra_commands, % (for toplevel)
 	    %
-	    'ciaosh_cmd' = ~cmdname_ver(core, 'ciaosh', plexe),
-	    'ciao_shell_cmd' = ~cmdname_ver(core, 'ciao-shell', plexe),
-	    'ciaoc_cmd' = ~cmdname_ver(core, 'ciaoc', plexe),
-	    'ciaopp_cmd' = ~cmdname_ver(ciaopp, 'ciaopp', plexe),
-	    'lpdoc_cmd' = ~cmdname_ver(lpdoc, 'lpdoc', plexe),
+	    'ciaosh_cmdV' =     ~cmdname_ver(yes, core, 'ciaosh', plexe),         'ciaosh_cmd' = ~cmdname_ver(no, core, 'ciaosh', plexe),
+	    'ciao_shell_cmdV' = ~cmdname_ver(yes, core, 'ciao-shell', plexe), 'ciao_shell_cmd' = ~cmdname_ver(no, core, 'ciao-shell', plexe),
+	    'ciaoc_cmdV' =      ~cmdname_ver(yes, core, 'ciaoc', plexe),           'ciaoc_cmd' = ~cmdname_ver(no, core, 'ciaoc', plexe),
+	    'ciaopp_cmdV' =     ~cmdname_ver(yes, ciaopp, 'ciaopp', plexe),       'ciaopp_cmd' = ~cmdname_ver(no, ciaopp, 'ciaopp', plexe),
+	    'lpdoc_cmdV' =      ~cmdname_ver(yes, lpdoc, 'lpdoc', plexe),          'lpdoc_cmd' = ~cmdname_ver(no, lpdoc, 'lpdoc', plexe),
 	    % TODO: only works in local-install! add global installation code
 	    % TODO: (MinGW) is cmd.exe enough? (at least for bootstrap) consider PowerShell scripts for Windows?
 	    'boot_ciaolib' = ~fsR(bundle_src(core)),

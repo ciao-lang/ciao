@@ -24,7 +24,7 @@
 :- use_module(library(source_tree), [current_file_find/3]).
 :- use_module(library(pathnames), [path_basename/2]).
 
-:- use_module(ciaobld(config_common), [default_eng/1, bld_eng_path/4, cmdname_ver/4]).
+:- use_module(ciaobld(config_common), [default_eng/1, bld_eng_path/4, cmdname_ver/5]).
 :- use_module(engine(internals), ['$bundle_prop'/2]).
 :- use_module(library(bundle/bundle_info), [
 	enum_sub_bundles/2,
@@ -81,7 +81,7 @@ create_iss_file(Bundle, FileIss, FileListName) :-
 	    'OutputBaseFileName' = OutputBaseFileName,
 	    'MyAppPublisher' = "The CLIP Laboratory", % TODO: extract from bundle
 	    'LicenseFile' = ~license_file,
- 	    'MyAppExeName' = ~cmdname_ver(core, plexe, 'ciaosh'), % TODO: extract from bundle
+ 	    'MyAppExeName' = ~cmdname_ver(yes, core, plexe, 'ciaosh'), % TODO: extract from bundle
 	    'CiaoVersion' = ~bundle_version(core), % TODO: extract from bundle
 	    'SourceDir' = ~source_dir,
 	    'MyRelBuildDir' = ~relciaodir(~fsR(builddir(build))),

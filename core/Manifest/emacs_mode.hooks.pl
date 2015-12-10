@@ -109,12 +109,12 @@ get_dir_elisp(Dir, EmacsDir) :-
 	flatten(["\"", ~atom_codes(Dir2), "\""], EmacsDir).
 
 % Path to a bundle command binary, as elisp expression
-% (see cmdname_ver/4)
+% (see cmdname_ver/5)
 cmdpath_elisp(Bundle, Cmd, Kind, Expr) :-
 	( Kind = plexe -> K = plexe
 	; Kind = script -> K = ext(~script_extension)
 	),
-	CmdName = ~cmdname_ver(Bundle, Cmd, K),
+	CmdName = ~cmdname_ver(yes, Bundle, Cmd, K),
 	Expr = ~flatten(["(concat ciao-bin-dir \"/", ~atom_codes(CmdName), "\")"]).
 
 % TODO: Why .bat? (only for 'ciaocl' at this moment)

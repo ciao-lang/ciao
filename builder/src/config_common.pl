@@ -181,19 +181,19 @@ inst_cmd_path(Bundle, Kind, File) := Path :-
 
 % TODO: install binaries to storedir, e.g., <prefix>/lib/ciao/core-1.15/bin/ and
 %   deprecate the uses of this predicate
-:- export(cmdname_ver/4).
-% cmdname_ver(+Bundle, +Cmd, +K, -Name):
-%   Name of a command Cmd from a Bundle, with version
+:- export(cmdname_ver/5).
+% cmdname_ver(+UseVers, +Bundle, +Cmd, +K, -Name):
+%   Name of a command Cmd from a Bundle, with version (if UseVers=yes)
 %
 % Version is added if instype(global) and the bundle is known.
-cmdname_ver(Bundle, Cmd, K, CmdName) :-
+cmdname_ver(yes, Bundle, Cmd, K, CmdName) :-
 	instype(global),
 	'$bundle_id'(Bundle), % (Bundle exists)
 	CmdName0 = ~concat_verk(Bundle, K, Cmd),
 	!,
 	CmdName = CmdName0.
-cmdname_ver(_Bundle, Cmd, _K, CmdName) :-
-	CmdName = Cmd.
+cmdname_ver(_UseVers, _Bundle, Cmd, K, CmdName) :-
+	CmdName = ~concat_ext(K, Cmd).
 
 % ---------------------------------------------------------------------------
 

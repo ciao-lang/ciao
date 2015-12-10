@@ -13,13 +13,17 @@ _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
 
 # ----------------------------------------------------------------
 
+# try versioned alternatives (needed for build in instype=global)
+# TODO: temporary, see cmdname_ver/5
+alt() { local f=$1; [ -x "$f" ] || f=$2; printf "%s" "$f"; }
+
 use_rlwrap=yes # TODO: Turn into an option
 
-ciaosh_bin="$_base"/{{ciaosh_cmd}}
-ciao_shell_bin="$_base"/{{ciao_shell_cmd}}
-ciaoc_bin="$_base"/{{ciaoc_cmd}}
-ciaopp_bin="$_base"/{{ciaopp_cmd}}
-lpdoc_bin="$_base"/{{lpdoc_cmd}}
+ciaosh_bin=$(alt "$_base"/{{ciaosh_cmdV}} "$_base"/{{ciaosh_cmd}})
+ciao_shell_bin=$(alt "$_base"/{{ciao_shell_cmdV}} "$_base"/{{ciao_shell_cmd}})
+ciaoc_bin=$(alt "$_base"/{{ciaoc_cmdV}} "$_base"/{{ciaoc_cmd}})
+ciaopp_bin=$(alt "$_base"/{{ciaopp_cmdV}} "$_base"/{{ciaopp_cmd}})
+lpdoc_bin=$(alt "$_base"/{{lpdoc_cmdV}} "$_base"/{{lpdoc_cmd}})
 #
 boot_ciaolib={{boot_ciaolib}}
 boot_bindir={{boot_bindir}}
