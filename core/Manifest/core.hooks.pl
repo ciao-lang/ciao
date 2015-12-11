@@ -251,6 +251,7 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	wr_template(k(shscript), ~cmds_dir, 'ciao', [
 	    'ExtraCommands' = ~ciao_extra_commands, % (for toplevel)
 	    %
+	    'ciao_builder_cmdV' = ~cmdname_ver(yes, builder, 'ciao_builder', plexe), 'ciao_builder_cmd' = ~cmdname_ver(no, builder, 'ciao_builder', plexe),
 	    'ciaosh_cmdV' =     ~cmdname_ver(yes, core, 'ciaosh', plexe),         'ciaosh_cmd' = ~cmdname_ver(no, core, 'ciaosh', plexe),
 	    'ciao_shell_cmdV' = ~cmdname_ver(yes, core, 'ciao-shell', plexe), 'ciao_shell_cmd' = ~cmdname_ver(no, core, 'ciao-shell', plexe),
 	    'ciaoc_cmdV' =      ~cmdname_ver(yes, core, 'ciaoc', plexe),           'ciaoc_cmd' = ~cmdname_ver(no, core, 'ciaoc', plexe),

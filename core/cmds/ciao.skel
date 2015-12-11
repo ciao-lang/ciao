@@ -19,6 +19,7 @@ alt() { local f=$1; [ -x "$f" ] || f=$2; printf "%s" "$f"; }
 
 use_rlwrap=yes # TODO: Turn into an option
 
+ciao_builder_bin=$(alt "$_base"/{{ciao_builder_cmdV}} "$_base"/{{ciao_builder_cmd}})
 ciaosh_bin=$(alt "$_base"/{{ciaosh_cmdV}} "$_base"/{{ciaosh_cmd}})
 ciao_shell_bin=$(alt "$_base"/{{ciao_shell_cmdV}} "$_base"/{{ciao_shell_cmd}})
 ciaoc_bin=$(alt "$_base"/{{ciaoc_cmdV}} "$_base"/{{ciaoc_cmd}})
@@ -64,20 +65,25 @@ fi
 # ---------------------------------------------------------------------------
 # Access to the builder
 
-exec_builder() {
-    unset CIAOALIASPATH
-    export CIAOLIB=$boot_ciaolib
-    export CIAOHDIR=$boot_ciaohdir
-    export CIAOENGINE=$boot_ciaoengine
-    exec "$CIAOENGINE" "$@" -C -b "$boot_bindir/ciao_builder.sta"
+rlexec_builder() {
+    if [ -x "$boot_ciaoengine" ]; then
+	unset CIAOALIASPATH
+	export CIAOLIB=$boot_ciaolib
+	export CIAOHDIR=$boot_ciaohdir
+	export CIAOENGINE=$boot_ciaoengine
+	rlexec "$CIAOENGINE" "$@" -C -b "$boot_bindir/ciao_builder.sta"
+    else
+	rlexec "$ciao_builder_bin" "$@"
+    fi
 }
 
-rlexec_builder() {
-    unset CIAOALIASPATH
-    export CIAOLIB=$boot_ciaolib
-    export CIAOHDIR=$boot_ciaohdir
-    export CIAOENGINE=$boot_ciaoengine
-    rlexec "$CIAOENGINE" "$@" -C -b "$boot_bindir/ciao_builder.sta"
+exec_builder() {
+    enable_rlwrap=no rlexec_builder "$@"
+}
+
+# TODO: port; fix for global installation
+exec_oc_builder() {
+    exec "$boot_ciaolib"/../builder/src/oc_builder.bash "$@"
 }
 
 # ----------------------------------------------------------------
@@ -120,8 +126,7 @@ needs_oc_builder() {
 }
 
 if needs_oc_builder "$@"; then
-    # TODO: port
-    exec "$boot_ciaolib"/../builder/src/oc_builder.bash "$@"
+    exec_oc_builder "$@"
 fi
 
 if [ $# = 0 ]; then
