@@ -523,13 +523,11 @@ both types of machines, the following is needed:
 
 @item In multi-architecture environments it is even more important to
       make sure that users make the modifications to their startup
-      scripts using @file{DOTprofile} or @file{DOTcshrc} files.  The
-      selection of the engine (and architecture-dependent parts of
-      libraries) is done in these scripts by setting the environment
-      variable @tt{<CIAOOS><CIAOARCH>}, using the @tt{ciao_sysconf} command,
-      which is installed automatically when installing Ciao. This will
-      set @tt{CIAOOS}, @tt{CIAOARCH}, and @tt{CIAOENGINE} (to
-      @tt{ciaoengine.}@em{<CIAOOS><CIAOARCH>}).
+      scripts. The selection of the engine (and architecture-dependent
+      parts of libraries) is done by setting the environment variables
+      @tt{CIAOOS} and @tt{CIAOARCH}, using the values given by the
+      @tt{ciao_sysconf} command, which is installed automatically when
+      installing Ciao.
 
       However, note that this is not strictly necessary if running on
       only one architecture: if @tt{CIAOOS} and @tt{CIAOARCH} are not

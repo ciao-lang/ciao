@@ -33,21 +33,22 @@ else
 # 	     breaksw
 # 	endsw
 endif
-#
-# Setting engine related paths: 
-# 
-# Setting this variable allows you to run the same Ciao executables in
-# different architectures, provided you have compiled and installed
-# the corresponding engine (and libraries, if the executable is not
-# static and/or .so libraries are used).
-#
-if ( ${?CIAOOS} == 0 ) then
-   setenv CIAOOS `ciao_sysconf --os`
-endif
-if ( ${?CIAOARCH} == 0 ) then
-   setenv CIAOARCH `ciao_sysconf --arch`
-endif
-#
+
+# # # (for multi-architecture support sharing installation paths)
+# # Setting engine related paths: 
+# # 
+# # Setting this variable allows you to run the same Ciao executables in
+# # different architectures, provided you have compiled and installed
+# # the corresponding engine (and libraries, if the executable is not
+# # static and/or .so libraries are used).
+# #
+# if ( ${?CIAOOS} == 0 ) then
+#    setenv CIAOOS `ciao_sysconf --os`
+# endif
+# if ( ${?CIAOARCH} == 0 ) then
+#    setenv CIAOARCH `ciao_sysconf --arch`
+# endif
+
 # Documentation-related paths:
 #
 # Setting this variable makes the manuals accessible to emacs (via M-x

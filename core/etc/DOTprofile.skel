@@ -28,20 +28,20 @@ else
 #     esac
 fi
 
-#
-# Setting engine related paths: 
-# 
-# Setting this variable allows you to run the same Ciao executables in
-# different architectures, provided you have compiled and installed
-# the corresponding engine (and libraries, if the executable is not
-# static and/or .so libraries are used).
-#
-if [ ${CIAOOS:-0} = 0 ] ; then
-    CIAOOS=`ciao_sysconf --os` ; export CIAOOS
-fi
-if [ ${CIAOARCH:-0} = 0 ] ; then
-    CIAOARCH=`ciao_sysconf --arch` ; export CIAOARCH
-fi
+# # (for multi-architecture support sharing installation paths)
+# # Setting engine related paths: 
+# # 
+# # Setting this variable allows you to run the same Ciao executables in
+# # different architectures, provided you have compiled and installed
+# # the corresponding engine (and libraries, if the executable is not
+# # static and/or .so libraries are used).
+# #
+# if [ ${CIAOOS:-0} = 0 ] ; then
+#     CIAOOS=`ciao_sysconf --os` ; export CIAOOS
+# fi
+# if [ ${CIAOARCH:-0} = 0 ] ; then
+#     CIAOARCH=`ciao_sysconf --arch` ; export CIAOARCH
+# fi
 
 #
 # Documentation-related paths:
