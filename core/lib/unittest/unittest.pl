@@ -7,6 +7,7 @@
 		run_tests_in_module_check_exp_assrts/1,
 		show_untested_exp_preds/1,
 		show_test_summaries/1,
+                show_test_output/1,
 		run_tests_related_modules/1,
 		run_tests_in_dir_rec/2
 	    ],
@@ -373,14 +374,14 @@ run_tests_in_dir_rec(BaseDir, Args) :-
 		statistical_summary(['{In ', FN, '\n'], E)), L),
 	statistical_summary(['{Total:\n'], L).
 
-module_src(Module, Src) :-
-	defines_module(Src, Module),
+module_base(Module, Base) :-
+	defines_module(Base, Module),
 	!.
-module_src(Module, Src) :-
+module_base(Module, Base) :-
 	(
 	    unittest_type(Type),
-	    assertion_read(_, Module, check, Type, _, _, Src, _, _),
-	    atom_concat([_, '/', Module, '.pl'], Src) -> true
+	    assertion_read(_, Module, check, Type, _, _, Base, _, _),
+	    atom_concat([_, '/', Module, '.pl'], Base) -> true
 	;
 	    fail
 	).
@@ -412,19 +413,40 @@ module_src(Module, Src) :-
 test_option := dump_output | dump_error | rtc_entry.
 test_option := load(~sourcename).
 
+:- pred show_test_output(Alias) : sourcename(Alias)
+        # "Given a file @var{Alias}, tries to lookup the respective
+          unittest output file and print it to the standard output,
+          otherwise emits a warning message that no test output file
+          is avaiable.".
+
+show_test_output(Alias) :-
+        absolute_file_name(Alias, '_opt', '.pl', '.',_FileName, Base, AbsDir),
+        file_test_output_suffix(Suf),
+        atom_concat(Base,Suf,TestOutFile),
+        path_split(Base, AbsDir, Module),
+        ( file_exists(TestOutFile) ->
+          get_module_output(Module, Base, TestResult),
+          TestResults = [TestResult],
+          show_test_summaries(TestResults),
+          statistical_summary(['{Total:\n'], TestResults)
+        ; note_message("~w module does not have unittest results available.", [Module])
+        ).
+
 :- pred show_test_summaries(TestSummaries)
 # "Pretty print the test results contained in @var{TestSummaries}.".
 
 show_test_summaries(IdxTestSummaries0) :-
+        % TODO: multiple test results bug
 	flatten(IdxTestSummaries0, IdxTestSummaries),
 	map(IdxTestSummaries, process_runtime_check, Messages, []),
+        % TODO: add 'report_passed_test' option to control the output
+        %       verbosity
 	pretty_messages(Messages).
-%	statistical_summary(IdxTestSummaries0).
 
 show_test_outputs_stats(Modules) :-
-        get_all_test_outputs(Modules, IdxResultTest),
-        show_test_summaries(IdxResultTest),
-	statistical_summary(['{Total:\n'], IdxResultTest).
+        get_all_test_outputs(Modules, TestResults),
+        show_test_summaries(TestResults),
+	statistical_summary(['{Total:\n'], TestResults).
 
 % ----------------------------------------------------------------------
 
@@ -468,7 +490,8 @@ run_tests_in_module_args(TmpDir, Alias, Args, Modules) :-
 	run_test_assertions(TmpDir, Modules, Args).
 
 :- pred run_tests_related_modules(Alias) : sourcename(Alias).
-
+% TODO: merge with run_tests_in_module/1, providing an additional
+%       test depth parameter with values 'current'/'related'?
 run_tests_related_modules(Alias) :-
 	tmp_dir(TmpDir),
 	run_tests_related_modules_args(TmpDir, Alias, [], Modules),
@@ -586,45 +609,62 @@ file_test_output_suffix('.testout').
 
 write_all_test_outputs([]).
 write_all_test_outputs([Module|Mods]) :-
-        module_src(Module,Src),
+        module_base(Module, Base),
+        write_module_output(Module, Base),
+        write_all_test_outputs(Mods).
+
+write_module_output(Module, Base) :-
         file_test_output_suffix(Suf),
-        atom_concat(Src,Suf,FileModOut),
+        atom_concat(Base, Suf, FileModOut),
         open(FileModOut, write, StreamOut),
+        write_testdata_to_outfile(StreamOut, Module),
+        close(StreamOut).
+
+write_testdata_to_outfile(StreamOut, Module) :-
         repeat,
         (  test_input_db(TestId, Module),
-           test_output_db(TestId,TestResult)
-        -> write_data(StreamOut,test_output_db(TestId,TestResult)),
+           test_output_db(TestId, TestResult)
+        -> write_data(StreamOut, test_output_db(TestId, TestResult)),
            retract_fact(test_output_db(TestId, TestResult)),
+           test_attributes_db(TestId, Module, F, A, Dict, Comment, S, LB, LE),
+           write_data(StreamOut,
+                      test_attributes_db(TestId, Module, F, A, Dict, Comment,
+                              S, LB, LE)),
+           retract_fact(test_attributes_db(TestId, Module, F, A, Dict,
+                      Comment, S, LB, LE)),
            fail
-        ; !,
-          close(StreamOut)
-        ),
-        write_all_test_outputs(Mods).
+        ;
+            !
+        ).
 
 get_all_test_outputs(Modules, TestResults) :-
         get_test_outputs_(Modules, [], TestResults).
 
 get_test_outputs_([], TestResults, TestResults).
 get_test_outputs_([Module|Mods], Acc, TestResults) :-
-        module_src(Module,Src),
+        module_base(Module, Base),
+        get_module_output(Module, Base, TestResult),
+        get_test_outputs_(Mods, [ TestResult | Acc], TestResults).
+
+get_module_output(Module, Base, TestResult) :-
         file_test_output_suffix(Suf),
-        atom_concat(Src,Suf,FileModOut),
+        atom_concat(Base, Suf, FileModOut),
 	retractall_fact(test_output_db(_, _)),
+	retractall_fact(test_attributes_db(_, _, _, _, _, _, _, _, _)),
 	assert_from_file(FileModOut, assert_test_output),
+        assert_from_file(FileModOut, assert_test_attributes),
         findall(IdxTestSummary,
                 get_one_test_assertion_output(Module, IdxTestSummary),
-                TestResult),
-        get_test_outputs_(Mods, [ TestResult | Acc], TestResults).
+                TestResult).
 
 :- pred get_one_test_assertion_output(Module, IdxTestSummary)
         :  atm(Module)
         => struct(IdxTestSummary).
 
 get_one_test_assertion_output(Module, TestAttributes-TestSummary) :-
-        test_input_db(TestId, Module),
+        test_attributes_db(TestId, Module, F, A, Dict, Comment, Source, LB, LE),
         findall(TestResult, test_output_db(TestId, TestResult), TestResults),
         group_list(TestResults, [], TestSummary),
-	test_attributes_db(TestId, Module, F, A, Dict, Comment, Source, LB, LE),
 	TestAttributes = test_attributes(Module, F, A, Dict, Comment,
 	                                 Source, LB, LE).
 
@@ -688,6 +728,9 @@ assert_test_input(test_input_db(A, B)) :-
 
 assert_test_output(test_output_db(A, B)) :-
 	assertz_fact(test_output_db(A, B)).
+
+assert_test_attributes(test_attributes_db(A, B, C, D, E, F, G, H, I)) :-
+	assertz_fact(test_attributes_db(A, B, C, D, E, F, G, H, I)).
 
 dump_output(yes, StrOut) :- display_string(StrOut).
 dump_output(no,  _).
@@ -796,10 +839,10 @@ create_global_runner(TmpDir, Modules, RtcEntry, RunnerFile) :-
 		], IO, []),
 	    (
 		member(Module, Modules),
-		module_src(Module, Src),
+		module_base(Module, Base),
 		(
 		    wrapper_file_name(TmpDir, Module, WrapperFile),
-		    create_module_wrapper(TmpDir, Module, RtcEntry, Src,
+		    create_module_wrapper(TmpDir, Module, RtcEntry, Base,
 			WrapperFile),
 		    unittest_print_clause((:- use_module(WrapperFile)), IO, []),
 		    module_test_entry(Module, TestEntry, TestId),
@@ -815,7 +858,8 @@ create_global_runner(TmpDir, Modules, RtcEntry, RunnerFile) :-
 	    file_test_input(BFileTestInput),
 	    path_concat(TmpDir, BFileTestInput, FileTestInput),
 	    unittest_print_clauses(
-		[
+                [
+                    % ( stop_on_first_error(false) ),
 		    ( main_tests(A) :-
                         process_test_args(A),
                         assert_from_file(FileTestInput,assert_test_id),
@@ -823,6 +867,15 @@ create_global_runner(TmpDir, Modules, RtcEntry, RunnerFile) :-
 		    ),
 		    ( runtests :-
                         get_active_test(TestId, Module),
+                        % TODO: multiple test results bug
+                        % TODO: use data predicate to store the testing
+                        %       status of the predicate, whether some
+                        %       input failed (thus no testing to be
+                        %       continued), or no
+                        % TODO: requires splitting runtests/0 into 2
+                        %       preds with 2 failure-driven loops,
+                        %       one for TestIds and another for all
+                        %       results for a chosen TestId
 			internal_runtest_module(Module, TestId),
 			fail
 		    ;
