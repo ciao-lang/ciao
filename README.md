@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ciao-lang/test-ci.svg)](https://travis-ci.org/ciao-lang/test-ci)
+
 Public read-only mirror for [Ciao](http://ciao-lang.org) source code.
 
 # NOTES
