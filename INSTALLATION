@@ -26,9 +26,7 @@ Supported platforms
 
 Ciao supports Unix-like operating systems (Linux, BSD, Mac OS X) and
 Windows for serveral 32-bit and 64-bit architectures (`amd64', `x86',
-`arm'). By default, Ciao is compiled in 32-bit compatibility mode under
-64-bit systems. Native support for 64-bit mode is experimental and not
-currently distributed.
+`arm').
 
 Requirements for build and installation
 =======================================
@@ -66,38 +64,44 @@ need to install the following dependencies (using `sudo' or as
 administrator or `root' user):
 
    * Debian/Ubuntu (14.04):
-          $ apt-get install emacs build-essential texlive texinfo imagemagick
-          # Required for 64 bits compiling in 32 bits compatibility mode
-          $ apt-get install gcc-multilib libc6-i386 libc6-dev-i386
-          # Optionally, for the Parma Polyhedra Library
-          $ apt-get install g++-multilib
-          # (older Ubuntu releases may require ia32-libs too)
+          $ apt-get install build-essential
+          # Required for 32 bits compatibility mode (x86)
+          $ apt-get install gcc-multilib libc6-i386 libc6-dev-i386 g++-multilib
+          # Required for emacs-based IDE
+          $ apt-get install emacs
           # Optionally, for rlwrap
           $ apt-get install rlwrap
+          # Required for generating documentation in .pdf format
+          $ apt-get install texlive texinfo imagemagick
+     (valid for both `x86' and `arm' architectures)
 
    * Fedora:
           $ dnf install gcc make which kernel-headers kernel-devel emacs
-          $ dnf install texlive texinfo texinfo-tex ImageMagick
-          # Required for 64 bits compiling in 32 bits compatibility mode
+          # Required for emacs-based IDE
+          $ dnf install emacs
+          # Required for 32 bits compatibility mode (x86)
           $ dnf install glibc-devel.i686 glibc-devel libstdc++-devel.i686
           # Optionally, for rlwrap
           $ dnf install rlwrap
-     (use yum instead of dnf above in older versions of Fedora)
+          # Required for generating documentation in .pdf format
+          $ dnf install texlive texinfo texinfo-tex ImageMagick
+     (use `yum' instead of `dnf' above in older versions of Fedora)
 
    * Arch Linux:
           # Optional, upgrade if needed
           $ pacman -Syu
           # Dependencies for build and development environment
           # (base-devel: includes gcc, make, which)
-          $ pacman -S base-devel
-          $ pacman -S linux-headers
-          $ pacman -S emacs
-          $ pacman -S texlive-core texinfo imagemagick
-          # Required for 64 bits compiling in 32 bits compatibility mode
+          $ pacman -S base-devel linux-headers
+          # Required for 32 bits compatibility mode
           # NOTE: Remember to enable multilib (https://wiki.archlinux.org/index.php/Multilib)
           $ pacman -S lib32-glibc lib32-libstdc++5
+          # Required for emacs-based IDE
+          $ pacman -S emacs
           # Optionally, for rlwrap
           $ pacman -S rlwrap
+          # Required for generating documentation in .pdf format
+          $ pacman -S texlive-core texinfo imagemagick
 
    * Mac OS X:
         * Install command line tools for Xcode (from the App store)
@@ -118,13 +122,16 @@ administrator or `root' user):
    * FreeBSD:
         * Install GCC or clang and the following packages:
 
-          $ pkg install gmake texinfo texlive-full
+          $ pkg install gmake
+          # Required for emacs-based IDE
           # (without X11)
           $ pkg install emacs-nox ImageMagick-nox expat
           # (with X11)
           $ pkg install emacs ImageMagick expat
           # Optionally, for rlwrap
           $ pacman -S rlwrap
+          # Required for generating documentation in .pdf format
+          $ pkg install texinfo texlive-full
 
 Additional dependencies:
 
@@ -205,7 +212,8 @@ Full installation instructions
      It will perform a default configuration, where the system will be
      configured to be installed as the system administrator (`root') in
      a standard directory available for all users in the machine (e.g.,
-     `/usr/local').
+     `/usr/local'). For 32-bit builds in 64-bit architectures use the
+     `--core:m32=yes' configuration flag.
 
      The option `--instype=local' will prepare Ciao to run from the
      sources directly, and configured in the user's home directory
