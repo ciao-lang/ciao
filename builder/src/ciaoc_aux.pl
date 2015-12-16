@@ -298,11 +298,9 @@ eng_config_sysdep(EngMainMod, EngOpts) :-
 	EngMetaSh = ~path_concat(~bld_eng_path(cfgdir, build, EngMainMod), 'meta_sh'),
 	create_eng_meta_sh(EngMainMod, EngOpts, CfgInput, EngMetaSh),
 	%
-	% TODO: allow other values for cross-compilation
-	Env = ['CIAOOS' = ~get_os, 'CIAOARCH' = ~get_arch],
 	sh_process_call(~config_sysdep_sh,
 	       [EngDir, EngCfg],
-	       [cwd(~fsR(bundle_src(core))), env(Env)]).
+	       [cwd(~fsR(bundle_src(core)))]).
 
 config_sysdep_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'config-sysdep.sh').
 
@@ -805,7 +803,8 @@ clean_mod0(Base) :-
 
 % TODO: reimplement in Prolog
 clean_aux(Command, Args) :-
-	Env = ['CIAOOS' = ~get_os, 'CIAOARCH' = ~get_arch], % (for 'clean_mod')
+	CfgInput = ~bundle_flags_sh_file,
+	Env = ['ENG_CIAO_CONFIG' = CfgInput], % (for 'clean_mod')
 	root_bundle_source_dir(CiaoSrc),
 	atom_concat(CiaoSrc, '/builder/sh_src/clean_aux.sh', CleanSH),
 	sh_process_call(CleanSH, [Command|Args], [env(Env)]).

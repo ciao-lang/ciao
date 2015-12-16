@@ -3,38 +3,91 @@
 :- doc(section, "Engine and C Compilation Options").
 
 % ---------------------------------------------------------------------------
+% (next flags also needed by config-sysdep.sh)
 
-% (also needed by config-sysdep.sh)
 :- bundle_flag(custom_cc, [
     comment("Custom C compiler"),
     rule_default(''),
     %
     interactive([extended])
 ]).
-
-% (also needed by config-sysdep.sh)
 :- bundle_flag(custom_ld, [
     comment("Custom C linker"),
     rule_default(''),
     %
     interactive([extended])
 ]).
-
-% (also needed by config-sysdep.sh)
 :- bundle_flag(extra_cflags, [
     comment("Additional C compiler flags"),
     rule_default(''),
     %
     interactive([extended])
 ]).
-
-% (also needed by config-sysdep.sh)
 :- bundle_flag(extra_ldflags, [
     comment("Specify additional C linker flags"),
     rule_default(''),
     %
     interactive([extended])
 ]).
+
+:- bundle_flag(os, [
+    comment("Target OS"),
+    rule_default(Value, sysconf_os(Value)),
+    interactive([extended])
+]).
+:- bundle_flag(arch, [
+    comment("Target architecture"),
+    rule_default(Value, (
+      flag(core:m32(M32)),
+      flag(core:m64(M64)),
+      sysconf_arch(M32, M64, Value))),
+    interactive([extended])
+]).
+:- bundle_flag(m32, [
+    comment("Force 32-bit architecture"),
+    valid_values(['yes', 'no']),
+    %
+    rule_default('no'),
+    %
+    interactive([extended])
+]).
+:- bundle_flag(m64, [
+    comment("Force 64-bit architecture"),
+    valid_values(['yes', 'no']),
+    %
+    rule_default('no'),
+    %
+    interactive([extended])
+]).
+
+sysconf_os(OS) :-
+	get_sysconf(['--os'], OS).
+
+% (See scan_bootstrap_opts.sh)
+
+sysconf_arch(M32, M64, Arch) :-
+	get_sysconf(['--arch'], Arch0),
+	( M32 = yes -> arch32(Arch0, Arch)
+	; M64 = yes -> arch64(Arch0, Arch)
+	; Arch = Arch0
+	).
+
+arch32('Sparc64', 'Sparc64m32') :- !.
+arch32('x86_64', 'x86_64m32') :- !.
+arch32('ppc64', 'ppc64m32') :- !.
+arch32(Arch, Arch). % assume 32-bit
+
+arch64('Sparc64', 'Sparc64') :- !.
+arch64('x86_64', 'x86_64') :- !.
+arch64('ppc64', 'ppc64') :- !.
+arch64(_, empty). % force error % TODO: emit error instead?
+
+ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf').
+
+get_sysconf(Args, Val) :-
+	process_call(~ciao_sysconf_sh, Args,
+	             [stderr(stdout), stdout(string(Val0)), status(_)]),
+	atom_codes(Val, Val0).
 
 % ---------------------------------------------------------------------------
 

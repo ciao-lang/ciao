@@ -30,12 +30,8 @@ sh_src_dir="$ciaoroot/builder/sh_src"
 boot_builddir="$ciaoroot/build-boot"
 builddir="$ciaoroot/build"
 
+# TODO: use ciao__DEFAULTLIBDIR from ciao.config_saved_sh file
 f_saved_ciaosrc="$builddir/saved_ciaosrc"
-
-# (for setup_env_vars)
-# TODO: customize? (e.g., for debug or profile builds)
-eng_name="ciaoengine"
-eng_cfg=`"$sh_src_dir"/config-sysdep/ciao_sysconf --osarch`
 
 # Verifies if the executable has changed location since the last execution time.
 # If yes, then reconfigure paths.
@@ -46,8 +42,12 @@ if [ x"$prev_ciaosrc" != x"$ciaoroot" ]; then
 	"$ciaoroot/ciao-boot.sh" rescan-bundles > /dev/null )
     printf "%s" "$ciaoroot" > "$f_saved_ciaosrc"
 fi
-setup_eng_vars "$builddir"
 
+# (for setup_env_vars)
+# TODO: customize? (e.g., for debug or profile builds)
+eng_name="ciaoengine"
+eng_cfg=`. "$ciaoroot/build/ciao.config_saved_sh; echo $core__OS$core__ARCH`
+setup_eng_vars "$builddir"
 export CIAOENGINE="$bld_objdir/$eng_name"
 export CIAOLIB="$ciaoroot/core"
 exec "$builddir/bin/$execname" "$@"

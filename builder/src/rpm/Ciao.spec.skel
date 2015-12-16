@@ -113,7 +113,7 @@ Vendor: CLIP Lab
 Group: Development/Languages
 URL: http://ciao-lang.org
 Packager: Ciao Dev. Team <ciao@clip.dia.fi.upm.es>
-Source: {{VersionedPackName}}-bin-{{OsArch}}.tar.gz
+Source: {{BinPackName}}.tar.gz
 Requires: coreutils %{install_info_cmd}
 %if !%{subpackages}
 Provides: ciao-{{CiaoPathVersion}}

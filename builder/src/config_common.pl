@@ -98,12 +98,14 @@ eng_exec(lib_a, M, objdir, ext(~get_a_ext), ~atom_concat('lib', M)).
 % Identifier for this build (platform + debug)
 :- export(get_eng_cfg/2).
 get_eng_cfg(BldId) := EngCfg :-
-	OsArch = ~get_platform, % TODO: fix cross-compilation (this is the runtime value)
 	( BldId = bootbuild ->
-	    EngCfg = OsArch % (special case, see 'boot_eng_cfg' in builder_boot.sh)
-	; DebugLevel = ~debug_level,
-	  ( DebugLevel = 'nodebug' -> EngCfg = OsArch
-	  ; EngCfg = ~atom_concat([OsArch, '-', DebugLevel])
+	    EngCfg = 'BOOT' % (special case, see 'boot_eng_cfg' in builder_boot.sh)
+	; OS = ~get_bundle_flag(core:os),
+	  Arch = ~get_bundle_flag(core:arch),
+	  OSArch = ~atom_concat(OS, Arch),
+	  DebugLevel = ~debug_level,
+	  ( DebugLevel = 'nodebug' -> EngCfg = OSArch
+	  ; EngCfg = ~atom_concat([OSArch, '-', DebugLevel])
 	  )
 	).
 

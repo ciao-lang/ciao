@@ -12,9 +12,6 @@
 # Input (arguments):
 #   build_engdir: directory of engine build
 #   eng_cfg:      engine configuration name
-# Input (environment variables):
-#   CIAOOS
-#   CIAOARCH
 # Input (other):
 #   $build_engdir/cfg/$eng_cfg/meta_sh
 #
@@ -31,14 +28,6 @@ _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
 
 # ----------------------------------------------------------------------------
 
-if test x"$CIAOOS" = x""; then
-    echo "No CIAOOS defined" >& 2
-    exit 1
-fi
-if test x"$CIAOARCH" = x""; then
-    echo "No CIAOARCH defined" >& 2
-    exit 1
-fi
 if [ $# -ne 2 ]; then
     echo "ERROR: Specify $build_engdir and $eng_cfg as arguments" >& 2
     exit 1
@@ -55,6 +44,8 @@ bld_objdir="$build_engdir/objs/$eng_cfg"
 
 # Load configuration parameters
 . "$eng_ciao_config"
+CIAOOS=$core__OS
+CIAOARCH=$core__ARCH
 
 # Override core__OPTIM_LEVEL if needed
 # TODO: If really needed, move to the Prolog part?

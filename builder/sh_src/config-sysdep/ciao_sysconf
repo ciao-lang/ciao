@@ -45,20 +45,6 @@ case "$arch" in
     armv6l)    arch=arm ;;
 esac
 
-# Mark 64-bit architectures
-is64=no
-case $arch in
-    Sparc64) is64=yes ;;
-    x86_64)  is64=yes ;;
-    ppc64)   is64=yes ;;
-esac
-
-# If CIAO64 is not 'yes', set 32 bit compatibility mode for 64 bit
-# architectures.
-if [ x"$CIAO64" != x"yes" -a x"$is64" = x"yes" ] ; then
-    arch="$arch"m32
-fi
-
 case "$1" in
     --os)
 	printf "%s" "$os" ;;

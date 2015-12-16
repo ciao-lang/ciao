@@ -63,5 +63,10 @@ clean_mod() { # MOD
 	   "$1""_""$CIAOOS$CIAOARCH""_inline.c"
 }
 
+# Load configuration parameters
+. "$ENG_CIAO_CONFIG"
+CIAOOS=$core__OS
+CIAOARCH=$core__ARCH
+
 # Call whatever comes in arguments
 "$@"

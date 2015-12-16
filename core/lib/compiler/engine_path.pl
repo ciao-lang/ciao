@@ -21,7 +21,7 @@
 	Currently the engine is always dynamic. -- EMM.").
 
 :- export(get_engine_file/2).
-get_engine_file(TargetEng, Engine) :- % TODO: rename TargetEng by ciao_os_arch
+get_engine_file(TargetEng, Engine) :- % TODO: rename TargetEng by EngCfg?
 	get_engine_common(TargetEng, Engine, _EngDir).
 
 % TODO: use definitions at config_common.pl (perhaps move to paths_extra or a bettr place)

@@ -189,9 +189,12 @@ touppercode(C, C).
 
 check_bundle_params :-
 	( bundle_param_value(Bundle:Name, _),
-	    ( m_bundle_config_entry(Bundle, Name, _ParamDef) ->
+	    ( Bundle = boot, m_bundle_config_entry(core, Name, _ParamDef) ->
+	        % (special 'boot' configuration flags -- see scan_bootstrap_opts.sh)
 		true
-	    ; show_message(warning, "Invalid configuration parameter `~w'", [Name])
+	    ; m_bundle_config_entry(Bundle, Name, _ParamDef) ->
+		true
+	    ; show_message(warning, "Unknown configuration flag `~w:~w'", [Bundle, Name])
 	    ),
 	    fail
 	; true

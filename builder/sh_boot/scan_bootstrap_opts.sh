@@ -9,48 +9,95 @@
 
 # Input: arguments and options
 # Output: configuration variables for autoboot.sh:builddir_configure_boot
-#   core__CUSTOM_CC
-#   core__CUSTOM_LD
-#   core__EXTRA_CFLAGS
-#   core__EXTRA_LDFLAGS
-#   CIAOC_OPTS
-#   BOOTDBG
+#   boot__* options (see decomp_opt)
 scan_bootstrap_opts() {
-    local opt val arg
-    core__CUSTOM_CC=""
-    core__CUSTOM_LD=""
-    core__EXTRA_CFLAGS=""
-    core__EXTRA_LDFLAGS=""
-    CIAOC_OPTS=""
-    BOOTDBG=no
+    local opt qopt nopt val arg
+
+    cleanup_bootstrap_opts
     #
     if [ ! $# = 0 ] ; then
-	for arg in "$@" ; do
-	    if expr x"$arg" : x'\(--[^=][^=]*=..*\)' >/dev/null  ; then
-		opt=`expr x"$arg" : x'--\([^=][^=]*\)=..*'|sed -e s:_:-:g`
-		val=`expr x"$arg" : x'--[^=][^=]*=\(..*\)'`
-		case "$opt" in
-                    "core:custom-cc")
-			core__CUSTOM_CC="$val" ;;
-                    "core:custom-ld")
-			core__CUSTOM_LD="$val" ;;
-                    "core:extra-cflags")
-			core__EXTRA_CFLAGS="$val" ;;
-		    "core:extra-ldflags")
-			core__EXTRA_LDFLAGS="$val" ;;
-		    "core:unused-pred-warnings")
-			# (option for ciaoc)
-			test x"$val" = x"yes" && add_ciaoc_opt "--unused-pred-warnings" ;;
-		    "bootdbg")
-			BOOTDBG="$val" ;;
-		esac
-	    fi
+	# Read first 'core' options as 'boot', then 'boot'
+	for q in core boot; do
+	    for arg in "$@" ; do
+		if decomp_boot_opt "$arg"; then
+		    if [ x"$qopt" = x"$q" ]; then
+			eval "boot__${Nopt}=\$val"
+		    fi
+		fi
+	    done
 	done
+    fi
+    # Set defaults
+    if [ x"$boot__DEBUG_LEVEL" = x"" ]; then
+	boot__DEBUG_LEVEL=nodebug
+    fi
+    if [ x"$boot__OS" = x"" ]; then
+	boot__OS=`"$sh_src_dir"/config-sysdep/ciao_sysconf --os`
+    fi
+    if [ x"$boot__ARCH" = x"" ]; then
+	boot__ARCH=`"$sh_src_dir"/config-sysdep/ciao_sysconf --arch`
+	# Force 32-bit architecture
+	if [ x"$boot__M32" = x"yes" ] ; then
+	    case $boot__ARCH in
+		Sparc64) boot__ARCH=Sparc64m32 ;;
+		x86_64)  boot__ARCH=x86_64m32 ;;
+		ppc64)   boot__ARCH=ppc64m32 ;;
+		*) true ;; # assume 32-bit
+	    esac
+	fi
+	# Force 64-bit architecture
+	if [ x"$boot__M64" = x"yes" ] ; then
+	    case $boot__ARCH in
+		Sparc64) true ;;
+		x86_64)  true ;;
+		ppc64)   true ;;
+		*) boot__ARCH=empty ;; # force error # TODO: emit error instead?
+	    esac
+	fi
+    fi
+    # Options for ciaoc
+    if [ x"$boot__UNUSED_PRED_WARNINGS" = x"yes" ]; then
+	boot__CIAOC_OPTS="$boot__CIAOC_OPTS --unused-pred-warnings"
     fi
 }
 
-add_ciaoc_opt() {
-    CIAOC_OPTS="$CIAOC_OPTS $1"
+cleanup_bootstrap_opts() {
+    boot__CUSTOM_CC=""
+    boot__CUSTOM_LD=""
+    boot__EXTRA_CFLAGS=""
+    boot__EXTRA_LDFLAGS=""
+    boot__DEBUG_LEVEL=""
+    boot__UNUSED_PRED_WARNINGS=""
+    boot__M32=""
+    boot__M64=""
+    boot__OS=""
+    boot__ARCH=""
+    boot__CIAOC_OPTS=""
+}
+
+# Parse a 'boot' option, or 'core' option applicable to 'boot'
+decomp_boot_opt() {
+    local arg=$1
+    if ! expr x"$arg" : x'\(--[^=][^=]*=..*\)' >/dev/null; then
+	return 1
+    fi
+    opt=`expr x"$arg" : x'--\([^=][^=]*\)=..*'|sed -e s:-:_:g` # --OPT=_
+    val=`expr x"$arg" : x'--[^=][^=]*=\(..*\)'` # --_=VAL
+    qopt=`expr x"$opt" : x'\([^:]*\):..*'` # Q:_
+    nopt=`expr x"$opt" : x'[^:]*:\(..*\)'` # _:N
+    Nopt=`printf "%s" "$nopt" | tr '[:lower:]' '[:upper:]'` # N in uppercase
+    # Filter options
+    case $qopt in
+	core|boot) true ;;
+	*) return 1 ;;
+    esac
+    case $nopt in
+        custom_cc|custom_ld|extra_cflags|extra_ldflags) true ;;
+        debug_level) true ;;
+        m32|m64|os|arch) true ;;
+	*) return 1 ;;
+    esac
+    return 0
 }
 
 # TODO: 

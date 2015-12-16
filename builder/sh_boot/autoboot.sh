@@ -16,8 +16,7 @@
 #   $eng_cfg: engine configuration name (e.g., platform+debug/release)
 #   $boot_ciaoc: location of static ciaoc.sta for bootstrap
 #
-#   CIAOC_OPTS: additional options for ciaoc.sta (for builder compilation)
-#   BOOTDBG: enable debugging of bootstrap engine
+#   + output of scan_bootstrap_opts.sh (boot__*, etc.)
 #
 # Required functions:
 #   no_bootstrap_error: function invoked when bootstrap is missing
@@ -30,7 +29,7 @@
 # ---------------------------------------------------------------------------
 
 autoboot_message() {
-    echo "{BOOT: $*}" 1>&2
+    echo "=> boot: $*" 1>&2
 }
 
 # ---------------------------------------------------------------------------
@@ -54,23 +53,22 @@ crossp() {
 builddir_configure_boot() { # builddir
     local builddir="$1"
     test -d "$builddir" || mkdir "$builddir"
-    local dbglevel=nodebug
-    if [ x"$BOOTDBG" = x"yes" ]; then
-	dbglevel=debug
-    fi
+
     cat > "$builddir/ciao.config_saved_sh" <<EOF
 core__USE_THREADS=yes
 core__AND_PARALLEL_EXECUTION=no
 core__PAR_BACK=no
 core__TABLED_EXECUTION=no
 core__OPTIM_LEVEL=optimized
-core__DEBUG_LEVEL=$dbglevel
+core__DEBUG_LEVEL=$boot__DEBUG_LEVEL
 #
 ciao__DEFAULTLIBDIR="$ciaoroot/core"
-core__CUSTOM_CC="$core__CUSTOM_CC"
-core__CUSTOM_LD="$core__CUSTOM_LD"
-core__EXTRA_CFLAGS="$core__EXTRA_CFLAGS"
-core__EXTRA_LDFLAGS="$core__EXTRA_LDFLAGS"
+core__ARCH="$boot__ARCH"
+core__OS="$boot__OS"
+core__CUSTOM_CC="$boot__CUSTOM_CC"
+core__CUSTOM_LD="$boot__CUSTOM_LD"
+core__EXTRA_CFLAGS="$boot__EXTRA_CFLAGS"
+core__EXTRA_LDFLAGS="$boot__EXTRA_LDFLAGS"
 EOF
 }
 
@@ -117,13 +115,8 @@ eng_addobj=
 eng_ciao_config="$builddir/ciao.config_saved_sh"
 gsl_engdir="$builddir/eng/gsl"
 EOF
-
     # Do sysdep configuration
-    # TODO: ciao_os and ciao_arch must be in 'meta_sh' (for cross-compilation)
-    local ciao_os=`"$sh_src_dir"/config-sysdep/ciao_sysconf --os`
-    local ciao_arch=`"$sh_src_dir"/config-sysdep/ciao_sysconf --arch`
-    CIAOOS=$ciao_os CIAOARCH=$ciao_arch \
-	  "$sh_src_dir"/config-sysdep/config-sysdep.sh "$bld_engdir" "$eng_cfg"
+    "$sh_src_dir"/config-sysdep/config-sysdep.sh "$bld_engdir" "$eng_cfg"
 }
 
 # Select $bld_engdir (and $bld_cfgdir, $bld_hdir, $bld_cdir, $bld_objdir)
@@ -162,7 +155,7 @@ builddir_exec() { # builddir $cpxexec [ARGS] (and env)
 
     engdbg=""
     engopts=""
-    if [ x"$BOOTDBG" = x"yes" ]; then
+    if [ x"$boot__DEBUG_LEVEL" = x"debug" ]; then
 	# Use the C debugger to debug this run
 	# TODO: customize for other debuggers, allow interaction
 	# before/after execution, etc.
@@ -231,12 +224,13 @@ autoboot_build() { # builddir mainmod
     local builddir="$1"
     local mainexec=`get_mainexec "$1" "$2"`
     local mainname=`basename "$2"`
-    autoboot_message "Compiling native code for `basename "$boot_ciaoc"` at '`basename $builddir`'..."
+    autoboot_message "building `basename "$boot_ciaoc"` [native code for $boot__OS$boot__ARCH]"
     if booteng_cdir=`dirname "$boot_ciaoc"` builddir_do_engine "$builddir" build; then
 	true
     else
 	return 1
     fi
+    autoboot_message "built `basename "$boot_ciaoc"`"
     # Backup exec_header, create a dummy one
     # TODO: an option in ciaoc to skip exec_header instead
     local header="$ciaoroot/core/lib/compiler/header"
@@ -245,7 +239,7 @@ autoboot_build() { # builddir mainmod
     fi
     touch "$header"
     #
-    autoboot_message "Compiling bytecode for $mainname at '`basename $builddir`' [using `basename "$boot_ciaoc"`]..."
+    autoboot_message "building $mainname [using `basename "$boot_ciaoc"`]"
     #
     # Build a static executable using the bootstrap 'ciaoc'.
     # It must be static to avoid bootstrapping problems (the compiler
@@ -254,7 +248,7 @@ autoboot_build() { # builddir mainmod
     # TODO: CIAOCACHEDIR may allow non-static exec here
     #
     mkdir -p "$builddir/bin"
-    builddir_exec "$builddir" "$boot_ciaoc" $CIAOC_OPTS -s -x -o "$mainexec" "$2"
+    builddir_exec "$builddir" "$boot_ciaoc" $boot__CIAOC_OPTS -s -x -o "$mainexec" "$2"
     # Restore previous exec_header (if it existed)
     rm "$header" # Delete dummy header
     if [ -f "$header".tmp ]; then
@@ -266,7 +260,8 @@ autoboot_build() { # builddir mainmod
     #   executable (we share the engine). Sometimes we may need a
     #   different engine.
     #
-    autoboot_message "Reusing native code for $mainname from `basename "$boot_ciaoc"`"
+    autoboot_message "reusing native code from `basename "$boot_ciaoc"`"
+    autoboot_message "built $mainname"
 }
 
 # Do autobuild and execute the compiled 'mainmod'

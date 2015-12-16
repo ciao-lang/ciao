@@ -39,10 +39,8 @@ boot_builddir="$ciaoroot/build-boot"
 # The ciao_builder command-line module
 builder_mod="$ciaoroot/builder/cmds/ciao_builder"
 
-# Build configuration name for bootstrap (use platform name)
-boot_eng_cfg() {
-    "$sh_src_dir"/config-sysdep/ciao_sysconf --osarch
-}
+# Build configuration name for bootstrap
+boot_eng_cfg() { printf "BOOT"; }
 
 # ---------------------------------------------------------------------------
 # Error message when there is no bootstrap (needed for autoboot.sh)

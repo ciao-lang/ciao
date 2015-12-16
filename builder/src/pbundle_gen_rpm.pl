@@ -42,6 +42,7 @@
 :- use_module(ciaobld(pbundle_generator)).
 :- use_module(ciaobld(pbundle_gen_src)).
 :- use_module(ciaobld(builder_aux), [wr_template/4]).
+:- use_module(ciaobld(config_common), [get_eng_cfg/2]).
 
 % (hooks for gen_pbundle)
 :- include(ciaobld(pbundle_gen_hookdefs)).
@@ -349,6 +350,10 @@ versioned_packagename(BundleName, PName) :-
 	support --defining a macro's value as an argument. This would
 	break generation options.").
 
+bin_packname(Bundle, F) :-
+	EngCfg = ~get_eng_cfg(build),
+	F = ~atom_concat([~bundle_versioned_packname(Bundle), '-bin-', EngCfg]).
+
 :- pred gen_pbundle__rpm(Bundle, GenerationOptions) # "
 	Handle generation of RPM packages according to
 	@var{GenerationOptions} (see @ref{Options summary}.)".
@@ -367,7 +372,7 @@ gen_pbundle__rpm(Bundle, GenerationOptions) :-
 	rpmbuild_setoptions(RpmbuildOptions, Bundle, RpmbuildArgs),
 	process_call(~fsR(~builder_src_dir/'rpm'/'RPM-Ciao.bash'),
 	       [~atom_concat(OutputDirName, '/'),
-		~atom_concat([~bundle_versioned_packname(Bundle), '-bin-', ~get_platform]),
+		~bin_packname(Bundle),
 		SpecFileName | RpmbuildArgs], []),
 	create_pbundle_output_dir,
 	rpm_macrovalue('_arch',   Arch),
@@ -486,7 +491,7 @@ create_rpm_spec(Bundle) :-
 	    'Version' = Version,
 	    'Release' = Release,
 	    'VersionedPackName' = ~bundle_versioned_packname(Bundle),
-	    'OsArch' = ~get_platform,
+	    'BinPackName' = ~bin_packname(Bundle),
 	    'BundleMoveManVersions' = ~bundle_move_man_versions(Bundle),
 	    'BundleMoveMans' = ~bundle_move_mans(Bundle),
 	    'BundleIntegrateInfoindexes' = "",

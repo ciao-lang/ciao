@@ -283,14 +283,20 @@ grp_help_str(bootstrap_opts) --> { help_mode(details, boot) }, !,
 	% help_section("Options for bootstrapping")
         showcmdtext([
           %2........................________________________________________________
-          "These special flags are recognized during the bootstrapping process:",
+          "These core flags are recognized and used for bootstrap:",
 	  "",
+	  "  --core:os=OS                Target OS",
+	  "  --core:arch=ARCH            Target architecture",
+	  "  --core:m32=[yes|no]         Force 32-bit architecture",
+	  "  --core:m64=[yes|no]         Force 64-bit architecture",
 	  "  --core:custom-cc=CC         Select a custom C compiler",
 	  "  --core:custom-ld=LD         Select a custom C linker (optional, uses",
 	  "                              custom C compiler if not provided)",
 	  "  --core:extra-cflags=FLAGS   Use additional flags for C compiler",
 	  "  --core:extra-ldflags=FLAGS  Use additional flags for C linker",
-	  "  --bootdbg=[no|yes]          Debug bootstrap (for developers)"
+	  "  --core:debug-level          Debug level for C code",
+	  "",
+	  "Use same options with --boot:_ qualifier to affect only the bootstrap."
         ]),
 	showcmdsep.
 grp_help_str(bootstrap_opts) --> [].
