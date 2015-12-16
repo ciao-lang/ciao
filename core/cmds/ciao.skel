@@ -90,8 +90,12 @@ exec_oc_builder() {
 # NOTE: General help driver is in builder/src/ciaocl_help.pl
 
 do_help() {
-    action=$1
-    shift
+    if [ $# = 0 ]; then
+	action=""
+    else
+	action=$1
+	shift
+    fi
     case $action in
 	'')       exec_builder help ;;
 	toplevel) exec "$ciaosh_bin" -h ;;
