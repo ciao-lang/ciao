@@ -177,7 +177,7 @@ shutdown_type(read_write).
 
 :- use_foreign_source(sockets_c).
 
-:- use_foreign_library(['LINUXi686', 'LINUXx86_64', 'LINUXx86_64m32'], ['c']).
-:- use_foreign_library(['Solarisi686','SolarisSparc','SolarisSparc64','SolarisSparc64m32'], [socket,nsl]).
+:- use_foreign_library(['LINUXi686', 'LINUXx86_64'], ['c']).
+:- use_foreign_library(['Solarisi686','SolarisSparc','SolarisSparc64'], [socket,nsl]).
 
 :- initialization(initial).

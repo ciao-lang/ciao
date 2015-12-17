@@ -87,7 +87,7 @@ else
 #	crossWin32i686)  CC=i386-mingw32-gcc; LD=i386-mingw32-gcc ;; # TODO: Recover cross compilation
 	DARWIN*)        CC=clang; LD=clang ;;
 	*)
-	# The rest of the systems just use plain 'gcc'
+	    # The rest of the systems just use plain 'gcc'
 	    CC=gcc; LD=gcc ;;
     esac
 fi
@@ -123,28 +123,40 @@ if test x"$core__USE_THREADS" = x"yes"; then
 		LD_THREAD_LIB="-lpthread -lrt"
 	    fi
 	    ;;
-	Solaris*)      LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
-	BSD*)          LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
-	DARWIN*)       THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
-	LINUX*)        LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
+	Solaris*) LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
+	BSD*)     LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
+	DARWIN*)  THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
+	LINUX*)   LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
         # Threads and locks in Win32: no threads, no locks so far.
 	Win32*) THREAD_FLAG="-DTHREADS" ;;
     esac
 fi
 
+# Architecture options
+# TODO: use host arch?
+ARCHFLAGS=
+LDARCHFLAGS=
+case "$CIAOARCH" in
+    i686)  ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
+    ppc)   ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
+    Sparc) ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
+esac
+case "$CIAOOS$CIAOARCH" in
+    # TODO: WHY??
+    Solarisi686) ARCHFLAGS="-fPIC $ARCHFLAGS" ;;
+    *) ;;
+esac
+
 # C compiler options for generating shared libraries code
 # Linker options for shared objects
 case "$CIAOOS$CIAOARCH" in
-    BSD*)        CCSHARED="-fPIC" ; LDSHARED="-shared" ;;
-    DARWINppc)   CCSHARED="-fPIC" ; LDSHARED="-flat_namespace -dynamiclib -undefined suppress" ;;
-    DARWIN*)     CCSHARED="-fPIC" ; LDSHARED="-dynamiclib -undefined dynamic_lookup" ;;
-    LINUX*)      CCSHARED="-fPIC" ; LDSHARED="-shared" ;;
-    Solaris*)    CCSHARED= ; LDSHARED="-G" ;;
+    BSD*)      CCSHARED="-fPIC" ; LDSHARED="-shared" ;;
+    DARWINppc) CCSHARED="-fPIC" ; LDSHARED="-flat_namespace -dynamiclib -undefined suppress" ;;
+    DARWIN*)   CCSHARED="-fPIC" ; LDSHARED="-dynamiclib -undefined dynamic_lookup" ;;
+    LINUX*)    CCSHARED="-fPIC" ; LDSHARED="-shared" ;;
+    Solaris*)  CCSHARED= ; LDSHARED="-G" ;;
     # note: -fPIC and -rdynamic are unused in Windows
-    Win32*)      CCSHARED= ; LDSHARED="-shared" ;;
-esac
-case "$CIAOOS$CIAOARCH" in
-    *m32) CCSHARED="-m32 $CCSHARED"; LDSHARED="-m32 $LDSHARED" ;;
+    Win32*)    CCSHARED= ; LDSHARED="-shared" ;;
 esac
 
 # Extension of shared libraries
@@ -217,7 +229,6 @@ case "$CIAOOS$CIAOARCH" in
     *alpha)      ALIGN_FLAGS="" ;;
     *Sparc)      ALIGN_FLAGS="" ;;
     *Sparc64)    ALIGN_FLAGS="" ;;
-    *Sparc64m32) ALIGN_FLAGS="" ;;
     *armv4l)     ALIGN_FLAGS="" ;;
     *armv5tel)   ALIGN_FLAGS="" ;;
 esac
@@ -227,22 +238,19 @@ OPTIM_FLAGS0="$ALIGN_FLAGS"
 case "$CIAOOS$CIAOARCH" in
     # We are not using strict-aliasing to avoid problems in Solaris # TODO: wrong?
     Solarisi686)    OPTIM_FLAGS0="$OPTIM_FLAGS0" ;;
+    SolarisSparc)   OPTIM_FLAGS0="$OPTIM_FLAGS0" ;;
     SolarisSparc64) OPTIM_FLAGS0="$OPTIM_FLAGS0" ;;
-    SolarisSparc64m32) OPTIM_FLAGS0="$OPTIM_FLAGS0" ;;
     LINUXalpha)     OPTIM_FLAGS0="$OPTIM_FLAGS0" ;;
     #
-    *i686)        OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *x86_64)      OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *x86_64m32)   OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *ppc)       OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *ppc64)     OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *ppc64m32)  OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *Sparc)     OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *Sparc64)   OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *Sparc64m32) OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *arm)       OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *armv4l)    OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *armv5tel)  OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
+    *i686)     OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
+    *x86_64)   OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
+    *ppc)      OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
+    *ppc64)    OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
+    *Sparc)    OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
+    *Sparc64)  OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
+    *arm)      OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
+    *armv4l)   OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
+    *armv5tel) OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
 esac
 if test x"$core__OPTIM_LEVEL" = x"optimized"; then
     OPTIM_FLAGS="-fno-strict-aliasing -O2 $OPTIM_FLAGS0"
@@ -264,26 +272,12 @@ case "$CIAOOS$CIAOARCH" in
     # TODO: why?
     LINUXSparc)      MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
     LINUXSparc64)    MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
-    LINUXSparc64m32) MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
     # Do not use USE_MMAP for own_malloc in 64-bit architectures
     *Sparc64)        MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
     *x86_64)         MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
     *ppc64)          MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
     # (assume 32-bit)
     *) MEM_MNG_FLAG="-DUSE_MMAP -DANONYMOUS_MMAP" ;;
-esac
-
-# Architecture options
-# TODO: rename to ARCH_FLAGS like in OptimComp?
-ARCHFLAGS=
-LDARCHFLAGS=
-case "$CIAOOS$CIAOARCH" in
-    *m32) ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
-esac
-case "$CIAOOS$CIAOARCH" in
-    # TODO: WHY??
-    Solarisi686) ARCHFLAGS="-fPIC $ARCHFLAGS" ;;
-    *) ;;
 esac
 
 # Linker specific options
@@ -365,6 +359,8 @@ esac
 
 CFLAGS="$OPTIM_FLAGS $DEBUG_FLAGS $THREAD_FLAG $FOREIGN_FILES_FLAG $SOCKETS_FLAG -D$CIAOOS -D$CIAOARCH $ARCHFLAGS $MEM_MNG_FLAG"
 LDFLAGS="$LDARCHFLAGS $LDFLAGS0 $LDRPATH $PROFILE_LD_FLAGS"
+CCSHARED="$ARCHFLAGS $CCSHARED" # TODO: misses OPTIM_FLAGS, etc.?
+LDSHARED="$LDARCHFLAGS $LDSHARED"
 LIBS="$LIBS0 $LD_THREAD_LIB $LD_SOCKETS_LIB $DEBUG_LIBS"
 STAT_LIBS="$STAT_SOCKETS_LIB"
 

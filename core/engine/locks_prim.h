@@ -69,8 +69,8 @@ typedef char LOCK;
    try it, actually.  This is heavily influenced by Kish Shen and Roland
    Karlsson (thanks to both). */
 
-#if (defined(i686) || defined(x86_64m32) || \
-     defined(Sparc) || defined(Sparc64m32) ||  \
+#if (defined(i686) || \
+     defined(Sparc) || \
      defined(Sequent)) && \
     defined(__GNUC__)
 #define HAVE_NATIVE_SLOCKS
@@ -98,7 +98,7 @@ typedef volatile struct {
 
 /* ------------------------------------------------------------------------- */
 
-# if defined(Sparc) || defined(Sparc64m32)     /* Macro definition for sparc */
+# if defined(Sparc)     /* Macro definition for sparc */
 #   define aswap(addr,reg)                                      \
 ({ int _ret;                                                    \
    asm volatile ("swap %1,%0"                                   \
@@ -112,7 +112,7 @@ typedef volatile struct {
 
 /* Was      asm volatile ("xchgw %0,%1"                                */
 
-# if defined(i686) || defined(x86_64m32) || defined(Sequent)         /* Now, Intel 80x86 stuff */
+# if defined(i686) || defined(Sequent)         /* Now, Intel 80x86 stuff */
 #   define aswap(adr,reg)                                       \
   ({ long int _ret;                                             \
      asm volatile ("xchgl %0,%1"                                \

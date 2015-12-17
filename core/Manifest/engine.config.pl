@@ -72,9 +72,9 @@ sysconf_arch(M32, M64, Arch) :-
 	; Arch = Arch0
 	).
 
-arch32('Sparc64', 'Sparc64m32') :- !.
-arch32('x86_64', 'x86_64m32') :- !.
-arch32('ppc64', 'ppc64m32') :- !.
+arch32('Sparc64', 'Sparc') :- !.
+arch32('x86_64', 'i686') :- !.
+arch32('ppc64', 'ppc') :- !.
 arch32(Arch, Arch). % assume 32-bit
 
 arch64('Sparc64', 'Sparc64') :- !.

@@ -83,9 +83,11 @@ prebuild_gsl_bindings :-
 
 :- use_module(library(lists), [append/3]).
 
-% Remove the -L option, hack that allows to run in LINUXx86_64m32 --EMM:
+% Remove the -L option, hack that allows to run in LINUXi686 or LINUXx86_64 --EMM:
 fix_linker_opts(LinkerOpts0, LinkerOpts) :-
-	( get_platform('LINUXx86_64') ; get_platform('LINUXx86_64m32') ),
+	( get_platform('LINUXx86_64') 
+	; get_platform('LINUXi686') 
+	),
 	append("-L"||_, " "||LinkerOpts, LinkerOpts0),
 	!.
 fix_linker_opts(LinkerOpts, LinkerOpts).

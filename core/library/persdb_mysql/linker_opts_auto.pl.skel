@@ -4,9 +4,8 @@
 
 :- extra_linker_opts('LINUXi686', [ '-L{{where_mysql_client_lives}}', '-lz' ]).
 :- extra_linker_opts('LINUXx86_64', [ '-L{{where_mysql_client_lives}}', '-lz' ]).
-:- extra_linker_opts('LINUXx86_64m32', [ '-L{{where_mysql_client_lives}}', '-lz' ]).
 
 :- extra_linker_opts('DARWINppc', [ '-L{{where_mysql_client_lives}}', '-lz', '-framework System' ]).
 :- extra_linker_opts('DARWINi686', [ '-L{{where_mysql_client_lives}}', '-lz', '-framework System' ]).
 :- extra_linker_opts('DARWINx86_64', [ '-L{{where_mysql_client_lives}}', '-lz', '-framework System' ]).
-:- extra_linker_opts('DARWINx86_64m32', [ '-L{{where_mysql_client_lives}}', '-lz', '-framework System' ]).
+

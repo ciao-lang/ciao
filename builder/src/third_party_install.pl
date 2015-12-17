@@ -50,7 +50,7 @@
 
 %env('CC', gcc).
 %env('CXX', 'g++').
-env('CFLAGS', '-m32') :- get_arch(Arch), member(Arch, ['i686', 'x86_64m32']).
+env('CFLAGS', '-m32') :- get_arch(Arch), member(Arch, ['i686']).
 env('CXXFLAGS', Flag) :- env('CFLAGS', Flag).
 env('CPPFLAGS', Flag) :-
 	third_party_path(includedir, Path),
@@ -70,9 +70,11 @@ env('PATH', Paths):-
 option1(Lib, Opt) :- m_third_party_option1(Lib, Opt).
 
 option2(Lib, Opt, Val) :- m_third_party_option2(Lib, Opt, Val).
-% TODO: Missing host for 64-bit mode?
-option2(_Lib, host, 'i386-apple-darwin') :- get_os('DARWIN'), get_arch(Arch), member(Arch, ['i686', 'x86_64m32']).
-option2(_Lib, host, 'i386-pc-linux') :- get_os('LINUX'), get_arch(Arch), member(Arch, ['i686', 'x86_64m32']).
+% TODO: check host triple for 64-bit mode
+option2(_Lib, host, 'i386-apple-darwin') :-   get_os('DARWIN'), get_arch('i686').
+option2(_Lib, host, 'x86_64-apple-darwin') :- get_os('DARWIN'), get_arch('x86_64').
+option2(_Lib, host, 'i386-pc-linux') :-   get_os('LINUX'), get_arch('i686').
+option2(_Lib, host, 'x86_64-pc-linux') :- get_os('LINUX'), get_arch('x86_64').
 option2(Lib, prefix, Prefix) :- third_party_path(private(Lib, storedir), Prefix).
 
 :- doc(section, "Paths").

@@ -7,7 +7,6 @@
 :- extra_compiler_opts(['-O2']).
 :- extra_compiler_opts('LINUXi686',['-ffast-math']).
 :- extra_compiler_opts('LINUXx86_64',['-ffast-math']).
-:- extra_compiler_opts('LINUXx86_64m32',['-ffast-math']).
 :- use_foreign_library('LINUXi686', m).
 :- use_foreign_library('LINUXx86_64', m).
-:- use_foreign_library('LINUXx86_64m32', m).
+

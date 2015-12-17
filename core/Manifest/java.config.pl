@@ -38,7 +38,7 @@ is_sun_javac :-
 	process_call(path(java), ['-version'],
 	             [stderr(stdout), stdout(string(SJava)), status(_)]),
 	% Kludge: In linux 64, you have to use the 64-bit Server VM --EMM
-	( ( get_platform('LINUXx86_64m32') ; get_platform('LINUXx86_64') ) ->
+	( ( get_platform('LINUXi686') ; get_platform('LINUXx86_64') ) ->
 	    append(_, "64-Bit"||_, SJava)
 	; true
 	),

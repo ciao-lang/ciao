@@ -39,9 +39,9 @@ scan_bootstrap_opts() {
 	# Force 32-bit architecture
 	if [ x"$boot__M32" = x"yes" ] ; then
 	    case $boot__ARCH in
-		Sparc64) boot__ARCH=Sparc64m32 ;;
-		x86_64)  boot__ARCH=x86_64m32 ;;
-		ppc64)   boot__ARCH=ppc64m32 ;;
+		Sparc64) boot__ARCH=Sparc ;;
+		x86_64)  boot__ARCH=i686 ;;
+		ppc64)   boot__ARCH=ppc ;;
 		*) true ;; # assume 32-bit
 	    esac
 	fi

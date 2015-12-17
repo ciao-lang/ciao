@@ -29,7 +29,7 @@ gsl_installed :-
 	find_executable(~m_bundle_foreign_config_tool(contrib, gsl), _),
 	% TODO: Next literal required because now GSL 32 bits is not available
 	% TODO: in Linux 64 bits -- EMM.
-	\+ get_platform('LINUXx86_64m32').
+	\+ get_platform('LINUXi686').
 
 verify_gsl(Value) :-
 	( gsl_installed -> Value = yes ; Value = no ).

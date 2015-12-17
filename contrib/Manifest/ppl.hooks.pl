@@ -81,7 +81,7 @@ prebuild_ppl_bindings :-
  	    foreign_config_var(ppl, 'cxxflags', CompilerOpts2),
 	    append(CompilerOpts1, " "||CompilerOpts2, CompilerOpts3),
  	    foreign_config_var(ppl, 'ldflags', LinkerOpts1),
-            ( ( get_platform('DARWINi686') ; get_platform('DARWINx86_64m32') ) ->
+            ( get_platform('DARWINi686') ->
               % Remove "-arch x86_64" option if ppl is an MacOS universal binary
                 remove_all_substrings(CompilerOpts3, "-arch x86_64", CompilerOpts),
                 remove_all_substrings(LinkerOpts1, "-arch x86_64", LinkerOpts2) ;
