@@ -19,10 +19,8 @@
 
 :- use_module(engine(internals), ['$bundle_alias_path'/3]).
 
-:- use_module(library(bundle), 
-	[ensure_bundle_manifest/2,
-	 current_bundle_root/1,
-	 lookup_bundle_root/2]).
+:- use_module(library(bundle), [ensure_bundle_manifest/2]).
+:- use_module(library(bundle/bundlereg_gen), [current_bundle_root/1]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Manifest and bundle setup").

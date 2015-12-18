@@ -15,11 +15,11 @@
 @end{alert}").
 
 :- use_module(library(fastrw), [fast_write/1]).
-:- use_module(library(pathnames), [path_concat/3]).
+:- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(read), [read/2]).
 :- use_module(library(messages), [warning_message/2]).
 
-:- use_module(library(system), [file_exists/1]).
+:- use_module(library(system), [file_exists/1, working_directory/2]).
 :- use_module(library(streams), [open_output/2, close_output/1]).
 
 :- use_module(engine(internals), [bundlereg_version/1]).
@@ -42,6 +42,31 @@ locate_manifest_file(BundleDir, ManifestFile) :-
 	path_concat(BundleDir2, 'Manifest.pl', ManifestFile),
 	file_exists(ManifestFile),
 	!.
+
+% ---------------------------------------------------------------------------
+
+:- export(current_bundle_root/1).
+% Lookup the bundle root for the working directory
+current_bundle_root(BundleDir) :-
+	working_directory(D, D),
+	( lookup_bundle_root(D, BundleDir0) ->
+	    BundleDir = BundleDir0
+	; throw(error(['Not a bundle \'', D, '\'']))
+	).
+
+:- export(lookup_bundle_root/2).
+% Detect the bundle root dir for the given File (a directory or normal
+% file)
+lookup_bundle_root(File, BundleDir) :-
+	is_bundle_dir(File),
+	!,
+	% Found a bundle dir
+	BundleDir = File.
+lookup_bundle_root(File, BundleDir) :-
+	% Not a bundle dir, visit the parent
+	path_split(File, Base, Name),
+	\+ (Base = '/', Name = ''),
+	lookup_bundle_root(Base, BundleDir).
 
 % ---------------------------------------------------------------------------
 

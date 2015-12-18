@@ -172,7 +172,7 @@ main(Args) :-
 	!.
     
 main_([Help0|Args]) :-
-	normcmd(Help0, Help),
+	norm_cmd(Help0, Help),
 	help_mode(Help, Mode, Boot), 
 	!,
 	( Args = [] ->
@@ -217,15 +217,18 @@ parse_args(CmdArgs, Cmd, Target, Opts) :-
 
 % Parse command, arguments, targets, and options
 parse_args_([Cmd00|Args], Cmd2, Opts, Target) :- !,
-	normcmd(Cmd00, Cmd0),
-	( is_builder_boot_cmd(Cmd0) ->
-	    throw(not_in_builder_boot(Cmd0))
-	; cmd_alias(Cmd0, Cmd1) ->
-	    Cmd = Cmd1
-	; is_builder_cmd(Cmd0) ->
-	    Cmd = Cmd0
-	; throw(unknown_builder_cmd(Cmd0))
+	% Normalize command
+	norm_cmd(Cmd00, Cmd0),
+	( cmd_alias(Cmd0, Cmd1) -> Cmd = Cmd1
+	; Cmd = Cmd0
 	),
+	% Parse
+	parse_cmd(Cmd, Args, Cmd2, Opts, Target).
+parse_args_([], _Cmd, _Opts, _Target) :-
+	throw(args_error("No arguments were specified", [])).
+
+parse_cmd(Cmd, Args, Cmd2, Opts, Target) :-
+	check_cmd(Cmd),
 	cmd_opts(Cmd, TargetParse, OptsParse),
 	parse_opts(Args, Opts, Args1),
 	% Select default target if none
@@ -236,8 +239,7 @@ parse_args_([Cmd00|Args], Cmd2, Opts, Target) :- !,
 	; TargetParse = no_bundle -> % TODO: not very nice
 	    Target = '$no_bundle',
 	    Args2 = Args1
-	; % TODO: Implement opt_bundle, cwd_bundle; bundle may not be needed
-	  default_bundle(Target), Args2 = []
+	; throw(invalid_target_parse(TargetParse))
 	),
 	( OptsParse = config_opts ->
 	    % NOTE: checked later in configure
@@ -279,8 +281,6 @@ parse_args_([Cmd00|Args], Cmd2, Opts, Target) :- !,
 	    Cmd2 = Cmd
 	; fail
 	).
-parse_args_([], _Cmd, _Opts, _Target) :-
-	throw(args_error("No arguments were specified", [])).
 
 parse_opts(['--interactive'|Args], Opts, RestArgs) :- % TODO: special arg parser?
 	!,
@@ -317,10 +317,21 @@ parse_opts([Arg|Args], Opts, RestArgs) :- !,
 parse_opts([], [], []).
 
 % Replace 0'- by 0'_ in names of commands
-normcmd(X0, X) :-
+norm_cmd(X0, X) :-
 	atom_codes(X0, Cs0),
 	map(Cs0, normunderscore, Cs),
 	atom_codes(X, Cs).
+
+% Cmd is a valid command
+check_cmd(Cmd) :-
+	( is_builder_boot_cmd(Cmd) ->
+	    throw(not_in_builder_boot(Cmd))
+	; true
+	),
+	( is_builder_cmd(Cmd) ->
+	    true
+	; throw(unknown_builder_cmd(Cmd))
+	).
 
 :- regtype is_builder_boot_cmd/1 # "Commands exclusive for
    @tt{builder_boot.sh} (aka ciao-boot.sh)".

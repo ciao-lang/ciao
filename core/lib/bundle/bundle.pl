@@ -25,7 +25,6 @@
 ").
 
 :- use_module(library(terms), [atom_concat/2]).
-:- use_module(library(system), [working_directory/2]).
 :- use_module(library(system_extra), [mkpath/1]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 
@@ -33,7 +32,9 @@
 
 :- use_module(engine(internals), [load_bundlereg/1, '$bundle_id'/1]).
 :- use_module(library(bundle/bundlereg_gen),
-	[is_bundle_dir/1, locate_manifest_file/2, gen_bundlereg/4]).
+	[is_bundle_dir/1,
+	 lookup_bundle_root/2,
+	 gen_bundlereg/4]).
 
 % ---------------------------------------------------------------------------
 % Loading of bundles (just enable namespaces, does not load any module)
@@ -89,31 +90,6 @@ bundlereg_file(BundleDir, BundleName) := F :-
 ensure_bundle_state_dir(BundleDir) :-
 	D = ~bundle_state_base(BundleDir),
 	mkpath(D).
-
-% ---------------------------------------------------------------------------
-
-:- export(current_bundle_root/1).
-% Lookup the bundle root for the working directory
-current_bundle_root(BundleDir) :-
-	working_directory(D, D),
-	( lookup_bundle_root(D, BundleDir0) ->
-	    BundleDir = BundleDir0
-	; throw(error(['Not a bundle \'', D, '\'']))
-	).
-
-:- export(lookup_bundle_root/2).
-% Detect the bundle root dir for the given File (a directory or normal
-% file)
-lookup_bundle_root(File, BundleDir) :-
-	is_bundle_dir(File),
-	!,
-	% Found a bundle dir
-	BundleDir = File.
-lookup_bundle_root(File, BundleDir) :-
-	% Not a bundle dir, visit the parent
-	path_split(File, Base, Name),
-	\+ (Base = '/', Name = ''),
-	lookup_bundle_root(Base, BundleDir).
 
 % ---------------------------------------------------------------------------
 
