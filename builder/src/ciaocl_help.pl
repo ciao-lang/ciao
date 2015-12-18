@@ -42,6 +42,7 @@ help_str('') --> !,
 	grp_help_str(quickstart),
 	grp_help_str(promotion),
 	%
+	grp_help_str(management),
 	grp_help_str(configure),
 	grp_help_str(build_grp),
 	grp_help_str(clean_grp),
@@ -103,9 +104,11 @@ cmd_grp(local_install_paranoid, quickstart).
 cmd_grp(boot_promote, promotion).
 %
 cmd_grp(configure, configure).
-cmd_grp(rescan_bundles, configure). % TODO: move somewhere else?
-cmd_grp(list_bundles, configure). % TODO: move somewhere else?
 cmd_grp(configclean, configure).
+%
+cmd_grp(rescan_bundles, management).
+cmd_grp(list, management).
+cmd_grp(info, management).
 %
 cmd_grp(build, build_grp).
 cmd_grp(prebuild_nodocs, build_grp).
@@ -234,6 +237,24 @@ grp_help_str(promotion) --> { help_mode(~all_or_details, _) }, !,
 	showcmdsep.
 grp_help_str(promotion) --> [].
 			       
+grp_help_str(management) -->
+	% TODO: add BUNDLE as a parameter
+	% TODO: configure help is also in bundle_configure.pl
+	help_section("Bundle management"),
+	showcmd(rescan_bundles, "[<bundle>]", [
+          %1_______________________________________________
+          "Rescan bundles (when source changes)"
+        ]),
+	showcmd(list, "", [
+          %1_______________________________________________
+          "List all available bundles"
+        ]),
+	showcmd(info, "[<bundle>]", [
+          %1_______________________________________________
+          "Info on specified bundle"
+        ]),
+	showcmdsep.
+
 grp_help_str(configure) -->
 	% TODO: add BUNDLE as a parameter
 	% TODO: configure help is also in bundle_configure.pl
@@ -256,22 +277,12 @@ grp_help_str(configure) -->
 	  "  --set-flag <flag>=<value> Force flag value (dangerous!)"
         ]),
 	showcmdsep,
-	showcmd(list_bundles, "", [
-          %1_______________________________________________
-          "List all available bundles"
-        ]),
-	showcmdsep,
         % TODO: really use BUNDLE as a parameter
 	grp_help_str(configure_extra),
 	%
 	grp_help_str(bootstrap_opts).
 
 grp_help_str(configure_extra) --> { help_mode(~all_or_details, _) }, !,
-	showcmd(rescan_bundles, "[<bundle>]", [
-          %1_______________________________________________
-          "Rescan the (sub)bundles (when source changes)"
-        ]),
-	showcmdsep,
 	showcmd(configclean, "[<bundle>]", [
           %1_______________________________________________
           "Clean the configuration"

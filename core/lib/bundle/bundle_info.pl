@@ -86,23 +86,43 @@ bundle_name(Bundle) := Bundle.
 
 % ---------------------------------------------------------------------------
 % TODO: Merge with code in autodoc:get_last_version/3
+% TODO: customize format (e.g., like in 'git log')
 
 :- use_module(library(format)).
 
 :- export(list_bundles/0).
-:- pred list_bundles # "List the registered bundles".
+:- pred list_bundles # "List all registered bundles".
 list_bundles :-
-%	format("% Name,Pack,Version,SrcPath,Kind\n", []),
 	( % (failure-driven loop)
 	  '$bundle_id'(Bundle),
+	    format("~w\n", [Bundle]),
+	    fail
+	; true
+	).
+
+:- export(bundle_info/1).
+:- pred bundle_info(Bundle) # "Show info of @var{Bundle}".
+bundle_info(Bundle) :-
+	( nonvar(Bundle), '$bundle_id'(Bundle) ->
 	    '$bundle_prop'(Bundle, packname(Pack)),
 	    ( '$bundle_prop'(Bundle, requires(Requires)) -> true ; Requires = [] ),
 	    ( '$bundle_srcdir'(Bundle, SrcDir) -> true ; SrcDir = '(none)' ),
 	    Version = ~bundle_version(Bundle),
 	    Patch = ~bundle_patch(Bundle),
-	    format("~w (~w ~w.~w) src:~q, requires:~w\n",
-	           [Bundle, Pack, Version, Patch, SrcDir, Requires]),
-	    fail
-	; true
+	    % format("~w (~w ~w.~w) src:~q, requires:~w\n",
+	    %        [Bundle, Pack, Version, Patch, SrcDir, Requires]),
+	    % (looks like .yaml format)
+	    format("~w:\n", [Bundle]),
+	    format("  version: ~w.~w\n", [Version, Patch]),
+	    format("  name: ~w\n", [Pack]),
+	    format("  src: ~w\n", [SrcDir]),
+	    format("  requires:\n", []),
+	    ( % (failure-driven loop)
+	      member(X, Requires),
+	        format("  - ~w\n", [X]),
+		fail
+	    ; true
+	    )
+	; format("ERROR: unknown bundle ~w\n", [Bundle])
 	).
 

@@ -447,7 +447,8 @@ is_builder_cmd(unregister).
 is_builder_cmd(runbenchmarks).
 is_builder_cmd(runtests).
 %
-is_builder_cmd(list_bundles). % ciao
+is_builder_cmd(list). % (list bundles)
+is_builder_cmd(info). % (info on bundle)
 %
 is_builder_cmd(gen_bundle_commit_info). % ciao
 is_builder_cmd(gen_pbundle(_)).

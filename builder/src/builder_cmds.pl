@@ -648,7 +648,8 @@ default_pred(Head, Bundle, Part) :-
 %
 :- use_module(ciaobld(bundle_hash), [gen_bundle_commit_info/1]).
 %
-:- use_module(library(bundle/bundle_info), [list_bundles/0]).
+:- use_module(library(bundle/bundle_info),
+	[list_bundles/0, bundle_info/1]).
 %
 % Backends for pbundle (distribution) generation 
 % TODO: disable 'unused module' warnings
@@ -763,9 +764,13 @@ bundlehook_call_(gen_pbundle(Kind), Bundle, '') :- !,
 bundlehook_call_(gen_bundle_commit_info, Bundle, '') :- !,
 	ensure_builddir,
 	gen_bundle_commit_info(Bundle).
-%
-bundlehook_call_(list_bundles, _Bundle, _) :- !, % TODO: use Bundle, add params
+% List bundles
+bundlehook_call_(list, _Bundle, _) :- !, % TODO: use Bundle, add params, format, etc.
 	list_bundles.
+% Show bundle info
+bundlehook_call_(info, Bundle, '') :- !, % TODO: use Bundle, add params, format, etc.
+	bundle_info(Bundle).
+%
 bundlehook_call_(Cmd, Bundle, '') :-
 	cmd_rec(Cmd),
 	!,

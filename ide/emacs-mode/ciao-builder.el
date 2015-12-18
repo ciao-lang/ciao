@@ -122,12 +122,12 @@
       ((target (ask-bundle "Clean the specified Ciao bundle: ")))
     (ciao-builder-command (concat "clean " target))))
 
-;; TODO: provide a minor mode for this
+;; TODO: provide a minor mode for this; add "info"
 ;;;###autoload
 (defun ciao-list-bundles () 
   "List the available bundles."
   (interactive) 
-  (ciao-builder-command "list_bundles"))
+  (ciao-builder-command "list"))
 
 ;; ---------------------------------------------------------------------------
 ;; Grep on bundles source
