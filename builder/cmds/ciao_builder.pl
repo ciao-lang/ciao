@@ -248,17 +248,23 @@ parse_cmd(Cmd, Args, Cmd2, Opts, Target) :-
 	    ),
 	    Cmd2 = Cmd
 	; OptsParse = raw_opts, Cmd = custom_run ->
-	    % do not check flags for custom_run % TODO: pass them as arguments instead?
+	    % do not check flags % TODO: pass them as arguments instead?
 	    ( Args2 = [CustomCmd] -> true
 	    ; throw(args_error("'custom_run' needs a target and a custom command name", []))
 	    ),
 	    Cmd2 = custom_run(CustomCmd)
 	; OptsParse = raw_opts, Cmd = clean_tree ->
-	    % do not check flags for clean_tree
+	    % do not check flags
 	    ( Args2 = [Dir] -> true
 	    ; throw(args_error("'clean_tree' needs a directory", []))
 	    ),
 	    Cmd2 = clean_tree(Dir)
+	; OptsParse = raw_opts, Cmd = get ->
+	    % do not check flags
+	    ( Args2 = [BundleAlias] -> true
+	    ; throw(args_error("'get' needs a bundle alias", []))
+	    ),
+	    Cmd2 = get(BundleAlias)
 	; OptsParse = raw_opts ->
 	    ( Args2 = [] -> true
 	    ; throw(args_error("Invalid additional arguments ('~w')", [Args2]))
@@ -360,6 +366,8 @@ cmd_opts(local_install,          arg_bundle, config_opts) :- !.
 cmd_opts(global_install,         arg_bundle, config_opts) :- !.
 cmd_opts(local_install_paranoid, arg_bundle, config_opts) :- !.
 cmd_opts(configure,              arg_bundle, config_opts) :- !.
+%
+cmd_opts(get,                    no_bundle, raw_opts) :- !.
 % (internal)
 cmd_opts(scan_and_config,        arg_bundle, config_opts) :- !.
 cmd_opts(config_noscan,          arg_bundle, config_opts) :- !.
@@ -374,6 +382,7 @@ cmd_opts(custom_run,             arg_bundle, raw_opts) :- !.
 cmd_opts(gen_bundle_commit_info, arg_bundle, raw_opts) :- !.
 %
 cmd_opts(clean_tree,             no_bundle, raw_opts) :- !.
+%
 % (any other command: no flags)
 cmd_opts(_,                      arg_bundle, no_opts).
 
@@ -449,6 +458,7 @@ is_builder_cmd(runtests).
 %
 is_builder_cmd(list). % (list bundles)
 is_builder_cmd(info). % (info on bundle)
+is_builder_cmd(get). % (download and install bundles)
 %
 is_builder_cmd(gen_bundle_commit_info). % ciao
 is_builder_cmd(gen_pbundle(_)).

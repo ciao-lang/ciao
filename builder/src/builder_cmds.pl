@@ -118,6 +118,10 @@ builder_cmd_(fullinstall, Target, Opts) :- !,
 	builder_cmd(scan_and_config, Target, Opts),
 	builder_cmd(build, Target, []),
 	builder_cmd(install, Target, []).
+%
+builder_cmd_(boot_promote, Target, _Opts) :- !,
+	do_boot_promote(Target).
+%
 builder_cmd_(configure, Target, Opts) :- !,
 	( member(flag(ciao:list_flags, true), Opts) ->
 	    set_params(Opts), % TODO: needed?
@@ -131,8 +135,7 @@ builder_cmd_(configure, Target, Opts) :- !,
 	; builder_cmd(scan_and_config, Target, Opts),
 	  post_config_message(Target)
 	).
-builder_cmd_(boot_promote, Target, _Opts) :- !,
-	do_boot_promote(Target).
+%
 builder_cmd_(scan_and_config, Target, Opts) :- !,
 	% Note: scanning bundles must be done before configuration
 	% Note: fsR cannot be used until bundles are scanned
@@ -161,6 +164,7 @@ builder_cmd_(config_noscan, Target, _Opts) :- !,
 	% TODO: implement configuration for individual bundles
 	format(user_error, "ERROR: Cannot configure bundle `~w'.~n", [Target]),
 	halt(1).
+%
 builder_cmd_(rescan_bundles, Target, _Opts) :- !,
         cmd_message(Target, "re-scanning (sub-)bundles", []),
 	( root_bundle(Target) -> % Allow scanning without previous 'configure'
@@ -180,6 +184,10 @@ builder_cmd_(rescan_bundles, Target, _Opts) :- !,
 	  format(user_error, "ERROR: sub-bundle scan not supported yet~n", []),
 	  halt(1)
 	).
+% Download and install bundles
+builder_cmd_(get(BundleAlias), '$no_bundle', _Opts) :- !,
+	bundle_get(BundleAlias).
+%
 builder_cmd_(build, Target, Opts) :- !,
 	% TODO: Make sure that lpdoc is build before creating the documentation
 	%       (in general, 'build' should delay tasks)
@@ -768,7 +776,7 @@ bundlehook_call_(gen_bundle_commit_info, Bundle, '') :- !,
 bundlehook_call_(list, _Bundle, _) :- !, % TODO: use Bundle, add params, format, etc.
 	list_bundles.
 % Show bundle info
-bundlehook_call_(info, Bundle, '') :- !, % TODO: use Bundle, add params, format, etc.
+bundlehook_call_(info, Bundle, '') :- !,
 	bundle_info(Bundle).
 %
 bundlehook_call_(Cmd, Bundle, '') :-
@@ -1244,4 +1252,54 @@ bundle_uninstall_docs_format_hook(info, Target) :- !,
 	dirfile_uninstall_info(~fsR(builddir_doc(build)), Target).
 bundle_uninstall_docs_format_hook(_, _).
 
+% ===========================================================================
 
+:- doc(subsection, "Bundle Management").
+
+:- use_module(library(process), [process_call/3]).
+:- use_module(library(http_get), [http_get/2]).
+:- use_module(library(system), [mktemp_in_tmp/2]).
+
+bundle_get(BundleAlias) :-
+	bundle_fetch(BundleAlias, Bundle),
+	builder_cmd(build, Bundle, []).
+
+% Fetch source code of bundle specified in BundleAlias
+bundle_fetch(BundleAlias, Bundle) :-
+	% Compute bundle dir and check status
+	path_split(BundleAlias, _, Bundle),
+	root_bundle_source_dir(RootDir),
+	path_concat(RootDir, Bundle, BundleDir),
+	( file_exists(BundleDir) ->
+	    cmd_message(Bundle, "already exists, skipping fetch", []),
+	    % TODO: Add a mark or compute a checksum so that we can check
+	    % that this directory is not a user directory
+	    normal_message("(to upgrade, please remove ~w)", [BundleDir])
+	; bundle_fetch_(BundleAlias, Bundle, BundleDir)
+	).
+
+bundle_fetch_(BundleAlias, Bundle, BundleDir) :-
+	% Fetch source
+	bundle_src_url(BundleAlias, URL),
+	cmd_message(Bundle, "fetching source from ~w", [URL]),
+	mktemp_in_tmp('ciao-fetch-XXXXXX', File),
+	mkpath(BundleDir),
+	catch(http_get(URL, file(File)), _E, fail),
+	% Uncompress
+	process_call(path(tar), [
+          '-x', '--strip-components', '1',
+	  '-C', BundleDir,
+	  '-f', File], [status(0)]),
+	!.
+bundle_fetch_(BundleAlias, _, _) :-
+	format(user_error, "ERROR: Bundle fetch failed for `~w'.~n", [BundleAlias]),
+	halt(1).
+
+% TODO: only github.com is currently supported
+bundle_src_url(BundleAlias, URL) :-
+	atom_concat('github.com/', BundleAlias, _),
+	!,
+	atom_concat(['https://', BundleAlias, '/archive/master.tar.gz'], URL).
+bundle_src_url(BundleAlias, _URL) :-
+	format(user_error, "ERROR: Unrecognized bundle alias path `~w'.~n", [BundleAlias]),
+	halt(1).

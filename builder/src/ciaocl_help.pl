@@ -109,6 +109,7 @@ cmd_grp(configclean, configure).
 cmd_grp(rescan_bundles, management).
 cmd_grp(list, management).
 cmd_grp(info, management).
+cmd_grp(get, management).
 %
 cmd_grp(build, build_grp).
 cmd_grp(prebuild_nodocs, build_grp).
@@ -252,6 +253,10 @@ grp_help_str(management) -->
 	showcmd(info, "[<bundle>]", [
           %1_______________________________________________
           "Info on specified bundle"
+        ]),
+	showcmd(get, "[<bundle alias>]", [
+          %1_______________________________________________
+          "Download and install the specified bundles"
         ]),
 	showcmdsep.
 
