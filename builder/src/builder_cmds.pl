@@ -1262,6 +1262,8 @@ bundle_uninstall_docs_format_hook(_, _).
 
 bundle_get(BundleAlias) :-
 	bundle_fetch(BundleAlias, Bundle),
+	builder_cmd(rescan_bundles, ~root_bundle, []), % TODO: implement single-bundle rescan
+	reload_bundleregs, % (reload, bundles has been scanned)
 	builder_cmd(build, Bundle, []).
 
 % Fetch source code of bundle specified in BundleAlias
