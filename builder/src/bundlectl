@@ -14,7 +14,7 @@
 	
 :- use_module(ciaobld(bundlectl_aux)).
 :- use_module(library(bundle)).
-:- use_module(library(bundle/bundlereg_gen), [current_bundle_root/1]).
+:- use_module(library(bundle/bundlereg_gen), [lookup_bundle_root/2]).
 :- use_module(library(strings), [write_string/1]).
 
 main(Args) :-
@@ -54,6 +54,14 @@ main_(['help']) :- !,
 	show_help.
 main_(_) :-
 	throw(error(['Wrong usage. See \'help\''])).
+
+% Lookup the bundle root for the working directory
+current_bundle_root(BundleDir) :-
+	working_directory(D, D),
+	( lookup_bundle_root(D, BundleDir0) ->
+	    BundleDir = BundleDir0
+	; throw(error(['Not a bundle \'', D, '\'']))
+	).
 
 show_help :-
 	write_string(

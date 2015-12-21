@@ -26,6 +26,38 @@ root_bundle_source_dir(Dir) :-
 
 % ===========================================================================
 
+:- use_module(library(bundle/bundlereg_gen), [lookup_bundle_root/2]).
+:- use_module(library(bundle/bundle_info), [root_bundle/1]).
+:- use_module(engine(internals), ['$bundle_id'/1]).
+
+:- export(bundle_at_dir/2).
+% Lookup the root or registered bundle at Dir or any of the parent directories
+bundle_at_dir(Dir, Id) :-
+	( lookup_bundle_root(Dir, BundleDir) ->
+	    true
+	; format(user_error, "ERROR: Not a bundle (or any of the parent directories).~n", []),
+	  halt(1)
+	),
+	( dir_to_bundle(BundleDir, Target) ->
+	    Id = Target
+	; format(user_error, "ERROR: Bundle at ~w is not registered~n", [BundleDir]),
+	  halt(1)
+	),
+	Id = Target.
+
+dir_to_bundle(BundleDir, Id) :-
+	root_bundle_source_dir(BundleDir),
+	!,
+	root_bundle(Id).
+dir_to_bundle(BundleDir, Id) :-
+	'$bundle_id'(Target),
+	Dir = ~fsR(bundle_src(Target)),
+	Dir == BundleDir,
+	!,
+	Id = Target.
+
+% ===========================================================================
+
 :- doc(section, "Invokation of external tools").
 % TODO: make verbose messages optional
 

@@ -142,6 +142,7 @@ force the recompilation and cleaning of that part (see
 :- use_module(library(bundle/bundle_info), [root_bundle/1]).
 
 :- use_module(ciaobld(builder_cmds), [builder_cmd/3, cleanup_builder/0]).
+:- use_module(ciaobld(builder_aux), [bundle_at_dir/2]).
 :- use_module(ciaobld(ciaocl_help)).
 
 % ===========================================================================
@@ -156,12 +157,6 @@ force the recompilation and cleaning of that part (see
 % The bootstrap is compiled and run from its own 'builddir'
 % ('build-boot/'), which is different from the builddir of the system
 % ('build/').
-
-% ===========================================================================
-% The default bundle
-
-% TODO: not necesarily root_bundle
-default_bundle(Id) :- root_bundle(Id).
 
 % ===========================================================================
 
@@ -233,7 +228,7 @@ parse_cmd(Cmd, Args, Cmd2, Opts, Target) :-
 	parse_opts(Args, Opts, Args1),
 	% Select default target if none
 	( TargetParse = arg_bundle ->
-	    ( Args1 = [] -> default_bundle(Target), Args2 = [] % TODO: implement cwd_bundle
+	    ( Args1 = [] -> bundle_at_dir('.', Target), Args2 = []
 	    ; Args1 = [Target|Args2]
 	    )
 	; TargetParse = no_bundle -> % TODO: not very nice
@@ -358,9 +353,9 @@ is_builder_boot_cmd(realclean).
 %             | raw_opts    % raw flags
 %             | no_opts     % no flags
 
-% TODO: extend TargetParse, implement opt_bundle (--bundle=BUNDLE) and
-%   cwd_bundle (extract from working directory by looking at
-%   registered bundles and scanning Manifest.pl in parent directories)
+% TODO: ideas for TargetParse extensions:
+%   - opt_bundle: use --bundle=BUNDLE argument
+%   - def_bundle: like arg_bundle with no argument
 
 cmd_opts(local_install,          arg_bundle, config_opts) :- !.
 cmd_opts(global_install,         arg_bundle, config_opts) :- !.
@@ -378,7 +373,7 @@ cmd_opts(config_set_flag,        arg_bundle, raw_opts) :- !.
 cmd_opts(install,                arg_bundle, raw_opts) :- !.
 cmd_opts(uninstall,              arg_bundle, raw_opts) :- !.
 %
-cmd_opts(custom_run,             arg_bundle, raw_opts) :- !.
+cmd_opts(custom_run,             arg_bundle, raw_opts) :- !. % TODO: use def_bundle?
 cmd_opts(gen_bundle_commit_info, arg_bundle, raw_opts) :- !.
 %
 cmd_opts(clean_tree,             no_bundle, raw_opts) :- !.
@@ -487,7 +482,7 @@ parse_flag(Param, Flag) :-
 parse_flag_(ParamS, Bundle:Name) :-
 	( list_concat([BundleS, ":", NameS], ParamS) ->
 	    atom_codes(Bundle, BundleS)
-	; root_bundle(Bundle), % default bundle
+	; root_bundle(Bundle), % default bundle % TODO: use cwd_bundle?
 	  NameS = ParamS
 	),
 	map(NameS, normalizecode, ParamS2),

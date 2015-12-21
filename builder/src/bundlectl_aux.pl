@@ -20,7 +20,6 @@
 :- use_module(engine(internals), ['$bundle_alias_path'/3]).
 
 :- use_module(library(bundle), [ensure_bundle_manifest/2]).
-:- use_module(library(bundle/bundlereg_gen), [current_bundle_root/1]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Manifest and bundle setup").
@@ -37,7 +36,6 @@ bundle_configure(BundleDir) :-
 :- export(bundle_info/1).
 % Show bundle info
 bundle_info(BundleDir) :-
-	BundleDir = ~current_bundle_root,
 	ensure_bundle_manifest(BundleDir, BundleName),
 	check_bundle_paths(BundleDir, BundleName),
 	show_info(BundleDir, BundleName).

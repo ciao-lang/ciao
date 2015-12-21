@@ -45,28 +45,23 @@ locate_manifest_file(BundleDir, ManifestFile) :-
 
 % ---------------------------------------------------------------------------
 
-:- export(current_bundle_root/1).
-% Lookup the bundle root for the working directory
-current_bundle_root(BundleDir) :-
-	working_directory(D, D),
-	( lookup_bundle_root(D, BundleDir0) ->
-	    BundleDir = BundleDir0
-	; throw(error(['Not a bundle \'', D, '\'']))
-	).
-
 :- export(lookup_bundle_root/2).
 % Detect the bundle root dir for the given File (a directory or normal
 % file)
 lookup_bundle_root(File, BundleDir) :-
+	fixed_absolute_file_name(File, Path),
+	lookup_bundle_root_(Path, BundleDir).
+
+lookup_bundle_root_(File, BundleDir) :-
 	is_bundle_dir(File),
 	!,
 	% Found a bundle dir
 	BundleDir = File.
-lookup_bundle_root(File, BundleDir) :-
+lookup_bundle_root_(File, BundleDir) :-
 	% Not a bundle dir, visit the parent
 	path_split(File, Base, Name),
 	\+ (Base = '/', Name = ''),
-	lookup_bundle_root(Base, BundleDir).
+	lookup_bundle_root_(Base, BundleDir).
 
 % ---------------------------------------------------------------------------
 
