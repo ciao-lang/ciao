@@ -184,6 +184,9 @@ builder_cmd_(rescan_bundles, Target, _Opts) :- !,
 	  format(user_error, "ERROR: sub-bundle scan not supported yet~n", []),
 	  halt(1)
 	).
+% List bundles
+builder_cmd_(list, '$no_bundle', _Opts) :- !,
+	list_bundles.
 % Download and install bundles
 builder_cmd_(get(BundleAlias), '$no_bundle', _Opts) :- !,
 	bundle_get(BundleAlias).
@@ -772,9 +775,6 @@ bundlehook_call_(gen_pbundle(Kind), Bundle, '') :- !,
 bundlehook_call_(gen_bundle_commit_info, Bundle, '') :- !,
 	ensure_builddir,
 	gen_bundle_commit_info(Bundle).
-% List bundles
-bundlehook_call_(list, _Bundle, _) :- !, % TODO: use Bundle, add params, format, etc.
-	list_bundles.
 % Show bundle info
 bundlehook_call_(info, Bundle, '') :- !,
 	bundle_info(Bundle).

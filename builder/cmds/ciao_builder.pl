@@ -362,6 +362,7 @@ cmd_opts(global_install,         arg_bundle, config_opts) :- !.
 cmd_opts(local_install_paranoid, arg_bundle, config_opts) :- !.
 cmd_opts(configure,              arg_bundle, config_opts) :- !.
 %
+cmd_opts(list,                   no_bundle, raw_opts) :- !.
 cmd_opts(get,                    no_bundle, raw_opts) :- !.
 % (internal)
 cmd_opts(scan_and_config,        arg_bundle, config_opts) :- !.
