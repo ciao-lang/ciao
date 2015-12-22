@@ -20,6 +20,7 @@ case "$os" in
     CYGWIN_*)    os=Win32 ;;
     MSYS_NT*)    os=Win32 ;;
     MINGW32_NT*) os=Win32 ;;
+    MINGW64_NT*) os=Win32 ;;
     Darwin)      os=DARWIN ;;
 esac
 
