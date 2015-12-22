@@ -2333,13 +2333,13 @@ int pipe(int filedes[2])
     errno = err_win_to_posix(GetLastError());
     return -1;
   }
-  filedes[0] = _open_osfhandle((int)h[0], O_NOINHERIT);
+  filedes[0] = _open_osfhandle((intptr_t)h[0], O_NOINHERIT);
   if (filedes[0] < 0) {
     CloseHandle(h[0]);
     CloseHandle(h[1]);
     return -1;
   }
-  filedes[1] = _open_osfhandle((int)h[1], O_NOINHERIT);
+  filedes[1] = _open_osfhandle((intptr_t)h[1], O_NOINHERIT);
   if (filedes[1] < 0) {
     close(filedes[0]);
     CloseHandle(h[1]);
