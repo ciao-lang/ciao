@@ -1282,11 +1282,10 @@ bundle_fetch(BundleAlias, Bundle) :-
 
 bundle_fetch_(BundleAlias, Bundle, BundleDir) :-
 	% Fetch source
-	bundle_src_url(BundleAlias, URL),
-	cmd_message(Bundle, "fetching source from ~w", [URL]),
+	bundle_src_origin(BundleAlias, Origin),
 	mktemp_in_tmp('ciao-fetch-XXXXXX', File),
 	mkpath(BundleDir),
-	catch(http_get(URL, file(File)), _E, fail),
+	fetch_src(Origin, Bundle, File),
 	% Uncompress
 	process_call(path(tar), [
           '-x', '--strip-components', '1',
@@ -1297,11 +1296,30 @@ bundle_fetch_(BundleAlias, _, _) :-
 	format(user_error, "ERROR: Bundle fetch failed for `~w'.~n", [BundleAlias]),
 	halt(1).
 
-% TODO: only github.com is currently supported
-bundle_src_url(BundleAlias, URL) :-
-	atom_concat('github.com/', BundleAlias, _),
+fetch_src(http_get(URL), Bundle, File) :-
+	cmd_message(Bundle, "fetching source from ~w", [URL]),
+	catch(http_get(URL, file(File)), _E, fail).
+fetch_src(git_archive(URL, Ref), Bundle, File) :-
+	cmd_message(Bundle, "fetching source from ~w", [URL]),
+	process_call(path(git),
+	             ['archive', '--format', 'tgz', '--remote', URL,
+		      '--prefix', ~atom_concat(Bundle, '/'),
+		      '--output', File, Ref],
+		     [status(0)]).
+
+bundle_src_origin(BundleAlias, http_get(URL)) :-
+	% Github.com
+	atom_concat('github.com/', _, BundleAlias),
 	!,
-	atom_concat(['https://', BundleAlias, '/archive/master.tar.gz'], URL).
-bundle_src_url(BundleAlias, _URL) :-
+	Ref = master, % TODO: customize Ref
+	atom_concat(['https://', BundleAlias, '/archive/', Ref, '.tar.gz'], URL).
+bundle_src_origin(BundleAlias, git_archive(URL, Ref)) :-
+	% Git repositories at ciao-lang.org
+	atom_concat('ciao-lang.org/', _, BundleAlias),
+	!,
+	Ref = master, % TODO: customize Ref
+	atom_concat(['ssh://gitolite@', BundleAlias], URL).
+bundle_src_origin(BundleAlias, _Origin) :-
 	format(user_error, "ERROR: Unrecognized bundle alias path `~w'.~n", [BundleAlias]),
 	halt(1).
+
