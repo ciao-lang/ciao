@@ -384,6 +384,8 @@ int start(int argc, char *argv[]) {
   return firstgoal(first_goal, init_atom_check("internals:boot"));
 }
 
+// #define USE_WINDOWS_REGISTRY 1
+
 /* Find out library directories (library_directory, c_headers_directory) */
 void set_library_directories(const char *boot_path,
 			     const char *exec_path) {
@@ -397,7 +399,7 @@ void set_library_directories(const char *boot_path,
     expand_file_name(aux,TRUE,library_directory);
 #endif
   } else if (library_directory == NULL) {
-#if defined(Win32)
+#if defined(Win32) && defined(USE_WINDOWS_REGISTRY)
     if (using_windows()) { /* running in a Windows non-cygwin shell */
       /* Obtain library_directory from the Windows registry */
       /* (for Windows executables) and
@@ -438,8 +440,18 @@ void set_library_directories(const char *boot_path,
     } else {
 #endif
       /* Revert to installation-defined library directory otherwise */
-      library_directory = default_lib_dir;
 #if defined(Win32)
+      const char *aux = default_lib_dir;
+#if defined(_WIN32) || defined(_WIN64)
+#warning "TODO(MinGW): check that normalize path of library_directory is ok"
+      expand_file_name(aux,TRUE,library_directory);
+#else
+      cygwin_conv_to_full_posix_path(aux, library_directory);
+#endif
+#else
+      library_directory = default_lib_dir;
+#endif
+#if defined(Win32) && defined(USE_WINDOWS_REGISTRY)
     }
 #endif
   }

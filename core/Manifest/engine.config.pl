@@ -82,11 +82,13 @@ arch64('x86_64', 'x86_64') :- !.
 arch64('ppc64', 'ppc64') :- !.
 arch64(_, empty). % force error % TODO: emit error instead?
 
+:- use_module(ciaobld(ciaoc_aux), [sh_process_call/3]).
+
 ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf').
 
 get_sysconf(Args, Val) :-
-	process_call(~ciao_sysconf_sh, Args,
-	             [stderr(stdout), stdout(string(Val0)), status(_)]),
+	sh_process_call(~ciao_sysconf_sh, Args,
+	                [stderr(stdout), stdout(string(Val0)), status(_)]),
 	atom_codes(Val, Val0).
 
 % ---------------------------------------------------------------------------

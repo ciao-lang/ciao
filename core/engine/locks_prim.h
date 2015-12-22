@@ -245,7 +245,7 @@ typedef pthread_cond_t COND_VAR;
 #if defined(Win32)
 #define HAVE_LIB_LOCKS
 
-#include <ciao/windows.h>
+#include <windows.h>
 
  /* I am using Critical Section Objects instead of mutexes because,
  according t the MS documentation, CSO are faster, although they cannot be

@@ -195,7 +195,7 @@ get_mainexec() { # builddir mainmod
 autoboot_autobuild() { # builddir mainmod (requires: $autobuild)
     local mainexec=`get_mainexec "$1" "$2"`
     if [ ! x"$autobuild" = x"rebuild" ] && \
-       [ -x "$mainexec" ] && \
+       [ -f "$mainexec" ] && \
        builddir_do_engine "$1" engine_is_ok; then
 	return # Bootstrap is ready
     fi
