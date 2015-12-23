@@ -82,23 +82,23 @@ prebuild_ppl_bindings :-
 	    append(CompilerOpts1, " "||CompilerOpts2, CompilerOpts3),
  	    foreign_config_var(ppl, 'ldflags', LinkerOpts1),
             ( get_platform('DARWINi686') ->
-              % Remove "-arch x86_64" option if ppl is an MacOS universal binary
+                % Remove "-arch x86_64" option if ppl is an MacOS universal binary
                 remove_all_substrings(CompilerOpts3, "-arch x86_64", CompilerOpts),
-                remove_all_substrings(LinkerOpts1, "-arch x86_64", LinkerOpts2) ;
-                CompilerOpts3 = CompilerOpts, LinkerOpts1 = LinkerOpts2
-            ),list(CompilerOpts),
-	    (
-		% If ppl is installed as a third party, add ./third-party/lib
-		% to the runtime library search path
-		auto_install_ppl(yes) ->
+                remove_all_substrings(LinkerOpts1, "-arch x86_64", LinkerOpts2)
+	    ; CompilerOpts3 = CompilerOpts,
+	      LinkerOpts1 = LinkerOpts2
+            ),
+	    list(CompilerOpts),
+	    ( % If ppl is installed as a third party, add ./third-party/lib
+	      % to the runtime library search path
+	      auto_install_ppl(yes) ->
 		% Better way to compute RelativeLibDir
 		fsR(bundle_src(ciao),  CiaoSrc),
 		third_party_path(libdir, LibDir),
 		path_relocate(CiaoSrc, '.', LibDir, RelativeLibDir),
 		atom_codes(RelativeLibDir, RelativeLibDir_),
 		append("-Wl,-rpath,"||RelativeLibDir_, " "||LinkerOpts2, LinkerOpts3)
-	    ;
-	        LinkerOpts2 = LinkerOpts3
+	    ; LinkerOpts2 = LinkerOpts3
 	    ),
         append(LinkerOpts3, " -lstdc++", LinkerOpts),
 	    flatten(["%Do not edit generated automatically\n\n",
