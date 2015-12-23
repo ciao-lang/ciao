@@ -182,9 +182,9 @@ This is an aid towards ensuring that all exported predicates have tests."
 	(ciao-proc-enqueue-w 'ciaosh-cproc 'ciao-load-testing-lib)
 	(ciao-proc-enqueue-w 'ciaosh-cproc 'ciao-do-send-testing-command))
     ;; Ciao process is alive
-    (if ciao-assrt-lib-loaded ;; if lib loaded
-	(ciao-do-check-buffer-syntax)
-      ;; lib not loaded
+    (ciao-show-inferior-process (ciao-proc-get-buffer 'ciaosh-cproc))
+    (if ciao-testing-lib-loaded ;; if lib not loaded
+	(ciao-do-send-testing-command)
       (ciao-load-testing-lib)
       (ciao-proc-enqueue-w 'ciaosh-cproc 'ciao-do-send-testing-command))))
 
