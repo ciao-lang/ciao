@@ -63,7 +63,9 @@ dir_to_bundle(BundleDir, Id) :-
 
 :- use_module(library(logged_process), [quoted_process_call/3]).
 
-ciaocmd := ~bld_cmd_path(build, plexe, 'ciao'). % (supercommand)
+%ciaocmd := ~bld_cmd_path(build, plexe, 'ciao'). % (supercommand)
+% TODO: unfortunately 'ciao' supercommand is still a shell script; fix it so that it runs in Win32 without MSYS2
+ciaocmd := ~bld_cmd_path(build, shscript, 'ciao'). % (supercommand)
 
 gmake := ~get_bundle_flag(ciao:gmake_cmd).
 
