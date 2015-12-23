@@ -1735,8 +1735,15 @@ CBOOL__PROTO(prolog_find_file)
   Unify_constant(MakeString(pathBuf), X(6));
 
   /* dirname */
+#if defined(_WIN32) || defined(_WIN64) /* MinGW */
+#warning "TODO(MinGW): Fix open_null_stream"
+  /* TODO: pathBuf may be 'nul' or 'NUL' (see expand_file_name) */
+  while (bp > pathBuf && *bp!='/')
+    --bp;
+#else
   while (*bp!='/')
     --bp;
+#endif
   *bp = 0;
 
   Unify_constant(MakeString(pathBuf), X(7));
