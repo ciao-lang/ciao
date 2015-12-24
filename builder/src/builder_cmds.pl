@@ -1258,7 +1258,7 @@ bundle_uninstall_docs_format_hook(_, _).
 
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(http_get), [http_get/2]).
-:- use_module(library(system), [mktemp_in_tmp/2]).
+:- use_module(library(system), [mktemp_in_tmp/2, touch/1]).
 
 bundle_get(BundleAlias) :-
 	bundle_fetch(BundleAlias, Bundle),
@@ -1272,29 +1272,36 @@ bundle_fetch(BundleAlias, Bundle) :-
 	path_split(BundleAlias, _, Bundle),
 	root_bundle_source_dir(RootDir),
 	path_concat(RootDir, Bundle, BundleDir),
-	( file_exists(BundleDir) ->
+	( file_exists(BundleDir), has_fetch_mark(BundleDir) ->
 	    cmd_message(Bundle, "already exists, skipping fetch", []),
-	    % TODO: Add a mark or compute a checksum so that we can check
-	    % that this directory is not a user directory
+	    % TODO: allow silent operation, implement 'ciao rm'
 	    normal_message("(to upgrade, please remove ~w)", [BundleDir])
+	; file_exists(BundleDir) ->
+	    % This bundle was not installed via 'ciao get'
+	    cmd_message(Bundle, "user bundle, skipping fetch", [])
 	; bundle_fetch_(BundleAlias, Bundle, BundleDir)
 	).
 
 bundle_fetch_(BundleAlias, Bundle, BundleDir) :-
-	% Fetch source
-	bundle_src_origin(BundleAlias, Origin),
-	mktemp_in_tmp('ciao-fetch-XXXXXX', File),
-	mkpath(BundleDir),
-	fetch_src(Origin, Bundle, File),
-	% Uncompress
-	process_call(path(tar), [
-          '-x', '--strip-components', '1',
-	  '-C', BundleDir,
-	  '-f', File], [status(0)]),
+	bundle_fetch__(BundleAlias, Bundle, BundleDir),
 	!.
 bundle_fetch_(BundleAlias, _, _) :-
 	format(user_error, "ERROR: Bundle fetch failed for `~w'.~n", [BundleAlias]),
 	halt(1).
+
+bundle_fetch__(BundleAlias, Bundle, BundleDir) :-
+	% Fetch source
+	bundle_src_origin(BundleAlias, Origin),
+	mktemp_in_tmp('ciao-fetch-XXXXXX', File),
+	fetch_src(Origin, Bundle, File),
+	% Uncompress
+	mkpath(BundleDir),
+	process_call(path(tar), [
+          '-x', '--strip-components', '1',
+	  '-C', BundleDir,
+	  '-f', File], [status(0)]),
+	% Mark as fetched
+	set_fetch_mark(BundleDir).
 
 fetch_src(http_get(URL), Bundle, File) :-
 	cmd_message(Bundle, "fetching source from ~w", [URL]),
@@ -1323,3 +1330,11 @@ bundle_src_origin(BundleAlias, _Origin) :-
 	format(user_error, "ERROR: Unrecognized bundle alias path `~w'.~n", [BundleAlias]),
 	halt(1).
 
+fetch_mark(Dir, F) :-
+ 	path_concat(Dir, 'FETCHED_BUNDLE', F).
+
+set_fetch_mark(Dir) :-
+ 	touch(~fetch_mark(Dir)).
+
+has_fetch_mark(Dir) :-
+	file_exists(~fetch_mark(Dir)).
