@@ -59,4 +59,73 @@ CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 
 #define ENG_TTYPRINTF(FMT, ...) ENG_PRINTF(Error_Stream_Ptr, FMT , ## __VA_ARGS__)
 
+#define RUNE_EOF            -1
+#define RUNE_PAST_EOF       -2
+#define RUNE_VOID           -100
+
+#if defined(USE_MULTIBYTES)
+
+#define RUNE_SURROGATE_MIN  0x00d800
+#define RUNE_SURROGATE_MAX  0x00dfff
+#define RUNE_ERROR          0x00fffd
+#define RUNE_MAX            0x10ffff
+
+#define C_MB_LEN_MAX        4
+
+static inline bool_t
+isValidRune(c_rune_t rune){
+  uint32_t r = (uint32_t) rune; 
+  return (r < RUNE_SURROGATE_MIN || RUNE_SURROGATE_MAX < r || r <= RUNE_MAX);
+}
+
+#else
+
+#define RUNE_MAX            0xff
+
+static inline bool_t
+isValidRune(c_rune_t rune){
+  uint32_t r = (uint32_t) rune; 
+  return (r <= RUNE_MAX);
+}
+
+#endif // USE_MULTIBYTES
+
+#if defined(USE_MULTIBYTES)
+
+/* c_mbtorune(c_rune_t *pr, const char *s) converts a multibyte UTF8
+ * character s into a rune, stores the result in the object pointer by
+ * pr, and returns the number of bytes consumed. If the input is not a
+ * in proper UTF format, s is set to C_RuneError and the function
+ * return 1;
+ */
+int c_mbtorune(c_rune_t *pr, const char *s);
+
+/* c_runetomb(char * s, c_rune_t rune) converts a rune, r, into a UTF8
+ * ultibyte character, stores the result in s. The object pointed by s
+ * must be large enough to accommodate the multibyte character, which
+ * may be up to C_MbLenMax bytes. If the rune is not a valid rune, the
+ * rune RUNE_ERROR is write instead. the function returns the number
+ * writen in s.
+ */
+int c_runetomb(char * s, c_rune_t r);
+
+/*
+ * c_mblen(const char *s) determines the length, in bytes, of a
+ * multibyte character s, which may be up to C_MbLenMax.  The function
+ * looks at the first byte of s only. If the first byte of s is not in
+ * a proper UTF8 format, the function return -1.
+ */
+inline int c_mblen(const char *s);
+
+
+/* c_mbstrlen(const char *s) computes the number of bytes used by a
+ * multibyte character string s. The function returns the number of
+ * bytes that precede the terminating NULL multibytes chararacter. If
+ * the string is not in proper UTF8 format, the behaviour is
+ * unspecified.
+ */
+int c_mbstrlen(const char * s);
+
+#endif // USE_MULTIBYTES
+
 #endif /* _CIAO_INOUT_H */

@@ -522,13 +522,6 @@ struct numstack_ {
 
 typedef int32_t c_rune_t;
 
-#define RUNE_EOF                (-1)
-#define RUNE_PAST_EOF           (-2)
-#define RUNE_VOID               (-100)
-
-/* For now, valid runes are LATIN1 (i.e. between 0 and 255) */
-#define ValidRune(X)            (!((X) & ~0xff)) 
-
 /* TODO: this is commonly known as 'intrusive map container based on
    doubly linked circular lists' of streams */
 

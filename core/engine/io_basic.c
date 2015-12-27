@@ -56,11 +56,44 @@ static void writerunen(c_rune_t r, int i, stream_node_t *s);
 static int readbyte(stream_node_t *s, definition_t *pred_address);
 static void writebyte(int ch, stream_node_t *s);
 
+#if defined(USE_MULTIBYTES)
+c_rune_t getmb(FILE * f);
+c_rune_t putmb(c_rune_t c, FILE * f);
+int readmb(int fildes, c_rune_t * c);
+int writemb(int fildes, c_rune_t c);
+
+#define BIT1 7
+#define BITX 6
+#define BIT2 5
+#define BIT3 4
+#define BIT4 3
+
+#define BYTE1 ((1 << BIT1) ^ 0xff)             // 0111 1111
+#define BYTEX ((1 << BITX) ^ 0xff)             // 1011 1111
+#define BYTE2 ((1 << BIT2) ^ 0xff)             // 1101 1111
+#define BYTE3 ((1 << BIT3) ^ 0xff)             // 1110 1111
+#define BYTE4 ((1 << BIT4) ^ 0xff)             // 1111 0111
+
+#define TAG1  (((1 << (BIT1 + 1)) - 1) ^ 0xff) // 0000 0000
+#define TAGX  (((1 << (BITX + 1)) - 1) ^ 0xff) // 1000 0000
+#define TAG2  (((1 << (BIT2 + 1)) - 1) ^ 0xff) // 1100 0000
+#define TAG3  (((1 << (BIT3 + 1)) - 1) ^ 0xff) // 1110 0000
+#define TAG4  (((1 << (BIT4 + 1)) - 1) ^ 0xff) // 1111 0000
+
+#define MASKX ((1 << BITX) - 1)                // 0011 1111
+
+#define RUNE1 ((1 << (BIT1 + 0*BITX)) - 1)     // 0000 0000 0000 0000 0111 1111
+#define RUNE2 ((1 << (BIT2 + 1*BITX)) - 1)     // 0000 0000 0000 0111 1111 1111
+#define RUNE3 ((1 << (BIT3 + 2*BITX)) - 1)     // 0000 0000 1111 1111 1111 1111
+#define RUNE4 ((1 << (BIT4 + 3*BITX)) - 1)     // 0001 1111 1111 1111 1111 1111 
+
+#endif // USE_MULTIBYTES
+
 CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 
 #define CheckGetCharacterCode(X,C,ArgNo) {                              \
     if (TagIsSmall(X)) {                                                \
-      if (!ValidRune(C = GetSmall(X))) {					\
+      if (!isValidRune(C = GetSmall(X))) {				\
         BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo)); \
       }									\
     }                                                                   \
@@ -73,7 +106,7 @@ CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
   }
 
 #define CheckGetByte(X,C,ArgNo)					\
-  if (!TagIsSmall((X)) || !ValidRune((C) = GetSmall((X)))) {	\
+  if (!TagIsSmall((X)) || !isValidRune((C) = GetSmall((X)))) {	\
     ERROR_IN_ARG((X), (ArgNo), (TY_BYTE));			\
   }
 
@@ -82,6 +115,238 @@ CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
     perror((Message));				\
     SERIOUS_FAULT("Aborting");			\
 }
+
+
+/* UTF8 Support */
+#if defined(USE_MULTIBYTES)
+
+int
+c_mbtorune(c_rune_t *pr, const char *s){
+  uint32_t s0, sx;
+  c_rune_t c;
+    
+  s0 = (unsigned char) s[0];
+  
+  c = s0;
+  
+  if(s0 <= BYTE1) {     // 0 <= s[0] <= BYTE1, i.e. 1 byte sequence 
+    *pr = c;
+    return 1;
+  }
+  if (s0 <= BYTEX) {    // BYTE1 < s[0] <= BYTEX, i.e. improper first byte
+    goto bad;
+  }
+
+  // At least 2 bytes sequence
+
+  sx = ((unsigned char) s[1]);
+  if (sx <= BYTE1 || BYTEX < sx) {  // !(BYTE1 < s[1] <= BYTEX), i.e. improper second byte
+    goto bad;
+  }
+  c = (c << BITX) | (sx & MASKX);
+  
+  if (s0 <= BYTE2) {    // BYTEX < s[0] <= BYTE2, i.e. 2 bytes sequence 
+    c = c & RUNE2;
+    if (c <= RUNE1) {   // overlong sequence, i.e. c should be encoded using 1 byte
+      goto bad;
+    }
+    *pr = c;
+    return 2;
+  }
+  
+  // At least 3 bytes sequence
+  
+  sx = ((unsigned char) s[2]);
+  if (sx <= BYTE1 || BYTEX < sx) {  // !(BYTE1 < s[2] <= BYTEX), i.e. improper third byte
+    goto bad;
+  }
+  c = (c << BITX) | (sx & MASKX);
+    
+  if (s0 <= BYTE3) {    // BYTE2 < s[0] <= BYTE3, i.e. 3 bytes sequence
+    c = c & RUNE3;
+    if (c <= RUNE2) {   // overlong sequence, c should be encoded using 2 bytes or less
+      goto bad;
+    }
+    if (RUNE_SURROGATE_MIN <= c && c <= RUNE_SURROGATE_MAX) { // c is an invalid rune
+      goto bad;
+    }
+    *pr = c;
+    return 3;
+  }
+  
+  // 4 bytes sequence
+
+  sx = ((unsigned char) s[3]);
+  if (sx <= BYTE1 || BYTEX < sx) {  // !(BYTE1 < s[3] <= BYTEX), i.e. improper fourth byte
+    goto bad;
+  }
+
+  c = (c << BITX) | (sx & MASKX);
+
+  if (s0 <= BYTE4) {    // BYTE3 < s[0] <= BYTE4, i.e. 4 bytes sequence
+    c = c & RUNE4;
+    if (c <= RUNE3) {   // overlong sequence, c should be encoded using 3 bytes or less
+      goto bad;
+    }
+    if (RUNE_MAX < c) { // c is an invalide rune
+      goto  bad;
+    }
+    *pr = c;
+    return 4;
+  }
+
+  // BYTE4 < s[0], i.e. improper first byte
+      
+ bad:
+  *pr = RUNE_ERROR;
+  return 1;
+}
+
+int
+c_runetomb(char * s, c_rune_t rune){
+  uint32_t c = (uint32_t) rune;
+
+  if (c <= RUNE1) { 
+    // rune encodes to 1 byte
+    *s =  TAG1 | c;
+    return 1;
+  }
+  
+  if (c <= RUNE2) {
+    // rune encodes to 2 bytes
+    *(s++) = TAG2 |  (c >> 1*BITX);
+    *s     = TAGX | ((c >> 0*BITX) & MASKX);
+    return 2;
+  } 
+  
+  // Do this test here because RUNE_ERROR uses 3 bytes
+  if (!isValidRune(c)) {
+    c = (uint32_t) RUNE_ERROR;
+  }
+  
+  if (c <= RUNE3) {
+    // rune encodes to 3 bytes
+    *(s++) = TAG3 |  (c >> 2*BITX);
+    *(s++) = TAGX | ((c >> 1*BITX) & MASKX);
+    *s     = TAGX | ((c >> 0*BITX) & MASKX);
+    return 3;
+  }
+  
+  
+  // rune encodes to 4 bytes
+  *(s++) = TAG4 |  (c >> 3*BITX);
+  *(s++) = TAGX | ((c >> 2*BITX) & MASKX);
+  *(s++) = TAGX | ((c >> 1*BITX) & MASKX);
+  *s     = TAGX | ((c >> 0*BITX) & MASKX);
+  return 4;
+
+}
+
+
+int
+c_mblen(const char *s){
+  uint32_t c = (unsigned char) s[0];
+
+  if (c <= BYTE1) return 1;
+  if (c <= BYTEX) return -1;
+  if (c <= BYTE2) return 2;
+  if (c <= BYTE3) return 3;
+  if (c <= BYTE4) return 4;
+  return -1;
+
+}
+
+int
+c_mbstrlen(const char * s){
+  const char *t = s;
+
+  for(t=s; t!='\0'; t+=c_mblen(t));
+
+  return t-s;
+}
+
+c_rune_t
+getmb(FILE * f){
+  char buff[C_MB_LEN_MAX];
+  c_rune_t c;
+  int i, n;
+  
+  c = c_getc(f);
+  if (c < 0)    // IO error or EOF
+    return RUNE_EOF;
+
+  buff[0] = c;
+  n = c_mblen(buff);
+  if (n < 0)    // Improper first byte
+    return RUNE_ERROR;
+  
+  for(i = 1; i < n; i++) {
+    c = c_getc(f);
+    if (c <= BYTE1 || BYTEX < c) // IO error or EOF or improper following byte
+      return RUNE_ERROR;
+    buff[i] = (char) c;
+  }
+
+  c_mbtorune(&c, buff);
+  return c;
+}
+
+c_rune_t
+putmb(c_rune_t c, FILE * f){
+  char buff[C_MB_LEN_MAX];
+  int n;
+  
+  n = c_runetomb(buff, c);
+  
+  for(int i=0; i<n; i++){
+    if (putc(buff[i], f) < 0) {
+      return RUNE_EOF;
+    }
+  }
+  
+  return c;
+}
+
+int 
+readmb(int fildes, c_rune_t *c){
+  char buff[C_MB_LEN_MAX];
+  int d, i, m, n;
+  
+  m = read(fildes, buff, 1);
+  if (m <= 0) // IO error or EOF
+    return m;
+
+  n = c_mblen(buff);
+  if (n < 0) {
+    *c = RUNE_ERROR;
+    return 1;
+  }
+  
+  for(i = 1; i < n; i++){
+    m = read(fildes, buff+i, 1);
+    d = (unsigned char) buff[i];
+    if (m <= 0 || d <= BYTE1 || BYTEX < d) {
+      // IO error or EOF or improper following byte
+      *c = RUNE_ERROR;
+      return i;
+    }
+  }
+  
+  c_mbtorune(c, (char*) buff);
+  return i;  
+}
+
+int
+writemb(int fildes, c_rune_t c){
+  char buff[C_MB_LEN_MAX];
+  int n;
+
+  n = c_runetomb(buff, c);
+  return write(fildes, buff, n);  
+}
+
+#endif // defined(USE_MULTIBYTES)
+
 
 CBOOL__PROTO(code_class)
 {
@@ -1440,3 +1705,4 @@ CBOOL__PROTO(copyLZ)
   }
   return FALSE;
 }
+
