@@ -215,8 +215,9 @@ eng_build() { # (env: optional BOOTENG_CDIR)
 
 # Invoke the engine.mk
 eng_make() {
-    # TODO: is SHELL=/bin/bash really needed? (maybe for Windows)
-    local make="make -s SHELL=/bin/bash"
+    local make="make -s"
+    # Use gmake if available, otherwise expect make to be gmake
+    if which gmake > /dev/null; then make="gmake -s"; fi
     $make --no-print-directory -j$PROCESSORS \
 	  -C "$bld_objdir" \
 	  -f "$_base/engine.mk" \
