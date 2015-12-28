@@ -136,9 +136,23 @@ $ pkg install emacs-nox ImageMagick-nox expat
 # (with X11)
 $ pkg install emacs ImageMagick expat
 # Optionally, for rlwrap
-$ pacman -S rlwrap
+$ pkg install rlwrap
 # Required for generating documentation in .pdf format
 $ pkg install texinfo texlive-full
+@end{verbatim}
+
+@item NetBSD:
+@begin{itemize}
+@item Install GCC or clang and the following packages:
+@end{itemize}
+@begin{verbatim}
+$ pkgin install gmake
+# Required for emacs-based IDE
+$ pkgin install emacs ImageMagick expat
+# Optionally, for rlwrap
+$ pkgin install rlwrap
+# Required for generating documentation in .pdf format
+$ pkgin install tex-texinfo texlive-collection-latex
 @end{verbatim}
 @end{itemize}
 
