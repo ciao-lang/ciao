@@ -592,10 +592,13 @@ run_test_assertions(TmpDir, Modules, Args0) :-
 	( test_attributes_db(_, _, _, _, _, _, _, _, _) ->
 	    select_commands(DumpOutput, DumpError, RtcEntry, Args0, Args),
 	    create_runner(TmpDir, Modules, RtcEntry),
-            run_all_tests(TmpDir, DumpOutput, DumpError, Args),
-            write_all_test_outputs(Modules)
+            run_all_tests(TmpDir, DumpOutput, DumpError, Args)
 	; true
-	).
+	),
+        % even if module has no tests, we write an empty test output file
+        % in order to mark that testing had been performed on a module,
+        % which allows detecting newly added tests on regression testing
+        write_all_test_outputs(Modules).
 
 :- pred run_all_tests(TmpDir, DumpOutput, DumpError, Args)
         : pathname * yesno * yesno * list(test_option).
@@ -651,7 +654,7 @@ get_module_output(Module, Base, TestResult) :-
         atom_concat(Base, Suf, FileModOut),
 	retractall_fact(test_output_db(_, _)),
 	retractall_fact(test_attributes_db(_, _, _, _, _, _, _, _, _)),
-	assert_from_file(FileModOut, assert_test_output),
+        assert_from_file(FileModOut, assert_test_output),
         assert_from_file(FileModOut, assert_test_attributes),
         findall(IdxTestSummary,
                 get_one_test_assertion_output(Module, IdxTestSummary),
