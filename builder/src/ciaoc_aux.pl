@@ -716,9 +716,21 @@ gen_eng_version_c(Bundle, EngMainMod) :-
 	).
 
 string_version_h(Bundle) -->
+	"#define CIAO_VERSION_STRING \"Ciao \" ",
+	string_version_h_(Bundle),
+	"\n".
+
+string_version_h_(Bundle) -->
 	{ CommitDate = ~bundle_commit_info(Bundle, date) },
 	{ CommitDesc = ~bundle_commit_info(Bundle, desc) },
-	"#define CIAO_VERSION_STRING \"Ciao \" \"", atm(CommitDesc), "\" \" (\" \"", atm(CommitDate), "\" \")\"\n".
+	{ \+ CommitDesc = 'Unknown' },
+	!,
+	"\"", atm(CommitDesc), "\" \" (\" \"", atm(CommitDate), "\" \")\"".
+string_version_h_(Bundle) -->
+	% No commit info, use version and patch
+	{ Version = ~bundle_version(Bundle) },
+	{ Patch = ~bundle_patch(Bundle) },
+	"\"", atm(Version), ".", atm(Patch), "\"".
 
 string_version_c(Bundle) -->
 	{ Version = ~bundle_version(Bundle) },
