@@ -260,7 +260,7 @@ int
 c_mbstrlen(const char * s){
   const char *t = s;
 
-  for(t=s; t!='\0'; t+=c_mblen(t));
+  for(t=s; *t; t+=c_mblen(t));
 
   return t-s;
 }
