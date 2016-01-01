@@ -258,11 +258,14 @@ c_mblen(const char *s){
 
 int
 c_mbstrlen(const char * s){
-  const char *t = s;
+  int i = 0;
 
-  for(t=s; *t; t+=c_mblen(t));
+  while(*s){
+    s += c_mblen(s);
+    i++;
+  }
 
-  return t-s;
+  return i;
 }
 
 c_rune_t
