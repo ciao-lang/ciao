@@ -997,7 +997,7 @@ static CBOOL__PROTO(prolog_constant_codes,
     if (IsVar(cdr)) {
       goto construct_list;
     } else if (!TagIsLST(cdr)) {
-      BUILTIN_ERROR(DOMAIN_ERROR(CHARACTER_CODE_LIST),X(ci),ci+1);
+      BUILTIN_ERROR(TYPE_ERROR(LIST),X(ci),ci+1);
     } else if (i == Atom_Buffer_Length){
       EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2);
       s = Atom_Buffer+i;
@@ -1007,7 +1007,7 @@ static CBOOL__PROTO(prolog_constant_codes,
       goto construct_list;
     }
     if (!TagIsSmall(car) || (car<=TaggedZero) || (car>=MakeSmall(256))) {
-      BUILTIN_ERROR(DOMAIN_ERROR(CHARACTER_CODE_LIST),X(ci),ci+1);
+      BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE_LIST),X(ci),ci+1);
     }
     *s++ = GetSmall(car);
     DerefCdr(cdr,cdr);
@@ -1020,8 +1020,10 @@ static CBOOL__PROTO(prolog_constant_codes,
 
   /* s contains now the string of character codes, and i its size */
 
-  if (i>=MAXATOM)    /* Unneeded with dynamic atom sizes */
+#if !defined(USE_DYNAMIC_ATOM_SIZE)
+  if (i>=MAXATOM)
     BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ATOM_LENGTH), X(0), 1);
+#endif
 
   if (numberp) {
     tagged_t result;
