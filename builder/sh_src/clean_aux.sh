@@ -32,6 +32,7 @@ clean_tree() {
     find "$1"/. -name ".svn" -prune -o \( \
 	-name "*.po" -o -name "*.itf" -o -name "*.wam" \
 	-o -name "*.asr" -o -name "*.ast" \
+	-o -name "*.testout" \
 	\
 	-o -name "*_glue.c" -o -name "*_inline.c" \
 	-o -name "*.o" -o -name "*.a" \
@@ -53,6 +54,7 @@ clean_mod() { # MOD
            "$1.ast" \
            "$1.itf" \
            "$1.po" \
+           "$1.testout" \
 	   "$1""_""$CIAOOS$CIAOARCH"".o" \
 	   "$1""_""$CIAOOS$CIAOARCH"".a" \
 	   "$1""_""$CIAOOS$CIAOARCH"".so" \

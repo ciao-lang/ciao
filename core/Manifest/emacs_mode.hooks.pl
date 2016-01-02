@@ -400,7 +400,7 @@ clean_emacs_mode :-
 	del_file_nofail(~fsR(EmacsModeDir/'CiaoMode.lpdoc')),
 	del_file_nofail(~fsR(EmacsModeDir/'ciao-config.el')),
 	% TODO: Use common implementation, do not specify suffixes by hand
-	del_files_nofail(~add_prefix(~glob(~fsR(EmacsModeDir), '*.itf|*.po|*.asr|*.elc'),
+	del_files_nofail(~add_prefix(~glob(~fsR(EmacsModeDir), '*.itf|*.po|*.asr|*.testout|*.elc'),
 	                             ~atom_concat(~fsR(EmacsModeDir), '/'))).
 
 add_prefix([],     _Preffix, []).

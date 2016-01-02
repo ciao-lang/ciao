@@ -198,6 +198,7 @@ non-nil."
 ;;;###autoload(add-to-list 'completion-ignored-extensions ".po")
 ;;;###autoload(add-to-list 'completion-ignored-extensions ".asr")
 ;;;###autoload(add-to-list 'completion-ignored-extensions ".ast")
+;;;###autoload(add-to-list 'completion-ignored-extensions ".testout")
 ;;;###autoload(add-to-list 'completion-ignored-extensions ".cpx")
 
 (require 'ciao-process) ; ciao-cproc-for-buffer

@@ -99,6 +99,7 @@ clean_tree() {
     find "$1"/. -name ".svn" -prune -o \( \
 	-name "*.po" -o -name "*.itf" -o -name "*.wam" \
 	-o -name "*.asr" -o -name "*.ast" \
+	-o -name "*.testout" \
 	\
 	-o -name "*.cpx" \
 	-o -name "*_glue.c" -o -name "*_inline.c" \

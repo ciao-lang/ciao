@@ -370,7 +370,7 @@ class, or normal module)."
 	    (backward-char 1)
 	    (let ((beg (point)))
 	      (search-forward-regexp 
-	       "\\(\\.\\(po\\|itf\\|asr\\|ast\\|pls\\|pl\\|cgi\\)\\>\\|$\\)")
+	       "\\(\\.\\(po\\|itf\\|asr\\|ast\\|testout\\|pls\\|pl\\|cgi\\)\\>\\|$\\)")
 	      (setq filename 
 		    (fix-cygwin-drive-letter
 		     (concat (buffer-substring-no-properties 
@@ -385,11 +385,13 @@ class, or normal module)."
 			       ".pl")
 			      ((string= (match-string-no-properties 0) ".ast") 
 			       ".pl")
+			      ((string= (match-string-no-properties 0) ".testout") 
+			       ".pl")
 			      ((string= (match-string-no-properties 0) ".pls") 
 			       ".pls")
 			      ((string= (match-string-no-properties 0) ".pl") 
 			       ".pl")
-			      ((string= (match-string-no-properties 0) "cgi") 
+			      ((string= (match-string-no-properties 0) "cgi") ;; TODO: .cgi?
 			       ".cgi")
 			      ((string= (match-string-no-properties 0) "") 
 			       "")

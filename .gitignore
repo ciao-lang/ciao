@@ -3,6 +3,7 @@
 *.itf
 *.asr
 *.ast
+*.testout
 *.elc
 /build-boot/
 /build/

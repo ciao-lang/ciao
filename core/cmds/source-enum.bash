@@ -26,6 +26,7 @@ function find_source() {
          '!' -name '*.itf' -a \
          '!' -name '*.asr' -a \
          '!' -name '*.ast' -a \
+         '!' -name '*.testout' -a \
          '!' -name '*.o' -a \
          '!' -name '*.a' -a \
          '!' -name '*.so' -a \

@@ -964,6 +964,10 @@ a_filename(Base, Name) :-
 :- export(so_filename/2).
 so_filename(Base, Name) :-
 	product_filename(gluecode_so, Base, Name).
+%
+:- export(testout_filename/2). % (for unittests)
+testout_filename(Base, Name) :-
+	product_filename(prolog_testout, Base, Name).
 
 % JF: Name of a file
 :- export(product_filename/3).
@@ -1213,6 +1217,7 @@ filetype(prolog_wam,        '.wam', noarch).
 filetype(prolog_itf,        '.itf', noarch).
 filetype(prolog_assertion,  '.asr', noarch).
 filetype(prolog_assertion2, '.ast', noarch).
+filetype(prolog_testout,    '.testout', noarch).
 filetype(gluecode_c,        '.c',   arch).
 filetype(gluecode_o,        '.o',   arch).
 filetype(gluecode_a,        Ext,    arch) :- get_a_ext(Ext).

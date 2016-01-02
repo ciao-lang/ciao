@@ -116,6 +116,7 @@ current dir (or creates one)."
 ;;------------------------------------------------------------
 
 ;; TODO: Only ciao-scrachpad-last-file is cleaned, is that correct?
+;; TODO: Use 'ciao clean-tree'
 
 (defun ciao-scratchpad-clean ()
   "Delete files (and possible compilation output files) in the `scrachpad'"
@@ -123,6 +124,7 @@ current dir (or creates one)."
   (delete-file-if-possible (concat ciao-scratchpad-last-file ".err"))
   (delete-file-if-possible (concat ciao-scratchpad-last-file ".asr"))
   (delete-file-if-possible (concat ciao-scratchpad-last-file ".ast"))
+  (delete-file-if-possible (concat ciao-scratchpad-last-file ".testout"))
   (delete-file-if-possible (concat ciao-scratchpad-last-file ".itf"))
   (delete-file-if-possible (concat ciao-scratchpad-last-file ".po")))
 

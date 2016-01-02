@@ -455,6 +455,7 @@ other_pattern('*~').
 other_pattern('*.itf').
 other_pattern('*.po').
 other_pattern('*.asr').
+other_pattern('*.testout').
 other_pattern('*.infoindex').
 other_pattern('*.err').
 other_pattern('*.tmp').
