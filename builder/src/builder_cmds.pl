@@ -292,7 +292,7 @@ builder_cmd_(build_docs, Target, Opts) :- !, % (internal, without prebuild)
 	      builder_cmd(build_docs_manuals, Target, Opts)
 	    ),
 	    cmd_message(Target, "built [build docs]", [])
-	; normal_message("documentation omitted", [])
+	; true % normal_message("documentation omitted", [])
 	),
 	% Treat sub-bundles
 	( % (failure-driven loop)
