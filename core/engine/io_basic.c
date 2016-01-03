@@ -258,14 +258,11 @@ c_mblen(const char *s){
 
 int
 c_mbstrlen(const char * s){
-  int i = 0;
+  const char *t = s;
 
-  while(*s){
-    s += c_mblen(s);
-    i++;
-  }
+  for(t=s; *t; t+=c_mblen(t));
 
-  return i;
+  return t-s;
 }
 
 c_rune_t
@@ -1088,26 +1085,20 @@ CVOID__PROTO(print_number, stream_node_t *stream, tagged_t term)
 
 #define FULL_ESCAPE_QUOTED_ATOMS 1
 
-#if defined(FULL_ESCAPE_QUOTED_ATOMS)
-#define PRINT_ATOM_BUFF_SIZE 5*MAXATOM+3
-#else
-#define PRINT_ATOM_BUFF_SIZE 2*MAXATOM+3
-#endif      
-
 #define PRINT_CONTROL_RUNE(X) { *bp++ = '\\'; *bp++ = (X); }
 
 CVOID__PROTO(print_atom, stream_node_t *stream, tagged_t term)
 {
   atom_t *atomptr = TagToAtom(term);
-
+  
   if (!atomptr->has_special)
     print_string(stream, atomptr->name);
   else
     {
 #if defined(USE_DYNAMIC_ATOM_SIZE)
-      char *buf = checkalloc_ARRAY(char, PRINT_ATOM_BUFF_SIZE);
+      char *buf = checkalloc_ARRAY(char, 2*MAXATOM+3);
 #else
-      char buf[PRINT_ATOM_BUFF_SIZE]; 
+      char buf[2*MAXATOM+3]; 
 #endif
       unsigned char *ch = (unsigned char *)atomptr->name;
       char *bp = buf;

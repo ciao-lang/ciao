@@ -16,6 +16,11 @@
 #include <sys/mman.h>
 #endif
 
+/* Some BSD systems (like NetBSD 6) do not define this synonym  */
+#if !defined(MAP_ANONYMOUS)
+#define MAP_ANONYMOUS MAP_ANON
+#endif
+
 # if defined(ANONYMOUS_MMAP)
 #  if defined(Solaris)
 #   define MMAP_FLAGS (MAP_ANON|MAP_PRIVATE|MAP_FIXED)
