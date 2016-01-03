@@ -1044,10 +1044,13 @@ CVOID__PROTO(print_number, stream_node_t *stream, tagged_t term) {
 
 #define FULL_ESCAPE_QUOTED_ATOMS 1
 
+/* Max size of printed atom (+3 due to 0'', ..., 0'', 0'\0) */
+#define PRINT_ATOM_BUFF_SIZE PRINT_RUNE_BUFF_SIZE*MAXATOM+3
+/* Max size of a single printed rune */
 #if defined(FULL_ESCAPE_QUOTED_ATOMS)
-#define PRINT_ATOM_BUFF_SIZE 5*MAXATOM+3
+#define PRINT_RUNE_BUFF_SIZE 5 /* (e.g., 0'1  => 0'\\ 0'0 0'0 0'1 0'\\ */
 #else
-#define PRINT_ATOM_BUFF_SIZE 2*MAXATOM+3
+#define PRINT_RUNE_BUFF_SIZE 2 /* (e.g., 0'\n => 0'\\ 0'n */
 #endif      
 
 #define PRINT_CONTROL_RUNE(X) { *bp++ = '\\'; *bp++ = (X); }
