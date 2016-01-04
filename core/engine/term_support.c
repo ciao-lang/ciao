@@ -890,8 +890,7 @@ CBOOL__PROTO(string_to_number,
       if (req) {
         explicit_heap_overflow(Arg, req+CONTPAD, arity);
         h = w->global_top;
-	/* TODO: Atom_Buffer or AtBuf? */
-        if (bn_from_string(Atom_Buffer, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base))
+        if (bn_from_string(AtBuf, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base))
           SERIOUS_FAULT("miscalculated size of bignum");
       }
 
