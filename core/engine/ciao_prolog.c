@@ -96,8 +96,7 @@ tagged_t ciao_unref(ciao_state state, ciao_term term);
 
 void ciao_ensure_heap(ciao_state state, int cells) {
   worker_t *w = state->worker_registers;
-  if (HeapDifference(w->global_top,Heap_End) < CONTPAD + cells)
-    explicit_heap_overflow(w, CONTPAD + cells, 0);
+  ENSURE_HEAP(cells, 0);
 }
 
 /* ------------------------------------------------------------------------- */

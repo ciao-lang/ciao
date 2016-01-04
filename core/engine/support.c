@@ -431,7 +431,6 @@ CFUN__PROTO(bn_call,
 {
   bignum_size_t req;
   intmach_t ar;
-  tagged_t **spp, *h;
   tagged_t xx[2], yy[2];
 
   if (f != bn_from_float) {
@@ -461,30 +460,40 @@ CFUN__PROTO(bn_call,
   }
 
   if (liveinfo) {
-    spp = &Arg->global_top;
-    if ((req=(*f)(bx, by, (bignum_t *)(*spp), (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo))))) {
-      while (Numstack_Top+req > Numstack_End)
+    if ((req=(*f)(bx, by, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo))))) {
+      while (Numstack_Top+req > Numstack_End) {
         numstack_overflow(Arg);
+      }
       if ((*f)(bx, by, (bignum_t *)Numstack_Top, (bignum_t *)Numstack_End))
         SERIOUS_FAULT("miscalculated size of bignum");
       explicit_heap_overflow(Arg,req+LIVEINFO__HEAP(liveinfo), (short)LIVEINFO__ARITY(liveinfo));
-      if (bn_plus((bignum_t *)Numstack_Top, (bignum_t *)0, (bignum_t *)(*spp), (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo))))
+      if (bn_plus((bignum_t *)Numstack_Top, (bignum_t *)0, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo))))
         SERIOUS_FAULT("miscalculated size of bignum");
     }
+    tagged_t *h;
+    h = w->global_top;
+    ar = LargeArity(h[0]);
+    if (ar==2 && IntIsSmall((intmach_t)h[1])) {
+      return MakeSmall(h[1]);
+    } else {
+      w->global_top += ar+1;
+      h[ar] = h[0];
+      return Tag(STR, h);
+    }
   } else {
-    spp = &Numstack_Top;
-    while (!Numstack_End || (*f)(bx, by, (bignum_t *)Numstack_Top, (bignum_t *)Numstack_End))
+    while (!Numstack_End || (*f)(bx, by, (bignum_t *)Numstack_Top, (bignum_t *)Numstack_End)) {
       numstack_overflow(Arg);
-  }
-
-  h = *spp;
-  ar = LargeArity(h[0]);
-  if (ar==2 && IntIsSmall((intmach_t)h[1])) {
-    return MakeSmall(h[1]);
-  } else {
-    (*spp) += ar+1;
-    h[ar] = h[0];
-    return Tag(STR, h);
+    }
+    tagged_t *h;
+    h = Numstack_Top;
+    ar = LargeArity(h[0]);
+    if (ar==2 && IntIsSmall((intmach_t)h[1])) {
+      return MakeSmall(h[1]);
+    } else {
+      Numstack_Top += ar+1;
+      h[ar] = h[0];
+      return Tag(STR, h);
+    }
   }
 }
 

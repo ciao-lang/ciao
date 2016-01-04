@@ -453,6 +453,7 @@ CBOOL__PROTO(prolog_unix_argv)
   char **p1 = prolog_argv;
   int i;
 
+  // ENSURE_HEAP_LST(prolog_argc, 1);
   for (i=prolog_argc; i>1;) {
     MakeLST(list, MakeString(p1[--i]), list);
   }
@@ -613,7 +614,6 @@ CBOOL__PROTO(prolog_directory_files)
   ERR__FUNCTOR("system:directory_files", 2);
   char pathBuf[MAXPATHLEN+1];
   DIR *dir;
-  int gap;
   struct dirent *direntry;
 
   /* Using X(2) to build the result - DCG */
@@ -662,12 +662,8 @@ CBOOL__PROTO(prolog_directory_files)
     }
   } else {
     X(2) = atom_nil;
-    gap = HeapDifference(w->global_top, Heap_End)-CONTPAD;
     while ((direntry = readdir(dir))) {
-      if ((gap -= 2) < 0) {
-	explicit_heap_overflow(Arg, CONTPAD+32, 3);
-	gap += 32;
-      }
+      ENSURE_HEAP_LST(16, 3); /* 16 is some arbitrary gap (1 would be OK) */
       MakeLST(X(2), MakeString(direntry->d_name), X(2));
     }
     closedir(dir);
@@ -1184,8 +1180,7 @@ CBOOL__PROTO(prolog_current_host)
 
 /*   s += (i = strlen(s)); */
 
-/*   if (HeapDifference(w->global_top, Heap_End)<CONTPAD+(i<<1)) */
-/*     explicit_heap_overflow(Arg, CONTPAD+(i<<1), 2); */
+/*   ENSURE_HEAP_LST(i, 2); */
 
 /*   cdr = atom_nil; */
 /*   while (i>0) { */

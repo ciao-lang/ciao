@@ -1268,9 +1268,7 @@ CBOOL__PROTO(prolog_fast_read_in_c) {
   }
   if (i != FASTRW_VERSION) return FALSE;
 
-  if (HeapDifference(w->global_top,Heap_End) < CONTPAD+SPACE_FACTOR*kCells) {
-    explicit_heap_overflow(Arg,CONTPAD+SPACE_FACTOR*kCells,1);
-  }
+  ENSURE_HEAP(SPACE_FACTOR*kCells, 1);
 
   if (!prolog_fast_read_in_c_aux(Arg,&term,vars,&lastvar)) return FALSE;
 
@@ -1293,7 +1291,6 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
   ERR__FUNCTOR("fastrw:fast_read", 1);
   int i,k,j;
   unsigned char *s = (unsigned char *) Atom_Buffer;
-  tagged_t *h = w->global_top;
   int base;
   
   k = readbyte(Input_Stream_Ptr, NULL);
@@ -1307,10 +1304,13 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
     CHECK_HEAP_SPACE;
     return TRUE;
   case '[':
-    w->global_top += 2;
-    if (!prolog_fast_read_in_c_aux(Arg,h,vars,lastvar)) return FALSE;
-    if (!prolog_fast_read_in_c_aux(Arg,h+1,vars,lastvar)) return FALSE;
-    *out = Tag(LST,h);
+    {
+      tagged_t *h = w->global_top;
+      w->global_top += 2;
+      if (!prolog_fast_read_in_c_aux(Arg,h,vars,lastvar)) return FALSE;
+      if (!prolog_fast_read_in_c_aux(Arg,h+1,vars,lastvar)) return FALSE;
+      *out = Tag(LST,h);
+    }
     CHECK_HEAP_SPACE;
     return TRUE;
   case '_':
@@ -1333,27 +1333,34 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
     }
     switch (k) {
     case '_':
-      if ((i = atoi(Atom_Buffer)) == *lastvar)
-	*h = vars[(*lastvar)++] = TagHVA(w->global_top++);
-      *out = vars[i];
+      {
+	tagged_t *h = w->global_top;
+	if ((i = atoi(Atom_Buffer)) == *lastvar)
+	  *h = vars[(*lastvar)++] = TagHVA(w->global_top++);
+	*out = vars[i];
+      }
       CHECK_HEAP_SPACE;
       return TRUE;
     case 'I':
       base = GetSmall(current_radix);
-      if ((i = bn_from_string(Atom_Buffer, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base))) {
-	explicit_heap_overflow(Arg,i+CONTPAD, 1);
-        h = w->global_top;        
-	if (bn_from_string(Atom_Buffer, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base)) {
-	  SERIOUS_FAULT("miscalculated size of bignum");
+      {
+	tagged_t *h = w->global_top;
+	if ((i = bn_from_string(Atom_Buffer, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base))) {
+	  explicit_heap_overflow(Arg,i+CONTPAD, 1);
+	  h = w->global_top;        
+	  if (bn_from_string(Atom_Buffer, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base)) {
+	    SERIOUS_FAULT("miscalculated size of bignum");
+	  }
+	}
+	i = LargeArity(h[0]);
+	if (i == 2 && IntIsSmall((intmach_t)h[1])) { // TODO: This assumes that sizeof(bignum_t) == sizeof(intmach_t) == sizeof(tagged_t)
+	  *out = MakeSmall(h[1]);
+	} else {
+	  *out = Tag(STR,h);
+	  w->global_top += i+1;
+	  h[i] = h[0];
 	}
       }
-      if ((i = LargeArity(h[0])) ==2 && IntIsSmall((intmach_t)h[1])) // TODO: This assumes that sizeof(bignum_t) == sizeof(intmach_t) == sizeof(tagged_t)
-	*out = MakeSmall(h[1]);
-      else {
-	*out = Tag(STR,h);
-	w->global_top += i+1;
-	h[i] = h[0];
-      }	
       CHECK_HEAP_SPACE;
       return TRUE;
     case 'F':
@@ -1365,16 +1372,15 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       CHECK_HEAP_SPACE;
       return TRUE;
     case '"':
-      i--;
-      /*
-      if (HeapDifference(w->global_top,Heap_End)<CONTPAD+(i<<1)) {
-        printf("Prev HeapDifference is %d\n",
-               HeapDifference(w->global_top,Heap_End));
-        explicit_heap_overflow(Arg,CONTPAD+(i<<1),1);
+      {
+	tagged_t *h = w->global_top;
+	i--;
+	/* ENSURE_HEAP_LST(i, 1); */
+	while (i--) {
+	  MakeLST(*out,MakeSmall(((unsigned char *)Atom_Buffer)[i]),*out);
+	}
+	if (!prolog_fast_read_in_c_aux(Arg,h+1,vars,lastvar)) return FALSE;
       }
-      */
-      while (i--) MakeLST(*out,MakeSmall(((unsigned char *) Atom_Buffer)[i]),*out);
-      if (!prolog_fast_read_in_c_aux(Arg,h+1,vars,lastvar)) return FALSE;
       CHECK_HEAP_SPACE;
       return TRUE;
     case 'S':
@@ -1382,15 +1388,15 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       if (i == BYTE_PAST_EOF) {
 	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
       }
-          /*
-      if (HeapDifference(w->global_top,Heap_End)<CONTPAD+(i+1))
-        explicit_heap_overflow(Arg,CONTPAD+(i+1),1);
-          */
-      *h = SetArity(MakeString(Atom_Buffer),i);
-      *out = Tag(STR,h++);
-      w->global_top += i+1;
-      while(i--) {
-	if (!prolog_fast_read_in_c_aux(Arg,h++,vars,lastvar)) return FALSE;
+      {
+	tagged_t *h = w->global_top;
+	/* ENSURE_HEAP(i+1, 1); */
+	*h = SetArity(MakeString(Atom_Buffer),i);
+	*out = Tag(STR,h++);
+	w->global_top += i+1;
+	while(i--) {
+	  if (!prolog_fast_read_in_c_aux(Arg,h++,vars,lastvar)) return FALSE;
+	}
       }
       CHECK_HEAP_SPACE;
       return TRUE;

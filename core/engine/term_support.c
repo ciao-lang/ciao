@@ -885,11 +885,12 @@ CBOOL__PROTO(string_to_number,
       /* It is an integer, either a small or a bignum */
       tagged_t *h = w->global_top;
       tagged_t t;
-      int req = bn_from_string(AtBuf, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base);
 
+      int req = bn_from_string(AtBuf, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base);
       if (req) {
-        explicit_heap_overflow(Arg ,req+CONTPAD, arity);
+        explicit_heap_overflow(Arg, req+CONTPAD, arity);
         h = w->global_top;
+	/* TODO: Atom_Buffer or AtBuf? */
         if (bn_from_string(Atom_Buffer, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base))
           SERIOUS_FAULT("miscalculated size of bignum");
       }
@@ -1079,16 +1080,15 @@ static CBOOL__PROTO(prolog_constant_codes,
     }
   }
 
-  s += (i = strlen(s));
+  i = strlen(s);
+  s += i;
 
-  if (HeapDifference(w->global_top,Heap_End)<CONTPAD+(i<<1)) {
-    explicit_heap_overflow(Arg,CONTPAD+(i<<1),ci+1);
-  }
-
+  ENSURE_HEAP_LST(i, ci+1);
   cdr = atom_nil;
   while (i>0)	{
     i--;
-    MakeLST(cdr,MakeSmall(*((unsigned char *)--s)),cdr);
+    s--;
+    MakeLST(cdr,MakeSmall(*((unsigned char *)s)),cdr);
   }
   return cunify(Arg,cdr,X(ci));
 }

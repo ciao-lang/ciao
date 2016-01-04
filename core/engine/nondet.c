@@ -686,8 +686,9 @@ CBOOL__PROTO(current_key)
         while (inst){
           intmach_t ar = LargeArity(hnode->key);
 
-          if (HeapDifference(w->global_top,Heap_End)<CONTPAD+ar+3)
+          if (HeapDifference(w->global_top,Heap_End)<CONTPAD+ar+3) {
             explicit_heap_overflow(Arg,SOFT_HEAPPAD+ar,5);
+	  }
 
           MakeLST(X(4),decode_instance_key(inst),X(4));
           inst = ACTIVE_INSTANCE(Arg,inst->next_forward,use_clock,FALSE);
@@ -714,8 +715,9 @@ CBOOL__PROTO(current_key)
 
     if (!(hnode->key & QMask)){
       if (inst && (hnode->key & mask) == (X(2) & mask)) {
-        if (HeapDifference(w->global_top,Heap_End)<CONTPAD+ARITYLIMIT+3)
+        if (HeapDifference(w->global_top,Heap_End)<CONTPAD+ARITYLIMIT+3) {
           explicit_heap_overflow(Arg,SOFT_HEAPPAD,5);
+	}
 
         MakeLST(X(4),make_structure(Arg,hnode->key),X(4));
       }
@@ -725,8 +727,9 @@ CBOOL__PROTO(current_key)
         while (inst){
           intmach_t ar = LargeArity(hnode->key);
 
-          if (HeapDifference(w->global_top,Heap_End)<CONTPAD+ar+3)
+          if (HeapDifference(w->global_top,Heap_End)<CONTPAD+ar+3) {
             explicit_heap_overflow(Arg,SOFT_HEAPPAD+ar,5);
+	  }
 
           MakeLST(X(4),decode_instance_key(inst),X(4));
           inst = ACTIVE_INSTANCE(Arg,inst->next_forward,use_clock,FALSE);

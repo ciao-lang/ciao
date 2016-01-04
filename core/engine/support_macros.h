@@ -479,6 +479,8 @@ void failc(char *mesg);
   To = Tag(LST,HeapOffset(w->global_top,-2)); \
 }
 
+#define LSTCELLS 2 /* Cells allocated in MakeLST */
+
 /* MakeSTR(To,Functor):
    
    Set 'To' to a term tagged_t STR

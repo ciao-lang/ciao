@@ -739,16 +739,18 @@ CVOID__PROTO(clock_overflow)
   /* count # distinct clock values existing in choicepoints */
   for (b=w->next_node;
        !ChoiceptTestStatic(b);
-       b=ChoiceCharOffset(b,-b->next_alt->node_offset))
+       b=ChoiceCharOffset(b,-b->next_alt->node_offset)) {
     if (b->next_alt==address_nd_current_instance) {
       t = GetSmall(b->term[4]);
-      if (current!=t)
-        current=t, count++;
+      if (current!=t) {
+        current=t;
+	count++;
+      }
     }
+  }
 
   /* grab space for array of clock values */
-  if (HeapCharDifference(w->global_top,Heap_End) < count*sizeof(instance_clock_t))
-    explicit_heap_overflow(Arg,(count*sizeof(instance_clock_t)+sizeof(tagged_t)-1)/sizeof(tagged_t),DynamicPreserved);
+  ENSURE_HEAP_BYTES(count*sizeof(instance_clock_t), DynamicPreserved);
   clocks = (instance_clock_t *)w->global_top;
 
   /* fill in distinct chpt clock values, relocating them as we go */

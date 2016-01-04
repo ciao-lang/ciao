@@ -1029,7 +1029,8 @@ CBOOL__PROTO(qread1,
       }
       break;
     case ENSURE_SPACE:
-      if (HeapDifference(h,Heap_End) < (pad=qr_int32(qfile))){
+      pad = qr_int32(qfile);
+      if (HeapDifference(h,Heap_End) < pad) {
 	w->global_top = h;
 	explicit_heap_overflow(Arg,pad,2);
 	h = w->global_top;

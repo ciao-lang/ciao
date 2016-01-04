@@ -683,32 +683,33 @@ CBOOL__PROTO(prolog_radix)
 
 CBOOL__PROTO(constraint_list)
 {
-  intmach_t pad = HeapDifference(w->global_top,Heap_End);
-  
+  intmach_t pad;
   tagged_t *h;
   tagged_t l, v, clist;
   
+  pad = HeapDifference(w->global_top,Heap_End);
   DEREF(X(0),X(0));
-  while ((find_constraints(Arg, TagToPointer(X(0)))<<1)+CONTPAD > pad)
-    {
-      l = *w->trail_top;
-      while (l!=atom_nil)
-	v = l,
-	l = *TagToCVA(v),
-	*TagToCVA(v) = v;
-
-      explicit_heap_overflow(Arg,pad<<=1,2);
+  while ((find_constraints(Arg, TagToPointer(X(0)))*LSTCELLS)+CONTPAD > pad) {
+    l = *w->trail_top;
+    while (l!=atom_nil) {
+      v = l;
+      l = *TagToCVA(v);
+      *TagToCVA(v) = v;
     }
+    /* TODO: use pad<<=1 here or recompute available? */
+    explicit_heap_overflow(Arg,pad<<=1,2);
+  }
   h = w->global_top;
   l = *w->trail_top;
   clist = atom_nil;
-  while (l!=atom_nil)
-    v = l,
-    l = *TagToCVA(v),
-    *TagToCVA(v) = v,
-    HeapPush(h,v),
-    HeapPush(h,clist),
+  while (l!=atom_nil) {
+    v = l;
+    l = *TagToCVA(v);
+    *TagToCVA(v) = v;
+    HeapPush(h,v);
+    HeapPush(h,clist);
     clist = Tag(LST,HeapOffset(h,-2));
+  }
   w->global_top = h;
   return cunify(Arg,clist,X(1));
 }

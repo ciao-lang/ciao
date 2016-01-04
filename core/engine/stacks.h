@@ -36,4 +36,27 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);
 CBOOL__PROTO(undo_heap_overflow_excep);
 #endif
 
+/* Make sure that there is enough heap to allocate N cells (plus CONTPAD)
+ * N - number of cells
+ * Arity - number of live X regs
+ */
+#define ENSURE_HEAP(N, Arity) {					\
+    if (HeapDifference(w->global_top,Heap_End)<CONTPAD+(N)) {		\
+      explicit_heap_overflow(Arg,CONTPAD+(N),(Arity));			\
+    }									\
+  }
+
+/* Make sure that there is enough heap to allocate N bytes */
+#define ENSURE_HEAP_BYTES(N, Arity) {					\
+    if (HeapCharDifference(w->global_top,Heap_End)<(N)) {		\
+      explicit_heap_overflow(Arg,((N)+sizeof(tagged_t)-1)/sizeof(tagged_t),(Arity)); \
+    }									\
+  }
+
+/* Make sure that there is enough heap to construct a list spine.
+ * N - length of the list
+ * Arity - number of live X regs
+ */
+#define ENSURE_HEAP_LST(N, Arity) ENSURE_HEAP((N)*LSTCELLS, (Arity))
+
 #endif /* _CIAO_STACKS_H */
