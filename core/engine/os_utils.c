@@ -1985,6 +1985,38 @@ char *c_paths_insert_new(const char *envpath, const char *path) {
 
 /* --------------------------------------------------------------------------- */
 
+// /*
+//  *  system:extract_paths(+PathListAtm, -Paths)
+//  */
+// CBOOL__PROTO(prolog_extract_paths) {
+//   char *pathlist;
+//   DEREF(X(0), X(0));
+//   /* check argument instantiation error */
+//   if (IsVar(X(0))) {
+//     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+//   }
+//   /* check type argument*/
+//   if (!TagIsATM(X(0))) {
+//     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+//   }
+//   pathlist = GetString(X(0));
+// 
+//   tagged_t list = atom_nil;
+//   char **paths = c_extract_paths(pathlist);
+//   if (paths != NULL) {
+//     int i;
+//     for (i = 0; paths[i] != NULL; i++) { }
+//     ENSURE_HEAP_LST(i, 2);
+//     for (; i>1; ) {
+//       MakeLST(list, MakeString(paths[--i]), list);
+//     }
+//     c_free_paths(paths);
+//   }
+//   return cunify(Arg, list, X(0));
+// }
+
+/* --------------------------------------------------------------------------- */
+
 extern char *eng_architecture;
 
 /*

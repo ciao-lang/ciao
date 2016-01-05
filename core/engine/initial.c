@@ -1238,6 +1238,7 @@ void init_once(void)
   define_c_mod_predicate("system","c_set_env", 2,prolog_c_set_env);
   define_c_mod_predicate("system","c_del_env", 1,prolog_c_del_env);
   define_c_mod_predicate("system","c_current_env", 3,prolog_c_current_env);
+  // define_c_mod_predicate("system","extract_paths", 3,prolog_extract_paths);
 
   define_c_mod_predicate("system","get_pid", 1, prolog_getpid);
   define_c_mod_predicate("system","get_uid", 1, prolog_getuid);
