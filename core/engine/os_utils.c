@@ -1813,8 +1813,7 @@ CBOOL__PROTO(prolog_expand_file_name)
 #define PATHLIST_SEP ':'
 #endif
 
-/* (C version of system_extra:extract_paths/2) -- note that this one
-   does not add '.' by default */
+/* (C version of system:extract_paths/2) */
 char **c_extract_paths(char *envpath) {
   char *p, **paths;
 

@@ -337,38 +337,27 @@ current_env_(I, Name, Value) :-
 	    current_env_(J, Name, Value)
 	).
 
-:- doc(extract_paths(String, Paths), "Split @var{String} into
-   the list of paths @var{Paths}. Paths in @var{String} are separated
-   by the @concept{path list separator character} (colons in
-   POSIX-like systems, semicolons in Windows), and an empty path is
-   considered a shorthand for '.' (current path).  The most typical
-   environment variable with this format is @tt{PATH}. For example,
-   this is a typical use:
-
-@begin{verbatim}
-?- set_prolog_flag(write_strings, on).
-
-yes
-?- getenvstr('PATH', PATH), extract_paths(PATH, Paths).
-
-PATH = "":/home/bardo/bin:/home/clip/bin:/opt/bin/:/bin"",
-Paths = [""."",""/home/bardo/bin"",""/home/clip/bin"",""/opt/bin/"",""/bin""] ?
-
-yes
-?- 
-@end{verbatim}
-").
+:- doc(extract_paths(String, Paths), "Split @var{String} into the list
+   of paths @var{Paths}. Paths in @var{String} are separated by the
+   @concept{path list separator character} (colons in POSIX-like
+   systems, semicolons in Windows). @var{Paths} is empty if
+   @var{String} is the empty string.").
 
 :- pred extract_paths(+string, ?list(string)).
 
-extract_paths([], ["."]).
+extract_paths([], []).
 extract_paths([C|Cs], [Path|Paths]) :-
-        extract_path(C, Cs, ".", Path, Cs_),
-        extract_paths_(Cs_, Paths).
+        extract_path(C, Cs, "", Path, Cs_),
+        extract_paths1(Cs_, Paths).
 
-extract_paths_([], []).
-extract_paths_([_|Cs], Paths) :- % skip path list separator character
-        extract_paths(Cs, Paths).
+extract_paths0([], [""]).
+extract_paths0([C|Cs], [Path|Paths]) :-
+        extract_path(C, Cs, "", Path, Cs_),
+        extract_paths1(Cs_, Paths).
+
+extract_paths1([], []).
+extract_paths1([_|Cs], Paths) :- % skip path list separator character
+        extract_paths0(Cs, Paths).
 
 extract_path(C, Cs, Path, Path, [C|Cs]) :- pathlistsep(C), !.
 extract_path(C, [], _, [C], []) :- !.
@@ -378,6 +367,11 @@ extract_path(C, [D|Cs], _, [C|Path], Cs_) :-
 % Separator for lists of paths
 pathlistsep(C) :- using_windows, !, C = 0';.
 pathlistsep(0':).
+
+% % TODO: bug in unittests?
+% :- test extract_paths(A, B) : (A = "") => (B = []) # "Empty path list".
+% :- test extract_paths(A, B) : (A = "a:b") => (B = ["a","b"]) # "Two paths".
+% :- test extract_paths(A, B) : (A = ":b:") => (B = ["","b",""]) # "Empty paths".
 
 :- doc(current_host(Hostname), "@var{Hostname} is unified with the
         fully qualified name of the host.").
