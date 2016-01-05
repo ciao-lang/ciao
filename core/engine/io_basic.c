@@ -1343,24 +1343,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       return TRUE;
     case 'I':
       base = GetSmall(current_radix);
-      {
-	tagged_t *h = w->global_top;
-	if ((i = bn_from_string(Atom_Buffer, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base))) {
-	  explicit_heap_overflow(Arg,i+CONTPAD, 1);
-	  h = w->global_top;        
-	  if (bn_from_string(Atom_Buffer, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base)) {
-	    SERIOUS_FAULT("miscalculated size of bignum");
-	  }
-	}
-	i = LargeArity(h[0]);
-	if (i == 2 && IntIsSmall((intmach_t)h[1])) { // TODO: This assumes that sizeof(bignum_t) == sizeof(intmach_t) == sizeof(tagged_t)
-	  *out = MakeSmall(h[1]);
-	} else {
-	  *out = Tag(STR,h);
-	  w->global_top += i+1;
-	  h[i] = h[0];
-	}
-      }
+      StringToInt(Atom_Buffer, base, *out, 1);
       CHECK_HEAP_SPACE;
       return TRUE;
     case 'F':

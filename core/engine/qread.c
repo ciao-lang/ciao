@@ -79,20 +79,10 @@ static CFUN__PROTO(qr_large, tagged_t, FILE *f) {
     }
   }
 
-  if (bn_from_string(ws,(bignum_t *)w->global_top,(bignum_t *)Heap_End,GetSmall(current_radix))) {
-    SERIOUS_FAULT("$qload: miscalculated heap usage");
-  } else {
-    tagged_t *h = w->global_top;
-    int ar = LargeArity(h[0]);
-      
-    if (ar==2 && IntIsSmall((intmach_t)h[1])) {
-      return MakeSmall(h[1]);
-    } else {
-      w->global_top += ar+1;
-      h[ar] = h[0];
-      return Tag(STR,h);
-    }
-  }
+  int base = GetSmall(current_radix);
+  tagged_t r;
+  StringToInt_nogc(ws, base, r);
+  return r;
 }
 
 static flt64_t qr_flt64(FILE *f) {

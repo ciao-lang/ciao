@@ -342,7 +342,7 @@ CFUN__PROTO(bc_make_large, tagged_t, tagged_t *ptr) {
     ar = len + 1;
     /* TODO: factorize */
     if (ar==2 && IntIsSmall((intmach_t)ptr[1])) {
-      //      fprintf(stderr, "BC_MakeLarge->small\n");
+      // fprintf(stderr, "BC_MakeLarge->small\n");
       return MakeSmall(ptr[1]);
     }
     // fprintf(stderr, "BC_MakeLarge->bignum\n");
@@ -430,7 +430,6 @@ CFUN__PROTO(bn_call,
 	    bcp_t liveinfo)
 {
   bignum_size_t req;
-  intmach_t ar;
   tagged_t xx[2], yy[2];
 
   if (f != bn_from_float) {
@@ -459,8 +458,11 @@ CFUN__PROTO(bn_call,
     by = (bignum_t *)yy;
   }
 
+  tagged_t r;
   if (liveinfo) {
-    if ((req=(*f)(bx, by, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo))))) {
+    req = (*f)(bx, by, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo)));
+    if (req != 0) {
+      /* TODO: why is the Numstack used here? */
       while (Numstack_Top+req > Numstack_End) {
         numstack_overflow(Arg);
       }
@@ -470,31 +472,14 @@ CFUN__PROTO(bn_call,
       if (bn_plus((bignum_t *)Numstack_Top, (bignum_t *)0, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo))))
         SERIOUS_FAULT("miscalculated size of bignum");
     }
-    tagged_t *h;
-    h = w->global_top;
-    ar = LargeArity(h[0]);
-    if (ar==2 && IntIsSmall((intmach_t)h[1])) {
-      return MakeSmall(h[1]);
-    } else {
-      w->global_top += ar+1;
-      h[ar] = h[0];
-      return Tag(STR, h);
-    }
+    FinishInt(w->global_top, r);
   } else {
     while (!Numstack_End || (*f)(bx, by, (bignum_t *)Numstack_Top, (bignum_t *)Numstack_End)) {
       numstack_overflow(Arg);
     }
-    tagged_t *h;
-    h = Numstack_Top;
-    ar = LargeArity(h[0]);
-    if (ar==2 && IntIsSmall((intmach_t)h[1])) {
-      return MakeSmall(h[1]);
-    } else {
-      Numstack_Top += ar+1;
-      h[ar] = h[0];
-      return Tag(STR, h);
-    }
+    FinishInt(Numstack_Top, r);
   }
+  return r;
 }
 
 CFUN__PROTO(make_integer_check,

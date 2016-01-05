@@ -34,10 +34,9 @@ CBOOL__PROTO(counter_values)
 
   DEREF(X(1),X(1));
   count = GetInteger(X(1));
-  if (count > 255)
-    {
-      USAGE_FAULT("$clause_counters/2: Too many counters per clause");
-    }
+  if (count > 255) {
+    USAGE_FAULT("$clause_counters/2: Too many counters per clause");
+  }
 
   max_counter = current_counter + count;
   
@@ -45,16 +44,14 @@ CBOOL__PROTO(counter_values)
   values = Tag(STR,h);
   HeapPush(h,SetArity(atom_counter,count));
   
-  while (current_counter < max_counter)
-    {
-      counter = *current_counter++;
-      if (!IntIsSmall(counter))
-	{
-	  USAGE_FAULT("$clause_counters/2: Counter value exceeds smallint");
-	}
-      else
-	HeapPush(h,MakeSmall(counter));
+  while (current_counter < max_counter) {
+    counter = *current_counter++;
+    if (!IntIsSmall(counter)) {
+      USAGE_FAULT("$clause_counters/2: Counter value exceeds smallint");
+    } else {
+      HeapPush(h,MakeSmall(counter));
     }
+  }
   w->global_top = h;
   
   return cunify(Arg,values,X(2));

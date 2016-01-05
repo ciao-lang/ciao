@@ -275,6 +275,25 @@ typedef struct module_ module_t; /* defined in objareas.h */
 */ 
 #define IsIntegerFix(X)	(TagIsSmall(X) || (TagIsSTR(X) && TagToHeadfunctor(X)==MakeFunctorFix))
 
+/* Finish the large integer at `HTop` and move `HTop` forward. If the
+ * large integer can be represented as a small int, keep it
+ * unchanged. `Out` is assigned the a STR tagged (large) or small int.
+ */
+// TODO: ar==2 assumes that sizeof(bignum_t) == sizeof(intmach_t) == sizeof(tagged_t)
+#define FinishInt(HTop, Out) ({			\
+  tagged_t *h_ = (HTop);			\
+  int ar_ = LargeArity(h_[0]);			\
+  tagged_t r_;					\
+  if (ar_ == 2 && IntIsSmall((intmach_t)h_[1])) { \
+    r_ = MakeSmall(h_[1]);			\
+  } else {					\
+    (HTop) += ar_+1;				\
+    h_[ar_] = h_[0];				\
+    r_ = Tag(STR,h_);				\
+  }						\
+  (Out) = r_;					\
+})
+
 /* TODO: backport from optim_comp */
 /* size of blob, aligned to ensure correct alignment of tagged words
    in memory */

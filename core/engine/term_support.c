@@ -866,12 +866,12 @@ CBOOL__PROTO(string_to_number,
      (s[1]=='I') &&
      (s[2]=='n') &&
      (s[3]=='f') &&
-     (s[4]=='\0'))
-  {
-    if (sign) 
+     (s[4]=='\0')) {
+    if (sign) {
       num = -1.0/0.0;
-    else
+    } else {
       num = 1.0/0.0;
+    }
     *strnum=MakeFloat(Arg,num); /* Inf */
     return TRUE;
   }
@@ -883,26 +883,7 @@ CBOOL__PROTO(string_to_number,
   if ((s - AtBuf) - sign > 1) {
     if (i==0) {
       /* It is an integer, either a small or a bignum */
-      tagged_t *h = w->global_top;
-      tagged_t t;
-
-      int req = bn_from_string(AtBuf, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base);
-      if (req) {
-        explicit_heap_overflow(Arg, req+CONTPAD, arity);
-        h = w->global_top;
-        if (bn_from_string(AtBuf, (bignum_t *)h, (bignum_t *)(Heap_End-CONTPAD), base))
-          SERIOUS_FAULT("miscalculated size of bignum");
-      }
-
-      req = LargeArity(h[0]);
-      if (req==2 && IntIsSmall((intmach_t)h[1])) {
-        t = MakeSmall(h[1]);
-      } else {
-        w->global_top += req+1;
-        h[req] = h[0];
-        t = Tag(STR,h);
-      }
-      *strnum = t;                 /* The tagged_t word --- small or bignum */
+      StringToInt(AtBuf, base, *strnum, arity);
       return TRUE;
     }
 
