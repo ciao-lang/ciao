@@ -453,7 +453,7 @@ CBOOL__PROTO(prolog_unix_argv)
   char **p1 = prolog_argv;
   int i;
 
-  // ENSURE_HEAP_LST(prolog_argc, 1);
+  ENSURE_HEAP_LST(prolog_argc - 1, 1);
   for (i=prolog_argc; i>1;) {
     MakeLST(list, MakeString(p1[--i]), list);
   }
