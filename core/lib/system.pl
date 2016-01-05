@@ -340,41 +340,46 @@ current_env_(I, Name, Value) :-
 :- doc(extract_paths(PathList, Paths), "Split @var{PathList} atom into
    the list of paths @var{Paths}. Paths in @var{String} are separated
    by the @concept{path list separator character} (colons in
-   POSIX-like systems, semicolons in Windows). @var{Paths} is empty if
-   @var{PathList} is the empty atom.").
+   POSIX-like systems, semicolons in Windows). Empty paths are removed
+   from @var{Paths}. @var{Paths} is empty if @var{PathList} is the
+   empty atom.").
 
-:- pred extract_paths(+atm, ?list(atm)).
+:- true pred extract_paths(+atm, ?list(atm)).
+:- impl_defined(extract_paths/2).
 
-extract_paths('', []) :- !.
-extract_paths(PathList, [Path|Paths]) :-
-	atom_codes(PathList, [C|Cs]),
-        extract_path(C, Cs, "", PathStr, Cs_),
-	atom_codes(Path, PathStr),
-        extract_paths1(Cs_, Paths).
-
-extract_paths0([], ['']).
-extract_paths0([C|Cs], [Path|Paths]) :-
-        extract_path(C, Cs, "", PathStr, Cs_),
-	atom_codes(Path, PathStr),
-        extract_paths1(Cs_, Paths).
-
-extract_paths1([], []).
-extract_paths1([_|Cs], Paths) :- % skip path list separator character
-        extract_paths0(Cs, Paths).
-
-extract_path(C, Cs, Path, Path, [C|Cs]) :- pathlistsep(C), !.
-extract_path(C, [], _, [C], []) :- !.
-extract_path(C, [D|Cs], _, [C|Path], Cs_) :-
-        extract_path(D, Cs, [], Path, Cs_).
-
-% Separator for lists of paths
-pathlistsep(C) :- using_windows, !, C = 0';.
-pathlistsep(0':).
+% % (reference implementation which does not ignore empty paths)
+%
+% extract_paths('', []) :- !.
+% extract_paths(PathList, [Path|Paths]) :-
+% 	atom_codes(PathList, [C|Cs]),
+%         extract_path(C, Cs, "", PathStr, Cs_),
+% 	atom_codes(Path, PathStr),
+%         extract_paths1(Cs_, Paths).
+% 
+% extract_paths0([], ['']).
+% extract_paths0([C|Cs], [Path|Paths]) :-
+%         extract_path(C, Cs, "", PathStr, Cs_),
+% 	atom_codes(Path, PathStr),
+%         extract_paths1(Cs_, Paths).
+% 
+% extract_paths1([], []).
+% extract_paths1([_|Cs], Paths) :- % skip path list separator character
+%         extract_paths0(Cs, Paths).
+% 
+% extract_path(C, Cs, Path, Path, [C|Cs]) :- pathlistsep(C), !.
+% extract_path(C, [], _, [C], []) :- !.
+% extract_path(C, [D|Cs], _, [C|Path], Cs_) :-
+%         extract_path(D, Cs, [], Path, Cs_).
+% 
+% % Separator for lists of paths
+% pathlistsep(C) :- using_windows, !, C = 0';.
+% pathlistsep(0':).
 
 % % TODO: bug in unittests?
 % :- test extract_paths(A, B) : (A = '') => (B = []) # "Empty path list".
 % :- test extract_paths(A, B) : (A = 'a:b') => (B = ['a','b']) # "Two paths".
-% :- test extract_paths(A, B) : (A = ':b:') => (B = ['','b','']) # "Empty paths".
+% % :- test extract_paths(A, B) : (A = ':b:') => (B = ['', 'b', '']) # "Empty paths".
+% :- test extract_paths(A, B) : (A = ':b:') => (B = ['b']) # "Ignore empty paths".
 
 :- doc(current_host(Hostname), "@var{Hostname} is unified with the
         fully qualified name of the host.").

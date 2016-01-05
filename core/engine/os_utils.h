@@ -71,6 +71,7 @@ CBOOL__PROTO(prolog_getgrnam);
 CBOOL__PROTO(prolog_find_file);
 CBOOL__PROTO(prolog_path_is_absolute);
 CBOOL__PROTO(prolog_expand_file_name);
+CBOOL__PROTO(prolog_extract_paths);
 CBOOL__PROTO(prolog_getarch);
 CBOOL__PROTO(prolog_getos);
 CBOOL__PROTO(prolog_eng_debug_level);
