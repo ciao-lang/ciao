@@ -337,22 +337,25 @@ current_env_(I, Name, Value) :-
 	    current_env_(J, Name, Value)
 	).
 
-:- doc(extract_paths(String, Paths), "Split @var{String} into the list
-   of paths @var{Paths}. Paths in @var{String} are separated by the
-   @concept{path list separator character} (colons in POSIX-like
-   systems, semicolons in Windows). @var{Paths} is empty if
-   @var{String} is the empty string.").
+:- doc(extract_paths(PathList, Paths), "Split @var{PathList} atom into
+   the list of paths @var{Paths}. Paths in @var{String} are separated
+   by the @concept{path list separator character} (colons in
+   POSIX-like systems, semicolons in Windows). @var{Paths} is empty if
+   @var{PathList} is the empty atom.").
 
-:- pred extract_paths(+string, ?list(string)).
+:- pred extract_paths(+atm, ?list(atm)).
 
-extract_paths([], []).
-extract_paths([C|Cs], [Path|Paths]) :-
-        extract_path(C, Cs, "", Path, Cs_),
+extract_paths('', []) :- !.
+extract_paths(PathList, [Path|Paths]) :-
+	atom_codes(PathList, [C|Cs]),
+        extract_path(C, Cs, "", PathStr, Cs_),
+	atom_codes(Path, PathStr),
         extract_paths1(Cs_, Paths).
 
-extract_paths0([], [""]).
+extract_paths0([], ['']).
 extract_paths0([C|Cs], [Path|Paths]) :-
-        extract_path(C, Cs, "", Path, Cs_),
+        extract_path(C, Cs, "", PathStr, Cs_),
+	atom_codes(Path, PathStr),
         extract_paths1(Cs_, Paths).
 
 extract_paths1([], []).
@@ -369,9 +372,9 @@ pathlistsep(C) :- using_windows, !, C = 0';.
 pathlistsep(0':).
 
 % % TODO: bug in unittests?
-% :- test extract_paths(A, B) : (A = "") => (B = []) # "Empty path list".
-% :- test extract_paths(A, B) : (A = "a:b") => (B = ["a","b"]) # "Two paths".
-% :- test extract_paths(A, B) : (A = ":b:") => (B = ["","b",""]) # "Empty paths".
+% :- test extract_paths(A, B) : (A = '') => (B = []) # "Empty path list".
+% :- test extract_paths(A, B) : (A = 'a:b') => (B = ['a','b']) # "Two paths".
+% :- test extract_paths(A, B) : (A = ':b:') => (B = ['','b','']) # "Empty paths".
 
 :- doc(current_host(Hostname), "@var{Hostname} is unified with the
         fully qualified name of the host.").

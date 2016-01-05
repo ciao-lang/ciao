@@ -43,19 +43,21 @@
    @tt{contrib}.").
 
 get_alias_path :-
-        getenvstr('CIAOALIASPATH', ALIAS), !,
-        extract_paths(ALIAS, Paths),
+        getenvstr('CIAOALIASPATH', AliasStr),
+	!,
+	atom_codes(Alias, AliasStr),
+        extract_paths(Alias, Paths),
         record_alias(Paths).
 get_alias_path.
 
 record_alias([]).
 record_alias([AliasPath|Paths]) :-
-        append(AliasStr, "="||PathStr, AliasPath), !,
+	atom_codes(AliasPath, AliasPathStr),
+        append(AliasStr, "="||PathStr, AliasPathStr), !,
         atom_codes(Alias, AliasStr),
         atom_codes(Path, PathStr),
         asserta_fact(file_search_path(Alias, Path)),
         record_alias(Paths).
-record_alias([LibStr|Paths]) :-
-        atom_codes(Lib, LibStr),
+record_alias([Lib|Paths]) :-
         asserta_fact(library_directory(Lib)),
         record_alias(Paths).
