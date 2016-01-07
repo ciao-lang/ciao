@@ -963,10 +963,10 @@ exec_name(Cmd, Cmd).
 
 % Dir is a directory in the PATH environment variable
 get_paths(Dir) :-
-	getenvstr('PATH', Path),
+	getenvstr('PATH', PathStr),
+	atom_codes(Path, PathStr),
 	extract_paths(Path, PathList),
-	member(SPath, PathList),
-	atom_codes(Dir, SPath).
+	member(Dir, PathList).
 
 % ---------------------------------------------------------------------------
 
