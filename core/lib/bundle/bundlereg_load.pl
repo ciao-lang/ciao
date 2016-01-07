@@ -41,7 +41,8 @@ bundle_reg_dir(InsType, BundleRegDir) :- InsType = local, !,
 	path_concat(CiaoRoot, 'build', BuildDir),
 	path_concat(BuildDir, 'bundlereg', BundleRegDir).
 bundle_reg_dir(InsType, BundleRegDir) :- InsType = inpath(Path), !,
-	path_concat(Path, 'bundlereg', BundleRegDir).
+	path_concat(Path, 'build', BuildDir),
+	path_concat(BuildDir, 'bundlereg', BundleRegDir).
 
 :- import(system, [extract_paths/2]).
 :- import(system, [c_get_env/2]).

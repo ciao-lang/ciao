@@ -49,8 +49,7 @@ create_bundleregs([BundleDir|BundleDirs], InsType) :-
 % Make sure that the directory for the bundle database exists
 ensure_bundle_reg_dir(InsType) :-
 	bundle_reg_dir(InsType, BundleRegDir),
-	mkpath(BundleRegDir),
- 	mark_directory(noinstall, BundleRegDir). % TODO: mark should not be needed (do not install in libs)
+	mkpath(BundleRegDir).
 
 % ---------------------------------------------------------------------------
 
@@ -102,6 +101,10 @@ find_bundles([File|Files], Src, [BundleDir|BundleDirs]) :-
 find_bundles([_File|Files], Src, BundleDirs) :-
 	find_bundles(Files, Src, BundleDirs).
 
+directory_has_mark(nocompile, Dir) :-
+	path_concat(Dir, 'NOCOMPILE', F),
+	file_exists(F).
+
 % ---------------------------------------------------------------------------
 
 % BundleDir used in bundle registry (depends on InsType)
@@ -111,22 +114,6 @@ reg_bundledir(InsType, BundleName, BundleDir, Dir) :-
 	; InsType = global -> instciao_bundledir(BundleName, Dir)
 	; fail
 	).
-
-% ---------------------------------------------------------------------------
-% Directory marks
-
-% TODO: Complete missing cases, implement unmark?
-
-% TODO: Directory marks (move to a module)
-mark_directory(noinstall, Dir) :-
- 	% creates empty NOINSTALL file (which marks that this
- 	% directory will not be installed)
- 	path_concat(Dir, 'NOINSTALL', F),
- 	touch(F).
-
-directory_has_mark(nocompile, Dir) :-
-	path_concat(Dir, 'NOCOMPILE', F),
-	file_exists(F).
 
 % ---------------------------------------------------------------------------
 

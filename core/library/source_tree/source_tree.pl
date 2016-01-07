@@ -904,7 +904,6 @@ match_def(noarch, file) := '*.wam'.
 match_def(noarch, file) := '*.asr'.
 match_def(noarch, file) := '*.ast'.
 match_def(noarch, file) := '*.testout'.
-match_def(noarch, file) := '*.bundlereg'.
 match_def(noarch, file) := '*_auto.pl'.
 % Architecture-dependant compilation output
 match_def(arch, file) := '*.a'.
