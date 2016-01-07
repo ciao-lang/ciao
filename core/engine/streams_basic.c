@@ -135,7 +135,7 @@ void update_stream(stream_node_t *s,
     s = root_stream_ptr;
   s->last_nl_pos = 0;
   s->nl_count = 0;
-  s->rune_count = 0;		/* less than perfect */
+  s->rune_count = 0; /* less than perfect */
 }
 
 #if 0 /* Not used */
