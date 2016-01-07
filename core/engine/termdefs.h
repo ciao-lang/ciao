@@ -551,10 +551,14 @@ struct stream_node_ {
   stream_node_t *forward;
   tagged_t streamname;
   char streammode;
-  c_rune_t pending_rune;  /* From peek'ing. RUNE_VOID value indicates no pending char. */
+  /* pending_rune used from peek'ing. Valid values are:
+   *  - a valid rune
+   *  - RUNE_EOF
+   *  - RUNE_VOID (indicates no pending char) */
+  c_rune_t pending_rune;
   unsigned int isatty:1;
   unsigned int socket_eof:1;
-  /*  unsigned int socket_is_unbuffered:1; -- Not used (DCG) */
+  /* unsigned int socket_is_unbuffered:1; -- Not used (DCG) */
   c_rune_t previous_rune; /* To correctly count lines in Mac, Win, Unix (DCG) */
   intmach_t last_nl_pos;
   intmach_t nl_count;
