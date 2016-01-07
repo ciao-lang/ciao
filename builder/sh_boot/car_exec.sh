@@ -39,7 +39,7 @@ prev_ciaosrc=
 if [ -f "$f_saved_ciaosrc" ]; then prev_ciaosrc=`cat "$f_saved_ciaosrc"`; fi
 if [ x"$prev_ciaosrc" != x"$ciaoroot" ]; then 
     ( builddir_configure_boot "$boot_builddir" && \
-	"$ciaoroot/ciao-boot.sh" rescan-bundles > /dev/null )
+	"$ciaoroot/ciao-boot.sh" rescan-bundles "$ciaoroot" > /dev/null )
     printf "%s" "$ciaoroot" > "$f_saved_ciaosrc"
 fi
 

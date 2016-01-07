@@ -137,12 +137,11 @@ force the recompilation and cleaning of that part (see
 :- use_module(library(errhandle), [handle_error/2]).
 :- use_module(library(lists), [append/3]).
 :- use_module(library(messages), [error_message/2]).
-:- use_module(library(system), [working_directory/2]).
 
 :- use_module(library(bundle/bundle_info), [root_bundle/1]).
 
 :- use_module(ciaobld(builder_cmds), [builder_cmd/3, cleanup_builder/0]).
-:- use_module(ciaobld(builder_aux), [bundle_at_dir/2]).
+:- use_module(ciaobld(builder_aux), [bundle_at_dir/2, ciao_path_at_dir/2]).
 :- use_module(ciaobld(ciaocl_help)).
 
 % ===========================================================================
@@ -236,30 +235,14 @@ parse_cmd(Cmd, Args, Cmd2, Opts, Target) :-
 	    Args2 = Args1
 	; throw(invalid_target_parse(TargetParse))
 	),
-	( OptsParse = config_opts ->
+	( cmd_opts_custom(Cmd, Args2, Cmd2) ->
+	    true
+	; OptsParse = config_opts ->
 	    % NOTE: checked later in configure
 	    ( Args2 = [] -> true
 	    ; throw(args_error("Invalid additional arguments ('~w')", [Args2]))
 	    ),
 	    Cmd2 = Cmd
-	; OptsParse = raw_opts, Cmd = custom_run ->
-	    % do not check flags % TODO: pass them as arguments instead?
-	    ( Args2 = [CustomCmd] -> true
-	    ; throw(args_error("'custom_run' needs a target and a custom command name", []))
-	    ),
-	    Cmd2 = custom_run(CustomCmd)
-	; OptsParse = raw_opts, Cmd = clean_tree ->
-	    % do not check flags
-	    ( Args2 = [Dir] -> true
-	    ; throw(args_error("'clean_tree' needs a directory", []))
-	    ),
-	    Cmd2 = clean_tree(Dir)
-	; OptsParse = raw_opts, Cmd = get ->
-	    % do not check flags
-	    ( Args2 = [BundleAlias] -> true
-	    ; throw(args_error("'get' needs a bundle alias", []))
-	    ),
-	    Cmd2 = get(BundleAlias)
 	; OptsParse = raw_opts ->
 	    ( Args2 = [] -> true
 	    ; throw(args_error("Invalid additional arguments ('~w')", [Args2]))
@@ -362,6 +345,7 @@ cmd_opts(global_install,         arg_bundle, config_opts) :- !.
 cmd_opts(local_install_paranoid, arg_bundle, config_opts) :- !.
 cmd_opts(configure,              arg_bundle, config_opts) :- !.
 %
+cmd_opts(rescan_bundles,         no_bundle, raw_opts) :- !.
 cmd_opts(list,                   no_bundle, raw_opts) :- !.
 cmd_opts(get,                    no_bundle, raw_opts) :- !.
 % (internal)
@@ -396,6 +380,36 @@ raw_opt(config_set_flag, ciao:set_flag_flag).
 raw_opt(config_set_flag, ciao:set_flag_value).
 %   --git-repo-dir=Dir: location of the Git repository (if not using default)
 raw_opt(gen_bundle_commit_info, ciao:git_repo_dir).
+
+cmd_opts_custom(rescan_bundles, Args2, Cmd2) :- !,
+	% do not check flags % TODO: pass them as arguments instead?
+	( Args2 = [File] -> true
+	; Args2 = [] -> File = '.'
+	; throw(args_error("'rescan_bundles' needs at most one path", []))
+	),
+	ciao_path_at_dir(File, Path),
+	display(user_error, ciao_path_at_dir(File, Path)), nl(user_error),
+	Cmd2 = rescan_bundles(Path).
+cmd_opts_custom(get, Args2, Cmd2) :- !,
+	% do not check flags
+	( Args2 = [BundleAlias] -> true
+	; throw(args_error("'get' needs a bundle alias", []))
+	),
+	Cmd2 = get(BundleAlias).
+%
+cmd_opts_custom(clean_tree, Args2, Cmd2) :- !,
+	% do not check flags
+	( Args2 = [Dir] -> true
+	; throw(args_error("'clean_tree' needs a directory", []))
+	),
+	Cmd2 = clean_tree(Dir).
+%
+cmd_opts_custom(custom_run, Args2, Cmd2) :- !,
+	% do not check flags % TODO: pass them as arguments instead?
+	( Args2 = [CustomCmd] -> true
+	; throw(args_error("'custom_run' needs a target and a custom command name", []))
+	),
+	Cmd2 = custom_run(CustomCmd).
 
 % TODO: src and bin targets have WRONG names ('nothing' implies tgz and tbz)
 cmd_alias(gen_pbundle__win32, gen_pbundle(win32)).

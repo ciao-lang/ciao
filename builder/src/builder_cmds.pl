@@ -23,7 +23,7 @@
 	]).
 :- use_module(engine(internals), [
 	reload_bundleregs/0,
-	ciao_top_path/1,
+	top_ciao_path/1,
 	'$bundle_id'/1]).
 
 :- use_module(ciaobld(builder_aux), [
@@ -168,24 +168,14 @@ builder_cmd_(config_noscan, Target, _Opts) :- !,
 	format(user_error, "ERROR: Cannot configure bundle `~w'.~n", [Target]),
 	halt(1).
 %
-builder_cmd_(rescan_bundles, Target, _Opts) :- !,
-        cmd_message(Target, "re-scanning (sub-)bundles", []),
-	( root_bundle(Target) -> % Allow scanning without previous 'configure'
-	    root_bundle_source_dir(BundleDir)
-	; BundleDir = ~fsR(bundle_src(Target)) ->
-	    true
-	; format(user_error, "ERROR: bundle '~w' is unknown (did you run 'configure'?)~n", [Target]),
-	  halt(1)
-	),
-	( root_bundle(Target) ->
-	    % TODO: Add an option to preserve scanned bundles?
-	    %   Cleaning is needed for rescaning bundles of pruned
-	    %   sources.
+builder_cmd_(rescan_bundles(Path), '$no_bundle', _Opts) :- !,
+	% TODO: Assumes that Path is correct
+	( root_bundle_source_dir(CiaoSrc),
+	  Path = CiaoSrc ->
 	    clean_bundlereg(local), % clean previous bundlereg
-	    bundle_scan(local, BundleDir)
-	; % TODO: implement rescan_bundles for individual bundles
-	  format(user_error, "ERROR: sub-bundle scan not supported yet~n", []),
-	  halt(1)
+	    bundle_scan(local, Path)
+	; clean_bundlereg(inpath(Path)), % clean previous bundlereg
+	  bundle_scan(inpath(Path), Path)
 	).
 % List bundles
 builder_cmd_(list, '$no_bundle', _Opts) :- !,
@@ -1260,10 +1250,10 @@ bundle_uninstall_docs_format_hook(_, _).
 :- use_module(library(system), [mktemp_in_tmp/2, touch/1]).
 
 bundle_get(BundleAlias) :-
-	ciao_top_path(CiaoTopPath),
-	bundle_fetch(BundleAlias, CiaoTopPath, Bundle),
-	clean_bundlereg(inpath(CiaoTopPath)),
-	bundle_scan(inpath(CiaoTopPath), CiaoTopPath),
+	top_ciao_path(TopCiaoPath),
+	bundle_fetch(BundleAlias, TopCiaoPath, Bundle),
+	clean_bundlereg(inpath(TopCiaoPath)),
+	bundle_scan(inpath(TopCiaoPath), TopCiaoPath),
 	reload_bundleregs, % (reload, bundles has been scanned)
 	builder_cmd(build, Bundle, []).
 

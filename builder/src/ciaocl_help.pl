@@ -239,12 +239,11 @@ grp_help_str(promotion) --> { help_mode(~all_or_details, _) }, !,
 grp_help_str(promotion) --> [].
 			       
 grp_help_str(management) -->
-	% TODO: add BUNDLE as a parameter
 	% TODO: configure help is also in bundle_configure.pl
 	help_section("Bundle management"),
-	showcmd(rescan_bundles, "[<bundle>]", [
+	showcmd(rescan_bundles, "[<path>]", [
           %1_______________________________________________
-          "Rescan bundles (when source changes)"
+          "Rescan bundles at workspace"
         ]),
 	showcmd(list, "", [
           %1_______________________________________________

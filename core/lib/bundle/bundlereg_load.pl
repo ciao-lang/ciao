@@ -36,6 +36,7 @@ bundle_reg_dir(InsType, BundleRegDir) :- InsType = inpath(Path), !,
 :- import(system, [extract_paths/2]).
 :- import(system, [c_get_env/2]).
 
+:- export(ciao_path/1).
 :- data ciao_path/1.
 
 :- export(get_ciaopath/0).
@@ -62,9 +63,9 @@ get_ciaopath_(CiaoPaths) :-
 	; CiaoPaths = CiaoPaths0
 	).
 
-:- export(ciao_top_path/1).
+:- export(top_ciao_path/1).
 % First path in ciao_path/1 (target directory for 'ciao get')
-ciao_top_path(Dir) :-
+top_ciao_path(Dir) :-
 	ciao_path(Dir0),
 	!,
 	Dir = Dir0.
@@ -76,7 +77,7 @@ ciao_top_path(Dir) :-
 % (Re)Load all bundleregs (registered bundles)
 reload_bundleregs :-
 	clean_bundlereg_db,
-	% Load bundle regs in ciao_top_path and local (or installed) path
+	% Load bundle regs in ciao_path/1 and local (or installed) path
 	( % (failure-driven loop)
 	  ( ciao_path(Dir),
 	    bundle_reg_dir(inpath(Dir), BundleRegDir)

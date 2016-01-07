@@ -56,6 +56,36 @@ dir_to_bundle(BundleDir, Id) :-
 	!,
 	Id = Target.
 
+% ---------------------------------------------------------------------------
+
+:- use_module(engine(internals), [ciao_path/1]).
+:- use_module(library(pathnames), [path_get_relative/3]).
+
+:- export(ciao_path_at_dir/2).
+ciao_path_at_dir(Dir, Path) :-
+	( lookup_ciao_path(Dir, Path0) ->
+	    Path = Path0
+	; format(user_error, "ERROR: Directory (or any of the parent directories) not in CIAOPATH.~n", []),
+	  halt(1)
+	).
+
+% Detect the workspace from ciao_path/1 (or ciao root) for the given
+% File (a directory or normal file)
+lookup_ciao_path(File, Path) :-
+	fixed_absolute_file_name(File, Path0),
+	( lookup_ciao_path_(Path0, Path1) ->
+	    Path1 = Path
+	; fail
+	).
+
+lookup_ciao_path_(Path0, Path) :-
+	( ciao_path(Path)
+	; root_bundle_source_dir(Path)
+	),
+	( Path0 = Path -> true
+	; path_get_relative(Path0, Path, _) % Path0 is relative to Path
+	).
+
 % ===========================================================================
 
 :- doc(section, "Invokation of external tools").
