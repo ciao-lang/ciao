@@ -3,6 +3,7 @@
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
 #include <ciao/support.h>
+#include <ciao/io_basic.h> /* RUNE_VOID */
 #include <ciao/streams_basic.h>
 #include <ciao/stacks.h>
 #include <ciao/alloc.h>
@@ -44,6 +45,19 @@ tagged_t atom_buff;
 tagged_t atom_unbuff;
 */
 
+/* TODO: reuse code from streams_basic.h (e.g., update_stream, new_stream)? */
+
+void update_socket_stream(stream_node_t *s, int socket)
+{
+  s->label = MakeSmall(socket);
+  s->streamfile = NULL;
+  s->isatty = FALSE;
+  /* s->socket_is_unbuffered = 0; */
+  s->last_nl_pos = 0;
+  s->nl_count = 0;
+  s->rune_count = 0; /* less than perfect */
+}
+
 stream_node_t *new_socket_stream(tagged_t streamname, int socket)
 {
   stream_node_t *s;
@@ -51,26 +65,11 @@ stream_node_t *new_socket_stream(tagged_t streamname, int socket)
   s = checkalloc_TYPE(stream_node_t);
   s->streamname = streamname;
   s->streammode = 's';
-  s->label = MakeSmall(socket);
-  s->streamfile = NULL;
-  s->isatty = FALSE;
+  s->pending_rune = RUNE_VOID;
   s->socket_eof = FALSE;
-  /*  s->socket_is_unbuffered = 0; */
-  s->last_nl_pos = 0;
-  s->nl_count = 0;
-  s->char_count = 0;
-  s->pending_char = -100;
+  update_socket_stream(s,socket);
 
   return insert_new_stream(s);
-
-  /*
-  s->forward = root_stream_ptr,
-  s->backward = root_stream_ptr->backward,
-  root_stream_ptr->backward->forward = s,
-  root_stream_ptr->backward = s;
-
-  return s;
-  */
 }
 
 /* connect_to_socket(+Host, +Port, +Type, -Stream) */
