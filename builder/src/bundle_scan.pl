@@ -23,57 +23,52 @@
 :- use_module(ciaobld(config_common), [instciao_bundledir/2]).
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(library(bundle/bundlereg_gen), [is_bundle_dir/1, gen_bundlereg/4]).
-:- use_module(engine(internals), [current_bundle_reg_dir/1]).
+:- use_module(engine(internals), [bundle_reg_dir/2]).
 
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(system_extra)).
 
 % ----------------------------------------------------------------------------
 
-:- export(bundle_scan/1).
-:- pred bundle_scan(Src) # "Scan all the bundles under the @var{Src}
-   directory and annotate the results in the bundle registry (creating
-   it if missing)".
+% TODO: Document extended InsType = local | inpath(_)
+:- export(bundle_scan/2).
+:- pred bundle_scan(InsType, Src) # "Scan all the bundles under the
+   @var{Src} directory and annotate the results in the bundle registry
+   (creating it if missing)".
 
-bundle_scan(Src) :-
+bundle_scan(InsType, Src) :-
 	bundledirs_at_dir(Src, BundleDirs),
-	%
-	ensure_current_bundle_reg_dir,
-	local_bundleregs(BundleDirs).
+	ensure_bundle_reg_dir(InsType),
+	create_bundleregs(BundleDirs, InsType).
 
-local_bundleregs([]).
-local_bundleregs([BundleDir|BundleDirs]) :-
-	create_bundlereg(BundleDir, local),
-	local_bundleregs(BundleDirs).
+create_bundleregs([], _InsType).
+create_bundleregs([BundleDir|BundleDirs], InsType) :-
+	create_bundlereg(BundleDir, InsType),
+	create_bundleregs(BundleDirs, InsType).
 
 % Make sure that the directory for the bundle database exists
-ensure_current_bundle_reg_dir :-
-	current_bundle_reg_dir(BundleRegDir),
+ensure_bundle_reg_dir(InsType) :-
+	bundle_reg_dir(InsType, BundleRegDir),
 	mkpath(BundleRegDir),
- 	mark_directory(noinstall, BundleRegDir).
+ 	mark_directory(noinstall, BundleRegDir). % TODO: mark should not be needed (do not install in libs)
 
 % ---------------------------------------------------------------------------
 
 :- use_module(engine(system_info), [ciao_lib_dir/1]).
-:- use_module(engine(internals), [bundle_reg_dir/2, bundlereg_filename/3]).
+:- use_module(engine(internals), [bundlereg_filename/3]).
 :- use_module(engine(internals), [bundlereg_version/1]).
 :- use_module(ciaobld(builder_aux), [rootprefixed/2]).
 
-% Like current_bundle_reg_dir/1, but for the given installation type
-% InsType and prefixed with rootprefix if needed.
+% Like bundle_reg_dir/2, but supporting InsType=global and prefixed
+% with rootprefix if needed.
 
 rootprefix_bundle_reg_dir(InsType, BundleRegDir) :-
-	rootprefix_ciao_lib_dir(InsType, BundleRegDirBase),
-	bundle_reg_dir(BundleRegDirBase, BundleRegDir).
-
-% TODO: see get_defaultlibdir in ciao.config.pl
-rootprefix_ciao_lib_dir(InsType, Dir) :-
-	( InsType = local ->
-	    ciao_lib_dir(Dir)
-	; InsType = global ->
-	    instciao_bundledir(core, Dir0),
-	    Dir = ~rootprefixed(Dir0)
-	; fail
+	( InsType = global ->
+	    % TODO: use something different?
+	    instciao_bundledir(core, Dir),
+	    path_concat(Dir, 'lib/bundlereg__auto', BundleRegDir0),
+	    BundleRegDir = ~rootprefixed(BundleRegDir0)
+	; bundle_reg_dir(InsType, BundleRegDir)
 	).
 
 % File is the registry file for the BundleName bundle
@@ -108,9 +103,10 @@ find_bundles([_File|Files], Src, BundleDirs) :-
 
 % ---------------------------------------------------------------------------
 
-% BundleDir for bundle registry (depends on InsType)
+% BundleDir used in bundle registry (depends on InsType)
 reg_bundledir(InsType, BundleName, BundleDir, Dir) :-
 	( InsType = local -> Dir = BundleDir
+	; InsType = inpath(_Path) -> Dir = BundleDir
 	; InsType = global -> instciao_bundledir(BundleName, Dir)
 	; fail
 	).

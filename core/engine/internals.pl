@@ -934,6 +934,8 @@ setup_paths :-
         assertz_fact(library_directory(LibraryPath)),
         atom_concat(Path, '/engine', Engine),
         assertz_fact(file_search_path(engine, Engine)),
+	% Setup path for bundles (using CIAOPATH if available)
+	get_ciaopath,
 	% Load bundleregs (if available)
 	reload_bundleregs,
 	% Setup for CIAOCACHEDIR

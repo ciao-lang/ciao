@@ -40,14 +40,16 @@ bundle_deps_([B|Bs], Seen0, Seen, Deps, Deps0) :-
 	),
 	bundle_deps_(Bs, Seen2, Seen, Deps2, Deps0).
 
-% TODO: sub_bundle only make sense for root_bundle, remove or generalize?
+% TODO: sub_bundle only make sense for root_bundle, remove or
+%   generalize as 'all bundles in a workspace'?
 
 :- export(enum_sub_bundles/2).
 % Bundle is a sub-bundle of ParentBundle or a dependency of it
 % (nondet, order matters)
 enum_sub_bundles(ParentBundle, Bundle) :-
 	( root_bundle(ParentBundle) ->
-	    member(Bundle, ~bundle_deps(~all_bundles))
+	    member(Bundle, ~bundle_deps(~all_bundles)),
+	    is_sub_bundle(ParentBundle, Bundle)
 	; fail
 	).
 
@@ -55,9 +57,19 @@ enum_sub_bundles(ParentBundle, Bundle) :-
 % Like enum_sub_bundles/2, in reverse order
 enumrev_sub_bundles(ParentBundle, Bundle) :-
 	( root_bundle(ParentBundle) ->
-	    member(Bundle, ~reverse(~bundle_deps(~all_bundles)))
+	    member(Bundle, ~reverse(~bundle_deps(~all_bundles))),
+	    is_sub_bundle(ParentBundle, Bundle)
 	; fail
 	).
+
+:- use_module(library(pathnames), [path_get_relative/3]).
+
+% TODO: not very nice... rewrite bundles with sub-bundles as workspaces?
+is_sub_bundle(ParentBundle, Bundle) :-
+	'$bundle_srcdir'(ParentBundle, RootSrcDir),
+	'$bundle_srcdir'(Bundle, SrcDir),
+	% SrcDir is relative to RootSrcDir
+	path_get_relative(RootSrcDir, SrcDir, _).
 
 % All bundles except ~root_bundle
 all_bundles := ~findall(B, ('$bundle_id'(B), \+ root_bundle(B))).

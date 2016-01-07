@@ -21,7 +21,10 @@
 	enum_sub_bundles/2,
 	enumrev_sub_bundles/2
 	]).
-:- use_module(engine(internals), [reload_bundleregs/0, '$bundle_id'/1]).
+:- use_module(engine(internals), [
+	reload_bundleregs/0,
+	ciao_top_path/1,
+	'$bundle_id'/1]).
 
 :- use_module(ciaobld(builder_aux), [
 	root_bundle_source_dir/1,
@@ -32,7 +35,7 @@
         storedir_uninstall/1,
 	eng_active_bld/1
 	]).
-:- use_module(ciaobld(bundle_scan), [bundle_scan/1]).
+:- use_module(ciaobld(bundle_scan), [bundle_scan/2]).
 :- use_module(ciaobld(ciaoc_aux),
 	[promote_bootstrap/1,
 	 %
@@ -44,7 +47,7 @@
 	 %
 	 build_cmds_list/3,
 	 builddir_clean/1,
-	 builddir_clean_bundlereg/0,
+	 clean_bundlereg/1,
 	 clean_tree/1,
 	 clean_mod/1
 	]).
@@ -143,7 +146,7 @@ builder_cmd_(scan_and_config, Target, Opts) :- !,
 	    % TODO: avoid scanning for some options... allow scanning for other bundles
 	    cmd_message(Target, "scanning (sub-)bundles", []),
 	    root_bundle_source_dir(CiaoSrc),
-	    bundle_scan(CiaoSrc),
+	    bundle_scan(local, CiaoSrc),
 	    reload_bundleregs % (reload, bundles has been scanned)
 	; true
 	),
@@ -178,8 +181,8 @@ builder_cmd_(rescan_bundles, Target, _Opts) :- !,
 	    % TODO: Add an option to preserve scanned bundles?
 	    %   Cleaning is needed for rescaning bundles of pruned
 	    %   sources.
-	    builddir_clean_bundlereg, % clean previous bundlereg
-	    bundle_scan(BundleDir)
+	    clean_bundlereg(local), % clean previous bundlereg
+	    bundle_scan(local, BundleDir)
 	; % TODO: implement rescan_bundles for individual bundles
 	  format(user_error, "ERROR: sub-bundle scan not supported yet~n", []),
 	  halt(1)
@@ -387,7 +390,7 @@ builder_cmd_(distclean, Target, Opts) :- !,
 	builder_cmd(configclean, Target, Opts),
 	( root_bundle(Target) ->
 	    % TODO: make sure that no binary is left after 'clean' (outside builddir)
-	    builddir_clean_bundlereg,
+	    clean_bundlereg(local),
 	    builddir_clean(all)
 	; true
 	).
@@ -1083,16 +1086,12 @@ do_uninstall_bindir(_Bundle) :-
 
 % ---------------------------------------------------------------------------
 % Bundle registry installation (after bundle scan!)
-% TODO: rename those predicates
+% TODO: rename those predicates?
+% (this rewrites bundlereg in the global installation area, with modified paths)
 
 :- use_module(ciaobld(bundle_scan),
 	[create_bundlereg/2, remove_bundlereg/2,
 	 ensure_global_bundle_reg_dir/0]).
-
-%   % TODO: use bundle_reg_dir/2
-%   % TODO: really? installation rewrites the bundlereg of each installed bundle
-%   dir(~instciao_bundledir(core)/lib/bundlereg__auto, [do_not_del]),
-%   %
 
 install_bundlereg(Bundle) :-
 	( ~instype = global ->
@@ -1261,16 +1260,18 @@ bundle_uninstall_docs_format_hook(_, _).
 :- use_module(library(system), [mktemp_in_tmp/2, touch/1]).
 
 bundle_get(BundleAlias) :-
-	bundle_fetch(BundleAlias, Bundle),
-	builder_cmd(rescan_bundles, ~root_bundle, []), % TODO: implement single-bundle rescan
+	ciao_top_path(CiaoTopPath),
+	bundle_fetch(BundleAlias, CiaoTopPath, Bundle),
+	clean_bundlereg(inpath(CiaoTopPath)),
+	bundle_scan(inpath(CiaoTopPath), CiaoTopPath),
 	reload_bundleregs, % (reload, bundles has been scanned)
 	builder_cmd(build, Bundle, []).
 
-% Fetch source code of bundle specified in BundleAlias
-bundle_fetch(BundleAlias, Bundle) :-
+% Fetch at RootDir source code of bundle specified in BundleAlias
+bundle_fetch(BundleAlias, RootDir, Bundle) :-
 	% Compute bundle dir and check status
 	path_split(BundleAlias, _, Bundle),
-	root_bundle_source_dir(RootDir),
+	mkpath(RootDir), % (may not exist)
 	path_concat(RootDir, Bundle, BundleDir),
 	( file_exists(BundleDir), has_fetch_mark(BundleDir) ->
 	    cmd_message(Bundle, "already exists, skipping fetch", []),

@@ -9,14 +9,6 @@
 %   depend on library predicates not provided by the engine (as C
 %   code).
 
-:- export(bundle_reg_dir/2).
-:- pred bundle_reg_dir(LibDir, BundleRegDir) # "Given the Ciao library
-   directory @var{LibDir}, obtain the directory @var{BundleRegDir}
-   where registered bundles are stored.".
-
-bundle_reg_dir(LibDir, BundleRegDir) :-
-	atom_concat(LibDir, '/lib/bundlereg__auto/', BundleRegDir).
-
 :- export(bundlereg_filename/3).
 :- pred bundlereg_filename(Bundle, BundleRegDir, File)
    # "@var{File} is the bundlereg file for bundle @var{Bundle}, where
@@ -31,14 +23,51 @@ bundlereg_filename(Bundle, BundleRegDir, File) :-
 bundlereg_version(2). % Version of the bundlereg file
 
 % :- use_module(engine(system_info), [ciao_lib_dir/1]).
-% :- use_module(engine(internals), [bundle_reg_dir/2]).
 % :- use_module(engine(internals), [bundlereg_version/1]).
 
-% TODO: move to system_info (like ciao_lib_dir/1)
-:- export(current_bundle_reg_dir/1).
-current_bundle_reg_dir(BundleRegDir) :-
+% TODO: move to system_info (like ciao_lib_dir/1)?
+:- export(bundle_reg_dir/2).
+bundle_reg_dir(InsType, BundleRegDir) :- InsType = local, !,
 	ciao_lib_dir(LibDir),
-	bundle_reg_dir(LibDir, BundleRegDir).
+	path_concat(LibDir, 'lib/bundlereg__auto', BundleRegDir).
+bundle_reg_dir(InsType, BundleRegDir) :- InsType = inpath(Path), !,
+	path_concat(Path, 'bundlereg__auto', BundleRegDir).
+
+:- import(system, [extract_paths/2]).
+:- import(system, [c_get_env/2]).
+
+:- data ciao_path/1.
+
+:- export(get_ciaopath/0).
+% Update ciao_path/1 with paths in CIAOPATH (or add default if none)
+get_ciaopath :-
+	get_ciaopath_(CiaoPaths),
+	% assert in ciao_path/1
+	retractall_fact(ciao_path(_)),
+	( member(X, CiaoPaths),
+	    assertz_fact(ciao_path(X)),
+	    fail
+	; true
+	).
+
+get_ciaopath_(CiaoPaths) :-
+	( c_get_env('CIAOPATH', CiaoPathList) ->
+	    extract_paths(CiaoPathList, CiaoPaths0)
+	; CiaoPaths0 = []
+	),
+	( CiaoPaths0 = [] ->
+	    % No CIAOPATH or no paths, use default
+	    '$expand_file_name'('~/.ciao', true, DefCiaoPath),
+	    CiaoPaths = [DefCiaoPath]
+	; CiaoPaths = CiaoPaths0
+	).
+
+:- export(ciao_top_path/1).
+% First path in ciao_path/1 (target directory for 'ciao get')
+ciao_top_path(Dir) :-
+	ciao_path(Dir0),
+	!,
+	Dir = Dir0.
 
 % :- use_module(library(system), [file_exists/2, directory_files/2]).
 :- import(system, [file_exists/2, directory_files/2]).
@@ -47,8 +76,18 @@ current_bundle_reg_dir(BundleRegDir) :-
 % (Re)Load all bundleregs (registered bundles)
 reload_bundleregs :-
 	clean_bundlereg_db,
-	%
-	current_bundle_reg_dir(BundleRegDir),
+	% Load bundle regs in ciao_top_path and local (or installed) path
+	( % (failure-driven loop)
+	  ( ciao_path(Dir),
+	    bundle_reg_dir(inpath(Dir), BundleRegDir)
+	  ; bundle_reg_dir(local, BundleRegDir)
+	  ),
+	    reload_bundleregs_(BundleRegDir),
+	    fail
+	; true
+	).
+
+reload_bundleregs_(BundleRegDir) :-
 	( file_exists(BundleRegDir, 0) ->
 	    directory_files(BundleRegDir, Files),
 	    ( % (failure-driven loop)

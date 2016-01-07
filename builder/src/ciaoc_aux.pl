@@ -775,7 +775,8 @@ build_engine_(EngMainMod, Target, Env0) :-
 
 :- use_module(library(source_tree), [remove_dir/1]).
 :- use_module(engine(internals),
-	[po_filename/2,
+	[bundle_reg_dir/2,
+	 po_filename/2,
 	 itf_filename/2]).
 
 % Special clean targets for builddir
@@ -791,11 +792,10 @@ builddir_clean(all) :-
 	remove_dir(~fsR(builddir(build))).
 
 % Clean bundlereg
-:- export(builddir_clean_bundlereg/0).
-builddir_clean_bundlereg :-
-	root_bundle_source_dir(CiaoSrc),
-	path_concat(CiaoSrc, 'core/lib/bundlereg__auto', Dir),
-	remove_dir(Dir).
+:- export(clean_bundlereg/1).
+clean_bundlereg(InsType) :-
+	bundle_reg_dir(InsType, Dir),
+	( file_exists(Dir) -> remove_dir(Dir) ; true ).
 
 % Clean (compilation files in) a directory tree (recursively)
 :- export(clean_tree/1).
