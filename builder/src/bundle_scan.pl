@@ -64,9 +64,10 @@ ensure_bundle_reg_dir(InsType) :-
 
 rootprefix_bundle_reg_dir(InsType, BundleRegDir) :-
 	( InsType = global ->
+	    % (special case relative to ciao_lib_dir/1)
 	    % TODO: use something different?
 	    instciao_bundledir(core, Dir),
-	    path_concat(Dir, 'lib/bundlereg__auto', BundleRegDir0),
+	    path_concat(Dir, 'bundlereg', BundleRegDir0),
 	    BundleRegDir = ~rootprefixed(BundleRegDir0)
 	; bundle_reg_dir(InsType, BundleRegDir)
 	).

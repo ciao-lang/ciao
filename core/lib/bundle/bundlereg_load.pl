@@ -25,13 +25,23 @@ bundlereg_version(2). % Version of the bundlereg file
 % :- use_module(engine(system_info), [ciao_lib_dir/1]).
 % :- use_module(engine(internals), [bundlereg_version/1]).
 
-% TODO: move to system_info (like ciao_lib_dir/1)?
+% (see bundle_scan:rootprefix_bundle_reg_file/3 for InsType=global)
 :- export(bundle_reg_dir/2).
-bundle_reg_dir(InsType, BundleRegDir) :- InsType = local, !,
+bundle_reg_dir(InsType, BundleRegDir) :- InsType = local,
+	% (heuristic to detect a global installation)
 	ciao_lib_dir(LibDir),
-	path_concat(LibDir, 'lib/bundlereg__auto', BundleRegDir).
+	path_concat(LibDir, 'bundlereg', BundleRegDir0),
+	file_exists(BundleRegDir0, 0),
+	!,
+	BundleRegDir = BundleRegDir0.
+bundle_reg_dir(InsType, BundleRegDir) :- InsType = local, !,
+	% (heuristic to detect builddir in local installation)
+	ciao_lib_dir(LibDir),
+	path_split(LibDir, CiaoRoot, _),
+	path_concat(CiaoRoot, 'build', BuildDir),
+	path_concat(BuildDir, 'bundlereg', BundleRegDir).
 bundle_reg_dir(InsType, BundleRegDir) :- InsType = inpath(Path), !,
-	path_concat(Path, 'bundlereg__auto', BundleRegDir).
+	path_concat(Path, 'bundlereg', BundleRegDir).
 
 :- import(system, [extract_paths/2]).
 :- import(system, [c_get_env/2]).

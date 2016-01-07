@@ -117,7 +117,7 @@ Name: {app}\core\lib\compiler\header; Type: files
 Name: {app}\environment_ciao.log; Type: files
 Name: {app}\ide\emacs-mode\emacs_mode.log; Type: files
 Name: {app}\ide\emacs-mode\emacs_mode.err; Type: files
-Name: {app}\core\lib\bundlereg__auto; Type: filesandordirs
+Name: {app}\core\bundlereg; Type: filesandordirs
 Name: {app}\{#MyRelBuildDir}\bin\ciao-{{CiaoVersion}}.bat; Type: files
 Name: {app}\{#MyRelBuildDir}\eng\ciaoengine\objs\tmp; Type: filesandordirs
 

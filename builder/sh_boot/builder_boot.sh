@@ -192,10 +192,8 @@ EOF
 
     local rel_builddir="build" # TODO: hardwired here -- duplicated on the Prolog side
     local builddir="$ciaoroot/$rel_builddir"
-    # Cleaning the system builddir
+    # Cleaning the system builddir (includes bundlereg)
     clean_builddir "$builddir"
-    # Clean the bundlereg # TODO: it should be created somewhere else
-    rm -rf "$ciaoroot"/core/lib/bundlereg__auto
     # Clean exec_header # TODO: it should be created somewhere else
     rm -f "$ciaoroot"/core/lib/compiler/header
     # Try to clean leftovers (mostly .po and .itf) of any previous
