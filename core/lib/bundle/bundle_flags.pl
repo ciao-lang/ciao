@@ -69,9 +69,10 @@ clean_bundle_flags :-
 
 % :- use_module(engine(internals), [reload_bundleregs/0]).
 :- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(ciaobld(config_common), [local_bldid/1]).
 
 % TODO: use one file per bundle?
-bundle_flags_file := ~fsR(builddir(build)/'ciao.config_saved').
+bundle_flags_file := ~fsR(builddir(~local_bldid)/'ciao.config_saved').
 
 :- export(restore_all_bundle_flags/0).
 :- pred restore_all_bundle_flags # "Restore the bundle configuration

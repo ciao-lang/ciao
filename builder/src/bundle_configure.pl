@@ -117,7 +117,7 @@ configlevel('3', extended).
 
 % ---------------------------------------------------------------------------
 
-% The full configuration is stored in ~fsR(builddir(build)), in different formats
+% The full configuration is stored in ~fsR(builddir(BldId)), in different formats
 % for different tools:
 %
 %   - ciao.config_saved: internal format (saved, no sysdep)

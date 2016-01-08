@@ -28,7 +28,7 @@ auto_install_gsl := ~get_bundle_flag(contrib:auto_install_gsl).
 	prebuild_gsl_bindings.
 
 :- use_module(ciaobld(third_party_install), [auto_install/1]).
-:- use_module(ciaobld(config_common), [bld_eng_path/4]).
+:- use_module(ciaobld(config_common), [bld_eng_path/4, bundle_to_bldid/2]).
 
 do_auto_install_gsl :-
 	( auto_install_gsl(yes) -> 
@@ -76,7 +76,9 @@ prebuild_gsl_bindings :-
 	%
 	% TODO: Simplify, generalize for other libs
 	%
-	GSLEngDir = ~bld_eng_path(cfgdir, build, 'gsl'), % NOTE: not an engine
+	Bundle = contrib,
+	bundle_to_bldid(Bundle, GSLBldId),
+	GSLEngDir = ~bld_eng_path(cfgdir, GSLBldId, 'gsl'), % NOTE: not an engine
 	mkpath(GSLEngDir),
 	string_to_file(M, ~path_concat(GSLEngDir, 'config_sh')),
 	string_to_file(S, ~fsR(~gsl_dir/'gsl_imports_auto.pl')).

@@ -975,7 +975,9 @@ in_builddir(full) := ~fsR(builddir(~builddir_id)/bin). % TODO: why?
 % (see third_party_install.pl)
 in_builddir(full) := ~fsR(bundle_src(ciao)/'third-party').
 
-builddir_id := build.
+:- use_module(ciaobld(config_common), [local_bldid/1]).
+
+builddir_id := ~local_bldid.
 builddir_id := bootbuild.
 
 % ---------------------------------------------------------------------------

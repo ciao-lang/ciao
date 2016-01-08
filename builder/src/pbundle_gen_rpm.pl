@@ -42,7 +42,9 @@
 :- use_module(ciaobld(pbundle_generator)).
 :- use_module(ciaobld(pbundle_gen_src)).
 :- use_module(ciaobld(builder_aux), [wr_template/4]).
-:- use_module(ciaobld(config_common), [get_eng_cfg/2]).
+:- use_module(ciaobld(config_common),
+	[get_eng_cfg/2,
+	 bundle_to_bldid/2]).
 
 % (hooks for gen_pbundle)
 :- include(ciaobld(pbundle_gen_hookdefs)).
@@ -351,7 +353,8 @@ versioned_packagename(BundleName, PName) :-
 	break generation options.").
 
 bin_packname(Bundle, F) :-
-	EngCfg = ~get_eng_cfg(build),
+	bundle_to_bldid(Bundle, BldId),
+	EngCfg = ~get_eng_cfg(BldId),
 	F = ~atom_concat([~bundle_versioned_packname(Bundle), '-bin-', EngCfg]).
 
 :- pred gen_pbundle__rpm(Bundle, GenerationOptions) # "

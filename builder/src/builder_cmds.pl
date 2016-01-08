@@ -29,11 +29,11 @@
 :- use_module(ciaobld(builder_aux), [
 	root_bundle_source_dir/1,
 	rootprefixed/2,
-	ensure_builddir/0,
-        ensure_builddir_doc/0,
+	ensure_builddir/1,
+        ensure_builddir_doc/1,
         storedir_install/1,
         storedir_uninstall/1,
-	eng_active_bld/1
+	eng_active_bld/2
 	]).
 :- use_module(ciaobld(bundle_scan), [bundle_scan/2]).
 :- use_module(ciaobld(ciaoc_aux),
@@ -46,7 +46,7 @@
 	 clean_eng_exec_header/1,
 	 %
 	 build_cmds_list/3,
-	 builddir_clean/1,
+	 builddir_clean/2,
 	 clean_bundlereg/1,
 	 clean_tree/1,
 	 clean_mod/1
@@ -55,6 +55,7 @@
 :- use_module(library(source_tree), [remove_dir/1]).
 :- use_module(ciaobld(config_common), [
     instype/1,
+    local_bldid/1, bundle_to_bldid/2,
     instciao_bindir/1,
     instciao_storedir/1,
     instciao_bundledir/2,
@@ -155,7 +156,7 @@ builder_cmd_(scan_and_config, Target, Opts) :- !,
 builder_cmd_(config_noscan, Target, Opts) :- root_bundle(Target), !,
 	cmd_message(Target, "configuring", []),
 	set_params(Opts),
-	ensure_builddir,
+	ensure_builddir(~local_bldid),
 	( bundle_param_value(ciao:interactive_config, true) ->
 	    true % use saved config values
 	; % TODO: do not reset, skip load instead
@@ -262,8 +263,9 @@ builder_cmd_(prebuild_docs, Target, Opts) :- !,
 	( with_docs(yes) ->
 	    ( has_cmd1(prebuild_docs, Target) ->
 	        cmd_message(Target, "building [prebuild docs]", []),
-	        ensure_builddir, % TODO: needed?
-		ensure_builddir_doc, % TODO: needed?
+		target_to_bldid(Target, BldId),
+	        ensure_builddir(BldId), % TODO: needed?
+		ensure_builddir_doc(BldId), % TODO: needed?
 	        builder_cmd1(prebuild_docs, Target, Opts),
 		cmd_message(Target, "built [prebuild docs]", [])
 	    ; % (default)
@@ -344,8 +346,9 @@ builder_cmd_(clean_norec, Target, Opts) :- !,
 	    clean_tree(~fsR(bundle_src(Target)/doc)), % TODO: ad-hoc, clean .po,.itf, etc.
             % TODO: Clean Manifest/... in each bundle too
 	    % TODO: clean all builddir except configuration?
-	    builddir_clean(pbundle),
-	    builddir_clean(bin),
+	    BldId = ~local_bldid,
+	    builddir_clean(BldId, pbundle),
+	    builddir_clean(BldId, bin),
 	    builder_cmd(clean_norec, 'core/engine', []),
 	    builder_cmd(clean_norec, 'core/exec_header', [])
 	; has_cmd1(clean_norec, Target) ->
@@ -381,18 +384,18 @@ builder_cmd_(distclean, Target, Opts) :- !,
 	( root_bundle(Target) ->
 	    % TODO: make sure that no binary is left after 'clean' (outside builddir)
 	    clean_bundlereg(local),
-	    builddir_clean(all)
+	    builddir_clean(~local_bldid, all)
 	; true
 	).
 %
 % Clean the bundle configuration
-% TODO: split in a configclean for each (sub)bundle?
+% TODO: split in a configclean for each (sub)bundle or workspace
 % Warning! configclean is the last cleaning step. If you clean all
 %          the configuration files then many scripts will not run.
 builder_cmd_(configclean, Target, _Opts) :- !,
 	check_ready_for_build(configclean, Target),
 	( root_bundle(Target) ->
-	    builddir_clean(config)
+	    builddir_clean(~local_bldid, config)
 	; true
 	).
 % ----------
@@ -416,6 +419,11 @@ split_target(Target, Bundle, Part) :-
 	    Part = ''
 	; throw(unknown_bundle(Target))
 	).
+
+% e.g., Target='core/engine' -> BldId=build
+target_to_bldid(Target, BldId) :-
+	split_target(Target, Bundle, _),
+	bundle_to_bldid(Bundle, BldId).
 
 :- export(builder_pred/2).
 builder_pred(Target, Head) :-
@@ -502,7 +510,8 @@ ask_promote_bootstrap(EngMainMod) :-
 
 check_ready_for_build(Cmd, Target) :-
 	( % TODO: fsR/1 will fail if bundles are not scanned (that also means that there is no configuration)
-	  ConfigSH = ~fsR(builddir(build)/'ciao.config_saved'),
+	  BldId = ~local_bldid,
+	  ConfigSH = ~fsR(builddir(BldId)/'ciao.config_saved'),
 	  file_exists(ConfigSH) ->
 	    true
 	; format(user_error, "ERROR: Cannot do '~w' on bundle '~w' without a configuration. Please run 'configure' before.~n", [Cmd, Target]),
@@ -686,15 +695,17 @@ bundlehook_call_(config_set_flag, Bundle, '') :- !,
 %
 bundlehook_call_(build_docs_readmes, Bundle, '') :- !,
 	( with_docs(yes) ->
-	    ensure_builddir, % TODO: needed?
-	    ensure_builddir_doc, % TODO: needed?
+	    BldId = ~bundle_to_bldid(Bundle),
+	    ensure_builddir(BldId), % TODO: needed?
+	    ensure_builddir_doc(BldId), % TODO: needed?
 	    build_docs_readmes(Bundle)
 	; true
 	).
 bundlehook_call_(build_docs_manuals, Bundle, '') :- !,
 	( with_docs(yes) ->
-	    ensure_builddir, % TODO: needed?
-	    ensure_builddir_doc, % TODO: needed?
+	    BldId = ~bundle_to_bldid(Bundle),
+	    ensure_builddir(BldId), % TODO: needed?
+	    ensure_builddir_doc(BldId), % TODO: needed?
 	    build_docs_manuals(Bundle)
 	; true
 	).
@@ -706,10 +717,11 @@ bundlehook_call_(clean_docs_readmes, Bundle, '') :- !,
 	; true
 	).
 bundlehook_call_(clean_docs_manuals, Bundle, '') :- !,
-	% TODO: use Manifest
-	% TODO: this cleans all manuals at once; use lpdoc instead?
+	% TODO: use Manifest, use lpdoc to clean?
+	% TODO: clean per workspace?
 	( root_bundle(Bundle) ->
-	    remove_dir(~fsR(builddir(build)/doc))
+	    bundle_to_bldid(Bundle, BldId),
+	    remove_dir(~fsR(builddir(BldId)/doc))
 	; true
 	).
 %
@@ -766,7 +778,7 @@ bundlehook_call_(gen_pbundle(Kind), Bundle, '') :- !,
 %
 % TODO: Used from ciaobot
 bundlehook_call_(gen_bundle_commit_info, Bundle, '') :- !,
-	ensure_builddir,
+	ensure_builddir(~local_bldid),
 	gen_bundle_commit_info(Bundle).
 % Show bundle info
 bundlehook_call_(info, Bundle, '') :- !,
@@ -974,10 +986,10 @@ bundleitem_do(bin_copy_and_link(K, Bundle, File, Props), _Bundle, uninstall) :- 
 bundleitem_do(file(Path), _Bundle, uninstall) :- !,
 	storedir_uninstall(file(Path)).
 % Engine
-bundleitem_do(eng(EngMainMod, EngOpts), _Bundle, build_nodocs) :- !,
+bundleitem_do(eng(EngMainMod, EngOpts), Bundle, build_nodocs) :- !,
 	eng_build(EngMainMod, EngOpts),
 	% Activate
- 	eng_active_bld(EngMainMod).
+ 	eng_active_bld(Bundle, EngMainMod).
 bundleitem_do(eng(EngMainMod, _EngOpts), _Bundle, clean_norec) :- !,
 	eng_clean(EngMainMod).
 bundleitem_do(eng(EngMainMod, _EngOpts), Bundle, install) :- !,
@@ -1113,7 +1125,7 @@ uninstall_bundlereg(Bundle) :-
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(ciaobld(ciaoc_aux),
-	[invoke_lpdoc/2, invoke_lpdoc/1]).
+	[invoke_lpdoc/3, invoke_lpdoc/2]).
 
 % Creation of README files (from .lpdoc to ascii)
 % Output is moved to the bundle root directory.
@@ -1130,11 +1142,13 @@ build_docs_readmes(Bundle) :- with_docs(yes), !,
 	    path_concat(BundleDir, SrcPath, SrcPath2),
 	    path_split(SrcPath2, FilePath, _),
 	    Ascii = ~atom_concat(Name, '.ascii'),
-	    invoke_lpdoc(['-d', ~atom_concat('filepath=', FilePath),
+	    invoke_lpdoc(Bundle,
+	                 ['-d', ~atom_concat('filepath=', FilePath),
 	                  '-d', 'autogen_warning=yes',
 	                  '-d', 'doc_mainopts=no_versioned_output',
 	                  '-c', Ascii]),
-	    DocSrc = ~fsR(builddir_doc(build)/Ascii),
+	    bundle_to_bldid(Bundle, BldId),
+	    DocSrc = ~fsR(builddir_doc(BldId)/Ascii),
 	    copy_file_or_dir(DocSrc, OutName),
 	    fail
 	; true
@@ -1174,7 +1188,7 @@ build_docs_manuals(Bundle) :- with_docs(yes), !,
 	    BundleDir = ~fsR(bundle_src(Bundle)),
 	    path_concat(BundleDir, SrcDir, R0),
 	    path_concat(R0, 'SETTINGS', Settings),
-	    invoke_lpdoc(Settings, [all]),
+	    invoke_lpdoc(Bundle, Settings, [all]),
 	    fail
 	; true
 	).
@@ -1188,7 +1202,8 @@ bundle_install_docs(Bundle) :- with_docs(yes), !,
 	    docformatdir(DocFormat, TargetDir0),
 	    TargetDir = ~rootprefixed(TargetDir0),
 	    FileName = ~atom_concat([ManualBase, '.', DocFormat]),
-	    Source = ~fsR(builddir_doc(build)/(FileName)),
+	    bundle_to_bldid(Bundle, BldId),
+	    Source = ~fsR(builddir_doc(BldId)/(FileName)),
 	    ( file_exists(Source) ->
 		Target = ~path_concat(TargetDir, FileName),
 		( Source == Target ->
@@ -1197,7 +1212,7 @@ bundle_install_docs(Bundle) :- with_docs(yes), !,
 		; mkpath(TargetDir), % TODO: perms and owner?
 		  copy_file_or_dir(Source, TargetDir)
 		),
-		bundle_install_docs_format_hook(DocFormat, Target)
+		bundle_install_docs_format_hook(DocFormat, Bundle, Target)
 	    ; warning(['File ', Source, ' not generated yet. Skipping copy'])
 	    ),
 	    fail
@@ -1216,7 +1231,7 @@ bundle_uninstall_docs(Bundle) :- with_docs(yes), !,
 	    TargetDir = ~rootprefixed(TargetDir0),
 	    FileName = ~atom_concat([ManualBase, '.', DocFormat]),
 	    Target = ~path_concat(TargetDir, FileName),
-	    ( bundle_uninstall_docs_format_hook(DocFormat, Target),
+	    ( bundle_uninstall_docs_format_hook(DocFormat, Bundle, Target),
 	      remove_file_or_dir(Target) ->
 	        true
 	    ; warning(['Could not uninstall documentation in ', 
@@ -1233,13 +1248,15 @@ bundle_uninstall_docs(_Bundle).
 
 :- use_module(ciaobld(info_installer)).
 
-bundle_install_docs_format_hook(info, Target) :- !,
-	dirfile_install_info(~fsR(builddir_doc(build)), Target).
-bundle_install_docs_format_hook(_, _).
+bundle_install_docs_format_hook(info, Bundle, Target) :- !,
+	bundle_to_bldid(Bundle, BldId),
+	dirfile_install_info(~fsR(builddir_doc(BldId)), Target).
+bundle_install_docs_format_hook(_, _, _).
 
-bundle_uninstall_docs_format_hook(info, Target) :- !,
-	dirfile_uninstall_info(~fsR(builddir_doc(build)), Target).
-bundle_uninstall_docs_format_hook(_, _).
+bundle_uninstall_docs_format_hook(info, Bundle, Target) :- !,
+	bundle_to_bldid(Bundle, BldId),
+	dirfile_uninstall_info(~fsR(builddir_doc(BldId)), Target).
+bundle_uninstall_docs_format_hook(_, _, _).
 
 % ===========================================================================
 

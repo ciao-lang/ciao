@@ -23,6 +23,8 @@
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(library(bundle/bundle_info), [bundle_version/2, bundle_patch/2]).
 
+:- use_module(ciaobld(config_common), [bundle_to_bldid/2]).
+
 % ===========================================================================
 % Extract and save commit information about the bundle source
 
@@ -39,7 +41,7 @@ gen_bundle_commit_info(Bundle) :-
 
 save_bundle_commit_info(Bundle, Field) :-
 	bundle_commit_info(Bundle, Field, X),
-	commit_info_file(Field, FieldFile),
+	commit_info_file(Bundle, Field, FieldFile),
 	string_to_file(~atom_codes(X), FieldFile).
 
 % COMMIT_ID: Git commit id or SVN revision number (0 if everything else fails)
@@ -49,12 +51,17 @@ save_bundle_commit_info(Bundle, Field) :-
 %   version, patch, branch, etc. if available)
 
 % TODO: also changed in ciaobot code
-% TODO: this should be configurable per bundle
-:- export(commit_info_file/2).
-commit_info_file(branch) := ~fsR(builddir(build)/'COMMIT_BRANCH').
-commit_info_file(id) := ~fsR(builddir(build)/'COMMIT_ID').
-commit_info_file(date) := ~fsR(builddir(build)/'COMMIT_DATE').
-commit_info_file(desc) := ~fsR(builddir(build)/'COMMIT_DESC').
+% TODO: per bundle or per workspace (current)?
+:- export(commit_info_file/3).
+commit_info_file(Bundle, Field) := R :-
+	bundle_to_bldid(Bundle, BldId),
+	File = ~commit_info_file_(Field),
+	R = ~fsR(builddir(BldId)/File).
+
+commit_info_file_(branch) := 'COMMIT_BRANCH'.
+commit_info_file_(id) := 'COMMIT_ID'.
+commit_info_file_(date) := 'COMMIT_DATE'.
+commit_info_file_(desc) := 'COMMIT_DESC'.
 
 
 :- data bundle_commit_info_db/3.
@@ -82,8 +89,8 @@ bundle_commit_info__(Field, git, Bundle, Value) :-
 	git_commit_info(Field, Bundle, Value0),
 	!,
 	Value = Value0.
-bundle_commit_info__(Field, none, _Bundle, Date) :- % TODO: Use Bundle in commit_info_file
-	commit_info_file(Field, File),
+bundle_commit_info__(Field, none, Bundle, Date) :-
+	commit_info_file(Bundle, Field, File),
 	file_exists(File),
 	!,
 	Date0 = ~file_to_line(File),

@@ -48,8 +48,10 @@ fsR(A) := A :- atom(A), !.
 fsR(A) := _ :- var(A), !, throw(bad_fsR(A)). % TODO: fix exception
 fsR(builddir(BldId)) := R :- !,
 	% Directory where code and documentation is built
-	relbuild(BldId, RelBuildDir),
-	R = ~fsR(bundle_src(ciao)/RelBuildDir).
+	( BldId = inpath(Path) -> R = ~fsR(Path/build)
+	; relbuild(BldId, RelBuildDir),
+	  R = ~fsR(bundle_src(ciao)/RelBuildDir)
+	).
 fsR(builddir_bin(BldId)) := R :- !,
 	% Directory to build (executable) binaries
 	R = ~fsR(builddir(BldId)/bin).

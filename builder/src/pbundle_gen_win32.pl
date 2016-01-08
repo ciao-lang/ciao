@@ -24,7 +24,11 @@
 :- use_module(library(source_tree), [current_file_find/3]).
 :- use_module(library(pathnames), [path_basename/2]).
 
-:- use_module(ciaobld(config_common), [default_eng/1, bld_eng_path/4, cmdname_ver/5]).
+:- use_module(ciaobld(config_common),
+	[default_eng/1,
+	 bld_eng_path/4,
+	 bundle_to_bldid/2,
+	 cmdname_ver/5]).
 :- use_module(engine(internals), ['$bundle_prop'/2]).
 :- use_module(library(bundle/bundle_info), [
 	enum_sub_bundles/2,
@@ -68,6 +72,8 @@ invoke_iscc(FileIss) :-
 
 % TODO: too many definitions here are hardwired
 create_iss_file(Bundle, FileIss, FileListName) :-
+	bundle_to_bldid(core, EngBldId),
+	bundle_to_bldid(Bundle, BldId),
 	OutputBaseFileName = ~atom_codes(~bundle_versioned_packname(Bundle)),
 	% TODO: see PrettyCommitDesc in pbundle_download.pl
 	CommitId = ~bundle_commit_info(Bundle, id),
@@ -84,11 +90,11 @@ create_iss_file(Bundle, FileIss, FileListName) :-
  	    'MyAppExeName' = ~cmdname_ver(yes, core, plexe, 'ciaosh'), % TODO: extract from bundle
 	    'CiaoVersion' = ~bundle_version(core), % TODO: extract from bundle
 	    'SourceDir' = ~source_dir,
-	    'MyRelBuildDir' = ~relciaodir(~fsR(builddir(build))),
+	    'MyRelBuildDir' = ~relciaodir(~fsR(builddir(BldId))),
 	    'OutputDir' = ~output_dir,
 	    'ManualIcons' = ~get_manual_icons(Bundle),
 	    'DefaultDirName' = ~default_dir_name(Bundle),
-	    'CiaoEngineExec' = ~winpath(relative, ~relciaodir(~bld_eng_path(exec, build, EngMainMod))),
+	    'CiaoEngineExec' = ~winpath(relative, ~relciaodir(~bld_eng_path(exec, EngBldId, EngMainMod))),
 	    'FileListName' = ~winpath(full, ~fsR(bundle_src(ciao)/FileListName))
 	]).
 
@@ -109,7 +115,8 @@ get_manual_icons_(ParentBundle, Str) :-
 	ensure_load_bundlehooks(Bundle),
 	%
 	DocFormat = pdf,
-	RelBuildDir = ~relciaodir(~fsR(builddir(build))),
+	bundle_to_bldid(Bundle, BldId),
+	RelBuildDir = ~relciaodir(~fsR(builddir(BldId))),
 	'$bundle_prop'(Bundle, packname(PackName)),
 	ManualBase = ~bundle_manual_base(Bundle), % (nondet)
 	FileMain = ~atom_concat([ManualBase, '.', DocFormat]),
@@ -154,7 +161,8 @@ current_file(Source, DestDir) :-
 rel_extra_system_file(Source, DestDir) :-
 	EngMainMod = ~default_eng,
 	Source = ~winpath(~extra_system_file), % (nondet)
-	DestDir0 = ~winpath(relative, ~relciaodir(~bld_eng_path(objdir, build, EngMainMod))),
+	bundle_to_bldid(core, EngBldId),
+	DestDir0 = ~winpath(relative, ~relciaodir(~bld_eng_path(objdir, EngBldId, EngMainMod))),
 	DestDir = ~atom_concat(DestDir0, '\\').
 
 each_line(Lines0, Line) :-
@@ -186,9 +194,11 @@ extra_system_file('/usr/bin/cyggslcblas-0.dll').
 extra_system_file('/usr/lib/lapack/cygblas-0.dll').
 % TODO: hardwired, why?
 % TODO: Use inst_* instead of bld_*?
-extra_system_file := ~relciaodir(~bld_eng_path(exec, build, EngMainMod)) :-
+extra_system_file := ~relciaodir(~bld_eng_path(exec, EngBldId, EngMainMod)) :-
+	bundle_to_bldid(core, EngBldId),
 	EngMainMod = ~default_eng.
-extra_system_file := ~relciaodir(~bld_eng_path(lib_so, build, EngMainMod)) :-
+extra_system_file := ~relciaodir(~bld_eng_path(lib_so, EngBldId, EngMainMod)) :-
+	bundle_to_bldid(core, EngBldId),
 	EngMainMod = ~default_eng.
 
 display_file_entry(Source, DestDir) :-

@@ -23,8 +23,8 @@
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 
 :- use_module(ciaobld(builder_aux), [
-        builddir_bin_copy_as/3,
-        builddir_bin_link_as/3
+        builddir_bin_copy_as/4,
+        builddir_bin_link_as/4
 	]).
 
 % ============================================================================
@@ -108,7 +108,7 @@
 
 :- use_module(library(bundle/bundle_params), [set_bundle_param_value/2]).
 :- use_module(ciaobld(config_common), [default_eng/1]).
-:- use_module(ciaobld(ciaoc_aux), [create_windows_bat/5]).
+:- use_module(ciaobld(ciaoc_aux), [create_windows_bat/6]).
 
 % TODO: do configure and install of just the emacs mode (this is too complex)
 % 'environment_and_windows_bats' required by runwin32.bat, Ciao.iss.skel
@@ -135,7 +135,7 @@ windows_bats :-
 	EngMainMod = ~default_eng,
 	( % (failure-driven loop)
 	  win_cmd_and_opts(BatCmd, Opts, EngOpts, OrigCmd),
-	    create_windows_bat(EngMainMod, BatCmd, Opts, EngOpts, OrigCmd),
+	    create_windows_bat(EngMainMod, BatCmd, Opts, EngOpts, core, OrigCmd),
 	    fail
 	; true
 	).
@@ -242,13 +242,16 @@ core_cmd('ciao', shscript). % TODO: twice?!
 
 install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 
-:- use_module(ciaobld(config_common), [bld_eng_path/4, cmdname_ver/5]).
+:- use_module(ciaobld(config_common), 
+	[local_bldid/1,
+	 bld_eng_path/4,
+	 cmdname_ver/5]).
 
 % Generate 'ciao' super-command
 '$builder_hook'(ciaocl:item_build_nodocs) :-
 	cmd_message(core, "building '~w' (command)", ['ciao']),
 	EngMainMod = ~default_eng,
-	wr_template(k(shscript), ~cmds_dir, 'ciao', [
+	wr_template(as_cmd(core, shscript), ~cmds_dir, 'ciao', [
 	    'ExtraCommands' = ~ciao_extra_commands, % (for toplevel)
 	    %
 	    'ciao_builder_cmdV' = ~cmdname_ver(yes, builder, 'ciao_builder', plexe), 'ciao_builder_cmd' = ~cmdname_ver(no, builder, 'ciao_builder', plexe),
@@ -265,7 +268,7 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	    'boot_ciaoengine' = ~bld_eng_path(exec, bootbuild, EngMainMod)
         ]),
  	( install_prolog_name(yes) ->
- 	    builddir_bin_link_as(shscript, 'ciao', 'prolog')
+ 	    builddir_bin_link_as(~local_bldid, shscript, 'ciao', 'prolog')
  	; true
  	).
 
@@ -306,7 +309,7 @@ ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf
 '$builder_hook'(ciao_sysconf:item_build_nodocs) :-
 	cmd_message(core, "building '~w' (command)", ['ciao_sysconf']),
 	% TODO: we build nothing here (just copy) but the user does not want to know
-	builddir_bin_copy_as(shscript, ~ciao_sysconf_sh, 'ciao_sysconf').
+	builddir_bin_copy_as(~local_bldid, shscript, ~ciao_sysconf_sh, 'ciao_sysconf').
 
 % ===========================================================================
 % Engine installation/uninstallation

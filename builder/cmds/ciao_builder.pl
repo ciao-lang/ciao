@@ -388,7 +388,6 @@ cmd_opts_custom(rescan_bundles, Args2, Cmd2) :- !,
 	; throw(args_error("'rescan_bundles' needs at most one path", []))
 	),
 	ciao_path_at_dir(File, Path),
-	display(user_error, ciao_path_at_dir(File, Path)), nl(user_error),
 	Cmd2 = rescan_bundles(Path).
 cmd_opts_custom(get, Args2, Cmd2) :- !,
 	% do not check flags

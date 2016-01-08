@@ -27,7 +27,9 @@
 :- use_module(ciaobld(bundle_hash), [
 	bundle_versioned_packname/2, bundle_commit_info/3]).
 
-:- use_module(ciaobld(config_common), [bld_eng_path/4]).
+:- use_module(ciaobld(config_common),
+	[bld_eng_path/4,
+	 local_bldid/1]).
 
 :- use_module(ciaobld(messages_aux), [cmd_message/3]).
 
@@ -251,7 +253,7 @@ enum_config_file := ~fsR(~bld_eng_path(cfgdir, ~builddir_id, 'ciaoengine')/'conf
 enum_config_file := ~fsR(~bld_eng_path(cfgdir, ~builddir_id, 'ciaoengine')/'config_sh').
 
 % TODO: see source_tree.pl
-builddir_id := build.
+builddir_id := ~local_bldid.
 builddir_id := bootbuild.
 
 % ---------------------------------------------------------------------------
@@ -276,7 +278,7 @@ builder_src_dir := bundle_src(builder)/'src'.
 :- export(pbundle_output_dir/1).
 % TODO: The definition of directory is repeated in ciaobot/SHARED
 %       (PBUNDLE_BUILD_DIR). Share the definition.
-pbundle_output_dir := ~fsR(builddir(build)/'pbundle').
+pbundle_output_dir := ~fsR(builddir(~local_bldid)/'pbundle').
 
 :- export(create_pbundle_output_dir/0).
 :- pred create_pbundle_output_dir # "Make sure that the directory

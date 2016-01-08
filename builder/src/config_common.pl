@@ -165,7 +165,8 @@ bld_eng_path(D, BldId, EngMainMod) := Path :-
 inst_eng_path(D, Bundle, EngMainMod) := Path :-
 	% E.g., for <prefix>/lib/ciao/ciaoengine-1.15
 	InstEngDir = ~concat_ver(Bundle, ~path_concat(~instciao_storedir, EngMainMod)),
-	Rel = ~rel_eng_path(D, build, EngMainMod),
+	bundle_to_bldid(Bundle, BldId),
+	Rel = ~rel_eng_path(D, BldId, EngMainMod),
 	( Rel = '' -> Path = InstEngDir
 	; Path = ~path_concat(InstEngDir, Rel)
 	).
@@ -199,28 +200,30 @@ cmdname_ver(_UseVers, _Bundle, Cmd, K, CmdName) :-
 
 % ---------------------------------------------------------------------------
 
-:- export(active_bld_eng_path/3).
+:- export(active_bld_eng_path/4).
 % Paths for the active engine and multi-platform engine selection
 % (in global installation).
 %
 % TODO: define properly the 'activation' operation
-active_bld_eng_path(D, EngMainMod) := Path :-
-	Name = ~active_eng_name(D, EngMainMod),
-	Path = ~path_concat(~bld_eng_path(objdir_anyarch, build, EngMainMod), Name).
+active_bld_eng_path(D, Bundle, EngMainMod) := Path :-
+	Name = ~active_eng_name(D, Bundle, EngMainMod),
+	bundle_to_bldid(Bundle, BldId),
+	Path = ~path_concat(~bld_eng_path(objdir_anyarch, BldId, EngMainMod), Name).
 
-:- export(active_inst_eng_path/3).
+:- export(active_inst_eng_path/4).
 % Paths for the active engine and multi-platform engine selection
 % (in global installation).
 %
 % TODO: define properly the 'activation' operation
-active_inst_eng_path(D, EngMainMod) := Path :-
-	Name = ~active_eng_name(D, EngMainMod),
+active_inst_eng_path(D, Bundle, EngMainMod) := Path :-
+	Name = ~active_eng_name(D, Bundle, EngMainMod),
 	Path = ~path_concat(~instciao_storedir, Name).
 
 % Active engine name (for multi-platform build and installation)
-active_eng_name(D, EngMainMod) := Name :-
+active_eng_name(D, Bundle, EngMainMod) := Name :-
 	( D = exec ->         % E.g., ciaoengine.<OSARCH>
-	    Name0 = ~atom_concat([EngMainMod, '.', ~get_eng_cfg(build)])
+	    bundle_to_bldid(Bundle, BldId),
+	    Name0 = ~atom_concat([EngMainMod, '.', ~get_eng_cfg(BldId)])
 	; D = exec_anyarch -> % E.g., ciaoengine
 	    Name0 = EngMainMod
 	; fail
@@ -269,4 +272,27 @@ localciao_env(BldId, EngMainMod) := Env :-
 	       'CIAOLIB' = ~fsR(bundle_src(core)),
 	       'CIAOHDIR' = ~bld_eng_path(hdir, BldId, EngMainMod),
 	       'CIAOENGINE' = ~bld_eng_path(exec, BldId, EngMainMod)].
+
+% ---------------------------------------------------------------------------
+
+:- use_module(engine(internals), [ciao_path/1]).
+:- use_module(library(pathnames), [path_get_relative/3]).
+
+:- export(bundle_to_bldid/2).
+% BldId corresponding to Bundle
+bundle_to_bldid(Bundle, BldId) :-
+	Dir = ~fsR(bundle_src(Bundle)),
+	( ciao_path(Path),
+	  ( Path = Dir
+	  ; path_get_relative(Path, Dir, _)
+	  ) -> % Dir is relative to Path
+	    BldId = inpath(Path)
+	; % otherwise assume local
+	  BldId = ~local_bldid
+	).
+
+:- export(local_bldid/1).
+% Like bundle_to_bldid, for bundles that are known to be always
+% compiled locally (like 'core').
+local_bldid := build.
 

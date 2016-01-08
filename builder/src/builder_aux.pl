@@ -10,6 +10,7 @@
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(ciaobld(messages_aux), [cmd_message/3]).
 :- use_module(ciaobld(messages_aux), [verbose_message/2]).
+:- use_module(ciaobld(config_common), [bundle_to_bldid/2, local_bldid/1]).
 
 % ===========================================================================
 
@@ -83,7 +84,7 @@ lookup_ciao_path_(Path0, Path) :-
 	; root_bundle_source_dir(Path)
 	),
 	( Path0 = Path -> true
-	; path_get_relative(Path0, Path, _) % Path0 is relative to Path
+	; path_get_relative(Path, Path0, _) % Path0 is relative to Path
 	).
 
 % ===========================================================================
@@ -93,9 +94,9 @@ lookup_ciao_path_(Path0, Path) :-
 
 :- use_module(library(logged_process), [quoted_process_call/3]).
 
-%ciaocmd := ~bld_cmd_path(build, plexe, 'ciao'). % (supercommand)
+%ciaocmd := ~bld_cmd_path(~local_bldid, plexe, 'ciao'). % (supercommand)
 % TODO: unfortunately 'ciao' supercommand is still a shell script; fix it so that it runs in Win32 without MSYS2
-ciaocmd := ~bld_cmd_path(build, shscript, 'ciao'). % (supercommand)
+ciaocmd := ~bld_cmd_path(~local_bldid, shscript, 'ciao'). % (supercommand)
 
 gmake := ~get_bundle_flag(ciao:gmake_cmd).
 
@@ -129,38 +130,38 @@ invoke_ant(Dir, Args) :-
 
 :- doc(subsection, "Build staging area (builddir)").
 
-:- export(ensure_builddir/0).
+:- export(ensure_builddir/1).
 % Prepare the build directory
-ensure_builddir :-
- 	mkpath(~fsR(builddir(build)), ~perms). % owner?
+ensure_builddir(BldId) :-
+ 	mkpath(~fsR(builddir(BldId)), ~perms). % owner?
 
-:- export(ensure_builddir_doc/0).
+:- export(ensure_builddir_doc/1).
 % Prepare the build subdirectory for docs
-ensure_builddir_doc :-
- 	mkpath(~fsR(builddir_doc(build)), ~perms). % owner?
+ensure_builddir_doc(BldId) :-
+ 	mkpath(~fsR(builddir_doc(BldId)), ~perms). % owner?
 
-:- export(ensure_builddir_bin/0).
+:- export(ensure_builddir_bin/1).
 % Prepare the build subdirectory for binaries
-ensure_builddir_bin :-
- 	mkpath(~fsR(builddir_bin(build)), ~perms). % owner?
+ensure_builddir_bin(BldId) :-
+ 	mkpath(~fsR(builddir_bin(BldId)), ~perms). % owner?
 
-:- export(builddir_bin_copy/3).
+:- export(builddir_bin_copy/4).
 % Copy binary at binary directory of builddir
-builddir_bin_copy(Kind, Dir, Base) :-
-	File = ~bld_cmd_path(build, Kind, Base),
+builddir_bin_copy(BldId, Kind, Dir, Base) :-
+	File = ~bld_cmd_path(BldId, Kind, Base),
 	copy_file(~fsR(Dir/Base), File, [overwrite]).
 
-:- export(builddir_bin_copy_as/3).
+:- export(builddir_bin_copy_as/4).
 % Copy a custom binary From at binary directory of builddir as Name
-builddir_bin_copy_as(Kind, From, Name) :-
-	File = ~bld_cmd_path(build, Kind, Name),
+builddir_bin_copy_as(BldId, Kind, From, Name) :-
+	File = ~bld_cmd_path(BldId, Kind, Name),
 	copy_file(From, File, [overwrite]).
 
-:- export(builddir_bin_link_as/3).
+:- export(builddir_bin_link_as/4).
 % 'Dest' will point to 'Src-Ver'
-builddir_bin_link_as(Kind, Src, Dest) :-
-	From = ~bld_cmd_path(build, Kind, Src),
-	To = ~bld_cmd_path(build, Kind, Dest),
+builddir_bin_link_as(BldId, Kind, Src, Dest) :-
+	From = ~bld_cmd_path(BldId, Kind, Src),
+	To = ~bld_cmd_path(BldId, Kind, Dest),
 	create_link(From, To).
 
 % ---------------------------------------------------------------------------
@@ -223,7 +224,7 @@ storedir_install(copy_and_link(Kind, Bundle, File)) :-
 	storedir_install(link_as(Kind, Bundle, File, File)).
 %
 storedir_install(copy(Kind, Bundle, File)) :-
-	From = ~bld_cmd_path(build, Kind, File),
+	From = ~bld_cmd_path(~bundle_to_bldid(Bundle), Kind, File),
 	To = ~rootprefixed(~inst_cmd_path(Bundle, Kind, File)),
 	storedir_install(dir(~instciao_bindir)),
 	install_file(From, To).
@@ -301,24 +302,25 @@ storedir_install(cmd(Bundle, P0)) :-
 storedir_install(eng_contents(Bundle, EngMainMod)) :- !,
 	storedir_install(dir(~inst_eng_path(engdir, Bundle, EngMainMod))), % TODO: set_file_perms or set_exec_perms?
 	%
-	LocalEng = ~bld_eng_path(exec, build, EngMainMod),
+	BldId = ~bundle_to_bldid(Bundle),
+	LocalEng = ~bld_eng_path(exec, BldId, EngMainMod),
 	InstEng = ~inst_eng_path(exec, Bundle, EngMainMod),
 	% Install exec
 	storedir_install(dir(~inst_eng_path(objdir_anyarch, Bundle, EngMainMod))), % TODO: set_file_perms or set_exec_perms?
 	storedir_install(dir(~inst_eng_path(objdir, Bundle, EngMainMod))), % TODO: set_file_perms or set_exec_perms?
 	storedir_install(file_exec(LocalEng, InstEng)),
 	% Install headers
-        HDir = ~bld_eng_path(hdir, build, EngMainMod),
+        HDir = ~bld_eng_path(hdir, BldId, EngMainMod),
 	InstEngHDir = ~inst_eng_path(hdir, Bundle, EngMainMod),
 	storedir_install(src_dir_rec(HDir, InstEngHDir)).
 storedir_install(eng_active(Bundle, EngMainMod)) :- !, % Activate engine (for multi-platform)
-	% (see eng_active_bld/1)
+	% (see eng_active_bld/2)
 	% Link for active exec (E.g., ciaoengine.<OSARCH> -> ciaoengine-1.15/objs/<OSARCH>/ciaoengine) % TODO: 'activation' as a different operation?
 	InstEng = ~inst_eng_path(exec, Bundle, EngMainMod),
-	ActiveEng = ~active_inst_eng_path(exec, EngMainMod),
+	ActiveEng = ~active_inst_eng_path(exec, Bundle, EngMainMod),
 	storedir_install(file_link_as(InstEng, ActiveEng)),
 	% Link for active exec_anyarch (E.g., ciaoengine -> ciaoengine.<OSARCH>)
-	ActiveEngAnyArch = ~active_inst_eng_path(exec_anyarch, EngMainMod),
+	ActiveEngAnyArch = ~active_inst_eng_path(exec_anyarch, Bundle, EngMainMod),
 	storedir_install(file_link_as(~path_basename(ActiveEng), ActiveEngAnyArch)).
 
 :- export(storedir_uninstall/1).
@@ -389,19 +391,20 @@ storedir_uninstall(eng_contents(Bundle, EngMainMod)) :- !,
 	storedir_uninstall(dir_if_empty(~inst_eng_path(objdir, Bundle, EngMainMod))),
 	storedir_uninstall(dir_if_empty(~inst_eng_path(objdir_anyarch, Bundle, EngMainMod))),
 	storedir_uninstall(dir_if_empty(~inst_eng_path(engdir, Bundle, EngMainMod))).
-storedir_uninstall(eng_active(_Bundle, EngMainMod)) :- !,
+storedir_uninstall(eng_active(Bundle, EngMainMod)) :- !,
 	% TODO: only if it coincides with the active version (better, do unactivation before)
-	storedir_uninstall(file(~active_inst_eng_path(exec, EngMainMod))),
-	storedir_uninstall(file(~active_inst_eng_path(exec_anyarch, EngMainMod))).
+	storedir_uninstall(file(~active_inst_eng_path(exec, Bundle, EngMainMod))),
+	storedir_uninstall(file(~active_inst_eng_path(exec_anyarch, Bundle, EngMainMod))).
 
-:- use_module(ciaobld(config_common), [active_bld_eng_path/3]).
+:- use_module(ciaobld(config_common), [active_bld_eng_path/4]).
 
-:- export(eng_active_bld/1).
+:- export(eng_active_bld/2).
 % Create links for multi-platform engine selection (for build)
-eng_active_bld(EngMainMod) :-
-	BldEng = ~bld_eng_path(exec, build, EngMainMod),
-	ActiveEngAnyArch = ~active_bld_eng_path(exec_anyarch, EngMainMod),
-	ActiveEng = ~active_bld_eng_path(exec, EngMainMod),
+eng_active_bld(Bundle, EngMainMod) :-
+	BldId = ~bundle_to_bldid(Bundle),
+	BldEng = ~bld_eng_path(exec, BldId, EngMainMod),
+	ActiveEngAnyArch = ~active_bld_eng_path(exec_anyarch, Bundle, EngMainMod),
+	ActiveEng = ~active_bld_eng_path(exec, Bundle, EngMainMod),
 	% E.g., ciaoengine.<OSARCH> -> <OSARCH>/ciaoengine
 	create_link(~path_rel2(BldEng), ActiveEng),
 	% Link for active exec_anyarch (E.g., ciaoengine -> ciaoengine.<OSARCH>)
@@ -474,7 +477,7 @@ n_kind(Props, Kind) :-
 :- use_module(ciaobld(config_common), [
 	bld_eng_path/4,
 	inst_eng_path/4,
-	active_inst_eng_path/3]).
+	active_inst_eng_path/4]).
 
 % ===========================================================================
 
@@ -495,9 +498,10 @@ wr_template(origin, Dir, File, Subst) :-
 	In = ~atom_concat(~fsR(Dir/File), '.skel'),
 	Out = ~fsR(Dir/File),
 	eval_template_file(In, Subst, Out).
-wr_template(k(Kind), Dir, File, Subst) :-
+wr_template(as_cmd(Bundle, Kind), Dir, File, Subst) :-
 	In = ~atom_concat(~fsR(Dir/File), '.skel'),
-	Out = ~bld_cmd_path(build, Kind, File),
+	BldId = ~bundle_to_bldid(Bundle),
+	Out = ~bld_cmd_path(BldId, Kind, File),
 	eval_template_file(In, Subst, Out),
 	( kind_exec_perms(Kind) ->
 	    -set_exec_perms(Out, ~perms)
