@@ -122,7 +122,9 @@ load_bundlereg(File) :-
 	'$open'(File, r, Stream),
         current_input(OldIn),
         set_input(Stream),
-	catch(load_bundlereg_(File), E, true),
+	( catch(load_bundlereg_(File), E, true) -> true
+	; E = error(load_bundlereg/1, unexpected_failure(File))
+	),
 	close(Stream),
 	set_input(OldIn),
 	( nonvar(E) -> throw(E) ; true ).
