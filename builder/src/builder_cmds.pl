@@ -1313,8 +1313,7 @@ bundle_fetch(BundleAlias, RootDir, Bundle) :-
 	% Compute bundle dir and check status
 	( Status = fetched ->
 	    % TODO: allow silent operation, implement 'ciao rm'
-	    cmd_message(Bundle, "already exists, skipping fetch", []),
-	    normal_message("(to upgrade, please remove ~w)", [BundleDir])
+	    cmd_message(Bundle, "already exists, skipping fetch (remove to force upgrade)", [])
 	; Status = user ->
 	    cmd_message(Bundle, "user bundle, skipping fetch", [])
 	; Status = nontop ->

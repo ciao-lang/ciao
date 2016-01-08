@@ -20,7 +20,7 @@ bundlereg_filename(Bundle, BundleRegDir, File) :-
 	path_concat(BundleRegDir, File0, File).
 
 :- export(bundlereg_version/1).
-bundlereg_version(2). % Version of the bundlereg file
+bundlereg_version(3). % Version of the bundlereg file
 
 % :- use_module(engine(system_info), [ciao_lib_dir/1]).
 % :- use_module(engine(internals), [bundlereg_version/1]).
@@ -147,8 +147,8 @@ load_bundlereg_v(3, _File) :- !,
 	; assertz_fact('$bundle_id'(Bundle)),
 	  load_bundlereg_loop
 	).
-load_bundlereg_v(2, _File) :- !,
-	load_bundlereg_loop_v2.
+% load_bundlereg_v(2, _File) :- !,
+% 	load_bundlereg_loop_v2.
 load_bundlereg_v(Version, File) :- !,
 	throw(error(load_bundlereg/1, bad_bundlereg_version(File, Version))).
 
@@ -170,25 +170,25 @@ process_bundlereg(bundle_alias_path(Alias, Bundle, Path)) :- !,
 process_bundlereg(X) :-
 	throw(error(load_bundlereg/1, unrecognized_data(X))).
 
-load_bundlereg_loop_v2 :-
-	repeat,
-	( fast_read(Data) ->
-	    process_bundlereg_v2(Data),
-	    fail % loop
-	; true % finish
-	),
-	!.
-
-process_bundlereg_v2(bundle_id(Bundle)) :- !,
-	assertz_fact('$bundle_id'(Bundle)).
-process_bundlereg_v2(bundle_prop(Bundle, Prop)) :- !,
-	assertz_fact('$bundle_prop'(Bundle, Prop)).
-process_bundlereg_v2(bundle_srcdir(Bundle, Path)) :- !,
-	assertz_fact('$bundle_srcdir'(Bundle, Path)).
-process_bundlereg_v2(bundle_alias_path(Alias, Bundle, Path)) :- !,
-	assertz_fact('$bundle_alias_path'(Alias, Bundle, Path)).
-process_bundlereg_v2(X) :-
-	throw(error(load_bundlereg/1, unrecognized_data(X))).
+% load_bundlereg_loop_v2 :-
+% 	repeat,
+% 	( fast_read(Data) ->
+% 	    process_bundlereg_v2(Data),
+% 	    fail % loop
+% 	; true % finish
+% 	),
+% 	!.
+% 
+% process_bundlereg_v2(bundle_id(Bundle)) :- !,
+% 	assertz_fact('$bundle_id'(Bundle)).
+% process_bundlereg_v2(bundle_prop(Bundle, Prop)) :- !,
+% 	assertz_fact('$bundle_prop'(Bundle, Prop)).
+% process_bundlereg_v2(bundle_srcdir(Bundle, Path)) :- !,
+% 	assertz_fact('$bundle_srcdir'(Bundle, Path)).
+% process_bundlereg_v2(bundle_alias_path(Alias, Bundle, Path)) :- !,
+% 	assertz_fact('$bundle_alias_path'(Alias, Bundle, Path)).
+% process_bundlereg_v2(X) :-
+% 	throw(error(load_bundlereg/1, unrecognized_data(X))).
 
 % [in basic_props]
 % member(X, [X0|Xs]) :- ( X = X0 ; member(X, Xs) ).
