@@ -281,8 +281,8 @@ localciao_env(BldId, EngMainMod) := Env :-
 :- export(bundle_to_bldid/2).
 % BldId corresponding to Bundle
 bundle_to_bldid(Bundle, BldId) :-
-	Dir = ~fsR(bundle_src(Bundle)),
-	( ciao_path(Path),
+	( Dir = ~fsR(bundle_src(Bundle)), % (may fail for 'ciao')
+	  ciao_path(Path),
 	  ( Path = Dir
 	  ; path_get_relative(Path, Dir, _)
 	  ) -> % Dir is relative to Path

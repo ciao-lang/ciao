@@ -93,11 +93,11 @@ gen_bundlereg(BundleDir, BundleName, AliasBase, RegFile) :-
 	% Version of bundlereg
 	bundlereg_version(V),
 	fast_write(bundlereg_version(V)),
+	fast_write(bundle_id(BundleName)),
         % Alias paths
 	write_alias_paths(AliasPaths, BundleName),
 	% TODO: write extra info in a separate file?
 	member_chk(bundle_packname(Packname), BundleDir, ManifestSents),
-	fast_write(bundle_id(BundleName)),
 	fast_write(bundle_prop(BundleName, packname(Packname))),
 	( member(bundle_requires(Requires), ManifestSents) ->
 	    fast_write(bundle_prop(BundleName, requires(Requires)))
