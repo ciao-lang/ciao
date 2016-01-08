@@ -1277,28 +1277,53 @@ bundle_uninstall_docs_format_hook(_, _, _).
 :- use_module(library(http_get), [http_get/2]).
 :- use_module(library(system), [mktemp_in_tmp/2, touch/1]).
 
+% Status of a bundle (w.r.t. 'ciao get'):
+%
+%  - fetched: fetched in top workspace
+%  - user: in top workspace, but not fetched by 'ciao get'
+%  - nontop: available as a system bundle or in another workspace
+%  - missing: bundle not available
+%
+bundle_status(BundleAlias, Bundle, Status) :-
+	top_ciao_path(RootDir),
+	path_split(BundleAlias, _, Bundle),
+	path_concat(RootDir, Bundle, BundleDir),
+	( file_exists(BundleDir) ->
+	    ( has_fetch_mark(BundleDir) -> Status = fetched
+	    ; Status = user
+	    )
+	; '$bundle_id'(Bundle) -> Status = nontop
+	; Status = missing
+	).
+
+% Fetch and build the bundle specified in BundleAlias
 bundle_get(BundleAlias) :-
-	top_ciao_path(TopCiaoPath),
-	bundle_fetch(BundleAlias, TopCiaoPath, Bundle),
-	clean_bundlereg(inpath(TopCiaoPath)),
-	bundle_scan(inpath(TopCiaoPath), TopCiaoPath),
+	% Fetch and rescan
+	top_ciao_path(RootDir),
+	bundle_fetch(BundleAlias, RootDir, Bundle),
+	clean_bundlereg(inpath(RootDir)),
+	bundle_scan(inpath(RootDir), RootDir),
 	reload_bundleregs, % (reload, bundles has been scanned)
+	% Build
 	builder_cmd(build, Bundle, []).
 
 % Fetch at RootDir source code of bundle specified in BundleAlias
 bundle_fetch(BundleAlias, RootDir, Bundle) :-
+	bundle_status(BundleAlias, Bundle, Status),
 	% Compute bundle dir and check status
-	path_split(BundleAlias, _, Bundle),
-	mkpath(RootDir), % (may not exist)
-	path_concat(RootDir, Bundle, BundleDir),
-	( file_exists(BundleDir), has_fetch_mark(BundleDir) ->
-	    cmd_message(Bundle, "already exists, skipping fetch", []),
+	( Status = fetched ->
 	    % TODO: allow silent operation, implement 'ciao rm'
+	    cmd_message(Bundle, "already exists, skipping fetch", []),
 	    normal_message("(to upgrade, please remove ~w)", [BundleDir])
-	; file_exists(BundleDir) ->
-	    % This bundle was not installed via 'ciao get'
+	; Status = user ->
 	    cmd_message(Bundle, "user bundle, skipping fetch", [])
-	; bundle_fetch_(BundleAlias, Bundle, BundleDir)
+	; Status = nontop ->
+	    format(user_error, "ERROR: Bundle `~w' exists in a non-top CIAOPATH.~n", [Bundle]),
+	    halt(1)
+	; Status = missing ->
+	    path_concat(RootDir, Bundle, BundleDir),
+	    bundle_fetch_(BundleAlias, Bundle, BundleDir)
+	; fail
 	).
 
 bundle_fetch_(BundleAlias, Bundle, BundleDir) :-
