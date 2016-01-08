@@ -205,7 +205,7 @@ builder_cmd_(Cmd, ciaobase, Opts) :- ( Cmd = build_nodocs ; Cmd = build_docs ), 
 	  'core/shell'
         ], Opts).
 builder_cmd_(build_nodocs, Target, Opts) :- root_bundle(Target), !,
-	check_ready_for_build(build_nodocs, Target),
+	check_ready_for_cmd(build_nodocs, Target),
 	% NOTE: 'ciaobase' must be built before anything else
 	builder_cmd(build_nodocs, ciaobase, Opts),
 	% Treat sub-bundles
@@ -221,7 +221,7 @@ builder_cmd_(build_nodocs, Target, Opts) :- root_bundle(Target), !,
 	% TODO: (missing for root)
 	cmd_message(Target, "built [no docs]", []).
 builder_cmd_(build_nodocs, Target, Opts) :- !,
-	check_ready_for_build(build_nodocs, Target),
+	check_ready_for_cmd(build_nodocs, Target),
 	( has_cmd1(prebuild_nodocs, Target) ->
 	    cmd_message(Target, "building [prebuild no docs]", []),
 	    builder_cmd(prebuild_nodocs, Target, Opts),
@@ -248,7 +248,7 @@ builder_cmd_(build_nodocs, Target, Opts) :- !,
 builder_cmd_(prebuild_docs, Target, Opts) :- !,
 	% TODO: prebuild docs needs a different order in processing of
 	% item_subs and sub-bundles; can it be simplified?
-	check_ready_for_build(prebuild_docs, Target),
+	check_ready_for_cmd(prebuild_docs, Target),
 	% Treat sub-bundles
 	( % (failure-driven loop)
 	  enum_sub_bundles(Target, P),
@@ -274,7 +274,7 @@ builder_cmd_(prebuild_docs, Target, Opts) :- !,
 	; true
 	).
 builder_cmd_(build_docs, Target, Opts) :- !, % (internal, without prebuild)
-	check_ready_for_build(build_docs, Target),
+	check_ready_for_cmd(build_docs, Target),
 	%
 	builder_cmd(prebuild_docs, Target, Opts),
 	%
@@ -300,7 +300,7 @@ builder_cmd_(build_docs, Target, Opts) :- !, % (internal, without prebuild)
 	( builder_pred(Target, item_subs(SubPs)) -> true ; fail ),
 	builder_cmd_on_set(build_docs, SubPs, Opts).
 builder_cmd_(build_libraries, Target, Opts) :- root_bundle(Target), !, % (special case)
-	check_ready_for_build(build_libraries, Target),
+	check_ready_for_cmd(build_libraries, Target),
 	( % (failure-driven loop)
 	  enum_sub_bundles(Target, P),
 	  builder_cmd(build_libraries, P, Opts),
@@ -309,7 +309,7 @@ builder_cmd_(build_libraries, Target, Opts) :- root_bundle(Target), !, % (specia
 	).
 %
 builder_cmd_(build_bin, Target, Opts) :- root_bundle(Target), !,
-	check_ready_for_build(build_bin, ciao),
+	check_ready_for_cmd(build_bin, ciao),
 	( % (failure-driven loop)
 	  enum_sub_bundles(Target, P),
 	  builder_cmd(build_bin, P, Opts),
@@ -325,7 +325,7 @@ builder_cmd_(clean, Target, Opts) :- !,
 % Like 'clean', but keeps documentation targets.
 % (This reverses the 'build_nodocs' and part of 'build_docs' actions)
 builder_cmd_(clean_nodocs, Target, Opts) :- !,
-	check_ready_for_build(clean_nodocs, Target),
+	check_ready_for_cmd(clean_nodocs, Target),
 	% Treat sub-bundles
 	findall(P, enumrev_sub_bundles(Target, P), Ps),
 	builder_cmd_on_set(clean_nodocs, Ps, Opts),
@@ -339,7 +339,7 @@ builder_cmd_(clean_nodocs, Target, Opts) :- !,
 %
 % Like 'clean_nodocs' but non-recursive on sub-bundles
 builder_cmd_(clean_norec, Target, Opts) :- !,
-	check_ready_for_build(clean_norec, Target),
+	check_ready_for_cmd(clean_norec, Target),
 	%
 	( root_bundle(Target) ->
 	    clean_tree(~fsR(bundle_src(Target)/'Manifest')),
@@ -366,7 +366,7 @@ builder_cmd_(clean_tree(Dir), '$no_bundle', _Opts) :- !,
 %
 % Clean the final documentation targets (READMEs and manuals)
 builder_cmd_(clean_docs, Target, Opts) :- !,
-	check_ready_for_build(clean_docs, Target),
+	check_ready_for_cmd(clean_docs, Target),
 	% TODO: refine targets
 	findall(P, enum_sub_bundles(Target, P), Ps),
 	builder_cmd_on_set(clean_docs, Ps, Opts),
@@ -375,7 +375,7 @@ builder_cmd_(clean_docs, Target, Opts) :- !,
 %
 % Like 'clean' but also removes configuration settings.
 builder_cmd_(distclean, Target, Opts) :- !,
-	check_ready_for_build(distclean, Target),
+	check_ready_for_cmd(distclean, Target),
 	builder_cmd(clean, Target, Opts),
 	%
 	% Clean config (this must be the last step)
@@ -393,7 +393,7 @@ builder_cmd_(distclean, Target, Opts) :- !,
 % Warning! configclean is the last cleaning step. If you clean all
 %          the configuration files then many scripts will not run.
 builder_cmd_(configclean, Target, _Opts) :- !,
-	check_ready_for_build(configclean, Target),
+	check_ready_for_cmd(configclean, Target),
 	( root_bundle(Target) ->
 	    builddir_clean(~local_bldid, config)
 	; true
@@ -485,7 +485,7 @@ do_boot_promote(Target) :-
 	  halt(1)
 	),
 	%
-	check_ready_for_build(boot_promote, Target),
+	check_ready_for_cmd(boot_promote, Target),
 	ask_promote_bootstrap(~default_eng).
 
 ask_promote_bootstrap(EngMainMod) :-
@@ -508,14 +508,25 @@ ask_promote_bootstrap(EngMainMod) :-
 
 :- use_module(library(system), [file_exists/1]).
 
-check_ready_for_build(Cmd, Target) :-
-	( % TODO: fsR/1 will fail if bundles are not scanned (that also means that there is no configuration)
-	  BldId = ~local_bldid,
-	  ConfigSH = ~fsR(builddir(BldId)/'ciao.config_saved'),
-	  file_exists(ConfigSH) ->
+check_ready_for_cmd(Cmd, Target) :-
+	( check_ready_for_cmd_(Cmd, Target) ->
 	    true
 	; format(user_error, "ERROR: Cannot do '~w' on bundle '~w' without a configuration. Please run 'configure' before.~n", [Cmd, Target]),
 	  halt(1)
+	).
+
+% NOTE: target_to_bldid/2, fsR/1 will fail if bundles are not scanned
+%   (which also means that there is no configuration)
+check_ready_for_cmd_(_Cmd, Target) :-
+	LocalBldId = ~local_bldid,
+	target_to_bldid(Target, BldId),
+	( BldId = LocalBldId ->
+	    ConfigSH = ~fsR(builddir(BldId)/'ciao.config_saved'),
+	    file_exists(ConfigSH)
+	; % Relax condition in user workspaces
+	  % TODO: allow per-bundle or per-workspace configs
+	  % TODO: install config in global installs too
+	  true
 	).
 
 % ============================================================================
