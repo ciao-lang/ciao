@@ -357,7 +357,7 @@ read(string(List), S0, Precedence, Answer, S) :- !,
         % string read as list
 	read_rest(S0, 0, List, Precedence, Answer, S).
 read(badatom(_), S0, _, _, _) :- !,
-        syntax_error(['atom too large'], S0).
+        syntax_error(['invalid charactere code in constant sequence'], S0).
 read('/* ...', S0, _, _, _) :- !,
         syntax_error(['non-terminated /* comment'], S0).
 read(Token, S0, _, _, _) :-
@@ -565,7 +565,7 @@ tokens_items([T|Ts], [I|Is]) :-
 token_item(atom(X),    X    ) :- !.
 token_item(number(X),  X    ) :- !.
 token_item(var(_,X),   $$(X)) :- !.
-token_item(badatom(X), $$(X)) :- !.
+token_item(badatom(_), '') :- !.  
 token_item(unexpected(-1), '') :- !.
 token_item(unexpected(X), $$(S)) :- !, S = [X].
 token_item(string(X),  $$(S)) :- !, append([0'"|X], """", S).

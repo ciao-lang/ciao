@@ -629,7 +629,13 @@ check_singleton(Node, Var) :-
 check_singleton([Var|[]], Var). % The [] marks it is not singleton
 
 atom_token(String, atom(Atom)) :-
-        atom_codes(Atom, String), !.
+% atom_codes/2 may throw an exception if:
+%  - it try to produce a very lon atom and dynamic atom size is deactivated
+%    (the following assumes dynamic atom size is activated).
+%  - escaped sequence in the atom produce non valide character_code 
+        catch(atom_codes(Atom, String), 
+	      error(representation_error(character_code), _), 
+	      fail), !.
 atom_token(String, badatom(String)).
 
 skip_code_prot(C) :- catch(skip_code(C), _, fail).
