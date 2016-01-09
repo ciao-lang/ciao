@@ -965,6 +965,7 @@ static CBOOL__PROTO(prolog_constant_codes,
   ERR__FUNCTOR("atomic_basic:$constant_codes", 3);
   char *s;
   int i, base;
+  c_rune_t rune;
   tagged_t car, cdr;
 
   DEREF(X(0),X(0));
@@ -993,10 +994,11 @@ static CBOOL__PROTO(prolog_constant_codes,
       }
       BUILTIN_ERROR(TYPE_ERROR(INTEGER), car, ci+1);
     }
-    if (!isValidRune(car = GetSmall(car))) {
+    rune = GetSmall(car);
+    if (!isValidRune(rune)) {
       BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), car, ci+1);
     }
-    *(s++) = car;
+    *(s++) = rune;
     DerefCdr(cdr,cdr);
   }
   if (i == Atom_Buffer_Length) {
