@@ -953,9 +953,9 @@ CBOOL__PROTO(string_to_number,
 
  */
 static CBOOL__PROTO(prolog_constant_codes, 
-		    bool_t atomp,
-		    bool_t numberp,
-		    int ci)
+                    bool_t atomp,
+                    bool_t numberp,
+                    int ci)
 {
   /* Note: This ERR__FUNCTOR is not related to an exported predicate,
      since prolog_constant_codes is called from other places. I have
@@ -987,10 +987,16 @@ static CBOOL__PROTO(prolog_constant_codes,
     if (IsVar(car)) {
       goto construct_list;
     }
-    if (!TagIsSmall(car) || (car<=TaggedZero) || (car>=MakeSmall(256))) {
-      BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE_LIST),X(ci),ci+1);
+    if (!TagIsSmall(car)) {
+      if (TagIsLarge(car) && !LargeIsFloat(car)) {
+        BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), car ,ci+1);
+      }
+      BUILTIN_ERROR(TYPE_ERROR(INTEGER), car, ci+1);
     }
-    *s++ = GetSmall(car);
+    if (!isValidRune(car = GetSmall(car))) {
+      BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), car, ci+1);
+    }
+    *(s++) = car;
     DerefCdr(cdr,cdr);
   }
   if (i == Atom_Buffer_Length) {
@@ -1002,22 +1008,42 @@ static CBOOL__PROTO(prolog_constant_codes,
   /* s contains now the string of character codes, and i its size */
 
 #if !defined(USE_DYNAMIC_ATOM_SIZE)
-  if (i>=MAXATOM)
+  if (i>=MAXATOM) {
     BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ATOM_LENGTH), X(0), 1);
+  }
 #endif
 
+  if(!IsVar(X(0))){
+    if (!numberp) {
+      if(!TagIsATM(X(0))) {
+        BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(0), 1);
+      }
+    } else if (!atomp) {
+      if (!IsNumber(X(0))) {
+        BUILTIN_ERROR(TYPE_ERROR(NUMBER), X(0), 1);
+      }
+    } else {
+      if (!IsAtomic(X(0))) {
+        BUILTIN_ERROR(TYPE_ERROR(ATOMIC),X(0),1);
+      }
+    }
+  }
+  
   if (numberp) {
     tagged_t result;
     if (ci==2) {
-      if (IsInteger(X(1))) {
-	base = GetSmall(X(1));
+      if (TagIsSmall(X(1))) {
+        base = GetSmall(X(1));
+      } else if ((TagIsLarge(X(1)) && !LargeIsFloat(X(1)))) {
+        base = 0;  // forces SOURCE_SINK error
       } else {
-	BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(1),2);
+        BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(1),2);
       }
     } else { // if (ci==1)
       base = GetSmall(current_radix);
     }
     if ((base < 2)||(base > 36)) {
+      printf("--9--\n");
       BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK),X(1),2);
     }
     if (string_to_number(Arg, Atom_Buffer, base, &result, ci+1)) {
@@ -1028,15 +1054,17 @@ static CBOOL__PROTO(prolog_constant_codes,
 
  construct_list:
   if (IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,2);
+    BUILTIN_ERROR(INSTANTIATION_ERROR,X(0),2);
   }
 
   if (numberp && IsNumber(X(0))) {
     if (ci==2) {
-      if (IsInteger(X(1))) {
-	base = GetSmall(X(1));
+      if (TagIsSmall(X(1))) {
+        base = GetSmall(X(1));
+      } else if (TagIsLarge(X(1)) && !LargeIsFloat(X(1))) {
+        base = 0; // forces SOURCE_SINK error
       } else {
-	BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(1),2);
+        BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(1),2);
       }
     } else { // if (ci==1)
       base = GetSmall(current_radix);
@@ -1051,9 +1079,9 @@ static CBOOL__PROTO(prolog_constant_codes,
   } else {
     if (numberp) {
       if (atomp) {
-	BUILTIN_ERROR(TYPE_ERROR(ATOMIC),X(0),1);
+        BUILTIN_ERROR(TYPE_ERROR(ATOMIC),X(0),1);
       } else {
-	BUILTIN_ERROR(TYPE_ERROR(NUMBER),X(0),1);
+        BUILTIN_ERROR(TYPE_ERROR(NUMBER),X(0),1);
       }
     } else {
       BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(0),1);
@@ -1065,7 +1093,7 @@ static CBOOL__PROTO(prolog_constant_codes,
 
   ENSURE_HEAP_LST(i, ci+1);
   cdr = atom_nil;
-  while (i>0)	{
+  while (i>0) {
     i--;
     s--;
     MakeLST(cdr,MakeSmall(*((unsigned char *)s)),cdr);
