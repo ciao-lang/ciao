@@ -58,9 +58,9 @@ ensure_bundle_reg_dir(InsType) :-
 :- use_module(engine(internals), [bundlereg_version/1]).
 :- use_module(ciaobld(builder_aux), [rootprefixed/2]).
 
+:- export(rootprefix_bundle_reg_dir/2).
 % Like bundle_reg_dir/2, but supporting InsType=global and prefixed
 % with rootprefix if needed.
-
 rootprefix_bundle_reg_dir(InsType, BundleRegDir) :-
 	( InsType = global ->
 	    % (special case relative to ciao_lib_dir/1)
@@ -152,11 +152,7 @@ create_bundlereg(BundleDir, InsType) :-
 % registry).
 remove_bundlereg(BundleName, InsType) :-
 	rootprefix_bundle_reg_file(InsType, BundleName, RegFile),
-	my_del_file_nofail(RegFile).
-
-% TODO: merge with system_extra:del_file_nofail?
-my_del_file_nofail(FileName) :-
-	( file_exists(FileName) -> delete_file(FileName) ; true ).
+	del_file_nofail(RegFile).
 
 :- export(ensure_global_bundle_reg_dir/0).
 % Make sure that the directory for the (global installation) bundle

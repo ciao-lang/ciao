@@ -117,14 +117,15 @@ configlevel('3', extended).
 
 % ---------------------------------------------------------------------------
 
-% The full configuration is stored in ~fsR(builddir(BldId)), in different formats
-% for different tools:
+% The full configuration is stored in ~fsR(builddir(BldId))/bundlereg,
+% in different formats for different tools:
 %
-%   - ciao.config_saved: internal format (saved, no sysdep)
-%   - ciao.config_saved_sh: version in sh format for config-sysdep.sh
+%   - ciao.bundlecfg: internal format (saved, no sysdep)
+%   - ciao.bundlecfg_sh: version in sh format for config-sysdep.sh
+%     and ciaoc_aux:eng_config_sysdep/2
 %
-%   - <bld_engcfg>/config_mk: config for C compiler (for engine/Makefile)
-%   - <bld_engcfg>/config_sh: sysdep config for engine (includes config for C compiler too)
+% See ciaoc_aux:eng_config_sysdep/2 for the sysdep configuration
+% output for engine and C code compilation.
 
 :- use_module(ciaobld(config_common), [default_eng/1]).
 :- use_module(ciaobld(ciaoc_aux), [bundle_flags_sh_file/1]).
@@ -140,7 +141,7 @@ config_noscan :-
 	% preferences)
 	check_bundle_params, % (for user prefs)
 	eval_config_rules, % (can be interactive)
-	save_bundle_flags, % (save 'ciao.config_saved')
+	save_bundle_flags, % (save 'ciao.bundlecfg')
 	% (for future calls to eng_config_sysdep/2)
 	export_bundle_flags_as_sh(~bundle_flags_sh_file).
 
@@ -219,7 +220,7 @@ config_set_flag(_Bundle) :-
 	set_bundle_flag(Flag, Value),
 	%
 	% TODO: save only the required _Bundle
-	save_bundle_flags, % (save 'ciao.config_saved')
+	save_bundle_flags, % (save 'ciao.bundlecfg')
 	% (for future calls to eng_config_sysdep/2)
 	export_bundle_flags_as_sh(~bundle_flags_sh_file).
 

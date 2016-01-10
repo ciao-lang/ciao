@@ -30,7 +30,7 @@ sh_src_dir="$ciaoroot/builder/sh_src"
 boot_builddir="$ciaoroot/build-boot"
 builddir="$ciaoroot/build"
 
-# TODO: use ciao__DEFAULTLIBDIR from ciao.config_saved_sh file
+# TODO: use ciao__DEFAULTLIBDIR from ciao.bundlecfg_sh file
 f_saved_ciaosrc="$builddir/saved_ciaosrc"
 
 # Verifies if the executable has changed location since the last execution time.
@@ -46,7 +46,7 @@ fi
 # (for setup_env_vars)
 # TODO: customize? (e.g., for debug or profile builds)
 eng_name="ciaoengine"
-eng_cfg=`. "$ciaoroot/build/ciao.config_saved_sh; echo $core__OS$core__ARCH`
+eng_cfg=`. "$ciaoroot/build/bundlereg/ciao.bundlecfg_sh; echo $core__OS$core__ARCH`
 setup_eng_vars "$builddir"
 export CIAOENGINE="$bld_objdir/$eng_name"
 export CIAOLIB="$ciaoroot/core"

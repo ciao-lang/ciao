@@ -29,7 +29,7 @@ hfiles_ciao="instrdefs.h absmachdef.h"
 cfiles="wamloop.c eng_info_mk eng_info_sh"
 
 # Paths to engine automatically generated source and objects
-eng_cfg=`. "$builder_src"/../../build/ciao.config_saved_sh; echo $core__OS$core__ARCH`
+eng_cfg=`. "$builder_src"/../../build/bundlereg/ciao.bundlecfg_sh; echo $core__OS$core__ARCH`
 dir_hfiles_ciao=$builder_src/../../build/eng/$eng_name/include/ciao
 dir_cfiles=$builder_src/../../build/eng/$eng_name/src
 dir_ofiles=$builder_src/../../build/eng/$eng_name/objs/$eng_cfg

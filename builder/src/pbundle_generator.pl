@@ -247,8 +247,8 @@ is_excluded(File, noa) :-
 
 % Configuration files
 % TODO: strange (we should not remove it; distribute install files is better)
-enum_config_file := ~fsR(builddir(~builddir_id)/'ciao.config_saved').
-enum_config_file := ~fsR(builddir(~builddir_id)/'ciao.config_saved_sh').
+enum_config_file := ~fsR(builddir(~builddir_id)/bundlereg/'ciao.bundlecfg').
+enum_config_file := ~fsR(builddir(~builddir_id)/bundlereg/'ciao.bundlecfg_sh').
 enum_config_file := ~fsR(~bld_eng_path(cfgdir, ~builddir_id, 'ciaoengine')/'config_mk').
 enum_config_file := ~fsR(~bld_eng_path(cfgdir, ~builddir_id, 'ciaoengine')/'config_sh').
 

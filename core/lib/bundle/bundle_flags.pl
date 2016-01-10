@@ -68,11 +68,27 @@ clean_bundle_flags :-
 :- doc(bug, "Use fastrw, like in bundle registries, to minimize dependencies").
 
 % :- use_module(engine(internals), [reload_bundleregs/0]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(pathnames), [path_concat/3]).
 :- use_module(ciaobld(config_common), [local_bldid/1]).
+:- use_module(engine(internals), [bundle_reg_dir/2]).
 
-% TODO: use one file per bundle?
-bundle_flags_file := ~fsR(builddir(~local_bldid)/'ciao.config_saved').
+:- export(bundle_flags_file/1).
+% TODO: allow inpath and other bundles
+bundle_flags_file := Path :-
+	bundle_reg_dir(local, BundleRegDir),
+	bundlecfg_filename(ciao, BundleRegDir, Path). % TODO: hardwired 'ciao'
+
+% NOTE: We reuse the directory for bundleregs!
+:- export(bundlecfg_filename/3).
+:- pred bundlecfg_filename(Bundle, BundleRegDir, File)
+   # "@var{File} is the bundlecfg file for bundle @var{Bundle}, where
+      @var{BundleRegDir} is the directory where bundleregs are
+      stored".
+
+bundlecfg_filename(Bundle, BundleRegDir, File) :-
+	atom_concat(Bundle, '.bundlecfg', File0),
+	path_concat(BundleRegDir, File0, File).
+% File = ~bundle_flags_file
 
 :- export(restore_all_bundle_flags/0).
 :- pred restore_all_bundle_flags # "Restore the bundle configuration
@@ -105,8 +121,6 @@ restore_bundle_flags_(Stream, FlagsFile) :-
 	; throw(error(corrupt_bundle_flags_entry(R), restore_bundle_flags(FlagsFile)))
 	).
 
-:- use_module(library(system), [delete_file/1]).
-
 :- export(reset_all_bundle_flags/0).
 :- pred reset_all_bundle_flags # "Reset current configuration values
    (useful to ignore saved values)".
@@ -115,7 +129,12 @@ reset_all_bundle_flags :-
 	clean_bundle_flags,
 	% Delete config file (so that it is not reloaded later)
 	FlagsFile = ~bundle_flags_file,
-	( file_exists(FlagsFile) -> delete_file(FlagsFile) ; true ).
+	my_del_file_nofail(FlagsFile).
+
+:- use_module(library(system), [delete_file/1]).
+% TODO: merge with system_extra:del_file_nofail?
+my_del_file_nofail(FileName) :-
+	( file_exists(FileName) -> delete_file(FileName) ; true ).
 
 % ===========================================================================
 

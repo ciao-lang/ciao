@@ -287,7 +287,10 @@ stat_mod_init(Base) -->
 
 :- export(bundle_flags_sh_file/1).
 % File where eng_config_sysdep/1 expects the bundle flags (in .sh format)
-bundle_flags_sh_file := ~fsR(builddir(~local_bldid)/'ciao.config_saved_sh').
+% (see bundle_flags_file/1)
+bundle_flags_sh_file := Path :-
+	bundle_reg_dir(local, BundleRegDir),
+	path_concat(BundleRegDir, 'ciao.bundlecfg_sh', Path). % TODO: hardwired 'ciao'
 
 %:- export(eng_config_sysdep/2).
 % Generates 'meta_sh' and perform sysdep configuration (for this
@@ -295,6 +298,11 @@ bundle_flags_sh_file := ~fsR(builddir(~local_bldid)/'ciao.config_saved_sh').
 % parameters.
 %
 % Precondition: the configuration values are loaded
+%
+% Output:
+%   - <bld_engcfg>/config_mk: config for C compiler (for engine/Makefile)
+%   - <bld_engcfg>/config_sh: sysdep config for engine (includes config for C compiler too)
+%
 eng_config_sysdep(EngMainMod, EngOpts) :-
 	CfgInput = ~bundle_flags_sh_file,
 	%
@@ -801,8 +809,8 @@ builddir_clean(BldId, bin) :- !,
 builddir_clean(BldId, pbundle) :- !,
 	remove_dir(~fsR(builddir(BldId)/pbundle)).
 builddir_clean(BldId, config) :- !,
-	del_file_nofail(~fsR(builddir(BldId)/'ciao.config_saved')),
-	del_file_nofail(~fsR(builddir(BldId)/'ciao.config_saved_sh')).
+	del_file_nofail(~fsR(builddir(BldId)/bundlereg/'ciao.bundlecfg')),
+	del_file_nofail(~fsR(builddir(BldId)/bundlereg/'ciao.bundlecfg_sh')).
 builddir_clean(BldId, all) :-
 	remove_dir(~fsR(builddir(BldId))).
 

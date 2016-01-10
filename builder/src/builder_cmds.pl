@@ -13,7 +13,9 @@
 :- use_module(library(bundle/bundle_params),
 	[set_bundle_param_value/2,
 	 bundle_param_value/2]).
-:- use_module(library(bundle/bundle_flags), [reset_all_bundle_flags/0]).
+:- use_module(library(bundle/bundle_flags),
+	[reset_all_bundle_flags/0, bundle_flags_file/1,
+	 bundlecfg_filename/3]).
 %
 :- use_module(library(bundle/paths_extra), [fsR/2, bundle_metasrc/3]).
 :- use_module(library(bundle/bundle_info), [
@@ -521,7 +523,7 @@ check_ready_for_cmd_(_Cmd, Target) :-
 	LocalBldId = ~local_bldid,
 	target_to_bldid(Target, BldId),
 	( BldId = LocalBldId ->
-	    ConfigSH = ~fsR(builddir(BldId)/'ciao.config_saved'),
+	    ConfigSH = ~bundle_flags_file,
 	    file_exists(ConfigSH)
 	; % Relax condition in user workspaces
 	  % TODO: allow per-bundle or per-workspace configs
@@ -1104,22 +1106,49 @@ do_uninstall_bindir(_Bundle) :-
 
 :- use_module(ciaobld(bundle_scan),
 	[create_bundlereg/2, remove_bundlereg/2,
-	 ensure_global_bundle_reg_dir/0]).
+	 ensure_global_bundle_reg_dir/0,
+	 rootprefix_bundle_reg_dir/2]).
 
 install_bundlereg(Bundle) :-
 	( ~instype = global ->
 	    BundleDir = ~fsR(bundle_src(Bundle)),
 	    ensure_global_bundle_reg_dir,
-	    create_bundlereg(BundleDir, global)
+	    create_bundlereg(BundleDir, global),
+	    install_bundle_flags(Bundle)
 	; true % (done in bundle scan)
 	).
 
 uninstall_bundlereg(Bundle) :-
 	( ~instype = global ->
 	    ensure_global_bundle_reg_dir,
+	    uninstall_bundle_flags(Bundle),
 	    remove_bundlereg(Bundle, global)
 	; true % (nothing needed for local installations)
 	).
+
+% ---------------------------------------------------------------------------
+% Preliminary support for installing configuration (bundle flags)
+% (attached to bundle registry)
+
+install_bundle_flags(Bundle) :-
+	( root_bundle(Bundle) ->
+	    CfgFile = ~bundle_flags_file,
+	    rootprefix_bundlecfg_file(global, Bundle, InsCfgFile),
+	    copy_file_or_dir(CfgFile, InsCfgFile)
+	; true
+	).
+
+uninstall_bundle_flags(Bundle) :-
+	( root_bundle(Bundle) ->
+	    rootprefix_bundlecfg_file(global, Bundle, InsCfgFile),
+	    del_file_nofail(InsCfgFile)
+	; true
+	).
+
+% File is the registry file for the BundleName bundle
+rootprefix_bundlecfg_file(InsType, BundleName, RegFile) :-
+	rootprefix_bundle_reg_dir(InsType, BundleRegDir),
+	bundlecfg_filename(BundleName, BundleRegDir, RegFile).
 
 % ===========================================================================
 
