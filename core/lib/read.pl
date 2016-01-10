@@ -357,7 +357,7 @@ read(string(List), S0, Precedence, Answer, S) :- !,
         % string read as list
 	read_rest(S0, 0, List, Precedence, Answer, S).
 read(badatom(_), S0, _, _, _) :- !,
-        syntax_error(['invalid charactere code in constant sequence'], S0).
+        syntax_error(['invalid character code in constant sequence'], S0).
 read('/* ...', S0, _, _, _) :- !,
         syntax_error(['non-terminated /* comment'], S0).
 read(Token, S0, _, _, _) :-
