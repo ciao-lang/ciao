@@ -53,10 +53,8 @@
 
 % ===========================================================================
 
-:- export(ciaoc/1). % (EXPORTED)
-ciaoc := ~bld_cmd_path(~local_bldid, plexe, 'ciaoc').
+ciaoc := ~cmd_path(plexe, 'ciaoc').
 
-:- export(bootstrap_ciaoc/1). % (EXPORTED)
 bootstrap_ciaoc := ~fsR(bundle_src(core)/'bootstrap'/'ciaoc.sta').
 
 % ===========================================================================
@@ -64,7 +62,7 @@ bootstrap_ciaoc := ~fsR(bundle_src(core)/'bootstrap'/'ciaoc.sta').
 
 :- use_module(library(process), [process_call/3]).
 :- use_module(ciaobld(config_common), [verbose_build/1]).
-:- use_module(ciaobld(config_common), [bld_cmd_path/4]).
+:- use_module(ciaobld(config_common), [bld_cmd_path/4, cmd_path/3]).
 
 :- use_module(ciaobld(bundle_configure), [
     set_prolog_flags_from_bundle_flags/1
@@ -74,7 +72,7 @@ bootstrap_ciaoc := ~fsR(bundle_src(core)/'bootstrap'/'ciaoc.sta').
 invoke_lpdoc(Bundle, ConfigFile, Args) :-
 	invoke_lpdoc(Bundle, ['-f', ConfigFile|Args]).
 
-lpdoc_exec := ~bld_cmd_path(~local_bldid, plexe, 'lpdoc').
+lpdoc_exec := ~cmd_path(plexe, 'lpdoc').
 
 % TODO: make lpdoc verbose message more descriptive? remove message
 %   here (e.g., show basename of directory containing SETTINGS)
@@ -86,7 +84,7 @@ invoke_lpdoc(Bundle, Args) :-
 	Dir = ~fsR(builddir_doc(BldId)), % (target for dir for docs)
 	localciao_process_call(~local_bldid, ~lpdoc_exec, Args2, [cwd(Dir)]).
 
-ciaosh_exec := ~bld_cmd_path(~local_bldid, plexe, 'ciaosh').
+ciaosh_exec := ~cmd_path(plexe, 'ciaosh').
 
 :- export(invoke_ciaosh/1).
 invoke_ciaosh(Input) :-

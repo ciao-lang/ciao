@@ -28,7 +28,7 @@ bundlereg_version(3). % Version of the bundlereg file
 % (see bundle_scan:rootprefix_bundle_reg_file/3 for InsType=global)
 :- export(bundle_reg_dir/2).
 bundle_reg_dir(InsType, BundleRegDir) :- InsType = local,
-	% (heuristic to detect a global installation)
+	% (heuristic to detect running from a global installation)
 	ciao_lib_dir(LibDir),
 	path_concat(LibDir, 'bundlereg', BundleRegDir0),
 	file_exists(BundleRegDir0, 0),

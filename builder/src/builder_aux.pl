@@ -10,7 +10,8 @@
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(ciaobld(messages_aux), [cmd_message/3]).
 :- use_module(ciaobld(messages_aux), [verbose_message/2]).
-:- use_module(ciaobld(config_common), [bundle_to_bldid/2, local_bldid/1]).
+:- use_module(ciaobld(config_common), [bundle_to_bldid/2]).
+:- use_module(ciaobld(config_common), [cmd_path/3]).
 
 % ===========================================================================
 
@@ -94,9 +95,9 @@ lookup_ciao_path_(Path0, Path) :-
 
 :- use_module(library(logged_process), [quoted_process_call/3]).
 
-%ciaocmd := ~bld_cmd_path(~local_bldid, plexe, 'ciao'). % (supercommand)
+%ciaocmd := ~cmd_path(plexe, 'ciao'). % (supercommand)
 % TODO: unfortunately 'ciao' supercommand is still a shell script; fix it so that it runs in Win32 without MSYS2
-ciaocmd := ~bld_cmd_path(~local_bldid, shscript, 'ciao'). % (supercommand)
+ciaocmd := ~cmd_path(shscript, 'ciao'). % (supercommand)
 
 gmake := ~get_bundle_flag(ciao:gmake_cmd).
 

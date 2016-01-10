@@ -198,6 +198,27 @@ cmdname_ver(yes, Bundle, Cmd, K, CmdName) :-
 cmdname_ver(_UseVers, _Bundle, Cmd, K, CmdName) :-
 	CmdName = ~concat_ext(K, Cmd).
 
+:- use_module(library(pathnames), [path_split/3]).
+:- use_module(library(system), [file_exists/2]).
+
+:- export(cmd_path/3).
+% Executable path in local build area or installed (if the running
+% builder is globally installed)
+cmd_path(Kind, File) := Path :-
+	% (heuristic to detect running from a global installation)
+	% TODO: see bundlereg_load.pl
+	ciao_lib_dir(LibDir),
+	path_concat(LibDir, 'bundlereg', BundleRegDir0),
+	file_exists(BundleRegDir0, 0),
+	!,
+	% E.g., '.../lib/ciao/core-M.N' -> '.../bin/...'
+	path_split(LibDir, Dir0, _),
+	path_split(Dir0, Dir1, _),
+	path_split(Dir1, Dir2, _),
+	Path = ~concat_ext(Kind, ~fsR(Dir2/bin/File)).
+cmd_path(Kind, File) := Path :- !,
+	Path = ~bld_cmd_path(~local_bldid, Kind, File).
+
 % ---------------------------------------------------------------------------
 
 :- export(active_bld_eng_path/4).
