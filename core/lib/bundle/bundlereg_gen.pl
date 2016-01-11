@@ -111,7 +111,9 @@ gen_bundlereg(BundleDir, BundleName, AliasBase, RegFile) :-
 	    fast_write(bundle_prop(BundleName, patch(Patch)))
 	; true
 	),
-	% TODO: relocate BundleDir for InsType=global?
+	% TODO: relocate BundleDir for InsType=global? (not a good
+	%   idea: hierarchy may not be preserved in installation
+	%   change; use bundle-qualified alias paths?)
 	fast_write(bundle_srcdir(BundleName, BundleDir)),
 	%
 	close_output(UO).

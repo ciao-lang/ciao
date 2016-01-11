@@ -218,15 +218,11 @@ cmdname_ver(_UseVers, _Bundle, Cmd, K, CmdName) :-
 % Executable path in local build area or installed (if the running
 % builder is globally installed)
 cmd_path(_Bundle, Kind, File) := Path :-
-	% (heuristic to detect running from a global installation)
-	% TODO: see bundlereg_load.pl
-	% TODO: Do not use this heuristic if the bundle is in a (non-installed) workspace
-	ciao_lib_dir(LibDir),
-	path_concat(LibDir, 'bundlereg', BundleRegDir0),
-	file_exists(BundleRegDir0, 0),
+	builder_in_global, % TODO: not for bundles in (non-installed) workspaces
 	!,
 	% E.g., '.../lib/ciao/core-M.N' -> '.../bin/...'
 	% TODO: use inst_cmd_path instead?
+	ciao_lib_dir(LibDir),
 	path_split(LibDir, Dir0, _),
 	path_split(Dir0, Dir1, _),
 	path_split(Dir1, Dir2, _),
@@ -238,16 +234,27 @@ cmd_path(Bundle, Kind, File) := Path :-
 % Engine path in local build area or installed (if the running
 % builder is globally installed)
 eng_path(D, Bundle, EngMainMod) := Path :-
-	% (heuristic to detect running from a global installation)
-	% TODO: see bundlereg_load.pl
-	% TODO: Do not use this heuristic if the bundle is in a (non-installed) workspace
-	ciao_lib_dir(LibDir),
-	path_concat(LibDir, 'bundlereg', BundleRegDir0),
-	file_exists(BundleRegDir0, 0),
+	builder_in_global, % TODO: not for bundles in (non-installed) workspaces
 	!,
 	Path = ~inst_eng_path(D, Bundle, EngMainMod).
 eng_path(D, Bundle, EngMainMod) := Path :-
 	Path = ~bld_eng_path(D, Bundle, EngMainMod).
+
+:- export(local_ciaolib/1).
+% CIAOLIB value for local build area or installed (if the running
+% builder is globally installed)
+% TODO: trust the engine built-in value?
+local_ciaolib := Path :- builder_in_global, !,
+	ciao_lib_dir(Path).
+local_ciaolib := Path :-
+	Path = ~fsR(bundle_src(core)).
+
+% (heuristic to detect running from a global installation)
+% TODO: see bundlereg_load.pl
+builder_in_global :-
+	ciao_lib_dir(LibDir),
+	path_concat(LibDir, 'bundlereg', BundleRegDir0),
+	file_exists(BundleRegDir0, 0).
 
 % ---------------------------------------------------------------------------
 

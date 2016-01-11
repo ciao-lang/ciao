@@ -235,6 +235,7 @@ get_static([_Spec|Specs], Bases, FilesA) :-
 :- use_module(ciaobld(ciaoc_aux), [sh_process_call/3]).
 :- use_module(ciaobld(config_common),
 	[eng_h_alias/2,
+	 local_ciaolib/1,
 	 get_eng_cfg/2,
 	 eng_path/4,
 	 bld_eng_path/4,
@@ -709,7 +710,7 @@ bootciao_env(EngMainMod) := Env :-
 localciao_env(EngMainMod) := Env :-
 	% TODO: (un)define CIAOPATH? 
 	Env = ['CIAOALIASPATH' = '',
-	       'CIAOLIB' = ~fsR(bundle_src(core)),
+	       'CIAOLIB' = ~local_ciaolib,
 	       'CIAOHDIR' = ~eng_path(hdir, core, EngMainMod),
 	       'CIAOENGINE' = ~eng_path(exec, core, EngMainMod)].
 
