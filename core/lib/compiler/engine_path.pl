@@ -1,7 +1,9 @@
 :- module(engine_path, [], [assertions]).
 
-% TODO: This module needs a serious rewrite (JFMC) -- there is no need
-%   to do backtracking to locate the engine! (use getplatformdeb, etc.)
+% TODO: Merge with config_common:eng_path/4.
+%
+%   This module needs a serious rewrite (JFMC) -- there is no need to
+%   do backtracking to locate the engine! (use getplatformdeb, etc.)
 
 :- use_module(library(system)).
 
@@ -14,11 +16,9 @@
 % library directory; hence the direct/generic atom in the third
 % argument. 
 
-:- doc(bug, "Find a better way to implement this (JFMC)").
-
 :- doc(bug, "Generation of a static engine requires that also the
-	foreign modules be compiled together with the engine.
-	Currently the engine is always dynamic. -- EMM.").
+   foreign modules be compiled together with the engine. Currently the
+   engine is always dynamic. -- EMM.").
 
 :- export(get_engine_file/2).
 get_engine_file(TargetEng, Engine) :- % TODO: rename TargetEng by EngCfg?
@@ -64,6 +64,7 @@ stat_extension('').
 % (nondeterministic)
 determine_engine_dir(TargetEng, Where, LibDir, EngDir) :-
 	% TODO: use something like bld_eng_path/4 or inst_eng_path/4, without introducing a dependency to ciaobld(config_common)
+	% TODO: see location of bundlereg in global installation
 	intermediate_dir(TargetEng, Where, IntermediateDir),
 	atom_concat(LibDir, IntermediateDir, EngDir),
 	file_exists(EngDir).

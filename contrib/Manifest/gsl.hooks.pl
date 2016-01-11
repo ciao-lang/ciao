@@ -28,7 +28,7 @@ auto_install_gsl := ~get_bundle_flag(contrib:auto_install_gsl).
 	prebuild_gsl_bindings.
 
 :- use_module(ciaobld(third_party_install), [auto_install/1]).
-:- use_module(ciaobld(config_common), [bld_eng_path/4, bundle_to_bldid/2]).
+:- use_module(ciaobld(config_common), [bld_eng_path/4]).
 
 do_auto_install_gsl :-
 	( auto_install_gsl(yes) -> 
@@ -69,16 +69,14 @@ prebuild_gsl_bindings :-
 	    S = ":- use_module(library(gsl_imports/gsl_imports_dummy)).\n",
 	    M = ""
 	),
-        % TODO: Make sure that prebuild of this library happens before
+        % TODO: At this moment this is hardwired into the core engine.
+	%   Make sure that prebuild of this library happens before
 	%   engine build. Options in GSL's 'config_sh' are added in
-	%   the final 'config_mk' and 'config_sh' files for the
-	%   engine.
+	%   the final 'config_mk' and 'config_sh' files for the engine
 	%
 	% TODO: Simplify, generalize for other libs
 	%
-	Bundle = contrib,
-	bundle_to_bldid(Bundle, GSLBldId),
-	GSLEngDir = ~bld_eng_path(cfgdir, GSLBldId, 'gsl'), % NOTE: not an engine
+	GSLEngDir = ~bld_eng_path(cfgdir, core, 'gsl'), % NOTE: not an engine
 	mkpath(GSLEngDir),
 	string_to_file(M, ~path_concat(GSLEngDir, 'config_sh')),
 	string_to_file(S, ~fsR(~gsl_dir/'gsl_imports_auto.pl')).

@@ -27,9 +27,7 @@
 :- use_module(ciaobld(bundle_hash), [
 	bundle_versioned_packname/2, bundle_commit_info/3]).
 
-:- use_module(ciaobld(config_common),
-	[bld_eng_path/4,
-	 local_bldid/1]).
+:- use_module(ciaobld(config_common), [local_bldid/1]).
 
 :- use_module(ciaobld(messages_aux), [cmd_message/3]).
 
@@ -227,10 +225,6 @@ get_file_list(PBundleType, SourceDir, RelFile) :-
 	\+ is_excluded(File0, PBundleType),
 	path_get_relative(SourceDir, File0, RelFile).
 
-is_excluded(File, _PBundleType) :-
-	enum_config_file(File0),
-	File == File0,
-	!.
 is_excluded(File, noa) :-
 	% Some noarch file of a module that contains foreign code
 	% TODO: Does not work with CIAOCACHEDIR
@@ -244,17 +238,6 @@ is_excluded(File, noa) :-
 	file_exists(FileA).
 
 :- use_module(engine(internals), [a_filename/2]).
-
-% Configuration files
-% TODO: strange (we should not remove it; distribute install files is better)
-enum_config_file := ~fsR(builddir(~builddir_id)/bundlereg/'ciao.bundlecfg').
-enum_config_file := ~fsR(builddir(~builddir_id)/bundlereg/'ciao.bundlecfg_sh').
-enum_config_file := ~fsR(~bld_eng_path(cfgdir, ~builddir_id, 'ciaoengine')/'config_mk').
-enum_config_file := ~fsR(~bld_eng_path(cfgdir, ~builddir_id, 'ciaoengine')/'config_sh').
-
-% TODO: see source_tree.pl
-builddir_id := ~local_bldid.
-builddir_id := bootbuild.
 
 % ---------------------------------------------------------------------------
 

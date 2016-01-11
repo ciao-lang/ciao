@@ -41,8 +41,8 @@
 :- use_module(ciaobld(ciaoc_aux),
 	[promote_bootstrap/1,
 	 %
-	 eng_build/2,
-	 eng_clean/1,
+	 eng_build/3,
+	 eng_clean/2,
 	 %
 	 build_eng_exec_header/1,
 	 clean_eng_exec_header/1,
@@ -1000,11 +1000,11 @@ bundleitem_do(file(Path), _Bundle, uninstall) :- !,
 	storedir_uninstall(file(Path)).
 % Engine
 bundleitem_do(eng(EngMainMod, EngOpts), Bundle, build_nodocs) :- !,
-	eng_build(EngMainMod, EngOpts),
+	eng_build(Bundle, EngMainMod, EngOpts),
 	% Activate
  	eng_active_bld(Bundle, EngMainMod).
-bundleitem_do(eng(EngMainMod, _EngOpts), _Bundle, clean_norec) :- !,
-	eng_clean(EngMainMod).
+bundleitem_do(eng(EngMainMod, _EngOpts), Bundle, clean_norec) :- !,
+	eng_clean(Bundle, EngMainMod).
 bundleitem_do(eng(EngMainMod, _EngOpts), Bundle, install) :- !,
 	( ~instype = global -> true ; throw(install_eng_requires_global) ), % TODO: should not be needed
 	storedir_install(eng_contents(Bundle, EngMainMod)),

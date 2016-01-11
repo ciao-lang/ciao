@@ -53,7 +53,7 @@
 
 % ===========================================================================
 
-ciaoc := ~cmd_path(plexe, 'ciaoc').
+ciaoc := ~cmd_path(core, plexe, 'ciaoc').
 
 bootstrap_ciaoc := ~fsR(bundle_src(core)/'bootstrap'/'ciaoc.sta').
 
@@ -62,7 +62,7 @@ bootstrap_ciaoc := ~fsR(bundle_src(core)/'bootstrap'/'ciaoc.sta').
 
 :- use_module(library(process), [process_call/3]).
 :- use_module(ciaobld(config_common), [verbose_build/1]).
-:- use_module(ciaobld(config_common), [bld_cmd_path/4, cmd_path/3]).
+:- use_module(ciaobld(config_common), [bld_cmd_path/4, cmd_path/4]).
 
 :- use_module(ciaobld(bundle_configure), [
     set_prolog_flags_from_bundle_flags/1
@@ -72,7 +72,7 @@ bootstrap_ciaoc := ~fsR(bundle_src(core)/'bootstrap'/'ciaoc.sta').
 invoke_lpdoc(Bundle, ConfigFile, Args) :-
 	invoke_lpdoc(Bundle, ['-f', ConfigFile|Args]).
 
-lpdoc_exec := ~cmd_path(plexe, 'lpdoc').
+lpdoc_exec := ~cmd_path(lpdoc, plexe, 'lpdoc').
 
 % TODO: make lpdoc verbose message more descriptive? remove message
 %   here (e.g., show basename of directory containing SETTINGS)
@@ -82,14 +82,14 @@ invoke_lpdoc(Bundle, Args) :-
 	( verbose_build(yes) -> Args2 = ['-v'|Args] ; Args2 = Args ),
 	bundle_to_bldid(Bundle, BldId),  
 	Dir = ~fsR(builddir_doc(BldId)), % (target for dir for docs)
-	localciao_process_call(~local_bldid, ~lpdoc_exec, Args2, [cwd(Dir)]).
+	localciao_process_call(~lpdoc_exec, Args2, [cwd(Dir)]).
 
-ciaosh_exec := ~cmd_path(plexe, 'ciaosh').
+ciaosh_exec := ~cmd_path(core, plexe, 'ciaosh').
 
 :- export(invoke_ciaosh/1).
 invoke_ciaosh(Input) :-
 	Options = [stdin(file(Input))],
-	localciao_process_call(~local_bldid, ~ciaosh_exec, ['-q', '-f'], Options).
+	localciao_process_call(~ciaosh_exec, ['-q', '-f'], Options).
 
 :- export(invoke_ciaosh_batch/1).
 % Batch execution of queries using ciaosh and current config prolog flags
@@ -97,7 +97,7 @@ invoke_ciaosh(Input) :-
 invoke_ciaosh_batch(Cmds) :-
 	add_config_prolog_flags(Cmds, Cmds2),
 	Options = [stdin(terms(Cmds2))],
-	localciao_process_call(~local_bldid, ~ciaosh_exec, ['-q', '-f'], Options).
+	localciao_process_call(~ciaosh_exec, ['-q', '-f'], Options).
 
 add_config_prolog_flags(Cmds, CmdsR) :-
 	set_prolog_flags_from_bundle_flags(SetPrologFlags),
@@ -105,13 +105,13 @@ add_config_prolog_flags(Cmds, CmdsR) :-
 
 :- export(invoke_ciaoc/1).
 invoke_ciaoc(Args) :-
-	localciao_process_call(~local_bldid, ~ciaoc, Args, []).
+	localciao_process_call(~ciaoc, Args, []).
 
 % ===========================================================================
 :- doc(section, "Build of Executables and Engines").
 
-% Build the executable for InDir/InFile, store in the build area BldId
-% and select the current version (add a symbolic link).
+% Build the executable for InDir/InFile, store in the build area for the
+% specified Bundle and select the current version (add a symbolic link).
 %
 % @var{Opts} indicate the compilation options. The options indicate
 % the compiler iteration that is ued:
@@ -125,9 +125,9 @@ invoke_ciaoc(Args) :-
 %  - 'static': build a static executable (self-contained, so that
 %     changes in the compiled system libraries does not affect it)
 %
-b_make_exec(BldId, InDir, InFile, OutFile, Opts) :-
-	ensure_builddir_bin(BldId),
-	FileBuild = ~bld_cmd_path(BldId, plexe, OutFile),
+b_make_exec(Bundle, InDir, InFile, OutFile, Opts) :-
+	ensure_builddir_bin(~bundle_to_bldid(Bundle)),
+	FileBuild = ~bld_cmd_path(Bundle, plexe, OutFile),
 	( member(static, Opts) ->
 	    Static = ['-s']
 	; Static = []
@@ -136,9 +136,9 @@ b_make_exec(BldId, InDir, InFile, OutFile, Opts) :-
 	In = ~atom_concat(InFile, '.pl'),
 	Args = ['-x' | ~append(Static, ['-o', FileBuild, In])],
 	( member(final_ciaoc, Opts) ->
-	    localciao_process_call(~local_bldid, ~ciaoc, Args, [cwd(Dir)])
+	    localciao_process_call(~ciaoc, Args, [cwd(Dir)])
 	; member(bootstrap_ciaoc, Opts) ->
-	    localciao_process_call(bootbuild, ~bootstrap_ciaoc, Args, [cwd(Dir)])
+	    bootciao_process_call(~bootstrap_ciaoc, Args, [cwd(Dir)])
 	; throw(bad_opts_in_b_make_exec(Opts))
 	).
 
@@ -153,8 +153,8 @@ b_make_exec(BldId, InDir, InFile, OutFile, Opts) :-
 
 % ---------------------------------------------------------------------------
 
-:- export(eng_build/2).
-eng_build(EngMainMod, EngOpts0) :-
+:- export(eng_build/3).
+eng_build(Bundle, EngMainMod, EngOpts0) :-
 	% Static dependencies
 	( member(static_mods(StatMods), EngOpts0) ->
 	    display(user_error, 'WARNING: static_mods(_) assumes that libraries are already compiled!\n'), % TODO: fix, enrich exprs
@@ -164,23 +164,23 @@ eng_build(EngMainMod, EngOpts0) :-
 	),
 	% Generate source
  	eng_emugen(EngMainMod),
-	eng_create_init(EngMainMod, EngOpts),
+	eng_create_init(Bundle, EngMainMod, EngOpts),
 	% Sysdep configuration
-	eng_config_sysdep(EngMainMod, EngOpts),
+	eng_config_sysdep(Bundle, EngMainMod, EngOpts),
 	% Version info
  	eng_prebuild_version_info(EngMainMod),
 	% Build native
- 	eng_build_native(EngMainMod).
+ 	eng_build_native(Bundle, EngMainMod).
 
-:- export(eng_clean/1).
+:- export(eng_clean/2).
 % Clean the engine (including .pl sources)
-eng_clean(EngMainMod) :-
+eng_clean(Bundle, EngMainMod) :-
 	% Ensure that byproducts of EngMainMod compilation are
 	% generated on next build.
 	Base = ~fsR(bundle_src(core)/engine/EngMainMod),
 	clean_mod0(Base),
 	% Clean the engine build area
-	eng_clean_native(EngMainMod).
+	eng_clean_native(Bundle, EngMainMod).
 
 % TODO: Merge with b_make_exec (this generates the C code for ciaoc
 %   using the boostrap compiler; in this branch of Ciao this code is
@@ -190,7 +190,7 @@ eng_emugen(EngMainMod) :-
 	Dir = ~fsR(bundle_src(core)/engine), % TODO: use full spec, not a single mod
 	In = ~atom_concat(EngMainMod, '.pl'),
         %
-	localciao_process_call(bootbuild, ~bootstrap_ciaoc, ['-c', In], [cwd(Dir)]).
+	bootciao_process_call(~bootstrap_ciaoc, ['-c', In], [cwd(Dir)]).
 
 :- use_module(engine(internals), [a_filename/2]). % ('.a' static lib)
 
@@ -236,7 +236,9 @@ get_static([_Spec|Specs], Bases, FilesA) :-
 :- use_module(ciaobld(config_common),
 	[eng_h_alias/2,
 	 get_eng_cfg/2,
-	 bld_eng_path/4]).
+	 eng_path/4,
+	 bld_eng_path/4,
+	 bootbld_eng_path/4]).
 
 :- use_module(library(pathnames), [path_dirname/2]).
 :- use_module(library(system_extra), [mkpath/1]).
@@ -251,11 +253,10 @@ mkpath_and_write(Text, F) :-
 % ---------------------------------------------------------------------------
 % Create engine initialization code
 
-%:- export(eng_create_init/2).
+%:- export(eng_create_init/3).
 % Generates engine initialization code
-eng_create_init(EngMainMod, EngOpts) :-
-	BldId = ~local_bldid,
-	F = ~path_concat(~bld_eng_path(cdir, BldId, EngMainMod), 'eng_static_mod.c'),
+eng_create_init(Bundle, EngMainMod, EngOpts) :-
+	F = ~path_concat(~bld_eng_path(cdir, Bundle, EngMainMod), 'eng_static_mod.c'),
 	eng_static_mod_c(EngOpts, Text, []),
 	mkpath_and_write(Text, F).
 
@@ -284,13 +285,13 @@ stat_mod_init(Base) -->
 %   is needed for bootstrap)
 
 :- export(bundle_flags_sh_file/1).
-% File where eng_config_sysdep/1 expects the bundle flags (in .sh format)
+% File where eng_config_sysdep/3 expects the bundle flags (in .sh format)
 % (see bundle_flags_file/1)
 bundle_flags_sh_file := Path :-
 	bundle_reg_dir(local, BundleRegDir),
 	path_concat(BundleRegDir, 'ciao.bundlecfg_sh', Path). % TODO: hardwired 'ciao'
 
-%:- export(eng_config_sysdep/2).
+%:- export(eng_config_sysdep/3).
 % Generates 'meta_sh' and perform sysdep configuration (for this
 % platform) on the specified engine based on the input configuration
 % parameters.
@@ -301,13 +302,12 @@ bundle_flags_sh_file := Path :-
 %   - <bld_engcfg>/config_mk: config for C compiler (for engine/Makefile)
 %   - <bld_engcfg>/config_sh: sysdep config for engine (includes config for C compiler too)
 %
-eng_config_sysdep(EngMainMod, EngOpts) :-
+eng_config_sysdep(Bundle, EngMainMod, EngOpts) :-
 	CfgInput = ~bundle_flags_sh_file,
 	%
-	BldId = ~local_bldid,
-	EngDir = ~bld_eng_path(engdir, BldId, EngMainMod),
-	EngCfg = ~get_eng_cfg(BldId),
-	EngMetaSh = ~path_concat(~bld_eng_path(cfgdir, BldId, EngMainMod), 'meta_sh'),
+	EngDir = ~bld_eng_path(engdir, Bundle, EngMainMod),
+	EngCfg = ~get_eng_cfg(~bundle_to_bldid(Bundle)),
+	EngMetaSh = ~path_concat(~bld_eng_path(cfgdir, Bundle, EngMainMod), 'meta_sh'),
 	create_eng_meta_sh(EngMainMod, EngOpts, CfgInput, EngMetaSh),
 	%
 	sh_process_call(~config_sysdep_sh,
@@ -350,8 +350,8 @@ eng_meta_sh(EngMainMod, EngOpts, CfgInput) -->
 	"eng_ciao_config=\"", atm(CfgInput), "\"\n",
 	% Additional engine dependencies for sysdep config
 	% TODO: look at gsl.hooks.pl
-	{ GSLBldId = ~local_bldid }, % TODO: use 'contrib'
-	{ GSLEngDir = ~bld_eng_path(cfgdir, GSLBldId, 'gsl') }, % NOTE: not an engine
+	% TODO: use 'contrib' as bundle instead of 'core'?
+	{ GSLEngDir = ~bld_eng_path(cfgdir, core, 'gsl') }, % NOTE: not an engine
 	"gsl_engdir=\"", atm(GSLEngDir), "\"\n".
 
 atm(X) --> { atom_codes(X, Cs) }, str(Cs).
@@ -377,7 +377,7 @@ separate_with_blanks([A, B|Cs]) := [A, ' '|~separate_with_blanks([B|Cs])] :- !.
    compiler (@tt{ciaoc.sta} and absmach code)".
 
 :- use_module(library(compiler/emugen/emugen_common), % (not the package itself)
-       [emugen_code_dir/3]).
+       [emugen_code_dir/4]).
 
 % TODO: Synchronize with CFILES in builder/src/tests_emugen.bash
 % TODO: Synchronize with ':- native_export' in 'ciaoengine.pl'.
@@ -393,13 +393,13 @@ bootstrap_code_file('absmachdef.h').
 promote_bootstrap(EngMainMod) :-
 	date_token(Token), % date token for backups 
 	Target = ~fsR(bundle_src(core)/bootstrap),
-	promote_bootstrap_(EngMainMod, Token, Target).
+	promote_bootstrap_(core, EngMainMod, Token, Target). % TODO: Bundle=core is hardwired
 
-promote_bootstrap_(EngMainMod, Token, Target) :-
+promote_bootstrap_(Bundle, EngMainMod, Token, Target) :-
 	( % (failure-driven loop)
 	  ( bootstrap_noarch(Orig, Dest0)
 	  ; bootstrap_code_file(Orig0), Dest0 = Orig0,
-	    emugen_code_dir(EngMainMod, Orig0, Dir),
+	    emugen_code_dir(Bundle, EngMainMod, Orig0, Dir),
 	    path_concat(Dir, Orig0, Orig)
 	  ),
 	  path_concat(Target, Dest0, Dest),
@@ -455,8 +455,7 @@ eng_exec_header := ~fsR(bundle_src(ciao)/'core'/'lib'/'compiler'/'header').
 build_eng_exec_header(EngMainMod) :-
 	Bundle = core, % TODO: allow as param
 	( get_os('Win32') ->
-	    bundle_to_bldid(Bundle, BldId),
-	    Eng = ~bld_eng_path(exec, BldId, EngMainMod) % TODO: why? this seems wrong in at least MSYS2
+	    Eng = ~bld_eng_path(exec, Bundle, EngMainMod) % TODO: why? this seems wrong in at least MSYS2
 	; instype(local) ->
 	    Eng = ~active_bld_eng_path(exec_anyarch, Bundle, EngMainMod)
 	; Eng = ~active_inst_eng_path(exec_anyarch, Bundle, EngMainMod)
@@ -493,12 +492,10 @@ clean_eng_exec_header(_EngMainMod) :-
 %   Opts: extra arguments for OrigCmd
 %   EngOpts: extra arguments for the engine itself
 create_windows_bat(EngMainMod, BatCmd, Opts, EngOpts, OrigBundle, OrigCmd) :-
-	BldId = ~bundle_to_bldid(OrigBundle),
-	EngBldId = ~local_bldid,
-	Eng = ~bld_eng_path(exec, EngBldId, EngMainMod), % TODO: why not the installed path?
+	Eng = ~bld_eng_path(exec, core, EngMainMod), % TODO: why not the installed path?
 	%
-	BatFile = ~bld_cmd_path(BldId, ext('.bat'), BatCmd),
-	OrigFile = ~bld_cmd_path(BldId, plexe, OrigCmd),
+	BatFile = ~bld_cmd_path(OrigBundle, ext('.bat'), BatCmd),
+	OrigFile = ~bld_cmd_path(OrigBundle, plexe, OrigCmd),
 	%
 	open_output(BatFile, Out),
 	% TODO: missing quotation (e.g., of \")
@@ -534,7 +531,6 @@ build_cmds_list(Bundle, Dir, Ps) :-
 	).
 
 build_cmd(Bundle, Dir, P0) :-
-	bundle_to_bldid(Bundle, BldId),
 	n_and_props(P0, P, Props),
 	n_name(Props, Name),
 	n_output(P, Props, Output),
@@ -549,13 +545,13 @@ build_cmd(Bundle, Dir, P0) :-
 	    % use bootstrap ciaoc
 	    % TODO: it should use 'build' configuration
 	    cmd_message(Bundle, "building '~w' (~s) using bootstrap compiler", [Output, Name]),
-	    b_make_exec(BldId, Dir, P, Output, [bootstrap_ciaoc|Opts])
+	    b_make_exec(Bundle, Dir, P, Output, [bootstrap_ciaoc|Opts])
 	; % member(final_ciaoc, Props) ->
 	  % use final_ciaoc (default)
 	  % TODO: it should use 'build' configuration
 	  % TODO: Add options for other ciaoc iterations
 	  cmd_message(Bundle, "building '~w' (~s)", [Output, Name]),
-	  b_make_exec(BldId, Dir, P, Output, [final_ciaoc|Opts])
+	  b_make_exec(Bundle, Dir, P, Output, [final_ciaoc|Opts])
 	).
 
 :- use_module(library(sort), [sort/2]).
@@ -682,19 +678,40 @@ cpx_process_call(CiaoExec, Args, Opts) :-
 cpx_process_call(CiaoExec, Args, Opts) :-
 	process_call(CiaoExec, Args, Opts).
 
-:- use_module(ciaobld(config_common), [default_eng/1, localciao_env/3]).
+:- use_module(ciaobld(config_common), [default_eng/1]).
 
-:- export(localciao_process_call/4).
-% Like cpx_process_call/3 but setups the environment for executing the
-% binary from a given builddir
-localciao_process_call(BldId, Cmd, Args, Opts) :-
-	Env = ~localciao_env(BldId, ~default_eng),
+:- export(bootciao_process_call/3).
+% Like cpx_process_call/3, fixes environment for boot version
+bootciao_process_call(Cmd, Args, Opts) :-
+	Env = ~bootciao_env(~default_eng),
+	cpx_process_call(Cmd, Args, ~merge_env(Env, Opts)).
+
+:- export(localciao_process_call/3).
+% Like cpx_process_call/3, fixes environment for local version
+localciao_process_call(Cmd, Args, Opts) :-
+	Env = ~localciao_env(~default_eng),
+	cpx_process_call(Cmd, Args, ~merge_env(Env, Opts)).
+
+merge_env(Env, Opts, Opts2) :-
 	( select(env(Env0), Opts, Opts1) ->
 	    Env2 = ~append(Env, Env0)
 	; Env2 = Env, Opts1 = Opts
 	),
-	Opts2 = [env(Env)|Opts1],
-	cpx_process_call(Cmd, Args, Opts2).
+	Opts2 = [env(Env)|Opts1].
+
+bootciao_env(EngMainMod) := Env :-
+	% TODO: (un)define CIAOPATH? 
+	Env = ['CIAOALIASPATH' = '',
+	       'CIAOLIB' = ~fsR(bundle_src(core)),
+	       'CIAOHDIR' = ~bootbld_eng_path(hdir, core, EngMainMod),
+	       'CIAOENGINE' = ~bootbld_eng_path(exec, core, EngMainMod)].
+
+localciao_env(EngMainMod) := Env :-
+	% TODO: (un)define CIAOPATH? 
+	Env = ['CIAOALIASPATH' = '',
+	       'CIAOLIB' = ~fsR(bundle_src(core)),
+	       'CIAOHDIR' = ~eng_path(hdir, core, EngMainMod),
+	       'CIAOENGINE' = ~eng_path(exec, core, EngMainMod)].
 
 % ===========================================================================
 :- doc(section, "Version info for engine").
@@ -717,8 +734,7 @@ eng_prebuild_version_info(EngMainMod) :-
 	gen_eng_version_c(Bundle, EngMainMod).
 
 gen_eng_version_h(Bundle, EngMainMod) :-
-	bundle_to_bldid(Bundle, BldId),
-	H = ~path_concat(~bld_eng_path(hdir, BldId, EngMainMod), ~eng_h_alias(EngMainMod)),
+	H = ~path_concat(~bld_eng_path(hdir, Bundle, EngMainMod), ~eng_h_alias(EngMainMod)),
 	VerH = ~path_concat(H, 'version.h'),
 	( file_exists(VerH) -> % TODO: update file if contents change
 	    true
@@ -727,8 +743,7 @@ gen_eng_version_h(Bundle, EngMainMod) :-
 	).
 
 gen_eng_version_c(Bundle, EngMainMod) :-
-	bundle_to_bldid(Bundle, BldId),
-	VerC = ~path_concat(~bld_eng_path(cdir, BldId, EngMainMod), 'version.c'),
+	VerC = ~path_concat(~bld_eng_path(cdir, Bundle, EngMainMod), 'version.c'),
 	( file_exists(VerC) -> % TODO: update file if contents change
 	    true
 	; string_version_c(Bundle, TextC, []),
@@ -769,21 +784,20 @@ string_version_c(Bundle) -->
 % ===========================================================================
 :- doc(section, "Engine build and clean (C code)").
 
-%:- export(eng_build_native/1).
+%:- export(eng_build_native/2).
 % Commands for building engines
 % (creates the engine build area implicitly)
-eng_build_native(EngMainMod) :-
-	build_engine_(EngMainMod, build, []).
+eng_build_native(Bundle, EngMainMod) :-
+	build_engine_(Bundle, EngMainMod, build, []).
 
-:- export(eng_clean_native/1).
+%:- export(eng_clean_native/2).
 % Clean the engine build area
-eng_clean_native(EngMainMod) :-
-	build_engine_(EngMainMod, clean, []).
+eng_clean_native(Bundle, EngMainMod) :-
+	build_engine_(Bundle, EngMainMod, clean, []).
 
-build_engine_(EngMainMod, Target, Env0) :-
-	BldId = ~local_bldid,
-	EngDir = ~bld_eng_path(engdir, BldId, EngMainMod),
-	EngCfg = ~get_eng_cfg(BldId),
+build_engine_(Bundle, EngMainMod, Target, Env0) :-
+	EngDir = ~bld_eng_path(engdir, Bundle, EngMainMod),
+	EngCfg = ~get_eng_cfg(~bundle_to_bldid(Bundle)),
 	% (input: look at build_engine.sh)
 	Env = ['BLD_ENGDIR' = EngDir,
 	       'ENG_CFG' = EngCfg|Env0],

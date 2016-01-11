@@ -132,7 +132,7 @@ code_to_file_(M, Code, File) :-
 	code_to_cexp(Code, M, CExp),
 	cexp_to_str(CExp, String, []),
 	% Emit files in the right builddir path
-	emugen_code_dir(M, File, DestDir),
+	emugen_code_dir(core, M, File, DestDir), % TODO: Bundle=core is hardwired here (extract from M)
 	mkpath(DestDir),
 	File2 = ~path_concat(DestDir, File),
 	write_string_to_file(File2, String).

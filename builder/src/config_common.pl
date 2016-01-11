@@ -150,7 +150,19 @@ instciao_bundledir(Bundle) := R :-
 
 :- export(bld_eng_path/4).
 % Engine directory layout in build area
-bld_eng_path(D, BldId, EngMainMod) := Path :-
+bld_eng_path(D, Bundle, EngMainMod) := Path :-
+	BldId = ~bundle_to_bldid(Bundle),
+	EngDir = ~fsR(builddir(BldId)/eng/EngMainMod),
+	Rel = ~rel_eng_path(D, BldId, EngMainMod),
+	( Rel = '' -> Path = EngDir
+	; Path = ~path_concat(EngDir, Rel)
+	).
+
+:- export(bootbld_eng_path/4).
+% Engine directory layout in boot build area
+% TODO: Assume _Bundle=core
+bootbld_eng_path(D, _Bundle, EngMainMod) := Path :-
+	BldId = bootbuild,
 	EngDir = ~fsR(builddir(BldId)/eng/EngMainMod),
 	Rel = ~rel_eng_path(D, BldId, EngMainMod),
 	( Rel = '' -> Path = EngDir
@@ -173,7 +185,8 @@ inst_eng_path(D, Bundle, EngMainMod) := Path :-
 
 :- export(bld_cmd_path/4).
 % Executable path in build area
-bld_cmd_path(BldId, Kind, File) := Path :-
+bld_cmd_path(Bundle, Kind, File) := Path :-
+	BldId = ~bundle_to_bldid(Bundle),
 	Path = ~concat_ext(Kind, ~fsR(builddir_bin(BldId)/File)).
 
 :- export(inst_cmd_path/4).
@@ -201,23 +214,40 @@ cmdname_ver(_UseVers, _Bundle, Cmd, K, CmdName) :-
 :- use_module(library(pathnames), [path_split/3]).
 :- use_module(library(system), [file_exists/2]).
 
-:- export(cmd_path/3).
+:- export(cmd_path/4).
 % Executable path in local build area or installed (if the running
 % builder is globally installed)
-cmd_path(Kind, File) := Path :-
+cmd_path(_Bundle, Kind, File) := Path :-
 	% (heuristic to detect running from a global installation)
 	% TODO: see bundlereg_load.pl
+	% TODO: Do not use this heuristic if the bundle is in a (non-installed) workspace
 	ciao_lib_dir(LibDir),
 	path_concat(LibDir, 'bundlereg', BundleRegDir0),
 	file_exists(BundleRegDir0, 0),
 	!,
 	% E.g., '.../lib/ciao/core-M.N' -> '.../bin/...'
+	% TODO: use inst_cmd_path instead?
 	path_split(LibDir, Dir0, _),
 	path_split(Dir0, Dir1, _),
 	path_split(Dir1, Dir2, _),
 	Path = ~concat_ext(Kind, ~fsR(Dir2/bin/File)).
-cmd_path(Kind, File) := Path :- !,
-	Path = ~bld_cmd_path(~local_bldid, Kind, File).
+cmd_path(Bundle, Kind, File) := Path :-
+	Path = ~bld_cmd_path(Bundle, Kind, File).
+
+:- export(eng_path/4).
+% Engine path in local build area or installed (if the running
+% builder is globally installed)
+eng_path(D, Bundle, EngMainMod) := Path :-
+	% (heuristic to detect running from a global installation)
+	% TODO: see bundlereg_load.pl
+	% TODO: Do not use this heuristic if the bundle is in a (non-installed) workspace
+	ciao_lib_dir(LibDir),
+	path_concat(LibDir, 'bundlereg', BundleRegDir0),
+	file_exists(BundleRegDir0, 0),
+	!,
+	Path = ~inst_eng_path(D, Bundle, EngMainMod).
+eng_path(D, Bundle, EngMainMod) := Path :-
+	Path = ~bld_eng_path(D, Bundle, EngMainMod).
 
 % ---------------------------------------------------------------------------
 
@@ -228,8 +258,7 @@ cmd_path(Kind, File) := Path :- !,
 % TODO: define properly the 'activation' operation
 active_bld_eng_path(D, Bundle, EngMainMod) := Path :-
 	Name = ~active_eng_name(D, Bundle, EngMainMod),
-	bundle_to_bldid(Bundle, BldId),
-	Path = ~path_concat(~bld_eng_path(objdir_anyarch, BldId, EngMainMod), Name).
+	Path = ~path_concat(~bld_eng_path(objdir_anyarch, Bundle, EngMainMod), Name).
 
 :- export(active_inst_eng_path/4).
 % Paths for the active engine and multi-platform engine selection
@@ -280,19 +309,6 @@ concat_ext(plexe, X) := ~atom_concat(X, ~get_ciao_ext).
 concat_ext(exec, X) := ~atom_concat(X, ~get_exec_ext).
 concat_ext(shscript, X) := X.
 concat_ext(ext(Ext), X) := ~atom_concat(X, Ext).
-
-% ---------------------------------------------------------------------------
-
-:- export(localciao_env/3). % TODO: merge
-:- pred localciao_env(BldId, EngMainMod, Env) # "@var{Env} is the
-   environment (used by @pred{process_call/3}) that activates the Ciao
-   build at @var{BldId} using the engine @var{EngMainMod}".
-
-localciao_env(BldId, EngMainMod) := Env :-
-	Env = ['CIAOALIASPATH' = '',
-	       'CIAOLIB' = ~fsR(bundle_src(core)),
-	       'CIAOHDIR' = ~bld_eng_path(hdir, BldId, EngMainMod),
-	       'CIAOENGINE' = ~bld_eng_path(exec, BldId, EngMainMod)].
 
 % ---------------------------------------------------------------------------
 

@@ -244,7 +244,7 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 
 :- use_module(ciaobld(config_common), 
 	[local_bldid/1,
-	 bld_eng_path/4,
+	 bootbld_eng_path/4,
 	 cmdname_ver/5]).
 
 % Generate 'ciao' super-command
@@ -260,15 +260,16 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	    'ciaoc_cmdV' =      ~cmdname_ver(yes, core, 'ciaoc', plexe),           'ciaoc_cmd' = ~cmdname_ver(no, core, 'ciaoc', plexe),
 	    'ciaopp_cmdV' =     ~cmdname_ver(yes, ciaopp, 'ciaopp', plexe),       'ciaopp_cmd' = ~cmdname_ver(no, ciaopp, 'ciaopp', plexe),
 	    'lpdoc_cmdV' =      ~cmdname_ver(yes, lpdoc, 'lpdoc', plexe),          'lpdoc_cmd' = ~cmdname_ver(no, lpdoc, 'lpdoc', plexe),
-	    % TODO: only works in local-install! add global installation code
+	    % Access to boot builder
+	    % TODO: only used in local-install, global installation uses the builder exec (is it OK?)
 	    % TODO: (MinGW) is cmd.exe enough? (at least for bootstrap) consider PowerShell scripts for Windows?
 	    'boot_ciaolib' = ~fsR(bundle_src(core)),
 	    'boot_bindir' = ~fsR(builddir_bin(bootbuild)),
-	    'boot_ciaohdir' = ~bld_eng_path(hdir, bootbuild, EngMainMod),
-	    'boot_ciaoengine' = ~bld_eng_path(exec, bootbuild, EngMainMod)
+	    'boot_ciaohdir' = ~bootbld_eng_path(hdir, core, EngMainMod),
+	    'boot_ciaoengine' = ~bootbld_eng_path(exec, core, EngMainMod)
         ]),
  	( install_prolog_name(yes) ->
- 	    builddir_bin_link_as(~local_bldid, shscript, 'ciao', 'prolog')
+ 	    builddir_bin_link_as(core, shscript, 'ciao', 'prolog')
  	; true
  	).
 
@@ -309,7 +310,7 @@ ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf
 '$builder_hook'(ciao_sysconf:item_build_nodocs) :-
 	cmd_message(core, "building '~w' (command)", ['ciao_sysconf']),
 	% TODO: we build nothing here (just copy) but the user does not want to know
-	builddir_bin_copy_as(~local_bldid, shscript, ~ciao_sysconf_sh, 'ciao_sysconf').
+	builddir_bin_copy_as(core, shscript, ~ciao_sysconf_sh, 'ciao_sysconf').
 
 % ===========================================================================
 % Engine installation/uninstallation

@@ -72,7 +72,6 @@ invoke_iscc(FileIss) :-
 
 % TODO: too many definitions here are hardwired
 create_iss_file(Bundle, FileIss, FileListName) :-
-	bundle_to_bldid(core, EngBldId),
 	bundle_to_bldid(Bundle, BldId),
 	OutputBaseFileName = ~atom_codes(~bundle_versioned_packname(Bundle)),
 	% TODO: see PrettyCommitDesc in pbundle_download.pl
@@ -94,7 +93,7 @@ create_iss_file(Bundle, FileIss, FileListName) :-
 	    'OutputDir' = ~output_dir,
 	    'ManualIcons' = ~get_manual_icons(Bundle),
 	    'DefaultDirName' = ~default_dir_name(Bundle),
-	    'CiaoEngineExec' = ~winpath(relative, ~relciaodir(~bld_eng_path(exec, EngBldId, EngMainMod))),
+	    'CiaoEngineExec' = ~winpath(relative, ~relciaodir(~bld_eng_path(exec, core, EngMainMod))),
 	    'FileListName' = ~winpath(full, ~fsR(bundle_src(ciao)/FileListName))
 	]).
 
@@ -161,8 +160,7 @@ current_file(Source, DestDir) :-
 rel_extra_system_file(Source, DestDir) :-
 	EngMainMod = ~default_eng,
 	Source = ~winpath(~extra_system_file), % (nondet)
-	bundle_to_bldid(core, EngBldId),
-	DestDir0 = ~winpath(relative, ~relciaodir(~bld_eng_path(objdir, EngBldId, EngMainMod))),
+	DestDir0 = ~winpath(relative, ~relciaodir(~bld_eng_path(objdir, core, EngMainMod))),
 	DestDir = ~atom_concat(DestDir0, '\\').
 
 each_line(Lines0, Line) :-
@@ -194,11 +192,9 @@ extra_system_file('/usr/bin/cyggslcblas-0.dll').
 extra_system_file('/usr/lib/lapack/cygblas-0.dll').
 % TODO: hardwired, why?
 % TODO: Use inst_* instead of bld_*?
-extra_system_file := ~relciaodir(~bld_eng_path(exec, EngBldId, EngMainMod)) :-
-	bundle_to_bldid(core, EngBldId),
+extra_system_file := ~relciaodir(~bld_eng_path(exec, core, EngMainMod)) :-
 	EngMainMod = ~default_eng.
-extra_system_file := ~relciaodir(~bld_eng_path(lib_so, EngBldId, EngMainMod)) :-
-	bundle_to_bldid(core, EngBldId),
+extra_system_file := ~relciaodir(~bld_eng_path(lib_so, core, EngMainMod)) :-
 	EngMainMod = ~default_eng.
 
 display_file_entry(Source, DestDir) :-
