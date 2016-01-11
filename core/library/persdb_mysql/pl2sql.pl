@@ -240,6 +240,10 @@ sqlstring(S) :-
 
 % ---------------------------------------------------------------------------
 
+:- regtype sqlterm(X) # "@var{X} is a term representing SQL code.".
+
+sqlterm(_).
+
 :- pred pl2sqlterm(+ProjectionTerm, +DatabaseGoal, -SQLQueryTerm) 
    :: projterm * querybody * list(sqlterm)
 
@@ -694,11 +698,11 @@ translate_comparison(LeftArg, RightArg, CompOp, Dict, Comparison) :-
 
 % ---------------------------------------------------------------------------
 
-:- pred translate_functor(Functor, QualifiedTableName) 
+:- pred translate_functor(Functor, QualifiedTableName, RelTable) 
 
-# "Translate_functor searches for the matching relation table name for
-   a given functor and creates a unique range variable to result in a
-   unique qualified relation table name.".
+# "Searches for the matching relation table name for a given functor
+   and creates a unique range variable to result in a unique qualified
+   relation table name.".
 
 translate_functor(Functor, Arity, rel(TableName, RangeVariable)) :-
 	sql__relation(Functor, Arity, TableName),
@@ -706,7 +710,7 @@ translate_functor(Functor, Arity, rel(TableName, RangeVariable)) :-
 
 % ---------------------------------------------------------------------------
 
-:- pred translate_arguments(Arguments, RelTable, ArgPos, Conditions, Dict)
+:- pred translate_arguments(Arguments, RelTable, ArgPos, Conditions, Dict, NewDict)
 
 # "Organizes the translation of term arguments. One term argument
    after the other is taken from the list of term arguments until the
@@ -721,7 +725,7 @@ translate_arguments([Arg|Args], SQLTable, Position, SQLWhere, Dict, NewDict) :-
 
 % ---------------------------------------------------------------------------
 
-:- pred translate_argument(Argument, RelTable, Position, Condition, Dict)
+:- pred translate_argument(Argument, RelTable, Position, Condition, Dict, NewDict)
 
 # "The first occurrence of a variable leads to its associated SQL
    attribute information to be recorded in the Dict. Any further
@@ -748,7 +752,7 @@ translate_argument('$const$'(Constant), rel(SQLTable, RangeVar), Position, Const
 
 % ---------------------------------------------------------------------------
 
-:- pred lookup(Key, Dict, Value).
+:- pred lookup(Key, Dict, RangeVar, Attribute, Type).
 
 lookup(VarId, Dict, RangeVar, Attribute, Type) :-
 	member(dict(VarId, RangeVar, Attribute, Type, Quant), Dict),
@@ -760,7 +764,7 @@ lookup(VarId, Dict, RangeVar, Attribute, Type) :-
 
 % ---------------------------------------------------------------------------
 
-:- pred add_to_dictionary(Key, RangeVar, Attribute, Quantifier, Dict, NewDict).
+:- pred add_to_dictionary(Key, RangeVar, Attribute, Type, Quantifier, Dict, NewDict).
 
 add_to_dictionary(Key, RangeVar, Attribute, Type, _, Dict, Dict) :-
 	member(dict(Key, RangeVar, Attribute, Type, existential), Dict).
