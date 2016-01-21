@@ -349,26 +349,29 @@ int start(int argc, char *argv[]) {
       fprintf(stderr,"%s: file not found\n", exec_path);
       return 1;
     }
+    expand_file_name(exec_path,TRUE,source_path);
   } else {
     expand_file_name(boot_path,TRUE,source_path);
 #if defined(Win32)
     i = strlen(source_path)-4;
     if (i > 0 && strcmp(source_path+i,".bat") == 0){
       int j;
-      for (j = 1; ciao_suffix[j] && (i+j < MAXPATHLEN); j++)
+      for (j = 1; ciao_suffix[j] && (i+j < MAXPATHLEN); j++) {
 	source_path[i+j] = ciao_suffix[j];
-    } else if (i > 0 && strcmp(source_path+i, ciao_suffix) != 0)
+      }
+    } else if (i > 0 && strcmp(source_path+i, ciao_suffix) != 0) {
       strcat(source_path, ciao_suffix);
+    }
 
-    if (access(source_path,R_OK))
+    if (access(source_path,R_OK)) {
       source_path[strlen(source_path)-4] = '\0'; /* Take out ciao_suffix (.cpx) */
+    }
 #endif
-  }
-
-  if (qfile == NULL) qfile = fopen(source_path,"r");
-  if (qfile == NULL) {
-    fprintf(stderr, "%s: boot file not found\n", source_path);
-    return 1;
+    qfile = fopen(source_path,"r");
+    if (qfile == NULL) {
+      fprintf(stderr, "%s: boot file not found\n", source_path);
+      return 1;
+    }
   }
 
   /* We have a bootfile we can read from */

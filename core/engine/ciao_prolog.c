@@ -454,6 +454,7 @@ FILE *ciao_open_embedded_qfile(const char *program_name) {
     fprintf(stderr,"%s: file not found\n", program_name);
     at_exit(1);
   }
+  expand_file_name((char *)program_name,TRUE,(char *)source_path);
   return qfile;
 }
 
