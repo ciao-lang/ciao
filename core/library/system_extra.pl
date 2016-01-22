@@ -529,6 +529,52 @@ valid_mode(rw  , 2'110).
 valid_mode(rwX , 2'110).
 valid_mode(rwx , 2'111).
 
+% ---------------------------------------------------------------------------
+% Create and remove a temporary directory
+
+:- use_module(library(pathnames), [path_split/3, path_concat/3]).
+%:- use_module(library(system_extra), [mkpath/1]).
+:- use_module(library(system),
+	[mktemp_in_tmp/2, delete_file/1, touch/1, file_exists/1]).
+:- use_module(library(source_tree), [remove_dir/1]).
+
+:- export(mktempdir_in_tmp/2).
+:- pred mktempdir_in_tmp(Template, Path)
+   # "Create a directory in the temporary directory using
+      @var{Template} (see @pred{mktemp_in_tmp/2}). An empty file
+      @tt{CREATED_WITH_MKTEMPDIR} is created inside @var{Path} as a
+      safety check for @pred{rmtempdir/1}.".
+
+mktempdir_in_tmp(Template, Path) :-
+	% Create a temporary file and use the name for the dir
+	atom_concat('f_', Template, TemplateF),
+	mktemp_in_tmp(TemplateF, TmpF),
+	path_split(TmpF, TmpFB, TmpFN),
+	atom_concat('f_', TmpFN2, TmpFN),
+	path_concat(TmpFB, TmpFN2, Path),
+	mkpath(Path),
+	delete_file(TmpF),
+	tempdir_mark(Path, Mark),
+	touch(Mark).
+
+:- export(rmtempdir/1).
+:- pred rmtempdir(Path)
+   # "Remove the temporary directory @var{Path} (recursively) created
+      with @pred{mktempdir_in_tmp/2}. As a safety check, this
+      predicate throws an exception if the @tt{CREATED_WITH_MKTEMPDIR}
+      file is not in @var{Path}.".
+
+rmtempdir(Path) :-
+	tempdir_mark(Path, Mark),
+	file_exists(Mark),
+	!,
+	display(remove_dir(Path)), nl.
+rmtempdir(Path) :-
+	throw(error(not_created_by_mktempdir_in_tmp(Path), rmtempdir/1)).
+
+tempdir_mark(Path, Mark) :-
+	path_concat(Path, 'CREATED_WITH_MKTEMPDIR', Mark).
+
 % =========================================================================
 % TODO: preds from the SICStus lib that probably need to be implemented 
 % =========================================================================
