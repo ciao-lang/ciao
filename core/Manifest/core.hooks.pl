@@ -233,6 +233,7 @@ core_cmd('plindent', plexe).
 core_cmd('show_asr', plexe).
 core_cmd('compiler_output', plexe).
 core_cmd('checkline', plexe).
+core_cmd('ciaoc_sdyn', plexe).
 
 % TODO: strange... enumerated for installation, add a table of exec+kind instead
 core_cmd('ciao_sysconf', shscript).
