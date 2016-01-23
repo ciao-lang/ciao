@@ -3,7 +3,7 @@
 :- doc(title,"GraphViz DOT generator").
 
 :- doc(author, "Claudio Ochoa (original version)").
-:- doc(author, "Jose Morales (improvements)").
+:- doc(author, "Jose F. Morales (improvements)").
 
 :- doc(module,"This module generates a @tt{.dot} file (for
    @href{http://www.graphviz.org/}{GraphViz}) representing a
@@ -44,7 +44,7 @@ gendot(L,Filename,Type):-
 	close(Output).
 
 % TODO: Implement correct escaping of IDs. From GraphViz docs:
-%  
+%
 %   - Any string of alphabetic ([a-zA-Z\200-\377]) characters,
 %     underscores ('_') or digits ([0-9]), not beginning with a digit;
 %
@@ -90,8 +90,8 @@ command. Supported extensions include .ps, .fig, .png, .jpg,,.gif, etc
 installed, and thus it should be used only with testing purposes, in
 order to do no create any dependence from these external libraries".
 
-rundot(Filename,Ext):- 
-	atom_concat(['dot -T',Ext,' -o ',Filename,'.',Ext,' ',Filename,'.dot'],Cmd), 
+rundot(Filename,Ext):-
+	atom_concat(['dot -T',Ext,' -o ',Filename,'.',Ext,' ',Filename,'.dot'],Cmd),
 	system(Cmd).
 */
 

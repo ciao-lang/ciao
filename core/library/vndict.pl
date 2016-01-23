@@ -1,5 +1,5 @@
 :- module(vndict,
-	[ null_dict/1, create_dict/2, 
+	[ null_dict/1, create_dict/2,
 	  create_pretty_dict/2,
 	  complete_dict/3, complete_vars_dict/3,
 	  complete_dict_alpha/3, complete_vars_dict_alpha/3,
@@ -37,7 +37,7 @@ varnamedict(dic([V|Vs], [N|Ns])) :-
 
 :- pred vars_names_dict(Dict, Vars, Names)
 	:: (varnamedict(Dict),list(Vars),list(Names))
-     # "@var{Varss} is a sorted list of variables, and @var{Names} is a list
+     # "@var{Vars} is a sorted list of variables, and @var{Names} is a list
 	of their names, which correspond in the same order.".
 
 vars_names_dict(dic(Vs,Ns),Vs,Ns).
@@ -241,28 +241,28 @@ rename(X,_,_):-
 	var(X),!.
 rename([],_,_):- !.
 rename([X|Xs],Vars,Names):- !,
-	rename(X,Vars,Names),          
+	rename(X,Vars,Names),
 	rename(Xs,Vars,Names).
 rename(X,Vars,Names):-
 	X=..[_Fun|Args],
 	rename(Args,Vars,Names).
 */
 
-:- doc(find_name(Vars,Names,V,Name),"Given that
+:- pred find_name(Vars,Names,V,Name) # "Given that
    @tt{vars_names_dict(Dict,Vars,Names)} holds, it acts as
-   @tt{rename(X,Dict)}, but the name of @var{X} is given as 
-   @var{Name} instead of unified with it.").
+   @tt{rename(V,Dict)}, but the name of @var{V} is given as
+   @var{Name} instead of unified with it.".
 
 find_name([V|_],[Y|_],X,Xn):-
-	X==V, !, 
+	X==V, !,
 	Xn=Y.
 find_name([_|MoreV],[_|MoreN],X,Xn):-
 	find_name(MoreV,MoreN,X,Xn).
 
 %----------------------------------------------------------
 :- pred create_pretty_dict(Term,Dict) : term(Term) => varnamedict(Dict)
-	# "@var{Dict} has names for all variables in @var{Term}. The 
-        difference with @pred{create_dict/2} is that prettier names 
+	# "@var{Dict} has names for all variables in @var{Term}. The
+        difference with @pred{create_dict/2} is that prettier names
 	are generated".
 
 create_pretty_dict(Term,Dict):-
@@ -275,7 +275,6 @@ create_pretty_dict(Term,Dict):-
 	give_names_(NVars,'A',''),
 	ord_subtract(Vars,NonSingleton,NewVars),
 	complete_vars_dict(Dict0,NewVars,Dict).
-	
 
 remove_one_ocurrence([],VarsBag,VarsBag).
 remove_one_ocurrence([V|Vars],VarsBag,NonSingleton_u):-
@@ -308,10 +307,12 @@ give_names_([V|Vs],Char,Tail):-
 	atom_codes(Char1,[Code1]),
 	give_names_(Vs,Char1,Tail).
 
-:- pred prettyvars(?term, +varnamesl) # "Give names to the variables
-	in the term @var{Term} using the dictionary @var{Dict}.
-	Intended to replace @pred{prettyvars/1} in those places where
-	is possible to get the dictionary of variables.".
+:- pred prettyvars(?Term, +Dict)
+        :: (term(Term), varnamesl(Dict))
+        # "Give names to the variables in the term @var{Term} using
+        the dictionary @var{Dict}.  Intended to replace
+        @pred{prettyvars/1} in those places where is possible to get
+        the dictionary of variables.".
 
 prettyvars(Term, Dict) :-
 	varnamesl2dict(Dict, VnDict),

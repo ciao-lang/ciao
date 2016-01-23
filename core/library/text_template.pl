@@ -3,7 +3,7 @@
 :- doc(title, "Text Templates").
 
 :- doc(author, "Jose F. Morales").
-:- doc(author, "Ciao development team").
+:- doc(author, "Ciao Development Team").
 
 :- doc(module, "A template is a text marked-up with special tags that
    contain expressions. Template evaluation replaces tags with the
