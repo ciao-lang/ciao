@@ -568,7 +568,7 @@ rmtempdir(Path) :-
 	tempdir_mark(Path, Mark),
 	file_exists(Mark),
 	!,
-	display(remove_dir(Path)), nl.
+	remove_dir(Path).
 rmtempdir(Path) :-
 	throw(error(not_created_by_mktempdir_in_tmp(Path), rmtempdir/1)).
 
