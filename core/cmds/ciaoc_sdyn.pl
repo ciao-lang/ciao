@@ -1,6 +1,4 @@
-#!/usr/bin/env ciao-shell
-
-:- use_package(assertions).
+:- module(ciaoc_sdyn, [], [assertions]).
 
 :- use_module(engine(internals), [
 	itf_filename/2,
@@ -10,8 +8,10 @@
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(lists), [append/3]).
 :- use_module(library(llists), [flatten/2]).
-:- use_module(library(system), [file_exists/1, copy_file/3, delete_file/1]).
-:- use_module(library(pathnames), [path_split/3, path_concat/3]).
+:- use_module(library(system),
+	[file_exists/1, copy_file/3, delete_file/1, working_directory/2]).
+:- use_module(library(pathnames),
+	[path_split/3, path_concat/3, path_norm/2, path_is_relative/1]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(format), [format/3]).
 :- use_module(library(streams), [open_output/2, close_output/1]).
@@ -26,11 +26,11 @@ $ ciaoc_sdyn MAIN
 @end{verbatim}
 ").
 
-:- doc(bug, "Only works in Mac OS X").
-% TODO: use ldd in Linux instead of otool
+:- doc(bug, "Missing port to Windows (MinGW)").
 
 % ---------------------------------------------------------------------------
 
+:- export(main/1).
 main([MainF]) :- !,
 	% Collect dylibs needed for MainF
 	collect_dylibs(MainF),
@@ -86,8 +86,10 @@ user_so(X) :-
 % Dynamic libraries for Mac OS X
 
 % The shared library or executable given by file @var{F} depends on
-% the shared library @var{SO}
+% the shared library @var{SO} (includes @var{F})
 dylib_deps(F, DepSO) :-
+	get_os('DARWIN'),
+	!,
 	process_call(path(otool), ['-L', F], [stdout(atmlist(Xs))]),
 	Xs = [_|Xs2], % skip first
 	member(X, Xs2),
@@ -96,9 +98,45 @@ dylib_deps(F, DepSO) :-
 	append(Cs1, ".dylib ("||_, Cs0),
 	append(Cs1, ".dylib", Cs2),
 	atom_codes(DepSO, Cs2).
+dylib_deps(F, DepSO) :-
+	get_os('LINUX'),
+	!,
+	( DepSO = F % itself (like 'otool' does)
+	; build_root(Dir),
+	  process_call(path(ldd), [F], [stdout(atmlist(Xs)), cwd(Dir)]),
+	  member(X, Xs),
+	  atom_codes(X, Cs),
+	  Cs = [0'\t|Cs0],
+	  append(_, " => "||Cs1, Cs0),
+	  append(Cs2, " (0x"||_, Cs1),
+	  \+ Cs2 = "",
+	  atom_codes(DepSO1, Cs2),
+	  ( path_is_relative(DepSO1) ->
+	      path_concat(Dir, DepSO1, DepSO2),
+	      path_norm(DepSO2, DepSO)
+	  ; DepSO = DepSO1
+	  )
+        ).
+dylib_deps(_F, _DepSO) :-
+	get_os(OS),
+	throw(error(os_not_supported(OS), dylib_deps/2)).
+
+% TODO: See foreign_dynlink/2: ugly trick to locate third-party libs with
+% the ./third-party/lib rpath)
+build_root(Dir) :-
+	( ciao_lib_dir(CiaoLibDir), file_exists(CiaoLibDir) -> 
+	    % TODO: is there a better way? this seems a bit weak
+	    path_split(CiaoLibDir,CiaoBase,_),
+	    Dir = CiaoBase
+	; % TODO: will not work...
+	  working_directory(CurrentDir, CurrentDir),
+	  Dir = CurrentDir
+        ).
 
 % Change paths for all user dynamic libraries
 dylib_change_paths(F) :-
+	get_os('DARWIN'),
+	!,
 	findall(['-change', Dep, RelDep],
                 (dylib_deps(F, Dep),
 		 \+ F = Dep,
@@ -107,6 +145,13 @@ dylib_change_paths(F) :-
 	rel_exec_path(F, RelF),
 	flatten(['-id', RelF, Args0, F], Args),
 	process_call(path(install_name_tool), Args, []).
+dylib_change_paths(_F) :-
+	get_os('LINUX'),
+	!,
+	true. % TODO: chrpath? patchelf?
+dylib_change_paths(_F) :-
+	get_os(OS),
+	throw(error(os_not_supported(OS), dylib_change_paths/1)).
 
 % From .../a/b/c to @executable_path/c (see install_name_tool man page)
 rel_exec_path(X, Y) :-
