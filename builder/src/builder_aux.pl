@@ -539,4 +539,27 @@ generate_version_auto(Bundle, File) :-
         portray_clause(O, version(VersionAtm)),
 	close(O).
 
+% ===========================================================================
+
+:- use_module(ciaobld(third_party_install), [third_party_path/2]).
+:- use_module(library(pathnames), [path_relocate/4]).
+:- use_module(library(lists), [append/3]).
+
+:- export(add_rpath/3).
+% Add rpaths (runtime search path for shared libraries)
+add_rpath(local_third_party, LinkerOpts0, LinkerOpts) :- !,
+	% TODO: better way to compute RelativeLibDir?
+	% (for 'make_car_exec')
+	fsR(bundle_src(ciao),  CiaoSrc),
+	third_party_path(libdir, LibDir),
+	path_relocate(CiaoSrc, '.', LibDir, RelativeLibDir),
+	add_rpath_(RelativeLibDir, LinkerOpts0, LinkerOpts).
+add_rpath(executable_path, LinkerOpts0, LinkerOpts) :- !,
+	% (for 'ciaoc_sdyn')
+	% TODO: Use process_call/3 in build foreign interface; DO NOT QUOTE HERE!
+	add_rpath_('\\\'$ORIGIN\\\'', LinkerOpts0, LinkerOpts).
+
+add_rpath_(Path, LinkerOpts0, LinkerOpts) :-
+	atom_codes(Path, PathCs),
+	append("-Wl,-rpath,"||PathCs, " "||LinkerOpts0, LinkerOpts).
 

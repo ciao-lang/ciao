@@ -61,6 +61,7 @@ ppl_version(Version) :-
 	prebuild_ppl_bindings.
 
 :- use_module(ciaobld(third_party_install), [auto_install/1, third_party_path/2]).
+:- use_module(ciaobld(builder_aux), [add_rpath/3]).
 
 do_auto_install_ppl :-
 	( auto_install_ppl(yes) -> 
@@ -81,26 +82,16 @@ prebuild_ppl_bindings :-
  	    foreign_config_var(ppl, 'cxxflags', CompilerOpts2),
 	    append(CompilerOpts1, " "||CompilerOpts2, CompilerOpts3),
  	    foreign_config_var(ppl, 'ldflags', LinkerOpts1),
-            ( get_platform('DARWINi686') ->
-                % Remove "-arch x86_64" option if ppl is an MacOS universal binary
-                remove_all_substrings(CompilerOpts3, "-arch x86_64", CompilerOpts),
-                remove_all_substrings(LinkerOpts1, "-arch x86_64", LinkerOpts2)
-	    ; CompilerOpts3 = CompilerOpts,
-	      LinkerOpts1 = LinkerOpts2
-            ),
-	    list(CompilerOpts),
-	    ( % If ppl is installed as a third party, add ./third-party/lib
-	      % to the runtime library search path
-	      auto_install_ppl(yes) ->
-		% Better way to compute RelativeLibDir
-		fsR(bundle_src(ciao),  CiaoSrc),
-		third_party_path(libdir, LibDir),
-		path_relocate(CiaoSrc, '.', LibDir, RelativeLibDir),
-		atom_codes(RelativeLibDir, RelativeLibDir_),
-		append("-Wl,-rpath,"||RelativeLibDir_, " "||LinkerOpts2, LinkerOpts3)
-	    ; LinkerOpts2 = LinkerOpts3
+	    patch_arch_opts(CompilerOpts3, LinkerOpts1, CompilerOpts, LinkerOpts2),
+	    ( auto_install_ppl(yes) ->
+	        % If installed as a third party, add ./third-party/lib
+	        % to the runtime library search path
+	        add_rpath(local_third_party, LinkerOpts2, LinkerOpts3)
+	    ; LinkerOpts3 = LinkerOpts2
 	    ),
-        append(LinkerOpts3, " -lstdc++", LinkerOpts),
+	    add_rpath(executable_path, LinkerOpts3, LinkerOpts4),
+%	    LinkerOpts3 = LinkerOpts4,
+	    append(LinkerOpts4, " -lstdc++", LinkerOpts),
 	    flatten(["%Do not edit generated automatically\n\n",
 		    ":- extra_compiler_opts('", CompilerOpts, "').\n",
 		    ":- extra_linker_opts('", LinkerOpts, "').\n"], T),
@@ -120,6 +111,17 @@ prebuild_ppl_bindings :-
 		":- initialization(error('PPL library not installed')).\n\n",
 		~fsR(~ppl_dir/'ppl_auto.pl'))
 	).
+
+% Patch architecture specific options (for universal OSX binaries)
+patch_arch_opts(CompilerOpts0, LinkerOpts0, CompilerOpts, LinkerOpts) :-
+	( get_platform('DARWINi686') ->
+	    % Remove "-arch x86_64" option if ppl is an MacOS universal binary
+	    remove_all_substrings(CompilerOpts0, "-arch x86_64", CompilerOpts),
+	    remove_all_substrings(LinkerOpts0, "-arch x86_64", LinkerOpts)
+	; CompilerOpts = CompilerOpts0,
+	  LinkerOpts = LinkerOpts0
+	),
+	list(CompilerOpts). % TODO: Why?
 
 % This selects one of the two versions
 % TODO: maybe we can use the package 'condcomp' to make this simpler?

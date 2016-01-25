@@ -44,18 +44,13 @@ prebuild_gsl_bindings :-
  	    foreign_config_var(gsl, 'cflags', CompilerOpts),
  	    foreign_config_var(gsl, 'libs', LinkerOpts0),
 	    fix_linker_opts(LinkerOpts0, LinkerOpts1),
-	    ( % If gsl is installed as a third party, add ./third-party/lib
-	      % to the runtime library search path
-	      auto_install_gsl(yes) ->
-		% TODO: better way to compute RelativeLibDir.
-		fsR(bundle_src(ciao),  CiaoSrc),
-		third_party_path(libdir, LibDir),
-		path_relocate(CiaoSrc, '.', LibDir, RelativeLibDir),
-		atom_codes(RelativeLibDir, RelativeLibDir_),
-		append("-Wl,-rpath,"||RelativeLibDir_, " "||LinkerOpts1, LinkerOpts)
-	    ;
-	        LinkerOpts1 = LinkerOpts
+	    ( auto_install_gsl(yes) ->
+	        % If installed as a third party, add ./third-party/lib
+	        % to the runtime library search path
+	        add_rpath(local_third_party, LinkerOpts1, LinkerOpts2)
+	    ; LinkerOpts2 = LinkerOpts1
 	    ),
+	    add_rpath(executable_path, LinkerOpts2, LinkerOpts),
 	    T = ~flatten([
 		    ":- extra_compiler_opts(\'"||CompilerOpts, "\').\n"||
 		    ":- extra_linker_opts(\'"||LinkerOpts, "\').\n"]),
