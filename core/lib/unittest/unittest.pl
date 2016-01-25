@@ -17,7 +17,7 @@
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(sort), [sort/2]).
 :- use_module(library(aggregates), [findall/3]).
-:- use_module(library(rtchecks/rtchecks_utils),
+:- use_module(library(rtchecks/rtchecks_pretty),
         [
             pretty_messages/1,
             pretty_prop/3,
