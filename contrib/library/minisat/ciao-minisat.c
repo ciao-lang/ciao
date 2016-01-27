@@ -69,23 +69,18 @@ static inline ciao_term copy_list(ciao_term l) {
   }
 }
 
-
 static inline lit pl2lit(ciao_term pl_literal)
 {
     int pl_lit_int;
-    pl_lit_int = ciao_to_integer(pl_literal);
+    pl_lit_int = ciao_get_c_int(pl_literal);
     return (pl_lit_int<0) ? neg(toLit(-pl_lit_int)) : toLit(pl_lit_int);
 }
-
-
-
 
 ciao_bool minisat_new_solver(void)
 {
     s = solver_new();
     return PROLOG_SUCCESS;
 }
-
 
 ciao_bool minisat_delete_solver(void)
 {
@@ -95,8 +90,6 @@ ciao_bool minisat_delete_solver(void)
     }
     return PROLOG_SUCCESS;
 }
-
-
 
 ciao_bool minisat_add_clause(ciao_term l)
 {
@@ -120,7 +113,6 @@ ciao_bool minisat_add_clause(ciao_term l)
     }
 }
 
-
 ciao_bool minisat_solve(ciao_term res)
 {
     if (!solver_simplify(s)) PROLOG_FAILURE;
@@ -143,7 +135,7 @@ ciao_bool minisat_solve(ciao_term res)
 	    default : assert(0);
 	    }
 	    if (pl_lit_int) {
-		pl_lit = ciao_integer(pl_lit_int);
+		pl_lit = ciao_mk_c_int(pl_lit_int);
 		l=ciao_list(pl_lit, l);
 	    }
 	}

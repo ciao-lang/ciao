@@ -1,21 +1,4 @@
-:- module(foreign_interface_properties, [
-	int_list/1,
-	double_list/1,
-	byte_list/1,
-	byte/1,
-	null/1,
-	address/1,
-	any_term/1,
-	foreign_low/1,
-	foreign_low/2,
-	size_of/3,
-	foreign/1,
-	foreign/2,
-	returns/2,
-	do_not_free/2,
-	needs_state/1,
-	ttr/3
-	], [assertions, regtypes]).
+:- module(foreign_interface_properties, [], [assertions, regtypes]).
 
 :- push_prolog_flag(multi_arity_warnings,off).
 
@@ -128,18 +111,18 @@
    of foreign_inline is to add globally the C source code that are in
    @var{Text}.".
 
+:- export(any_term/1).
 :- regtype any_term(X) # "@var{X} is any term. The foreign interface
    passes it to C functions as a general term.".
-
 any_term(_).
 
+:- export(address/1).
 :- regtype address(Address) # "@var{Address} is a memory address.".
-
 address('$address'(Address)) :-
 	int(Address).
 
+:- export(null/1).
 :- regtype null(Address) # "@var{Address} is a null adress.".
-
 null('$address'(0)).
 
  %% :- true prop byte(Byte) + regtype # "@var{Byte} is a byte.".
@@ -152,106 +135,164 @@ null('$address'(0)).
  %%         0 =< Byte,
  %%         Byte =< 255.
 
-:- regtype byte(B) # "@var{Byte} is a byte.".
+:- export(c_short/1).
+:- regtype c_short(X) # "@var{X} is an integer in the range of C @tt{short}.".
+c_short(B):- int(B).
 
-byte(B):- int(B).
+:- export(c_int/1).
+:- regtype c_int(X) # "@var{X} is an integer in the range of C @tt{int}.".
+c_int(B):- int(B).
 
- %% :- regtype in_byte_limits(Byte) # 
- %%    "The value @var{Byte} is within the limits of a byte.".
- %% 
- %% in_byte_limits(0).
- %% ...
- %% in_byte_limits(255).
+:- export(c_long/1).
+:- regtype c_long(X) # "@var{X} is an integer in the range of C @tt{long}.".
+c_long(B):- int(B).
 
-:- regtype byte_list(List)
- # "@var{List} is a list of bytes.".
+:- export(c_ushort/1).
+:- regtype c_ushort(X) # "@var{X} is an integer in the range of C @tt{unsigned short}.".
+c_ushort(B):- int(B).
 
-byte_list(List) :- list(List,byte).
+:- export(c_uint/1).
+:- regtype c_uint(X) # "@var{X} is an integer in the range of C @tt{unsigned int}.".
+c_uint(B):- int(B).
 
+:- export(c_ulong/1).
+:- regtype c_ulong(X) # "@var{X} is an integer in the range of C @tt{unsigned long}.".
+c_ulong(B):- int(B).
 
-:- regtype int_list(List)
- # "@var{List} is a list of integers.".
+:- export(c_uintptr/1).
+:- regtype c_uintptr(X) # "@var{X} is an integer in the range of C @tt{uintptr_t}.".
+c_uintptr(B):- int(B).
 
-int_list(List) :- list(List,int).
+:- export(c_size/1).
+:- regtype c_size(X) # "@var{X} is an integer in the range of C @tt{size_t}.".
+c_size(B):- int(B).
 
+:- export(c_float/1).
+:- regtype c_float(X) # "@var{X} is an integer in the range of C @tt{float}.".
+c_float(B):- num(B).
 
-:- regtype double_list(List)
- # "@var{List} is a list of numbers.".
+:- export(c_double/1).
+:- regtype c_double(X) # "@var{X} is an integer in the range of C @tt{double}.".
+c_double(B):- num(B).
 
-double_list(List) :- list(List,num).
+:- export(c_int8/1).
+:- regtype c_int8(X) # "@var{X} is an integer in the range of C @tt{int8_t}.".
+c_int8(B):- int(B).
 
+:- export(c_int8/1).
+:- regtype c_int8(X) # "@var{X} is an integer in the range of C @tt{int8_t}.".
+c_int8(B):- int(B).
 
+:- export(c_int8/1).
+:- regtype c_int8(X) # "@var{X} is an integer in the range of C @tt{int8_t}.".
+c_int8(B):- int(B).
+
+:- export(c_int16/1).
+:- regtype c_int16(X) # "@var{X} is an integer in the range of C @tt{int16_t}.".
+c_int16(B):- int(B).
+
+:- export(c_int32/1).
+:- regtype c_int32(X) # "@var{X} is an integer in the range of C @tt{int32_t}.".
+c_int32(B):- int(B).
+
+:- export(c_int64/1).
+:- regtype c_int64(X) # "@var{X} is an integer in the range of C @tt{int64_t}.".
+c_int64(B):- int(B).
+
+:- export(c_uint8/1).
+:- regtype c_uint8(X) # "@var{X} is an integer in the range of C @tt{uint8_t}.".
+c_uint8(B):- int(B).
+
+:- export(c_uint16/1).
+:- regtype c_uint16(X) # "@var{X} is an integer in the range of C @tt{uint16_t}.".
+c_uint16(B):- int(B).
+
+:- export(c_uint32/1).
+:- regtype c_uint32(X) # "@var{X} is an integer in the range of C @tt{uint32_t}.".
+c_uint32(B):- int(B).
+
+:- export(c_uint64/1).
+:- regtype c_uint64(X) # "@var{X} is an integer in the range of C @tt{uint64_t}.".
+c_uint64(B):- int(B).
+
+:- export(c_uint8_list/1).
+:- regtype c_uint8_list(List) # "@var{List} is a list of @regtype{c_uint8/1}.".
+c_uint8_list(List) :- list(List,c_uint8).
+
+:- export(c_int_list/1).
+:- regtype c_int_list(List) # "@var{List} is a list of @regtype{c_int/1}.".
+c_int_list(List) :- list(List,c_int).
+
+:- export(c_double_list/1).
+:- regtype c_double_list(List) # "@var{List} is a list of @regtype{c_double/1}.".
+c_double_list(List) :- list(List,c_double).
+
+:- export(size_of/3).
 :- prop size_of(Name,ListVar,SizeVar)
  # "For predicate @var{Name}, the size of the argument of type
-    @regtype{byte_list/1}, @var{ListVar}, is given by the argument of type
+    @regtype{c_uint8_list/1}, @var{ListVar}, is given by the argument of type
     integer @var{SizeVar}.".
-
 size_of(_,_,_).
 
-
+:- export(do_not_free/2).
 :- prop do_not_free(Name,Var)
  # "For predicate @var{Name}, the C argument passed to (returned from) the
     foreign function will not be freed after calling the foreign function.".
-
 do_not_free(_,_).
 
-
+:- export(ttr/3).
 :- prop ttr(Name,Var,TTr)
- # "For predicate @var{Name}, the C argument will be translated ussing @tt{TTr}
+ # "For predicate @var{Name}, the C argument will be translated using @tt{TTr}
     as term translator.".
-
 ttr(_,_,_).
 
-
+:- export(returns/2).
 :- prop returns(Name,Var)
  # "The result of the foreign function that implements the Prolog predicate
     @pred{Name} is unified with the Prolog variable @var{Var}. Cannot be
     used without @prop{foreign/1} or @prop{foreign/2}.".
-
 returns(_,_).
 
-
-:- prop needs_state(Name)
+:- export(needs_ciao_ctx/1).
+:- prop needs_ciao_ctx(Name)
  # "The foreign function which implementes the predicate @pred{Name} needs 
-    a @tt{ciao_state} as its first argument.".
+    a @tt{ciao_ctx} as its first argument.".
+needs_ciao_ctx(_).
 
-needs_state(_).
-
-
+:- export(foreign/1).
 :- prop foreign(Name)
  # "The Prolog predicate @pred{Name} is implemented using the foreign
     function @tt{Name}.".
-
 foreign(_).
 
-
+:- export(foreign/2).
 :- prop foreign(PrologName,ForeignName)
  # "The Prolog predicate @pred{PrologName} is implemented using the foreign
     function @tt{ForeignName}.".
-
 foreign(_,_).
 
-
-:- prop foreign_low(Name) # "The Prolog predicate @pred{Name} is
-implemented using the function @tt{Name}.  The implementation is not
-a common C one, but it accesses directly the internal Ciao Prolog data
-structures and functions, and therefore no glue code is generated for
-it.".
-
+:- export(foreign_low/1).
+:- prop foreign_low(Name)
+ # "The Prolog predicate @pred{Name} is implemented using the function
+    @tt{Name}.  The implementation is not a common C one, but it
+    accesses directly the internal Ciao Prolog data structures and
+    functions, and therefore no glue code is generated for it.".
 foreign_low(_).
 
-
-:- prop foreign_low(PrologName,ForeignName) # "The Prolog predicate
-@pred{PrologName} is implemented using the function
-@tt{ForeignName}.  The same considerations as above example
-are to be applied.".
-
+:- export(foreign_low/2).
+:- prop foreign_low(PrologName,ForeignName)
+ # "The Prolog predicate @pred{PrologName} is implemented using the
+    function @tt{ForeignName}.  The same considerations as above
+    example are to be applied.".
 foreign_low(_,_).
-
 
 :- pop_prolog_flag(multi_arity_warnings).
 
 :- doc(bug, "The @tt{size_of/3} property has an empty definition").
 
-:- doc(bug, "The @tt{byte/1} property has an empty definition.
-A possible right definition is commented.").
+:- doc(bug, "The range of integer types is missing.").
+:- doc(bug, "@tt{ciao_fits_in_X()} is implemented only for a few ctypes.").
+:- doc(bug, "@tt{X_list/1} type is implemented only for a few ctypes.").
+:- doc(bug, "Creation if @tt{c_int64} in 32-bit build is broken (we need a MakeInteger32 and MakeInteger64)").
+
+:- doc(bug, "The @tt{size_of/3} property has an empty definition").

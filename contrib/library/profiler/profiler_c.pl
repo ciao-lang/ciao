@@ -549,7 +549,7 @@ CBOOL__PROTO(prolog_using_timestamp)
 ".
 
 :- export(total_time/1).
-:- true pred total_time(go(TotalTime)) :: num +
+:- true pred total_time(go(TotalTime)) :: c_double +
 	(foreign(total_time), returns(TotalTime)) -->
 
 "

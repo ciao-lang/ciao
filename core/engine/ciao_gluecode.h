@@ -3,6 +3,7 @@
  *
  *  Auxiliary definitions for Ciao gluecode files (foreign interface).
  *
+ *  Copyright (C) 2016 Jose F. Morales
  *  Copyright (C) 2002 UPM-CLIP
  */
 
@@ -18,14 +19,9 @@
 
 #include <ciao_prolog.h>
 
-#define DECL_STATE ciao_state state;
-#define INIT_STATE state = w->misc->goal_desc_ptr;
-/*
-// note: remove this code if the previous one is correct -- jf
-#define DECL_STATE goal_descriptor sstate; ciao_state state;
-#define INIT_STATE state = &sstate; state->worker_registers = w;
-*/
-#define IMPLICIT_STATE ciao_implicit_state = state;
+#define CiaoDeclCtx(CTX) ciao_ctx CTX;
+#define CiaoInitCtx(CTX) CTX = w->misc->goal_desc_ptr;
+#define CiaoSetImplicitCtx(CTX) ciao_implicit_ctx = (CTX);
 
 #include <setjmp.h>
 
@@ -35,12 +31,12 @@
 extern jmp_buf ciao_gluecode_jmpbuf;
 #define GLUECODE_TRY(Call) \
     if (setjmp(ciao_gluecode_jmpbuf)) { \
-      BUILTIN_ERROR(FOREIGN_ERROR, X(0), -1);	\
+      BUILTIN_ERROR(FOREIGN_ERROR, X(0), -1); \
     } else { \
       Call; \
     }
 
-ciao_term ciao_ref(ciao_state state, tagged_t x);
+ciao_term ciao_ref(ciao_ctx ctx, tagged_t x);
 /* TODO: ugly, better modify the gluecode generation */
 #define free ciao_free
 

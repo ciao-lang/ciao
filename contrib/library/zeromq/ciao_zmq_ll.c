@@ -78,7 +78,7 @@ collect_bytes(int indicative_size,
 	(i < size) && ciao_is_list(lp);
 	lp= ciao_list_tail(lp), i++) {
       h= ciao_list_head(lp);
-      (*buff)[i]= (ciao_is_integer(h)? (char)ciao_to_integer(h): 0);
+      (*buff)[i]= (ciao_is_integer(h)? (char)ciao_get_c_int(h): 0);
     }
 
     // .. Fill the rest with zeros .................................
@@ -382,7 +382,7 @@ ciao_zmq_atom_option recv_options[] = {
 };
 
 extern ciao_term
-ciao_zmq_recv(char *socket_atom, int *size, 
+ciao_zmq_recv(char *socket_atom, size_t *size, 
 		 char **byte_list, ciao_term option_list) {
   
   *byte_list= NULL;
@@ -637,7 +637,7 @@ error_collect( ciao_zmq_error_record *rec) {
 
   rec->padding= 0;
   ciao_term trec= ciao_structure("error", 3, 
-				 ciao_integer(rec->error_code),
+				 ciao_mk_c_int(rec->error_code),
 				 ciao_atom(rec->error_functor),
 				 ciao_atom(rec->socket_atom_chars));
   ciao_zmq_error_record *next= rec->next;

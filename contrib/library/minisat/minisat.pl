@@ -1,9 +1,11 @@
+% TODO: upgrade MiniSat version (this one has warning when compiled in 64-bits)
+
 %%============================================================================ 
 %% The SWI-Prolog interface to MiniSat SAT solver
 %% http://www.cs.chalmers.se/Cs/Research/FormalMethods/MiniSat/MiniSat.html
 %%
 %% Copyright (c) 2006, Michael Codish, Vitaly Lagoon, and Peter J. Stuckey
-%% 
+y%% 
 %% Permission is hereby granted, free of charge, to any person obtaining a
 %% copy of this software and associated documentation files (the
 %% "Software"), to deal in the Software without restriction, including
@@ -83,30 +85,32 @@ assign_model([V|Vs],[N|Ns]) :-
 %%%
 %%%
 
-:- extra_linker_opts('-L.').
-:- use_foreign_library('minisat').
+%:- extra_linker_opts('-L.').
+%:- use_foreign_library('minisat').
+:- use_foreign_source('ciao-minisat').
+:- use_foreign_source('solver').
 
 
 :- true pred minisat_new_solver_1(go(Success))
-        :: int + (returns(Success), foreign(minisat_new_solver)).
+        :: c_int + (returns(Success), foreign(minisat_new_solver)).
 
 minisat_new_solver  :- minisat_new_solver_1(1).
 
 
 :- true pred minisat_delete_solver_1(go(Success))
-        :: int + (returns(Success), foreign(minisat_delete_solver)).
+        :: c_int + (returns(Success), foreign(minisat_delete_solver)).
 
 minisat_delete_solver  :- minisat_delete_solver_1(1).
 
 
 :- true pred minisat_add_clause_2(in(_),go(Success))
-        :: any_term * int + (returns(Success), foreign(minisat_add_clause)).
+        :: any_term * c_int + (returns(Success), foreign(minisat_add_clause)).
 
 minisat_add_clause(A) :- minisat_add_clause_2(A,1).
 
 
 :- true pred minisat_solve_2(out(_),go(Success))
-        :: any_term * int + (returns(Success), foreign(minisat_solve)).
+        :: any_term * c_int + (returns(Success), foreign(minisat_solve)).
 
 minisat_solve(A) :- minisat_solve_2(A,1).
 

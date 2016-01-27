@@ -88,7 +88,7 @@ ht_tab *ht_create(word logsize);
    RETURNS:
      nothing
  */
-void  ht_destroy(/*_ ht_tab *t _*/);
+void ht_destroy(ht_tab *t);
 
 
 /* hcount, hkey, hkeyl, ht_stuff

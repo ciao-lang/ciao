@@ -1,7 +1,7 @@
 :- module(objects, [object/2, show_object/1], [foreign_interface]).
 
 :- true pred object(in(N),go(Object)) ::
-	int * address + (foreign,returns(Object)).
+	c_int * address + (foreign,returns(Object)).
 
 :- true pred show_object(in(Object)) ::
 	address + foreign.

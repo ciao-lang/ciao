@@ -567,9 +567,9 @@ CBOOL__PROTO(tabled_call_c) {
       args[0] = ARG1;
       args[1] = private_term;
       tagged_t copy_term_call = MkApplTerm(functor_copy_term,2,args);
-      init_state_from_WAM(Arg->misc->goal_desc_ptr);
+      ciao_frame_re_begin(Arg->misc->goal_desc_ptr);
       ciao_commit_call_term(ciao_refer(copy_term_call));
-      re_ciao_frame_end();
+      ciao_frame_re_end();
       //end copy
       TABLED_CALL(Arg, private_term, node, sf_priv);
 #endif

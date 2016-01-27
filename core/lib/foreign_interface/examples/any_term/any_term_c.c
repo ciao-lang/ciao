@@ -5,7 +5,7 @@ ciao_term custom_create_term(int n) {
   ciao_term t;
   t = ciao_empty_list();
   while (n > 0) {
-    t = ciao_list(ciao_integer(n), t);
+    t = ciao_list(ciao_mk_c_int(n), t);
     n--;
   }
   return t;
@@ -37,9 +37,9 @@ void custom_display_term(ciao_term term) {
   } else if (ciao_is_empty_list(term)) {
     printf("<empty_list/>");
   } else if (ciao_is_integer(term)) {
-    printf("<integer value=\"%d\"/>", ciao_to_integer(term));
+    printf("<integer value=\"%d\"/>", ciao_get_c_int(term));
   } else if (ciao_is_number(term)) {
-    printf("<float value=\"%f\"/>", ciao_to_float(term));
+    printf("<float value=\"%f\"/>", ciao_get_c_float(term));
   } else {
     printf("<unknown/>");
   }

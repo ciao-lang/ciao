@@ -25,12 +25,12 @@
 # "Is the inverse of matrix_to_properties.".
 
 :- true pred properties_to_matrix(in(Elements), in(Length), in(Rows),
-	    in(Cols), go(Matrix)) :: double_list * int * int * int * address +
+	    in(Cols), go(Matrix)) :: c_double_list * c_size * c_size * c_size * address +
 	(foreign, size_of(Elements, Length), returns(Matrix)) -->
 "
-gsl_matrix * properties_to_matrix(double * elements, int length, int rows, int cols)
+gsl_matrix * properties_to_matrix(double *elements, size_t length, size_t rows, size_t cols)
 {
-  int i; /*, l = rows * cols;*/
+  size_t i; /*, l = rows * cols;*/
   gsl_matrix *qt = gsl_matrix_alloc(rows, cols);
   for(i = 0; i < length; i++)
     qt->data[i] = elements[i];

@@ -7,9 +7,9 @@ void make_smart_conversion_c(ciao_term  number_in,
   double inter_float;
   char * inter_str;
 
-  if (ciao_fits_in_int(number_in)) {/* Includes the case of being a float */
-    inter_int = ciao_to_integer(number_in);
-    *number_out = ciao_integer(inter_int);
+  if (ciao_fits_in_c_int(number_in)) {/* Includes the case of being a float */
+    inter_int = ciao_get_c_int(number_in);
+    *number_out = ciao_mk_c_int(inter_int);
     *how_converted = ciao_atom("machine_integer");
   } else
     if (ciao_is_integer(number_in)) { /* Big number */
@@ -18,7 +18,7 @@ void make_smart_conversion_c(ciao_term  number_in,
       ciao_free(inter_str);
       *how_converted = ciao_atom("string");
     } else { /* Must be a float */
-      inter_float = ciao_to_float(number_in);
+      inter_float = ciao_get_c_double(number_in);
       *number_out = ciao_float(inter_float);
       *how_converted = ciao_atom("float");
     }

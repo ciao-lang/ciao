@@ -104,7 +104,7 @@ Prolog_put_term(Prolog_term_ref& t, Prolog_term_ref u) {
 */
 inline int
 Prolog_put_long(Prolog_term_ref& t, long l) {
-  t = ciao_integer(l);
+  t = ciao_mk_c_long(l);
   return 1;
 }
 
@@ -114,7 +114,7 @@ Prolog_put_long(Prolog_term_ref& t, long l) {
 inline int
 Prolog_put_ulong(Prolog_term_ref& t, unsigned long ul) {
   if (ul < INT_MAX)
-    t = ciao_integer(ul);
+    t = ciao_mk_c_ulong(ul);
   else {
     std::ostringstream s;
     s << ul;
@@ -148,7 +148,7 @@ Prolog_put_atom(Prolog_term_ref& t, Prolog_atom a) {
 */
 inline int
 Prolog_put_address(Prolog_term_ref& t, void* p) {
-  t = ciao_pointer_to_address(ciao_implicit_state, p);
+  t = ciao_pointer_to_address(ciao_implicit_ctx, p);
   return 1;
 }
 
@@ -265,7 +265,7 @@ Prolog_is_integer(Prolog_term_ref t) {
 */
 inline int
 Prolog_is_address(Prolog_term_ref t) {
-  return ciao_is_address(ciao_implicit_state, t);
+  return ciao_is_address(ciao_implicit_ctx, t);
 }
 
 /*!
@@ -293,8 +293,8 @@ Prolog_is_cons(Prolog_term_ref t) {
 inline int
 Prolog_get_long(Prolog_term_ref t, long* lp) {
   assert(ciao_is_integer(t));
-  if (ciao_fits_in_int(t)) {
-    *lp = ciao_to_integer(t);
+  if (ciao_fits_in_c_long(t)) {
+    *lp = ciao_get_c_long(t);
     return 1;
   }
   else {
@@ -314,7 +314,7 @@ Prolog_get_long(Prolog_term_ref t, long* lp) {
 inline int
 Prolog_get_address(Prolog_term_ref t, void** vpp) {
   assert(Prolog_is_address(t));
-  *vpp = ciao_address_to_pointer(ciao_implicit_state, t);
+  *vpp = ciao_address_to_pointer(ciao_implicit_ctx, t);
   return 1;
 }
 
@@ -380,8 +380,8 @@ Prolog_unify(Prolog_term_ref t, Prolog_term_ref u) {
 PPL::Coefficient
 integer_term_to_Coefficient(Prolog_term_ref t) {
   assert(ciao_is_integer(t));
-  if (ciao_fits_in_int(t))
-    return PPL::Coefficient(ciao_to_integer(t));
+  if (ciao_fits_in_c_long(t))
+    return PPL::Coefficient(ciao_get_c_long(t));
   else {
     char* s;
     s = ciao_get_number_chars(t);
@@ -395,7 +395,7 @@ Prolog_term_ref
 Coefficient_to_integer_term(const PPL::Coefficient& n) {
   int i = 0;
   if (PPL::assign_r(i, n, PPL::ROUND_NOT_NEEDED) == PPL::V_EQ)
-    return ciao_integer(i);
+    return ciao_mk_c_int(i);
   else {
     std::ostringstream s;
     s << n;

@@ -52,8 +52,8 @@ ppl_Prolog_sysdep_deinit() {
 int
 Prolog_get_Coefficient(Prolog_term_ref t, Coefficient& n) {
   assert(Prolog_is_integer(t));
-  if (ciao_fits_in_int(t))
-    n = ciao_to_integer(t);
+  if (ciao_fits_in_c_long(t))
+    n = ciao_get_c_long(t);
   else {
     const char* s = ciao_get_number_chars(t);
     n = Coefficient(s);
@@ -68,7 +68,7 @@ Prolog_put_Coefficient(Prolog_term_ref& t, const Coefficient& n) {
   int i;
   Result r = assign_r(i, n, ROUND_IGNORE);
   if (!result_overflow(r))
-    t = ciao_integer(i);
+    t = ciao_mk_c_int(i);
   else {
     std::ostringstream s;
     s << n;

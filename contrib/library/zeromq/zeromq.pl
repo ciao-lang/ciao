@@ -151,7 +151,7 @@
 	can be simultaneously connected to several endpoints.".
 
 :- true pred zmq_subscribe(in(SocketAtom), in(Len), in(Prefix)) :: atm
-* int * any_term + (foreign(ciao_zmq_subscribe)) # "Subscribes socket
+* c_int * any_term + (foreign(ciao_zmq_subscribe)) # "Subscribes socket
 @var{SocketAtom} of type @tt{sub} to listen for messages that start
 with the given @var{Prefix} byte list of size @var{Len}.  A @tt{sub}
 socket @em{must} be subscribed to receive messages, even if the prefix
@@ -161,7 +161,7 @@ will be used.  If @var{Size}>@tt{length(}@var{Prefix}@tt{)}, the
 remaining bytes will be zeroes.".
 
 :- true pred zmq_unsubscribe(in(SocketAtom), in(Len), in(Prefix)) ::
-	atm * int * any_term + (foreign(ciao_zmq_unsubscribe)) #
+	atm * c_int * any_term + (foreign(ciao_zmq_unsubscribe)) #
 	"Removes subscription previously established with
 	@pred{zmq_subscribe/3}.  If @var{Size}<0, the actual size will
 	be the length of @var{Prefix}, otherwise at most @var{Size}
@@ -169,8 +169,10 @@ remaining bytes will be zeroes.".
 	@var{Size}>@tt{length(}@var{Prefix}@tt{)}, the remaining bytes
 	will be zeroes.".
 
+% TODO: Size type should be c_size (and size_t in the C part)
+
 :- true pred zmq_send(in(SocketAtom), in(Size), in(ByteList),
-	in(Options)) :: atm * int * any_term * any_term +
+	in(Options)) :: atm * c_int * any_term * any_term +
 	(foreign(ciao_zmq_send)) # "Sends a list of bytes
 	@var{ByteList} of size @var{Size} over socket @var{SocketAtom}
 	using the list of options @var{Options}.  Possible options
@@ -182,7 +184,7 @@ remaining bytes will be zeroes.".
 	remaining bytes will be zeroes.".
 
 :- true pred zmq_recv(in(SocketAtom), go(Maybe), go(Size),
-	go(ByteList),in(Options)) :: atm * any_term * int * byte_list
+	go(ByteList),in(Options)) :: atm * any_term * c_size * c_uint8_list
 	* any_term + (foreign(ciao_zmq_recv), returns(Maybe),
 	size_of(ByteList,Size)) # "Reads a message (or a message part)
 	from socket @var{SocketAtom} using list of options
@@ -201,7 +203,7 @@ remaining bytes will be zeroes.".
 	@tt{none}.".
 
 :- true pred zmq_poll(in(SocketList), in(Timeout), go(Result)) ::
-	any_term * int * any_term + (foreign(ciao_zmq_poll),
+	any_term * c_int * any_term + (foreign(ciao_zmq_poll),
 	returns(Result)) # "Polls sockets from the list
 	@var{SocketList} for incoming messages.  @var{Timeout} defines
 	how long to wait in microseconds: 0 means immediate return,

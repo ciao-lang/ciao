@@ -240,7 +240,7 @@ valid_foreign_name(Loc, PredName, _) :-
         set_fact(foreign_predicate_error), 
 	fail.
 
-get_foreign(Status, Loc, PredName, ForeignName, DP, CP, AP, GP, Arguments0, VarNames) := foreign(PredName, GluecodeName, ForeignName, Arguments, ResVar, NeedsState) :-
+get_foreign(Status, Loc, PredName, ForeignName, DP, CP, AP, GP, Arguments0, VarNames) := foreign(PredName, GluecodeName, ForeignName, Arguments, ResVar, NeedsCtx) :-
 	check_assertions(Status, Loc, PredName, Arguments0, DP, CP, AP, GP, VarNames),
 	PredName = PrologName/Arity,
 	Arity1 is Arity - 1, 
@@ -251,7 +251,7 @@ get_foreign(Status, Loc, PredName, ForeignName, DP, CP, AP, GP, Arguments0, VarN
 	GluecodeName = ~atom_concat('gluecode_', PrologName), 
 	Arguments = ~get_arguments(Arguments0, DP, CP, AP, TTrs, SizeLinks, NoFreeVars),
 	( member(returns(_, ResVar0), GP) -> ResVar = [ResVar0], returns_in_output_argument(ResVar0, Arguments, Loc, PredName, VarNames) ; ResVar = [] ),
-	( member(needs_state, GP) -> NeedsState = yes ; NeedsState = no ).
+	( member(needs_ciao_ctx, GP) -> NeedsCtx = yes ; NeedsCtx = no ).
 
 get_arguments([X|Xs], DP, CP, AP, TTrs, SizeLinks, NoFreeVars) := [~get_argument(X, DP, CP, AP, TTrs, SizeLinks, NoFreeVars)|~get_arguments(Xs, DP, CP, AP, TTrs, SizeLinks, NoFreeVars)] :- !.
 get_arguments([], _, _, _, _, _, _) := [] :- !.
@@ -339,24 +339,26 @@ one_list_for_each_size_of(Loc, PredName, DP, GP, Arguments) :-
 one_list_for_each_size_of(_, _, _, _, _).
 
 check_list_correctness(Loc, PredName, DP, GP, Arguments, VarNames) :-
-	one_list_for_each_size_of(Loc, PredName, DP, GP, Arguments), 
-	one_size_of_for_each_double_list(Loc, PredName, DP, GP, VarNames),
-	one_size_of_for_each_int_list(Loc, PredName, DP, GP, VarNames),
-	one_size_of_for_each_byte_list(Loc, PredName, DP, GP, VarNames).
+	one_list_for_each_size_of(Loc, PredName, DP, GP, Arguments),
+	one_size_of_for_each(Loc, PredName, DP, GP, VarNames).
+
+is_c_list_prop(c_uint8_list(ListVar), c_int8, ListVar).
+is_c_list_prop(c_int_list(ListVar), c_int, ListVar).
+is_c_list_prop(c_double_list(ListVar), c_double, ListVar).
 
 valid_size_of_property(Arguments, ListVar, SizeVar, DP) :-
 	\+ nocontainsx(Arguments, ListVar), 
 	\+ nocontainsx(Arguments, SizeVar), 
-	( \+ nocontainsx(DP, byte_list(ListVar)) ->
+	( is_c_list_prop(ListProp, _CType, ListVar),
+	  \+ nocontainsx(DP, ListProp) ->
 	    true
-	; \+ nocontainsx(DP, int_list(ListVar)) ->
-	    true
-	; \+ nocontainsx(DP, double_list(ListVar))
+	; fail
 	),
-	\+ nocontainsx(DP, int(SizeVar)).
+	\+ nocontainsx(DP, c_size(SizeVar)).
 
-one_size_of_for_each_byte_list(Loc, PredName, DP, GP, VarNames) :-
-	member(byte_list(ListVar), DP), 
+one_size_of_for_each(Loc, PredName, DP, GP, VarNames) :-
+	is_c_list_prop(ListProp, _CType, ListVar),
+	member(ListProp, DP), 
 	findall(Y, (member(size_of(_, Y, _), GP), Y==ListVar), S), 
 	nonsingle(S), 
 	!, 
@@ -364,29 +366,7 @@ one_size_of_for_each_byte_list(Loc, PredName, DP, GP, VarNames) :-
 	error_message(Loc, "variable ~w in predicate ~w needs a (only one) size_of/3 property", [VarName, PredName]), 
         set_fact(foreign_predicate_error), 
 	fail.
-one_size_of_for_each_byte_list(_, _, _, _, _).
-
-one_size_of_for_each_int_list(Loc, PredName, DP, GP, VarNames) :-
-	member(int_list(ListVar), DP), 
-	findall(Y, (member(size_of(_, Y, _), GP), Y==ListVar), S), 
-	nonsingle(S), 
-	!, 
-	var_name(ListVar, VarNames, VarName), 
-	error_message(Loc, "variable ~w in predicate ~w needs a (only one) size_of/3 property", [VarName, PredName]), 
-        set_fact(foreign_predicate_error), 
-	fail.
-one_size_of_for_each_int_list(_, _, _, _, _).
-
-one_size_of_for_each_double_list(Loc, PredName, DP, GP, VarNames) :-
-	member(double_list(ListVar), DP), 
-	findall(Y, (member(size_of(_, Y, _), GP), Y==ListVar), S), 
-	nonsingle(S), 
-	!, 
-	var_name(ListVar, VarNames, VarName), 
-	error_message(Loc, "variable ~w in predicate ~w needs a (only one) size_of/3 property", [VarName, PredName]), 
-        set_fact(foreign_predicate_error), 
-	fail.
-one_size_of_for_each_double_list(_, _, _, _, _).
+one_size_of_for_each(_, _, _, _, _).
 
 var_name(Var, VarNames, Name) :-
 	findall(N, (member(N=X, VarNames), X==Var), [Name]).
@@ -515,9 +495,9 @@ foreign_predicates_interface([P|Ps], Module) -->
 foreign_predicate_interface(P, _Module) --> { P = foreign_low(_, NativeName) }, !,
 	foreign_low_prototype(NativeName).
 foreign_predicate_interface(P, Module) -->
-	{ P = foreign(PredName, GluecodeName, ForeignName, Arguments, ResVar, NeedsState) }, !,
-	foreign_prototype(ForeignName, Arguments, ResVar, NeedsState), 
-	{ interface_function_body(PredName, Module, ForeignName, Arguments, ResVar, NeedsState, Body, []) },
+	{ P = foreign(PredName, GluecodeName, ForeignName, Arguments, ResVar, NeedsCtx) }, !,
+	foreign_prototype(ForeignName, Arguments, ResVar, NeedsCtx), 
+	{ interface_function_body(PredName, Module, ForeignName, Arguments, ResVar, NeedsCtx, Body, []) },
 	[GluecodeName:function([w:pointer(worker_t)], 'bool_t')#Body].
 
 % -----------------------------------------------------------------------------
@@ -526,13 +506,13 @@ foreign_low_prototype(NativeName) --> [NativeName:function([pointer(worker_t)], 
 
 % -----------------------------------------------------------------------------
 
-foreign_prototype(ForeignName, Arguments, ResVar, NeedsState) -->
+foreign_prototype(ForeignName, Arguments, ResVar, NeedsCtx) -->
 	{ ResVar = [ResN], select(arg(ResN, ResTTr, _, _), Arguments, Arguments1) ->
 	    ResCType = ~ttr_ctype_res(ResTTr)
 	; ResCType = void, Arguments1 = Arguments
 	},
 	{ Args0 = ~foreign_prototype_args(Arguments1) },
-	{ NeedsState = yes -> Args = [state:ciao_state|Args0] ; Args = Args0 },
+	{ NeedsCtx = yes -> Args = [ctx:ciao_ctx|Args0] ; Args = Args0 },
 	[ForeignName:function(Args, ResCType)].
 
 foreign_prototype_args([]) := [] :- !.
@@ -545,7 +525,7 @@ foreign_prototype_arg(_) := ciao_term.
 
 :- use_module(engine(internals), [module_concat/3]).
 
-interface_function_body(F/A, Module, ForeignName, Arguments, ResVar, NeedsState) -->
+interface_function_body(F/A, Module, ForeignName, Arguments, ResVar, NeedsCtx) -->
 	% optim_comp: 'string' is required by the C code writer, and MF/A is given as PredName
 	% [call('ERR__FUNCTOR', [string(~atom_codes(MF)), A])], 
 	{ module_concat(Module, F, MF) },
@@ -555,8 +535,9 @@ interface_function_body(F/A, Module, ForeignName, Arguments, ResVar, NeedsState)
 	params_apply(Arguments, v_decl),
 	params_apply(Arguments, u_decl),
 	% variable initialization
-	['DECL_STATE', 'INIT_STATE'],
-	[call(ciao_frame_begin_s, [state])],
+	[call('CiaoDeclCtx', [ctx])],
+	[call('CiaoInitCtx', [ctx])],
+	[call(ciao_frame_begin_s, [ctx])],
 	params_apply(Arguments, ref),
 	% prolog -> c 
 	params_apply(~filter_single(Arguments), check),
@@ -564,12 +545,12 @@ interface_function_body(F/A, Module, ForeignName, Arguments, ResVar, NeedsState)
 	params_apply(~filter_single(Arguments), to_c),
 	params_apply(~filter_compound(Arguments), to_c),
 	% c call
-	do_call(ForeignName, Arguments, ResVar, NeedsState), 
+	do_call(ForeignName, Arguments, ResVar, NeedsCtx), 
 	% c -> prolog
 	params_apply(Arguments, from_c),
 	params_apply(Arguments, free),
 	params_apply(Arguments, unify),
-	[call(ciao_frame_end_s, [state])],
+	[call(ciao_frame_end_s, [ctx])],
 	[return('TRUE')].
 
 filter_single([]) := [] :- !.
@@ -604,13 +585,13 @@ param_apply_u_decl(_) --> !.
 param_apply_t_decl(arg(N, _, _, _)) --> !,
 	[(~t(N)):ciao_term].
 
-param_apply_ref(arg(N, _, _, _)) --> [~t(N) = call(ciao_ref, [state, ~x(N)])].
+param_apply_ref(arg(N, _, _, _)) --> [~t(N) = call(ciao_ref, [ctx, ~x(N)])].
 
 param_apply_check(X) --> { Check = ~check_code(X) }, !,
 	[if(logical(\ Check), ~exception_code(X))]. 
 param_apply_check(_) --> !.
 
-check_code(arg(N, TTr, _, _)) := call(Check, [state, ~t(N)]) :- Check = ~ttr_check(TTr).
+check_code(arg(N, TTr, _, _)) := call(Check, [ctx, ~t(N)]) :- Check = ~ttr_check(TTr).
 
 exception_code(arg(N, TTr, _, _)) := X :- X = ~exception_code_2(N, ~ttr_exception(TTr)), !.
 exception_code(_) := return('FALSE') :- !.
@@ -619,9 +600,9 @@ exception_code_2(N, error_in_arg(Type)) := call('ERROR_IN_ARG', [~x(N), N + 1, T
 exception_code_2(_, usage_fault(Msg)) := call('USAGE_FAULT', [Msg]) :- !.
 
 param_apply_to_c(arg(N, TTr, single, _)) --> { ToC = ~ttr_to_c(TTr) }, !,
-	[~c(N) = call(ToC, [state, ~t(N)])].
+	[~c(N) = call(ToC, [ctx, ~t(N)])].
 param_apply_to_c(arg(N, TTr, compound(_), _)) --> { ToC = ~ttr_to_c(TTr) }, !,
-	[~c(N) = call(ToC, [state, ~t(N)])].
+	[~c(N) = call(ToC, [ctx, ~t(N)])].
 param_apply_to_c(_) --> !.
 
 param_apply_from_c(arg(N, TTr, XN, _)) --> { FromC = ~ttr_from_c(TTr) }, !,
@@ -629,22 +610,22 @@ param_apply_from_c(arg(N, TTr, XN, _)) --> { FromC = ~ttr_from_c(TTr) }, !,
 param_apply_from_c(_) --> !.
 
 from_c_code('=', N, single) := ~c(N) :- !.
-from_c_code(FromC, N, single) := call(FromC, [state, ~c(N)]) :- !.
-from_c_code(FromC, N, compound(LengthN)) := call(FromC, [state, ~c(N), ~c(LengthN)]) :- !.
+from_c_code(FromC, N, single) := call(FromC, [ctx, ~c(N)]) :- !.
+from_c_code(FromC, N, compound(LengthN)) := call(FromC, [ctx, ~c(N), ~c(LengthN)]) :- !.
 
 param_apply_free(arg(N, TTr, _, no)) --> { Free = ~ttr_free(TTr) }, !,
 	[call(Free, [~c(N)])].
 param_apply_free(_) --> !.
 
 param_apply_unify(arg(N, TTr, _, _)) --> { _ = ~ttr_from_c(TTr) }, !,
-	[if(logical(\ call(ciao_unify_s, [state, ~u(N), ~t(N)])), return('FALSE'))].
+	[if(logical(\ call(ciao_unify_s, [ctx, ~u(N), ~t(N)])), return('FALSE'))].
 param_apply_unify(_) --> !.
 
-do_call(ForeignName, Arguments, ResVar, NeedsState) -->
+do_call(ForeignName, Arguments, ResVar, NeedsCtx) -->
 	{ ResVar = [ResN], select(arg(ResN, _, _, _), Arguments, Arguments1) -> true ; Arguments1 = Arguments },
 	{ Args0 = ~call_args(Arguments1) },
-	{ NeedsState = yes -> Args = [state|Args0] ; Args = Args0 },
-	( { NeedsState = no } -> ['IMPLICIT_STATE'] ; [] ),
+	{ NeedsCtx = yes -> Args = [ctx|Args0] ; Args = Args0 },
+	( { NeedsCtx = no } -> [call('CiaoSetImplicitCtx', [ctx])] ; [] ),
 	{ ResVar = [N] -> Call = (~c(N) = call(ForeignName, Args)) ; Call = (call(ForeignName, Args)) },
 	[call('GLUECODE_TRY', [Call])].
 

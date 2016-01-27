@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void obtain_list(int n, int *l, unsigned char **s) {
+void obtain_list(int n, size_t *l, unsigned char **s) {
   int i;
   int c;
   if (n < 0) n = 0;
@@ -12,9 +12,9 @@ void obtain_list(int n, int *l, unsigned char **s) {
   }
 }
 
-void show_list(int l, unsigned char *s) {
+void show_list(size_t l, unsigned char *s) {
   if (s) {
-    int n;
+    size_t n;
     printf("From C:");
     for (n = 0; n < l; n++) {
       printf(" %d", s[n]);

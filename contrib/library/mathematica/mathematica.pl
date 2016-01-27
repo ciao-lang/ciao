@@ -38,7 +38,7 @@ The instance can be explicitly killed using @pred{close_link/0}.
 
 :- if(defined(mathematica__use_c_infertace)).
 
-:- true pred mathematica_init(in(Kernel),go(Status)) :: (atm*int)
+:- true pred mathematica_init(in(Kernel),go(Status)) :: (atm * c_int)
 	+ (foreign(mathematica_init), returns(Status)).
 
 :- true pred evaluateInMathematica(in(Query), go(Result)) :: (string * string)

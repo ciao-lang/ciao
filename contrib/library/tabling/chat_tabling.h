@@ -88,9 +88,9 @@ tagged_t atom_gen_tree_backtracking;
   {									\
     (CALLID)->state = EVALUATING;					\
     									\
-    init_state_from_WAM((ARG)->misc->goal_desc_ptr);			\
+    ciao_frame_re_begin((ARG)->misc->goal_desc_ptr);			\
     (BOOL) = ciao_commit_call_term(ciao_refer(CALL));			\
-    re_ciao_frame_end();						\
+    ciao_frame_re_end();						\
   }
 
 //TODO: take if (TYPE) out by defining two different CONSUME_ANSWER macros
@@ -239,10 +239,10 @@ tagged_t atom_gen_tree_backtracking;
 	    else							\
 	      {								\
 		/*Execute forward trail*/				\
-		init_state_from_WAM((ARG)->misc->goal_desc_ptr);	\
+		ciao_frame_re_begin((ARG)->misc->goal_desc_ptr);	\
 		tagged_t term = ArgOfTerm(1, (NodeTR)->trail_sg[(iTrail)]); \
 		ciao_commit_call_term(ciao_refer(term));		\
-		re_ciao_frame_end();					\
+		ciao_frame_re_end();					\
 	      }								\
 	  }								\
       }									\
@@ -265,10 +265,10 @@ tagged_t atom_gen_tree_backtracking;
 	    else							\
 	      {								\
 		/*Execute forward trail*/				\
-		init_state_from_WAM((ARG)->misc->goal_desc_ptr);	\
+		ciao_frame_re_begin((ARG)->misc->goal_desc_ptr);	\
 		tagged_t term = ArgOfTerm(2, (NodeTR)->trail_sg[(iTrail)]); \
 		ciao_commit_call_term(ciao_refer(term));		\
-		re_ciao_frame_end();					\
+		ciao_frame_re_end();					\
 	      }								\
 	  }								\
       }									\
