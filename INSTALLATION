@@ -163,7 +163,7 @@ an additional set of software packages:
      $ update-java-alternatives --set java-6-sun
 
      # Fedora:
-     $ yum install gsl gsl-devel ant gnu-g++
+     $ yum install gsl gsl-devel ant gcc-c++
 
 To install the Java JDK on Fedora, please visit Sun Java website
 (`http://java.sun.com/javase/downloads/index.jsp') and follow the

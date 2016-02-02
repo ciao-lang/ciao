@@ -170,7 +170,7 @@ $ apt-get install libgsl0-dev libgsl0ldbl ant ant-optional \
 $ update-java-alternatives --set java-6-sun
 
 # Fedora:
-$ yum install gsl gsl-devel ant gnu-g++
+$ yum install gsl gsl-devel ant gcc-c++
 @end{verbatim}
 
 To install the Java JDK on Fedora, please visit Sun Java website
