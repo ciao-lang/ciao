@@ -46,7 +46,7 @@ bundle_status(BundleAlias, Bundle, Status) :-
 % bundle_fetch(+BundleAlias, -Bundle): Fetch and build the bundle
 %   specified in BundleAlias
 bundle_fetch(BundleAlias, Bundle) :-
-	% Fetch and rescan
+	check_bundle_alias(BundleAlias),
 	top_ciao_path(RootDir),
 	bundle_fetch0(BundleAlias, RootDir, Bundle),
 	update_bundleregs(RootDir).
@@ -117,12 +117,26 @@ bundle_src_origin(BundleAlias, _Origin) :-
 	format(user_error, "ERROR: Unrecognized bundle alias path `~w'.~n", [BundleAlias]),
 	halt(1).
 
+% Check that bundle alias is well formed
+check_bundle_alias(BundleAlias) :-
+	invalid_protocol(P),
+	atom_concat(P, BundleAlias0, BundleAlias),
+	!,
+	format(user_error, "ERROR: Invalid in bundle alias, do you mean ~w? (without ~w).~n", [BundleAlias0, P]),
+	halt(1).
+check_bundle_alias(_).
+
+invalid_protocol('http://').
+invalid_protocol('https://').
+invalid_protocol('ssh://').
+
 % ---------------------------------------------------------------------------
 % TODO: 'ciao rm' does not check dependencies, uninstalls, or do warnings
 
 :- export(bundle_rm/1).
 % Remove the downloaded bundle specified in BundleAlias
 bundle_rm(BundleAlias) :-
+	check_bundle_alias(BundleAlias),
 	top_ciao_path(RootDir),
 	bundle_rm0(BundleAlias, RootDir, _Bundle),
 	update_bundleregs(RootDir).
