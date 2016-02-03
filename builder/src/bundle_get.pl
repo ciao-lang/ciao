@@ -122,7 +122,7 @@ check_bundle_alias(BundleAlias) :-
 	invalid_protocol(P),
 	atom_concat(P, BundleAlias0, BundleAlias),
 	!,
-	format(user_error, "ERROR: Invalid in bundle alias, do you mean ~w? (without ~w).~n", [BundleAlias0, P]),
+	format(user_error, "ERROR: Invalid bundle alias, do you mean ~w? (without ~w).~n", [BundleAlias0, P]),
 	halt(1).
 check_bundle_alias(_).
 
