@@ -348,6 +348,7 @@ cmd_opts(configure,              arg_bundle, config_opts) :- !.
 cmd_opts(rescan_bundles,         no_bundle, raw_opts) :- !.
 cmd_opts(list,                   no_bundle, raw_opts) :- !.
 cmd_opts(get,                    no_bundle, raw_opts) :- !.
+cmd_opts(rm,                     no_bundle, raw_opts) :- !.
 % (internal)
 cmd_opts(scan_and_config,        arg_bundle, config_opts) :- !.
 cmd_opts(config_noscan,          arg_bundle, config_opts) :- !.
@@ -395,6 +396,12 @@ cmd_opts_custom(get, Args2, Cmd2) :- !,
 	; throw(args_error("'get' needs a bundle alias", []))
 	),
 	Cmd2 = get(BundleAlias).
+cmd_opts_custom(rm, Args2, Cmd2) :- !,
+	% do not check flags
+	( Args2 = [BundleAlias] -> true
+	; throw(args_error("'rm' needs a bundle alias", []))
+	),
+	Cmd2 = rm(BundleAlias).
 %
 cmd_opts_custom(clean_tree, Args2, Cmd2) :- !,
 	% do not check flags
@@ -468,6 +475,7 @@ is_builder_cmd(runtests).
 is_builder_cmd(list). % (list bundles)
 is_builder_cmd(info). % (info on bundle)
 is_builder_cmd(get). % (download and install bundles)
+is_builder_cmd(rm). % (remove downloaded bundles)
 %
 is_builder_cmd(gen_bundle_commit_info). % ciao
 is_builder_cmd(gen_pbundle(_)).

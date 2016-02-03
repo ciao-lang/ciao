@@ -38,6 +38,7 @@
 	eng_active_bld/2
 	]).
 :- use_module(ciaobld(bundle_scan), [bundle_scan/2]).
+:- use_module(ciaobld(bundle_get), [bundle_fetch/2, bundle_rm/1]).
 :- use_module(ciaobld(ciaoc_aux),
 	[promote_bootstrap/1,
 	 %
@@ -185,7 +186,12 @@ builder_cmd_(list, '$no_bundle', _Opts) :- !,
 	list_bundles.
 % Download and install bundles
 builder_cmd_(get(BundleAlias), '$no_bundle', _Opts) :- !,
-	bundle_get(BundleAlias).
+	% Fetch and build the bundle specified in BundleAlias
+	bundle_fetch(BundleAlias, Bundle),
+	builder_cmd(build, Bundle, []).
+% Remove a downloaded bundle
+builder_cmd_(rm(BundleAlias), '$no_bundle', _Opts) :- !,
+	bundle_rm(BundleAlias).
 %
 builder_cmd_(build, Target, Opts) :- !,
 	% TODO: Make sure that lpdoc is build before creating the documentation
@@ -1298,115 +1304,3 @@ bundle_uninstall_docs_format_hook(info, Bundle, Target) :- !,
 	dirfile_uninstall_info(~fsR(builddir_doc(BldId)), Target).
 bundle_uninstall_docs_format_hook(_, _, _).
 
-% ===========================================================================
-
-:- doc(subsection, "Bundle Management").
-
-:- use_module(library(process), [process_call/3]).
-:- use_module(library(http_get), [http_get/2]).
-:- use_module(library(system), [mktemp_in_tmp/2, touch/1]).
-
-% Status of a bundle (w.r.t. 'ciao get'):
-%
-%  - fetched: fetched in top workspace
-%  - user: in top workspace, but not fetched by 'ciao get'
-%  - nontop: available as a system bundle or in another workspace
-%  - missing: bundle not available
-%
-bundle_status(BundleAlias, Bundle, Status) :-
-	top_ciao_path(RootDir),
-	path_split(BundleAlias, _, Bundle),
-	path_concat(RootDir, Bundle, BundleDir),
-	( file_exists(BundleDir) ->
-	    ( has_fetch_mark(BundleDir) -> Status = fetched
-	    ; Status = user
-	    )
-	; '$bundle_id'(Bundle) -> Status = nontop
-	; Status = missing
-	).
-
-% Fetch and build the bundle specified in BundleAlias
-bundle_get(BundleAlias) :-
-	% Fetch and rescan
-	top_ciao_path(RootDir),
-	bundle_fetch(BundleAlias, RootDir, Bundle),
-	clean_bundlereg(inpath(RootDir)),
-	bundle_scan(inpath(RootDir), RootDir),
-	reload_bundleregs, % (reload, bundles has been scanned)
-	% Build
-	builder_cmd(build, Bundle, []).
-
-% Fetch at RootDir source code of bundle specified in BundleAlias
-bundle_fetch(BundleAlias, RootDir, Bundle) :-
-	bundle_status(BundleAlias, Bundle, Status),
-	% Compute bundle dir and check status
-	( Status = fetched ->
-	    % TODO: allow silent operation, implement 'ciao rm'
-	    cmd_message(Bundle, "already exists, skipping fetch (remove to force upgrade)", [])
-	; Status = user ->
-	    cmd_message(Bundle, "user bundle, skipping fetch", [])
-	; Status = nontop ->
-	    format(user_error, "ERROR: Bundle `~w' exists in a non-top CIAOPATH.~n", [Bundle]),
-	    halt(1)
-	; Status = missing ->
-	    path_concat(RootDir, Bundle, BundleDir),
-	    bundle_fetch_(BundleAlias, Bundle, BundleDir)
-	; fail
-	).
-
-bundle_fetch_(BundleAlias, Bundle, BundleDir) :-
-	bundle_fetch__(BundleAlias, Bundle, BundleDir),
-	!.
-bundle_fetch_(BundleAlias, _, _) :-
-	format(user_error, "ERROR: Bundle fetch failed for `~w'.~n", [BundleAlias]),
-	halt(1).
-
-bundle_fetch__(BundleAlias, Bundle, BundleDir) :-
-	% Fetch source
-	bundle_src_origin(BundleAlias, Origin),
-	mktemp_in_tmp('ciao-fetch-XXXXXX', File),
-	fetch_src(Origin, Bundle, File),
-	% Uncompress
-	mkpath(BundleDir),
-	process_call(path(tar), [
-          '-x', '--strip-components', '1',
-	  '-C', BundleDir,
-	  '-f', File], [status(0)]),
-	% Mark as fetched
-	set_fetch_mark(BundleDir).
-
-fetch_src(http_get(URL), Bundle, File) :-
-	cmd_message(Bundle, "fetching source from ~w", [URL]),
-	catch(http_get(URL, file(File)), _E, fail).
-fetch_src(git_archive(URL, Ref), Bundle, File) :-
-	cmd_message(Bundle, "fetching source from ~w", [URL]),
-	process_call(path(git),
-	             ['archive', '--format', 'tgz', '--remote', URL,
-		      '--prefix', ~atom_concat(Bundle, '/'),
-		      '--output', File, Ref],
-		     [status(0)]).
-
-bundle_src_origin(BundleAlias, http_get(URL)) :-
-	% Github.com
-	atom_concat('github.com/', _, BundleAlias),
-	!,
-	Ref = master, % TODO: customize Ref
-	atom_concat(['https://', BundleAlias, '/archive/', Ref, '.tar.gz'], URL).
-bundle_src_origin(BundleAlias, git_archive(URL, Ref)) :-
-	% Git repositories at ciao-lang.org
-	atom_concat('ciao-lang.org/', _, BundleAlias),
-	!,
-	Ref = master, % TODO: customize Ref
-	atom_concat(['ssh://gitolite@', BundleAlias], URL).
-bundle_src_origin(BundleAlias, _Origin) :-
-	format(user_error, "ERROR: Unrecognized bundle alias path `~w'.~n", [BundleAlias]),
-	halt(1).
-
-fetch_mark(Dir, F) :-
- 	path_concat(Dir, 'FETCHED_BUNDLE', F).
-
-set_fetch_mark(Dir) :-
- 	touch(~fetch_mark(Dir)).
-
-has_fetch_mark(Dir) :-
-	file_exists(~fetch_mark(Dir)).
