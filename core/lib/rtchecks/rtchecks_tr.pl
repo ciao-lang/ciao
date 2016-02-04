@@ -1,25 +1,46 @@
-:- module(_, [rtchecks_sentence_tr/4, valid_commands/1,
-		rtchecks_goal_tr/3, collect_assertions/3, generate_rtchecks/7,
-		generate_rtchecks/11],
-	    [assertions, nortchecks, nativeprops, isomodes, dcg, hiord]).
+:- module(rtchecks_tr,
+        [
+            rtchecks_sentence_tr/4,
+            valid_commands/1,
+            rtchecks_goal_tr/3,
+            collect_assertions/3,
+            generate_rtchecks/7,
+            generate_rtchecks/11
+        ],
+        [assertions, regtypes, nortchecks, nativeprops, isomodes, dcg, hiord]).
 
 % You can test the inliner package with this module
 :- use_package(library(rtchecks/rtchecks_tr_inline)).
 % :- use_package(library(rtchecks/rtchecks_tr_library)).
 
+:- use_module(library(assertions/assertions_props), [head_pattern/1]).
 % see formulae, conj_to_list/2, list_to_conj/2
-:- use_module(library(llists)).
-:- use_module(library(aggregates)).
-:- use_module(library(terms)).
-:- use_module(library(sort)).
-:- use_module(library(rtchecks/term_list)).
-:- use_module(library(assertions/assrt_lib), [assertion_read/9,
-		assertion_body/7, comps_to_goal/3, comps_to_goal/4]).
+:- use_module(library(aggregates), [findall/3, findall/4]).
+:- use_module(library(terms),      [atom_concat/2]).
+:- use_module(library(sort),       [keylist/1, keypair/1]).
+:- use_module(library(rtchecks/term_list), [collapse_terms/3]).
+:- use_module(library(assertions/assrt_lib),
+        [
+            assertion_read/9,
+            assertion_body/7,
+            comps_to_goal/3,
+            comps_to_goal/4
+        ]).
 :- use_module(library(compiler/c_itf_internal),
-	    [discontiguous/3, defines_module/2, exports_pred/3, location/1,
-		location/3]).
-:- use_module(library(inliner/inliner_tr), [in_inline_module_db/2, inline_db/4,
-		lit_clause_arity/4, compound_struct/3]).
+        [
+            discontiguous/3,
+            defines_module/2,
+            exports_pred/3,
+            location/1,
+            location/3
+        ]).
+:- use_module(library(inliner/inliner_tr),
+        [
+            in_inline_module_db/2,
+            inline_db/4,
+            lit_clause_arity/4,
+            compound_struct/3
+        ]).
 
 :- doc(author, "Edison Mera").
 
@@ -78,7 +99,7 @@ implemented here.").
 	 @item it does not do a clean inline instrumentation of the code.
 	 @item I tried to use a full set of assertions but it does not
 	       generate the code correctly w.r.t. the specification.
---EMM").
+               --EMM").
 
 :- doc(bug, "Redundant tests in [entry, exit] assertions are not
 	collapsed with [calls, success] assertions. It is a bug or a
@@ -112,10 +133,14 @@ valid_assertions(trust, Type) :- !,
 	rtcheck_assr_type(Type).
 valid_assertions(check, Type) :- rtcheck_assr_type(Type).
 
+:- regtype rtcheck_assr_status/1
+        # "The types of assertion statuses processed by the rtchecks library".
 rtcheck_assr_status(true).
 rtcheck_assr_status(trust).
 rtcheck_assr_status(check).
 
+:- regtype rtcheck_assr_type/1
+        # "The admissible kinds of assertions for the rtchecks library".
 rtcheck_assr_type(calls).
 rtcheck_assr_type(entry).
 rtcheck_assr_type(pred).
@@ -221,6 +246,8 @@ proc_ppassertion(trust(Goal), PredName, Dict, Loc, RTCheck) :-
 proc_ppassertion(true(_),  _, _, _, true).
 proc_ppassertion(false(_), _, _, _, true).
 
+% --------------------------------------------- (begin) goal translation
+
 rtchecks_goal_tr(end_of_file, _,         M) :- !, cleanup_db(M).
 rtchecks_goal_tr(PPAssertion, PPRTCheck, _) :-
 	proc_ppassertion(PPAssertion, PredName, [], Loc, PPRTCheck),
@@ -256,6 +283,8 @@ module_qualifier_i(F, N, M, RM) :-
 	; defines(M, F, N) -> RM = M
 	; RM = M
 	).
+
+% ----------------------------------------------- (end) goal translation
 
 cleanup_db_0(M) :-
 	cleanup_head_alias_db(M),
@@ -420,41 +449,38 @@ record_goal_alias(Head0, Head, M) :-
 	compound_struct(Pred, F, Args),
 	assertz_fact(goal_alias_db(Pred0, Pred, M)).
 
-
-/*
-
-Algorithm: 
-
-pred :- body.
-
-is transformed in:
-
-pred :-                        \
-	"check entry...",       \___________ STEP
-	"check exit...",        /            ONE
-	'pred$rtc0'.           /
-
-'pred$rtc0' :-                            \
-	"check compat pre..."              \
-	"check calls...",                   \
-	"check success pre",                 \__________ STEP
-	"check comp..."(                     /           TWO
-	call_stack('pred$rtc1', Loc)),      /
-	"check success pos",               /
-	"check compat pos..."             /
-
-call_stack(Goal, Loc) :-
-	intercept(Goal,
-	    rtcheck(LocStack, ...),
-	    send_signal(rtcheck([Loc|LockStack], ...))).
-
-'pred$rtc1' :-
-	body.
-
-And goals preds are renamed to 'pred$rtc0'.  There are other steps in
-order to simplify the generated code as far as possible.
-
-*/
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Algorithm:
+%%
+%% pred :- body.
+%%
+%% is transformed in:
+%%
+%% pred :-                     \
+%% 	"check entry...",       \___________ STEP
+%% 	"check exit...",        /            ONE
+%% 	'pred$rtc0'.           /
+%%
+%% 'pred$rtc0' :-                         \
+%% 	"check compat pre..."              \
+%% 	"check calls...",                   \
+%% 	"check success pre",                 \__________ STEP
+%% 	"check comp..."(                     /           TWO
+%% 	call_stack('pred$rtc1', Loc)),      /
+%% 	"check success pos",               /
+%% 	"check compat pos..."             /
+%%
+%% call_stack(Goal, Loc) :-
+%% 	intercept(Goal,
+%% 	    rtcheck(LocStack, ...),
+%% 	    send_signal(rtcheck([Loc|LockStack], ...))).
+%%
+%% 'pred$rtc1' :-
+%% 	body.
+%%
+%% And goals preds are renamed to 'pred$rtc0'.  There are other steps in
+%% order to simplify the generated code as far as possible.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 generate_common_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs,
 	    CompatAssrt, CallAssrt, SuccAssrt, CompAssrt) -->
@@ -668,6 +694,51 @@ pre_fails(pre(_, _, _, Exit), cui(Exit, _, (Exit == fail))).
 
 pre_error(pre(_, _, Error, Exit), cui(Exit, _, Error)).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Predicates in this code section have a common input/output pattern
+% on their arguments, that can be generalized as:
+%
+% INPUTS:
+% assr(Pred ,Status,Type,Compat,     Call,     Succ,     Comp     ,ALoc,
+%      PName,            CompatNames,CallNames,SuccNames,CompNames,Dict)
+%      Pred   | +head_pattern
+%      Status | +rtcheck_assr_status
+%      Type   | +rtcheck_assr_type
+%      Compat \
+%      Call    \ a list of properties from
+%      Succ    / the respective assertion part
+%      Comp   /
+%      ALoc   | loc(+atm,+int,+int) assertion location data loc(Source,LB,LE)
+%      PName  | Pred with renamed variables
+%      CompatNames \
+%      CallNames    \ assertion parts with renamed variables and
+%      SuccNames    / corresponding dictionaries (each property term
+%      CompNAmes   /  turned into PropertyName-PropertyDict pair)
+%      Dict   | varnamesl/1 dictionary
+%
+% UsePosLoc   | (+atm,+atm) tuple where each atom is from {yes,no}
+% Pred        | +head_pattern
+% PLoc        | loc(+atm,+int,+int) predicate location data loc(Source,LB,LE)
+% PosLocs     | list of the expanded PName goal PredName and all locations data
+%             | ['$meta$rtc'(PName,PredName),
+%             |   PLoc=Lp,
+%             |   predloc(PredName,Lp)=Lpa,
+%             |   asrloc(ALoc)=La |_]
+% StatusTypes | +list of pairs (rtcheck_assr_status,rtcheck_assr_type)
+%
+% OUTPUT:
+% pre(ChkCall, Call, SendRTC, Exit)
+%     ChkCall : checkc(RTCCall, CallNames, PropName-PropDict, Exit)
+%                   RTCCall  : +list of non_compat/2 or non_inst/2
+%                              wrappers on props from Call
+%                   PropName : -var
+%                   PropDict : -var
+%     SendRTC: send_rtcheck(calls, PredName, Dict, PropName, PropDict, PosLoc)
+%                   PredName : -var
+%                   PosLoc   : [Lpa,La]
+%     Exit   : -var (variable to which on runtime assertion evaluation result
+%              will be saved, of {true, false})
+
 compat_rtcheck(
 	    assr(Pred, Status, Type, Compat, _, _, _, ALoc,
 		PName, CompatNames, _, _, _, Dict),
@@ -691,19 +762,18 @@ compat_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs,
 	    CheckedL0, CheckedL).
 
 calls_rtcheck(
-	    assr(Pred, Status, Type, _, Call, _, _, ALoc,
-		PName, _, CallNames, _, _, Dict),
+           assr(Pred, Status, Type, _, Call, _, _, ALoc,
+                PName, _, CallNames, _, _, Dict),
 	    UsePosLoc, Pred, PLoc, PosLocs, StatusTypes,
-	    pre(ChkCall, Call,
-		send_rtcheck(calls, PredName, Dict, PropName, PropDict,
-		    PosLoc),
-		Exit)) :-
+           pre(ChkCall, Call,
+             send_rtcheck(calls, PredName, Dict, PropName, PropDict, PosLoc),
+           Exit)) :-
 	member((Status, Type), StatusTypes),
 	\+(Call == []),
 	insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
 	get_prop_args(Call, Pred, Args),
 	get_checkc(call, Call, Args, CallNames, PropName-PropDict, Exit,
-	    ChkCall).
+            ChkCall).
 
 calls_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs, StatusTypes,
 	    CheckedL0, CheckedL) -->

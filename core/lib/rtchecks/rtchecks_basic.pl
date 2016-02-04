@@ -23,19 +23,36 @@
 		compound_check_props/4
 	    ], [assertions, nortchecks, dcg, hiord]).
 
-:- use_module(library(llists)).
-:- use_module(library(terms_vars)).
-:- use_module(library(hiordlib)).
-:- use_module(library(apply)).
-:- use_module(library(varnames/apply_dict)).
-:- use_module(library(varnames/pretty_names)).
-:- use_module(library(varnames/complete_dict)).
-:- use_module(library(lists), [append/3]).
-:- use_module(library(rtchecks/term_list)).
+:- use_module(library(llists),     [flatten/2]).
+:- use_module(library(terms_vars), [varset/2, intersect_vars/3]).
+:- use_module(library(hiordlib),   [map/3]).
+:- use_module(library(apply),      [maplist/4]).
+:- use_module(library(varnames/apply_dict),    [apply_dict/3,
+                                                select_applicable/3]).
+:- use_module(library(varnames/pretty_names),  [pretty_names/3]).
+:- use_module(library(varnames/complete_dict), [complete_dict/4]).
+:- use_module(library(varnames/dict_types),    [varnamesl/1]).
+:- use_module(library(lists),                  [append/3,list_of_lists/1]).
+:- use_module(library(rtchecks/term_list),     [push_meta/3, push_term/3]).
+:- use_module(library(assertions/native_props),[nonground/1]).
+:- use_module(library(assertions/assertions_props), [head_pattern/1]).
+
+% ----------------------------------------------------------------------
 
 :- doc(author, "Edison Mera").
+:- doc(author, "Nataliia Stulova (documentation)").
 
 :- doc(module, "Basic predicates used in rtchecks expansion.").
+
+% ----------------------------------------------------------------------
+
+:- pred insert_posloc(Flags,PredName0,PLoc0,ALoc,PosLocs,PredName,PosLoc)
+               :  gndstr * struct * struct * gndstr * list * var * var
+               => gndstr * struct * struct * gndstr * list * var * list(var)
+               # "Depending on the value of flags @var{Flags} pair constructs
+                 a list of variables @var{PosLoc} where list elements are
+                 associated with the location information terms; or returns
+                 an empty list.".
 
 insert_posloc((UsePredLoc, UseAsrLoc), PredName0, PLoc0, ALoc,
 	    PosLocs, PredName, PosLoc) :-
@@ -57,35 +74,83 @@ insert_posloc((UsePredLoc, UseAsrLoc), PredName0, PLoc0, ALoc,
     ;
 	PosLoc = [].
 
+:- pred get_prop_args(Props, Pred, PropArgs)
+        :  list(struct) * head_pattern * var
+        => list(struct) * head_pattern * list_of_lists
+        # "@var{Props} is a list of properties (coming from DP,CP or AP
+           assertion body part) and @var{Pred} is a predicare head PD.
+           @var{PropArgs} is a list of lists of arguments of each
+           property from @var{Props}. Note: if any assertion body part
+           contains disjunction(s), its @var{Props} will be an
+           one-element list and treated like a single term.".
+
 get_prop_args(Props, Pred, PropArgs) :-
 	varset(Pred, Vars),
 	map(Props,    varset,               PropVars),
 	map(PropVars, intersect_vars(Vars), PropArgs),
 	!.
 
+% ----------------------------------------------------------------------
+
+:- pred compound_check_props(NonCheck, Props, PropArgs, CheckProps)
+        :  atm * list(struct) * list_of_lists * var
+        => atm * list(struct) * list_of_lists * list(struct)
+        # "Given a list of properties @var{Props}, a list of lists of
+           variables for each property @var{PropArgs} and an atom
+           @var{NonCheck} from {non_compat, non_inst}, produces a list
+           @var{CheckProps} of terms, recognized by the @tt{rtchecks_rt}
+           module, and each list element is of the form
+           functor(@var{Prop}, @var{PropArgs}).".
+
+compound_check_props(NonCheck, Props, PropArgs, CheckProps) :-
+        maplist(compound_check_prop(NonCheck), Props, PropArgs, CheckProps).
+
+compound_check_prop(compat(Prop),   _, Args, non_compat(Prop, Args)) :- !.
+compound_check_prop(instance(Prop), _, Args, non_inst(Prop, Args)  ) :- !.
+compound_check_prop(succeeds(Prop), _, _   , \+(Prop)              ) :- !.
+compound_check_prop(Prop,    NonCheck, Args, NonCheckProp) :-
+	NonCheckProp =.. [NonCheck, Prop, Args].
+
+
+:- pred get_checkc(ChkCType, Props, PropArgs, Names, Name, Exit, ChkC)
+        : atm * list(struct) * list_of_lists * list(struct) * struct * var * var
+        => (struct(Name), nonground(Name), var(Exit), nonground(ChkC))
+        # "Counstructs precondition checks literal @var{ChkC} and
+          associates the variable @var{Exit} with the result of
+          evaluating @var{ChkC} on run-time. On call @var{Props} is a
+          list of properties (coming from DP,CP or AP assertion body
+          part), @var{PropArgs} is a list of lists of variables of each
+          of the properties, @var{Names} is a list of tuples of the form
+          @tt{prop('$VAR'('V'),...)-['V'=V,...]}. On success @var{Name}
+          is a tuple of free variables.".
+
 get_checkc(_, [], _, _, _, true, true) :- !.
 get_checkc(compat, Props, PropArgs, Names, Name, Exit,
 	    checkc(CheckProps, Names, Name, Exit)) :-
-	compound_check_props(non_compat, Props, PropArgs, CheckProps).
+        compound_check_props(non_compat, Props, PropArgs, CheckProps).
 get_checkc(call, Props, PropArgs, Names, Name, Exit,
 	    checkc(CheckProps, Names, Name, Exit)) :-
-	compound_check_props(non_inst, Props, PropArgs, CheckProps).
+        compound_check_props(non_inst, Props, PropArgs, CheckProps).
 
-compound_check_props(NonCheck, Props, PropArgs, CheckProps) :-
-	maplist(compound_check_prop(NonCheck), Props, PropArgs, CheckProps).
-
-compound_check_prop(compat(Prop), _, Args, non_compat(Prop, Args)) :-
-	!.
-compound_check_prop(instance(Prop), _,        Args, non_inst(Prop, Args)) :- !.
-compound_check_prop(succeeds(Prop), _,        _,    \+(Prop)) :- !.
-compound_check_prop(Prop,           NonCheck, Args, NonCheckProp) :-
-	NonCheckProp =.. [NonCheck, Prop, Args].
+:- pred get_checkc(ChkCType, Props, PropArgs, Exit, ChkC)
+        :  atm * list(struct) * list_of_lists * var * var
+        => (var(Exit), nonground(ChkC))
+        # "Same as get_checkc/7 but does not use the information on
+           names of variables that appear in properties @var{Props}.".
 
 get_checkc(_,      [],    _,        true, true) :- !.
 get_checkc(compat, Props, PropArgs, Exit, checkc(CheckProps, Exit)) :-
 	compound_check_props(non_compat, Props, PropArgs, CheckProps).
 get_checkc(call, Props, PropArgs, Exit, checkc(CheckProps, Exit)) :-
 	compound_check_props(non_inst, Props, PropArgs, CheckProps).
+
+% used only in the unittest library ---NS
+:- pred get_checkif(ChkCType, Exit, PredName, Dict, Props, PropArgs, Names,
+                    AsrLoc, ChkIf)
+        :  atm * var * term * varnamesl * list(struct) * list_of_lists *
+           list(struct) * struct * var
+        => (struct(ChkIf), nonground(ChkIf))
+        # "Counstructs postcondition checks literal @var{ChkIf}.".
 
 get_checkif(_, _, _, _, [], _, _, _, true) :- !.
 get_checkif(success, Exit, PredName, Dict, Props, PropArgs, Names, AsrLoc,
@@ -96,6 +161,15 @@ get_checkif(compatpos, Exit, PredName, Dict, Props, PropArgs, Names, AsrLoc,
 	    checkif(Exit, compatpos, PredName, Dict, CheckProps, Names,
 		AsrLoc)) :-
 	compound_check_props(non_compat, Props, PropArgs, CheckProps).
+
+checkif_to_lit(CheckPosL, Params, CheckPos) :-
+	Params = pos(Pred, PType),
+	CheckPosL = i(AsrLoc, PredName, Dict, Compat, CompatNames, Exit),
+	get_prop_args(Compat, Pred, Args),
+	get_checkif(PType, Exit, PredName, Dict, Compat, Args, CompatNames,
+	    AsrLoc, CheckPos).
+
+% ----------------------------------------------------------------------
 
 get_predname(short, _, Pred, F/A) :-
 	functor(Pred, F, A).
@@ -148,6 +222,8 @@ get_pretty_names(long, Term, Dict0, TermName, Dict) :-
 	long_prop_names(Succ,   SuccName0,   Dict, SuccName),
 	long_prop_names(Comp,   CompName0,   Dict, CompName),
 	TermName = n(PredName, CompatName, CallName, SuccName, CompName).
+
+% ----------------------------------------------------------------------
 
 % note that the following predicates make partial unification, and comparison
 % over the given term: cui(Compare, Unify, Ignore)
@@ -218,18 +294,15 @@ lists_to_disj(A0, L) :-
 	remove_element(A1, fail, A2),
 	list_to_disj(A2, L).
 
-checkif_to_lit(CheckPosL, Params, CheckPos) :-
-	Params = pos(Pred, PType),
-	CheckPosL = i(AsrLoc, PredName, Dict, Compat, CompatNames, Exit),
-	get_prop_args(Compat, Pred, Args),
-	get_checkif(PType, Exit, PredName, Dict, Compat, Args, CompatNames,
-	    AsrLoc, CheckPos).
+% ----------------------------------------------------------------------
 
 push_flags(inline) --> [].
 push_flags(yes) --> [(:- push_prolog_flag(single_var_warnings, off))].
 
 pop_flags(inline) --> [].
 pop_flags(yes) --> [(:- pop_prolog_flag(single_var_warnings))].
+
+% ----------------------------------------------------------------------
 
 inliner_decl(yes,    _) --> [].
 inliner_decl(inline, Pred) -->
