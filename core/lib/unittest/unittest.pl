@@ -3,14 +3,20 @@
 		run_tests_in_module/1,
 		run_tests_in_module/2,
 		run_tests_in_module/3,
-                test_option/1,
 		run_tests_in_module_check_exp_assrts/1,
-		show_untested_exp_preds/1,
-		show_test_summaries/1,
-                show_test_output/1,
+		run_tests_in_dir_rec/2,
 		run_tests_related_modules/1,
-		run_tests_in_dir_rec/2
-	    ],
+                run_tests/3,
+
+                show_untested_exp_preds/1,
+		show_test_summaries/1,
+                show_test_output/2,
+                show_test_related_output/2,
+
+                % regtypes
+                test_option/1,
+                test_action/1
+            ],
 	    [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord]).
 
 :- use_module(library(unittest/unittest_statistics), [statistical_summary/2]).
@@ -37,7 +43,6 @@
 :- use_module(library(process),  [process_call/3]).
 :- use_module(library(hiordlib), [map/3, map/4]).
 :- use_module(library(compiler/c_itf), [exports/5, defines_module/2]).
-:- use_module(library(compiler), [unload/1]).
 :- use_module(library(pretty_print), [pretty_print/2]).
 :- use_module(library(lists),
         [
@@ -87,6 +92,7 @@
 :- doc(author, "Pedro L@'{o}pez").
 :- doc(author, "Manuel Hermenegildo").
 :- doc(author, "Alvaro Sevilla San Mateo").
+:- doc(author, "Nataliia Stulova").
 
 :- doc(summary, "Ciao provides an assertion-based testing
    functionality, including unit tests.  The central idea is to use
@@ -307,7 +313,7 @@ cleanup_global_runners(TmpDir) :-
 show_untested_exp_preds(Alias) :-
 	tmp_dir(TmpDir),
 	cleanup_unittest(TmpDir),
-	get_assertion_info(single, Alias, _Modules),
+	get_assertion_info(current, Alias, _Modules),
 	findall(Message, current_untested_pred(Alias, Message), Messages),
 	pretty_messages(Messages).
 
@@ -349,30 +355,15 @@ current_untested_pred(Alias, Message) :-
 % atom @var{FileName} is the same as the @var{Src} one.
 :- data test_result_summary/2.
 
-:- pred run_tests_in_dir_rec(BaseDir, Args) : pathname * list(test_option)
+:- pred run_tests_in_dir_rec(BaseDir, Opts) : pathname * list(test_option)
 # "Executes all the tests in the modules of the given directory and
    its subdirectories. You can indicate that the modules in a
    sub-directory should not be tested by placing an empty NOTEST file
    in that sub-directory.  Also, is a NOTESTFILES is present
    containing patterns for modules those modules will not be tested.".
 
-run_tests_in_dir_rec(BaseDir, Args) :-
-	tmp_dir(TmpDir),
-	cleanup_unittest(TmpDir),
-	( % (failure-driven loop)
-            current_file_find(testable_module, BaseDir, FileName),
-            run_tests_in_module_args(TmpDir, FileName, Args, Modules),
-            get_all_test_outputs(Modules, IdxTestSummaries),
-	    show_test_summaries(IdxTestSummaries),
-	    assertz_fact(test_result_summary(FileName, IdxTestSummaries)),
-	    fail
-	; true
-	),
-	display('{Summary}\n'),
-	findall(E, (
-		retract_fact(test_result_summary(FN, E)),
-		statistical_summary(['{In ', FN, '\n'], E)), L),
-	statistical_summary(['{Total:\n'], L).
+run_tests_in_dir_rec(BaseDir, Opts) :-
+        run_tests(BaseDir, [dir_rec | Opts], [check, show_output, show_stats]).
 
 module_base(Module, Base) :-
 	defines_module(Base, Module),
@@ -386,19 +377,18 @@ module_base(Module, Base) :-
 	    fail
 	).
 
+% ----------------------------------------------------------------------
+
 :- doc(test_option/1,"A global option that controls the
    testing system. The current set of options is:
 
 	@begin{itemize}
 
-        @item @tt{dump_output}: Shows the standard output of the test
+        @item @tt{dump_output}: Show the standard output of the test
               execution.
 
-	@item @tt{dump_error}: Shows the standard error of the test
+	@item @tt{dump_error}: Show the standard error of the test
 	      execution.
-
-	@item @tt{load(<Module>)}: Loads module <Module> to execute
-	      the tests.
 
 	@item @tt{rtc_entry}: Force run-time checking of at least
 	      exported assertions even if the flag runtime_checks has
@@ -406,31 +396,90 @@ module_base(Module, Base) :-
 	      currently we cannot enable runtime checks in system
 	      libraries smoothly).
 
+        @item @tt{treat_related} : Run tests in current and all related
+              modules;
+
+        @item @tt{dir_rec} : Run tests in a specified directory
+              recursively.
+
 	@end{itemize}").
 
 :- regtype test_option(Opt) # "@var{Opt} is a testing option.".
 
-test_option := dump_output | dump_error | rtc_entry.
-test_option := load(~sourcename).
+test_option := dump_output   | dump_error | rtc_entry.
+test_option := treat_related | dir_rec.
 
-:- pred show_test_output(Alias) : sourcename(Alias)
+:- doc(test_action/1, "A global option that specifies a testing
+        routine. The current set of actions is:
+
+        @begin{itemize}
+
+        @item @tt{check} : run tests and temporarily save
+              results in the auto-rewritable @tt{module.testout} file;
+
+        @item @tt{show_output} : print the testing trace to the
+              standard output;
+
+        @item @tt{show_stats} : print the test results statistics to
+              the standard output;
+% TODO: merge with the regrtest
+%        @item @tt{save} : save test results file in @tt{module.testout-saved}
+%              file;
+%
+%        @item @tt{briefcompare} : check whether current and saved test
+%              output files differ;
+%
+%        @item @tt{compare} : see the differences in the current and saved
+%              test output files in the diff format;
+
+        @end{itemize}").
+
+:- regtype test_action(Action) # "@var{Action} is a testing action".
+
+test_action := check | show_output | show_stats .
+% test_action := show_output_short | show_output_full % TODO: verbosity control
+% test_action := save | briefcompare | compare . % TODO: merge with regrtest
+
+get_test_opt(Opt, Select, Opts) :- member(Opt, Opts), !, Select = yes.
+get_test_opt(_  , no    , _   ).
+
+:- pred get_test_opts(-yesno, -yesno, -yesno, +list)
+        :  var   * var   * var   * list(test_option)
+        => yesno * yesno * yesno * list(test_option).
+
+get_test_opts(DumpOutput, DumpError, RtcEntry, Options) :-
+	get_test_opt(dump_output, DumpOutput, Options),
+	get_test_opt(dump_error,  DumpError , Options),
+	get_test_opt(rtc_entry,   RtcEntry  , Options).
+
+% ----------------------------------------------------------------------
+
+:- pred show_test_output(Alias, Format) : (sourcename(Alias), atm(Format))
         # "Given a file @var{Alias}, tries to lookup the respective
-          unittest output file and print it to the standard output,
-          otherwise emits a warning message that no test output file
-          is avaiable.".
+          unittest output file and print it to the standard output in
+          the specified @var{Format} ('output' for test full trace, 'stats'
+          for a statistical summary only, 'full' for both), otherwise emits
+          a warning message that no test output file is avaiable.".
 
-show_test_output(Alias) :-
-        absolute_file_name(Alias, '_opt', '.pl', '.',_FileName, Base, AbsDir),
-        file_test_output_suffix(Suf),
-        atom_concat(Base,Suf,TestOutFile),
-        path_split(Base, AbsDir, Module),
-        ( file_exists(TestOutFile) ->
-          get_module_output(Module, Base, TestResult),
-          TestResults = [TestResult],
-          show_test_summaries(TestResults),
-          statistical_summary(['{Total:\n'], TestResults)
-        ; note_message("~w module does not have unittest results available.", [Module])
-        ).
+show_test_output(Alias, Format) :-
+        show_test_output_(current, Alias, Format).
+
+show_test_related_output(Alias, Format) :-
+        show_test_output_(related, Alias, Format).
+
+show_test_output_(TestMode, Alias, Format) :-
+        cleanup_code_and_related_assertions,
+        get_assertion_info(TestMode, Alias, Modules),
+        get_all_test_outputs(Modules, TestResults),
+        show_test_output_format(Format, TestResults).
+
+show_test_output_format(output, TestResults) :-
+        show_test_summaries(TestResults).
+show_test_output_format(stats, TestResults) :-
+        statistical_summary(['{Total:\n'], TestResults).
+show_test_output_format(full, TestResults) :-
+        show_test_summaries(TestResults),
+        statistical_summary(['{Total:\n'], TestResults).
 
 :- pred show_test_summaries(TestSummaries)
 # "Pretty print the test results contained in @var{TestSummaries}.".
@@ -439,86 +488,116 @@ show_test_summaries(IdxTestSummaries0) :-
         % TODO: multiple test results bug
 	flatten(IdxTestSummaries0, IdxTestSummaries),
 	map(IdxTestSummaries, process_runtime_check, Messages, []),
-        % TODO: add 'report_passed_test' option to control the output
-        %       verbosity
 	pretty_messages(Messages).
-
-show_test_outputs_stats(Modules) :-
-        get_all_test_outputs(Modules, TestResults),
-        show_test_summaries(TestResults),
-	statistical_summary(['{Total:\n'], TestResults).
 
 % ----------------------------------------------------------------------
 
-:- pred run_tests_in_module(Alias, Args, TestSummaries)
-    : (sourcename(Alias), list(Args,test_option))
+assert_test_results_dir(no , _  , _    ) :- !.
+assert_test_results_dir(yes, Dir, Alias) :-
+        absolute_file_name(Alias, '_opt', '.pl', '.', _, Base, AbsDir),
+        path_split(Base, AbsDir, Module),
+        get_module_output(Module, Base, TestResult),
+        assertz_fact(test_result_summary(Dir, [TestResult])).
+
+retract_test_results_dir(no , _  ) :- !.
+retract_test_results_dir(yes, Dir) :-
+        findall(TRs, retract_fact(test_result_summary(Dir, TRs)), TRRs),
+        show_test_output_format(stats, TRRs).
+
+run_tests(Dir, Opts0, Actions0) :-
+        select(dir_rec, Opts0, Opts),!,
+        get_test_opt(show_stats, ShowStats, Actions0),
+        ( ShowStats == yes, select(show_stats, Actions0, Actions)
+        ; Actions = Actions0 ),
+        ( % (failure-driven loop)
+            current_file_find(testable_module, Dir, Alias),
+            run_tests(Alias, Opts, Actions),
+            assert_test_results_dir(ShowStats, Dir, Alias),
+            fail
+        ; true
+        ),
+        retract_test_results_dir(ShowStats, Dir).
+run_tests(Alias, Opts, Actions) :-
+        tmp_dir(TmpDir),
+	cleanup_unittest(TmpDir),
+        % choose one of two testing scenarios
+        ( member(treat_related, Opts) ->
+            TestMode = related
+          ; TestMode = current
+        ),
+        % run the tests
+        ( member(check, Actions) ->
+          run_tests_in_module_args(TestMode, Alias, Opts)
+        ; true
+        ),
+        % select kind of output to be printed
+        ( member(show_output, Actions) ->
+          show_test_output_(TestMode, Alias, output)
+        ; true
+        ),
+        ( member(show_stats, Actions) ->
+          show_test_output_(TestMode, Alias, stats)
+        ; true
+        ).
+
+% ----------------------------------------------------------------------
+
+:- pred run_tests_in_module(Alias, Opts, TestSummaries)
+    : (sourcename(Alias), list(Opts,test_option))
     => list(TestSummaries)
 
-# "Run the tests in module @var{Alias} (with options @var{Args}).  The
+# "Run the tests in module @var{Alias} (with options @var{Opts}).  The
    results of the tests are returned as data in
    @var{TestSummaries}. @var{TestSummaries} can be pretty printed
    using @pred{show_test_summaries/1} and
    @pred{statistical_summary/2}.".
-run_tests_in_module(Alias, Args, IdxResultTest) :-
-	tmp_dir(TmpDir),
-	run_tests_in_module_args(TmpDir, Alias, Args, Modules),
-        get_all_test_outputs(Modules, IdxResultTest).
+run_tests_in_module(Alias, Opts, TestSummaries) :-
+        run_tests(Alias, Opts, [check]),
+        get_assertion_info(current, Alias, Modules),
+        get_all_test_outputs(Modules, TestSummaries).
 
-:- pred run_tests_in_module(Alias, Args)
-	: (sourcename(Alias), list(Args,test_option))
+:- pred run_tests_in_module(Alias, Opts)
+	: (sourcename(Alias), list(Opts,test_option))
 
 # "Run the tests in module @var{Alias}. The results of the tests are
    printed out.".
-run_tests_in_module(Alias, Args) :-
-        tmp_dir(TmpDir),
-        run_tests_in_module_args(TmpDir, Alias, Args, Modules),
-        show_test_outputs_stats(Modules).
+run_tests_in_module(Alias, Opts) :-
+         run_tests(Alias, Opts, [check, show_output, show_stats]).
 
 :- pred run_tests_in_module(Alias) : sourcename(Alias)
 
 # "Run the tests in module @var{Alias} (using default options).  The
    results of the tests are printed out.".
 run_tests_in_module(Alias) :-
-	run_tests_in_module(Alias, []).
+        run_tests(Alias, [], [check, show_output, show_stats]).
 
 run_tests_in_module_check_exp_assrts(Alias) :-
-	run_tests_in_module(Alias, [rtc_entry]).
-
-run_tests_in_module_args(TmpDir, Alias, Args, Modules) :-
-	cleanup_unittest(TmpDir),
-	get_assertion_info(single, Alias, Modules),
-	run_test_assertions(TmpDir, Modules, Args).
+        run_tests(Alias, [rtc_entry], [check, show_output, show_stats]).
 
 :- pred run_tests_related_modules(Alias) : sourcename(Alias).
-% TODO: merge with run_tests_in_module/1, providing an additional
-%       test depth parameter with values 'current'/'related'?
 run_tests_related_modules(Alias) :-
-	tmp_dir(TmpDir),
-	run_tests_related_modules_args(TmpDir, Alias, [], Modules),
-        show_test_outputs_stats(Modules).
+        run_tests(Alias, [treat_related], [check, show_output, show_stats]).
 
-run_tests_related_modules_args(TmpDir, Alias, Args, Modules) :-
-	cleanup_unittest(TmpDir),
-        get_assertion_info(related, Alias, Modules),
-	run_test_assertions(TmpDir, Modules, Args),
-        absolute_file_name(Alias, FileName),
-	(unload(FileName) -> true ; true).
+run_tests_in_module_args(TestMode, Alias, Opts) :-
+	get_assertion_info(TestMode, Alias, Modules),
+        tmp_dir(TmpDir),
+	run_test_assertions(TmpDir, Modules, Opts).
 
 % ----------------------------------------------------------------------
 
 :- export(get_assertion_info/3).
 :- doc(hide,get_assertion_info/3).
-:- pred get_assertion_info(ModuleMode, Alias, Modules)
-        : ( atm(TestingMode), sourcename(Alias), var(Modules) )
+:- pred get_assertion_info(TestMode, Alias, Modules)
+        : ( atm(TestMode), sourcename(Alias), var(Modules) )
         =>  list(Modules, atm)
  # "Read related assertions of source at @var{Alias} into database and
     get the test module name @var{Modules} if the testing is done only
-    for the current module (@var{TestingMode} = @tt{single}) or get a
-    list of all realted test module names (@var{TestingMode} =
+    for the current module (@var{TestMode} = @tt{current}) or get a
+    list of all realted test module names (@var{TestMode} =
     @tt{related})".
-get_assertion_info(single, Alias, [Module]) :-
+get_assertion_info(current, Alias, [Module]) :-
         absolute_file_name(Alias, '_opt', '.pl', '.', FileName, Base, AbsDir),
-        path_split(Base,AbsDir,Module),
+        path_split(Base, AbsDir, Module),
 	get_code_and_related_assertions(FileName, Module, Base, '.pl', AbsDir).
 get_assertion_info(related, Alias, Modules) :-
         absolute_file_name(Alias, FileName),
@@ -565,22 +644,10 @@ create_loader_pl(RunnerFile, LoaderPo) :-
 	    ], IO, []),
 	close(IO).
 
-select_command(Command, yes) --> select(Command), !.
-select_command(_      , no ) --> [].
-
-:- pred select_commands(-yesno, -yesno, -yesno, +list, ?list)
-        :  var   * var   * var   * list(test_option) * var
-        => yesno * yesno * yesno * list(test_option) * list(test_option).
-
-select_commands(DumpOutput, DumpError, RtcEntry) -->
-	select_command(dump_output, DumpOutput),
-	select_command(dump_error,  DumpError),
-	select_command(rtc_entry,   RtcEntry).
-
 :- pred run_test_assertions(+pathname, +list(atm), +list) +
 	(not_fails, no_choicepoints).
 
-run_test_assertions(TmpDir, Modules, Args0) :-
+run_test_assertions(TmpDir, Modules, Opts) :-
 	mkpath(TmpDir),
 	create_test_input(TmpDir, Modules),
         file_test_input(BInFile),
@@ -590,9 +657,9 @@ run_test_assertions(TmpDir, Modules, Args0) :-
         %
         empty_output(TmpDir),
 	( test_attributes_db(_, _, _, _, _, _, _, _, _) ->
-	    select_commands(DumpOutput, DumpError, RtcEntry, Args0, Args),
+	    get_test_opts(DumpOutput, DumpError, RtcEntry, Opts),
 	    create_runner(TmpDir, Modules, RtcEntry),
-            run_all_tests(TmpDir, DumpOutput, DumpError, Args)
+            run_all_tests(TmpDir, DumpOutput, DumpError, Opts)
 	; true
 	),
         % even if module has no tests, we write an empty test output file
@@ -600,13 +667,13 @@ run_test_assertions(TmpDir, Modules, Args0) :-
         % which allows detecting newly added tests on regression testing
         write_all_test_outputs(Modules).
 
-:- pred run_all_tests(TmpDir, DumpOutput, DumpError, Args)
+:- pred run_all_tests(TmpDir, DumpOutput, DumpError, Opts)
         : pathname * yesno * yesno * list(test_option).
 
-run_all_tests(TmpDir,DumpOutput,DumpError,Args) :-
+run_all_tests(TmpDir,DumpOutput,DumpError,Opts) :-
 	loader_name(BLoader),
 	path_concat(TmpDir, BLoader, Loader),
-	do_tests(TmpDir, Loader, DumpOutput, DumpError, Args).
+	do_tests(TmpDir, Loader, DumpOutput, DumpError, Opts).
 
 file_test_output_suffix('.testout').
 
@@ -741,21 +808,21 @@ dump_output(no,  _).
 dump_error(yes, StrErr) :- display_string(StrErr).
 dump_error(no,  _).
 
-:- pred do_tests(TmpDir, Loader, DumpOutput, DumpError, Args)
+:- pred do_tests(TmpDir, Loader, DumpOutput, DumpError, Opts)
         :  pathname * atm * yesno * yesno * list
 # "Calls the loader as an external proces. If some test aborts, calls
    recursively with the rest of the tests".
-do_tests(TmpDir, Loader, DumpOutput, DumpError, Args) :-
-        do_tests_(TmpDir, Loader, DumpOutput, DumpError, Args, no).
+do_tests(TmpDir, Loader, DumpOutput, DumpError, Opts) :-
+        do_tests_(TmpDir, Loader, DumpOutput, DumpError, Opts, no).
 
-do_tests_(TmpDir, Loader, DumpOutput, DumpError, Args, Resume) :-
+do_tests_(TmpDir, Loader, DumpOutput, DumpError, Opts, Resume) :-
         ( Resume = yes(ContIdx) ->
-            Args2 = [resume_after,ContIdx|Args]
-        ; Args2 = Args
+            Opts2 = [resume_after,ContIdx|Opts]
+        ; Opts2 = Opts
         ),
         %
 	% this process call appends new outputs to OutFile
-	process_call(Loader, Args2,
+	process_call(Loader, Opts2,
                      [stdin(null),
                       stdout(string(StrOut)),
                       stderr(string(StrErr)),
@@ -775,7 +842,7 @@ do_tests_(TmpDir, Loader, DumpOutput, DumpError, Args, Resume) :-
             write_data(IO, test_output_db(TestId, TestResult)),
             close(IO),
             % continue testing
-            do_tests_(TmpDir, Loader, DumpOutput, DumpError, Args, yes(TestId))
+            do_tests_(TmpDir, Loader, DumpOutput, DumpError, Opts, yes(TestId))
         ; true % (all tests had output)
         ).
 
