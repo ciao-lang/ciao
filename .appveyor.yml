@@ -1,0 +1,26 @@
+platform:
+  - x64
+environment:
+  # Using preinstalled MSYS2 on AppVeyor
+  matrix:
+#    - compiler: msbuild
+#      CONFIGURATION: Release
+#    - compiler: msvc
+#      ARCH: x64
+#    - compiler: msvc
+#      ARCH: x86
+#    - compiler: mingw
+#    - compiler: cygwin
+    - compiler: msys2
+      MSYS2_ARCH: x86_64
+      MSYS2_DIR: msys64
+      MSYSTEM: MINGW64
+      CIAO_OPTS: --core:with_emacs_mode=no --core:update_dotemacs=no --with-docs=no
+    - compiler: msys2
+      MSYS2_ARCH: i686
+      MSYS2_DIR: msys64
+      MSYSTEM: MINGW32
+      CIAO_OPTS: --core:m32=yes --core:with_emacs_mode=no --core:update_dotemacs=no --with-docs=no
+
+build_script:
+  - C:\%MSYS2_DIR%\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; exec 0</dev/null; ./ciao-boot.sh local-install $CIAO_OPTS"

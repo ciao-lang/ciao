@@ -82,7 +82,8 @@ prebuild_ppl_bindings :-
  	    foreign_config_var(ppl, 'cxxflags', CompilerOpts2),
 	    append(CompilerOpts1, " "||CompilerOpts2, CompilerOpts3),
  	    foreign_config_var(ppl, 'ldflags', LinkerOpts1),
-	    patch_arch_opts(CompilerOpts3, LinkerOpts1, CompilerOpts, LinkerOpts2),
+	    patch_arch_opts(CompilerOpts3, LinkerOpts1, CompilerOpts4, LinkerOpts2),
+	    remove_all_substrings(CompilerOpts4, "-g ", CompilerOpts), % TODO: parse options and remove '-g' (it is safer)
 	    ( auto_install_ppl(yes) ->
 	        % If installed as a third party, add ./third-party/lib
 	        % to the runtime library search path
