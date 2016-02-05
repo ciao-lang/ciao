@@ -155,17 +155,14 @@ update :-
 	retractall_fact(exports(_,_,_)),
 	inform_user(['Reading Ciao library info, please wait...']),
 	fail.
-
 update :-
 	ciao_lib_dir(CiaoPath),
-	atom_concat(CiaoPath,'/lib/',LIB),
-	atom_concat(CiaoPath,'/library/',LIBRARY),
-	related_files_at(LIB,LIB_itf),
-	catch(extract_info_from(LIB_itf),_,true),
-	related_files_at(LIBRARY,LIBRARY_itf),
-	catch(extract_info_from(LIBRARY_itf),_,true),
+	( atom_concat(CiaoPath,'/lib/',Dir)
+	; atom_concat(CiaoPath,'/library/',Dir)
+	),
+	related_files_at(Dir,Dir_itf),
+	catch(extract_info_from(Dir_itf),_,true),
 	fail.
-
 update :-
 	inform_user(['Browser has been loaded...']),
 	nl.
@@ -173,7 +170,6 @@ update :-
 update_when_needed :-
 	exports(_,_,_),
 	!.
-
 update_when_needed :-
 	update.
 
@@ -183,28 +179,22 @@ related_files_at(Dir,Files) :-
 	directory_files(Dir,AllFiles),
 	related_files_at_aux(AllFiles,Dir,Files).
 
-
 related_files_at_aux([],_,[]).
-
 related_files_at_aux(['.'|Nf],Dir,NNf) :-
 	!,
 	related_files_at_aux(Nf,Dir,NNf).
-
 related_files_at_aux(['..'|Nf],Dir,NNf) :-
 	!,
 	related_files_at_aux(Nf,Dir,NNf).
-
 related_files_at_aux([File|Nf],Dir,NNf) :-
 	atom_concat('.#',_,File),
 	!,
 	related_files_at_aux(Nf,Dir,NNf).
-
 related_files_at_aux([File|Nf],Dir,[itf(AbsFile,Module)|NNf]) :-
 	atom_concat(Module,'.itf',File),
 	!,
 	atom_concat(Dir,File,AbsFile),
 	related_files_at_aux(Nf,Dir,NNf).
-
 related_files_at_aux([File|Nf],Dir,RelatedFiles) :-
 	atom_concat(Dir,File,AbsFile),
 	file_property(AbsFile,type(directory)),
@@ -213,7 +203,6 @@ related_files_at_aux([File|Nf],Dir,RelatedFiles) :-
 	related_files_at_aux(Nf,Dir,NNf),
 	related_files_at(NewDir,NewFiles),
 	append(NNf,NewFiles,RelatedFiles).
-
 related_files_at_aux([_|Nf],Dir,NNf) :-
 	!,
 	related_files_at_aux(Nf,Dir,NNf).
@@ -221,14 +210,11 @@ related_files_at_aux([_|Nf],Dir,NNf) :-
 %% ------------------------------------------------------------
 
 extract_info_from([]).
-
 extract_info_from([itf(File,Mod)|Nf]) :-
-	open_input(File,(Old,Strm)),
-        set_input(Strm),
+	open_input(File,IO),
 	inform_user(['{Reading interface info from ',Mod,'}']),
 	read_exports(Mod),
-	close(Strm),
-        set_input(Old),
+	close_input(IO),
 	extract_info_from(Nf).
 
 %% ------------------------------------------------------------
@@ -236,19 +222,16 @@ extract_info_from([itf(File,Mod)|Nf]) :-
 read_exports(_Module) :-
         read_term(_CiaoItfSignature,[]),
         fail.
-
 read_exports(Module) :-
 	getterm(Term),
 	Term = e(F,A,_,_),
 	asserta_fact(exports(Module,F,A)),
 	fail.
-
 read_exports(_).
 
 getterm(Term) :-
 	( fast_read(T) -> Term = T ; Term = end_of_file ),
 	( Term \== end_of_file -> true ; (!,fail) ).
-
 getterm(Term) :-
 	getterm(Term).
 
@@ -365,7 +348,6 @@ describe(Module) :-
 	exports(Module,F,A),
 	inform_user([F,'/',A,' ']),
 	fail.
-
 describe(_).
 
 %% ------------------------------------------------------------
@@ -395,22 +377,18 @@ yes
 	 matches the given @var{RegSpec} incomplete predicate specification.
         ".
 
-
 apropos(_) :-
 	update_when_needed,
 	fail.
-
 apropos(Root) :-
 	atom(Root),
 	!,
 	apropos(Root/_).
-
 apropos(Root/Arity) :-
 	atom(Root),
 	set_fact(lastm('$nothing$')),
 	!,
 	apropos_aux(Root,Arity).
-
 apropos_aux(Root,A) :-
 	atom_codes(Root,RootCodes),
 	exports(Module,F,A),
@@ -430,7 +408,6 @@ apropos_aux(Root,A) :-
 	  )
 	),
 	fail.
-
 apropos_aux(_,_) :-
 	nl.
 
