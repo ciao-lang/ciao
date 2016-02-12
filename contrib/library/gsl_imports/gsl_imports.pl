@@ -70,7 +70,7 @@ gsl_vector * list_to_vector(double * elements, size_t length)
 ".
 
 :- true pred vector_to_list(in(Vector), go(Elements), go(Length)) ::
-	address * c_double_list * size_t + (foreign, size_of(Elements, Length)) -->
+	address * c_double_list * c_size + (foreign, size_of(Elements, Length)) -->
 "
 void vector_to_list(gsl_vector *v, double ** list, size_t *length)
 {
@@ -205,7 +205,7 @@ get_gsl_version(char ** ptr)
 
 :- doc(doinclude, polynomial_root/5).
 :- true pred polynomial_root(in(LengthIn),in(LengthOut),in(X),go(Y), go(Err))::
-	size_t*size_t*c_double_list * c_double_list * int + (foreign,size_of(X,LengthIn),size_of(Y,LengthOut)) #
+	c_size*c_size*c_double_list * c_double_list * int + (foreign,size_of(X,LengthIn),size_of(Y,LengthOut)) #
  "obtains roots of a polynomial function by calling foreign C program which will call GSL solver.  @var{Err} is
  error code, 0 when GSL succeed, -1 otherwise" -->
 "
