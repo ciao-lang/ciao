@@ -39,13 +39,13 @@ gsl_matrix * properties_to_matrix(double *elements, size_t length, size_t rows, 
 ".
 
 :- true pred matrix_to_properties(in(Matrix), go(Elements), go(Length),
-	    go(Rows), go(Cols)) :: address * double_list * int * int * int + (
+	    go(Rows), go(Cols)) :: address * c_double_list * c_size * c_size * c_size + (
 	    foreign, size_of(Elements, Length)) -->
 "
-void matrix_to_properties(gsl_matrix *m, double ** list, int *length,
-  int *rows, int *cols)
+void matrix_to_properties(gsl_matrix *m, double ** list, size_t *length,
+  size_t *rows, size_t *cols)
 {
-  int i;
+  size_t i;
   *length = m -> block -> size;
   /* We should reuse m -> elements in list due to it is not automatically */
   /* deallocated */
@@ -56,12 +56,12 @@ void matrix_to_properties(gsl_matrix *m, double ** list, int *length,
 ".
 
 :- true pred list_to_vector(in(Elements), in(Length), go(Vector)) ::
-	double_list * int * address +
+	c_double_list * c_size * address +
 	(foreign, size_of(Elements, Length), returns(Vector)) -->
 "
-gsl_vector * list_to_vector(double * elements, int length)
+gsl_vector * list_to_vector(double * elements, size_t length)
 {
-  int i;
+  size_t i;
   gsl_vector *qt = gsl_vector_alloc(length);
   for(i = 0; i < length; i++)
     qt->data[i] = elements[i];
@@ -70,13 +70,13 @@ gsl_vector * list_to_vector(double * elements, int length)
 ".
 
 :- true pred vector_to_list(in(Vector), go(Elements), go(Length)) ::
-	address * double_list * int + (foreign, size_of(Elements, Length)) -->
+	address * c_double_list * size_t + (foreign, size_of(Elements, Length)) -->
 "
-void vector_to_list(gsl_vector *v, double ** list, int *length)
+void vector_to_list(gsl_vector *v, double ** list, size_t *length)
 {
-  int i;
-  *length = v -> size;
-  *list = v -> data;
+  size_t i;
+  *length = v->size;
+  *list = v->data;
 }
 ".
 
@@ -205,7 +205,7 @@ get_gsl_version(char ** ptr)
 
 :- doc(doinclude, polynomial_root/5).
 :- true pred polynomial_root(in(LengthIn),in(LengthOut),in(X),go(Y), go(Err))::
-	int*int*double_list * double_list * int + (foreign,size_of(X,LengthIn),size_of(Y,LengthOut)) #
+	size_t*size_t*c_double_list * c_double_list * int + (foreign,size_of(X,LengthIn),size_of(Y,LengthOut)) #
  "obtains roots of a polynomial function by calling foreign C program which will call GSL solver.  @var{Err} is
  error code, 0 when GSL succeed, -1 otherwise" -->
 "
@@ -214,8 +214,9 @@ get_gsl_version(char ** ptr)
    input_list, and output_list will contains all root of the polynom, real and 
    complex number.
    -------------------------------------------------------------------------- */
-void polynomial_root(int nbElmt,int nbElmtOut,double* input_list, double** output_list, int* errcode){
-  int i, nb_elmt_output, gsl_retval;	
+void polynomial_root(size_t nbElmt,size_t nbElmtOut,double* input_list, double** output_list, int* errcode){
+  size_t i, nb_elmt_output;
+  int gsl_retval;	
   gsl_poly_complex_workspace * w = gsl_poly_complex_workspace_alloc (nbElmt);
   *output_list=(double*) ciao_malloc ((nbElmtOut)* sizeof(double)); //this ciao_malloc will be freed by ciao prolog memory memory management system
 
