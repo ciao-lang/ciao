@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/ciao-lang/test-ci.svg)](https://travis-ci.org/ciao-lang/test-ci)
-[![Build Status](https://ci.appveyor.com/api/projects/status/nmgot3y6p57qgdvf?svg=true)](https://ci.appveyor.com/project/jfmc/test-ci)
+[![Build Status](https://travis-ci.org/ciao-lang/ciao.svg)](https://travis-ci.org/ciao-lang/ciao)
+[![Build Status](https://ci.appveyor.com/api/projects/status/fu2eb23je22xc228?svg=true)](https://ci.appveyor.com/project/jfmc/ciao)
 
 Public read-only mirror for [Ciao](http://ciao-lang.org) source code.
 
