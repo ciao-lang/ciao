@@ -258,7 +258,7 @@ docstr_extendprolog :=
 	 'id/id_doc',
 	 'clpq/clpq_doc',
 	 'clpr/clpr_doc',
-	 'fuzzy/fuzzy_doc',
+	 % 'fuzzy/fuzzy_doc', (moved to its own repo)
          %
 	 'objects/ociao_doc'-[
 	   'class/class_doc',
