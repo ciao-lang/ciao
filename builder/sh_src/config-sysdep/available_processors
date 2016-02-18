@@ -13,9 +13,9 @@ case $1 in
 Solaris*)    echo `/usr/bin/mpstat | /usr/bin/wc -l` 1 - p | dc ;;
 Win32*)      echo 1 ;; 
 LINUX*)      if (test -e /proc/cpuinfo) && (test -e /bin/grep) ;
-	     then echo `/bin/grep processor /proc/cpuinfo | wc --lines` ;
+	     then echo `/bin/grep processor /proc/cpuinfo | wc -l` ;
 	     else if (test -e /proc/cpuinfo) && (test -e /usr/bin/grep) ;
-	     then echo `/usr/bin/grep processor /proc/cpuinfo | wc --lines` ;
+	     then echo `/usr/bin/grep processor /proc/cpuinfo | wc -l` ;
 	     else echo 1; fi ; fi ;;
 DARWIN*)     echo `sysctl -n hw.physicalcpu` ;;
 *)           echo 1 ;;
