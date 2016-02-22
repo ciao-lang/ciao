@@ -897,6 +897,7 @@ filter_def(no_precomp_tmp, [
     walk_p-not(match(name, dir(precomp_tmp)))
 ]).
 
+:- export(match_def/3).
 % No architecture-dependant compilation output
 match_def(noarch, file) := '*.po'.
 match_def(noarch, file) := '*.itf'.
@@ -963,17 +964,17 @@ match_def(precomp_tmp, PT) := ~match_def(arch_tmp, PT).
 match_def(precomp_builddir_yield(Level), PT) :=
 	~match_def(precomp_builddir_yield(~precomp_next(Level)), PT).
 match_def(precomp_builddir_yield(Level), filename) :=
-	~in_builddir(Level).
+	~precomp_builddir_yield_(Level).
 
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 
-in_builddir(Level) := ~in_builddir(~precomp_next(Level)).
-in_builddir(src) := ~fsR(builddir(~builddir_id)/doc). % TODO: why?
-in_builddir(full) := ~fsR(builddir(~builddir_id)/eng). % TODO: why?
-in_builddir(full) := ~fsR(builddir(~builddir_id)/bin). % TODO: why?
+precomp_builddir_yield_(src) := ~fsR(builddir(~builddir_id)/doc). % src level produces doc/
+precomp_builddir_yield_(noa) := ~fsR(builddir(~builddir_id)/eng). % noa level produces eng/
+precomp_builddir_yield_(noa) := ~fsR(builddir(~builddir_id)/bin). % noa level produces bin/
 % TODO: add a level to include third-party source?
 % (see third_party_install.pl)
-in_builddir(full) := ~fsR(bundle_src(ciao)/'third-party').
+precomp_builddir_yield_(bin) := ~fsR(bundle_src(ciao)/'third-party'). % bin level produces third-party/
+% precomp_builddir_yield_(full) := _ :- fail. % full level produces nothing (more)
 
 :- use_module(ciaobld(config_common), [local_bldid/1]).
 
