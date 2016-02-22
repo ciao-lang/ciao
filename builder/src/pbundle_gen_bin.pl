@@ -9,7 +9,9 @@
 :- use_module(ciaobld(pbundle_generator)).
 :- use_module(ciaobld(bundle_hash), [gen_bundle_commit_info/1]).
 
-% TODO: THIS IS WRONG! distribute binaries based on instype=global with a destdir
+% TODO: Make sure that this works both as a mechanism to distribute
+%   compiled workspaces (and instype=local) and installed bundles with
+%   a destdir (instype=global)
 
 % (hooks for gen_pbundle)
 :- include(ciaobld(pbundle_gen_hookdefs)).
