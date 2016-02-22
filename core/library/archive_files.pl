@@ -71,7 +71,7 @@ archive_from(SourceDir, FileList, TopDir, Archive) :-
 
 archive_from_(SourceDir, FileList, Archive) :-
 	atom_concat(Archive, '.tmp', TmpArchive),
-	path_splitext(Archive, _, Ext),
+	archive_ext(Archive, Ext),
 	%
 	( tar_compress(Ext, Cmd) ->
 	    archive_as_tar(Cmd, SourceDir, FileList, TmpArchive)
@@ -81,6 +81,20 @@ archive_from_(SourceDir, FileList, Archive) :-
 	del_file_nofail(Archive),
 	rename_file(TmpArchive, Archive).
 
+% An archive extension (path_splitext/3 does not work with .tar.gz)
+archive_ext(Archive, Ext) :-
+	path_splitext(Archive, Archive0, Ext0),
+	( tar_compress_ext(Ext0),
+	  path_splitext(Archive0, _, DotTar),
+	  DotTar = '.tar' ->
+	    atom_concat(DotTar, Ext0, Ext)
+	; Ext = Ext0
+	).
+
+% Additional extension of a .tar file
+tar_compress_ext('.gz').
+tar_compress_ext('.bz2').
+	
 % Command to compress a tar extension
 tar_compress('.tar.gz',  'gzip').
 tar_compress('.tgz',     'gzip').
