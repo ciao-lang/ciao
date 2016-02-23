@@ -249,7 +249,7 @@ FILE *ciao_open_qfile(const char *boot_path) {
   if (access(source_path,R_OK))
     source_path[strlen(source_path)-4] = '\0'; /* Take out .cpx */
 #endif
-  if (qfile == NULL) qfile = fopen(source_path,"r");
+  if (qfile == NULL) qfile = fopen(source_path,"rb");
   if (qfile == NULL) {
     fprintf(stderr, "%s: boot file not found\n", source_path);
     at_exit(1);

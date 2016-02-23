@@ -122,7 +122,7 @@ static void open_exec_skip_stub(const char *file, FILE **stream) {
     struct stat data;
     stat(file,&data);
     if (data.st_size == eng_stub_length) goto usage;
-    if ((*stream = fopen(file,"r")) == NULL) {
+    if ((*stream = fopen(file,"rb")) == NULL) {
       fprintf(stderr,"%s: unable to open for read\n", file);
       at_exit(1);
     }
@@ -367,7 +367,7 @@ int start(int argc, char *argv[]) {
       source_path[strlen(source_path)-4] = '\0'; /* Take out ciao_suffix (.cpx) */
     }
 #endif
-    qfile = fopen(source_path,"r");
+    qfile = fopen(source_path,"rb");
     if (qfile == NULL) {
       fprintf(stderr, "%s: boot file not found\n", source_path);
       return 1;

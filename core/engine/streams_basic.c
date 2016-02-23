@@ -339,7 +339,8 @@ CBOOL__PROTO(prolog_open)
   ERR__FUNCTOR("streams_basic:$open", 3);
   struct stat statbuf;
   FILE *fileptr;
-  char *modecodif, modespec[2];
+  char *modecodif;
+  char modespec[3];
 
   enum {
     STRANGE_SOURCE_SINK,
@@ -354,8 +355,13 @@ CBOOL__PROTO(prolog_open)
   DEREF(X(1),X(1));
   modecodif = GetString(X(1));
 
+#if defined(_WIN32) || defined(_WIN64)
+#warning "TODO(MinGW): assume binary streams"
+  /* TODO(MinGW): Otherwise we may have big problems with magic \r\n <-> \n translations. */
+#endif
   modespec[0] = modecodif[0];
-  modespec[1] = 0;
+  modespec[1] = 'b';
+  modespec[2] = 0;
 
   fileptr = (TagIsATM(X(0))   ?  fopen(GetString(X(0)), modespec) :
 	     TagIsSmall(X(0)) ? fdopen(GetSmall(X(0)),  modespec) :
