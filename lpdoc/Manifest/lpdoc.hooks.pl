@@ -5,7 +5,7 @@
 
 '$builder_hook'(desc_name('LPdoc')).
 
-'$builder_hook'(manual_dir(as('doc', 'lpdoc'))). % TODO: call it manual(Name, SettingsFile)
+'$builder_hook'(manual_dir(as('doc/reference', 'lpdoc'))). % TODO: call it manual(Name, SettingsFile)
 '$builder_hook'(readme_path(as('doc/readmes/INSTALLATION_LPDOC', 'INSTALLATION'))). % TODO: call it readme(RelPath, Source)
 '$builder_hook'(readme_path(as('doc/readmes/README_LPDOC', 'README'))).
 

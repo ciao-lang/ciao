@@ -31,6 +31,7 @@ infodir(_) :- fail.
 mandir(_) :- fail.
 
 filepath := ~fsR(bundle_src(lpdoc)/doc/readmes).
+filepath := ~fsR(bundle_src(lpdoc)/doc/reference).
 filepath := ~fsR(bundle_src(lpdoc)/src).
 filepath := ~fsR(bundle_src(lpdoc)/examples).
 %
@@ -39,7 +40,7 @@ filepath := ~fsR(bundle_src(ciao)/doc/common).
 output_name := 'lpdoc'.
 
 doc_structure := 
-        'lpdoc'-[
+        'lpdoc_ref_man'-[
 	  'Reference'-[
 	    'Generating',
 	    'comments',
@@ -62,6 +63,7 @@ doc_structure :=
 	    'lpdoc_install'
           ],
 	  'Internals'-[
+	    'docmaker',
 	    'autodoc',
 	    'autodoc_state',
 	    'autodoc_doctree',

@@ -18,7 +18,7 @@
 :- use_module(library(system), [file_exists/1]).
 
 % entry point for lpdoc library
-:- use_module(lpdoc(lpdoc), [make_doc/4]).
+:- use_module(lpdoc(docmaker), [make_doc/4]).
 
 :- use_module(library(toplevel), [toplevel/1]). % (for built-in toplevel)
 
@@ -80,7 +80,7 @@ lpdoc_toplevel(Opts2) :-
 	; Opts0 = Opts1
 	),
 	Opts1 = [
-		   '-u', lpdoc(lpdoc),
+		   '-u', lpdoc(docmaker),
 		   '-g', set_prolog_flag(quiet, off)
                |Opts2],
 	toplevel:toplevel(Opts).
