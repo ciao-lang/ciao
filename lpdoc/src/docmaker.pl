@@ -1,4 +1,4 @@
-:- module(docmaker, [make_doc/4], [assertions, regtypes, dcg, basicmodes, make, fsyntax]).
+:- module(docmaker, [make_doc/4], [assertions, regtypes, dcg, basicmodes, fsyntax]).
 
 :- doc(title, "Driver for Documentation Targets").
 :- doc(author, "Manuel Hermenegildo").
@@ -128,19 +128,60 @@ report_make_target(BegEnd, Base) :-
 
 :- doc(section, "Command Entries (lpmake)").
 
-%% ---------------------------------------------------------------------------
-% target_comment(all,       "Generate manual in all default formats", []).
+:- multifile m_do_target_atm/3.
+:- multifile m_do_target_var/3.
+:- multifile m_target_exists/2.
+:- multifile m_target_deps/4.
+:- multifile m_target_comment/4.
+:- multifile m_do_dependency/4.
+:- multifile m_dependency_exists/3.
+:- multifile m_dependency_precond/4.
+
+:- discontiguous do_target_atm/2.
+:- discontiguous do_target_var/2.
+:- discontiguous target_exists/1.
+:- discontiguous target_deps/3.
+:- discontiguous target_comment/3.
+:- discontiguous do_dependency/3.
+:- discontiguous dependency_exists/2.
+:- discontiguous dependency_precond/3.
+
+m_do_target_atm(docmaker,_1,_2) :-
+        docmaker:do_target_atm(_1,_2).
+m_do_target_var(docmaker,_1,_2) :-
+        docmaker:do_target_var(_1,_2).
+m_target_exists(docmaker,_1) :-
+        docmaker:target_exists(_1).
+m_target_deps(docmaker,_1,_2,_3) :-
+        docmaker:target_deps(_1,_2,_3).
+m_target_comment(docmaker,_1,_2,_3) :-
+        docmaker:target_comment(_1,_2,_3).
+
 %% ---------------------------------------------------------------------------
 
 % Note: do not confuse a file format (e.g. PDF) with a backend (texinfo)
 
 % Generate all the requested file formats (in SETTINGS.pl)
-all <- ~requested_file_formats
-# "Generates all documentation files specified by @pred{docformat/1}." :- true.
+target_comment(all,"Generates all documentation files specified by docformat/1",[]).
+target_deps(all,Formats,[]) :-
+        !,
+        requested_file_formats(Formats).
+target_exists(all).
+do_target_atm(all,[]).
 
 % Generate one file format (not necessarily requested in SETTINGS.pl)
-~supported_file_format <- ~main_absfile_in_format(~top_suffix(Suffix)) :: Suffix :-
-	true.
+target_deps(Suffix,DepFiles,[Suffix]) :-
+	supported_file_format(Suffix),
+        !,
+	top_suffix(Suffix,PrincipalExt),
+        main_absfile_in_format(PrincipalExt,DepF),
+	DepFiles = [DepF].
+target_exists(Suffix) :-
+        supported_file_format(Suffix).
+do_target_var(Suffix,[Suffix]) :-
+        supported_file_format(Suffix),
+        !,
+        true.
 
 % ---------------------------------------------------------------------------
 
@@ -159,37 +200,105 @@ all <- ~requested_file_formats
 % NOTE: Dependency to SETTINGS could be refined
 
 % 1) Doctree and references from each source
-~absfile_for_subtarget(~path_basename(~dupspec(Spec)), ~dupft(F), dr) <-
-	    ~add_settings_dep(~query_source(Spec, S), Spec) :-
-	gen_doctree(F, Spec, S).
+target_deps(F,DepFiles,[Spec,SourceSuffix]) :-
+	dr_absfiles(Spec, _Backend, F),
+        !,
+	query_source(Spec,SourceSuffix,AbsFile),
+	add_settings_dep(AbsFile,Spec,DepFiles).
+target_exists(F) :-
+	dr_absfiles(_Spec, _Backend, F).
+do_target_var(F,[Spec,SourceSuffix]) :-
+	dr_absfiles(Spec, Backend, F),
+        !,
+        gen_doctree(Backend, Spec, SourceSuffix).
+
+% dr_absfiles(-Spec, -Backend, -F)
+dr_absfiles(Spec, Backend, F) :-
+	Spec = ~all_specs,
+	path_basename(Spec,Name),
+	Backend = ~backend_id,
+	absfile_for_subtarget(Name,Backend,dr,F).
 
 % 2) Globally resolved references
-~main_absfile_for_subtarget(~dupft(F), gr) <-
-	    [~main_absfile_for_subtarget(F, dr)|~components_target(F, dr)] :-
-	compute_grefs(F).
+target_deps(F,DepFiles,[Backend]) :-
+	Backend = ~backend_id,
+        main_absfile_for_subtarget(Backend,gr,F),
+        !,
+	main_absfile_for_subtarget(Backend,dr,Fdr),
+	components_target(Backend,dr,FdrComps),
+        DepFiles=[Fdr|FdrComps].
+target_exists(F) :-
+        Backend = ~backend_id,
+        main_absfile_for_subtarget(Backend,gr,F).
+do_target_var(F,[Backend]) :-
+        Backend = ~backend_id,
+	main_absfile_for_subtarget(Backend,gr,F),
+        !,
+        compute_grefs(Backend).
 
 % 3) Backend-specific temporary result
-~absfile_for_subtarget(~path_basename(~dupspec(Spec)), ~dupft(F), cr) <-
-	    [~absfile_for_subtarget(~path_basename(Spec), F, dr),
-	     ~main_absfile_for_subtarget(F, gr)] :-
-	% note: Base here is a modname (not a modspec)
-	translate_doctree(F, ~path_basename(Spec)).
+target_deps(F,DepFiles,[Spec,Backend]) :-
+	Spec = ~all_specs,
+	path_basename(Spec,Name),
+	Backend = ~backend_id,
+	absfile_for_subtarget(Name,Backend,cr,F),
+        !,
+%	path_basename(Spec,Name),
+	absfile_for_subtarget(Name,Backend,dr,Fdr),
+	main_absfile_for_subtarget(Backend,gr,Fgr),
+        DepFiles=[Fdr,Fgr].
+target_exists(F) :-
+        Spec = ~all_specs,
+        path_basename(Spec,Name),
+        Backend = ~backend_id,
+        absfile_for_subtarget(Name,Backend,cr,F).
+do_target_var(F,[Spec,Backend]) :-
+	Spec = ~all_specs,
+	path_basename(Spec,Name),
+	Backend = ~backend_id,
+	absfile_for_subtarget(Name,Backend,cr,F),
+        !,
+	path_basename(Spec,Name),
+        translate_doctree(Backend,Name).
 
 % 4) Backend-specific final result
-~main_absfile_for_subtarget(~dupft(F), fr) <-
-	    [~main_absfile_for_subtarget(F, cr)|~components_target(F, cr)] :-
-	simple_message("Post-processing the document.", []),
-	autodoc_finish(F).
+target_deps(F,DepFiles,[Backend]) :-
+	Backend = ~backend_id,
+	main_absfile_for_subtarget(Backend,fr,F),
+        !,
+	main_absfile_for_subtarget(Backend,cr,Fcr),
+	components_target(Backend,cr,FcrComps),
+        DepFiles=[Fcr|FcrComps].
+target_exists(F) :-
+        Backend = ~backend_id,
+        main_absfile_for_subtarget(Backend,fr,F).
+do_target_var(F,[Backend]) :-
+	Backend = ~backend_id,
+	main_absfile_for_subtarget(Backend,fr,F),
+        !,
+        simple_message("Post-processing the document.",[]),
+        autodoc_finish(Backend).
 
 % (extra) Alternative final results (e.g. PDF, PS, etc.)
 % [Rules for generating DVI, PS, and PDF from texi]
-~main_absfile_in_format(~dup_alt_format(Alt, F)) <-
-	    [~main_absfile_for_subtarget(F, fr)] :-
-	simple_message("Generating document in ~w format.", [Alt]),
-	autodoc_gen_alternative(F, Alt).
-
-% @var{Alt} is an alternative format for backend @var{F}
-dup_alt_format(Alt, F) := ~dup(~backend_alt_format(~dupft(F)), Alt).
+target_deps(F,DepFiles,[Backend]) :-
+	Backend = ~backend_id,
+	Alt = ~backend_alt_format(Backend),
+	main_absfile_in_format(Alt,F),
+        !,
+	main_absfile_for_subtarget(Backend,fr,Ffr),
+        DepFiles=[Ffr].
+target_exists(F) :-
+	Backend = ~backend_id,
+	Alt = ~backend_alt_format(Backend),
+        main_absfile_in_format(Alt,F).
+do_target_var(F,[Backend]) :-
+	Backend = ~backend_id,
+	Alt = ~backend_alt_format(Backend),
+	main_absfile_in_format(Alt,F),
+        !,
+        simple_message("Generating document in ~w format.",[Alt]),
+        autodoc_gen_alternative(Backend,Alt).
 
 % ---------------------------------------------------------------------------
 
@@ -206,22 +315,11 @@ target_files([FileBase|FileBases], Backend, Subtarget) := [NewFile|NewFiles] :-
 	NewFile = ~absfile_for_subtarget(Name, Backend, Subtarget),
 	NewFiles = ~target_files(FileBases, Backend, Subtarget).
 
-% Unify arguments and return them. This is useful to define generic
-% rules that work for several formats and source suffixes.
-% TODO: This trick is necessary because of how the fsyntax package
-%       currently interacts with the lpmake package. This should
-%       be reviewed carefully. --JF
-dup(X,X) := X.
-
-dupft(F) := ~dup(~backend_id,F).
-
 query_source(Spec, S) := Main :-
 	find_source(Spec, S, Main, _),
 	!.
 query_source(Spec, _S) := _Main :-
 	throw(make_error("Source file not found: ~w", [Spec])).
-
-dupspec(Spec) := ~dup(~all_specs, Spec).
 
 all_specs := B :-
 	( B = ~get_mainmod_spec
@@ -270,20 +368,23 @@ translate_doctree(Backend, FileBase) :-
 
 :- doc(section, "Commands for Output Visualization").
 
-% Default 
-view <- [htmlview] # "Visualize default format (.html)" :- true.
+target_comment(view, "Visualize default format (.html)", []).
+target_comment(pdfview, "Visualize .pdf (with a default viewer)", []).
+target_comment(psview, "Visualize .ps (with a default viewer)", []).
+target_comment(htmlview, "Visualize .html (with a default viewer)", []).
+target_comment(infoview, "Visualize .info (with a default viewer)", []).
+target_comment(manlview, "Visualize .manl (with a default viewer)", []).
 
-% Main viewers
-pdfview <- [] # "Visualize .pdf (with a default viewer)" :-
-	view('pdf').
-psview <- [] # "Visualize .ps (with a default viewer)" :-
-	view('ps').
-htmlview <- [] # "Visualize .html (with a default viewer)" :-
-	view('html').
-infoview <- [] # "Visualize .info (with a default viewer)" :-
-	view('info').
-manlview <- [] # "Visualize .manl (with a default viewer)" :-
-	view('manl').
+viewcmd(view, html).
+viewcmd(pdfview, pdf).
+viewcmd(psview, ps).
+viewcmd(htmlview, html).
+viewcmd(infoview, info).
+viewcmd(manlview, manl).
+
+target_deps(Cmd,Deps,[]) :- viewcmd(Cmd, _), !, Deps = [].
+target_exists(Cmd) :- viewcmd(Cmd, _), !.
+do_target_atm(Cmd,[]) :- viewcmd(Cmd, Suffix), !, view(Suffix).
 
 view(Suffix) :-
 	main_absfile_in_format(Suffix, File),
@@ -326,21 +427,24 @@ esc_code(X) --> [X].
 :- doc(section, "Cleaning up Commands").
 % (after generating manuals)
 
-clean <- [] # "Delete intermediate files. Leaves .texi & docs" :-
-	clean_intermediate.
+target_comment(clean, "Delete intermediate files. Leaves .texi & docs", []).
+target_comment(docsclean, "Delete all generated document files (temporary and final). Leaves only .texi", []).
+target_comment(distclean, "Delete all temporary files, including .texi", []).
+target_comment(realclean, "Deletes everything", []).
 
-docsclean <- [] # "Delete all generated document files (temporary and final). Leaves only .texi" :-
-	clean_docs_no_texi.
+target_deps(Cmd,Deps,[]) :- cleancmd(Cmd, _), !, Deps = [].
+target_exists(Cmd) :- cleancmd(Cmd, _), !.
+do_target_atm(Cmd,[]) :- cleancmd(Cmd, Mode), !, clean(Mode).
 
-%% distclean <- [clean] # "Leaves only generated docs." :- 
-distclean <- [] # "Delete all temporary files, including .texi" :-
-	clean_all_temporary.
+cleancmd(clean, intermediate).
+cleancmd(docsclean, docs_no_texi).
+cleancmd(distclean, all_temporary).
+cleancmd(realclean, all).
 
-% :- use_module(library(source_tree), [delete_glob/2]).
-%% realclean <- [docsclean] # "Deletes everything." :-
-%% 	-delete_glob('.', '*.texic').
-realclean <- [] # "Deletes everything." :-
-	clean_all.
+clean(intermediate) :- clean_intermediate.
+clean(docs_no_texi) :- clean_docs_no_texi.
+clean(all_temporary) :- clean_all_temporary.
+clean(all) :- clean_all.
 
 % ===========================================================================
 

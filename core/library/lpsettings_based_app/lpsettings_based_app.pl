@@ -161,8 +161,10 @@ report_version :-
 	version(Version),
 	app_name(AppName),
 	format(user_error, "~w ~w~n", [AppName, Version]),
-	app_copyright(Copyright),
-	format(user_error, "~s~n", [Copyright]).
+	( app_copyright(Copyright) ->
+	    format(user_error, "~s~n", [Copyright])
+	; true
+	).
 
 report_usage :-
 	report_version,

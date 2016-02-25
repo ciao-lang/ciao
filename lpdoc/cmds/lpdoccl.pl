@@ -38,7 +38,7 @@ app_name('LPdoc'). % TODO: like packname in Manifest
 % Version atom
 %% version(_)
 % Copyright
-app_copyright("CLIP Group, T.U. of Madrid (UPM)").
+app_copyright(_) :- fail.
 
 app_options_message("
 LPdoc options:
