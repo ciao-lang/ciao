@@ -32,28 +32,7 @@ $ ciaoc_sdyn MAIN
 
 :- export(main/1).
 main([MainF]) :- !,
-	% Collect dylibs needed for MainF
-	collect_dylibs(MainF),
-	% Copy dylibs (including their dependencies) and fix paths
-	( dylib(_L, SO),
-	  dylib_deps(SO, DepSO),
-	    user_so(DepSO),
-	    path_split(DepSO, _, SOBase),
-	    copy_file(DepSO, SOBase, [overwrite]),
-	    dylib_change_paths(SOBase),
-	    fail
-	; true
-	),
-	% Create static exec with explicit loading of dylibs
-	Stub = 'statstub.pl',
-	find_pl_filename(MainF, _MainPl, MainBase, _),
-	path_split(MainBase, _, MainMod),
-	Out = MainMod,
-	create_static_stub(MainMod, Stub),
-	process_call(path(ciaoc), ['-S', '-o', Out, Stub, MainF], []),
-	%
-	clean_mod(Stub),
-	delete_file(Stub).
+	create_sdyn(MainF).
 main(_) :-
 	usage.
 
@@ -67,6 +46,41 @@ Make standalone executable for the current OS and architecture (using
 ciaoc -s) and copies all the required dynamic libraries (including
 dependences not in /bin or /usr/bin).
 ").
+
+% NOTE: Contrary to 'ciaoc' this outputs the executable (and all
+%   dylib dependencies) in the current directory.
+create_sdyn(MainF) :-
+	% Collect dylibs needed for MainF
+	collect_dylibs(MainF),
+	\+ \+ dylib(_, _), % uses at least one dylib
+	!,
+	% Copy dylibs (including their dependencies) and fix paths
+	( dylib(_L, SO),
+	  dylib_deps(SO, DepSO),
+	    user_so(DepSO),
+	    path_split(DepSO, _, SOBase),
+	    copy_file(DepSO, SOBase, [overwrite]),
+	    dylib_change_paths(SOBase),
+	    fail
+	; true
+	),
+	% Create static exec with explicit loading of dylibs
+	Stub = 'statstub.pl',
+	get_mod(MainF, MainMod),
+	Out = MainMod,
+	create_static_stub(MainMod, Stub),
+	process_call(path(ciaoc), ['-S', '-o', Out, Stub, MainF], []),
+	%
+	clean_mod(Stub),
+	delete_file(Stub).
+create_sdyn(MainF) :- % Do a normal -S call to ciaoc
+	get_mod(MainF, MainMod),
+	Out = MainMod,
+	process_call(path(ciaoc), ['-S', '-o', Out, MainF], []).
+
+get_mod(F, Mod) :-
+	find_pl_filename(F, _Pl, Base, _),
+	path_split(Base, _, Mod).
 
 clean_mod(F) :-
 	find_pl_filename(F, _Pl, Base, _),
