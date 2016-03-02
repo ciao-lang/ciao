@@ -167,13 +167,13 @@ main(Args) :-
     
 main_([Help0|Args]) :-
 	norm_cmd(Help0, Help),
-	help_mode(Help, Mode, Boot), 
+	help_mode(Help, Level, Prof), 
 	!,
 	( Args = [] ->
-	    show_help(Mode, Boot)
+	    show_help(Level, Prof)
 	; Args = [Arg0] ->
 	    parse_flag(Arg0, ciao:Flag), % (parse commands like flags)
-	    show_help_cmd(Flag, Boot)
+	    show_help_cmd(Flag, Prof)
 	; fail
 	).
 main_(CmdArgs) :- !,
