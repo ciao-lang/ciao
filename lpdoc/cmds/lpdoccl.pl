@@ -43,6 +43,8 @@
 main(Args) :-
 	catch(main_(Args), E, (handle_lpdoc_error(E), fail)).
 
+main_([]) :- !,
+	show_help(summary, normal).
 main_([Help0|Args]) :-
 	help_mode(Help0, Mode),
 	!,
