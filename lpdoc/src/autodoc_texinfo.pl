@@ -724,7 +724,9 @@ texi_file_and_base(In, File, Base) :-
 	% @var{In} is the .texic file, @var{Out} the .texi file
 	absfile_for_subtarget(Mod, texinfo, cr, In),
 	%
-	main_absfile_in_format('texi', File),
+	file_format_provided_by_backend('texi', Backend, Subtarget),
+	absfile_for_subtarget(Mod, Backend, Subtarget, File),
+	%
 	atom_concat(Base, '.texi', File).
 
 :- use_module(library(emacs/emacs_batch), [emacs_path/1]).
@@ -741,7 +743,10 @@ finish_texinfo :-
 	Mod = ~get_mainmod,
 	infodir_base(Mod, ModInfodir),
 	absfile_for_subtarget(ModInfodir, texinfo, cr, InInfodir),
-	main_absfile_in_format('infoindex', OutInfodir),
+	%
+	file_format_provided_by_backend('infoindex', Backend, Subtarget),
+	absfile_for_subtarget(Mod, Backend, Subtarget, OutInfodir),
+	%
 	copy_with_perms(InInfodir, OutInfodir).
 
 copy_with_perms(In, Out) :-

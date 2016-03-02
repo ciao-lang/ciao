@@ -219,22 +219,6 @@ ensure_cache_dir(Backend) :-
 % ---------------------------------------------------------------------------
 % Some special cases for @pred{absfile_for_subtarget/4}
 
-:- export(main_absfile_in_format/2).
-:- pred main_absfile_in_format(Ext, File) # 
-   "@var{File} is the absolute file name for the documentation in
-   @var{Ext} format of the @em{main} module".
-
-% TODO: note that Ext is not a backend, but a file format. Made that 
-% explicit in the documentation.
-main_absfile_in_format(Ext, File) :-
-	file_format_provided_by_backend(Ext, Backend, Subtarget),
-	main_absfile_for_subtarget(Backend, Subtarget, File).
-
-:- export(main_absfile_for_subtarget/3).
-main_absfile_for_subtarget(Backend, Subtarget, File) :-
-	get_mainmod(Mod),
-	absfile_for_subtarget(Mod, Backend, Subtarget, File).
-
 :- export(absfile_for_aux/3).
 :- pred absfile_for_aux(AuxName, Backend, AbsFile) # "Absolute file
    for an auxiliary output file (e.g. CSS, images, etc.)".

@@ -704,8 +704,11 @@ finish_html :-
 	% connected to all the files in the document. The 'cr'
 	% files are directly generated in '.html' format. That
 	% could be generalized to more backends. (JFMC)
-	main_absfile_in_format('htmlmeta', Out),
 	Mod = ~get_mainmod,
+	file_format_provided_by_backend('htmlmeta', Backend, Subtarget),
+	get_mainmod(Mod),
+	absfile_for_subtarget(Mod, Backend, Subtarget, Out),
+	%
 	atom_codes(Mod, ModS),
 	string_to_file(ModS, Out).
 
