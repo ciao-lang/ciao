@@ -35,15 +35,32 @@
 % cmdline_cmd_details(''(_, _, _, _, P), X, Y) :- P(X,Y).
 
 % ---------------------------------------------------------------------------
+:- doc(section, "Help modifiers").
 
-:- use_module(library(aggregates), [findall/3]).
-:- use_module(library(lists), [length/2]).
-:- use_module(library(strings), [write_string/1]).
+:- data help_mode_/2.
+
+set_help_mode(Level, Prof) :-
+	retractall_fact(help_mode_(_, _)),
+	assertz_fact(help_mode_(Level, Prof)).
+
+help_mode(Level, Prof) :- help_mode_(Level, Prof).
+
+all_or_details(all).
+all_or_details(details).
+
+advanced :- help_mode(Level, _), all_or_details(Level).
 
 :- regtype help_level/1.
 help_level(summary). % Just a summary of most useful commands
 help_level(all).     % All commands
 help_level(details). % Details about commands
+
+% ---------------------------------------------------------------------------
+:- doc(section, "Help message").
+
+:- use_module(library(aggregates), [findall/3]).
+:- use_module(library(lists), [length/2]).
+:- use_module(library(strings), [write_string/1]).
 
 :- export(show_help/2).
 :- pred show_help(+Level, +Prof) :: help_level * atm
@@ -87,7 +104,7 @@ grps_str(Grps) -->
 	show_items(Xs).
 
 % ---------------------------------------------------------------------------
-% Generate documentation items
+:- doc(section, "Generate documentation items").
 
 grps_items([]) --> [].
 grps_items([Grp|Grps]) --> grp_items(Grp), grps_items(Grps).
@@ -116,7 +133,7 @@ cmd_items(Cmd) -->
 	).
 
 % ---------------------------------------------------------------------------
-% Format documentation items
+:- doc(section, "Format documentation items").
 
 show_items([]) --> !, [].
 show_items([sep]) --> !, []. % skip trailing sep
@@ -132,28 +149,33 @@ show_item(d(Text)) -->
 show_item(sep) -->
 	show_sep.
 
-top_cmd_str(Str) :- top_cmd_name(X), atom_codes(X, Str).
+top_cmd_str(Str, Args) :- top_cmd_name(X, Args), atom_codes(X, Str).
 
 % ---------------------------------------------------------------------------
+:- doc(section, "Help banner").
 
-% Banner for help
 banner_help_str -->
-	{ top_cmd_str(Cmd) },
-	"Usage: ", string(Cmd), " <cmd> [<args>]\n",
+	{ top_cmd_str(Cmd, Args) },
+	"Usage: ", string(Cmd), " ", string(Args), "\n",
 	"\n",
-	( { help_mode(summary, normal) } ->
+	( { \+ help_mode(summary, _), top_cmd_details(Text) } ->
+	    show_details(Text),
+	    "\n"
+	; []
+	),
+	( { help_mode(summary, _) } ->
             "The most commonly used commands are:\n\n"
 	; []
 	).
 
 ending_help_str --> { help_mode(summary, _) }, !,
 	"\n",
-	{ top_cmd_str(Cmd) },
+	{ top_cmd_str(Cmd, _) },
 	"Use \"", string(Cmd), " help-all\" for a list of all the available commands.\n",
 	"Use \"", string(Cmd), " help <cmd>\" for more information about a command.\n",
 	"\n".
 ending_help_str --> { help_mode(all, _) }, !,
-	{ top_cmd_str(Cmd) },
+	{ top_cmd_str(Cmd, _) },
 	"Use \"", string(Cmd), " help <cmd>\" for more information about a command.\n",
 	"\n".
 ending_help_str --> [].
@@ -161,17 +183,6 @@ ending_help_str --> [].
 % Group of a command
 % TODO: Some commands should be unified using options, this is a
 %   temporary hack.
-
-% ---------------------------------------------------------------------------
-:- doc(section, "Help modifiers").
-
-:- data help_mode_/2.
-
-set_help_mode(Level, Prof) :-
-	retractall_fact(help_mode_(_, _)),
-	assertz_fact(help_mode_(Level, Prof)).
-
-help_mode(Level, Prof) :- help_mode_(Level, Prof).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Formatting").

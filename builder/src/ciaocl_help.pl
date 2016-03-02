@@ -9,22 +9,20 @@
 
 % ---------------------------------------------------------------------------
 
+% (exports show_help/2 and show_help_cmd/2)
 :- include(library(cmdline/cmdline_help)).
 
 % ---------------------------------------------------------------------------
 
 :- use_module(library(system), [using_windows/0]).
 
-top_cmd_name('ciao') :- help_mode(_, normal), !.
-top_cmd_name('ciao-boot.bat') :- using_windows, !.
-top_cmd_name('ciao-boot.sh').
+top_cmd_name(Cmd, "<cmd> [<args>]") :- top_cmd_name_(Cmd).
 
-% ---------------------------------------------------------------------------
+top_cmd_name_('ciao') :- help_mode(_, normal), !.
+top_cmd_name_('ciao-boot.bat') :- using_windows, !.
+top_cmd_name_('ciao-boot.sh').
 
-all_or_details(all).
-all_or_details(details).
-
-advanced :- help_mode(Mode, _), all_or_details(Mode).
+top_cmd_details(_) :- fail.
 
 % ---------------------------------------------------------------------------
 
