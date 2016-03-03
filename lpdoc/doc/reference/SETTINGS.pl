@@ -1,24 +1,9 @@
-:- module(_, _, [assertions, regtypes, fsyntax]).
+:- module(_, _, [lpdoclib(doccfg)]).
 
-:- include(lpdoclib('SETTINGS_schema')).
-% ****************************************************************************
-% This is an LPdoc configuration file. See SETTINGS_schema for documentation *
-% ****************************************************************************
-
-:- doc(title, "LPdoc Manual Settings").
-
-:- doc(module, "This file contains the definitions and configuration
-   settings for the @apl{lpdoc} manual.").
-
+:- doc(title, "Config for LPdoc reference manual").
 :- doc(author, "Manuel Hermenegildo").
 :- doc(author, "Edison Mera").
 :- doc(author, "Jose F. Morales").
-
-:- doc(filetype, user).
-
-% ----------------------------------------------------------------------------
-
-:- use_module(library(bundle/paths_extra), [fsR/2]).
 
 datamode(_) :- fail.
 execmode(_) :- fail.

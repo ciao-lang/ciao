@@ -1,11 +1,4 @@
-:- module(_, _, [regtypes, fsyntax, assertions]).
-
-:- include(lpdoclib('SETTINGS_schema')).
-% ****************************************************************************
-% This is an LPdoc configuration file. See SETTINGS_schema for documentation *
-% ****************************************************************************
-
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- module(_, _, [lpdoclib(doccfg)]).
 
 :- reexport(ciao_docsrc(common/'LPDOCCOMMON')).
 libtexinfo(_) :- fail.

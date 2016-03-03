@@ -1,16 +1,7 @@
-:- module(_, _, [assertions, regtypes, fsyntax]).
-
-:- include(lpdoclib('SETTINGS_schema')).
-% ****************************************************************************
-% This is an LPdoc configuration file. See SETTINGS_schema for documentation *
-% ****************************************************************************
+:- module(_, _, [lpdoclib(doccfg)]).
 
 :- doc(title, "Settings for Ciao IDE manual").
 :- doc(author, "Jose F. Morales").
-:- doc(filetype, user).
-
-:- use_module(library(system)).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
 
 datamode(_) :- fail.
 execmode(_) :- fail.

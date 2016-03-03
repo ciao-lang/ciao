@@ -1,11 +1,5 @@
-:- module(_, _, [regtypes, fsyntax, assertions]).
+:- module(_, _, [lpdoclib(doccfg)]).
 
-:- include(lpdoclib('SETTINGS_schema')).
-% ****************************************************************************
-% This is an LPdoc configuration file. See SETTINGS_schema for documentation *
-% ****************************************************************************
-
-:- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
 
 :- reexport(ciao_docsrc(common/'LPDOCCOMMON')).

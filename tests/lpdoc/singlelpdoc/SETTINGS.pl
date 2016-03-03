@@ -1,15 +1,7 @@
-:- module(_, _, [regtypes, fsyntax, assertions]).
-
-:- include(lpdoclib('SETTINGS_schema')).
-% ****************************************************************************
-% This is an LPdoc configuration file. See SETTINGS_schema for documentation *
-% ****************************************************************************
+:- module(_, _, [lpdoclib(doccfg)]).
 
 % TODO: lpdoc all is not working for this file. The .lpdoc file is
 %       ignored unless lpdoc singlelpdoc.texic is put as target.
-
-:- use_module(library(terms), [atom_concat/2]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
 
 :- reexport(ciao_docsrc(common/'LPDOCCOMMON')).
 output_name(_) :- fail.

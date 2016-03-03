@@ -1,16 +1,7 @@
-:- module(_, _, [assertions, regtypes, fsyntax]).
-
-:- include(lpdoclib('SETTINGS_schema')).
-% ****************************************************************************
-% This is an LPdoc configuration file. See SETTINGS_schema for documentation *
-% ****************************************************************************
-
-:- use_module(library(system)).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- module(_, _, [lpdoclib(doccfg)]).
 
 :- doc(title, "Default configuration file for LPdoc").
 :- doc(author, "The CLIP group").
-:- doc(filetype, user).
 
 :- doc(module, "This is a default configuration file for @apl{lpdoc},
    typically used in the generation of documentation for single
