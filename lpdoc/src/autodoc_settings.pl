@@ -53,8 +53,9 @@ load_settings_(ConfigFile) :-
 	;
 	    working_directory(CWD0, CWD0),
 	    path_concat(CWD0, '', CWD),
+	    % Fill cfg without a configuration file
 	    add_name_value(filepath, CWD),
-	    add_name_value('$schema', 'SETTINGS_schema'), % assume that we have a valid schema
+	    add_name_value('$implements', 'doccfg'),
 	    trace_message("No configuration file. Setting filepath to ~w", [CWD])
 	),
 	!.
@@ -74,23 +75,23 @@ set_make_opt(name_value(Name, Value)) :- !,
 	assertz_fact(name_value(Name, Value)).
 set_make_opt(X) :- throw(error(unknown_opt(X), set_make_opt/1)).
 
-% verify that the loaded settings implement SETTINGS_schema
+% Verify that the configuration module uses the lpdoclib(doccfg) package
 :- export(verify_settings/0).
 verify_settings :-
-	( setting_value('$schema', 'SETTINGS_schema') ->
+	( setting_value('$implements', 'doccfg') ->
 	    true
-	; throw(make_error("The settings file does not seem to be including SETTINGS_schema", []))
+	; throw(make_error("Configuration files must use the lpdoclib(doccfg) package", []))
 	).
 
 % Define 'lpdoclib' setting, check that it is valid
 ensure_lpdoclib_defined :-
 	( LpDocLibDir = ~file_search_path(lpdoclib),
-	  file_exists(~path_concat(LpDocLibDir, 'SETTINGS_schema.pl')) ->
+	  file_exists(~path_concat(LpDocLibDir, 'doccfg.pl')) ->
 	    add_name_value(lpdoclib, LpDocLibDir)
 	; error_message(
-"No valid file search path for 'lpdoclib' alias. It is not defined or it does \n"||
-"not contain proper installation files. The LPdoc build/installation does not \n"||
-"seem to be correct."),
+% ___________________________________________________________________________
+ "No valid file search path for 'lpdoclib' alias.\n"||
+ "Please, check this is LPdoc installation.\n"),
 	  fail
 	).
 
