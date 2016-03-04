@@ -1,3 +1,2 @@
 :- module(_, [], [dynmod_holder]).
-% (Holder for bundlehook modules)
-
+% (Holder for doccfg modules)
