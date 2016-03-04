@@ -11,32 +11,13 @@
    setting, targets, and actions.
 ").
 
-%% Version information
-:- include(lpdoc(version_auto)).
-
-:- use_module(library(messages), [error_message/2]).
-:- use_module(library(system), [file_exists/1]).
-
-% entry point for lpdoc library
-:- use_module(lpdoc(docmaker), [doc_cmd/4]).
-% command line documentation
-:- use_module(lpdoc(lpdoccl_help)).
-
-:- use_module(library(toplevel), [toplevel/1]). % (for built-in toplevel)
-
-% ===========================================================================
-% Common definitions and main/1 entry point for an application using a
-% command line interface, SETTINGS.pl
-% ===========================================================================
-
 :- use_module(library(errhandle), [handle_error/2]).
 :- use_module(library(messages), [error_message/2]).
-:- use_module(library(format), [format/3, sformat/3]).
-:- use_module(library(aggregates), [findall/3]).
-:- use_module(library(system), [working_directory/2, file_exists/1]).
-:- use_module(library(make/make_rt), [parse_name_value/3]).
+:- use_module(library(format), [format/3]).
+:- use_module(library(toplevel), [toplevel/1]). % (for built-in toplevel)
 
-% ---------------------------------------------------------------------------
+:- use_module(lpdoc(docmaker), [doc_cmd/4]).
+:- use_module(lpdoc(lpdoccl_help)).
 
 % Invocation from the command-line interface
 :- export(main/1).
@@ -116,6 +97,8 @@ error_bad_args(Args) :-
 
 % ---------------------------------------------------------------------------
 
+:- include(lpdoc(version_auto)). % Version information
+
 lpdoc_cmd(version) :- !,
 	version(Version),
 	format(user_error, "LPdoc version ~w~n", [Version]).
@@ -123,7 +106,7 @@ lpdoc_cmd(toplevel) :- !,
 	lpdoc_toplevel([]).
 lpdoc_cmd(Cmd) :-
 	opt_settings_file(ConfigFile),
-	get_make_opts(Opts),
+	get_opts(Opts),
 	% TODO: it may be better to use '_' here for output dir
 	doc_cmd(ConfigFile, Opts, Cmd, '.').
 
@@ -141,25 +124,29 @@ lpdoc_cmd(Cmd) :-
 :- discontiguous(handle_option1/2).
 
 % ---------------------------------------------------------------------------
-% Parsed options (for make_rt) 
+% Parsed options
+
+:- use_module(library(aggregates), [findall/3]).
 
 :- data opt_settings_file/1.
 :- data opt_name_value/2.
-:- data opt_make_option/1.
+:- data opt_autodoc_option/1.
 
 reset_opts :-
 	retractall_fact(opt_settings_file(_)),
-	retractall_fact(opt_make_option(_)),
+	retractall_fact(opt_autodoc_option(_)),
 	retractall_fact(opt_name_value(_, _)),
 	%
 	assertz_fact(opt_settings_file('SETTINGS')).
 
-get_make_opts(Opts) :- findall(O, opt(O), Opts).
+get_opts(Opts) :- findall(O, opt(O), Opts).
 
-opt(make_option(Opt)) :- opt_make_option(Opt).
+opt(autodoc_option(Opt)) :- opt_autodoc_option(Opt).
 opt(name_value(Name, Value)) :- opt_name_value(Name, Value).
 
 % ---------------------------------------------------------------------------
+
+:- use_module(library(lists), [list_concat/2]).
 
 is_option1('-d').
 handle_option1('-d', NameValue) :-
@@ -168,18 +155,28 @@ handle_option1('-d', NameValue) :-
 
 is_option0('-v').
 handle_option0('-v') :-
-	assertz_fact(opt_make_option('-v')).
+	assertz_fact(opt_autodoc_option('-v')).
 
 is_option0('--trace-deps').
 handle_option0('--trace-deps') :-
-	assertz_fact(opt_make_option('--trace-deps')).
+	assertz_fact(opt_autodoc_option('--trace-deps')).
 
 is_option1('-f').
 handle_option1('-f', CfgFile) :-
 	retractall_fact(opt_settings_file(_)),
 	assertz_fact(opt_settings_file(CfgFile)).
 
-% ===========================================================================
+parse_name_value(NameValue, Name, Value) :-
+	parse_name_value_string(NameValue, Name, ValueS),
+	atom_codes(Value, ValueS).
+
+parse_name_value_string(NameValue, Name, ValueS) :-
+	atom_codes(NameValue, NameValueS),
+	list_concat([NameS, "=", ValueS], NameValueS),
+	!,
+	atom_codes(Name, NameS).
+
+% ---------------------------------------------------------------------------
 
 is_option0('-cv').
 handle_option0('-cv') :- do_comment_version.
@@ -191,6 +188,8 @@ do_comment_version :-
 	assertz_fact(opt_name_value(comment_version, yes)).
 
 % ---------------------------------------------------------------------------
+
+:- use_module(library(system), [file_exists/1]).
 
 lpdoc_toplevel(Opts2) :-
 	set_prolog_flag(quiet, warning),
@@ -206,7 +205,7 @@ lpdoc_toplevel(Opts2) :-
                |Opts2],
 	toplevel:toplevel(Opts).
 
-% ===========================================================================
+% ---------------------------------------------------------------------------
 :- doc(section, "Handle errors").
 
 handle_lpdoc_error(error(system_error(E, Goal))) :- !,
@@ -215,7 +214,7 @@ handle_lpdoc_error(error(Error)) :- !,
 	error_message("Unknown error: ~w", [Error]).
 handle_lpdoc_error(error(Error, Where)) :- !,
 	handle_error(Error, Where).
-handle_lpdoc_error(make_error(Format, Args)) :- !,
+handle_lpdoc_error(autodoc_error(Format, Args)) :- !,
 	error_message(Format, Args).
 handle_lpdoc_error(Error) :-
 	error_message("Unknown error: ~w", [Error]).

@@ -37,12 +37,12 @@ check_deprecated_settings :-
 	% TODO: This could be part of the LPSETTING file itself...
 	( ( setting_value(mainfile, _)
 	  ; setting_value(component, _) ) ->
-	      throw(make_error("Deprecated mainfile/1 or component/1 in SETTINGS file. "||
+	      throw(autodoc_error("Deprecated mainfile/1 or component/1 in SETTINGS file. "||
                                "Use doc_structure/1 instead.", []))
 	; true
 	),
 	( ( setting_value(fileoption(_), _) ) ->
-	      throw(make_error("Deprecated fileoption/1 in SETTINGS file. "||
+	      throw(autodoc_error("Deprecated fileoption/1 in SETTINGS file. "||
                                "Use doc_mainopts/1 or doc_compopts/1 instead.", []))
 	; true
 	).
@@ -71,7 +71,7 @@ add_docstr_node(Mod, Base, Parent, Mode) :-
 	( current_fact(docstr_node(Mod, Base, _, _)) ->
 	    % TODO: This condition should change if a hierarchical module system is implemented
 	    % TODO: Fix error reporting (this code is tried several times before exiting lpdoc)
-	    throw(make_error("Duplicated ~w module in doc_structure/1 in SETTINGS file.", [Base]))
+	    throw(autodoc_error("Duplicated ~w module in doc_structure/1 in SETTINGS file.", [Base]))
 	; assertz_fact(docstr_node(Mod, Base, Parent, Mode))
 	).
 

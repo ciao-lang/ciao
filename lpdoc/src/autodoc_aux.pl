@@ -53,14 +53,12 @@ ascii_blank_lines(N,[0'\n | R]) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(make/make_rt), [make_option/1]).
-
 :- use_module(library(logged_process), [logged_process_call/3]).
 
 % TODO: logs may also be useful when status is 0
 % Options for logging external commands (controlled by verbosity options)
 logopts(LogOpts, A) :-
-	( current_fact(make_option('-v')) ->
+	( autodoc_option('-v') ->
 	    % In verbose mode, always show logs
 	    A = [show_logs(always)|LogOpts]
 	; % In non-verbose, just note where logs are stored on error
@@ -81,14 +79,14 @@ autodoc_process_call(Cmd, Args, Opts) :-
 
 :- pred verbose_message(Text, ArgList) : format_control * list
 # "The text provided in @var{Text} is printed as a message, using the
-   arguments in @var{ArgList}, if @tt{make_option('-v')} is
+   arguments in @var{ArgList}, if @tt{autodoc_option('-v')} is
    defined. Otherwise nothing is printed.".
 
 verbose_message(Text) :-
 	verbose_message(Text, []).
 
 verbose_message(Mess, Args) :-
-	( make_option('-v') ->
+	( autodoc_option('-v') ->
 	    format(Mess, Args), nl
 	;
 	    true

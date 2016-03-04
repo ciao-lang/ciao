@@ -1,26 +1,71 @@
 :- module(autodoc_settings, [], [dcg, assertions, regtypes, fsyntax]). 
 
-:- doc(title,"Access to Default Settings").
-:- doc(author,"Jose F. Morales").
+:- doc(title, "Current documentation settings").
+:- doc(author, "Jose F. Morales").
 
-:- doc(module, "
-	This module defines the setting values with some default values.
-
-@begin{alert}   
-@bf{Note: This part needs better documentation. -- JFMC}
-@end{alert}
-   ").
-
-% ===========================================================================
-
-% (settings db from make_rt)
-:- use_module(library(make/make_rt)).
-
-% ===========================================================================
+:- doc(module, "This module defines the predicates to load and access
+   documentation configurations.").
 
 :- use_module(library(pathnames), [path_concat/3]).
-:- use_module(library(messages), [error_message/1]).
+:- use_module(library(messages), [error_message/2]).
 
+% ---------------------------------------------------------------------------
+
+:- use_module(lpdoc(doccfg_holder)).
+:- use_module(library(lists), [append/3]).
+
+:- data name_value/2.
+
+add_name_value(Name, Value) :-
+	data_facts:assertz_fact(name_value(Name, Value)).
+
+% read all values
+all_values(Name, Values) :-
+	all_name_values(Name, Values0),
+	(
+	    Values0 == [] ->
+	    all_pred_values(Name, Values)
+	;
+	    Values = Values0
+	).
+
+all_pred_values(Name, Values) :-
+	findall(Value, get_pred_value(Name, Value), Values).
+
+all_name_values(Name, Values) :-
+	findall(Value, name_value(Name, Value), Values).
+
+get_value(Name, Value) :-
+	name_value(Name, _) ->
+	name_value(Name, Value)
+    ;
+	get_pred_value(Name, Value).
+
+% TODO: throw exception instead
+:- pred check_var_exists(Var)
+# "Fails printing a message if variable @var{Var} does not exist.".
+
+check_var_exists(Var) :-
+	get_value(Var, _),
+	!.
+check_var_exists(Var) :-
+	error_message("Variable ~w not found", [Var]),
+	fail.
+
+dyn_load_cfg_module_into_make(ConfigFile) :-
+	doccfg_holder:do_use_module(ConfigFile).
+
+% (Get value, given by a predicate definition Name/1)
+get_pred_value(Name, Value) :-
+	( atom(Name) ->
+	    Pred =.. [Name, Value]
+	; Name =.. Flat,
+	  append(Flat, [Value], PredList),
+	  Pred =.. PredList
+	),
+	doccfg_holder:call_unknown(_:Pred).
+
+% ---------------------------------------------------------------------------
 :- doc(section, "Loading Setting").
 
 :- export(settings_file/1).
@@ -31,8 +76,10 @@ set_settings_file(ConfigFile) :-
 	assertz_fact(settings_file(ConfigFile)).
 
 % TODO: no unload?
-% Load settings, set make options, and perform some sanity checks.
 :- export(load_settings/2).
+:- pred load_settings(ConfigFile, Opts) # "Load configuration from
+   @var{ConfigFile} and @var{Opts}".
+
 load_settings(ConfigFile, Opts) :-
 	clean_make_opts,
 	load_settings_(ConfigFile),
@@ -40,14 +87,7 @@ load_settings(ConfigFile, Opts) :-
 	ensure_lpdoclib_defined.
 
 load_settings_(ConfigFile) :-
-	(
-	    fixed_absolute_file_name(ConfigFile, AbsFilePath),
-	    ( file_exists(AbsFilePath)
-	    ; atom_concat(AbsFilePath, '.pl', TryThisFile),
-	      file_exists(TryThisFile)
-	    )
-	->
-	    trace_message("Using configuration file ~w", [AbsFilePath]),
+	( find_pl(ConfigFile, AbsFilePath) ->
 	    set_settings_file(AbsFilePath),
 	    dyn_load_cfg_module_into_make(AbsFilePath)
 	;
@@ -55,32 +95,27 @@ load_settings_(ConfigFile) :-
 	    path_concat(CWD0, '', CWD),
 	    % Fill cfg without a configuration file
 	    add_name_value(filepath, CWD),
-	    add_name_value('$implements', 'doccfg'),
-	    trace_message("No configuration file. Setting filepath to ~w", [CWD])
+	    add_name_value('$implements', 'doccfg')
 	),
 	!.
 load_settings_(ConfigFile) :-
-	throw(make_error("settings file ~w does not exist", [ConfigFile])).
+	throw(autodoc_error("settings file ~w does not exist", [ConfigFile])).
 
-clean_make_opts :-
-	retractall_fact(make_option(_)),
-	retractall_fact(name_value(_, _)).
-
-set_make_opts([]).
-set_make_opts([X|Xs]) :- set_make_opt(X), set_make_opts(Xs).
-
-set_make_opt(make_option(Opt)) :- !,
-	assertz_fact(make_option(Opt)).
-set_make_opt(name_value(Name, Value)) :- !,
-	assertz_fact(name_value(Name, Value)).
-set_make_opt(X) :- throw(error(unknown_opt(X), set_make_opt/1)).
+% `Path` is the absolute file name for `F` or `F` with `.pl` extension
+find_pl(F, Path) :-
+	fixed_absolute_file_name(F, Path0),
+	( file_exists(Path0) -> Path = Path0
+	; atom_concat(Path0, '.pl', Path1),
+	  file_exists(Path1),
+	  Path = Path1
+	).
 
 % Verify that the configuration module uses the lpdoclib(doccfg) package
 :- export(verify_settings/0).
 verify_settings :-
 	( setting_value('$implements', 'doccfg') ->
 	    true
-	; throw(make_error("Configuration files must use the lpdoclib(doccfg) package", []))
+	; throw(autodoc_error("Configuration files must use the lpdoclib(doccfg) package", []))
 	).
 
 % Define 'lpdoclib' setting, check that it is valid
@@ -91,7 +126,7 @@ ensure_lpdoclib_defined :-
 	; error_message(
 % ___________________________________________________________________________
  "No valid file search path for 'lpdoclib' alias.\n"||
- "Please, check this is LPdoc installation.\n"),
+ "Please, check this is LPdoc installation.\n", []),
 	  fail
 	).
 
@@ -100,8 +135,25 @@ ensure_lpdoclib_defined :-
 
 :- use_module(library(system), [file_exists/1]).
 
-% ===========================================================================
+:- export(autodoc_option/1).
+:- data autodoc_option/1.
 
+% ---------------------------------------------------------------------------
+
+clean_make_opts :-
+	retractall_fact(autodoc_option(_)),
+	retractall_fact(name_value(_, _)).
+
+set_make_opts([]).
+set_make_opts([X|Xs]) :- set_make_opt(X), set_make_opts(Xs).
+
+set_make_opt(autodoc_option(Opt)) :- !,
+	assertz_fact(autodoc_option(Opt)).
+set_make_opt(name_value(Name, Value)) :- !,
+	assertz_fact(name_value(Name, Value)).
+set_make_opt(X) :- throw(error(unknown_opt(X), set_make_opt/1)).
+
+% ---------------------------------------------------------------------------
 :- doc(section, "Checking or Setting Options").
 
 :- use_module(library(system)).
@@ -121,7 +173,7 @@ check_setting(Name) :- check_var_exists(Name).
   is no default value for the variable @var{Var} it fails.".
 
 setting_value_or_default(Name, Value) :-
-	( make_rt:get_value(Name, Value0) ->
+	( get_value(Name, Value0) ->
 	    Value = Value0
 	; Value = ~default_val(Name)
 	).
@@ -140,14 +192,14 @@ default_val(mandir) := ~docformatdir(manl).
 % (With explicit default value)
 :- export(setting_value_or_default/3).
 setting_value_or_default(Name, DefValue, Value) :-
-	( make_rt:get_value(Name, Value0) ->
+	( get_value(Name, Value0) ->
 	    Value = Value0
 	; Value = DefValue
 	).
 
 :- export(setting_value/2).
 setting_value(Name, Value) :-
-	make_rt:get_value(Name, Value).
+	get_value(Name, Value).
 
 :- export(all_setting_values/2).
 %all_setting_values(Name) := ~findall(T, ~setting_value(doc_mainopt)).
@@ -162,19 +214,21 @@ all_setting_values(Name) := ~all_values(Name).
 requested_file_formats := F :-
 	F = ~all_values(docformat).
 
-% ===========================================================================
+% ---------------------------------------------------------------------------
+:- doc(section, "Paths to files").
 
-:- doc(section, "Paths to Code").
+:- use_module(lpdoc(autodoc_filesystem), [cleanup_vpath/0, add_vpath/1]).
 
 :- export(load_vpaths/0).
 load_vpaths :-
+	cleanup_vpath,
 	get_lib_opts(Libs, SysLibs),
 	( % (failure-driven loop)
-	  ( member(P, Libs)
+	  ( P = '.' % find in the current dir
+	  ; member(P, Libs)
 	  ; member(P, SysLibs)
 	  ),
 	    add_vpath(P),
-	    trace_message("Added file path: ~w", [P]),
 	    fail
 	; true
 	).
@@ -192,8 +246,7 @@ get_lib_opts(Libs, SysLibs) :-
 % :- use_module(lpdoc(autodoc_filesystem), [get_parent_bundle/1]).
 % :- use_module(engine(internals), ['$bundle_alias_path'/3]).
 
-% ===========================================================================
-
+% ---------------------------------------------------------------------------
 :- doc(section, "External Commands").
 % TODO: Ideally, each backend should specify this part.
 

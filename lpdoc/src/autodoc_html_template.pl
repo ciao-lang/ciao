@@ -3,24 +3,15 @@
 :- doc(title, "Template Support for the HTML Backend").
 :- doc(author, "Jose F. Morales").
 
-:- use_module(library(messages)).
-:- use_module(library(aggregates)).
-:- use_module(library(system)).
-:- use_module(library(file_utils)).
-:- use_module(library(system_extra)).
-
+:- use_module(library(system), [file_exists/1]).
+:- use_module(library(file_utils), [file_to_string/2]).
 :- use_module(library(pathnames), [path_concat/3]).
-
-:- use_module(library(lists)).
-:- use_module(library(terms), [atom_concat/2]).
+:- use_module(library(lists), [append/3]).
 
 :- include(library(pillow/ops)).
-
-:- use_module(library(make/make_rt)).
-
 :- use_module(library(pillow/html), [html_template/3]).
 
-:- use_module(lpdoc(autodoc_settings)).
+:- use_module(lpdoc(autodoc_settings), [setting_value/2]).
 
 % ---------------------------------------------------------------------------
 

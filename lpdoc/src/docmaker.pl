@@ -43,11 +43,10 @@
    @var{OutputDir}. If @var{OutputDir} is free, directory name of
    @var{ConfigFile} is used (similar to @pred{make_exec/2}).
 
-   @var{Opts} is the list of options for @lib{make_rt} (see
-   @pred{set_make_opts/1}).".
+   @var{Opts} is the list of options (see @pred{autodoc_option/1}).".
 
 doc_cmd(ConfigFile, Opts, Cmd, OutputDir) :-
-	% Load settings and set make_rt opts
+	% Setup configuration
 	load_settings(ConfigFile, Opts),
 	% Call and cleanup
 	working_directory(WD, WD),
@@ -249,7 +248,7 @@ query_source(Spec, S) := Path :-
 	!,
 	Path = Path0.
 query_source(Spec, _S) := _Path :-
-	throw(make_error("Source file not found: ~w", [Spec])).
+	throw(autodoc_error("Source file not found: ~w", [Spec])).
 
 % TODO: Missing dependencies to included files, etc. We need c_itf for this.
 add_settings_dep(SpecF, Spec) := ['SOURCE'(SpecF)|Fs] :-

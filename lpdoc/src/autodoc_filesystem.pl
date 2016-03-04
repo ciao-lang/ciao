@@ -14,10 +14,11 @@
 
 :- use_module(library(aggregates)).
 :- use_module(library(pathnames),
-	[path_split/3, path_concat/3, path_get_relative/3]).
+	[path_split/3, path_concat/3, path_get_relative/3,
+	 path_is_absolute/1]).
+:- use_module(library(system), [file_exists/1]).
 :- use_module(library(system_extra), [(-) /1]).
 :- use_module(library(terms), [atom_concat/2]).
-:- use_module(library(make/make_rt), [find_file/2]).
 
 %% ---------------------------------------------------------------------------
 
@@ -37,8 +38,31 @@ filename_noext(X) :- atm(X).
 
 % ---------------------------------------------------------------------------
 
+% Search path for files
+:- data vpath/1.
+
+:- export(cleanup_vpath/0).
+cleanup_vpath :-
+	retractall_fact(vpath(_)).
+
+:- export(add_vpath/1).
+add_vpath(Path) :-
+	( data_facts:current_fact(vpath(Path)) ->
+	    true
+	; data_facts:assertz_fact(vpath(Path))
+	).
+
 :- export(find_file/2).
-find_file(RelPath, Path) :- make_rt:find_file(RelPath, Path).
+% Find file in current directory or any of vpath/1
+find_file(File, PathFile) :-
+	path_is_absolute(File), !,
+	PathFile = File,
+	file_exists(PathFile).
+find_file(File, PathFile) :-
+	vpath(Path),
+	path_concat(Path, File, PathFile),
+	file_exists(PathFile),
+	!.
 
 :- export(find_source/4).
 % Find the first source that exists (e.g., .pl or .lpdoc)
@@ -49,7 +73,7 @@ find_source(Name, Suffix, NameSuffix, Path) :-
 	% TODO: Cannot use absolute_file_name, library_directory is
 	%       not updated, only vpath.
 	% TODO: Silent fail if source does not exist
-	make_rt:find_file(NameSuffix, Path).
+	find_file(NameSuffix, Path).
 
 % TODO: I am not sure if here is the place to define this.
 srcsuff := pl | lpdoc.
