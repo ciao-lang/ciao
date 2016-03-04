@@ -544,9 +544,6 @@ handle_builder_error(args_error(Format, Args)) :-
 	append(T1, "~n", T2),
 	format(user_error, T2, Args),
 	halt(1).
-handle_builder_error(make_error(Format, Args)) :- % TODO: used?
-	error_message(Format, Args),
-	halt(1).
 handle_builder_error(not_in_builder_boot(Cmd)) :-
 	format(user_error, "ERROR: Command '~w' only available in 'ciao-boot.sh' or 'ciao-boot.bat'.~n", [Cmd]),
 	halt(1).
