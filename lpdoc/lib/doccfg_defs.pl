@@ -99,7 +99,7 @@
 
 :- pred comment_version/1 => yesno
 # "The source files contain version information. If not
-   specified lpdoc will asume the opposite".
+   specified lpdoc will assume the opposite".
 
 % ---------------------------------------------------------------------------
 % Installation options
