@@ -3,7 +3,7 @@
 % TODO: lpdoc all is not working for this file. The .lpdoc file is
 %       ignored unless lpdoc singlelpdoc.texic is put as target.
 
-:- reexport(ciao_docsrc(common/'LPDOCCOMMON')).
+:- include(ciao_docsrc(common/'LPDOCCOMMON')).
 output_name(_) :- fail.
 libtexinfo(_) :- fail.
 datamode(_) :- fail.

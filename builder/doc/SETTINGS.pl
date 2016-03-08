@@ -1,6 +1,6 @@
 :- module(_, _, [lpdoclib(doccfg)]).
 
-:- reexport(ciao_docsrc(common/'LPDOCCOMMON')).
+:- include(ciao_docsrc(common/'LPDOCCOMMON')).
 libtexinfo(_) :- fail.
 datamode(_) :- fail.
 execmode(_) :- fail.

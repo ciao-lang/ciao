@@ -1,10 +1,7 @@
-:- module(_, _, [fsyntax, assertions]).
+% (included file)
+% Common paths and options
 
-:- use_module(library(system)).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
-
-% ----------------------------------------------------------------------------
-% Paths and options
+:- use_module(library(system), [get_pwnam/1, get_grnam/1]).
 
 ciaofilepath_common := ~fsR(bundle_src(ciao)).
 ciaofilepath_common := ~fsR(bundle_src(ciao)/doc/common).

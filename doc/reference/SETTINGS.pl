@@ -2,7 +2,7 @@
 
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
 
-:- reexport(ciao_docsrc(common/'LPDOCCOMMON')).
+:- include(ciao_docsrc(common/'LPDOCCOMMON')).
 libtexinfo(_) :- fail.
 datamode(_) :- fail.
 execmode(_) :- fail.
