@@ -178,17 +178,6 @@ parse_name_value_string(NameValue, Name, ValueS) :-
 
 % ---------------------------------------------------------------------------
 
-is_option0('-cv').
-handle_option0('-cv') :- do_comment_version.
-%
-is_option0('--comment-version').
-handle_option0('--comment-version') :- do_comment_version.
-do_comment_version :-
-	retractall_fact(opt_name_value(comment_version, _)),
-	assertz_fact(opt_name_value(comment_version, yes)).
-
-% ---------------------------------------------------------------------------
-
 :- use_module(library(system), [file_exists/1]).
 
 lpdoc_toplevel(Opts2) :-

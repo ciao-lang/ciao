@@ -60,6 +60,10 @@
     libtexinfo(yes)
 ]).
 
+:- default_def(comment_version/1, [
+    comment_version(no)
+]).
+
 :- default_def(docformat/1, [
     docformat(texi),
     docformat(ps),
