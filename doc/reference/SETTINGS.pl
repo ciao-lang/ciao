@@ -3,16 +3,6 @@
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
 
 :- include(ciao_docsrc(common/'LPDOCCOMMON')).
-libtexinfo(_) :- fail.
-datamode(_) :- fail.
-execmode(_) :- fail.
-
-% (not customized)
-bibfile(_) :- fail.
-htmldir(_) :- fail.
-docdir(_) :- fail.
-infodir(_) :- fail.
-mandir(_) :- fail.
 
 output_name := 'ciao'.
 
@@ -456,7 +446,6 @@ docstr_utilscontrib :=
 
 %doc_mainopts := no_patches.
 doc_mainopts := _ :- fail. % Allow patches in main changelog (those are the release notes)
-
 % TODO: Added no_propuses because texindex breaks with very large
 %       indices (due to internal, maybe arbitrary, limitations) --JF.
 doc_compopts := no_isoline|no_engmods|propmods|no_changelog|no_propuses.

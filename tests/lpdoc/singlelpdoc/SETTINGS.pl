@@ -3,20 +3,7 @@
 % TODO: lpdoc all is not working for this file. The .lpdoc file is
 %       ignored unless lpdoc singlelpdoc.texic is put as target.
 
-:- include(ciao_docsrc(common/'LPDOCCOMMON')).
-output_name(_) :- fail.
-libtexinfo(_) :- fail.
-datamode(_) :- fail.
-execmode(_) :- fail.
-
 filepath := ~fsR(bundle_src(ciao)/tests/lpdoc/singlelpdoc).
-
-htmldir := ''.
-% (not customized)
-bibfile(_) :- fail.
-docdir(_) :- fail.
-infodir(_) :- fail.
-mandir(_) :- fail.
 
 doc_structure := 'singlelpdoc'.
 
