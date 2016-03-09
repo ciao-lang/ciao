@@ -10,20 +10,17 @@
 
 @begin{alert} 
 This is still a beta version for experimentation. Much functionality
-is implemented but syntax may change in the future. The wiki part will
-be integrated soon into LPdoc so that it can be used in bare
-@tt{.lpdoc} files too.
+is implemented but syntax may change in the future.
 @end{alert}
 
    This package allows using an alternative syntax for (@apl{LPdoc})
-   machine-readable documentation inside specially marked code
-   comments, and provides a simplified lightweight markup (wiki)
-   syntax for documentation.
+   program assertions and machine-readable documentation inside
+   specially marked code comments.
 
 @section{Motivation and Related Work}
 
-   In @apl{LPdoc}, documentation comments are read as part of the
-   program assertions, as normal Prolog terms (similarly to code
+   In @apl{LPdoc}, assertions and documentation comments are read as
+   special declarations, as normal Prolog terms (similarly to code
    comments in many languages like Lisp variants or Python). Although
    this is convenient in practice, it is sometimes less flexible (no
    doccomments allowed within the code) and less portable (when using
@@ -85,7 +82,7 @@ internal parsing routines. For more details, see the @lib{read} and
 
 @begin{alert}
 @begin{itemize}
-@item Move this treatment of wiki-like syntax to LPdoc, not here.
+@item Move this documentation to LPdoc, not here.
 @item Extract the manual part from @tt{examples/markup_test.pl} and
   @tt{examples/lightweight_markup_test.pl}
 @end{itemize}
