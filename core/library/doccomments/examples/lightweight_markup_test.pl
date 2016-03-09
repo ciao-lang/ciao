@@ -2,6 +2,9 @@
 :- use_package(doccomments).
 :- use_package(expander).
 
+% TODO: do not test stuff that is already in
+%   library/markdown/examples/*, refer or include those files here
+
 %!
 % @title  Lightweight mark-up test 
 %

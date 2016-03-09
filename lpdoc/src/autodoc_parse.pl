@@ -11,11 +11,14 @@
 :- use_module(library(lists), [append/3]).
 :- use_module(library(errhandle), [error_protect/1]).
 
+:- use_module(library(markdown/markdown_translate), [translate_markdown/2]).
+
 :- use_module(lpdoc(autodoc_state)).
 :- use_module(lpdoc(autodoc_aux), [read_file/2]).
 :- use_module(lpdoc(autodoc_errors)).
 :- use_module(lpdoc(autodoc_index)).
 :- use_module(lpdoc(autodoc_doctree)).
+:- use_module(lpdoc(autodoc_settings)).
 :- use_module(lpdoc(autodoc_filesystem), [find_file/2, find_source/4]).
 
 :- use_module(lpdoc(comments), [docstring/1]).
@@ -452,7 +455,11 @@ handle_incl_command(include(FileS), DocSt, Verb, RContent) :-
 	  read_file(File, Content) ->
 	    %% These are not turned off for now...
 	    docst_message("{-> Including file ~w in documentation string", [File], DocSt),
-	    parse_docstring__1(DocSt, Verb, Content, RContent),
+	    ( setting_value(allow_markdown, yes) -> % TODO: generalize support for markdown
+	        translate_markdown(Content, Content2)
+	    ; Content2 = Content
+	    ),
+	    parse_docstring__1(DocSt, Verb, Content2, RContent),
 	    docst_message("}", DocSt)
 	; RContent = err(parse_error(cannot_read, [RelFile]))
 	).

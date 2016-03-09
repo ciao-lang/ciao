@@ -101,6 +101,9 @@
 # "The source files contain version information. If not
    specified lpdoc will assume the opposite".
 
+:- pred allow_markdown/1 => yesno
+# "Allow LPdoc-flavored markdown in docstrings".
+
 % ---------------------------------------------------------------------------
 % Installation options
 % (You only need to change these if you will be installing the docs somewhere)

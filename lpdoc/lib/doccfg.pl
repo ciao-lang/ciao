@@ -64,6 +64,10 @@
     comment_version(no)
 ]).
 
+:- default_def(allow_markdown/1, [
+    allow_markdown(no)
+]).
+
 :- default_def(docformat/1, [
     docformat(texi),
     docformat(ps),

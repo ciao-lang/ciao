@@ -1,0 +1,4 @@
+Test with this:
+
+  $ lpdoc -d filepath=`pwd` -d allow_markdown=yes -d doc_mainopts=no_versioned_output -c markdown_simple.ascii
+

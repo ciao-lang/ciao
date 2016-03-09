@@ -1,0 +1,200 @@
+@begin{alert}
+  - Define `@@verb` (which escapes).
+  - For @tt{`}, do not use `@@tt` but `@@verb`.
+  - Define the `@@verb` with `@@begin` and `@@end`.
+  - Write how to escape characters propertly in wiki syntax.
+@end{alert}
+
+* Simple mark-up
+
+  @begin{alert} Add support for decorations spanning several lines
+  @end{alert}
+
+  Text can be /emphasized/ or *bold*.
+
+* Paragraphs
+
+Begin of
+a paragraph.
+This paragraph ends here.
+
+Begin of a new paragraph.
+This paragraph ends here.
+
+The last new paragraph. This paragraph ends here.
+
+* Lists
+
+** Simple lists
+
+Here is another list:
+ - with some item
+ - other item
+ - more items
+
+** Simple lists (alternative syntaxes - wiki only)
+
+Here is a list:
+
+ - with some item
+
+ - other item
+
+ - more items
+
+Here is a list:
+
+ - with some item
+ - other item
+
+ - more items
+
+ - even more items
+
+Here is yet another list:
+- with some item
+- other item
+- more items
+
+*** Simple lists (without any heading - wiki only)
+
+- with some item
+- other item
+- more items
+
+** Nested lists
+
+A list with nested items:
+  - item 1
+    - subitem 1-1
+    - subitem 1-2
+      - subitem 1-2-1
+    - subitem 1-3
+  - item 2
+    - subitem 2-1
+  - item 3
+
+** Enumerated lists
+
+Enumerated list with automatic numbering:
+  -# First
+  -# Second
+  -# Third
+
+Enumerated list with explicit numbering:
+  1. First
+  2. Second
+  3. Third
+
+Enumerated list with non-consecutive explicit numbering:
+  2. First
+  4. Second
+  6. Third
+
+@begin{alert}
+  The following only works in some backends.
+@end{alert}
+
+Enumerated list mixing all above:
+
+ 2. First
+ 4. Second
+ -# Third
+ -# Fourth
+ 10. Fifth
+ -# Sixth
+
+** Description lists
+
+Description lists:
+  - opt :: First
+  - foo :: Second
+  - bar :: Third
+
+** Description lists (more complex cases)
+
+Description lists with richer items:
+ 
+  - `atom` :: an atom.
+  - `append/3` :: a predicate or functor name.
+  - `f(X0,...,Xn)` :: some term with variables `X0`, ..., `Xn`.
+  - `X` :: a variable.
+  - $x^2$ :: some math.
+  - $\bigwedge_j f_j(x_0, \ldots, x_n)$ :: some complex math.
+
+* Sections and subsections
+
+Text for the section.
+
+** Subsection
+
+Text for the subsection.
+
+*** Subsubsection
+
+Text for the subsubsection.
+
+* Links
+
+A link to [[http://ciao-lang.org]] showing its URL.
+
+A link to [[http://ciao-lang.org][Ciao]] hiding its URL.
+
+A link to [[http://ciao-lang.org][The *Ciao* System]] hiding its URL
+with a complex string.
+
+* Anchors, labels, references, bibliographical citations
+
+A reference to the first section in this document @ref{Paragraphs}.
+
+@begin{alert}
+  Implement symbolic labels. Fix the @tt{texinfo} backend by resolving
+  them to the section title.
+@end{alert}
+
+* Other elements
+
+  We will not include lightweight mark-up syntax for anything else
+  not described in this document (e.g., images).
+
+* Syntax for code
+
+** Code spans
+
+This is a predicate name `append/3`, a variable name `X`, an
+atom name `foo`, a quoted atom name `'foo'`.
+
+** Blocks of code
+
+Text that is 4-char indented is recognized as code:
+
+    list([]).
+    list([X|Xs]) :- list(Xs)
+
+Code itself can have comments:
+
+    % definition for lists
+    list([]). % see append/3
+    list([X|Xs]) :- list(Xs)
+
+Code itself can have documentation comments:
+
+    %! definition for lists
+    list([]). %< see `append/3`
+    list([X|Xs]) :- list(Xs)
+
+** Blocks of other code
+
+@begin{alert} no way to specify source language yet @end{alert}
+
+This is a piece of C code:
+
+    #include <stdio.h>
+    int main() { return 0; }
+
+@begin{alert} newlines are lost in verbatim blocks @end{alert}
+
+@begin{verbatim}
+#include <stdio.h>
+int main() { return 0; }
+@end{verbatim}
