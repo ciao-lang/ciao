@@ -11,7 +11,12 @@
 
    When assertions are parsed this library is using the extended
    assertion syntax implemented in
-   @lib{assertions/assrt_lib_extra}.").
+   @lib{assertions/assrt_lib_extra}.
+
+   Note that these modules are provided as part of the core Ciao
+   libraries and are not exclusive to LPdoc and the generation of
+   documentation. They can be used, for example, to read predicate
+   assertions from comments and pass them to verification tools.").
 
 :- use_module(library(markdown/markdown_syntax)).
 :- use_module(library(markdown/markdown_parser),

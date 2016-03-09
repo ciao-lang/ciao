@@ -81,11 +81,7 @@ internal parsing routines. For more details, see the @lib{read} and
 @section{Lightweight markup}
 
 @begin{alert}
-@begin{itemize}
-@item Move this documentation to LPdoc, not here.
-@item Extract the manual part from @tt{examples/markup_test.pl} and
-  @tt{examples/lightweight_markup_test.pl}
-@end{itemize}
+  Refer to @tt{library/markdown} and @tt{library/markdown/examples} for documentation.
 @end{alert}
 
 @section{Relation with LPdoc comment assertions}

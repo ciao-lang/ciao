@@ -7,6 +7,7 @@
   using long mark-up. See @tt{lightmarkup_test.pl} for the lightweight
   version.").
 
+% TODO: Include markdown/examples/markup_simple.lpdoc (duplicated)
 :- doc(module,"
 @section{Simple mark-up}
 
