@@ -79,13 +79,12 @@ setup_doc_settings :-
 	parse_structure.
 
 % standalone target bases (does not depend on a settings file)
-:- data standalone_target_base/1.
+:- data no_settings_file/0.
 
 % TODO: do all targets
 % TODO: do something like auto-settings (or standalone)? recognize SETTINGS.pl file automatically?
 
 process_targets(Targets) :-
-	retractall_fact(standalone_target_base(_)),
 	process_targets_(Targets).
 
 process_targets_([]) :- !.
@@ -107,21 +106,19 @@ process_cmd(Cmd) :-
 %% Treat Target as a separated component
 process_standalone(Target) :-
 	base_from_target(Target, Base),
-	( standalone_target_base(Base) ->
-	    % (already processed)
-	    true
-	; assertz_fact(standalone_target_base(Base)),
-	  report_cmd('Starting', Base),
-	  standalone_docstr(Base),
-	  ( target_action(Target, Action),
-	    fsmemo_call([Action]) ->
-	      Ok = yes 
-	  ; Ok = no
-	  ),
-	  clean_docstr,
-	  Ok = yes,
-	  report_cmd('Finished', Base)
-	).
+	retractall_fact(no_settings_file),
+	assertz_fact(no_settings_file),
+	report_cmd('Starting', Base),
+	standalone_docstr(Base),
+	( target_action(Target, Action),
+	  fsmemo_call([Action]) ->
+	    Ok = yes 
+	; Ok = no
+	),
+	clean_docstr,
+	retractall_fact(no_settings_file),
+	Ok = yes,
+	report_cmd('Finished', Base).
 
 % Obtain the name of a target (by removing the suffix, which must be a
 % supported one)
@@ -231,7 +228,7 @@ action_for_suffix(Suffix, Action) :-
 	absfile_for_subtarget(Name, Backend, dr, Target).
 'fsmemo.deps'(gen_doctree(_Backend, Spec),Deps) :- !,
 	query_source(Spec,_SourceSuffix,AbsFile),
-	add_settings_dep(AbsFile,Spec,Deps).
+	add_settings_dep(AbsFile,Deps).
 'fsmemo.run'(gen_doctree(Backend, Spec)) :- !,
         gen_doctree(Backend, Spec).
 
@@ -251,8 +248,8 @@ query_source(Spec, _S) := _Path :-
 	throw(autodoc_error("Source file not found: ~w", [Spec])).
 
 % TODO: Missing dependencies to included files, etc. We need c_itf for this.
-add_settings_dep(SpecF, Spec) := ['SOURCE'(SpecF)|Fs] :-
-	( standalone_target_base(Spec) ->
+add_settings_dep(SpecF) := ['SOURCE'(SpecF)|Fs] :-
+	( no_settings_file ->
 	    Fs = []
 	; Fs = ['SOURCE'(~settings_absfile)]
 	).

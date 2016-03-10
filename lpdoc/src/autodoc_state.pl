@@ -27,7 +27,9 @@
 	    [predfunctor/1, propfunctor/1]).
 :- use_module(library(messages)).
 :- use_module(library(pathnames),
-	[path_basename/2, path_concat/3, path_split/3]).
+	[path_dirname/2, path_basename/2,
+	 path_concat/3, path_split/3,
+	 path_splitext/3]).
 :- use_module(library(lists),
 	    [append/3, reverse/2, length/2, list_concat/2, select/3]).
 :- use_module(library(terms), [atom_concat/2]).
@@ -243,34 +245,33 @@ docst_new_no_src(Backend, Name, Opts, DocSt) :-
 docst_new_with_src(Backend, FileBase, SourceSuffix, Opts, DocSt) :-
 	DocSt = docstate(Backend, Name, Opts, _, I),
 	%
+	atom_concat([FileBase, '.', SourceSuffix], FExt),
+	find_file(FExt, I),
 	( SourceSuffix = 'lpdoc' ->
-	    % TODO: incomplete and probably incorrect
-	    I = '',
-	    % TODO: This is a really simple and incomplete version for .lpdoc as a source!
-	    atom_codes(FileBase, FBC),
-	    append("@include{"|| FBC, ".lpdoc}", Command),
-	    parse_docstring_loc(DocSt, _Loc, Command, ContentR),
-	    ModuleR = [% TODO: first chapter line is not backend-agnostic, fix
-		       raw("@chapter "), raw(FBC), raw("\n\n"),
-		       ContentR],
-	    %
-	    path_basename(FileBase, Name),
-	    docst_mvar_lookup(DocSt, modinfo, modinfo(Name, FileBase)),
-	    %
-	    docst_mvar_lookup(DocSt, plain_content, ModuleR),
-	    ModuleType = plain,
-	    docst_mdata_assertz(modtype(ModuleType), DocSt),
-	    docst_mvar_lookup(DocSt, modtype, ModuleType) % TODO: redundant
-	; load_source(FileBase, SourceSuffix,
-	    Name, M, I, Base, Dir,
-	    Opts),
-	  % TODO: M (the Prolog module name) and Name may be different...
-	  docst_mvar_lookup(DocSt, modinfo, modinfo(M, Base)),
-	  docst_mvar_lookup(DocSt, dir, dir(Dir)),
-	  detect_modtype(DocSt, ModuleType),
-	  docst_mdata_assertz(modtype(ModuleType), DocSt),
-	  docst_mvar_lookup(DocSt, modtype, ModuleType) % TODO: redundant
-	).
+	    load_source_lpdoc(I, M, Base, Dir, Command),
+	    docst_mvar_lookup(DocSt, plain_content, Command)
+	; load_source_pl_assrt(I, Opts, M, Base, Dir)
+	),
+	path_basename(Base, Name), % TODO: M (the Prolog module name) and Name may be different...
+	docst_mvar_lookup(DocSt, modinfo, modinfo(M, Base)),
+	docst_mvar_lookup(DocSt, dir, dir(Dir)),
+	%
+	( docst_mvar_get(DocSt, plain_content, _) ->
+	    ModuleType = plain
+	; detect_modtype(DocSt, ModuleType)
+	),
+	docst_mdata_assertz(modtype(ModuleType), DocSt),
+	docst_mvar_lookup(DocSt, modtype, ModuleType). % TODO: redundant
+
+% TODO: This does not actually read the file, just gets an "@include{...}" to it
+% TODO: Probably this could be extended (literate programming?)
+% load_source_lpdoc(+F, -M, -Base, -Dir, -Text)
+load_source_lpdoc(F, M, Base, Dir, Text) :-
+	path_splitext(F, Base, _),
+	atom_codes(F, FCodes), % TODO: not escaped!
+	append("@include{"|| FCodes, "}", Text),
+	path_dirname(Base, Dir),
+	path_basename(Base, M). % TODO: assume this is correct
 
 %% ---------------------------------------------------------------------------
 
@@ -288,38 +289,31 @@ docst_new_sub(DocSt0, SubSuffix, DocSt) :-
 
 %% ---------------------------------------------------------------------------
 
-:- pred load_source(FileBase, SourceSuffix,
-	    Name, M, I, Base, Dir,
-	    Opts)
+:- pred load_source_pl_assrt(+F, +Opts, -M, -Base, -Dir)
+# "Reads code and assertions:
 
-# "Main file processing routine. Reads code and assertions, opens
-   output files, etc. Also eliminates any assertions that come from
-   the assertions package -- except when documenting the assertions
-   package itself, of course.
-
-   @var{FileBase}: input file name without suffix.
-   @var{SourceSuffix}: suffix of the input file name.
-
-   @var{Name}: simple input file name (no dir, no suffix).
-   @var{M}: defined module (or user(file)).  @var{I}:
-   full input file name (with dir and suffix).  @var{Base}: full input
-   file name (with dir but no suffix). @var{Dir}: full directory
-   path.@var{Opts}: options.
+   @var{F}: full input file name (with dir and suffix). 
+   @var{M}: defined module (or user(file)).
+   @var{Dir}: full directory path.
+   @var{Opts}: options.
 ".
+load_source_pl_assrt(F, Opts, M, Base, Dir) :-
+	cleanup_c_itf_data,
+	cleanup_code_and_related_assertions,
+	prolog_flag(quiet, _, off),
+	get_code_and_related_assertions_opts(F, Opts, M, Base, _Suffix, Dir).
 
-%% The assertions package is treated normally
-load_source(FileBase, SourceSuffix,
-	    % Output vars
-	    Name, M, I, Base, Dir,
-	    %
-	    Opts) :-
+% NOTE: The assertions package is treated normally
+%
+% Previus code:
+%   "Also eliminates any assertions that come from
+%   the assertions package -- except when documenting the assertions
+%   package itself, of course."
+%
+% TODO: I removed this, since AssrtOps is always []
+%
 	% optional_mess("Gathering and normalizing assertions from T"),
-	%
-        atom_concat([FileBase, '.', SourceSuffix], Main),
-	load_source_pl_assrt(Main, Opts, M, Base, Dir, I),
-	path_split(Base, _, Name).
-
-	% TODO: I removed this, since AssrtOps is always []
+%
 %% 	( includes(Base, library(assertions)) -> %% possibly only 'assertions'
 %% 	    ( member(Op, AssrtOps),
 %% 		retractall_fact(clause_read(_, 1, Op, _, _, _, _)),
@@ -345,16 +339,6 @@ load_source(FileBase, SourceSuffix,
 %%      	             simple_message("*** retracting ~w",
 %%                            [clause_read(AB,A,B,C,D,E,F)]) ), _)
 %% 	),
-
-load_source_pl_assrt(Main, Opts,
-	    % Output vars
-	    M, Base, Dir, I) :-
-        find_file(Main, I),
-	%
-	cleanup_c_itf_data,
-	cleanup_code_and_related_assertions,
-	prolog_flag(quiet, _, off),
-	get_code_and_related_assertions_opts(I, Opts, M, Base, _Suffix, Dir).
 
 % ---------------------------------------------------------------------------
 

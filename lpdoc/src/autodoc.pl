@@ -497,10 +497,22 @@ get_last_local_version(Version, DocSt) :-
 	  version_descriptor(Version), version_descriptor(GlobalVers),
 	  doctree(ModR).
 
-fmt_module(DocSt, _Version, _GlobalVers, ModuleR) :-
+fmt_module(DocSt, _Version, GlobalVers, ModuleR) :-
 	docst_modtype(DocSt, ModuleType),
-	ModuleType = plain, !,
-	docst_mvar_get(DocSt, plain_content, ModuleR).
+	ModuleType = plain,
+	!,
+	docst_mvar_get(DocSt, plain_content, Text),
+	parse_docstring_loc(DocSt, _Loc, Text, ContentR),
+	( docst_backend(DocSt, Backend),
+	  Backend = texinfo ->
+	    % TODO: Customize style, make toc optional, etc.
+	    cover_prop([], GlobalVers, DocSt, CoverProp),
+	    SecProps00 = [CoverProp, level(0)],
+	    DocR = ContentR,
+	    fmt_file_top_section(SecProps00, DocR, DocSt, ModuleR)
+	; DocR = ContentR,
+	  fmt_file_top_section([level(1)], DocR, DocSt, ModuleR)
+	).
 fmt_module(DocSt, _Version, GlobalVers, ModuleR) :-
 	docst_backend(DocSt, Backend),
 	Backend = man,
@@ -731,7 +743,9 @@ title_for_module_type(TitleR, DocSt, TitleR2) :-
 	( doctree_is_empty(TitleR) ->
 	    docst_modname(DocSt, NDName),
 	    atom_codes(NDName, NTitle),
-	    ( docst_currmod_is_main(DocSt) ->
+	    ( ModuleType = plain ->
+		TitleR2 = string_esc(NTitle)
+	    ; docst_currmod_is_main(DocSt) ->
 	        TitleR2 = [string_esc(NTitle), string_esc(" Reference Manual")]
 	    ; ModuleType = application ->
 	        TitleR2 = [string_esc(NTitle), string_esc(" (application)")]

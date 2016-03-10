@@ -819,8 +819,12 @@ do_texi_to_dvi(TexiFile, DVIFile, FileBase) :-
 	                     [logbase(AbsFileBase, '_tex'), cwd(TexiDir), status(_)]),
 	path_splitext(TexiFile, TexiNoext, _),
 	texindex_indices(TexiNoext, Indices),
-	autodoc_process_call(path(~texindex), Indices,
-	                     [logbase(AbsFileBase, '_tex1'), cwd(TexiDir)]),
+	( Indices = [] ->
+	    true
+	; % No indices, do not call texindex
+          autodoc_process_call(path(~texindex), Indices,
+	                       [logbase(AbsFileBase, '_tex1'), cwd(TexiDir)])
+	),
 	autodoc_process_call(path(~tex), TexArgs,
 	                     [logbase(AbsFileBase, '_tex2'), cwd(TexiDir), status(_)]),
 	atom_concat(TexiNoext, '.dvi', DVIFile0),

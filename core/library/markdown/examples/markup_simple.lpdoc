@@ -99,7 +99,7 @@ Description lists with richer items:
 @item{@tt{f(X0,...,Xn)}} some term with variables @var{X0}, ..., @var{Xn}.
 @item{@var{X}} a variable.
 @item{@math{x^2}} some math.
-@item{@math{\\bigwedge_j f_j(x_0, \\ldots, x_n)}} some complex math.
+@item{@math{\bigwedge_j f_j(x_0, \ldots, x_n)}} some complex math.
 @end{description} 
 
 @section{Sections and subsections}

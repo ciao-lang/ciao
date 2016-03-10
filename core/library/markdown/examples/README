@@ -1,8 +1,17 @@
 Test with this:
 
+  # ASCII
   $ lpdoc -d filepath=`pwd` -d allow_markdown=yes -d doc_mainopts=no_versioned_output -c markdown_simple.ascii
   $ lpdoc -d filepath=`pwd` -d allow_markdown=no -d doc_mainopts=no_versioned_output -c markup_simple.ascii
 
-The output of both versions should be similar (not equivalent at this
-moment since the markdown versions contains notes).
+  # HTML
+  $ lpdoc -v -d filepath=`pwd` -d allow_markdown=yes -d doc_mainopts=no_versioned_output -c markdown_simple.html/markdown_simple.htmlmeta
+  $ lpdoc -v -d filepath=`pwd` -d allow_markdown=no -d doc_mainopts=no_versioned_output -c markup_simple.html/markup_simple.htmlmeta
+
+  # PDF
+  $ lpdoc -v -d filepath=`pwd` -d allow_markdown=yes -d doc_mainopts=no_versioned_output -c markdown_simple.pdf
+  $ lpdoc -v -d filepath=`pwd` -d allow_markdown=no -d doc_mainopts=no_versioned_output -c markup_simple.pdf
+
+The output of both markup and markdown versions should be similar (not
+equivalent at this moment since the markdown versions contains notes).
 
