@@ -12,7 +12,7 @@
 :- use_module(lpdoc(autodoc_doctree)).
 :- use_module(lpdoc(autodoc_images)).
 :- use_module(lpdoc(autodoc_settings)).
-:- use_module(lpdoc(autodoc_aux), [autodoc_process_call/3]).
+:- use_module(lpdoc(autodoc_aux), [autodoc_process_call/3, cmd_logbase/3]).
 :- use_module(library(lists),      [list_concat/2, append/3]).
 :- use_module(library(terms),      [atom_concat/2]).
 :- use_module(library(format),     [format/3]).
@@ -779,7 +779,7 @@ texinfo_gen_alternative(ps) :- !,
 	DVIFile = ~atom_concat(FileBase, '.dvi'),
 	PSFile = ~atom_concat(FileBase, '.ps'),
 	do_texi_to_dvi(TexiFile, DVIFile, FileBase),
-	do_dvi_to_ps(DVIFile, PSFile, FileBase),
+	do_dvi_to_ps(DVIFile, PSFile),
 	clean_tex_intermediate(TexiFile).
 %
 texinfo_gen_alternative(pdf) :- !,
@@ -788,8 +788,8 @@ texinfo_gen_alternative(pdf) :- !,
 	PSFile = ~atom_concat(FileBase, '.ps'),
 	PDFFile = ~atom_concat(FileBase, '.pdf'),
 	do_texi_to_dvi(TexiFile, DVIFile, FileBase),
-	do_dvi_to_ps(DVIFile, PSFile, FileBase),
-	do_ps_to_pdf(PSFile, PDFFile, FileBase),
+	do_dvi_to_ps(DVIFile, PSFile),
+	do_ps_to_pdf(PSFile, PDFFile),
 	clean_tex_intermediate(TexiFile).
 %
 texinfo_gen_alternative(info) :- !,
@@ -811,22 +811,25 @@ texinfo_gen_alternative(ascii) :- !,
 %% This depends on how smart your ~tex and ~texindex are...
 % TODO: We allow errors in ~tex (can it be fixed?)
 do_texi_to_dvi(TexiFile, DVIFile, FileBase) :-
-	texipaths(TexiFile, TexiDir, TexiName, FileBase, AbsFileBase),
+	texipaths(TexiFile, TexiDir, TexiName, FileBase, _AbsFileBase),
 	copy_texinfo_style_if_needed(TexiDir),
 	TexArgs = ['-file-line-error-style',
 	           ~atom_concat(['\\nonstopmode\\input ', TexiName])],
+	cmd_logbase(texinfo, 'run_tex1', LogBase1),
 	autodoc_process_call(path(~tex), TexArgs,
-	                     [logbase(AbsFileBase, '_tex'), cwd(TexiDir), status(_)]),
+	                     [logbase(LogBase1, ''), cwd(TexiDir), status(_)]),
 	path_splitext(TexiFile, TexiNoext, _),
 	texindex_indices(TexiNoext, Indices),
 	( Indices = [] ->
 	    true
 	; % No indices, do not call texindex
+	  cmd_logbase(texinfo, 'run_texinfo', LogBaseIdx),
           autodoc_process_call(path(~texindex), Indices,
-	                       [logbase(AbsFileBase, '_tex1'), cwd(TexiDir)])
+	                       [logbase(LogBaseIdx, ''), cwd(TexiDir)])
 	),
+	cmd_logbase(texinfo, 'run_tex2', LogBase2),
 	autodoc_process_call(path(~tex), TexArgs,
-	                     [logbase(AbsFileBase, '_tex2'), cwd(TexiDir), status(_)]),
+	                     [logbase(LogBase2, ''), cwd(TexiDir), status(_)]),
 	atom_concat(TexiNoext, '.dvi', DVIFile0),
 	file_exists(DVIFile0),
 	del_file_nofail(DVIFile),
@@ -856,9 +859,10 @@ copy_texinfo_style_if_needed(TexiDir) :-
 
 %% Make sure it generates postscript fonts, not bitmaps (selecting
 %% -Ppdf often does the trick). -z preserves hypertext links.
-do_dvi_to_ps(DVIFile, PSFile, FileBase) :-
+do_dvi_to_ps(DVIFile, PSFile) :-
+	cmd_logbase(texinfo, 'run_dvips', LogBase),
 	autodoc_process_call(path(~dvips), ['-z', '-Ppdf', DVIFile, '-o', PSFile],
-	                     [logbase(FileBase, '_dvips')]),
+	                     [logbase(LogBase, '')]),
 	% This, really to fix a bug in some versions of dvips:
 	-(del_files_nofail(['head.tmp', 'body.tmp'])).
 
@@ -866,12 +870,13 @@ do_dvi_to_ps(DVIFile, PSFile, FileBase) :-
 % Good for ps figures, but must make sure that no bitmap fonts are
 % generated (at least -Ppdf in dvips MUST be set)
 % TODO: Use pdftex instead?
-do_ps_to_pdf(PSFile, PDFFile, FileBase) :-
+do_ps_to_pdf(PSFile, PDFFile) :-
 	setting_value_or_default(papertype, PaperType),
 	ghostscript_papertype(PaperType, GSPaperType),
 	Env = ['GS_OPTIONS' = ~atom_concat('-sPAPERSIZE=', GSPaperType)],
+	cmd_logbase(texinfo, 'run_ps2pdf', LogBase),
 	autodoc_process_call(path(~ps2pdf), [PSFile, PDFFile],
-                             [env(Env), logbase(FileBase, '_ps2pdf')]).
+                             [env(Env), logbase(LogBase, '')]).
 
 ghostscript_papertype(letterpaper, letter).
 ghostscript_papertype(smallbook,   isob5). % This is an approximation
@@ -896,12 +901,14 @@ do_texi_to_info(TexiFile, InfoFile, InfoindexFile, FileBase) :-
 	texipaths(TexiFile, TexiDir, TexiName, FileBase, AbsFileBase),
 	atom_concat(AbsFileBase, '.info.tmp', TmpFile2),
 	%
+	cmd_logbase(texinfo, 'run_makeinfo', LogBase),
 	autodoc_process_call(path(~makeinfo),
-	       ['--error-limit', '100000', '--force', '--no-split', '--verbose',
+	       ['--error-limit', '100000', '--force',
+		'--no-split', '--verbose',
 		'--no-number-sections', '--paragraph-indent=none',
 		%'--fill-column=70', 
 		'--output', TmpFile2, TexiName],
-	       [logbase(AbsFileBase, '_info'),
+	       [logbase(LogBase, ''),
 		cwd(TexiDir),
 		status(_)]),
 	file_to_string(InfoindexFile, InfoIndex),
@@ -917,6 +924,7 @@ do_texi_to_info(TexiFile, InfoFile, InfoindexFile, FileBase) :-
 do_texi_to_ascii(TexiFile, AsciiFile, FileBase) :-
 	texipaths(TexiFile, TexiDir, TexiName, FileBase, AbsFileBase),
 	atom_concat(AbsFileBase, '.ascii.tmp', TmpFile2),
+	cmd_logbase(texinfo, 'run_makeinfo_ascii', LogBase),
 	autodoc_process_call(path(~makeinfo),
 	       ['--no-validate', '--error-limit', '100000', '--force',
 		'--no-number-sections', '--paragraph-indent=none',
@@ -924,7 +932,7 @@ do_texi_to_ascii(TexiFile, AsciiFile, FileBase) :-
 		% '--fill-column=70',
 		'--no-headers', % (plain text)
 		'--output', TmpFile2, TexiName],
-	       [logbase(AbsFileBase, '_ascii'),
+	       [logbase(LogBase, ''),
 		cwd(TexiDir)]),
 	%
 	( setting_value(autogen_warning, yes) ->
@@ -946,7 +954,7 @@ autogen_warning("[This file was autogenerated by LPdoc, please do not edit.]\n\n
 
 % Clean the temporary files created by TeX
 clean_tex_intermediate(_TexiFile) :-
-	% (ignored, all intermediate files stored in .tmp-texinfo/ dir)
+	% (ignored, all intermediate files stored in <main>.cachedoc/texinfo/ dir)
 	true.
 
 % % Clean the temporary files created by TeX

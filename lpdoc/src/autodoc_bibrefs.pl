@@ -29,7 +29,7 @@ dependency.").
 :- use_module(lpdoc(autodoc_doctree)).
 :- use_module(lpdoc(autodoc_refsdb)).
 :- use_module(lpdoc(autodoc_settings)).
-:- use_module(lpdoc(autodoc_aux), [autodoc_process_call/3]).
+:- use_module(lpdoc(autodoc_aux), [autodoc_process_call/3, cmd_logbase/3]).
 :- use_module(lpdoc(autodoc_aux), [verbose_message/1, verbose_message/2]).
 
 :- pred resolve_bibliography(DocSt) : docstate #
@@ -66,7 +66,8 @@ resolve_bibliography(DocSt) :-
 	  atom_concat([TmpBase, '.aux'], RAuxFile),
 	  %
 	  write_bibtex_citations(DocSt, RAuxFile),
-	  run_bibtex(TmpBase, RAuxFile, BblFile),
+	  docst_backend(DocSt, Backend),
+	  run_bibtex(Backend, TmpBase, RAuxFile, BblFile),
 	  % Read BblFile and parse it
 	  file_to_string(BblFile, RefsString0),
 	  %
@@ -80,13 +81,14 @@ resolve_bibliography(DocSt) :-
 	docst_mvar_lookup(DocSt, biblio_pairs, RefPairs),
 	verbose_message("}", []).
 
-run_bibtex(TmpBase, _RAuxFile, _BblFile) :-
+run_bibtex(Backend, TmpBase, _RAuxFile, _BblFile) :-
 	% TODO: RAuxFile can be removed later
 	bibtex(BibTex),
 	% TODO: allowing errors here, fix
 	% This will take as input RAuxFile and output BblFile
+	cmd_logbase(Backend, 'run_bibtex', LogBase),
 	autodoc_process_call(path(BibTex), [TmpBase],
-	                     [logbase(TmpBase, '_bibtex'), status(_)]).
+	                     [logbase(LogBase, ''), status(_)]).
 
 :- use_module(lpdoc(autodoc_parse), [parse_docstring_loc/4]).
 

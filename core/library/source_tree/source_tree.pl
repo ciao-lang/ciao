@@ -919,8 +919,8 @@ match_def(noarch_tmp, file) := '*.log'.
 match_def(noarch_tmp, file) := '*.err'.
 match_def(noarch_tmp, file) := '*.tmp'.
 match_def(noarch_tmp, file) := 'tmpciao*'.
-match_def(noarch_tmp, file) := '*.tmp-*'.
-match_def(noarch_tmp, dir) := '*.tmp-*'.
+match_def(noarch_tmp, file) := '*.cachedoc'.
+match_def(noarch_tmp, dir) := '*.cachedoc'. % TODO: why dir and file?
 % NOTE: don't exclude *.iss to facilitate debugging of Windows installer
 % match_def(noarch_tmp, file) := '*.iss'.
 match_def(noarch_tmp, file) := '*_co.pl'. % (result of transformation)

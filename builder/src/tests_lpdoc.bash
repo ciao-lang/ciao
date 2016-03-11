@@ -131,9 +131,7 @@ function clean_docs() {
     cd "$manual_outdir"
     rm -f *.texic_gr *.texic_rr *.html_gr *.html_rr *.manl_gr *.manl_rr *.texic_dr *.html_dr *.ascii_dr *.manl_dr *.texic *.texi *.bbl *.blg *.el *.manl *.info *.infoindex || true
     rm -rf *.html || true
-    rm -rf *.tmp-html || true
-    rm -rf *.tmp-man || true
-    rm -rf *.tmp-texinfo || true
+    rm -rf *.cachedoc || true
 }
 
 # Generate the documentation for $manual

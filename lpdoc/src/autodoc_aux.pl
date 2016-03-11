@@ -72,6 +72,19 @@ autodoc_process_call(Cmd, Args, Opts) :-
 
 % ---------------------------------------------------------------------------
 
+:- use_module(lpdoc(autodoc_filesystem), [get_cache_dir0/2]).
+:- use_module(library(pathnames), [path_concat/3]).
+
+% LogBase for the given command execution RunId (relative to get_cache_dir0/2)
+% (RunId is just a name to identify the command run)
+% TODO: Backend should not be needed
+:- export(cmd_logbase/3).
+cmd_logbase(Backend, RunId, LogBase) :-
+	get_cache_dir0(Backend, CacheDir),
+	path_concat(CacheDir, RunId, LogBase).
+
+% ---------------------------------------------------------------------------
+
 :- use_module(library(format), [format/2, format_control/1]).
 
 :- export(verbose_message/1).

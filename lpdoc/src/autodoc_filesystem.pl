@@ -188,8 +188,7 @@ clean_fs_db :-
 	retractall_fact(computed_cache_dir(_, _)).
 
 :- export(get_output_dir/2).
-
-:- pred get_output_dir(Backend, Dir) # "Obtain the @var{Dir} directory
+:- pred get_output_dir(Backend, Dir) # "@var{Dir} is the directory
    where the documentation files are generated. Note that this is not
    the installation directory.".
 
@@ -207,16 +206,27 @@ get_output_dir(Backend, Dir) :-
 	assertz_fact(computed_output_dir(Backend, Dir)).
 
 :- export(get_cache_dir/2).
-:- pred get_cache_dir(Backend, Dir) # "Obtain the @var{Dir} directory
-where final documentation files will be stored".
+:- pred get_cache_dir(Backend, Dir) # "@var{Dir} is the directory
+   where temporary documentation files will be stored (for the active
+   backend)".
+% Note: this is <main>.cachedoc/<backend>/
 
 get_cache_dir(Backend, Dir) :-
 	computed_cache_dir(Backend, Dir0), !, Dir = Dir0.
 get_cache_dir(Backend, Dir) :-
-	% TODO: missing some root dir
-	main_output_name(Backend, OutBase),
-	atom_concat([OutBase, '.tmp-', Backend], Dir),
+	get_cache_dir0(Backend, CacheDir),
+	path_concat(CacheDir, Backend, Dir),
 	assertz_fact(computed_cache_dir(Backend, Dir)).
+
+:- export(get_cache_dir0/2).
+:- pred get_cache_dir0(Backend, Dir) # "@var{Dir} is the directory
+   where temporary documentation files will be stored (for all
+   backends)".
+
+get_cache_dir0(Backend, CacheDir) :-
+	% TODO: missing some root dir?
+	main_output_name(Backend, OutBase),
+	atom_concat(OutBase, '.cachedoc', CacheDir).
 
 % ---------------------------------------------------------------------------
 
@@ -224,15 +234,15 @@ get_cache_dir(Backend, Dir) :-
 :- export(ensure_output_dir/1).
 ensure_output_dir(Backend) :-
 	get_output_dir(Backend, Dir),
-	( Dir = '' -> true
-	; path_concat(Dir, '', Dir2),
-	  mkpath(Dir2)
-	).
+	ensure_dir(Dir).
 
 % Make sure that the cache directory exists
 :- export(ensure_cache_dir/1).
 ensure_cache_dir(Backend) :-
 	get_cache_dir(Backend, Dir),
+	ensure_dir(Dir).
+
+ensure_dir(Dir) :-
 	( Dir = '' -> true 
 	; path_concat(Dir, '', Dir2),
 	  mkpath(Dir2) 
@@ -456,9 +466,10 @@ clean_other_intermediate :-
 	% TODO: Use a directory for temporary files?
 	pred_to_glob_pattern(other_pattern, Pattern),
 	-delete_glob('.', Pattern),
-	PatternD = '*.tmp-*', % (see get_cache_dir/2)
+	PatternD = '*.cachedoc', % (see get_cache_dir0/2)
 	-remove_glob('.', PatternD).
 
+% TODO: Do not delete many of those files (at least *.err and *.log are hidden inside .cachedoc)
 other_pattern('*~').
 other_pattern('*.itf').
 other_pattern('*.po').
