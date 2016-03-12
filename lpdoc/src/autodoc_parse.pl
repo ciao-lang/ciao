@@ -448,34 +448,15 @@ parse_cmd_args([T|Ts], [X|Xs], DocSt, [Y|Ys]) :-
 	parse_cmd_args(Ts, Xs, DocSt, Ys).
 
 % Handle commands that include more text to be parsed
-handle_incl_command(include(FileS), DocSt, Verb, RContent) :-
-	!,
+handle_incl_command(include(FileS), DocSt, Verb, RContent) :- !,
 	atom_codes(RelFile, FileS),
-	( error_protect(find_file(RelFile, File)),
-	  read_file(File, Content) ->
-	    %% These are not turned off for now...
-	    docst_message("{-> Including file ~w in documentation string", [File], DocSt),
-	    ( setting_value(allow_markdown, yes) -> % TODO: generalize support for markdown
-	        translate_markdown(Content, Content2)
-	    ; Content2 = Content
-	    ),
-	    parse_docstring__1(DocSt, Verb, Content2, RContent),
-	    docst_message("}", DocSt)
-	; RContent = err(parse_error(cannot_read, [RelFile]))
-	).
-handle_incl_command(includeverbatim(FileS), DocSt, _Verb, RContent) :-
-	!,
+	handle_incl_file(include, RelFile, DocSt, Verb, RContent).
+handle_incl_command(includemarkdown(FileS), DocSt, Verb, RContent) :- !, % TODO: temporary (forces markdown)
 	atom_codes(RelFile, FileS),
-	( ( error_protect(find_source(RelFile, _, _, File))
-	  ; error_protect(find_file(RelFile, File))
-	  ),
-	  read_file(File, Content) -> % TODO: detect language and do syntax highlight
-	    docst_message("{-> Including file ~w verbatim in documentation string", [File], DocSt),
-	    docst_message("}", DocSt),
-	    % TODO: why not string_verb?
-	    RContent = string_esc(Content)
-	; RContent = err(parse_error(cannot_read, [RelFile]))
-	).
+	handle_incl_file(includemarkdown, RelFile, DocSt, Verb, RContent).
+handle_incl_command(includeverbatim(FileS), DocSt, Verb, RContent) :- !,
+	atom_codes(RelFile, FileS),
+	handle_incl_file(includeverbatim, RelFile, DocSt, Verb, RContent).
 % TODO: Treat this command here or in autodoc? --JF
 %       It adds a dependency to clause_read.
 handle_incl_command(includefact(Pred), DocSt, Verb, RContent) :-
@@ -506,6 +487,28 @@ handle_incl_command(includedef(Pred), DocSt, _Verb, RContent) :-
 %% Rest of commands
 handle_incl_command(Struct, _DocSt, _Verb, XNewComm) :-
 	XNewComm = Struct.
+
+handle_incl_file(Mode, RelFile, DocSt, Verb, RContent) :-
+	( ( error_protect(find_source(RelFile, _, _, File)), Mode = includeverbatim % TODO: why? remove?
+	  ; error_protect(find_file(RelFile, File))
+	  ),
+	  read_file(File, Content) -> % TODO: detect language and do syntax highlight
+	    docst_message("{-> Including file ~w in documentation string", [File], DocSt),
+	    ( ( Mode = include, setting_value(allow_markdown, yes) % TODO: generalize support for markdown
+	      ; Mode = includemarkdown
+	      ) ->
+	        translate_markdown(Content, Content2),
+		parse_docstring__1(DocSt, Verb, Content2, RContent)
+	    ; Mode = include ->
+		parse_docstring__1(DocSt, Verb, Content, RContent)
+	    ; Mode = includeverbatim ->
+	        % TODO: why not string_verb?
+	        RContent = string_esc(Content)
+	    ; fail
+	    ),
+	    docst_message("}", DocSt)
+	; RContent = err(parse_error(cannot_read, [RelFile]))
+	).
 
 % TODO: See includefact above --JF
 :- use_module(library(assertions/assrt_lib), [clause_read/7]).

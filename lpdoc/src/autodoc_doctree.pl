@@ -60,6 +60,7 @@
 :- export(cmd_type/1).
 cmd_type(comment(s)) :- !.
 cmd_type(include(s)) :- !.
+cmd_type(includemarkdown(s)) :- !. % TODO: temporary (forces markdown)
 cmd_type(includeverbatim(s)) :- !.
 cmd_type(includefact(p)) :- !.
 cmd_type(includedef(p)) :- !.
