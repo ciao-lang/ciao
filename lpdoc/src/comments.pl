@@ -1195,7 +1195,6 @@ stringcommand(index(B)          ) :- string(B).
 stringcommand('{'               ).
 
 stringcommand(include(B)        ) :- string(B).
-stringcommand(includemarkdown(B)) :- string(B). % TODO: temporary (forces markdown)
 stringcommand(includeverbatim(B)) :- string(B).
 stringcommand(includefact(B)    ) :- string(B).
 stringcommand(includedef(B)     ) :- string(B).

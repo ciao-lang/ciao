@@ -451,9 +451,6 @@ parse_cmd_args([T|Ts], [X|Xs], DocSt, [Y|Ys]) :-
 handle_incl_command(include(FileS), DocSt, Verb, RContent) :- !,
 	atom_codes(RelFile, FileS),
 	handle_incl_file(include, RelFile, DocSt, Verb, RContent).
-handle_incl_command(includemarkdown(FileS), DocSt, Verb, RContent) :- !, % TODO: temporary (forces markdown)
-	atom_codes(RelFile, FileS),
-	handle_incl_file(includemarkdown, RelFile, DocSt, Verb, RContent).
 handle_incl_command(includeverbatim(FileS), DocSt, Verb, RContent) :- !,
 	atom_codes(RelFile, FileS),
 	handle_incl_file(includeverbatim, RelFile, DocSt, Verb, RContent).
@@ -492,16 +489,18 @@ handle_incl_file(Mode, RelFile, DocSt, Verb, RContent) :-
 	( ( error_protect(find_source(RelFile, _, _, File)), Mode = includeverbatim % TODO: why? remove?
 	  ; error_protect(find_file(RelFile, File))
 	  ),
-	  read_file(File, Content) -> % TODO: detect language and do syntax highlight
+	  read_file(File, Content) ->
 	    docst_message("{-> Including file ~w in documentation string", [File], DocSt),
 	    ( ( Mode = include, setting_value(allow_markdown, yes) % TODO: generalize support for markdown
-	      ; Mode = includemarkdown
+	      ; Mode = include, % Hack to continue parsing from doccomments
+		docst_pragma(DocSt, partially_parsed_markdown)
 	      ) ->
 	        translate_markdown(Content, Content2),
 		parse_docstring__1(DocSt, Verb, Content2, RContent)
 	    ; Mode = include ->
 		parse_docstring__1(DocSt, Verb, Content, RContent)
 	    ; Mode = includeverbatim ->
+	        % TODO: accept language and do syntax highlight
 	        % TODO: why not string_verb?
 	        RContent = string_esc(Content)
 	    ; fail

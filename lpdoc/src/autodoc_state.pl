@@ -230,6 +230,12 @@ docst_set_mvardic(DocSt0, MVarDic, DocSt) :-
 docst_inputfile(DocSt, I) :-
 	DocSt = docstate(_, _, _, _, I).
 
+:- export(docst_pragma/2).
+docst_pragma(DocSt, Pragma) :- % TODO: optimize?
+	get_doc(pragma, ignore, DocSt, Pragmas),
+	member(Pragma, Pragmas),
+	!.
+
 %% ---------------------------------------------------------------------------
 
 :- doc(subsection, "Create a New docstate").

@@ -634,7 +634,7 @@ fmt_file_top_section(SecProps0, DocR, DocSt, ModR) :-
 %	    SectLabel = global_label(_)
 %	  )
 	),
-	get_doc(pragma, ignore, DocSt, Pragmas),
+	get_doc(pragma, ignore, DocSt, Pragmas), % TODO: Do in other way?
 	SecProps3 = [pragmas(Pragmas)|SecProps2],
 	%
 	docst_modtype(DocSt, ModuleType2),
