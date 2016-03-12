@@ -1,9 +1,7 @@
 :- module(markdown_test, [], [assertions,doccomments,regtypes,isomodes,fsyntax]).
 
-% TODO: Include markdown/examples/markdown_simple.lpdoc (duplicated)
-
 %!
-% @title  Lightweight mark-up test 
+% @title Doccomments (with markdown) test
 %
 % @author Jose F. Morales 
 %
