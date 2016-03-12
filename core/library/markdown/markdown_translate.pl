@@ -27,6 +27,7 @@
 	assrt_set_comment/3,
 	maybe_assrt_extra/2]).
 
+:- doc(bug, "Make assertion parsing optional? (or separate from this parser)").
 :- doc(bug, "Forbid tabs (do other markdown it?) and show an error
    when tabs are found. All indentation should be done with spaces.").
 :- doc(bug, "Escape code properly in code blocks; change LPdoc verbatim?").
@@ -150,7 +151,7 @@ match_eol_or_end([0'\n|_]).
 env_to_docstring(Env, A0, A) -->
 	( env_to_docstring_(Env, A0, A) ->
 	    []
-	; { throw(failed_env_to_docstring(Env)) }
+	; { throw(error(env(Env), env_to_docstring/5)) }
 	).
 
 :- use_module(library(lists), [append/3]).
@@ -230,7 +231,7 @@ arg_to_docstring_(X, _A0, A) --> { is_string(X) }, !,
 arg_to_docstring_(Envs, A0, A) -->
 	envs_to_docstring(Envs, A0, A).
 
-envs_to_docstring([], A, A) --> []. %K
+envs_to_docstring([], A, A) --> [].
 envs_to_docstring([Env|Envs], A0, A) -->
 	env_to_docstring(Env, A0, A1),
 	envs_to_docstring(Envs, A1, A).
@@ -324,4 +325,4 @@ arg_to_term(docstring, X, Term) :- !,
 arg_to_term(docstring_oneline, X, Term) :- !,
 	arg_to_docstring(X, nl, _, Term, []).
 arg_to_term(Type, _X, _Term) :-
-	throw(bug(unknown_cmd_type(Type))).
+	throw(error(unknown_cmd_type(Type), arg_to_term/3)).

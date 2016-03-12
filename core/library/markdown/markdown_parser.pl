@@ -421,8 +421,9 @@ match_front_cmd(Cmd) --> match_docpred(Head, VarNames), !,
 % A front command
 match_front_cmd(Cmd) -->
 	sc_char(C), { cmdchar(C) },
-	match_cmdname(Cmd0), { atom_codes(Cmd, Cmd0) }, { front_cmd(Cmd) },
-	!.
+	match_cmdname(Cmd0), { atom_codes(Cmd1, Cmd0) }, { front_cmd(Cmd1) },
+	!,
+	{ Cmd = Cmd1 }.
 % An item with description (- Desc ::)
 match_front_cmd(Cmd) --> sc_str("- "), sc_col(Col), match_until_nonl(Desc, " :: "), !,
 	{ layout_new(Col, Layout) } ,
