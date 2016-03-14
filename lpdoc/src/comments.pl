@@ -635,9 +635,9 @@ version_maintenance_type(dir(Path)) :-
    @begin{itemize}
 
    @item All printable characters are admissible in documentation
-   strings except ``@tt{@@}'', ``@tt{@{},'' and ``@tt{@}}''. To
+   strings except ``@tt{@@}'', ``@tt{\\\\}'', ``@tt{@{},'' and ``@tt{@}}''. To
    produce these characters the following @index{escape sequences}
-   should be used, respectively: @tt{@@@@}, @tt{@@@{}, and @tt{@@@}}.
+   should be used, respectively: @tt{@@@@}, @tt{\\\\\\\\}, @tt{@@@{}, and @tt{@@@}}.
 
    @item In order to allow better formatting of on-line and printed
    manuals, in addition to normal text, certain formatting commands
@@ -651,7 +651,8 @@ version_maintenance_type(dir(Path)) :-
    @tt{@@}@em{command}@tt{@{}@em{body}@tt{@}} 
 
    where @em{command} is the command name and @em{body} is the
-   (possibly empty) command body.
+   (possibly empty) command body. Alternatively, @tt{\\\\} can be used
+   instead of @tt{@{@}} (escaped if appears in strings).
 
    The set of commands currently admitted can be found in the
    documentation for the predicate @pred{stringcommand/1}.
@@ -670,20 +671,23 @@ docstring(CO) :-
 docstring --> "" 
           |   normalchar, !, docstring 
           |   escapeseq, !, docstring
-          |   "@", string(Command), " ", 
+          |   ("@" | "\\"), string(Command), " ", 
               {atom_codes(Com, Command), C =.. [Com,""], stringcommand(C) }, !,
                 docstring 
-          |   "@", string(Command), "{", string(Body), "}", 
+          |   ("@" | "\\"), string(Command), "{", string(Body), "}", 
               {atom_codes(Com, Command), C =.. [Com,Body], stringcommand(C) },
                 docstring.
 
 :- set_prolog_flag(multi_arity_warnings, on).
 
-normalchar --> [X], {X \== 0'@, X \== 0'{, X \== 0'} }.
+normalchar --> [X], {X \== 0'@, X \== 0'\\, X \== 0'{, X \== 0'} }.
 
 escapeseq --> "@{" 
           |   "@}" 
-          |   "@@".
+          |   "@@"
+          |   "\\{" 
+          |   "\\}" 
+          |   "\\\\".
 
 
 :- doc(doinclude,stringcommand/1).
@@ -698,11 +702,12 @@ escapeseq --> "@{"
    In order to make it possible to produce documentation in a wide
    variety of formats, the command set is kept small. The names of the
    commands are intended to be reminiscent of the commands used in the
-   @concept{LaTeX} text formatting system, except that ``@tt{@@}'' is
-   used instead of ``@tt{\\}.'' Note that @tt{\\} would need to be
-   escaped in ISO-Prolog strings, which would make the source less
-   readable (and, in any case, many ideas in LaTeX were taken from
-   @concept{scribe}, where the escape character was indeed @tt{@@}!).
+   @concept{LaTeX} text formatting system. Both ``@tt{@@}'' and
+   ``@tt{\\\\}'' are allowed in command names. Note that ``@tt{\\\\}''
+   needs to be escaped in strings, which makes the source less
+   readable. In such case it is recommended using ``@tt{@@}'' (and, in
+   any case, many ideas in LaTeX were taken from @concept{scribe},
+   where the escape character was indeed @tt{@@}!).
 
    The following are the currently admissible commands. 
 
@@ -1190,9 +1195,11 @@ stringcommand(copyright("")     ).
 stringcommand(iso("")           ).
 stringcommand(bullet("")        ).
 stringcommand(result("")        ).
-stringcommand('@'               ).
 stringcommand(index(B)          ) :- string(B).
+stringcommand('@'               ).
+stringcommand('\\'              ).
 stringcommand('{'               ).
+stringcommand('}'               ).
 
 stringcommand(include(B)        ) :- string(B).
 stringcommand(includeverbatim(B)) :- string(B).

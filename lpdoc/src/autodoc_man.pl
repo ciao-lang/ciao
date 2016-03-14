@@ -60,6 +60,7 @@ rw_command(footnote(Text), _DocSt, NBody) :- !,
 rw_command('}',                    _, raw("}")) :- !.
 rw_command('{',                    _, raw("{")) :- !.
 rw_command('@',                    _, raw("@")) :- !.
+rw_command('\\',                   _, raw("\\")) :- !.
 rw_command(today(""),              _, raw("\*(td")) :- !.
 rw_command(hfill(""),              _, []) :- !.
 rw_command('`'([X]),               _, raw([X, 0'\\, 0'*, 0'`])) :- !.

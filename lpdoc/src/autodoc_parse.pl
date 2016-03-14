@@ -190,7 +190,7 @@ get_token(_DocSt, Verb, Token) --> { Verb = mathtext },
 	{ Token = raw(Text) }.
 get_token(DocSt, Verb, Token) -->
 	% Parse a command
-	start,
+	[C], { cmdchar(C) },
 	command_body(Struct),
 	!,
 	{ handle_command(Struct, DocSt, Verb, Token) }.
@@ -261,13 +261,14 @@ pick_blank(Blank) -->
 	    { Blank = normal }
 	).
 
-pick_until_endcmd([], Ys, Ys) :- Ys = "@end{"||_, !.
+pick_until_endcmd([], Ys, Ys) :- Ys = [C|Ys0], cmdchar(C), Ys0 = "end{"||_, !.
 pick_until_endcmd([X|Xs]) --> [X], !, pick_until_endcmd(Xs).
 pick_until_endcmd([]) --> !.
 
 command_body('{') --> open, !.
 command_body('}') --> close, !.
-command_body('@') --> start, !.
+command_body('@') --> [0'@], !.
+command_body('\\') --> [0'\\], !.
 command_body(comment([])) -->
 	"comment{", % a commented text in documentation (ignored)
 	!,
@@ -336,11 +337,11 @@ command_balanced_args([Arg|RArgs]) -->
 	; { RArgs = [] }
 	).
 
-all_chars([0'@, 0'{|Cs]) --> start, open, !,
+all_chars([C, 0'{|Cs]) --> { cmdchar(C) }, [C], open, !,
 	all_chars(Cs).
-all_chars([0'@, 0'}|Cs]) --> start, close, !,
+all_chars([C, 0'}|Cs]) --> { cmdchar(C) }, [C], close, !,
 	all_chars(Cs).
-all_chars([0'@, 0'@|Cs]) --> start, start, !,
+all_chars([C, C|Cs]) --> { cmdchar(C) }, [C, C], !,
 	all_chars(Cs).
 all_chars([C|Cs]) --> normal_char(C), !, all_chars(Cs).
 all_chars([]) --> [].
@@ -361,12 +362,21 @@ blank --> tabchar.
 blanks --> blank, blanks.
 blanks --> [].
 
-normal_char(X) --> [X], {X \== 0'@, X \== 0'{, X \== 0'}}.
-normal_char_verb(X) --> [X], {X \== 0'@}.
-command_char(X) --> [X], {X \== 0'@, X \== 0'{, X \== 0'}, X \== 0' ,
-	    X \== 0'\n, X \== 0'\t}.
+normal_char(C) --> [C], { \+ cmdchar(C), \+ braces_p(C) }.
+normal_char_verb(C) --> [C], { \+ cmdchar(C) }.
+command_char(C) --> [C], { \+ cmdchar(C), \+ braces_p(C), \+ blank_p(C) }.
 
-start --> [0'@].
+blank_p(0' ).
+blank_p(0'\n).
+blank_p(0'\t).
+
+braces_p(0'{).
+braces_p(0'}).
+
+% Starting character for commands
+cmdchar(0'\\).
+cmdchar(0'@).
+
 open --> [0'{].
 close --> [0'}].
 space --> [0' ].
@@ -393,16 +403,16 @@ predname_g(FunctorS, ArityS) -->
 balanced_braces(1, []) -->
 	"}",
 	!.
-balanced_braces(N, [0'@, 0'@|Rest]) -->
-	"@@",
+balanced_braces(N, [C, C|Rest]) --> { cmdchar(C) },
+	[C, C],
 	!,
 	balanced_braces(N, Rest).
-balanced_braces(N, [0'@, 0'{|Rest]) -->
-	"@{",
+balanced_braces(N, [C, 0'{|Rest]) --> { cmdchar(C) },
+	[C], "{",
 	!,
 	balanced_braces(N, Rest).
-balanced_braces(N, [0'@, 0'}|Rest]) -->
-	"@}",
+balanced_braces(N, [C, 0'}|Rest]) --> { cmdchar(C) },
+	[C], "}",
 	!,
 	balanced_braces(N, Rest).
 balanced_braces(N, [0'{|Rest]) -->

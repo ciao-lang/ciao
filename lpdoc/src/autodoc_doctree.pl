@@ -91,6 +91,7 @@ cmd_type(item(d)) :- !.
 cmd_type('}') :- !.
 cmd_type('{') :- !.
 cmd_type('@') :- !.
+cmd_type('\\') :- !.
 cmd_type(today(s)) :- !.
 cmd_type(version(s)) :- !.
 cmd_type(hfill(s)) :- !.
@@ -717,6 +718,7 @@ accent_cmd('='(_)).
 
 % TODO: generalize for all backends?
 simple_escaped_command('@').
+simple_escaped_command('\\').
 simple_escaped_command('{').
 simple_escaped_command('}').
 

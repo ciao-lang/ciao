@@ -247,23 +247,15 @@ command_args([Arg]) -->
 	all_chars(Arg),
 	close.
 
-all_chars([0'@, 0'{|Cs]) -->
-	start,
-	open,
+% TODO: duplicated from autodoc_parse
+all_chars([C, 0'{|Cs]) --> { cmdchar(C) }, [C], open, !,
 	all_chars(Cs).
-all_chars([0'@, 0'}|Cs]) -->
-	start,
-	close,
+all_chars([C, 0'}|Cs]) --> { cmdchar(C) }, [C], close, !,
 	all_chars(Cs).
-all_chars([0'@, 0'@|Cs]) -->
-	start,
-	start,
+all_chars([C, C|Cs]) --> { cmdchar(C) }, [C, C], !,
 	all_chars(Cs).
-all_chars([C|Cs]) -->
-	normal_char(C),
-	all_chars(Cs).
-all_chars([]) -->
-	[].
+all_chars([C|Cs]) --> normal_char(C), !, all_chars(Cs).
+all_chars([]) --> [].
 
 spaces --> space, spaces.
 spaces --> [].
@@ -279,17 +271,24 @@ accented_char_(0'i).
 accented_char_(0'o).
 accented_char_(0'u).
 
+cmdchar(0'\\).
+cmdchar(0'@).
 
-normal_char(X) --> [X], {X \== 0'\\, X \== 0'@, X \== 0'{, X \== 0'}}.
-command_char(X) --> [X], {X \== 0'\\, X \== 0'@, X \== 0'{, X \== 0'},
-	    X \== 0' , X \== 0'\n, X \== 0'\t}.
-char_no_space_or_tab(X) --> [X], {X \== 0' , X \== 0'\t}.
+brace_p(0'{).
+brace_p(0'}).
+
+blank_p(0' ).
+blank_p(0'\n).
+blank_p(0'\t).
+
+normal_char(C) --> [C], { \+ cmdchar(C), \+ brace_p(C) }.
+command_char(C) --> [C], { \+ cmdchar(C), \+ brace_p(C), \+ blank_p(C) }.
+char_no_space_or_tab(C) --> [C], {C \== 0' , C \== 0'\t}.
 
 brace --> [0'{].
 brace --> [0'}].
 
-start --> [0'\\].
-start --> [0'@].
+start --> [C], { cmdchar(C) }.
 open --> [0'{].
 close --> [0'}].
 space --> [0' ].
@@ -308,11 +307,11 @@ accent(0'`).
 accent(0'~).
 
 balanced_braces(1, []) --> "}", !.
-balanced_braces(N, [0'@, 0'@|Rest]) -->	"@@", !,
+balanced_braces(N, [C, C|Rest]) --> { cmdchar(C) }, [C, C], !,
 	balanced_braces(N, Rest).
-balanced_braces(N, [0'@, 0'{|Rest]) --> "@{", !,
+balanced_braces(N, [C, 0'{|Rest]) --> { cmdchar(C) }, [C], "{", !,
 	balanced_braces(N, Rest).
-balanced_braces(N, [0'@, 0'}|Rest]) --> "@}", !,
+balanced_braces(N, [C, 0'}|Rest]) --> { cmdchar(C) }, [C], "}", !,
 	balanced_braces(N, Rest).
 balanced_braces(N, [0'{|Rest]) --> "{", !,
 	{N1 is N+1},

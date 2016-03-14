@@ -159,6 +159,7 @@ rw_command(image_auto(IFile0, Opts), DocSt, NBody) :- !,
 rw_command('}',                _, raw("@}")) :- !.
 rw_command('{',                _, raw("@{")) :- !.
 rw_command('@',                _, raw("@@")) :- !.
+rw_command('\\',               _, raw("\\")) :- !.
 rw_command('`'([X]), _, raw("@`"||[X])) :- !.
 rw_command(''''("i"), _, raw("@\'{@dotless{i}}")) :- !. %% Special case for i
 rw_command(''''([X]), _, raw("@\'"||[X])) :- !.
