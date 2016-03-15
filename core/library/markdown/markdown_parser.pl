@@ -33,6 +33,10 @@
 %             :- pred nat(X) # '$varstr'("@var{X} is a natural number", ['X'-X])
 %
 %         It'd require support for '$varstr' in the assertion library / lpdoc.
+%
+%  @bug Make sure that verbatim blocks work fine in lists items
+%
+%  @bug Treat language in ```lang ... ``` blocks
 
 %! markdown_parse(Cs, Envs):
 %    Partially parse the documentation string `Cs` which contains
@@ -42,9 +46,9 @@
 markdown_parse(Cs, Envs) :-
 	layout_new(0, Layout),
 	% TODO: Fix Ciao argument order for hiord!
-	%sc_lift(parse_front(Layout, Envs0), Cs, Rest),
+	%sc_lift(parse_start(Layout, Envs0), Cs, Rest),
 	sc_lift(([Layout, Envs0] -> 
-                 ''(A, B) :- parse_front(Layout, Envs0, A, B)), Cs, Rest),
+                 ''(A, B) :- parse_start(Layout, Envs0, A, B)), Cs, Rest),
 	( Rest = [] ->
 	    true
 	; % Could not parse the whole text
@@ -233,7 +237,7 @@ parse_indented_docstring(Layout0, Envs) -->
 	!,
 	{ layout_mark_prevcol(Layout0, Layout) },
  	% Allow front commands now
-	parse_front(Layout, Envs).
+	parse_front2(Layout, Envs).
 parse_indented_docstring(Layout, Envs) -->
 	parse_text(Layout, Envs).
 
@@ -276,7 +280,7 @@ parse_text_(Layout0, StrHead, StrTail, Envs) -->
 	  { Envs1 = [env('text', " ")|Envs0] } % just a blank
 	),
 	{ layout_mark_prevcol(Layout0, Layout) },
-	parse_front(Layout, Envs0).
+	parse_front2(Layout, Envs0).
 parse_text_(Layout, StrHead, StrTail, Envs) -->
 	% Hack to avoid parsing of text between {...}
 	% TODO: With integration in the LPdoc parser, this would not be necessary
@@ -285,6 +289,26 @@ parse_text_(Layout, StrHead, StrTail, Envs) -->
 	!,
 	{ flush_text(StrHead, StrTail, Envs, Envs1) },
 	{ Envs1 = [env('text', "{"), env('text', Text), env('text', "}")|Envs0] },
+	parse_text(Layout, Envs0).
+parse_text_(Layout, StrHead, StrTail, Envs) -->
+	% Escape markdown
+	sc_char(C), { cmdchar(C) },
+	sc_char(C2), { reserved_char(C2) },
+	!,
+	{ flush_text(StrHead, StrTail, Envs, Envs1) },
+	{ Envs1 = [env('text', [C2])|Envs0] },
+	parse_text(Layout, Envs0).
+parse_text_(Layout, StrHead, StrTail, Envs) -->
+	% Markup verbatim
+	sc_char(C), { cmdchar(C) },
+	sc_str("begin{verbatim}"),
+	!,
+	{ flush_text(StrHead, StrTail, Envs, Envs1) },
+	pick_until_endcmd(CodeBlock, "verbatim"), % TODO: Naive; merge with autodoc_parser automata instead
+	skip_blanks(_),
+	sc_char(C),
+	sc_str("end{verbatim}"),
+	{ Envs1 = [env('verbatim', [env('text', CodeBlock)])|Envs0] },
 	parse_text(Layout, Envs0).
 parse_text_(Layout, StrHead, StrTail, Envs) -->
 	% Some binary text decorator (e.g., [[...][...]])
@@ -296,30 +320,29 @@ parse_text_(Layout, StrHead, StrTail, Envs) -->
 	%
 	{ cmd_type(Cmd0, Type0) },
 	{ parse_substring_arg(Type0, Layout, Text1, EnvsText1) },
-	{ Cmd =.. [Cmd0, EnvsText1] },
+	{ Cmd1 =.. [Cmd0, EnvsText1] },
 	%
-	{ cmd_type(Cmd, Type) },
+	{ cmd_type(Cmd1, Type) },
 	{ parse_substring_arg(Type, Layout, Text2, EnvsText2) },
-	{ Envs1 = [env(Cmd, EnvsText2)|Envs0] },
+	{ Env0 = env(Cmd1, EnvsText2) },
 	%
+	{ fix_env(Env0, Env) },
+	{ Envs1 = [Env|Envs0] },
 	parse_text(Layout, Envs0).
 parse_text_(Layout, StrHead, StrTail, Envs) -->
 	% Some unary text decorator (e.g., *...*)
 	% TODO: Precompute to make it more efficient
-	{ decorator_fxf(Begin, End, Cmd0) },
-	sc_str(Begin), match_until_nonl(Text, End),
+	{ decorator_fxf(Begin, End, Cmd) },
+	{ cmd_type(Cmd, Type) },
+	sc_str(Begin), match_substring_arg(Type, Text, End),
 	!,
 	{ flush_text(StrHead, StrTail, Envs, Envs1) },
 	%
-	{ ( Cmd0 = code ->
-	    % This does not exist yet in LPdoc
-	    detect_code_cmd(Text, Cmd)
-	; Cmd = Cmd0
-	) },
-	{ cmd_type(Cmd, Type) },
 	{ parse_substring_arg(Type, Layout, Text, EnvsText) },
-	{ Envs1 = [env(Cmd, EnvsText)|Envs0] },
+	{ Env0 = env(Cmd, EnvsText) },
 	%
+	{ fix_env(Env0, Env) },
+	{ Envs1 = [Env|Envs0] },
 	parse_text(Layout, Envs0).
 parse_text_(Layout, StrHead, [C|StrTail], Envs) -->
 	% A normal character code
@@ -330,7 +353,17 @@ parse_text_(_Layout, StrHead, StrTail, Envs) -->
 	% Nothing else, stop here
 	{ flush_text(StrHead, StrTail, Envs, []) }.
 
+% Match command argument (finishing at End)
+match_substring_arg(multiline, Text, End) -->
+	match_multiline(Text, End).
+match_substring_arg(string, Text, End) -->
+	match_until_nonl(Text, End).
+match_substring_arg(docstring, Text, End) -->
+	match_until_nonl(Text, End).
+
 % Parse a command argument that has been already read as raw text.
+parse_substring_arg(multiline, _Layout, Text, Envs) :- !,
+	Envs = [env('text', Text)].
 parse_substring_arg(string, _Layout, Text, Envs) :- !,
 	Envs = [env('text', Text)].
 parse_substring_arg(docstring, Layout, Text, Envs) :- !,
@@ -338,12 +371,11 @@ parse_substring_arg(docstring, Layout, Text, Envs) :- !,
 parse_substring_arg(Type, _, _, _) :-
 	throw(bug(parse_substring_arg(Type))).
 
-% parse_front(Layout, Envs):
-%   Parsing the front of the line (no character has been treated
-%   before in this line, except blanks).
-parse_front(Layout, Envs) -->
-	skip_blanks(EmptyLines),
-	parse_front_(Layout, EmptyLines, Envs).
+% parse_start(Layout, Envs):
+%   Start parsing (assumes blanks or nothing above)
+parse_start(Layout, Envs) -->
+	skip_blanks(_),
+	parse_front1(Layout, yes, Envs).
 
 % Skip blanks input. EmptyLines is true iff there are empty lines.
 skip_blanks(EmptyLines) -->
@@ -354,17 +386,22 @@ skip_blanks(yes) -->
 	sc_nl, !, skip_blanks(_).
 skip_blanks(no) --> [].
 
+% Skip blanks, no newline
+skip_blanks_nonl --> sc_blank_nonl, !, skip_blanks_nonl.
+skip_blanks_nonl --> [].
+
 % (all blanks have been skipped)
-parse_front_(Layout, _EmptyLines, Envs) -->
+parse_front1(Layout, _EmptyAbove, Envs) -->
 	% Non-blank outside the base BaseCol
 	sc_col(Col), { layout_basecol(Layout, BaseCol), outside(Col, BaseCol) },
 	!,
 	% Stop here
 	{ Envs = [] }.
-parse_front_(Layout, EmptyLines, Envs) -->
+parse_front1(Layout, EmptyAbove, Envs) -->
+	% (Indented-based code block)
 	% Check if this is a code block (based on indentation
 	% w.r.t. the previous non-blank line)
-	{ EmptyLines = yes },
+	{ EmptyAbove = yes },
 	sc_col(Col),
 	{ layout_prevcol(Layout, PrevCol) },
 	{ codebase(PrevCol, CodeCol) },
@@ -374,9 +411,36 @@ parse_front_(Layout, EmptyLines, Envs) -->
 	parse_indented_block(CodeBaseCol, CodeBlock),
 	{ Envs = [env('verbatim', [env('text', CodeBlock)])|Envs0] },
 	%
-	parse_front(Layout, Envs0).
-parse_front_(Layout0, _EmptyLines, Envs) -->
-	% First, try front commands
+	parse_front2(Layout, Envs0).
+parse_front1(Layout, _EmptyAbove, Envs) -->
+	% (backtick-based code block)
+	sc_str("```"),
+	skip_blanks_nonl,
+	match_cmdname(LangStr), % ('' if none)
+	skip_blanks_nonl,
+	sc_nl,
+	!,
+	{ atom_codes(Lang, LangStr) },
+	{ Lang = '' -> true ; display('WARNING: lang in code block not supported yet'), nl },
+	parse_backtick_block(CodeBlock),
+	{ Envs = [env('verbatim', [env('text', CodeBlock)])|Envs0] },
+	%
+	parse_front2(Layout, Envs0).
+parse_front1(Layout0, EmptyAbove, Envs) -->
+	% Try docpred (a predicate head followed by ':')
+	{ EmptyAbove = yes },
+	sc_col(Col), match_docpred(Head, VarNames),
+	!,
+	{ Cmd = docpred(Head, VarNames) },
+	{ cmd_type(Cmd, Type) },
+	{ Envs = [env(Cmd, NBody)|Envs0] },
+	{ layout_mark_linecol(Col, Layout0, Layout1) },
+	{ layout_inner_basecol(Col, Layout1, Layout) },
+	parse_arg(Type, Layout, NBody),
+	%
+	parse_front2(Layout0, Envs0).
+parse_front1(Layout0, _EmptyAbove, Envs) -->
+	% Try front commands
 	sc_col(Col), match_front_cmd(Cmd),
 	!,
 	{ cmd_type(Cmd, Type) },
@@ -385,12 +449,19 @@ parse_front_(Layout0, _EmptyLines, Envs) -->
 	{ layout_inner_basecol(Col, Layout1, Layout) },
 	parse_arg(Type, Layout, NBody),
 	%
-	parse_front(Layout0, Envs0).
-parse_front_(Layout0, _EmptyLines, Envs) -->
+	parse_front2(Layout0, Envs0).
+parse_front1(Layout0, _EmptyAbove, Envs) -->
 	% Else, try non-front commands or normal text
 	sc_col(Col),
 	{ layout_mark_linecol(Col, Layout0, Layout) },
 	parse_text(Layout, Envs).
+
+% parse_front2(Layout, Envs):
+%   Parsing the front of the line (no character has been treated
+%   before in this line, except blanks).
+parse_front2(Layout, Envs) -->
+	skip_blanks(EmptyLines),
+	parse_front1(Layout, EmptyLines, Envs).
 
 % Flush the accumulated text (if there is any)
 flush_text(StrHead, StrTail, Envs, Envs0) :-
@@ -399,6 +470,17 @@ flush_text(StrHead, StrTail, Envs, Envs0) :-
 	    Envs = Envs0
 	; Envs = [env('text', StrHead)|Envs0]
 	).
+
+% Fix commands that do not exist in LPdoc yet
+% TODO: add them?
+fix_env(env(code, EnvsText), Env) :-
+	EnvsText = [env('text', Text)],
+	!,
+	detect_code_cmd(Text, Cmd),
+	Env = env(Cmd, EnvsText).
+fix_env(env(link(Text), Ref), Env) :- !,
+	Env = env(href(Ref), Text).
+fix_env(Env, Env).
 
 % Detect the right command for the given program code expression
 % TODO: This should be part of LPdoc.
@@ -415,9 +497,6 @@ detect_code_cmd(Text, Cmd) :-
 %! match_front_cmd(?Cmd):
 %    Match a valid front command `Cmd`.
 
-% A predicate head followed by ':', at column 0
-match_front_cmd(Cmd) --> match_docpred(Head, VarNames), !,
-	{ Cmd = docpred(Head, VarNames) }.
 % A front command
 match_front_cmd(Cmd) -->
 	sc_char(C), { cmdchar(C) },
@@ -439,21 +518,21 @@ match_front_cmd(Cmd) --> sc_str("-# "), !, % "Fix font-lock
 match_front_cmd(Cmd) --> match_num(N), sc_char(0'.), !,
 	{ Cmd = 'item_num'(N) }.
 % A section name
-match_front_cmd(Cmd) --> sc_str("* "), !,
+match_front_cmd(Cmd) --> sc_str("# "), !,
 	{ Cmd = 'section' }.
 % A subsection name
-match_front_cmd(Cmd) --> sc_str("** "), !,
+match_front_cmd(Cmd) --> sc_str("## "), !,
 	{ Cmd = 'subsection' }.
 % A subsubsection name
-match_front_cmd(Cmd) --> sc_str("*** "), !,
+match_front_cmd(Cmd) --> sc_str("### "), !,
 	{ Cmd = 'subsubsection' }.
 
 %! match_docpred(?Head, ?VarNames):
-%    Match a predicate documentation head (@tt{Pred:} or
-%    @tt{Pred.}). Fails if no documentation head is recognized.
+%    Match a predicate documentation head (@tt{Pred}) followed by 
+%    `:`. Fails if no documentation head is recognized.
 %
 % TODO: This does not allow predicate heads which take more than one line
-% TODO: Make this work:
+% TODO: Allow '.' too? Make this work?
 %
 %         %! foo(3.4, a:m). Many problems. That is: colon and period.
 %
@@ -463,10 +542,11 @@ match_front_cmd(Cmd) --> sc_str("*** "), !,
 match_docpred(Head, VarNames) -->
 	sc_col(Col), { Col = 0 }, % no left margin allowed at all
 	match_docpred_(Head0),
-	{ read_from_string_opts(Head0, Head, [], variable_names(VarNames)) }.
+	{ read_from_string_opts(Head0, Head, [], variable_names(VarNames)) },
+	{ nonvar(Head), \+ number(Head) }.
 
 match_docpred_([]) --> sc_char(0':), !.
-match_docpred_([]) --> sc_char(0'.), !.
+% match_docpred_([]) --> sc_char(0'.), !. % TODO: disabled by now
 match_docpred_(_) -->
 	% Newline
 	sc_nl,
@@ -514,6 +594,23 @@ parse_indented_block(_BaseCol, []) -->
 	% Nothing else, finish
 	[].
 
+parse_backtick_block(Block) -->
+	% End
+	( sc_nl ; [] ),
+	sc_col(Col), { Col = 0 }, % no left margin allowed at all
+	skip_blanks_nonl,
+	sc_str("```"),
+	!,
+	{ Block = [] }.
+parse_backtick_block(Block) -->
+	sc_char(C),
+	!,
+	{ Block = [C|Block0] },
+	parse_backtick_block(Block0).
+parse_backtick_block([]) -->
+	% Nothing else, finish
+	[].
+
 % Parse an indented term
 parse_indented_term(Layout, Term) -->
 	{ layout_basecol(Layout, BaseCol) },
@@ -529,7 +626,7 @@ parse_indented_term(Layout, Term) -->
 
 % Starting character for commands
 cmdchar(0'\\).
-cmdchar(0'@).
+cmdchar(0'@). % TODO: Do not allow 0'@? (better compatibility)
 
 % Valid characters for names
 cmdvalid(C) :- C >= 0'a, C =< 0'z, !.
@@ -564,6 +661,32 @@ match_until_nonl([C|Str], End) --> sc_char(C), !,
 match_until_nonl(_Str, _End) -->
 	% Nothing else, so it has been not found
 	{ fail }.
+
+% Read in `Str` the text before `End` is found in consecutive
+% lines. Fails if an empty line is found before. Collapse all lines
+% preserving blanks.
+match_multiline(Str, End) --> sc_char(0'\n), !,
+	( skip_blanks(EmptyLines),
+	  { EmptyLines = yes } -> % Fail if empty line found
+	    { fail }
+	; % Otherwise continue (including same blanks)
+	  match_multiline(Str, End)
+	).
+match_multiline(Str, End) --> sc_str(End), !,
+	% Found `Str`, stop here
+	{ Str = [] }.
+match_multiline([C|Str], End) --> sc_char(C), !,
+	match_multiline(Str, End).
+match_multiline(_Str, _End) -->
+	% Nothing else, so it has been not found
+	{ fail }.
+
+% TODO: almost duplicated from autodoc_parse, but using layout_dcg
+pick_until_endcmd([], CmdStr) -->
+	% Peek <some blanks> @end{...}
+	\+ \+ (skip_blanks(_), sc_char(C), { cmdchar(C) }, sc_str("end{"), sc_str(CmdStr), sc_str("}")), !.
+pick_until_endcmd([X|Xs], CmdStr) --> sc_char(X), !, pick_until_endcmd(Xs, CmdStr).
+pick_until_endcmd([], _CmdStr) --> !.
 
 % ---------------------------------------------------------------------------
 

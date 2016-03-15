@@ -57,7 +57,9 @@ cmd_type(item_num(_), docstring). % (internal)
 cmd_type(docpred(_, _), docstring). % (internal)
 cmd_type(href, string).
 cmd_type(href(_), docstring).
-cmd_type(code, string). % (not in PLdoc)
+cmd_type(link, docstring). % (not in PLdoc)
+cmd_type(link(_), string). % (not in PLdoc)
+cmd_type(code, multiline). % (not in PLdoc)
 cmd_type(var, string).
 cmd_type(pred, string).
 cmd_type(math, string).
@@ -112,13 +114,30 @@ code_env_indent(4).
 
 % Special syntax for unary LPdoc commands
 :- export(decorator_fxf/3).
-decorator_fxf("/", "/", em).
-decorator_fxf("*", "*", bf).
+decorator_fxf("**", "**", bf).
+decorator_fxf("__", "__", bf).
+decorator_fxf("*", "*", em).
+decorator_fxf("_", "_", em).
+decorator_fxf("[[", "]]", href).
 decorator_fxf("`", "`", code). % Note: 'code' does not exist in LPdoc
 decorator_fxf("$", "$", math).
-decorator_fxf("[[", "]]", href).
 
 % Special syntax for binary LPdoc commands
 :- export(decorator_fxfxf/4).
 decorator_fxfxf("[[", "][", "]]", href).
+decorator_fxfxf("[", "](", ")", link). % Note: 'link' does not exist (reversed href, for markdown style)
+
+% Reserved characters (can be escaped to avoid processing)
+:- export(reserved_char/1).
+reserved_char(0'*).
+reserved_char(0'_).
+reserved_char(0'*).
+reserved_char(0'[).
+reserved_char(0']).
+reserved_char(0'`).
+reserved_char(0'$).
+reserved_char(0'().
+reserved_char(0')).
+reserved_char(0'<). % TODO: not used yet
+reserved_char(0'>). % TODO: not used yet
 
