@@ -1,18 +1,18 @@
-@begin{alert}
-  - Define `@@verb` (which escapes).
-  - For @tt{`}, do not use `@@tt` but `@@verb`.
-  - Define the `@@verb` with `@@begin` and `@@end`.
+\begin{alert}
+  - Define `\\verb` (which escapes).
+  - For \tt{`}, do not use `\\tt` but `\\verb`.
+  - Define the `\\verb` with `\\begin` and `\\end`.
   - Write how to escape characters propertly in wiki syntax.
-@end{alert}
+\end{alert}
 
-* Simple mark-up
+# Simple mark-up
 
-  @begin{alert} Add support for decorations spanning several lines
-  @end{alert}
+  \begin{alert} Add support for decorations spanning several lines
+  \end{alert}
 
-  Text can be /emphasized/ or *bold*.
+  Text can be _emphasized_ (*emphasized*) or __bold__ (**bold**).
 
-* Paragraphs
+# Paragraphs
 
 Begin of
 a paragraph.
@@ -23,16 +23,16 @@ This paragraph ends here.
 
 The last new paragraph. This paragraph ends here.
 
-* Lists
+# Lists
 
-** Simple lists
+## Simple lists
 
 Here is another list:
  - with some item
  - other item
  - more items
 
-** Simple lists (alternative syntaxes - wiki only)
+## Simple lists (alternative syntaxes - wiki only)
 
 Here is a list:
 
@@ -56,13 +56,13 @@ Here is yet another list:
 - other item
 - more items
 
-*** Simple lists (without any heading - wiki only)
+### Simple lists (without any heading - wiki only)
 
 - with some item
 - other item
 - more items
 
-** Nested lists
+## Nested lists
 
 A list with nested items:
   - item 1
@@ -74,7 +74,7 @@ A list with nested items:
     - subitem 2-1
   - item 3
 
-** Enumerated lists
+## Enumerated lists
 
 Enumerated list with automatic numbering:
   -# First
@@ -91,9 +91,9 @@ Enumerated list with non-consecutive explicit numbering:
   4. Second
   6. Third
 
-@begin{alert}
+\begin{alert}
   The following only works in some backends.
-@end{alert}
+\end{alert}
 
 Enumerated list mixing all above:
 
@@ -104,14 +104,14 @@ Enumerated list mixing all above:
  10. Fifth
  -# Sixth
 
-** Description lists
+## Description lists
 
 Description lists:
   - opt :: First
   - foo :: Second
   - bar :: Third
 
-** Description lists (more complex cases)
+## Description lists (more complex cases)
 
 Description lists with richer items:
  
@@ -122,49 +122,60 @@ Description lists with richer items:
   - $x^2$ :: some math.
   - $\bigwedge_j f_j(x_0, \ldots, x_n)$ :: some complex math.
 
-* Sections and subsections
+# Sections and subsections
 
 Text for the section.
 
-** Subsection
+## Subsection
 
 Text for the subsection.
 
-*** Subsubsection
+### Subsubsection
 
 Text for the subsubsection.
 
-* Links
+# Links (markdown style)
+
+\begin{alert} missing detection of URLs, or better syntax \end{alert}
+
+A link to \href{http://ciao-lang.org} showing its URL.
+
+A link to [Ciao](http://ciao-lang.org) hiding its URL.
+
+A link to [The **Ciao** System](http://ciao-lang.org) hiding its URL
+with a complex string.
+
+# Links (org-mode style)
 
 A link to [[http://ciao-lang.org]] showing its URL.
 
 A link to [[http://ciao-lang.org][Ciao]] hiding its URL.
 
-A link to [[http://ciao-lang.org][The *Ciao* System]] hiding its URL
+A link to [[http://ciao-lang.org][The **Ciao** System]] hiding its URL
 with a complex string.
 
-* Anchors, labels, references, bibliographical citations
+# Anchors, labels, references, bibliographical citations
 
-A reference to the first section in this document @ref{Paragraphs}.
+A reference to the first section in this document \ref{Paragraphs}.
 
-@begin{alert}
-  Implement symbolic labels. Fix the @tt{texinfo} backend by resolving
+\begin{alert}
+  Implement symbolic labels. Fix the \tt{texinfo} backend by resolving
   them to the section title.
-@end{alert}
+\end{alert}
 
-* Other elements
+# Other elements
 
   We will not include lightweight mark-up syntax for anything else
   not described in this document (e.g., images).
 
-* Syntax for code
+# Syntax for code
 
-** Code spans
+## Code spans
 
 This is a predicate name `append/3`, a variable name `X`, an
 atom name `foo`, a quoted atom name `'foo'`.
 
-** Blocks of code
+## Blocks of code
 
 Text that is 4-char indented is recognized as code:
 
@@ -183,18 +194,28 @@ Code itself can have documentation comments:
     list([]). %< see `append/3`
     list([X|Xs]) :- list(Xs)
 
-** Blocks of other code
-
-@begin{alert} no way to specify source language yet @end{alert}
+## Blocks of other code
 
 This is a piece of C code:
 
     #include <stdio.h>
     int main() { return 0; }
 
-@begin{alert} newlines are lost in verbatim blocks @end{alert}
-
-@begin{verbatim}
+Using backtick blocks:
+```
 #include <stdio.h>
 int main() { return 0; }
-@end{verbatim}
+```
+
+Using backtick blocks and language:
+```c
+#include <stdio.h>
+int main() { return 0; }
+```
+
+Same using `\\begin\{verbatim\} ... \\end\{verbatim\}`:
+
+\begin{verbatim}
+#include <stdio.h>
+int main() { return 0; }
+\end{verbatim}
