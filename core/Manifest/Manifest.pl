@@ -8,7 +8,7 @@ bundle_alias_paths([
     %
     core_cmds = 'cmds',
     %
-    engine_c = 'engine',
+%    engine = 'engine',
     %
     rtchecks = 'lib/rtchecks',
     unittest = 'lib/unittest',
