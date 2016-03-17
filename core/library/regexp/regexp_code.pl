@@ -175,7 +175,7 @@ match_posix_rest(Exp, IN, R) :-
         : shell_regexp * string * list(string)
 
 # "Matches completely @var{IN} against @var{Exp}.  @var{Exp} can
-contain @em{anchored expressions} of the form \\(@tt{regexp}\\).
+contain @em{anchored expressions} of the form \\\\(@tt{regexp}\\\\).
 @var{Matches} will contain a list of the @em{anchored expression}
 which were matched on success.  Note that since POSIX expressions are
 being read inside a string, backslashes will have to be doubled.  For

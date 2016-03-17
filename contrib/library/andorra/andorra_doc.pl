@@ -81,7 +81,7 @@ member(A,[B|C],[B|D]) :-
         unify (when instantiated)''. The same considerations above
         apply to @tt{Term1} and @tt{Term2}.
 @item any other test that does not unify variables can also be used
-        ( @tt{==/2}, @tt{\\==/2}, @tt{atomic/1}).
+        ( @tt{==/2}, @tt{\\\\==/2}, @tt{atomic/1}).
 @end{itemize}").
 
 :- prop detcond(X) + regtype

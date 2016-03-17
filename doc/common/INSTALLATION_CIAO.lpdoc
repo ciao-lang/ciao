@@ -165,7 +165,7 @@ require an additional set of software packages:
 
 @begin{verbatim}
 # Debian/Ubuntu:
-$ apt-get install libgsl0-dev libgsl0ldbl ant ant-optional \
+$ apt-get install libgsl0-dev libgsl0ldbl ant ant-optional \\
     sun-java6-jdk g++
 $ update-java-alternatives --set java-6-sun
 
@@ -659,7 +659,7 @@ The following a list of common installation problems:
 
       @begin{itemize}
       @item 1. End all cygwin processes.
-      @item 2. Run @tt{/bin/rebaseall} from @tt{c:\cygwin\bin\ash}
+      @item 2. Run @tt{/bin/rebaseall} from @tt{c:\\cygwin\\bin\\ash}
                (probably as administrator)
       @end{itemize}
 @end{itemize}

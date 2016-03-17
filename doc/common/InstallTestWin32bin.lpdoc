@@ -33,12 +33,12 @@ Also, the following documentation-related actions should work:
       on the desktop should show the Ciao manual in your default WWW
       browser.  If this shortcut has not been created you can
       double-click on the @tt{ciao}(@tt{.html}) file in the
-      @tt{doc\reference\ciao_html} folder inside the Ciao source
+      @tt{doc\\reference\\ciao_html} folder inside the Ciao source
       folder.
 
       @cindex{help}
 
-@item The @tt{doc\reference} folder contains the manual also in the
+@item The @tt{doc\\reference} folder contains the manual also in the
       other formats present in the distribution, such as @tt{info}
       (very convenient for users of the @apl{emacs} editor/program
       development system) and @tt{pdf}.

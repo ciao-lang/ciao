@@ -337,6 +337,10 @@ function is a string it is taken to be the comment."
     (concat "@key{" (substring str 0 3) "} "
 	    (ciao-print-keys (substring str 3))))
 
+   ((eq (string-match "C-\\\\" str 0) 0)
+    (concat "@key{^\\\\} "
+	    (ciao-print-keys (substring str 3))))
+
    ((eq (string-match "C-" str 0) 0)
     (concat "@key{^" (upcase (substring str 2 3)) "} "
 	    (ciao-print-keys (substring str 3))))
@@ -373,6 +377,7 @@ function is a string it is taken to be the comment."
    ((eq (string-match "RET" str 0) 0)
     (concat "@key{RET} " 
 	    (ciao-print-keys (substring str 3))))
+
    (t 
     (concat "@key{" 
 ;;	    (text-char-description (string-to-char (substring str 0 1) ))

@@ -52,10 +52,10 @@
         will result in @tt{Hello ~world!}.
 
         A format may be spread over several lines. The control
-        sequence @tt{\\c} followed by a @key{LFD} will translate to the 
+        sequence @tt{\\\\c} followed by a @key{LFD} will translate to the 
         empty string:  
         @begin{verbatim}
-        ?- format(""Hello \\c
+        ?- format(""Hello \\\\c
         world!"", []).
         @end{verbatim}
         @noindent

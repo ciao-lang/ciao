@@ -77,7 +77,7 @@ fd_range_expr(A \/ B) :- fd_range_expr(A), fd_range_expr(B).
 :- doc(fd_range_expr/1,"A term denoting a range expression:
 @includedef{fd_range_expr/1} an integer stands for a singleton range,
 @var{Min..Max} for the closed interval from @var{Min} to @var{Max},
-and @var{A\\/B} for the union of ranges @var{A} and @var{B}. Range
+and @var{A\\\\/B} for the union of ranges @var{A} and @var{B}. Range
 expressions are used by the @pred{in/2} predciate." ).
 
 :- regtype fd_expr(Expr) # "@var{Expr} is an FD expression.".

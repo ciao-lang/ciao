@@ -23,7 +23,7 @@ If you find any problems during installation, please refer to
 @begin{enumerate} 
 
 @item Download the precompiled distribution and unpack it into any
-      suitable folder, such as, e.g., @tt{C:\Program Files}.
+      suitable folder, such as, e.g., @tt{C:\\Program Files}.
 
       This will create there a folder whose name reflects the Ciao
       version. Due to limitations of Windows related to file
@@ -67,7 +67,7 @@ If you find any problems during installation, please refer to
 
 @item You may also want to add another shortcut to the file
       @file{ciao}(@tt{.html}) located inside
-      @tt{doc\reference\ciao_html} so that you can open the
+      @tt{doc\\reference\\ciao_html} so that you can open the
       Ciao manual by simply double-clicking on this shortcut. 
 
 @item Finally, if the (freely available) @apl{emacs}
@@ -139,8 +139,8 @@ for a workaround.
 In some Windows versions it is possible that you had to change the
 @em{first} backslashes in the ciao-mode-init.el file in the Ciao
 Directory.  E.g., assuming you have installed in drive @tt{c:},
-instances of @tt{c:\} need to be changed to @tt{c:/}.  For example:
-@tt{c:\prolog/ciao-1.7p30Win32/shell/ciaosh.bat} should be changed to
+instances of @tt{c:\\} need to be changed to @tt{c:/}.  For example:
+@tt{c:\\prolog/ciao-1.7p30Win32/shell/ciaosh.bat} should be changed to
 @tt{c:/prolog/ciao-1.7p30Win32/shell/ciaosh.bat}.
 
 

@@ -199,11 +199,11 @@ X=\=Y :- X=\=Y.
 
    @item @pred{<< /2}: integer bitwise left shift. @hfill @iso
 
-   @item @pred{/\\ /2}: integer bitwise and. @hfill @iso
+   @item @pred{/\\\\ /2}: integer bitwise and. @hfill @iso
 
-   @item @pred{\\/ /2}: integer bitwise or. @hfill @iso
+   @item @pred{\\\\/ /2}: integer bitwise or. @hfill @iso
 
-   @item @pred{\\ /1}: integer bitwise complement. @hfill @iso
+   @item @pred{\\\\ /1}: integer bitwise complement. @hfill @iso
 
    @item @pred{# /2}: integer bitwise exclusive or (xor).
 

@@ -683,7 +683,7 @@ system_error_report(X) :-
    determined by the @tt{TMP} or @tt{TEMP} environment variable. If
    none is defined, this predicate tries to guess it from some usual
    locations (@tt{/tmp}, @tt{/var/tmp}, @tt{/usr/tmp} on POSIX,
-   @tt{c:\\temp}, @tt{c:\\tmp}, @tt{\\temp}, @tt{\\tmp} on Windows) or
+   @tt{c:\\\\temp}, @tt{c:\\\\tmp}, @tt{\\\\temp}, @tt{\\\\tmp} on Windows) or
    use @tt{.} as last resort.".
 
 get_tmp_dir(TmpDir) :-

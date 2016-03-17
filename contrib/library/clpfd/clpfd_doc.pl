@@ -57,7 +57,7 @@ incomplete as the remaining constraints are not showed.
 @section{Meta-Constraints}
 
 There are five meta-constraints, namely @pred{#=/2}, the constraint
-equal, @pred{#=/2}, the constraint not equal, @\pred{#</2}, the
+equal, @pred{#=/2}, the constraint not equal, @pred{#</2}, the
 constraint less than, the constraint not equal, @pred{#=</2}, the
 constraint less or equal, @pred{#>/2}, the constraint more than, and
 @pred{#>/2}, the constraint more or equals. These meta-constraint are

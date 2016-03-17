@@ -41,7 +41,7 @@ Copyright @copyright{} 1997-2002 The Clip Group.
    uses the Ciao @lib{make} library to implement dependency-driven
    scripts in a similar way to the Unix @apl{make}
    facility. @apl{lpmake} offers three main advantages. First,
-   @em{portability}: compiled to byetcode it runs without need for
+   @em{portability}: compiled to bytecode it runs without need for
    recompilation on any platform where Ciao is supported. Second,
    @em{improved programming capabilities}. While @apl{lpmake} itself
    is simpler than @apl{make}, the full Ciao Prolog language is
@@ -343,7 +343,7 @@ usage_message("
 
 Supported command line options:
 
-lpmake [--trace-deps] [-d Name1=Value1] ... [-d Namen=Valuen] \\
+lpmake [--trace-deps] [-d Name1=Value1] ... [-d Namen=Valuen] \\\\
 	<command1> ... <commandn>
 
   Process commands <command1> ... <commandn>, using file 'Makefile.pl'
@@ -359,8 +359,8 @@ lpmake [--trace-deps] [-d Name1=Value1] ... [-d Namen=Valuen] \\
   (i.e., 'name_value(Name) := Value.'), defined in the module 
   library(make/make_rt).
 
-lpmake [--trace-deps] [-d Name1=Value1] ... [-d Namen=Valuen] \\
-	[[-m|-l] <.../Configfile1.pl>] [[-m|-l] <.../Configfilen.pl>] \\
+lpmake [--trace-deps] [-d Name1=Value1] ... [-d Namen=Valuen] \\\\
+	[[-m|-l] <.../Configfile1.pl>] [[-m|-l] <.../Configfilen.pl>] \\\\
         <command1> ... <commandn>
 
   Same as above, but using files <.../Configfilex.pl> as configuration
