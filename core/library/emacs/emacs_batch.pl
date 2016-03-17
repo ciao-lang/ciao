@@ -61,7 +61,7 @@ emacs_batch_call(Dir, LogName, Args) :-
 	logged_process_call(~emacs_path, ['-batch'|Args],
 	    [cwd(Dir),
 	     noenv(NoEnv),
-	     logbase(Log0, ''),
+	     logbase(Log0),
 	     show_logs(on_error), status(_)]).
 
 % ---------------------------------------------------------------------------

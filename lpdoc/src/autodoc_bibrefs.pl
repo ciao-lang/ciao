@@ -88,7 +88,7 @@ run_bibtex(Backend, TmpBase, _RAuxFile, _BblFile) :-
 	% This will take as input RAuxFile and output BblFile
 	cmd_logbase(Backend, 'run_bibtex', LogBase),
 	autodoc_process_call(path(BibTex), [TmpBase],
-	                     [logbase(LogBase, ''), status(_)]).
+	                     [logbase(LogBase), status(_)]).
 
 :- use_module(lpdoc(autodoc_parse), [parse_docstring_loc/4]).
 

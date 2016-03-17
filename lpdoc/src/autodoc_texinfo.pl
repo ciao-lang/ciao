@@ -818,7 +818,7 @@ do_texi_to_dvi(TexiFile, DVIFile, FileBase) :-
 	           ~atom_concat(['\\nonstopmode\\input ', TexiName])],
 	cmd_logbase(texinfo, 'run_tex1', LogBase1),
 	autodoc_process_call(path(~tex), TexArgs,
-	                     [logbase(LogBase1, ''), cwd(TexiDir), status(_)]),
+	                     [logbase(LogBase1), cwd(TexiDir), status(_)]),
 	path_splitext(TexiFile, TexiNoext, _),
 	texindex_indices(TexiNoext, Indices),
 	( Indices = [] ->
@@ -826,11 +826,11 @@ do_texi_to_dvi(TexiFile, DVIFile, FileBase) :-
 	; % No indices, do not call texindex
 	  cmd_logbase(texinfo, 'run_texinfo', LogBaseIdx),
           autodoc_process_call(path(~texindex), Indices,
-	                       [logbase(LogBaseIdx, ''), cwd(TexiDir)])
+	                       [logbase(LogBaseIdx), cwd(TexiDir)])
 	),
 	cmd_logbase(texinfo, 'run_tex2', LogBase2),
 	autodoc_process_call(path(~tex), TexArgs,
-	                     [logbase(LogBase2, ''), cwd(TexiDir), status(_)]),
+	                     [logbase(LogBase2), cwd(TexiDir), status(_)]),
 	atom_concat(TexiNoext, '.dvi', DVIFile0),
 	file_exists(DVIFile0),
 	del_file_nofail(DVIFile),
@@ -863,7 +863,7 @@ copy_texinfo_style_if_needed(TexiDir) :-
 do_dvi_to_ps(DVIFile, PSFile) :-
 	cmd_logbase(texinfo, 'run_dvips', LogBase),
 	autodoc_process_call(path(~dvips), ['-z', '-Ppdf', DVIFile, '-o', PSFile],
-	                     [logbase(LogBase, '')]),
+	                     [logbase(LogBase)]),
 	% This, really to fix a bug in some versions of dvips:
 	-(del_files_nofail(['head.tmp', 'body.tmp'])).
 
@@ -877,7 +877,7 @@ do_ps_to_pdf(PSFile, PDFFile) :-
 	Env = ['GS_OPTIONS' = ~atom_concat('-sPAPERSIZE=', GSPaperType)],
 	cmd_logbase(texinfo, 'run_ps2pdf', LogBase),
 	autodoc_process_call(path(~ps2pdf), [PSFile, PDFFile],
-                             [env(Env), logbase(LogBase, '')]).
+                             [env(Env), logbase(LogBase)]).
 
 ghostscript_papertype(letterpaper, letter).
 ghostscript_papertype(smallbook,   isob5). % This is an approximation
@@ -909,7 +909,7 @@ do_texi_to_info(TexiFile, InfoFile, InfoindexFile, FileBase) :-
 		'--no-number-sections', '--paragraph-indent=none',
 		%'--fill-column=70', 
 		'--output', TmpFile2, TexiName],
-	       [logbase(LogBase, ''),
+	       [logbase(LogBase),
 		cwd(TexiDir),
 		status(_)]),
 	file_to_string(InfoindexFile, InfoIndex),
@@ -933,7 +933,7 @@ do_texi_to_ascii(TexiFile, AsciiFile, FileBase) :-
 		% '--fill-column=70',
 		'--no-headers', % (plain text)
 		'--output', TmpFile2, TexiName],
-	       [logbase(LogBase, ''),
+	       [logbase(LogBase),
 		cwd(TexiDir)]),
 	%
 	( setting_value(autogen_warning, yes) ->

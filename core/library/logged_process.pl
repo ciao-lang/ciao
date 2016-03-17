@@ -7,8 +7,8 @@
    logging facilities. It the process does not exit with error status
    0, some special action is taken.
 
-   When @tt{logbase(Base, Suffix)} is specified, the standard output
-   and error of the process is stored in files. The option
+   When @tt{logbase(Base)} is specified, the standard output and error
+   of the process is stored in files. The option
    @tt{show_logs(ShowLogs)} indicates how logs are handled:
 
    @begin{description}
@@ -35,7 +35,7 @@
 
 logged_process_call(Cmd, Args, Opts) :-
 	% Base for logs
-	select(logbase(Base, Suffix), Opts, Opts1),
+	select(logbase(Base), Opts, Opts1),
 	!,
 	% 
 	( select(show_logs(ShowLogs), Opts1, Opts2) ->
@@ -46,9 +46,8 @@ logged_process_call(Cmd, Args, Opts) :-
 	%
 	% TODO: Option for (no)append logs?
 	% TODO: use stderr_to_stdout?
-	atom_concat(Base, Suffix, Base2),
-	atom_concat(Base2, '.log', LogFile),
-	atom_concat(Base2, '.err', ErrFile),
+	atom_concat(Base, '.log', LogFile),
+	atom_concat(Base, '.err', ErrFile),
 	%
 	Opts4 = [stdout(file(LogFile)), stderr(file(ErrFile))|Opts3],
 	% Action on process return (unify return code or throw exception if nonzero)
