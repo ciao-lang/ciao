@@ -10,9 +10,13 @@
 :- use_module(lpdoc(autodoc_images)).
 :- use_module(lpdoc(autodoc_settings)).
 :- use_module(library(lists), [append/3, list_concat/2]).
+:- use_module(library(aggregates), [findall/3]).
 :- use_module(library(dict)).
+:- use_module(library(pathnames), [path_basename/2]).
 :- use_module(lpdoc(comments), [stringcommand/1]).
 :- use_module(library(format_to_string), [format_to_string/3]).
+%
+:- use_module(library(syntax_highlight), [highlight_to_html_string/3]).
 
 % (Web-site extensions)
 :- use_module(lpdoc(autodoc_html_template)).
@@ -54,6 +58,14 @@ rw_command(sp(_), _, R) :- !, R = raw("<p>").
 %	html_blank_lines(N1, NewCommand),
 %	R = raw(NewCommand).
 rw_command(p(""),                _, raw("<p>")) :- !.
+rw_command(codeblock(Lang, Text), _, R) :- !,
+	( atom_codes(LangAtm, Lang),
+	  \+ LangAtm = 'text',
+	  setting_value(syntax_highlight, yes) ->
+	    highlight_to_html_string(LangAtm, Text, Raw),
+	    R = raw(Raw)
+	; R = htmlenv(pre, raw_string(Text))
+	).
 rw_command(mathenv(S),           _, R) :- !,
 	% environment using MathJax (in-line formula)
 	R = htmlenv(script, [type="math/tex"], raw(S)).
@@ -385,13 +397,14 @@ fmt_section_env(SecProps, SectLabel, TitleR, BodyR, DocSt, ModR) :-
 	; PreSect = []
 	),
 	%
+	get_css_list(CssList1),
 	( setting_value(html_layout, Layout0),
 	  Layout0 = 'website_layout' ->
 	    SidebarR2 = [PreSect, show_toc(vertical_menu)],
 	    Layout = nav_searchbox_menu_main,
 	    % TODO: Hardwired, fix
 	    MaybeIcon = yes('ciao-icon16.ico'),
-	    CssList = ['lpdoc.css', 'css/website.css'],
+	    CssList2 = ['css/website.css'],
 	    %
             SectR = [htmlenv(h1, TitleR), raw_nl, BodyR]
 	; Layout = nav_sidebar_main,
@@ -404,18 +417,24 @@ fmt_section_env(SecProps, SectLabel, TitleR, BodyR, DocSt, ModR) :-
 	  SidebarR1 = show_toc(toc_view(yes)),
 	  doctree_simplify([LogoR, SidebarR1], SidebarR2),
 	  MaybeIcon = no,
-	  CssList = ['lpdoc.css'],
+	  CssList2 = [],
 	  %
 	  ( IsCover = yes ->
 	      fmt_cover(SecProps, TitleR, BodyR, DocSt, SectR)
 	  ; fmt_section(SecProps, SectLabel, TitleR, BodyR, DocSt, SectR)
 	  )
 	),
+	append(CssList1, CssList2, CssList),
 	%
 	fmt_layout(Layout, SectPathR, UpPrevNextR, SidebarR2, SectR, DocSt, R),
 	fmt_headers(MaybeIcon, CssList, TitleR2, R, ModR).
 fmt_section_env(SecProps, SectLabel, TitleR, BodyR, DocSt, R) :-
 	fmt_section(SecProps, SectLabel, TitleR, BodyR, DocSt, R).
+
+:- use_module(lpdoc(autodoc_html_assets), [css_file/1]).
+
+get_css_list(CssList) :-
+	findall(Base, (css_file(F), path_basename(F, Base)), CssList).
 
 % Format a module as a cover
 fmt_cover(SecProps, TitleR, BodyR, DocSt, SectR) :-

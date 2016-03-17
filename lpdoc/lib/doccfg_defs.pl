@@ -1,4 +1,4 @@
-% :- doc(title, "Base Configuration Definitions for LPdoc").
+% \title Base Configuration Definitions for LPdoc
 % 
 % :- doc(module, "This file provides the base configuration definitions
 %    and documentation for a @apl{lpdoc} settings file.").
@@ -9,7 +9,7 @@
 % ----------------------------------------------------------------------------
 % Paths 
 
-:- pred filepath/1 => dirpath 
+:- pred filepath(Path) => dirpath 
 # "Defines the directories where the @tt{.pl} files to be documented
    can be found.  You also need to specify all the paths containing
    files which are used by the files being documented. For example,
@@ -17,7 +17,6 @@
    figures.".
 
 :- pred output_name(Base) => sourcename
-
 # "Defines the base file name used to be part of the output name of
    the generated files. By default it is equal to the root file of the
    document structure @pred{doc_structure/1}.
@@ -30,13 +29,13 @@
 % The document structure
 
 :- pred doc_structure(Term)
-   # "Defines the document structure as a tree. The tree is defined as
-      a root node with optional childs. Nodes can be atoms or pairs
-      (@tt{N-Cs}), where @tt{Cs} is a list of nodes. The root of the
-      tree is the main file of the manual, i.e., the file which
-      determines the manual's cover page, and first chapter. The child
-      files are used as components, i.e., which will constitute the
-      subsequent chapters of the manual.".
+# "Defines the document structure as a tree. The tree is defined as
+   a root node with optional childs. Nodes can be atoms or pairs
+   (@tt{N-Cs}), where @tt{Cs} is a list of nodes. The root of the
+   tree is the main file of the manual, i.e., the file which
+   determines the manual's cover page, and first chapter. The child
+   files are used as components, i.e., which will constitute the
+   subsequent chapters of the manual.".
 
 % ----------------------------------------------------------------------------
 % Processing options for the different files
@@ -104,6 +103,9 @@
 :- pred allow_markdown/1 => yesno
 # "Allow LPdoc-flavored markdown in docstrings".
 
+:- pred syntax_highlight/1 => yesno
+# "Syntax highlight code blocks (only for HTML backend)".
+
 % ---------------------------------------------------------------------------
 % Installation options
 % (You only need to change these if you will be installing the docs somewhere)
@@ -111,23 +113,23 @@
 % Where manuals will be installed
 
 :- pred htmldir/1 => dirpath 
-   # "Directory where the @tt{html} manual will be generated.".
+# "Directory where the @tt{html} manual will be generated.".
 
 :- pred docdir/1 => dirpath
-   # "Directory in which you want the document(s) installed.".
+# "Directory in which you want the document(s) installed.".
 
 :- pred infodir/1 => dirpath
-   # "Directory in which you want the @tt{info} file installed.".
+# "Directory in which you want the @tt{info} file installed.".
 
 :- pred mandir/1 => dirpath 
-   # "Directory in which the @tt{man} file will be installed.".
+# "Directory in which the @tt{man} file will be installed.".
 
 % Permissions
 
 :- pred datamode(DataPermissions) => permission_term
-   # "Define this to be the mode for automatically generated data
-      files.".
+# "Define this to be the mode for automatically generated data
+   files.".
 
 :- pred execmode(ExecPermissions) => permission_term
-   # "Define this to be the mode for automatically generated
-      directories and executable files.".
+# "Define this to be the mode for automatically generated
+   directories and executable files.".

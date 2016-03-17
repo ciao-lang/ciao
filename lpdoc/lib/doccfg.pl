@@ -68,6 +68,10 @@
     allow_markdown(no)
 ]).
 
+:- default_def(syntax_highlight/1, [
+    syntax_highlight(no)
+]).
+
 :- default_def(docformat/1, [
     docformat(texi),
     docformat(ps),

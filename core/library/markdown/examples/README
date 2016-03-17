@@ -12,6 +12,9 @@ Test with this:
   $ lpdoc -v -d filepath=`pwd` -d allow_markdown=yes -d doc_mainopts=no_versioned_output -c markdown_simple.pdf
   $ lpdoc -v -d filepath=`pwd` -d allow_markdown=no -d doc_mainopts=no_versioned_output -c markup_simple.pdf
 
+Add "-d syntax_highlight=yes" to generate HTML output with syntax
+highlight.
+
 The output of both markup and markdown versions should be similar (not
 equivalent at this moment since the markdown versions contains notes).
 

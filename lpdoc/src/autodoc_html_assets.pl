@@ -7,20 +7,58 @@
    images, CSS files, JavaScript code, etc.) to be used in the output
    of the HTML backend.").
 
+:- use_module(library(pathnames), [path_basename/2]).
 :- use_module(library(messages), [note_message/1, error_message/2]).
 :- use_module(library(system), [file_exists/1, copy_file/3]).
 
-:- use_module(lpdoc(autodoc)).
 :- use_module(lpdoc(autodoc_settings)).
 :- use_module(lpdoc(autodoc_filesystem)).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Custom skeletons for HTML backend").
+:- doc(section, "CSS files").
+
+:- use_module(library(bundle/paths_extra), [fsR/2]).
+
+:- export(prepare_auxfiles_html/2).
+prepare_auxfiles_html(Backend, Opts) :-
+	( setting_value(website_skeleton, SkelDir) ->
+	    prepare_web_skel(SkelDir)
+	; true
+	),
+	( member(no_math, Opts) ->
+	    true
+	; prepare_mathjax
+	),
+	% Copy CSS files
+	( % (failure-driven loop)
+	  css_file(CSSPath),
+	    path_basename(CSSPath, CSSBase),
+	    absfile_for_aux(CSSBase, Backend, OutCSS),
+	    copy_file(CSSPath, OutCSS, [overwrite]),
+	    fail
+	; true
+	).
+
+
+:- export(css_file/1).
+% Enumerate CSS files (absolute path) for the current settings
+css_file(Path) :-
+	F = 'lpdoc.css',
+	setting_value(lpdoclib, Dir),
+	path_concat(Dir, F, Path).
+css_file(Path) :-
+	setting_value(syntax_highlight, yes),
+	F = 'ciao-htmlfontify.css',
+	fsR(bundle_src(core)/library/syntax_highlight/css, Dir),
+	path_concat(Dir, F, Path).
+
+% ---------------------------------------------------------------------------
+:- doc(section, "Custom skeletons").
 % (images, css, etc.)
 
 :- use_module(library(source_tree), [copy_file_tree/5]).
 
-:- export(prepare_web_skel/1).
+%:- export(prepare_web_skel/1).
 :- pred prepare_web_skel(+SrcDir)
    # "Copy contents (recursively) of @var{SrcDir} into @tt{htmldir}.".
 % TODO: Avoid copy if not necessary
@@ -46,7 +84,7 @@ prepare_web_skel(SrcDir) :-
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(system), [get_home/1]).
 
-:- export(prepare_mathjax/0).
+%:- export(prepare_mathjax/0).
 prepare_mathjax :-
 	detect_mathjax,
 	maybe_symlink_mathjax.
@@ -99,4 +137,3 @@ find_mathjax(JS) :-
 	!,
         JS = JS0.
 
-% ---------------------------------------------------------------------------

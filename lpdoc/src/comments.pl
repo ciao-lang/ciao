@@ -1205,6 +1205,7 @@ stringcommand(include(B)        ) :- string(B).
 stringcommand(includeverbatim(B)) :- string(B).
 stringcommand(includefact(B)    ) :- string(B).
 stringcommand(includedef(B)     ) :- string(B).
+stringcommand(codeblock(A,B)    ) :- string(A), string(B). % TODO: internal for markdown
 
 % (see autodoc_doctree.pl)
 stringcommand(bibitem(A,B)      ) :- string(A), string(B).

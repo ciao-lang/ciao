@@ -149,30 +149,15 @@ ensure_output_dir_prepared(Backend, Opts) :-
 	%
 	prepare_auxfiles(Backend, Opts).
 
+% TODO: Add multifile for prepare_auxfiles?
+:- use_module(lpdoc(autodoc_html_assets), [prepare_auxfiles_html/2]).
+
 % Copy the auxiliary files required for this output. This is specific
 % to each backend (e.g. CSS, web-site skeleton, images, etc.)
 %
 prepare_auxfiles(Backend, Opts) :- Backend = html, !,
-	( setting_value(website_skeleton, SkelDir) ->
-	    prepare_web_skel(SkelDir)
-	; true
-	),
-	( member(no_math, Opts) ->
-	    true
-	; prepare_mathjax
-	),
-	% Add CSS files
-	CSS = 'lpdoc.css',
-	setting_value(lpdoclib, LpdocLib),
-	path_concat(LpdocLib, CSS, HtmlStyle),
-	absfile_for_aux(CSS, Backend, OutCSS),
-	copy_file(HtmlStyle, OutCSS, [overwrite]).
+	prepare_auxfiles_html(Backend, Opts).
 prepare_auxfiles(_, _) :- !.
-
-:- use_module(library(system), [copy_file/3]).
-
-:- use_module(lpdoc(autodoc_html_assets),
-	[prepare_web_skel/1, prepare_mathjax/0]).
 
 % ===========================================================================
 
@@ -522,6 +507,7 @@ fmt_module(DocSt, _Version, GlobalVers, ModuleR) :-
 	docst_modtype(DocSt, ModuleType),
 	( ModuleType = application ->
 	    % TODO: Should 'S' be 'I' here?
+	    % TODO: Move this to a package instead?
 	    ( clause_read(_, usage_message(_), true, _, S, LB, LE) ->
 	        UsageString = "@begin{verbatim}@includefact{usage_message/1}@end{verbatim}",
 		parse_docstring_loc(DocSt, loc(S, LB, LE), UsageString, UsageR)

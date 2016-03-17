@@ -289,6 +289,7 @@ command_body(Struct) -->
 	     ; Command = 'bibitem'
 	     ; Command = 'pbundle_download'
 	     ; Command = 'pbundle_href'
+	     ; Command = 'codeblock'
 	     )},
 %%	    command_args(BodyList)
 	    command_balanced_args(BodyList)
@@ -400,6 +401,8 @@ predname_g(FunctorS, ArityS) -->
 %	"/",
 %	all_chars(ArityS).
 
+% Parse text with balanced brances (assumes "{" has been read)
+% Braces can be escaped with cmdchar/1
 balanced_braces(1, []) -->
 	"}",
 	!.
@@ -457,7 +460,8 @@ parse_cmd_args([T|Ts], [X|Xs], DocSt, [Y|Ys]) :-
 	),
 	parse_cmd_args(Ts, Xs, DocSt, Ys).
 
-% Handle commands that include more text to be parsed
+% First handle commands that include more text to be parsed. Otherwise
+% leave code command unchanged.
 handle_incl_command(include(FileS), DocSt, Verb, RContent) :- !,
 	atom_codes(RelFile, FileS),
 	handle_incl_file(include, RelFile, DocSt, Verb, RContent).

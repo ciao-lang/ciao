@@ -63,6 +63,7 @@ cmd_type(include(s)) :- !.
 cmd_type(includeverbatim(s)) :- !.
 cmd_type(includefact(p)) :- !.
 cmd_type(includedef(p)) :- !.
+cmd_type(codeblock(s,s)) :- !. % TODO: internal for markdown
 cmd_type(cite(s)) :- !.
 % the following are translated during parsing to idx_env
 cmd_type(index(d)) :- !.
@@ -781,6 +782,14 @@ rewrite_command(X0, DocSt, X2) :-
 rewrite_command_(L, _DocSt, L) :- ( var(L) ; primitive_icmd(L) ), !.
 rewrite_command_(A, DocSt, B) :- ( A = [] ; A = [_|_] ), !,
 	rewrite_commands(A, DocSt, B).
+% Rewrite a codeblock if not supported by the backend
+rewrite_command_(codeblock(_Lang,Content), DocSt, R) :-
+	docst_backend(DocSt, Backend),
+	\+ Backend = html,
+	!,
+	% TODO: here type is not 'normal' but 'verb' (<- sure?)
+	escape_string(normal, Content, DocSt, NContent),
+	rewrite_command_(env_('verbatim', [raw_string(NContent)]), DocSt, R).
 % TODO: Hack to fix unwanted blanks after "@begin{verbatim}", solve it in a better way
 rewrite_command_(env_('verbatim', Body0), DocSt, R) :-
 	remove_first_nl(Body0, Body),

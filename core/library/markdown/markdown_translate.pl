@@ -30,7 +30,6 @@
 :- doc(bug, "Make assertion parsing optional? (or separate from this parser)").
 :- doc(bug, "Forbid tabs (do other markdown it?) and show an error
    when tabs are found. All indentation should be done with spaces.").
-:- doc(bug, "Escape code properly in code blocks; change LPdoc verbatim?").
 :- doc(bug, "Warn about negative indentation? E.g., in
     %! Foo
     % bar <- wrong

@@ -57,6 +57,8 @@ cmd_type(item_num(_), docstring). % (internal)
 cmd_type(docpred(_, _), docstring). % (internal)
 cmd_type(href, string).
 cmd_type(href(_), docstring).
+cmd_type(codeblock, string).
+cmd_type(codeblock(_), string).
 cmd_type(link, docstring). % (not in PLdoc)
 cmd_type(link(_), string). % (not in PLdoc)
 cmd_type(code, multiline). % (not in PLdoc)

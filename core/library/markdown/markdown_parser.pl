@@ -34,7 +34,7 @@
 %
 %         It'd require support for '$varstr' in the assertion library / lpdoc.
 %
-%  @bug Make sure that verbatim blocks work fine in lists items
+%  @bug Make sure that verbatim/codeblocks work fine in lists items
 %
 %  @bug Treat language in ```lang ... ``` blocks
 
@@ -300,6 +300,7 @@ parse_text_(Layout, StrHead, StrTail, Envs) -->
 	parse_text(Layout, Envs0).
 parse_text_(Layout, StrHead, StrTail, Envs) -->
 	% Markup verbatim
+	% TODO: better support for codeblock in markup? (not markdown) note that verbatim still allows commands inside!
 	sc_char(C), { cmdchar(C) },
 	sc_str("begin{verbatim}"),
 	!,
@@ -308,7 +309,7 @@ parse_text_(Layout, StrHead, StrTail, Envs) -->
 	skip_blanks(_),
 	sc_char(C),
 	sc_str("end{verbatim}"),
-	{ Envs1 = [env('verbatim', [env('text', CodeBlock)])|Envs0] },
+	{ Envs1 = [env(codeblock("text"), CodeBlock)|Envs0] },
 	parse_text(Layout, Envs0).
 parse_text_(Layout, StrHead, StrTail, Envs) -->
 	% Some binary text decorator (e.g., [[...][...]])
@@ -409,21 +410,20 @@ parse_front1(Layout, EmptyAbove, Envs) -->
 	!,
 	{ CodeBaseCol = Col },
 	parse_indented_block(CodeBaseCol, CodeBlock),
-	{ Envs = [env('verbatim', [env('text', CodeBlock)])|Envs0] },
+	{ Envs = [env(codeblock("text"), CodeBlock)|Envs0] },
 	%
 	parse_front2(Layout, Envs0).
 parse_front1(Layout, _EmptyAbove, Envs) -->
 	% (backtick-based code block)
 	sc_str("```"),
 	skip_blanks_nonl,
-	match_cmdname(LangStr), % ('' if none)
+	match_cmdname(LangStr0), % ('' if none)
 	skip_blanks_nonl,
 	sc_nl,
 	!,
-	{ atom_codes(Lang, LangStr) },
-	{ Lang = '' -> true ; display('WARNING: lang in code block not supported yet'), nl },
+	{ LangStr0 = "" -> LangStr = "text" ; LangStr = LangStr0 },
 	parse_backtick_block(CodeBlock),
-	{ Envs = [env('verbatim', [env('text', CodeBlock)])|Envs0] },
+	{ Envs = [env(codeblock(LangStr), CodeBlock)|Envs0] },
 	%
 	parse_front2(Layout, Envs0).
 parse_front1(Layout0, EmptyAbove, Envs) -->
