@@ -15,10 +15,29 @@
 % TODO: Adds dependency to 'ide' bundle
 % TODO: We really need support for assets for generation of static binaries
 	
+% ---------------------------------------------------------------------------
+
+:- export(lang/1).
+:- regtype lang(L) # "`L` is a language for syntax highlight".
+
+lang('ciao').
+lang('c++').
+lang('c').
+lang('java').
+lang('javascript').
+lang('xml').
+lang('html').
+lang('css').
+lang('sh').
+lang('bash').
+lang('text').
+
+% ---------------------------------------------------------------------------
+
 :- export(highlight_to_html/3).
-:- pred highlight_to_html(Lang, Input, Output) # "Produce HTML
-   `Output` file with syntax highlight from `Input` file (using emacs
-   and htmlfontify, and `Lang`-mode mode)".
+:- pred highlight_to_html(+Lang, +Input, +Output) :: lang * atm * atm
+   # "Produce HTML `Output` file with syntax highlight from `Input`
+      file (using emacs and htmlfontify, and `Lang`-mode mode)".
 
 highlight_to_html(Lang, Input, Output) :-
 	find_asset(library(syntax_highlight/'emacs-htmlfontify.el'), HfyEl),
@@ -44,24 +63,34 @@ find_asset(F, Path) :-
 	!,
 	Path = Path0.
 find_asset(F, _) :-
-	% Probably we are running it from a statically binary and Ciao
+	% Probably we are running it from a static binary and Ciao
 	% is not installed
 	throw(error(not_found(F), highlight_to_html/2)).
 
-:- export(lang/1).
-:- regtype lang(L) # "`L` is a language for syntax highlight".
+% ---------------------------------------------------------------------------
 
-lang('ciao').
-lang('c++').
-lang('c').
-lang('java').
-lang('javascript').
-lang('xml').
-lang('html').
-lang('css').
-lang('sh').
-lang('bash').
-lang('text').
+:- use_module(library(system), [mktemp_in_tmp/2]).
+:- use_module(library(system_extra), [del_file_nofail/1]).
+:- use_module(library(port_reify), [once_port_reify/2, port_call/1]).
+:- use_module(library(file_utils), [string_to_file/2, file_to_string/2]).
+
+:- export(highlight_to_html_string/3).
+:- pred highlight_to_html(+Lang, +Input, +Output) :: lang * string * string
+   # "Produce HTML `Output` string with syntax highlight from `Input`
+      string (see @pred{highlight_to_html/3})".
+
+% TODO: uses files! it can be quite slow
+
+highlight_to_html_string(Lang, Input, Output) :-
+	mktemp_in_tmp('highlight-in-XXXXXX', InF),
+	mktemp_in_tmp('highlight-out-XXXXXX', OutF),
+	string_to_file(Input, InF),
+	once_port_reify(highlight_to_html(Lang, InF, OutF), Port),
+	file_to_string(OutF, Output0),
+	del_file_nofail(InF),
+	del_file_nofail(OutF),
+	port_call(Port),
+	Output = Output0.
 
 % ---------------------------------------------------------------------------
 
