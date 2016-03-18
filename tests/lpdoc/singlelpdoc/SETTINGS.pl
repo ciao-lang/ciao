@@ -3,8 +3,6 @@
 % TODO: lpdoc all is not working for this file. The .lpdoc file is
 %       ignored unless lpdoc singlelpdoc.texic is put as target.
 
-filepath := ~fsR(bundle_src(ciao)/tests/lpdoc/singlelpdoc).
-
 doc_structure := 'singlelpdoc'.
 
 doc_mainopts := no_patches.

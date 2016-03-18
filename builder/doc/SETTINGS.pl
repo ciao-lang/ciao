@@ -5,9 +5,8 @@
 output_name := 'ciao_builder'.
 
 % TODO: use parent_bundle to share those defs
-filepath := ~fsR(bundle_src(builder)/'doc').
-filepath := ~fsR(bundle_src(builder)/'src').
-filepath := ~fsR(bundle_src(builder)/'cmds').
+filepath := '../src'.
+filepath := '../cmds'.
 filepath := ~ciaofilepath_common.
 
 doc_structure := 

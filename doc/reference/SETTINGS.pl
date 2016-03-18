@@ -6,24 +6,21 @@
 
 output_name := 'ciao'.
 
-% TODO: use parent_bundle to share those defs
-filepath := ~fsR(bundle_src(ciao)/doc/reference).
-%
-filepath := ~fsR(bundle_src(core)/shell).
-filepath := ~fsR(bundle_src(core)/ciaoc).
-filepath := ~fsR(bundle_src(core)/engine).
-filepath := ~fsR(bundle_src(core)/cmds).
-filepath := ~fsR(bundle_src(core)/library/pillow/dist/doc).
+filepath := bundle_src(core)/shell.
+filepath := bundle_src(core)/ciaoc.
+filepath := bundle_src(core)/engine.
+filepath := bundle_src(core)/cmds.
+filepath := bundle_src(core)/library/pillow/dist/doc.
 filepath := ~ciaofilepath_common.
 %
-filepath := ~fsR(bundle_src(ide)/'emacs-mode').
+filepath := bundle_src(ide)/'emacs-mode'.
 % TODO: needed in CiaoMode.lpdoc because of @include{README_CIAOPP.lpdoc}
-filepath := ~fsR(bundle_src(ciaopp)/doc/readmes). % TODO: should not be here
+filepath := bundle_src(ciaopp)/doc/readmes. % TODO: should not be here
 % TODO: move to a separate manual?
-filepath := ~fsR(bundle_src(contrib)/cmds).
-filepath := ~fsR(bundle_src(contrib)/library).
+filepath := bundle_src(contrib)/cmds.
+filepath := bundle_src(contrib)/library.
 % TODO: move to a separate manual?
-filepath := ~fsR(bundle_src(ociao)/lib).
+filepath := bundle_src(ociao)/lib.
 
 doc_structure := 
         ciao-[
