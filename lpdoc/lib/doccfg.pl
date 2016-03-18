@@ -23,6 +23,8 @@
 
 % ----------------------------------------------------------------------------
 
+:- default_def(filepath/1, [(filepath(_) :- fail)]).
+
 :- default_def(datamode/1, [(datamode(_) :- fail)]).
 :- default_def(execmode/1, [(execmode(_) :- fail)]).
 :- default_def(bibfile/1, [(bibfile(_) :- fail)]).

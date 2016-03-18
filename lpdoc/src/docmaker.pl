@@ -48,16 +48,17 @@
 doc_cmd(ConfigFile, Opts, Cmd, OutputDir) :-
 	% Setup configuration
 	load_settings(ConfigFile, Opts),
-	% Call and cleanup
-	working_directory(WD, WD),
 	( var(OutputDir) ->
-	    OutputDir = ~path_dirname(~settings_file)
+	    OutputDir = ~path_dirname(ConfigFile)
 	; true
 	),
+	% Call and cleanup
+	working_directory(WD, WD),
 	cd(OutputDir),
 	once_port_reify(doc_cmd_(Cmd), Port),
 	cd(WD), % move to original directory
-	% TODO: cleanup all databases here too
+	clean_tmp_db,
+	clean_autodoc_opts,
 	port_call(Port).
 
 doc_cmd_(start(Targets)) :-
@@ -72,11 +73,15 @@ doc_cmd_(clean(Mode)) :-
 
 setup_doc_settings :-
 	verify_settings,
-	clean_fs_db,
-	clean_image_cache,
-	reset_output_dir_db,
+	clean_tmp_db,
 	load_vpaths,
 	parse_structure.
+
+% TODO: Is this complete?
+clean_tmp_db :-
+	clean_fs_db,
+	clean_image_cache,
+	reset_output_dir_db.
 
 % standalone target bases (does not depend on a settings file)
 :- data no_settings_file/0.
@@ -251,14 +256,7 @@ query_source(Spec, _S) := _Path :-
 add_settings_dep(SpecF) := ['SOURCE'(SpecF)|Fs] :-
 	( no_settings_file ->
 	    Fs = []
-	; Fs = ['SOURCE'(~settings_absfile)]
-	).
-
-settings_absfile(F) :-
-	F0 = ~fixed_absolute_file_name(~settings_file),
-	( atom_concat(_, '.pl', F0) ->
-	    F = F0
-	; atom_concat(F0, '.pl', F)
+	; Fs = ['SOURCE'(~settings_file)]
 	).
 
 % ---------------------------------------------------------------------------

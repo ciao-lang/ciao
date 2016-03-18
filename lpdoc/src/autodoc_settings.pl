@@ -11,10 +11,37 @@
 
 % ---------------------------------------------------------------------------
 
+:- export(autodoc_option/1).
+:- data autodoc_option/1.
+%
+:- export(settings_file/1).
+% settings_file(F): F is the absolute file name with settings
+:- data settings_file/1.
+%
+:- data name_value/2.
+
+set_settings_file(ConfigFile) :-
+	assertz_fact(settings_file(ConfigFile)).
+
+:- export(clean_autodoc_opts/0).
+clean_autodoc_opts :-
+	retractall_fact(settings_file(_)),
+	retractall_fact(autodoc_option(_)),
+	retractall_fact(name_value(_, _)).
+
+set_opts([]).
+set_opts([X|Xs]) :- set_opt(X), set_opts(Xs).
+
+set_opt(autodoc_option(Opt)) :- !,
+	assertz_fact(autodoc_option(Opt)).
+set_opt(name_value(Name, Value)) :- !,
+	assertz_fact(name_value(Name, Value)).
+set_opt(X) :- throw(error(unknown_opt(X), set_opt/1)).
+
+% ---------------------------------------------------------------------------
+
 :- use_module(lpdoc(doccfg_holder)).
 :- use_module(library(lists), [append/3]).
-
-:- data name_value/2.
 
 add_name_value(Name, Value) :-
 	data_facts:assertz_fact(name_value(Name, Value)).
@@ -68,22 +95,15 @@ get_pred_value(Name, Value) :-
 % ---------------------------------------------------------------------------
 :- doc(section, "Loading Setting").
 
-:- export(settings_file/1).
-:- data settings_file/1.
-
-set_settings_file(ConfigFile) :-
-	retractall_fact(settings_file(_)),
-	assertz_fact(settings_file(ConfigFile)).
-
 % TODO: no unload?
 :- export(load_settings/2).
 :- pred load_settings(ConfigFile, Opts) # "Load configuration from
    @var{ConfigFile} and @var{Opts}".
 
 load_settings(ConfigFile, Opts) :-
-	clean_make_opts,
+	clean_autodoc_opts,
 	load_settings_(ConfigFile),
-	set_make_opts(Opts),
+	set_opts(Opts),
 	ensure_lpdoclib_defined.
 
 load_settings_(ConfigFile) :-
@@ -134,24 +154,6 @@ ensure_lpdoclib_defined :-
 %:- multifile file_search_path/2.
 
 :- use_module(library(system), [file_exists/1]).
-
-:- export(autodoc_option/1).
-:- data autodoc_option/1.
-
-% ---------------------------------------------------------------------------
-
-clean_make_opts :-
-	retractall_fact(autodoc_option(_)),
-	retractall_fact(name_value(_, _)).
-
-set_make_opts([]).
-set_make_opts([X|Xs]) :- set_make_opt(X), set_make_opts(Xs).
-
-set_make_opt(autodoc_option(Opt)) :- !,
-	assertz_fact(autodoc_option(Opt)).
-set_make_opt(name_value(Name, Value)) :- !,
-	assertz_fact(name_value(Name, Value)).
-set_make_opt(X) :- throw(error(unknown_opt(X), set_make_opt/1)).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Checking or Setting Options").
@@ -217,30 +219,42 @@ requested_file_formats := F :-
 % ---------------------------------------------------------------------------
 :- doc(section, "Paths to files").
 
+% TODO: Reuse the logic to locate modules by the compiler?
+
+:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(pathnames), 
+	[path_dirname/2, path_is_absolute/1, path_norm/2, path_concat/3]).
 :- use_module(lpdoc(autodoc_filesystem), [cleanup_vpath/0, add_vpath/1]).
 
 :- export(load_vpaths/0).
 load_vpaths :-
 	cleanup_vpath,
-	get_lib_opts(Libs, SysLibs),
+	( settings_file(ConfigFile) ->
+	    path_dirname(ConfigFile, InDir) % Find in the same dir as settings_file (if specified)
+	; working_directory(InDir, InDir) % TODO: WRONG! Use standalone input
+	),
 	( % (failure-driven loop)
-	  ( P = '.' % find in the current dir
-	  ; member(P, Libs)
-	  ; member(P, SysLibs)
+	  ( P = InDir
+	  ; resolved_filepath(InDir, P)
+	  ; file_search_path(_Alias, P), % TODO: prioritize alias paths for the current bundle?
+	    \+ P = '.'
 	  ),
 	    add_vpath(P),
 	    fail
 	; true
 	).
 
-:- export(get_lib_opts/2).
-get_lib_opts(Libs, SysLibs) :-
-	Libs = ~all_setting_values(filepath),
-%	SysLibs = ~all_setting_values(systempath),
-	SysLibs = ~findall(P, (file_search_path(_Alias, P), \+ P = '.')).
-
 :- multifile file_search_path/2.
 :- dynamic file_search_path/2.
+
+% Obtain a resolved filepath (use fsR/2 and make it relative to InDir if needed)
+resolved_filepath(InDir, P) :-
+	member(P0, ~all_setting_values(filepath)),
+	fsR(P0, P1),
+	( path_is_absolute(P1) -> P = P1
+	; path_concat(InDir, P1, P2),
+	  path_norm(P2, P)
+	).
 
 % TODO: prioritize alias paths for the current bundle?
 % :- use_module(lpdoc(autodoc_filesystem), [get_parent_bundle/1]).
@@ -264,13 +278,6 @@ generic_viewer('open') :- get_os('DARWIN'), !.
 generic_viewer('cygstart') :- get_os('Win32'), !.
 %viewer('start') :- get_os('Win32'), !.
 generic_viewer('xdg-open') :- get_os('LINUX'), !.
-
-% TODO: This seems to be done by the emacs mode...
-% lpsettings <- [] # "Generates default LPSETTINGS.pl in the current directory"
-% 	:-
-% 	working_directory(CWD0, CWD0),
-%       path_concat(CWD0, '', CWD),
-% 	generate_default_lpsettings_file(CWD, '').
 
 %% The command that views dvi files in your system
 :- export(xdvi/1).

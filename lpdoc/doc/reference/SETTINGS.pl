@@ -5,12 +5,10 @@
 :- doc(author, "Edison Mera").
 :- doc(author, "Jose F. Morales").
 
-filepath := ~fsR(bundle_src(lpdoc)/doc/readmes).
-filepath := ~fsR(bundle_src(lpdoc)/doc/reference).
-filepath := ~fsR(bundle_src(lpdoc)/src).
-filepath := ~fsR(bundle_src(lpdoc)/examples).
-%
-filepath := ~fsR(bundle_src(ciao)/doc/common).
+filepath := '../readmes'.
+filepath := '../../src'.
+filepath := '../../examples'.
+filepath := bundle_src(ciao)/doc/common.
 
 output_name := 'lpdoc'.
 

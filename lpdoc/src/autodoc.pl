@@ -170,14 +170,12 @@ prepare_auxfiles(_, _) :- !.
 get_autodoc_opts(_Backend, Mod, Opts) :-
 	StartPage = ~setting_value_or_default(startpage),
 	PaperType = ~setting_value_or_default(papertype),
-	get_lib_opts(Libs, _SysLibs),
 	Indices = ~all_setting_values(index),
 	%
 	( Mod = ~get_mainmod ->
 	    Opts0 = ~all_setting_values(doc_mainopts),
 	    % TODO: Should this be here?
 	    % Complain about not defined values (only when documenting mainmod)
-	    warn_if_empty(Libs, "no filepath variable was found"),
 	    warn_if_empty(Indices, "no index variable was found")
 	; Opts0 = ~all_setting_values(doc_compopts)
 	),
