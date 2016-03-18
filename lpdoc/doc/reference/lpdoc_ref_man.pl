@@ -188,15 +188,15 @@ cooperation with lpmake
                @@begin@{displaymath@}...@@end@{displaymath@}
                enviroments are supported (see the documentation for
                more details) (Jose Morales)
-         @item In documentation strings, single @tt{\\} must be
-               escaped (e.g. '@@math@{\\\\lambda@}') (Jose Morales)
+         @item In documentation strings, single @tt{\\\\} must be
+               escaped (e.g. '@@math@{\\\\\\\\lambda@}') (Jose Morales)
          @item Supported in both the texinfo and HTML (using MathJax)
                backends. (Jose Morales)
          @item Added @tt{@@defmathcmd@{Cmd@}@{N@}@{Def@}} and
                @tt{@@defmathcmd@{Cmd@}@{Def@}}, both for texinfo and
                HTML backends. Those LPdoc commands define new
                mathematical environments (equivalent to
-               @tt{\\newcommand}). (Jose Morales)
+               @tt{\\\\newcommand}). (Jose Morales)
          @end{itemize}
    @end{itemize}
 
@@ -790,7 +790,7 @@ cooperation with lpmake
    Now supporting a @@cite command (YES!). It automatically accesses
    the bib entries in @tt{.bib} files (using @apl{bibtex}) and
    produces a 'References' appendix. @@cite can be used in the text
-   strings exactly as \cite in LaTeX. The set of bib files to be used
+   strings exactly as \\\\cite in LaTeX. The set of bib files to be used
    is given in the @tt{SETTINGS} file.
 
    Defining the type of version maintenance that should be performed

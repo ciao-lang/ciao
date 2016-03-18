@@ -65,7 +65,7 @@ or install operation:
 @begin{verbatim}
     ('undo' reverts the effect of each marked 'action') 
                   ,--------+-----------+-----------.
-   actions \\ undo | clean  | distclean | realclean |
+   actions \\\\ undo | clean  | distclean | realclean |
  .----------------+--------+-----------+-----------+
  | boot-build     |        |           |    x      |
  +----------------+--------+-----------+-----------+
