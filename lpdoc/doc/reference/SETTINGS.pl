@@ -88,5 +88,5 @@ papertype := afourpaper.
 
 libtexinfo := 'yes'.
 
-docformat := texi|ps|pdf|manl|info|html.
+docformat := pdf|manl|info|html.
 

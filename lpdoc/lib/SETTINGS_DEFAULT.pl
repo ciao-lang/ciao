@@ -22,7 +22,7 @@ commonopts := no_patches. % no_bugs|no_patches
 doc_mainopts := ~commonopts.
 doc_compopts := ~commonopts.
 
-docformat := texi|ps|pdf|manl|info|html.
+docformat := pdf|manl|info|html.
 
 index := concept.
 index := pred.

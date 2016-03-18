@@ -73,8 +73,6 @@
 ]).
 
 :- default_def(docformat/1, [
-    docformat(texi),
-    docformat(ps),
     docformat(pdf),
     docformat(manl),
     docformat(info),
