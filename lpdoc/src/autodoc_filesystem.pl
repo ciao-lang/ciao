@@ -469,23 +469,25 @@ clean_other_intermediate :-
 	PatternD = '*.cachedoc', % (see get_cache_dir0/2)
 	-remove_glob('.', PatternD).
 
-% TODO: Do not delete many of those files (at least *.err and *.log are hidden inside .cachedoc)
-other_pattern('*~').
+% TODO: clean using ciao?
 other_pattern('*.itf').
 other_pattern('*.po').
 other_pattern('*.asr').
 other_pattern('*.testout').
+%
 other_pattern('*.infoindex').
-other_pattern('*.err').
-other_pattern('*.tmp').
-other_pattern('*.log').
-other_pattern('*.aux').
-other_pattern('*.blg').
-other_pattern('*.bbl').
-other_pattern('*_autofig.jpg').
-other_pattern('*_autofig.png').
-other_pattern('*_autofig.eps').
-other_pattern('*.htmlmeta').
+%other_pattern('*~'). % (not a product of compilation!)
+%% NOTE: Hidden inside *.cachedoc file, do not delete
+% other_pattern('*.err').
+% other_pattern('*.tmp').
+% other_pattern('*.log').
+% other_pattern('*.htmlmeta').
+% other_pattern('*.aux').
+% other_pattern('*.blg').
+% other_pattern('*.bbl').
+% other_pattern('*_autofig.jpg').
+% other_pattern('*_autofig.png').
+% other_pattern('*_autofig.eps').
 
 :- export(pred_to_glob_pattern/2).
 :- meta_predicate pred_to_glob_pattern(pred(1), ?).

@@ -29,6 +29,7 @@ dependency.").
 :- use_module(lpdoc(autodoc_doctree)).
 :- use_module(lpdoc(autodoc_refsdb)).
 :- use_module(lpdoc(autodoc_settings)).
+:- use_module(lpdoc(autodoc_filesystem), [get_cache_dir0/2]).
 :- use_module(lpdoc(autodoc_aux), [autodoc_process_call/3, cmd_logbase/3]).
 :- use_module(lpdoc(autodoc_aux), [verbose_message/1, verbose_message/2]).
 
@@ -46,13 +47,10 @@ dependency.").
  @var{DocSt}, and used later to map symbolic references to textual
  labels.".
          
-% - Parse the references and extract RefPairs
-%   ((Label,Ref) pairs from bibitem commands, used later to map symbolic
-%   refs to textual labels).
+% - Generate references, parse them, extract RefPairs
 % - Store the results (in the docstate)
 
 resolve_bibliography(DocSt) :-
-	docst_currmod(DocSt, Name),
 	verbose_message("{Resolving bibliographical references", []),	
 	( no_citations(DocSt) ->
 	    % We had no citations, do nothing
@@ -60,26 +58,35 @@ resolve_bibliography(DocSt) :-
 	    RefsR = [],
 	    RefPairs = []
 	; % Building references BiBTeX
-	  % TODO: BblFile, RAuxFile can be removed later
-	  atom_concat([Name, '_tmp'], TmpBase),
-	  atom_concat([TmpBase, '.bbl'], BblFile),
-	  atom_concat([TmpBase, '.aux'], RAuxFile),
-	  %
-	  write_bibtex_citations(DocSt, RAuxFile),
-	  docst_backend(DocSt, Backend),
-	  run_bibtex(Backend, TmpBase, RAuxFile, BblFile),
-	  % Read BblFile and parse it
-	  file_to_string(BblFile, RefsString0),
-	  %
-	  parse_commands(RefsString, RefsString0, []),
-	  parse_docstring_loc(DocSt, _Loc, RefsString, RefsR),
-	  findall((Label,Ref), member(bibitem(Label, Ref), RefsR), RefPairs)
+	  get_resolved_refs(DocSt, RefsR, RefPairs)
 	),
 	% Save results in the docstate
 	% TODO: at this time this is more convenient than asserting data
 	docst_mvar_lookup(DocSt, biblio_doctree, RefsR),
 	docst_mvar_lookup(DocSt, biblio_pairs, RefPairs),
 	verbose_message("}", []).
+
+% Write the references, call bibtex, parse the output, and extract
+% RefPairs ((Label,Ref) pairs from bibitem commands, used later to map
+% symbolic refs to textual labels).
+get_resolved_refs(DocSt, RefsR, RefPairs) :-
+	% TODO: BblFile, RAuxFile could be removed later
+	docst_currmod(DocSt, Name),
+	docst_backend(DocSt, Backend),
+	get_cache_dir0(Backend, CacheDir),
+	path_concat(CacheDir, Name, TmpBase0),
+	atom_concat([TmpBase0, '_tmp'], TmpBase),
+	atom_concat([TmpBase, '.bbl'], BblFile),
+	atom_concat([TmpBase, '.aux'], RAuxFile),
+	%
+	write_bibtex_citations(DocSt, RAuxFile),
+	run_bibtex(Backend, TmpBase, RAuxFile, BblFile),
+	% Read BblFile and parse it
+	file_to_string(BblFile, RefsString0),
+	%
+	parse_commands(RefsString, RefsString0, []),
+	parse_docstring_loc(DocSt, _Loc, RefsString, RefsR),
+	findall((Label,Ref), member(bibitem(Label, Ref), RefsR), RefPairs).
 
 run_bibtex(Backend, TmpBase, _RAuxFile, _BblFile) :-
 	% TODO: RAuxFile can be removed later
