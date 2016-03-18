@@ -22,31 +22,13 @@ commonopts := no_patches. % no_bugs|no_patches
 doc_mainopts := ~commonopts.
 doc_compopts := ~commonopts.
 
-docformat := pdf|manl|info|html.
-
-index := concept.
-index := pred.
-index := prop.
-index := regtype.
-index := modedef.
-index := global.
-
 bibfile := '/home/clip/bibtex/clip/clip'.
 bibfile := '/home/clip/bibtex/clip/others'.
-
-startpage := 1.
-
-papertype := afourpaper.
-
-libtexinfo := 'yes'.
 
 htmldir := '/home/clip/public_html/Local/lpdoc_docs'.
 docdir := '/home/clip/public_html/Local/lpdoc_docs'.
 infodir := '/home/clip/public_html/Local/lpdoc_docs'.
 mandir := '/home/clip/public_html/Local/lpdoc_docs'.
-
-datamode(perms(rw, rw, r)).
-execmode(perms(rwx, rwx, rx)).
 
 % ----------------------------------------------------------------------------
 % End of SETTINGS

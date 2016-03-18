@@ -5,16 +5,6 @@
 :- doc(author, "Edison Mera").
 :- doc(author, "Jose F. Morales").
 
-datamode(_) :- fail.
-execmode(_) :- fail.
-
-% (not customized)
-bibfile(_) :- fail.
-htmldir(_) :- fail.
-docdir(_) :- fail.
-infodir(_) :- fail.
-mandir(_) :- fail.
-
 filepath := ~fsR(bundle_src(lpdoc)/doc/readmes).
 filepath := ~fsR(bundle_src(lpdoc)/doc/reference).
 filepath := ~fsR(bundle_src(lpdoc)/src).
@@ -76,17 +66,4 @@ doc_structure :=
           ]
         ].
 
-commonopts := no_bugs|no_patches.
-doc_mainopts := ~commonopts.
-doc_compopts := ~commonopts.
-
-index := concept|lib|pred|prop|regtype|decl|author|global.
-
-startpage := 1.
-
-papertype := afourpaper.
-
-libtexinfo := 'yes'.
-
-docformat := pdf|manl|info|html.
 
