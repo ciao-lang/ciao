@@ -72,7 +72,7 @@ member(A,[B|C],[B|D]) :-
         regarding the whole term A as a tree. For example,
         @tt{instantiated(f(g(X),h(i(Z),Y)),[2,1])} tests whether 
         @tt{i(Z)} is not a variable. 
-@item @tt{Term1 ?\\= Term2} means ``terms @tt{Term1} and @tt{Term2}
+@item @tt{Term1 ?\\\\= Term2} means ``terms @tt{Term1} and @tt{Term2}
         do not unify (when instantiated)''. @tt{Term1} and @tt{Term2}
         can be either an argument of the predicate or a term 
         @tt{term(V,Path)}, which

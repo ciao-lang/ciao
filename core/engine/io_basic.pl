@@ -106,7 +106,7 @@
 :- impl_defined(put_code/1).
 
 :- doc(nl(Stream), "Outputs a newline character to @var{Stream}.
-   Equivalent to @tt{put_code(Stream, 0'\\n)}.").
+   Equivalent to @tt{put_code(Stream, 0'\\\\n)}.").
 
 :- trust pred nl(+stream) + (iso, native, is_det, not_fails).
 :- impl_defined(nl/1).
@@ -134,7 +134,7 @@
     1 - small letter
     2 - capital letter (including '_')
     3 - digit
-    4 - graphic (includes #$&*+-./:<=>?@@^\\`~ )
+    4 - graphic (includes #$&*+-./:<=>?@@^\\\\`~ )
     5 - punctuation (includes !;""'%(),[]@{|@} )
    @end{verbatim}
    Note that in @concept{ISO-Prolog} the back quote @tt{`} is a punctuation

@@ -327,8 +327,9 @@ rw_command(menu_link(Link,_), _, R) :- !,
 	Link = link_to(_, Label),
 	get_nodename(Label, Label2),
 	R = [raw("* "), raw(Label2), raw("::"), raw_nl].
-rw_command(X, _DocSt, _R) :- !,
-	throw(error(not_in_domain_rw_command(X), rw_command/3)).
+rw_command(X, DocSt, _R) :- !,
+	docst_currmod(DocSt, Name),
+	throw(error(not_in_domain_rw_command(texinfo, Name, X), rw_command/3)).
 
 rw_command_body(footnote(Body), "footnote", Body) :- !.
 % @b is ignored in info (use @strong if you want *this output*)

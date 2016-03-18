@@ -313,8 +313,9 @@ rw_command(assrtprops(DPR, CPR, APR, NGPR), _DocSt, R) :- !,
 %
 rw_command(simple_link(Style, Label, Link, Title), DocSt, R) :- !,
 	fmt_link(Style, Label, Link, DocSt, Title, R).
-rw_command(X, _DocSt, _R) :- !,
-	throw(error(not_in_domain_rw_command(X), rw_command/3)).
+rw_command(X, DocSt, _R) :- !,
+	docst_currmod(DocSt, Name),
+	throw(error(not_in_domain_rw_command(html, Name, X), rw_command/3)).
 
 :- pred fmt_link(Style, IdLabel, Link, DocSt, Text, R) ::
 	atm * doclabel * doclink * docstate * doctree * doctree
