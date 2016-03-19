@@ -1,4 +1,4 @@
-:- module(_, _, [lpdoclib(doccfg)]).
+:- module(_, [], [lpdoclib(doccfg)]).
 
 :- include(ciao_docsrc(common/'LPDOCCOMMON')).
 

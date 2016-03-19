@@ -1,9 +1,9 @@
-:- module(_, _, [lpdoclib(doccfg)]).
+:- module(_, [], [lpdoclib(doccfg)]).
 
-:- doc(title, "Config for LPdoc reference manual").
-:- doc(author, "Manuel Hermenegildo").
-:- doc(author, "Edison Mera").
-:- doc(author, "Jose F. Morales").
+%! \title Config for LPdoc reference manual
+%  \author Manuel Hermenegildo
+%  \author Edison Mera
+%  \author Jose F. Morales
 
 filepath := '../readmes'.
 filepath := '../../src'.

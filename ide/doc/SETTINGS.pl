@@ -1,7 +1,7 @@
-:- module(_, _, [lpdoclib(doccfg)]).
+:- module(_, [], [lpdoclib(doccfg)]).
 
-:- doc(title, "Settings for Ciao IDE manual").
-:- doc(author, "Jose F. Morales").
+%! \title Configuration for Ciao IDE manual
+%  \author Jose F. Morales
 
 doc_structure := 'ide'.
 

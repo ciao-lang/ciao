@@ -1,13 +1,12 @@
-:- module(_, _, [lpdoclib(doccfg)]).
+:- module(_, [], [lpdoclib(doccfg)]).
 
-:- doc(title, "Default configuration file for LPdoc").
-:- doc(author, "The CLIP group").
-
-:- doc(module, "This is a default configuration file for @apl{lpdoc},
-   typically used in the generation of documentation for single
-   modules. The defaults listed are typically suggestions and/or the
-   ones used for local installation in the CLIP group machines.  These
-   settings should be changed to suit your application.").
+%! \title Default configuration file for LPdoc
+%  \author Ciao Development Team
+%
+%  \module This is a default configuration file for \apl{lpdoc},
+%    typically used in the generation of documentation for single
+%    modules. The defaults listed are typically suggestions. These
+%    settings should be changed to suit your application.
 
 :- doc(bug, "Definitions that are overriden by the emacs mode must fit
    in one line. Do not use emacs but LPdoc to generate this file").
