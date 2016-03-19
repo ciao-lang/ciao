@@ -1,10 +1,14 @@
+%(included file)
+%
 % \title Base Configuration Definitions for LPdoc
 % 
-% :- doc(module, "This file provides the base configuration definitions
-%    and documentation for a @apl{lpdoc} settings file.").
+% \module, This file provides the base configuration definitions and
+%   documentation for a \apl{lpdoc} settings file.
 % 
-% :- doc(author, "Manuel Hermenegildo").
-% :- doc(author, "Jose F. Morales").
+% \author Manuel Hermenegildo
+% \author Jose F. Morales
+
+:- use_module(lpdoclib(doccfg_props)).
 
 % ----------------------------------------------------------------------------
 % Paths 
@@ -15,6 +19,8 @@
    files which are used by the files being documented. For example,
    the paths to files included by an @tt{@@include} command or to
    figures.".
+:- export(filepath/1).
+:- default_def(filepath/1, [(filepath(_) :- fail)]).
 
 :- pred output_name(Base) => sourcename
 # "Defines the base file name used to be part of the output name of
@@ -24,6 +30,8 @@
    If the @tt{no_versioned_output} option is not specified in
    @pred{doc_mainopts/1}, the bundle version number is appended to the
    output name".
+:- export(output_name/1).
+:- default_def(output_name/1, [(output_name(_) :- fail)]).
 
 % ----------------------------------------------------------------------------
 % The document structure
@@ -36,6 +44,8 @@
    determines the manual's cover page, and first chapter. The child
    files are used as components, i.e., which will constitute the
    subsequent chapters of the manual.".
+:- export(doc_structure/1).
+% (no default, must be defined)
 
 % ----------------------------------------------------------------------------
 % Processing options for the different files
@@ -43,16 +53,29 @@
 :- pred doc_mainopts(Option) :: supported_option
 # "@var{Option} is a processing option which should be activated when
    processing the main file.".
+:- export(doc_mainopts/1).
+:- default_def(doc_mainopts/1, [doc_mainopts(no_bugs)]).
+:- default_def(doc_mainopts/1, [doc_mainopts(no_patches)]).
 
 :- pred doc_compopts(Option) :: supported_option
 # "@var{Option} is a processing option which should be activated when
    processing the secondary files (all except the main file).".
+:- export(doc_compopts/1).
+:- default_def(doc_compopts/1, [doc_compopts(no_bugs)]).
+:- default_def(doc_compopts/1, [doc_compopts(no_patches)]).
 
 % ----------------------------------------------------------------------------
 % Default document formats
 
 :- pred docformat(Format) => supported_format
 # "Defines the documentation formats to be generated.".
+:- export(docformat/1).
+:- default_def(docformat/1, [
+    docformat(pdf),
+    docformat(manl),
+    docformat(info),
+    docformat(html)
+]).
 
 % ----------------------------------------------------------------------------
 % Indices to be generated
@@ -66,6 +89,17 @@
    Selecting @tt{all} generates all the supported indices. However,
    note that this (as well as selecting many indices explicitely)
    exceeds the capacity of most texinfo installations.".
+:- export(index/1).
+:- default_def(index/1, [
+    index(concept),
+    index(lib),
+    index(pred),
+    index(prop),
+    index(regtype),
+    index(decl),
+    index(author),
+    index(global)
+]).
 
 % ----------------------------------------------------------------------------
 % References
@@ -73,6 +107,8 @@
 :- pred bibfile(Format) => filename
 # "If you are using bibliographic references, define in this way the
    @tt{.bib} files to be used to find them.".
+:- export(bibfile/1).
+:- default_def(bibfile/1, [(bibfile(_) :- fail)]).
 
 % ----------------------------------------------------------------------------
 % Other settings
@@ -82,10 +118,18 @@
    the first page of the manual. This can be useful if the manual is to
    be included in a larger document or set of manuals.
    Typically, this should be an odd number.".
+:- export(startpage/1).
+:- default_def(startpage/1, [
+    startpage(1)
+]).
 
 :- pred papertype(PageNumber) => supported_papertype
 # "Selects the type of paper/format for printed documents.  See also
    the @tt{-onesided} and @tt{-twosided} options for the main file.".
+:- export(papertype/1).
+:- default_def(papertype/1, [
+    papertype(afourpaper)
+]).
 
 :- pred libtexinfo/1 => yesno
 # "If set to yes the @file{texinfo.tex} file that comes with the
@@ -93,41 +137,140 @@
    formats such as @tt{dvi} and @tt{ps}. Otherwise, the texinfo file
    that comes with your @apl{tex} installation will be used. It is
    recommended that you leave this set to @tt{'yes'}.".
+:- export(libtexinfo/1).
+:- default_def(libtexinfo/1, [
+    libtexinfo(yes)
+]).
 
 :- pred comment_version/1 => yesno
 # "The source files contain version information. If not
    specified lpdoc will assume the opposite".
+:- export(comment_version/1).
+:- default_def(comment_version/1, [
+    comment_version(no)
+]).
 
 :- pred allow_markdown/1 => yesno
 # "Allow LPdoc-flavored markdown in docstrings".
+:- export(allow_markdown/1).
+:- default_def(allow_markdown/1, [
+    allow_markdown(no)
+]).
 
 :- pred syntax_highlight/1 => yesno
 # "Syntax highlight code blocks (only for HTML backend)".
+:- export(syntax_highlight/1).
+:- default_def(syntax_highlight/1, [
+    syntax_highlight(no)
+]).
 
 % ---------------------------------------------------------------------------
 % Installation options
 % (You only need to change these if you will be installing the docs somewhere)
 
-% Where manuals will be installed
+% Where documentation will be installed
 
 :- pred htmldir/1 => dirpath 
 # "Directory where the @tt{html} manual will be generated.".
+:- export(htmldir/1).
+:- default_def(htmldir/1, [(htmldir(_) :- fail)]).
 
 :- pred docdir/1 => dirpath
 # "Directory in which you want the document(s) installed.".
+:- export(docdir/1).
+:- default_def(docdir/1, [(docdir(_) :- fail)]).
 
 :- pred infodir/1 => dirpath
 # "Directory in which you want the @tt{info} file installed.".
+:- export(infodir/1).
+:- default_def(infodir/1, [(infodir(_) :- fail)]).
 
 :- pred mandir/1 => dirpath 
 # "Directory in which the @tt{man} file will be installed.".
+:- export(mandir/1).
+:- default_def(mandir/1, [(mandir(_) :- fail)]).
 
 % Permissions
 
-:- pred datamode(DataPermissions) => permission_term
-# "Define this to be the mode for automatically generated data
-   files.".
+% :- pred datamode(DataPermissions) => permission_term
+% # "Define this to be the mode for automatically generated data
+%    files.".
+% :- export(datamode/1).
+% :- default_def(datamode/1, [(datamode(_) :- fail)]).
+% 
+% :- pred execmode(ExecPermissions) => permission_term
+% # "Define this to be the mode for automatically generated
+%    directories and executable files.".
+% :- export(execmode/1).
+% :- default_def(execmode/1, [(execmode(_) :- fail)]).
 
-:- pred execmode(ExecPermissions) => permission_term
-# "Define this to be the mode for automatically generated
-   directories and executable files.".
+:- pred perms(Permissions) => permission_term
+# "Permissions for installation.".
+:- export(perms/1).
+:- default_def(perms/1, [(perms(_) :- fail)]).
+
+:- pred owner(Owner) => term
+# "Owner for installation.".
+:- export(owner/1).
+:- default_def(owner/1, [(owner(_) :- fail)]).
+
+:- pred group(Group) => term
+# "Group for installation.".
+:- export(group/1).
+:- default_def(group/1, [(group(_) :- fail)]).
+
+% ---------------------------------------------------------------------------
+% Settings for texinfo backend
+
+:- pred autogen_warning/1 => yesno
+# "Include an @em{automatically generated} notice inside the output text.".
+:- export(autogen_warning/1).
+:- default_def(autogen_warning/1, [
+    autogen_warning(no)
+]).
+
+% ---------------------------------------------------------------------------
+% Settings for HTML backend
+
+:- pred html_layout/1 => term
+# "Layout for html output.".
+:- export(html_layout/1).
+:- default_def(html_layout/1, [(html_layout(_) :- fail)]).
+
+:- pred htmlurl/1 => term
+# "Deploy URL for html output".
+:- export(htmlurl/1).
+:- default_def(htmlurl/1, [(htmlurl(_) :- fail)]).
+
+:- pred website_skeleton/1 => dirpath
+# "Directory with website skeleton for @tt{html_layout} value @tt{website_layout}".
+:- export(website_skeleton/1).
+:- default_def(website_skeleton/1, [(website_skeleton(_) :- fail)]).
+
+:- pred tmplpath/1 => dirpath
+# "Directory for HTML templates".
+:- export(tmplpath/1).
+:- default_def(tmplpath/1, [(tmplpath(_) :- fail)]).
+
+% ---------------------------------------------------------------------------
+% Settings for pbundle_download.pl
+
+:- pred pbundle_localdocdir/1 => term
+# "Directory for pbundle docs".
+:- export(pbundle_localdocdir/1).
+:- default_def(pbundle_localdocdir/1, [(pbundle_localdocdir(_) :- fail)]).
+
+:- pred pbundle_localpkgdir/1 => term
+# "Directory for pbundle pkgs".
+:- export(pbundle_localpkgdir/1).
+:- default_def(pbundle_localpkgdir/1, [(pbundle_localpkgdir(_) :- fail)]).
+
+:- pred pbundle_localdocurl/1 => term
+# "Deploy URL for pbundle docs".
+:- export(pbundle_localdocurl/1).
+:- default_def(pbundle_localdocurl/1, [(pbundle_localdocurl(_) :- fail)]).
+
+:- pred pbundle_localpkgurl/1 => term
+# "Deploy URL for pbundle pkgs".
+:- export(pbundle_localpkgurl/1).
+:- default_def(pbundle_localpkgurl/1, [(pbundle_localpkgurl(_) :- fail)]).

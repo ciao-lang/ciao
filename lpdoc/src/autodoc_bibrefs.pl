@@ -104,7 +104,7 @@ run_bibtex(Backend, TmpBase, _RAuxFile, _BblFile) :-
    BibTeX.".
 
 write_bibtex_citations(DocSt, RAuxFile) :-
-	bibtex_config(LibDir, BibFiles),
+	findall(BF, setting_value_or_default(bibfile, BF), BibFiles),
 	%
 	open(RAuxFile, write, CS),
 	% Write all citations
@@ -116,7 +116,9 @@ write_bibtex_citations(DocSt, RAuxFile) :-
 	),
 	% Our custom style that writes cites in pseudo-lpdoc notation
 	Style = 'docstring', 
+	( setting_value(lpdoclib, LibDir) -> true ; fail ),
 	path_concat(LibDir, Style, StyleFile),
+	%
 	format(CS, "\\bibstyle{~w}~n", [StyleFile]),
 	% The .bib files required to resolve references
 	format(CS, "\\bibdata{", []),
@@ -128,17 +130,6 @@ write_bibtex_citations(DocSt, RAuxFile) :-
 % There are no citations in refs_closure
 no_citations(DocSt) :-
 	\+ docst_gdata_query(DocSt, citation(_)).
-
-% ---------------------------------------------------------------------------
-
-:- doc(bug, "Find a better way to sent/configure this information in
-   autodoc (e.g. passed as arguments (like other options are
-   passed))").
-
-bibtex_config(LibDir, BibFiles) :-
-	check_setting(lpdoclib),
-	setting_value(lpdoclib, LibDir),
-	findall(BF, setting_value_or_default(bibfile, BF), BibFiles).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Special parser for our custom BBL output").

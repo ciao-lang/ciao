@@ -63,8 +63,6 @@ css_file(Path) :-
    # "Copy contents (recursively) of @var{SrcDir} into @tt{htmldir}.".
 % TODO: Avoid copy if not necessary
 prepare_web_skel(SrcDir) :-
-	% check_setting(htmldir),
-	%
 	HtmlDir = ~setting_value_or_default(htmldir),
 	Owner = ~setting_value_or_default(owner),
 	Group = ~setting_value_or_default(group),
@@ -79,7 +77,8 @@ prepare_web_skel(SrcDir) :-
 	               SrcDir, HtmlDir, Perms, owner(Owner, Group)).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "MathJax").
+:- doc(section, "Math engine (MathJax)").
+% TODO: Add support for much faster KaTeX?
 
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(system), [get_home/1]).

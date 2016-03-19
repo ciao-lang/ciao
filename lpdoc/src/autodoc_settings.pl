@@ -11,6 +11,7 @@
 
 % ---------------------------------------------------------------------------
 
+% TODO: Merge autodoc_option/1 with name_value/2?
 :- export(autodoc_option/1).
 :- data autodoc_option/1.
 %
@@ -23,8 +24,8 @@
 set_settings_file(ConfigFile) :-
 	assertz_fact(settings_file(ConfigFile)).
 
-:- export(clean_autodoc_opts/0).
-clean_autodoc_opts :-
+:- export(clean_autodoc_settings/0).
+clean_autodoc_settings :-
 	retractall_fact(settings_file(_)),
 	retractall_fact(autodoc_option(_)),
 	retractall_fact(name_value(_, _)).
@@ -35,10 +36,13 @@ set_opts([X|Xs]) :- set_opt(X), set_opts(Xs).
 set_opt(autodoc_option(Opt)) :- !,
 	assertz_fact(autodoc_option(Opt)).
 set_opt(name_value(Name, Value)) :- !,
-	assertz_fact(name_value(Name, Value)).
+	add_name_value(Name, Value).
 set_opt(X) :- throw(error(unknown_opt(X), set_opt/1)).
 
 % ---------------------------------------------------------------------------
+% NOTE: 
+%   Any name_value/2 value overwrides **all** the doccfg values for
+%   that setting.
 
 :- use_module(lpdoc(doccfg_holder)).
 :- use_module(library(lists), [append/3]).
@@ -49,11 +53,9 @@ add_name_value(Name, Value) :-
 % read all values
 all_values(Name, Values) :-
 	all_name_values(Name, Values0),
-	(
-	    Values0 == [] ->
+	( Values0 = [] ->
 	    all_pred_values(Name, Values)
-	;
-	    Values = Values0
+	; Values = Values0
 	).
 
 all_pred_values(Name, Values) :-
@@ -63,21 +65,10 @@ all_name_values(Name, Values) :-
 	findall(Value, name_value(Name, Value), Values).
 
 get_value(Name, Value) :-
-	name_value(Name, _) ->
-	name_value(Name, Value)
-    ;
-	get_pred_value(Name, Value).
-
-% TODO: throw exception instead
-:- pred check_var_exists(Var)
-# "Fails printing a message if variable @var{Var} does not exist.".
-
-check_var_exists(Var) :-
-	get_value(Var, _),
-	!.
-check_var_exists(Var) :-
-	error_message("Variable ~w not found", [Var]),
-	fail.
+	( name_value(Name, _) ->
+	    name_value(Name, Value)
+	; get_pred_value(Name, Value)
+	).
 
 dyn_load_cfg_module_into_make(ConfigFile) :-
 	doccfg_holder:do_use_module(ConfigFile).
@@ -101,7 +92,7 @@ get_pred_value(Name, Value) :-
    @var{ConfigFile} and @var{Opts}".
 
 load_settings(ConfigFile, Opts) :-
-	clean_autodoc_opts,
+	clean_autodoc_settings,
 	load_settings_(ConfigFile),
 	set_opts(Opts),
 	ensure_lpdoclib_defined.
@@ -160,11 +151,6 @@ ensure_lpdoclib_defined :-
 
 :- use_module(library(system)).
 :- use_module(library(system_extra)).
-:- use_module(library(bundle/doc_flags), [docformatdir/2]).
-
-:- export(check_setting/1).
-check_setting(Name) :- check_var_exists(Name).
-
 :- use_module(library(bundle/doc_flags), [bibfile/1, docformatdir/2]).
 
 % (With implicit default value)
@@ -180,6 +166,7 @@ setting_value_or_default(Name, Value) :-
 	; Value = ~default_val(Name)
 	).
 
+% TODO: Use defaults from doccfg package instead?
 default_val(startpage) := 1.
 default_val(papertype) := afourpaper.
 default_val(perms) := perms(rwX, rX, rX).

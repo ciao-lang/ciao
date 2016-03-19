@@ -36,7 +36,7 @@
 :- use_module(library(port_reify), [once_port_reify/2, port_call/1]).
 :- use_module(library(system), [working_directory/2, cd/1]).
 
-% TODO: document Opts better, change format (e.g., N(V) instead of name_value(N,V))
+% TODO: document Opts better, change format (e.g., N(V) instead of get_value(N,V))
 :- export(doc_cmd/4).
 :- pred doc_cmd(ConfigFile, Opts, Cmd, OutputDir) # "Process
    @var{Targets} given @var{ConfigFile}, producing all output in
@@ -58,7 +58,7 @@ doc_cmd(ConfigFile, Opts, Cmd, OutputDir) :-
 	once_port_reify(doc_cmd_(Cmd), Port),
 	cd(WD), % move to original directory
 	clean_tmp_db,
-	clean_autodoc_opts,
+	clean_autodoc_settings,
 	port_call(Port).
 
 doc_cmd_(start(Targets)) :-

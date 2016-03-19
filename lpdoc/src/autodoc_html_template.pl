@@ -22,10 +22,9 @@
 :- pred img_url(Name, Url) :: atm * string
    # "Obtain the @var{URL} where image @var{Name} is or will be found.".
 img_url(Name) := Url :-
-	% TODO: Use relative URLs is htmlurl is '' (search uses of htmlurl)
+	% TODO: Use relative URLs if htmlurl is '' (search uses of htmlurl)
 	WebURL = ~setting_value(htmlurl),
-	( WebURL = '' ->
-	    P0 = 'images'
+	( WebURL = '' -> P0 = 'images'
 	; path_concat(WebURL, 'images', P0)
 	),
 	path_concat(P0, Name, P1),
@@ -62,8 +61,8 @@ fmt_html_template(File, Args0) := R :-
 	connect_params(FreeDict, Args).
 
 locate_tmpl(A, B) :-
-	BR = ~setting_value(website_root_dir),
-	B = ~path_concat(~path_concat(BR, 'tmpl'), A).
+	% TODO: fix, allow multiple values, use lpdoclib too
+	B = ~path_concat(~setting_value(tmplpath), A).
 
 % Connect values in the first list with the mapping B
 connect_params([], _Args).

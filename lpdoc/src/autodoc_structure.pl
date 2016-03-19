@@ -30,21 +30,6 @@ parse_structure :-
 	( setting_value(doc_structure, S) ->
 	    parse_structure_(S, '__root__')
 	; true
-	),
-	check_deprecated_settings.
-
-check_deprecated_settings :-
-	% TODO: This could be part of the LPSETTING file itself...
-	( ( setting_value(mainfile, _)
-	  ; setting_value(component, _) ) ->
-	      throw(autodoc_error("Deprecated mainfile/1 or component/1 in SETTINGS file. "||
-                               "Use doc_structure/1 instead.", []))
-	; true
-	),
-	( ( setting_value(fileoption(_), _) ) ->
-	      throw(autodoc_error("Deprecated fileoption/1 in SETTINGS file. "||
-                               "Use doc_mainopts/1 or doc_compopts/1 instead.", []))
-	; true
 	).
 
 parse_structure_(S, Parent) :- is_list(S), !,
