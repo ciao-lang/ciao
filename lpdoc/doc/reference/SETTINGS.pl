@@ -5,10 +5,12 @@
 %  \author Edison Mera
 %  \author Jose F. Morales
 
+:- include(ciao_docsrc(common/'LPDOCCOMMON')).
+
 filepath := '../readmes'.
 filepath := '../../src'.
 filepath := '../../examples'.
-filepath := bundle_src(ciao)/doc/common.
+filepath := ~ciaofilepath_common.
 
 output_name := 'lpdoc'.
 
@@ -64,4 +66,5 @@ doc_structure :=
           ]
         ].
 
+bibfile := ~ciao_bibfile.
 

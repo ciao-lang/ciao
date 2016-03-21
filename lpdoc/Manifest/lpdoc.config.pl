@@ -102,18 +102,6 @@ get_infodir(all, Prefix) := ~fsR(Prefix/'share'/'info').
 
 % ---------------------------------------------------------------------------
 
-%% The .bib files are in the repository (i.e. as SVN external),
-%% it makes no sense configuring this. (JFMC)
-% :- bundle_flag(bibfiles, [
-%     interactive([],
-%       % .....................................................................
-%       "Specifies the bibtex files used to create the bibliography of the\n" ||
-%       "documentation."),
-%     rule_default('/home/clip/bibtex/clip/clip,/home/clip/bibtex/clip/general')
-% ]).
-
-% ---------------------------------------------------------------------------
-
 
 
 

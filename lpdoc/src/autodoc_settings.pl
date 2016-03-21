@@ -8,6 +8,7 @@
 
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(messages), [error_message/2]).
+:- use_module(library(aggregates)).
 
 % ---------------------------------------------------------------------------
 
@@ -51,6 +52,7 @@ add_name_value(Name, Value) :-
 	data_facts:assertz_fact(name_value(Name, Value)).
 
 % read all values
+% TODO: findall of get_value should be equivalent
 all_values(Name, Values) :-
 	all_name_values(Name, Values0),
 	( Values0 = [] ->
@@ -151,7 +153,7 @@ ensure_lpdoclib_defined :-
 
 :- use_module(library(system)).
 :- use_module(library(system_extra)).
-:- use_module(library(bundle/doc_flags), [bibfile/1, docformatdir/2]).
+:- use_module(library(bundle/doc_flags), [docformatdir/2]).
 
 % (With implicit default value)
 :- export(setting_value_or_default/2).
@@ -161,8 +163,8 @@ ensure_lpdoclib_defined :-
   is no default value for the variable @var{Var} it fails.".
 
 setting_value_or_default(Name, Value) :-
-	( get_value(Name, Value0) ->
-	    Value = Value0
+	( get_value(Name, _) -> % Has some value
+	    get_value(Name, Value)
 	; Value = ~default_val(Name)
 	).
 
@@ -172,36 +174,17 @@ default_val(papertype) := afourpaper.
 default_val(perms) := perms(rwX, rX, rX).
 default_val(owner) := ~get_pwnam.
 default_val(group) := G :- ( G = ~get_grnam -> true ; G = 'unknown' ).
-default_val(bibfile) := ~bibfile.
 default_val(htmldir) := ~docformatdir(html).
 default_val(docdir) := ~docformatdir(any).
 default_val(infodir) := ~docformatdir(info).
 default_val(mandir) := ~docformatdir(manl).
-
-% (With explicit default value)
-:- export(setting_value_or_default/3).
-setting_value_or_default(Name, DefValue, Value) :-
-	( get_value(Name, Value0) ->
-	    Value = Value0
-	; Value = DefValue
-	).
 
 :- export(setting_value/2).
 setting_value(Name, Value) :-
 	get_value(Name, Value).
 
 :- export(all_setting_values/2).
-%all_setting_values(Name) := ~findall(T, ~setting_value(doc_mainopt)).
-all_setting_values(X) := ~findall(T, setting_value(X, T)) :-
-	( X = doc_mainopts ; X = doc_compopts ), !. % TODO: all_values fail if empty?!
 all_setting_values(Name) := ~all_values(Name).
-
-:- use_module(library(aggregates)).
-
-:- export(requested_file_formats/1).
-:- pred requested_file_formats(F) # "@var{F} is a requested file format".
-requested_file_formats := F :-
-	F = ~all_values(docformat).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Paths to files").

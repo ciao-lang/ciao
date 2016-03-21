@@ -21,8 +21,8 @@ commonopts := no_patches. % no_bugs|no_patches
 doc_mainopts := ~commonopts.
 doc_compopts := ~commonopts.
 
-bibfile := '/home/clip/bibtex/clip/clip'.
-bibfile := '/home/clip/bibtex/clip/others'.
+bibfile := '/home/clip/bibtex/clip/clip.bib'.
+bibfile := '/home/clip/bibtex/clip/others.bib'.
 
 htmldir := '/home/clip/public_html/Local/lpdoc_docs'.
 docdir := '/home/clip/public_html/Local/lpdoc_docs'.

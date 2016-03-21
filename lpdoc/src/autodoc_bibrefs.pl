@@ -29,7 +29,7 @@ dependency.").
 :- use_module(lpdoc(autodoc_doctree)).
 :- use_module(lpdoc(autodoc_refsdb)).
 :- use_module(lpdoc(autodoc_settings)).
-:- use_module(lpdoc(autodoc_filesystem), [get_cache_dir0/2]).
+:- use_module(lpdoc(autodoc_filesystem), [get_cache_dir0/2, find_file/2]).
 :- use_module(lpdoc(autodoc_aux), [autodoc_process_call/3, cmd_logbase/3]).
 :- use_module(lpdoc(autodoc_aux), [verbose_message/1, verbose_message/2]).
 
@@ -104,7 +104,7 @@ run_bibtex(Backend, TmpBase, _RAuxFile, _BblFile) :-
    BibTeX.".
 
 write_bibtex_citations(DocSt, RAuxFile) :-
-	findall(BF, setting_value_or_default(bibfile, BF), BibFiles),
+	findall(F, find_bibfile(F), BibFiles),
 	%
 	open(RAuxFile, write, CS),
 	% Write all citations
@@ -126,6 +126,10 @@ write_bibtex_citations(DocSt, RAuxFile) :-
 	format(CS, "}~n", []),
 	%
 	close(CS).
+
+find_bibfile(F) :-
+	setting_value_or_default(bibfile, BF),
+	find_file(BF, F).
 
 % There are no citations in refs_closure
 no_citations(DocSt) :-

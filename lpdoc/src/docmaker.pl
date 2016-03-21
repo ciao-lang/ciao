@@ -189,8 +189,7 @@ all_specs := B :-
 % Actions to generate documentation in some specific format
 cmd_actions(all, Actions) :- !,
         findall(Action,
-	        (requested_file_formats(Formats),
-		 member(Format, Formats),
+	        (setting_value(docformat, Format), % (nondet)
 		 action_for_suffix(Format, Action)),
 		Actions).
 cmd_actions(Suffix, Actions) :-

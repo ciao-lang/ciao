@@ -104,9 +104,8 @@
 % ----------------------------------------------------------------------------
 % References
 
-:- pred bibfile(Format) => filename
-# "If you are using bibliographic references, define in this way the
-   @tt{.bib} files to be used to find them.".
+:- pred bibfile(F) => filename
+# "All @tt{.bib} files used for bibliographic references.".
 :- export(bibfile/1).
 :- default_def(bibfile/1, [(bibfile(_) :- fail)]).
 

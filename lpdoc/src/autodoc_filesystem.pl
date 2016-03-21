@@ -53,7 +53,8 @@ add_vpath(Path) :-
 	).
 
 :- export(find_file/2).
-% Find file in current directory or any of vpath/1
+% Find file in any of vpath/1
+% (Fail if not found)
 find_file(File, PathFile) :-
 	path_is_absolute(File), !,
 	PathFile = File,
@@ -65,14 +66,10 @@ find_file(File, PathFile) :-
 	!.
 
 :- export(find_source/4).
-% Find the first source that exists (e.g., .pl or .lpdoc)
+% Find the first source that exists (e.g., .pl or .lpdoc). See @pred{find_file/2}
 find_source(Name, Suffix, NameSuffix, Path) :-
 	Suffix = ~srcsuff,
 	NameSuffix = ~atom_concat([Name, '.', Suffix]),
-%	catch(absolute_file_name(library(Main), _), _, fail),
-	% TODO: Cannot use absolute_file_name, library_directory is
-	%       not updated, only vpath.
-	% TODO: Silent fail if source does not exist
 	find_file(NameSuffix, Path).
 
 % TODO: I am not sure if here is the place to define this.
