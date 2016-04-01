@@ -140,7 +140,7 @@ rw_command(email(Address), _, NBody) :- !,
 rw_command(email(Text, Address), _DocSt, NBody) :- !,
 	NBody = [raw("@email{"), Address, raw(","), Text, raw("}")].
 rw_command(image_auto(IFile0, Opts), DocSt, NBody) :- !,
-	locate_and_convert_image(IFile0, ['eps'], DocSt, IFile1),
+	locate_and_convert_image(IFile0, ['.eps'], DocSt, IFile1),
 	( append(IFile2, ".eps", IFile1) -> true % required by texinfo.tex
 	; IFile2 = IFile1
 	),
@@ -725,10 +725,7 @@ texi_file_and_base(In, File, Base) :-
 	Mod = ~get_mainmod,
 	% @var{In} is the .texic file, @var{Out} the .texi file
 	absfile_for_subtarget(Mod, texinfo, cr, In),
-	%
-	file_format_provided_by_backend('texi', Backend, Subtarget),
-	absfile_for_subtarget(Mod, Backend, Subtarget, File),
-	%
+	format_get_file(texi, Mod, File),
 	atom_concat(Base, '.texi', File).
 
 :- use_module(library(emacs/emacs_batch), [emacs_path/1]).
@@ -746,8 +743,7 @@ finish_texinfo :-
 	infodir_base(Mod, ModInfodir),
 	absfile_for_subtarget(ModInfodir, texinfo, cr, InInfodir),
 	%
-	file_format_provided_by_backend('infoindex', Backend, Subtarget),
-	absfile_for_subtarget(Mod, Backend, Subtarget, OutInfodir),
+	format_get_file(infoindex, Mod, OutInfodir),
 	%
 	copy_with_perms(InInfodir, OutInfodir).
 

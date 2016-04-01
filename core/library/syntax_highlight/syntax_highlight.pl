@@ -12,7 +12,7 @@
 :- use_module(library(emacs/emacs_batch), [emacs_path/1]).
 
 % TODO: Implement as an interface; define different backend
-% TODO: Adds dependency to 'ide' bundle
+% TODO: adds dependency to 'ide' bundle and emacs (should be weak refs)
 % TODO: We really need support for assets for generation of static binaries
 	
 % ---------------------------------------------------------------------------
@@ -34,6 +34,37 @@ lang('text').
 
 % ---------------------------------------------------------------------------
 
+ciao_mode_el(F) :-
+	find_asset(bundle_src(ide)/'emacs-mode'/'ciao-site-file.el', F).
+
+% ---------------------------------------------------------------------------
+
+:- data can_highlight/2.
+
+:- export(can_highlight/1).
+:- pred can_highlight(Lang) : atm => lang
+   # "Check if `Lang` is a supported language (silently fails if any
+      dependency for highlighting, e.g., emacs, ciao-mode, is not
+      installed)".
+
+can_highlight(Lang) :- var(Lang), !, fail.
+can_highlight(Lang) :- can_highlight(Lang, S), !, S = yes.
+can_highlight(Lang) :-
+	( lang(Lang),
+	  catch(emacs_path(E), _, fail),
+	  file_exists(E),
+	  ciao_mode_el(F), % TODO: this one only for 'ciao'?
+	  file_exists(F) ->
+	    S = yes
+	; S = no
+	),
+	assertz_fact(can_highlight(Lang, S)),
+	S = yes.
+
+% ---------------------------------------------------------------------------
+
+% TODO: allow other mode selection? precompile .el files?
+
 :- export(highlight_to_html/3).
 :- pred highlight_to_html(+Lang, +Input, +Output) :: lang * atm * atm
    # "Produce HTML `Output` file with syntax highlight from `Input`
@@ -41,7 +72,7 @@ lang('text').
 
 highlight_to_html(Lang, Input, Output) :-
 	find_asset(library(syntax_highlight/'emacs-htmlfontify.el'), HfyEl),
-	find_asset(bundle_src(ide)/'emacs-mode'/'ciao-site-file.el', SiteFileEl),
+	ciao_mode_el(SiteFileEl),
 	process_call(~emacs_path,
 	     ['-batch',
               '-l', SiteFileEl,
@@ -50,6 +81,8 @@ highlight_to_html(Lang, Input, Output) :-
 	      Input,
 	      Output],
 	     [noenv(['EMACSLOADPATH', 'EMACSDOC'])]).
+
+% TODO: Reuse
 
 % Locate some code-related asset
 find_asset(F, Path) :-
@@ -65,7 +98,7 @@ find_asset(F, Path) :-
 find_asset(F, _) :-
 	% Probably we are running it from a static binary and Ciao
 	% is not installed
-	throw(error(not_found(F), highlight_to_html/2)).
+	throw(error(not_found(F), find_asset/2)).
 
 % ---------------------------------------------------------------------------
 
@@ -86,7 +119,7 @@ highlight_to_html_string(Lang, Input, Output) :-
 	mktemp_in_tmp('highlight-out-XXXXXX', OutF),
 	string_to_file(Input, InF),
 	once_port_reify(highlight_to_html(Lang, InF, OutF), Port),
-	file_to_string(OutF, Output0),
+	file_to_string(OutF, Output0), % TODO: may fail?
 	del_file_nofail(InF),
 	del_file_nofail(OutF),
 	port_call(Port),

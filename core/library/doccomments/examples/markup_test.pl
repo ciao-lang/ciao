@@ -180,7 +180,7 @@ len_vmt(_,_).
 :- doc(bug, "We cannot add assertions in @tt{.lpdoc} files").
 :- doc(bug, "We cannot add @tt{:- if} directives in @tt{.lpdoc} files").
 :- doc(bug, "Add labels").
-:- doc(bug, "LPdoc does not support @tt{\\} as escape character").
+:- doc(bug, "LPdoc does not support @tt{\\\\} as escape character").
 :- doc(bug, "Need a verbatim with escape sequence").
 :- doc(bug, "The elements `word` and @@tt@{word@} are different. Add wiki
    syntax for it? (see Haddock)").

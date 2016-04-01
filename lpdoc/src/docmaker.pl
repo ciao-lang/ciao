@@ -17,7 +17,7 @@
 :- use_module(library(messages)).
 :- use_module(library(lists), [list_concat/2, append/3]).
 :- use_module(library(file_utils)).
-:- use_module(library(pathnames), [path_concat/3, path_dirname/2]).
+:- use_module(library(pathnames), [path_concat/3, path_dirname/2, path_splitext/3]).
 
 %% LPdoc libraries
 :- use_module(lpdoc(autodoc)).
@@ -34,48 +34,65 @@
 :- doc(section, "Commands on Documentation").
 
 :- use_module(library(port_reify), [once_port_reify/2, port_call/1]).
-:- use_module(library(system), [working_directory/2, cd/1]).
+:- use_module(library(system), [working_directory/2, cd/1, file_exists/1]).
 
 % TODO: document Opts better, change format (e.g., N(V) instead of get_value(N,V))
-:- export(doc_cmd/4).
-:- pred doc_cmd(ConfigFile, Opts, Cmd, OutputDir) # "Process
-   @var{Targets} given @var{ConfigFile}, producing all output in
-   @var{OutputDir}. If @var{OutputDir} is free, directory name of
-   @var{ConfigFile} is used (similar to @pred{make_exec/2}).
-
+:- export(doc_cmd/3).
+:- pred doc_cmd(InFile, Opts, Cmd) # "Treat according to @var{Cmd}
+   @var{InFile} (which can be a doccfg or standalone file).
    @var{Opts} is the list of options (see @pred{autodoc_option/1}).".
 
-doc_cmd(ConfigFile, Opts, Cmd, OutputDir) :-
-	% Setup configuration
-	load_settings(ConfigFile, Opts),
-	( var(OutputDir) ->
-	    OutputDir = ~path_dirname(ConfigFile)
-	; true
-	),
-	% Call and cleanup
+doc_cmd(InFile0, Opts, Cmd) :-
+	% Prepare settings
+	doc_input(InFile0, InFile, InKind),
+	load_settings(InFile, InKind, Opts),
+	% Call
 	working_directory(WD, WD),
-	cd(OutputDir),
-	once_port_reify(doc_cmd_(Cmd), Port),
+	once_port_reify(doc_cmd_(InFile, Cmd), Port),
 	cd(WD), % move to original directory
+	% Cleanup
+	clean_docstr,
 	clean_tmp_db,
 	clean_autodoc_settings,
 	port_call(Port).
 
-doc_cmd_(start(Targets)) :-
-	setup_doc_settings,
-	process_targets(Targets).
-doc_cmd_(view(Suffix)) :-
-	setup_doc_settings,
-	view(Suffix).
-doc_cmd_(clean(Mode)) :-
-	setup_doc_settings,
-	clean(Mode).
-
-setup_doc_settings :-
+doc_cmd_(InFile, Cmd) :-
+	output_dir(InFile, OutputDir),
+	cd(OutputDir),
 	verify_settings,
 	clean_tmp_db,
-	load_vpaths,
-	parse_structure.
+	load_vpaths(InFile),
+	parse_structure,
+	doc_cmd__(Cmd).
+
+doc_input(InFile0, InFile, InKind) :-
+	fixed_absolute_file_name(InFile0, InFile1),
+	( find_pl(InFile1, InFile),
+	  peek_doccfg(InFile) -> % Input is a doccfg file
+	    InKind = doccfg
+	; file_exists(InFile1) -> % Input is a standalone
+	    InFile = InFile1,
+	    InKind = standalone
+	; throw(autodoc_error("Input file not found: ~w", [InFile0]))
+	).
+
+output_dir(InFile, Dir) :-
+	( setting_value(output_dir, Dir0) ->
+	    Dir = Dir0
+	; Dir = ~path_dirname(InFile)
+	).
+
+% `Path` is the first file that exists from `Path0` or `Path0` plus `.pl` extension
+find_pl(Path0, Path) :-
+	( file_exists(Path0) -> Path = Path0
+	; atom_concat(Path0, '.pl', Path1),
+	  file_exists(Path1),
+	  Path = Path1
+	).
+
+doc_cmd__(gen(Format)) :- gen(Format).
+doc_cmd__(view(Format)) :- view(Format).
+doc_cmd__(clean(Mode)) :- clean(Mode).
 
 % TODO: Is this complete?
 clean_tmp_db :-
@@ -83,56 +100,11 @@ clean_tmp_db :-
 	clean_image_cache,
 	reset_output_dir_db.
 
-% standalone target bases (does not depend on a settings file)
-:- data no_settings_file/0.
-
-% TODO: do all targets
-% TODO: do something like auto-settings (or standalone)? recognize SETTINGS.pl file automatically?
-
-process_targets(Targets) :-
-	process_targets_(Targets).
-
-process_targets_([]) :- !.
-process_targets_(['-c', Target|Targets]) :- !,
-	process_standalone(Target),
-	process_targets_(Targets).
-process_targets_([Cmd|Targets]) :- !,
-	process_cmd(Cmd),
-	process_targets_(Targets).
-
-process_cmd(Cmd) :-
-	report_cmd('Starting', Cmd),
-	cmd_actions(Cmd, Actions),
+gen(Format) :-
+	report_cmd('Starting', Format),
+	gen_actions(Format, Actions),
 	fsmemo_call(Actions),
-	report_cmd('Finished', Cmd).
-
-% TODO: Replace Target by a Spec!
-% TODO: Make it much simpler! Integrate with single module manual! (M-x ciao-gen-buffer-doc)
-%% Treat Target as a separated component
-process_standalone(Target) :-
-	base_from_target(Target, Base),
-	retractall_fact(no_settings_file),
-	assertz_fact(no_settings_file),
-	report_cmd('Starting', Base),
-	standalone_docstr(Base),
-	( target_action(Target, Action),
-	  fsmemo_call([Action]) ->
-	    Ok = yes 
-	; Ok = no
-	),
-	clean_docstr,
-	retractall_fact(no_settings_file),
-	Ok = yes,
-	report_cmd('Finished', Base).
-
-% Obtain the name of a target (by removing the suffix, which must be a
-% supported one)
-base_from_target(Target) := Base :-
-	( supported_file_format(Suffix),
-	  atom_concat([Base, '.', Suffix], Target) ->
-	    true
-	; Base = Target
-	).
+	report_cmd('Finished', Format).
 
 report_cmd(BegEnd, Ext) :-
 	file_format_name(Ext, FormatName),
@@ -142,68 +114,24 @@ report_cmd(BegEnd, Ext) :-
 report_cmd(BegEnd, Base) :-
 	simple_message("~w processing of '~w'.", [BegEnd, Base]).
 
-% Obtain the action Action that generates some target (file) F
-target_action(F,Action) :- % TODO: Disable
-	Spec = ~all_specs,
-	path_basename(Spec,Name),
-	Backend = ~backend_id,
-	absfile_for_subtarget(Name,Backend,dr,F),
-        !,
-	Action = gen_doctree(Backend, Spec).
-target_action(F,Action) :- % TODO: Disable
-	Backend = ~backend_id,
-	get_mainmod(Mod),
-        absfile_for_subtarget(Mod,Backend,gr,F),
-        !,
-	Action = compute_grefs(Backend).
-target_action(F,Action) :- % TODO: Disable
-	Spec = ~all_specs,
-	path_basename(Spec,Name),
-	Backend = ~backend_id,
-	absfile_for_subtarget(Name,Backend,cr,F),
-        !,
-	Action = translate_doctree(Backend,Spec).
-target_action(F,Action) :- % TODO: Disable
-	Backend = ~backend_id,
-	get_mainmod(Mod),
-	absfile_for_subtarget(Mod,Backend,fr,F),
-        !,
-        Action = autodoc_finish(Backend).
-target_action(F,Action) :- % TODO: Disable
-	Backend = ~backend_id,
-	Alt = ~backend_alt_format(Backend),
-	file_format_provided_by_backend(Alt, Backend, Subtarget),
-	get_mainmod(Mod),
-	absfile_for_subtarget(Mod, Backend, Subtarget, F),
-        !,
-	Action = autodoc_gen_alternative(Backend,Alt).
-
-all_specs := B :-
-	( B = ~get_mainmod_spec
-	; Bs = ~all_component_specs,
-	  member(B, Bs)
-	).
-
-% Note: do not confuse a file format (e.g. PDF) with a backend (texinfo)
-
 % Actions to generate documentation in some specific format
-cmd_actions(all, Actions) :- !,
+gen_actions(all, Actions) :- !,
         findall(Action,
 	        (setting_value(docformat, Format), % (nondet)
-		 action_for_suffix(Format, Action)),
+		 action_for_format(Format, Action)),
 		Actions).
-cmd_actions(Suffix, Actions) :-
-	supported_file_format(Suffix),
+gen_actions(Format, Actions) :-
+	supported_file_format(Format),
         !,
-	action_for_suffix(Suffix, Action),
+	action_for_format(Format, Action),
 	Actions = [Action].
 
 % Action that generate one file format (not necessarily requested in SETTINGS.pl)
-action_for_suffix(Suffix, Action) :-
-	top_suffix(Suffix,PrincipalExt),
-	file_format_provided_by_backend(PrincipalExt, Backend, Subtarget),
+action_for_format(Format, Action) :-
+	parent_format(Format,ParentFormat),
+	format_get_subtarget(ParentFormat, Backend, Subtarget),
 	( Subtarget = fr -> Action = autodoc_finish(Backend)
-	; Subtarget = fr_alt(Suffix2) -> Action = autodoc_gen_alternative(Backend,Suffix2)
+	; Subtarget = fr_alt(Alt) -> Action = autodoc_gen_alternative(Backend,Alt)
 	; Subtarget = cr -> get_mainmod_spec(Spec), Action = translate_doctree(Backend,Spec)
 	; throw(unknown_subtarget(Subtarget))
 	).
@@ -231,31 +159,32 @@ action_for_suffix(Suffix, Action) :-
 	path_basename(Spec,Name),
 	absfile_for_subtarget(Name, Backend, dr, Target).
 'fsmemo.deps'(gen_doctree(_Backend, Spec),Deps) :- !,
-	query_source(Spec,_SourceSuffix,AbsFile),
+	query_source(Spec, AbsFile),
 	add_settings_dep(AbsFile,Deps).
 'fsmemo.run'(gen_doctree(Backend, Spec)) :- !,
         gen_doctree(Backend, Spec).
 
 gen_doctree(Backend, FileBase) :-
-	query_source(FileBase, SourceSuffix, _AbsFile), % TODO: only for SourceSuffix; simplify?
+	query_source(FileBase, FileAbs), % TODO: only for FileExt; simplify?
+	path_splitext(FileAbs, _, FileExt),
 	ensure_cache_dir(Backend),
 	path_basename(FileBase, Name),
-%	display(user_error, generating_doctree(Backend, Name)), nl(user_error),
 	get_autodoc_opts(Backend, Name, Opts),
-	autodoc_gen_doctree(Backend, FileBase, SourceSuffix, Opts, Name).
+	autodoc_gen_doctree(Backend, FileBase, FileExt, Opts, Name).
 
-query_source(Spec, S) := Path :-
-	find_source(Spec, S, _, Path0),
+% query_source(+Spec, -Path)
+query_source(Spec, Path) :-
+	find_doc_source(Spec, Path0),
 	!,
 	Path = Path0.
-query_source(Spec, _S) := _Path :-
+query_source(Spec, _) :-
 	throw(autodoc_error("Source file not found: ~w", [Spec])).
 
 % TODO: Missing dependencies to included files, etc. We need c_itf for this.
 add_settings_dep(SpecF) := ['SOURCE'(SpecF)|Fs] :-
-	( no_settings_file ->
-	    Fs = []
-	; Fs = ['SOURCE'(~settings_file)]
+	( settings_file(F) ->
+	    Fs = ['SOURCE'(F)]
+	; Fs = []
 	).
 
 % ---------------------------------------------------------------------------
@@ -312,9 +241,9 @@ translate_doctree(Backend, FileBase) :-
 % ---------------------------------------------------------------------------
 % (extra) Alternative final results (e.g. PDF, PS, etc.)
 % [Rules for generating DVI, PS, and PDF from texi]
-'fsmemo.key'(autodoc_gen_alternative(Backend,Suffix2), Target) :- !,
+'fsmemo.key'(autodoc_gen_alternative(Backend,Alt), Target) :- !,
 	get_mainmod(Mod),
-	absfile_for_subtarget(Mod, Backend, fr_alt(Suffix2), Target).
+	absfile_for_subtarget(Mod, Backend, fr_alt(Alt), Target).
 'fsmemo.deps'(autodoc_gen_alternative(Backend,_Alt),Deps) :- !,
         Deps = [autodoc_finish(Backend)].
 'fsmemo.run'(autodoc_gen_alternative(Backend,Alt)) :- !,
@@ -338,16 +267,15 @@ targets([FileBase|FileBases], Backend, Subtarget) := [X|Xs] :-
 % ===========================================================================
 :- doc(section, "Visualization").
 
-view(Suffix) :-
-	file_format_provided_by_backend(Suffix, Backend, Subtarget),
+view(Format) :-
 	get_mainmod(Mod),
-	absfile_for_subtarget(Mod, Backend, Subtarget, File),
-	view_document(Suffix, File).
+	format_get_file(Format, Mod, File),
+	view_document(Format, File).
 
 :- use_module(library(process), [process_call/3]).
 
-view_document(Suffix, File) :-
-	( view_in_emacs(Suffix, EmacsFun) ->
+view_document(Format, File) :-
+	( view_in_emacs(Format, EmacsFun) ->
 	    % TODO: Use absolute file name instead?
 	    % Escape file name (for elisp expression)
 	    File0 = ~atom_concat('./', File),
@@ -385,3 +313,30 @@ clean(docs_no_texi) :- clean_docs_no_texi. % leaves only .texi
 clean(all_temporary) :- clean_all_temporary. % leaves only targets
 clean(all) :- clean_all. % leaves nothing
 
+% ===========================================================================
+
+% Detect if file is a doccfg module based on the first term
+% (see source_tree.pl)
+
+:- use_module(library(read), [read/2]).
+
+peek_doccfg(FileName) :-
+	% TODO: safety check (read/2 runs out of memory on wrong files)
+	atom_concat(_, '.pl', FileName),
+	%
+	read_first_term(FileName, Term),
+	( var(Term) -> fail
+	; Term = (:- module(_, _, Ps)),
+	  member(lpdoclib(doccfg), Ps) ->
+	    true
+	; fail
+	).
+
+% Read the first term (leave unbound on failure or exception)
+read_first_term(File, Term) :-
+	catch(open(File, read, Stream), _, fail), % (it may be a broken symlink)
+	( catch(read(Stream, Term), _, true) ->
+	    true
+	; true
+	),
+	close(Stream).

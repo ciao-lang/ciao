@@ -56,8 +56,12 @@ ensure_dirs() {
 
 # ---------------------------------------------------------------------------
 
+function get_manual_infile() {
+    echo "SETTINGS.pl"
+}
+
 # This is a hack... it has the version number hardwired.
-function get_manual_file() {
+function get_manual_outfile() {
     case $1 in
 	ciao) echo "ciao-1.15.0" ;;
 	ciaopp_ref_man) echo "ciaopp-1.2.0" ;;
@@ -98,18 +102,18 @@ function get_manual_outdir() {
 
 function get_manual_cmd() {
     case $1 in
-	ciao) echo "lpmake docs" ;;
-	ciaopp_ref_man) echo "lpmake docs" ;;
-	ciaopp_doc) echo "lpmake docs" ;;
-	lpdoc) echo "lpmake docs" ;;
+	ciao) echo "ciao build_docs ciao" ;;
+	ciaopp_ref_man) echo "ciao build_docs ciaopp" ;;
+	ciaopp_doc) echo "ciao build_docs ciaopp" ;;
+	lpdoc) echo "ciao build_docs lpdoc" ;;
 	# for testing
 	ciaotest) cat <<EOF
-lpdoc all
+lpdoc --output_dir=$manual_outdir -t all $manual_infile
 EOF
 	    ;;
 	singlelpdoc) cat <<EOF
-lpdoc singlelpdoc.texi && \
-lpdoc singlelpdoc.html && \
+lpdoc --output_dir=$manual_outdir -t texi $manual_infile && \
+lpdoc --output_dir=$manual_outdir -t html $manual_infile && \
 echo > singlelpdoc.infoindex && \
 echo > singlelpdoc.info && \
 echo > singlelpdoc.pdf && \
@@ -128,10 +132,7 @@ EOF
 # Clean doc output
 # TODO: use lpdoc realclean, etc.
 function clean_docs() {
-    cd "$manual_outdir"
-    rm -f *.texic_gr *.texic_rr *.html_gr *.html_rr *.manl_gr *.manl_rr *.texic_dr *.html_dr *.ascii_dr *.manl_dr *.texic *.texi *.bbl *.blg *.el *.manl *.info *.infoindex || true
-    rm -rf *.html || true
-    rm -rf *.cachedoc || true
+    lpdoc --output_dir="$manual_outdir" --realclean "$manual_infile"
 }
 
 # Generate the documentation for $manual
@@ -148,19 +149,19 @@ function compare_docs() {
     ensure_dirs
     cd "$manual_outdir"
     echo "Comparing PDF (just size)"
-    ls -la "$manual_file.pdf" "$resdir/$manual_file.pdf-saved" || true
+    ls -la "$manual_outfile.pdf" "$resdir/$manual_outfile.pdf-saved" || true
     echo "Comparing DVI (just size)"
-    ls -la "$manual_file.dvi" "$resdir/$manual_file.dvi-saved" || true
+    ls -la "$manual_outfile.dvi" "$resdir/$manual_outfile.dvi-saved" || true
     echo "Comparing html"
-    mydiff "$manual_file.html" "$resdir/$manual_file.html-saved" || true
+    mydiff "$manual_outfile.html" "$resdir/$manual_outfile.html-saved" || true
     echo "Comparing manl"
-    mydiff "$manual_file.manl" "$resdir/$manual_file.manl-saved" || true
+    mydiff "$manual_outfile.manl" "$resdir/$manual_outfile.manl-saved" || true
     echo "Comparing texi"
-    mydiff "$manual_file.texi" "$resdir/$manual_file.texi-saved" || true
+    mydiff "$manual_outfile.texi" "$resdir/$manual_outfile.texi-saved" || true
     echo "Comparing info"
-    mydiff "$manual_file.info" "$resdir/$manual_file.info-saved" || true
+    mydiff "$manual_outfile.info" "$resdir/$manual_outfile.info-saved" || true
     echo "Comparing infoindex"
-    mydiff "$manual_file.infoindex" "$resdir/$manual_file.infoindex-saved" || true
+    mydiff "$manual_outfile.infoindex" "$resdir/$manual_outfile.infoindex-saved" || true
 }
 
 function mydiff() {
@@ -177,19 +178,19 @@ function save_docs() {
     ensure_dirs
     cd "$manual_outdir"
     echo "Saving PDF"
-    cp "$manual_file.pdf" "$resdir/$manual_file.pdf-saved" || true
+    cp "$manual_outfile.pdf" "$resdir/$manual_outfile.pdf-saved" || true
     echo "Saving DVI"
-    cp "$manual_file.dvi" "$resdir/$manual_file.dvi-saved" || true
+    cp "$manual_outfile.dvi" "$resdir/$manual_outfile.dvi-saved" || true
     echo "Saving html"
-    cp "$manual_file.html" "$resdir/$manual_file.html-saved" || true
+    cp "$manual_outfile.html" "$resdir/$manual_outfile.html-saved" || true
     echo "Saving manl"
-    cp "$manual_file.manl" "$resdir/$manual_file.manl-saved" || true
+    cp "$manual_outfile.manl" "$resdir/$manual_outfile.manl-saved" || true
     echo "Saving texi"
-    cp "$manual_file.texi" "$resdir/$manual_file.texi-saved" || true
+    cp "$manual_outfile.texi" "$resdir/$manual_outfile.texi-saved" || true
     echo "Saving info"
-    cp "$manual_file.info" "$resdir/$manual_file.info-saved" || true
+    cp "$manual_outfile.info" "$resdir/$manual_outfile.info-saved" || true
     echo "Saving infoindex"
-    cp "$manual_file.infoindex" "$resdir/$manual_file.infoindex-saved" || true
+    cp "$manual_outfile.infoindex" "$resdir/$manual_outfile.infoindex-saved" || true
 }
 
 # -----------------------------------------------------------------
@@ -197,20 +198,20 @@ function save_docs() {
 
 # Open the HTML documentation
 function open_html() {
-    local top=`cat "$manual_outdir/$manual_file.html/"*".htmlmeta"`
-    open "$manual_outdir/$manual_file.html/$top.html"
+    local top=`cat "$manual_outdir/$manual_outfile.html/"*".htmlmeta"`
+    open "$manual_outdir/$manual_outfile.html/$top.html"
 }
 
 # Open the HTML documentation
 function open_pdf() {
-    open "$manual_outdir/$manual_file.pdf"
+    open "$manual_outdir/$manual_outfile.pdf"
 }
 
 # Open the info documentation (with emacsclient)
 function open_info() {
     # TODO: escape is wrong
     # TODO: fix 'lpdoc infoview', needs absolute file name
-    emacsclient -n --eval "(info \"$manual_outdir/$manual_file.info\")"
+    emacsclient -n --eval "(info \"$manual_outdir/$manual_outfile.info\")"
 }
 
 # -----------------------------------------------------------------
@@ -240,8 +241,9 @@ EOF
 # -----------------------------------------------------------------
 
 function pick_manual() {
-    manual_file=`get_manual_file "$manual"`
-    if [ x"$manual_file" == x"" ]; then
+    manual_infile=`get_manual_infile "$manual"`
+    manual_outfile=`get_manual_outfile "$manual"`
+    if [ x"$manual_outfile" == x"" ]; then
 	echo "Unrecognized manual \`$manual'"
 	do_help
 	exit -1

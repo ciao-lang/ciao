@@ -65,15 +65,15 @@ find_file(File, PathFile) :-
 	file_exists(PathFile),
 	!.
 
-:- export(find_source/4).
+:- export(find_doc_source/2).
 % Find the first source that exists (e.g., .pl or .lpdoc). See @pred{find_file/2}
-find_source(Name, Suffix, NameSuffix, Path) :-
-	Suffix = ~srcsuff,
-	NameSuffix = ~atom_concat([Name, '.', Suffix]),
-	find_file(NameSuffix, Path).
+find_doc_source(Name, Path) :-
+	Ext = ~srcext,
+	NameExt = ~atom_concat(Name, Ext),
+	find_file(NameExt, Path).
 
 % TODO: I am not sure if here is the place to define this.
-srcsuff := pl | lpdoc.
+srcext := '.pl' | '.lpdoc'.
 
 % ---------------------------------------------------------------------------
 
@@ -82,8 +82,7 @@ srcsuff := pl | lpdoc.
    single documentation processing unit (module).".
 
 subtarget(fr). % final result
-subtarget(fr_aux(_)). % auxiliary files included in the final result
-subtarget(fr_alt(_)). % alternative views/versions of the final results (e.g. PDF, PS, infoindex)
+subtarget(fr_alt(_Alt)). % alternative format for the final results (e.g. PDF, PS, infoindex)
 subtarget(cr). % intermediate results in the specified format
 subtarget(dr). % doctree representation (almost format agnostic)
 subtarget(rr). % local references (joint later as global refs)
@@ -92,45 +91,58 @@ subtarget(gr). % globally resolved references (including biblio)
 % Use the output name for this subtarget?
 % TODO: Base on some backend option?
 subtarget_uses_output_name(fr, _) :- !.
-subtarget_uses_output_name(fr_alt(_), _) :- !.
+subtarget_uses_output_name(fr_alt(_Alt), _) :- !.
 subtarget_uses_output_name(cr, man) :- !.
 
 % Subtargets that are placed in the output dir (and not in the cache dir)
 subtarget_is_final(cr, html) :- !.
 subtarget_is_final(cr, man) :- !.
-subtarget_is_final(fr_alt(Ext), html) :- !, \+ Ext = 'htmlmeta'.
-subtarget_is_final(fr_aux(_), html) :- !.
+subtarget_is_final(fr_alt(Alt), html) :- !, \+ Alt = 'htmlmeta'.
+subtarget_is_final(fr_alt(_Alt), _) :- !.
 subtarget_is_final(fr, _) :- !.
-subtarget_is_final(fr_alt(_), _) :- !.
 
-:- pred target_suffix/3 : atm * subtarget * atm # "A
-   final suffix given a format and subtarget.".
+% Aux placed in the output dir (and not in the cache dir)
+aux_is_final(html) :- !.
+
+:- pred target_ext/3 : atm * subtarget * atm 
+   # "File extension for a format and subtarget.".
 % TODO: put everything in a temporary directory so that suffixes can be mixed?
 
-target_suffix(Backend, Subtarget, Suffix) :-
+target_ext(Backend, Subtarget, Ext) :-
 	( Subtarget = fr -> % final result
-	    backend_final_suffix(Backend, Suffix)
+	    backend_final_ext(Backend, Ext)
+	; Subtarget = fr_alt(Alt) ->
+	    alt_ext(Alt, Ext)
 	; Subtarget = cr -> % intermediate
-	    backend_temp_suffix(Backend, Suffix)
+	    backend_comp_ext(Backend, Ext)
 	; Subtarget = dr -> % doctree
-	    backend_temp_suffix(Backend, Suffix0),
-	    atom_concat(Suffix0, '_dr', Suffix)
+	    backend_comp_ext(Backend, Ext0),
+	    atom_concat(Ext0, '_dr', Ext)
 	; Subtarget = rr -> % local references
-	    backend_temp_suffix(Backend, Suffix0),
-	    atom_concat(Suffix0, '_rr', Suffix)
+	    backend_comp_ext(Backend, Ext0),
+	    atom_concat(Ext0, '_rr', Ext)
 	; Subtarget = gr -> % global references
-	    backend_temp_suffix(Backend, Suffix0),
-	    atom_concat(Suffix0, '_gr', Suffix)
+	    backend_comp_ext(Backend, Ext0),
+	    atom_concat(Ext0, '_gr', Ext)
+	; fail
 	).
 
-% TODO: This is the supported format suffix for components
-backend_temp_suffix(texinfo,'texic').
-backend_temp_suffix(html,'html').
-backend_temp_suffix(man,'manl').
+% (extension of component output)
+backend_comp_ext(texinfo,'.texic').
+backend_comp_ext(html,'.html').
+backend_comp_ext(man,'.manl').
 
-backend_final_suffix(texinfo, 'texi').
-backend_final_suffix(html, 'htmlmeta').
-%backend_final_suffix(man, 'manmeta').
+% (extension of main output)
+backend_final_ext(texinfo, '.texi').
+backend_final_ext(html, '.htmlmeta').
+%backend_final_ext(man, '.manmeta').
+
+alt_ext(dvi, '.dvi').
+alt_ext(ps, '.ps').
+alt_ext(pdf, '.pdf').
+alt_ext(info, '.info').
+alt_ext(infoindex, '.infoindex').
+alt_ext(ascii, '.ascii').
 
 % ---------------------------------------------------------------------------
 
@@ -142,7 +154,7 @@ file_format_name(ps,    'postscript').
 file_format_name(pdf,   'Adobe PDF (acrobat)').
 file_format_name(texi,  'GNU texinfo source').
 %file_format_name('HLP', 'Windows help').
-file_format_name(txt,   'plain text').
+file_format_name(txt,   'plain text'). % TODO: used?
 file_format_name(ascii, 'ASCII plain text').
 file_format_name(html,  'HTML hypertext').
 file_format_name(htmlmeta,  'HTML hypertext (metafile)').
@@ -151,23 +163,38 @@ file_format_name(infoindex, 'GNU info hypertext (directory)').
 file_format_name(manl,  'Unix man').
 
 :- export(supported_file_format/1).
-supported_file_format(Ext) :-
-	file_format_provided_by_backend(Ext, _, _).
+supported_file_format(texi).
+supported_file_format(dvi).
+supported_file_format(ps).
+supported_file_format(pdf).
+supported_file_format(info).
+supported_file_format(infoindex).
+supported_file_format(ascii).
+supported_file_format(manl).
+supported_file_format(html).
+supported_file_format(htmlmeta).
 
 % TODO: Store in the backends?
-:- export(file_format_provided_by_backend/3).
-:- pred file_format_provided_by_backend(Ext, Backend, Subtarget) :: atm * backend_id * atm #
-   "@var{Backend} is the backend that generates files with format @var{Ext}".
-file_format_provided_by_backend(texi, texinfo, fr).
-file_format_provided_by_backend(dvi, texinfo, fr_alt(dvi)).
-file_format_provided_by_backend(ps, texinfo, fr_alt(ps)).
-file_format_provided_by_backend(pdf, texinfo, fr_alt(pdf)).
-file_format_provided_by_backend(info, texinfo, fr_alt(info)).
-file_format_provided_by_backend(infoindex, texinfo, fr_alt(infoindex)).
-file_format_provided_by_backend(ascii, texinfo, fr_alt(ascii)).
-file_format_provided_by_backend(manl, man, cr).
-file_format_provided_by_backend(html, html, cr).
-file_format_provided_by_backend(htmlmeta, html, fr).
+:- export(format_get_subtarget/3).
+:- pred format_get_subtarget(Format, Backend, Subtarget) :: atm * backend_id * atm #
+   "@var{Backend} and @var{Subtarget} are the backend and subtarget that generates files with format @var{Format}".
+format_get_subtarget(texi, texinfo, fr).
+format_get_subtarget(dvi, texinfo, fr_alt(dvi)).
+format_get_subtarget(ps, texinfo, fr_alt(ps)).
+format_get_subtarget(pdf, texinfo, fr_alt(pdf)).
+format_get_subtarget(info, texinfo, fr_alt(info)).
+format_get_subtarget(infoindex, texinfo, fr_alt(infoindex)).
+format_get_subtarget(ascii, texinfo, fr_alt(ascii)).
+format_get_subtarget(manl, man, cr).
+format_get_subtarget(html, html, cr).
+format_get_subtarget(htmlmeta, html, fr).
+
+:- export(format_get_file/3).
+:- pred format_get_file(Format, Mod, File) :: atm * atm * atm #
+   "@var{File} is the principal file for @var{Mod} in format @var{Format}".
+format_get_file(Format, Mod, File) :-
+	format_get_subtarget(Format, Backend, Subtarget),
+	absfile_for_subtarget(Mod, Backend, Subtarget, File).
 
 % ---------------------------------------------------------------------------
 
@@ -193,10 +220,11 @@ get_output_dir(Backend, Dir) :-
 	computed_output_dir(Backend, Dir0), !, Dir = Dir0.
 get_output_dir(Backend, Dir) :-
 	Dir1 = '',
-	( output_packed_in_dir(Backend) ->
+	( output_packed_in_dir(Backend, DirSuffix) ->
 	    % Use a directory inside 'htmldir'
 	    main_output_name(Backend, OutBase),
-	    atom_concat([Dir1, OutBase, '.', Backend], Dir)
+	    atom_concat(OutBase, DirSuffix, OutDir),
+	    path_concat(Dir1, OutDir, Dir)
 	; % Store in 'htmldir' directly
 	  Dir = Dir1
 	),
@@ -254,8 +282,12 @@ ensure_dir(Dir) :-
 :- pred absfile_for_aux(AuxName, Backend, AbsFile) # "Absolute file
    for an auxiliary output file (e.g. CSS, images, etc.)".
 
-absfile_for_aux(AuxName, Backend, AbsFile) :-
-	absfile_for_subtarget(AuxName, Backend, fr_aux(''), AbsFile).
+absfile_for_aux(Base, Backend, AbsFile) :-
+	( aux_is_final(Backend) ->
+	    get_output_dir(Backend, Dir)
+	; get_cache_dir(Backend, Dir)
+	),
+	path_concat(Dir, Base, AbsFile). % (note path_concat('',X,X))
 
 % ---------------------------------------------------------------------------
 
@@ -271,14 +303,8 @@ subtarget_name(Backend, Subtarget, Mod, NameExt) :-
 	    main_output_name(Backend, Base)
 	; Base = Mod
 	),
-	( Subtarget = fr_aux('') ->
-	    NameExt = Base
-	; ( Subtarget = fr_aux(Ext) -> true
-	  ; Subtarget = fr_alt(Ext) -> true
-	  ; target_suffix(Backend, Subtarget, Ext)
-	  ),
-	  atom_concat([Base, '.', Ext], NameExt)
-	).
+	target_ext(Backend, Subtarget, Ext),
+	atom_concat(Base, Ext, NameExt).
 
 % The final (absolute) base
 % TODO: Output and temporary file handling needs a major rework
@@ -312,7 +338,7 @@ main_output_name(Backend, NV) :-
 main_output_name(Backend, NV) :-
 	main_output_name_novers(OutputBase1),
 	% Include the version (if required)
-	( \+ setting_value(doc_mainopts, no_versioned_output),
+	( setting_value(doc_mainopts, versioned_output),
 	  get_parent_bundle(Bundle),
 	  V = ~bundle_version_patch(Bundle),
 	  atom_concat([OutputBase1, '-', V], NV0) ->
@@ -339,7 +365,7 @@ main_output_name_novers(OutputBase) :-
 :- export(get_parent_bundle/1).
 get_parent_bundle(Bundle) :-
 	get_mainmod(Mod),
-	find_source(Mod, _, _, ModPath),
+	find_doc_source(Mod, ModPath),
 	reverse_fsRx(ModPath, ModSpec),
 	fsRx_get_bundle_and_basename(ModSpec, Bundle, _).
 
@@ -439,26 +465,26 @@ clean_all_temporary :-
 	clean_intermediate,
 	clean_texi.
 
-:- export(clean_intermediate/0).
-clean_intermediate :-
-	clean_other_intermediate.
+clean_temp_no_texi :-
+	doc_output_pattern(Pattern),
+	-remove_glob('.', Pattern).
 
 doc_output_pattern(Pattern) :-
 	pred_to_glob_pattern(doc_output_pattern_, Pattern).
 
 doc_output_pattern_(Pattern) :-
-	file_format_name(Ext, _),
-	\+ Ext = 'texi',
-	atom_concat('*.', Ext, Pattern).
-
-clean_temp_no_texi :-
-	doc_output_pattern(Pattern),
-	-remove_glob('.', Pattern).
+	( backend_comp_ext(_, Ext)
+	; backend_final_ext(_, Ext)
+	; alt_ext(_, Ext)
+	),
+	\+ Ext = '.texi',
+	atom_concat('*', Ext, Pattern).
 
 clean_texi :-
 	-delete_glob('.', '*.texi').
 
-clean_other_intermediate :-
+:- export(clean_intermediate/0). % (clean cachedoc and other compilation caches)
+clean_intermediate :-
 	% TODO: It should not delete *_autofig.png files, right? (indeed they are not generated here)
 	% TODO: Use a directory for temporary files?
 	pred_to_glob_pattern(other_pattern, Pattern),
@@ -471,20 +497,6 @@ other_pattern('*.itf').
 other_pattern('*.po').
 other_pattern('*.asr').
 other_pattern('*.testout').
-%
-other_pattern('*.infoindex').
-%other_pattern('*~'). % (not a product of compilation!)
-%% NOTE: Hidden inside *.cachedoc file, do not delete
-% other_pattern('*.err').
-% other_pattern('*.tmp').
-% other_pattern('*.log').
-% other_pattern('*.htmlmeta').
-% other_pattern('*.aux').
-% other_pattern('*.blg').
-% other_pattern('*.bbl').
-% other_pattern('*_autofig.jpg').
-% other_pattern('*_autofig.png').
-% other_pattern('*_autofig.eps').
 
 :- export(pred_to_glob_pattern/2).
 :- meta_predicate pred_to_glob_pattern(pred(1), ?).
@@ -511,8 +523,9 @@ list_to_glob_pattern(List, Pattern) :-
 
 % The output (for the given format) is packed in a directory
 % TODO: Move as options?
-output_packed_in_dir(Backend) :-
+output_packed_in_dir(Backend, DirSuffix) :-
 	% Only HTML, when not generating a website
 	Backend = html,
-	\+ setting_value(html_layout, 'website_layout').
+	\+ setting_value(html_layout, 'website_layout'),
+	DirSuffix = '.html'. % TODO: it may be '_files', etc.
 

@@ -9,6 +9,17 @@
    information. The command-line interface allows the use of the
    system in batch mode, using arguments for specifiying documentation
    setting, targets, and actions.
+
+@section{Usage (lpdoc)}
+
+The following provides details on the different command line options
+available when invoking @apl{lpdoc}:
+
+@sp{2}
+
+@begin{verbatim}
+@includefact{usage_message/1}
+@end{verbatim}
 ").
 
 :- use_module(library(errhandle), [handle_error/2]).
@@ -16,105 +27,152 @@
 :- use_module(library(format), [format/3]).
 :- use_module(library(toplevel), [toplevel/1]). % (for built-in toplevel)
 
-:- use_module(lpdoc(docmaker), [doc_cmd/4]).
-:- use_module(lpdoc(lpdoccl_help)).
+:- use_module(lpdoc(docmaker), [doc_cmd/3]).
+
+usage_message("\
+lpdoc [<opts>] <input>
+
+Generates documentation for the given input
+
+General options:
+
+  -h|--help              Show help
+  --version              Show version and exit
+  -T                     Start a LPdoc toplevel (single option)
+
+  -v                     Verbose
+  --trace-deps           Trace dependencies (for debugging)
+
+  --Name=Value           Set or override the option Name (doccfg)
+
+  -t TARGET              Format (pdf|ps|html|info|manl)
+
+Options to view or clean the documentation output:
+
+  --view                 Open documentation in selected format
+
+  --clean                Clean all except .texi and targets (E.g., .pdf)"|| /*intermediate*/ "
+  --docsclean            Clean all except .texi output"|| /* intermediate, temp_no_texi */ "
+  --distclean            Clean all except final output (e.g., .pdf)"|| /* intermediate, texi*/ "
+  --realclean            Clean all generated files"|| /* intermediate, temp_no_texi, texi*/ "
+").
 
 % Invocation from the command-line interface
 :- export(main/1).
 main(Args) :-
-	catch(main_(Args), E, (handle_lpdoc_error(E), fail)).
+	catch(main_(Args), E, (handle_lpdoc_error(E), halt(1))).
 
-main_([]) :- !,
-	show_help(summary, normal).
-main_([Help0|Args]) :-
-	help_mode(Help0, Mode),
-	!,
-	( Args = [] ->
-	    show_help(Mode, normal)
-	; Args = [Arg0] ->
-	    show_help_cmd(Arg0, normal)
-	; fail
-	).
 main_(Args) :-
 	reset_opts,
-	parse_args(Args, Cmd),
-	lpdoc_cmd(Cmd).
-
-help_mode('-h', all).
-help_mode('--help', all).
-help_mode('help', all).
-
-version_cmd('version').
-
-% ---------------------------------------------------------------------------
-% Parse command line arguments
-
-parse_args(Args, Cmd) :-
 	parse_opts(Args, Rest),
+	select_cmd(Cmd),
+	check_args(Cmd, Rest),
 	!,
-	parse_cmd(Rest, Cmd).
-parse_args(Args, _) :-
+	lpdoc_cmd(Cmd, Rest).
+main_(Args) :-
 	error_bad_args(Args).
 
-% (general options)
+error_bad_args(Args) :-
+	throw(autodoc_error("Illegal arguments: ~w~n"||
+			    "Use 'lpdoc --help' for help.~n", [Args])).
+
+select_cmd(Cmd) :-
+	( opt_mode(help) -> Cmd = help
+	; opt_mode(version) -> Cmd = version
+	; opt_mode(toplevel) -> Cmd = toplevel
+	; opt_mode(clean(Mode)) -> Cmd = clean(Mode)
+	; opt_mode(view) -> view_target(Target), Cmd = view(Target)
+	; gen_target(Target), Cmd = gen(Target)
+	).
+
+check_args(help, []).
+check_args(version, []).
+check_args(toplevel, []).
+check_args(clean(_), [_]). % TODO: fixme, InFile not used?
+check_args(view(_), [_]).
+check_args(gen(_), [_]).
+
+default_gen_target(all). % TODO: sure?
+
+default_view_target(html).
+
+gen_target(Target) :-
+	( opt_target(Target) -> true
+	; default_gen_target(Target)
+	).
+
+view_target(Target) :-
+	( opt_target(Target) -> true
+	; default_view_target(Target)
+	).
+
+lpdoc_cmd(help, _) :- !, usage.
+lpdoc_cmd(version, _) :- !,
+	version(Version),
+	format(user_error, "LPdoc version ~w~n", [Version]).
+lpdoc_cmd(toplevel, _) :- !,
+	lpdoc_toplevel([]).
+lpdoc_cmd(Cmd, [InFile]) :-
+	get_opts(Opts),
+	doc_cmd(InFile, Opts, Cmd).
+
+% ---------------------------------------------------------------------------
+
+:- include(lpdoc(version_auto)). % Version information
+
+usage :-
+	usage_message(Str),
+	message([$$(Str)]).
+
+% ---------------------------------------------------------------------------
+
+:- use_module(library(hiordlib), [map/3]).
+
+% Parse options and normal arguments
 parse_opts([Opt|Args], Rest) :-
 	is_option0(Opt),
 	!,
 	handle_option0(Opt),
+	parse_opts(Args, Rest).
+parse_opts([Opt|Args], Rest) :-
+	parse_name_value(Opt, Name, Value),
+	!,
+	handle_name_value(Name, Value),
 	parse_opts(Args, Rest).
 parse_opts([Opt, Arg|Args], Rest) :-
 	is_option1(Opt),
 	!,
 	handle_option1(Opt, Arg),
 	parse_opts(Args, Rest).
-parse_opts(Args, Rest) :-
-	Rest = Args.
+parse_opts([Arg|Args], Rest) :- !,
+	Rest = [Arg|Rest0],
+	parse_opts(Args, Rest0).
+parse_opts([], []).
 
-% (command)
-parse_cmd([X], Cmd) :- version_cmd(X), !, Cmd = version.
-parse_cmd([X], Cmd) :- view_cmd(X, Suffix), !, Cmd = view(Suffix).
-parse_cmd([X], Cmd) :- clean_cmd(X, Mode), !, Cmd = clean(Mode).
-parse_cmd(['-T'], Cmd) :- !, Cmd = toplevel.
-parse_cmd(Targets, Cmd) :- !,
-	Cmd = start(Targets).
+parse_name_value(NameValue, Name, Value) :-
+	parse_name_value_string(NameValue, Name, ValueS),
+	atom_codes(Value, ValueS).
 
-view_cmd(view, html).
-view_cmd(pdfview, pdf).
-view_cmd(psview, ps).
-view_cmd(htmlview, html).
-view_cmd(infoview, info).
-view_cmd(manlview, manl).
+parse_name_value_string(NameValue, Name, ValueS) :-
+	atom_codes(NameValue, NameValueS),
+	list_concat(["--", NameS, "=", ValueS], NameValueS),
+	!,
+	norm_name(NameS, NameS2),
+	atom_codes(Name, NameS2).
 
-clean_cmd(clean, intermediate).
-clean_cmd(docsclean, docs_no_texi).
-clean_cmd(distclean, all_temporary).
-clean_cmd(realclean, all).
+% Replace 0'- by 0'_ in names of flags
+norm_name(Cs0, Cs) :-
+	map(Cs0, normunderscore, Cs).
 
-error_bad_args(Args) :-
-	format(user_error, "ERROR: illegal arguments: ~w~n", [Args]),
-	format(user_error, "Use 'lpdoc help' for help.~n", []),
-	halt(1).
-
-% ---------------------------------------------------------------------------
-
-:- include(lpdoc(version_auto)). % Version information
-
-lpdoc_cmd(version) :- !,
-	version(Version),
-	format(user_error, "LPdoc version ~w~n", [Version]).
-lpdoc_cmd(toplevel) :- !,
-	lpdoc_toplevel([]).
-lpdoc_cmd(Cmd) :-
-	opt_settings_file(ConfigFile),
-	get_opts(Opts),
-	% TODO: it may be better to use '_' here for output dir
-	doc_cmd(ConfigFile, Opts, Cmd, '.').
+normunderscore(0'-, 0'_) :- !.
+normunderscore(C,   C).
 
 % ---------------------------------------------------------------------------
 
 % Command line options may be handled with:
 %   is_option0/1, handle_option0/1
 %   is_option1/1, handle_option1/2
+%   handle_name_value/2
 
 % Options with 0 arguments
 :- discontiguous(is_option0/1).
@@ -122,22 +180,24 @@ lpdoc_cmd(Cmd) :-
 % Options with 1 argument
 :- discontiguous(is_option1/1).
 :- discontiguous(handle_option1/2).
+% --Name=Value
+:- discontiguous(handle_name_value/2).
 
 % ---------------------------------------------------------------------------
 % Parsed options
 
 :- use_module(library(aggregates), [findall/3]).
 
-:- data opt_settings_file/1.
+:- data opt_target/1.
+:- data opt_mode/1.
 :- data opt_name_value/2.
 :- data opt_autodoc_option/1.
 
 reset_opts :-
-	retractall_fact(opt_settings_file(_)),
+	retractall_fact(opt_target(_)),
+	retractall_fact(opt_mode(_)),
 	retractall_fact(opt_autodoc_option(_)),
-	retractall_fact(opt_name_value(_, _)),
-	%
-	assertz_fact(opt_settings_file('SETTINGS')).
+	retractall_fact(opt_name_value(_, _)).
 
 get_opts(Opts) :- findall(O, opt(O), Opts).
 
@@ -148,10 +208,21 @@ opt(name_value(Name, Value)) :- opt_name_value(Name, Value).
 
 :- use_module(library(lists), [list_concat/2]).
 
-is_option1('-d').
-handle_option1('-d', NameValue) :-
-	parse_name_value(NameValue, Name, Value),
-	assertz_fact(opt_name_value(Name, Value)).
+is_option0('-h').
+handle_option0('-h') :-
+	assertz_fact(opt_mode(help)).
+
+is_option0('--help').
+handle_option0('--help') :-
+	assertz_fact(opt_mode(help)).
+
+is_option0('--version').
+handle_option0('--version') :-
+	assertz_fact(opt_mode(version)).
+
+is_option0('-T').
+handle_option0('-T') :-
+	assertz_fact(opt_mode(toplevel)).
 
 is_option0('-v').
 handle_option0('-v') :-
@@ -161,20 +232,26 @@ is_option0('--trace-deps').
 handle_option0('--trace-deps') :-
 	assertz_fact(opt_autodoc_option('--trace-deps')).
 
-is_option1('-f').
-handle_option1('-f', CfgFile) :-
-	retractall_fact(opt_settings_file(_)),
-	assertz_fact(opt_settings_file(CfgFile)).
+is_option1('-t').
+handle_option1('-t', Target) :-
+	retractall_fact(opt_target(_)),
+	assertz_fact(opt_target(Target)).
 
-parse_name_value(NameValue, Name, Value) :-
-	parse_name_value_string(NameValue, Name, ValueS),
-	atom_codes(Value, ValueS).
+is_option0('--view').
+handle_option0('--view') :-
+	assertz_fact(opt_mode(view)).
 
-parse_name_value_string(NameValue, Name, ValueS) :-
-	atom_codes(NameValue, NameValueS),
-	list_concat([NameS, "=", ValueS], NameValueS),
-	!,
-	atom_codes(Name, NameS).
+is_option0(X) :- clean_cmd(X, _).
+handle_option0(X) :- clean_cmd(X, Mode), !,
+	assertz_fact(opt_mode(clean(Mode))).
+
+handle_name_value(Name, Value) :-
+	assertz_fact(opt_name_value(Name, Value)).
+
+clean_cmd('--clean', intermediate).
+clean_cmd('--docsclean', docs_no_texi).
+clean_cmd('--distclean', all_temporary).
+clean_cmd('--realclean', all).
 
 % ---------------------------------------------------------------------------
 

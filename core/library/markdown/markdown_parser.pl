@@ -336,6 +336,7 @@ parse_text_(Layout, StrHead, StrTail, Envs) -->
 	{ decorator_fxf(Begin, End, Cmd) },
 	{ cmd_type(Cmd, Type) },
 	sc_str(Begin), match_substring_arg(Type, Text, End),
+	{ \+ Text = "" }, % not empty
 	!,
 	{ flush_text(StrHead, StrTail, Envs, Envs1) },
 	%

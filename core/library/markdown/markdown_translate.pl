@@ -72,7 +72,7 @@ detect_margin_size(Cs, M) :-
 	Max = 0xffffff, % infinite for this purpose
 	detect_margin_size_(Cs, Max, M).
 
-detect_margin_size_([], M, M).
+detect_margin_size_([], M, M) :- !.
 detect_margin_size_(Cs, M0, M) :-
 	blanks_number(Cs, N, Cs2), \+ match_eol_or_end(Cs2), !,
 	( N < M0 -> M1 = N ; M1 = M0 ),
@@ -106,7 +106,7 @@ cut_left(Cs0, M, Cs) :-
 	cut_left_(Cs1, M, Cs).
 
 cut_left_([], _M, []).
-cut_left_([0'\n|Cs0], M, [0'\n|Cs]) :-
+cut_left_([0'\n|Cs0], M, [0'\n|Cs]) :- !,
 	cut_left(Cs0, M, Cs).
 cut_left_([C|Cs0], M, [C|Cs]) :-
 	cut_left_(Cs0, M, Cs).
@@ -318,10 +318,18 @@ head_contains_usage(Head) :-
 	!.
 
 % Translate a command argument into a term (for docdecls)
+%
+% NOTE:
+%   The \dc{} command is added at the beginning to explicitly annotate
+%   that this text is partially parsed by markdown_translate. See autodoc_parse
+%   for more details.
+
 arg_to_term(term, X, Term) :- !, Term = X.
-arg_to_term(docstring, X, Term) :- !,
-	arg_to_docstring(X, nl, _, Term, []).
-arg_to_term(docstring_oneline, X, Term) :- !,
-	arg_to_docstring(X, nl, _, Term, []).
-arg_to_term(Type, _X, _Term) :-
+arg_to_term(docstring, X, Str) :- !,
+	Str = "\\dc{}"||Str0,
+	arg_to_docstring(X, nl, _, Str0, []).
+arg_to_term(docstring_oneline, X, Str) :- !,
+	Str = "\\dc{}"||Str0,
+	arg_to_docstring(X, nl, _, Str0, []).
+arg_to_term(Type, _X, _) :-
 	throw(error(unknown_cmd_type(Type), arg_to_term/3)).

@@ -47,7 +47,7 @@ css_file(Path) :-
 	setting_value(lpdoclib, Dir),
 	path_concat(Dir, F, Path).
 css_file(Path) :-
-	setting_value(syntax_highlight, yes),
+	\+ setting_value(syntax_highlight, no),
 	F = 'ciao-htmlfontify.css',
 	fsR(bundle_src(core)/library/syntax_highlight/css, Dir),
 	path_concat(Dir, F, Path).

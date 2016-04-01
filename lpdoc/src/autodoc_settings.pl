@@ -17,7 +17,8 @@
 :- data autodoc_option/1.
 %
 :- export(settings_file/1).
-% settings_file(F): F is the absolute file name with settings
+% settings_file(F): F is the absolute file name with settings (doccfg)
+% (none for standalone)
 :- data settings_file/1.
 %
 :- data name_value/2.
@@ -72,7 +73,7 @@ get_value(Name, Value) :-
 	; get_pred_value(Name, Value)
 	).
 
-dyn_load_cfg_module_into_make(ConfigFile) :-
+dyn_load_doccfg(ConfigFile) :-
 	doccfg_holder:do_use_module(ConfigFile).
 
 % (Get value, given by a predicate definition Name/1)
@@ -89,39 +90,28 @@ get_pred_value(Name, Value) :-
 :- doc(section, "Loading Setting").
 
 % TODO: no unload?
-:- export(load_settings/2).
-:- pred load_settings(ConfigFile, Opts) # "Load configuration from
-   @var{ConfigFile} and @var{Opts}".
+:- export(load_settings/3).
+:- pred load_settings(InFile, InKind, Opts) # "Set configuration from
+   @var{InFile} of kind @var{InKind} and @var{Opts}".
 
-load_settings(ConfigFile, Opts) :-
+load_settings(InFile, InKind, Opts) :-
 	clean_autodoc_settings,
-	load_settings_(ConfigFile),
+	fixed_absolute_file_name(InFile, InFile2),
+	( InKind = doccfg ->
+	    ( dyn_load_doccfg(InFile2) -> true
+	    ; throw(autodoc_error("could not load doccfg file ~w", [InFile]))
+	    ),
+	    set_settings_file(InFile2)
+	; InKind = standalone ->
+	    path_dirname(InFile2, InDir),
+	    % Fill cfg for standalone
+	    add_name_value(filepath, InDir),
+	    add_name_value('$implements', 'doccfg'),
+	    add_name_value(doc_structure, [InFile]) % TODO: or InFile2?
+	; fail
+	),
 	set_opts(Opts),
 	ensure_lpdoclib_defined.
-
-load_settings_(ConfigFile) :-
-	( find_pl(ConfigFile, AbsFilePath) ->
-	    set_settings_file(AbsFilePath),
-	    dyn_load_cfg_module_into_make(AbsFilePath)
-	;
-	    working_directory(CWD0, CWD0),
-	    path_concat(CWD0, '', CWD),
-	    % Fill cfg without a configuration file
-	    add_name_value(filepath, CWD),
-	    add_name_value('$implements', 'doccfg')
-	),
-	!.
-load_settings_(ConfigFile) :-
-	throw(autodoc_error("settings file ~w does not exist", [ConfigFile])).
-
-% `Path` is the absolute file name for `F` or `F` with `.pl` extension
-find_pl(F, Path) :-
-	fixed_absolute_file_name(F, Path0),
-	( file_exists(Path0) -> Path = Path0
-	; atom_concat(Path0, '.pl', Path1),
-	  file_exists(Path1),
-	  Path = Path1
-	).
 
 % Verify that the configuration module uses the lpdoclib(doccfg) package
 :- export(verify_settings/0).
@@ -196,13 +186,11 @@ all_setting_values(Name) := ~all_values(Name).
 	[path_dirname/2, path_is_absolute/1, path_norm/2, path_concat/3]).
 :- use_module(lpdoc(autodoc_filesystem), [cleanup_vpath/0, add_vpath/1]).
 
-:- export(load_vpaths/0).
-load_vpaths :-
+:- export(load_vpaths/1).
+% Setup vpath values, relative to directory of InFile if needed
+load_vpaths(InFile) :-
 	cleanup_vpath,
-	( settings_file(ConfigFile) ->
-	    path_dirname(ConfigFile, InDir) % Find in the same dir as settings_file (if specified)
-	; working_directory(InDir, InDir) % TODO: WRONG! Use standalone input
-	),
+	path_dirname(InFile, InDir),
 	( % (failure-driven loop)
 	  ( P = InDir
 	  ; resolved_filepath(InDir, P)

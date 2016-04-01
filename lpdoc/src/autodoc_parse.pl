@@ -1,6 +1,7 @@
 :- module(autodoc_parse,
-	[parse_docstring/3,
-	 parse_docstring_loc/4],
+	[parse_docstring_loc/4,
+	 parse_docstring/3,
+	 parse_docstring0/3],
 	[dcg, assertions, regtypes, basicmodes]).
 
 :- doc(module, "Parser for the lpdoc mark-up language (@regtype{docstring/1})").
@@ -19,11 +20,16 @@
 :- use_module(lpdoc(autodoc_index)).
 :- use_module(lpdoc(autodoc_doctree)).
 :- use_module(lpdoc(autodoc_settings)).
-:- use_module(lpdoc(autodoc_filesystem), [find_file/2, find_source/4]).
+:- use_module(lpdoc(autodoc_filesystem), [find_file/2, find_doc_source/2]).
 
 :- use_module(lpdoc(comments), [docstring/1]).
 
 %% ---------------------------------------------------------------------------
+
+% (like parse_docstring/3 but with a location)
+parse_docstring_loc(DocSt, Loc, S, RS) :-
+	initial_verb(DocSt, S, S1, Verb),
+	parse_docstring_(DocSt, Loc, Verb, S1, RS).
 
 :- pred parse_docstring(DocSt, S, RS)
 	: ( docstate(DocSt), docstring(S) )
@@ -32,15 +38,12 @@
 # "Parses a documentation string @var{S} into @var{RS}.".
 
 parse_docstring(DocSt, S, RS) :-
+	initial_verb(DocSt, S, S1, Verb),
+	parse_docstring_(DocSt, _, Verb, S1, RS).
+
+% (like parse_docstring/3, but assumes no markdown translation is needed)
+parse_docstring0(DocSt, S, RS) :-
 	parse_docstring_(DocSt, _, noverb, S, RS).
-
-parse_docstring_loc(DocSt, Loc, S, RS) :-
-	parse_docstring_(DocSt, Loc, noverb, S, RS).
-
-% Values for @var{Verb}:
-%   noverb:   normal text
-%   verb:     verbatim text
-%   mathtext: math text
 
 parse_docstring_(DocSt, Loc, Verb, S, R) :-
 	intercept(
@@ -55,15 +58,59 @@ handle_parse_error(Type, Loc, Args) :-
 	!.
 
 %% ---------------------------------------------------------------------------
+% Different grammar variations for docstrings
+
+% Values for `Verb`:
+%   markdown: markdown text
+%   noverb:   markup text
+%   verb:     verbatim text
+%   mathtext: math text
+%   plain:    plain text
+
+% Default Verb for docstring
+%
+% NOTE: See doccomments package for details about \dc{} annotation
+%
+initial_verb(DocSt, S, S0, Verb) :-
+	( nonvar(DocSt), allow_markdown(DocSt) ->
+	    ( S = "\\dc{}"||S1, % (partially parsed by doccomments)
+	      docst_pragma(DocSt, partially_parsed_markdown)
+	    ->
+	        Verb = noverb, S0 = S1
+	    ; Verb = markdown, S = S0
+	    )
+	; Verb = noverb, S0 = S
+	).
+
+% Select new Verb for an include (how contents should be parsed)
+incl_verb(DocSt, noverb, Verb) :-
+	allow_markdown(DocSt),
+	!,
+	Verb = markdown.
+incl_verb(_DocSt, Verb, Verb).
+
+% TODO: Inefficient? Make it part of Verb?
+allow_markdown(DocSt) :-
+	( \+ setting_value(allow_markdown, no) % (default is 'yes')
+	; docst_pragma(DocSt, partially_parsed_markdown)
+	).
+
+%% ---------------------------------------------------------------------------
 % A push down automaton that parses the docstring
 
+parse_docstring__1(DocSt, markdown, S, RS2) :- !,
+	translate_markdown(S, S2),
+	parse_docstring__1(DocSt, noverb, S2, RS2).
+parse_docstring__1(_DocSt, plain, S, RS2) :- !,
+	% TODO: (used in includeverbatim) why not string_verb? 
+	RS2 = string_esc(S).
 parse_docstring__1(DocSt, Verb, S, RS2) :-
-	transition(read, DocSt, empty, Verb, RS2, S, []),
-	!.
-parse_docstring__1(DocSt, _Verb, S, RS2) :-
-	docst_backend(DocSt, Backend),
-	empty_doctree(RS2),
-	send_signal(parse_error(rewrite, [Backend, S])).
+	( transition(read, DocSt, empty, Verb, RS1, S, []) ->
+	    RS1 = RS2
+	; docst_backend(DocSt, Backend),
+	  empty_doctree(RS2),
+	  send_signal(parse_error(rewrite, [Backend, S]))
+	).
 
 % TODO: move to autodoc_docstring
 environment_mode('verbatim', verb).
@@ -453,7 +500,7 @@ handle_command(Struct, _DocSt, _Verb, R) :-
 
 parse_cmd_args([], [], _, []).
 parse_cmd_args([T|Ts], [X|Xs], DocSt, [Y|Ys]) :-
-	( T = d -> parse_docstring(DocSt, X, Y)
+	( T = d -> parse_docstring0(DocSt, X, Y)
 	; T = p -> parse_predname(F, A, X), Y = F/A
 	; T = s -> Y = X
 	; fail % unknown type
@@ -465,9 +512,9 @@ parse_cmd_args([T|Ts], [X|Xs], DocSt, [Y|Ys]) :-
 handle_incl_command(include(FileS), DocSt, Verb, RContent) :- !,
 	atom_codes(RelFile, FileS),
 	handle_incl_file(include, RelFile, DocSt, Verb, RContent).
-handle_incl_command(includeverbatim(FileS), DocSt, Verb, RContent) :- !,
+handle_incl_command(includeverbatim(FileS), DocSt, _Verb, RContent) :- !,
 	atom_codes(RelFile, FileS),
-	handle_incl_file(includeverbatim, RelFile, DocSt, Verb, RContent).
+	handle_incl_file(includeverbatim, RelFile, DocSt, plain, RContent).
 % TODO: Treat this command here or in autodoc? --JF
 %       It adds a dependency to clause_read.
 handle_incl_command(includefact(Pred), DocSt, Verb, RContent) :-
@@ -500,25 +547,14 @@ handle_incl_command(Struct, _DocSt, _Verb, XNewComm) :-
 	XNewComm = Struct.
 
 handle_incl_file(Mode, RelFile, DocSt, Verb, RContent) :-
-	( ( error_protect(find_source(RelFile, _, _, File)), Mode = includeverbatim % TODO: why? remove?
+	( ( Mode = includeverbatim, % TODO: remove, add includecode instead?
+	    error_protect(find_doc_source(RelFile, File))
 	  ; error_protect(find_file(RelFile, File))
 	  ),
 	  read_file(File, Content) ->
 	    docst_message("{-> Including file ~w in documentation string", [File], DocSt),
-	    ( ( Mode = include, setting_value(allow_markdown, yes) % TODO: generalize support for markdown
-	      ; Mode = include, % Hack to continue parsing from doccomments
-		docst_pragma(DocSt, partially_parsed_markdown)
-	      ) ->
-	        translate_markdown(Content, Content2),
-		parse_docstring__1(DocSt, Verb, Content2, RContent)
-	    ; Mode = include ->
-		parse_docstring__1(DocSt, Verb, Content, RContent)
-	    ; Mode = includeverbatim ->
-	        % TODO: accept language and do syntax highlight
-	        % TODO: why not string_verb?
-	        RContent = string_esc(Content)
-	    ; fail
-	    ),
+	    incl_verb(DocSt, Verb, Verb2),
+	    parse_docstring__1(DocSt, Verb2, Content, RContent),
 	    docst_message("}", DocSt)
 	; RContent = err(parse_error(cannot_read, [RelFile]))
 	).

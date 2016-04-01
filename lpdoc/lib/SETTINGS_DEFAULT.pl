@@ -29,5 +29,9 @@ docdir := '/home/clip/public_html/Local/lpdoc_docs'.
 infodir := '/home/clip/public_html/Local/lpdoc_docs'.
 mandir := '/home/clip/public_html/Local/lpdoc_docs'.
 
+% TODO: enable by default?
+allow_markdown := no.
+syntax_highlight := no.
+
 % ----------------------------------------------------------------------------
 % End of SETTINGS

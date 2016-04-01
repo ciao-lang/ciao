@@ -201,7 +201,7 @@ inferior process"
 	(let ((dir (ciao-lpdoc-settings-dir sourcefile)))
 	  (ciao-lpdoc-send-command-at-dir
 	   dir
-	   (concat "\"" ciao-lpdoc-docformat "\""))
+	   (concat "-t " ciao-lpdoc-docformat " SETTINGS.pl"))
 	  t) ;; TODO: Detect errors?
       nil)))
 
@@ -223,7 +223,7 @@ inferior process"
        (t
 	(ciao-lpdoc-send-command-at-dir
 	 dir
-	 (concat ciao-lpdoc-docformat "view")
+	 (concat "-t " ciao-lpdoc-docformat " --view SETTINGS.pl")
 	 ))))))
 
 ;;------------------------------------------------------------

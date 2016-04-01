@@ -193,12 +193,12 @@ warn_if_empty(X, Msg) :-
 :- doc(section, "Generate and Save the doctree for a Module").
 
 :- export(autodoc_gen_doctree/5).
-:- pred autodoc_gen_doctree(Backend, FileBase, SourceSuffix, Opts, Mod)
+:- pred autodoc_gen_doctree(Backend, FileBase, FileExt, Opts, Mod)
 	:: backend_id * filename_noext * atm * list(supported_option) * atm
 
 # "@var{FileBase} is the module specifier of the source file being
-   documented (without extension, @var{SourceSuffix} is the suffix of
-   the source). The output is a file whose contents document the main
+   documented (without extension, @var{FileExt} is the source extension).
+   The output is a file whose contents document the main
    file, based on any assertions present in that file.  The
    documentation is produced in the format given by @var{Backend} (the
    name of the output file also depends on @var{Backend}). The formats
@@ -222,9 +222,9 @@ warn_if_empty(X, Msg) :-
 %       dependencies, whose cached information is possibly discarded
 %       from one execution to the other. --JF
 
-autodoc_gen_doctree(Backend, FileBase, SourceSuffix, Opts, Mod) :-
+autodoc_gen_doctree(Backend, FileBase, FileExt, Opts, Mod) :-
 	verbose_message("{Generating ~w documentation for ~w", [Backend, FileBase]),
-	docst_new_with_src(Backend, FileBase, SourceSuffix, Opts, DocSt),
+	docst_new_with_src(Backend, FileBase, FileExt, Opts, DocSt),
 	%
 	docst_modtype(DocSt, ModuleType),
 	docst_message("File being documented as '~w'", [ModuleType], DocSt),
@@ -237,7 +237,7 @@ autodoc_gen_doctree(Backend, FileBase, SourceSuffix, Opts, Mod) :-
 	%
 	doctree_scan_and_save(ModuleR, Mod, DocSt),
 	% TODO: This generates the infoindex if necessary; generalize for other formats
-	( %SourceSuffix = pl,
+	( % FileExt = '.pl',
 	  docst_currmod_is_main(DocSt),
 	  Backend = texinfo ->
 	    fmt_infodir_entry(DocSt, GlobalVers, Mod)
@@ -485,7 +485,7 @@ fmt_module(DocSt, _Version, GlobalVers, ModuleR) :-
 	ModuleType = plain,
 	!,
 	docst_mvar_get(DocSt, plain_content, Text),
-	parse_docstring_loc(DocSt, _Loc, Text, ContentR),
+	parse_docstring(DocSt, Text, ContentR),
 	( docst_backend(DocSt, Backend),
 	  Backend = texinfo ->
 	    % TODO: Customize style, make toc optional, etc.
@@ -507,8 +507,9 @@ fmt_module(DocSt, _Version, GlobalVers, ModuleR) :-
 	    % TODO: Should 'S' be 'I' here?
 	    % TODO: Move this to a package instead?
 	    ( clause_read(_, usage_message(_), true, _, S, LB, LE) ->
+	        Loc = loc(S, LB, LE),
 	        UsageString = "@begin{verbatim}@includefact{usage_message/1}@end{verbatim}",
-		parse_docstring_loc(DocSt, loc(S, LB, LE), UsageString, UsageR)
+		parse_docstring_loc(DocSt, Loc, UsageString, UsageR)
 	    ; note('No usage_message/1 fact found for application'),
 	      UsageR = []
 	    )
@@ -1728,10 +1729,8 @@ fmt_definition(F/A, DefKind, ModSt, DocSt, R) :-
 		    FS, "/", AS,
 		    "}\n"], TNComment), %% Added \n
 	    get_first_loc_for_pred(F, A, Loc),
-	    note_message(Loc,
-		"no comment text for ~s ~w, including definition", [PropText,
-		    F/A]),
-	    parse_docstring_loc(DocSt, Loc, TNComment, NNCommentR0)
+	    note_message(Loc, "no comment text for ~s ~w, including definition", [PropText, F/A]),
+	    parse_docstring0(DocSt, TNComment, NNCommentR0)
 	; NNCommentR0 = NCommentR
 	),	
 	( ( CommentHead = _/_ ; doctree_is_empty(NNCommentR0) ) ->
@@ -1773,7 +1772,7 @@ fmt_definition(F/A, DefKind, ModSt, DocSt, R) :-
 	    list_concat(["\n\Imported from @lib{", UMS,
 		    "} (see the corresponding documentation for details)."],
 		Text),
-	    parse_docstring(DocSt, Text, RText),
+	    parse_docstring0(DocSt, Text, RText),
 	    add_lines(RText, RText1),
 	    R = [defpred(local_label(_), Type, PText, F/A, [RText1]), sp("1"), raw_nl]
 	).

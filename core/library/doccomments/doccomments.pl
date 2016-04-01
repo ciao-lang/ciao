@@ -15,8 +15,3 @@
 % tell the reader to parse '%!' as special sentences
 :- set_prolog_flag(doccomments, on).
 
-
-
-
-
-

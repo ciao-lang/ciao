@@ -11,3 +11,6 @@ doc_compopts := no_isoline|no_engmods|propmods|no_changelog.
 %docformat := texi. % html or others are not working
 docformat := pdf|manl|info|html.
 
+% TODO: port this manual
+allow_markdown := no.
+syntax_highlight := no.

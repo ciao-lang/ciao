@@ -16,7 +16,8 @@
 :- use_module(lpdoc(comments), [stringcommand/1]).
 :- use_module(library(format_to_string), [format_to_string/3]).
 %
-:- use_module(library(syntax_highlight), [highlight_to_html_string/3]).
+:- use_module(library(syntax_highlight),
+	[can_highlight/1, highlight_to_html_string/3]).
 
 % (Web-site extensions)
 :- use_module(lpdoc(autodoc_html_template)).
@@ -61,7 +62,8 @@ rw_command(p(""),                _, raw("<p>")) :- !.
 rw_command(codeblock(Lang, Text), _, R) :- !,
 	( atom_codes(LangAtm, Lang),
 	  \+ LangAtm = 'text',
-	  setting_value(syntax_highlight, yes) ->
+	  can_highlight(LangAtm),
+	  \+ setting_value(syntax_highlight, no) -> % (default is 'yes')
 	    highlight_to_html_string(LangAtm, Text, Raw),
 	    R = raw(Raw)
 	; R = htmlenv(pre, raw_string(Text))
@@ -152,7 +154,7 @@ rw_command(email(Address), _DocSt, NBody) :- !,
 rw_command(email(Text, Address), _DocSt, NBody) :- !,
 	NBody = [raw("<A HREF=""mailto:"), Address, raw(""">"), Text, raw("</A>")].
 rw_command(image_auto(IFile0, Opts), DocSt, NBody) :- !,
-	locate_and_convert_image(IFile0, ['png', 'jpg'], DocSt, IFile),
+	locate_and_convert_image(IFile0, ['.png', '.jpg'], DocSt, IFile),
 	( Opts = [] ->
 	    NBody = [raw("<IMG SRC="""), raw(IFile), raw(""">")]
 	; Opts = [Width, Height] ->
@@ -726,9 +728,8 @@ finish_html :-
 	% files are directly generated in '.html' format. That
 	% could be generalized to more backends. (JFMC)
 	Mod = ~get_mainmod,
-	file_format_provided_by_backend('htmlmeta', Backend, Subtarget),
 	get_mainmod(Mod),
-	absfile_for_subtarget(Mod, Backend, Subtarget, Out),
+	format_get_file(htmlmeta, Mod, Out),
 	%
 	atom_codes(Mod, ModS),
 	string_to_file(ModS, Out).

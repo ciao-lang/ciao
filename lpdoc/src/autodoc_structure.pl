@@ -26,11 +26,17 @@ clean_docstr :- retractall_fact(docstr_node(_,_,_,_)).
 
 :- export(parse_structure/0).
 parse_structure :-
-	clean_docstr, % TODO: fix clean: it should be done also when lpdoc ends
+	clean_docstr,
 	( setting_value(doc_structure, S) ->
 	    parse_structure_(S, '__root__')
 	; true
 	).
+
+:- export(standalone_docstr/1).
+% docstr for a standalone target (passed with '-c' option to LPdoc)
+standalone_docstr(Base) :-
+	clean_docstr,
+	parse_structure_(Base, '__root__').
 
 parse_structure_(S, Parent) :- is_list(S), !,
 	parse_structure_list(S, Parent).
@@ -67,14 +73,6 @@ parse_structure_list([S|Ss], Parent) :- !,
 
 is_list([]).	
 is_list([_|_]).	
-
-% ---------------------------------------------------------------------------
-
-% docstr for a standalone target (passed with '-c' option to LPdoc)
-:- export(standalone_docstr/1).
-standalone_docstr(Base) :-
-	clean_docstr,
-	parse_structure_(Base, '__root__').
 
 % ---------------------------------------------------------------------------
 % Query mainmod and components.

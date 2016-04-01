@@ -5,7 +5,7 @@
 %  \author Jose F. Morales
 %
 %  \summary This is a test file for the _lightweight_ mark-up language of
-%    \apl{LPdoc}. See \tt{markup_test.pl} for the long mark-up version.
+%    \apl{LPdoc}. See `markup_test.pl` for the long mark-up version.
 
 %! \module
 %
@@ -54,6 +54,11 @@
 %    But this code is:
 %
 %        foo :- example.
+%
+%    And this one is obviously code too:
+%    ```ciao
+%    foo :- example.
+%    ```
 foo.
 
 %! foo2/0: Another predicate documentation with a
@@ -120,11 +125,11 @@ weekday := (monday    /*< lunae dies. */)
 
 :- true comp len(A,B) + native.
 :- true pred len(L,N) : list * var => list * int
-   # "Computes the length of @var{L}".
+   # "Computes the length of `L`".
 :- true pred len(L,N) : var * int => list * int
-   # "Outputs @var{L} of length @var{N}".
+   # "Outputs `L` of length `N`".
 :- true pred len(L,N) : list * int => list * int
-   # "Checks that @var{L} is of length @var{N}".
+   # "Checks that `L` is of length `N`".
 
 len(L, N) :- var(N), !, llen(L, 0, N).
 len(L, N) :- dlen(L, 0, N).
@@ -155,35 +160,35 @@ dlen(_,_,_). % incomplete
 	len_vm/2, len_vt/2, len_mt/2, len_vmt/2]).
 
 %! len_0/2: Computes in the second argument the length of the first
-%    argument (*showing*: no vars, no types, no modes).
+%    argument (**showing**: no vars, no types, no modes).
 len_0(_,_).
 
-%! len_v(L,N): Computes the `N` length of the `L` argument (*showing*:
+%! len_v(L,N): Computes the `N` length of the `L` argument (**showing**:
 %    vars).
 len_v(_,_).
 
 %! len_m(+,-): Computes in the second argument the length of the first
-%    argument (*showing*: modes).
+%    argument (**showing**: modes).
 len_m(_,_).
 
 %! len_t(list,int): Computes in the second argument the length of
-%    the first argument (*showing*: types).
+%    the first argument (**showing**: types).
 len_t(_,_).
 
 %! len_vm(+L,-N): Computes the `N` length of the `L` argument
-%    (*showing*: vars and modes).
+%    (**showing**: vars and modes).
 len_vm(_,_).
 
-:- pred len_vt(L,N) :: list * int # "Computes the @var{N} length of
-   the @var{L} argument (@bf{showing}: vars and types).".
+:- pred len_vt(L,N) :: list * int # "Computes the `N` length of
+   the `L` argument (**showing**: vars and types).".
 len_vt(_,_).
 
 %! len_mt(+list,-int): Computes the length of the first
-%    argument (*showing*: modes and types).
+%    argument (**showing**: modes and types).
 len_mt(_,_).
 
-:- pred len_vmt(+L,-N) :: list * int # "Computes the @var{N} length of
-   the @var{L} argument (@bf{showing}: vars, modes, and types).".
+:- pred len_vmt(+L,-N) :: list * int # "Computes the `N` length of
+   the `L` argument (**showing**: vars, modes, and types).".
 len_vmt(_,_).
 
 %! ## Combination of types and modes

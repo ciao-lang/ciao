@@ -85,7 +85,7 @@ get_resolved_refs(DocSt, RefsR, RefPairs) :-
 	file_to_string(BblFile, RefsString0),
 	%
 	parse_commands(RefsString, RefsString0, []),
-	parse_docstring_loc(DocSt, _Loc, RefsString, RefsR),
+	parse_docstring0(DocSt, RefsString, RefsR),
 	findall((Label,Ref), member(bibitem(Label, Ref), RefsR), RefPairs).
 
 run_bibtex(Backend, TmpBase, _RAuxFile, _BblFile) :-
@@ -97,7 +97,7 @@ run_bibtex(Backend, TmpBase, _RAuxFile, _BblFile) :-
 	autodoc_process_call(path(BibTex), [TmpBase],
 	                     [logbase(LogBase), status(_)]).
 
-:- use_module(lpdoc(autodoc_parse), [parse_docstring_loc/4]).
+:- use_module(lpdoc(autodoc_parse), [parse_docstring0/3]).
 
 :- pred write_bibtex_citations(DocSt, RAuxFile) # "Write all the
    citations in the file with name @var{RAuxFile}, compatible with

@@ -27,11 +27,16 @@
    the generated files. By default it is equal to the root file of the
    document structure @pred{doc_structure/1}.
 
-   If the @tt{no_versioned_output} option is not specified in
+   If the @tt{versioned_output} option is specified in
    @pred{doc_mainopts/1}, the bundle version number is appended to the
-   output name".
+   output name.".
 :- export(output_name/1).
 :- default_def(output_name/1, [(output_name(_) :- fail)]).
+
+:- pred output_dir(Base) => sourcename
+# "Output directory. If undefined, uses directory of input".
+:- export(output_dir/1).
+:- default_def(output_dir/1, [(output_dir(_) :- fail)]).
 
 % ----------------------------------------------------------------------------
 % The document structure
@@ -153,14 +158,14 @@
 # "Allow LPdoc-flavored markdown in docstrings".
 :- export(allow_markdown/1).
 :- default_def(allow_markdown/1, [
-    allow_markdown(no)
+    allow_markdown(yes)
 ]).
 
 :- pred syntax_highlight/1 => yesno
 # "Syntax highlight code blocks (only for HTML backend)".
 :- export(syntax_highlight/1).
 :- default_def(syntax_highlight/1, [
-    syntax_highlight(no)
+    syntax_highlight(yes)
 ]).
 
 % ---------------------------------------------------------------------------

@@ -5,4 +5,6 @@
 
 doc_structure := 'ide'.
 
-
+% TODO: port this manual
+allow_markdown := no.
+syntax_highlight := no.

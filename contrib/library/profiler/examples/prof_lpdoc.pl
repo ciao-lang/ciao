@@ -5,12 +5,11 @@
 :- use_module(library(write)).
 :- use_module(library(profiler/profiler_utils)).
 :- use_module(library(profiler/profiler_auto_conf)).
-:- use_module(lpdoc(lpdoc)).
+:- use_module(lpdoc(docmaker)).
 
 t0 :-
 	cc_auto_conf(ticks, [lpdoc, autodoc, lpdoclib],
-	    handle_args(
-		['-f', ~absolute_file_name(lpdocsrc(doc/'SETTINGS')), all]),
+	    doc_cmd(~absolute_file_name(lpdocsrc(doc/'SETTINGS')), [], gen(all)),
 	    3,
 	    Goals, Tree),
 	write(Goals),
@@ -20,5 +19,5 @@ t0 :-
 
 t1 :-
 	profile_reset,
-	profile(handle_args(['-f', ~absolute_file_name(lpdocsrc(doc/'SETTINGS')), all])),
+	profile(doc_cmd(~absolute_file_name(lpdocsrc(doc/'SETTINGS')), [], gen(all))),
 	profile_dump.

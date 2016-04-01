@@ -69,7 +69,7 @@
 % ===========================================================================
 :- doc(section, "Builder commands").
 
-:- doc(bug, "See cleaning targets for 'lpdoc' and fix it. See other
+:- doc(bug, "See cleaning targets for @apl{lpdoc} and fix it. See other
    clean targets in core/Manifest/core.hooks.pl").
 
 :- doc(bug, "Improve output for foreign clean").
@@ -194,8 +194,7 @@ builder_cmd_(rm(BundleAlias), '$no_bundle', _Opts) :- !,
 	bundle_rm(BundleAlias).
 %
 builder_cmd_(build, Target, Opts) :- !,
-	% TODO: Make sure that lpdoc is build before creating the documentation
-	%       (in general, 'build' should delay tasks)
+	% TODO: use fsmemo package to order build tasks (build_docs on any bundle depends on 'build_nodocs lpdoc')
 	builder_cmd(build_nodocs, Target, Opts),
 	builder_cmd(build_docs, Target, Opts).
 builder_cmd_(Cmd, ciaobase, Opts) :- ( Cmd = build_nodocs ; Cmd = build_docs ), !,
@@ -1170,8 +1169,12 @@ rootprefix_bundlecfg_file(InsType, BundleName, RegFile) :-
 
 :- use_module(library(aggregates), [findall/3]).
 
-:- use_module(ciaobld(ciaoc_aux),
-	[invoke_lpdoc/3, invoke_lpdoc/2]).
+:- use_module(ciaobld(ciaoc_aux), [invoke_lpdoc/1]).
+
+% (target for dir for docs)
+get_builddir_doc(Bundle) := Dir :-
+	bundle_to_bldid(Bundle, BldId),
+	Dir = ~fsR(builddir_doc(BldId)).
 
 % Creation of README files (from .lpdoc to ascii)
 % Output is moved to the bundle root directory.
@@ -1185,16 +1188,17 @@ build_docs_readmes(Bundle) :- with_docs(yes), !,
 	    ),
 	    path_split(SrcPath, _, Name),
 	    BundleDir = ~fsR(bundle_src(Bundle)),
-	    path_concat(BundleDir, SrcPath, SrcPath2),
-	    path_split(SrcPath2, FilePath, _),
+	    path_concat(BundleDir, SrcPath, SrcPath1),
+	    atom_concat(SrcPath1, '.lpdoc', SrcPath2),
+	    get_builddir_doc(Bundle, DocDir),
+	    invoke_lpdoc(['--autogen_warning=yes',
+	                  '--allow_markdown=no',
+	                  '--syntax_highlight=no',
+	                  ~atom_concat('--output_dir=', DocDir),
+			  '-t', 'ascii',
+	                  SrcPath2]),
 	    Ascii = ~atom_concat(Name, '.ascii'),
-	    invoke_lpdoc(Bundle,
-	                 ['-d', ~atom_concat('filepath=', FilePath),
-	                  '-d', 'autogen_warning=yes',
-	                  '-d', 'doc_mainopts=no_versioned_output',
-	                  '-c', Ascii]),
-	    bundle_to_bldid(Bundle, BldId),
-	    DocSrc = ~fsR(builddir_doc(BldId)/Ascii),
+	    DocSrc = ~path_concat(DocDir, Ascii),
 	    copy_file_or_dir(DocSrc, OutName),
 	    fail
 	; true
@@ -1234,7 +1238,13 @@ build_docs_manuals(Bundle) :- with_docs(yes), !,
 	    BundleDir = ~fsR(bundle_src(Bundle)),
 	    path_concat(BundleDir, SrcDir, R0),
 	    path_concat(R0, 'SETTINGS', Settings),
-	    invoke_lpdoc(Bundle, Settings, [all]),
+	    get_builddir_doc(Bundle, DocDir),
+	    invoke_lpdoc(['--doc_mainopts=versioned_output',
+%	                  '--allow_markdown=no',
+%	                  '--syntax_highlight=no',
+	                  ~atom_concat('--output_dir=', DocDir),
+	                  '-t', 'all',
+			  Settings]),
 	    fail
 	; true
 	).
@@ -1247,9 +1257,10 @@ bundle_install_docs(Bundle) :- with_docs(yes), !,
 	  docformat(DocFormat),
 	    docformatdir(DocFormat, TargetDir0),
 	    TargetDir = ~rootprefixed(TargetDir0),
+	    % TODO: Use lpdoc for this
 	    FileName = ~atom_concat([ManualBase, '.', DocFormat]),
-	    bundle_to_bldid(Bundle, BldId),
-	    Source = ~fsR(builddir_doc(BldId)/(FileName)),
+	    get_builddir_doc(Bundle, DocDir),
+	    Source = ~path_concat(DocDir, FileName),
 	    ( file_exists(Source) ->
 		Target = ~path_concat(TargetDir, FileName),
 		( Source == Target ->
@@ -1295,12 +1306,12 @@ bundle_uninstall_docs(_Bundle).
 :- use_module(ciaobld(info_installer)).
 
 bundle_install_docs_format_hook(info, Bundle, Target) :- !,
-	bundle_to_bldid(Bundle, BldId),
-	dirfile_install_info(~fsR(builddir_doc(BldId)), Target).
+	get_builddir_doc(Bundle, DocDir),
+	dirfile_install_info(DocDir, Target).
 bundle_install_docs_format_hook(_, _, _).
 
 bundle_uninstall_docs_format_hook(info, Bundle, Target) :- !,
-	bundle_to_bldid(Bundle, BldId),
-	dirfile_uninstall_info(~fsR(builddir_doc(BldId)), Target).
+	get_builddir_doc(Bundle, DocDir),
+	dirfile_uninstall_info(DocDir, Target).
 bundle_uninstall_docs_format_hook(_, _, _).
 

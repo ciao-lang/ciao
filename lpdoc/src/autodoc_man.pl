@@ -106,7 +106,7 @@ rw_command(email(Address), _DocSt, Address) :- !.
 rw_command(email(Text, Address), _DocSt, NBody) :- !,
 	NBody = [Text, raw(" ("), Address, raw(")")].
 rw_command(image_auto(IFile, _), DocSt, NBody) :- !,
-	locate_and_convert_image(IFile, ['txt'], DocSt, IFile2),
+	locate_and_convert_image(IFile, ['.txt'], DocSt, IFile2),
 	NBody = [raw("[Image: "), raw(IFile2), raw("]")].
 %% Commands with a more or less direct translation to a man command
 rw_command(Command, _DocSt, NewAll) :-

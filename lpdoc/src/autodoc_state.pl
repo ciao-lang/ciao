@@ -62,7 +62,7 @@ supported_option(no_bugs).
 supported_option(no_authors).
 supported_option(no_stability).
 supported_option(no_version).
-supported_option(no_versioned_output).
+supported_option(versioned_output).
 supported_option(no_lpdocack).
 supported_option(no_changelog).
 supported_option(no_patches).
@@ -102,8 +102,7 @@ option_comment(no_bugs, "Do not include information on bugs.").
 option_comment(no_authors, "Do not include author names.").
 option_comment(no_stability, "Do not include stability comment.").
 option_comment(no_version, "Do not include version information.").
-option_comment(no_versioned_output, 
-    "Do not include version in the output name.").
+option_comment(versioned_output, "Include version in the output name.").
 option_comment(no_lpdocack, "Do not include an ack of LPdoc in output.").
 option_comment(no_changelog, "Do not include change log.").
 option_comment(no_patches, "Do not include comments for patches.").
@@ -168,13 +167,12 @@ backend_alt_format(texinfo, info).
 backend_alt_format(texinfo, ascii).
 
 % TODO: Obtain from the backend
-:- export(top_suffix/2).
-:- pred top_suffix(FileFormat, PrincipalExt) # "@var{PrincipalExt} is
-   extension of the target file that will generate the file with
-   @var{FileFormat} extension.".
+:- export(parent_format/2).
+:- pred parent_format(Format, Parent) # "@var{Parent} is the parent
+   format that will generate the file with @var{Format} format.".
 
-top_suffix('html', 'htmlmeta') :- !.
-top_suffix(Suffix, Suffix).
+parent_format('html', 'htmlmeta') :- !.
+parent_format(Format, Format).
 
 % ===========================================================================
 
@@ -248,14 +246,14 @@ docst_new_no_src(Backend, Name, Opts, DocSt) :-
 
 % Create a new docstate and load the source
 :- export(docst_new_with_src/5).
-docst_new_with_src(Backend, FileBase, SourceSuffix, Opts, DocSt) :-
+docst_new_with_src(Backend, FileBase, FileExt, Opts, DocSt) :-
 	DocSt = docstate(Backend, Name, Opts, _, I),
 	%
-	atom_concat([FileBase, '.', SourceSuffix], FExt),
+	atom_concat(FileBase, FileExt, FExt),
 	find_file(FExt, I),
-	( SourceSuffix = 'lpdoc' ->
-	    load_source_lpdoc(I, M, Base, Dir, Command),
-	    docst_mvar_lookup(DocSt, plain_content, Command)
+	( FileExt = '.lpdoc' ->
+	    load_source_lpdoc(I, M, Base, Dir, Text),
+	    docst_mvar_lookup(DocSt, plain_content, Text)
 	; load_source_pl_assrt(I, Opts, M, Base, Dir)
 	),
 	path_basename(Base, Name), % TODO: M (the Prolog module name) and Name may be different...

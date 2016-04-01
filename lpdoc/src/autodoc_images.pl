@@ -13,8 +13,6 @@
 @end{alert}
    ").
 
-:- use_module(library(terms), [atom_concat/2]).
-
 :- use_module(lpdoc(autodoc_state)).
 :- use_module(lpdoc(autodoc_filesystem)).
 :- use_module(lpdoc(autodoc_settings)).
@@ -29,56 +27,50 @@
 % ---------------------------------------------------------------------------
 :- use_module(library(format)).
 
-% Format an image command
 :- export(locate_and_convert_image/4).
 % TODO: Allow file specs in ImageSpecS (see spec_add_suffix/3)
 % TODO: directory output for target is missing
 % TODO: [URGENT] Remember converted images!
-:- pred locate_and_convert_image(SrcSpecS, AcceptedFormats, DocSt, TargetFileS) ::
-	string * list(atom) * docstate * string # 
+:- pred locate_and_convert_image(SrcSpecS, AcceptedExts, DocSt, TargetFileS) ::
+	string * list(atm) * docstate * string # 
         "The image at @var{SrcSpecS} is located (as one of the known
-         formats @pred{known_format/1}) and converted to one of the
-         @var{AcceptedFormats}. The target file is called
+         image extensions @pred{known_ext/1}) and converted to one of the
+         @var{AcceptedExts}. The target file is called
          @var{TargetFileS}".
 
-locate_and_convert_image(SrcSpecS, AcceptedFormats, DocSt, TargetFileS) :-
+locate_and_convert_image(SrcSpecS, AcceptedExts, DocSt, TargetFileS) :-
 	atom_codes(SrcSpec, SrcSpecS),
 	% TODO: Use the same rules than for modules to locate the images
-	( known_format(SrcExt), % (may backtrack)
-	  %
-	  spec_add_suffix(SrcSpec, SrcExt, SrcSpecExt),
+	( known_ext(SrcExt), % (may backtrack)
+	  atom_concat(SrcSpec, SrcExt, SrcSpecExt),
 	  catch(find_file(SrcSpecExt, SrcFile), _, fail) ->
 	    % Image found!
-	    atom_concat([SrcBase, '.', SrcExt], SrcFile),
+	    atom_concat(SrcBase, SrcExt, SrcFile),
 	    % Determine the target format
-	    ( member(SrcExt, AcceptedFormats) ->
+	    ( member(SrcExt, AcceptedExts) ->
 	        % The source format is accepted, keep it
-	        TargetFormat = SrcExt
+	        TargetExt = SrcExt
 	    ; % Otherwise, use the first accepted format
 	      % TODO: This should be done in the image_convert predicate
               %       to find the more optimal conversion
-	      AcceptedFormats = [TargetFormat|_]
+	      AcceptedExts = [TargetExt|_]
 	    ),
 	    % Determine the target file name
 	    path_basename(SrcBase, SrcName),
 	    atom_concat(SrcName, '_autofig', TargetBase),
-	    atom_concat([TargetBase, '.', TargetFormat], TargetFile),
-	    cached_image_convert(SrcBase, SrcExt, TargetBase, TargetFormat, DocSt),
+	    atom_concat(TargetBase, TargetExt, TargetFile),
+	    cached_image_convert(SrcBase, SrcExt, TargetBase, TargetExt, DocSt),
 	    %
 	    atom_codes(TargetFile, TargetFileS)
 	; error_message("-> Image ~w not found in any known format", [SrcSpec]),
 	  fail
 	).
 
-% Known formats
+% Known image extensions
 % TODO: extend?
-known_format('eps').
-known_format('png').
-known_format('jpg').
-
-% TODO: extend so that precondition atom(SrcSpec) can be generalized
-spec_add_suffix(SrcSpec, SrcExt, SrcSpecExt) :-
-	atom_concat([SrcSpec, '.', SrcExt], SrcSpecExt).
+known_ext('.eps').
+known_ext('.png').
+known_ext('.jpg').
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Cached Image Copy/Conversions").
@@ -92,15 +84,15 @@ spec_add_suffix(SrcSpec, SrcExt, SrcSpecExt) :-
 clean_image_cache :-
         retractall_fact(cached_image(_,_,_,_)).
 
-cached_image_convert(SrcBase, SrcExt, TargetBase, TargetFormat, _DocSt) :-
-        current_fact(cached_image(SrcBase, SrcExt, TargetBase, TargetFormat)), !.
-cached_image_convert(SrcBase, SrcExt, TargetBase, TargetFormat, DocSt) :-
+cached_image_convert(SrcBase, SrcExt, TargetBase, TargetExt, _DocSt) :-
+        current_fact(cached_image(SrcBase, SrcExt, TargetBase, TargetExt)), !.
+cached_image_convert(SrcBase, SrcExt, TargetBase, TargetExt, DocSt) :-
 	% Convert the image
 	docst_message("-> Including image ~w in documentation as ~w", [SrcBase, TargetBase], DocSt),
 	%format(user_error, "-> Including image ~w in documentation as ~w~n", [SrcFile, TargetFile]),
 	% ( verbose_message("Converting/Copying file from ~w to ~w", [SrcFile, TargetFile]),
-	image_convert(SrcBase, SrcExt, TargetBase, TargetFormat, DocSt),
-        assertz_fact(cached_image(SrcBase, SrcExt, TargetBase, TargetFormat)).
+	image_convert(SrcBase, SrcExt, TargetBase, TargetExt, DocSt),
+        assertz_fact(cached_image(SrcBase, SrcExt, TargetBase, TargetExt)).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Image Copy/Conversion").
@@ -113,8 +105,9 @@ cached_image_convert(SrcBase, SrcExt, TargetBase, TargetFormat, DocSt) :-
 :- use_module(library(process), [process_call/3]).
 
 image_convert(SrcBase, SrcExt, TargetBase, TargetExt, DocSt) :-
-	atom_concat([SrcBase, '.', SrcExt], Source),
-	atom_concat([TargetBase, '.', TargetExt], Target),
+	atom_concat(SrcBase, SrcExt, Source),
+	atom_concat(TargetBase, TargetExt, Target),
+	%
 	%% Deprecate use of 'pstogif' ('convert' is better)
         %%( TargetExt = 'gif' ->
 	%%  process_call(path(~pstogif), [Source], []),

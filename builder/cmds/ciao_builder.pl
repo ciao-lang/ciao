@@ -194,14 +194,14 @@ help_mode('help_all_boot', all, boot).
 %
 %  - 'CMD' is a builder command (e.g., 'build') 
 %  - 'ARGS' is a sequence of options (e.g., --interactive) and bundle
-%    targets (e.g., 'lpdoc')
+%    targets (e.g., 'my_bundle')
 %
 % Most commands only accept one target. Some commands do not accept
 % options.
 
 % From options (term) to CLI arguments (atoms)
 opts_to_args([flag(Bundle:Name, Value)|Opts0], [Opt|Opts]) :- !,
-	atom_concat(['--', Bundle, ':', Name, '=', Value], Opt),
+	( atom_concat(['--', Bundle, ':', Name, '=', Value], Opt) -> true ; fail ),
 	opts_to_args(Opts0, Opts).
 opts_to_args([], []).
 

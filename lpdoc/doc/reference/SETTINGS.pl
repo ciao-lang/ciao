@@ -68,3 +68,6 @@ doc_structure :=
 
 bibfile := ~ciao_bibfile.
 
+% TODO: port this manual
+allow_markdown := no.
+syntax_highlight := no.
