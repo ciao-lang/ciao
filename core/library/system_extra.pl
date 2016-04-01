@@ -273,6 +273,32 @@ compose_backup_filename(FileName, I, B) :-
 	atom_number(IA, I),
 	atom_concat([FileName, '.bak~', IA, '~'], B).
 
+% TODO: merge with backup_file/1?
+:- export(move_if_diff/2).
+:- pred move_if_diff(From, To) # "If @var{To} does not exists of its
+   contents are different than @var{From}, delete @var{To} and rename
+   @var{From} to @var{To}. Otherwise remove @var{From} and fail.".
+
+move_if_diff(From, To) :-
+	( diff_files(From, To) ->
+	    del_file_nofail(To),
+	    rename_file(From, To)
+	; del_file_nofail(From),
+	  fail 
+	).
+
+diff_files(A, B) :- \+ same_files(A, B).
+
+same_files(A, B) :-
+	file_to_string_or_empty(A, AStr),
+	file_to_string_or_empty(B, BStr),
+	AStr = BStr.
+
+file_to_string_or_empty(File, Str) :-
+	( catch(file_to_string(File, Str0), _, fail) -> Str = Str0
+	; Str = ""
+	).
+
 % ===========================================================================
 
 :- doc(section, "File attributes (owner, group, permissions)").
@@ -724,5 +750,4 @@ do_replace_string([H|RI], S1, S2, [H|RO]) :-
 match([],    I,      I).
 match([H|T], [H|IT], RI) :-
 	match(T, IT, RI).
-
 
