@@ -273,7 +273,7 @@ for details. "
 
   ))
   (setq version-control 'never)
-  (write-file "CiaoMode.lpdoc")
+  (write-file "CiaoMode.new.lpdoc")
   )
 
 ;;------------------------------------------------------------

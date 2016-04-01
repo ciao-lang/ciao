@@ -238,10 +238,13 @@ ciaolibemacs(LibEmacs) :-
 
 % ---------------------------------------------------------------------------
 
+:- use_module(library(system_extra), [move_if_diff/2]).
 :- use_module(library(system), [touch/1]).
 
 % Generation of LPdoc documentation source for emacs-mode based on
-% ciao-documentation.el.
+% `ciao-documentation.el`. Update `CiaoMode.pl` timestamp if
+% `CiaoMode.lpdoc` has changed.
+
 '$builder_hook'(emacs_mode:prebuild_docs) :-
 	EmacsModeDir = ~emacsmode_dir,
 	emacs_batch_call(~fsR(EmacsModeDir), 'emacs_mode2', % TODO: right log name?
@@ -249,7 +252,11 @@ ciaolibemacs(LibEmacs) :-
 	   '-l', 'ciao-documentation.el',
 	   '-f', 'ciao-mode-documentation']),
 	%
-	touch(~fsR(EmacsModeDir/'CiaoMode.pl')).
+	( move_if_diff(~fsR(EmacsModeDir/'CiaoMode.new.lpdoc'),
+	               ~fsR(EmacsModeDir/'CiaoMode.lpdoc')) ->
+	    touch(~fsR(EmacsModeDir/'CiaoMode.pl'))
+	; true
+	).
 
 %-----------------------------------------------------------------------------
 
