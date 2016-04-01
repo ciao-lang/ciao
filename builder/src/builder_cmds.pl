@@ -1237,7 +1237,12 @@ build_docs_manuals(Bundle) :- with_docs(yes), !,
 	    ),
 	    BundleDir = ~fsR(bundle_src(Bundle)),
 	    path_concat(BundleDir, SrcDir, R0),
-	    path_concat(R0, 'SETTINGS', Settings),
+	    path_concat(R0, 'SETTINGS.pl', Settings),
+	    ( file_exists(Settings) -> true
+	    ; % Allow missing manuals (e.g., for NODISTRIBUTE content)
+              warning(['Manual at ', SrcDir, ' is missing. Skipping build']),
+	      fail
+	    ),
 	    get_builddir_doc(Bundle, DocDir),
 	    invoke_lpdoc(['--doc_mainopts=versioned_output',
 %	                  '--allow_markdown=no',
