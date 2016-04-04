@@ -28,6 +28,7 @@ lang('javascript').
 lang('xml').
 lang('html').
 lang('css').
+lang('lisp').
 lang('sh').
 lang('bash').
 lang('text').
@@ -153,6 +154,7 @@ detect_language_('.js', 'javascript').
 detect_language_('.xml', 'xml').
 detect_language_('.html', 'html').
 detect_language_('.css', 'css').
+detect_language_('.el', 'lisp').
 detect_language_('.sh', 'sh').
 detect_language_('.bash', 'sh').
 % detect_language_('.lpdoc', 'lpdoc').
