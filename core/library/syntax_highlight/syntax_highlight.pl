@@ -9,7 +9,8 @@
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(library(process), [process_call/3]).
-:- use_module(library(emacs/emacs_batch), [emacs_path/1]).
+:- use_module(library(emacs/emacs_batch),
+	[emacs_path/1, emacs_batch_call/3, emacs_clean_log/2]).
 
 % TODO: Implement as an interface; define different backend
 % TODO: adds dependency to 'ide' bundle and emacs (should be weak refs)
@@ -65,6 +66,7 @@ can_highlight(Lang) :-
 % ---------------------------------------------------------------------------
 
 % TODO: allow other mode selection? precompile .el files?
+% TODO: this starts a new emacs process, reuse a emacs daemon instead!
 
 :- export(highlight_to_html/3).
 :- pred highlight_to_html(+Lang, +Input, +Output) :: lang * atm * atm
@@ -74,14 +76,23 @@ can_highlight(Lang) :-
 highlight_to_html(Lang, Input, Output) :-
 	find_asset(library(syntax_highlight/'emacs-htmlfontify.el'), HfyEl),
 	ciao_mode_el(SiteFileEl),
-	process_call(~emacs_path,
-	     ['-batch',
+	LogBase = 'ciao-highlight-log',
+	emacs_batch_call('.', LogBase,
+	     ['-Q',
               '-l', SiteFileEl,
 	      '-l', HfyEl,
 	      Lang,
 	      Input,
-	      Output],
-	     [noenv(['EMACSLOADPATH', 'EMACSDOC'])]).
+	      Output]),
+	emacs_clean_log('.', LogBase).
+%	process_call(~emacs_path,
+%	     ['-Q', '-batch',
+%              '-l', SiteFileEl,
+%	      '-l', HfyEl,
+%	      Lang,
+%	      Input,
+%	      Output],
+%	     [noenv(['EMACSLOADPATH', 'EMACSDOC'])]).
 
 % TODO: Reuse
 
