@@ -416,6 +416,7 @@ parse_front1(Layout, EmptyAbove, Envs) -->
 	parse_front2(Layout, Envs0).
 parse_front1(Layout, _EmptyAbove, Envs) -->
 	% (backtick-based code block)
+	sc_col(Col),
 	sc_str("```"),
 	skip_blanks_nonl,
 	match_cmdname(LangStr0), % ('' if none)
@@ -423,7 +424,8 @@ parse_front1(Layout, _EmptyAbove, Envs) -->
 	sc_nl,
 	!,
 	{ LangStr0 = "" -> LangStr = "text" ; LangStr = LangStr0 },
-	parse_backtick_block(CodeBlock),
+	parse_backtick_block(CodeBlock0),
+	{ tidy_blanks(Col, CodeBlock0, CodeBlock) },
 	{ Envs = [env(codeblock(LangStr), CodeBlock)|Envs0] },
 	%
 	parse_front2(Layout, Envs0).
@@ -489,7 +491,7 @@ fix_env(Env, Env).
 detect_code_cmd(Text, Cmd) :-
 	( read_from_string(Text, TextTerm) ->
 	    ( var(TextTerm) -> Cmd = 'var'
-	    ; TextTerm = (_/_) -> Cmd = 'pred'
+	    ; TextTerm = (_/A), integer(A), A >= 0 -> Cmd = 'pred' % TODO: read_from_string/2 is buggy and parses "a/" as (a/'')
 	    ; Cmd = 'tt' % TODO: This should be 'code' (not tt)
 	    )
         ; Cmd = 'tt'
@@ -598,7 +600,7 @@ parse_indented_block(_BaseCol, []) -->
 parse_backtick_block(Block) -->
 	% End
 	( sc_nl ; [] ),
-	sc_col(Col), { Col = 0 }, % no left margin allowed at all
+	sc_col(Col), { Col = 0 }, % match ^\s*```
 	skip_blanks_nonl,
 	sc_str("```"),
 	!,

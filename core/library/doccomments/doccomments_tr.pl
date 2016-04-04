@@ -19,6 +19,7 @@
 
 :- use_module(library(assertions/assrt_lib_extra), [assrt_extra/2]).
 :- use_module(library(markdown/markdown_translate)).
+:- use_module(library(layout_dcg/layout_dcg_rt), [tidy_blanks/3]).
 
 :- use_module(library(markdown/markdown_syntax), [decl_cmd/1, cmd_type/2]).
 

@@ -40,6 +40,7 @@
 % ---------------------------------------------------------------------------
 
 % :- use_module(lpdoc(comments), [docstring/1]).
+:- use_module(library(layout_dcg/layout_dcg_rt), [tidy_blanks/3]).
 
 :- export(translate_markdown/2).
 :- pred translate_markdown(From, To)
@@ -52,76 +53,6 @@ translate_markdown(From, To) :-
 	envs_to_docstring(Envs, nl, _, To, []).
 
 % ---------------------------------------------------------------------------
-
-:- use_module(library(layout_dcg/layout_dcg_rt), [untabify/3, tabsize/1]).
-
-:- export(tidy_blanks/3).
-% Tidy blanks (replace tabs by whitespaces and remove left margin)
-tidy_blanks(Col, Cs0, Cs) :-
-	untabify(Col, Cs0, Cs1),
-	remove_margin(Cs1, Cs).
-
-% Identify the number of unnecessary blank characters on the left
-% margin and remove them (up to `~max_margin` characters).
-remove_margin(Cs0, Cs) :-
-	detect_margin_size(Cs0, M),
-	cut_left(Cs0, M, Cs).
-
-% (string must be always at the begin of line)
-detect_margin_size(Cs, M) :-
-	Max = 0xffffff, % infinite for this purpose
-	detect_margin_size_(Cs, Max, M).
-
-detect_margin_size_([], M, M) :- !.
-detect_margin_size_(Cs, M0, M) :-
-	blanks_number(Cs, N, Cs2), \+ match_eol_or_end(Cs2), !,
-	( N < M0 -> M1 = N ; M1 = M0 ),
-	skip_line(Cs2, Cs3),
-	detect_margin_size_(Cs3, M1, M).
-detect_margin_size_(Cs, M0, M) :-
-	skip_line(Cs, Cs1),
-	detect_margin_size_(Cs1, M0, M).
-
-skip_line([], []).
-skip_line([0'\n|Cs0], Cs) :- !, Cs = Cs0.
-skip_line([_|Cs0], Cs) :- skip_line(Cs0, Cs).
-
-% Remove the largest sequence of consecutive blanks from `Cs`, obtain
-% the rest in `Cs2`. `N` is the number of blanks removed.
-blanks_number(Cs, N, Cs2) :-
-	blanks_number_(Cs, 0, N, Cs2).
-
-blanks_number_([C|Cs], I, N, Cs2) :- blank_col_inc(C, I, I1), !,
-	blanks_number_(Cs, I1, N, Cs2).
-blanks_number_(Cs, I, I, Cs).
-
-blank_col_inc(0'\t, Col0, Col) :-
-	tabsize(Tab),
-	Col is Col0 + Tab.
-blank_col_inc(0' , Col0, Col) :- Col is Col0 + 1. % space
-
-% Cut `M` characters from the left of all lines of `Cs`
-cut_left(Cs0, M, Cs) :-
-	skip_n(M, Cs0, Cs1),
-	cut_left_(Cs1, M, Cs).
-
-cut_left_([], _M, []).
-cut_left_([0'\n|Cs0], M, [0'\n|Cs]) :- !,
-	cut_left(Cs0, M, Cs).
-cut_left_([C|Cs0], M, [C|Cs]) :-
-	cut_left_(Cs0, M, Cs).
-
-% Remove N elements (or the whole line, if it is shorter) from the
-% first line of `Cs`. Obtain the rest in `Cs2`.
-skip_n(_, Cs0, Cs) :- match_eol_or_end(Cs0), !,
-	Cs = Cs0.
-skip_n(I, [_|Cs0], Cs) :- I > 0, !,
-	I1 is I - 1,
-	skip_n(I1, Cs0, Cs).
-skip_n(_, Cs, Cs).
-
-match_eol_or_end([]).
-match_eol_or_end([0'\n|_]).
 
 %% :- use_module(library(lists), [reverse/2]).
 %% 
