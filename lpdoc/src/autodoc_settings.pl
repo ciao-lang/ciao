@@ -219,6 +219,15 @@ resolved_filepath(InDir, P) :-
 % :- use_module(engine(internals), ['$bundle_alias_path'/3]).
 
 % ---------------------------------------------------------------------------
+
+:- export(custom_html_layout/0).
+custom_html_layout :-
+	setting_value(html_layout, Layout),
+	( Layout = website_layout -> true
+	; Layout = tmpl_layout(_, _, _)
+	).
+
+% ---------------------------------------------------------------------------
 :- doc(section, "External Commands").
 % TODO: Ideally, each backend should specify this part.
 

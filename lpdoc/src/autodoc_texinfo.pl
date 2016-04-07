@@ -107,13 +107,19 @@ rw_command(env_('cartouche', X),   _, [infocmd("cartouche", []), X, infocmd("end
 rw_command(env_('alert', X),   _, [infocmd("cartouche", []), X, infocmd("end", raw("cartouche"))]) :- !.
 rw_command(env_('verbatim', X),    _, [infocmd("smallexample", []), X, infocmd("end", raw("smallexample"))]) :- !.
 rw_command(item(S), _, R) :- !, % (for lists and descriptions)
+	% TODO: use item_env
 	( doctree_is_empty(S) ->
 	    % TODO: in order to use infocmd properly in this case,
-	    % item_env should be defined (equivalent to the section
+	    % item_env/2 should be defined (equivalent to the section
 	    % problem) -- JF
 	    R = [raw_fc, raw("@item ")]
 	; R = infocmd("item", S)
 	).
+rw_command(item_env(_Style, X), _, R) :- !, % (items for lists)
+	% TODO: in order to use infocmd properly in this case,
+	% item_env/2 should be defined (equivalent to the section
+	% problem) -- JF
+	R = [raw_fc, raw("@item "), X].
 rw_command(item_num(S), _, R) :- !, % (for enumerations)
 	( S = "" ->
 	    % (see comment above about item/1)
@@ -212,13 +218,13 @@ rw_command(linebreak,        _, [raw_fc, raw_nleb]) :- !.
 rw_command(subsection_title(Xs), _DocSt, R) :- !,
 	R = infoenv("strong", Xs).
 rw_command(twocolumns(X), _DocSt, R) :- !, R = X. % ignore
-rw_command(itemize_none(Xs), _DocSt, R) :- !,
+rw_command(itemize_env(none, Xs), _DocSt, R) :- !,
 	R = infoenv("itemize", raw("@w"), Xs).
-rw_command(itemize_plain(Xs), _DocSt, R) :- !,
+rw_command(itemize_env(plain, Xs), _DocSt, R) :- !,
 	R = infoenv("itemize", raw("@w"), Xs).
-rw_command(itemize_minus(Xs), _DocSt, R) :- !,
+rw_command(itemize_env(minus, Xs), _DocSt, R) :- !,
 	R = infoenv("itemize", raw("@minus"), Xs).
-rw_command(itemize_bullet(Xs), _DocSt, R) :- !,
+rw_command(itemize_env(_, Xs), _DocSt, R) :- !,
 	R = infoenv("itemize", raw("@bullet"), Xs).
 rw_command(description_env(Xs), _DocSt, R) :- !,
 	% TODO: strong moved to itemize
@@ -239,7 +245,7 @@ rw_command(optional_cartouche(X), _DocSt, R) :- !,
 rw_command(alert(X), _DocSt, R) :- !,
 	R = infoenv("cartouche", X).
 rw_command(bibitem(Label,_Ref), _DocSt, R) :- !,
-	R = [item(bf([string_esc("["), string_esc(Label), string_esc("]")]))].
+	R = [item(bf([string_esc("["), string_esc(Label), string_esc("]")]))]. % TODO: use item_env
 rw_command(idx_anchor(Indices, Label, Key, _OutLink, Text), _DocSt, R) :- !,
 	R = [backend_idx(Indices, Label, Key), Text].
 rw_command(backend_idx(Indices, _, Key), DocSt, R) :- !,
@@ -304,7 +310,7 @@ rw_command(defassrt(_Status, _AType, HeaderStr, HeadR, DescR, UsageProps), _DocS
 	     p(""), DescR,
 	     UsageProps].
 rw_command(assrtprops(DPR, CPR, APR, NGPR), _DocSt, R) :- !,
-	R = itemize_minus([
+	R = itemize_env(minus, [
 	      DPR,
 	      CPR,
 	      APR,

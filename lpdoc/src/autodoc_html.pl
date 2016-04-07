@@ -93,9 +93,17 @@ rw_command(env_('cartouche', X),   _, cartouche(X)) :- !.
 rw_command(env_('alert', X), _, alert(X)) :- !.
 rw_command(env_('verbatim', X),     _, htmlenv(pre, X)) :- !.
 rw_command(item(S), _DocSt, NBody) :- !, % (items for lists and descriptions)
+	% TODO: use item_env
 	( doctree_is_empty(S) ->
 	    NBody = raw("<LI>")
 	; NBody = [raw("<DT>"), S, raw("<dd>")]
+	).
+rw_command(item_env(Style, X), _DocSt, NBody) :- !, % (items for lists)
+	( Style = selmenu ->
+	    NBody = htmlenv(li, [role="presentation", class="active"], X)
+	; Style = unselmenu ->
+	    NBody = htmlenv(li, [role="presentation"], X)
+	; NBody = htmlenv(li, X)
 	).
 rw_command(item_num(S), _,   NBody) :- !, % (items for enumerations)
 	( S = "" -> Props = [] ; Props = [value=S] ),
@@ -227,13 +235,15 @@ rw_command(subsection_title(X), _DocSt, R) :- !,
 	R = htmlenv(h2, X).
 rw_command(twocolumns(X), _DocSt, R) :- !,
 	R = htmlenv(div, [class="twocolumns"], X).
-rw_command(itemize_none(Xs), _DocSt, R) :- !,
+rw_command(itemize_env(menu, Xs), _DocSt, R) :- setting_value(html_layout, tmpl_layout(_, _, _)), !,
+	R = htmlenv(ul, [class="nav nav-pills nav-stacked"], Xs).
+rw_command(itemize_env(none, Xs), _DocSt, R) :- !,
 	R = htmlenv(ul, [class="itemize_none"], Xs).
-rw_command(itemize_plain(Xs), _DocSt, R) :- !,
+rw_command(itemize_env(plain, Xs), _DocSt, R) :- !,
 	R = htmlenv(ul, [class="itemize_plain"], Xs).
-rw_command(itemize_minus(Xs), _DocSt, R) :- !,
+rw_command(itemize_env(minus, Xs), _DocSt, R) :- !,
 	R = htmlenv(ul, [class="itemize_minus"], Xs).
-rw_command(itemize_bullet(Xs), _DocSt, R) :- !,
+rw_command(itemize_env(_, Xs), _DocSt, R) :- !,
 	R = htmlenv(ul, Xs).
 rw_command(description_env(Xs), _DocSt, R) :- !,
 	R = htmlenv(dl, Xs).
@@ -245,7 +255,7 @@ rw_command(alert(X), _DocSt, R) :- !,
 	R = htmlenv(div, [class="alert"], X).
 rw_command(bibitem(Label,Ref), _DocSt, R) :- !,
 	R0 = [string_esc("["), string_esc(Label), string_esc("]")],
-	R = [item(htmlenv(strong, [id=Ref], R0))].
+	R = [item(htmlenv(strong, [id=Ref], R0))]. % TODO: use item_env?
 rw_command(idx_anchor(_Indices, IdxLabel, _Key, OutLink, Text), DocSt, R) :- !,
 	fmt_link(idx_anchor, IdxLabel, OutLink, DocSt, Text, R).
 rw_command(cover_title(TitleR, SubtitleRs), _DocSt, R) :- !,
@@ -306,7 +316,7 @@ rw_command(defassrt(Status, AType, HeaderStr, HeadR, DescR, UsageProps), _DocSt,
 	     htmlenv(p, DescR),
 	     UsageProps].
 rw_command(assrtprops(DPR, CPR, APR, NGPR), _DocSt, R) :- !,
-	R = itemize_minus([
+	R = itemize_env(minus, [
 	       DPR,
 	       CPR,
 	       APR,
@@ -400,16 +410,18 @@ fmt_section_env(SecProps, SectLabel, TitleR, BodyR, DocSt, ModR) :-
 	; PreSect = []
 	),
 	%
-	get_css_list(CssList1),
-	( setting_value(html_layout, Layout0),
-	  Layout0 = 'website_layout' ->
+	get_css_list(CssList),
+	get_icon(MaybeIcon),
+	( setting_value(html_layout, Layout0), Layout0 = website_layout ->
 	    SidebarR2 = [PreSect, show_toc(vertical_menu)],
 	    Layout = nav_searchbox_menu_main,
 	    % TODO: Hardwired, fix
-	    MaybeIcon = yes('ciao-icon16.ico'),
-	    CssList2 = ['css/website.css'],
 	    %
             SectR = [htmlenv(h1, TitleR), raw_nl, BodyR]
+	; setting_value(html_layout, Layout0), Layout0 = tmpl_layout(_, _, _) ->
+	    SidebarR2 = [PreSect, show_toc(vertical_menu)],
+	    Layout = Layout0,
+            SectR = BodyR
 	; Layout = nav_sidebar_main,
 	  % Optional logo
 	  ( IsCover = no, docst_gdata_query(DocSt, main_logo(Logo)) ->
@@ -419,25 +431,40 @@ fmt_section_env(SecProps, SectLabel, TitleR, BodyR, DocSt, ModR) :-
 	  ),
 	  SidebarR1 = show_toc(toc_view(yes)),
 	  doctree_simplify([LogoR, SidebarR1], SidebarR2),
-	  MaybeIcon = no,
-	  CssList2 = [],
 	  %
 	  ( IsCover = yes ->
 	      fmt_cover(SecProps, TitleR, BodyR, DocSt, SectR)
 	  ; fmt_section(SecProps, SectLabel, TitleR, BodyR, DocSt, SectR)
 	  )
 	),
-	append(CssList1, CssList2, CssList),
 	%
-	fmt_layout(Layout, SectPathR, UpPrevNextR, SidebarR2, SectR, DocSt, R),
-	fmt_headers(MaybeIcon, CssList, TitleR2, R, ModR).
+	fmt_layout(Layout, SectPathR, UpPrevNextR, SidebarR2, TitleR, SectR, DocSt, R),
+	fmt_headers(Layout, MaybeIcon, CssList, TitleR2, R, ModR).
 fmt_section_env(SecProps, SectLabel, TitleR, BodyR, DocSt, R) :-
 	fmt_section(SecProps, SectLabel, TitleR, BodyR, DocSt, R).
+
+get_icon(MaybeIcon) :- setting_value(html_layout, website_layout), !, % TODO: hardwired!
+	MaybeIcon = yes('ciao-icon16.ico').
+get_icon(no).
 
 :- use_module(lpdoc(autodoc_html_assets), [css_file/1]).
 
 get_css_list(CssList) :-
-	findall(Base, (css_file(F), path_basename(F, Base)), CssList).
+	findall(Base, get_css_url(Base), CssList).
+
+% (nondet)
+get_css_url(URL) :-
+	css_file(F), path_basename(F, URL),
+	% TODO: kludge, do not include lpdoc.css (FIX: add a cleaner version)
+	\+ ( setting_value(html_layout, tmpl_layout(_, _, _)), URL = 'lpdoc.css' ).
+get_css_url(URL) :-
+	( setting_value(html_layout, website_layout) -> % TODO: hardwired!
+	    URL = 'css/website.css'
+	; fail
+	).
+get_css_url(URL) :-
+	setting_value(html_layout, tmpl_layout(_, _, CssList)),
+	member(URL, CssList).
 
 % Format a module as a cover
 fmt_cover(SecProps, TitleR, BodyR, DocSt, SectR) :-
@@ -486,7 +513,7 @@ fmt_cover(SecProps, TitleR, BodyR, DocSt, SectR) :-
         ].
 
 % Navigation, sidebar, and main contents
-fmt_layout(nav_sidebar_main, SectPathR, UpPrevNextR, SidebarR, MainR, DocSt, R) :-
+fmt_layout(nav_sidebar_main, SectPathR, UpPrevNextR, SidebarR, _TitleR, MainR, DocSt, R) :- !,
 	colophon(DocSt, Colophon),
 	R = [%htmlenv(div, [class="header"], [
              %  htmlenv(h1, [raw("HEADER")])
@@ -508,7 +535,7 @@ fmt_layout(nav_sidebar_main, SectPathR, UpPrevNextR, SidebarR, MainR, DocSt, R) 
 	     % the footer
 	     Colophon
             ].
-fmt_layout(nav_searchbox_menu_main, _SectPathR, _UpPrevNextR, SidebarR, FrameR, DocSt, R) :-
+fmt_layout(nav_searchbox_menu_main, _SectPathR, _UpPrevNextR, SidebarR, _TitleR, FrameR, DocSt, R) :- !,
 	% TODO: Generalize, this contains many definitions that are only valid
 	%   for the Ciao website. They should be defined externally.
 %	LogoImg = 'ciao2-96-shadow-reduced.png',
@@ -538,6 +565,11 @@ fmt_layout(nav_searchbox_menu_main, _SectPathR, _UpPrevNextR, SidebarR, FrameR, 
              ]),
              Colophon
             ].
+fmt_layout(tmpl_layout(_, LayoutTmpl, _), _SectPathR, _UpPrevNextR, SidebarR, TitleR, FrameR, _DocSt, R) :- !,
+	R = [html_template_internal(LayoutTmpl, [
+               sidebar = SidebarR,
+	       title = TitleR,
+	       content = FrameR])].
 
 % colophon: "a the brief description of the publication or production
 % notes relevant to the edition"
@@ -548,7 +580,25 @@ colophon(DocSt, R) :-
         ;  Ack = "Generated with LPdoc using Ciao" ),
 	R = htmlenv(div, [class="footer"], [string_esc(Ack)]).
 
-fmt_headers(MaybeIcon, CssList, Title, Body, R) :-
+% TODO: Fill metadata
+% <!DOCTYPE html>
+% <html lang=en>
+% <head>
+% <meta charset=utf-8>
+% <meta http-equiv=X-UA-Compatible content="IE=edge">
+% <meta name=viewport content="width=device-width,initial-scale=1">
+% <meta name=description content="...">
+% <meta name=keywords content="...">
+% <meta name=author content="..."> 
+
+fmt_headers(tmpl_layout(DocTmpl, _, _), MaybeIcon, CssList, Title, Body, R) :- !,
+	fmt_icon(MaybeIcon, IconR),
+	fmt_css(CssList, CssR),
+	fmt_mathjax(MathJaxR),
+	Head = [CssR, IconR, MathJaxR, htmlenv(title, Title)],
+	R = [html_template_internal(DocTmpl, [head = Head, body = Body])].
+%	
+fmt_headers(_, MaybeIcon, CssList, Title, Body, R) :-
 	MetaR = htmlenv1(meta, ['http-equiv'="Content-Type", content="text/html; charset=iso-8859-1"]),
 	fmt_icon(MaybeIcon, IconR),
 	fmt_css(CssList, CssR),

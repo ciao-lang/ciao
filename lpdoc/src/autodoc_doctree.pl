@@ -87,7 +87,7 @@ cmd_type(defmathcmd(s,s)) :- !.
 cmd_type(defmathcmd(s,s,s)) :- !.
 cmd_type(begin(s)) :- !.
 cmd_type(end(s)) :- !.
-% TODO: Distinguish between item_env/2 (for descriptions) and item_env/1 (for ordered or unordered lists)
+% TODO: use item_env/2 or desc_env/2 (like item_env/2, but for descriptions)
 cmd_type(item(d)) :- !.
 cmd_type('}') :- !.
 cmd_type('{') :- !.
@@ -219,11 +219,10 @@ icmd_type(linebreak). % break the current line (should it be like "@p @noindent"
 % TODO: good idea? use real sections instead?
 icmd_type(subsection_title(d)).
 icmd_type(twocolumns(d)).
-icmd_type(itemize_none(d)).  % no mark
-icmd_type(itemize_plain(d)). % no mark, no left margin
-icmd_type(itemize_minus(d)). % '-' (minus) mark
-icmd_type(itemize_bullet(d)). % '*' (bullet) mark
+icmd_type(itemize_env(t,d)). % style can be 'none' (no mark), 'plain' (no mark, no left margin), 'minus' (-), 'bullet' (*), etc.
 icmd_type(description_env(d)).
+icmd_type(item_env(t,d)). % TODO: extract from item?
+%icmd_type(desc_env(d,d)). % TODO: extract from item?
 icmd_type(item_num(s)). % TODO: for enumerations (avoid, use context info)
 icmd_type(cartouche(d)).
 icmd_type(optional_cartouche(d)).
@@ -1246,7 +1245,7 @@ fmt_toc(toc_view(Sidebar), DocSt, R) :- !,
 fmt_toc(global_links, DocSt, R) :- !,
         Title = string_esc("Global Links"),
 	fmt_toc_custom([toc, changelog, bugs, references, copyright], DocSt, Ri),
-        R = [subsection_title(Title), itemize_bullet(Ri)].
+        R = [subsection_title(Title), itemize_env(bullet, Ri)].
 fmt_toc(TOCKind, DocSt, R) :- TOCKind = single(Kind), !,
         % TODO: This is a ugly and slow hack; copy nav implementation
 	( docst_mvar_lookup(DocSt, full_toc_tree, Tree0) ->
@@ -1269,7 +1268,7 @@ fmt_toc(TOCKind, DocSt, R) :- TOCKind = vertical_menu, !,
 	% Remove the root node
 	Tree0 = [toc_node(_,_,_,Tree1)],
 	% In a website layout, put root node as a separate link
-        ( setting_value(html_layout, 'website_layout') ->
+        ( custom_html_layout ->
 	    Tree0 = [toc_node(TLink,_,TProps,_)],
 	    Tree = [toc_node(TLink,string_esc("Home"),TProps,[])|Tree1]
 	; Tree = Tree1
@@ -1278,7 +1277,7 @@ fmt_toc(TOCKind, DocSt, R) :- TOCKind = vertical_menu, !,
 	docst_currmod(DocSt, Name),
 	fmt_vertical_menu(Tree, Name, 0, R0),
 	( \+ doctree_is_empty(R0) ->
-	    R = [itemize_bullet(R0)]
+	    R = [itemize_env(menu, R0)]
 	; R = []
 	).
 fmt_toc(TOCKind, DocSt, R) :- TOCKind = global_and_indices, !,
@@ -1370,7 +1369,7 @@ fmt_toc_env(R0, DocSt, TOCKind, R) :-
 	( doctree_is_empty(Title) -> R = R1 % no title
 	; R = [subsection_title(Title)|R1]
 	),
-	R1 = [itemize_bullet(R0)].
+	R1 = [itemize_env(bullet, R0)].
 
 % ---------------------------------------------------------------------------
 
@@ -1403,11 +1402,17 @@ fmt_toc_link(texinfo, _Style, Link, Title, SubRs, R) :- !,
 	; throw(nested_texinfo_toc_not_implemented) % (not allowed, need flatten)
 	).
 fmt_toc_link(_, Style, Link, Title, SubRs, R) :- !,
-	R = [item(""), simple_link(Style, no_label, Link, Title)|R0],
+	R = [item_env(Style, simple_link(Style, no_label, Link, Title))|R0], % TODO: to item_env?
 	( SubRs = [] ->
 	    R0 = []
-	; R0 = [itemize_bullet(SubRs)]
+	; menustyle(Style) ->
+	    R0 = [itemize_env(menu, SubRs)]
+	; R0 = [itemize_env(bullet, SubRs)]
 	).
+
+menustyle(selmenu).
+menustyle(unselmenu).
+menustyle(phonymenu).
 
 % ---------------------------------------------------------------------------
 
@@ -1417,7 +1422,7 @@ fmt_toc_custom([N|Ns], DocSt, Rs) :-
 	fmt_toc(single(N), DocSt, R),
 	( doctree_is_empty(R) ->
 	    Rs = Rs0
-	; Rs = [item(""), R|Rs0]
+	; Rs = [item_env(default, R)|Rs0] % TODO: to item_env?
 	),
 	fmt_toc_custom(Ns, DocSt, Rs0).
 
@@ -1478,7 +1483,7 @@ toc_link_filter(indices, Props, _Link, yes) :-
    the table of contents in a given @pred{doctree/1}. The right place may be
    different depending on the chosen backend.".
 insert_show_toc(R0, _DocSt, R) :-
-        ( \+ setting_value(html_layout, 'website_layout') ->
+        ( \+ custom_html_layout ->
 	    % TODO: @bug{menutexi} Not yet working, still needs external '.el'
 	    insert_show_toc_(R0, R)
 	; R = R0

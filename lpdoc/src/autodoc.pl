@@ -153,7 +153,7 @@ ensure_output_dir_prepared(Backend, Opts) :-
 :- use_module(lpdoc(autodoc_html_assets), [prepare_auxfiles_html/2]).
 
 % Copy the auxiliary files required for this output. This is specific
-% to each backend (e.g. CSS, web-site skeleton, images, etc.)
+% to each backend (e.g. HTML assets)
 %
 prepare_auxfiles(Backend, Opts) :- Backend = html, !,
 	prepare_auxfiles_html(Backend, Opts).
@@ -655,7 +655,7 @@ fmt_introduction(IntroExtra, DocSt, IntroR, AfterIntroR) :-
 	%
 	IntroProps0 = [level(1),subfile('intro')],
 	IntroR0 = [CommentR2, InterfaceR|IntroRest],
-	( setting_value(html_layout, 'website_layout') ->
+	( custom_html_layout ->
 	    % TODO: generalize
 	    % Do not emit a section for the introduction
 	    IntroRest = [],
@@ -696,7 +696,7 @@ summary_in_cover(DocSt) :-
 % Add the full table of contents as a section
 show_full_toc(DocSt) :-
         % TODO: allow a full TOC in a website? (this is useful as a website directory)
-        \+ setting_value(html_layout, 'website_layout'),
+        \+ custom_html_layout,
 	docst_backend(DocSt, html).
 
 module_idx(DocSt, IdxR) :-
@@ -948,7 +948,7 @@ fmt_bugs(Special, DocSt, BugsR) :-
 gen_bugs([], nop) :- !.
 gen_bugs(Xs, R) :-
 	gen_bugs_(Xs, Items),
-	R = itemize_bullet(Items).
+	R = itemize_env(bullet, Items).
 
 gen_bugs_([], []).
 gen_bugs_([BugR|BugRs], [C|Cs]) :-
@@ -1207,7 +1207,7 @@ fmt_module_usage(DocSt, CExports, Mults,
 	  gen_classified_export_cases(Filters, CExports, E1),
 	  gen_cases(em, string_esc("Multifiles"), Mults, E2),
 
-	  gen_item(bf, string_esc("Exports"), itemize_minus([E1, E2]), Pa2)
+	  gen_item(bf, string_esc("Exports"), itemize_env(minus, [E1, E2]), Pa2)
 	),
 	gen_cases(bf, string_esc("New operators defined"), Ops, Ro),
 	gen_cases(bf, string_esc("New modes defined"), NModes, Rm),
@@ -1219,14 +1219,14 @@ fmt_module_usage(DocSt, CExports, Mults,
 	  gen_cases(em, string_esc("System library modules"), SysMods, L3),
 	  gen_cases(em, string_esc("Internal (engine) modules"), EngMods, L4),
 	  gen_cases(em, string_esc("Packages"), PkgMods, L5),
-	  gen_item(bf, string_esc("Imports"), itemize_minus([L1, L2, L3, L4, L5]), Pa3)
+	  gen_item(bf, string_esc("Imports"), itemize_env(minus, [L1, L2, L3, L4, L5]), Pa3)
 	),
 	% TODO: this section_env contains more things!
 	R = section_env(
               [with_parent,level(2)],
               local_label(_),
               string_esc("Usage and interface"),
-	      cartouche(itemize_bullet([Pa1, Pa2, Ro, Rm, Rd, Pa3]))
+	      cartouche(itemize_env(bullet, [Pa1, Pa2, Ro, Rm, Rd, Pa3]))
             ).
 
 modtype_usage_command(module,  use_module).

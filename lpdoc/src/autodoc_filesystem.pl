@@ -526,6 +526,6 @@ list_to_glob_pattern(List, Pattern) :-
 output_packed_in_dir(Backend, DirSuffix) :-
 	% Only HTML, when not generating a website
 	Backend = html,
-	\+ setting_value(html_layout, 'website_layout'),
+	\+ custom_html_layout,
 	DirSuffix = '.html'. % TODO: it may be '_files', etc.
 

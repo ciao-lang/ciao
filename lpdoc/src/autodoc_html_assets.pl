@@ -21,8 +21,8 @@
 
 :- export(prepare_auxfiles_html/2).
 prepare_auxfiles_html(Backend, Opts) :-
-	( setting_value(website_skeleton, SkelDir) ->
-	    prepare_web_skel(SkelDir)
+	( all_setting_values(html_asset, AssetDirs) ->
+	    prepare_assets(AssetDirs)
 	; true
 	),
 	( member(no_math, Opts) ->
@@ -39,7 +39,6 @@ prepare_auxfiles_html(Backend, Opts) :-
 	; true
 	).
 
-
 :- export(css_file/1).
 % Enumerate CSS files (absolute path) for the current settings
 css_file(Path) :-
@@ -53,16 +52,24 @@ css_file(Path) :-
 	path_concat(Dir, F, Path).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Custom skeletons").
+:- doc(section, "Custom HTML assets").
 % (images, css, etc.)
+
+prepare_assets(Dirs) :-
+	( % (failure-driven loop)
+	  member(D, Dirs),
+	    prepare_asset(D),
+	    fail
+	; true
+	).
 
 :- use_module(library(source_tree), [copy_file_tree/5]).
 
-%:- export(prepare_web_skel/1).
-:- pred prepare_web_skel(+SrcDir)
+%:- export(prepare_asset/1).
+:- pred prepare_asset(+SrcDir)
    # "Copy contents (recursively) of @var{SrcDir} into @tt{htmldir}.".
 % TODO: Avoid copy if not necessary
-prepare_web_skel(SrcDir) :-
+prepare_asset(SrcDir) :-
 	HtmlDir = ~setting_value_or_default(htmldir),
 	Owner = ~setting_value_or_default(owner),
 	Group = ~setting_value_or_default(group),
@@ -70,7 +77,7 @@ prepare_web_skel(SrcDir) :-
 	%
 	( file_exists(SrcDir) ->
 	    true
-	; error_message("No website skeleton found at '~w'", [SrcDir]),
+	; error_message("No asset found at '~w'", [SrcDir]),
 	  fail
 	),
 	copy_file_tree(installable_precomp(full),

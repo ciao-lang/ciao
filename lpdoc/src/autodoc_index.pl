@@ -198,7 +198,7 @@ fmt_index_groups([(G,Dic)|Gs], R) :-
 	flatten_dic(Dic, KVs, []),
 	index_links(KVs, Ls),
 	( symbol_norm(G) -> Header = "Symbols" ; Header = [G] ),
-	R = [subsection_title(string_esc(Header)), itemize_plain(Ls)|R0],
+	R = [subsection_title(string_esc(Header)), itemize_env(plain, Ls)|R0],
 	fmt_index_groups(Gs, R0).
 
 % Normalized initial characters for indices
@@ -277,7 +277,7 @@ index_key(K, [B|Bs], R) :-
 	% format other entries
 	index_key2(Bs, Rbs),
 	( Rbs = [] -> R0 = []
-	; R0 = [itemize_none(Rbs)] % include as itemize
+	; R0 = [itemize_env(none, Rbs)] % include as itemize
 	).
 
 index_key2([], []).
@@ -295,4 +295,4 @@ index_key_single(Pre, B, Label, R, R0) :-
 	; Msg = [string_esc("in "), string_esc(BaseC)]
 	),
 	Text3 = [Pre, string_esc("("), Msg, string_esc(")")],
-	R = [item(""), simple_link(default, Label, Link, Text3)|R0].
+	R = [item(""), simple_link(default, Label, Link, Text3)|R0]. % TODO: use item_env

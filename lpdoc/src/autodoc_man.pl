@@ -46,10 +46,13 @@ rw_command(env_('cartouche', X),   _, [raw_fc, raw_nleb, X, raw_fc, raw_nleb]) :
 rw_command(env_('alert', X),       _, [raw_fc, raw_nleb, X, raw_fc, raw_nleb]) :- !.
 rw_command(env_('verbatim', X),    _, [raw_fc, raw(".DS"), raw_nleb, X, raw_fc, raw(".DE"), raw_nleb]) :- !.
 rw_command(item(S), _, NBody) :- !, % (items for lists and descriptions)
+	% TODO: use item_env
 	( doctree_is_empty(S) ->
 	    NBody = [raw_fc, raw("* ")]
 	; NBody = [raw_fc, raw("* "), S, raw(": ")]
 	).
+rw_command(item_env(_Style, X), _, NBody) :- !, % (items for lists and descriptions)
+	NBody = [raw_fc, raw("* "), X].
 rw_command(item_num(S), _, NBody) :- !, % (items for enumerations)
 	( S = "" ->
 	    NBody = [raw_fc] % TODO: Wrong, not supported
@@ -118,7 +121,7 @@ rw_command(section_env(SecProps, _SectLabel, TitleR, Body), _DocSt, R) :- !,
 	fmt_structuring(SecProps, TitleR, SectR),
 	R = [SectR, Body].
 rw_command(bibitem(Label,_Ref), _DocSt, R) :- !,
-	R = [item(bf([string_esc("["), string_esc(Label), string_esc("]")]))].
+	R = [item(bf([string_esc("["), string_esc(Label), string_esc("]")]))]. % TODO: use item_env
 rw_command(idx_anchor(_, _, _, _, R0), _, R) :- !, R = R0.
 rw_command(simple_link(_,_,_,_), _, nop) :- !.
 rw_command(man_page(TitleR, Version, AuthorRs, AddressRs, SummaryR, UsageR, CopyrightR), DocSt, R) :- !,

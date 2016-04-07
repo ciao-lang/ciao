@@ -246,10 +246,11 @@
 :- export(htmlurl/1).
 :- default_def(htmlurl/1, [(htmlurl(_) :- fail)]).
 
-:- pred website_skeleton/1 => dirpath
-# "Directory with website skeleton for @tt{html_layout} value @tt{website_layout}".
-:- export(website_skeleton/1).
-:- default_def(website_skeleton/1, [(website_skeleton(_) :- fail)]).
+% TODO: Add target subdir (e.g., foocss => css/)
+:- pred html_asset/1 => dirpath
+# "Directory with additional files for HTML backend".
+:- export(html_asset/1).
+:- default_def(html_asset/1, [(html_asset(_) :- fail)]).
 
 :- pred tmplpath/1 => dirpath
 # "Directory for HTML templates".
