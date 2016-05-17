@@ -100,7 +100,7 @@ interpret_args([], opts(Load_CiaoRC, DisplayMsgs)) :- !,
 	).
 interpret_args(['-f'|R], opts(_, DV)) :- !, % fast start
 	interpret_args(R, opts(false, DV)).
-interpret_args(['-q'|R], opts(LR, _)) :- !, % fast start
+interpret_args(['-q'|R], opts(LR, _)) :- !, % quiet mode
 	interpret_args(R, opts(LR, false)).
 interpret_args(['-i'|R], Opts) :- !,
 	'$force_interactive',
