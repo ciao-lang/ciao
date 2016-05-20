@@ -24,8 +24,8 @@
    % (needed for rt checks) assertions for the exported predicate(s),
    % this flag should be disabled to avoid checks duplication (given
    % 'entry' and 'pred' are exactly the same)
-   (:- set_prolog_flag(rtchecks_entry,no)),
-   (:- set_prolog_flag(rtchecks_trust,no))
+   (:- set_prolog_flag(rtchecks_entry,no))
+   %(:- set_prolog_flag(rtchecks_trust,no))
 ]).
 
 :- compilation_fact(export_wrap).

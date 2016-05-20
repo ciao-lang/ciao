@@ -11,8 +11,8 @@
    (:- set_prolog_flag(rtchecks_predloc,no)),
    (:- set_prolog_flag(rtchecks_callloc,no)),
    %
-   (:- set_prolog_flag(rtchecks_level,exports)),
-   (:- set_prolog_flag(rtchecks_trust,no))
+   (:- set_prolog_flag(rtchecks_level,exports))
+   %(:- set_prolog_flag(rtchecks_trust,no))
 ]).
 
 :- compilation_fact(export_wrap).
