@@ -289,5 +289,6 @@ gen_pbundle_descfile(Bundle) :-
 gen_pbundle_hook(descfile, Bundle, _Options) :- !,
 	TargetDir = ~pbundle_output_dir,
 	DescFile = ~path_concat(TargetDir, 'desc.tmpl'),
+	create_pbundle_output_dir,
 	pbundle_generate_meta(Bundle, DescFile).
 
