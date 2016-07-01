@@ -60,7 +60,8 @@
 :- export(cmd_type/1).
 cmd_type(comment(s)) :- !.
 cmd_type(include(s)) :- !.
-cmd_type(includeverbatim(s)) :- !.
+cmd_type(includeverbatim(s)) :- !. % TODO: deprecate (at least direct use)
+cmd_type(includecode(s)) :- !.
 cmd_type(includefact(p)) :- !.
 cmd_type(includedef(p)) :- !.
 cmd_type(codeblock(s,s)) :- !. % TODO: internal for markdown

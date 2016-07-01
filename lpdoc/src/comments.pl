@@ -1022,13 +1022,19 @@ escapeseq --> "@{"
    of documentation or storing in a separate file long explanations if
    they are perceived to clutter the source file.
 
+   @item{@tt{@@includecode@{}@em{filename}@tt{@}}}
+   @cindex{@@includecode command} the contents of @em{filename} will
+   be included in-line and represented in verbatim mode (without
+   @tt{@@begin@{verbatim@}} and @tt{@@end@{verbatim@}}). Commands
+   within the file are not interpreted. This is useful for including
+   code fragments in documentation.
+
    @item{@tt{@@includeverbatim@{}@em{filename}@tt{@}}}
-   @cindex{@@includeverbatim command} as above, but the contents of
-   the file are included verbatim, i.e., commands within the file are
-   not interpreted. This is useful for including code examples which
-   may contain @tt{@@}'s, etc.  Note that this only means that the
-   file will be included as is.  If you want the string to be
-   represented in verbatim mode in the output, you must surround the
+   @cindex{@@includeverbatim command} (DEPRECATED) as above, but the
+   contents of the file are not necessarily represented in verbatim
+   mode. Note that this only means that the file will be included as
+   is. If you want the string to be represented in verbatim mode in
+   the output, you must surround the
    @tt{@@includeverbatim@{}@em{filename}@tt{@}} with
    @tt{@@begin@{verbatim@}} and @tt{@@end@{verbatim@}}.
 
@@ -1202,6 +1208,7 @@ stringcommand('{'               ).
 stringcommand('}'               ).
 
 stringcommand(include(B)        ) :- string(B).
+stringcommand(includecode(B)    ) :- string(B).
 stringcommand(includeverbatim(B)) :- string(B).
 stringcommand(includefact(B)    ) :- string(B).
 stringcommand(includedef(B)     ) :- string(B).

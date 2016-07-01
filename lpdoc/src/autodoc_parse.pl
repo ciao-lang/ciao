@@ -512,7 +512,11 @@ parse_cmd_args([T|Ts], [X|Xs], DocSt, [Y|Ys]) :-
 handle_incl_command(include(FileS), DocSt, Verb, RContent) :- !,
 	atom_codes(RelFile, FileS),
 	handle_incl_file(include, RelFile, DocSt, Verb, RContent).
-handle_incl_command(includeverbatim(FileS), DocSt, _Verb, RContent) :- !,
+handle_incl_command(includecode(FileS), DocSt, _Verb, RContent) :- !,
+	atom_codes(RelFile, FileS),
+	handle_incl_file(includeverbatim, RelFile, DocSt, plain, RContent0),
+	build_env('verbatim', [RContent0], RContent).
+handle_incl_command(includeverbatim(FileS), DocSt, _Verb, RContent) :- !, % TODO: deprecate (at least direct usage)
 	atom_codes(RelFile, FileS),
 	handle_incl_file(includeverbatim, RelFile, DocSt, plain, RContent).
 % TODO: Treat this command here or in autodoc? --JF
