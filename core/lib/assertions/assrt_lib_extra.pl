@@ -160,3 +160,62 @@ norm_body_extra((PD                 #CO),p,(PD::true:true=>true+true#CO)):-!.%00
 norm_body_extra((PD                    ),t,(PD::true:true=>true+true#"")):-!.%00000
 % ---------------------------------------------------------------------------
 
+:- export(assrt_replace_pd/4).
+% Replace PD part of an assertion without normalizing it. NewPD can be a free variable
+% and instantiated later.
+%
+% This predicate is useful for extending the assertion syntax (e.g., hiord assertions).
+%
+% E.g.,
+%  ?- assrt_replace_pd((pred P(X) : num => int), NewPD, Assrt2, OldPD),
+%     OldPD =.. [call,N|Args],
+%     NewPD =.. ['\6\pvar'|Args].
+
+% TODO: perhaps fixing normalize_assertions is simpler, at least for some case
+
+assrt_replace_pd(Assrt, NewPD, Assrt2, OldPD) :- 
+	( Assrt =.. [AType,UBody] ->
+	    AStatus = ''
+	; Assrt =.. [AType,AStatus,UBody] ->
+	    true
+	; fail
+	),
+	replace_pd(UBody, UBody2, OldPD, NewPD),
+	( AStatus = '' ->
+	    Assrt2  =.. [AType,UBody2]
+	; Assrt2 =.. [AType,AStatus,UBody2]
+	).
+
+% Replace PD in an assertion body without normalizing it
+replace_pd((PD0::DP:CP=>AP+GP#CO),(PD1::DP:CP=>AP+GP#CO),PD0,PD1):-!.%11111
+replace_pd((PD0::DP:CP=>AP+GP   ),(PD1::DP:CP=>AP+GP   ),PD0,PD1):-!.%11110
+replace_pd((PD0::DP:CP=>AP   #CO),(PD1::DP:CP=>AP   #CO),PD0,PD1):-!.%11101
+replace_pd((PD0::DP:CP=>AP      ),(PD1::DP:CP=>AP      ),PD0,PD1):-!.%11100
+replace_pd((PD0::DP:CP    +GP#CO),(PD1::DP:CP    +GP#CO),PD0,PD1):-!.%11011
+replace_pd((PD0::DP:CP    +GP   ),(PD1::DP:CP    +GP   ),PD0,PD1):-!.%11010
+replace_pd((PD0::DP:CP       #CO),(PD1::DP:CP       #CO),PD0,PD1):-!.%11001
+replace_pd((PD0::DP:CP          ),(PD1::DP:CP          ),PD0,PD1):-!.%11000
+replace_pd((PD0::DP   =>AP+GP#CO),(PD1::DP   =>AP+GP#CO),PD0,PD1):-!.%10111
+replace_pd((PD0::DP   =>AP+GP   ),(PD1::DP   =>AP+GP   ),PD0,PD1):-!.%10110
+replace_pd((PD0::DP   =>AP   #CO),(PD1::DP   =>AP   #CO),PD0,PD1):-!.%10101
+replace_pd((PD0::DP   =>AP      ),(PD1::DP   =>AP      ),PD0,PD1):-!.%10100
+replace_pd((PD0::DP       +GP#CO),(PD1::DP       +GP#CO),PD0,PD1):-!.%10011
+replace_pd((PD0::DP       +GP   ),(PD1::DP       +GP   ),PD0,PD1):-!.%10010
+replace_pd((PD0::DP          #CO),(PD1::DP          #CO),PD0,PD1):-!.%10001
+replace_pd((PD0::DP             ),(PD1::DP             ),PD0,PD1):-!.%10000
+replace_pd((PD0    :CP=>AP+GP#CO),(PD1    :CP=>AP+GP#CO),PD0,PD1):-!.%01111
+replace_pd((PD0    :CP=>AP+GP   ),(PD1    :CP=>AP+GP   ),PD0,PD1):-!.%01110
+replace_pd((PD0    :CP=>AP   #CO),(PD1    :CP=>AP   #CO),PD0,PD1):-!.%01101
+replace_pd((PD0    :CP=>AP      ),(PD1    :CP=>AP      ),PD0,PD1):-!.%01100
+replace_pd((PD0    :CP    +GP#CO),(PD1    :CP    +GP#CO),PD0,PD1):-!.%01011
+replace_pd((PD0    :CP    +GP   ),(PD1    :CP    +GP   ),PD0,PD1):-!.%01010
+replace_pd((PD0    :CP       #CO),(PD1    :CP       #CO),PD0,PD1):-!.%01001
+replace_pd((PD0    :CP          ),(PD1    :CP          ),PD0,PD1):-!.%01000
+replace_pd((PD0       =>AP+GP#CO),(PD1       =>AP+GP#CO),PD0,PD1):-!.%00111
+replace_pd((PD0       =>AP+GP   ),(PD1       =>AP+GP   ),PD0,PD1):-!.%00110
+replace_pd((PD0       =>AP   #CO),(PD1       =>AP   #CO),PD0,PD1):-!.%00101
+replace_pd((PD0       =>AP      ),(PD1       =>AP      ),PD0,PD1):-!.%00100
+replace_pd((PD0           +GP#CO),(PD1           +GP#CO),PD0,PD1):-!.%00011
+replace_pd((PD0           +GP   ),(PD1           +GP   ),PD0,PD1):-!.%00010
+replace_pd((PD0              #CO),(PD1              #CO),PD0,PD1):-!.%00001
+replace_pd((PD0                 ),(PD1                 ),PD0,PD1):-!.%00000
