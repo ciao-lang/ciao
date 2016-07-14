@@ -3,8 +3,6 @@
 % (should be at the beginning? in assertions?) 
 		compat/1,
 		instance/1,
-		% instance/2 % reexported from terms_check
-
 % Sharing/aliasing, groundness:
      		mshare/1, % Read as possibly_share
 		indep/2,
@@ -116,9 +114,6 @@
 %% TODO MH - Put only in the relevant parts
 :- set_prolog_flag(multi_arity_warnings, off).
 
-:- reexport(library(terms_check), [instance/2]).
-:- doc(doinclude, [instance/2]).
-
 % TODO MH: check which are needed and make imports explicit
 :- use_module(library(terms_vars)).
 :- use_module(library(hiordlib)).
@@ -193,10 +188,9 @@ compat(_). % processed in rtchecks_basic
 % --------------------------------------------------------------------------
 
 :- doc(bug, "MH: The idea was to call it inst/2 (to avoid confusion
-   with instace/2). Note that it is also defiend --this way-- in  
+   with instance/2). Note that it is also defined --this way-- in  
    basic_props!!"). 
 :- doc(bug, "MH: inst/1 not really needed since it is the default? ").
-:- doc(bug, "MH: Note that instance/2 is reexported above!").
 
 :- prop instance(Prop) + no_rtcheck
 
@@ -205,6 +199,14 @@ compat(_). % processed in rtchecks_basic
 
 :- meta_predicate instance(goal).
 instance(_). % processed in rtchecks_basic
+
+% TODO: JF: The following does not seem the right instance/2 (the one
+%   in CiaoPP's native.pl has a form native_props:instance(V,T), where
+%   T seems a type). terms_check:instance/2 is a completely different
+%   one.
+%
+% :- reexport(library(terms_check), [instance/2]).
+% :- doc(doinclude, [instance/2]).
 
 % --------------------------------------------------------------------------
 :- doc(section, "Sharing/aliasing, groundness").
