@@ -3,6 +3,7 @@
 % (should be at the beginning? in assertions?) 
 		compat/1,
 		instance/1,
+		succeeds/1,  % very crazy. TODO: rename!
 % Sharing/aliasing, groundness:
      		mshare/1, % Read as possibly_share
 		indep/2,
@@ -23,7 +24,6 @@
 
 % Non-failure: 
 		not_fails/1,
-		succeeds/1,
 		fails/1,
 		possibly_fails/1, % may_fail?
 		covered/1, 
@@ -88,15 +88,7 @@
 		% , user_error/2
 
 	    ],
-	    [assertions, regtypes, hiord]).
-
-
-:- doc(bug, "MH: The implementations for run-time checking, unless
-   they are straightforward should be in the run-time check library
-   and here they should just just be declared
-   implementation_defibned. This file should be more about
-   documentation, and providing definitions for the assertions when
-   used by CiaoPP.").
+	    [assertions, regtypes]).
 
 :- doc(bug, "MH: Some of these properties should be moved to rtchecks
    or testing libs.").
@@ -113,18 +105,6 @@
 
 %% TODO MH - Put only in the relevant parts
 :- set_prolog_flag(multi_arity_warnings, off).
-
-% TODO MH: check which are needed and make imports explicit
-:- use_module(library(terms_vars)).
-:- use_module(library(hiordlib)).
-:- use_module(library(sort), [sort/2]).
-:- use_module(library(lists)).
-:- use_module(library(streams)).
-:- use_module(library(file_utils)).
-:- use_module(library(system)).
-:- use_module(library(odd)).
-:- use_module(library(rtchecks/rtchecks_send)).
-:- use_module(engine(internals), ['$setarg'/4]).
 
 % --------------------------------------------------------------------------
 :- doc(title, "Properties which are native to analyzers").
@@ -209,6 +189,21 @@ instance(_). % processed in rtchecks_basic
 % :- doc(doinclude, [instance/2]).
 
 % --------------------------------------------------------------------------
+
+:- doc(bug, "succeeds/1 is only used in 2 modules, its name conflicts
+   with other notions in assertions, it should be renamed (e.g. to
+   test_succeeds/1 or something along that line)").
+
+:- doc(bug, "We probably need a succeeds/1 comp property. It actually
+   appears in the CiaoPP tutorial at ciaopp/doc/tutorial.tex").
+
+:- prop succeeds(Goal) + no_rtcheck # "A call to @var{Goal} succeeds.".
+
+:- meta_predicate succeeds(goal).
+
+:- impl_defined(succeeds/1).
+
+% --------------------------------------------------------------------------
 :- doc(section, "Sharing/aliasing, groundness").
 % --------------------------------------------------------------------------
 
@@ -222,31 +217,10 @@ instance(_). % processed in rtchecks_basic
    @prop{ground/1}, @prop{indep/1} and @prop{indep/2} properties,
    which are easier to read.").
 
-% MH These look strange as sharing sets! Also, it is really wrong: it
-% does not check the ground variables (the ones that do not appear in
-% the sahring set)). To make it complete we need to pass all clause
-% variables to mshare in another argument...
-:- test mshare(L) : (L = [[A], [p(A)]]) + fails.
-:- test mshare(L) : (L = [[A], [p(B)]]) + not_fails.
-
 :- prop mshare(X) + (native(sharing(X)), no_rtcheck)
 # "The sharing pattern for the variables in the clause is @tt{@var{X}}.".
 
-% MH: This run-time check simply cannot be done like this! It is
-% necessary to pass the variables (mshare/2) or read them from the
-% clause database or whatever.
-mshare(L) :-
-	map(L, term_variables, V),
-	\+ not_mshare(V).
-
-% try to find a counter-example:
-not_mshare([V1|L]) :-
-	member(V2, L),
-	member(X1, V1),
-	member(X2, V2),
-	X1 == X2 -> true
-    ;
-	not_mshare(L).
+:- impl_defined(mshare/1).
 
 % --------------------------------------------------------------------------
 % Amadeo
@@ -302,20 +276,13 @@ indep([[X, Y]|L]) :- indep(X, Y), indep(L).
 
 :- true prop covered(X, Y) + native # "@var{X} is covered by @var{Y}.".
 
-covered(X, Y) :-
-	varsbag(X, VarsX, []),
-	varsbag(Y, VarsY, []),
-	sublist(VarsX, VarsY).
+:- impl_defined(covered/2).
 
 % --------------------------------------------------------------------------
 :- true prop linear(X) + native
 # "@var{X} is instantiated to a linear term.".
 
-linear(T) :-
-	varsbag(T, VarsBag, []),
-	sort(VarsBag, VarsSet),
-	length(VarsBag, N),
-	length(VarsSet, N).
+:- impl_defined(linear/1).
 
 % --------------------------------------------------------------------------
 :- prop nonground(X) + native(not_ground(X))
@@ -361,23 +328,12 @@ nonground(X) :- \+ ground(X).
    is inferred and checked natively by CiaoPP using the domains and
    techniques of @cite{determ-lopstr04,determinacy-ngc09}.").
 
-:- prop is_det(X) 
+:- prop is_det(X)
 # "All calls of the form @var{X} are deterministic.".
 
 :- meta_predicate is_det(goal).
 
-is_det(Goal) :-
-	Solved = solved(no),
-	Goal,
-	(
-	    arg(1, Solved, no)
-	->
-	    true
-	;
-	    send_comp_rtcheck(Goal, is_det, non_det)
-	    % more than one solution!
-	),
-	'$setarg'(1, Solved, yes, true).
+:- impl_defined(is_det/1).
 
 % --------------------------------------------------------------------------
 
@@ -390,30 +346,7 @@ is_det(Goal) :-
 
 :- meta_predicate non_det(goal).
 
-non_det(Goal) :-
-	Solved = solved(no),
-	(
-	    true
-	;
-	    arg(1, Solved, one) ->
-	    send_comp_rtcheck(Goal, non_det, is_det),
-	    fail
-	),
-	'$metachoice'(C0),
-	Goal,
-	'$metachoice'(C1),
-	(
-	    arg(1, Solved, no) ->
-	    (
-		C1 == C0 ->
-		!,
-		send_comp_rtcheck(Goal, non_det, no_choicepoints)
-	    ;
-		'$setarg'(1, Solved, one, true)
-	    )
-	;
-	    '$setarg'(1, Solved, yes, true)
-	).
+:- impl_defined(non_det/1).
 
 % --------------------------------------------------------------------------
 
@@ -488,36 +421,10 @@ possibly_not_mut_exclusive(Goal) :- call(Goal).
 
 :- true prop not_fails(X) + native
 # "All the calls of the form @var{X} do not fail.".
-% %
-% :- meta_predicate not_fails( goal ).
-%
-% not_fails( X ) :-
-% 	if( X , true , throw( rtcheck( nf , fail , X  ) ) ).
 
 :- meta_predicate not_fails(goal).
 
-not_fails(Goal) :-
-	Solved = solved(no),
-	(
-	    true
-	;
-	    arg(1, Solved, no) ->
-	    send_comp_rtcheck(Goal, not_fails, fails),
-	    fail
-	),
-	'$metachoice'(C0),
-	no_exception_2(Goal, not_fails, _),
-	'$metachoice'(C1),
-	( C0 == C1 -> !
-	; '$setarg'(1, Solved, yes, true) ).
-
-% --------------------------------------------------------------------------
-
-:- prop succeeds(Prop) + no_rtcheck # "A call to @var{Prop} succeeds.".
-
-:- meta_predicate succeeds(goal).
-
-succeeds(Prop) :- \+ \+ call(Prop). % Defined but processed in rtchecks_basic
+:- impl_defined(not_fails/1).
 
 % --------------------------------------------------------------------------
 
@@ -528,17 +435,7 @@ succeeds(Prop) :- \+ \+ call(Prop). % Defined but processed in rtchecks_basic
 
 :- meta_predicate fails(goal).
 
-fails(Goal) :-
-	Solved = solved(no),
-	no_exception_2(Goal, fails, _),
-	(
-	    arg(1, Solved, no) ->
-	    send_comp_rtcheck(Goal, fails, not_fails),
-	    '$setarg'(1, Solved, yes, true)
-	;
-	    true
-	).
-
+:- impl_defined(fails/1).
 
 % --------------------------------------------------------------------------
 
@@ -550,7 +447,8 @@ fails(Goal) :-
 # "Non-failure is not ensured for calls of the form @var{X}.".
 
 :- meta_predicate possibly_fails(goal).
-
+% TODO: put a note that these are incomplete/probably wrong and may
+% give weird results in rtchekcs
 possibly_fails(Goal) :- call(Goal).
 
 % --------------------------------------------------------------------------
@@ -613,97 +511,21 @@ test_type(Goal, _) :- call(Goal).
 
 :- meta_predicate num_solutions(goal, addterm(pred(1))).
 
-num_solutions(Goal, _, N) :-
-	int(N),
-	!,
-	num_solutions_eq(Goal, N).
-num_solutions(Goal, Check, Term) :-
-	Sols = num_solutions(0),
-	(
-	    true
-	;
-	    arg(1, Sols, N0),
-	    (
-		Check(N0) -> fail
-	    ;
-		send_comp_rtcheck(Goal, num_solutions(Term),
-		    num_solutions(N0)),
-		fail
-	    )
-	),
-	'$metachoice'(C0),
-	call(Goal),
-	'$metachoice'(C1),
-	arg(1, Sols, N0),
-	N1 is N0 + 1,
-	(
-	    C1 == C0 ->
-	    !,
-	    (
-		Check(N1) -> true
-	    ;
-		send_comp_rtcheck(Goal, num_solutions(Term), num_solutions(N0))
-	    )
-	;
-	    '$setarg'(1, Sols, N1, true)
-	).
-
-
-:- meta_predicate num_solutions_eq(goal, ?).
-num_solutions_eq(Goal, N) :-
-	Sols = solutions(0),
-	(
-	    true
-	;
-	    arg(1, Sols, A),
-	    (
-		(A == done ; A == N) -> fail
-	    ;
-		send_comp_rtcheck(Goal, num_solutions(N), Sols),
-		fail
-	    )
-	),
-	'$metachoice'(C0),
-	call(Goal),
-	'$metachoice'(C1),
-	arg(1, Sols, A),
-	(
-	    A == done -> true
-	;
-	    N1 is A + 1,
-	    (
-		C1 == C0 ->
-		!,
-		(
-		    N1 == N -> true
-		;
-		    send_comp_rtcheck(Goal, num_solutions(N),
-			num_solutions(N1))
-		)
-	    ;
-		(
-		    N1 > N ->
-		    send_comp_rtcheck(Goal, num_solutions(N),
-			num_solutions('>'(N))),
-		    '$setarg'(1, Sols, done, true)
-		;
-		    '$setarg'(1, Sols, N1, true)
-		)
-	    )
-	).
+:- impl_defined(num_solutions/3).
 
 % --------------------------------------------------------------------------
 
-:- doc(bug, "This is the same as num_solutions/2!").
+:- doc(bug, "relations/2 is the same as num_solutions/2!").
 
-:- doc(relations(X, N), "Calls of the form produce @var{N} solutions,
+:- doc(relations(X, N), "Calls of the form @var{X} produce @var{N} solutions,
    i.e., @var{N} is the cardinality of the solution set of @var{X}.").
 
 :- prop relations(X, N) : callable * int + rtcheck(unimplemented)
 # "Goal @var{X} produces @var{N} solutions.".
 
 :- meta_predicate relations(goal, ?).
-relations(Goal, _) :- call(Goal).
+
+:- impl_defined(relations/2).
 
 % --------------------------------------------------------------------------
 
@@ -715,6 +537,7 @@ relations(Goal, _) :- call(Goal).
    solutions.".
 
 :- meta_predicate finite_solutions(goal).
+
 finite_solutions(Goal) :- call(Goal).
 
 % --------------------------------------------------------------------------
@@ -724,51 +547,7 @@ finite_solutions(Goal) :- call(Goal).
 
 :- meta_predicate solutions(addterm(goal), ?).
 
-solutions(Goal, Sol, Sols) :-
-	Remaining = solutions(Sols),
-	(
-	    true
-	;
-	    arg(1, Remaining, Sols0),
-	    (
-		(Sols == done ; Sols0 == []) -> fail
-	    ;
-		append(Sols2, Sols0, Sols),
-		send_comp_rtcheck(Goal, solutions(Sols), solutions(Sols2)),
-		fail
-	    )
-	),
-	'$metachoice'(C0),
-	call(Goal),
-	'$metachoice'(C1),
-	arg(1, Remaining, Sols0),
-	(
-	    Sols0 == done -> true
-	;
-	    [Elem|Sols1] = Sols0,
-	    (
-		C1 == C0 ->
-		!,
-		(
-		    Elem \= Sol ->
-		    append(Curr, Sols0, Sols),
-		    append(Curr, [Sol], Sols2),
-		    send_comp_rtcheck(Goal, solutions(Sols), solutions(Sols2))
-		;
-		    true
-		)
-	    ;
-		(
-		    Elem \= Sol ->
-		    append(Curr, Sols0,   Sols),
-		    append(Curr, [Sol|_], Sols2),
-		    send_comp_rtcheck(Goal, solutions(Sols), solutions(Sols2)),
-		    '$setarg'(1, Remaining, done, true)
-		;
-		    '$setarg'(1, Remaining, Sols1, true)
-		)
-	    )
-	).
+:- impl_defined(solutions/3).
 
 % --------------------------------------------------------------------------
 
@@ -777,13 +556,7 @@ solutions(Goal, Sol, Sols) :-
 
 :- meta_predicate no_choicepoints(goal).
 
-no_choicepoints(Goal) :-
-	'$metachoice'(C0),
-	Goal,
-	'$metachoice'(C1),
-	( C1 == C0 -> true
-	; send_comp_rtcheck(Goal, no_choicepoints, leaves_choicepoints)
-	).
+:- impl_defined(no_choicepoints/1).
 
 % --------------------------------------------------------------------------
 
@@ -791,13 +564,8 @@ no_choicepoints(Goal) :-
 # "A call to @var{X} leaves new choicepoints.".
 
 :- meta_predicate leaves_choicepoints(goal).
-leaves_choicepoints(Goal) :-
-	'$metachoice'(C0),
-	Goal,
-	'$metachoice'(C1),
-	( C1 == C0 ->
-	    send_comp_rtcheck(Goal, leaves_choicepoints, no_choicepoints)
-	; true ).
+
+:- impl_defined(leaves_choicepoints/1).
 
 % --------------------------------------------------------------------------
 :- doc(section, "Data sizes, cost, termination").
@@ -1013,17 +781,7 @@ terminates(Goal) :- call(Goal).
 
 :- meta_predicate exception(goal, ?).
 
-exception(Goal, E) :-
-	catch(Goal, F,
-	    (
-		( E \= F ->
-		    send_comp_rtcheck(Goal, exception(E), exception(F))
-		;
-		    true
-		),
-		throw(F)
-	    )),
-	send_comp_rtcheck(Goal, exception(E), no_exception).
+:- impl_defined(exception/2).
 
 % --------------------------------------------------------------------------
 
@@ -1032,9 +790,7 @@ exception(Goal, E) :-
 
 :- meta_predicate exception(goal).
 
-exception(Goal) :-
-	Goal,
-	send_comp_rtcheck(Goal, exception, no_exception).
+:- impl_defined(exception/1).
 
 % --------------------------------------------------------------------------
 
@@ -1053,7 +809,7 @@ possible_exceptions(Goal, _E) :- call(Goal).
 
 :- meta_predicate no_exception(goal).
 
-no_exception(Goal) :- no_exception_2(Goal, no_exception, _).
+:- impl_defined(no_exception/1).
 
 % --------------------------------------------------------------------------
 
@@ -1063,15 +819,7 @@ no_exception(Goal) :- no_exception_2(Goal, no_exception, _).
 
 :- meta_predicate no_exception(goal, ?).
 
-no_exception(Goal, E) :- no_exception_2(Goal, no_exception(E), E).
-
-:- meta_predicate no_exception_2(goal, ?, ?).
-no_exception_2(Goal, Prop, E) :-
-	catch(Goal, E,
-	    (
-		send_comp_rtcheck(Goal, Prop, exception(E)),
-		throw(E)
-	    )).
+:- impl_defined(no_exception/2).
 
 % --------------------------------------------------------------------------
 :- doc(section, "Signals").
@@ -1082,7 +830,7 @@ no_exception_2(Goal, Prop, E) :-
 
 :- meta_predicate signal(goal).
 
-signal(Goal) :- signal(Goal, _).
+:- impl_defined(signal/1).
 
 % --------------------------------------------------------------------------
 
@@ -1091,14 +839,7 @@ signal(Goal) :- signal(Goal, _).
 
 :- meta_predicate signal(goal, ?).
 
-signal(Goal, E) :-
-	'$metachoice'(Choice),
-	asserta_signal_check(Choice, Goal, E, yes),
-	'$metachoice'(C0),
-	intercept(Goal, E, (emit_signal(Choice, E), send_signal(E))),
-	'$metachoice'(C1),
-	retract_signal_check(Choice, Goal, E, yes),
-	(C0 == C1 -> ! ; true).
+:- impl_defined(signal/2).
 
 % --------------------------------------------------------------------------
 
@@ -1117,7 +858,7 @@ possible_signals(Goal, _E) :- call(Goal).
 
 :- meta_predicate no_signal(goal).
 
-no_signal(Goal) :- no_signal(Goal, _).
+:- impl_defined(no_signal/1).
 
 % --------------------------------------------------------------------------
 
@@ -1127,41 +868,7 @@ no_signal(Goal) :- no_signal(Goal, _).
 
 :- meta_predicate no_signal(goal, ?).
 
-no_signal(Goal, E) :-
-	'$metachoice'(Choice),
-	asserta_signal_check(Choice, Goal, E, no),
-	'$metachoice'(C0),
-	intercept(Goal, E, (emit_signal(Choice, E), send_signal(E))),
-	'$metachoice'(C1),
-	retract_signal_check(Choice, Goal, E, no),
-	(C0 == C1 -> ! ; true).
-
-:- data signal_db/3.
-
-asserta_signal_check(Choice, _, E, _) :-
-	asserta_fact(signal_db(Choice, no, E)).
-asserta_signal_check(Choice, Goal, _, CheckThrown) :-
-	end_signal_check(Choice, Goal, CheckThrown), fail.
-
-retract_signal_check(Choice, Goal, _, CheckThrown) :-
-	end_signal_check(Choice, Goal, CheckThrown).
-retract_signal_check(Choice, _, E, _) :-
-	asserta_fact(signal_db(Choice, no, E)),
-	fail.
-
-signal_prop(yes, E, signal(yes, E), signal(no,  E)).
-signal_prop(no,  E, signal(no,  E), signal(yes, E)).
-
-end_signal_check(Choice, Goal, CheckThrown) :-
-	retract_fact_nb(signal_db(Choice, Thrown, E)),
-	signal_prop(CheckThrown, E, EP, EV),
-	( Thrown = CheckThrown -> true
-	; send_comp_rtcheck(Goal, EP, EV)
-	).
-
-emit_signal(Choice, E) :-
-	retract_fact_nb(signal_db(Choice, _, _)),
-	assertz_fact(signal_db(Choice, yes, E)).
+:- impl_defined(no_signal/2).
 
 % --------------------------------------------------------------------------
 :- doc(section, "Other side effects").
@@ -1294,47 +1001,8 @@ valid_type([Type|Rest]) :-
 	"Calls of the form @var{Goal} write @var{S} to standard output.".
 
 :- meta_predicate user_output(goal, ?).
-user_output(Goal, S) :-
-	'$metachoice'(Choice),
-	mktemp_in_tmp('tmpciaoXXXXXX', FileName),
-	asserta_user_output_check(Choice, FileName, Goal, S),
-	'$metachoice'(C0),
-	catch(Goal, E,
-	    (end_output_check(Choice, FileName, Goal, S), throw(E))),
-	'$metachoice'(C1),
-	retract_user_output_check(Choice, FileName, Goal, S),
-	(C0 == C1 -> ! ; true).
 
-:- data output_db/2.
-
-asserta_user_output_check(Choice, FileName, _, _) :-
-	ini_output_check(Choice, FileName).
-asserta_user_output_check(Choice, FileName, Goal, S) :-
-	end_output_check(Choice, FileName, Goal, S), fail.
-
-retract_user_output_check(Choice, FileName, Goal, S) :-
-	end_output_check(Choice, FileName, Goal, S).
-retract_user_output_check(Choice, FileName, _, _) :-
-	ini_output_check(Choice, FileName), fail.
-
-ini_output_check(Choice, FileName) :-
-	open_output(FileName, SO),
-	assertz_fact(output_db(Choice, SO)),
-	!.
-
-end_output_check(Choice, FileName, Goal, S) :-
-	retract_fact(output_db(Choice, SO)),
-	close_output(SO),
-	file_to_string(FileName, S1),
-	delete_file(FileName),
-	display_string(S1),
-	(
-	    S \== S1 ->
-	    send_comp_rtcheck(Goal, user_output(S), user_output(S1))
-	;
-	    true
-	),
-	!.
+:- impl_defined(user_output/2).
 
 %%%%%%%%%%%%%%
 %%%% This one is in the testing library (unittest)

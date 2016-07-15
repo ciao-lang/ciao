@@ -4,11 +4,14 @@
 :- doc(title, "Run-time checking of assertions").
 
 :- doc(author, "Edison Mera").
+:- doc(author, "Nataliia Stulova").
 
 :- doc(summary, "This package provides a complete implementation
 	of run-time checks of predicate assertions. The program is
 	instrumented to check such assertions at run time, and in case
-	a property does not hold, the error is reported.  Note that
+	a property does not hold, the error is reported. It is possible
+        to define two different property versions: one purely declarative
+        and one specifically crafted for run-time checking. Note that
 	there is also an older package called rtchecks, by
 	@author{David Trallero Mena}. The advantage of this one is
 	that it can be used independently of CiaoPP and also has
@@ -23,7 +26,6 @@ error is reported.  Note that there is also an older package called
 rtchecks, by David Trallero. The advantage of this one is that it can
 be used independently of CiaoPP and also has updated functionality.
 
-
 There are two main applications of run-time checks:
 
 @begin{itemize}
@@ -37,13 +39,15 @@ There are two main applications of run-time checks:
 
 @end{itemize}
 
+@section{Run-time checks configuration with flags}
+
 The run-time checks can be configured using prolog flags.  Below we
 itemize the valid prolog flags with its values and a brief
 explanation of the meaning:
 
 @begin{itemize}
 
-@item @code{rtchecks_level} 
+@item @code{rtchecks_level}
   @begin{itemize}
    @item @code{exports}: Only use rtchecks for external calls of the
                          exported predicates.
@@ -144,6 +148,51 @@ explanation of the meaning:
   @end{itemize}
 
 @end{itemize}
+
+@section{Creating versions of properties}
+
+@begin{alert}
+ @bf{Note:} this is a new feature and under active development. The
+ documentations may be partial/obsolete.
+@end{alert}
+
+In some cases delarative property definitions are not efficient enough
+to be used in the rin-time checks instrumentation. In Ciao it is
+possible to write an additional version of property that can be used
+specifically in run-time checks while keeping the main version that
+(which might be easy to read or is well understood by some static
+analyzer.)
+
+To provide the custom property implementation for run-time checking
+it is necessary to edit two files (suppose the original proerty is
+defined in a module @file{foo.pl}):
+
+@begin{itemize}
+
+  @item @file{foo_rtc.pl} module that would contain the custom
+    property implementation and is placed in the same folder as
+    @file{foo.pl}. Make sure the custom property implementation is
+    exported from both modules.
+
+
+  @item @file{$CIAOROOT/core/lib/rtchecks/rtcheks_rt_propimpl.pl}, a
+    database file that stores the links between different property
+    implementations in the format of declarations '@tt{:-
+    rtc_impl(ModOr:PropOr/ArityOr, ModRt:PropRt/ArityRt).}' where
+    @var{ModOr} and @var{ModRt} are names of the two modules that
+    contain the original and the custom property definitions,
+    @var{PropOr} and @var{PropRt} are the two different property
+    implementations with respective arities @var{ArityOr} and
+    @var{ArityRt}.
+
+@end{itemize}
+
+After these edits the @lib{rtchecks} library needs to be rubuilt (for
+instance, with the @code{$ ciao build_nodocs core} from console).
+
+For an example of a system library that uses this feature see
+@lib{assertions/native_props} library.
+
 ").
 
 :- doc(usage,":- module(...,...,[...,rtchecks]).").

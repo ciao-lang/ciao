@@ -204,22 +204,24 @@ proc_remaining_assertions(Preds, [(:- redefining(F/A)), (:- inline(F/A)),
 	head_alias_db(Head, Head1, M),
 	functor(Head1, F1, A1).
 
-rtchecks_sentence_tr(0,           _,       _, _) :- !.
+rtchecks_sentence_tr(0,           _,       _, _) :- !,
+        clean_rtc_impl_db.
 rtchecks_sentence_tr(end_of_file, Clauses, M, _) :-
 	!,
 	findall(Clauses0, proc_posponed_sentence(Clauses0, M), ClausesL0,
 	    ClausesL1),
-	remaining_preds(Preds, M),
+        remaining_preds(Preds, M),
 	findall(Clauses1, proc_remaining_assertions(Preds, Clauses1, M, []),
 	    ClausesL1, [
 		(:- pop_prolog_flag(discontiguous_warnings)),
 		(:- pop_prolog_flag(multi_arity_warnings)),
-		end_of_file]),
-	flatten([
+                 end_of_file]),
+%                 get_prop_impl_mods(ModClauses),
+	flatten([%ModClauses,
 		(:- push_prolog_flag(discontiguous_warnings, off)),
 		(:- push_prolog_flag(multi_arity_warnings,   off))|ClausesL0],
-	    Clauses),
-	cleanup_db_0(M).
+                 Clauses),
+        cleanup_db_0(M).
 rtchecks_sentence_tr(_, _, M, _) :-
 	in_inline_module_db(_, M),
 	!,
@@ -231,6 +233,11 @@ rtchecks_sentence_tr(Sentence, Sentence0, M, Dict) :-
 do_rtchecks_sentence_tr((Head :- Body), Clauses, M, Dict) :-
 	!,
 	process_sentence(Head, Body, Clauses, M, Dict).
+do_rtchecks_sentence_tr((:- Decl),[],_,_) :-
+        Decl = rtc_impl(PropDef, PropImpl), !,
+        PropDef  = :(_ModDef ,/(DefF ,DefA)),
+        PropImpl = :(_ImplDef,/(ImplF,ImplA)),
+        asserta_fact(rtc_impl(DefF, DefA, ImplF, ImplA)).
 do_rtchecks_sentence_tr((:- _Decl), _, _, _) :-
 	!,
 	fail.
@@ -289,7 +296,8 @@ module_qualifier_i(F, N, M, RM) :-
 cleanup_db_0(M) :-
 	cleanup_head_alias_db(M),
 	retractall_fact(posponed_sentence_db(_, _, _, _, _, M, _)),
-	cleanup_generated_rtchecks_db(M).
+	cleanup_generated_rtchecks_db(M),
+        clean_rtc_impl_db.
 
 cleanup_db(M) :-
 	cleanup_goal_alias_db(M),
@@ -751,7 +759,8 @@ compat_rtcheck(
 	\+(Compat == []),
 	insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
 	get_prop_args(Compat, Pred, Args),
-	get_checkc(compat, Compat, Args, CompatNames, PropName-PropDict, Exit,
+        get_prop_impl(Compat, RtcCompat),
+	get_checkc(compat, RtcCompat, Args, CompatNames, PropName-PropDict, Exit,
 	    ChkCompat).
 
 compat_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs,
@@ -772,7 +781,8 @@ calls_rtcheck(
 	\+(Call == []),
 	insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
 	get_prop_args(Call, Pred, Args),
-	get_checkc(call, Call, Args, CallNames, PropName-PropDict, Exit,
+        get_prop_impl(Call, RtcCall),
+	get_checkc(call, RtcCall, Args, CallNames, PropName-PropDict, Exit,
             ChkCall).
 
 calls_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs, StatusTypes,
@@ -798,7 +808,8 @@ success_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs, StatusTypes,
 	    CheckedL).
 
 check_poscond(PosLoc, PredName, Dict, Prop, PropNames, Exit,
-	    i(PosLoc, PredName, Dict, Prop, PropNames, Exit)).
+            i(PosLoc, PredName, Dict, RtcProp, PropNames, Exit)) :-
+        get_prop_impl(Prop, RtcProp).
 
 success_rtcheck(
 	    assr(Pred, Status, Type, _, Call, Succ, _, ALoc,
@@ -878,7 +889,8 @@ comps_parts_to_comp_lit(Exit, Comp0, Body0, Body) :-
 	).
 
 get_chkcomp(Comp, Exit, PredName, Dict, PosLoc, Body0, Body) :-
-	comps_to_comp_lit(Exit, Comp, Body1, Body),
+        get_prop_impl(Comp, RtcComp),
+	comps_to_comp_lit(Exit, RtcComp, Body1, Body),
 	Body0 = add_info_rtsignal(Body1, PredName, Dict, PosLoc).
 
 comp_rtcheck(
@@ -921,3 +933,74 @@ comp_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs, StatusTypes,
 comp_to_lit(CompCompL, ChkComp-Goal) :-
 	CompCompL = i(PosLoc, PredName, Dict, Comp, _CompNames, Exit),
 	get_chkcomp(Comp, Exit, PredName, Dict, PosLoc, ChkComp, Goal).
+
+% ----------------------------------------------------------------------
+% --------------------------- code to enable custom property definitions
+% ----------------------------------------------------------------------
+
+%       rtc_impl(PropF,PropA,Spec,RtcF, RtcA,RtcSpec)
+:- data rtc_impl/4.
+
+clean_rtc_impl_db :-
+        retractall_fact(rtc_impl(_,_,_,_)).
+
+% ----------------------------------------------------------------------
+
+:- pred get_prop_impl(L1,L2) : list * var => list * list
+   # "For every property from a list of property terms @var{L1} either
+      add to @var{L2} a custom implementation of this property (e.g.
+      for run-time checks) if one exists or add the property term with
+      no changes".
+
+%get_prop_impl(X,X) :-
+%        findall(Y,rtc_impl(Y,_,_,_,_,_),Ys),
+%        display(Ys),nl.
+
+get_prop_impl([],[]).
+get_prop_impl([Prop|Props], Tail) :-
+        (functor(Prop, F, A),
+         % consulting the internal database of props and versions
+         rtc_impl(F, A, RtcF, A) %, Spec)
+        -> Prop    =.. [F | Arg],
+           RtcProp =.. [RtcF | Arg]%,
+%           add_rtc_impl_mod(Spec)
+        ; RtcProp = Prop
+        ),
+        Tail = [RtcProp | NewTail],
+        get_prop_impl(Props, NewTail).
+
+%% ----------------------------------------------------------------------
+%% the code below has been desactivated since currently all rtc-modules
+%% for system properties are added by this translation to the source file
+%% without any optimizations.
+%%
+%add_rtc_impl_mod(Spec) :-
+%        rtc_impl_mod(Spec),!.
+%add_rtc_impl_mod(Spec) :-
+%        asserta_fact(rtc_impl_mod(Spec)).
+%
+%get_prop_impl_mods(ModClauses) :-
+%        findall(Spec, rtc_impl_mod(Spec), Specs),
+%        % cannot use map/3 like
+%        %     map(Specs,(''(X,Y) :- Y = (:- use_module(X))),ModClauses)
+%        % because
+%        %    {Compiling .../ciao-devel/core/lib/rtchecks/rtchecks_tr.pl
+%        %    ERROR: (lns 971-977) Predicate (:-)/4 undefined in source
+%        %    ERROR: (lns 971-977) Predicate (:-)/4 undefined in source
+%        %    ERROR: Aborted module compilation
+%        spec_to_drv(Specs,ModClauses).
+%
+%spec_to_drv([], []).
+%spec_to_drv([Spec|Specs],Tail) :-
+%        Tail = [(:- use_module(Spec))|NewTail],
+%        spec_to_drv(Specs,NewTail).
+%
+%% ----------------------------------------------------------------- TODO
+%% improve the internal database of custom property versions like
+%%
+%% :- rtc_impl(native_props:is_det/1,
+%%             library(assertions/native_props_rtc), rtc_is_det/1).
+%%
+%% so it can be accessed as
+%%
+%% sent((:- rtc_impl(M:F/A, Spec, F2/A2)), ...).
