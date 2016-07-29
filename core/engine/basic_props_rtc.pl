@@ -56,6 +56,8 @@ rtc_nnegint(N) :- posint(N).
 rtc_flt(T) :-
         nonvar(T), !,
         float(T).
+rtc_flt(T) :-
+        int(N), T is N/10.
 
 % ----------------------------------------------------------------------
 % rtcheck version for basic_props:num/1

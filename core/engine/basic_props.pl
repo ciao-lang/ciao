@@ -27,10 +27,17 @@
 :- doc(module,"@cindex{properties, basic} This library contains
    the set of basic properties used by the builtin predicates, and
    which constitute the basic data types and properties of the
-   language.  They can be used both as type testing builtins within
-   programs (by calling them explicitly) and as properties in
-   assertions.").
+   language. They are intented to be used as properties in assertions (for both
+   runtime and compile time checking).
 
+   Note that most of those properties can be used directly from goals
+   as type testing builtins, and they should be correct when terms are
+   sufficiently instantiated. Calling with uninstantiated terms have
+   undefined behaviour (failure or non termination, depending on the
+   type). Please use the run-time checking facilities (@pred{inst/2}
+   and @pred{compat/2}) to ensure well-defined behaviour. For
+   low-level instantiation checks we encourage the use
+   @lib{term_typing} builtins.").
 
 :- doc(term/1, "The most general type (includes all possible terms).").
 
@@ -52,7 +59,8 @@ term(_).
 :- trust success int(T) => int(T).
 :- trust comp int/1 + test_type(arithmetic).
 
-:- impl_defined(int/1).
+%:- impl_defined(int/1).
+int(X) :- integer(X).
 
 :- doc(nnegint/1, "The type of non-negative integers, i.e.,
 	natural numbers.").
@@ -64,7 +72,8 @@ term(_).
 :- trust success nnegint(T) => nnegint(T).
 :- trust comp nnegint/1 + test_type(arithmetic).
 
-:- impl_defined(nnegint/1).
+%:- impl_defined(nnegint/1).
+nnegint(X) :- integer(X), X >= 0.
 
 :- doc(flt/1, "The type of floating-point numbers. The range of
         floats is the one provided by the C @tt{double} type, typically
@@ -80,7 +89,8 @@ term(_).
 :- trust success flt(T) => flt(T).
 :- trust comp flt/1 + test_type(meta).
 
-flt(T) :- int(N), T is N/10.
+%:- impl_defined(flt/1).
+flt(X) :- float(X).
 
 :- doc(num/1, "The type of numbers, that is, integer or floating-point.").
 
@@ -90,7 +100,8 @@ flt(T) :- int(N), T is N/10.
 :- trust success num(T) => num(T).
 :- trust comp num/1 + test_type(arithmetic).
 
-:- impl_defined(num/1).
+% :- impl_defined(num/1).
+num(X) :- number(X).    
 
 :- doc(atm/1, "The type of atoms, or non-numeric constants.  The
         size of atoms is unbound.").
@@ -101,7 +112,8 @@ flt(T) :- int(N), T is N/10.
 :- trust success atm(T) => atm(T).
 :- trust comp atm/1 + test_type(arithmetic).
 
-:- impl_defined(atm/1).
+%:- impl_defined(atm/1).
+atm(X) :- atom(X).
 
 :- doc(struct/1, "The type of compound terms, or terms with
 non-zeroary functors. By now there is a limit of 255 arguments.").
@@ -114,7 +126,10 @@ non-zeroary functors. By now there is a limit of 255 arguments.").
 :- true comp struct(T) : nonvar(T) + eval.
 :- trust success struct(T) => struct(T).
 
-:- impl_defined(struct/1).
+% NOTE: instantiation check version, kept for compatibility
+%:- impl_defined(struct/1).
+struct([_|_]):- !.
+struct(T) :- functor(T, _, A), A>0. % compound(T).
 
 :- doc(gnd/1, "The type of all terms without variables.").
 
@@ -124,7 +139,9 @@ non-zeroary functors. By now there is a limit of 255 arguments.").
 :- trust success gnd(T) => gnd(T).
 :- trust comp gnd/1 + test_type(meta).
 
-:- impl_defined(gnd/1).
+%:- impl_defined(gnd/1).
+% NOTE: instantiation check version, kept for compatibility
+gnd(X) :- ground(X).
 
 :- true prop gndstr(T) + (regtype, native) # "@var{T} is a ground compound term.".
 :- true comp gndstr(T) + sideff(free).
@@ -564,6 +581,7 @@ filter(Goal, _) :- call(Goal).
 
 :- true prop flag_values(X) + regtype # "Define the valid flag values".
 
+% TODO: seems wrong?
 flag_values(atom).
 flag_values(integer).
 flag_values(L):- list(L,atm).

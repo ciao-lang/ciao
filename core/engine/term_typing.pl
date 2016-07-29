@@ -39,7 +39,7 @@ ground_(N,Term):-
 	N1 is N-1,
 	ground_(N1,Term).
 */
-ground(X) :- ground(X).
+:- impl_defined(ground/1).
 
 % Compiled inline -- these are hooks for the interpreter.
 
