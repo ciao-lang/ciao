@@ -36,14 +36,16 @@ merge([H|X], [E|Y], [E|Z]) :- H @@>= E, merge([H|X], Y, Z).
    @tt{((nonvar(X);nonvar(Z)),(nonvar(Y);nonvar(Z)))}. 
 
 @begin{verbatim}
+:- use_module(library(when)).
+
 merge(X,Y,Z) :-
 	when(((nonvar(X);nonvar(Z)),
               (nonvar(Y);nonvar(Z))), merge_(X,Y,Z)).
 
 merge_([], Y, Y).
 merge_(X, [], X).
-merge_([H|X], [E|Y], [H|Z]) :- H @@< E,  merge_(X, [E|Y], Z).
-merge_([H|X], [E|Y], [E|Z]) :- H @@>= E, merge_([H|X], Y, Z).
+merge_([H|X], [E|Y], [H|Z]) :- H @@< E,  merge(X, [E|Y], Z).
+merge_([H|X], [E|Y], [E|Z]) :- H @@>= E, merge([H|X], Y, Z).
 @end{verbatim}
 ").
 
