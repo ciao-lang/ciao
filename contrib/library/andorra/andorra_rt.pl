@@ -131,7 +131,7 @@ valid_(constant(X)):- !,
 valid_(atomic(X)):- !,
 	( nonvar(X) -> atomic(X) ; true ).
 
-valid_(cayllable(X)):- !,
+valid_(callable(X)):- !,
 	( nonvar(X) -> callable(X) ; true ).
 
 
