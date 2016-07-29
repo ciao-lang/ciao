@@ -1,5 +1,16 @@
 :- module(block_tr, [sentence_tr/3, clause_tr/3, conj2list/2], []).
 
+% This is the translation module for block declarations, which
+% produces wrappers for each predicate with block declarations.
+%
+% Translation works in two steps:
+%  a) sentence translation:
+%     - collects all block declarations,
+%     - when finished, adds special $notr clauses for each blocking predicates
+%  b) clause translation:
+%     - renames blocking predicates
+%     - adds wrappers from $notr clauses
+
 :- use_module(library(aggregates)).
 :- use_module(library(sort)).
 
