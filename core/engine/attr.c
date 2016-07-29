@@ -72,14 +72,13 @@ CBOOL__PROTO(bu2_attach_attribute,
 	     tagged_t constr) {
   tagged_t t0;
   tagged_t *h = w->global_top;
-  tagged_t *tr = w->trail_top;
         
   DerefSwitch(constr,t0,{USAGE_FAULT("attach_attribute/2: type error");}); 
   DEREF(var,var);
   if (TagIsHVA(var)) {
     LoadCVA(t0,h);
     if (CondHVA(var))	{
-      TrailPush(tr,var);
+      TrailPush(w->trail_top,var);
       *TagToHVA(var) = t0;
     } else {
       *TagToHVA(var) = t0;
@@ -102,8 +101,7 @@ CBOOL__PROTO(bu2_attach_attribute,
   HeapPush(h,PointerToTerm(address_true));	                  /* func */
   
   w->global_top = h;
-  w->trail_top = tr;
-  if (ChoiceYounger(w->node,TrailOffset(tr,CHOICEPAD)))
+  if (ChoiceYounger(w->node,TrailOffset(w->trail_top,CHOICEPAD)))
     choice_overflow(Arg,CHOICEPAD); 
   return TRUE;
 }  
