@@ -12,9 +12,9 @@
 %   implementation and those for which there is none;
 % - each assertion part has at least 2 properties in it.
 
-:- pred echo2(X,Y) :: (integer(X), ground(Y))
-                   :  (ground(X), ground(Y))
-                   => (ground(X), ground(Y))
+:- pred echo2(X,Y) :: (integer(X), gnd(Y))
+                   :  (gnd(X), gnd(Y))
+                   => (gnd(X), gnd(Y))
                    +  is_det # "Comment" .
 
 echo2(X,Y) :-

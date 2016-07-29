@@ -10,14 +10,11 @@
 	 pe_type/1 ],
         [assertions, nortchecks, nativeprops]).
 
-%% Commented out to avoid including hiord_rt in all executables, 
+%% Commented out to avoid including hiord_rt in all executables,
 %% put declarations instead:
 %% :- use_package(hiord).
 :- set_prolog_flag(read_hiord, on).
 :- import(hiord_rt, [call/2]).
-
-:- use_module(library(terms_check), [instance/2]).
-
 
 :- doc(title,"Basic data types and properties").
 
@@ -34,6 +31,7 @@
    programs (by calling them explicitly) and as properties in
    assertions.").
 
+
 :- doc(term/1, "The most general type (includes all possible terms).").
 
 :- true prop term(X) + (regtype, native) # "@var{X} is any term.".
@@ -41,7 +39,6 @@
 :- true comp term(X) + eval.
 :- true comp term(X) + equiv(true).
 :- trust success term(_) => true.
-
 
 term(_).
 
@@ -55,18 +52,7 @@ term(_).
 :- trust success int(T) => int(T).
 :- trust comp int/1 + test_type(arithmetic).
 
-
-int(X) :-
-        nonvar(X), !,
-        integer(X).
-int(0).
-int(N) :- posint(I), give_sign(I, N).
-
-posint(1).
-posint(N) :- posint(N1), N is N1+1.
-
-give_sign(P, P).
-give_sign(P, N) :- N is -P.
+:- impl_defined(int/1).
 
 :- doc(nnegint/1, "The type of non-negative integers, i.e.,
 	natural numbers.").
@@ -78,13 +64,7 @@ give_sign(P, N) :- N is -P.
 :- trust success nnegint(T) => nnegint(T).
 :- trust comp nnegint/1 + test_type(arithmetic).
 
-nnegint(X) :-
-        nonvar(X), !,
-        integer(X),
-	X >= 0.
-nnegint(0).
-nnegint(N) :- posint(N).
-
+:- impl_defined(nnegint/1).
 
 :- doc(flt/1, "The type of floating-point numbers. The range of
         floats is the one provided by the C @tt{double} type, typically
@@ -100,7 +80,6 @@ nnegint(N) :- posint(N).
 :- trust success flt(T) => flt(T).
 :- trust comp flt/1 + test_type(meta).
 
-flt(T) :- nonvar(T), !, float(T).
 flt(T) :- int(N), T is N/10.
 
 :- doc(num/1, "The type of numbers, that is, integer or floating-point.").
@@ -111,9 +90,7 @@ flt(T) :- int(N), T is N/10.
 :- trust success num(T) => num(T).
 :- trust comp num/1 + test_type(arithmetic).
 
-num(T) :- number(T), !.
-num(T) :- int(T).
-% num(T) :- flt(T). % never reached!
+:- impl_defined(num/1).
 
 :- doc(atm/1, "The type of atoms, or non-numeric constants.  The
         size of atoms is unbound.").
@@ -124,20 +101,20 @@ num(T) :- int(T).
 :- trust success atm(T) => atm(T).
 :- trust comp atm/1 + test_type(arithmetic).
 
-% Should be current_atom/1
-atm(T) :- atom(T), !.
-atm(a).
+:- impl_defined(atm/1).
 
 :- doc(struct/1, "The type of compound terms, or terms with
 non-zeroary functors. By now there is a limit of 255 arguments.").
+
+% TODO: struct/1 does not seem to be a regtype
+%       (see basic_props_rtc:rtc_struct/1 for details).
 
 :- true prop struct(T) + (regtype, native) # "@var{T} is a compound term.".
 :- true comp struct(T) + sideff(free).
 :- true comp struct(T) : nonvar(T) + eval.
 :- trust success struct(T) => struct(T).
 
-struct([_|_]):- !.
-struct(T) :- functor(T, _, A), A>0. % compound(T).
+:- impl_defined(struct/1).
 
 :- doc(gnd/1, "The type of all terms without variables.").
 
@@ -147,8 +124,7 @@ struct(T) :- functor(T, _, A), A>0. % compound(T).
 :- trust success gnd(T) => gnd(T).
 :- trust comp gnd/1 + test_type(meta).
 
-gnd([]) :- !.
-gnd(T) :- functor(T, _, A), grnd_args(A, T).
+:- impl_defined(gnd/1).
 
 :- true prop gndstr(T) + (regtype, native) # "@var{T} is a ground compound term.".
 :- true comp gndstr(T) + sideff(free).
@@ -156,13 +132,6 @@ gnd(T) :- functor(T, _, A), grnd_args(A, T).
 :- trust success gndstr(T) => gndstr(T).
 
 gndstr(A) :- gnd(A), struct(A).
-
-grnd_args(0, _).
-grnd_args(N, T) :-
-        arg(N, T, A),
-        gnd(A),
-        N1 is N-1,
-        grnd_args(N1, T).
 
 :- true prop constant(T) + regtype
    # "@var{T} is an atomic term (an atom or a number).".
@@ -247,7 +216,7 @@ list([_|L]) :- list(L).
 :- true comp list(L,T) + sideff(free).
 :- meta_predicate list(?, pred(1)).
 :- true comp list(L,T) : (ground(L),ground(T)) + eval.
-:- trust success list(X,T) => list(X). % should be list(X,T), but does not work
+:- trust success list(X,T) => list(X). % TODO: should be list(X,T), but does not work
 
 list([],_).
 list([X|Xs], T) :-
@@ -328,8 +297,8 @@ character_code(I) :- int(I).
 
 string(T) :- list(T, character_code).
 
-:- doc(num_code/1, "These are the ASCII codes which can appear in 
-	decimal representation of floating point and integer numbers, 
+:- doc(num_code/1, "These are the ASCII codes which can appear in
+	decimal representation of floating point and integer numbers,
 	including scientific notation and fractionary part.").
 
 :-  true prop num_code/1 + regtype.
@@ -351,7 +320,7 @@ num_code(0'+).
 num_code(0'-).
 
 
-% The following is commented out because we do not know the impact on analysis. 
+% The following is commented out because we do not know the impact on analysis.
 % TODO: To be decommented together with assertions about put_code and
 %       byte_code in io_basic.pl.
 % 
@@ -419,7 +388,7 @@ atm_or_atm_list(T) :- list(T, atm).
 %:- true comp compat(Term,Prop) + sideff(free).
 :- true comp compat(Term,Prop) : (ground(Term),ground(Prop)) + eval.
 
-compat(T, P) :- \+ \+ P(T).
+:- impl_defined(compat/2).
 
 % No comment necessary: it is taken care of specially anyway in the
 % automatic documenter. (PBC: I guess this comment refers to compat/2)
@@ -431,16 +400,13 @@ compat(T, P) :- \+ \+ P(T).
 
 :- meta_predicate inst(?,pred(1)).
 
-inst( X , Prop ) :-
-	A = Prop( X ),
-	copy_term( A , AC ),
-	AC,
-	instance( A , AC ).
+:- impl_defined(inst/2).
 
 :- true prop iso(G) # "@em{Complies with the ISO-Prolog standard.}".
 :- true comp iso(G) + sideff(free).
 
 :- meta_predicate iso(goal).
+
 iso(Goal) :- call(Goal).
 
 :- doc(deprecated/1, "Specifies that the predicate marked with
@@ -453,6 +419,7 @@ iso(Goal) :- call(Goal).
 :- true comp deprecated(G) + sideff(free).
 
 :- meta_predicate deprecated(goal).
+
 deprecated(Goal) :- call(Goal).
 
 :- true prop rtc_status(S) + regtype # "@var{S} is the status of the
@@ -481,7 +448,6 @@ deprecated(Goal) :- call(Goal).
  @end{itemize}
 ".
 
-
 rtc_status(complete). % Was: rtc_status(exhaustive).
 rtc_status(incomplete).
 rtc_status(unimplemented).
@@ -490,18 +456,18 @@ rtc_status(impossible).
 
 :- true prop rtcheck(G, Status) : callable * rtc_status # "The runtime
 	check of this property is @var{Status}.".
-
 :- true comp rtcheck(G, Status) + sideff(free).
 
 :- meta_predicate rtcheck(goal, ?).
+
 rtcheck(Goal, _) :- call(Goal).
 
-:- true prop rtcheck(G) : callable # "Equivalent to rtcheck(G,
+:- true prop rtcheck(G) : callable # "Equivalent to rtcheck(G, 
 	complete).".
-
 :- true comp rtcheck(G) + sideff(free).
 
 :- meta_predicate rtcheck(goal).
+
 rtcheck(Goal) :- rtcheck(Goal, complete).
 
 :- doc(no_rtcheck/1,"This comp pseudo-property is used to declare that
@@ -511,10 +477,10 @@ rtcheck(Goal) :- rtcheck(Goal, complete).
 
 :- true prop no_rtcheck(G) : callable # "@var{G} is not checked during
    run-time checking.".
-
 :- true comp no_rtcheck(G) + sideff(free).
 
 :- meta_predicate no_rtcheck(goal).
+
 no_rtcheck(Goal) :- rtcheck(Goal, impossible).
 
 :- true prop not_further_inst(G,V)
@@ -522,16 +488,19 @@ no_rtcheck(Goal) :- rtcheck(Goal, impossible).
 :- true comp not_further_inst(G,V) + (sideff(free), no_rtcheck).
 
 :- meta_predicate not_further_inst(goal, ?).
+
 not_further_inst(Goal, _) :- call(Goal).
 
-:- true comp sideff(G,X) + (native, sideff(free), no_rtcheck).
-:- true prop sideff(G,X) : (callable(G), member(X,[free,soft,hard]))
-# "@var{G} is side-effect @var{X}.".
 :- doc(sideff(G,X),"Declares that @var{G} is side-effect free
    (if its execution has no observable result other than its success,
    its failure, or its abortion), soft (if its execution may have other
    observable results which, however, do not affect subsequent execution,
    e.g., input/output), or hard (e.g., assert/retract).").
+
+:- true comp sideff(G,X) + (native, sideff(free), no_rtcheck).
+:- true prop sideff(G,X) : (callable(G), member(X,[free,soft,hard]))
+# "@var{G} is side-effect @var{X}.".
+
 :- meta_predicate sideff(goal,?).
 
 sideff(Goal, _) :- call(Goal).
@@ -588,7 +557,7 @@ error_free(Goal) :- call(Goal).
 :- meta_predicate memo(goal).
 memo(Goal) :- call(Goal).
 
-:- true prop filter(Vars,Goal) # "@var{Vars} should be filtered during 
+:- true prop filter(Vars,Goal) # "@var{Vars} should be filtered during
 	global control).".
 
 filter(Goal, _) :- call(Goal).
@@ -605,4 +574,3 @@ flag_values(L):- list(L,atm).
 
 :- meta_predicate pe_type(goal).
 pe_type(Goal) :- call(Goal).
-
