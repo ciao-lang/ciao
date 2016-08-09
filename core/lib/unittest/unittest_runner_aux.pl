@@ -1,7 +1,7 @@
 :- module(unittest_runner_aux,
         [ assert_test_id/1,
           get_active_test/2,
-          process_test_args/1,
+          process_runner_args/1,
           testing/4
         ],
         [assertions]).
@@ -53,14 +53,16 @@ get_active_test(ARef, Mod) :-
         ARef = ARef0,
         Mod  = Mod0.
 
-process_test_args([]).
-process_test_args([resume_after, ARef|Args]) :- !,
+process_runner_args([]) :- !.
+process_runner_args([resume_after, ARef|Args]) :- !,
 	retractall_fact(skip_tests_before(_)),
         assertz_fact(skip_tests_before(ARef)),
-	process_test_args(Args).
-process_test_args([load, Module|Args]) :-
+	process_runner_args(Args).
+process_runner_args([load, Module|Args]) :- !,
 	use_module(Module),
-	process_test_args(Args).
+	process_runner_args(Args).
+process_runner_args([_|Args]) :-
+        process_runner_args(Args).
 
 % ----------------------------------------------------------------------
 

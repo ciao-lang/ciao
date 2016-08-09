@@ -440,8 +440,8 @@ test_action := check | show_output | show_stats .
 % test_action := show_output_short | show_output_full % TODO: verbosity control
 % test_action := save | briefcompare | compare . % TODO: merge with regrtest
 
-get_test_opt(Opt, Select, Opts) :- member(Opt, Opts), !, Select = yes.
-get_test_opt(_  , no    , _   ).
+get_test_opt(Opt, YesNo, Opts) :- member(Opt, Opts), !, YesNo = yes.
+get_test_opt(_  , no   , _).
 
 :- pred get_test_opts(-yesno, -yesno, -yesno, +list)
         :  var   * var   * var   * list(test_option)
@@ -508,7 +508,8 @@ run_tests(Dir, Opts0, Actions0) :-
         select(dir_rec, Opts0, Opts),!,
         get_test_opt(show_stats, ShowStats, Actions0),
         ( ShowStats == yes, select(show_stats, Actions0, Actions)
-        ; Actions = Actions0 ),
+        ; Actions = Actions0
+        ),
         ( % (failure-driven loop)
             current_file_find(testable_module, Dir, Alias),
             run_tests(Alias, Opts, Actions),
@@ -610,15 +611,17 @@ current_assr_module(Module) :-
 	assertion_read(_A, Module, check, Type, _E, _F, _G, _H, _I),
 	unittest_type(Type).
 
-:- pred create_runner(+pathname, +list, +yesno) + (not_fails, no_choicepoints).
+:- pred create_runner(+pathname, +list, +yesno) + (not_fails, no_choicepoints)
+        # "If the list of modules to test @var{Modules} is not empty
+           then test runner and test loader files are generated.".
 
 create_runner(TmpDir, Modules, RtcEntry) :-
-	(
-	    Modules \== [] ->
+	( Modules \== [] ->
+            % TODO: put together?
 	    create_global_runner(TmpDir, Modules, RtcEntry, RunnerFile),
 	    create_loader(TmpDir, RunnerFile)
 	;
-	    true
+            true
 	).
 
 % But note that create_loader/2 cleans the assertion_read/9 database.
@@ -639,6 +642,7 @@ create_loader_pl(RunnerFile, LoaderPo) :-
 	open(LoaderPo, write, IO),
 	unittest_print_clauses(
 	    [
+                (:- module(_, [main/1], [])),
 		(:- use_module(library(compiler), [use_module/1])),
 		(main(Args) :- use_module(RunnerFile), _:main_tests(Args))
 	    ], IO, []),
@@ -657,9 +661,9 @@ run_test_assertions(TmpDir, Modules, Opts) :-
         %
         empty_output(TmpDir),
 	( test_attributes_db(_, _, _, _, _, _, _, _, _) ->
-	    get_test_opts(DumpOutput, DumpError, RtcEntry, Opts),
-	    create_runner(TmpDir, Modules, RtcEntry),
-            run_all_tests(TmpDir, DumpOutput, DumpError, Opts)
+          get_test_opts(DumpOutput, DumpError, RtcEntry, Opts),
+          create_runner(TmpDir, Modules, RtcEntry),
+          run_all_tests(TmpDir, DumpOutput, DumpError, Opts)
 	; true
 	),
         % even if module has no tests, we write an empty test output file
@@ -667,13 +671,13 @@ run_test_assertions(TmpDir, Modules, Opts) :-
         % which allows detecting newly added tests on regression testing
         write_all_test_outputs(Modules).
 
-:- pred run_all_tests(TmpDir, DumpOutput, DumpError, Opts)
+:- pred run_all_tests(TmpDir, DumpOutput, DumpError, RunnerArgs)
         : pathname * yesno * yesno * list(test_option).
 
-run_all_tests(TmpDir,DumpOutput,DumpError,Opts) :-
+run_all_tests(TmpDir, DumpOutput, DumpError, RunnerArgs) :-
 	loader_name(BLoader),
 	path_concat(TmpDir, BLoader, Loader),
-	do_tests(TmpDir, Loader, DumpOutput, DumpError, Opts).
+	do_tests(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs).
 
 file_test_output_suffix('.testout').
 
@@ -808,25 +812,25 @@ dump_output(no,  _).
 dump_error(yes, StrErr) :- display_string(StrErr).
 dump_error(no,  _).
 
-:- pred do_tests(TmpDir, Loader, DumpOutput, DumpError, Opts)
+:- pred do_tests(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs)
         :  pathname * atm * yesno * yesno * list
-# "Calls the loader as an external proces. If some test aborts, calls
+# "Calls the loader as an external process. If some test aborts, calls
    recursively with the rest of the tests".
-do_tests(TmpDir, Loader, DumpOutput, DumpError, Opts) :-
-        do_tests_(TmpDir, Loader, DumpOutput, DumpError, Opts, no).
+do_tests(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs) :-
+        do_tests_(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs, no).
 
-do_tests_(TmpDir, Loader, DumpOutput, DumpError, Opts, Resume) :-
+do_tests_(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs, Resume) :-
         ( Resume = yes(ContIdx) ->
-            Opts2 = [resume_after,ContIdx|Opts]
-        ; Opts2 = Opts
+            RunnerArgs2 = [resume_after,ContIdx|RunnerArgs]
+        ; RunnerArgs2 = RunnerArgs
         ),
-        %
 	% this process call appends new outputs to OutFile
-	process_call(Loader, Opts2,
+	process_call(Loader, RunnerArgs2,
                      [stdin(null),
                       stdout(string(StrOut)),
                       stderr(string(StrErr)),
 		      status(_)]),
+        %
 	dump_output(DumpOutput, StrOut),
 	dump_error(DumpError, StrErr),
         %
@@ -842,7 +846,7 @@ do_tests_(TmpDir, Loader, DumpOutput, DumpError, Opts, Resume) :-
             write_data(IO, test_output_db(TestId, TestResult)),
             close(IO),
             % continue testing
-            do_tests_(TmpDir, Loader, DumpOutput, DumpError, Opts, yes(TestId))
+            do_tests_(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs, yes(TestId))
         ; true % (all tests had output)
         ).
 
@@ -903,10 +907,13 @@ create_global_runner(TmpDir, Modules, RtcEntry, RunnerFile) :-
 	(
 	    unittest_print_clauses(
 		[
-		    (:- use_module(library(unittest/unittest_runner_aux))),
-                    (:- use_module(library(unittest/unittest_utils))),
-		    (:- use_module(library(unittest/unittest_base)))
+                    (:- module(_, [main_tests/1], [])),
+		    (:- include(library(unittest/unittest_runner_base)))
 		], IO, []),
+            % loop begins
+            %   failure-driven loop to create wrapper files for each of the
+            %   modules being tested, and fill the runner file with the
+            %   unit test instances of the form internal_runtest_module/2.
 	    (
 		member(Module, Modules),
 		module_base(Module, Base),
@@ -925,32 +932,12 @@ create_global_runner(TmpDir, Modules, RtcEntry, RunnerFile) :-
 	    ;
 		true
 	    ),
+            % loop ends
 	    file_test_input(BFileTestInput),
 	    path_concat(TmpDir, BFileTestInput, FileTestInput),
 	    unittest_print_clauses(
                 [
-                    % ( stop_on_first_error(false) ),
-		    ( main_tests(A) :-
-                        process_test_args(A),
-                        assert_from_file(FileTestInput,assert_test_id),
-			runtests
-		    ),
-		    ( runtests :-
-                        get_active_test(TestId, Module),
-                        % TODO: multiple test results bug
-                        % TODO: use data predicate to store the testing
-                        %       status of the predicate, whether some
-                        %       input failed (thus no testing to be
-                        %       continued), or no
-                        % TODO: requires splitting runtests/0 into 2
-                        %       preds with 2 failure-driven loops,
-                        %       one for TestIds and another for all
-                        %       results for a chosen TestId
-			internal_runtest_module(Module, TestId),
-			fail
-		    ;
-			true
-		    )
+                    file_test_input_path(FileTestInput)
 		], IO, [])
 	),
 	% fmode(RunnerFile, M0),
@@ -1090,16 +1077,26 @@ do_print_each_test_entry(TmpDir, Module, RtcEntry, Src, IO, TestEntry, ARef,
 		[ALoc], CheckSucc),
 	    Goal3 = (Goal1, catch(CheckSucc, Ex, throw(postcondition(Ex))))
 	),
+        % transform the test assertions of the exported predicate Pred
+        % if any into unit tests, considering 3 cases:
+        % - case 1: the module includes rtchecks package that will
+        %           perform the expansion of assertions into checks
+        %        OR no assertions for exported predicates
+        % - case 2: the module does not include the rtchecks package,
+        %           and there are no assertions for Pred
+        % - case 3: the module does not include the rtchecks package,
+        %           and the properties from the assertions for the Pred
+        %           will be combined with unit tests
 	(
 	    (clause_read(Src, 1, rtchecked, _, _, _, _) ; RtcEntry == no) ->
-	    RTCheck = Goal3
+             RTCheck = Goal3 % case 1
 	;
 	    collect_assertions(Pred, Module, Assertions),
 	    ( Assertions == [] ->
-		RTCheck = Goal3
+              RTCheck = Goal3 % case 2
 	    ;
 		generate_rtchecks(Assertions, Pred, Dict, PLoc, UsePosLoc,
-		    RTCheck, Goal3)
+                RTCheck, Goal3) % case 3
 	    )
 	),
 	Goal = testing(ARef, TmpDir, ~list_to_lits(Precond), RTCheck),
