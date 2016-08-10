@@ -153,23 +153,23 @@ explanation of the meaning:
 
 @begin{alert}
  @bf{Note:} this is a new feature and under active development. The
- documentations may be partial/obsolete.
+ documentation may be partial/obsolete.
 @end{alert}
 
-In some cases delarative property definitions are not efficient enough
-to be used in the rin-time checks instrumentation. In Ciao it is
-possible to write an additional version of property that can be used
-specifically in run-time checks while keeping the main version that
-(which might be easy to read or is well understood by some static
-analyzer.)
+In some cases declarative property definitions are not efficient enough
+to be used in the run-time checks instrumentation. In Ciao it is
+possible to write an alternative version of property that can be used
+specifically in run-time checks, while keeping the main version 
+(which might be easier to read or is better understood by some static
+analyzer).
 
 To provide the custom property implementation for run-time checking
-it is necessary to edit two files (suppose the original proerty is
+it is necessary to edit two files (suppose the original property is
 defined in a module @file{foo.pl}):
 
 @begin{itemize}
 
-  @item @file{foo_rtc.pl} module that would contain the custom
+  @item the @file{foo_rtc.pl} module that contains the custom
     property implementation and is placed in the same folder as
     @file{foo.pl}. Make sure the custom property implementation is
     exported from both modules.
@@ -188,9 +188,9 @@ defined in a module @file{foo.pl}):
 @end{itemize}
 
 After these edits the @lib{rtchecks} library needs to be rubuilt (for
-instance, with the @code{$ ciao build_nodocs core} from console).
+instance, with @code{$ ciao build_nodocs core}, from the console).
 
-For an example of a system library that uses this feature see
+For an example of a system library that uses this feature see the 
 @lib{assertions/native_props} library.
 
 ").
