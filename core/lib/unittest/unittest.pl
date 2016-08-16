@@ -66,8 +66,6 @@
             runner_global_file_name/1,
             tmp_dir/1,
             wrapper_file_name/3,
-            unittest_print_clause/3,
-            unittest_print_clauses/3,
             yesno/1,
             read_data/2,
             write_data/2
@@ -316,6 +314,8 @@ show_untested_exp_preds(Alias) :-
 	get_assertion_info(current, Alias, _Modules),
 	findall(Message, current_untested_pred(Alias, Message), Messages),
 	pretty_messages(Messages).
+
+:- regtype unittest_type/1.
 
 unittest_type(test).
 unittest_type(texec).
@@ -639,14 +639,12 @@ create_loader(TmpDir, RunnerFile) :-
 
 % Kludge: Wrong behavior if you link RunnerFile in the executable directly.
 create_loader_pl(RunnerFile, LoaderPo) :-
-	open(LoaderPo, write, IO),
-	unittest_print_clauses(
-	    [
+	Cs = [
                 (:- module(_, [main/1], [])),
 		(:- use_module(library(compiler), [use_module/1])),
 		(main(Args) :- use_module(RunnerFile), _:main_tests(Args))
-	    ], IO, []),
-	close(IO).
+	    ],
+        print_clauses_to_file(LoaderPo, [raw(Cs)]).
 
 :- pred run_test_assertions(+pathname, +list(atm), +list) +
 	(not_fails, no_choicepoints).
@@ -883,7 +881,7 @@ create_test_input(TmpDir, Modules) :-
 
 :- pred get_test(Module, TestId, Type, Pred, Body, Dict, Src, LB, LE )
         :  atm(Module)
-        => atm * atm * atm * term * term * term * atm * int * int
+        => atm * atm * unittest_type * term * term * term * atm * int * int
         + non_det
  # "Given a module name @var{Module}, return one test assertion with
   the identifier @var{TestId} with respective assertion parameters
@@ -901,49 +899,55 @@ get_test(Module, TestId, Type, Pred, Body, Dict, Src, LB, LE) :-
 	+ (not_fails, no_choicepoints).
 
 create_global_runner(TmpDir, Modules, RtcEntry, RunnerFile) :-
+        % Create wrapper files for each of the modules being tested
+        create_wrapper_mods(Modules, TmpDir, RtcEntry),
+        %
 	runner_global_file_name(BRunnerFile),
 	path_concat(TmpDir, BRunnerFile, RunnerFile),
-	open(RunnerFile, write, IO),
-	(
-	    unittest_print_clauses(
-		[
+        %
+	Header = [
                     (:- module(_, [main_tests/1], [])),
 		    (:- include(library(unittest/unittest_runner_base)))
-		], IO, []),
-            % loop begins
-            %   failure-driven loop to create wrapper files for each of the
-            %   modules being tested, and fill the runner file with the
-            %   unit test instances of the form internal_runtest_module/2.
-	    (
-		member(Module, Modules),
-		module_base(Module, Base),
-		(
-		    wrapper_file_name(TmpDir, Module, WrapperFile),
-		    create_module_wrapper(TmpDir, Module, RtcEntry, Base,
-			WrapperFile),
-		    unittest_print_clause((:- use_module(WrapperFile)), IO, []),
-		    module_test_entry(Module, TestEntry, TestId),
-		    unittest_print_clause(( internal_runtest_module(Module, TestId)
-			    :- TestEntry ), IO, [])
-		-> true
-		; error(['Failure in create_global_runner/4'])
-		),
-		fail
-	    ;
-		true
-	    ),
-            % loop ends
-	    file_test_input(BFileTestInput),
-	    path_concat(TmpDir, BFileTestInput, FileTestInput),
-	    unittest_print_clauses(
-                [
-                    file_test_input_path(FileTestInput)
-		], IO, [])
-	),
-	% fmode(RunnerFile, M0),
-	% M1 is M0 \/ ((M0 >> 2) /\ 0o111), % Copy read permissions to execute
-	% chmod(RunnerFile, M1),
-	close(IO).
+		],
+        % Fill the runner file with the unit test
+        % instances of the form internal_runtest_module/2.
+        findall(C,
+                (member(Module, Modules),
+                 wrapper_file_name(TmpDir, Module, WrapperFile),
+                 C = (:- use_module(WrapperFile))), UseWrappers),
+        findall(C,
+                (member(Module, Modules),
+                 module_test_entry(Module, TestEntry, TestId),
+                 C = ( internal_runtest_module(Module, TestId) :- TestEntry )),
+                InternalCs),
+        %
+        file_test_input(BFileTestInput),
+        path_concat(TmpDir, BFileTestInput, FileTestInput),
+        %
+        Clauses = ~flatten([
+            raw(Header),
+            raw(UseWrappers),
+            raw(InternalCs),
+            raw([file_test_input_path(FileTestInput)])
+        ]),
+        %
+	print_clauses_to_file(RunnerFile, Clauses).
+
+create_wrapper_mods(Modules, TmpDir, RtcEntry) :-
+	( % (failure-driven loop)
+          member(Module, Modules),
+            create_wrapper_mod(Module, TmpDir, RtcEntry),
+            fail
+        ; true
+        ).
+
+create_wrapper_mod(Module, TmpDir, RtcEntry) :-
+        module_base(Module, Base),
+        ( wrapper_file_name(TmpDir, Module, WrapperFile),
+          create_module_wrapper(TmpDir, Module, RtcEntry, Base, WrapperFile)
+        -> true
+        ; error(['Failure in create_wrapper_mod/4'])
+        ).
 
 :- use_module(library(rtchecks/rtchecks_basic),
         [
@@ -974,17 +978,18 @@ current_test_module(Src, (:- use_package(TestModule))) :-
 collect_test_modules(Src) :=
 	~sort(~findall(TestModule, current_test_module(Src, TestModule))).
 
+% We create module wrappers that contains the test entries from the original source.
+% In that way the original modules are not polluted with test code.
 create_module_wrapper(TmpDir, Module, RtcEntry, Src, WrapperFile) :-
-	open(WrapperFile, write, IO),
 	ReqPackages = [assertions, nativeprops, rtchecks],
-	(
+	( % TODO: Why do we need Src packages? --> maybe because the wrapper
+          %   acts as a "sliced" module that contains only the test assertions
 	    clause_read(Src, 1, module(_, _, SrcPackages), _, _, _, _) ->
 	    union(ReqPackages, SrcPackages, Packages)
 	;
 	    Packages = ReqPackages
 	),
-	unittest_print_clauses(
-	    [
+	Header = [
 		(:- module(_, _, Packages)),
                 (:- use_module(library(unittest/unittest_runner_aux))),
                 (:- use_module(library(rtchecks/rtchecks_rt))),
@@ -993,20 +998,22 @@ create_module_wrapper(TmpDir, Module, RtcEntry, Src, WrapperFile) :-
 		(:- use_module(library(unittest/unittest_props))),
 		(:- pop_prolog_flag(unused_pred_warnings)),
 		(:- use_module(Src))
-	    ], IO, []),
+        ],
 	collect_test_modules(Src, TestModules),
-	nl(IO),
-	unittest_print_clauses(TestModules, IO, []),
-	nl(IO),
+        % here link the TestEntry clause with the ARef test identifier
 	module_test_entry(Module, TestEntry, ARef),
-	unittest_print_clause((:- push_prolog_flag(single_var_warnings, off)),
-	    IO, []),
-	findall(Message, print_each_test_entry(TmpDir, Module, RtcEntry, Src,
-		IO, TestEntry, ARef, Message), Messages),
-	unittest_print_clause((:- pop_prolog_flag(single_var_warnings)),
-	    IO, []),
-	close(IO),
-	pretty_messages(Messages).
+	findall(Clause,
+                gen_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause),
+                Clauses),
+        %
+        Clauses2 = ~flatten([
+            raw(Header),
+            raw(TestModules),
+            raw([(:- push_prolog_flag(single_var_warnings, off))]),
+            Clauses,
+            raw([(:- pop_prolog_flag(single_var_warnings))])]),
+        %
+	print_clauses_to_file(WrapperFile, Clauses2).
 
 :- use_module(library(write), [printq/1]).
 :- doc(hide,portray/1).
@@ -1027,14 +1034,48 @@ portray(rat(A, B)) :-
 
 comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
 
-do_print_each_test_entry(TmpDir, Module, RtcEntry, Src, IO, TestEntry, ARef,
-	    Message) :-
-        get_test(Module, ARef, Type, _Pred, Body, Dict0, ASource, AL0, AL1),
+gen_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause) :-
+        % test entries, or default failing clause if there are none
+	if(do_gen_each_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause),
+           true,
+	   do_gen_default_test_entry(TestEntry, Clause)).
+
+do_gen_default_test_entry(TestEntry, Clause) :-
+        Clause = clause(TestEntry, fail, []).
+
+do_gen_each_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause) :-
+        get_test(Module, ARef, Type, Pred, ABody, Dict0, ASource, AL0, AL1),
+        % Collect assertions for runtime checking during unit tests:
+        %  - none if RtcEntry = no
+        %  - none if the module uses rtchecks (already instruments its predicates)
+        %  - otherwise, the assertions specified in the original module
+        %
+	( (clause_read(Src, 1, rtchecked, _, _, _, _) ; RtcEntry == no) ->
+             Assertions = []
+	; collect_assertions(Pred, Module, Assertions)
+	),
+        TestInfo = testinfo(ARef, Type, Pred, ABody, Dict0, ASource, AL0, AL1),
+        % Get predicate locator
+	functor(Pred, F, A),
+	functor(Head, F, A),
+	( clause_read(Src, Head, _, _, PSource, PL0, PL1) ->
+	    PLoc = loc(PSource, PL0, PL1)
+	; PLoc = none
+	),
+        %
+        gen_test_entry_body('$test_entry_body'(TestInfo, Assertions, PLoc, TmpDir), Goal0, Dict),
+        Clause = clause(TestEntry, Goal0, Dict).
+
+gen_test_entry_body('$test_entry_body'(TestInfo, Assertions, PLoc0, TmpDir), Goal0, Dict) :-
+        TestInfo = testinfo(ARef, Type, Pred, Body, ADict, ASource, AL0, AL1),
 	assertion_body(Pred, Compat, Precond, Success, Comp, _, Body),
+        ALoc0 = loc(ASource, AL0, AL1),
+        %
 	intersection(Comp, ~valid_commands, CompComm),
 	comps_to_goal(CompComm, Goal0, Goal),
 	difference(Comp, ~valid_commands, CompProp),
 	comps_to_goal(CompProp, Goal10, Goal2),
+        %
 	( Type == texec, Goal10 \== Goal2 ->
 	    functor(Pred, F, A),
 	    map(CompProp, comp_prop_to_name, CompNames),
@@ -1042,28 +1083,27 @@ do_print_each_test_entry(TmpDir, Module, RtcEntry, Src, IO, TestEntry, ARef,
 		['texec assertion for ', F, '/', A,
 		    ' can have only unit test commands, ',
 		    'not comp properties: \n', ''(CompNames),
-		    '\nProcessing it as a test assertion'])
-	; Message = []
+		    '\nProcessing it as a test assertion']),
+            pretty_messages([Message])
+	; true
 	),
+        %
 	current_prolog_flag(rtchecks_namefmt, NameFmt),
 	Term = n(Pred, Compat, Precond, Success, Comp),
-	get_pretty_names(NameFmt, Term, Dict0, TermName, Dict),
+	get_pretty_names(NameFmt, Term, ADict, TermName, Dict),
 	TermName = n(PredName, _, _, NSuccess, _),
-	functor(Pred, F, A),
-	functor(Head, F, A),
-	current_prolog_flag(rtchecks_asrloc, UseAsrLoc),
-	ALoc = asrloc(loc(ASource, AL0, AL1)),
-	(
-	    clause_read(Src, Head, _, _, PSource, PL0, PL1) ->
-	    PLoc = loc(PSource, PL0, PL1),
-	    PosLoc = [predloc(PredName, PLoc), ALoc],
-	    current_prolog_flag(rtchecks_predloc, UsePredLoc),
-	    UsePosLoc = (UsePredLoc, UseAsrLoc)
-	;
-	    % PLoc = loc(ASource, AL0, AL1),
-	    UsePosLoc = (no, UseAsrLoc),
-	    PosLoc = [ALoc]
-	),
+        % Locators
+	ALoc = asrloc(ALoc0),
+        ( current_prolog_flag(rtchecks_predloc, yes), \+ PLoc0 = none ->
+            PLoc = PLoc0,
+            UsePredLoc = yes,
+            PredLoc = predloc(PredName, PLoc),
+	    PosLoc = [PredLoc, ALoc]
+        ; % PLoc = ALoc0,
+          UsePredLoc = no,
+	  PosLoc = [ALoc]
+        ),
+        %
 	( Goal10 == Goal2 -> Goal1 = Goal10
 	; Goal1 = add_info_rtsignal(Goal10, PredName, Dict, PosLoc)
 	),
@@ -1077,37 +1117,15 @@ do_print_each_test_entry(TmpDir, Module, RtcEntry, Src, IO, TestEntry, ARef,
 		[ALoc], CheckSucc),
 	    Goal3 = (Goal1, catch(CheckSucc, Ex, throw(postcondition(Ex))))
 	),
-        % transform the test assertions of the exported predicate Pred
-        % if any into unit tests, considering 3 cases:
-        % - case 1: the module includes rtchecks package that will
-        %           perform the expansion of assertions into checks
-        %        OR no assertions for exported predicates
-        % - case 2: the module does not include the rtchecks package,
-        %           and there are no assertions for Pred
-        % - case 3: the module does not include the rtchecks package,
-        %           and the properties from the assertions for the Pred
-        %           will be combined with unit tests
-	(
-	    (clause_read(Src, 1, rtchecked, _, _, _, _) ; RtcEntry == no) ->
-             RTCheck = Goal3 % case 1
-	;
-	    collect_assertions(Pred, Module, Assertions),
-	    ( Assertions == [] ->
-              RTCheck = Goal3 % case 2
-	    ;
-		generate_rtchecks(Assertions, Pred, Dict, PLoc, UsePosLoc,
-                RTCheck, Goal3) % case 3
-	    )
+        % Generate rtchecks if needed (see gen_test_entry/7)
+	( ( Assertions == [] ->
+              RTCheck = Goal3 % case 1 or case 2
+	  ; current_prolog_flag(rtchecks_asrloc, UseAsrLoc),
+            UsePosLoc = (UsePredLoc, UseAsrLoc),
+            generate_rtchecks(Assertions, Pred, Dict, PLoc, UsePosLoc, RTCheck, Goal3) % case 3
+	  )
 	),
-	Goal = testing(ARef, TmpDir, ~list_to_lits(Precond), RTCheck),
-	unittest_print_clause((TestEntry :- Goal0), IO, Dict).
-
-print_each_test_entry(TmpDir, Module, RtcEntry, Src, IO, TestEntry, ARef,
-	    Message) :-
-	if(do_print_each_test_entry(TmpDir, Module, RtcEntry, Src, IO,
-		TestEntry, ARef, Message), true,
-	    (unittest_print_clause((TestEntry :- fail), IO, []), fail)),
-	Message \== [].
+	Goal = testing(ARef, TmpDir, ~list_to_lits(Precond), RTCheck).
 
 % show_diff(A, B) :-
 % 	absolute_file_name(A, AA),
@@ -1150,3 +1168,47 @@ separate_ground_vars([Arg|Args], [Var|Vars], AssignG0, AssignV0) :-
 	separate_ground_vars(Args, Vars, AssignG, AssignV).
 
 :- pop_prolog_flag(write_strings).
+
+% ---------------------------------------------------------------------------
+% Generate modules from terms
+
+:- use_module(library(varnames/apply_dict), [apply_dict/3]).
+:- use_module(library(write), [write/1, writeq/1]).
+
+% (exported)
+print_clauses_to_file(Path, Clauses) :-
+        open(Path, write, IO),
+	print_clauses(Clauses, IO),
+	close(IO).
+
+print_clauses([], _IO).
+print_clauses([C|Cs], IO) :- print_clause(C, IO), print_clauses(Cs, IO).
+
+print_clause(raw(Clauses), IO) :-
+	unittest_print_clauses(Clauses, IO, []).
+print_clause(clause(Head, Body, Dict), IO) :-
+	unittest_print_clause((Head :- Body), IO, Dict).
+
+% unittest_print_clause(Term, S, _Dict) :-
+% 	current_output(CO),
+% 	set_output(S),
+% 	writeq(Term),
+% 	write('.'),
+% 	nl,
+% 	set_output(CO).
+
+unittest_print_clause(Term, S, Dict) :-
+	apply_dict(Term, Dict, ATerm),
+	current_output(CO),
+	set_output(S),
+	writeq(ATerm),
+	write('.'),
+	nl,
+	set_output(CO).
+% 	portray_clause(S, ATerm).
+
+unittest_print_clauses(Term, S, Dict) :-
+	current_output(CO),
+	set_output(S),
+	list(Term, unittest_print_clause(S, Dict)),
+	set_output(CO).

@@ -8,8 +8,6 @@
 		runner_global_file_name/1,
 		tmp_dir/1,
 		wrapper_file_name/3,
-		unittest_print_clause/3,
-		unittest_print_clauses/3,
 		yesno/1,
 		read_data/2,
 		write_data/2
@@ -19,8 +17,6 @@
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(file_utils), [string_to_file/2]).
 :- use_module(library(system), [mktemp_in_tmp/2, delete_file/1]).
-:- use_module(library(write), [write/1, writeq/1]).
-:- use_module(library(varnames/apply_dict), [apply_dict/3]).
 :- use_module(library(pathnames),[path_concat/3]).
 
 :- initialization(init_tmp_dir).
@@ -93,30 +89,6 @@ empty_output(TmpDir) :-
 	file_test_output(BOut),
         path_concat(TmpDir,BOut,Out),
 	string_to_file("", Out).
-
-% unittest_print_clause(Term, S, _Dict) :-
-% 	current_output(CO),
-% 	set_output(S),
-% 	writeq(Term),
-% 	write('.'),
-% 	nl,
-% 	set_output(CO).
-
-unittest_print_clause(Term, S, Dict) :-
-	apply_dict(Term, Dict, ATerm),
-	current_output(CO),
-	set_output(S),
-	writeq(ATerm),
-	write('.'),
-	nl,
-	set_output(CO).
-% 	portray_clause(S, ATerm).
-
-unittest_print_clauses(Term, S, Dict) :-
-	current_output(CO),
-	set_output(S),
-	list(Term, unittest_print_clause(S, Dict)),
-	set_output(CO).
 
 %% The commented out lines can be used to save data in text mode and
 %% facilitate debugging --EMM
