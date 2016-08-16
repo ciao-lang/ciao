@@ -627,15 +627,20 @@ tty(X) :-
 :- export(runtests_dir/2).
 % Call unittests on directory Dir (recursive) of bundle Bundle
 runtests_dir(Bundle, Dir) :-
+	runtests_dir(Bundle, Dir, [rtc_entry]).
+
+:- export(runtests_dir/3).
+% Call unittests on directory Dir (recursive) of bundle Bundle
+runtests_dir(Bundle, Dir, Opts) :-
 	AbsDir = ~fsR(bundle_src(Bundle)/Dir),
 	exists_and_compilable(AbsDir),
 	!,
 	cmd_message(Bundle, "running '~w' tests", [Dir]),
 	invoke_ciaosh_batch([
           use_module(library(unittest), [run_tests_in_dir_rec/2]),
-	  run_tests_in_dir_rec(AbsDir, [rtc_entry])
+	  run_tests_in_dir_rec(AbsDir, Opts)
 	]).
-runtests_dir(_, _).
+runtests_dir(_, _, _).
 
 :- export(exists_and_compilable/1).
 exists_and_compilable(Dir) :-
