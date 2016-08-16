@@ -20,7 +20,7 @@
 % TODO: accept input tag and tags per directory and do (DirTags |- FilterTags)
 %   e.g., [expensive] |- cheap is false
 %   e.g., [] |- cheap is true
-'$builder_hook'(runtests) :- !,
+'$builder_hook'(test) :- !,
 	% Run ISO-prolog tests
 	% TODO: acceptance tests?
 	runtests_dir(ciao, 'tests/iso_tests').

@@ -353,8 +353,7 @@ ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf
 
 :- use_module(ciaobld(ciaoc_aux), [runtests_dir/2]).
 
-% Run tests
-'$builder_hook'(runtests) :- !,
+'$builder_hook'(test) :- !,
 	runtests_dir(core, 'lib'),
 	runtests_dir(core, 'library'),
 	runtests_ciaotests_hook. % integration tests

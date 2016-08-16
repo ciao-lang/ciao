@@ -828,7 +828,7 @@ default_cmd(build_docs_manuals, _, _) :- !.
 default_cmd(clean_docs_readmes, _, _) :- !.
 default_cmd(clean_docs_manuals, _, _) :- !.
 default_cmd(runbenchmarks, _, _) :- !. % TODO: look in tests?
-default_cmd(runtests, _, _) :- !. % TODO: test sources
+default_cmd(test, _, _) :- !. % TODO: test sources
 default_cmd(install, _, _) :- !. % TODO: install libs, cmds -- also decide which alias paths are public
 default_cmd(uninstall, _, _) :- !. % TODO: uninstall libs, cmds -- also decide which alias paths are public
 default_cmd(register, _, _) :- !.
@@ -882,7 +882,7 @@ revsub_bundles_do_hookcmd(ParentBundle, Cmd) :- !, % (all sub-bundles)
 
 % Commands that apply recursively to sub-bundles (parent first)
 cmd_rec(runbenchmarks).
-cmd_rec(runtests).
+cmd_rec(test).
 
 % Commands that apply recursively to sub-bundles (parent first, in reverse order)
 cmd_revrec(_) :- fail.

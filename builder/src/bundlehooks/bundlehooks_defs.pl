@@ -34,8 +34,8 @@
 % :- pred unregister/0 # "Unregister (in bash,csh,emacs,etc.)".
 
 % % Hooks for bundle testing/benchmarking
-% :- pred runtests/0 # "Tests".
-% :- pred runbenchmarks/0 # "Benchmarks".
+% :- pred test/0 # "Run tests".
+% :- pred runbenchmarks/0 # "Run benchmarks".
 
 % % Hooks for bundle custom commands
 % :- pred custom_run/1 # "Run custom command".

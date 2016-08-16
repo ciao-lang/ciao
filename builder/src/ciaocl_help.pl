@@ -369,11 +369,11 @@ grp_details(install_grp, [
 
 grp_def(test_grp, "Test automation and benchmarking").
 %
-cmd_grp(runtests, test_grp).
+cmd_grp(test, test_grp).
 % TODO: Split into unit tests and the more advanced testing/benchmarking driver
-cmd_usage(runtests, "[<bundle>]", [
+cmd_usage(test, "[<bundle>]", [
     %1_______________________________________________
-    "Execute all tests (regression, unit tests, etc.)"
+    "Run all tests (unit tests, integration, etc.)"
 ]).
 %
 cmd_grp(runbenchmarks, test_grp).

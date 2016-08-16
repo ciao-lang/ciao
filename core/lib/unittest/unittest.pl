@@ -209,6 +209,16 @@ complex(c(A, B)) :-
    predicate @code{predicate/n} are tested.  @code{times(N)} specifies
    that the given test should be executed N times, etc.
 
+@subsection{Running tests in a bundle}
+
+   To run all these tests (as well as the other standard tests in the
+   system) run the following (at the top level of the source tree or a
+   bundle @cindex{bundle}):
+
+@begin{verbatim}
+ciao test
+@end{verbatim}
+
 @subsection{Running the tests from the IDE}
 
    A convenient way to run these tests is by selecting options in the
@@ -239,36 +249,18 @@ complex(c(A, B)) :-
    below). This can also be done from a program, provided it imports
    this module.
 
-@subsection{Additional notes and limitations}
+@subsection{Integration tests}
 
-   @begin{enumerate}
-
-@comment{    @item The test assertions allow performing @em{unit} testing, i.e.,
-              in Ciao, performing tests @em{at the predicate level}. }
-
-   @item The tests currently @bf{can only be applied to exported
-         predicates}.  This is a limitation of the current
-         implementation that will be corrected in the future.
-
-   @item If you need to write tests for predicates that are spread
-         over several modules, but work together, it may be useful to
-         create a separate module, and reexport the predicates
-         required to build the tests.  This allows performing
-         @em{integration testing}, using the same syntax of the test
-         assertions.
-
-   @item The Ciao system includes a good (and growing) number of
-         assertion-based unit tests. To run all these tests (as well
-         as the other standard tests in the system) run the following
-         (at the top level of the source tree):
-
-@begin{verbatim}
-ciao runtests
-@end{verbatim}
-
-   @end{enumerate}
-
+If you need to write tests for predicates that are spread over several
+modules, but work together, it may be useful to create a separate
+module, and reexport the predicates required to build the tests. This
+allows performing @em{integration testing}, using the same syntax of
+the test assertions.
 ").
+
+:- doc(bug, "The tests currently @bf{can only be applied to exported
+   predicates}.  This is a limitation of the current implementation
+   that will be corrected in the future.").
 
 :- push_prolog_flag(write_strings, on).
 

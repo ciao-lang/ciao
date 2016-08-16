@@ -470,7 +470,7 @@ is_builder_cmd(uninstall_docs).
 is_builder_cmd(register).
 is_builder_cmd(unregister).
 is_builder_cmd(runbenchmarks).
-is_builder_cmd(runtests).
+is_builder_cmd(test).
 %
 is_builder_cmd(list). % (list bundles)
 is_builder_cmd(info). % (info on bundle)

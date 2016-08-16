@@ -63,7 +63,7 @@ generate_version_auto_lpdoc :-
 
 :- use_module(ciaobld(ciaoc_aux), [runtests_dir/2]).
 
-'$builder_hook'(runtests) :- !,
+'$builder_hook'(test) :- !,
 	runtests_dir(lpdoc, 'src').
 
 
