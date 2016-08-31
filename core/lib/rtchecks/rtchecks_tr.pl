@@ -1,7 +1,6 @@
 :- module(rtchecks_tr,
         [
             rtchecks_sentence_tr/4,
-            valid_commands/1,
             rtchecks_goal_tr/3,
             collect_assertions/3,
             generate_rtchecks/7,
@@ -255,7 +254,9 @@ proc_ppassertion(false(_), _, _, _, true).
 
 % --------------------------------------------- (begin) goal translation
 
-rtchecks_goal_tr(end_of_file, _,         M) :- !, cleanup_db(M).
+rtchecks_goal_tr(end_of_file, _,         M) :- !,
+        cleanup_db(M),
+        clean_rtc_impl_db.
 rtchecks_goal_tr(PPAssertion, PPRTCheck, _) :-
 	proc_ppassertion(PPAssertion, PredName, [], Loc, PPRTCheck),
 	location(Loc),
@@ -266,6 +267,8 @@ rtchecks_goal_tr('$orig_call'(Goal0), Goal, M) :-
 rtchecks_goal_tr('$meta$rtc'(Goal, MG), MG=RM:Goal, M) :-
 	functor(Goal, F, N),
 	module_qualifier_i(F, N, M, RM).
+rtchecks_goal_tr('$test_entry_body'(A,B,C,D), Goal1, _M) :- !, % unittest
+	test_entry_body_goal('$test_entry_body'(A,B,C,D), Goal1).
 rtchecks_goal_tr(Goal, Goal1, M) :-
 	goal_alias_db(Goal, Goal1, M), !.
 
@@ -296,8 +299,7 @@ module_qualifier_i(F, N, M, RM) :-
 cleanup_db_0(M) :-
 	cleanup_head_alias_db(M),
 	retractall_fact(posponed_sentence_db(_, _, _, _, _, M, _)),
-	cleanup_generated_rtchecks_db(M),
-        clean_rtc_impl_db.
+	cleanup_generated_rtchecks_db(M).
 
 cleanup_db(M) :-
 	cleanup_goal_alias_db(M),
@@ -871,10 +873,10 @@ comps_to_comp_lit(Exit, Comp, Body0, Body) :-
 	comps_parts_to_comp_lit(Exit, Comp, Body1, Body),
 	lists_to_lits(Body1, Body0).
 
-valid_commands([times(_, _), try_sols(_, _)]).
+valid_texec_comp_props([times(_, _), try_sols(_, _)]).
 
 comps_parts_to_comp_lit(Exit, Comp0, Body0, Body) :-
-	valid_commands(VC),
+	valid_texec_comp_props(VC),
 	difference(Comp0, VC, Comp),
 	comps_to_goal(Comp, Body1, Body2),
 	(
@@ -935,9 +937,139 @@ comp_to_lit(CompCompL, ChkComp-Goal) :-
 	get_chkcomp(Comp, Exit, PredName, Dict, PosLoc, ChkComp, Goal).
 
 % ----------------------------------------------------------------------
+% ------------------------------- unittest special case goal translation
+% ----------------------------------------------------------------------
+
+:- doc(bug, "There is currently no way to preserve the non-default
+        values of such flags as @tt{rtchecks_predloc} and
+        @tt{rtchecks_asrloc} while expanding unit tests in the module
+        wrapper. Can be fixed by passing the flag manipulation
+        directives to the wrapper module.").
+
+:- pred combine_locators(YesNo,PLoc0,PredName,AsrLoc, PLoc,PosLoc)
+        : atm * term * term * struct * var * var
+ # "This predicate combines the locators of a predicate and its
+   corresponding test assertion if specified by the @var{YesNo} flag
+   that takes values @tt{yes} or @tt{no}. @var{PLoc0} can be either a
+   predicate locator of the form @tt{loc(Alias,LB,LE)} (and then it is
+   returned in the @var{PLoc} variable) or the atom @tt{none} (see
+   @tt{unittest:do_gen_each_test_entry/7}).  @var{PredName} is a
+   predicate head term. @var{AsrLoc} is the test assertion locator of
+   the form @tt{asrloc(loc(ASource, ALB, ALE))}.".
+
+combine_locators(yes,PLoc0,PredName,AsrLoc, PLoc,PosLoc) :-
+        \+ PLoc0 = none, !,
+        PLoc     = PLoc0,
+        PredLoc  = predloc(PredName, PLoc),
+        PosLoc   = [PredLoc, AsrLoc].
+combine_locators(no,_,_,AsrLoc, _,[AsrLoc]) :- !.
+combine_locators(_,_,_,_,_,_).
+
+% ----------------------------------------------------------------------
+
+:- use_module(library(rtchecks/rtchecks_pretty), [pretty_messages/1]).
+
+:- pred texec_warning(AType, GPProps, Pred, AsrLoc)
+        : (atm(AType), list(GPProps), term(Pred), struct(AsrLoc))
+  # "A @tt{texec} assertion cannot contain any computational properties
+    except @pred{times/2} and @pred{try_sols/2}.  So if a @tt{texec}
+    assertion contains any other computational property the correcponding
+    test will be generated as if the assertion was of the type
+    @tt{test}. The user is notified of this fact by a warning message.
+    @var{AType} takes values @tt{texec} and @tt{test}, @var{GPProps}
+    is a list of non-ground comp properties, @var{Pred} is a predicate
+    from the test assertion and @var{AsrLoc} is the locator of the
+    test assertion.".
+
+:- doc(bug, "The warning message is not showh to the user unless the
+        @tt{dump_error} unittest option is provided. Manually set the
+        stream to which the message should be printed?").
+
+texec_warning(texec, GPProps, Pred, asrloc(loc(ASource, ALB, ALE))) :-
+        \+ GPProps == [], !,
+        functor(Pred, F, A),
+        map(GPProps, comp_prop_to_name, GPNames),
+        Message = message_lns(ASource, ALB, ALE, warning,
+		['texec assertion for ', F, '/', A,
+                 ' can have only unit test commands, ',
+                 'not comp properties: \n', ''(GPNames),
+                 '\nProcessing it as a test assertion']),
+        pretty_messages([Message]).
+texec_warning(_, _, _, _).
+
+comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
+
+% ----------------------------------------------------------------------
+
+:- use_module(library(lists), [intersection/3, difference/3]).
+
+:- pred test_entry_body_goal(TestEntryBody, TestBodyGoal)
+        : struct(TestEntryBody) => struct(TestBodyGoal)
+ # "Given a @var{TestEntryBody} structure that contains a test assertion,
+ a (possibly empty) set of assertions for the same predicate, predicate
+ locator term and the path to the temporary directory where the unit test
+ files are located, the body of a unit test is generated from these terms.
+ See @lib{unittest} library for the details of the test generation.".
+
+% DP part of the (test) assertions is completely ignored
+% during unit test generation, although the rtchecks library
+% has the necessary functionality to test it (see
+% non_compat/2) in library(rtchecks/rtchecks_rt). --NS
+
+test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
+        TestEntryBody = '$test_entry_body'(TestInfo, Assertions, PLoc0, TmpDir),
+        TestInfo = testinfo(TestId, AType, Pred, ABody, ADict, ASource, ALB, ALE),
+        AsrLoc   = asrloc(loc(ASource, ALB, ALE)),
+	assertion_body(Pred, DP, CP, AP, GP, _, ABody),
+        % split GP into GPTexec and GPProps
+	intersection(GP, ~valid_texec_comp_props, GPTexec),
+	difference(GP, ~valid_texec_comp_props, GPProps),
+        get_prop_impl(GPTexec,RtcGPTexec),
+        get_prop_impl(GPProps,RtcGPProps),
+        get_prop_impl(AP,RtcAP),
+        get_prop_impl(CP,RtcCP),
+        %
+	comps_to_goal(RtcGPTexec, TestBodyGoal, TestBodyGoal0),
+	comps_to_goal(RtcGPProps, GPPropsGoal, GPPropsGoal0),
+        %
+        texec_warning(AType, GPProps, Pred, AsrLoc),
+        %
+	current_prolog_flag(rtchecks_namefmt, NameFmt),
+	Term = n(Pred, DP, RtcCP, RtcAP, GP), % here no free variables must appear
+	get_pretty_names(NameFmt, Term, ADict, TermName, DictName),
+	TermName = n(PredName, _, _, RtcAPName, _),
+        %
+        current_prolog_flag(rtchecks_predloc, UsePredLoc),
+        combine_locators(UsePredLoc,PLoc0,PredName,AsrLoc, PLoc,PosLoc),
+        % compose checks for GP properties
+	( GPProps = [] ->
+            GPCheckGoal = GPPropsGoal
+	; GPCheckGoal = add_info_rtsignal(GPPropsGoal, PredName, DictName, PosLoc)
+	),
+	GPPropsGoal0 = Pred,
+        % compose check for AP properties
+	( AP == [] ->
+            APCheckGoal = GPCheckGoal
+	; get_prop_args(RtcAP, Pred, Args),
+          get_checkif(success, true, PredName, DictName, RtcAP, Args, RtcAPName, [AsrLoc], APChkLit),
+          APCheckGoal = (GPCheckGoal, catch(APChkLit, Ex, throw(postcondition(Ex))))
+	),
+        % Generate rtchecks if needed
+	( Assertions == [] ->
+            RTCheck = APCheckGoal
+        ; current_prolog_flag(rtchecks_asrloc, UseAsrLoc),
+          UsePosLoc = (UsePredLoc, UseAsrLoc),
+          generate_rtchecks(Assertions, Pred, DictName, PLoc, UsePosLoc, RTCheck, APCheckGoal)
+        ),
+	TestBodyGoal0 = testing(TestId, TmpDir, ~list_to_lits(RtcCP), RTCheck).
+
+% ----------------------------------------------------------------------
 % --------------------------- code to enable custom property definitions
 % ----------------------------------------------------------------------
 
+% filled on the beginning of sentence translation, emptied at the end of
+% goal translation for the module
+%
 %       rtc_impl(PropF,PropA,Spec,RtcF, RtcA,RtcSpec)
 :- data rtc_impl/4.
 
@@ -951,10 +1083,6 @@ clean_rtc_impl_db :-
       add to @var{L2} a custom implementation of this property (e.g.
       for run-time checks) if one exists or add the property term with
       no changes".
-
-%get_prop_impl(X,X) :-
-%        findall(Y,rtc_impl(Y,_,_,_,_,_),Ys),
-%        display(Ys),nl.
 
 get_prop_impl([],[]).
 get_prop_impl([Prop|Props], Tail) :-

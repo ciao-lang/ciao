@@ -20,8 +20,8 @@
 	    [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord]).
 
 :- use_module(library(unittest/unittest_statistics), [statistical_summary/2]).
-:- use_module(library(terms), [atom_concat/2]).
-:- use_module(library(sort), [sort/2]).
+:- use_module(library(terms),      [atom_concat/2]).
+:- use_module(library(sort),       [sort/2]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(rtchecks/rtchecks_pretty),
         [
@@ -35,22 +35,18 @@
             assertion_read/9,
             clause_read/7,
             get_code_and_related_assertions/5,
-            assertion_body/7,
-            comps_to_goal/3
+            assertion_body/7
         ]).
 :- use_module(library(assertions/c_itf_props), [filename/1]).
 :- use_module(library(system),   [copy_file/2, file_exists/1]).
 :- use_module(library(process),  [process_call/3]).
 :- use_module(library(hiordlib), [map/3, map/4]).
 :- use_module(library(compiler/c_itf), [exports/5, defines_module/2]).
-:- use_module(library(pretty_print), [pretty_print/2]).
 :- use_module(library(lists),
         [
             append/3,
             length/2,
             select/3,
-            intersection/3,
-            difference/3,
             union/3
         ]).
 :- use_module(library(llists), [flatten/2]).
@@ -941,20 +937,6 @@ create_wrapper_mod(Module, TmpDir, RtcEntry) :-
         ; error(['Failure in create_wrapper_mod/4'])
         ).
 
-:- use_module(library(rtchecks/rtchecks_basic),
-        [
-            list_to_lits/2,
-            get_prop_args/3,
-            get_pretty_names/5,
-            get_checkif/9
-        ]).
-:- use_module(library(rtchecks/rtchecks_tr),
-        [
-            collect_assertions/3,
-            valid_commands/1,
-            generate_rtchecks/7
-        ]).
-
 module_test_entry(Module, TestEntry, TestId) :-
 	atom_concat(Module, '$test', ModuleF),
 	TestEntry =.. [ModuleF, TestId].
@@ -1007,6 +989,53 @@ create_module_wrapper(TmpDir, Module, RtcEntry, Src, WrapperFile) :-
         %
 	print_clauses_to_file(WrapperFile, Clauses2).
 
+% TODO: remove this dependency --NS
+:- use_module(library(rtchecks/rtchecks_tr), [collect_assertions/3]).
+
+gen_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause) :-
+        % test entries, or default failing clause if there are none
+	if(do_gen_each_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause),
+           true,
+	   do_gen_default_test_entry(TestEntry, Clause)).
+
+do_gen_default_test_entry(TestEntry, Clause) :-
+        Clause = clause(TestEntry, fail, []).
+
+% TODO: tests abort when the predicate is not defined in the module,
+%       fix?  Depends on if we allow tests for imports -- otherwise
+%       this code is still useful for writing test assertions of
+%       impldef preds such as foreign.
+do_gen_each_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, TestId, Clause) :-
+        % get current test assertion
+        get_test(Module, TestId, AType, Pred, ABody, ADict, ASource, ALB, ALE),
+        TestInfo = testinfo(TestId, AType, Pred, ABody, ADict, ASource, ALB, ALE),
+        % Collect assertions for runtime checking during unit tests:
+        %  - none if RtcEntry = no
+        %  - none if the module uses rtchecks (already instruments its predicates)
+        %  - otherwise, the assertions specified in the original module
+        %
+ 	( (clause_read(Src, 1, rtchecked, _, _, _, _) ; RtcEntry == no) ->
+              Assertions = []
+ 	; collect_assertions(Pred, Module, Assertions)
+ 	),
+        % Get predicate locator for the Pred from the test assertion TestId
+	functor(Pred, F, A),
+	functor(Head, F, A),
+	( clause_read(Src, Head, _, _, PSource, PLB, PLE) ->
+	    PLoc = loc(PSource, PLB, PLE)
+	; PLoc = none
+	),
+        % this term is later expanded in the wrapper file by the goal
+        % translation of rtchecks package
+        TestBody = '$test_entry_body'(TestInfo, Assertions, PLoc, TmpDir),
+        Clause = clause(TestEntry, TestBody, ADict).
+
+
+:- pop_prolog_flag(write_strings).
+
+% ---------------------------------------------------------------------------
+% Generate modules from terms
+
 :- use_module(library(write), [printq/1]).
 :- doc(hide,portray/1).
 :- multifile portray/1.
@@ -1023,146 +1052,6 @@ portray(rat(A, B)) :-
 	integer(B),
 	!,
 	printq(A/B).
-
-comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
-
-gen_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause) :-
-        % test entries, or default failing clause if there are none
-	if(do_gen_each_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause),
-           true,
-	   do_gen_default_test_entry(TestEntry, Clause)).
-
-do_gen_default_test_entry(TestEntry, Clause) :-
-        Clause = clause(TestEntry, fail, []).
-
-do_gen_each_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause) :-
-        get_test(Module, ARef, Type, Pred, ABody, Dict0, ASource, AL0, AL1),
-        % Collect assertions for runtime checking during unit tests:
-        %  - none if RtcEntry = no
-        %  - none if the module uses rtchecks (already instruments its predicates)
-        %  - otherwise, the assertions specified in the original module
-        %
-	( (clause_read(Src, 1, rtchecked, _, _, _, _) ; RtcEntry == no) ->
-             Assertions = []
-	; collect_assertions(Pred, Module, Assertions)
-	),
-        TestInfo = testinfo(ARef, Type, Pred, ABody, Dict0, ASource, AL0, AL1),
-        % Get predicate locator
-	functor(Pred, F, A),
-	functor(Head, F, A),
-	( clause_read(Src, Head, _, _, PSource, PL0, PL1) ->
-	    PLoc = loc(PSource, PL0, PL1)
-	; PLoc = none
-	),
-        %
-        gen_test_entry_body('$test_entry_body'(TestInfo, Assertions, PLoc, TmpDir), Goal0, Dict),
-        Clause = clause(TestEntry, Goal0, Dict).
-
-gen_test_entry_body('$test_entry_body'(TestInfo, Assertions, PLoc0, TmpDir), Goal0, Dict) :-
-        TestInfo = testinfo(ARef, Type, Pred, Body, ADict, ASource, AL0, AL1),
-	assertion_body(Pred, Compat, Precond, Success, Comp, _, Body),
-        ALoc0 = loc(ASource, AL0, AL1),
-        %
-	intersection(Comp, ~valid_commands, CompComm),
-	comps_to_goal(CompComm, Goal0, Goal),
-	difference(Comp, ~valid_commands, CompProp),
-	comps_to_goal(CompProp, Goal10, Goal2),
-        %
-	( Type == texec, Goal10 \== Goal2 ->
-	    functor(Pred, F, A),
-	    map(CompProp, comp_prop_to_name, CompNames),
-	    Message = message_lns(ASource, AL0, AL1, warning,
-		['texec assertion for ', F, '/', A,
-		    ' can have only unit test commands, ',
-		    'not comp properties: \n', ''(CompNames),
-		    '\nProcessing it as a test assertion']),
-            pretty_messages([Message])
-	; true
-	),
-        %
-	current_prolog_flag(rtchecks_namefmt, NameFmt),
-	Term = n(Pred, Compat, Precond, Success, Comp),
-	get_pretty_names(NameFmt, Term, ADict, TermName, Dict),
-	TermName = n(PredName, _, _, NSuccess, _),
-        % Locators
-	ALoc = asrloc(ALoc0),
-        ( current_prolog_flag(rtchecks_predloc, yes), \+ PLoc0 = none ->
-            PLoc = PLoc0,
-            UsePredLoc = yes,
-            PredLoc = predloc(PredName, PLoc),
-	    PosLoc = [PredLoc, ALoc]
-        ; % PLoc = ALoc0,
-          UsePredLoc = no,
-	  PosLoc = [ALoc]
-        ),
-        %
-	( Goal10 == Goal2 -> Goal1 = Goal10
-	; Goal1 = add_info_rtsignal(Goal10, PredName, Dict, PosLoc)
-	),
-	Goal2 = Pred,
-	(
-	    Success == [] ->
-	    Goal3 = Goal1
-	;
-	    get_prop_args(Success, Pred, Args),
-	    get_checkif(success, true, PredName, Dict, Success, Args, NSuccess,
-		[ALoc], CheckSucc),
-	    Goal3 = (Goal1, catch(CheckSucc, Ex, throw(postcondition(Ex))))
-	),
-        % Generate rtchecks if needed (see gen_test_entry/7)
-	( ( Assertions == [] ->
-              RTCheck = Goal3 % case 1 or case 2
-	  ; current_prolog_flag(rtchecks_asrloc, UseAsrLoc),
-            UsePosLoc = (UsePredLoc, UseAsrLoc),
-            generate_rtchecks(Assertions, Pred, Dict, PLoc, UsePosLoc, RTCheck, Goal3) % case 3
-	  )
-	),
-	Goal = testing(ARef, TmpDir, ~list_to_lits(Precond), RTCheck).
-
-% show_diff(A, B) :-
-% 	absolute_file_name(A, AA),
-% 	absolute_file_name(B, AB),
-% 	system(~atom_concat(['diff -ruN ', AA, ' ', AB]), _R).
-
-:- export(generate_test/1).
-:- doc(hide,generate_test/1).
-:- meta_predicate generate_test(addterm(goal)).
-
-generate_test(Goal, Term) :-
-	functor(Term, F, N),
-	Term =.. [_|Args],
-	length(Vars, N),
-	separate_ground_vars(Args, Vars, AssignG, AssignV),
-	Pred =.. [F|Vars],
-	\+ \+ (
-	    call(Goal) ->
-	    display_long_clause(( :- test Pred : ~list_to_lits(AssignG)
-		    => ~list_to_lits(AssignV) ) + not_fails)
-	;
-	    display_long_clause(( :- test Pred : ~list_to_lits(AssignG)
-		    + fails ))
-	).
-
-display_long_clause(Clause) :-
-	pretty_print(Clause, []),
-	nl.
-
-separate_ground_vars([],         [],         [],       []).
-separate_ground_vars([Arg|Args], [Var|Vars], AssignG0, AssignV0) :-
-	(
-	    var(Arg) ->
-	    AssignG0 = AssignG,
-	    AssignV0 = [Var=Arg|AssignV]
-	;
-	    AssignG0 = [Var=Arg|AssignG],
-	    AssignV0 = AssignV
-	),
-	separate_ground_vars(Args, Vars, AssignG, AssignV).
-
-:- pop_prolog_flag(write_strings).
-
-% ---------------------------------------------------------------------------
-% Generate modules from terms
 
 :- use_module(library(varnames/apply_dict), [apply_dict/3]).
 :- use_module(library(write), [write/1, writeq/1]).
