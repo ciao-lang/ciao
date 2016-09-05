@@ -18,7 +18,7 @@
 
 /* TODO: some SIGLONGJMP may be LONGJMP */
 
-#if defined(SYMM) || defined(Solaris) || defined(_WIN32) || defined(_WIN64)
+#if defined(SYMM) || defined(Solaris) || defined(_WIN32) || defined(_WIN64) || defined(EMSCRIPTEN)
 #define SIGJMP_BUF jmp_buf
 #define SIGSETJMP(Env) setjmp(Env)
 #define SIGLONGJMP(Env, Val) longjmp(Env, Val)
