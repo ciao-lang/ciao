@@ -20,6 +20,8 @@
 
 #if defined(USE_OWN_MALLOC)
 #include <ciao/own_malloc.h>
+#else
+#include <stdlib.h>
 #endif
 
 #if defined(USE_OWN_MALLOC)
