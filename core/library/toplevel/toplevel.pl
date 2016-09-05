@@ -138,7 +138,7 @@ interpret_args(['-g', Goal|R], Opts) :- !,
 %% 	include_if_exists('~/.ciaorc').
 interpret_args(_Args, _) :-
 	display(
-'Usage: ciaosh [-f] [-q] [-l <File>] [-u <File>] [-p <Prompt>] [-e <Query>]'),
+'Usage: ciaosh [-f] [-q] [-i] [-l <File>] [-u <File>] [-p <Prompt>] [-e <Query>]'),
 	nl,
 	halt(1).
 
