@@ -239,27 +239,27 @@ create_eng_config() {
 	    break
 	fi
     done
-    if [ x"$preconf" = x"" ]; then
-	eng_make configexec
-    fi
+    if [ x"$preconf" = x"" ]; then eng_make configexec; fi
     if [ x"$preconf" != x"" ]; then
 	dump_cflags; cat "$preconf"
     else
 	dump_cflags; "$bld_objdir/configure""$EXECSUFFIX"
     fi | update_file "$bld_hdir/$eng_h_alias/configure.h"
 }
-# TODO: create together with config_sh instead; This should not be in platform-independent source!
+# TODO: create together with config_sh instead
+# TODO: goes to platform-independent directories! add osach as suffix and do conditional include?
 dump_cflags() {
-    local i flag
-    for i in $CFLAGS; do
-	case $i in
-	    -D*) flag=`echo $i | sed -e s/^-D//`; cat <<EOF
-#if !defined($flag)
-#define $flag
+    local flag name
+    for flag in $CFLAGS; do
+	if ! expr x$flag : x'-D\(..*\)' >/dev/null; then
+	    continue
+	fi
+	name=`expr x$flag : x'-D\(..*\)'`
+	cat <<EOF
+#if !defined($name)
+#define $name
 #endif
 EOF
-		 ;;
-	esac
     done
 }
 
