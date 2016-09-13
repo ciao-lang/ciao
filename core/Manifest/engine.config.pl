@@ -60,36 +60,7 @@
     interactive([extended])
 ]).
 
-sysconf_os(OS) :-
-	get_sysconf(['--os'], OS).
-
-% (See scan_bootstrap_opts.sh)
-
-sysconf_arch(M32, M64, Arch) :-
-	get_sysconf(['--arch'], Arch0),
-	( M32 = yes -> arch32(Arch0, Arch)
-	; M64 = yes -> arch64(Arch0, Arch)
-	; Arch = Arch0
-	).
-
-arch32('Sparc64', 'Sparc') :- !.
-arch32('x86_64', 'i686') :- !.
-arch32('ppc64', 'ppc') :- !.
-arch32(Arch, Arch). % assume 32-bit
-
-arch64('Sparc64', 'Sparc64') :- !.
-arch64('x86_64', 'x86_64') :- !.
-arch64('ppc64', 'ppc64') :- !.
-arch64(_, empty). % force error % TODO: emit error instead?
-
-:- use_module(ciaobld(ciaoc_aux), [sh_process_call/3]).
-
-ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf').
-
-get_sysconf(Args, Val) :-
-	sh_process_call(~ciao_sysconf_sh, Args,
-	                [stderr(stdout), stdout(string(Val0)), status(_)]),
-	atom_codes(Val, Val0).
+:- use_module(ciaobld(eng_maker), [sysconf_os/1, sysconf_arch/3]).
 
 % ---------------------------------------------------------------------------
 

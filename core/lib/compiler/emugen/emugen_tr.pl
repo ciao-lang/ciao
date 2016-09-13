@@ -17,7 +17,7 @@
 :- use_module(library(lists)).
 :- use_module(library(aggregates), [findall/3, bagof/3]).
 :- use_module(library(pathnames), [path_concat/3]).
-:- use_module(library(compiler/emugen/emugen_common)).
+:- use_module(ciaobld(eng_defs), [emugen_code_dir/3]).
 
 :- export(emugen_sent/3).
 emugen_sent(0, _, M) :- !,
@@ -57,6 +57,10 @@ emugen_decl(pred(Head, Props), M) :- !,
 	add_pred_props(Head2, Props, M).
 emugen_decl(iset(Name/0), M) :- !,
 	assertz_fact(iset(Name, M)).
+emugen_decl(engine_opts(Opts), M) :- !,
+	assertz_fact(engine_opts(Opts, M)).
+emugen_decl(engine_stubmain(Opts), M) :- !,
+	assertz_fact(engine_stubmain(Opts, M)).
 emugen_decl(Decl, M) :- !,
 	exec_decl(Decl, M).
 
@@ -120,6 +124,9 @@ generate_code__(M) :-
 	; true
 	).
 
+get_eng_opts(M, EngOpts) :-
+	( engine_opts(EngOpts, M) -> true ; EngOpts = [] ).
+
 :- use_module(library(system_extra), [mkpath/1]).
 
 code_to_file(M, Item, File) :-
@@ -129,13 +136,31 @@ code_to_file(M, Item, File) :-
 	).
 
 code_to_file_(M, Code, File) :-
+	this_eng_def(M, Eng),
+	%
 	code_to_cexp(Code, M, CExp),
 	cexp_to_str(CExp, String, []),
 	% Emit files in the right builddir path
-	emugen_code_dir(core, M, File, DestDir), % TODO: Bundle=core is hardwired here (extract from M)
+	emugen_code_dir(Eng, File, DestDir),
 	mkpath(DestDir),
 	File2 = ~path_concat(DestDir, File),
 	write_string_to_file(File2, String).
+
+% ---------------------------------------------------------------------------
+
+:- use_module(library(bundle/paths_extra), [fsRx_get_bundle_and_basename/3]).
+:- use_module(library(bundle/paths_extra), [reverse_fsR/2]).
+:- use_module(library(compiler/c_itf_internal), [defines_module/2]).
+
+% Engine definition for M
+this_eng_def(M, Eng) :-
+	get_eng_opts(M, EngOpts),
+	( defines_module(Base, M) -> true ; false ),
+	fsRx_get_bundle_and_basename(Base, Bundle, _),
+	reverse_fsR(Base, EngMainSpec),
+	Eng = eng_def(Bundle, EngMainSpec, EngOpts).
+
+% ---------------------------------------------------------------------------
 
 code_to_cexp(code(Code), M, CExp) :-
 	emit_code(Code, M, [indent(0)], CExp, []).
@@ -256,6 +281,12 @@ emit_string([X|Xs]) --> [X], emit_string(Xs).
 % iset(Name, M).
 :- data iset/2.
 
+% engine_opts(Opts, M).
+:- data engine_opts/2.
+
+% engine_opts(StubMain, M).
+:- data engine_stubmain/2.
+
 clean_db(M) :-
 	retractall_fact(native_export(_,M,_)),
 	retractall_fact(use_native(_,M,_)),
@@ -269,7 +300,10 @@ clean_db(M) :-
 	retractall_fact(max_op(_,M)),
 	retractall_fact(clause_def(_,M,_)),
 	%
-	retractall_fact(iset(_,M)).
+	retractall_fact(iset(_,M)),
+	%
+	retractall_fact(engine_opts(_,M)),
+	retractall_fact(engine_stubmain(_,M)).
 
 add_pred_props(G, Props, M) :-
 	( % (failure driven loop)
@@ -491,8 +525,8 @@ simp_constr_(op_ins(Op, Ins), M, _Store) :- !,
 simp_constr_(all_insns(Insns), M, Store) :- !,
 	% Note: the order of instructions may depend on the mode
 	all_insns(M, Store, Insns).
-simp_constr_(max_op(MaxOp), M, _Store) :- !, % TODO: generalize for other props
-	max_op(MaxOp, M).	
+simp_constr_(G, M, _Store) :- decl_fact(G), !,
+	fact_query(G, M).
 simp_constr_(findall(X, G, Xs), M, _Store) :- !,
 	findall(X, findall_query(G, M), Xs).
 simp_constr_(range(First, Last, Xs), _M, _Store) :- !, % TODO: do checks
@@ -500,6 +534,14 @@ simp_constr_(range(First, Last, Xs), _M, _Store) :- !, % TODO: do checks
 simp_constr_(Constraint, _M, Store) :-
         store_tell(Store, Constraint),
 	!.
+
+% TODO: Generalize for other props
+decl_fact(max_op(_)).
+decl_fact(engine_stubmain(_)).
+
+% TODO: Generalize for other props
+fact_query(max_op(MaxOp), M) :- max_op(MaxOp, M).
+fact_query(engine_stubmain(A), M) :- engine_stubmain(A, M).
 
 % TODO: Generalize for other props
 findall_query(use_native(A, B), M) :- use_native(A, M, B).

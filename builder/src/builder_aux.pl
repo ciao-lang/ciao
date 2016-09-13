@@ -10,7 +10,6 @@
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(ciaobld(messages_aux), [cmd_message/3]).
 :- use_module(ciaobld(messages_aux), [verbose_message/2]).
-:- use_module(ciaobld(config_common), [bundle_to_bldid/2]).
 :- use_module(ciaobld(config_common), [cmd_path/4]).
 
 % ===========================================================================
@@ -287,34 +286,32 @@ storedir_install(cmd(Bundle, P0)) :-
 	n_output(P, Props, Output),
 	cmd_message(Bundle, "installing '~w' (~s)", [Output, Name]),
 	storedir_install(copy_and_link(K, Bundle, Output)).
-% Install contents of EngMainMod engine build for installation:
-%  - engine+arch
-%  - a link engine+arch->engine to storedir
-%  - C headers
 %
-% TODO: create 'ciao-config' exec to get options for CC/LD; add an 'activation' operation
+% TODO: separate 'ciao-config' exec to get options for CC/LD?
+% TODO: control engine 'activation' operation?
 %
-storedir_install(eng_contents(Bundle, EngMainMod)) :- !,
-	storedir_install(dir(~inst_eng_path(engdir, Bundle, EngMainMod))), % TODO: set_file_perms or set_exec_perms?
+storedir_install(eng_contents(Eng)) :- !,
+	% Install engine (including C headers)
+	storedir_install(dir(~inst_eng_path(engdir, Eng))), % TODO: set_file_perms or set_exec_perms?
 	%
-	LocalEng = ~bld_eng_path(exec, Bundle, EngMainMod),
-	InstEng = ~inst_eng_path(exec, Bundle, EngMainMod),
+	LocalEng = ~bld_eng_path(exec, Eng),
+	InstEng = ~inst_eng_path(exec, Eng),
 	% Install exec
-	storedir_install(dir(~inst_eng_path(objdir_anyarch, Bundle, EngMainMod))), % TODO: set_file_perms or set_exec_perms?
-	storedir_install(dir(~inst_eng_path(objdir, Bundle, EngMainMod))), % TODO: set_file_perms or set_exec_perms?
+	storedir_install(dir(~inst_eng_path(objdir_anyarch, Eng))), % TODO: set_file_perms or set_exec_perms?
+	storedir_install(dir(~inst_eng_path(objdir, Eng))), % TODO: set_file_perms or set_exec_perms?
 	storedir_install(file_exec(LocalEng, InstEng)),
 	% Install headers
-        HDir = ~bld_eng_path(hdir, Bundle, EngMainMod),
-	InstEngHDir = ~inst_eng_path(hdir, Bundle, EngMainMod),
+        HDir = ~bld_eng_path(hdir, Eng),
+	InstEngHDir = ~inst_eng_path(hdir, Eng),
 	storedir_install(src_dir_rec(HDir, InstEngHDir)).
-storedir_install(eng_active(Bundle, EngMainMod)) :- !, % Activate engine (for multi-platform)
-	% (see eng_active_bld/2)
+storedir_install(eng_active(Eng)) :- !, % Activate engine (for multi-platform)
+	% (see eng_active_bld/1)
 	% Link for active exec (E.g., ciaoengine.<OSARCH> -> ciaoengine-1.15/objs/<OSARCH>/ciaoengine) % TODO: 'activation' as a different operation?
-	InstEng = ~inst_eng_path(exec, Bundle, EngMainMod),
-	ActiveEng = ~active_inst_eng_path(exec, Bundle, EngMainMod),
+	InstEng = ~inst_eng_path(exec, Eng),
+	ActiveEng = ~active_inst_eng_path(exec, Eng),
 	storedir_install(file_link_as(InstEng, ActiveEng)),
 	% Link for active exec_anyarch (E.g., ciaoengine -> ciaoengine.<OSARCH>)
-	ActiveEngAnyArch = ~active_inst_eng_path(exec_anyarch, Bundle, EngMainMod),
+	ActiveEngAnyArch = ~active_inst_eng_path(exec_anyarch, Eng),
 	storedir_install(file_link_as(~path_basename(ActiveEng), ActiveEngAnyArch)).
 
 :- export(storedir_uninstall/1).
@@ -375,29 +372,29 @@ storedir_uninstall(cmd(Bundle, P0)) :-
 	n_output(P, Props, Output),
 	cmd_message(Bundle, "uninstalling '~w' (~s)", [Output, Name]),
 	storedir_uninstall(copy_and_link(K, Bundle, Output)).
-% Uninstall EngMainMod engine
-storedir_uninstall(eng_contents(Bundle, EngMainMod)) :- !,
-	storedir_uninstall(file(~inst_eng_path(exec, Bundle, EngMainMod))),
+storedir_uninstall(eng_contents(Eng)) :- !,
+	% Uninstall engine
+	storedir_uninstall(file(~inst_eng_path(exec, Eng))),
         % Uninstall C headers
-	InstEngHDir = ~inst_eng_path(hdir, Bundle, EngMainMod),
+	InstEngHDir = ~inst_eng_path(hdir, Eng),
 	storedir_uninstall(src_dir_rec(InstEngHDir)),
 	%
-	storedir_uninstall(dir_if_empty(~inst_eng_path(objdir, Bundle, EngMainMod))),
-	storedir_uninstall(dir_if_empty(~inst_eng_path(objdir_anyarch, Bundle, EngMainMod))),
-	storedir_uninstall(dir_if_empty(~inst_eng_path(engdir, Bundle, EngMainMod))).
-storedir_uninstall(eng_active(Bundle, EngMainMod)) :- !,
+	storedir_uninstall(dir_if_empty(~inst_eng_path(objdir, Eng))),
+	storedir_uninstall(dir_if_empty(~inst_eng_path(objdir_anyarch, Eng))),
+	storedir_uninstall(dir_if_empty(~inst_eng_path(engdir, Eng))).
+storedir_uninstall(eng_active(Eng)) :- !,
 	% TODO: only if it coincides with the active version (better, do unactivation before)
-	storedir_uninstall(file(~active_inst_eng_path(exec, Bundle, EngMainMod))),
-	storedir_uninstall(file(~active_inst_eng_path(exec_anyarch, Bundle, EngMainMod))).
+	storedir_uninstall(file(~active_inst_eng_path(exec, Eng))),
+	storedir_uninstall(file(~active_inst_eng_path(exec_anyarch, Eng))).
 
-:- use_module(ciaobld(config_common), [active_bld_eng_path/4]).
+:- use_module(ciaobld(eng_defs), [active_bld_eng_path/3]).
 
-:- export(eng_active_bld/2).
+:- export(eng_active_bld/1).
 % Create links for multi-platform engine selection (for build)
-eng_active_bld(Bundle, EngMainMod) :-
-	BldEng = ~bld_eng_path(exec, Bundle, EngMainMod),
-	ActiveEngAnyArch = ~active_bld_eng_path(exec_anyarch, Bundle, EngMainMod),
-	ActiveEng = ~active_bld_eng_path(exec, Bundle, EngMainMod),
+eng_active_bld(Eng) :-
+	BldEng = ~bld_eng_path(exec, Eng),
+	ActiveEngAnyArch = ~active_bld_eng_path(exec_anyarch, Eng),
+	ActiveEng = ~active_bld_eng_path(exec, Eng),
 	% E.g., ciaoengine.<OSARCH> -> <OSARCH>/ciaoengine
 	create_link(~path_rel2(BldEng), ActiveEng),
 	% Link for active exec_anyarch (E.g., ciaoengine -> ciaoengine.<OSARCH>)
@@ -467,10 +464,10 @@ n_kind(Props, Kind) :-
 % TODO: Make sure that CIAOHDIR points to the right place when the engine 
 %   is installed in instype=global
 
-:- use_module(ciaobld(config_common), [
-	bld_eng_path/4,
-	inst_eng_path/4,
-	active_inst_eng_path/4]).
+:- use_module(ciaobld(eng_defs), [
+	bld_eng_path/3,
+	inst_eng_path/3,
+	active_inst_eng_path/3]).
 
 % ===========================================================================
 
@@ -540,6 +537,7 @@ generate_version_auto(Bundle, File) :-
 	close(O).
 
 % ===========================================================================
+% TODO: move to eng_maker.pl?
 
 :- use_module(ciaobld(third_party_install), [third_party_path/2]).
 :- use_module(library(pathnames), [path_relocate/4]).

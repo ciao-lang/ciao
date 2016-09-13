@@ -3139,7 +3139,8 @@ eng_info_mk :-
 	[[ findall(F, use_native(F, c), Cs) ]],
 	[[ findall(F, use_native(F, h), Hs) ]],
 	[[ findall(F, use_native(F, h_noalias), HsNoAlias) ]],
-	makefile_def('ENG_STUBMAIN', ['main.c']), % TODO: hardwired (see Makefile for details)
+	[[ engine_stubmain(StubMain) ]],
+	makefile_def('ENG_STUBMAIN', [StubMain]),
 	makefile_def('ENG_CFILES', Cs),
 	makefile_def('ENG_HFILES', Hs),
 	makefile_def('ENG_HFILES_NOALIAS', HsNoAlias).
@@ -3156,7 +3157,8 @@ eng_info_sh :-
 	[[ findall(F, use_native(F, c), Cs) ]],
 	[[ findall(F, use_native(F, h), Hs) ]],
 	[[ findall(F, use_native(F, h_noalias), HsNoAlias) ]],
-	sh_def('ENG_STUBMAIN', ['main.c']), % TODO: hardwired (see Makefile for details)
+	[[ engine_stubmain(StubMain) ]],
+	sh_def('ENG_STUBMAIN', [StubMain]),
 	sh_def('ENG_CFILES', Cs),
 	sh_def('ENG_HFILES', Hs),
 	sh_def('ENG_HFILES_NOALIAS', HsNoAlias).

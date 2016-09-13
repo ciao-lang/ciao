@@ -21,6 +21,7 @@ doc_structure :=
             'builder_cmds'-[
 	      % Build
               'ciaoc_aux',
+              'eng_maker',
               'builder_aux',
 	      % Installation
 	      'info_installer',

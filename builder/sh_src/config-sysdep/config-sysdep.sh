@@ -36,6 +36,7 @@ build_engdir=$1
 eng_cfg=$2
 
 bld_cfgdir="$build_engdir/cfg/$eng_cfg"
+bld_srcdir="$build_engdir/src"
 bld_hdir="$build_engdir/include"
 bld_objdir="$build_engdir/objs/$eng_cfg"
 
@@ -44,8 +45,18 @@ bld_objdir="$build_engdir/objs/$eng_cfg"
 
 # Load configuration parameters
 . "$eng_ciao_config"
-CIAOOS=$core__OS
-CIAOARCH=$core__ARCH
+
+# Select target architecture
+case "$eng_cross_os$eng_cross_arch" in
+    LINUXx86_JS)
+	CIAOOS=LINUX
+	CIAOARCH=x86_JS # uname() in Emscripten is x86-JS
+	;;
+    *)
+	CIAOOS=$core__OS
+	CIAOARCH=$core__ARCH
+	;;
+esac
 
 # Override core__OPTIM_LEVEL if needed
 # TODO: If really needed, move to the Prolog part?
@@ -86,6 +97,7 @@ else
 	LINUXarmv5tel)  CC=arm-linux-gcc; LD=arm-linux-gcc ;; # TODO: Recover cross compilation
 #	crossWin32i686)  CC=i386-mingw32-gcc; LD=i386-mingw32-gcc ;; # TODO: Recover cross compilation
 	DARWIN*)        CC=clang; LD=clang ;;
+	LINUXx86_JS)    CC=emcc; LD=emcc ;; # Emscripten
 	*)
 	    # The rest of the systems just use plain 'gcc'
 	    CC=gcc; LD=gcc ;;
@@ -103,6 +115,7 @@ fi
 
 # Does this machine has dynamic linking abilities?
 case "$CIAOOS$CIAOARCH" in
+    LINUXx86_JS) FOREIGN_FILES_FLAG="" ;;
     *) FOREIGN_FILES_FLAG="-DFOREIGN_FILES" ;;
 esac
 
@@ -126,6 +139,7 @@ if test x"$core__USE_THREADS" = x"yes"; then
 	Solaris*) LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
 	BSD*)     LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
 	DARWIN*)  THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
+	LINUXx86_JS) THREAD_FLAG="-D_REENTRANT" ;;
 	LINUX*)   LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
         # Threads and locks in Win32: no threads, no locks so far.
 	Win32*) THREAD_FLAG="-DTHREADS" ;;
@@ -140,6 +154,7 @@ case "$CIAOARCH" in
     i686)  ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
     ppc)   ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
     Sparc) ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
+    x86_JS) ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;; # Only 32-bits
 esac
 case "$CIAOOS$CIAOARCH" in
     # TODO: WHY??
@@ -183,6 +198,7 @@ case "$core__DEBUG_LEVEL" in
     *) ;;
 esac
 # C level debugging information
+# TODO: LINUXx86_JS: add ASSERTIONS=2 for debugging
 case "$core__DEBUG_LEVEL" in
     paranoid-debug|debug|profile-debug)
 	DEBUG_FLAGS="$DEBUG_FLAGS -g"
@@ -244,6 +260,7 @@ case "$CIAOOS$CIAOARCH" in
     #
     *i686)     OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
     *x86_64)   OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
+    *x86_JS)   OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
     *ppc)      OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
     *ppc64)    OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
     *Sparc)    OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
@@ -253,7 +270,10 @@ case "$CIAOOS$CIAOARCH" in
     *armv5tel) OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
 esac
 if test x"$core__OPTIM_LEVEL" = x"optimized"; then
-    OPTIM_FLAGS="-fno-strict-aliasing -O2 $OPTIM_FLAGS0"
+    case "$CIAOOS$CIAOARCH" in
+	LINUXx86_JS) OPTIM_FLAGS="-fno-strict-aliasing -Oz -O3 $OPTIM_FLAGS0" ;;
+	*) OPTIM_FLAGS="-fno-strict-aliasing -O2 $OPTIM_FLAGS0"
+    esac
 else
     # TODO: Why not "-O2" as in OptimComp? which one is wrong?
     OPTIM_FLAGS=""
@@ -261,6 +281,7 @@ fi
 # Special cases where -fPIC is needed to allow compilation as shared library
 case "$CIAOOS$CIAOARCH" in
     LINUXx86_64) OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
+    LINUXx86_JS) OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
     BSDx86_64)   OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
 esac
 # Select C standard
@@ -276,6 +297,7 @@ case "$CIAOOS$CIAOARCH" in
     # Do not use USE_MMAP for own_malloc in 64-bit architectures
     *Sparc64)        MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
     *x86_64)         MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
+    *x86_JS)         MEM_MNG_FLAG="" ;;
     *ppc64)          MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
     # (assume 32-bit)
     *) MEM_MNG_FLAG="-DUSE_MMAP -DANONYMOUS_MMAP" ;;
@@ -324,6 +346,7 @@ case "$CIAOOS$CIAOARCH" in
     # LIBS=-ldl
     DARWIN*)      LIBS0= ;;
     Solaris*)     LIBS0="-ldl -lm -lnsl" ;;
+    LINUXx86_JS)  LIBS0="" ;;
     *) LIBS0="-ldl -lm" ;;
 esac
 
@@ -352,8 +375,9 @@ esac
 # ---------------------------------------------------------------------------
 
 EXECSUFFIX=
-case "$CIAOOS" in
-    Win32) EXECSUFFIX=".exe" ;;
+case "$CIAOOS$CIAOARCH" in
+    LINUXx86_JS) EXECSUFFIX=".js" ;;
+    Win32*) EXECSUFFIX=".exe" ;;
 esac
 
 # ---------------------------------------------------------------------------
@@ -365,8 +389,9 @@ LDSHARED="$LDARCHFLAGS $LDSHARED"
 LIBS="$LIBS0 $LD_THREAD_LIB $LD_SOCKETS_LIB $DEBUG_LIBS"
 STAT_LIBS="$STAT_SOCKETS_LIB"
 
-# Number of processors: use the real number
-PROCESSORS=`"$_base"/available_processors $CIAOOS$CIAOARCH`
+# Number of processors (for compilation): use the real number for the
+# current OS and ARCH
+PROCESSORS=`"$_base"/available_processors $core__OS$core__ARCH`
 
 # ===========================================================================
 
@@ -422,10 +447,42 @@ case "$CIAOOS" in
 esac
 #ENG_STUBMAIN_DYNAMIC=1
 
+# Compile as dynamic library
+case "$CIAOOS$CIAOARCH" in
+    LINUXx86_JS) ENG_DYNLIB=0 ;;
+    *)           ENG_DYNLIB=1 ;;
+esac
+
+# Fix computed size in executable
+case "$CIAOOS$CIAOARCH" in
+    LINUXx86_JS) ENG_FIXSIZE=0 ;;
+    *)           ENG_FIXSIZE=1 ;;
+esac
+
 # ===========================================================================
 
 # Add engine include dir to search path for build
 CFLAGS="-I$bld_hdir $CFLAGS"
+
+# ===========================================================================
+
+# Patch configuration for Emscripten (LINUXx86_JS)
+
+case "$CIAOOS$CIAOARCH" in
+    LINUXx86_JS)
+	# It needs source dir in the include path (probably a bug:
+	# emcc does not locate included files from some symlinked .c
+	# files)
+        CFLAGS="-I$bld_srcdir $CFLAGS"
+	# Optimization flags must be included during link
+	LDFLAGS="$LDFLAGS $OPTIM_FLAGS --llvm-lto 1 \
+-s MAIN_MODULE=2 \
+-s ALIASING_FUNCTION_POINTERS=0 \
+-s EMULATE_FUNCTION_POINTER_CASTS=1 \
+-s ALLOW_MEMORY_GROWTH=1"
+	# -s LZ4=1 # allow compressed assets
+	;;
+esac
 
 # ===========================================================================
 
@@ -481,6 +538,9 @@ STAT_LIBS=$q$STAT_LIBS$q
 LIBS=$q$LIBS$q
 #
 CIAODEBUG=$q$CIAODEBUG$q
+#
+ENG_DYNLIB=$q$ENG_DYNLIB$q
+ENG_FIXSIZE=$q$ENG_FIXSIZE$q
 EOF
     dump_config_ccomp "$q"
 }

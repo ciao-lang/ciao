@@ -24,9 +24,9 @@
 :- use_module(library(source_tree), [current_file_find/3]).
 :- use_module(library(pathnames), [path_basename/2]).
 
+:- use_module(ciaobld(eng_defs), [bld_eng_path/3]).
 :- use_module(ciaobld(config_common),
-	[default_eng/1,
-	 bld_eng_path/4,
+	[default_eng_def/1,
 	 bundle_to_bldid/2,
 	 cmdname_ver/5]).
 :- use_module(engine(internals), ['$bundle_prop'/2]).
@@ -77,7 +77,7 @@ create_iss_file(Bundle, FileIss, FileListName) :-
 	% TODO: see PrettyCommitDesc in pbundle_download.pl
 	CommitId = ~bundle_commit_info(Bundle, id),
 	AppVerName = ~atom_codes(~atom_concat(['Ciao-', ~bundle_version_patch(Bundle), ' (', CommitId, ')'])),
-	EngMainMod = ~default_eng,
+	Eng = ~default_eng_def,
 	%
 	working_directory(Cwd, Cwd), % TODO: sure?
 	wr_template(at(Cwd), ~builder_src_dir/'win32', FileIss, [
@@ -93,7 +93,7 @@ create_iss_file(Bundle, FileIss, FileListName) :-
 	    'OutputDir' = ~output_dir,
 	    'ManualIcons' = ~get_manual_icons(Bundle),
 	    'DefaultDirName' = ~default_dir_name(Bundle),
-	    'CiaoEngineExec' = ~winpath(relative, ~relciaodir(~bld_eng_path(exec, core, EngMainMod))),
+	    'CiaoEngineExec' = ~winpath(relative, ~relciaodir(~bld_eng_path(exec, Eng))),
 	    'FileListName' = ~winpath(full, ~fsR(bundle_src(ciao)/FileListName))
 	]).
 
@@ -158,9 +158,9 @@ current_file(Source, DestDir) :-
 % exclude_win_subdir('./core_OCjs').
 
 rel_extra_system_file(Source, DestDir) :-
-	EngMainMod = ~default_eng,
+	Eng = ~default_eng_def,
 	Source = ~winpath(~extra_system_file), % (nondet)
-	DestDir0 = ~winpath(relative, ~relciaodir(~bld_eng_path(objdir, core, EngMainMod))),
+	DestDir0 = ~winpath(relative, ~relciaodir(~bld_eng_path(objdir, Eng))),
 	DestDir = ~atom_concat(DestDir0, '\\').
 
 each_line(Lines0, Line) :-
@@ -192,10 +192,10 @@ extra_system_file('/usr/bin/cyggslcblas-0.dll').
 extra_system_file('/usr/lib/lapack/cygblas-0.dll').
 % TODO: hardwired, why?
 % TODO: Use inst_* instead of bld_*?
-extra_system_file := ~relciaodir(~bld_eng_path(exec, core, EngMainMod)) :-
-	EngMainMod = ~default_eng.
-extra_system_file := ~relciaodir(~bld_eng_path(lib_so, core, EngMainMod)) :-
-	EngMainMod = ~default_eng.
+extra_system_file := ~relciaodir(~bld_eng_path(exec, Eng)) :-
+	Eng = ~default_eng_def.
+extra_system_file := ~relciaodir(~bld_eng_path(lib_so, Eng)) :-
+	Eng = ~default_eng_def.
 
 display_file_entry(Source, DestDir) :-
 	display_list(['Source: ', Source, '; DestDir:{app}\\', DestDir, '\n']).

@@ -33,13 +33,13 @@ Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The CLIP Group.
 :- use_module(ciaobld(bundle_hash), [
 	bundle_versioned_packname/2, bundle_commit_info/3]).
 
+:- use_module(ciaobld(eng_defs), [inst_eng_path/3]).
 :- use_module(ciaobld(config_common), [
     instciao_prefix/1,
     instciao_bindir/1,
     instciao_storedir/1,
     instciao_bundledir/2,
-    inst_eng_path/4,
-    default_eng/1,
+    default_eng_def/1,
     perms/1,
     home_url_str/1, % TODO: use Bundle
     packages_dir_str/1 % TODO: use Bundle
@@ -564,8 +564,8 @@ gen_pbundle__app(Bundle) :-
 	Domain = "org.ciao-lang.ciao", % TODO: from bundle
 	BundleDirCore = ~instciao_bundledir(core),
 	BinDir = ~instciao_bindir,
-	EngMainMod = ~default_eng,
-	CiaoEngine = ~inst_eng_path(exec, core, EngMainMod),
+	Eng = ~default_eng_def,
+	CiaoEngine = ~inst_eng_path(exec, Eng),
 	PackDir = ~pbundle_output_dir,
 	TmpDir = ~make_temp_dir,
 	%

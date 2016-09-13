@@ -1,6 +1,6 @@
 :- module(engine_path, [], [assertions]).
 
-% TODO: Merge with config_common:eng_path/4.
+% TODO: Merge with ciaobld(eng_defs), eng_path/3.
 %
 %   This module needs a serious rewrite (JFMC) -- there is no need to
 %   do backtracking to locate the engine! (use getplatformdeb, etc.)
@@ -63,7 +63,7 @@ stat_extension('').
 % What directory this engine can be in?
 % (nondeterministic)
 determine_engine_dir(TargetEng, Where, LibDir, EngDir) :-
-	% TODO: use something like bld_eng_path/4 or inst_eng_path/4, without introducing a dependency to ciaobld(config_common)
+	% TODO: use something like bld_eng_path/3 or inst_eng_path/3, without introducing a dependency to ciaobld(config_common)
 	% TODO: see location of bundlereg in global installation
 	intermediate_dir(TargetEng, Where, IntermediateDir),
 	atom_concat(LibDir, IntermediateDir, EngDir),
@@ -80,7 +80,7 @@ intermediate_dir(Target,  _,      Dir       ) :-
 	EngMainMod = 'ciaoengine', % TODO: fix
 	atom_concat(Dir1, EngMainMod, Dir2),
 	atom_concat(Dir2, '/objs/', Dir3),
-	atom_concat(Dir3, Target, Dir4), % TODO: use get_eng_cfg
+	atom_concat(Dir3, Target, Dir4), % TODO: use eng_defs:eng_cfg/2
 	atom_concat(Dir4, '/',       Dir ).
 
 rel_builddir('build').

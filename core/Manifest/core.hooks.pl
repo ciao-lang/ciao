@@ -107,7 +107,7 @@
 % TODO: This should be a postbuild or postinstall operation
 
 :- use_module(library(bundle/bundle_params), [set_bundle_param_value/2]).
-:- use_module(ciaobld(config_common), [default_eng/1]).
+:- use_module(ciaobld(config_common), [default_eng_def/1]).
 :- use_module(ciaobld(ciaoc_aux), [create_windows_bat/6]).
 
 % TODO: do configure and install of just the emacs mode (this is too complex)
@@ -132,10 +132,10 @@ environment :-
 % TODO: Add a build_cmds_fix_win action that just creates this
 windows_bats :-
 	normal_message("Creating .bat files for commands", []),
-	EngMainMod = ~default_eng,
+	Eng = ~default_eng_def,
 	( % (failure-driven loop)
-	  win_cmd_and_opts(BatCmd, Opts, EngOpts, OrigCmd),
-	    create_windows_bat(EngMainMod, BatCmd, Opts, EngOpts, core, OrigCmd),
+	  win_cmd_and_opts(BatCmd, Opts, EngExecOpts, OrigCmd),
+	    create_windows_bat(Eng, BatCmd, Opts, EngExecOpts, core, OrigCmd),
 	    fail
 	; true
 	).
@@ -168,7 +168,7 @@ win_cmd_and_opts(ciao, Atm, '-i', ciaosh) :-
 %'$builder_hook'(exec_header:uninstall) :- !, bundleitem_do(exec_header, core, uninstall).
 
 '$builder_hook'(exec_header:item_def([
-    eng_exec_header(ciaoengine)
+    eng_exec_header(eng(bundle_src(core)/'engine'/'ciaoengine', []))
 ])).
 
 % ============================================================================
@@ -243,15 +243,15 @@ core_cmd('ciao', shscript). % TODO: twice?!
 
 install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 
+:- use_module(ciaobld(eng_defs), [bootbld_eng_path/3]).
 :- use_module(ciaobld(config_common), 
 	[local_bldid/1,
-	 bootbld_eng_path/4,
 	 cmdname_ver/5]).
 
 % Generate 'ciao' super-command
 '$builder_hook'(ciaocl:item_build_nodocs) :-
 	cmd_message(core, "building '~w' (command)", ['ciao']),
-	EngMainMod = ~default_eng,
+	Eng = ~default_eng_def,
 	wr_template(as_cmd(core, shscript), ~cmds_dir, 'ciao', [
 	    'ExtraCommands' = ~ciao_extra_commands, % (for toplevel)
 	    %
@@ -266,8 +266,8 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	    % TODO: (MinGW) is cmd.exe enough? (at least for bootstrap) consider PowerShell scripts for Windows?
 	    'boot_ciaolib' = ~fsR(bundle_src(core)),
 	    'boot_bindir' = ~fsR(builddir_bin(bootbuild)),
-	    'boot_ciaohdir' = ~bootbld_eng_path(hdir, core, EngMainMod),
-	    'boot_ciaoengine' = ~bootbld_eng_path(exec, core, EngMainMod)
+	    'boot_ciaohdir' = ~bootbld_eng_path(hdir, Eng),
+	    'boot_ciaoengine' = ~bootbld_eng_path(exec, Eng)
         ]),
  	( install_prolog_name(yes) ->
  	    builddir_bin_link_as(core, shscript, 'ciao', 'prolog')
@@ -324,7 +324,7 @@ ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf
 '$builder_hook'(engine:uninstall) :- !, bundleitem_do(engine, core, uninstall).
 
 '$builder_hook'(engine:item_def([
-    eng(ciaoengine, []) % core/engine/ciaoengine.pl
+    eng(bundle_src(core)/'engine'/'ciaoengine', [])
 ])).
 
 % NOTE: experimental (see options)
@@ -336,7 +336,7 @@ ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf
 '$builder_hook'(static_engine:uninstall) :- !, bundleitem_do(static_engine, core, uninstall).
 
 '$builder_hook'(static_engine:item_def([
-    eng(ciaoengine, [ % core/engine/ciaoengine.pl
+    eng(bundle_src(core)/'engine'/'ciaoengine', [
       add_stat_libs, % link statically against C system libraries
       static_mods([library(random),
                    library(sockets),

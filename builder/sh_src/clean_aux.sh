@@ -8,7 +8,7 @@
 #
 # ===========================================================================
 #
-# TODO: port to Prolog
+# TODO: port to Prolog (unique calls are from ciaoc_aux.pl)
 #
 #  - The list of suffixes should be given by the system (the previous
 #    point would help).
@@ -64,11 +64,6 @@ clean_mod() { # MOD
            "$1""_""$CIAOOS$CIAOARCH""_glue.o" \
 	   "$1""_""$CIAOOS$CIAOARCH""_inline.c"
 }
-
-# Load configuration parameters
-. "$ENG_CIAO_CONFIG"
-CIAOOS=$core__OS
-CIAOARCH=$core__ARCH
 
 # Call whatever comes in arguments
 "$@"

@@ -7,7 +7,6 @@
 #   BLD_OBJDIR
 #   ENG_CFG_MK
 #   ENG_DEPLIBS, ENG_ADDOBJ
-#   CONFIG_HFILE
 # ---------------------------------------------------------------------------
 
 # Load the engine config_mk file
@@ -59,14 +58,26 @@ ENG_EXEC = $(ENG_NAME)$(EXECSUFFIX)
 ENG_SO := lib$(ENG_NAME)$(SOSUFFIX)
 ENG_A := lib$(ENG_NAME).a
 
-# Fixes for Mac OS X
+AR := ar
+AR_OPTS := -c -r
+RANLIB := ranlib
+# Fix AR,RANLIB for emcc
+ifeq ($(CC),emcc)
+    AR := llvm-ar
+    AR_OPTS := cr
+    RANLIB := llvm-ranlib
+endif
+
+# Fixes for Mac OS X (not using llvm-ranlib)
 ifeq ($(shell uname -s),Darwin)
+ifeq ($(RANLIB),ranlib)
     # Make rpath work
     ENG_SO_INSTALL_NAME := -install_name '@rpath/'$(ENG_SO)
     # Make uninitialized global variables in .a work (another option
     # is using -fno-common during compilation, but it somehow produced
     # slower executables)
     RANLIB_OPTS := -c
+endif
 endif
 
 .PHONY: engexec engexec_0 engexec_1 englib
@@ -105,8 +116,8 @@ $(ENG_SO): $(OBJFILES)
 # Engine as a static library
 # TODO: how deal with ENG_DEPLIBS?
 $(ENG_A): $(OBJFILES)
-	@ar -c -r $(ENG_A) $(OBJFILES)
-	@ranlib $(RANLIB_OPTS) $(ENG_A)
+	@$(AR) $(AR_OPTS) $(ENG_A) $(OBJFILES)
+	@$(RANLIB) $(RANLIB_OPTS) $(ENG_A)
 
 # TODO: partial-link all OBJFILES in a single .o (useful?)
 #       where LDCOMBINE=-r
@@ -134,7 +145,10 @@ CONFIG_OBJFILES = $(CONFIG_CFILES:.c=.o)
 LIBCONFIG_CFLAGS = $(CFLAGS)
 LIBCONFIG_LDFLAGS = $(LDFLAGS)
 
-.PHONY: configexec_0 configexec_1
+.PHONY: configexec configexec_0 configexec_1
+
+# Target for configure executable
+configexec: $(CONFIG_EXEC) ;
 
 # Executable
 $(CONFIG_EXEC): configexec_$(ENG_STUBMAIN_DYNAMIC) ;
@@ -155,14 +169,6 @@ configexec_1: $(CONFIG_STUBMAIN_OBJ) $(CONFIG_SO)
 $(CONFIG_SO): $(CONFIG_OBJFILES)
 	$(LD) $(LDSHARED) $(CONFIG_OBJFILES) \
 	      -o $(CONFIG_SO)
-
-# ---------------------------------------------------------------------------
-# Generation of configure.h
-
-.PHONY: engconf
-
-engconf: $(CONFIG_EXEC)
-	@./$(CONFIG_EXEC) "$(CFLAGS)" > $(CONFIG_HFILE)
 
 # ---------------------------------------------------------------------------
 

@@ -477,34 +477,9 @@ void configure__alloc(void) {
 }
 
 /* ------------------------------------------------------------------------- */
-
-/* Note: modifies cflags */
-void generate_defines(char *cflags) {
-  char *p = cflags;
-  do {
-    /* move 'def' after "-D", exit otherwise */
-    p = strstr(p, "-D");
-    if (p == NULL) break; else p += 2;
-    char *def = p;
-    /* move 'p' to next definition (if exists), split string */
-    p = strchr(p, ' ');
-    if (p != NULL) *p++ = '\0';
-    /* split 'def' at "=" sign, obtain 'val' */
-    char *val = strchr(def, '=');
-    if (val) {
-      *val++ = '\0';
-      printf("#if !defined(%s)\n#define %s %s\n#endif\n\n", def, def, val);
-    } else {
-      printf("#if !defined(%s)\n#define %s\n#endif\n\n", def, def);
-    }
-  } while (p != NULL);
-}
-
-/* ------------------------------------------------------------------------- */
 /* Call all configuration parts */
 
 int startconfig(int argc, char **argv) {
-  if (argc > 0) generate_defines(argv[1]);
   configure__endianness();
   configure__alloc();
   configure__fpbits();

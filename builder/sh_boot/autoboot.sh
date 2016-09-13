@@ -109,7 +109,7 @@ builddir_config_sysdep_boot() { # builddir
     cat > "$bld_cfgdir/meta_sh" <<EOF
 eng_name="$eng_name"
 eng_h_alias="ciao"
-eng_srcdir="$ciaoroot/core/engine"
+eng_srcpath="$ciaoroot/core/engine"
 eng_use_stat_libs=no
 eng_addobj=
 eng_ciao_config="$builddir/bundlereg/ciao.bundlecfg_sh"

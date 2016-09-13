@@ -122,13 +122,12 @@ configlevel('3', extended).
 %
 %   - ciao.bundlecfg: internal format (saved, no sysdep)
 %   - ciao.bundlecfg_sh: version in sh format for config-sysdep.sh
-%     and ciaoc_aux:eng_config_sysdep/2
+%     and eng_maker:eng_config_sysdep/2
 %
-% See ciaoc_aux:eng_config_sysdep/2 for the sysdep configuration
+% See eng_maker:eng_config_sysdep/2 for the sysdep configuration
 % output for engine and C code compilation.
 
-:- use_module(ciaobld(config_common), [default_eng/1]).
-:- use_module(ciaobld(ciaoc_aux), [bundle_flags_sh_file/1]).
+:- use_module(ciaobld(eng_maker), [bundle_flags_sh_file/1]).
 
 :- export(config_noscan/0).
 :- pred config_noscan # "Configure the system. If

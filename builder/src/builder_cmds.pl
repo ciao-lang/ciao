@@ -35,15 +35,12 @@
         ensure_builddir_doc/1,
         storedir_install/1,
         storedir_uninstall/1,
-	eng_active_bld/2
+	eng_active_bld/1
 	]).
 :- use_module(ciaobld(bundle_scan), [bundle_scan/2]).
 :- use_module(ciaobld(bundle_get), [bundle_fetch/2, bundle_rm/1]).
 :- use_module(ciaobld(ciaoc_aux),
 	[promote_bootstrap/1,
-	 %
-	 eng_build/3,
-	 eng_clean/2,
 	 %
 	 build_eng_exec_header/1,
 	 clean_eng_exec_header/1,
@@ -53,6 +50,10 @@
 	 clean_bundlereg/1,
 	 clean_tree/1,
 	 clean_mod/1
+	]).
+:- use_module(ciaobld(eng_maker),
+	[eng_build/1,
+	 eng_clean/1
 	]).
 :- use_module(library(system_extra), [del_file_nofail/1]).
 :- use_module(library(source_tree), [remove_dir/1]).
@@ -474,7 +475,7 @@ show_post_config_message(_).
 :- doc(section, "Promote bootstrap compiler (dangerous!)").
 
 :- use_module(ciaobld(interactive_aux), [ask_yesno/1]).
-:- use_module(ciaobld(config_common), [default_eng/1]).
+:- use_module(ciaobld(config_common), [default_eng_def/1]).
 
 % TODO: Create a backup/ directory with a NODISTRIBUTE flag?
 % TODO: This is an operation of core/ciaoc bundle
@@ -493,9 +494,9 @@ do_boot_promote(Target) :-
 	),
 	%
 	check_ready_for_cmd(boot_promote, Target),
-	ask_promote_bootstrap(~default_eng).
+	ask_promote_bootstrap(~default_eng_def).
 
-ask_promote_bootstrap(EngMainMod) :-
+ask_promote_bootstrap(Eng) :-
 	normal_message("The current compiler, including automatically generated C code for the", []),
 	normal_message("emulator will become the next bootstrap system.", []),
 	%
@@ -503,7 +504,7 @@ ask_promote_bootstrap(EngMainMod) :-
 	normal_message("", []),
 	( ask_yesno("Are you sure?"),
 	  ask_yesno("Really?") ->
-	    promote_bootstrap(EngMainMod),
+	    promote_bootstrap(Eng),
 	    normal_message("Bootstrap compiler promoted", [])
 	; normal_message("Promotion canceled", [])
 	).
@@ -1004,25 +1005,28 @@ bundleitem_do(bin_copy_and_link(K, Bundle, File, Props), _Bundle, uninstall) :- 
 bundleitem_do(file(Path), _Bundle, uninstall) :- !,
 	storedir_uninstall(file(Path)).
 % Engine
-bundleitem_do(eng(EngMainMod, EngOpts), Bundle, build_nodocs) :- !,
-	eng_build(Bundle, EngMainMod, EngOpts),
+bundleitem_do(eng(EngMainSpec, EngOpts), Bundle, build_nodocs) :- !,
+	Eng = eng_def(Bundle, EngMainSpec, EngOpts),
+	eng_build(Eng),
 	% Activate
- 	eng_active_bld(Bundle, EngMainMod).
-bundleitem_do(eng(EngMainMod, _EngOpts), Bundle, clean_norec) :- !,
-	eng_clean(Bundle, EngMainMod).
-bundleitem_do(eng(EngMainMod, _EngOpts), Bundle, install) :- !,
+ 	eng_active_bld(Eng).
+bundleitem_do(eng(EngMainSpec, EngOpts), Bundle, clean_norec) :- !,
+	eng_clean(eng_def(Bundle, EngMainSpec, EngOpts)).
+bundleitem_do(eng(EngMainSpec, EngOpts), Bundle, install) :- !,
+	Eng = eng_def(Bundle, EngMainSpec, EngOpts),
 	( ~instype = global -> true ; throw(install_eng_requires_global) ), % TODO: should not be needed
-	storedir_install(eng_contents(Bundle, EngMainMod)),
-	storedir_install(eng_active(Bundle, EngMainMod)).
-bundleitem_do(eng(EngMainMod, _EngOpts), Bundle, uninstall) :- !,
+	storedir_install(eng_contents(Eng)),
+	storedir_install(eng_active(Eng)).
+bundleitem_do(eng(EngMainSpec, EngOpts), Bundle, uninstall) :- !,
+	Eng = eng_def(Bundle, EngMainSpec, EngOpts),
 	( ~instype = global -> true ; throw(uninstall_eng_requires_global) ), % TODO: should not be needed
-	storedir_uninstall(eng_active(Bundle, EngMainMod)),
-	storedir_uninstall(eng_contents(Bundle, EngMainMod)).
+	storedir_uninstall(eng_active(Eng)),
+	storedir_uninstall(eng_contents(Eng)).
 % Engine header stubs for executables
-bundleitem_do(eng_exec_header(EngMainMod), _Bundle, build_nodocs) :- !,
-	build_eng_exec_header(EngMainMod).
-bundleitem_do(eng_exec_header(EngMainMod), _Bundle, clean_norec) :- !,
-	clean_eng_exec_header(EngMainMod).
+bundleitem_do(eng_exec_header(eng(EngMainSpec, EngOpts)), Bundle, build_nodocs) :- !,
+	build_eng_exec_header(eng_def(Bundle, EngMainSpec, EngOpts)).
+bundleitem_do(eng_exec_header(eng(EngMainSpec, EngOpts)), Bundle, clean_norec) :- !,
+	clean_eng_exec_header(eng_def(Bundle, EngMainSpec, EngOpts)).
 %
 bundleitem_do(X, Bundle, Cmd) :-
 	atom(X), % TODO: replace by item(_)
