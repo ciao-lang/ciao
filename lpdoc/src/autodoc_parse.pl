@@ -325,34 +325,10 @@ command_body(Struct) -->
 	{ atom_codes(Command, CommandS) },
 	( blank, %space,
 	  % simple commands which end in space
-	    {BodyList = [[]]}
+	  {BodyList = [[]]}
 	; open,
-	  % TODO: obtain this from cmd_type!
-	  % commands with several arguments 
-	  % (currently cannot contain other commands)
-	    {( Command = 'href'
-	     ; Command = 'email'
-	     ; Command = 'image'
-	     ; Command = 'bibitem'
-	     ; Command = 'pbundle_download'
-	     ; Command = 'pbundle_href'
-	     ; Command = 'codeblock'
-	     )},
-%%	    command_args(BodyList)
-	    command_balanced_args(BodyList)
-	; open,
-	  % TODO: obtain this from cmd_type!
-	  % commands with several arguments 
-	  % (containing balanced text)
-	    {( Command = 'defmathcmd'
-	     )},
-	    command_balanced_args(BodyList)
-	; open,
-	  % normal commands: look for closing brace, enter recursively
-	  balanced_braces(1, CommandBody),
-	  % TODO: Recursion (handle_cmd_args) should really be done
-	  %       here instead of individually
-	  {BodyList = [CommandBody]}
+	  % parse commands (with 1 or more arguments)
+	  command_balanced_args(BodyList)
 	),
 	{ Struct =.. [Command|BodyList] }.
 
