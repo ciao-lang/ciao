@@ -31,6 +31,12 @@
 #endif
 #include <assert.h>
 
+#if defined(DARWIN) /* for get_execpath() */
+#include <stdint.h>
+#include <limits.h>
+#include <mach-o/dyld.h>
+#endif
+
 #if defined(Win32) && !(defined(_WIN32) || defined(_WIN64)) /* MSYS2/Cygwin */
 #include <sys/cygwin.h>
 #endif
@@ -284,6 +290,29 @@ void engine_init(const char *boot_path, const char *exec_path) {
   glb_init_each_time();
 }
 
+/* Get executable path (when argv[0] is not reliable) */
+char *get_execpath() {
+  char buffer[MAXPATHLEN+1];
+  size_t size = MAXPATHLEN+1;
+#if defined(LINUX)
+  ssize_t len;
+  if ((len = readlink("/proc/self/exe", buffer, size)) == -1) return NULL;
+#elif defined(DARWIN)
+  uint32_t len = size;
+  if (_NSGetExecutablePath(buffer, &len) == -1) return NULL;
+#elif defined(_WIN32) || defined(_WIN64) /* MinGW */
+  if (GetModuleFileName(NULL, buffer, size) == 0) return NULL;
+#else
+  return NULL;
+  /* TODO: Missing support for other OS:
+      - Solaris: getexecname()
+      - FreeBSD: sysctl CTL_KERN KERN_PROC KERN_PROC_PATHNAME -1
+      - BSD with procfs: readlink /proc/curproc/file
+  */
+#endif
+  return strdup(buffer);
+}
+
 int start(int argc, char *argv[]) {
   int i;
   const char *boot_path = NULL;
@@ -310,17 +339,10 @@ int start(int argc, char *argv[]) {
   engine_set_opts(optv, optc, &boot_path);
 
   /* Locate full path of the engine executable */
-  /* TODO: use more reliable ways of getting full path of the current
-     executable than c_find_exec(argv[0]):
-
-     Mac OS X: _NSGetExecutablePath() (man 3 dyld)
-     Linux: readlink /proc/self/exe
-     Solaris: getexecname()
-     FreeBSD: sysctl CTL_KERN KERN_PROC KERN_PROC_PATHNAME -1
-     BSD with procfs: readlink /proc/curproc/file
-     Windows: GetModuleFileName() with hModule = NULL
-  */
   const char *exec_path = c_find_exec(argv[0]);
+  if (exec_path == NULL) {
+    exec_path = get_execpath(); /* Try the other method */
+  }
   if (exec_path == NULL) {
     fprintf(stderr, "panic: could not find current executable path\n");
     return 1;
