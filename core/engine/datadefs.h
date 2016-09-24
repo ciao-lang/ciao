@@ -9,8 +9,10 @@
 #ifndef _DATADEFS_H
 #define _DATADEFS_H
 
+/* (Automatically generated during engine build) */
 #include <ciao/version.h>
 #include <ciao/configure.h>
+
 #include <ciao/absmach_predef.h>
 #include <ciao/locks_prim.h>
 #include <ciao/alloc_init.h>
