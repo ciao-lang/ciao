@@ -28,6 +28,9 @@
 :- use_module(lpdoc(autodoc_filesystem)).
 :- use_module(lpdoc(autodoc_texinfo), [infodir_base/2]).
 
+% Holder for doc_module
+:- use_module(lpdoc(docmod_holder)).
+
 :- use_package(fsmemo). % (for 'fsmemo.*') 
 
 % ===========================================================================
@@ -101,6 +104,7 @@ clean_tmp_db :-
 	reset_output_dir_db.
 
 gen(Format) :-
+	load_doc_modules,
 	report_cmd('Starting', Format),
 	gen_actions(Format, Actions),
 	fsmemo_call(Actions),
@@ -113,6 +117,17 @@ report_cmd(BegEnd, Ext) :-
 	    [BegEnd, Ext, FormatName]).
 report_cmd(BegEnd, Base) :-
 	simple_message("~w processing of '~w'.", [BegEnd, Base]).
+
+% Load doc_module (for extensions)
+% TODO: unload is missing!
+% TODO: make it local to each module or lpdoc file instead (allow packages in .lpdoc)
+load_doc_modules :-
+	( % (failure-driven loop)
+	  setting_value(load_doc_module, Spec),
+	    docmod_holder:do_use_module(Spec),
+	    fail
+	; true
+	).
 
 % Actions to generate documentation in some specific format
 gen_actions(all, Actions) :- !,

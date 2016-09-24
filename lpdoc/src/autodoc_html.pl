@@ -21,7 +21,6 @@
 
 % (Web-site extensions)
 :- use_module(lpdoc(autodoc_html_template)).
-:- use_module(lpdoc(pbundle_download)).
 
 :- doc(title, "HTML Backend").
 :- doc(author, "Jose F. Morales").
@@ -174,29 +173,14 @@ rw_command(em(Body),  _DocSt, R) :- !, R = htmlenv(em, Body).
 rw_command(tt(Body),  _DocSt, R) :- !, R = htmlenv(tt, Body).
 rw_command(key(Body), _DocSt, R) :- !, R = htmlenv(span, [class="emacskey"], Body).
 rw_command(var(Body), _DocSt, R) :- !, R = htmlenv(span, [class="var"], Body).
-% .......... (plug-in commands) ..........
-% TODO: Move to external module/
+%
+% TODO: Move to a doc_module?
 rw_command(html_template(FileC), _DocSt, R) :- !,
 	atom_codes(File, FileC),
 	fmt_html_template(File, [], R).
+% TODO: Move to a doc_module?
 rw_command(html_template_internal(File, Params), _DocSt, R) :- !,
 	fmt_html_template(File, Params, R).
-rw_command(pbundle_download(BranchC, ViewC), _DocSt, R) :- !,
-	% TODO: Define the language of Branch (it is a the branch name,
-	%       or relative subdirectory in the repository,
-	%       e.g. trunk, branches/1.14, etc.; but it could be
-	%       richer and specify the revision, etc.)
-	atom_codes(Branch, BranchC),
-	atom_codes(View, ViewC),
-	fmt_pbundle_download(Branch, View, R).
-rw_command(pbundle_href(BranchC, Manual, RelC, Text), _DocSt, R) :- !,
-	% TODO: Define the language of Branch (it is a the branch name,
-	%       or relative subdirectory in the repository,
-	%       e.g. trunk, branches/1.14, etc.; but it could be
-	%       richer and specify the revision, etc.)
-	atom_codes(Branch, BranchC),
-	atom_codes(Rel, RelC),
-	fmt_pbundle_href(Branch, Manual, Rel, Text, R).
 % .......... (icmd) ..........
 % TODO: Share common definitions with autodoc_texinfo
 rw_command(htmlenv(Cmd, Body), _, NewCommand) :- !, % <cmd>BODY</cmd>

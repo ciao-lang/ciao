@@ -37,6 +37,13 @@
 :- use_module(lpdoc(autodoc_man),     []).
 :- use_module(lpdoc(autodoc_html),     []).
 
+% ---------------------------------------------------------------------------
+% TODO: collect all interfaces
+
+% (interface for doc_module)
+:- multifile doc_cmd_type/1.
+:- multifile doc_cmd_rw/2.
+
 % ===========================================================================
 
 :- doc(section, "Definition of LPdoc Commands").
@@ -148,6 +155,7 @@ cmd_type('j'(s)) :- !.
 cmd_type(copyright(s)) :- !.
 cmd_type(bullet(s)) :- !.
 cmd_type(result(s)) :- !.
+cmd_type(html_template(s)) :- !. % TODO: move to doc_module?
 %
 % ** Semi-private commamnds **
 %  Those are required just parsing bibrefs resolved with
@@ -155,13 +163,8 @@ cmd_type(result(s)) :- !.
 cmd_type(bibitem(s,s)) :- !.
 cmd_type(newblock(s)) :- !.
 %
-% ** Extensible commands **
-%  Those commands should be removed from here and be provided by
-%  extension modules similar to compilation modules
-%  (i.e. documentation modules)
-cmd_type(html_template(s)) :- !.
-cmd_type(pbundle_download(s,s)) :- !. % {branch}{view}
-cmd_type(pbundle_href(s,s,s,d)) :- !. % {branch}{manual}{rel}{text}
+% ** Extensible commands ** (from doc_module)
+cmd_type(Cmd) :- doc_cmd_type(Cmd).
 
 % TODO: Refine those commands 
 % Internal commands (cannot be parsed from any docstring, may depend
@@ -815,8 +818,8 @@ rewrite_command_(Command, DocSt, NewCommand2) :-
 	functor(Command, Cmd, A),
 	functor(BT, Cmd, A),
 	Command =.. [_|Xs],
-	( cmd_type(BT) -> Kind = cmd
-	; icmd_type(BT) -> Kind = icmd
+	( cmd_type(BT) -> Kind = cmd % TODO: Kind unused
+	; icmd_type(BT) -> Kind = icmd % TODO: Kind unused
 	; throw(error(wrong_arg(1,Command), rewrite_command/3))
 	),
 	BT =.. [_|Ts],
@@ -903,6 +906,14 @@ rewrite_cmd(string_esc(X), DocSt, R) :- !,
 rewrite_cmd(string_verb(X), DocSt, R) :- !,
 	R = raw_string(X2),
 	escape_string(verb, X, DocSt, X2).
+% .......... (commands defined in a doc_module) ..........
+rewrite_cmd(Cmd, _DocSt, R) :-
+	functor(Cmd, F, A),
+	functor(Cmd2, F, A),
+	doc_cmd_type(Cmd2), % (defined externally?)
+	!,
+	doc_cmd_rw(Cmd, R).
+% .......... (backend definition of commands) ..........
 rewrite_cmd(X, DocSt, L) :-
 	docst_backend(DocSt, Backend),
 	autodoc_rw_command_hook(Backend, DocSt, X, L).

@@ -61,8 +61,6 @@ doc_structure :=
 	    'autodoc_bibrefs',
 	    'autodoc_aux',
 	    'autodoc_images'
-% TODO: Compute local modules that are not included in the internal documentation? Emit warning?
-%	    'pbundle_download'
           ]
         ].
 

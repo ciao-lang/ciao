@@ -2,7 +2,7 @@
 %
 % \title Base Configuration Definitions for LPdoc
 % 
-% \module, This file provides the base configuration definitions and
+% \module This file provides the base configuration definitions and
 %   documentation for a \apl{lpdoc} settings file.
 % 
 % \author Manuel Hermenegildo
@@ -81,6 +81,17 @@
     docformat(info),
     docformat(html)
 ]).
+
+% ----------------------------------------------------------------------------
+% Documentation modules (doc_module) for extensions
+
+% TODO: This is experimental.
+% TODO: Make it local to each module (not global in the doccfg file).
+:- pred load_doc_module(F) => term
+# "Documentation module (@tt{doc_module}) for extensions (see
+  @lib{lpdoclib(doc_module)}).".
+:- export(load_doc_module/1).
+:- default_def(load_doc_module/1, [(load_doc_module(_) :- fail)]).
 
 % ----------------------------------------------------------------------------
 % Indices to be generated
@@ -256,26 +267,3 @@
 # "Directory for HTML templates".
 :- export(tmplpath/1).
 :- default_def(tmplpath/1, [(tmplpath(_) :- fail)]).
-
-% ---------------------------------------------------------------------------
-% Settings for pbundle_download.pl
-
-:- pred pbundle_localdocdir/1 => term
-# "Directory for pbundle docs".
-:- export(pbundle_localdocdir/1).
-:- default_def(pbundle_localdocdir/1, [(pbundle_localdocdir(_) :- fail)]).
-
-:- pred pbundle_localpkgdir/1 => term
-# "Directory for pbundle pkgs".
-:- export(pbundle_localpkgdir/1).
-:- default_def(pbundle_localpkgdir/1, [(pbundle_localpkgdir(_) :- fail)]).
-
-:- pred pbundle_localdocurl/1 => term
-# "Deploy URL for pbundle docs".
-:- export(pbundle_localdocurl/1).
-:- default_def(pbundle_localdocurl/1, [(pbundle_localdocurl(_) :- fail)]).
-
-:- pred pbundle_localpkgurl/1 => term
-# "Deploy URL for pbundle pkgs".
-:- export(pbundle_localpkgurl/1).
-:- default_def(pbundle_localpkgurl/1, [(pbundle_localpkgurl(_) :- fail)]).
