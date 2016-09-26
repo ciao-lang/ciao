@@ -214,15 +214,15 @@ eng_build() { # (env: optional BOOTENG_CDIR)
     create_eng_config
     # Build exec and lib
     eng_deplibs="$LIBS"
-    if [ x"$eng_use_stat_libs" == x"yes" ]; then
+    if [ x"$eng_use_stat_libs" = x"yes" ]; then
 	eng_deplibs="$eng_deplibs $STAT_LIBS"
     fi
     eng_make engexec ENG_DEPLIBS="$eng_deplibs" ENG_ADDOBJ="$eng_addobj" # TODO: make it optional, depending on ENG_STUBMAIN (which is not visible here)
-    if [ x"$ENG_DYNLIB" == x"1" ]; then
+    if [ x"$ENG_DYNLIB" = x"1" ]; then
 	eng_make englib ENG_DEPLIBS="$eng_deplibs" ENG_ADDOBJ="$eng_addobj"
     fi
     # Patch exec
-    if [ x"$ENG_FIXSIZE" == x"1" ]; then
+    if [ x"$ENG_FIXSIZE" = x"1" ]; then
 	eng_make fix_size_exec
 	"$bld_objdir/fix_size""$EXECSUFFIX" "$bld_objdir/$eng_name""$EXECSUFFIX"
     fi
