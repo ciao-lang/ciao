@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/status.css">
+  </head>
+  <body>
+
+<p>Testsuite (<b>Ciao</b>JS version)</p>
+<div id="status"></div>
+<pre id="log"></pre>
+
+<script src="js/status.js" type="text/javascript" charset="utf-8"></script>
+<script src="ciao/ciao.js" type="text/javascript" charset="utf-8"></script>
+<script src="ciao/ciao.bundle.js" type="text/javascript" charset="utf-8"></script>
+<script src="ciao/core.bundle.js" type="text/javascript" charset="utf-8"></script>
+<script src="ciao/testsuite.bundle.js" type="text/javascript" charset="utf-8"></script>
+
+<script type="text/javascript" charset="utf-8">
+/* redirect console log to our div */
+(function () {
+  var logdiv = document.getElementById('log');
+  console.log = function (msg) {
+    if (typeof msg == 'object') {
+      logdiv.innerHTML += (JSON && JSON.stringify ? JSON.stringify(msg) : msg) + '<br/>';
+    } else {
+      logdiv.innerHTML += msg + '<br/>';
+    }
+  }
+})();
+Ciao.init("ciao/", (function () {
+  var out;
+  set_status("Running...");
+  /* (continue with timeout, force HTML update) */
+  setTimeout(function () {
+    Ciao.run("internals:$bootversion");
+    console.log('CiaoJS statistics:');
+    console.log(Ciao.stats);
+    console.log("Loading test suite");
+    out = Ciao.query("true", "use_module('"+Ciao.bundle['core'].srcdir+"/tests/suite/suite')");
+    console.log(out);
+    console.log("Running test suite");
+    out = Ciao.query("true", "suite:main");
+    console.log(out);
+    clear_status();
+  }, 50);
+}));
+</script>
+
+</body>
+</html>

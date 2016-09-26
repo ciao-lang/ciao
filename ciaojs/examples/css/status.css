@@ -1,0 +1,16 @@
+/* (Mimics browser status in Chrome) */
+#status {
+    position: fixed;
+    bottom: 0%;
+    left: 0%;
+    min-width: 366px;
+    color: #000000;
+    padding: 2px 4px 1px 4px;
+    background: #f0f0f0;
+    font-family: Sans-Serif;
+    font-size: 11px;
+    border: 1px solid #c0c0c0;
+    -moz-border-radius: 0px 3px 0px 0px;
+    -webkit-border-radius: 0px 3px 0px 0px;
+    border-radius: 0px 3px 0px 0px;
+}

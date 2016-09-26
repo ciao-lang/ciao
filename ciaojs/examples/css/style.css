@@ -1,0 +1,9 @@
+pre {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 12px;
+}
+body {
+  font-family: Sans-Serif;
+  font-size: 14px;
+  height: 100%;
+}

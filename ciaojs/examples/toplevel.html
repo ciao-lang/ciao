@@ -1,0 +1,161 @@
+<!doctype html>
+
+<title>Ciao.js toplevel demo</title>
+<meta charset="utf-8"/>
+<link rel="stylesheet" href="bower_components/codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="bower_components/codemirror/addon/dialog/dialog.css">
+<link rel="stylesheet" href="bower_components/jsconsole/styles/console.css">
+<script src="bower_components/codemirror/lib/codemirror.js"></script>
+<script src="bower_components/codemirror/mode/erlang/erlang.js"></script>
+<script src="bower_components/codemirror/keymap/emacs.js"></script>
+<script src="bower_components/codemirror/addon/edit/matchbrackets.js"></script>
+<script src="bower_components/codemirror/addon/comment/comment.js"></script>
+<script src="bower_components/codemirror/addon/dialog/dialog.js"></script>
+<script src="bower_components/codemirror/addon/search/searchcursor.js"></script>
+<script src="bower_components/codemirror/addon/search/search.js"></script>
+<script src="bower_components/jsconsole/dist/console.js"></script>
+<style type="text/css">
+.CodeMirror, #right {
+  height: -moz-calc(100vh - 128px);
+  height: -webkit-calc(100vh - 128px);
+  height: -o-calc(100vh - 128px);
+  height: calc(100vh - 128px);
+}
+.CodeMirror {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 12px;
+}
+.jsconsole .CodeMirror {
+  line-height: 1em;
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 12px;
+}
+body {
+  font-family: Sans-Serif;
+  font-size: 14px;
+  height: 100%;
+}
+#left {
+  overflow-y: auto; float: left; width: 49%;
+  border-right: 1px solid #eee;
+}
+#right {
+  overflow-y: auto; float: right; width: 50%;
+}
+</style>
+
+<article>
+<p><b>Ciao</b>JS toplevel demo. Press <code>C-x C-s</code> to reload the buffer into the toplevel.</p>
+<div id="left">
+<form><textarea id="code" name="code">
+% Please type here your Ciao program</textarea></form>
+</div>
+<div id="right">
+        <div id="console-container">
+            <div id="console"></div>
+        </div>
+</div>
+
+    <script>
+      CodeMirror.commands.save = function() {
+        var elt = editor.getWrapperElement();
+        elt.style.background = "#fafafa";
+        setTimeout(function() { elt.style.background = ""; }, 50);
+        var out = Ciao.use_module_from_string("/draft.pl", editor.getValue());
+        if (out.sols.length == 1 && out.sols[0] == "success([])") {
+          console.log('[Loaded in '+ out.time + ' ms]');
+        } else {
+          console.log(JSON.stringify(out));
+        }
+      };
+      var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        lineNumbers: true,
+        mode: "text/x-erlang",
+        keyMap: "emacs"
+      });
+    </script>
+
+    <script>
+      var element = document.getElementById('console');
+      var repl = new Console(element, { mode: "erlang", keyMap: "emacs" } );
+
+      repl.evaluate = function(code) {
+        var out = {};
+        try {
+          // TODO: add a Ciao.query that accepts multiple terms separated with '.'?
+          if (code.length > 0 && code[code.length-1] === ".") {
+            code = code.slice(0,-1);
+            out.completionValue = Ciao.query(null, code);
+            if (out.completionValue.sols.length == 1 &&
+                out.completionValue.sols[0] == "malformed") {
+              /* Syntax error */
+              out.error = true;
+              out.recoverable = false; // TODO: capture unexpected end instead
+            }
+          } else {
+            /* maybe a syntax error */
+            out.error = true;
+            out.recoverable = true; // (Wait until query ends in '.')
+          }
+        } catch(e) {
+          // TODO: useful?
+          out.error = true;
+          out.completionValue = e;
+          out.recoverable = (e instanceof SyntaxError && e.message.match('^Unexpected (token|end)'));
+        }
+        return out;
+      }
+      
+      repl.parseOutput = function(value) {
+        var type = typeof value;
+        if (value instanceof Error) type = 'error';
+        if (value === null) type = 'null';
+        var output = {
+          value : value,
+          type : type,
+          class : 'type-' + type
+        };
+      
+        switch (type) {
+          case "string":
+            output.formatted =  '"' + value + '"';
+            output.class = "string";
+            break;
+          case "undefined":
+            output.formatted = "undefined";
+            break;
+          case "null":
+            output.formatted = "null";
+            break;
+          case "object":
+          case "array":
+            output.formatted = JSON.stringify(value);
+            break;
+          case "error":
+            output.formatted = value.message.trim();
+            break;
+          default:
+            output.formatted = value.toString().trim();
+        }
+        return output;
+      }
+      
+      repl.wrapLog(console);
+    </script>
+
+  </article>
+
+<script src="ciao/ciao.js" type="text/javascript" charset="utf-8"></script>
+<script src="ciao/ciao.bundle.js" type="text/javascript" charset="utf-8"></script>
+<script src="ciao/core.bundle.js" type="text/javascript" charset="utf-8"></script>
+
+<script type="text/javascript" charset="utf-8">
+Ciao.init("ciao/", (function () {
+    Ciao.run("internals:$bootversion");
+    console.log('[Engine loaded in '+
+                Ciao.stats.runtime_engine_load +
+                ' ms, boot in ' +
+                Ciao.stats.runtime_boot + ' ms]');
+}));
+</script>
+

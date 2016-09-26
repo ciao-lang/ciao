@@ -1,0 +1,385 @@
+/*
+ * LPdoc stylesheet for the HTML backend
+ *
+ * Author: Jose F. Morales
+ */
+
+/* --------------------------------------------------------------------------- */
+/* Links */
+
+a.missing:link { color: #aa0000; text-decoration: none; }
+a.missing:visited { color: #aa0000; text-decoration: none; }
+a.missing:hover { color: #aa0000; text-decoration: underline; }
+a.missing:active { color: #FA0000; text-decoration: underline; }
+
+a.idx_anchor:link { color: #4263ab; text-decoration: none; }
+a.idx_anchor:visited { color: #0645AD; text-decoration: none; }
+a.idx_anchor:hover { color: #4263ab; text-decoration: underline; }
+a.idx_anchor:active { color: #FAA700; text-decoration: underline; }
+
+div.defname a.idx_anchor:link { color: #000; text-decoration: none; }
+div.defname a.idx_anchor:visited { color: #000; text-decoration: none; }
+div.defname a.idx_anchor:hover { color: #000; text-decoration: underline; }
+div.defname a.idx_anchor:active { color: #000; text-decoration: underline; }
+
+a:link { color: #4263ab; text-decoration: none; }
+a:visited { color: #0645AD; text-decoration: none; }
+a:hover { color: #4263ab; text-decoration: underline; }
+a:active { color: #FAA700; text-decoration: underline; }
+
+/* --------------------------------------------------------------------------- */
+/* Navigation buttons (special links) */
+
+.navbutton {
+    font-size: 80%;
+    border-radius: 2px;
+    background-color: #4263ab;
+    color: white;
+    padding: 2px 8px 2px 8px;
+    margin-left: 1px;
+    margin-right: 1px;
+}
+a.navbutton:link { color: white; background-color: #4263ab; text-decoration: none; }
+a.navbutton:visited { color: white; background-color: #4263ab; text-decoration: none; }
+a.navbutton:hover { color: white; background-color: #0645AD; text-decoration: none; }
+a.navbutton:active { color: white; background-color: #FAA700; text-decoration: none; }
+.navbutton_disabled {
+    font-size: 80%;
+    border-radius: 2px;
+    color: white;
+    background-color: #ccc;
+    padding: 2px 8px 2px 8px;
+    margin-left: 1px;
+    margin-right: 1px;
+}
+
+/* --------------------------------------------------------------------------- */
+
+.defname {
+    font-size: 105%;
+    font-weight:bold;
+}
+
+.deftext {
+    margin-left: 3em;
+    margin-right: 1.5em;
+}
+
+.on_right {
+    float: right;
+}
+
+.iso {
+    color: white;
+    background-color: #48d;
+    text-shadow: 0px 1px 2px #000;
+    font-size: 80%;
+    padding-left: 4px; padding-right: 4px;
+    border-radius: 4px;
+}
+
+.emacskey {
+    border-radius: 4px;
+/*    border-bottom: 1px solid #666;*/
+/*    border-left: 1px solid #666;*/
+/*    border-right: 1px solid #666;*/
+/*    border-top: 1px solid #888;*/
+    background-color: #444;
+    font-family: arial, helvetica;
+    font-weight: normal;
+    color: #fff;
+    text-shadow: 0px 0px 3px #000;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.itemize_none {
+    list-style-type: none;
+}
+
+.itemize_plain {
+    list-style-type: none;
+    padding-left: 0px;
+}
+
+.itemize_minus {
+    list-style-type: circle;
+}
+
+pre {
+    padding: 8px;
+    background: #eeffdd;
+    border: 1px solid #aadd99;
+    line-height:1.0em;
+}
+
+.var {
+    color: #e06000;
+}
+
+.var, pre, tt {
+    font-family: monospace;
+}
+
+div.sidebar ul {
+    padding-left:3ex;
+    list-style-type: square;
+}
+
+div.twocolumns {
+    -moz-column-count: 2;
+    -moz-column-gap: 20px;
+    -webkit-column-count: 2;
+    -webkit-column-gap: 20px;
+    column-count: 2;
+    column-gap: 20px;
+}
+
+/* --------------------------------------------------------------------------- */
+/* Special cartouche blocks */
+
+.cartouche {
+    border: 1px solid #C8E2F0;
+    border-radius: 6px;
+    padding: 8px;
+    background: #EFF6FC;
+    background-image: -webkit-linear-gradient(top, #FAFBFC 0px, #EFF6FC 32px);
+}
+
+.alert {
+    border: 1px solid #aaa;
+    border-left: 10px solid #ab4263;
+    padding: 8px;
+}
+
+/* --------------------------------------------------------------------------- */
+/* Layout */
+
+html {
+    /* Force a vertical scrollbar to avoid centering jumps */
+    overflow-y: scroll;
+}
+
+body, html {
+    min-width:600px;
+    margin:0;
+    padding:0;
+    color:#000;
+    background:#a7a09a;
+    font-family: arial, helvetica, sans-serif;
+    font-size: 13px;
+}
+div.header {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding:5px 10px;
+    background:#ddd;
+}
+div.nav {
+    padding:5px 20px;
+    background:#f6f6f6;
+}
+div.nav ul {
+    margin:0;
+    padding:0;
+    list-style:none;
+}
+div.nav li {
+    display:inline;
+    margin:0;
+    padding:0;
+}
+
+div.documentwrapper {
+    background-color: #f6f6f6;
+}
+div.document {
+    float: left;
+    width: 100%;
+}
+
+div.mainwrapper {
+    margin: 0 0 0 230px; /* left-sidebar */
+    /* margin: 0 230px 0 0px; */ /* right-sidebar */
+}
+div.main {
+    background-color:#fff;
+    color: #000000;
+    border-left: 1px solid #a7d7f9; /* left-sidebar */
+    /* border-right: 1px solid #a7d7f9; */ /* right-sidebar */
+    border-top: 1px solid #a7d7f9;
+    border-bottom: 1px solid #a7d7f9;
+    padding: 1px 20px 30px 20px;
+}
+div.sidebarwrapper {
+    float:left; /* left-sidebar */
+    /* float:right; */ /* right-sidebar */
+    width:230px;
+    margin-left: -100%;
+}
+div.sidebar {
+    padding:10px 10px 10px 20px;
+}
+
+div.clearer {
+    clear: both;
+}
+
+div.footer {
+    color: #ffffff;
+    width: 100%;
+    padding: 9px 0 9px 0;
+    text-align: center;
+/*    font-size: 75%;*/
+}
+
+div.footer a {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+div.header h1 { margin-top: 0; margin-bottom: 0; font-size: 200%; }
+div.main h1 { font-size: 200%; }
+div.main h2 { font-size: 160%; }
+div.main h3 { font-size: 140%; }
+div.main h4 { font-size: 120%; }
+div.main h5 { font-size: 110%; }
+div.main h6 { font-size: 100%; }
+
+div.sidebar h2 {
+    margin-top: 1ex;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: trebuchet MS, helvetica, arial, sans-serif;
+}
+
+/* --------------------------------------------------------------------------- */
+/* Cover */
+
+div.cover_address {
+    float:right;
+    font-size:8pt;
+    background: #d2e3ec;
+    padding: 16px;
+}
+
+div.cover_authors {
+    padding: 16px;
+    float:right;
+    text-align:right;
+}
+
+div.cover_title {
+    padding: 16px;
+    margin: 0px;
+    background:#46a;
+    color:white;
+    text-shadow: 1px 1px 2px #000;
+}
+
+div.cover_subtitle_extra {
+    font-size: 8pt;
+    padding: 16px;
+}
+
+div.cover_h1 {
+    margin-top:0px;
+    margin-bottom:0px;
+}
+
+/* --------------------------------------------------------------------------- */
+/* Assertions */
+
+/* Name tag for test assertions (E.g., Test) */
+span.test_header {
+    color: white;
+    background: #AD62FF;
+    padding: 4px;
+    text-shadow: -1px -1px 0px #552185;
+    border-radius: 3px 0px 0px 3px;
+    border: 1px solid #7C4FCC;
+    background-image: -webkit-linear-gradient(top, #B181F8, #7839D6);
+}
+
+/* Name tag for true assertions (in green) */
+span.true_header {
+    color: white;
+    background: #7FCC4C;
+    padding: 4px;
+    text-shadow: -1px -1px 0px #2D8521;
+    border-radius: 3px 0px 0px 3px;
+    border: 1px solid #90CC4F;
+    background-image: -webkit-linear-gradient(top, #A2CE6B, #78AC2B);
+}
+/* Name tag for false assertions (in red) */
+span.false_header {
+    color: white;
+    background: #FF6262;
+    padding: 4px;
+    text-shadow: -1px -1px 0px #852121;
+    border-radius: 3px 0px 0px 3px;
+    border: 1px solid #CC4F4F;
+    background-image: -webkit-linear-gradient(top, #F88181, #D63939);
+}
+/* Name tag for check assertions (including Usage) (in blue) */
+span.check_header {
+    color: white;
+    background: rgb(98, 180, 255);
+    padding: 4px;
+    text-shadow: -1px -1px 0px #215985;
+    border-radius: 3px 0px 0px 3px;
+    border: 1px solid #4F90CC;
+    background-image: -webkit-linear-gradient(top, #81BFF8, #398BD6);
+}
+/* Name tag for checked assertions (in lightest green) */
+span.checked_header {
+    color: white;
+    background: #6EB88C;
+    padding: 4px;
+    text-shadow: -1px -1px 0px #218555;
+    border-radius: 3px 0px 0px 3px;
+    border: 1px solid #4FCC7C;
+    background-image: -webkit-linear-gradient(top, #BBEEC9, #5FAD7C);
+}
+/* Name tag for trust assertions (in orange) */
+span.trust_header {
+    color: white;
+    background: #FFA162;
+    padding: 4px;
+    text-shadow: -1px -1px 0px #855121;
+    border-radius: 3px 0px 0px 3px;
+    border: 1px solid #CC864F;
+    background-image: -webkit-linear-gradient(top, #F8B581, #D67E39);
+}
+
+/* E.g., foo(+,-,+) */
+span.usagedecl {
+    padding: 4px;
+    background: #eee;
+    border-radius: 0px 3px 3px 0px;
+    border: 1px solid #d8d8d8;
+}
+
+/* Tag for predicates (PREDICATE, REGTYPE, etc.) */
+span.predtag {
+    color: rgb(143, 143, 143);
+    background: #003374;
+    padding: 2px;
+    border-radius: 3px;
+    border: 1px solid #D8D8D8;
+    background-image: -webkit-linear-gradient(top, #E6E6E6, rgb(247, 247, 247));
+}
+
+/* Tag for predicates (PREDICATE, REGTYPE, etc.) -- on the right */
+span.predtag_on_right {
+    float: right;
+    color: rgb(143, 143, 143);
+    background: #003374;
+    padding: 2px 8px 2px 8px;
+    border-radius: 3px;
+    border: 1px solid #D8D8D8;
+    background-image: -webkit-linear-gradient(top, #E6E6E6, rgb(247, 247, 247));
+}
