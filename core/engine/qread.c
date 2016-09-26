@@ -1120,8 +1120,8 @@ CBOOL__PROTO(prolog_qread) {
       return cunify(Arg,goal,X(1));
     }
   }
-
-  Unify_constant(MakeSmall(-1),X(1));
+  intmach_t i = -1;
+  Unify_constant(MakeSmall(i),X(1));
   return TRUE;
 }
 
