@@ -24,7 +24,8 @@ On recent versions of Mac OS X, you may need to create a symbolic link to `pytho
 $ ln -sf /usr/bin/python2.7 /usr/local/bin/python2
 ```
 
-To use `emsdk` you must update your environment:
+To use `emsdk` you must update your environment (note: use from a
+separate shell process, it may interact with your default C compiler):
 ```
 $ source ./emsdk_sh
 ```

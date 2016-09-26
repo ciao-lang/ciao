@@ -235,9 +235,9 @@ src/autodoc_structure \
 src/autodoc_texinfo \
 src/comments \
 src/doccfg_holder \
+src/docmod_holder \
 src/docmaker \
 src/lpdoc_install \
-src/pbundle_download \
 src/version_auto"
 regdir_builder=${CIAOROOT}/build/bundlereg
 srcdir_builder=${CIAOROOT}/builder
