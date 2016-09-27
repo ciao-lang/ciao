@@ -591,7 +591,7 @@ copy_file_or_dir(FileName, DestDir) :-
 
 :- export(remove_dir/1).
 :- pred remove_dir(Dir) # "Delete the directory @var{Dir} and all its
-   contents recursively.".
+   contents recursively. Throws exception if file does not exist.".
 
 remove_dir(Dir) :-
 	foreach_file_find(true, Dir, remove).
@@ -609,7 +609,7 @@ action_hook(remove, Event, Env) :-
 :- export(remove_file_or_dir/1).
 :- pred remove_file_or_dir(FileName) # "Delete @var{FileName}. If
    @var{FileName} is a directory, all its contents are deleted
-   recursively.".
+   recursively. Ignore errors if file does not exist.".
 
 remove_file_or_dir(FileName) :-
 	( is_dir_nolink(FileName) ->
