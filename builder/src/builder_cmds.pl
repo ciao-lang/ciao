@@ -56,7 +56,6 @@
 	 eng_clean/1
 	]).
 :- use_module(library(system_extra), [del_file_nofail/1]).
-:- use_module(library(source_tree), [remove_dir/1]).
 :- use_module(ciaobld(config_common), [
     instype/1,
     local_bldid/1, bundle_to_bldid/2,
@@ -740,7 +739,7 @@ bundlehook_call_(clean_docs_manuals, Bundle, '') :- !,
 	% TODO: clean per workspace?
 	( root_bundle(Bundle) ->
 	    bundle_to_bldid(Bundle, BldId),
-	    remove_dir(~fsR(builddir(BldId)/doc))
+	    builddir_clean(BldId, doc)
 	; true
 	).
 %

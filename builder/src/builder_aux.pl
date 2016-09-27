@@ -330,11 +330,13 @@ storedir_uninstall(file(File)) :-
 %
 storedir_uninstall(dir_rec(Dir)) :-
 	% TODO: Add some sanity check here to avoid filesystem havoc
-	try_remove_dir(Dir).
+	% (e.g., add a CIAOBLD during copy)
+	remove_dir_nofail(~rootprefixed(~fsR(Dir))).
 %
 storedir_uninstall(src_dir_rec(Dir)) :-
 	% TODO: Add some sanity check here to avoid filesystem havoc
-	try_remove_dir(Dir).
+	% (e.g., add a CIAOBLD during copy)
+	remove_dir_nofail(~rootprefixed(~fsR(Dir))).
 %
 storedir_uninstall(dir(Dir)) :-
 	-delete_directory(~rootprefixed(~fsR(Dir))).
@@ -417,7 +419,7 @@ create_link(From, To) :-
         ; --copy_file(From, To, [overwrite, symlink])
         ).
         % TODO: do not set perms on a symbolic link (the source may
-        %       not exist, at it happens in RPM generation)
+        %       not exist, as it happens in RPM generation)
 %	-set_file_perms(To, ~perms).
 
 install_file(From, To) :-
@@ -425,12 +427,8 @@ install_file(From, To) :-
 	copy_file(From, To, [overwrite]),
 	-set_exec_perms(To, ~perms).
 
-try_remove_dir(Dir) :-
-	Dir2 = ~rootprefixed(~fsR(Dir)),
-	( file_exists(Dir2) ->
-	    remove_dir(Dir2)
-	; true
-	).
+remove_dir_nofail(Dir2) :-
+	( file_exists(Dir2) -> remove_dir(Dir2) ; true ).
 
 % Descriptions for commands (e.g., standalone utilities, etc.)
 % TODO: improve

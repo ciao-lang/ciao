@@ -545,6 +545,8 @@ builddir_clean(BldId, pbundle) :- !,
 builddir_clean(BldId, config) :- !,
 	del_file_nofail(~fsR(builddir(BldId)/bundlereg/'ciao.bundlecfg')),
 	del_file_nofail(~fsR(builddir(BldId)/bundlereg/'ciao.bundlecfg_sh')).
+builddir_clean(BldId, doc) :- !,
+	remove_dir_nofail(~fsR(builddir(BldId)/doc)).
 builddir_clean(BldId, all) :-
 	remove_dir_nofail(~fsR(builddir(BldId))).
 
