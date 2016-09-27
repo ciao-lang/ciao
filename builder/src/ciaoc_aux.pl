@@ -539,19 +539,22 @@ exists_and_compilable(Dir) :-
 % Special clean targets for builddir
 :- export(builddir_clean/2).
 builddir_clean(BldId, bin) :- !,
-	remove_dir(~fsR(builddir(BldId)/bin)).
+	remove_dir_nofail(~fsR(builddir(BldId)/bin)).
 builddir_clean(BldId, pbundle) :- !,
-	remove_dir(~fsR(builddir(BldId)/pbundle)).
+	remove_dir_nofail(~fsR(builddir(BldId)/pbundle)).
 builddir_clean(BldId, config) :- !,
 	del_file_nofail(~fsR(builddir(BldId)/bundlereg/'ciao.bundlecfg')),
 	del_file_nofail(~fsR(builddir(BldId)/bundlereg/'ciao.bundlecfg_sh')).
 builddir_clean(BldId, all) :-
-	remove_dir(~fsR(builddir(BldId))).
+	remove_dir_nofail(~fsR(builddir(BldId))).
 
 % Clean bundlereg
 :- export(clean_bundlereg/1).
 clean_bundlereg(InsType) :-
 	bundle_reg_dir(InsType, Dir),
+	remove_dir_nofail(Dir).
+
+remove_dir_nofail(Dir) :-
 	( file_exists(Dir) -> remove_dir(Dir) ; true ).
 
 % Clean (compilation files in) a directory tree (recursively)
