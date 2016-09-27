@@ -26,7 +26,7 @@ prolog:
 	$(CIAOCMD) comp -c $(PROLOGSOURCES)
 
 clean realclean:
-	$(CIAOCMD) clean_tree "."
+	if [ -x $(CIAOCMD) ]; then $(CIAOCMD) clean_tree "."; fi
 	/bin/rm -f $(JAVACLASSES)
 	/bin/rm -f $(LOGFILES)
 

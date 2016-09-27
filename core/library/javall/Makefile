@@ -17,7 +17,7 @@ docs:
 	cd javadoc && $(MAKE) all
 
 clean realclean:
-	$(CIAOCMD) clean_tree "."
+	if [ -x $(CIAOCMD) ]; then $(CIAOCMD) clean_tree "."; fi
 	cd CiaoJava && $(MAKE) clean
 	cd examples/java2pl && $(MAKE) clean
 	cd examples/pl2java && $(MAKE) clean

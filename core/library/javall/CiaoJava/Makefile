@@ -14,7 +14,7 @@ classes:
 
 clean realclean:
 	/bin/rm -f $(JAVACLASSES)
-	$(CIAOCMD) clean_tree "."
+	if [ -x $(CIAOCMD) ]; then $(CIAOCMD) clean_tree "."; fi
 
 distclean: realclean
 	/bin/rm -f *~ *.class
