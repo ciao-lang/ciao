@@ -427,6 +427,7 @@ install_file(From, To) :-
 	copy_file(From, To, [overwrite]),
 	-set_exec_perms(To, ~perms).
 
+:- export(remove_dir_nofail/1).
 remove_dir_nofail(Dir2) :-
 	( file_exists(Dir2) -> remove_dir(Dir2) ; true ).
 

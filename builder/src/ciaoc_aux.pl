@@ -43,6 +43,7 @@
 %
 :- use_module(ciaobld(builder_aux),
 	[ensure_builddir_bin/1,
+	 remove_dir_nofail/1,
 	 n_and_props/3,
 	 n_output/3,
 	 n_name/2]).
@@ -533,7 +534,6 @@ exists_and_compilable(Dir) :-
 % ===========================================================================
 :- doc(section, "Cleaning").
 
-:- use_module(library(source_tree), [remove_dir/1]).
 :- use_module(engine(internals), [bundle_reg_dir/2]).
 
 % Special clean targets for builddir
@@ -555,9 +555,6 @@ builddir_clean(BldId, all) :-
 clean_bundlereg(InsType) :-
 	bundle_reg_dir(InsType, Dir),
 	remove_dir_nofail(Dir).
-
-remove_dir_nofail(Dir) :-
-	( file_exists(Dir) -> remove_dir(Dir) ; true ).
 
 % Clean (compilation files in) a directory tree (recursively)
 :- export(clean_tree/1).
