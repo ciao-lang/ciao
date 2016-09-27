@@ -1238,21 +1238,7 @@ build_docs_manuals(Bundle) :- with_docs(yes), !,
 	        true
 	    ; SrcDir = Manual
 	    ),
-	    BundleDir = ~fsR(bundle_src(Bundle)),
-	    path_concat(BundleDir, SrcDir, R0),
-	    path_concat(R0, 'SETTINGS.pl', Settings),
-	    ( file_exists(Settings) -> true
-	    ; % Allow missing manuals (e.g., for NODISTRIBUTE content)
-              warning(['Manual at ', SrcDir, ' is missing. Skipping build']),
-	      fail
-	    ),
-	    get_builddir_doc(Bundle, DocDir),
-	    invoke_lpdoc(['--doc_mainopts=versioned_output',
-%	                  '--allow_markdown=no',
-%	                  '--syntax_highlight=no',
-	                  ~atom_concat('--output_dir=', DocDir),
-	                  '-t', 'all',
-			  Settings]),
+	    build_doc(Bundle, SrcDir),
 	    fail
 	; true
 	).
@@ -1263,23 +1249,7 @@ bundle_install_docs(Bundle) :- with_docs(yes), !,
 	( % (failure-driven loop)
 	  ManualBase = ~bundle_manual_base(Bundle),
 	  docformat(DocFormat),
-	    docformatdir(DocFormat, TargetDir0),
-	    TargetDir = ~rootprefixed(TargetDir0),
-	    % TODO: Use lpdoc for this
-	    FileName = ~atom_concat([ManualBase, '.', DocFormat]),
-	    get_builddir_doc(Bundle, DocDir),
-	    Source = ~path_concat(DocDir, FileName),
-	    ( file_exists(Source) ->
-		Target = ~path_concat(TargetDir, FileName),
-		( Source == Target ->
-		    % TODO: Wrong note message (we are not really installing then!)
-		    note(['Skipping copy of ', Target])
-		; mkpath(TargetDir), % TODO: perms and owner?
-		  copy_file_or_dir(Source, TargetDir)
-		),
-		bundle_install_docs_format_hook(DocFormat, Bundle, Target)
-	    ; warning(['File ', Source, ' not generated yet. Skipping copy'])
-	    ),
+	    install_doc(Bundle, ManualBase, DocFormat),
 	    fail
 	; true
 	),
@@ -1292,22 +1262,73 @@ bundle_uninstall_docs(Bundle) :- with_docs(yes), !,
 	( % (failure-driven loop)
 	  ManualBase = ~bundle_manual_base(Bundle),
 	  docformat(DocFormat),
-	    docformatdir(DocFormat, TargetDir0),
-	    TargetDir = ~rootprefixed(TargetDir0),
-	    FileName = ~atom_concat([ManualBase, '.', DocFormat]),
-	    Target = ~path_concat(TargetDir, FileName),
-	    ( bundle_uninstall_docs_format_hook(DocFormat, Bundle, Target),
-	      remove_file_or_dir(Target) ->
-	        true
-	    ; warning(['Could not uninstall documentation in ', 
-	               DocFormat, ' format for ',
-		       Bundle, ' (was it generated?)'])
-	    ),
+	    uninstall_doc(Bundle, ManualBase, DocFormat),
 	    fail
 	; true
 	),
 	cmd_message(Bundle, "uninstalled [docs]", []).
 bundle_uninstall_docs(_Bundle).
+
+% Build the manual `SrcDir` for `Bundle`
+build_doc(Bundle, SrcDir) :-
+	BundleDir = ~fsR(bundle_src(Bundle)),
+	path_concat(BundleDir, SrcDir, R0),
+	path_concat(R0, 'SETTINGS.pl', Settings),
+	( file_exists(Settings) ->
+	    get_builddir_doc(Bundle, DocDir),
+	    invoke_lpdoc(['--doc_mainopts=versioned_output',
+%	                  '--allow_markdown=no',
+%	                  '--syntax_highlight=no',
+	                  ~atom_concat('--output_dir=', DocDir),
+	                  '-t', 'all',
+			  Settings])
+	; % Allow missing manuals (e.g., for NODISTRIBUTE content)
+	  warning(['Manual at ', SrcDir, ' is missing. Skipping build'])
+	).
+
+% Install manual `ManualBase` (name and version) from given `Bundle`
+% and format `DocFormat`. Do nothing if manual is not generated.
+% NOTE: needed even if ~instype = local (see bundle_install_docs_format_hook/3)
+install_doc(Bundle, ManualBase, DocFormat) :-
+	docformatdir(DocFormat, TargetDir0),
+	TargetDir = ~rootprefixed(TargetDir0),
+	FileName = ~atom_concat([ManualBase, '.', DocFormat]),
+	get_builddir_doc(Bundle, DocDir),
+	Source = ~path_concat(DocDir, FileName),
+	Target = ~path_concat(TargetDir, FileName),
+	( file_exists(Source) ->
+	    % Copy if needed
+	    ( Source == Target -> % (typically when ~instype = local)
+	      % note(['Skipping copy of ', Target])
+	      true
+	    ; mkpath(TargetDir), % TODO: perms and owner?
+	      copy_file_or_dir(Source, TargetDir)
+	    ),
+	    % Register doc (if needed)
+	    bundle_install_docs_format_hook(DocFormat, Bundle, Target)
+	; true % warning(['File ', Source, ' not generated yet. Skipping copy'])
+	).
+
+% Uninstall manual `ManualBase` (name and version) from given `Bundle`
+% and format `DocFormat`. Do nothing if manual is not generated.
+% NOTE: needed even if ~instype = local (see bundle_uninstall_docs_format_hook/3)
+uninstall_doc(Bundle, ManualBase, DocFormat) :-
+	docformatdir(DocFormat, TargetDir0),
+	TargetDir = ~rootprefixed(TargetDir0),
+	FileName = ~atom_concat([ManualBase, '.', DocFormat]),
+	get_builddir_doc(Bundle, DocDir),
+	Source = ~path_concat(DocDir, FileName),
+	Target = ~path_concat(TargetDir, FileName),
+	( file_exists(Target) ->
+	    % Unregister doc (if needed)
+	    bundle_uninstall_docs_format_hook(DocFormat, Bundle, Target),
+	    % Remove if needed
+	    ( Source == Target -> % (typically when ~instype = local)
+	        true
+	    ; remove_file_or_dir(Target)
+	    )
+	; true
+	).
 
 % These predicates install the 'info' files in info dir.
 
