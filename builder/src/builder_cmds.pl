@@ -729,8 +729,9 @@ bundlehook_call_(build_docs_manuals, Bundle, '') :- !,
 	).
 %
 bundlehook_call_(clean_docs_readmes, Bundle, '') :- !,
-	( get_bundle_readme(Bundle, Readme),
-	    del_file_nofail(Readme),
+	( get_bundle_readme(Bundle, _Readme),
+	    % (Not cleaned, assuming they are part of the sources)
+	    % del_file_nofail(_Readme),
 	    fail
 	; true
 	).

@@ -7,7 +7,9 @@
 
 % :- pred desc_name(X) # "@var{X} is the textual name of the bundle".
 % :- pred readme_path(D) # "@var{D} is the (bundle relative) path
-%    for a README file (in lpdoc format)".
+%    for a README file (in lpdoc format). README files are expected
+%    to be part of the sources. They are updated during documentation
+%    build, and they are not removed during clean.".
 % % (nondet, default: fail)
 % :- pred manual_dir(D) # "@var{D} is the (bundle relative)
 %    subdirectory where each manual is found (containing a SETTINGS.pl
