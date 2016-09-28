@@ -19,8 +19,8 @@
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 %
+:- use_module(library(sh_process), [sh_process_call/3]).
 :- use_module(ciaobld(ciaoc_aux), [invoke_boot_ciaoc/2, clean_mod0/1]).
-:- use_module(ciaobld(ciaoc_aux), [sh_process_call/3]).
 :- use_module(ciaobld(eng_defs),
 	[eng_mainmod/2,
 	 eng_mainbase/2,
@@ -28,9 +28,7 @@
 	 eng_opts/2,
 	 eng_h_alias/2,
 	 eng_cfg/2,
-	 eng_path/3,
-	 bld_eng_path/3,
-	 bootbld_eng_path/3]).
+	 bld_eng_path/3]).
 
 % ===========================================================================
 :- doc(section, "Build of Engines").
@@ -354,8 +352,6 @@ arch64('Sparc64', 'Sparc64') :- !.
 arch64('x86_64', 'x86_64') :- !.
 arch64('ppc64', 'ppc64') :- !.
 arch64(_, empty). % force error % TODO: emit error instead?
-
-:- use_module(ciaobld(ciaoc_aux), [sh_process_call/3]).
 
 ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf').
 

@@ -1,4 +1,4 @@
-:- module(_, [], [assertions, regtypes, isomodes, hiord, dcg]).
+:- module(_, [], [assertions, regtypes, isomodes, hiord]).
 
 :- doc(title, "Execution of Bourne shell (POSIX sh) scripts").
 

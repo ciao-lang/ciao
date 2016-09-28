@@ -27,11 +27,9 @@
 % TODO: Do not use a dummy file in gen_asr_file_main_rel/1 (assrt_lib
 %   cannot document main modules!)
 
-:- use_module(library(lists), [append/3, length/2, select/3]).
+:- use_module(library(lists), [append/3]).
 :- use_module(library(aggregates), [findall/3]).
 %
-:- use_module(library(system), [cd/1, working_directory/2, file_exists/1]).
-:- use_module(library(system_extra), [using_tty/0]).
 :- use_module(library(system_extra), [del_file_nofail/1]).
 %
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
@@ -48,9 +46,7 @@
 	 n_output/3,
 	 n_name/2]).
 :- use_module(ciaobld(builder_aux), [root_bundle_source_dir/1]).
-:- use_module(ciaobld(config_common),
-	[bundle_to_bldid/2,
-	 local_bldid/1]).
+:- use_module(ciaobld(config_common), [bundle_to_bldid/2]).
 
 % ===========================================================================
 :- doc(section, "Interface to Compilers"). % including documentation generation
@@ -58,11 +54,11 @@
 ciaoc := ~cmd_path(core, plexe, 'ciaoc').
 bootstrap_ciaoc := ~fsR(bundle_src(core)/'bootstrap'/'ciaoc.sta').
 
-:- use_module(library(system), [using_windows/0]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(ciaobld(config_common), [local_ciaolib/1]).
 :- use_module(ciaobld(config_common), [verbose_build/1]).
 :- use_module(ciaobld(config_common), [bld_cmd_path/4, cmd_path/4]).
+:- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
 
 :- use_module(ciaobld(bundle_configure), [
     set_prolog_flags_from_bundle_flags/1
@@ -75,14 +71,9 @@ lpdoc_exec := ~cmd_path(lpdoc, plexe, 'lpdoc').
 :- export(invoke_lpdoc/1).
 invoke_lpdoc(Args) :-
 	( verbose_build(yes) -> Args2 = ['-v'|Args] ; Args2 = Args ),
-	localciao_process_call(~lpdoc_exec, Args2, []).
+	cpx_process_call(~lpdoc_exec, Args2, []).
 
 ciaosh_exec := ~cmd_path(core, plexe, 'ciaosh').
-
-:- export(invoke_ciaosh/1).
-invoke_ciaosh(Input) :-
-	Options = [stdin(file(Input))],
-	localciao_process_call(~ciaosh_exec, ['-q', '-f'], Options).
 
 :- export(invoke_ciaosh_batch/1).
 % Batch execution of queries using ciaosh and current config prolog flags
@@ -90,7 +81,7 @@ invoke_ciaosh(Input) :-
 invoke_ciaosh_batch(Cmds) :-
 	add_config_prolog_flags(Cmds, Cmds2),
 	Options = [stdin(terms(Cmds2))],
-	localciao_process_call(~ciaosh_exec, ['-q', '-f'], Options).
+	cpx_process_call(~ciaosh_exec, ['-q', '-f'], Options).
 
 add_config_prolog_flags(Cmds, CmdsR) :-
 	set_prolog_flags_from_bundle_flags(SetPrologFlags),
@@ -98,76 +89,11 @@ add_config_prolog_flags(Cmds, CmdsR) :-
 
 :- export(invoke_ciaoc/1).
 invoke_ciaoc(Args) :-
-	localciao_process_call(~ciaoc, Args, []).
+	cpx_process_call(~ciaoc, Args, []).
 
 :- export(invoke_boot_ciaoc/2).
 invoke_boot_ciaoc(Args, Opts) :-
-	bootciao_process_call(~bootstrap_ciaoc, Args, Opts).
-
-:- export(sh_process_call/3).
-% Execute a sh script
-% TODO: sh scripts should be reimplemented 
-sh_process_call(Script, Args, Opts) :-
-	( using_windows -> % (e.g., MinGW, assumes sh.exe is in path)
-	    process_call(path(sh), [Script|Args], Opts)
-	; process_call(Script, Args, Opts)
-	).
-
-:- export(cpx_process_call/3).
-% Execute a Ciao bytecode executable
-% ('CIAOENGINE' env var must be specified in a env(_) option in Opts)
-cpx_process_call(CiaoExec, Args, Opts) :-
-	using_windows, !,
-        % '#!/...' is not supported in non-POSIX systems
-	( member(env(Env), Opts),
-          member('CIAOENGINE'=CiaoEngine, Env) -> true
-        ; throw(error(unknown_ciaoengine, cpx_process_call/3))
-        ),
-        append(Args, ['-C', '-b', CiaoExec], Args2),
-        process_call(CiaoEngine, Args2, Opts).
-cpx_process_call(CiaoExec, Args, Opts) :-
-	process_call(CiaoExec, Args, Opts).
-
-:- use_module(ciaobld(config_common), [default_eng_def/1]).
-
-:- export(bootciao_process_call/3).
-% Like cpx_process_call/3, fixes environment for boot version
-bootciao_process_call(Cmd, Args, Opts) :-
-	Eng = ~default_eng_def,
-	Env = ~bootciao_env(Eng),
-	cpx_process_call(Cmd, Args, ~merge_env(Env, Opts)).
-
-:- export(localciao_process_call/3).
-% Like cpx_process_call/3, fixes environment for local version
-localciao_process_call(Cmd, Args, Opts) :-
-	Eng = ~default_eng_def,
-	Env = ~localciao_env(Eng),
-	cpx_process_call(Cmd, Args, ~merge_env(Env, Opts)).
-
-merge_env(Env, Opts, Opts2) :-
-	( select(env(Env0), Opts, Opts1) ->
-	    Env2 = ~append(Env, Env0)
-	; Env2 = Env, Opts1 = Opts
-	),
-	Opts2 = [env(Env)|Opts1].
-
-:- use_module(ciaobld(eng_defs),
-	[eng_path/3,
-	 bootbld_eng_path/3]).
-
-bootciao_env(Eng) := Env :-
-	% TODO: (un)define CIAOPATH? 
-	Env = ['CIAOALIASPATH' = '',
-	       'CIAOLIB' = ~fsR(bundle_src(core)),
-	       'CIAOHDIR' = ~bootbld_eng_path(hdir, Eng),
-	       'CIAOENGINE' = ~bootbld_eng_path(exec, Eng)].
-
-localciao_env(Eng) := Env :-
-	% TODO: (un)define CIAOPATH? 
-	Env = ['CIAOALIASPATH' = '',
-	       'CIAOLIB' = ~local_ciaolib,
-	       'CIAOHDIR' = ~eng_path(hdir, Eng),
-	       'CIAOENGINE' = ~eng_path(exec, Eng)].
+	cpx_process_call(~bootstrap_ciaoc, Args, [boot|Opts]).
 
 % ===========================================================================
 :- doc(section, "Build of Executables").
@@ -176,7 +102,7 @@ localciao_env(Eng) := Env :-
 % specified Bundle and select the current version (add a symbolic link).
 %
 % @var{Opts} indicate the compilation options. The options indicate
-% the compiler iteration that is ued:
+% the compiler iteration that is used:
 %
 %  - 'bootstrap_ciaoc': initial bootstrap ciaoc
 %  - 'final_ciaoc': (default)
@@ -198,9 +124,9 @@ b_make_exec(Bundle, InDir, InFile, OutFile, Opts) :-
 	In = ~atom_concat(InFile, '.pl'),
 	Args = ['-x' | ~append(Static, ['-o', FileBuild, In])],
 	( member(final_ciaoc, Opts) ->
-	    localciao_process_call(~ciaoc, Args, [cwd(Dir)])
+	    cpx_process_call(~ciaoc, Args, [cwd(Dir)])
 	; member(bootstrap_ciaoc, Opts) ->
-	    bootciao_process_call(~bootstrap_ciaoc, Args, [cwd(Dir)])
+	    cpx_process_call(~bootstrap_ciaoc, Args, [boot, cwd(Dir)])
 	; throw(bad_opts_in_b_make_exec(Opts))
 	).
 
@@ -390,6 +316,7 @@ create_windows_bat(Eng, BatCmd, Opts, EngExecOpts, OrigBundle, OrigCmd) :-
 :- doc(section, "Batch compilation of sets of modules").
 
 :- use_module(library(source_tree), [current_file_find/3]).
+:- use_module(library(system_extra), [using_tty/0]).
 
 % TODO: build_cmds_list/3 does not receive the kind of utility (K)
 %       It can only build Prolog applications. Add plug-ins? Or rewrite
@@ -524,6 +451,8 @@ runtests_dir(Bundle, Dir, Opts) :-
 	]).
 runtests_dir(_, _, _).
 
+:- use_module(library(system), [file_exists/1]).
+
 :- export(exists_and_compilable/1).
 exists_and_compilable(Dir) :-
 	path_concat(Dir, 'NOCOMPILE', NCDir),
@@ -565,6 +494,8 @@ clean_tree(Dir) :-
 :- export(clean_mod/1).
 clean_mod(Base) :-
 	clean_aux(clean_mod, [Base]).
+
+:- use_module(library(sh_process), [sh_process_call/3]).
 
 % TODO: reimplement in Prolog
 clean_aux(Command, Args) :-
