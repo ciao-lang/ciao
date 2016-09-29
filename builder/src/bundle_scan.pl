@@ -18,6 +18,7 @@
 @end{alert}").
 
 :- use_module(library(system)).
+:- use_module(library(aggregates), [findall/3]).
 
 % TODO: be careful with fsR/2 (bundles may not be loaded yet)
 :- use_module(ciaobld(config_common), [instciao_bundledir/2]).
@@ -37,7 +38,7 @@
    (creating it if missing)".
 
 bundle_scan(InsType, Src) :-
-	bundledirs_at_dir(Src, BundleDirs),
+	findall(D, bundledirs_at_dir(Src, no, D), BundleDirs),
 	ensure_bundle_reg_dir(InsType),
 	create_bundleregs(BundleDirs, InsType).
 
@@ -78,31 +79,52 @@ rootprefix_bundle_reg_file(InsType, BundleName, RegFile) :-
 
 % ---------------------------------------------------------------------------
 
-% List of all bundle directories (absolute path) under @var{Src} (non recursively)
-%:- export(bundledirs_at_dir/2).
-bundledirs_at_dir(Src, BundleDirs) :-
-	directory_files(Src, Files),
-	find_bundles(Files, Src, BundleDirs).
+% Enumerate of all bundle directories (absolute path) under @var{Src}
+%
+% This search is non-recursive by default. If the directory contains a
+% file called BUNDLE_CATALOG, search goes into that directory. Bundles
+% in a BUNDLE_CATALOG are only recognized if they contain a file
+% called ACTIVATE.
+%
+% (nondet)
 
-find_bundles([],           _,   []).
-find_bundles([File|Files], Src, [BundleDir|BundleDirs]) :-
-	nonvar(File),
-	\+ File = '..',
-	\+ File = 'Manifest', % not the manifest directory
-	( File = '.' ->
-	    C1 = Src
-	; path_concat(Src, File, C1)
-	),
-	\+ directory_has_mark(nocompile, C1),
-	is_bundle_dir(C1),
-	!,
-	BundleDir = C1,
-	find_bundles(Files, Src, BundleDirs).
-find_bundles([_File|Files], Src, BundleDirs) :-
-	find_bundles(Files, Src, BundleDirs).
+%:- export(bundledirs_at_dir/3).
+bundledirs_at_dir(Src, Optional, BundleDir) :-
+	is_bundle_dir(Src), % a bundle 
+	% TODO: Add a cut here, do not allow sub-bundles! <- needed only for 'ciao' bundle
+	( Optional = yes -> directory_has_mark(activate, Src) ; true ),
+	BundleDir = Src.
+bundledirs_at_dir(Src, Optional, BundleDir) :-
+	bundledirs_at_dir_2(Src, Optional, BundleDir).
+
+bundledirs_at_dir_2(Src, Optional, BundleDir) :-
+	directory_files(Src, Files),
+	member(File, Files),
+	\+ not_bundle(File),
+	path_concat(Src, File, Dir),
+	\+ directory_has_mark(nocompile, Dir), % TODO: not needed now?
+	%
+	( directory_has_mark(catalog, Dir) ->
+	    % search recursively on the catalog (only if ACTIVATE is set on the bundle)
+	    bundledirs_at_dir_2(Dir, yes, BundleDir)
+	; is_bundle_dir(Dir) -> % a bundle
+	    ( Optional = yes -> directory_has_mark(activate, Dir) ; true ),
+	    BundleDir = Dir
+	; fail % (none, backtrack)
+	).
+
+not_bundle('.').
+not_bundle('..').
+not_bundle('Manifest').
 
 directory_has_mark(nocompile, Dir) :-
 	path_concat(Dir, 'NOCOMPILE', F),
+	file_exists(F).
+directory_has_mark(bundle_catalog, Dir) :-
+	path_concat(Dir, 'BUNDLE_CATALOG', F),
+	file_exists(F).
+directory_has_mark(activate, Dir) :-
+	path_concat(Dir, 'ACTIVATE', F),
 	file_exists(F).
 
 % ---------------------------------------------------------------------------
