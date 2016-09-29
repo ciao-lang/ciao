@@ -102,15 +102,16 @@ void vector_to_list(gsl_vector *v, double ** list, size_t *length)
 :- true pred gsl_linalg_QR_decomp(in(A), in(Tau)) :: address * address
 	+ (foreign).
 
-:- true pred gsl_vector_alloc(in(Size), go(Vector)) :: int * address +
+:- true pred gsl_vector_alloc(in(Size), go(Vector)) :: c_size * address +
 	(foreign, returns(Vector)).
 
-:- true pred gsl_matrix_alloc(in(Rows), in(Cols), go(Matrix)) :: int *
-	int * address + (foreign, returns(Matrix)).
+:- true pred gsl_matrix_alloc(in(Rows), in(Cols), go(Matrix)) :: c_size *
+	c_size * address + (foreign, returns(Matrix)).
 
 :- true pred gsl_linalg_QR_unpack(in(QR), in(Tau), in(Q), in(R)) ::
 	address * address * address * address + (foreign).
 
+% TODO: return type ignored
 :- true pred gsl_linalg_QR_U(in(QR), in(U)) :: address * address +
 	(foreign) -->
 "
@@ -153,6 +154,7 @@ gsl_linalg_QR_U (const gsl_matrix * QR, gsl_matrix * R)
 
 % But this is what I want:
 
+% TODO: return type ignored
 :- true pred gsl_linalg_QR_Rsolve_over_determined(in(QR), in(X)) ::
 	address * address + (foreign) -->
 "
@@ -205,7 +207,7 @@ get_gsl_version(char ** ptr)
 
 :- doc(doinclude, polynomial_root/5).
 :- true pred polynomial_root(in(LengthIn),in(LengthOut),in(X),go(Y), go(Err))::
-	c_size*c_size*c_double_list * c_double_list * int + (foreign,size_of(X,LengthIn),size_of(Y,LengthOut)) #
+	c_size*c_size*c_double_list * c_double_list * c_int + (foreign,size_of(X,LengthIn),size_of(Y,LengthOut)) #
  "obtains roots of a polynomial function by calling foreign C program which will call GSL solver.  @var{Err} is
  error code, 0 when GSL succeed, -1 otherwise" -->
 "
