@@ -1,0 +1,17 @@
+It is recommended to run this example interactively by loading the
+main module "nqueens" into ciaosh.
+
+queen.pl    - defines a Queen: she knows of her row and column in the board
+	      and of her (left) neightbour.
+nulqueen.pl - defines a null Queen: she acts as centinel --no row or column
+	      and no neightbour-- past the border of the board
+
+The problem in a board of NxN is solved by the N queens sending messages
+between them so that they move in their respective row until they find 
+the right column for each one of them.
+
+The curious thing to note is the way search (backtracking) is implemented
+by message passing. The program is completely deterministic, but each
+queen object can backtrack a decision previously made by changing its
+state upon request of another queen. See, for example, all/1, which gives
+all solutions upon backtracking, and the next/0 method.

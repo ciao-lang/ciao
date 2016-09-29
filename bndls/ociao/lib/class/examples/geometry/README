@@ -1,0 +1,10 @@
+It is recommended to run these examples interactively by loading the
+main modules (those mentioned below) into ciaosh.
+
+geometry1      - draws a simple picture during execution
+geometry2      - creates an object statically (when loaded in ciaosh)
+                 and then draws the picture dynamically (upon execution)
+geometry_man   - draws the same picture but objects move
+dancing_shapes - another picture with moving objects
+
+
