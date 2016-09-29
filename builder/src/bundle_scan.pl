@@ -104,7 +104,7 @@ bundledirs_at_dir_2(Src, Optional, BundleDir) :-
 	path_concat(Src, File, Dir),
 	\+ directory_has_mark(nocompile, Dir), % TODO: not needed now?
 	%
-	( directory_has_mark(catalog, Dir) ->
+	( directory_has_mark(bundle_catalog, Dir) ->
 	    % search recursively on the catalog (only if ACTIVATE is set on the bundle)
 	    bundledirs_at_dir_2(Dir, yes, BundleDir)
 	; is_bundle_dir(Dir) -> % a bundle
