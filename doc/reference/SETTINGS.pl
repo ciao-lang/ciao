@@ -19,8 +19,6 @@ filepath := bundle_src(ciaopp)/doc/readmes. % TODO: should not be here
 % TODO: move to a separate manual?
 filepath := bundle_src(contrib)/cmds.
 filepath := bundle_src(contrib)/library.
-% TODO: move to a separate manual?
-filepath := bundle_src(ociao)/lib.
 
 doc_structure := 
         ciao-[
@@ -238,29 +236,12 @@ docstr_extendprolog :=
 	 'bf/bf_doc',
 	 'id/id_doc',
 	 'clpq/clpq_doc',
-	 'clpr/clpr_doc',
+	 'clpr/clpr_doc'
 	 % 'fuzzy/fuzzy_doc', (moved to its own repo)
-         %
-	 'objects/ociao_doc'-[
-	   'class/class_doc',
-	   'objects/objects_doc',
-	   'objects/objects_rt',
-	   'interface/interface_doc'
-         ]
          ].
 
 % 'remote_doc',
 % 'mattr_global_doc'
-
-% Driven by ociao_doc
-%	'ociao',
-%	'objects',
-%	'ociao',
-
-% Loop?
-%     'class'
-%
-%     'cges'
 
 with_mysql := ~get_bundle_flag(core:with_mysql).
 
