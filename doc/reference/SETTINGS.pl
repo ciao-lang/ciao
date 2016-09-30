@@ -57,15 +57,13 @@ docstr_devenv :=
 
 % (those are part of the development environment)
 docstr_utils :=
-	['fileinfo',
-	 'viewpo',
+	['ciaodump',
 %        'xrefs_doc',
 	 'xrefs/callgraph',
 	 % 'show_deps'?
 %	 'get_deps',
 	 'pldiff',
-	 'lpmake',
-	 'compiler_output'].
+	 'lpmake'].
 
 docstr_refcomponents :=
 	['modules', % engine

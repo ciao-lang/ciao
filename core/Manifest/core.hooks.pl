@@ -225,13 +225,10 @@ cmds_dir := bundle_src(core)/cmds.
 :- use_module(library(aggregates), [findall/3]).
 core_cmds := ~findall(B-[K], core_cmd(B, K)).
 
-core_cmd('fileinfo', plexe).
+core_cmd('ciaodump', plexe).
 core_cmd('pldiff', plexe).
-core_cmd('viewpo', plexe).
 core_cmd('lpmake', plexe).
 core_cmd('plindent', plexe).
-core_cmd('show_asr', plexe).
-core_cmd('compiler_output', plexe).
 core_cmd('checkline', plexe).
 core_cmd('ciaoc_sdyn', plexe).
 

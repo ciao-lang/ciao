@@ -436,13 +436,9 @@ fi
 %{_bindir}/ciao_sysconf
 %{_bindir}/ciaoc
 %{_bindir}/ciaosh
-%{_bindir}/compiler_output
-%{_bindir}/fileinfo
+%{_bindir}/ciaodump
 %{_bindir}/lpmake
 %{_bindir}/pldiff
-%{_bindir}/show_asr
-%{_bindir}/show_deps
-%{_bindir}/viewpo
 %{_bindir}/cleandirs
 %{_bindir}/synch_actions
 %endif
@@ -451,13 +447,9 @@ fi
 %{_bindir}/ciao_sysconf-{{CiaoPathVersion}}
 %{_bindir}/ciaoc-{{CiaoPathVersion}}
 %{_bindir}/ciaosh-{{CiaoPathVersion}}
-%{_bindir}/compiler_output-{{CiaoPathVersion}}
-%{_bindir}/fileinfo-{{CiaoPathVersion}}
+%{_bindir}/ciaodump-{{CiaoPathVersion}}
 %{_bindir}/lpmake-{{CiaoPathVersion}}
 %{_bindir}/pldiff-{{CiaoPathVersion}}
-%{_bindir}/show_asr-{{CiaoPathVersion}}
-%{_bindir}/show_deps-{{CiaoPathVersion}}
-%{_bindir}/viewpo-{{CiaoPathVersion}}
 %{_bindir}/cleandirs-{{CiaoPathVersion}}
 %{_bindir}/synch_actions-{{CiaoPathVersion}}
 %if ! %{versionp}
