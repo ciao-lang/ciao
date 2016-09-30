@@ -40,39 +40,38 @@
 ;; TODO: define 'ciao-builder-build-all'?
 ;; TODO: define 'ciao-builder-update'? (should it download anything?)
 
+(defun ciao-builder-cmdstr (cmd)
+  (concat "INSIDE_EMACS=t " (ciao-get-config :ciaosh-bin) " " cmd))
+
 (defun ciao-builder-command (cmd)
   "Execute the `cmd' ciao builder command"
   (async-shell-command
-   (concat "INSIDE_EMACS=t " (ciao-get-config :ciaosh-bin) " " cmd)
+   (ciao-builder-cmdstr cmd)
    (ciao-get-builder-proc-buffer)))
 
-;; TODO: get list of bundles and sub-bundles from Prolog
-(defvar ciao--bundle-list
-  '(("ciao" 1)
-    ("ciaobase" 2)    ;; build
-    ("core" 3)
-    ("core/engine" 4)      ;; build|clean
-    ("core/ciaoc" 5)       ;; build
-    ("core/shell" 6)       ;; build
-    ("core/emacs_mode" 7)  ;; build|clean
-    ("core/java" 8)        ;; clean
-    ("contrib" 9)
-    ("contrib/profiler" 10) ;; build|clean
-    ("ciaopp" 11)
-    ("ciaopp/ilciao" 12)    ;; clean
-    ("website" 13)
-    ("core_OC" 14)
-    ("ociao" 15)
-    ("lpdoc" 16)
-    ("ciaobot" 17)
-    ("builder" 18))
-  "Available bundles")
-
+;; TODO: Missing sub- and special targets (e.g., ciaobase, core/engine, etc.)
 (defun ask-bundle (msg)
-  (completing-read
-   "(Re)Build the specified Ciao bundle: "
-   ciao--bundle-list
-   nil t ""))
+  (let
+      ((bundle-list
+	(split-string
+	 (ciao-trim-end
+	  (shell-command-to-string (ciao-builder-cmdstr "list")))
+	 "\n")))
+    (completing-read
+     msg
+     bundle-list
+     nil t "")))
+
+(defun ciao-trim-end (str)
+  (replace-regexp-in-string (rx (* (any " \t\n")) eos) "" str))
+
+;;;###autoload
+(defun ciao-info () 
+  "Show info about the specified Ciao bundle"
+  (interactive)
+  (let 
+      ((target (ask-bundle "Show info about the specified Ciao bundle: ")))
+    (ciao-builder-command (concat "info " target))))
 
 ;;;###autoload
 (defun ciao-build () 
