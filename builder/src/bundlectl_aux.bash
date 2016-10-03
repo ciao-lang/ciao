@@ -266,7 +266,11 @@ EOF
 
 # ---------------------------------------------------------------------------
 
-source "$CURR_BUNDLEDIR"/"$CURR_BUNDLENAME.hooks.bash"
+hooksfile="$CURR_BUNDLEDIR"/"$CURR_BUNDLENAME.hooks.bash"
+if ! [ -r "$hooksfile" ]; then
+    hooksfile="$CURR_BUNDLEDIR"/Manifest/"$CURR_BUNDLENAME.hooks.bash"
+fi
+source "$hooksfile"
 
 # ---------------------------------------------------------------------------
 

@@ -16,15 +16,25 @@
 :- use_module(library(system_extra), [mkpath/1]).
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(library(process), [process_call/3]).
+:- use_module(library(pathnames), [path_split/3]).
 
 :- use_module(engine(internals), ['$bundle_alias_path'/3]).
-
-:- use_module(library(bundle), [ensure_bundle_manifest/2]).
+:- use_module(engine(internals), ['$bundle_id'/1]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Manifest and bundle setup").
 
 % TODO: merge with 'bundlectl', 'bundlectl_aux' script (used in external code)
+
+% Ensure that the manifest for BundleDir has been loaded. BundleName
+% is unified with the unique bundle id.
+ensure_bundle_manifest(BundleDir, BundleName) :-
+	path_split(BundleDir, _, BundleName0),
+	( '$bundle_id'(BundleName0) ->
+	    true % bundle already loaded % TODO: does not check that BundleDir was the same
+	; throw(error(['Bundle \'', BundleName, '\' has not been registered properly']))
+	),
+	BundleName = BundleName0.
 
 :- export(bundle_configure/1).
 % Configure the bundle
