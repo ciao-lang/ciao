@@ -116,7 +116,7 @@
 % Uses this parameter:
 %   --emacs_path=EmacsDir (as a windows path)
 
-'$builder_hook'(custom_run(environment_and_windows_bats)) :-
+'$builder_hook'(custom_run(environment_and_windows_bats, [])) :-
 	% TODO: move these param set operations to library(emacs/emacs_batch)
 	set_bundle_param_value(core:emacs_type, 'Win32'), % TODO: strange
 	set_bundle_param_value(core:with_emacs_mode, 'yes'), % TODO: strange

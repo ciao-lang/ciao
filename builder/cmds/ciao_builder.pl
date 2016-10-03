@@ -412,10 +412,10 @@ cmd_opts_custom(clean_tree, Args2, Cmd2) :- !,
 %
 cmd_opts_custom(custom_run, Args2, Cmd2) :- !,
 	% do not check flags % TODO: pass them as arguments instead?
-	( Args2 = [CustomCmd] -> true
-	; throw(args_error("'custom_run' needs a target and a custom command name", []))
+	( Args2 = [CustomCmd|CustomArgs] -> true
+	; throw(args_error("'custom_run' needs a target and a custom command name and arguments", []))
 	),
-	Cmd2 = custom_run(CustomCmd).
+	Cmd2 = custom_run(CustomCmd, CustomArgs).
 
 % TODO: src and bin targets have WRONG names ('nothing' implies tgz and tbz)
 cmd_alias(gen_pbundle__win32, gen_pbundle(win32)).

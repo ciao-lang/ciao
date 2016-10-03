@@ -849,7 +849,7 @@ default_cmd(Cmd, Bundle, Part) :-
 	functor(Cmd, F, N),
 	throw(error(bundlehook_undefined(Bundle,Part,F/N), bundlehook_call/1)).
 default_cmd(Cmd, Bundle, Part) :-
-	( Cmd = custom_run(_)
+	( Cmd = custom_run(_, _)
 	; fail
 	),
 	!,

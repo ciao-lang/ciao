@@ -28,8 +28,8 @@ timingmodel_dir := bundle_src(contrib)/library/timingmodel.
 	copy_mp_auto.
 
 % (called from 'ciao_builder', called from 'ciaobot' as a test)
-% TODO: rename by timingmodel:custom_run(gen) and call with 'ciao custom_run contrib/timingmodel gen'
-'$builder_hook'(custom_run(gen_timingmodel)) :- !,
+% TODO: rename by timingmodel:custom_run(gen, []) and call with 'ciao custom_run contrib/timingmodel gen'
+'$builder_hook'(custom_run(gen_timingmodel, [])) :- !,
 	do_timingmodel,
 	copy_mp_auto.
 
@@ -69,7 +69,7 @@ estimatemp :-
 	normal_message("running timing model estimate", []),
 	invoke_gmake_timingmodel('estimate').
 
-'$builder_hook'(custom_run(clean_timingmodel)) :- !,
+'$builder_hook'(custom_run(clean_timingmodel, [])) :- !,
 	normal_message("cleaning timingmodel", []),
 	invoke_gmake_miniprolog(clean),
 	invoke_gmake_timingmodel(clean).

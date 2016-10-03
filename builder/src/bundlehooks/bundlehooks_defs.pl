@@ -40,7 +40,7 @@
 % :- pred runbenchmarks/0 # "Run benchmarks".
 
 % % Hooks for bundle custom commands
-% :- pred custom_run/1 # "Run custom command".
+% :- pred custom_run/2 # "Run custom command".
 
 % % Hooks for bundleitem definition
 % :- pred item_def/1 # "Definition of some bundleitem".
