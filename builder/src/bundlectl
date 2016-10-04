@@ -14,8 +14,6 @@
 	
 :- use_module(library(system), [working_directory/2]).
 :- use_module(ciaobld(bundlectl_aux)).
-:- use_module(library(bundle)).
-:- use_module(library(bundle)).
 :- use_module(library(bundle/bundlereg_gen), [lookup_bundle_root/2]).
 :- use_module(library(strings), [write_string/1]).
 
