@@ -9,6 +9,7 @@
 % TODO: It seems that both this module and builder/src/infodir
 %       should be part of LPdoc.
 
+:- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(system), [file_exists/1, copy_file/3]).
 
@@ -42,7 +43,7 @@ dirfile_uninstall_info(InstallDir, InfoFile) :-
 		InfoFile],
 	       [stderr(null), stdout(null), status(0)]).
 
-info_dirfile(Path) := ~atom_concat(Path, '/dir').
+info_dirfile(Path) := ~path_concat(Path, 'dir').
 
 % TODO: section name in "infodir" must be synchronized with INFO-DIR-SECTION in .infoindex
 ensure_dirfile(DirFile) :-

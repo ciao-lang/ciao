@@ -21,7 +21,7 @@
 
 :- use_module(engine(internals), ['$bundle_prop'/2]).
 :- use_module(library(bundle/paths_extra), [fsR/2]).
-:- use_module(library(bundle/bundle_info), [bundle_version/2, bundle_patch/2]).
+:- use_module(library(bundle/bundle_info), [bundle_version/2, bundle_version_patch/2]).
 
 :- use_module(ciaobld(config_common), [bundle_to_bldid/2]).
 
@@ -148,9 +148,10 @@ svn_commit_info(date, Bundle, Date) :-
 	!,
 	atom_codes(Date, Date0).
 svn_commit_info(desc, Bundle, Desc) :-
+	VersionPatch = ~bundle_version_patch(Bundle),
 	( svn_commit_info(id, Bundle, Rev) ->
-	    Desc = ~atom_concat([~bundle_version(Bundle), '.', ~bundle_patch(Bundle), '-', Rev])
-	; Desc = ~atom_concat([~bundle_version(Bundle), '.', ~bundle_patch(Bundle)])
+	    Desc = ~atom_concat([VersionPatch, '-', Rev])
+	; Desc = VersionPatch
 	).
 
 % ---------------------------------------------------------------------------
@@ -198,7 +199,7 @@ git_commit_info(desc, Bundle, Desc) :-
         % and patch in tag and branch names, and removes redundant
         % information)
 	Version = ~bundle_version(Bundle),
-	VersionPatch = ~atom_concat([~bundle_version(Bundle), '.', ~bundle_patch(Bundle)]),
+	VersionPatch = ~bundle_version_patch(Bundle),
 	( % Version and patch in COMMIT_DESC, let us assume that is a
 	  % particular code release (a commit with a tag, not a branch).
 	  ( atom_concat(['v', VersionPatch, _], Desc2)

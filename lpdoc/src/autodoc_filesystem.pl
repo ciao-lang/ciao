@@ -333,6 +333,7 @@ absfile_for_subtarget_(Base, Backend, Subtarget, AbsFile) :-
 % concatenated if available.
 % TODO: Make sure that this behaviour and the lpdoc documentation are
 %       consistent.
+% TODO: see builder bundle_manual_base/2
 main_output_name(Backend, NV) :-
 	computed_output_name(Backend, NV0), !, NV = NV0.
 main_output_name(Backend, NV) :-
@@ -364,8 +365,8 @@ main_output_name_novers(OutputBase) :-
 % Extract parent bundle from mainmod (fails if not in a bundle)
 :- export(get_parent_bundle/1).
 get_parent_bundle(Bundle) :-
-	get_mainmod(Mod),
-	find_doc_source(Mod, ModPath),
+	get_mainmod_spec(Spec),
+	find_doc_source(Spec, ModPath),
 	reverse_fsRx(ModPath, ModSpec),
 	fsRx_get_bundle_and_basename(ModSpec, Bundle, _).
 

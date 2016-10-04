@@ -501,7 +501,7 @@ kind_exec_perms(shscript).
 % ===========================================================================
 
 :- use_module(engine(internals), ['$bundle_prop'/2]).	
-:- use_module(library(bundle/bundle_info), [bundle_version/2, bundle_patch/2]).
+:- use_module(library(bundle/bundle_info), [bundle_version_patch/2]).
 
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(format), [format/3]).
@@ -520,15 +520,13 @@ generate_version_auto(_Bundle, File) :-
 	file_exists(File), % TODO: update file if contents change
 	!.
 generate_version_auto(Bundle, File) :-
-	Version = ~bundle_version(Bundle),
-	Patch = ~bundle_patch(Bundle),
-	atom_codes(Date, ~datime_string),
+	Version = ~bundle_version_patch(Bundle),
+	atom_codes(Date, ~datime_string), % TODO: use commit info instead
 	%
-	CVersion = ~bundle_version(core),
-	CPatch = ~bundle_patch(core),
+	CVersion = ~bundle_version_patch(core),
 	%
 	VersionAtm = ~atom_concat([
-	  Version, '.', Patch, ': ', Date, ' (compiled with Ciao ', CVersion, '.', CPatch, ')'
+	  Version, ': ', Date, ' (compiled with Ciao ', CVersion, ')'
         ]),
 	open(File, write, O),
 	format(O, "%% Do not edit - automatically generated!\n", []),

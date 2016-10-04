@@ -5,8 +5,7 @@
 :- doc(module, "Generate clean source distributions.").
 
 :- use_module(library(bundle/paths_extra), [fsR/2]).
-:- use_module(ciaobld(bundle_hash), [
-	bundle_versioned_packname/2, gen_bundle_commit_info/1]).
+:- use_module(ciaobld(bundle_hash), [gen_bundle_commit_info/1]).
 :- use_module(ciaobld(pbundle_generator)).
 
 % (hooks for gen_pbundle)

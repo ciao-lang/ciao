@@ -1219,7 +1219,7 @@ get_bundle_readme(Bundle, R) :-
 	),
 	R = ~fsR(bundle_src(Bundle)/Final).
 
-:- use_module(library(bundle/bundle_info), [bundle_version/2, bundle_patch/2]).
+:- use_module(library(bundle/bundle_info), [bundle_version_patch/2]).
 
 :- export(bundle_manual_base/2).
 % Base name for manuals of Bundle
@@ -1229,7 +1229,10 @@ bundle_manual_base(Bundle) := R :-
 	; Dir = Manual,
 	  path_split(Dir, _, Base)
 	),
-	R = ~atom_concat([Base, '-', ~bundle_version(Bundle), '.', ~bundle_patch(Bundle)]).
+	( V = ~bundle_version_patch(Bundle) ->
+	    R = ~atom_concat([Base, '-', V])
+	; R = Base
+	).
 
 % Creates the manuals
 build_docs_manuals(Bundle) :- with_docs(yes), !,

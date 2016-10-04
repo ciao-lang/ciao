@@ -269,6 +269,7 @@ version_h(Bundle) -->
 	version_h_(Bundle),
 	"\n".
 
+% TODO: Do not include commit info? Make version optional?
 version_h_(Bundle) -->
 	{ CommitDate = ~bundle_commit_info(Bundle, date) },
 	{ CommitDesc = ~bundle_commit_info(Bundle, desc) },

@@ -116,25 +116,28 @@ list_bundles :-
 :- pred bundle_info(Bundle) # "Show info of @var{Bundle}".
 bundle_info(Bundle) :-
 	( nonvar(Bundle), '$bundle_id'(Bundle) ->
-	    '$bundle_prop'(Bundle, packname(Pack)),
-	    ( '$bundle_prop'(Bundle, requires(Requires)) -> true ; Requires = [] ),
-	    ( '$bundle_srcdir'(Bundle, SrcDir) -> true ; SrcDir = '(none)' ),
-	    Version = ~bundle_version(Bundle),
-	    Patch = ~bundle_patch(Bundle),
-	    % format("~w (~w ~w.~w) src:~q, requires:~w\n",
-	    %        [Bundle, Pack, Version, Patch, SrcDir, Requires]),
-	    % (looks like .yaml format)
-	    format("~w:\n", [Bundle]),
-	    format("  version: ~w.~w\n", [Version, Patch]),
-	    format("  name: ~w\n", [Pack]),
-	    format("  src: ~w\n", [SrcDir]),
-	    format("  requires:\n", []),
-	    ( % (failure-driven loop)
-	      member(X, Requires),
-	        format("  - ~w\n", [X]),
-		fail
-	    ; true
-	    )
-	; format("ERROR: unknown bundle ~w\n", [Bundle])
+	    true
+	; format("ERROR: unknown bundle ~w\n", [Bundle]), % TODO: exception
+	  fail
+	),
+	'$bundle_prop'(Bundle, packname(Pack)),
+	( '$bundle_prop'(Bundle, requires(Requires)) -> true ; Requires = [] ),
+	( '$bundle_srcdir'(Bundle, SrcDir) -> true ; SrcDir = '(none)' ),
+	% format("~w (~w ~w.~w) src:~q, requires:~w\n",
+	%        [Bundle, Pack, Version, Patch, SrcDir, Requires]),
+	% (looks like .yaml format)
+	format("~w:\n", [Bundle]),
+	( Version = ~bundle_version_patch(Bundle) ->
+	    format("  version: ~w\n", [Version])
+	; true
+	),
+	format("  name: ~w\n", [Pack]),
+	format("  src: ~w\n", [SrcDir]),
+	format("  requires:\n", []),
+	( % (failure-driven loop)
+	  member(X, Requires),
+	    format("  - ~w\n", [X]),
+	    fail
+	; true
 	).
 
