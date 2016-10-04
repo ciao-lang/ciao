@@ -241,9 +241,7 @@ core_cmd('ciao', shscript). % TODO: twice?!
 install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 
 :- use_module(ciaobld(eng_defs), [bootbld_eng_path/3]).
-:- use_module(ciaobld(config_common), 
-	[local_bldid/1,
-	 cmdname_ver/5]).
+:- use_module(ciaobld(config_common), [cmdname_ver/5]).
 
 % Generate 'ciao' super-command
 '$builder_hook'(ciaocl:item_build_nodocs) :-
@@ -262,7 +260,7 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	    % TODO: only used in local-install, global installation uses the builder exec (is it OK?)
 	    % TODO: (MinGW) is cmd.exe enough? (at least for bootstrap) consider PowerShell scripts for Windows?
 	    'boot_ciaolib' = ~fsR(bundle_src(core)),
-	    'boot_bindir' = ~fsR(builddir_bin(bootbuild)),
+	    'boot_bindir' = ~fsR(bootbuilddir_bin(core)),
 	    'boot_ciaohdir' = ~bootbld_eng_path(hdir, Eng),
 	    'boot_ciaoengine' = ~bootbld_eng_path(exec, Eng)
         ]),

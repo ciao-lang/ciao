@@ -46,18 +46,29 @@ sourcenameX(_).
 
 fsR(A) := A :- atom(A), !.
 fsR(A) := _ :- var(A), !, throw(bad_fsR(A)). % TODO: fix exception
-fsR(builddir(BldId)) := R :- !,
-	% Directory where code and documentation is built
+fsR(builddir(Bundle)) := R :- !,
+	% Base for bundle build
+	bundle_to_bldid(Bundle, BldId),
 	( BldId = inpath(Path) -> R = ~fsR(Path/build)
 	; relbuild(BldId, RelBuildDir),
 	  R = ~fsR(bundle_src(ciao)/RelBuildDir)
 	).
-fsR(builddir_bin(BldId)) := R :- !,
+fsR(bootbuilddir(_Bundle)) := R :- !,
+	% Base for bundle build (boot)
+	relbuild(bootbuild, RelBuildDir),
+	R = ~fsR(bundle_src(ciao)/RelBuildDir).
+fsR(builddir_bin(Bundle)) := R :- !,
 	% Directory to build (executable) binaries
-	R = ~fsR(builddir(BldId)/bin).
-fsR(builddir_doc(BldId)) := R :- !,
+	R = ~fsR(builddir(Bundle)/bin).
+fsR(bootbuilddir_bin(Bundle)) := R :- !,
+	% Directory to build (executable) binaries
+	R = ~fsR(bootbuilddir(Bundle)/bin).
+fsR(builddir_doc(Bundle)) := R :- !,
 	% Directory to build documentation
-	R = ~fsR(builddir(BldId)/doc).
+	R = ~fsR(builddir(Bundle)/doc).
+fsR(bootbuilddir_doc(Bundle)) := R :- !, % TODO: not needed
+	% Directory to build documentation
+	R = ~fsR(bootbuilddir(Bundle)/doc).
 %
 fsR(bundle_src(Bundle)) := R :- !,
 	'$bundle_srcdir'(Bundle, R).
@@ -73,6 +84,21 @@ concat_dir(Dir, File) := ~atom_concat([Dir, '/', File]).
 % TODO: see @apl{ciao_builder} scripts!
 relbuild(build, 'build'). % normal build
 relbuild(bootbuild, 'build-boot'). % bootstrap build
+
+:- use_module(engine(internals), [ciao_path/1]).
+:- use_module(library(pathnames), [path_get_relative/3]).
+
+% BldId corresponding to Bundle
+bundle_to_bldid(Bundle, BldId) :-
+	( Dir = ~fsR(bundle_src(Bundle)), % (may fail for 'ciao')
+	  ciao_path(Path), % TODO: Must not include CIAOROOT!
+	  ( Path = Dir
+	  ; path_get_relative(Path, Dir, _)
+	  ) -> % Dir is relative to Path
+	    BldId = inpath(Path)
+	; % otherwise assume local (under CIAOROOT)
+	  BldId = build
+	).
 
 % ---------------------------------------------------------------------------
 

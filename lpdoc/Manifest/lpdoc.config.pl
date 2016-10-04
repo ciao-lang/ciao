@@ -7,12 +7,12 @@
 :- use_module(library(system), [get_pwnam/1]).
 
 :- use_module(library(bundle/paths_extra), [fsR/2]).
-:- use_module(ciaobld(config_common), [local_bldid/1]).
+:- use_module(library(bundle/bundle_info), [root_bundle/1]).
 
 % ===========================================================================
 
 % Default paths for LPdoc output
-build_doc_dir := ~fsR(builddir_doc(~local_bldid)).
+build_doc_dir := ~fsR(builddir_doc(~root_bundle)).
 
 :- bundle_flag(docdir, [
     comment("Installation directory for documentation"),

@@ -968,18 +968,20 @@ match_def(precomp_builddir_yield(Level), filename) :=
 
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 
-precomp_builddir_yield_(src) := ~fsR(builddir(~builddir_id)/doc). % src level produces doc/
-precomp_builddir_yield_(noa) := ~fsR(builddir(~builddir_id)/eng). % noa level produces eng/
-precomp_builddir_yield_(noa) := ~fsR(builddir(~builddir_id)/bin). % noa level produces bin/
+% TODO: Specify bundle!
+% TODO: rootbuilddir should not be needed (in theory)
+precomp_builddir_yield_(src) := ~fsR(builddir(~root_bundle)/doc). % src level produces doc/
+precomp_builddir_yield_(src) := ~fsR(rootbuilddir(~root_bundle)/doc). % src level produces doc/
+precomp_builddir_yield_(noa) := ~fsR(builddir(~root_bundle)/eng). % noa level produces eng/
+precomp_builddir_yield_(noa) := ~fsR(rootbuilddir(~root_bundle)/eng). % noa level produces eng/
+precomp_builddir_yield_(noa) := ~fsR(builddir(~root_bundle)/bin). % noa level produces bin/
+precomp_builddir_yield_(noa) := ~fsR(rootbuilddir(~root_bundle)/bin). % noa level produces bin/
 % TODO: add a level to include third-party source?
 % (see third_party_install.pl)
 precomp_builddir_yield_(bin) := ~fsR(bundle_src(ciao)/'third-party'). % bin level produces third-party/
 % precomp_builddir_yield_(full) := _ :- fail. % full level produces nothing (more)
 
-:- use_module(ciaobld(config_common), [local_bldid/1]).
-
-builddir_id := ~local_bldid.
-builddir_id := bootbuild.
+:- use_module(library(bundle/bundle_info), [root_bundle/1]).
 
 % ---------------------------------------------------------------------------
 

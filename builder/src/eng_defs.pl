@@ -79,7 +79,6 @@ src/*.c
 :- use_module(engine(system_info), [get_so_ext/1, get_a_ext/1]).
 :- use_module(ciaobld(config_common), [
     builder_in_global/0,
-    bundle_to_bldid/2,
     concat_ext/3, concat_ver/3,
     instciao_storedir/1]).
 
@@ -195,21 +194,16 @@ eng_path_(D, EngLoc, Eng) := Path :-
 
 base_eng_path(EngLoc, Eng) := Path :-
 	EngMainMod = ~eng_mainmod(Eng),
+	Bundle = ~eng_bundle(Eng),
 	( EngLoc = bld ->
-	    BldId = ~eng_bldid(Eng),
-	    Path = ~fsR(builddir(BldId)/eng/EngMainMod)
+	    EngOpts = ~eng_opts(Eng),
+	    ( member(boot, EngOpts) ->
+	        Path = ~fsR(bootbuilddir(Bundle)/eng/EngMainMod)
+	    ; Path = ~fsR(builddir(Bundle)/eng/EngMainMod)
+	    )
 	; EngLoc = inst -> % E.g., for <prefix>/lib/ciao/ciaoengine-1.15
-	    Bundle = ~eng_bundle(Eng),
 	    Path = ~path_concat(~instciao_storedir, ~concat_ver(Bundle, EngMainMod))
 	; fail
-	).
-
-% TODO: get a build path instead
-eng_bldid(Eng) := BldId :-
-	EngOpts = ~eng_opts(Eng),
-	( member(boot, EngOpts) ->
-	    BldId = bootbuild
-	; BldId = ~bundle_to_bldid(~eng_bundle(Eng))
 	).
 
 % ---------------------------------------------------------------------------

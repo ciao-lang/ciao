@@ -21,13 +21,12 @@
 :- use_module(library(source_tree), [current_file_find/3]).
 :- use_module(engine(internals), ['$bundle_prop'/2]).
 :- use_module(library(bundle/bundle_info), [
+	root_bundle/1,
 	bundle_name/2,
 	bundle_version/2, bundle_patch/2]).
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(ciaobld(bundle_hash), [
 	bundle_versioned_packname/2, bundle_commit_info/3]).
-
-:- use_module(ciaobld(config_common), [local_bldid/1]).
 
 :- use_module(ciaobld(messages_aux), [cmd_message/3]).
 
@@ -261,7 +260,7 @@ builder_src_dir := bundle_src(builder)/'src'.
 :- export(pbundle_output_dir/1).
 % TODO: The definition of directory is repeated in ciaobot/SHARED
 %       (PBUNDLE_BUILD_DIR). Share the definition.
-pbundle_output_dir := ~fsR(builddir(~local_bldid)/'pbundle').
+pbundle_output_dir := ~fsR(builddir(~root_bundle)/'pbundle').
 
 :- export(create_pbundle_output_dir/0).
 :- pred create_pbundle_output_dir # "Make sure that the directory

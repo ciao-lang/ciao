@@ -46,7 +46,6 @@
 	 n_output/3,
 	 n_name/2]).
 :- use_module(ciaobld(builder_aux), [root_bundle_source_dir/1]).
-:- use_module(ciaobld(config_common), [bundle_to_bldid/2]).
 
 % ===========================================================================
 :- doc(section, "Interface to Compilers"). % including documentation generation
@@ -114,7 +113,7 @@ invoke_boot_ciaoc(Args, Opts) :-
 %     changes in the compiled system libraries does not affect it)
 %
 b_make_exec(Bundle, InDir, InFile, OutFile, Opts) :-
-	ensure_builddir_bin(~bundle_to_bldid(Bundle)),
+	ensure_builddir_bin(Bundle),
 	FileBuild = ~bld_cmd_path(Bundle, plexe, OutFile),
 	( member(static, Opts) ->
 	    Static = ['-s']
@@ -467,17 +466,17 @@ exists_and_compilable(Dir) :-
 
 % Special clean targets for builddir
 :- export(builddir_clean/2).
-builddir_clean(BldId, bin) :- !,
-	remove_dir_nofail(~fsR(builddir(BldId)/bin)).
-builddir_clean(BldId, pbundle) :- !,
-	remove_dir_nofail(~fsR(builddir(BldId)/pbundle)).
-builddir_clean(BldId, config) :- !,
-	del_file_nofail(~fsR(builddir(BldId)/bundlereg/'ciao.bundlecfg')),
-	del_file_nofail(~fsR(builddir(BldId)/bundlereg/'ciao.bundlecfg_sh')).
-builddir_clean(BldId, doc) :- !,
-	remove_dir_nofail(~fsR(builddir(BldId)/doc)).
-builddir_clean(BldId, all) :-
-	remove_dir_nofail(~fsR(builddir(BldId))).
+builddir_clean(Bundle, bin) :- !,
+	remove_dir_nofail(~fsR(builddir(Bundle)/bin)).
+builddir_clean(Bundle, pbundle) :- !,
+	remove_dir_nofail(~fsR(builddir(Bundle)/pbundle)).
+builddir_clean(Bundle, config) :- !,
+	del_file_nofail(~fsR(builddir(Bundle)/bundlereg/'ciao.bundlecfg')),
+	del_file_nofail(~fsR(builddir(Bundle)/bundlereg/'ciao.bundlecfg_sh')).
+builddir_clean(Bundle, doc) :- !,
+	remove_dir_nofail(~fsR(builddir(Bundle)/doc)).
+builddir_clean(Bundle, all) :-
+	remove_dir_nofail(~fsR(builddir(Bundle))).
 
 % Clean bundlereg
 :- export(clean_bundlereg/1).

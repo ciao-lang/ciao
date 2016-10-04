@@ -4,7 +4,6 @@
 
 :- use_module(ciaobld(config_common), [
     instype/1,
-    bundle_to_bldid/2,
     instciao_bindir/1,
     instciao_bundledir/2
 ]).
@@ -94,9 +93,7 @@ build_emacs_mode :-
 get_bindir_elisp(EmacsDir) :- % (for CIAOBINDIR)
 	( emacs_type('Win32') ->
 	    % TODO: Why?
-	    Bundle = core,
-	    bundle_to_bldid(Bundle, BldId),
-	    Dir = ~fsR(builddir_bin(BldId))
+	    Dir = ~fsR(builddir_bin(~root_bundle))
 	; Dir = ~instciao_bindir
 	),
 	get_dir_elisp(Dir, EmacsDir).

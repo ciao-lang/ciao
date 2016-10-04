@@ -158,8 +158,8 @@ get_defaultlibdir(global) := ~instciao_bundledir(core).
       "Specify the directory to perform the installation.")
 ]).
 
-:- use_module(ciaobld(config_common), [local_bldid/1]).
-build_dir := ~fsR(builddir(~local_bldid)).
+:- use_module(library(bundle/bundle_info), [root_bundle/1]).
+build_dir := ~fsR(builddir(~root_bundle)).
 
 get_prefix(global, '/usr/local').
 

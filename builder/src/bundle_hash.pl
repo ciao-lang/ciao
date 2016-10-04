@@ -23,8 +23,6 @@
 :- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(library(bundle/bundle_info), [bundle_version/2, bundle_version_patch/2]).
 
-:- use_module(ciaobld(config_common), [bundle_to_bldid/2]).
-
 % ===========================================================================
 % Extract and save commit information about the bundle source
 
@@ -54,9 +52,8 @@ save_bundle_commit_info(Bundle, Field) :-
 % TODO: per bundle or per workspace (current)?
 :- export(commit_info_file/3).
 commit_info_file(Bundle, Field) := R :-
-	bundle_to_bldid(Bundle, BldId),
 	File = ~commit_info_file_(Field),
-	R = ~fsR(builddir(BldId)/File).
+	R = ~fsR(builddir(Bundle)/File).
 
 commit_info_file_(branch) := 'COMMIT_BRANCH'.
 commit_info_file_(id) := 'COMMIT_ID'.

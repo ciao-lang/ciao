@@ -89,8 +89,7 @@ instciao_bundledir(Bundle) := R :-
 :- export(bld_cmd_path/4).
 % Executable path in build area
 bld_cmd_path(Bundle, Kind, File) := Path :-
-	BldId = ~bundle_to_bldid(Bundle),
-	Path = ~concat_ext(Kind, ~fsR(builddir_bin(BldId)/File)).
+	Path = ~concat_ext(Kind, ~fsR(builddir_bin(Bundle)/File)).
 
 :- export(inst_cmd_path/4).
 % Executable path in global installs
@@ -183,24 +182,5 @@ concat_ext(ext(Ext), X) := ~atom_concat(X, Ext).
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(internals), [ciao_path/1]).
-:- use_module(library(pathnames), [path_get_relative/3]).
 
-:- export(bundle_to_bldid/2).
-% BldId corresponding to Bundle
-bundle_to_bldid(Bundle, BldId) :-
-	( Dir = ~fsR(bundle_src(Bundle)), % (may fail for 'ciao')
-	  ciao_path(Path),
-	  ( Path = Dir
-	  ; path_get_relative(Path, Dir, _)
-	  ) -> % Dir is relative to Path
-	    BldId = inpath(Path)
-	; % otherwise assume local
-	  BldId = ~local_bldid
-	).
-
-:- export(local_bldid/1).
-% Like bundle_to_bldid, for bundles that are known to be always
-% compiled locally (like 'core').
-local_bldid := build.
 

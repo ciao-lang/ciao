@@ -58,7 +58,6 @@
 :- use_module(library(system_extra), [del_file_nofail/1]).
 :- use_module(ciaobld(config_common), [
     instype/1,
-    local_bldid/1, bundle_to_bldid/2,
     instciao_bindir/1,
     instciao_storedir/1,
     instciao_bundledir/2,
@@ -157,9 +156,10 @@ builder_cmd_(scan_and_config, Target, Opts) :- !,
 	%
 	builder_cmd(config_noscan, Target, Opts).
 builder_cmd_(config_noscan, Target, Opts) :- root_bundle(Target), !,
+	% TODO: for non-root use target_to_bundle(Target)?
 	cmd_message(Target, "configuring", []),
 	set_params(Opts),
-	ensure_builddir(~local_bldid),
+	ensure_builddir(Target),
 	( bundle_param_value(ciao:interactive_config, true) ->
 	    true % use saved config values
 	; % TODO: do not reset, skip load instead
@@ -270,9 +270,8 @@ builder_cmd_(prebuild_docs, Target, Opts) :- !,
 	( with_docs(yes) ->
 	    ( has_cmd1(prebuild_docs, Target) ->
 	        cmd_message(Target, "building [prebuild docs]", []),
-		target_to_bldid(Target, BldId),
-	        ensure_builddir(BldId), % TODO: needed?
-		ensure_builddir_doc(BldId), % TODO: needed?
+	        ensure_builddir(~target_to_bundle(Target)), % TODO: needed?
+		ensure_builddir_doc(~target_to_bundle(Target)), % TODO: needed?
 	        builder_cmd1(prebuild_docs, Target, Opts),
 		cmd_message(Target, "built [prebuild docs]", [])
 	    ; % (default)
@@ -349,13 +348,13 @@ builder_cmd_(clean_norec, Target, Opts) :- !,
 	check_ready_for_cmd(clean_norec, Target),
 	%
 	( root_bundle(Target) ->
+	    % TODO: for non-root use target_to_bundle(Target)?
 	    clean_tree(~fsR(bundle_src(Target)/'Manifest')),
 	    clean_tree(~fsR(bundle_src(Target)/doc)), % TODO: ad-hoc, clean .po,.itf, etc.
             % TODO: Clean Manifest/... in each bundle too
 	    % TODO: clean all builddir except configuration?
-	    BldId = ~local_bldid,
-	    builddir_clean(BldId, pbundle),
-	    builddir_clean(BldId, bin),
+	    builddir_clean(Target, pbundle),
+	    builddir_clean(Target, bin),
 	    builder_cmd(clean_norec, 'core/engine', []),
 	    builder_cmd(clean_norec, 'core/exec_header', [])
 	; has_cmd1(clean_norec, Target) ->
@@ -389,9 +388,10 @@ builder_cmd_(distclean, Target, Opts) :- !,
 	cmd_message(Target, "cleaning [config]", []),
 	builder_cmd(configclean, Target, Opts),
 	( root_bundle(Target) ->
+	    % TODO: for non-root use target_to_bundle(Target)?
 	    % TODO: make sure that no binary is left after 'clean' (outside builddir)
 	    clean_bundlereg(local),
-	    builddir_clean(~local_bldid, all)
+	    builddir_clean(Target, all)
 	; true
 	).
 %
@@ -402,7 +402,8 @@ builder_cmd_(distclean, Target, Opts) :- !,
 builder_cmd_(configclean, Target, _Opts) :- !,
 	check_ready_for_cmd(configclean, Target),
 	( root_bundle(Target) ->
-	    builddir_clean(~local_bldid, config)
+	    % TODO: for non-root use target_to_bundle(Target)?
+	    builddir_clean(Target, config)
 	; true
 	).
 % ----------
@@ -427,10 +428,9 @@ split_target(Target, Bundle, Part) :-
 	; throw(unknown_bundle(Target))
 	).
 
-% e.g., Target='core/engine' -> BldId=build
-target_to_bldid(Target, BldId) :-
-	split_target(Target, Bundle, _),
-	bundle_to_bldid(Bundle, BldId).
+% e.g., Target='core/engine' -> 'core'
+target_to_bundle(Target, Bundle) :-
+	split_target(Target, Bundle, _).
 
 :- export(builder_pred/2).
 builder_pred(Target, Head) :-
@@ -522,17 +522,17 @@ check_ready_for_cmd(Cmd, Target) :-
 	  halt(1)
 	).
 
-% NOTE: target_to_bldid/2, fsR/1 will fail if bundles are not scanned
+% NOTE: fsR/2 will fail if bundles are not scanned
 %   (which also means that there is no configuration)
+% TODO: not nice, allow per-bundle or per-workspace configs
+% TODO: install config in global installs too
 check_ready_for_cmd_(_Cmd, Target) :-
-	LocalBldId = ~local_bldid,
-	target_to_bldid(Target, BldId),
-	( BldId = LocalBldId ->
-	    ConfigSH = ~bundle_flags_file,
-	    file_exists(ConfigSH)
-	; % Relax condition in user workspaces
-	  % TODO: allow per-bundle or per-workspace configs
-	  % TODO: install config in global installs too
+	Dir0 = ~fsR(builddir(~root_bundle)),
+	Dir1 = ~fsR(builddir(~target_to_bundle(Target))),
+	( Dir0 = Dir1 -> % (same builddir as ~root_bundle)
+	    FlagsFile = ~bundle_flags_file,
+	    file_exists(FlagsFile)
+	; % Relax condition in user workspaces (or in global installs)
 	  true
 	).
 
@@ -713,17 +713,15 @@ bundlehook_call_(config_set_flag, Bundle, '') :- !,
 %
 bundlehook_call_(build_docs_readmes, Bundle, '') :- !,
 	( with_docs(yes) ->
-	    BldId = ~bundle_to_bldid(Bundle),
-	    ensure_builddir(BldId), % TODO: needed?
-	    ensure_builddir_doc(BldId), % TODO: needed?
+	    ensure_builddir(Bundle), % TODO: needed?
+	    ensure_builddir_doc(Bundle), % TODO: needed?
 	    build_docs_readmes(Bundle)
 	; true
 	).
 bundlehook_call_(build_docs_manuals, Bundle, '') :- !,
 	( with_docs(yes) ->
-	    BldId = ~bundle_to_bldid(Bundle),
-	    ensure_builddir(BldId), % TODO: needed?
-	    ensure_builddir_doc(BldId), % TODO: needed?
+	    ensure_builddir(Bundle), % TODO: needed?
+	    ensure_builddir_doc(Bundle), % TODO: needed?
 	    build_docs_manuals(Bundle)
 	; true
 	).
@@ -739,8 +737,7 @@ bundlehook_call_(clean_docs_manuals, Bundle, '') :- !,
 	% TODO: use Manifest, use lpdoc to clean?
 	% TODO: clean per workspace?
 	( root_bundle(Bundle) ->
-	    bundle_to_bldid(Bundle, BldId),
-	    builddir_clean(BldId, doc)
+	    builddir_clean(Bundle, doc)
 	; true
 	).
 %
@@ -797,7 +794,7 @@ bundlehook_call_(gen_pbundle(Kind), Bundle, '') :- !,
 %
 % TODO: Used from ciaobot
 bundlehook_call_(gen_bundle_commit_info, Bundle, '') :- !,
-	ensure_builddir(~local_bldid),
+	ensure_builddir(~root_bundle),
 	gen_bundle_commit_info(Bundle).
 % Show bundle info
 bundlehook_call_(info, Bundle, '') :- !,
@@ -1138,6 +1135,7 @@ uninstall_bundlereg(Bundle) :-
 % ---------------------------------------------------------------------------
 % Preliminary support for installing configuration (bundle flags)
 % (attached to bundle registry)
+% TODO: Allow one file per bundle
 
 install_bundle_flags(Bundle) :-
 	( root_bundle(Bundle) ->
@@ -1177,8 +1175,7 @@ rootprefix_bundlecfg_file(InsType, BundleName, RegFile) :-
 
 % (target for dir for docs)
 get_builddir_doc(Bundle) := Dir :-
-	bundle_to_bldid(Bundle, BldId),
-	Dir = ~fsR(builddir_doc(BldId)).
+	Dir = ~fsR(builddir_doc(Bundle)).
 
 % Creation of README files (from .lpdoc to ascii)
 % Output is moved to the bundle root directory.

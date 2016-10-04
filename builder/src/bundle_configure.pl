@@ -117,7 +117,7 @@ configlevel('3', extended).
 
 % ---------------------------------------------------------------------------
 
-% The full configuration is stored in ~fsR(builddir(BldId))/bundlereg,
+% The full configuration is stored in ~fsR(builddir(Bundle))/bundlereg,
 % in different formats for different tools:
 %
 %   - ciao.bundlecfg: internal format (saved, no sysdep)

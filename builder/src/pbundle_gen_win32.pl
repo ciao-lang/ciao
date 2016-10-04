@@ -27,7 +27,6 @@
 :- use_module(ciaobld(eng_defs), [bld_eng_path/3]).
 :- use_module(ciaobld(config_common),
 	[default_eng_def/1,
-	 bundle_to_bldid/2,
 	 cmdname_ver/5]).
 :- use_module(engine(internals), ['$bundle_prop'/2]).
 :- use_module(library(bundle/bundle_info), [
@@ -72,7 +71,6 @@ invoke_iscc(FileIss) :-
 
 % TODO: too many definitions here are hardwired
 create_iss_file(Bundle, FileIss, FileListName) :-
-	bundle_to_bldid(Bundle, BldId),
 	OutputBaseFileName = ~atom_codes(~bundle_versioned_packname(Bundle)),
 	% TODO: see PrettyCommitDesc in pbundle_download.pl
 	CommitId = ~bundle_commit_info(Bundle, id),
@@ -89,7 +87,7 @@ create_iss_file(Bundle, FileIss, FileListName) :-
  	    'MyAppExeName' = ~cmdname_ver(yes, core, plexe, 'ciaosh'), % TODO: extract from bundle
 	    'CiaoVersion' = ~bundle_version(core), % TODO: extract from bundle
 	    'SourceDir' = ~source_dir,
-	    'MyRelBuildDir' = ~relciaodir(~fsR(builddir(BldId))),
+	    'MyRelBuildDir' = ~relciaodir(~fsR(builddir(Bundle))),
 	    'OutputDir' = ~output_dir,
 	    'ManualIcons' = ~get_manual_icons(Bundle),
 	    'DefaultDirName' = ~default_dir_name(Bundle),
@@ -114,8 +112,7 @@ get_manual_icons_(ParentBundle, Str) :-
 	ensure_load_bundlehooks(Bundle),
 	%
 	DocFormat = pdf,
-	bundle_to_bldid(Bundle, BldId),
-	RelBuildDir = ~relciaodir(~fsR(builddir(BldId))),
+	RelBuildDir = ~relciaodir(~fsR(builddir(Bundle))),
 	'$bundle_prop'(Bundle, packname(PackName)),
 	ManualBase = ~bundle_manual_base(Bundle), % (nondet)
 	FileMain = ~atom_concat([ManualBase, '.', DocFormat]),

@@ -69,7 +69,6 @@ clean_bundle_flags :-
 
 % :- use_module(engine(internals), [reload_bundleregs/0]).
 :- use_module(library(pathnames), [path_concat/3]).
-:- use_module(ciaobld(config_common), [local_bldid/1]).
 :- use_module(engine(internals), [bundle_reg_dir/2]).
 
 :- export(bundle_flags_file/1).

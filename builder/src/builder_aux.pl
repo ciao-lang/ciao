@@ -132,18 +132,18 @@ invoke_ant(Dir, Args) :-
 
 :- export(ensure_builddir/1).
 % Prepare the build directory
-ensure_builddir(BldId) :- % TODO: use Bundle instead of BldId
- 	mkpath(~fsR(builddir(BldId)), ~perms). % owner?
+ensure_builddir(Bundle) :-
+ 	mkpath(~fsR(builddir(Bundle)), ~perms). % owner?
 
 :- export(ensure_builddir_doc/1).
 % Prepare the build subdirectory for docs
-ensure_builddir_doc(BldId) :- % TODO: use Bundle instead of BldId
- 	mkpath(~fsR(builddir_doc(BldId)), ~perms). % owner?
+ensure_builddir_doc(Bundle) :-
+ 	mkpath(~fsR(builddir_doc(Bundle)), ~perms). % owner?
 
 :- export(ensure_builddir_bin/1).
 % Prepare the build subdirectory for binaries
-ensure_builddir_bin(BldId) :- % TODO: use Bundle instead of BldId
- 	mkpath(~fsR(builddir_bin(BldId)), ~perms). % owner?
+ensure_builddir_bin(Bundle) :-
+ 	mkpath(~fsR(builddir_bin(Bundle)), ~perms). % owner?
 
 :- export(builddir_bin_copy_as/4).
 % Copy a custom binary From at binary directory of builddir as Name
