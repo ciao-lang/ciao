@@ -8,11 +8,12 @@
 #   under build/).
 #
 # Usage:
-#   grep-source.bash [-d DIR] REGEXP
+#   grep-source.bash -e REGEXP [PATHS]
 #
 # TODO: 
 #   - Nothing is cached or precomputed (so search is really slow)
 #   - Search is not semantic nor syntactic.
+#   - Merge with modgraph_grep.pl
 # ---------------------------------------------------------------------------
 
 # Physical directory where the script is located
@@ -26,14 +27,15 @@ set -e
 
 . "$_base"/source-enum.bash
 
-if [ x"$1" == x"-d" ]; then
+if [ x"$1" == x"-e" ]; then
     shift
-    dir=$1
+    regexp=$1
     shift
 else
-    dir=$_base/../..
+    cat <<EOF
+ERROR: Expected regexp (-e REGEXP)
+EOF
+    exit 1 # error
 fi
 
-cd "$dir"
-find_source -print0 | xargs -0 grep -I -nH -e "$@"
-
+find_source0 "$@" | xargs -0 grep -I -nH -e "$regexp"

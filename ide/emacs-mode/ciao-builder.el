@@ -133,31 +133,41 @@
 ;; TODO: only works in instype=local installation
 ;; TODO: add tags-search
 
+;; TODO: only works in instype=local installation
+(defun ciao--root-dir ()
+  "Guess a value for CIAOROOT"
+  (expand-file-name (concat ciao-bin-dir "/../..")))
+
 ;;;###autoload
 (defun ciao-grep-root ()
   "Run grep on Ciao source files (at root directory)"
   (interactive)
-  (let ((ciaoroot-dir (expand-file-name (concat ciao-bin-dir "/../.."))))
-    (let ((re (read-from-minibuffer "Search Ciao code at root directory (Regexp): ")))
-      (ciao-grep-common ciaoroot-dir re))))
+  (let ((re (read-from-minibuffer "Search Ciao code at root directory (Regexp): ")))
+    (ciao--grep-common re (list (ciao--root-dir)))))
+
+;;;###autoload
+(defun ciao-grep-all ()
+  "Run grep on Ciao source files (at root directory and workspaces given by CIAOPATH)"
+  (interactive)
+  (let ((dirs (append (mapcar 'directory-file-name
+			      (parse-colon-path (getenv "CIAOPATH")))
+		      (list (ciao--root-dir))))
+	(re (read-from-minibuffer "Search Ciao code at CIAOPATH workspaces and root directory (Regexp): ")))
+    (ciao--grep-common re dirs)))
 
 ;;;###autoload
 (defun ciao-grep ()
-  "Run grep on Ciao source files (at default directory)"
+  "Run grep on Ciao source files (under the default directory)"
   (interactive)
-  (let ((re (read-from-minibuffer "Search Ciao code (Regexp): ")))
-      (ciao-grep-common (expand-file-name default-directory) re)))
+  (let ((re (read-from-minibuffer "Search Ciao code under the default directory (Regexp): ")))
+      (ciao--grep-common re (list (expand-file-name default-directory)))))
 
-(defun ciao-grep-common (dir regexp)
+(defun ciao--grep-common (regexp dirs)
   "Run grep with REGEXP on Ciao source files at directory DIR"
-  (let ((ciaoroot-dir (expand-file-name (concat ciao-bin-dir "/../.."))))
-    (let ((default-directory dir)
-	  (grep-cmd (expand-file-name (concat ciaoroot-dir "/core/cmds/grep-source.bash"))))
-      (grep (concat
-	     (shell-quote-argument grep-cmd) " "
-	     "-d" " "
-	     (shell-quote-argument dir) " "
-	     (shell-quote-argument regexp))))))
+  (let* ((grep-cmd (concat (ciao--root-dir) "/core/cmds/grep-source.bash"))
+	 (args (append (list grep-cmd "-e" regexp) dirs))
+	 (cmdstr (mapconcat 'shell-quote-argument args " ")))
+      (grep cmdstr)))
 
 ;; ---------------------------------------------------------------------------
 ;; Server process for IDE (experimental)

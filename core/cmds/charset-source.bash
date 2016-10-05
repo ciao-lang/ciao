@@ -13,7 +13,7 @@
 # TODO: detect Windows encodings? (detected with 'uchardet' but not as mime charset?)
 #
 # Usage:
-#   charset-source.bash [-d DIR]
+#   charset-source.bash [PATHS]
 # ---------------------------------------------------------------------------
 
 # Physical directory where the script is located
@@ -26,14 +26,6 @@ set -e
 # ----------------------------------------------------------------
 
 . "$_base"/source-enum.bash
-
-if [ x"$1" == x"-d" ]; then
-    shift
-    dir=$1
-    shift
-else
-    dir=$_base/../..
-fi
 
 ## (we use 'file --mime-encoding' instead)
 ## # TODO: Do a partial port of https://github.com/chardet/chardet
@@ -65,10 +57,8 @@ function accepted_charset() {
     esac
 }
 
-cd "$dir"
-
 # Charset
-find_source -print | \
+find_source "$@" | \
     while IFS= read i; do
 	if [ -f "$i" ]; then
 #	    chardet=`uchardet "$i" || echo UCHARDET-FAILED`

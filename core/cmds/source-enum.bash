@@ -1,17 +1,34 @@
-# (common file for grep-source.bash uchardet-source.bash)
+# (common file for grep-source.bash charset-source.bash)
 
 rel_builddir=build
 boot_rel_builddir=build-boot
 
-function find_source() {
-    find . \
+function find_source() { # [paths]
+    # one line per file
+    FINDCMDS="-print" find_source_ "$@"
+}
+
+function find_source0() { # [paths]
+    # one line per file, end in \0 (useful for xargs)
+    FINDCMDS="-print0" find_source_ "$@"
+}
+
+function find_source_() { # [paths]
+    local d
+    for d in "$@"; do
+	find_source__ "$d"
+    done
+}
+
+function find_source__() { # PATH
+    find "$1" \
 	 -name '.svn' -prune -o \
 	 -name '.git' -prune -o \
-	 -path './'"$rel_builddir" -prune -o \
-	 -path './regr-db' -prune -o \
-	 -path './third-party' -prune -o \
-	 -path './ide/web/externals' -prune -o \
-	 -path './'"$boot_rel_builddir" -prune -o \
+	 -path "$1"'/'"$boot_rel_builddir" -prune -o \
+	 -path "$1"'/'"$rel_builddir" -prune -o \
+	 -path "$1"'/regr-db' -prune -o \
+	 -path "$1"'/third-party' -prune -o \
+	 -path "$1"'/ide/web/externals' -prune -o \
 	 \( '!' -type d \
          '!' -name 'NOCOMPILE' -a \
          '!' -name 'NODISTRIBUTE' -a \
@@ -53,6 +70,5 @@ function find_source() {
          '!' -name '*.xls' -a \
          '!' -name '*.opt' -a \
          '!' -name '*.info' \) \
-	 "$@"
+	 $FINDCMDS
 }
-
