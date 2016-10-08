@@ -74,7 +74,7 @@
 :- use_module(library(compiler/c_itf)).
 :- use_module(library(messages)).
 :- use_module(library(pathnames),
-	[path_basename/2, path_splitext/3, path_concat/3]).
+	[path_basename/2, path_dirname/2, path_splitext/3, path_concat/3]).
 :- use_module(library(lists),
 	[append/3, reverse/2, length/2, list_concat/2, select/3]).
 :- use_module(library(terms), [atom_concat/2]).
@@ -1107,7 +1107,7 @@ doc_interface(DocSt, R) :-
 	filter_out_exports(Preds, Exports, Internals),
 	%
 	classify_exports(Exports, M, Base, CExports),
-	classify_files(IFiles, UFiles, SysFiles, EngFiles, DocSt),
+	classify_files(IFiles, Base, UFiles, SysFiles, EngFiles, DocSt),
 	%
 	fmt_module_usage(DocSt, CExports, Multifiles,
 	    UFiles, IUFiles, SysFiles, EngFiles, PkgFiles,
@@ -1568,20 +1568,19 @@ modspec_name(ModSpec, Name) :-
 	path_splitext(Name1, Name, _).
 
 %% ---------------------------------------------------------------------------
-:- pred classify_files/5 # "Classifies file references, such as
+:- pred classify_files/6 # "Classifies file references, such as
    @tt{library(aggregates)}, into separate lists according to whether
    they are System, Engine, User, etc.".
 
-:- use_module(library(bundle/paths_extra),
-	[fsRx_get_bundle_and_basename/3]).
+:- use_module(library(bundle/bundle_paths), [reverse_bundle_path/3]).
 
-classify_files(IFiles, UFiles, SysFiles, EngFiles, DocSt) :-
-	classify_files_(IFiles, UFiles, SysFiles, EngFiles, DocSt).
-
-classify_files_([], [], [], [], _).
-classify_files_([File|Files], UFiles, SFiles, EFiles, DocSt) :-
-	( fsRx_get_bundle_and_basename(File, Bundle, ModName) ->
-	    true
+classify_files([], _Base, [], [], [], _).
+classify_files([File|Files], Base, UFiles, SFiles, EFiles, DocSt) :-
+	( path_dirname(Base, CurrDir),
+	  absolute_file_name(File, '', '.pl', CurrDir, _, AbsFile, _),
+	  reverse_bundle_path(AbsFile, Bundle, Rel) ->
+	    % Found in a given bundle
+	    path_basename(Rel, ModName)
 	; % (no bundle! perhaps a local file without any Manifest)
 	  Bundle = '',
 	  ModName = File
@@ -1606,7 +1605,7 @@ classify_files_([File|Files], UFiles, SFiles, EFiles, DocSt) :-
 	  UFiles = [ModName|UFiles0],
 	  SFiles = SFiles0, EFiles = EFiles0
 	),
-	classify_files_(Files, UFiles0, SFiles0, EFiles0, DocSt).
+	classify_files(Files, Base, UFiles0, SFiles0, EFiles0, DocSt).
 
 %% ---------------------------------------------------------------------------
 

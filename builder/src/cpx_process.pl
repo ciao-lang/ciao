@@ -10,7 +10,7 @@
 :- use_module(library(lists), [append/3, select/3]).
 :- use_module(library(process)).
 :- use_module(library(system), [using_windows/0]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(ciaobld(config_common),
      [default_eng_def/1, local_ciaolib/1]).
 
@@ -62,7 +62,7 @@ merge_env(Env, Opts, Opts2) :-
 bootciao_env(Eng) := Env :-
 	% TODO: (un)define CIAOPATH? 
 	Env = ['CIAOALIASPATH' = '',
-	       'CIAOLIB' = ~fsR(bundle_src(core)),
+	       'CIAOLIB' = ~bundle_path(core, '.'),
 	       'CIAOHDIR' = ~bootbld_eng_path(hdir, Eng),
 	       'CIAOENGINE' = ~bootbld_eng_path(exec, Eng)].
 

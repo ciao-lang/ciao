@@ -17,7 +17,7 @@
 % ---------------------------------------------------------------------------
 :- doc(section, "CSS files").
 
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 
 :- export(prepare_auxfiles_html/2).
 prepare_auxfiles_html(Backend, Opts) :-
@@ -48,7 +48,7 @@ css_file(Path) :-
 css_file(Path) :-
 	\+ setting_value(syntax_highlight, no),
 	F = 'ciao-htmlfontify.css',
-	fsR(bundle_src(core)/library/syntax_highlight/css, Dir),
+	bundle_path(core, 'library/syntax_highlight/css', Dir),
 	path_concat(Dir, F, Path).
 
 % ---------------------------------------------------------------------------

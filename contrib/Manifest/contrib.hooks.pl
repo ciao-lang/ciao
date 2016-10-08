@@ -15,7 +15,7 @@
     foreign_config_version/2
 ]).
 
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 
 % ============================================================================
 
@@ -53,7 +53,7 @@ contrib_desc := [
   %
   contrib_cmds,
   %
-  lib(contrib, 'library')
+  lib('library')
 ].
 
 % ===========================================================================
@@ -73,15 +73,11 @@ contrib_desc := [
 
 :- use_module(library(aggregates), [findall/3]).
 
-cmds_contrib_dir := bundle_src(contrib)/cmds.
-
+% TODO: move to its own bundle
 '$builder_hook'(contrib_cmds:item_def(
-	  cmds_list(contrib, ~cmds_contrib_dir, ~contrib_cmds))).
-
-contrib_cmds := ~findall(B-[K], contrib_cmd(B, K)).
-
-% TODO: really distribute those utils?
-contrib_cmd('synch_actions', plexe).
-contrib_cmd('cleandirs', plexe).
+    cmds_list('cmds', [
+        'synch_actions'-[plexe],
+        'cleandirs'-[plexe]
+    ]))).
 
 

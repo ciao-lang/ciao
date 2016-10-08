@@ -7,7 +7,6 @@
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(system), [cd/1, working_directory/2]).
 :- use_module(library(pathnames), [path_split_list/2]).
-:- use_module(library(glob), [glob/3]).
 :- use_module(library(terms), [atom_concat/2]).
 
 :- use_module(library(bundle/bundle_params),
@@ -17,7 +16,8 @@
 	[reset_all_bundle_flags/0, bundle_flags_file/1,
 	 bundlecfg_filename/3]).
 %
-:- use_module(library(bundle/paths_extra), [fsR/2, bundle_metasrc/3]).
+:- use_module(library(bundle/bundle_paths),
+	[bundle_path/3, bundle_path/4, bundle_metasrc/3]).
 :- use_module(library(bundle/bundle_info), [
 	root_bundle/1,
 	enum_sub_bundles/2,
@@ -31,8 +31,7 @@
 :- use_module(ciaobld(builder_aux), [
 	root_bundle_source_dir/1,
 	rootprefixed/2,
-	ensure_builddir/1,
-        ensure_builddir_doc/1,
+	ensure_builddir/2,
         storedir_install/1,
         storedir_uninstall/1,
 	eng_active_bld/1
@@ -144,7 +143,7 @@ builder_cmd_(configure, Target, Opts) :- !,
 %
 builder_cmd_(scan_and_config, Target, Opts) :- !,
 	% Note: scanning bundles must be done before configuration
-	% Note: fsR cannot be used until bundles are scanned
+	% Note: bundle_path/? cannot be used until bundles are scanned
 	( root_bundle(Target) ->
 	    % TODO: avoid scanning for some options... allow scanning for other bundles
 	    cmd_message(Target, "scanning (sub-)bundles", []),
@@ -159,7 +158,7 @@ builder_cmd_(config_noscan, Target, Opts) :- root_bundle(Target), !,
 	% TODO: for non-root use target_to_bundle(Target)?
 	cmd_message(Target, "configuring", []),
 	set_params(Opts),
-	ensure_builddir(Target),
+	ensure_builddir(Target, '.'),
 	( bundle_param_value(ciao:interactive_config, true) ->
 	    true % use saved config values
 	; % TODO: do not reset, skip load instead
@@ -270,8 +269,8 @@ builder_cmd_(prebuild_docs, Target, Opts) :- !,
 	( with_docs(yes) ->
 	    ( has_cmd1(prebuild_docs, Target) ->
 	        cmd_message(Target, "building [prebuild docs]", []),
-	        ensure_builddir(~target_to_bundle(Target)), % TODO: needed?
-		ensure_builddir_doc(~target_to_bundle(Target)), % TODO: needed?
+	        ensure_builddir(~target_to_bundle(Target), '.'), % TODO: needed?
+		ensure_builddir(~target_to_bundle(Target), 'doc'), % TODO: needed?
 	        builder_cmd1(prebuild_docs, Target, Opts),
 		cmd_message(Target, "built [prebuild docs]", [])
 	    ; % (default)
@@ -349,8 +348,8 @@ builder_cmd_(clean_norec, Target, Opts) :- !,
 	%
 	( root_bundle(Target) ->
 	    % TODO: for non-root use target_to_bundle(Target)?
-	    clean_tree(~fsR(bundle_src(Target)/'Manifest')),
-	    clean_tree(~fsR(bundle_src(Target)/doc)), % TODO: ad-hoc, clean .po,.itf, etc.
+	    clean_tree(~bundle_path(Target, 'Manifest')),
+	    clean_tree(~bundle_path(Target, 'doc')), % TODO: ad-hoc, clean .po,.itf, etc.
             % TODO: Clean Manifest/... in each bundle too
 	    % TODO: clean all builddir except configuration?
 	    builddir_clean(Target, pbundle),
@@ -362,7 +361,7 @@ builder_cmd_(clean_norec, Target, Opts) :- !,
 	; '$bundle_id'(Target) ->
 	    % TODO: use some specific dirs instead
 	    % TODO: does not work with CIAOCACHEDIR! fix
-	    clean_tree(~fsR(bundle_src(Target)))
+	    clean_tree(~bundle_path(Target, '.'))
 	; format(user_error, "ERROR: unknown bundle '~w'.~n", [Target]),
 	  halt(1)
 	).
@@ -522,13 +521,13 @@ check_ready_for_cmd(Cmd, Target) :-
 	  halt(1)
 	).
 
-% NOTE: fsR/2 will fail if bundles are not scanned
+% NOTE: bundle_path/3 will fail if bundles are not scanned
 %   (which also means that there is no configuration)
 % TODO: not nice, allow per-bundle or per-workspace configs
 % TODO: install config in global installs too
 check_ready_for_cmd_(_Cmd, Target) :-
-	Dir0 = ~fsR(builddir(~root_bundle)),
-	Dir1 = ~fsR(builddir(~target_to_bundle(Target))),
+	Dir0 = ~bundle_path(~root_bundle, builddir, '.'),
+	Dir1 = ~bundle_path(~target_to_bundle(Target), builddir, '.'),
 	( Dir0 = Dir1 -> % (same builddir as ~root_bundle)
 	    FlagsFile = ~bundle_flags_file,
 	    file_exists(FlagsFile)
@@ -567,13 +566,12 @@ ensure_load_bundlehooks(Bundle) :-
 	).
 
 load_bundle_metasrc(Bundle, Metasrc) :-
-	( '$bundle_id'(Bundle), BundleDir = ~fsR(bundle_src(Bundle)) ->
+	( '$bundle_id'(Bundle), BundleDir = ~bundle_path(Bundle, '.') ->
 	    true
 	; throw(unknown_bundle(Bundle))
 	),
 	% TODO: make it optional (some bundles may not need customized hooks)
-	bundle_metasrc(Bundle, Metasrc, BundleMetasrcFile0),
-	fsR(BundleMetasrcFile0, BundleMetasrcFile),
+	bundle_metasrc(Bundle, Metasrc, BundleMetasrcFile),
 	( file_exists(BundleMetasrcFile) ->
 	    working_directory(PWD, BundleDir), % TODO: Needed here?
 	    ( catch(bundlehooks_holder:do_use_module(BundleMetasrcFile), 
@@ -594,8 +592,7 @@ load_bundle_metasrc(Bundle, Metasrc) :-
 
 % TODO: use optional_metasrc/1 (do not unload if it was optional)
 unload_bundle_metasrc(Bundle, Metasrc) :-
-	bundle_metasrc(Bundle, Metasrc, BundleMetasrcFile0),
-	fsR(BundleMetasrcFile0, BundleMetasrcFile),
+	bundle_metasrc(Bundle, Metasrc, BundleMetasrcFile),
 	bundlehooks_holder:do_unload(BundleMetasrcFile).
 
 optional_metasrc(bundle_config).
@@ -627,7 +624,7 @@ builder_hookcmd(Bundle, Part, Cmd) :-
 	ensure_load_bundlehooks(Bundle), % TODO: Not unloaded! (do refcount or gc of modules)
 	%
 	% TODO: is cd/1 really necessary here?
-	BundleDir = ~fsR(bundle_src(Bundle)),
+	BundleDir = ~bundle_path(Bundle, '.'),
 	working_directory(PWD, BundleDir),
 	catch(bundlehook_call(Bundle, Part, Cmd), E, OK = no(E)),
 	( var(OK) -> OK = yes ; true ),
@@ -713,15 +710,15 @@ bundlehook_call_(config_set_flag, Bundle, '') :- !,
 %
 bundlehook_call_(build_docs_readmes, Bundle, '') :- !,
 	( with_docs(yes) ->
-	    ensure_builddir(Bundle), % TODO: needed?
-	    ensure_builddir_doc(Bundle), % TODO: needed?
+	    ensure_builddir(Bundle, '.'), % TODO: needed?
+	    ensure_builddir(Bundle, 'doc'), % TODO: needed?
 	    build_docs_readmes(Bundle)
 	; true
 	).
 bundlehook_call_(build_docs_manuals, Bundle, '') :- !,
 	( with_docs(yes) ->
-	    ensure_builddir(Bundle), % TODO: needed?
-	    ensure_builddir_doc(Bundle), % TODO: needed?
+	    ensure_builddir(Bundle, '.'), % TODO: needed?
+	    ensure_builddir(Bundle, 'doc'), % TODO: needed?
 	    build_docs_manuals(Bundle)
 	; true
 	).
@@ -754,7 +751,7 @@ bundlehook_call_(install, Bundle, '') :- !,
 	% Treat sub-bundles
 	sub_bundles_do_hookcmd(Bundle, install),
 	% Docs
-	bundleitem_do(docs(Bundle), Bundle, install),
+	bundle_install_docs(Bundle),
 	% Activate
 	bundlehook_call(Bundle, '', bundle_activate).
 bundlehook_call_(uninstall, Bundle, '') :- !,
@@ -764,7 +761,7 @@ bundlehook_call_(uninstall, Bundle, '') :- !,
 	% Deactivate
 	bundlehook_call(Bundle, '', bundle_deactivate),
 	% Docs
-	bundleitem_do(docs(Bundle), Bundle, uninstall),
+	bundle_uninstall_docs(Bundle),
 	% Treat sub-bundles
         revsub_bundles_do_hookcmd(Bundle, uninstall),
 	% Treat bundle
@@ -775,12 +772,12 @@ bundlehook_call_(uninstall, Bundle, '') :- !,
 	cmd_message(Bundle, "uninstalled [no docs]", []).
 bundlehook_call_(install_docs, Bundle, '') :- !, % (no hooks)
 	% (install main before sub-bundles)
-	bundleitem_do(docs(Bundle), Bundle, install),
+	bundle_install_docs(Bundle),
 	sub_bundles_do_hookcmd(Bundle, install_docs).
 bundlehook_call_(uninstall_docs, Bundle, '') :- !, % (no hooks)
 	% (uninstall sub-bundles before main)
 	revsub_bundles_do_hookcmd(Bundle, uninstall_docs),
-	bundleitem_do(docs(Bundle), Bundle, uninstall).
+	bundle_uninstall_docs(Bundle).
 bundlehook_call_(bundle_activate, Bundle, '') :- !,
 	install_bundlereg(Bundle),
 	bundlehook_call(Bundle, '', register).
@@ -794,7 +791,7 @@ bundlehook_call_(gen_pbundle(Kind), Bundle, '') :- !,
 %
 % TODO: Used from ciaobot
 bundlehook_call_(gen_bundle_commit_info, Bundle, '') :- !,
-	ensure_builddir(~root_bundle),
+	ensure_builddir(~root_bundle, '.'),
 	gen_bundle_commit_info(Bundle).
 % Show bundle info
 bundlehook_call_(info, Bundle, '') :- !,
@@ -926,81 +923,70 @@ bundleitem_do(only_global_ins(X), Bundle, Cmd) :- !,
 	    bundleitem_do(X, Bundle, Cmd)
 	; true
 	).
-bundleitem_do(dir(Path), Bundle, Cmd) :- !, bundleitem_do(dir(Path, []), Bundle, Cmd).
-bundleitem_do(dir(Path, Props), _Bundle, install) :- !,
-	storedir_install(dir(~fsR(Path))), % perms?
-	( member(files_from(SrcDir), Props) ->
-	    % copy contents from Dir
-	    storedir_install(dir_rec(SrcDir, ~fsR(Path)))
-	; member(files_from(SrcDir, Pattern), Props) ->
-	    % copy contents from Dir (as specified by Pattern)
-	    ( % (failure-driven loop)
-		member(File, ~glob(~fsR(SrcDir), Pattern)),
-		storedir_install(file_noexec(~fsR(SrcDir/(File)), ~fsR(Path/(File)))),
-	        fail
-	    ; true
-	    )
-	; true
-	).
-bundleitem_do(dir(Path, Props), _Bundle, uninstall) :- !,
+bundleitem_do(switch_to_bundle(Bundle, X), _Bundle, Cmd) :- !,
+	% TODO: hack for building 'ide' from 'core' (for emacs-mode); move hooks to ide and remove this
+	bundleitem_do(X, Bundle, Cmd).
+bundleitem_do(files_from(SrcDir, Path, _Props), Bundle, install) :- !,
+	% Copy contents from SrcDir into Path
+	storedir_install(dir(Path)),
+	storedir_install(dir_rec(~bundle_path(Bundle, SrcDir), Path)).
+bundleitem_do(files_from(_SrcDir, Path, Props), _Bundle, uninstall) :- !,
 	( ~instype = global -> true ; throw(uninstall_requires_global) ),
 	( member(del_rec, Props) ->
 	    % on uninstall, remove contents recursively
 	    % TODO: remove also the directory?
-	    storedir_uninstall(dir_rec(~fsR(Path))) % TODO: use bundle
+	    storedir_uninstall(dir_rec(Path))
 	; member(do_not_del, Props) ->
 	    % do not delete on uninstall
 	    true
-	; storedir_uninstall(dir(~fsR(Path)))
+	; storedir_uninstall(dir(Path))
 	).
-bundleitem_do(lib(Bundle, DirName), _Bundle, install) :- !, % (only instype=global) % TODO: use _Bundle
+bundleitem_do(dir_install_to(Path, _Props), _Bundle, install) :- !,
+	storedir_install(dir(Path)).
+bundleitem_do(dir_install_to(Path, Props), _Bundle, uninstall) :- !,
+	( ~instype = global -> true ; throw(uninstall_requires_global) ),
+	( member(do_not_del, Props) ->
+	    % do not delete on uninstall
+	    true
+	; storedir_uninstall(dir(Path))
+	).
+bundleitem_do(lib(DirName), Bundle, install) :- !, % (only instype=global)
 	% Install the module collection under DirName (along compiled files)
 	cmd_message(Bundle, "installing '~w' libraries", [DirName]),
-	( DirName = '.' ->
-	    % TODO: simplify
-	    storedir_install(dir_rec(bundle_src(Bundle), ~instciao_bundledir(Bundle)))
-	; storedir_install(dir_rec(DirName, ~fsR(~instciao_bundledir(Bundle)/(DirName))))
-	).
-bundleitem_do(lib(Bundle, DirName), _Bundle, uninstall) :- !, % (only instype=global)
+	From = ~bundle_path(Bundle, DirName),
+	To = ~inst_bundle_path(Bundle, DirName),
+	storedir_install(dir_rec(From, To)).
+bundleitem_do(lib(DirName), Bundle, uninstall) :- !, % (only instype=global)
 	% Uninstall the previously installed module collection DirName
-	( DirName = '.' ->
-	    % TODO: simplify
-	    storedir_uninstall(dir_rec(~instciao_bundledir(Bundle)))
-	; storedir_uninstall(dir_rec(~fsR(~instciao_bundledir(Bundle)/(DirName))))
-	).
-bundleitem_do(src(Bundle, DirName), _Bundle, install) :- !, % (only instype=global) % TODO: use _Bundle
+	To = ~inst_bundle_path(Bundle, DirName),
+	storedir_uninstall(dir_rec(To)).
+bundleitem_do(src(DirName), Bundle, install) :- !, % (only instype=global)
 	% Install the module collection under DirName (just source, e.g., for examples)
 	cmd_message(Bundle, "installing '~w' source", [DirName]),
-	storedir_install(src_dir_rec(DirName, ~fsR(~instciao_bundledir(Bundle)/(DirName)))).
-bundleitem_do(src(Bundle, DirName), _Bundle, uninstall) :- !, % (only instype=global)
+	storedir_install(src_dir_rec(~bundle_path(Bundle, DirName), ~inst_bundle_path(Bundle, DirName))).
+bundleitem_do(src(DirName), Bundle, uninstall) :- !, % (only instype=global)
 	% Uninstall the previously installed source-only module collection DirName
-	storedir_uninstall(src_dir_rec(~fsR(~instciao_bundledir(Bundle)/(DirName)))).
-bundleitem_do(docs(Bundle), _Bundle, install) :- !, % (for instype=global and instype=local) % TODO: use _Bundle
-	bundle_install_docs(Bundle).
-bundleitem_do(docs(Bundle), _Bundle, uninstall) :- !, % (for instype=global and instype=local)
-	bundle_uninstall_docs(Bundle).
-bundleitem_do(cmds_list(Bundle, Path, List), _Bundle, build_nodocs) :- !, % TODO: use _Bundle
-	build_cmds_list(Bundle, Path, List).
-bundleitem_do(cmds_list(Bundle, _, List), _Bundle, install) :- !, % TODO: use _Bundle
-	storedir_install(cmds_list(Bundle, List)).
-bundleitem_do(cmds_list(Bundle, _, List), _Bundle, uninstall) :- !,
- 	storedir_uninstall(cmds_list(Bundle, List)).
-bundleitem_do(lib_file_list(Bundle, Path, List), _Bundle, Cmd) :- !, % TODO: use _Bundle
-	lib_file_list_do(List, Bundle, Path, Cmd).
-bundleitem_do(bin_copy_and_link(K, Bundle, File, Props), _Bundle, install) :- !, % TODO: use _Bundle
+	storedir_uninstall(src_dir_rec(~inst_bundle_path(Bundle, DirName))).
+bundleitem_do(cmds_list(Path, List), Bundle, build_nodocs) :- !,
+	build_cmds_list(Bundle, ~bundle_path(Bundle, Path), List).
+bundleitem_do(cmds_list(_, List), Bundle, install) :- !,
+	storedir_install(cmds_list_(Bundle, List)).
+bundleitem_do(cmds_list(_, List), Bundle, uninstall) :- !,
+ 	storedir_uninstall(cmds_list_(Bundle, List)).
+bundleitem_do(lib_file_list(Path, List), Bundle, Cmd) :- !,
+	lib_file_list_do(List, Bundle, ~bundle_path(Bundle, Path), Cmd).
+bundleitem_do(bin_copy_and_link(K, File, Props), Bundle, install) :- !,
 	storedir_install(copy_and_link(K, Bundle, File)),
 	( member(link_as(Link), Props) ->
 	    storedir_install(link_as(K, Bundle, File, Link))
 	; true
 	).
-bundleitem_do(bin_copy_and_link(K, Bundle, File, Props), _Bundle, uninstall) :- !,
+bundleitem_do(bin_copy_and_link(K, File, Props), Bundle, uninstall) :- !,
 	( member(link_as(Link), Props) ->
 	    storedir_uninstall(link(K, Link))
 	; true
 	),
 	storedir_uninstall(copy_and_link(K, Bundle, File)).
-bundleitem_do(file(Path), _Bundle, uninstall) :- !,
-	storedir_uninstall(file(Path)).
 % Engine
 bundleitem_do(eng(EngMainSpec, EngOpts), Bundle, build_nodocs) :- !,
 	Eng = eng_def(Bundle, EngMainSpec, EngOpts),
@@ -1067,35 +1053,41 @@ lib_file_item_do(File-Props, Bundle, Path, install) :- !,
 lib_file_item_do(File-Props, Bundle, Path, uninstall) :- !,
 	( ~instype = global -> true ; throw(uninstall_requires_global) ), % TODO: should not be needed
 	lib_file_props(File, Props, Path, Props2),
-	storedir_uninstall(lib_file_copy_and_link(Props2, Bundle, File)).
+	storedir_uninstall(lib_file_copy_and_link(Props2, Bundle, Path, File)).
 
 lib_file_props(File, Props, Path, Props2) :-
 	( member(copy_and_link, Props) ->
-	    Props2 = [at_bundle, storedir_link]
+	    Props2 = []
 	; member(to_abspath(To), Props) ->
-	    Props2 = [to_abspath(To), storedir_link]
+	    Props2 = [to_abspath(To)]
 	; throw(unknown_props_lib_file(File, Props, Path))
 	).
 	
 :- use_module(library(lists), [reverse/2]).
 
+% TODO: use in more code?
+inst_bundle_path(Bundle, Rel) := R :-
+	R0 = ~instciao_bundledir(Bundle),
+	( Rel = '.' ->
+	    R = R0
+	; R = ~path_concat(R0, Rel)
+	).
+
 % ---------------------------------------------------------------------------
 % create/delete directory where bundles are installed
 
 do_install_storedir(Bundle) :- ~instype = global, !,
-	% TODO: perms?
 	storedir_install(dir(~instciao_storedir)),
-	bundleitem_do(dir(~instciao_bundledir(Bundle), [del_rec]), Bundle, install).
+	storedir_install(dir(~instciao_bundledir(Bundle))).
 do_install_storedir(_Bundle).
 
 do_uninstall_storedir(Bundle) :- ~instype = global, !,
-	bundleitem_do(dir(~instciao_bundledir(Bundle), [del_rec]), Bundle, uninstall),
+	storedir_uninstall(dir_rec(~instciao_bundledir(Bundle))),
 	% delete if empty
 	storedir_uninstall(dir_if_empty(~instciao_storedir)).
 do_uninstall_storedir(_Bundle).
 
 do_install_bindir(_Bundle) :-
-	% TODO: perms?
 	storedir_install(dir(~instciao_bindir)).
 
 do_uninstall_bindir(_Bundle) :- ~instype = global, !,
@@ -1117,7 +1109,7 @@ do_uninstall_bindir(_Bundle) :-
 
 install_bundlereg(Bundle) :-
 	( ~instype = global ->
-	    BundleDir = ~fsR(bundle_src(Bundle)),
+	    BundleDir = ~bundle_path(Bundle, '.'),
 	    ensure_global_bundle_reg_dir,
 	    create_bundlereg(BundleDir, global),
 	    install_bundle_flags(Bundle)
@@ -1173,10 +1165,6 @@ rootprefix_bundlecfg_file(InsType, BundleName, RegFile) :-
 
 :- use_module(ciaobld(ciaoc_aux), [invoke_lpdoc/1]).
 
-% (target for dir for docs)
-get_builddir_doc(Bundle) := Dir :-
-	Dir = ~fsR(builddir_doc(Bundle)).
-
 % Creation of README files (from .lpdoc to ascii)
 % Output is moved to the bundle root directory.
 build_docs_readmes(Bundle) :- with_docs(yes), !,
@@ -1188,10 +1176,10 @@ build_docs_readmes(Bundle) :- with_docs(yes), !,
 	      OutName = Name
 	    ),
 	    path_split(SrcPath, _, Name),
-	    BundleDir = ~fsR(bundle_src(Bundle)),
+	    BundleDir = ~bundle_path(Bundle, '.'),
 	    path_concat(BundleDir, SrcPath, SrcPath1),
 	    atom_concat(SrcPath1, '.lpdoc', SrcPath2),
-	    get_builddir_doc(Bundle, DocDir),
+	    DocDir = ~bundle_path(Bundle, builddir, 'doc'),
 	    invoke_lpdoc(['--autogen_warning=yes',
 	                  '--allow_markdown=no',
 	                  '--syntax_highlight=no',
@@ -1214,7 +1202,7 @@ get_bundle_readme(Bundle, R) :-
 	( Readme = as(_, Final) -> true
 	; path_split(Readme, _, Final)
 	),
-	R = ~fsR(bundle_src(Bundle)/Final).
+	R = ~bundle_path(Bundle, Final).
 
 :- use_module(library(bundle/bundle_info), [bundle_version_patch/2]).
 
@@ -1272,11 +1260,11 @@ bundle_uninstall_docs(_Bundle).
 
 % Build the manual `SrcDir` for `Bundle`
 build_doc(Bundle, SrcDir) :-
-	BundleDir = ~fsR(bundle_src(Bundle)),
+	BundleDir = ~bundle_path(Bundle, '.'),
 	path_concat(BundleDir, SrcDir, R0),
 	path_concat(R0, 'SETTINGS.pl', Settings),
 	( file_exists(Settings) ->
-	    get_builddir_doc(Bundle, DocDir),
+	    DocDir = ~bundle_path(Bundle, builddir, 'doc'),
 	    invoke_lpdoc(['--doc_mainopts=versioned_output',
 %	                  '--allow_markdown=no',
 %	                  '--syntax_highlight=no',
@@ -1294,15 +1282,14 @@ install_doc(Bundle, ManualBase, DocFormat) :-
 	docformatdir(DocFormat, TargetDir0),
 	TargetDir = ~rootprefixed(TargetDir0),
 	FileName = ~atom_concat([ManualBase, '.', DocFormat]),
-	get_builddir_doc(Bundle, DocDir),
+	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
 	Source = ~path_concat(DocDir, FileName),
 	Target = ~path_concat(TargetDir, FileName),
 	( file_exists(Source) ->
 	    % Copy if needed
 	    ( Source == Target -> % (typically when ~instype = local)
-	      % note(['Skipping copy of ', Target])
-	      true
-	    ; mkpath(TargetDir), % TODO: perms and owner?
+	        true
+	    ; mkpath(TargetDir),
 	      copy_file_or_dir(Source, TargetDir)
 	    ),
 	    % Register doc (if needed)
@@ -1317,7 +1304,7 @@ uninstall_doc(Bundle, ManualBase, DocFormat) :-
 	docformatdir(DocFormat, TargetDir0),
 	TargetDir = ~rootprefixed(TargetDir0),
 	FileName = ~atom_concat([ManualBase, '.', DocFormat]),
-	get_builddir_doc(Bundle, DocDir),
+	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
 	Source = ~path_concat(DocDir, FileName),
 	Target = ~path_concat(TargetDir, FileName),
 	( file_exists(Target) ->
@@ -1336,12 +1323,12 @@ uninstall_doc(Bundle, ManualBase, DocFormat) :-
 :- use_module(ciaobld(info_installer)).
 
 bundle_install_docs_format_hook(info, Bundle, Target) :- !,
-	get_builddir_doc(Bundle, DocDir),
+	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
 	dirfile_install_info(DocDir, Target).
 bundle_install_docs_format_hook(_, _, _).
 
 bundle_uninstall_docs_format_hook(info, Bundle, Target) :- !,
-	get_builddir_doc(Bundle, DocDir),
+	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
 	dirfile_uninstall_info(DocDir, Target).
 bundle_uninstall_docs_format_hook(_, _, _).
 

@@ -17,7 +17,7 @@
 :- use_module(library(system_extra), [del_file_nofail/1]).
 %
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 %
 :- use_module(library(sh_process), [sh_process_call/3]).
 :- use_module(ciaobld(ciaoc_aux), [invoke_boot_ciaoc/2, clean_mod0/1]).
@@ -155,9 +155,9 @@ eng_config_sysdep(Eng) :-
 	create_eng_meta_sh(Eng, CfgInput, EngMetaSh),
 	sh_process_call(~config_sysdep_sh,
 	       [EngDir, EngCfg],
-	       [cwd(~fsR(bundle_src(core)))]).
+	       [cwd(~bundle_path(core, '.'))]).
 
-config_sysdep_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'config-sysdep.sh').
+config_sysdep_sh := ~bundle_path(builder, 'sh_src/config-sysdep/config-sysdep.sh').
 
 % Create meta_sh for config-sysdep and engine build
 % TODO: At least $eng_name and $eng_h_alias should be created at the
@@ -354,7 +354,7 @@ arch64('x86_64', 'x86_64') :- !.
 arch64('ppc64', 'ppc64') :- !.
 arch64(_, empty). % force error % TODO: emit error instead?
 
-ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf').
+ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
 
 get_sysconf(Args, Val) :-
 	sh_process_call(~ciao_sysconf_sh, Args,

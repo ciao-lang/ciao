@@ -96,7 +96,7 @@ get_pred_value(Name, Value) :-
 
 load_settings(InFile, InKind, Opts) :-
 	clean_autodoc_settings,
-	fixed_absolute_file_name(InFile, InFile2),
+	fixed_absolute_file_name(InFile, '.', InFile2),
 	( InKind = doccfg ->
 	    ( dyn_load_doccfg(InFile2) -> true
 	    ; throw(autodoc_error("could not load doccfg file ~w", [InFile]))
@@ -181,7 +181,7 @@ all_setting_values(Name) := ~all_values(Name).
 
 % TODO: Reuse the logic to locate modules by the compiler?
 
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [ext_absolute_file_name/3]).
 :- use_module(library(pathnames), 
 	[path_dirname/2, path_is_absolute/1, path_norm/2, path_concat/3]).
 :- use_module(lpdoc(autodoc_filesystem), [cleanup_vpath/0, add_vpath/1]).
@@ -205,10 +205,11 @@ load_vpaths(InFile) :-
 :- multifile file_search_path/2.
 :- dynamic file_search_path/2.
 
-% Obtain a resolved filepath (use fsR/2 and make it relative to InDir if needed)
+% Obtain a resolved filepath (use ext_absolute_file_name/2 and make it relative to InDir if needed)
 resolved_filepath(InDir, P) :-
+	% TODO: document at_bundle(_,_) syntax?
 	member(P0, ~all_setting_values(filepath)),
-	fsR(P0, P1),
+	ext_absolute_file_name(P0, InDir, P1),
 	( path_is_absolute(P1) -> P = P1
 	; path_concat(InDir, P1, P2),
 	  path_norm(P2, P)

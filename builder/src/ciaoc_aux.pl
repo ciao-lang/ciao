@@ -33,14 +33,14 @@
 :- use_module(library(system_extra), [del_file_nofail/1]).
 %
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 %
 :- use_module(ciaobld(messages_aux),
 	[cmd_message/3, verbose_message/2]).
 :- use_module(library(messages), [show_message/3]).
 %
 :- use_module(ciaobld(builder_aux),
-	[ensure_builddir_bin/1,
+	[ensure_builddir/2,
 	 remove_dir_nofail/1,
 	 n_and_props/3,
 	 n_output/3,
@@ -51,7 +51,7 @@
 :- doc(section, "Interface to Compilers"). % including documentation generation
 
 ciaoc := ~cmd_path(core, plexe, 'ciaoc').
-bootstrap_ciaoc := ~fsR(bundle_src(core)/'bootstrap'/'ciaoc.sta').
+bootstrap_ciaoc := ~bundle_path(core, 'bootstrap/ciaoc.sta').
 
 :- use_module(library(process), [process_call/3]).
 :- use_module(ciaobld(config_common), [local_ciaolib/1]).
@@ -112,15 +112,15 @@ invoke_boot_ciaoc(Args, Opts) :-
 %  - 'static': build a static executable (self-contained, so that
 %     changes in the compiled system libraries does not affect it)
 %
-b_make_exec(Bundle, InDir, InFile, OutFile, Opts) :-
-	ensure_builddir_bin(Bundle),
+b_make_exec(Bundle, InFile, OutFile, Opts) :-
+	ensure_builddir(Bundle, 'bin'),
 	FileBuild = ~bld_cmd_path(Bundle, plexe, OutFile),
 	( member(static, Opts) ->
 	    Static = ['-s']
 	; Static = []
 	),
-	Dir = ~fsR(InDir),
-	In = ~atom_concat(InFile, '.pl'),
+	path_split(InFile, Dir, Base),
+	In = ~atom_concat(Base, '.pl'),
 	Args = ['-x' | ~append(Static, ['-o', FileBuild, In])],
 	( member(final_ciaoc, Opts) ->
 	    cpx_process_call(~ciaoc, Args, [cwd(Dir)])
@@ -152,9 +152,9 @@ b_make_exec(Bundle, InDir, InFile, OutFile, Opts) :-
 %% :- export(enum_platdep_mod/2).
 %% enum_platdep_mod(FileName, FileA) :-
 %% 	% TODO: ad-hoc!
-%% 	( BaseDir = ~fsR(bundle_src(core)/lib)
-%% 	; BaseDir = ~fsR(bundle_src(core)/library)
-%% 	; BaseDir = ~fsR(bundle_src(contrib)/library)
+%% 	( BaseDir = ~bundle_path(core, 'lib')
+%% 	; BaseDir = ~bundle_path(core, 'library')
+%% 	; BaseDir = ~bundle_path(contrib, 'library')
 %% 	),
 %% 	current_platdep_module(BaseDir, FileName, FileA).
 %% 
@@ -189,7 +189,7 @@ bootstrap_code_file('absmachdef.h').
 
 promote_bootstrap(Eng) :-
 	date_token(Token), % date token for backups 
-	Target = ~fsR(bundle_src(core)/bootstrap), % TODO: bootstrap dir is hardwired
+	Target = ~bundle_path(core, 'bootstrap'), % TODO: bootstrap dir is hardwired
 	promote_bootstrap_(Eng, Token, Target).
 
 promote_bootstrap_(Eng, Token, Target) :-
@@ -246,7 +246,7 @@ number_to_atm2(X, Y) :-
 	 active_inst_eng_path/3]).
 
 % TODO: rename, move somewhere else, make it optional, add native .exe stubs for win32?
-eng_exec_header := ~fsR(bundle_src(ciao)/'core'/'lib'/'compiler'/'header').
+eng_exec_header := ~bundle_path(ciao, 'core/lib/compiler/header'). % TODO: use 'core' instead of 'ciao' bundle
 
 :- export(build_eng_exec_header/1).
 % Create exec header (based on Unix shebang) for running binaries
@@ -341,19 +341,20 @@ build_cmd(Bundle, Dir, P0) :-
 	    Opts = [static]
 	; Opts = []
 	),
+	path_concat(Dir, P, In),
 	( member(shscript, Props) ->
 	    true % TODO: invoke custom build predicate
 	; member(bootstrap_ciaoc, Props) ->
 	    % use bootstrap ciaoc
 	    % TODO: it should use 'build' configuration
 	    cmd_message(Bundle, "building '~w' (~s) using bootstrap compiler", [Output, Name]),
-	    b_make_exec(Bundle, Dir, P, Output, [bootstrap_ciaoc|Opts])
+	    b_make_exec(Bundle, In, Output, [bootstrap_ciaoc|Opts])
 	; % member(final_ciaoc, Props) ->
 	  % use final_ciaoc (default)
 	  % TODO: it should use 'build' configuration
 	  % TODO: Add options for other ciaoc iterations
 	  cmd_message(Bundle, "building '~w' (~s)", [Output, Name]),
-	  b_make_exec(Bundle, Dir, P, Output, [final_ciaoc|Opts])
+	  b_make_exec(Bundle, In, Output, [final_ciaoc|Opts])
 	).
 
 :- use_module(library(sort), [sort/2]).
@@ -440,7 +441,7 @@ runtests_dir(Bundle, Dir) :-
 :- export(runtests_dir/3).
 % Call unittests on directory Dir (recursive) of bundle Bundle
 runtests_dir(Bundle, Dir, Opts) :-
-	AbsDir = ~fsR(bundle_src(Bundle)/Dir),
+	AbsDir = ~bundle_path(Bundle, Dir),
 	exists_and_compilable(AbsDir),
 	!,
 	cmd_message(Bundle, "running '~w' tests", [Dir]),
@@ -466,17 +467,19 @@ exists_and_compilable(Dir) :-
 
 % Special clean targets for builddir
 :- export(builddir_clean/2).
-builddir_clean(Bundle, bin) :- !,
-	remove_dir_nofail(~fsR(builddir(Bundle)/bin)).
-builddir_clean(Bundle, pbundle) :- !,
-	remove_dir_nofail(~fsR(builddir(Bundle)/pbundle)).
 builddir_clean(Bundle, config) :- !,
-	del_file_nofail(~fsR(builddir(Bundle)/bundlereg/'ciao.bundlecfg')),
-	del_file_nofail(~fsR(builddir(Bundle)/bundlereg/'ciao.bundlecfg_sh')).
+	% TODO: reuse clean_bundlereg instead?
+	% TODO: clean only Bundle (not 'ciao')
+	del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/ciao.bundlecfg')),
+	del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/ciao.bundlecfg_sh')).
+builddir_clean(Bundle, bin) :- !,
+	remove_dir_nofail(~bundle_path(Bundle, builddir, 'bin')).
+builddir_clean(Bundle, pbundle) :- !,
+	remove_dir_nofail(~bundle_path(Bundle, builddir, 'pbundle')).
 builddir_clean(Bundle, doc) :- !,
-	remove_dir_nofail(~fsR(builddir(Bundle)/doc)).
+	remove_dir_nofail(~bundle_path(Bundle, builddir, 'doc')).
 builddir_clean(Bundle, all) :-
-	remove_dir_nofail(~fsR(builddir(Bundle))).
+	remove_dir_nofail(~bundle_path(Bundle, builddir, '.')).
 
 % Clean bundlereg
 :- export(clean_bundlereg/1).

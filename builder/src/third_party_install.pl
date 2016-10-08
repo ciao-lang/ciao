@@ -2,7 +2,7 @@
 
 :- doc(title, "Installation of third-party components").
 :- doc(author, "Remy Haemmerle").
-:- doc(author, "Jose F. Morales (minor changes)").
+:- doc(author, "Jose F. Morales").
 
 :- doc(module, "This module implements automatic fetch and build and
    installation of third-party components, without interfering with
@@ -22,6 +22,7 @@
 
    @begin{alert}TO BE DONE@end{alert}").
 
+:- doc(bug, "Use Bundle to locate the third-party directory").
 :- doc(bug, "Write documentation").
 :- doc(bug, "Relation between third_party, bundleitem, and bundle?").
 :- doc(bug, "Implement more build systems (see GNU Guix manual)").
@@ -31,7 +32,7 @@
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(lists), [append/3, difference/3]).
 
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(http_get), [http_get/2]).
 :- use_module(library(md5sum), [md5sum/2]).
 :- use_module(library(pathnames),
@@ -109,12 +110,12 @@ level3(bindir, storedir).
 level3(includedir, storedir).
 level3(libdir, storedir).
 
+% TODO: add Bundle so that it can go next to build/ for each workspace
 :- export(third_party_path/2).
 % Level-0 absolute paths (prefix)
 third_party_path(prefix, Prefix) :- !,
-	fsR(bundle_src(ciao),  CiaoSrc),
 	% TODO: duplicated in source_tree.pl
-	path_concat(CiaoSrc, 'third-party', Prefix).
+	bundle_path(ciao, 'third-party', Prefix).
 %
 % Level-1 absolute paths
 third_party_path(DirId, Path) :- level1(DirId, Base), !,
@@ -247,25 +248,27 @@ download(Lib) :-
 	),
 	message_end(Lib, Operation),!.
 
-:- export(decompress_and_patch/1).
-decompress_and_patch(Lib) :-
+:- export(decompress_and_patch/2).
+decompress_and_patch(Bundle, Lib) :-
 	Operation = "decompress tarball",
 	message_start(Lib, Operation),
 	third_party_path(private(Lib, srcdir), SrcDir), mkdir(SrcDir),
 	third_party_path(cachetar(Lib), TarPath),
 	process_call(path(tar), ['-x', '-f', TarPath], [cwd(SrcDir), status(0)]),
-	patch(Lib),
+	patch(Bundle, Lib),
 	message_end(Lib, Operation),!.
 
-patch(Lib) :-
+% (assume patches are local to the bundle root dir)
+patch(Bundle, Lib) :-
 	m_third_party_patch(Lib, PatchFile), !,
 	Operation = "patch source",
 	message_start(Lib, Operation),
-	fsR(PatchFile, PatchFilePath),
+	bundle_path(Bundle, '.', BundleDir),
+	path_concat(BundleDir, PatchFile, PatchFilePath),
 	third_party_path(real_sourcedir(Lib), SrcDir),
 	process_call(path(patch), ['-p0'], [cwd(SrcDir), stdin(file(PatchFilePath)), status(0)]),
 	message_end(Lib, Operation),!.
-patch(_).
+patch(_, _).
 
 :- export(checksum/1).
 checksum(Lib) :-
@@ -402,14 +405,14 @@ uninstall(Lib) :- Operation = "uninstall",
 	%
 	message_end(Lib, Operation), !.
 	
-:- export(auto_install/1).
-auto_install(Lib) :-
+:- export(auto_install/2).
+auto_install(Bundle, Lib) :-
 	\+ installed(Lib), !,
 	% Fetch source
 	source_clean(Lib),
 	download(Lib),
 	checksum(Lib),
-	decompress_and_patch(Lib),
+	decompress_and_patch(Bundle, Lib),
 	% Configure, build, and install
 	configure(Lib),
 	build(Lib),
@@ -417,7 +420,7 @@ auto_install(Lib) :-
 	% Activate
 	activate(Lib),
 	delete_cachetar(Lib).
-auto_install(Lib) :-
+auto_install(_Bundle, Lib) :-
 	activate(Lib).
 
 get_build_system(Lib, BuildSystem) :-

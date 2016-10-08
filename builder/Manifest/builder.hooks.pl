@@ -17,9 +17,8 @@
 '$builder_hook'(build_bin) :-
 	bundleitem_do(ciao_builder, builder, build_nodocs).
 
-% TODO: just say cmd('cmds/ciao_builder', [...])
 '$builder_hook'(ciao_builder:item_def( 
-    cmds_list(builder, bundle_src(builder)/'cmds', [
+    cmds_list('cmds', [
         'ciao_builder'-[
           output='ciao_builder', % (executable will be called 'builder')
 	  plexe,
@@ -33,7 +32,7 @@
 
 builder_desc := [
   ciao_builder,
-  lib(builder, 'src'),
-  lib(builder, 'sh_src') % TODO: not for windows!
+  lib('src'),
+  lib('sh_src') % TODO: not for windows!
 ].
 

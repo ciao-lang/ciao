@@ -3,7 +3,8 @@
 :- doc(title, "Configuration rules for Ciao").
 :- doc(author, "Ciao Development Team").
 
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(pathnames), [path_concat/3]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 
 % ---------------------------------------------------------------------------
 
@@ -118,19 +119,19 @@ def_registration_type(local, user).
 % (Not configurable setting, necessary for build_engine.sh)
 :- bundle_flag(ciaosrc, [
     comment("Source directory for Ciao"),
-    rule_set_value(Value, fsR(bundle_src(ciao), Value))
+    rule_set_value(Value, bundle_path(ciao, '.', Value))
 ]).
 
 % (Not configurable setting, necessary for build_engine.sh)
 :- bundle_flag(defaultlibdir, [
     comment("Default directory for Ciao libraries"),
     rule_set_value(Value, (
-      flag(install_libdir(_)), % TODO: hidden dependency (due to fsR)
+      flag(install_libdir(_)), % TODO: hidden dependency (due to bundle_path/3)
       flag(instype(InsType)),
       get_defaultlibdir(InsType, Value)))
 ]).
 
-get_defaultlibdir(local) := ~fsR(bundle_src(core)).
+get_defaultlibdir(local) := ~bundle_path(core, '.').
 get_defaultlibdir(global) := ~instciao_bundledir(core).
 
 :- use_module(ciaobld(config_common), [instciao_bundledir/2]).
@@ -159,7 +160,7 @@ get_defaultlibdir(global) := ~instciao_bundledir(core).
 ]).
 
 :- use_module(library(bundle/bundle_info), [root_bundle/1]).
-build_dir := ~fsR(builddir(~root_bundle)).
+build_dir := ~bundle_path(~root_bundle, builddir, '.').
 
 get_prefix(global, '/usr/local').
 
@@ -167,14 +168,14 @@ get_prefix(global, '/usr/local').
     comment("Installation directory for executables"),
     rule_set_value(Value, (
       flag(install_prefix(Prefix)),
-      fsR(Prefix/'bin', Value)))
+      path_concat(Prefix, 'bin', Value)))
 ]).
 
 :- bundle_flag(install_libdir, [
     comment("Installation directory for libraries"),
     rule_set_value(Value, (
       flag(install_prefix(Prefix)),
-      fsR(Prefix/'lib', Value)))
+      path_concat(Prefix, 'lib', Value)))
 ]).
 
 :- bundle_flag(execmode, [

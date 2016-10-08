@@ -1,5 +1,8 @@
 :- module(pbundle_gen_mac, [], [fsyntax, assertions]).
 
+% TODO: This code needs major simplifications (use Prolog when
+%   possible, use skel/template files, reuse binary installer scripts)
+
 :- doc(title, "Mac OS X distributions").
 
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
@@ -29,7 +32,7 @@ Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The CLIP Group.
 
 :- use_module(library(bundle/bundle_flags), [restore_all_bundle_flags/0]).
 :- use_module(library(bundle/bundle_info), [bundle_version_patch/2]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(ciaobld(bundle_hash), [
 	bundle_versioned_packname/2, bundle_commit_info/3]).
 
@@ -138,10 +141,10 @@ gen_pbundle_hook(pkg, Bundle, _Options) :- !,
 
 gen_pbundle__pkg(Bundle) :-
 	cmd_message(Bundle, "creating Mac OS X package", []),
-        WorkSpace =  ~fsR(bundle_src(Bundle)),
+        WorkSpace =  ~bundle_path(Bundle, '.'),
 	PackDir = ~pbundle_output_dir,
 	TmpDir = ~make_temp_dir,
-	DestDir = ~fsR(TmpDir/'root'),
+	DestDir = ~path_concat(TmpDir, 'root'),
 	mkpath(DestDir, ~perms), % TODO: owner?
 	install_to_destdir(DestDir),
 	generate_uninstaller(DestDir, UninstallerPath),
@@ -168,17 +171,17 @@ install_to_destdir(DestDir) :-
       @var{Version} the Ciao version".
 
 package_pkg(Bundle, DestPath, TmpDir, PPath, WorkPath, Name, Version, PName) :-
-	InfoFile = ~fsR(WorkPath/'Info.plist'),
-%	DescriptionFile = ~atom_concat(WorkPath, '/Description.plist'),
-	ResourcesPath = ~fsR(TmpDir/'pkg_resources'/'English.lproj'),
-	ScriptsDir = ~fsR(TmpDir/'Scripts'),
- 	PName = ~atom_concat(~fsR(PPath/(~bundle_versioned_packname(Bundle))), '.pkg'),
+	InfoFile = ~path_concat(WorkPath, 'Info.plist'),
+%	DescriptionFile = ~path_concat(WorkPath, 'Description.plist'),
+	ResourcesPath = ~path_concat(TmpDir, 'pkg_resources/English.lproj'),
+	ScriptsDir = ~path_concat(TmpDir, 'Scripts'),
+ 	PName = ~atom_concat(~path_concat(PPath, ~bundle_versioned_packname(Bundle)), '.pkg'),
 	%
 	mkpath(ResourcesPath, ~perms), % TODO: owner?
 	write_welcome_html(ResourcesPath, Name, Version),
 	write_conclusion_html(ResourcesPath),
-%	copy_file('GPL', ~fsR(ResourcesPath/'Licence'), [overwrite]),
-%	copy_file('Manifest/clip.png', ~fsR(ResourcesPath/'background'), [overwrite]),   
+%	copy_file('GPL', ~path_concat(ResourcesPath, 'Licence'), [overwrite]),
+%	copy_file('Manifest/clip.png', ~path_concat(ResourcesPath, 'background'), [overwrite]),   
 	generate_installation_scripts(DestPath, ScriptsDir),
 	%
 	write_info_plist(InfoFile, Name, Version),
@@ -194,12 +197,12 @@ package_pkg(Bundle, DestPath, TmpDir, PPath, WorkPath, Name, Version, PName) :-
 		'--info', InfoFile,
 		'--target', ~target_os_version,
 		'--domain', system,
-		'--id', ~atom_concat('es.upm.fi.dia.clip.', Name) % TODO: from Bundle
+		'--id', ~atom_concat('org.ciao-lang.', Name) % TODO: from Bundle
 	       ], [env(['PMResourceLocale'='English'])]).
 
 package_dmg(Bundle, PPath, List) :-
 	verbose_message("Generating the dmg image", []),
- 	DmgName = ~atom_concat(~fsR(PPath/(~bundle_versioned_packname(Bundle))), '.dmg'),
+ 	DmgName = ~atom_concat(~path_concat(PPath, ~bundle_versioned_packname(Bundle)), '.dmg'),
 	process_list_for_src(List, Tail),
 	process_call(path(hdiutil), 
 	       ['create', DmgName,
@@ -219,7 +222,7 @@ generate_uninstaller(DestDir, Path) :-
 	BundleDirCore = ~instciao_bundledir(core),
 	StoreDir = ~instciao_storedir,
 	%
- 	Path = ~fsR(StoreDir/'uninstall_ciao'),
+ 	Path = ~path_concat(StoreDir, 'uninstall_ciao'),
 	%
 	% Note: */* expands to bin/... lib/... but does not include
 	%   those directories (we do not want to uninstall them)
@@ -231,7 +234,7 @@ generate_uninstaller(DestDir, Path) :-
         ], [cwd(DestDir), stdout(string(StrFiles))]),
 	%
 	info_files(DestDir, StrInfo),
-	% TODO: Use shlang (quoting missing)
+	% TODO: Use shlang (quoting missing); use a skel?
 	add_prefix_suffix(StrFiles, "rm -fd ", " || true", StrFiles_),
 	add_prefix_suffix(StrInfo, "my_uninstall_info ", "", StrInfo_),
 	generate_bash_script(DestDir, Path, "
@@ -258,8 +261,8 @@ rm -fd ~a ~a ~a || true\n
 
 generate_uninstaller_wrapper(TmpDir, Path, AppPath) :-
 	verbose_message("Generating uninstaller wrapper", []),
- 	TxtPath = ~fsR(TmpDir/'uninstaller.applescript'),
- 	AppPath = ~fsR(TmpDir/'Uninstall Ciao.app'),
+ 	TxtPath = ~path_concat(TmpDir, 'uninstaller.applescript'),
+ 	AppPath = ~path_concat(TmpDir, 'Uninstall Ciao.app'),
 	%
 	open_output(TxtPath, Stream), Stream = o(_, Stream_),
 	format(Stream_, 
@@ -342,7 +345,7 @@ gen_pbundle_hook(macport, Bundle, _Options) :- !,
 	),
 	%
 	MD5Sum = ~md5sum(AbsTGZ),
-	wr_template(at(~pbundle_output_dir), ~builder_src_dir/'mac', 'Portfile', [
+	wr_template(at(~pbundle_output_dir), ~path_concat(~builder_src_dir, 'mac'), 'Portfile', [
             'Version' = ~bundle_version_patch(Bundle),
             'VersionedPackName' = ~atom_codes(TGZ),
             'HomeURL' = ~home_url_str, % TODO: from Bundle
@@ -351,7 +354,7 @@ gen_pbundle_hook(macport, Bundle, _Options) :- !,
         ]).
 
 pbundle_packname_absfile(Bundle) := F :-
-	F = ~atom_concat(~fsR(build/pbundle/(~bundle_versioned_packname(Bundle))), '.tar.gz').
+	F = ~atom_concat(~path_concat('build/pbundle', ~bundle_versioned_packname(Bundle)), '.tar.gz').
 
 % ---------------------------------------------------------------------------
 
@@ -434,7 +437,8 @@ write_package_info(File) :-
 	close_output(OStr).
 
 write_welcome_html(ResourcesPath, Name, Version) :-
- 	open_output(~fsR(ResourcesPath/'Welcome.html'), OStr), OStr = o(_, Str),
+ 	open_output(~path_concat(ResourcesPath, 'Welcome.html'), OStr), OStr = o(_, Str),
+	% TODO: use skel
 	format(Str, "<html lang=\"en\">
 <head>
 	<meta http-equiv=\"content-type\" content=\"text/html; charset=iso-8859-1\">
@@ -464,7 +468,7 @@ install ~w ~w for Mac OS X. To get started, click Continue.
 
 write_conclusion_html(ResourcesPath) :-
 	InitFile = ~path_concat(~instciao_storedir, 'ciao-mode-init.el'),
-	open_output(~atom_concat(ResourcesPath, '/Conclusion.html'), OStr), OStr = o(_, Str),
+	open_output(~path_concat(ResourcesPath, 'Conclusion.html'), OStr), OStr = o(_, Str),
 	format(Str, 
 "<html lang=\"en\">
 <head>
@@ -543,7 +547,7 @@ my_install_info () {
 ~s", [Str_]).
 
 generate_bash_script(Dir, Name, Str, Args) :-
-	open_output(~fsR(Dir/Name), OStream), OStream = o(_, Stream),
+	open_output(~path_concat(Dir, Name), OStream), OStream = o(_, Stream),
 	format(Stream, "#!/bin/bash\n", []), 
 	format(Stream, Str, Args), 
 	close_output(OStream).
@@ -569,8 +573,8 @@ gen_pbundle__app(Bundle) :-
 	PackDir = ~pbundle_output_dir,
 	TmpDir = ~make_temp_dir,
 	%
-	AppBundlePath = ~fsR(TmpDir/'Ciao.app'),
-	ResourcesDir = ~fsR(AppBundlePath/'Contents'/'Resources'),
+	AppBundlePath = ~path_concat(TmpDir, 'Ciao.app'),
+	ResourcesDir = ~path_concat(AppBundlePath, 'Contents/Resources'),
 	%
 	% TODO: (see environment_and_windows_bats for similar code)
 	set_bundle_param_value(core:emacs_type, 'MacOSBundle'), % TODO: strange
@@ -578,7 +582,7 @@ gen_pbundle__app(Bundle) :-
 	builder_cmd(build_nodocs, 'core/emacs_mode', []), % TODO: pass emacs_type as Opt! make sure that we push and pop flags!
 	del_bundle_param_value(core:emacs_type),
 	%
-	wr_template(origin, ~builder_src_dir/'mac', 'Ciao.applescript', [
+	wr_template(origin, ~path_concat(~builder_src_dir, 'mac'), 'Ciao.applescript', [
 	    'VERSION' = ~bundle_versioned_packname(Bundle),
 	    'BUNDLEDIR_CORE' = BundleDirCore,
 	    'CIAOENGINE' = CiaoEngine,
@@ -588,22 +592,22 @@ gen_pbundle__app(Bundle) :-
 	%
 	process_call(path(osacompile),
 	       ['-ai386', '-o', AppBundlePath,
-		~fsR(~builder_src_dir/'mac'/'Ciao.applescript')], []),
+		~path_concat(~builder_src_dir, 'mac/Ciao.applescript')], []),
 	%
-	wr_template(at(TmpDir/'Ciao.app'/'Contents'), ~builder_src_dir/'mac', 'Info.plist', [
+	wr_template(at(TmpDir/'Ciao.app/Contents'), ~path_concat(~builder_src_dir, 'mac'), 'Info.plist', [
 	    'VERSION' = ~bundle_versioned_packname(Bundle),
 	    'DOMAIN' = Domain
 	]),
 	%
-	process_call(path(rm), ['-f', ~atom_concat(ResourcesDir, '/applet.icns')], []),
+	process_call(path(rm), ['-f', ~path_concat(ResourcesDir, 'applet.icns')], []),
 	%
 	install_to_destdir(ResourcesDir),
 	process_call(path(cp), ['-f',
-	            ~fsR(~builder_src_dir/'mac'/'ciao-icon.icns'),
+	            ~path_concat(~builder_src_dir, 'mac/ciao-icon.icns'),
 		    ResourcesDir], []),
 	%
 	% TODO: try not to write the output here
-	wr_template(origin, ~builder_src_dir/'mac', 'configure_dotemacs.pl', [
+	wr_template(origin, ~path_concat(~builder_src_dir, 'mac'), 'configure_dotemacs.pl', [
 	    'CIAOENGINE' = CiaoEngine,
 	    'BINDIR' = BinDir,
 	    'BUNDLEDIR_CORE' = BundleDirCore,
@@ -611,11 +615,11 @@ gen_pbundle__app(Bundle) :-
         ]),
  	RBinDir = ~atom_concat(ResourcesDir, BinDir),
 	process_call(path(mkdir), ['-p', RBinDir], []),
-	make_exec([~fsR(~builder_src_dir/'mac'/'configure_dotemacs.pl')],
- 	    ~fsR(RBinDir/'configure_dotemacs')),
+	make_exec([~path_concat(~builder_src_dir, 'mac/configure_dotemacs.pl')],
+	           ~path_concat(RBinDir, 'configure_dotemacs')),
 	%
  	RBundleDirCore = ~atom_concat(ResourcesDir, BundleDirCore),
- 	open_output(~fsR(RBundleDirCore/'sample.pl'), OStr), OStr = o(_, Str),
+ 	open_output(~path_concat(RBundleDirCore, 'sample.pl'), OStr), OStr = o(_, Str),
 	sample_program_text(Str),
 	close_output(OStr),
 	%

@@ -43,7 +43,7 @@ where action is one of:
 :- doc(bug, "This module will eventually replace @lib{octesting}").
 
 :- use_module(library(lists),              [reverse/2, append/3]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(compiler/c_itf),     [defines_module/2,
                                             compute_base_name/4]).
 :- use_module(library(process),            [process_call/3]).
@@ -147,7 +147,7 @@ read_mod_queries_(_IStream,[]).
 
 % clean_output(Out,In,Unparsed)
 clean_output(Cs) -->
-        { fsR(bundle_src(ciao),Root),atom_codes(Root,RootPath) },
+        { bundle_path(ciao, '.', Root), atom_codes(Root,RootPath) },
         clean_output_(Cs, RootPath).
 
 clean_output_("\n\n{In " || Cs    , RootPath) --> "{In ", !,

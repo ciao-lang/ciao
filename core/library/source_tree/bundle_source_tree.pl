@@ -9,9 +9,7 @@
    tree based on @lib{source_tree}.").
 
 :- use_module(engine(internals), ['$bundle_id'/1]).
-:- use_module(library(bundle/paths_extra),
-	[fsR/2,
-	 relative_absname/3]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(aggregates), [findall/3]).
 
 % ===========================================================================
@@ -34,7 +32,7 @@ resolve_modset(bundle(Bundle), Xs) :- !,
 	resolve_modset_list(Xs0, Xs).
 resolve_modset(F, Xs) :- !,
 	Xs = [B],
-	relative_absname('', F, B).
+	absolute_file_name(F, '', '.pl', '.', _, B, _).
 
 resolve_modset_list([], []).
 resolve_modset_list([F|Fs], Bs) :-
@@ -43,7 +41,6 @@ resolve_modset_list([F|Fs], Bs) :-
 	resolve_modset_list(Fs, Bs1).
 
 :- use_module(engine(internals), ['$bundle_id'/1]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(library(system), [working_directory/2]).
 
 % TODO: Declare in bundle which are the roots for compilable module search (e.g., paths in alias paths)
@@ -69,45 +66,45 @@ bundle_contents(core, Filter, X) :- !,
 	).
 %
 bundle_contents(part(core, engine), Filter, X) :- !,
-	fsR(bundle_src(core)/engine, F),
+	bundle_path(core, 'engine', F),
 	current_file_find(Filter, F, X).
 bundle_contents(part(core, compiler), Filter, X) :- !,
-	fsR(bundle_src(core)/lib/compiler, F),
+	bundle_path(core, 'lib/compiler', F),
 	current_file_find(Filter, F, X).
 bundle_contents(part(core, toplevel), Filter, X) :- !,
-	fsR(bundle_src(core)/library/toplevel, F),
+	bundle_path(core, 'library/toplevel', F),
 	current_file_find(Filter, F, X).
 %
 bundle_contents(part(core, lib), Filter, X) :- !,
-	fsR(bundle_src(core)/lib/compiler, F1),
+	bundle_path(core, 'lib/compiler', F1),
 	%
-	fsR(bundle_src(core)/lib, F),
+	bundle_path(core, 'lib', F),
 	current_file_find(Filter, F, X),
 	% TODO: Hack, not in lib/compiler
 	\+ atom_concat(F1, _, X).
 bundle_contents(part(core, library), Filter, X) :- !,
-	fsR(bundle_src(core)/library/toplevel, F1),
+	bundle_path(core, 'library/toplevel', F1),
 	%
-	fsR(bundle_src(core)/library, F),
+	bundle_path(core, 'library', F),
 	current_file_find(Filter, F, X),
 	% TODO: Hack, not in library/toplevel
 	\+ atom_concat(F1, _, X).
 bundle_contents(part(contrib, library), Filter, X) :- !,
-	fsR(bundle_src(contrib)/library, F),
+	bundle_path(contrib, 'library', F),
 	current_file_find(Filter, F, X).
 %
 bundle_contents(part(ide, web), Filter, X) :- !,
-	fsR(bundle_src(ide)/'web', F),
+	bundle_path(ide, 'web', F),
 	current_file_find(Filter, F, X).
 bundle_contents(part(ide, emacs_mode), Filter, X) :- !, % TODO: remove ad-hoc case?
-	fsR(bundle_src(ide)/'emacs-mode', F),
+	bundle_path(ide, 'emacs-mode', F),
 	current_file_find(Filter, F, X).
 %
 bundle_contents(lpdoc, Filter, X) :- !,
-	fsR(bundle_src(lpdoc)/src, F),
+	bundle_path(lpdoc, 'src', F),
 	current_file_find(Filter, F, X).
 bundle_contents(Id, Filter, X) :- !,
-	fsR(bundle_src(Id), F),
+	bundle_path(Id, '.', F),
 	current_file_find(Filter, F, X).
 
 is_list([]).

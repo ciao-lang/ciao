@@ -30,11 +30,11 @@
 	bundleitem_do(dot_shell_csh, core, build_nodocs),
 	bundleitem_do(dot_shell_sh, core, build_nodocs).
 '$builder_hook'(dot_shell:clean_norec) :-
-	del_file_nofail(~fsR(bundle_src(core)/etc/'DOTprofile')),
-	del_file_nofail(~fsR(bundle_src(core)/etc/'DOTcshrc')).
+	del_file_nofail(~bundle_path(core, 'etc/DOTprofile')),
+	del_file_nofail(~bundle_path(core, 'etc/DOTcshrc')).
 
 % TODO: Generate in builddir instead
-etc_dir := ~fsR(bundle_src(core)/'etc').
+etc_dir := ~bundle_path(core, 'etc').
 
 % Generate shell initialization files
 '$builder_hook'(dot_shell_sh:item_build_nodocs) :-
@@ -54,7 +54,7 @@ dot_shell_file(csh) := 'DOTcshrc'.
 dot_shell_file(sh) := 'DOTprofile'.
 
 '$builder_hook'(dot_shell_:item_def(
-    lib_file_list(core, ~etc_dir, [
+    lib_file_list('etc', [
       'DOTprofile'-[copy_and_link],
       'DOTcshrc'-[copy_and_link]
     ]))).

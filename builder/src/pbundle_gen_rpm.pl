@@ -32,7 +32,7 @@
 :- use_module(library(file_utils)).
 
 :- use_module(engine(internals), ['$bundle_prop'/2]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(bundle/bundle_info), [
 	enum_sub_bundles/2,
 	bundle_version/2, bundle_patch/2,
@@ -371,16 +371,16 @@ gen_pbundle__rpm(Bundle, GenerationOptions) :-
 	pbundle_output_dir(OutputDirName),
 	rpm_prevailingoptions(GenerationOptions, RpmbuildOptions),
 	rpmbuild_setoptions(RpmbuildOptions, Bundle, RpmbuildArgs),
-	process_call(~fsR(~builder_src_dir/'rpm'/'RPM-Ciao.bash'),
+	process_call(~path_concat(~builder_src_dir, 'rpm/RPM-Ciao.bash'),
 	       [~atom_concat(OutputDirName, '/'),
 		~bin_packname(Bundle),
 		SpecFileName | RpmbuildArgs], []),
 	create_pbundle_output_dir,
 	rpm_macrovalue('_arch',   Arch),
 	rpm_macrovalue('_rpmdir', RpmDir),
- 	% TODO: generalize, use fsR
+	%
 	'$bundle_prop'(Bundle, packname(Packname)),
-	atom_concat([RpmDir, '/', Arch, '/', ~rpm_file_name(Bundle, Packname, Arch)], CiaoRpmFileName),
+	CiaoRpmFileName = ~path_concat(~path_concat(RpmDir, Arch), ~rpm_file_name(Bundle, Packname, Arch)),
 	%
 	findall(BundleRpmFileName, bundle_rpm_file_names(Bundle, RpmDir, Arch, RpmbuildOptions, BundleRpmFileName), RpmFileNames),
 	%
@@ -394,7 +394,7 @@ gen_pbundle__rpm(Bundle, GenerationOptions) :-
 	;
 	    true
 	),
- 	del_file_nofail(~atom_concat(~fsR(OutputDirName/VersionedPackName), '.tar.gz')),
+ 	del_file_nofail(~atom_concat(~path_concat(OutputDirName, VersionedPackName), '.tar.gz')),
 	del_file_nofail(CiaoRpmFileName),
 	( member(option('subpackages', 'yes'), RpmbuildOptions) ->
 	    del_files_nofail(RpmFileNames)
@@ -410,7 +410,7 @@ bundle_rpm_file_names(Bundle, RpmDir, Arch, RpmbuildOptions, BundleRpmFileName) 
 	; '$bundle_prop'(SubBundle, packname(Ciaoname))
 	),
 	% TODO: refactor
-	atom_concat([RpmDir, '/', Arch, '/', ~rpm_file_name(SubBundle, Ciaoname, Arch)], BundleRpmFileName).
+	BundleRpmFileName = ~path_concat(~path_concat(RpmDir, Arch), ~rpm_file_name(SubBundle, Ciaoname, Arch)).
 
 :- doc(bug, "For now, release is equal to the SVN revision number,
 	that is done only to allow generating the RPM now, but when 
@@ -488,7 +488,7 @@ create_rpm_spec(Bundle) :-
 	% TODO: Ciao.spec is hardwired
         get_rpm_version_and_release(Bundle, Version, Release),
 	working_directory(Cwd, Cwd), % TODO: sure?
-	wr_template(at(Cwd), ~builder_src_dir/'rpm', 'Ciao.spec', [
+	wr_template(at(Cwd), ~path_concat(~builder_src_dir, 'rpm'), 'Ciao.spec', [
 	    'Version' = Version,
 	    'Release' = Release,
 	    'VersionedPackName' = ~bundle_versioned_packname(Bundle),

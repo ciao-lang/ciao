@@ -18,7 +18,6 @@
 
 :- use_module(library(llists), [flatten/2]).
 
-gsl_dir := bundle_src(contrib)/library/'gsl_imports'.
 with_gsl := ~get_bundle_flag(contrib:with_gsl).
 auto_install_gsl := ~get_bundle_flag(contrib:auto_install_gsl).
 
@@ -27,13 +26,13 @@ auto_install_gsl := ~get_bundle_flag(contrib:auto_install_gsl).
 	do_auto_install_gsl,
 	prebuild_gsl_bindings.
 
-:- use_module(ciaobld(third_party_install), [auto_install/1]).
+:- use_module(ciaobld(third_party_install), [auto_install/2]).
 :- use_module(ciaobld(eng_defs), [bld_eng_path/3]).
 
 do_auto_install_gsl :-
 	( auto_install_gsl(yes) -> 
 	    normal_message("Auto-install GSL (third party)", []),
-	    third_party_install:auto_install(gsl)
+	    third_party_install:auto_install(contrib, gsl)
 	; true
 	).
 
@@ -54,7 +53,7 @@ prebuild_gsl_bindings :-
 	    T = ~flatten([
 		    ":- extra_compiler_opts(\'"||CompilerOpts, "\').\n"||
 		    ":- extra_linker_opts(\'"||LinkerOpts, "\').\n"]),
-	    string_to_file(T, ~fsR(~gsl_dir/'gsl_imports_decl_auto.pl')),
+	    string_to_file(T, ~bundle_path(contrib, 'library/gsl_imports/gsl_imports_decl_auto.pl')),
 	    % List of static libraries from GSL
 	    % TODO: generalize for any other library
 	    M = ~flatten(["GSL_STAT_LIBS=\'"||LinkerOpts, "\'\n"])
@@ -76,7 +75,7 @@ prebuild_gsl_bindings :-
 	GSLEngDir = ~bld_eng_path(cfgdir, GSLEng), % NOTE: not an engine
 	mkpath(GSLEngDir),
 	string_to_file(M, ~path_concat(GSLEngDir, 'config_sh')),
-	string_to_file(S, ~fsR(~gsl_dir/'gsl_imports_auto.pl')).
+	string_to_file(S, ~bundle_path(contrib, 'library/gsl_imports/gsl_imports_auto.pl')).
 
 :- use_module(library(lists), [append/3]).
 

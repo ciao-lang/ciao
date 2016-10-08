@@ -694,7 +694,7 @@ get_tmp_dir(TmpDir) :-
 	  file_exists(TmpDir0, 2) % 2 is for writing
 	),
 	!,
-	fixed_absolute_file_name(TmpDir0, TmpDir). % Normalize
+	fixed_absolute_file_name(TmpDir0, '.', TmpDir). % Normalize
 
 try_tmpdir(TmpDir) :- using_windows, !,
 	try_tmpdir_win32(TmpDir).
@@ -927,9 +927,9 @@ cyg2win_a(Path, WindifiedPath, Swap) :-
 
 :- pred get_home(-H) # "@var{H} is the home directory (@tt{HOME}
 environment variable in POSIX systems and APPDATA in Windows)".
-
+% TODO: use C function directly
 get_home(H) :-
-	fixed_absolute_file_name('~', H).
+	fixed_absolute_file_name('~', '.', H).
 
 :- pred find_executable(+Name, -Path) # "@var{Path} is the absolute
    path of the command @var{Name}, reachable from the @tt{PATH}

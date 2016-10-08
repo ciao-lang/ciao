@@ -22,7 +22,7 @@
 :- use_module(library(process), [process_call/3, process_pipe/2]).
 :- use_module(library(system), [winpath/3, winpath/2, working_directory/2]).
 :- use_module(library(source_tree), [current_file_find/3]).
-:- use_module(library(pathnames), [path_basename/2]).
+:- use_module(library(pathnames), [path_basename/2, path_concat/3]).
 
 :- use_module(ciaobld(eng_defs), [bld_eng_path/3]).
 :- use_module(ciaobld(config_common),
@@ -33,7 +33,7 @@
 	enum_sub_bundles/2,
 	bundle_version/2,
 	bundle_version_patch/2]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 :- use_module(ciaobld(bundle_hash), [
 	bundle_versioned_packname/2, bundle_commit_info/3]).
 :- use_module(ciaobld(pbundle_generator)).
@@ -78,7 +78,7 @@ create_iss_file(Bundle, FileIss, FileListName) :-
 	Eng = ~default_eng_def,
 	%
 	working_directory(Cwd, Cwd), % TODO: sure?
-	wr_template(at(Cwd), ~builder_src_dir/'win32', FileIss, [
+	wr_template(at(Cwd), ~path_concat(~builder_src_dir, 'win32'), FileIss, [
 	    'MyAppName' = "Ciao", % TODO: extract from bundle
 	    'MyAppVerName' = AppVerName,
 	    'OutputBaseFileName' = OutputBaseFileName,
@@ -87,12 +87,12 @@ create_iss_file(Bundle, FileIss, FileListName) :-
  	    'MyAppExeName' = ~cmdname_ver(yes, core, plexe, 'ciaosh'), % TODO: extract from bundle
 	    'CiaoVersion' = ~bundle_version(core), % TODO: extract from bundle
 	    'SourceDir' = ~source_dir,
-	    'MyRelBuildDir' = ~relciaodir(~fsR(builddir(Bundle))),
+	    'MyRelBuildDir' = ~relciaodir(~bundle_path(Bundle, builddir, '.')),
 	    'OutputDir' = ~output_dir,
 	    'ManualIcons' = ~get_manual_icons(Bundle),
 	    'DefaultDirName' = ~default_dir_name(Bundle),
 	    'CiaoEngineExec' = ~winpath(relative, ~relciaodir(~bld_eng_path(exec, Eng))),
-	    'FileListName' = ~winpath(full, ~fsR(bundle_src(ciao)/FileListName))
+	    'FileListName' = ~winpath(full, ~bundle_path(ciao, FileListName))
 	]).
 
 default_dir_name(Bundle) := D :-
@@ -112,7 +112,7 @@ get_manual_icons_(ParentBundle, Str) :-
 	ensure_load_bundlehooks(Bundle),
 	%
 	DocFormat = pdf,
-	RelBuildDir = ~relciaodir(~fsR(builddir(Bundle))),
+	RelBuildDir = ~relciaodir(~bundle_path(Bundle, builddir, '.')),
 	'$bundle_prop'(Bundle, packname(PackName)),
 	ManualBase = ~bundle_manual_base(Bundle), % (nondet)
 	FileMain = ~atom_concat([ManualBase, '.', DocFormat]),
@@ -197,9 +197,9 @@ extra_system_file := ~relciaodir(~bld_eng_path(lib_so, Eng)) :-
 display_file_entry(Source, DestDir) :-
 	display_list(['Source: ', Source, '; DestDir:{app}\\', DestDir, '\n']).
 
-license_file := ~atom_codes(~winpath(relative, ~fsR(bundle_src(ciao)/'LGPL'))).
+license_file := ~atom_codes(~winpath(relative, ~bundle_path(ciao, 'LGPL'))).
 
-source_dir := ~atom_codes(~winpath(relative, ~fsR(bundle_src(ciao)))).
+source_dir := ~atom_codes(~winpath(relative, ~bundle_path(ciao, '.'))).
 output_dir := ~atom_codes(~winpath(relative, ~pbundle_output_dir)).
 
 fullwinname(File, WinName) :-

@@ -19,7 +19,7 @@
 :- use_module(library(pathnames), [path_concat/3]).
 
 :- use_module(engine(internals), ['$bundle_id'/1]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(write), [writeq/1]).
 
 %% ------------------------------------------------------------
@@ -178,11 +178,10 @@ update_when_needed :-
 update_when_needed :-
 	update.
 
-
 bundle_src(Bundle, Path) :-
 	'$bundle_id'(Bundle),
 	\+ Bundle = ciao, % (skip this one, contains several)
-	fsR(bundle_src(Bundle), Path).
+	bundle_path(Bundle, '.', Path).
 
 %% ------------------------------------------------------------
 

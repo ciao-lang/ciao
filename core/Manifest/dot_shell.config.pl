@@ -1,5 +1,7 @@
 % (included file)
 
+:- use_module(library(pathnames), [path_concat/3]).
+
 :- doc(section, "Command-line Enviroment").
 
 :- bundle_flag(update_bashrc, [
@@ -36,7 +38,7 @@ get_bashrc(all, F) :-
 	    true
 	; F = '/etc/bashrc'
 	).
-get_bashrc(user) := ~fsR(~get_home/'.bashrc').
+get_bashrc(user) := ~path_concat(~get_home, '.bashrc').
 
 % ---------------------------------------------------------------------------
 
@@ -81,12 +83,12 @@ get_cshrc(user) := ~get_cshrc_name.
 % by default, assume .cshrc
 get_cshrc_name(C) :-
 	( ( member(F, ['.tcshrc', '.cshrc']),
-	    C = ~fsR((~get_home)/F),
+	    C = ~path_concat(~get_home, F),
 	    file_exists(C)
 	  ) ->
 	    true
 	; F = '.cshrc',
-	  C = ~fsR((~get_home)/F)
+	  C = ~path_concat(~get_home, F)
 	).
 
 get_update_sh('all',  'no').

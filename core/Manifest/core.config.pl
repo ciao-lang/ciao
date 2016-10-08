@@ -7,7 +7,7 @@
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(lists), [append/3]).
 
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(ciaobld(detcheader), [detect_c_headers/1]).
 
 % ===========================================================================

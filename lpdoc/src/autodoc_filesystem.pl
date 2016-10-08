@@ -318,7 +318,6 @@ absfile_for_subtarget_(Base, Backend, Subtarget, AbsFile) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(library(bundle/bundle_info), [bundle_version_patch/2]).
 
 % Note: I cannot obtain the version from version_maintenance at this
@@ -359,23 +358,22 @@ main_output_name_novers(OutputBase) :-
 	  )
 	).
 
-:- use_module(library(bundle/paths_extra),
-	[reverse_fsRx/2, fsRx_get_bundle_and_basename/3]).
+:- use_module(library(bundle/bundle_paths),
+	[reverse_ext_find_pl_filename/2, reverse_bundle_path/3]).
 
 % Extract parent bundle from mainmod (fails if not in a bundle)
 :- export(get_parent_bundle/1).
 get_parent_bundle(Bundle) :-
 	get_mainmod_spec(Spec),
 	find_doc_source(Spec, ModPath),
-	reverse_fsRx(ModPath, ModSpec),
-	fsRx_get_bundle_and_basename(ModSpec, Bundle, _).
+	reverse_bundle_path(ModPath, Bundle, _).
 
 % Extract a modspec from an absolute file name
 % (or give back the same ModPath if not in a bundle)
 :- export(get_modspec/2).
 get_modspec(ModPath, ModSpec) :-
-	( reverse_fsRx(ModPath, ModSpec0),
-	  \+ ModSpec0 = (_/_) ->
+	( reverse_ext_find_pl_filename(ModPath, ModSpec0),
+	  \+ ModSpec0 = at_bundle(_, _) -> % TODO: must be in an alias path?
 	    ModSpec = ModSpec0
 	; % TODO: emit warning?
 	  ModSpec = ModPath % absolute path (no better way...)

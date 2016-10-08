@@ -7,7 +7,7 @@
 %    like \apl{emacs}.
 
 :- use_module(library(system), [file_exists/1]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(emacs/emacs_batch),
 	[emacs_path/1, emacs_batch_call/3, emacs_clean_log/2]).
@@ -37,7 +37,7 @@ lang('text').
 % ---------------------------------------------------------------------------
 
 ciao_mode_el(F) :-
-	find_asset(bundle_src(ide)/'emacs-mode'/'ciao-site-file.el', F).
+	bundle_path(ide, 'emacs-mode/ciao-site-file.el', F).
 
 % ---------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ can_highlight(Lang) :-
       file (using emacs and htmlfontify, and `Lang`-mode mode)".
 
 highlight_to_html(Lang, Input, Output) :-
-	find_asset(library(syntax_highlight/'emacs-htmlfontify.el'), HfyEl),
+	absolute_file_name(library(syntax_highlight/'emacs-htmlfontify.el'), HfyEl), % TODO: find asset?
 	ciao_mode_el(SiteFileEl),
 	LogBase = 'ciao-highlight-log',
 	emacs_batch_call('.', LogBase,
@@ -93,24 +93,6 @@ highlight_to_html(Lang, Input, Output) :-
 %	      Input,
 %	      Output],
 %	     [noenv(['EMACSLOADPATH', 'EMACSDOC'])]).
-
-% TODO: Reuse
-
-% Locate some code-related asset
-find_asset(F, Path) :-
-	F = library(_),
-	absolute_file_name(F, Path0),
-	!,
-	Path = Path0.
-find_asset(F, Path) :-
-	fsR(F, Path0),
-	file_exists(Path0),
-	!,
-	Path = Path0.
-find_asset(F, _) :-
-	% Probably we are running it from a static binary and Ciao
-	% is not installed
-	throw(error(not_found(F), find_asset/2)).
 
 % ---------------------------------------------------------------------------
 

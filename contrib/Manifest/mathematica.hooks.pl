@@ -8,7 +8,6 @@
 :- use_module(library(file_utils), [string_to_file/2]).
 :- use_module(library(llists), [flatten/2]).
 
-mathematica_dir := bundle_src(contrib)/library/'mathematica'.
 with_mathematica := ~get_bundle_flag(contrib:with_mathematica).
 
 '$builder_hook'(mathematica:item_prebuild_nodocs) :-
@@ -28,5 +27,5 @@ with_mathematica := ~get_bundle_flag(contrib:with_mathematica).
 		"% Mathematica kernel path undefined.\n" ||
 		"mathematica_kernel_path('').\n"
 	),
-	string_to_file(T, ~fsR(~mathematica_dir/'mathematica_decl_auto.pl')).
+	string_to_file(T, ~bundle_path(contrib, 'library/mathematica/mathematica_decl_auto.pl')).
 

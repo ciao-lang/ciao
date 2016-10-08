@@ -24,6 +24,7 @@ function find_source__() { # PATH
     find "$1" \
 	 -name '.svn' -prune -o \
 	 -name '.git' -prune -o \
+	 -name 'NOSEARCH' -prune -o \
 	 -path "$1"'/'"$boot_rel_builddir" -prune -o \
 	 -path "$1"'/'"$rel_builddir" -prune -o \
 	 -path "$1"'/regr-db' -prune -o \

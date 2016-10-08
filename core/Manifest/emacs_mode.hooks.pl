@@ -42,7 +42,7 @@ dotemacs := ~get_bundle_flag(core:dotemacs).
 
 emacs_site_start := ~get_bundle_flag(core:emacs_site_start).
 
-emacsmode_dir := bundle_src(ide)/'emacs-mode'.
+emacsmode_dir := ~bundle_path(ide, 'emacs-mode').
 
 % Here is how this all works: 
 % 
@@ -84,16 +84,16 @@ build_emacs_mode :-
 	generate_emacs_config,
 	% Generate autoloads automatically with 'batch-update-autoloads'
 	Dir = ~emacsmode_dir,
-	Init = ~fsR(Dir/'ciao-site-file.el'),
-	emacs_update_autoloads(~fsR(Dir), 'emacs_mode3', Init),
+	Init = ~path_concat(Dir, 'ciao-site-file.el'),
+	emacs_update_autoloads(Dir, 'emacs_mode3', Init),
 	% Compile to elisp bytecode the .el files
         EL = ~ciao_mode_el_files,
-	emacs_batch_byte_compile(~fsR(Dir), 'emacs_mode', EL).
+	emacs_batch_byte_compile(Dir, 'emacs_mode', EL).
 
 get_bindir_elisp(EmacsDir) :- % (for CIAOBINDIR)
 	( emacs_type('Win32') ->
 	    % TODO: Why?
-	    Dir = ~fsR(builddir_bin(~root_bundle))
+	    Dir = ~bundle_path(~root_bundle, builddir, 'bin')
 	; Dir = ~instciao_bindir
 	),
 	get_dir_elisp(Dir, EmacsDir).
@@ -140,8 +140,8 @@ get_bundle_manual_base_elisp(Bundle, NameVersion):-
 :- use_module(library(bundle/doc_flags), [docformatdir/2]).
 
 generate_emacs_config :-
-	In = ~fsR(~emacsmode_dir/'ciao-config.el.skel'),
-	Out = ~fsR(~emacsmode_dir/'ciao-config.el'),
+	In = ~path_concat(~emacsmode_dir, 'ciao-config.el.skel'),
+	Out = ~path_concat(~emacsmode_dir, 'ciao-config.el'),
 	% manual bases (name and version)
 	root_bundle(RootBundle),
 	Bases = ~findall(B, ((Bundle = RootBundle ; enum_sub_bundles(RootBundle, Bundle)),
@@ -149,8 +149,8 @@ generate_emacs_config :-
 	elisp_string_list(Bases, BasesStr, []),
 	%
 	( instype(local) ->
-	    BundleDirCore = ~fsR(bundle_src(core)),
-	    BundleDirLPDoc = ~fsR(bundle_src(lpdoc))
+	    BundleDirCore = ~bundle_path(core, '.'),
+	    BundleDirLPDoc = ~bundle_path(lpdoc, '.')
 	; BundleDirCore = ~instciao_bundledir(core),
 	  BundleDirLPDoc = ~instciao_bundledir(lpdoc)
 	),
@@ -227,10 +227,10 @@ emacs_config_(Lib) -->
 % The absolute path for the 'ciao-site-file.el' file
 ciaolibemacs(LibEmacs) :-
 	( instype(local) ->
-	    LibEmacs = ~fsR(~emacsmode_dir/'ciao-site-file.el')
+	    LibEmacs = ~path_concat(~emacsmode_dir, 'ciao-site-file.el')
 	; % TODO: Place the version in the right place automatically?
 	  % TODO: Verify that the rest of .el files are in the correct directory.
-	  LibEmacs = ~fsR(~instciao_bundledir(core)/'ciao-site-file.el')
+	  LibEmacs = ~path_concat(~instciao_bundledir(core), 'ciao-site-file.el')
 	).
 
 % ---------------------------------------------------------------------------
@@ -244,14 +244,14 @@ ciaolibemacs(LibEmacs) :-
 
 '$builder_hook'(emacs_mode:prebuild_docs) :-
 	EmacsModeDir = ~emacsmode_dir,
-	emacs_batch_call(~fsR(EmacsModeDir), 'emacs_mode2', % TODO: right log name?
+	emacs_batch_call(EmacsModeDir, 'emacs_mode2', % TODO: right log name?
 	  ['--eval', '(setq load-path (cons "." load-path))',
 	   '-l', 'ciao-documentation.el',
 	   '-f', 'ciao-mode-documentation']),
 	%
-	( move_if_diff(~fsR(EmacsModeDir/'CiaoMode.new.lpdoc'),
-	               ~fsR(EmacsModeDir/'CiaoMode.lpdoc')) ->
-	    touch(~fsR(EmacsModeDir/'CiaoMode.pl'))
+	( move_if_diff(~path_concat(EmacsModeDir, 'CiaoMode.new.lpdoc'),
+	               ~path_concat(EmacsModeDir, 'CiaoMode.lpdoc')) ->
+	    touch(~path_concat(EmacsModeDir, 'CiaoMode.pl'))
 	; true
 	).
 
@@ -267,7 +267,7 @@ ciaolibemacs(LibEmacs) :-
 	( with_emacs_mode(yes) ->
 	    % (only for global installation)
 	    Dir = ~emacsmode_dir,
-	    Loader = ~fsR(Dir/'ciao-mode-init.el'),
+	    Loader = ~path_concat(Dir, 'ciao-mode-init.el'),
 	    string_to_file(~emacs_config, Loader),
 	    bundleitem_do(~emacs_mode_desc2, core, install),
 	    del_file_nofail(Loader) % (not needed after install)
@@ -282,12 +282,12 @@ ciaolibemacs(LibEmacs) :-
 	).
 
 emacs_mode_desc2 := [
-	  dir(~icon_dir, [files_from(~emacsmode_dir/'icons'), del_rec]),
+	  switch_to_bundle(ide, files_from('emacs-mode/icons', ~icon_dir, [del_rec])),
 	  ~ciao_mode_lisp_desc,
 	  ~ciao_mode_init_desc
 	].
 
-icon_dir := ~fsR(~instciao_bundledir(core)/'icons').
+icon_dir := ~path_concat(~instciao_bundledir(core), 'icons').
 
 % TODO: Remember to 'update builder/src/win32/Ciao.iss.skel'
 %       if the files here are modified. Ideally, that file should not
@@ -300,12 +300,12 @@ ciao_mode_init_desc := Desc :-
         MidDir = ~emacs_site_start,
         is_site_start_d(MidDir),
 	!,
-        Mid = ~fsR(MidDir/(~emacsinitfile)),
+        Mid = ~path_concat(MidDir, ~emacsinitfile),
 	Desc = [
-          dir(MidDir, [do_not_del]),
-          lib_file_list(core, ~emacsmode_dir, [
+          dir_install_to(MidDir, [do_not_del]),
+          switch_to_bundle(ide, lib_file_list('emacs-mode', [
             'ciao-mode-init.el'-[to_abspath(Mid)] % TODO: why?
-          ])
+          ]))
         ].
 ciao_mode_init_desc := [].
 
@@ -329,7 +329,7 @@ emacs_init_file := InitFile :-
 	  \+ (rootprefix(Prefix), \+ Prefix = ''),
 	  Dir = ~emacs_site_start,
 	  \+ is_site_start_d(Dir) ->
-	    InitFile = ~fsR(Dir/'site-start.el')
+	    InitFile = ~path_concat(Dir, 'site-start.el')
 	; % No init file has to be modified
 	  % (see ciao_mode_init_desc/1 for site-start.d installation)
 	  fail
@@ -342,13 +342,13 @@ is_site_start_d(Dir) :-
 :- use_module(library(llists), [append/2]).
 
 ciao_mode_lisp_desc :=
-	lib_file_list(core, ~emacsmode_dir, 
+	switch_to_bundle(ide, lib_file_list('emacs-mode', 
           ~append([
             ~addprops(['ciao-site-file.el'], [copy_and_link]),
             ~addprops(~ciao_mode_el_files, [copy_and_link]),
             ~addprops(~ciao_mode_elc_files, [copy_and_link])
           ])
-        ).
+        )).
 
 ciao_mode_lisp_files := [
 	'word-help',
@@ -394,21 +394,20 @@ add_suffix([L|Ls], Suffix,  [R|Rs]) :-
 '$builder_hook'(emacs_mode:clean_norec) :- clean_emacs_mode.
 clean_emacs_mode :-
 	EmacsModeDir = ~emacsmode_dir,
-	clean_tree(~fsR(EmacsModeDir)),
+	clean_tree(EmacsModeDir),
 	% TODO: necessary? repeated?
-	del_file_nofail(~fsR(EmacsModeDir/'ciao-site-file.el')),
+	del_file_nofail(~path_concat(EmacsModeDir, 'ciao-site-file.el')),
 	% clean log files
-	emacs_clean_log(~fsR(EmacsModeDir), 'emacs_mode'),
-	emacs_clean_log(~fsR(EmacsModeDir), 'emacs_mode2'),
-	emacs_clean_log(~fsR(EmacsModeDir), 'emacs_mode3'),
-%	del_file_nofail(~fsR(EmacsModeDir/'*~' pattern?)).
+	emacs_clean_log(EmacsModeDir, 'emacs_mode'),
+	emacs_clean_log(EmacsModeDir, 'emacs_mode2'),
+	emacs_clean_log(EmacsModeDir, 'emacs_mode3'),
 	%
 	% (automatically generated files)
-	del_file_nofail(~fsR(EmacsModeDir/'CiaoMode.lpdoc')),
-	del_file_nofail(~fsR(EmacsModeDir/'ciao-config.el')),
+	del_file_nofail(~path_concat(EmacsModeDir, 'CiaoMode.lpdoc')),
+	del_file_nofail(~path_concat(EmacsModeDir, 'ciao-config.el')),
 	% TODO: Use common implementation, do not specify suffixes by hand
-	del_files_nofail(~add_prefix(~glob(~fsR(EmacsModeDir), '*.itf|*.po|*.asr|*.testout|*.elc'),
-	                             ~atom_concat(~fsR(EmacsModeDir), '/'))).
+	del_files_nofail(~add_prefix(~glob(EmacsModeDir, '*.itf|*.po|*.asr|*.testout|*.elc'),
+	                             ~atom_concat(EmacsModeDir, '/'))).
 
 add_prefix([],     _Preffix, []).
 add_prefix([L|Ls], Preffix,  [R|Rs]) :-

@@ -24,7 +24,7 @@
 
 % TODO: just say cmd('cmds/lpdoccl', [...])
 '$builder_hook'(lpdoccl:item_def( 
-    cmds_list(lpdoc, bundle_src(lpdoc)/'cmds', [
+    cmds_list('cmds', [
         'lpdoccl'-[
           output='lpdoc', % (executable will be called 'lpdoc')
 	  plexe,
@@ -38,13 +38,13 @@
 
 lpdoc_desc := [
   lpdoccl,
-  lib(lpdoc, 'src'),
-  lib(lpdoc, 'lib')
+  lib('src'),
+  lib('lib')
 ].
 
 %% ---------------------------------------------------------------------------
 
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(ciaobld(builder_aux), [generate_version_auto/2]).
 
 % TODO: generate a config_auto.pl and put there some config flags (for condcomp)
@@ -54,7 +54,7 @@ lpdoc_desc := [
 % TODO: include config, etc. (for runtime)?
 generate_version_auto_lpdoc :-
 	Bundle = lpdoc,
-	File = ~fsR(bundle_src(Bundle)/'src'/'version_auto.pl'),
+	File = ~bundle_path(Bundle, 'src/version_auto.pl'),
 	generate_version_auto(Bundle, File).
 
 % ===========================================================================

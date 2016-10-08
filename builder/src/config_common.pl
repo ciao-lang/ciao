@@ -7,7 +7,7 @@
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(pathnames), [path_concat/3]).
 
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
 
 % ===========================================================================
@@ -44,10 +44,7 @@ with_docs := ~get_bundle_flag(ciao:with_docs).
 % TODO: Generalize with options, flags, etc.
 :- export(default_eng_def/1).
 default_eng_def(Eng) :-
-	Bundle = core,
-	EngMainSpec = bundle_src(core)/'engine'/'ciaoengine',
-	EngOpts = [],
-	Eng = eng_def(Bundle, EngMainSpec, EngOpts).
+	Eng = eng_def(core, 'engine/ciaoengine', []).
 
 % ===========================================================================
 % Paths for installation
@@ -89,13 +86,15 @@ instciao_bundledir(Bundle) := R :-
 :- export(bld_cmd_path/4).
 % Executable path in build area
 bld_cmd_path(Bundle, Kind, File) := Path :-
-	Path = ~concat_ext(Kind, ~fsR(builddir_bin(Bundle)/File)).
+	BinDir = ~bundle_path(Bundle, builddir, 'bin'),
+	Path = ~concat_ext(Kind, ~path_concat(BinDir, File)).
 
 :- export(inst_cmd_path/4).
 % Executable path in global installs
 % (e.g., <prefix>/bin/ciaoc-1.15)
 inst_cmd_path(Bundle, Kind, File) := Path :-
-	Path = ~path_concat(~instciao_bindir, ~concat_ext(Kind, ~concat_ver(Bundle, File))).
+	BinDir = ~instciao_bindir,
+	Path = ~path_concat(BinDir, ~concat_ext(Kind, ~concat_ver(Bundle, File))).
 
 % TODO: install binaries to storedir, e.g., <prefix>/lib/ciao/core-1.15/bin/ and
 %   deprecate the uses of this predicate
@@ -128,7 +127,9 @@ cmd_path(_Bundle, Kind, File) := Path :-
 	path_split(LibDir, Dir0, _),
 	path_split(Dir0, Dir1, _),
 	path_split(Dir1, Dir2, _),
-	Path = ~concat_ext(Kind, ~fsR(Dir2/bin/File)).
+	path_concat(Dir2, 'bin', Path0),
+	path_concat(Path0, File, Path1),
+	Path = ~concat_ext(Kind, Path1).
 cmd_path(Bundle, Kind, File) := Path :-
 	Path = ~bld_cmd_path(Bundle, Kind, File).
 
@@ -139,7 +140,7 @@ cmd_path(Bundle, Kind, File) := Path :-
 local_ciaolib := Path :- builder_in_global, !,
 	ciao_lib_dir(Path).
 local_ciaolib := Path :-
-	Path = ~fsR(bundle_src(core)).
+	Path = ~bundle_path(core, '.').
 
 :- export(builder_in_global/0).
 % (heuristic to detect running from a global installation)

@@ -24,7 +24,7 @@
 	root_bundle/1,
 	bundle_name/2,
 	bundle_version/2, bundle_patch/2]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 :- use_module(ciaobld(bundle_hash), [
 	bundle_versioned_packname/2, bundle_commit_info/3]).
 
@@ -197,7 +197,7 @@ gen_pbundle_common(Bundle, PackType, Descs) :-
 	VersionedPackName = ~bundle_versioned_packname(Bundle),
 	cmd_message(Bundle, "creating ~w archive for ~w ~w ...", [PackType, VersionedPackName, Descs]),
 	%
-	SourceDir = ~fsR(bundle_src(Bundle)),
+	SourceDir = ~bundle_path(Bundle, '.'),
 	findall(RelFile, get_file_list(PackType, SourceDir, RelFile), Files),
 	%
 	create_pbundle_output_dir,
@@ -253,14 +253,14 @@ lowercode(X, X).
 
 % The directory where @apl{ciao_builder} code is found
 :- export(builder_src_dir/1).
-builder_src_dir := bundle_src(builder)/'src'.
+builder_src_dir := ~bundle_path(builder, 'src').
 
 % ===========================================================================
 
 :- export(pbundle_output_dir/1).
 % TODO: The definition of directory is repeated in ciaobot/SHARED
 %       (PBUNDLE_BUILD_DIR). Share the definition.
-pbundle_output_dir := ~fsR(builddir(~root_bundle)/'pbundle').
+pbundle_output_dir := ~bundle_path(~root_bundle, builddir, 'pbundle').
 
 :- export(create_pbundle_output_dir/0).
 :- pred create_pbundle_output_dir # "Make sure that the directory
@@ -275,7 +275,7 @@ create_pbundle_output_dir :-
 
 :- export(relciaodir/2).
 relciaodir(S) := Dir :-
-	R = ~fsR(bundle_src(ciao)),
+	R = ~bundle_path(ciao, '.'),
 	path_get_relative(R, S, Dir).
 
 :- export(gen_pbundle_descfile/1).

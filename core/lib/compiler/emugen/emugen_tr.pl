@@ -148,16 +148,15 @@ code_to_file_(M, Code, File) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(bundle/paths_extra), [fsRx_get_bundle_and_basename/3]).
-:- use_module(library(bundle/paths_extra), [reverse_fsR/2]).
+:- use_module(library(bundle/bundle_paths), [reverse_bundle_path/3]).
 :- use_module(library(compiler/c_itf_internal), [defines_module/2]).
 
 % Engine definition for M
 this_eng_def(M, Eng) :-
 	get_eng_opts(M, EngOpts),
 	( defines_module(Base, M) -> true ; false ),
-	fsRx_get_bundle_and_basename(Base, Bundle, _),
-	reverse_fsR(Base, EngMainSpec),
+	reverse_bundle_path(Base, Bundle, Rel),
+	EngMainSpec = Rel,
 	Eng = eng_def(Bundle, EngMainSpec, EngOpts).
 
 % ---------------------------------------------------------------------------

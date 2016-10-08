@@ -20,9 +20,8 @@
 :- use_module(library(system)).
 :- use_module(library(aggregates), [findall/3]).
 
-% TODO: be careful with fsR/2 (bundles may not be loaded yet)
+% NOTE: be careful with bundle_path/3 (bundles may not be loaded yet)
 :- use_module(ciaobld(config_common), [instciao_bundledir/2]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(library(bundle/bundlereg_gen), [is_bundle_dir/1, gen_bundlereg/4]).
 :- use_module(engine(internals), [bundle_reg_dir/2]).
 

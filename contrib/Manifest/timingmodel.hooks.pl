@@ -20,8 +20,6 @@
 
 :- use_module(library(system), [copy_file/2, copy_file/3, file_exists/1]).
 
-timingmodel_dir := bundle_src(contrib)/library/timingmodel.
-
 '$builder_hook'(timingmodel:item_prebuild_nodocs) :-
 	% do_timingmodel % TODO: must be called explicitly using custom_run
 	% (needed even if miniprolog is not compiled)
@@ -38,8 +36,8 @@ timingmodel_cmd := bench|estimate.
 do_timingmodel :-
 	normal_message("Compiling mini prolog engine", []),
 	invoke_gmake_miniprolog(all),
-	copy_file(~fsR(~timingmodel_dir/'miniprolog'/'bin'/'timingmodel_auto.pl'),
-	          ~fsR(~timingmodel_dir/'timingmodel_pre.pl'),
+	copy_file(~bundle_path(contrib, 'library/timingmodel/miniprolog/bin/timingmodel_auto.pl'),
+	          ~bundle_path(contrib, 'library/timingmodel/timingmodel_pre.pl'),
 		  [overwrite]),
 	%
 	normal_message("Generating timing model for mini prolog", []),
@@ -53,10 +51,10 @@ do_timingmodel :-
 % This extra step is to ensure the generation of timingmodel_auto.pl
 % even if miniprolog has not been configured
 copy_mp_auto :-
-	Orig = ~fsR(~timingmodel_dir/'timingmodel_pre.pl'),
+	Orig = ~bundle_path(contrib, 'library/timingmodel/timingmodel_pre.pl'),
 	( file_exists(Orig) ->
 	    copy_file(Orig,
-	              ~fsR(~timingmodel_dir/'timingmodel_auto.pl'),
+	              ~bundle_path(contrib, 'library/timingmodel/timingmodel_auto.pl'),
 		      [overwrite])
 	; true
 	).
@@ -77,13 +75,13 @@ estimatemp :-
 :- use_module(ciaobld(builder_aux), [invoke_gmake/2]).
 
 invoke_gmake_miniprolog(Cmd) :-
-	invoke_gmake(~fsR(~timingmodel_dir/'miniprolog'),
+	invoke_gmake(~bundle_path(contrib, 'library/timingmodel/miniprolog'),
 	             ['-s', '-j1',
 		      ~atom_concat('MPARCH=', ~get_platform),
 		      Cmd]).
 
 invoke_gmake_timingmodel(Cmd) :-
-	invoke_gmake(~fsR(~timingmodel_dir),
+	invoke_gmake(~bundle_path(contrib, 'library/timingmodel'),
 	             ['-s', '-j1',
 		      ~atom_concat('MPARCH=', ~get_platform),
 		      Cmd]).

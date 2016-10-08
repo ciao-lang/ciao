@@ -20,7 +20,7 @@
 
 % ===========================================================================
 
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 
 :- use_module(ciaobld(builder_aux), [
         builddir_bin_copy_as/4,
@@ -82,7 +82,7 @@
 '$builder_hook'(ciaoc:build_docs) :- !.
 
 '$builder_hook'(ciaoc:item_def(
-        cmds_list(core, bundle_src(core)/ciaoc, [
+        cmds_list('ciaoc', [
           'ciaoc'-[
             name="standalone compiler",
             plexe,
@@ -95,7 +95,7 @@
 '$builder_hook'(shell:build_docs) :- !.
 
 '$builder_hook'(shell:item_def(
-	cmds_list(core, bundle_src(core)/shell, [
+	cmds_list('shell', [
           'ciaosh'-[plexe, name="interactive toplevel", final_ciaoc],
           'ciao-shell'-[plexe, name="ciao-script runtime", final_ciaoc, static]
         ]))).
@@ -168,7 +168,7 @@ win_cmd_and_opts(ciao, Atm, '-i', ciaosh) :-
 %'$builder_hook'(exec_header:uninstall) :- !, bundleitem_do(exec_header, core, uninstall).
 
 '$builder_hook'(exec_header:item_def([
-    eng_exec_header(eng(bundle_src(core)/'engine'/'ciaoengine', []))
+    eng_exec_header(eng('engine/ciaoengine', []))
 ])).
 
 % ============================================================================
@@ -207,34 +207,28 @@ core_desc := [
   ciaocl_,
   core_cmds,
   %
-  lib(core, 'engine'),
-  lib(core, 'lib'),
-  lib(core, 'library'),
+  lib('engine'),
+  lib('lib'),
+  lib('library'),
   pillow_,
-  src(core, 'examples'),
+  src('examples'),
   %
   emacs_mode
 ].
 
 % Enumeration of the standalone utilities in */cmds/
-cmds_dir := bundle_src(core)/cmds.
-
 '$builder_hook'(core_cmds:item_def(
-          cmds_list(core, ~cmds_dir, ~core_cmds))).
-
-:- use_module(library(aggregates), [findall/3]).
-core_cmds := ~findall(B-[K], core_cmd(B, K)).
-
-core_cmd('ciaodump', plexe).
-core_cmd('pldiff', plexe).
-core_cmd('lpmake', plexe).
-core_cmd('plindent', plexe).
-core_cmd('checkline', plexe).
-core_cmd('ciaoc_sdyn', plexe).
-
-% TODO: strange... enumerated for installation, add a table of exec+kind instead
-core_cmd('ciao_sysconf', shscript).
-core_cmd('ciao', shscript). % TODO: twice?!
+    cmds_list('cmds', [
+        'ciaodump'-[plexe],
+        'pldiff'-[plexe],
+        'lpmake'-[plexe],
+        'plindent'-[plexe],
+        'checkline'-[plexe],
+        'ciaoc_sdyn'-[plexe],
+        % TODO: strange... enumerated for installation, add a table of exec+kind instead
+        'ciao_sysconf'-[shscript],
+        'ciao'-[shscript] % TODO: twice?!
+    ]))).
 
 % ---------------------------------------------------------------------------
 
@@ -247,7 +241,7 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 '$builder_hook'(ciaocl:item_build_nodocs) :-
 	cmd_message(core, "building '~w' (command)", ['ciao']),
 	Eng = ~default_eng_def,
-	wr_template(as_cmd(core, shscript), ~cmds_dir, 'ciao', [
+	wr_template(as_cmd(core, shscript), ~bundle_path(core, 'cmds'), 'ciao', [
 	    'ExtraCommands' = ~ciao_extra_commands, % (for toplevel)
 	    %
 	    'ciao_builder_cmdV' = ~cmdname_ver(yes, builder, 'ciao_builder', plexe), 'ciao_builder_cmd' = ~cmdname_ver(no, builder, 'ciao_builder', plexe),
@@ -259,8 +253,8 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	    % Access to boot builder
 	    % TODO: only used in local-install, global installation uses the builder exec (is it OK?)
 	    % TODO: (MinGW) is cmd.exe enough? (at least for bootstrap) consider PowerShell scripts for Windows?
-	    'boot_ciaolib' = ~fsR(bundle_src(core)),
-	    'boot_bindir' = ~fsR(bootbuilddir_bin(core)),
+	    'boot_ciaolib' = ~bundle_path(core, '.'),
+	    'boot_bindir' = ~bundle_path(core, bootbuilddir, 'bin'),
 	    'boot_ciaohdir' = ~bootbld_eng_path(hdir, Eng),
 	    'boot_ciaoengine' = ~bootbld_eng_path(exec, Eng)
         ]),
@@ -275,7 +269,7 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	; Opts = []
 	),
 	R = item_group("'ciao' (command)", 
-	      bin_copy_and_link(shscript, core, 'ciao', Opts)).
+	      bin_copy_and_link(shscript, 'ciao', Opts)).
 
 :- use_module(library(format), [sformat/3]).
 :- use_module(ciaobld(bundle_configure), [
@@ -301,7 +295,7 @@ list_to_lits2([X|Xs], X0, (X0, Lits)) :-
 % TODO: 'ciao_sysconf' needs to be installed for multiplatform installations
 %   (sharing a .bashrc or .cshrc across multiple OS)
 
-ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf').
+ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
 
 '$builder_hook'(ciao_sysconf:item_build_nodocs) :-
 	cmd_message(core, "building '~w' (command)", ['ciao_sysconf']),
@@ -319,7 +313,7 @@ ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf
 '$builder_hook'(engine:uninstall) :- !, bundleitem_do(engine, core, uninstall).
 
 '$builder_hook'(engine:item_def([
-    eng(bundle_src(core)/'engine'/'ciaoengine', [])
+    eng('engine/ciaoengine', [])
 ])).
 
 % NOTE: experimental (see options)
@@ -331,7 +325,7 @@ ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf
 '$builder_hook'(static_engine:uninstall) :- !, bundleitem_do(static_engine, core, uninstall).
 
 '$builder_hook'(static_engine:item_def([
-    eng(bundle_src(core)/'engine'/'ciaoengine', [
+    eng('engine/ciaoengine', [
       add_stat_libs, % link statically against C system libraries
       static_mods([library(random),
                    library(sockets),
@@ -360,7 +354,7 @@ ciao_sysconf_sh := ~fsR(bundle_src(builder)/sh_src/'config-sysdep'/'ciao_sysconf
 
 % Run Ciao integration tests
 runtests_ciaotests_hook :-
-	( exists_and_compilable(~fsR(bundle_src(core)/'tests')) ->
+	( exists_and_compilable(~bundle_path(core, 'tests')) ->
 	    do_ciaotests % TODO: missing cleaning code! (see below)
 	; true
 	).

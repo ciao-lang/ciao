@@ -14,7 +14,7 @@
 :- use_module(library(write), [portray_clause/1]).
 :- use_module(library(system), [file_exists/1, working_directory/2]).
 :- use_module(library(system_extra), [mkpath/1]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(pathnames), [path_split/3]).
 
@@ -99,7 +99,7 @@ exec_aux(BundleDir, Args) :-
 exec_aux_(BundleDir, BundleName, Args) :-
 	Env = ['CURR_BUNDLEDIR' = BundleDir,
 	       'CURR_BUNDLENAME' = BundleName],
-	fsR(bundle_src(ciao)/builder/src/'bundlectl_aux.bash', Exec),
+	bundle_path(ciao, 'builder/src/bundlectl_aux.bash', Exec),
 	process_call(Exec, Args, 
 	             [env(Env), cwd(BundleDir)]).
 

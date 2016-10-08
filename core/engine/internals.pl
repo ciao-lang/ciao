@@ -2,15 +2,12 @@
 
 :- use_module(user, [main/0, main/1, aborting/0]).
 
-:- doc(title,"Engine Internal Predicates").  
+:- doc(title, "Engine Internal Predicates").  
 
-:- doc(module,"
-
-This library lists a set of internal predicates (written in C) used by
-the system code. They should not be used in user code. The file itself
-provides handles for the module system into the internal definitions.
-
-").
+:- doc(module, "This library lists a set of internal predicates
+   (written in C) used by the system code (including boot code). They
+   should not be used in user code. The file itself provides handles
+   for the module system into the internal definitions.").
 
 :- use_module(engine(hiord_rt), ['SYSCALL'/1, '$nodebug_call'/1, '$meta_call'/1]).
 

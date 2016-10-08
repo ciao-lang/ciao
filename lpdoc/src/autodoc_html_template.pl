@@ -47,7 +47,7 @@ fmt_html_template(File, Args0) := R :-
 	%
 	append(Args0, WS, Args),
 	%
-	( File2 = ~fixed_absolute_file_name(~locate_tmpl(File)),
+	( File2 = ~fixed_absolute_file_name(~locate_tmpl(File), '.'),
 	  file_exists(File2),
 	  String = ~file_to_string(File2) ->
 	    true

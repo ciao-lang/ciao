@@ -30,6 +30,5 @@ with_java_interface := ~get_bundle_flag(core:with_java_interface).
 :- use_module(ciaobld(builder_aux), [invoke_gmake/2]).
 
 invoke_gmake_javall(Cmd) :-
-	invoke_gmake(~fsR(~javalibs_dir), [Cmd]).
+	invoke_gmake(~bundle_path(core, 'library/javall'), [Cmd]).
 
-javalibs_dir := bundle_src(core)/library/javall.

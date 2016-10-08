@@ -6,19 +6,19 @@
 
 output_name := 'ciao'.
 
-filepath := bundle_src(core)/shell.
-filepath := bundle_src(core)/ciaoc.
-filepath := bundle_src(core)/engine.
-filepath := bundle_src(core)/cmds.
-filepath := bundle_src(core)/library/pillow/dist/doc.
+filepath := at_bundle(core, 'shell').
+filepath := at_bundle(core, 'ciaoc').
+filepath := at_bundle(core, 'engine').
+filepath := at_bundle(core, 'cmds').
+filepath := at_bundle(core, 'library/pillow/dist/doc').
 filepath := ~ciaofilepath_common.
 %
-filepath := bundle_src(ide)/'emacs-mode'.
+filepath := at_bundle(ide, 'emacs-mode').
 % TODO: needed in CiaoMode.lpdoc because of @include{README_CIAOPP.lpdoc}
-filepath := bundle_src(ciaopp)/doc/readmes. % TODO: should not be here
+filepath := at_bundle(ciaopp, 'doc/readmes'). % TODO: should not be here
 % TODO: move to a separate manual?
-filepath := bundle_src(contrib)/cmds.
-filepath := bundle_src(contrib)/library.
+filepath := at_bundle(contrib, 'cmds').
+filepath := at_bundle(contrib, 'library').
 
 doc_structure := 
         ciao-[

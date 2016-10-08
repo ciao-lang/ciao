@@ -49,7 +49,7 @@ locate_manifest_file(BundleDir, ManifestFile) :-
 % Detect the bundle root dir for the given File (a directory or normal
 % file)
 lookup_bundle_root(File, BundleDir) :-
-	fixed_absolute_file_name(File, Path),
+	fixed_absolute_file_name(File, '.', Path),
 	lookup_bundle_root_(Path, BundleDir).
 
 lookup_bundle_root_(File, BundleDir) :-

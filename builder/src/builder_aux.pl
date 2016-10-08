@@ -7,7 +7,7 @@
 	[path_split/3, path_dirname/2, path_basename/2, path_concat/3]).
 
 :- use_module(library(bundle/bundle_flags)).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 :- use_module(ciaobld(messages_aux), [cmd_message/3]).
 :- use_module(ciaobld(messages_aux), [verbose_message/2]).
 :- use_module(ciaobld(config_common), [cmd_path/4]).
@@ -23,7 +23,7 @@
 root_bundle_source_dir(Dir) :-
 	ciao_lib_dir(CiaoLibDir),
 	atom_concat(CiaoLibDir, '/..', Dir0),
-	fixed_absolute_file_name(Dir0, Dir).
+	fixed_absolute_file_name(Dir0, '.', Dir).
 
 % ===========================================================================
 
@@ -52,7 +52,7 @@ dir_to_bundle(BundleDir, Id) :-
 	root_bundle(Id).
 dir_to_bundle(BundleDir, Id) :-
 	'$bundle_id'(Target),
-	Dir = ~fsR(bundle_src(Target)),
+	Dir = ~bundle_path(Target, '.'),
 	Dir == BundleDir,
 	!,
 	Id = Target.
@@ -73,7 +73,7 @@ ciao_path_at_dir(Dir, Path) :-
 % Detect the workspace from ciao_path/1 (or ciao root) for the given
 % File (a directory or normal file)
 lookup_ciao_path(File, Path) :-
-	fixed_absolute_file_name(File, Path0),
+	fixed_absolute_file_name(File, '.', Path0),
 	( lookup_ciao_path_(Path0, Path1) ->
 	    Path1 = Path
 	; fail
@@ -130,22 +130,12 @@ invoke_ant(Dir, Args) :-
 
 :- doc(subsection, "Build staging area (builddir)").
 
-:- export(ensure_builddir/1).
-% Prepare the build directory
-ensure_builddir(Bundle) :-
- 	mkpath(~fsR(builddir(Bundle)), ~perms). % owner?
+:- export(ensure_builddir/2).
+% Prepare a build (sub)directory (Rel can be '.' or a relative path)
+ensure_builddir(Bundle, Rel) :-
+ 	mkpath(~bundle_path(Bundle, builddir, Rel), ~perms). % owner?
 
-:- export(ensure_builddir_doc/1).
-% Prepare the build subdirectory for docs
-ensure_builddir_doc(Bundle) :-
- 	mkpath(~fsR(builddir_doc(Bundle)), ~perms). % owner?
-
-:- export(ensure_builddir_bin/1).
-% Prepare the build subdirectory for binaries
-ensure_builddir_bin(Bundle) :-
- 	mkpath(~fsR(builddir_bin(Bundle)), ~perms). % owner?
-
-:- export(builddir_bin_copy_as/4).
+:- export(builddir_bin_copy_as/4). % TODO: rename to bld_cmd_copy?
 % Copy a custom binary From at binary directory of builddir as Name
 builddir_bin_copy_as(Bundle, Kind, From, Name) :-
 	File = ~bld_cmd_path(Bundle, Kind, Name),
@@ -156,7 +146,7 @@ builddir_bin_copy_as(Bundle, Kind, From, Name) :-
 builddir_bin_link_as(Bundle, Kind, Src, Dest) :-
 	From = ~bld_cmd_path(Bundle, Kind, Src),
 	To = ~bld_cmd_path(Bundle, Kind, Dest),
-	create_link(From, To).
+	create_rel_link(From, To).
 
 % ---------------------------------------------------------------------------
 
@@ -198,7 +188,7 @@ rootprefixed(Path0) := Path :-
 :- export(storedir_install/1).
 % Creates a directory in the installation area
 storedir_install(dir(Dir0)) :-
-	Dir = ~rootprefixed(~fsR(Dir0)),
+	Dir = ~rootprefixed(Dir0),
 	( mkpath(Dir, ~perms) -> % TODO: owner?
 	    true
 	; show_message(error, "Could not create ~w", [Dir]),
@@ -207,11 +197,11 @@ storedir_install(dir(Dir0)) :-
 % (copy all)
 storedir_install(dir_rec(FromDir, ToDir)) :-
 	copy_file_tree(installable_precomp(full),
-	               ~fsR(FromDir), ~rootprefixed(~fsR(ToDir)), ~perms).
+	               FromDir, ~rootprefixed(ToDir), ~perms).
 % (copy all except .po and .itf)
 storedir_install(src_dir_rec(FromDir, ToDir)) :-
 	copy_file_tree(installable_precomp(src),
-	               ~fsR(FromDir), ~rootprefixed(~fsR(ToDir)), ~perms).
+	               FromDir, ~rootprefixed(ToDir), ~perms).
 %
 storedir_install(copy_and_link(Kind, Bundle, File)) :-
 	storedir_install(copy(Kind, Bundle, File)),
@@ -223,55 +213,43 @@ storedir_install(copy(Kind, Bundle, File)) :-
 	storedir_install(dir(~instciao_bindir)),
 	install_file(From, To).
 %
-storedir_install(file_exec(From0, To0)) :-
-	From = ~fsR(From0),
-	To = ~rootprefixed(~fsR(To0)),
+storedir_install(file_exec(From, To0)) :-
+	To = ~rootprefixed(To0),
 	install_file(From, To).
 %
-storedir_install(file_noexec(From0, To0)) :- % TODO: add Kind...
-	From = ~fsR(From0),
-	To = ~rootprefixed(~fsR(To0)),
+storedir_install(file_noexec(From, To0)) :- % TODO: add Kind?
+	To = ~rootprefixed(To0),
 	install_file(From, To).
 %
 storedir_install(link_as(Kind, Bundle, Src, Dest)) :-
 	% TODO: move to 'activation' operation?
-	From = ~inst_cmd_path(Bundle, Kind, Src),
-	path_basename(From, FromBase),
+	From = ~rootprefixed(~inst_cmd_path(Bundle, Kind, Src)),
 	To = ~rootprefixed(~active_cmd_path(Kind, Dest)),
-	create_link(FromBase, To).
+	create_rel_link(From, To).
 %
-storedir_install(file_link_as(From0, To0)) :-
-	From = ~fsR(From0),
-	To = ~rootprefixed(~fsR(To0)),
-	create_link(From, To).
-% at_bundle:
-%   install a copy of File in <install_bundledir>/File and
-%   install a link from <install_bundledir>/File to <install_storedir>
 % to_abspath:
 %   install a copy of File to abspath and
-%   install a link from abspath to <install_storedir>
+%   install a link from abspath to <install_storedir> % TODO: why?
+% default:
+%   install a copy of File in <install_bundledir>/File and
+%   install a link from <install_bundledir>/File to <install_storedir>
+%
 storedir_install(lib_file_copy_and_link(Props, Bundle, Path, File)) :-
 	% ( ~instype = global -> true ; throw(install_requires_global) ),
-	From = ~fsR(Path/File),
-	( member(at_bundle, Props) ->
-	    To = ~rootprefixed(~fsR(~instciao_bundledir(Bundle)/(File))),
-	    % TODO: weak, compute relative path instead
-	    LinkFrom = ~path_concat(~path_basename(~path_dirname(To)), File)
-	; member(to_abspath(To0), Props) -> % TODO: compute relative path instead?
-	    To = ~rootprefixed(~fsR(To0)),
-	    LinkFrom = ~fsR(To0)
-	; throw(wrong_props)
-	),
-	%
-	install_file(From, To),
-	%
-	( member(storedir_link, Props) ->
-	    PlainTo = ~fsR(~instciao_storedir/(File)),
-	    create_link(LinkFrom, ~rootprefixed(~fsR(PlainTo)))
-	; true
+	From = ~path_concat(Path, File),
+	( member(to_abspath(To0), Props) ->
+	    % TODO: wrongly used from emacs_mode.hooks.pl!!! implement register instead!!! (this may copy to /etc/ etc.) % TODO: link in the other order?
+	    To = ~rootprefixed(To0),
+	    install_file(From, To),
+	    PlainTo = ~rootprefixed(~path_concat(~instciao_storedir, File)),
+	    create_link(To0, PlainTo)
+	; To = ~rootprefixed(~path_concat(~instciao_bundledir(Bundle), File)),
+	  install_file(From, To),
+	  PlainTo = ~rootprefixed(~path_concat(~instciao_storedir, File)),
+	  create_rel_link(To, PlainTo)
 	).
 % TODO: show the same kind of messages that are used when compiling libraries
-storedir_install(cmds_list(Bundle, Ps)) :-
+storedir_install(cmds_list_(Bundle, Ps)) :-
 	( % (failure-driven loop)
 	  member(P0, Ps),
 	    storedir_install(cmd(Bundle, P0)),
@@ -305,14 +283,7 @@ storedir_install(eng_contents(Eng)) :- !,
 	InstEngHDir = ~inst_eng_path(hdir, Eng),
 	storedir_install(src_dir_rec(HDir, InstEngHDir)).
 storedir_install(eng_active(Eng)) :- !, % Activate engine (for multi-platform)
-	% (see eng_active_bld/1)
-	% Link for active exec (E.g., ciaoengine.<OSARCH> -> ciaoengine-1.15/objs/<OSARCH>/ciaoengine) % TODO: 'activation' as a different operation?
-	InstEng = ~inst_eng_path(exec, Eng),
-	ActiveEng = ~active_inst_eng_path(exec, Eng),
-	storedir_install(file_link_as(InstEng, ActiveEng)),
-	% Link for active exec_anyarch (E.g., ciaoengine -> ciaoengine.<OSARCH>)
-	ActiveEngAnyArch = ~active_inst_eng_path(exec_anyarch, Eng),
-	storedir_install(file_link_as(~path_basename(ActiveEng), ActiveEngAnyArch)).
+	eng_active_inst(Eng).
 
 :- export(storedir_uninstall/1).
 storedir_uninstall(link(Kind, File)) :-
@@ -326,40 +297,31 @@ storedir_uninstall(copy_and_link(Kind, Bundle, File)) :-
 	storedir_uninstall(copy(Kind, Bundle, File)).
 %
 storedir_uninstall(file(File)) :-
-	del_file_nofail(~rootprefixed(~fsR(File))).
+	del_file_nofail(~rootprefixed(File)).
 %
 storedir_uninstall(dir_rec(Dir)) :-
-	% TODO: Add some sanity check here to avoid filesystem havoc
-	% (e.g., add a CIAOBLD during copy)
-	remove_dir_nofail(~rootprefixed(~fsR(Dir))).
+	safe_remove_dir_nofail(Dir).
 %
 storedir_uninstall(src_dir_rec(Dir)) :-
-	% TODO: Add some sanity check here to avoid filesystem havoc
-	% (e.g., add a CIAOBLD during copy)
-	remove_dir_nofail(~rootprefixed(~fsR(Dir))).
+	safe_remove_dir_nofail(Dir).
 %
 storedir_uninstall(dir(Dir)) :-
-	-delete_directory(~rootprefixed(~fsR(Dir))).
+	-delete_directory(~rootprefixed(Dir)).
 %
 storedir_uninstall(dir_if_empty(Dir)) :-
-	--delete_directory(~rootprefixed(~fsR(Dir))).
+	--delete_directory(~rootprefixed(Dir)).
 %
-storedir_uninstall(lib_file_copy_and_link(Props, Bundle, File)) :-
+storedir_uninstall(lib_file_copy_and_link(Props, Bundle, _Path, File)) :-
 	% ( ~instype = global -> true ; throw(uninstall_requires_global) ),
-	( member(storedir_link, Props) ->
-	    PlainTo = ~fsR(~instciao_storedir/(File)),
-	    storedir_uninstall(file(PlainTo))
-	; true
-	),
-	( member(at_bundle, Props) ->
-	    To = ~fsR(~instciao_bundledir(Bundle)/(File))
-	; member(to_abspath(To0), Props) ->
-	    To = ~fsR(To0)
-	; throw(wrong_props)
+	PlainTo = ~path_concat(~instciao_storedir, File),
+	storedir_uninstall(file(PlainTo)),
+	( member(to_abspath(To0), Props) ->
+	    To = To0
+	; To = ~path_concat(~instciao_bundledir(Bundle), File)
 	),
 	storedir_uninstall(file(To)).
 % TODO: show the same kind of messages that are used when compiling libraries
-storedir_uninstall(cmds_list(Bundle, Ps)) :-
+storedir_uninstall(cmds_list_(Bundle, Ps)) :-
 	( % (failure-driven loop)
 	  member(P0, Ps),
 	    storedir_uninstall(cmd(Bundle, P0)),
@@ -389,47 +351,37 @@ storedir_uninstall(eng_active(Eng)) :- !,
 	storedir_uninstall(file(~active_inst_eng_path(exec, Eng))),
 	storedir_uninstall(file(~active_inst_eng_path(exec_anyarch, Eng))).
 
+% Remove dir recursively (with some additional safety checks)
+safe_remove_dir_nofail(Dir) :-
+	( path_get_relative(~instciao_storedir, Dir, _) ->
+	    % Inside storedir
+	    remove_dir_nofail(~rootprefixed(Dir))
+	; % TODO: use a install_manifest.txt file (common practice)
+          show_message(warning, "Refusing to remove directories recursively outside the Ciao installation base: ~w", [Dir])
+	).
+
 :- use_module(ciaobld(eng_defs), [active_bld_eng_path/3]).
 
 :- export(eng_active_bld/1).
 % Create links for multi-platform engine selection (for build)
 eng_active_bld(Eng) :-
-	BldEng = ~bld_eng_path(exec, Eng),
-	ActiveEngAnyArch = ~active_bld_eng_path(exec_anyarch, Eng),
-	ActiveEng = ~active_bld_eng_path(exec, Eng),
 	% E.g., ciaoengine.<OSARCH> -> <OSARCH>/ciaoengine
-	create_link(~path_rel2(BldEng), ActiveEng),
+	A = ~bld_eng_path(exec, Eng),
+	B = ~active_bld_eng_path(exec, Eng),
+	create_rel_link(A, B),
 	% Link for active exec_anyarch (E.g., ciaoengine -> ciaoengine.<OSARCH>)
-	create_link(~path_basename(ActiveEng), ActiveEngAnyArch).
+	C = ~active_bld_eng_path(exec_anyarch, Eng),
+	create_rel_link(B, C).
 
-% TODO: weak, compute relative path instead
-% ../a/b/c -> b/c
-path_rel2(Path, Rel) :-
-	path_split(Path, Dir, Base2),
-	path_basename(Dir, Base1),
-	path_concat(Base1, Base2, Rel).
-
-% (shared)
-%:- export(create_link/2).
-create_link(From, To) :-
-	del_file_nofail(To),
-	% TODO: better solution? windows lacks proper symlinks
-        ( using_windows ->
-            --copy_file(From, To, [overwrite])
-        ; --copy_file(From, To, [overwrite, symlink])
-        ).
-        % TODO: do not set perms on a symbolic link (the source may
-        %       not exist, as it happens in RPM generation)
-%	-set_file_perms(To, ~perms).
-
-install_file(From, To) :-
-	del_file_nofail(To),
-	copy_file(From, To, [overwrite]),
-	-set_exec_perms(To, ~perms).
-
-:- export(remove_dir_nofail/1).
-remove_dir_nofail(Dir2) :-
-	( file_exists(Dir2) -> remove_dir(Dir2) ; true ).
+% Like eng_active_bld/1, but for installed engines
+eng_active_inst(Eng) :-
+	% Link for active exec (E.g., ciaoengine.<OSARCH> -> ciaoengine-1.15/objs/<OSARCH>/ciaoengine) % TODO: 'activation' as a different operation?
+	A = ~rootprefixed(~inst_eng_path(exec, Eng)),
+	B = ~rootprefixed(~active_inst_eng_path(exec, Eng)),
+	create_rel_link(A, B),
+	% Link for active exec_anyarch (E.g., ciaoengine -> ciaoengine.<OSARCH>)
+	C = ~rootprefixed(~active_inst_eng_path(exec_anyarch, Eng)),
+	create_rel_link(B, C).
 
 % Descriptions for commands (e.g., standalone utilities, etc.)
 % TODO: improve
@@ -480,15 +432,15 @@ n_kind(Props, Kind) :-
 % Generate files based on text templates
 % TODO: improve
 wr_template(at(OutDir), Dir, File, Subst) :-
-	In = ~atom_concat(~fsR(Dir/File), '.skel'),
-	Out = ~fsR(OutDir/File),
+	In = ~path_concat(Dir, ~atom_concat(File, '.skel')),
+	Out = ~path_concat(OutDir, File),
 	eval_template_file(In, Subst, Out).
 wr_template(origin, Dir, File, Subst) :-
-	In = ~atom_concat(~fsR(Dir/File), '.skel'),
-	Out = ~fsR(Dir/File),
+	In = ~path_concat(Dir, ~atom_concat(File, '.skel')),
+	Out = ~path_concat(Dir, File),
 	eval_template_file(In, Subst, Out).
 wr_template(as_cmd(Bundle, Kind), Dir, File, Subst) :-
-	In = ~atom_concat(~fsR(Dir/File), '.skel'),
+	In = ~path_concat(Dir, ~atom_concat(File, '.skel')),
 	Out = ~bld_cmd_path(Bundle, Kind, File),
 	eval_template_file(In, Subst, Out),
 	( kind_exec_perms(Kind) ->
@@ -545,7 +497,7 @@ generate_version_auto(Bundle, File) :-
 add_rpath(local_third_party, LinkerOpts0, LinkerOpts) :- !,
 	% TODO: better way to compute RelativeLibDir?
 	% (for 'make_car_exec')
-	fsR(bundle_src(ciao),  CiaoSrc),
+	bundle_path(ciao, '.', CiaoSrc),
 	third_party_path(libdir, LibDir),
 	path_relocate(CiaoSrc, '.', LibDir, RelativeLibDir),
 	add_rpath_(RelativeLibDir, LinkerOpts0, LinkerOpts).
@@ -558,3 +510,60 @@ add_rpath_(Path, LinkerOpts0, LinkerOpts) :-
 	atom_codes(Path, PathCs),
 	append("-Wl,-rpath,"||PathCs, " "||LinkerOpts0, LinkerOpts).
 
+% ===========================================================================
+
+% (shared)
+%:- export(create_link/2).
+create_link(From, To) :-
+	del_file_nofail(To),
+	% TODO: better solution? windows lacks proper symlinks
+        ( using_windows ->
+            --copy_file(From, To, [overwrite])
+        ; --copy_file(From, To, [overwrite, symlink])
+        ).
+        % TODO: do not set perms on a symbolic link (the source may
+        %       not exist, as it happens in RPM generation)
+%	-set_file_perms(To, ~perms).
+
+install_file(From, To) :-
+	del_file_nofail(To),
+	copy_file(From, To, [overwrite]),
+	-set_exec_perms(To, ~perms).
+
+:- export(remove_dir_nofail/1).
+remove_dir_nofail(Dir2) :-
+	( file_exists(Dir2) -> remove_dir(Dir2) ; true ).
+
+% ===========================================================================
+% TODO: Move both create_rel_link/2 and relpath/3 to the libraries
+
+% Create a "relocatable" link (computing relative paths)
+% (e.g., "/a/b/c (symlink) -> /a/d/e" becomes "/a/b/c (symlink) -> ../d/e"
+create_rel_link(From, To) :-
+	path_dirname(To, ToDir),
+	relpath(ToDir, From, RelFrom),
+	create_link(RelFrom, To).
+
+:- use_module(library(pathnames), [path_split_list/2, path_concat_list/2]).
+
+%:- export(relpath/3).
+% C is a path to B relative to A (using '..' if needed)
+% (e.g., "/a/b/c -> /a/d/e" becomes "/a/b/c -> ../../d/e".
+% Assume both are absolute, otherwise just return B.
+relpath(A, B, C) :-
+	path_split_list(A, As),
+	path_split_list(B, Bs),
+	As = ['/'|As0],
+	Bs = ['/'|Bs0],
+	!,
+	relpath_(As0, Bs0, Cs),
+	path_concat_list(Cs, C).
+relpath(_, B, B).
+
+% Consume common part
+relpath_([A|As], [A|Bs], Cs) :- !, relpath_(As, Bs, Cs).
+relpath_(As, Bs, Cs) :- relpath__(As, Bs, Cs).
+
+% Add '..' for each A component (go back)
+relpath__([_|As], Bs, ['..'|Cs]) :- !, relpath__(As, Bs, Cs).
+relpath__([], Bs, Bs). % Finish with rest

@@ -27,8 +27,9 @@
 
 :- use_module(library(system), [using_windows/0]).
 
-% TODO: remove call to fsR/2? port mathematica-config.bash to Ciao?
-m_bundle_foreign_config_tool(contrib, mathematica, ~fsR(bundle_src(contrib)/library/mathematica/'mathematica-config.bash')).
+% TODO: remove call to bundle_path/3? port mathematica-config.bash to Ciao?
+m_bundle_foreign_config_tool(contrib, mathematica, R) :-
+	R = ~bundle_path(contrib, 'library/mathematica/mathematica-config.bash').
 
 mathematica_installed :-
 	\+ using_windows, % TODO: rewrite sh script so that it does not depend on sh?

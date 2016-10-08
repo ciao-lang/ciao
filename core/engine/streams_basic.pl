@@ -256,7 +256,8 @@ atm_or_int(X):- int(X).
 :- multifile library_directory/1.
 :- dynamic library_directory/1.
 
-
+% TODO: Default behavior of this predicate may not be standard, fix
+%   (see fixed_absolute_file_name/3)
 :- doc(absolute_file_name(RelFileSpec, AbsFileSpec), "If
    @var{RelFileSpec} is an absolute pathname then do an absolute
    lookup. If @var{RelFileSpec} is a relative pathname then prefix the
@@ -267,7 +268,6 @@ atm_or_int(X):- int(X).
    @var{AbsFileSpec} will be unified with this file.  Failure to open
    a file normally causes an exception.  The behaviour can be
    controlled by the @tt{fileerrors} @concept{prolog flag}.").
-
 
 :- pred absolute_file_name(+RelFileSpec, -AbsFileSpec) 
    :: sourcename * atm + native
@@ -296,11 +296,9 @@ absolute_file_name(File, Abs) :-
 
 % Error catching for three arguments predicates of absolute_file_name/7
 abs_file_name_check_atom(Arg, Number):-
-        (
-            atom(Arg) -> 
+        ( atom(Arg) -> 
             true 
-        ; 
-            throw(error(type_error(atom, Arg), absolute_file_name/7-Number))
+        ; throw(error(type_error(atom, Arg), absolute_file_name/7-Number))
         ).
 
 absolute_file_name(Spec, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir) :-
@@ -310,14 +308,14 @@ absolute_file_name(Spec, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir) :-
         '$absolute_file_name_checked'(Spec, Opt, Suffix, CurrDir, 
                                       AbsFile, AbsBase, AbsDir).
 
-:- export(fixed_absolute_file_name/2).
+:- export(fixed_absolute_file_name/3).
 % TODO: There is a problem with absolute_file_name/?, reported by
 % Paulo Moura (it duplicates the last name -- this is necessary for
 % locating modules but really strange for the end user).
-fixed_absolute_file_name(X, Y) :-
+fixed_absolute_file_name(X, CurrDir, Y) :-
 	Dummy = '/(((...D-U-M-M-Y...)))',
 	atom_concat(X, Dummy, X1),
-	absolute_file_name(X1, Y1),
+        absolute_file_name(X1, '_opt', '.pl', CurrDir, Y1, _, _),
 	atom_concat(Y, Dummy, Y1).
 
 :- doc(stream/1, "Streams correspond to the file pointers used at

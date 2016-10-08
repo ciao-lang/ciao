@@ -91,7 +91,6 @@ param_body(Bundle, Name,
 	  
 % ---------------------------------------------------------------------------
 
-:- use_module(library(bundle/paths_extra), [fsR/2]).
 :- use_module(ciaobld(interactive_aux)).
 
 % Be careful with get_vers and get_patch: when uninstalling, the patch
@@ -117,8 +116,8 @@ configlevel('3', extended).
 
 % ---------------------------------------------------------------------------
 
-% The full configuration is stored in ~fsR(builddir(Bundle))/bundlereg,
-% in different formats for different tools:
+% The full configuration is stored in bundlereg/ under the build
+% directory, in different formats for different tools:
 %
 %   - ciao.bundlecfg: internal format (saved, no sysdep)
 %   - ciao.bundlecfg_sh: version in sh format for config-sysdep.sh

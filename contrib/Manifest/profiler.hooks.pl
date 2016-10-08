@@ -9,5 +9,5 @@
 '$builder_hook'(profiler:build_nodocs) :- build_libs(contrib, 'library/profiler'). % TODO: 
 '$builder_hook'(profiler:build_docs) :- !.
 '$builder_hook'(profiler:clean_norec) :- !,
-	clean_tree(~fsR(bundle_src(contrib)/library/profiler)).
+	clean_tree(~bundle_path(contrib, 'library/profiler')).
 

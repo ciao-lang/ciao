@@ -69,7 +69,7 @@ doc_cmd_(InFile, Cmd) :-
 	doc_cmd__(Cmd).
 
 doc_input(InFile0, InFile, InKind) :-
-	fixed_absolute_file_name(InFile0, InFile1),
+	fixed_absolute_file_name(InFile0, '.', InFile1),
 	( find_pl(InFile1, InFile),
 	  peek_doccfg(InFile) -> % Input is a doccfg file
 	    InKind = doccfg

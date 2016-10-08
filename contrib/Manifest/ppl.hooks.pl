@@ -34,7 +34,7 @@
     source_url(tar('http://bugseng.com/products/ppl/download/ftp/releases/1.0/ppl-1.0.tar.bz2')),
     source_md5("8a90e0b0b3e9527609a6e5ed3616fab1"),
     %
-    patch(bundle_src(contrib)/'Manifest'/patches/'ppl_1_0.patch'),
+    patch('Manifest/patches/ppl_1_0.patch'),
     build_system(gnu_build_system),
     option2('enable-interfaces','c cxx')
 ]).
@@ -42,7 +42,6 @@
 :- use_module(library(lists), [append/3]).
 :- use_module(library(llists), [flatten/2]).
 
-ppl_dir := bundle_src(contrib)/library/'ppl'.
 with_ppl := ~get_bundle_flag(contrib:with_ppl).
 auto_install_ppl := ~get_bundle_flag(contrib:auto_install_ppl).
 
@@ -60,18 +59,18 @@ ppl_version(Version) :-
 	do_auto_install_ppl,
 	prebuild_ppl_bindings.
 
-:- use_module(ciaobld(third_party_install), [auto_install/1, third_party_path/2]).
+:- use_module(ciaobld(third_party_install), [auto_install/2]).
 :- use_module(ciaobld(builder_aux), [add_rpath/3]).
 
 do_auto_install_ppl :-
 	( auto_install_ppl(yes) -> 
 	    % TODO: add dependencies between PPL and GMP
 	    % normal_message("Auto-install M4 (third party)", []),
-	    % third_party_install:auto_install(m4),
+	    % third_party_install:auto_install(contrib, m4),
 	    normal_message("Auto-install GMP (third party)", []),
-	    third_party_install:auto_install(gmp),
+	    third_party_install:auto_install(contrib, gmp),
 	    normal_message("Auto-install PPL (third party)", []),
-	    third_party_install:auto_install(ppl)
+	    third_party_install:auto_install(contrib, ppl)
 	; true
 	).
 
@@ -97,20 +96,20 @@ prebuild_ppl_bindings :-
 		    ":- extra_compiler_opts('", CompilerOpts, "').\n",
 		    ":- extra_linker_opts('", LinkerOpts, "').\n"], T),
 	    % TODO: generalize, share with GSL
-	    string_to_file(T, ~fsR(~ppl_dir/'ppl_decl_auto.pl')),
+	    string_to_file(T, ~bundle_path(contrib, 'library/ppl/ppl_decl_auto.pl')),
 	    ppl_version(Version),
 	    ( Version @< [0, 9] ->
 		fail
 	    ; Version @< [0, 10] ->
-		ppl_interface_version("0_9")
+		set_ppl_interface_version("0_9")
 	    ;  Version @< [1, 0] ->
-		ppl_interface_version("0_10")
-	    ; ppl_interface_version("1_0")
+		set_ppl_interface_version("0_10")
+	    ; set_ppl_interface_version("1_0")
 	    )
 	;
 	    string_to_file(
 		":- initialization(error('PPL library not installed')).\n\n",
-		~fsR(~ppl_dir/'ppl_auto.pl'))
+		~bundle_path(contrib, 'library/ppl/ppl_auto.pl'))
 	).
 
 % Patch architecture specific options (for universal OSX binaries)
@@ -126,9 +125,9 @@ patch_arch_opts(CompilerOpts0, LinkerOpts0, CompilerOpts, LinkerOpts) :-
 
 % This selects one of the two versions
 % TODO: maybe we can use the package 'condcomp' to make this simpler?
-ppl_interface_version(StrVer) :-
+set_ppl_interface_version(StrVer) :-
 	S = ~flatten([
            "%Do not edit generated automatically.\n\n"||
            ":- include(library(ppl/'", StrVer, "'/ppl_ciao)).\n"]),
- 	string_to_file(S, ~fsR(~ppl_dir/'ppl_auto.pl')).
+ 	string_to_file(S, ~bundle_path(contrib, 'library/ppl/ppl_auto.pl')).
 

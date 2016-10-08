@@ -20,7 +20,7 @@
 :- use_module(library(messages)).
 
 :- use_module(engine(internals), ['$bundle_prop'/2]).
-:- use_module(library(bundle/paths_extra), [fsR/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 :- use_module(library(bundle/bundle_info), [bundle_version/2, bundle_version_patch/2]).
 
 % ===========================================================================
@@ -53,7 +53,7 @@ save_bundle_commit_info(Bundle, Field) :-
 :- export(commit_info_file/3).
 commit_info_file(Bundle, Field) := R :-
 	File = ~commit_info_file_(Field),
-	R = ~fsR(builddir(Bundle)/File).
+	R = ~bundle_path(Bundle, builddir, File).
 
 commit_info_file_(branch) := 'COMMIT_BRANCH'.
 commit_info_file_(id) := 'COMMIT_ID'.
@@ -102,7 +102,7 @@ bundle_repo_kind(_Bundle, RepoKind) :-
 	% Git repo explicitly specified in configuration
 	RepoKind = git.
 bundle_repo_kind(Bundle, RepoKind) :-
-	Dir = ~fsR(bundle_src(Bundle)),
+	Dir = ~bundle_path(Bundle, '.'),
 	( git_repo_at_dir(Dir) -> RepoKind = git
 	; svn_repo_at_dir(Dir) -> RepoKind = svn
 	; RepoKind = none
@@ -130,7 +130,7 @@ svn_commit_info(branch, _Bundle, Branch) :-
 svn_commit_info(id, Bundle, Id) :-
 	% TODO: This is incorrect
 	% Note: svnversion is computed only over Manifest/ directory (to make it faster)
-	Path = ~fsR(bundle_src(Bundle)/'Manifest'),
+	Path = ~bundle_path(Bundle, 'Manifest'),
 	( Id = ~svn_get_revision(Path) -> true
 	; show_message(warning, "Cannot get revision number (svn_get_revision/2 failed)."),
 	  fail
@@ -139,7 +139,7 @@ svn_commit_info(id, Bundle, Id) :-
 	!.
 svn_commit_info(date, Bundle, Date) :-
 	svn_commit_info(id, Bundle, Rev),
-	SvnRepository = ~svn_repository_root(~fsR(bundle_src(Bundle))),
+	SvnRepository = ~svn_repository_root(~bundle_path(Bundle, '.')),
 	\+ SvnRepository = '',
 	Date0 = ~svn_revision_date(SvnRepository, Rev),
 	!,
@@ -223,7 +223,7 @@ bundle_git_repo_dir(Bundle, Path) :-
 	( root_git_repo_dir(Path0) -> % TODO: check that Bundle is a sub-bundle of 'root'
 	    % Git repo explicitly specified in configuration
 	    Path = Path0
-	; Path = ~fsR(bundle_src(Bundle))
+	; Path = ~bundle_path(Bundle, '.')
 	).
 
 % ===========================================================================
