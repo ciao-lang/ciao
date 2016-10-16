@@ -314,10 +314,11 @@ quiet_mode(off).
 %   Path/Path+Opt+Suffix
 %   Path/Path+Suffix
 %   Path/Path
-% if any found, unify Found with true, and return in AbsPath, AbsBase and
-% AbsDir the appropriate values, else unify Found with false, and return in
-% AbsPath, AbsBase and AbsDir the values corresponding to the last option
-% (no Opt nor Suffix).
+%
+% if any found, unify Found with true, and return in AbsPath, AbsBase
+% and AbsDir the appropriate values, else unify Found with false, and
+% return in AbsPath, AbsBase and AbsDir the values corresponding to
+% Path (no Opt nor Suffix).
 
 :- regtype true_fail/1.
 true_fail(true).
@@ -1015,7 +1016,7 @@ translate_base_2([], []).
 find_so_filename(File, Abs) :-
         get_os_arch_suffix(OsArchSuffix),
 	get_so_ext(SOExt),
-        my_absolute_file_name(new, File, OsArchSuffix, SOExt, '.', Abs, Base, _),
+        absolute_file_name_(File, OsArchSuffix, SOExt, '.', Abs, Base, _),
         Abs \== Base,  % Has .so extension
 	!.
 find_so_filename(File, Abs) :-
@@ -1032,7 +1033,7 @@ get_os_arch_suffix(OsArchSuffix) :-
 %:- export(find_po_filename/2).
 find_po_filename(File, Abs) :-
 	opt_suff(Opt),
-        my_absolute_file_name(new, File, Opt, '.po', '.', Abs, Base, _),
+        absolute_file_name_(File, Opt, '.po', '.', Abs, Base, _),
 	Abs \== Base, % Has .po extension
 	!.
 find_po_filename(File, Abs) :-
@@ -1045,17 +1046,17 @@ find_pl_filename(File, PlName, Base, Dir) :-
 	% this is not correct (= in ciao 1.9)
 	atom(File), !,
         opt_suff(Opt),
-	( my_find_file(new, '.', File, Opt, '.pl', true, PlName, Base, Dir) ->
+	( '$find_file'('.', File, Opt, '.pl', true, PlName, Base, Dir) ->
 	    true
-	; my_find_file(new, '.', File, Opt, '', true, PlName, Base, Dir)
+	; '$find_file'('.', File, Opt, '', true, PlName, Base, Dir)
 	).
 find_pl_filename(File, PlName, Base, Dir) :- 
         opt_suff(Opt),
-	my_absolute_file_name(new, File, Opt, '.pl', '.', PlName, Base, Dir).
+	absolute_file_name_(File, Opt, '.pl', '.', PlName, Base, Dir).
 
 % :- export(find_c_filename/4).
 % find_c_filename(File, CName, Base, Dir) :- 
-% 	my_absolute_file_name(new, File, [], '.c', '.', CName, Base, Dir).
+% 	absolute_file_name_(File, [], '.c', '.', CName, Base, Dir).
 
 %:- true pred absolute_file_name(+sourcename,+atm,+atm,+atm,-atm,-atm,-atm).
 
@@ -1064,7 +1065,32 @@ find_pl_filename(File, PlName, Base, Dir) :-
 % (called from streams_basic:absolute_file_name/7)
 :- export('$absolute_file_name_checked'/7).
 '$absolute_file_name_checked'(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir) :-
-	my_absolute_file_name(old, Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir).
+	absolute_file_name_(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir).
+
+absolute_file_name_(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir) :-
+        % Test Spec to be an alias (e.g., library(a/b/c)).
+        nonvar(Spec),
+        functor(Spec, Alias, 1),
+        arg(1,Spec,Name0),
+	slash_to_path(Name0, Name),
+        atom(Name), !,
+        ( file_search_path(Alias, Dir),
+          atom(Dir),
+          '$find_file'(Dir, Name, Opt, Suffix, true, AbsFile, AbsBase, AbsDir) ->
+	    true
+        ; file_not_found_error(Spec)
+        ).
+absolute_file_name_(Name, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir) :-
+        atom(Name), !,
+        '$find_file'(CurrDir, Name, Opt, Suffix, _, AbsFile, AbsBase, AbsDir).
+absolute_file_name_(X, _, _, _, _, _, _) :-
+        throw(error(domain_error(source_sink, X), absolute_file_name/7-1)).
+
+file_not_found_error(Spec) :-
+	( '$ferror_flag'(on, on) ->
+	    throw(error(existence_error(source_sink,Spec), absolute_file_name/7-1))
+	; fail
+	).
 
 % Get (relative) pathname from term notation (e.g., a/b/c -> 'a/b/c').
 % (see pathnames:pathname/1)
@@ -1080,51 +1106,6 @@ slash_to_path(Spec, _Flat) :-
 	% TODO: define a right type for Spec (module_spec does not exist) (perhaps sourcename/1)
         throw(error(domain_error(module_spec, Spec), slash_to_path/2-1)).
 
-% ImplVer=old to use the old implementation, new for the new implementation
-my_absolute_file_name(ImplVer, Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir) :-
-        % Test Spec to be an alias (e.g., library(Module) or similar).
-        nonvar(Spec),
-        functor(Spec, Alias, 1),
-        arg(1,Spec,Name0),
-	slash_to_path(Name0, Name),
-        atom(Name), !,
-        ( file_search_path(Alias, Dir),
-          atom(Dir),
-          my_find_file(ImplVer, Dir, Name, Opt, Suffix, true, AbsFile, AbsBase, AbsDir) ->
-	    true
-        ; file_not_found_error(Spec)
-        ).
-my_absolute_file_name(ImplVer, Name, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir) :-
-        atom(Name), !,
-        my_find_file(ImplVer, CurrDir, Name, Opt, Suffix, _, AbsFile, AbsBase, AbsDir).
-my_absolute_file_name(_, X, _, _, _, _, _, _) :-
-        throw(error(domain_error(source_sink, X), absolute_file_name/7-1)).
-
-file_not_found_error(Spec) :-
-	( '$ferror_flag'(on, on) ->
-	    throw(error(existence_error(source_sink,Spec), absolute_file_name/7-1))
-	; fail
-	).
-
-% TOpt is 0 if Path does not exists or is a directory,
-% else, it is the modification time
-
-%% modif_time0_nodir(Path, Time) :-
-%% 	( my_modif_time0(Path, Time),
-%% 	  \+ Time = 0,
-%% 	  \+ is_dir(Path) ->
-%% 	    true
-%% 	; Time = 0
-%% 	).
-
-my_modif_time0(Path, Time) :-
-        prolog_flag(fileerrors, OldFE, off),
-        ( file_properties(Path, [], [], T, [], []), !
-        ; T = 0
-        ),
-        set_prolog_flag(fileerrors, OldFE),
-        Time = T.
-
 % TODO: engine(internals) should not import lib/ or library/ modules
 %
 %   This works because both predicates are impl_defined already in the
@@ -1137,75 +1118,6 @@ is_dir(Path) :-
         prolog_flag(fileerrors, OldFE, off),
         file_properties(Path, directory, [], [], [], []),
         set_prolog_flag(fileerrors, OldFE).
-
-my_find_file(old, LibDir0, Path0, Opt, Suffix, Exists, AbsFile, AbsBase, AbsDir) :-
-	'$find_file'(LibDir0, Path0, Opt, Suffix, Exists, AbsFile, AbsBase, AbsDir).
-my_find_file(new, LibDir0, Path0, Opt, Suffix, Exists, AbsFile, AbsBase, AbsDir) :-
-	% TODO: differences between 'old' and 'new' version?
-	( atom_concat(Path1, Suffix, Path0) -> % remove the extension
-	    true
-	; Path1 = Path0
-	),
-	'$expand_file_name'(LibDir0, true, LibDir0e),
-	'$expand_file_name'(Path1, false, Path1e),
-	( LibDir0e = '.' -> Path = Path1e
-	; path_concat(LibDir0e, Path1e, Path)
-	),
-	( my_find_file_exists(Path, Opt, Suffix, AbsFile) ->
-	    Exists = true,
-	    atom_concat(AbsBase, Suffix, AbsFile) % without extension
-	; my_find_file_no_exists(Path, AbsFile) ->
-	    Exists = false,
-	    AbsBase = AbsFile
-	; fail
-	),
-%	display(user_error, mff(LibDir0, Path0, Exists, AbsFile)), nl(user_error),
-	path_split(AbsFile, AbsDir, _). % without last filename
-
-% 1) newer non-directory of {path+opt+suffix, path+suffix}
-% 2) path, if path does not exists
-% 3) path, if a non-directory
-% 4) recursive call with duplicated file name in path, if path is a directory
-
-my_find_file_exists(Path, Opt, Suffix, AbsFile) :-
-	( my_find_file_3(Path, Opt, Suffix, AbsFile) ->
-	    true
-	; is_dir(Path) ->
-	    duplicate_dir_name(Path, DupPath), % search inside
-	    my_find_file_3(DupPath, Opt, Suffix, AbsFile)
-	; fail
-	).
-
-my_find_file_no_exists(Path, AbsFile) :-
-	( is_dir(Path) ->
-	    duplicate_dir_name(Path, DupPath), % search inside
-	    \+ file_exists(DupPath, 0),
-	    AbsFile = DupPath
-	; \+ file_exists(Path, 0),
-	  AbsFile = Path
-	).
-
-% newer non-directory of {path+opt+suffix, path+suffix}
-my_find_file_3(Path, Opt, Suffix, AbsFile) :-
-	( \+ Opt = '', atom_concat(Path, Opt, PathOpt),
-	  atom_concat(PathOpt, Suffix, PathOptSuffix) ->
-	    my_modif_time0(PathOptSuffix, TOpt)
-        ; TOpt = 0
-	),
-	( /*\+ Suffix = '',*/ atom_concat(Path, Suffix, PathSuffix) ->
-	    my_modif_time0(PathSuffix, TPri)
-        ; TPri = 0
-	),
-	( TPri > TOpt -> % path+suffix exists, path+opt+suffix older|absent
-	    AbsFile = PathSuffix
-	; TOpt > 0 -> % newer path+opt+suffix exists
-	    AbsFile = PathOptSuffix
-	; fail
-	).
-
-duplicate_dir_name(Path, Path2) :-
-	path_split(Path, _, Name),
-	path_concat(Path, Name, Path2).
 
 % JF: Information about file types involved in compilation
 % - THIS IS NOT A MIME-like LIST: 
@@ -1250,6 +1162,11 @@ path_concat(A, B, R) :-
         ; atom_concat(A, '/', A0) % add '/' if needed
 	),
 	atom_concat(A0, B, R).
+
+% TODO: duplicated: same as path_is_absolute/1
+:- export('$path_is_absolute'/1).
+:- trust pred '$path_is_absolute'(Path) : atm(Path).
+:- impl_defined('$path_is_absolute'/1).
 
 % TODO: duplicated: same as path_is_absolute/1
 :- export('$path_is_absolute'/1).
