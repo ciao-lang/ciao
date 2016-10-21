@@ -1,5 +1,7 @@
 :- package(nonpure).
-% These are the modules automatically imported by non-pure modules
+% Package implicitly used in Ciao modules defined with module/3
+% (except if 'pure' package is used).
+
 :- use_module(engine(arithmetic)).
 :- use_module(engine(atomic_basic)).
 :- use_module(engine(basic_props)).
