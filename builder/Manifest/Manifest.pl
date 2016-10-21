@@ -1,6 +1,5 @@
 % Manifest file for CiaoBuilder
 bundle_name(builder).
-bundle_packname('CiaoBuilder').
 bundle_version('1.0').
 bundle_patch('0').
 %

@@ -81,7 +81,7 @@ gen_bundlereg(BundleDir, BundleName, AliasBase, RegFile) :-
 	; warning_message("Mismatch in bundle name (expected ~w)", [BundleName])
 	),
 	%
-	( member_chk(bundle_alias_paths(RelAliasPaths), BundleDir, ManifestSents) ->
+	( member(bundle_alias_paths(RelAliasPaths), ManifestSents) ->
 	    true
 	; RelAliasPaths = []
 	),
@@ -97,7 +97,10 @@ gen_bundlereg(BundleDir, BundleName, AliasBase, RegFile) :-
         % Alias paths
 	write_alias_paths(AliasPaths, BundleName),
 	% TODO: write extra info in a separate file?
-	member_chk(bundle_packname(Packname), BundleDir, ManifestSents),
+	( member(bundle_packname(Packname), ManifestSents) ->
+	    true
+	; Packname = BundleName % reuse bundle name as packname
+	),
 	fast_write(bundle_prop(BundleName, packname(Packname))),
 	( member(bundle_requires(Requires), ManifestSents) ->
 	    fast_write(bundle_prop(BundleName, requires(Requires)))
