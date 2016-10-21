@@ -57,7 +57,7 @@
 :- use_module(library(format), [format_to_string/3]).
 :- use_module(library(ttyout)).
 :- use_module(library(aggregates)).
-:- use_module(library(read),          [read/2]).
+:- use_module(library(read), [read/2]).
 :- use_module(library(dict)).
 
 % Ciao libraries
@@ -78,8 +78,6 @@
 :- use_module(library(lists),
 	[append/3, reverse/2, length/2, list_concat/2, select/3]).
 :- use_module(library(terms), [atom_concat/2]).
-
-:- use_module(library(system_extra), [(-) /1, try_finally/3]).
 
 % ---------------------------------------------------------------------------
 
@@ -421,10 +419,9 @@ get_last_version_(Version, GlobalVers, Dir, DocSt) :-
 	path_concat(DirVDir, 'GlobalChangeLog', ChangeLogFile),
 	docst_message("Getting global version from ~w...", [ChangeLogFile], DocSt),
 	( file_exists(ChangeLogFile) ->
-	    try_finally(
-		open(ChangeLogFile, read, CLFS),
-		read(CLFS, (:- doc(GlobalVers, _))),
-		close(CLFS))
+	    open(ChangeLogFile, read, CLFS),
+	    read(CLFS, (:- doc(GlobalVers, _))),
+	    close(CLFS)
 	; error_message(
 	        "Version file ~w not found, using version comments in file",
 		[ChangeLogFile]),
@@ -2446,18 +2443,18 @@ doctree_restore_and_write(Mod, OutFile, DocSt) :-
 	docst_backend(DocSt, Backend),
 	absfile_for_subtarget(Mod, Backend, dr, RFile),
 	doctree_restore(RFile, R),
-	try_finally(open(OutFile, write, OS),
-	            doctree_prepare_docst_translate_and_write(R, DocSt, OS),
-		    close(OS)).
+	open(OutFile, write, OS),
+	doctree_prepare_docst_translate_and_write(R, DocSt, OS),
+	close(OS).
 
 % TODO: For infoindex generation. Is it worth a special case?
 doctree_restore_and_write_norefs(Mod, OutFile, DocSt) :-
 	docst_backend(DocSt, Backend),
 	absfile_for_subtarget(Mod, Backend, dr, RFile),
 	doctree_restore(RFile, R),
-	try_finally(open(OutFile, write, OS),
-	            doctree_translate_and_write(R, DocSt, OS),
-		    close(OS)).
+	open(OutFile, write, OS),
+	doctree_translate_and_write(R, DocSt, OS),
+	close(OS).
 
 % ===========================================================================
 

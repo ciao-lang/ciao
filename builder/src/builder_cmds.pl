@@ -44,6 +44,7 @@
 	 build_eng_exec_header/1,
 	 clean_eng_exec_header/1,
 	 %
+	 build_libs/2,
 	 build_cmds_list/3,
 	 builddir_clean/2,
 	 clean_bundlereg/1,
@@ -94,12 +95,16 @@ builder_cmd_on_set(Cmd, [Target|Targets], Opts) :-
 % (commands that are already completed)
 :- data builder_cmd_done/3.
 
-:- export(cleanup_builder/0).
-% Cleanup builder state
-cleanup_builder :-
+:- export(builder_cleanup/0).
+:- pred builder_cleanup # "Cleanup the builder state".
+
+builder_cleanup :-
 	retractall_fact(builder_cmd_done(_, _, _)).
 
 :- export(builder_cmd/3).
+:- pred builder_cmd(Cmd, Target, Opts) # "Perform command @var{Cmd} on
+   target @var{Target} with options @var{Opts}".
+
 builder_cmd(Cmd, Target, Opts) :-
 	current_fact(builder_cmd_done(Cmd, Target, Opts)),
 	!,
@@ -196,61 +201,36 @@ builder_cmd_(build, Target, Opts) :- !,
 	% TODO: use fsmemo package to order build tasks (build_docs on any bundle depends on 'build_nodocs lpdoc')
 	builder_cmd(build_nodocs, Target, Opts),
 	builder_cmd(build_docs, Target, Opts).
-builder_cmd_(Cmd, ciaobase, Opts) :- ( Cmd = build_nodocs ; Cmd = build_docs ), !,
-        % TODO: define 'ciaobase' as a bundle or bundle part (minimum
-        % 'core/ciaoc', 'core/shell', support, needed for
-        % @apl{ciao_builder} to compile the rest of the system)
-	%
-	% TODO: NOTE: this must be build before rest of 'core' compilation
-	%   (starting with bootstrap ciaoc and reaching a fixpoint)
-	%   
-	builder_cmd_on_set(Cmd, [
-          'core/engine', % NOTE: Not the bootstrap engine!
-	  'core/exec_header',
-	  'core/ciaoc',
-	  'core/shell'
-        ], Opts).
 builder_cmd_(build_nodocs, Target, Opts) :- root_bundle(Target), !,
 	check_ready_for_cmd(build_nodocs, Target),
-	% NOTE: 'ciaobase' must be built before anything else
-	builder_cmd(build_nodocs, ciaobase, Opts),
+	% NOTE: 'core/ciaobase' must be built before anything else
+	% TODO: add dependencies instead of fixing a build order
+	% builder_cmd(build_nodocs, 'core/ciaobase', Opts), % (included in core/ build rules)
 	% Treat sub-bundles
 	( % (failure-driven loop)
 	  enum_sub_bundles(Target, P),
 	  builder_cmd(build_nodocs, P, Opts),
 	    fail
 	; true
-	),
-	% TODO: add dependencies instead of fixing a build order
-	% Treat bundle
-	cmd_message(Target, "building [no docs]", []),
-	% TODO: (missing for root)
-	cmd_message(Target, "built [no docs]", []).
+	).
 builder_cmd_(build_nodocs, Target, Opts) :- !,
+	% TODO: Treat dependent bundles first?
 	check_ready_for_cmd(build_nodocs, Target),
-	( has_cmd1(prebuild_nodocs, Target) ->
+	split_target(Target, Bundle, Part),
+	( bundle_defines_hookcmd(Bundle, Part, prebuild_nodocs) ->
 	    cmd_message(Target, "building [prebuild no docs]", []),
 	    builder_cmd(prebuild_nodocs, Target, Opts),
 	    cmd_message(Target, "built [prebuild no docs]", [])
 	; true
 	),
 	cmd_message(Target, "building [no docs]", []),
-	( has_cmd1(build_nodocs, Target) ->
-	    builder_cmd1(build_nodocs, Target, Opts)
-	; '$bundle_id'(Target) ->
-	    % (default: prebuild, and build bin and libraries)
-	    builder_cmd(build_bin, Target, Opts),
-	    builder_cmd(build_libraries, Target, Opts)
-	; format(user_error, "ERROR: unknown bundle '~w'.~n", [Target]),
-	  halt(1)
-        ),
+	% TODO: make sure that Target exists!
+	set_params(Opts),
+	builder_hookcmd(Bundle, Part, build_nodocs),
 	cmd_message(Target, "built [no docs]", []),
 	% Treat item_subs
 	( builder_pred(Target, item_subs(SubPs)) -> true ; fail ),
-	builder_cmd_on_set(build_nodocs, SubPs, Opts),
-	% Treat sub-bundles
-	% TODO: (missing for non-root)
-	true.
+	builder_cmd_on_set(build_nodocs, SubPs, Opts).
 builder_cmd_(prebuild_docs, Target, Opts) :- !,
 	% TODO: prebuild docs needs a different order in processing of
 	% item_subs and sub-bundles; can it be simplified?
@@ -266,12 +246,14 @@ builder_cmd_(prebuild_docs, Target, Opts) :- !,
 	( builder_pred(Target, item_subs(SubPs)) -> true ; fail ),
 	builder_cmd_on_set(prebuild_docs, SubPs, Opts),
 	%
+	split_target(Target, Bundle, Part),
 	( with_docs(yes) ->
-	    ( has_cmd1(prebuild_docs, Target) ->
+	    ( bundle_defines_hookcmd(Bundle, Part, prebuild_docs) ->
 	        cmd_message(Target, "building [prebuild docs]", []),
 	        ensure_builddir(~target_to_bundle(Target), '.'), % TODO: needed?
 		ensure_builddir(~target_to_bundle(Target), 'doc'), % TODO: needed?
-	        builder_cmd1(prebuild_docs, Target, Opts),
+		set_params(Opts),
+		builder_hookcmd(Bundle, Part, prebuild_docs),
 		cmd_message(Target, "built [prebuild docs]", [])
 	    ; % (default)
 	      true
@@ -283,11 +265,17 @@ builder_cmd_(build_docs, Target, Opts) :- !, % (internal, without prebuild)
 	%
 	builder_cmd(prebuild_docs, Target, Opts),
 	%
+	split_target(Target, Bundle, Part),
 	( with_docs(yes) ->
 	    cmd_message(Target, "building [build docs]", []),
-	    ( has_cmd1(build_docs, Target) ->
-	        builder_cmd1(build_docs, Target, Opts)
+	    ( bundle_defines_hookcmd(Bundle, Part, build_docs) ->
+	        set_params(Opts),
+		builder_hookcmd(Bundle, Part, build_docs)
+	    ; builder_pred(Target, item_def(_)) ->
+	        % TODO: nothing?
+	        true
 	    ; % (default: readmes and manuals)
+              % TODO: make sure that Target exists!
 	      builder_cmd(build_docs_readmes, Target, Opts),
 	      builder_cmd(build_docs_manuals, Target, Opts)
 	    ),
@@ -304,23 +292,6 @@ builder_cmd_(build_docs, Target, Opts) :- !, % (internal, without prebuild)
 	% Treat item_subs (for prebuild, it be done before main)
 	( builder_pred(Target, item_subs(SubPs)) -> true ; fail ),
 	builder_cmd_on_set(build_docs, SubPs, Opts).
-builder_cmd_(build_libraries, Target, Opts) :- root_bundle(Target), !, % (special case)
-	check_ready_for_cmd(build_libraries, Target),
-	( % (failure-driven loop)
-	  enum_sub_bundles(Target, P),
-	  builder_cmd(build_libraries, P, Opts),
-	    fail
-	; true
-	).
-%
-builder_cmd_(build_bin, Target, Opts) :- root_bundle(Target), !,
-	check_ready_for_cmd(build_bin, ciao),
-	( % (failure-driven loop)
-	  enum_sub_bundles(Target, P),
-	  builder_cmd(build_bin, P, Opts),
-	    fail
-	; true
-	).
 %
 % Deletes all intermediate files, but leaves configuration settings
 builder_cmd_(clean, Target, Opts) :- !,
@@ -346,6 +317,7 @@ builder_cmd_(clean_nodocs, Target, Opts) :- !,
 builder_cmd_(clean_norec, Target, Opts) :- !,
 	check_ready_for_cmd(clean_norec, Target),
 	%
+	split_target(Target, Bundle, Part),
 	( root_bundle(Target) ->
 	    % TODO: for non-root use target_to_bundle(Target)?
 	    clean_tree(~bundle_path(Target, 'Manifest')),
@@ -356,9 +328,14 @@ builder_cmd_(clean_norec, Target, Opts) :- !,
 	    builddir_clean(Target, bin),
 	    builder_cmd(clean_norec, 'core/engine', []),
 	    builder_cmd(clean_norec, 'core/exec_header', [])
-	; has_cmd1(clean_norec, Target) ->
-	    builder_cmd1(clean_norec, Target, Opts)
-	; '$bundle_id'(Target) ->
+	; bundle_defines_hookcmd(Bundle, Part, clean_norec) ->
+	    set_params(Opts),
+	    builder_hookcmd(Bundle, Part, clean_norec)
+	; builder_pred(Target, item_def(_)) ->
+	    bundleitem_do(Part, Bundle, clean_norec)
+	; '$bundle_id'(Bundle), \+ Part = '' ->
+	    true % (ignore)
+	; '$bundle_id'(Bundle), Part = '' ->
 	    % TODO: use some specific dirs instead
 	    % TODO: does not work with CIAOCACHEDIR! fix
 	    clean_tree(~bundle_path(Target, '.'))
@@ -407,16 +384,9 @@ builder_cmd_(configclean, Target, _Opts) :- !,
 	).
 % ----------
 builder_cmd_(Cmd, Target, Opts) :-
-	builder_cmd1(Cmd, Target, Opts).
-
-builder_cmd1(Cmd, Target, Opts) :-
 	set_params(Opts),
 	split_target(Target, Bundle, Part),
 	builder_hookcmd(Bundle, Part, Cmd).
-
-has_cmd1(Cmd, Target) :-
-	split_target(Target, Bundle, Part),
-	bundle_defines_hookcmd(Bundle, Part, Cmd).
 
 split_target(Target, Bundle, Part) :-
 	path_split_list(Target, Cs),
@@ -548,17 +518,8 @@ check_ready_for_cmd_(_Cmd, Target) :-
 % TODO: reused for bundleconfig too, change name?
 :- use_module(ciaobld(bundlehooks_holder)).
 
-% % A descriptive name for the target (bundle or subtarget)
-% target_desc_name(Target, Name) :-
-% 	( builder_pred(Target, desc_name(Name0)) ->
-% 	    Name = Name0
-% 	; Name = Target % use plain target name
-% 	).
-
 :- export(ensure_load_bundlehooks/1).
 ensure_load_bundlehooks(Bundle) :-
-	% display(user_error, 'LOADING_BUNDLE_HOOKS'(Bundle)), nl(user_error),
-	% TODO: (assume that all bundles define at least desc_name/1)
 	( BundleHooksMod = ~atom_concat(Bundle, '.hooks'),
 	  m_bundlehook_decl(BundleHooksMod, _, _) ->
 	    true
@@ -622,20 +583,21 @@ ensure_load_bundleconfig_rules :-
 builder_hookcmd(Bundle, Part, Cmd) :-
 	ensure_load_bundleconfig_rules, % TODO: make it more fine grained (not always needed, not all bundles needed)
 	ensure_load_bundlehooks(Bundle), % TODO: Not unloaded! (do refcount or gc of modules)
+	bundlehook_call(Bundle, Part, Cmd).
 	%
 	% TODO: is cd/1 really necessary here?
-	BundleDir = ~bundle_path(Bundle, '.'),
-	working_directory(PWD, BundleDir),
-	catch(bundlehook_call(Bundle, Part, Cmd), E, OK = no(E)),
-	( var(OK) -> OK = yes ; true ),
-	cd(PWD),
+%K	BundleDir = ~bundle_path(Bundle, '.'),
+%K	working_directory(PWD, BundleDir),
+%K	catch(bundlehook_call(Bundle, Part, Cmd), E, OK = no(E)),
+%K	( var(OK) -> OK = yes ; true ),
+%K	cd(PWD),
 	%
 %	display(user_error, 'UNLOADING_BUNDLE_HOOKS'(Bundle)), nl(user_error),
 	%
-	( OK = no(E) ->
-	    throw(builder_cmd_failed(Bundle, Part, Cmd, E))
-	; true
-	).
+%K	( OK = no(E) ->
+%K	    throw(builder_cmd_failed(Bundle, Part, Cmd, E))
+%K	; true
+%K	).
 
 % The command has an explicit definition in Bundle .hooks.pl
 % TODO: Synchronize with builder_hookcmd/3
@@ -659,9 +621,9 @@ builder_hookpred(Bundle, Part, Head) :-
 	).
 
 % Default pred, when no hook is provided (true, fail, etc.)
-default_pred(desc_name(_), _, _) :- !, fail.
 default_pred(manual_dir(_), _, _) :- !, fail.
 default_pred(readme_path(_), _, _) :- !, fail.
+default_pred(bundle_def(_), _, _) :- !, fail.
 default_pred(item_def(_), _, _) :- !, fail.
 default_pred(item_subs(SubPs), _, _) :- !, SubPs = [].
 default_pred(Head, Bundle, Part) :-
@@ -738,7 +700,9 @@ bundlehook_call_(clean_docs_manuals, Bundle, '') :- !,
 	; true
 	).
 %
-bundlehook_call_(install, Bundle, '') :- !,
+bundlehook_call_(install, Bundle, Part) :- Part = '', !,
+	% TODO: Support bundle_activate/register in the same way as prebuild_nodocs
+	%
 	% (install main before sub-bundles)
 	% TODO: this is better for docs, but should be done atomically
 	%
@@ -747,19 +711,29 @@ bundlehook_call_(install, Bundle, '') :- !,
 	do_install_bindir(Bundle),
 	do_install_storedir(Bundle),
 	bundlehook_call__(install, Bundle, ''),
+	% Treat item_subs
+	( builder_pred(Bundle, item_subs(SubPs)) -> true ; fail ),
+	builder_cmd_on_set(install, SubPs, []), % TODO: opts are wrong
+        %( member(SubP, SubPs), bundleitem_do(SubP, Bundle, install), fail ; true ),
+	%
 	cmd_message(Bundle, "installed [no docs]", []),
 	% Treat sub-bundles
 	sub_bundles_do_hookcmd(Bundle, install),
 	% Docs
 	bundle_install_docs(Bundle),
 	% Activate
-	bundlehook_call(Bundle, '', bundle_activate).
-bundlehook_call_(uninstall, Bundle, '') :- !,
+	( Part = '' -> install_bundlereg(Bundle) ; true ),
+	bundlehook_call(Bundle, '', register).
+bundlehook_call_(install, Bundle, Part) :- !,
+	bundlehook_call__(install, Bundle, Part),
+	bundlehook_call(Bundle, Part, register).
+bundlehook_call_(uninstall, Bundle, Part) :- Part = '', !,
 	% (uninstall sub-bundles before main)
 	% TODO: this is better for docs, but should be done atomically
 	%
 	% Deactivate
-	bundlehook_call(Bundle, '', bundle_deactivate),
+	bundlehook_call(Bundle, '', unregister),
+	( Part = '' -> uninstall_bundlereg(Bundle) ; true ),
 	% Docs
 	bundle_uninstall_docs(Bundle),
 	% Treat sub-bundles
@@ -769,7 +743,14 @@ bundlehook_call_(uninstall, Bundle, '') :- !,
 	bundlehook_call__(uninstall, Bundle, ''),
 	do_uninstall_storedir(Bundle),
 	do_uninstall_bindir(Bundle),
-	cmd_message(Bundle, "uninstalled [no docs]", []).
+	cmd_message(Bundle, "uninstalled [no docs]", []),
+	% Treat item_subs
+	( builder_pred(Bundle, item_subs(SubPs)) -> true ; fail ),
+	builder_cmd_on_set(uninstall, SubPs, []). % TODO: opts are wrong
+	%( member(SubP, SubPs), bundleitem_do(SubP, Bundle, uninstall), fail ; true ).
+bundlehook_call_(uninstall, Bundle, Part) :- !,
+	bundlehook_call(Bundle, Part, unregister),
+	bundlehook_call__(uninstall, Bundle, Part).
 bundlehook_call_(install_docs, Bundle, '') :- !, % (no hooks)
 	% (install main before sub-bundles)
 	bundle_install_docs(Bundle),
@@ -778,12 +759,6 @@ bundlehook_call_(uninstall_docs, Bundle, '') :- !, % (no hooks)
 	% (uninstall sub-bundles before main)
 	revsub_bundles_do_hookcmd(Bundle, uninstall_docs),
 	bundle_uninstall_docs(Bundle).
-bundlehook_call_(bundle_activate, Bundle, '') :- !,
-	install_bundlereg(Bundle),
-	bundlehook_call(Bundle, '', register).
-bundlehook_call_(bundle_deactivate, Bundle, '') :- !,
-	bundlehook_call(Bundle, '', unregister),
-	uninstall_bundlereg(Bundle).
 %
 % pbundle generation
 bundlehook_call_(gen_pbundle(Kind), Bundle, '') :- !,
@@ -813,35 +788,20 @@ bundlehook_call__(Cmd, Bundle, Part) :-
 	).
 
 % Default command action, when no hook is provided (true, fail, etc.)
-default_cmd(prebuild_nodocs, _, _) :- !.
+default_cmd(Cmd, Bundle, Part) :- defcmd(Cmd), !,
+	( Part = '', builder_pred(Bundle, bundle_def(Y)) ->
+	    bundleitem_do(Y, Bundle, Cmd)
+	; path_concat(Bundle, Part, Target), builder_pred(Target, item_def(Y)) ->
+	    bundleitem_do(Y, Bundle, Cmd)
+	; true
+	).
 default_cmd(prebuild_docs, _, _) :- !.
-default_cmd(build_nodocs, _, _) :- !. % TODO: build bin,libs,etc.
-default_cmd(build_bin, _, _) :- !. % TODO: build cmds if there is a def
-default_cmd(build_libraries, _, _) :- !. % TODO: build libs if there is a def
 default_cmd(build_docs_readmes, _, _) :- !.
 default_cmd(build_docs_manuals, _, _) :- !.
 default_cmd(clean_docs_readmes, _, _) :- !.
 default_cmd(clean_docs_manuals, _, _) :- !.
 default_cmd(runbenchmarks, _, _) :- !. % TODO: look in tests?
 default_cmd(test, _, _) :- !. % TODO: test sources
-default_cmd(install, _, _) :- !. % TODO: install libs, cmds -- also decide which alias paths are public
-default_cmd(uninstall, _, _) :- !. % TODO: uninstall libs, cmds -- also decide which alias paths are public
-default_cmd(register, _, _) :- !.
-default_cmd(unregister, _, _) :- !.
-default_cmd(Cmd, Bundle, Part) :-
-	( Cmd = item_prebuild_nodocs
-	; Cmd = item_build_nodocs
-	; Cmd = item_clean_norec
-	; Cmd = item_install
-	; Cmd = item_uninstall
-	; Cmd = item_register
-	; Cmd = item_unregister
-	; fail
-	),
-	!,
-	% In the interface, but not defined for this bundle
-	functor(Cmd, F, N),
-	throw(error(bundlehook_undefined(Bundle,Part,F/N), bundlehook_call/1)).
 default_cmd(Cmd, Bundle, Part) :-
 	( Cmd = custom_run(_, _)
 	; fail
@@ -906,31 +866,35 @@ item_cmd_message(uninstall, "uninstalling").
 item_cmd_message(register, "registering").
 item_cmd_message(unregister, "unregistering").
 
-:- export(bundleitem_do/3).
-bundleitem_do(X, Bundle, Cmd) :- is_list(X), !,
+bundleitem_do(X, Bundle, Cmd) :- ( Cmd = install ; Cmd = uninstall ), !,
+	% consider X only if installation kind is global
+	( ~instype = global ->
+	    bundleitem_do_(X, Bundle, Cmd)
+	; true
+	).
+bundleitem_do(X, Bundle, Cmd) :-
+	bundleitem_do_(X, Bundle, Cmd).
+
+bundleitem_do_(X, Bundle, Cmd) :- is_list(X), !,
 	( cmd_revlist(Cmd) ->
 	    bundleitem_revlist_do(X, Bundle, Cmd)
 	; bundleitem_list_do(X, Bundle, Cmd)
 	).
-bundleitem_do(item_group(Name, X), Bundle, Cmd) :- !,
+bundleitem_do_(item_group(Name, X), Bundle, Cmd) :- !,
 	item_cmd_message(Cmd, CmdMsg0),
-	cmd_message(Bundle, "(~s) ~s", [Name, CmdMsg0]),
-	bundleitem_do(X, Bundle, Cmd).
+	( ( Cmd = register ; Cmd = unregister ) -> true % TODO: hack
+	; cmd_message(Bundle, "(~s) ~s", [Name, CmdMsg0])
+	),
+	bundleitem_do_(X, Bundle, Cmd).
 %
-bundleitem_do(only_global_ins(X), Bundle, Cmd) :- !,
-	% consider X only if installation kind is global
-	( ~instype = global ->
-	    bundleitem_do(X, Bundle, Cmd)
-	; true
-	).
-bundleitem_do(switch_to_bundle(Bundle, X), _Bundle, Cmd) :- !,
+bundleitem_do_(switch_to_bundle(Bundle, X), _Bundle, Cmd) :- !,
 	% TODO: hack for building 'ide' from 'core' (for emacs-mode); move hooks to ide and remove this
-	bundleitem_do(X, Bundle, Cmd).
-bundleitem_do(files_from(SrcDir, Path, _Props), Bundle, install) :- !,
+	bundleitem_do_(X, Bundle, Cmd).
+bundleitem_do_(files_from(SrcDir, Path, _Props), Bundle, install) :- !,
 	% Copy contents from SrcDir into Path
 	storedir_install(dir(Path)),
 	storedir_install(dir_rec(~bundle_path(Bundle, SrcDir), Path)).
-bundleitem_do(files_from(_SrcDir, Path, Props), _Bundle, uninstall) :- !,
+bundleitem_do_(files_from(_SrcDir, Path, Props), _Bundle, uninstall) :- !,
 	( ~instype = global -> true ; throw(uninstall_requires_global) ),
 	( member(del_rec, Props) ->
 	    % on uninstall, remove contents recursively
@@ -941,97 +905,107 @@ bundleitem_do(files_from(_SrcDir, Path, Props), _Bundle, uninstall) :- !,
 	    true
 	; storedir_uninstall(dir(Path))
 	).
-bundleitem_do(dir_install_to(Path, _Props), _Bundle, install) :- !,
-	storedir_install(dir(Path)).
-bundleitem_do(dir_install_to(Path, Props), _Bundle, uninstall) :- !,
-	( ~instype = global -> true ; throw(uninstall_requires_global) ),
-	( member(do_not_del, Props) ->
-	    % do not delete on uninstall
-	    true
-	; storedir_uninstall(dir(Path))
-	).
-bundleitem_do(lib(DirName), Bundle, install) :- !, % (only instype=global)
+bundleitem_do_(files_from(_SrcDir, _Path, _Props), _Bundle, register) :- !.
+bundleitem_do_(files_from(_SrcDir, _Path, _Props), _Bundle, clean_norec) :- !.
+bundleitem_do_(lib(DirName), Bundle, build_nodocs) :- !,
+	build_libs(Bundle, ~bundle_path(Bundle, DirName)).
+bundleitem_do_(lib(DirName), Bundle, install) :- !, % (only instype=global)
 	% Install the module collection under DirName (along compiled files)
 	cmd_message(Bundle, "installing '~w' libraries", [DirName]),
 	From = ~bundle_path(Bundle, DirName),
 	To = ~inst_bundle_path(Bundle, DirName),
 	storedir_install(dir_rec(From, To)).
-bundleitem_do(lib(DirName), Bundle, uninstall) :- !, % (only instype=global)
+bundleitem_do_(lib(DirName), Bundle, uninstall) :- !, % (only instype=global)
 	% Uninstall the previously installed module collection DirName
 	To = ~inst_bundle_path(Bundle, DirName),
 	storedir_uninstall(dir_rec(To)).
-bundleitem_do(src(DirName), Bundle, install) :- !, % (only instype=global)
+bundleitem_do_(lib(_), _Bundle, register) :- !.
+bundleitem_do_(lib(_), _Bundle, clean_norec) :- !.
+bundleitem_do_(lib_force_build(DirName), Bundle, build_nodocs) :- !, % TODO: hack for library/clpq, library/clpr (see core bundle)
+	build_libs(Bundle, ~bundle_path(Bundle, DirName)).
+bundleitem_do_(lib_force_build(_), _Bundle, install) :- !. % TODO: assume installed with lib()
+bundleitem_do_(lib_force_build(_), _Bundle, uninstall) :- !. % TODO: assume installed with lib()
+bundleitem_do_(lib_force_build(_), _Bundle, register) :- !.
+bundleitem_do_(lib_force_build(_), _Bundle, clean_norec) :- !.
+bundleitem_do_(src(_DirName), _Bundle, build_nodocs) :- !. % (only for install)
+bundleitem_do_(src(DirName), Bundle, install) :- !, % (only instype=global)
 	% Install the module collection under DirName (just source, e.g., for examples)
 	cmd_message(Bundle, "installing '~w' source", [DirName]),
 	storedir_install(src_dir_rec(~bundle_path(Bundle, DirName), ~inst_bundle_path(Bundle, DirName))).
-bundleitem_do(src(DirName), Bundle, uninstall) :- !, % (only instype=global)
+bundleitem_do_(src(DirName), Bundle, uninstall) :- !, % (only instype=global)
 	% Uninstall the previously installed source-only module collection DirName
 	storedir_uninstall(src_dir_rec(~inst_bundle_path(Bundle, DirName))).
-bundleitem_do(cmds_list(Path, List), Bundle, build_nodocs) :- !,
+bundleitem_do_(src(_DirName), _Bundle, register) :- !.
+bundleitem_do_(src(_DirName), _Bundle, clean_norec) :- !.
+bundleitem_do_(cmds_list(Path, List), Bundle, build_nodocs) :- !,
 	build_cmds_list(Bundle, ~bundle_path(Bundle, Path), List).
-bundleitem_do(cmds_list(_, List), Bundle, install) :- !,
+bundleitem_do_(cmds_list(_, List), Bundle, install) :- !,
 	storedir_install(cmds_list_(Bundle, List)).
-bundleitem_do(cmds_list(_, List), Bundle, uninstall) :- !,
+bundleitem_do_(cmds_list(_, List), Bundle, uninstall) :- !,
  	storedir_uninstall(cmds_list_(Bundle, List)).
-bundleitem_do(lib_file_list(Path, List), Bundle, Cmd) :- !,
+bundleitem_do_(cmds_list(_, _), _Bundle, register) :- !.
+bundleitem_do_(cmds_list(_, _), _Bundle, clean_norec) :- !.
+bundleitem_do_(lib_file_list(_Path, _List), _Bundle, register) :- !.
+bundleitem_do_(lib_file_list(_Path, _List), _Bundle, clean_norec) :- !.
+bundleitem_do_(lib_file_list(Path, List), Bundle, Cmd) :- !,
 	lib_file_list_do(List, Bundle, ~bundle_path(Bundle, Path), Cmd).
-bundleitem_do(bin_copy_and_link(K, File, Props), Bundle, install) :- !,
+bundleitem_do_(bin_copy_and_link(K, File, Props), Bundle, install) :- !,
 	storedir_install(copy_and_link(K, Bundle, File)),
 	( member(link_as(Link), Props) ->
 	    storedir_install(link_as(K, Bundle, File, Link))
 	; true
 	).
-bundleitem_do(bin_copy_and_link(K, File, Props), Bundle, uninstall) :- !,
+bundleitem_do_(bin_copy_and_link(K, File, Props), Bundle, uninstall) :- !,
 	( member(link_as(Link), Props) ->
 	    storedir_uninstall(link(K, Link))
 	; true
 	),
 	storedir_uninstall(copy_and_link(K, Bundle, File)).
+bundleitem_do_(bin_copy_and_link(_K, _File, _Props), _Bundle, register) :- !.
+bundleitem_do_(bin_copy_and_link(_K, _File, _Props), _Bundle, clean_norec) :- !.
 % Engine
-bundleitem_do(eng(EngMainSpec, EngOpts), Bundle, build_nodocs) :- !,
+bundleitem_do_(eng(EngMainSpec, EngOpts), Bundle, build_nodocs) :- !,
 	Eng = eng_def(Bundle, EngMainSpec, EngOpts),
 	eng_build(Eng),
 	% Activate
  	eng_active_bld(Eng).
-bundleitem_do(eng(EngMainSpec, EngOpts), Bundle, clean_norec) :- !,
+bundleitem_do_(eng(EngMainSpec, EngOpts), Bundle, clean_norec) :- !,
 	eng_clean(eng_def(Bundle, EngMainSpec, EngOpts)).
-bundleitem_do(eng(EngMainSpec, EngOpts), Bundle, install) :- !,
+bundleitem_do_(eng(EngMainSpec, EngOpts), Bundle, install) :- !,
 	Eng = eng_def(Bundle, EngMainSpec, EngOpts),
 	( ~instype = global -> true ; throw(install_eng_requires_global) ), % TODO: should not be needed
 	storedir_install(eng_contents(Eng)),
 	storedir_install(eng_active(Eng)).
-bundleitem_do(eng(EngMainSpec, EngOpts), Bundle, uninstall) :- !,
+bundleitem_do_(eng(EngMainSpec, EngOpts), Bundle, uninstall) :- !,
 	Eng = eng_def(Bundle, EngMainSpec, EngOpts),
 	( ~instype = global -> true ; throw(uninstall_eng_requires_global) ), % TODO: should not be needed
 	storedir_uninstall(eng_active(Eng)),
 	storedir_uninstall(eng_contents(Eng)).
+bundleitem_do_(eng(_EngMainSpec, _EngOpts), _Bundle, register) :- !.
 % Engine header stubs for executables
-bundleitem_do(eng_exec_header(eng(EngMainSpec, EngOpts)), Bundle, build_nodocs) :- !,
+bundleitem_do_(eng_exec_header(eng(EngMainSpec, EngOpts)), Bundle, build_nodocs) :- !,
 	build_eng_exec_header(eng_def(Bundle, EngMainSpec, EngOpts)).
-bundleitem_do(eng_exec_header(eng(EngMainSpec, EngOpts)), Bundle, clean_norec) :- !,
+bundleitem_do_(eng_exec_header(eng(EngMainSpec, EngOpts)), Bundle, clean_norec) :- !,
 	clean_eng_exec_header(eng_def(Bundle, EngMainSpec, EngOpts)).
+bundleitem_do_(eng_exec_header(eng(_EngMainSpec, _EngOpts)), _Bundle, install) :- !,
+	% TODO: do nothing -- is it right?
+	true.
+bundleitem_do_(eng_exec_header(eng(_EngMainSpec, _EngOpts)), _Bundle, register) :- !.
 %
-bundleitem_do(X, Bundle, Cmd) :-
-	atom(X), % TODO: replace by item(_)
-	path_concat(Bundle, X, Target),
-	builder_pred(Target, item_def(Y)), !,
-	bundleitem_do(Y, Bundle, Cmd).
-bundleitem_do(X, Bundle, Cmd) :-
-	atom(X), % TODO: replace by item(_)
+bundleitem_do_(Part, Bundle, Cmd) :-
+	atom(Part), % TODO: replace by item(_)?
 	!,
-	path_concat(Bundle, X, Target),
-	( Cmd = prebuild_nodocs -> Cmd2 = item_prebuild_nodocs
-	; Cmd = build_nodocs -> Cmd2 = item_build_nodocs
-	; Cmd = clean_norec -> Cmd2 = item_clean_norec
-	; Cmd = install -> Cmd2 = item_install
-	; Cmd = uninstall -> Cmd2 = item_uninstall
-	; Cmd = register -> Cmd2 = item_register
-	; Cmd = unregister -> Cmd2 = item_unregister
-	; fail
-	),
-	builder_cmd1(Cmd2, Target, []).
-bundleitem_do(X, _Bundle, _Cmd) :-
-	throw(error(unknown(X), bundleitem_do/3)).
+	builder_hookcmd(Bundle, Part, Cmd).
+bundleitem_do_(X, _Bundle, Cmd) :-
+	throw(error(unknown(X, Cmd), bundleitem_do/3)).
+
+defcmd(prebuild_nodocs).
+defcmd(build_nodocs).
+defcmd(register).
+defcmd(unregister).
+defcmd(install).
+defcmd(uninstall).
+defcmd(clean_norec).
 
 % TODO: we would need dependencies here
 % (uninstall is done in reverse order)
@@ -1039,7 +1013,7 @@ bundleitem_revlist_do(Xs, Bundle, Cmd) :-
 	bundleitem_list_do(~reverse(Xs), Bundle, Cmd).
 
 bundleitem_list_do([], _Bundle, _Cmd).
-bundleitem_list_do([X|Xs], Bundle, Cmd) :- bundleitem_do(X, Bundle, Cmd), bundleitem_list_do(Xs, Bundle, Cmd).
+bundleitem_list_do([X|Xs], Bundle, Cmd) :- bundleitem_do_(X, Bundle, Cmd), bundleitem_list_do(Xs, Bundle, Cmd).
 
 lib_file_list_do([], _Bundle, _Path, _Cmd).
 lib_file_list_do([X|Xs], Bundle, Path, Cmd) :-
@@ -1048,18 +1022,16 @@ lib_file_list_do([X|Xs], Bundle, Path, Cmd) :-
 
 lib_file_item_do(File-Props, Bundle, Path, install) :- !,
 	( ~instype = global -> true ; throw(install_requires_global) ), % TODO: should not be needed
-	lib_file_props(File, Props, Path, Props2),
-	storedir_install(lib_file_copy_and_link(Props2, Bundle, Path, File)).
+	lib_file_props(File, Props, Path, _Props2),
+	storedir_install(lib_file_copy_and_link(Bundle, Path, File)).
 lib_file_item_do(File-Props, Bundle, Path, uninstall) :- !,
 	( ~instype = global -> true ; throw(uninstall_requires_global) ), % TODO: should not be needed
-	lib_file_props(File, Props, Path, Props2),
-	storedir_uninstall(lib_file_copy_and_link(Props2, Bundle, Path, File)).
+	lib_file_props(File, Props, Path, _Props2),
+	storedir_uninstall(lib_file_copy_and_link(Bundle, Path, File)).
 
 lib_file_props(File, Props, Path, Props2) :-
 	( member(copy_and_link, Props) ->
 	    Props2 = []
-	; member(to_abspath(To), Props) ->
-	    Props2 = [to_abspath(To)]
 	; throw(unknown_props_lib_file(File, Props, Path))
 	).
 	
@@ -1087,8 +1059,9 @@ do_uninstall_storedir(Bundle) :- ~instype = global, !,
 	storedir_uninstall(dir_if_empty(~instciao_storedir)).
 do_uninstall_storedir(_Bundle).
 
-do_install_bindir(_Bundle) :-
+do_install_bindir(_Bundle) :- ~instype = global, !,
 	storedir_install(dir(~instciao_bindir)).
+do_install_bindir(_Bundle).
 
 do_uninstall_bindir(_Bundle) :- ~instype = global, !,
 	% Keep ~instciao_bindir (e.g., it may be /usr/bin)

@@ -5,7 +5,6 @@
 :- multifile m_bundlehook_decl/3.
 :- multifile m_bundlehook_do/3.
 
-% :- pred desc_name(X) # "@var{X} is the textual name of the bundle".
 % :- pred readme_path(D) # "@var{D} is the (bundle relative) path
 %    for a README file (in lpdoc format). README files are expected
 %    to be part of the sources. They are updated during documentation
@@ -18,12 +17,6 @@
 
 % :- pred prebuild_nodocs/0 # "Prepare source for build_nodocs".
 % :- pred build_nodocs/0 # "Build cmds and libs (includes prebuild_nodocs)".
-% :- pred build_bin/0 # "Build cmds".
-% :- pred build_libraries/0 # "Build libs".
-
-% :- pred item_prebuild_nodocs/0 # "prebuild_nodocs for item".
-% :- pred item_build_nodocs/0 # "build_nodocs for item".
-% :- pred item_clean_norec/0 # "clean_norec for item".
 
 % :- pred prebuild_docs/0 # "Prepare source for build_docs". 
 
@@ -45,16 +38,11 @@
 % % Hooks for bundleitem definition
 % :- pred item_def/1 # "Definition of some bundleitem".
 
+% % Hooks for bundle_def definition
+% :- pred bundle_def/1 # "Definition of this bundle (libs, cmds)".
+
 % % Subtargets (experimental)
 % :- pred item_subs/1 # "".
-
-% % Hooks for bundleitem (un)installation
-% :- pred item_install/0 # "install for item".
-% :- pred item_uninstall/0 # "uninstall for item".
-
-% % Hooks for bundleitem (un)registry
-% :- pred item_register/0 # "register for item".
-% :- pred item_unregister/0 # "unregister for item".
 
 % % Hooks for third-party components
 :- discontiguous m_third_party_name/1.

@@ -10,7 +10,7 @@
 
 with_mathematica := ~get_bundle_flag(contrib:with_mathematica).
 
-'$builder_hook'(mathematica:item_prebuild_nodocs) :-
+'$builder_hook'(mathematica:prebuild_nodocs) :-
 	( with_mathematica(yes) ->
 	    normal_message("Configuring Mathematica Interface", []),
 	    foreign_config_var(mathematica, 'kernel', MathLink),

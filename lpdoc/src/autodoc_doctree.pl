@@ -412,35 +412,30 @@ section_select_prop(P, SecProps0, SecProps) :-
 
 % ---------------------------------------------------------------------------
 
-:- doc(subsection, "Saving/Restoring a doctree to Disk").
+:- doc(subsection, "Saving/Restoring a doctree to disk").
 
-% TODO: I got a segmentation fault with fastrw!
+% TODO: I got a segmentation fault with fastrw! Do not work with single big terms
 
 :- export(doctree_save/2).
 :- pred doctree_save(+atm, +doctree).
 doctree_save(RFile, R) :-
 	push_prolog_flag(write_strings, on),
-	try_finally(open(RFile, write, ROS),
-	            (writeq(ROS, R), write(ROS, '.')),
-		    close(ROS)),
-	pop_prolog_flag(write_strings).
+	open(RFile, write, ROS),
 % TODO: faster, but breaks at some point
-%	try_finally(open(RFile, write, ROS),
-%	            fast_write(ROS, R),
-%		    close(ROS)).
+%	fast_write(ROS, R),
+	writeq(ROS, R), write(ROS, '.'),
+	close(ROS),
+	pop_prolog_flag(write_strings).
 
 :- export(doctree_restore/2).
 :- pred doctree_restore(+atm, ?doctree).
 doctree_restore(RFile, R) :-
-	try_finally(open(RFile, read, ROS),
-	            read(ROS, R),
-		    close(ROS)).
+	open(RFile, read, ROS),
 % TODO: faster, but breaks at some point
-%	try_finally(open(RFile, read, ROS),
-%	            fast_read(ROS, R),
-%		    close(ROS)).
+%	fast_read(ROS, R),
+	read(ROS, R),
+	close(ROS).
 
-:- use_module(library(system_extra), [try_finally/3]).
 :- use_module(library(write), [writeq/2,write/2]).
 :- use_module(library(read), [read/2]).
 %:- use_module(library(fastrw), [fast_write/2, fast_read/2]).

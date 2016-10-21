@@ -1,9 +1,6 @@
 :- module(_, [], [ciaobld(bundlehooks)]).
 
 :- doc(title,  "Bundle Hooks for Contrib libraries").
-:- doc(author, "Ciao Development Team").
-
-'$builder_hook'(desc_name('Contrib')).
 
 % ===========================================================================
 
@@ -19,6 +16,8 @@
 
 % ============================================================================
 
+'$builder_hook'(item_subs(['contrib/profiler', 'contrib/timingmodel', 'contrib/gsl', 'contrib/ppl', 'contrib/mathematica'])).
+
 :- include(.('profiler.hooks')).
 :- include(.('timingmodel.hooks')).
 :- include(.('gsl.hooks')).
@@ -27,34 +26,17 @@
 
 % ============================================================================
 
-:- doc(section, "Build").
-% (engine, libraries, and compiler)
-
-:- use_module(ciaobld(ciaoc_aux), [build_libs/2]).
-
-'$builder_hook'(build_libraries) :- build_libs(contrib, 'library').
-
-'$builder_hook'(build_bin) :- bundleitem_do(contrib_cmds, contrib, build_nodocs).
-
-% Prepare source for build
-% (e.g., for automatically generated code, foreign interfaces, etc.)
-'$builder_hook'(prebuild_nodocs) :-
-	bundleitem_do([mathlibs, ppl, mathematica, timingmodel], contrib, prebuild_nodocs).
-
-% ============================================================================
-
-:- doc(section, "Installation").
-
-'$builder_hook'(install) :- bundleitem_do(only_global_ins(~contrib_desc), contrib, install).
-
-'$builder_hook'(uninstall) :- bundleitem_do(only_global_ins(~contrib_desc), contrib, uninstall).
-
-contrib_desc := [
-  %
-  contrib_cmds,
-  %
+'$builder_hook'(bundle_def([
+  cmds,
   lib('library')
-].
+])).
+
+% TODO: move to its own bundle
+'$builder_hook'(cmds:item_def(
+    cmds_list('cmds', [
+        'synch_actions'-[plexe],
+        'cleandirs'-[plexe]
+    ]))).
 
 % ===========================================================================
 
@@ -66,18 +48,4 @@ contrib_desc := [
 
 '$builder_hook'(test) :- !,
 	runtests_dir(contrib, 'library').
-
-% ===========================================================================
-% Enumeration of the standalone utilities in */cmds/
-% TODO: Generalize and split
-
-:- use_module(library(aggregates), [findall/3]).
-
-% TODO: move to its own bundle
-'$builder_hook'(contrib_cmds:item_def(
-    cmds_list('cmds', [
-        'synch_actions'-[plexe],
-        'cleandirs'-[plexe]
-    ]))).
-
 

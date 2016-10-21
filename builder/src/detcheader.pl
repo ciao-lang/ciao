@@ -1,48 +1,40 @@
-:- module(_, [detect_c_headers/1], [assertions]).
-
-:- use_module(library(lists), [append/3]).
-:- use_module(library(llists)).
-:- use_module(library(terms), [atom_concat/2]).
-:- use_module(library(file_utils)).
-:- use_module(library(foreign_compilation)).
-:- use_module(library(system), [mktemp_in_tmp/2]).
-:- use_module(library(system_extra), [try_finally/3, del_files_nofail/1]).
-:- use_module(library(process), [process_call/3]).
-
-:- doc(author, "Edison Mera").
+:- module(_, [detect_c_headers/1], [assertions, dcg]).
 
 :- doc(title, "C Header Detection").
 
-:- doc(summary, "This module provides a predicate to detect a C Header").
+:- doc(summary, "Detect if a C header can be found by the C compiler
+   (under the include path)").
 
-headers_includes([],               []        ).
-headers_includes([Header|Headers], [["#include <", HeaderS, ">\n"]
-	    |Includes]) :-
-	atom_codes(Header, HeaderS),
-	headers_includes(Headers, Includes).
+:- use_module(library(lists), [append/3]).
+:- use_module(library(file_utils), [string_to_file/2]).
+:- use_module(library(foreign_compilation), [compiler_and_opts/2]).
+:- use_module(library(system), [mktemp_in_tmp/2]).
+:- use_module(library(system_extra), [del_file_nofail/1]).
+:- use_module(library(process), [process_call/3]).
+:- use_module(library(port_reify), [once_port_reify/2]).
 
-:- true pred detect_c_headers(+ list(filename)) # "Succeeds if all the
+:- true pred detect_c_headers(+list(filename)) # "Succeeds if all the
 	c header files in the argument are valid.".
 
 detect_c_headers(Headers) :-
-	headers_includes(Headers, Includes),
-	flatten([Includes,
-		"int main(void){\n"||
-		"return 0;\n"||
-		"}\n"], S),
+	headers_includes(Headers, Src, []),
 	mktemp_in_tmp('headertmpXXXXXX', FileBase),
 	atom_concat(FileBase, '.c', FileName),
-	string_to_file(S, FileName),
-	get_exec_ext(Exec),
+	string_to_file(Src, FileName),
 	compiler_and_opts(Compiler, Opts),
-	atom_concat(FileBase, Exec, FileExec),
-	!,
-	try_finally(
-	    true,
-	    (
-		append(Opts, ['-o', FileBase, FileName], Args),
-		process_call(path(Compiler), Args,
-		       [stderr(null), stdout(null), status(0)])
-	    ),
-	    del_files_nofail([FileBase, FileExec, FileName])
-	).
+	append(Opts, ['-E', FileName], Args),
+	once_port_reify(
+            process_call(path(Compiler), Args,
+                         [stderr(null), stdout(null), status(0)]), Port),
+	del_file_nofail(FileName),
+	Port = success.
+
+headers_includes([]) --> [].
+headers_includes([Header|Headers]) -->
+	"#include <", emit_atom(Header), ">\n",
+	headers_includes(Headers).
+
+emit_atom(X, S, S0) :-
+	atom_codes(X, Cs),
+	append(Cs, S0, S).
+

@@ -14,14 +14,13 @@
 % Ciao libraries
 :- use_module(library(aggregates), [findall/3, setof/3, (^)/2]).
 :- use_module(library(compiler), [use_module/1]).
-:- use_module(library(assertions/assrt_lib),
-	    [
-		cleanup_code_and_related_assertions/0,
-		clause_read/7,
-		assertion_read/9,
-		assertion_body/7,
-		get_code_and_related_assertions_opts/6
-	    ]).
+:- use_module(library(assertions/assrt_lib), [
+    cleanup_code_and_related_assertions/0,
+    clause_read/7,
+    assertion_read/9,
+    assertion_body/7,
+    get_code_and_related_assertions_opts/6
+   ]).
 :- use_module(library(compiler/c_itf)).
 :- use_module(library(assertions/assertions_props),
 	    [predfunctor/1, propfunctor/1]).
@@ -33,8 +32,6 @@
 :- use_module(library(lists),
 	    [append/3, reverse/2, length/2, list_concat/2, select/3]).
 :- use_module(library(terms), [atom_concat/2]).
-
-:- use_module(library(system_extra), [(-) /1, try_finally/3]).
 
 % Local libraries
 :- use_module(lpdoc(autodoc_settings)).
@@ -53,8 +50,7 @@
 
 :- export(supported_option/1).
 :- prop supported_option(Option) 
-
-	# "@tt{Option} is a supported documentation option.".
+   # "@tt{Option} is a supported documentation option.".
 
 % TODO: Duplicated in lpdoc/lib/doccfg_props.pl
 supported_option(verbose).
@@ -851,6 +847,3 @@ get_first_loc_for_pred(F, A, loc(S, L0, L1)) :-
 	clause_read(_, 1, multifile(F/A), _, S, L0, L1),
 	!.
 get_first_loc_for_pred(_, _, _).
-
-
-

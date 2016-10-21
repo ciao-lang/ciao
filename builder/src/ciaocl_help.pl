@@ -215,18 +215,6 @@ cmd_usage(build_nodocs, "[<bundle>]", [
     "Build commands and libraries (includes prebuild)"
 ]) :- advanced.
 %
-cmd_grp(build_bin, build_grp).
-cmd_usage(build_bin, "[<bundle>]", [
-    %1_______________________________________________
-    "Only build commands (executable binaries)"
-]) :- advanced.
-%
-cmd_grp(build_libraries, build_grp).
-cmd_usage(build_libraries, "[<bundle>]", [
-    %1_______________________________________________
-    "Only build libraries (modules in alias paths)"
-]) :- advanced.
-%
 cmd_grp(prebuild_docs, build_grp).
 cmd_usage(prebuild_docs, "[<bundle>]", [
     %1_______________________________________________
@@ -271,7 +259,7 @@ grp_details(build_grp, [
     "Additionally, other valid targets are:",
     % TODO: this should not be needed
     "",
-    "  ciaobase               Engine, compiler, and toplevel" % TODO: does not work in 'clean'!
+    "  core/ciaobase          Engine, compiler, and toplevel" % TODO: does not work in 'clean'!
 ]).
 
 grp_def(clean_grp, "Cleaning").

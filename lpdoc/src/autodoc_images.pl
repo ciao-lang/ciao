@@ -18,7 +18,7 @@
 :- use_module(lpdoc(autodoc_settings)).
 
 :- use_module(library(system), [copy_file/3]).
-:- use_module(library(system_extra), [(-) /1]).
+:- use_module(library(system_extra), [warn_on_nosuccess/1]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(pathnames), [path_basename/2]).
 :- use_module(library(errhandle), [error_protect/1]).
@@ -111,18 +111,18 @@ image_convert(SrcBase, SrcExt, TargetBase, TargetExt, DocSt) :-
 	%% Deprecate use of 'pstogif' ('convert' is better)
         %%( TargetExt = 'gif' ->
 	%%  process_call(path(~pstogif), [Source], []),
-	%%  -del_file_nofail(~atom_concat([SrcBase, '.ppm'])),
-	%%  -del_file_nofail(~atom_concat([SrcBase, '.ppm.tmp']))
+	%%  del_file_nofail(~atom_concat([SrcBase, '.ppm'])),
+	%%  del_file_nofail(~atom_concat([SrcBase, '.ppm.tmp']))
 	%%; TargetExt = 'ppm' ->
 	%%    process_call0(path(~pstogif), [Source], []),
-	%%    -del_file_nofail(~atom_concat(SrcBase, '.gif')),
-	%%    -del_file_nofail(~atom_concat(SrcBase, '.ppm.tmp'))
+	%%    del_file_nofail(~atom_concat(SrcBase, '.gif')),
+	%%    del_file_nofail(~atom_concat(SrcBase, '.ppm.tmp'))
 	%%;
 	docst_backend(DocSt, Backend),
 	absfile_for_aux(Target, Backend, AbsFile),
 	( SrcExt = TargetExt ->
 	    % same format, just copy
-	    -(copy_file(Source, AbsFile, [overwrite]))
+	    warn_on_nosuccess(copy_file(Source, AbsFile, [overwrite]))
 	; TargetExt = 'txt' ->
 	    % TODO: This is a dummy output (necessary?)
 	    open(Target, write, O),
@@ -133,7 +133,7 @@ image_convert(SrcBase, SrcExt, TargetBase, TargetExt, DocSt) :-
 %	; throw(error(unknown_target_ext(TargetExt), image_convert/5))
 	),
 	DataMode = ~setting_value_or_default(perms),
-	-set_file_perms(AbsFile, DataMode).
+	warn_on_nosuccess(set_file_perms(AbsFile, DataMode)).
 
 %% This is a command that converts .eps files into .gif and .ppm files
 %% (the -debug option of pstogif does this!)

@@ -120,10 +120,9 @@ invoke_ant(Dir, Args) :-
 :- doc(section, "Filesystem operations for builddir and storedir").
 
 :- use_module(library(system), [copy_file/3, using_windows/0]).
-:- use_module(library(system_extra),
-	[del_file_nofail/1, '-'/1, '--'/1]).
+:- use_module(library(system_extra), [del_file_nofail/1, mkpath/2]).
+:- use_module(library(system_extra), [ignore_nosuccess/1]).
 :- use_module(library(source_tree), [remove_dir/1]).
-:- use_module(library(system_extra), [mkpath/2]).
 :- use_module(ciaobld(config_common), [perms/1]).
 
 % ---------------------------------------------------------------------------
@@ -227,27 +226,15 @@ storedir_install(link_as(Kind, Bundle, Src, Dest)) :-
 	To = ~rootprefixed(~active_cmd_path(Kind, Dest)),
 	create_rel_link(From, To).
 %
-% to_abspath:
-%   install a copy of File to abspath and
-%   install a link from abspath to <install_storedir> % TODO: why?
-% default:
-%   install a copy of File in <install_bundledir>/File and
-%   install a link from <install_bundledir>/File to <install_storedir>
-%
-storedir_install(lib_file_copy_and_link(Props, Bundle, Path, File)) :-
+% install a copy of File in <install_bundledir>/File and
+% install a link from <install_bundledir>/File to <install_storedir>
+storedir_install(lib_file_copy_and_link(Bundle, Path, File)) :-
 	% ( ~instype = global -> true ; throw(install_requires_global) ),
 	From = ~path_concat(Path, File),
-	( member(to_abspath(To0), Props) ->
-	    % TODO: wrongly used from emacs_mode.hooks.pl!!! implement register instead!!! (this may copy to /etc/ etc.) % TODO: link in the other order?
-	    To = ~rootprefixed(To0),
-	    install_file(From, To),
-	    PlainTo = ~rootprefixed(~path_concat(~instciao_storedir, File)),
-	    create_link(To0, PlainTo)
-	; To = ~rootprefixed(~path_concat(~instciao_bundledir(Bundle), File)),
-	  install_file(From, To),
-	  PlainTo = ~rootprefixed(~path_concat(~instciao_storedir, File)),
-	  create_rel_link(To, PlainTo)
-	).
+	To = ~rootprefixed(~path_concat(~instciao_bundledir(Bundle), File)),
+	PlainTo = ~rootprefixed(~path_concat(~instciao_storedir, File)),
+	install_file(From, To),
+	create_rel_link(To, PlainTo).
 % TODO: show the same kind of messages that are used when compiling libraries
 storedir_install(cmds_list_(Bundle, Ps)) :-
 	( % (failure-driven loop)
@@ -306,19 +293,16 @@ storedir_uninstall(src_dir_rec(Dir)) :-
 	safe_remove_dir_nofail(Dir).
 %
 storedir_uninstall(dir(Dir)) :-
-	-delete_directory(~rootprefixed(Dir)).
+	warn_on_nosuccess(delete_directory(~rootprefixed(Dir))).
 %
 storedir_uninstall(dir_if_empty(Dir)) :-
-	--delete_directory(~rootprefixed(Dir)).
+	ignore_nosuccess(delete_directory(~rootprefixed(Dir))).
 %
-storedir_uninstall(lib_file_copy_and_link(Props, Bundle, _Path, File)) :-
+storedir_uninstall(lib_file_copy_and_link(Bundle, _Path, File)) :-
 	% ( ~instype = global -> true ; throw(uninstall_requires_global) ),
 	PlainTo = ~path_concat(~instciao_storedir, File),
+	To = ~path_concat(~instciao_bundledir(Bundle), File),
 	storedir_uninstall(file(PlainTo)),
-	( member(to_abspath(To0), Props) ->
-	    To = To0
-	; To = ~path_concat(~instciao_bundledir(Bundle), File)
-	),
 	storedir_uninstall(file(To)).
 % TODO: show the same kind of messages that are used when compiling libraries
 storedir_uninstall(cmds_list_(Bundle, Ps)) :-
@@ -425,7 +409,7 @@ n_kind(Props, Kind) :-
 :- doc(section, "Instantiating Template Files with Parameters").
 
 :- use_module(library(text_template), [eval_template_file/3]).
-:- use_module(library(system_extra), ['-'/1]).
+:- use_module(library(system_extra), [warn_on_nosuccess/1]).
 :- use_module(library(system_extra), [set_file_perms/2, set_exec_perms/2]).
 
 :- export(wr_template/4).
@@ -444,7 +428,7 @@ wr_template(as_cmd(Bundle, Kind), Dir, File, Subst) :-
 	Out = ~bld_cmd_path(Bundle, Kind, File),
 	eval_template_file(In, Subst, Out),
 	( kind_exec_perms(Kind) ->
-	    -set_exec_perms(Out, ~perms)
+	    warn_on_nosuccess(set_exec_perms(Out, ~perms))
 	; true
 	).
 
@@ -518,17 +502,17 @@ create_link(From, To) :-
 	del_file_nofail(To),
 	% TODO: better solution? windows lacks proper symlinks
         ( using_windows ->
-            --copy_file(From, To, [overwrite])
-        ; --copy_file(From, To, [overwrite, symlink])
+            ignore_nosuccess(copy_file(From, To, [overwrite]))
+        ; ignore_nosuccess(copy_file(From, To, [overwrite, symlink]))
         ).
         % TODO: do not set perms on a symbolic link (the source may
         %       not exist, as it happens in RPM generation)
-%	-set_file_perms(To, ~perms).
+%	warn_on_nosuccess(set_file_perms(To, ~perms)).
 
 install_file(From, To) :-
 	del_file_nofail(To),
 	copy_file(From, To, [overwrite]),
-	-set_exec_perms(To, ~perms).
+	warn_on_nosuccess(set_exec_perms(To, ~perms)).
 
 :- export(remove_dir_nofail/1).
 remove_dir_nofail(Dir2) :-

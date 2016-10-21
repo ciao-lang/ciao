@@ -25,11 +25,9 @@ all_vars([H|T]) :- var(H), all_vars(T).
 read_file(File, Content) :-
 	file_exists(File),
 	!,
-	try_finally(
-	    open(File, read, IS),
-	    read_stream(IS, Content),
-	    close(IS)
-	).
+	open(File, read, IS),
+	read_stream(IS, Content),
+	close(IS).
 read_file(File, []) :-
 	error_message("file ~w not found", [File]).
 
@@ -40,8 +38,6 @@ read_stream(IS, Content) :-
 	; Content = [N|Rest],
 	  read_stream(IS, Rest)
 	).
-
-:- use_module(library(system_extra), [try_finally/3]).
 
 % ---------------------------------------------------------------------------
 

@@ -32,7 +32,7 @@
 %
 :- use_module(library(system_extra), [del_file_nofail/1]).
 %
-:- use_module(library(pathnames), [path_concat/3, path_split/3]).
+:- use_module(library(pathnames), [path_concat/3, path_split/3, path_get_relative/3]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 %
 :- use_module(ciaobld(messages_aux),
@@ -361,12 +361,17 @@ build_cmd(Bundle, Dir, P0) :-
 	    
 :- export(build_libs/2).
 build_libs(Bundle, BaseDir) :-
+	% Message
+	BundleDir = ~bundle_path(Bundle, '.'),
+	( BaseDir = BundleDir ->
+	    cmd_message(Bundle, "compiling libraries", [])
+	; ( path_get_relative(BundleDir, BaseDir, RelDir) -> true
+	  ; RelDir = BaseDir
+	  ),
+	  cmd_message(Bundle, "compiling '~w' libraries", [RelDir])
+	),
 	% (CompActions: list of compiler actions (gpo, gaf))
 	build_mod_actions(CompActions),
-	( BaseDir = '.' ->
-	    cmd_message(Bundle, "compiling libraries", [])
-	; cmd_message(Bundle, "compiling '~w' libraries", [BaseDir])
-	),
 	compile_modules(compilable_module, BaseDir, CompActions).
 
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
@@ -415,7 +420,7 @@ sort_by_file_([m(Dir, File, FileName)|Modules],
 	    [m(File, Dir, FileName)|Modules2]) :-
 	sort_by_file_(Modules, Modules2).
 
-:- export(compile_module_list/3).
+%:- export(compile_module_list/3).
 % TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
 compile_module_list(Modules, BaseDir, CompActions) :-
 	tty(UsingTTY),

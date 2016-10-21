@@ -1,9 +1,6 @@
 :- module(_, [], [ciaobld(bundlehooks)]).
 
 :- doc(title,  "Bundle Hooks for LPdoc").
-:- doc(author, "Ciao Development Team").
-
-'$builder_hook'(desc_name('LPdoc')).
 
 '$builder_hook'(manual_dir(as('doc/reference', 'lpdoc'))). % TODO: call it manual(Name, SettingsFile)
 '$builder_hook'(readme_path(as('doc/readmes/INSTALLATION_LPDOC', 'INSTALLATION'))). % TODO: call it readme(RelPath, Source)
@@ -11,19 +8,16 @@
 
 % ============================================================================
 
-:- use_module(ciaobld(ciaoc_aux), [build_libs/2]).
-
-'$builder_hook'(build_libraries) :-
-	build_libs(lpdoc, 'src').
-
-'$builder_hook'(build_bin) :-
-	bundleitem_do(lpdoccl, lpdoc, build_nodocs).
-
 '$builder_hook'(prebuild_nodocs) :-
 	generate_version_auto_lpdoc.
 
-% TODO: just say cmd('cmds/lpdoccl', [...])
-'$builder_hook'(lpdoccl:item_def( 
+'$builder_hook'(bundle_def([
+  cmds,
+  lib('src'),
+  lib('lib')
+])).
+
+'$builder_hook'(cmds:item_def( 
     cmds_list('cmds', [
         'lpdoccl'-[
           output='lpdoc', % (executable will be called 'lpdoc')
@@ -31,16 +25,6 @@
 	  final_ciaoc
 	]
     ]))).
-
-'$builder_hook'(install) :- bundleitem_do(only_global_ins(~lpdoc_desc), lpdoc, install).
-
-'$builder_hook'(uninstall) :- bundleitem_do(only_global_ins(~lpdoc_desc), lpdoc, uninstall).
-
-lpdoc_desc := [
-  lpdoccl,
-  lib('src'),
-  lib('lib')
-].
 
 %% ---------------------------------------------------------------------------
 

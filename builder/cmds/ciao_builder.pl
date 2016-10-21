@@ -140,7 +140,7 @@ force the recompilation and cleaning of that part (see
 
 :- use_module(library(bundle/bundle_info), [root_bundle/1]).
 
-:- use_module(ciaobld(builder_cmds), [builder_cmd/3, cleanup_builder/0]).
+:- use_module(ciaobld(builder_cmds), [builder_cmd/3, builder_cleanup/0]).
 :- use_module(ciaobld(builder_aux), [bundle_at_dir/2, ciao_path_at_dir/2]).
 :- use_module(ciaobld(ciaocl_help)).
 
@@ -178,9 +178,9 @@ main_([Help0|Args]) :-
 	).
 main_(CmdArgs) :- !,
 	parse_args(CmdArgs, Cmd, Target, Opts),
-	cleanup_builder, % TODO: just in case...
+	builder_cleanup, % TODO: just in case...
 	builder_cmd(Cmd, Target, Opts),
-	cleanup_builder.
+	builder_cleanup.
 
 help_mode('help', summary, normal).
 help_mode('help_all', all, normal).
@@ -447,8 +447,6 @@ is_builder_cmd(rescan_bundles).
 is_builder_cmd(scan_and_config).
 is_builder_cmd(build).
 is_builder_cmd(build_nodocs).
-is_builder_cmd(build_libraries).
-is_builder_cmd(build_bin).
 is_builder_cmd(prebuild_nodocs).
 is_builder_cmd(prebuild_docs).
 is_builder_cmd(build_docs).

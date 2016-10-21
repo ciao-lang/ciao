@@ -1,9 +1,6 @@
 :- module(_, [], [ciaobld(bundlehooks)]).
 
 :- doc(title,  "Bundle Hooks for Ciao Documentation").
-:- doc(author, "Ciao Development Team").
-
-'$builder_hook'(desc_name('CiaoDocumentation')).
 
 '$builder_hook'(manual_dir(as('reference', 'ciao'))).
 '$builder_hook'(manual_dir(as('developers', 'ciao_devel'))).

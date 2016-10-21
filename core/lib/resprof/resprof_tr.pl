@@ -41,6 +41,10 @@ add_prof_literal(Literal0, Module, ( inc_cost(literal_cost, Literal0),
 	    )
 	).
 
+:- meta_predicate try_finally(goal, goal).
+try_finally(Goal, Finally) :-
+	catch(if(Goal, Finally, Finally), Ex, (Finally, throw(Ex))).
+
 ucost(check_cost(_, [Comp|_], Cost), Literal, Cost) :- arg(1, Comp, Literal).
 
 resprof_type(pred).

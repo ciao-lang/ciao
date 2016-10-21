@@ -1,9 +1,6 @@
 :- module(_, [], [ciaobld(bundlehooks), dcg]).
 
 :- doc(title,  "Bundle Hooks for Ciao core").
-:- doc(author, "Ciao Development Team").
-
-'$builder_hook'(desc_name('Core')).
 
 '$builder_hook'(manual_dir(as('doc/internals', 'ciao_internals'))).
 
@@ -29,57 +26,65 @@
 
 % ============================================================================
 
-% TODO: Add missing subs
-'$builder_hook'(item_subs(['core/dot_shell', 'core/emacs_mode', 'core/java'])).
+'$builder_hook'(item_subs(['core/dot_shell', 'core/dot_emacs', 'core/emacs_mode', 'core/java', 'core/pillow', 'core/persdb_mysql'])).
 
 :- include(.('dot_shell.hooks')).
+:- include(.('dot_emacs.hooks')).
 :- include(.('emacs_mode.hooks')).
 :- include(.('java.hooks')).
 :- include(.('persdb_mysql.hooks')).
 :- include(.('pillow.hooks')).
 
 % ============================================================================
-
-:- doc(section, "Build").
 % (engine, libraries, and compiler)
 
-:- use_module(ciaobld(ciaoc_aux), [build_libs/2]).
+'$builder_hook'(bundle_def([
+  ciaobase, % Must be the first one
+  %
+  ciaocl,
+  ciao_sysconf,
+  core_cmds,
+  %
+  lib('lib'),
+  % WARNING: Ciao cannot compile 'clpq' and 'clpr' together.
+  %   We build each of 'clpq' and 'clpr' as separate processes. They
+  %   cannot be compiled together since the translation module uses the
+  %   constraint solver itself and the attributed variable hooks are
+  %   mixed.
+  %
+  % TODO: obtain a more recent version of clpq,clpr (this is not
+  %   the latest), adapt to Ciao and port to multiattributes (or
+  %   qualify each term).
+  lib_force_build('library/clpq'), % See WARNING note above
+  lib_force_build('library/clpr'), % See WARNING note above
+  lib('library'),
+  src('examples')
+])).
 
-'$builder_hook'(build_libraries) :-
-	build_libs(core, 'lib'),
-	%
-	% WARNING: Ciao cannot compile 'clpq' and 'clpr' together in the same
-        %   program!
-	%
-	% So we build each of 'clpq' 'clpr' as separate processes.
-	% (it cannot be compiled together since the translation module
-	% uses the constraint solver itself)
-	%
-	% TODO: obtain a more recent version of clpq,clpr (this is not
-	%   the latest), adapt to Ciao and port to multiattributes (or
-	%   qualify each term).
-	%
-	build_libs(core, 'library/clpq'),
-	build_libs(core, 'library/clpr'),
-	%
-	build_libs(core, 'library').
+% This is the minimum part needed for @apl{ciao_builder} to compile
+% the rest of the system.
+%
+% NOTE: this must be build before rest of 'core' compilation
+%
+'$builder_hook'(ciaobase:item_def([
+    % Note: should be build in this precise order
+    % TODO: Add dependencies instead
+    item_group("engine", engine), % (needs bootstrap ciaoc)
+    item_group("exec_header", exec_header),
+    ciaoc, % (depends on engine and exec_header)
+    shell
+])).
 
-'$builder_hook'(build_bin) :-
-	bundleitem_do(core_cmds, core, build_nodocs),
-	bundleitem_do(ciao_sysconf, core, build_nodocs),
-	bundleitem_do(ciaocl, core, build_nodocs).
-
-% Prepare source for build
-% (e.g., for automatically generated code, foreign interfaces, etc.)
-'$builder_hook'(prebuild_nodocs) :-
-	bundleitem_do([pillow, persdb_mysql], core, prebuild_nodocs).
-
-% ============================================================================
-
-% (used from 'ciaobase' target)
-% TODO: Use "ciaoc:build_nodocs" or "build_nodocs(ciaoc)" as head?
-'$builder_hook'(ciaoc:build_nodocs) :- bundleitem_do(ciaoc, core, build_nodocs).
-'$builder_hook'(ciaoc:build_docs) :- !.
+% Enumeration of the standalone utilities in */cmds/
+'$builder_hook'(core_cmds:item_def(
+    cmds_list('cmds', [
+        'ciaodump'-[plexe],
+        'pldiff'-[plexe],
+        'lpmake'-[plexe],
+        'plindent'-[plexe],
+        'checkline'-[plexe],
+        'ciaoc_sdyn'-[plexe]
+    ]))).
 
 '$builder_hook'(ciaoc:item_def(
         cmds_list('ciaoc', [
@@ -90,10 +95,6 @@
           ]
         ]))).
 	
-% (used from 'ciaobase' target)
-'$builder_hook'(shell:build_nodocs) :- bundleitem_do(shell, core, build_nodocs).
-'$builder_hook'(shell:build_docs) :- !.
-
 '$builder_hook'(shell:item_def(
 	cmds_list('shell', [
           'ciaosh'-[plexe, name="interactive toplevel", final_ciaoc],
@@ -124,9 +125,11 @@
 	windows_bats.
 
 environment :-
-	bundleitem_do(emacs_mode, core, build_nodocs),
-	bundleitem_do(emacs_mode, core, install), % (put ciao-mode-init.el in place)
-	bundleitem_do(exec_header, core, build_nodocs). % TODO: why here?
+	builder_cmd(build_nodocs, 'core/exec_header', []),
+	builder_cmd(build_nodocs, 'core/emacs_mode', []), % (needed?)
+	builder_cmd(install, 'core/emacs_mode', []), % (needed?)
+	% (put ciao-mode-init.el in place)
+	builder_cmd(install, 'core/dot_emacs', []).
 
 % TODO: make sure that 'ciao' is the same in Win32 and unix (currently it isn't)
 % TODO: Add a build_cmds_fix_win action that just creates this
@@ -151,7 +154,7 @@ windows_bats :-
 
 win_cmd_and_opts(ciaosh, '', '-i', ciaosh).
 win_cmd_and_opts(ciaoc, '', '', ciaoc).
-% TODO: move together with ciao (sh) generation (see ciaocl:item_build_nodocs)
+% TODO: move together with ciao (sh) generation (see ciaocl:build_nodocs)
 win_cmd_and_opts(ciao, Atm, '-i', ciaosh) :- 
 	atom_codes(Atm, ~ciao_extra_commands).
 
@@ -160,75 +163,9 @@ win_cmd_and_opts(ciao, Atm, '-i', ciaosh) :-
 :- doc(subsection, "Header for executables").
 % TODO: merge with do_exe_header code?
 
-% (used from 'ciaobase' target)
-'$builder_hook'(exec_header:build_nodocs) :- bundleitem_do(exec_header, core, build_nodocs).
-'$builder_hook'(exec_header:build_docs) :- !.
-'$builder_hook'(exec_header:clean_norec) :- !, bundleitem_do(exec_header, core, clean_norec).
-%'$builder_hook'(exec_header:install) :- !, bundleitem_do(exec_header, core, install).
-%'$builder_hook'(exec_header:uninstall) :- !, bundleitem_do(exec_header, core, uninstall).
-
 '$builder_hook'(exec_header:item_def([
     eng_exec_header(eng('engine/ciaoengine', []))
 ])).
-
-% ============================================================================
-
-:- doc(section, "Register in the System").
-% TODO: Should this be just a subtask in the installation? Users
-%       should not invoke it...
-% TODO: This should be done for each anchor (bash, csh, emacs, etc.)
-%       and each bundle
-
-% Modifies the .bashrc/.cshrc/.emacs files to let Ciao run from the
-% installed lib files.
-'$builder_hook'(register) :-
-        bundleitem_do(bashrc, core, register),
-	bundleitem_do(cshrc, core, register),
-	bundleitem_do(emacs_mode, core, register).
-
-% Leaves the .bashrc/.cshrc/.emacs file in its original state.
-'$builder_hook'(unregister) :-
-        bundleitem_do(bashrc, core, unregister),
-	bundleitem_do(cshrc, core, unregister),
-	bundleitem_do(emacs_mode, core, unregister).
-
-% ============================================================================
-
-:- doc(section, "Installation").
-
-'$builder_hook'(install) :- bundleitem_do(only_global_ins(~core_desc), core, install).
-
-'$builder_hook'(uninstall) :- bundleitem_do(only_global_ins(~core_desc), core, uninstall).
-
-core_desc := [
-  engine, ciaoc, shell, % TODO: ciaobase?
-  %
-  dot_shell_, % TODO: not really commands?
-  ciaocl_,
-  core_cmds,
-  %
-  lib('engine'),
-  lib('lib'),
-  lib('library'),
-  pillow_,
-  src('examples'),
-  %
-  emacs_mode
-].
-
-% Enumeration of the standalone utilities in */cmds/
-'$builder_hook'(core_cmds:item_def(
-    cmds_list('cmds', [
-        'ciaodump'-[plexe],
-        'pldiff'-[plexe],
-        'lpmake'-[plexe],
-        'plindent'-[plexe],
-        'checkline'-[plexe],
-        'ciaoc_sdyn'-[plexe],
-        % TODO: strange... enumerated for installation, add a table of exec+kind instead
-        'ciao_sysconf'-[shscript],
-        'ciao'-[shscript] % TODO: twice?!
-    ]))).
 
 % ---------------------------------------------------------------------------
 
@@ -237,8 +174,23 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 :- use_module(ciaobld(eng_defs), [bootbld_eng_path/3]).
 :- use_module(ciaobld(config_common), [cmdname_ver/5]).
 
-% Generate 'ciao' super-command
-'$builder_hook'(ciaocl:item_build_nodocs) :-
+% The 'ciao' super-command
+%
+% (definition for installation)
+% (merge below?)
+%'$builder_hook'(ciaocl:item_def(
+%    cmds_list('cmds', [ % TODO: only for installation
+%        'ciao'-[shscript]
+%    ]))).
+'$builder_hook'(ciaocl:item_def(R)) :- % TODO: only for installation
+	( install_prolog_name(yes) ->
+	    Opts = [link_as('prolog')]
+	; Opts = []
+	),
+	R = item_group("'ciao' (command)", 
+	      bin_copy_and_link(shscript, 'ciao', Opts)).
+% (definition for build_nodocs)
+'$builder_hook'(ciaocl:build_nodocs) :-
 	cmd_message(core, "building '~w' (command)", ['ciao']),
 	Eng = ~default_eng_def,
 	wr_template(as_cmd(core, shscript), ~bundle_path(core, 'cmds'), 'ciao', [
@@ -262,14 +214,6 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
  	    builddir_bin_link_as(core, shscript, 'ciao', 'prolog')
  	; true
  	).
-
-'$builder_hook'(ciaocl_:item_def(R)) :-
-	( install_prolog_name(yes) ->
-	    Opts = [link_as('prolog')]
-	; Opts = []
-	),
-	R = item_group("'ciao' (command)", 
-	      bin_copy_and_link(shscript, 'ciao', Opts)).
 
 :- use_module(library(format), [sformat/3]).
 :- use_module(ciaobld(bundle_configure), [
@@ -297,7 +241,11 @@ list_to_lits2([X|Xs], X0, (X0, Lits)) :-
 
 ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
 
-'$builder_hook'(ciao_sysconf:item_build_nodocs) :-
+'$builder_hook'(ciao_sysconf:item_def(
+    cmds_list('cmds', [ % TODO: strange; only for installation
+        'ciao_sysconf'-[shscript]
+    ]))).
+'$builder_hook'(ciao_sysconf:build_nodocs) :-
 	cmd_message(core, "building '~w' (command)", ['ciao_sysconf']),
 	% TODO: we build nothing here (just copy) but the user does not want to know
 	builddir_bin_copy_as(core, shscript, ~ciao_sysconf_sh, 'ciao_sysconf').
@@ -305,27 +253,14 @@ ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
 % ===========================================================================
 % Engine installation/uninstallation
 
-% (used from 'ciaobase' target)
-'$builder_hook'(engine:build_nodocs) :- bundleitem_do(engine, core, build_nodocs).
-'$builder_hook'(engine:build_docs) :- !.
-'$builder_hook'(engine:clean_norec) :- !, bundleitem_do(engine, core, clean_norec).
-'$builder_hook'(engine:install) :- !, bundleitem_do(engine, core, install).
-'$builder_hook'(engine:uninstall) :- !, bundleitem_do(engine, core, uninstall).
-
 '$builder_hook'(engine:item_def([
     eng('engine/ciaoengine', [])
 ])).
 
 % NOTE: experimental (see options)
-% (used from 'ciaobase' target)
-'$builder_hook'(static_engine:build_nodocs) :- bundleitem_do(static_engine, core, build_nodocs).
-'$builder_hook'(static_engine:build_docs) :- !.
-'$builder_hook'(static_engine:clean_norec) :- !, bundleitem_do(static_engine, core, clean_norec).
-'$builder_hook'(static_engine:install) :- !, bundleitem_do(static_engine, core, install).
-'$builder_hook'(static_engine:uninstall) :- !, bundleitem_do(static_engine, core, uninstall).
-
 '$builder_hook'(static_engine:item_def([
     eng('engine/ciaoengine', [
+      % TODO: Uses bootstrap ciaoc (see eng_maker.pl) -- allow configuration here
       add_stat_libs, % link statically against C system libraries
       static_mods([library(random),
                    library(sockets),

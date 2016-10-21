@@ -17,7 +17,6 @@
 	[path_split/3, path_concat/3, path_get_relative/3,
 	 path_is_absolute/1]).
 :- use_module(library(system), [file_exists/1]).
-:- use_module(library(system_extra), [(-) /1]).
 :- use_module(library(terms), [atom_concat/2]).
 
 %% ---------------------------------------------------------------------------
@@ -255,6 +254,8 @@ get_cache_dir0(Backend, CacheDir) :-
 
 % ---------------------------------------------------------------------------
 
+:- use_module(library(system_extra), [mkpath/1]).
+
 % Make sure that the output directory exists
 :- export(ensure_output_dir/1).
 ensure_output_dir(Backend) :-
@@ -272,8 +273,6 @@ ensure_dir(Dir) :-
 	; path_concat(Dir, '', Dir2),
 	  mkpath(Dir2) 
 	).
-
-:- use_module(library(system_extra), [mkpath/1]).
 
 % ---------------------------------------------------------------------------
 % Some special cases for @pred{absfile_for_subtarget/4}
@@ -441,12 +440,9 @@ absfile_to_relfile(A, Backend, B) :-
 
 % TODO: merge with library(source_tree) code
 
-:- use_module(library(source_tree),
-	[remove_glob/2, delete_glob/2]).
-:- use_module(library(system_extra),
-	[ (-)/1,
-	  del_file_nofail/1
-	]).
+:- use_module(library(source_tree), [remove_glob/2, delete_glob/2]).
+:- use_module(library(system_extra), [del_file_nofail/1]).
+:- use_module(library(system_extra), [warn_on_nosuccess/1]).
 
 :- export(clean_all/0).
 clean_all :-
@@ -466,7 +462,7 @@ clean_all_temporary :-
 
 clean_temp_no_texi :-
 	doc_output_pattern(Pattern),
-	-remove_glob('.', Pattern).
+	warn_on_nosuccess(remove_glob('.', Pattern)).
 
 doc_output_pattern(Pattern) :-
 	pred_to_glob_pattern(doc_output_pattern_, Pattern).
@@ -480,16 +476,16 @@ doc_output_pattern_(Pattern) :-
 	atom_concat('*', Ext, Pattern).
 
 clean_texi :-
-	-delete_glob('.', '*.texi').
+	warn_on_nosuccess(delete_glob('.', '*.texi')).
 
 :- export(clean_intermediate/0). % (clean cachedoc and other compilation caches)
 clean_intermediate :-
 	% TODO: It should not delete *_autofig.png files, right? (indeed they are not generated here)
 	% TODO: Use a directory for temporary files?
 	pred_to_glob_pattern(other_pattern, Pattern),
-	-delete_glob('.', Pattern),
+	warn_on_nosuccess(delete_glob('.', Pattern)),
 	PatternD = '*.cachedoc', % (see get_cache_dir0/2)
-	-remove_glob('.', PatternD).
+	warn_on_nosuccess(remove_glob('.', PatternD)).
 
 % TODO: clean using ciao?
 other_pattern('*.itf').

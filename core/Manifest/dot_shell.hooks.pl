@@ -15,7 +15,7 @@
     instciao_storedir/1
 ]).
 
-:- use_module(library(system_extra), [(-)/1]). % (for register in script)
+:- use_module(library(system_extra), [warn_on_nosuccess/1]).
 :- use_module(library(system_extra), [del_file_nofail/1]).
 :- use_module(ciaobld(register_in_script), [
  	register_in_script/3, unregister_from_script/2]).
@@ -24,24 +24,32 @@
 :- use_module(ciaobld(builder_aux), [wr_template/4]).
 :- use_module(library(lists), [append/3]).
 
-'$builder_hook'(dot_shell:build_nodocs) :-
-	% TODO: build_nodocs or prebuild_nodocs?
-	% TODO: those files should be generated in builddir
-	bundleitem_do(dot_shell_csh, core, build_nodocs),
-	bundleitem_do(dot_shell_sh, core, build_nodocs).
-'$builder_hook'(dot_shell:clean_norec) :-
-	del_file_nofail(~bundle_path(core, 'etc/DOTprofile')),
-	del_file_nofail(~bundle_path(core, 'etc/DOTcshrc')).
+'$builder_hook'(dot_shell:item_def([ % (for installation)
+  dot_shell_csh,
+  dot_shell_sh
+])).
 
 % TODO: Generate in builddir instead
 etc_dir := ~bundle_path(core, 'etc').
 
 % Generate shell initialization files
-'$builder_hook'(dot_shell_sh:item_build_nodocs) :-
+'$builder_hook'(dot_shell_sh:item_def( % (for installation)
+    lib_file_list('etc', [
+      'DOTprofile'-[copy_and_link]
+    ]))).
+'$builder_hook'(dot_shell_sh:build_nodocs) :-
 	dot_shell_gen(sh).
+'$builder_hook'(dot_shell_sh:clean_norec) :-
+	del_file_nofail(~bundle_path(core, 'etc/DOTprofile')).
 
-'$builder_hook'(dot_shell_csh:item_build_nodocs) :-
+'$builder_hook'(dot_shell_csh:item_def( % (for installation)
+    lib_file_list('etc', [
+      'DOTcshrc'-[copy_and_link]
+    ]))).
+'$builder_hook'(dot_shell_csh:build_nodocs) :-
 	dot_shell_gen(csh).
+'$builder_hook'(dot_shell_csh:clean_norec) :-
+	del_file_nofail(~bundle_path(core, 'etc/DOTcshrc')).
 	
 dot_shell_gen(Sh) :-
 	verbose_message("Creating ~w", [~dot_shell_file(Sh)]),
@@ -53,46 +61,42 @@ dot_shell_gen(Sh) :-
 dot_shell_file(csh) := 'DOTcshrc'.
 dot_shell_file(sh) := 'DOTprofile'.
 
-'$builder_hook'(dot_shell_:item_def(
-    lib_file_list('etc', [
-      'DOTprofile'-[copy_and_link],
-      'DOTcshrc'-[copy_and_link]
-    ]))).
-
 update_bashrc := ~get_bundle_flag(core:update_bashrc).
 dotbashrc := ~get_bundle_flag(core:dotbashrc).
 
-'$builder_hook'(bashrc:item_register) :-
+'$builder_hook'(dot_shell_sh:register) :-
 	( update_bashrc(yes) ->
-	    (-register_in_script(~dotbashrc, "#", ~bashrc_lines))
+	    warn_on_nosuccess(register_in_script(~dotbashrc, "#", ~bashrc_lines))
 	; true
 	).
-'$builder_hook'(bashrc:item_unregister) :-
+'$builder_hook'(dot_shell_sh:unregister) :-
 	( update_bashrc(yes) ->
-	    (-unregister_from_script(~dotbashrc, "#"))
+	    warn_on_nosuccess(unregister_from_script(~dotbashrc, "#"))
 	; true
 	).
 
 update_cshrc := ~get_bundle_flag(core:update_cshrc).
 dotcshrc := ~get_bundle_flag(core:dotcshrc).
 
-'$builder_hook'(cshrc:item_register) :-
+'$builder_hook'(dot_shell_csh:register) :-
 	( update_cshrc(yes) ->
-	    (-register_in_script(~dotcshrc, "#", ~cshrc_lines))
+	    warn_on_nosuccess(register_in_script(~dotcshrc, "#", ~cshrc_lines))
 	; true
 	).
-'$builder_hook'(cshrc:item_unregister) :- !,
+'$builder_hook'(dot_shell_csh:unregister) :- !,
 	( update_cshrc(yes) ->
-	    (-unregister_from_script(~dotcshrc, "#"))
+	    warn_on_nosuccess(unregister_from_script(~dotcshrc, "#"))
 	; true
 	).
 
 bashrc_lines(S) :-
 	register_etc_dir(EtcDir),
-	shell_config_code(bash, EtcDir, S, []).
+	DotFile = ~path_concat(EtcDir, 'DOTprofile'),
+	shell_config_code(bash, DotFile, S, []).
 cshrc_lines(S) :-
 	register_etc_dir(EtcDir),
-	shell_config_code(csh, EtcDir, S, []).
+	DotFile = ~path_concat(EtcDir, 'DOTcshrc'),
+	shell_config_code(csh, DotFile, S, []).
 
 register_etc_dir(EtcDir) :-
 	( instype(local) ->
@@ -101,13 +105,13 @@ register_etc_dir(EtcDir) :-
 	).
 
 % Configuration code for the shell script interpreters
-shell_config_code(bash, EtcDir) -->
-	"if [ -f ", emit_atom(EtcDir), "/DOTprofile ] ; then\n"||
-	"  . ", emit_atom(EtcDir), "/DOTprofile\n"||
+shell_config_code(bash, DotFile) -->
+	"if [ -f ", emit_atom(DotFile), " ] ; then\n"||
+	"  . ", emit_atom(DotFile), "\n"||
 	"fi\n".
-shell_config_code(csh, EtcDir) -->
-	"if ( -e ", emit_atom(EtcDir), "/DOTcshrc ) then\n"||
-	"  source ", emit_atom(EtcDir), "/DOTcshrc\n"||
+shell_config_code(csh, DotFile) -->
+	"if ( -e ", emit_atom(DotFile), " ) then\n"||
+	"  source ", emit_atom(DotFile), "\n"||
 	"endif\n".
 
 % (emit an atom codes in a DCG)

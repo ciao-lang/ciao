@@ -26,8 +26,6 @@
 % ===========================================================================
 % Extract and save commit information about the bundle source
 
-:- use_module(library(system_extra)).
-
 :- export(gen_bundle_commit_info/1).
 :- pred gen_bundle_commit_info/1 # "Extract and save the commit information metadata".
 % TODO: Only work for the 'whole' bundle

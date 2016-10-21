@@ -55,7 +55,7 @@ remove_all_substrings([], _String, []).
 ppl_version(Version) :-
 	foreign_config_version(ppl, Version).
 
-'$builder_hook'(ppl:item_prebuild_nodocs) :-
+'$builder_hook'(ppl:prebuild_nodocs) :-
 	do_auto_install_ppl,
 	prebuild_ppl_bindings.
 

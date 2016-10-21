@@ -8,8 +8,13 @@
     instciao_bundledir/2
 ]).
 
-:- use_module(library(llists), [flatten/2]).
+:- use_module(library(llists), [flatten/2, append/2]).
 :- use_module(library(system), [using_windows/0]).
+:- use_module(library(system), [touch/1]).
+:- use_module(library(system_extra), [move_if_diff/2]).
+:- use_module(library(system_extra),
+	[del_file_nofail/1,
+	 del_files_nofail/1]).
 
 :- use_module(library(bundle/bundle_info),
 	[root_bundle/1,
@@ -36,12 +41,6 @@ get_bundle_param_or_flag(Flag, Value) :-
 
 with_emacs_mode := ~get_bundle_param_or_flag(core:with_emacs_mode).
 
-update_dotemacs := ~get_bundle_flag(core:update_dotemacs).
-
-dotemacs := ~get_bundle_flag(core:dotemacs).
-
-emacs_site_start := ~get_bundle_flag(core:emacs_site_start).
-
 emacsmode_dir := ~bundle_path(ide, 'emacs-mode').
 
 % Here is how this all works: 
@@ -62,21 +61,29 @@ emacsmode_dir := ~bundle_path(ide, 'emacs-mode').
 %     functions). CiaoMode.pl is included as a chapter in the Ciao
 %     manual.
 
-% TODO: Move to a specific installation for emacs-mode
-% (used only from 'ciao_builder')
-'$builder_hook'(emacs_mode:build_nodocs) :- !, bundleitem_do(emacs_mode, core, build_nodocs).
-'$builder_hook'(emacs_mode:build_docs) :- !.
-'$builder_hook'(emacs_mode:install) :- !, bundleitem_do(only_global_ins(~emacs_mode_desc), core, install).
-'$builder_hook'(emacs_mode:uninstall) :- !, bundleitem_do(only_global_ins(~emacs_mode_desc), core, uninstall).
+% TODO: define third-party plugin for emacs code (so that we can add extensions to the emacs mode easily?)
+% TODO: define one .el per bundle or collect all, during dot_emacs build/installation
+%       That may solve @bug{lpdoclibdir_emacs_mode}
 
-emacs_mode_desc := [emacs_mode].
-
-% TODO: Each bundle should be able to register parts of the CiaoMode
-%       That will solve @bug{lpdoclibdir_emacs_mode}
-'$builder_hook'(emacs_mode:item_build_nodocs) :-
+% (for installation)
+'$builder_hook'(emacs_mode:item_def(Desc)) :-
+	( with_emacs_mode(yes) ->
+	    Desc = [
+              switch_to_bundle(ide, files_from('emacs-mode/icons', ~icon_dir, [del_rec])),
+	      switch_to_bundle(ide, lib_file_list('emacs-mode', ~emacs_mode_files))]
+	; Desc = []
+	).
+%
+'$builder_hook'(emacs_mode:prebuild_docs) :-
+	( with_emacs_mode(yes) -> prebuild_docs_emacs_mode
+	; true
+	).
+'$builder_hook'(emacs_mode:build_nodocs) :-
 	( with_emacs_mode(yes) -> build_emacs_mode
 	; true
 	).
+'$builder_hook'(emacs_mode:build_docs) :- !.
+'$builder_hook'(emacs_mode:clean_norec) :- clean_emacs_mode.
 
 build_emacs_mode :-
 	% TODO: Use better log names (append them?)
@@ -186,63 +193,10 @@ elisp_string_list_([]) --> [].
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(system_extra), [(-)/1]).
-:- use_module(ciaobld(register_in_script), [
- 	register_in_script/3, unregister_from_script/2]).
-
-% (called from 'ciao_builder' (for testing))
-'$builder_hook'(emacs_mode:register) :- bundleitem_do(emacs_mode, core, register).
-% (called from 'ciao_builder' (for testing))
-'$builder_hook'(emacs_mode:unregister) :- bundleitem_do(emacs_mode, core, unregister).
-
-'$builder_hook'(emacs_mode:item_register) :-
-	( with_emacs_mode(yes) ->
-	    ( emacs_init_file(InitFile) ->
-	        (-register_in_script(InitFile, ";", ~emacs_config))
-	    ; % Do not register
-	      true
-	    )
-	; true
-	).
-
-'$builder_hook'(emacs_mode:item_unregister) :-
-	( with_emacs_mode(yes) ->
-	    ( emacs_init_file(InitFile) ->
-	        (-unregister_from_script(InitFile, ";"))
-	    ; true
-	    )
-	; true
-	).
-
-emacs_config(S) :-
-	Lib = ~ciaolibemacs,
-	Lib2 = ~emacs_style_path(Lib),
-	emacs_config_(Lib2, S, []).
-
-emacs_config_(Lib) -->
-	"(if (file-exists-p \"", emit_atom(Lib), "\")\n"||
-	"(load-file \"", emit_atom(Lib), "\")\n"||
-	")\n".
-
-% The absolute path for the 'ciao-site-file.el' file
-ciaolibemacs(LibEmacs) :-
-	( instype(local) ->
-	    LibEmacs = ~path_concat(~emacsmode_dir, 'ciao-site-file.el')
-	; % TODO: Place the version in the right place automatically?
-	  % TODO: Verify that the rest of .el files are in the correct directory.
-	  LibEmacs = ~path_concat(~instciao_bundledir(core), 'ciao-site-file.el')
-	).
-
-% ---------------------------------------------------------------------------
-
-:- use_module(library(system_extra), [move_if_diff/2]).
-:- use_module(library(system), [touch/1]).
-
 % Generation of LPdoc documentation source for emacs-mode based on
 % `ciao-documentation.el`. Update `CiaoMode.pl` timestamp if
 % `CiaoMode.lpdoc` has changed.
-
-'$builder_hook'(emacs_mode:prebuild_docs) :-
+prebuild_docs_emacs_mode :-
 	EmacsModeDir = ~emacsmode_dir,
 	emacs_batch_call(EmacsModeDir, 'emacs_mode2', % TODO: right log name?
 	  ['--eval', '(setq load-path (cons "." load-path))',
@@ -257,98 +211,18 @@ ciaolibemacs(LibEmacs) :-
 
 %-----------------------------------------------------------------------------
 
-:- use_module(library(file_utils), [string_to_file/2]).
-:- use_module(library(system_extra),
-	[del_file_nofail/1,
-	 del_files_nofail/1]).
-
-% (only for instype=global)
-'$builder_hook'(emacs_mode:item_install) :-
-	( with_emacs_mode(yes) ->
-	    % (only for global installation)
-	    Dir = ~emacsmode_dir,
-	    Loader = ~path_concat(Dir, 'ciao-mode-init.el'),
-	    string_to_file(~emacs_config, Loader),
-	    bundleitem_do(~emacs_mode_desc2, core, install),
-	    del_file_nofail(Loader) % (not needed after install)
-	; true
-	).
-
-% (only for instype=global)
-'$builder_hook'(emacs_mode:item_uninstall) :-
-	( with_emacs_mode(yes) ->
-	    bundleitem_do(~emacs_mode_desc2, core, uninstall)
-	; true
-	).
-
-emacs_mode_desc2 := [
-	  switch_to_bundle(ide, files_from('emacs-mode/icons', ~icon_dir, [del_rec])),
-	  ~ciao_mode_lisp_desc,
-	  ~ciao_mode_init_desc
-	].
+emacs_mode_files :=
+    ~append([
+      ~addprops(['ciao-site-file.el'], [copy_and_link]),
+      ~addprops(~ciao_mode_el_files, [copy_and_link]),
+      ~addprops(~ciao_mode_elc_files, [copy_and_link])
+    ]).
 
 icon_dir := ~path_concat(~instciao_bundledir(core), 'icons').
 
 % TODO: Remember to 'update builder/src/win32/Ciao.iss.skel'
 %       if the files here are modified. Ideally, that file should not
 %       contain any hardwired list of files.
-
-% TODO: Merge this part with register. Make emacsinitfile a particular
-% case.
-% (needs with_emacs_mode(yes))
-ciao_mode_init_desc := Desc :-
-        MidDir = ~emacs_site_start,
-        is_site_start_d(MidDir),
-	!,
-        Mid = ~path_concat(MidDir, ~emacsinitfile),
-	Desc = [
-          dir_install_to(MidDir, [do_not_del]),
-          switch_to_bundle(ide, lib_file_list('emacs-mode', [
-            'ciao-mode-init.el'-[to_abspath(Mid)] % TODO: why?
-          ]))
-        ].
-ciao_mode_init_desc := [].
-
-emacsinitfile := ~get_bundle_flag(core:emacsinitfile).
-
-:- use_module(ciaobld(builder_aux), [rootprefix/1]).
-
-% Obtain the appropriate configuration file for this system or
-% installation (.emacs or site-start.el). This predicate fails if no
-% change is required, because the mode is installed through the
-% site-start.d/ directory (Debian only?), or because the Ciao Emacs
-% Mode is disabled.
-emacs_init_file := InitFile :-
-        ( % Local installation, register in your .emacs file
-	  instype(local), update_dotemacs(yes) ->
-	    InitFile = ~dotemacs
-	; % Register in the site-start.el file:
-	  %  - if the site-start.d directory was not found
-	  %  - and, we are not using rootprefix (--destdir=DIR in
-	  %    install)
-	  \+ (rootprefix(Prefix), \+ Prefix = ''),
-	  Dir = ~emacs_site_start,
-	  \+ is_site_start_d(Dir) ->
-	    InitFile = ~path_concat(Dir, 'site-start.el')
-	; % No init file has to be modified
-	  % (see ciao_mode_init_desc/1 for site-start.d installation)
-	  fail
-	).
-
-% Check that Dir is a site-start.d directory
-is_site_start_d(Dir) :-
-        atom_concat(_, '/site-start.d', Dir).
-
-:- use_module(library(llists), [append/2]).
-
-ciao_mode_lisp_desc :=
-	switch_to_bundle(ide, lib_file_list('emacs-mode', 
-          ~append([
-            ~addprops(['ciao-site-file.el'], [copy_and_link]),
-            ~addprops(~ciao_mode_el_files, [copy_and_link]),
-            ~addprops(~ciao_mode_elc_files, [copy_and_link])
-          ])
-        )).
 
 ciao_mode_lisp_files := [
 	'word-help',
@@ -391,7 +265,6 @@ add_suffix([L|Ls], Suffix,  [R|Rs]) :-
 :- use_module(library(glob), [glob/3]).
 :- use_module(ciaobld(ciaoc_aux), [clean_tree/1]).
 
-'$builder_hook'(emacs_mode:clean_norec) :- clean_emacs_mode.
 clean_emacs_mode :-
 	EmacsModeDir = ~emacsmode_dir,
 	clean_tree(EmacsModeDir),

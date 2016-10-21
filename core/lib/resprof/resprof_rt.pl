@@ -1,4 +1,4 @@
-:- module(_, [init_resource_usage/2, inc_cost/2, check_cost/3, try_finally/2,
+:- module(_, [init_resource_usage/2, inc_cost/2, check_cost/3,
 		apply_trust_literal/3, dump_profiler/0, restore_resources/1],
 	    [assertions, dcg, hiord]).
 
@@ -65,11 +65,6 @@ apply_trust_literal(Disj, Cost, Updates) :-
 	map(Costs, update_resource, Updates, []),
 	% warning_required_trusts,
 	!.
-
-:- meta_predicate try_finally(goal, goal).
-
-try_finally(Goal, Finally) :-
-	catch(if(Goal, Finally, Finally), Ex, (Finally, throw(Ex))).
 
 restore_resources(Updates) :-
 	list(Updates, restore_resource).

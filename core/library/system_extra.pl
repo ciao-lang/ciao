@@ -41,57 +41,28 @@
 
 % ===========================================================================
 
-:- use_module(engine(basiccontrol), ['$metachoice'/1]).
-
 :- doc(section, "Exception handling").
 
-:- export('-'/1).
-:- meta_predicate(-(goal)).
+:- use_module(library(port_reify), [once_port_reify/2]).
 
-:- pred '-'(G) # "Call @var{G} and show warning messages if something
-   went wrong (failure and exceptions).".
+:- export(warn_on_nosuccess/1).
+:- pred warn_on_nosuccess(G) # "Call @var{G} (cut solutions) and show
+   warning messages if something went wrong (failure and
+   exceptions).".
+:- meta_predicate(warn_on_nosuccess(goal)).
 
--(G) :- catch(G, Error, ( warning_message("in -/1, goal ~w has raised the "||
-		    "exception ~w", [G, Error]) )), !.
--(G) :- warning_message("in -/1, could not complete goal ~w", [G]).
-
-:- export('--'/1).
-:- meta_predicate(--(goal)).
-
-:- pred '--'(G) # "Call @var{G} and ignore if something went wrong
-   (failure and exceptions).".
-
---(G) :- catch(G, _Error, true), !.
---(_G).
-
-:- export(try_finally/3).
-:- meta_predicate try_finally(goal, goal, goal).
-
-:- pred try_finally(Start, Goal, End) # "Calls initialization goal
-	@var{Start} and then calls Goal @var{Goal}, but always
-	continues with the evaluation of @var{End}.  If @var{Goal} is
-	non-deterministic, in case of backtracking @var{Start} is called
-	again before redoing @var{Goal}.".
-
-try_finally(Start, Goal, End) :-
-	( call(Start)
-	; call(End),
-	  fail
-	),
-	%
-	'$metachoice'(C1),
-	catch(Goal, E, (!, call(End), throw(E))),
-	'$metachoice'(C2),
-	%
-	( call(End)
-	; call(Start),
-	  fail
-	),
-	%
-	( C1 == C2 ->
-	   !
-	; true
+warn_on_nosuccess(G) :-
+	once_port_reify(G, Port),
+	( Port = success -> true
+	; warning_message("goal ~w did not succeed", [G])
 	).
+
+:- export(ignore_nosuccess/1).
+:- pred ignore_nosuccess(G) # "Call @var{G} and ignore if something went wrong
+   (failure and exceptions).".
+:- meta_predicate(ignore_nosuccess(goal)).
+
+ignore_nosuccess(G) :- once_port_reify(G, _).
 
 % ===========================================================================
 
@@ -169,12 +140,12 @@ copy_files([File|Files], DestDir,  CopyOptions) :-
 
 copy_files_nofail([],           _DestDir, _CopyOptions).
 copy_files_nofail([File|Files], DestDir,  CopyOptions) :-
-	--copy_file(File, DestDir, CopyOptions),
+	ignore_nosuccess(copy_file(File, DestDir, CopyOptions)),
 	copy_files_nofail(Files, DestDir, CopyOptions).
 
 :- export(del_file_nofail/1).
 del_file_nofail(File) :-
-	--delete_file(File).
+	ignore_nosuccess(delete_file(File)).
 
 :- export(del_files_nofail/1).
 del_files_nofail([]).

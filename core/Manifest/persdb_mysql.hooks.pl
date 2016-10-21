@@ -8,8 +8,11 @@
 with_mysql := ~get_bundle_flag(core:with_mysql).
 mysql_client_directory := ~get_bundle_flag(core:mysql_client_directory).
 
-'$builder_hook'(persdb_mysql:item_prebuild_nodocs) :-
+% Prepare source for build
+% (e.g., for automatically generated code, foreign interfaces, etc.)
+'$builder_hook'(persdb_mysql:prebuild_nodocs) :-
 	( with_mysql(yes) ->
+	    % TODO: ask bundle instead
 	    wr_template(origin,
 	        ~bundle_path(core, 'library/persdb_mysql'),
 	        'linker_opts_auto.pl',

@@ -20,7 +20,7 @@
 
 :- use_module(library(system), [copy_file/2, copy_file/3, file_exists/1]).
 
-'$builder_hook'(timingmodel:item_prebuild_nodocs) :-
+'$builder_hook'(timingmodel:prebuild_nodocs) :-
 	% do_timingmodel % TODO: must be called explicitly using custom_run
 	% (needed even if miniprolog is not compiled)
 	copy_mp_auto.

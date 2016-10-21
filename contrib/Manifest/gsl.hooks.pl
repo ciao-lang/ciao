@@ -21,8 +21,7 @@
 with_gsl := ~get_bundle_flag(contrib:with_gsl).
 auto_install_gsl := ~get_bundle_flag(contrib:auto_install_gsl).
 
-% TODO: rename by 'gsl' (no mathlibs)?
-'$builder_hook'(mathlibs:item_prebuild_nodocs) :-
+'$builder_hook'(gsl:prebuild_nodocs) :-
 	do_auto_install_gsl,
 	prebuild_gsl_bindings.
 

@@ -142,7 +142,6 @@ ensure_lpdoclib_defined :-
 :- doc(section, "Checking or Setting Options").
 
 :- use_module(library(system)).
-:- use_module(library(system_extra)).
 :- use_module(library(bundle/doc_flags), [docformatdir/2]).
 
 % (With implicit default value)

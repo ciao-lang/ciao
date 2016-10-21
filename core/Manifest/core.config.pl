@@ -15,6 +15,7 @@
 :- include(.('engine.config')).
 :- include(.('compiler.config')).
 :- include(.('dot_shell.config')).
+:- include(.('dot_emacs.config')).
 :- include(.('emacs_mode.config')).
 :- include(.('pillow.config')).
 :- include(.('persdb_mysql.config')).

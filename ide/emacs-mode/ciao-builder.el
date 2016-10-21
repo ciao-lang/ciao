@@ -49,7 +49,7 @@
    (ciao-builder-cmdstr cmd)
    (ciao-get-builder-proc-buffer)))
 
-;; TODO: Missing sub- and special targets (e.g., ciaobase, core/engine, etc.)
+;; TODO: Missing sub- and special targets (e.g., core/ciaobase, core/engine, etc.)
 (defun ask-bundle (msg)
   (let
       ((bundle-list
