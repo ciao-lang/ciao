@@ -18,6 +18,7 @@
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(read), [read/2]).
 :- use_module(library(messages), [warning_message/2]).
+:- use_module(library(lists), [append/3]).
 
 :- use_module(library(system), [file_exists/1, working_directory/2]).
 :- use_module(library(streams), [open_output/2, close_output/1]).
@@ -64,24 +65,30 @@ lookup_bundle_root_(File, BundleDir) :-
 	lookup_bundle_root_(Base, BundleDir).
 
 % ---------------------------------------------------------------------------
+% TODO: Use standard compiler? (with a package to delimit the language)
 
 :- export(gen_bundlereg/4).
 % Generate a bundlereg @var{RegFile} for bundle @var{BundleName} at
 % @var{BundleDir}.  The base path for alias paths is @var{AliasBase}.
 gen_bundlereg(BundleDir, BundleName, AliasBase, RegFile) :-
-	% Load Manifest.pl (and optionally version from version/)
+	% Load Manifest.pl
 	locate_manifest_file(BundleDir, ManifestFile),
-	loop_read_file(ManifestFile, ManifestSents0),
-	read_bundle_version(BundleDir, ManifestSents0, ManifestSents),
-	%
+	loop_read_file(ManifestFile, Sents0),
+	% Check that this is a manifest file
+	( Sents0 = [(:- bundle(BundleName0))|Sents1] ->
+	    true
+	; BundleName0 = _,
+	  warning_message("Missing ':- bundle/1' declaration on Manifest.pl for ~w", [BundleName])
+	),
+	% Fill version number
+	read_bundle_version(BundleDir, BundleName, Sents1, Sents),
 	% Check that bundle name matches declared
-	( member(bundle_name(BundleName0), ManifestSents),
-	  BundleName0 == BundleName ->
+	( BundleName0 = BundleName -> % (unify if leaved undefined)
 	    true
 	; warning_message("Mismatch in bundle name (expected ~w)", [BundleName])
 	),
 	%
-	( member(bundle_alias_paths(RelAliasPaths), ManifestSents) ->
+	( member(alias_paths(RelAliasPaths), Sents) ->
 	    true
 	; RelAliasPaths = []
 	),
@@ -97,20 +104,20 @@ gen_bundlereg(BundleDir, BundleName, AliasBase, RegFile) :-
         % Alias paths
 	write_alias_paths(AliasPaths, BundleName),
 	% TODO: write extra info in a separate file?
-	( member(bundle_packname(Packname), ManifestSents) ->
+	( member(packname(Packname), Sents) ->
 	    true
 	; Packname = BundleName % reuse bundle name as packname
 	),
 	fast_write(bundle_prop(BundleName, packname(Packname))),
-	( member(bundle_requires(Requires), ManifestSents) ->
+	( member(requires(Requires), Sents) ->
 	    fast_write(bundle_prop(BundleName, requires(Requires)))
 	; true
 	),
-	( member(bundle_version(Version), ManifestSents) ->
+	( member(version_(Version), Sents) ->
 	    fast_write(bundle_prop(BundleName, version(Version)))
 	; true
 	),
-	( member(bundle_patch(Patch), ManifestSents) ->
+	( member(patch_(Patch), Sents) ->
 	    fast_write(bundle_prop(BundleName, patch(Patch)))
 	; true
 	),
@@ -176,21 +183,21 @@ member_chk(Item, BundleDir, Sents) :-
 
 :- use_module(library(system_extra), [file_to_line/2]).
 
-read_bundle_version(_BundleDir, ManifestSents0, ManifestSents) :-
-	( member(bundle_version(_), ManifestSents0)
-	; member(bundle_patch(_), ManifestSents0)
-	),
+read_bundle_version(_BundleDir, BundleName, Sents0, Sents) :-
+	member(version(Ver), Sents0),
 	!,
-	ManifestSents = ManifestSents0.
-read_bundle_version(BundleDir, ManifestSents0, ManifestSents) :-
+	( parse_version(Ver, Version, Patch) ->
+	    Sents = [version_(Version), patch_(Patch)|Sents0]
+	; warning_message("Cannot parse version number ~w for ~w", [Ver, BundleName]),
+	  Sents = Sents0
+	).
+read_bundle_version(BundleDir, _BundleName, Sents0, Sents) :-
         path_concat(BundleDir, 'Manifest/GlobalVersion', FileV),
         path_concat(BundleDir, 'Manifest/GlobalPatch', FileP),
 	( file_to_atom(FileV, Version),
 	  file_to_atom(FileP, Patch) ->
-	    ManifestSents = [
-              bundle_version(Version), bundle_patch(Patch)|ManifestSents0
-            ]
-	; ManifestSents = ManifestSents0
+	    Sents = [version_(Version), patch_(Patch)|Sents0] 
+	; Sents = Sents0
 	).
 
 file_to_atom(File, X) :-
@@ -198,4 +205,37 @@ file_to_atom(File, X) :-
 	file_to_line(File, Str),
 	atom_codes(X, Str).
 
+%:- export(parse_version/3).
+% Obtain Major.Minor and Patch version numbers, as follows:
+%   'Major' -> 'Major', '0'
+%   'Major.Minor' -> 'Major.Minor', '0'
+%   'Major.Minor.Patch' -> 'Major.Minor', 'Patch'
+parse_version(VerAtm, VersionAtm, PatchAtm) :-
+	atom_codes(VerAtm, Ver),
+	splitdots(Ver, Vs),
+	( Vs = [] -> fail
+	; Vs = [Major|Vs0] ->
+	    ( Vs0 = [] -> Version = Major, Patch = "0"
+	    ; Vs0 = [Minor|Vs1] ->
+	        append(Major, "."||Minor, Version),
+		( Vs1 = [] -> Patch = "0"
+		; Vs1 = [Patch] -> true
+		; fail
+		)
+	    ; fail
+	    )
+	; fail
+	),
+	atom_codes(VersionAtm, Version),
+	atom_codes(PatchAtm, Patch).
 
+% Split string at dots (e.g., "1.2.3" => ["1","2","3"])
+splitdots([], []) :- !.
+splitdots(Cs, [X|Xs]) :-
+	splitdots_(Cs, X, Cs2),
+	splitdots(Cs2, Xs).
+
+splitdots_([], [], []).
+splitdots_([0'.|Cs], [], Cs) :- !.
+splitdots_([C|Cs], [C|Ds], Cs2) :-
+	splitdots_(Cs, Ds, Cs2).

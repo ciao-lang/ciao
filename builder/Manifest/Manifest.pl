@@ -1,8 +1,5 @@
-% Manifest file for CiaoBuilder
-bundle_name(builder).
-bundle_version('1.0').
-bundle_patch('0').
-%
-bundle_requires([core]).
-bundle_alias_paths([ciaobld = 'src']).
+:- bundle(builder).
+version('1.1').
+requires([core]).
+alias_paths([ciaobld = 'src']).
 

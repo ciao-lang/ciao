@@ -1,8 +1,8 @@
+:- bundle(core).
 % Manifest file for Ciao core (engine, compiler, basic libraries,
 % extra libraries)
-bundle_name(core).
-bundle_packname('Core').
-bundle_alias_paths([
+packname('Core').
+alias_paths([
 %    core_docsrc = 'doc',
     core_tests = 'tests',
     %

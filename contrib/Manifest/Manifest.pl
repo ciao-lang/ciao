@@ -1,9 +1,7 @@
-% Manifest file for Ciao contrib libraries
-bundle_name(contrib).
-bundle_version('1.15').
-bundle_patch('0').
-bundle_requires([core]).
-bundle_alias_paths([
+:- bundle(contrib).
+version('1.15.0').
+requires([core]).
+alias_paths([
     library = 'library',
     plindent = 'library/plindent'
 ]).

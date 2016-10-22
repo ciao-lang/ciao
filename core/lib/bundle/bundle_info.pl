@@ -22,8 +22,7 @@ root_bundle(ciao). % TODO: This may not be right if users install their own bund
 
 :- export(bundle_deps/2).
 % Obtain recursively all bundle dependencies of the given list of
-% bundles, based on 'bundle_requires' property. Enumerate dependencies
-% first.
+% bundles, based on requires/1 property. Enumerate dependencies first.
 bundle_deps(Bundles, Deps) :-
 	bundle_deps_(Bundles, [], _Seen, Deps, []).
 
