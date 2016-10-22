@@ -63,7 +63,7 @@ modern emacses, and also in ascii mode with emacs>= 21.1)."
   "Names of directives describing properties of predicates.")
 
 (defvar ciao-module-block-directives
-  '( "module" "package"
+  '( "module" "package" "bundle"
      ;; new OO-module system (JFMC)
      "class" "interface" "mixin" 
      )
