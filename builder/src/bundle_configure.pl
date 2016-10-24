@@ -138,6 +138,7 @@ config_noscan :-
 	% First part: materialize configuration values (based on user
 	% preferences)
 	check_bundle_params, % (for user prefs)
+	check_bundle_deps,
 	eval_config_rules, % (can be interactive)
 	save_bundle_flags, % (save 'ciao.bundlecfg')
 	% (for future calls to eng_config_sysdep/2)
@@ -198,6 +199,68 @@ check_bundle_params :-
 	    fail
 	; true
 	).
+
+% ---------------------------------------------------------------------------
+% Check bundle dependencies
+
+% TODO: Mark errors, abort configuration
+% TODO: Hang on cyclic dependencies
+
+:- use_module(engine(internals), ['$bundle_id'/1, '$bundle_prop'/2]).
+
+check_bundle_deps :-
+	( '$bundle_id'(Bundle),
+	    check_bundle_deps_(Bundle),
+	    fail
+	; true
+	).
+
+check_bundle_deps_(Bundle) :-
+	% show_message(warning, "checking deps for `~w'", [Bundle]),
+	( '$bundle_prop'(Bundle, depends(Depends)) -> true
+	; Depends = []
+	),
+	( member(DepProps, Depends) ->
+	    check_bundle_deps__(DepProps),
+	    fail
+	; true
+	).
+
+check_bundle_deps__(DepProps) :-
+	( DepProps = Dep-Props -> true
+	; Dep = DepProps, Props = []
+	),
+	( '$bundle_id'(Dep) -> true
+	; show_message(warning, "missing bundle `~w'", [Dep]),
+	  fail
+	),
+	( check_bundle_constraints(Props, Dep) ->
+	    true
+	; show_message(warning, "requirements for bundle `~w' not met: ~q", [Dep, Props]),
+	  fail
+	).
+
+% Check that constraints Cs on Bundle are met
+check_bundle_constraints([], _Bundle).
+check_bundle_constraints([C|Cs], Bundle) :-
+	check_bundle_constraint(C, Bundle),
+	check_bundle_constraints(Cs, Bundle).
+
+check_bundle_constraint(C, Bundle) :-
+	version_constraint(C, Vers2, Op), !,
+	( '$bundle_prop'(Bundle, version(Vers1)) -> true
+	; Vers1 = '0.0'
+	),
+	( Op = (=) -> Vers1 = Vers2 % TODO: fix
+	; fail
+	).
+
+version_constraint(version=V, V, (=)).
+version_constraint(version>=V, V, (>=)).
+version_constraint(version>V, V, (>)).
+version_constraint(version=<V, V, (=<)).
+version_constraint(version<V, V, (<)).
+version_constraint(version\=V, V, (\=)).
 
 % ---------------------------------------------------------------------------
 % Set a configuration flag (dangerous!)
@@ -282,7 +345,8 @@ flag_help_string(Flag, Help) :-
 % ===========================================================================
 
 % TODO: Define more precisely what is the semantics of configuration
-%   parameters TODO: allow structures in own_make targets (fix spawn)
+%   parameters
+% TODO: allow structures in own_make targets (fix spawn)
 % TODO: access config values in condcomp conditions (or export them to
 %   condcomp declarations)
 

@@ -4,8 +4,7 @@
 :- doc(author, "Ciao Development Team").
 :- doc(author, "Jose F. Morales").
 
-:- doc(module, "This module defines the operations to extract
-   additional bundle information (like versions from VCS).").
+:- doc(module, "Obtain information about the registered bundles.").
 
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(lists), [reverse/2]).
@@ -14,20 +13,23 @@
 	['$bundle_id'/1, '$bundle_prop'/2, '$bundle_srcdir'/2]).
 
 % ---------------------------------------------------------------------------
-% Bundle dependencies
 
-% The root bundle (that collects or registered bundles)
 :- export(root_bundle/1).
-root_bundle(ciao). % TODO: This may not be right if users install their own bundles
+:- pred root_bundle/1 # "Meta-bundle that depends on all the system bundles.".
+% TODO: Include also user bundles? or define a new meta-bundle?
+root_bundle(ciao).
 
 :- export(bundle_deps/2).
-% Obtain recursively all bundle dependencies of the given list of
-% bundles, based on depends/1 property. Enumerate dependencies first.
+:- pred bundle_deps(Bundles, Deps) # "Obtain recursively all bundle
+   dependencies of the given list of bundles @var{Bundles}, based on
+   @tt{depends/1} property. Enumerate dependencies first.".
+
 bundle_deps(Bundles, Deps) :-
 	bundle_deps_(Bundles, [], _Seen, Deps, []).
 
 bundle_deps_([], Seen0, Seen, Deps, Deps0) :- !, Deps = Deps0, Seen = Seen0.
-bundle_deps_([B|Bs], Seen0, Seen, Deps, Deps0) :-
+bundle_deps_([BProps|Bs], Seen0, Seen, Deps, Deps0) :-
+	( BProps = B-_Props -> true ; BProps = B ), % (ignore props)
 	( member(B, Seen0) -> % seen, ignore
 	    Deps = Deps2, Seen2 = Seen0
 	; ( '$bundle_prop'(B, depends(Depends)) -> true

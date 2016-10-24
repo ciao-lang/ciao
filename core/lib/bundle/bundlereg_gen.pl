@@ -18,7 +18,6 @@
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(read), [read/2]).
 :- use_module(library(messages), [warning_message/2]).
-:- use_module(library(lists), [append/3]).
 
 :- use_module(library(system), [file_exists/1, working_directory/2]).
 :- use_module(library(streams), [open_output/2, close_output/1]).
@@ -179,9 +178,8 @@ member_chk(Item, BundleDir, Sents) :-
 % Load bundle version/patch from GlobalVersion,GlobalPath files if not
 % provided in Manifest
 
-% TODO: Deprecate in the future?
-
 :- use_module(library(system_extra), [file_to_line/2]).
+:- use_module(library(version_strings), [parse_version/3]).
 
 read_bundle_version(_BundleDir, BundleName, Sents0, Sents) :-
 	member(version(Ver), Sents0),
@@ -192,6 +190,7 @@ read_bundle_version(_BundleDir, BundleName, Sents0, Sents) :-
 	  Sents = Sents0
 	).
 read_bundle_version(BundleDir, _BundleName, Sents0, Sents) :-
+	% TODO: Deprecate
         path_concat(BundleDir, 'Manifest/GlobalVersion', FileV),
         path_concat(BundleDir, 'Manifest/GlobalPatch', FileP),
 	( file_to_atom(FileV, Version),
@@ -205,37 +204,3 @@ file_to_atom(File, X) :-
 	file_to_line(File, Str),
 	atom_codes(X, Str).
 
-%:- export(parse_version/3).
-% Obtain Major.Minor and Patch version numbers, as follows:
-%   'Major' -> 'Major', '0'
-%   'Major.Minor' -> 'Major.Minor', '0'
-%   'Major.Minor.Patch' -> 'Major.Minor', 'Patch'
-parse_version(VerAtm, VersionAtm, PatchAtm) :-
-	atom_codes(VerAtm, Ver),
-	splitdots(Ver, Vs),
-	( Vs = [] -> fail
-	; Vs = [Major|Vs0] ->
-	    ( Vs0 = [] -> Version = Major, Patch = "0"
-	    ; Vs0 = [Minor|Vs1] ->
-	        append(Major, "."||Minor, Version),
-		( Vs1 = [] -> Patch = "0"
-		; Vs1 = [Patch] -> true
-		; fail
-		)
-	    ; fail
-	    )
-	; fail
-	),
-	atom_codes(VersionAtm, Version),
-	atom_codes(PatchAtm, Patch).
-
-% Split string at dots (e.g., "1.2.3" => ["1","2","3"])
-splitdots([], []) :- !.
-splitdots(Cs, [X|Xs]) :-
-	splitdots_(Cs, X, Cs2),
-	splitdots(Cs2, Xs).
-
-splitdots_([], [], []).
-splitdots_([0'.|Cs], [], Cs) :- !.
-splitdots_([C|Cs], [C|Ds], Cs2) :-
-	splitdots_(Cs, Ds, Cs2).
