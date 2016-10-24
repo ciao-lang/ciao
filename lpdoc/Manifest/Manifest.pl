@@ -1,6 +1,6 @@
 :- bundle(lpdoc).
 packname('LPdoc').
-requires([core]).
+depends([core]).
 alias_paths([
     lpdoc = 'src',
     lpdoclib = 'lib'

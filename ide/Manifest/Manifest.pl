@@ -3,6 +3,6 @@
 packname('CiaoIDE').
 version('1.15.0').
 %
-requires([core, lpdoc, contrib]).
+depends([core, lpdoc, contrib]).
 alias_paths([ciao_ide = '.']).
 

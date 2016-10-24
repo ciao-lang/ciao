@@ -109,8 +109,8 @@ gen_bundlereg(BundleDir, BundleName, AliasBase, RegFile) :-
 	; Packname = BundleName % reuse bundle name as packname
 	),
 	fast_write(bundle_prop(BundleName, packname(Packname))),
-	( member(requires(Requires), Sents) ->
-	    fast_write(bundle_prop(BundleName, requires(Requires)))
+	( member(depends(Depends), Sents) ->
+	    fast_write(bundle_prop(BundleName, depends(Depends)))
 	; true
 	),
 	( member(version_(Version), Sents) ->

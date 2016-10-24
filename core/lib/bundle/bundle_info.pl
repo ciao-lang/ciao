@@ -22,7 +22,7 @@ root_bundle(ciao). % TODO: This may not be right if users install their own bund
 
 :- export(bundle_deps/2).
 % Obtain recursively all bundle dependencies of the given list of
-% bundles, based on requires/1 property. Enumerate dependencies first.
+% bundles, based on depends/1 property. Enumerate dependencies first.
 bundle_deps(Bundles, Deps) :-
 	bundle_deps_(Bundles, [], _Seen, Deps, []).
 
@@ -30,11 +30,11 @@ bundle_deps_([], Seen0, Seen, Deps, Deps0) :- !, Deps = Deps0, Seen = Seen0.
 bundle_deps_([B|Bs], Seen0, Seen, Deps, Deps0) :-
 	( member(B, Seen0) -> % seen, ignore
 	    Deps = Deps2, Seen2 = Seen0
-	; ( '$bundle_prop'(B, requires(Requires)) -> true
-	  ; Requires = []
+	; ( '$bundle_prop'(B, depends(Depends)) -> true
+	  ; Depends = []
 	  ),
 	  Seen1 = [B|Seen0],
-	  bundle_deps_(Requires, Seen1, Seen2, Deps, Deps1),
+	  bundle_deps_(Depends, Seen1, Seen2, Deps, Deps1),
 	  Deps1 = [B|Deps2]
 	),
 	bundle_deps_(Bs, Seen2, Seen, Deps2, Deps0).
@@ -120,10 +120,10 @@ bundle_info(Bundle) :-
 	  fail
 	),
 	'$bundle_prop'(Bundle, packname(Pack)),
-	( '$bundle_prop'(Bundle, requires(Requires)) -> true ; Requires = [] ),
+	( '$bundle_prop'(Bundle, depends(Depends)) -> true ; Depends = [] ),
 	( '$bundle_srcdir'(Bundle, SrcDir) -> true ; SrcDir = '(none)' ),
-	% format("~w (~w ~w.~w) src:~q, requires:~w\n",
-	%        [Bundle, Pack, Version, Patch, SrcDir, Requires]),
+	% format("~w (~w ~w.~w) src:~q, depends:~w\n",
+	%        [Bundle, Pack, Version, Patch, SrcDir, Depends]),
 	% (looks like .yaml format)
 	format("~w:\n", [Bundle]),
 	( Version = ~bundle_version_patch(Bundle) ->
@@ -132,9 +132,9 @@ bundle_info(Bundle) :-
 	),
 	format("  name: ~w\n", [Pack]),
 	format("  src: ~w\n", [SrcDir]),
-	format("  requires:\n", []),
+	format("  depends:\n", []),
 	( % (failure-driven loop)
-	  member(X, Requires),
+	  member(X, Depends),
 	    format("  - ~w\n", [X]),
 	    fail
 	; true
