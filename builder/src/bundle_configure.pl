@@ -224,24 +224,24 @@ check_bundle_deps_(Bundle) :-
 	; Depends = []
 	),
 	( member(DepProps, Depends) ->
-	    check_bundle_deps__(DepProps),
+	    check_bundle_deps__(Bundle, DepProps),
 	    fail
 	; true
 	).
 
-check_bundle_deps__(DepProps) :-
+check_bundle_deps__(Bundle, DepProps) :-
 	( DepProps = Dep-Props -> true
 	; Dep = DepProps, Props = []
 	),
 	( '$bundle_id'(Dep) -> true
-	; show_message(warning, "missing bundle `~w'", [Dep]),
-	  fail
+	; throw(error_msg("missing bundle `~w' (required by `~w')", [Dep, Bundle]))
 	),
 	( check_bundle_constraints(Props, Dep) ->
 	    true
-	; show_message(warning, "requirements for bundle `~w' not met: ~q", [Dep, Props]),
-	  fail
+	; throw(error_msg("requirements for bundle `~w' (required by `~w') are not met: ~q", [Dep, Bundle, Props]))
 	).
+
+:- use_module(library(version_strings), [version_compare/3]).
 
 % Check that constraints Cs on Bundle are met
 check_bundle_constraints([], _Bundle).
@@ -250,11 +250,10 @@ check_bundle_constraints([C|Cs], Bundle) :-
 	check_bundle_constraints(Cs, Bundle).
 
 check_bundle_constraint(C, Bundle) :-
-	version_constraint(C, Vers2, Op), !,
-	( '$bundle_prop'(Bundle, version(Vers1)) -> true
-	; Vers1 = '0.0'
-	),
-	( Op = (=) -> Vers1 = Vers2 % TODO: fix
+	version_constraint(C, Ver2, Op), !,
+	'$bundle_prop'(Bundle, version(Ver1)), % fail if no version
+	version_compare(Comp, Ver1, Ver2),
+	( eval_op(Op, Comp) -> true
 	; fail
 	).
 
@@ -264,6 +263,16 @@ version_constraint(version>V, V, (>)).
 version_constraint(version=<V, V, (=<)).
 version_constraint(version<V, V, (<)).
 version_constraint(version\=V, V, (\=)).
+
+eval_op((=), (=)).
+eval_op((>=), (>)).
+eval_op((>=), (=)).
+eval_op((>), (>)).
+eval_op((=<), (<)).
+eval_op((=<), (=)).
+eval_op((<), (<)).
+eval_op((\=), (>)).
+eval_op((\=), (<)).
 
 % ---------------------------------------------------------------------------
 % Set a configuration flag (dangerous!)
