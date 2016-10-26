@@ -68,14 +68,18 @@ clean_bundle_flags :-
 :- doc(bug, "Use fastrw, like in bundle registries, to minimize dependencies").
 
 % :- use_module(engine(internals), [reload_bundleregs/0]).
-:- use_module(library(pathnames), [path_concat/3]).
+:- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(engine(internals), [bundle_reg_dir/2]).
+:- use_module(engine(internals), ['$bundle_id'/1, '$bundle_regfile'/2]).
 
-:- export(bundle_flags_file/1).
-% TODO: allow inpath and other bundles
-bundle_flags_file := Path :-
+:- export(bundle_flags_file/2).
+% Obtain the path to the bundlecfg for the specified (registered) bundle
+bundle_flags_file(Bundle) := Path :-
+	% TODO: make sure that it works for user bundles, global installs
+%	( '$bundle_regfile'(Bundle, RegFile) -> true ; fail ),
+%	path_split(RegFile, BundleRegDir, _),
 	bundle_reg_dir(local, BundleRegDir),
-	bundlecfg_filename(ciao, BundleRegDir, Path). % TODO: hardwired 'ciao'
+	bundlecfg_filename(Bundle, BundleRegDir, Path).
 
 % NOTE: We reuse the directory for bundleregs!
 :- export(bundlecfg_filename/3).
@@ -87,7 +91,6 @@ bundle_flags_file := Path :-
 bundlecfg_filename(Bundle, BundleRegDir, File) :-
 	atom_concat(Bundle, '.bundlecfg', File0),
 	path_concat(BundleRegDir, File0, File).
-% File = ~bundle_flags_file
 
 :- export(restore_all_bundle_flags/0).
 :- pred restore_all_bundle_flags # "Restore the bundle configuration
@@ -99,8 +102,14 @@ restore_all_bundle_flags :-
  
 restore_bundle_flags :-
 	clean_bundle_flags,
-	%
-	FlagsFile = ~bundle_flags_file,
+	( '$bundle_id'(Bundle),
+	    restore_bundle_flags1(Bundle),
+	    fail
+	; true
+	).
+
+restore_bundle_flags1(Bundle) :-
+	FlagsFile = ~bundle_flags_file(Bundle),
 	( file_exists(FlagsFile) ->
 	    open(FlagsFile, read, Stream),
 	    restore_bundle_flags_(Stream, FlagsFile),
@@ -126,8 +135,15 @@ restore_bundle_flags_(Stream, FlagsFile) :-
 
 reset_all_bundle_flags :-
 	clean_bundle_flags,
-	% Delete config file (so that it is not reloaded later)
-	FlagsFile = ~bundle_flags_file,
+	( '$bundle_id'(Bundle),
+	    reset_all_bundle_flags1(Bundle),
+	    fail
+	; true
+	).
+
+% Delete config file (so that it is not reloaded later)
+reset_all_bundle_flags1(Bundle) :-
+	FlagsFile = ~bundle_flags_file(Bundle),
 	my_del_file_nofail(FlagsFile).
 
 :- use_module(library(system), [delete_file/1]).
@@ -142,12 +158,19 @@ my_del_file_nofail(FileName) :-
    persistent store (filesystem)".
 
 save_bundle_flags :-
-	FlagsFile = ~bundle_flags_file,
+	( '$bundle_id'(Bundle),
+	    save_bundle_flags1(Bundle),
+	    fail
+	; true
+	).
+
+save_bundle_flags1(Bundle) :-
+	FlagsFile = ~bundle_flags_file(Bundle),
 	open_output(FlagsFile, Output),
-	write_bundle_flags,
+	write_bundle_flags(Bundle),
 	close_output(Output).
 
-write_bundle_flags :-
+write_bundle_flags(Bundle) :-
 	( % (failure-driven loop)
 	  current_bundle_flag(Bundle:Name, Value),
 	    displayq(bundle_flag(Bundle, Name, Value)),

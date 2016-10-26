@@ -6,6 +6,9 @@
 
 :- export('$bundle_id'/1).
 :- data '$bundle_id'/1.
+% '$bundle_regfile'(Bundle, Path): path of regfile (a-la module base)
+:- export('$bundle_regfile'/2).
+:- data '$bundle_regfile'/2.
 % '$bundle_srcdir'(Bundle, Path): path to bundle source
 :- export('$bundle_srcdir'/2).
 :- data '$bundle_srcdir'/2.
@@ -21,6 +24,7 @@
 
 clean_bundlereg_db :-
 	retractall_fact('$bundle_id'(_)),
+	retractall_fact('$bundle_regfile'(_, _)),
 	retractall_fact('$bundle_prop'(_, _)),
 	retractall_fact('$bundle_srcdir'(_, _)),
 	retractall_fact('$bundle_alias_path'(_, _, _)).

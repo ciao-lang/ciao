@@ -39,6 +39,9 @@
 :- use_module(ciaobld(pbundle_generator)).
 :- use_module(ciaobld(builder_aux), [wr_template/4]).
 
+:- use_module(ciaobld(builder_meta), [ensure_load_bundle_metasrc/2]).
+:- use_module(ciaobld(builder_cmds), [bundle_manual_base/2]).
+
 % (hooks for gen_pbundle)
 :- include(ciaobld(pbundle_gen_hookdefs)).
 
@@ -103,13 +106,10 @@ get_manual_icons(Bundle, S) :-
 	findall(Str, get_manual_icons_(Bundle, Str), L),
 	flatten(L, S).
 
-:- use_module(ciaobld(builder_cmds),
-	[ensure_load_bundlehooks/1, bundle_manual_base/2]).
-
 % TODO: Check that this is correct when multiple manuals per bundle are generated ("Name" is shared)
 get_manual_icons_(ParentBundle, Str) :-
 	enum_sub_bundles(ParentBundle, Bundle),
-	ensure_load_bundlehooks(Bundle),
+	ensure_load_bundle_metasrc(Bundle, bundle_hooks),
 	%
 	DocFormat = pdf,
 	RelBuildDir = ~relciaodir(~bundle_path(Bundle, builddir, '.')),

@@ -128,12 +128,12 @@ cmdpath_elisp(Bundle, Cmd, Kind, Expr) :-
 script_extension('.bat') :- ( using_windows ; emacs_type('Win32') ), !.
 script_extension('').
 
-:- use_module(ciaobld(builder_cmds),
-	[ensure_load_bundlehooks/1, bundle_manual_base/2]).
+:- use_module(ciaobld(builder_meta), [ensure_load_bundle_metasrc/2]).
+:- use_module(ciaobld(builder_cmds), [bundle_manual_base/2]).
 
 % Enumerate all manuals of Bundle
 get_bundle_manual_base_elisp(Bundle, NameVersion):-
-	ensure_load_bundlehooks(Bundle),
+	ensure_load_bundle_metasrc(Bundle, bundle_hooks),
 	bundle_manual_base(Bundle, NameVersion).
 
 % ---------------------------------------------------------------------------

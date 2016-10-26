@@ -129,7 +129,7 @@ configlevel('3', extended).
 :- use_module(ciaobld(eng_maker), [bundle_flags_sh_file/1]).
 
 :- export(config_noscan/0).
-:- pred config_noscan # "Configure the system. If
+:- pred config_noscan # "Configure all bundles. If
    @tt{ciao:interactive_config} flag is specified, the process is
    interactive. Otherwise, values for configuration are detected
    automatically.".
@@ -146,6 +146,8 @@ config_noscan :-
 
 % ---------------------------------------------------------------------------
 % Auxiliary code for eng_config_sysdep/2
+
+% TODO: only ciao__DEFAULTLIBDIR and some core__ are really needed; customize
 
 :- use_module(library(file_utils), [string_to_file/2]).
 :- use_module(library(aggregates), [findall/3]).

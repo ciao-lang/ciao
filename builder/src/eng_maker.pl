@@ -131,7 +131,7 @@ stat_mod_init(Base) -->
 
 :- export(bundle_flags_sh_file/1).
 % File where eng_config_sysdep/1 expects the bundle flags (in .sh format)
-% (see bundle_flags_file/1)
+% (see bundle_flags_file/2)
 bundle_flags_sh_file := Path :-
 	bundle_reg_dir(local, BundleRegDir),
 	path_concat(BundleRegDir, 'ciao.bundlecfg_sh', Path). % TODO: hardwired 'ciao'

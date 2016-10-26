@@ -138,13 +138,14 @@ load_bundlereg_(File) :-
 	% Load items
 	load_bundlereg_v(Version, File).
 
-load_bundlereg_v(3, _File) :- !,
+load_bundlereg_v(3, File) :- !,
 	fast_read(Data),
 	Data = bundle_id(Bundle),
 	( '$bundle_id'(Bundle) -> 
 	    % silently ignore if already loaded
 	    true
 	; assertz_fact('$bundle_id'(Bundle)),
+	  assertz_fact('$bundle_regfile'(Bundle, File)),
 	  load_bundlereg_loop
 	).
 % load_bundlereg_v(2, _File) :- !,

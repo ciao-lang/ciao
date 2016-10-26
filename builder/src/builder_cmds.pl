@@ -1,4 +1,4 @@
-:- module(_, [], [dcg, fsyntax, hiord, assertions, regtypes, isomodes]).
+:- module(_, [], [fsyntax, hiord, assertions, regtypes, isomodes]).
 
 :- doc(title,  "Builder Commands").
 :- doc(author, "Jose F. Morales").
@@ -13,7 +13,7 @@
 	[set_bundle_param_value/2,
 	 bundle_param_value/2]).
 :- use_module(library(bundle/bundle_flags),
-	[reset_all_bundle_flags/0, bundle_flags_file/1,
+	[reset_all_bundle_flags/0, bundle_flags_file/2,
 	 bundlecfg_filename/3]).
 %
 :- use_module(library(bundle/bundle_paths),
@@ -25,7 +25,6 @@
 	]).
 :- use_module(engine(internals), [
 	reload_bundleregs/0,
-	top_ciao_path/1,
 	'$bundle_id'/1]).
 
 :- use_module(ciaobld(builder_aux), [
@@ -160,10 +159,11 @@ builder_cmd_(scan_and_config, Target, Opts) :- !,
 	%
 	builder_cmd(config_noscan, Target, Opts).
 builder_cmd_(config_noscan, Target, Opts) :- root_bundle(Target), !,
-	% TODO: for non-root use target_to_bundle(Target)?
+	Bundle = Target, _Part = '',
+	% TODO: non-root?
 	cmd_message(Target, "configuring", []),
 	set_params(Opts),
-	ensure_builddir(Target, '.'),
+	ensure_builddir(Bundle, '.'),
 	( bundle_param_value(ciao:interactive_config, true) ->
 	    true % use saved config values
 	; % TODO: do not reset, skip load instead
@@ -202,21 +202,22 @@ builder_cmd_(build, Target, Opts) :- !,
 	builder_cmd(build_nodocs, Target, Opts),
 	builder_cmd(build_docs, Target, Opts).
 builder_cmd_(build_nodocs, Target, Opts) :- root_bundle(Target), !,
-	check_ready_for_cmd(build_nodocs, Target),
+	Bundle = Target, Part = '',
+	check_bundle_has_config(build_nodocs, Bundle),
 	% NOTE: 'core/ciaobase' must be built before anything else
 	% TODO: add dependencies instead of fixing a build order
 	% builder_cmd(build_nodocs, 'core/ciaobase', Opts), % (included in core/ build rules)
 	% Treat sub-bundles
 	( % (failure-driven loop)
-	  enum_sub_bundles(Target, P),
+	  Part = '', enum_sub_bundles(Bundle, P),
 	  builder_cmd(build_nodocs, P, Opts),
 	    fail
 	; true
 	).
 builder_cmd_(build_nodocs, Target, Opts) :- !,
 	% TODO: Treat dependent bundles first?
-	check_ready_for_cmd(build_nodocs, Target),
 	split_target(Target, Bundle, Part),
+	check_bundle_has_config(build_nodocs, Bundle),
 	( bundle_defines_hookcmd(Bundle, Part, prebuild_nodocs) ->
 	    cmd_message(Target, "building [prebuild no docs]", []),
 	    builder_cmd(prebuild_nodocs, Target, Opts),
@@ -234,10 +235,11 @@ builder_cmd_(build_nodocs, Target, Opts) :- !,
 builder_cmd_(prebuild_docs, Target, Opts) :- !,
 	% TODO: prebuild docs needs a different order in processing of
 	% item_subs and sub-bundles; can it be simplified?
-	check_ready_for_cmd(prebuild_docs, Target),
+	split_target(Target, Bundle, Part),
+	check_bundle_has_config(prebuild_docs, Bundle),
 	% Treat sub-bundles
 	( % (failure-driven loop)
-	  enum_sub_bundles(Target, P),
+	  Part = '', enum_sub_bundles(Bundle, P),
 	  builder_cmd(prebuild_docs, P, Opts),
 	    fail
 	; true
@@ -246,12 +248,11 @@ builder_cmd_(prebuild_docs, Target, Opts) :- !,
 	( builder_pred(Target, item_subs(SubPs)) -> true ; fail ),
 	builder_cmd_on_set(prebuild_docs, SubPs, Opts),
 	%
-	split_target(Target, Bundle, Part),
 	( with_docs(yes) ->
 	    ( bundle_defines_hookcmd(Bundle, Part, prebuild_docs) ->
 	        cmd_message(Target, "building [prebuild docs]", []),
-	        ensure_builddir(~target_to_bundle(Target), '.'), % TODO: needed?
-		ensure_builddir(~target_to_bundle(Target), 'doc'), % TODO: needed?
+	        ensure_builddir(Bundle, '.'), % TODO: needed?
+		ensure_builddir(Bundle, 'doc'), % TODO: needed?
 		set_params(Opts),
 		builder_hookcmd(Bundle, Part, prebuild_docs),
 		cmd_message(Target, "built [prebuild docs]", [])
@@ -261,11 +262,11 @@ builder_cmd_(prebuild_docs, Target, Opts) :- !,
 	; true
 	).
 builder_cmd_(build_docs, Target, Opts) :- !, % (internal, without prebuild)
-	check_ready_for_cmd(build_docs, Target),
+	split_target(Target, Bundle, Part),
+	check_bundle_has_config(build_docs, Bundle),
 	%
 	builder_cmd(prebuild_docs, Target, Opts),
 	%
-	split_target(Target, Bundle, Part),
 	( with_docs(yes) ->
 	    cmd_message(Target, "building [build docs]", []),
 	    ( bundle_defines_hookcmd(Bundle, Part, build_docs) ->
@@ -284,7 +285,7 @@ builder_cmd_(build_docs, Target, Opts) :- !, % (internal, without prebuild)
 	),
 	% Treat sub-bundles
 	( % (failure-driven loop)
-	  enum_sub_bundles(Target, P),
+	  Part = '', enum_sub_bundles(Bundle, P),
 	  builder_cmd(build_docs, P, Opts),
 	    fail
 	; true
@@ -301,9 +302,10 @@ builder_cmd_(clean, Target, Opts) :- !,
 % Like 'clean', but keeps documentation targets.
 % (This reverses the 'build_nodocs' and part of 'build_docs' actions)
 builder_cmd_(clean_nodocs, Target, Opts) :- !,
-	check_ready_for_cmd(clean_nodocs, Target),
+	split_target(Target, Bundle, Part),
+	check_bundle_has_config(clean_nodocs, Bundle),
 	% Treat sub-bundles
-	findall(P, enumrev_sub_bundles(Target, P), Ps),
+	( Part = '' -> findall(P, enumrev_sub_bundles(Bundle, P), Ps) ; Ps = [] ),
 	builder_cmd_on_set(clean_nodocs, Ps, Opts),
 	% Treat item_subs
 	( builder_pred(Target, item_subs(SubPs)) -> true ; fail ),
@@ -315,17 +317,17 @@ builder_cmd_(clean_nodocs, Target, Opts) :- !,
 %
 % Like 'clean_nodocs' but non-recursive on sub-bundles
 builder_cmd_(clean_norec, Target, Opts) :- !,
-	check_ready_for_cmd(clean_norec, Target),
-	%
 	split_target(Target, Bundle, Part),
+	check_bundle_has_config(clean_norec, Bundle),
+	%
 	( root_bundle(Target) ->
-	    % TODO: for non-root use target_to_bundle(Target)?
-	    clean_tree(~bundle_path(Target, 'Manifest')),
-	    clean_tree(~bundle_path(Target, 'doc')), % TODO: ad-hoc, clean .po,.itf, etc.
+	    % TODO: for non-root?
+	    clean_tree(~bundle_path(Bundle, 'Manifest')),
+	    clean_tree(~bundle_path(Bundle, 'doc')), % TODO: ad-hoc, clean .po,.itf, etc.
             % TODO: Clean Manifest/... in each bundle too
 	    % TODO: clean all builddir except configuration?
-	    builddir_clean(Target, pbundle),
-	    builddir_clean(Target, bin),
+	    builddir_clean(Bundle, pbundle),
+	    builddir_clean(Bundle, bin),
 	    builder_cmd(clean_norec, 'core/engine', []),
 	    builder_cmd(clean_norec, 'core/exec_header', [])
 	; bundle_defines_hookcmd(Bundle, Part, clean_norec) ->
@@ -338,7 +340,7 @@ builder_cmd_(clean_norec, Target, Opts) :- !,
 	; '$bundle_id'(Bundle), Part = '' ->
 	    % TODO: use some specific dirs instead
 	    % TODO: does not work with CIAOCACHEDIR! fix
-	    clean_tree(~bundle_path(Target, '.'))
+	    clean_tree(~bundle_path(Bundle, '.'))
 	; format(user_error, "ERROR: unknown bundle '~w'.~n", [Target]),
 	  halt(1)
 	).
@@ -348,26 +350,28 @@ builder_cmd_(clean_tree(Dir), '$no_bundle', _Opts) :- !,
 %
 % Clean the final documentation targets (READMEs and manuals)
 builder_cmd_(clean_docs, Target, Opts) :- !,
-	check_ready_for_cmd(clean_docs, Target),
+	split_target(Target, Bundle, Part),
+	check_bundle_has_config(clean_docs, Bundle),
 	% TODO: refine targets
-	findall(P, enum_sub_bundles(Target, P), Ps),
+	( Part = '' -> findall(P, enum_sub_bundles(Bundle, P), Ps) ; Ps = [] ),
 	builder_cmd_on_set(clean_docs, Ps, Opts),
 	builder_cmd(clean_docs_manuals, Target, Opts),
 	builder_cmd(clean_docs_readmes, Target, Opts).
 %
 % Like 'clean' but also removes configuration settings.
 builder_cmd_(distclean, Target, Opts) :- !,
-	check_ready_for_cmd(distclean, Target),
+	split_target(Target, Bundle, _Part),
+	check_bundle_has_config(distclean, Bundle),
 	builder_cmd(clean, Target, Opts),
 	%
 	% Clean config (this must be the last step)
 	cmd_message(Target, "cleaning [config]", []),
 	builder_cmd(configclean, Target, Opts),
 	( root_bundle(Target) ->
-	    % TODO: for non-root use target_to_bundle(Target)?
+	    % TODO: non-root?
 	    % TODO: make sure that no binary is left after 'clean' (outside builddir)
 	    clean_bundlereg(local),
-	    builddir_clean(Target, all)
+	    builddir_clean(Bundle, all)
 	; true
 	).
 %
@@ -376,10 +380,11 @@ builder_cmd_(distclean, Target, Opts) :- !,
 % Warning! configclean is the last cleaning step. If you clean all
 %          the configuration files then many scripts will not run.
 builder_cmd_(configclean, Target, _Opts) :- !,
-	check_ready_for_cmd(configclean, Target),
+	split_target(Target, Bundle, _Part),
+	check_bundle_has_config(configclean, Bundle),
 	( root_bundle(Target) ->
-	    % TODO: for non-root use target_to_bundle(Target)?
-	    builddir_clean(Target, config)
+	    % TODO: non-root?
+	    builddir_clean(Bundle, config)
 	; true
 	).
 % ----------
@@ -397,10 +402,6 @@ split_target(Target, Bundle, Part) :-
 	; throw(unknown_bundle(Target))
 	).
 
-% e.g., Target='core/engine' -> 'core'
-target_to_bundle(Target, Bundle) :-
-	split_target(Target, Bundle, _).
-
 :- export(builder_pred/2).
 builder_pred(Target, Head) :-
 	split_target(Target, Bundle, Part),
@@ -414,9 +415,18 @@ builder_pred(Target, Head) :-
 	 restore_all_bundle_flags/0]).
 :- use_module(ciaobld(bundle_configure), [config_noscan/0]).
 
+:- use_module(ciaobld(builder_meta), [ensure_load_bundle_metasrc/2]).
+
 % Invoke configuration (do not scan bundles)
 do_config_noscan :-
-	ensure_load_bundleconfig_rules, % TODO: make it more fine grained (not always needed, not all bundles needed)
+	% Load all config
+	% TODO: make it fine-grained: only dependencies
+	( % (failure-driven loop)
+	  '$bundle_id'(Bundle),
+	    ensure_load_bundle_metasrc(Bundle, bundle_config),
+	    fail
+	; true
+	),
  	restore_all_bundle_flags, % TODO: Necessary? bundle(bundle_flags) contains an initialization directive
 	config_noscan.
 
@@ -455,13 +465,13 @@ do_boot_promote(Target) :-
 	cmd_message(Target, "promoting bootstrap", []),
 	%
 	( root_bundle(Target) ->
-	    true
+	    Bundle = Target, _Part = ''
 	; % TODO: implement configuration for individual bundles
 	  format(user_error, "ERROR: Cannot promote bundle '~w'.~n", [Target]),
 	  halt(1)
 	),
 	%
-	check_ready_for_cmd(boot_promote, Target),
+	check_bundle_has_config(boot_promote, Bundle),
 	ask_promote_bootstrap(~default_eng_def).
 
 ask_promote_bootstrap(Eng) :-
@@ -484,94 +494,23 @@ ask_promote_bootstrap(Eng) :-
 
 :- use_module(library(system), [file_exists/1]).
 
-check_ready_for_cmd(Cmd, Target) :-
-	( check_ready_for_cmd_(Cmd, Target) ->
+check_bundle_has_config(Cmd, Bundle) :-
+	( check_bundle_has_config_(Cmd, Bundle) ->
 	    true
-	; format(user_error, "ERROR: Cannot do '~w' on bundle '~w' without a configuration. Please run 'configure' before.~n", [Cmd, Target]),
+	; format(user_error, "ERROR: Cannot do '~w' on bundle '~w' without a configuration. Please run 'configure' before.~n", [Cmd, Bundle]),
 	  halt(1)
 	).
 
 % NOTE: bundle_path/3 will fail if bundles are not scanned
 %   (which also means that there is no configuration)
-% TODO: not nice, allow per-bundle or per-workspace configs
 % TODO: install config in global installs too
-check_ready_for_cmd_(_Cmd, Target) :-
-	Dir0 = ~bundle_path(~root_bundle, builddir, '.'),
-	Dir1 = ~bundle_path(~target_to_bundle(Target), builddir, '.'),
-	( Dir0 = Dir1 -> % (same builddir as ~root_bundle)
-	    FlagsFile = ~bundle_flags_file,
-	    file_exists(FlagsFile)
-	; % Relax condition in user workspaces (or in global installs)
-	  true
-	).
+check_bundle_has_config_(_Cmd, Bundle) :-
+	FlagsFile = ~bundle_flags_file(Bundle),
+	file_exists(FlagsFile).
 
 % ============================================================================
 
 :- include(ciaobld(bundlehooks/bundlehooks_defs)).
-
-% ============================================================================
-% Load bundle metasrc (configuration rules and build hooks)
-
-% TODO: move to other module?
-
-% TODO: add reference counting?
-% TODO: reused for bundleconfig too, change name?
-:- use_module(ciaobld(bundlehooks_holder)).
-
-:- export(ensure_load_bundlehooks/1).
-ensure_load_bundlehooks(Bundle) :-
-	( BundleHooksMod = ~atom_concat(Bundle, '.hooks'),
-	  m_bundlehook_decl(BundleHooksMod, _, _) ->
-	    true
-	; load_bundle_metasrc(Bundle, bundle_hooks)
-	).
-
-load_bundle_metasrc(Bundle, Metasrc) :-
-	( '$bundle_id'(Bundle), BundleDir = ~bundle_path(Bundle, '.') ->
-	    true
-	; throw(unknown_bundle(Bundle))
-	),
-	% TODO: make it optional (some bundles may not need customized hooks)
-	bundle_metasrc(Bundle, Metasrc, BundleMetasrcFile),
-	( file_exists(BundleMetasrcFile) ->
-	    working_directory(PWD, BundleDir), % TODO: Needed here?
-	    ( catch(bundlehooks_holder:do_use_module(BundleMetasrcFile), 
-	            E, R = exception(E)) ->
-	        R = ok
-	    ; R = fail
-	    ),
-	    cd(PWD),
-	    ( R = exception(E) -> throw(E)
-	    ; R = fail -> fail
-	    ; true
-	    )
-	; optional_metasrc(Metasrc) ->
-	    true
-	; % TODO: write handler?
-	  throw(no_bundle_metasrc(Bundle, Metasrc))
-	).
-
-% TODO: use optional_metasrc/1 (do not unload if it was optional)
-unload_bundle_metasrc(Bundle, Metasrc) :-
-	bundle_metasrc(Bundle, Metasrc, BundleMetasrcFile),
-	bundlehooks_holder:do_unload(BundleMetasrcFile).
-
-optional_metasrc(bundle_config).
-
-:- data bundleconfig_rules_loaded/0.
-
-:- export(ensure_load_bundleconfig_rules/0).
-% TODO: make it fine-grained (one bundle at a time)
-ensure_load_bundleconfig_rules :-
-	bundleconfig_rules_loaded, !.
-ensure_load_bundleconfig_rules :-
-	assertz_fact(bundleconfig_rules_loaded),
-	( % (failure-driven loop)
-	  '$bundle_id'(Bundle),
-	    load_bundle_metasrc(Bundle, bundle_config),
-	    fail
-	; true
-	).
 
 % ============================================================================
 % Invoke a command on Bundle that needs bundle hooks. Bundle hooks for
@@ -579,41 +518,24 @@ ensure_load_bundleconfig_rules :-
 % already registered.
 
 % TODO: Simplify!
+% TODO: ensure_load_bundleconfig_rules/0 make it more fine grained (not always needed, not all bundles needed)
+% TODO: ensure_load_bundle_metasrc/2: not unloaded! (do refcount or gc of modules)
 
 builder_hookcmd(Bundle, Part, Cmd) :-
-	ensure_load_bundleconfig_rules, % TODO: make it more fine grained (not always needed, not all bundles needed)
-	ensure_load_bundlehooks(Bundle), % TODO: Not unloaded! (do refcount or gc of modules)
+	ensure_load_bundle_metasrc(Bundle, config_and_hooks),
 	bundlehook_call(Bundle, Part, Cmd).
-	%
-	% TODO: is cd/1 really necessary here?
-%K	BundleDir = ~bundle_path(Bundle, '.'),
-%K	working_directory(PWD, BundleDir),
-%K	catch(bundlehook_call(Bundle, Part, Cmd), E, OK = no(E)),
-%K	( var(OK) -> OK = yes ; true ),
-%K	cd(PWD),
-	%
-%	display(user_error, 'UNLOADING_BUNDLE_HOOKS'(Bundle)), nl(user_error),
-	%
-%K	( OK = no(E) ->
-%K	    throw(builder_cmd_failed(Bundle, Part, Cmd, E))
-%K	; true
-%K	).
 
 % The command has an explicit definition in Bundle .hooks.pl
 % TODO: Synchronize with builder_hookcmd/3
 bundle_defines_hookcmd(Bundle, Part, Cmd) :-
-	ensure_load_bundleconfig_rules,
-	ensure_load_bundlehooks(Bundle),
-	%
+	ensure_load_bundle_metasrc(Bundle, config_and_hooks),
 	BundleHooksMod = ~atom_concat(Bundle, '.hooks'),
 	m_bundlehook_decl(BundleHooksMod, Part, Cmd).
 
 % (for predicates, not commands)
 % TODO: Synchronize with builder_hookcmd/3
 builder_hookpred(Bundle, Part, Head) :-
-	ensure_load_bundleconfig_rules,
-	ensure_load_bundlehooks(Bundle),
-	%
+	ensure_load_bundle_metasrc(Bundle, config_and_hooks),
 	BundleHooksMod = ~atom_concat(Bundle, '.hooks'),
 	( m_bundlehook_decl(BundleHooksMod, Part, Head) ->
 	    m_bundlehook_do(BundleHooksMod, Part, Head)
@@ -1100,22 +1022,17 @@ uninstall_bundlereg(Bundle) :-
 % ---------------------------------------------------------------------------
 % Preliminary support for installing configuration (bundle flags)
 % (attached to bundle registry)
-% TODO: Allow one file per bundle
 
 install_bundle_flags(Bundle) :-
-	( root_bundle(Bundle) ->
-	    CfgFile = ~bundle_flags_file,
-	    rootprefix_bundlecfg_file(global, Bundle, InsCfgFile),
-	    copy_file_or_dir(CfgFile, InsCfgFile)
-	; true
-	).
+	% (assumes ~instype = global)
+	CfgFile = ~bundle_flags_file(Bundle),
+	rootprefix_bundlecfg_file(global, Bundle, InsCfgFile),
+	copy_file_or_dir(CfgFile, InsCfgFile).
 
 uninstall_bundle_flags(Bundle) :-
-	( root_bundle(Bundle) ->
-	    rootprefix_bundlecfg_file(global, Bundle, InsCfgFile),
-	    del_file_nofail(InsCfgFile)
-	; true
-	).
+	% (assumes ~instype = global)
+	rootprefix_bundlecfg_file(global, Bundle, InsCfgFile),
+	del_file_nofail(InsCfgFile).
 
 % File is the registry file for the BundleName bundle
 rootprefix_bundlecfg_file(InsType, BundleName, RegFile) :-
