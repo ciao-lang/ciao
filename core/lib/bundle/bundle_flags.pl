@@ -76,9 +76,9 @@ clean_bundle_flags :-
 % Obtain the path to the bundlecfg for the specified (registered) bundle
 bundle_flags_file(Bundle) := Path :-
 	% TODO: make sure that it works for user bundles, global installs
-%	( '$bundle_regfile'(Bundle, RegFile) -> true ; fail ),
-%	path_split(RegFile, BundleRegDir, _),
-	bundle_reg_dir(local, BundleRegDir),
+	( '$bundle_regfile'(Bundle, RegFile) -> true ; fail ),
+	path_split(RegFile, BundleRegDir, _),
+	% bundle_reg_dir(local, BundleRegDir),
 	bundlecfg_filename(Bundle, BundleRegDir, Path).
 
 % NOTE: We reuse the directory for bundleregs!
