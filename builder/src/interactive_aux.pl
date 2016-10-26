@@ -5,8 +5,6 @@
 :- doc(title, "Auxiliary Code for User Interaction").
 :- doc(author, "Ciao Development Team").
 
-:- use_module(library(messages)).
-
 :- export(ask_option_value/6).
 :- pred ask_option_value(+Description, +Name, +ValidValues,
 	                 +DefaultValue, +PreviousValue, -Value)

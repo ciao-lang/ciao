@@ -219,7 +219,7 @@ parse_args_([Cmd00|Args], Cmd2, Opts, Target) :- !,
 	% Parse
 	parse_cmd(Cmd, Args, Cmd2, Opts, Target).
 parse_args_([], _Cmd, _Opts, _Target) :-
-	throw(args_error("No arguments were specified", [])).
+	throw(error_msg("No arguments were specified", [])).
 
 parse_cmd(Cmd, Args, Cmd2, Opts, Target) :-
 	check_cmd(Cmd),
@@ -240,27 +240,27 @@ parse_cmd(Cmd, Args, Cmd2, Opts, Target) :-
 	; OptsParse = config_opts ->
 	    % NOTE: checked later in configure
 	    ( Args2 = [] -> true
-	    ; throw(args_error("Invalid additional arguments ('~w')", [Args2]))
+	    ; throw(error_msg("Invalid additional arguments ('~w')", [Args2]))
 	    ),
 	    Cmd2 = Cmd
 	; OptsParse = raw_opts ->
 	    ( Args2 = [] -> true
-	    ; throw(args_error("Invalid additional arguments ('~w')", [Args2]))
+	    ; throw(error_msg("Invalid additional arguments ('~w')", [Args2]))
 	    ),
 	    ( member(flag(Flag, _), Opts), % TODO: do not qualify in raw_opt
 	      \+ raw_opt(Cmd, Flag) ->
-	        throw(args_error("Unrecognized option '~w' for command '~w'", [Flag, Cmd]))
+	        throw(error_msg("Unrecognized option '~w' for command '~w'", [Flag, Cmd]))
 	    ; true
 	    ),
 	    Cmd2 = Cmd
 	; OptsParse = no_opts ->
 	    ( Args2 = [] -> true
-	    ; throw(args_error("Invalid additional arguments ('~w')", [Args2]))
+	    ; throw(error_msg("Invalid additional arguments ('~w')", [Args2]))
 	    ),
 	    ( Opts = [] ->
 	        true
 	    ; opts_to_args(Opts, Opts2),
-	      throw(args_error("Unrecognized options '~w' for command '~w'", [Opts2, Cmd]))
+	      throw(error_msg("Unrecognized options '~w' for command '~w'", [Opts2, Cmd]))
 	    ),
 	    Cmd2 = Cmd
 	; fail
@@ -386,34 +386,34 @@ cmd_opts_custom(rescan_bundles, Args2, Cmd2) :- !,
 	% do not check flags % TODO: pass them as arguments instead?
 	( Args2 = [File] -> true
 	; Args2 = [] -> File = '.'
-	; throw(args_error("'rescan_bundles' needs at most one path", []))
+	; throw(error_msg("'rescan_bundles' needs at most one path", []))
 	),
 	ciao_path_at_dir(File, Path),
 	Cmd2 = rescan_bundles(Path).
 cmd_opts_custom(get, Args2, Cmd2) :- !,
 	% do not check flags
 	( Args2 = [BundleAlias] -> true
-	; throw(args_error("'get' needs a bundle alias", []))
+	; throw(error_msg("'get' needs a bundle alias", []))
 	),
 	Cmd2 = get(BundleAlias).
 cmd_opts_custom(rm, Args2, Cmd2) :- !,
 	% do not check flags
 	( Args2 = [BundleAlias] -> true
-	; throw(args_error("'rm' needs a bundle alias", []))
+	; throw(error_msg("'rm' needs a bundle alias", []))
 	),
 	Cmd2 = rm(BundleAlias).
 %
 cmd_opts_custom(clean_tree, Args2, Cmd2) :- !,
 	% do not check flags
 	( Args2 = [Dir] -> true
-	; throw(args_error("'clean_tree' needs a directory", []))
+	; throw(error_msg("'clean_tree' needs a directory", []))
 	),
 	Cmd2 = clean_tree(Dir).
 %
 cmd_opts_custom(custom_run, Args2, Cmd2) :- !,
 	% do not check flags % TODO: pass them as arguments instead?
 	( Args2 = [CustomCmd|CustomArgs] -> true
-	; throw(args_error("'custom_run' needs a target and a custom command name and arguments", []))
+	; throw(error_msg("'custom_run' needs a target and a custom command name and arguments", []))
 	),
 	Cmd2 = custom_run(CustomCmd, CustomArgs).
 
@@ -537,29 +537,27 @@ tolowercode(C, C).
 % ===========================================================================
 :- doc(section, "Handle errors").
 
-handle_builder_error(args_error(Format, Args)) :-
-	append("ERROR: ", Format, T1),
-	append(T1, "~n", T2),
-	format(user_error, T2, Args),
+handle_builder_error(error_msg(Format, Args)) :-
+	error_message(Format, Args),
 	halt(1).
 handle_builder_error(not_in_builder_boot(Cmd)) :-
-	format(user_error, "ERROR: Command '~w' only available in 'ciao-boot.sh' or 'ciao-boot.bat'.~n", [Cmd]),
+	error_message("Command '~w' only available in 'ciao-boot.sh' or 'ciao-boot.bat'.~n", [Cmd]),
 	halt(1).
 handle_builder_error(unknown_bundle(Bundle)) :-
-	format(user_error, "ERROR: Unknown bundle '~w' (try 'rescan-bundles').~n", [Bundle]),
+	error_message("Unknown bundle '~w' (try 'rescan-bundles').~n", [Bundle]),
 	halt(1).
 handle_builder_error(unknown_builder_cmd(Cmd)) :-
-	format(user_error, "ERROR: Unknown command '~w'.~n", [Cmd]),
+	error_message("Unknown command '~w'.~n", [Cmd]),
 	halt(1).
 handle_builder_error(builder_cmd_failed(Bundle, '', Target)) :- !,
-	format(user_error, "ERROR: Command '~w' on bundle '~w' failed.~n", [Target, Bundle]),
+	error_message("Command '~w' on bundle '~w' failed.~n", [Target, Bundle]),
 	halt(1).
 handle_builder_error(builder_cmd_failed(Bundle, Part, Target)) :-
-	format(user_error, "ERROR: Command '~w' on bundle '~w' (part '~w') failed.~n", [Target, Bundle, Part]),
+	error_message("Command '~w' on bundle '~w' (part '~w') failed.~n", [Target, Bundle, Part]),
 	halt(1).
 handle_builder_error(error(Error, Where)) :-
 	handle_error(Error, Where).
 handle_builder_error(Error) :-
-	format(user_error, "ERROR: Unknown error '~w'.~n", [Error]),
+	error_message("Unknown error '~w'.~n", [Error]),
 	halt(1).
 

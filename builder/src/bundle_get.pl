@@ -6,7 +6,6 @@
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(system_extra), [mkpath/1]).
-:- use_module(library(format), [format/3]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(http_get), [http_get/2]).
 :- use_module(library(system), [mktemp_in_tmp/2, touch/1]).
@@ -61,8 +60,7 @@ bundle_fetch0(BundleAlias, RootDir, Bundle) :-
 	; Status = user ->
 	    cmd_message(Bundle, "user bundle, skipping fetch", [])
 	; Status = nontop ->
-	    format(user_error, "ERROR: Bundle `~w' exists in a non-top CIAOPATH.~n", [Bundle]),
-	    halt(1)
+	    throw(error_msg("Bundle `~w' exists in a non-top CIAOPATH.", [Bundle]))
 	; Status = missing ->
 	    path_concat(RootDir, Bundle, BundleDir),
 	    bundle_fetch1(BundleAlias, Bundle, BundleDir)
@@ -73,8 +71,7 @@ bundle_fetch1(BundleAlias, Bundle, BundleDir) :-
 	bundle_fetch2(BundleAlias, Bundle, BundleDir),
 	!.
 bundle_fetch1(BundleAlias, _, _) :-
-	format(user_error, "ERROR: Bundle fetch failed for `~w'.~n", [BundleAlias]),
-	halt(1).
+	throw(error_msg("Bundle fetch failed for `~w'.", [BundleAlias])).
 
 bundle_fetch2(BundleAlias, Bundle, BundleDir) :-
 	% Fetch source
@@ -114,16 +111,14 @@ bundle_src_origin(BundleAlias, git_archive(URL, Ref)) :-
 	Ref = master, % TODO: customize Ref
 	atom_concat(['ssh://gitolite@', BundleAlias], URL).
 bundle_src_origin(BundleAlias, _Origin) :-
-	format(user_error, "ERROR: Unrecognized bundle alias path `~w'.~n", [BundleAlias]),
-	halt(1).
+	throw(error_msg("Unrecognized bundle alias path `~w'.~n", [BundleAlias])).
 
 % Check that bundle alias is well formed
 check_bundle_alias(BundleAlias) :-
 	invalid_protocol(P),
 	atom_concat(P, BundleAlias0, BundleAlias),
 	!,
-	format(user_error, "ERROR: Invalid bundle alias, do you mean ~w? (without ~w).~n", [BundleAlias0, P]),
-	halt(1).
+	throw(error_msg("Invalid bundle alias, do you mean ~w? (without ~w).~n", [BundleAlias0, P])).
 check_bundle_alias(_).
 
 invalid_protocol('http://').
@@ -150,11 +145,9 @@ bundle_rm0(BundleAlias, RootDir, Bundle) :-
 	; Status = user ->
 	    cmd_message(Bundle, "user bundle, skipping rm", [])
 	; Status = nontop ->
-	    format(user_error, "ERROR: Bundle `~w' exists in a non-top CIAOPATH.~n", [Bundle]),
-	    halt(1)
+	    throw(error_msg("Bundle `~w' exists in a non-top CIAOPATH.", [Bundle]))
 	; Status = missing ->
-	    format(user_error, "ERROR: Bundle `~w' does not exist.~n", [Bundle]),
-	    halt(1)
+	    throw(error_msg("Bundle `~w' does not exist.", [Bundle]))
 	; fail
 	).
 
@@ -162,8 +155,7 @@ bundle_rm1(BundleAlias, Bundle, BundleDir) :-
 	bundle_rm2(BundleAlias, Bundle, BundleDir),
 	!.
 bundle_rm1(BundleAlias, _, _) :-
-	format(user_error, "ERROR: Bundle rm failed for `~w'.~n", [BundleAlias]),
-	halt(1).
+	throw(error_msg("Bundle rm failed for `~w'.", [BundleAlias])).
 
 bundle_rm2(_BundleAlias, _Bundle, BundleDir) :-
 	remove_dir(BundleDir).

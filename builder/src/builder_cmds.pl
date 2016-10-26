@@ -3,9 +3,7 @@
 :- doc(title,  "Builder Commands").
 :- doc(author, "Jose F. Morales").
 
-:- use_module(library(format), [format/3]). % TODO: only use throw/1
 :- use_module(library(aggregates), [findall/3]).
-:- use_module(library(system), [cd/1, working_directory/2]).
 :- use_module(library(pathnames), [path_split_list/2]).
 :- use_module(library(terms), [atom_concat/2]).
 
@@ -63,6 +61,7 @@
     with_docs/1
 ]).
 :- use_module(ciaobld(messages_aux), [cmd_message/3, normal_message/2]).
+:- use_module(library(messages), [error_message/2]).
 
 % ===========================================================================
 :- doc(section, "Builder commands").
@@ -173,8 +172,7 @@ builder_cmd_(config_noscan, Target, Opts) :- root_bundle(Target), !,
 	cmd_message(Target, "configured", []).
 builder_cmd_(config_noscan, Target, _Opts) :- !,
 	% TODO: implement configuration for individual bundles
-	format(user_error, "ERROR: Cannot configure bundle `~w'.~n", [Target]),
-	halt(1).
+	throw(error_msg("Cannot configure bundle `~w'.", [Target])).
 %
 builder_cmd_(rescan_bundles(Path), '$no_bundle', _Opts) :- !,
 	% TODO: Assumes that Path is correct
@@ -341,8 +339,7 @@ builder_cmd_(clean_norec, Target, Opts) :- !,
 	    % TODO: use some specific dirs instead
 	    % TODO: does not work with CIAOCACHEDIR! fix
 	    clean_tree(~bundle_path(Bundle, '.'))
-	; format(user_error, "ERROR: unknown bundle '~w'.~n", [Target]),
-	  halt(1)
+	; throw(error_msg("Unknown bundle '~w'.", [Target]))
 	).
 % Clean of a directory tree, recursively
 builder_cmd_(clean_tree(Dir), '$no_bundle', _Opts) :- !,
@@ -467,8 +464,7 @@ do_boot_promote(Target) :-
 	( root_bundle(Target) ->
 	    Bundle = Target, _Part = ''
 	; % TODO: implement configuration for individual bundles
-	  format(user_error, "ERROR: Cannot promote bundle '~w'.~n", [Target]),
-	  halt(1)
+	  throw(error_msg("Cannot promote bundle '~w'.", [Target]))
 	),
 	%
 	check_bundle_has_config(boot_promote, Bundle),
@@ -495,10 +491,11 @@ ask_promote_bootstrap(Eng) :-
 :- use_module(library(system), [file_exists/1]).
 
 check_bundle_has_config(Cmd, Bundle) :-
-	( check_bundle_has_config_(Cmd, Bundle) ->
-	    true
-	; format(user_error, "ERROR: Cannot do '~w' on bundle '~w' without a configuration. Please run 'configure' before.~n", [Cmd, Bundle]),
-	  halt(1)
+	( \+ '$bundle_id'(Bundle) ->
+	    throw(error_msg("Unknown bundle '~w' (try 'rescan-bundles').", [Bundle]))
+	; \+ check_bundle_has_config_(Cmd, Bundle) ->
+	    throw(error_msg("Cannot do '~w' on bundle '~w' without a configuration. Please run 'configure' before.", [Cmd, Bundle]))
+	; true
 	).
 
 % NOTE: bundle_path/3 will fail if bundles are not scanned
@@ -1060,29 +1057,32 @@ rootprefix_bundlecfg_file(InsType, BundleName, RegFile) :-
 build_docs_readmes(Bundle) :- with_docs(yes), !,
 	( % (failure-driven loop)
 	  builder_pred(Bundle, readme_path(Readme)),
-	    ( Readme = as(SrcPath, OutName) ->
-	        true
-	    ; SrcPath = Readme,
-	      OutName = Name
-	    ),
-	    path_split(SrcPath, _, Name),
-	    BundleDir = ~bundle_path(Bundle, '.'),
-	    path_concat(BundleDir, SrcPath, SrcPath1),
-	    atom_concat(SrcPath1, '.lpdoc', SrcPath2),
-	    DocDir = ~bundle_path(Bundle, builddir, 'doc'),
-	    invoke_lpdoc(['--autogen_warning=yes',
-	                  '--allow_markdown=no',
-	                  '--syntax_highlight=no',
-	                  ~atom_concat('--output_dir=', DocDir),
-			  '-t', 'ascii',
-	                  SrcPath2]),
-	    Ascii = ~atom_concat(Name, '.ascii'),
-	    DocSrc = ~path_concat(DocDir, Ascii),
-	    copy_file_or_dir(DocSrc, OutName),
+	    build_docs_readme(Bundle, Readme),
 	    fail
 	; true
 	).
 build_docs_readmes(_Bundle).
+
+build_docs_readme(Bundle, Readme) :-
+	( Readme = as(SrcPath, OutName) ->
+	    true
+	; SrcPath = Readme,
+	  OutName = Name
+	),
+	path_split(SrcPath, _, Name),
+	BundleDir = ~bundle_path(Bundle, '.'),
+	path_concat(BundleDir, SrcPath, SrcPath1),
+	atom_concat(SrcPath1, '.lpdoc', SrcPath2),
+	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
+	invoke_lpdoc(['--autogen_warning=yes',
+	              '--allow_markdown=no',
+	              '--syntax_highlight=no',
+	              ~atom_concat('--output_dir=', DocDir),
+		      '-t', 'ascii',
+	              SrcPath2]),
+	Ascii = ~atom_concat(Name, '.ascii'),
+	DocSrc = ~path_concat(DocDir, Ascii),
+	copy_file_or_dir(DocSrc, OutName).
 
 :- export(get_bundle_readme/2).
 % TODO: duplicated in lpdoc_aux

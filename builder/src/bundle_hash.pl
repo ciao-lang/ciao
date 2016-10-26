@@ -17,7 +17,6 @@
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(system_extra), [file_to_line/2]).
 :- use_module(library(terms), [atom_concat/2]).
-:- use_module(library(messages)).
 
 :- use_module(engine(internals), ['$bundle_prop'/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
@@ -130,8 +129,7 @@ svn_commit_info(id, Bundle, Id) :-
 	% Note: svnversion is computed only over Manifest/ directory (to make it faster)
 	Path = ~bundle_path(Bundle, 'Manifest'),
 	( Id = ~svn_get_revision(Path) -> true
-	; show_message(warning, "Cannot get revision number (svn_get_revision/2 failed)."),
-	  fail
+	; throw(error_msg("Cannot get revision number (svn_get_revision/2 failed).", []))
 	),
 	Id \== 'exported',
 	!.

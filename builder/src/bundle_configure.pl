@@ -541,16 +541,13 @@ decomp_flag(BundleNameVal, ThisBundle, Bundle:Name, Value) :- !,
 	),
 	NameVal =.. [Name, Value].
 
-% TODO: do proper type checking, do not halt/1
+% TODO: do proper type checking
 check_bundle_param_domain(Flag, Value, ValidValues) :-
 	( var(ValidValues) ->
 	    true
 	; ground(Value), member(Value, ValidValues) ->
 	    true
-	; display_list(
-              ['Error: invalid value \'', Value, '\' for ',
-	       Flag, '. Valid values are: ', ValidValues]),
-	  halt(1)
+	; throw(error_msg("invalid value \'~w\' for ~w. Valid values are: ~w", [Value, Flag, ValidValues]))
 	).
 
 show_bundle_flag(Flag, Value) :-

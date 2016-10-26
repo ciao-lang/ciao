@@ -61,7 +61,6 @@ pbundle_meta_has_name(PMeta, Name) :- atom(Name), !,
 % ---------------------------------------------------------------------------
 
 :- use_module(library(sort)).
-:- use_module(library(format)).
 :- use_module(library(datetime)).
 
 % Sort a list of PMeta by its timestamp (decreasing)

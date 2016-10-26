@@ -8,7 +8,6 @@
 
 :- use_module(library(format), [format/3]).
 :- use_module(library(lists), [append/3]).
-:- use_module(library(messages)).
 
 :- use_module(ciaobld(config_common), [verbose_build/1]).
 

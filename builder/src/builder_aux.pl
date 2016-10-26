@@ -11,6 +11,7 @@
 :- use_module(ciaobld(messages_aux), [cmd_message/3]).
 :- use_module(ciaobld(messages_aux), [verbose_message/2]).
 :- use_module(ciaobld(config_common), [cmd_path/4]).
+:- use_module(library(messages), [warning_message/2]).
 
 % ===========================================================================
 
@@ -33,29 +34,26 @@ root_bundle_source_dir(Dir) :-
 
 :- export(bundle_at_dir/2).
 % Lookup the root or registered bundle at Dir or any of the parent directories
-bundle_at_dir(Dir, Id) :-
+bundle_at_dir(Dir, Bundle) :-
 	( lookup_bundle_root(Dir, BundleDir) ->
 	    true
-	; format(user_error, "ERROR: Not a bundle (or any of the parent directories).~n", []),
-	  halt(1)
+	; throw(error_msg("Not a bundle (or any of the parent directories).", []))
 	),
-	( dir_to_bundle(BundleDir, Target) ->
-	    Id = Target
-	; format(user_error, "ERROR: Bundle at ~w is not registered~n", [BundleDir]),
-	  halt(1)
-	),
-	Id = Target.
+	( dir_to_bundle(BundleDir, Bundle0) ->
+	    Bundle = Bundle0
+	; throw(error_msg("Bundle at ~w is not registered.", [BundleDir]))
+	).
 
-dir_to_bundle(BundleDir, Id) :-
+dir_to_bundle(BundleDir, Bundle) :-
 	root_bundle_source_dir(BundleDir),
 	!,
-	root_bundle(Id).
-dir_to_bundle(BundleDir, Id) :-
-	'$bundle_id'(Target),
-	Dir = ~bundle_path(Target, '.'),
+	root_bundle(Bundle).
+dir_to_bundle(BundleDir, Bundle) :-
+	'$bundle_id'(Bundle0),
+	Dir = ~bundle_path(Bundle0, '.'),
 	Dir == BundleDir,
 	!,
-	Id = Target.
+	Bundle = Bundle0.
 
 % ---------------------------------------------------------------------------
 
@@ -66,8 +64,7 @@ dir_to_bundle(BundleDir, Id) :-
 ciao_path_at_dir(Dir, Path) :-
 	( lookup_ciao_path(Dir, Path0) ->
 	    Path = Path0
-	; format(user_error, "ERROR: Directory (or any of the parent directories) not in CIAOPATH.~n", []),
-	  halt(1)
+	; throw(error_msg("Directory (or any of the parent directories) not in CIAOPATH.", []))
 	).
 
 % Detect the workspace from ciao_path/1 (or ciao root) for the given
@@ -159,7 +156,6 @@ builddir_bin_link_as(Bundle, Kind, Src, Dest) :-
 :- use_module(library(system), [delete_directory/1]).
 :- use_module(library(source_tree), [copy_file_tree/4]).
 :- use_module(library(glob), [glob/3]).
-:- use_module(library(messages), [show_message/3]).
 
 :- use_module(ciaobld(config_common), [
 	bld_cmd_path/4,
@@ -190,8 +186,7 @@ storedir_install(dir(Dir0)) :-
 	Dir = ~rootprefixed(Dir0),
 	( mkpath(Dir, ~perms) -> % TODO: owner?
 	    true
-	; show_message(error, "Could not create ~w", [Dir]),
-	  fail
+	; throw(error_msg("Could not create ~w", [Dir]))
 	).
 % (copy all)
 storedir_install(dir_rec(FromDir, ToDir)) :-
@@ -341,7 +336,7 @@ safe_remove_dir_nofail(Dir) :-
 	    % Inside storedir
 	    remove_dir_nofail(~rootprefixed(Dir))
 	; % TODO: use a install_manifest.txt file (common practice)
-          show_message(warning, "Refusing to remove directories recursively outside the Ciao installation base: ~w", [Dir])
+          warning_message("Refusing to remove directories recursively outside the Ciao installation base: ~w", [Dir])
 	).
 
 :- use_module(ciaobld(eng_defs), [active_bld_eng_path/3]).
