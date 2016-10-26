@@ -306,7 +306,7 @@ build(Lib) :-
 	message_start(Lib, Operation),
 	get_build_system(Lib, BuildSystem),
 	( BuildSystem = gnu_build_system ->
-	  make(Lib, [all])
+	    make(Lib, [all])
 	; BuildSystem = custom ->
 	    get_env(Env),
 	    m_third_party_custom_build(Lib, Env)
@@ -431,8 +431,8 @@ get_build_system(Lib, BuildSystem) :-
 
 :- doc(section, "Utils").
 
-:- doc(bug, "We use our own recursive rm, because te one available in
-the system poluate the atom tables").
+:- doc(bug, "We use our system recursive, because the one available in
+   the system pollutes the atom table.").
 
 rec_delete_file_nofail(FILE) :-
 	process_call(path(rm), ['-Rf', FILE], [status(0)]).

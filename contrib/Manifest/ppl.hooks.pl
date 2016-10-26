@@ -5,6 +5,12 @@
 
 :- use_module(library(file_utils), [string_to_file/2]).
 :- use_module(library(pathnames), [path_relocate/4]).
+:- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
+:- use_module(ciaobld(third_party_config), [
+    foreign_config_var/3,
+    foreign_config_version/2
+]).
 
 % TODO: Look at PPL-related code in ciaopp/Manifest/ciaopp.hooks.pl
 % TODO: Clean code is missing here

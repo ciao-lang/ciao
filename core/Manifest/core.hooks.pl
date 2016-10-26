@@ -7,18 +7,7 @@
 % ===========================================================================
 
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
-
-% ============================================================================
-
-:- use_module(ciaobld(bundle_configure), [
-    foreign_config_var/3,
-    foreign_config_version/2
-]).
-
-% ===========================================================================
-
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
-
 :- use_module(ciaobld(builder_aux), [
         builddir_bin_copy_as/4,
         builddir_bin_link_as/4
@@ -220,7 +209,7 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
     set_prolog_flags_from_bundle_flags/1
 ]).
 
-% TODO: set prolog flags from bundle flags dynamically (otherwise we need to rebuild everytime flags are changed)
+% TODO: store these flags during prebuild in a separate file, load them without need to rebuild the commands?
 ciao_extra_commands(ExtraCommands) :-
 	sformat(ExtraCommands, "-e '~w'",
 	    [~list_to_lits(~set_prolog_flags_from_bundle_flags)]).

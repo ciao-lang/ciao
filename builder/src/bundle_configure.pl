@@ -29,6 +29,7 @@ DOCUMENT SYNTAX AND SEMANTICS OF CONFIGURATION RULES
 :- use_module(library(bundle/bundle_flags), [
 	clean_bundle_flags/0,
 	current_bundle_flag/2,
+	get_bundle_flag/2,
 	set_bundle_flag/2,
 	save_bundle_flags/0]).
 
@@ -594,56 +595,6 @@ repeated_display(Term, Times) :-
 	Times2 is Times - 1,
 	display(Term),
 	repeated_display(Term, Times2).
-
-% ============================================================================
-
-% TODO: Does it belong to this module?
-
-:- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
-:- use_module(ciaobld(third_party_install), [third_party_path/2]).
-
-:- use_module(library(pathnames), [path_concat/3]).
-:- use_module(library(system), [file_exists/1, find_executable/2]).
-
-% (Support for GNU pkg-config based libraries)
-
-:- export(foreign_config_var/3).
-% The configuration for foreign library @var{Foreign} has value
-% @var{Value} in variable @var{Var}.
-foreign_config_var(Foreign, Var, Value) :-
-	foreign_config_tool_path(_, Foreign, CfgToolPath),
-	process_call(CfgToolPath, [~atom_concat('--', Var)],
-	       [stdout(line(Value)), status(0)]).
-
-% TODO: cache path
-foreign_config_tool_path(Bundle, Foreign, CfgToolPath) :-
-	m_bundle_foreign_config_tool(Bundle, Foreign, CfgTool),
-	( % TODO: hack! make it nicer by unifying names of third_party,
-	  % foreign libraries, and AUTO_INSTALL_* params (make it a functor)
-	  atom_concat('auto_install_', Foreign, AutoInstallOpt),
-	  % (do not throw exception if does not exists)
-	  current_bundle_flag(Bundle:AutoInstallOpt, 'yes') ->
-	    % Look in third-party bin
-	    third_party_path(bindir, ThirdPartyBinDir),
-	    path_concat(ThirdPartyBinDir, CfgTool, CfgToolPath),
-	    file_exists(CfgToolPath)
-	; find_executable(CfgTool, CfgToolPath)
-	).
-
-:- export(foreign_config_version/2).
-foreign_config_version(Foreign, Version) :-
-	foreign_config_var(Foreign, 'version', Str),
-	foreign_config_parse_version(Str, Version).
-
-% from "Major.Minor" string to [Major,Minor]
-foreign_config_parse_version(Str, L) :-
-	( append(StrH, "." || StrT, Str) ->
-	    L = [H|T],
-	    number_codes(H, StrH),
-	    foreign_config_parse_version(StrT, T)
-	; L = [H],
-	  number_codes(H, Str)
-	).
 
 % ---------------------------------------------------------------------------
 % Set of set_prolog_flags from bundle config values (non-default values)

@@ -6,6 +6,9 @@
 :- use_module(library(file_utils), [string_to_file/2]).
 :- use_module(library(pathnames), [path_relocate/4, path_concat/3]).
 :- use_module(library(system_extra), [mkpath/1]).
+:- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
+:- use_module(ciaobld(third_party_config), [foreign_config_var/3]).
 
 % Specification of GSL (third-party component)
 :- def_third_party(gsl, [
