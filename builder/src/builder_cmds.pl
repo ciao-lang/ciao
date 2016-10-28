@@ -145,6 +145,7 @@ builder_cmd_(configure, Target, Opts) :- !,
 	).
 %
 builder_cmd_(scan_and_config, Target, Opts) :- !,
+	check_builder_update,
 	% Note: scanning bundles must be done before configuration
 	% Note: bundle_path/? cannot be used until bundles are scanned
 	( root_bundle(Target) ->
@@ -411,6 +412,7 @@ builder_pred(Target, Head) :-
 	[get_bundle_flag/2,
 	 restore_all_bundle_flags/0]).
 :- use_module(ciaobld(bundle_configure), [config_noscan/0]).
+:- use_module(ciaobld(bundle_configure), [check_builder_update/0]).
 
 :- use_module(ciaobld(builder_meta), [ensure_load_bundle_metasrc/2]).
 

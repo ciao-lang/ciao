@@ -117,6 +117,44 @@ configlevel('3', extended).
 
 % ---------------------------------------------------------------------------
 
+:- use_module(library(version_strings), [version_compare/3]).
+:- use_module(library(system_extra), [file_to_line/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
+
+:- export(check_builder_update/0).
+:- pred check_builder_update # "Detect if the running builder needs an
+   update.".
+
+check_builder_update :-
+	running_builder_vers(RunVers),
+	( builder_minvers(MinVers),
+	  version_compare(<, RunVers, MinVers) ->
+	    builder_need_update(RunVers, MinVers)
+	; true
+	).
+
+% The version of the running builder
+running_builder_vers(V) :-
+	'$bundle_prop'(builder, version(Vers)),
+	'$bundle_prop'(builder, patch(Patch)),
+	V = ~atom_concat(~atom_concat(Vers, '.'), Patch).
+
+% The minimum compatible builder version (specified in a single file
+% easier to read than Manifests).
+builder_minvers(MinVers) :-
+	F = ~bundle_path(builder, 'Manifest/MinBuilderVersion'),
+	catch(file_to_line(F, Str), _, fail),
+	atom_codes(MinVers, Str).
+
+builder_need_update(RunVers, MinVers) :-
+	throw(error_msg(
+            "The running builder (~w) is not compatible with the current sources.~n"||
+            "  Please upgrade your installation (builder>=~w is required).~n"||
+	    "  Use 'realclean' (or 'emergency-clean' in case of problems)~n"||
+            "  then rebuild the system (including configuration steps).", [RunVers, MinVers])).
+
+% ---------------------------------------------------------------------------
+
 % The full configuration is stored in bundlereg/ under the build
 % directory, in different formats for different tools:
 %
