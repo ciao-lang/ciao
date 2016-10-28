@@ -702,7 +702,12 @@ bundlehook_call_(uninstall_docs, Bundle, '') :- !, % (no hooks)
 	bundle_uninstall_docs(Bundle).
 %
 % pbundle generation
-bundlehook_call_(gen_pbundle(Kind), Bundle, '') :- !,
+bundlehook_call_(gen_pbundle, Bundle, '') :- !,
+	% TODO: 'src' and 'bin' Kind have WRONG names ('nothing' implies tgz and tbz)
+	( bundle_param_value(ciao:kind, Kind) ->
+	    true
+	; throw(bug_in_gen_pbundle)
+	),
 	gen_pbundle_hook(Kind, Bundle, []).
 %
 % TODO: Used from ciaobot

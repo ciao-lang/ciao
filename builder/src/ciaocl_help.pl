@@ -373,31 +373,11 @@ cmd_usage(runbenchmarks, "[<bundle>]", [
 
 grp_def(packaging, "Packaging for distribution") :- advanced.
 %
-cmd_grp(gen_pbundle__TYPE, packaging). % TODO: trick, does not exist
-cmd_grp(gen_pbundle__win32, packaging).
-cmd_grp(gen_pbundle__rpm, packaging).
-cmd_grp(gen_pbundle__src, packaging).
-cmd_grp(gen_pbundle__tgz, packaging).
-cmd_grp(gen_pbundle__tbz, packaging).
-cmd_grp(gen_pbundle__bin, packaging).
-cmd_grp(gen_pbundle__bin_tgz, packaging).
-cmd_grp(gen_pbundle__bin_tbz, packaging).
-cmd_grp(gen_pbundle__noa, packaging).
-cmd_grp(gen_pbundle__noa_tgz, packaging).
-cmd_grp(gen_pbundle__noa_tbz, packaging).
-cmd_grp(gen_pbundle__pkg, packaging).
-cmd_grp(gen_pbundle__macport, packaging).
-cmd_grp(gen_pbundle__app, packaging).
-cmd_usage(gen_pbundle__TYPE, "", [
+cmd_grp(gen_pbundle, packaging). % TODO: trick, does not exist
+cmd_usage(gen_pbundle, "[--kind=Kind]", [
     %1_______________________________________________
-    "Generates a distribution of the specified TYPE",
+    "Generates a distribution of the specified Kind",
     "(see gen_pbundle_hook/3)"
-]).
-%
-cmd_grp(gen_pbundle__descfile, packaging).
-cmd_usage(gen_pbundle__descfile, "", [
-    %1_______________________________________________
-    "Generate the pbundle_meta file"
 ]).
 %
 cmd_grp(gen_bundle_commit_info, packaging).

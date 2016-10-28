@@ -106,7 +106,7 @@ By default, a source @apl{Ciao} distribution for your local repository
 will be packaged. Building is requested with the following command:
 
 @begin{itemize}
-@item @tt{./ciao-boot.sh gen_pbundle__rpm [--option=value...]}
+@item @tt{./ciao-boot.sh gen_pbundle --kind=rpm [--option=value...]}
 @end{itemize}
 
 @subsection{Options summary (rpm)}
@@ -316,7 +316,7 @@ gen_pbundle_hook(rpm, Bundle, _Options) :- !,
 % % The following command is available for testing purposes:
 % % 
 % % @begin{verbatim}
-% % ./ciao-boot.sh gen_pbundle__rpm_spec
+% % ./ciao-boot.sh gen_pbundle --kind=rpm_spec
 % % @end{verbatim}
 % % 
 % % This produces the @concept{RPM specification} for your current

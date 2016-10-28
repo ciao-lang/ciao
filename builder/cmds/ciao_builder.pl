@@ -210,12 +210,9 @@ parse_args(CmdArgs, Cmd, Target, Opts) :-
               E, handle_builder_error(E)).
 
 % Parse command, arguments, targets, and options
-parse_args_([Cmd00|Args], Cmd2, Opts, Target) :- !,
+parse_args_([Cmd0|Args], Cmd2, Opts, Target) :- !,
 	% Normalize command
-	norm_cmd(Cmd00, Cmd0),
-	( cmd_alias(Cmd0, Cmd1) -> Cmd = Cmd1
-	; Cmd = Cmd0
-	),
+	norm_cmd(Cmd0, Cmd),
 	% Parse
 	parse_cmd(Cmd, Args, Cmd2, Opts, Target).
 parse_args_([], _Cmd, _Opts, _Target) :-
@@ -224,7 +221,7 @@ parse_args_([], _Cmd, _Opts, _Target) :-
 parse_cmd(Cmd, Args, Cmd2, Opts, Target) :-
 	check_cmd(Cmd),
 	cmd_opts(Cmd, TargetParse, OptsParse),
-	parse_opts(Args, Opts, Args1),
+	parse_opts(Args, Cmd, Opts, Args1),
 	% Select default target if none
 	( TargetParse = arg_bundle ->
 	    ( Args1 = [] -> bundle_at_dir('.', Target), Args2 = []
@@ -266,46 +263,50 @@ parse_cmd(Cmd, Args, Cmd2, Opts, Target) :-
 	; fail
 	).
 
-parse_opts(['--interactive'|Args], Opts, RestArgs) :- % TODO: special arg parser?
+parse_opts(['--interactive'|Args], Cmd, Opts, RestArgs) :- % TODO: special arg parser?
 	!,
 	Opts = [flag(ciao:interactive_config, true)|Opts0],
-	parse_opts(Args, Opts0, RestArgs).
-parse_opts(['--list-flags'|Args], Opts, RestArgs) :- % TODO: special arg parser?
+	parse_opts(Args, Cmd, Opts0, RestArgs).
+parse_opts(['--list-flags'|Args], Cmd, Opts, RestArgs) :- % TODO: special arg parser?
+	Cmd = configure,
 	!,
 	Opts = [flag(ciao:list_flags, true)|Opts0],
-	parse_opts(Args, Opts0, RestArgs).
-parse_opts(['--describe-flag', Param|Args], Opts, RestArgs) :- % TODO: special arg parser?
+	parse_opts(Args, Cmd, Opts0, RestArgs).
+parse_opts(['--describe-flag', Param|Args], Cmd, Opts, RestArgs) :- % TODO: special arg parser?
+	Cmd = configure,
 	!,
 	parse_flag(Param, Flag),
 	Flag = Bundle:_Name,
 	RestArgs = [Bundle|RestArgs0],
 	Opts = [flag(ciao:describe_flag, Flag)|Opts0],
-	parse_opts(Args, Opts0, RestArgs0).
-parse_opts(['--set-flag', Assign|Args], Opts, RestArgs) :- % TODO: special arg parser?
+	parse_opts(Args, Cmd, Opts0, RestArgs0).
+parse_opts(['--set-flag', Assign|Args], Cmd, Opts, RestArgs) :- % TODO: special arg parser?
+	Cmd = configure,
 	!,
 	parse_flag_assign_atm(Assign, Flag, Value),
 	Flag = Bundle:_Name,
 	RestArgs = [Bundle|RestArgs0],
 	Opts = [flag(ciao:set_flag_flag, Flag),
 	        flag(ciao:set_flag_value, Value)|Opts0],
-	parse_opts(Args, Opts0, RestArgs0).
-parse_opts(['--get-flag', Param|Args], Opts, RestArgs) :- % TODO: special arg parser?
+	parse_opts(Args, Cmd, Opts0, RestArgs0).
+parse_opts(['--get-flag', Param|Args], configure, Opts, RestArgs) :- % TODO: special arg parser?
+	Cmd = configure,
 	!,
 	parse_flag(Param, Flag),
 	Flag = Bundle:_Name,
 	RestArgs = [Bundle|RestArgs0],
 	Opts = [flag(ciao:get_flag_flag, Flag)|Opts0],
-	parse_opts(Args, Opts0, RestArgs0).
-parse_opts([Assign0|Args], Opts, RestArgs) :-
+	parse_opts(Args, Cmd, Opts0, RestArgs0).
+parse_opts([Assign0|Args], Cmd, Opts, RestArgs) :-
 	atom_concat('--', Assign, Assign0),
 	parse_flag_assign_atm(Assign, Flag, Value),
 	!,
 	Opts = [flag(Flag, Value)|Opts0],
-	parse_opts(Args, Opts0, RestArgs).
-parse_opts([Arg|Args], Opts, RestArgs) :- !,
+	parse_opts(Args, Cmd, Opts0, RestArgs).
+parse_opts([Arg|Args], Cmd, Opts, RestArgs) :- !,
 	RestArgs = [Arg|RestArgs0],
-	parse_opts(Args, Opts, RestArgs0).
-parse_opts([], [], []).
+	parse_opts(Args, Cmd, Opts, RestArgs0).
+parse_opts([], _, [], []).
 
 % Replace 0'- by 0'_ in names of commands
 norm_cmd(X0, X) :-
@@ -369,6 +370,7 @@ cmd_opts(uninstall,              arg_bundle, raw_opts) :- !.
 %
 cmd_opts(custom_run,             arg_bundle, raw_opts) :- !. % TODO: use def_bundle?
 cmd_opts(gen_bundle_commit_info, arg_bundle, raw_opts) :- !.
+cmd_opts(gen_pbundle,            arg_bundle, raw_opts) :- !.
 %
 cmd_opts(clean_tree,             no_bundle, raw_opts) :- !.
 %
@@ -390,6 +392,7 @@ raw_opt(config_set_flag, ciao:set_flag_value).
 raw_opt(config_get_flag, ciao:get_flag_flag).
 %   --git-repo-dir=Dir: location of the Git repository (if not using default)
 raw_opt(gen_bundle_commit_info, ciao:git_repo_dir).
+raw_opt(gen_pbundle, ciao:kind).
 
 cmd_opts_custom(rescan_bundles, Args2, Cmd2) :- !,
 	% do not check flags % TODO: pass them as arguments instead?
@@ -425,23 +428,6 @@ cmd_opts_custom(custom_run, Args2, Cmd2) :- !,
 	; throw(error_msg("'custom_run' needs a target and a custom command name and arguments", []))
 	),
 	Cmd2 = custom_run(CustomCmd, CustomArgs).
-
-% TODO: src and bin targets have WRONG names ('nothing' implies tgz and tbz)
-cmd_alias(gen_pbundle__win32, gen_pbundle(win32)).
-cmd_alias(gen_pbundle__descfile, gen_pbundle(descfile)).
-cmd_alias(gen_pbundle__rpm, gen_pbundle(rpm)).
-cmd_alias(gen_pbundle__src, gen_pbundle(src)).
-cmd_alias(gen_pbundle__tgz, gen_pbundle(tgz)).
-cmd_alias(gen_pbundle__tbz, gen_pbundle(tbz)).
-cmd_alias(gen_pbundle__bin, gen_pbundle(bin)).
-cmd_alias(gen_pbundle__bin_tgz, gen_pbundle(bin_tgz)).
-cmd_alias(gen_pbundle__bin_tbz, gen_pbundle(bin_tbz)).
-cmd_alias(gen_pbundle__noa, gen_pbundle(noa)).
-cmd_alias(gen_pbundle__noa_tgz, gen_pbundle(noa_tgz)).
-cmd_alias(gen_pbundle__noa_tbz, gen_pbundle(noa_tbz)).
-cmd_alias(gen_pbundle__pkg, gen_pbundle(pkg)).
-cmd_alias(gen_pbundle__macport, gen_pbundle(macport)).
-cmd_alias(gen_pbundle__app, gen_pbundle(app)).
 
 is_builder_cmd(help).
 is_builder_cmd(help_all).
@@ -485,7 +471,7 @@ is_builder_cmd(get). % (download and install bundles)
 is_builder_cmd(rm). % (remove downloaded bundles)
 %
 is_builder_cmd(gen_bundle_commit_info). % ciao
-is_builder_cmd(gen_pbundle(_)).
+is_builder_cmd(gen_pbundle).
 %
 % temporary subtargets
 is_builder_cmd(config_list_flags). % core (wrapped, for 'configure' with some flags)

@@ -90,23 +90,24 @@ process should complain if anything is missing.
 @subsection{Instructions (mac)}
 
 @begin{itemize}
-@item @tt{./ciao-boot.sh gen_pbundle__macport}
-@item @tt{./ciao-boot.sh gen_pbundle__pkg}
+@item @tt{./ciao-boot.sh gen_pbundle --kind=macport}
+@item @tt{./ciao-boot.sh gen_pbundle --kind=pkg}
 @end{itemize}
 
-@apl{./ciao-boot.sh gen_pbundle__macport} produces a MacPorts @tt{Portfile}
-which depends on a source @tt{tgz} distribution. If the tarball is
-available in the package directory the command will automatically
-produce it.  Notice that because the portfile includes a checksum of
-the tarball source distribution it is dependent on this archive. Since
-macports are used online the tarball used to produce the portfile
-should be the same as the one available online on the Ciao website.
+@apl{./ciao-boot.sh gen_pbundle --kind=macport} produces a MacPorts
+@tt{Portfile} which depends on a source @tt{tgz} distribution. If the
+tarball is available in the package directory the command will
+automatically produce it.  Notice that because the portfile includes a
+checksum of the tarball source distribution it is dependent on this
+archive. Since macports are used online the tarball used to produce
+the portfile should be the same as the one available online on the
+Ciao website.
 
 
-@apl{./ciao-boot.sh gen_pbundle__pkg} produces a @tt{pkg} (i.e., a standard
-\"Managed Install\" MacOs Package) wrapped into a dmg image disk. This
-command assumes that binaries and documentation have been locally built
-using correct configure options.
+@apl{./ciao-boot.sh gen_pbundle --kind=pkg} produces a @tt{pkg} (i.e.,
+a standard \"Managed Install\" MacOs Package) wrapped into a dmg image
+disk. This command assumes that binaries and documentation have been
+locally built using correct configure options.
 
  
 @section{Packager's maintenance guide (mac)}
