@@ -140,6 +140,9 @@ builder_cmd_(configure, Target, Opts) :- !,
 	; member(flag(ciao:set_flag_flag, _Opt), Opts) ->
 	    set_params(Opts), % TODO: needed, pass arg instead
 	    builder_cmd(config_set_flag, Target, Opts)
+	; member(flag(ciao:get_flag_flag, _Opt), Opts) ->
+	    set_params(Opts), % TODO: needed, pass arg instead
+	    builder_cmd(config_get_flag, Target, Opts)
 	; builder_cmd(scan_and_config, Target, Opts),
 	  post_config_message(Target)
 	).
@@ -555,7 +558,8 @@ default_pred(Head, Bundle, Part) :-
 :- use_module(ciaobld(bundle_configure),
 	[config_list_flags/1,
 	 config_describe_flag/1,
-	 config_set_flag/1]).
+	 config_set_flag/2,
+	 config_get_flag/1]).
 %
 :- use_module(ciaobld(bundle_hash), [gen_bundle_commit_info/1]).
 %
@@ -583,13 +587,29 @@ bundlehook_call(Bundle, Part, Cmd) :-
 
 bundlehook_call_(config_list_flags, Bundle, '') :- !,
 	config_list_flags(Bundle).
-bundlehook_call_(config_describe_flag, Bundle, '') :- !,
+bundlehook_call_(config_describe_flag, _Bundle, '') :- !,
 	% (the flag is the value of ciao:describe_flag)
-	config_describe_flag(Bundle).
-bundlehook_call_(config_set_flag, Bundle, '') :- !,
+	( bundle_param_value(ciao:describe_flag, Flag) ->
+	    true
+	; throw(bug_in_config_describe_flag)
+	),
+	config_describe_flag(Flag).
+bundlehook_call_(config_set_flag, _Bundle, '') :- !,
 	% (the flag is the value of ciao:set_flag_flag)
 	% (the value is the value of ciao:set_flag_value)
-	config_set_flag(Bundle).
+	( bundle_param_value(ciao:set_flag_flag, Flag),
+	  bundle_param_value(ciao:set_flag_value, Value) ->
+	    true
+	; throw(bug_in_config_set_flag)
+	),
+	config_set_flag(Flag, Value).
+bundlehook_call_(config_get_flag, _Bundle, '') :- !,
+	% (the flag is the value of ciao:get_flag_flag)
+	( bundle_param_value(ciao:get_flag_flag, Flag) ->
+	    true
+	; throw(bug_in_config_get_flag)
+	),
+	config_get_flag(Flag).
 %
 bundlehook_call_(build_docs_readmes, Bundle, '') :- !,
 	( with_docs(yes) ->

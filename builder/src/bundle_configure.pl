@@ -320,20 +320,22 @@ eval_op((\=), (<)).
 %   inconsistencies. On the other hand, --set-flag may be useful for a
 %   '--force' command at least for debugging.
 
-:- export(config_set_flag/1).
-config_set_flag(_Bundle) :-
-	% (flags loaded)
-	( bundle_param_value(ciao:set_flag_flag, Flag),
-	  bundle_param_value(ciao:set_flag_value, Value) ->
-	    true
-	; throw(bug_in_config_set_flag)
-	),
+:- export(config_set_flag/2).
+config_set_flag(Flag, Value) :-
 	set_bundle_flag(Flag, Value),
 	%
 	% TODO: save only the required _Bundle
 	save_bundle_flags, % (save 'ciao.bundlecfg')
 	% (for future calls to eng_config_sysdep/2)
 	export_bundle_flags_as_sh(~bundle_flags_sh_file).
+
+% ---------------------------------------------------------------------------
+% Get value of a configuration flag
+
+:- export(config_get_flag/1).
+config_get_flag(Flag) :-
+	% (flags loaded)
+	display(~get_bundle_flag(Flag)), nl.
 
 % ---------------------------------------------------------------------------
 % Display the configuration options (for the command-line interface)
@@ -365,11 +367,7 @@ show_flag_and_domain(Flag) :-
 	display_list(['  ', '--', Bundle, ':', Name, '=', ValidValues, '\n']).
 
 :- export(config_describe_flag/1).
-config_describe_flag(Bundle) :-
-	( bundle_param_value(ciao:describe_flag, Flag) ->
-	    true
-	; throw(bug_in_config_describe_flag)
-	),
+config_describe_flag(Flag) :-
 	Flag = Bundle:Name,
 	( m_bundle_config_entry(Bundle, Name, _),
 	  \+ flag_def(Flag, hidden) ->

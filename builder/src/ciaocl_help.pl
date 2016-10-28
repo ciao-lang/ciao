@@ -163,6 +163,7 @@ cmd_details(configure, Text) :-
 	  "  --list-flags            List the bundle configuration flags",
 	  "  --describe-flag <flag>  Describe the configuration flag",
 	  % TODO: Use this one with care (it does not use rules)
+	  "  --get-flag <flag>       Show value of the configuration flag",
 	  "  --set-flag <flag>=<value> Force flag value (dangerous!)"|Text0],
         ( help_mode(_, boot) ->
             Text0 = [

@@ -289,6 +289,13 @@ parse_opts(['--set-flag', Assign|Args], Opts, RestArgs) :- % TODO: special arg p
 	Opts = [flag(ciao:set_flag_flag, Flag),
 	        flag(ciao:set_flag_value, Value)|Opts0],
 	parse_opts(Args, Opts0, RestArgs0).
+parse_opts(['--get-flag', Param|Args], Opts, RestArgs) :- % TODO: special arg parser?
+	!,
+	parse_flag(Param, Flag),
+	Flag = Bundle:_Name,
+	RestArgs = [Bundle|RestArgs0],
+	Opts = [flag(ciao:get_flag_flag, Flag)|Opts0],
+	parse_opts(Args, Opts0, RestArgs0).
 parse_opts([Assign0|Args], Opts, RestArgs) :-
 	atom_concat('--', Assign, Assign0),
 	parse_flag_assign_atm(Assign, Flag, Value),
@@ -355,6 +362,7 @@ cmd_opts(config_noscan,          arg_bundle, config_opts) :- !.
 cmd_opts(config_list_flags,      arg_bundle, raw_opts) :- !.
 cmd_opts(config_describe_flag,   arg_bundle, raw_opts) :- !.
 cmd_opts(config_set_flag,        arg_bundle, raw_opts) :- !.
+cmd_opts(config_get_flag,        arg_bundle, raw_opts) :- !.
 %
 cmd_opts(install,                arg_bundle, raw_opts) :- !.
 cmd_opts(uninstall,              arg_bundle, raw_opts) :- !.
@@ -379,6 +387,7 @@ raw_opt(config_list_flags, ciao:list_flags).
 raw_opt(config_describe_flag, ciao:describe_flag).
 raw_opt(config_set_flag, ciao:set_flag_flag).
 raw_opt(config_set_flag, ciao:set_flag_value).
+raw_opt(config_get_flag, ciao:get_flag_flag).
 %   --git-repo-dir=Dir: location of the Git repository (if not using default)
 raw_opt(gen_bundle_commit_info, ciao:git_repo_dir).
 
@@ -482,6 +491,7 @@ is_builder_cmd(gen_pbundle(_)).
 is_builder_cmd(config_list_flags). % core (wrapped, for 'configure' with some flags)
 is_builder_cmd(config_describe_flag). % core (wrapped, for 'configure' with some flags)
 is_builder_cmd(config_set_flag). % core (wrapped, for 'configure' with some flags)
+is_builder_cmd(config_get_flag). % core (wrapped, for 'configure' with some flags)
 %
 % TODO: (custom hooks)
 is_builder_cmd(custom_run).
