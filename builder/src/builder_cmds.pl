@@ -10,9 +10,6 @@
 :- use_module(library(bundle/bundle_params),
 	[set_bundle_param_value/2,
 	 bundle_param_value/2]).
-:- use_module(library(bundle/bundle_flags),
-	[reset_all_bundle_flags/0, bundle_flags_file/2,
-	 bundlecfg_filename/3]).
 %
 :- use_module(library(bundle/bundle_paths),
 	[bundle_path/3, bundle_path/4, bundle_metasrc/3]).
@@ -33,7 +30,6 @@
         storedir_uninstall/1,
 	eng_active_bld/1
 	]).
-:- use_module(ciaobld(bundle_scan), [bundle_scan/2]).
 :- use_module(ciaobld(bundle_get), [bundle_fetch/2, bundle_rm/1]).
 :- use_module(ciaobld(ciaoc_aux),
 	[promote_bootstrap/1,
@@ -123,14 +119,23 @@ builder_cmd_(local_install_paranoid, Target, Opts) :- !,
 		 flag(ciao:unused_pred_warnings, 'yes')|Opts],
 	builder_cmd(fullinstall, Target, Opts2).
 builder_cmd_(fullinstall, Target, Opts) :- !,
-	builder_cmd(scan_and_config, Target, Opts),
+	check_builder_update,
+	% (get ciao path from Target)
+	( root_bundle(Target) ->
+	    root_bundle_source_dir(CiaoSrc),
+	    Path = CiaoSrc
+	; % TODO: implement fullinstall for other bundles?
+	  throw(error_msg("Cannot fullinstall `~w'.", [Target]))
+	),
+	scan_bundles_at_path(Path, no),
+	builder_cmd(config_noscan, Target, Opts),
 	builder_cmd(build, Target, []),
 	builder_cmd(install, Target, []).
 %
 builder_cmd_(boot_promote, Target, _Opts) :- !,
 	do_boot_promote(Target).
 %
-builder_cmd_(configure, Target, Opts) :- !,
+builder_cmd_(configure, Target, Opts) :- !, % TODO: make it '$no_bundle' cmd?
 	( member(flag(ciao:list_flags, true), Opts) ->
 	    set_params(Opts), % TODO: needed?
 	    builder_cmd(config_list_flags, Target, Opts)
@@ -143,50 +148,30 @@ builder_cmd_(configure, Target, Opts) :- !,
 	; member(flag(ciao:get_flag_flag, _Opt), Opts) ->
 	    set_params(Opts), % TODO: needed, pass arg instead
 	    builder_cmd(config_get_flag, Target, Opts)
-	; builder_cmd(scan_and_config, Target, Opts),
+	; % (get ciao path from Target)
+	  check_builder_update,
+	  ( root_bundle(Target) ->
+	      root_bundle_source_dir(CiaoSrc),
+	      Path = CiaoSrc
+	  ; throw(error_msg("Cannot configure `~w'.", [Target]))
+	  ),
+	  scan_bundles_at_path(Path, no),
+	  builder_cmd(config_noscan, Target, Opts),
 	  post_config_message(Target)
 	).
 %
-builder_cmd_(scan_and_config, Target, Opts) :- !,
-	check_builder_update,
-	% Note: scanning bundles must be done before configuration
-	% Note: bundle_path/? cannot be used until bundles are scanned
-	( root_bundle(Target) ->
-	    % TODO: avoid scanning for some options... allow scanning for other bundles
-	    cmd_message(Target, "scanning (sub-)bundles", []),
-	    root_bundle_source_dir(CiaoSrc),
-	    bundle_scan(local, CiaoSrc),
-	    reload_bundleregs % (reload, bundles has been scanned)
-	; true
+builder_cmd_(config_noscan, Target, Opts) :- !,
+	split_target(Target, Bundle, Part),
+	( Part = '' -> true
+	; throw(error_msg("Cannot configure separate bundle items (please configure `~w' instead).", [Bundle]))
 	),
-	%
-	builder_cmd(config_noscan, Target, Opts).
-builder_cmd_(config_noscan, Target, Opts) :- root_bundle(Target), !,
-	Bundle = Target, _Part = '',
-	% TODO: non-root?
 	cmd_message(Target, "configuring", []),
 	set_params(Opts),
-	ensure_builddir(Bundle, '.'),
-	( bundle_param_value(ciao:interactive_config, true) ->
-	    true % use saved config values
-	; % TODO: do not reset, skip load instead
-	  reset_all_bundle_flags
-	),
-	do_config_noscan,
+	do_config_noscan(Bundle),
 	cmd_message(Target, "configured", []).
-builder_cmd_(config_noscan, Target, _Opts) :- !,
-	% TODO: implement configuration for individual bundles
-	throw(error_msg("Cannot configure bundle `~w'.", [Target])).
 %
 builder_cmd_(rescan_bundles(Path), '$no_bundle', _Opts) :- !,
-	% TODO: Assumes that Path is correct
-	( root_bundle_source_dir(CiaoSrc),
-	  Path = CiaoSrc ->
-	    clean_bundlereg(local), % clean previous bundlereg
-	    bundle_scan(local, Path)
-	; clean_bundlereg(inpath(Path)), % clean previous bundlereg
-	  bundle_scan(inpath(Path), Path)
-	).
+	scan_bundles_at_path(Path, yes).
 % List bundles
 builder_cmd_(list, '$no_bundle', _Opts) :- !,
 	list_bundles.
@@ -409,28 +394,44 @@ builder_pred(Target, Head) :-
 	builder_hookpred(Bundle, Part, Head).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Invoking the Configuration").
+:- doc(section, "Scanning bundles in workspaces").
 
-:- use_module(library(bundle/bundle_flags),
-	[get_bundle_flag/2,
-	 restore_all_bundle_flags/0]).
-:- use_module(ciaobld(bundle_configure), [config_noscan/0]).
-:- use_module(ciaobld(bundle_configure), [check_builder_update/0]).
+% Note: scanning bundles must be done before configuration
+% Note: bundle_path/? cannot be used until bundles are scanned (may
+%   fail or report outdated data)
 
-:- use_module(ciaobld(builder_meta), [ensure_load_bundle_metasrc/2]).
+:- use_module(ciaobld(bundle_scan), [bundle_scan/2]).
 
-% Invoke configuration (do not scan bundles)
-do_config_noscan :-
-	% Load all config
-	% TODO: make it fine-grained: only dependencies
-	( % (failure-driven loop)
-	  '$bundle_id'(Bundle),
-	    ensure_load_bundle_metasrc(Bundle, bundle_config),
-	    fail
+scan_bundles_at_path(Path, Rescan) :-
+	% TODO: Assumes that Path is correct
+	( root_bundle_source_dir(CiaoSrc),
+	  Path = CiaoSrc ->
+	    InsType = local
+	; InsType = inpath(Path)
+	),
+	( Rescan = yes ->
+	    clean_bundlereg(InsType) % clean previous bundlereg
 	; true
 	),
- 	restore_all_bundle_flags, % TODO: Necessary? bundle(bundle_flags) contains an initialization directive
-	config_noscan.
+	bundle_scan(InsType, Path), % TODO: Allow rescanning of a single bundle
+	reload_bundleregs. % (reload, bundles have been scanned)
+
+% ---------------------------------------------------------------------------
+:- doc(section, "Invoking the Configuration").
+
+:- use_module(ciaobld(bundle_configure), [config_noscan/1]).
+:- use_module(ciaobld(bundle_configure), [bundle_has_config/1]).
+:- use_module(ciaobld(bundle_configure), [check_builder_update/0]).
+
+% Invoke configuration (pre: bundles have been scanned)
+do_config_noscan(Bundle) :-
+	( root_bundle(Bundle) ->
+	    true
+	; % TODO: implement configuration for individual bundles
+	  throw(error_msg("Cannot configure bundle '~w'.", [Bundle]))
+	),
+	BundleSet = all,
+	config_noscan(BundleSet).
 
 % ---------------------------------------------------------------------------
 :- use_module(library(system_extra), [using_tty/0]).
@@ -493,22 +494,13 @@ ask_promote_bootstrap(Eng) :-
 % Check that there exist a configuration. It also implies that there
 % exist a running ciao_builder and that bundles has been scanned.
 
-:- use_module(library(system), [file_exists/1]).
-
 check_bundle_has_config(Cmd, Bundle) :-
 	( \+ '$bundle_id'(Bundle) ->
 	    throw(error_msg("Unknown bundle '~w' (try 'rescan-bundles').", [Bundle]))
-	; \+ check_bundle_has_config_(Cmd, Bundle) ->
+	; \+ bundle_has_config(Bundle) ->
 	    throw(error_msg("Cannot do '~w' on bundle '~w' without a configuration. Please run 'configure' before.", [Cmd, Bundle]))
 	; true
 	).
-
-% NOTE: bundle_path/3 will fail if bundles are not scanned
-%   (which also means that there is no configuration)
-% TODO: install config in global installs too
-check_bundle_has_config_(_Cmd, Bundle) :-
-	FlagsFile = ~bundle_flags_file(Bundle),
-	file_exists(FlagsFile).
 
 % ============================================================================
 
@@ -519,8 +511,9 @@ check_bundle_has_config_(_Cmd, Bundle) :-
 % the bundle are loaded automatically. The bundle Manifest must be
 % already registered.
 
-% TODO: Simplify!
-% TODO: ensure_load_bundleconfig_rules/0 make it more fine grained (not always needed, not all bundles needed)
+:- use_module(ciaobld(builder_meta), [ensure_load_bundle_metasrc/2]).
+
+% TODO: Do not run dynamically... ensure loaded before commands are called
 % TODO: ensure_load_bundle_metasrc/2: not unloaded! (do refcount or gc of modules)
 
 builder_hookcmd(Bundle, Part, Cmd) :-
@@ -559,7 +552,7 @@ default_pred(Head, Bundle, Part) :-
 	[config_list_flags/1,
 	 config_describe_flag/1,
 	 config_set_flag/2,
-	 config_get_flag/1]).
+	 config_get_flag/2]).
 %
 :- use_module(ciaobld(bundle_hash), [gen_bundle_commit_info/1]).
 %
@@ -609,7 +602,7 @@ bundlehook_call_(config_get_flag, _Bundle, '') :- !,
 	    true
 	; throw(bug_in_config_get_flag)
 	),
-	config_get_flag(Flag).
+	display(~config_get_flag(Flag)), nl.
 %
 bundlehook_call_(build_docs_readmes, Bundle, '') :- !,
 	( with_docs(yes) ->
@@ -1046,6 +1039,10 @@ uninstall_bundlereg(Bundle) :-
 % ---------------------------------------------------------------------------
 % Preliminary support for installing configuration (bundle flags)
 % (attached to bundle registry)
+% TODO: make sure it works properly
+
+:- use_module(library(bundle/bundle_flags),
+	[bundle_flags_file/2, bundlecfg_filename/3]).
 
 install_bundle_flags(Bundle) :-
 	% (assumes ~instype = global)

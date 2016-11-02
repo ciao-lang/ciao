@@ -15,10 +15,15 @@ DOCUMENT SYNTAX AND SEMANTICS OF CONFIGURATION RULES
    The configuration process may invoke external configuration tools
    if required.").
 
+% TODO: Define more precisely what is the semantics of configuration
+%   parameters
+% TODO: export some config values as condcomp conditions
+
 :- use_module(library(lists)).
 :- use_module(library(dynamic)).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(messages)).
+:- use_module(library(port_reify)).
 
 % ---------------------------------------------------------------------------
 
@@ -27,11 +32,13 @@ DOCUMENT SYNTAX AND SEMANTICS OF CONFIGURATION RULES
 
 % Configuration flags (persistent)
 :- use_module(library(bundle/bundle_flags), [
-	clean_bundle_flags/0,
+	bundle_flags_file/2,
+	clean_bundle_flags/1,
 	current_bundle_flag/2,
 	get_bundle_flag/2,
 	set_bundle_flag/2,
-	save_bundle_flags/0]).
+	del_bundle_flag/1,
+	save_bundle_flags/1]).
 
 % ---------------------------------------------------------------------------
 
@@ -126,14 +133,16 @@ configlevel('3', extended).
    update.".
 
 check_builder_update :-
-	running_builder_vers(RunVers),
-	( builder_minvers(MinVers),
+	( running_builder_vers(RunVers),
+	  builder_minvers(MinVers),
 	  version_compare(<, RunVers, MinVers) ->
 	    builder_need_update(RunVers, MinVers)
 	; true
 	).
 
-% The version of the running builder
+% The version of the running builder (fail if no .bundlereg for the
+% builder exists yet).
+% TODO: Add to binary instead? (like lpdoc version)
 running_builder_vers(V) :-
 	'$bundle_prop'(builder, version(Vers)),
 	'$bundle_prop'(builder, patch(Patch)),
@@ -155,6 +164,15 @@ builder_need_update(RunVers, MinVers) :-
 
 % ---------------------------------------------------------------------------
 
+:- use_module(library(system), [file_exists/1]).
+
+:- export(bundle_has_config/1).
+bundle_has_config(Bundle) :-
+	FlagsFile = ~bundle_flags_file(Bundle),
+	file_exists(FlagsFile).
+
+% ---------------------------------------------------------------------------
+
 % The full configuration is stored in bundlereg/ under the build
 % directory, in different formats for different tools:
 %
@@ -165,28 +183,67 @@ builder_need_update(RunVers, MinVers) :-
 % See eng_maker:eng_config_sysdep/2 for the sysdep configuration
 % output for engine and C code compilation.
 
-:- use_module(ciaobld(eng_maker), [bundle_flags_sh_file/1]).
+:- use_module(library(bundle/bundle_flags),
+	[restore_all_bundle_flags/0,
+	 reset_bundle_flags/1]).
 
-:- export(config_noscan/0).
-:- pred config_noscan # "Configure all bundles. If
+:- use_module(ciaobld(eng_maker), [bundle_flags_sh_file/1]).
+:- use_module(ciaobld(builder_meta), [ensure_load_bundle_metasrc/2]).
+
+% TODO: ensure_load_bundle_metasrc/2: not unloaded! (do refcount or gc of modules)
+
+:- export(config_noscan/1).
+:- pred config_noscan(BundleSet) # "Configure all bundles. If
    @tt{ciao:interactive_config} flag is specified, the process is
    interactive. Otherwise, values for configuration are detected
    automatically.".
 
-config_noscan :-
-	% First part: materialize configuration values (based on user
-	% preferences)
-	check_bundle_params, % (for user prefs)
-	check_bundle_deps,
-	eval_config_rules, % (can be interactive)
-	save_bundle_flags, % (save 'ciao.bundlecfg')
-	% (for future calls to eng_config_sysdep/2)
-	export_bundle_flags_as_sh(~bundle_flags_sh_file).
+config_noscan(BundleSet) :-
+	% Load config rules
+	( % (failure-driven loop)
+	  in_bundleset(BundleSet, Bundle),
+	    ensure_load_bundle_metasrc(Bundle, bundle_config),
+	    fail
+	; true
+	),
+	% Materialize configuration values (based on user preferences)
+	check_bundle_params(BundleSet), % (for user prefs)
+	check_bundle_deps(BundleSet),
+	eval_config_rules(BundleSet), % (can be interactive)
+	del_bundle_flag(ciao:interactive_config), % TODO: This should not be needed
+	% Save changes on configuration
+	save_modified_flags(BundleSet).
+
+save_modified_flags(BundleSet) :-
+	save_modified_flags_sh,
+	( % (failure-driven loop)
+	  in_bundleset(BundleSet, Bundle),
+	    ( needs_save(Bundle) ->
+	        save_bundle_flags(Bundle) % (save .bundlecfg files)
+	    ; true
+	    ),
+	    fail
+	; true
+	).
+
+needs_save(Bundle) :- dirty_bundle(Bundle), !.
+needs_save(Bundle) :- \+ bundle_has_config(Bundle). 
 
 % ---------------------------------------------------------------------------
 % Auxiliary code for eng_config_sysdep/2
 
+% (for future calls to eng_config_sysdep/2)
+save_modified_flags_sh :-
+	( needs_save(Bundle), bundle_export_sh(Bundle) ->
+	    export_bundle_flags_as_sh(~bundle_flags_sh_file)
+	; true
+	).
+
+% Bundles whose configuration flags are exported to sh
 % TODO: only ciao__DEFAULTLIBDIR and some core__ are really needed; customize
+% TODO: make configurable?
+bundle_export_sh(core).
+bundle_export_sh(ciao).
 
 :- use_module(library(file_utils), [string_to_file/2]).
 :- use_module(library(aggregates), [findall/3]).
@@ -203,6 +260,7 @@ flags_to_sh_string(String) :-
 
 % (nondet)
 flag_to_sh_assign(Line) :-
+	bundle_export_sh(Bundle),
 	current_bundle_flag(Bundle:Name0, Value),
 	  atom_codes(Bundle, BundleS),
 	  toupper(Name0, Name),
@@ -228,8 +286,9 @@ touppercode(C, C).
 % Verify that all user provided options (from the command-line)
 % corresponds to configuration settings (m_bundle_config_entry/3)
 
-check_bundle_params :-
-	( bundle_param_value(Bundle:Name, _),
+check_bundle_params(BundleSet) :-
+	( in_bundleset(BundleSet, Bundle),
+	  bundle_param_value(Bundle:Name, _),
 	    ( Bundle = boot, m_bundle_config_entry(core, Name, _ParamDef) ->
 	        % (special 'boot' configuration flags -- see scan_bootstrap_opts.sh)
 		true
@@ -242,6 +301,13 @@ check_bundle_params :-
 	).
 
 % ---------------------------------------------------------------------------
+% Bundles in a configuration bundle set
+
+in_bundleset(all, Bundle) :-
+	'$bundle_id'(Bundle). % (enum all)
+in_bundleset(single(Bundle), Bundle).
+
+% ---------------------------------------------------------------------------
 % Check bundle dependencies
 
 % TODO: Mark errors, abort configuration
@@ -249,8 +315,8 @@ check_bundle_params :-
 
 :- use_module(engine(internals), ['$bundle_id'/1, '$bundle_prop'/2]).
 
-check_bundle_deps :-
-	( '$bundle_id'(Bundle),
+check_bundle_deps(BundleSet) :-
+	( in_bundleset(BundleSet, Bundle),
 	    check_bundle_deps_(Bundle),
 	    fail
 	; true
@@ -321,21 +387,41 @@ eval_op((\=), (<)).
 %   '--force' command at least for debugging.
 
 :- export(config_set_flag/2).
+% Pre: flags loaded
 config_set_flag(Flag, Value) :-
-	set_bundle_flag(Flag, Value),
+	Flag = Bundle:_,
+	BundleSet = single(Bundle),
 	%
-	% TODO: save only the required _Bundle
-	save_bundle_flags, % (save 'ciao.bundlecfg')
-	% (for future calls to eng_config_sysdep/2)
-	export_bundle_flags_as_sh(~bundle_flags_sh_file).
+	init_config_fixpo(BundleSet, yes),
+	once_port_reify(config_set_flag_(Flag, Value), Port),
+	reset_config_fixpo(BundleSet),
+	port_call(Port),
+	%
+	save_modified_flags(BundleSet).
+
+% TODO: Detect after fixpoint, not before? (for nondet flags)
+config_set_flag_(Flag, Value) :-
+	Flag = Bundle:Name,
+	( old_bundle_flag(Name, Bundle, OldValue),
+	  OldValue == Value ->
+	    true
+	; % value changed, mark bundle as dirty
+	  set_dirty_bundle(Bundle)
+	),
+	set_bundle_flag(Flag, Value).
+
+set_dirty_bundle(Bundle) :-
+	( dirty_bundle(Bundle) -> true
+	; assertz_fact(dirty_bundle(Bundle))
+	).
 
 % ---------------------------------------------------------------------------
 % Get value of a configuration flag
 
-:- export(config_get_flag/1).
-config_get_flag(Flag) :-
-	% (flags loaded)
-	display(~get_bundle_flag(Flag)), nl.
+:- export(config_get_flag/2).
+% Pre: flags loaded
+config_get_flag(Flag) := Value :-
+	Value = ~get_bundle_flag(Flag).
 
 % ---------------------------------------------------------------------------
 % Display the configuration options (for the command-line interface)
@@ -392,28 +478,21 @@ flag_help_string(Flag, Help) :-
 
 % ===========================================================================
 
-% TODO: Define more precisely what is the semantics of configuration
-%   parameters
-% TODO: allow structures in own_make targets (fix spawn)
-% TODO: access config values in condcomp conditions (or export them to
-%   condcomp declarations)
-
 % Determine the values for the configuration entries (automatically or
 % via user interaction, depending on bundle flag
 % @tt{ciao:interactive_config})
-eval_config_rules :-
-	reset_config_fixpo, % (just in case)
-	catch(eval_config_rules_, E0, E=yes(E0)),
-	reset_config_fixpo,
-	( nonvar(E), E = yes(E0) -> throw(E0) ; true ).
+eval_config_rules(BundleSet) :-
+	init_config_fixpo(BundleSet, no),
+	once_port_reify(eval_config_rules_(BundleSet), Port),
+	reset_config_fixpo(BundleSet),
+	port_call(Port).
 
-eval_config_rules_ :-
-	local_copy_bundle_flags,
-	clean_bundle_flags,
+eval_config_rules_(BundleSet) :-
 	eval_config_level,
 	( % (failure-driven loop)
+	  in_bundleset(BundleSet, Bundle),
+	  Flag = Bundle:Name,
 	  m_bundle_config_entry(Bundle, Name, _),
-	    Flag = Bundle:Name,
 	    eval_config_rule(Flag, []),
 	    fail
 	; true
@@ -423,21 +502,71 @@ eval_config_rules_ :-
 eval_config_level :-
 	eval_config_rule(ciao:interactive_level, []).
 
-% prev_bundle_flag(Name, Bundle, Value).
+% old_bundle_flag(Name, Bundle, Value): old flag value (detect modified flags for saving)
+:- data old_bundle_flag/3.
+% prev_bundle_flag(Name, Bundle, Value): previous flag value (for fixpoint)
 :- data prev_bundle_flag/3.
+% dirty_bundle(Bundle): @var{Bundle} is dirty (flags changed)
+:- data dirty_bundle/1.
+
+init_config_fixpo(BundleSet, OneFlag) :-
+	retractall_fact(dirty_bundle(_)),
+	reset_config_fixpo(BundleSet), % (just in case)
+	% Save old values
+	restore_all_bundle_flags, % TODO: Necessary? bundle(bundle_flags) contains an initialization directive
+	bundleset_bak_flags(BundleSet),
+	% Clean flags if needed (for non-interactive)
+	( OneFlag = no ->
+	    ( bundle_param_value(ciao:interactive_config, true) ->
+	        % use saved config values
+	        true
+	    ; bundleset_clean_flags(BundleSet)
+	    )
+	; % TODO: reset only one flag? allow interactive_config?
+	  true
+	),
+	% Copy current values (for fixpoint) to prev, and clean
+	bundleset_copy_flags(BundleSet),
+	bundleset_clean_flags(BundleSet).
+
+% Save current bundle flags in old_bundle_flag/3 data
+bundleset_bak_flags(BundleSet) :-
+	( % (failure-driven loop)
+	  in_bundleset(BundleSet, Bundle),
+	  Flag = Bundle:Name,
+	  current_bundle_flag(Flag, Value),
+	    assertz_fact(old_bundle_flag(Name, Bundle, Value)),
+	    fail
+	; true
+	).
 
 % Save current bundle flags in prev_bundle_flag/3 data
-local_copy_bundle_flags :-
+bundleset_copy_flags(BundleSet) :-
 	( % (failure-driven loop)
+	  in_bundleset(BundleSet, Bundle),
+	  Flag = Bundle:Name,
 	  current_bundle_flag(Flag, Value),
-	    Flag = Bundle:Name,
 	    assertz_fact(prev_bundle_flag(Name, Bundle, Value)),
 	    fail
 	; true
 	).
 
-reset_config_fixpo :-
-	retractall_fact(prev_bundle_flag(_, _, _)).
+bundleset_clean_flags(BundleSet) :-
+	( % (failure-driven loop)
+	  in_bundleset(BundleSet, Bundle),
+	    clean_bundle_flags(Bundle),
+	    fail
+	; true
+	).
+
+reset_config_fixpo(BundleSet) :-
+	( % (failure-driven loop)
+	  in_bundleset(BundleSet, Bundle),
+	    retractall_fact(old_bundle_flag(_, Bundle, _)),
+	    retractall_fact(prev_bundle_flag(_, Bundle, _)),
+	    fail
+	; true
+	).
 
 % TODO: fix 'rule_default' and 'rule_set_value':
 %  - allow 'undefined'?
@@ -533,7 +662,7 @@ eval_config_rule(Flag, Seen) :-
 	check_bundle_param_domain(Flag, Value, ValidValues),
 	% Set value
 	%display(config_value(Bundle, Name, Value, Explanation)), nl,
-	set_bundle_flag(Flag, Value),
+	config_set_flag_(Flag, Value),
 	% Show selected value
 	( flag_def(Flag, hidden),
 	  \+ interactive_flag(Flag) ->

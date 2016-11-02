@@ -43,6 +43,12 @@ set_bundle_flag(Bundle:Name, Value) :-
 	retractall_fact(bundle_flag_(Name, Bundle, _)),
 	assertz_fact(bundle_flag_(Name, Bundle, Value)).
 
+:- export(del_bundle_flag/1).
+:- pred del_bundle_flag(Flag) # "Remove bundle flag @var{Flag}".
+
+del_bundle_flag(Bundle:Name) :-
+	retractall_fact(bundle_flag_(Name, Bundle, _)).
+
 :- export(get_bundle_flag/2).
 :- pred get_bundle_flag(Flag, Value) # "Like
    @pred{current_bundle_flag/2} but throws exception if the @var{Flag}
@@ -55,11 +61,11 @@ get_bundle_flag(Bundle:Name, Value) :-
 get_bundle_flag(Bundle:Name, _Value) :-
 	throw(error(unknown_bundle_flag(Bundle,Name), get_bundle_flag/2-1)).
 
-:- export(clean_bundle_flags/0).
-:- pred clean_bundle_flags # "Clean all bundle flags".
+:- export(clean_bundle_flags/1).
+:- pred clean_bundle_flags(Bundle) # "Clean bundle flags for @var{Bundle}".
 
-clean_bundle_flags :-
-	retractall_fact(bundle_flag_(_, _, _)).
+clean_bundle_flags(Bundle) :-
+	retractall_fact(bundle_flag_(_, Bundle, _)).
 
 % ===========================================================================
 
@@ -67,18 +73,14 @@ clean_bundle_flags :-
    version of) persdb?").
 :- doc(bug, "Use fastrw, like in bundle registries, to minimize dependencies").
 
-% :- use_module(engine(internals), [reload_bundleregs/0]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
-:- use_module(engine(internals), [bundle_reg_dir/2]).
 :- use_module(engine(internals), ['$bundle_id'/1, '$bundle_regfile'/2]).
 
 :- export(bundle_flags_file/2).
 % Obtain the path to the bundlecfg for the specified (registered) bundle
 bundle_flags_file(Bundle) := Path :-
-	% TODO: make sure that it works for user bundles, global installs
 	( '$bundle_regfile'(Bundle, RegFile) -> true ; fail ),
 	path_split(RegFile, BundleRegDir, _),
-	% bundle_reg_dir(local, BundleRegDir),
 	bundlecfg_filename(Bundle, BundleRegDir, Path).
 
 % NOTE: We reuse the directory for bundleregs!
@@ -97,18 +99,14 @@ bundlecfg_filename(Bundle, BundleRegDir, File) :-
    values from persistent store (filesystem)".
 
 restore_all_bundle_flags :-
-	% reload_bundleregs, % TODO: Hack! make initialization explicit and use the right order
-	restore_bundle_flags.
- 
-restore_bundle_flags :-
-	clean_bundle_flags,
 	( '$bundle_id'(Bundle),
-	    restore_bundle_flags1(Bundle),
+	    clean_bundle_flags(Bundle),
+	    restore_bundle_flags(Bundle),
 	    fail
 	; true
 	).
 
-restore_bundle_flags1(Bundle) :-
+restore_bundle_flags(Bundle) :-
 	FlagsFile = ~bundle_flags_file(Bundle),
 	( file_exists(FlagsFile) ->
 	    open(FlagsFile, read, Stream),
@@ -126,23 +124,14 @@ restore_bundle_flags_(Stream, FlagsFile) :-
 %	    display(user_error, read_bundle_flag(Name, Value)), nl(user_error),
 	    assertz_fact(bundle_flag_(Name, Bundle, Value)),
 	    restore_bundle_flags_(Stream, FlagsFile)
-	; throw(error(corrupt_bundle_flags_entry(R), restore_bundle_flags(FlagsFile)))
+	; throw(error(corrupt_bundle_flags_entry(R), restore_bundle_flags_(FlagsFile)))
 	).
 
-:- export(reset_all_bundle_flags/0).
-:- pred reset_all_bundle_flags # "Reset current configuration values
-   (useful to ignore saved values)".
+:- export(reset_bundle_flags/1).
+:- pred reset_bundle_flags(Bundle) # "Remove saved configuration
+   values (it will be empty after @pred{restore_bundle_flags/1})".
 
-reset_all_bundle_flags :-
-	clean_bundle_flags,
-	( '$bundle_id'(Bundle),
-	    reset_all_bundle_flags1(Bundle),
-	    fail
-	; true
-	).
-
-% Delete config file (so that it is not reloaded later)
-reset_all_bundle_flags1(Bundle) :-
+reset_bundle_flags(Bundle) :-
 	FlagsFile = ~bundle_flags_file(Bundle),
 	my_del_file_nofail(FlagsFile).
 
@@ -153,18 +142,11 @@ my_del_file_nofail(FileName) :-
 
 % ===========================================================================
 
-:- export(save_bundle_flags/0).
-:- pred save_bundle_flags # "Save the bundle configuration values to
-   persistent store (filesystem)".
+:- export(save_bundle_flags/1).
+:- pred save_bundle_flags(Bundle) # "Save the bundle configuration
+   values to persistent store (filesystem)".
 
-save_bundle_flags :-
-	( '$bundle_id'(Bundle),
-	    save_bundle_flags1(Bundle),
-	    fail
-	; true
-	).
-
-save_bundle_flags1(Bundle) :-
+save_bundle_flags(Bundle) :-
 	FlagsFile = ~bundle_flags_file(Bundle),
 	open_output(FlagsFile, Output),
 	write_bundle_flags(Bundle),

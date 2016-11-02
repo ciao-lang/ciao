@@ -358,7 +358,6 @@ cmd_opts(list,                   no_bundle, raw_opts) :- !.
 cmd_opts(get,                    no_bundle, raw_opts) :- !.
 cmd_opts(rm,                     no_bundle, raw_opts) :- !.
 % (internal)
-cmd_opts(scan_and_config,        arg_bundle, config_opts) :- !.
 cmd_opts(config_noscan,          arg_bundle, config_opts) :- !.
 cmd_opts(config_list_flags,      arg_bundle, raw_opts) :- !.
 cmd_opts(config_describe_flag,   arg_bundle, raw_opts) :- !.
@@ -439,7 +438,6 @@ is_builder_cmd(fullinstall).
 is_builder_cmd(configure).
 is_builder_cmd(config_noscan).
 is_builder_cmd(rescan_bundles).
-is_builder_cmd(scan_and_config).
 is_builder_cmd(build).
 is_builder_cmd(build_nodocs).
 is_builder_cmd(prebuild_nodocs).
