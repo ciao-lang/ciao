@@ -15,6 +15,10 @@ build_doc_dir := ~bundle_path(~root_bundle, builddir, 'doc').
 
 :- bundle_flag(docdir, [
     comment("Installation directory for documentation"),
+    details(
+      % .....................................................................
+      "Define this to be the directory in which you wish the documentation\n"||
+      "to be installed."),
     rule_set_value(Value, (
       flag(ciao:instype(InsType)),
       InsType == 'local', build_doc_dir(Value))),
@@ -23,15 +27,16 @@ build_doc_dir := ~bundle_path(~root_bundle, builddir, 'doc').
       flag(ciao:install_prefix(Prefix)),
       get_docdir(SysregType, Prefix, DefValue))),
     %
-    interactive([minimum, extended],
-      % .....................................................................
-      "Define this to be the directory in which you wish the documentation\n"||
-      "to be installed.")
+    interactive
 ]).
 get_docdir(all, Prefix) := ~path_concat(Prefix, 'share/doc/ciao').
 
 :- bundle_flag(htmldir, [
     comment("Installation directory for HTML manuals"),
+    details(
+      % .....................................................................
+      "Define this to be the directory in which you wish the documentation\n"||
+      "in HTML format to be installed."),
     rule_set_value(Value, (
       flag(ciao:instype(InsType)),
       InsType == 'local', build_doc_dir(Value))),
@@ -39,10 +44,7 @@ get_docdir(all, Prefix) := ~path_concat(Prefix, 'share/doc/ciao').
       flag(ciao:registration_type(SysregType)),
       get_htmldir(SysregType, DefValue))),
     %
-    interactive([minimum, extended],
-      % .....................................................................
-      "Define this to be the directory in which you wish the documentation\n"||
-      "in HTML format to be installed.")
+    interactive
 ]).
 % TODO: trailing /?
 get_htmldir(all) := '/var/www/html/ciao'.
@@ -50,6 +52,9 @@ get_htmldir(all) := '/var/www/html/ciao'.
 
 :- bundle_flag(htmlurl, [
     comment("URL for installed HTML documents"),
+    details(
+      % .....................................................................
+      "Define the URL to access the previous directory via WWW."),
     rule_set_value(Value, (
       flag(ciao:instype(InsType)),
       InsType == 'local', build_doc_dir(Value))),
@@ -57,9 +62,7 @@ get_htmldir(all) := '/var/www/html/ciao'.
       flag(ciao:registration_type(SysregType)),
       get_htmlurl(SysregType, DefValue))),
     %
-    interactive([minimum, extended],
-      % .....................................................................
-      "Define the URL to access the previous directory via WWW.")
+    interactive
 ]).
 % TODO: trailing /?
 get_htmlurl(all) := '/ciao/'.
@@ -67,6 +70,10 @@ get_htmlurl(user) := ~path_concat(~atom_concat('/~', ~get_pwnam), 'Ciao/').
 
 :- bundle_flag(mandir, [
     comment("Installation directory for 'man' pages"),
+    details(
+      % .....................................................................
+      "Define this to be the directory in which you wish the man (unix manual\n"||
+      "entry) file to be installed.\n"),
     rule_set_value(Value, (
       flag(ciao:instype(InsType)),
       InsType == 'local', build_doc_dir(Value))),
@@ -75,15 +82,16 @@ get_htmlurl(user) := ~path_concat(~atom_concat('/~', ~get_pwnam), 'Ciao/').
       flag(ciao:install_prefix(Prefix)),
       get_mandir(SysregType, Prefix, DefValue))),
     %
-    interactive([minimum, extended],
-      % .....................................................................
-      "Define this to be the directory in which you wish the man (unix manual\n"||
-      "entry) file to be installed.\n")
+    interactive
 ]).
 get_mandir(all, Prefix) := ~path_concat(Prefix, 'share/man').
 
 :- bundle_flag(infodir, [
     comment("Installation directory for 'info' files"),
+    details(
+      % .....................................................................
+      "Define this to be the directory in which you wish the info file\n"||
+      "installed.  Ideally, this directory should be accesible via emacs.\n"),
     rule_set_value(Value, (
       flag(ciao:instype(InsType)),
       InsType == 'local', build_doc_dir(Value))),
@@ -92,10 +100,7 @@ get_mandir(all, Prefix) := ~path_concat(Prefix, 'share/man').
       flag(ciao:install_prefix(Prefix)),
       get_infodir(SysregType, Prefix, DefValue))),
     %
-    interactive([minimum, extended],
-      % .....................................................................
-      "Define this to be the directory in which you wish the info file\n"||
-      "installed.  Ideally, this directory should be accesible via emacs.\n")
+    interactive
 ]).
 get_infodir(all, Prefix) := ~path_concat(Prefix, 'share/info').
 

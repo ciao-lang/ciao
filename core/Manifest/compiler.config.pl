@@ -7,11 +7,12 @@
 
 :- bundle_flag(unused_pred_warnings, [
     comment("Enable unused predicate warnings"),
-    config_prolog_flag(unused_pred_warnings,[yes,no],no),
-    interactive([extended],
+    details(
       % .....................................................................
       "If you wish to show warnings about unused predicates, set this\n"||
-      "variable to \"yes\".")
+      "variable to \"yes\"."),
+    config_prolog_flag(unused_pred_warnings,[yes,no],no),
+    interactive([advanced])
 ]).
 :- bundle_flag(compress_exec, [
     config_prolog_flag(compress_exec,[yes,no],no)
@@ -21,22 +22,24 @@
 ]).
 :- bundle_flag(compress_lib, [
     comment("Enable compressed bytecode"),
-    config_prolog_flag(compress_lib,[yes,no],no),
-    interactive([extended],
+    details(
       % .....................................................................
       "If you wish to compile the Ciao libraries with their bytecode\n"||
       "compressed then set the following variable to \"yes\". Libraries\n"||
       "generated this way will be smaller at the cost of a slightly slower\n"||
-      "usage, both in their load as when used to create an executable.")
+      "usage, both in their load as when used to create an executable."),
+    config_prolog_flag(compress_lib,[yes,no],no),
+    interactive([advanced])
 ]).
 :- bundle_flag(runtime_checks, [
     comment("Enable (optional) runtime checks"),
-    config_prolog_flag(runtime_checks,[yes,no],no),
-    interactive([extended],
+    details(
       % .....................................................................
       "If you wish to compile the Ciao libraries with runtime checks enabled\n"||
       "then set the following variable to \"yes\". This of course reduces\n"||
-      "performance.")
+      "performance."),
+    config_prolog_flag(runtime_checks,[yes,no],no),
+    interactive([advanced])
 ]).
 :- bundle_flag(rtchecks_level, [
     config_prolog_flag(rtchecks_level,[inner,exports],inner)

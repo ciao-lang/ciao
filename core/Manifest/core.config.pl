@@ -28,15 +28,16 @@
 
 :- bundle_flag(install_prolog_name, [
     comment("Symbolic link from Ciao to 'prolog' executable"),
-    valid_values(['yes', 'no']),
-    %
-    rule_default('yes'),
-    %
-    interactive([minimum, extended],
+    details(
       % .....................................................................
       "Set to \"yes\" if you wish to create a link that brings up Ciao \n"||
       "when you type \"prolog\". You may want to say no if there are other\n"||
       "systems that support the Prolog language in your machine and you\n"||
-      "do not want to make Ciao the default.")
+      "do not want to make Ciao the default."),
+    valid_values(['yes', 'no']),
+    %
+    rule_default('yes'),
+    %
+    interactive
 ]).
 

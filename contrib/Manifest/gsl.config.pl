@@ -4,6 +4,12 @@
 
 :- bundle_flag(with_gsl, [
     comment("Enable GSL bindings"),
+    details(
+      % .....................................................................
+      "Set to \"yes\" if you wish to interface with the GSL (GNU Scientific\n"||
+      "Library). If you choose to have the GSL interface, you should have the\n"||
+      "GSL development library installed in the machine where you are\n"||
+      "compiling and using it."),
     valid_values(['yes', 'no']),
     %
     default_comment("GSL detected"),
@@ -14,12 +20,7 @@
     rule_default(WithGSL, verify_gsl(WithGSL)),
     % rule_default('no'),
     %
-    interactive([extended],
-      % .....................................................................
-      "Set to \"yes\" if you wish to interface with the GSL (GNU Scientific\n"||
-      "Library). If you choose to have the GSL interface, you should have the\n"||
-      "GSL development library installed in the machine where you are\n"||
-      "compiling and using it.")
+    interactive([advanced])
 ]).
 
 m_bundle_foreign_config_tool(contrib, gsl, 'gsl-config').
@@ -36,12 +37,13 @@ verify_gsl(Value) :-
 
 :- bundle_flag(auto_install_gsl, [
     comment("Auto-install GSL (third party)"),
+    details([advanced],
+      % .....................................................................
+      "Set to \"yes\" if you want to auto-install GSL (third party)"),
     valid_values(['yes', 'no']),
     %
     rule_default('no'),
     %
-    interactive([extended],
-      % .....................................................................
-      "Set to \"yes\" if you want to auto-install GSL (third party)")
+    interactive([advanced])
 ]).
 

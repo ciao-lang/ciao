@@ -9,13 +9,14 @@
 % TODO: Do not customize this
 :- bundle_flag(emacsinitfile, [
     comment("Emacs init file"),
+    details( % TODO: configurable?
+      % .....................................................................
+      "Specify the name of the emacs lisp file defining the Ciao mode."),
     needed_if(flag(with_emacs_mode(yes))),
     rule_set_value(Value, (
       flag(ciao:registration_type(SysregType)),
       get_emacs_init_file(SysregType, Value))),
-    interactive([], % TODO: configurable?
-      % .....................................................................
-      "Specify the name of the emacs lisp file defining the Ciao mode.")
+    interactive
 ]).
 
 get_emacs_init_file(all, '65ciao-mode-init.el') :-
@@ -30,6 +31,10 @@ get_emacs_init_file(_, 'ciao-mode-init.el').
 % TODO: Change name
 :- bundle_flag(update_dotemacs, [
     comment("Modify emacs init file"),
+    details(
+      % .....................................................................
+      "Set to \"yes\" if you wish to configure emacs to work with Ciao\n"||
+      "(modify emacs initialization file)."),
     valid_values(['yes', 'no']),
     %
     needed_if(flag(with_emacs_mode(yes))),
@@ -39,10 +44,7 @@ get_emacs_init_file(_, 'ciao-mode-init.el').
       update_dotemacs_(SysregType, Value))),
     rule_default('yes'),
     %
-    interactive([minimum, extended],
-      % .....................................................................
-      "Set to \"yes\" if you wish to configure emacs to work with Ciao\n"||
-      "(modify emacs initialization file).")
+    interactive
 ]).
 
 % update_dotemacs_(InsType, VerifyEmacs, UpdateEmacs)
@@ -54,15 +56,16 @@ update_dotemacs_(user, yes).
 
 :- bundle_flag(dotemacs, [
     comment("Emacs initialization file"),
+    details(
+      % .....................................................................
+      "Define the emacs initialization file where the Ciao settings will be\n"||
+      "added."),
     needed_if(flag(update_dotemacs(yes))),
     rule_default(DefValue, (
       flag(ciao:registration_type(SysregType)),
       get_dotemacs(SysregType, DefValue))),
     %
-    interactive([minimum, extended],
-      % .....................................................................
-      "Define the emacs initialization file where the Ciao settings will be\n"||
-      "added.")
+    interactive
 ]).
 
 get_dotemacs(user) := ~path_concat(~get_home, '.emacs').
@@ -71,16 +74,17 @@ get_dotemacs(user) := ~path_concat(~get_home, '.emacs').
 
 :- bundle_flag(emacs_site_start, [
     comment("Emacs site start"),
+    details(
+      % .....................................................................
+      "Specify in what file/directory you want to insert/copy the Ciao Emacs\n"||
+      "Mode initialization code."),
     needed_if(flag(with_emacs_mode(yes))),
     rule_default(Value, (
       flag(ciao:registration_type(SysregType)),
       flag(ciao:instype(InsType)),
       get_emacs_site_start(emacs, SysregType, InsType, Value))),
     %
-    interactive([extended],
-      % .....................................................................
-      "Specify in what file/directory you want to insert/copy the Ciao Emacs\n"||
-      "Mode initialization code.")
+    interactive([advanced])
 ]).
 
 :- use_module(ciaobld(config_common), [instciao_bundledir/2]).

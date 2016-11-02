@@ -2,8 +2,12 @@
 
 :- doc(section, "Ant Options").
 
+% TODO: should it be configurable?
 :- bundle_flag(with_ant, [
     comment("Enable Ant support"),
+    details(
+      % .....................................................................
+      "Set to \"yes\" if you wish to enable Ant support.\n"),
     valid_values(['yes', 'no']),
     %
     default_comment("Ant detected"),
@@ -14,8 +18,7 @@
       flag(with_java_interface(WithJavaInterface)),
       verify_ant(WithJavaInterface, VerifyAnt))),
     %
-    % TODO: this should not be configurable...
-    interactive([extended])
+    interactive([advanced])
 ]).
 
 verify_ant(no,  no).

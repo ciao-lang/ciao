@@ -70,9 +70,7 @@ param_body(Bundle, Name,
 	        NDef = [valid_values(Values)|NDef0]
 	    ; NDef = NDef0
 	    ),
-	    NDef0 = [rule_default(Default)
-		     % interactive("Set the given Prolog Flag.", [extended])
-		     |NDef1],
+	    NDef0 = [rule_default(Default)|NDef1],
 	    NDef1 = [],
 	    append(Def0, NDef, Def)
 	; Def = Def0
@@ -101,26 +99,8 @@ param_body(Bundle, Name,
 
 :- use_module(ciaobld(interactive_aux)).
 
-% Be careful with get_vers and get_patch: when uninstalling, the patch
-% version may differ with the version that we try to uninstall.
-
-% ----------------------------------------------------------------------------
-
-get_config_level(Flag, ConfigLevel) :-
-	bundle_param_value(ciao:interactive_config, 'true'),
-	LevelFlag = ciao:interactive_level,
-	( Flag = LevelFlag ->
-	    NConfigLevel = '3' % (for self-configure this option)
-	; current_bundle_flag(LevelFlag, NConfigLevel)
-	),
-	!,
-	configlevel(NConfigLevel, ConfigLevel).
-get_config_level(_Flag, default).
-
-% TODO: document, this seems to be the level for *interactive* configuration
-configlevel('1', default). % TODO: This is not an interactive configuration!!!
-configlevel('2', minimum).
-configlevel('3', extended).
+% TODO: Be careful with get_vers and get_patch: when uninstalling, the patch
+%   version may differ with the version that we try to uninstall.
 
 % ---------------------------------------------------------------------------
 
@@ -467,12 +447,14 @@ describe_flag(Flag) :-
 	flag_help_string(Flag, Help),
 	display_string(Help), nl.
 
-% Extract help text from the interactive message or comment.
+% Extract help text from the detailed or brief help
+% TODO: compose both?
+% TODO: similar to 'pred foo/1 # <txt>' and 'doc(foo/1, <txt>)'
 flag_help_string(Flag, Help) :-
-	( flag_def(Flag, interactive(_ConfigLevels, Help0)) ->
-	    Help = Help0
-	; flag_def(Flag, comment(Comment)) ->
-	    Help = Comment
+	( flag_def(Flag, details(Text)) ->
+	    Help = Text
+	; flag_def(Flag, comment(Text)) ->
+	    Help = Text
 	; Help = "(No description available)"
 	).
 
@@ -488,7 +470,7 @@ eval_config_rules(BundleSet) :-
 	port_call(Port).
 
 eval_config_rules_(BundleSet) :-
-	eval_config_level,
+	eval_config_mode_flag,
 	( % (failure-driven loop)
 	  in_bundleset(BundleSet, Bundle),
 	  Flag = Bundle:Name,
@@ -498,9 +480,12 @@ eval_config_rules_(BundleSet) :-
 	; true
 	).
 
-% Evaluate rule for configuration level
-eval_config_level :-
-	eval_config_rule(ciao:interactive_level, []).
+% Evaluate rule for configuration mode flag
+eval_config_mode_flag :-
+	( bundle_param_value(ciao:interactive_config, true) ->
+	    eval_config_rule(ciao:configuration_mode, [])
+	; true
+	).
 
 % old_bundle_flag(Name, Bundle, Value): old flag value (detect modified flags for saving)
 :- data old_bundle_flag/3.
@@ -671,13 +656,20 @@ eval_config_rule(Flag, Seen) :-
 	; show_bundle_flag(Flag, Value)
 	).
 
-% The parameter can be configured interactively
+% The flag can be configured interactively
+interactive_flag(_) :-
+	% none if not interactive
+	\+ bundle_param_value(ciao:interactive_config, 'true'),
+	!,
+	fail.
+interactive_flag(ciao:configuration_mode) :- % (always ask on interactive)
+	!.
 interactive_flag(Flag) :-
-	( flag_def(Flag, interactive(ConfigLevels))
-	; flag_def(Flag, interactive(ConfigLevels, _))
+	( flag_def(Flag, interactive(ConfigModes))
+	; flag_def(Flag, interactive), ConfigModes = ['basic', 'advanced']
 	),
-	get_config_level(Flag, ConfigLevel),
-	member(ConfigLevel, ConfigLevels),
+	current_bundle_flag(ciao:configuration_mode, ConfigMode),
+	member(ConfigMode, ConfigModes),
 	!.
 
 eval_config_goal(true, _) :- !.

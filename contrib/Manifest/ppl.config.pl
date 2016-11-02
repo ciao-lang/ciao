@@ -4,13 +4,14 @@
 
 :- bundle_flag(with_ppl, [
     comment("Enable PPL bindings"),
+    details(
+      % .....................................................................
+      "Set to \"yes\" if you wish to interface with PPL"),
     valid_values(['yes', 'no']),
     %
     rule_default('no'),
     %
-    interactive([extended],
-      % .....................................................................
-      "Set to \"yes\" if you wish to interface with PPL")
+    interactive([advanced])
 ]).
 		% rule_default(verify_ppl(WithPPL), WithPPL),
 %  default_comment("PPL >= 0.9 available"),
@@ -37,12 +38,13 @@ m_bundle_foreign_config_tool(contrib, ppl, 'ppl-config').
 
 :- bundle_flag(auto_install_ppl, [
     comment("Auto-install PPL (third party)"),
+    details(
+      % .....................................................................
+      "Set to \"yes\" if you want to auto-install PPL (third party)"),
     valid_values(['yes', 'no']),
     %
     rule_default('no'),
     %
-    interactive([extended],
-      % .....................................................................
-      "Set to \"yes\" if you want to auto-install PPL (third party)")
+    interactive([advanced])
 ]).
 

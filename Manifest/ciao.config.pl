@@ -19,49 +19,52 @@
     noprevious,
     rule_default(false),
     %
-    interactive([extended])
+    interactive([advanced])
 ]).
 
-:- bundle_flag(interactive_level, [
-    comment("Interactive configuration level"),
-    valid_values(['1', '2', '3']),
-    %
-    hidden,
-    noprevious,
-    rule_default('1'),
-    %
-    interactive([minimum, extended],
+:- bundle_flag(configuration_mode, [
+    comment("Configuration mode"),
+    details(
       % .....................................................................
       "Entering the interactive configuration.\n"||
       "You will now be asked some questions related to the configuration.\n"||
-      "Hit [Enter] to accept the default values shown in square brackets.\n\n"||
+      "Hit [Enter] to accept the default values shown in square brackets.\n"||
+      "Press C-c to abort the interactive configuration.\n\n"||
       %
-      "Please select level of interaction:\n\n"||
-      "    1 --  Fully automatic (recommended).\n"||
-      "    2 --  Manually configure just a minimum set of options.\n"||
-      "    3 --  Manually configure an extended set of options.")
+      "Please select the configuration mode:\n\n"||
+      "    basic    --  Configure just a minimum set of options.\n"||
+      "    advanced --  Configure an extended set of options."),
+    valid_values(['basic', 'advanced']),
+    %
+    hidden,
+    noprevious,
+    rule_default('basic'),
+    %
+    interactive
 ]).
 
 :- bundle_flag(verbose_build, [
     comment("Verbose builder"),
+    details(
+      % .....................................................................
+      "More verbose builder messages."),
     valid_values(['yes', 'no']),
     %
     rule_default('no'),
     %
-    interactive([extended],
-      % .....................................................................
-      "More verbose builder messages.")
+    interactive([advanced])
 ]).
 
 :- bundle_flag(with_docs, [
     comment("Generate documentation"),
+    details(
+      % .....................................................................
+      "Generate documentation."),
     valid_values(['yes', 'no']),
     %
     rule_default('yes'),
     %
-    interactive([minumum, extended],
-      % .....................................................................
-      "Generate documentation.")
+    interactive([advanced])
 ]).
 
 :- bundle_flag(gen_asr, [
@@ -77,11 +80,7 @@
 
 :- bundle_flag(instype, [
     comment("Installation type"),
-    valid_values(['global', 'local']),
-    %
-    rule_default('global'),
-    %
-    interactive([minimum, extended],
+    details(
       % .....................................................................
       "Select the type of installation:\n\n"||
       "    global -- Install the system in a separate location from the\n"||
@@ -89,7 +88,12 @@
       "              The system will not require the sources to run, and \n"||
       "              they can be erased after installation.\n"||
       "    local  -- The system will be compiled in, and run from the \n"||
-      "              sources (this is specially useful for developers).")
+      "              sources (this is specially useful for developers)."),
+    valid_values(['global', 'local']),
+    %
+    rule_default('global'),
+    %
+    interactive
 ]).
 
 % TODO: make use of default value (simplify scripts)
@@ -98,19 +102,20 @@
 
 :- bundle_flag(registration_type, [
     comment("Registration type"),
+    details(
+      % .....................................................................
+      "Registration type:\n\n"||
+      "    all  --  Make the system available to all users. Typically you\n"||
+      "             you will need to complete the installation as root.\n"||
+      "    user --  Make the system available only for the current user\n"||
+      "             (configure it in the user\'s home directory)."),
     valid_values(['all', 'user']),
     %
     rule_default(SysregType, (
       flag(instype(InsType)),
       def_registration_type(InsType, SysregType))),
     %
-    interactive([minimum, extended],
-      % .....................................................................
-      "Registration type:\n\n"||
-      "    all  --  Make the system available to all users. Typically you\n"||
-      "             you will need to complete the installation as root.\n"||
-      "    user --  Make the system available only for the current user\n"||
-      "             (configure it in the user\'s home directory).")
+    interactive
 ]).
 
 def_registration_type(global, all).
@@ -147,6 +152,9 @@ get_defaultlibdir(global) := ~instciao_bundledir(core).
 
 :- bundle_flag(install_prefix, [
     comment("Install prefix"),
+    details(
+      % .....................................................................
+      "Specify the directory to perform the installation."),
     rule_set_value(Value, (
       flag(instype(InsType)),
       InsType == 'local', build_dir(Value))), % TODO: use something else (not valid in 'local')
@@ -154,9 +162,7 @@ get_defaultlibdir(global) := ~instciao_bundledir(core).
       flag(instype(InsType)),
       get_prefix(InsType, DefValue))),
     %
-    interactive([minimum, extended],
-      % .....................................................................
-      "Specify the directory to perform the installation.")
+    interactive
 ]).
 
 :- use_module(library(bundle/bundle_info), [root_bundle/1]).
@@ -182,24 +188,25 @@ get_prefix(global, '/usr/local').
     comment("Permissions for installed execs/dirs"),
     rule_default('775'),
     %
-    interactive([extended])
+    interactive([advanced])
 ]).
 
 :- bundle_flag(datamode, [
     comment("Permissions for installed data files"),
     rule_default('664'),
     %
-    interactive([extended])
+    interactive([advanced])
 ]).
 
 % TODO: Ignored by many of the installation code (thus, not working)
 :- bundle_flag(installgroup, [
     comment("Custom group for installed files"),
+    details(
+      % .....................................................................
+      "Group for the installed files (empty means use default)"),
     rule_default(''),
     %
-    interactive([extended],
-      % .....................................................................
-      "Group for the installed files (empty means use default)")
+    interactive([advanced])
 ]).
 
 % ---------------------------------------------------------------------------

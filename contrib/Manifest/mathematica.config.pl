@@ -4,6 +4,13 @@
 
 :- bundle_flag(with_mathematica, [
     comment("Enable Mathematica bindings"),
+    details(
+      % .....................................................................
+      "Set to \"yes\" if you wish to interface with the Mathematica.\n" ||
+      "If you choose to have the Mathematica interface, you should have\n"||
+      "Mathemtical installed in the machine where you are compiling and\n" || 
+      "using it, then and/or add to your PATH variable the directory of\n"|| 
+      "the MathKernel command line."),
     valid_values(['yes', 'no']),
     %
     default_comment("Mathematica detected"),
@@ -16,13 +23,7 @@
       "PATH variable."),
     rule_default(WithMathematica, verify_mathematica(WithMathematica)),
     %
-    interactive([extended],
-      % .....................................................................
-      "Set to \"yes\" if you wish to interface with the Mathematica.\n" ||
-      "If you choose to have the Mathematica interface, you should have\n"||
-      "Mathemtical installed in the machine where you are compiling and\n" || 
-      "using it, then and/or add to your PATH variable the directory of\n"|| 
-      "the MathKernel command line.")
+    interactive([advanced])
 ]).
 
 :- use_module(library(system), [using_windows/0]).

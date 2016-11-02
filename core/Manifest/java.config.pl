@@ -4,6 +4,12 @@
 
 :- bundle_flag(with_java_interface, [
     comment("Enable Java interface"),
+    details(
+      % .....................................................................
+      "Whether you have a reasonably recent version of Java.\n"||
+      "If so the utilities for the Java interface under\n"||
+      "<CIAOSRC>/core/library/javall will be compiled, along with\n"||
+      "examples and documentation."),
     valid_values(['yes', 'no']),
     %
     default_comment("javac and javadoc detected"),
@@ -15,12 +21,7 @@
 % 	    "you forgot to run: sudo update-java-alternatives --set java-6-sun."
     rule_default(VerifyJava, verify_java(VerifyJava)),
     %
-    interactive([extended],
-      % .....................................................................
-      "Whether you have a reasonably recent version of Java.\n"||
-      "If so the utilities for the Java interface under\n"||
-      "<CIAOSRC>/core/library/javall will be compiled, along with\n"||
-      "examples and documentation.")
+    interactive([advanced])
 ]).
 
 verify_java(Value) :-

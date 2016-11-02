@@ -9,31 +9,31 @@
     comment("Custom C compiler"),
     rule_default(''),
     %
-    interactive([extended])
+    interactive([advanced])
 ]).
 :- bundle_flag(custom_ld, [
     comment("Custom C linker"),
     rule_default(''),
     %
-    interactive([extended])
+    interactive([advanced])
 ]).
 :- bundle_flag(extra_cflags, [
     comment("Additional C compiler flags"),
     rule_default(''),
     %
-    interactive([extended])
+    interactive([advanced])
 ]).
 :- bundle_flag(extra_ldflags, [
     comment("Specify additional C linker flags"),
     rule_default(''),
     %
-    interactive([extended])
+    interactive([advanced])
 ]).
 
 :- bundle_flag(os, [
     comment("Target OS"),
     rule_default(Value, sysconf_os(Value)),
-    interactive([extended])
+    interactive([advanced])
 ]).
 :- bundle_flag(arch, [
     comment("Target architecture"),
@@ -41,7 +41,7 @@
       flag(core:m32(M32)),
       flag(core:m64(M64)),
       sysconf_arch(M32, M64, Value))),
-    interactive([extended])
+    interactive([advanced])
 ]).
 :- bundle_flag(m32, [
     comment("Force 32-bit architecture"),
@@ -49,7 +49,7 @@
     %
     rule_default('no'),
     %
-    interactive([extended])
+    interactive([advanced])
 ]).
 :- bundle_flag(m64, [
     comment("Force 64-bit architecture"),
@@ -57,7 +57,7 @@
     %
     rule_default('no'),
     %
-    interactive([extended])
+    interactive([advanced])
 ]).
 
 :- use_module(ciaobld(eng_maker), [sysconf_os/1, sysconf_arch/3]).
@@ -67,11 +67,7 @@
 % (also needed by config-sysdep.sh)
 :- bundle_flag(use_threads, [
     comment("Enable threads in engine"),
-    valid_values(['yes', 'no']),
-    %
-    rule_default('yes'),
-    %
-    interactive([extended],
+    details(
       % .....................................................................
       "If you wish to compile an engine with threads capability\n"||
       "(concurrency), set the following variable to \"yes\".  Otherwise, set\n"||
@@ -79,7 +75,12 @@
       "thread support has not yet been added to Ciao for this\n"||
       "architecture), this will be automatically disabled at compile time.\n"||
       "Concurrency support does not cause any appreciable runtime overhead\n"||
-      "for non-concurrent programs, so it is safe to leave it as \"yes\".")
+      "for non-concurrent programs, so it is safe to leave it as \"yes\"."),
+    valid_values(['yes', 'no']),
+    %
+    rule_default('yes'),
+    %
+    interactive([advanced])
 ]).
 
 % ---------------------------------------------------------------------------
@@ -87,11 +88,7 @@
 % (also needed by config-sysdep.sh)
 :- bundle_flag(and_parallel_execution, [
     comment("Enable and-parallel execution"),
-    valid_values(['yes', 'visandor', 'no']),
-    %
-    rule_default('no'),
-    %
-    interactive([extended],
+    details(
       % .....................................................................
       "Set the following variable to \"yes\" if you wish to compile an\n"||
       "engine with support for and-parallel execution of goals in\n"||
@@ -100,7 +97,12 @@
       "        yes             -- Support for and-parallel execution.\n"||
       "        visandor        -- Support for and-parallel execution and\n"||
       "                           VisAndOr's events.\n"||
-      "        no              -- No support.")
+      "        no              -- No support."),
+    valid_values(['yes', 'visandor', 'no']),
+    %
+    rule_default('no'),
+    %
+    interactive([advanced])
 ]).
 
 % ---------------------------------------------------------------------------
@@ -108,15 +110,16 @@
 % (also needed by config-sysdep.sh)
 :- bundle_flag(par_back, [
     comment("Enable parallel backtracking"),
+    details(
+      % .....................................................................
+      "Set the following variable to \"yes\" if you wish to compile an\n"||
+      "engine with support for parallel backtracking execution of goals.\n"||
+      "This feature is experimental and may not be available in all releases."),
     valid_values(['yes', 'no']),
     %
     rule_default('no'),
     %
-    interactive([extended],
-      % .....................................................................
-      "Set the following variable to \"yes\" if you wish to compile an\n"||
-      "engine with support for parallel backtracking execution of goals.\n"||
-      "This feature is experimental and may not be available in all releases.")
+    interactive([advanced])
 ]).
 
 % ---------------------------------------------------------------------------
@@ -128,14 +131,15 @@
 % (also needed by config-sysdep.sh)
 :- bundle_flag(tabled_execution, [
     comment("Enable tabled execution"),
+    details(
+      % .....................................................................
+      "Set the following variable to \"yes\" if you wish to compile an engine\n"||
+      "with support for tabled execution of goals."),
     valid_values(['yes', 'no']),
     %
     rule_default('yes'),
     %
-    interactive([extended],
-      % .....................................................................
-      "Set the following variable to \"yes\" if you wish to compile an engine\n"||
-      "with support for tabled execution of goals.")
+    interactive([advanced])
 ]).
 
 % ---------------------------------------------------------------------------
@@ -143,11 +147,7 @@
 % (also needed by config-sysdep.sh)
 :- bundle_flag(optim_level, [
     comment("Optimization level"),
-    valid_values(['optimized', 'normal']),
-    %
-    rule_default('optimized'),
-    %
-    interactive([extended],
+    details(
       % .....................................................................
       "Optimization level used when compiling the bytecode emulator. Choose\n"||
       "one of:\n"||
@@ -160,36 +160,37 @@
       "should not be the case), turn optimization off.  This may happen more\n"||
       "easily in concurrent applicacions: if you write any thread-based\n"||
       "program and unexpected results appear, try recompiling Ciao without\n"||
-      "optimization options first.")
+      "optimization options first."),
+    valid_values(['optimized', 'normal']),
+    %
+    rule_default('optimized'),
+    %
+    interactive([advanced])
 ]).
 
 % ---------------------------------------------------------------------------
 
-% TODO: I'd say... mostly obsolete
+% TODO: Obsolete, remove
 :- bundle_flag(cross_compiler_host, [
     comment("Host for cross compilation"),
-    rule_default('none'),
-    %
-    interactive([extended],
+    details(
       % .....................................................................
       "If you will cross-compile the engine later, please enter the user\n"||
       "name and address of the target machine to extract run-time\n"||
       "characteristics from -- e.g., \"root@my.other.host.com\".  If you\n"||
       "are not going to crosscompile, leave the default value.\n"||
       "Cross-compiling is at the moment done with \"make build crossengine\"\n"||
-      "once the regular compilation is completed.")
+      "once the regular compilation is completed."),
+    rule_default('none'),
+    %
+    interactive([advanced])
 ]).
 
 % ---------------------------------------------------------------------------
 
 :- bundle_flag(debug_level, [
     comment("Engine debug level"),
-    valid_values(['nodebug', 'debug', 'profile', 'profile-debug',
-    	'paranoid-debug']),
-    %
-    rule_default('nodebug'),
-    %
-    interactive([extended],
+    details(
       % .....................................................................
       "Level of debugging built into the engine (for developers):\n"||
       "\n"||
@@ -200,6 +201,12 @@
       "   profile-debug   -- Include profiling and debug options for the\n"||
       "                      emulator\n"||
       "   paranoid-debug  -- Emulator with C level debugging info available\n"||
-      "                      plus paranoid C compilation warnings.")
+      "                      plus paranoid C compilation warnings."),
+    valid_values(['nodebug', 'debug', 'profile', 'profile-debug',
+    	'paranoid-debug']),
+    %
+    rule_default('nodebug'),
+    %
+    interactive([advanced])
 ]).
 

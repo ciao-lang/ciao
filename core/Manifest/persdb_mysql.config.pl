@@ -4,6 +4,13 @@
 
 :- bundle_flag(with_mysql, [
     comment("Enable MySQL support"),
+    details(
+      % .....................................................................
+      "Set to \"yes\" if you wish to interface with the MySQL database.\n"||
+      "If you choose to have the MySQL interface, you should have the MySQL\n"||
+      "client part installed in the machine where you are compiling and using\n"||
+      "it.  The MySQL daemon should also be up and running when using the\n"||
+      "interface."),
     valid_values(['yes', 'no']),
     %
     default_comment("MySQL detected"),
@@ -13,13 +20,7 @@
         "the Ciao configuration now and install MySQL first."),
     rule_default(WithMySQL, verify_mysql(WithMySQL)),
     %
-    interactive([extended],
-      % .....................................................................
-      "Set to \"yes\" if you wish to interface with the MySQL database.\n"||
-      "If you choose to have the MySQL interface, you should have the MySQL\n"||
-      "client part installed in the machine where you are compiling and using\n"||
-      "it.  The MySQL daemon should also be up and running when using the\n"||
-      "interface.")
+    interactive([advanced])
 ]).
 
 verify_mysql(Value) :-
@@ -35,12 +36,13 @@ mysql_installed :-
 
 :- bundle_flag(mysql_client_directory, [
     comment("MySQL client library path"),
+    details(
+      % .....................................................................
+      "Directory where the MySQL client library is installed."),
     needed_if(flag(with_mysql('yes'))),
     rule_default(MySQLDir, get_mysql_dir(MySQLDir)),
     %
-    interactive([minimum, extended],
-      % .....................................................................
-      "Directory where the MySQL client library is installed.")
+    interactive
 ]).
 
 % TODO: This is not a good way of detecting MySQL
