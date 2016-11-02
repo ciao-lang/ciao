@@ -10,18 +10,6 @@
 
 :- doc(section, "General build/installation options").
 
-% (a parameter)
-:- bundle_flag(interactive_config, [
-    comment("Interactive configuration"),
-    valid_values([false, true]),
-    %
-    hidden,
-    noprevious,
-    rule_default(false),
-    %
-    interactive([advanced])
-]).
-
 :- bundle_flag(configuration_mode, [
     comment("Configuration mode"),
     details(
@@ -36,8 +24,6 @@
       "    advanced --  Configure an extended set of options."),
     valid_values(['basic', 'advanced']),
     %
-    hidden,
-    noprevious,
     rule_default('basic'),
     %
     interactive

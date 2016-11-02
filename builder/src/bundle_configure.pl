@@ -37,7 +37,6 @@ DOCUMENT SYNTAX AND SEMANTICS OF CONFIGURATION RULES
 	current_bundle_flag/2,
 	get_bundle_flag/2,
 	set_bundle_flag/2,
-	del_bundle_flag/1,
 	save_bundle_flags/1]).
 
 % ---------------------------------------------------------------------------
@@ -190,7 +189,6 @@ config_noscan(BundleSet) :-
 	check_bundle_params(BundleSet), % (for user prefs)
 	check_bundle_deps(BundleSet),
 	eval_config_rules(BundleSet), % (can be interactive)
-	del_bundle_flag(ciao:interactive_config), % TODO: This should not be needed
 	% Save changes on configuration
 	save_modified_flags(BundleSet).
 
@@ -269,7 +267,9 @@ touppercode(C, C).
 check_bundle_params(BundleSet) :-
 	( in_bundleset(BundleSet, Bundle),
 	  bundle_param_value(Bundle:Name, _),
-	    ( Bundle = boot, m_bundle_config_entry(core, Name, _ParamDef) ->
+	    ( Bundle = ciao, Name = interactive_config -> % TODO: do in other way?
+	        true
+	    ; Bundle = boot, m_bundle_config_entry(core, Name, _ParamDef) ->
 	        % (special 'boot' configuration flags -- see scan_bootstrap_opts.sh)
 		true
 	    ; m_bundle_config_entry(Bundle, Name, _ParamDef) ->
@@ -418,7 +418,6 @@ config_list_flags(Bundle) :-
 config_list_custom_flags(Bundle) :-
 	( m_bundle_config_entry(Bundle, Name, _),
 	    Flag = Bundle:Name,
-	    \+ flag_def(Flag, hidden),
 	    show_flag_and_domain(Flag),
 	    fail
 	; true
@@ -435,8 +434,7 @@ show_flag_and_domain(Flag) :-
 :- export(config_describe_flag/1).
 config_describe_flag(Flag) :-
 	Flag = Bundle:Name,
-	( m_bundle_config_entry(Bundle, Name, _),
-	  \+ flag_def(Flag, hidden) ->
+	( m_bundle_config_entry(Bundle, Name, _) ->
 	    describe_flag(Flag)
 	; display_list(['Unknown flag \'', Bundle, ':', Name, '\'\n\n'])
 	).
@@ -610,7 +608,7 @@ eval_config_rule(Flag, Seen) :-
 	    fail
 	  ),
 	  % TODO: Default sometimes means a possible value
-	  ( \+ flag_def(Flag, noprevious),
+	  ( % \+ flag_def(Flag, noprevious),
 	    prev_bundle_flag(Name, Bundle, PrevValue) ->
 	      ExplanationPrev = previous % (previous value)
 	  ; ExplanationPrev = none,
@@ -649,12 +647,7 @@ eval_config_rule(Flag, Seen) :-
 	%display(config_value(Bundle, Name, Value, Explanation)), nl,
 	config_set_flag_(Flag, Value),
 	% Show selected value
-	( flag_def(Flag, hidden),
-	  \+ interactive_flag(Flag) ->
-	    % Do not show 'hidden' if we are not interactive
-	    true
-	; show_bundle_flag(Flag, Value)
-	).
+	show_bundle_flag(Flag, Value).
 
 % The flag can be configured interactively
 interactive_flag(_) :-
