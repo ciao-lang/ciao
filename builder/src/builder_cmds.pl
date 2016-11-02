@@ -110,22 +110,22 @@ builder_cmd(Cmd, Target, Opts) :-
 
 builder_cmd_(local_install, Target, Opts) :- !,
 	Opts2 = [flag(ciao:instype, 'local')|Opts],
-	builder_cmd(fullinstall, Target, Opts2).
+	builder_cmd(full_install, Target, Opts2).
 builder_cmd_(global_install, Target, Opts) :- !,
 	Opts2 = [flag(ciao:instype, 'global')|Opts],
-	builder_cmd(fullinstall, Target, Opts2).
+	builder_cmd(full_install, Target, Opts2).
 builder_cmd_(local_install_paranoid, Target, Opts) :- !,
 	Opts2 = [flag(ciao:instype, 'local'),
 		 flag(ciao:unused_pred_warnings, 'yes')|Opts],
-	builder_cmd(fullinstall, Target, Opts2).
-builder_cmd_(fullinstall, Target, Opts) :- !,
+	builder_cmd(full_install, Target, Opts2).
+builder_cmd_(full_install, Target, Opts) :- !,
 	check_builder_update,
 	% (get ciao path from Target)
 	( root_bundle(Target) ->
 	    root_bundle_source_dir(CiaoSrc),
 	    Path = CiaoSrc
-	; % TODO: implement fullinstall for other bundles?
-	  throw(error_msg("Cannot fullinstall `~w'.", [Target]))
+	; % TODO: implement full_install for other bundles?
+	  throw(error_msg("Cannot full_install `~w'.", [Target]))
 	),
 	scan_bundles_at_path(Path, no),
 	builder_cmd(config_noscan, Target, Opts),

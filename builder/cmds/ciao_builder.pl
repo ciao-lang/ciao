@@ -434,7 +434,7 @@ is_builder_cmd(boot_promote).
 is_builder_cmd(local_install).
 is_builder_cmd(global_install).
 is_builder_cmd(local_install_paranoid).
-is_builder_cmd(fullinstall).
+is_builder_cmd(full_install).
 is_builder_cmd(configure).
 is_builder_cmd(config_noscan).
 is_builder_cmd(rescan_bundles).
