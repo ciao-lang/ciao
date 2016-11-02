@@ -170,24 +170,6 @@
 
 % ---------------------------------------------------------------------------
 
-% TODO: Obsolete, remove
-:- bundle_flag(cross_compiler_host, [
-    comment("Host for cross compilation"),
-    details(
-      % .....................................................................
-      "If you will cross-compile the engine later, please enter the user\n"||
-      "name and address of the target machine to extract run-time\n"||
-      "characteristics from -- e.g., \"root@my.other.host.com\".  If you\n"||
-      "are not going to crosscompile, leave the default value.\n"||
-      "Cross-compiling is at the moment done with \"make build crossengine\"\n"||
-      "once the regular compilation is completed."),
-    rule_default('none'),
-    %
-    interactive([advanced])
-]).
-
-% ---------------------------------------------------------------------------
-
 :- bundle_flag(debug_level, [
     comment("Engine debug level"),
     details(
