@@ -30,16 +30,7 @@
 	emacs_update_autoloads/3,
         emacs_clean_log/2]).
 
-% (in order to share code, make the emacs kind a parameter)
-
-% TODO: use --set-flag to avoid this, fix environment_and_windows_bats
-get_bundle_param_or_flag(Flag, Value) :-
-	bundle_param_value(Flag, Value),
-	!.
-get_bundle_param_or_flag(Flag, Value) :-
-	get_bundle_flag(Flag, Value).
-
-with_emacs_mode := ~get_bundle_param_or_flag(core:with_emacs_mode).
+with_emacs_mode := ~get_bundle_flag(core:with_emacs_mode).
 
 emacsmode_dir := ~bundle_path(ide, 'emacs-mode').
 

@@ -12,28 +12,44 @@
 
 % ---------------------------------------------------------------------------
 
-% TODO: bundle_param_value/2 should not be used here
-:- use_module(library(bundle/bundle_params), [bundle_param_value/2]).
 :- use_module(library(system), [winpath/2]).
-
+% TODO: This may be expensive. Compute statically instead?
 :- use_module(library(bundle/bundle_flags), [current_bundle_flag/2]).
 
+% TODO: only for 'ciao custom_run core environment_and_windows_bats'; do in other way?
+:- data custom_emacs_type/1.
+:- data custom_emacs_path/1.
+
+:- export(set_emacs_type/1).
+% Select dynamically a custom emacs type
+set_emacs_type(Type) :- set_fact(custom_emacs_type(Type)).
+
+:- export(unset_emacs_type/0).
+% Unselect the custom emacs type (uses default)
+unset_emacs_type :- retractall_fact(custom_emacs_type(_)).
+
+:- export(set_emacs_path/1).
+% Select dynamically a custom emacs path
+set_emacs_path(Path) :- set_fact(custom_emacs_path(Path)).
+
+:- export(unset_emacs_path/0).
+% Unselect the custom emacs path (uses default)
+unset_emacs_path :- retractall_fact(custom_emacs_path(_)).
+
 :- export(emacs_type/1).
-emacs_type(EmacsType) :-
-	% Note: for 'ciao custom_run core environment_and_windows_bats'
-	bundle_param_value(core:emacs_type, EmacsType0),
+emacs_type(Type) :-
+	custom_emacs_type(Type0),
 	!,
-	EmacsType = EmacsType0.
+	Type = Type0.
 emacs_type(posix).
 
 :- export(emacs_path/1).
-emacs_path(Emacs) :-
-	% Note: for 'ciao custom_run core environment_and_windows_bats'
-	bundle_param_value(ciao:emacs_path, Emacs0),
-	winpath(Emacs, Emacs0),
+emacs_path(Path) :-
+	custom_emacs_path(Path0),
+	winpath(Path, Path0),
 	!.
-emacs_path(Emacs) :-
-	( current_bundle_flag(core:emacs_for_ciao, Emacs0) -> Emacs = Emacs0
+emacs_path(Path) :-
+	( current_bundle_flag(core:emacs_for_ciao, Path0) -> Path = Path0
 	; throw(error(no_emacs, emacs_path/1))
 	).
 

@@ -734,7 +734,6 @@ texi_file_and_base(In, File, Base) :-
 	format_get_file(texi, Mod, File),
 	atom_concat(Base, '.texi', File).
 
-:- use_module(library(emacs/emacs_batch), [emacs_path/1]).
 :- use_module(library(system), [working_directory/2, cd/1]).
 
 % Copy .infoindex and .texi file (from .texic)

@@ -96,22 +96,32 @@
 
 % TODO: This should be a postbuild or postinstall operation
 
-:- use_module(library(bundle/bundle_params), [set_bundle_param_value/2]).
 :- use_module(ciaobld(config_common), [default_eng_def/1]).
 :- use_module(ciaobld(ciaoc_aux), [create_windows_bat/6]).
 
+:- use_module(library(emacs/emacs_batch),
+	[set_emacs_type/1, unset_emacs_type/0,
+	 set_emacs_path/1, unset_emacs_path/0]).
+:- use_module(ciaobld(bundle_configure), [config_set_flag/2]). % TODO: dangerous!
+
 % TODO: do configure and install of just the emacs mode (this is too complex)
 % 'environment_and_windows_bats' required by runwin32.bat, Ciao.iss.skel
-% NOTE: Called from Ciao.iss.skel
-% Uses this parameter:
-%   --emacs_path=EmacsDir (as a windows path)
 
-'$builder_hook'(custom_run(environment_and_windows_bats, [])) :-
-	% TODO: move these param set operations to library(emacs/emacs_batch)
-	set_bundle_param_value(core:emacs_type, 'Win32'), % TODO: strange
-	set_bundle_param_value(core:with_emacs_mode, 'yes'), % TODO: strange
+% NOTE: Called from Ciao.iss.skel
+% Accepts this parameter:
+%   --emacs_path=EmacsDir (as a windows path)
+'$builder_hook'(custom_run(environment_and_windows_bats, Args)) :-
+	( member(Arg, Args),
+	  atom_concat('--emacs_path=', EmacsPath, Arg) ->
+	    set_emacs_path(EmacsPath)
+	; true
+	),
+	set_emacs_type('Win32'), % TODO: patch config instead?
+	config_set_flag(core:with_emacs_mode, 'yes'), % TODO: dangerous!
 	environment,
-	windows_bats.
+	windows_bats,
+	unset_emacs_type,
+	unset_emacs_path.
 
 environment :-
 	builder_cmd(build_nodocs, 'core/exec_header', []),

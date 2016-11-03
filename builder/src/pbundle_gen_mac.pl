@@ -54,8 +54,6 @@ Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The CLIP Group.
 :- use_module(ciaobld(pbundle_gen_src)).
 
 :- use_module(ciaobld(messages_aux), [cmd_message/3, verbose_message/2]).
-:- use_module(library(bundle/bundle_params),
-	[set_bundle_param_value/2, del_bundle_param_value/1]).
 
 :- use_module(library(compiler/exemaker), [make_exec/2]).
 
@@ -556,6 +554,8 @@ generate_bash_script(Dir, Name, Str, Args) :-
 % ===========================================================================
 :- doc(section, "pbundle Generation as a 'MacOS bundle' (.app)").
 
+:- use_module(library(emacs/emacs_batch)).
+
 % (hook)
 gen_pbundle_hook(app, Bundle, _Options) :- !,
 	gen_pbundle_descfile(Bundle),
@@ -578,10 +578,10 @@ gen_pbundle__app(Bundle) :-
 	ResourcesDir = ~path_concat(AppBundlePath, 'Contents/Resources'),
 	%
 	% TODO: (see environment_and_windows_bats for similar code)
-	set_bundle_param_value(core:emacs_type, 'MacOSBundle'), % TODO: strange
+	set_emacs_type('MacOSBundle'), % TODO: strange; do it dynamically instead
  	% TODO: the emacs mode could be a bundle on its own in the future
-	builder_cmd(build_nodocs, 'core/emacs_mode', []), % TODO: pass emacs_type as Opt! make sure that we push and pop flags!
-	del_bundle_param_value(core:emacs_type),
+	builder_cmd(build_nodocs, 'core/emacs_mode', []), % TODO: make sure that this is rebuild
+	unset_emacs_type,
 	%
 	wr_template(origin, ~path_concat(~builder_src_dir, 'mac'), 'Ciao.applescript', [
 	    'VERSION' = ~bundle_versioned_packname(Bundle),

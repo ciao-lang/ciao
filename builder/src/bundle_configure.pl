@@ -509,8 +509,12 @@ init_config_fixpo(BundleSet, OneFlag) :-
 	  true
 	),
 	% Copy current values (for fixpoint) to prev, and clean
-	bundleset_copy_flags(BundleSet),
-	bundleset_clean_flags(BundleSet).
+	( OneFlag = no ->
+	    bundleset_copy_flags(BundleSet),
+	    bundleset_clean_flags(BundleSet)
+	; % TODO: otherwise all flags are erased
+          true
+	).
 
 % Save current bundle flags in old_bundle_flag/3 data
 bundleset_bak_flags(BundleSet) :-

@@ -289,7 +289,7 @@ parse_opts(['--set-flag', Assign|Args], Cmd, Opts, RestArgs) :- % TODO: special 
 	Opts = [flag(ciao:set_flag_flag, Flag),
 	        flag(ciao:set_flag_value, Value)|Opts0],
 	parse_opts(Args, Cmd, Opts0, RestArgs0).
-parse_opts(['--get-flag', Param|Args], configure, Opts, RestArgs) :- % TODO: special arg parser?
+parse_opts(['--get-flag', Param|Args], Cmd, Opts, RestArgs) :- % TODO: special arg parser?
 	Cmd = configure,
 	!,
 	parse_flag(Param, Flag),
@@ -298,6 +298,7 @@ parse_opts(['--get-flag', Param|Args], configure, Opts, RestArgs) :- % TODO: spe
 	Opts = [flag(ciao:get_flag_flag, Flag)|Opts0],
 	parse_opts(Args, Cmd, Opts0, RestArgs0).
 parse_opts([Assign0|Args], Cmd, Opts, RestArgs) :-
+	\+ Cmd = custom_run,
 	atom_concat('--', Assign, Assign0),
 	parse_flag_assign_atm(Assign, Flag, Value),
 	!,

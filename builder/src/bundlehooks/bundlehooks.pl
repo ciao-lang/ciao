@@ -20,7 +20,5 @@
 % Hooks for bundle description
 :- include(ciaobld(bundlehooks/bundlehooks_defs)).
 
-% Bundle configuration
-:- use_module(library(bundle/bundle_params), [bundle_param_value/2]).
 
 
