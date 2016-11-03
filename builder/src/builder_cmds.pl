@@ -987,6 +987,7 @@ do_uninstall_bindir(_Bundle) :- ~instype = global, !,
 	true.
 do_uninstall_bindir(_Bundle) :-
 	% delete if empty
+	% TODO: why? correct?
 	storedir_uninstall(dir_if_empty(~instciao_bindir)).
 
 % ---------------------------------------------------------------------------
@@ -1073,6 +1074,7 @@ build_docs_readme(Bundle, Readme) :-
 	; SrcPath = Readme,
 	  OutName = Name
 	),
+	OutAbsFile = ~bundle_path(Bundle, OutName),
 	path_split(SrcPath, _, Name),
 	BundleDir = ~bundle_path(Bundle, '.'),
 	path_concat(BundleDir, SrcPath, SrcPath1),
@@ -1086,7 +1088,7 @@ build_docs_readme(Bundle, Readme) :-
 	              SrcPath2]),
 	Ascii = ~atom_concat(Name, '.ascii'),
 	DocSrc = ~path_concat(DocDir, Ascii),
-	copy_file_or_dir(DocSrc, OutName).
+	copy_file_or_dir(DocSrc, OutAbsFile).
 
 :- export(get_bundle_readme/2).
 % TODO: duplicated in lpdoc_aux
