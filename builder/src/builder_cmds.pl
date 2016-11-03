@@ -98,6 +98,8 @@ builder_cleanup :-
 :- pred builder_cmd(Cmd, Target, Opts) # "Perform command @var{Cmd} on
    target @var{Target} with options @var{Opts}".
 
+builder_cmd(Cmd, '$no_bundle', _Opts) :- !,
+	builder_cmd_nobndl(Cmd).
 builder_cmd(Cmd, Target, Opts) :-
 	current_fact(builder_cmd_done(Cmd, Target, Opts)),
 	!,
@@ -106,6 +108,24 @@ builder_cmd(Cmd, Target, Opts) :-
 builder_cmd(Cmd, Target, Opts) :-
 	builder_cmd_(Cmd, Target, Opts),
 	assertz_fact(builder_cmd_done(Cmd, Target, Opts)).
+
+% Update registered bundles at Path workspace
+builder_cmd_nobndl(rescan_bundles(Path)) :- !,
+	scan_bundles_at_path(Path).
+% List bundles
+builder_cmd_nobndl(list) :- !,
+	list_bundles.
+% Download and install bundles
+builder_cmd_nobndl(get(BundleAlias)) :- !,
+	% Fetch and build the bundle specified in BundleAlias
+	bundle_fetch(BundleAlias, Bundle),
+	builder_cmd(build, Bundle, []).
+% Remove a downloaded bundle
+builder_cmd_nobndl(rm(BundleAlias)) :- !,
+	bundle_rm(BundleAlias).
+% Clean of a directory tree, recursively
+builder_cmd_nobndl(clean_tree(Dir)) :- !,
+	clean_tree(Dir).
 
 builder_cmd_(local_install, Target, Opts) :- !,
 	Opts2 = [flag(ciao:instype, 'local')|Opts],
@@ -134,7 +154,7 @@ builder_cmd_(full_install, Target, Opts) :- !,
 builder_cmd_(boot_promote, Target, _Opts) :- !,
 	do_boot_promote(Target).
 %
-builder_cmd_(configure, Target, Opts) :- !, % TODO: make it '$no_bundle' cmd?
+builder_cmd_(configure, Target, Opts) :- !,
 	( member(flag(ciao:list_flags, true), Opts) ->
 	    set_params(Opts), % TODO: needed?
 	    builder_cmd(config_list_flags, Target, Opts)
@@ -168,20 +188,6 @@ builder_cmd_(config_noscan, Target, Opts) :- !,
 	set_params(Opts),
 	do_config_noscan(Bundle),
 	cmd_message(Target, "configured", []).
-%
-builder_cmd_(rescan_bundles(Path), '$no_bundle', _Opts) :- !,
-	scan_bundles_at_path(Path).
-% List bundles
-builder_cmd_(list, '$no_bundle', _Opts) :- !,
-	list_bundles.
-% Download and install bundles
-builder_cmd_(get(BundleAlias), '$no_bundle', _Opts) :- !,
-	% Fetch and build the bundle specified in BundleAlias
-	bundle_fetch(BundleAlias, Bundle),
-	builder_cmd(build, Bundle, []).
-% Remove a downloaded bundle
-builder_cmd_(rm(BundleAlias), '$no_bundle', _Opts) :- !,
-	bundle_rm(BundleAlias).
 %
 builder_cmd_(build, Target, Opts) :- !,
 	% TODO: use fsmemo package to order build tasks (build_docs on any bundle depends on 'build_nodocs lpdoc')
@@ -329,9 +335,6 @@ builder_cmd_(clean_norec, Target, Opts) :- !,
 	    clean_tree(~bundle_path(Bundle, '.'))
 	; throw(error_msg("Unknown bundle '~w'.", [Target]))
 	).
-% Clean of a directory tree, recursively
-builder_cmd_(clean_tree(Dir), '$no_bundle', _Opts) :- !,
-	clean_tree(Dir).
 %
 % Clean the final documentation targets (READMEs and manuals)
 builder_cmd_(clean_docs, Target, Opts) :- !,
