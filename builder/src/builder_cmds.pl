@@ -40,7 +40,6 @@
 	 build_libs/2,
 	 build_cmds_list/3,
 	 builddir_clean/2,
-	 clean_bundlereg/1,
 	 clean_tree/1,
 	 clean_mod/1
 	]).
@@ -127,7 +126,7 @@ builder_cmd_(full_install, Target, Opts) :- !,
 	; % TODO: implement full_install for other bundles?
 	  throw(error_msg("Cannot full_install `~w'.", [Target]))
 	),
-	scan_bundles_at_path(Path, no),
+	scan_bundles_at_path(Path),
 	builder_cmd(config_noscan, Target, Opts),
 	builder_cmd(build, Target, []),
 	builder_cmd(install, Target, []).
@@ -155,7 +154,7 @@ builder_cmd_(configure, Target, Opts) :- !, % TODO: make it '$no_bundle' cmd?
 	      Path = CiaoSrc
 	  ; throw(error_msg("Cannot configure `~w'.", [Target]))
 	  ),
-	  scan_bundles_at_path(Path, no),
+	  scan_bundles_at_path(Path),
 	  builder_cmd(config_noscan, Target, Opts),
 	  post_config_message(Target)
 	).
@@ -171,7 +170,7 @@ builder_cmd_(config_noscan, Target, Opts) :- !,
 	cmd_message(Target, "configured", []).
 %
 builder_cmd_(rescan_bundles(Path), '$no_bundle', _Opts) :- !,
-	scan_bundles_at_path(Path, yes).
+	scan_bundles_at_path(Path).
 % List bundles
 builder_cmd_(list, '$no_bundle', _Opts) :- !,
 	list_bundles.
@@ -356,7 +355,7 @@ builder_cmd_(distclean, Target, Opts) :- !,
 	( root_bundle(Target) ->
 	    % TODO: non-root?
 	    % TODO: make sure that no binary is left after 'clean' (outside builddir)
-	    clean_bundlereg(local),
+	    builddir_clean(Bundle, bundlereg),
 	    builddir_clean(Bundle, all)
 	; true
 	).
@@ -394,27 +393,8 @@ builder_pred(Target, Head) :-
 	builder_hookpred(Bundle, Part, Head).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Scanning bundles in workspaces").
 
-% Note: scanning bundles must be done before configuration
-% Note: bundle_path/? cannot be used until bundles are scanned (may
-%   fail or report outdated data)
-
-:- use_module(ciaobld(bundle_scan), [bundle_scan/2]).
-
-scan_bundles_at_path(Path, Rescan) :-
-	% TODO: Assumes that Path is correct
-	( root_bundle_source_dir(CiaoSrc),
-	  Path = CiaoSrc ->
-	    InsType = local
-	; InsType = inpath(Path)
-	),
-	( Rescan = yes ->
-	    clean_bundlereg(InsType) % clean previous bundlereg
-	; true
-	),
-	bundle_scan(InsType, Path), % TODO: Allow rescanning of a single bundle
-	reload_bundleregs. % (reload, bundles have been scanned)
+:- use_module(ciaobld(bundle_scan), [scan_bundles_at_path/1]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Invoking the Configuration").

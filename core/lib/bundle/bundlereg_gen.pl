@@ -26,10 +26,10 @@
 
 % ---------------------------------------------------------------------------
 
-:- export(is_bundle_dir/1).
+:- export(is_bundledir/1).
 % @var{BundleDir} is the directory for a bundle (i.e., contains a
 % Manifest.pl file)
-is_bundle_dir(BundleDir) :-
+is_bundledir(BundleDir) :-
 	locate_manifest_file(BundleDir, _).
 
 :- export(locate_manifest_file/2).
@@ -53,7 +53,7 @@ lookup_bundle_root(File, BundleDir) :-
 	lookup_bundle_root_(Path, BundleDir).
 
 lookup_bundle_root_(File, BundleDir) :-
-	is_bundle_dir(File),
+	is_bundledir(File),
 	!,
 	% Found a bundle dir
 	BundleDir = File.

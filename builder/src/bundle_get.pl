@@ -12,11 +12,9 @@
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(source_tree), [remove_dir/1]).
 
-:- use_module(ciaobld(bundle_scan), [bundle_scan/2]).
-:- use_module(ciaobld(ciaoc_aux), [clean_bundlereg/1]).
+:- use_module(ciaobld(bundle_scan), [scan_bundles_at_path/1]).
 :- use_module(ciaobld(messages_aux), [cmd_message/3]).
 :- use_module(engine(internals), [
-	reload_bundleregs/0,
 	top_ciao_path/1,
 	'$bundle_id'/1]).
 
@@ -48,7 +46,7 @@ bundle_fetch(BundleAlias, Bundle) :-
 	check_bundle_alias(BundleAlias),
 	top_ciao_path(RootDir),
 	bundle_fetch0(BundleAlias, RootDir, Bundle),
-	update_bundleregs(RootDir).
+	scan_bundles_at_path(RootDir).
 
 % Fetch at RootDir source code of bundle specified in BundleAlias
 bundle_fetch0(BundleAlias, RootDir, Bundle) :-
@@ -134,7 +132,7 @@ bundle_rm(BundleAlias) :-
 	check_bundle_alias(BundleAlias),
 	top_ciao_path(RootDir),
 	bundle_rm0(BundleAlias, RootDir, _Bundle),
-	update_bundleregs(RootDir).
+	scan_bundles_at_path(RootDir).
 
 bundle_rm0(BundleAlias, RootDir, Bundle) :-
 	bundle_status(BundleAlias, Bundle, Status),
@@ -171,9 +169,5 @@ set_fetch_mark(Dir) :-
 has_fetch_mark(Dir) :-
 	file_exists(~fetch_mark(Dir)).
 
-% ---------------------------------------------------------------------------
 
-update_bundleregs(RootDir) :-
-	clean_bundlereg(inpath(RootDir)),
-	bundle_scan(inpath(RootDir), RootDir),
-	reload_bundleregs. % (reload, bundles has been scanned)
+

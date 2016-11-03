@@ -468,12 +468,12 @@ exists_and_compilable(Dir) :-
 % ===========================================================================
 :- doc(section, "Cleaning").
 
-:- use_module(engine(internals), [bundle_reg_dir/2]).
-
 % Special clean targets for builddir
+% TODO: Clean per bundle? (e.g., for bin/ it is complex, similar to uninstall)
 :- export(builddir_clean/2).
+builddir_clean(Bundle, bundlereg) :- !,
+	remove_dir_nofail(~bundle_path(Bundle, builddir, 'bundlereg')).
 builddir_clean(Bundle, config) :- !,
-	% TODO: reuse clean_bundlereg instead?
 	% TODO: clean only Bundle (not 'ciao')
 	del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/ciao.bundlecfg')),
 	del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/ciao.bundlecfg_sh')).
@@ -485,12 +485,6 @@ builddir_clean(Bundle, doc) :- !,
 	remove_dir_nofail(~bundle_path(Bundle, builddir, 'doc')).
 builddir_clean(Bundle, all) :-
 	remove_dir_nofail(~bundle_path(Bundle, builddir, '.')).
-
-% Clean bundlereg
-:- export(clean_bundlereg/1).
-clean_bundlereg(InsType) :-
-	bundle_reg_dir(InsType, Dir),
-	remove_dir_nofail(Dir).
 
 % Clean (compilation files in) a directory tree (recursively)
 :- export(clean_tree/1).

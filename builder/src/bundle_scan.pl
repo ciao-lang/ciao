@@ -17,37 +17,86 @@
   programs).
 @end{alert}").
 
-:- use_module(library(system)).
+:- use_module(library(system), [directory_files/2, file_exists/1, delete_file/1]).
 :- use_module(library(aggregates), [findall/3]).
+:- use_module(library(port_reify)).
 
 % NOTE: be careful with bundle_path/3 (bundles may not be loaded yet)
 :- use_module(ciaobld(config_common), [instciao_bundledir/2]).
-:- use_module(library(bundle/bundlereg_gen), [is_bundle_dir/1, gen_bundlereg/4]).
+:- use_module(library(bundle/bundlereg_gen), [is_bundledir/1, gen_bundlereg/4]).
 :- use_module(engine(internals), [bundle_reg_dir/2]).
 
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(system_extra), [mkpath/1, del_file_nofail/1]).
 
-% ----------------------------------------------------------------------------
+% ---------------------------------------------------------------------------
+:- doc(section, "Scan bundles at given workspace").
+
+:- use_module(engine(internals), [reload_bundleregs/0]).
+
+% Note: scanning bundles must be done before configuration
+% Note: bundle_path/? cannot be used until bundles are scanned (may
+%   fail or report outdated data)
+
+:- export(scan_bundles_at_path/1).
+:- pred scan_bundles_at_path(Path) # "Update the bundle registry for
+   the given workspace at @var{Path} directory (and reload
+   bundleregs).".
 
 % TODO: Document extended InsType = local | inpath(_)
-:- export(bundle_scan/2).
-:- pred bundle_scan(InsType, Src) # "Scan all the bundles under the
-   @var{Src} directory and annotate the results in the bundle registry
-   (creating it if missing)".
+% TODO: Allow a single bundle (use BundleSet?)
 
-bundle_scan(InsType, Src) :-
-	findall(D, bundledirs_at_dir(Src, no, D), BundleDirs),
-	ensure_bundle_reg_dir(InsType),
-	create_bundleregs(BundleDirs, InsType).
+scan_bundles_at_path(Path) :-
+	% Find bundles under Path and scan
+	find_bundles(Path),
+	once_port_reify(scan_bundles_at_path_(Path), Port),
+	cleanup_find_bundles,
+	port_call(Port).
 
-create_bundleregs([], _InsType).
-create_bundleregs([BundleDir|BundleDirs], InsType) :-
-	create_bundlereg(BundleDir, InsType),
-	create_bundleregs(BundleDirs, InsType).
+scan_bundles_at_path_(Path) :- % (requires find_bundles/2 data)
+	% TODO: Assumes that Path is correct
+	( root_bundle_source_dir(CiaoSrc),
+	  Path = CiaoSrc ->
+	    InsType = local
+	; InsType = inpath(Path)
+	),
+	% Create bundleregs
+	ensure_bundlereg_dir(InsType),
+	( % (failure-driven loop)
+	  found_bundle(_Name, BundleDir),
+	    create_bundlereg(BundleDir, InsType),
+	    fail
+	; true
+	),
+	% Remove orphan bundleregs (including configuration)
+	swipe_bundlereg_dir(InsType),
+	% Finally reload bundleregs
+	reload_bundleregs.
+
+swipe_bundlereg_dir(InsType) :-
+	bundle_reg_dir(InsType, BundleRegDir),
+	directory_files(BundleRegDir, Files),
+	( member(File, Files),
+	    ( orphan_reg_file(File) ->
+	        path_concat(BundleRegDir, File, AbsFile),
+	        delete_file(AbsFile)
+	    ; true
+	    ),
+	    fail
+	; true
+	).
+
+% A .bundlereg, .bundlecfg, or .bundlecfg_sh file for a bundle that is
+% no longer available.
+orphan_reg_file(File) :-
+	( atom_concat(Name, '.bundlereg', File) -> true
+	; atom_concat(Name, '.bundlecfg', File) -> true
+	; atom_concat(Name, '.bundlecfg_sh', File) -> true
+	),
+	\+ found_bundle(Name, _).
 
 % Make sure that the directory for the bundle database exists
-ensure_bundle_reg_dir(InsType) :-
+ensure_bundlereg_dir(InsType) :-
 	bundle_reg_dir(InsType, BundleRegDir),
 	mkpath(BundleRegDir).
 
@@ -78,7 +127,28 @@ rootprefix_bundle_reg_file(InsType, BundleName, RegFile) :-
 
 % ---------------------------------------------------------------------------
 
-% Enumerate of all bundle directories (absolute path) under @var{Src}
+% found_bundle(Name,Dir): found bundle Name at Dir
+:- data found_bundle/2.
+
+% Find bundles at @var{Path} workspace using @pred{bundledirs_at_dir/3}.
+% Store them at @pred{found_bundle/2} data. Use @pred{cleanup_find_bundles/0}
+% when done.
+
+find_bundles(Path) :-
+	cleanup_find_bundles,
+	( % (failure-driven loop)
+	  bundledirs_at_dir(Path, no, Dir),
+	    bundledir_to_name(Dir, Name),
+	    assertz_fact(found_bundle(Name, Dir)),
+	    fail
+	; true
+	).
+
+cleanup_find_bundles :- retractall_fact(found_bundle(_, _)).
+
+% Enumerate of all bundle directories (absolute path) under @var{Src}.
+% If @var{Optional} is @tt{yes}, bundles require a @tt{ACTIVATE}
+% directory mark to be enabled.
 %
 % This search is non-recursive by default. If the directory contains a
 % file called BUNDLE_CATALOG, search goes into that directory. Bundles
@@ -87,16 +157,15 @@ rootprefix_bundle_reg_file(InsType, BundleName, RegFile) :-
 %
 % (nondet)
 
-%:- export(bundledirs_at_dir/3).
 bundledirs_at_dir(Src, Optional, BundleDir) :-
-	is_bundle_dir(Src), % a bundle 
+	is_bundledir(Src), % a bundle 
 	% TODO: Add a cut here, do not allow sub-bundles! <- needed only for 'ciao' bundle
 	( Optional = yes -> directory_has_mark(activate, Src) ; true ),
 	BundleDir = Src.
 bundledirs_at_dir(Src, Optional, BundleDir) :-
-	bundledirs_at_dir_2(Src, Optional, BundleDir).
+	bundledirs_at_dir_(Src, Optional, BundleDir).
 
-bundledirs_at_dir_2(Src, Optional, BundleDir) :-
+bundledirs_at_dir_(Src, Optional, BundleDir) :-
 	directory_files(Src, Files),
 	member(File, Files),
 	\+ not_bundle(File),
@@ -105,8 +174,8 @@ bundledirs_at_dir_2(Src, Optional, BundleDir) :-
 	%
 	( directory_has_mark(bundle_catalog, Dir) ->
 	    % search recursively on the catalog (only if ACTIVATE is set on the bundle)
-	    bundledirs_at_dir_2(Dir, yes, BundleDir)
-	; is_bundle_dir(Dir) -> % a bundle
+	    bundledirs_at_dir_(Dir, yes, BundleDir)
+	; is_bundledir(Dir) -> % a bundle
 	    ( Optional = yes -> directory_has_mark(activate, Dir) ; true ),
 	    BundleDir = Dir
 	; fail % (none, backtrack)
@@ -149,7 +218,7 @@ reg_bundledir(InsType, BundleName, BundleDir, Dir) :-
 :- use_module(ciaobld(builder_aux), [root_bundle_source_dir/1]).
 
 % TODO: hack, try to extract BundleName from Manifest, not dir (also in bundle.pl)
-bundle_dir_to_name(BundleDir, BundleName) :-
+bundledir_to_name(BundleDir, BundleName) :-
 	root_bundle_source_dir(RootDir),
 	( BundleDir = RootDir ->
 	    root_bundle(BundleName)
@@ -162,7 +231,7 @@ bundle_dir_to_name(BundleDir, BundleName) :-
 % registry and the absolute directories for alias paths).
 create_bundlereg(BundleDir, InsType) :-
 	% Obtain bundle name from path
-	bundle_dir_to_name(BundleDir, BundleName),
+	bundledir_to_name(BundleDir, BundleName),
 	reg_bundledir(InsType, BundleName, BundleDir, AliasBase),
 	rootprefix_bundle_reg_file(InsType, BundleName, RegFile),
 	gen_bundlereg(BundleDir, BundleName, AliasBase, RegFile).
