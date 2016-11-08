@@ -29,7 +29,8 @@
 	]).
 :- use_module(ciaobld(bundle_configure),
 	[bundleset_configure/2, bundle_has_config/1]).
-:- use_module(ciaobld(bundle_get), [check_bundle_alias/3, bundle_fetch/2, bundle_rm/1]).
+:- use_module(ciaobld(bundle_get),
+	[check_bundle_alias/3, bundle_fetch/2, bundle_rm/1]).
 :- use_module(ciaobld(ciaoc_aux),
 	[promote_bootstrap/1,
 	 %
@@ -473,9 +474,6 @@ default_pred(Head, Bundle, Part) :-
 	 config_get_flag/2]).
 %
 :- use_module(ciaobld(bundle_hash), [gen_bundle_commit_info/1]).
-%
-:- use_module(library(bundle/bundle_info),
-	[list_bundles/0, bundle_info/1]).
 %
 % Backends for pbundle (distribution) generation 
 % TODO: disable 'unused module' warnings
@@ -1154,6 +1152,59 @@ bundle_uninstall_docs_format_hook(info, Bundle, Target) :- !,
 	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
 	dirfile_uninstall_info(DocDir, Target).
 bundle_uninstall_docs_format_hook(_, _, _).
+
+% ===========================================================================
+:- doc(section, "Display bundle info").
+
+:- use_module(engine(internals),
+	['$bundle_id'/1, '$bundle_prop'/2, '$bundle_srcdir'/2]).
+:- use_module(ciaobld(bundle_get), [bundle_status/2]).
+
+% TODO: Merge with code in autodoc:get_last_version/3
+% TODO: customize format (e.g., like in 'git log')
+
+:- use_module(library(format)).
+
+:- export(list_bundles/0).
+:- pred list_bundles # "List all registered bundles".
+list_bundles :-
+	( % (failure-driven loop)
+	  '$bundle_id'(Bundle),
+	    format("~w\n", [Bundle]),
+	    fail
+	; true
+	).
+
+:- export(bundle_info/1).
+:- pred bundle_info(Bundle) # "Show info of @var{Bundle}".
+bundle_info(Bundle) :-
+	( nonvar(Bundle), '$bundle_id'(Bundle) ->
+	    true
+	; format("ERROR: unknown bundle ~w\n", [Bundle]), % TODO: exception
+	  fail
+	),
+	'$bundle_prop'(Bundle, packname(Pack)),
+	( '$bundle_prop'(Bundle, depends(Depends)) -> true ; Depends = [] ),
+	( '$bundle_srcdir'(Bundle, SrcDir) -> true ; SrcDir = '(none)' ),
+	% format("~w (~w ~w.~w) src:~q, depends:~w\n",
+	%        [Bundle, Pack, Version, Patch, SrcDir, Depends]),
+	% (looks like .yaml format)
+	format("~w:\n", [Bundle]),
+	( Version = ~bundle_version_patch(Bundle) ->
+	    format("  version: ~w\n", [Version])
+	; true
+	),
+	Status = ~bundle_status(Bundle),
+	format("  name: ~w\n", [Pack]),
+	format("  src: ~w\n", [SrcDir]),
+	format("  status: ~w\n", [Status]), % TODO: status is not a good name
+	format("  depends:\n", []),
+	( % (failure-driven loop)
+	  member(X, Depends),
+	    format("  - ~w\n", [X]),
+	    fail
+	; true
+	).
 
 % ===========================================================================
 %:- doc(section, "TODOs").

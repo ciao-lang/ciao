@@ -18,6 +18,7 @@
 	top_ciao_path/1,
 	'$bundle_id'/1]).
 
+:- export(bundle_status/2).
 % Status of a bundle (w.r.t. 'ciao get'):
 %
 %  - fetched: fetched in top workspace
