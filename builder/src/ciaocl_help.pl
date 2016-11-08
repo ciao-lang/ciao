@@ -68,13 +68,13 @@ grp_def(quickstart, "Quick start commands") :-
         help_mode(_, boot).
 %
 cmd_grp(local_install, quickstart).
-cmd_usage(local_install, "[<opts>]", [
+cmd_usage(local_install, "[<opts>] [<targets>] [<flags>]", [
     %1_______________________________________________
     "Configure, build, and install locally (in your home directory)"
 ]).
 %
 cmd_grp(global_install, quickstart).
-cmd_usage(global_install, "[<opts>]", [
+cmd_usage(global_install, "[<opts>] [<targets>] [<flags>]", [
     %1_______________________________________________
     "Configure, build, and install globally (system wide)"
 ]).
@@ -87,7 +87,7 @@ cmd_grp('--', quickstart).
 %
 cmd_grp(local_install_paranoid, quickstart).
 % TODO: rewrite as 'compile and lint'?
-cmd_usage(local_install_paranoid, "[<opts>]", [
+cmd_usage(local_install_paranoid, "[<opts>] [<targets>] [<flags>]", [
     %1_______________________________________________
     "Like 'local-install' but enable static checking",
     "of some possible code defects (like unused",
@@ -114,10 +114,12 @@ grp_def(management, "Bundle management").
 %
 cmd_grp(rescan_bundles, management).
 % TODO: configure help is also in bundle_configure.pl
-cmd_usage(rescan_bundles, "[<path>]", [
+cmd_usage(rescan_bundles, "[<targets>]", [
     %1_______________________________________________
-    "Rescan bundles at workspace"
-]).
+    "Rescan bundles (given by targets, which can be",
+    "workspace paths, bundle paths, or registered",
+    "bundles)."
+]) :- advanced.
 %
 cmd_grp(list, management).
 cmd_usage(list, "", [
@@ -132,14 +134,15 @@ cmd_usage(info, "[<bundle>]", [
 ]).
 %
 cmd_grp(get, management).
-cmd_usage(get, "[<bundle alias>]", [
+cmd_usage(get, "[<bundle aliases>]", [
     %1_______________________________________________
     "Download and install the specified bundles"
 ]).
+% TODO: not uninstalled!
 cmd_grp(rm, management).
-cmd_usage(rm, "[<bundle alias>]", [ % TODO: Allow bundle alias in more commands
+cmd_usage(rm, "[<bundle aliases>]", [ % TODO: Allow bundle alias in more commands
     %1_______________________________________________
-    "Remove a downloaded bundle",
+    "Remove the specified downloaded bundles",
     "(use before get to force update)"
 ]).
 
@@ -148,7 +151,7 @@ grp_def(configure, "Configuration (before build)").
 cmd_grp(configure, configure).
 % TODO: add BUNDLE as a parameter
 % TODO: configure help is also in bundle_configure.pl
-cmd_usage(configure, "[<bundle>] [<args>] [<opts>]", [
+cmd_usage(configure, "[<opts>] [<targets>] [<flags>] ", [
     %1_______________________________________________
     "Configure using the specified flags",
     "(discarding any previous selection)"
@@ -156,7 +159,7 @@ cmd_usage(configure, "[<bundle>] [<args>] [<opts>]", [
 cmd_details(configure, Text) :-
 	Text = [
           %2........................________________________________________________
-	  "The following additional arguments for configure are accepted:",
+	  "The following arguments for configure are accepted:",
 	  "",
 	  "  --interactive           Configure the system interactively",
 	  "                          (existing previous configuration is consulted)",
@@ -191,7 +194,7 @@ cmd_grp('--', configure).
 %
 cmd_grp(configclean, configure).
 % TODO: really use BUNDLE as a parameter
-cmd_usage(configclean, "[<bundle>]", [
+cmd_usage(configclean, "[<targets>]", [
     %1_______________________________________________
     "Clean the configuration"
 ]) :- advanced.
@@ -199,37 +202,37 @@ cmd_usage(configclean, "[<bundle>]", [
 grp_def(build_grp, "Build").
 %
 cmd_grp(build, build_grp).
-cmd_usage(build, "[<bundle>]", [
+cmd_usage(build, "[<targets>]", [
     %1_______________________________________________
-    "Build a bundle (including documentation)"
+    "Build bundles (including documentation)"
 ]).
 %
 cmd_grp(prebuild_nodocs, build_grp).
-cmd_usage(prebuild_nodocs, "[<bundle>]", [
+cmd_usage(prebuild_nodocs, "[<targets>]", [
     %1_______________________________________________
     "Prepare source for build_nodocs"
 ]) :- advanced.
 %
 cmd_grp(build_nodocs, build_grp).
-cmd_usage(build_nodocs, "[<bundle>]", [
+cmd_usage(build_nodocs, "[<targets>]", [
     %1_______________________________________________
     "Build commands and libraries (includes prebuild)"
 ]) :- advanced.
 %
 cmd_grp(prebuild_docs, build_grp).
-cmd_usage(prebuild_docs, "[<bundle>]", [
+cmd_usage(prebuild_docs, "[<targets>]", [
     %1_______________________________________________
     "Prepare source for build_docs"
 ]) :- advanced.
 %
 cmd_grp(build_docs, build_grp).
-cmd_usage(build_docs, "[<bundle>]", [
+cmd_usage(build_docs, "[<targets>]", [
     %1_______________________________________________
     "Only build documentation (includes prebuild)"
 ]) :- advanced.
 %
 cmd_grp(build_docs_readmes, build_grp).
-cmd_usage(build_docs_readmes, "[<bundle>]", [
+cmd_usage(build_docs_readmes, "[<targets>]", [
     %1_______________________________________________
     "Only build documentation READMEs"
 ]) :- advanced.
@@ -237,7 +240,7 @@ cmd_usage(build_docs_readmes, "[<bundle>]", [
 grp_details(build_grp, [
     %2........................________________________________________________
     "Build compiles all the modules (libraries), binaries, and documentation",
-    "of the specified bundle. The process is incremental and should only",
+    "of the specified bundles. The process is incremental and should only",
     "recompile sources with modifications.",
     "",
     "Additionally, 'build_nodocs' omits documentation, while",
@@ -266,13 +269,13 @@ grp_details(build_grp, [
 grp_def(clean_grp, "Cleaning").
 %
 cmd_grp(clean, clean_grp).
-cmd_usage(clean, "[<bundle>]", [
+cmd_usage(clean, "[<targets>]", [
     %1_______________________________________________
     "Clean intermediate files (keeps configuration)"
 ]).
 %
 cmd_grp(distclean, clean_grp).
-cmd_usage(distclean, "[<bundle>]", [
+cmd_usage(distclean, "[<targets>]", [
     %1_______________________________________________
     "Like 'clean' but also removes configuration"
 ]).
@@ -288,26 +291,26 @@ cmd_grp('--', clean_grp).
 cmd_grp(clean_nodocs, clean_grp).
 % NOTE: clean_docs is NOT equivalent to 'clean' for docs; it just
 % remove the final targets, not the temporary files.
-cmd_usage(clean_nodocs, "[<bundle>]", [
+cmd_usage(clean_nodocs, "[<targets>]", [
     %1_______________________________________________
     "Like 'clean', but keep documentation targets"
 ]) :- advanced.
 %
 cmd_grp(clean_docs, clean_grp).
-cmd_usage(clean_docs, "[<bundle>]", [
+cmd_usage(clean_docs, "[<targets>]", [
     %1_______________________________________________
     "Delete documentation targets (temporary files are",
     "removed in 'clean_nodocs')"
 ]) :- advanced.
 %
 cmd_grp(clean_docs_readmes, clean_grp).
-cmd_usage(clean_docs_readmes, "[<bundle>]", [
+cmd_usage(clean_docs_readmes, "[<targets>]", [
     %1_______________________________________________
     "Delete documentation (README) targets"
 ]) :- advanced.
 %
 cmd_grp(clean_docs_manuals, clean_grp).
-cmd_usage(clean_docs_manuals, "[<bundle>]", [
+cmd_usage(clean_docs_manuals, "[<targets>]", [
     %1_______________________________________________
     "Delete documentation (manuals) targets"
 ]) :- advanced.
@@ -337,20 +340,20 @@ cmd_details(emergency_clean, [
 grp_def(install_grp, "Installation").
 %
 cmd_grp(install, install_grp).
-cmd_usage(install, "[<bundle>]", [
+cmd_usage(install, "[<opts>] [<targets>]", [
     %1_______________________________________________
     "Install libraries, binaries, and documentation"
 ]).
 %
 cmd_grp(uninstall, install_grp).
-cmd_usage(uninstall, "[<bundle>]", [
+cmd_usage(uninstall, "[<opts>] [<targets>]", [
     %1_______________________________________________
     "Uninstall libraries, binaries, and documentation"
 ]).
 %
 grp_details(install_grp, [
     %2........................________________________________________________
-    "Install and uninstall accepts the flag:",
+    "Install and uninstall accepts the options:",
     "",
     "  --destdir=DESTDIR      Prepend DESTDIR to each (un)install target",
     "                         (for staged installations)"
@@ -360,13 +363,13 @@ grp_def(test_grp, "Test automation and benchmarking").
 %
 cmd_grp(test, test_grp).
 % TODO: Split into unit tests and the more advanced testing/benchmarking driver
-cmd_usage(test, "[<bundle>]", [
+cmd_usage(test, "[<targets>]", [
     %1_______________________________________________
     "Run all tests (unit tests, integration, etc.)"
 ]).
 %
 cmd_grp(runbenchmarks, test_grp).
-cmd_usage(runbenchmarks, "[<bundle>]", [
+cmd_usage(runbenchmarks, "[<targets>]", [
     %1_______________________________________________
     "Execute all benchmarks available in the system"
 ]) :- advanced.
@@ -374,14 +377,14 @@ cmd_usage(runbenchmarks, "[<bundle>]", [
 grp_def(packaging, "Packaging for distribution") :- advanced.
 %
 cmd_grp(gen_pbundle, packaging). % TODO: trick, does not exist
-cmd_usage(gen_pbundle, "[--kind=Kind]", [
+cmd_usage(gen_pbundle, "[--kind=Kind] [<bundle>]", [
     %1_______________________________________________
     "Generates a distribution of the specified Kind",
     "(see gen_pbundle_hook/3)"
 ]).
 %
 cmd_grp(gen_bundle_commit_info, packaging).
-cmd_usage(gen_bundle_commit_info, "", [
+cmd_usage(gen_bundle_commit_info, "[--git-repo-dir=Dir] [<bundle>]", [
     %1_______________________________________________
     "[Not documented, internal]"
 ]).

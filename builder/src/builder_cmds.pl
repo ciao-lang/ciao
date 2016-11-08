@@ -7,10 +7,6 @@
 :- use_module(library(pathnames), [path_split_list/2]).
 :- use_module(library(terms), [atom_concat/2]).
 
-:- use_module(library(bundle/bundle_params),
-	[set_bundle_param_value/2,
-	 bundle_param_value/2]).
-%
 :- use_module(library(bundle/bundle_paths),
 	[bundle_path/3, bundle_path/4, bundle_metasrc/3]).
 :- use_module(library(bundle/bundle_info), [
@@ -22,15 +18,18 @@
 	reload_bundleregs/0,
 	'$bundle_id'/1]).
 
+:- use_module(ciaobld(builder_flags),
+	[get_builder_flag/2]).
 :- use_module(ciaobld(builder_aux), [
-	root_bundle_source_dir/1,
 	rootprefixed/2,
 	ensure_builddir/2,
         storedir_install/1,
         storedir_uninstall/1,
 	eng_active_bld/1
 	]).
-:- use_module(ciaobld(bundle_get), [bundle_fetch/2, bundle_rm/1]).
+:- use_module(ciaobld(bundle_configure),
+	[bundleset_configure/2, bundle_has_config/1]).
+:- use_module(ciaobld(bundle_get), [check_bundle_alias/3, bundle_fetch/2, bundle_rm/1]).
 :- use_module(ciaobld(ciaoc_aux),
 	[promote_bootstrap/1,
 	 %
@@ -40,8 +39,7 @@
 	 build_libs/2,
 	 build_cmds_list/3,
 	 builddir_clean/2,
-	 clean_tree/1,
-	 clean_mod/1
+	 clean_tree/1
 	]).
 :- use_module(ciaobld(eng_maker),
 	[eng_build/1,
@@ -59,172 +57,153 @@
 :- use_module(library(messages), [error_message/2]).
 
 % ===========================================================================
-:- doc(section, "Builder commands").
+:- doc(section, "Bundle origins for fetching").
 
-:- doc(bug, "See cleaning targets for @apl{lpdoc} and fix it. See other
-   clean targets in core/Manifest/core.hooks.pl").
+:- data bundle_origin/2.
 
-:- doc(bug, "Improve output for foreign clean").
+:- export(add_bundle_origin/2).
+:- pred add_bundle_origin(Bundle, BundleAlias) 
+   # "Select the origin for the given bundle name".
 
-% ---------------------------------------------------------------------------
+% TODO: Error if origin is different
+% TODO: Save origin somewhere (e.g., in FETCHED_BUNDLE mark)
+% TODO: Check that origin coincides w.r.t. saved
+add_bundle_origin(Bundle, BundleAlias) :-
+	( current_fact(bundle_origin(Bundle, _)) -> true
+	; assertz_fact(bundle_origin(Bundle, BundleAlias))
+	).
 
-% Set builder parameters from parsed list
+% Obtain the origin for a bundle (for fetching)
+get_bundle_origin(Bundle, Origin) :-
+	( current_fact(bundle_origin(Bundle, Origin0)) ->
+	    Origin = Origin0
+	; throw(error_msg("Unknown origin for bundle '~w'", [Bundle]))
+	).
 
-set_params([flag(Flag, Value)|Flags]) :- !,
-	( bundle_param_value(Flag, _) ->
-	    true % TODO: check
-	; set_bundle_param_value(Flag, Value)
-	),
-	set_params(Flags).
-set_params([]).
+% ===========================================================================
+:- doc(section, "Special builder commands").
 
-% ---------------------------------------------------------------------------
+:- export(builder_cmd_nobndl/1).
+% List bundles
+builder_cmd_nobndl(list) :- !,
+	list_bundles.
+% Clean of a directory tree, recursively
+builder_cmd_nobndl(clean_tree(Dir)) :- !,
+	clean_tree(Dir).
 
-builder_cmd_on_set(_Cmd, [], _Opts) :- !.
-builder_cmd_on_set(Cmd, [Target|Targets], Opts) :-
-	builder_cmd(Cmd, Target, Opts),
-	builder_cmd_on_set(Cmd, Targets, Opts).
+% ===========================================================================
+:- doc(section, "Builder commands (with targets)").
 
 % (commands that are already completed)
-:- data builder_cmd_done/3.
+:- data builder_cmd_done/2.
 
 :- export(builder_cleanup/0).
 :- pred builder_cleanup # "Cleanup the builder state".
 
 builder_cleanup :-
-	retractall_fact(builder_cmd_done(_, _, _)).
+	retractall_fact(builder_cmd_done(_, _)),
+	retractall_fact(bundle_origin(_, _)).
 
-:- export(builder_cmd/3).
-:- pred builder_cmd(Cmd, Target, Opts) # "Perform command @var{Cmd} on
-   target @var{Target} with options @var{Opts}".
+:- export(builder_cmd/2).
+:- pred builder_cmd(Cmd, Target) # "Perform command @var{Cmd} on
+   target @var{Target}".
 
-builder_cmd(Cmd, '$no_bundle', _Opts) :- !,
-	builder_cmd_nobndl(Cmd).
-builder_cmd(Cmd, Target, Opts) :-
-	current_fact(builder_cmd_done(Cmd, Target, Opts)),
+builder_cmd(Cmd, Target) :-
+	current_fact(builder_cmd_done(Cmd, Target)),
 	!,
 	% TODO: errors, etc.?
 	true.
-builder_cmd(Cmd, Target, Opts) :-
-	builder_cmd_(Cmd, Target, Opts),
-	assertz_fact(builder_cmd_done(Cmd, Target, Opts)).
+builder_cmd(Cmd, Target) :-
+	builder_cmd_(Cmd, Target),
+	assertz_fact(builder_cmd_done(Cmd, Target)).
 
-% Update registered bundles at Path workspace
-builder_cmd_nobndl(rescan_bundles(Path)) :- !,
-	scan_bundles_at_path(Path).
-% List bundles
-builder_cmd_nobndl(list) :- !,
-	list_bundles.
-% Download and install bundles
-builder_cmd_nobndl(get(BundleAlias)) :- !,
-	% Fetch and build the bundle specified in BundleAlias
-	bundle_fetch(BundleAlias, Bundle),
-	builder_cmd(build, Bundle, []).
-% Remove a downloaded bundle
-builder_cmd_nobndl(rm(BundleAlias)) :- !,
-	bundle_rm(BundleAlias).
-% Clean of a directory tree, recursively
-builder_cmd_nobndl(clean_tree(Dir)) :- !,
-	clean_tree(Dir).
-
-builder_cmd_(local_install, Target, Opts) :- !,
-	Opts2 = [flag(ciao:instype, 'local')|Opts],
-	builder_cmd(full_install, Target, Opts2).
-builder_cmd_(global_install, Target, Opts) :- !,
-	Opts2 = [flag(ciao:instype, 'global')|Opts],
-	builder_cmd(full_install, Target, Opts2).
-builder_cmd_(local_install_paranoid, Target, Opts) :- !,
-	Opts2 = [flag(ciao:instype, 'local'),
-		 flag(ciao:unused_pred_warnings, 'yes')|Opts],
-	builder_cmd(full_install, Target, Opts2).
-builder_cmd_(full_install, Target, Opts) :- !,
-	check_builder_update,
-	% (get ciao path from Target)
-	( root_bundle(Target) ->
-	    root_bundle_source_dir(CiaoSrc),
-	    Path = CiaoSrc
-	; % TODO: implement full_install for other bundles?
-	  throw(error_msg("Cannot full_install `~w'.", [Target]))
+builder_cmd_(get(Flags), Target) :- !,
+	% Fetch and install the bundle specified in BundleAlias
+	split_target(Target, Bundle, Part),
+	( Part = '' -> true
+	; throw(error_msg("Cannot fetch separate bundle items (please fetch `~w' instead).", [Bundle]))
 	),
-	scan_bundles_at_path(Path),
-	builder_cmd(config_noscan, Target, Opts),
-	builder_cmd(build, Target, []),
-	builder_cmd(install, Target, []).
+	get_bundle_origin(Bundle, Origin),
+	bundle_fetch(Origin, Bundle),
+	builder_cmd(configure(Flags), Bundle),
+	builder_cmd(build, Bundle),
+	builder_cmd(install, Bundle).
+builder_cmd_(rm, Target) :- !,
+	% Remove a downloaded bundle
+	split_target(Target, Bundle, Part),
+	( Part = '' -> true
+	; throw(error_msg("Cannot remove separate bundle items (please rm `~w' instead).", [Bundle]))
+	),
+	bundle_rm(Bundle).
 %
-builder_cmd_(boot_promote, Target, _Opts) :- !,
+builder_cmd_(local_install(Flags), Target) :- !,
+	Flags2 = [flag(ciao:instype, 'local')|Flags],
+	builder_cmd(full_install(Flags2), Target).
+builder_cmd_(global_install(Flags), Target) :- !,
+	Flags2 = [flag(ciao:instype, 'global')|Flags],
+	builder_cmd(full_install(Flags2), Target).
+builder_cmd_(local_install_paranoid(Flags), Target) :- !,
+	Flags2 = [flag(ciao:instype, 'local'),
+	          flag(ciao:unused_pred_warnings, 'yes')|Flags],
+	builder_cmd(full_install(Flags2), Target).
+%
+builder_cmd_(full_install(Flags), Target) :- !,
+	builder_cmd(configure(Flags), Target),
+	builder_cmd(build, Target),
+	builder_cmd(install, Target).
+%
+builder_cmd_(boot_promote, Target) :- !,
 	do_boot_promote(Target).
 %
-builder_cmd_(configure, Target, Opts) :- !,
-	( member(flag(ciao:list_flags, true), Opts) ->
-	    set_params(Opts), % TODO: needed?
-	    builder_cmd(config_list_flags, Target, Opts)
-	; member(flag(ciao:describe_flag, _Opt), Opts) ->
-	    set_params(Opts), % TODO: needed, pass arg instead
-	    builder_cmd(config_describe_flag, Target, Opts)
-	; member(flag(ciao:set_flag_flag, _Opt), Opts) ->
-	    set_params(Opts), % TODO: needed, pass arg instead
-	    builder_cmd(config_set_flag, Target, Opts)
-	; member(flag(ciao:get_flag_flag, _Opt), Opts) ->
-	    set_params(Opts), % TODO: needed, pass arg instead
-	    builder_cmd(config_get_flag, Target, Opts)
-	; % (get ciao path from Target)
-	  check_builder_update,
-	  ( root_bundle(Target) ->
-	      root_bundle_source_dir(CiaoSrc),
-	      Path = CiaoSrc
-	  ; throw(error_msg("Cannot configure `~w'.", [Target]))
-	  ),
-	  scan_bundles_at_path(Path),
-	  builder_cmd(config_noscan, Target, Opts),
-	  post_config_message(Target)
-	).
-%
-builder_cmd_(config_noscan, Target, Opts) :- !,
+builder_cmd_(configure(Flags), Target) :- !,
 	split_target(Target, Bundle, Part),
 	( Part = '' -> true
 	; throw(error_msg("Cannot configure separate bundle items (please configure `~w' instead).", [Bundle]))
 	),
 	cmd_message(Target, "configuring", []),
-	set_params(Opts),
-	do_config_noscan(Bundle),
+	% Invoke configuration (pre: bundles have been scanned)
+	( root_bundle(Bundle) ->
+	    BundleSet = all
+	; BundleSet = single(Bundle)
+	),
+	bundleset_configure(BundleSet, Flags),
 	cmd_message(Target, "configured", []).
 %
-builder_cmd_(build, Target, Opts) :- !,
+builder_cmd_(build, Target) :- !,
 	% TODO: use fsmemo package to order build tasks (build_docs on any bundle depends on 'build_nodocs lpdoc')
-	builder_cmd(build_nodocs, Target, Opts),
-	builder_cmd(build_docs, Target, Opts).
-builder_cmd_(build_nodocs, Target, Opts) :- root_bundle(Target), !,
+	builder_cmd(build_nodocs, Target),
+	builder_cmd(build_docs, Target).
+builder_cmd_(build_nodocs, Target) :- root_bundle(Target), !,
 	Bundle = Target, Part = '',
 	check_bundle_has_config(build_nodocs, Bundle),
 	% NOTE: 'core/ciaobase' must be built before anything else
 	% TODO: add dependencies instead of fixing a build order
-	% builder_cmd(build_nodocs, 'core/ciaobase', Opts), % (included in core/ build rules)
+	% builder_cmd(build_nodocs, 'core/ciaobase'), % (included in core/ build rules)
 	% Treat sub-bundles
 	( % (failure-driven loop)
 	  Part = '', enum_sub_bundles(Bundle, P),
-	  builder_cmd(build_nodocs, P, Opts),
+	  builder_cmd(build_nodocs, P),
 	    fail
 	; true
 	).
-builder_cmd_(build_nodocs, Target, Opts) :- !,
+builder_cmd_(build_nodocs, Target) :- !,
 	% TODO: Treat dependent bundles first?
 	split_target(Target, Bundle, Part),
 	check_bundle_has_config(build_nodocs, Bundle),
 	( bundle_defines_hookcmd(Bundle, Part, prebuild_nodocs) ->
 	    cmd_message(Target, "building [prebuild no docs]", []),
-	    builder_cmd(prebuild_nodocs, Target, Opts),
+	    builder_cmd(prebuild_nodocs, Target),
 	    cmd_message(Target, "built [prebuild no docs]", [])
 	; true
 	),
 	cmd_message(Target, "building [no docs]", []),
 	% TODO: make sure that Target exists!
-	set_params(Opts),
 	builder_hookcmd(Bundle, Part, build_nodocs),
 	cmd_message(Target, "built [no docs]", []),
 	% Treat item_subs
 	( builder_pred(Target, item_subs(SubPs)) -> true ; fail ),
-	builder_cmd_on_set(build_nodocs, SubPs, Opts).
-builder_cmd_(prebuild_docs, Target, Opts) :- !,
+	builder_cmd_on_set(build_nodocs, SubPs).
+builder_cmd_(prebuild_docs, Target) :- !,
 	% TODO: prebuild docs needs a different order in processing of
 	% item_subs and sub-bundles; can it be simplified?
 	split_target(Target, Bundle, Part),
@@ -232,20 +211,19 @@ builder_cmd_(prebuild_docs, Target, Opts) :- !,
 	% Treat sub-bundles
 	( % (failure-driven loop)
 	  Part = '', enum_sub_bundles(Bundle, P),
-	  builder_cmd(prebuild_docs, P, Opts),
+	  builder_cmd(prebuild_docs, P),
 	    fail
 	; true
 	),
 	% Treat item_subs (for prebuild, it must be done before main)
 	( builder_pred(Target, item_subs(SubPs)) -> true ; fail ),
-	builder_cmd_on_set(prebuild_docs, SubPs, Opts),
+	builder_cmd_on_set(prebuild_docs, SubPs),
 	%
 	( with_docs(yes) ->
 	    ( bundle_defines_hookcmd(Bundle, Part, prebuild_docs) ->
 	        cmd_message(Target, "building [prebuild docs]", []),
 	        ensure_builddir(Bundle, '.'), % TODO: needed?
 		ensure_builddir(Bundle, 'doc'), % TODO: needed?
-		set_params(Opts),
 		builder_hookcmd(Bundle, Part, prebuild_docs),
 		cmd_message(Target, "built [prebuild docs]", [])
 	    ; % (default)
@@ -253,24 +231,23 @@ builder_cmd_(prebuild_docs, Target, Opts) :- !,
 	    )
 	; true
 	).
-builder_cmd_(build_docs, Target, Opts) :- !, % (internal, without prebuild)
+builder_cmd_(build_docs, Target) :- !, % (internal, without prebuild)
 	split_target(Target, Bundle, Part),
 	check_bundle_has_config(build_docs, Bundle),
 	%
-	builder_cmd(prebuild_docs, Target, Opts),
+	builder_cmd(prebuild_docs, Target),
 	%
 	( with_docs(yes) ->
 	    cmd_message(Target, "building [build docs]", []),
 	    ( bundle_defines_hookcmd(Bundle, Part, build_docs) ->
-	        set_params(Opts),
 		builder_hookcmd(Bundle, Part, build_docs)
 	    ; builder_pred(Target, item_def(_)) ->
 	        % TODO: nothing?
 	        true
 	    ; % (default: readmes and manuals)
               % TODO: make sure that Target exists!
-	      builder_cmd(build_docs_readmes, Target, Opts),
-	      builder_cmd(build_docs_manuals, Target, Opts)
+	      builder_cmd(build_docs_readmes, Target),
+	      builder_cmd(build_docs_manuals, Target)
 	    ),
 	    cmd_message(Target, "built [build docs]", [])
 	; true % normal_message("documentation omitted", [])
@@ -278,37 +255,37 @@ builder_cmd_(build_docs, Target, Opts) :- !, % (internal, without prebuild)
 	% Treat sub-bundles
 	( % (failure-driven loop)
 	  Part = '', enum_sub_bundles(Bundle, P),
-	  builder_cmd(build_docs, P, Opts),
+	  builder_cmd(build_docs, P),
 	    fail
 	; true
 	),
 	% Treat item_subs (for prebuild, it be done before main)
 	( builder_pred(Target, item_subs(SubPs)) -> true ; fail ),
-	builder_cmd_on_set(build_docs, SubPs, Opts).
+	builder_cmd_on_set(build_docs, SubPs).
 %
 % Deletes all intermediate files, but leaves configuration settings
-builder_cmd_(clean, Target, Opts) :- !,
-	builder_cmd(clean_docs, Target, Opts),
-	builder_cmd(clean_nodocs, Target, Opts).
+builder_cmd_(clean, Target) :- !,
+	builder_cmd(clean_docs, Target),
+	builder_cmd(clean_nodocs, Target).
 %
 % Like 'clean', but keeps documentation targets.
 % (This reverses the 'build_nodocs' and part of 'build_docs' actions)
-builder_cmd_(clean_nodocs, Target, Opts) :- !,
+builder_cmd_(clean_nodocs, Target) :- !,
 	split_target(Target, Bundle, Part),
 	check_bundle_has_config(clean_nodocs, Bundle),
 	% Treat sub-bundles
 	( Part = '' -> findall(P, enumrev_sub_bundles(Bundle, P), Ps) ; Ps = [] ),
-	builder_cmd_on_set(clean_nodocs, Ps, Opts),
+	builder_cmd_on_set(clean_nodocs, Ps),
 	% Treat item_subs
 	( builder_pred(Target, item_subs(SubPs)) -> true ; fail ),
-	builder_cmd_on_set(clean_nodocs, SubPs, Opts),
+	builder_cmd_on_set(clean_nodocs, SubPs),
 	%
 	cmd_message(Target, "cleaning [no docs]", []),
-	builder_cmd(clean_norec, Target, Opts),
+	builder_cmd(clean_norec, Target),
 	cmd_message(Target, "cleaned [no docs]", []).
 %
 % Like 'clean_nodocs' but non-recursive on sub-bundles
-builder_cmd_(clean_norec, Target, Opts) :- !,
+builder_cmd_(clean_norec, Target) :- !,
 	split_target(Target, Bundle, Part),
 	check_bundle_has_config(clean_norec, Bundle),
 	%
@@ -320,10 +297,9 @@ builder_cmd_(clean_norec, Target, Opts) :- !,
 	    % TODO: clean all builddir except configuration?
 	    builddir_clean(Bundle, pbundle),
 	    builddir_clean(Bundle, bin),
-	    builder_cmd(clean_norec, 'core/engine', []),
-	    builder_cmd(clean_norec, 'core/exec_header', [])
+	    builder_cmd(clean_norec, 'core/engine'),
+	    builder_cmd(clean_norec, 'core/exec_header')
 	; bundle_defines_hookcmd(Bundle, Part, clean_norec) ->
-	    set_params(Opts),
 	    builder_hookcmd(Bundle, Part, clean_norec)
 	; builder_pred(Target, item_def(_)) ->
 	    bundleitem_do(Part, Bundle, clean_norec)
@@ -337,24 +313,24 @@ builder_cmd_(clean_norec, Target, Opts) :- !,
 	).
 %
 % Clean the final documentation targets (READMEs and manuals)
-builder_cmd_(clean_docs, Target, Opts) :- !,
+builder_cmd_(clean_docs, Target) :- !,
 	split_target(Target, Bundle, Part),
 	check_bundle_has_config(clean_docs, Bundle),
 	% TODO: refine targets
 	( Part = '' -> findall(P, enum_sub_bundles(Bundle, P), Ps) ; Ps = [] ),
-	builder_cmd_on_set(clean_docs, Ps, Opts),
-	builder_cmd(clean_docs_manuals, Target, Opts),
-	builder_cmd(clean_docs_readmes, Target, Opts).
+	builder_cmd_on_set(clean_docs, Ps),
+	builder_cmd(clean_docs_manuals, Target),
+	builder_cmd(clean_docs_readmes, Target).
 %
 % Like 'clean' but also removes configuration settings.
-builder_cmd_(distclean, Target, Opts) :- !,
+builder_cmd_(distclean, Target) :- !,
 	split_target(Target, Bundle, _Part),
 	check_bundle_has_config(distclean, Bundle),
-	builder_cmd(clean, Target, Opts),
+	builder_cmd(clean, Target),
 	%
 	% Clean config (this must be the last step)
 	cmd_message(Target, "cleaning [config]", []),
-	builder_cmd(configclean, Target, Opts),
+	builder_cmd(configclean, Target),
 	( root_bundle(Target) ->
 	    % TODO: non-root?
 	    % TODO: make sure that no binary is left after 'clean' (outside builddir)
@@ -367,7 +343,7 @@ builder_cmd_(distclean, Target, Opts) :- !,
 % TODO: split in a configclean for each (sub)bundle or workspace
 % Warning! configclean is the last cleaning step. If you clean all
 %          the configuration files then many scripts will not run.
-builder_cmd_(configclean, Target, _Opts) :- !,
+builder_cmd_(configclean, Target) :- !,
 	split_target(Target, Bundle, _Part),
 	check_bundle_has_config(configclean, Bundle),
 	( root_bundle(Target) ->
@@ -376,8 +352,7 @@ builder_cmd_(configclean, Target, _Opts) :- !,
 	; true
 	).
 % ----------
-builder_cmd_(Cmd, Target, Opts) :-
-	set_params(Opts),
+builder_cmd_(Cmd, Target) :-
 	split_target(Target, Bundle, Part),
 	builder_hookcmd(Bundle, Part, Cmd).
 
@@ -394,46 +369,6 @@ split_target(Target, Bundle, Part) :-
 builder_pred(Target, Head) :-
 	split_target(Target, Bundle, Part),
 	builder_hookpred(Bundle, Part, Head).
-
-% ---------------------------------------------------------------------------
-
-:- use_module(ciaobld(bundle_scan), [scan_bundles_at_path/1]).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "Invoking the Configuration").
-
-:- use_module(ciaobld(bundle_configure), [config_noscan/1]).
-:- use_module(ciaobld(bundle_configure), [bundle_has_config/1]).
-:- use_module(ciaobld(bundle_configure), [check_builder_update/0]).
-
-% Invoke configuration (pre: bundles have been scanned)
-do_config_noscan(Bundle) :-
-	( root_bundle(Bundle) ->
-	    true
-	; % TODO: implement configuration for individual bundles
-	  throw(error_msg("Cannot configure bundle '~w'.", [Bundle]))
-	),
-	BundleSet = all,
-	config_noscan(BundleSet).
-
-% ---------------------------------------------------------------------------
-:- use_module(library(system_extra), [using_tty/0]).
-
-% Show a help message after (only when run from a TTY)
-post_config_message(Target) :-
-	( using_tty ->
-	    show_post_config_message(Target)
-	; true
-	).
-
-show_post_config_message(Target) :- root_bundle(Target), !,
-	normal_message(
-"Please check that all the configuration values above are correct. If
-not, you can change or customize the configuration using the command
-line or --interactive configure flag.
-
-To continue the installation, execute 'build' and 'install' commands.", []).
-show_post_config_message(_).
 
 % ===========================================================================
 :- doc(section, "Promote bootstrap compiler (dangerous!)").
@@ -479,7 +414,7 @@ ask_promote_bootstrap(Eng) :-
 
 check_bundle_has_config(Cmd, Bundle) :-
 	( \+ '$bundle_id'(Bundle) ->
-	    throw(error_msg("Unknown bundle '~w' (try 'rescan-bundles').", [Bundle]))
+	    throw(error_msg("Unknown bundle '~w' (try 'rescan-bundles').", [Bundle])) % TODO: needed?
 	; \+ bundle_has_config(Bundle) ->
 	    throw(error_msg("Cannot do '~w' on bundle '~w' without a configuration. Please run 'configure' before.", [Cmd, Bundle]))
 	; true
@@ -563,28 +498,11 @@ bundlehook_call(Bundle, Part, Cmd) :-
 
 bundlehook_call_(config_list_flags, Bundle, '') :- !,
 	config_list_flags(Bundle).
-bundlehook_call_(config_describe_flag, _Bundle, '') :- !,
-	% (the flag is the value of ciao:describe_flag)
-	( bundle_param_value(ciao:describe_flag, Flag) ->
-	    true
-	; throw(bug_in_config_describe_flag)
-	),
+bundlehook_call_(config_describe_flag(Flag), _Bundle, '') :- !,
 	config_describe_flag(Flag).
-bundlehook_call_(config_set_flag, _Bundle, '') :- !,
-	% (the flag is the value of ciao:set_flag_flag)
-	% (the value is the value of ciao:set_flag_value)
-	( bundle_param_value(ciao:set_flag_flag, Flag),
-	  bundle_param_value(ciao:set_flag_value, Value) ->
-	    true
-	; throw(bug_in_config_set_flag)
-	),
+bundlehook_call_(config_set_flag(Flag, Value), _Bundle, '') :- !,
 	config_set_flag(Flag, Value).
-bundlehook_call_(config_get_flag, _Bundle, '') :- !,
-	% (the flag is the value of ciao:get_flag_flag)
-	( bundle_param_value(ciao:get_flag_flag, Flag) ->
-	    true
-	; throw(bug_in_config_get_flag)
-	),
+bundlehook_call_(config_get_flag(Flag), _Bundle, '') :- !,
 	display(~config_get_flag(Flag)), nl.
 %
 bundlehook_call_(build_docs_readmes, Bundle, '') :- !,
@@ -630,7 +548,7 @@ bundlehook_call_(install, Bundle, Part) :- Part = '', !,
 	bundlehook_call__(install, Bundle, ''),
 	% Treat item_subs
 	( builder_pred(Bundle, item_subs(SubPs)) -> true ; fail ),
-	builder_cmd_on_set(install, SubPs, []), % TODO: opts are wrong
+	builder_cmd_on_set(install, SubPs),
         %( member(SubP, SubPs), bundleitem_do(SubP, Bundle, install), fail ; true ),
 	%
 	cmd_message(Bundle, "installed [no docs]", []),
@@ -663,7 +581,7 @@ bundlehook_call_(uninstall, Bundle, Part) :- Part = '', !,
 	cmd_message(Bundle, "uninstalled [no docs]", []),
 	% Treat item_subs
 	( builder_pred(Bundle, item_subs(SubPs)) -> true ; fail ),
-	builder_cmd_on_set(uninstall, SubPs, []). % TODO: opts are wrong
+	builder_cmd_on_set(uninstall, SubPs).
 	%( member(SubP, SubPs), bundleitem_do(SubP, Bundle, uninstall), fail ; true ).
 bundlehook_call_(uninstall, Bundle, Part) :- !,
 	bundlehook_call(Bundle, Part, unregister),
@@ -680,7 +598,7 @@ bundlehook_call_(uninstall_docs, Bundle, '') :- !, % (no hooks)
 % pbundle generation
 bundlehook_call_(gen_pbundle, Bundle, '') :- !,
 	% TODO: 'src' and 'bin' Kind have WRONG names ('nothing' implies tgz and tbz)
-	( bundle_param_value(ciao:kind, Kind) ->
+	( get_builder_flag(kind, Kind) ->
 	    true
 	; throw(bug_in_gen_pbundle)
 	),
@@ -708,6 +626,12 @@ bundlehook_call__(Cmd, Bundle, Part) :-
 	    m_bundlehook_do(BundleHooksMod, Part, Cmd)
 	; default_cmd(Cmd, Bundle, Part)
 	).
+
+:- export(builder_cmd_on_set/2).
+builder_cmd_on_set(_Cmd, []) :- !.
+builder_cmd_on_set(Cmd, [Target|Targets]) :-
+	builder_cmd(Cmd, Target),
+	builder_cmd_on_set(Cmd, Targets).
 
 % Default command action, when no hook is provided (true, fail, etc.)
 default_cmd(Cmd, Bundle, Part) :- defcmd(Cmd), !,
@@ -1230,4 +1154,12 @@ bundle_uninstall_docs_format_hook(info, Bundle, Target) :- !,
 	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
 	dirfile_uninstall_info(DocDir, Target).
 bundle_uninstall_docs_format_hook(_, _, _).
+
+% ===========================================================================
+%:- doc(section, "TODOs").
+
+:- doc(bug, "See cleaning targets for @apl{lpdoc} and fix it. See other
+   clean targets in core/Manifest/core.hooks.pl").
+
+:- doc(bug, "Improve output for foreign clean").
 

@@ -124,11 +124,11 @@
 	unset_emacs_path.
 
 environment :-
-	builder_cmd(build_nodocs, 'core/exec_header', []),
-	builder_cmd(build_nodocs, 'core/emacs_mode', []), % (needed?)
-	builder_cmd(install, 'core/emacs_mode', []), % (needed?)
+	builder_cmd(build_nodocs, 'core/exec_header'),
+	builder_cmd(build_nodocs, 'core/emacs_mode'), % (needed?)
+	builder_cmd(install, 'core/emacs_mode'), % (needed?)
 	% (put ciao-mode-init.el in place)
-	builder_cmd(install, 'core/dot_emacs', []).
+	builder_cmd(install, 'core/dot_emacs').
 
 % TODO: make sure that 'ciao' is the same in Win32 and unix (currently it isn't)
 % TODO: Add a build_cmds_fix_win action that just creates this

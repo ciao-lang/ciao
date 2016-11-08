@@ -18,8 +18,6 @@
 % ===========================================================================
 
 :- use_module(ciaobld(messages_aux), [cmd_message/3]).
-:- use_module(library(bundle/bundle_params),
-	[bundle_param_value/2]).
 
 :- use_module(library(aggregates)).
 :- use_module(library(lists)).
@@ -276,22 +274,23 @@ RPM's own documentation (a handful of note files).
 
 % ===========================================================================
 
-:- pred rpm_options(Bundle, Opts) # "@var{Opts} are the options to be
+:- pred rpm_options(Bundle, InOpts, Opts) # "@var{Opts} are the options to be
 	used in the RPM generation of @var{Bundle}. All these get
 	defined as RPM macros of the same name.".
 
-rpm_options(Bundle) := Options :-
+rpm_options(Bundle, InOpts) := Options :-
 	Options = ~append([
 	    % These are compulsory (gen_pbundle__rpm/2 needs them to know how to behave).
-	    % We set a default value if the option wasn't defined by user:
-	    ~rpm_option_or_default('subpackages', 'no'),
-	    ~rpm_option_or_default('versionp',    'no'),
-	    ~rpm_option_or_default('vendor_independent', 'yes')|
+	    % TODO: customize
+	    option('subpackages', 'no'),
+	    option('versionp',    'no'),
+	    option('vendor_independent', 'yes')|
             % All other options are optional. We only set them if defined by user:
             % TODO: INCORRECT!
-	    ~findall(option(OptName, OptVal), bundle_param_value(_Bundle:OptName, OptVal))
+	    InOpts
 	    ],
 	    % All available subpackages are produced by default:
+	    % TODO: Not very nice...
 	    ~findall(option(SubBundle, 'yes'), enum_sub_bundles(Bundle, SubBundle))).
 
 % ===========================================================================
@@ -305,7 +304,8 @@ rpm_options(Bundle) := Options :-
 % (hook)
 % Generate RPM packages. A source distribution is generated if missing.
 gen_pbundle_hook(rpm, Bundle, _Options) :- !,
-	gen_pbundle__rpm(Bundle, ~rpm_options(Bundle)).
+	% TODO: Allow options in _Options (option(Name, Val))
+	gen_pbundle__rpm(Bundle, ~rpm_options(Bundle, [])).
 
 % ---------------------------------------------------------------------------
 
@@ -608,16 +608,6 @@ ciaorpm_opttype(SubBundleName,        Bundle, 'rpm_expression') :-
 
 ciaorpm_mapvalue('rpm_expression', 'yes', '1').
 ciaorpm_mapvalue('rpm_expression', 'no',  '0').
-
-:- pred rpm_option_or_default(OptionName, DefaultValue, Option) #
-   "@var{Option} is the RPM
-   @tt{option(OptionName,Value)}. @var{DefaultValue} is used instead
-   as the default fallback when @var{OptionName} was not defined by
-   the user.".
-
-rpm_option_or_default(OptName, _, option(OptName, OptValue)) :-
-	bundle_param_value(_Bundle:OptName, OptValue), !.
-rpm_option_or_default(OptName, DefValue, option(OptName, DefValue)).
 
 % ===========================================================================
 % Naming conventions for RPM files

@@ -105,13 +105,13 @@ bundle_repo_kind(Bundle, RepoKind) :-
 	; RepoKind = none
 	).
 
-:- use_module(library(bundle/bundle_params), [bundle_param_value/2]).
+:- use_module(ciaobld(builder_flags), [get_builder_flag/2]).
 
 % TODO: should ciao:git_repo_dir be an option for each bundle?
 % TODO: See ciaobot/bundle_builder.sh (COMMIT_INFO_OPTS)
 %   (specify where the Git repo is stored for this bundle)
 root_git_repo_dir(V) :-
-	( bundle_param_value(ciao:git_repo_dir, V) ->
+	( get_builder_flag(git_repo_dir, V) ->
 	    true
 	; fail
 	).

@@ -4,9 +4,9 @@
 :- doc(author, "Ciao Development Team").
 
 :- doc(module, "This module computes the values of bundle
-   configuration flags (@lib{bundle_flags}) based on bundle parameters
-   (@lib{bundle_params}) and the configuration rules
-   (@tt{Manifest/*.config.pl} files).
+   configuration flags (@lib{bundle_flags}) based on configuration
+   parameters the configuration rules (@tt{Manifest/*.config.pl}
+   files).
 
 @begin{alert}
 DOCUMENT SYNTAX AND SEMANTICS OF CONFIGURATION RULES
@@ -25,10 +25,9 @@ DOCUMENT SYNTAX AND SEMANTICS OF CONFIGURATION RULES
 :- use_module(library(messages)).
 :- use_module(library(port_reify)).
 
-% ---------------------------------------------------------------------------
+:- use_module(ciaobld(builder_flags), [get_builder_flag/2]).
 
-% Configuration parameters
-:- use_module(library(bundle/bundle_params), [bundle_param_value/2]).
+% ---------------------------------------------------------------------------
 
 % Configuration flags (persistent)
 :- use_module(library(bundle/bundle_flags), [
@@ -38,6 +37,32 @@ DOCUMENT SYNTAX AND SEMANTICS OF CONFIGURATION RULES
 	get_bundle_flag/2,
 	set_bundle_flag/2,
 	save_bundle_flags/1]).
+
+% ---------------------------------------------------------------------------
+% Input for configuration
+
+% input_flag(Name, Bundle, Value)
+:- data input_flag/3.
+
+:- pred set_config_input(Flags) # "Select the input values for configuration".
+set_config_input(Flags) :-
+	retractall_fact(input_flag(_, _, _)),
+	set_config_input_(Flags).
+
+set_config_input_([flag(Flag, Value)|Flags]) :- !,
+	( get_input_flag(Flag, _) ->
+	    true % TODO: warn if duplicated?
+	; set_input_flag(Flag, Value)
+	),
+	set_config_input_(Flags).
+set_config_input_([]).
+
+get_input_flag(Bundle:Name, Value) :-
+	current_fact(input_flag(Name, Bundle, Value)).
+
+set_input_flag(Bundle:Name, Value) :-
+	retractall_fact(input_flag(Name, Bundle, _)),
+	asserta_fact(input_flag(Name, Bundle, Value)).
 
 % ---------------------------------------------------------------------------
 
@@ -57,10 +82,10 @@ flag_def(Bundle:Name, X) :-
 %
 %  rule_set_value ---> there is a unique value
 %  rule_default   ---> there are multiple values
-param_body(Bundle, Name,
-	   NeededIfGoal,
-	   SetValueGoal, Value,
-	   DefaultValueGoal, DefaultValue) :-
+rule_body(Bundle, Name,
+	  NeededIfGoal,
+	  SetValueGoal, Value,
+	  DefaultValueGoal, DefaultValue) :-
 	m_bundle_config_entry(Bundle, Name, Def0),
 	!,
 	% expand config entry for prolog_flags
@@ -171,13 +196,13 @@ bundle_has_config(Bundle) :-
 
 % TODO: ensure_load_bundle_metasrc/2: not unloaded! (do refcount or gc of modules)
 
-:- export(config_noscan/1).
-:- pred config_noscan(BundleSet) # "Configure all bundles. If
-   @tt{ciao:interactive_config} flag is specified, the process is
-   interactive. Otherwise, values for configuration are detected
-   automatically.".
+:- export(bundleset_configure/2).
+:- pred bundleset_configure(BundleSet, Flags) # "Configure the bundles
+   specified in @var{BundleSet} using their configuration rules and
+   the input provided by @var{Flags} and/or user interaction (if
+   @tt{ciao:interactive_config} flag is specified).".
 
-config_noscan(BundleSet) :-
+bundleset_configure(BundleSet, Flags) :-
 	% Load config rules
 	( % (failure-driven loop)
 	  in_bundleset(BundleSet, Bundle),
@@ -185,6 +210,8 @@ config_noscan(BundleSet) :-
 	    fail
 	; true
 	),
+	% Set input flags
+	set_config_input(Flags),
 	% Materialize configuration values (based on user preferences)
 	check_bundle_params(BundleSet), % (for user prefs)
 	check_bundle_deps(BundleSet),
@@ -193,7 +220,7 @@ config_noscan(BundleSet) :-
 	save_modified_flags(BundleSet).
 
 save_modified_flags(BundleSet) :-
-	save_modified_flags_sh,
+	save_modified_flags_sh(BundleSet),
 	( % (failure-driven loop)
 	  in_bundleset(BundleSet, Bundle),
 	    ( needs_save(Bundle) ->
@@ -211,8 +238,9 @@ needs_save(Bundle) :- \+ bundle_has_config(Bundle).
 % Auxiliary code for eng_config_sysdep/2
 
 % (for future calls to eng_config_sysdep/2)
-save_modified_flags_sh :-
-	( needs_save(Bundle), bundle_export_sh(Bundle) ->
+save_modified_flags_sh(BundleSet) :-
+	( in_bundleset(BundleSet, Bundle),
+	  needs_save(Bundle), bundle_export_sh(Bundle) -> 
 	    export_bundle_flags_as_sh(~bundle_flags_sh_file)
 	; true
 	).
@@ -266,10 +294,8 @@ touppercode(C, C).
 
 check_bundle_params(BundleSet) :-
 	( in_bundleset(BundleSet, Bundle),
-	  bundle_param_value(Bundle:Name, _),
-	    ( Bundle = ciao, Name = interactive_config -> % TODO: do in other way?
-	        true
-	    ; Bundle = boot, m_bundle_config_entry(core, Name, _ParamDef) ->
+	  get_input_flag(Bundle:Name, _),
+	    ( Bundle = boot, m_bundle_config_entry(core, Name, _ParamDef) ->
 	        % (special 'boot' configuration flags -- see scan_bootstrap_opts.sh)
 		true
 	    ; m_bundle_config_entry(Bundle, Name, _ParamDef) ->
@@ -480,7 +506,7 @@ eval_config_rules_(BundleSet) :-
 
 % Evaluate rule for configuration mode flag
 eval_config_mode_flag :-
-	( bundle_param_value(ciao:interactive_config, true) ->
+	( get_builder_flag(interactive_config, true) ->
 	    eval_config_rule(ciao:configuration_mode, [])
 	; true
 	).
@@ -500,7 +526,7 @@ init_config_fixpo(BundleSet, OneFlag) :-
 	bundleset_bak_flags(BundleSet),
 	% Clean flags if needed (for non-interactive)
 	( OneFlag = no ->
-	    ( bundle_param_value(ciao:interactive_config, true) ->
+	    ( get_builder_flag(interactive_config, true) ->
 	        % use saved config values
 	        true
 	    ; bundleset_clean_flags(BundleSet)
@@ -581,10 +607,10 @@ eval_config_rule(Flag, Seen) :-
 	; throw(undefined_bundle_config_parameter(Bundle, Name))
 	),
 	% Get rule body
-	param_body(Bundle, Name,
-	           NeededIfGoal,
-		   SetValueGoal, Value,
-		   DefaultValueGoal, DefaultValue),
+	rule_body(Bundle, Name,
+	          NeededIfGoal,
+		  SetValueGoal, Value,
+		  DefaultValueGoal, DefaultValue),
 	% Get config value domain
 	( flag_def(Flag, valid_values(ValidValues)) ->
 	    true
@@ -594,8 +620,8 @@ eval_config_rule(Flag, Seen) :-
 	%
 	% (1) from a bundle parameter
 	% TODO: use as input instead?
-	( bundle_param_value(Flag, Value) ->
-	    % TODO: Add option in bundle_flag for this?
+	( get_input_flag(Flag, Value) ->
+	    % TODO: allow it only for 'interactive'?
 	    Explanation = parameter
 	% (2) unique possible value, from SetValueGoal
 	; eval_config_deps(NeededIfGoal, Flag, Seen, Bundle),
@@ -646,7 +672,7 @@ eval_config_rule(Flag, Seen) :-
 	),
 	!,
 	% TODO: do proper type check and definition
-	check_bundle_param_domain(Flag, Value, ValidValues),
+	check_bundle_flag_domain(Flag, Value, ValidValues),
 	% Set value
 	%display(config_value(Bundle, Name, Value, Explanation)), nl,
 	config_set_flag_(Flag, Value),
@@ -656,7 +682,7 @@ eval_config_rule(Flag, Seen) :-
 % The flag can be configured interactively
 interactive_flag(_) :-
 	% none if not interactive
-	\+ bundle_param_value(ciao:interactive_config, 'true'),
+	\+ get_builder_flag(interactive_config, 'true'),
 	!,
 	fail.
 interactive_flag(ciao:configuration_mode) :- % (always ask on interactive)
@@ -706,7 +732,7 @@ decomp_flag(BundleNameVal, ThisBundle, Bundle:Name, Value) :- !,
 	NameVal =.. [Name, Value].
 
 % TODO: do proper type checking
-check_bundle_param_domain(Flag, Value, ValidValues) :-
+check_bundle_flag_domain(Flag, Value, ValidValues) :-
 	( var(ValidValues) ->
 	    true
 	; ground(Value), member(Value, ValidValues) ->

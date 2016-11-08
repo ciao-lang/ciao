@@ -152,7 +152,7 @@ builddir_bin_link_as(Bundle, Kind, Src, Dest) :-
 	[instciao_bindir/1,
 	 instciao_storedir/1,
 	 instciao_bundledir/2]).
-:- use_module(library(bundle/bundle_params), [bundle_param_value/2]).
+:- use_module(ciaobld(builder_flags), [get_builder_flag/2]).
 :- use_module(library(system), [delete_directory/1]).
 :- use_module(library(source_tree), [copy_file_tree/4]).
 :- use_module(library(glob), [glob/3]).
@@ -169,7 +169,7 @@ builddir_bin_link_as(Bundle, Kind, Src, Dest) :-
 
 % TODO: rename to install_destdir
 rootprefix(R) :-
-	( bundle_param_value(ciao:destdir, Value) ->
+	( get_builder_flag(destdir, Value) ->
 	    R = Value
 	; R = ''
 	).

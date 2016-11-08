@@ -50,7 +50,7 @@ Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The CLIP Group.
 :- use_module(library(bundle/doc_flags), [docformatdir/2]).
 :- use_module(ciaobld(pbundle_generator)).
 :- use_module(ciaobld(builder_aux), [wr_template/4]).
-:- use_module(ciaobld(builder_cmds), [builder_cmd/3]).
+:- use_module(ciaobld(builder_cmds), [builder_cmd/2]).
 :- use_module(ciaobld(pbundle_gen_src)).
 
 :- use_module(ciaobld(messages_aux), [cmd_message/3, verbose_message/2]).
@@ -156,6 +156,7 @@ gen_pbundle__pkg(Bundle) :-
 	process_call(path(rm), ['-rf', TmpDir], []).
 
 % (also used in Portfile.skel)
+% TODO: WRONG! Do not use a process
 install_to_destdir(DestDir) :-
 	process_call('./ciao-boot.sh',
 	       ['install', ~atom_concat('--destdir=', DestDir)], []).
@@ -580,7 +581,7 @@ gen_pbundle__app(Bundle) :-
 	% TODO: (see environment_and_windows_bats for similar code)
 	set_emacs_type('MacOSBundle'), % TODO: strange; do it dynamically instead
  	% TODO: the emacs mode could be a bundle on its own in the future
-	builder_cmd(build_nodocs, 'core/emacs_mode', []), % TODO: make sure that this is rebuild
+	builder_cmd(build_nodocs, 'core/emacs_mode'), % TODO: make sure that this is rebuild
 	unset_emacs_type,
 	%
 	wr_template(origin, ~path_concat(~builder_src_dir, 'mac'), 'Ciao.applescript', [
