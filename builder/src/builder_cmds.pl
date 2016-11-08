@@ -29,7 +29,7 @@
 	]).
 :- use_module(ciaobld(bundle_configure),
 	[bundleset_configure/2, bundle_has_config/1]).
-:- use_module(ciaobld(bundle_get),
+:- use_module(ciaobld(bundle_fetch),
 	[check_bundle_alias/3, bundle_fetch/2, bundle_rm/1]).
 :- use_module(ciaobld(ciaoc_aux),
 	[promote_bootstrap/1,
@@ -1158,7 +1158,7 @@ bundle_uninstall_docs_format_hook(_, _, _).
 
 :- use_module(engine(internals),
 	['$bundle_id'/1, '$bundle_prop'/2, '$bundle_srcdir'/2]).
-:- use_module(ciaobld(bundle_get), [bundle_status/2]).
+:- use_module(ciaobld(bundle_fetch), [bundle_status/2]).
 
 % TODO: Merge with code in autodoc:get_last_version/3
 % TODO: customize format (e.g., like in 'git log')

@@ -149,7 +149,7 @@ force the recompilation and cleaning of that part (see
 	 add_bundle_origin/2,
 	 builder_cmd_nobndl/1,
 	 builder_cmd_on_set/2]).
-:- use_module(ciaobld(bundle_get), [check_bundle_alias/3]).
+:- use_module(ciaobld(bundle_fetch), [check_bundle_alias/3]).
 :- use_module(ciaobld(builder_flags),
 	[set_builder_flag/2, cleanup_builder_flags/0]).
 :- use_module(ciaobld(builder_aux), [bundle_at_dir/2, ciao_path_at_dir/2]).
