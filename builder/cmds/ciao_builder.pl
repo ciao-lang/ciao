@@ -230,8 +230,6 @@ help_mode('help_all_boot', all, boot).
 
 needs_update_builder(rescan_bundles).
 needs_update_builder(configure(_)).
-needs_update_builder(local_install(_)).
-needs_update_builder(global_install(_)).
 needs_update_builder(full_install(_)).
 needs_update_builder(install).
 needs_update_builder(install_nodocs).
@@ -242,8 +240,6 @@ needs_update_builder(build_nodocs).
 
 needs_rescan(rescan_bundles).
 needs_rescan(configure(_)).
-needs_rescan(local_install(_)).
-needs_rescan(global_install(_)).
 needs_rescan(full_install(_)).
 needs_rescan(install).
 needs_rescan(install_nodocs).

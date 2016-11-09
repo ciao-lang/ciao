@@ -137,17 +137,6 @@ builder_cmd_(rm, Target) :- !,
 	),
 	bundle_rm(Bundle).
 %
-builder_cmd_(local_install(Flags), Target) :- !,
-	Flags2 = [flag(ciao:instype, 'local')|Flags],
-	builder_cmd(full_install(Flags2), Target).
-builder_cmd_(global_install(Flags), Target) :- !,
-	Flags2 = [flag(ciao:instype, 'global')|Flags],
-	builder_cmd(full_install(Flags2), Target).
-builder_cmd_(local_install_paranoid(Flags), Target) :- !,
-	Flags2 = [flag(ciao:instype, 'local'),
-	          flag(ciao:unused_pred_warnings, 'yes')|Flags],
-	builder_cmd(full_install(Flags2), Target).
-%
 builder_cmd_(full_install(Flags), Target) :- !,
 	builder_cmd(configure(Flags), Target),
 	builder_cmd(build, Target),
@@ -977,8 +966,6 @@ rootprefix_bundlecfg_file(InsType, BundleName, RegFile) :-
 :- use_module(library(system_extra), [mkpath/1]).
 :- use_module(library(source_tree),
 	[copy_file_or_dir/2, remove_file_or_dir/1]).
-
-:- use_module(library(aggregates), [findall/3]).
 
 :- use_module(ciaobld(ciaoc_aux), [invoke_lpdoc/1]).
 
