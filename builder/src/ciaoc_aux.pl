@@ -41,10 +41,7 @@
 %
 :- use_module(ciaobld(builder_aux),
 	[ensure_builddir/2,
-	 remove_dir_nofail/1,
-	 n_and_props/3,
-	 n_output/3,
-	 n_name/2]).
+	 remove_dir_nofail/1]).
 :- use_module(ciaobld(builder_aux), [root_bundle_source_dir/1]).
 
 % ===========================================================================
@@ -317,43 +314,31 @@ create_windows_bat(Eng, BatCmd, Opts, EngExecOpts, OrigBundle, OrigCmd) :-
 :- use_module(library(source_tree), [current_file_find/3]).
 :- use_module(library(system_extra), [using_tty/0]).
 
-% TODO: build_cmds_list/3 does not receive the kind of utility (K)
-%       It can only build Prolog applications. Add plug-ins? Or rewrite
-%       the special applications in some that that 'b_make_exec' understand?
-%       (see 'Use packages to generate script files' in my TODO list)
+% TODO: cmd_build/1 can only build Prolog applications. Add plug-ins?
+%       Or rewrite the special applications in some that that
+%       'b_make_exec' understand?  (see 'Use packages to generate
+%       script files' in my TODO list)
 
 % TODO: show the same kind of messages that are used when compiling libraries
-:- export(build_cmds_list/3).
-build_cmds_list(Bundle, Dir, Ps) :-
-	( % (failure-driven loop)
-	  member(P0, Ps),
-	    build_cmd(Bundle, Dir, P0),
-	    fail
-	; true
-	).
-
-build_cmd(Bundle, Dir, P0) :-
-	n_and_props(P0, P, Props),
-	n_name(Props, Name),
-	n_output(P, Props, Output),
+:- export(cmd_build/1).
+cmd_build(cmd_def(Bundle, In, Output, Props)) :-
 	( member(static, Props) ->
 	    % make static executable
 	    Opts = [static]
 	; Opts = []
 	),
-	path_concat(Dir, P, In),
 	( member(shscript, Props) ->
 	    true % TODO: invoke custom build predicate
 	; member(bootstrap_ciaoc, Props) ->
 	    % use bootstrap ciaoc
 	    % TODO: it should use 'build' configuration
-	    cmd_message(Bundle, "building '~w' (~s) using bootstrap compiler", [Output, Name]),
+	    cmd_message(Bundle, "building '~w' command (using bootstrap compiler)", [Output]),
 	    b_make_exec(Bundle, In, Output, [bootstrap_ciaoc|Opts])
 	; % member(final_ciaoc, Props) ->
 	  % use final_ciaoc (default)
 	  % TODO: it should use 'build' configuration
 	  % TODO: Add options for other ciaoc iterations
-	  cmd_message(Bundle, "building '~w' (~s)", [Output, Name]),
+	  cmd_message(Bundle, "building '~w' command", [Output]),
 	  b_make_exec(Bundle, In, Output, [final_ciaoc|Opts])
 	).
 

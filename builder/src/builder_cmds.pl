@@ -38,7 +38,7 @@
 	 clean_eng_exec_header/1,
 	 %
 	 build_libs/2,
-	 build_cmds_list/3,
+	 cmd_build/1,
 	 builddir_clean/2,
 	 clean_tree/1
 	]).
@@ -770,14 +770,6 @@ bundleitem_do_(src(DirName), Bundle, uninstall) :- !, % (only instype=global)
 	storedir_uninstall(src_dir_rec(~inst_bundle_path(Bundle, DirName))).
 bundleitem_do_(src(_DirName), _Bundle, register) :- !.
 bundleitem_do_(src(_DirName), _Bundle, clean_norec) :- !.
-bundleitem_do_(cmds_list(Path, List), Bundle, build_nodocs) :- !,
-	build_cmds_list(Bundle, ~bundle_path(Bundle, Path), List).
-bundleitem_do_(cmds_list(_, List), Bundle, install) :- !,
-	storedir_install(cmds_list_(Bundle, List)).
-bundleitem_do_(cmds_list(_, List), Bundle, uninstall) :- !,
- 	storedir_uninstall(cmds_list_(Bundle, List)).
-bundleitem_do_(cmds_list(_, _), _Bundle, register) :- !.
-bundleitem_do_(cmds_list(_, _), _Bundle, clean_norec) :- !.
 bundleitem_do_(lib_file_list(_Path, _List), _Bundle, register) :- !.
 bundleitem_do_(lib_file_list(_Path, _List), _Bundle, clean_norec) :- !.
 bundleitem_do_(lib_file_list(Path, List), Bundle, Cmd) :- !,
@@ -796,7 +788,23 @@ bundleitem_do_(bin_copy_and_link(K, File, Props), Bundle, uninstall) :- !,
 	storedir_uninstall(copy_and_link(K, Bundle, File)).
 bundleitem_do_(bin_copy_and_link(_K, _File, _Props), _Bundle, register) :- !.
 bundleitem_do_(bin_copy_and_link(_K, _File, _Props), _Bundle, clean_norec) :- !.
-% Engine
+% Executables (cmd)
+bundleitem_do_(cmd(Path), Bundle, Cmd) :- atom(Path), !,
+	path_split(Path, _, Name0),
+	( atom_concat(Name, '.pl', Name0) -> true
+	; Name = Name0
+	),
+	bundleitem_do_(cmd(Name, [main=Path]), Bundle, Cmd).
+bundleitem_do_(cmd(Name, Opts), Bundle, build_nodocs) :- !,
+	cmd_build(~get_cmd_def(Bundle, Name, Opts)).
+bundleitem_do_(cmd(Name, Opts), Bundle, install) :- !,
+	storedir_install(~get_cmd_def(Bundle, Name, Opts)).
+bundleitem_do_(cmd(Name, Opts), Bundle, uninstall) :- !,
+ 	storedir_uninstall(~get_cmd_def(Bundle, Name, Opts)).
+bundleitem_do_(cmd(_, _), _Bundle, register) :- !.
+bundleitem_do_(cmd(_, _), _Bundle, clean_norec) :- !.
+% Engines
+% TODO: mimik 'cmd'! (this is a very similar case)
 bundleitem_do_(eng(EngMainSpec, EngOpts), Bundle, build_nodocs) :- !,
 	Eng = eng_def(Bundle, EngMainSpec, EngOpts),
 	eng_build(Eng),
@@ -877,6 +885,12 @@ inst_bundle_path(Bundle, Rel) := R :-
 	    R = R0
 	; R = ~path_concat(R0, Rel)
 	).
+
+get_cmd_def(Bundle, Name, Opts) := Def :-
+	( member(main=Path, Opts) -> true
+	; throw(cmd_requires_main(Name, Opts))
+	),
+	Def = cmd_def(Bundle, ~bundle_path(Bundle, Path), Name, Opts).
 
 % ---------------------------------------------------------------------------
 % create/delete directory where bundles are installed

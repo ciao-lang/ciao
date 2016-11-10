@@ -65,30 +65,25 @@
 ])).
 
 % Enumeration of the standalone utilities in */cmds/
-'$builder_hook'(core_cmds:item_def(
-    cmds_list('cmds', [
-        'ciaodump'-[plexe],
-        'pldiff'-[plexe],
-        'lpmake'-[plexe],
-        'plindent'-[plexe],
-        'checkline'-[plexe],
-        'ciaoc_sdyn'-[plexe]
-    ]))).
+'$builder_hook'(core_cmds:item_def([
+  cmd('cmds/ciaodump'),
+  cmd('cmds/pldiff'),
+  cmd('cmds/lpmake'),
+  cmd('cmds/plindent'),
+  cmd('cmds/checkline'),
+  cmd('cmds/ciaoc_sdyn')
+])).
 
+% Standalone compiler
 '$builder_hook'(ciaoc:item_def(
-        cmds_list('ciaoc', [
-          'ciaoc'-[
-            name="standalone compiler",
-            plexe,
-	    bootstrap_ciaoc, static
-          ]
-        ]))).
-	
-'$builder_hook'(shell:item_def(
-	cmds_list('shell', [
-          'ciaosh'-[plexe, name="interactive toplevel", final_ciaoc],
-          'ciao-shell'-[plexe, name="ciao-script runtime", final_ciaoc, static]
-        ]))).
+  cmd('ciaoc', [main='ciaoc/ciaoc', bootstrap_ciaoc, static])
+)).
+
+% Interactive toplevel (ciaosh) and ciao-script runtime (ciao-shell)
+'$builder_hook'(shell:item_def([
+  cmd('ciaosh', [main='shell/ciaosh']),
+  cmd('ciao-shell', [main='shell/ciao-shell', static])
+])).
 
 % ===========================================================================
 
@@ -178,19 +173,18 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 % (definition for installation)
 % (merge below?)
 %'$builder_hook'(ciaocl:item_def(
-%    cmds_list('cmds', [ % TODO: only for installation
-%        'ciao'-[shscript]
-%    ]))).
+%  cmd('ciao', [main='NONE_AUTOGEN', shscript]) % TODO: only for installation
+% )).
 '$builder_hook'(ciaocl:item_def(R)) :- % TODO: only for installation
 	( install_prolog_name(yes) ->
 	    Opts = [link_as('prolog')]
 	; Opts = []
 	),
-	R = item_group("'ciao' (command)", 
+	R = item_group("'ciao' command", 
 	      bin_copy_and_link(shscript, 'ciao', Opts)).
 % (definition for build_nodocs)
 '$builder_hook'(ciaocl:build_nodocs) :-
-	cmd_message(core, "building '~w' (command)", ['ciao']),
+	cmd_message(core, "building '~w' command", ['ciao']),
 	Eng = ~default_eng_def,
 	wr_template(as_cmd(core, shscript), ~bundle_path(core, 'cmds'), 'ciao', [
 	    'ExtraCommands' = ~ciao_extra_commands, % (for toplevel)
@@ -241,11 +235,11 @@ list_to_lits2([X|Xs], X0, (X0, Lits)) :-
 ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
 
 '$builder_hook'(ciao_sysconf:item_def(
-    cmds_list('cmds', [ % TODO: strange; only for installation
-        'ciao_sysconf'-[shscript]
-    ]))).
+  % TODO: strange target, only for installation
+  cmd('ciao_sysconf', [main='NONE_AUTOGEN', shscript])
+)).
 '$builder_hook'(ciao_sysconf:build_nodocs) :-
-	cmd_message(core, "building '~w' (command)", ['ciao_sysconf']),
+	cmd_message(core, "building '~w' command", ['ciao_sysconf']),
 	% TODO: we build nothing here (just copy) but the user does not want to know
 	builddir_bin_copy_as(core, shscript, ~ciao_sysconf_sh, 'ciao_sysconf').
 

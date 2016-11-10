@@ -16,11 +16,10 @@
 ])).
 
 % TODO: move to its own bundle
-'$builder_hook'(cmds:item_def(
-    cmds_list('cmds', [
-        'synch_actions'-[plexe],
-        'cleandirs'-[plexe]
-    ]))).
+'$builder_hook'(cmds:item_def([
+  cmd('cmds/synch_actions'),
+  cmd('cmds/cleandirs')
+])).
 
 % ===========================================================================
 

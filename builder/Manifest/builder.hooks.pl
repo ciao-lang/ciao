@@ -11,11 +11,6 @@
 ])).
 
 '$builder_hook'(cmds:item_def( 
-    cmds_list('cmds', [
-        'ciao_builder'-[
-          output='ciao_builder', % (executable will be called 'builder')
-	  plexe,
-	  final_ciaoc
-	]
-    ]))).
+  cmd('ciao_builder', [main='cmds/ciao_builder'])
+)).
 

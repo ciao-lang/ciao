@@ -2,8 +2,8 @@
 
 :- doc(title,  "Bundle Hooks for LPdoc").
 
-'$builder_hook'(manual_dir(as('doc/reference', 'lpdoc'))). % TODO: call it manual(Name, SettingsFile)
-'$builder_hook'(readme_path(as('doc/readmes/INSTALLATION_LPDOC', 'INSTALLATION'))). % TODO: call it readme(RelPath, Source)
+'$builder_hook'(manual_dir(as('doc/reference', 'lpdoc'))). % TODO: call it manual(Name, [main=SettingsFile])
+'$builder_hook'(readme_path(as('doc/readmes/INSTALLATION_LPDOC', 'INSTALLATION'))). % TODO: call it readme(RelPath, [main=Source])
 '$builder_hook'(readme_path(as('doc/readmes/README_LPDOC', 'README'))).
 
 % ============================================================================
@@ -18,13 +18,8 @@
 ])).
 
 '$builder_hook'(cmds:item_def( 
-    cmds_list('cmds', [
-        'lpdoccl'-[
-          output='lpdoc', % (executable will be called 'lpdoc')
-	  plexe,
-	  final_ciaoc
-	]
-    ]))).
+  cmd('lpdoc', [main='cmds/lpdoccl'])
+)).
 
 %% ---------------------------------------------------------------------------
 

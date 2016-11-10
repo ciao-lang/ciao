@@ -231,20 +231,9 @@ storedir_install(lib_file_copy_and_link(Bundle, Path, File)) :-
 	install_file(From, To),
 	create_rel_link(To, PlainTo).
 % TODO: show the same kind of messages that are used when compiling libraries
-storedir_install(cmds_list_(Bundle, Ps)) :-
-	( % (failure-driven loop)
-	  member(P0, Ps),
-	    storedir_install(cmd(Bundle, P0)),
-	    fail
-	; true
-	).
-%
-storedir_install(cmd(Bundle, P0)) :-
-	n_and_props(P0, P, Props),
-	n_name(Props, Name),
-	n_kind(Props, K),
-	n_output(P, Props, Output),
-	cmd_message(Bundle, "installing '~w' (~s)", [Output, Name]),
+storedir_install(cmd_def(Bundle, _In, Output, Props)) :-
+	cmd_def_kind(Props, K),
+	cmd_message(Bundle, "installing '~w' command", [Output]),
 	storedir_install(copy_and_link(K, Bundle, Output)).
 %
 % TODO: separate 'ciao-config' exec to get options for CC/LD?
@@ -300,20 +289,9 @@ storedir_uninstall(lib_file_copy_and_link(Bundle, _Path, File)) :-
 	storedir_uninstall(file(PlainTo)),
 	storedir_uninstall(file(To)).
 % TODO: show the same kind of messages that are used when compiling libraries
-storedir_uninstall(cmds_list_(Bundle, Ps)) :-
-	( % (failure-driven loop)
-	  member(P0, Ps),
-	    storedir_uninstall(cmd(Bundle, P0)),
-	    fail
-	; true
-	).
-%
-storedir_uninstall(cmd(Bundle, P0)) :-
-	n_and_props(P0, P, Props),
-	n_name(Props, Name),
-	n_kind(Props, K),
-	n_output(P, Props, Output),
-	cmd_message(Bundle, "uninstalling '~w' (~s)", [Output, Name]),
+storedir_uninstall(cmd_def(Bundle, _In, Output, Props)) :-
+	cmd_def_kind(Props, K),
+	cmd_message(Bundle, "uninstalling '~w' command", [Output]),
 	storedir_uninstall(copy_and_link(K, Bundle, Output)).
 storedir_uninstall(eng_contents(Eng)) :- !,
 	% Uninstall engine
@@ -362,28 +340,9 @@ eng_active_inst(Eng) :-
 	C = ~rootprefixed(~active_inst_eng_path(exec_anyarch, Eng)),
 	create_rel_link(B, C).
 
-% Descriptions for commands (e.g., standalone utilities, etc.)
-% TODO: improve
-
-:- export(n_and_props/3).
-n_and_props(P0, P, Props) :-
-	( P0 = P-Props -> true ; P = P0, Props = [] ).
-
-:- export(n_name/2).
-n_name(Props, Name) :-
-	( member(name=Name, Props) ->
-	    true
-	; Name = "command" % default name
-	).
-
-:- export(n_output/3).
-n_output(P, Props, Name) :-
-	( member(output=Name0, Props) ->
-	    Name = Name0
-	; Name = P
-	).
-
-n_kind(Props, Kind) :-
+% Properties of commands
+% TODO: move to ciaoc_aux?
+cmd_def_kind(Props, Kind) :-
 	( member(kind=Kind, Props) -> true ; Kind=plexe ).
 
 % ---------------------------------------------------------------------------
