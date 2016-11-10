@@ -2,8 +2,6 @@
 
 :- doc(title,  "Bundle Hooks for Ciao core").
 
-'$builder_hook'(manual_dir(as('doc/internals', 'ciao_internals'))).
-
 % ===========================================================================
 
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
@@ -47,7 +45,9 @@
   lib_force_build('library/clpq'), % See WARNING note above
   lib_force_build('library/clpr'), % See WARNING note above
   lib('library'),
-  src('examples')
+  src('examples'),
+  %
+  manual('ciao_internals', [main='doc/internals/SETTINGS.pl'])
 ])).
 
 % This is the minimum part needed for @apl{ciao_builder} to compile

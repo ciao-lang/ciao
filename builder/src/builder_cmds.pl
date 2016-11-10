@@ -446,8 +446,6 @@ builder_hookpred(Bundle, Part, Head) :-
 	).
 
 % Default pred, when no hook is provided (true, fail, etc.)
-default_pred(manual_dir(_), _, _) :- !, fail.
-default_pred(readme_path(_), _, _) :- !, fail.
 default_pred(bundle_def(_), _, _) :- !, fail.
 default_pred(item_def(_), _, _) :- !, fail.
 default_pred(item_subs(SubPs), _, _) :- !, SubPs = [].
@@ -833,6 +831,10 @@ bundleitem_do_(eng_exec_header(eng(_EngMainSpec, _EngOpts)), _Bundle, install) :
 	true.
 bundleitem_do_(eng_exec_header(eng(_EngMainSpec, _EngOpts)), _Bundle, register) :- !.
 %
+% Manuals and readmes (treated separatedly)
+bundleitem_do_(manual(_, _), _Bundle, _) :- !.
+bundleitem_do_(readme(_, _), _Bundle, _) :- !.
+%
 bundleitem_do_(Part, Bundle, Cmd) :-
 	atom(Part), % TODO: replace by item(_)?
 	!,
@@ -987,19 +989,18 @@ rootprefix_bundlecfg_file(InsType, BundleName, RegFile) :-
 % Output is moved to the bundle root directory.
 build_docs_readmes(Bundle) :- with_docs(yes), !,
 	( % (failure-driven loop)
-	  builder_pred(Bundle, readme_path(Readme)),
-	    build_docs_readme(Bundle, Readme),
+	  builder_pred(Bundle, bundle_def(Y)),
+	  member(readme(OutName, Props), Y), % (nondet)
+	    ( member(main=SrcPath, Props) -> true
+	    ; fail % ill-formed
+	    ),
+	    build_docs_readme(Bundle, SrcPath, OutName),
 	    fail
 	; true
 	).
 build_docs_readmes(_Bundle).
 
-build_docs_readme(Bundle, Readme) :-
-	( Readme = as(SrcPath, OutName) ->
-	    true
-	; SrcPath = Readme,
-	  OutName = Name
-	),
+build_docs_readme(Bundle, SrcPath, OutName) :-
 	OutAbsFile = ~bundle_path(Bundle, OutName),
 	path_split(SrcPath, _, Name),
 	BundleDir = ~bundle_path(Bundle, '.'),
@@ -1020,22 +1021,17 @@ build_docs_readme(Bundle, Readme) :-
 % TODO: duplicated in lpdoc_aux
 % Output for bundle README files
 get_bundle_readme(Bundle, R) :-
-	builder_pred(Bundle, readme_path(Readme)),
-	( Readme = as(_, Final) -> true
-	; path_split(Readme, _, Final)
-	),
-	R = ~bundle_path(Bundle, Final).
+	builder_pred(Bundle, bundle_def(Y)),
+	member(readme(OutName, _Props), Y), % (nondet)
+	R = ~bundle_path(Bundle, OutName).
 
 :- use_module(library(bundle/bundle_info), [bundle_version_patch/2]).
 
 :- export(bundle_manual_base/2).
 % Base name for manuals of Bundle
 bundle_manual_base(Bundle) := R :-
-	builder_pred(Bundle, manual_dir(Manual)),
-	( Manual = as(_Dir, Base) -> true
-	; Dir = Manual,
-	  path_split(Dir, _, Base)
-	),
+	builder_pred(Bundle, bundle_def(Y)),
+	member(manual(Base, _Props), Y), % (nondet)
 	( V = ~bundle_version_patch(Bundle) ->
 	    R = ~atom_concat([Base, '-', V])
 	; R = Base
@@ -1044,12 +1040,12 @@ bundle_manual_base(Bundle) := R :-
 % Creates the manuals
 build_docs_manuals(Bundle) :- with_docs(yes), !,
 	( % (failure-driven loop)
-	  builder_pred(Bundle, manual_dir(Manual)),
-	    ( Manual = as(SrcDir, _) ->
-	        true
-	    ; SrcDir = Manual
+	  builder_pred(Bundle, bundle_def(Y)),
+	  member(manual(_, Props), Y), % (nondet)
+	    ( member(main=Path, Props) -> true
+	    ; fail % ill-formed
 	    ),
-	    build_doc(Bundle, SrcDir),
+	    build_doc(Bundle, Path),
 	    fail
 	; true
 	).
@@ -1081,20 +1077,19 @@ bundle_uninstall_docs(Bundle) :- with_docs(yes), !,
 bundle_uninstall_docs(_Bundle).
 
 % Build the manual `SrcDir` for `Bundle`
-build_doc(Bundle, SrcDir) :-
+build_doc(Bundle, Path) :-
 	BundleDir = ~bundle_path(Bundle, '.'),
-	path_concat(BundleDir, SrcDir, R0),
-	path_concat(R0, 'SETTINGS.pl', Settings),
-	( file_exists(Settings) ->
+	path_concat(BundleDir, Path, AbsPath),
+	( file_exists(AbsPath) ->
 	    DocDir = ~bundle_path(Bundle, builddir, 'doc'),
 	    invoke_lpdoc(['--doc_mainopts=versioned_output',
 %	                  '--allow_markdown=no',
 %	                  '--syntax_highlight=no',
 	                  ~atom_concat('--output_dir=', DocDir),
 	                  '-t', 'all',
-			  Settings])
+			  AbsPath])
 	; % Allow missing manuals (e.g., for NODISTRIBUTE content)
-	  warning(['Manual at ', SrcDir, ' is missing. Skipping build'])
+	  warning(['Manual ', Path, ' is missing. Skipping build'])
 	).
 
 % Install manual `ManualBase` (name and version) from given `Bundle`

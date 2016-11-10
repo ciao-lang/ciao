@@ -2,12 +2,12 @@
 
 :- doc(title,  "Bundle Hooks for CiaoBuilder").
 
-'$builder_hook'(manual_dir(as('doc', 'ciao_builder'))).
-
 '$builder_hook'(bundle_def([
   cmds,
   lib('src'),
-  lib('sh_src') % TODO: not for windows!
+  lib('sh_src'), % TODO: not for windows!
+  %
+  manual('ciao_builder', [main='doc/SETTINGS.pl'])
 ])).
 
 '$builder_hook'(cmds:item_def( 

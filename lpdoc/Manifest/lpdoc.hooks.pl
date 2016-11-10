@@ -2,10 +2,6 @@
 
 :- doc(title,  "Bundle Hooks for LPdoc").
 
-'$builder_hook'(manual_dir(as('doc/reference', 'lpdoc'))). % TODO: call it manual(Name, [main=SettingsFile])
-'$builder_hook'(readme_path(as('doc/readmes/INSTALLATION_LPDOC', 'INSTALLATION'))). % TODO: call it readme(RelPath, [main=Source])
-'$builder_hook'(readme_path(as('doc/readmes/README_LPDOC', 'README'))).
-
 % ============================================================================
 
 '$builder_hook'(prebuild_nodocs) :-
@@ -14,7 +10,11 @@
 '$builder_hook'(bundle_def([
   cmds,
   lib('src'),
-  lib('lib')
+  lib('lib'),
+  %
+  manual('lpdoc', [main='doc/reference/SETTINGS.pl']),
+  readme('INSTALLATION', [main='doc/readmes/INSTALLATION_LPDOC']),
+  readme('README', [main='doc/readmes/README_LPDOC'])
 ])).
 
 '$builder_hook'(cmds:item_def( 
@@ -26,6 +26,7 @@
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(ciaobld(builder_aux), [generate_version_auto/2]).
 
+% TODO: Add a version package instead?
 % TODO: generate a config_auto.pl and put there some config flags (for condcomp)
 
 % TODO: generalize for all bundles

@@ -5,16 +5,6 @@
 :- multifile m_bundlehook_decl/3.
 :- multifile m_bundlehook_do/3.
 
-% :- pred readme_path(D) # "@var{D} is the (bundle relative) path
-%    for a README file (in lpdoc format). README files are expected
-%    to be part of the sources. They are updated during documentation
-%    build, and they are not removed during clean.".
-% % (nondet, default: fail)
-% :- pred manual_dir(D) # "@var{D} is the (bundle relative)
-%    subdirectory where each manual is found (containing a SETTINGS.pl
-%    file)".
-% % (nondet, default: fail)
-
 % :- pred prebuild_nodocs/0 # "Prepare source for build_nodocs".
 % :- pred build_nodocs/0 # "Build cmds and libs (includes prebuild_nodocs)".
 
@@ -40,6 +30,25 @@
 
 % % Hooks for bundle_def definition
 % :- pred bundle_def/1 # "Definition of this bundle (libs, cmds)".
+%
+% (contents of bundle_def)
+%
+% TODO: complete
+%
+% :- pred lib(...).
+% :- pred cmd(...).
+% :- pred readme(Path, Props) # "@var{Props} contains a @tt{main=D}
+%    term, where @var{D} is the (bundle relative) path for a README
+%    file (in lpdoc format).  README files are expected to be part of
+%    the sources. They are updated to @var{Path} (bundle relative)
+%    during documentation build, and they are not removed during
+%    clean.".
+% % (nondet, default: fail)
+% :- pred manual(Name, Props) # "@var{Props} contains a @tt{main=D}
+%    term, where @var{D} is the (bundle relative) path for a manual
+%    (usually a SETTINGS.pl file). The output manual name is
+%    @var{Name}".
+% % (nondet, default: fail)
 
 % % Subtargets (experimental)
 % :- pred item_subs/1 # "".

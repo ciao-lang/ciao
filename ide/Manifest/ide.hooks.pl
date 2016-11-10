@@ -2,7 +2,10 @@
 
 :- doc(title,  "Bundle Hooks for Ciao IDE").
 
-'$builder_hook'(manual_dir(as('doc', 'ciao_ide'))).
+'$builder_hook'(bundle_def([
+  manual('ciao_ide', [main='doc/SETTINGS.pl'])
+])).
+
 
 
 

@@ -2,8 +2,10 @@
 
 :- doc(title,  "Bundle Hooks for Ciao Documentation").
 
-'$builder_hook'(manual_dir(as('reference', 'ciao'))).
-'$builder_hook'(manual_dir(as('developers', 'ciao_devel'))).
-'$builder_hook'(readme_path(as('common/INSTALLATION_CIAO', 'INSTALLATION'))).
-'$builder_hook'(readme_path(as('common/INSTALLATION_CIAO_Win32', 'INSTALLATION_Win32'))).
-'$builder_hook'(readme_path(as('common/README_CIAO', 'README'))).
+'$builder_hook'(bundle_def([
+  manual('ciao', [main='reference/SETTINGS.pl']),
+  manual('ciao_devel', [main='developers/SETTINGS.pl']),
+  readme('INSTALLATION', [main='common/INSTALLATION_CIAO']),
+  readme('INSTALLATION_Win32', [main='common/INSTALLATION_CIAO_Win32']),
+  readme('README', [main='common/README_CIAO'])
+])).  
