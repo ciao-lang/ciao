@@ -7,20 +7,6 @@
 '$builder_hook'(prebuild_nodocs) :-
 	generate_version_auto_lpdoc.
 
-'$builder_hook'(bundle_def([
-  cmds,
-  lib('src'),
-  lib('lib'),
-  %
-  manual('lpdoc', [main='doc/reference/SETTINGS.pl']),
-  readme('INSTALLATION', [main='doc/readmes/INSTALLATION_LPDOC']),
-  readme('README', [main='doc/readmes/README_LPDOC'])
-])).
-
-'$builder_hook'(cmds:item_def( 
-  cmd('lpdoc', [main='cmds/lpdoccl'])
-)).
-
 %% ---------------------------------------------------------------------------
 
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
