@@ -328,7 +328,7 @@ do_ciaotests :-
         invoke_ciaosh_batch/1]).
 
 % Run benchmarks
-'$builder_hook'(runbenchmarks) :- !,
+'$builder_hook'(bench) :- !,
 	invoke_ciaosh_batch([
 	  use_module(library(benchmarks/ecrc), [main/1]),
 	  ecrc:main([])

@@ -368,10 +368,10 @@ cmd_usage(test, "[<targets>]", [
     "Run all tests (unit tests, integration, etc.)"
 ]).
 %
-cmd_grp(runbenchmarks, test_grp).
-cmd_usage(runbenchmarks, "[<targets>]", [
+cmd_grp(bench, test_grp).
+cmd_usage(bench, "[<targets>]", [
     %1_______________________________________________
-    "Execute all benchmarks available in the system"
+    "Execute all benchmarks"
 ]) :- advanced.
 
 grp_def(packaging, "Packaging for distribution") :- advanced.

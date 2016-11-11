@@ -20,7 +20,7 @@
 
 % % Hooks for bundle testing/benchmarking
 % :- pred test/0 # "Run tests".
-% :- pred runbenchmarks/0 # "Run benchmarks".
+% :- pred bench/0 # "Run benchmarks".
 
 % % Hooks for bundle custom commands
 % :- pred custom_run/2 # "Run custom command".

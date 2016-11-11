@@ -125,7 +125,7 @@ cmd_fmt(install_docs, [target_args]).
 cmd_fmt(uninstall_docs, [target_args]).
 cmd_fmt(register, [target_args]).
 cmd_fmt(unregister, [target_args]).
-cmd_fmt(runbenchmarks, [target_args]).
+cmd_fmt(bench, [target_args]).
 cmd_fmt(test, [target_args]).
 
 cmd_fmt(list, []). % (list bundles)

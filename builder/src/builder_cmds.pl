@@ -631,7 +631,7 @@ default_cmd(build_docs_readmes, _, _) :- !.
 default_cmd(build_docs_manuals, _, _) :- !.
 default_cmd(clean_docs_readmes, _, _) :- !.
 default_cmd(clean_docs_manuals, _, _) :- !.
-default_cmd(runbenchmarks, _, _) :- !. % TODO: look in tests?
+default_cmd(bench, _, _) :- !. % TODO: look in tests?
 default_cmd(test, _, _) :- !. % TODO: test sources
 default_cmd(Cmd, Bundle, Part) :-
 	( Cmd = custom_run(_, _)
@@ -667,7 +667,7 @@ revsub_bundles_do_hookcmd(ParentBundle, Cmd) :- !, % (all sub-bundles)
 % TODO: need other orders: parent last, parent last reverse order
 
 % Commands that apply recursively to sub-bundles (parent first)
-cmd_rec(runbenchmarks).
+cmd_rec(bench).
 cmd_rec(test).
 
 % Commands that apply recursively to sub-bundles (parent first, in reverse order)
