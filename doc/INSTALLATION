@@ -220,14 +220,16 @@ Full installation instructions
           ./ciao-boot.sh configure
 
      It will perform a default configuration, where the system will be
-     configured to be installed as the system administrator (`root') in
-     a standard directory available for all users in the machine (e.g.,
-     `/usr/local'). For 32-bit builds in 64-bit architectures use the
-     `--core:m32=yes' configuration flag.
+     configured to run from the sources directly, and configured in the
+     user's home directory (recommended for Ciao developers or users
+     without admin rights).
 
-     The option `--instype=local' will prepare Ciao to run from the
-     sources directly, and configured in the user's home directory
-     (recommended for Ciao developers or users without admin rights).
+     The option `--instype=global' will prepare Ciao to be installed as
+     the system administrator (`root') in a standard directory
+     available for all users in the machine (e.g., `/usr/local').
+
+     For 32-bit builds in 64-bit architectures use the `--core:m32=yes'
+     configuration flag.
 
      In case you want to install elsewhere, or change any of the
      installation options, you can use a customized configuration

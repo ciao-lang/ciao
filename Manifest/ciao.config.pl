@@ -69,15 +69,15 @@
     details(
       % .....................................................................
       "Select the type of installation:\n\n"||
+      "    local  -- The system will be compiled in, and run from the \n"||
+      "              sources (this is specially useful for developers)."||
       "    global -- Install the system in a separate location from the\n"||
       "              sources and set up things to use the installed version.\n"||
       "              The system will not require the sources to run, and \n"||
-      "              they can be erased after installation.\n"||
-      "    local  -- The system will be compiled in, and run from the \n"||
-      "              sources (this is specially useful for developers)."),
-    valid_values(['global', 'local']),
+      "              they can be erased after installation.\n"),
+    valid_values(['local', 'global']),
     %
-    rule_default('global'),
+    rule_default('local'),
     %
     interactive
 ]).
