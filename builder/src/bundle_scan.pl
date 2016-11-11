@@ -10,24 +10,17 @@
    A registered bundle can be viewed as the result of the compilation
    or processing of a @tt{Manifest.pl} (it should contain plain facts
    and no syntactic sugar).
+").
 
-@begin{alert}
-  Make sure that this code does not end in executables unless
-  necessary (it should not be in the dependencies of usual user
-  programs).
-@end{alert}").
-
+:- use_module(library(pathnames), [path_concat/3]).
+:- use_module(library(system_extra), [mkpath/1, del_file_nofail/1]).
 :- use_module(library(system), [directory_files/2, file_exists/1, delete_file/1]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(port_reify)).
 
 % NOTE: be careful with bundle_path/3 (bundles may not be loaded yet)
 :- use_module(ciaobld(config_common), [instciao_bundledir/2]).
-:- use_module(library(bundle/bundlereg_gen), [is_bundledir/1, gen_bundlereg/4]).
 :- use_module(engine(internals), [bundle_reg_dir/2]).
-
-:- use_module(library(pathnames), [path_concat/3]).
-:- use_module(library(system_extra), [mkpath/1, del_file_nofail/1]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Scan bundles at given workspace").
@@ -127,6 +120,8 @@ rootprefix_bundle_reg_file(InsType, BundleName, RegFile) :-
 
 % ---------------------------------------------------------------------------
 
+:- use_module(library(bundle/bundlereg_gen), [is_bundledir/1]).
+
 % found_bundle(Name,Dir): found bundle Name at Dir
 :- data found_bundle/2.
 
@@ -215,6 +210,7 @@ reg_bundledir(InsType, BundleName, BundleDir, Dir) :-
 
 :- use_module(library(pathnames), [path_split/3]).
 :- use_module(library(bundle/bundle_info), [root_bundle/1]).
+:- use_module(library(bundle/bundlereg_gen), [gen_bundlereg/4]).
 :- use_module(ciaobld(builder_aux), [root_bundle_source_dir/1]).
 
 % TODO: hack, try to extract BundleName from Manifest, not dir (also in bundle.pl)

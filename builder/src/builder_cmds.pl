@@ -14,9 +14,7 @@
 	enum_sub_bundles/2,
 	enumrev_sub_bundles/2
 	]).
-:- use_module(engine(internals), [
-	reload_bundleregs/0,
-	'$bundle_id'/1]).
+:- use_module(engine(internals), ['$bundle_id'/1]).
 
 :- use_module(ciaobld(builder_flags),
 	[get_builder_flag/2]).
@@ -355,7 +353,6 @@ split_target(Target, Bundle, Part) :-
 	; throw(unknown_bundle(Target))
 	).
 
-:- export(builder_pred/2).
 builder_pred(Target, Head) :-
 	split_target(Target, Bundle, Part),
 	builder_hookpred(Bundle, Part, Head).
@@ -453,6 +450,23 @@ default_pred(Head, Bundle, Part) :-
 	% Everything else is not in the interface
 	functor(Head, F, N),
 	throw(error(bundlehook_pred_undeclared(Bundle,Part,F/N), builder_hookpred/3)).
+
+:- use_module(ciaobld(builder_meta), [manifest_sent/2]).
+
+:- export(get_bundle_def/2).
+get_bundle_def(Bundle, X) :-
+	( builder_pred(Bundle, bundle_def(Xs)), % TODO: keep it the first! (it ensures hooks and Manifest are loaded)
+	  member(X, Xs)
+	; manifest_sent(Bundle, X),
+	  manifest_def(X)
+	).
+
+% bundle_def entries allowed in Manifest.pl
+manifest_def(lib(_)).
+manifest_def(cmd(_)).
+manifest_def(cmd(_,_)).
+manifest_def(readme(_,_)).
+manifest_def(manual(_,_)).
 
 :- use_module(ciaobld(bundle_configure),
 	[config_list_flags/1,
@@ -620,9 +634,10 @@ builder_cmd_on_set(Cmd, [Target|Targets]) :-
 
 % Default command action, when no hook is provided (true, fail, etc.)
 default_cmd(Cmd, Bundle, Part) :- defcmd(Cmd), !,
-	( Part = '', builder_pred(Bundle, bundle_def(Y)) ->
-	    bundleitem_do(Y, Bundle, Cmd)
-	; path_concat(Bundle, Part, Target), builder_pred(Target, item_def(Y)) ->
+	( Part = '' ->
+	    findall(X, get_bundle_def(Bundle, X), Xs),
+	    bundleitem_do(Xs, Bundle, Cmd)
+	; \+ Part = '', path_concat(Bundle, Part, Target), builder_pred(Target, item_def(Y)) ->
 	    bundleitem_do(Y, Bundle, Cmd)
 	; true
 	).
@@ -989,8 +1004,7 @@ rootprefix_bundlecfg_file(InsType, BundleName, RegFile) :-
 % Output is moved to the bundle root directory.
 build_docs_readmes(Bundle) :- with_docs(yes), !,
 	( % (failure-driven loop)
-	  builder_pred(Bundle, bundle_def(Y)),
-	  member(readme(OutName, Props), Y), % (nondet)
+	  get_bundle_def(Bundle, readme(OutName, Props)), % (nondet)
 	    ( member(main=SrcPath, Props) -> true
 	    ; fail % ill-formed
 	    ),
@@ -1021,8 +1035,7 @@ build_docs_readme(Bundle, SrcPath, OutName) :-
 % TODO: duplicated in lpdoc_aux
 % Output for bundle README files
 get_bundle_readme(Bundle, R) :-
-	builder_pred(Bundle, bundle_def(Y)),
-	member(readme(OutName, _Props), Y), % (nondet)
+	get_bundle_def(Bundle, readme(OutName, _Props)), % (nondet)
 	R = ~bundle_path(Bundle, OutName).
 
 :- use_module(library(bundle/bundle_info), [bundle_version_patch/2]).
@@ -1030,8 +1043,7 @@ get_bundle_readme(Bundle, R) :-
 :- export(bundle_manual_base/2).
 % Base name for manuals of Bundle
 bundle_manual_base(Bundle) := R :-
-	builder_pred(Bundle, bundle_def(Y)),
-	member(manual(Base, _Props), Y), % (nondet)
+	get_bundle_def(Bundle, manual(Base, _Props)), % (nondet)
 	( V = ~bundle_version_patch(Bundle) ->
 	    R = ~atom_concat([Base, '-', V])
 	; R = Base
@@ -1040,8 +1052,7 @@ bundle_manual_base(Bundle) := R :-
 % Creates the manuals
 build_docs_manuals(Bundle) :- with_docs(yes), !,
 	( % (failure-driven loop)
-	  builder_pred(Bundle, bundle_def(Y)),
-	  member(manual(_, Props), Y), % (nondet)
+	  get_bundle_def(Bundle, manual(_, Props)), % (nondet)
 	    ( member(main=Path, Props) -> true
 	    ; fail % ill-formed
 	    ),

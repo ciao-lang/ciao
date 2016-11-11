@@ -66,13 +66,18 @@ lookup_bundle_root_(File, BundleDir) :-
 % ---------------------------------------------------------------------------
 % TODO: Use standard compiler? (with a package to delimit the language)
 
+:- export(load_manifest/2).
+% Load a Manifest file (as sentences)
+% TODO: post process sentences here instead than in gen_bundlereg/4?
+load_manifest(BundleDir, Sents) :-
+	locate_manifest_file(BundleDir, ManifestFile),
+	loop_read_file(ManifestFile, Sents).
+
 :- export(gen_bundlereg/4).
 % Generate a bundlereg @var{RegFile} for bundle @var{BundleName} at
 % @var{BundleDir}.  The base path for alias paths is @var{AliasBase}.
 gen_bundlereg(BundleDir, BundleName, AliasBase, RegFile) :-
-	% Load Manifest.pl
-	locate_manifest_file(BundleDir, ManifestFile),
-	loop_read_file(ManifestFile, Sents0),
+	load_manifest(BundleDir, Sents0),
 	% Check that this is a manifest file
 	( Sents0 = [(:- bundle(BundleName0))|Sents1] ->
 	    true
