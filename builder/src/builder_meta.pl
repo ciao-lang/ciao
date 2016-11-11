@@ -65,18 +65,13 @@ load_bundle_metasrc(Bundle, Metasrc) :-
 	    once_port_reify(bundlehooks_holder:do_use_module(BundleMetasrcFile), Port),
 	    cd(PWD),
 	    port_call(Port)
-	; optional_metasrc(Metasrc) ->
-	    true
-	; % TODO: write handler?
-	  throw(no_bundle_metasrc(Bundle, Metasrc))
+	; true % (no error if it does not exist)
 	).
 
 % TODO: use optional_metasrc/1 (do not unload if it was optional)
 unload_bundle_metasrc(Bundle, Metasrc) :-
 	bundle_metasrc(Bundle, Metasrc, BundleMetasrcFile),
 	bundlehooks_holder:do_unload(BundleMetasrcFile).
-
-optional_metasrc(bundle_config).
 
 % ---------------------------------------------------------------------------
 
