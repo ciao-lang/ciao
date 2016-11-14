@@ -457,8 +457,16 @@ default_pred(Head, Bundle, Part) :-
 get_bundle_def(Bundle, X) :-
 	( builder_pred(Bundle, bundle_def(Xs)), % TODO: keep it the first! (it ensures hooks and Manifest are loaded)
 	  member(X, Xs)
-	; manifest_sent(Bundle, X)
+	; manifest_sent(Bundle, X),
+	  is_item(X)
 	).
+
+% build items in Manifest.pl
+is_item(lib(_)).
+is_item(cmd(_)).
+is_item(cmd(_,_)).
+is_item(readme(_,_)).
+is_item(manual(_,_)).
 
 :- use_module(ciaobld(bundle_configure),
 	[config_list_flags/1,
