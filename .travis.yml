@@ -11,11 +11,11 @@ before_install:
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get update; fi
   - if [ $CC == clang ] && [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install -y llvm-3.4 llvm-3.4-dev; fi
-  - if [ $CC == gcc ] && [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install -y gcc-4.8 g++-4.8; fi
+  - if [ $CC == gcc ] && [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install -y gcc-4.9 g++-4.9; fi
   - if [ $CC == clang ] && [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm35 && brew link --force llvm35; fi
-  - if [ $TRAVIS_OS_NAME == linux ] && [ $CC = gcc ]; then export CC=gcc-4.8; export CXX=g++-4.8; fi # otherwise gcc points to old gcc
-  - if [ $TRAVIS_OS_NAME == osx ] && [ $CC = gcc ]; then export CC=gcc-4.8; export CXX=g++-4.8; fi # otherwise gcc points to clang
-  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install emacs build-essential gcc-4.8-multilib libc6-i386 libc6-dev-i386 g++-4.8-multilib; fi
+  - if [ $TRAVIS_OS_NAME == linux ] && [ $CC = gcc ]; then export CC=gcc-4.9; export CXX=g++-4.9; fi # otherwise gcc points to old gcc
+  - if [ $TRAVIS_OS_NAME == osx ] && [ $CC = gcc ]; then export CC=gcc-4.9; export CXX=g++-4.9; fi # otherwise gcc points to clang
+  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install emacs build-essential gcc-4.9-multilib libc6-i386 libc6-dev-i386 g++-4.9-multilib; fi
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install emacs texlive texinfo imagemagick; fi
   - echo "using default emacs" # if [ $TRAVIS_OS_NAME == osx ]; then brew tap railwaycat/emacsmacport; brew install emacs-mac; fi
   - if [ $TRAVIS_OS_NAME == osx ]; then brew tap railwaycat/emacsmacport; brew install imagemagick; fi
