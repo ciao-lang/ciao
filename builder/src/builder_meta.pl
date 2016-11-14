@@ -75,7 +75,7 @@ unload_bundle_metasrc(Bundle, Metasrc) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(bundle/bundlereg_gen), [load_manifest/2]).
+:- use_module(library(bundle/bundlereg_gen), [load_manifest/3]).
 
 % Load Manifest sentences
 % TODO: read Manifest once
@@ -85,7 +85,9 @@ unload_bundle_metasrc(Bundle, Metasrc) :-
 
 load_bundle_manifest(Bundle, BundleDir) :-
 	retractall_fact(manifest_sent(Bundle, _)),
-	load_manifest(BundleDir, Sents),
+	load_manifest(BundleDir, _BundleName, Sents),
+	% (assume that BundleName and Bundle are the same, this is checked
+	%  at bundlereg_gen.pl)
 	( % (failure-driven loop)
 	  member(X, Sents),
 	    assertz_fact(manifest_sent(Bundle, X)),

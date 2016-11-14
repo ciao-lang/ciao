@@ -6,18 +6,14 @@
 
 :- doc(module, "Processing of @tt{Manifest.pl} files into bundle
    registry entries. Bundle registries are written using @lib{fastrw}
-   so that the support code to load them is minimal.
+   so that the support code to load them is minimal.").
 
-@begin{alert}
-  Make sure that this code does not end in executables by default,
-  unless necessary (it should not be in the dependencies of usual user
-  programs).
-@end{alert}").
-
+% TODO: error_messages are ignored; mark erroneous Manifests
+	  
 :- use_module(library(fastrw), [fast_write/1]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(read), [read/2]).
-:- use_module(library(messages), [warning_message/2]).
+:- use_module(library(messages), [error_message/2]).
 
 :- use_module(library(system), [file_exists/1, working_directory/2]).
 :- use_module(library(streams), [open_output/2, close_output/1]).
@@ -66,31 +62,59 @@ lookup_bundle_root_(File, BundleDir) :-
 % ---------------------------------------------------------------------------
 % TODO: Use standard compiler? (with a package to delimit the language)
 
-:- export(load_manifest/2).
-% Load a Manifest file (as sentences)
+:- export(load_manifest/3).
+% load_manifest(+BundleDir, -BundleName, -Sents):
+%   Load a Manifest file (as sentences)
 % TODO: post process sentences here instead than in gen_bundlereg/4?
-load_manifest(BundleDir, Sents) :-
+load_manifest(BundleDir, BundleName, Sents) :-
 	locate_manifest_file(BundleDir, ManifestFile),
-	loop_read_file(ManifestFile, Sents).
+	loop_read_file(ManifestFile, Sents0),
+	check_manifest(Sents0, BundleName, Sents).
+
+% Check that the Manifest is well formed or fail.
+% This also removes ":- bundle" decl and obtains the bundle name.
+check_manifest(Sents0, BundleName, Sents) :-
+	% Check that this is a manifest file
+	( Sents0 = [(:- bundle(BundleName))|Sents] ->
+	    true
+	; BundleName = _,
+	  error_message("Missing ':- bundle/1' declaration on Manifest.pl for ~w", [BundleName]),
+	  Sents = Sents0
+	),
+	forall(member(Sent, Sents), check_sent(Sent, BundleName)).
+
+check_sent(Sent, BundleName) :-
+	( manifest_def(Sent) ->
+	    true
+	; error_message("Unknown sentence ~w at Manifest.pl for ~w", [Sent, BundleName])
+	).
+
+:- meta_predicate forall(goal, goal).
+forall(Cond, Goal) :- \+ (Cond, \+ Goal).
+
+% Sentences allowed in Manifest.pl
+manifest_def(packname(_)).
+manifest_def(version(_)).
+manifest_def(alias_paths(_)).
+manifest_def(depends(_)).
+manifest_def(lib(_)).
+manifest_def(cmd(_)).
+manifest_def(cmd(_,_)).
+manifest_def(readme(_,_)).
+manifest_def(manual(_,_)).
 
 :- export(gen_bundlereg/4).
 % Generate a bundlereg @var{RegFile} for bundle @var{BundleName} at
 % @var{BundleDir}.  The base path for alias paths is @var{AliasBase}.
 gen_bundlereg(BundleDir, BundleName, AliasBase, RegFile) :-
-	load_manifest(BundleDir, Sents0),
-	% Check that this is a manifest file
-	( Sents0 = [(:- bundle(BundleName0))|Sents1] ->
+	load_manifest(BundleDir, BundleName0, Sents1),
+	% Check that bundle name matches declared
+	( BundleName0 = BundleName -> % (unify if left undefined)
 	    true
-	; BundleName0 = _,
-	  warning_message("Missing ':- bundle/1' declaration on Manifest.pl for ~w", [BundleName])
+	; error_message("Mismatch in bundle name (expected ~w)", [BundleName])
 	),
 	% Fill version number
 	read_bundle_version(BundleDir, BundleName, Sents1, Sents),
-	% Check that bundle name matches declared
-	( BundleName0 = BundleName -> % (unify if leaved undefined)
-	    true
-	; warning_message("Mismatch in bundle name (expected ~w)", [BundleName])
-	),
 	%
 	( member(alias_paths(RelAliasPaths), Sents) ->
 	    true
@@ -175,7 +199,7 @@ loop_read(_S, []).
 
 member_chk(Item, BundleDir, Sents) :-
 	( member(Item, Sents) -> true
-	; warning_message("Item ~w not found in bundle Manifest at ~w",
+	; error_message("Item ~w not found in bundle Manifest at ~w",
             [Item, BundleDir])
 	).
 
@@ -191,7 +215,7 @@ read_bundle_version(_BundleDir, BundleName, Sents0, Sents) :-
 	!,
 	( parse_version(Ver, Version, Patch) ->
 	    Sents = [version_(Version), patch_(Patch)|Sents0]
-	; warning_message("Cannot parse version number ~w for ~w", [Ver, BundleName]),
+	; error_message("Cannot parse version number ~w for ~w", [Ver, BundleName]),
 	  Sents = Sents0
 	).
 read_bundle_version(BundleDir, _BundleName, Sents0, Sents) :-
