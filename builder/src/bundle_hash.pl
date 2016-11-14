@@ -17,9 +17,10 @@
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(system_extra), [file_to_line/2]).
 :- use_module(library(terms), [atom_concat/2]).
+:- use_module(library(pathnames), [path_concat/3]).
 
 :- use_module(engine(internals), ['$bundle_prop'/2]).
-:- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(bundle/bundle_info), [bundle_version/2, bundle_version_patch/2]).
 
 % ===========================================================================
@@ -47,10 +48,10 @@ save_bundle_commit_info(Bundle, Field) :-
 
 % TODO: also changed in ciaobot code
 % TODO: per bundle or per workspace (current)?
-:- export(commit_info_file/3).
+%:- export(commit_info_file/3).
 commit_info_file(Bundle, Field) := R :-
 	File = ~commit_info_file_(Field),
-	R = ~bundle_path(Bundle, builddir, File).
+	R = ~path_concat(~bundle_path(Bundle, 'Manifest'), File).
 
 commit_info_file_(branch) := 'COMMIT_BRANCH'.
 commit_info_file_(id) := 'COMMIT_ID'.
