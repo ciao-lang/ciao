@@ -93,13 +93,6 @@ bundle_contents(part(contrib, library), Filter, X) :- !,
 	bundle_path(contrib, 'library', F),
 	current_file_find(Filter, F, X).
 %
-bundle_contents(part(ide, web), Filter, X) :- !,
-	bundle_path(ide, 'web', F),
-	current_file_find(Filter, F, X).
-bundle_contents(part(ide, emacs_mode), Filter, X) :- !, % TODO: remove ad-hoc case?
-	bundle_path(ide, 'emacs-mode', F),
-	current_file_find(Filter, F, X).
-%
 bundle_contents(lpdoc, Filter, X) :- !,
 	bundle_path(lpdoc, 'src', F),
 	current_file_find(Filter, F, X).

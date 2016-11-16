@@ -13,7 +13,7 @@
 	[emacs_path/1, emacs_batch_call/3, emacs_clean_log/2]).
 
 % TODO: Implement as an interface; define different backend
-% TODO: adds dependency to 'ide' bundle and emacs (should be weak refs)
+% TODO: adds dependency to 'ciao_emacs' bundle and emacs (should be weak refs)
 % TODO: We really need support for assets for generation of static binaries
 	
 % ---------------------------------------------------------------------------
@@ -37,7 +37,7 @@ lang('text').
 % ---------------------------------------------------------------------------
 
 ciao_mode_el(F) :-
-	bundle_path(ide, 'emacs-mode/ciao-site-file.el', F).
+	bundle_path(ciao_emacs, 'elisp/ciao-site-file.el', F).
 
 % ---------------------------------------------------------------------------
 

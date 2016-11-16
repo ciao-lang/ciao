@@ -32,11 +32,11 @@
 
 with_emacs_mode := ~get_bundle_flag(core:with_emacs_mode).
 
-emacsmode_dir := ~bundle_path(ide, 'emacs-mode').
+emacsmode_elisp_dir := ~bundle_path(ciao_emacs, 'elisp').
 
 % Here is how this all works: 
 % 
-% - During build and install of 'ide/emacs_mode'
+% - During build and install of Ciao emacs mode
 %
 %   * The ciao-config.el.skel file is filled with configuration
 %     parameters for the installed system to produce ciao-config.el,
@@ -60,8 +60,8 @@ emacsmode_dir := ~bundle_path(ide, 'emacs-mode').
 '$builder_hook'(emacs_mode:item_def(Desc)) :-
 	( with_emacs_mode(yes) ->
 	    Desc = [
-              switch_to_bundle(ide, files_from('emacs-mode/icons', ~icon_dir, [del_rec])),
-	      switch_to_bundle(ide, lib_file_list('emacs-mode', ~emacs_mode_files))]
+              switch_to_bundle(ciao_emacs, files_from('icons', ~icon_dir, [del_rec])),
+	      switch_to_bundle(ciao_emacs, lib_file_list('elisp', ~emacs_mode_files))]
 	; Desc = []
 	).
 %
@@ -81,7 +81,7 @@ build_emacs_mode :-
 	% First, generate 'ciao-config.el' from 'ciao-config.el.skel'
 	generate_emacs_config,
 	% Generate autoloads automatically with 'batch-update-autoloads'
-	Dir = ~emacsmode_dir,
+	Dir = ~emacsmode_elisp_dir,
 	Init = ~path_concat(Dir, 'ciao-site-file.el'),
 	emacs_update_autoloads(Dir, 'emacs_mode3', Init),
 	% Compile to elisp bytecode the .el files
@@ -138,8 +138,8 @@ get_bundle_manual_base_elisp(Bundle, NameVersion):-
 :- use_module(library(bundle/doc_flags), [docformatdir/2]).
 
 generate_emacs_config :-
-	In = ~path_concat(~emacsmode_dir, 'ciao-config.el.skel'),
-	Out = ~path_concat(~emacsmode_dir, 'ciao-config.el'),
+	In = ~path_concat(~emacsmode_elisp_dir, 'ciao-config.el.skel'),
+	Out = ~path_concat(~emacsmode_elisp_dir, 'ciao-config.el'),
 	% manual bases (name and version)
 	root_bundle(RootBundle),
 	Bases = ~findall(B, ((Bundle = RootBundle ; enum_sub_bundles(RootBundle, Bundle)),
@@ -188,7 +188,7 @@ elisp_string_list_([]) --> [].
 % `ciao-documentation.el`. Update `CiaoMode.pl` timestamp if
 % `CiaoMode.lpdoc` has changed.
 prebuild_docs_emacs_mode :-
-	EmacsModeDir = ~emacsmode_dir,
+	EmacsModeDir = ~emacsmode_elisp_dir,
 	emacs_batch_call(EmacsModeDir, 'emacs_mode2', % TODO: right log name?
 	  ['--eval', '(setq load-path (cons "." load-path))',
 	   '-l', 'ciao-documentation.el',
@@ -257,7 +257,7 @@ add_suffix([L|Ls], Suffix,  [R|Rs]) :-
 :- use_module(ciaobld(ciaoc_aux), [clean_tree/1]).
 
 clean_emacs_mode :-
-	EmacsModeDir = ~emacsmode_dir,
+	EmacsModeDir = ~emacsmode_elisp_dir,
 	clean_tree(EmacsModeDir),
 	% TODO: necessary? repeated?
 	del_file_nofail(~path_concat(EmacsModeDir, 'ciao-site-file.el')),

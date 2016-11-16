@@ -69,7 +69,7 @@ emacs_load_script_(Lib) -->
 % The absolute path for the 'ciao-site-file.el' file
 ciaolibemacs(LibEmacs) :-
 	( instype(local) ->
-	    LibEmacs = ~path_concat(~emacsmode_dir, 'ciao-site-file.el')
+	    LibEmacs = ~path_concat(~emacsmode_elisp_dir, 'ciao-site-file.el')
 	; % TODO: Place the version in the right place automatically?
 	  % TODO: Verify that the rest of .el files are in the correct directory.
 	  LibEmacs = ~path_concat(~instciao_bundledir(core), 'ciao-site-file.el')

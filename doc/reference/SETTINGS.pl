@@ -13,7 +13,7 @@ filepath := at_bundle(core, 'cmds').
 filepath := at_bundle(core, 'library/pillow/dist/doc').
 filepath := ~ciaofilepath_common.
 %
-filepath := at_bundle(ide, 'emacs-mode').
+filepath := at_bundle(ciao_emacs, 'elisp').
 % TODO: needed in CiaoMode.lpdoc because of @include{README_CIAOPP.lpdoc}
 filepath := at_bundle(ciaopp, 'doc/readmes'). % TODO: should not be here
 % TODO: move to a separate manual?

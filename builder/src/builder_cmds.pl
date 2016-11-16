@@ -734,7 +734,7 @@ bundleitem_do_(item_group(Name, X), Bundle, Cmd) :- !,
 	bundleitem_do_(X, Bundle, Cmd).
 %
 bundleitem_do_(switch_to_bundle(Bundle, X), _Bundle, Cmd) :- !,
-	% TODO: hack for building 'ide' from 'core' (for emacs-mode); move hooks to ide and remove this
+	% TODO: hack for building 'ciao_emacs' from 'core' (for emacs-mode); move hooks to ciao_emacs bundle and remove this
 	bundleitem_do_(X, Bundle, Cmd).
 bundleitem_do_(files_from(SrcDir, Path, _Props), Bundle, install) :- !,
 	% Copy contents from SrcDir into Path
