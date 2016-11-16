@@ -60,7 +60,7 @@ emacsmode_elisp_dir := ~bundle_path(ciao_emacs, 'elisp').
 '$builder_hook'(emacs_mode:item_def(Desc)) :-
 	( with_emacs_mode(yes) ->
 	    Desc = [
-              switch_to_bundle(ciao_emacs, files_from('icons', ~icon_dir, [del_rec])),
+              switch_to_bundle(ciao_emacs, files_from('elisp/icons', ~icon_dir, [del_rec])),
 	      switch_to_bundle(ciao_emacs, lib_file_list('elisp', ~emacs_mode_files))]
 	; Desc = []
 	).
