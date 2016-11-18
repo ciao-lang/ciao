@@ -1032,7 +1032,7 @@ build_docs_readme(Bundle, SrcPath, OutName) :-
 	copy_file_or_dir(DocSrc, OutAbsFile).
 
 :- export(get_bundle_readme/2).
-% TODO: duplicated in lpdoc_aux
+% TODO: duplicated in autodoc_lookup
 % Output for bundle README files
 get_bundle_readme(Bundle, R) :-
 	get_bundle_def(Bundle, readme(OutName, _Props)), % (nondet)
