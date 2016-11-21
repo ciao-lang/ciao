@@ -3,7 +3,7 @@
 % extra libraries)
 packname('Core').
 alias_paths([
-%    core_docsrc = 'doc',
+    core_docsrc = 'doc',
     core_tests = 'tests',
     %
     core_cmds = 'cmds',
