@@ -3,7 +3,7 @@
 % (manuals and tutorials covering main bundles)
 packname('CiaoDocumentation').
 version('1.15.0').
-depends([core, contrib, lpdoc, ciao_emacs]). % ciaopp?
+depends([core, contrib, lpdoc]). % ciaopp?
 %
 alias_paths([
   % TODO: not used yet?

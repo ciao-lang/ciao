@@ -2,7 +2,8 @@
 
 :- doc(title,  "Bundle Hooks for Ciao core").
 
-% TODO: prune (ciao_emacs moved)
+% ===========================================================================
+
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 :- use_module(ciaobld(builder_aux), [
@@ -12,9 +13,11 @@
 
 % ============================================================================
 
-'$builder_hook'(item_subs(['core/dot_shell', 'core/java', 'core/pillow', 'core/persdb_mysql'])).
+'$builder_hook'(item_subs(['core/dot_shell', 'core/dot_emacs', 'core/emacs_mode', 'core/java', 'core/pillow', 'core/persdb_mysql'])).
 
 :- include(.('dot_shell.hooks')).
+:- include(.('dot_emacs.hooks')).
+:- include(.('emacs_mode.hooks')).
 :- include(.('java.hooks')).
 :- include(.('persdb_mysql.hooks')).
 :- include(.('pillow.hooks')).
@@ -95,7 +98,6 @@
 	[set_emacs_type/1, unset_emacs_type/0,
 	 set_emacs_path/1, unset_emacs_path/0]).
 :- use_module(ciaobld(bundle_configure), [config_set_flag/2]). % TODO: dangerous!
-:- use_module(engine(internals), ['$bundle_id'/1]).
 
 % TODO: do configure and install of just the emacs mode (this is too complex)
 % 'environment_and_windows_bats' required by runwin32.bat, Ciao.iss.skel
@@ -118,13 +120,10 @@
 
 environment :-
 	builder_cmd(build_nodocs, 'core/exec_header'),
-	( '$bundle_id'(ciao_emacs) -> % has ciao_emacs?
-	    builder_cmd(build_nodocs, 'ciao_emacs/emacs_mode'), % TODO: needed?
-	    builder_cmd(install, 'ciao_emacs/emacs_mode'), % TODO: needed?
-	    % (put ciao-mode-init.el in place)
-	    builder_cmd(install, 'ciao_emacs/dot_emacs')
-	; true
-	).
+	builder_cmd(build_nodocs, 'core/emacs_mode'), % (needed?)
+	builder_cmd(install, 'core/emacs_mode'), % (needed?)
+	% (put ciao-mode-init.el in place)
+	builder_cmd(install, 'core/dot_emacs').
 
 % TODO: make sure that 'ciao' is the same in Win32 and unix (currently it isn't)
 % TODO: Add a build_cmds_fix_win action that just creates this

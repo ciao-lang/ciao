@@ -752,7 +752,6 @@ bundleitem_do_(files_from(_SrcDir, Path, Props), _Bundle, uninstall) :- !,
 	; storedir_uninstall(dir(Path))
 	).
 bundleitem_do_(files_from(_SrcDir, _Path, _Props), _Bundle, register) :- !.
-bundleitem_do_(files_from(_SrcDir, _Path, _Props), _Bundle, unregister) :- !.
 bundleitem_do_(files_from(_SrcDir, _Path, _Props), _Bundle, clean_norec) :- !.
 bundleitem_do_(lib(DirName), Bundle, build_nodocs) :- !,
 	build_libs(Bundle, ~bundle_path(Bundle, DirName)).
@@ -767,14 +766,12 @@ bundleitem_do_(lib(DirName), Bundle, uninstall) :- !, % (only instype=global)
 	To = ~inst_bundle_path(Bundle, DirName),
 	storedir_uninstall(dir_rec(To)).
 bundleitem_do_(lib(_), _Bundle, register) :- !.
-bundleitem_do_(lib(_), _Bundle, unregister) :- !.
 bundleitem_do_(lib(_), _Bundle, clean_norec) :- !.
 bundleitem_do_(lib_force_build(DirName), Bundle, build_nodocs) :- !, % TODO: hack for library/clpq, library/clpr (see core bundle)
 	build_libs(Bundle, ~bundle_path(Bundle, DirName)).
 bundleitem_do_(lib_force_build(_), _Bundle, install) :- !. % TODO: assume installed with lib()
 bundleitem_do_(lib_force_build(_), _Bundle, uninstall) :- !. % TODO: assume installed with lib()
 bundleitem_do_(lib_force_build(_), _Bundle, register) :- !.
-bundleitem_do_(lib_force_build(_), _Bundle, unregister) :- !.
 bundleitem_do_(lib_force_build(_), _Bundle, clean_norec) :- !.
 bundleitem_do_(src(_DirName), _Bundle, build_nodocs) :- !. % (only for install)
 bundleitem_do_(src(DirName), Bundle, install) :- !, % (only instype=global)
@@ -785,10 +782,8 @@ bundleitem_do_(src(DirName), Bundle, uninstall) :- !, % (only instype=global)
 	% Uninstall the previously installed source-only module collection DirName
 	storedir_uninstall(src_dir_rec(~inst_bundle_path(Bundle, DirName))).
 bundleitem_do_(src(_DirName), _Bundle, register) :- !.
-bundleitem_do_(src(_DirName), _Bundle, unregister) :- !.
 bundleitem_do_(src(_DirName), _Bundle, clean_norec) :- !.
 bundleitem_do_(lib_file_list(_Path, _List), _Bundle, register) :- !.
-bundleitem_do_(lib_file_list(_Path, _List), _Bundle, unregister) :- !.
 bundleitem_do_(lib_file_list(_Path, _List), _Bundle, clean_norec) :- !.
 bundleitem_do_(lib_file_list(Path, List), Bundle, Cmd) :- !,
 	lib_file_list_do(List, Bundle, ~bundle_path(Bundle, Path), Cmd).
@@ -805,7 +800,6 @@ bundleitem_do_(bin_copy_and_link(K, File, Props), Bundle, uninstall) :- !,
 	),
 	storedir_uninstall(copy_and_link(K, Bundle, File)).
 bundleitem_do_(bin_copy_and_link(_K, _File, _Props), _Bundle, register) :- !.
-bundleitem_do_(bin_copy_and_link(_K, _File, _Props), _Bundle, unregister) :- !.
 bundleitem_do_(bin_copy_and_link(_K, _File, _Props), _Bundle, clean_norec) :- !.
 % Executables (cmd)
 bundleitem_do_(cmd(Path), Bundle, Cmd) :- atom(Path), !,
@@ -821,7 +815,6 @@ bundleitem_do_(cmd(Name, Opts), Bundle, install) :- !,
 bundleitem_do_(cmd(Name, Opts), Bundle, uninstall) :- !,
  	storedir_uninstall(~get_cmd_def(Bundle, Name, Opts)).
 bundleitem_do_(cmd(_, _), _Bundle, register) :- !.
-bundleitem_do_(cmd(_, _), _Bundle, unregister) :- !.
 bundleitem_do_(cmd(_, _), _Bundle, clean_norec) :- !.
 % Engines
 % TODO: mimik 'cmd'! (this is a very similar case)
@@ -843,7 +836,6 @@ bundleitem_do_(eng(EngMainSpec, EngOpts), Bundle, uninstall) :- !,
 	storedir_uninstall(eng_active(Eng)),
 	storedir_uninstall(eng_contents(Eng)).
 bundleitem_do_(eng(_EngMainSpec, _EngOpts), _Bundle, register) :- !.
-bundleitem_do_(eng(_EngMainSpec, _EngOpts), _Bundle, unregister) :- !.
 % Engine header stubs for executables
 bundleitem_do_(eng_exec_header(eng(EngMainSpec, EngOpts)), Bundle, build_nodocs) :- !,
 	build_eng_exec_header(eng_def(Bundle, EngMainSpec, EngOpts)).
@@ -853,7 +845,6 @@ bundleitem_do_(eng_exec_header(eng(_EngMainSpec, _EngOpts)), _Bundle, install) :
 	% TODO: do nothing -- is it right?
 	true.
 bundleitem_do_(eng_exec_header(eng(_EngMainSpec, _EngOpts)), _Bundle, register) :- !.
-bundleitem_do_(eng_exec_header(eng(_EngMainSpec, _EngOpts)), _Bundle, unregister) :- !.
 %
 % Manuals and readmes (treated separatedly)
 bundleitem_do_(manual(_, _), _Bundle, _) :- !.
@@ -1041,7 +1032,7 @@ build_docs_readme(Bundle, SrcPath, OutName) :-
 	copy_file_or_dir(DocSrc, OutAbsFile).
 
 :- export(get_bundle_readme/2).
-% TODO: duplicated in autodoc_lookup
+% TODO: duplicated in lpdoc_aux
 % Output for bundle README files
 get_bundle_readme(Bundle, R) :-
 	get_bundle_def(Bundle, readme(OutName, _Props)), % (nondet)
