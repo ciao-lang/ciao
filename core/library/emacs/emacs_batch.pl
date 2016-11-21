@@ -49,7 +49,7 @@ emacs_path(Path) :-
 	winpath(Path, Path0),
 	!.
 emacs_path(Path) :-
-	( current_bundle_flag(core:emacs_for_ciao, Path0) -> Path = Path0
+	( current_bundle_flag(ciao_emacs:emacs_for_ciao, Path0) -> Path = Path0
 	; throw(error(no_emacs, emacs_path/1))
 	).
 

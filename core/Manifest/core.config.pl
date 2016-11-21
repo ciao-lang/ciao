@@ -3,6 +3,7 @@
 :- doc(title, "Configuration rules for Ciao core").
 :- doc(author, "Ciao Development Team").
 
+% TODO: prune (ciao_emacs moved)
 :- use_module(library(system), [file_exists/1, find_executable/2, get_home/1]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(lists), [append/3]).
@@ -15,8 +16,6 @@
 :- include(.('engine.config')).
 :- include(.('compiler.config')).
 :- include(.('dot_shell.config')).
-:- include(.('dot_emacs.config')).
-:- include(.('emacs_mode.config')).
 :- include(.('pillow.config')).
 :- include(.('persdb_mysql.config')).
 :- include(.('java.config')).
