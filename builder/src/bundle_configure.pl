@@ -333,7 +333,8 @@ check_bundle_deps_(Bundle) :-
 	( '$bundle_prop'(Bundle, depends(Depends)) -> true
 	; Depends = []
 	),
-	( member(DepProps, Depends) ->
+	( % (failure-driven loop)
+          member(DepProps, Depends),
 	    check_bundle_deps__(Bundle, DepProps),
 	    fail
 	; true

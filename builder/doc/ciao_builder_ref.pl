@@ -27,7 +27,7 @@
 
 :- doc(module,"
    This is the main tool to manage Ciao source code, in order to
-   automatize the configuration, build, (un)installation, packaging,
+   automate the configuration, build, (un)installation, packaging,
    and cleaning (removal of object files) of complex collections of
    code. 
 

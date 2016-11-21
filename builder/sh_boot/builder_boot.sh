@@ -232,7 +232,7 @@ cmd=`echo "$cmd" | sed -e s:-:_:g`
 # Select $autobuild for the given $cmd
 case "$cmd" in
     # Actions for which bootstrap is build automatically
-    help|help_all|boot_build|configure|local_install|global_install)
+    help|help_all|boot_build|configure|full_install|local_install|global_install)
 	autobuild=yes
 	;;
     # Actions for which bootstrap is rebuild automatically
