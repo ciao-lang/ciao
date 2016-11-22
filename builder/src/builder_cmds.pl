@@ -4,7 +4,7 @@
 :- doc(author, "Jose F. Morales").
 
 :- use_module(library(aggregates), [findall/3]).
-:- use_module(library(pathnames), [path_split_list/2]).
+:- use_module(library(pathnames), [path_split_list/2, path_splitext/3]).
 :- use_module(library(terms), [atom_concat/2]).
 
 :- use_module(library(bundle/bundle_paths),
@@ -1026,9 +1026,9 @@ build_docs_readmes(_Bundle).
 build_docs_readme(Bundle, SrcPath, OutName) :-
 	OutAbsFile = ~bundle_path(Bundle, OutName),
 	path_split(SrcPath, _, Name),
+	path_splitext(Name, Name0, _),
 	BundleDir = ~bundle_path(Bundle, '.'),
-	path_concat(BundleDir, SrcPath, SrcPath1),
-	atom_concat(SrcPath1, '.lpdoc', SrcPath2),
+	path_concat(BundleDir, SrcPath, SrcPath2),
 	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
 	invoke_lpdoc(['--autogen_warning=yes',
 	              '--allow_markdown=no',
@@ -1036,7 +1036,7 @@ build_docs_readme(Bundle, SrcPath, OutName) :-
 	              ~atom_concat('--output_dir=', DocDir),
 		      '-t', 'ascii',
 	              SrcPath2]),
-	Ascii = ~atom_concat(Name, '.ascii'),
+	Ascii = ~atom_concat(Name0, '.ascii'),
 	DocSrc = ~path_concat(DocDir, Ascii),
 	copy_file_or_dir(DocSrc, OutAbsFile).
 
