@@ -226,7 +226,7 @@ builder_cmd_(build_docs, Target) :- !, % (internal, without prebuild)
 	builder_cmd(prebuild_docs, Target),
 	%
 	( with_docs(yes) ->
-	    cmd_message(Target, "building [build docs]", []),
+	    cmd_message(Target, "building [docs]", []),
 	    ( bundle_defines_hookcmd(Bundle, Part, build_docs) ->
 		builder_hookcmd(Bundle, Part, build_docs)
 	    ; builder_pred(Target, item_def(_)) ->
@@ -237,7 +237,7 @@ builder_cmd_(build_docs, Target) :- !, % (internal, without prebuild)
 	      builder_cmd(build_docs_readmes, Target),
 	      builder_cmd(build_docs_manuals, Target)
 	    ),
-	    cmd_message(Target, "built [build docs]", [])
+	    cmd_message(Target, "built [docs]", [])
 	; true % normal_message("documentation omitted", [])
 	),
 	% Treat sub-bundles
