@@ -194,11 +194,11 @@ Ciao packages, provided they are all different versions.
    --instype=global --install_prefix=%{_prefix} \
    --core:update_bashrc=no --core:update_cshrc=no \
 %if %{versionp}
-   --core:with_emacs_mode=no --core:update_dotemacs=no \
+   --ciao_emacs:with_emacs_mode=no --core:update_dotemacs=no \
 %else
-   --core:with_emacs_mode=yes --core:update_dotemacs=no \
-   --core:emacs_site_start=%{emacs_sitestart_dir} \
-   --core:emacsinitfile=%{emacs_sitestart_filename} \
+   --ciao_emacs:with_emacs_mode=yes --core:update_dotemacs=no \
+   --ciao_emacs:emacs_site_start=%{emacs_sitestart_dir} \
+   --ciao_emacs:emacsinitfile=%{emacs_sitestart_filename} \
 %endif
    --core:with_mysql=%{?with_mysql}%{!?with_mysql:no} \
    --core:with_java_interface=%{?with_java_interface}%{!?with_java_interface:no} \

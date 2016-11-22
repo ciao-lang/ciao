@@ -104,27 +104,28 @@
 % Accepts this parameter:
 %   --emacs_path=EmacsDir (as a windows path)
 '$builder_hook'(custom_run(environment_and_windows_bats, Args)) :-
+	( '$bundle_id'(ciao_emacs) -> % has ciao_emacs?
+	    ciao_emacs_reinstall_win32(Args)
+	; true
+	),
+	% Fix executables
+	builder_cmd(build_nodocs, 'core/exec_header'),
+	windows_bats.
+
+ciao_emacs_reinstall_win32(Args) :-
 	( member(Arg, Args),
-	  atom_concat('--emacs_path=', EmacsPath, Arg) ->
+	    atom_concat('--emacs_path=', EmacsPath, Arg) ->
 	    set_emacs_path(EmacsPath)
 	; true
 	),
 	set_emacs_type('Win32'), % TODO: patch config instead?
-	config_set_flag(core:with_emacs_mode, 'yes'), % TODO: dangerous!
-	environment,
-	windows_bats,
+	config_set_flag(ciao_emacs:with_emacs_mode, 'yes'), % TODO: dangerous!
+	builder_cmd(build_nodocs, 'ciao_emacs/emacs_mode'), % TODO: needed?
+	builder_cmd(install, 'ciao_emacs/emacs_mode'), % TODO: needed?
+	% (put ciao-mode-init.el in place)
+	builder_cmd(install, 'ciao_emacs/dot_emacs'),
 	unset_emacs_type,
 	unset_emacs_path.
-
-environment :-
-	builder_cmd(build_nodocs, 'core/exec_header'),
-	( '$bundle_id'(ciao_emacs) -> % has ciao_emacs?
-	    builder_cmd(build_nodocs, 'ciao_emacs/emacs_mode'), % TODO: needed?
-	    builder_cmd(install, 'ciao_emacs/emacs_mode'), % TODO: needed?
-	    % (put ciao-mode-init.el in place)
-	    builder_cmd(install, 'ciao_emacs/dot_emacs')
-	; true
-	).
 
 % TODO: make sure that 'ciao' is the same in Win32 and unix (currently it isn't)
 % TODO: Add a build_cmds_fix_win action that just creates this
