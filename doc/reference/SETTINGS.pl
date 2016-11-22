@@ -62,8 +62,7 @@ docstr_utils :=
 	 'xrefs/callgraph',
 	 % 'show_deps'?
 %	 'get_deps',
-	 'pldiff',
-	 'lpmake'].
+	 'pldiff'].
 
 docstr_refcomponents :=
 	['modules', % engine
@@ -182,8 +181,6 @@ docstr_miscprolog :=
 	 'sockets/sockets',
 	 'sockets/sockets_io',
          %
-	 % TODO: is 'core/cmds/lpmake.pl' being documented?
-	 %       (and other tools under core/cmds?)
 	 % TODO: nest
 	 'system_extra',
 	 'process/process'-['process/process_channel'],
@@ -193,10 +190,7 @@ docstr_miscprolog :=
 	 %
 	 'archive_files',
 	 %
-	 'text_template',
-	 %
-	 'make/make_doc',
-	 'make/make_rt'
+	 'text_template'
 	 ].
 
 %    'tokenize',

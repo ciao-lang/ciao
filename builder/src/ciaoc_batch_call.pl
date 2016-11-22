@@ -17,7 +17,7 @@
 	 itf_filename/2,
 	 asr_filename/2,
 	 ast_filename/2]).
-:- use_module(library(make/up_to_date)). % TODO: this should be in the compiler
+:- use_module(library(compiler/up_to_date)).
 
 % Auxiliary file to call ciaoc in batch mode from invoke_ciaosh_batch/1
 % (many modules compiled from the same process)

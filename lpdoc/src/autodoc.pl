@@ -2496,11 +2496,6 @@ eliminate_duplicates_([H|T], Seen, [H|NT]) :-
 
 :- doc(subsection, "Future Work").
 
-:- doc(bug, "Currently, the input from autodoc is a
-   SETTINGS.pl. Currently, this is quite limited since there can exist
-   only one SETTINGS.pl loaded at a time, and it interact with other
-   tools (e.g., lpmake)").
-
 :- doc(bug, "in Ciao tree we need to automatically create local
    subset of (clip) bibtex files to make manuals standalone.").
 

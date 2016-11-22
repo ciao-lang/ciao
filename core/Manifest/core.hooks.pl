@@ -65,7 +65,6 @@
 '$builder_hook'(core_cmds:item_def([
   cmd('cmds/ciaodump'),
   cmd('cmds/pldiff'),
-  cmd('cmds/lpmake'),
   cmd('cmds/plindent'),
   cmd('cmds/checkline'),
   cmd('cmds/ciaoc_sdyn')
