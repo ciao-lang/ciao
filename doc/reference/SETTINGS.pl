@@ -385,25 +385,6 @@ docstr_contrib :=
 	 'mycin/mycin_doc',
 	 'profiler/profiler_doc',
          %
-	 'provrml/provrml'-[
-	   'provrml/boundary',
-	   'provrml/dictionary',
-	   'provrml/dictionary_tree',
-	   'provrml/provrmlerror',
-	   'provrml/field_type',
-	   'provrml/field_value',
-	   'provrml/field_value_check',
-	   'provrml/generator',
-	   'provrml/generator_util',
-	   'provrml/internal_types',
-	   'provrml/provrml_io',
-	   'provrml/lookup',
-	   'provrml/provrml_parser',
-	   'provrml/parser_util',
-	   'provrml/possible',
-	   'provrml/tokeniser'
-         ],
-         %
 	 'regexp/regexp_doc'-['regexp/regexp_code'],
 	 %
 	 'tester/tester',
