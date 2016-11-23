@@ -11,8 +11,6 @@
 :- use_module(library(process)).
 :- use_module(library(system), [using_windows/0]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
-:- use_module(ciaobld(config_common),
-     [default_eng_def/1, local_ciaolib/1]).
 
 :- export(cpx_process_option/1).
 :- regtype cpx_process_option/1.
@@ -27,11 +25,10 @@ cpx_process_option(X) :- process_option(X).
       added to @var{Opts} then it uses the bootstrap engine.".
 
 cpx_process_call(Cmd, Args, Opts) :-
-	Eng = ~default_eng_def,
 	( select(boot, Opts, Opts1) ->
-	    Env = ~bootciao_env(Eng)
+	    Env = ~bootciao_env
 	; Opts1 = Opts,
-	  Env = ~localciao_env(Eng)
+	  Env = ~localciao_env
 	),
 	cpx_process_call_(Cmd, Args, ~merge_env(Env, Opts1)).
 
@@ -55,18 +52,25 @@ merge_env(Env, Opts, Opts2) :-
 	),
 	Opts2 = [env(Env)|Opts1].
 
+% ---------------------------------------------------------------------------
+% Default environments for selecting the local or boot engines
+
 :- use_module(ciaobld(eng_defs),
 	[eng_path/3,
-	 bootbld_eng_path/3]).
+	 bld_eng_path/3]).
+:- use_module(ciaobld(config_common),
+     [default_eng_def/1, boot_eng_def/1, local_ciaolib/1]).
 
-bootciao_env(Eng) := Env :-
+bootciao_env := Env :-
+	Eng = ~boot_eng_def,
 	% TODO: (un)define CIAOPATH? 
 	Env = ['CIAOALIASPATH' = '',
 	       'CIAOLIB' = ~bundle_path(core, '.'),
-	       'CIAOHDIR' = ~bootbld_eng_path(hdir, Eng),
-	       'CIAOENGINE' = ~bootbld_eng_path(exec, Eng)].
+	       'CIAOHDIR' = ~bld_eng_path(hdir, Eng),
+	       'CIAOENGINE' = ~bld_eng_path(exec, Eng)].
 
-localciao_env(Eng) := Env :-
+localciao_env := Env :-
+	Eng = ~default_eng_def,
 	% TODO: (un)define CIAOPATH? 
 	Env = ['CIAOALIASPATH' = '',
 	       'CIAOLIB' = ~local_ciaolib,

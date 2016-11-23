@@ -169,10 +169,6 @@ eng_h_alias(Eng, Path) :-
 % Engine directory layout in build area
 bld_eng_path(D, Eng) := ~eng_path_(D, bld, Eng).
 
-:- export(bootbld_eng_path/3).
-% Engine directory layout in boot build area
-bootbld_eng_path(D, Eng) := ~eng_path_(D, bld, ~eng_set_boot(Eng)).
-
 :- export(inst_eng_path/3).
 % Engine directory layout in global installs
 %

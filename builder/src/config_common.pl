@@ -46,6 +46,11 @@ with_docs := ~get_bundle_flag(ciao:with_docs).
 default_eng_def(Eng) :-
 	Eng = eng_def(core, 'engine/ciaoengine', []).
 
+% Boot engine
+:- export(boot_eng_def/1).
+boot_eng_def(Eng) :-
+	Eng = eng_def(core, 'engine/ciaoengine', [boot]).
+
 % ===========================================================================
 % Paths for installation
 

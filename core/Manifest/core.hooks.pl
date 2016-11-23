@@ -166,8 +166,8 @@ win_cmd_and_opts(ciao, Atm, '-i', ciaosh) :-
 
 install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 
-:- use_module(ciaobld(eng_defs), [bootbld_eng_path/3]).
-:- use_module(ciaobld(config_common), [cmdname_ver/5]).
+:- use_module(ciaobld(eng_defs), [bld_eng_path/3]).
+:- use_module(ciaobld(config_common), [boot_eng_def/1, cmdname_ver/5]).
 
 % The 'ciao' super-command
 %
@@ -186,7 +186,7 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 % (definition for build_nodocs)
 '$builder_hook'(ciaocl:build_nodocs) :-
 	cmd_message(core, "building '~w' command", ['ciao']),
-	Eng = ~default_eng_def,
+	BootEng = ~boot_eng_def,
 	wr_template(as_cmd(core, shscript), ~bundle_path(core, 'cmds'), 'ciao', [
 	    'ExtraCommands' = ~ciao_extra_commands, % (for toplevel)
 	    %
@@ -201,8 +201,8 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	    % TODO: (MinGW) is cmd.exe enough? (at least for bootstrap) consider PowerShell scripts for Windows?
 	    'boot_ciaolib' = ~bundle_path(core, '.'),
 	    'boot_bindir' = ~bundle_path(core, bootbuilddir, 'bin'),
-	    'boot_ciaohdir' = ~bootbld_eng_path(hdir, Eng),
-	    'boot_ciaoengine' = ~bootbld_eng_path(exec, Eng)
+	    'boot_ciaohdir' = ~bld_eng_path(hdir, BootEng),
+	    'boot_ciaoengine' = ~bld_eng_path(exec, BootEng)
         ]),
  	( install_prolog_name(yes) ->
  	    builddir_bin_link_as(core, shscript, 'ciao', 'prolog')
