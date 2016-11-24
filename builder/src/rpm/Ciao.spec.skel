@@ -201,7 +201,7 @@ Ciao packages, provided they are all different versions.
    --ciao_emacs:emacsinitfile=%{emacs_sitestart_filename} \
 %endif
    --core:with_mysql=%{?with_mysql}%{!?with_mysql:no} \
-   --core:with_java_interface=%{?with_java_interface}%{!?with_java_interface:no} \
+   --ciao_java:with_java_interface=%{?with_java_interface}%{!?with_java_interface:no} \
    --contrib:with_gsl=%{?with_gsl}%{!?with_gsl:no} \
    --contrib:with_ppl=no \
    --lpdoc:docdir=%{ciaodocdir} \
