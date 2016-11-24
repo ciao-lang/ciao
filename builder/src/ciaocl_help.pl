@@ -255,8 +255,6 @@ grp_details(build_grp, [
     "  core/engine            The engine",
     "  core/ciaoc             The 'ciaoc' compiler",
     "  core/shell             The 'ciaosh' toplevel (or shell)",
-    "  core/emacs_mode        The Emacs-based IDE for Ciao",
-    "  core/java              Java interface",
     "  contrib/profiler       Profiler",
     "  ciaopp/ilciao          Java resource analysis", % TODO: Does not work in 'build'!
     "",
