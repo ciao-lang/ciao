@@ -1,6 +1,8 @@
 #!/usr/bin/env ciao-shell
 % -*- mode: ciao; -*-
 
+% This is a Ciao script (directly executable on POSIX environments)
+
 main(_) :- 
 	write('Hello world!'), nl, nl,
 	write('Hit return to proceed... '), 
