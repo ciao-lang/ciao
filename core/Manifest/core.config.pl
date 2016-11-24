@@ -18,7 +18,6 @@
 :- include(.('dot_shell.config')).
 :- include(.('pillow.config')).
 :- include(.('persdb_mysql.config')).
-:- include(.('ant.config')).
 
 % ===========================================================================
 

@@ -233,13 +233,3 @@ cmd_op(gmake) := gmake|make.
 
 cmd_op(gtar) := gnutar|gtar|tar.
 
-% Detect Apache Ant
-:- bundle_flag(ant_cmd, [
-    comment("Path of Apache Ant command"),
-    rule_set_value(Value, get_cmd_op(ant, Value))
-]).
-
-cmd_op(ant) := ant.
-
-
-
