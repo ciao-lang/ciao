@@ -12,10 +12,9 @@
 
 % ============================================================================
 
-'$builder_hook'(item_subs(['core/dot_shell', 'core/java', 'core/pillow', 'core/persdb_mysql'])).
+'$builder_hook'(item_subs(['core/dot_shell', 'core/pillow', 'core/persdb_mysql'])).
 
 :- include(.('dot_shell.hooks')).
-:- include(.('java.hooks')).
 :- include(.('persdb_mysql.hooks')).
 :- include(.('pillow.hooks')).
 

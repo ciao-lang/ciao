@@ -288,12 +288,6 @@ docstr_interfaces :=
 	 'persdb_sql_common/persdb_sql_tr',
 	 'persdb_sql_common/pl2sqlinsert',
          %
-	 'javall/javall_doc'-[
-	   'javall/javart',
-	   'javall/jtopl',
-           %
-	   'javall/javasock'
-         ],
 	 'emacs/emacs',
 	 'linda'].
 
