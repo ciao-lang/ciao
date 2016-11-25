@@ -289,7 +289,7 @@ runtests_ciaotests_hook :-
 
 do_ciaotests :-
 	cmd_message(core, "running 'tests' tests", []),
-	working_directory(ThisDir, tests),
+	working_directory(ThisDir, ~bundle_path(core, 'tests')),
 	invoke_ciaosh_batch([
 	  use_module(core_tests(run_tests), [run_tests/0]),
 	  run_tests:run_tests
