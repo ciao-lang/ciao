@@ -70,7 +70,7 @@
 
 :- use_module(engine(basic_props_rtc)).
 
-:- rtc_impl(basic_props:term/1, basic_props_rtc:rtc_term/1).
+% :- rtc_impl(basic_props:term/1, basic_props_rtc:rtc_term/1).
 
 :- rtc_impl(basic_props:int/1, basic_props_rtc:rtc_int/1).
 
