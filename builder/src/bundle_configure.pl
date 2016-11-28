@@ -148,9 +148,7 @@ check_builder_update :-
 % builder exists yet).
 % TODO: Add to binary instead? (like lpdoc version)
 running_builder_vers(V) :-
-	'$bundle_prop'(builder, version(Vers)),
-	'$bundle_prop'(builder, patch(Patch)),
-	V = ~atom_concat(~atom_concat(Vers, '.'), Patch).
+	bundle_fullversion(builder, V).
 
 % The minimum compatible builder version (specified in a single file
 % easier to read than Manifests).
@@ -362,7 +360,7 @@ check_bundle_constraints([C|Cs], Bundle) :-
 
 check_bundle_constraint(C, Bundle) :-
 	version_constraint(C, Ver2, Op), !,
-	'$bundle_prop'(Bundle, version(Ver1)), % fail if no version
+	bundle_fullversion(Bundle, Ver1), % fail if no version
 	version_compare(Comp, Ver1, Ver2),
 	( eval_op(Op, Comp) -> true
 	; fail
@@ -384,6 +382,12 @@ eval_op((=<), (=)).
 eval_op((<), (<)).
 eval_op((\=), (>)).
 eval_op((\=), (<)).
+
+% Version with patch number (and prerelease)
+bundle_fullversion(Bundle, V) :-
+	'$bundle_prop'(Bundle, version(Vers)),
+	'$bundle_prop'(Bundle, patch(Patch)),
+	V = ~atom_concat(~atom_concat(Vers, '.'), Patch).
 
 % ---------------------------------------------------------------------------
 % Set a configuration flag (dangerous!)
