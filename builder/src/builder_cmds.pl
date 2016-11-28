@@ -28,7 +28,7 @@
 :- use_module(ciaobld(bundle_configure),
 	[bundleset_configure/2, bundle_has_config/1]).
 :- use_module(ciaobld(bundle_fetch),
-	[check_bundle_alias/3, bundle_fetch/2, bundle_rm/1]).
+	[bundle_fetch/1, bundle_rm/1]).
 :- use_module(ciaobld(ciaoc_aux),
 	[promote_bootstrap/1,
 	 %
@@ -56,30 +56,6 @@
 :- use_module(library(messages), [error_message/2]).
 
 % ===========================================================================
-:- doc(section, "Bundle origins for fetching").
-
-:- data bundle_origin/2.
-
-:- export(add_bundle_origin/2).
-:- pred add_bundle_origin(Bundle, BundleAlias) 
-   # "Select the origin for the given bundle name".
-
-% TODO: Error if origin is different
-% TODO: Save origin somewhere (e.g., in FETCHED_BUNDLE mark)
-% TODO: Check that origin coincides w.r.t. saved
-add_bundle_origin(Bundle, BundleAlias) :-
-	( current_fact(bundle_origin(Bundle, _)) -> true
-	; assertz_fact(bundle_origin(Bundle, BundleAlias))
-	).
-
-% Obtain the origin for a bundle (for fetching)
-get_bundle_origin(Bundle, Origin) :-
-	( current_fact(bundle_origin(Bundle, Origin0)) ->
-	    Origin = Origin0
-	; throw(error_msg("Unknown origin for bundle '~w'", [Bundle]))
-	).
-
-% ===========================================================================
 :- doc(section, "Special builder commands").
 
 :- export(builder_cmd_nobndl/1).
@@ -100,8 +76,7 @@ builder_cmd_nobndl(clean_tree(Dir)) :- !,
 :- pred builder_cleanup # "Cleanup the builder state".
 
 builder_cleanup :-
-	retractall_fact(builder_cmd_done(_, _)),
-	retractall_fact(bundle_origin(_, _)).
+	retractall_fact(builder_cmd_done(_, _)).
 
 :- export(builder_cmd/2).
 :- pred builder_cmd(Cmd, Target) # "Perform command @var{Cmd} on
@@ -122,8 +97,7 @@ builder_cmd_(get(Flags), Target) :- !,
 	( Part = '' -> true
 	; throw(error_msg("Cannot fetch separate bundle items (please fetch `~w' instead).", [Bundle]))
 	),
-	get_bundle_origin(Bundle, Origin),
-	bundle_fetch(Origin, Bundle),
+	bundle_fetch(Bundle),
 	builder_cmd(configure(Flags), Bundle),
 	builder_cmd(build, Bundle),
 	builder_cmd(install, Bundle).

@@ -21,24 +21,37 @@
 	top_ciao_path/1,
 	'$bundle_id'/1]).
 
-:- export(bundle_status/2).
-% Status of a bundle (w.r.t. 'ciao get'):
-%
-%  - fetched: fetched in top workspace
-%  - user: in top workspace, but not fetched by 'ciao get'
-%  - nontop: available as a system bundle or in another workspace
-%  - missing: bundle not available
-%
-bundle_status(Bundle, Status) :-
-	top_ciao_path(RootDir),
-	path_concat(RootDir, Bundle, BundleDir),
-	( file_exists(BundleDir) ->
-	    ( has_fetch_mark(BundleDir) -> Status = fetched
-	    ; Status = user
-	    )
-	; '$bundle_id'(Bundle) -> Status = nontop
-	; Status = missing
+% ---------------------------------------------------------------------------
+:- doc(section, "Bundle origins for fetching").
+
+:- data bundle_origin/2.
+
+:- export(add_bundle_origin/2).
+:- pred add_bundle_origin(Bundle, BundleAlias) 
+   # "Select the origin for the given bundle name".
+
+% TODO: Error if origin is different
+% TODO: Save origin somewhere (e.g., in FETCHED_BUNDLE mark)
+% TODO: Check that origin coincides w.r.t. saved
+add_bundle_origin(Bundle, BundleAlias) :-
+	( current_fact(bundle_origin(Bundle, _)) -> true
+	; assertz_fact(bundle_origin(Bundle, BundleAlias))
 	).
+
+:- export(get_bundle_origin/2).
+:- pred get_bundle_origin(Bundle, BundleAlias) 
+   # "Obtain the origin for a bundle (for fetching)".
+
+get_bundle_origin(Bundle, Origin) :-
+	( current_fact(bundle_origin(Bundle, Origin0)) ->
+	    Origin = Origin0
+	; throw(error_msg("Unknown origin for bundle '~w'", [Bundle]))
+	).
+
+:- export(bundle_fetch_cleanup/0).
+:- pred bundle_fetch_cleanup # "Cleanup the bundle fetch state".
+bundle_fetch_cleanup :-
+	retractall_fact(bundle_origin(_, _)).
 
 % ---------------------------------------------------------------------------
 
@@ -85,16 +98,36 @@ bundle_src_origin(BundleAlias, git_archive(URL, Ref)) :-
 	atom_concat(['ssh://gitolite@', BundleAlias], URL).
 
 % ---------------------------------------------------------------------------
+:- doc(section, "Bundle fetching").
 
-:- export(bundle_fetch/2).
-% bundle_fetch(+Origin, +Bundle): Fetch and build the bundle from Origin
-bundle_fetch(Origin, Bundle) :-
+:- export(bundle_status/2).
+% Status of a bundle (w.r.t. 'ciao get'):
+%
+%  - fetched: fetched in top workspace
+%  - user: in top workspace, but not fetched by 'ciao get'
+%  - nontop: available as a system bundle or in another workspace
+%  - missing: bundle not available
+%
+bundle_status(Bundle, Status) :-
 	top_ciao_path(RootDir),
-	bundle_fetch0(Origin, Bundle, RootDir),
+	path_concat(RootDir, Bundle, BundleDir),
+	( file_exists(BundleDir) ->
+	    ( has_fetch_mark(BundleDir) -> Status = fetched
+	    ; Status = user
+	    )
+	; '$bundle_id'(Bundle) -> Status = nontop
+	; Status = missing
+	).
+
+:- export(bundle_fetch/1).
+% bundle_fetch(+Bundle): Fetch and build the bundle (find origin automatically)
+bundle_fetch(Bundle) :-
+	top_ciao_path(RootDir),
+	bundle_fetch0(Bundle, RootDir),
 	scan_bundles_at_path(RootDir). % TODO: rescan here or from clients of this module?
 
-% Fetch from Origin the code for Bundle, store at RootDir
-bundle_fetch0(Origin, Bundle, RootDir) :-
+% Fetch from the code for Bundle, store at RootDir
+bundle_fetch0(Bundle, RootDir) :-
 	bundle_status(Bundle, Status),
 	( Status = fetched ->
 	    % TODO: allow silent operation, implement 'ciao rm'
@@ -102,9 +135,10 @@ bundle_fetch0(Origin, Bundle, RootDir) :-
 	; Status = user ->
 	    cmd_message(Bundle, "user bundle, skipping fetch", [])
 	; Status = nontop ->
-	    throw(error_msg("Bundle `~w' exists in a non-top CIAOPATH.", [Bundle]))
+	    cmd_message(Bundle, "exists in a non-top CIAOPATH, skipping fetch", [])
 	; Status = missing ->
 	    path_concat(RootDir, Bundle, BundleDir),
+	    get_bundle_origin(Bundle, Origin),
 	    bundle_fetch1(Origin, Bundle, BundleDir)
 	; fail
 	).
@@ -140,8 +174,9 @@ fetch_src(git_archive(URL, Ref), Bundle, File) :-
 		     [status(0)]).
 
 % ---------------------------------------------------------------------------
-% TODO: 'ciao rm' does not check dependencies, uninstalls, or do warnings
+:- doc(section, "Remove fetched bundle").
 
+% TODO: 'ciao rm' does not check dependencies, uninstalls, or do warnings
 :- export(bundle_rm/1).
 % Remove the specified bundle (if it was downloaded)
 bundle_rm(Bundle) :-

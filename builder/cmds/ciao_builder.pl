@@ -146,10 +146,12 @@ force the recompilation and cleaning of that part (see
 
 :- use_module(ciaobld(builder_cmds),
 	[builder_cleanup/0,
-	 add_bundle_origin/2,
 	 builder_cmd_nobndl/1,
 	 builder_cmd_on_set/2]).
-:- use_module(ciaobld(bundle_fetch), [check_bundle_alias/3]).
+:- use_module(ciaobld(bundle_fetch),
+	[check_bundle_alias/3,
+	 add_bundle_origin/2,
+	 bundle_fetch_cleanup/0]).
 :- use_module(ciaobld(builder_flags),
 	[set_builder_flag/2, cleanup_builder_flags/0]).
 :- use_module(ciaobld(builder_aux), [bundle_at_dir/2, ciao_path_at_dir/2]).
@@ -194,8 +196,7 @@ main_([Help0|Args]) :-
 	).
 main_(Args) :-
 	parse_cmd(Args, Cmd, Opts),
-	builder_cleanup, % TODO: just in case...
-	cleanup_builder_flags,
+	cleanup, % TODO: repeat just in case...
 	set_opts(Opts),
 	( Cmd = cmd_on_set(Cmd0, Targets) ->
 	    ( needs_update_builder(Cmd0) -> check_builder_update ; true ),
@@ -212,7 +213,11 @@ main_(Args) :-
 	; Cmd = cmd(Cmd0) -> builder_cmd_nobndl(Cmd0)
 	; fail
 	),
+	cleanup.
+
+cleanup :-
 	builder_cleanup,
+	bundle_fetch_cleanup,
 	cleanup_builder_flags.
 
 set_opts([opt(interactive)|Opts]) :- !, % TODO: ad-hoc?
