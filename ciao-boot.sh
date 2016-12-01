@@ -34,7 +34,7 @@ EOF
     curl -SfL "$url" | tar -xz --strip-components 1 -C "$_base" -f -
 }
 
-if [ "$0" == "sh" ]; then
+if [ "$0" = "sh" ]; then
     # Stand-alone call. E.g.,
     #   curl -sSf https://raw.githubusercontent.com/ciao-lang/ciao/master/ciao-boot.sh | sh -s -- local-install
     fetch
