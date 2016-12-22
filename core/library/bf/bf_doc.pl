@@ -64,7 +64,7 @@
 @includeverbatim{bf/examples/sublistapp.pl}
 @end{verbatim}
 
-   There is also a package @lib{'bf/bfall'} which again allows
+   There is also a package @lib{'bf/afall'} which again allows
    executing @em{all} the predicates in a given module in
    breadth-first, and-fair mode, where also all predicates should be
    written using the standard syntax. This package offers (at a cost,
