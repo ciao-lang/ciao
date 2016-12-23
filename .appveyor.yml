@@ -23,4 +23,4 @@ environment:
       CIAO_OPTS: --core:m32=yes --with-docs=no
 
 build_script:
-  - C:\%MSYS2_DIR%\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; exec 0</dev/null; ./ciao-boot.sh local-install $CIAO_OPTS"
+  - C:\%MSYS2_DIR%\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; exec 0</dev/null; rm -rf doc; ./ciao-boot.sh local-install $CIAO_OPTS"
