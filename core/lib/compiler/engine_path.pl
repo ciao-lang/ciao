@@ -24,7 +24,7 @@
 get_engine_file(TargetEng, Engine) :- % TODO: rename TargetEng by EngCfg?
 	get_engine_common(TargetEng, Engine, _EngDir).
 
-% TODO: use definitions at config_common.pl (perhaps move to bundle/bundle_paths.pl or a bettr place)
+% TODO: use some definitions at config_common.pl (perhaps move to bundle/bundle_paths.pl or a better place) (be careful with additional dependencies)
 
 :- export(get_engine_dir/2).
 % TODO: why not the value stored in the configuration?

@@ -33,20 +33,20 @@
 
 :- use_module(library(lists), [append/3]).
 
-:- export(parse_version/3).
-:- pred parse_version(VerAtm, VersionAtm, PatchAtm) # "Parse version
-   into coarse grained components (major and minor into
-   @var{VersionAtom}, patch and prerelease into @var{PathAtm})".
+:- export(version_split_patch/3).
+:- pred version_split_patch(VerAtm, VerNopatchAtm, PatchAtm) # "Split
+   version @var{VerAtm} into major and minor @var{VerNopatchAtm}, and
+   patch and prerelease @var{PatchAtm})".
 
-parse_version(VerAtm, VersionAtm, PatchAtm) :-
+version_split_patch(VerAtm, VerNopatchAtm, PatchAtm) :-
 	atom_codes(VerAtm, Ver0),
 	splitpre(Ver0, Ver, Pre),
 	splitdots(Ver, Vs),
 	( Vs = [] -> fail
 	; Vs = [Major|Vs0] ->
-	    ( Vs0 = [] -> Version = Major, Patch = "0"
+	    ( Vs0 = [] -> VerNopatch = Major, Patch = "0"
 	    ; Vs0 = [Minor|Vs1] ->
-	        append(Major, "."||Minor, Version),
+	        append(Major, "."||Minor, VerNopatch),
 		( Vs1 = [] -> Patch = "0"
 		; Vs1 = [Patch] -> true
 		; fail
@@ -58,7 +58,7 @@ parse_version(VerAtm, VersionAtm, PatchAtm) :-
 	( Pre = "" -> PatchPre = Patch
 	; append(Patch, "-"||Pre, PatchPre)
 	),
-	atom_codes(VersionAtm, Version),
+	atom_codes(VerNopatchAtm, VerNopatch),
 	atom_codes(PatchAtm, PatchPre).
 
 % Split string at dots (e.g., "1.2.3" => ["1","2","3"])

@@ -2,8 +2,9 @@
 
 :- doc(section, "Bundle registry (bundlereg) load").
 % Location and read of bundleregs (bundle registry files produced from
-% human-readable Manifest.pl files). See @lib{bundle/bundlereg_gen} for
-% details about the bundle registry.
+% human-readable Manifest.pl files). See
+% @lib{ciaobld(manifest_compiler)} for details about the bundle
+% registry.
 
 % IMPORTANT: Keep this code as small as possible. This code must not
 %   depend on library predicates not provided by the engine (as C

@@ -166,11 +166,22 @@ active_cmd_path(Kind, File) := Path :-
 % ---------------------------------------------------------------------------
 
 :- use_module(engine(internals), ['$bundle_prop'/2, '$bundle_id'/1]).
+:- use_module(library(version_strings), [version_split_patch/3]).
+
+% TODO: check if this helps
+:- data version_nopatch_/2.
+version_nopatch(Bundle, V) :-
+	( version_nopatch_(Bundle, V0) -> V = V0
+	; '$bundle_prop'(Bundle, version(Version)) ->
+	    version_split_patch(Version, V0, _),
+	    assertz_fact(version_nopatch_(Bundle, V0)),
+	    V = V0
+	; fail
+	).
 
 :- export(concat_ver/3).
 % Obtain 'A-Ver' where Ver is the version of Bundle.
-concat_ver(Bundle, A) := ~atom_concat([A, '-', Vers]) :-
-	'$bundle_prop'(Bundle, version(Vers)).
+concat_ver(Bundle, A) := ~atom_concat([A, '-', ~version_nopatch(Bundle)]).
 
 :- export(concat_ext/3).
 % Obtain 'A'+'Ext' where Ext is the default extension (For the current

@@ -41,11 +41,11 @@ bundle_path(Bundle, Rel, Path) :-
    location of @var{Bundle}".
 
 bundle_path(Bundle, _Location, _Rel, _Path) :-
-	var(Bundle), !, throw(error(bad_bundle, bundle_path/4)).
+	var(Bundle), !, throw(error(unbound_bundle, bundle_path/4)).
 bundle_path(_Bundle, Location, _Rel, _Path) :-
-	var(Location), !, throw(error(bad_location, bundle_path/4)).
+	var(Location), !, throw(error(unbound_location, bundle_path/4)).
 bundle_path(_Bundle, _Location, Rel, _Path) :-
-	var(Rel), !, throw(error(bad_rel, bundle_path/4)).
+	var(Rel), !, throw(error(unbound_rel, bundle_path/4)).
 bundle_path(Bundle, Location, Rel, Path) :- !,
 	loc_path(Location, Bundle, X),
 	( Rel = '.' -> Path = X ; path_concat(X, Rel, Path) ).
@@ -77,20 +77,6 @@ bundle_to_bldid(Bundle, BldId) :-
 	; % otherwise assume local (under CIAOROOT)
 	  BldId = build
 	).
-
-% ---------------------------------------------------------------------------
-
-:- export(bundle_metasrc/3).
-:- pred bundle_metasrc(+Bundle, +What, -Path) :: atm * atm * atm
-   # "Path to bundle definition files (manifests and hooks)".
-
-% TODO: merge with bundle_path/4?
-bundle_metasrc(Bundle, What) := ~bundle_path(Bundle, ~metasrc_(What, Bundle)).
-
-% TODO: it does not consider 'Manifest.pl' (without 'Manifest/')
-metasrc_(bundle_manifest, _) := 'Manifest/Manifest.pl'.
-metasrc_(bundle_hooks, Bundle) := ~path_concat('Manifest', ~atom_concat(Bundle, '.hooks.pl')).
-metasrc_(bundle_config, Bundle) := ~path_concat('Manifest', ~atom_concat(Bundle, '.config.pl')).
 
 % ---------------------------------------------------------------------------
 

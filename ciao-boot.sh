@@ -11,15 +11,15 @@
 _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
         cd "$d";done;cd "$(dirname "$e")";pwd -P)
 
-msg() {
-    echo "=> boot: $*" 1>&2
+normal_message() {
+    echo "   $*" 1>&2
 }
 
 # Fetch and patch _base (for network installation)
 fetch() {
     branch=master
     url=https://github.com/ciao-lang/ciao/archive/$branch.tar.gz
-    msg "fetching '$branch' branch (source code)"
+    normal_message "fetching '$branch' branch (source code)"
     _base=$HOME/.ciaoroot/$branch
     if [ -x "$_base" ]; then
 	cat <<EOF

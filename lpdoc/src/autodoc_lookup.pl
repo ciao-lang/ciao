@@ -20,9 +20,13 @@
 :- doc(section, "Bundle doc specification").
 % TODO: merge with builder modules
 
-% TODO: query bundle manuals in a simpler way? (avoid loading hooks)
-:- use_module(ciaobld(builder_cmds), [get_bundle_def/2]).
-:- use_module(ciaobld(builder_cmds), [bundle_manual_base/2]).
+% TODO: save bundle docs in a 'docreg' to avoid loading manifests?
+:- use_module(ciaobld(manifest_compiler), [
+    ensure_load_manifest/1,
+    manifest_call/2,
+    get_bundle_readme/2, 
+    bundle_manual_base/2
+]).
 
 % TODO: doc_flags has implicit initialization (avoid it)
 :- use_module(library(bundle/doc_flags), [docformat/1, docformatdir/2]).
@@ -32,15 +36,15 @@
 :- use_module(engine(internals), ['$bundle_id'/1]).
 
 :- export(get_bundle_readme/2).
-% Output for bundle README files
 get_bundle_readme(Bundle, R) :-
-	get_bundle_def(Bundle, readme(OutName, _Props)), % (nondet)
-	R = ~bundle_path(Bundle, OutName).
+	ensure_load_manifest(Bundle),
+	manifest_compiler:get_bundle_readme(Bundle, R).
 
 :- export(get_bundle_readme_source/2).
 % Source for bundle README files
 get_bundle_readme_source(Bundle, R) :-
-	get_bundle_def(Bundle, readme(_OutName, Props)), % (nondet)
+	ensure_load_manifest(Bundle),
+	manifest_call(Bundle, readme(_OutName, Props)), % (nondet)
 	( member(main=SrcPath, Props) -> true
 	; fail % ill-formed
 	),
@@ -51,7 +55,8 @@ get_bundle_readme_source(Bundle, R) :-
 :- export(get_bundle_manual_source/2).
 % Source for bundle manual files
 get_bundle_manual_source(Bundle, R) :-
-	get_bundle_def(Bundle, manual(_, Props)), % (nondet)
+	ensure_load_manifest(Bundle),
+	manifest_call(Bundle, manual(_, Props)), % (nondet)
 	( member(main=Path, Props) -> true
 	; fail % ill-formed
 	),

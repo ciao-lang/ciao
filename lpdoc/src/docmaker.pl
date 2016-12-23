@@ -105,18 +105,19 @@ clean_tmp_db :-
 
 gen(Format) :-
 	load_doc_modules,
-	report_cmd('Starting', Format),
+	% report_cmd('Starting', Format),
 	gen_actions(Format, Actions),
-	fsmemo_call(Actions),
-	report_cmd('Finished', Format).
+	fsmemo_call(Actions).
+	% report_cmd('Finished', Format).
 
-report_cmd(BegEnd, Ext) :-
-	file_format_name(Ext, FormatName),
-	!,
-	simple_message("~w manual generation in ~w (~w) format.",
-	    [BegEnd, Ext, FormatName]).
-report_cmd(BegEnd, Base) :-
-	simple_message("~w processing of '~w'.", [BegEnd, Base]).
+% (disabled, too verbose)
+% report_cmd(BegEnd, Ext) :-
+% 	file_format_name(Ext, FormatName),
+% 	!,
+% 	simple_message("~w manual generation in ~w (~w) format.",
+% 	    [BegEnd, Ext, FormatName]).
+% report_cmd(BegEnd, Base) :-
+% 	simple_message("~w processing of '~w'.", [BegEnd, Base]).
 
 % Load doc_module (for extensions)
 % TODO: unload is missing!
@@ -177,6 +178,7 @@ action_for_format(Format, Action) :-
 	query_source(Spec, AbsFile),
 	add_settings_dep(AbsFile,Deps).
 'fsmemo.run'(gen_doctree(Backend, Spec)) :- !,
+        % simple_message("Generating doctree for ~w",[Spec]),
         gen_doctree(Backend, Spec).
 
 gen_doctree(Backend, FileBase) :-
@@ -213,6 +215,7 @@ add_settings_dep(SpecF) := ['SOURCE'(SpecF)|Fs] :-
 	components_target(Backend,dr,FdrComps),
         Deps = [gen_doctree(Backend,Spec)|FdrComps].
 'fsmemo.run'(compute_grefs(Backend)) :- !,
+        simple_message("Computing globally resolved references.",[]),
         compute_grefs(Backend).
 
 compute_grefs(Backend) :-
@@ -230,6 +233,7 @@ compute_grefs(Backend) :-
 'fsmemo.deps'(translate_doctree(Backend,Spec),Deps) :- !,
         Deps = [gen_doctree(Backend,Spec),compute_grefs(Backend)].
 'fsmemo.run'(translate_doctree(Backend,Spec)) :- !,
+        % simple_message("Translating doctree for ~w",[Spec]),
         translate_doctree(Backend,Spec).
 
 translate_doctree(Backend, FileBase) :-

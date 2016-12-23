@@ -1,5 +1,6 @@
 :- module(messages_aux, [
 	cmd_message/3,
+	dmc_message/3,
 	normal_message/2,
 	verbose_message/2
 	], [assertions, regtypes, hiord]).
@@ -11,11 +12,18 @@
 
 :- use_module(ciaobld(config_common), [verbose_build/1]).
 
+% (Only from builder_cmds)
 cmd_message(Target, Mess, Args) :-
 	format(user_output, "=> ~w: ", [Target]),
 	format(user_output, Mess, Args),
 	format(user_output, "~n",  []).
 
+% (Only from builder_cmds)
+dmc_message(_Target, _Mess, _Args) :-
+	true.
+	% format(user_output, "<= done~n", []).
+
+% (For details about current command)
 normal_message(Mess, Args) :-
 	prefix_lines(Mess, "   ", NMess),
 	format(user_output, NMess, Args),

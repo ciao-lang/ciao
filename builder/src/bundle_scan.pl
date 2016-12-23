@@ -113,14 +113,14 @@ rootprefix_bundle_reg_dir(InsType, BundleRegDir) :-
 	; bundle_reg_dir(InsType, BundleRegDir)
 	).
 
-% File is the registry file for the BundleName bundle
-rootprefix_bundle_reg_file(InsType, BundleName, RegFile) :-
+% File is the registry file for the Bundle bundle
+rootprefix_bundle_reg_file(InsType, Bundle, RegFile) :-
 	rootprefix_bundle_reg_dir(InsType, BundleRegDir),
-	bundlereg_filename(BundleName, BundleRegDir, RegFile).
+	bundlereg_filename(Bundle, BundleRegDir, RegFile).
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(bundle/bundlereg_gen), [is_bundledir/1]).
+:- use_module(ciaobld(manifest_compiler), [is_bundledir/1]).
 
 % found_bundle(Name,Dir): found bundle Name at Dir
 :- data found_bundle/2.
@@ -133,8 +133,8 @@ find_bundles(Path) :-
 	cleanup_find_bundles,
 	( % (failure-driven loop)
 	  bundledirs_at_dir(Path, no, Dir),
-	    bundledir_to_name(Dir, Name),
-	    assertz_fact(found_bundle(Name, Dir)),
+	    bundledir_to_name(Dir, Bundle),
+	    assertz_fact(found_bundle(Bundle, Dir)),
 	    fail
 	; true
 	).
@@ -193,10 +193,10 @@ directory_has_mark(activate, Dir) :-
 % ---------------------------------------------------------------------------
 
 % BundleDir used in bundle registry (depends on InsType)
-reg_bundledir(InsType, BundleName, BundleDir, Dir) :-
+reg_bundledir(InsType, Bundle, BundleDir, Dir) :-
 	( InsType = local -> Dir = BundleDir
 	; InsType = inpath(_Path) -> Dir = BundleDir
-	; InsType = global -> instciao_bundledir(BundleName, Dir)
+	; InsType = global -> instciao_bundledir(Bundle, Dir)
 	; fail
 	).
 
@@ -209,16 +209,15 @@ reg_bundledir(InsType, BundleName, BundleDir, Dir) :-
 % TODO: allow relative paths? (with some relocation rules)
 
 :- use_module(library(pathnames), [path_split/3]).
-:- use_module(library(bundle/bundle_info), [root_bundle/1]).
-:- use_module(library(bundle/bundlereg_gen), [gen_bundlereg/4]).
+:- use_module(ciaobld(manifest_compiler), [make_bundlereg/4]).
 :- use_module(ciaobld(builder_aux), [root_bundle_source_dir/1]).
 
-% TODO: hack, try to extract BundleName from Manifest, not dir (also in bundle.pl)
-bundledir_to_name(BundleDir, BundleName) :-
+% TODO: hack, try to extract Bundle from Manifest, not dir (also in bundle.pl)
+bundledir_to_name(BundleDir, Bundle) :-
 	root_bundle_source_dir(RootDir),
 	( BundleDir = RootDir ->
-	    root_bundle(BundleName)
-	; path_split(BundleDir, _, BundleName)
+	    root_bundle(Bundle)
+	; path_split(BundleDir, _, Bundle)
 	).
 
 :- export(create_bundlereg/2).
@@ -227,17 +226,17 @@ bundledir_to_name(BundleDir, BundleName) :-
 % registry and the absolute directories for alias paths).
 create_bundlereg(BundleDir, InsType) :-
 	% Obtain bundle name from path
-	bundledir_to_name(BundleDir, BundleName),
-	reg_bundledir(InsType, BundleName, BundleDir, AliasBase),
-	rootprefix_bundle_reg_file(InsType, BundleName, RegFile),
-	gen_bundlereg(BundleDir, BundleName, AliasBase, RegFile).
+	bundledir_to_name(BundleDir, Bundle),
+	reg_bundledir(InsType, Bundle, BundleDir, AliasBase),
+	rootprefix_bundle_reg_file(InsType, Bundle, RegFile),
+	make_bundlereg(Bundle, BundleDir, AliasBase, RegFile).
 
 :- export(remove_bundlereg/2).
-% Remove the bundlereg for bundle @var{BundleName} and installation
+% Remove the bundlereg for bundle @var{Bundle} and installation
 % type @var{InsType} (which determines the location of the bundle
 % registry).
-remove_bundlereg(BundleName, InsType) :-
-	rootprefix_bundle_reg_file(InsType, BundleName, RegFile),
+remove_bundlereg(Bundle, InsType) :-
+	rootprefix_bundle_reg_file(InsType, Bundle, RegFile),
 	del_file_nofail(RegFile).
 
 :- export(ensure_global_bundle_reg_dir/0).
@@ -247,5 +246,10 @@ ensure_global_bundle_reg_dir :-
 	rootprefix_bundle_reg_dir(global, BundleRegDir),
 	mkpath(BundleRegDir).
 
+% ---------------------------------------------------------------------------
 
+:- export(root_bundle/1).
+:- pred root_bundle/1 # "Meta-bundle that depends on all the system bundles.".
+% TODO: Include also user bundles? or define a new meta-bundle?
+root_bundle(ciao).
 

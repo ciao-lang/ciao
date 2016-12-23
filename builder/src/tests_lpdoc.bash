@@ -102,10 +102,10 @@ function get_manual_outdir() {
 
 function get_manual_cmd() {
     case $1 in
-	ciao) echo "ciao build_docs ciao" ;;
-	ciaopp_ref_man) echo "ciao build_docs ciaopp" ;;
-	ciaopp_doc) echo "ciao build_docs ciaopp" ;;
-	lpdoc) echo "ciao build_docs lpdoc" ;;
+	ciao) echo "ciao build --docs ciao" ;;
+	ciaopp_ref_man) echo "ciao build --docs ciaopp" ;;
+	ciaopp_doc) echo "ciao build --docs ciaopp" ;;
+	lpdoc) echo "ciao build --docs lpdoc" ;;
 	# for testing
 	ciaotest) cat <<EOF
 lpdoc --output_dir=$manual_outdir -t all $manual_infile

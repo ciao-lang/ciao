@@ -20,6 +20,7 @@
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 %
 :- use_module(library(sh_process), [sh_process_call/3]).
+:- use_module(ciaobld(messages_aux), [normal_message/2]).
 :- use_module(ciaobld(ciaoc_aux), [invoke_boot_ciaoc/2, clean_mod0/1]).
 :- use_module(ciaobld(eng_defs),
 	[eng_mainmod/2,
@@ -28,6 +29,7 @@
 	 eng_opts/2,
 	 eng_h_alias/2,
 	 eng_cfg/2,
+	 active_eng_name/3, % (only for message)
 	 bld_eng_path/3]).
 
 % ===========================================================================
@@ -37,6 +39,7 @@
 eng_build(Eng0) :-
 	% Static dependencies
 	eng_add_static_objs(Eng0, Eng),
+	normal_message("compiling ~w (engine)", [~active_eng_name(exec, Eng)]),
 	% Generate source
  	eng_emugen(Eng),
 	eng_create_init(Eng),
@@ -230,8 +233,9 @@ separate_with_blanks([A, B|Cs]) := [A, ' '|~separate_with_blanks([B|Cs])] :- !.
 % ===========================================================================
 :- doc(section, "Version info for engine").
 
-:- use_module(library(bundle/bundle_info), [root_bundle/1]).
-:- use_module(library(bundle/bundle_info), [bundle_version/2, bundle_patch/2]).
+:- use_module(ciaobld(bundle_scan), [root_bundle/1]). % TODO: weird
+:- use_module(library(bundle/bundle_info), [bundle_version/2]).
+:- use_module(library(version_strings), [version_split_patch/3]).
 :- use_module(ciaobld(bundle_hash), [bundle_commit_info/3]).
 
 % TODO: see generate_version_auto/2
@@ -277,19 +281,19 @@ version_h_(Bundle) -->
 	!,
 	"\"", atm(CommitDesc), "\" \" (\" \"", atm(CommitDate), "\" \")\"".
 version_h_(Bundle) -->
-	% No commit info, use version and patch
+	% No commit info
 	{ Version = ~bundle_version(Bundle) },
-	{ Patch = ~bundle_patch(Bundle) },
-	"\"", atm(Version), ".", atm(Patch), "\"".
+	"\"", atm(Version), "\"".
 
 version_c(Bundle) -->
 	{ Version = ~bundle_version(Bundle) },
-	{ Patch = ~bundle_patch(Bundle) },
+	{ version_split_patch(Version, VersionNopatch, Patch) },
 	{ CommitBranch = ~bundle_commit_info(Bundle, branch) },
 	{ CommitId = ~bundle_commit_info(Bundle, id) },
 	{ CommitDate = ~bundle_commit_info(Bundle, date) },
 	{ CommitDesc = ~bundle_commit_info(Bundle, desc) },
-	"char *ciao_version = \"", atm(Version), "\";\n",
+	% TODO: Use just version? (do not define ciao_patch, commit info, etc.)
+	"char *ciao_version = \"", atm(VersionNopatch), "\";\n",
 	"char *ciao_patch = \"", atm(Patch), "\";\n",
 	"char *ciao_commit_branch = \"", atm(CommitBranch), "\";\n",
 	"char *ciao_commit_id = \"", atm(CommitId), "\";\n",

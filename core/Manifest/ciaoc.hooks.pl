@@ -1,10 +1,12 @@
 % (included file)
 
-:- doc(section, "Compiler Flags").
+:- doc(section, "ciaoc compiler").
+
+% ---------------------------------------------------------------------------
+% Configuration flags
+
 % (also available as reconfigurable prolog_flags)
-
 % TODO: declaration in modules should be extracted from this configuration
-
 :- bundle_flag(unused_pred_warnings, [
     comment("Enable unused predicate warnings"),
     details(
@@ -74,3 +76,8 @@
 :- bundle_flag(rtchecks_abort_on_error, [
     config_prolog_flag(rtchecks_abort_on_error,[yes,no],no)
 ]).
+
+% ---------------------------------------------------------------------------
+% The command
+
+'$builder_hook'(ciaoc:cmd('ciaoc', [main='ciaoc/ciaoc', bootstrap_ciaoc, static])).

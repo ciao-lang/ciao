@@ -106,8 +106,8 @@ function help() {
 Usage: `basename $0` ACTION
 
   Diff based regression testing of emulator generated C files and
-  disassembled native code. Do 'ciao build core/engine'
-  (and 'ciao clean core/engine' if needed) to generate the engine files.
+  disassembled native code. Do 'ciao build core.engine'
+  (and 'ciao clean core.engine' if needed) to generate the engine files.
 
 Actions:
 

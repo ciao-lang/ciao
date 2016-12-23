@@ -5,7 +5,7 @@
 
 :- doc(module, "This module computes the values of bundle
    configuration flags (@lib{bundle_flags}) based on configuration
-   parameters the configuration rules (@tt{Manifest/*.config.pl}
+   parameters the configuration rules (@tt{Manifest/*.hooks.pl}
    files).
 
 @begin{alert}
@@ -66,7 +66,7 @@ set_input_flag(Bundle:Name, Value) :-
 
 % ---------------------------------------------------------------------------
 
-:- include(ciaobld(bundleconfig/bundleconfig_defs)).
+:- include(ciaobld(bundlehooks/bundlehooks_defs)).
 
 :- use_module(library(lists), [append/3]).
 
@@ -131,6 +131,7 @@ rule_body(Bundle, Name,
 :- use_module(library(version_strings), [version_compare/3]).
 :- use_module(library(system_extra), [file_to_line/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
+:- use_module(engine(internals), ['$bundle_prop'/2]).
 
 :- export(check_builder_update/0).
 :- pred check_builder_update # "Detect if the running builder needs an
@@ -147,8 +148,7 @@ check_builder_update :-
 % The version of the running builder (fail if no .bundlereg for the
 % builder exists yet).
 % TODO: Add to binary instead? (like lpdoc version)
-running_builder_vers(V) :-
-	bundle_fullversion(builder, V).
+running_builder_vers(Vers) :- '$bundle_prop'(builder, version(Vers)).
 
 % The minimum compatible builder version (specified in a single file
 % easier to read than Manifests).
@@ -190,9 +190,9 @@ bundle_has_config(Bundle) :-
 	 reset_bundle_flags/1]).
 
 :- use_module(ciaobld(eng_maker), [bundle_flags_sh_file/1]).
-:- use_module(ciaobld(builder_meta), [ensure_load_bundle_metasrc/2]).
-
-% TODO: ensure_load_bundle_metasrc/2: not unloaded! (do refcount or gc of modules)
+% TODO: ensure_load_manifest/1: not unloaded! (do refcount or gc of modules)
+:- use_module(ciaobld(manifest_compiler),
+	[ensure_load_manifest/1, manifest_call/2]).
 
 :- export(bundleset_configure/2).
 :- pred bundleset_configure(BundleSet, Flags) # "Configure the bundles
@@ -204,7 +204,7 @@ bundleset_configure(BundleSet, Flags) :-
 	% Load config rules
 	( % (failure-driven loop)
 	  in_bundleset(BundleSet, Bundle),
-	    ensure_load_bundle_metasrc(Bundle, bundle_config),
+	    ensure_load_manifest(Bundle),
 	    fail
 	; true
 	),
@@ -307,9 +307,7 @@ check_bundle_params(BundleSet) :-
 % ---------------------------------------------------------------------------
 % Bundles in a configuration bundle set
 
-in_bundleset(all, Bundle) :-
-	'$bundle_id'(Bundle). % (enum all)
-in_bundleset(single(Bundle), Bundle).
+in_bundleset(set(Bundles), Bundle) :- member(Bundle, Bundles).
 
 % ---------------------------------------------------------------------------
 % Check bundle dependencies
@@ -317,7 +315,8 @@ in_bundleset(single(Bundle), Bundle).
 % TODO: Mark errors, abort configuration
 % TODO: Hang on cyclic dependencies
 
-:- use_module(engine(internals), ['$bundle_id'/1, '$bundle_prop'/2]).
+:- use_module(engine(internals), ['$bundle_id'/1]).
+:- use_module(library(bundle/bundle_info), [bundle_version/2]).
 
 check_bundle_deps(BundleSet) :-
 	( in_bundleset(BundleSet, Bundle),
@@ -328,20 +327,14 @@ check_bundle_deps(BundleSet) :-
 
 check_bundle_deps_(Bundle) :-
 	% show_message(warning, "checking deps for `~w'", [Bundle]),
-	( '$bundle_prop'(Bundle, depends(Depends)) -> true
-	; Depends = []
-	),
 	( % (failure-driven loop)
-          member(DepProps, Depends),
-	    check_bundle_deps__(Bundle, DepProps),
+          manifest_call(Bundle, dep(Dep, Props)),
+	    check_bundle_deps__(Bundle, Dep, Props),
 	    fail
 	; true
 	).
 
-check_bundle_deps__(Bundle, DepProps) :-
-	( DepProps = Dep-Props -> true
-	; Dep = DepProps, Props = []
-	),
+check_bundle_deps__(Bundle, Dep, Props) :-
 	( '$bundle_id'(Dep) -> true
 	; throw(error_msg("missing bundle `~w' (required by `~w')", [Dep, Bundle]))
 	),
@@ -360,11 +353,12 @@ check_bundle_constraints([C|Cs], Bundle) :-
 
 check_bundle_constraint(C, Bundle) :-
 	version_constraint(C, Ver2, Op), !,
-	bundle_fullversion(Bundle, Ver1), % fail if no version
+	bundle_version(Bundle, Ver1), % fail if no version
 	version_compare(Comp, Ver1, Ver2),
 	( eval_op(Op, Comp) -> true
 	; fail
 	).
+check_bundle_constraint(_C, _Bundle). % ignore others
 
 version_constraint(version=V, V, (=)).
 version_constraint(version>=V, V, (>=)).
@@ -383,12 +377,6 @@ eval_op((<), (<)).
 eval_op((\=), (>)).
 eval_op((\=), (<)).
 
-% Version with patch number (and prerelease)
-bundle_fullversion(Bundle, V) :-
-	'$bundle_prop'(Bundle, version(Vers)),
-	'$bundle_prop'(Bundle, patch(Patch)),
-	V = ~atom_concat(~atom_concat(Vers, '.'), Patch).
-
 % ---------------------------------------------------------------------------
 % Set a configuration flag (dangerous!)
 
@@ -401,7 +389,7 @@ bundle_fullversion(Bundle, V) :-
 % Pre: flags loaded
 config_set_flag(Flag, Value) :-
 	Flag = Bundle:_,
-	BundleSet = single(Bundle),
+	BundleSet = set([Bundle]),
 	%
 	init_config_fixpo(BundleSet, yes),
 	once_port_reify(config_set_flag_(Flag, Value), Port),

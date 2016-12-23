@@ -3,6 +3,57 @@
 :- doc(section, "GSL bundle").
 % TODO: Share code for PPL, GMP, GSL.
 
+% ===========================================================================
+
+:- bundle_flag(with_gsl, [
+    comment("Enable GSL bindings"),
+    details(
+      % .....................................................................
+      "Set to \"yes\" if you wish to interface with the GSL (GNU Scientific\n"||
+      "Library). If you choose to have the GSL interface, you should have the\n"||
+      "GSL development library installed in the machine where you are\n"||
+      "compiling and using it."),
+    valid_values(['yes', 'no']),
+    %
+    default_comment("GSL detected"),
+    default_value_comment(no,
+        "GSL has not been detected.  If you want to use the math\n"||
+        "library it is highly recommended that you stop the Ciao\n"||
+        "configuration and install the GSL library first."),
+    rule_default(WithGSL, verify_gsl(WithGSL)),
+    % rule_default('no'),
+    %
+    interactive([advanced])
+]).
+
+m_bundle_foreign_config_tool(contrib, gsl, 'gsl-config').
+
+% TODO: it should consider auto_install option!
+gsl_installed :-
+	find_executable(~m_bundle_foreign_config_tool(contrib, gsl), _),
+	% TODO: Next literal required because now GSL 32 bits is not available
+	% TODO: in Linux 64 bits -- EMM.
+	\+ get_platform('LINUXi686').
+
+verify_gsl(Value) :-
+	( gsl_installed -> Value = yes ; Value = no ).
+
+:- bundle_flag(auto_install_gsl, [
+    comment("Auto-install GSL (third party)"),
+    details([advanced],
+      % .....................................................................
+      "Set to \"yes\" if you want to auto-install GSL (third party)"),
+    valid_values(['yes', 'no']),
+    %
+    rule_default('no'),
+    %
+    interactive([advanced])
+]).
+
+% ===========================================================================
+
+:- use_module(ciaobld(messages_aux), [normal_message/2]).
+
 :- use_module(library(file_utils), [string_to_file/2]).
 :- use_module(library(pathnames), [path_relocate/4, path_concat/3]).
 :- use_module(library(system_extra), [mkpath/1]).
@@ -24,7 +75,7 @@
 with_gsl := ~get_bundle_flag(contrib:with_gsl).
 auto_install_gsl := ~get_bundle_flag(contrib:auto_install_gsl).
 
-'$builder_hook'(gsl:prebuild_nodocs) :-
+'$builder_hook'(gsl:prebuild_bin) :-
 	do_auto_install_gsl,
 	prebuild_gsl_bindings.
 
@@ -33,14 +84,14 @@ auto_install_gsl := ~get_bundle_flag(contrib:auto_install_gsl).
 
 do_auto_install_gsl :-
 	( auto_install_gsl(yes) -> 
-	    normal_message("Auto-install GSL (third party)", []),
+	    normal_message("auto-installing GSL (third party)", []),
 	    third_party_install:auto_install(contrib, gsl)
 	; true
 	).
 
 prebuild_gsl_bindings :-
 	( with_gsl(yes) ->
-	    normal_message("Configuring GSL Library", []),
+	    normal_message("configuring GSL library", []),
 	    S = ":- use_module(library(gsl_imports)).\n",
  	    foreign_config_var(gsl, 'cflags', CompilerOpts),
  	    foreign_config_var(gsl, 'libs', LinkerOpts0),
@@ -61,7 +112,7 @@ prebuild_gsl_bindings :-
 	    M = ~flatten(["GSL_STAT_LIBS=\'"||LinkerOpts, "\'\n"])
 	;
 	    LinkerOpts = "",
-	    normal_message("Ignoring GSL Library", []),
+	    normal_message("ignoring GSL library", []),
 	    S = ":- use_module(library(gsl_imports/gsl_imports_dummy)).\n",
 	    M = ""
 	),

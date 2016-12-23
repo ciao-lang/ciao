@@ -262,6 +262,7 @@ active_inst_eng_path(D, Eng) := Path :-
 	Name = ~active_eng_name(D, Eng),
 	Path = ~path_concat(~instciao_storedir, Name).
 
+:- export(active_eng_name/3).
 % Active engine name (for multi-platform build and installation)
 active_eng_name(D, Eng) := Name :-
 	EngMainMod = ~eng_mainmod(Eng),

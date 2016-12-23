@@ -27,6 +27,9 @@ sh_src_dir="$ciaoroot/builder/sh_src"
 # ---------------------------------------------------------------------------
 # Some paths for source code locations and build directories
 
+# Target name (for autoboot messages)
+target_name="builder"
+
 # Default CIAOLIB
 default_ciaolib="$ciaoroot/core"
 # The pre-compiled bootstrap ciaoc
@@ -79,6 +82,10 @@ cmd_message() { # target [rest...]
     local target=$1
     shift
     echo "=> $target: $*" 1>&2
+}
+
+dmc_message() { # target [rest...]
+    true
 }
 
 normal_message() {

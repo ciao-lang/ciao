@@ -23,6 +23,10 @@ _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
 execname=`basename "$0"`
 ciaoroot="$_base/$execname.car"
 
+# Target name (for autoboot messages)
+# TODO: probably wrong (autoboot full bundles instead of execs instead?)
+target_name="$execname"
+
 sh_boot_dir="$ciaoroot/builder/sh_boot"
 sh_src_dir="$ciaoroot/builder/sh_src"
 . "$sh_boot_dir/autoboot.sh"

@@ -187,8 +187,7 @@ defined in a module @file{foo.pl}):
 
 @end{itemize}
 
-After these edits the @lib{rtchecks} library needs to be rubuilt (for
-instance, with @code{$ ciao build_nodocs core}, from the console).
+After these edits the @lib{rtchecks} library needs to be rebuilt.
 
 For an example of a system library that uses this feature see the 
 @lib{assertions/native_props} library.

@@ -1,5 +1,6 @@
 :- module(_, [], [assertions, fsyntax, hiord]).
 
+% TODO: redistribute predicates from this module?
 :- doc(title,  "Auxiliary Predicates for Builder").
 :- doc(author, "Ciao Development Team").
 
@@ -8,7 +9,7 @@
 
 :- use_module(library(bundle/bundle_flags)).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
-:- use_module(ciaobld(messages_aux), [cmd_message/3]).
+:- use_module(ciaobld(messages_aux), [normal_message/2]).
 :- use_module(ciaobld(messages_aux), [verbose_message/2]).
 :- use_module(ciaobld(config_common), [cmd_path/4]).
 :- use_module(library(messages), [warning_message/2]).
@@ -28,8 +29,8 @@ root_bundle_source_dir(Dir) :-
 
 % ===========================================================================
 
-:- use_module(library(bundle/bundlereg_gen), [lookup_bundle_root/2]).
-:- use_module(library(bundle/bundle_info), [root_bundle/1]).
+:- use_module(ciaobld(manifest_compiler), [lookup_bundle_root/2]).
+:- use_module(ciaobld(bundle_scan), [root_bundle/1]).
 :- use_module(engine(internals), ['$bundle_id'/1]).
 
 :- export(bundle_at_dir/2).
@@ -233,7 +234,7 @@ storedir_install(lib_file_copy_and_link(Bundle, Path, File)) :-
 % TODO: show the same kind of messages that are used when compiling libraries
 storedir_install(cmd_def(Bundle, _In, Output, Props)) :-
 	cmd_def_kind(Props, K),
-	cmd_message(Bundle, "installing '~w' command", [Output]),
+	normal_message("installing ~w (command)", [Output]),
 	storedir_install(copy_and_link(K, Bundle, Output)).
 %
 % TODO: separate 'ciao-config' exec to get options for CC/LD?
@@ -291,7 +292,7 @@ storedir_uninstall(lib_file_copy_and_link(Bundle, _Path, File)) :-
 % TODO: show the same kind of messages that are used when compiling libraries
 storedir_uninstall(cmd_def(Bundle, _In, Output, Props)) :-
 	cmd_def_kind(Props, K),
-	cmd_message(Bundle, "uninstalling '~w' command", [Output]),
+	normal_message("uninstalling ~w (command)", [Output]),
 	storedir_uninstall(copy_and_link(K, Bundle, Output)).
 storedir_uninstall(eng_contents(Eng)) :- !,
 	% Uninstall engine
@@ -390,8 +391,7 @@ kind_exec_perms(shscript).
 
 % ===========================================================================
 
-:- use_module(engine(internals), ['$bundle_prop'/2]).	
-:- use_module(library(bundle/bundle_info), [bundle_version_patch/2]).
+:- use_module(library(bundle/bundle_info), [bundle_version/2]).
 
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(format), [format/3]).
@@ -410,10 +410,10 @@ generate_version_auto(_Bundle, File) :-
 	file_exists(File), % TODO: update file if contents change
 	!.
 generate_version_auto(Bundle, File) :-
-	Version = ~bundle_version_patch(Bundle),
+	Version = ~bundle_version(Bundle),
 	atom_codes(Date, ~datime_string), % TODO: use commit info instead
 	%
-	CVersion = ~bundle_version_patch(core),
+	CVersion = ~bundle_version(core),
 	%
 	VersionAtm = ~atom_concat([
 	  Version, ': ', Date, ' (compiled with Ciao ', CVersion, ')'
@@ -422,6 +422,15 @@ generate_version_auto(Bundle, File) :-
 	format(O, "%% Do not edit - automatically generated!\n", []),
         portray_clause(O, version(VersionAtm)),
 	close(O).
+
+% ===========================================================================
+
+:- export(versioned_manual_base/3).
+versioned_manual_base(Bundle, Base) := R :-
+	( V = ~bundle_version(Bundle) ->
+	    R = ~atom_concat([Base, '-', V])
+	; R = Base
+	).
 
 % ===========================================================================
 % TODO: move to eng_maker.pl?

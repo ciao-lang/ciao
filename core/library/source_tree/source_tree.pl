@@ -143,7 +143,7 @@
 % NOTE: This module can be tested with core/tests/test_source_tree.
 %   Recompile and use it as follows:
 % 
-%     $ ciao build core/shell && \
+%     $ ciao build core.shell && \
 %       ciaoc test_source_tree && ./test_source_tree
 %
 %   The packaged bundle generation, which also depends on this module,
@@ -970,20 +970,18 @@ match_def(precomp_builddir_yield(Level), filename) :=
 
 % TODO: Specify bundle!
 % TODO: bootbuilddir should not be needed (in theory)
-precomp_builddir_yield_(src) := ~bundle_path(~root_bundle, builddir, 'doc'). % src level produces doc/
-precomp_builddir_yield_(src) := ~bundle_path(~root_bundle, bootbuilddir, 'doc'). % src level produces doc/
-precomp_builddir_yield_(noa) := ~bundle_path(~root_bundle, builddir, 'eng'). % noa level produces eng/
-precomp_builddir_yield_(noa) := ~bundle_path(~root_bundle, bootbuilddir, 'eng'). % noa level produces eng/
-precomp_builddir_yield_(noa) := ~bundle_path(~root_bundle, builddir, 'bin'). % noa level produces bin/
-precomp_builddir_yield_(noa) := ~bundle_path(~root_bundle, bootbuilddir, 'bin'). % noa level produces bin/
-precomp_builddir_yield_(noa) := ~bundle_path(~root_bundle, builddir, 'bundlereg'). % noa level produces bundlereg/
-precomp_builddir_yield_(noa) := ~bundle_path(~root_bundle, bootbuilddir, 'bundlereg'). % noa level produces bundlereg/
+precomp_builddir_yield_(src) := ~bundle_path(ciao, builddir, 'doc'). % src level produces doc/
+precomp_builddir_yield_(src) := ~bundle_path(ciao, bootbuilddir, 'doc'). % src level produces doc/
+precomp_builddir_yield_(noa) := ~bundle_path(ciao, builddir, 'eng'). % noa level produces eng/
+precomp_builddir_yield_(noa) := ~bundle_path(ciao, bootbuilddir, 'eng'). % noa level produces eng/
+precomp_builddir_yield_(noa) := ~bundle_path(ciao, builddir, 'bin'). % noa level produces bin/
+precomp_builddir_yield_(noa) := ~bundle_path(ciao, bootbuilddir, 'bin'). % noa level produces bin/
+precomp_builddir_yield_(noa) := ~bundle_path(ciao, builddir, 'bundlereg'). % noa level produces bundlereg/
+precomp_builddir_yield_(noa) := ~bundle_path(ciao, bootbuilddir, 'bundlereg'). % noa level produces bundlereg/
 % TODO: add a level to include third-party source?
 % (see third_party_install.pl)
 precomp_builddir_yield_(bin) := ~bundle_path(ciao, 'third-party'). % bin level produces third-party/
 % precomp_builddir_yield_(full) := _ :- fail. % full level produces nothing (more)
-
-:- use_module(library(bundle/bundle_info), [root_bundle/1]).
 
 % ---------------------------------------------------------------------------
 

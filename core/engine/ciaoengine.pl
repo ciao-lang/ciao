@@ -9,7 +9,7 @@
 
    This is the program that loads and runs Ciao bytecode binaries.").
 
-:- doc(usage, "The command @tt{ciao build core/engine} automatically
+:- doc(usage, "The command @tt{ciao build core.engine} automatically
    builds the engine binary, including auto-generated engine C
    files. Do not compile this module directly.").
 

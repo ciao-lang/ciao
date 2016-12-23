@@ -1,5 +1,12 @@
 :- module(ciaoc_batch_call, [], []).
 
+% Auxiliary file to call ciaoc in batch mode from invoke_ciaosh_batch/1
+% (many modules compiled from the same process).
+%
+% IMPORTANT: Keep it as simple as possible!
+
+% TODO: This (with some changes) may be part of ciaoc
+
 :- use_module(library(format), [format/3]).
 :- use_module(library(lists), [length/2]).
 :- use_module(library(system), [delete_file/1, file_exists/1]).
@@ -19,44 +26,28 @@
 	 ast_filename/2]).
 :- use_module(library(compiler/up_to_date)).
 
-% Auxiliary file to call ciaoc in batch mode from invoke_ciaosh_batch/1
-% (many modules compiled from the same process)
-
-% TODO: This (with some changes) may be part of ciaoc
-
-:- export(compile_mods/4).
-compile_mods(Modules, CompActions, BaseDir, UsingTTY) :-
+:- export(compile_mods/5).
+compile_mods(Modules, CompActions, BaseDir, RelDir, UsingTTY) :-
 	length(Modules, N),
-	compile_mods_(Modules, CompActions, BaseDir, UsingTTY, 1, N),
-	newline_code(UsingTTY, C),
-	format(user_error, "~w   Compiled ~w modules\n", [C, N]).
-
-newline_code(using_tty, '\r').
-newline_code(no_tty,    '\n').
+	compile_mods_(Modules, CompActions, BaseDir, RelDir, UsingTTY, 1, N),
+	display_done(UsingTTY, RelDir, N).
 
 pl_filename(FileBase, FileName) :- % (reversible)
 	atom_concat(FileBase, '.pl',  FileName).
 
-display_compiling_msg(using_tty, I, N) :-
-	format(user_error, "\r   Compiling ~w/~w ", [I, N]).
-display_compiling_msg(no_tty, _, _) :-
-	format(user_error, "\n   Compiling ", []).
-
-compile_mods_([], _CompActions, _BaseDir, _UsingTTY, _I, _N).
-compile_mods_([M|Ms], CompActions, BaseDir, UsingTTY, I, N) :-
-	compile_mod(M, CompActions, BaseDir, UsingTTY, I, N),
+compile_mods_([], _CompActions, _BaseDir, _RelDir, _UsingTTY, _I, _N).
+compile_mods_([M|Ms], CompActions, BaseDir, RelDir, UsingTTY, I, N) :-
+	compile_mod(M, CompActions, BaseDir, RelDir, UsingTTY, I, N),
 	I1 is I + 1,
-	compile_mods_(Ms, CompActions, BaseDir, UsingTTY, I1, N).
+	compile_mods_(Ms, CompActions, BaseDir, RelDir, UsingTTY, I1, N).
 
-compile_mod(m(_, _, FileName), CompActions, BaseDir, UsingTTY, I, N) :-
+compile_mod(m(_, _, FileName), CompActions, BaseDir, RelDir, UsingTTY, I, N) :-
 	( path_get_relative(BaseDir, FileName, File0) -> File = File0
 	; File = FileName
 	),
-	display_compiling_msg(UsingTTY, I, N),
-	format(user_error, "~w ", [File]),
-	%
+	display_progress(UsingTTY, RelDir, File, I, N),
 	do_comp_actions(CompActions, FileName),
-	cleanup_itf_cache.
+	cleanup_itf_cache. % TODO: needed?
 
 do_comp_actions([], _FileName).
 do_comp_actions([Action|Actions], FileName) :-
@@ -128,3 +119,21 @@ delete_if_exists(File) :-
 	    delete_file(File)
 	; true
 	).
+
+% ---------------------------------------------------------------------------
+% Messages for compilation progress
+
+% TODO: it must have same format as normal_message, share code?
+
+display_progress(using_tty, RelDir, File, I, N) :-
+	format(user_error, "\r   compiling [~w/~w] ~w/~w ", [I, N, RelDir, File]).
+display_progress(no_tty, RelDir, File, _, _) :-
+	format(user_error, "\n   compiling ~w/~w ", [RelDir, File]).
+
+display_done(UsingTTY, RelDir, N) :-
+	newline_code(UsingTTY, C),
+	format(user_error, "~w   compiled ~w/ (~w modules)\n", [C, RelDir, N]).
+
+newline_code(using_tty, '\r').
+newline_code(no_tty,    '\n').
+

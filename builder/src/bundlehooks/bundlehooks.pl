@@ -10,15 +10,12 @@
 :- load_compilation_module(ciaobld(bundlehooks/bundlehooks_tr)).
 :- add_sentence_trans(bundlehooks_tr:defdep/3, 320).
 
-:- use_module(ciaobld(messages_aux),
-	[cmd_message/3, normal_message/2, verbose_message/2]).
-:- use_module(ciaobld(builder_cmds)).
-
 :- discontiguous '$bundlehook_decl'/2.
 :- discontiguous '$bundlehook_do'/2.
+% '$bundleconfig_entry'(Name, Bundle, Definition).
+:- discontiguous('$bundleconfig_entry'/3).
+
+'$bundleconfig_entry'(_,_,_) :- fail.
 
 % Hooks for bundle description
 :- include(ciaobld(bundlehooks/bundlehooks_defs)).
-
-
-

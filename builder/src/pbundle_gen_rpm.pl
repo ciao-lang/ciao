@@ -1,5 +1,4 @@
 :- module(pbundle_gen_rpm, [], [fsyntax, assertions]).
-
 :- doc(title, "RPM-based distributions").
 :- doc(subtitle, "An automated RPM binary package generator for Ciao").
 
@@ -17,7 +16,7 @@
 
 % ===========================================================================
 
-:- use_module(ciaobld(messages_aux), [cmd_message/3]).
+:- use_module(ciaobld(messages_aux), [normal_message/2]).
 
 :- use_module(library(aggregates)).
 :- use_module(library(lists)).
@@ -28,13 +27,11 @@
 :- use_module(library(system_extra),
 	[copy_files/3, del_file_nofail/1, del_files_nofail/1]).
 :- use_module(library(file_utils)).
+:- use_module(library(version_strings), [version_split_patch/3]).
 
 :- use_module(engine(internals), ['$bundle_prop'/2]).
 :- use_module(library(pathnames), [path_concat/3]).
-:- use_module(library(bundle/bundle_info), [
-	enum_sub_bundles/2,
-	bundle_version/2, bundle_patch/2,
-	bundle_version_patch/2]).
+:- use_module(library(bundle/bundle_info), [bundle_version/2]).
 :- use_module(ciaobld(bundle_hash), [
 	bundle_versioned_packname/2, bundle_commit_info/3]).
 :- use_module(ciaobld(pbundle_generator)).
@@ -69,11 +66,6 @@ requirements:
 @item The system is meant to be portable. It should work (build packages)
   in any RPM Linux system with equivalent behaviour in all of them
   (except for differences in the local RPM version and system libraries).
-@item @index{Versioned packages} can be produced for specific versions of
-  the @apl{Ciao} bundles so that users can install as many versions
-  of the bundles as they wish at the same time (each version from its own
-  versioned package). The regular (non-versioned) package is meant for
-  the main system version (usually the latest) to be upgraded.
 @end{itemize}
 ").
 
@@ -114,19 +106,6 @@ One or more options may be added to the building command.
 These control the behaviour of the building and generation processes: 
 
 @begin{description}
-
-@item{@tt{subpackages=yes}} Enables building each bundle on its own
-subpackage. Without subpackages (option set to @tt{'no'}) a single
-@file{Ciao} package will be produced with the whole bundle.
-
-@item{@tt{versionp=yes}} Produces versioned packages instead of regular
-ones.  These are packages that allow installing several versions of
-Ciao or its bundles at the same time (see @ref{Installing
-packages}). The contents for both kinds of packages are identical
-except that the versioned ones lack the simple names for binaries
-(e.g., they include an executable called @tt{ciao-1.13} but not one
-called @tt{ciao}) and add a version suffix to the names of manual
-pages.  This option @em{must} be used along with subpackages.
 
 @item{@tt{vendor_independent=yes}} Produces packages that should work in all
 RPM-based Linux distributions. If disabled the packages are only
@@ -188,24 +167,6 @@ In order to upgrade your currently installed version of a package or
 packages to a newer one, the same command is used with the new package(s).
 This replaces the old (installed) version with the new one.
 
-If you want to install more than one version of a @apl{Ciao} bundle
-at the same time, just install a regular package for the latest version
-(the one that you want to be upgraded as the system's main version) and
-also install a versioned package for each of the additional (older)
-versions. For instance, if you want to install both ciao 1.18, 1.16 and
-1.14, do:
-
-@begin{verbatim}
-# rpm -U ciao-1.18.0-XXX.rpm
-# rpm -U ciao-v1.16-1.16.0-XXX.rpm
-# rpm -U ciao-v1.14-1.14.1-XXX.rpm
-@end{verbatim}
-
-The main (regular) installation will be available with plain commands
-(@apl{ciao}, @apl{ciaoc}) as well as versioned commands. The older
-(versioned) installations will only be available through versioned
-commands (e.g. @tt{ciao-1.16}, @tt{ciaoc-1.14}.)
-
 @section{Packager maintenance guide (rpm)}
 
 The system comprises the following elements:
@@ -243,12 +204,6 @@ specification} skeleton be updated accordingly:
 @item For SVN compilation/building: changes to repository names or locations.
 @end{itemize}
 
-Special care must be taken to guarantee that @concept{versioned
-packages} remain installable along with other versioned packages of the
-same bundle (as well as the regular upgradeable package), provided
-they are all different versions. Special care must also be taken to
-replicate changes in the separate subpackages to the main package.
-
 Finally, there is a minor risk to be considered: that SuSE changes
 its distribution-specific peculiarities or some of the RPM-based
 Linux distributions change the path or name for the install-info
@@ -273,27 +228,6 @@ RPM's own documentation (a handful of note files).
 ").
 
 % ===========================================================================
-
-:- pred rpm_options(Bundle, InOpts, Opts) # "@var{Opts} are the options to be
-	used in the RPM generation of @var{Bundle}. All these get
-	defined as RPM macros of the same name.".
-
-rpm_options(Bundle, InOpts) := Options :-
-	Options = ~append([
-	    % These are compulsory (gen_pbundle__rpm/2 needs them to know how to behave).
-	    % TODO: customize
-	    option('subpackages', 'no'),
-	    option('versionp',    'no'),
-	    option('vendor_independent', 'yes')|
-            % All other options are optional. We only set them if defined by user:
-            % TODO: INCORRECT!
-	    InOpts
-	    ],
-	    % All available subpackages are produced by default:
-	    % TODO: Not very nice...
-	    ~findall(option(SubBundle, 'yes'), enum_sub_bundles(Bundle, SubBundle))).
-
-% ===========================================================================
 :- doc(section, "pbundle Generation as a 'RPM package'").
 
 % Options (each one option(Name,Value)) that will be used for RPM
@@ -305,7 +239,11 @@ rpm_options(Bundle, InOpts) := Options :-
 % Generate RPM packages. A source distribution is generated if missing.
 gen_pbundle_hook(rpm, Bundle, _Options) :- !,
 	% TODO: Allow options in _Options (option(Name, Val))
-	gen_pbundle__rpm(Bundle, ~rpm_options(Bundle, [])).
+	Opts = [
+	    % TODO: customize?
+	    option('vendor_independent', 'yes')
+	],
+	gen_pbundle__rpm(Bundle, Opts).
 
 % ---------------------------------------------------------------------------
 
@@ -331,18 +269,8 @@ gen_pbundle_hook(rpm, Bundle, _Options) :- !,
 % % temporarily unavailable or located in unusual places).
 % 
 % % TODO: necessary target?
-% gen_pbundle__rpm_spec <- [] #
-% 	"Generate a RPM specification for regular packages." :-
-% 	Bundle = ~root_bundle,
+% gen_pbundle__rpm_spec ...
 % 	create_rpm_spec(Bundle).
-
-:- pred versioned_packagename(BundleName, PackName) #
-   "@var{PackName}, is the versioned RPM package name for
-   @apl{Ciao}'s bundle @var{BundleName}.".
-
-versioned_packagename(BundleName, PName) :-
-	'$bundle_prop'(BundleName, packname(Packname)),
-	atom_concat([Packname, '-v', ~bundle_version(BundleName)], PName).
 
 :- doc(bug, "To speed up the process, we create the rpm from a
 	precompiled bin distribution.").
@@ -362,100 +290,37 @@ bin_packname(Bundle, F) :-
 
 gen_pbundle__rpm(Bundle, GenerationOptions) :-
 	VersionedPackName = ~bundle_versioned_packname(Bundle),
-	cmd_message(Bundle, "creating RPM package for ~w ...", [VersionedPackName]),
+	normal_message("creating RPM package for ~w", [VersionedPackName]),
 	%
 	create_rpm_spec(Bundle),
 	%
 	SpecFileName = 'Ciao.spec',
 	%
-	pbundle_output_dir(OutputDirName),
+	OutputDirName = ~pbundle_output_dir(Bundle),
+	create_pbundle_output_dir(Bundle),
 	rpm_prevailingoptions(GenerationOptions, RpmbuildOptions),
-	rpmbuild_setoptions(RpmbuildOptions, Bundle, RpmbuildArgs),
+	rpmbuild_setoptions(RpmbuildOptions, RpmbuildArgs),
 	process_call(~path_concat(~builder_src_dir, 'rpm/RPM-Ciao.bash'),
 	       [~atom_concat(OutputDirName, '/'),
 		~bin_packname(Bundle),
 		SpecFileName | RpmbuildArgs], []),
-	create_pbundle_output_dir,
 	rpm_macrovalue('_arch',   Arch),
 	rpm_macrovalue('_rpmdir', RpmDir),
 	%
 	'$bundle_prop'(Bundle, packname(Packname)),
 	CiaoRpmFileName = ~path_concat(~path_concat(RpmDir, Arch), ~rpm_file_name(Bundle, Packname, Arch)),
 	%
-	findall(BundleRpmFileName, bundle_rpm_file_names(Bundle, RpmDir, Arch, RpmbuildOptions, BundleRpmFileName), RpmFileNames),
-	%
-	( member(option('subpackages', 'no'), RpmbuildOptions) ->
-	    copy_file(CiaoRpmFileName, OutputDirName, [overwrite])
-	;
-	    true
-	),
-	( member(option('subpackages', 'yes'), RpmbuildOptions) ->
-	    copy_files(RpmFileNames, OutputDirName, [overwrite])
-	;
-	    true
-	),
+	copy_file(CiaoRpmFileName, OutputDirName, [overwrite]),
  	del_file_nofail(~atom_concat(~path_concat(OutputDirName, VersionedPackName), '.tar.gz')),
-	del_file_nofail(CiaoRpmFileName),
-	( member(option('subpackages', 'yes'), RpmbuildOptions) ->
-	    del_files_nofail(RpmFileNames)
-	; true
-	).
-
-% (only when subpackages=yes)
-% (nondet)
-bundle_rpm_file_names(Bundle, RpmDir, Arch, RpmbuildOptions, BundleRpmFileName) :-
-	enum_sub_bundles(Bundle, SubBundle),
-	( member(option('versionp', 'yes'), RpmbuildOptions) ->
-	    versioned_packagename(SubBundle, Ciaoname) % TODO: Probably wrong
-	; '$bundle_prop'(SubBundle, packname(Ciaoname))
-	),
-	% TODO: refactor
-	BundleRpmFileName = ~path_concat(~path_concat(RpmDir, Arch), ~rpm_file_name(SubBundle, Ciaoname, Arch)).
-
-:- doc(bug, "For now, release is equal to the SVN revision number,
-	that is done only to allow generating the RPM now, but when 
-	version numbers are clarified, this should be reconsidered.").
-
-bundle_versioned_names(Bundle) :=
-	~flatten(~findall(S, bundle_versioned_name(Bundle, S))).
-
-bundle_versioned_name(ParentBundle, BundleVersionName) :-
-	enum_sub_bundles(ParentBundle, Bundle),
-	atom_codes(Bundle, BundleS),
-	atom_codes(~bundle_version(Bundle), BundleVersion),
-	BundleVersionName = [
-          "%define "||BundleS,"name "||
-          BundleS, "-v"||BundleVersion,"\n"
-        ].
-
-bundle_name_defs(Bundle) := ~flatten(~findall(S, bundle_name_def(Bundle, S))).
-
-bundle_name_def(ParentBundle, BundleName) :-
-	enum_sub_bundles(ParentBundle, Bundle),
-	atom_codes(Bundle, BundleS),
-	BundleName = [
-          "%define "||BundleS,"name "||
-          BundleS,"\n"
-        ].
-
-bundle_move_man_versions(Bundle) :=
-	~flatten(~findall(S, bundle_move_man_version(Bundle, S))).
-
-bundle_move_man_version(ParentBundle, BundleMoveManVersion) :-
-	enum_sub_bundles(ParentBundle, Bundle),
-	atom_codes(Bundle,                    BundleS),
-	atom_codes(~bundle_version_patch(Bundle), BundleVersion),
-	BundleMoveManVersion = [
-          "mv %{buildroot}%{_mandir}/"||BundleS, "-"||BundleVersion, ".manl ",
-	     "%{buildroot}%{_mandir}/man1/"||BundleS, "-"||BundleVersion, ".1\n"].
+	del_file_nofail(CiaoRpmFileName).
 
 bundle_move_mans(Bundle) :=
 	~flatten(~findall(S, bundle_move_man(Bundle, S))).
 
 bundle_move_man(ParentBundle, BundleMoveMan) :-
-	enum_sub_bundles(ParentBundle, Bundle),
-	atom_codes(Bundle,                    BundleS),
-	atom_codes(~bundle_version_patch(Bundle), BundleVersion),
+	enum_pbundle_bundle(ParentBundle, Bundle),
+	atom_codes(Bundle, BundleS),
+	atom_codes(~bundle_version(Bundle), BundleVersion),
 	BundleMoveMan = [
           "mv %{buildroot}%{_mandir}/"||BundleS,"-"||BundleVersion,".manl",
 	    " %{buildroot}%{_mandir}/man1/"||BundleS,".1\n"].
@@ -464,9 +329,9 @@ bundle_install_info_cmds(Bundle, Command) :=
 	~flatten(~findall(S, bundle_install_info_cmd(Bundle, Command, S))).
 
 bundle_install_info_cmd(ParentBundle, Command, BundleInstallInfoCmd) :-
-	enum_sub_bundles(ParentBundle, Bundle),
-	atom_codes(Bundle,                    BundleS),
-	atom_codes(~bundle_version_patch(Bundle), BundleVersion),
+	enum_pbundle_bundle(ParentBundle, Bundle),
+	atom_codes(Bundle, BundleS),
+	atom_codes(~bundle_version(Bundle), BundleVersion),
 	BundleInstallInfoCmd = [
 	    "    install-info "||Command,
 	    " --dir-file=%{_infodir}/dir",
@@ -475,10 +340,12 @@ bundle_install_info_cmd(ParentBundle, Command, BundleInstallInfoCmd) :-
 bundle_files(Bundle) := ~flatten(~findall(S, bundle_file(Bundle, S))).
 
 bundle_file(ParentBundle, BundleFile) :-
-	enum_sub_bundles(ParentBundle, Bundle),
-	atom_codes(Bundle,                    BundleS),
-	atom_codes(~bundle_version_patch(Bundle), BundleVersion),
-	atom_codes(~bundle_version(Bundle), BundlePathVersion),
+	enum_pbundle_bundle(ParentBundle, Bundle),
+	atom_codes(Bundle, BundleS),
+	Version = ~bundle_version(Bundle),
+	version_split_patch(Version, VersionNopatch, _),
+	atom_codes(Version, BundleVersion),
+	atom_codes(VersionNopatch, BundlePathVersion),
 	BundleFile = [
 	  "%{_libdir}/"||BundleS,"/"||BundleS,"-"||BundlePathVersion,"\n",
           "%{ciaodocdir}/"||BundleS,"-"||BundleVersion,".pdf\n"].
@@ -488,39 +355,19 @@ create_rpm_spec(Bundle) :-
 	% TODO: Ciao.spec is hardwired
         get_rpm_version_and_release(Bundle, Version, Release),
 	working_directory(Cwd, Cwd), % TODO: sure?
+	Version = ~bundle_version(Bundle),
+	version_split_patch(Version, VersionNopatch, _),
 	wr_template(at(Cwd), ~path_concat(~builder_src_dir, 'rpm'), 'Ciao.spec', [
 	    'Version' = Version,
 	    'Release' = Release,
 	    'VersionedPackName' = ~bundle_versioned_packname(Bundle),
 	    'BinPackName' = ~bin_packname(Bundle),
-	    'BundleMoveManVersions' = ~bundle_move_man_versions(Bundle),
 	    'BundleMoveMans' = ~bundle_move_mans(Bundle),
 	    'BundleIntegrateInfoindexes' = "",
 	    'BundleInstallInfoCmds' = ~bundle_install_info_cmds(Bundle, ""),
 	    'BundleInstallInfoCmdsRemove' = ~bundle_install_info_cmds(Bundle, "--remove"),
-	    'BundleVersionedNames' = ~bundle_versioned_names(Bundle),
 	    'BundleFiles' = ~bundle_files(Bundle),
-	    'BundleNames' = ~bundle_name_defs(Bundle)
-	|~bundle_vars(Bundle)]).
-
-% Other keys to be filled in Ciao.spec
-bundle_vars(Bundle) :=
-	~findall(C,
-	    ( bundle_version_var(Bundle, C)
-	    ; bundle_path_version_var(Bundle, C)
-	    )).
-
-bundle_version_var(ParentBundle, Key = BundleVersion) :-
-	enum_sub_bundles(ParentBundle, Bundle),
-	'$bundle_prop'(Bundle, packname(PackName)),
-	Key = ~atom_concat(PackName, 'Version'),
-	BundleVersion = ~bundle_version_patch(Bundle).
-
-bundle_path_version_var(ParentBundle, Key = BundlePathVersion) :-
-	enum_sub_bundles(ParentBundle, Bundle),
-	'$bundle_prop'(Bundle, packname(PackName)),
-	Key = ~atom_concat(PackName, 'PathVersion'),
-	BundlePathVersion = ~bundle_version(Bundle).
+	    'CiaoPathVersion' = VersionNopatch]).
 
 :- pred rpm_macrovalue(Macro, Value) # "RPM @var{Macro} is
    system-defined as @var{Value}.".
@@ -533,18 +380,18 @@ rpm_macrovalue(Macro, Value) :-
 	% (returned) Value = (requested) %Macro would mean Value not defined
 	Value \= MacroExpr. % So fail if macro not defined
 
-:- pred rpmbuild_setoptions(RpmOptions, Bundle, RpmbuildArgs) # "
+:- pred rpmbuild_setoptions(RpmOptions, RpmbuildArgs) # "
 	@var{RpmbuildArgs} are the command-line arguments for
 	@apl{rpmbuild} that will set the RPM generation options. Each
 	option is set in the specification by defining the macro of
-	the same name to its appropriate value (see @pred{map_rpmoptval/3}).
+	the same name to its appropriate value (see @pred{map_rpmoptval/2}).
 	".
 
-rpmbuild_setoptions([], _Bundle, []).
-rpmbuild_setoptions([option(Macro, Value)|L], Bundle, Args) :-
-	map_rpmoptval(option(Macro, Value), Bundle, RpmValue),
+rpmbuild_setoptions([], []).
+rpmbuild_setoptions([option(Macro, Value)|L], Args) :-
+	map_rpmoptval(option(Macro, Value), RpmValue),
 	Args = ['--define', ~atom_concat([Macro, ' ', RpmValue])|Args0],
-	rpmbuild_setoptions(L, Bundle, Args0).
+	rpmbuild_setoptions(L, Args0).
 
 :- pred rpm_prevailingoptions(Options, PrevailingOptions) # "
 	@var{Options} is a list of options for RPM generation, with
@@ -573,29 +420,24 @@ rpm_prevailingoptions([option(OptName, Val)|L],
 
 % Utilities to keep common options between Ciao installer and RPM spec:
 
-:- pred map_rpmoptval(Option, Bundle, RpmValue) 
+:- pred map_rpmoptval(Option, RpmValue) 
 # "@var{RpmValue} is the value to use in the RPM specification for
    @var{Option}. It may just be @var{Option}'s straight value or a
    mapped representation if the RPM specification needs so.".
 
-map_rpmoptval(option(Opt, Val), Bundle, MappedVal) :-
-	ciaorpm_opttype(Opt, Bundle, Type),
+map_rpmoptval(option(Opt, Val), MappedVal) :-
+	ciaorpm_opttype(Opt, Type),
 	ciaorpm_mapvalue(Type, Val, MappedVal),
 	!.
-map_rpmoptval(option(_, Val), _Bundle, Val).
+map_rpmoptval(option(_, Val), Val).
 
-:- pred ciaorpm_opttype(OptName, Bundle, OptType)
+:- pred ciaorpm_opttype(OptName, OptType)
 # "This predicate declares the kind of some options (it is not meant
    to be exhaustive, only the ones whose value gets mapped need to be
    declared). @var{OptType} is the option type for an option named
    @var{OptName}.".
 
-ciaorpm_opttype('subpackages',        _Bundle, 'rpm_expression').
-ciaorpm_opttype('versionp',           _Bundle, 'rpm_expression').
-ciaorpm_opttype('vendor_independent', _Bundle, 'rpm_expression').
-ciaorpm_opttype(SubBundleName,        Bundle, 'rpm_expression') :-
-	% TODO: Strange option! add something like "with_sub_bundle_BundleName"
-	enum_sub_bundles(Bundle, SubBundleName). % Subpackage creation guards (see spec)
+ciaorpm_opttype('vendor_independent', 'rpm_expression').
 % Since we only need to map rpm_expressions there's no need to declare
 % (and keep track of) other options.
 
@@ -613,14 +455,15 @@ ciaorpm_mapvalue('rpm_expression', 'no',  '0').
 % Naming conventions for RPM files
 
 rpm_file_name(Bundle, Packname, Arch) := RpmFileName :-
-	get_rpm_version_and_release(Bundle, Version, Release),
-	RpmFileName = ~atom_concat([Packname, '-', Version, '-', Release, '.', Arch, '.rpm']).
+	get_rpm_version_and_release(Bundle, VersionNopatch, Release),
+	RpmFileName = ~atom_concat([Packname, '-', VersionNopatch, '-', Release, '.', Arch, '.rpm']).
 
 % Extract the version and release numbers from commit desc
 % (usually version and patch)
 % TODO: Move as part of bundle info!
-get_rpm_version_and_release(Bundle, Version, Release) :-
-        Version = ~bundle_version(Bundle),
+get_rpm_version_and_release(Bundle, VersionNopatch, Release) :-
+	Version = ~bundle_version(Bundle),
+	version_split_patch(Version, VersionNopatch, Patch),
         Desc = ~bundle_commit_info(Bundle, desc),
         ( atom_concat([Version, '-', Release0], Desc) ->
             % Replace '-' in release number (necessary for RPM)
@@ -628,7 +471,7 @@ get_rpm_version_and_release(Bundle, Version, Release) :-
             replace_char(Release1, 0'-, 0'., Release2),
             atom_codes(Release, Release2)
         ; % just in case the previous fails (it should not)
-          Release = ~bundle_patch(Bundle)
+          Release = Patch
         ).
 
 replace_char([], _, _, []).
@@ -642,8 +485,6 @@ replace_char([X|As], A, B, [X|Bs]) :- replace_char(As, A, B, Bs).
 :- doc(bug, "Check and warn for unknown options or incorrect values
 	(at this time if the user sets an invalid option it gets silently 
 	ignored).").
-:- doc(bug, "(subpackages=no ^ versionp=yes) should warn(incompatible)
-and exit error.").
 :- doc(bug, "Better compliance with @apl{rpmlint}").
 :- doc(bug, "Check whether enabling mysql / java is feasible").
 :- doc(bug, "Bugs from Emilio's email (debian package)").

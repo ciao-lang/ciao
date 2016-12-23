@@ -16,7 +16,7 @@
 :- use_module(library(bundle/bundle_flags), [current_bundle_flag/2]).
 :- use_module(ciaobld(third_party_install), [third_party_path/2]).
 
-:- include(ciaobld(bundleconfig/bundleconfig_defs)). % (only for m_bundle_foreign_config_tool/3)
+:- include(ciaobld(bundlehooks/bundlehooks_defs)). % (only for m_bundle_foreign_config_tool/3)
 
 % (Support for GNU pkg-config based libraries)
 

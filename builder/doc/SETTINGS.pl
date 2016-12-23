@@ -12,15 +12,23 @@ filepath := ~ciaofilepath_common.
 doc_structure := 
         'ciao_builder_ref'-[
           % TODO: Missing lib/bundle/* modules
-	  % TODO: Missing hooks for bundleconfig and bundlehooks
+	  % TODO: Missing bundlehooks (include bintgt, docstgt?)
           %
 	  % Driver of commands on bundles
           'ciao_builder'-[
+            'ciaocl_parser', % TODO: This is for internals
             'ciaocl_help', % TODO: This is for internals
-            'bundlehooks_holder',
+            'manifest_compiler'-[
+              'bundlehooks_holder'
+            ],
+	    % Command driver and definitions
             'builder_cmds'-[
+              % Primitive targets
+              'builder_prim',
 	      % Build
+              'third_party_install',
               'ciaoc_aux',
+              'lpdoc_aux',
               'eng_maker',
               'builder_aux',
 	      % Installation
@@ -35,6 +43,8 @@ doc_structure :=
             ],
 	    % Configuration
             'bundle_configure',
+	    % Fetching
+            'bundle_fetch',
 	    % Packaging
             'pbundle_generator'-[
               'pbundle_meta',

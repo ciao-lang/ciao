@@ -1,4 +1,4 @@
-:- module(_, [], [assertions, isomodes, regtypes, dcg]).
+:- module(_, [], [assertions, isomodes, regtypes, dcg, fsyntax]).
 
 :- doc(title, "Ciao Command-line Help").
 :- doc(author, "Ciao Development Team").
@@ -106,7 +106,7 @@ cmd_usage(boot_promote, "", [
 cmd_details(boot_promote, [
     %2........................________________________________________________
     "NOTE: This is a dangerous operation!",
-    "      Use 'build core/engine' and 'build core/ciaoc' (or a full 'build')",
+    "      Use 'build core.engine' and 'build core.ciaoc' (or a full 'build')",
     "      to prepare the current compiler and engine C files."
 ]).
 
@@ -133,10 +133,10 @@ cmd_usage(info, "[<bundle>]", [
     "Info on specified bundle"
 ]).
 %
-cmd_grp(get, management).
-cmd_usage(get, "[<bundle aliases>]", [
+cmd_grp(fetch, management).
+cmd_usage(fetch, "[<bundle aliases>]", [
     %1_______________________________________________
-    "Download and install the specified bundles"
+    "Download the specified bundles"
 ]).
 % TODO: not uninstalled!
 cmd_grp(rm, management).
@@ -144,6 +144,12 @@ cmd_usage(rm, "[<bundle aliases>]", [ % TODO: Allow bundle alias in more command
     %1_______________________________________________
     "Remove the specified downloaded bundles",
     "(use before get to force update)"
+]).
+%
+cmd_grp(get, management).
+cmd_usage(get, "[<bundle aliases>] [<flags>]", [
+    %1_______________________________________________
+    "Fetch, configure, build, and install"
 ]).
 
 grp_def(configure, "Configuration (before build)").
@@ -199,75 +205,43 @@ cmd_usage(configclean, "[<targets>]", [
     "Clean the configuration"
 ]) :- advanced.
 
+common_opts_details([
+    %2........................________________________________________________
+    "  --bin|--docs|...       Select grade",
+    "  -r                     Treat dependencies (same workspace)",
+    "  -x                     Treat dependencies (all workspaces)"
+]).
+
 grp_def(build_grp, "Build").
 %
 cmd_grp(build, build_grp).
-cmd_usage(build, "[<targets>]", [
+cmd_usage(build, "[<opts>] [<targets>]", [
     %1_______________________________________________
-    "Build bundles (including documentation)"
+    "Build bundles"
 ]).
-%
-cmd_grp(prebuild_nodocs, build_grp).
-cmd_usage(prebuild_nodocs, "[<targets>]", [
-    %1_______________________________________________
-    "Prepare source for build_nodocs"
-]) :- advanced.
-%
-cmd_grp(build_nodocs, build_grp).
-cmd_usage(build_nodocs, "[<targets>]", [
-    %1_______________________________________________
-    "Build commands and libraries (includes prebuild)"
-]) :- advanced.
-%
-cmd_grp(prebuild_docs, build_grp).
-cmd_usage(prebuild_docs, "[<targets>]", [
-    %1_______________________________________________
-    "Prepare source for build_docs"
-]) :- advanced.
-%
-cmd_grp(build_docs, build_grp).
-cmd_usage(build_docs, "[<targets>]", [
-    %1_______________________________________________
-    "Only build documentation (includes prebuild)"
-]) :- advanced.
-%
-cmd_grp(build_docs_readmes, build_grp).
-cmd_usage(build_docs_readmes, "[<targets>]", [
-    %1_______________________________________________
-    "Only build documentation READMEs"
-]) :- advanced.
 %
 grp_details(build_grp, [
     %2........................________________________________________________
-    "Build compiles all the modules (libraries), binaries, and documentation",
-    "of the specified bundles. The process is incremental and should only",
-    "recompile sources with modifications.",
+    "Build compiles modules (libraries), binaries, and documentation",
+    "of the specified bundles. The process is incremental and recompiles",
+    "sources affected by modifications. In some rare cases (like changes in",
+    "configuration or untracked dependencies from foreign code and libraries)",
+    "you may need to invoke 'clean' before 'build'.",
     "",
-    "Additionally, 'build_nodocs' omits documentation, while",
-    "'build_docs' builds just the documentation. In some rare cases",
-    "(like changes in configuration or untracked dependencies from foreign",
-    "code and libraries) you may need to invoke 'clean' before 'build'.",
+    "You can use 'info' to inspect dependencies and subtargets.",
+    "",
     %2........................________________________________________________
-    "",
-    "For convenience, the following subtargets are available:",
-    "",
-    % TODO: Do not enumerate bundles; add an option to list_bundles to show subbundles!
-    "  core/engine            The engine",
-    "  core/ciaoc             The 'ciaoc' compiler",
-    "  core/shell             The 'ciaosh' toplevel (or shell)",
-    "  contrib/profiler       Profiler",
-    "  ciaopp/ilciao          Java resource analysis", % TODO: Does not work in 'build'!
-    "",
-    "Additionally, other valid targets are:",
-    % TODO: this should not be needed
-    "",
-    "  core/ciaobase          Engine, compiler, and toplevel" % TODO: does not work in 'clean'!
+    "Build accepts the options:",
+    ""|
+    ~common_opts_details
 ]).
 
 grp_def(clean_grp, "Cleaning").
 %
+% NOTE: clean --docs is NOT equivalent to 'clean' for docs; it just
+% remove the final targets, not the temporary files.
 cmd_grp(clean, clean_grp).
-cmd_usage(clean, "[<targets>]", [
+cmd_usage(clean, "[<opts>] [<targets>]", [
     %1_______________________________________________
     "Clean intermediate files (keeps configuration)"
 ]).
@@ -283,35 +257,6 @@ cmd_usage(realclean, "", [
     %1_______________________________________________
     "Like 'distclean' but also clean the bootstrap"
 ]) :- advanced, help_mode(_, boot).
-%
-cmd_grp('--', clean_grp).
-%
-cmd_grp(clean_nodocs, clean_grp).
-% NOTE: clean_docs is NOT equivalent to 'clean' for docs; it just
-% remove the final targets, not the temporary files.
-cmd_usage(clean_nodocs, "[<targets>]", [
-    %1_______________________________________________
-    "Like 'clean', but keep documentation targets"
-]) :- advanced.
-%
-cmd_grp(clean_docs, clean_grp).
-cmd_usage(clean_docs, "[<targets>]", [
-    %1_______________________________________________
-    "Delete documentation targets (temporary files are",
-    "removed in 'clean_nodocs')"
-]) :- advanced.
-%
-cmd_grp(clean_docs_readmes, clean_grp).
-cmd_usage(clean_docs_readmes, "[<targets>]", [
-    %1_______________________________________________
-    "Delete documentation (README) targets"
-]) :- advanced.
-%
-cmd_grp(clean_docs_manuals, clean_grp).
-cmd_usage(clean_docs_manuals, "[<targets>]", [
-    %1_______________________________________________
-    "Delete documentation (manuals) targets"
-]) :- advanced.
 %
 cmd_grp('--', clean_grp).
 %
@@ -334,6 +279,13 @@ cmd_details(emergency_clean, [
     "NOTE: Use this option when the bootstrap is unable to compile properly and",
     "none of the cleaning commands work."
 ]).
+%
+grp_details(clean_grp, [
+    %2........................________________________________________________
+    "Clean accepts the options:",
+    ""|
+    ~common_opts_details
+]).
 
 grp_def(install_grp, "Installation").
 %
@@ -354,7 +306,9 @@ grp_details(install_grp, [
     "Install and uninstall accepts the options:",
     "",
     "  --destdir=DESTDIR      Prepend DESTDIR to each (un)install target",
-    "                         (for staged installations)"
+    "                         (for staged installations)",
+    ""|
+    ~common_opts_details
 ]).
 
 grp_def(test_grp, "Test automation and benchmarking").

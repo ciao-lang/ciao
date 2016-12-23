@@ -5,36 +5,25 @@
 :- multifile m_bundlehook_decl/3.
 :- multifile m_bundlehook_do/3.
 
-% :- pred prebuild_nodocs/0 # "Prepare source for build_nodocs".
-% :- pred build_nodocs/0 # "Build cmds and libs (includes prebuild_nodocs)".
-
-% :- pred prebuild_docs/0 # "Prepare source for build_docs". 
-
-% % Hooks for bundle (un)installation
-% :- pred install/0 # "Install".
-% :- pred uninstall/0 # "Uninstall".
-
-% % Hooks for bundle (un)registry
+% :- pred prebuild_bin/0 # "Prepare source for build_bin".
+% :- pred build_bin/0 # "Build cmds and libs (includes prebuild_bin)".
+% :- pred prebuild_docs/0 # "Prepare source for build_docs".
+% :- pred build_docs/0 # "Build documentation (includes prebuild_docs)".
+% :- pred install_bin/0 # "Install".
+% :- pred uninstall_bin/0 # "Uninstall".
+% :- pred install_docs/0 # "Install".
+% :- pred uninstall_docs/0 # "Uninstall".
 % :- pred register/0 # "Register (in bash,csh,emacs,etc.)".
 % :- pred unregister/0 # "Unregister (in bash,csh,emacs,etc.)".
-
-% % Hooks for bundle testing/benchmarking
 % :- pred test/0 # "Run tests".
 % :- pred bench/0 # "Run benchmarks".
-
-% % Hooks for bundle custom commands
 % :- pred custom_run/2 # "Run custom command".
 
-% % Hooks for bundleitem definition
-% :- pred item_def/1 # "Definition of some bundleitem".
-
-% % Hooks for bundle_def definition
-% :- pred bundle_def/1 # "Definition of this bundle (libs, cmds)".
+% % Hooks for item_nested
+% :- pred item_nested/1 # "Bundle parts (E.g., ciaobase.eng(...))".
 %
-% (contents of bundle_def)
-%
+% :- pred <PrimTgt>/? # "Primitive targets". % (see primtgt/1)
 % TODO: complete
-%
 % :- pred lib(...).
 % :- pred cmd(...).
 % :- pred readme(Path, Props) # "@var{Props} contains a @tt{main=D}
@@ -49,9 +38,6 @@
 %    (usually a SETTINGS.pl file). The output manual name is
 %    @var{Name}".
 % % (nondet, default: fail)
-
-% % Subtargets (experimental)
-% :- pred item_subs/1 # "".
 
 % % Hooks for third-party components
 :- discontiguous m_third_party_name/1.
@@ -76,3 +62,12 @@
 :- multifile m_third_party_custom_build/2.
 :- discontiguous  m_third_party_custom_install/2.
 :- multifile m_third_party_custom_install/2.
+
+% % Hooks for configuration rules
+
+% m_bundle_config_call(<Mod>,G) :- call(G).
+% m_bundle_config_entry(<Mod>,Name,Props) :- '$bundleconfig_entry'(Name,<Mod>,Props).
+:- multifile m_bundle_config_call/2.
+:- multifile m_bundle_config_entry/3.
+% m_bundle_foreign_config_tool(<Mod>,Name,Path)
+:- multifile m_bundle_foreign_config_tool/3.

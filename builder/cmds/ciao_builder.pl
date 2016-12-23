@@ -132,8 +132,7 @@ force the recompilation and cleaning of that part (see
 
 % TODO: document that opts and flags may end in '--'
 % TODO: move cmd_fmt and ciaocl_help together
-% TODO: allow --bundle=BUNDLE for some commands? (e.g., custom_run)
-% TODO: remove cmds like build_nodocs (renamed to 'build' with option '--nodocs')
+% TODO: allow --target=Tgt for some commands? (e.g., custom_run)
 % TODO: obtain bundle origin from catalog (if possible)
 % TODO: 'ciao get' must be recursive (it should get dependencies automatically)
 
@@ -147,7 +146,9 @@ force the recompilation and cleaning of that part (see
 :- use_module(ciaobld(builder_cmds),
 	[builder_cleanup/0,
 	 builder_cmd_nobndl/1,
-	 builder_cmd_on_set/2]).
+	 builder_cmd_on_set/2,
+	 'cmd.needs_update_builder'/1,
+	 'cmd.needs_rescan'/1]).
 :- use_module(ciaobld(bundle_fetch),
 	[check_bundle_alias/3,
 	 add_bundle_origin/2,
@@ -159,8 +160,6 @@ force the recompilation and cleaning of that part (see
 
 :- use_module(ciaobld(ciaocl_help)).
 :- use_module(ciaobld(ciaocl_parser)).
-
-:- use_module(library(bundle/bundle_info), [root_bundle/1]).
 
 % ===========================================================================
 
@@ -198,60 +197,63 @@ main_(Args) :-
 	parse_cmd(Args, Cmd, Opts),
 	cleanup, % TODO: repeat just in case...
 	set_opts(Opts),
-	( Cmd = cmd_on_set(Cmd0, Targets) ->
-	    ( needs_update_builder(Cmd0) -> check_builder_update ; true ),
-	    ( needs_rescan(Cmd0) -> % TODO: disable with some option % TODO: add for all cmds?
-	        rescan_targets(Targets)
-	    ; true
-	    ),
-	    resolve_targets(Targets, Targets2),
-	    ( Cmd0 = rescan_bundles -> % (already done in rescan_targets)
-	        true
-	    ; builder_cmd_on_set(Cmd0, Targets2)
-	    ),
-	    post_message(Cmd0)
-	; Cmd = cmd(Cmd0) -> builder_cmd_nobndl(Cmd0)
-	; fail
-	),
+	run_cmd(Cmd),
 	cleanup.
-
-cleanup :-
-	builder_cleanup,
-	bundle_fetch_cleanup,
-	cleanup_builder_flags.
-
-set_opts([opt(interactive)|Opts]) :- !, % TODO: ad-hoc?
-	set_builder_flag(interactive_config, true),
-	set_opts(Opts).
-set_opts([opt(Name, Value)|Opts]) :- !,
-	set_builder_flag(Name, Value),
-	set_opts(Opts).
-set_opts([]).
 
 help_mode('help', summary, normal).
 help_mode('help_all', all, normal).
 help_mode('help_boot', summary, boot).
 help_mode('help_all_boot', all, boot).
 
-needs_update_builder(rescan_bundles).
-needs_update_builder(configure(_)).
-needs_update_builder(full_install(_)).
-needs_update_builder(install).
-needs_update_builder(install_nodocs).
-needs_update_builder(install_docs).
-needs_update_builder(build).
-needs_update_builder(build_docs).
-needs_update_builder(build_nodocs).
+cleanup :-
+	builder_cleanup,
+	bundle_fetch_cleanup,
+	cleanup_builder_flags.
 
-needs_rescan(rescan_bundles).
-needs_rescan(configure(_)).
-needs_rescan(full_install(_)).
-needs_rescan(install).
-needs_rescan(install_nodocs).
-needs_rescan(install_docs).
-needs_rescan(build).
-needs_rescan(build_nodocs).
-needs_rescan(build_docs).
+set_opts([]).
+set_opts([Opt|Opts]) :- set_opt(Opt), set_opts(Opts).
+
+% TODO: ad-hoc, it does not take command into account
+set_opt(opt(interactive)) :- !,
+	set_builder_flag(interactive_config, true).
+set_opt(opt(docs)) :- !,
+	set_builder_flag(grade_docs, true).
+set_opt(opt(bin)) :- !,
+	set_builder_flag(grade_bin, true).
+%set_opt(opt(norec)) :- !,
+%	set_builder_flag(recursive, false).
+set_opt(opt(r)) :- !,
+	set_builder_flag(recursive, same_workspace).
+set_opt(opt(x)) :- !,
+	set_builder_flag(recursive, all_workspaces).
+set_opt(opt(Name, Value)) :- !,
+	set_builder_flag(Name, Value).
+set_opt(Opt) :-
+	throw(unknown_opt(Opt)).
+
+run_cmd(cmd_on_set(Cmd0, Targets)) :-
+	( 'cmd.needs_update_builder'(Cmd0) ->
+	    check_builder_update
+	; true
+	),
+	( 'cmd.needs_rescan'(Cmd0) ->
+	    % TODO: rescursive all_workspaces does not rescan all workspaces, fix
+	    rescan_targets(Targets)
+	; true
+	),
+	resolve_targets(Targets, Targets2),
+	set_default_recursive(Targets2),
+	builder_cmd_on_set(Cmd0, Targets2),
+	post_message(Cmd0).
+run_cmd(cmd(Cmd0)) :-
+	builder_cmd_nobndl(Cmd0).
+
+set_default_recursive(Targets) :-
+	( member(~root_bundle, Targets) ->
+	    % For root_bundle, enable recursive by default
+	    set_builder_flag(recursive, all_workspaces)
+	; true
+	).
 
 % ---------------------------------------------------------------------------
 
@@ -277,6 +279,7 @@ show_post_message(_).
 % ---------------------------------------------------------------------------
 :- doc(section, "Updating and resolving targets").
 
+:- use_module(ciaobld(bundle_scan), [root_bundle/1]).
 :- use_module(ciaobld(bundle_scan), [scan_bundles_at_path/1]).
 :- use_module(ciaobld(builder_aux), [root_bundle_source_dir/1]).
 :- use_module(engine(internals),
@@ -332,7 +335,7 @@ resolve_target(Target0, Target) :-
 	; check_bundle_alias(Target0, Origin, Bundle) ->
             add_bundle_origin(Bundle, Origin),
 	    Target = Bundle
-	; Target = Target0 % TODO: Assume this is a part (E.g., core/engine); do some checks?
+	; Target = Target0 % TODO: Assume this is a part (E.g., core.engine); do some checks?
 	).
 
 :- use_module(library(system), [file_properties/6]).

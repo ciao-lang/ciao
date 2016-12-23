@@ -13,7 +13,11 @@
 
 :- export(norm_underscores/2). % defined in cmdline_parser.pl
 
-:- use_module(library(bundle/bundle_info), [root_bundle/1]).
+:- use_module(ciaobld(bundle_scan), [root_bundle/1]).
+
+% default qualifier for flags
+default_flag_qual(Qual) :-
+	root_bundle(Qual). % default bundle % TODO: use default target instead?
 
 % Commands exclusive for @tt{builder_boot.sh} (aka ciao-boot.sh)
 cmd_fmt(emergency_clean, [raw_args]).
@@ -100,29 +104,25 @@ cmd_rw(configure([]), Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
 	; fail
 	).
 
-cmd_fmt(build, [target_args]).
-cmd_fmt(build_nodocs, [target_args]).
-cmd_fmt(prebuild_nodocs, [target_args]).
-cmd_fmt(prebuild_docs, [target_args]).
-cmd_fmt(build_docs, [target_args]).
-cmd_fmt(build_docs_manuals, [target_args]).
-cmd_fmt(build_docs_readmes, [target_args]).
-cmd_fmt(clean, [target_args]).
-cmd_fmt(clean_nodocs, [target_args]).
-cmd_fmt(clean_norec, [target_args]).
-cmd_fmt(clean_docs, [target_args]).
-cmd_fmt(clean_docs_manuals, [target_args]).
-cmd_fmt(clean_docs_readmes, [target_args]).
+common_opts([
+  s(r),   % -r: recursive (same worksace)
+  s(x),   % -x: recursive (all dependencies)
+  bin,    % --bin: exclude documentation build
+  docs    % --docs: just build documentation
+]).
+
+cmd_fmt(build, [opts(Opts), target_args]) :- common_opts(Opts).
+cmd_fmt(clean, [opts(Opts), target_args]) :- common_opts(Opts).
 cmd_fmt(distclean, [target_args]).
 cmd_fmt(configclean, [target_args]).
 
-cmd_fmt(install, [opts([
+install_opts([
   destdir=v % --destdir=Dir: prepend to each final installation dir
 	    % (do not confuse with 'prefix')
-]), target_args]).
-cmd_fmt(uninstall, [opts([destdir=v]), target_args]).
-cmd_fmt(install_docs, [target_args]).
-cmd_fmt(uninstall_docs, [target_args]).
+|Opts]) :- common_opts(Opts).
+
+cmd_fmt(install, [opts(Opts), target_args]) :- install_opts(Opts).
+cmd_fmt(uninstall, [opts(Opts), target_args]) :- install_opts(Opts).
 cmd_fmt(register, [target_args]).
 cmd_fmt(unregister, [target_args]).
 cmd_fmt(bench, [target_args]).

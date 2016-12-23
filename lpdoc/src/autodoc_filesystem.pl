@@ -317,7 +317,7 @@ absfile_for_subtarget_(Base, Backend, Subtarget, AbsFile) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(bundle/bundle_info), [bundle_version_patch/2]).
+:- use_module(library(bundle/bundle_info), [bundle_version/2]).
 
 % Note: I cannot obtain the version from version_maintenance at this
 %       point, since main_output_name needs to be calculated before
@@ -338,15 +338,20 @@ main_output_name(Backend, NV) :-
 	main_output_name_novers(OutputBase1),
 	% Include the version (if required)
 	( setting_value(doc_mainopts, versioned_output),
-	  get_parent_bundle(Bundle),
-	  V = ~bundle_version_patch(Bundle),
-	  atom_concat([OutputBase1, '-', V], NV0) ->
-	    % Use the bundle version for the output name
-	    NV = NV0
+	  get_parent_bundle(Bundle) ->
+	    % Use the bundle version (if available) for the output name
+	    NV = ~versioned_manual_base(Bundle, OutputBase1)
 	; % Do not use the version for the output name
 	  NV = OutputBase1
 	),
 	assertz_fact(computed_output_name(Backend, NV)).
+
+% TODO: duplicated
+versioned_manual_base(Bundle, Base) := R :-
+	( V = ~bundle_version(Bundle) ->
+	    R = ~atom_concat([Base, '-', V])
+	; R = Base
+	).
 
 :- export(main_output_name_novers/1).
 main_output_name_novers(OutputBase) :-

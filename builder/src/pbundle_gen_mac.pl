@@ -31,7 +31,7 @@ Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The CLIP Group.
 :- use_module(library(pathnames), [path_concat/3]).
 
 :- use_module(library(bundle/bundle_flags), [restore_all_bundle_flags/0]).
-:- use_module(library(bundle/bundle_info), [bundle_version_patch/2]).
+:- use_module(library(bundle/bundle_info), [bundle_version/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(ciaobld(bundle_hash), [
 	bundle_versioned_packname/2, bundle_commit_info/3]).
@@ -53,7 +53,7 @@ Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The CLIP Group.
 :- use_module(ciaobld(builder_cmds), [builder_cmd/2]).
 :- use_module(ciaobld(pbundle_gen_src)).
 
-:- use_module(ciaobld(messages_aux), [cmd_message/3, verbose_message/2]).
+:- use_module(ciaobld(messages_aux), [normal_message/2, verbose_message/2]).
 
 :- use_module(library(compiler/exemaker), [make_exec/2]).
 
@@ -139,16 +139,16 @@ gen_pbundle_hook(pkg, Bundle, _Options) :- !,
       with default arguments".
 
 gen_pbundle__pkg(Bundle) :-
-	cmd_message(Bundle, "creating Mac OS X package", []),
+	normal_message("creating Mac OS X package", []),
         WorkSpace =  ~bundle_path(Bundle, '.'),
-	PackDir = ~pbundle_output_dir,
+	PackDir = ~pbundle_output_dir(Bundle),
 	TmpDir = ~make_temp_dir,
 	DestDir = ~path_concat(TmpDir, 'root'),
 	mkpath(DestDir, ~perms), % TODO: owner?
 	install_to_destdir(DestDir),
 	generate_uninstaller(DestDir, UninstallerPath),
 	package_pkg(Bundle, DestDir, TmpDir, PackDir, WorkSpace, 'Ciao', % TODO: from Bundle
-	    ~bundle_version_patch(Bundle), PName),
+	    ~bundle_version(Bundle), PName),
 	generate_uninstaller_wrapper(TmpDir, UninstallerPath,
 	    UninstallWrapperPath),
 	package_dmg(Bundle, PackDir, [PName, UninstallWrapperPath]),
@@ -281,7 +281,7 @@ end try
 	close_output(Stream),
 	process_call(path(osacompile), ['-ai386', '-o', AppPath, TxtPath], []).
 
-% TODO: Use lpdoc/builder instead
+% TODO: Use lpdoc or builder instead
 % Enumerate info files under ~infodir_local (recursively), relative to BaseDir
 :- export(info_files/2).
 info_files(BaseDir, Str) :-
@@ -345,8 +345,8 @@ gen_pbundle_hook(macport, Bundle, _Options) :- !,
 	),
 	%
 	MD5Sum = ~md5sum(AbsTGZ),
-	wr_template(at(~pbundle_output_dir), ~path_concat(~builder_src_dir, 'mac'), 'Portfile', [
-            'Version' = ~bundle_version_patch(Bundle),
+	wr_template(at(~pbundle_output_dir(Bundle)), ~path_concat(~builder_src_dir, 'mac'), 'Portfile', [
+            'Version' = ~bundle_version(Bundle),
             'VersionedPackName' = ~atom_codes(TGZ),
             'HomeURL' = ~home_url_str, % TODO: from Bundle
             'MasterURL' = ~master_url_str(Bundle), % TODO: from Bundle
@@ -565,14 +565,14 @@ gen_pbundle_hook(app, Bundle, _Options) :- !,
 
 gen_pbundle__app(Bundle) :-
 	% Note: Mac OS X bundle IS NOT a Ciao bundle
-	cmd_message(Bundle, "creating Mac OS X bundle (as .app)", []),
+	normal_message("creating Mac OS X bundle (as .app)", []),
 	%
 	Domain = "org.ciao-lang.ciao", % TODO: from bundle
 	BundleDirCore = ~instciao_bundledir(core),
 	BinDir = ~instciao_bindir,
 	Eng = ~default_eng_def,
 	CiaoEngine = ~inst_eng_path(exec, Eng),
-	PackDir = ~pbundle_output_dir,
+	PackDir = ~pbundle_output_dir(Bundle),
 	TmpDir = ~make_temp_dir,
 	%
 	AppBundlePath = ~path_concat(TmpDir, 'Ciao.app'),
@@ -581,7 +581,7 @@ gen_pbundle__app(Bundle) :-
 	% TODO: (see environment_and_windows_bats for similar code)
 	set_emacs_type('MacOSBundle'), % TODO: strange; do it dynamically instead
  	% TODO: the emacs mode could be a bundle on its own in the future
-	builder_cmd(build_nodocs, 'core/emacs_mode'), % TODO: make sure that this is rebuild
+	builder_cmd(build_bin, 'ciao_emacs.emacs_mode'), % TODO: make sure that this is rebuild
 	unset_emacs_type,
 	%
 	wr_template(origin, ~path_concat(~builder_src_dir, 'mac'), 'Ciao.applescript', [

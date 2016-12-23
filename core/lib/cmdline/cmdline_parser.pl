@@ -82,6 +82,7 @@ parse_fmt([], _, _, _) --> !.
 %        name (atom): an option (--name)
 %        name=V: an option assignment (--name=value)
 %        (name,V): an option assignment (with space) (--name value)
+%        s(n): a short option (-n)
 %
 %      Values V can be one of:
 %        v: a value (any string as an atom)
@@ -107,9 +108,10 @@ parse_opts(OptsFmt, Opts) -->
 	).
 parse_opts(_OptsFmt, []) --> [].
 
-parse_opt(OptsFmt, Opt) -->
+parse_opt(OptsFmt, Opt) --> % long option syntax
 	[Arg0],
 	{ atom_concat('--', Name0, Arg0) },
+	!,
 	( { Name0 = '' } ->
 	    { Opt = end } % No more options (--)
 	; { parse_opt_assign_atm(Name0, Name, Value) } ->
@@ -128,6 +130,12 @@ parse_opt(OptsFmt, Opt) -->
 	    )
 	  )
 	).
+parse_opt(OptsFmt, Opt) --> % short option syntax
+	[Arg0],
+	{ atom_concat('-', Name, Arg0), atom_codes(Name, [_]) },
+	!,
+	{ member(s(Name), OptsFmt) }, % -N syntax
+	{ Opt = opt(Name) }.
 
 parse_val(v, Arg, Arg) :- !. % value
 parse_val(f, Arg, Value) :- !, % flag
@@ -171,10 +179,10 @@ parse_flag_atm(Param, Flag) :-
 	atom_codes(Param, ParamS),
 	parse_flag_codes(ParamS, Flag).
 
-parse_flag_codes(ParamS, Bundle:Name) :-
-	( list_concat([BundleS, ":", NameS], ParamS) ->
-	    atom_codes(Bundle, BundleS)
-	; root_bundle(Bundle), % default bundle % TODO: use default target instead?
+parse_flag_codes(ParamS, Qual:Name) :-
+	( list_concat([QualS, ":", NameS], ParamS) ->
+	    atom_codes(Qual, QualS)
+	; default_flag_qual(Qual),
 	  NameS = ParamS
 	),
 	map(NameS, norm_underscore, ParamS2),

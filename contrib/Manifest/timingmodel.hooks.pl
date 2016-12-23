@@ -3,6 +3,8 @@
 :- doc(section, "Timingmodel bundle").
 % Timingmodel (a simple WAM for time analysis)
 
+:- use_module(ciaobld(messages_aux), [normal_message/2]).
+
 % TODO: split in two bundles: miniprolog and timingmodel
 
 %% % TODO: Add as help for custom_run on this bundle
@@ -20,7 +22,7 @@
 
 :- use_module(library(system), [copy_file/2, copy_file/3, file_exists/1]).
 
-'$builder_hook'(timingmodel:prebuild_nodocs) :-
+'$builder_hook'(timingmodel:prebuild_bin) :-
 	% do_timingmodel % TODO: must be called explicitly using custom_run
 	% (needed even if miniprolog is not compiled)
 	copy_mp_auto.
@@ -34,13 +36,13 @@
 timingmodel_cmd := bench|estimate.
 
 do_timingmodel :-
-	normal_message("Compiling mini prolog engine", []),
+	normal_message("compiling miniprolog engine", []),
 	invoke_gmake_miniprolog(all),
 	copy_file(~bundle_path(contrib, 'library/timingmodel/miniprolog/bin/timingmodel_auto.pl'),
 	          ~bundle_path(contrib, 'library/timingmodel/timingmodel_pre.pl'),
 		  [overwrite]),
 	%
-	normal_message("Generating timing model for mini prolog", []),
+	normal_message("generating timing model for miniprolog", []),
 	( % (failure-driven loop)
 	  timingmodel_cmd(Cmd),
 	    invoke_gmake_timingmodel(Cmd),

@@ -1,7 +1,6 @@
 :- module(_, [], [assertions, fsyntax, hiord, dcg]).
 
 :- doc(title,  "Extended interface to Ciao compiler").
-:- doc(subtitle, "(compiler, doc generator, etc.)").
 
 :- doc(author, "Jos@'{e} F. Morales").
 :- doc(author, "Ciao Deveveloper Team").
@@ -10,10 +9,10 @@
    tools) that extends the functionality of the Ciao compiler:
 
    @begin{itemize}
-   @item Invoke the compiler and documentation generator as a external processes
+   @item Invoke the compiler as a external processes
    @item Batch compilation of collection of modules
    @item Emulator generation and compilation
-   @end{itemize}/1).
+   @end{itemize}).
 ").
 
 % (improvements)
@@ -36,7 +35,7 @@
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 %
 :- use_module(ciaobld(messages_aux),
-	[cmd_message/3, verbose_message/2]).
+	[normal_message/2, verbose_message/2]).
 :- use_module(library(messages), [show_message/3]).
 %
 :- use_module(ciaobld(builder_aux),
@@ -45,29 +44,18 @@
 :- use_module(ciaobld(builder_aux), [root_bundle_source_dir/1]).
 
 % ===========================================================================
-:- doc(section, "Interface to Compilers"). % including documentation generation
+:- doc(section, "Interface to Compilers").
 
 ciaoc := ~cmd_path(core, plexe, 'ciaoc').
 bootstrap_ciaoc := ~bundle_path(core, 'bootstrap/ciaoc.sta').
 
-:- use_module(library(process), [process_call/3]).
 :- use_module(ciaobld(config_common), [local_ciaolib/1]).
-:- use_module(ciaobld(config_common), [verbose_build/1]).
 :- use_module(ciaobld(config_common), [bld_cmd_path/4, cmd_path/4]).
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
 
 :- use_module(ciaobld(bundle_configure), [
     set_prolog_flags_from_bundle_flags/1
 ]).
-
-lpdoc_exec := ~cmd_path(lpdoc, plexe, 'lpdoc').
-
-% TODO: make lpdoc verbose message more descriptive? remove message
-%   here (e.g., show basename of directory containing SETTINGS)
-:- export(invoke_lpdoc/1).
-invoke_lpdoc(Args) :-
-	( verbose_build(yes) -> Args2 = ['-v'|Args] ; Args2 = Args ),
-	cpx_process_call(~lpdoc_exec, Args2, []).
 
 ciaosh_exec := ~cmd_path(core, plexe, 'ciaosh').
 
@@ -332,13 +320,13 @@ cmd_build(cmd_def(Bundle, In, Output, Props)) :-
 	; member(bootstrap_ciaoc, Props) ->
 	    % use bootstrap ciaoc
 	    % TODO: it should use 'build' configuration
-	    cmd_message(Bundle, "building '~w' command (using bootstrap compiler)", [Output]),
+	    normal_message("compiling ~w (command) [using bootstrap compiler]", [Output]),
 	    b_make_exec(Bundle, In, Output, [bootstrap_ciaoc|Opts])
 	; % member(final_ciaoc, Props) ->
 	  % use final_ciaoc (default)
 	  % TODO: it should use 'build' configuration
 	  % TODO: Add options for other ciaoc iterations
-	  cmd_message(Bundle, "building '~w' command", [Output]),
+	  normal_message("compiling ~w (command)", [Output]),
 	  b_make_exec(Bundle, In, Output, [final_ciaoc|Opts])
 	).
 
@@ -346,18 +334,17 @@ cmd_build(cmd_def(Bundle, In, Output, Props)) :-
 	    
 :- export(build_libs/2).
 build_libs(Bundle, BaseDir) :-
-	% Message
+	% Relative dir for messages
 	BundleDir = ~bundle_path(Bundle, '.'),
 	( BaseDir = BundleDir ->
-	    cmd_message(Bundle, "compiling libraries", [])
+	    RelDir = '.'
 	; ( path_get_relative(BundleDir, BaseDir, RelDir) -> true
 	  ; RelDir = BaseDir
-	  ),
-	  cmd_message(Bundle, "compiling '~w' libraries", [RelDir])
+	  )
 	),
 	% (CompActions: list of compiler actions (gpo, gaf))
 	build_mod_actions(CompActions),
-	compile_modules(compilable_module, BaseDir, CompActions).
+	compile_modules(compilable_module, BaseDir, RelDir, CompActions).
 
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
 build_mod_actions(Actions) :-
@@ -369,12 +356,12 @@ build_mod_actions(Actions) :-
 	Actions0 = [do_gpo].
 
 % TODO: is Filter needed now?
-compile_modules(Filter, BaseDir, CompActions) :-
+compile_modules(Filter, BaseDir, RelDir, CompActions) :-
 	findall(m(Dir, File, FileName),
 	  compilable_modules(Filter, BaseDir, Dir, File, FileName), ModulesU),
 	sort(ModulesU, Modules),
 	show_duplicates(Modules),
-	compile_module_list(Modules, BaseDir, CompActions).
+	compile_module_list(Modules, BaseDir, RelDir, CompActions).
 
 compilable_modules(Filter, BaseDir, Dir, File, FileName) :-
 	current_file_find(Filter, BaseDir, FileName),
@@ -405,13 +392,13 @@ sort_by_file_([m(Dir, File, FileName)|Modules],
 	    [m(File, Dir, FileName)|Modules2]) :-
 	sort_by_file_(Modules, Modules2).
 
-%:- export(compile_module_list/3).
+%:- export(compile_module_list/4).
 % TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
-compile_module_list(Modules, BaseDir, CompActions) :-
+compile_module_list(Modules, BaseDir, RelDir, CompActions) :-
 	tty(UsingTTY),
 	invoke_ciaosh_batch([
-	  use_module(ciaobld(ciaoc_batch_call), [compile_mods/4]),
-	  compile_mods(Modules, CompActions, BaseDir, UsingTTY)
+	  use_module(ciaobld(ciaoc_batch_call), [compile_mods/5]),
+	  compile_mods(Modules, CompActions, BaseDir, RelDir, UsingTTY)
 	]).
 
 tty(X) :-
@@ -434,7 +421,7 @@ runtests_dir(Bundle, Dir, Opts) :-
 	AbsDir = ~bundle_path(Bundle, Dir),
 	exists_and_compilable(AbsDir),
 	!,
-	cmd_message(Bundle, "running '~w' tests", [Dir]),
+	normal_message("running tests at ~w/", [Dir]),
 	invoke_ciaosh_batch([
           use_module(library(unittest), [run_tests_in_dir_rec/2]),
 	  run_tests_in_dir_rec(AbsDir, Opts)

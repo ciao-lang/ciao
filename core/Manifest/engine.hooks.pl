@@ -1,8 +1,10 @@
 % (included file)
 
-:- doc(section, "Engine and C Compilation Options").
+:- doc(section, "Engine").
 
-% ---------------------------------------------------------------------------
+% ===========================================================================
+% Engine and C compilation options
+
 % (next flags also needed by config-sysdep.sh)
 
 :- bundle_flag(custom_cc, [
@@ -192,3 +194,18 @@
     interactive([advanced])
 ]).
 
+% ===========================================================================
+% Build
+
+'$builder_hook'(engine:eng('engine/ciaoengine', [])).
+
+% NOTE: experimental (see options)
+% DO NOT BUILD BY DEFAULT!
+'$builder_hook'(static_engine:eng('engine/ciaoengine', [
+  % TODO: Uses bootstrap ciaoc (see eng_maker.pl) -- allow configuration here
+  add_stat_libs, % link statically against C system libraries
+  static_mods([library(random),
+               library(sockets),
+               library(sha1),
+	       library(concurrency)]) % link statically against foreign code
+])).

@@ -4,10 +4,8 @@
 
 :- use_module(ciaobld(ciaoc_aux), [clean_tree/1]).
 
-'$builder_hook'(profiler:item_def([
-  lib('library/profiler')
-])).
-'$builder_hook'(profiler:build_docs) :- !.
-'$builder_hook'(profiler:clean_norec) :- !,
+'$builder_hook'(profiler:lib('library/profiler')).
+'$builder_hook'(profiler:clean_bin) :- !,
+	% TODO: Remove hook if lib/2 is treated by clean_bin
 	clean_tree(~bundle_path(contrib, 'library/profiler')).
 

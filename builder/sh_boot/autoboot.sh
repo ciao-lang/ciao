@@ -12,6 +12,8 @@
 # Required input variables:
 #   $ciaoroot: environment variable pointing to the root of Ciao sources
 #
+#   $target_name: target name for cmd_message
+#
 #   $eng_name: engine name
 #   $eng_cfg: engine configuration name (e.g., platform+debug/release)
 #   $boot_ciaoc: location of static ciaoc.sta for bootstrap
@@ -28,8 +30,14 @@
 #   autoboot_exec
 # ---------------------------------------------------------------------------
 
-autoboot_message() {
-    echo "=> boot: $*" 1>&2
+boot_cmd_message() {
+    echo "=> $target_name: $*" 1>&2
+}
+boot_dmc_message() {
+    true
+}
+boot_normal_message() {
+    echo "   $*" 1>&2
 }
 
 # ---------------------------------------------------------------------------
@@ -224,13 +232,14 @@ autoboot_build() { # builddir mainmod
     local builddir="$1"
     local mainexec=`get_mainexec "$1" "$2"`
     local mainname=`basename "$2"`
-    autoboot_message "building `basename "$boot_ciaoc"` [native code for $boot__OS$boot__ARCH]"
+    boot_cmd_message "building [boot]"
+#    boot_normal_message "compiling native code for `basename "$boot_ciaoc"` $boot__OS$boot__ARCH (engine)"
+    boot_normal_message "compiling $eng_name.$boot__OS$boot__ARCH (engine for `basename $boot_ciaoc`)"
     if booteng_cdir=`dirname "$boot_ciaoc"` builddir_do_engine "$builddir" build; then
 	true
     else
 	return 1
     fi
-    autoboot_message "built `basename "$boot_ciaoc"`"
     # Backup exec_header, create a dummy one
     # TODO: an option in ciaoc to skip exec_header instead
     local header="$ciaoroot/core/lib/compiler/header"
@@ -239,7 +248,7 @@ autoboot_build() { # builddir mainmod
     fi
     touch "$header"
     #
-    autoboot_message "building $mainname [using `basename "$boot_ciaoc"`]"
+    boot_normal_message "compiling $mainname (command) [using `basename "$boot_ciaoc"`]"
     #
     # Build a static executable using the bootstrap 'ciaoc'.
     # It must be static to avoid bootstrapping problems (the compiler
@@ -260,8 +269,9 @@ autoboot_build() { # builddir mainmod
     #   executable (we share the engine). Sometimes we may need a
     #   different engine.
     #
-    autoboot_message "reusing native code from `basename "$boot_ciaoc"`"
-    autoboot_message "built $mainname"
+    boot_normal_message "reusing $eng_name.$boot__OS$boot__ARCH (engine for $mainname)"
+    #
+    boot_dmc_message "built [boot]"
 }
 
 # Do autobuild and execute the compiled 'mainmod'

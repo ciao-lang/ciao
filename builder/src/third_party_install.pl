@@ -437,8 +437,10 @@ get_build_system(Lib, BuildSystem) :-
 rec_delete_file_nofail(FILE) :-
 	process_call(path(rm), ['-Rf', FILE], [status(0)]).
 
+% TODO: merge with normal_message
 message_status(Lib, Msg, Status) :-
-	message(['**',  ' ', Lib, ' ', 'auto', ' ', 'installation', ':', ' ', $$(Msg), ' ', [Status], ' ', '**']).
+	% message(['**',  ' ', Lib, ' ', 'auto', ' ', 'installation', ':', ' ', $$(Msg), ' ', [Status], ' ', '**']).
+	message(['   ', Lib, ' auto-installation', ':', ' ', $$(Msg), ' (', Status, ')']).
 	
 message_start(Lib, Msg) :- message_status(Lib, Msg, start).
 message_start(Lib, Msg) :- message_status(Lib, Msg, fail), fail.

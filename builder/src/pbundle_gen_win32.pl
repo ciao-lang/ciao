@@ -23,24 +23,25 @@
 :- use_module(library(system), [winpath/3, winpath/2, working_directory/2]).
 :- use_module(library(source_tree), [current_file_find/3]).
 :- use_module(library(pathnames), [path_basename/2, path_concat/3]).
+:- use_module(library(pathnames), [path_get_relative/3]).
+:- use_module(library(version_strings), [version_split_patch/3]).
 
 :- use_module(ciaobld(eng_defs), [bld_eng_path/3]).
 :- use_module(ciaobld(config_common),
 	[default_eng_def/1,
 	 cmdname_ver/5]).
 :- use_module(engine(internals), ['$bundle_prop'/2]).
-:- use_module(library(bundle/bundle_info), [
-	enum_sub_bundles/2,
-	bundle_version/2,
-	bundle_version_patch/2]).
+:- use_module(library(bundle/bundle_info), [bundle_version/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 :- use_module(ciaobld(bundle_hash), [
 	bundle_versioned_packname/2, bundle_commit_info/3]).
 :- use_module(ciaobld(pbundle_generator)).
 :- use_module(ciaobld(builder_aux), [wr_template/4]).
 
-:- use_module(ciaobld(builder_meta), [ensure_load_bundle_metasrc/2]).
-:- use_module(ciaobld(builder_cmds), [bundle_manual_base/2]).
+:- use_module(ciaobld(manifest_compiler), [
+    ensure_load_manifest/1,
+    bundle_manual_base/2
+]).
 
 % (hooks for gen_pbundle)
 :- include(ciaobld(pbundle_gen_hookdefs)).
@@ -63,21 +64,19 @@ gen_pbundle_hook(win32, Bundle, _Options) :- !,
 	FileListName = 'file_list.iss',
 	create_iss_file(Bundle, FileIss, FileListName),
 	compute_file_list_iss(FileListName),
+	create_pbundle_output_dir(Bundle),
 	simple_message("Compiling ISS scripts... "),
-	invoke_iscc(FileIss),
-	simple_message("Creation of Windows installer finished").
-
-invoke_iscc(FileIss) :-
 	process_call(~iscc, [FileIss], []),
-	% TODO: should it appear before?
-	create_pbundle_output_dir.
+	simple_message("Creation of Windows installer finished").
 
 % TODO: too many definitions here are hardwired
 create_iss_file(Bundle, FileIss, FileListName) :-
+	Version = ~bundle_version(Bundle),
+	version_split_patch(Version, VersionNopatch, _),
 	OutputBaseFileName = ~atom_codes(~bundle_versioned_packname(Bundle)),
 	% TODO: see PrettyCommitDesc in pbundle_download.pl
 	CommitId = ~bundle_commit_info(Bundle, id),
-	AppVerName = ~atom_codes(~atom_concat(['Ciao-', ~bundle_version_patch(Bundle), ' (', CommitId, ')'])),
+	AppVerName = ~atom_codes(~atom_concat(['Ciao-', Version, ' (', CommitId, ')'])),
 	Eng = ~default_eng_def,
 	%
 	working_directory(Cwd, Cwd), % TODO: sure?
@@ -88,10 +87,10 @@ create_iss_file(Bundle, FileIss, FileListName) :-
 	    'MyAppPublisher' = "The CLIP Laboratory", % TODO: extract from bundle
 	    'LicenseFile' = ~license_file,
  	    'MyAppExeName' = ~cmdname_ver(yes, core, plexe, 'ciaosh'), % TODO: extract from bundle
-	    'CiaoVersion' = ~bundle_version(core), % TODO: extract from bundle
-	    'SourceDir' = ~source_dir,
+	    'CiaoVersion' = VersionNopatch, % TODO: extract from bundle
+	    'SourceDir' = ~atom_codes(~winpath(relative, ~bundle_path(ciao, '.'))),
 	    'MyRelBuildDir' = ~relciaodir(~bundle_path(Bundle, builddir, '.')),
-	    'OutputDir' = ~output_dir,
+	    'OutputDir' = ~atom_codes(~winpath(relative, ~pbundle_output_dir(Bundle))),
 	    'ManualIcons' = ~get_manual_icons(Bundle),
 	    'DefaultDirName' = ~default_dir_name(Bundle),
 	    'CiaoEngineExec' = ~winpath(relative, ~relciaodir(~bld_eng_path(exec, Eng))),
@@ -106,15 +105,15 @@ get_manual_icons(Bundle, S) :-
 	findall(Str, get_manual_icons_(Bundle, Str), L),
 	flatten(L, S).
 
-% TODO: Check that this is correct when multiple manuals per bundle are generated ("Name" is shared)
+% TODO: Do not use PackName as name of the manual!
 get_manual_icons_(ParentBundle, Str) :-
-	enum_sub_bundles(ParentBundle, Bundle),
-	ensure_load_bundle_metasrc(Bundle, bundle_hooks),
+	enum_pbundle_bundle(ParentBundle, Bundle),
+	ensure_load_manifest(Bundle),
+	ManualBase = ~bundle_manual_base(Bundle), % (nondet)
 	%
 	DocFormat = pdf,
 	RelBuildDir = ~relciaodir(~bundle_path(Bundle, builddir, '.')),
 	'$bundle_prop'(Bundle, packname(PackName)),
-	ManualBase = ~bundle_manual_base(Bundle), % (nondet)
 	FileMain = ~atom_concat([ManualBase, '.', DocFormat]),
 	Str = ["Name: {group}\\" || (~atom_codes(PackName)), " Manual in PDF; ",
 	       "Filename: {app}\\" || (~atom_codes(RelBuildDir)), "\\doc\\" || (~atom_codes(FileMain)), "; ",
@@ -194,13 +193,14 @@ extra_system_file := ~relciaodir(~bld_eng_path(exec, Eng)) :-
 extra_system_file := ~relciaodir(~bld_eng_path(lib_so, Eng)) :-
 	Eng = ~default_eng_def.
 
+relciaodir(S) := Dir :-
+	R = ~bundle_path(ciao, '.'),
+	path_get_relative(R, S, Dir).
+
 display_file_entry(Source, DestDir) :-
 	display_list(['Source: ', Source, '; DestDir:{app}\\', DestDir, '\n']).
 
 license_file := ~atom_codes(~winpath(relative, ~bundle_path(ciao, 'LGPL'))).
-
-source_dir := ~atom_codes(~winpath(relative, ~bundle_path(ciao, '.'))).
-output_dir := ~atom_codes(~winpath(relative, ~pbundle_output_dir)).
 
 fullwinname(File, WinName) :-
 	winpath(relative, File, WinName).

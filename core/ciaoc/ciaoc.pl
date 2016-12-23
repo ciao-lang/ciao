@@ -473,7 +473,7 @@ main(Args) :-
 % NOTE: flag_based_option/4 is expanded as flag_option/3.
 % ---------------------------------------------------------------------------
 
-% TODO: Flags domain duplicated here (see flag problem in */Manifest/*.config.pl)
+% TODO: Flags domain duplicated here (see flag problem in */Manifest/*.hooks.pl)
 % TODO: Some flags here are global options that cannot be safely selected on a module bases
 
 :- flag_based_option(verbose_compilation, on, '-v',

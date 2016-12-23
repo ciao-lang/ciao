@@ -21,7 +21,9 @@
 
 :- use_module(engine(internals), ['$bundle_prop'/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
-:- use_module(library(bundle/bundle_info), [bundle_version/2, bundle_version_patch/2]).
+:- use_module(library(bundle/bundle_info), [bundle_version/2]).
+
+:- use_module(ciaobld(builder_aux), [ensure_builddir/2]).
 
 % ===========================================================================
 % Extract and save commit information about the bundle source
@@ -30,6 +32,7 @@
 :- pred gen_bundle_commit_info/1 # "Extract and save the commit information metadata".
 % TODO: Only work for the 'whole' bundle
 gen_bundle_commit_info(Bundle) :-
+	ensure_builddir(Bundle, '.'),
 	save_bundle_commit_info(Bundle, branch),
 	save_bundle_commit_info(Bundle, id),
 	save_bundle_commit_info(Bundle, date),
@@ -142,15 +145,16 @@ svn_commit_info(date, Bundle, Date) :-
 	!,
 	atom_codes(Date, Date0).
 svn_commit_info(desc, Bundle, Desc) :-
-	VersionPatch = ~bundle_version_patch(Bundle),
+	Version = ~bundle_version(Bundle),
 	( svn_commit_info(id, Bundle, Rev) ->
-	    Desc = ~atom_concat([VersionPatch, '-', Rev])
-	; Desc = VersionPatch
+	    Desc = ~atom_concat([Version, '-', Rev])
+	; Desc = Version
 	).
 
 % ---------------------------------------------------------------------------
 % Extract commit information (Git)
 
+:- use_module(library(version_strings), [version_split_patch/3]).
 :- use_module(library(vcs/vcs_git)).
 
 git_commit_info(branch, Bundle, Branch) :-
@@ -193,22 +197,22 @@ git_commit_info(desc, Bundle, Desc) :-
         % and patch in tag and branch names, and removes redundant
         % information)
 	Version = ~bundle_version(Bundle),
-	VersionPatch = ~bundle_version_patch(Bundle),
-	( % Version and patch in COMMIT_DESC, let us assume that is a
+	version_split_patch(Version, VersionNopatch, _),
+	( % Version in COMMIT_DESC, let us assume that is a
 	  % particular code release (a commit with a tag, not a branch).
-	  ( atom_concat(['v', VersionPatch, _], Desc2)
-	  ; atom_concat([VersionPatch, _], Desc2)
+	  ( atom_concat(['v', Version, _], Desc2)
+	  ; atom_concat([Version, _], Desc2)
 	  ) ->
-	    Desc = VersionPatch
-	; % Version but not patch in COMMIT_DESC, just use it (it is a
+	    Desc = Version
+	; % VersionNopatch in COMMIT_DESC, just use it (it is a
 	  % develoment release).
-	  atom_concat(['v', Version, _], Desc2) ->
+	  atom_concat(['v', VersionNopatch, _], Desc2) ->
 	    atom_concat('v', Desc, Desc2) % (remove 'v')
-	; atom_concat([Version, _], Desc2) ->
+	; atom_concat([VersionNopatch, _], Desc2) ->
 	    Desc = Desc2
 	; % No version info in commit desc, just append it (also a
 	  % development release).
-	  Desc = ~atom_concat([Version, '-', Desc2])
+	  Desc = ~atom_concat([VersionNopatch, '-', Desc2])
 	).
 
 % Execute a git_output on the source directory of the specified bundle
