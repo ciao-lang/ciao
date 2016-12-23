@@ -36,7 +36,7 @@ EOF
 
 if [ "$0" = "sh" ]; then
     # Stand-alone call. E.g.,
-    #   curl -sSf https://raw.githubusercontent.com/ciao-lang/ciao/master/ciao-boot.sh | sh -s -- local-install
+    #   curl https://raw.githubusercontent.com/ciao-lang/ciao/master/ciao-boot.sh -sSf | sh -s -- local-install
     fetch
     cd "$_base" # (needed for installation)
 fi
