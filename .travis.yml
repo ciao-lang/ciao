@@ -20,14 +20,16 @@ before_install:
   - echo "using default emacs" # if [ $TRAVIS_OS_NAME == osx ]; then brew tap railwaycat/emacsmacport; brew install emacs-mac; fi
   - if [ $TRAVIS_OS_NAME == osx ]; then brew tap railwaycat/emacsmacport; brew install imagemagick; fi
   - EXTRAOPTS=""; if [ $TRAVIS_OS_NAME == osx ]; then EXTRAOPTS="--with-docs=no"; fi
-  - CIAODIR=$TRAVIS_BUILD_DIR
+  - CIAOROOT=$TRAVIS_BUILD_DIR
 
 before_script:
-  - cd $CIAODIR; ./ciao-boot.sh configure --instype=local $ARCHOPTS --core:custom_cc=$CC $EXTRAOPTS
+  - cd $CIAOROOT; ./ciao-boot.sh boot-build $ARCHOPTS --core:custom_cc=$CC
+  - cd $CIAOROOT; CIAOPATH=$CIAOROOT ./ciao-boot.sh fetch github.com/ciao-lang/ciao_emacs
+  - cd $CIAOROOT; ./ciao-boot.sh configure --instype=local $ARCHOPTS --core:custom_cc=$CC $EXTRAOPTS
 
 script:
-  - cd $CIAODIR; ./ciao-boot.sh build
-  - cd $CIAODIR; ./ciao-boot.sh install
+  - cd $CIAOROOT; ./ciao-boot.sh build
+  - cd $CIAOROOT; ./ciao-boot.sh install
 
 after_success:
   - if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then echo "missing deploy"; fi
