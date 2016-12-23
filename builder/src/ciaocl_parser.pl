@@ -131,10 +131,10 @@ cmd_fmt(test, [target_args]).
 cmd_fmt(list, []). % (list bundles)
 cmd_fmt(info, [target_args]). % (info on bundle)
 
-% TODO: add a separate 'fetch' command? (only downloads)
-cmd_fmt(get, [target_args, config_flags]). % (download and install bundles)
-
+cmd_fmt(fetch, [target_args]). % (download bundles)
 cmd_fmt(rm, [target_args]). % (remove downloaded bundles)
+
+cmd_fmt(get, [target_args, config_flags]). % (download and install bundles)
 
 cmd_fmt(gen_bundle_commit_info, [opts([
   git_repo_dir=v % --git-repo-dir=Dir: location of the Git repository

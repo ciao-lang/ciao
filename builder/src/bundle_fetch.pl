@@ -195,12 +195,10 @@ fetch_deps(Bundle) :-
 missing_dep(Bundle, Dep) :-
 	manifest_call(Bundle, dep(Dep, Props)),
 	bundle_status(Dep, Status),
-	display(bundle_status(Dep, Status)), nl,
 	Status = missing,
 	% TODO: Not missing and not scanned? classify as missing?
 	% \+ '$bundle_id'(Dep),
 	% Guess an origin
-	display(bundle_guess_origin(Bundle, Dep, Props)), nl,
 	guess_bundle_origin(Bundle, Dep, Props).
 
 % Guess origin of Dep, used from Bundle
