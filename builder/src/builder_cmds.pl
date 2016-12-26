@@ -485,7 +485,9 @@ defs_do([X|Xs], Grade, Bundle, Cmd) :-
 'cmd.no_manifest_load'(get(_)).
 'cmd.do.decl'(get(_)).
 'cmd.do'(get(Flags), Target) :- !,
-	bundle_fetch(Target, Fetched), % builder_cmd(fetch, Target),
+	bundle_fetch(Target, Fetched0), % builder_cmd(fetch, Target),
+	% TODO: reorder looking at dependencies! (indeed, this should be done automatically in cmd_on_set)
+	Fetched0 = ~reverse(Fetched),
 	% TODO: extend Fetched with more bundles that may be specified in flags?
 	BundleSet = set(Fetched),
 	bundleset_configure(BundleSet, Flags),

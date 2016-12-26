@@ -158,6 +158,8 @@ bundle_fetch(Bundle, Fetched) :-
 	findall(B, retract_fact(fetched(B)), Fetched).
 
 bundle_fetch0(Bundle) :-
+	fetched(Bundle), !. % just fetched
+bundle_fetch0(Bundle) :-
 	bundle_status(Bundle, Status),
 	( Status = nontop ->
 	    normal_message("fetching ~w stopped (exists in a non-top workspace)", [Bundle])
