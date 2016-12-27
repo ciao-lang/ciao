@@ -487,7 +487,16 @@ defs_do([X|Xs], Grade, Bundle, Cmd) :-
 'cmd.do'(get(Flags), Target) :- !,
 	bundle_fetch(Target, Fetched0), % builder_cmd(fetch, Target),
 	% TODO: reorder looking at dependencies! (indeed, this should be done automatically in cmd_on_set)
-	Fetched0 = ~reverse(Fetched),
+	Fetched1 = ~reverse(Fetched0),
+	%
+	( \+ bundle_has_config(~root_bundle),
+	  sys_bundle(Target) ->
+	    % Special case for './ciao-boot.sh get ...' when the system
+	    % has not been configured/built before
+	    % TODO: reimplement adding unconfigured from deps instead?
+	    Fetched = [~root_bundle]
+	; Fetched = Fetched1
+	),
 	% TODO: extend Fetched with more bundles that may be specified in flags?
 	BundleSet = set(Fetched),
 	bundleset_configure(BundleSet, Flags),
@@ -557,7 +566,7 @@ ask_promote_bootstrap(Eng) :-
 'cmd.do'(configure(Flags), Target) :- !,
 	check_no_part(Target),
 	% Invoke configuration (pre: bundles have been scanned)
-	% TODO: obtain dependences using '-r' or '-x' (same or any workspace)?
+	% TODO: configure dependencies too? (same workspace? missing config?)
 	( root_bundle(Target) ->
 	    BundleSet = set(~findall(B, sys_bundle(B)))
 	; BundleSet = set([Target])
