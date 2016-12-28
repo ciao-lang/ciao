@@ -278,6 +278,8 @@ check_no_part(Target) :-
 
 :- use_module(engine(internals), ['$bundle_srcdir'/2]). % TODO: Do not use bundle_srcdir here? add manifest_srcdir for build-time?
 :- use_module(library(pathnames), [path_get_relative/3]).
+:- use_module(ciaobld(builder_flags), [get_builder_flag/2]).
+:- use_module(ciaobld(builder_flags), [set_builder_flag/2]).
 
 % ParentBundle depends on Bundle (limited by the value of the
 % 'recursive' builder flag)
@@ -495,7 +497,9 @@ defs_do([X|Xs], Grade, Bundle, Cmd) :-
 	    % has not been configured/built before
 	    % TODO: reimplement adding unconfigured from deps instead?
 	    Fetched = [~root_bundle],
-	    BundleSet = set(~findall(B, sys_bundle(B)))
+	    BundleSet = set(~findall(B, sys_bundle(B))),
+	    % For root_bundle, enable recursive by default
+	    set_builder_flag(recursive, all_workspaces) % TODO: ugly hack
 	; Fetched = Fetched1,
 	  BundleSet = set(Fetched)
 	),
@@ -848,8 +852,6 @@ do_clean_root(Bundle) :-
 
 % (hooks for gen_pbundle)
 :- include(ciaobld(pbundle_gen_hookdefs)).
-
-:- use_module(ciaobld(builder_flags), [get_builder_flag/2]).
 
 'cmd.do.decl'(gen_pbundle).
 'cmd.do'(gen_pbundle, Target) :- !,
