@@ -27,11 +27,12 @@ sh_src_dir="$ciaoroot/builder/sh_src"
 # ---------------------------------------------------------------------------
 # Some paths for source code locations and build directories
 
+# Build configuration name for bootstrap
+boot_eng_cfg() { printf "BOOT"; }
+
 # Target name (for autoboot messages)
 target_name="builder"
 
-# Default CIAOLIB
-default_ciaolib="$ciaoroot/core"
 # The pre-compiled bootstrap ciaoc
 boot_ciaoc="$ciaoroot/core/bootstrap/ciaoc.sta"
 # Default engine
@@ -42,8 +43,16 @@ boot_builddir="$ciaoroot/build-boot"
 # The ciao_builder command-line module
 builder_mod="$ciaoroot/builder/cmds/ciao_builder"
 
-# Build configuration name for bootstrap
-boot_eng_cfg() { printf "BOOT"; }
+# Select paths for ciao_builder compilation and execution
+# ('crossp' added from "$sh_boot_dir/autoboot.sh")
+#
+cross_ciaoroot=`crossp "$ciaoroot"`
+# Default alias paths (location of library(_) and ciaobld(_))
+# (bundles are not scanned yet)
+default_ciaolib="$ciaoroot/core" # (crossp not needed)
+default_ciaoaliaspath="ciaobld=$cross_ciaoroot/builder/src"
+# Default CIAOPATH (restrict bundle scan and get to <ciaoroot>)
+default_ciaopath="$cross_ciaoroot"
 
 # ---------------------------------------------------------------------------
 # Error message when there is no bootstrap (needed for autoboot.sh)
@@ -257,13 +266,6 @@ case "$cmd" in
 	cmd="$cmd"_boot
 	;;
 esac
-
-# ('crossp' added from "$sh_boot_dir/autoboot.sh")
-
-# Select $ciaoaliaspath for ciao_builder compilation and execution
-# (needed for bootstrapping since bundles are not scanned)
-cross_ciaoroot=`crossp "$ciaoroot"`
-default_ciaoaliaspath="ciaobld=$cross_ciaoroot/builder/src"
 
 # If (re)build is necessary, pre-fetch configuration options for
 # bootstrap compilation from the command line arguments.
