@@ -494,11 +494,12 @@ defs_do([X|Xs], Grade, Bundle, Cmd) :-
 	    % Special case for './ciao-boot.sh get ...' when the system
 	    % has not been configured/built before
 	    % TODO: reimplement adding unconfigured from deps instead?
-	    Fetched = [~root_bundle]
-	; Fetched = Fetched1
+	    Fetched = [~root_bundle],
+	    BundleSet = set(~findall(B, sys_bundle(B)))
+	; Fetched = Fetched1,
+	  BundleSet = set(Fetched)
 	),
-	% TODO: extend Fetched with more bundles that may be specified in flags?
-	BundleSet = set(Fetched),
+	% TODO: extend BundleSet with more bundles that may be specified in flags?
 	bundleset_configure(BundleSet, Flags),
 	builder_cmd_on_set(build, Fetched),
 	builder_cmd_on_set(install, Fetched).
