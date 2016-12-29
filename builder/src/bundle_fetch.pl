@@ -54,15 +54,16 @@
 % ---------------------------------------------------------------------------
 :- doc(section, "Bundle origins for fetching").
 
+% TODO: Multiple origins? Error or try alternatives?
+% TODO: Save origin in FETCHED_BUNDLE mark? (or somewhere else)
+% TODO: Customize default origin?
+
 :- data bundle_origin/2.
 
 :- export(add_bundle_origin/2).
 :- pred add_bundle_origin(Bundle, Origin) 
    # "Select the origin for the given bundle name".
 
-% TODO: Error if origin is different
-% TODO: Save origin somewhere (e.g., in FETCHED_BUNDLE mark)
-% TODO: Check that origin coincides w.r.t. saved?
 add_bundle_origin(Bundle, Origin) :-
 	( current_fact(bundle_origin(Bundle, _)) -> true
 	; assertz_fact(bundle_origin(Bundle, Origin))
@@ -70,13 +71,24 @@ add_bundle_origin(Bundle, Origin) :-
 
 :- export(get_bundle_origin/2).
 :- pred get_bundle_origin(Bundle, Origin) 
-   # "Obtain the origin for a bundle (for fetching)".
+   # "Obtain the origin for a bundle (for fetching). Use the
+      default origin if unknown (@pred{default_origin/2}).".
 
 get_bundle_origin(Bundle, Origin) :-
 	( current_fact(bundle_origin(Bundle, Origin0)) ->
 	    Origin = Origin0
-	; throw(error_msg("Unknown origin for bundle '~w'", [Bundle]))
+	; default_origin(Bundle, Origin)
+	  % throw(error_msg("Unknown origin for bundle '~w'", [Bundle]))
 	).
+
+:- doc(doinclude, default_origin/2).
+:- pred default_origin(Bundle, Origin)
+   # "Default origin when none is specified:
+     @includedef{default_origin/2}".
+
+default_origin(Bundle, Origin) :-
+	path_concat('github.com/ciao-lang', Bundle, Path),
+	Origin = github(Path, master).
 
 :- export(bundle_fetch_cleanup/0).
 :- pred bundle_fetch_cleanup # "Cleanup the bundle fetch state".
