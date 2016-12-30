@@ -3,27 +3,50 @@
 :- doc(section, "PiLLoW bundle").
 
 % ---------------------------------------------------------------------------
-% TODO: Depends on LPdoc options!
+% TODO: Copied from LPdoc options!
+
+:- use_module(library(pathnames), [path_concat/3]).
+:- use_module(library(system), [get_pwnam/1]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/4]).
+
+% TODO: default doc installation dir for 'local' inttype; it should not be used!
+local_inst_doc_dir := ~bundle_path(core, builddir, 'doc').
 
 :- bundle_flag(pillow_base_htmldir, [
     comment("Base for PiLLoW HTML assets"),
     details(
       % .....................................................................
       "Base directory for PiLLoW HTML assets (by default same as for lpdoc)."),
-    rule_default(DefValue, flag(lpdoc:htmldir(DefValue))),
+    rule_set_value(Value, (
+      flag(ciao:instype(InsType)),
+      InsType == 'local', local_inst_doc_dir(Value))),
+    rule_default(DefValue, (
+      flag(ciao:registration_type(SysregType)),
+      get_htmldir(SysregType, DefValue))),
     %
     interactive
 ]).
+% TODO: trailing /?
+get_htmldir(all) := '/var/www/html/ciao'.
+% get_htmldir(user) := ~atom_concat(~path_concat(~get_home, 'public_html/Ciao'), '/').
 
 :- bundle_flag(pillow_base_htmlurl, [
     comment("Base URL for PiLLoW HTML assets"),
     details(
       % .....................................................................
-      "Base URL for PiLLoW HTML assets (by default same as for lpdoc)."),
-    rule_default(DefValue, flag(lpdoc:htmlurl(DefValue))),
+      "Base URL for PiLLoW HTML assets"),
+    rule_set_value(Value, (
+      flag(ciao:instype(InsType)),
+      InsType == 'local', local_inst_doc_dir(Value))),
+    rule_default(DefValue, (
+      flag(ciao:registration_type(SysregType)),
+      get_htmlurl(SysregType, DefValue))),
     %
     interactive
 ]).
+% TODO: trailing /?
+get_htmlurl(all) := '/ciao/'.
+get_htmlurl(user) := ~path_concat(~atom_concat('/~', ~get_pwnam), 'Ciao/').
 
 % ---------------------------------------------------------------------------
 
