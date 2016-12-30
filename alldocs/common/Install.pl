@@ -9,6 +9,6 @@
 :- doc(author,"Daniel Cabeza").
 :- doc(author,"Manuel Hermenegildo").
 
-:- doc(module,"@include{INSTALLATION_CIAO.lpdoc}"). 
+:- doc(module,"@include{InstallCiao.lpdoc}"). 
 
 

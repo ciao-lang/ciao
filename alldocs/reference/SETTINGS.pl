@@ -6,6 +6,7 @@
 
 output_name := 'ciao'.
 
+filepath := at_bundle(core, 'doc/common'). % CiaoDesc, InstallCiao, InstallCiaoWin32, InstallTestUnix, InstallTestWin32bin, UserSetup, EmacsDownload, EmacsTesting
 filepath := at_bundle(core, 'shell').
 filepath := at_bundle(core, 'ciaoc').
 filepath := at_bundle(core, 'engine').

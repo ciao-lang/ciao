@@ -8,6 +8,6 @@
 :- doc(author,"Manuel Carro").
 :- doc(author,"Manuel Hermenegildo").
 
-:- doc(module,"@include{INSTALLATION_CIAO_Win32.lpdoc}"). 
+:- doc(module,"@include{InstallCiaoWin32.lpdoc}"). 
 
 

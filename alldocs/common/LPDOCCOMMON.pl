@@ -2,7 +2,6 @@
 % Common paths and options
 
 ciaofilepath_common := at_bundle(alldocs, 'common').
-ciaofilepath_common := at_bundle(alldocs, 'readmes').
 ciaofilepath_common := at_bundle(alldocs, 'bibtex').
 
 ciao_bibfile := 'clip.bib'.

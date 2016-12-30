@@ -20,3 +20,7 @@ alias_paths([
     prf_ticks = 'lib/resdefs/predefprf/prf_ticks',
     prf_costcenter = 'lib/resdefs/predefprf/prf_costcenter'
 ]).
+readme('INSTALLATION', [main='doc/common/INSTALLATION_CIAO.lpdoc']).
+readme('INSTALLATION_Win32', [main='doc/common/INSTALLATION_CIAO_Win32.lpdoc']).
+readme('README', [main='doc/common/README_CIAO.lpdoc']).
+readme('CHANGELOG', [main='doc/common/CHANGELOG_CIAO.pl']).
