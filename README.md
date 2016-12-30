@@ -9,9 +9,9 @@ documentation, build system, and documentation generator.
 
 Please find a system description and installation instructions at:
 
-  - [README](alldocs/README)
-  - [INSTALLATION](alldocs/INSTALLATION)
-  - [INSTALLATION_Win32](alldocs/INSTALLATION_Win32)
+  - [README](core/README)
+  - [INSTALLATION](core/INSTALLATION)
+  - [INSTALLATION_Win32](core/INSTALLATION_Win32)
 
 
 ---
