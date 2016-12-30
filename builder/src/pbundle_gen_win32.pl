@@ -149,7 +149,7 @@ current_file(Source, DestDir) :-
 % exclude_win_subdir('./core/engine').
 % exclude_win_subdir('./lpdoc/doc').
 % exclude_win_subdir('./ciaopp/doc').
-% exclude_win_subdir('./doc').
+% exclude_win_subdir('./alldocs').
 % exclude_win_subdir('./core_OC').
 % exclude_win_subdir('./core_OCjs').
 

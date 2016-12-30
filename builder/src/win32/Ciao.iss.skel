@@ -112,7 +112,7 @@ Name: {app}\bndls\ciao_emacs\elisp\word-help.elc; Type: files
 Name: {app}\bndls\ciao_emacs\elisp\ciao-bindings.el; Type: files
 Name: {app}\bndls\ciao_emacs\elisp\ciao-bindings.elc; Type: files
 Name: {app}\ForEmacs.txt; Type: files
-Name: {app}\doc\dir; Type: files
+Name: {app}\alldocs\dir; Type: files
 Name: {app}\core\lib\compiler\header; Type: files
 Name: {app}\environment_ciao.log; Type: files
 Name: {app}\bndls\ciao_emacs\elisp\emacs_mode.log; Type: files

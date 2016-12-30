@@ -11,7 +11,7 @@
 :- doc(bug, "Definitions that are overriden by the emacs mode must fit
    in one line. Do not use emacs but LPdoc to generate this file").
 
-filepath := '/home/clip/Systems/lpdoc/doc'|'/home/clip/Systems/ciao/doc/common'.
+filepath := '/path/to/doc/sources'|'/other/path/to/doc/sources'.
 
 output_name := 'manual_name'.
 
@@ -21,13 +21,13 @@ commonopts := no_patches. % no_bugs|no_patches
 doc_mainopts := ~commonopts.
 doc_compopts := ~commonopts.
 
-bibfile := '/home/clip/bibtex/clip/clip.bib'.
-bibfile := '/home/clip/bibtex/clip/others.bib'.
+bibfile := '/path/to/somebib.bib'.
+bibfile := '/path/to/otherbib.bib'.
 
-htmldir := '/home/clip/public_html/Local/lpdoc_docs'.
-docdir := '/home/clip/public_html/Local/lpdoc_docs'.
-infodir := '/home/clip/public_html/Local/lpdoc_docs'.
-mandir := '/home/clip/public_html/Local/lpdoc_docs'.
+htmldir := '/install/path/for/html'.
+docdir := '/install/path/for/other/doc'.
+infodir := '/install/path/for/info'.
+mandir := '/install/path/for/man'.
 
 % TODO: enable by default?
 allow_markdown := no.
