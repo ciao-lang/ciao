@@ -4,10 +4,16 @@
 # The Ciao Programming Language
 
 This is the main source code repository for
-[Ciao](http://ciao-lang.org). It contains the compiler, libraries,
-documentation, build system, and documentation generator.
+[Ciao](http://ciao-lang.org). It contains the compiler, standard
+libraries, and build system. 
 
-Please find a system description and installation instructions at:
+The rest of components are distributed as separate bundles. See
+[devenv](https://github.com/ciao-lang/devenv) for a full Emacs-based
+development environment, and repositories at
+[ciao-lang](https://github.com/ciao-lang) for more bundles.
+
+Please find detailed system description and installation instructions
+at:
 
   - [README](core/README)
   - [INSTALLATION](core/INSTALLATION)
