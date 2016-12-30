@@ -158,8 +158,12 @@ etc_dir := ~bundle_path(core, 'etc').
 	
 dot_shell_gen(Sh) :-
 	verbose_message("Creating ~w", [~dot_shell_file(Sh)]),
+	( '$bundle_id'(lpdoc) ->
+	    DocDir = ~docformatdir(any) % TODO: WRONG!!! This should be extracted from workspaces! (dynamically if possible)
+	; DocDir = ~instciao_storedir % TODO: incorrect
+	),
 	wr_template(origin, ~etc_dir, ~dot_shell_file(Sh), [
-	    'CiaoDocDir' = ~docformatdir(any),
+	    'CiaoDocDir' = DocDir,
 	    'CiaoBinDir' = ~instciao_bindir
         ]).
 
