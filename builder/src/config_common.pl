@@ -35,7 +35,9 @@ perms(perms(rwX, rwX, rX)).
 % ===========================================================================
 
 :- export(with_docs/1).
-with_docs := ~get_bundle_flag(ciao:with_docs).
+% Enable docs grade (lpdoc must be available)
+with_docs := ~get_bundle_flag(ciao:with_docs) :- !, '$bundle_id'(lpdoc).
+with_docs := no.
 
 % ===========================================================================
 
