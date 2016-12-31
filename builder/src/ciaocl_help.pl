@@ -329,14 +329,14 @@ cmd_usage(bench, "[<targets>]", [
 grp_def(packaging, "Packaging for distribution") :- advanced.
 %
 cmd_grp(gen_pbundle, packaging). % TODO: trick, does not exist
-cmd_usage(gen_pbundle, "[--kind=Kind] [<bundle>]", [
+cmd_usage(gen_pbundle, "[--kind=Kind] [<targets>]", [
     %1_______________________________________________
     "Generates a distribution of the specified Kind",
     "(see gen_pbundle_hook/3)"
 ]).
 %
 cmd_grp(gen_bundle_commit_info, packaging).
-cmd_usage(gen_bundle_commit_info, "[--git-repo-dir=Dir] [<bundle>]", [
+cmd_usage(gen_bundle_commit_info, "[--git-repo-dir=Dir] [<targets>]", [
     %1_______________________________________________
     "[Not documented, internal]"
 ]).

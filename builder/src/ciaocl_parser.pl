@@ -139,11 +139,11 @@ cmd_fmt(get, [target_args, config_flags]). % (download and install bundles)
 cmd_fmt(gen_bundle_commit_info, [opts([
   git_repo_dir=v % --git-repo-dir=Dir: location of the Git repository
 		 % (if not using default)
-]), target_arg]).
+]), target_args]).
 
 cmd_fmt(gen_pbundle, [opts([
   kind=v % --kind=Kind: kind of packaged bundle
-]), target_arg]).
+]), target_args]).
 
 cmd_fmt(clean_tree, [raw_args]).
 cmd_rw(clean_tree, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
