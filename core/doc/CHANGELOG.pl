@@ -1,3 +1,6 @@
+:- doc(version(1*16+0,2016/12/31,11:36*37+'CEST'), "TO BE WRITTEN").
+% TODO: Fill release notes for 1.16
+
 :- doc(version(1*14+2,2011/08/12,18:14*31+'CEST'), "
    Merging r13606 (trunk) into 1.14.
    This backports an optimization for DARWIN platforms (Jose Morales)").
