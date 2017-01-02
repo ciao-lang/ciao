@@ -39,7 +39,7 @@ function do_tests { # arguments: system
     local sys
     sys=$1
     for i in $TESTS; do
-        pushd "${ciaoroot}/tests/suite/$i" > /dev/null
+        pushd "${ciaoroot}/bndls/testsuite/suite/$i" > /dev/null
         "$oc_builder" bench mtsys-evalmod-${sys} $i
         popd > /dev/null
     done

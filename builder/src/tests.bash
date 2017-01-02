@@ -110,7 +110,7 @@ do_tests() {
     local action
     what=$1
     action=$2
-    pushd "$ciaoroot"/tests/suite > /dev/null
+    pushd "$ciaoroot"/bndls/testsuite/suite > /dev/null
     for i in *; do
 	test -d $i || continue
 	has_prop ${what} ${i}/PROPS || continue
@@ -123,7 +123,7 @@ do_tests() {
 
 # ImProlog tests/benchmarks (based on the shoot-out game)
 do_tests_improlog() { # [Args]
-    pushd "$ciaoroot"/tests/shootout-c > /dev/null
+    pushd "$ciaoroot"/bndls/testsuite/shootout-c > /dev/null
     ${builder_src}/tests_improlog.bash "$@"
     popd > /dev/null
 }
@@ -137,7 +137,7 @@ do_tests_emugen() { # [Args]
 
 # mtypes
 do_tests_mtypes() { # [Args]
-    pushd "$ciaoroot"/tests/mtypes > /dev/null
+    pushd "$ciaoroot"/bndls/testsuite/mtypes > /dev/null
     ${builder_src}/tests_mtypes.bash "$@"
     popd > /dev/null
 }
@@ -152,7 +152,7 @@ do_tests_preindexing() { # [Args]
 
 # lpdoc
 do_tests_lpdoc() { # [Args]
-    pushd "$ciaoroot"/tests/lpdoc > /dev/null
+    pushd "$ciaoroot"/bndls/testsuite/lpdoc > /dev/null
     ${builder_src}/tests_lpdoc.bash "$@"
     popd > /dev/null
 }
@@ -174,7 +174,7 @@ sabsmach_min_test() {
     local prg
     prg=$1
     [ -z ${prg} ] && return 1
-    cache_dir=$ciaoroot/tests/sabsmach_min/cache
+    cache_dir=$ciaoroot/bndls/testsuite/sabsmach_min/cache
     mkdir -p ${cache_dir}
 
     echo "Compiling under alternative cache using dead info (static exec)"
@@ -219,7 +219,7 @@ sabsmach_min_clean() {
 sabsmach_min__all_compile() {
     for i in ${all}; do
 	echo "======= COMPILING $i ======="
-	sabsmach_min_test "$ciaoroot"/tests/sabsmach_min/${i}
+	sabsmach_min_test "$ciaoroot"/bndls/testsuite/sabsmach_min/${i}
     done
 }
 
@@ -229,9 +229,9 @@ sabsmach_min__all_compile_and_clean() {
 #all=$(for i in oc/*.pl; do echo oc/$(basename $i .pl); done)
     for i in ${all}; do
 	echo "======= COMPILING $i ======="
-	sabsmach_min_test "$ciaoroot"/tests/sabsmach_min/${i}
+	sabsmach_min_test "$ciaoroot"/bndls/testsuite/sabsmach_min/${i}
 	echo "======= CLEANING $i ======="
-	sabsmach_min_clean "$ciaoroot"/tests/sabsmach_min/${i}
+	sabsmach_min_clean "$ciaoroot"/bndls/testsuite/sabsmach_min/${i}
     done
 }
 
@@ -239,7 +239,7 @@ sabsmach_min__all_clean() {
     rm -rf cache
     for i in ${all}; do
 	echo "======= CLEANING $i ======="
-	sabsmach_min_clean "$ciaoroot"/tests/sabsmach_min/${i}
+	sabsmach_min_clean "$ciaoroot"/bndls/testsuite/sabsmach_min/${i}
     done
 }
 

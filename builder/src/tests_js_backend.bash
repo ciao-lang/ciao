@@ -226,7 +226,7 @@ function ptojs__compare_out() { # mode file
 
 # TODO: some of this information should not be here
 # TODO: change default platform?
-TESTS_DIR=$ciaoroot/tests/js_backend
+TESTS_DIR=$ciaoroot/bndls/testsuite/js_backend
 TESTS_PLATFORM="nodejs"
 BENCHS_DIR=$ciaoroot/examples/js_backend/general
 BENCHS_PLATFORM="nodejs"

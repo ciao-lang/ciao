@@ -308,7 +308,7 @@ evalexec() {
 # (multisystem tests)
 
 # Output directory for tests results and temporary files
-mtsys_outdir=$ciaoroot/tests/multisystem/out
+mtsys_outdir=$ciaoroot/bndls/testsuite/multisystem/out
 mkdir -p ${mtsys_outdir}
 
 # TODO: size of objects is not accurate! (for some systems, it only
@@ -318,7 +318,7 @@ function mtsys_checkmod() {
     system=$1
     pl=$2
     mod=$(basename ${pl} .pl)
-    pushd "$ciaoroot"/tests/suite/$mod/ > /dev/null
+    pushd "$ciaoroot"/bndls/testsuite/suite/$mod/ > /dev/null
     temp=temp_${mod}_${system}
     case ${system} in
 	ciao2 ) # optimcomp without compilation to native code
@@ -338,7 +338,7 @@ function mtsys_comparemod() {
     system=$1
     pl=$2
     mod=$(basename ${pl} .pl)
-    pushd "$ciaoroot"/tests/suite/${mod}/ > /dev/null
+    pushd "$ciaoroot"/bndls/testsuite/suite/${mod}/ > /dev/null
     temp=temp_${mod}_${system}
     popd > /dev/null
     pushd ${mtsys_outdir} > /dev/null
@@ -350,7 +350,7 @@ function mtsys_briefcomparemod() {
     system=$1
     pl=$2
     mod=$(basename ${pl} .pl)
-    pushd "$ciaoroot"/tests/suite/${mod}/ > /dev/null
+    pushd "$ciaoroot"/bndls/testsuite/suite/${mod}/ > /dev/null
     temp=temp_${mod}_${system}
     popd > /dev/null
     pushd ${mtsys_outdir} > /dev/null
@@ -362,7 +362,7 @@ function mtsys_savemod() {
     system=$1
     pl=$2
     mod=$(basename ${pl} .pl)
-    pushd "$ciaoroot"/tests/suite/${mod}/ > /dev/null
+    pushd "$ciaoroot"/bndls/testsuite/suite/${mod}/ > /dev/null
     temp=temp_${mod}_${system}
     popd > /dev/null
     pushd ${mtsys_outdir} > /dev/null
@@ -374,7 +374,7 @@ function mtsys_evalmod() {
     system=$1
     pl=$2
     mod=$(basename ${pl} .pl)
-    pushd "$ciaoroot"/tests/suite/${mod}/ > /dev/null
+    pushd "$ciaoroot"/bndls/testsuite/suite/${mod}/ > /dev/null
     temp=temp_${mod}_${system}
 
 #    echo "test: ${mod}"

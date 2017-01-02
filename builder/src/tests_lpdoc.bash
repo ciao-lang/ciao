@@ -81,8 +81,8 @@ function get_manual_dir() {
 	ciaopp_doc) echo "$ciaoroot/ciaopp" ;;
 	lpdoc) echo "$ciaoroot/lpdoc" ;;
 	# for testing
-	ciaotest) echo "$ciaoroot/tests/lpdoc/ciaotest" ;;
-	singlelpdoc) echo "$ciaoroot/tests/lpdoc/singlelpdoc" ;;
+	ciaotest) echo "$ciaoroot/bndls/testsuite/lpdoc/ciaotest" ;;
+	singlelpdoc) echo "$ciaoroot/bndls/testsuite/lpdoc/singlelpdoc" ;;
 	*) echo ""
     esac
 }
@@ -94,8 +94,8 @@ function get_manual_outdir() {
 	ciaopp_doc) echo "$builddir_doc" ;;
 	lpdoc) echo "$builddir_doc" ;;
 	# for testing
-	ciaotest) echo "$ciaoroot/tests/lpdoc/ciaotest" ;;
-	singlelpdoc) echo "$ciaoroot/tests/lpdoc/singlelpdoc" ;;
+	ciaotest) echo "$ciaoroot/bndls/testsuite/lpdoc/ciaotest" ;;
+	singlelpdoc) echo "$ciaoroot/bndls/testsuite/lpdoc/singlelpdoc" ;;
 	*) echo ""
     esac
 }
