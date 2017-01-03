@@ -402,15 +402,16 @@ CCSHARED="$CCSHARED $core__EXTRA_CFLAGS"
 LDSHARED="$LDSHARED $core__EXTRA_LDFLAGS"
 
 # ===========================================================================
-# [Extend basic configuration with sub-targets]
-# TODO: Make it simpler and generalize to other libs.
+# [Extend basic configuration]
+# TODO: complete, add socket cfg here?
 
-gsl_cfg="$CIAOOS$CIAOARCH" # TODO: select as part of configuration (may not be the same as $eng_cfg due to debug/profile builds of different components)
-config_gsl_file="$gsl_engdir/cfg/$gsl_cfg/config_sh"
-if test -r "$config_gsl_file"; then
-    . "$config_gsl_file"
-    STAT_LIBS="$STAT_LIBS $GSL_STAT_LIBS"
-fi
+for f in $eng_addcfg; do
+    if test -r "$f/config_sh"; then
+	ADD_STAT_LIBS=
+	. "$f/config_sh"
+	STAT_LIBS="$STAT_LIBS $ADD_STAT_LIBS"
+    fi
+done
 
 # ===========================================================================
 # [Export some config flags to C preprocessor defs]

@@ -109,7 +109,7 @@ prebuild_gsl_bindings :-
 	    string_to_file(T, ~bundle_path(contrib, 'library/gsl_imports/gsl_imports_decl_auto.pl')),
 	    % List of static libraries from GSL
 	    % TODO: generalize for any other library
-	    M = ~flatten(["GSL_STAT_LIBS=\'"||LinkerOpts, "\'\n"])
+	    M = ~flatten(["ADD_STAT_LIBS=\'"||LinkerOpts, "\'\n"])
 	;
 	    LinkerOpts = "",
 	    normal_message("ignoring GSL library", []),
@@ -125,9 +125,9 @@ prebuild_gsl_bindings :-
 	%
 	EngOpts = [],
 	GSLEng = eng_def(core, 'gsl', EngOpts),
-	GSLEngDir = ~bld_eng_path(cfgdir, GSLEng), % NOTE: not an engine
-	mkpath(GSLEngDir),
-	string_to_file(M, ~path_concat(GSLEngDir, 'config_sh')),
+	GSLCfgDir = ~bld_eng_path(cfgdir, GSLEng), % NOTE: not an engine
+	mkpath(GSLCfgDir),
+	string_to_file(M, ~path_concat(GSLCfgDir, 'config_sh')),
 	string_to_file(S, ~bundle_path(contrib, 'library/gsl_imports/gsl_imports_auto.pl')).
 
 :- use_module(library(lists), [append/3]).

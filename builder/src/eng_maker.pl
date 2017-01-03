@@ -203,14 +203,20 @@ eng_meta_sh(Eng, CfgInput) -->
 	; AddObjs = ''
 	},
 	sh_def('eng_addobj', AddObjs),
+	% extra configuration (config_sh) for static foreign code
+	{ member(static_cfgs(AddCfgs0), EngOpts) ->
+            AddCfgs = ~atom_concat_with_blanks(~cfgdirs(AddCfgs0))
+	; AddCfgs = ''
+	},
+	sh_def('eng_addcfg', AddCfgs),
 	% Input for configuration
-	sh_def('eng_ciao_config', CfgInput),
-	% Additional engine dependencies for sysdep config
-	% TODO: look at gsl.hooks.pl
-	% TODO: use 'contrib' as bundle instead of 'core'?
-	{ GSLEng = eng_def(core, 'gsl', EngOpts) },
-	{ GSLEngDir = ~bld_eng_path(cfgdir, GSLEng) }, % NOTE: not an engine
-	sh_def('gsl_engdir', GSLEngDir).
+	sh_def('eng_ciao_config', CfgInput).
+
+cfgdirs([], []).
+cfgdirs([at_bundle(B, Spec)|Xs], [Y|Ys]) :-
+	Eng = eng_def(B, Spec, []), % TODO: not necessarily an engine! fix
+	Y = ~bld_eng_path(cfgdir, Eng),
+	cfgdirs(Xs, Ys).
 
 % TODO: Missing escape (if needed)
 sh_def(Var,Val) -->

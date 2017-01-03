@@ -120,8 +120,8 @@ eng_h_alias="ciao"
 eng_srcpath="$ciaoroot/core/engine"
 eng_use_stat_libs=no
 eng_addobj=
+eng_addcfg=
 eng_ciao_config="$builddir/bundlereg/ciao.bundlecfg_sh"
-gsl_engdir="$builddir/eng/gsl"
 EOF
     # Do sysdep configuration
     "$sh_src_dir"/config-sysdep/config-sysdep.sh "$bld_engdir" "$eng_cfg"

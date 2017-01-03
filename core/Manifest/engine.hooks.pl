@@ -207,5 +207,7 @@
   static_mods([library(random),
                library(sockets),
                library(sha1),
-	       library(concurrency)]) % link statically against foreign code
+	       library(concurrency)]), % link statically against foreign code
+  % TODO: extract from static_mods
+  static_cfgs([at_bundle(contrib, 'gsl')]) % see gsl.hooks.pl
 ])).
