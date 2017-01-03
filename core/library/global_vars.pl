@@ -1,5 +1,4 @@
-:- module(global_vars, [setval/2, getval/2, current/2], [hiord]).
-:- use_package(assertions).
+:- module(global_vars, [setval/2, getval/2, current/2], [hiord, assertions]).
 
 :- doc(nodoc, assertions).
 :- doc(nodoc, hiord).
@@ -8,37 +7,40 @@
 :- doc(author, "Jose F. Morales").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
 
-:- doc(module, 
-"This module provides a simple way to assign and read fully
- backtrackable global variables. Global variables differ from storing
- information using assertz_fact/1.
- @begin{itemize}
-   @item The value lives on the Prolog (global) stack. This implies
-     that lookup time is independent from the size of the term. This
-     is particularly interesting for large data structures such as
-     parsed XML documents.
-   @item They support only backtrackable assignment using
-     @pred{setval/2}. 
-   @item Only one value (which can be an arbitrary complex Prolog
-     term) can be associated to a variable at a time. 
-   @item Global variables are scoped globally to a module. In
-     particular, a variable created in one module cannot be accessed
-     from outside.
-  @end{itemize}
+:- doc(module, "This module provides a simple way to assign and read
+   fully backtrackable global variables.
 
- Both @pred{getval/2} and @pred{setval/2} implicitly create a variable
- if the referenced name does not already refer to a variable in the
- current module.
- Note that the creation of a global variable is not undone on
- backtracking.
+   Global variables differ from storing information using dynamic
+   predicates:
+   @begin{itemize}
+   @item Global variables are semantically equivalent to a dictionary 
+     passed around as an implicit pair of variables:
+     @begin{itemize}
+     @item only one value is associated to a variable at a time
+     @item the value associated to a variable can be replaced
+     @item any assignment is undone on backtracking
+     @item access cost is proportional to a unification
+     @item variable sharing is preserved during assignment
+     @end{itemize}
+   @item Keys of global variables are local to each module.
+   @item Contrary to dynamic predicates, there is no copy of
+     terms. This is particularly interesting for large terms.
+   @end{itemize}
 
-Note that the current implementation has some limitations:
-@begin{itemize}
-@item No more than 255 modules can use global variables in a program.
-@item No more than 255 global variables can be used in a module.
-@end{itemize}
-"  ).
+   The implementation is based on a globally reachable structure in
+   the heap, where each entry is allocated dynamically for each key.
 
+   Note that the current implementation has some limitations (see bug
+   entries in this module).
+").
+
+:- doc(bug, "The use of global variables may produce incorrect results
+   for sharing analysis.").
+:- doc(bug, "We still do not support statically declared global variables").
+:- doc(bug, "Allocation of entries is not undone on backtracking, which
+   may exhaust available space quickly for some programs").
+:- doc(bug, "No more than 255 modules can use global variables in a program.").
+:- doc(bug, "No more than 255 global variables can be used in a module.").
 
 :- use_module(engine(internals), ['$global_vars_get'/2]).
 
@@ -87,7 +89,7 @@ global(Module, Key, Value):-
 	arg(J, Array, Value).
 
 :- pred setval(Name,Value) # "Associate the term @var{Value} with the
-   atom @var{Name}. If @var{Name} does not refer to an exisitng global
+   atom @var{Name}. If @var{Name} does not refer to an existing global
    variable, an unbounded global variable @var{Value} is created and
    unified to @var{Value}. On backtracking the assignment is
    reversed. If @var{Name} is not a atom the predicate silently
