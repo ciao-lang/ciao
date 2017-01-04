@@ -68,7 +68,6 @@
 '$builder_hook'(item_nested(core_cmds)).
 '$builder_hook'(core_cmds:cmd('cmds/ciaodump')).
 '$builder_hook'(core_cmds:cmd('cmds/pldiff')).
-'$builder_hook'(core_cmds:cmd('cmds/checkline')).
 '$builder_hook'(core_cmds:cmd('cmds/ciaoc_sdyn')).
 
 % ---------------------------------------------------------------------------
