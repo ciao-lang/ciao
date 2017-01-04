@@ -1,19 +1,7 @@
 :- module(ciaoc, [main/1], [assertions, hiord, dcg, optparse, nortchecks]).
 
-:- use_module(engine(internals),        ['$bootversion'/0]).
-:- use_module(library(libpaths),        [get_alias_path/0]).
-:- use_module(library(compiler),        [make_po/1, make_wam/1, use_module/3]).
-:- use_module(library(compiler/c_itf), [opt_suffix/2]).
-:- use_module(library(read_from_string), [read_from_atom/2]).
-:- use_module(library(compiler/global_module_options)).
-
-:- use_module(library(compiler/exemaker),
-	    [make_exec/2, make_actmod/2, force_lazy/1, dynamic_search_path/1]).
-
 :- doc(title,  "The standalone command-line compiler").
-:- doc(author, "Daniel Cabeza").
-:- doc(author, "Edison Mera").
-:- doc(author, "The CLIP Group").
+:- doc(author, "Ciao Development Team").
 
 :- doc(copyright, "
 Copyright @copyright{} 1996-2002 Daniel Cabeza/The CLIP Group.
@@ -367,6 +355,19 @@ available when invoking @apl{ciaoc}:
 @end{verbatim}
 ").
 
+% ---------------------------------------------------------------------------
+
+:- use_module(engine(internals),        ['$bootversion'/0]).
+:- use_module(library(libpaths),        [get_alias_path/0]).
+:- use_module(library(compiler),        [make_po/1, make_wam/1, use_module/3]).
+:- use_module(library(compiler/c_itf), [opt_suffix/2]).
+:- use_module(library(read_from_string), [read_from_atom/2]).
+:- use_module(library(compiler/global_module_options)).
+
+:- use_module(library(compiler/exemaker),
+	    [make_exec/2, make_actmod/2, force_lazy/1, dynamic_search_path/1]).
+
+% ---------------------------------------------------------------------------
 
 :- multifile library_directory/1.
 :- dynamic library_directory/1.
