@@ -443,7 +443,7 @@ versioned_manual_base(Bundle, Base) := R :-
 % Add rpaths (runtime search path for shared libraries)
 add_rpath(local_third_party, LinkerOpts0, LinkerOpts) :- !,
 	% TODO: better way to compute RelativeLibDir?
-	% (for 'make_car_exec')
+	% (for 'ciaoc_car.pl')
 	bundle_path(ciao, '.', CiaoSrc),
 	third_party_path(libdir, LibDir),
 	path_relocate(CiaoSrc, '.', LibDir, RelativeLibDir),
