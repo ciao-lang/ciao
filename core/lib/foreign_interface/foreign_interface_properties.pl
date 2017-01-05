@@ -102,10 +102,8 @@
 :- doc(doinclude,foreign_inline/2).
 
 :- true decl foreign_inline(Term,Text) : predname * string #
-   "@var{Term} is a predicate name.  @var{Text} is a source C code
-   that define the predicate @var{Term}.  @var{Term} is present for
-   future use with the analyzers.  Example of this can be viewed in
-   the hrtimer library.".
+   "@var{Term} is a predicate name. @var{Text} is a source C code
+   that define the predicate @var{Term}.".
 
 :- true decl foreign_inline(Text) : string # "This usage
    of foreign_inline is to add globally the C source code that are in
