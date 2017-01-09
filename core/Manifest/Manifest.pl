@@ -11,7 +11,6 @@ alias_paths([
 %    engine = 'engine',
     %
     rtchecks = 'lib/rtchecks',
-    unittest = 'lib/unittest',
     predefres = 'lib/resdefs/predefres',
     res_nargs = 'lib/resdefs/predefres/res_nargs',
     res_steps = 'lib/resdefs/predefres/res_steps',
