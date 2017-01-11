@@ -16,6 +16,14 @@
 #include <ciao/instrdefs.h>
 #include <ciao/wam.h>
 
+#include <ciao/term_support.h>
+#include <ciao/nondet.h>
+#include <ciao/start.h>
+#include <ciao/wamsupport.h>
+#include <ciao/bignum.h>
+#include <ciao/wam_alloc.h>
+#include <ciao/io_basic.h>
+
 #include <ciao/tabling.h>
 #include "engine.h"
 #include "terms.h"
@@ -48,6 +56,13 @@ try_node_t *address_nd_resume_cons_c;
 try_node_t *address_nd_back_answer_c;
 
 //int total_memory;
+
+tagged_t functor_comma;
+tagged_t functor_copy_term;
+tagged_t functor_push_ptcp;
+tagged_t atom_pop_ptcp;
+tagged_t atom_gen_tree_backtracking;
+
 
 /* -------------------------- */
 /*            Code            */
@@ -792,7 +807,7 @@ CBOOL__PROTO(nd_consume_answer_c) {
     {
       checkdealloc(sf->vars,sf->size * sizeof(tagged_t));		
       checkdealloc(sf->attrs,sf->attr_size * sizeof(tagged_t));	
-      checkdealloc(sf,sizeof(struct sf));
+      checkdealloc((tagged_t *)sf,sizeof(struct sf));
       //check for swapping
 #if defined(SWAPPING)
       struct gen *callid = (struct gen*) ARG3;
@@ -846,7 +861,7 @@ CBOOL__PROTO(nd_consume_answer_attr_c) {
     {
       checkdealloc(sf->vars,sf->size * sizeof(tagged_t));		
       checkdealloc(sf->attrs,sf->attr_size * sizeof(tagged_t));	
-      checkdealloc(sf,sizeof(struct sf));			       
+      checkdealloc((tagged_t *)sf,sizeof(struct sf));			       
       pop_choicept(Arg);
       return FALSE;
     }
@@ -1265,38 +1280,6 @@ CBOOL__PROTO(initial_tabling_c) {
   printf("\nInitial Tabling\n"); fflush(stdout);
 #endif
 
-  functor_comma = SetArity(MakeString(","), 2);
-  functor_copy_term = SetArity(MakeString("term_basic:copy_term"), 2);
-  functor_forward_trail =
-    SetArity(MakeString("forward_trail:$forward_trail"), 2);
-  functor_push_ptcp =
-    SetArity(MakeString("tabling_rt:$push_ptcp"), 1);
-  atom_pop_ptcp = MakeString("tabling_rt:$pop_ptcp");
-  atom_gen_tree_backtracking = MakeString("tabling_rt:$gen_tree_backtracking");
-
-  INIT_GLOBAL_TABLE;
-  INIT_TABLING_STACK;
-
-//  trail_time = 0;
-//  sch_time = 0;
-  iptcp_stk = 0;
-  ptcp_stk = (struct gen**) checkalloc (PTCP_STKSIZE * sizeof(struct gen*)); 
-  PUSH_PTCP(NULL);
-
-//  total_memory = 0;
-
-  trie_node_top = NULL;
-  last_gen_list = NULL;
-  init_tries_module();
-  address_nd_consume_answer_c = def_retry_c(nd_consume_answer_c,3);
-  address_nd_consume_answer_attr_c = def_retry_c(nd_consume_answer_attr_c,5);
-  //arity 3 for compatibility with consume answer
-  address_nd_resume_cons_c = def_retry_c(nd_resume_cons_c,3); 
-  address_nd_back_answer_c = def_retry_c(nd_back_answer_c,1);
-
-  //Initialize LastNodeTR
-  INIT_NODE_TR(initial_node_tr);
-  INIT_NODE_TR(LastNodeTR);
 
   if (Heap_End != HeapOffset(Heap_Start, TABLING_GLOBALSTKSIZE))
     {
@@ -1333,6 +1316,40 @@ CBOOL__PROTO(initial_tabling_c) {
 
       choice_overflow(Arg,size);
     }  
+
+  
+  functor_comma = SetArity(MakeString(","), 2);
+  functor_copy_term = SetArity(MakeString("term_basic:copy_term"), 2);
+  functor_forward_trail =
+    SetArity(MakeString("forward_trail:$forward_trail"), 2);
+  functor_push_ptcp =
+    SetArity(MakeString("tabling_rt:$push_ptcp"), 1);
+  atom_pop_ptcp = MakeString("tabling_rt:$pop_ptcp");
+  atom_gen_tree_backtracking = MakeString("tabling_rt:$gen_tree_backtracking");
+
+  INIT_GLOBAL_TABLE;
+  INIT_TABLING_STACK;
+
+//  trail_time = 0;
+//  sch_time = 0;
+  iptcp_stk = 0;
+  ptcp_stk = (struct gen**) checkalloc (PTCP_STKSIZE * sizeof(struct gen*)); 
+  PUSH_PTCP(NULL);
+
+//  total_memory = 0;
+
+  trie_node_top = NULL;
+  last_gen_list = NULL;
+  init_tries_module();
+  address_nd_consume_answer_c = def_retry_c(nd_consume_answer_c,3);
+  address_nd_consume_answer_attr_c = def_retry_c(nd_consume_answer_attr_c,5);
+  //arity 3 for compatibility with consume answer
+  address_nd_resume_cons_c = def_retry_c(nd_resume_cons_c,3); 
+  address_nd_back_answer_c = def_retry_c(nd_back_answer_c,1);
+
+  //Initialize LastNodeTR
+  INIT_NODE_TR(initial_node_tr);
+  INIT_NODE_TR(LastNodeTR);
 
   return TRUE;
 

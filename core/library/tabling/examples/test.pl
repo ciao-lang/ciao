@@ -45,10 +45,12 @@
 :- use_module(disj, [test/1,result/1,spend_time/2]).
 :- use_module(tcl, [test/1,result/1,spend_time/2]).
 :- use_module(peep, [test/1,result/1,spend_time/2]).
+:- use_module(fibo, [test/1,result/1,spend_time/2]).
+:- use_module(fibo_large, [test/1,result/1,spend_time/2]).
 
 :- include(tabling_type).
 
-programs([tcl,tcr,tcn,sgm,atr2,pg,disj,kalah,gabriel,cs_r,cs_o,peep]).
+programs([tcl,tcr,tcn,sgm,atr2,pg,disj,kalah,gabriel,cs_r,cs_o,peep,fibo,fibo_large]).
 
 time_spend(Nt) :-
 	N is Nt * 1000,
@@ -73,6 +75,10 @@ test :- abolish_all_tables.
 
 check(Name,L1,L2) :- 
 	check_outputs(L1,L2), !,
+	display(Name), display(' working OK'), nl.
+
+check(Name,L1,L2) :- 
+	L1 == L2, !,
 	display(Name), display(' working OK'), nl.
 
 check(Name,_,_) :- 

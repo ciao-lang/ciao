@@ -336,17 +336,19 @@ static
 TrNode put_trie(TrNode node, tagged_t entry) 
 {
   tagged_t t;
+  int i;
   DEREF(t,entry);
   switch(TagOf(t))
     {
     case STR:
       if (IsTrieVar(t) || IsTrieAttr(t)) return trie_node_check_insert(node, t);
-      if (IsIntTerm(t)) 
+      if (IsIntTerm(t))    // BIG NUMBERs
 	{
 	  node = trie_node_check_insert(node, LargeInitTag);
-	  node = trie_node_check_insert(node, *(TagToPointer(t) + 1));
+	  for (i =  bn_length(TagToPointer(t)) + 1; i >= 0; i--)
+	    node = trie_node_check_insert(node, *(TagToPointer(t) + i));
 	  return trie_node_check_insert(node, LargeEndTag);
-	} 
+	}
       if (IsFloatTerm(t)) 
 	{
 	  node = trie_node_check_insert(node, FloatInitTag);
@@ -543,6 +545,15 @@ CFUN__PROTO(get_trie, tagged_t,
 	    {
 	    case FloatInitTag:
 	    case LargeInitTag:
+	      break;
+	    case LargeEndTag:
+	      p = w->global_top;   // make the big number on the heap
+	      while (TrNode_entry(node) != LargeInitTag) {
+		node = TrNode_parent(node);
+		*p++ = TrNode_entry(node);
+	      }
+	      PUSH_UP(stack_args, Tag(STR, w->global_top), stack_vars);
+	      w->global_top = p;   // move the heap pointer to the end of the big number
 	      break;
 	    case FloatEndTag:
 	      p = (tagged_t *)((void *) &f); // to avoid gcc warning 

@@ -6,11 +6,11 @@
 /*           Defines           */
 /* --------------------------- */
 
-tagged_t functor_comma;
-tagged_t functor_copy_term;
-tagged_t functor_push_ptcp;
-tagged_t atom_pop_ptcp;
-tagged_t atom_gen_tree_backtracking;
+extern tagged_t functor_comma;
+extern tagged_t functor_copy_term;
+extern tagged_t functor_push_ptcp;
+extern tagged_t atom_pop_ptcp;
+extern tagged_t atom_gen_tree_backtracking;
 
 #define	TRUE		1
 #define	FALSE		0
@@ -26,8 +26,8 @@ tagged_t atom_gen_tree_backtracking;
 
 #define TABLING_GLOBALSTKSIZE  (4800*kCells-1) 
 #define TABLING_LOCALSTKSIZE   (3000*kCells-1)
-#define TABLING_CHOICESTKSIZE  (3000*kCells-1)
-#define TABLING_TRAILSTKSIZE   (3000*kCells-1)
+#define TABLING_CHOICESTKSIZE  (1500*kCells-1)
+#define TABLING_TRAILSTKSIZE   (1500*kCells-1)
 #define PTCP_STKSIZE          2048
 
 /* --------------------------- */
@@ -132,7 +132,7 @@ tagged_t atom_gen_tree_backtracking;
 	  }								\
 	checkdealloc((SF)->vars,(SF)->size * sizeof(tagged_t));		\
 	checkdealloc((SF)->attrs,(SF)->attr_size * sizeof(tagged_t));	\
-	checkdealloc((SF),sizeof(struct sf));				\
+	checkdealloc((tagged_t *)(SF),sizeof(struct sf));		\
 	return FALSE;							\
       }									\
   }
@@ -233,7 +233,7 @@ tagged_t atom_gen_tree_backtracking;
 	  {								\
 	    if (IsVar((NodeTR)->trail_sg[(iTrail)]))			\
 	      {								\
-		CTagToPointer((NodeTR)->trail_sg[(iTrail)]) =		\
+		*TagToPointer((NodeTR)->trail_sg[(iTrail)]) =		\
 		  (NodeTR)->trail_sg[(iTrail) + 1];			\
 	      }								\
 	    else							\
@@ -259,7 +259,7 @@ tagged_t atom_gen_tree_backtracking;
 	  {								\
 	    if (IsVar((NodeTR)->trail_sg[(iTrail)]))			\
 	      {								\
-		CTagToPointer((NodeTR)->trail_sg[(iTrail)]) =		\
+		*TagToPointer((NodeTR)->trail_sg[(iTrail)]) =		\
 		  (NodeTR)->trail_sg[(iTrail)];				\
 	      }								\
 	    else							\

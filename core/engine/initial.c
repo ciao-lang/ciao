@@ -330,6 +330,14 @@ try_node_t *address_nd_atom_concat;
 
 #if defined(TABLING)
 try_node_t *address_nd_fake_choicept;
+tagged_t functor_forward_trail;
+double trail_time;
+tagged_t *global_table;
+tagged_t *tabling_stack;
+tagged_t *global_table_free;
+tagged_t *tabling_stack_free;
+tagged_t *global_table_end;
+tagged_t *tabling_stack_end;
 #endif
 
 #if defined(PARBACK)

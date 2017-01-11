@@ -11,36 +11,36 @@
 
 #if defined(TABLING)
 
-#define GLOBAL_TABLE_SIZE        (100000*kCells)
-#define TABLING_STK_SIZE         (10000*kCells)
+#define GLOBAL_TABLE_SIZE        (30000*kCells)
+#define TABLING_STK_SIZE         (5000*kCells)
 
 #define CONSUMER    0         
 #define GENERATOR   1
 
-tagged_t functor_forward_trail;
+extern tagged_t functor_forward_trail;
 
-double trail_time;
+extern double trail_time;
 
-tagged_t *global_table;
-tagged_t *tabling_stack;
+extern tagged_t *global_table;
+extern tagged_t *tabling_stack;
 
-tagged_t *global_table_free;
-tagged_t *tabling_stack_free;
-tagged_t *global_table_end;
-tagged_t *tabling_stack_end;
+extern tagged_t *global_table_free;
+extern tagged_t *tabling_stack_free;
+extern tagged_t *global_table_end;
+extern tagged_t *tabling_stack_end;
 
 #define TABLING_STK_TOP tabling_stack_free
 
 #define INIT_GLOBAL_TABLE						\
   {									\
-    global_table = (tagged_t*) malloc (GLOBAL_TABLE_SIZE * sizeof(tagged_t*)); \
+    global_table = (tagged_t*) checkalloc (GLOBAL_TABLE_SIZE * sizeof(tagged_t*)); \
     global_table_free = global_table;					\
     global_table_end = global_table + GLOBAL_TABLE_SIZE;		\
   }
 
 #define INIT_TABLING_STACK						\
   {									\
-    tabling_stack = (tagged_t*) malloc (TABLING_STK_SIZE * sizeof(tagged_t*)); \
+    tabling_stack = (tagged_t*) checkalloc (TABLING_STK_SIZE * sizeof(tagged_t*)); \
     tabling_stack_free = tabling_stack;					\
     tabling_stack_end = tabling_stack + TABLING_STK_SIZE;		\
   }
