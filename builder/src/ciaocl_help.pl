@@ -350,10 +350,10 @@ cmd_usage(toplevel, "", [
     "Executes a toplevel (ciaosh) [default]"
 ]).
 %
-cmd_grp(run, tools).
-cmd_usage(run, "", [
+cmd_grp(doc, tools).
+cmd_usage(doc, "[<bundle>]", [
     %1_______________________________________________
-    "Runs a Ciao script (ciao-shell)"
+    "Show the manual for the given bundle"
 ]).
 %
 cmd_grp(comp, tools).
@@ -362,15 +362,10 @@ cmd_usage(comp, "", [
     "Executes the compiler (ciaoc)"
 ]).
 %
-cmd_grp(doc, tools).
-cmd_usage(doc, "", [
+% TODO: extend to run commands (cmds/1, cmds/2), looking up in workspaces
+cmd_grp(run, tools).
+cmd_usage(run, "", [
     %1_______________________________________________
-    "Executes the documentation generator (lpdoc)"
-]).
-%
-cmd_grp(pp, tools).
-cmd_usage(pp, "", [
-    %1_______________________________________________
-    "Executes the preprocessor (ciaopp)"
+    "Runs a Ciao script (ciao-shell)"
 ]).
 

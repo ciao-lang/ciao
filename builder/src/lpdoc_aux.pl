@@ -146,3 +146,29 @@ bundle_uninstall_docs_format_hook(info, Bundle, Target) :- !,
 	dirfile_uninstall_info(DocDir, Target).
 bundle_uninstall_docs_format_hook(_, _, _).
 
+% ---------------------------------------------------------------------------
+% TODO: merge with help module?
+
+:- export(show_doc/3).
+% Show documentation for `ManualBase` (name and version) from given `Bundle`
+% and format `DocFormat`. Do nothing if manual is not generated.
+% TODO: may not work for installed bundles!
+show_doc(Bundle, Path, DocFormat) :- % ManualBase
+	BundleDir = ~bundle_path(Bundle, '.'),
+	path_concat(BundleDir, Path, AbsPath),
+	( file_exists(AbsPath) ->
+	    DocDir = ~bundle_path(Bundle, builddir, 'doc'),
+	    invoke_lpdoc(['--doc_mainopts=versioned_output',
+	                  ~atom_concat('--output_dir=', DocDir),
+	                  '-t', DocFormat,
+			  '--view', AbsPath])
+	; % Allow missing manuals (e.g., for NODISTRIBUTE content)
+	  % TODO: locate online?
+	  warning(['Manual ', Path, ' is missing.']) % TODO: error?
+	).
+        % TODO: for installed manuals:
+	%   docformatdir(DocFormat, TargetDir),
+	%   DocExt = ~atom_concat('.', DocFormat),
+	%   FileName = ~atom_concat(ManualBase, DocExt),
+	%   Target = ~path_concat(TargetDir, FileName),
+

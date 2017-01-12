@@ -23,8 +23,6 @@ ciao_builder_bin=$(alt "$_base"/{{ciao_builder_cmdV}} "$_base"/{{ciao_builder_cm
 ciaosh_bin=$(alt "$_base"/{{ciaosh_cmdV}} "$_base"/{{ciaosh_cmd}})
 ciao_shell_bin=$(alt "$_base"/{{ciao_shell_cmdV}} "$_base"/{{ciao_shell_cmd}})
 ciaoc_bin=$(alt "$_base"/{{ciaoc_cmdV}} "$_base"/{{ciaoc_cmd}})
-ciaopp_bin=$(alt "$_base"/{{ciaopp_cmdV}} "$_base"/{{ciaopp_cmd}})
-lpdoc_bin=$(alt "$_base"/{{lpdoc_cmdV}} "$_base"/{{lpdoc_cmd}})
 #
 boot_ciaolib={{boot_ciaolib}}
 boot_bindir={{boot_bindir}}
@@ -105,8 +103,6 @@ Usage: ciao-shell <program>
 EOF
 	    ;;
 	comp)     exec "$ciaoc_bin" -h ;;
-	pp)       exec "$ciaopp_bin" -h ;;
-	doc)      exec "$lpdoc_bin" -h ;;
 	*)        exec_builder help "$action"
     esac
     exit 1
@@ -144,8 +140,6 @@ case $action in
     toplevel) rlexec "$ciaosh_bin" "$@" {{ExtraCommands}} ;;
     run)      exec "$ciao_shell_bin" "$@" ;;
     comp)     exec "$ciaoc_bin" "$@" ;;
-    pp)       rlexec "$ciaopp_bin" "$@" ;;
-    doc)      exec "$lpdoc_bin" "$@" ;;
     help|-h|--help) do_help "$@" ;;
     *)        rlexec_builder "$action" "$@"
 esac

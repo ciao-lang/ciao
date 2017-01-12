@@ -875,11 +875,49 @@ do_clean_root(Bundle) :-
 	gen_bundle_commit_info(Target).
 
 % ---------------------------------------------------------------------------
+% Show bundle info
 
 :- use_module(ciaobld(manifest_compiler), [bundle_info/1]).
 
-% Show bundle info
 'cmd.do.decl'(info).
 'cmd.do'(info, Target) :- !,
 	check_no_part(Target),
 	bundle_info(Target).
+
+% ---------------------------------------------------------------------------
+% Show bundle documentation
+
+:- use_module(ciaobld(lpdoc_aux), [show_doc/3]).
+:- use_module(ciaobld(builder_aux), [
+    versioned_manual_base/3
+]).
+
+% TODO: add command to locate path of a given command
+%   'ciaopp_cmdV' = ~cmdname_ver(yes, ciaopp, 'ciaopp', plexe), 'ciaopp_cmd' = ~cmdname_ver(no, ciaopp, 'ciaopp', plexe),
+%   'lpdoc_cmdV' = ~cmdname_ver(yes, lpdoc, 'lpdoc', plexe), 'lpdoc_cmd' = ~cmdname_ver(no, lpdoc, 'lpdoc', plexe),
+
+%	invoke_lpdoc(['--autogen_warning=yes',
+%	              '--allow_markdown=no',
+%	              '--syntax_highlight=no',
+%	              ~atom_concat('--output_dir=', DocDir),
+%		      '-t', 'ascii',
+%	              SrcPath2]),
+
+% Show bundle documentation
+% TODO: allow only one manual per bundle, allow manuals on parts
+'cmd.do.decl'(doc).
+'cmd.do'(doc, Target) :- !,
+	DocFormat = html, % TODO: customize?
+	check_no_part(Target),
+	split_target(Target, Bundle, _Part),
+	% just open all manuals
+	( % (failure-driven loop)
+	  manifest_call(Target, manual(_Base, Props)),
+	    ( member(main=Path, Props) -> true
+	    ; fail % ill-formed
+	    ),
+	    % versioned_manual_base(Bundle, Base, R),
+	    show_doc(Bundle, Path, DocFormat),
+	    fail
+	; true
+	).

@@ -132,12 +132,14 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	wr_template(as_cmd(core, shscript), ~bundle_path(core, 'cmds'), 'ciao', [
 	    'ExtraCommands' = ~ciao_extra_commands, % (for toplevel)
 	    %
-	    'ciao_builder_cmdV' = ~cmdname_ver(yes, builder, 'ciao_builder', plexe), 'ciao_builder_cmd' = ~cmdname_ver(no, builder, 'ciao_builder', plexe),
-	    'ciaosh_cmdV' =     ~cmdname_ver(yes, core, 'ciaosh', plexe),         'ciaosh_cmd' = ~cmdname_ver(no, core, 'ciaosh', plexe),
-	    'ciao_shell_cmdV' = ~cmdname_ver(yes, core, 'ciao-shell', plexe), 'ciao_shell_cmd' = ~cmdname_ver(no, core, 'ciao-shell', plexe),
-	    'ciaoc_cmdV' =      ~cmdname_ver(yes, core, 'ciaoc', plexe),           'ciaoc_cmd' = ~cmdname_ver(no, core, 'ciaoc', plexe),
-	    'ciaopp_cmdV' =     ~cmdname_ver(yes, ciaopp, 'ciaopp', plexe),       'ciaopp_cmd' = ~cmdname_ver(no, ciaopp, 'ciaopp', plexe),
-	    'lpdoc_cmdV' =      ~cmdname_ver(yes, lpdoc, 'lpdoc', plexe),          'lpdoc_cmd' = ~cmdname_ver(no, lpdoc, 'lpdoc', plexe),
+	    'ciao_builder_cmdV' = ~cmdname_ver(yes, builder, 'ciao_builder', plexe),
+	    'ciao_builder_cmd'  = ~cmdname_ver(no,  builder, 'ciao_builder', plexe),
+	    'ciaosh_cmdV' = ~cmdname_ver(yes, core, 'ciaosh', plexe),
+	    'ciaosh_cmd'  = ~cmdname_ver(no,  core, 'ciaosh', plexe),
+	    'ciao_shell_cmdV' = ~cmdname_ver(yes, core, 'ciao-shell', plexe),
+	    'ciao_shell_cmd'  = ~cmdname_ver(no,  core, 'ciao-shell', plexe),
+	    'ciaoc_cmdV' = ~cmdname_ver(yes, core, 'ciaoc', plexe),
+	    'ciaoc_cmd'  = ~cmdname_ver(no,  core, 'ciaoc', plexe),
 	    % Access to boot builder
 	    % TODO: only used in local-install, global installation uses the builder exec (is it OK?)
 	    % TODO: (MinGW) is cmd.exe enough? (at least for bootstrap) consider PowerShell scripts for Windows?

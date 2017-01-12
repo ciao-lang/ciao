@@ -154,6 +154,8 @@ cmd_rw(clean_tree, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
 	Opts2 = Opts, Args2 = [],
 	CmdFmt2 = [].
 
+cmd_fmt(doc, [target_args]). % (info on bundle)
+
 cmd_fmt(custom_run, [raw_args]). % TODO: use def_bundle?
 cmd_rw(custom_run, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
 	( Args = [Target, CustomCmd|CustomArgs] -> true
