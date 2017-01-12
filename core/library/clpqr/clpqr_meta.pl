@@ -45,7 +45,7 @@ clpqr_entailed(+B)    : succeeds if the store implies B
  We want to check if the store A entails the list (conjunction) of constraints
  B=[b_1,...,b_m]
 
-   - cheaking "(A ==> B) <==> true" can be done by checking that
+   - checking "(A ==> B) <==> true" can be done by checking that
      "~(A ==> B) <==> false"
 
    - ~(A ==> B) = (A /\ ~B) = (A /\ ~b_1) \/  ... \/ (A /\ ~b_m)
