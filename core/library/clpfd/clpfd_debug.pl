@@ -41,18 +41,18 @@
 %   -- Jose F. Morales
 
 :- use_package(library(clpfd/clpfd_options)).
-
-% Use the 'debugpred' package to enable/disable debug
-% predicates.
-:- use_package(debugpred).
-:- debugpred clpfd_debug/2.
-
-:- if(defined(debug_clpfd_runtime)).
-:- use_module(library(clpfd/clpfd_debug_rt)).
-:- debugpredstatus(on).
-:- else.
 :- use_module(library(clpfd/clpfd_debug_rt), [clpfd_error/2]).
-:- debugpredstatus(off).
-:- endif.
+
+%% % Use the 'debugpred' package to enable/disable debug
+%% % predicates.
+%% :- use_package(debugpred).
+%% :- debugpred clpfd_debug/2.
+%% 
+%% :- if(defined(debug_clpfd_runtime)).
+%% :- use_module(library(clpfd/clpfd_debug_rt), [clfd_debug/2]).
+%% :- debugpredstatus(on).
+%% :- else.
+%% :- debugpredstatus(off).
+%% :- endif.
 
 
