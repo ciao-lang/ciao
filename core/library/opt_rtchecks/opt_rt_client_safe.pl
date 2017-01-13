@@ -1,7 +1,7 @@
 :- package(opt_rt_client_safe).
 % Flags for the 'client_safe' mode
 
-:- use_package(pp).
+:- use_package(library(assertions/pp)).
 :- pp_opt(rtchecks).
 :- pp_opt(output).
 

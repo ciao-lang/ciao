@@ -1,7 +1,7 @@
 :- package(opt_rt_safe_ctrt).
 % Flags for the 'safe_ctrt' mode
 
-:- use_package(pp).
+:- use_package(library(assertions/pp)).
 :- pp_cmd(use_module(ciaopp(preprocess_flags),[set_pp_flag/2])).
 :- pp_cmd(use_module(ciaopp(tr_ctrt))). % enable ctrt transform
 :- pp_cmd(set_pp_flag(client_safe_ctchecks, on)).

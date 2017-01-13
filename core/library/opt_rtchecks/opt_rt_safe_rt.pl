@@ -1,7 +1,7 @@
 :- package(opt_rt_safe_rt).
 % Flags for the 'safe_rt' mode
 
-:- use_package(pp).
+:- use_package(library(assertions/pp)).
 :- pp_opt(rtchecks).
 :- pp_opt(output).
 
