@@ -21,15 +21,15 @@
 	    [assertions, nativeprops, unittestdecls, hiord,
 		library(math/math_clp)]).
 
+:- doc(module, "Vectors").
+:- doc(author, "Edison Mera").
+
 :- load_test_package(library(math/math_clp)).
 
 :- use_module(library(apply)).
 :- use_module(library(hiordlib)).
 
 :- push_prolog_flag(multi_arity_warnings, off).
-
-:- doc(author, "Edison Mera").
-:- doc(module, "This module contains methods for processing of vectors.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The folowing methods abstract the way the vector components are obtained   %

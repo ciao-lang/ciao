@@ -1,0 +1,18 @@
+Some integer factorization algorithms. 
+
+NOTES:
+
+- Do not use for serious purposes (there exists much better algorithms
+  and implementations).
+
+- Use the Self Initializing Quadratic Sieve or the Elliptic Curve
+  Method for fast results.
+
+- This is a candidate code for improvements in the module system (by
+  describing common properties/predicates as interfaces).
+
+- Complexity and termination properties may be very different across
+  algorithms (some of them should be run with a time-out).
+
+- The implementation may be buggy, but the programs can be used as
+  benchmarks for numeric operations.
