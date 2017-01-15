@@ -33,9 +33,6 @@
 '$builder_hook'(item_nested(ppl)).
 :- include(.('ppl.hooks')).
 
-'$builder_hook'(item_nested(mathematica)).
-:- include(.('mathematica.hooks')).
-
 % ===========================================================================
 :- doc(section, "Tests and Benchmarks").
 % TODO: Add bundle defs for unit tests, integration tests, regression
