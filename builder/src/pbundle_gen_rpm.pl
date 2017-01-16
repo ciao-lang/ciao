@@ -113,18 +113,6 @@ guaranteed to work in the same distribution (vendor) they were built on.
 
 @end{description}
 
-Setting any of the following compiles @apl{Ciao} with the feature of
-the same name enabled (as defined in @tt{./ciao-boot.sh configure}):
-
-@begin{itemize}
-@item @tt{with_gsl=yes}
-@item @tt{with_mysql=yes}
-@item @tt{with_java_interface=yes}
-@end{itemize}
-
-Note that none of these gets compiled in by default (if the option is
-not explicitly set.)
-
 Vendor-dependent paths and filenames can also be modified as options.
 This is only recommended for building vendor dependent packages
 (@code{vendor_independent=no}) since default values are sensible and
