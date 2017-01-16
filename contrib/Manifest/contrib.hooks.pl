@@ -22,12 +22,6 @@
 '$builder_hook'(cmds:cmd('cmds/cleandirs')).
 
 % ===========================================================================
-% (nested)
-
-'$builder_hook'(item_nested(timingmodel)).
-:- include(.('timingmodel.hooks')).
-
-% ===========================================================================
 :- doc(section, "Tests and Benchmarks").
 % TODO: Add bundle defs for unit tests, integration tests, regression
 %   tests, etc.
