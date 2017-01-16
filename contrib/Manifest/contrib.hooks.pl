@@ -27,9 +27,6 @@
 '$builder_hook'(item_nested(timingmodel)).
 :- include(.('timingmodel.hooks')).
 
-'$builder_hook'(item_nested(gsl)).
-:- include(.('gsl.hooks')).
-
 '$builder_hook'(item_nested(ppl)).
 :- include(.('ppl.hooks')).
 
