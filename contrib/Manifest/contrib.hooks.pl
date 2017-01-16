@@ -27,9 +27,6 @@
 '$builder_hook'(item_nested(timingmodel)).
 :- include(.('timingmodel.hooks')).
 
-'$builder_hook'(item_nested(ppl)).
-:- include(.('ppl.hooks')).
-
 % ===========================================================================
 :- doc(section, "Tests and Benchmarks").
 % TODO: Add bundle defs for unit tests, integration tests, regression
