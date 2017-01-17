@@ -12,15 +12,15 @@
  	    span/3,
  	    tail/2,
 	    lazy_map/3,
+	    lazy_foldr/4,
 	    lazy_foldl/4,
  	    zipWith/4
 	],
 	[regtypes, fsyntax, assertions, basicmodes, hiord, lazy]).
 
-:- doc(title,"Lazy evaluation library").
-:- doc(author, "Amadeo Casas"||
-                   " (@tt{http://www.cs.unm.edu/~amadeo},"||
-	           " University of New Mexico)").
+:- doc(title, "Lazy evaluation library").
+:- doc(author, "Amadeo Casas").
+:- doc(author, "Jose F. Morales").
 
 :- doc(module,"This module provides several predicates that make
    easier to develop predicates that will be executed lazily.").
@@ -138,15 +138,49 @@ tail([_|T]) := T.
 lazy_map([], _)     := [].
 lazy_map([X|Xs], P) := [~P(X) | lazy_map(Xs, P)].
 
-:- pred lazy_foldl(+ListA,+X,+P,-ListR): list(term) * term * callable *
-   term => list(term) * term * callable * list(term) # "Version of the
-   foldl/3 predicate to be executed lazily".
+% Examples:
+%
+%  ?- lazy_foldr((''(X,Y,Z) :- Z=[X|Y]), [], [1,2,3,4], Xs), Xs=[A,B|_].
+%  
+%  A = 1,
+%  B = 2,
+%  Xs = [1,2|_A],
+%  _A attributed '$frozen_goals'(_A,$:('lazy_lib:lazy_foldr__$$lazy$$'([3,4],$:('PA'([],''(X,Y,Z),'term_basic:='(Z,[X|Y]))),[],_A))) ? 
+%  
+%  yes
+%  ?- lazy_foldl((''(X,Y,Z) :- Z=[X|Y]), [], [1,2,3,4], Xs), Xs=[A,B|_].
+%  
+%  A = 4,
+%  B = 3,
+%  Xs = [4,3,2,1] ? 
+%  
+%  yes
 
-:- meta_predicate lazy_foldl(_,_,pred(3),_).
+:- meta_predicate lazy_foldr(pred(3),?,?,?).
+:- pred lazy_foldr(+F,+B,+Xs,-R) 
+   :: callable * term * list(term) * term
+   # "Lazy version of @pred{foldr/3}".
 
-:- lazy fun_eval lazy_foldl/2.
-lazy_foldl([], Seed, _Op)    := Seed.
-lazy_foldl([X|Xs], Seed, Op) := ~Op(X, ~lazy_foldl(Xs, Seed, Op)).
+%:- lazy fun_eval lazy_foldr/3.
+lazy_foldr(F, B, Xs) := ~lazy_foldr_(Xs, F, B).
+
+:- meta_predicate lazy_foldr_(?,pred(3),?,?).
+:- lazy fun_eval lazy_foldr_/3.
+lazy_foldr_([], _F, B)    := B.
+lazy_foldr_([X|Xs], F, B) := ~F(X, ~lazy_foldr_(Xs, F, B)).
+
+:- meta_predicate lazy_foldl(pred(3),?,?,?).
+:- pred lazy_foldl(+F,+B,+Xs,-R) 
+   :: callable * term * list(term) * term
+   # "Lazy version of @pred{foldl/3}".
+
+%:- lazy fun_eval lazy_foldl/3.
+lazy_foldl(F, B, Xs) := ~lazy_foldl_(Xs, F, B).
+
+:- meta_predicate lazy_foldl_(?,pred(3),?,?).
+:- lazy fun_eval lazy_foldl_/3.
+lazy_foldl_([], _F, B)    := B.
+lazy_foldl_([X|Xs], F, B) := ~lazy_foldl_(Xs, F, ~F(X, B)).
 
 :- pred zipWith(+P,+ListA,+ListB,-ListR): callable * list(term) *
    list(term) * term => callable * list(term) * list(term) * list(term) #
