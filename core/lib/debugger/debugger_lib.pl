@@ -48,8 +48,7 @@
 :- use_module(library(lists)).
 :- use_module(library(format)).
 :- use_module(library(write)).
-:- use_module(library(hiordlib)).
-:- use_module(library(apply)).
+:- use_module(library(hiordlib), [filter/3, map/4]).
 :- use_module(library(sort)).
 :- use_module(library(read),   [read_term/3, read/2]).
 :- use_module(library(system), [cyg2win_a/3, using_windows/0]).
@@ -257,8 +256,8 @@ write_op(0'w, Goal, _) :- writeq(Goal).
 uninstantiated(_ = Value) :- var(Value).
 
 show_variable_values(Dict0, Dict, VarKind, Op, WO) :-
-	include(instantiated,   Dict,  DictInst),
-	include(uninstantiated, Dict0, DictUninst),
+	filter(instantiated, Dict, DictInst),
+	filter(uninstantiated, Dict0, DictUninst),
 	( DictInst == [] -> true
 	; format(user,
 		'         {Instantiated ~w-defined variables in scope:~n',

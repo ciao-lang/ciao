@@ -2,7 +2,7 @@
 		library(math/math_clp)]).
 
 :- use_module(library(lists)).
-:- use_module(library(hiordlib)).
+:- use_module(library(hiordlib), [map/3]).
 :- use_module(library(llists)).
 :- use_module(library(math/vector)).
 

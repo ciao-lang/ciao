@@ -112,7 +112,7 @@
 :- use_module(library(strings),    [get_line/1, whitespace0/2]).
 :- use_module(library(ctrlcclean), [delete_on_ctrlc/2, ctrlcclean/0]).
 :- use_module(library(terms),      [copy_args/3, atom_concat/2]).
-:- use_module(library(hiordlib)).
+:- use_module(library(hiordlib), [map/3]).
 :- use_module(library(lists)).
 :- use_module(library(read)).
 :- use_module(library(operators)).

@@ -2,7 +2,7 @@
 		compact_size/3],
 	    [assertions, nativeprops, dcg]).
 
-:- use_module(library(hiordlib)).
+:- use_module(library(hiordlib), [map/3]).
 :- use_module(library(lists)).
 :- use_module(library(sort)).
 

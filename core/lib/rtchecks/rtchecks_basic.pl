@@ -25,8 +25,8 @@
 
 :- use_module(library(llists),     [flatten/2]).
 :- use_module(library(terms_vars), [varset/2, intersect_vars/3]).
-:- use_module(library(hiordlib),   [map/3]).
-:- use_module(library(apply),      [maplist/4]).
+:- use_module(library(hiordlib), [map/3]).
+:- use_module(library(hiordlib), [maplist/4]).
 :- use_module(library(varnames/apply_dict),    [apply_dict/3,
                                                 select_applicable/3]).
 :- use_module(library(varnames/pretty_names),  [pretty_names/3]).

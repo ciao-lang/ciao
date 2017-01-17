@@ -26,21 +26,6 @@
 	],
 	[assertions, basicmodes, hiord, regtypes]).
 
-%:- use_module(library(prolog_sys)).
-%:- use_module(library(between)).
-
-:- use_module(library(hiordlib), 
-	[
-	    map/3,
-	    foldl/4
-	]).
-
-:- use_module(library(lists), 
-	[
-	    length/2,
-	    append/3
-	]).
-
 :- doc(title,"Association between key and value").
 
 :- doc(author,"Pablo Chico").
@@ -59,6 +44,12 @@
           AVL tree is used. There is a certain level of hysteresis so
           that no repeated data structure conversions occur when the
           number of elements is close to the threshold.").
+
+%:- use_module(library(prolog_sys)).
+%:- use_module(library(between)).
+
+:- use_module(library(hiordlib), [map/3, foldl/4]).
+:- use_module(library(lists), [length/2, append/3]).
 
 :- push_prolog_flag(multi_arity_warnings,off).
 

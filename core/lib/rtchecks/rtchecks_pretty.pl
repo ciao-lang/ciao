@@ -8,7 +8,7 @@
 
 :- use_module(library(lists), [append/3, reverse/2, select/3]).
 :- use_module(library(assertions/native_props), [is_det/1]).
-:- use_module(library(hiordlib),                [map/3]).
+:- use_module(library(hiordlib), [map/3]).
 :- use_module(library(rtchecks/compact_list),   [compact_list/2]).
 :- use_module(library(rtchecks/rtchecks_utils), [rtcheck_error/1]).
 :- use_module(library(varnames/dict_types),     [varnamesl/1]).

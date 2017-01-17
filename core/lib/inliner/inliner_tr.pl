@@ -8,7 +8,7 @@
 :- use_module(library(freeze)).
 :- use_module(library(sort)).
 :- use_module(library(lists)).
-:- use_module(library(hiordlib)).
+:- use_module(library(hiordlib), [map/3]).
 :- use_module(library(messages)).
 :- use_module(library(terms_vars)).
 :- use_module(library(write)).

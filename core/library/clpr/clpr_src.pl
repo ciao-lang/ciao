@@ -1,4 +1,4 @@
-% RH: It seems to be a pretty bad name !
+% TODO: It seems to be a pretty bad name! (RH)
 :- package(clpr_src).
 
 :- use_module(library(clpr/eval_r)).
@@ -8,8 +8,9 @@
 :- add_goal_trans(expand_r:expand/2, 750). % TODO: Right priority?
 
 % (Experimental) A better way is the following --EMM:
+
 % :- use_package(inliner).
-% % :- inline_module(library(apply), [maplist/3]).
+% % :- inline_module(library(hiordlib), [maplist/3]).
 % :- use_module(library(clpr/eval_r), [arith_eval/2]).
 
 % :- unfold arith_eps(yes).

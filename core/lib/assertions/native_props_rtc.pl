@@ -41,7 +41,7 @@
 :- use_module(library(system),     [mktemp_in_tmp/2, delete_file/1]).
 :- use_module(library(terms_vars), [term_variables/2,varsbag/3]).
 :- use_module(library(lists),      [sublist/2]).
-:- use_module(library(hiordlib),   [map/3]).
+:- use_module(library(hiordlib), [map/3]).
 :- use_module(library(rtchecks/rtchecks_send), [send_comp_rtcheck/3]).
 
 % ----------------------------------------------------------------------

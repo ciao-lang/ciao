@@ -5,7 +5,7 @@
 :- use_module(library(iso_misc)).
 :- use_package(fsyntax).
 :- use_package(hiord).
-:- use_module(library(hiordlib)).
+:- use_module(library(hiordlib), [map/3]).
 
 test_chr(Base-Name, _) :-
 	absolute_file_name(library(chr/'Tests'/Base),

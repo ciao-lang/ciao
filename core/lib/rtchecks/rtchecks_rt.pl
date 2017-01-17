@@ -25,7 +25,7 @@
 :- use_module(engine(attributes)).
 :- use_module(library(terms_vars)).
 :- use_module(library(freeze)).
-:- use_module(library(hiordlib)).
+:- use_module(library(hiordlib), [map/4]).
 
 :- reexport(library(rtchecks/rtchecks_send)).
 

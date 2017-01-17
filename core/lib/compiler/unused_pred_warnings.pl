@@ -6,7 +6,7 @@
 	    [assertions, nativeprops, dcg, define_flag]).
 
 :- use_module(library(lists)).
-:- use_module(library(hiordlib)).
+:- use_module(library(hiordlib), [map/4]).
 :- use_module(library(llists)).
 :- use_module(library(aggregates)).
 :- use_module(library(sort)).

@@ -26,8 +26,8 @@
 
 :- load_test_package(library(math/math_clp)).
 
-:- use_module(library(apply)).
-:- use_module(library(hiordlib)).
+:- use_module(library(hiordlib), [maplist/2, maplist/3, maplist/4]).
+:- use_module(library(hiordlib), [map/3, map/4, map/5]).
 
 :- push_prolog_flag(multi_arity_warnings, off).
 
