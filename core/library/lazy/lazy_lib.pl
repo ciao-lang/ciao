@@ -148,7 +148,7 @@ lazy_map([X|Xs], P) := [~P(X) | lazy_map(Xs, P)].
 %  _A attributed '$frozen_goals'(_A,$:('lazy_lib:lazy_foldr__$$lazy$$'([3,4],$:('PA'([],''(X,Y,Z),'term_basic:='(Z,[X|Y]))),[],_A))) ? 
 %  
 %  yes
-%  ?- lazy_foldl((''(X,Y,Z) :- Z=[X|Y]), [], [1,2,3,4], Xs), Xs=[A,B|_].
+%  ?- lazy_foldl((''(X,Y,Z) :- Z=[Y|X]), [], [1,2,3,4], Xs), Xs=[A,B|_].
 %  
 %  A = 4,
 %  B = 3,
@@ -180,7 +180,7 @@ lazy_foldl(F, B, Xs) := ~lazy_foldl_(Xs, F, B).
 :- meta_predicate lazy_foldl_(?,pred(3),?,?).
 :- lazy fun_eval lazy_foldl_/3.
 lazy_foldl_([], _F, B)    := B.
-lazy_foldl_([X|Xs], F, B) := ~lazy_foldl_(Xs, F, ~F(X, B)).
+lazy_foldl_([X|Xs], F, B) := ~lazy_foldl_(Xs, F, ~F(B, X)).
 
 :- pred zipWith(+P,+ListA,+ListB,-ListR): callable * list(term) *
    list(term) * term => callable * list(term) * list(term) * list(term) #
