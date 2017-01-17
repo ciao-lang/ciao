@@ -163,7 +163,6 @@ environment with a unique set of features:
    --ciao_emacs:emacs_site_start=%{emacs_sitestart_dir} \
    --ciao_emacs:emacsinitfile=%{emacs_sitestart_filename} \
    --core:with_mysql=%{?with_mysql}%{!?with_mysql:no} \
-   --contrib:with_ppl=no \
    --lpdoc:docdir=%{ciaodocdir} \
    --lpdoc:mandir=%{_mandir} --lpdoc:infodir=%{_infodir} \
    --lpdoc:htmldir=%{ciaodocdir}/html \
@@ -171,6 +170,7 @@ environment with a unique set of features:
    --core:install_prolog_name=no \
    --execmode=755 --datamode=644
 ./ciao-boot.sh build --bin
+#   --ciao_ppl:with_ppl=no \
 #   --ciao_java:with_java_interface=%{?with_java_interface}%{!?with_java_interface:no} \
 #   --ciao_gsl:with_gsl=%{?with_gsl}%{!?with_gsl:no}
 
