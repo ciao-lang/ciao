@@ -435,7 +435,7 @@ ord_memberchk( X , A ) :-
 
 
 
-:- use_module(library(hiordlib), [map/3, foldl/4]).
+:- use_module(library(hiordlib), [map/3]).
 
 :- meta_predicate maplist( pred(2) , ? , ? ).
 
@@ -466,9 +466,6 @@ predsort1( [A|As] , P, B , L ) :-
 	my_insert( P , A , B , NB ),
 	predsort1( As , P, NB , L ).
  
-
-
-%	foldl( L , [] , my_insert(P) , NL ).
 
 my_insert( _ , A , [] , [A] ) :-
 	!.

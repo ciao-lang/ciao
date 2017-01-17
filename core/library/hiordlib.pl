@@ -2,6 +2,8 @@
      map/3, map/4, map/5,
      map/6, % NOTUSED
      foldl/4,
+     foldr/4,
+     foldr_tail/4,
      minimum/3,
      filter/3,
      partition/4,
@@ -70,18 +72,85 @@ map([X|Xs], [Y|Ys], P) --> P(X, Y), map(Xs, Ys, P).
 map([],     [],     [],     _) --> [].
 map([X|Xs], [Y|Ys], [Z|Zs], P) --> P(X, Y, Z), map(Xs, Ys, Zs, P).
 
-:- meta_predicate foldl(_, _, pred(3), _).
-:- pred foldl(List, Seed, Op, Result) # "Example of use:
-@begin{verbatim}
-?- foldl([\"daniel\",\"cabeza\",\"gras\"], \"\", 
-         (''(X,Y,Z) :- append(X, \" \"||Y, Z)), R).
+% (example)
+:- test foldl(F, Z, Xs, R) : (
+     F = (''(A,B,C) :- C=[B|A]),
+     Z = [],
+     Xs = [1,2,3,4]
+   ) => (R = [4,3,2,1]) + (not_fails, is_det)
+   # "Reverse a list".
 
-R = \"daniel cabeza gras \" ? 
-@end{verbatim}
-".
+:- meta_predicate foldl(pred(3), ?, ?, ?).
+:- pred foldl(+F, +Z, ?Xs, ?R)
+   :: callable * term * list(term) * list(term)
+   # "@var{R} is the left fold of @var{Xs} using @var{F}
+      (intuitively @var{F} is applied before recursive fold)".
 
-foldl([],     Seed, _Op) := Seed.
-foldl([X|Xs], Seed, Op) := ~Op(X, ~foldl(Xs, Seed, Op)).
+foldl(F, Z, Xs, R) :-
+	foldl_(Xs, F, Z, R).
+
+:- meta_predicate foldl_(?, pred(3), ?, ?).
+foldl_([], _F, Z, Z).
+foldl_([X|Xs], F, Z, R):-
+	F(Z, X, R1),
+	foldl_(Xs, F, R1, R).
+
+:- meta_predicate foldr(pred(3), ?, ?, ?).
+:- pred foldr(+F, +Z, ?Xs, ?R)
+   :: callable * term * list(term) * list(term)
+   # "@var{R} is the right fold of @var{Xs} using @var{F}
+      (intuitively @var{F} is applied after recursive fold)".
+
+foldr(F, Z, Xs, R) :-
+	foldr_(Xs, F, Z, R).
+
+:- meta_predicate foldr_(?, pred(3), ?, ?).
+foldr_([], _F, Z, Z).
+foldr_([X|Xs], F, Z, R):-
+	foldr_(Xs, F, Z, R1),
+	F(X, R1, R).
+
+% (example)
+:- test foldr(F, Z, Xs, R) : (
+     F = (''(A,B,C) :- C=c(A,B)),
+     Z = nil,
+     Xs = [1,2,3,4]
+   ) => (R = c(1,c(2,c(3,c(4,nil))))) + (not_fails, is_det)
+   # "Change list representation".
+
+% (example)
+% (Note that foldr_tail/4 is not valid in this case)
+:- test foldr(F, Z, Xs, R) : (
+     F = (''(A,B,C) :- C is A+B),
+     Z = 0,
+     Xs = [1,2,3,4]
+   ) => (R = 10) + (not_fails, is_det)
+   # "Sum elements of list".
+
+:- meta_predicate foldr_tail(pred(3), ?, ?, ?).
+:- pred foldr_tail(+F, +Z, ?Xs, ?R)
+   :: callable * term * list(term) * list(term)
+   # "Tail-recursive right fold, requires @tt{F(+,?,?)} as a valid
+     calling mode. Like @pred{foldr/4} but reduces stack usage
+     (@var{F} is applied on output of the recursive fold, although it
+     is called before the recursive call)".
+
+foldr_tail(F, Z, Xs, R) :-
+	foldr_tail_(Xs, F, Z, R).
+
+:- meta_predicate foldr_tail_(?, pred(3), ?, ?).
+foldr_tail_([], _F, Z, Z).
+foldr_tail_([X|Xs], F, Z, R):-
+	F(X, R1, R), % note: R1 is unbound here!
+	foldr_tail_(Xs, F, Z, R1).
+
+% (example)
+:- test foldr_tail(F, Z, Xs, R) : (
+     F = (''(A,B,C) :- C=c(A,B)),
+     Z = nil,
+     Xs = [1,2,3,4]
+   ) => (R = c(1,c(2,c(3,c(4,nil))))) + (not_fails, is_det)
+   # "Change list representation (tail-recursive)".
 
 :- meta_predicate minimum(_, pred(2), _).
 :- pred minimum(?List, +SmallerThan, ?Minimum) : list * callable *

@@ -14,7 +14,7 @@
 	  map_assoc/2,
 	  map_assoc/3,
 	  map/3,
-	  foldl/4,
+	  foldr/4,
 	  put_assoc/4,
 	  put_assoc/5,
 	  add_assoc/4,
@@ -48,7 +48,7 @@
 %:- use_module(library(prolog_sys)).
 %:- use_module(library(between)).
 
-:- use_module(library(hiordlib), [map/3, foldl/4]).
+:- use_module(library(hiordlib), [map/3, foldr/4]).
 :- use_module(library(lists), [length/2, append/3]).
 
 :- push_prolog_flag(multi_arity_warnings,off).
@@ -596,26 +596,24 @@ map_avl(avl(K,Old_Val,Old_L,Old_R,H),Pred,avl(K,New_Val,New_L,New_R,H)) :-
 	Pred(K,Old_Val,New_Val), 
 	map_avl(Old_R,Pred,New_R).
 
-:- pred foldl(+Assoc,+DS,+Pred,-NDS) 
+% TODO: allow foldr_tail too?
+:- meta_predicate foldr(?, pred(4), ?, ?).
+:- pred foldr(+Assoc,+Pred,+DS,-NDS) 
      # "Applies @var{Pred} with arity 4 to each value of the
        assoc_table @var{Assoc}. If @var{Pred} is satisfied, it updates
        the data-structure DS. Otherwise it fails.".
 
-:- meta_predicate foldl(?, ?, pred(4), ?).
-
-foldl(assoc_table(Assoc,_,Type),DS,Pred,NDS) :- 
-	(
-	    Type == tree ->
-	    foldl_avl(Assoc,DS,Pred,NDS)
-	;
-	    hiordlib:foldl(Assoc,DS,(_(K-V,DS0,NDS0) :- Pred(K,V,DS0,NDS0)),NDS)
+foldr(assoc_table(Assoc,_,Type),Pred,DS,NDS) :- 
+	( Type == tree ->
+	    foldr_avl(Assoc,DS,Pred,NDS)
+	; hiordlib:foldr((_(K-V,DS0,NDS0) :- Pred(K,V,DS0,NDS0)),DS,Assoc,NDS)
 	).
 
-foldl_avl(nil,DS,_,DS).
-foldl_avl(avl(K,V,L,R,_),DS,Pred,NDS) :- 
-	foldl_avl(L,DS,Pred,DS0),
+foldr_avl(nil,DS,_,DS).
+foldr_avl(avl(K,V,L,R,_),DS,Pred,NDS) :- 
+	foldr_avl(L,DS,Pred,DS0),
 	Pred(K,V,DS0,DS1),
-	foldl_avl(R,DS1,Pred,NDS).
+	foldr_avl(R,DS1,Pred,NDS).
 
 :- regtype ord_pairs(P) # "@var{P} is a ordered list of elements of the
    form @tt{key}-@tt{value}.".
