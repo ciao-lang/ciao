@@ -2,12 +2,10 @@
 
 :- doc(nodoc,assertions).
 
-:- doc(title,"Lazy evaluation").
+:- doc(title, "Lazy evaluation").
 
-:- doc(author,"Amadeo Casas"||
-	          " (@tt{http://www.cs.unm.edu/~amadeo},"||
-                  " University of New Mexico)").
-:- doc(author,"Jose F. Morales (minor modifications)").
+:- doc(author, "Amadeo Casas").
+:- doc(author, "Jose F. Morales (minor modifications)").
 
 :- doc(module, "This library package allows the use of lazy evaluation
    in a Ciao module/program.
@@ -122,67 +120,7 @@ nums_from(X) := [X | nums_from(X+1)].
 @noindent
    will compute @var{X} = [1,4,9,16,25,36,49,64,81,100].
 
-   A library of useful functions has been added to this package to allow
-   the programmer to develop lazy functions easily and with a well-defined
-   syntax. This library is called @bf{lazy_lib.pl} and it provides the
-   following functions:
-
-
-@begin{itemize}
-
-@item nums_from(+X,-List): @var{List} is unified with an infinite list of
-   successive numbers starting in @var{X}.
-
-@item nums_from_inc(+X,+Y,-List): @var{List} is unified with an infinite
-   list of successive numbers starting in @var{X} with an increment of
-   @var{Y}.
-
-@item repeat(+X,-List): @var{List} is unified with an infinite list of the
-   term @var{Y}.
-
-@item cycle(+X,-List): @var{List} is unified with an infinite list of the
-   term @var{Y} repeated infinite times.
-
-@item take(+X,+ListA,-ListR): @var{ListR} is unified with the first @var{X}
-   elements of the infinite list @var{ListA}.
-
-@item takeWhile(+P,+ListA,-ListR): @var{ListR} is unified with the first
-   elements of the infinite list @var{ListA} while the condition @var{P} is
-   true.
-
-@item drop(+X,+ListA,-ListR): @var{ListR} is unified with the infinite list
-   @var{ListA} dropping the first @var{X} elements.
-
-@item dropWhile(+P,+ListA,-ListR): @var{ListR} is unified with the infinite
-   list @var{ListA} dropping the first elements while the condition @var{P}
-   is true.
-
-@item splitAt(+X,+ListA,-Res): @var{Res} is unified with a tuple of lists
-   where the first list is composed by the first @var{X} elements of the
-   list @var{ListA} and the second list is composed by the rest of the
-   elements of @var{ListA}.
-
-@item span(+P,+ListA,-Res): @var{Res} is unified with a tuple of lists
-   where the first list is composed by the elements of @var{ListA} which
-   verify the condition @var{P} and the second list is composed by the rest
-   of the elements of the initial list.
-
-@item tail(+ListA,-ListR): @var{ListR} is unified with the tail of the
-   infinite list @var{ListA}.
-
-@item lazy_map(+ListA,+P,-ListR): Version of the map/3 predicate to be
-   executed lazily.
-
-@item lazy_foldl(+ListA,+X,+P,-ListR): Version of the foldl/3 predicate to
-   be executed lazily.
-
-@item zipWith(+P,+ListA,+ListB,-ListR): @var{ListR} is a list whose
-   elements are calculated from the function @var{P} and the elements of
-   input lists @var{ListA} and @var{ListB} occuring at the same position in
-   both lists.
-
-@end{itemize}
-
+   Some common lazy predicates are provided in @lib{lazy_lib}.
 ").
 
 
