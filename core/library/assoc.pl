@@ -605,15 +605,15 @@ map_avl(avl(K,Old_Val,Old_L,Old_R,H),Pred,avl(K,New_Val,New_L,New_R,H)) :-
 
 foldr(assoc_table(Assoc,_,Type),Pred,DS,NDS) :- 
 	( Type == tree ->
-	    foldr_avl(Assoc,DS,Pred,NDS)
-	; hiordlib:foldr((_(K-V,DS0,NDS0) :- Pred(K,V,DS0,NDS0)),DS,Assoc,NDS)
+	    foldr_avl(Assoc,Pred,DS,NDS)
+	; hiordlib:foldr((_(K-V,DS0,NDS0) :- Pred(K,V,DS0,NDS0)),Assoc,DS,NDS)
 	).
 
-foldr_avl(nil,DS,_,DS).
-foldr_avl(avl(K,V,L,R,_),DS,Pred,NDS) :- 
-	foldr_avl(L,DS,Pred,DS0),
+foldr_avl(nil,_,DS,DS).
+foldr_avl(avl(K,V,L,R,_),Pred,DS,NDS) :- 
+	foldr_avl(L,Pred,DS,DS0),
 	Pred(K,V,DS0,DS1),
-	foldr_avl(R,DS1,Pred,NDS).
+	foldr_avl(R,Pred,DS1,NDS).
 
 :- regtype ord_pairs(P) # "@var{P} is a ordered list of elements of the
    form @tt{key}-@tt{value}.".

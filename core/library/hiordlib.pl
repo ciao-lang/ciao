@@ -3,7 +3,6 @@
      map/6, % NOTUSED
      foldl/4,
      foldr/4,
-     foldr_tail/4,
      minimum/3,
      filter/3,
      partition/4,
@@ -24,16 +23,13 @@
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "This library implements a few basic higher-order
-   predicates for manipulating basic data structures (e.g., lists).").
+   predicates for reducing and transforming lists.").
 
+% ---------------------------------------------------------------------------
+
+% TODO: replace by maplist/3 (change arg order)
 :- meta_predicate map(_, pred(2), _).
-:- pred map(LList, Op, RList) # "Examples of use:
-@begin{verbatim}
-  map([1,3,2], arg(f(a,b,c,d)), [a,c,b]) or
-  map([1,3,2], nth([a,b,c,d]), [a,c,b])
-  map([\"D\",\"C\"], append(\".\"), [\"D.\",\"C.\"])
-@end{verbatim}
-".
+:- pred map(LList, Op, RList).
 
 map([],     _) := [].
 map([X|Xs], P) := [~P(X) |~map(Xs, P)].
@@ -49,11 +45,13 @@ map([X|Xs], P) := [~P(X) |~map(Xs, P)].
 :- test map(A, B, C) : (A = ["D", "C"], B = append("."))
 	=> (C = ["D.", "C."]) + (not_fails, is_det).
 
+% TODO: DCG version is indeed foldl/4!
 :- meta_predicate map(?, pred(3), ?, ?).
-:- pred map(LList, Op, RList, Tail) # "DCG version of map.".
-
-map([],     _) --> [].
-map([X|Xs], P) --> P(X), map(Xs, P).
+%% :- pred map(LList, Op, RList, Tail) # "DCG version of map.".
+%% 
+%% map([],     _) --> [].
+%% map([X|Xs], P) --> P(X), map(Xs, P).
+map(Xs, P, V0, V) :- foldl(P, Xs, V0, V).
 
 :- test map(A, B, C, D) :
 	(
@@ -72,85 +70,118 @@ map([X|Xs], [Y|Ys], P) --> P(X, Y), map(Xs, Ys, P).
 map([],     [],     [],     _) --> [].
 map([X|Xs], [Y|Ys], [Z|Zs], P) --> P(X, Y, Z), map(Xs, Ys, Zs, P).
 
-% (example)
-:- test foldl(F, Z, Xs, R) : (
-     F = (''(A,B,C) :- C=[B|A]),
-     Z = [],
-     Xs = [1,2,3,4]
-   ) => (R = [4,3,2,1]) + (not_fails, is_det)
-   # "Reverse a list".
+% ---------------------------------------------------------------------------
 
 :- meta_predicate foldl(pred(3), ?, ?, ?).
-:- pred foldl(+F, +Z, ?Xs, ?R)
-   :: callable * term * list(term) * list(term)
-   # "@var{R} is the left fold of @var{Xs} using @var{F}
-      (intuitively @var{F} is applied before recursive fold)".
+:- pred foldl(+P, ?Xs, ?V0, ?V)
+   :: callable * list(term) * term * term
+   # "Reduces (fold) @var{Xs} from the left applying @var{P} and using
+      @var{V0}-@var{V} as accumulator.".
 
-foldl(F, Z, Xs, R) :-
-	foldl_(Xs, F, Z, R).
+:- doc(foldl/4, "
+The left fold family @tt{foldl/N} is equivalent to:
+
+@begin{verbatim}
+foldl(P, [X11,...,X1n], [Xm1,...,Xmn], V0, V) :-
+    P(X11, ..., Xm1, V0, V1),
+    ...
+    P(Xn,  ..., Xmn, Vn_1, Vn).
+@end{verbatim}
+").
+
+% Note on argument order:
+%
+%  - algebraic-style (like Ocaml, Haskell)
+%    foldl: f(f(f(z, 1), 2), 3)
+%
+%  - accumulator-style (like Elm, Elixir, Erlang)
+%    foldl: f(3, f(2, f(1, z)))
+
+foldl(P, Xs, V0, V) :-
+	foldl_(Xs, P, V0, V).
 
 :- meta_predicate foldl_(?, pred(3), ?, ?).
-foldl_([], _F, Z, Z).
-foldl_([X|Xs], F, Z, R):-
-	F(Z, X, R1),
-	foldl_(Xs, F, R1, R).
-
-:- meta_predicate foldr(pred(3), ?, ?, ?).
-:- pred foldr(+F, +Z, ?Xs, ?R)
-   :: callable * term * list(term) * list(term)
-   # "@var{R} is the right fold of @var{Xs} using @var{F}
-      (intuitively @var{F} is applied after recursive fold)".
-
-foldr(F, Z, Xs, R) :-
-	foldr_(Xs, F, Z, R).
-
-:- meta_predicate foldr_(?, pred(3), ?, ?).
-foldr_([], _F, Z, Z).
-foldr_([X|Xs], F, Z, R):-
-	foldr_(Xs, F, Z, R1),
-	F(X, R1, R).
+foldl_([], _P, V, V).
+foldl_([X|Xs], P, V0, V):-
+	P(X, V0, V1),
+	foldl_(Xs, P, V1, V).
 
 % (example)
-:- test foldr(F, Z, Xs, R) : (
-     F = (''(A,B,C) :- C=c(A,B)),
-     Z = nil,
-     Xs = [1,2,3,4]
-   ) => (R = c(1,c(2,c(3,c(4,nil))))) + (not_fails, is_det)
+:- test foldl(P, Xs, V0, V) : (
+     P = (''(A,B,C) :- C=[A|B]),
+     Xs = [1,2,3,4],
+     V0 = []
+   ) => (V = [4,3,2,1]) + (not_fails, is_det)
+   # "Reverse a list".
+
+:- test foldl(F, Xs, Y, Y0) : (
+     F = (''(A,B,C) :- B=c(A,C)),
+     Xs = [1,2,3,4],
+     Y0 = nil
+   ) => (Y = c(1,c(2,c(3,c(4,nil))))) + (not_fails, is_det)
+   # "Change list representation (tail-recursive)".
+
+% ---------------------------------------------------------------------------
+
+:- meta_predicate foldr(pred(3), ?, ?, ?).
+:- pred foldr(+F, ?Xs, +V0, ?V)
+   :: callable * list(term) * term * term
+   # "Reduces (fold) @var{Xs} from the right applying @var{P} and using
+      @var{V0}-@var{V} as accumulator.".
+
+:- doc(foldr/4, "
+The right fold family @tt{foldr/N} is equivalent to:
+
+@begin{verbatim}
+foldr(P, [X11,...,X1n], [Xm1,...,Xmn], V0, V) :-
+    P(Xn,  ..., Xmn, V0, V1),
+    ...
+    P(X11, ..., Xm1, Vn_1, V).
+@end{verbatim}
+
+Note that @tt{foldr/N} is not tail recursive. When @tt{P(...,?,?)} is
+a valid calling mode, it would be possible to reorder the calls as in:
+
+@begin{verbatim}
+foldr_tail(P, [X11,...,X1n], [Xm1,...,Xmn], V0, V) :-
+    P(X11, ..., Xm1, Vn_1, V),
+    ...
+    P(Xn,  ..., Xmn, V0, V1).
+@end{verbatim}
+
+which is exactly like @tt{foldl/N} but with fliped accumulator
+arguments.  See @tt{foldl/N} examples").
+
+% E.g.,
+%    foldr: f(1, f(2, f(3, z)))
+
+foldr(P, Xs, V0, V) :-
+	foldr_(Xs, P, V0, V).
+
+:- meta_predicate foldr_(?, pred(3), ?, ?).
+foldr_([], _P, Z, Z).
+foldr_([X|Xs], P, Z, R):-
+	foldr_(Xs, P, Z, R1),
+	P(X, R1, R).
+
+% (example)
+:- test foldr(P, Xs, Y0, Y) : (
+     P = (''(A,B,C) :- C=c(A,B)),
+     Xs = [1,2,3,4],
+     Y0 = nil
+   ) => (Y = c(1,c(2,c(3,c(4,nil))))) + (not_fails, is_det)
    # "Change list representation".
 
 % (example)
-% (Note that foldr_tail/4 is not valid in this case)
-:- test foldr(F, Z, Xs, R) : (
-     F = (''(A,B,C) :- C is A+B),
-     Z = 0,
-     Xs = [1,2,3,4]
-   ) => (R = 10) + (not_fails, is_det)
+% TODO: find an example where P is not commutative
+:- test foldr(P, Xs, V0, V) : (
+     P = (''(A,B,C) :- C is A+B),
+     Xs = [1,2,3,4],
+     V0 = 0
+   ) => (V = 10) + (not_fails, is_det)
    # "Sum elements of list".
 
-:- meta_predicate foldr_tail(pred(3), ?, ?, ?).
-:- pred foldr_tail(+F, +Z, ?Xs, ?R)
-   :: callable * term * list(term) * list(term)
-   # "Tail-recursive right fold, requires @tt{F(+,?,?)} as a valid
-     calling mode. Like @pred{foldr/4} but reduces stack usage
-     (@var{F} is applied on output of the recursive fold, although it
-     is called before the recursive call)".
-
-foldr_tail(F, Z, Xs, R) :-
-	foldr_tail_(Xs, F, Z, R).
-
-:- meta_predicate foldr_tail_(?, pred(3), ?, ?).
-foldr_tail_([], _F, Z, Z).
-foldr_tail_([X|Xs], F, Z, R):-
-	F(X, R1, R), % note: R1 is unbound here!
-	foldr_tail_(Xs, F, Z, R1).
-
-% (example)
-:- test foldr_tail(F, Z, Xs, R) : (
-     F = (''(A,B,C) :- C=c(A,B)),
-     Z = nil,
-     Xs = [1,2,3,4]
-   ) => (R = c(1,c(2,c(3,c(4,nil))))) + (not_fails, is_det)
-   # "Change list representation (tail-recursive)".
+% ---------------------------------------------------------------------------
 
 :- meta_predicate minimum(_, pred(2), _).
 :- pred minimum(?List, +SmallerThan, ?Minimum) : list * callable *
@@ -159,6 +190,7 @@ foldr_tail_([X|Xs], F, Z, R):-
 	@pred{SmallerThan(X, Y)} succeeds iff X is smaller than Y.".
 
 minimum([X|Xs], Pred, Min) :- minimum_carry(Xs, Pred, X, Min).
+
 minimum_carry([],     _Pred, M,        M).
 minimum_carry([X|Xs], Pred,  MinSoFar, Min) :-
 	(
@@ -167,6 +199,8 @@ minimum_carry([X|Xs], Pred,  MinSoFar, Min) :-
 	;
 	    minimum_carry(Xs, Pred, X, Min)
 	).
+
+% ---------------------------------------------------------------------------
 
 :- meta_predicate filter(pred(1), +, ?).
 :- pred filter(+P, +Xs, ?Ys)
@@ -184,6 +218,8 @@ filter_([X|Xs], P, Ys) :-
 	; Ys = Ys0
 	),
 	filter_(Xs, P, Ys0).
+
+% ---------------------------------------------------------------------------
 
 :- meta_predicate partition(pred(1), ?, ?, ?).
 :- pred partition(+P, +Xs, ?Ys, ?Zs) ::
@@ -217,34 +253,41 @@ partition_([X|Xs], P, Ys, Zs) :-
 :- pred maplist(+P, +Xs) ::
 	(callable(P), list(Xs))
    # "@tt{P(X)} succeeds for each element @var{X} of @var{Xs}".
-%
+
+:- doc(maplist/2, "
+The map list family @tt{maplist/N} is equivalent to:
+
+@begin{verbatim}
+maplist(P, [X11,...,X1n], [Xm1,...,Xmn]) :-
+    P(X11, ..., Xm1),
+    ...
+    P(Xn,  ..., Xmn).
+@end{verbatim}
+").
+
 :- meta_predicate maplist(pred(2), ?, ?).
 :- pred maplist(+P, +Xs, ?Ys) ::
 	(callable(P), list(Xs), list(Ys))
-   # "@tt{P(X,Y)} succeeds for each successive pair
-      (@var{X},@var{Y}) from
-       @var{Xs}, @var{Ys}.".
+   # "Like @pred{maplist/2} but applied to successive tuples
+      from @var{Xs}, @var{Ys}.".
 %
 :- meta_predicate maplist(pred(3), ?, ?, ?).
 :- pred maplist(+P, +Xs, ?Ys, ?Zs) ::
 	(callable(P), list(Xs), list(Ys), list(Zs))
-   # "@tt{P(X,Y,Z)} succeeds for each successive pair
-      (@var{X},@var{Y},@var{Z}) from
-       @var{Xs}, @var{Ys}, @var{Zs}.".
+   # "Like @pred{maplist/2} but applied to successive tuples
+      from @var{Xs}, @var{Ys}, @var{Zs}.".
 %
 :- meta_predicate maplist(pred(4), ?, ?, ?, ?).
 :- pred maplist(+P, +Xs, ?Ys, ?Zs, ?Vs) ::
 	(callable(P), list(Xs), list(Ys), list(Zs), list(Vs))
-   # "@tt{P(X,Y,Z,V)} succeeds for each successive pair
-      (@var{X},@var{Y},@var{Z},@var{V}) from
-       @var{Xs}, @var{Ys}, @var{Zs}, @var{Vs}.".
+   # "Like @pred{maplist/2} but applied to successive tuples
+      from @var{Xs}, @var{Ys}, @var{Zs}, @var{Vs}.".
 %
 :- meta_predicate maplist(pred(5), ?, ?, ?, ?, ?).
 :- pred maplist(+P, +Xs, ?Ys, ?Zs, ?Vs, ?Ws) ::
 	(callable(P), list(Xs), list(Ys), list(Zs), list(Vs), list(Ws))
-   # "@tt{P(X,Y,Z,V,W)} succeeds for each successive pair
-      (@var{X},@var{Y},@var{Z},@var{V},@var{W}) from
-       @var{Xs}, @var{Ys}, @var{Zs}, @var{Vs}, @var{Ws}.".
+   # "Like @pred{maplist/2} but applied to successive tuples
+      from @var{Xs}, @var{Ys}, @var{Zs}, @var{Vs}, @var{Ws}.".
 
 maplist(P, Xs) :-
 	maplist1(Xs, P).
