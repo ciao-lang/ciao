@@ -35,19 +35,38 @@
 :- meta_predicate map(_, pred(2), _).
 :- pred map(LList, Op, RList).
 
-map([],     _) := [].
-map([X|Xs], P) := [~P(X) |~map(Xs, P)].
+%% map([],     _) := [].
+%% map([X|Xs], P) := [~P(X) |~map(Xs, P)].
+map(Xs, P, Ys) :- maplist(P, Xs, Ys).
 
 :- load_test_module(library(lists), [nth/3, append/3]).
 
-:- test map(A, B, C) : (A = [1, 3, 2], B = arg(f(a, b, c, d)))
-	=> (C = [a, c, b]) + (not_fails, is_det).
+:- test map(A, B, C) : (
+    A = [1, 3, 2], B = arg(f(a, b, c, d))
+   ) => (C = [a, c, b]) + (not_fails, is_det).
 
-:- test map(A, B, C) : (A = [1, 3, 2], B = nth([a, b, c, d]))
-	=> (C = [a, c, b]) + (not_fails, is_det).
+:- test map(A, B, C) : (
+    A = [1, 3, 2], B = nth([a, b, c, d])
+   ) => (C = [a, c, b]) + (not_fails, is_det).
 
-:- test map(A, B, C) : (A = ["D", "C"], B = append("."))
-	=> (C = ["D.", "C."]) + (not_fails, is_det).
+:- test map(A, B, C) : (
+    A = ["D", "C"], B = append(".")
+   ) => (C = ["D.", "C."]) + (not_fails, is_det).
+
+:- test maplist(P, A, B) : (
+    P = arg(f(a, b, c, d)),
+    A = [1, 3, 2]
+   ) => (B = [a, c, b]) + (not_fails, is_det).
+
+:- test maplist(P, A, B) : (
+    P = nth([a, b, c, d]),
+    A = [1, 3, 2]
+   ) => (B = [a, c, b]) + (not_fails, is_det).
+
+:- test maplist(P, A, B) : (
+    P = append("."),
+    A = ["D", "C"]
+   ) => (B = ["D.", "C."]) + (not_fails, is_det).
 
 % TODO: DCG version is indeed foldl/4!
 :- meta_predicate map(?, pred(3), ?, ?).
@@ -57,22 +76,23 @@ map([X|Xs], P) := [~P(X) |~map(Xs, P)].
 %% map([X|Xs], P) --> P(X), map(Xs, P).
 map(Xs, P, V0, V) :- foldl(P, Xs, V0, V).
 
-:- test map(A, B, C, D) :
-	(
-	    A = [1, 3, 2],
-	    B = (''(L, [E|T], T) :- arg(L, f(a, b, c, d), E)),
-	    D = [x, y])
-	=> (C = [a, c, b, x, y]) + (not_fails, is_det).
+:- test map(A, B, C, D) : (
+    A = [1, 3, 2],
+    B = (''(L, [E|T], T) :- arg(L, f(a, b, c, d), E)),
+    D = [x, y]
+   ) => (C = [a, c, b, x, y]) + (not_fails, is_det).
 
 :- meta_predicate map(?, ?, pred(4), ?, ?).
 
-map([],     [], _) --> [].
-map([X|Xs], [Y|Ys], P) --> P(X, Y), map(Xs, Ys, P).
+%% map([],     [], _) --> [].
+%% map([X|Xs], [Y|Ys], P) --> P(X, Y), map(Xs, Ys, P).
+map(Xs, Ys, P, V0, V) :- foldl(P, Xs, Ys, V0, V).
 
 :- meta_predicate map(?, ?, ?, pred(5), ?, ?).
 
-map([],     [],     [],     _) --> [].
-map([X|Xs], [Y|Ys], [Z|Zs], P) --> P(X, Y, Z), map(Xs, Ys, Zs, P).
+%% map([],     [],     [],     _) --> [].
+%% map([X|Xs], [Y|Ys], [Z|Zs], P) --> P(X, Y, Z), map(Xs, Ys, Zs, P).
+map(Xs, Ys, Zs, P, V0, V) :- foldl(P, Xs, Ys, Zs, V0, V).
 
 % ---------------------------------------------------------------------------
 
@@ -190,6 +210,12 @@ foldl5([X|Xs], P, [Y|Ys], [Z|Zs], [U|Us], [W|Ws], V0, V) :-
      Cs0 = []
    ) => (Cs = [(1,a),(2,b),(3,c),(4,d)]) + (not_fails, is_det)
    # "Zip two lists (tail-recursive)".
+
+:- test foldl(P, Xs, Ys, Ys0) : (
+    P = (''(I, [E|Es], Es) :- arg(I, f(a, b, c, d), E)),
+    Xs = [1, 3, 2],
+    Ys0 = [x, y]
+   ) => (Ys = [a, c, b, x, y]) + (not_fails, is_det).
 
 % ---------------------------------------------------------------------------
 
@@ -313,10 +339,9 @@ partition_([X|Xs], P, Ys, Zs) :-
 	),
 	partition_(Xs, P, Ys0, Zs0).
 
-:- test partition(P, Xs, Ys, Zs)
-	: (P='>'(4), Xs=[1, 2, 3, 4, 5, 6])
-	=> (Ys=[5, 6], Zs=[1, 2, 3, 4])
-	+ not_fails.
+:- test partition(P, Xs, Ys, Zs) : (
+    P='>'(4), Xs=[1, 2, 3, 4, 5, 6]
+   ) => (Ys=[5, 6], Zs=[1, 2, 3, 4]) + not_fails.
 
 % ---------------------------------------------------------------------------
 % maplist/N
