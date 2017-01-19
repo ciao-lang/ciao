@@ -8,7 +8,7 @@
 :- use_module(library(freeze)).
 :- use_module(library(sort)).
 :- use_module(library(lists)).
-:- use_module(library(hiordlib), [maplist/3]).
+:- use_module(library(hiordlib), [maplist/2, maplist/3]).
 :- use_module(library(messages)).
 :- use_module(library(terms_vars)).
 :- use_module(library(write)).
@@ -382,8 +382,13 @@ lit_clause_arity(M, F, LitArity, ClauseArity) :-
 assert_clause_if_required(Head, F, LitArity, Body, M) :-
 	( functor(Spec, F, LitArity), unfold_db(Spec, M)
 	; inline_db(F, LitArity, _, M)
-	; \+ ( ( use_module_db(_Base, _, PredList, M) ->
-		    member(F/LitArity, PredList) ; true ) )
+	; fail % TODO: The line below was incorrect (JF)
+	  % \+ ( ( use_module_db(_Base, _, PredList, M) -> member(F/LitArity, PredList) ; true ) )
+	  %
+	  % With this line, every module with 
+	  %   ':- use_module(..., [...]).' 
+          % potentially hanged unless the last use is
+	  %   ':- use_module(...).'
 	) ->
 	assert_clause(Head, Body, M)
     ;
@@ -427,7 +432,7 @@ is_renamer(Body,   Head) :-
 	),
 	(
 	    Head =.. [F|Args],
-	    ( list(Args, var) -> true
+	    ( maplist(var, Args) -> true
 	    ; error_message(Loc,
 		    "Header of Renamer ~w/~w not contain only variables",
 		    [F, Arity]),
