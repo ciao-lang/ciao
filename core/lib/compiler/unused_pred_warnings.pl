@@ -6,7 +6,7 @@
 	    [assertions, nativeprops, dcg, define_flag]).
 
 :- use_module(library(lists)).
-:- use_module(library(hiordlib), [map/4]).
+:- use_module(library(hiordlib), [foldl/4]).
 :- use_module(library(llists)).
 :- use_module(library(aggregates)).
 :- use_module(library(sort)).
@@ -284,9 +284,8 @@ variable_goal_messages(M) -->
 	    variable_goal(PredType, loc(Source, Ln0, Ln1), F, A, N)).
 
 variable_goal_min_arity(MinArity) :-
-	findall(PredType, variable_goal(PredType, _, _, _, _),
-	    PredTypes),
-	map(PredTypes, min_meta_arity, 0.Inf, MinArity).
+	findall(PredType, variable_goal(PredType, _, _, _, _), PredTypes),
+	foldl(min_meta_arity, PredTypes, 0.Inf, MinArity).
 
 min_meta_arity(PredType, MinArity0, MinArity) :-
 	meta_arity(PredType, MinArity1),
@@ -518,7 +517,7 @@ get_meta_pred(M, _Pred, Func, Arity0, Arity, Meta) :-
 
 flat_meta_spec(Func0, Func) :-
 	Func0 =.. [F|Args0],
-	map(Args0, flat_arg_spec, Args, []),
+	foldl(flat_arg_spec, Args0, Args, []),
 	Func =.. [F|Args].
 
 flat_arg_spec(addmodule(Meta)) --> !, flat_arg_spec(Meta), [addmodule].

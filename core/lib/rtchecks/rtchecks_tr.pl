@@ -921,7 +921,7 @@ body_check_comp(ChkComps, CheckedL0, Body0, Body) :-
 	    ChkComps, CheckedL0, CompCall),
 	compound_rtchecks_end(comp_comp_lit, collapse_prop,
 	    ChkComps, [],        CompCompL),
-	map(CompCompL, comp_to_lit, ChkComp0),
+	maplist(comp_to_lit, CompCompL, ChkComp0),
 	sort(ChkComp0, ChkComp),
 	comps_to_goal(ChkComp, compound_comp, CompsBody, Body),
 	Body0 = [CompCall, CompsBody].
@@ -988,7 +988,7 @@ combine_locators(_,_,_,_,_,_).
 texec_warning(texec, GPProps, Pred, asrloc(loc(ASource, ALB, ALE))) :-
         \+ GPProps == [], !,
         functor(Pred, F, A),
-        map(GPProps, comp_prop_to_name, GPNames),
+        maplist(comp_prop_to_name, GPProps, GPNames),
         Message = message_lns(ASource, ALB, ALE, warning,
 		['texec assertion for ', F, '/', A,
                  ' can have only unit test commands, ',
@@ -1109,8 +1109,8 @@ get_prop_impl([Prop|Props], Tail) :-
 %
 %get_prop_impl_mods(ModClauses) :-
 %        findall(Spec, rtc_impl_mod(Spec), Specs),
-%        % cannot use map/3 like
-%        %     map(Specs,(''(X,Y) :- Y = (:- use_module(X))),ModClauses)
+%        % cannot use maplist/3 like
+%        %     maplist((''(X,Y) :- Y = (:- use_module(X))),Specs,ModClauses)
 %        % because
 %        %    {Compiling .../ciao-devel/core/lib/rtchecks/rtchecks_tr.pl
 %        %    ERROR: (lns 971-977) Predicate (:-)/4 undefined in source

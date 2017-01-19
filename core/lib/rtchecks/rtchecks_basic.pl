@@ -25,8 +25,7 @@
 
 :- use_module(library(llists),     [flatten/2]).
 :- use_module(library(terms_vars), [varset/2, intersect_vars/3]).
-:- use_module(library(hiordlib), [map/3]).
-:- use_module(library(hiordlib), [maplist/4]).
+:- use_module(library(hiordlib), [maplist/3, maplist/4]).
 :- use_module(library(varnames/apply_dict),    [apply_dict/3,
                                                 select_applicable/3]).
 :- use_module(library(varnames/pretty_names),  [pretty_names/3]).
@@ -86,8 +85,8 @@ insert_posloc((UsePredLoc, UseAsrLoc), PredName0, PLoc0, ALoc,
 
 get_prop_args(Props, Pred, PropArgs) :-
 	varset(Pred, Vars),
-	map(Props,    varset,               PropVars),
-	map(PropVars, intersect_vars(Vars), PropArgs),
+	maplist(varset, Props, PropVars),
+	maplist(intersect_vars(Vars), PropVars, PropArgs),
 	!.
 
 % ----------------------------------------------------------------------
@@ -189,16 +188,16 @@ short_prop_name(Prop, Name-[]) :-
 	Name = Prop.
 
 short_prop_names(Props, Names) :-
-	map(Props, short_prop_name, Names).
+	maplist(short_prop_name, Props, Names).
 
 propname_name(Name, Name-_).
 
 propdict_name(PropDict, _-PropDict).
 
 long_prop_names(Props, PropNames, Dict, Names) :-
-	map(Props,     select_applicable(Dict), PropDicts),
-	map(PropNames, propname_name,           Names),
-	map(PropDicts, propdict_name,           Names).
+	maplist(select_applicable(Dict), Props, PropDicts),
+	maplist(propname_name, PropNames, Names),
+	maplist(propdict_name, PropDicts, Names).
 
 % in this predicate, PredName and the name of each property must be ground
 % to avoid undesired unifications.

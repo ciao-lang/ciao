@@ -14,14 +14,14 @@
 :- unfold add_info_rtsignal(yes, yes, yes, yes).
 :- unfold rtcheck(yes, yes, yes).
 :- unfold attach_cut_fail(yes, yes).
-:- unfold map(no, yes, no).
+:- unfold maplist(yes, no, no).
 
 :- use_module(engine(internals), ['$setarg'/4]).
 :- use_module(library(terms_check)).
 :- use_module(library(terms_vars)).
 :- use_module(library(freeze)).
 
-:- use_module(library(hiordlib)).
+:- use_module(library(hiordlib)). % , [maplist/3]?
 :- use_module(library(lists)).
 :- use_module(library(sort)).
 :- use_module(library(rtchecks/rtchecks_basic)).
@@ -35,7 +35,7 @@
 % :- use_module(engine(exceptions_db)).
 % :- inline_module(engine(exceptions), [intercept/3]).
 
-%:- use_module(library(hiordlib), [map/3]).
+%:- use_module(library(hiordlib), [maplist/3]).
 :- use_module(library(varnames/apply_dict)).
 :- use_module(library(varnames/complete_dict)).
 :- use_package(dcg).

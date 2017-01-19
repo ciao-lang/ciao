@@ -25,7 +25,7 @@
 :- use_module(engine(attributes)).
 :- use_module(library(terms_vars)).
 :- use_module(library(freeze)).
-:- use_module(library(hiordlib), [map/4]).
+:- use_module(library(hiordlib), [foldl/4]).
 
 :- reexport(library(rtchecks/rtchecks_send)).
 
@@ -183,18 +183,18 @@ checkif(true, ErrType, PredName, Dict, CheckProps, NProps, AsrLocs) :-
 	rtcheck(ErrType, PredName, Dict, CheckProps, NProps, AsrLocs).
 
 select_defined(N=V, SDict0, SDict) :-
-	var(V) ->
-	SDict = SDict0
-    ;
-	SDict0 = [N=V|SDict].
+	( var(V) ->
+	    SDict = SDict0
+	; SDict0 = [N=V|SDict]
+	).
 
 :- meta_predicate rtcheck(?, ?, ?, list(goal), ?, ?).
 rtcheck(ErrType, PredName, Dict, CheckProps, NProps, AsrLocs) :-
-	disj_prop(CheckProps, NProps, PropName-ActualProp) ->
-	map(ActualProp, select_defined, ActualProp1, []),
-	send_rtcheck(ErrType, PredName, Dict, PropName, ActualProp1, AsrLocs)
-    ;
-	true.
+	( disj_prop(CheckProps, NProps, PropName-ActualProp) ->
+	    foldl(select_defined, ActualProp, ActualProp1, []),
+	    send_rtcheck(ErrType, PredName, Dict, PropName, ActualProp1, AsrLocs)
+	; true
+	).
 
 :- meta_predicate rtcheck(goal, ?, ?, ?).
 rtcheck(Check, PredName, Dict, Loc) :-

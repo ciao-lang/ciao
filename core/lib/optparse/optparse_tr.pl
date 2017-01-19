@@ -1,6 +1,6 @@
 :- module(optparse_tr, [optparse_tr/3], [assertions, nortchecks, define_flag]).
 
-:- use_module(library(hiordlib),   [map/3]).
+%%:- use_module(library(hiordlib),   [maplist/3]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(llists),     [flatten/2]).
 :- use_module(library(lists),      [append/3, length/2]).
@@ -51,7 +51,7 @@ underscore_to_minus(X,   X).
 flag_name_value_option(Name, Value0, Option) :-
 	atom_codes(Name, NameS0),
 	simplify_value(Value0, ValueS),
-	map(NameS0, underscore_to_minus, NameS),
+	maplist(underscore_to_minus, NameS0, NameS),
 	append([0'-, 0'-|NameS], ValueS, Option).
 
 :- data help_option/2.
@@ -64,9 +64,8 @@ optparse_tr(end_of_file, _, _) :- cleanup_db.
 optparse_tr(( :- simple_option(Options0, Action, Help, Terminate, Args0,
 		    Args) ), Clauses, _) :-
 	flatten([Options0], Options1),
-	map(Options1, option_to_clause(Action, Terminate, Args0, Args),
-	    Clauses),
-	map(Options1, atom_codes, Options),
+	maplist(option_to_clause(Action, Terminate, Args0, Args), Options1, Clauses),
+	maplist(atom_codes, Options1, Options),
 	assertz_fact(help_option(Options, Help)).
 optparse_tr((:- flag_based_option(Flag, Value, Option, Help)), Clauses, _) :-
 	flag_name_value_option(Flag, Value, SLongOption),
@@ -133,3 +132,12 @@ help_option_str(OptionStr) :-
 
 cleanup_db :-
 	retractall_fact(help_option(_, _)).
+
+:- use_package(hiord).
+% TODO: REMOVE ON BOOTSTRAP
+:- meta_predicate maplist(pred(2), ?, ?).
+maplist(P, Xs, Ys) :- maplist2(Xs, P, Ys).
+:- meta_predicate maplist2(?, pred(2), ?).
+maplist2([], _, []).
+maplist2([X|Xs], P, [Y|Ys]) :- call(P, X, Y), maplist2(Xs, P, Ys).
+

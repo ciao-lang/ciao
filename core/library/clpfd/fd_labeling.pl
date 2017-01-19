@@ -43,7 +43,7 @@
 :- use_module(library(clpfd/fd_utils), [clpfd_error/2]).
 :- use_module(library(clpfd/fd_constraints)).
 
-:- use_module(library(hiordlib), [map/3]).
+:- use_module(library(hiordlib), [maplist/3]).
 :- use_module(library(random)).
 
 
@@ -69,7 +69,7 @@ label_([O|Os], Options, Selection, Order, Choice, Optim, Consistency, Vars) :-
         ).
 label_([], _Options, Selection, Order, Choice, Optim0, Consistency, Vars) :-
 %        maplist(arg(1), [Selection,Order,Choice], [S,O,C]),
-	map([Selection,Order,Choice], (''(X, Y) :- arg(1, X, Y)), [S,O,C]),
+	maplist((''(X, Y) :- arg(1, X, Y)), [Selection,Order,Choice], [S,O,C]),
 	(   Optim0 == [] ->
             label__(Vars, S, O, C, Consistency)
         ;   

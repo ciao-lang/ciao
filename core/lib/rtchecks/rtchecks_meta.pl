@@ -9,7 +9,7 @@
 
 :- use_module(library(lists)).
 :- use_module(library(sort)).
-:- use_module(library(hiordlib), [map/3]).
+:- use_module(library(hiordlib), [maplist/3]).
 :- use_module(library(rtchecks/rtchecks_basic)).
 
 :- doc(author, "Edison Mera").
@@ -31,7 +31,7 @@ collapse_redundants([T|Ts], Goal, Es) :-
 :- meta_predicate compound_rtchecks2(pred(2), pred(4), ?, ?, ?, ?).
 compound_rtchecks2(CheckToProps, Collapser, CheckProps, CheckedPropsCUI0,
 	    PropsCUI, PropsL) :-
-	map(CheckProps, CheckToProps, PropsCUI0),
+	maplist(CheckToProps, CheckProps, PropsCUI0),
 	sort(PropsCUI0, PropsCUI1),
 	diff_props(PropsCUI1, CheckedPropsCUI0, PropsCUI),
 	collapse_redundants(PropsCUI, Collapser, PropsL).
@@ -57,7 +57,7 @@ body_check_pos(CheckPos, CheckToProps, CheckToPropsPos, Collapser, Params,
 	compound_rtchecks(CheckToProps, Collapser, CheckPos, CheckedL0,
 	    CheckedL, Pre),
 	compound_rtchecks_end(CheckToPropsPos, Collapser, CheckPos, [], PosL),
-	map(PosL, checkif_to_lit(Params), Pos),
+	maplist(checkif_to_lit(Params), PosL, Pos),
 	Body0 = [Pre, Body, Pos].
 
 :- meta_predicate body_check_pre(?, pred(2), pred(2), pred(2), pred(4), ?, ?,

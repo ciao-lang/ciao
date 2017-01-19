@@ -2,7 +2,7 @@
 		compact_size/3],
 	    [assertions, nativeprops, dcg]).
 
-:- use_module(library(hiordlib), [map/3]).
+:- use_module(library(hiordlib), [maplist/3]).
 :- use_module(library(lists)).
 :- use_module(library(sort)).
 
@@ -10,7 +10,7 @@ expand_cf(N,  [], N) :- num(N), !.
 expand_cf(CF, IF, CFN) :-
 	normalize_cf(CF, E0, CFN, E0, []),
 	sort(E0, E1),
-	map(E1, m_to_goal, IF).
+	maplist(m_to_goal, E1, IF).
 
 compact_size(length(A, V),    V, length(A)) :- !.
 compact_size(term_size(A, V), V, size(A)) :- !.

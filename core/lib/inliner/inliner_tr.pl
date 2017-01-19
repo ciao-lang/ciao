@@ -8,7 +8,7 @@
 :- use_module(library(freeze)).
 :- use_module(library(sort)).
 :- use_module(library(lists)).
-:- use_module(library(hiordlib), [map/3]).
+:- use_module(library(hiordlib), [maplist/3]).
 :- use_module(library(messages)).
 :- use_module(library(terms_vars)).
 :- use_module(library(write)).
@@ -676,7 +676,7 @@ termcount_(_, _, _, N, N).
 
 :- export(varscount/3).
 varscount(Term, Vars, Count) :-
-	map(Vars, termcount(Term, 0), Count).
+	maplist(termcount(Term, 0), Vars, Count).
 
 add_nuvars(Goal, NUVars, NUVars) :-
 	var(Goal),
@@ -1057,7 +1057,7 @@ expand_goal(Goal0, Renamer, F, LitArity, ClauseArity, SC1, Key,
 	    SC2 = [],
 	    Head = true
 	;
-	    map(SC1, rename_head_clause(Head2, Head0), SC2),
+	    maplist(rename_head_clause(Head2, Head0), SC1, SC2),
 	    Head = Head0
 	).
 

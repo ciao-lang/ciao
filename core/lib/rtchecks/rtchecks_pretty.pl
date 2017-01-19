@@ -8,7 +8,7 @@
 
 :- use_module(library(lists), [append/3, reverse/2, select/3]).
 :- use_module(library(assertions/native_props), [is_det/1]).
-:- use_module(library(hiordlib), [map/3]).
+:- use_module(library(hiordlib), [maplist/3]).
 :- use_module(library(rtchecks/compact_list),   [compact_list/2]).
 :- use_module(library(rtchecks/rtchecks_utils), [rtcheck_error/1]).
 :- use_module(library(varnames/dict_types),     [varnamesl/1]).
@@ -50,7 +50,7 @@ rtcheck_to_messages(rtcheck(Type, Pred0, Dict, Prop0, Valid0, Positions0),
 	    Messages0, Messages) :-
 	pretty_prop(t(Pred0, Prop0, Valid0, Positions0), Dict,
 	    t(Pred, Prop, Valid, Positions)),
-	map(Positions, position_to_message, PosMessages0),
+	maplist(position_to_message, Positions, PosMessages0),
 	reverse(PosMessages0, PosMessages),
 	Text = ['Run-time check failure in assertion for:\n\t',
 	    ''({Pred}),

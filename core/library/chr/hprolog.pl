@@ -44,8 +44,6 @@
 	  , ord_add_element/3
 	  , ord_del_element/3
           , flatten/2
-	  , maplist/3
-	  , maplist/2
           , predsort/3
           ],
 	  [ hiord
@@ -433,27 +431,7 @@ ord_del_element(A,B,C) :-
 ord_memberchk( X , A ) :-
 	ord_member( X , A ).
 
-
-
-:- use_module(library(hiordlib), [map/3]).
-
-:- meta_predicate maplist( pred(2) , ? , ? ).
-
-maplist( P , L , NL ) :-
-	map( L , P , NL ).
-
-:- meta_predicate maplist( pred(1) , ? ).
-
-maplist( P , L ) :-
-	map_list1( L , P ).
-	
-
-% :- meta_predicate map_list( ? , pred(1) ).
-
-map_list1( [] , _ ).
-map_list1( [A|As] , P ) :-
-	P(A),
-	map_list1( As , P ).
+:- reexport(library(hiordlib), [maplist/2, maplist/3]).
 
 :- meta_predicate predsort( pred(3) , ? , ? ).
 

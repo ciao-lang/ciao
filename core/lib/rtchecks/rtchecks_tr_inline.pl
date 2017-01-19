@@ -1,7 +1,7 @@
 :- package(rtchecks_tr_inline).
 :- use_package(inliner).
 
-:- inline_module(library(hiordlib), [map/3]).
+:- inline_module(library(hiordlib), [maplist/3]).
 % We use append/3 and select/3 inlined to avoid problems if the list
 % module is compiled with run-time checks
 :- inline_module(library(lists), [append/3, reverse/2, reverse/3,

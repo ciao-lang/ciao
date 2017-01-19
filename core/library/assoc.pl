@@ -48,7 +48,7 @@
 %:- use_module(library(prolog_sys)).
 %:- use_module(library(between)).
 
-:- use_module(library(hiordlib), [map/3, foldr/4]).
+:- use_module(library(hiordlib), [maplist/3, foldr/4]).
 :- use_module(library(lists), [length/2, append/3]).
 
 :- push_prolog_flag(multi_arity_warnings,off).
@@ -587,7 +587,7 @@ map(assoc_table(Assoc,N,Type),Pred,assoc_table(Result,N,Type)) :-
 	    Type == tree ->
 	    map_avl(Assoc,Pred,Result)
 	;
-	    hiordlib:map(Assoc,(_(K-V,K-R) :- Pred(K,V,R)),Result)
+	    hiordlib:maplist((_(K-V,K-R) :- Pred(K,V,R)),Assoc,Result)
 	).
 
 map_avl(nil,_,nil).

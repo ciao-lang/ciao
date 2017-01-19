@@ -112,7 +112,7 @@
 :- use_module(library(strings),    [get_line/1, whitespace0/2]).
 :- use_module(library(ctrlcclean), [delete_on_ctrlc/2, ctrlcclean/0]).
 :- use_module(library(terms),      [copy_args/3, atom_concat/2]).
-:- use_module(library(hiordlib), [map/3]).
+:- use_module(library(hiordlib), [maplist/3]).
 :- use_module(library(lists)).
 :- use_module(library(read)).
 :- use_module(library(operators)).
@@ -2406,7 +2406,8 @@ assrt_module_expansion(M, Type, Body, Dict, Defined, H, Props) :-
 % 	Trick to avoid duplicated warnings about undefined predicates:
 	comps_to_goal(Cp, Cp1, G),
 % 	This makes the syntax checking:
-	map([Co, Ca, Su, [Cp1]], map(expand_subbody(M, Dict)), Props).
+	maplist((''(V1,V2) :- maplist(expand_subbody(M, Dict),V1,V2)),
+	        [Co, Ca, Su, [Cp1]], Props).
 
 % Head expansion for assertions
 assr_head_expansion(A, M, F, N, MQ, NA, Defined) :-

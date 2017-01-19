@@ -2,18 +2,18 @@
 
 :- use_module(engine(attributes)).
 :- use_module(library(terms_vars)).
-:- use_module(library(hiordlib), [map/4]).
+:- use_module(library(hiordlib), [foldl/4]).
 :- use_module(library(lists)).
 
 pretty_attributes(Term, Attrs) :-
 	varset(Term, Vars),
-	map(Vars, pretty_attribute, Attrs, []).
+	foldl(pretty_attribute, Vars, Attrs, []).
 
 pretty_attribute(Var) -->
-	{get_attribute(Var, Attr)} ->
-	[attach_attribute(Var, Attr)]
-    ;
-	[].
+	( {get_attribute(Var, Attr)} ->
+	     [attach_attribute(Var, Attr)]
+	; []
+	).
 
 send_rtcheck(ErrType, PredName, Dict, PropName, ActualProp0, AsrLocs) :-
 	% expose_attributes(ActualProp0, ActualProp),

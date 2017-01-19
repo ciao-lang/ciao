@@ -41,7 +41,7 @@
 :- use_module(library(system),     [mktemp_in_tmp/2, delete_file/1]).
 :- use_module(library(terms_vars), [term_variables/2,varsbag/3]).
 :- use_module(library(lists),      [sublist/2]).
-:- use_module(library(hiordlib), [map/3]).
+:- use_module(library(hiordlib), [maplist/3]).
 :- use_module(library(rtchecks/rtchecks_send), [send_comp_rtcheck/3]).
 
 % ----------------------------------------------------------------------
@@ -64,7 +64,7 @@ rtc_succeeds(Goal) :- \+ \+ call(Goal). % processed in rtchecks_basic
 % necessary to pass the variables (mshare/2) or read them from the
 % clause database or whatever.
 rtc_mshare(L) :-
-	map(L, term_variables, V),
+	maplist(term_variables, L, V),
 	\+ not_mshare(V).
 
 % try to find a counter-example:

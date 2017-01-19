@@ -97,7 +97,7 @@ parse_fmt([], _, _, _) --> !.
 :- doc(section, "Parse command line elements (options, flags, targets)").
 
 :- use_module(library(lists), [list_concat/2]).
-:- use_module(library(hiordlib), [map/3]).
+:- use_module(library(hiordlib), [maplist/3]).
 
 parse_opts(OptsFmt, Opts) -->
 	parse_opt(OptsFmt, Opt),
@@ -150,7 +150,7 @@ parse_val(f=v, Arg, Value) :- !, % flag=value
 % Parse an option assignment (value as atom)
 parse_opt_assign_atm(Param, Name, Value) :-
 	parse_assign_str(Param, NameS, ValueS),
-	map(NameS, norm_underscore, NameS2),
+	maplist(norm_underscore, NameS, NameS2),
 	atom_codes(Name, NameS2),
 	atom_codes(Value, ValueS).
 
@@ -185,7 +185,7 @@ parse_flag_codes(ParamS, Qual:Name) :-
 	; default_flag_qual(Qual),
 	  NameS = ParamS
 	),
-	map(NameS, norm_underscore, ParamS2),
+	maplist(norm_underscore, NameS, ParamS2),
 	atom_codes(Name, ParamS2).
 
 % Parse a (maybe qualified) flag assignment (value as atom)
@@ -215,7 +215,7 @@ parse_raw([]) --> [].
 % Replace 0'- by 0'_
 norm_underscores(X0, X) :-
 	atom_codes(X0, Cs0),
-	map(Cs0, norm_underscore, Cs),
+	maplist(norm_underscore, Cs0, Cs),
 	atom_codes(X, Cs).
 
 norm_underscore(0'-, 0'_) :- !.
