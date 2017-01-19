@@ -1,6 +1,6 @@
 :- module(optparse_tr, [optparse_tr/3], [assertions, nortchecks, define_flag]).
 
-%%:- use_module(library(hiordlib),   [maplist/3]).
+:- use_module(library(hiordlib),   [maplist/3]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(llists),     [flatten/2]).
 :- use_module(library(lists),      [append/3, length/2]).
@@ -132,12 +132,3 @@ help_option_str(OptionStr) :-
 
 cleanup_db :-
 	retractall_fact(help_option(_, _)).
-
-:- use_package(hiord).
-% TODO: REMOVE ON BOOTSTRAP
-:- meta_predicate maplist(pred(2), ?, ?).
-maplist(P, Xs, Ys) :- maplist2(Xs, P, Ys).
-:- meta_predicate maplist2(?, pred(2), ?).
-maplist2([], _, []).
-maplist2([X|Xs], P, [Y|Ys]) :- call(P, X, Y), maplist2(Xs, P, Ys).
-
