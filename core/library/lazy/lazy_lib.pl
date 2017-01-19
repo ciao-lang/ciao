@@ -159,7 +159,7 @@ lazy_map([X|Xs], P) := [~P(X) | lazy_map(Xs, P)].
 :- meta_predicate lazy_foldr(pred(3),?,?,?).
 :- pred lazy_foldr(+P,+Xs,+V0,-V) 
    :: callable * list(term) * term * term
-   # "Lazy version of @pred{foldr/3}".
+   # "Lazy version of @pred{foldr/4}".
 
 %:- lazy fun_eval lazy_foldr/3.
 lazy_foldr(P, Xs, V0) := ~lazy_foldr_(Xs, P, V0).
@@ -172,7 +172,7 @@ lazy_foldr_([X|Xs], P, V0) := ~P(X, ~lazy_foldr_(Xs, P, V0)).
 :- meta_predicate lazy_foldl(pred(3),?,?,?).
 :- pred lazy_foldl(+P,+Xs,+V0,-V) 
    :: callable * list(term) * term * term
-   # "Lazy version of @pred{foldl/3}".
+   # "Lazy version of @pred{foldl/4}".
 
 %:- lazy fun_eval lazy_foldl/3.
 lazy_foldl(P, Xs, V0) := ~lazy_foldl_(Xs, P, V0).
