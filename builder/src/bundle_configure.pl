@@ -272,11 +272,11 @@ flag_to_sh_assign(Line) :-
 	  atom_codes(Value, ValueS),
 	  list_concat([BundleS, "__", NameS, "=\"", ValueS, "\"\n"], Line).
 
-:- use_module(library(hiordlib), [map/3]).
+:- use_module(library(hiordlib), [maplist/3]).
 
 toupper(Name, Upper) :-
 	atom_codes(Name, NameC),
-	map(NameC, touppercode, UpperC),
+	maplist(touppercode, NameC, UpperC),
 	atom_codes(Upper, UpperC).
 
 touppercode(C, U) :-
