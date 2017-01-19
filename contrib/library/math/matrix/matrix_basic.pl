@@ -2,7 +2,7 @@
 		library(math/math_clp)]).
 
 :- use_module(library(lists)).
-:- use_module(library(hiordlib), [map/3]).
+:- use_module(library(hiordlib), [maplist/3]).
 :- use_module(library(llists)).
 :- use_module(library(math/vector)).
 
@@ -79,7 +79,7 @@ matrix_identity(N, [[1|I]|Is]) :-
 	matrix_identity(N1, Is1),
 	matrix_add_column_zero(Is1, Is, I).
 
-matrix_eq(A, B) :- map(A, vector_eq, B).
+matrix_eq(A, B) :- maplist(vector_eq, A, B).
 
 :- test matrix_multiply(A, B, C) : (
 	    A = [[-0.60, -0.64, -0.48],

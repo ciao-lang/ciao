@@ -26,8 +26,8 @@
 
 :- load_test_package(library(math/math_clp)).
 
-:- use_module(library(hiordlib), [maplist/2, maplist/3, maplist/4]).
-:- use_module(library(hiordlib), [map/3, map/4, map/5]).
+:- use_module(library(hiordlib), [
+	maplist/2, maplist/3, maplist/4, foldl/4, foldl/5]).
 
 :- push_prolog_flag(multi_arity_warnings, off).
 
@@ -51,11 +51,11 @@ mapvector(P, V1, V2, V3) :- maplist(P, V1, V2, V3).
 
 :- export(mapvscale/4).
 :- meta_predicate mapvscale(pred(3), ?, ?, ?).
-mapvscale(P, V, E0, E) :- map(V, P, E0, E).
+mapvscale(P, V, E0, E) :- foldl(P, V, E0, E).
 
 :- export(mapvscale/5).
 :- meta_predicate mapvscale(pred(4), ?, ?, ?, ?).
-mapvscale(P, V1, V2, E0, E) :- map(V1, V2, P, E0, E).
+mapvscale(P, V1, V2, E0, E) :- foldl(P, V1, V2, E0, E).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :- pop_prolog_flag(multi_arity_warnings).
@@ -96,7 +96,7 @@ vector_divide_components(X, Y, Z) :-
 
 vector_is_zero(Vector) :- mapvector(scalar_eq(0.0), Vector).
 
-vector_eq(A, B) :- map(A, scalar_eq, B).
+vector_eq(A, B) :- maplist(scalar_eq, A, B).
 
 
 scalar_eq(X, Y) :- X .=. Y.
