@@ -25,9 +25,14 @@
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "This library implements a few basic higher-order
-   predicates for reducing and transforming lists.").
+   predicates for reducing and transforming lists.
+").
 
 % ---------------------------------------------------------------------------
+
+% NOTE: foldl/N was called scanlist/N in Quintus and DEC-10. According
+%   to Richard O'Keefe that was a mistake:
+%   http://www.cs.otago.ac.nz/staffpriv/ok/pllib.htm
 
 :- meta_predicate foldl(pred(3), ?, ?, ?).
 :- meta_predicate foldl(pred(4), ?, ?, ?, ?).
@@ -152,7 +157,8 @@ foldl5([X|Xs], P, [Y|Ys], [Z|Zs], [U|Us], [W|Ws], V0, V) :-
 
 % ---------------------------------------------------------------------------
 
-% TODO: We only provide foldr/4 -- please add more versions if needed
+:- doc(bug, "We only provide foldr/4. Add more versions if needed.").
+:- doc(bug, "We do not provide scanl/N or scanr/N. Add them if needed.").
 
 :- meta_predicate foldr(pred(3), ?, ?, ?).
 :- pred foldr(+F, ?Xs, +V0, ?V)
