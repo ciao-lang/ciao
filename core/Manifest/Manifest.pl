@@ -10,13 +10,7 @@ alias_paths([
     %
 %    engine = 'engine',
     %
-    rtchecks = 'lib/rtchecks',
-    predefres = 'lib/resdefs/predefres',
-    res_nargs = 'lib/resdefs/predefres/res_nargs',
-    res_steps = 'lib/resdefs/predefres/res_steps',
-    predefprf = 'lib/resdefs/predefprf',
-    prf_ticks = 'lib/resdefs/predefprf/prf_ticks',
-    prf_costcenter = 'lib/resdefs/predefprf/prf_costcenter'
+    rtchecks = 'lib/rtchecks'
 ]).
 readme('INSTALLATION', [main='doc/common/INSTALLATION_CIAO.lpdoc']).
 readme('INSTALLATION_Win32', [main='doc/common/INSTALLATION_CIAO_Win32.lpdoc']).
