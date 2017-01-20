@@ -80,15 +80,15 @@
 		steps_o/2,
 		steps/2
 	    ]).
-:- inline_module(library(resdefs/resources_props),
-	    [
-		cost/7,
-		head_cost/4,
-		literal_cost/4,
-		compare_ap/3,
-		cost_t/8
-	    ]).
-:- inline_module(library(resdefs/rescostfunc), [expand_cf/3]).
+% :- inline_module(library(resdefs/resources_props),
+% 	    [
+% 		cost/7,
+% 		head_cost/4,
+% 		literal_cost/4,
+% 		compare_ap/3,
+% 		cost_t/8
+% 	    ]).
+% :- inline_module(library(resdefs/rescostfunc), [expand_cf/3]).
 :- inline_module(engine(basic_props), [
 		iso/1,
 		not_further_inst/2,
