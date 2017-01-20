@@ -277,9 +277,9 @@ metaspec(M) :-
 	!,
 	atm(F),
 	list(A, argspec),
-	M =.. [F|A].
+	M =.. [F|A]. % TODO: This is not a regtype!
 metaspec(M) :-
-	M =.. [F|A],
+	M =.. [F|A], % TODO: This is not a regtype!
 	atm(F),
 	list(A, argspec).
 

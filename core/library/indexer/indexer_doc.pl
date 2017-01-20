@@ -135,7 +135,7 @@
 indexspecs(Spec) :- indexspec(Spec).
 indexspecs((Spec,Specs)) :- indexspec(Spec), indexspecs(Specs).
 
-indexspec(Spec) :- Spec=..[_F|Args], list(Args,argspec).
+indexspec(Spec) :- Spec=..[_F|Args], list(Args,argspec). % TODO: This is not a valid regtype!
 
 :- regtype argspec(Spec)
    # "@var{Spec} is an argument hash specification.".
