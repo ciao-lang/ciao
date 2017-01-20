@@ -16,11 +16,6 @@
 
 '$builder_hook'(lib('library')).
 
-% TODO: move to its own bundle
-'$builder_hook'(item_nested(cmds)).
-'$builder_hook'(cmds:cmd('cmds/synch_actions')).
-'$builder_hook'(cmds:cmd('cmds/cleandirs')).
-
 % ===========================================================================
 :- doc(section, "Tests and Benchmarks").
 % TODO: Add bundle defs for unit tests, integration tests, regression
