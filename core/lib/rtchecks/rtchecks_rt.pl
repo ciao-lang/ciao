@@ -25,7 +25,7 @@
 :- use_module(engine(attributes)).
 :- use_module(library(terms_vars)).
 :- use_module(library(freeze)).
-:- use_module(library(hiordlib), [foldl/4]).
+:- use_module(library(hiordlib), [maplist/2, foldl/4]).
 
 :- reexport(library(rtchecks/rtchecks_send)).
 
@@ -103,12 +103,12 @@ non_compat_('basic_props:num'(A)    , _   ) :- !, \+ num(A).
 non_compat_(Goal                    , Args) :-
 	varset(Args, VS),
 	'$metachoice'(C),
-	list(VS, cond_detach_attribute),
-	list(VS, freeze('$metacut'(C))),
+	maplist(cond_detach_attribute, VS),
+	maplist(freeze('$metacut'(C)), VS),
 	'$meta_call'(Goal),
 	% selectvars(Args, VS1),
 	% varset(VS1, VS2),
-	list(VS, cond_detach_attribute),
+	maplist(cond_detach_attribute, VS),
 	!,
 	fail.
 non_compat_(_, _).
@@ -134,10 +134,10 @@ non_inst_('basic_props:atm'(A)   , _   ) :- !, \+ atom(A).
 non_inst_(Goal                   , Args) :-
 	varset(Args, VS),
 	'$metachoice'(C),
-	list(VS, cond_detach_attribute),
-	list(VS, attach_cut_fail(C)),
+	maplist(cond_detach_attribute, VS),
+	maplist(attach_cut_fail(C), VS),
 	'$meta_call'(Goal),
-	list(VS, detach_attribute),
+	maplist(detach_attribute, VS),
 	!,
 	fail.
 non_inst_(_, _).

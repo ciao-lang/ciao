@@ -1,5 +1,7 @@
 :- module(_, _, [inliner, expander]).
 
+:- use_module(library(hiordlib), [maplist/2]).
+
 :- unfold p(yes, no).
 
 :- unfold p(yes, no).
@@ -25,7 +27,7 @@ r(B) :-
 output_data_example(_, _).
 
 output_data_examples(Examples, FileName) :-
-	list(Examples, output_data_example(FileName)).
+	maplist(output_data_example(FileName), Examples).
 
 :- export(output_data_example_1/1).
 

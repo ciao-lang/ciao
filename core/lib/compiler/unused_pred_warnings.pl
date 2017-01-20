@@ -6,7 +6,7 @@
 	    [assertions, nativeprops, dcg, define_flag]).
 
 :- use_module(library(lists)).
-:- use_module(library(hiordlib), [foldl/4]).
+:- use_module(library(hiordlib), [maplist/2, foldl/4]).
 :- use_module(library(llists)).
 :- use_module(library(aggregates)).
 :- use_module(library(sort)).
@@ -49,30 +49,30 @@ mark_meta_head_args(_, _, _).
 mark_meta_arg(goal, Arg) :-
 	!,
 	varset(Arg, Vars),
-	list(Vars, '='(goal)).
+	maplist('='(goal), Vars).
 mark_meta_arg(pred(N), Arg) :-
 	!,
 	varset(Arg, Vars),
-	list(Vars, '='(pred(N))).
+	maplist('='(pred(N)), Vars).
 mark_meta_arg(fact, Arg) :-
 	!,
 	varset(Arg, Vars),
-	list(Vars, '='(fact)).
+	maplist('='(fact), Vars).
 mark_meta_arg(spec, Arg) :-
 	!,
 	varset(Arg, Vars),
-	list(Vars, '='(spec)).
+	maplist('='(spec), Vars).
 mark_meta_arg(list(A), Arg) :-
 	nonvar(Arg),
 	Arg = [H|T],
 	!,
 	varset(H, VarsH),
-	list(VarsH, '='(A)),
+	maplist('='(A), VarsH),
 	mark_meta_arg(list(A), T).
 mark_meta_arg(list(A), Arg) :-
 	!,
 	varset(Arg, Vars),
-	list(Vars, '='(list(A))).
+	maplist('='(list(A)), Vars).
 mark_meta_arg(_, _).
 
 record_imports(all, File, _Base, Loc) :-
@@ -81,7 +81,7 @@ record_imports(all, File, _Base, Loc) :-
 	defines_module(BFile, Module),
 	assertz_fact(import_all_location(Module, File, Loc)).
 record_imports(Imports, File, Base, Loc) :-
-	list(Imports, record_import(Base, File, Loc)).
+	maplist(record_import(Base, File, Loc), Imports).
 
 ignore_import(hiord_rt, '$meta_call', 1).
 
@@ -187,10 +187,14 @@ record_assrt_dependency(M, Type, Defined, Loc, H, Props) :-
 	\+ \+ ( (
 		get_meta_pred(M, H, FH, _, AH, Meta),
 		mark_meta_head(Meta, H),
-		list(Props,       list(mark_meta_body(M))),
-		list([[H]|Props], list(record_body_location(FH, AH, M, Loc)))
+		maplistlist(mark_meta_body(M), Props),
+		maplistlist(record_body_location(FH, AH, M, Loc), [[H]|Props])
 	    ) ),
 	!.
+
+:- meta_predicate maplistlist(pred(1), ?).
+maplistlist(P, Xs) :-
+	maplist((''(Ys) :- maplist(P, Ys)), Xs).
 
 unused_pred_warnings(_,    user(_)) :- !.
 unused_pred_warnings(Base, Module) :-

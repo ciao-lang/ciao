@@ -48,7 +48,7 @@
 :- use_module(library(lists)).
 :- use_module(library(format)).
 :- use_module(library(write)).
-:- use_module(library(hiordlib), [filter/3, foldl/4]).
+:- use_module(library(hiordlib), [maplist/2, filter/3, foldl/4]).
 :- use_module(library(sort)).
 :- use_module(library(read),   [read_term/3, read/2]).
 :- use_module(library(system), [cyg2win_a/3, using_windows/0]).
@@ -177,7 +177,7 @@ get_attributed_vars_args(N, X, At0, At2) :-
 	get_attributed_vars_args(N1, X, At1, At2).
 
 print_attributes(As, Op, WriteOpts) :-
-	list(As, print_attribute(Op, WriteOpts)).
+	maplist(print_attribute(Op, WriteOpts), As).
 
 print_attribute(A, Op, WriteOpts) :-
 	nl,
@@ -220,7 +220,7 @@ display_nv(NameValue, Op, WO) :-
 display_nvs([],               _,  _).
 display_nvs([NameValue|Dict], Op, WO) :-
 	display_nv0(NameValue, Op, WO),
-	list(Dict, display_nv(Op, WO)),
+	maplist(display_nv(Op, WO), Dict),
 	nl.
 
 instantiated(Name = Value) :- '$VAR'(Name) \== Value.
@@ -245,7 +245,7 @@ write_goal2(Op, Goal0, d(_, _, ADict0), AtVars0) :-
 	),
 	get_write_options(A, AtVars, D, WriteOpts),
 	write_op(Op, Goal, WriteOpts),
-	(V == true -> list(AInst, display_nv(Op, WriteOpts)) ;  true),
+	(V == true -> maplist(display_nv(Op, WriteOpts), AInst) ;  true),
 	(A == true -> print_attributes(AtVars, Op, WriteOpts) ; true).
 
 write_op(0'p, Goal, WriteOpts) :- write_term(Goal, WriteOpts).

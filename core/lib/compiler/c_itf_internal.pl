@@ -112,7 +112,7 @@
 :- use_module(library(strings),    [get_line/1, whitespace0/2]).
 :- use_module(library(ctrlcclean), [delete_on_ctrlc/2, ctrlcclean/0]).
 :- use_module(library(terms),      [copy_args/3, atom_concat/2]).
-:- use_module(library(hiordlib), [maplist/3]).
+:- use_module(library(hiordlib), [maplist/2, maplist/3]).
 :- use_module(library(lists)).
 :- use_module(library(read)).
 :- use_module(library(operators)).
@@ -953,7 +953,7 @@ record_module_decl(sentence((:- module(Module, Exports, Packages)), VNs, _, Ln0,
 	assertz_fact(clause_of(Base, 1, module(_, Exports, Packages), VNs, Pl, Ln0, Ln1)).
 
 process_packages(Packages, Base, Module, Ln0, Ln1) :-
-	list(Packages, do_use_package(Base, Module, Ln0, Ln1)).
+	maplist(do_use_package(Base, Module, Ln0, Ln1), Packages).
 
 process_sentence(Sentence, Base, Pl, Module) :-
 	Sentence = sentence(RawData, VNs, Sings, Ln0, Ln1),
