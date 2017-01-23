@@ -62,7 +62,6 @@ bundle_contents(core, Filter, X) :- !,
 	; bundle_contents(part(core, toplevel), Filter, X)
 	; bundle_contents(part(core, lib), Filter, X)
 	; bundle_contents(part(core, library), Filter, X)
-%	; bundle_contents(part(contrib, library), Filter, X)
 	).
 %
 bundle_contents(part(core, engine), Filter, X) :- !,
@@ -89,9 +88,6 @@ bundle_contents(part(core, library), Filter, X) :- !,
 	current_file_find(Filter, F, X),
 	% TODO: Hack, not in library/toplevel
 	\+ atom_concat(F1, _, X).
-bundle_contents(part(contrib, library), Filter, X) :- !,
-	bundle_path(contrib, 'library', F),
-	current_file_find(Filter, F, X).
 %
 bundle_contents(lpdoc, Filter, X) :- !,
 	bundle_path(lpdoc, 'src', F),

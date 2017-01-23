@@ -144,7 +144,7 @@ do_tests_mtypes() { # [Args]
 
 # preindexing
 do_tests_preindexing() { # [Args]
-    pushd "$ciaoroot"/contrib/library/preindexing > /dev/null
+    pushd "$ciaoroot"/bndls/preindexing > /dev/null
     ./bundlectl configure
     ./bundlectl test "$@"
     popd > /dev/null

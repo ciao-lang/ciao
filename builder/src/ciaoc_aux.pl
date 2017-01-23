@@ -139,7 +139,7 @@ b_make_exec(Bundle, InFile, OutFile, Opts) :-
 %% 	% TODO: ad-hoc!
 %% 	( BaseDir = ~bundle_path(core, 'lib')
 %% 	; BaseDir = ~bundle_path(core, 'library')
-%% 	; BaseDir = ~bundle_path(contrib, 'library')
+%% 	; BaseDir = ~bundle_path(..., ...)
 %% 	),
 %% 	current_platdep_module(BaseDir, FileName, FileA).
 %% 
