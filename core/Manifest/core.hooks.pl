@@ -158,7 +158,7 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
     set_prolog_flags_from_bundle_flags/1
 ]).
 
-% TODO: store these flags during prebuild in a separate file, load them without need to rebuild the commands?
+% TODO: store these flags during prepare_build_bin in a separate file, load them without need to rebuild the commands?
 ciao_extra_commands(ExtraCommands) :-
 	sformat(ExtraCommands, "-e '~w'",
 	    [~list_to_lits(~set_prolog_flags_from_bundle_flags)]).

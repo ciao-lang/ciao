@@ -66,7 +66,7 @@ pillow_destdir := ~path_concat(~pillow_base_htmldir, ~pillow_destname).
 % TODO: subtarget for installation
 '$builder_hook'(pillow:files_from('library/pillow/images', ~pillow_destdir, [del_rec])).
 % Prepare source for build
-'$builder_hook'(pillow:prebuild_bin) :- icon_address_auto.
+'$builder_hook'(pillow:prepare_build_bin) :- icon_address_auto.
 '$builder_hook'(pillow:build_bin) :- true. % (force no build)
 
 % TODO: ask bundle instead

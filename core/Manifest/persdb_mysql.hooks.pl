@@ -85,7 +85,7 @@ mysql_client_directory := ~get_bundle_flag(core:mysql_client_directory).
 
 % Prepare source for build
 % (e.g., for automatically generated code, foreign interfaces, etc.)
-'$builder_hook'(persdb_mysql:prebuild_bin) :-
+'$builder_hook'(persdb_mysql:prepare_build_bin) :-
 	( with_mysql(yes) ->
 	    % TODO: ask bundle instead
 	    wr_template(origin,

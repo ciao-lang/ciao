@@ -426,8 +426,8 @@ grade_defs(custom, Target, _Defs) :- !, % TODO: better idea?
 grade_defs(Grade, Target, Defs) :-
 	findall(Def, grade_defs_(Grade, Target, Def), Defs).
 
-grade_defs_(custom_bin, _Target, _Def) :- !, fail. % TODO: for prebuild
-grade_defs_(custom_docs, _Target, _Def) :- !, fail. % TODO: for prebuild
+grade_defs_(custom_bin, _Target, _Def) :- !, fail. % TODO: for prepare_build_bin
+grade_defs_(custom_docs, _Target, _Def) :- !, fail. % TODO: for prepare_build_docs
 grade_defs_(test, _Target, _Def) :- !, fail. % TODO: FIX
 grade_defs_(bench, _Target, _Def) :- !, fail. % TODO: FIX
 grade_defs_(bin, Target, Def) :- !,
@@ -656,10 +656,10 @@ ask_promote_bootstrap(Eng) :-
 'cmd.recursive'(build_bin, forward).
 'cmd.do_before.decl'(build_bin).
 'cmd.do_before'(build_bin, Target) :- !,
-	builder_cmd(prebuild_bin, Target).
+	builder_cmd(prepare_build_bin, Target).
 
-'cmd.comment'(prebuild_bin, ["prebuilding [bin]", "prebuilt [bin]"]).
-'cmd.grade'(prebuild_bin, custom_bin).
+'cmd.comment'(prepare_build_bin, ["preparing build [bin]", "prepared build [bin]"]).
+'cmd.grade'(prepare_build_bin, custom_bin).
 
 :- use_module(ciaobld(ciaoc_aux), [
     builddir_clean/2,
@@ -708,12 +708,12 @@ do_clean_root(Bundle) :-
 'cmd.recursive'(build_docs, forward).
 'cmd.do_before.decl'(build_docs).
 'cmd.do_before'(build_docs, Target) :- !,
-	builder_cmd(prebuild_docs, Target).
+	builder_cmd(prepare_build_docs, Target).
 
-'cmd.comment'(prebuild_docs, ["prebuilding [docs]", "prebuilt [docs]"]).
-'cmd.grade'(prebuild_docs, custom_docs).
-%'cmd.needs_config'(prebuild_docs).
-%'cmd.recursive'(prebuild_docs, forward).
+'cmd.comment'(prepare_build_docs, ["preparing build [docs]", "prepared build [docs]"]).
+'cmd.grade'(prepare_build_docs, custom_docs).
+%'cmd.needs_config'(prepare_build_docs).
+%'cmd.recursive'(prepare_build_docs, forward).
 
 % Clean documentation
 'cmd.comment'(clean_docs, ["cleaning [docs]", "cleaned [docs]"]).

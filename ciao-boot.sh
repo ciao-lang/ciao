@@ -16,7 +16,7 @@ normal_message() {
 }
 
 # Fetch and patch _base (for network installation)
-fetch() {
+fetch_src() {
     branch=master
     url=https://github.com/ciao-lang/ciao/archive/$branch.tar.gz
     normal_message "fetching '$branch' branch (source code)"
@@ -37,7 +37,7 @@ EOF
 if [ "$0" = "sh" ]; then
     # Stand-alone call. E.g.,
     #   curl https://raw.githubusercontent.com/ciao-lang/ciao/master/ciao-boot.sh -sSf | sh -s -- local-install
-    fetch
+    fetch_src
     cd "$_base" # (needed for installation)
 fi
 

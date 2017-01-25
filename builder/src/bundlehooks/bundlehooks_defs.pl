@@ -5,10 +5,10 @@
 :- multifile m_bundlehook_decl/3.
 :- multifile m_bundlehook_do/3.
 
-% :- pred prebuild_bin/0 # "Prepare source for build_bin".
-% :- pred build_bin/0 # "Build cmds and libs (includes prebuild_bin)".
-% :- pred prebuild_docs/0 # "Prepare source for build_docs".
-% :- pred build_docs/0 # "Build documentation (includes prebuild_docs)".
+% :- pred prepare_build_bin/0 # "Prepare source for build_bin".
+% :- pred build_bin/0 # "Build cmds and libs (includes prepare_build_bin)".
+% :- pred prepare_build_docs/0 # "Prepare source for build_docs".
+% :- pred build_docs/0 # "Build documentation (includes prepare_build_docs)".
 % :- pred install_bin/0 # "Install".
 % :- pred uninstall_bin/0 # "Uninstall".
 % :- pred install_docs/0 # "Install".
