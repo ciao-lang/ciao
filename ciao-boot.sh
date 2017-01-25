@@ -21,7 +21,7 @@ fi
 # ---------------------------------------------------------------------------
 # Origins and default versions
 
-default_vers_bin=1.16.0-alpha.1
+default_vers_bin=1.16.0-alpha.2
 default_vers_src=master
 default_url_src=https://github.com/ciao-lang/ciao/archive
 default_url_bin=https://dl.bintray.com/ciao-lang/builds
