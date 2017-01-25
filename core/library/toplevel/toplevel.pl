@@ -26,7 +26,7 @@
 		set_debug_module/1, set_nodebug_module/1,
 		set_debug_module_source/1]).
 :- use_module(library(goal_trans), [add_goal_trans/3]).
-:- use_module(library(system),     [file_exists/1, using_windows/0]).
+:- use_module(library(system),     [file_exists/1]).
 :- use_module(library(errhandle)).
 :- use_module(library(ttyout)).
 :- use_module(library(write),     [write/1, write_term/2]).
@@ -130,12 +130,6 @@ interpret_args(['-p', Prompt|R], Opts) :- !,
 interpret_args(['-g', Goal|R], Opts) :- !,
 	'$shell_call'(Goal),
 	interpret_args(R, Opts).
-% TODO: Removed to get usage info in MinGW; remove this clause if not
-%   needed or find a better solution
-%% interpret_args(_WinMesh, _) :-
-%% 	using_windows, !, /* running in a Windows non-cygwin shell */
-%% 	% For windows shortcuts
-%% 	include_if_exists('~/.ciaorc').
 interpret_args(_Args, _) :-
 	display(
 'Usage: ciaosh [-f] [-q] [-i] [-l <File>] [-u <File>] [-p <Prompt>] [-e <Query>]'),
