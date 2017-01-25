@@ -914,12 +914,9 @@ cyg2win_a(Path, WindifiedPath, Swap) :-
 	cyg2win(Codes, WindifiedCodes, Swap),
 	atom_codes(WindifiedPath, WindifiedCodes).
 
-% TODO: bad name
-:- true pred using_windows # "Running in a Windows native environment
-   (not emulating a POSIX system).  On Cygwin platforms, this is
-   currently detected by looking at the CIAOSCRIPT environment
-   variable (which is added to the shell profile files during
-   installation).".
+% TODO: better name? equivalent to os.name=="nt" in python
+:- true pred using_windows # "Using the Windows native API (not
+   POSIX)".
 
 :- impl_defined(using_windows/0).
 

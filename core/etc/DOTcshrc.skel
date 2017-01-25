@@ -12,9 +12,6 @@
 # # exit 1
 # endif
 
-# Used to see if we are using this script
-setenv CIAOSCRIPT yes
-
 setenv CIAOBINDIR {{CiaoBinDir}}
 
 if ( ${?PATH} == 0 ) then

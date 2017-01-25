@@ -81,14 +81,14 @@ char cwd[MAXPATHLEN+1];/* Should be private --- each thread may cd freely! */
 
 /* --------------------------------------------------------------------------- */
 
-/* running in a Windows non-cygwin shell */
+/* using the Windows native API (not POSIX) */
 bool_t using_windows(void)
 {
 #if defined(Win32) /* Cygwin||MSYS2||MinGW */
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
   return TRUE;
 #else
-  return !getenv("CIAOSCRIPT");
+  return FALSE; /* note: it was !getenv("CIAOSCRIPT") before port to mingw */
 #endif
 #else
   return FALSE;

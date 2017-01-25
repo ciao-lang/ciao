@@ -12,9 +12,6 @@
 # # exit 1
 # fi
 
-# Used to see if we are using this script
-CIAOSCRIPT=yes ; export CIAOSCRIPT
-
 CIAOBINDIR={{CiaoBinDir}}
 
 if [ "${PATH:-0}" = "0" ] ; then
@@ -50,7 +47,7 @@ fi
 # info), the GNU info standalone manuals browser (type info at the
 # command line), the unix man command, etc.
 # 
-CIAODOCDIR={{CiaoDocDir}} ; export CIAODOCDIR
+CIAODOCDIR={{CiaoDocDir}}
 # Set MANPATH (checking that we do not add it twice)
 # The colon at the end is needed so that default paths are found!
 if [ "${MANPATH:-0}" = "0" ] ; then
