@@ -42,7 +42,8 @@ get_os_arch() { # (simpler version of ciao_sysconf)
 	Darwin) os=DARWIN ;;
     esac
     case "$arch" in
-	i[3456]86|i86pc|x86_64|amd64) arch=i686 ;;
+	i[3456]86|i86pc) arch=i686 ;;
+	x86_64|amd64) arch=x86_64 ;;
     esac
 }
 
