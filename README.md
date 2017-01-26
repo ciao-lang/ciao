@@ -4,7 +4,7 @@
 # The Ciao Programming Language
 
 This is the main source code repository for
-[Ciao](http://ciao-lang.org). It contains the compiler, standard
+[Ciao](https://ciao-lang.org). It contains the compiler, standard
 libraries, and build system. 
 
 The rest of components are distributed as separate bundles. See

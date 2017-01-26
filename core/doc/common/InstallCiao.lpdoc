@@ -12,7 +12,7 @@ If you find any problems during installation, please refer to
 @section{Obtaining the sources}
 
 The source code for the latest stable and development versions of Ciao
-is available from @href{http://ciao-lang.org} in the form of
+is available from @href{https://ciao-lang.org} in the form of
 compressed packages (@tt{.tgz} or @tt{.tbz2} files). Another method to
 get the sources is from the Git repository (available for Ciao
 developers).

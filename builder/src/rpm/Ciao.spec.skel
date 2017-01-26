@@ -84,7 +84,7 @@ Release: {{Release}}
 License: LGPL (Ciao) / GPL (CiaoPP, lpdoc)
 Vendor: CLIP Lab
 Group: Development/Languages
-URL: http://ciao-lang.org
+URL: https://ciao-lang.org
 Packager: Ciao Dev. Team <ciao@clip.dia.fi.upm.es>
 Source: {{BinPackName}}.tar.gz
 Requires: coreutils %{install_info_cmd}
@@ -254,5 +254,5 @@ fi
 # Entries should only mention user-visible changes:
 %changelog
 * Tue Oct 11 2011 Ciao development team <ciao@clip.dia.fi.upm.es>
-- Check the documentation or visit http://ciao-lang.org for the
+- Check the documentation or visit https://ciao-lang.org for the
   release notes for this version.

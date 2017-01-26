@@ -21,7 +21,7 @@ verbose_build := ~get_bundle_flag(ciao:verbose_build).
 % (Not configurable)
 
 :- export(home_url_str/1).
-home_url_str := "http://ciao-lang.org/".
+home_url_str := "https://ciao-lang.org/".
 % TODO: Wrong
 :- export(packages_dir_str/1).
 packages_dir_str := "packages/master/".

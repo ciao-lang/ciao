@@ -17,7 +17,7 @@ Obtaining the sources
 =====================
 
 The source code for the latest stable and development versions of Ciao
-is available from `http://ciao-lang.org' in the form of compressed
+is available from `https://ciao-lang.org' in the form of compressed
 packages (`.tgz' or `.tbz2' files). Another method to get the sources
 is from the Git repository (available for Ciao developers).
 

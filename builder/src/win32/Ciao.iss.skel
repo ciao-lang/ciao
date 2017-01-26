@@ -1,7 +1,7 @@
 #define MyAppName "{{MyAppName}}"
 #define MyAppVerName "{{MyAppVerName}}"
 #define MyAppPublisher "{{MyAppPublisher}}"
-#define MyAppURL "http://ciao-lang.org/"
+#define MyAppURL "https://ciao-lang.org/"
 #define MyAppExeName "{{MyAppExeName}}"
 #define MyAppUrlName "ciao.url"
 #define MyRelBuildDir "{{MyRelBuildDir}}"
@@ -212,7 +212,7 @@ begin
   begin
     // Let's download emacs from ciao-lang automatically...
     // itd_addfile('http://localhost/' + BaseEmacs, TempEmacs);
-    itd_addfile('http://ciao-lang.org/emacs/' + BaseEmacs, TempEmacs);
+    itd_addfile('https://ciao-lang.org/emacs/' + BaseEmacs, TempEmacs);
     itd_addmirror('http://www.ourcomments.org/Emacs/DL/EmacsW32/EmacsCVS/ptch/' + BaseEmacs, TempEmacs);
     itd_downloadafter(wpReady);
   end;
