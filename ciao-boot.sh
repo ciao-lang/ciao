@@ -169,6 +169,8 @@ case $1 in
 esac
 
 # Prepare for download
+# TODO: split tar.gz into source, bin-$os$arch, etc. so that there is
+#   no overlapping and we can do multi-architecture installs
 if [ -x "$ciaoroot" ]; then
     cat <<EOF
 ERROR: already fetched '$vers' version under:
