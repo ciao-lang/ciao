@@ -21,10 +21,12 @@ fi
 # ---------------------------------------------------------------------------
 # Origins and default versions
 
-default_vers_bin=1.16.0-alpha.2
-default_vers_src=master
-default_url_src=https://github.com/ciao-lang/ciao/archive
-default_url_bin=https://dl.bintray.com/ciao-lang/builds
+set_defaults() {
+    default_vers_bin=1.16.0-alpha.2
+    default_vers_src=master
+    default_url_src=https://github.com/ciao-lang/ciao/archive
+    default_url_bin=https://dl.bintray.com/ciao-lang/builds
+}
 
 # ---------------------------------------------------------------------------
 
@@ -112,15 +114,7 @@ export CIAOLIB="$CIAOLIB"
 EOF
 }
 
-# How this command was called (for help messages)
-if [ "$0" = "sh" ]; then
-    booturl="https://raw.githubusercontent.com/ciao-lang/ciao/master"
-    bootsh="curl $booturl/ciao-boot.sh -sSf | sh -s --"
-else
-    bootsh=$0
-fi
-
-if [ $# = 0 ]; then
+help() {
     cat <<EOF
 Welcome to the on-line installer for Ciao!
 
@@ -145,34 +139,41 @@ Examples:
   eval \$($bootsh env)
 
 EOF
-    exit 1
-fi
+}
 
-case $1 in
-    --prebuilt)
-	shift
-	select_bin
-	;;
-    *)
-	select_src
-	;;
-esac
-ciaoroot=$HOME/.ciaoroot/$vers
+fetch_and_boot() { # args
+    set_defaults
 
-# Other commands
-case $1 in
-    env)
-	shift
-	show_env
+    if [ $# = 0 ]; then
+	help
 	exit 1
-	;;
-esac
+    fi
 
-# Prepare for download
-# TODO: split tar.gz into source, bin-$os$arch, etc. so that there is
-#   no overlapping and we can do multi-architecture installs
-if [ -x "$ciaoroot" ]; then
-    cat <<EOF
+    case $1 in
+	--prebuilt)
+	    shift
+	    select_bin
+	    ;;
+	*)
+	    select_src
+	    ;;
+    esac
+    ciaoroot=$HOME/.ciaoroot/$vers
+
+    # Other commands
+    case $1 in
+	env)
+	    shift
+	    show_env
+	    exit 1
+	    ;;
+    esac
+
+    # Prepare for download
+    # TODO: split tar.gz into source, bin-$os$arch, etc. so that there is
+    #   no overlapping and we can do multi-architecture installs
+    if [ -x "$ciaoroot" ]; then
+	cat <<EOF
 ERROR: already fetched '$vers' version under:
 
   $ciaoroot
@@ -180,47 +181,61 @@ ERROR: already fetched '$vers' version under:
 Please remove it to force a new installation.
 
 EOF
-    exit 1
-fi
-mkdir -p "$ciaoroot"
-# Download
-if [ $prebuilt = yes ]; then
-    normal_message "fetching '$vers' version (prebuilt)"
-else
-    normal_message "fetching '$vers' version (source)"
-fi
-fetch_url
-cd "$ciaoroot" # (needed for installation)
-if [ $prebuilt = yes ]; then
-    # TODO: improve relocation
-    #  - patch binaries instead?
-    #  - prebuild in a better default location?
-    #  - use a single CIAOROOT env var (instead of CIAOENGINE,CIAOHDIR,CIAOLIB)
-    # TODO: touch all po,itf so that no recompilation happens
-    # TODO: mingw version?
-    # TODO: create exec stub (turn into static + lib)
-    # TODO: create small ciaoengine (dynlink to so)
-    
-    # TODO: allow more commands
-    case $1 in
-	local-install) shift; cmd=install ;;
-	install) shift; cmd=install ;;
-	*) cat <<EOF
+	exit 1
+    fi
+    mkdir -p "$ciaoroot"
+    # Download
+    if [ $prebuilt = yes ]; then
+	normal_message "fetching '$vers' version (prebuilt)"
+    else
+	normal_message "fetching '$vers' version (source)"
+    fi
+    fetch_url
+    cd "$ciaoroot" # (needed for installation)
+    if [ $prebuilt = yes ]; then
+	# TODO: improve relocation
+	#  - patch binaries instead?
+	#  - prebuild in a better default location?
+	#  - use a single CIAOROOT env var (instead of CIAOENGINE,CIAOHDIR,CIAOLIB)
+	# TODO: touch all po,itf so that no recompilation happens
+	# TODO: mingw version?
+	# TODO: create exec stub (turn into static + lib)
+	# TODO: create small ciaoengine (dynlink to so)
+	
+	# TODO: allow more commands
+	case $1 in
+	    local-install) shift; cmd=install ;;
+	    install) shift; cmd=install ;;
+	    *) cat <<EOF
 ERROR: Command $1 not allowed with --prebuilt
 
 EOF
-	   exit 1
-	   ;;
-    esac
-    #
-    cd "$ciaoroot" # (needed for installation)
-    "$ciaoroot"/builder/sh_boot/builder_boot.sh rescan-bundles # (fix paths)
-    "$ciaoroot"/builder/sh_boot/builder_boot.sh configure "$@"
-    "$ciaoroot"/builder/sh_boot/builder_boot.sh build core.dot_shell # (fix paths)
-    fix_dot_shell
-    fix_symlinks
-    exec "$ciaoroot"/builder/sh_boot/builder_boot.sh "$cmd"
+	       exit 1
+	       ;;
+	esac
+	#
+	cd "$ciaoroot" # (needed for installation)
+	"$ciaoroot"/builder/sh_boot/builder_boot.sh rescan-bundles # (fix paths)
+	"$ciaoroot"/builder/sh_boot/builder_boot.sh configure "$@"
+	"$ciaoroot"/builder/sh_boot/builder_boot.sh build core.dot_shell # (fix paths)
+	fix_dot_shell
+	fix_symlinks
+	exec "$ciaoroot"/builder/sh_boot/builder_boot.sh "$cmd"
+    else
+	exec "$ciaoroot"/builder/sh_boot/builder_boot.sh "$@"
+    fi
+}
+
+# How this command was called (for help messages)
+if [ "$0" = "sh" ]; then
+    booturl="https://raw.githubusercontent.com/ciao-lang/ciao/master"
+    bootsh="curl $booturl/ciao-boot.sh -sSf | sh -s --"
 else
-    exec "$ciaoroot"/builder/sh_boot/builder_boot.sh "$@"
+    bootsh=$0
 fi
+
+# The end of the script must be this function call.
+# It ensures that we do not execute incomplete (and dangerous!) code
+# if "curl" is interrupted.
+fetch_and_boot "$@"
 
