@@ -1,0 +1,95 @@
+#!/bin/sh
+#
+#  prebuilt_boot.sh
+#
+#  Boot from prebuilt sources (temporary! merge with other code)
+#
+#  Copyright (C) 2017 Jose F. Morales
+#
+
+# TODO: allow more valid commands (only local-install and install are supported)
+# TODO: check that re-configuration is consistent w.r.t. prebuilt sources
+# TODO: improve relocation
+#  - patch binaries instead?
+#  - prebuild in a better default location?
+#  - use a single CIAOROOT env var (instead of CIAOENGINE,CIAOHDIR,CIAOLIB)
+# TODO: touch all po,itf so that no recompilation happens
+# TODO: mingw version?
+# TODO: create exec stub (turn into static + lib)
+# TODO: create small ciaoengine (dynlink to so)
+
+# Exit immediately if a simple command exits with a non-zero status
+set -e
+
+# Physical directory where the script is located
+_base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
+        cd "$d";done;cd "$(dirname "$e")";pwd -P)
+
+# Detect ciaoroot
+old_dir=`pwd`; cd "$_base/../.."; ciaoroot=`pwd`; cd "$old_dir"; old_dir=
+
+cfg=$CIAO_PREBUILT_CFG # (must be passed)
+if [ x"$cfg" = x"" ]; then
+    cat <<EOF
+ERROR: CIAO_PREBUILT_CFG not defined!
+
+EOF
+    exit 1
+fi
+
+fix_symlinks() {
+    # normal_message "relocating symbolic links..."
+    # Fix some symbolic links in build/ directory
+    cd "$ciaoroot"
+    # TODO: meta_sh, etc. are not patched
+    . "$ciaoroot/build/eng/ciaoengine/cfg/$cfg/meta_sh" # (for eng_srcpath)
+    local old=$eng_srcpath # old srcpath at build host
+    local new="$ciaoroot/core/engine" # new srcpath at this host
+    local i f g
+    for i in $(find "$ciaoroot/build" -type l); do
+        f=$(readlink $i)
+        g=$(printf "%s" $f | sed -e "s;^$old;$new;")
+        if [ "$f" != "$g" ]; then
+            unlink $i
+            ln -s $g $i
+        fi
+    done
+}
+
+# Fix paths and include explicit definitions for CIAOENGINE,CIAOHDIR,CIAOLIB
+# TODO: these would not be needed with proper relocation
+fix_dot_shell() {
+    "$ciaoroot"/builder/sh_boot/builder_boot.sh build core.dot_shell
+    cat >> "$ciaoroot/core/etc/DOTprofile" <<EOF
+export CIAOENGINE="$ciaoroot/build/eng/ciaoengine/objs/$cfg/ciaoengine"
+export CIAOHDIR="$ciaoroot/build/eng/ciaoengine/include"
+export CIAOLIB="$ciaoroot/core"
+EOF
+    cat >> "$ciaoroot/core/etc/DOTcshrc" <<EOF
+setenv CIAOENGINE $ciaoroot/build/eng/ciaoengine/objs/$cfg/ciaoengine
+setenv CIAOHDIR $ciaoroot/build/eng/ciaoengine/include
+setenv CIAOLIB $ciaoroot/core
+EOF
+}
+
+# Check that this is a valid command for a prebuilt distribution
+case $1 in
+    local-install) shift; cmd=install ;;
+    install) shift; cmd=install ;;
+    *) cat <<EOF
+ERROR: Command '$1' not allowed when using a prebuilt distribution.
+
+If this is what you really need, please consider '--no-prebuilt' to
+build from sources.
+
+EOF
+       exit 1
+       ;;
+esac
+
+cd "$ciaoroot" # (needed for installation)
+"$ciaoroot"/builder/sh_boot/builder_boot.sh rescan-bundles # (fix paths)
+"$ciaoroot"/builder/sh_boot/builder_boot.sh configure "$@"
+fix_dot_shell
+fix_symlinks
+exec "$ciaoroot"/builder/sh_boot/builder_boot.sh "$cmd"
