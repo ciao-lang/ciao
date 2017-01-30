@@ -24,16 +24,30 @@ EOF
     shift
 done
 
-# Use DOTprofile
-. "$_base"/DOTprofile
+# ---------------------------------------------------------------------------
+# Add paths (from CIAOPATH and CIAOROOT)
 
-add_bindir() { # bindir
-    bindir=$1
-    if [ "${PATH:-0}" = "0" ] ; then
-	PATH=$bindir
+# Return path:old2, where old2 is old where path is removed, or just
+# path if old is empty
+concat_nodup() { # path old
+    if [ x"$2" = x"" ]; then
+	printf "%s" "$1"
     else
-	PATH=$bindir:$(printf "%s" "$PATH"|sed -e s:'\:'"$bindir"::g)
+	printf "%s" "$1":$(printf "%s" "$2" | sed -e s:'\:'"$1"::g)
     fi
+}
+
+# Add a binary path
+add_bindir() { # dir
+    PATH=$(concat_nodup "$1" "$PATH")
+}
+# Add a documentation path (for MANPATH and INFOPATH)
+add_docdir() { # dir
+    if [ "${INFOPATH:-0}" = "0" ]; then
+	INFOPATH=/usr/info:/usr/share/info:/usr/local/info
+    fi
+    MANPATH=$(concat_nodup "$1" "$MANPATH")
+    INFOPATH=$(concat_nodup "$1" "$INFOPATH")
 }
 
 # Add additional paths from CIAOPATH
@@ -41,16 +55,20 @@ get_paths() {
     IFS=: get_paths_
 }
 get_paths_() {
-    for i in $CIAOPATH; do
+    revpath=
+    for i in $CIAOPATH; do # reverse
+	revpath=$i':'$revpath
+    done
+    revpath=$(printf "%s" "$revpath" | sed -e s:'\:$'::g) # remove last :
+    get_paths__ $revpath
+}
+get_paths__() {
+    unset IFS
+    for i in "$@"; do
 	add_bindir "$i"/build/bin
+	add_docdir "$i"/build/doc
     done
 }
-get_paths
-
-# DOTprofile contains info for relocatable
-if [ x"${CIAOENGINE}" != x"" ]; then
-    reloc=yes
-fi
 
 # ---------------------------------------------------------------------------
 
@@ -94,6 +112,15 @@ setenv CIAOLIB "$CIAOLIB"
 EOF
 }
 
+# Use DOTprofile
+. "$_base"/DOTprofile
+get_paths
+# DOTprofile contains info for relocatable
+if [ x"${CIAOENGINE}" != x"" ]; then
+    reloc=yes
+fi
+
+# Print commands to change environment
 case $target in 
     sh) env_sh ;;
     csh) env_csh ;;
