@@ -167,7 +167,7 @@ cmd_details(configure, Text) :-
           %2........................________________________________________________
 	  "The following arguments for configure are accepted:",
 	  "",
-	  "  --interactive           Configure the system interactively",
+	  "  --interactive           Interactive configuration",
 	  "                          (existing previous configuration is consulted)",
 	  "  --list-flags            List the bundle configuration flags",
 	  "  --describe-flag <flag>  Describe the configuration flag",
