@@ -4,26 +4,27 @@
 #
 #  Boot the Ciao builder (with or without sources)
 #
-#  Copyright (C) Ciao Developer team
+#  Copyright (C) 2015-2017 Ciao Developer Team
 #
 
-# Boot from sources
+# Boot from existing sources
 if [ "$0" != "sh" ]; then
     # Physical directory where the script is located
     _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
          cd "$d";done;cd "$(dirname "$e")";pwd -P)
-    if [ -x "$_base"/builder/sh_boot/builder_boot.sh ]; then
-	exec "$_base"/builder/sh_boot/builder_boot.sh "$@"
-    fi
+    boot="$_base"/builder/sh_boot/builder_boot.sh
+    if [ -x "$boot" ]; then exec "$boot" "$@"; fi
 fi
-# Otherwise, lets continue with the on-line installer...
+# otherwise try boot from network mode (below)
 
 # ---------------------------------------------------------------------------
 # Origins and default versions
 
 set_defaults() {
+    default_bundle=ciao
     default_vers_bin=1.16.0-alpha.2
     default_vers_src=master
+    default_prebuilt=yes # TODO: make it depend on selected version?
     default_url_src=https://github.com/ciao-lang/ciao/archive
     default_url_bin=https://dl.bintray.com/ciao-lang/builds
 }
@@ -50,12 +51,10 @@ get_os_arch() { # (simpler version of ciao_sysconf)
 }
 
 select_src() {
-    prebuilt=no
     vers=$default_vers_src
     url=$default_url_src/$vers.tar.gz
 }
 select_bin() {
-    prebuilt=yes
     get_os_arch
     cfg=$os$arch
     vers=$default_vers_bin
@@ -66,64 +65,25 @@ fetch_url() {
     curl -SfL "$url" | tar -xz --strip-components 1 -C "$ciaoroot" -f -
 }
 
-# TODO: move somewhere else
-fix_symlinks() {
-    # normal_message "relocating symbolic links..."
-    # Fix some symbolic links in build/ directory
-    cd "$ciaoroot"
-    # TODO: meta_sh, etc. are not patched
-    . "$ciaoroot/build/eng/ciaoengine/cfg/$cfg/meta_sh" # (for eng_srcpath)
-    local old=$eng_srcpath # old srcpath at build host
-    local new="$ciaoroot/core/engine" # new srcpath at this host
-    local i f g
-    for i in $(find "$ciaoroot/build" -type l); do
-        f=$(readlink $i)
-        g=$(printf "%s" $f | sed -e "s;^$old;$new;")
-        if [ "$f" != "$g" ]; then
-            unlink $i
-            ln -s $g $i
-        fi
-    done
-}
-fix_dot_shell() {
-    # These would not be needed with proper relocation
-    cat >> "$ciaoroot/core/etc/DOTprofile" <<EOF
-export CIAOENGINE="$ciaoroot/build/eng/ciaoengine/objs/$cfg/ciaoengine"
-export CIAOHDIR="$ciaoroot/build/eng/ciaoengine/include"
-export CIAOLIB="$ciaoroot/core"
-EOF
-}
-
-# TODO: move somewhere else (ciao.skel?)
-show_env() {
-    . "$ciaoroot/core/etc/DOTprofile"
-    get_os_arch
-    cfg=$os$arch
-    cat <<EOF
-export PATH="$PATH"
-export MANPATH="$MANPATH"
-export INFOPATH="$INFOPATH"
-#
-export CIAOENGINE="$CIAOENGINE"
-export CIAOHDIR="$CIAOHDIR"
-export CIAOLIB="$CIAOLIB"
-
-# Run this command to setup your environment:
-# 
-# eval "\$($bootsh env)"
-EOF
-}
-
 help() {
+    get_os_arch
     cat <<EOF
-Welcome to the on-line installer for Ciao!
+   ▄▄▄
+ ▄▀   ▀ ▀   ▄▄▄   ▄▄▄     Default version: $default_vers_bin
+ █      █  █   █ █   █    Detected OS: $os
+  ▀▄▄▄▀ ▀▄▄▀▄▄▀█▄▀▄▄▄▀    Detected architecture: $arch
+
+Running ciao-boot.sh in network installation mode!
+
+Please visit https://ciao-lang.org for more information.
+Code will be installed under ~/.ciaoroot directory.
 
 Examples:
 
-  # Do a local-install under ~/.ciaoroot
-  $bootsh local-install
+  # local-install from sources
+  $bootsh --no-prebuilt local-install
 
-  # Do a local-install using prebuilt code
+  # local-install using prebuilt code
   $bootsh --prebuilt local-install
 
   # Do not update your shell environment
@@ -135,11 +95,32 @@ Examples:
   # Activate the existing installation (csh)
   source ~/.ciaoroot/$default_vers_bin/core/etc/DOTcshrc
 
-  # Activate some installation (bash) -- dynamic, it will consider CIAOPATH
-  eval \$($bootsh env)
-
 EOF
 }
+
+# TODO: use a local script instead (e.g., ~/.ciaoroot/env.sh)
+
+## #  # Activate some installation (bash) -- dynamic, it will consider CIAOPATH
+## #  eval \$($bootsh env)
+## 
+## # TODO: move somewhere else (ciao.skel?)
+## # TODO: add paths under CIAOPATH too
+## show_env() {
+##     . "$ciaoroot/core/etc/DOTprofile"
+##     cat <<EOF
+## export PATH="$PATH"
+## export MANPATH="$MANPATH"
+## export INFOPATH="$INFOPATH"
+## #
+## export CIAOENGINE="$CIAOENGINE"
+## export CIAOHDIR="$CIAOHDIR"
+## export CIAOLIB="$CIAOLIB"
+## 
+## # Run this command to setup your environment:
+## # 
+## # eval "\$($bootsh env)"
+## EOF
+## }
 
 fetch_and_boot() { # args
     set_defaults
@@ -149,15 +130,17 @@ fetch_and_boot() { # args
 	exit 1
     fi
 
+    bundle=$default_bundle
+    prebuilt=$default_prebuilt
     case $1 in
-	--prebuilt)
-	    shift
-	    select_bin
-	    ;;
-	*)
-	    select_src
-	    ;;
+	--prebuilt) shift; prebuilt=yes ;;
+	--no-prebuilt) shift; prebuilt=no ;;
     esac
+    if [ $prebuilt = yes ]; then
+	select_bin
+    else
+	select_src
+    fi
     ciaoroot=$HOME/.ciaoroot/$vers
 
     # Other commands
@@ -185,42 +168,12 @@ EOF
     fi
     mkdir -p "$ciaoroot"
     # Download
-    if [ $prebuilt = yes ]; then
-	normal_message "fetching '$vers' version (prebuilt)"
-    else
-	normal_message "fetching '$vers' version (source)"
-    fi
+    normal_message "fetching $bundle ($vers) from $url"
     fetch_url
-    cd "$ciaoroot" # (needed for installation)
+    # Boot
+    cd "$ciaoroot" # TODO: really needed now?
     if [ $prebuilt = yes ]; then
-	# TODO: improve relocation
-	#  - patch binaries instead?
-	#  - prebuild in a better default location?
-	#  - use a single CIAOROOT env var (instead of CIAOENGINE,CIAOHDIR,CIAOLIB)
-	# TODO: touch all po,itf so that no recompilation happens
-	# TODO: mingw version?
-	# TODO: create exec stub (turn into static + lib)
-	# TODO: create small ciaoengine (dynlink to so)
-	
-	# TODO: allow more commands
-	case $1 in
-	    local-install) shift; cmd=install ;;
-	    install) shift; cmd=install ;;
-	    *) cat <<EOF
-ERROR: Command $1 not allowed with --prebuilt
-
-EOF
-	       exit 1
-	       ;;
-	esac
-	#
-	cd "$ciaoroot" # (needed for installation)
-	"$ciaoroot"/builder/sh_boot/builder_boot.sh rescan-bundles # (fix paths)
-	"$ciaoroot"/builder/sh_boot/builder_boot.sh configure "$@"
-	"$ciaoroot"/builder/sh_boot/builder_boot.sh build core.dot_shell # (fix paths)
-	fix_dot_shell
-	fix_symlinks
-	exec "$ciaoroot"/builder/sh_boot/builder_boot.sh "$cmd"
+	CIAO_PREBUILT_CFG=$cfg exec "$ciaoroot"/builder/sh_boot/prebuilt_boot.sh "$@"
     else
 	exec "$ciaoroot"/builder/sh_boot/builder_boot.sh "$@"
     fi
@@ -228,8 +181,10 @@ EOF
 
 # How this command was called (for help messages)
 if [ "$0" = "sh" ]; then
-    booturl="https://raw.githubusercontent.com/ciao-lang/ciao/master"
-    bootsh="curl $booturl/ciao-boot.sh -sSf | sh -s --"
+    # booturl="https://raw.githubusercontent.com/ciao-lang/ciao/master/ciao-boot.sh"
+    # bootsh="curl $booturl -sSf | sh -s --"
+    booturl="https://ciao-lang.org/boot"
+    bootsh="curl $booturl -sSfL | sh -s --"
 else
     bootsh=$0
 fi
