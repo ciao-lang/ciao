@@ -52,11 +52,16 @@ add_docdir() { # dir
 
 # Add additional paths from CIAOPATH
 get_paths() {
+    if [ x"$CIAOPATH" = x"" ]; then
+	curr_ciaopath=$HOME/.ciao # Use default (even if it does not exist)
+    else
+	curr_ciaopath=$CIAOPATH
+    fi
     IFS=: get_paths_
 }
 get_paths_() {
     revpath=
-    for i in $CIAOPATH; do # reverse
+    for i in $curr_ciaopath; do # reverse
 	revpath=$i':'$revpath
     done
     revpath=$(printf "%s" "$revpath" | sed -e s:'\:$'::g) # remove last :
