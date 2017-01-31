@@ -4,7 +4,7 @@
 #
 #  The ciao super-command.
 #
-#  Copyright (C) 2015 Ciao Developer team
+#  Copyright (C) 2015-2017 Ciao Developer Team
 #
 
 # Physical directory where the script is located
@@ -19,6 +19,7 @@ alt() { local f=$1; [ -x "$f" ] || f=$2; printf "%s" "$f"; }
 
 use_rlwrap=yes # TODO: Turn into an option
 
+# ({{Var}} filled from .hooks.pl)
 ciao_builder_bin=$(alt "$_base"/{{ciao_builder_cmdV}} "$_base"/{{ciao_builder_cmd}})
 ciaosh_bin=$(alt "$_base"/{{ciaosh_cmdV}} "$_base"/{{ciaosh_cmd}})
 ciao_shell_bin=$(alt "$_base"/{{ciao_shell_cmdV}} "$_base"/{{ciao_shell_cmd}})

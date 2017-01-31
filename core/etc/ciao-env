@@ -1,31 +1,24 @@
 #!/bin/sh
+#
+#  ciao-env
+#
+#  Setup environment for shells
+#
+#  Copyright (C) 2017 Ciao Developer Team
+#
 
 # Physical directory where the script is located
 _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
         cd "$d";done;cd "$(dirname "$e")";pwd -P)
 
-# Options
-
-target=sh
-reloc=no
-
-while [ $# -gt 0 ]; do
-    case "$1" in
-	--sh|--bash) target=sh ;;
-	--csh|--tcsh) target=csh ;;
-#	--reloc) reloc=yes ;;
-	*) 
-	    cat <<EOF 
-ERROR: Unrecognized option $1
-EOF
-	    exit 1
-	    ;;
-    esac
-    shift
-done
-
 # ---------------------------------------------------------------------------
-# Add paths (from CIAOPATH and CIAOROOT)
+# Add paths
+#
+# This adds to PATH,MANPATH,INFOPATH the paths corresponding to the
+# bin/ and doc/ directories for detected CIAOROOT and CIAOPATH. Paths
+# are added even if directories do not exist yet (e.g.,
+# ~/.ciao/build/bin is added even if the user has not installed any
+# bundle via 'ciao get').
 
 # Return path:old2, where old2 is old where path is removed, or just
 # path if old is empty
@@ -76,12 +69,26 @@ get_paths__() {
 }
 
 # ---------------------------------------------------------------------------
+# Generate commands that change the environment
 
-env_sh_help() {
+env_help_sh() {
     cat <<EOF
+#
 # Run this command to setup your environment:
-# 
-# eval "\$(ciao-env --sh)"
+#   eval "\$(ciao-env --sh)"
+EOF
+}
+env_help_csh() {
+    # NOTE: tcsh/csh cannot eval comments. The trick to write
+    #   something that looks like a comment in tcsh is using the ':'
+    #   command (which requires quoting!): E.g.,
+    #     : 'this is a comment';
+    #   That is not valid in csh. So we will just echo and redirect to
+    #   /dev/null.
+    cat <<EOF
+echo '' > /dev/null;
+echo 'Run this command to setup your environment:' > /dev/null;
+echo '  eval \`ciao-env --csh\`' > /dev/null;
 EOF
 }
 
@@ -92,55 +99,64 @@ export MANPATH="$MANPATH"
 export INFOPATH="$INFOPATH"
 EOF
 }
+env_csh() {
+    cat <<EOF
+setenv PATH "$PATH";
+setenv MANPATH "$MANPATH";
+setenv INFOPATH "$INFOPATH";
+EOF
+}
 
-env_sh_reloc() {
+env_reloc_sh() {
     cat <<EOF
 export CIAOENGINE="$CIAOENGINE"
 export CIAOHDIR="$CIAOHDIR"
 export CIAOLIB="$CIAOLIB"
 EOF
 }
-
-env_csh() {
+env_reloc_csh() {
     cat <<EOF
-setenv PATH "$PATH"
-setenv MANPATH "$MANPATH"
-setenv INFOPATH "$INFOPATH"
+setenv CIAOENGINE "$CIAOENGINE";
+setenv CIAOHDIR "$CIAOHDIR";
+setenv CIAOLIB "$CIAOLIB";
 EOF
 }
 
-env_csh_reloc() {
-    cat <<EOF
-setenv CIAOENGINE "$CIAOENGINE"
-setenv CIAOHDIR "$CIAOHDIR"
-setenv CIAOLIB "$CIAOLIB"
-EOF
+env_gen() { # tgtshell
+    tgtshell=$1
+    # Use DOTprofile
+    . "$_base"/DOTprofile
+
+    get_paths
+    # DOTprofile contains info for relocatable
+    reloc=no
+    if [ x"${CIAOENGINE}" != x"" ]; then
+	reloc=yes
+    fi
+
+    # Print commands to change environment
+    env_$tgtshell
+    if [ $reloc = yes ]; then
+	env_reloc_$tgtshell
+    fi
+    env_help_$tgtshell
 }
 
-# Use DOTprofile
-. "$_base"/DOTprofile
-get_paths
-# DOTprofile contains info for relocatable
-if [ x"${CIAOENGINE}" != x"" ]; then
-    reloc=yes
-fi
+# ---------------------------------------------------------------------------
+# Parse options and run
 
-# Print commands to change environment
-case $target in 
-    sh) env_sh ;;
-    csh) env_csh ;;
-esac
-if [ $reloc = yes ]; then
-    case $target in 
-	sh) env_sh_reloc ;;
-	csh) env_csh_reloc ;;
+tgtshell=sh
+while [ $# -gt 0 ]; do
+    case "$1" in
+	--sh|--bash) tgtshell=sh ;;
+	--csh|--tcsh) tgtshell=csh ;;
+	*) 
+	    cat <<EOF 
+ERROR: Unrecognized option $1
+EOF
+	    exit 1
+	    ;;
     esac
-fi
-case $target in 
-    sh) env_sh_help ;;
-    # csh) ...
-    #   # comments are not valid in eval for csh
-    #   eval `ciao-env --csh`
-esac
-
-    
+    shift
+done
+env_gen $tgtshell

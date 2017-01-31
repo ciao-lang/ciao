@@ -3,25 +3,17 @@
 # Warning: this file has been edited automatically during installation
 # This file is meant for inclusion in user initialization scripts
 # --------------------------------------------------------------------
-#
-# Setting paths for the executables:
-#
 
-# if [ ! "${CIAOBINDIR:-0}" = "0" ] ; then
-#     echo "{WARNING: redefining CIAOBINDIR environment variable}"
-# # exit 1
-# fi
-
-CIAOBINDIR={{CiaoBinDir}}
-
+# Setting paths for the executables
+bindir={{BinDir}}
 if [ "${PATH:-0}" = "0" ] ; then
-    PATH=${CIAOBINDIR} ; export PATH
+    PATH=${bindir} ; export PATH
 else
-    export PATH=${CIAOBINDIR}:$(echo ${PATH}|sed -e s:'\:'${CIAOBINDIR}::g)
+    export PATH=${bindir}:$(echo ${PATH}|sed -e s:'\:'${bindir}::g)
 #     case ${PATH} in
-# 	${CIAOBINDIR}:* | *:${CIAOBINDIR} | *:${CIAOBINDIR}:* ) ;;
+# 	${bindir}:* | *:${bindir} | *:${bindir}:* ) ;;
 # 	* )
-# 	    PATH=${CIAOBINDIR}:${PATH} ;;
+# 	    PATH=${bindir}:${PATH} ;;
 #     esac
 fi
 
@@ -46,28 +38,28 @@ fi
 # Setting this variable makes the manuals accessible to emacs (via M-x
 # info), the GNU info standalone manuals browser (type info at the
 # command line), the unix man command, etc.
-# 
-CIAODOCDIR={{CiaoDocDir}}
+ 
 # Set MANPATH (checking that we do not add it twice)
 # The colon at the end is needed so that default paths are found!
+docdirman={{DocDirMan}}
 if [ "${MANPATH:-0}" = "0" ] ; then
-    MANPATH=${CIAODOCDIR}: ; export MANPATH
+    MANPATH=${docdirman}: ; export MANPATH
 else
     case ${MANPATH} in
-	${CIAODOCDIR}:* | *:${CIAODOCDIR} | *:${CIAODOCDIR}:* ) ;;
+	${docdirman}:* | *:${docdirman} | *:${docdirman}:* ) ;;
 	* )
-	    MANPATH=${CIAODOCDIR}:${MANPATH} ;;
+	    MANPATH=${docdirman}:${MANPATH} ;;
     esac
 fi
 
 # Set INFOPATH (checking that we do not add it twice)
+docdirinfo={{DocDirInfo}}
 if [ "${INFOPATH:-0}" = "0" ] ; then
-    INFOPATH=${CIAODOCDIR}:/usr/info:/usr/share/info:/usr/local/info ; export INFOPATH
+    INFOPATH=${docdirinfo}:/usr/info:/usr/share/info:/usr/local/info ; export INFOPATH
 else
     case ${INFOPATH} in
-	${CIAODOCDIR}:* | *:${CIAODOCDIR} | *:${CIAODOCDIR}:* ) ;;
+	${docdirinfo}:* | *:${docdirinfo} | *:${docdirinfo}:* ) ;;
 	* )
-	    INFOPATH=${CIAODOCDIR}:${INFOPATH} ;;
+	    INFOPATH=${docdirinfo}:${INFOPATH} ;;
     esac
 fi
-

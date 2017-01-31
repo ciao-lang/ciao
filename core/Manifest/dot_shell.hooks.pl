@@ -158,13 +158,19 @@ etc_dir := ~bundle_path(core, 'etc').
 	
 dot_shell_gen(Sh) :-
 	verbose_message("Creating ~w", [~dot_shell_file(Sh)]),
+	% NOTE: paths only valid for ciaoroot (not for bundles at CIAOPATH)
 	( '$bundle_id'(lpdoc) ->
-	    DocDir = ~docformatdir(any) % TODO: WRONG!!! This should be extracted from workspaces! (dynamically if possible)
-	; DocDir = ~instciao_storedir % TODO: incorrect
+	    DocDirMan = ~docformatdir(manl),
+	    DocDirInfo = ~docformatdir(info)
+	; % TODO: incorrect! (we do not have lpdoc...)
+	  DocDirMan = ~instciao_storedir,
+	  DocDirInfo = ~instciao_storedir
 	),
 	wr_template(origin, ~etc_dir, ~dot_shell_file(Sh), [
-	    'CiaoDocDir' = DocDir,
-	    'CiaoBinDir' = ~instciao_bindir
+%	    'CiaoDocDir' = DocDir,
+	    'DocDirMan' = DocDirMan,
+	    'DocDirInfo' = DocDirInfo,
+	    'BinDir' = ~instciao_bindir
         ]).
 
 dot_shell_file(csh) := 'DOTcshrc'.
