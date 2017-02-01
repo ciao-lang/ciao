@@ -170,15 +170,19 @@ unregister_shell(Sh) :-
 % Configuration code for the shell script interpreters
 % (evaluates output of ciao-env)
 eval_ciao_env(sh, CiaoEnv) -->
-	"# You should customize CIAOPATH before this chunk\n",
+	env_note,
 	"if [ -x ", emit_atom(CiaoEnv), " ] ; then\n"||
 	"  eval \"$(", emit_atom(CiaoEnv), " --sh)\"\n"||
 	"fi\n".
 eval_ciao_env(csh, CiaoEnv) -->
-	"# You should customize CIAOPATH before this chunk\n",
+	env_note,
 	"if ( -x ", emit_atom(CiaoEnv), " ) then\n"||
 	"  eval `", emit_atom(CiaoEnv), " --csh`\n"||
 	"endif\n".
+
+env_note -->
+	"# You should customize CIAOPATH before this chunk if you place bundles in\n",
+        "# places other than ~/.ciao\n".
 
 % (emit an atom codes in a DCG)
 emit_atom(X, S, S0) :-
