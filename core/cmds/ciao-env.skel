@@ -7,6 +7,9 @@
 #  Copyright (C) 2017 Ciao Developer Team
 #
 
+# NOTE: Keep this command fast and portable (e.g., it may be included
+# from dot shell files shared among different architectures).
+
 # Physical directory where the script is located
 _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
         cd "$d";done;cd "$(dirname "$e")";pwd -P)
@@ -147,6 +150,21 @@ gen_env() { # tgtshell
     fi
     epilogue_"$1"
 }
+
+# # (for multi-architecture support sharing installation paths)
+# # Setting engine related paths: 
+# # 
+# # Setting this variable allows you to run the same Ciao executables in
+# # different architectures, provided you have compiled and installed
+# # the corresponding engine (and libraries, if the executable is not
+# # static and/or .so libraries are used).
+# #
+# if [ ${CIAOOS:-0} = 0 ] ; then
+#     CIAOOS=`ciao_sysconf --os` ; export CIAOOS
+# fi
+# if [ ${CIAOARCH:-0} = 0 ] ; then
+#     CIAOARCH=`ciao_sysconf --arch` ; export CIAOARCH
+# fi
 
 # ---------------------------------------------------------------------------
 # Parse options and run

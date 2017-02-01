@@ -1,8 +1,6 @@
 % (included file)
 
 :- doc(section, "Shell Script Configuration").
-% :- doc(section, "sh and csh scripts for environment setup").
-% TODO: add description? "shell initialization scripts"
 
 % The configuration of shell scripts defines the necessary environment
 % variables to make the system locate the installed version of Ciao
@@ -16,11 +14,23 @@
 :- use_module(library(system), [file_exists/1, get_home/1]).
 
 :- bundle_flag(update_bashrc, [
-    comment("Update bash init file"),
+    comment("Update bash initialization file"),
     details(
       % .....................................................................
-      "Set to \"no\" if you do not wish to configure bash to work with Ciao or \n"||
-      "if you wish to configure it by hand."),
+      "Enable automatically this Ciao installation in bash shells."),
+    valid_values(['yes', 'no']),
+    %
+    rule_default(DefValue, (
+      flag(ciao:registration_type(SysregType)),
+      get_update_sh(SysregType, DefValue))),
+    %
+    interactive
+]).
+:- bundle_flag(update_cshrc, [
+    comment("Update csh initialization file"),
+    details(
+      % .....................................................................
+      "Enable automatically this Ciao installation in csh shells."),
     valid_values(['yes', 'no']),
     %
     rule_default(DefValue, (
@@ -30,89 +40,57 @@
     interactive
 ]).
 
-% ---------------------------------------------------------------------------
+get_update_sh('all',  'no').
+get_update_sh('user', 'yes').
 
 :- bundle_flag(dotbashrc, [
-    comment("Bash initialization file"),
+    comment("Shell initialization file for bash"),
     details(
       % .....................................................................
-      "The bash initialization file where the Ciao variables are set."),
+      "Initialization file for bash that will be updated."),
     needed_if(flag(update_bashrc(yes))),
     rule_default(DefValue, (
       flag(ciao:registration_type(SysregType)),
-      get_bashrc(SysregType, DefValue))),
+      locate_rc(SysregType, sh, DefValue))),
     %
     interactive
 ]).
-
-get_bashrc(all, F) :-
-	( member(F, ['/etc/bash.bashrc', '/etc/bashrc']),
-	    file_exists(F) ->
-	    true
-	; F = '/etc/bashrc'
-	).
-get_bashrc(user) := ~path_concat(~get_home, '.bashrc').
-
-% ---------------------------------------------------------------------------
-
-:- bundle_flag(update_cshrc, [
-    comment("Update csh init file"),
-    details(
-      % .....................................................................
-      "Set to \"no\" if you do not wish to configure csh/tcsh to work with\n"||
-      "Ciao or if you wish to configure it by hand."),
-    valid_values(['yes', 'no']),
-    %
-    rule_default(DefValue, (
-      flag(ciao:registration_type(SysregType)),
-      get_update_sh(SysregType, DefValue))),
-    %
-    interactive
-]).
-
-% ---------------------------------------------------------------------------
-
 :- bundle_flag(dotcshrc, [
     comment("Csh/Tcsh initialization file"),
     details(
       % .....................................................................
-      "The csh/tcsh initialization file where the Ciao variables are set.\n"||
-      "Note that on some systems tcsh reads \"~/.tcshrc\"."),
+      "Initialization file for csh/tcsh that will be updated."),
     needed_if(flag(update_cshrc(yes))),
     rule_default(DefValue, (
       flag(ciao:registration_type(SysregType)),
-      get_cshrc(SysregType, DefValue))),
+      locate_rc(SysregType, csh, DefValue))),
     %
     interactive
 ]).
 
-% by default, assume /etc/csh.cshrc
-get_cshrc(all, F) :-
-	( member(F, ['/etc/csh.cshrc', '/etc/tcsh.tcshrc']),
-	    file_exists(F) ->
+locate_rc(SysregType, Sh) := F :-
+	( F= ~rcfile(SysregType, Sh),
+	  file_exists(F) -> % first that exists
 	    true
-	; F = '/etc/csh.cshrc'
-	).
-get_cshrc(user) := ~get_cshrc_name.
-
-% by default, assume .cshrc
-get_cshrc_name(C) :-
-	( ( member(F, ['.tcshrc', '.cshrc']),
-	    C = ~path_concat(~get_home, F),
-	    file_exists(C)
-	  ) ->
-	    true
-	; F = '.cshrc',
-	  C = ~path_concat(~get_home, F)
+	; % or just first
+	  F0 = ~rcfile(SysregType, Sh), !,
+	  F = F0
 	).
 
-get_update_sh('all',  'no').
-get_update_sh('user', 'yes').
+rcfile(all, sh) := '/etc/bash.bashrc'.
+rcfile(all, sh) := '/etc/bashrc'.
+rcfile(all, csh) := '/etc/csh.cshrc'.
+rcfile(all, csh) := '/etc/tcsh.tcshrc'.
+rcfile(user, sh) := ~path_concat(~get_home, '.bashrc').
+rcfile(user, csh) := ~path_concat(~get_home, '.cshrc').
+rcfile(user, csh) := ~path_concat(~get_home, '.tcshrc').
 
 % ===========================================================================
 % The ciao-env commmand (setups the environment for a given shell)
 
 :- use_module(ciaobld(config_common), [default_eng_def/1]).
+:- use_module(ciaobld(builder_aux), [wr_template/4]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 
 '$builder_hook'(item_nested(ciao_env)).
 % (definition for installation)
@@ -141,23 +119,7 @@ get_update_sh('user', 'yes').
 	    'DefaultLibDir' = ~get_bundle_flag(ciao:defaultlibdir)
         ]).
 
-:- use_module(ciaobld(eng_defs),
-	[inst_eng_path/3,
-	 active_bld_eng_path/3,
-	 active_inst_eng_path/3]).
-
-env_eng_path(exec_anyarch, Eng) := Path :-
-	( instype(local) ->
-	    Path = ~active_bld_eng_path(exec_anyarch, Eng)
-	; Path = ~active_inst_eng_path(exec_anyarch, Eng)
-	).
-env_eng_path(EngLoc, Eng) := Path :-
-	( instype(local) ->
-	    Path = ~bld_eng_path(EngLoc, Eng)
-	; Path = ~inst_eng_path(EngLoc, Eng)
-	).
-
-% ===========================================================================
+% ---------------------------------------------------------------------------
 % Register in shell
 
 :- use_module(ciaobld(config_common), [
@@ -172,57 +134,13 @@ env_eng_path(EngLoc, Eng) := Path :-
 :- use_module(library(system_extra), [del_file_nofail/1]).
 :- use_module(ciaobld(register_in_script), [
  	register_in_script/3, unregister_from_script/2]).
-:- use_module(ciaobld(builder_aux), [wr_template/4]).
 
 :- use_module(library(bundle/doc_flags), [docformatdir/2]).
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
-:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(lists), [append/3]).
 
-% (for installation)
 '$builder_hook'(dot_shell:item_dep(dot_shell_csh)).
 '$builder_hook'(dot_shell:item_dep(dot_shell_sh)).
-
-% TODO: Generate in builddir instead
-etc_dir := ~bundle_path(core, 'etc').
-
-% Shell initialization files
-
-'$builder_hook'(dot_shell_sh:lib_file_list('etc', [ % (for installation)
-  'DOTprofile'-[copy_and_link] 
-])).
-'$builder_hook'(dot_shell_sh:build_bin) :-
-	dot_shell_gen(sh).
-'$builder_hook'(dot_shell_sh:clean_bin) :-
-	del_file_nofail(~bundle_path(core, 'etc/DOTprofile')).
-
-'$builder_hook'(dot_shell_csh:lib_file_list('etc', [ % (for installation)
-  'DOTcshrc'-[copy_and_link]
-])).
-'$builder_hook'(dot_shell_csh:build_bin) :-
-	dot_shell_gen(csh).
-'$builder_hook'(dot_shell_csh:clean_bin) :-
-	del_file_nofail(~bundle_path(core, 'etc/DOTcshrc')).
-	
-dot_shell_gen(Sh) :-
-	verbose_message("Creating ~w", [~dot_shell_file(Sh)]),
-	% NOTE: paths only valid for ciaoroot (not for bundles at CIAOPATH)
-	( '$bundle_id'(lpdoc) ->
-	    DocDirMan = ~docformatdir(manl),
-	    DocDirInfo = ~docformatdir(info)
-	; % TODO: incorrect! (we do not have lpdoc...)
-	  DocDirMan = ~instciao_storedir,
-	  DocDirInfo = ~instciao_storedir
-	),
-	wr_template(origin, ~etc_dir, ~dot_shell_file(Sh), [
-%	    'CiaoDocDir' = DocDir,
-	    'DocDirMan' = DocDirMan,
-	    'DocDirInfo' = DocDirInfo,
-	    'BinDir' = ~instciao_bindir
-        ]).
-
-dot_shell_file(sh) := 'DOTprofile'.
-dot_shell_file(csh) := 'DOTcshrc'.
 
 update_shell(sh) := ~get_bundle_flag(core:update_bashrc).
 update_shell(csh) := ~get_bundle_flag(core:update_cshrc).
@@ -230,19 +148,17 @@ update_shell(csh) := ~get_bundle_flag(core:update_cshrc).
 dotshell(sh) := ~get_bundle_flag(core:dotbashrc).
 dotshell(csh) := ~get_bundle_flag(core:dotcshrc).
 
-'$builder_hook'(dot_shell_sh:register) :-
-	register_shell(sh).
-'$builder_hook'(dot_shell_sh:unregister) :-
-	unregister_shell(sh).
+'$builder_hook'(dot_shell_sh:register) :- register_shell(sh).
+'$builder_hook'(dot_shell_sh:unregister) :- unregister_shell(sh).
 
-'$builder_hook'(dot_shell_csh:register) :-
-	register_shell(csh).
-'$builder_hook'(dot_shell_csh:unregister) :- !,
-	unregister_shell(csh).
+'$builder_hook'(dot_shell_csh:register) :- register_shell(csh).
+'$builder_hook'(dot_shell_csh:unregister) :- unregister_shell(csh).
 
 register_shell(Sh) :-
 	( update_shell(Sh, yes) ->
-	    warn_on_nosuccess(register_in_script(~dotshell(Sh), "#", ~shell_lines(Sh)))
+	    CiaoEnv = ~env_cmd_path(core, shscript, 'ciao-env'),
+	    eval_ciao_env(Sh, CiaoEnv, Str, []),
+	    warn_on_nosuccess(register_in_script(~dotshell(Sh), "#", Str))
 	; true
 	).
 unregister_shell(Sh) :-
@@ -251,29 +167,50 @@ unregister_shell(Sh) :-
 	; true
 	).
 
-shell_lines(Sh, S) :-
-	register_etc_dir(EtcDir),
-	DotFile = ~path_concat(EtcDir, ~dot_shell_file(Sh)),
-	shell_config_code(Sh, DotFile, S, []).
-
-register_etc_dir(EtcDir) :-
-	( instype(local) ->
-	    EtcDir = ~etc_dir
-	; EtcDir = ~instciao_storedir
-	).
-
 % Configuration code for the shell script interpreters
-shell_config_code(sh, DotFile) -->
-	"if [ -f ", emit_atom(DotFile), " ] ; then\n"||
-	"  . ", emit_atom(DotFile), "\n"||
+% (evaluates output of ciao-env)
+eval_ciao_env(sh, CiaoEnv) -->
+	"# You should customize CIAOPATH before this chunk\n",
+	"if [ -x ", emit_atom(CiaoEnv), " ] ; then\n"||
+	"  eval \"$(", emit_atom(CiaoEnv), " --sh)\"\n"||
 	"fi\n".
-shell_config_code(csh, DotFile) -->
-	"if ( -e ", emit_atom(DotFile), " ) then\n"||
-	"  source ", emit_atom(DotFile), "\n"||
+eval_ciao_env(csh, CiaoEnv) -->
+	"# You should customize CIAOPATH before this chunk\n",
+	"if ( -x ", emit_atom(CiaoEnv), " ) then\n"||
+	"  eval `", emit_atom(CiaoEnv), " --csh`\n"||
 	"endif\n".
 
 % (emit an atom codes in a DCG)
 emit_atom(X, S, S0) :-
 	atom_codes(X, Codes),
 	append(Codes, S0, S).
+
+% ---------------------------------------------------------------------------
+% Paths to engine and commands for the given installation type
+
+:- use_module(ciaobld(eng_defs),
+	[inst_eng_path/3,
+	 active_bld_eng_path/3,
+	 active_inst_eng_path/3]).
+
+env_eng_path(exec_anyarch, Eng) := Path :- !,
+	( instype(local) ->
+	    Path = ~active_bld_eng_path(exec_anyarch, Eng)
+	; Path = ~active_inst_eng_path(exec_anyarch, Eng)
+	).
+env_eng_path(EngLoc, Eng) := Path :-
+	( instype(local) ->
+	    Path = ~bld_eng_path(EngLoc, Eng)
+	; Path = ~inst_eng_path(EngLoc, Eng)
+	).
+
+:- use_module(ciaobld(config_common),
+	[bld_cmd_path/4,
+	 inst_cmd_path/4]).
+
+env_cmd_path(Bundle, Kind, File) := Path :-
+	( instype(local) ->
+	    Path = ~bld_cmd_path(Bundle, Kind, File)
+	; Path = ~inst_cmd_path(Bundle, Kind, File)
+	).
 
