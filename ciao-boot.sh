@@ -65,7 +65,9 @@ fetch_url() {
     curl -SfL "$url" | tar -xz --strip-components 1 -C "$ciaoroot" -f -
 }
 
-help() {
+interactive() {
+    # TODO: Experimental! This should be combined and simplified with
+    # the '--interactive' flag in the builder.
     get_os_arch
     cat <<EOF
    ▄▄▄
@@ -73,60 +75,85 @@ help() {
  █      █  █   █ █   █    Detected OS: $os
   ▀▄▄▄▀ ▀▄▄▀▄▄▀█▄▀▄▄▄▀    Detected architecture: $arch
 
-Running ciao-boot.sh in network installation mode!
+EOF
+    if ! [ -t 1 ] ; then
+	cat <<EOF
+No tty was detected. Aborting.
 
-Please visit https://ciao-lang.org for more information.
-Code will be installed under ~/.ciaoroot directory.
-
-Examples:
-
-  # local-install from sources
-  $bootsh --no-prebuilt local-install
-
-  # local-install using prebuilt code
-  $bootsh --prebuilt local-install
-
-  # Do not update your shell environment
-  $bootsh --prebuilt local-install --core:update_bashrc=no --core:update_cshrc=no
-
-  # Activate the existing installation (bash)
-  source ~/.ciaoroot/$default_vers_bin/core/etc/DOTprofile
-
-  # Activate the existing installation (csh)
-  source ~/.ciaoroot/$default_vers_bin/core/etc/DOTcshrc
+Please visit https://ciao-lang.org for more information or try the
+non-interactive installation.
 
 EOF
+	exit 1
+    fi
+    cat <<EOF
+Welcome to the interactive network installation for Ciao!
+(Press C-c to cancel)
+
+EOF
+    printf "Install a prebuilt distribution? (yes/no) "
+    read prebuilt < /dev/tty
+
+    printf "Install the development environment? (no/yes) "
+    read use_devenv < /dev/tty
+
+    printf "Enable this installation by default? (yes/no) "
+    read update_shell < /dev/tty
+
+    opts=
+    if [ x"$prebuilt" = x"no" ]; then
+	opts="$opts --no-prebuilt"
+    else
+	true # opts=" --prebuilt"
+    fi
+    if [ x"$use_devenv" = x"yes" ]; then
+	cmd=" get devenv"
+    else
+	cmd=" local-install"
+    fi
+    flags=
+    if [ x"$update_shell" = x"no" ]; then
+	flags="$flags --core:update_bashrc=no --core:update_cshrc=no"
+    else
+	true
+    fi
+
+    cat <<EOF
+
+Code will be installed under ~/.ciaoroot directory.
+The selected installation is reproducible with:
+
+  $bootsh$opts$cmd$flags
+
+(Press enter to continue or C-c to cancel)
+EOF
+    read < /dev/tty
+
+    if ! ( fetch_and_boot $opts$cmd$flags ); then
+	exit 1
+    fi
+
+    cat <<EOF
+
+Installation is completed!
+EOF
+    if [ x"$update_shell" != x"yes" ]; then
+	cat <<EOF
+
+Now you can enable this installation manually with (bash):
+  eval \$(~/.ciaoroot/$default_vers_bin/build/bin/ciao-env --sh)
+or (csh):
+  eval \`~/.ciaoroot/$default_vers_bin/build/bin/ciao-env --csh\`
+EOF
+    fi
+    echo
 }
-
-# TODO: use a local script instead (e.g., ~/.ciaoroot/env.sh)
-
-## #  # Activate some installation (bash) -- dynamic, it will consider CIAOPATH
-## #  eval \$($bootsh env)
-## 
-## # TODO: move somewhere else (ciao.skel?)
-## # TODO: add paths under CIAOPATH too
-## show_env() {
-##     . "$ciaoroot/core/etc/DOTprofile"
-##     cat <<EOF
-## export PATH="$PATH"
-## export MANPATH="$MANPATH"
-## export INFOPATH="$INFOPATH"
-## #
-## export CIAOENGINE="$CIAOENGINE"
-## export CIAOHDIR="$CIAOHDIR"
-## export CIAOLIB="$CIAOLIB"
-## 
-## # Run this command to setup your environment:
-## # 
-## # eval "\$($bootsh env)"
-## EOF
-## }
 
 fetch_and_boot() { # args
     set_defaults
 
     if [ $# = 0 ]; then
-	help
+	interactive
 	exit 1
     fi
 
@@ -157,7 +184,7 @@ fetch_and_boot() { # args
     #   no overlapping and we can do multi-architecture installs
     if [ -x "$ciaoroot" ]; then
 	cat <<EOF
-ERROR: already fetched '$vers' version under:
+ERROR: '$vers' seems to be already installed at:
 
   $ciaoroot
 
