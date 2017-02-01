@@ -57,25 +57,17 @@ fix_symlinks() {
     done
 }
 
-# Fix paths and include explicit definitions for CIAOENGINE,CIAOHDIR,CIAOLIB
-# TODO: these would not be needed with proper relocation
+# Rebuild ciao-env and patch it to enable relocation (explicit
+# definitions for CIAOENGINE,CIAOHDIR,CIAOLIB)
+# TODO: a single CIAOROOT should be enough (or patching binaries)
 fix_ciao_env() {
-    "$ciaoroot"/builder/sh_boot/builder_boot.sh build core.dot_shell
-    f="$ciaoroot"/build/bin/ciao-skel
+    "$ciaoroot"/builder/sh_boot/builder_boot.sh build core.ciao_env
+    f="$ciaoroot"/build/bin/ciao-env
     mv "$f" "$f".bak
-    cat "$f".bak | sed '-e' 's;^reloc=no$;reloc_cfg=yes;' > "$f"
+    cat "$f".bak | sed '-e' 's;^reloc=no$;reloc=yes;' > "$f"
+    chmod a+x "$f"
     rm -f "$f".bak
 }
-##     cat >> "$ciaoroot/core/etc/DOTprofile" <<EOF
-## export CIAOENGINE="$ciaoroot/build/eng/ciaoengine/objs/$cfg/ciaoengine"
-## export CIAOHDIR="$ciaoroot/build/eng/ciaoengine/include"
-## export CIAOLIB="$ciaoroot/core"
-## EOF
-##     cat >> "$ciaoroot/core/etc/DOTcshrc" <<EOF
-## setenv CIAOENGINE $ciaoroot/build/eng/ciaoengine/objs/$cfg/ciaoengine
-## setenv CIAOHDIR $ciaoroot/build/eng/ciaoengine/include
-## setenv CIAOLIB $ciaoroot/core
-## EOF
 
 # Check that this is a valid command for a prebuilt distribution
 case $1 in
