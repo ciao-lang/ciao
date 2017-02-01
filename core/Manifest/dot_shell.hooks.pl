@@ -110,7 +110,55 @@ get_update_sh('all',  'no').
 get_update_sh('user', 'yes').
 
 % ===========================================================================
-% Build and installation
+% The ciao-env commmand (setups the environment for a given shell)
+
+:- use_module(ciaobld(config_common), [default_eng_def/1]).
+
+'$builder_hook'(item_nested(ciao_env)).
+% (definition for installation)
+% (merge below?)
+%'$builder_hook'(ciao_env:cmd('ciao_env', [main='NONE_AUTOGEN', shscript])). % TODO: only for installation
+'$builder_hook'(ciao_env:bin_copy_and_link(shscript, 'ciao-env', [])) :- !. % TODO: only for installation
+'$builder_hook'(ciao_env:build_bin) :- % (overrides build)
+	% NOTE: paths only valid for ciaoroot (not for bundles at CIAOPATH)
+	( '$bundle_id'(lpdoc) ->
+	    DocDirMan = ~docformatdir(manl),
+	    DocDirInfo = ~docformatdir(info)
+	; % TODO: incorrect! (we do not have lpdoc...)
+	  DocDirMan = ~instciao_storedir,
+	  DocDirInfo = ~instciao_storedir
+	),
+	Eng = ~default_eng_def,
+	%
+	wr_template(as_cmd(core, shscript), ~bundle_path(core, 'cmds'), 'ciao-env', [
+            % 'CiaoDocDir' = DocDir,
+	    'DocDirMan' = DocDirMan,
+	    'DocDirInfo' = DocDirInfo,
+	    'BinDir' = ~instciao_bindir,
+	    %
+	    'EngBin' = ~env_eng_path(exec_anyarch, Eng),
+	    'EngHDir' = ~env_eng_path(hdir, Eng),
+	    'DefaultLibDir' = ~get_bundle_flag(ciao:defaultlibdir)
+        ]).
+
+:- use_module(ciaobld(eng_defs),
+	[inst_eng_path/3,
+	 active_bld_eng_path/3,
+	 active_inst_eng_path/3]).
+
+env_eng_path(exec_anyarch, Eng) := Path :-
+	( instype(local) ->
+	    Path = ~active_bld_eng_path(exec_anyarch, Eng)
+	; Path = ~active_inst_eng_path(exec_anyarch, Eng)
+	).
+env_eng_path(EngLoc, Eng) := Path :-
+	( instype(local) ->
+	    Path = ~bld_eng_path(EngLoc, Eng)
+	; Path = ~inst_eng_path(EngLoc, Eng)
+	).
+
+% ===========================================================================
+% Register in shell
 
 :- use_module(ciaobld(config_common), [
     instype/1,
@@ -173,45 +221,40 @@ dot_shell_gen(Sh) :-
 	    'BinDir' = ~instciao_bindir
         ]).
 
-dot_shell_file(csh) := 'DOTcshrc'.
 dot_shell_file(sh) := 'DOTprofile'.
+dot_shell_file(csh) := 'DOTcshrc'.
 
-update_bashrc := ~get_bundle_flag(core:update_bashrc).
-dotbashrc := ~get_bundle_flag(core:dotbashrc).
+update_shell(sh) := ~get_bundle_flag(core:update_bashrc).
+update_shell(csh) := ~get_bundle_flag(core:update_cshrc).
+
+dotshell(sh) := ~get_bundle_flag(core:dotbashrc).
+dotshell(csh) := ~get_bundle_flag(core:dotcshrc).
 
 '$builder_hook'(dot_shell_sh:register) :-
-	( update_bashrc(yes) ->
-	    warn_on_nosuccess(register_in_script(~dotbashrc, "#", ~bashrc_lines))
-	; true
-	).
+	register_shell(sh).
 '$builder_hook'(dot_shell_sh:unregister) :-
-	( update_bashrc(yes) ->
-	    warn_on_nosuccess(unregister_from_script(~dotbashrc, "#"))
-	; true
-	).
-
-update_cshrc := ~get_bundle_flag(core:update_cshrc).
-dotcshrc := ~get_bundle_flag(core:dotcshrc).
+	unregister_shell(sh).
 
 '$builder_hook'(dot_shell_csh:register) :-
-	( update_cshrc(yes) ->
-	    warn_on_nosuccess(register_in_script(~dotcshrc, "#", ~cshrc_lines))
+	register_shell(csh).
+'$builder_hook'(dot_shell_csh:unregister) :- !,
+	unregister_shell(csh).
+
+register_shell(Sh) :-
+	( update_shell(Sh, yes) ->
+	    warn_on_nosuccess(register_in_script(~dotshell(Sh), "#", ~shell_lines(Sh)))
 	; true
 	).
-'$builder_hook'(dot_shell_csh:unregister) :- !,
-	( update_cshrc(yes) ->
-	    warn_on_nosuccess(unregister_from_script(~dotcshrc, "#"))
+unregister_shell(Sh) :-
+	( update_shell(Sh, yes) ->
+	    warn_on_nosuccess(unregister_from_script(~dotshell(Sh), "#"))
 	; true
 	).
 
-bashrc_lines(S) :-
+shell_lines(Sh, S) :-
 	register_etc_dir(EtcDir),
-	DotFile = ~path_concat(EtcDir, 'DOTprofile'),
-	shell_config_code(bash, DotFile, S, []).
-cshrc_lines(S) :-
-	register_etc_dir(EtcDir),
-	DotFile = ~path_concat(EtcDir, 'DOTcshrc'),
-	shell_config_code(csh, DotFile, S, []).
+	DotFile = ~path_concat(EtcDir, ~dot_shell_file(Sh)),
+	shell_config_code(Sh, DotFile, S, []).
 
 register_etc_dir(EtcDir) :-
 	( instype(local) ->
@@ -220,7 +263,7 @@ register_etc_dir(EtcDir) :-
 	).
 
 % Configuration code for the shell script interpreters
-shell_config_code(bash, DotFile) -->
+shell_config_code(sh, DotFile) -->
 	"if [ -f ", emit_atom(DotFile), " ] ; then\n"||
 	"  . ", emit_atom(DotFile), "\n"||
 	"fi\n".

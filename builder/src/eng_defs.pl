@@ -246,7 +246,7 @@ eng_ext(Eng, EngExt) :-
 
 :- export(active_bld_eng_path/3).
 % Paths for the active engine and multi-platform engine selection
-% (in global installation).
+% (in build area).
 %
 % TODO: define properly the 'activation' operation
 active_bld_eng_path(D, Eng) := Path :-

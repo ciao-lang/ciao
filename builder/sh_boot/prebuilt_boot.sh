@@ -15,6 +15,7 @@
 #  - use a single CIAOROOT env var (instead of CIAOENGINE,CIAOHDIR,CIAOLIB)
 # TODO: touch all po,itf so that no recompilation happens
 # TODO: mingw version?
+# TODO: missing relocation of lib/compiler/header
 # TODO: create exec stub (turn into static + lib)
 # TODO: create small ciaoengine (dynlink to so)
 
@@ -47,30 +48,34 @@ fix_symlinks() {
     local new="$ciaoroot/core/engine" # new srcpath at this host
     local i f g
     for i in $(find "$ciaoroot/build" -type l); do
-        f=$(readlink $i)
-        g=$(printf "%s" $f | sed -e "s;^$old;$new;")
+        f=$(readlink "$i")
+        g=$(printf "%s" "$f" | sed -e "s;^$old;$new;")
         if [ "$f" != "$g" ]; then
-            unlink $i
-            ln -s $g $i
+            unlink "$i"
+            ln -s "$g" "$i"
         fi
     done
 }
 
 # Fix paths and include explicit definitions for CIAOENGINE,CIAOHDIR,CIAOLIB
 # TODO: these would not be needed with proper relocation
-fix_dot_shell() {
+fix_ciao_env() {
     "$ciaoroot"/builder/sh_boot/builder_boot.sh build core.dot_shell
-    cat >> "$ciaoroot/core/etc/DOTprofile" <<EOF
-export CIAOENGINE="$ciaoroot/build/eng/ciaoengine/objs/$cfg/ciaoengine"
-export CIAOHDIR="$ciaoroot/build/eng/ciaoengine/include"
-export CIAOLIB="$ciaoroot/core"
-EOF
-    cat >> "$ciaoroot/core/etc/DOTcshrc" <<EOF
-setenv CIAOENGINE $ciaoroot/build/eng/ciaoengine/objs/$cfg/ciaoengine
-setenv CIAOHDIR $ciaoroot/build/eng/ciaoengine/include
-setenv CIAOLIB $ciaoroot/core
-EOF
+    f="$ciaoroot"/build/bin/ciao-skel
+    mv "$f" "$f".bak
+    cat "$f".bak | sed '-e' 's;^reloc=no$;reloc_cfg=yes;' > "$f"
+    rm -f "$f".bak
 }
+##     cat >> "$ciaoroot/core/etc/DOTprofile" <<EOF
+## export CIAOENGINE="$ciaoroot/build/eng/ciaoengine/objs/$cfg/ciaoengine"
+## export CIAOHDIR="$ciaoroot/build/eng/ciaoengine/include"
+## export CIAOLIB="$ciaoroot/core"
+## EOF
+##     cat >> "$ciaoroot/core/etc/DOTcshrc" <<EOF
+## setenv CIAOENGINE $ciaoroot/build/eng/ciaoengine/objs/$cfg/ciaoengine
+## setenv CIAOHDIR $ciaoroot/build/eng/ciaoengine/include
+## setenv CIAOLIB $ciaoroot/core
+## EOF
 
 # Check that this is a valid command for a prebuilt distribution
 case $1 in
@@ -90,6 +95,6 @@ esac
 cd "$ciaoroot" # (needed for installation)
 "$ciaoroot"/builder/sh_boot/builder_boot.sh rescan-bundles # (fix paths)
 "$ciaoroot"/builder/sh_boot/builder_boot.sh configure "$@"
-fix_dot_shell
+fix_ciao_env
 fix_symlinks
 exec "$ciaoroot"/builder/sh_boot/builder_boot.sh "$cmd"

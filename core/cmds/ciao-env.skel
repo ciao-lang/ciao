@@ -12,6 +12,22 @@ _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
         cd "$d";done;cd "$(dirname "$e")";pwd -P)
 
 # ---------------------------------------------------------------------------
+# Paths for CIAOROOT
+
+# ({{Var}} filled from .hooks.pl)
+bindir={{BinDir}}
+docdirman={{DocDirMan}}
+docdirinfo={{DocDirInfo}}
+engbin={{EngBin}} # "$ciaoroot/build/eng/ciaoengine/objs/ciaoengine"
+enghdir={{EngHDir}} # "$ciaoroot/build/eng/ciaoengine/include"
+defaultlibdir={{DefaultLibDir}} # "$ciaoroot/core"
+
+# (do not change the following line! see prebuilt_boot.sh)
+reloc=no
+
+# TODO: use _base to detect paths and relocation?
+
+# ---------------------------------------------------------------------------
 # Add paths
 #
 # This adds to PATH,MANPATH,INFOPATH the paths corresponding to the
@@ -30,55 +46,71 @@ concat_nodup() { # path old
     fi
 }
 
-# Add a binary path
+# Add path to PATH
 add_bindir() { # dir
     PATH=$(concat_nodup "$1" "$PATH")
 }
-# Add a documentation path (for MANPATH and INFOPATH)
-add_docdir() { # dir
+# Add path to INFOPATH
+add_infodir() { # dir
     if [ "${INFOPATH:-0}" = "0" ]; then
 	INFOPATH=/usr/info:/usr/share/info:/usr/local/info
     fi
-    MANPATH=$(concat_nodup "$1" "$MANPATH")
     INFOPATH=$(concat_nodup "$1" "$INFOPATH")
 }
+# Add path to MANPATH
+add_mandir() { # dir
+    MANPATH=$(concat_nodup "$1" "$MANPATH")
+}
 
-# Add additional paths from CIAOPATH
-get_paths() {
+# ---------------------------------------------------------------------------
+# Get paths from CIAOROOT
+
+treat_ciaoroot() {
+    add_bindir "$bindir"
+    add_infodir "$docdirman"
+    add_mandir "$docdirinfo"
+}
+
+# ---------------------------------------------------------------------------
+# Get paths from CIAOPATH
+
+treat_ciaopath() {
     if [ x"$CIAOPATH" = x"" ]; then
 	curr_ciaopath=$HOME/.ciao # Use default (even if it does not exist)
     else
 	curr_ciaopath=$CIAOPATH
     fi
-    IFS=: get_paths_
+    # We split the path by changing IFS
+    IFS=: treat_ciaopath_1
 }
-get_paths_() {
+treat_ciaopath_1() {
     revpath=
     for i in $curr_ciaopath; do # reverse
 	revpath=$i':'$revpath
     done
     revpath=$(printf "%s" "$revpath" | sed -e s:'\:$'::g) # remove last :
-    get_paths__ $revpath
+    treat_ciaopath_2 $revpath
 }
-get_paths__() {
-    unset IFS
+treat_ciaopath_2() {
+    unset IFS # get back to normal IFS
     for i in "$@"; do
 	add_bindir "$i"/build/bin
-	add_docdir "$i"/build/doc
+	add_infodir "$i"/build/doc
+	add_mandir "$i"/build/doc
     done
 }
 
 # ---------------------------------------------------------------------------
 # Generate commands that change the environment
 
-env_help_sh() {
+epilogue_sh() {
     cat <<EOF
 #
 # Run this command to setup your environment:
 #   eval "\$(ciao-env --sh)"
 EOF
 }
-env_help_csh() {
+epilogue_csh() {
     # NOTE: tcsh/csh cannot eval comments. The trick to write
     #   something that looks like a comment in tcsh is using the ':'
     #   command (which requires quoting!): E.g.,
@@ -92,54 +124,28 @@ echo '  eval \`ciao-env --csh\`' > /dev/null;
 EOF
 }
 
-env_sh() {
-    cat <<EOF
-export PATH="$PATH"
-export MANPATH="$MANPATH"
-export INFOPATH="$INFOPATH"
-EOF
+# TODO: $2 is not escaped, do not use %q (not POSIX)
+env_sh() { # var value
+    printf "export %s=\"%s\"\n" "$1" "$2"
 }
-env_csh() {
-    cat <<EOF
-setenv PATH "$PATH";
-setenv MANPATH "$MANPATH";
-setenv INFOPATH "$INFOPATH";
-EOF
+env_csh() { # var value
+    printf "setenv %s \"%s\";\n" "$1" "$2"
 }
 
-env_reloc_sh() {
-    cat <<EOF
-export CIAOENGINE="$CIAOENGINE"
-export CIAOHDIR="$CIAOHDIR"
-export CIAOLIB="$CIAOLIB"
-EOF
-}
-env_reloc_csh() {
-    cat <<EOF
-setenv CIAOENGINE "$CIAOENGINE";
-setenv CIAOHDIR "$CIAOHDIR";
-setenv CIAOLIB "$CIAOLIB";
-EOF
-}
-
-env_gen() { # tgtshell
-    tgtshell=$1
-    # Use DOTprofile
-    . "$_base"/DOTprofile
-
-    get_paths
-    # DOTprofile contains info for relocatable
-    reloc=no
-    if [ x"${CIAOENGINE}" != x"" ]; then
-	reloc=yes
-    fi
-
+gen_env() { # tgtshell
+    # Compute new environment
+    treat_ciaoroot
+    treat_ciaopath
     # Print commands to change environment
-    env_$tgtshell
+    env_"$1" PATH "$PATH"
+    env_"$1" MANPATH "$MANPATH"
+    env_"$1" INFOPATH "$INFOPATH"
     if [ $reloc = yes ]; then
-	env_reloc_$tgtshell
+	env_"$1" CIAOENGINE "$engbin"
+	env_"$1" CIAOHDIR "$enghdir"
+	env_"$1" CIAOLIB "$defaultlibdir"
     fi
-    env_help_$tgtshell
+    epilogue_"$1"
 }
 
 # ---------------------------------------------------------------------------
@@ -159,4 +165,4 @@ EOF
     esac
     shift
 done
-env_gen $tgtshell
+gen_env $tgtshell
