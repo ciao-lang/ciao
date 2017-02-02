@@ -304,47 +304,30 @@ Full installation instructions
           use the Ciao `emacs' interface.
 
 
-  4. Set up user environments: The installation process leaves the
-     files `INSTALL_STOREDIR/DOTcshrc' (for `csh'-like shells),
-     `INSTALL_STOREDIR/DOTprofile' (for `sh'-like shells), and
-     `INSTALL_STOREDIR/ciao-mode-init' (for emacs) with appropriate
+  4. Set up user environments: The install process will modify the
+     startup files automatically by default. If you disable this option
+     in the configuration or you wish to switch between different
+     installations, it would be necessary to modify the startup files
+     manually.
+
+     The install process generates a `ciao-env' command to update the
+     environments for `sh'-like and `csh'like shells. It also generates
+     a `INSTALL_STOREDIR/ciao-mode-init' (for emacs) with appropriate
      definitions which will take care of all needed environment
-     variable definitions and emacs mode setup. If you has indicated in
-     the configuration that the startup files must be modified, then
-     the install process will do it for you, otherwise you can modify
-     by hand these files making the following modifications in your
-     startup scripts, so that these files are used (`<libroot>' must be
-     replaced with the appropriate value):
+     variable definitions and emacs mode setup.
 
         * For users a csh-compatible shell (`csh', `tcsh', ...), add to
           `~/.cshrc':
 
-                       if ( -e <libroot>/ciao/DOTcshrc ) then
-                          source <libroot>/ciao/DOTcshrc
+                       if ( -x <prefix>/bin/ciao-env ) then
+                          eval `<prefix>/bin/ciao-env --csh`
                        endif
-
-          Note: while this is recognized by the terminal shell, and
-          therefore by the text-mode Emacs which comes with Mac OS X,
-          the Aqua native Emacs 21 does not recognize that
-          initialization. It is thus necessary, at this moment, to set
-          manually the Ciao shell (ciaosh) and Ciao library location by
-          hand. This can be done from the Ciao menu within Emacs after
-          a Ciao file has been loaded. We believe that the reason is
-          that Mac OS X does not actually consult the per-user
-          initialization files on startup. It should also be possible
-          to put the right initializations in the .emacs file using the
-          `setenv' function of Emacs-lisp, as in
-
-               (setenv "CIAOLIB" "<libroot>/ciao")
-
-          The same can be done for the rest of the variables
-          initialized in `<libroot>/ciao/DOTcshrc'
 
         * For users of an sh-compatible shell (`sh', `bash', ...), the
           installer will add to `~/.bashrc' the next lines:
 
-                       if [ -f <libroot>/ciao/DOTprofile ]; then
-                          . <libroot>/ciao/DOTprofile
+                       if [ -x <prefix>/bin/ciao-env ]; then
+                          eval "$(<prefix>/bin/ciao-env --sh)"
                        fi
 
           This will set up things so that the Ciao executables are
@@ -355,17 +338,17 @@ Full installation instructions
         * Also, if you use `emacs' (highly recommended) the install
           will add the next line to your `~/.emacs' file:
 
-                       (load-file "<libroot>/ciao/ciao-site-file.el")
-                       (if (file-exists-p "<libroot>/ciao/ciao-site-file.el")
-                         (load-file "<libroot>/ciao/ciao-site-file.el")
+                       (load-file "INSTALL_STOREDIR/ciao-site-file.el")
+                       (if (file-exists-p "INSTALL_STOREDIR/ciao-site-file.el")
+                         (load-file "INSTALL_STOREDIR/ciao-site-file.el")
                        )
 
 
      If you are installing Ciao globally in a multi-user machine, make
-     sure that you instruct all users to do the same. If you are the
-     system administrator, the previous steps can be done once and for
-     all, and globally for all users by including the lines above in
-     the central startup scripts (e.g., in Linux `/etc/bashrc',
+     sure that you instruct all users that to do the same. If you are
+     the system administrator, the previous steps can be done once and
+     for all, and globally for all users by including the lines above
+     in the central startup scripts (e.g., in Linux `/etc/bashrc',
      `/etc/csh.login', `/etc/csh.cshrc', `/etc/skel',
      `/usr/share/emacs/.../lisp/site-init.pl', etc.).
 

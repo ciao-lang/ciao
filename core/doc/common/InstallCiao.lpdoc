@@ -380,24 +380,24 @@ following sections.
 
       @end{itemize}
 
-@item @bf{Set up user environments:} The installation process leaves
-      the files @tt{INSTALL_STOREDIR/DOTcshrc} (for @apl{csh}-like
-      shells), @tt{INSTALL_STOREDIR/DOTprofile} (for @apl{sh}-like
-      shells), and @tt{INSTALL_STOREDIR/ciao-mode-init} (for emacs)
-      with appropriate definitions which will take care of all needed
-      @concept{environment variable definitions} and @concept{emacs
-      mode setup}.  If you has indicated in the configuration that the
-      startup files must be modified, then the install process will do
-      it for you, otherwise you can modify by hand these files making
-      the following modifications in your startup scripts, so that
-      these files are used (@tt{<libroot>} must be replaced with the
-      appropriate value):
+@item @bf{Set up user environments:}
+      The install process will modify the startup files automatically
+      by default. If you disable this option in the configuration or
+      you wish to switch between different installations, it would be
+      necessary to modify the startup files manually.
+
+      The install process generates a @apl{ciao-env} command to update
+      the environments for @apl{sh}-like and @apl{csh}like shells. It
+      also generates a @tt{INSTALL_STOREDIR/ciao-mode-init} (for
+      emacs) with appropriate definitions which will take care of all
+      needed @concept{environment variable definitions} and
+      @concept{emacs mode setup}.
 
       @include{UserSetup.lpdoc}
 
       If you are installing Ciao globally in a multi-user machine,
-      make sure that you instruct all users to do the same.  If you
-      are the system administrator, the previous steps can be done
+      make sure that you instruct all users that to do the same.  If
+      you are the system administrator, the previous steps can be done
       once and for all, and globally for all users by including the
       lines above in the central startup scripts (e.g., in Linux
       @file{/etc/bashrc}, @file{/etc/csh.login},
@@ -723,7 +723,7 @@ The following a list of common installation problems:
 
       @end{itemize}
 
-      See the file @tt{INSTALL_STOREDIR/DOTcshrc} for user settings for
+      See the output of @tt{ciao-env} for user settings for
       environment variables.
 
 @item @bf{Problem:}
@@ -742,7 +742,7 @@ The following a list of common installation problems:
 
       @end{itemize}
 
-      See the file @tt{INSTALL_STOREDIR/DOTcshrc} for user settings for
+      See the output of @tt{ciao-env} for user settings for
       environment variables.
 
 @item @bf{Problem:}
