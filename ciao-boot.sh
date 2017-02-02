@@ -62,7 +62,7 @@ select_bin() {
 }
 
 fetch_url() {
-    curl -SfL "$url" | tar -xz --strip-components 1 -C "$ciaoroot" -f -
+    curl --progress-bar -SfL "$url" | tar -xz --strip-components 1 -C "$ciaoroot" -f -
 }
 
 interactive() {
