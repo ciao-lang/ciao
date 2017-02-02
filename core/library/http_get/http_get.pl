@@ -16,6 +16,9 @@
    @tt{no_proxy}. Refer to the manual page of @tt{curl} or @tt{wget}
    for more information about how setting those variables.").
 
+:- doc(bug, "Optionally, link against libcurl so that the dependency
+   with external command is not needed").
+
 :- use_module(library(process)).
 :- use_module(library(process/process_channel)).
 
