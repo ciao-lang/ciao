@@ -269,9 +269,9 @@ post_message(Cmd) :-
 
 show_post_message(configure(_)) :- !,
 	normal_message(
-"Please check that all the configuration values above are correct. If
-not, you can change or customize the configuration using the command
-line or --interactive configure flag.
+"Please check that all the configuration values above (if any) are
+correct. If not, you can change or customize the configuration using
+the command line or --interactive configure flag.
 
 To continue the installation, execute 'build' and 'install' commands.", []).
 show_post_message(_).
@@ -356,7 +356,15 @@ handle_builder_error(not_in_builder_boot(Cmd)) :-
 	error_message("Command '~w' only available in 'ciao-boot.sh' or 'ciao-boot.bat'.~n", [Cmd]),
 	halt(1).
 handle_builder_error(unknown_bundle(Bundle)) :-
-	error_message("Unknown bundle '~w' (try 'rescan-bundles').~n", [Bundle]),
+	error_message(
+% ...........................................................................
+"'~w' does not look like a bundle.~n"||
+"~n"||
+"It does not correspond to the name of a bundle or a path to a known bundle.~n"||
+"Some possible reasons are: the Manifest.pl file is missing, the bundle~n"||
+"directory is not reachable from any path defined in CIAOPATH, or the bundle~n"||
+"does not contain the ACTIVATE mark (for catalogues).~n"||
+"You may also try 'rescan-bundles' to update the list of bundles.~n", [Bundle]),
 	halt(1).
 handle_builder_error(unknown_cmd(Cmd)) :-
 	error_message("Unknown command '~w'.~n", [Cmd]),

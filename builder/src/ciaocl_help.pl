@@ -152,19 +152,19 @@ cmd_usage(get, "[<bundle aliases>] [<flags>]", [
     "Fetch, configure, build, and install"
 ]).
 
-grp_def(configure, "Configuration (before build)").
+grp_def(configure, "Configuration").
 %
 cmd_grp(configure, configure).
-% TODO: add BUNDLE as a parameter
 % TODO: configure help is also in bundle_configure.pl
 cmd_usage(configure, "[<opts>] [<targets>] [<flags>] ", [
     %1_______________________________________________
     "Configure using the specified flags",
-    "(discarding any previous selection)"
+    "(not needed when using default settings)"
 ]).
 cmd_details(configure, Text) :-
 	Text = [
           %2........................________________________________________________
+          % "(discarding any previous selection)",
 	  "The following arguments for configure are accepted:",
 	  "",
 	  "  --interactive           Interactive configuration",

@@ -17,12 +17,12 @@
 :- discontiguous('cmd.grade'/2). % grade, needed when when 'cmd.do'/2 is not defined
 %
 :- discontiguous('cmd.only_global_instype'/1). % disable if \+instype(global)
-%
+% TODO: can it be simpler to express the negation instead?
 :- export('cmd.needs_update_builder'/1).
 :- discontiguous('cmd.needs_update_builder'/1). % needs an up-to-date builder
 :- export('cmd.needs_rescan'/1).
 :- discontiguous('cmd.needs_rescan'/1). % needs rescanned bundles
-:- discontiguous('cmd.needs_config'/1). % needs existing configuration % TODO: negate and redefine as configless?
+:- discontiguous('cmd.needs_config'/1). % needs a configuration
 %
 :- discontiguous('cmd.recursive'/2). % recursive on dependencies
                                      %  - forward: dependencies first
@@ -96,7 +96,7 @@ builder_cmd_nobndl(clean_tree(Dir)) :- !,
 %  - done: done
 :- data builder_cmd_status/3.
 
-% grade_ready(Grade): Grade is ready
+% grade_ready(Grade): Grade is ready (all its required tools are compiled, etc.)
 :- data grade_ready/1.
 
 set_cmd_status(Cmd, Target, Status) :-
@@ -160,10 +160,9 @@ builder_cmd_(Cmd, Target) :-
 	    ensure_grade_ready(Grade, Target)
 	; true
 	),
-	% Check that config exists if needed
+	% Check that config exists if needed (does a plain configuration)
 	( 'cmd.needs_config'(Cmd) ->
-	    split_target(Target, Bundle, _Part),
-	    check_bundle_has_config(Cmd, Bundle)
+	    ensure_configured(Target)
 	; true
 	),
 	% Ensure that metasrc is loaded if needed
@@ -319,18 +318,16 @@ bundle_share_workspace(BundleA, BundleB) :-
 	A == B.
 
 % ---------------------------------------------------------------------------
+% Ensures that we have a configuration for the given target
 
 :- use_module(ciaobld(bundle_configure), [bundle_has_config/1]).
-:- use_module(engine(internals), ['$bundle_id'/1]).
 
-% Check that there exist a configuration. It also implies that there
-% exist a running ciao_builder and that bundles has been scanned.
-
-check_bundle_has_config(Cmd, Bundle) :-
-	( \+ '$bundle_id'(Bundle) ->
-	    throw(error_msg("Unknown bundle '~w' (try 'rescan-bundles').", [Bundle])) % TODO: needed?
-	; \+ bundle_has_config(Bundle) ->
-	    throw(error_msg("Cannot do '~w' on bundle '~w' without a configuration. Please run 'configure' before.", [Cmd, Bundle]))
+ensure_configured(Target) :-
+	split_target(Target, Bundle, _Part),
+	( \+ bundle_has_config(Bundle) ->
+	    % Configure with default values
+	    builder_cmd(configure([]), Bundle)
+	    % throw(error_msg("Cannot do '~w' on bundle '~w' without a configuration. Please run 'configure' before.", [Cmd, Bundle]))
 	; true
 	).
 
@@ -378,30 +375,32 @@ grade_requires(docs, 'lpdoc').
 ensure_grade_ready(Grade, _Target) :-
 	grade_ready(Grade), !.
 ensure_grade_ready(Grade, Target) :-
-	ensure_grade_ready_(Grade, Target),
+	split_target(Target, Bundle, _Part),
+	( \+ reach_sys_bundle(Bundle) ->
+	    % The current 'recursive' flag does not allow 
+	    % the bundle recursion to reach a system bundle;
+	    % assume then that this Grade is prepared
+	    %
+	    % TODO: show error if not available?
+	    true
+	; prepare_grade(Grade, Target)
+	),
 	assertz_fact(grade_ready(Grade)).
 
-ensure_grade_ready_(Grade, Target) :-
-	split_target(Target, Bundle, _Part),
-	reach_sys_bundle(Bundle), 
-	!,
+% Prepare the grade
+prepare_grade(Grade, ParentTarget) :-
 	( % (failure-driven loop)
 	  grade_requires(Grade, ReqTarget),
-	    \+ Target = ReqTarget,
+	    \+ ParentTarget = ReqTarget,
 	    builder_cmd(build_bin, ReqTarget),
 	    fail
 	; true
 	).
-ensure_grade_ready_(_Grade, _Target) :-
-	% Recursion does not reach system bundles, ignore
-	!,
-	% TODO: show error if not available?
-	true.
 
-% System bundles are reachable (given 'recursive' flag) from Target:
+% System bundles are reachable (given 'recursive' flag) from Bundle:
 %
 %  - either we have unlimited bundle recursion
-%  - or Target is system bundle
+%  - or Bundle is system bundle
 %
 % This is used for grade requirements and it does not consider bundle
 % dependencies.
