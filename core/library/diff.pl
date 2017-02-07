@@ -7,18 +7,7 @@
 
 :- doc(module, "This module implements Eugene Myers' Greedy
 Difference Algorithm described in 'An O(ND) Difference Algorithm and
-Its Variations'
-
-@begin{verbatim}
-  title={AnO (ND) difference algorithm and its variations},
-  author={Myers, Eugene W},
-  journal={Algorithmica},
-  volume={1},
-  number={1-4},
-  pages={251--266},
-  year={1986},
-  publisher={Springer}
-@end{verbatim}
+Its Variations' @cite{myers1986}.
 
 The implementation is parametric in the comparison predicate. This
 predicate has to succeed if two elements are considered equal.
