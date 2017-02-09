@@ -227,7 +227,7 @@ CBOOL__PROTO(prolog_eng_release)
 
 CBOOL__PROTO(prolog_eng_call)
 {
-  ERR__FUNCTOR("concurrency:$eng_call", 4);
+  ERR__FUNCTOR("concurrency:$eng_call", 6);
   goal_descriptor_t *gd;
   int           create_thread = NO_ACTION;
   int           create_wam    = NO_ACTION;
