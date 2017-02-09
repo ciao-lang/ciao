@@ -62,7 +62,6 @@ static CVOID__PROTO(c_term_trail_push,
 static CVOID__PROTO(copy_it, tagged_t *loc);
 static CVOID__PROTO(copy_it_nat, tagged_t *loc);
 
-#define TopOfOldHeap TagToHVA(w->global_uncond)
 /* NOTE: Aligned to the size of the pointers! */
 #define ODDOP(Insn)	   \
   if (((uintptr_t)P)&(sizeof(uintptr_t)-1))	\
@@ -1356,6 +1355,28 @@ CVOID__PROTO(number_to_string, tagged_t term, int base) {
   }
 }
 
+/* --------------------------------------------------------------------------- */
+/* copy term */
+
+#define TopOfOldHeap TagToHVA(w->global_uncond)
+
+/* Enable copying of terms between different heaps in copy_term */
+/* (it does not have any significant impact on performance) */
+#define SAFE_CROSS_COPY 1
+
+/* assert(HVA==0) */
+/* Detect if a variable is old during copy_term */
+#if defined(SAFE_CROSS_COPY)
+/* Use TopOfOldHeap as a memory barrier and OnHeap (for safe cross
+   copy_term, since we cannot not assume anything about the order of
+   different heaps */
+#define OldHVA(X) (!OffHeaptop(X,w->global_uncond) || !OnHeap(TagToPointer(X)))
+#define OldCVA(X) (!OffHeaptop(TagHVA(TagToCVA(X)),w->global_uncond) || !OnHeap(TagToPointer(X)))
+#else
+/* Use TopOfOldHeap as a memory barrier */
+#define OldHVA(X) (!OffHeaptop(X,w->global_uncond))
+#define OldCVA(X) (!OffHeaptop(TagHVA(TagToCVA(X)),w->global_uncond))
+#endif
 
 /* copy_term(?Old,?New):
  * Algorithm:
@@ -1442,7 +1463,7 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
   goto start;
 
  copy_hva:
-  if (CondHVA(t1)){		                                   /* HVA */
+  if (OldHVA(t1)) { /* HVA */
     PreLoadHVA(*loc,loc);
     t2 = TagHVA(loc);
     BindHVA(t1,t2);
@@ -1450,7 +1471,7 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
   return;
 
  copy_cva:
-  if (CondCVA(t1)){		                       /* new 3-field CVA */
+  if (OldCVA(t1)) { /* new 3-field CVA */
     pt1 = TagToGoal(t1);
     pt2 = w->global_top;
     LoadCVA(t2,pt2);
@@ -1537,7 +1558,7 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
   goto start;
 
  copy_hva:
-  if (CondHVA(t1)){		                                   /* HVA */
+  if (OldHVA(t1)) { /* HVA */
     PreLoadHVA(*loc,loc);
     t2 = TagHVA(loc);
     BindHVA(t1,t2);
@@ -1545,8 +1566,9 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
   return;
 
  skip_cva:
-  if (CondCVA(t1)){  /* This code is equivalent to taking out the attribute;
-                        xref bu1_detach_attribute() */
+  if (OldCVA(t1)) {
+    /* This code is equivalent to taking out the attribute;
+       xref bu1_detach_attribute() */
     PreLoadHVA(*loc,loc);
     t2 = TagHVA(loc);
     BindCVA_NoWake(t1,t2);
@@ -1554,8 +1576,7 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
   return;
 }
 
-
-
+#if defined(SAFE_CROSS_COPY)
 /* Copy a term in a remote worker to the local worker.  Returns the local
    term pointer.  It has (nontermination) problems when copying structures
    with self references. */
@@ -1572,6 +1593,9 @@ CFUN__PROTO(cross_copy_term, tagged_t, tagged_t remote_term)
 #endif
   return X(1);
 }
+#endif
+
+/* --------------------------------------------------------------------------- */
 
 /* c_cyclic_term: checks that the term t is cyclic.
 
