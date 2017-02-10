@@ -91,7 +91,7 @@ cmd_rw(configure([]), Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
 	    Flag = Bundle:_, Args2 = [Bundle]
 	; select(opt(get_flag, Flag), Opts, Opts1) ->
 	    Args = [],
-	    Cmd2 = config_describe_flag(Flag),
+	    Cmd2 = config_get_flag(Flag),
 	    Opts2 = Opts1,
 	    CmdFmt2 = [target_arg],
 	    Flag = Bundle:_, Args2 = [Bundle]

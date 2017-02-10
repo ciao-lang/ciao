@@ -615,7 +615,7 @@ ask_promote_bootstrap(Eng) :-
 	check_no_part(Target),
 	config_describe_flag(Flag).
 
-'cmd.do.decl'(config_set_flag(_)).
+'cmd.do.decl'(config_set_flag(_, _)).
 'cmd.do'(config_set_flag(Flag, Value), Target) :- !,
 	check_no_part(Target),
 	config_set_flag(Flag, Value).
