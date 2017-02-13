@@ -98,7 +98,6 @@ int firstgoal(goal_descriptor_t *goal_desc, tagged_t goal_term) {
   return exit_code;
 }
 
-
 /* Here with wam and goal */
 
 THREAD_RES_T startgoal(THREAD_ARG wo)

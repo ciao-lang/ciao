@@ -15,7 +15,6 @@ void init_goal_desc_list(void);
 void allow_thread_cancellation(void);
 void disallow_thread_cancellation(void);
 CFUN__PROTO(attach_me_to_goal_desc_list, goal_descriptor_t *);
-CVOID__PROTO(associate_wam_goal, goal_descriptor_t *goal_desc);
 CVOID__PROTO(print_task_status);
 void make_goal_desc_free(goal_descriptor_t *goal);
 goal_descriptor_t *init_first_gd_entry(void);

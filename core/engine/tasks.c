@@ -20,6 +20,23 @@
 #include <ciao/start.h>
 #include <ciao/initial.h>
 
+/* --------------------------------------------------------------------------- */
+
+/* Cross-link a WAM and a goal descriptor */
+static void associate_wam_goal(worker_t *w, goal_descriptor_t *goal_desc) {
+  goal_desc->worker_registers = w;
+  w->misc->goal_desc_ptr = goal_desc;
+}
+
+/* Cross-link a WAM and a goal descriptor */
+static void dissociate_wam_goal(worker_t *w, goal_descriptor_t *goal_desc) {
+  /* dissociate the WAM from the goal descriptor */
+  goal_desc->worker_registers = NULL;
+  w->misc->goal_desc_ptr = NULL;
+}
+
+/* --------------------------------------------------------------------------- */
+
 /* If we are not using threads, this simply points to a single WRB state;
    i.e., the list is actually a singleton. */
 /* wrb_state_p wrb_state_list;  */
@@ -31,6 +48,7 @@ SLOCK thread_to_free_l;
 THREAD_T thread_to_free = (THREAD_T)NULL;
 
 uintmach_t global_goal_number = 0;                 /* Last number taken */
+
 
 /* The initial list has a single goal descriptor with no WAM and in
    IDLE state */
@@ -84,9 +102,7 @@ int kill_thread(goal_descriptor_t *this_goal)
 }
 */
 
-
 /* Cause kills to this thread to be immediately executed */
-
 void allow_thread_cancellation(void)
 {
   Allow_Thread_Cancel;
@@ -94,12 +110,10 @@ void allow_thread_cancellation(void)
 
 
 /* Cause kills to this thread to be ignored (for symmetry with the above) */
-
 void disallow_thread_cancellation(void)
 {
   Disallow_Thread_Cancel;
 }
-
 
 /* Should be called after the list is inited */
 goal_descriptor_t *init_first_gd_entry(void)
@@ -125,10 +139,15 @@ goal_descriptor_t *gimme_a_new_gd(void)
 {
   goal_descriptor_t *gd_to_run;
 
-  if ((gd_to_run = look_for_a_free_goal_desc())) { /* Make sure it has a WAM */
-    if (!(gd_to_run->worker_registers))
+  gd_to_run = look_for_a_free_goal_desc();
+  if (gd_to_run != NULL) {
+    /* Make sure it has a WAM */
+    if (gd_to_run->worker_registers == NULL) {
       associate_wam_goal(free_wam(), gd_to_run);
-  } else gd_to_run = attach_me_to_goal_desc_list(free_wam());
+    }
+  } else {
+    gd_to_run = attach_me_to_goal_desc_list(free_wam());
+  }
   return gd_to_run;
 }
 
@@ -156,16 +175,6 @@ CFUN__PROTO(attach_me_to_goal_desc_list, goal_descriptor_t *)
   Release_slock(goal_desc_list_l);
   return goal_desc_p;
 }
-
-
-/* cross-link a WAM and a goal */
-
-CVOID__PROTO(associate_wam_goal, goal_descriptor_t *goal_desc)
-{
-  goal_desc->worker_registers = Arg;
-  Arg->misc->goal_desc_ptr = goal_desc;
-}
-
 
 /* I know this is a hack and not manageable; moreover, as for now, the
    ThreadId printed is not the same as the one returned by the Prolog
@@ -260,23 +269,24 @@ CBOOL__PROTO(prolog_eng_status1)
 
 /* The WAM used by goal is not to be used any more.  Remove the
    choicepoints and the possible dynamic concurrent choicepoints,
-   unlink it fro the goal descriptor and return it to the free wam
+   unlink it from the goal descriptor and return it to the free wam
    list. */
 
 void unlink_wam(goal_descriptor_t *goal)
 {
   worker_t *w;
 
-  if ((Arg = goal->worker_registers)) {
-    /*    goal->worker_registers = NULL; */
+  w = goal->worker_registers;
+  if (w != NULL) {
 #if defined(THREADS)		/* Clean the possible conc. chpt. */
     remove_link_chains(&TopConcChpt, InitialNode);
 #endif
-    release_wam(Arg);
+    dissociate_wam_goal(w, goal);
+    release_wam(w);
   }
 }
 
-/* A goal descripter state is to be marked as free --- no thread is
+/* A goal descriptor state is to be marked as free --- no thread is
    working on it.  It is not, however, deleted from the state list, or
    the WAM freed, for creating areas is a costly process.  However, we
    move it to the beginning of the list.  We should have exclusive
@@ -285,9 +295,10 @@ void unlink_wam(goal_descriptor_t *goal)
 
 void make_goal_desc_free(goal_descriptor_t *goal)
 {
-
   unlink_wam(goal);		/* Clean WAM, put it back to free list */
+
   Wait_Acquire_slock(goal_desc_list_l);
+  //  fprintf(stderr, "MAKE GOAL DESC FREE %p\n", goal);
   goal->state = IDLE;
 				/* Unlink from current place */
   goal->backward->forward = goal->forward;
@@ -311,11 +322,12 @@ void make_goal_desc_free(goal_descriptor_t *goal)
 worker_t *get_my_worker(void)
 {
   THREAD_ID thr_id = Thread_Id;
-  goal_descriptor_t *this_goal = goal_desc_list->backward;
+  goal_descriptor_t *this_goal;
 
   /* Freeze the status of the goal descriptor list */
 
   Wait_Acquire_slock(goal_desc_list_l);
+  this_goal = goal_desc_list;
 
   /* Go backwards: the goals at the beginning are free. */
 
