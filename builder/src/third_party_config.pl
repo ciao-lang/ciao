@@ -20,11 +20,11 @@
 
 % (Support for GNU pkg-config based libraries)
 
-:- export(foreign_config_var/3).
-% The configuration for foreign library @var{Foreign} has value
-% @var{Value} in variable @var{Var}.
-foreign_config_var(Foreign, Var, Value) :-
-	foreign_config_tool_path(_, Foreign, CfgToolPath),
+:- export(foreign_config_var/4).
+% The configuration for foreign library @var{Foreign} from bundle
+% @var{Bundle} has value @var{Value} for variable @var{Var}.
+foreign_config_var(Bundle, Foreign, Var, Value) :-
+	foreign_config_tool_path(Bundle, Foreign, CfgToolPath),
 	process_call(CfgToolPath, [~atom_concat('--', Var)],
 	       [stdout(line(Value)), status(0)]).
 
@@ -32,11 +32,7 @@ foreign_config_var(Foreign, Var, Value) :-
 foreign_config_tool_path(Bundle, Foreign, CfgToolPath) :-
 	% TODO: do not use m_bundle_foreign_config_tool? use third party decls instead?
 	m_bundle_foreign_config_tool(Bundle, Foreign, CfgTool),
-	( % TODO: hack! make it nicer by unifying names of third_party,
-	  % foreign libraries, and AUTO_INSTALL_* params (make it a functor)
-	  atom_concat('auto_install_', Foreign, AutoInstallOpt),
-	  % (do not throw exception if does not exists)
-	  current_bundle_flag(Bundle:AutoInstallOpt, 'yes') ->
+	( current_bundle_flag(Bundle:auto_install, 'yes') ->
 	    % Look in third-party bin
 	    third_party_path(bindir, ThirdPartyBinDir),
 	    path_concat(ThirdPartyBinDir, CfgTool, CfgToolPath),
@@ -44,9 +40,9 @@ foreign_config_tool_path(Bundle, Foreign, CfgToolPath) :-
 	; find_executable(CfgTool, CfgToolPath)
 	).
 
-:- export(foreign_config_version/2).
-foreign_config_version(Foreign, Version) :-
-	foreign_config_var(Foreign, 'version', Str),
+:- export(foreign_config_version/3).
+foreign_config_version(Bundle, Foreign, Version) :-
+	foreign_config_var(Bundle, Foreign, 'version', Str),
 	foreign_config_parse_version(Str, Version).
 
 % from "Major.Minor" string to [Major,Minor]

@@ -159,7 +159,7 @@ environment with a unique set of features:
 ./ciao-boot.sh configure \
    --instype=global --install_prefix=%{_prefix} \
    --core:update_bashrc=no --core:update_cshrc=no \
-   --ciao_emacs:with_emacs_mode=yes --core:update_dotemacs=no \
+   --ciao_emacs:enabled=yes --core:update_dotemacs=no \
    --ciao_emacs:emacs_site_start=%{emacs_sitestart_dir} \
    --ciao_emacs:emacsinitfile=%{emacs_sitestart_filename} \
    --core:with_mysql=%{?with_mysql}%{!?with_mysql:no} \
@@ -170,9 +170,6 @@ environment with a unique set of features:
    --core:install_prolog_name=no \
    --execmode=755 --datamode=644
 ./ciao-boot.sh build --bin
-#   --ciao_ppl:with_ppl=no \
-#   --ciao_java:with_java_interface=%{?with_java_interface}%{!?with_java_interface:no} \
-#   --ciao_gsl:with_gsl=%{?with_gsl}%{!?with_gsl:no}
 
 %install
 rm -rf %{buildroot}
