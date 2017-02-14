@@ -298,7 +298,7 @@ ciao_emacs_reinstall_win32(Args) :-
 	; true
 	),
 	set_emacs_type('Win32'), % TODO: patch config instead?
-	config_set_flag(ciao_emacs:with_emacs_mode, 'yes'), % TODO: dangerous!
+	config_set_flag(ciao_emacs:enabled, 'yes'), % TODO: dangerous!
 	builder_cmd(build_bin, 'ciao_emacs.emacs_mode'), % TODO: needed?
 	builder_cmd(install, 'ciao_emacs.emacs_mode'), % TODO: needed?
 	% (put ciao-mode-init.el in place)
