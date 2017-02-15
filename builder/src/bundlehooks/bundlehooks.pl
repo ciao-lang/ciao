@@ -19,3 +19,5 @@
 
 % Hooks for bundle description
 :- include(ciaobld(bundlehooks/bundlehooks_defs)).
+
+:- use_module(ciaobld(bundlehooks/bundlehooks_rt)).

@@ -19,6 +19,9 @@ defdep(('$builder_hook'(ItemCmd) :- Body), Clauses, Mod) :-
 	gen_clause_target(Cmd, Item, Body, Clauses, Mod).
 defdep((:- def_third_party(Name, Props)), Clauses, Mod) :- !,
 	gen_third_party(Name, Props, Clauses, Mod).
+defdep((:- third_party_flags(Props)), Clauses, Mod) :- !,
+	get_bundle_name(Mod, M),
+	findall(Clause, gen_third_party_flag(M, Props, Clause), Clauses).
 defdep((:- bundle_flag(Name, Opts)), Clauses, Mod) :- !,
 	get_bundle_name(Mod, M),
 	check_bundle_flag_name(Name, M),
@@ -122,3 +125,80 @@ gen_third_party_([P|Ps], Name, Clauses, Mod) :-
 	P2 =.. [N2, Name|Args],
 	Clauses = [P2|Clauses0],
 	gen_third_party_(Ps, Name, Clauses0, Mod).
+
+% ---------------------------------------------------------------------------
+% Templates for the default bundle flags for installation of bindings
+% for third-party code. E.g.,
+%
+%   :- third_party_flags([
+%       name("SomeLib (third party)"), 
+%       bindings_name("SomeLib bindings"),
+%       allow_auto_install, % allow auto-installation
+%       allow_dummy % allow dummy bindings
+%   ]).
+
+:- use_module(library(aggregates), [findall/3]).
+
+third_party_name(Props, Name) :- 
+	( member(name(Name), Props) -> true
+	; Name = "third-party code"
+	).
+third_party_bindings_name(Props, Name) :- 
+	( member(bindings_name(Name), Props) -> true
+	; Name = "bindings"
+	).
+
+gen_third_party_flag(Bundle, Props, Clause) :-
+	gen_third_party_flag_(Bundle, Props, Name, Opts),
+	Clause = '$bundleconfig_entry'(Name, Bundle, Opts).
+
+gen_third_party_flag_(Bundle, Props, preinstalled, [
+    comment("Use preinstalled "||Name3rd),
+    valid_values(ValidValues),
+    rule_default(Value,
+        default_preinstalled(third_party_preinstalled(Bundle),
+	                     AllowAutoInstall, Value)),
+    interactive([advanced])
+]) :-
+	third_party_name(Props, Name3rd),
+	( member(allow_auto_install, Props) ->
+	    AllowAutoInstall = yes
+	; AllowAutoInstall = no
+	),
+	ValidValues = ['yes', 'no'].
+% NOTE: setting to 'yes' overrides all checks!
+gen_third_party_flag_(Bundle, Props, enabled, [
+    comment("Enable "||NameBindings),
+    valid_values(ValidValues),
+    default_value_comment(no, DetailsNo),
+    rule_default(Value, (
+        flag(preinstalled(UsePreinstalled)),
+        default_enabled(third_party_preinstalled(Bundle),
+	                UsePreinstalled, Value))),
+    interactive([advanced])
+]) :-
+	third_party_bindings_name(Props, NameBindings),
+	( member(allow_dummy, Props) ->
+	    ValidValues = ['yes', 'no'],
+	    DetailsNo = "Using dummy version for "||NameBindings
+	; ValidValues = ['yes'],
+	  DetailsNo = "Third-party code is missing for "||NameBindings
+	).
+% (Not configurable setting)
+gen_third_party_flag_(_Bundle, Props, auto_install, [
+    comment("Auto-install "||Name3rd),
+    valid_values(ValidValues)|Opts
+]) :-
+        Opts1 = [
+          rule_default(Value, (
+            flag(enabled(Enabled)),
+            flag(preinstalled(UsePreinstalled)),
+            need_auto_install(Enabled, UsePreinstalled, Value)))],
+	third_party_name(Props, Name3rd),
+	( member(allow_auto_install, Props) ->
+	    ValidValues = ['yes', 'no'],
+	    Opts = Opts1
+	; ValidValues = ['no'],
+	  Opts = [default_value_comment(yes, DetailsYes)|Opts1],
+	  DetailsYes = "Auto-installation is not available for "||Name3rd
+	).
