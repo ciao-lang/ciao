@@ -127,7 +127,7 @@ The selected installation is reproducible with:
 
 (Press enter to continue or C-c to cancel)
 EOF
-    read < /dev/tty
+    read dummy < /dev/tty
 
     if ! ( fetch_and_boot $opts$cmd$flags ); then
 	exit 1
