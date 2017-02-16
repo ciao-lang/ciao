@@ -162,7 +162,6 @@ environment with a unique set of features:
    --ciao_emacs:enabled=yes --core:update_dotemacs=no \
    --ciao_emacs:emacs_site_start=%{emacs_sitestart_dir} \
    --ciao_emacs:emacsinitfile=%{emacs_sitestart_filename} \
-   --core:with_mysql=%{?with_mysql}%{!?with_mysql:no} \
    --lpdoc:docdir=%{ciaodocdir} \
    --lpdoc:mandir=%{_mandir} --lpdoc:infodir=%{_infodir} \
    --lpdoc:htmldir=%{ciaodocdir}/html \
