@@ -47,16 +47,15 @@ Copyright @copyright{} 1997-2002 The Clip Group.
    such that any updates made to it from a program remain even after
    the execution of that program terminates.  Persistent predicates
    appear to a program as ordinary predicates, but their definitions
-   are stored in files which are automatically maintained by the
-   library. Any changes to the persistent predicates are recorded
-   atomically and transactionally in these files. This essentially
-   implements a light-weight, simple, and at the same time powerful
-   deductive database, which is accessed via a generic data access
-   method.  A companion library (@lib{persdb_sql}) provides a similar
-   notion of persistence but uses external relational databases as
-   storage instead. This essentially provides a high-level programmer
-   interface, using the same generic data access method, to relational
-   databases.").
+   are stored in non-volatile storage which is automatically
+   maintained by the library.
+
+   This library implements a default file-based backend where any
+   changes to the persistent predicates are recorded atomically and
+   transactionally in files. This essentially implements a
+   light-weight, simple, and at the same time powerful deductive
+   database, which is accessed via a generic data access method. Other
+   backends (e.g., to SQL databases) are distributed separately.").
 
 :- doc(module,"
 
@@ -97,7 +96,7 @@ Copyright @copyright{} 1997-2002 The Clip Group.
    of the transactions, persistent predicates allow @concept{concurrent
    updates} from several programs.
 
-   @section{Persistent predicates, files, and relational databases}
+   @section{File-based backend}
 
    The concept of persistent predicates provided by this library
    essentially implements a light-weight, simple, and at the same time
@@ -120,38 +119,22 @@ Copyright @copyright{} 1997-2002 The Clip Group.
    some predicates as such and eliminates having to worry about
    opening files, closing them, recovering from system crashes, etc.
 
+   @section{Other backends}
+
    In other cases, however, it may be convenient to use a relational
    database as persistent storage. This may be the case, for example,
    when the data already resides in such a database (where it is
    perhaps accessed also by other applications) or the volume of data
-   is very large. @lib{persdb_sql} @cite{radioweb-D3.1.M2-A2} is a
-   companion library which implements the same notion of persistent
-   predicates used herein, but keeping the storage in a relational
-   database. This provides a very natural and transparent way to
-   access SQL database relations from a Prolog program. In that
-   library, facilities are also provided for reflecting more complex
-   @em{views} of the database relations as predicates. Such views can
-   be constructed as conjunctions, disjunctions, projections, etc. of
-   database relations, and may include SQL-like aggregation
-   operations.
+   is very large. We distribute these backend separately from the core
+   libraries.
 
-   A nice characteristic of the notion of persistent predicates used
-   in both of these libraries is that it abstracts away how the
-   predicate is actually stored. Thus, a program can use persistent
-   predicates stored in files or in external relational databases
-   interchangeably, and the type of storage used for a given predicate
-   can be changed without having to modify the program (except for
-   replacing the corresponding @pred{persistent/2} declarations).
-
-   An example application of the @lib{persdb} and @lib{persdb_sql}
-   libraries (and also the @lib{pillow} library @cite{pillow-www6}),
-   @comment{should be pillow-ws, but formats weird}is @apl{WebDB}
-   @cite{radioweb-D3.1.M2-A3}. @apl{WebDB} is a generic, highly
-   customizable @em{deductive database engine} with an @em{html
-   interface}. @apl{WebDB} allows creating and maintaining
-   Prolog-based databases as well as relational databases (residing in
-   conventional relational database engines) using any standard WWW
-   browser.
+   A nice characteristic of the notion of persistent predicates is
+   that it abstracts away how the predicate is actually stored. Thus,
+   a program can use persistent predicates stored in files or in
+   external relational databases interchangeably, and the type of
+   storage used for a given predicate can be changed without having to
+   modify the program (except for replacing the corresponding
+   @pred{persistent/2} declarations).
 
    @section{Using file-based persistent predicates}
 
@@ -244,6 +227,8 @@ persistent_dir(dbdir, '/home/clip/public_html/db').
    are in this way defined dynamically, a call to @pred{initialize_db/0}
    is commonly needed after loading and before calling predicates of
    these files.
+
+
 ").
 
 :- doc(usage, "There are two packages which implement persistence:

@@ -8,10 +8,6 @@
 '$builder_hook'(item_nested(dot_shell)).
 :- include(.('dot_shell.hooks')).
 
-% MySQL bindings
-'$builder_hook'(item_nested(persdb_mysql)).
-:- include(.('persdb_mysql.hooks')).
-
 % PiLLoW
 '$builder_hook'(item_nested(pillow)).
 :- include(.('pillow.hooks')).
