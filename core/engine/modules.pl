@@ -39,7 +39,7 @@
    qualification cannot be used for gaining access to predicates that
    have not been imported, nor for defining clauses of other modules.
 
-   @subsubsection{Files with no mudule declaration ('user' files)}
+   @subsubsection{Files with no module declaration ('user' files)}
 
    All predicates defined in files with no module declaration belong
    to a special module called @cindex{user module} @tt{user}, from
