@@ -436,6 +436,7 @@ create_exec(ExecName, Base, PoFiles) :-
 % possibilities in order to find out which engine has to be
 % concatenated to the Ciao executable.
 copy_header(none) :- !, % OPA
+	% TODO: see ciaoc_aux:eng_exec_header/1
 	absolute_file_name(library(compiler/header), '', '', '.', AbsoluteFileName, _, _),
 	copy_stdout(AbsoluteFileName).
 copy_header(TargetEng) :-

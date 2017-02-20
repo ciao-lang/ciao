@@ -99,7 +99,7 @@ exec_aux(BundleDir, Args) :-
 exec_aux_(BundleDir, BundleName, Args) :-
 	Env = ['CURR_BUNDLEDIR' = BundleDir,
 	       'CURR_BUNDLENAME' = BundleName],
-	bundle_path(ciao, 'builder/src/bundlectl_aux.bash', Exec),
+	bundle_path(builder, 'src/bundlectl_aux.bash', Exec),
 	process_call(Exec, Args, 
 	             [env(Env), cwd(BundleDir)]).
 

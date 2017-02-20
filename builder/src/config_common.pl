@@ -13,7 +13,7 @@
 % ===========================================================================
 
 :- export(verbose_build/1).
-verbose_build := ~get_bundle_flag(ciao:verbose_build).
+verbose_build := ~get_bundle_flag(ciao:verbose_build). % (~root_bundle)
 
 % ===========================================================================
 % The URL and directory for our main distribution site
@@ -36,7 +36,7 @@ perms(perms(rwX, rwX, rX)).
 
 :- export(with_docs/1).
 % Enable docs grade (lpdoc must be available)
-with_docs := ~get_bundle_flag(ciao:with_docs) :- !, '$bundle_id'(lpdoc).
+with_docs := ~get_bundle_flag(ciao:with_docs) :- !, '$bundle_id'(lpdoc). % (~root_bundle)
 with_docs := no.
 
 % ===========================================================================
@@ -57,21 +57,21 @@ boot_eng_def(Eng) :-
 % Paths for installation
 
 :- export(instype/1).
-instype := ~get_bundle_flag(ciao:instype).
+instype := ~get_bundle_flag(ciao:instype). % (~root_bundle)
 
 :- export(instciao_prefix/1).
 % Prefix for installation directories
 % (e.g., if /usr/local, binaries will be installed in /usr/local/bin)
-instciao_prefix := ~get_bundle_flag(ciao:install_prefix).
+instciao_prefix := ~get_bundle_flag(ciao:install_prefix). % (~root_bundle)
 
 :- export(instciao_bindir/1).
 % Directory for installation of binaries
 % (default <prefix>/bin)
-instciao_bindir := ~get_bundle_flag(ciao:install_bindir).
+instciao_bindir := ~get_bundle_flag(ciao:install_bindir). % (~root_bundle)
 
 % Base directory for the Ciao store dir (for bundles)
 % (default <prefix>/lib)
-instciao_libdir := ~get_bundle_flag(ciao:install_libdir).
+instciao_libdir := ~get_bundle_flag(ciao:install_libdir). % (~root_bundle)
 
 :- export(instciao_storedir/1).
 % Directory for installing bundles

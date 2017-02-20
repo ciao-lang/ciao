@@ -154,7 +154,7 @@ cleanup_find_bundles :- retractall_fact(found_bundle(_, _)).
 
 bundledirs_at_dir(Src, Optional, BundleDir) :-
 	is_bundledir(Src), % a bundle 
-	% TODO: Add a cut here, do not allow sub-bundles! <- needed only for 'ciao' bundle
+	% TODO: Add a cut here, do not allow sub-bundles! <- needed only for (~root_bundle) bundle
 	( Optional = yes -> directory_has_mark(activate, Src) ; true ),
 	BundleDir = Src.
 bundledirs_at_dir(Src, Optional, BundleDir) :-

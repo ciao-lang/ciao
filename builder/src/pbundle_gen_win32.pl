@@ -88,13 +88,13 @@ create_iss_file(Bundle, FileIss, FileListName) :-
 	    'LicenseFile' = ~license_file,
  	    'MyAppExeName' = ~cmdname_ver(yes, core, plexe, 'ciaosh'), % TODO: extract from bundle
 	    'CiaoVersion' = VersionNopatch, % TODO: extract from bundle
-	    'SourceDir' = ~atom_codes(~winpath(relative, ~bundle_path(ciao, '.'))),
+	    'SourceDir' = ~atom_codes(~winpath(relative, ~bundle_path(ciao, '.'))), % (~root_bundle)
 	    'MyRelBuildDir' = ~relciaodir(~bundle_path(Bundle, builddir, '.')),
 	    'OutputDir' = ~atom_codes(~winpath(relative, ~pbundle_output_dir(Bundle))),
 	    'ManualIcons' = ~get_manual_icons(Bundle),
 	    'DefaultDirName' = ~default_dir_name(Bundle),
 	    'CiaoEngineExec' = ~winpath(relative, ~relciaodir(~bld_eng_path(exec, Eng))),
-	    'FileListName' = ~winpath(full, ~bundle_path(ciao, FileListName))
+	    'FileListName' = ~winpath(full, ~bundle_path(ciao, FileListName)) % (~root_bundle)
 	]).
 
 default_dir_name(Bundle) := D :-
@@ -194,13 +194,13 @@ extra_system_file := ~relciaodir(~bld_eng_path(lib_so, Eng)) :-
 	Eng = ~default_eng_def.
 
 relciaodir(S) := Dir :-
-	R = ~bundle_path(ciao, '.'),
+	R = ~bundle_path(ciao, '.'), % (~root_bundle)
 	path_get_relative(R, S, Dir).
 
 display_file_entry(Source, DestDir) :-
 	display_list(['Source: ', Source, '; DestDir:{app}\\', DestDir, '\n']).
 
-license_file := ~atom_codes(~winpath(relative, ~bundle_path(ciao, 'LGPL'))).
+license_file := ~atom_codes(~winpath(relative, ~bundle_path(ciao, 'LGPL'))). % (~root_bundle)
 
 fullwinname(File, WinName) :-
 	winpath(relative, File, WinName).

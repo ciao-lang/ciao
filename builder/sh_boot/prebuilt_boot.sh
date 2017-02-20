@@ -15,7 +15,7 @@
 #  - use a single CIAOROOT env var (instead of CIAOENGINE,CIAOHDIR,CIAOLIB)
 # TODO: touch all po,itf so that no recompilation happens
 # TODO: mingw version?
-# TODO: missing relocation of lib/compiler/header
+# TODO: missing relocation of lib/compiler/header (new executables still require explicit CIAOENGINE env var)
 # TODO: create exec stub (turn into static + lib)
 # TODO: create small ciaoengine (dynlink to so)
 

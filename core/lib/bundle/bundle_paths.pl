@@ -55,11 +55,13 @@ loc_path(src, Bundle, R) :-
 loc_path(builddir, Bundle, R) :-
 	% Base for bundle build
 	bundle_to_bldid(Bundle, BldId),
-	( BldId = inpath(Path) -> R0 = Path ; '$bundle_srcdir'(ciao, R0) ),
+	( BldId = inpath(Path) -> R0 = Path
+	; '$bundle_srcdir'(ciao, R0) % (~root_bundle)
+	),
 	R = ~path_concat(R0, ~relbuild(build)).
 loc_path(bootbuilddir, _Bundle, R) :-
 	% Base for bundle build (boot)
-	'$bundle_srcdir'(ciao, R0),
+	'$bundle_srcdir'(ciao, R0), % (~root_bundle)
 	R = ~path_concat(R0, ~relbuild(bootbuild)).
 
 % relative directory names for builddir (see sh scripts too)
@@ -68,7 +70,7 @@ relbuild(bootbuild, 'build-boot'). % bootstrap build
 
 % BldId corresponding to Bundle
 bundle_to_bldid(Bundle, BldId) :-
-	( '$bundle_srcdir'(Bundle, Dir), % (may fail for 'ciao')
+	( '$bundle_srcdir'(Bundle, Dir), % (may fail for ~root_bundle)
 	  ciao_path(Path), % TODO: Must not include CIAOROOT!
 	  ( Path = Dir
 	  ; path_get_relative(Path, Dir, _)

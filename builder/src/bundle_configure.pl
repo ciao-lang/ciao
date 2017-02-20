@@ -175,12 +175,14 @@ bundle_has_config(Bundle) :-
 
 % ---------------------------------------------------------------------------
 
-% The full configuration is stored in bundlereg/ under the build
-% directory, in different formats for different tools:
+% The full configuration of a Bundle is stored in bundlereg/ under the
+% build directory, in different formats for different tools:
 %
-%   - ciao.bundlecfg: internal format (saved, no sysdep)
-%   - ciao.bundlecfg_sh: version in sh format for config-sysdep.sh
+%   - Bundle.bundlecfg: internal format (saved, no sysdep)
+%   - Bundle.bundlecfg_sh: version in sh format for config-sysdep.sh
 %     and eng_maker:eng_config_sysdep/2
+%
+% (only for bundles listed in bundle_export_sh/1)
 %
 % See eng_maker:eng_config_sysdep/2 for the sysdep configuration
 % output for engine and C code compilation.
@@ -198,7 +200,7 @@ bundle_has_config(Bundle) :-
 :- pred bundleset_configure(BundleSet, Flags) # "Configure the bundles
    specified in @var{BundleSet} using their configuration rules and
    the input provided by @var{Flags} and/or user interaction (if
-   @tt{ciao:interactive_config} flag is specified).".
+   @tt{interactive_config} flag is specified).".
 
 bundleset_configure(BundleSet, Flags) :-
 	% Load config rules
@@ -247,7 +249,7 @@ save_modified_flags_sh(BundleSet) :-
 % TODO: only ciao__DEFAULTLIBDIR and some core__ are really needed; customize
 % TODO: make configurable?
 bundle_export_sh(core).
-bundle_export_sh(ciao).
+bundle_export_sh(ciao). % (~root_bundle)
 
 :- use_module(library(file_utils), [string_to_file/2]).
 :- use_module(library(aggregates), [findall/3]).
@@ -479,7 +481,7 @@ flag_help_string(Flag, Help) :-
 
 % Determine the values for the configuration entries (automatically or
 % via user interaction, depending on bundle flag
-% @tt{ciao:interactive_config})
+% @tt{interactive_config})
 eval_config_rules(BundleSet) :-
 	init_config_fixpo(BundleSet, no),
 	once_port_reify(eval_config_rules_(BundleSet), Port),
@@ -500,7 +502,7 @@ eval_config_rules_(BundleSet) :-
 % Evaluate rule for configuration mode flag
 eval_config_mode_flag :-
 	( get_builder_flag(interactive_config, true) ->
-	    eval_config_rule(ciao:configuration_mode, [])
+	    eval_config_rule(ciao:configuration_mode, []) % (~root_bundle)
 	; true
 	).
 
@@ -678,13 +680,13 @@ interactive_flag(_) :-
 	\+ get_builder_flag(interactive_config, 'true'),
 	!,
 	fail.
-interactive_flag(ciao:configuration_mode) :- % (always ask on interactive)
+interactive_flag(ciao:configuration_mode) :- % (always ask on interactive) % (~root_bundle)
 	!.
 interactive_flag(Flag) :-
 	( flag_def(Flag, interactive(ConfigModes))
 	; flag_def(Flag, interactive), ConfigModes = ['basic', 'advanced']
 	),
-	current_bundle_flag(ciao:configuration_mode, ConfigMode),
+	current_bundle_flag(ciao:configuration_mode, ConfigMode), % (~root_bundle)
 	member(ConfigMode, ConfigModes),
 	!.
 

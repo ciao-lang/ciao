@@ -44,22 +44,22 @@ cmd_fmt(boot_promote, [target_args]).
 
 cmd_fmt(local_install, [opts([interactive]), target_args, config_flags]).
 cmd_rw(local_install(Flags), Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
-	Flags2 = [flag(ciao:instype, 'local')|Flags],
+	Flags2 = [flag(ciao:instype, 'local')|Flags], % (~root_bundle)
 	Cmd2 = full_install(Flags2),
 	Opts2 = Opts, Args2 = Args,
 	CmdFmt2 = [target_args].
 %
 cmd_fmt(global_install, [opts([interactive]), target_args, config_flags]).
 cmd_rw(global_install(Flags), Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
-	Flags2 = [flag(ciao:instype, 'global')|Flags],
+	Flags2 = [flag(ciao:instype, 'global')|Flags], % (~root_bundle)
 	Cmd2 = full_install(Flags2),
 	Opts2 = Opts, Args2 = Args,
 	CmdFmt2 = [target_args].
 %
 cmd_fmt(local_install_paranoid, [opts([interactive]), target_args, config_flags]).
 cmd_rw(local_install_paranoid(Flags), Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
-	Flags2 = [flag(ciao:instype, 'local'),
-	          flag(ciao:unused_pred_warnings, 'yes')|Flags],
+	Flags2 = [flag(ciao:instype, 'local'), % (~root_bundle)
+	          flag(ciao:unused_pred_warnings, 'yes')|Flags], % (~root_bundle)
 	Cmd2 = full_install(Flags2),
 	Opts2 = Opts, Args2 = Args,
 	CmdFmt2 = [target_args].

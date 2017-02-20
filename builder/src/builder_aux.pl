@@ -68,8 +68,8 @@ ciao_path_at_dir(Dir, Path) :-
 	; throw(error_msg("Directory (or any of the parent directories) not in CIAOPATH.", []))
 	).
 
-% Detect the workspace from ciao_path/1 (or ciao root) for the given
-% File (a directory or normal file)
+% Detect the workspace for the given File (a directory or normal
+% file), using ciao_path/1 or the CIAOROOT directory.
 lookup_ciao_path(File, Path) :-
 	fixed_absolute_file_name(File, '.', Path0),
 	( lookup_ciao_path_(Path0, Path1) ->
@@ -96,7 +96,7 @@ lookup_ciao_path_(Path0, Path) :-
 % TODO: unfortunately 'ciao' supercommand is still a shell script; fix it so that it runs in Win32 without MSYS2
 ciaocmd := ~cmd_path(core, shscript, 'ciao'). % (supercommand)
 
-gmake := ~get_bundle_flag(ciao:gmake_cmd).
+gmake := ~get_bundle_flag(ciao:gmake_cmd). % (~root_bundle)
 
 :- export(invoke_gmake/2).
 invoke_gmake(Dir, Args) :-
@@ -176,7 +176,7 @@ rootprefix(R) :-
 	).
 
 :- export(rootprefixed/2).
-% Add rootprefix (bundle param ciao:destdir) to the given path (for installation)
+% Add rootprefix (flag 'destdir') to the given path (for installation)
 rootprefixed(Path0) := Path :-
 	% (note: Path0 is an absolute path, do not use path_concat/3)
 	Path = ~atom_concat(~rootprefix, Path0).
@@ -444,7 +444,7 @@ versioned_manual_base(Bundle, Base) := R :-
 add_rpath(local_third_party, LinkerOpts0, LinkerOpts) :- !,
 	% TODO: better way to compute RelativeLibDir?
 	% (for 'ciaoc_car.pl')
-	bundle_path(ciao, '.', CiaoSrc),
+	bundle_path(ciao, '.', CiaoSrc), % (~root_bundle)
 	third_party_path(libdir, LibDir),
 	path_relocate(CiaoSrc, '.', LibDir, RelativeLibDir),
 	add_rpath_(RelativeLibDir, LinkerOpts0, LinkerOpts).

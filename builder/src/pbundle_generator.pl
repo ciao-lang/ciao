@@ -41,9 +41,9 @@ pbundle_codeitem_kind := tgz|rpm_x86|deb_x86|win|dmg.
 pbundle_docitem_kind := manual_html|manual_pdf.
 % Sub-bundles whose documentation is distributed explicitly as a docitem
 % TODO: extract from Bundle
-bundle_doc_subbundles(ciao, core, ciao, "Ciao Manual").
-bundle_doc_subbundles(ciao, ciaopp, ciaopp, "CiaoPP Manual").
-bundle_doc_subbundles(ciao, lpdoc, lpdoc, "LPdoc Manual").
+bundle_doc_subbundles(ciao, core, ciao, "Ciao Manual"). % (~root_bundle)
+bundle_doc_subbundles(ciao, ciaopp, ciaopp, "CiaoPP Manual"). % (~root_bundle)
+bundle_doc_subbundles(ciao, lpdoc, lpdoc, "LPdoc Manual"). % (~root_bundle)
 
 :- use_module(library(file_utils), [output_to_file/2]).
 :- use_module(library(version_strings), [version_split_patch/3]).

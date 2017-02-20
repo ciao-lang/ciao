@@ -231,7 +231,7 @@ number_to_atm2(X, Y) :-
 	 active_inst_eng_path/3]).
 
 % TODO: rename, move somewhere else, make it optional, add native .exe stubs for win32?
-eng_exec_header := ~bundle_path(ciao, 'core/lib/compiler/header'). % TODO: use 'core' instead of 'ciao' bundle
+eng_exec_header := ~bundle_path(core, 'lib/compiler/header').
 
 :- export(build_eng_exec_header/1).
 % Create exec header (based on Unix shebang) for running binaries
@@ -446,7 +446,7 @@ exists_and_compilable(Dir) :-
 builddir_clean(Bundle, bundlereg) :- !,
 	remove_dir_nofail(~bundle_path(Bundle, builddir, 'bundlereg')).
 builddir_clean(Bundle, config) :- !,
-	% TODO: clean only Bundle (not 'ciao')
+	% TODO: this only works for (~root_bundle)
 	del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/ciao.bundlecfg')),
 	del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/ciao.bundlecfg_sh')).
 builddir_clean(Bundle, bin) :- !,
