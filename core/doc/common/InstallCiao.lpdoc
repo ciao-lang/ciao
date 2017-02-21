@@ -268,13 +268,13 @@ following sections.
 
  @begin{itemize}
 
-       @item @tt{ciao:install_prefix}: prefix for the default values
+       @item @tt{--install_prefix}: prefix for the default values
        of installation directories (@tt{<prefix>/bin},
        @tt{<prefix>/lib}, etc).
 
-       @item @tt{ciao:install_bindir}: directory where the Ciao
+       @item @tt{--install_bindir}: directory where the Ciao
        commands will be installed. For example, if
-       @tt{ciao:install_bindir} is set to @tt{/usr/local/bin}, then
+       @tt{--install_bindir} is set to @tt{/usr/local/bin}, then
        the Ciao @concept{compiler} (@apl{ciaoc}) will be stored at
        @tt{/usr/local/bin/ciaoc}. Actually, it will be a link to
        @tt{ciaoc-}@em{VersionNumber}. This applies also to other
@@ -283,15 +283,15 @@ following sections.
        installed latest} will be the one started by default when
        typing @tt{ciao}, @tt{ciaoc}, etc.  @cindex{binary directory}
 
-       @item @tt{ciao:install_libdir}: directory where the
+       @item @tt{--install_libdir}: directory where the
        @concept{run-time libraries} will be installed. @cindex{library
        directory}
 
        @item The Ciao installation procedure will create a new
-       subdirectory @tt{ciao} below @tt{ciao:install_libdir}, denoted
+       subdirectory @tt{ciao} below @tt{--install_libdir}, denoted
        here as @tt{INSTALL_STOREDIR}. A subdirectory will be created
        below @tt{INSTALL_STOREDIR} for each Ciao component and version
-       installed.  For example, if @tt{ciao:install_libdir} is
+       installed.  For example, if @tt{--install_libdir} is
        @tt{/usr/local/lib} and you have LPdoc version @tt{x.y}, then
        the libraries will be installed under
        @tt{/usr/local/lib/ciao/lpdoc-x.y}. This allows you to install
@@ -300,7 +300,7 @@ following sections.
        installed. It also again allows having several Ciao versions
        installed simultaneously.
 
-       @item @tt{lpdoc:docdir}: directory where the @concept{manuals}
+       @item @tt{--lpdoc:docdir}: directory where the @concept{manuals}
        will be installed. In server installations, it is often
        convenient if this directory is accessible via @concept{WWW}
        (like @tt{/var/www/ciao}).
@@ -360,7 +360,7 @@ following sections.
       @item Install the Ciao libraries under @tt{INSTALL_STOREDIR} (these
             will be automatically found).
 
-      @item Install under @tt{lpdoc:docdir} the Ciao manuals in
+      @item Install under @tt{--lpdoc:docdir} the Ciao manuals in
             several formats (such as GNU @tt{info}, @tt{html},
             @tt{postscript}, etc.), depending on the distribution. In
             order for these manuals to be found when typing @tt{M-x
@@ -368,7 +368,7 @@ following sections.
             and @apl{man} commands, the @tt{MANPATH} @cindex{MANPATH}
             and @tt{INFOPATH} @cindex{INFOPATH} @concept{environment
             variables} of users both need to contain the path
-            specified at @tt{lpdoc:docdir}.
+            specified at @tt{--lpdoc:docdir}.
 
       @item Install under @tt{INSTALL_STOREDIR} the Ciao GNU @apl{emacs}
             interface (@file{ciao.el}, which provides an interactive
@@ -407,7 +407,7 @@ following sections.
 @item @bf{Check installation / read documentation:} You may now want
       to check your installation (see @ref{Checking for correct
       installation on Unix}) and read the documentation, which is
-      stored in the directory specified at @tt{lpdoc:docdir} and can
+      stored in the directory specified at @tt{--lpdoc:docdir} and can
       be easily accessed as explained that same section. There are
       special ``getting started'' sections at the beginning of the
       manual.
@@ -517,7 +517,7 @@ need for recompiling, provided the Ciao engine (compiled for the
 corresponding architecture) accessible in each machine. Also, the Ciao
 libraries (installed in @tt{INSTALL_STOREDIR}, which contain also the
 engines) and the actual binaries (installed in the directory specified
-by @tt{ciao:install_bindir}) can themselves be shared on several
+by @tt{--install_bindir}) can themselves be shared on several
 machines with different architectures.}  @comment{, saving disk
 space.}
 

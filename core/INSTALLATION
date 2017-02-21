@@ -236,12 +236,12 @@ Full installation instructions
      procedure (see `./ciao-boot.sh help' for more information). The
      meaning of some important options is as follows:
 
-        * `ciao:install_prefix': prefix for the default values of
+        * `--install_prefix': prefix for the default values of
           installation directories (`<prefix>/bin', `<prefix>/lib',
           etc).
 
-        * `ciao:install_bindir': directory where the Ciao commands will
-          be installed. For example, if `ciao:install_bindir' is set to
+        * `--install_bindir': directory where the Ciao commands will be
+          installed. For example, if `--install_bindir' is set to
           `/usr/local/bin', then the Ciao compiler (`ciaoc') will be
           stored at `/usr/local/bin/ciaoc'. Actually, it will be a link
           to `ciaoc-'VersionNumber. This applies also to other
@@ -250,14 +250,14 @@ Full installation instructions
           installed latest will be the one started by default when
           typing `ciao', `ciaoc', etc.
 
-        * `ciao:install_libdir': directory where the run-time libraries
+        * `--install_libdir': directory where the run-time libraries
           will be installed.
 
         * The Ciao installation procedure will create a new
-          subdirectory `ciao' below `ciao:install_libdir', denoted here
-          as `INSTALL_STOREDIR'. A subdirectory will be created below
+          subdirectory `ciao' below `--install_libdir', denoted here as
+          `INSTALL_STOREDIR'. A subdirectory will be created below
           `INSTALL_STOREDIR' for each Ciao component and version
-          installed. For example, if `ciao:install_libdir' is
+          installed. For example, if `--install_libdir' is
           `/usr/local/lib' and you have LPdoc version `x.y', then the
           libraries will be installed under
           `/usr/local/lib/ciao/lpdoc-x.y'. This allows you to install
@@ -266,7 +266,7 @@ Full installation instructions
           also again allows having several Ciao versions installed
           simultaneously.
 
-        * `lpdoc:docdir': directory where the manuals will be
+        * `--lpdoc:docdir': directory where the manuals will be
           installed. In server installations, it is often convenient if
           this directory is accessible via WWW (like `/var/www/ciao').
 
@@ -288,13 +288,13 @@ Full installation instructions
         * Install the Ciao libraries under `INSTALL_STOREDIR' (these
           will be automatically found).
 
-        * Install under `lpdoc:docdir' the Ciao manuals in several
+        * Install under `--lpdoc:docdir' the Ciao manuals in several
           formats (such as GNU `info', `html', `postscript', etc.),
           depending on the distribution. In order for these manuals to
           be found when typing `M-x info' within `emacs', or by the
           standalone `info' and `man' commands, the `MANPATH'  and
           `INFOPATH'  environment variables of users both need to
-          contain the path specified at `lpdoc:docdir'.
+          contain the path specified at `--lpdoc:docdir'.
 
         * Install under `INSTALL_STOREDIR' the Ciao GNU `emacs'
           interface (`ciao.el', which provides an interactive interface
@@ -355,7 +355,7 @@ Full installation instructions
   5. Check installation / read documentation: You may now want to check
      your installation (see *Note Checking for correct installation on
      Unix::) and read the documentation, which is stored in the
-     directory specified at `lpdoc:docdir' and can be easily accessed
+     directory specified at `--lpdoc:docdir' and can be easily accessed
      as explained that same section. There are special "getting
      started" sections at the beginning of the manual.
 
