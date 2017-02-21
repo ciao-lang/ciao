@@ -5,14 +5,12 @@
 :- doc(title,"The Ciao engine"). 
 
 :- doc(module,"
-   Currently, this contains the ChangeLog for the Ciao engine. Since
-   Ciao Version 0.8, changes to the engine are unified with the
-   GlobalChangeLog in @tt{<CIAOSRC>/Manifest}.  Previous changes do not
-   have a version explicitly associated with it.
-
    @begin{alert}
    Eventually, this should contain a description of the engine, as a
    chapter of the Reference Manual.
    @end{alert}
-   ").
 
+   NOTE: After Ciao v0.8 and before switching to SVN and Git, changes
+   to the engine C files where documented in the
+   @tt{Manifet/GlobalChangeLog} file.
+").

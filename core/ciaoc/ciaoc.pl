@@ -339,7 +339,7 @@ It is also possible to use @tt{ciaoc} to explicitly generate the
 @tt{.po} file for one or more @tt{.pl} files by using the @tt{-c}
 option.
 
-If you want to view the wam instructions of one or more @tt{.pl} files
+If you want to view the WAM instructions of one or more @tt{.pl} files
 you can use the @tt{-w} option.  That will generate a @tt{.wam} file
 with such instructions in a pretty format per each @tt{.pl} file.
 
