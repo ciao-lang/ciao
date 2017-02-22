@@ -59,7 +59,7 @@ merge_env(Env, Opts, Opts2) :-
 	[eng_path/3,
 	 bld_eng_path/3]).
 :- use_module(ciaobld(config_common),
-     [default_eng_def/1, boot_eng_def/1, local_ciaolib/1]).
+     [default_eng_def/1, boot_eng_def/1, local_corepath/1]).
 
 bootciao_env := Env :-
 	Eng = ~boot_eng_def,
@@ -73,7 +73,7 @@ localciao_env := Env :-
 	Eng = ~default_eng_def,
 	% TODO: (un)define CIAOPATH? 
 	Env = ['CIAOALIASPATH' = '',
-	       'CIAOLIB' = ~local_ciaolib,
+	       'CIAOLIB' = ~local_corepath,
 	       'CIAOHDIR' = ~eng_path(hdir, Eng),
 	       'CIAOENGINE' = ~eng_path(exec, Eng)].
 

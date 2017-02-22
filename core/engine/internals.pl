@@ -925,12 +925,12 @@ file_search_path(.,.).
 
 setup_paths :-
 	% Setup default alias paths
-        ciao_lib_dir(Path),
-        atom_concat(Path,'/lib',LibPath),
+        ciao_lib_dir(CorePath),
+        atom_concat(CorePath, '/lib', LibPath),
         assertz_fact(library_directory(LibPath)),
-        atom_concat(Path,'/library',LibraryPath),
+        atom_concat(CorePath, '/library', LibraryPath),
         assertz_fact(library_directory(LibraryPath)),
-        atom_concat(Path, '/engine', Engine),
+        atom_concat(CorePath, '/engine', Engine),
         assertz_fact(file_search_path(engine, Engine)),
 	% Setup path for bundles (using CIAOPATH if available)
 	get_ciaopath,

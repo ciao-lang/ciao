@@ -29,16 +29,16 @@ bundlereg_version(3). % Version of the bundlereg file
 % (see bundle_scan:rootprefix_bundle_reg_file/3 for InsType=global)
 :- export(bundle_reg_dir/2).
 bundle_reg_dir(InsType, BundleRegDir) :- InsType = local,
-	% (heuristic to detect running from a global installation)
-	ciao_lib_dir(LibDir),
-	path_concat(LibDir, 'bundlereg', BundleRegDir0),
+	% (heuristic to detect builddir when running from a global installation)
+	ciao_lib_dir(CorePath),
+	path_concat(CorePath, 'bundlereg', BundleRegDir0),
 	file_exists(BundleRegDir0, 0),
 	!,
 	BundleRegDir = BundleRegDir0.
 bundle_reg_dir(InsType, BundleRegDir) :- InsType = local, !,
 	% (heuristic to detect builddir in local installation)
-	ciao_lib_dir(LibDir),
-	path_split(LibDir, CiaoRoot, _),
+	ciao_lib_dir(CorePath),
+	path_split(CorePath, CiaoRoot, _),
 	path_concat(CiaoRoot, 'build', BuildDir),
 	path_concat(BuildDir, 'bundlereg', BundleRegDir).
 bundle_reg_dir(InsType, BundleRegDir) :- InsType = inpath(Path), !,

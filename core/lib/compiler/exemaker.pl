@@ -49,10 +49,11 @@
 % Extension for ciao executables in Win32
 :- include(win_exec_ext).
 
-define_flag(executables,     [static, eagerload, lazyload], eagerload).
-define_flag(check_libraries, [on, off],                     off).
-define_flag(self_contained,  atom,                          none).
-define_flag(compress_exec,   [yes, no],                     no).
+define_flag(executables, [static, eagerload, lazyload], eagerload).
+define_flag(check_libraries, [on, off], off).
+% (See eng_defs:eng_cfg/2 for possible values for self_contained)
+define_flag(self_contained, atom, none).
+define_flag(compress_exec, [yes, no], no).
 
 :- data ok_lazy/1.
 
@@ -118,15 +119,15 @@ skipOnlib(Base) :-
 	(file_exists(SoName) -> assertz_fact(has_so_file(Base)) ; true).
 
 in_lib(Base) :-
-	ciao_lib_dir(Dir),
-	atom_concat(Dir, Name, Base),
+	ciao_lib_dir(CorePath),
+	atom_concat(CorePath, Name, Base),
 	( atom_concat('/lib', _, Name) -> true % In lib/ or library/
 	; fail
 	).
 
 in_lib_or_engine(Base) :-
-	ciao_lib_dir(Dir),
-	atom_concat(Dir, Name, Base),
+	ciao_lib_dir(CorePath),
+	atom_concat(CorePath, Name, Base),
 	( atom_concat('/lib', _, Name) -> true % In lib/ or library/
 	; atom_concat('/engine/', _, Name) -> true % In engine/
 	; fail
@@ -422,8 +423,8 @@ create_exec(ExecName, Base, PoFiles) :-
 	delete_on_ctrlc(ExecName, Ref),
 	open(ExecName, write, Stream),
 	set_output(Stream),
-	current_prolog_flag(self_contained, TargetEng),
-	copy_header(TargetEng),
+	current_prolog_flag(self_contained, EngCfg),
+	copy_header(EngCfg),
 	copy_pos(PoFiles, Stream),
 	close(Stream),
 	erase(Ref),
@@ -437,17 +438,17 @@ create_exec(ExecName, Base, PoFiles) :-
 % concatenated to the Ciao executable.
 copy_header(none) :- !, % OPA
 	% TODO: see ciaoc_aux:eng_exec_header/1
-	absolute_file_name(library(compiler/header), '', '', '.', AbsoluteFileName, _, _),
-	copy_stdout(AbsoluteFileName).
-copy_header(TargetEng) :-
+	absolute_file_name(library(compiler/header), '', '', '.', Header, _, _),
+	copy_stdout(Header).
+copy_header(EngCfg) :-
 	% TODO: merge with eng(_,dostat) in builder_cmd.pl
 	%   (collect foreign code here, build static engine filling 'eng_addobj')
-	get_engine_file(TargetEng, Engine),
-	verbose_message(['{Using ', Engine, ' for executable}']),
+	get_engine_file(EngCfg, EngPath),
+	verbose_message(['{Using ', EngPath, ' for executable}']),
 	!, % Found it, go ahead
-	copy_stdout(Engine).
-copy_header(Target) :-
-	message(error, ['Could not find engine! Target was ', Target]),
+	copy_stdout(EngPath).
+copy_header(EngCfg) :-
+	message(error, ['Could not find engine for ', EngCfg]),
 	fail.
 
 %% This is called only from Windows: it receives a (Windows) Ciao
@@ -466,9 +467,9 @@ generate_batch_Win32(ExecName) :-
 	    true
 	; Base = ExecName
 	),
-	get_platform(TargetEng),
-	get_engine_file(TargetEng, Engine),
-	winpath(Engine, EngineP),
+	get_platform(EngCfg),
+	get_engine_file(EngCfg, EngPath),
+	winpath(EngPath, EngPathP),
 	atom_concat(Base, BatExt, BatName),
 	open(BatName, write, Stream),
 	!,
@@ -480,7 +481,7 @@ generate_batch_Win32(ExecName) :-
 	display(Stream, '@echo off\n'),
 	display(Stream, 'setlocal\n'),
 	display(Stream, 'set instengine='), % (do not use double-quote here)
-	display(Stream, EngineP),
+	display(Stream, EngPathP),
 	display(Stream, '\n'),
 	display(Stream, 'set engine=%CIAOENGINE%\n'),
 	display(Stream, 'if "x%CIAOENGINE%"=="x" set engine=%instengine%\n'),
@@ -508,16 +509,16 @@ copy_pos(PoFiles, Stream) :-
 	close(TmpStreamr).
 
 resolve_execname(ExecName, _, _,  _) :- nonvar(ExecName), !.
-resolve_execname(ExecName, B, Pl, Os) :-
+resolve_execname(ExecName, B, Pl, OS) :-
 	% Pl file has no .pl extension or we are compiling for Win32
 	( Pl = B 
-	; Os = 'Win32' 
-	; current_prolog_flag(self_contained, TargetEng),
-	  atom_concat('Win32', _, TargetEng)
+	; OS = 'Win32' 
+	; current_prolog_flag(self_contained, EngCfg),
+	  atom_concat('Win32', _, EngCfg) % Any of Win32
 	),
 	!,
-	exec_ext(EXT),
-	atom_concat(B, EXT, ExecName).
+	exec_ext(Ext),
+	atom_concat(B, Ext, ExecName).
 resolve_execname(ExecName, B, _, _) :- ExecName = B.
 
 dump_pos([File|Files]) :-

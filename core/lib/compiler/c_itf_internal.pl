@@ -3286,10 +3286,10 @@ foreign_dynlink(SoName, Module):-
 	% We change directory before loading a foreign library to be
 	% able to load dependencies (e.g. third parties) relatively to
 	% to ciao_lib_dir. 
-	( ciao_lib_dir(CiaoLibDir), file_exists(CiaoLibDir) -> 
+	( ciao_lib_dir(CorePath), file_exists(CorePath) -> 
 	    % TODO: is there a better way? this seems a bit weak
-            path_concat(CiaoLibDir,'..',CiaoBase),
-	    working_directory(CurrentDir, CiaoBase)
+            path_concat(CorePath,'..',CiaoRoot),
+	    working_directory(CurrentDir, CiaoRoot)
 	; working_directory(CurrentDir, CurrentDir)
         ),
 	( catch(dynlink(SoName, Module), Error, OK=exception(Error)) ->

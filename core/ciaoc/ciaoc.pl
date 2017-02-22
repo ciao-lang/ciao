@@ -422,17 +422,18 @@ main(Args) :-
 %
 :- simple_option('-S',
     ( set_prolog_flag(executables, static),
-      get_platform(Target),
-      set_prolog_flag(self_contained, Target) ),
+      get_platform(EngCfg),
+      set_prolog_flag(self_contained, EngCfg) ),
     "Make standalone executable for the current OS and architecture, implies -s",
     continue, Args, Args).
 %
+% (See eng_defs:eng_cfg/2 for possible values)
 :- simple_option('-SS',
     ( set_prolog_flag(executables, static),
-      set_prolog_flag(self_contained, Target) ),
-    "Make standalone executable for <target> OS and architecture \n\t" ||
-    "(see ciao_sysconf for valid values for <target>), implies -s",
-    continue, [Target|Args], Args).
+      set_prolog_flag(self_contained, EngCfg) ),
+    "Make standalone executable for <target> OS and architecture (and \n\t" ||
+    "optionally debugging level) (see ciao_sysconf for valid values for <target>), implies -s",
+    continue, [EngCfg|Args], Args).
 %
 :- simple_option('-ll',
     ( set_prolog_flag(executables, lazyload),

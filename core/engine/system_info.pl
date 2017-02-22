@@ -158,13 +158,12 @@ current_module(Module) :- '$current_module'(Module).
 
 %%---------------------------------------------------------------------
 
-:- trust pred ciao_lib_dir(CiaoPath) => atm(CiaoPath) #
-	"@var{CiaoPath} is the path to the root of the Ciao
-	libraries.".
+:- trust pred ciao_lib_dir(CorePath) => atm(CorePath) #
+	"@var{CorePath} is the path to the @tt{core} bundle.".
 :- impl_defined(ciao_lib_dir/1).
 
-:- trust pred ciao_c_headers_dir(CiaoPath) => atm(CiaoPath) #
-	"@var{CiaoPath} is the path to the root of the installed Ciao
+:- trust pred ciao_c_headers_dir(Path) => atm(Path) #
+	"@var{Path} is the path to the root of the installed Ciao
 	header C files (.h), typically used for interfacing Ciao and
 	C.".
 :- impl_defined(ciao_c_headers_dir/1).

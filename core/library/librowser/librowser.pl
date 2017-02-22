@@ -160,10 +160,6 @@ update :-
 	inform_user(['Reading Ciao library info, please wait...']),
 	fail.
 update :-
-	%ciao_lib_dir(CiaoPath),
-	%( atom_concat(CiaoPath,'/lib/',Dir)
-	%; atom_concat(CiaoPath,'/library/',Dir)
-	%),
 	bundle_src(_, Dir),
 	related_files_at(Dir,Dir_itf),
 	catch(extract_info_from(Dir_itf),_,true),

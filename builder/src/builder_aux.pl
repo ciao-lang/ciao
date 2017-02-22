@@ -15,17 +15,18 @@
 :- use_module(library(messages), [warning_message/2]).
 
 % ===========================================================================
-
 % TODO: move to internals.pl?
 
-% Source directory for Ciao at boot time (based on ciao_lib_dir/1
+:- use_module(engine(system_info), [ciao_lib_dir/1]).
+
+% Source directory for Ciao at boot time (based on ciao_lib_dir/1,
 % for the bootstrap system).
 % TODO: Simplify; add an environment variable during bootstrap?
 :- export(root_bundle_source_dir/1).
-root_bundle_source_dir(Dir) :-
-	ciao_lib_dir(CiaoLibDir),
-	atom_concat(CiaoLibDir, '/..', Dir0),
-	fixed_absolute_file_name(Dir0, '.', Dir).
+root_bundle_source_dir(CiaoRoot) :-
+	ciao_lib_dir(CorePath),
+	path_split(CorePath, CiaoRoot0, _),
+	CiaoRoot = CiaoRoot0.
 
 % ===========================================================================
 

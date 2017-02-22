@@ -1,86 +1,73 @@
-:- module(engine_path, [], [assertions]).
+:- module(_, [], [assertions]).
 
-% TODO: Merge with ciaobld(eng_defs), eng_path/3.
-%
-%   This module needs a serious rewrite (JFMC) -- there is no need to
+% Obtain paths for specific engines (for some EngCfg)
+% (See eng_defs:eng_cfg/2)
+
+% NOTE: This module defines functionality similar to that of
+%   eng_defs.pl and config_common.pl, which are partially duplicated
+%   to avoid the inclusion of builder modules inside the bootstrap
+%   compiler.
+
+% TODO: This module needs a serious rewrite (JFMC) -- there is no need to
 %   do backtracking to locate the engine! (use getplatformdeb, etc.)
 
-:- use_module(library(system)).
+:- use_module(library(pathnames), [path_split/3, path_concat/3]).
+:- use_module(library(system), [file_exists/1]).
 
-% Which engine name can be applied to each architecture? Windows
-% executables are always named ciaoengine.exe and is only an small loader,
-% but the engine is located in libciao.dll
-% **x static executables are named *.sta, and can have the
-% OS/Arch combination in the name.  It is probably not wise to look
-% for a generic ciaoengine.sta executable in the shared, general
-% library directory; hence the direct/generic atom in the third
-% argument. 
+:- doc(bug, "Avoid code duplication from ciaobld(eng_defs) and
+   ciaobld(config_common). DO NOT use those modules here! (See note
+   above). A solution may be to delegate all this functionality to a
+   load_compilation_module").
 
-:- doc(bug, "Generation of a static engine requires that also the
-   foreign modules be compiled together with the engine. Currently the
-   engine is always dynamic. -- EMM.").
+:- doc(bug, "Allow selection of dynamic/static engines.").
+
+:- doc(bug, "Windows engines are dynamic (needs libciaoengine.dll)
+   while Unix are not!").
+
+:- doc(bug, "Connect with eng_maker.pl (so that we can build fully
+   static engines including foreign libraries)").
 
 :- export(get_engine_file/2).
-get_engine_file(TargetEng, Engine) :- % TODO: rename TargetEng by EngCfg?
-	get_engine_common(TargetEng, Engine, _EngDir).
-
-% TODO: use some definitions at config_common.pl (perhaps move to bundle/bundle_paths.pl or a better place) (be careful with additional dependencies)
+get_engine_file(EngCfg, EngPath) :-
+	eng_path(exec, eng_def0('ciaoengine', EngCfg), EngPath). % TODO: customize 'ciaoengine' (for using different engines)
 
 :- export(get_engine_dir/2).
-% TODO: why not the value stored in the configuration?
-get_engine_dir(TargetEng, EngDir) :-
-	get_engine_common(TargetEng, _Engine, EngDir).
+get_engine_dir(EngCfg, EngDir) :-
+	eng_path(exec, eng_def0('ciaoengine', EngCfg), EngPath), % TODO: customize 'ciaoengine' (for using different engines)
+	path_split(EngPath, EngDir, _).
 
-get_engine_common(TargetEng, Engine, EngDir) :-
-	ciao_lib_dir(LibDir),
-	determine_engine_name(TargetEng, EngName, Where),
-	determine_engine_dir(TargetEng, Where, LibDir, EngDir),
-	atom_concat(EngDir, EngName, Engine),
-	file_exists(Engine),
-	!. % cut here (once we finally found the engine)
+% (equivalent to eng_defs:eng_path/3)
+eng_path(D, Eng, EngPath) :-
+	base_eng_path(Eng, EngDir),
+	rel_eng_path(D, Eng, Rel),
+	path_concat(EngDir, Rel, EngPath),
+	file_exists(EngPath).
 
-determine_engine_name(TargetEng, Engine, Where) :-
-	( atom_concat('Win32', _, TargetEng) ->
-	    % Windows engines always have the same name (at least for now)
-	    Engine = 'ciaoengine.exe',
-	    Where = direct
-	; % Other engines have different names according to placement!
-	  ( % (nondet)
-            % If in installation
-	    atom_concat('ciaoengine.', TargetEng, Eng1),
-	    Where = direct
-          ; % For sources
-	    Eng1 = 'ciaoengine',
-	    Where = generic
-	  ),
-	  stat_extension(Sta), % (nondet)
-	  atom_concat(Eng1, Sta, Engine)
-	).
-
-stat_extension('.sta').
-stat_extension('').
-
-% What directory this engine can be in?
-% (nondeterministic)
-determine_engine_dir(TargetEng, Where, LibDir, EngDir) :-
-	% TODO: use something like bld_eng_path/3 or inst_eng_path/3, without introducing a dependency to ciaobld(config_common)
-	% TODO: see location of bundlereg in global installation
-	intermediate_dir(TargetEng, Where, IntermediateDir),
-	atom_concat(LibDir, IntermediateDir, EngDir),
-	file_exists(EngDir).
-
-% Windows engines can be placed differently from other engines
-% (nondeterministic)
-% TODO: Do we want it to be non-det?
-intermediate_dir(_Target, direct, '/engine/'). % For unix --- Windows also, later? % TODO: obsolete?
-intermediate_dir(Target,  _,      Dir       ) :-
+% (equivalent to eng_defs:base_eng_path/3)
+% E.g., .../build/eng/EngMainMod
+base_eng_path(eng_def0(EngMainMod, _), Path) :-
+	ciao_lib_dir(CorePath),
+	path_split(CorePath, CiaoRoot, _),
+	%
 	rel_builddir(RelBuildDir),
-	atom_concat('/../', RelBuildDir, Dir0),
-	atom_concat(Dir0, '/eng/', Dir1),
-	EngMainMod = 'ciaoengine', % TODO: fix
-	atom_concat(Dir1, EngMainMod, Dir2),
-	atom_concat(Dir2, '/objs/', Dir3),
-	atom_concat(Dir3, Target, Dir4), % TODO: use eng_defs:eng_cfg/2
-	atom_concat(Dir4, '/',       Dir ).
+	path_concat(CiaoRoot, RelBuildDir, BldDir),
+	path_concat(BldDir, 'eng', Path0),
+	%
+	path_concat(Path0, EngMainMod, Path).
 
 rel_builddir('build').
+
+% (equivalent to eng_defs:rel_eng_path/5)
+rel_eng_path(exec, Eng, Path) :-
+	rel_eng_path2(objdir, Eng, Path0),
+	%
+	Eng = eng_def0(EngMainMod, EngCfg),
+	Base0 = EngMainMod,
+	( atom_concat('Win32', _, EngCfg) -> % TODO: customize (allow cross(_,_))
+	    atom_concat(Base0, '.exe', Base)
+	; Base = Base0
+	),
+	path_concat(Path0, Base, Path).
+
+rel_eng_path2(objdir, eng_def0(_, EngCfg), Path) :-
+	path_concat('objs', EngCfg, Path).

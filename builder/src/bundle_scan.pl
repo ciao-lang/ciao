@@ -95,7 +95,6 @@ ensure_bundlereg_dir(InsType) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(system_info), [ciao_lib_dir/1]).
 :- use_module(engine(internals), [bundlereg_filename/3]).
 :- use_module(engine(internals), [bundlereg_version/1]).
 :- use_module(ciaobld(builder_aux), [rootprefixed/2]).
@@ -105,7 +104,7 @@ ensure_bundlereg_dir(InsType) :-
 % with rootprefix if needed.
 rootprefix_bundle_reg_dir(InsType, BundleRegDir) :-
 	( InsType = global ->
-	    % (special case relative to ciao_lib_dir/1)
+	    % (special case relative to system_info:ciao_lib_dir/1)
 	    % TODO: use something different?
 	    instciao_bundledir(core, Dir),
 	    path_concat(Dir, 'bundlereg', BundleRegDir0),

@@ -116,7 +116,7 @@ dylib_deps(F, DepSO) :-
 	get_os('LINUX'),
 	!,
 	( DepSO = F % itself (like 'otool' does)
-	; build_root(Dir),
+	; ciao_root(Dir),
 	  process_call(path(ldd), [F], [stdout(atmlist(Xs)), cwd(Dir)]),
 	  member(X, Xs),
 	  atom_codes(X, Cs),
@@ -135,16 +135,13 @@ dylib_deps(_F, _DepSO) :-
 	get_os(OS),
 	throw(error(os_not_supported(OS), dylib_deps/2)).
 
-% TODO: See foreign_dynlink/2: ugly trick to locate third-party libs with
-% the ./third-party/lib rpath)
-build_root(Dir) :-
-	( ciao_lib_dir(CiaoLibDir), file_exists(CiaoLibDir) -> 
-	    % TODO: is there a better way? this seems a bit weak
-	    path_split(CiaoLibDir,CiaoBase,_),
-	    Dir = CiaoBase
-	; % TODO: will not work...
-	  working_directory(CurrentDir, CurrentDir),
-	  Dir = CurrentDir
+% TODO: See "foreign_dynlink/2: ugly trick to locate third-party libs with
+% the ./third-party/lib rpath"
+% TODO: duplicated
+ciao_root(CiaoRoot) :-
+	( ciao_lib_dir(CorePath), file_exists(CorePath) ->
+	    path_split(CorePath, CiaoRoot, _)
+	; throw(bug_no_ciao_root) % TODO: this should not happen
         ).
 
 % Change paths for all user dynamic libraries

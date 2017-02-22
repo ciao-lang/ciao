@@ -49,7 +49,6 @@
 ciaoc := ~cmd_path(core, plexe, 'ciaoc').
 bootstrap_ciaoc := ~bundle_path(core, 'bootstrap/ciaoc.sta').
 
-:- use_module(ciaobld(config_common), [local_ciaolib/1]).
 :- use_module(ciaobld(config_common), [bld_cmd_path/4, cmd_path/4]).
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
 

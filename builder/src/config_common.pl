@@ -130,31 +130,32 @@ cmd_path(_Bundle, Kind, File) := Path :-
 	!,
 	% E.g., '.../lib/ciao/core-M.N' -> '.../bin/...'
 	% TODO: use inst_cmd_path instead?
-	ciao_lib_dir(LibDir),
-	path_split(LibDir, Dir0, _),
-	path_split(Dir0, Dir1, _),
-	path_split(Dir1, Dir2, _),
-	path_concat(Dir2, 'bin', Path0),
+	ciao_lib_dir(CorePath),
+	path_split(CorePath, CiaoRoot, _), % TODO: make it /usr/local/ciao/VERS?
+	path_split(CiaoRoot, LibDir, _), % TODO: make it CiaoRootBase? e.g., /usr/local/ciao/VERS?
+	path_split(LibDir, InstallPrefix, _),
+	path_concat(InstallPrefix, 'bin', Path0), % TODO: use CiaoRoot directly (and move bundlereg to that level)
 	path_concat(Path0, File, Path1),
 	Path = ~concat_ext(Kind, Path1).
 cmd_path(Bundle, Kind, File) := Path :-
 	Path = ~bld_cmd_path(Bundle, Kind, File).
 
-:- export(local_ciaolib/1).
-% CIAOLIB value for local build area or installed (if the running
-% builder is globally installed)
+:- export(local_corepath/1).
+% CorePath for source or installed (if the running builder is globally installed)
 % TODO: trust the engine built-in value?
-local_ciaolib := Path :- builder_in_global, !,
-	ciao_lib_dir(Path).
-local_ciaolib := Path :-
-	Path = ~bundle_path(core, '.').
+% TODO: use CiaoRoot instead
+local_corepath := CorePath :- builder_in_global, !,
+	ciao_lib_dir(CorePath).
+local_corepath := CorePath :-
+	CorePath = ~bundle_path(core, '.').
 
 :- export(builder_in_global/0).
 % (heuristic to detect running from a global installation)
 % TODO: see bundlereg_load.pl
 builder_in_global :-
-	ciao_lib_dir(LibDir),
-	path_concat(LibDir, 'bundlereg', BundleRegDir0),
+	ciao_lib_dir(CorePath),
+	% TODO: use ciao_root instead! (it must be versioned)
+	path_concat(CorePath, 'bundlereg', BundleRegDir0),
 	file_exists(BundleRegDir0, 0).
 
 % ---------------------------------------------------------------------------
