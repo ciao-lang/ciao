@@ -30,6 +30,7 @@ doc_structure :=
               'ciaoc_aux',
               'lpdoc_aux',
               'eng_maker',
+              'eng_defs',
               'builder_aux',
 	      % Installation
 	      'info_installer',
