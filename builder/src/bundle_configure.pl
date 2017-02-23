@@ -246,10 +246,9 @@ save_modified_flags_sh(BundleSet) :-
 	).
 
 % Bundles whose configuration flags are exported to sh
-% TODO: only ciao__DEFAULTLIBDIR and some core__ are really needed; customize
+% TODO: only some core__ are really needed; customize
 % TODO: make configurable?
 bundle_export_sh(core).
-bundle_export_sh(ciao). % (~root_bundle)
 
 :- use_module(library(file_utils), [string_to_file/2]).
 :- use_module(library(aggregates), [findall/3]).
@@ -502,7 +501,7 @@ eval_config_rules_(BundleSet) :-
 % Evaluate rule for configuration mode flag
 eval_config_mode_flag :-
 	( get_builder_flag(interactive_config, true) ->
-	    eval_config_rule(ciao:configuration_mode, []) % (~root_bundle)
+	    eval_config_rule(builder:configuration_mode, []) % (~root_bundle)
 	; true
 	).
 
@@ -680,13 +679,13 @@ interactive_flag(_) :-
 	\+ get_builder_flag(interactive_config, 'true'),
 	!,
 	fail.
-interactive_flag(ciao:configuration_mode) :- % (always ask on interactive) % (~root_bundle)
+interactive_flag(builder:configuration_mode) :- % (always ask on interactive) % (~root_bundle)
 	!.
 interactive_flag(Flag) :-
 	( flag_def(Flag, interactive(ConfigModes))
 	; flag_def(Flag, interactive), ConfigModes = ['basic', 'advanced']
 	),
-	current_bundle_flag(ciao:configuration_mode, ConfigMode), % (~root_bundle)
+	current_bundle_flag(builder:configuration_mode, ConfigMode), % (~root_bundle)
 	member(ConfigMode, ConfigModes),
 	!.
 

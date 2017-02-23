@@ -308,7 +308,7 @@ char *eng_version = CIAO_VERSION_STRING " [$CIAOOS$CIAOARCH]$showdbg";
 int eng_is_sharedlib = $ENG_STUBMAIN_DYNAMIC;
 char *ciao_suffix = "$ciaosuffix";
 
-char *default_lib_dir = "$ciao__DEFAULTLIBDIR";
+char *default_lib_dir = "$core__DEFAULTLIBDIR";
 char *default_c_headers_dir = "$bld_hdir";
 
 char *foreign_opts_cc = "$CC";

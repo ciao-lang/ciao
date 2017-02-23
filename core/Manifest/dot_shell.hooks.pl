@@ -21,7 +21,7 @@
     valid_values(['yes', 'no']),
     %
     rule_default(DefValue, (
-      flag(ciao:registration_type(SysregType)),
+      flag(builder:registration_type(SysregType)),
       get_update_sh(SysregType, DefValue))),
     %
     interactive
@@ -34,7 +34,7 @@
     valid_values(['yes', 'no']),
     %
     rule_default(DefValue, (
-      flag(ciao:registration_type(SysregType)),
+      flag(builder:registration_type(SysregType)),
       get_update_sh(SysregType, DefValue))),
     %
     interactive
@@ -50,7 +50,7 @@ get_update_sh('user', 'yes').
       "Initialization file for bash that will be updated."),
     needed_if(flag(update_bashrc(yes))),
     rule_default(DefValue, (
-      flag(ciao:registration_type(SysregType)),
+      flag(builder:registration_type(SysregType)),
       locate_rc(SysregType, sh, DefValue))),
     %
     interactive
@@ -62,7 +62,7 @@ get_update_sh('user', 'yes').
       "Initialization file for csh/tcsh that will be updated."),
     needed_if(flag(update_cshrc(yes))),
     rule_default(DefValue, (
-      flag(ciao:registration_type(SysregType)),
+      flag(builder:registration_type(SysregType)),
       locate_rc(SysregType, csh, DefValue))),
     %
     interactive
@@ -116,7 +116,7 @@ rcfile(user, csh) := ~path_concat(~get_home, '.tcshrc').
 	    %
 	    'EngBin' = ~env_eng_path(exec_anyarch, Eng),
 	    'EngHDir' = ~env_eng_path(hdir, Eng),
-	    'DefaultLibDir' = ~get_bundle_flag(ciao:defaultlibdir)
+	    'DefaultLibDir' = ~get_bundle_flag(core:defaultlibdir)
         ]).
 
 % ---------------------------------------------------------------------------

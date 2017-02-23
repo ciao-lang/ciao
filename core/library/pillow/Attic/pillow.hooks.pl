@@ -18,10 +18,10 @@ local_inst_doc_dir := ~bundle_path(core, builddir, 'doc').
       % .....................................................................
       "Base directory for PiLLoW HTML assets (by default same as for lpdoc)."),
     rule_set_value(Value, (
-      flag(ciao:instype(InsType)),
+      flag(builder:instype(InsType)),
       InsType == 'local', local_inst_doc_dir(Value))),
     rule_default(DefValue, (
-      flag(ciao:registration_type(SysregType)),
+      flag(builder:registration_type(SysregType)),
       get_htmldir(SysregType, DefValue))),
     %
     interactive
@@ -36,10 +36,10 @@ get_htmldir(all) := '/var/www/html/ciao'.
       % .....................................................................
       "Base URL for PiLLoW HTML assets"),
     rule_set_value(Value, (
-      flag(ciao:instype(InsType)),
+      flag(builder:instype(InsType)),
       InsType == 'local', local_inst_doc_dir(Value))),
     rule_default(DefValue, (
-      flag(ciao:registration_type(SysregType)),
+      flag(builder:registration_type(SysregType)),
       get_htmlurl(SysregType, DefValue))),
     %
     interactive

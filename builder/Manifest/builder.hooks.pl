@@ -1,6 +1,6 @@
 :- module(_, [], [ciaobld(bundlehooks)]).
 
-:- doc(title, "Bundle Hooks for Ciao"). % the whole system...
+:- doc(title, "Bundle Hooks for Builder").
 
 % ===========================================================================
 :- doc(section, "General build/installation options").
@@ -57,10 +57,7 @@
 
 % ---------------------------------------------------------------------------
 
-:- doc(section, "Installation type and built-in directories").
-
-:- use_module(ciaobld(config_common), [instciao_bundledir/2]).
-:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
+:- doc(section, "Installation and registration type").
 
 :- bundle_flag(instype, [
     comment("Installation type"),
@@ -104,24 +101,6 @@
 
 def_registration_type(global, all).
 def_registration_type(local, user).
-
-% (Not configurable setting, necessary for build_engine.sh)
-:- bundle_flag(ciaosrc, [
-    comment("Source directory for Ciao"),
-    rule_set_value(Value, bundle_path(ciao, '.', Value))
-]).
-
-% (Not configurable setting, necessary for build_engine.sh)
-:- bundle_flag(defaultlibdir, [
-    comment("Default directory for Ciao libraries"),
-    rule_set_value(Value, (
-      flag(install_libdir(_)), % TODO: hidden dependency (due to bundle_path/3)
-      flag(instype(InsType)),
-      get_defaultlibdir(InsType, Value)))
-]).
-
-get_defaultlibdir(local) := ~bundle_path(core, '.').
-get_defaultlibdir(global) := ~instciao_bundledir(core).
 
 % ---------------------------------------------------------------------------
 

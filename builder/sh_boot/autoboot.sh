@@ -70,7 +70,7 @@ core__TABLED_EXECUTION=no
 core__OPTIM_LEVEL=optimized
 core__DEBUG_LEVEL=$boot__DEBUG_LEVEL
 #
-ciao__DEFAULTLIBDIR="$ciaoroot/core"
+core__DEFAULTLIBDIR="$ciaoroot/core"
 core__ARCH="$boot__ARCH"
 core__OS="$boot__OS"
 core__CUSTOM_CC="$boot__CUSTOM_CC"

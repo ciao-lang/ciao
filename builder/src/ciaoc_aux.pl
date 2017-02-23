@@ -347,7 +347,7 @@ build_libs(Bundle, BaseDir) :-
 
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
 build_mod_actions(Actions) :-
-	( yes = ~get_bundle_flag(ciao:gen_asr) ->
+	( yes = ~get_bundle_flag(builder:gen_asr) ->
 	    % Generate 'asr' files during compilation
 	    Actions = [do_gaf|Actions0]
 	; Actions = Actions0

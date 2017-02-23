@@ -21,7 +21,7 @@
 :- use_module(library(port_reify)).
 
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
-gtar := ~get_bundle_flag(ciao:gtar_cmd).
+gtar := ~get_bundle_flag(builder:gtar_cmd).
 
 :- export(archive_files/4).
 :- pred archive_files(SourceDir, Files, TopDir, Archive) ::

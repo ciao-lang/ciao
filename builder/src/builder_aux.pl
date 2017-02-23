@@ -97,7 +97,7 @@ lookup_ciao_path_(Path0, Path) :-
 % TODO: unfortunately 'ciao' supercommand is still a shell script; fix it so that it runs in Win32 without MSYS2
 ciaocmd := ~cmd_path(core, shscript, 'ciao'). % (supercommand)
 
-gmake := ~get_bundle_flag(ciao:gmake_cmd). % (~root_bundle)
+gmake := ~get_bundle_flag(builder:gmake_cmd). % (~root_bundle)
 
 :- export(invoke_gmake/2).
 invoke_gmake(Dir, Args) :-
