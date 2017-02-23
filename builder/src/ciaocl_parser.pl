@@ -13,11 +13,8 @@
 
 :- export(norm_underscores/2). % defined in cmdline_parser.pl
 
-:- use_module(ciaobld(bundle_scan), [root_bundle/1]).
-
 % default qualifier for flags
-default_flag_qual(Qual) :-
-	root_bundle(Qual). % default bundle % TODO: use default target instead?
+default_flag_qual('builder'). % TODO: use default target too? do search?
 
 % Commands exclusive for @tt{builder_boot.sh} (aka ciao-boot.sh)
 cmd_fmt(emergency_clean, [raw_args]).
@@ -44,22 +41,22 @@ cmd_fmt(boot_promote, [target_args]).
 
 cmd_fmt(local_install, [opts([interactive]), target_args, config_flags]).
 cmd_rw(local_install(Flags), Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
-	Flags2 = [flag(builder:instype, 'local')|Flags], % (~root_bundle)
+	Flags2 = [flag(builder:instype, 'local')|Flags],
 	Cmd2 = full_install(Flags2),
 	Opts2 = Opts, Args2 = Args,
 	CmdFmt2 = [target_args].
 %
 cmd_fmt(global_install, [opts([interactive]), target_args, config_flags]).
 cmd_rw(global_install(Flags), Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
-	Flags2 = [flag(builder:instype, 'global')|Flags], % (~root_bundle)
+	Flags2 = [flag(builder:instype, 'global')|Flags],
 	Cmd2 = full_install(Flags2),
 	Opts2 = Opts, Args2 = Args,
 	CmdFmt2 = [target_args].
 %
 cmd_fmt(local_install_paranoid, [opts([interactive]), target_args, config_flags]).
 cmd_rw(local_install_paranoid(Flags), Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
-	Flags2 = [flag(builder:instype, 'local'), % (~root_bundle)
-	          flag(builder:unused_pred_warnings, 'yes')|Flags], % (~root_bundle)
+	Flags2 = [flag(builder:instype, 'local'),
+	          flag(builder:unused_pred_warnings, 'yes')|Flags],
 	Cmd2 = full_install(Flags2),
 	Opts2 = Opts, Args2 = Args,
 	CmdFmt2 = [target_args].
