@@ -158,7 +158,7 @@ eng_config_sysdep(Eng) :-
 	create_eng_meta_sh(Eng, CfgInput, EngMetaSh),
 	sh_process_call(~config_sysdep_sh,
 	       [EngDir, EngCfg],
-	       [cwd(~bundle_path(core, '.'))]).
+	       [cwd(~bundle_path(core, '.'))]). % TODO: why? 'core' hardwired?
 
 config_sysdep_sh := ~bundle_path(builder, 'sh_src/config-sysdep/config-sysdep.sh').
 
@@ -239,7 +239,6 @@ separate_with_blanks([A, B|Cs]) := [A, ' '|~separate_with_blanks([B|Cs])] :- !.
 % ===========================================================================
 :- doc(section, "Version info for engine").
 
-:- use_module(ciaobld(bundle_scan), [root_bundle/1]). % TODO: weird
 :- use_module(library(bundle/bundle_info), [bundle_version/2]).
 :- use_module(library(version_strings), [version_split_patch/3]).
 :- use_module(ciaobld(bundle_hash), [bundle_commit_info/3]).
@@ -253,7 +252,7 @@ separate_with_blanks([A, B|Cs]) := [A, ' '|~separate_with_blanks([B|Cs])] :- !.
 %   Prolog -- write a dummy version for bootstrapping
 %
 eng_prebuild_version_info(Eng) :-
-	root_bundle(VerBundle), % bundle used to extract version
+	VerBundle = core, % bundle used to extract version
 	gen_eng_version_h(VerBundle, Eng),
 	gen_eng_version_c(VerBundle, Eng).
 
