@@ -101,13 +101,12 @@ output_html(F) :-
 
 % Error handling
 html_report_error(X) :-
-        (icon_address(warning,Icon) -> Image = image(Icon); Image = ""),
         output_html([
           cgi_reply,
           start,
           title("Error Report"), 
           --,
-          h1([ Image, ' Error:' ]),
+          h1(['Error:']),
           --,
           X,
           --,
