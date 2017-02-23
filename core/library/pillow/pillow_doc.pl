@@ -16,8 +16,6 @@
 
 ").
 
-:- doc(summary, "@include{pillow/pillow_summ.lpdoc}").
-
 :- doc(module,"@cindex{WWW, interfacing with}
    @cindex{XML}@cindex{CGI}@cindex{HTML}@cindex{HTTP} This package
    implements the PiLLoW library @cite{pillow-ws-dist-short}.  The
