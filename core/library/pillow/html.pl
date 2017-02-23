@@ -1,5 +1,3 @@
-/**** Be careful when changing code, to not break auto distribution generation
- ****/
 :- module(html, [
         output_html/1, html2terms/2, xml2terms/2, html_template/3,
         html_report_error/1, get_form_input/1, get_form_value/3,

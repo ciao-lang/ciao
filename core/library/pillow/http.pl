@@ -1,5 +1,3 @@
-/**** Be careful when changing code, to not break auto distribution generation
- ****/
 :- module(http, [
         fetch_url/3
         ], [assertions,isomodes,dcg]).

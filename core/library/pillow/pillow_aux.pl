@@ -1,5 +1,3 @@
-/**** Be careful when changing code, to not break auto distribution generation
- ****/
 :- module(pillow_aux, [
         http_lws0/2, http_lws/2, http_crlf/2, http_sp/2, http_line/3,
         http_media_type/5, http_type_params/3, http_lo_up_token/3,
