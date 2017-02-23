@@ -1,6 +1,12 @@
 :- module(http_server,[http_request/4,http_serve_fetch/2],
 	[assertions, isomodes, dcg,hiord]).
 
+:- doc(title, "HTTP server").
+:- doc(author, "Ciao Development Team").
+
+:- doc(module, "This module implements a simple server for the
+   @concept{HTTP} protocol.").
+
 %:- use_module(library(dcg/dcg_tr),[phrase/3]).
 :- use_module(library(lists), [append/3, select/3]).
 :- use_module(library(pillow/pillow_aux), 

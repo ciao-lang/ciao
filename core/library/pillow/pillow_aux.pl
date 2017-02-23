@@ -1,10 +1,14 @@
 :- module(pillow_aux, [
         http_lws0/2, http_lws/2, http_crlf/2, http_sp/2, http_line/3,
+	http_lines/3,
         http_media_type/5, http_type_params/3, http_lo_up_token/3,
         http_lo_up_token_char/3, http_lo_up_token_rest/3, loupalpha/3,
         loalpha/3, upalpha/3, digit/3, parse_integer/3, http_token/3,
-        http_quoted_string/3
+        http_quoted_string/3,
+	atomic_or_string/3
         ], [dcg]).
+
+:- use_module(library(strings), [string/3]).
 
 %%% HTTP and basic parsing %%%
 
@@ -144,3 +148,24 @@ http_crlf -->
         [13,10], !.
 http_crlf -->
         [10].
+
+atomic_or_string(X) -->
+        {atomic(X), name(X,S)}, !,
+        string(S).
+atomic_or_string(S) -->
+        string(S).
+
+% ---------------------------------------------------------------------------
+
+% :- true pred http_lines(Lines, String, Tail)
+%         :: list(string) * string * string
+%         # "@var{Lines} is a list of the lines with occur in @var{String}
+%           until @var{Tail}.  The lines may end Unix-style or DOS-style
+%           in @var{String}, in @var{Lines} they have not end of line
+%           characters. Suitable to be used in DCGs.".
+
+http_lines([L|Ls]) -->
+        http_line(L), !,
+        http_lines(Ls).
+http_lines([]) --> "".
+

@@ -1,24 +1,158 @@
 :- module(http_post, [
+        http_request_param/1, http_response_param/1,
+        http_date/1, weekday/1, month/1, hms_time/1,
+	%
         fetch_url/3
         ], [assertions,isomodes,dcg]).
 
 % TODO: Differences w.r.t. http.pl?
-
-:- include(library(pillow/ops)).
-
-:- use_module(library(strings), [string/3]).
-:- use_module(library(lists), [select/3]).
-:- use_module(library(pillow/pillow_aux)).
-:- use_module(library(pillow/pillow_types)).
-:- use_module(library(pillow/http_ll)).
-
-pillow_version("1.1").
 
 :- doc(title, "HTTP conectivity").
 :- doc(author, "Daniel Cabeza").
 
 :- doc(module, "This module implements the @concept{HTTP} protocol, which
    allows retrieving data from HTTP servers.").
+
+:- use_module(library(strings), [string/3]).
+:- use_module(library(lists), [select/3]).
+:- use_module(library(pillow/pillow_aux)).
+:- use_module(library(pillow/http_ll)).
+:- use_module(library(pillow/url), [url_term/1]).
+
+% ---------------------------------------------------------------------------
+
+:- doc(http_request_param/1, "A parameter of an HTTP request:
+   @begin{itemize}
+   @item @bf{head:} Specify that the document content is not wanted.
+
+   @item @bf{timeout(}@em{T}@bf{):} @em{T} specifies the time in seconds
+   to wait for the response.  Default is 300 seconds.
+
+   @item @bf{if_modified_since(}@em{Date}@bf{):} Get document only if
+   newer than @em{Date}.  @em{Date} has the format defined by
+   @pred{http_date/1}.
+
+   @item @bf{user_agent(}@em{Agent}@bf{):} Provides a user-agent field,
+   @em{Agent} is an atom.  The string @tt{\"PiLLoW/1.1\"} (or whatever
+   version of PiLLoW is used) is appended.
+
+   @item @bf{authorization(}@em{Scheme},@em{Params}@bf{):} To provide
+   credentials.  See RFC 1945 for details.
+
+   @item @bf{@em{option}(}@em{Value}@bf{):} Any unary term, being
+   @em{Value} an atom, can be used to provide another valid option (e.g.
+   @tt{from('user@@machine')}). @comment{}
+   @end{itemize}
+").
+
+:- true prop http_request_param(Request) + regtype # "@var{Request} is a
+   parameter of an HTTP request.".
+
+http_request_param(_).
+
+:- doc(http_response_param/1, "A parameter of an HTTP response:
+   @begin{itemize}
+
+   @item @bf{content(}@em{String}@bf{):} @em{String} is the document
+   content (list of bytes).  If the @tt{head} parameter of the HTTP
+   request is used, an empty list is get here.
+
+   @item @bf{status(}@em{Type,Code,Reason}@bf{):} @em{Type} is an atom
+   denoting the response type, @em{Code} is the status code (an integer),
+   and @em{Reason} is a string holding the reason phrase.
+
+   @item @bf{message_date(}@em{Date}@bf{):} @em{Date} is the date of the
+   response, with format defined by @pred{http_date/1}.
+
+   @item @bf{location(}@em{Loc}@bf{):} This parameter appears when the
+   document has moved, @em{Loc} is an atom holding the new location.
+
+   @item @bf{http_server(}@em{Server}@bf{):} @em{Server} is the server
+   responding, as a string.
+
+   @item @bf{authenticate(}@em{Params}@bf{):} Returned if document is
+   protected, @em{Params} is a list of chagenges.  See RFC 1945 for details.
+
+   @item @bf{allow(}@em{Methods}@bf{):} @em{Methods} are the methods
+   allowed by the server, as a list of atoms.
+
+   @item @bf{content_encoding(}@em{Encoding}@bf{):} @em{Encoding} is an
+   atom defining the encoding.
+
+   @item @bf{content_length(}@em{Length}@bf{):} @em{Length} is the
+   length of the document (an integer). @comment{}
+
+   @item @bf{content_type(}@em{Type,Subtype,Params}@bf{):} Specifies the
+   document content type, @em{Type} and @em{Subtype} are atoms, @em{Params}
+   a list of parameters (e.g.  @tt{content_type(text,html,[])}). @comment{}
+
+   @item @bf{expires(}@em{Date}@bf{):} @em{Date} is the date after which
+   the entity should be considered stale.  Format defined by
+   @pred{http_date/1}.
+
+   @item @bf{last_modified(}@em{Date}@bf{):} @em{Date} is the date at
+   which the sender believes the resource was last modified.  Format
+   defined by @pred{http_date/1}.
+
+   @item @bf{pragma(}@em{String}@bf{):} Miscellaneous data.
+
+   @item @bf{@em{header}(}@em{String}@bf{):} Any other functor
+   @em{header}/1 is an extension header.
+   @end{itemize}
+").
+
+:- true prop http_response_param(Response) + regtype # "@var{Response}
+   is a parameter of an HTTP response.".
+
+http_response_param(_).
+
+:- doc(http_date(Date), "@var{Date} is a term defined as
+   @includedef{http_date/1}.").
+:- true prop http_date(Date) + regtype # "@var{Date} is a term denoting
+   a date.".
+
+http_date(date(WeekDay,Day,Month,Year,Time)) :-
+        weekday(WeekDay),
+        int(Day),
+        month(Month),
+        int(Year),
+        hms_time(Time).
+
+:- true prop weekday(WeekDay) + regtype # "@var{WeekDay} is a term
+   denoting a weekday.".
+
+weekday('Monday').
+weekday('Tuesday').
+weekday('Wednesday').
+weekday('Thursday').
+weekday('Friday').
+weekday('Saturday').
+weekday('Sunday').
+
+:- true prop month(Month) + regtype # "@var{Month} is a term denoting
+   a month.".
+
+month('January').
+month('February').
+month('March').
+month('April').
+month('May').
+month('June').
+month('July').
+month('August').
+month('September').
+month('October').
+month('November').
+month('December').
+
+:- true prop hms_time(Time) + regtype # "@var{Time} is an atom of the form
+   @tt{hh:mm:ss}".
+
+hms_time(T) :- atm(T).
+
+% ---------------------------------------------------------------------------
+
+pillow_version("1.1").
 
 :- doc(fetch_url(URL, Request, Response), "Fetches the document
    pointed to by @var{URL} from Internet, using request parameters
@@ -216,7 +350,7 @@ http_pragma(pragma(P)) -->
 
 http_message_date(message_date(D)) -->
         http_field("date"),
-        http_date(D),
+        parse_http_date(D),
         http_crlf.
 
 http_location(location(URL)) -->
@@ -258,12 +392,12 @@ http_content_type(content_type(Type,SubType,Params)) -->
 
 http_expires(expires(D)) -->
         http_field("expires"),
-        http_date(D),
+        parse_http_date(D),
         http_crlf.
 
 http_last_modified(last_modified(D)) -->
         http_field("last-modified"),
-        http_date(D),
+        parse_http_date(D),
         http_crlf.
 
 http_extension_header(T) -->
@@ -277,11 +411,11 @@ http_extension_header(T) -->
 
 % ----------------------------------------------------------------------------
 
-% TODO: Refactor http_date/3 definitions
-http_date(date(WeekDay,Day,Month,Year,Time)) -->
-        http_internet_date(WeekDay,Day,Month,Year,Time), !
- ;
-        http_asctime_date(WeekDay,Day,Month,Year,Time).
+% TODO: Refactor parse_http_date/3 definitions
+parse_http_date(date(WeekDay,Day,Month,Year,Time)) -->
+        ( http_internet_date(WeekDay,Day,Month,Year,Time), !
+	; http_asctime_date(WeekDay,Day,Month,Year,Time)
+	).
 
 http_internet_date(WeekDay,Day,Month,Year,Time) -->
         http_weekday(WeekDay),

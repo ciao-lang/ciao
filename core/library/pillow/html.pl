@@ -1,51 +1,295 @@
 :- module(html, [
-        output_html/1, html2terms/2, xml2terms/2, html_template/3,
-        html_report_error/1, get_form_input/1, get_form_value/3,
-        form_empty_value/1, form_default/3, % text_lines/2, 
-        set_cookie/2, get_cookies/1,
-        url_query_amp/2, url_query_values/2,
-        my_url/1, url_info/2, url_info_relative/3,
-        form_request_method/1, html_protect/1,
-        http_lines/3
-        ], [assertions,isomodes,dcg,define_flag]).
+        canonic_html_term/1, canonic_xml_term/1, html_term/1,
+        output_html/1, html2terms/2, xml2terms/2, html_template/3
+        ], [assertions,isomodes,dcg]).
 
-:- include(library(pillow/ops)).
-
-:- use_module(library(strings), 
-        [write_string/1, whitespace/2, whitespace0/2, string/3, get_line/1]).
-:- use_module(library(lists), [reverse/2, append/3, list_lookup/4]).
-:- use_module(library(system)).
-:- use_module(library(read)).
-:- use_module(library(pillow/pillow_aux)).
-:- use_module(library(pillow/pillow_types)).
-
-:- doc(title, "HTML/XML/CGI programming").
+:- doc(title, "HTML/XML parser and generator").
 
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Manuel Hermenegildo").
 :- doc(author, "Sacha Varma").
+:- doc(author, "Ciao Development Team").
 
-:- doc(module, "This module implements the predicates of the PiLLoW
-   package related to @concept{HTML}/@concept{XML} generation and
-   parsing, @concept{CGI} and form handlers programming, and in general
-   all the predicates which do not imply the use of the HTTP
-   protocol.").
+:- doc(module, "This module implements predicates for
+   @concept{HTML}/@concept{XML} generation and parsing.").
 
-:- doc(appendix, "The code uses input from from L. Naish's forms
-        and Francisco Bueno's previous Chat interface.  Other people who have
-        contributed are (please inform us if we leave out anybody):
-        Markus Fromherz, Samir Genaim.").
+:- doc(appendix, "The code uses input from from L. Naish's forms and
+   Francisco Bueno's previous Chat interface.  Other people who have
+   contributed are (please inform us if we leave out anybody): Markus
+   Fromherz.").
 
-:- doc(define_flag/3,"Defines a flag as follows:
-	@includedef{define_flag/3}
-	(See @ref{Changing system behaviour and various flags}).
+:- include(library(pillow/ops)).
+% 
+:- use_module(library(strings), 
+        [write_string/1, whitespace/2, whitespace0/2, string/3]).
+:- use_module(library(lists), [reverse/2, list_lookup/4]).
+:- use_module(library(pillow/pillow_aux)).
 
-        If flag is @tt{on}, values returned by @pred{get_form_input/1}
-        are always atoms, unchanged from its original value.").
+% ---------------------------------------------------------------------------
 
-define_flag(raw_form_values, [on,off], off).
+:- doc(canonic_html_term/1, "A term representing HTML code in
+   canonical, structured way.  It is a list of terms defined by the
+   following predicate:
+   @includedef{canonic_html_item/1} @includedef{tag_attrib/1}
+   Each structure represents one HTML construction:
+   @begin{description}
 
-%%% HTML <-> Terms translation %%%
+   @item{@bf{env(}@em{tag}@bf{,}@em{attribs}@bf{,}@em{terms}@bf{)}} An
+   HTML environment, with name @em{tag}, list of attributes @em{attribs}
+   and contents @em{terms}.
+
+   @item{@bf{$(}@em{tag}@bf{,}@em{attribs}@bf{)}} An HTML element of
+   name @em{tag} and list of attributes @em{attribs}.  @tt{($)/2} is
+   defined by the pillow package as an infix, binary operator.
+
+   @item{@bf{comment(}@em{string}@bf{)}} An HTML comment (translates
+   to/from @tt{<!--}@em{string}@tt{-->}).
+
+   @item{@bf{declare(}@em{string}@bf{)}} An HTML declaration, they are
+   used only in the header (translates to/from
+   @tt{<!}@em{string}@tt{>}).
+
+   @item{@em{string}} Normal text is represented as a list of
+   character codes.
+
+   @end{description}
+
+   For example, the term
+   @begin{verbatim}
+env(a,[href=\"www.therainforestsite.com\"],
+      [\"Visit \",img$[src=\"TRFS.gif\"]])
+   @end{verbatim}
+   is output to (or parsed from):
+   @begin{verbatim}
+<a href=\"www.therainforestsite.com\">Visit <img src=\"TRFS.gif\"></a>
+   @end{verbatim}").
+
+:- true prop canonic_html_term(HTMLTerm) + regtype
+        # "@var{HTMLTerm} is a term representing HTML code in canonical form.".
+
+canonic_html_term(T) :- list(T,canonic_html_item).
+
+:- true prop canonic_html_item/1 + regtype.
+
+canonic_html_item(comment(S)) :- string(S).
+canonic_html_item(declare(S)) :- string(S).
+canonic_html_item(env(Tag,Atts,Terms)) :-
+        atm(Tag),
+        list(Atts,tag_attrib),
+        canonic_html_term(Terms).
+canonic_html_item('$'(Tag,Atts)) :-
+        atm(Tag),
+        list(Atts,tag_attrib).
+canonic_html_item(S) :- string(S).
+
+:- doc(canonic_xml_term/1, "A term representing XML code in
+   canonical, structured way.  It is a list of terms defined by the
+   following predicate (see @pred{tag_attrib/1} definition in
+   @pred{canonic_html_term/1}): @includedef{canonic_xml_item/1} In
+   addition to the structures defined by @pred{canonic_html_term/1}
+   (the @tt{($)/2} structure appears only in malformed XML
+   code), the following structures can be used: @begin{description}
+
+   @item{@bf{elem(}@em{tag}@bf{,}@em{atts}@bf{)}} Specifies an XML empty
+   element of name @em{tag} and list of attributes @em{atts}.
+   For example, the term
+   @begin{verbatim}
+elem(arc,[weigh=""3"",begin=""n1"",end=""n2""])
+   @end{verbatim}
+   is output to (or parsed from):
+   @begin{verbatim}
+<arc weigh=""3"" begin=""n1"" end=""n2""/>
+   @end{verbatim}
+
+   @item{@bf{xmldecl(}@em{atts}@bf{)}} Specifies an XML declaration with
+   attributes @em{atts} (translates to/from @tt{<?xml }@em{atts}@tt{?>})
+
+   @end{description}").
+
+:- true prop canonic_xml_term(XMLTerm) + regtype
+        # "@var{XMLTerm} is a term representing XML code in canonical form.".
+
+canonic_xml_term(T) :- list(T,canonic_xml_item).
+
+:- true prop canonic_xml_item/1 + regtype.
+
+canonic_xml_item(Term) :- canonic_html_item(Term).
+canonic_xml_item(xmldecl(Atts)) :-
+        list(Atts,tag_attrib).
+canonic_xml_item(env(Tag,Atts,Terms)) :-
+        atm(Tag),
+        list(Atts,tag_attrib),
+        canonic_xml_term(Terms).
+canonic_xml_item(elem(Tag,Atts)) :-
+        atm(Tag),
+        list(Atts,tag_attrib).
+
+:- true prop tag_attrib/1 + regtype.
+
+tag_attrib(Att) :- atm(Att).
+tag_attrib((Att = Val)) :- atm(Att), string(Val).
+
+:- doc(html_term/1, "A term which represents HTML or XML code in a
+   structured way.  In addition to the structures defined by
+   @pred{canonic_html_term/1} or @pred{canonic_xml_term/1}, the
+   following structures can be used: @begin{description}
+
+   @item{@bf{begin(}@em{tag}@bf{,}@em{atts}@bf{)}} It translates to the
+   start of an HTML environment of name @em{tag} and attributes
+   @em{atts}. There exists also a @bf{begin(@em{tag})} structure.
+   Useful, in conjunction with the next structure, when including in a
+   document output generated by an existing piece of code (e.g.
+   @em{tag} = @tt{pre}).  Its use is otherwise discouraged.
+
+   @item{@bf{end(}@em{tag}@bf{)}} Translates to the end of an HTML
+   environment of name @em{tag}.
+
+   @item{@bf{start}} Used at the beginning of a document (translates to
+   @tt{<html>}).
+
+   @item{@bf{end}} Used at the end of a document (translates to
+   @tt{</html>}).
+
+   @item{@tt{--}} Produces a horizontal rule (translates to @tt{<hr>}).
+
+   @item{@bf{\\\\}} Produces a line break  (translates to @tt{<br>}).
+
+   @item{@bf{$}}  Produces a paragraph break (translates to  @tt{<p>}).
+
+   @item{@bf{image(}@em{address}@bf{)}} Used to include an image of
+   address (URL) @em{address} (equivalent to @tt{img$[src=}@em{address}@tt{]}).
+
+   @item{@bf{image(}@em{address}@bf{,}@em{atts}@bf{)}} As above with
+   the list of attributes @em{atts}.
+
+   @item{@bf{ref(}@em{address}@bf{,}@em{text}@bf{)}} Produces a
+   hypertext link, @em{address} is the URL of the referenced resource,
+   @em{text} is the text of the reference (equivalent to
+   @tt{a([href=}@em{address}@tt{],}@em{text}@tt{)}).
+
+   @item{@bf{label(}@em{name}@bf{,}@em{text}@bf{)}} Labels @em{text} as
+   a target destination with label @em{name} (equivalent to
+   @tt{a([name=}@em{name}@tt{],}@em{text}@tt{)}).
+
+   @item{@bf{heading(}@em{n}@bf{,}@em{text}@bf{)}} Produces a heading of
+   level @em{n} (between 1 and 6), @em{text} is the text to be used as
+   heading.  Useful when one wants a heading level relative to another
+   heading (equivalent to @tt{h}@em{n}@tt{(}@em{text}@tt{)}).
+
+   @item{@bf{itemize(}@em{items}@bf{)}} Produces a list of bulleted
+   items, @em{items} is a list of corresponding HTML terms (translates
+   to a @tt{<ul>} environment).
+
+   @item{@bf{enumerate(}@em{items}@bf{)}} Produces a list of numbered
+    items, @em{items} is a list of corresponding HTML terms (translates
+    to a @tt{<ol>} environment).
+
+   @item{@bf{description(}@em{defs}@bf{)}} Produces a list of defined
+   items, @em{defs} is a list whose elements are definitions, each of
+   them being a Prolog sequence (composed by @tt{','/2} operators). The
+   last element of the sequence is the definition, the other (if any)
+   are the defined terms (translates to a @tt{<dl>} environment).
+
+   @item{@bf{preformatted(}@em{text}@bf{)}} Used to include preformatted
+   text, @em{text} is a list of HTML terms, each element of the list
+   being a line of the resulting document (translates to a @tt{<pre>}
+   environment).
+
+   @item{@bf{verbatim(}@em{text}@bf{)}} Used to include text verbatim,
+   special HTML characters (@tt{<,>,&,""} and space) are translated into its
+   quoted HTML equivalent.
+
+   @item{@bf{prolog_term(}@em{term}@bf{)}} Includes any prolog term
+   @em{term}, represented in functional notation.  Variables are output
+   as @tt{_}.
+
+   @item{@bf{nl}} Used to include a newline in the HTML source (just to
+   improve human readability).
+
+   @item{@bf{entity(}@em{name}@bf{)}} Includes the entity of name
+   @em{name} (ISO-8859-1 special character).
+
+   @item{@bf{start_form(}@em{addr}@bf{,}@em{atts}@bf{)}} Specifies the
+   beginning of a form. @em{addr} is the address (URL) of the program
+   that will handle the form, and @em{atts} other attributes of the
+   form, as the method used to invoke it. If @em{atts} is not present
+   (there is only one argument) the method defaults to POST.
+
+   @item{@bf{start_form}} Specifies the beginning of a form without
+   assigning address to the handler, so that the form handler will be
+   the cgi-bin executable producing the form.
+
+   @item{@bf{end_form}} Specifies the end of a form.
+
+   @item{@bf{checkbox(}@em{name}@bf{,}@em{state}@bf{)}} Specifies an
+   input of type @tt{checkbox} with name @em{name}, @em{state} is
+   @tt{on} if the checkbox is initially checked.
+
+   @item{@bf{radio(}@em{name}@bf{,}@em{value}@bf{,}@em{selected}@bf{)}}
+   Specifies an input of type @tt{radio} with name @em{name} (several
+   radio buttons which are interlocked must share their name),
+   @em{value} is the the value returned by the button, if
+   @em{selected}=@em{value} the button is initially checked.
+
+   @item{@bf{input(}@em{type}@bf{,}@em{atts}@bf{)}} Specifies an input
+   of type @em{type} with a list of attributes @em{atts}.  Possible
+   values of @em{type} are @tt{text}, @tt{hidden}, @tt{submit},
+   @tt{reset}, \ldots
+
+   @item{@bf{textinput(}@em{name}@bf{,}@em{atts}@bf{,}@em{text}@bf{)}}
+   Specifies an input text area of name @em{name}. @em{text} provides
+   the default text to be shown in the area, @em{atts} a list of
+   attributes.
+
+   @item{@bf{option(}@em{name}@bf{,}@em{val}@bf{,}@em{options}@bf{)}}
+   Specifies a simple option selector of name @em{name}, @em{options}
+   is the list of available options and @em{val} is the initial
+   selected option (if @em{val} is not in @em{options} the first item
+   is selected by default) (translates to a @tt{<select>} environment).
+
+   @item{@bf{menu(}@em{name}@bf{,}@em{atts}@bf{,}@em{items}@bf{)}}
+   Specifies a menu of name @em{name}, list of attributes @em{atts}
+   and list of options @em{items}. The elements of the list @em{items}
+   are marked with the prefix operator @tt{$} to indicate that they
+   are selected (translates to a @tt{<select>} environment).
+
+   @item{@bf{form_reply}} @item{@bf{cgi_reply}} This two are equivalent,
+   they do not generate HTML, rather, the CGI protocol requires this
+   content descriptor to be used at the beginning by CGI executables
+   (including form handlers) when replying (translates to
+   @tt{Content-type: text/html}).
+
+   @item{@em{name}@bf{(}@em{text}@bf{)}} A term with functor
+   @em{name}/1, different from the special functors defined herein,
+   represents an HTML environment of name @em{name} and included text
+   @em{text}. For example, the term @begin{verbatim}
+   address('clip@@clip.dia.fi.upm.es')
+   @end{verbatim} is translated into
+   the HTML source @begin{verbatim}
+   <address>clip@@clip.dia.fi.upm.es</address>
+   @end{verbatim}
+
+   @item{@em{name}@bf{(}@em{atts}@bf{,}@em{text}@bf{)}} A term with
+   functor @em{name}/2, different from the special functors defined
+   herein, represents an HTML environment of name @em{name}, attributes
+   @em{atts} and included text @em{text}. For example, the term
+   @begin{verbatim}
+
+   a([href='http://www.clip.dia.fi.upm.es/'],\"Clip home\")
+   @end{verbatim} represents the HTML source @begin{verbatim}
+   <a href=\"http://www.clip.dia.fi.upm.es/\">Clip home</a>
+   @end{verbatim}
+
+   @end{description}
+  ").
+
+
+:- true prop html_term(HTMLTerm) + regtype
+        # "@var{HTMLTerm} is a term representing HTML code.".
+
+html_term(_).
+
+% ---------------------------------------------------------------------------
 
 % The idea is to have a CIAO/Prolog syntax description of a document as
 % a term and then use html2terms/2 to translate the term into a string for
@@ -68,7 +312,7 @@ html_expansion(it(X),i(X)).
 
 % Translate html format and send to current output
 output_html(F) :-
-        html_term(F,T,[]),
+        html_str(F,T,[]),
         write_string(T).
 
 :- true pred html_report_error(Error)
@@ -102,7 +346,7 @@ html_report_error(X) :-
 
 html2terms(Chars, Terms) :-
         var(Chars), !,
-        html_term(Terms, Chars, []).
+        html_str(Terms, Chars, []).
 html2terms(Chars, Terms) :-
         parse_html([], Terms, [], Chars, []).
 
@@ -119,177 +363,178 @@ html2terms(Chars, Terms) :-
 
 xml2terms(Chars, Terms) :-
         var(Chars), !,
-        html_term(Terms, Chars, []). % Uses the same as HTML
+        html_str(Terms, Chars, []). % Uses the same as HTML
 xml2terms(Chars, Terms) :-
         parse_xml([], Terms, [], Chars, []).
 
+% ---------------------------------------------------------------------------
 %% Terms -> HTML/XML translation %%
 
-html_term(X) --> {var(X)}, !,
+html_str(X) --> {var(X)}, !,
         "<b>**Warning: free variable**</b>".
-html_term(T) --> {html_expansion(T,NT)}, !,
-        html_term(NT).
-html_term(start) --> !, "<html>".
-html_term(end)   --> !, "</html>".
-html_term(--)  --> !, newline, "<hr>", newline.
-html_term(\\) --> !, "<br>", newline.
-html_term($)  --> !, newline, "<p>".
-html_term(comment(C)) --> !,
+html_str(T) --> {html_expansion(T,NT)}, !,
+        html_str(NT).
+html_str(start) --> !, "<html>".
+html_str(end)   --> !, "</html>".
+html_str(--)  --> !, newline, "<hr>", newline.
+html_str(\\) --> !, "<br>", newline.
+html_str($)  --> !, newline, "<p>".
+html_str(comment(C)) --> !,
         "<!-- ",atomic_or_string(C)," -->",
         newline.
-html_term(declare(C)) --> !,
+html_str(declare(C)) --> !,
         "<!",atomic_or_string(C),">",
         newline.
 % XML declaration
-html_term(xmldecl(Atts)) --> !,
+html_str(xmldecl(Atts)) --> !,
         "<?xml",
         html_atts(Atts),
         "?>".
-html_term(image(Addr)) --> !,
+html_str(image(Addr)) --> !,
         "<img",
         html_atts([src=Addr]),
         ">".
-html_term(image(Addr,Atts)) --> !,
+html_str(image(Addr,Atts)) --> !,
         "<img",
         html_atts([src=Addr|Atts]),
         ">".
-html_term(ref(Addr,Text)) --> !,
+html_str(ref(Addr,Text)) --> !,
         "<a",
         html_atts([href=Addr]),
         ">",
-        html_term(Text),
+        html_str(Text),
         "</a>".
-html_term(label(Label,Text)) --> !,
+html_str(label(Label,Text)) --> !,
         "<a",
         html_atts([name=Label]),
         ">",
-        html_term(Text),
+        html_str(Text),
         "</a>".
-html_term(heading(L,X)) -->
+html_str(heading(L,X)) -->
         {number_codes(L,[N])}, !,
         html_env([0'h,N],X),
         newline.
-html_term(itemize(L)) --> !,
+html_str(itemize(L)) --> !,
         "<ul>",
         newline,
         html_items(L),
         "</ul>".
-html_term(enumerate(L)) --> !,
+html_str(enumerate(L)) --> !,
         "<ol>",
         newline,
         html_items(L),
         "</ol>".
-html_term(description(L)) --> !,
+html_str(description(L)) --> !,
         "<dl>",
         newline,
         html_descriptions(L),
         "</dl>".
-html_term(preformatted(X)) --> !,
+html_str(preformatted(X)) --> !,
         "<pre>",
         newline,
         preformatted_lines(X),
         "</pre>".
-html_term(entity(Name)) --> !,
+html_str(entity(Name)) --> !,
         "&",atomic_or_string(Name),";".
 % Forms
-html_term(start_form) --> !,
+html_str(start_form) --> !,
         "<form",
         html_atts([method="POST"]),
         ">",
         newline.
-html_term(start_form(Addr)) --> !, 
+html_str(start_form(Addr)) --> !, 
         "<form",
         html_atts([method="POST", action=Addr]),
         ">",
         newline.
-html_term(start_form(Addr,Atts)) --> !, 
+html_str(start_form(Addr,Atts)) --> !, 
         "<form",
         html_atts([action=Addr|Atts]),
         ">",
         newline.
-html_term(end_form) --> !,
+html_str(end_form) --> !,
         "</form>", newline.
-html_term(checkbox(Name,on)) --> !,
+html_str(checkbox(Name,on)) --> !,
         "<input",
         html_atts([name=Name,type=checkbox,checked]),
         ">".
-html_term(checkbox(Name,_)) --> !,
+html_str(checkbox(Name,_)) --> !,
         "<input",
         html_atts([name=Name,type=checkbox]),
         ">".
-html_term(radio(Name,Value,Value)) --> !,
+html_str(radio(Name,Value,Value)) --> !,
         "<input",
         html_atts([name=Name,type=radio,value=Value,checked]),
         ">".
-html_term(radio(Name,Value,_)) --> !,
+html_str(radio(Name,Value,_)) --> !,
         "<input",
         html_atts([name=Name,type=radio,value=Value]),
         ">".
-html_term(input(Type,Atts)) --> !,
+html_str(input(Type,Atts)) --> !,
         "<input",
         html_atts([type=Type|Atts]),
         ">".
-html_term(textinput(Name,Atts,Text)) --> !,
+html_str(textinput(Name,Atts,Text)) --> !,
         "<textarea",
         html_atts([name=Name|Atts]),
         ">",
         textarea_data(Text),
         "</textarea>".
-html_term(menu(Name,Atts,Items)) --> !,
+html_str(menu(Name,Atts,Items)) --> !,
         "<select",
         html_atts([name=Name|Atts]),
         ">", newline,
         html_options(Items),
         "</select>".
-html_term(option(Name,Val,Options)) --> !,
+html_str(option(Name,Val,Options)) --> !,
         "<select",
         html_atts([name=Name]),
         ">", newline,
         html_one_option(Options, Val),
         "</select>".
-html_term(form_reply) --> !,
+html_str(form_reply) --> !,
         "Content-type: text/html",
         newline,
         newline.
-html_term(cgi_reply) --> !,
+html_str(cgi_reply) --> !,
         "Content-type: text/html",
         newline,
         newline.
-html_term(prolog_term(T)) --> !,
+html_str(prolog_term(T)) --> !,
         prolog_term(T).
 % Constructs
-html_term(verbatim(Text)) --> !,
+html_str(verbatim(Text)) --> !,
         html_quoted(Text).
-html_term(nl) --> !, newline. % Just to improve HTML source readability
-html_term([]) --> !.
-html_term([E|Es]) --> !,
-        html_term(E),
-        html_term(Es).
-html_term(begin(T)) --> {atom(T), atom_codes(T,TS)}, !,
+html_str(nl) --> !, newline. % Just to improve HTML source readability
+html_str([]) --> !.
+html_str([E|Es]) --> !,
+        html_str(E),
+        html_str(Es).
+html_str(begin(T)) --> {atom(T), atom_codes(T,TS)}, !,
         "<",string(TS),">".
-html_term(begin(T,Atts)) --> {atom(T), atom_codes(T,TS)}, !,
+html_str(begin(T,Atts)) --> {atom(T), atom_codes(T,TS)}, !,
         "<",string(TS),
         html_atts(Atts),
         ">".
-html_term(end(T)) --> {atom(T), atom_codes(T,TS)}, !,
+html_str(end(T)) --> {atom(T), atom_codes(T,TS)}, !,
         "</",string(TS),">".
-html_term(env(Name,Atts,Text)) --> {atom(Name), atom_codes(Name,NS)}, !,
+html_str(env(Name,Atts,Text)) --> {atom(Name), atom_codes(Name,NS)}, !,
         html_env_atts(NS,Atts,Text).
-html_term(T$Atts) --> {atom(T), atom_codes(T,TS)}, !,
+html_str(T$Atts) --> {atom(T), atom_codes(T,TS)}, !,
         "<",string(TS),
         html_atts(Atts),
         ">".
 % XML empty element
-html_term(elem(N,Atts)) --> {atom(N), atom_codes(N,NS)}, !,
+html_str(elem(N,Atts)) --> {atom(N), atom_codes(N,NS)}, !,
         "<",string(NS),
         html_atts(Atts),
         "/>".
-html_term(F) --> {F =.. [Env,X], atom_codes(Env, ES)}, !,
+html_str(F) --> {F =.. [Env,X], atom_codes(Env, ES)}, !,
         html_env(ES,X).
-html_term(F) --> {F =.. [Env,Atts,X], atom_codes(Env, ES)}, !,
+html_str(F) --> {F =.. [Env,Atts,X], atom_codes(Env, ES)}, !,
         html_env_atts(ES,Atts,X).
-html_term(C) --> {integer(C), C >= 0, C =< 255}, !, [C].
-html_term(T) -->
+html_str(C) --> {integer(C), C >= 0, C =< 255}, !, [C].
+html_str(T) -->
         prolog_term(T).
 
 newline --> [10].
@@ -319,20 +564,20 @@ html_quoted_quote_char(C)   --> [C].
 
 html_env(E,I) -->
         "<",string(E),">",
-        html_term(I),
+        html_str(I),
         "</",string(E),">".
 
 html_env_atts(E,Atts,I) -->
         "<",string(E),
         html_atts(Atts),
         ">",
-        html_term(I),
+        html_str(I),
         "</",string(E),">".
 
 html_items([]) --> [].
 html_items([It|Its]) -->
         "<li>",
-        html_term(It),
+        html_str(It),
         "</li>",
         newline,
         html_items(Its).
@@ -344,19 +589,19 @@ html_descriptions([D|Ds]) -->
 
 html_description((T,D)) --> !,
         "<dt>",
-        html_term(T),
+        html_str(T),
         "</dt>",
         newline,
         html_description(D).
 html_description(D) -->
         "<dd>",
-        html_term(D),
+        html_str(D),
         "</dd>",
         newline.
 
 preformatted_lines([]) --> [].
 preformatted_lines([X|Xs]) -->
-        html_term(X),
+        html_str(X),
         newline,
         preformatted_lines(Xs).
 
@@ -420,7 +665,16 @@ prolog_term_args(N, M, T) -->
         {N1 is N+1},
         prolog_term_args(N1,M,T).
 
-%% HTML -> Terms translation %%
+textarea_data('$empty') --> [], !.
+textarea_data(X) -->
+        {atomic(X), name(X,S)}, !,
+        string(S).
+textarea_data(L) -->
+        http_lines(L), !.
+textarea_data(S) -->
+        string(S).
+
+% ---------------------------------------------------------------------------
 
 :- doc(html_template(Chars, Terms, Dict), "Interprets @var{Chars} as
    an HTML template returning in @var{Terms} the corresponding
@@ -615,6 +869,7 @@ tidy_string([Elem|Stack],[L|Stack]) :-
         nonvar(Elem), Elem = string(L,T), !, T = [].
 tidy_string(Stack,Stack).
 
+% ---------------------------------------------------------------------------
 %% XML -> Terms translation %%
 
 parse_xml(Stack,NStack,Dict) -->
@@ -739,598 +994,4 @@ xml_tag_char(0':) --> ":".
 xml_tag_char(0'.) --> ".".
 xml_tag_char(0'-) --> "-".
 
-%%% Parsing of forms input %%%
 
-:- doc(get_form_input(Dict), "Translates input from the form (with
-   either the POST or GET methods, and even with CONTENT_TYPE
-   multipart/form-data) to a dictionary @var{Dict} of
-   @em{attribute}=@em{value} pairs. If the flag @tt{raw_form_values} is
-   @tt{off} (which is the default state), it translates empty values
-   (which indicate only the presence of an attribute) to the atom
-   @tt{'$empty'}, values with more than one line (from text areas or
-   files) to a list of lines as strings, the rest to atoms or numbers
-   (using @pred{name/2}).  If the flag @tt{on}, it gives all values as
-   atoms, without translations.").
-
-:- true pred get_form_input(-form_dict).
-
-get_form_input(Dic) :-
-        form_request_method(M),
-        get_form_input_method(M, Dic), !.
-get_form_input([]).
-
-get_form_input_method('GET', Dic) :-
-        ( getenvstr('QUERY_STRING',Q), Q \== [] ->
-            append(Q,"&",Cs),
-            form_urlencoded_to_dic(Dic, Cs, [])
-        ; Dic = []
-        ), !.
-get_form_input_method('POST', Dic) :-
-        getenvstr('CONTENT_TYPE', ContentType),
-        http_media_type(Type,Subtype,Params,ContentType,[]),
-        get_form_input_of_type(Type,Subtype,Params,Dic), !.
-get_form_input_method(M, _) :-
-        html_report_error(['Unknown request method ', tt(M),
-                           ' or bad request.']).
-
-get_form_input_of_type(application, 'x-www-form-urlencoded', _, Dic) :-
-        getenvstr('CONTENT_LENGTH', N),
-        number_codes(No,N),
-        ( No > 0 ->
-            read_all(No,Cs,"&"),
-            form_urlencoded_to_dic(Dic, Cs, [])
-        ; Dic = []
-        ), !.
-get_form_input_of_type(multipart, 'form-data', Params, Dic) :-
-        member((boundary=B), Params),
-        Boundary = [0'-,0'-|B],
-        get_lines_to_boundary(Boundary, _, End),
-        get_multipart_form_data(End, Boundary, Dic), !.
-get_form_input_of_type(Type,Subtype,_,_) :-
-        html_report_error(['Unknown Content-type ',tt([Type,"/",Subtype]),
-                           ' or bad request.']).
-
-% read N chars from input (N>=0)
-read_all(0) --> !, "".
-read_all(N) -->
-        {get_code(C)},
-        [C],
-        {N1 is N - 1},
-        read_all(N1).
-
-% Converts string "name1=val1&name2=val2&name3=&" into
-% list of pairs [name1='val1', name2='val2', name3='$empty'] etc
-% Funny chars, eg = and & never occur in vals (they appear as
-% escape sequences)
-form_urlencoded_to_dic([]) --> "".
-form_urlencoded_to_dic([N1=V1|NVs]) -->
-        chars_to(N,0'=),
-        {expand_esc_plus(N,EN,[]),
-         atom_codes(N1, EN)},
-        chars_to(V,0'&),
-        {expand_esc_plus(V,EV,[13,10]),
-         http_lines(Ls, EV, []),
-         to_value(Ls,V1)},
-        form_urlencoded_to_dic(NVs).
-
-chars_to([],C) --> [C].
-chars_to([C|Cs],D) -->
-        [C],
-        {C \== D},
-        chars_to(Cs,D).
-
-% Expands escape sequences and converts "+" back into " " in a string
-expand_esc_plus([]) --> "".
-expand_esc_plus([0'+|Cs]) --> !,
-        " ",
-        expand_esc_plus(Cs).
-expand_esc_plus([0'%,C1,C2|Cs]) --> !,
-        {hex_digit(C1,D1),
-         hex_digit(C2,D2),
-         C is D1 * 16 + D2},
-        [C],
-        expand_esc_plus(Cs).
-expand_esc_plus([C|Cs]) -->
-        [C],
-        expand_esc_plus(Cs).
-
-hex_digit(C, D) :-
-        (C >= 0'A ->
-          D is ((C /\ 223) - 0'A) + 10 % 223 = bin(11011111)
-        ;
-          D is C - 0'0
-        ).
-
-to_value([L|Ls], V) :-
-        to_value_(Ls, L, V).
-
-to_value_(Ls, L, V) :-
-        current_prolog_flag(raw_form_values, on), !,
-        to_value_raw(Ls, L, V).
-to_value_(Ls, L, V) :-
-        to_value_cooked(Ls, L, V).
-
-to_value_raw([], L, V) :- !,
-        atom_codes(V, L).
-to_value_raw(Ls, L, V) :-
-        append_lines(Ls, L, Lines),
-        atom_codes(V, Lines).
-
-append_lines([], L, L).
-append_lines([L|Ls], Line, Lines) :-
-        append(Line, "\n"||Tail, Lines),
-        append_lines(Ls, L, Tail).
-
-to_value_cooked([], [], '$empty') :- !.
-to_value_cooked([], L, V) :- !,
-        name(V, L).               % if only a line, return an atom or number
-to_value_cooked(Ls, L, [L|Ls]).   % else, return the list of lines
-
-:- true pred http_lines(Lines, String, Tail)
-        :: list(string) * string * string
-        # "@var{Lines} is a list of the lines with occur in @var{String}
-          until @var{Tail}.  The lines may end Unix-style or DOS-style
-          in @var{String}, in @var{Lines} they have not end of line
-          characters. Suitable to be used in DCGs.".
-
-http_lines([L|Ls]) -->
-        http_line(L), !,
-        http_lines(Ls).
-http_lines([]) --> "".
-
-
-% ----------------------------------------------------------------------------
-
-get_multipart_form_data(end, _, []).
-get_multipart_form_data(continue, Boundary, [Name=Value|NVs]) :-
-        get_m_f_d_header(HeadLines),
-        extract_name_type(HeadLines, Name, Type),
-        get_m_f_d_value(Type, Boundary, End, Value),
-        get_multipart_form_data(End, Boundary, NVs).
-
-get_m_f_d_header(Lines) :-
-        get_line(Line),
-        get_m_f_d_header_(Line, Lines).
-
-get_m_f_d_header_([], []) :- !.
-get_m_f_d_header_(Line, [Line|Lines]) :-
-        get_line(Line1),
-        get_m_f_d_header_(Line1, Lines).
-
-extract_name_type(HLs, N, T) :-
-        member(HL, HLs),
-        content_disposition_header(Params, HL, []),
-        extract_name(Params, N),
-        extract_type(Params, T), !.
-
-content_disposition_header(Params) -->
-        "Content-Disposition: form-data",
-        http_type_params(Params).
-
-extract_name(Params, N) :-
-        member((name=NS), Params), !,
-        atom_codes(N, NS).
-
-extract_type(Params, T) :-
-        (
-          member((filename=FS), Params) ->
-              atom_codes(F, FS),
-              T = file(F)
-        ; T = data
-        ).
-
-get_m_f_d_value(data, Boundary, End, Value) :-
-        get_lines_to_boundary(Boundary, Lines, End),
-        to_value(Lines, Value).
-get_m_f_d_value(file(F), Boundary, End, file(F,Content)) :-
-        get_line_raw(Line, Tail),
-        get_lines_to_boundary_raw(Line, Tail, Boundary, Content, End).
-
-get_lines_to_boundary(Boundary, Lines, End) :-
-        get_line(Line),
-        get_lines_to_boundary_(Line, Boundary, Lines, End).
-
-get_lines_to_boundary_(Line, Boundary, Lines, End) :-
-        append(Boundary, R, Line),
-        check_end(R, End), !,
-        Lines = [].
-get_lines_to_boundary_(Line, Boundary, [Line|Lines], End) :-
-        get_line(OtherLine),
-        get_lines_to_boundary_(OtherLine, Boundary, Lines, End).
-
-check_end("--", end).
-check_end([], continue).
-
-get_line_raw([C|Cs], Tail) :-
-        get_code(C),
-        get_line_raw_after(C, Cs, Tail).
-
-get_line_raw_after(0'\n, Tail, Tail) :- !.
-get_line_raw_after(_, [C|Cs], Tail) :-
-        get_code(C),
-        get_line_raw_after(C, Cs, Tail).
-
-get_lines_to_boundary_raw(Line, _Tail, Boundary, Content, End) :-
-        append(Boundary, R, Line),
-        check_end_raw(End, R, []), !,
-        Content = [].
-get_lines_to_boundary_raw(Line, Tail, Boundary, Line, End) :-
-        get_line_raw(Line1, Tail1),
-        get_lines_to_boundary_raw(Line1, Tail1, Boundary, Tail, End).
-
-check_end_raw(end) --> "--", http_crlf.
-check_end_raw(continue) -->  http_crlf.
-
-% ----------------------------------------------------------------------------
-
-:- doc(get_form_value(Dict,Var,Val), "Unifies @var{Val} with the
-   value for attribute @var{Var} in dictionary @var{Dict}. Does not
-   fail: value is @tt{''} if not found (this simplifies the programming
-   of form handlers when they can be accessed directly).").
-
-:- true pred get_form_value(+form_dict,+atm,?form_value).
-
-% Get value Val for attribute Var in dictionary Dic
-% Does not fail: value is '' if not found.
-get_form_value([],_Var,'').
-get_form_value([Var=Val|_],Var,Val) :- !.
-get_form_value([_|Dic],Var,Val) :- 
-        get_form_value(Dic,Var,Val).
-
-:- doc(text_lines(Val,Lines), "Transforms a value @var{Val} from a
-  text area to a list of lines @var{Lines}.  Not needed now,
-  automatically done.").
-
-:- true pred text_lines(+form_value,-list(string)).
-
-% Transform input from a text area to a list of lines - not needed now
-text_lines('$empty', []) :- !.
-text_lines(A, [L]) :-
-        atomic(A), !,
-        name(A,L).
-text_lines(T,T).
-
-:- true pred form_empty_value(Term)
-        # "Checks that @var{Term}, a value comming from a text area is
-           empty (can have spaces, newlines and linefeeds).".
-
-% Some generic help for dealing with the very weird things that empty text 
-% areas and boxes can send
-form_empty_value(T) :-
-        text_lines(T, Ls),
-        empty_lines(Ls).
-
-empty_lines([]).
-empty_lines([L|Ls]) :-
-        whitespace0(L, []),
-        empty_lines(Ls), !.
-
-:- true pred form_default(+Val,+Default,-NewVal)
-   # "Useful when a form is only partially filled, or when the
-      executable can be invoked either by a link or by a form, to set
-      form defaults. If the value of @var{Val} is empty then
-      @var{NewVal}=@var{Default}, else @var{NewVal}=@var{Val}.".
-
-% Set form defaults
-form_default(Val,Default,NewVal) :- 
-        ( Val == '' -> NewVal = Default; NewVal = Val).
-
-:- true pred form_request_method(Method) => atm
-        # "Unifies @var{Method} with the method of invocation of the form
-           handler (@tt{GET} or @tt{POST}).".
-
-form_request_method(M) :-
-        getenvstr('REQUEST_METHOD', MS),
-        atom_codes(M,MS).
-
-:- doc(my_url(URL), "Unifies @var{URL} with the Uniform
-   Resource Locator (WWW address) of this cgi executable.").
-
-:- true pred my_url(?string).
-
-my_url(URL) :-
-        getenvstr('SERVER_NAME', Server),
-        getenvstr('SCRIPT_NAME', File),
-        getenvstr('SERVER_PORT', Port),
-        (
-            Port = "80" ->
-                mappend(["http://",Server,File], URL)
-        ;   mappend(["http://",Server,[0':|Port],File], URL)
-        ).
-
-%%% Cookies, contributed by Samir Genaim %%%
-
-% sending a cookie is done by printing
-%
-%  Set-Cookie: var=value
-%
-% before sending Content-Type
-
-:- doc(set_cookie(Name,Value), "Sets a cookie of name @var{Name} and
-   value @var{Value}.  Must be invoked before outputting any data,
-   including the @tt{cgi_reply} html-term.").
-
-:- true pred set_cookie(+atm,+constant).
-
-set_cookie(Name,Value) :-
-        name(Value, String),
-        encoded_value(String, EValue, []),
-	display_list(['Set-Cookie: ',Name,'=']),
-        display_string(EValue),
-        nl.
-
-:- doc(get_cookies(Cookies), "Unifies @var{Cookies} with a
-   dictionary of @em{attribute}=@em{value} pairs of the active cookies
-   for this URL.  If the flag @tt{raw_form_values} is @tt{on},
-   @em{value}s are always atoms even if they could be interpreted as
-   numbers.").
-
-:- true pred get_cookies(-value_dict).
-
-% Cookies are available in the environment variable "HTTP_COOKIE".
-% The cookies string is of the form:
-% 
-%      var1=val1; var2=val2; ..... varn=valn
-
-get_cookies(Cs) :-
-	getenvstr('HTTP_COOKIE',CookiesStr),
-	cookies(Cs,[0';,0' |CookiesStr],[]), !.
-get_cookies([]).
-
-cookies([]) --> "".
-cookies([C=V|Cs]) -->
-	"; ",
-	cookie_str(StrC),
-	"=",
-	cookie_str(StrV),
-	{
-          atom_codes(C,StrC),
-          expand_esc_plus(StrV,UStrV,[]),
-          ( current_prolog_flag(raw_form_values, on) ->
-              atom_codes(V,UStrV)
-          ; name(V,UStrV)
-          )
-        },
-	cookies(Cs).
-
-cookie_str([C|Cs]) -->
-	legal_cookie_char(C),
-	cookie_str(Cs), !.
-cookie_str([C]) -->
-	legal_cookie_char(C).
-
-legal_cookie_char(C) -->
-	[C],
-	{C \== 0';, C\== 0'=}.
-
-% ----------------------------------------------------------------------------
-
-%% To compute GET parameters for CGI's
-%  -- from an idea of Markus Fromherz <fromherz@parc.xerox.com> */
-
-:- doc(url_query_amp(Dict,URLArgs), "Translates a dictionary
-   @var{Dict} of parameter values into a string @var{URLArgs} for
-   appending to a URL pointing to a form handler to be used in the href
-   of a link (uses &amp; instead of &).").
-
-:- true pred url_query_amp(+value_dict,-string).
-
-url_query_amp(Args, [0'?|URLArgs]) :-
-        params_to_string_amp(Args, URLArgs).
-
-:- doc(url_query_values(Dict,URLArgs), "@var{Dict} is a dictionary
-   of parameter values and @var{URLArgs} is the URL-encoded string of
-   those assignments, which may appear after an URL pointing to a CGI
-   script preceded by a '?'.  @var{Dict} is computed according to the
-   @tt{raw_form_values} flag.  The use of this predicate is
-   reversible.").
-
-:- true pred url_query_values(+value_dict,-string).
-:- true pred url_query_values(-value_dict,+string).
-
-url_query_values(URLencoded, Dict) :-
-        var(URLencoded), !,
-        params_to_string(Dict, 0'?, [0'?|URLencoded]).
-url_query_values(URLencoded, Dict) :-
-        append(URLencoded, "&", Values),
-        form_urlencoded_to_dic(Dict, Values, []).
-
-params_to_string([], _, "").
-params_to_string([N=V|NVs], C, [C|String]) :-
-        param_to_string(N, V, String, Rest),
-        params_to_string(NVs, 0'&, Rest).
-
-params_to_string_amp([], "").
-params_to_string_amp([N=V|NVs], String) :-
-        param_to_string(N, V, String, Rest),
-        params_to_string_amp_(NVs, Rest).
-
-params_to_string_amp_([], "").
-params_to_string_amp_([N=V|NVs], [0'&,0'a,0'm,0'p,0';|String]) :-
-        param_to_string(N, V, String, Rest),
-        params_to_string_amp_(NVs, Rest).
-
-param_to_string(N, V, String, Rest) :-
-        name(N,NS),
-        name(V,VS),
-        encoded_value(NS,String,[0'=|EVS]),
-        encoded_value(VS,EVS,Rest).
-
-encoded_value([]) --> "".
-encoded_value([32|Cs]) --> !, % " " = [32]
-        "+",
-        encoded_value(Cs).
-encoded_value([C|Cs]) -->
-        {no_conversion(C)}, !,
-        [C],
-        encoded_value(Cs).
-encoded_value([C|Cs]) -->
-        {hex_chars(C,C1,C2)},
-        [0'%,C1,C2],
-        encoded_value(Cs).
-
-no_conversion(0'*).
-no_conversion(0'-).
-no_conversion(0'.).
-no_conversion(0'_).
-no_conversion(C) :- C >= 0'0, C =< 0'9, !.
-no_conversion(C) :- C >= 0'@, C =< 0'Z, !.
-no_conversion(C) :- C >= 0'a, C =< 0'z, !.
-
-hex_chars(C, H, L) :-
-        Hn is C >> 4,
-        hex_char(Hn,H),
-        Ln is C /\ 15,
-        hex_char(Ln,L).
-
-hex_char(N,C) :- N < 10, !, C is N+0'0.
-hex_char(N,C) :- C is N-10+0'A.
-
-
-%%% URL encoding/decoding %%%
-
-:- doc(url_info(URL,URLTerm), "Translates a URL @var{URL} to a
-   Prolog structure @var{URLTerm} which details its various components,
-   and vice-versa. For now non-HTTP URLs make the predicate fail.").
-
-:- true pred url_info(+atm, ?url_term).
-:- true pred url_info(+string, ?url_term).
-:- true pred url_info(-string, +url_term).
-
-url_info(Url, Info) :-
-        atom(Url), !,
-        atom_codes(Url, UrlStr),
-        url_to_info(UrlStr, Info).
-url_info(Url, Info) :-
-        instantiated_string(Url), !,
-        url_to_info(Url, Info).
-url_info(Url, Info) :-
-        info_to_url(Info, Url).
-
-url_to_info(Url, http(Host,Port,Document)) :-
-        http_url(Host, Port, Document, Url, []), !.
-% More protocols may be added here...
-
-http_url(Host,Port,Doc) -->
-        "http://",
-        internet_host(Host),
-        optional_port(Port),
-        http_document(Doc).
-
-internet_host(Host) -->
-        internet_host_char(C),
-        internet_host_char_rest(Cs),
-        {
-            atom_codes(Host, [C|Cs])
-        }.
-
-internet_host_char_rest([C|Cs]) -->
-        internet_host_char(C),
-        internet_host_char_rest(Cs).
-internet_host_char_rest([]) --> "".
-
-internet_host_char(C) --> digit(C), !.
-internet_host_char(C) --> loupalpha(C), !.
-internet_host_char(0'-) --> "-".
-internet_host_char(0'.) --> ".".
-
-optional_port(Port) -->
-        ":", !,
-        parse_integer(Port).
-optional_port(80) --> "".
-
-http_document([0'/|Doc]) -->
-        "/", !,
-        rest(Doc).
-http_document("/") --> "".
-
-rest(S, S, []).
-
-instantiated_string(S) :- var(S), !, fail.
-instantiated_string([]).
-instantiated_string([C|Cs]) :-
-        integer(C),
-        instantiated_string(Cs).
-
-info_to_url(http(Host,Port,Document), Info) :- !,
-        atom(Host),
-        integer(Port),
-        atom_codes(Host, HostS),
-        port_codes(Port, PortS),
-        mappend(["http://", HostS, PortS, Document], Info).
-% More protocols may be added here...
-
-port_codes(80, "") :- !.
-port_codes(Port, [0':|PortS]) :-
-        number_codes(Port, PortS).
-
-% ============================================================================
-% url_info_relative(+Url:(atom ; string), +Base:url_info, -Info:url_info)
-%
-% Extracts information from a URL, relative to a base page
-% ============================================================================
-
-:- doc(url_info_relative(URL,BaseURLTerm,URLTerm), "Translates a
-   relative URL @var{URL} which appears in the HTML page refered to by
-   @var{BaseURLTerm} into @var{URLTerm}, a Prolog structure containing its
-   absolute parameters. Absolute URLs are translated as with
-   @pred{url_info/2}.  E.g.
-@begin{verbatim}
-url_info_relative(\"dadu.html\",
-                  http('www.foo.com',80,\"/bar/scoob.html\"), Info)
-@end{verbatim}
-   gives @tt{Info = http('www.foo.com',80,\"/bar/dadu.html\")}.").
-
-:- true pred url_info_relative(+atm,+url_term,?url_term).
-:- true pred url_info_relative(+string,+url_term,?url_term).
-
-url_info_relative(URL, Base, Info) :-
-        atom(URL), !,
-        atom_codes(URL, URLStr),
-        url_info_relative(URLStr, Base, Info).
-url_info_relative(URL, _Base, Info) :-
-        url_info(URL, Info), !.
-url_info_relative(Path, http(Host,Port,_), http(Host,Port,Path)) :-
-        Path = [0'/|_], !.
-url_info_relative(File, http(Host,Port,BaseDoc), http(Host,Port,Document)) :-
-        \+ member(0':, File), % Naive check to ensure it is not a valid URL
-        append(BasePath, BaseFile, BaseDoc),
-        \+ member(0'/, BaseFile), !,
-        append(BasePath, File, Document).
-
-atomic_or_string(X) -->
-        {atomic(X), name(X,S)}, !,
-        string(S).
-atomic_or_string(S) -->
-        string(S).
-
-textarea_data('$empty') --> [], !.
-textarea_data(X) -->
-        {atomic(X), name(X,S)}, !,
-        string(S).
-textarea_data(L) -->
-        http_lines(L), !.
-textarea_data(S) -->
-        string(S).
-
-:- doc(html_protect(Goal), "Calls @var{Goal}.  If an error occurs
-   during its execution, or it fails, an HTML page is output informing
-   about the incident.  Normaly the whole execution of a CGI is
-   protected thus.").
-
-:- true pred html_protect/1 : callable.
-
-:- meta_predicate(html_protect(goal)). % For compatibility
-
-html_protect(Goal) :-
-        catch(Goal,E,html_report_error(E)).
-html_protect(_) :-
-        html_report_error('Sorry, application failed.').
-
-%%% Support predicates %%%
-
-%% Concatenates a list of lists
-mappend([], []).
-mappend([S|Ss], R) :-
-        append(S, R0, R),
-        mappend(Ss, R0).
