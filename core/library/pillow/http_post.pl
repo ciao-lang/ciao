@@ -1,8 +1,8 @@
-/**** Be careful when changing code, to not break auto distribution generation
- ****/
 :- module(http_post, [
         fetch_url/3
         ], [assertions,isomodes,dcg]).
+
+% TODO: Differences w.r.t. http.pl?
 
 :- include(library(pillow/ops)).
 

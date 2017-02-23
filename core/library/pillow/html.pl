@@ -5,7 +5,7 @@
         html_report_error/1, get_form_input/1, get_form_value/3,
         form_empty_value/1, form_default/3, % text_lines/2, 
         set_cookie/2, get_cookies/1,
-        url_query/2, url_query_amp/2, url_query_values/2,
+        url_query_amp/2, url_query_values/2,
         my_url/1, url_info/2, url_info_relative/3,
         form_request_method/1, html_protect/1,
         http_lines/3
@@ -1109,16 +1109,6 @@ legal_cookie_char(C) -->
 
 %% To compute GET parameters for CGI's
 %  -- from an idea of Markus Fromherz <fromherz@parc.xerox.com> */
-
-:- doc(url_query(Dict,URLArgs), "(Deprecated, see
-   @pred{url_query_values/2}) Translates a dictionary @var{Dict} of
-   parameter values into a string @var{URLArgs} for appending to a URL
-   pointing to a form handler.").
-
-:- true pred url_query(+value_dict,-string).
-
-url_query(Args, URLArgs) :-
-        params_to_string(Args, 0'?, URLArgs).
 
 :- doc(url_query_amp(Dict,URLArgs), "Translates a dictionary
    @var{Dict} of parameter values into a string @var{URLArgs} for
