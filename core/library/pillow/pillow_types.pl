@@ -247,10 +247,6 @@ tag_attrib((Att = Val)) :- atm(Att), string(Val).
    (including form handlers) when replying (translates to
    @tt{Content-type: text/html}).
 
-   @item{@bf{pr}} Includes in the page a graphical logo with the message
-   ``Developed using the PiLLoW Web programming library'', which points
-   to the manual and library source.
-
    @item{@em{name}@bf{(}@em{text}@bf{)}} A term with functor
    @em{name}/1, different from the special functors defined herein,
    represents an HTML environment of name @em{name} and included text

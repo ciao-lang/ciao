@@ -92,9 +92,6 @@ pred form_request_method(-atom).
 % Gives the URL of the form
 pred my_url(-string).
 
-% Database of useful image addresses
-pred icon_address(+atom, -string).
-
 % Computes GET parameters for CGI's
 pred url_query(+dict, -string).
 

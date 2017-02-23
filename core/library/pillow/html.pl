@@ -7,7 +7,7 @@
         set_cookie/2, get_cookies/1,
         url_query/2, url_query_amp/2, url_query_values/2,
         my_url/1, url_info/2, url_info_relative/3,
-        form_request_method/1, icon_address/2, html_protect/1,
+        form_request_method/1, html_protect/1,
         http_lines/3
         ], [assertions,isomodes,dcg,define_flag]).
 
@@ -85,11 +85,6 @@ icon_img(pillow,'pillow_d.gif').
 
 html_expansion(bf(X),b(X)).
 html_expansion(it(X),i(X)).
-html_expansion(pr,
-    ref("http://www.clip.dia.fi.upm.es/Software/pillow/pillow.html",
-        image(Pillow, [alt="developed with PiLLoW",border=0,align=bottom]))
-              ) :-
-        icon_address(pillow,Pillow).
 
 :- doc(output_html(HTMLTerm), "Outputs @var{HTMLTerm}, interpreted
    as an @pred{html_term/1}, to current output stream.").

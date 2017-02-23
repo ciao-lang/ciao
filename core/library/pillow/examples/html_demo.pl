@@ -2,7 +2,6 @@
 :- use_module(library(streams)).
 
 main :- 
-  icon_address(dot,Dot),
   open_output('html_demo.html', IO),
   output_html([
     start,
