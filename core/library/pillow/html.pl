@@ -215,12 +215,6 @@ html_term(description(L)) --> !,
         newline,
         html_descriptions(L),
         "</dl>".
-html_term(nice_itemize(Dot, L)) --> !,
-        "<dl>",
-        newline,
-        {atom(Dot) -> atom_codes(Dot,D) ; D = Dot},
-        html_nice_items(L, D),
-        "</dl>".
 html_term(preformatted(X)) --> !,
         "<pre>",
         newline,
@@ -390,16 +384,6 @@ html_description(D) -->
         html_term(D),
         "</dd>",
         newline.
-
-html_nice_items([],_) --> [].
-html_nice_items([It|Its],Dot) -->
-        "<dd><img src=""",
-        string(Dot),
-        """ align=""bottom"" alt=""*"">",
-        html_term(It),
-        "</dd>",
-        newline,
-        html_nice_items(Its, Dot).
 
 preformatted_lines([]) --> [].
 preformatted_lines([X|Xs]) -->

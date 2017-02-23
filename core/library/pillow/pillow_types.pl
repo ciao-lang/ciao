@@ -178,10 +178,6 @@ tag_attrib((Att = Val)) :- atm(Att), string(Val).
    last element of the sequence is the definition, the other (if any)
    are the defined terms (translates to a @tt{<dl>} environment).
 
-   @item{@bf{nice_itemize(}@em{img}@bf{,}@em{items}@bf{)}} Produces a
-   list of bulleted items, using the image @em{img} as bullet. The
-   predicate @pred{icon_address/2} provides a colored bullet.
-
    @item{@bf{preformatted(}@em{text}@bf{)}} Used to include preformatted
    text, @em{text} is a list of HTML terms, each element of the list
    being a line of the resulting document (translates to a @tt{<pre>}

@@ -27,7 +27,6 @@ html_term ===
     # itemize(list(html_term)) |
     # enumerate(list(html_term)) |
     # description(list(html_description)) |
-    # nice_itemize(html_item, list(html_term)) |
     # preformatted(list(html_term)) |
     # entity(html_item) |
     # start_form |

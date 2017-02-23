@@ -35,8 +35,6 @@ main :-
       (one,b(two),'Description of one and two'),
       (three,'Idem of three'),
       ['This ',b(also)]]),
-    h3('Nice itemize'),
-    nice_itemize(Dot,['Pretty',bf('Fancy'),'Nice']),
     --,
     ref('mailto:clip@dia.fi.upm.es',address('clip@dia.fi.upm.es')),
     end
