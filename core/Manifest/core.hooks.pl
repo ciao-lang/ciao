@@ -8,10 +8,6 @@
 '$builder_hook'(item_nested(dot_shell)).
 :- include(.('dot_shell.hooks')).
 
-% PiLLoW
-'$builder_hook'(item_nested(pillow)).
-:- include(.('pillow.hooks')).
-
 % ---------------------------------------------------------------------------
 % Libraries and manuals
 

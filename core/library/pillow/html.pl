@@ -47,29 +47,6 @@
 
 define_flag(raw_form_values, [on,off], off).
 
-%%% Some icon addresses %%%
-icon_base_address(BAddress) :-
-	absolute_file_name(library(pillow/icon_address_auto), FileName),
-	open(FileName, read, SI),
-	read(SI, BAddress0),
-	close(SI),
-	BAddress0 = icon_base_address(BAddress).
-
-:- doc(icon_address(Img, IAddress), "The PiLLoW image @var{Img} has
-           URL @var{IAddress}.").
-
-:- true pred icon_address(?atm,?atm).
-
-icon_address(Img, IAddress):-
-        icon_base_address(BAddress),
-        icon_img(Img,ImgSrc),
-        atom_concat(BAddress,ImgSrc,IAddress).
-
-icon_img(warning,'warning_large.gif').
-icon_img(dot,'redball.gif').
-icon_img(clip,'clip.gif').
-icon_img(pillow,'pillow_d.gif').
-
 %%% HTML <-> Terms translation %%%
 
 % The idea is to have a CIAO/Prolog syntax description of a document as
