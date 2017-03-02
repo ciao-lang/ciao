@@ -90,6 +90,9 @@ selectvars([V|L], VL0) :-
 	selectvars(L, VL).
 */
 
+% TODO: (see ugly comments below): these tables should go into
+% rtc_impl (with sections for compat, inst, etc.) --NS, JF
+
 :- meta_predicate non_compat(goal, ?).
 
 non_compat('$:'(Goal),Args) :- !, non_compat_(Goal,Args).
@@ -100,6 +103,10 @@ non_compat_('basic_props:atm'(A)    , _   ) :- !, \+ atm(A).
 non_compat_('basic_props:int'(A)    , _   ) :- !, \+ int(A).
 non_compat_('basic_props:nnegint'(A), _   ) :- !, \+ nnegint(A).
 non_compat_('basic_props:num'(A)    , _   ) :- !, \+ num(A).
+non_compat_('basic_props_rtc:rtc_atm'(A)    , _   ) :- !, \+ atm(A). % TODO: ugly
+non_compat_('basic_props_rtc:rtc_int'(A)    , _   ) :- !, \+ int(A).
+non_compat_('basic_props_rtc:rtc_nnegint'(A), _   ) :- !, \+ nnegint(A).
+non_compat_('basic_props_rtc:rtc_num'(A)    , _   ) :- !, \+ num(A).
 non_compat_(Goal                    , Args) :-
 	varset(Args, VS),
 	'$metachoice'(C),
@@ -131,6 +138,11 @@ non_inst_('basic_props:gnd'(A)   , _   ) :- !, \+ ground(A).
 non_inst_('basic_props:int'(A)   , _   ) :- !, \+ integer(A).
 non_inst_('basic_props:num'(A)   , _   ) :- !, \+ number(A).
 non_inst_('basic_props:atm'(A)   , _   ) :- !, \+ atom(A).
+non_inst_('basic_props_rtc:rtc_gnd'(A)   , _   ) :- !, \+ ground(A). % TODO: ugly
+non_inst_('basic_props_rtc:rtc_int'(A)   , _   ) :- !, \+ integer(A).
+non_inst_('basic_props_rtc:rtc_num'(A)   , _   ) :- !, \+ number(A).
+non_inst_('basic_props_rtc:rtc_atm'(A)   , _   ) :- !, \+ atom(A).
+
 non_inst_(Goal                   , Args) :-
 	varset(Args, VS),
 	'$metachoice'(C),
