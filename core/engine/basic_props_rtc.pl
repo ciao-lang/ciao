@@ -71,9 +71,8 @@ rtc_num(T) :- rtc_flt(T).
 % ----------------------------------------------------------------------
 % rtcheck version for basic_props:atm/1
 
-% Should be current_atom/1
 rtc_atm(T) :- atom(T), !.
-% atm(a).
+rtc_atm(a). % TODO: incomplete! it should be at least current_atom/1
 
 % ----------------------------------------------------------------------
 % rtcheck version for basic_props:struct/1

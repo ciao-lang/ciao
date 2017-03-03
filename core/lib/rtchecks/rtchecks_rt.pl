@@ -26,6 +26,7 @@
 :- use_module(library(terms_vars)).
 :- use_module(library(freeze)).
 :- use_module(library(hiordlib), [maplist/2, foldl/4]).
+:- use_module(engine(basic_props_rtc),[rtc_atm/1,rtc_int/1,rtc_nnegint/1,rtc_num/1]).
 
 :- reexport(library(rtchecks/rtchecks_send)).
 
@@ -99,14 +100,14 @@ non_compat('$:'(Goal),Args) :- !, non_compat_(Goal,Args).
 
 non_compat_('term_typing:var'(A)    , _   ) :- !, nonvar(A).
 non_compat_('term_typing:nonvar'(A) , _   ) :- !, var(A).
-non_compat_('basic_props:atm'(A)    , _   ) :- !, \+ atm(A).
-non_compat_('basic_props:int'(A)    , _   ) :- !, \+ int(A).
-non_compat_('basic_props:nnegint'(A), _   ) :- !, \+ nnegint(A).
-non_compat_('basic_props:num'(A)    , _   ) :- !, \+ num(A).
-non_compat_('basic_props_rtc:rtc_atm'(A)    , _   ) :- !, \+ atm(A). % TODO: ugly
-non_compat_('basic_props_rtc:rtc_int'(A)    , _   ) :- !, \+ int(A).
-non_compat_('basic_props_rtc:rtc_nnegint'(A), _   ) :- !, \+ nnegint(A).
-non_compat_('basic_props_rtc:rtc_num'(A)    , _   ) :- !, \+ num(A).
+non_compat_('basic_props:atm'(A)    , _   ) :- !, \+ rtc_atm(A).
+non_compat_('basic_props:int'(A)    , _   ) :- !, \+ rtc_int(A).
+non_compat_('basic_props:nnegint'(A), _   ) :- !, \+ rtc_nnegint(A).
+non_compat_('basic_props:num'(A)    , _   ) :- !, \+ rtc_num(A).
+non_compat_('basic_props_rtc:rtc_atm'(A)    , _   ) :- !, \+ rtc_atm(A). % TODO: ugly
+non_compat_('basic_props_rtc:rtc_int'(A)    , _   ) :- !, \+ rtc_int(A).
+non_compat_('basic_props_rtc:rtc_nnegint'(A), _   ) :- !, \+ rtc_nnegint(A).
+non_compat_('basic_props_rtc:rtc_num'(A)    , _   ) :- !, \+ rtc_num(A).
 non_compat_(Goal                    , Args) :-
 	varset(Args, VS),
 	'$metachoice'(C),
@@ -142,7 +143,6 @@ non_inst_('basic_props_rtc:rtc_gnd'(A)   , _   ) :- !, \+ ground(A). % TODO: ugl
 non_inst_('basic_props_rtc:rtc_int'(A)   , _   ) :- !, \+ integer(A).
 non_inst_('basic_props_rtc:rtc_num'(A)   , _   ) :- !, \+ number(A).
 non_inst_('basic_props_rtc:rtc_atm'(A)   , _   ) :- !, \+ atom(A).
-
 non_inst_(Goal                   , Args) :-
 	varset(Args, VS),
 	'$metachoice'(C),
