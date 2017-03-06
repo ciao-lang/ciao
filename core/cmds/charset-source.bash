@@ -32,7 +32,7 @@ set -e
 ## #   (based on Mozilla's algorithm for detecting languages and coding systems)
 ## #   to avoid using 'uchardet'
 ## 
-## if ! which uchardet > /dev/null 2>&1; then
+## if ! command -v uchardet > /dev/null 2>&1; then
 ##     cat <<EOF
 ## ERROR: 'uchardet' command found
 ## 
