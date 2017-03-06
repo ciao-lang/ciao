@@ -236,12 +236,11 @@ Full installation instructions
      procedure (see `./ciao-boot.sh help' for more information). The
      meaning of some important options is as follows:
 
-        * `--install_prefix': prefix for the default values of
-          installation directories (`<prefix>/bin', `<prefix>/lib',
-          etc).
+        * `--prefix': prefix for the default values of installation
+          directories (`<prefix>/bin', `<prefix>/lib', etc).
 
-        * `--install_bindir': directory where the Ciao commands will be
-          installed. For example, if `--install_bindir' is set to
+        * `--bindir': directory where the Ciao commands will be
+          installed. For example, if `--bindir' is set to
           `/usr/local/bin', then the Ciao compiler (`ciaoc') will be
           stored at `/usr/local/bin/ciaoc'. Actually, it will be a link
           to `ciaoc-'VersionNumber. This applies also to other
@@ -252,13 +251,15 @@ Full installation instructions
 
         * The Ciao installation procedure will create a new
           subdirectory `ciao/<vers>' denoted `INSTALL_CIAOROOT' below
-          `--install_prefix'. The `<vers>' directory indicate the Ciao
-          system version. It allows having several Ciao versions
-          installed simultaneously.
+          `--prefix'. The `<vers>' directory indicate the Ciao system
+          version. It allows having several Ciao versions installed
+          simultaneously.
 
-        * `--lpdoc:docdir': directory where the manuals will be
-          installed. In server installations, it is often convenient if
-          this directory is accessible via WWW (like `/var/www/ciao').
+        * `--mandir': directory where the manuals in Unix `man' format
+          will be installed.
+
+        * `--infodir': directory where the manuals in `info' format
+          will be installed.
 
 
   2. Build Ciao: At the ciao top level directory type `./ciao-boot.sh
@@ -278,20 +279,20 @@ Full installation instructions
         * Install the Ciao libraries under `INSTALL_CIAOROOT' (these
           will be automatically found).
 
-        * Install under `--lpdoc:docdir' the Ciao manuals in several
-          formats (such as GNU `info', `html', `postscript', etc.),
-          depending on the distribution. In order for these manuals to
-          be found when typing `M-x info' within `emacs', or by the
-          standalone `info' and `man' commands, the `MANPATH'  and
-          `INFOPATH'  environment variables of users both need to
-          contain the path specified at `--lpdoc:docdir'.
+        * Install the Ciao manuals in several formats (such as GNU
+          `info', `html', `pdf', etc.) under `INSTALL_CIAOROOT' and
+          other documentation-specific paths. In order for these
+          manuals to be found when typing `M-x info' within `emacs', or
+          by the standalone `info' and `man' commands, the `MANPATH'
+          and `INFOPATH'  environment variables of users both need to
+          contain the path specified at `--mandir' and `--infodir'.
+          Documentation in other formats can be accesed with the `ciao
+          doc' command.
 
-        * Install under `INSTALL_CIAOROOT' the Ciao GNU `emacs'
-          interface (`ciao.el', which provides an interactive interface
-          to the Ciao program development tools, as well as some other
-          auxiliary files) and a file `ciao-mode-init' containing the
-          `emacs' initialization commands which are needed in order to
-          use the Ciao `emacs' interface.
+        * Install under `INSTALL_CIAOROOT' the Ciao interface with GNU
+          `emacs' (which provides an interactive interface to the Ciao
+          program development tools, as well as some other auxiliary
+          files).
 
 
   4. Set up user environments: The install process will modify the
@@ -344,9 +345,7 @@ Full installation instructions
 
   5. Check installation / read documentation: You may now want to check
      your installation (see *Note Checking for correct installation on
-     Unix::) and read the documentation, which is stored in the
-     directory specified at `--lpdoc:docdir' and can be easily accessed
-     as explained that same section. There are special "getting
+     Unix::) and read the documentation. There are special "getting
      started" sections at the beginning of the manual.
 
 
@@ -392,14 +391,13 @@ Also, the following documentation-related actions should work:
      area (you may need to log out and back in so that your shell
      variables are reinitialized for this to work).
 
-   * Opening with a WWW browser the directory or `URL' corresponding to
-     the `lpdoc:docdir' setting should show a series of Ciao-related
-     manuals.
+   * Typing `ciao doc alldocs' should open a series of Ciao-related
+     manuals in a WWW browser.
 
    * Typing `man ciao' should produce a man page with some very basic
      general information on Ciao (and pointing to the on-line manuals).
 
-   * The `lpdoc:docdir' directory should contain the manual also in the
+   * The documentation directory should contain the manual also in the
      other formats such as `pdf'.
 
 
