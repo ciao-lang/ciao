@@ -41,6 +41,7 @@
 :- use_module(library(system),
 	[file_exists/1, directory_files/2, file_property/2, delete_file/1, getenvstr/2]).
 
+:- use_module(engine(internals), [ciao_root/1]).
 :- use_module(engine(system_info), [get_arch/1]).
 
 % ============================================================================
@@ -115,7 +116,9 @@ level3(libdir, storedir).
 % Level-0 absolute paths (prefix)
 third_party_path(prefix, Prefix) :- !,
 	% TODO: duplicated in source_tree.pl
-	bundle_path(ciao, 'third-party', Prefix).
+	% bundle_workspace(core, Dir) % TODO: Add bundle!
+	ciao_root(Dir),
+	path_concat(Dir, 'third-party', Prefix).
 %
 % Level-1 absolute paths
 third_party_path(DirId, Path) :- level1(DirId, Base), !,

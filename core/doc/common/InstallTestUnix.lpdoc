@@ -32,16 +32,15 @@ Also, the following documentation-related actions should work:
       in so that your shell variables are reinitialized for this to
       work).
 
-@item Opening with a @concept{WWW browser} the directory or @tt{URL}
-      corresponding to the @tt{lpdoc:docdir} setting should show a
-      series of Ciao-related manuals.
+@item Typing @tt{ciao doc alldocs} should open a series of
+      Ciao-related manuals in a @concept{WWW browser}.
 
 @item Typing @tt{man ciao} should produce a man page with some very
       basic general information on Ciao (and pointing to the on-line
       manuals).
 
-@item The @tt{lpdoc:docdir} directory should contain the manual also
-      in the other formats such as @tt{pdf}.
+@item The documentation directory should contain the manual also in
+      the other formats such as @tt{pdf}.
 
 @end{itemize}
 

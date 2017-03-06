@@ -78,10 +78,8 @@ src/*.c
 	[bundle_path/3, bundle_path/4, ext_absolute_file_name/3]).
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
 :- use_module(engine(system_info), [get_so_ext/1, get_a_ext/1]).
-:- use_module(ciaobld(config_common), [
-    builder_in_global/0,
-    concat_ext/3, concat_ver/3,
-    instciao_storedir/1]).
+:- use_module(ciaobld(config_common), [concat_ext/3]).
+:- use_module(ciaobld(install_aux), [inst_builddir_path/2]). % TODO: it should be here
 
 % ===========================================================================
 
@@ -151,8 +149,8 @@ eng_srcdirs(Eng) := [EngSrcDir|Others] :- % TODO: Allow more using EngOpts!
 emugen_code_dir(Eng, File, DestDir) :-
 	( atom_concat(_, '.h', File) ->
 	    eng_h_alias(Eng, HAlias),
-	    DestDir = ~path_concat(~bld_eng_path(hdir, Eng), HAlias)
-	; DestDir = ~bld_eng_path(cdir, Eng)
+	    DestDir = ~path_concat(~eng_path(hdir, Eng), HAlias)
+	; DestDir = ~eng_path(cdir, Eng)
 	).
 
 :- export(eng_h_alias/2).
@@ -165,9 +163,9 @@ eng_h_alias(Eng, Path) :-
 	; Path = 'ciao' % default value
 	).
 
-:- export(bld_eng_path/3).
+:- export(eng_path/3).
 % Engine directory layout in build area
-bld_eng_path(D, Eng) := ~eng_path_(D, bld, Eng).
+eng_path(D, Eng) := ~eng_path_(D, bld, Eng).
 
 :- export(inst_eng_path/3).
 % Engine directory layout in global installs
@@ -175,16 +173,6 @@ bld_eng_path(D, Eng) := ~eng_path_(D, bld, Eng).
 % TODO: Missing installation of lib_a, lib_so, and probably some of the configuration files?
 %
 inst_eng_path(D, Eng) := ~eng_path_(D, inst, Eng).
-
-:- export(eng_path/3).
-% Engine path in local build area or installed (if the running
-% builder is globally installed)
-eng_path(D, Eng) := Path :-
-	builder_in_global, % TODO: not for bundles in (non-installed) workspaces
-	!,
-	Path = ~inst_eng_path(D, Eng).
-eng_path(D, Eng) := Path :-
-	Path = ~bld_eng_path(D, Eng).
 
 eng_path_(D, EngLoc, Eng) := Path :-
 	EngDir = ~base_eng_path(EngLoc, Eng),
@@ -201,12 +189,12 @@ base_eng_path(EngLoc, Eng) := Path :-
 	    ( member(boot, EngOpts) ->
 	        Path0 = ~bundle_path(Bundle, bootbuilddir, eng)
 	    ; Path0 = ~bundle_path(Bundle, builddir, eng)
-	    ),
-	    Path = ~path_concat(Path0, EngMainMod)
-	; EngLoc = inst -> % E.g., for <prefix>/lib/ciao/ciaoengine-1.15
-	    Path = ~path_concat(~instciao_storedir, ~concat_ver(Bundle, EngMainMod))
+	    )
+	; EngLoc = inst ->
+	    Path0 = ~inst_builddir_path(eng)
 	; fail
-	).
+	),
+	Path = ~path_concat(Path0, EngMainMod).
 
 % ---------------------------------------------------------------------------
 
@@ -251,7 +239,7 @@ eng_ext(Eng, EngExt) :-
 % TODO: define properly the 'activation' operation
 active_bld_eng_path(D, Eng) := Path :-
 	Name = ~active_eng_name(D, Eng),
-	Path = ~path_concat(~bld_eng_path(objdir_anyarch, Eng), Name).
+	Path = ~path_concat(~eng_path(objdir_anyarch, Eng), Name).
 
 :- export(active_inst_eng_path/3).
 % Paths for the active engine and multi-platform engine selection
@@ -260,7 +248,7 @@ active_bld_eng_path(D, Eng) := Path :-
 % TODO: define properly the 'activation' operation
 active_inst_eng_path(D, Eng) := Path :-
 	Name = ~active_eng_name(D, Eng),
-	Path = ~path_concat(~instciao_storedir, Name).
+	Path = ~path_concat(~inst_eng_path(objdir_anyarch, Eng), Name).
 
 :- export(active_eng_name/3).
 % Active engine name (for multi-platform build and installation)

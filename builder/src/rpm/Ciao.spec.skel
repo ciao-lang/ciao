@@ -157,14 +157,12 @@ environment with a unique set of features:
 %build
 
 ./ciao-boot.sh configure \
-   --instype=global --install_prefix=%{_prefix} \
+   --instype=global --prefix=%{_prefix} \
    --core:update_bashrc=no --core:update_cshrc=no \
    --ciao_emacs:enabled=yes --core:update_dotemacs=no \
    --ciao_emacs:emacs_site_start=%{emacs_sitestart_dir} \
    --ciao_emacs:emacsinitfile=%{emacs_sitestart_filename} \
-   --lpdoc:docdir=%{ciaodocdir} \
-   --lpdoc:mandir=%{_mandir} --lpdoc:infodir=%{_infodir} \
-   --lpdoc:htmldir=%{ciaodocdir}/html \
+   --mandir=%{_mandir} --infodir=%{_infodir} \
    --core:pillow_base_htmldir=/tmp \
    --core:install_prolog_name=no \
    --execmode=755 --datamode=644

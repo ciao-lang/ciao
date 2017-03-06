@@ -55,25 +55,22 @@ merge_env(Env, Opts, Opts2) :-
 % ---------------------------------------------------------------------------
 % Default environments for selecting the local or boot engines
 
-:- use_module(ciaobld(eng_defs),
-	[eng_path/3,
-	 bld_eng_path/3]).
-:- use_module(ciaobld(config_common),
-     [default_eng_def/1, boot_eng_def/1, local_corepath/1]).
+:- use_module(ciaobld(eng_defs), [eng_path/3]).
+:- use_module(ciaobld(config_common), [default_eng_def/1, boot_eng_def/1]).
 
 bootciao_env := Env :-
 	Eng = ~boot_eng_def,
 	% TODO: (un)define CIAOPATH? 
 	Env = ['CIAOALIASPATH' = '',
-	       'CIAOLIB' = ~bundle_path(core, '.'),
-	       'CIAOHDIR' = ~bld_eng_path(hdir, Eng),
-	       'CIAOENGINE' = ~bld_eng_path(exec, Eng)].
+	       'CIAOLIB' = ~bundle_path(core, '.'), % TODO: use CIAOROOT
+	       'CIAOHDIR' = ~eng_path(hdir, Eng),
+	       'CIAOENGINE' = ~eng_path(exec, Eng)].
 
 localciao_env := Env :-
 	Eng = ~default_eng_def,
 	% TODO: (un)define CIAOPATH? 
 	Env = ['CIAOALIASPATH' = '',
-	       'CIAOLIB' = ~local_corepath,
+	       'CIAOLIB' = ~bundle_path(core, '.'), % TODO: use CIAOROOT
 	       'CIAOHDIR' = ~eng_path(hdir, Eng),
 	       'CIAOENGINE' = ~eng_path(exec, Eng)].
 

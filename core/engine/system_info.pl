@@ -136,7 +136,6 @@ get_a_ext('.a'). % TODO: '.a' is fine for MinGW but this is typically '.lib' in 
 
 %%---------------------------------------------------------------------
 
-
 :- pred current_module(Module) => internal_module_id + native #
 	"Retrieves (on backtracking) all currently loaded modules into
          your application.".

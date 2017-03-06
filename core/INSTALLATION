@@ -250,21 +250,11 @@ Full installation instructions
           installed latest will be the one started by default when
           typing `ciao', `ciaoc', etc.
 
-        * `--install_libdir': directory where the run-time libraries
-          will be installed.
-
         * The Ciao installation procedure will create a new
-          subdirectory `ciao' below `--install_libdir', denoted here as
-          `INSTALL_STOREDIR'. A subdirectory will be created below
-          `INSTALL_STOREDIR' for each Ciao component and version
-          installed. For example, if `--install_libdir' is
-          `/usr/local/lib' and you have LPdoc version `x.y', then the
-          libraries will be installed under
-          `/usr/local/lib/ciao/lpdoc-x.y'. This allows you to install
-          site-specific programs under `INSTALL_STOREDIR' and they will
-          not be overwritten if a new version of Ciao is installed. It
-          also again allows having several Ciao versions installed
-          simultaneously.
+          subdirectory `ciao/<vers>' denoted `INSTALL_CIAOROOT' below
+          `--install_prefix'. The `<vers>' directory indicate the Ciao
+          system version. It allows having several Ciao versions
+          installed simultaneously.
 
         * `--lpdoc:docdir': directory where the manuals will be
           installed. In server installations, it is often convenient if
@@ -285,7 +275,7 @@ Full installation instructions
           directory. In order to use these tools, make sure that the
           `PATH'  environment variable contains such path.
 
-        * Install the Ciao libraries under `INSTALL_STOREDIR' (these
+        * Install the Ciao libraries under `INSTALL_CIAOROOT' (these
           will be automatically found).
 
         * Install under `--lpdoc:docdir' the Ciao manuals in several
@@ -296,7 +286,7 @@ Full installation instructions
           `INFOPATH'  environment variables of users both need to
           contain the path specified at `--lpdoc:docdir'.
 
-        * Install under `INSTALL_STOREDIR' the Ciao GNU `emacs'
+        * Install under `INSTALL_CIAOROOT' the Ciao GNU `emacs'
           interface (`ciao.el', which provides an interactive interface
           to the Ciao program development tools, as well as some other
           auxiliary files) and a file `ciao-mode-init' containing the
@@ -312,7 +302,7 @@ Full installation instructions
 
      The install process generates a `ciao-env' command to update the
      environments for `sh'-like and `csh'like shells. It also generates
-     a `INSTALL_STOREDIR/ciao-mode-init' (for emacs) with appropriate
+     a `INSTALL_CIAOROOT/ciao-mode-init' (for emacs) with appropriate
      definitions which will take care of all needed environment
      variable definitions and emacs mode setup.
 
@@ -338,9 +328,9 @@ Full installation instructions
         * Also, if you use `emacs' (highly recommended) the install
           will add the next line to your `~/.emacs' file:
 
-                       (load-file "INSTALL_STOREDIR/ciao-site-file.el")
-                       (if (file-exists-p "INSTALL_STOREDIR/ciao-site-file.el")
-                         (load-file "INSTALL_STOREDIR/ciao-site-file.el")
+                       (load-file "INSTALL_CIAOROOT/ciao-site-file.el")
+                       (if (file-exists-p "INSTALL_CIAOROOT/ciao-site-file.el")
+                         (load-file "INSTALL_CIAOROOT/ciao-site-file.el")
                        )
 
 

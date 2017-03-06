@@ -35,8 +35,6 @@ NOTE: This is experimental and will contain more files than needed.
 :- use_module(library(compiler/exemaker), [make_exec/2]).
 :- use_module(library(libpaths),          [get_alias_path/0]).
 
-:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
-
 % ---------------------------------------------------------------------------
 
 % (integration into compiler)
@@ -61,12 +59,14 @@ NOTE: This is experimental and will contain more files than needed.
 
 % ---------------------------------------------------------------------------
 
+:- use_module(engine(internals), [ciao_root/1]).
+
 main([SRC, DST]):-
 	make_car_exec(SRC, DST).
 
 make_car_exec(SRC, DST):-
-	bundle_path(ciao, '.', CiaoSrc),
-	path_concat(CiaoSrc, 'builder/sh_boot/car_exec_stub.sh', ExecStub),
+	ciao_root(CiaoRoot),
+	path_concat(CiaoRoot, 'builder/sh_boot/car_exec_stub.sh', ExecStub),
 	%
 	path_basename(DST, DST_BASE_NAME), 
 	%
@@ -82,7 +82,7 @@ make_car_exec(SRC, DST):-
 	(file_exists(DST_CAR) -> rec_delete_file(DST_CAR);  true),
 	%
 	% ignore error 
-	rec_copy_file(CiaoSrc, DST_CAR),
+	rec_copy_file(CiaoRoot, DST_CAR),
 	rec_copy_file(ExecStub, DST), 
 	rec_copy_file(TMP, DST_BIN), 
 	rec_delete_file(TMP).

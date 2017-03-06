@@ -1,7 +1,8 @@
 :- module(pbundle_gen_mac, [], [fsyntax, assertions]).
 
-% TODO: This code needs major simplifications (use Prolog when
-%   possible, use skel/template files, reuse binary installer scripts)
+% TODO: This code needs major fixes and simplifications (use Prolog
+%   when possible, use skel/template files, reuse binary installer
+%   scripts)
 
 :- doc(title, "Mac OS X distributions").
 
@@ -37,17 +38,14 @@ Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The CLIP Group.
 	bundle_versioned_packname/2, bundle_commit_info/3]).
 
 :- use_module(ciaobld(eng_defs), [inst_eng_path/3]).
-:- use_module(ciaobld(config_common), [
-    instciao_prefix/1,
-    instciao_bindir/1,
-    instciao_storedir/1,
-    instciao_bundledir/2,
-    default_eng_def/1,
-    perms/1,
-    home_url_str/1, % TODO: use Bundle
-    packages_dir_str/1 % TODO: use Bundle
+:- use_module(ciaobld(config_common), [default_eng_def/1]).
+:- use_module(ciaobld(install_aux), [
+    inst_builddir_path/2,
+    inst_ciao_root/1,
+    inst_bundle_path/3,
+    active_docdir/2,
+    perms/1
 ]).
-:- use_module(library(bundle/doc_flags), [docformatdir/2]).
 :- use_module(ciaobld(pbundle_generator)).
 :- use_module(ciaobld(builder_aux), [wr_template/4]).
 :- use_module(ciaobld(builder_cmds), [builder_cmd/2]).
@@ -121,8 +119,17 @@ change in the architecture of the website should be reflected here.
 ").
 
 % ===========================================================================
-:- doc(section, "pbundle Generation as a 'MacOS Binary Package' (.pkg)").
+% The URL and directory for our main distribution site
 
+% TODO: Use bundle information
+%:- export(home_url_str/1).
+home_url_str := "https://ciao-lang.org/".
+% TODO: Wrong
+%:- export(packages_dir_str/1).
+packages_dir_str := "packages/master/".
+
+% ===========================================================================
+:- doc(section, "pbundle Generation as a 'MacOS Binary Package' (.pkg)").
 
 packageMaker := '/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker'.
 
@@ -216,13 +223,13 @@ process_list_for_src([H|T1], ['-srcfolder', H|T2]) :-
 
 :- use_module(library(glob), [glob/3]).
 
-% TODO: Do not remove ~instciao_storedir (only if it is empty)
+% TODO: Do not remove ~inst_ciao_root (only if it is empty)
 generate_uninstaller(DestDir, Path) :-
 	verbose_message("Generating bash script for uninstallation", []),
-	BundleDirCore = ~instciao_bundledir(core),
-	StoreDir = ~instciao_storedir,
+	BundleDirCore = ~inst_bundle_path(core, '.'),
+	InstCiaoRoot = ~inst_ciao_root,
 	%
- 	Path = ~path_concat(StoreDir, 'uninstall_ciao'),
+ 	Path = ~path_concat(InstCiaoRoot, 'uninstall_ciao'),
 	%
 	% Note: */* expands to bin/... lib/... but does not include
 	%   those directories (we do not want to uninstall them)
@@ -256,7 +263,7 @@ fi
 ~s
 
 rm -fd ~a ~a ~a || true\n
-", [StrInfo_, StrFiles_, Path, BundleDirCore, StoreDir]).
+", [StrInfo_, StrFiles_, Path, BundleDirCore, InstCiaoRoot]).
 
 
 generate_uninstaller_wrapper(TmpDir, Path, AppPath) :-
@@ -281,9 +288,9 @@ end try
 	close_output(Stream),
 	process_call(path(osacompile), ['-ai386', '-o', AppPath, TxtPath], []).
 
-% TODO: Use lpdoc or builder instead
+% TODO: wrong! use glob, etc.
 % Enumerate info files under ~infodir_local (recursively), relative to BaseDir
-:- export(info_files/2).
+%:- export(info_files/2).
 info_files(BaseDir, Str) :-
 	InfoDir = ~infodir_local, 
 	( % Note: do not evaluate wildcard in -name pattern!
@@ -294,7 +301,7 @@ info_files(BaseDir, Str) :-
 	).
 
 infodir_local(LocalInfoDir) :-
-	( atom_codes(~docformatdir(info), "/"||LocalPathStr) ->
+	( atom_codes(~active_docdir(info), "/"||LocalPathStr) ->
 	    atom_codes(LocalInfoDir, LocalPathStr)
 	; throw(error('infodir should be absolute (i.e. starting with /)', generate_uninstaller/2))
 	).
@@ -453,9 +460,7 @@ programming environment with a unique set of features:
 </p>
 <p><a href=\"~s\">~s</a></p>
 <p>
-Note, this installer will not install any application in the /Applications/
-directory, but will instead install the system in ~w
-(similarly to other compilers or standard Unix programs).  
+This installer will install the system in ~w.
 </p>
 <p>
 This installer guides you through the steps necessary to 
@@ -463,11 +468,11 @@ install ~w ~w for Mac OS X. To get started, click Continue.
 </p>
 </font>
 </body>
-</html>\n", [Name, Name, ~home_url_str, ~home_url_str, ~instciao_prefix, Name, Version]),
+</html>\n", [Name, Name, ~home_url_str, ~home_url_str, ~inst_ciao_root, Name, Version]),
 	close_output(OStr).
 
 write_conclusion_html(ResourcesPath) :-
-	InitFile = ~path_concat(~instciao_storedir, 'ciao-mode-init.el'),
+	InitFile = ~path_concat(~inst_ciao_root, 'ciao-mode-init.el'),
 	open_output(~path_concat(ResourcesPath, 'Conclusion.html'), OStr), OStr = o(_, Str),
 	format(Str, 
 "<html lang=\"en\">
@@ -532,7 +537,7 @@ for file in ~w/uninstall_ciao; do
 	$file NO_ASK_FOR_CONFIRMATION || true
     fi
 done
-", [~instciao_storedir]).
+", [~inst_ciao_root]).
 
 % postinstall script performs:
 %   - installation of info file (should be done by calling ciao-boot.sh)
@@ -568,8 +573,8 @@ gen_pbundle__app(Bundle) :-
 	normal_message("creating Mac OS X bundle (as .app)", []),
 	%
 	Domain = "org.ciao-lang.ciao", % TODO: from bundle
-	BundleDirCore = ~instciao_bundledir(core),
-	BinDir = ~instciao_bindir,
+	BundleDirCore = ~inst_bundle_path(core, '.'),
+	BinDir = ~inst_builddir_path('bin'),
 	Eng = ~default_eng_def,
 	CiaoEngine = ~inst_eng_path(exec, Eng),
 	PackDir = ~pbundle_output_dir(Bundle),
@@ -608,6 +613,7 @@ gen_pbundle__app(Bundle) :-
 	            ~path_concat(~builder_src_dir, 'mac/ciao-icon.icns'),
 		    ResourcesDir], []),
 	%
+        % TODO: This is wrong! We should call 'ciao-env' with a new '--elisp' option
 	% TODO: try not to write the output here
 	wr_template(origin, ~path_concat(~builder_src_dir, 'mac'), 'configure_dotemacs.pl', [
 	    'CIAOENGINE' = CiaoEngine,

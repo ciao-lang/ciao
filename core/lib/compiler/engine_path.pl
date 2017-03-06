@@ -13,6 +13,7 @@
 
 :- use_module(library(pathnames), [path_split/3, path_concat/3]).
 :- use_module(library(system), [file_exists/1]).
+:- use_module(engine(internals), [ciao_root/1]).
 
 :- doc(bug, "Avoid code duplication from ciaobld(eng_defs) and
    ciaobld(config_common). DO NOT use those modules here! (See note
@@ -46,8 +47,7 @@ eng_path(D, Eng, EngPath) :-
 % (equivalent to eng_defs:base_eng_path/3)
 % E.g., .../build/eng/EngMainMod
 base_eng_path(eng_def0(EngMainMod, _), Path) :-
-	ciao_lib_dir(CorePath),
-	path_split(CorePath, CiaoRoot, _),
+	ciao_root(CiaoRoot),
 	%
 	rel_builddir(RelBuildDir),
 	path_concat(CiaoRoot, RelBuildDir, BldDir),

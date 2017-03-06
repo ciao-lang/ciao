@@ -268,14 +268,14 @@ following sections.
 
  @begin{itemize}
 
-       @item @tt{--install_prefix}: prefix for the default values
-       of installation directories (@tt{<prefix>/bin},
-       @tt{<prefix>/lib}, etc).
+       @item @tt{--prefix}: prefix for the default values of
+       installation directories (@tt{<prefix>/bin}, @tt{<prefix>/lib},
+       etc).
 
-       @item @tt{--install_bindir}: directory where the Ciao
-       commands will be installed. For example, if
-       @tt{--install_bindir} is set to @tt{/usr/local/bin}, then
-       the Ciao @concept{compiler} (@apl{ciaoc}) will be stored at
+       @item @tt{--bindir}: directory where the Ciao commands will be
+       installed. For example, if @tt{--bindir} is set to
+       @tt{/usr/local/bin}, then the Ciao @concept{compiler}
+       (@apl{ciaoc}) will be stored at
        @tt{/usr/local/bin/ciaoc}. Actually, it will be a link to
        @tt{ciaoc-}@em{VersionNumber}. This applies also to other
        executables below and is done so that several versions of Ciao
@@ -283,27 +283,17 @@ following sections.
        installed latest} will be the one started by default when
        typing @tt{ciao}, @tt{ciaoc}, etc.  @cindex{binary directory}
 
-       @item @tt{--install_libdir}: directory where the
-       @concept{run-time libraries} will be installed. @cindex{library
-       directory}
-
        @item The Ciao installation procedure will create a new
-       subdirectory @tt{ciao} below @tt{--install_libdir}, denoted
-       here as @tt{INSTALL_STOREDIR}. A subdirectory will be created
-       below @tt{INSTALL_STOREDIR} for each Ciao component and version
-       installed.  For example, if @tt{--install_libdir} is
-       @tt{/usr/local/lib} and you have LPdoc version @tt{x.y}, then
-       the libraries will be installed under
-       @tt{/usr/local/lib/ciao/lpdoc-x.y}. This allows you to install
-       @concept{site-specific programs} under @tt{INSTALL_STOREDIR}
-       and they will not be overwritten if a new version of Ciao is
-       installed. It also again allows having several Ciao versions
+       subdirectory @tt{ciao/<vers>} denoted @tt{INSTALL_CIAOROOT}
+       below @tt{--prefix}. The @tt{<vers>} directory indicate the
+       Ciao system version. It allows having several Ciao versions
        installed simultaneously.
 
-       @item @tt{--lpdoc:docdir}: directory where the @concept{manuals}
-       will be installed. In server installations, it is often
-       convenient if this directory is accessible via @concept{WWW}
-       (like @tt{/var/www/ciao}).
+       @item @tt{--mandir}: directory where the @concept{manuals} in
+       Unix @apl{man} format will be installed.
+
+       @item @tt{--infodir}: directory where the @concept{manuals} in
+       @apl{info} format will be installed.
 
 @end{itemize}
 
@@ -357,26 +347,25 @@ following sections.
             @cindex{PATH} @concept{environment variable} contains such
             path.
 
-      @item Install the Ciao libraries under @tt{INSTALL_STOREDIR} (these
+      @item Install the Ciao libraries under @tt{INSTALL_CIAOROOT} (these
             will be automatically found).
 
-      @item Install under @tt{--lpdoc:docdir} the Ciao manuals in
-            several formats (such as GNU @tt{info}, @tt{html},
-            @tt{postscript}, etc.), depending on the distribution. In
-            order for these manuals to be found when typing @tt{M-x
-            info} within @apl{emacs}, or by the standalone @apl{info}
-            and @apl{man} commands, the @tt{MANPATH} @cindex{MANPATH}
-            and @tt{INFOPATH} @cindex{INFOPATH} @concept{environment
-            variables} of users both need to contain the path
-            specified at @tt{--lpdoc:docdir}.
+      @item Install the Ciao manuals in several formats (such as GNU
+            @tt{info}, @tt{html}, @tt{pdf}, etc.) under
+            @tt{INSTALL_CIAOROOT} and other documentation-specific
+            paths. In order for these manuals to be found when typing
+            @tt{M-x info} within @apl{emacs}, or by the standalone
+            @apl{info} and @apl{man} commands, the @tt{MANPATH}
+            @cindex{MANPATH} and @tt{INFOPATH} @cindex{INFOPATH}
+            @concept{environment variables} of users both need to
+            contain the path specified at @tt{--mandir} and
+            @tt{--infodir}. Documentation in other formats can be
+            accesed with the @tt{ciao doc} command.
 
-      @item Install under @tt{INSTALL_STOREDIR} the Ciao GNU @apl{emacs}
-            interface (@file{ciao.el}, which provides an interactive
+      @item Install under @tt{INSTALL_CIAOROOT} the Ciao interface
+            with GNU @apl{emacs} (which provides an interactive
             interface to the Ciao program development tools, as well
-            as some other auxiliary files) and a file
-            @file{ciao-mode-init} containing the @apl{emacs}
-            initialization commands which are needed in order to use
-            the Ciao @apl{emacs} interface.
+            as some other auxiliary files).
 
       @end{itemize}
 
@@ -388,7 +377,7 @@ following sections.
 
       The install process generates a @apl{ciao-env} command to update
       the environments for @apl{sh}-like and @apl{csh}like shells. It
-      also generates a @tt{INSTALL_STOREDIR/ciao-mode-init} (for
+      also generates a @tt{INSTALL_CIAOROOT/ciao-mode-init} (for
       emacs) with appropriate definitions which will take care of all
       needed @concept{environment variable definitions} and
       @concept{emacs mode setup}.
@@ -406,9 +395,7 @@ following sections.
 
 @item @bf{Check installation / read documentation:} You may now want
       to check your installation (see @ref{Checking for correct
-      installation on Unix}) and read the documentation, which is
-      stored in the directory specified at @tt{--lpdoc:docdir} and can
-      be easily accessed as explained that same section. There are
+      installation on Unix}) and read the documentation. There are
       special ``getting started'' sections at the beginning of the
       manual.
 
@@ -486,7 +473,7 @@ can be very useful for system development and experimentation.
     directory during installation, since compilations for different
     architectures take place in dedicated subdirectories. Also,
     different machines/architectures can share the same
-    @tt{INSTALL_STOREDIR} directory. This saves space since the
+    @tt{INSTALL_CIAOROOT} directory. This saves space since the
     architecture-independent libraries will be shared. See
     @ref{Multiarchitecture installation} below.
 
@@ -515,11 +502,10 @@ engine and libraries are correctly installed.
 can run on several machines with different architectures without any
 need for recompiling, provided the Ciao engine (compiled for the
 corresponding architecture) accessible in each machine. Also, the Ciao
-libraries (installed in @tt{INSTALL_STOREDIR}, which contain also the
+libraries (installed in @tt{INSTALL_CIAOROOT}, which contain also the
 engines) and the actual binaries (installed in the directory specified
-by @tt{--install_bindir}) can themselves be shared on several
-machines with different architectures.}  @comment{, saving disk
-space.}
+by @tt{--bindir}) can themselves be shared on several machines with
+different architectures.}  @comment{, saving disk space.}
 
 @comment{
 For example, assume that the compiler is installed as:

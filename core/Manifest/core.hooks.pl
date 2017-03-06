@@ -101,9 +101,9 @@
     interactive
 ]).
 
-:- use_module(ciaobld(eng_defs), [bld_eng_path/3]).
-:- use_module(ciaobld(config_common), [boot_eng_def/1, cmdname_ver/5]).
-:- use_module(ciaobld(builder_aux), [builddir_bin_link_as/4]).
+:- use_module(ciaobld(eng_defs), [eng_path/3]).
+:- use_module(ciaobld(config_common), [boot_eng_def/1]).
+:- use_module(ciaobld(ciaoc_aux), [cmd_build_link/4]).
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 
@@ -114,7 +114,7 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 % (definition for installation)
 % (merge below?)
 %'$builder_hook'(ciaocl:cmd('ciao', [main='NONE_AUTOGEN', shscript])). % TODO: only for installation
-'$builder_hook'(ciaocl:bin_copy_and_link(shscript, 'ciao', Opts)) :- % TODO: only for installation
+'$builder_hook'(ciaocl:cmd_raw(shscript, 'ciao', Opts)) :- % TODO: only for installation
 	( install_prolog_name(yes) ->
 	    Opts = [link_as('prolog')]
 	; Opts = []
@@ -124,24 +124,16 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	wr_template(as_cmd(core, shscript), ~bundle_path(core, 'cmds'), 'ciao', [
 	    'ExtraCommands' = ~ciao_extra_commands, % (for toplevel)
 	    %
-	    'ciao_builder_cmdV' = ~cmdname_ver(yes, builder, 'ciao_builder', plexe),
-	    'ciao_builder_cmd'  = ~cmdname_ver(no,  builder, 'ciao_builder', plexe),
-	    'ciaosh_cmdV' = ~cmdname_ver(yes, core, 'ciaosh', plexe),
-	    'ciaosh_cmd'  = ~cmdname_ver(no,  core, 'ciaosh', plexe),
-	    'ciao_shell_cmdV' = ~cmdname_ver(yes, core, 'ciao-shell', plexe),
-	    'ciao_shell_cmd'  = ~cmdname_ver(no,  core, 'ciao-shell', plexe),
-	    'ciaoc_cmdV' = ~cmdname_ver(yes, core, 'ciaoc', plexe),
-	    'ciaoc_cmd'  = ~cmdname_ver(no,  core, 'ciaoc', plexe),
 	    % Access to boot builder
 	    % TODO: only used in local-install, global installation uses the builder exec (is it OK?)
 	    % TODO: (MinGW) is cmd.exe enough? (at least for bootstrap) consider PowerShell scripts for Windows?
 	    'boot_ciaolib' = ~bundle_path(core, '.'),
 	    'boot_bindir' = ~bundle_path(core, bootbuilddir, 'bin'),
-	    'boot_ciaohdir' = ~bld_eng_path(hdir, BootEng),
-	    'boot_ciaoengine' = ~bld_eng_path(exec, BootEng)
+	    'boot_ciaohdir' = ~eng_path(hdir, BootEng),
+	    'boot_ciaoengine' = ~eng_path(exec, BootEng)
         ]),
  	( install_prolog_name(yes) ->
- 	    builddir_bin_link_as(core, shscript, 'ciao', 'prolog')
+ 	    cmd_build_link(core, shscript, 'ciao', 'prolog')
  	; true
  	).
 
@@ -171,7 +163,7 @@ list_to_lits2([X|Xs], X0, (X0, Lits)) :-
 % TODO: 'ciao_sysconf' needs to be installed for multiplatform installations
 %   (sharing a .bashrc or .cshrc across multiple OS)
 
-:- use_module(ciaobld(builder_aux), [builddir_bin_copy_as/4]).
+:- use_module(ciaobld(ciaoc_aux), [cmd_build_copy/4]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 
 ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
@@ -181,7 +173,7 @@ ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
 '$builder_hook'(ciao_sysconf:cmd('ciao_sysconf', [main='NONE_AUTOGEN', shscript])).
 '$builder_hook'(ciao_sysconf:build_bin) :- % (override build)
 	% (we just copy the script from the builder)
-	builddir_bin_copy_as(core, shscript, ~ciao_sysconf_sh, 'ciao_sysconf').
+	cmd_build_copy(core, shscript, ~ciao_sysconf_sh, 'ciao_sysconf').
 
 % ---------------------------------------------------------------------------
 % Engine

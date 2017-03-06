@@ -1,7 +1,6 @@
 :- module(_, [], [assertions, fsyntax, hiord, dcg]).
 
-:- doc(title,  "Extended interface to Ciao compiler").
-
+:- doc(title,  "Build code using the Ciao compiler").
 :- doc(author, "Jos@'{e} F. Morales").
 :- doc(author, "Ciao Deveveloper Team").
 
@@ -40,8 +39,8 @@
 %
 :- use_module(ciaobld(builder_aux),
 	[ensure_builddir/2,
+	 create_rel_link/2,
 	 remove_dir_nofail/1]).
-:- use_module(ciaobld(builder_aux), [root_bundle_source_dir/1]).
 
 % ===========================================================================
 :- doc(section, "Interface to Compilers").
@@ -49,7 +48,7 @@
 ciaoc := ~cmd_path(core, plexe, 'ciaoc').
 bootstrap_ciaoc := ~bundle_path(core, 'bootstrap/ciaoc.sta').
 
-:- use_module(ciaobld(config_common), [bld_cmd_path/4, cmd_path/4]).
+:- use_module(ciaobld(config_common), [cmd_path/4]).
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
 
 :- use_module(ciaobld(bundle_configure), [
@@ -98,7 +97,7 @@ invoke_boot_ciaoc(Args, Opts) :-
 %
 b_make_exec(Bundle, InFile, OutFile, Opts) :-
 	ensure_builddir(Bundle, 'bin'),
-	FileBuild = ~bld_cmd_path(Bundle, plexe, OutFile),
+	FileBuild = ~cmd_path(Bundle, plexe, OutFile),
 	( member(static, Opts) ->
 	    Static = ['-s']
 	; Static = []
@@ -154,6 +153,7 @@ b_make_exec(Bundle, InFile, OutFile, Opts) :-
 % TODO: generalize as eng+noarch copy?
 
 :- use_module(library(system), [copy_file/3]).
+:- use_module(ciaobld(eng_defs), [emugen_code_dir/3]).
 
 :- export(promote_bootstrap/1).
 :- pred promote_bootstrap(Eng) # "Promote the current
@@ -222,12 +222,17 @@ number_to_atm2(X, Y) :-
 :- doc(section, "Engine headers for bytecode executables").
 
 :- use_module(library(streams), [open_output/2, close_output/1]).
-:- use_module(ciaobld(config_common), [instype/1]).
+
+:- use_module(ciaobld(install_aux), [instype/1]). % TODO: pass Wksp as a parameter instead
+% TODO: remove if we can add this info to bundle id e.g., inst(core) for bundle_path
 :- use_module(ciaobld(eng_defs),
-	[bld_eng_path/3,
-	 emugen_code_dir/3,	 
-	 active_bld_eng_path/3,
+	[active_bld_eng_path/3,
 	 active_inst_eng_path/3]).
+final_eng_bin(Eng, EngBin) :-
+	( instype(local) ->
+	    EngBin = ~active_bld_eng_path(exec_anyarch, Eng)
+	; EngBin = ~active_inst_eng_path(exec_anyarch, Eng)
+	).
 
 % TODO: rename, move somewhere else, make it optional, add native .exe stubs for win32?
 eng_exec_header := ~bundle_path(core, 'lib/compiler/header').
@@ -236,7 +241,7 @@ eng_exec_header := ~bundle_path(core, 'lib/compiler/header').
 % Create exec header (based on Unix shebang) for running binaries
 % through the specified engine Eng.
 build_eng_exec_header(Eng) :-
-	eng_bin(Eng, EngBin),
+	final_eng_bin(Eng, EngBin),
 	verbose_message("exec header assume engine at ~w", [EngBin]),
 	%
 	eng_exec_header(HeaderPath),
@@ -252,14 +257,6 @@ build_eng_exec_header(Eng) :-
 	display('\n'),
 	close_output(Out).
 
-eng_bin(Eng, EngBin) :-
-	( get_os('Win32') ->
-	    EngBin = ~bld_eng_path(exec, Eng) % TODO: why? this seems wrong in at least MSYS2
-	; instype(local) ->
-	    EngBin = ~active_bld_eng_path(exec_anyarch, Eng)
-	; EngBin = ~active_inst_eng_path(exec_anyarch, Eng)
-	).
-
 :- export(clean_eng_exec_header/1).
 % Clean exec header created from @pred{build_eng_exec_header/1}
 % TODO: customize location
@@ -269,6 +266,7 @@ clean_eng_exec_header(_Eng) :-
 
 :- use_module(library(system), [winpath/2]).
 :- use_module(library(streams), [open_output/2, close_output/1]).
+:- use_module(ciaobld(eng_defs), [eng_path/3]).
 
 % TODO: use .cmd (winnt) instead of .bat extension?
 
@@ -277,10 +275,10 @@ clean_eng_exec_header(_Eng) :-
 %   Opts: extra arguments for OrigCmd
 %   EngExecOpts: extra arguments for the engine executableitself
 create_windows_bat(Eng, BatCmd, Opts, EngExecOpts, OrigBundle, OrigCmd) :-
-	EngBin = ~bld_eng_path(exec, Eng), % TODO: why not the installed path?
+	EngBin = ~eng_path(exec, Eng), % TODO: why not the installed path?
 	%
-	BatFile = ~bld_cmd_path(OrigBundle, ext('.bat'), BatCmd),
-	OrigFile = ~bld_cmd_path(OrigBundle, plexe, OrigCmd),
+	BatFile = ~cmd_path(OrigBundle, ext('.bat'), BatCmd),
+	OrigFile = ~cmd_path(OrigBundle, plexe, OrigCmd),
 	%
 	open_output(BatFile, Out),
 	% TODO: missing quotation (e.g., of \")
@@ -328,6 +326,21 @@ cmd_build(cmd_def(Bundle, In, Output, Props)) :-
 	  normal_message("compiling ~w (command)", [Output]),
 	  b_make_exec(Bundle, In, Output, [final_ciaoc|Opts])
 	).
+
+% TODO: REMOVE, add cmd options instead
+:- export(cmd_build_copy/4).
+% Copy a custom binary From at binary directory of builddir as Name
+cmd_build_copy(Bundle, Kind, From, Name) :-
+	File = ~cmd_path(Bundle, Kind, Name),
+	copy_file(From, File, [overwrite]).
+
+% TODO: REMOVE, add cmd options instead
+:- export(cmd_build_link/4).
+% 'Dest' will point to 'Src'
+cmd_build_link(Bundle, Kind, Src, Dest) :-
+	From = ~cmd_path(Bundle, Kind, Src),
+	To = ~cmd_path(Bundle, Kind, Dest),
+	create_rel_link(From, To).
 
 :- use_module(library(sort), [sort/2]).
 	    
@@ -439,24 +452,6 @@ exists_and_compilable(Dir) :-
 % ===========================================================================
 :- doc(section, "Cleaning").
 
-% Special clean targets for builddir
-% TODO: Clean per bundle? (e.g., for bin/ it is complex, similar to uninstall)
-:- export(builddir_clean/2).
-builddir_clean(Bundle, bundlereg) :- !,
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'bundlereg')).
-builddir_clean(Bundle, config) :- !,
-	% TODO: this only works for (~root_bundle)
-	del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/ciao.bundlecfg')),
-	del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/ciao.bundlecfg_sh')).
-builddir_clean(Bundle, bin) :- !,
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'bin')).
-builddir_clean(Bundle, pbundle) :- !,
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'pbundle')).
-builddir_clean(Bundle, doc) :- !,
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'doc')).
-builddir_clean(Bundle, all) :-
-	remove_dir_nofail(~bundle_path(Bundle, builddir, '.')).
-
 % Clean (compilation files in) a directory tree (recursively)
 :- export(clean_tree/1).
 clean_tree(Dir) :-
@@ -476,10 +471,12 @@ clean_aux(Command, Args) :-
 	Env = ['CIAOOS' = OS, 'CIAOARCH' = Arch], % (for 'clean_mod')
 	sh_process_call(~clean_aux_sh, [Command|Args], [env(Env)]).
 
-% TODO: hardwired path
+:- use_module(engine(internals), [ciao_root/1]).
+
+% TODO: could I use bundle_path(builder, 'sh_src/clean_aux.sh')? (perhaps it is not registered)
 clean_aux_sh := Path :-
-	root_bundle_source_dir(CiaoSrc),
-	Path = ~path_concat(CiaoSrc, 'builder/sh_src/clean_aux.sh').
+	ciao_root(CiaoRoot),
+	Path = ~path_concat(CiaoRoot, 'builder/sh_src/clean_aux.sh').
 
 % ---------------------------------------------------------------------------
 

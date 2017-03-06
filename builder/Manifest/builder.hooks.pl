@@ -110,17 +110,16 @@ def_registration_type(local, user).
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/4]).
 
-% TODO: default installation dir for 'local' inttype; it should not be used!
-local_inst_dir := ~bundle_path(core, builddir, '.').
+% Prefix for installation
 
-:- bundle_flag(install_prefix, [
-    comment("Install prefix"),
+:- bundle_flag(prefix, [
+    comment("Prefix for installation directories"),
     details(
       % .....................................................................
       "Specify the directory to perform the installation."),
     rule_set_value(Value, (
       flag(instype(InsType)),
-      InsType == 'local', local_inst_dir(Value))),
+      InsType == 'local', Value = '')), % (none)
     rule_default(DefValue, (
       flag(instype(InsType)),
       get_prefix(InsType, DefValue))),
@@ -130,19 +129,47 @@ local_inst_dir := ~bundle_path(core, builddir, '.').
 
 get_prefix(global, '/usr/local').
 
-:- bundle_flag(install_bindir, [
-    comment("Installation directory for executables"),
+concat_if_not_null('', _, '') :- !.
+concat_if_not_null(Prefix, Rel, Path) :- path_concat(Prefix, Rel, Path).
+
+% Base for CIAOROOT (installation goes another directory with the
+% system version will be stored)
+
+:- bundle_flag(install_ciaoroot_base, [
+    comment("Base for system installation"),
+    details(
+      % .....................................................................
+      "Base directory for installing (multiple) Ciao versions"),
     rule_set_value(Value, (
-      flag(install_prefix(Prefix)),
-      path_concat(Prefix, 'bin', Value)))
+      flag(prefix(Prefix)),
+      concat_if_not_null(Prefix, 'ciao', Value)))
 ]).
 
-:- bundle_flag(install_libdir, [
-    comment("Installation directory for libraries"),
+% Standard Unix-like default directories (for 'activation')
+
+:- bundle_flag(bindir, [
+    comment("Installation directory for executables"),
     rule_set_value(Value, (
-      flag(install_prefix(Prefix)),
-      path_concat(Prefix, 'lib', Value)))
+      flag(prefix(Prefix)),
+      concat_if_not_null(Prefix, 'bin', Value)))
 ]).
+
+:- bundle_flag(mandir, [
+    comment("Installation directory for 'man' pages"),
+    rule_set_value(Value, (
+      flag(prefix(Prefix)),
+      concat_if_not_null(Prefix, 'share/man', Value)))
+]).
+
+:- bundle_flag(infodir, [
+    comment("Installation directory for 'info' files"),
+    rule_default(''),
+    rule_set_value(Value, (
+      flag(prefix(Prefix)),
+      concat_if_not_null(Prefix, 'share/info', Value)))
+]).
+
+% Permissions and groups
 
 :- bundle_flag(execmode, [
     comment("Permissions for installed execs/dirs"),

@@ -16,7 +16,6 @@ distname  	    {{VersionedPackName}}
 checksums           md5 {{MD5CheckSum}}
 
 configure.cmd       ./ciao-boot.sh configure
-configure.args-append		--lpdoc:htmldir=${prefix}/share/doc/ciao/html
 
 build.cmd           ./ciao-boot.sh
 build.target        build

@@ -18,12 +18,8 @@ _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
 # Paths for CIAOROOT
 
 # ({{Var}} filled from .hooks.pl)
-bindir={{BinDir}}
-docdirman={{DocDirMan}}
-docdirinfo={{DocDirInfo}}
-engbin={{EngBin}} # "$ciaoroot/build/eng/ciaoengine/objs/ciaoengine"
-enghdir={{EngHDir}} # "$ciaoroot/build/eng/ciaoengine/include"
-defaultlibdir={{DefaultLibDir}} # "$ciaoroot/core"
+ciaoroot={{CiaoRoot}}
+engmainmod={{EngMainMod}}
 
 # (do not change the following line! see prebuilt_boot.sh)
 reloc=no
@@ -66,16 +62,20 @@ add_mandir() { # dir
 }
 
 # ---------------------------------------------------------------------------
-# Get paths from CIAOROOT
+# Get paths from a given workspace
 
-treat_ciaoroot() {
-    add_bindir "$bindir"
-    add_infodir "$docdirman"
-    add_mandir "$docdirinfo"
+treat_wksp() {
+    add_bindir "$1/build/bin"
+    add_infodir "$1/build/doc"
+    add_mandir "$1/build/doc"
 }
 
 # ---------------------------------------------------------------------------
-# Get paths from CIAOPATH
+# Get paths from CIAOROOT or CIAOPATH
+
+treat_ciaoroot() {
+    treat_wksp "$ciaoroot"
+}
 
 treat_ciaopath() {
     if [ x"$CIAOPATH" = x"" ]; then
@@ -97,9 +97,7 @@ treat_ciaopath_1() {
 treat_ciaopath_2() {
     unset IFS # get back to normal IFS
     for i in "$@"; do
-	add_bindir "$i"/build/bin
-	add_infodir "$i"/build/doc
-	add_mandir "$i"/build/doc
+	treat_wksp "$i"
     done
 }
 
@@ -144,9 +142,10 @@ gen_env() { # tgtshell
     env_"$1" MANPATH "$MANPATH"
     env_"$1" INFOPATH "$INFOPATH"
     if [ $reloc = yes ]; then
-	env_"$1" CIAOENGINE "$engbin"
-	env_"$1" CIAOHDIR "$enghdir"
-	env_"$1" CIAOLIB "$defaultlibdir"
+	env_"$1" CIAOENGINE "$ciaoroot/build/eng/$engmainmod/objs/$engmainmod"
+	env_"$1" CIAOHDIR "$ciaoroot/build/eng/$engmainmod/include"
+	# TODO: Do not use! define CIAOROOT instead
+	env_"$1" CIAOLIB "$ciaoroot/core"
     fi
     epilogue_"$1"
 }

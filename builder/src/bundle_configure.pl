@@ -493,6 +493,7 @@ eval_config_rules_(BundleSet) :-
 	  in_bundleset(BundleSet, Bundle),
 	  Flag = Bundle:Name,
 	  m_bundle_config_entry(Bundle, Name, _),
+	    % display(eval_config_rule(Flag, [])), nl,
 	    eval_config_rule(Flag, []),
 	    fail
 	; true
@@ -501,7 +502,7 @@ eval_config_rules_(BundleSet) :-
 % Evaluate rule for configuration mode flag
 eval_config_mode_flag :-
 	( get_builder_flag(interactive_config, true) ->
-	    eval_config_rule(builder:configuration_mode, []) % (~root_bundle)
+	    eval_config_rule(builder:configuration_mode, [])
 	; true
 	).
 
@@ -642,7 +643,7 @@ eval_config_rule(Flag, Seen) :-
 	  % TODO: explain only if not customizing?
 	  % Explain default value
 	  ( flag_def(Flag, default_comment(Message)) ->
-	      display_default(Message, DefaultValue)
+	      display_default(Flag, Message, DefaultValue)
 	  ; true
 	  ),
 	  % Explain a particular default value
@@ -679,13 +680,13 @@ interactive_flag(_) :-
 	\+ get_builder_flag(interactive_config, 'true'),
 	!,
 	fail.
-interactive_flag(builder:configuration_mode) :- % (always ask on interactive) % (~root_bundle)
+interactive_flag(builder:configuration_mode) :- % (always ask on interactive)
 	!.
 interactive_flag(Flag) :-
 	( flag_def(Flag, interactive(ConfigModes))
 	; flag_def(Flag, interactive), ConfigModes = ['basic', 'advanced']
 	),
-	current_bundle_flag(builder:configuration_mode, ConfigMode), % (~root_bundle)
+	current_bundle_flag(builder:configuration_mode, ConfigMode),
 	member(ConfigMode, ConfigModes),
 	!.
 
@@ -745,39 +746,34 @@ show_bundle_flag(Flag, Value) :-
 
 flag_show_string(Flag, ShowName) :-
 	( flag_def(Flag, comment(Comment)) ->
-	    ShowName = Comment
-	; Flag = Bundle:Name,
-	  atom_codes(Bundle, BundleS),
-	  atom_codes(Name, NameS),
-	  list_concat([BundleS, ":", NameS], ShowName)
+	    true
+	; Comment = ""
+	),
+	flag_show_string_(Flag, Comment, ShowName).
+
+flag_show_string_(Flag, Comment, ShowName) :-
+	Flag = Bundle:Name,
+	atom_codes(Bundle, BundleS),
+	atom_codes(Name, NameS),
+	( Comment = "" ->
+	    list_concat([BundleS, ":", NameS], ShowName)
+	; list_concat([Comment/*, BundleS, ":", NameS*/], ShowName)
 	).
 
-display_default(ShowName, Value) :-
-	display('[ '),
+% TODO: messages can still be confusing
+display_default(Flag, Comment, Value) :-
+	flag_show_string_(Flag, Comment, ShowName),
+	display('   [ '),
 	display_string(ShowName),
-	display(': '),
+	display('? '),
 	display(Value),
 	display(' ]\n').
 
 display_option(ShowName, Value) :-
-	length(ShowName, N),
-	N2 is 30 - N,
 	display('   '),
 	display_string(ShowName),
-	display(':'),
-	( N2 < 1 -> true
-	; N2 = 1 -> display(' ')
-	; N3 is N2 - 1,
-	  display(' '), repeated_display('.', N3)
-	),
-	display_list([' ', Value, '\n']).
-
-repeated_display(_,    0) :- !.
-repeated_display(Term, Times) :-
-	Times > 0,
-	Times2 is Times - 1,
-	display(Term),
-	repeated_display(Term, Times2).
+	display('... '),
+	display_list([Value, '\n']).
 
 % ---------------------------------------------------------------------------
 % Set of set_prolog_flags from bundle config values (non-default values)

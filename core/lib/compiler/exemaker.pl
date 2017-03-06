@@ -35,6 +35,7 @@
 		winpath/2,
 		delete_file/1,
 		set_exec_mode/2]).
+:- use_module(engine(internals), [ciao_root/1]).
 :- use_module(engine(system_info), [get_platform/1]).
 :- use_module(library(compiler/engine_path), [get_engine_file/2]).
 :- use_module(library(compiler/pl2wam)).
@@ -119,17 +120,17 @@ skipOnlib(Base) :-
 	(file_exists(SoName) -> assertz_fact(has_so_file(Base)) ; true).
 
 in_lib(Base) :-
-	ciao_lib_dir(CorePath),
-	atom_concat(CorePath, Name, Base),
-	( atom_concat('/lib', _, Name) -> true % In lib/ or library/
+	ciao_root(CiaoRoot),
+	atom_concat(CiaoRoot, Name, Base),
+	( atom_concat('/core/lib', _, Name) -> true % In lib/ or library/
 	; fail
 	).
 
 in_lib_or_engine(Base) :-
-	ciao_lib_dir(CorePath),
-	atom_concat(CorePath, Name, Base),
-	( atom_concat('/lib', _, Name) -> true % In lib/ or library/
-	; atom_concat('/engine/', _, Name) -> true % In engine/
+	ciao_root(CiaoRoot),
+	atom_concat(CiaoRoot, Name, Base),
+	( atom_concat('/core/lib', _, Name) -> true % In lib/ or library/
+	; atom_concat('/core/engine/', _, Name) -> true % In engine/
 	; fail
 	).
 

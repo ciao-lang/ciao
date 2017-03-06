@@ -30,9 +30,9 @@
             file:
 
 @begin{verbatim}
-        (load-file "INSTALL_STOREDIR/ciao-site-file.el")
-        (if (file-exists-p "INSTALL_STOREDIR/ciao-site-file.el")
-          (load-file "INSTALL_STOREDIR/ciao-site-file.el")
+        (load-file "INSTALL_CIAOROOT/ciao-site-file.el")
+        (if (file-exists-p "INSTALL_CIAOROOT/ciao-site-file.el")
+          (load-file "INSTALL_CIAOROOT/ciao-site-file.el")
         )
 @end{verbatim}
 

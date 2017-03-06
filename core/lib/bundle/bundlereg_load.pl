@@ -23,27 +23,18 @@ bundlereg_filename(Bundle, BundleRegDir, File) :-
 :- export(bundlereg_version/1).
 bundlereg_version(3). % Version of the bundlereg file
 
-% :- use_module(engine(system_info), [ciao_lib_dir/1]).
-% :- use_module(engine(internals), [bundlereg_version/1]).
+:- export(get_bundlereg_dir/2).
+% Directory to store bundlereg, relative to the workspace path Wksp
+get_bundlereg_dir(Wksp, BundleRegDir) :-
+	path_concat(Wksp, 'build/bundlereg', BundleRegDir).
 
-% (see bundle_scan:rootprefix_bundle_reg_file/3 for InsType=global)
-:- export(bundle_reg_dir/2).
-bundle_reg_dir(InsType, BundleRegDir) :- InsType = local,
-	% (heuristic to detect builddir when running from a global installation)
+% TODO: make this definition the default one (not ciao_lib_dir)
+% :- use_module(engine(system_info), [ciao_lib_dir/1]).
+:- export(ciao_root/1).
+% The CIAOROOT directory
+ciao_root(CiaoRoot) :-
 	ciao_lib_dir(CorePath),
-	path_concat(CorePath, 'bundlereg', BundleRegDir0),
-	file_exists(BundleRegDir0, 0),
-	!,
-	BundleRegDir = BundleRegDir0.
-bundle_reg_dir(InsType, BundleRegDir) :- InsType = local, !,
-	% (heuristic to detect builddir in local installation)
-	ciao_lib_dir(CorePath),
-	path_split(CorePath, CiaoRoot, _),
-	path_concat(CiaoRoot, 'build', BuildDir),
-	path_concat(BuildDir, 'bundlereg', BundleRegDir).
-bundle_reg_dir(InsType, BundleRegDir) :- InsType = inpath(Path), !,
-	path_concat(Path, 'build', BuildDir),
-	path_concat(BuildDir, 'bundlereg', BundleRegDir).
+	path_split(CorePath, CiaoRoot, _).
 
 :- import(system, [extract_paths/2]).
 :- import(system, [c_get_env/2]).
@@ -91,10 +82,10 @@ reload_bundleregs :-
 	clean_bundlereg_db,
 	% Load bundle regs in ciao_path/1 and local (or installed) path
 	( % (failure-driven loop)
-	  ( ciao_path(Dir),
-	    bundle_reg_dir(inpath(Dir), BundleRegDir)
-	  ; bundle_reg_dir(local, BundleRegDir)
+	  ( ciao_path(Wksp)
+	  ; ciao_root(Wksp)
 	  ),
+	    get_bundlereg_dir(Wksp, BundleRegDir),
 	    reload_bundleregs_(BundleRegDir),
 	    fail
 	; true

@@ -119,6 +119,7 @@ eng_name="$eng_name"
 eng_h_alias="ciao"
 eng_srcpath="$ciaoroot/core/engine"
 eng_use_stat_libs=no
+eng_default_ciaoroot="$ciaoroot"
 eng_addobj=
 eng_addcfg=
 eng_ciao_config="$builddir/bundlereg/ciao.bundlecfg_sh"

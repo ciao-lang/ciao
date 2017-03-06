@@ -966,21 +966,22 @@ match_def(precomp_builddir_yield(Level), PT) :=
 match_def(precomp_builddir_yield(Level), filename) :=
 	~precomp_builddir_yield_(Level).
 
-:- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/4]).
+:- use_module(engine(internals), [ciao_root/1]).
 
 % TODO: Specify bundle!
 % TODO: bootbuilddir should not be needed (in theory)
-precomp_builddir_yield_(src) := ~bundle_path(ciao, builddir, 'doc'). % src level produces doc/
-precomp_builddir_yield_(src) := ~bundle_path(ciao, bootbuilddir, 'doc'). % src level produces doc/
-precomp_builddir_yield_(noa) := ~bundle_path(ciao, builddir, 'eng'). % noa level produces eng/
-precomp_builddir_yield_(noa) := ~bundle_path(ciao, bootbuilddir, 'eng'). % noa level produces eng/
-precomp_builddir_yield_(noa) := ~bundle_path(ciao, builddir, 'bin'). % noa level produces bin/
-precomp_builddir_yield_(noa) := ~bundle_path(ciao, bootbuilddir, 'bin'). % noa level produces bin/
-precomp_builddir_yield_(noa) := ~bundle_path(ciao, builddir, 'bundlereg'). % noa level produces bundlereg/
-precomp_builddir_yield_(noa) := ~bundle_path(ciao, bootbuilddir, 'bundlereg'). % noa level produces bundlereg/
+precomp_builddir_yield_(src) := ~bundle_path(core, builddir, 'doc'). % src level produces doc/
+precomp_builddir_yield_(src) := ~bundle_path(core, bootbuilddir, 'doc'). % src level produces doc/
+precomp_builddir_yield_(noa) := ~bundle_path(core, builddir, 'eng'). % noa level produces eng/
+precomp_builddir_yield_(noa) := ~bundle_path(core, bootbuilddir, 'eng'). % noa level produces eng/
+precomp_builddir_yield_(noa) := ~bundle_path(core, builddir, 'bin'). % noa level produces bin/
+precomp_builddir_yield_(noa) := ~bundle_path(core, bootbuilddir, 'bin'). % noa level produces bin/
+precomp_builddir_yield_(noa) := ~bundle_path(core, builddir, 'bundlereg'). % noa level produces bundlereg/
+precomp_builddir_yield_(noa) := ~bundle_path(core, bootbuilddir, 'bundlereg'). % noa level produces bundlereg/
 % TODO: add a level to include third-party source?
 % (see third_party_install.pl)
-precomp_builddir_yield_(bin) := ~bundle_path(ciao, 'third-party'). % bin level produces third-party/
+precomp_builddir_yield_(bin) := ~path_concat(~ciao_root, 'third-party'). % bin level produces third-party/
 % precomp_builddir_yield_(full) := _ :- fail. % full level produces nothing (more)
 
 % ---------------------------------------------------------------------------

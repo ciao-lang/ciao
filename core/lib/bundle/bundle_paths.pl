@@ -9,7 +9,8 @@
    underlying file system.").
 
 :- use_module(engine(internals),
-	[ciao_path/1,
+	[ciao_root/1,
+	 ciao_path/1,
 	 '$bundle_id'/1,
 	 '$bundle_srcdir'/2]).
 :- use_module(library(system), [working_directory/2]).
@@ -36,9 +37,9 @@ bundle_path(Bundle, Rel, Path) :-
 	bundle_path(Bundle, src, Rel, Path).
 
 :- export(bundle_path/4).
-:- pred bundle_path(+Bundle, +Rel, -Path) # "Obtain the absolute path
-   @var{Path} for the path @var{Rel} relative to the source code
-   location of @var{Bundle}".
+:- pred bundle_path(+Bundle, +Location, +Rel, -Path) # "Obtain the
+   absolute path @var{Path} for the path @var{Rel} relative to the
+   source code location of @var{Bundle}".
 
 bundle_path(Bundle, _Location, _Rel, _Path) :-
 	var(Bundle), !, throw(error(unbound_bundle, bundle_path/4)).
@@ -54,30 +55,30 @@ loc_path(src, Bundle, R) :-
 	'$bundle_srcdir'(Bundle, R).
 loc_path(builddir, Bundle, R) :-
 	% Base for bundle build
-	bundle_to_bldid(Bundle, BldId),
-	( BldId = inpath(Path) -> R0 = Path
-	; '$bundle_srcdir'(ciao, R0) % (~root_bundle)
-	),
+	bundle_workspace(Bundle, R0),
 	R = ~path_concat(R0, ~relbuild(build)).
 loc_path(bootbuilddir, _Bundle, R) :-
 	% Base for bundle build (boot)
-	'$bundle_srcdir'(ciao, R0), % (~root_bundle)
+	ciao_root(R0),
 	R = ~path_concat(R0, ~relbuild(bootbuild)).
 
 % relative directory names for builddir (see sh scripts too)
 relbuild(build, 'build'). % normal build
 relbuild(bootbuild, 'build-boot'). % bootstrap build
 
-% BldId corresponding to Bundle
-bundle_to_bldid(Bundle, BldId) :-
-	( '$bundle_srcdir'(Bundle, Dir), % (may fail for ~root_bundle)
+:- export(bundle_workspace/2).
+% Workspace corresponding to Bundle
+bundle_workspace(Bundle, R0) :-
+	( Bundle = ciao -> % ~root_bundle
+	    ciao_root(R0)
+	; '$bundle_srcdir'(Bundle, Dir), % (may fail for ~root_bundle)
 	  ciao_path(Path), % TODO: Must not include CIAOROOT!
 	  ( Path = Dir
 	  ; path_get_relative(Path, Dir, _)
 	  ) -> % Dir is relative to Path
-	    BldId = inpath(Path)
+	    R0 = Path
 	; % otherwise assume local (under CIAOROOT)
-	  BldId = build
+	  ciao_root(R0)
 	).
 
 % ---------------------------------------------------------------------------

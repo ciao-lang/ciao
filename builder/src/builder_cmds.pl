@@ -76,7 +76,7 @@ builder_cmd_nobndl(clean_tree(Dir)) :- !,
 :- use_module(library(lists), [reverse/2]).
 
 :- use_module(ciaobld(messages_aux), [cmd_message/3, dmc_message/3]).
-:- use_module(ciaobld(config_common), [instype/1]).
+:- use_module(ciaobld(install_aux), [instype/1]).
 :- use_module(ciaobld(manifest_compiler), [
     ensure_load_manifest/1,
     manifest_call/2,
@@ -276,6 +276,7 @@ check_no_part(Target) :-
 % Dependencies of a bundle
 
 :- use_module(engine(internals), ['$bundle_srcdir'/2]). % TODO: Do not use bundle_srcdir here? add manifest_srcdir for build-time?
+:- use_module(engine(internals), [ciao_root/1]).
 :- use_module(library(pathnames), [path_get_relative/3]).
 :- use_module(ciaobld(builder_flags), [get_builder_flag/2]).
 :- use_module(ciaobld(builder_flags), [set_builder_flag/2]).
@@ -298,15 +299,24 @@ bundle_dep_(Bundle, Dep) :-
 	manifest_call(Bundle, dep(Dep, _)).
 
 % A system bundle
+% (for convenience enumerates first using fix_order_sys_bundle/1)
+%
+% NOTE: order really does not matter since bundle dependencies are
+%   taken into acoount, but it is clear for some user operations like
+%   configuring bundles.
+
+sys_bundle(Bundle) :- fix_order_sys_bundle(Bundle), '$bundle_id'(Bundle).
 sys_bundle(Bundle) :-
-	root_bundle(RootBundle),
-	'$bundle_srcdir'(RootBundle, RootSrcDir),
+	ciao_root(CiaoRoot),
 	'$bundle_id'(Bundle),
-	( Bundle = RootBundle -> true
-	; % SrcDir is relative to RootSrcDir
-	  '$bundle_srcdir'(Bundle, SrcDir),
-	  path_get_relative(RootSrcDir, SrcDir, _)
-	).
+	\+ fix_order_sys_bundle(Bundle),
+	% SrcDir is relative to CiaoRoot
+	'$bundle_srcdir'(Bundle, SrcDir),
+	path_get_relative(CiaoRoot, SrcDir, _).
+
+fix_order_sys_bundle(ciao). % ~root_bundle % TODO: remove at some point
+fix_order_sys_bundle(builder).
+fix_order_sys_bundle(core).
 
 :- use_module(library(bundle/bundle_paths), [bundle_path/4]).
 
@@ -660,11 +670,10 @@ ask_promote_bootstrap(Eng) :-
 'cmd.comment'(prepare_build_bin, ["preparing build [bin]", "prepared build [bin]"]).
 'cmd.grade'(prepare_build_bin, custom_bin).
 
-:- use_module(ciaobld(ciaoc_aux), [
-    builddir_clean/2,
-    clean_tree/1
-]).
+:- use_module(ciaobld(builder_aux), [builddir_clean/2]).
+:- use_module(ciaobld(ciaoc_aux), [clean_tree/1]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
+:- use_module(library(pathnames), [path_concat/3]).
 
 % Like 'clean', but keeps documentation targets.
 % (This reverses the 'build_bin' and part of 'build_docs' actions)
@@ -680,9 +689,10 @@ ask_promote_bootstrap(Eng) :-
 do_clean_bundle(Bundle) :-
 	( root_bundle(Bundle) ->
             % TODO: Clean Manifest/... in each bundle too
-	    clean_tree(~bundle_path(Bundle, 'Manifest')) % TODO: ad-hoc, clean .po,.itf, etc.
+	    clean_tree(~path_concat(~ciao_root, 'Manifest')) % TODO: ad-hoc, clean .po,.itf, etc.
 	; % TODO: does not work with CIAOCACHEDIR! fix
 	  % TODO: clean only on lib, etc. areas (not externals/ etc.)
+	  % clean_tree(~bundle_path(Bundle, 'Manifest')) % TODO: only if it is a directory!
 	  clean_tree(~bundle_path(Bundle, '.'))
 	).
 
@@ -764,7 +774,7 @@ do_clean_root(Bundle) :-
 % ---------------------------------------------------------------------------
 % install/uninstall (bin)
 
-:- use_module(ciaobld(builder_prim), [
+:- use_module(ciaobld(install_aux), [
   install_bin_dirs/1,
   uninstall_bin_dirs/1,
   install_bundlereg/1,
@@ -887,13 +897,8 @@ do_clean_root(Bundle) :-
 % Show bundle documentation
 
 :- use_module(ciaobld(lpdoc_aux), [show_doc/3]).
-:- use_module(ciaobld(builder_aux), [
-    versioned_manual_base/3
-]).
 
-% TODO: add command to locate path of a given command
-%   'ciaopp_cmdV' = ~cmdname_ver(yes, ciaopp, 'ciaopp', plexe), 'ciaopp_cmd' = ~cmdname_ver(no, ciaopp, 'ciaopp', plexe),
-%   'lpdoc_cmdV' = ~cmdname_ver(yes, lpdoc, 'lpdoc', plexe), 'lpdoc_cmd' = ~cmdname_ver(no, lpdoc, 'lpdoc', plexe),
+% TODO: add command to locate path of a given command (use cmd_path)
 
 %	invoke_lpdoc(['--autogen_warning=yes',
 %	              '--allow_markdown=no',
@@ -915,7 +920,6 @@ do_clean_root(Bundle) :-
 	    ( member(main=Path, Props) -> true
 	    ; fail % ill-formed
 	    ),
-	    % versioned_manual_base(Bundle, Base, R),
 	    show_doc(Bundle, Path, DocFormat),
 	    fail
 	; true

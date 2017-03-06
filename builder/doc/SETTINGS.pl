@@ -17,44 +17,45 @@ doc_structure :=
 	  % Driver of commands on bundles
           'ciao_builder'-[
             'ciaocl_parser', % TODO: This is for internals
-            'ciaocl_help', % TODO: This is for internals
-            'manifest_compiler'-[
-              'bundlehooks_holder'
-            ],
-	    % Command driver and definitions
-            'builder_cmds'-[
-              % Primitive targets
-              'builder_prim',
-	      % Build
-              'third_party_install',
-              'ciaoc_aux',
-              'lpdoc_aux',
-              'eng_maker',
-              'eng_defs',
-              'builder_aux',
-	      % Installation
-	      'info_installer',
-	      'register_in_script',
-	      % Other operations on source
-              'bundle_hash',
-              'detcheader',
-	      % Auxiliary
-              'messages_aux',
-              'interactive_aux'
-            ],
-	    % Configuration
-            'bundle_configure',
-	    % Fetching
-            'bundle_fetch',
-	    % Packaging
-            'pbundle_generator'-[
-              'pbundle_meta',
-              'pbundle_gen_bin',
-              'pbundle_gen_mac',
-              'pbundle_gen_rpm',
-              'pbundle_gen_src',
-              'pbundle_gen_win32'
-            ]
+            'ciaocl_help' % TODO: This is for internals
+          ],
+          'manifest_compiler'-[
+            'bundlehooks_holder'
+          ],
+	  % Command driver and definitions
+          'builder_cmds'-[
+            % Primitive targets
+            'builder_prim',
+	    % Build
+            'third_party_install',
+            'ciaoc_aux',
+            'lpdoc_aux',
+            'eng_maker',
+            'eng_defs',
+            'builder_aux',
+            'install_aux',
+	    % Installation
+	    'info_installer',
+	    'register_in_script',
+	    % Other operations on source
+            'bundle_hash',
+            'detcheader',
+	    % Auxiliary
+            'messages_aux',
+            'interactive_aux'
+          ],
+	  % Configuration
+          'bundle_configure',
+	  % Fetching
+          'bundle_fetch',
+	  % Packaging
+          'pbundle_generator'-[
+            'pbundle_meta',
+            'pbundle_gen_bin',
+            'pbundle_gen_mac',
+            'pbundle_gen_rpm',
+            'pbundle_gen_src',
+            'pbundle_gen_win32'
           ]
         ].
 

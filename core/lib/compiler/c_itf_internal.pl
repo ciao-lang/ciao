@@ -101,11 +101,11 @@
 	poversion/1, '$qread'/2, '$push_qlinfo'/0, '$pop_qlinfo'/0,
 	% Used by mexpand
 	module_concat/3, term_to_meta/2]).
+:- use_module(engine(internals), [ciao_root/1]).
 :- use_module(library(system), [
 	modif_time0/2, modif_time/2, time/1, fmode/2, chmod/2,
 	working_directory/2, file_exists/1, file_exists/2, delete_file/1,
 	mktemp/2]).
-:- use_module(engine(system_info), [ciao_lib_dir/1]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(dynamic),    [wellformed_body/3]).
 :- use_module(library(pathnames),  [path_basename/2, path_concat/3]).
@@ -3285,10 +3285,9 @@ foreign_dynlink(_SoName, Module):-
 foreign_dynlink(SoName, Module):-
 	% We change directory before loading a foreign library to be
 	% able to load dependencies (e.g. third parties) relatively to
-	% to ciao_lib_dir. 
-	( ciao_lib_dir(CorePath), file_exists(CorePath) -> 
+	% to ciao_root. 
+	( ciao_root(CiaoRoot), file_exists(CiaoRoot) -> 
 	    % TODO: is there a better way? this seems a bit weak
-            path_concat(CorePath,'..',CiaoRoot),
 	    working_directory(CurrentDir, CiaoRoot)
 	; working_directory(CurrentDir, CurrentDir)
         ),

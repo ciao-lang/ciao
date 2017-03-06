@@ -13,22 +13,18 @@ _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
 
 # ----------------------------------------------------------------
 
-# try versioned alternatives (needed for build in instype=global)
-# TODO: temporary, see cmdname_ver/5
-alt() { local f=$1; [ -x "$f" ] || f=$2; printf "%s" "$f"; }
-
 use_rlwrap=yes # TODO: Turn into an option
 
 # ({{Var}} filled from .hooks.pl)
-ciao_builder_bin=$(alt "$_base"/{{ciao_builder_cmdV}} "$_base"/{{ciao_builder_cmd}})
-ciaosh_bin=$(alt "$_base"/{{ciaosh_cmdV}} "$_base"/{{ciaosh_cmd}})
-ciao_shell_bin=$(alt "$_base"/{{ciao_shell_cmdV}} "$_base"/{{ciao_shell_cmd}})
-ciaoc_bin=$(alt "$_base"/{{ciaoc_cmdV}} "$_base"/{{ciaoc_cmd}})
-#
 boot_ciaolib={{boot_ciaolib}}
 boot_bindir={{boot_bindir}}
 boot_ciaohdir={{boot_ciaohdir}}
 boot_ciaoengine={{boot_ciaoengine}}
+
+ciao_builder_bin="$_base"/ciao_builder
+ciaosh_bin="$_base"/ciaosh
+ciao_shell_bin="$_base"/ciao-shell
+ciaoc_bin="$_base"/ciaoc
 
 # ----------------------------------------------------------------
 # exec wrapper using rlwrap (if needed)

@@ -163,19 +163,6 @@ force the recompilation and cleaning of that part (see
 
 % ===========================================================================
 
-% Definitions for build and install directories:
-%
-% - builddir: directory to store configuration and compilation files
-% - bindir: directory where command binaries are installed
-% - storedir: directory where library files are installed
-% - bundledir: directory inside storedir for a particular bundle
-%
-% The bootstrap is compiled and run from its own 'builddir'
-% ('build-boot/'), which is different from the builddir of the system
-% ('build/').
-
-% ===========================================================================
-
 % Invocation from the command-line interface
 :- export(main/1).
 main(Args) :-
@@ -269,7 +256,8 @@ post_message(Cmd) :-
 
 show_post_message(configure(_)) :- !,
 	normal_message(
-"Please check that all the configuration values above (if any) are
+"
+Please check that all the configuration values above (if any) are
 correct. If not, you can change or customize the configuration using
 the command line or --interactive configure flag.
 
@@ -281,7 +269,7 @@ show_post_message(_).
 
 :- use_module(ciaobld(bundle_scan), [root_bundle/1]).
 :- use_module(ciaobld(bundle_scan), [scan_bundles_at_path/1]).
-:- use_module(ciaobld(builder_aux), [root_bundle_source_dir/1]).
+:- use_module(engine(internals), [ciao_root/1]).
 :- use_module(engine(internals),
 	['$bundle_id'/1,
 	 '$bundle_srcdir'/2]).
@@ -315,10 +303,10 @@ collect_ciao_paths([Target|Targets]) :-
 target_to_ciao_path(Target, Path) :- is_dir(Target), !,
 	ciao_path_at_dir(Target, Path).
 target_to_ciao_path(Target, Path) :-
-	( root_bundle(Target) ->
-	    root_bundle_source_dir(Path)
+	( root_bundle(Target) -> % TODO: rename by sys_target (alias for ciao_root workspace)
+	    ciao_root(Path)
 	; '$bundle_id'(Target), Bundle = Target,
-	  '$bundle_srcdir'(Bundle, Path0),
+	  '$bundle_srcdir'(Bundle, Path0), % not ~root_bundle
 	  ciao_path_at_dir(Path0, Path)
 	).
 

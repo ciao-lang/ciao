@@ -26,10 +26,11 @@
 :- use_module(library(pathnames), [path_get_relative/3]).
 :- use_module(library(version_strings), [version_split_patch/3]).
 
-:- use_module(ciaobld(eng_defs), [bld_eng_path/3]).
+:- use_module(ciaobld(eng_defs), [eng_path/3]).
 :- use_module(ciaobld(config_common),
 	[default_eng_def/1,
-	 cmdname_ver/5]).
+	 concat_ext/3]).
+:- use_module(engine(internals), [ciao_root/1]).
 :- use_module(engine(internals), ['$bundle_prop'/2]).
 :- use_module(library(bundle/bundle_info), [bundle_version/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
@@ -60,9 +61,10 @@ gen_pbundle_hook(win32, Bundle, _Options) :- !,
 	simple_message("Creating Windows installer for ~w, please be patient... ",
 	    [~bundle_versioned_packname(Bundle)]),
 	simple_message("Creating ISS scripts... "),
-	FileIss = 'Ciao.iss',
-	FileListName = 'file_list.iss',
-	create_iss_file(Bundle, FileIss, FileListName),
+	CiaoRoot = ~ciao_root,
+	FileIss = ~path_concat(CiaoRoot, 'Ciao.iss'),
+	FileListName = ~path_concat(CiaoRoot, 'file_list.iss'),
+	create_iss_file(CiaoRoot, Bundle, FileIss, FileListName),
 	compute_file_list_iss(FileListName),
 	create_pbundle_output_dir(Bundle),
 	simple_message("Compiling ISS scripts... "),
@@ -70,7 +72,7 @@ gen_pbundle_hook(win32, Bundle, _Options) :- !,
 	simple_message("Creation of Windows installer finished").
 
 % TODO: too many definitions here are hardwired
-create_iss_file(Bundle, FileIss, FileListName) :-
+create_iss_file(CiaoRoot, Bundle, FileIss, FileListName) :-
 	Version = ~bundle_version(Bundle),
 	version_split_patch(Version, VersionNopatch, _),
 	OutputBaseFileName = ~atom_codes(~bundle_versioned_packname(Bundle)),
@@ -86,15 +88,15 @@ create_iss_file(Bundle, FileIss, FileListName) :-
 	    'OutputBaseFileName' = OutputBaseFileName,
 	    'MyAppPublisher' = "The CLIP Laboratory", % TODO: extract from bundle
 	    'LicenseFile' = ~license_file,
- 	    'MyAppExeName' = ~cmdname_ver(yes, core, plexe, 'ciaosh'), % TODO: extract from bundle
+ 	    'MyAppExeName' = ~concat_ext(plexe, 'ciaosh'), % TODO: extract from bundle
 	    'CiaoVersion' = VersionNopatch, % TODO: extract from bundle
-	    'SourceDir' = ~atom_codes(~winpath(relative, ~bundle_path(ciao, '.'))), % (~root_bundle)
+	    'SourceDir' = ~atom_codes(~winpath(relative, CiaoRoot)),
 	    'MyRelBuildDir' = ~relciaodir(~bundle_path(Bundle, builddir, '.')),
 	    'OutputDir' = ~atom_codes(~winpath(relative, ~pbundle_output_dir(Bundle))),
 	    'ManualIcons' = ~get_manual_icons(Bundle),
 	    'DefaultDirName' = ~default_dir_name(Bundle),
-	    'CiaoEngineExec' = ~winpath(relative, ~relciaodir(~bld_eng_path(exec, Eng))),
-	    'FileListName' = ~winpath(full, ~bundle_path(ciao, FileListName)) % (~root_bundle)
+	    'CiaoEngineExec' = ~winpath(relative, ~relciaodir(~eng_path(exec, Eng))),
+	    'FileListName' = ~winpath(full, FileListName)
 	]).
 
 default_dir_name(Bundle) := D :-
@@ -156,7 +158,7 @@ current_file(Source, DestDir) :-
 rel_extra_system_file(Source, DestDir) :-
 	Eng = ~default_eng_def,
 	Source = ~winpath(~extra_system_file), % (nondet)
-	DestDir0 = ~winpath(relative, ~relciaodir(~bld_eng_path(objdir, Eng))),
+	DestDir0 = ~winpath(relative, ~relciaodir(~eng_path(objdir, Eng))),
 	DestDir = ~atom_concat(DestDir0, '\\').
 
 each_line(Lines0, Line) :-
@@ -188,19 +190,18 @@ extra_system_file('/usr/bin/cyggslcblas-0.dll').
 extra_system_file('/usr/lib/lapack/cygblas-0.dll').
 % TODO: hardwired, why?
 % TODO: Use inst_* instead of bld_*?
-extra_system_file := ~relciaodir(~bld_eng_path(exec, Eng)) :-
+extra_system_file := ~relciaodir(~eng_path(exec, Eng)) :-
 	Eng = ~default_eng_def.
-extra_system_file := ~relciaodir(~bld_eng_path(lib_so, Eng)) :-
+extra_system_file := ~relciaodir(~eng_path(lib_so, Eng)) :-
 	Eng = ~default_eng_def.
 
 relciaodir(S) := Dir :-
-	R = ~bundle_path(ciao, '.'), % (~root_bundle)
-	path_get_relative(R, S, Dir).
+	path_get_relative(~ciao_root, S, Dir).
 
 display_file_entry(Source, DestDir) :-
 	display_list(['Source: ', Source, '; DestDir:{app}\\', DestDir, '\n']).
 
-license_file := ~atom_codes(~winpath(relative, ~bundle_path(ciao, 'LGPL'))). % (~root_bundle)
+license_file := ~atom_codes(~winpath(relative, ~path_concat(~ciao_root, 'LGPL'))).
 
 fullwinname(File, WinName) :-
 	winpath(relative, File, WinName).
@@ -241,35 +242,6 @@ extract_filepath(FullName, PathSeparator, Path) :-
 
 % ===========================================================================
 
-% % TODO: this target is probably not necessary
-% gen_pbundle__win32_test <- :-
-% 	ciao_iss('Ciao_test.iss', 'file_list_test.iss',
-% 	    ~atom_codes(~bundle_versioned_packname(~root_bundle))),
-% 	file_list_test_iss('file_list_test.iss'),
-% 	gen_pbundle__win32_test.
-
-% TODO: targets that are not necessary
-% 'Ciao.iss' <- ['Manifest/Ciao.iss.skel'] :: FileName :-
-% 	OutputBaseFileName = ~atom_codes(~bundle_versioned_packname(~root_bundle)),
-% 	ciao_iss(FileName, 'file_list.iss', OutputBaseFileName).
-% 
-% 'Ciao_test.iss' <- ['Manifest/Ciao.iss.skel'] :: FileName :-
-% 	OutputBaseFileName = ~append(~atom_codes(~bundle_versioned_packname(~root_bundle)),
-% 	    "-test"),
-% 	ciao_iss(FileName, 'file_list_test.iss', OutputBaseFileName).
-% 
-% 'file_list.iss' <- [] :: FileName :-
-% 	compute_file_list_iss(FileName).
-% 
-% 'file_list_test.iss' <- [] :: FileName :-
-% 	file_list_test_iss(FileName).
-
 % 'core/Win32/wsetup.cpx' <- ['core/Win32/wsetup.pl'] :-
 % 	make_exec(['core/Win32/wsetup.pl'], 'core/Win32/wsetup.cpx').
 
-% % TODO: this target is probably not necessary
-% gen_pbundle__win32_test :-
-% 	gen_pbundle__win32_('Ciao_test.iss').
-
-% file_list_test_iss(FileName) :-
-% 	file_list_type_iss(test, FileName).

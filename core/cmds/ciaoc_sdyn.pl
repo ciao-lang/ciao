@@ -1,5 +1,17 @@
 :- module(ciaoc_sdyn, [], [assertions]).
 
+:- doc(title, "Standalone executables with foreign code").
+:- doc(author, "Jose F. Morales").
+
+:- doc(module, "Usage:
+
+@begin{verbatim}
+$ ciaoc_sdyn MAIN
+@end{verbatim}
+").
+
+:- doc(bug, "Missing port to Windows (MinGW)").
+
 :- use_module(engine(internals), [
 	itf_filename/2,
 	po_filename/2,
@@ -15,18 +27,7 @@
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(format), [format/3]).
 :- use_module(library(streams), [open_output/2, close_output/1]).
-
-:- doc(title, "Standalone executables with foreign code").
-:- doc(author, "Jose F. Morales").
-
-:- doc(module, "Usage:
-
-@begin{verbatim}
-$ ciaoc_sdyn MAIN
-@end{verbatim}
-").
-
-:- doc(bug, "Missing port to Windows (MinGW)").
+:- use_module(engine(internals), [ciao_root/1]).
 
 % ---------------------------------------------------------------------------
 
@@ -115,6 +116,8 @@ dylib_deps(F, DepSO) :-
 dylib_deps(F, DepSO) :-
 	get_os('LINUX'),
 	!,
+	% TODO: See "foreign_dynlink/2: ugly trick to locate third-party libs with
+	% the ./third-party/lib rpath"
 	( DepSO = F % itself (like 'otool' does)
 	; ciao_root(Dir),
 	  process_call(path(ldd), [F], [stdout(atmlist(Xs)), cwd(Dir)]),
@@ -134,15 +137,6 @@ dylib_deps(F, DepSO) :-
 dylib_deps(_F, _DepSO) :-
 	get_os(OS),
 	throw(error(os_not_supported(OS), dylib_deps/2)).
-
-% TODO: See "foreign_dynlink/2: ugly trick to locate third-party libs with
-% the ./third-party/lib rpath"
-% TODO: duplicated
-ciao_root(CiaoRoot) :-
-	( ciao_lib_dir(CorePath), file_exists(CorePath) ->
-	    path_split(CorePath, CiaoRoot, _)
-	; throw(bug_no_ciao_root) % TODO: this should not happen
-        ).
 
 % Change paths for all user dynamic libraries
 dylib_change_paths(F) :-

@@ -347,14 +347,14 @@ target_is_bundle(Target) :-
 :- use_module(library(streams), [open_output/2, close_output/1]).
 
 :- export(make_bundlereg/4).
-:- pred make_bundlereg(Bundle, BundleDir, AliasBase, RegFile)
+:- pred make_bundlereg(Bundle, BundleDir, FinalBundleDir, RegFile)
    # "Generate a bundlereg @var{RegFile} for bundle @var{Bundle}
-      at @var{BundleDir}.  The base path for alias paths is
-      @var{AliasBase}.".
+      at @var{BundleDir}, where the final bundle directory is 
+      @var{FinalBundleDir}.".
 
 % TODO: code in a similar way to itf_data
 % TODO: use relative alias_path? process them in treat_sentence
-make_bundlereg(Bundle, BundleDir, AliasBase, RegFile) :-
+make_bundlereg(Bundle, BundleDir, FinalBundleDir, RegFile) :-
 	load_manifest(Bundle, BundleDir),
 	%
 	( manifest_fact(Bundle, alias_paths(RelAliasPaths)) ->
@@ -362,7 +362,7 @@ make_bundlereg(Bundle, BundleDir, AliasBase, RegFile) :-
 	; RelAliasPaths = []
 	),
 	%
-	abs_alias_paths(RelAliasPaths, AliasBase, AliasPaths),
+	abs_alias_paths(RelAliasPaths, FinalBundleDir, AliasPaths),
 	%
 	open_output(RegFile, UO),
 	%
@@ -396,10 +396,7 @@ make_bundlereg(Bundle, BundleDir, AliasBase, RegFile) :-
 	    fast_write(bundle_prop(Bundle, version(Ver)))
 	; true
 	),
-	% TODO: relocate BundleDir for InsType=global? (not a good
-	%   idea: hierarchy may not be preserved in installation
-	%   change; use bundle-qualified alias paths?)
-	fast_write(bundle_srcdir(Bundle, BundleDir)),
+	fast_write(bundle_srcdir(Bundle, FinalBundleDir)),
 	%
 	close_output(UO).
 
@@ -486,7 +483,6 @@ bundle_info(Bundle) :-
 % TODO: some duplicated/reexported in autodoc_lookup.pl
 
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
-:- use_module(ciaobld(builder_aux), [versioned_manual_base/3]).
 
 :- export(get_bundle_readme/2).
 % Output for bundle README files
@@ -498,7 +494,7 @@ get_bundle_readme(Bundle, R) :-
 % Base name for manuals of Bundle
 bundle_manual_base(Bundle) := R :-
 	manifest_call(Bundle, manual(Base, _Props)), % (nondet)
-	R = ~versioned_manual_base(Bundle, Base).
+	R = Base.
 
 
 

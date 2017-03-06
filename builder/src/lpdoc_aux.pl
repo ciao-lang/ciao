@@ -1,12 +1,11 @@
 :- module(_, [], [fsyntax, hiord, assertions, regtypes, isomodes]).
 
-:- doc(title,  "Extended interface to LPdoc").
-
+:- doc(title,  "Build documentation using LPdoc").
 :- doc(author, "Jos@'{e} F. Morales").
 :- doc(author, "Ciao Deveveloper Team").
 
-:- doc(module, "This is a wrapper around @apl{lpdoc} to build and
-   install the documentation of a bundle.").
+:- doc(module, "This is a wrapper around @apl{lpdoc} to build the
+   documentation of a bundle.").
 
 % ---------------------------------------------------------------------------
 
@@ -26,6 +25,7 @@ invoke_lpdoc(Args) :-
 % ---------------------------------------------------------------------------
 
 :- use_module(library(system), [file_exists/1]).
+:- use_module(library(source_tree), [copy_file_or_dir/2]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(pathnames), [path_splitext/3]).
 :- use_module(library(bundle/bundle_paths), [
@@ -65,92 +65,22 @@ build_doc(Bundle, Path) :-
 	path_concat(BundleDir, Path, AbsPath),
 	( file_exists(AbsPath) ->
 	    DocDir = ~bundle_path(Bundle, builddir, 'doc'),
-	    invoke_lpdoc(['--doc_mainopts=versioned_output',
-%	                  '--allow_markdown=no',
-%	                  '--syntax_highlight=no',
-	                  ~atom_concat('--output_dir=', DocDir),
-	                  '-t', 'all',
-			  AbsPath])
+	    invoke_lpdoc([
+	        % '--doc_mainopts=versioned_output',
+	        % '--allow_markdown=no',
+	        % '--syntax_highlight=no',
+	        ~atom_concat('--output_dir=', DocDir),
+		'-t', 'all',
+		AbsPath])
 	; % Allow missing manuals (e.g., for NODISTRIBUTE content)
 	  warning(['Manual ', Path, ' is missing. Skipping build']) % TODO: error?
 	).
 
 % ---------------------------------------------------------------------------
-
-:- use_module(library(system), [file_exists/1]).
-:- use_module(library(source_tree),
-	[copy_file_or_dir/2, remove_file_or_dir/1]).
-:- use_module(library(system_extra), [mkpath/1]).
-:- use_module(ciaobld(builder_aux), [rootprefixed/2]).
-
-:- use_module(library(bundle/doc_flags), [docformatdir/2]).
-
-:- export(install_doc/3).
-% Install manual `ManualBase` (name and version) from given `Bundle`
-% and format `DocFormat`. Do nothing if manual is not generated.
-% NOTE: needed even if ~instype = local (see bundle_install_docs_format_hook/3)
-install_doc(Bundle, ManualBase, DocFormat) :-
-	docformatdir(DocFormat, TargetDir0),
-	TargetDir = ~rootprefixed(TargetDir0),
-	DocExt = ~atom_concat('.', DocFormat),
-	FileName = ~atom_concat(ManualBase, DocExt),
-	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
-	Source = ~path_concat(DocDir, FileName),
-	Target = ~path_concat(TargetDir, FileName),
-	( file_exists(Source) ->
-	    % Copy if needed
-	    ( Source == Target -> % (typically when ~instype = local)
-	        true
-	    ; mkpath(TargetDir),
-	      copy_file_or_dir(Source, TargetDir)
-	    ),
-	    % Register doc (if needed)
-	    bundle_install_docs_format_hook(DocFormat, Bundle, Target)
-	; true % warning(['File ', Source, ' not generated yet. Skipping copy'])
-	).
-
-:- export(uninstall_doc/3).
-% Uninstall manual `ManualBase` (name and version) from given `Bundle`
-% and format `DocFormat`. Do nothing if manual is not generated.
-% NOTE: needed even if ~instype = local (see bundle_uninstall_docs_format_hook/3)
-uninstall_doc(Bundle, ManualBase, DocFormat) :-
-	docformatdir(DocFormat, TargetDir0),
-	TargetDir = ~rootprefixed(TargetDir0),
-	DocExt = ~atom_concat('.', DocFormat),
-	FileName = ~atom_concat(ManualBase, DocExt),
-	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
-	Source = ~path_concat(DocDir, FileName),
-	Target = ~path_concat(TargetDir, FileName),
-	( file_exists(Target) ->
-	    % Unregister doc (if needed)
-	    bundle_uninstall_docs_format_hook(DocFormat, Bundle, Target),
-	    % Remove if needed
-	    ( Source == Target -> % (typically when ~instype = local)
-	        true
-	    ; remove_file_or_dir(Target)
-	    )
-	; true
-	).
-
-% These predicates install the 'info' files in info dir.
-
-:- use_module(ciaobld(info_installer)).
-
-bundle_install_docs_format_hook(info, Bundle, Target) :- !,
-	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
-	dirfile_install_info(DocDir, Target).
-bundle_install_docs_format_hook(_, _, _).
-
-bundle_uninstall_docs_format_hook(info, Bundle, Target) :- !,
-	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
-	dirfile_uninstall_info(DocDir, Target).
-bundle_uninstall_docs_format_hook(_, _, _).
-
-% ---------------------------------------------------------------------------
 % TODO: merge with help module?
 
 :- export(show_doc/3).
-% Show documentation for `ManualBase` (name and version) from given `Bundle`
+% Show documentation for `Path` manual from given `Bundle`
 % and format `DocFormat`. Do nothing if manual is not generated.
 % TODO: may not work for installed bundles!
 show_doc(Bundle, Path, DocFormat) :- % ManualBase
@@ -158,17 +88,45 @@ show_doc(Bundle, Path, DocFormat) :- % ManualBase
 	path_concat(BundleDir, Path, AbsPath),
 	( file_exists(AbsPath) ->
 	    DocDir = ~bundle_path(Bundle, builddir, 'doc'),
-	    invoke_lpdoc(['--doc_mainopts=versioned_output',
-	                  ~atom_concat('--output_dir=', DocDir),
-	                  '-t', DocFormat,
-			  '--view', AbsPath])
+	    invoke_lpdoc([
+                % '--doc_mainopts=versioned_output',
+	        ~atom_concat('--output_dir=', DocDir),
+		'-t', DocFormat,
+		'--view', AbsPath])
 	; % Allow missing manuals (e.g., for NODISTRIBUTE content)
 	  % TODO: locate online?
 	  warning(['Manual ', Path, ' is missing.']) % TODO: error?
 	).
-        % TODO: for installed manuals:
-	%   docformatdir(DocFormat, TargetDir),
-	%   DocExt = ~atom_concat('.', DocFormat),
-	%   FileName = ~atom_concat(ManualBase, DocExt),
-	%   Target = ~path_concat(TargetDir, FileName),
+
+% ---------------------------------------------------------------------------
+% Manual paths
+
+get_manual_name(ManualBase, DocFormat) := FileName :-
+	DocExt = ~atom_concat('.', DocFormat),
+	FileName = ~atom_concat(ManualBase, DocExt).
+
+:- export(bld_manual_path/4).
+% Path for manual in builddir
+bld_manual_path(Bundle, ManualBase, DocFormat) := Path :-
+	FileName = ~get_manual_name(ManualBase, DocFormat),
+	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
+	Path = ~path_concat(DocDir, FileName).
+
+% TODO: Move inst_* act_* somewhere else?
+
+:- use_module(ciaobld(install_aux), [active_docdir/2, inst_builddir_path/2]).
+
+:- export(inst_manual_path/4).
+% Path for manual in instdir
+inst_manual_path(_Bundle, ManualBase, DocFormat) := Path :-
+	FileName = ~get_manual_name(ManualBase, DocFormat),
+	TargetDir = ~inst_builddir_path('doc'),
+	Path = ~path_concat(TargetDir, FileName).
+
+:- export(act_manual_path/4).
+% Path for manual in activation dir
+act_manual_path(_Bundle, ManualBase, DocFormat) := Path :-
+	FileName = ~get_manual_name(ManualBase, DocFormat),
+	ActTargetDir = ~active_docdir(DocFormat),
+	Path = ~path_concat(ActTargetDir, FileName).
 

@@ -309,6 +309,7 @@ int eng_is_sharedlib = $ENG_STUBMAIN_DYNAMIC;
 char *ciao_suffix = "$ciaosuffix";
 
 char *default_lib_dir = "$core__DEFAULTLIBDIR";
+char *default_ciaoroot = "$eng_default_ciaoroot";
 char *default_c_headers_dir = "$bld_hdir";
 
 char *foreign_opts_cc = "$CC";

@@ -19,8 +19,15 @@
 :- use_module(library(port_reify)).
 
 % NOTE: be careful with bundle_path/3 (bundles may not be loaded yet)
-:- use_module(ciaobld(config_common), [instciao_bundledir/2]).
-:- use_module(engine(internals), [bundle_reg_dir/2]).
+:- use_module(engine(internals), [get_bundlereg_dir/2]).
+:- use_module(engine(internals), [ciao_root/1]).
+
+% ---------------------------------------------------------------------------
+
+:- export(root_bundle/1).
+:- pred root_bundle/1 # "Meta-bundle that depends on all the system bundles.".
+% TODO: this should be sys_target/1 (not a bundle but a workspace)
+root_bundle(ciao).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Scan bundles at given workspace").
@@ -36,9 +43,7 @@
    the given workspace at @var{Path} directory (and reload
    bundleregs).".
 
-% TODO: Document extended InsType = local | inpath(_)
 % TODO: Allow a single bundle (use BundleSet?)
-
 scan_bundles_at_path(Path) :-
 	% Find bundles under Path and scan
 	find_bundles(Path),
@@ -46,28 +51,23 @@ scan_bundles_at_path(Path) :-
 	cleanup_find_bundles,
 	port_call(Port).
 
+% TODO: Assumes that Path corresponds to some valid workspace
 scan_bundles_at_path_(Path) :- % (requires find_bundles/2 data)
-	% TODO: Assumes that Path is correct
-	( root_bundle_source_dir(CiaoSrc),
-	  Path = CiaoSrc ->
-	    InsType = local
-	; InsType = inpath(Path)
-	),
 	% Create bundleregs
-	ensure_bundlereg_dir(InsType),
+	ensure_bundlereg_dir(Path),
 	( % (failure-driven loop)
 	  found_bundle(_Name, BundleDir),
-	    create_bundlereg(BundleDir, InsType),
+	    create_bundlereg(BundleDir, Path),
 	    fail
 	; true
 	),
 	% Remove orphan bundleregs (including configuration)
-	swipe_bundlereg_dir(InsType),
+	swipe_bundlereg_dir(Path),
 	% Finally reload bundleregs
 	reload_bundleregs.
 
-swipe_bundlereg_dir(InsType) :-
-	bundle_reg_dir(InsType, BundleRegDir),
+swipe_bundlereg_dir(Wksp) :-
+	get_bundlereg_dir(Wksp, BundleRegDir),
 	directory_files(BundleRegDir, Files),
 	( member(File, Files),
 	    ( orphan_reg_file(File) ->
@@ -88,34 +88,10 @@ orphan_reg_file(File) :-
 	),
 	\+ found_bundle(Name, _).
 
-% Make sure that the directory for the bundle database exists
-ensure_bundlereg_dir(InsType) :-
-	bundle_reg_dir(InsType, BundleRegDir),
+% Ensure that build/bundlereg exists in for Wksp workspace
+ensure_bundlereg_dir(Wksp) :-
+	get_bundlereg_dir(Wksp, BundleRegDir),
 	mkpath(BundleRegDir).
-
-% ---------------------------------------------------------------------------
-
-:- use_module(engine(internals), [bundlereg_filename/3]).
-:- use_module(engine(internals), [bundlereg_version/1]).
-:- use_module(ciaobld(builder_aux), [rootprefixed/2]).
-
-:- export(rootprefix_bundle_reg_dir/2).
-% Like bundle_reg_dir/2, but supporting InsType=global and prefixed
-% with rootprefix if needed.
-rootprefix_bundle_reg_dir(InsType, BundleRegDir) :-
-	( InsType = global ->
-	    % (special case relative to system_info:ciao_lib_dir/1)
-	    % TODO: use something different?
-	    instciao_bundledir(core, Dir),
-	    path_concat(Dir, 'bundlereg', BundleRegDir0),
-	    BundleRegDir = ~rootprefixed(BundleRegDir0)
-	; bundle_reg_dir(InsType, BundleRegDir)
-	).
-
-% File is the registry file for the Bundle bundle
-rootprefix_bundle_reg_file(InsType, Bundle, RegFile) :-
-	rootprefix_bundle_reg_dir(InsType, BundleRegDir),
-	bundlereg_filename(Bundle, BundleRegDir, RegFile).
 
 % ---------------------------------------------------------------------------
 
@@ -191,16 +167,6 @@ directory_has_mark(activate, Dir) :-
 
 % ---------------------------------------------------------------------------
 
-% BundleDir used in bundle registry (depends on InsType)
-reg_bundledir(InsType, Bundle, BundleDir, Dir) :-
-	( InsType = local -> Dir = BundleDir
-	; InsType = inpath(_Path) -> Dir = BundleDir
-	; InsType = global -> instciao_bundledir(Bundle, Dir)
-	; fail
-	).
-
-% ---------------------------------------------------------------------------
-
 :- doc(section, "Create/destroy bundleregs").
 % A bundlereg contains the processed manifest information and resolved
 % paths.
@@ -209,46 +175,28 @@ reg_bundledir(InsType, Bundle, BundleDir, Dir) :-
 
 :- use_module(library(pathnames), [path_split/3]).
 :- use_module(ciaobld(manifest_compiler), [make_bundlereg/4]).
-:- use_module(ciaobld(builder_aux), [root_bundle_source_dir/1]).
+:- use_module(engine(internals), [bundlereg_filename/3]).
 
 % TODO: hack, try to extract Bundle from Manifest, not dir (also in bundle.pl)
 bundledir_to_name(BundleDir, Bundle) :-
-	root_bundle_source_dir(RootDir),
-	( BundleDir = RootDir ->
-	    root_bundle(Bundle)
+	ciao_root(CiaoRoot),
+	( BundleDir = CiaoRoot ->
+	    root_bundle(Bundle) % TODO: this should not be needed
 	; path_split(BundleDir, _, Bundle)
 	).
 
 :- export(create_bundlereg/2).
-% Create a bundlereg for bundle at @var{BundleDir} and installation
-% type @var{InsType} (which determines the location of the bundle
-% registry and the absolute directories for alias paths).
-create_bundlereg(BundleDir, InsType) :-
-	% Obtain bundle name from path
-	bundledir_to_name(BundleDir, Bundle),
-	reg_bundledir(InsType, Bundle, BundleDir, AliasBase),
-	rootprefix_bundle_reg_file(InsType, Bundle, RegFile),
-	make_bundlereg(Bundle, BundleDir, AliasBase, RegFile).
+% Create a bundlereg for bundle at @var{BundleDir} (for workspace Wksp)
+create_bundlereg(BundleDir, Wksp) :-
+	bundledir_to_name(BundleDir, Bundle), % bundle name from path
+	get_bundlereg_dir(Wksp, BundleRegDir),
+	bundlereg_filename(Bundle, BundleRegDir, RegFile),
+	make_bundlereg(Bundle, BundleDir, BundleDir, RegFile).
 
 :- export(remove_bundlereg/2).
-% Remove the bundlereg for bundle @var{Bundle} and installation
-% type @var{InsType} (which determines the location of the bundle
-% registry).
-remove_bundlereg(Bundle, InsType) :-
-	rootprefix_bundle_reg_file(InsType, Bundle, RegFile),
+% Remove the bundlereg for bundle @var{Bundle} (for workspace Wksp)
+remove_bundlereg(Bundle, Wksp) :-
+	get_bundlereg_dir(Wksp, BundleRegDir),
+	bundlereg_filename(Bundle, BundleRegDir, RegFile),
 	del_file_nofail(RegFile).
-
-:- export(ensure_global_bundle_reg_dir/0).
-% Make sure that the directory for the (global installation) bundle
-% database exists
-ensure_global_bundle_reg_dir :-
-	rootprefix_bundle_reg_dir(global, BundleRegDir),
-	mkpath(BundleRegDir).
-
-% ---------------------------------------------------------------------------
-
-:- export(root_bundle/1).
-:- pred root_bundle/1 # "Meta-bundle that depends on all the system bundles.".
-% TODO: Include also user bundles? or define a new meta-bundle?
-root_bundle(ciao).
 

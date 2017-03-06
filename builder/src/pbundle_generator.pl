@@ -40,10 +40,10 @@ pbundle_codeitem_kind := tgz|rpm_x86|deb_x86|win|dmg.
 % TODO: Missing some internal manuals, add them.
 pbundle_docitem_kind := manual_html|manual_pdf.
 % Sub-bundles whose documentation is distributed explicitly as a docitem
-% TODO: extract from Bundle
-bundle_doc_subbundles(ciao, core, ciao, "Ciao Manual"). % (~root_bundle)
-bundle_doc_subbundles(ciao, ciaopp, ciaopp, "CiaoPP Manual"). % (~root_bundle)
-bundle_doc_subbundles(ciao, lpdoc, lpdoc, "LPdoc Manual"). % (~root_bundle)
+% TODO: ad-hoc for root_bundle! extract from Bundle!
+bundle_doc_subbundles(core, ciao, "Ciao Manual").
+bundle_doc_subbundles(ciaopp, ciaopp, "CiaoPP Manual").
+bundle_doc_subbundles(lpdoc, lpdoc, "LPdoc Manual").
 
 :- use_module(library(file_utils), [output_to_file/2]).
 :- use_module(library(version_strings), [version_split_patch/3]).
@@ -97,7 +97,11 @@ enum_pbundle_code_items(Bundle, Item) :-
 
 % Enumerate the pbundle items for documentation
 enum_pbundle_doc_items(Bundle, Item) :-
-	bundle_doc_subbundles(Bundle, SubBundle, SubBundleSuffix, SubBundleTitle),
+	( root_bundle(Bundle) ->
+	    % (nondet)
+	    bundle_doc_subbundles(SubBundle, SubBundleSuffix, SubBundleTitle) % TODO: ad-hoc
+	; fail
+	),
 	pbundle_docitem_kind(PDocKind),
 	pbundle_doc_item(Bundle, SubBundle, SubBundleSuffix, SubBundleTitle, PDocKind, Item).
 
