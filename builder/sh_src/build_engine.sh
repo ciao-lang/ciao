@@ -267,7 +267,7 @@ EOF
 eng_make() {
     local make="make -s"
     # Use gmake if available, otherwise expect make to be gmake
-    if which gmake > /dev/null; then make="gmake -s"; fi
+    if command -v gmake > /dev/null 2>&1; then make="gmake -s"; fi
     $make --no-print-directory -j$PROCESSORS \
 	  -C "$bld_objdir" \
 	  -f "$_base/engine.mk" \

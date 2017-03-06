@@ -2,10 +2,10 @@
 # TODO: use ciaodump, which already defines it as archdump
 
 function archdump() {
-    if which objdump > /dev/null; then
+    if command -v objdump > /dev/null 2>&1; then
 	# Linux
 	objdump -d "$1"
-    elif which otool > /dev/null; then
+    elif command -v otool > /dev/null 2>&1; then
 	# Mac OS X
 	otool -Vt "$1"
     else

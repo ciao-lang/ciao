@@ -104,11 +104,11 @@ else
     esac
 fi
 
-if ! which "$CC" > /dev/null; then
+if ! command -v "$CC" > /dev/null 2>&1; then
     echo "\`$CC' does not seem a valid C compiler" 1>&2
     exit 1
 fi
-if ! which "$LD" > /dev/null; then
+if ! command -v "$LD" > /dev/null 2>&1; then
     echo "\`$LD' does not seem a valid C linker" 1>&2
     exit 1
 fi

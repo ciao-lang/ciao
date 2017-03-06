@@ -161,9 +161,6 @@ active_cmd_path(Kind, File) := Path :-
 % ===========================================================================
 :- doc(section, "Installation/uninstallation of directory layout and registry files").
 
-% ---------------------------------------------------------------------------
-% Directories for install bin (bindir, storedir, bundledir)
-
 :- export(install_bin_dirs/1).
 install_bin_dirs(Bundle) :-
 	instdir_install(dir(~inst_ciao_root_base)),

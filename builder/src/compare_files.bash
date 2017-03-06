@@ -49,7 +49,7 @@ difffiles() {
 	    wc ${B}
 	    if [ ! -z "${DIFFCMD:-}" ]; then
 	        ${DIFFCMD} ${A} ${B}
-	    elif which meld > /dev/null; then
+	    elif command -v meld > /dev/null 2>&1; then
 # TODO: add option to choose
 #	    if false; then
 	        # Use meld if available

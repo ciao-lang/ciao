@@ -44,7 +44,7 @@ EOF
 	    cat /proc/version
 	    echo
 	fi
-	if which gcc > /dev/null; then
+	if command -v gcc > /dev/null 2>&1; then
 	    echo "gcc version:"
 	    gcc --version
 	fi
