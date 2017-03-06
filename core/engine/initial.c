@@ -51,7 +51,6 @@
 static CBOOL__PROTO(prolog_atom_mode);
 static definition_t *define_builtin(char *pname, int instr, int arity);
 static void classify_atom(atom_t *s);
-static CBOOL__PROTO(prolog_ciao_lib_dir);
 static CBOOL__PROTO(prolog_ciao_c_headers_dir);
 static void deffunction(char *atom, int arity, CInfo proc, int funcno);
 static void define_functions(void);
@@ -260,7 +259,6 @@ tagged_t atom_multifile;		/* "multifile" */
 tagged_t atom_user;            /* "user" */
 tagged_t atom_att;             /* "att" */
 
-tagged_t atom_default_lib_dir;
 tagged_t atom_default_ciaoroot;
 tagged_t atom_default_c_headers_dir;
 
@@ -535,13 +533,6 @@ static CBOOL__PROTO(prolog_atom_mode)
     Unify_constant(TaggedZero,X(1))
 
   return TRUE;
-}
-
-
-static CBOOL__PROTO(prolog_ciao_lib_dir)
-{
-  DEREF(X(0),X(0));
-  return cunify(Arg, X(0), atom_default_lib_dir);
 }
 
 static CBOOL__PROTO(prolog_ciao_root)
@@ -855,7 +846,6 @@ void end_profiler(void) {
 #endif
 
 extern char *ciaoroot_directory;
-extern char *library_directory;
 extern char *c_headers_directory;
 
 tagged_t atm_var, atm_attv, atm_float, atm_int, atm_str, atm_atm, atm_lst;
@@ -997,7 +987,6 @@ void init_once(void)
   atom_counter = init_atom_check("counter");
 #endif
 
-  atom_default_lib_dir = init_atom_check(library_directory);
   atom_default_ciaoroot = init_atom_check(ciaoroot_directory);
   atom_default_c_headers_dir = init_atom_check(c_headers_directory);
 
@@ -1080,7 +1069,6 @@ void init_once(void)
   
   define_c_mod_predicate("internals","$atom_mode",2,prolog_atom_mode);
   define_c_mod_predicate("internals","ciao_root",1,prolog_ciao_root);
-  define_c_mod_predicate("system_info","ciao_lib_dir",1,prolog_ciao_lib_dir);
   define_c_mod_predicate("system_info","ciao_c_headers_dir",1,prolog_ciao_c_headers_dir);
 
   /* streams_basic.c */

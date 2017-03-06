@@ -18,7 +18,7 @@ emacs_lines_ -->
 "(setq ciao-root-dir (concat (substring (shell-command-to-string \"osascript -e 'tell application id \\\"com.apple.finder\\\" to POSIX path of (application file id \\\"{{DOMAIN}}\\\" as alias)'\") 0 -2 )  \"/Contents/Resources\" ))
 (setenv \"PATH\" (concat ciao-root-dir \"{{BINDIR}}:\" (getenv \"PATH\")))
 (setenv \"CIAOENGINE\" (concat ciao-root-dir \"{{CIAOENGINE}}\"))
-(setenv \"CIAOLIB\" ciao-root-dir)
+(setenv \"CIAOROOT\" ciao-root-dir)
 (load-file (concat ciao-root-dir \"{{BUNDLEDIR_CORE}}/ciao-mode-init.el\"))\n",
 	end_message(";", Key).
 

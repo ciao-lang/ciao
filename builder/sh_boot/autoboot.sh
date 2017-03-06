@@ -70,7 +70,6 @@ core__TABLED_EXECUTION=no
 core__OPTIM_LEVEL=optimized
 core__DEBUG_LEVEL=$boot__DEBUG_LEVEL
 #
-core__DEFAULTLIBDIR="$ciaoroot/core"
 core__ARCH="$boot__ARCH"
 core__OS="$boot__OS"
 core__CUSTOM_CC="$boot__CUSTOM_CC"
@@ -175,7 +174,6 @@ builddir_exec() { # builddir $cpxexec [ARGS] (and env)
     CIAOPATH="$default_ciaopath" \
         CIAOALIASPATH="$default_ciaoaliaspath" \
 	CIAOROOT=`crossp "$ciaoroot"` \
-	CIAOLIB=`crossp "$default_ciaolib"` \
 	CIAOHDIR=`crossp "$bld_hdir"` \
 	CIAOENGINE=`crossp "$engexec"` \
 	    $engdbg "$engexec" "$@" -C -b "$cpxexec" $engopts

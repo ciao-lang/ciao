@@ -73,7 +73,6 @@ extern char source_path[];
 extern bool_t interactive_flag_bool;
 
 extern char *ciaoroot_directory;
-extern char *library_directory;
 extern char *c_headers_directory;
 
 /* Memory management routines --- now only interfaces to library, but they

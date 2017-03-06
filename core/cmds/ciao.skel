@@ -17,7 +17,6 @@ use_rlwrap=yes # TODO: Turn into an option
 
 # ({{Var}} filled from .hooks.pl)
 boot_ciaoroot={{boot_ciaoroot}}
-boot_ciaolib={{boot_ciaolib}}
 boot_bindir={{boot_bindir}}
 boot_ciaohdir={{boot_ciaohdir}}
 boot_ciaoengine={{boot_ciaoengine}}
@@ -64,7 +63,6 @@ fi
 rlexec_builder() {
     if [ -x "$boot_ciaoengine" ]; then
 	unset CIAOALIASPATH
-	export CIAOLIB=$boot_ciaolib
 	export CIAOROOT=$boot_ciaoroot
 	export CIAOHDIR=$boot_ciaohdir
 	export CIAOENGINE=$boot_ciaoengine

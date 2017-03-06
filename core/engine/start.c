@@ -95,7 +95,6 @@ int prolog_argc;                                                /* Shared */
 char source_path[MAXPATHLEN] = "";                             /* Shared */
 bool_t interactive_flag_bool = FALSE;      /* Shared --- not really relevant? */
 
-char *library_directory = NULL;
 char *ciaoroot_directory = NULL;
 char *c_headers_directory = NULL;
 
@@ -196,16 +195,6 @@ void engine_set_opts(const char **optv, int optc, const char **boot_path) {
     /*
       else if (strcmp(optv[i],"-L") == 0){    
       #if defined(Win32)
-      library_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
-      expand_file_name(optv[++i],TRUE,library_directory);
-      #else
-      library_directory = optv[++i];
-      #endif
-      }
-    */
-    /*
-      else if (strcmp(optv[i],"-L") == 0){    
-      #if defined(Win32)
       ciaoroot_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
       expand_file_name(optv[++i],TRUE,ciaoroot_directory);
       #else
@@ -252,8 +241,6 @@ void engine_set_opts(const char **optv, int optc, const char **boot_path) {
 #endif
 }
 
-void set_library_directories(const char *boot_path,
-			     const char *exec_path);
 void set_ciaoroot_directory(const char *boot_path, const char *exec_path);
 
 void engine_init(const char *boot_path, const char *exec_path) {
@@ -288,7 +275,6 @@ void engine_init(const char *boot_path, const char *exec_path) {
 
   compute_cwd();
 
-  set_library_directories(boot_path, exec_path);
   set_ciaoroot_directory(boot_path, exec_path);
   
   /* Global initializations */
@@ -424,82 +410,6 @@ int start(int argc, char *argv[]) {
 
 // #define USE_WINDOWS_REGISTRY 1
 
-/* Find out library directories (library_directory, c_headers_directory) */
-void set_library_directories(const char *boot_path,
-			     const char *exec_path) {
-  /* Use CIAOLIB variable from the environment */
-  library_directory = getenv("CIAOLIB");
-  if (library_directory != NULL) {
-#if defined(_WIN32) || defined(_WIN64)
-#warning "TODO(MinGW): check that normalize path of library_directory is ok"
-    const char *aux = library_directory;
-    library_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
-    expand_file_name(aux,TRUE,library_directory);
-#endif
-  } else if (library_directory == NULL) {
-#if defined(Win32) && defined(USE_WINDOWS_REGISTRY)
-    if (using_windows()) { /* running in a Windows non-cygwin shell */
-      /* Obtain library_directory from the Windows registry */
-      /* (for Windows executables) and
-	 set a couple more of variables */
-      
-      /* These are for the registry */
-      HKEY SOFTWAREKey, CiaoPrologKey;
-      DWORD buffer_size = MAXPATHLEN;
-      char aux[MAXPATHLEN+1];
-
-      library_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
-     
-      if (( RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE"), 0, KEY_READ,
-			 &SOFTWAREKey) == ERROR_SUCCESS ) &&
-	  ( RegOpenKeyEx(SOFTWAREKey, TEXT("Ciao Prolog"), 0, KEY_READ,
-			 &CiaoPrologKey) == ERROR_SUCCESS ) &&
-	  ( RegQueryValueEx(CiaoPrologKey, TEXT("ciao_dir"), NULL, NULL,
-		            (LPBYTE)aux, &buffer_size) == ERROR_SUCCESS )) {
-#if defined(_WIN32) || defined(_WIN64)
-#warning "TODO(MinGW): check that normalize path of library_directory is ok"
-	expand_file_name(aux,TRUE,library_directory);
-	//	strncpy(library_directory, aux, MAXPATHLEN);
-#else
-	cygwin_conv_to_full_posix_path(aux, library_directory);
-#endif
-	RegCloseKey(SOFTWAREKey);
-	RegCloseKey(CiaoPrologKey);
-      } else if (boot_path != NULL) { // else open the emulator itself
-	fprintf(stderr,
-		"%s\n%s\n",
-		"Registry key not found. Please remember to install Ciao Prolog",
-		"or to set the CIAOLIB environment variable!");
-	at_exit(1);
-      }
-
-      /* TODO: Guess only in this case? (CIAOLIB not defined) */
-      //guess_win32_env(boot_path, exec_path);
-    } else {
-#endif
-      /* Revert to installation-defined library directory otherwise */
-#if defined(Win32)
-      const char *aux = default_lib_dir;
-#if defined(_WIN32) || defined(_WIN64)
-#warning "TODO(MinGW): check that normalize path of library_directory is ok"
-      expand_file_name(aux,TRUE,library_directory);
-#else
-      cygwin_conv_to_full_posix_path(aux, library_directory);
-#endif
-#else
-      library_directory = default_lib_dir;
-#endif
-#if defined(Win32) && defined(USE_WINDOWS_REGISTRY)
-    }
-#endif
-  }
-  
-  /* If there is a CIAOHDIR variable, we always use its value */
-  c_headers_directory = getenv("CIAOHDIR");
-  if (c_headers_directory == NULL) {
-    c_headers_directory = default_c_headers_dir;
-  }
-}
 /* Find out CIAOROOT directory */
 void set_ciaoroot_directory(const char *boot_path, const char *exec_path) {
   /* Use CIAOROOT variable from the environment */

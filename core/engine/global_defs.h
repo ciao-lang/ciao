@@ -102,7 +102,6 @@ extern bool_t wam_initialized;/* Non-shared? --- set by each worker to decide wh
 
 extern char symbolrune[];               /* Shared --- type of each symbol */
 
-extern char *default_lib_dir;
 extern char *default_ciaoroot;
 extern char *default_c_headers_dir;
 
@@ -159,7 +158,6 @@ extern tagged_t atom_att;
 extern tagged_t atom_self;
 extern tagged_t atom_create;
 
-extern tagged_t atom_default_lib_dir;
 extern tagged_t atom_default_ciaoroot;
 extern tagged_t atom_default_c_headers_dir;
 

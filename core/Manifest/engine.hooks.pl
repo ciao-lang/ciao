@@ -5,25 +5,7 @@
 % ===========================================================================
 % Engine and C compilation options
 
-:- use_module(ciaobld(install_aux), [inst_bundle_path/3]).
-:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
-
-% TODO: This should be default_ciao_root!
-% (Not configurable setting, necessary for build_engine.sh)
-
-:- bundle_flag(defaultlibdir, [
-    % (this is needed to compute the built-in CIAOROOT)
-    comment("Default directory for Ciao libraries"),
-    rule_set_value(Value, (
-      flag(builder:install_ciaoroot_base(_)), % TODO: hidden dependency (due to bundle_path/3)
-      flag(builder:instype(InsType)),
-      get_defaultlibdir(InsType, Value)))
-]).
-
-get_defaultlibdir(local) := ~bundle_path(core, '.').
-get_defaultlibdir(global) := ~inst_bundle_path(core, '.').
-
-% (next flags also needed by config-sysdep.sh)
+% (next flags are needed by config-sysdep.sh)
 
 :- bundle_flag(custom_cc, [
     comment("Custom C compiler"),

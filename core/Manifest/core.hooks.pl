@@ -129,7 +129,6 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	    % TODO: only used in local-install, global installation uses the builder exec (is it OK?)
 	    % TODO: (MinGW) is cmd.exe enough? (at least for bootstrap) consider PowerShell scripts for Windows?
 	    'boot_ciaoroot' = ~ciao_root,
-	    'boot_ciaolib' = ~bundle_path(core, '.'),
 	    'boot_bindir' = ~bundle_path(core, bootbuilddir, 'bin'),
 	    'boot_ciaohdir' = ~eng_path(hdir, BootEng),
 	    'boot_ciaoengine' = ~eng_path(exec, BootEng)

@@ -51,7 +51,6 @@ if [ x"$saved_ciaoroot" != x"$ciaoroot" ]; then
     setup_eng_vars "$builddir"
     cat > "$f_saved_env" <<EOF
 export CIAOENGINE="$bld_objdir/$eng_name"
-export CIAOLIB="$ciaoroot/core"
 export CIAOROOT="$ciaoroot"
 EOF
 fi

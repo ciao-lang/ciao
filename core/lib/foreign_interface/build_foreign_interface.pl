@@ -777,11 +777,11 @@ compile_foreign_2(Dir, CommandHead, [CFile|CFiles], [OFile|OFiles]) :-
 
 % -----------------------------------------------------------------------------
 
-add_ciaolib_if_required(L0, L) :- eng_is_sharedlib, !,
-	add_ciaolib(L0, L).
-add_ciaolib_if_required(L, L).
+add_libciaoengine_if_required(L0, L) :- eng_is_sharedlib, !,
+	add_libciaoengine(L0, L).
+add_libciaoengine_if_required(L, L).
 
-add_ciaolib(L, ['-L', EngDir, LibOpt|L]) :-
+add_libciaoengine(L, ['-L', EngDir, LibOpt|L]) :-
 	get_platform(TargetEng),
 	get_engine_dir(TargetEng, EngDir),
 	LibOpt = ~atom_concat('-l', 'ciaoengine'). % TODO: use config_common:default_eng/1 (but avoid dependency to that module)
@@ -791,7 +791,7 @@ foreign_link_so(Dir, Decls, ExtraOpts, Libs0, OFiles, SOFile) :-
 	  has_changed(OFile, SOFile) ->
           %  linker_and_opts(Linker, Opts), 
              linker_to_use(Decls, Linker, Opts),
-	    Libs = ~add_ciaolib_if_required(~append_prefix(Libs0, '-l')),
+	    Libs = ~add_libciaoengine_if_required(~append_prefix(Libs0, '-l')),
 	    % Note the order of linker options is important, in
             % pariticular for library archive. See the following links
             % for more informations:

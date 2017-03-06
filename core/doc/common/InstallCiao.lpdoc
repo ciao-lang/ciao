@@ -455,9 +455,10 @@ there is no need for setting any environment variables in order to
 architectures).
 
    However, the default paths can be overridden by using the
-environment variables @tt{CIAOENGINE} and @tt{CIAOLIB}. The first one
-will tell the Ciao executables where to look for an engine, and the
-second will tell them where to look for the libraries.
+environment variables @tt{CIAOENGINE}, @tt{CIAOROOT}, and
+@tt{CIAOPATH}. The first one will tell the Ciao executables where to
+look for an engine, and the rest will tell them where to look for
+system and other libraries, respectively.
 
    This allows @concept{using alternate engines or libraries}, which
 can be very useful for system development and experimentation.
@@ -721,10 +722,10 @@ The following a list of common installation problems:
 
       @begin{itemize}
 
-      @item The system was not installed and the variable @tt{CIAOLIB}
+      @item The system was not installed and the variable @tt{CIAOROOT}
       was not set.
 
-      @item The system is installed and the variable @tt{CIAOLIB} is wrong.
+      @item The system is installed and the variable @tt{CIAOROOT} is wrong.
 
       @end{itemize}
 

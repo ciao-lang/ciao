@@ -49,7 +49,6 @@ builder_mod="$ciaoroot/builder/cmds/ciao_builder"
 cross_ciaoroot=`crossp "$ciaoroot"`
 # Default alias paths (location of library(_) and ciaobld(_))
 # (bundles are not scanned yet)
-default_ciaolib="$ciaoroot/core" # (crossp not needed)
 default_ciaoaliaspath="ciaobld=$cross_ciaoroot/builder/src"
 # Default CIAOPATH (restrict bundle scan and get to <ciaoroot>)
 default_ciaopath="$cross_ciaoroot"

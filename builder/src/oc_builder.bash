@@ -7,7 +7,6 @@
 # TODO: system-wide installation: add a user cache dir and system cache dir
 # TODO: add an option to create binaries that have encoded the base dir and
 #       environment variables
-# TODO: do not use CIAOROOT, use something like CIAOLIB, and make it point to modules/core:module/extra:..., etc. right?
 
 # Physical directory where the script is located
 _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\

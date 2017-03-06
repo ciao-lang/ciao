@@ -64,7 +64,6 @@ bootciao_env := Env :-
 	% TODO: (un)define CIAOPATH? 
 	Env = ['CIAOALIASPATH' = '',
 	       'CIAOROOT' = ~ciao_root,
-	       'CIAOLIB' = ~bundle_path(core, '.'), % TODO: use CIAOROOT
 	       'CIAOHDIR' = ~eng_path(hdir, Eng),
 	       'CIAOENGINE' = ~eng_path(exec, Eng)].
 
@@ -73,7 +72,6 @@ localciao_env := Env :-
 	% TODO: (un)define CIAOPATH? 
 	Env = ['CIAOALIASPATH' = '',
 	       'CIAOROOT' = ~ciao_root,
-	       'CIAOLIB' = ~bundle_path(core, '.'), % TODO: use CIAOROOT
 	       'CIAOHDIR' = ~eng_path(hdir, Eng),
 	       'CIAOENGINE' = ~eng_path(exec, Eng)].
 
