@@ -106,6 +106,7 @@
 :- use_module(ciaobld(ciaoc_aux), [cmd_build_link/4]).
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
+:- use_module(engine(internals), [ciao_root/1]).
 
 install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 
@@ -127,6 +128,7 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 	    % Access to boot builder
 	    % TODO: only used in local-install, global installation uses the builder exec (is it OK?)
 	    % TODO: (MinGW) is cmd.exe enough? (at least for bootstrap) consider PowerShell scripts for Windows?
+	    'boot_ciaoroot' = ~ciao_root,
 	    'boot_ciaolib' = ~bundle_path(core, '.'),
 	    'boot_bindir' = ~bundle_path(core, bootbuilddir, 'bin'),
 	    'boot_ciaohdir' = ~eng_path(hdir, BootEng),

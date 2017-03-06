@@ -28,14 +28,6 @@ bundlereg_version(3). % Version of the bundlereg file
 get_bundlereg_dir(Wksp, BundleRegDir) :-
 	path_concat(Wksp, 'build/bundlereg', BundleRegDir).
 
-% TODO: make this definition the default one (not ciao_lib_dir)
-% :- use_module(engine(system_info), [ciao_lib_dir/1]).
-:- export(ciao_root/1).
-% The CIAOROOT directory
-ciao_root(CiaoRoot) :-
-	ciao_lib_dir(CorePath),
-	path_split(CorePath, CiaoRoot, _).
-
 :- import(system, [extract_paths/2]).
 :- import(system, [c_get_env/2]).
 

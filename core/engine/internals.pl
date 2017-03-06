@@ -900,6 +900,10 @@ poversion(version(67)).
 % Loading code
 :- include(library(bundle/bundlereg_load)).
 
+:- export(ciao_root/1).
+% The CIAOROOT directory
+:- impl_defined([ciao_root/1]).
+
 % ---------------------------------------------------------------------------
 :- doc(section, "Filesystem abstraction for source names").
 
@@ -925,12 +929,12 @@ file_search_path(.,.).
 
 setup_paths :-
 	% Setup default alias paths
-        ciao_lib_dir(CorePath),
-        atom_concat(CorePath, '/lib', LibPath),
+        ciao_root(CiaoRoot),
+        path_concat(CiaoRoot, 'core/lib', LibPath),
         assertz_fact(library_directory(LibPath)),
-        atom_concat(CorePath, '/library', LibraryPath),
+        path_concat(CiaoRoot, 'core/library', LibraryPath),
         assertz_fact(library_directory(LibraryPath)),
-        atom_concat(CorePath, '/engine', Engine),
+        path_concat(CiaoRoot, 'core/engine', Engine),
         assertz_fact(file_search_path(engine, Engine)),
 	% Setup path for bundles (using CIAOPATH if available)
 	get_ciaopath,

@@ -16,6 +16,7 @@ _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
 use_rlwrap=yes # TODO: Turn into an option
 
 # ({{Var}} filled from .hooks.pl)
+boot_ciaoroot={{boot_ciaoroot}}
 boot_ciaolib={{boot_ciaolib}}
 boot_bindir={{boot_bindir}}
 boot_ciaohdir={{boot_ciaohdir}}
@@ -64,6 +65,7 @@ rlexec_builder() {
     if [ -x "$boot_ciaoengine" ]; then
 	unset CIAOALIASPATH
 	export CIAOLIB=$boot_ciaolib
+	export CIAOROOT=$boot_ciaoroot
 	export CIAOHDIR=$boot_ciaohdir
 	export CIAOENGINE=$boot_ciaoengine
 	rlexec "$CIAOENGINE" "$@" -C -b "$boot_bindir/ciao_builder.sta"
@@ -78,7 +80,7 @@ exec_builder() {
 
 # TODO: port; fix for global installation
 exec_oc_builder() {
-    exec "$boot_ciaolib"/../builder/src/oc_builder.bash "$@"
+    exec "$boot_ciaoroot"/builder/src/oc_builder.bash "$@"
 }
 
 # ----------------------------------------------------------------

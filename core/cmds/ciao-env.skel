@@ -146,6 +146,7 @@ gen_env() { # tgtshell
 	env_"$1" CIAOHDIR "$ciaoroot/build/eng/$engmainmod/include"
 	# TODO: Do not use! define CIAOROOT instead
 	env_"$1" CIAOLIB "$ciaoroot/core"
+	env_"$1" CIAOROOT "$ciaoroot"
     fi
     epilogue_"$1"
 }
