@@ -96,6 +96,7 @@ char source_path[MAXPATHLEN] = "";                             /* Shared */
 bool_t interactive_flag_bool = FALSE;      /* Shared --- not really relevant? */
 
 char *library_directory = NULL;
+char *ciaoroot_directory = NULL;
 char *c_headers_directory = NULL;
 
 int eng_stub_length = 0; /* length of engine executable stub */
@@ -202,6 +203,16 @@ void engine_set_opts(const char **optv, int optc, const char **boot_path) {
       #endif
       }
     */
+    /*
+      else if (strcmp(optv[i],"-L") == 0){    
+      #if defined(Win32)
+      ciaoroot_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
+      expand_file_name(optv[++i],TRUE,ciaoroot_directory);
+      #else
+      ciaoroot_directory = optv[++i];
+      #endif
+      }
+    */
     else
 #if defined(PROFILE)
       if (strcmp(optv[i], "--profile") == 0)        /* Simple profile */
@@ -243,6 +254,7 @@ void engine_set_opts(const char **optv, int optc, const char **boot_path) {
 
 void set_library_directories(const char *boot_path,
 			     const char *exec_path);
+void set_ciaoroot_directory(const char *boot_path, const char *exec_path);
 
 void engine_init(const char *boot_path, const char *exec_path) {
   checkctypes();
@@ -277,6 +289,7 @@ void engine_init(const char *boot_path, const char *exec_path) {
   compute_cwd();
 
   set_library_directories(boot_path, exec_path);
+  set_ciaoroot_directory(boot_path, exec_path);
   
   /* Global initializations */
   /*init_wrb_state_list();*/
@@ -461,7 +474,7 @@ void set_library_directories(const char *boot_path,
       }
 
       /* TODO: Guess only in this case? (CIAOLIB not defined) */
-      guess_win32_env(boot_path, exec_path);
+      //guess_win32_env(boot_path, exec_path);
     } else {
 #endif
       /* Revert to installation-defined library directory otherwise */
@@ -487,6 +500,81 @@ void set_library_directories(const char *boot_path,
     c_headers_directory = default_c_headers_dir;
   }
 }
+/* Find out CIAOROOT directory */
+void set_ciaoroot_directory(const char *boot_path, const char *exec_path) {
+  /* Use CIAOROOT variable from the environment */
+  ciaoroot_directory = getenv("CIAOROOT");
+  if (ciaoroot_directory != NULL) {
+#if defined(_WIN32) || defined(_WIN64)
+#warning "TODO(MinGW): check that normalize path of ciaoroot_directory is ok"
+    const char *aux = ciaoroot_directory;
+    ciaoroot_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
+    expand_file_name(aux,TRUE,ciaoroot_directory);
+#endif
+  } else if (ciaoroot_directory == NULL) {
+#if defined(Win32) && defined(USE_WINDOWS_REGISTRY)
+    if (using_windows()) { /* running in a Windows non-cygwin shell */
+      /* Obtain ciaoroot_directory from the Windows registry */
+      /* (for Windows executables) and
+	 set a couple more of variables */
+      
+      /* These are for the registry */
+      HKEY SOFTWAREKey, CiaoPrologKey;
+      DWORD buffer_size = MAXPATHLEN;
+      char aux[MAXPATHLEN+1];
+
+      ciaoroot_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
+     
+      if (( RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE"), 0, KEY_READ,
+			 &SOFTWAREKey) == ERROR_SUCCESS ) &&
+	  ( RegOpenKeyEx(SOFTWAREKey, TEXT("Ciao Prolog"), 0, KEY_READ,
+			 &CiaoPrologKey) == ERROR_SUCCESS ) &&
+	  ( RegQueryValueEx(CiaoPrologKey, TEXT("ciaoroot"), NULL, NULL,
+		            (LPBYTE)aux, &buffer_size) == ERROR_SUCCESS )) {
+#if defined(_WIN32) || defined(_WIN64)
+#warning "TODO(MinGW): check that normalize path of ciaoroot_directory is ok"
+	expand_file_name(aux,TRUE,ciaoroot_directory);
+	// strncpy(ciaoroot_directory, aux, MAXPATHLEN);
+#else
+	cygwin_conv_to_full_posix_path(aux, ciaoroot_directory);
+#endif
+	RegCloseKey(SOFTWAREKey);
+	RegCloseKey(CiaoPrologKey);
+      } else if (boot_path != NULL) { // else open the emulator itself
+	fprintf(stderr,
+		"%s\n%s\n",
+		"Registry key not found. Please remember to install Ciao Prolog",
+		"or to set the CIAOROOT environment variable!");
+	at_exit(1);
+      }
+
+      /* TODO: Guess only in this case? (CIAOROOT not defined) */
+      guess_win32_env(boot_path, exec_path);
+    } else {
+#endif
+      /* Revert to installation-defined library directory otherwise */
+#if defined(Win32)
+      const char *aux = default_ciaoroot;
+#if defined(_WIN32) || defined(_WIN64)
+#warning "TODO(MinGW): check that normalize path of ciaoroot_directory is ok"
+      expand_file_name(aux,TRUE,ciaoroot_directory);
+#else
+      cygwin_conv_to_full_posix_path(aux, ciaoroot_directory);
+#endif
+#else
+      ciaoroot_directory = default_ciaoroot;
+#endif
+#if defined(Win32) && defined(USE_WINDOWS_REGISTRY)
+    }
+#endif
+  }
+  
+  /* If there is a CIAOHDIR variable, we always use its value */
+  c_headers_directory = getenv("CIAOHDIR");
+  if (c_headers_directory == NULL) {
+    c_headers_directory = default_c_headers_dir;
+  }
+}
 
 #if defined(Win32)
 
@@ -495,7 +583,7 @@ int setenv(const char *name, const char *value, int overwrite);
 #endif
 
 /* Guess values for PATH and SHELL environment variables on Win32
-   (based on library_directory and exec_path)
+   (based on ciaoroot_directory and exec_path)
 
    We assume that ciaoengine.exe (if there is any), cygwin.dll, and
    sh.exe are in the same directory. The PATH should include the bin/
@@ -527,8 +615,7 @@ static void guess_win32_env(const char *boot_path,
 
     /* Guess the directory where the engine lives */
     /* TODO: Use getplatformdeb */
-    strcpy(path, library_directory);
-    strcat(path, "/../");
+    strcpy(path, ciaoroot_directory);
     strcat(path, rel_builddir);
     strcat(path, "/eng/"); 
     strcat(path, "ciaoengine");
@@ -537,7 +624,7 @@ static void guess_win32_env(const char *boot_path,
     strcat(path, eng_architecture);
     if (access(path, F_OK)) { 
       /* Does not exist --- look in the libdir itself */
-      strcpy(path, library_directory);
+      strcpy(path, ciaoroot_directory);
     }
     binpath = path;    
   } else if (exec_path != NULL) { /* open the emulator itself */

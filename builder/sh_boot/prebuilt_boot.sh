@@ -12,7 +12,7 @@
 # TODO: improve relocation
 #  - patch binaries instead?
 #  - prebuild in a better default location?
-#  - use a single CIAOROOT env var (instead of CIAOENGINE,CIAOHDIR,CIAOLIB)
+#  - use a single CIAOROOT env var (instead of CIAOENGINE,CIAOHDIR,...)
 # TODO: touch all po,itf so that no recompilation happens
 # TODO: mingw version?
 # TODO: missing relocation of lib/compiler/header (new executables still require explicit CIAOENGINE env var)
@@ -58,7 +58,7 @@ fix_symlinks() {
 }
 
 # Rebuild ciao-env and patch it to enable relocation (explicit
-# definitions for CIAOENGINE,CIAOHDIR,CIAOLIB)
+# definitions for CIAOENGINE,CIAOHDIR,CIAOROOT)
 # TODO: a single CIAOROOT should be enough (or patching binaries)
 fix_ciao_env() {
     "$ciaoroot"/builder/sh_boot/builder_boot.sh build core.ciao_env

@@ -72,6 +72,7 @@ ciao_ctx ciao_implicit_ctx;
 extern char source_path[];
 extern bool_t interactive_flag_bool;
 
+extern char *ciaoroot_directory;
 extern char *library_directory;
 extern char *c_headers_directory;
 

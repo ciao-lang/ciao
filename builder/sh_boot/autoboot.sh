@@ -150,7 +150,7 @@ EOF
 # Execute $cpxexec using the given $builddir
 builddir_exec() { # builddir $cpxexec [ARGS] (and env)
     # (requires: $eng_name, $eng_cfg, 
-    #            $default_ciaopath, $default_ciaoaliaspath, $default_ciaolib)
+    #            $default_ciaopath, $default_ciaoaliaspath, $ciaoroot)
     local builddir="$1"
     local cpxexec="$2"
     shift
@@ -174,6 +174,7 @@ builddir_exec() { # builddir $cpxexec [ARGS] (and env)
     fi
     CIAOPATH="$default_ciaopath" \
         CIAOALIASPATH="$default_ciaoaliaspath" \
+	CIAOROOT=`crossp "$ciaoroot"` \
 	CIAOLIB=`crossp "$default_ciaolib"` \
 	CIAOHDIR=`crossp "$bld_hdir"` \
 	CIAOENGINE=`crossp "$engexec"` \

@@ -44,7 +44,7 @@ Click \"OK\" to proceed with configuration.
 			tell application id EmacsID to quit
 		end if
 		
-		do shell script "CIAOLIB=\"" & PathToResources & "{{BUNDLEDIR_CORE}}\" CIAOENGINE=\"" & PathToResources & "{{CIAOENGINE}}\" \"" & PathToResources & "{{BINDIR}}/configure_dotemacs\" --install " & DotEmacs
+		do shell script "CIAOROOT=\"" & PathToResources & "\" CIAOENGINE=\"" & PathToResources & "{{CIAOENGINE}}\" \"" & PathToResources & "{{BINDIR}}/configure_dotemacs\" --install " & DotEmacs
 		
 	end if
 	set DotEmacsMD5 to do shell script "md5 -q " & DotEmacs

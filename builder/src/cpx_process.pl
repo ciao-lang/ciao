@@ -11,6 +11,7 @@
 :- use_module(library(process)).
 :- use_module(library(system), [using_windows/0]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
+:- use_module(engine(internals), [ciao_root/1]).
 
 :- export(cpx_process_option/1).
 :- regtype cpx_process_option/1.
@@ -62,6 +63,7 @@ bootciao_env := Env :-
 	Eng = ~boot_eng_def,
 	% TODO: (un)define CIAOPATH? 
 	Env = ['CIAOALIASPATH' = '',
+	       'CIAOROOT' = ~ciao_root,
 	       'CIAOLIB' = ~bundle_path(core, '.'), % TODO: use CIAOROOT
 	       'CIAOHDIR' = ~eng_path(hdir, Eng),
 	       'CIAOENGINE' = ~eng_path(exec, Eng)].
@@ -70,6 +72,7 @@ localciao_env := Env :-
 	Eng = ~default_eng_def,
 	% TODO: (un)define CIAOPATH? 
 	Env = ['CIAOALIASPATH' = '',
+	       'CIAOROOT' = ~ciao_root,
 	       'CIAOLIB' = ~bundle_path(core, '.'), % TODO: use CIAOROOT
 	       'CIAOHDIR' = ~eng_path(hdir, Eng),
 	       'CIAOENGINE' = ~eng_path(exec, Eng)].

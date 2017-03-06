@@ -160,6 +160,7 @@ extern tagged_t atom_self;
 extern tagged_t atom_create;
 
 extern tagged_t atom_default_lib_dir;
+extern tagged_t atom_default_ciaoroot;
 extern tagged_t atom_default_c_headers_dir;
 
 extern tagged_t atom_block;

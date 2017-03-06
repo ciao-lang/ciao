@@ -261,6 +261,7 @@ tagged_t atom_user;            /* "user" */
 tagged_t atom_att;             /* "att" */
 
 tagged_t atom_default_lib_dir;
+tagged_t atom_default_ciaoroot;
 tagged_t atom_default_c_headers_dir;
 
 tagged_t atom_block;      	/* "block" */
@@ -541,6 +542,12 @@ static CBOOL__PROTO(prolog_ciao_lib_dir)
 {
   DEREF(X(0),X(0));
   return cunify(Arg, X(0), atom_default_lib_dir);
+}
+
+static CBOOL__PROTO(prolog_ciao_root)
+{
+  DEREF(X(0),X(0));
+  return cunify(Arg, X(0), atom_default_ciaoroot);
 }
 
 static CBOOL__PROTO(prolog_ciao_c_headers_dir)
@@ -847,6 +854,7 @@ void end_profiler(void) {
 }
 #endif
 
+extern char *ciaoroot_directory;
 extern char *library_directory;
 extern char *c_headers_directory;
 
@@ -990,6 +998,7 @@ void init_once(void)
 #endif
 
   atom_default_lib_dir = init_atom_check(library_directory);
+  atom_default_ciaoroot = init_atom_check(ciaoroot_directory);
   atom_default_c_headers_dir = init_atom_check(c_headers_directory);
 
 #if defined(USE_OVERFLOW_EXCEPTIONS)
@@ -1070,6 +1079,7 @@ void init_once(void)
                               /* initial.c */
   
   define_c_mod_predicate("internals","$atom_mode",2,prolog_atom_mode);
+  define_c_mod_predicate("internals","ciao_root",1,prolog_ciao_root);
   define_c_mod_predicate("system_info","ciao_lib_dir",1,prolog_ciao_lib_dir);
   define_c_mod_predicate("system_info","ciao_c_headers_dir",1,prolog_ciao_c_headers_dir);
 
