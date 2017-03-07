@@ -223,36 +223,34 @@ number_to_atm2(X, Y) :-
 
 :- use_module(library(streams), [open_output/2, close_output/1]).
 
-:- use_module(ciaobld(install_aux), [instype/1]). % TODO: pass Wksp as a parameter instead
-% TODO: remove if we can add this info to bundle id e.g., inst(core) for bundle_path
-:- use_module(ciaobld(eng_defs),
-	[active_bld_eng_path/3,
-	 active_inst_eng_path/3]).
-final_eng_bin(Eng, EngBin) :-
-	( instype(local) ->
-	    EngBin = ~active_bld_eng_path(exec_anyarch, Eng)
-	; EngBin = ~active_inst_eng_path(exec_anyarch, Eng)
-	).
+:- use_module(ciaobld(install_aux), [final_ciao_root/1]). % TODO: need relocate?
+:- use_module(ciaobld(eng_defs), [eng_mainmod/2]).
 
 % TODO: rename, move somewhere else, make it optional, add native .exe stubs for win32?
 eng_exec_header := ~bundle_path(core, 'lib/compiler/header').
 
 :- export(build_eng_exec_header/1).
-% Create exec header (based on Unix shebang) for running binaries
-% through the specified engine Eng.
+% Create exec header (based on Unix shebang) for running binaries:
+%  - assumes some default CIAOROOT or gets CIAOROOT from environment
+%  - locates engine at that CIAOROOT or gets CIAOENGINE from environment
+%  - assumes default OS and ARCH or gets it from CIAOOS+CIAOARCH
+%
 build_eng_exec_header(Eng) :-
-	final_eng_bin(Eng, EngBin),
-	verbose_message("exec header assume engine at ~w", [EngBin]),
+	EngMainMod = ~eng_mainmod(Eng),
+	final_ciao_root(FinalCiaoRoot),
+	verbose_message("exec header assume engine ~w and CIAOROOT at ~w", [EngMainMod, FinalCiaoRoot]),
 	%
 	eng_exec_header(HeaderPath),
 	%
+	% TODO: use wr_template from .hooks.pl?
 	open_output(HeaderPath, Out),
 	display('#!/bin/sh\n'),
-	% Note: when executed, selects the right engine based on CIAOOS, CIAOARCH (if defined)
-	display_list(['INSTENGINE=\"', EngBin,
-	              '\"${CIAOOS:+${CIAOARCH:+".$CIAOOS$CIAOARCH"}}\n']),
-	display('ENGINE=${CIAOENGINE:-${INSTENGINE}}\n'),
-	display('exec "$ENGINE" "$@" -C -b "$0"\n'),
+	display_list([
+            'r=${CIAOROOT:-\"', FinalCiaoRoot, '\"}\n',
+            'e=\"$r/build/eng/', EngMainMod, '/objs/', EngMainMod, '\"${CIAOOS:+${CIAOARCH:+".$CIAOOS$CIAOARCH"}}\n',
+	    'e=${CIAOENGINE:-$e}\n',
+	    'exec "$e" "$@" -C -b "$0"\n'
+	]),
 	put_code(0xC), % ^L control character
 	display('\n'),
 	close_output(Out).
