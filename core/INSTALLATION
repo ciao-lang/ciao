@@ -295,17 +295,17 @@ Full installation instructions
           files).
 
 
-  4. Set up user environments: The install process will modify the
+  4. Set up user environments: The installation process will modify the
      startup files automatically by default. If you disable this option
      in the configuration or you wish to switch between different
      installations, it would be necessary to modify the startup files
      manually.
 
-     The install process generates a `ciao-env' command to update the
-     environments for `sh'-like and `csh'like shells. It also generates
-     a `INSTALL_CIAOROOT/ciao-mode-init' (for emacs) with appropriate
-     definitions which will take care of all needed environment
-     variable definitions and emacs mode setup.
+     The installation process generates a `ciao-env' command to update
+     the environments for `sh'-like and `csh'like shells. It also
+     generates a `INSTALL_CIAOROOT/ciao-mode-init' (for emacs) with
+     appropriate definitions which will take care of all needed
+     environment variable definitions and emacs mode setup.
 
         * For users a csh-compatible shell (`csh', `tcsh', ...), add to
           `~/.cshrc':
@@ -453,12 +453,8 @@ Ciao executables (on a single architecture - see *Note
 Multiarchitecture installation:: for running on multiple architectures).
 
 However, the default paths can be overridden by using the environment
-variables `CIAOENGINE' and `CIAOLIB'. The first one will tell the Ciao
-executables where to look for an engine, and the second will tell them
-where to look for the libraries.
-
-This allows using alternate engines or libraries, which can be very
-useful for system development and experimentation.
+variable `CIAOROOT', which tell the Ciao executables where to look for
+engines and system libraries.
 
 Multiarchitecture installation
 ==============================

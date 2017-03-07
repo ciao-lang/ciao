@@ -369,17 +369,17 @@ following sections.
 
       @end{itemize}
 
-@item @bf{Set up user environments:}
-      The install process will modify the startup files automatically
-      by default. If you disable this option in the configuration or
-      you wish to switch between different installations, it would be
-      necessary to modify the startup files manually.
+@item @bf{Set up user environments:} The installation process will
+      modify the startup files automatically by default. If you
+      disable this option in the configuration or you wish to switch
+      between different installations, it would be necessary to modify
+      the startup files manually.
 
-      The install process generates a @apl{ciao-env} command to update
-      the environments for @apl{sh}-like and @apl{csh}like shells. It
-      also generates a @tt{INSTALL_CIAOROOT/ciao-mode-init} (for
-      emacs) with appropriate definitions which will take care of all
-      needed @concept{environment variable definitions} and
+      The installation process generates a @apl{ciao-env} command to
+      update the environments for @apl{sh}-like and @apl{csh}like
+      shells. It also generates a @tt{INSTALL_CIAOROOT/ciao-mode-init}
+      (for emacs) with appropriate definitions which will take care of
+      all needed @concept{environment variable definitions} and
       @concept{emacs mode setup}.
 
       @include{UserSetup.lpdoc}
@@ -455,13 +455,8 @@ there is no need for setting any environment variables in order to
 architectures).
 
    However, the default paths can be overridden by using the
-environment variables @tt{CIAOENGINE}, @tt{CIAOROOT}, and
-@tt{CIAOPATH}. The first one will tell the Ciao executables where to
-look for an engine, and the rest will tell them where to look for
-system and other libraries, respectively.
-
-   This allows @concept{using alternate engines or libraries}, which
-can be very useful for system development and experimentation.
+environment variable @tt{CIAOROOT}, which tell the Ciao executables
+where to look for engines and system libraries.
 
 @section{Multiarchitecture installation}
 @cindex{multiarchitecture installation}
