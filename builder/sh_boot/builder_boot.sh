@@ -47,11 +47,8 @@ builder_mod="$ciaoroot/builder/cmds/ciao_builder"
 # ('crossp' added from "$sh_boot_dir/autoboot.sh")
 #
 cross_ciaoroot=`crossp "$ciaoroot"`
-# Default alias paths (location of library(_) and ciaobld(_))
-# (bundles are not scanned yet)
+# Alias path for ciaobld(_) since bundles are not scanned yet
 default_ciaoaliaspath="ciaobld=$cross_ciaoroot/builder/src"
-# Default CIAOPATH (restrict bundle scan and get to <ciaoroot>)
-default_ciaopath="$cross_ciaoroot"
 
 # ---------------------------------------------------------------------------
 # Error message when there is no bootstrap (needed for autoboot.sh)
