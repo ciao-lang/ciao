@@ -12,6 +12,7 @@ function find_source() { # [paths]
     done
 }
 
+# TODO: GlobalPatch is not shown (and it does ot match regexp)
 function find_source_() { # PATH
     # one line per file, end in \0 (useful for xargs)
     find "$1" \
