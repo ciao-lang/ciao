@@ -15,4 +15,4 @@ safe_codes_to_number(X, Y) :-
 handle_exception(Error) :- format("Exception caught ~w~n", [Error]).
 
 :- use_foreign_source(exceptions_c).
-:- extra_compiler_opts('-O2').
+:- extra_compiler_opts(['-O2']).

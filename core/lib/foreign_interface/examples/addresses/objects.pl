@@ -7,4 +7,4 @@
 	address + foreign.
 
 :- use_foreign_source(objects_c).
-:- extra_compiler_opts('-O2').
+:- extra_compiler_opts(['-O2']).

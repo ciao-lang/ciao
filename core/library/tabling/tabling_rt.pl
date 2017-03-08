@@ -86,7 +86,7 @@ beginning.").
 :- initialization(initial_tabling).
 
  %% :- extra_compiler_opts(['-DSWAPPING']).
- %% :- extra_compiler_opts(['-DDEBUG_ALL -DSWAPPING']).
+ %% :- extra_compiler_opts(['-DDEBUG_ALL', '-DSWAPPING']).
  %% :- extra_compiler_opts(['-DDEBUG_ALL']).
 
 :- use_foreign_source(['chat_tabling.c']).
