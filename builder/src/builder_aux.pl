@@ -165,33 +165,51 @@ kind_exec_perms(shscript).
 
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(format), [format/3]).
-:- use_module(library(write), [portray_clause/2]).
 :- use_module(library(system), [file_exists/1]).
-:- use_module(library(system_extra), [datime_string/1]).
 
 :- export(generate_version_auto/2).
 % Create a file (File) with a version/1 fact indicating the current
 % version of Bundle, build time, and compiler version.
 
-% TODO: generalize for all bundles; change modiftime only if there are changes
-%       move, include other options (for runtime)?
-
-generate_version_auto(_Bundle, File) :-
-	file_exists(File), % TODO: update file if contents change
-	!.
 generate_version_auto(Bundle, File) :-
 	Version = ~bundle_version(Bundle),
-	atom_codes(Date, ~datime_string), % TODO: use commit info instead
-	%
 	CVersion = ~bundle_version(core),
 	%
 	VersionAtm = ~atom_concat([
-	  Version, ': ', Date, ' (compiled with Ciao ', CVersion, ')'
+	  Version, ' (compiled with Ciao ', CVersion, ')'
         ]),
-	open(File, write, O),
-	format(O, "%% Do not edit - automatically generated!\n", []),
-        portray_clause(O, version(VersionAtm)),
-	close(O).
+	( update_file_from_clauses([version(VersionAtm)], File) ->
+	    true
+	; true % (no changes)
+	).
+
+% ---------------------------------------------------------------------------
+% TODO: move somewhere else?
+
+:- use_module(library(write), [portray_clause/2]).
+:- use_module(library(hiordlib), [maplist/2]).
+:- use_module(library(system_extra), [move_if_diff/2]).
+:- use_module(library(system), [mktemp_in_tmp/2]).
+
+:- export(print_clauses_to_file/2).
+% Portray clauses to a file
+print_clauses_to_file(Clauses, Path) :-
+        open(Path, write, S),
+	display(S, '% Do not edit -- generated automatically\n\n'), % TODO: optional?
+	maplist(print_clause(S), Clauses),
+	close(S).
+
+print_clause(Clause, S) :-
+ 	portray_clause(S, Clause).
+
+:- export(update_file_from_clauses/2).
+% Like @pred{print_clauses_to_file/2} but preserves timestamp if file
+% contents have not changed. If fails if the file is not modified
+% w.r.t, a previous version (see @pred{move_if_diff/2}).
+update_file_from_clauses(Clauses, Path) :-
+	mktemp_in_tmp('clauses-XXXXXX', File),
+	print_clauses_to_file(Clauses, File),
+	move_if_diff(File, Path).
 
 % ===========================================================================
 % TODO: move to eng_maker.pl?
@@ -211,12 +229,12 @@ add_rpath(local_third_party, LinkerOpts0, LinkerOpts) :- !,
 	add_rpath_(RelativeLibDir, LinkerOpts0, LinkerOpts).
 add_rpath(executable_path, LinkerOpts0, LinkerOpts) :- !,
 	% (for 'ciaoc_sdyn')
-	% TODO: Use process_call/3 in build foreign interface; DO NOT QUOTE HERE!
-	add_rpath_('\\\'$ORIGIN\\\'', LinkerOpts0, LinkerOpts).
+	% (note: not quoted here since we pass args with process_call/3)
+	add_rpath_('$ORIGIN', LinkerOpts0, LinkerOpts).
 
 add_rpath_(Path, LinkerOpts0, LinkerOpts) :-
-	atom_codes(Path, PathCs),
-	append("-Wl,-rpath,"||PathCs, " "||LinkerOpts0, LinkerOpts).
+	Opt = ~atom_concat('-Wl,-rpath,', Path),
+	LinkerOpts = [Opt|LinkerOpts0].
 
 % ===========================================================================
 % TODO: Move both create_rel_link/2 and relpath/3 to the libraries
