@@ -178,18 +178,13 @@ generate_version_auto(Bundle, File) :-
 	VersionAtm = ~atom_concat([
 	  Version, ' (compiled with Ciao ', CVersion, ')'
         ]),
-	( update_file_from_clauses([version(VersionAtm)], File) ->
-	    true
-	; true % (no changes)
-	).
+	update_file_from_clauses([version(VersionAtm)], File, _).
 
 % ---------------------------------------------------------------------------
 % TODO: move somewhere else?
 
 :- use_module(library(write), [portray_clause/2]).
 :- use_module(library(hiordlib), [maplist/2]).
-:- use_module(library(system_extra), [move_if_diff/2]).
-:- use_module(library(system), [mktemp_in_tmp/2]).
 
 :- export(print_clauses_to_file/2).
 % Portray clauses to a file
@@ -202,14 +197,28 @@ print_clauses_to_file(Clauses, Path) :-
 print_clause(Clause, S) :-
  	portray_clause(S, Clause).
 
-:- export(update_file_from_clauses/2).
+% ---------------------------------------------------------------------------
+% TODO: move somewhere else?
+
+:- use_module(library(system_extra), [move_if_diff/3]).
+:- use_module(library(system), [mktemp_in_tmp/2]).
+:- use_module(library(file_utils), [string_to_file/2]).
+
+:- export(update_file_from_clauses/3).
 % Like @pred{print_clauses_to_file/2} but preserves timestamp if file
-% contents have not changed. If fails if the file is not modified
-% w.r.t, a previous version (see @pred{move_if_diff/2}).
-update_file_from_clauses(Clauses, Path) :-
+% contents have not changed.
+update_file_from_clauses(Clauses, Path, NewOrOld) :-
 	mktemp_in_tmp('clauses-XXXXXX', File),
 	print_clauses_to_file(Clauses, File),
-	move_if_diff(File, Path).
+	move_if_diff(File, Path, NewOrOld).
+
+:- export(update_file_from_string/3).
+% Like @pred{string_to_file/2} but preserves timestamp if file
+% contents have not changed.
+update_file_from_string(String, Path, NewOrOld) :-
+	mktemp_in_tmp('clauses-XXXXXX', File),
+	string_to_file(String, File),
+	move_if_diff(File, Path, NewOrOld).
 
 % ===========================================================================
 % TODO: move to eng_maker.pl?
@@ -235,6 +244,56 @@ add_rpath(executable_path, LinkerOpts0, LinkerOpts) :- !,
 add_rpath_(Path, LinkerOpts0, LinkerOpts) :-
 	Opt = ~atom_concat('-Wl,-rpath,', Path),
 	LinkerOpts = [Opt|LinkerOpts0].
+
+% ===========================================================================
+% Alternative hooks for installation of third-party code
+% TODO: merge with the Prolog version
+
+:- use_module(library(process), [process_call/3]).
+:- use_module(library(pathnames), [path_concat/3]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
+:- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
+:- use_module(ciaobld(third_party_install), [third_party_path/2]).
+
+% (will not work in Windows)
+third_party_aux_sh := ~bundle_path(builder, 'src/third_party_aux.bash').
+
+third_party_defs_sh(Bundle, ForeignName) := Path :-
+	Dir = ~bundle_path(Bundle, 'Manifest'),
+	DefsSh = ~atom_concat(ForeignName, '.defs.sh'),
+	Path = ~path_concat(Dir, DefsSh).
+
+:- export(third_party_aux/3).
+third_party_aux(Bundle, ForeignName, Args) :- 
+	DefsSh = ~third_party_defs_sh(Bundle, ForeignName),
+	OS = ~get_bundle_flag(core:os),
+	Arch = ~get_bundle_flag(core:arch),
+	third_party_path(prefix, ThirdParty), % TODO: add bundle to third_party_path/2
+	Env = ['CIAO_OS'=OS, 'CIAO_ARCH'=Arch, 'THIRDPARTY'=ThirdParty],
+	process_call(~third_party_aux_sh, [DefsSh|Args], [env(Env)]).
+
+% ===========================================================================
+
+:- use_module(ciaobld(eng_defs), [eng_path/3]).
+:- use_module(library(llists), [flatten/2]).
+
+:- export(update_stat_config_sh/2).
+update_stat_config_sh(Eng, LinkerOpts) :-
+	% TODO: missing quote
+	LinkerOptsStr = ~atom_codes(~atom_concat_with_blanks(LinkerOpts)),
+	Str = ~flatten(["ADD_STAT_LIBS=\'"||LinkerOptsStr, "\'\n"]),
+	%
+	CfgDir = ~eng_path(cfgdir, Eng), 
+	mkpath(CfgDir),
+	update_file_from_string(Str, ~path_concat(CfgDir, 'config_sh'), _).
+
+:- use_module(library(terms), [atom_concat/2]).
+
+atom_concat_with_blanks(L) := ~atom_concat(~separate_with_blanks(L)).
+
+separate_with_blanks([]) := [] :- !.
+separate_with_blanks([A]) := [A] :- !.
+separate_with_blanks([A, B|Cs]) := [A, ' '|~separate_with_blanks([B|Cs])] :- !.
 
 % ===========================================================================
 % TODO: Move both create_rel_link/2 and relpath/3 to the libraries

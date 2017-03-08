@@ -12,6 +12,7 @@
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(system), [file_exists/1, find_executable/2]).
+:- use_module(library(parse_shell_args), [parse_shell_args/2]).
 
 :- use_module(library(bundle/bundle_flags), [current_bundle_flag/2]).
 :- use_module(ciaobld(third_party_install), [third_party_path/2]).
@@ -54,4 +55,12 @@ foreign_config_parse_version(Str, L) :-
 	; L = [H],
 	  number_codes(H, Str)
 	).
+
+:- export(foreign_config_atmlist/4).
+% Like @pred{foreign_config_var/4} but parses the value as a list of
+% atoms using @pred{parse_shell_args/2}.
+foreign_config_atmlist(Bundle, ForeignConfig, Var, Args) :-
+	foreign_config_var(Bundle, ForeignConfig, Var, Val),
+	atom_codes(X, Val),
+	parse_shell_args(X, Args).
 
