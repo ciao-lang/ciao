@@ -23,7 +23,6 @@
 
 :- use_module(library(write_c)).
 :- use_module(library(streams)).
-:- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(lists)).
 :- use_module(library(llists), [flatten/2]).
 :- use_module(library(aggregates), [findall/3]).
@@ -480,7 +479,7 @@ imports --> [include('ciao/ciao_gluecode.h'), format(new_line)].
 
 % -----------------------------------------------------------------------------
 
-include_base_dir := ~atom_concat([~ciao_c_headers_dir]).
+include_base_dir := ~ciao_c_headers_dir.
 
 % -----------------------------------------------------------------------------
 
