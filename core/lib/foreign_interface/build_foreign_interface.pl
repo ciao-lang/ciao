@@ -13,10 +13,10 @@
 
 :- doc(title, "Foreign Language Interface Builder").
 
-:- doc(module, "Low-level utilities for building foreign
-interfaces.  End-users should not need to use them, as the Ciao Prolog
-Compiler reads the user assertions and calls appropriately the
-predicates in this module.").
+:- doc(module, "Low-level utilities for building foreign interfaces.
+   End-users should not need to use them, as the Ciao compiler reads
+   the user assertions and calls appropriately the predicates in this
+   module.").
 
 :- doc(author, "Jose F. Morales").
 :- doc(author, "Manuel Carro").
@@ -27,9 +27,8 @@ predicates in this module.").
 :- use_module(library(lists)).
 :- use_module(library(llists), [flatten/2]).
 :- use_module(library(aggregates), [findall/3]).
-:- use_module(library(system), 
-	[delete_file/1,system/2,modif_time0/2,file_exists/1,
-         working_directory/2]).
+:- use_module(library(system), [delete_file/1,modif_time0/2,file_exists/1]).
+:- use_module(library(process), [process_call/3]).
 :- use_module(library(messages), 
 	[error_message/2,error_message/3,
 	 warning_message/2,warning_message/3]).
@@ -48,7 +47,7 @@ predicates in this module.").
 	find_pl_filename/4
 	]).
 :- use_module(library(pathnames), [path_splitext/3]).
-%:- use_module(library(format), [format/3]).
+:- use_module(library(format), [format/3]). % (for tracing)
 
 % --------------------------------------------------------------------------- %
 
@@ -117,6 +116,7 @@ do_interface(Decls) :-
 
 % -----------------------------------------------------------------------------
 
+% TODO: try to process decls without collecting them in a list (which is slow and breaks indexing)
 get_decls(File, Decls) :-
 	find_pl_filename(File, PlName, Base, _),
         error_protect(ctrlc_clean(
@@ -698,7 +698,7 @@ compile_and_link(Rebuild, Dir, Base, Decls) :-
 	    delete_files([SOFile, AFile|OFiles])
 	; true
 	),
-%	format(user_error, "[trace-dir] ~w~n", [Dir]),
+        % format(user_error, "[trace-dir] ~w~n", [Dir]),
 	compile_and_link_2(Dir, Decls, CFiles, OFiles, SOFile, AFile).
 
 compile_and_link_2(Dir, Decls, CFiles, OFiles, SOFile, AFile) :-
@@ -715,6 +715,8 @@ compile_and_link_2(_, _, _, OFiles, SOFile, AFile) :-
 
 % -----------------------------------------------------------------------------
 
+:- use_module(library(system), [working_directory/2]).
+
 get_foreign_files(Dir, Base, Decls, CFiles, OFiles, SOFile, AFile) :-
         working_directory(OldDir, Dir),
 	( get_foreign_files__2(Dir, Base, Decls, CFiles, OFiles, SOFile, AFile) ->
@@ -726,7 +728,7 @@ get_foreign_files(Dir, Base, Decls, CFiles, OFiles, SOFile, AFile) :-
 
 get_foreign_files__2(Dir, Base, Decls, FFiles, OFiles, SOFile, AFile) :-
 	get_options(Decls, use_foreign_source, Files),
-	absolute_base_names(Dir,Files, AbsFiles, AbsBases),
+	absolute_base_names(Dir, Files, AbsFiles, AbsBases),
 	GlueFile = ~product_filename(gluecode_c, Base),
 	FFiles = [GlueFile|AbsFiles],
 	OFile = ~product_filename(gluecode_o, Base),
@@ -757,23 +759,20 @@ append_suffix([A0|As0], Suffix, [A|As]) :-
 % -----------------------------------------------------------------------------
 
 compile_foreign(Dir, Decls, ExtraOpts, CFiles, OFiles) :-
-%	compiler_and_opts(Compiler, Opts),
         compiler_to_use(Decls, Compiler, Opts), 
 	TotalOpts = ~append(Opts, ExtraOpts), 
-	CommandHead = ~atom_concat_with_blanks([Compiler, '-c'|TotalOpts]), 
-	compile_foreign_2(Dir, CommandHead, CFiles, OFiles).
+	compile_foreign_2(Dir, Compiler, TotalOpts, CFiles, OFiles).
 
-compile_foreign_2(_, _, [], []) :- !.
-compile_foreign_2(Dir, CommandHead, [CFile|CFiles], [OFile|OFiles]) :-
+compile_foreign_2(_, _, _, [], []) :- !.
+compile_foreign_2(Dir, Compiler, Opts, [CFile|CFiles], [OFile|OFiles]) :-
 	( has_changed(CFile, OFile) ->
 	    include_base_dir(BaseDir), Inc = ~atom_concat('-I', BaseDir),
-	    Command = ~atom_concat_with_blanks(['cd ', Dir, ';', CommandHead,
-	        Inc, '-o', OFile, CFile]),
-%	    format(user_error, "[trace-cf] ~w~n", Command),
-	    system(Command, 0)
+	    flatten(['-c', Opts, Inc, '-o', OFile, CFile], Args), !,
+	    % format(user_error, "[trace-cf] ~w ~w~n", [Compiler, Args]),
+	    process_call(path(Compiler), Args, [cwd(Dir), status(0)])
 	; true
 	), 
-	compile_foreign_2(Dir, CommandHead, CFiles, OFiles).
+	compile_foreign_2(Dir, Compiler, Opts, CFiles, OFiles).
 
 % -----------------------------------------------------------------------------
 
@@ -789,8 +788,7 @@ add_libciaoengine(L, ['-L', EngDir, LibOpt|L]) :-
 foreign_link_so(Dir, Decls, ExtraOpts, Libs0, OFiles, SOFile) :-
 	( member(OFile, OFiles), 
 	  has_changed(OFile, SOFile) ->
-          %  linker_and_opts(Linker, Opts), 
-             linker_to_use(Decls, Linker, Opts),
+	    linker_to_use(Decls, Linker, Opts),
 	    Libs = ~add_libciaoengine_if_required(~append_prefix(Libs0, '-l')),
 	    % Note the order of linker options is important, in
             % pariticular for library archive. See the following links
@@ -800,11 +798,9 @@ foreign_link_so(Dir, Decls, ExtraOpts, Libs0, OFiles, SOFile) :-
 	    %
 	    % ExtraOpts is append at the end because it may contains libraries 
 	    % (e.g -lgmp that should be resolve last). 
-	    flatten([Opts, ['-o', SOFile|OFiles], Libs, ExtraOpts], Args),
-	    !,
-	    Command = ~atom_concat_with_blanks(['cd ', Dir, ';', Linker|Args]),
-%	    format(user_error, "[trace-lf] ~w~n", Command),
-	    system(Command, 0)
+	    flatten([Opts, ['-o', SOFile|OFiles], Libs, ExtraOpts], Args), !,
+	    % format(user_error, "[trace-lf] ~w ~w~n", [Linker, Args]),
+	    process_call(path(Linker), Args, [cwd(Dir), status(0)])
 	; true
 	).
 
@@ -813,9 +809,8 @@ foreign_link_a(OFiles, AFile) :-
 	( member(OFile, OFiles), 
 	  has_changed(OFile, AFile) ->
 	    flatten(['-c', '-r', AFile, OFiles], Args), !,
-	    atom_concat_with_blanks(['ar'|Args], Command),
-%	    format(user_error, "[trace - ar] ~w~n", Command),
-	    system(Command, 0)
+	    % format(user_error, "[trace-ar] ~w ~w~n", ['ar', Args]),
+	    process_call(path('ar'), Args, [status(0)])
 	; true
 	).
 
@@ -823,14 +818,6 @@ foreign_link_a(OFiles, AFile) :-
 
 append_prefix([], _) := [] :- !.
 append_prefix([A|As], Prefix) := [~atom_concat(Prefix, A)|~append_prefix(As, Prefix)] :- !.
-
-% -----------------------------------------------------------------------------
-
-atom_concat_with_blanks(L) := ~atom_concat(~separate_with_blanks(L)).
-
-separate_with_blanks([]) := [] :- !.
-separate_with_blanks([A]) := [A] :- !.
-separate_with_blanks([A, B|Cs]) := [A, ' '|~separate_with_blanks([B|Cs])] :- !.
 
 % -----------------------------------------------------------------------------
 
