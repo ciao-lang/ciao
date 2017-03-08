@@ -235,7 +235,7 @@ do_rtchecks_sentence_tr((Head :- Body), Clauses, M, Dict) :-
 do_rtchecks_sentence_tr((:- Decl),[],_,_) :-
         Decl = rtc_impl(PropDef, PropImpl), !,
         PropDef  = :(_ModDef ,/(DefF ,DefA)),
-        PropImpl = :(_ImplDef,/(ImplF,ImplA)),
+        PropImpl = :(_ModImpl,/(ImplF,ImplA)),
         asserta_fact(rtc_impl(DefF, DefA, ImplF, ImplA)).
 do_rtchecks_sentence_tr((:- _Decl), _, _, _) :-
 	!,
