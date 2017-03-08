@@ -245,17 +245,21 @@ compose_backup_filename(FileName, I, B) :-
 	atom_concat([FileName, '.bak~', IA, '~'], B).
 
 % TODO: merge with backup_file/1?
-:- export(move_if_diff/2).
-:- pred move_if_diff(From, To) # "If @var{To} does not exists of its
-   contents are different than @var{From}, delete @var{To} and rename
-   @var{From} to @var{To}. Otherwise remove @var{From} and fail.".
+:- export(move_if_diff/3).
+:- pred move_if_diff(From, To, NewOrOld) # "If @var{To} does not
+   exists of its contents are different than @var{From}, delete
+   @var{To} and rename @var{From} to @var{To}. @var{NewOrOld} is
+   unified with @tt{new} or @tt{old} depending on whether the new or
+   the old file are preserved.".
 
-move_if_diff(From, To) :-
+move_if_diff(From, To, NewOrOld) :-
+	% note: NewOrOld is unified at the end to ensure side-effects
 	( diff_files(From, To) ->
 	    del_file_nofail(To),
-	    rename_file(From, To)
+	    rename_file(From, To),
+	    NewOrOld = new
 	; del_file_nofail(From),
-	  fail 
+	  NewOrOld = old
 	).
 
 diff_files(A, B) :- \+ same_files(A, B).
