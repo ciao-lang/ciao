@@ -3,7 +3,7 @@
 #
 #  Automatic build of bootstrappable executables
 #
-#  Copyright (C) 2015 Jose F. Morales, Ciao Developer team
+#  Copyright (C) 2015-2017 Jose F. Morales, Ciao Developer team
 #
 # ===========================================================================
 #
@@ -149,7 +149,7 @@ EOF
 # Execute $cpxexec using the given $builddir
 builddir_exec() { # builddir $cpxexec [ARGS] (and env)
     # (requires: $eng_name, $eng_cfg, 
-    #            $default_ciaoaliaspath, $ciaoroot)
+    #            $default_ciaoaliaspath, $default_ciaopath, $ciaoroot)
     local builddir="$1"
     local cpxexec="$2"
     shift
@@ -171,7 +171,7 @@ builddir_exec() { # builddir $cpxexec [ARGS] (and env)
 	engdbg="lldb -o run -o quit --"
 	# engopts="--trace-calls --trace-instr --debug-gc"
     fi
-    CIAOPATH= \
+    CIAOPATH="$default_ciaopath" \
         CIAOALIASPATH="$default_ciaoaliaspath" \
 	CIAOROOT=`crossp "$ciaoroot"` \
 	CIAOHDIR=`crossp "$bld_hdir"` \

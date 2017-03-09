@@ -4,7 +4,7 @@
 #
 #  A (sh) portable wrapper for ciao_builder that can self-compile and boot.
 #
-#  Copyright (C) 2015 Jose F. Morales, Ciao Developer team
+#  Copyright (C) 2015-2017 Jose F. Morales, Ciao Developer team
 #
 
 # Exit immediately if a simple command exits with a non-zero status
@@ -49,6 +49,10 @@ builder_mod="$ciaoroot/builder/cmds/ciao_builder"
 cross_ciaoroot=`crossp "$ciaoroot"`
 # Alias path for ciaobld(_) since bundles are not scanned yet
 default_ciaoaliaspath="ciaobld=$cross_ciaoroot/builder/src"
+# Default CIAOPATH for bootstrap (restricts bundle scan and bundle get
+# to <ciaoroot> -- otherwise 'get devenv' will not work)
+# TODO: document
+default_ciaopath="$cross_ciaoroot"
 
 # ---------------------------------------------------------------------------
 # Error message when there is no bootstrap (needed for autoboot.sh)
