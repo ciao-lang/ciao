@@ -32,6 +32,7 @@
 :- use_module(engine(internals), ['$bundle_prop'/2]).
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(bundle/bundle_info), [bundle_version/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(ciaobld(bundle_hash), [
 	bundle_versioned_packname/2, bundle_commit_info/3]).
 :- use_module(ciaobld(pbundle_generator)).
@@ -288,7 +289,7 @@ gen_pbundle__rpm(Bundle, GenerationOptions) :-
 	create_pbundle_output_dir(Bundle),
 	rpm_prevailingoptions(GenerationOptions, RpmbuildOptions),
 	rpmbuild_setoptions(RpmbuildOptions, RpmbuildArgs),
-	process_call(~path_concat(~builder_src_dir, 'rpm/RPM-Ciao.bash'),
+	process_call(~bundle_path(builder, 'src/rpm/RPM-Ciao.bash'),
 	       [~atom_concat(OutputDirName, '/'),
 		~bin_packname(Bundle),
 		SpecFileName | RpmbuildArgs], []),
@@ -345,7 +346,7 @@ create_rpm_spec(Bundle) :-
 	working_directory(Cwd, Cwd), % TODO: sure?
 	Version = ~bundle_version(Bundle),
 	version_split_patch(Version, VersionNopatch, _),
-	wr_template(at(Cwd), ~path_concat(~builder_src_dir, 'rpm'), 'Ciao.spec', [
+	wr_template(at(Cwd), ~bundle_path(builder, 'src/rpm'), 'Ciao.spec', [
 	    'Version' = Version,
 	    'Release' = Release,
 	    'VersionedPackName' = ~bundle_versioned_packname(Bundle),

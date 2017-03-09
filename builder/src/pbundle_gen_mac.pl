@@ -352,7 +352,7 @@ gen_pbundle_hook(macport, Bundle, _Options) :- !,
 	),
 	%
 	MD5Sum = ~md5sum(AbsTGZ),
-	wr_template(at(~pbundle_output_dir(Bundle)), ~path_concat(~builder_src_dir, 'mac'), 'Portfile', [
+	wr_template(at(~pbundle_output_dir(Bundle)), ~bundle_path(builder, 'src/mac'), 'Portfile', [
             'Version' = ~bundle_version(Bundle),
             'VersionedPackName' = ~atom_codes(TGZ),
             'HomeURL' = ~home_url_str, % TODO: from Bundle
@@ -589,7 +589,7 @@ gen_pbundle__app(Bundle) :-
 	builder_cmd(build_bin, 'ciao_emacs.emacs_mode'), % TODO: make sure that this is rebuild
 	unset_emacs_type,
 	%
-	wr_template(origin, ~path_concat(~builder_src_dir, 'mac'), 'Ciao.applescript', [
+	wr_template(origin, ~bundle_path(builder, 'src/mac'), 'Ciao.applescript', [
 	    'VERSION' = ~bundle_versioned_packname(Bundle),
 	    'BUNDLEDIR_CORE' = BundleDirCore,
 	    'CIAOENGINE' = CiaoEngine,
@@ -599,9 +599,9 @@ gen_pbundle__app(Bundle) :-
 	%
 	process_call(path(osacompile),
 	       ['-ai386', '-o', AppBundlePath,
-		~path_concat(~builder_src_dir, 'mac/Ciao.applescript')], []),
+		~bundle_path(builder, 'src/mac/Ciao.applescript')], []),
 	%
-	wr_template(at(TmpDir/'Ciao.app/Contents'), ~path_concat(~builder_src_dir, 'mac'), 'Info.plist', [
+	wr_template(at(TmpDir/'Ciao.app/Contents'), ~bundle_path(builder, 'src/mac'), 'Info.plist', [
 	    'VERSION' = ~bundle_versioned_packname(Bundle),
 	    'DOMAIN' = Domain
 	]),
@@ -610,12 +610,12 @@ gen_pbundle__app(Bundle) :-
 	%
 	install_to_destdir(ResourcesDir),
 	process_call(path(cp), ['-f',
-	            ~path_concat(~builder_src_dir, 'mac/ciao-icon.icns'),
+	            ~bundle_path(builder, 'src/mac/ciao-icon.icns'),
 		    ResourcesDir], []),
 	%
         % TODO: This is wrong! We should call 'ciao-env' with a new '--elisp' option
 	% TODO: try not to write the output here
-	wr_template(origin, ~path_concat(~builder_src_dir, 'mac'), 'configure_dotemacs.pl', [
+	wr_template(origin, ~bundle_path(builder, 'src/mac'), 'configure_dotemacs.pl', [
 	    'CIAOENGINE' = CiaoEngine,
 	    'BINDIR' = BinDir,
 	    'BUNDLEDIR_CORE' = BundleDirCore,
@@ -623,7 +623,7 @@ gen_pbundle__app(Bundle) :-
         ]),
  	RBinDir = ~atom_concat(ResourcesDir, BinDir),
 	process_call(path(mkdir), ['-p', RBinDir], []),
-	make_exec([~path_concat(~builder_src_dir, 'mac/configure_dotemacs.pl')],
+	make_exec([~bundle_path(builder, 'src/mac/configure_dotemacs.pl')],
 	           ~path_concat(RBinDir, 'configure_dotemacs')),
 	%
  	RBundleDirCore = ~atom_concat(ResourcesDir, BundleDirCore),

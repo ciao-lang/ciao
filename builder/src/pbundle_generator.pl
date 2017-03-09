@@ -290,12 +290,6 @@ lowercode(X, X).
 
 % ===========================================================================
 
-% The directory where @apl{ciao_builder} code is found
-:- export(builder_src_dir/1).
-builder_src_dir := ~bundle_path(builder, 'src').
-
-% ===========================================================================
-
 :- export(pbundle_output_dir/2).
 % TODO: The definition of directory is repeated in ciaobot/SHARED
 %       (PBUNDLE_BUILD_DIR). Share the definition.

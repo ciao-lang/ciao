@@ -82,7 +82,7 @@ create_iss_file(CiaoRoot, Bundle, FileIss, FileListName) :-
 	Eng = ~default_eng_def,
 	%
 	working_directory(Cwd, Cwd), % TODO: sure?
-	wr_template(at(Cwd), ~path_concat(~builder_src_dir, 'win32'), FileIss, [
+	wr_template(at(Cwd), ~bundle_path(builder, 'src/win32'), FileIss, [
 	    'MyAppName' = "Ciao", % TODO: extract from bundle
 	    'MyAppVerName' = AppVerName,
 	    'OutputBaseFileName' = OutputBaseFileName,
