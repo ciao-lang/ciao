@@ -551,6 +551,8 @@ call_with_cont([](_Goal_, _OnSuccess, OnFailure)):-
 :- doc(section, "Ciao boot").
 % (Initialization, module loading, and call to main/0 or main/1)
 
+% TODO: backport 'loader' from optim_comp (it will allow smaller executables)
+
 % :- export('$eng_call'/6).  % Concurrency hook
 % :- primitive_meta_predicate('$eng_call'(goal, ?, ?, ?, ?, ?)).
 % :- impl_defined('$eng_call'/6).
@@ -1150,65 +1152,15 @@ glue_suffix(gluecode_so,       '').
 opt_suff('_opt').
 
 % ---------------------------------------------------------------------------
-% [duplicated from library(pathnames), currently boot loader cannot include
-% lib/ or library/ modules]
 
+% TODO: duplicated: same as path_is_absolute/1
+:- export('$path_is_absolute'/1).
+:- trust pred '$path_is_absolute'(Path) : atm(Path).
+:- impl_defined('$path_is_absolute'/1).
+
+% (copy of pathnames that can be used before modules are initialized)
+:- include(library(pathnames_boot)).
 % :- use_module(library(pathnames), [path_concat/3, path_split/3]).
-
-% TODO: backport 'loader' from optim_comp (it will allow smaller executables)
-
-path_concat('', B, R) :- !, R = B.
-path_concat(_A, B, R) :- '$path_is_absolute'(B), !,
-	R = B.
-path_concat(A, B, R) :-
-	( atom_concat(_, '/', A) ->
-	    A0 = A
-        ; atom_concat(A, '/', A0) % add '/' if needed
-	),
-	atom_concat(A0, B, R).
-
-% TODO: duplicated: same as path_is_absolute/1
-:- export('$path_is_absolute'/1).
-:- trust pred '$path_is_absolute'(Path) : atm(Path).
-:- impl_defined('$path_is_absolute'/1).
-
-% TODO: duplicated: same as path_is_absolute/1
-:- export('$path_is_absolute'/1).
-:- trust pred '$path_is_absolute'(Path) : atm(Path).
-:- impl_defined('$path_is_absolute'/1).
-
-path_split(Path, Dir, Base) :-
-	atom_codes(Path, PathS),
-	path_split_(PathS, DirS, BaseS),
-	atom_codes(Dir, DirS),
-	atom_codes(Base, BaseS).
-
-path_split_(Path, Dir, Base) :-
-	reverse(Path, R),
-	( append(BaseR, "/"||DirR, R) ->
-	    anysep(DirR, DirR2), % Strip all trailing /
-	    ( DirR2 = "" -> % (Dir is root, preserve all /)
-	        Dir = "/"||DirR
-	    ; reverse(DirR2, Dir)
-	    ),
-	    reverse(BaseR, Base)
-	; Dir = "",
-	  Base = Path
-	).
-
-% Zero or more '/'
-anysep("/"||Xs, Ys) :- !, anysep(Xs, Ys).
-anysep(Xs, Xs).
-
-% [duplicated from library(lists)]
-
-append([], L, L).
-append([E|Es], L, [E|R]) :- append(Es, L, R).
-
-reverse(Xs,Ys):- reverse_(Xs,[],Ys).
-
-reverse_([], L, L).
-reverse_([E|Es],L,R) :- reverse_(Es,[E|L],R).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Attributed variables").
