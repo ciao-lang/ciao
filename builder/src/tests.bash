@@ -142,14 +142,6 @@ do_tests_mtypes() { # [Args]
     popd > /dev/null
 }
 
-# preindexing
-do_tests_preindexing() { # [Args]
-    pushd "$ciaoroot"/bndls/preindexing > /dev/null
-    ./bundlectl configure
-    ./bundlectl test "$@"
-    popd > /dev/null
-}
-
 # lpdoc
 do_tests_lpdoc() { # [Args]
     pushd "$ciaoroot"/bndls/testsuite/lpdoc > /dev/null
@@ -402,10 +394,10 @@ Or other specific testing sub-framework:
     emugen [...]
     mtypes [...]
     js-backend [...]
-    preindexing [...]
     lpdoc [...]
     sabsmach-min [...]
     sabsmach-vers [...]
+    (there may be more under each bundle .hooks.pl files)
 
 See $0 code or builder documentation for details.
 EOF
@@ -431,7 +423,6 @@ case ${action} in
     emugen) do_tests_emugen "$@" ;;
     mtypes) do_tests_mtypes "$@" ;;
     js-backend) do_tests_js_backend "$@" ;;
-    preindexing) do_tests_preindexing "$@" ;;
     lpdoc) do_tests_lpdoc "$@" ;;
 #
     sabsmach-min)      sabsmach_min "$@" ;;

@@ -1,4 +1,13 @@
 #!/bin/bash
+#
+#  tests_aux.bash
+#
+#  Alternative implementation for regression test driver
+#
+#  Copyright (C) 2017 Jose F. Morales
+#
+
+# TODO: merge with the Prolog version
 
 # Physical directory where the script is located
 _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
@@ -21,14 +30,6 @@ set -e # Exit on non-zero status command exit
 set -u # Error on parameter expansion of unset variables
 
 # ---------------------------------------------------------------------------
-
-get_bundle_opts() {
-    if [ ! -z "${CIAOC_BUNDLE_OPTS:-}" ]; then
-	return
-    fi
-    CIAOC_BUNDLE_OPTS=`$_base/bundlectl ciaoc-bundle-opts`
-    CIAOC_BUNDLE_MODS=`$_base/bundlectl ciaoc-bundle-mods`
-}
 
 ensure_dirs() {
     ensure_regression_dir
@@ -94,22 +95,9 @@ regr_filename() { # relpath
 
 # ---------------------------------------------------------------------------
 
-do_buildmod() { # I
-    ensure_dirs
-    get_bundle_opts # (1)
-    ciaoc ${CIAOC_BUNDLE_OPTS} -c "$1"
-}
-
-do_buildexec() { # I
-    ensure_dirs
-    get_bundle_opts # (1)
-    ciaoc ${CIAOC_BUNDLE_OPTS} "$1" ${CIAOC_BUNDLE_MODS}
-}
-
 do_check() { # I
     ensure_dirs
-    get_bundle_opts # (1)
-    ciaoc ${CIAOC_BUNDLE_OPTS} -w "$1"
+    ciaoc -w "$1"
     do_briefcompare "$1"
 }
 
@@ -172,32 +160,6 @@ do_save_all() {
 
 # ---------------------------------------------------------------------------
 
-do_build_all() {
-    local I
-    echo "Building modules"
-    for I in ${BUILDMODS}; do
-	echo -n "  ${I} "
-	do_buildmod ${I}
-	echo
-    done
-    echo "Building execs"
-    for I in ${RUNMODS}; do
-	echo -n "  ${I} "
-	do_buildexec ${I}
-	echo
-    done
-}
-
-# ---------------------------------------------------------------------------
-
-do_run() { # EXEC
-    local e=$1
-    shift
-    ./"$e" "$@"
-}
-
-# ---------------------------------------------------------------------------
-
 do_bench_all() {
     local I
     echo "% Benchmarking code"
@@ -210,8 +172,7 @@ do_bench_all() {
 do_bench() { # I
     local dir base
     ensure_dirs
-    get_bundle_opts
-    ciaoc ${CIAOC_BUNDLE_OPTS} "$1" ${CIAOC_BUNDLE_MODS}
+    ciaoc "$1"
     dir=`dirname "$1"`
     base=`basename "$1"`
     pushd "$dir" > /dev/null
@@ -277,8 +238,6 @@ source "$hooksfile"
 ACTION=$1
 
 case ${ACTION} in
-    run) shift; do_run "$@" ;;
-    build) do_build_all ;;
     check) do_check_all ;;
     compare) do_compare_all ;;
     briefcompare) do_briefcompare_all ;;
