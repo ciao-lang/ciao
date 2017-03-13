@@ -17,8 +17,7 @@
 :- data '$bundle_alias_path'/3.
 % Other bundle properties. Currently supported:
 %   depends(Bundles)
-%   packname(Packname)
-% TODO: Add optional pretty_name and archive_name
+% TODO: anything else?
 :- export('$bundle_prop'/2).
 :- data '$bundle_prop'/2.
 

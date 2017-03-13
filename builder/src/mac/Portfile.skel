@@ -11,7 +11,7 @@ long_description    A next generation multi-paradigm programming environment
 homepage            {{HomeURL}}
 platforms           darwin
 master_sites        {{MasterURL}}
-distname  	    {{VersionedPackName}}
+distname  	    {{VersionedPkgName}}
 
 checksums           md5 {{MD5CheckSum}}
 

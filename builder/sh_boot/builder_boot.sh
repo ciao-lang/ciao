@@ -144,7 +144,7 @@ clean_builddir() { # DIR
 INTERNAL ERROR: missing argument in clean_builddir
 EOF
 	exit 1
-    elif [ -x "$dir" -a '(' ! -r "$dir/bundlereg/ciao.bundlecfg_sh" ')' ]; then
+    elif [ -x "$dir" -a '(' ! -r "$dir/bundlereg/core.bundlecfg_sh" ')' ]; then
 	for i in "$dir/*"; do
 	    cat >&2 <<EOF
 INTERNAL ERROR: suspicuous directory in clean_builddir:

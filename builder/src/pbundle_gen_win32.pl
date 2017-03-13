@@ -34,8 +34,7 @@
 :- use_module(engine(internals), ['$bundle_prop'/2]).
 :- use_module(library(bundle/bundle_info), [bundle_version/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
-:- use_module(ciaobld(bundle_hash), [
-	bundle_versioned_packname/2, bundle_commit_info/3]).
+:- use_module(ciaobld(bundle_hash), [bundle_commit_info/3]).
 :- use_module(ciaobld(pbundle_generator)).
 :- use_module(ciaobld(builder_aux), [wr_template/4]).
 
@@ -54,30 +53,32 @@
 
 iscc := '/cygdrive/c/Program\\ Files/Inno\\ Setup\\ 5/iscc.exe'.
 
-% TODO: Use Bundle to customize more definitions
+% TODO: Use Target and MainBundle to customize more definitions
 
 % (hook)
-gen_pbundle_hook(win32, Bundle, _Options) :- !,
+gen_pbundle_hook(win32, Target, _Options) :- !,
 	simple_message("Creating Windows installer for ~w, please be patient... ",
-	    [~bundle_versioned_packname(Bundle)]),
+	    [~dist_versioned_pkgname(Target)]),
 	simple_message("Creating ISS scripts... "),
 	CiaoRoot = ~ciao_root,
 	FileIss = ~path_concat(CiaoRoot, 'Ciao.iss'),
 	FileListName = ~path_concat(CiaoRoot, 'file_list.iss'),
-	create_iss_file(CiaoRoot, Bundle, FileIss, FileListName),
+	create_iss_file(Target, CiaoRoot, FileIss, FileListName),
 	compute_file_list_iss(FileListName),
-	create_pbundle_output_dir(Bundle),
+	create_pbundle_output_dir(Target),
 	simple_message("Compiling ISS scripts... "),
 	process_call(~iscc, [FileIss], []),
 	simple_message("Creation of Windows installer finished").
 
 % TODO: too many definitions here are hardwired
-create_iss_file(CiaoRoot, Bundle, FileIss, FileListName) :-
-	Version = ~bundle_version(Bundle),
+create_iss_file(Target, CiaoRoot, FileIss, FileListName) :-
+	Version = ~dist_version(Target),
 	version_split_patch(Version, VersionNopatch, _),
-	OutputBaseFileName = ~atom_codes(~bundle_versioned_packname(Bundle)),
+	OutputBaseFileName = ~atom_codes(~dist_versioned_pkgname(Target)),
 	% TODO: see PrettyCommitDesc in pbundle_download.pl
-	CommitId = ~bundle_commit_info(Bundle, id),
+	dist_main_bundle(Target, MainBundle),
+	BuildDir = ~bundle_path(MainBundle, builddir, '.'),
+	CommitId = ~bundle_commit_info(MainBundle, id),
 	AppVerName = ~atom_codes(~atom_concat(['Ciao-', Version, ' (', CommitId, ')'])),
 	Eng = ~default_eng_def,
 	%
@@ -91,33 +92,29 @@ create_iss_file(CiaoRoot, Bundle, FileIss, FileListName) :-
  	    'MyAppExeName' = ~concat_ext(plexe, 'ciaosh'), % TODO: extract from bundle
 	    'CiaoVersion' = VersionNopatch, % TODO: extract from bundle
 	    'SourceDir' = ~atom_codes(~winpath(relative, CiaoRoot)),
-	    'MyRelBuildDir' = ~relciaodir(~bundle_path(Bundle, builddir, '.')),
-	    'OutputDir' = ~atom_codes(~winpath(relative, ~pbundle_output_dir(Bundle))),
-	    'ManualIcons' = ~get_manual_icons(Bundle),
-	    'DefaultDirName' = ~default_dir_name(Bundle),
+	    'MyRelBuildDir' = ~relciaodir(BuildDir),
+	    'OutputDir' = ~atom_codes(~winpath(relative, ~pbundle_output_dir(Target))),
+	    'ManualIcons' = ~get_manual_icons(Target),
+	    'DefaultDirName' = ~atom_codes(~dist_pkgname(Target)),
 	    'CiaoEngineExec' = ~winpath(relative, ~relciaodir(~eng_path(exec, Eng))),
 	    'FileListName' = ~winpath(full, FileListName)
 	]).
 
-default_dir_name(Bundle) := D :-
-	'$bundle_prop'(Bundle, packname(Packname)),
-	D = ~atom_codes(Packname).
-
-get_manual_icons(Bundle, S) :-
-	findall(Str, get_manual_icons_(Bundle, Str), L),
+get_manual_icons(Target, S) :-
+	findall(Str, get_manual_icons_(Target, Str), L),
 	flatten(L, S).
 
-% TODO: Do not use PackName as name of the manual!
-get_manual_icons_(ParentBundle, Str) :-
-	enum_pbundle_bundle(ParentBundle, Bundle),
+% TODO: Do not use PkgName as name of the manual!
+get_manual_icons_(Target, Str) :-
+	dist_bundles(Target, Bundle),
 	ensure_load_manifest(Bundle),
 	ManualBase = ~bundle_manual_base(Bundle), % (nondet)
 	%
 	DocFormat = pdf,
 	RelBuildDir = ~relciaodir(~bundle_path(Bundle, builddir, '.')),
-	'$bundle_prop'(Bundle, packname(PackName)),
+	PkgName = ~dist_pkgname(Target),
 	FileMain = ~atom_concat([ManualBase, '.', DocFormat]),
-	Str = ["Name: {group}\\" || (~atom_codes(PackName)), " Manual in PDF; ",
+	Str = ["Name: {group}\\" || (~atom_codes(PkgName)), " Manual in PDF; ",
 	       "Filename: {app}\\" || (~atom_codes(RelBuildDir)), "\\doc\\" || (~atom_codes(FileMain)), "; ",
 	       "WorkingDir: {app}\\" || (~atom_codes(RelBuildDir)), "\\doc\n"].
 

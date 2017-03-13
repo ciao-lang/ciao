@@ -30,14 +30,9 @@ parse_cmd([Cmd0|Args], Cmd, Opts) :-
 	; Cmd2 = Cmd1 % no flags
 	),
 	% Rewrite the command
-	( cmd_rw(Cmd2, Cmd3, Opts0, Opts, Targets0, Targets1, CmdFmt2) ->
+	( cmd_rw(Cmd2, Cmd3, Opts0, Opts, Targets0, Targets, CmdFmt2) ->
 	    true
-	; Cmd3 = Cmd2, Opts = Opts0, Targets1 = Targets0, CmdFmt2 = CmdFmt
-	),
-	% Add default target (if needed)
-	( member(target_args, CmdFmt2), Targets1 = [] -> % guess some
-	    Targets = ['.']
-	; Targets = Targets1
+	; Cmd3 = Cmd2, Opts = Opts0, Targets = Targets0, CmdFmt2 = CmdFmt
 	),
 	% Get command
 	( ( member(target_args, CmdFmt2)

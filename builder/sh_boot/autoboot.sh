@@ -57,12 +57,12 @@ crossp() {
     fi
 }
 
-# Create a predefined 'ciao.bundlecfg_sh' for bootstrap
+# Create a predefined 'core.bundlecfg_sh' for bootstrap
 builddir_configure_boot() { # builddir
     local builddir="$1"
     test -d "$builddir/bundlereg" || mkdir -p "$builddir/bundlereg"
 
-    cat > "$builddir/bundlereg/ciao.bundlecfg_sh" <<EOF
+    cat > "$builddir/bundlereg/core.bundlecfg_sh" <<EOF
 core__USE_THREADS=yes
 core__AND_PARALLEL_EXECUTION=no
 core__PAR_BACK=no
@@ -121,7 +121,7 @@ eng_use_stat_libs=no
 eng_default_ciaoroot="$ciaoroot"
 eng_addobj=
 eng_addcfg=
-eng_ciao_config="$builddir/bundlereg/ciao.bundlecfg_sh"
+eng_core_config="$builddir/bundlereg/core.bundlecfg_sh"
 EOF
     # Do sysdep configuration
     "$sh_src_dir"/config-sysdep/config-sysdep.sh "$bld_engdir" "$eng_cfg"

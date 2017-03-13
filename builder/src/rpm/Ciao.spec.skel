@@ -86,7 +86,7 @@ Vendor: CLIP Lab
 Group: Development/Languages
 URL: https://ciao-lang.org
 Packager: Ciao Dev. Team <ciao@clip.dia.fi.upm.es>
-Source: {{BinPackName}}.tar.gz
+Source: {{BinPkgName}}.tar.gz
 Requires: coreutils %{install_info_cmd}
 Provides: ciao-{{CiaoPathVersion}}
 BuildRequires: mktemp coreutils findutils gcc make emacs
@@ -152,7 +152,7 @@ environment with a unique set of features:
 
 %prep
 
-%setup -q -n {{VersionedPackName}}
+%setup -q -n {{VersionedPkgName}}
 
 %build
 

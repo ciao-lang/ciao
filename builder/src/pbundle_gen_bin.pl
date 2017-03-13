@@ -7,7 +7,6 @@
    portable and platform dependent.").
 
 :- use_module(ciaobld(pbundle_generator)).
-:- use_module(ciaobld(bundle_hash), [gen_bundle_commit_info/1]).
 
 % TODO: Make sure that this works both as a mechanism to distribute
 %   compiled workspaces (and instype=local) and installed bundles with
@@ -17,21 +16,21 @@
 :- include(ciaobld(pbundle_gen_hookdefs)).
 
 % (hook)
-gen_pbundle_hook(bin, Bundle, _Options) :- !,
-	gen_bundle_commit_info(Bundle),
-	gen_pbundle_common(Bundle, bin, [tgz, tbz]).
-gen_pbundle_hook(bin_tgz, Bundle, _Options) :- !,
-	gen_bundle_commit_info(Bundle),
-	gen_pbundle_common(Bundle, bin, [tgz]).
-gen_pbundle_hook(bin_tbz, Bundle, _Options) :- !,
-	gen_bundle_commit_info(Bundle),
-	gen_pbundle_common(Bundle, bin, [tbz]).
-gen_pbundle_hook(noa, Bundle, _Options) :- !,
-	gen_bundle_commit_info(Bundle),
-	gen_pbundle_common(Bundle, noa, [tgz, tbz]).
-gen_pbundle_hook(noa_tgz, Bundle, _Options) :- !,
-	gen_bundle_commit_info(Bundle),
-	gen_pbundle_common(Bundle, noa, [tgz]).
-gen_pbundle_hook(noa_tbz, Bundle, _Options) :- !,
-	gen_bundle_commit_info(Bundle),
-	gen_pbundle_common(Bundle, noa, [tbz]).
+gen_pbundle_hook(bin, Target, _Options) :- !,
+	dist_gen_commit_info(Target),
+	gen_pbundle_common(Target, bin, [tgz, tbz]).
+gen_pbundle_hook(bin_tgz, Target, _Options) :- !,
+	dist_gen_commit_info(Target),
+	gen_pbundle_common(Target, bin, [tgz]).
+gen_pbundle_hook(bin_tbz, Target, _Options) :- !,
+	dist_gen_commit_info(Target),
+	gen_pbundle_common(Target, bin, [tbz]).
+gen_pbundle_hook(noa, Target, _Options) :- !,
+	dist_gen_commit_info(Target),
+	gen_pbundle_common(Target, noa, [tgz, tbz]).
+gen_pbundle_hook(noa_tgz, Target, _Options) :- !,
+	dist_gen_commit_info(Target),
+	gen_pbundle_common(Target, noa, [tgz]).
+gen_pbundle_hook(noa_tbz, Target, _Options) :- !,
+	dist_gen_commit_info(Target),
+	gen_pbundle_common(Target, noa, [tbz]).

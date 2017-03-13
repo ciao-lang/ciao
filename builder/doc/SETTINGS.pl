@@ -24,6 +24,8 @@ doc_structure :=
           ],
 	  % Command driver and definitions
           'builder_cmds'-[
+            % Target names and resolution
+            'builder_targets',
             % Primitive targets
             'builder_prim',
 	    % Build

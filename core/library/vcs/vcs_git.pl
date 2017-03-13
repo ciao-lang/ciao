@@ -9,9 +9,9 @@
 
 :- doc(bug, "This abstraction layer is really incomplete").
 
-:- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(process), [process_call/3]).
+:- use_module(library(pathnames), [path_concat/3]).
 
 % ---------------------------------------------------------------------------
 
@@ -19,7 +19,7 @@
 :- pred git_repo_at_dir(D) # "There is a Git repository at directory @var{D}".
 
 git_repo_at_dir(Dir) :-
-	file_exists(~atom_concat(Dir, '/.git')).
+	file_exists(~path_concat(Dir, '.git')).
 
 % ---------------------------------------------------------------------------
 

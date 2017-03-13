@@ -112,6 +112,14 @@ lookup_bundle_root_(File, BundleDir) :-
 :- doc(bug, "ensure_load_manifest/1 requires previous make_bundlereg").
 :- doc(bug, "ensure_load_manifest/1 not unloaded; no refcount or module GC").
 
+%:- export(check_known_bundle/1).
+:- pred check_known_bundle(Bundle) # "Check that Bundle is registered".
+check_known_bundle(Bundle) :-
+	( nonvar(Bundle), '$bundle_id'(Bundle) ->
+	    true
+	; throw(unknown_bundle(Bundle))
+	).
+
 :- export(ensure_load_manifest/1).
 :- pred ensure_load_manifest(Target) # "Ensure that the manifest for
    @var{Target} is loaded (including Manifest sentences and .hooks.pl
@@ -123,13 +131,16 @@ ensure_load_manifest(Target) :-
 	( loaded_with_hooks(Bundle) ->
 	    true
 	; assertz_fact(loaded_with_hooks(Bundle)),
-	  ( '$bundle_id'(Bundle), BundleDir = ~bundle_path(Bundle, '.') ->
-	      true
-	  ; throw(unknown_bundle(Bundle)) % TODO: bundle must have been scanned before
-	  ),
+	  check_known_bundle(Bundle), % TODO: bundle must have been scanned before
+	  BundleDir = ~bundle_path(Bundle, '.'),
 	  load_manifest(Bundle, BundleDir),
 	  load_manifest_hooks(Bundle, BundleDir)
 	).
+%	% If target is a bundle part, check that it is a valid part
+%       % TODO: we can use item_nested but it is not declared for all items (e.g., static_engine)
+%	( _Part = '' -> true
+%	; ...
+%       ).
 
 % Load manifest_hooks
 load_manifest_hooks(Bundle, BundleDir) :-
@@ -206,7 +217,6 @@ read_loop(_S, _Bundle).
 % Treat manifest sentences
 
 % Sentences allowed in Manifest.pl
-manifest_def(packname(_)).
 manifest_def(version(_)).
 manifest_def(alias_paths(_)).
 %manifest_def(depends(_,_)). % (normalized as dep/2)
@@ -377,12 +387,7 @@ make_bundlereg(Bundle, BundleDir, FinalBundleDir, RegFile) :-
 	    fail
 	; true
 	),
-	% TODO: write extra info in a separate file?
-	( manifest_fact(Bundle, packname(Packname)) ->
-	    true
-	; Packname = Bundle % reuse bundle name as packname
-	),
-	fast_write(bundle_prop(Bundle, packname(Packname))),
+	% Dependencies
 	( % (failure-driven loop)
 	  manifest_fact(Bundle, dep(Dep, _)),
 	    % NOTE: bundle dependency properties are ignored in bundlereg
@@ -392,10 +397,12 @@ make_bundlereg(Bundle, BundleDir, FinalBundleDir, RegFile) :-
 	    fail
 	; true
 	),
+	% Version
 	( manifest_fact(Bundle, version(Ver)) ->
 	    fast_write(bundle_prop(Bundle, version(Ver)))
 	; true
 	),
+	% Source dir
 	fast_write(bundle_srcdir(Bundle, FinalBundleDir)),
 	%
 	close_output(UO).
@@ -424,8 +431,7 @@ abs_alias_path(X, Base, Y) :-
 % ===========================================================================
 :- doc(section, "Display bundle info").
 
-:- use_module(engine(internals),
-	['$bundle_id'/1, '$bundle_prop'/2, '$bundle_srcdir'/2]).
+:- use_module(engine(internals), ['$bundle_prop'/2, '$bundle_srcdir'/2]).
 :- use_module(library(bundle/bundle_info), [bundle_status/2]).
 :- use_module(library(bundle/bundle_info), [bundle_version/2]).
 :- use_module(library(format)).
@@ -436,11 +442,7 @@ abs_alias_path(X, Base, Y) :-
 :- export(bundle_info/1).
 :- pred bundle_info(Bundle) # "Show info of @var{Bundle}".
 bundle_info(Bundle) :-
-	( nonvar(Bundle), '$bundle_id'(Bundle) ->
-	    true
-	; throw(error(unknown_bundle(Bundle), bundle_info/1))
-	),
-	'$bundle_prop'(Bundle, packname(Pack)),
+	check_known_bundle(Bundle),
 	( '$bundle_srcdir'(Bundle, SrcDir) -> true ; SrcDir = '(none)' ),
 	% (looks like .yaml format)
 	format("~w:\n", [Bundle]),
@@ -449,7 +451,6 @@ bundle_info(Bundle) :-
 	; true
 	),
 	Status = ~bundle_status(Bundle),
-	format("  name: ~w\n", [Pack]),
 	format("  src: ~w\n", [SrcDir]),
 	format("  status: ~w\n", [Status]), % TODO: status is not a good name
 	( manifest_call(Bundle, dep(_, _)) -> % some dependencies

@@ -102,7 +102,7 @@ function get_manual_outdir() {
 
 function get_manual_cmd() {
     case $1 in
-	ciao) echo "ciao build --docs ciao" ;;
+	ciao) echo "ciao build --docs alldocs" ;;
 	ciaopp_ref_man) echo "ciao build --docs ciaopp" ;;
 	ciaopp_doc) echo "ciao build --docs ciaopp" ;;
 	lpdoc) echo "ciao build --docs lpdoc" ;;

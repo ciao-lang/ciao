@@ -4,20 +4,19 @@
 :- doc(author, "Ciao Development Team").
 :- doc(module, "Generate clean source distributions.").
 
-:- use_module(ciaobld(bundle_hash), [gen_bundle_commit_info/1]).
 :- use_module(ciaobld(pbundle_generator)).
 
 % (hooks for gen_pbundle)
 :- include(ciaobld(pbundle_gen_hookdefs)).
 
 % (hook)
-gen_pbundle_hook(src, Bundle, _Options) :- !,
-	gen_bundle_commit_info(Bundle),
-	gen_pbundle_common(Bundle, src, [tgz, tbz]).
-gen_pbundle_hook(tgz, Bundle, _Options) :- !,
-	gen_bundle_commit_info(Bundle),
-	gen_pbundle_common(Bundle, src, [tgz]).
-gen_pbundle_hook(tbz, Bundle, _Options) :- !,
-	gen_bundle_commit_info(Bundle),
-	gen_pbundle_common(Bundle, src, [tbz]).
+gen_pbundle_hook(src, Target, _Options) :- !,
+	dist_gen_commit_info(Target),
+	gen_pbundle_common(Target, src, [tgz, tbz]).
+gen_pbundle_hook(tgz, Target, _Options) :- !,
+	dist_gen_commit_info(Target),
+	gen_pbundle_common(Target, src, [tgz]).
+gen_pbundle_hook(tbz, Target, _Options) :- !,
+	dist_gen_commit_info(Target),
+	gen_pbundle_common(Target, src, [tbz]).
 

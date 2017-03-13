@@ -335,8 +335,8 @@ cmd_usage(gen_pbundle, "[--kind=Kind] [<targets>]", [
     "(see gen_pbundle_hook/3)"
 ]).
 %
-cmd_grp(gen_bundle_commit_info, packaging).
-cmd_usage(gen_bundle_commit_info, "[--git-repo-dir=Dir] [<targets>]", [
+cmd_grp(gen_commit_info, packaging).
+cmd_usage(gen_commit_info, "[--git-repo-dir=Dir] [<targets>]", [
     %1_______________________________________________
     "[Not documented, internal]"
 ]).

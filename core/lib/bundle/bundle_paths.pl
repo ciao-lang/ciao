@@ -68,18 +68,18 @@ relbuild(bootbuild, 'build-boot'). % bootstrap build
 
 :- export(bundle_workspace/2).
 % Workspace corresponding to Bundle
+% TODO: store dynamically the wksp and the relative srcdir?
 bundle_workspace(Bundle, R0) :-
-	( Bundle = ciao -> % ~root_bundle
-	    ciao_root(R0)
-	; '$bundle_srcdir'(Bundle, Dir), % (may fail for ~root_bundle)
-	  ciao_path(Path), % TODO: Must not include CIAOROOT!
-	  ( Path = Dir
-	  ; path_get_relative(Path, Dir, _)
-	  ) -> % Dir is relative to Path
-	    R0 = Path
-	; % otherwise assume local (under CIAOROOT)
-	  ciao_root(R0)
-	).
+	'$bundle_srcdir'(Bundle, Dir),
+	( ciao_path(Path)
+	; ciao_root(Path)
+	),
+	% Dir is relative to Path
+	( Path = Dir
+	; path_get_relative(Path, Dir, _)
+	),
+	!, 
+	R0 = Path.
 
 % ---------------------------------------------------------------------------
 

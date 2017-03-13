@@ -133,7 +133,7 @@ cmd_fmt(rm, [target_args]). % (remove downloaded bundles)
 
 cmd_fmt(get, [target_args, config_flags]). % (download and install bundles)
 
-cmd_fmt(gen_bundle_commit_info, [opts([
+cmd_fmt(gen_commit_info, [opts([
   git_repo_dir=v % --git-repo-dir=Dir: location of the Git repository
 		 % (if not using default)
 ]), target_args]).

@@ -14,29 +14,12 @@
 
 % ===========================================================================
 
-:- use_module(ciaobld(manifest_compiler), [lookup_bundle_root/2]).
-:- use_module(ciaobld(bundle_scan), [root_bundle/1]).
 :- use_module(engine(internals), ['$bundle_id'/1]).
-:- use_module(engine(internals), [ciao_root/1]).
 
-:- export(bundle_at_dir/2).
-% Lookup the root or registered bundle at Dir or any of the parent directories
-bundle_at_dir(Dir, Bundle) :-
-	( lookup_bundle_root(Dir, BundleDir) ->
-	    true
-	; throw(error_msg("Not a bundle (or any of the parent directories).", []))
-	),
-	( dir_to_bundle(BundleDir, Bundle0) ->
-	    Bundle = Bundle0
-	; throw(error_msg("Bundle at ~w is not registered.", [BundleDir]))
-	).
-
+:- export(dir_to_bundle/2).
+% Lookup Bundle defined at BundleDir
 dir_to_bundle(BundleDir, Bundle) :-
-	ciao_root(CiaoRoot),
-	BundleDir = CiaoRoot,
-	!,
-	root_bundle(Bundle).
-dir_to_bundle(BundleDir, Bundle) :-
+	% (backtracks until we find a match)
 	'$bundle_id'(Bundle0),
 	Dir = ~bundle_path(Bundle0, '.'),
 	Dir == BundleDir,
@@ -45,26 +28,20 @@ dir_to_bundle(BundleDir, Bundle) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(internals), [ciao_path/1]).
+:- use_module(engine(internals), [ciao_root/1, ciao_path/1]).
 :- use_module(library(pathnames), [path_get_relative/3]).
 
-:- export(ciao_path_at_dir/2).
-ciao_path_at_dir(Dir, Path) :-
-	( lookup_ciao_path(Dir, Path0) ->
-	    Path = Path0
-	; throw(error_msg("Directory (or any of the parent directories) not in CIAOPATH.", []))
-	).
-
+:- export(lookup_workspace/2).
 % Detect the workspace for the given File (a directory or normal
-% file), using ciao_path/1 or the CIAOROOT directory.
-lookup_ciao_path(File, Path) :-
+% file), using ciao_root/1 and ciao_path/1.
+lookup_workspace(File, Path) :-
 	fixed_absolute_file_name(File, '.', Path0),
-	( lookup_ciao_path_(Path0, Path1) ->
+	( lookup_workspace_(Path0, Path1) ->
 	    Path1 = Path
 	; fail
 	).
 
-lookup_ciao_path_(Path0, Path) :-
+lookup_workspace_(Path0, Path) :-
 	( ciao_path(Path)
 	; ciao_root(Path)
 	),
@@ -73,7 +50,6 @@ lookup_ciao_path_(Path0, Path) :-
 	).
 
 % ===========================================================================
-
 :- doc(section, "Invokation of external tools").
 % TODO: make verbose messages optional
 
@@ -117,9 +93,11 @@ ensure_builddir(Bundle, Rel) :-
 builddir_clean(Bundle, bundlereg) :- !,
 	remove_dir_nofail(~bundle_path(Bundle, builddir, 'bundlereg')).
 builddir_clean(Bundle, config) :- !,
-	% TODO: this only works for (~root_bundle)
-	del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/ciao.bundlecfg')),
-	del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/ciao.bundlecfg_sh')).
+	( Bundle = core -> % TODO: fix!!! clean per bundle!
+	    del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/core.bundlecfg')),
+	    del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/core.bundlecfg_sh'))
+	; true
+	).
 builddir_clean(Bundle, bin) :- !,
 	remove_dir_nofail(~bundle_path(Bundle, builddir, 'bin')).
 builddir_clean(Bundle, pbundle) :- !,
@@ -130,7 +108,6 @@ builddir_clean(Bundle, all) :-
 	remove_dir_nofail(~bundle_path(Bundle, builddir, '.')).
 
 % ===========================================================================
-
 :- doc(section, "Build Template Files with Parameters").
 
 :- use_module(library(text_template), [eval_template_file/3]).
@@ -159,7 +136,7 @@ wr_template(as_cmd(Bundle, Kind), Dir, File, Subst) :-
 
 kind_exec_perms(shscript).
 
-% ===========================================================================
+% ---------------------------------------------------------------------------
 
 :- use_module(library(bundle/bundle_info), [bundle_version/2]).
 

@@ -138,7 +138,7 @@ stat_mod_init(Base) -->
 bundle_flags_sh_file := Path :-
 	ciao_root(CiaoRoot),
 	get_bundlereg_dir(CiaoRoot, BundleRegDir),
-	path_concat(BundleRegDir, 'ciao.bundlecfg_sh', Path). % TODO: hardwired 'ciao'
+	path_concat(BundleRegDir, 'core.bundlecfg_sh', Path). % TODO: hardwired 'core'
 
 %:- export(eng_config_sysdep/1).
 % Generates 'meta_sh' and perform sysdep configuration (for this
@@ -217,7 +217,7 @@ eng_meta_sh(Eng, CfgInput) -->
 	},
 	sh_def('eng_addcfg', AddCfgs),
 	% Input for configuration
-	sh_def('eng_ciao_config', CfgInput).
+	sh_def('eng_core_config', CfgInput).
 
 cfgdirs([], []).
 cfgdirs([at_bundle(B, Spec)|Xs], [Y|Ys]) :-

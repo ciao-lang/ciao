@@ -4,7 +4,78 @@
 :- doc(author, "Jose F. Morales").
 
 % ===========================================================================
-% Hooks for definition of a command
+:- doc(section, "High-level builder interface").
+% TODO: move to separate module?
+
+% :- use_module(ciaobld(builder_cmds),
+% 	[builder_cleanup/0,
+% 	 builder_cmd_nobndl/1,
+% 	 builder_cmd_on_set/2,
+% 	 set_default_recursive/1,
+% 	 'cmd.needs_update_builder'/1,
+% 	 'cmd.needs_rescan'/1]).
+:- use_module(ciaobld(builder_targets)).
+:- use_module(ciaobld(bundle_fetch), [bundle_fetch_cleanup/0]).
+:- use_module(ciaobld(builder_flags),
+	[set_builder_flag/2, cleanup_builder_flags/0]).
+:- use_module(ciaobld(bundle_configure), [check_builder_update/0]).
+
+:- export(builder_run/2).
+builder_run(Cmd, Opts) :-
+	cleanup, % TODO: repeat just in case...
+	set_opts(Opts),
+	run_cmd(Cmd),
+	cleanup.
+
+cleanup :-
+	builder_cleanup,
+	bundle_fetch_cleanup, % (may be modified by resolve_targets/2)
+	cleanup_builder_flags.
+
+set_opts([]).
+set_opts([Opt|Opts]) :- set_opt(Opt), set_opts(Opts).
+
+% TODO: ad-hoc, it does not take command into account
+set_opt(opt(interactive)) :- !,
+	set_builder_flag(interactive_config, true).
+set_opt(opt(docs)) :- !,
+	set_builder_flag(grade_docs, true).
+set_opt(opt(bin)) :- !,
+	set_builder_flag(grade_bin, true).
+%set_opt(opt(norec)) :- !,
+%	set_builder_flag(recursive, false).
+set_opt(opt(r)) :- !,
+	set_builder_flag(recursive, same_workspace).
+set_opt(opt(x)) :- !,
+	set_builder_flag(recursive, all_workspaces).
+set_opt(opt(Name, Value)) :- !,
+	set_builder_flag(Name, Value).
+set_opt(Opt) :-
+	throw(unknown_opt(Opt)).
+
+run_cmd(cmd_on_set(Cmd, Targets0)) :-
+	% Add a default target (if none is given)
+	( Targets0 = [] -> % guess some
+	    Targets = ['.']
+	; Targets = Targets0
+	),
+	%
+	( 'cmd.needs_update_builder'(Cmd) ->
+	    check_builder_update
+	; true
+	),
+	( 'cmd.needs_rescan'(Cmd) ->
+	    rescan_targets(Targets)
+	; true
+	),
+	resolve_targets(Targets, Targets2),
+	set_default_recursive(Targets2),
+	builder_cmd_on_set(Cmd, Targets2).
+run_cmd(cmd(Cmd)) :-
+	builder_cmd_nobndl(Cmd).
+
+% ===========================================================================
+:- doc(section, "Hooks for definition of a command").
 
 % NOTE:
 %   A command must define at least 'cmd.grade'/2 or 'cmd.do'/2.
@@ -85,10 +156,6 @@ builder_cmd_nobndl(clean_tree(Dir)) :- !,
     split_target/3,
     compose_target/3
 ]).
-% Bundle info
-:- use_module(ciaobld(bundle_scan), [
-    root_bundle/1 % TODO: distinguish between initial (just the structure) and final (sys bundles? or all bundles?)
-]).
 
 % Status of each (Cmd,Target):
 %  - (fail): unknown
@@ -161,12 +228,14 @@ builder_cmd_(Cmd, Target) :-
 	; true
 	),
 	% Check that config exists if needed (does a plain configuration)
-	( 'cmd.needs_config'(Cmd) ->
+	( target_is_workspace(Target) -> true % (not for workspaces)
+	; 'cmd.needs_config'(Cmd) ->
 	    ensure_configured(Target)
 	; true
 	),
 	% Ensure that metasrc is loaded if needed
-	( 'cmd.do.decl'(Cmd), 'cmd.no_manifest_load'(Cmd) -> % do not need metasrc to execute
+	( target_is_workspace(Target) -> true % (not for workspaces)
+	; 'cmd.do.decl'(Cmd), 'cmd.no_manifest_load'(Cmd) -> % do not need metasrc to execute
 	    true
 	; ensure_load_manifest(Target) % TODO: increment reference counting?
 	),
@@ -177,7 +246,9 @@ builder_cmd_(Cmd, Target) :-
 	% Action for this command
 	cmd_action(Cmd, Target, Do, Pending),
 	% Execute command (and show begin and end comments if needed)
-	cmd_comment(Cmd, Do, Pending, Comment),
+	( target_is_workspace(Target) -> Comment = [] % (not for workspaces)
+	; cmd_comment(Cmd, Do, Pending, Comment)
+	),
 	( Comment = [Before|_] -> cmd_message(Target, Before, []) ; true ),
 	( cmd_do(Do) -> true
 	; throw(error(failed(Cmd,Target), builder_cmd/2))
@@ -189,8 +260,8 @@ builder_cmd_(Cmd, Target) :-
 	% Backward commands on dependencies
 	( 'cmd.recursive'(Cmd, backward) -> builder_cmd_on_set(Cmd, ~reverse(~target_deps(Target))) ; true ),
 	% Reversing the 'initial' setup if needed
-	( Cmd = clean, root_bundle(Target) -> % TODO: do reference counting, treat as 'initial' dependency
-	    do_clean_root(Target)
+	( Cmd = clean, root_target(Target) -> % TODO: do reference counting, treat as 'initial' dependency
+	    do_clean_root_target(Target)
 	; true
 	).
 
@@ -198,6 +269,9 @@ builder_cmd_(Cmd, Target) :-
 cmd_action(Cmd, Target, Do, Pending) :-
 	( 'cmd.do.decl'(Cmd) -> % defined here
 	    Do = do(Cmd, Target),
+	    Pending = []
+	; target_is_workspace(Target) -> % a workspace
+	    Do = nothing, % (all work is done through dependant targets)
 	    Pending = []
 	; manifest_current_predicate(Target, Cmd) -> % declared in a hook
 	    Do = hook(Target, Cmd),
@@ -234,6 +308,7 @@ cmd_comment(Cmd, Do, Pending, Comment) :-
 	; Comment = []
 	).
 
+cmd_do(nothing). % TODO: plug here commands for workspaces?
 cmd_do(do(Cmd, Target)) :- 'cmd.do'(Cmd, Target).
 cmd_do(hook(Target, Cmd)) :- manifest_call(Target, Cmd).
 cmd_do(defs(Cmd, Defs2, Grade, Bundle)) :- defs_do(Defs2, Grade, Bundle, Cmd).
@@ -260,6 +335,10 @@ items_to_targets([X|Xs], [Y|Ys]) :-
 target_deps(Target, Deps) :-
 	findall(P, target_dep(Target, P), Deps).
 
+% Dependencies of a bundle or bundles under a workspace
+target_dep(Target, Dep) :-
+	target_is_workspace(Target), !,
+	workspace_bundles(Target, Dep).
 target_dep(Target, Dep) :-
 	split_target(Target, Bundle, Part),
 	( Part = '' -> bundle_dep(Bundle, Dep)
@@ -267,56 +346,50 @@ target_dep(Target, Dep) :-
 	  compose_target(Bundle, X2, Dep)
 	).
 
+% ---------------------------------------------------------------------------
+% Kinds of targets (workspaces, bundles, or parts of a bundle)
+
+% (bundle or bundle part)
+check_no_workspace(Target) :-
+	( \+ target_is_workspace(Target) -> true
+	; throw(error_msg("Operation not allowed on workspaces.", []))
+	).
+
+% (workspace or bundle)
 check_no_part(Target) :-
 	( target_is_bundle(Target) -> true
 	; throw(error_msg("Operation not allowed on bundle parts.", []))
 	).
 
+:- export(root_target/1).
+:- pred root_target/1 # "Target for the whole CIAOROOT workspace.".
+root_target(Target) :- ciao_root(Target).
+
+:- use_module(engine(internals), [ciao_root/1, ciao_path/1]).
+
+% The target is a (known) workspace
+target_is_workspace(Target) :- ciao_path(Target).
+target_is_workspace(Target) :- ciao_root(Target).
+
 % ---------------------------------------------------------------------------
 % Dependencies of a bundle
 
 :- use_module(engine(internals), ['$bundle_srcdir'/2]). % TODO: Do not use bundle_srcdir here? add manifest_srcdir for build-time?
-:- use_module(engine(internals), [ciao_root/1]).
 :- use_module(library(pathnames), [path_get_relative/3]).
 :- use_module(ciaobld(builder_flags), [get_builder_flag/2]).
-:- use_module(ciaobld(builder_flags), [set_builder_flag/2]).
 
 % ParentBundle depends on Bundle (limited by the value of the
 % 'recursive' builder flag)
 bundle_dep(ParentBundle, Bundle) :-
-	( root_bundle(ParentBundle) -> % all sys bundles
-	    sys_bundle(Bundle),
-	    \+ Bundle = ParentBundle
-	; bundle_dep_(ParentBundle, Bundle),
-	  ( get_builder_flag(recursive, all_workspaces) -> true
-	  ; get_builder_flag(recursive, same_workspace) ->
-	      bundle_share_workspace(ParentBundle, Bundle)
-	  ; fail
-	  )
+	bundle_dep_(ParentBundle, Bundle),
+	( get_builder_flag(recursive, all_workspaces) -> true
+	; get_builder_flag(recursive, same_workspace) ->
+	    bundle_share_workspace(ParentBundle, Bundle)
+	; fail
 	).
 
 bundle_dep_(Bundle, Dep) :-
 	manifest_call(Bundle, dep(Dep, _)).
-
-% A system bundle
-% (for convenience enumerates first using fix_order_sys_bundle/1)
-%
-% NOTE: order really does not matter since bundle dependencies are
-%   taken into acoount, but it is clear for some user operations like
-%   configuring bundles.
-
-sys_bundle(Bundle) :- fix_order_sys_bundle(Bundle), '$bundle_id'(Bundle).
-sys_bundle(Bundle) :-
-	ciao_root(CiaoRoot),
-	'$bundle_id'(Bundle),
-	\+ fix_order_sys_bundle(Bundle),
-	% SrcDir is relative to CiaoRoot
-	'$bundle_srcdir'(Bundle, SrcDir),
-	path_get_relative(CiaoRoot, SrcDir, _).
-
-fix_order_sys_bundle(ciao). % ~root_bundle % TODO: remove at some point
-fix_order_sys_bundle(builder).
-fix_order_sys_bundle(core).
 
 :- use_module(library(bundle/bundle_paths), [bundle_path/4]).
 
@@ -326,6 +399,42 @@ bundle_share_workspace(BundleA, BundleB) :-
 	A = ~bundle_path(BundleA, builddir, '.'),
 	B = ~bundle_path(BundleB, builddir, '.'),
 	A == B.
+
+% ---------------------------------------------------------------------------
+% Bundles in a workspace
+%
+% For covenience we fix some particular order for system bundles
+% (bundles at ciao_root/1). See fix_order_sys_bundle/1.
+%
+% NOTE: order really does not matter since bundle dependencies are
+%   taken into acoount, but it is clear for some user operations like
+%   configuring bundles.
+
+workspace_bundles(Wksp, Bundle) :- ciao_root(Wksp), !,
+	sys_bundles(Bundle).
+workspace_bundles(Wksp, Bundle) :-
+	'$bundle_id'(Bundle),
+	bundle_in_workspace(Wksp, Bundle).
+
+bundle_in_workspace(Wksp, Bundle) :-
+	% SrcDir is relative to Wksp
+	'$bundle_srcdir'(Bundle, SrcDir),
+	path_get_relative(Wksp, SrcDir, _).
+
+sys_bundles(Bundle) :- fix_order_sys_bundle(Bundle), '$bundle_id'(Bundle).
+sys_bundles(Bundle) :-
+	ciao_root(CiaoRoot),
+	'$bundle_id'(Bundle),
+	\+ fix_order_sys_bundle(Bundle),
+	bundle_in_workspace(CiaoRoot, Bundle).
+
+fix_order_sys_bundle(builder).
+fix_order_sys_bundle(core).
+
+is_sys_bundle(Bundle) :-
+	ciao_root(CiaoRoot),
+	'$bundle_id'(Bundle),
+	bundle_in_workspace(CiaoRoot, Bundle).
 
 % ---------------------------------------------------------------------------
 % Ensures that we have a configuration for the given target
@@ -338,6 +447,20 @@ ensure_configured(Target) :-
 	    % Configure with default values
 	    builder_cmd(configure([]), Bundle)
 	    % throw(error_msg("Cannot do '~w' on bundle '~w' without a configuration. Please run 'configure' before.", [Cmd, Bundle]))
+	; true
+	).
+
+% ---------------------------------------------------------------------------
+% Set the default recursive flag (it depends on targets)
+
+:- use_module(ciaobld(builder_flags), [set_builder_flag/2]).
+
+:- export(set_default_recursive/1).
+set_default_recursive(Targets) :-
+	( member(X, Targets), root_target(X) ->
+	    % For root_target, enable recursive by default
+	    % TODO: use same_workspace for other workspaces?
+	    set_builder_flag(recursive, all_workspaces)
 	; true
 	).
 
@@ -379,18 +502,17 @@ grade_requires(docs, 'lpdoc').
 %
 % This is required to insert the implicit dependencies between a
 % bundle and some specific tool available in another bundle.
+%
+% NOTE: If 'recursive' flag does not allow the bundle recursion to
+%   reach a system bundle, we assume that the grade is prepared.
 
 % TODO: very similar to load_compilation_module!
 
 ensure_grade_ready(Grade, _Target) :-
 	grade_ready(Grade), !.
 ensure_grade_ready(Grade, Target) :-
-	split_target(Target, Bundle, _Part),
-	( \+ reach_sys_bundle(Bundle) ->
-	    % The current 'recursive' flag does not allow 
-	    % the bundle recursion to reach a system bundle;
-	    % assume then that this Grade is prepared
-	    %
+	( \+ reach_sys_bundle(Target) ->
+	    % (assume grade is prepared)
 	    % TODO: show error if not available?
 	    true
 	; prepare_grade(Grade, Target)
@@ -415,11 +537,15 @@ prepare_grade(Grade, ParentTarget) :-
 % This is used for grade requirements and it does not consider bundle
 % dependencies.
 
-reach_sys_bundle(_Bundle) :-
+reach_sys_bundle(_Target) :-
 	get_builder_flag(recursive, all_workspaces), !.
-reach_sys_bundle(Bundle) :-
+reach_sys_bundle(Target) :-
 	get_builder_flag(recursive, same_workspace),
-	sys_bundle(Bundle).
+	( root_target(Target) -> true % contain system bundles
+	; target_is_workspace(Target) -> fail % do not contain system bundle
+	; split_target(Target, Bundle, _Part),
+	  is_sys_bundle(Bundle) % is a system bundle
+	).
 
 % ---------------------------------------------------------------------------
 
@@ -478,6 +604,7 @@ defs_do([X|Xs], Grade, Bundle, Cmd) :-
 'cmd.no_manifest_load'(fetch).
 'cmd.do.decl'(fetch).
 'cmd.do'(fetch, Target) :-
+	check_no_workspace(Target),
 	check_no_part(Target),
 	bundle_fetch(Target, _Fetched).
 
@@ -485,6 +612,7 @@ defs_do([X|Xs], Grade, Bundle, Cmd) :-
 'cmd.no_manifest_load'(rm).
 'cmd.do.decl'(rm).
 'cmd.do'(rm, Target) :- !,
+	check_no_workspace(Target),
 	check_no_part(Target),
 	bundle_rm(Target).
 
@@ -500,15 +628,16 @@ defs_do([X|Xs], Grade, Bundle, Cmd) :-
 	% TODO: reorder looking at dependencies! (indeed, this should be done automatically in cmd_on_set)
 	Fetched1 = ~reverse(Fetched0),
 	%
-	( \+ bundle_has_config(~root_bundle),
-	  sys_bundle(Target) ->
+	( \+ bundle_has_config(core), % TODO: 'core' hardwired
+	  is_sys_bundle(Target) ->
 	    % Special case for './ciao-boot.sh get ...' when the system
 	    % has not been configured/built before
 	    % TODO: reimplement adding unconfigured from deps instead?
-	    Fetched = [~root_bundle],
-	    BundleSet = set(~findall(B, sys_bundle(B))),
-	    % For root_bundle, enable recursive by default
-	    set_builder_flag(recursive, all_workspaces) % TODO: ugly hack
+	    root_target(Tgt),
+	    Fetched = [Tgt],
+	    BundleSet = set(~findall(B, workspace_bundles(Tgt, B))),
+	    % For root_target, fix default recursive (recursive by default)
+	    set_default_recursive(Fetched) % TODO: ugly?
 	; Fetched = Fetched1,
 	  BundleSet = set(Fetched)
 	),
@@ -581,8 +710,8 @@ ask_promote_bootstrap(Eng) :-
 	check_no_part(Target),
 	% Invoke configuration (pre: bundles have been scanned)
 	% TODO: configure dependencies too? (same workspace? missing config?)
-	( root_bundle(Target) ->
-	    BundleSet = set(~findall(B, sys_bundle(B)))
+	( target_is_workspace(Target) ->
+	    BundleSet = set(~findall(B, workspace_bundles(Target, B)))
 	; BundleSet = set([Target])
 	),
 	bundleset_configure(BundleSet, Flags).
@@ -599,10 +728,8 @@ ask_promote_bootstrap(Eng) :-
 'cmd.no_manifest_load'(configclean).
 'cmd.do.decl'(configclean).
 'cmd.do'(configclean, Target) :- !,
-	% TODO: on_req
-	( root_bundle(Target) ->
-	    % TODO: non-root?
-	    builddir_clean(Target, config)
+	( root_target(Target) -> % TODO: generalize for all workspaces
+	    builddir_clean(core, config) % TODO: 'core' hardwired
 	; true
 	).
 
@@ -617,21 +744,25 @@ ask_promote_bootstrap(Eng) :-
 
 'cmd.do.decl'(config_list_flags).
 'cmd.do'(config_list_flags, Target) :- !,
+	check_no_workspace(Target),
 	check_no_part(Target),
 	config_list_flags(Target).
 
 'cmd.do.decl'(config_describe_flag(_)).
 'cmd.do'(config_describe_flag(Flag), Target) :- !,
+	check_no_workspace(Target),
 	check_no_part(Target),
 	config_describe_flag(Flag).
 
 'cmd.do.decl'(config_set_flag(_, _)).
 'cmd.do'(config_set_flag(Flag, Value), Target) :- !,
+	check_no_workspace(Target),
 	check_no_part(Target),
 	config_set_flag(Flag, Value).
 
 'cmd.do.decl'(config_get_flag(_)).
 'cmd.do'(config_get_flag(Flag), Target) :- !,
+	check_no_workspace(Target),
 	check_no_part(Target),
 	display(~config_get_flag(Flag)), nl.
 
@@ -683,28 +814,28 @@ ask_promote_bootstrap(Eng) :-
 'cmd.recursive'(clean_bin, backward).
 'cmd.do_after.decl'(clean_bin).
 'cmd.do_after'(clean_bin, Target) :- !,
-	( target_is_bundle(Target) -> do_clean_bundle(Target) ; true ).
+	( target_is_workspace(Target) -> true
+	; target_is_bundle(Target) ->
+	    do_clean_bundle(Target) 
+	; true 
+	).
 
 % TODO: make it fine grained, implement clean_bin on primtgts
 do_clean_bundle(Bundle) :-
-	( root_bundle(Bundle) ->
-            % TODO: Clean Manifest/... in each bundle too
-	    clean_tree(~path_concat(~ciao_root, 'Manifest')) % TODO: ad-hoc, clean .po,.itf, etc.
-	; % TODO: does not work with CIAOCACHEDIR! fix
-	  % TODO: clean only on lib, etc. areas (not externals/ etc.)
-	  % clean_tree(~bundle_path(Bundle, 'Manifest')) % TODO: only if it is a directory!
-	  clean_tree(~bundle_path(Bundle, '.'))
-	).
+	% TODO: does not work with CIAOCACHEDIR! fix
+	% TODO: clean only on lib, etc. areas (not externals/ etc.)
+	% clean_tree(~bundle_path(Bundle, 'Manifest')) % TODO: only if it is a directory!
+	clean_tree(~bundle_path(Bundle, '.')).
 
 % Special case for the root build structure
 % TODO: add as the 'initial' dependency for every bundle? (with reference counting)
-% TODO: clean per workspace
-do_clean_root(Bundle) :-
+% TODO: generalize for all workspaces
+do_clean_root_target(_Target) :-
 	builder_cmd(clean_bin, 'core.engine'), % TODO: clean with 'core'?
 	builder_cmd(clean_bin, 'core.exec_header'), % TODO: clean with 'core'?
 	% TODO: clean all builddir except configuration?
-	builddir_clean(Bundle, pbundle),
-	builddir_clean(Bundle, bin).
+	builddir_clean(core, pbundle), % TODO: 'core' hardwired
+	builddir_clean(core, bin). % TODO: 'core' hardwired
 
 % ---------------------------------------------------------------------------
 % build/clean (docs)
@@ -731,7 +862,10 @@ do_clean_root(Bundle) :-
 'cmd.recursive'(clean_docs, backward).
 'cmd.do_after.decl'(clean_docs).
 'cmd.do_after'(clean_docs, Target) :- !,
-	( root_bundle(Target) -> builddir_clean(Target, doc) ; true ). % TODO: clean_docs 'initial' bundle?
+	( root_target(Target) -> % TODO: generalize for all workspaces
+	    builddir_clean(core, doc) % TODO: 'core' hardwired
+	; true
+	).
 
 % ---------------------------------------------------------------------------
 % distclean
@@ -744,11 +878,10 @@ do_clean_root(Bundle) :-
 	builder_cmd(configclean, Target). % Clean config (this must be the last step)
 'cmd.do_after.decl'(distclean).
 'cmd.do_after'(distclean, Target) :- !,
-	( root_bundle(Target) ->
-	    % TODO: non-root?
+	( root_target(Target) -> % TODO: generalize for all workspaces
 	    % TODO: make sure that no binary is left after 'clean' (outside builddir)
-	    builddir_clean(Target, bundlereg),
-	    builddir_clean(Target, all)
+	    builddir_clean(core, bundlereg), % TODO: 'core' hardwired
+	    builddir_clean(core, all) % TODO: 'core' hardwired
 	; true
 	).
 
@@ -789,10 +922,16 @@ do_clean_root(Bundle) :-
 'cmd.recursive'(install_bin, forward).
 'cmd.do_before.decl'(install_bin).
 'cmd.do_before'(install_bin, Target) :- !,
-	( target_is_bundle(Target) -> install_bin_dirs(Target) ; true ). % TODO: install 'initial' bundle?
+	( target_is_workspace(Target) -> true
+	; target_is_bundle(Target) -> install_bin_dirs(Target)
+	; true
+	).
 'cmd.do_after.decl'(install_bin).
 'cmd.do_after'(install_bin, Target) :- !,
-	( target_is_bundle(Target) -> install_bundlereg(Target) ; true ). % Activate
+	( target_is_workspace(Target) -> true
+	; target_is_bundle(Target) -> install_bundlereg(Target) % Activate
+	; true
+	).
 
 'cmd.comment'(uninstall_bin, ["uninstalling [bin]", "uninstalled [bin]"]).
 'cmd.grade'(uninstall_bin, bin).
@@ -800,10 +939,16 @@ do_clean_root(Bundle) :-
 'cmd.recursive'(uninstall_bin, backward).
 'cmd.do_before.decl'(uninstall_bin).
 'cmd.do_before'(uninstall_bin, Target) :- !,
-	( target_is_bundle(Target) -> uninstall_bundlereg(Target) ; true ). % Deactivate
+	( target_is_workspace(Target) -> true
+	; target_is_bundle(Target) -> uninstall_bundlereg(Target) % Deactivate
+	; true
+	).
 'cmd.do_after.decl'(uninstall_bin).
 'cmd.do_after'(uninstall_bin, Target) :- !,
-	( target_is_bundle(Target) -> uninstall_bin_dirs(Target) ; true ). % TODO: uninstall 'initial' bundle?
+	( target_is_workspace(Target) -> true
+	; target_is_bundle(Target) -> uninstall_bin_dirs(Target) % TODO: uninstall 'initial' bundle?
+	; true
+	).
 
 % ---------------------------------------------------------------------------
 % install/uninstall (docs)
@@ -873,15 +1018,16 @@ do_clean_root(Bundle) :-
 	gen_pbundle_hook(Kind, Target, []).
 
 % ---------------------------------------------------------------------------
-% gen_bundle_commit_info
+% gen_commit_info
 
-:- use_module(ciaobld(bundle_hash), [gen_bundle_commit_info/1]).
+:- use_module(ciaobld(bundle_hash), [bundle_gen_commit_info/1]).
 
-% TODO: Used from ciaobot
-'cmd.do.decl'(gen_bundle_commit_info).
-'cmd.do'(gen_bundle_commit_info, Target) :- !,
+% Useful to include commit info in source distributions
+'cmd.do.decl'(gen_commit_info).
+'cmd.do'(gen_commit_info, Target) :- !,
+	check_no_workspace(Target),
 	check_no_part(Target),
-	gen_bundle_commit_info(Target).
+	bundle_gen_commit_info(Target).
 
 % ---------------------------------------------------------------------------
 % Show bundle info
@@ -890,6 +1036,7 @@ do_clean_root(Bundle) :-
 
 'cmd.do.decl'(info).
 'cmd.do'(info, Target) :- !,
+	check_no_workspace(Target),
 	check_no_part(Target),
 	bundle_info(Target).
 
@@ -911,9 +1058,10 @@ do_clean_root(Bundle) :-
 % TODO: allow only one manual per bundle, allow manuals on parts
 'cmd.do.decl'(doc).
 'cmd.do'(doc, Target) :- !,
-	DocFormat = html, % TODO: customize?
+	check_no_workspace(Target),
 	check_no_part(Target),
 	split_target(Target, Bundle, _Part),
+	DocFormat = html, % TODO: customize?
 	% just open all manuals
 	( % (failure-driven loop)
 	  manifest_call(Target, manual(_Base, Props)),

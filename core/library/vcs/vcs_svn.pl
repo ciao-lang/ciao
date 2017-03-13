@@ -9,17 +9,17 @@
   SVN version control system (VCS)").
 
 :- use_module(library(lists)).
-:- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(datetime)).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(process), [process_call/3, process_pipe/2]).
+:- use_module(library(pathnames), [path_concat/3]).
 
 % ---------------------------------------------------------------------------
 
 :- export(svn_repo_at_dir/1).
 :- pred svn_repo_at_dir(D) # "@var{D} contains a SVN repository".
 svn_repo_at_dir(Dir) :-
-	file_exists(~atom_concat(Dir, '/.svn')).
+	file_exists(~path_concat(Dir, '.svn')).
 
 % ---------------------------------------------------------------------------
 

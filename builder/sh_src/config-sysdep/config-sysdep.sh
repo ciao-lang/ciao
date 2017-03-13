@@ -40,11 +40,11 @@ bld_srcdir="$build_engdir/src"
 bld_hdir="$build_engdir/include"
 bld_objdir="$build_engdir/objs/$eng_cfg"
 
-# Load meta_sh (defines variables: eng_name, eng_ciao_config, etc.)
+# Load meta_sh (defines variables: eng_name, eng_core_config, etc.)
 . "$bld_cfgdir/meta_sh"
 
 # Load configuration parameters
-. "$eng_ciao_config"
+. "$eng_core_config"
 
 # Select target architecture
 case "$eng_cross_os$eng_cross_arch" in

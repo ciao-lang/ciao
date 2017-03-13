@@ -4,14 +4,18 @@
 :- doc(author, "Jos@'{e} F. Morales").
 :- doc(author, "Ciao Developer Team").
 
-% TODO: Extend to include the configuration in the map?
-
 :- doc(module, "This module defines the operations to map the whole
    bundle source code to shorter identifiers (which can be precise
    like cryptohashes for DVCS or coarse like release date, etc.).
 
    @bf{NOTE:} Some functions (like Git commit number) simply ignore
    uncommited changes in the source tree.").
+
+:- doc(bug, "Do hashing of distributions instead of bundles?").
+:- doc(bug, "Hashing relies on Git or SVN identifiers of the whole
+   repository, not the specified bundle").
+:- doc(bug, "Allow hashing with configuration options?").
+:- doc(bug, "Allow hashing of binaries or distributions?").
 
 :- use_module(library(file_utils), [string_to_file/2]).
 :- use_module(library(system), [file_exists/1]).
@@ -20,19 +24,15 @@
 :- use_module(library(pathnames), [path_concat/3]).
 
 :- use_module(engine(internals), ['$bundle_prop'/2]).
-:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_workspace/2]).
 :- use_module(library(bundle/bundle_info), [bundle_version/2]).
-
-:- use_module(ciaobld(builder_aux), [ensure_builddir/2]).
 
 % ===========================================================================
 % Extract and save commit information about the bundle source
 
-:- export(gen_bundle_commit_info/1).
-:- pred gen_bundle_commit_info/1 # "Extract and save the commit information metadata".
-% TODO: Only work for the 'whole' bundle
-gen_bundle_commit_info(Bundle) :-
-	ensure_builddir(Bundle, '.'),
+:- export(bundle_gen_commit_info/1).
+:- pred bundle_gen_commit_info/1 # "Extract and save the commit information metadata".
+bundle_gen_commit_info(Bundle) :-
 	save_bundle_commit_info(Bundle, branch),
 	save_bundle_commit_info(Bundle, id),
 	save_bundle_commit_info(Bundle, date),
@@ -97,28 +97,15 @@ bundle_commit_info__(_, _, _Bundle, 'Unknown'). % TODO: throw exception instead?
 
 % The kind of repository (git, svn, none)
 % :- export(bundle_repo_kind/2).
-bundle_repo_kind(_Bundle, RepoKind) :-
-	root_git_repo_dir(_), % TODO: check that Bundle is a sub-bundle of 'root'
-	!,
-	% Git repo explicitly specified in configuration
-	RepoKind = git.
 bundle_repo_kind(Bundle, RepoKind) :-
-	Dir = ~bundle_path(Bundle, '.'),
-	( git_repo_at_dir(Dir) -> RepoKind = git
-	; svn_repo_at_dir(Dir) -> RepoKind = svn
-	; RepoKind = none
-	).
-
-:- use_module(ciaobld(builder_flags), [get_builder_flag/2]).
-
-% TODO: should 'git_repo_dir' be an option for each bundle?
-% TODO: See ciaobot/bundle_builder.sh (COMMIT_INFO_OPTS)
-%   (specify where the Git repo is stored for this bundle)
-root_git_repo_dir(V) :-
-	( get_builder_flag(git_repo_dir, V) ->
-	    true
-	; fail
-	).
+	bundle_svn_repo_dir(Bundle, _),
+	!,
+	RepoKind = svn.
+bundle_repo_kind(Bundle, RepoKind) :-
+	bundle_git_repo_dir(Bundle, _),
+	!,
+	RepoKind = git.
+bundle_repo_kind(_, none).
 
 % ---------------------------------------------------------------------------
 % Extract commit information (SVN)
@@ -139,7 +126,7 @@ svn_commit_info(id, Bundle, Id) :-
 	!.
 svn_commit_info(date, Bundle, Date) :-
 	svn_commit_info(id, Bundle, Rev),
-	SvnRepository = ~svn_repository_root(~bundle_path(Bundle, '.')),
+	SvnRepository = ~svn_repository_root(~bundle_svn_repo_dir(Bundle)),
 	\+ SvnRepository = '',
 	Date0 = ~svn_revision_date(SvnRepository, Rev),
 	!,
@@ -149,6 +136,16 @@ svn_commit_info(desc, Bundle, Desc) :-
 	( svn_commit_info(id, Bundle, Rev) ->
 	    Desc = ~atom_concat([Version, '-', Rev])
 	; Desc = Version
+	).
+
+bundle_svn_repo_dir(Bundle, Path) :-
+	( Path0 = ~bundle_path(Bundle, '.'),
+	  svn_repo_at_dir(Path0) ->
+	    Path = Path0
+	; Path0 = ~bundle_workspace(Bundle),
+	  svn_repo_at_dir(Path0) ->
+	    Path = Path0
+	; fail
 	).
 
 % ---------------------------------------------------------------------------
@@ -221,18 +218,26 @@ bundle_git_output(Bundle, Args, R) :-
 	git_output(Path, Args, R).
 
 bundle_git_repo_dir(Bundle, Path) :-
-	( root_git_repo_dir(Path0) -> % TODO: check that Bundle is a sub-bundle of 'root'
+	( root_git_repo_dir(Path0) -> % TODO: check anything?
 	    % Git repo explicitly specified in configuration
 	    Path = Path0
-	; Path = ~bundle_path(Bundle, '.')
+	; Path0 = ~bundle_path(Bundle, '.'),
+	  git_repo_at_dir(Path0) ->
+	    Path = Path0
+	; Path0 = ~bundle_workspace(Bundle),
+	  git_repo_at_dir(Path0) ->
+	    Path = Path0
+	; fail
 	).
 
-% ===========================================================================
+:- use_module(ciaobld(builder_flags), [get_builder_flag/2]).
 
-:- export(bundle_versioned_packname/2).
-% packname with version information (using COMMIT_DESC, which show
-% descriptive names with the necessary data to uniquely identify
-% stable and devel versions).
-bundle_versioned_packname(Bundle) := ~atom_concat([Packname, '-', ~bundle_commit_info(Bundle, desc)]) :-
-	'$bundle_prop'(Bundle, packname(Packname)).
+% TODO: should 'git_repo_dir' be an option for each bundle?
+% TODO: See ciaobot/bundle_builder.sh (COMMIT_INFO_OPTS)
+%   (specify where the Git repo is stored for this bundle)
+root_git_repo_dir(V) :-
+	( get_builder_flag(git_repo_dir, V) ->
+	    true
+	; fail
+	).
 

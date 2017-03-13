@@ -282,7 +282,7 @@ eng_make() {
 #   - versions, gcc options, OS suffixes, etc.
 create_eng_build_info() {
     # Load configuration flags (e.g., core__DEBUG_LEVEL, etc.)
-    . "$eng_ciao_config"
+    . "$eng_core_config"
 
     local showdbg=
     if [ x"$core__DEBUG_LEVEL" != x"nodebug" ]; then

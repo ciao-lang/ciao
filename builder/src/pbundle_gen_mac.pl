@@ -9,7 +9,7 @@
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
 :- doc(author, "Ciao Development Team").
 
-:- doc(ack, "This builds the Ciao Macport Portfile and pkg installers.
+:- doc(ack, "This builds the Ciao Macport Portfile and Mac pkg installers.
              Thanks to Edison Mera for his support.").
 
 :- doc(copyright, "
@@ -32,10 +32,8 @@ Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The CLIP Group.
 :- use_module(library(pathnames), [path_concat/3]).
 
 :- use_module(library(bundle/bundle_flags), [restore_all_bundle_flags/0]).
-:- use_module(library(bundle/bundle_info), [bundle_version/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
-:- use_module(ciaobld(bundle_hash), [
-	bundle_versioned_packname/2, bundle_commit_info/3]).
+:- use_module(ciaobld(bundle_hash), [bundle_commit_info/3]).
 
 :- use_module(ciaobld(eng_defs), [inst_eng_path/3]).
 :- use_module(ciaobld(config_common), [default_eng_def/1]).
@@ -59,7 +57,7 @@ Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The CLIP Group.
 :- include(ciaobld(pbundle_gen_hookdefs)).
 
 :- doc(summary, "This module provides predicates to build
-@href{http://www.macports.com}{macports} @tt{Portfile} and @tt{pkg} packages for
+@href{http://www.macports.com}{macports} @tt{Portfile} and Mac @tt{pkg} packages for
 @apl{Ciao}. The system is designed to work on the MacOS (>= 10.4)
 platform and requires Apple\'s Xcode 3.0 Developer Tools to be
 installed in the machine where the packages are generated.").
@@ -134,10 +132,10 @@ packages_dir_str := "packages/master/".
 packageMaker := '/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker'.
 
 % (hook)
-gen_pbundle_hook(pkg, Bundle, _Options) :- !,
-	gen_pbundle_descfile(Bundle),
+gen_pbundle_hook(pkg, Target, _Options) :- !,
+	gen_pbundle_descfile(Target),
 	restore_all_bundle_flags, % TODO: Why is that necessary?
-	gen_pbundle__pkg(Bundle).
+	gen_pbundle__pkg(Target).
 
 :- pred gen_pbundle__pkg/1
    # "Create a temporary directory @apl{__tmp_for_packagemaker} in the
@@ -145,20 +143,19 @@ gen_pbundle_hook(pkg, Bundle, _Options) :- !,
       build and generate the package using @apl{package_pkg}, called
       with default arguments".
 
-gen_pbundle__pkg(Bundle) :-
+gen_pbundle__pkg(Target) :-
 	normal_message("creating Mac OS X package", []),
-        WorkSpace =  ~bundle_path(Bundle, '.'),
-	PackDir = ~pbundle_output_dir(Bundle),
+	OutDir = ~pbundle_output_dir(Target),
 	TmpDir = ~make_temp_dir,
 	DestDir = ~path_concat(TmpDir, 'root'),
 	mkpath(DestDir, ~perms), % TODO: owner?
 	install_to_destdir(DestDir),
 	generate_uninstaller(DestDir, UninstallerPath),
-	package_pkg(Bundle, DestDir, TmpDir, PackDir, WorkSpace, 'Ciao', % TODO: from Bundle
-	    ~bundle_version(Bundle), PName),
+	package_pkg(Target, DestDir, TmpDir, OutDir, 'Ciao', % TODO: get from Target
+	    ~dist_version(Target), PName),
 	generate_uninstaller_wrapper(TmpDir, UninstallerPath,
 	    UninstallWrapperPath),
-	package_dmg(Bundle, PackDir, [PName, UninstallWrapperPath]),
+	package_dmg(Target, OutDir, [PName, UninstallWrapperPath]),
 	% TODO: Dangerous!
 	process_call(path(rm), ['-rf', TmpDir], []).
 
@@ -168,21 +165,21 @@ install_to_destdir(DestDir) :-
 	process_call('./ciao-boot.sh',
 	       ['install', ~atom_concat('--destdir=', DestDir)], []).
 
-:- pred package_pkg(Bundle, DestPath, TmpDir, PPath, WorkPath, Name, Version, PName)
+:- pred package_pkg(Target, DestPath, TmpDir, PPath, Name, Version, PName)
    # "Create a MacOS pkg package assuming that @var{DestPath} is the
       root build where Ciao has been installed, @var{Tmpdir} is a
       temporary directory where the predicate can store temporary
-      files, @var{PPath} is the directory to store the package once
-      it has been constructed, and @var{WorkPath} is the work path for
-      compilation. @var{Name} is the name of the distribution and
-      @var{Version} the Ciao version".
+      files, @var{PPath} is the directory to store the package once it
+      has been constructed. @var{Name} is the name of the distribution
+      and @var{Version} the Ciao version".
 
-package_pkg(Bundle, DestPath, TmpDir, PPath, WorkPath, Name, Version, PName) :-
+package_pkg(Target, DestPath, TmpDir, PPath, Name, Version, PName) :-
+        WorkPath = ~dist_workspace(Target),
 	InfoFile = ~path_concat(WorkPath, 'Info.plist'),
 %	DescriptionFile = ~path_concat(WorkPath, 'Description.plist'),
 	ResourcesPath = ~path_concat(TmpDir, 'pkg_resources/English.lproj'),
 	ScriptsDir = ~path_concat(TmpDir, 'Scripts'),
- 	PName = ~atom_concat(~path_concat(PPath, ~bundle_versioned_packname(Bundle)), '.pkg'),
+ 	PName = ~atom_concat(~path_concat(PPath, ~dist_versioned_pkgname(Target)), '.pkg'),
 	%
 	mkpath(ResourcesPath, ~perms), % TODO: owner?
 	write_welcome_html(ResourcesPath, Name, Version),
@@ -204,16 +201,17 @@ package_pkg(Bundle, DestPath, TmpDir, PPath, WorkPath, Name, Version, PName) :-
 		'--info', InfoFile,
 		'--target', ~target_os_version,
 		'--domain', system,
-		'--id', ~atom_concat('org.ciao-lang.', Name) % TODO: from Bundle
+		'--id', ~atom_concat('org.ciao-lang.', Name) % TODO: get from Target
 	       ], [env(['PMResourceLocale'='English'])]).
 
-package_dmg(Bundle, PPath, List) :-
+package_dmg(Target, OutDir, List) :-
 	verbose_message("Generating the dmg image", []),
- 	DmgName = ~atom_concat(~path_concat(PPath, ~bundle_versioned_packname(Bundle)), '.dmg'),
+	Name = ~dist_versioned_pkgname(Target),
+ 	DmgName = ~atom_concat(~path_concat(OutDir, Name), '.dmg'),
 	process_list_for_src(List, Tail),
 	process_call(path(hdiutil), 
 	       ['create', DmgName,
-		'-volname', ~bundle_versioned_packname(Bundle)
+		'-volname', Name
 	       |Tail],
 	       []).
 
@@ -342,36 +340,34 @@ applescript_editor(X) :-
 
 % (hook)
 % Generate MacPorts @tt{Portfile}. The source distribution is generated if missing.
-gen_pbundle_hook(macport, Bundle, _Options) :- !,
-	TGZ = ~bundle_versioned_packname(Bundle),
-	AbsTGZ = ~pbundle_packname_absfile(Bundle),
+gen_pbundle_hook(macport, Target, _Options) :- !,
+	TGZ = ~dist_versioned_pkgname(Target),
+	AbsTGZ = ~atom_concat(~path_concat(~pbundle_output_dir(Target), ~dist_versioned_pkgname(Target)), '.tar.gz'),
 	% TODO: check necessary?
 	( file_exists(AbsTGZ) ->
 	    true
-	; gen_pbundle_hook(tgz, Bundle, []) % (in pbundle_gen_src)
+	; gen_pbundle_hook(tgz, Target, []) % (in pbundle_gen_src)
 	),
 	%
 	MD5Sum = ~md5sum(AbsTGZ),
-	wr_template(at(~pbundle_output_dir(Bundle)), ~bundle_path(builder, 'src/mac'), 'Portfile', [
-            'Version' = ~bundle_version(Bundle),
-            'VersionedPackName' = ~atom_codes(TGZ),
-            'HomeURL' = ~home_url_str, % TODO: from Bundle
-            'MasterURL' = ~master_url_str(Bundle), % TODO: from Bundle
+	wr_template(at(~pbundle_output_dir(Target)), ~bundle_path(builder, 'src/mac'), 'Portfile', [
+            'Version' = ~dist_version(Target),
+            'VersionedPkgName' = ~atom_codes(TGZ),
+            'HomeURL' = ~home_url_str, % TODO: from Target
+            'MasterURL' = ~master_url_str(Target), % TODO: from Target
 	    'MD5CheckSum' = MD5Sum
         ]).
-
-pbundle_packname_absfile(Bundle) := F :-
-	F = ~atom_concat(~path_concat('build/pbundle', ~bundle_versioned_packname(Bundle)), '.tar.gz').
 
 % ---------------------------------------------------------------------------
 
 % TODO: See macports documentation for explanation (check that this is correct)
 % TODO: Define a predicate pbundle_url for this, connect with ciaobot code
-master_url_str(Bundle) := MasterURL :-
-	VersionedPackName = ~atom_codes(~bundle_versioned_packname(Bundle)),
-	Rev = ~atom_codes(~bundle_commit_info(Bundle, id)),
+master_url_str(Target) := MasterURL :-
+	Name = ~atom_codes(~dist_versioned_pkgname(Target)),
+	dist_main_bundle(Target, MainBundle),
+	Rev = ~atom_codes(~bundle_commit_info(MainBundle, id)),
  	% TODO: Define a predicate pbundle_url for this, connect with ciaobot code
-	MasterURL = ~append([~home_url_str, ~packages_dir_str, Rev, "/", VersionedPackName]).
+	MasterURL = ~append([~home_url_str, ~packages_dir_str, Rev, "/", Name]).
 
 write_xml_header(Str) :-
 	format(Str, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -563,21 +559,21 @@ generate_bash_script(Dir, Name, Str, Args) :-
 :- use_module(library(emacs/emacs_batch)).
 
 % (hook)
-gen_pbundle_hook(app, Bundle, _Options) :- !,
-	gen_pbundle_descfile(Bundle),
+gen_pbundle_hook(app, Target, _Options) :- !,
+	gen_pbundle_descfile(Target),
 	restore_all_bundle_flags, % TODO: Why is that necessary?
-	gen_pbundle__app(Bundle).
+	gen_pbundle__app(Target).
 
-gen_pbundle__app(Bundle) :-
+gen_pbundle__app(Target) :-
 	% Note: Mac OS X bundle IS NOT a Ciao bundle
 	normal_message("creating Mac OS X bundle (as .app)", []),
 	%
-	Domain = "org.ciao-lang.ciao", % TODO: from bundle
+	Domain = "org.ciao-lang.ciao", % TODO: get from target
 	BundleDirCore = ~inst_bundle_path(core, '.'),
 	BinDir = ~inst_builddir_path('bin'),
 	Eng = ~default_eng_def,
 	CiaoEngine = ~inst_eng_path(exec, Eng),
-	PackDir = ~pbundle_output_dir(Bundle),
+	OutDir = ~pbundle_output_dir(Target),
 	TmpDir = ~make_temp_dir,
 	%
 	AppBundlePath = ~path_concat(TmpDir, 'Ciao.app'),
@@ -590,7 +586,7 @@ gen_pbundle__app(Bundle) :-
 	unset_emacs_type,
 	%
 	wr_template(origin, ~bundle_path(builder, 'src/mac'), 'Ciao.applescript', [
-	    'VERSION' = ~bundle_versioned_packname(Bundle),
+	    'VERSION' = ~dist_versioned_pkgname(Target),
 	    'BUNDLEDIR_CORE' = BundleDirCore,
 	    'CIAOENGINE' = CiaoEngine,
 	    'BINDIR' = BinDir,
@@ -602,7 +598,7 @@ gen_pbundle__app(Bundle) :-
 		~bundle_path(builder, 'src/mac/Ciao.applescript')], []),
 	%
 	wr_template(at(TmpDir/'Ciao.app/Contents'), ~bundle_path(builder, 'src/mac'), 'Info.plist', [
-	    'VERSION' = ~bundle_versioned_packname(Bundle),
+	    'VERSION' = ~dist_versioned_pkgname(Target),
 	    'DOMAIN' = Domain
 	]),
 	%
@@ -631,8 +627,8 @@ gen_pbundle__app(Bundle) :-
 	sample_program_text(Str),
 	close_output(OStr),
 	%
-	package_dmg(Bundle, PackDir, [AppBundlePath]),
-	process_call(path(mv), [AppBundlePath, PackDir], []),
+	package_dmg(Target, OutDir, [AppBundlePath]),
+	process_call(path(mv), [AppBundlePath, OutDir], []),
 %	process_call(path(rm), ['-rf', TmpDir], []), 
 	true.
 

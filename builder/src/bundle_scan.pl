@@ -20,14 +20,6 @@
 
 % NOTE: be careful with bundle_path/3 (bundles may not be loaded yet)
 :- use_module(engine(internals), [get_bundlereg_dir/2]).
-:- use_module(engine(internals), [ciao_root/1]).
-
-% ---------------------------------------------------------------------------
-
-:- export(root_bundle/1).
-:- pred root_bundle/1 # "Meta-bundle that depends on all the system bundles.".
-% TODO: this should be sys_target/1 (not a bundle but a workspace)
-root_bundle(ciao).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Scan bundles at given workspace").
@@ -126,16 +118,8 @@ cleanup_find_bundles :- retractall_fact(found_bundle(_, _)).
 % called ACTIVATE.
 %
 % (nondet)
-
 bundledirs_at_dir(Src, Optional, BundleDir) :-
-	is_bundledir(Src), % a bundle 
-	% TODO: Add a cut here, do not allow sub-bundles! <- needed only for (~root_bundle) bundle
-	( Optional = yes -> directory_has_mark(activate, Src) ; true ),
-	BundleDir = Src.
-bundledirs_at_dir(Src, Optional, BundleDir) :-
-	bundledirs_at_dir_(Src, Optional, BundleDir).
-
-bundledirs_at_dir_(Src, Optional, BundleDir) :-
+	\+ is_bundledir(Src), % (it cannot be a bundle)
 	directory_files(Src, Files),
 	member(File, Files),
 	\+ not_bundle(File),
@@ -144,7 +128,7 @@ bundledirs_at_dir_(Src, Optional, BundleDir) :-
 	%
 	( directory_has_mark(bundle_catalog, Dir) ->
 	    % search recursively on the catalog (only if ACTIVATE is set on the bundle)
-	    bundledirs_at_dir_(Dir, yes, BundleDir)
+	    bundledirs_at_dir(Dir, yes, BundleDir)
 	; is_bundledir(Dir) -> % a bundle
 	    ( Optional = yes -> directory_has_mark(activate, Dir) ; true ),
 	    BundleDir = Dir
@@ -153,7 +137,6 @@ bundledirs_at_dir_(Src, Optional, BundleDir) :-
 
 not_bundle('.').
 not_bundle('..').
-not_bundle('Manifest').
 
 directory_has_mark(nocompile, Dir) :-
 	path_concat(Dir, 'NOCOMPILE', F),
@@ -171,19 +154,13 @@ directory_has_mark(activate, Dir) :-
 % A bundlereg contains the processed manifest information and resolved
 % paths.
 
-% TODO: allow relative paths? (with some relocation rules)
-
 :- use_module(library(pathnames), [path_split/3]).
 :- use_module(ciaobld(manifest_compiler), [make_bundlereg/4]).
 :- use_module(engine(internals), [bundlereg_filename/3]).
 
-% TODO: hack, try to extract Bundle from Manifest, not dir (also in bundle.pl)
+% TODO: extract name from Manifest?
 bundledir_to_name(BundleDir, Bundle) :-
-	ciao_root(CiaoRoot),
-	( BundleDir = CiaoRoot ->
-	    root_bundle(Bundle) % TODO: this should not be needed
-	; path_split(BundleDir, _, Bundle)
-	).
+	path_split(BundleDir, _, Bundle).
 
 :- export(create_bundlereg/2).
 % Create a bundlereg for bundle at @var{BundleDir} (for workspace Wksp)

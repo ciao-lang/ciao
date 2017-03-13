@@ -24,11 +24,77 @@
 	bundle_name/2,
 	bundle_version/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
-:- use_module(ciaobld(builder_cmds), [bundle_share_workspace/2]).
-:- use_module(ciaobld(bundle_hash), [
-	bundle_versioned_packname/2, bundle_commit_info/3]).
+:- use_module(ciaobld(bundle_hash), [bundle_commit_info/3]).
 
 :- use_module(ciaobld(messages_aux), [normal_message/2]).
+
+% ---------------------------------------------------------------------------
+% TODO: Only one distribution is valid currently (ciao_root)
+
+:- use_module(ciaobld(builder_cmds), [bundle_share_workspace/2, root_target/1]).
+:- use_module(engine(internals), [ciao_root/1]).
+
+:- export(dist_main_bundle/2).
+% Main bundle for a distribution (used to get versions, etc.)
+dist_main_bundle(Target, MainBundle) :-
+	root_target(Target),
+	MainBundle = core. % TODO: ad-hoc
+
+:- export(dist_pkgname/2).
+% Name for distribution file
+dist_pkgname(Target, PkgName) :-
+	root_target(Target),
+	PkgName = 'Ciao'. % TODO: ad-hoc
+
+:- export(dist_name/2).
+% Name of distribution
+dist_name(Target, Name) :-
+	root_target(Target),
+	Name = 'ciao'. % TODO: ad-hoc
+
+:- export(dist_workspace/2).
+% Directory containing the distribution
+dist_workspace(Target, Path) :-
+	root_target(Target),
+	ciao_root(Path). % TODO: ad-hoc
+
+:- export(dist_versioned_pkgname/2).
+% Name for distribution file, with version information (using
+% COMMIT_DESC, which show descriptive names with the necessary data to
+% uniquely identify stable and devel versions).
+% TODO: Make it optional?
+dist_versioned_pkgname(Target) := Name :-
+	dist_pkgname(Target, PkgName),
+	dist_main_bundle(Target, MainBundle),
+	Name = ~atom_concat([PkgName, '-', ~bundle_commit_info(MainBundle, desc)]).
+
+:- use_module(ciaobld(bundle_hash), [bundle_gen_commit_info/1]).
+:- export(dist_gen_commit_info/1).
+dist_gen_commit_info(Target) :-
+	dist_main_bundle(Target, MainBundle),
+	bundle_gen_commit_info(MainBundle).
+
+:- export(dist_version/2).
+% Version of the distribution (taken from MainBundle)
+dist_version(Target) := Version :-
+	dist_main_bundle(Target, MainBundle),
+	Version = ~bundle_version(MainBundle).
+
+:- export(dist_bundles/2).
+% Bundles that are distributed by Target distribution
+% (MainBundles and all the bundles from the same workspace, that are
+% not marked with a NODISTRIBUTE)
+dist_bundles(Target, Bundle) :-
+	dist_main_bundle(Target, MainBundle),
+	'$bundle_id'(Bundle),
+	Dir = ~bundle_path(Bundle, '.'),
+	% TODO: use 'directory mark' preds
+	NoDist = ~path_concat(Dir, 'NODISTRIBUTE'),
+	\+ file_exists(NoDist),
+	%
+	bundle_share_workspace(MainBundle, Bundle).
+
+% ---------------------------------------------------------------------------
 
 % (hooks for gen_pbundle)
 :- include(ciaobld(pbundle_gen_hookdefs)).
@@ -40,38 +106,38 @@ pbundle_codeitem_kind := tgz|rpm_x86|deb_x86|win|dmg.
 % TODO: Missing some internal manuals, add them.
 pbundle_docitem_kind := manual_html|manual_pdf.
 % Sub-bundles whose documentation is distributed explicitly as a docitem
-% TODO: ad-hoc for root_bundle! extract from Bundle!
-bundle_doc_subbundles(core, ciao, "Ciao Manual").
-bundle_doc_subbundles(ciaopp, ciaopp, "CiaoPP Manual").
-bundle_doc_subbundles(lpdoc, lpdoc, "LPdoc Manual").
+% TODO: ad-hoc, extract from Target, bundles, etc.
+pbundle_manuals(Target, ciao, "Ciao Manual") :- root_target(Target).
+pbundle_manuals(Target, ciaopp, "CiaoPP Manual") :- root_target(Target).
+pbundle_manuals(Target, lpdoc, "LPdoc Manual") :- root_target(Target).
 
 :- use_module(library(file_utils), [output_to_file/2]).
 :- use_module(library(version_strings), [version_split_patch/3]).
 
-:- export(pbundle_generate_meta/2).
-% Generate the metadata file which contains all the produced output of
-% the bundle build process.
-pbundle_generate_meta(Bundle, DescFile) :-
-	pbundle_generate_meta_(Bundle, Desc),
+%:- export(pbundle_generate_meta/2).
+% Generate the metadata file which describes the distribution
+pbundle_generate_meta(Target, DescFile) :-
+	pbundle_generate_meta_(Target, Desc),
 	clauses_to_file(Desc, DescFile).
 
 % :- export(pbundle_generate_meta_/2).
-pbundle_generate_meta_(Bundle, Desc) :-
-	findall(F, enum_pbundle_code_items(Bundle, F), Fs),
-	findall(D, enum_pbundle_doc_items(Bundle, D), Ds),
-	'$bundle_prop'(Bundle, packname(Packname)),
-	Version = ~bundle_version(Bundle),
+pbundle_generate_meta_(Target, Desc) :-
+	findall(F, enum_pbundle_code_items(Target, F), Fs),
+	findall(D, enum_pbundle_doc_items(Target, D), Ds),
+	dist_pkgname(Target, PkgName),
+	Version = ~dist_version(Target),
 	version_split_patch(Version, VersionNopatch, VersionPatch),
-	Desc = [% Bundle information (from manifest or source)
-                name = ~bundle_name(Bundle),
-                packname = Packname,
+	dist_main_bundle(Target, MainBundle),
+	Desc = [% Dist information (most from MainBundle manifest or source)
+                name = ~dist_name(Target),
+                pkgname = PkgName,
 		version = VersionNopatch,
 		patch = VersionPatch,
 		% Commit information
-		commit_branch = ~bundle_commit_info(Bundle, branch),
-		commit_id = ~bundle_commit_info(Bundle, id),
-		commit_date = ~bundle_commit_info(Bundle, date),
-		commit_desc = ~bundle_commit_info(Bundle, desc),
+		commit_branch = ~bundle_commit_info(MainBundle, branch),
+		commit_id = ~bundle_commit_info(MainBundle, id),
+		commit_date = ~bundle_commit_info(MainBundle, date),
+		commit_desc = ~bundle_commit_info(MainBundle, desc),
 		% Items in this packaged bundle (after bundle build)
 		docs = Ds,
 		code = Fs].
@@ -91,38 +157,36 @@ portray_clauses([X|Xs]) :-
 
 % Enumerate the pbundle items for code files
 % TODO: See ciaobot_internals.sh:get_produced_pbundle_item_base
-enum_pbundle_code_items(Bundle, Item) :-
+enum_pbundle_code_items(Target, Item) :-
 	pbundle_codeitem_kind(CodeKind),
-	pbundle_code_item(Bundle, CodeKind, Item).
+	pbundle_code_item(Target, CodeKind, Item).
 
 % Enumerate the pbundle items for documentation
-enum_pbundle_doc_items(Bundle, Item) :-
-	( root_bundle(Bundle) ->
-	    % (nondet)
-	    bundle_doc_subbundles(SubBundle, SubBundleSuffix, SubBundleTitle) % TODO: ad-hoc
-	; fail
-	),
+enum_pbundle_doc_items(Target, Item) :-
+	% (nondet)
+	pbundle_manuals(Target, ManualSuffix, ManualTitle), % TODO: ad-hoc
 	pbundle_docitem_kind(PDocKind),
-	pbundle_doc_item(Bundle, SubBundle, SubBundleSuffix, SubBundleTitle, PDocKind, Item).
+	pbundle_doc_item(Target, ManualSuffix, ManualTitle, PDocKind, Item).
 
 % ---------------------------------------------------------------------------
 
 % Obtain the pbundle_item description for the specified CodeKind
-pbundle_code_item(Bundle, CodeKind, Item) :-
+pbundle_code_item(Target, CodeKind, Item) :-
 	pbundle_codeitem_kind_info(CodeKind, Ext0),
-	'$bundle_prop'(Bundle, packname(Packname)),
-	Desc = ~bundle_commit_info(Bundle, desc),
+	PkgName = ~dist_pkgname(Target),
+	dist_main_bundle(Target, MainBundle),
+	Desc = ~bundle_commit_info(MainBundle, desc),
 	( CodeKind = rpm_x86 ->
 	    RPMDesc = ~fix_commit_desc_for_rpm(Desc),
-	    PFile = ~atom_concat([Packname, '-', RPMDesc, Ext0]),
+	    PFile = ~atom_concat([PkgName, '-', RPMDesc, Ext0]),
 	    PFileKind = i386_rpm
 	; CodeKind = deb_x86 ->
 	    RPMDesc = ~fix_commit_desc_for_rpm(Desc), % TODO: Use RPM scheme too?
-	    Packname2 = ~loweratom(Packname),
+	    PkgName2 = ~loweratom(PkgName),
 	    atom_concat('.', Ext1, Ext0),
-	    PFile = ~atom_concat([Packname2, '_', RPMDesc, '_', Ext1]),
+	    PFile = ~atom_concat([PkgName2, '_', RPMDesc, '_', Ext1]),
 	    PFileKind = i386_deb
-	; PFile = ~atom_concat([Packname, '-', Desc, Ext0]),
+	; PFile = ~atom_concat([PkgName, '-', Desc, Ext0]),
 	  ( pbundle_file_kind_ext(PFileKind, Ext),
 	    atom_concat(_, Ext, PFile) ->
 	      true
@@ -146,12 +210,12 @@ fix_commit_desc_for_rpm(Desc) := RPMDesc :-
 fix_commit_desc_for_rpm(Desc) := Desc.
 
 % Obtain the pbundle_item description for the specified PDocKind and sub-bundle
-pbundle_doc_item(Bundle, _SubBundle, SubBundleSuffix, SubBundleTitle, PDocKind, Item) :-
+pbundle_doc_item(Target, ManualSuffix, ManualTitle, PDocKind, Item) :-
 	pbundle_doc_kind_ext(PDocKind, Ext),
-	VersionedPackName = ~bundle_versioned_packname(Bundle),
-	atom_concat([VersionedPackName, '_', SubBundleSuffix, Ext], PDoc),
+	VersionedPkgName = ~dist_versioned_pkgname(Target), % TODO: weird
+	atom_concat([VersionedPkgName, '_', ManualSuffix, Ext], PDoc),
 	%
-	Item = pbundle_item(PDocKind, SubBundleTitle, PDoc).
+	Item = pbundle_item(PDocKind, ManualTitle, PDoc).
 
 % ---------------------------------------------------------------------------
 
@@ -198,55 +262,35 @@ pbundle_codeitem_type_suffix(bin) := ~atom_concat(['-bin-', ~get_os, ~get_arch])
 
 % ---------------------------------------------------------------------------
 
-:- use_module(ciaobld(bundle_scan), [root_bundle/1]).
-
-:- export(enum_pbundle_bundle/2).
-% Bundle is included in pbundle corresponding to ParentBundle (nondet)
-% TODO: allow better configuration? or just pack the whole workspace?
-enum_pbundle_bundle(ParentBundle, Bundle) :-
-	( root_bundle(ParentBundle) ->
-	    '$bundle_id'(Bundle),
-	    Dir = ~bundle_path(Bundle, '.'),
-	    % TODO: use 'directory mark' preds
-	    NoDist = ~path_concat(Dir, 'NODISTRIBUTE'),
-	    \+ file_exists(NoDist),
-	    %
-	    bundle_share_workspace(ParentBundle, Bundle)
-	; throw(cannot_gen_pbundle_non_root) % TODO: fix!
-	  %fail
-	).
-
-% ---------------------------------------------------------------------------
-
 % TODO: rename by pbundle_create_tarball?
 :- export(gen_pbundle_common/3).
-gen_pbundle_common(Bundle, PackType, Descs) :-
-	VersionedPackName = ~bundle_versioned_packname(Bundle),
-	normal_message("creating ~w archive for ~w ~w", [PackType, VersionedPackName, Descs]),
+gen_pbundle_common(Target, PBundleType, Descs) :-
+	VersionedPkgName = ~dist_versioned_pkgname(Target),
+	normal_message("creating ~w archive for ~w ~w", [PBundleType, VersionedPkgName, Descs]),
 	%
-	SourceDir = ~bundle_path(Bundle, '.'),
-	findall(RelFile, get_file_list(PackType, Bundle, SourceDir, RelFile), Files),
+	SourceDir = ~dist_workspace(Target),
+	findall(RelFile, get_file_list(PBundleType, Target, SourceDir, RelFile), Files),
 	%
-	TargetDir = ~pbundle_output_dir(Bundle),
-	create_pbundle_output_dir(Bundle),
-	build_pbundle_codeitems(Descs, SourceDir, TargetDir, VersionedPackName, PackType, Files).
+	TargetDir = ~pbundle_output_dir(Target),
+	create_pbundle_output_dir(Target),
+	build_pbundle_codeitems(Descs, SourceDir, TargetDir, VersionedPkgName, PBundleType, Files).
 
 :- use_module(library(archive_files), [archive_files/4]).
 
-build_pbundle_codeitems([], _SourceDir, _TargetDir, _VersionedPackName, _PBundleType, _Files).
-build_pbundle_codeitems([N|Ns], SourceDir, TargetDir, VersionedPackName, PBundleType, Files) :-
-	build_pbundle_codeitem(N, SourceDir, TargetDir, VersionedPackName, PBundleType, Files),
-	build_pbundle_codeitems(Ns, SourceDir, TargetDir, VersionedPackName, PBundleType, Files).
+build_pbundle_codeitems([], _SourceDir, _TargetDir, _VersionedPkgName, _PBundleType, _Files).
+build_pbundle_codeitems([N|Ns], SourceDir, TargetDir, VersionedPkgName, PBundleType, Files) :-
+	build_pbundle_codeitem(N, SourceDir, TargetDir, VersionedPkgName, PBundleType, Files),
+	build_pbundle_codeitems(Ns, SourceDir, TargetDir, VersionedPkgName, PBundleType, Files).
 
-build_pbundle_codeitem(Name, SourceDir, TargetDir, VersionedPackName, PBundleType, Files) :-
+build_pbundle_codeitem(Name, SourceDir, TargetDir, VersionedPkgName, PBundleType, Files) :-
 	pbundle_codeitem_kind_info(Name, PBundleExtension),
-	atom_concat([TargetDir, '/', VersionedPackName, ~pbundle_codeitem_type_suffix(PBundleType), PBundleExtension], Archive),
-	TopDir = VersionedPackName,
+	atom_concat([TargetDir, '/', VersionedPkgName, ~pbundle_codeitem_type_suffix(PBundleType), PBundleExtension], Archive),
+	TopDir = VersionedPkgName,
 	archive_files(SourceDir, Files, TopDir, Archive).
 
 % TODO: replace PBundleType by precomp_level
 % (nondet)
-get_file_list(PBundleType, ParentBundle, BaseDir, RelFile) :-
+get_file_list(PBundleType, Target, BaseDir, RelFile) :-
 	( % all distributable files (it does not enter bndls/)
 	  current_file_find(distributable_precomp(PBundleType), BaseDir, File0)
 	; % the BUNDLE_CATALOG mark at bndls/ % TODO: make it optional
@@ -254,7 +298,7 @@ get_file_list(PBundleType, ParentBundle, BaseDir, RelFile) :-
 	  file_exists(CatalogMark),
 	  File0 = CatalogMark
 	; % all distributable bundles at bndls/
-	  enum_pbundle_bundle(ParentBundle, Bundle),
+	  dist_bundles(Target, Bundle),
 	  SourceDir = ~bundle_path(Bundle, '.'),
 	  BndlsDir = ~path_concat(BaseDir, 'bndls'),
 	  path_get_relative(BndlsDir, SourceDir, _),
@@ -293,29 +337,30 @@ lowercode(X, X).
 :- export(pbundle_output_dir/2).
 % TODO: The definition of directory is repeated in ciaobot/SHARED
 %       (PBUNDLE_BUILD_DIR). Share the definition.
-pbundle_output_dir(Bundle) := ~bundle_path(Bundle, builddir, 'pbundle').
+pbundle_output_dir(Target) := Path :-
+	dist_main_bundle(Target, MainBundle),
+	Path = ~bundle_path(MainBundle, builddir, 'pbundle').
 
 :- export(create_pbundle_output_dir/1).
 :- pred create_pbundle_output_dir/1 # "Make sure that the directory
    where generated pbundle files are placed exists and has the
    NODISTRIBUTE mark.".
 
-create_pbundle_output_dir(Bundle) :-
-	TargetDir = ~pbundle_output_dir(Bundle),
-	mkpath(TargetDir),
+create_pbundle_output_dir(Target) :-
+	Path = ~pbundle_output_dir(Target),
+	mkpath(Path),
 	% TODO: use 'directory mark' preds
-	string_to_file("", ~path_concat(TargetDir, 'NODISTRIBUTE')).
+	string_to_file("", ~path_concat(Path, 'NODISTRIBUTE')).
 
 :- export(gen_pbundle_descfile/1).
 % Generate the desc.tmpl file (see pbundle_meta)
-gen_pbundle_descfile(Bundle) :-
-	gen_pbundle_hook(descfile, Bundle, []).
+gen_pbundle_descfile(Target) :-
+	gen_pbundle_hook(descfile, Target, []).
 
 % (hook)
 % TODO: a real target?
-gen_pbundle_hook(descfile, Bundle, _Options) :- !,
-	TargetDir = ~pbundle_output_dir(Bundle),
-	create_pbundle_output_dir(Bundle),
-	DescFile = ~path_concat(TargetDir, 'desc.tmpl'),
-	pbundle_generate_meta(Bundle, DescFile).
+gen_pbundle_hook(descfile, Target, _Options) :- !,
+	create_pbundle_output_dir(Target),
+	DescFile = ~path_concat(~pbundle_output_dir(Target), 'desc.tmpl'),
+	pbundle_generate_meta(Target, DescFile).
 

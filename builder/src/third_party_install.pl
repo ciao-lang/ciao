@@ -8,9 +8,13 @@
    installation of third-party components, without interfering with
    the system installed software.
 
-   See @href{http://brew.sh/}{Homebrew}, or
-   @href{https://www.gnu.org/software/guix/manual/guix.html}{GNU Guix}
-   for related systems.
+   It works similarly to package managers like
+   @href{https://www.gnu.org/software/stow/}{GNU stow},
+   @href{http://brew.sh/}{Homebrew}, or
+   @href{https://www.gnu.org/software/guix/manual/guix.html}{GNU
+   Guix}, where each package is installed separately in its own
+   directory and symbolic links are created to common @tt{bin/},
+   @tt{lib/}, etc. directories.
 
    The supported build systems are:
 

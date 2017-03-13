@@ -6,7 +6,7 @@
 :- use_module(library(aggregates)).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(glob), [glob/3]).
-:- use_module(library(terms), [atom_concat/2]).
+:- use_module(library(pathnames), [path_concat/3, path_split/3]).
 
 :- doc(module, "Handling of meta-information files for pbundle"). 
 
@@ -31,7 +31,7 @@ pbundle_meta_load(AbsFile) := PMeta :-
 	open(AbsFile, read, Stream),
 	read_tmpl(Stream, PMeta0),
 	close(Stream),
-	( atom_concat(BaseDir, '/desc.tmpl', AbsFile) ->
+	( path_concat(BaseDir, 'desc.tmpl', AbsFile) ->
 	    PMeta = [basedir = BaseDir|PMeta0]
 	; PMeta = PMeta0
 	).
@@ -56,7 +56,7 @@ pbundle_meta_attr(PMeta, A, V) :-
 % (Name must be an atom)
 pbundle_meta_has_name(PMeta, Name) :- atom(Name), !,
 	BaseDir = ~pbundle_meta_attr(PMeta, basedir),
-	atom_concat([_, '/', Name], BaseDir).
+	path_split(BaseDir, _, Name).
 
 % ---------------------------------------------------------------------------
 
@@ -73,8 +73,8 @@ sort_pbundle_metas_by_timestamp(PMetas) := SortedPMetas :-
 
 add_timestamp_key([], []).
 add_timestamp_key([T|Ts], [(Timestamp,T)|KTs]) :-
-	PackDate = ~pbundle_meta_attr(T, commit_date),
-	date_iso8601_to_timestamp(PackDate, Timestamp),
+	Date = ~pbundle_meta_attr(T, commit_date),
+	date_iso8601_to_timestamp(Date, Timestamp),
 	add_timestamp_key(Ts, KTs).
 
 map_second([], []).
@@ -88,9 +88,9 @@ map_second([(_,X)|Xs], [X|Ys]) :- map_second(Xs, Ys).
 % Load all the packaged bundle metadata found in a given directory
 % @var{PDir} for a branch @var{Branch}
 load_pbundle_metas(Branch, PDir0) := AllPMetas :-
-	PDir = ~atom_concat([PDir0, '/', Branch]),
-	list_meta_tmpl(PDir, AllPackF),
-	AllPMetas = ~load_pbundle_metas_(AllPackF, Branch).
+	PDir = ~path_concat(PDir0, Branch),
+	list_meta_tmpl(PDir, Fs),
+	AllPMetas = ~load_pbundle_metas_(Fs, Branch).
 
 load_pbundle_metas_([], _Branch, []).
 load_pbundle_metas_([F|Fs], Branch, [V|Vs]) :-
@@ -106,7 +106,7 @@ list_meta_tmpl_(PDir, Dirs, F) :-
 	member(Dir, Dirs),
 	% TODO: get 'current' name from a single definition
 	\+ Dir = 'current', % avoid it, its a symbolic link
-	F = ~atom_concat([PDir, '/', Dir, '/', 'desc.tmpl']),
+	F = ~path_concat(~path_concat(PDir, Dir), 'desc.tmpl'),
 	file_exists(F).
 
 :- use_module(library(lists), [append/3]).
