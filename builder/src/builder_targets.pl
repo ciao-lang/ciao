@@ -107,7 +107,7 @@ resolve_target(Target0, OnUnknown, Target) :-
 	; ( OnUnknown = error ->
 	      throw(unknown_target(Target0))
 	  ; % OnUnknown = silent
-	    true
+	    Target = Target0
 	  )
 	).
 
