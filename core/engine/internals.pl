@@ -1160,7 +1160,7 @@ opt_suff('_opt').
 
 % (copy of pathnames that can be used before modules are initialized)
 :- include(library(pathnames_boot)).
-% :- use_module(library(pathnames), [path_concat/3, path_split/3]).
+% :- use_module(library(pathnames), [path_concat/3]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Attributed variables").
