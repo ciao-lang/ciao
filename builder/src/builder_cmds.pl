@@ -29,7 +29,7 @@ builder_run(Cmd, Opts) :-
 
 cleanup :-
 	builder_cleanup,
-	bundle_fetch_cleanup, % (may be modified by resolve_targets/2)
+	bundle_fetch_cleanup, % (may be modified by resolve_targets/3)
 	cleanup_builder_flags.
 
 set_opts([]).
@@ -68,7 +68,12 @@ run_cmd(cmd_on_set(Cmd, Targets0)) :-
 	    rescan_targets(Targets)
 	; true
 	),
-	resolve_targets(Targets, Targets2),
+	( ( Cmd = fetch
+	  ; Cmd = get
+	  ) -> OnUnknown = silent % allow unknowns during resolve
+	; OnUnknown = error
+	),
+	resolve_targets(Targets, OnUnknown, Targets2),
 	set_default_recursive(Targets2),
 	builder_cmd_on_set(Cmd, Targets2).
 run_cmd(cmd(Cmd)) :-

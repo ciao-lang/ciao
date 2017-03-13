@@ -81,16 +81,16 @@ target_to_workspace(Target, Path) :-
 	),
 	lookup_workspace(Path0, Path).
 
-:- export(resolve_targets/2).
-:- pred resolve_targets(+Targets0, -Targets) :: list(atm) * list(target)
+:- export(resolve_targets/3).
+:- pred resolve_targets(+Targets0, OnUnknown, -Targets) :: list(atm) * term * list(target)
    # "Resolve targets (which may be paths). This assumes that
      @pred{rescan_targets/1} has been called".
 
-resolve_targets(Targets0, Targets) :-
-	maplist(resolve_target, Targets0, Targets).
+resolve_targets(Targets0, OnUnknown, Targets) :-
+	maplist(resolve_target(OnUnknown), Targets0, Targets).
 
-:- pred resolve_target(+Target0, -Target) :: atm * target.
-resolve_target(Target0, Target) :-
+:- pred resolve_target(+Target0, +OnUnknown, -Target) :: atm * term *target.
+resolve_target(Target0, OnUnknown, Target) :-
 	( is_dir(Target0),
 	  lookup_bundle_root(Target0, BundleDir),
 	  dir_to_bundle(BundleDir, Bundle) ->
@@ -104,7 +104,11 @@ resolve_target(Target0, Target) :-
 	; split_target(Target0, Bundle, _Part),
 	  '$bundle_id'(Bundle) ->
 	    Target = Target0 % TODO: missing check that _Part is a valid item
-	; throw(unknown_target(Target0))
+	; ( OnUnknown = error ->
+	      throw(unknown_target(Target0))
+	  ; % OnUnknown = silent
+	    true
+	  )
 	).
 
 % ---------------------------------------------------------------------------
