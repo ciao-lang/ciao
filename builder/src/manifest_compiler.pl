@@ -58,7 +58,7 @@ Configuration flags and nested definitions must be defined in a
 % ===========================================================================
 :- doc(section, "Location of bundles and manifests").
 
-:- use_module(library(pathnames), [path_concat/3, path_split/3]).
+:- use_module(library(pathnames), [path_concat/3, path_split/3, path_is_root/1]).
 :- use_module(library(system), [file_exists/1]).
 
 :- export(is_bundledir/1).
@@ -96,9 +96,9 @@ lookup_bundle_root_(File, BundleDir) :-
 	BundleDir = File.
 lookup_bundle_root_(File, BundleDir) :-
 	% Not a bundle dir, visit the parent
-	path_split(File, Base, Name),
-	\+ (Base = '/', Name = ''),
-	lookup_bundle_root_(Base, BundleDir).
+	\+ path_is_root(File),
+	path_split(File, Dir, _),
+	lookup_bundle_root_(Dir, BundleDir).
 
 % ===========================================================================
 :- doc(section, "Load manifest and hooks").
