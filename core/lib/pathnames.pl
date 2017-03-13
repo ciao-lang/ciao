@@ -14,6 +14,7 @@
 
 :- use_module(library(lists), [append/3, reverse/2]).
 :- use_module(engine(internals), ['$path_is_absolute'/1]). % TODO: merge?
+:- use_module(library(system), [using_windows/0]).
 
 % ---------------------------------------------------------------------------
 
@@ -117,6 +118,14 @@ path_split(Path, Dir, Base) :-
 	atom_codes(Base, BaseS).
 
 path_split_(Path, Dir, Base) :-
+	using_windows,
+	Path = [C,0':|Path0], is_alpha(C), !,
+	path_split__(Path0, Dir0, Base),
+	Dir = [C,0':|Dir0].
+path_split_(Path, Dir, Base) :-
+	path_split__(Path, Dir, Base).
+
+path_split__(Path, Dir, Base) :-
 	reverse(Path, R),
 	( append(BaseR, "/"||DirR, R) ->
 	    anysep(DirR, DirR2), % Strip all trailing /
@@ -128,6 +137,9 @@ path_split_(Path, Dir, Base) :-
 	; Dir = "",
 	  Base = Path
 	).
+
+is_alpha(X) :- X >= 0'a, X =< 0'z, !.
+is_alpha(X) :- X >= 0'A, X =< 0'Z.
 
 % ---------------------------------------------------------------------------
 
