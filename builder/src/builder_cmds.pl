@@ -157,7 +157,7 @@ builder_cmd_nobndl(clean_tree(Dir)) :- !,
     ensure_load_manifest/1,
     manifest_call/2,
     manifest_current_predicate/2,
-    target_is_bundle/1,
+    target_is_bundle/1, % (no part)
     split_target/3,
     compose_target/3
 ]).
@@ -362,7 +362,8 @@ check_no_workspace(Target) :-
 
 % (workspace or bundle)
 check_no_part(Target) :-
-	( target_is_bundle(Target) -> true
+	( target_is_workspace(Target) -> true
+	; target_is_bundle(Target) -> true
 	; throw(error_msg("Operation not allowed on bundle parts.", []))
 	).
 
