@@ -1,7 +1,12 @@
 :- module(_, [], [fsyntax, hiord, assertions, regtypes, isomodes]).
 
-:- doc(title,  "Builder Commands").
+:- doc(title, "Builder Commands").
 :- doc(author, "Jose F. Morales").
+
+:- doc(module, "This module contains a high-level interface to the
+   builder (@pred{builder_run/2}) and other predicates to interact to
+   the build process from @tt{.hooks.pl} files (@pred{builder_cmd/2},
+   etc.).").
 
 % ===========================================================================
 :- doc(section, "High-level builder interface").
@@ -11,9 +16,7 @@
 % 	[builder_cleanup/0,
 % 	 builder_cmd_nobndl/1,
 % 	 builder_cmd_on_set/2,
-% 	 set_default_recursive/1,
-% 	 'cmd.needs_update_builder'/1,
-% 	 'cmd.needs_rescan'/1]).
+% 	 set_default_recursive/1]).
 :- use_module(ciaobld(builder_targets)).
 :- use_module(ciaobld(bundle_fetch), [bundle_fetch_cleanup/0]).
 :- use_module(ciaobld(builder_flags),
@@ -68,9 +71,8 @@ run_cmd(cmd_on_set(Cmd, Targets0)) :-
 	    rescan_targets(Targets)
 	; true
 	),
-	( ( Cmd = fetch
-	  ; Cmd = get
-	  ) -> OnUnknown = silent % allow unknowns during resolve
+	( 'cmd.allow_unknown_targets'(Cmd) ->
+	    OnUnknown = silent % allow unknowns during resolve
 	; OnUnknown = error
 	),
 	resolve_targets(Targets, OnUnknown, Targets2),
@@ -94,11 +96,11 @@ run_cmd(cmd(Cmd)) :-
 %
 :- discontiguous('cmd.only_global_instype'/1). % disable if \+instype(global)
 % TODO: can it be simpler to express the negation instead?
-:- export('cmd.needs_update_builder'/1).
 :- discontiguous('cmd.needs_update_builder'/1). % needs an up-to-date builder
-:- export('cmd.needs_rescan'/1).
 :- discontiguous('cmd.needs_rescan'/1). % needs rescanned bundles
 :- discontiguous('cmd.needs_config'/1). % needs a configuration
+:- discontiguous('cmd.allow_unknown_targets'/1). % allow unknown targets (e.g., for 'fetch')
+:- discontiguous('cmd.no_manifest_load'/1). % manifest does not need to be loaded (only for some 'cmd.do'/2)
 %
 :- discontiguous('cmd.recursive'/2). % recursive on dependencies
                                      %  - forward: dependencies first
@@ -107,7 +109,6 @@ run_cmd(cmd(Cmd)) :-
 %
 :- discontiguous('cmd.do_before.decl'/1). % has 'cmd.do_before'/2
 :- discontiguous('cmd.do_before'/2). % do_before command
-:- discontiguous('cmd.no_manifest_load'/1). % manifest does not need to be loaded (only for some 'cmd.do'/2)
 :- discontiguous('cmd.do.decl'/1). % has 'cmd.do'/2
 :- discontiguous('cmd.do'/2). % do command
 :- discontiguous('cmd.do_after.decl'/1). % has 'cmd.do_after'/2
@@ -607,6 +608,7 @@ defs_do([X|Xs], Grade, Bundle, Cmd) :-
 % Fetch the given bundle
 'cmd.needs_update_builder'(fetch).
 'cmd.needs_rescan'(fetch).
+'cmd.allow_unknown_targets'(fetch).
 'cmd.no_manifest_load'(fetch).
 'cmd.do.decl'(fetch).
 'cmd.do'(fetch, Target) :-
@@ -627,6 +629,7 @@ defs_do([X|Xs], Grade, Bundle, Cmd) :-
 
 'cmd.needs_update_builder'(get(_)).
 'cmd.needs_rescan'(get(_)).
+'cmd.allow_unknown_targets'(get(_)).
 'cmd.no_manifest_load'(get(_)).
 'cmd.do.decl'(get(_)).
 'cmd.do'(get(Flags), Target) :- !,
