@@ -21,4 +21,4 @@ test1(Time) :-
 	measure(use_module(ciaopp(ciaopp)), Time).
 
 test2(Time) :-
-	measure(use_module(ciaopp(plai/domains/fr_sets)), Time).
+	measure(use_module(domain(fr_sets)), Time).
