@@ -1992,7 +1992,9 @@ generate_itf(ItfName, Dir, Mode, Base) :-
 	    close(Stream),
 	    chmod(ItfName, Mode),
 	    erase(Ref)
-	; message(warning, ['cannot create ',ItfName])
+	; ( current_prolog_flag(verbose_compilation,off) -> true
+	  ; message(warning, ['cannot create ',ItfName])
+	  )
 	),
 	set_prolog_flag(fileerrors, OldFE).
 
@@ -2325,7 +2327,7 @@ make_file2_(PoName, Mode, Base, Dir, Module, Source) :- %OPA
 	open(TmpFile,read,TmpStream),
 	current_output(So),
 	set_output(Out),
-	( current_prolog_flag(verbose_compilation,off), !
+	( current_prolog_flag(verbose_compilation,off) -> true
 	; message(['{Compressing library}'])
 	),
 	compressLZ(TmpStream),
@@ -3146,7 +3148,8 @@ compute_load_action(Base, Module, Mode, Load_Action) :-
 	    )
 	; po_filename(Base, PoName),
 	  modif_time0(PoName, PoTime),
-	  ( PoTime < ItfTime ->
+	  ( ( ItfTime = 0, PoTime = 0 % (for read-only file systems)
+	    ; PoTime < ItfTime ) ->
 	      \+ not_changed(Module, Base, fail, _), % to give message
 	      Load_Action =
 	          load_make_po(Base, PlName, Dir, PoName, Mode, Module)
