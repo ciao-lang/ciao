@@ -207,7 +207,9 @@ cmd_usage(configclean, "[<targets>]", [
 
 common_opts_details([
     %2........................________________________________________________
-    "  --bin|--docs|...       Select grade",
+    "  --grade=Grade          Select grade (default: bin, docs)",
+    "  --bin                  Alias for --grade=bin (binaries)",
+    "  --docs                 Alias for --grade=docs (documentation)",
     "  -r                     Treat dependencies (same workspace)",
     "  -x                     Treat dependencies (all workspaces)"
 ]).

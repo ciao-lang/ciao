@@ -102,10 +102,11 @@ cmd_rw(configure([]), Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
 	).
 
 common_opts([
-  s(r),   % -r: recursive (same worksace)
-  s(x),   % -x: recursive (all dependencies)
-  bin,    % --bin: exclude documentation build
-  docs    % --docs: just build documentation
+  s(r),    % -r: recursive (same worksace)
+  s(x),    % -x: recursive (all dependencies)
+  grade=v, % --grade=Grade: select grade
+  bin,     % --bin: exclude documentation build (alias for --grade=bin)
+  docs     % --docs: just build documentation (alias for --grade=docs)
 ]).
 
 cmd_fmt(build, [opts(Opts), target_args]) :- common_opts(Opts).

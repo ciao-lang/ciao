@@ -42,9 +42,11 @@ set_opts([Opt|Opts]) :- set_opt(Opt), set_opts(Opts).
 set_opt(opt(interactive)) :- !,
 	set_builder_flag(interactive_config, true).
 set_opt(opt(docs)) :- !,
-	set_builder_flag(grade_docs, true).
+	set_opt(opt(grade, docs)).
 set_opt(opt(bin)) :- !,
-	set_builder_flag(grade_bin, true).
+	set_opt(opt(grade, bin)).
+set_opt(opt(grade, Value)) :- !,
+	enable_grade(Value).
 %set_opt(opt(norec)) :- !,
 %	set_builder_flag(recursive, false).
 set_opt(opt(r)) :- !,
@@ -75,6 +77,7 @@ run_cmd(cmd_on_set(Cmd, Targets0)) :-
 	    OnUnknown = silent % allow unknowns during resolve
 	; OnUnknown = error
 	),
+	maybe_enable_default_grades,
 	resolve_targets(Targets, OnUnknown, Targets2),
 	set_default_recursive(Targets2),
 	builder_cmd_on_set(Cmd, Targets2).
@@ -82,37 +85,8 @@ run_cmd(cmd(Cmd)) :-
 	builder_cmd_nobndl(Cmd).
 
 % ===========================================================================
-:- doc(section, "Hooks for definition of a command").
 
-% NOTE:
-%   A command must define at least 'cmd.grade'/2 or 'cmd.do'/2.
-%
-%   If 'cmd.do'/2 is not defined, then we use the definitions at
-%   .hook.pl files or execute the default actions on the primitive targets.
-
-:- discontiguous('cmd.comment'/2). % comment for command
-%
-:- discontiguous('cmd.grade'/2). % grade, needed when when 'cmd.do'/2 is not defined
-%
-:- discontiguous('cmd.only_global_instype'/1). % disable if \+instype(global)
-% TODO: can it be simpler to express the negation instead?
-:- discontiguous('cmd.needs_update_builder'/1). % needs an up-to-date builder
-:- discontiguous('cmd.needs_rescan'/1). % needs rescanned bundles
-:- discontiguous('cmd.needs_config'/1). % needs a configuration
-:- discontiguous('cmd.allow_unknown_targets'/1). % allow unknown targets (e.g., for 'fetch')
-:- discontiguous('cmd.no_manifest_load'/1). % manifest does not need to be loaded (only for some 'cmd.do'/2)
-%
-:- discontiguous('cmd.recursive'/2). % recursive on dependencies
-                                     %  - forward: dependencies first
-                                     %  - backward: dependencies later
-                                     %  - none (or undeclared): do not process deps
-%
-:- discontiguous('cmd.do_before.decl'/1). % has 'cmd.do_before'/2
-:- discontiguous('cmd.do_before'/2). % do_before command
-:- discontiguous('cmd.do.decl'/1). % has 'cmd.do'/2
-:- discontiguous('cmd.do'/2). % do command
-:- discontiguous('cmd.do_after.decl'/1). % has 'cmd.do_after'/2
-:- discontiguous('cmd.do_after'/2). % do_after command
+:- include(ciaobld(cmd_hooks)).
 
 % ===========================================================================
 :- doc(section, "Builder commands without bundle targets").
@@ -143,6 +117,8 @@ list_bundles :-
 % ---------------------------------------------------------------------------
 % Clean of a directory tree, recursively
 
+:- use_module(ciaobld(ciaoc_aux), [clean_tree/1]).
+
 builder_cmd_nobndl(clean_tree(Dir)) :- !,
 	clean_tree(Dir).
 
@@ -169,9 +145,6 @@ builder_cmd_nobndl(clean_tree(Dir)) :- !,
 %  - done: done
 :- data builder_cmd_status/3.
 
-% grade_ready(Grade): Grade is ready (all its required tools are compiled, etc.)
-:- data grade_ready/1.
-
 set_cmd_status(Cmd, Target, Status) :-
 	retractall_fact(builder_cmd_status(Cmd, Target, _)),
 	assertz_fact(builder_cmd_status(Cmd, Target, Status)).
@@ -184,7 +157,7 @@ get_cmd_status(Cmd, Target, Status) :-
 :- pred builder_cleanup # "Cleanup the builder state".
 
 builder_cleanup :-
-	retractall_fact(grade_ready(_)),
+	grade_cleanup,
 	retractall_fact(builder_cmd_status(_, _, _)).
 
 :- export(builder_cmd_on_set/2).
@@ -193,6 +166,21 @@ builder_cmd_on_set(Cmd, Targets) :-
 	( % (failure-driven loop)
 	  member(Target, Targets),
 	    builder_cmd(Cmd, Target),
+	    fail
+	; true
+	).
+
+% (for special grade commands, e.g., bin+build -> build_bin)
+builder_cmd_for_grade(Cmd, Grade, Target) :-
+	( 'grade.cmd'(Grade, Cmd, Cmd2) -> true
+	; Cmd2 = Cmd
+	),
+	builder_cmd(Cmd2, Target).
+
+builder_cmd_for_grades(Cmd, Grades, Target) :-
+	( % (failure-driven loop)
+	  member(Grade, Grades),
+	    builder_cmd_for_grade(Cmd, Grade, Target),
 	    fail
 	; true
 	).
@@ -267,7 +255,7 @@ builder_cmd_(Cmd, Target) :-
 	( 'cmd.recursive'(Cmd, backward) -> builder_cmd_on_set(Cmd, ~reverse(~target_deps(Target))) ; true ),
 	% Reversing the 'initial' setup if needed
 	( Cmd = clean, root_target(Target) -> % TODO: do reference counting, treat as 'initial' dependency
-	    do_clean_root_target(Target)
+	    clean_root_target(Target)
 	; true
 	).
 
@@ -319,6 +307,12 @@ cmd_do(do(Cmd, Target)) :- 'cmd.do'(Cmd, Target).
 cmd_do(hook(Target, Cmd)) :- manifest_call(Target, Cmd).
 cmd_do(defs(Cmd, Defs2, Grade, Bundle)) :- defs_do(Defs2, Grade, Bundle, Cmd).
 
+% (Bundle is the top context)
+defs_do([], _Grade, _Bundle, _Cmd).
+defs_do([X|Xs], Grade, Bundle, Cmd) :-
+	'grade.prim_do'(Grade, X, Bundle, Cmd),
+	defs_do(Xs, Grade, Bundle, Cmd).
+
 % (item_nested(_);item_alias(_))
 % (Bundle is the top context)
 get_nested_items(Target, Bundle, Defs) :-
@@ -352,6 +346,16 @@ target_dep(Target, Dep) :-
 	  compose_target(Bundle, X2, Dep)
 	).
 
+% Special case for the root build structure
+% TODO: add as the 'initial' dependency for every bundle? (with reference counting)
+% TODO: generalize for all workspaces
+clean_root_target(_Target) :-
+	builder_cmd_for_grade(clean, bin, 'core.engine'), % TODO: clean with 'core'?
+	builder_cmd_for_grade(clean, bin, 'core.exec_header'), % TODO: clean with 'core'?
+	% TODO: clean all builddir except configuration?
+	builddir_clean(core, pbundle), % TODO: 'core' hardwired
+	builddir_clean(core, bin). % TODO: 'core' hardwired
+
 % ---------------------------------------------------------------------------
 % Kinds of targets (workspaces, bundles, or parts of a bundle)
 
@@ -374,6 +378,7 @@ root_target(Target) :- ciao_root(Target).
 
 :- use_module(engine(internals), [ciao_root/1, ciao_path/1]).
 
+:- export(target_is_workspace/1).
 % The target is a (known) workspace
 target_is_workspace(Target) :- ciao_path(Target).
 target_is_workspace(Target) :- ciao_root(Target).
@@ -462,7 +467,7 @@ ensure_configured(Target) :-
 
 :- use_module(ciaobld(builder_flags), [set_builder_flag/2]).
 
-:- export(set_default_recursive/1).
+%:- export(set_default_recursive/1).
 set_default_recursive(Targets) :-
 	( member(X, Targets), root_target(X) ->
 	    % For root_target, enable recursive by default
@@ -473,6 +478,49 @@ set_default_recursive(Targets) :-
 
 % ===========================================================================
 :- doc(section, "Grades").
+
+% use_grade(Grade): Grade is selected (multidet)
+:- data use_grade/1.
+
+% grade_ready(Grade): Grade is ready (all its required tools are compiled, etc.)
+:- data grade_ready/1.
+
+grade_cleanup :-
+	retractall_fact(use_grade(_)),
+	retractall_fact(grade_ready(_)).
+
+enable_grade(Value) :-
+	( use_grade(Value) -> true
+	; assertz_fact(use_grade(Value)),
+	  ensure_grade_loaded(Value) % TODO: Better do on demand!
+	).
+
+maybe_enable_default_grades :-
+	( \+ use_grade(_) -> % enable defaults
+	    % NOTE: do not change order!
+	    enable_grade(bin),
+	    enable_grade(docs)
+	; true
+	).
+
+% ---------------------------------------------------------------------------
+% Grade loader
+
+:- use_module(engine(system_info), [current_module/1]).
+:- use_module(ciaobld(grade_holder)).
+
+% (builtin grades)
+% TODO: remove some?
+:- use_module(ciaobld(grade_bin), []). % bin grade commands
+:- use_module(ciaobld(grade_docs), []). % docs grade commands
+
+% NOTE: it assumes that GRADE is implemented in module grade_<GRADE>.pl
+ensure_grade_loaded(Grade) :-
+	atom_concat('grade_', Grade, GradeMod),
+	( current_module(GradeMod) -> % loaded or statically linked
+	    true
+	; grade_holder:do_use_module(ciaobld(GradeMod))
+	).
 
 % ---------------------------------------------------------------------------
 % Selection of grades (bin, docs, etc.)
@@ -486,23 +534,13 @@ enabled_grade(custom_docs) :- !. % TODO: better way?
 enabled_grade(test) :- !. % TODO: implement
 enabled_grade(bench) :- !. % TODO: implement
 %
-enabled_grade(bin) :- !,
-	( default_grades -> true
-	; get_builder_flag(grade_bin, true)
-	).
-enabled_grade(docs) :- !,
-	with_docs(yes),
-	( default_grades -> true
-	; get_builder_flag(grade_docs, true)
-	).
-
-default_grades :-
-	% none specified
-	\+ get_builder_flag(grade_bin, _),
-	\+ get_builder_flag(grade_docs, _).
-
-grade_requires(bin, 'core.ciaobase').
-grade_requires(docs, 'lpdoc').
+enabled_grade(docs) :-
+	\+ with_docs(yes), % TODO: better way?
+	!,
+	fail.
+enabled_grade(Grade) :-
+	use_grade(Grade),
+	!.
 
 % ---------------------------------------------------------------------------
 % Prepare requirements for grades (e.g., ciaoc, lpdoc)
@@ -529,9 +567,9 @@ ensure_grade_ready(Grade, Target) :-
 % Prepare the grade
 prepare_grade(Grade, ParentTarget) :-
 	( % (failure-driven loop)
-	  grade_requires(Grade, ReqTarget),
+	  'grade.requires'(Grade, ReqGrade, ReqTarget),
 	    \+ ParentTarget = ReqTarget,
-	    builder_cmd(build_bin, ReqTarget),
+	    builder_cmd_for_grade(build, ReqGrade, ReqTarget),
 	    fail
 	; true
 	).
@@ -555,23 +593,18 @@ reach_sys_bundle(Target) :-
 	).
 
 % ---------------------------------------------------------------------------
-
-:- use_module(ciaobld(builder_prim), [
-  bintgt/1, bintgt_do/3,
-  docstgt/1, docstgt_do/3
-]).
+% Obtain primitive targets ("defs") for the grade
 
 % Primitive targets for this grade (when no hook is provided)
 grade_defs(custom, Target, _Defs) :- !, % TODO: better idea?
 	% Hooks are mandatory for this grade
 	throw(error(bundlehook_undefined(Target,custom_run/2), builder_cmd/2)).
 grade_defs(Grade, Target, Defs) :-
-	findall(Def, grade_defs_(Grade, Target, Def), Defs).
+	( 'grade.prim_kind'(Grade, GradeKind) ->
+	    findall(Def, grade_defs_(GradeKind, Target, Def), Defs)
+	; Defs = [] % TODO: custom_bin (for prepare_build_bin), custom_docs (for prepare_build_docs), test, bench
+	).
 
-grade_defs_(custom_bin, _Target, _Def) :- !, fail. % TODO: for prepare_build_bin
-grade_defs_(custom_docs, _Target, _Def) :- !, fail. % TODO: for prepare_build_docs
-grade_defs_(test, _Target, _Def) :- !, fail. % TODO: FIX
-grade_defs_(bench, _Target, _Def) :- !, fail. % TODO: FIX
 grade_defs_(bin, Target, Def) :- !,
 	bintgt(Def), % (enumerate primitive targets)
 	manifest_call(Target, Def).
@@ -579,14 +612,24 @@ grade_defs_(docs, Target, Def) :- !,
 	docstgt(Def), % (enumerate primitive targets)
 	manifest_call(Target, Def).
 
-% (Bundle is the top context)
-defs_do([], _Grade, _Bundle, _Cmd).
-defs_do([X|Xs], Grade, Bundle, Cmd) :-
-	( Grade = docs -> docstgt_do(X, Bundle, Cmd)
-	; Grade = bin -> bintgt_do(X, Bundle, Cmd)
-	; throw(unknown_grade_defs_do(Grade))
-	),
-	defs_do(Xs, Grade, Bundle, Cmd).
+%:- export(bintgt/1).
+:- regtype bintgt(X) # "@var{X} is a primitive target for @tt{bin} grade kind".
+% (Path is relative to bundle)
+bintgt(lib(_Path)). % Source and compiled
+bintgt(lib_force_build(_Path)). % Force build of _Path (use in combination with lib/1)
+bintgt(src(_Path)). % Only source code
+bintgt(assets(_Path)). % Other files (under _Path)
+bintgt(assets(_Path, _Files)). % Explicit files under Path
+bintgt(cmd(_)). % A command (module with main/{0,1})
+bintgt(cmd(_, _)). % A command (module with main/{0,1})
+bintgt(cmd_raw(_, _, _)).
+bintgt(eng(_, _)). % An engine
+bintgt(eng_exec_header(_)). % Engine stub loader
+
+%:- export(docstgt/1).
+:- regtype docstgt(X) # "@var{X} is a primitive target for @tt{docs} grade kind".
+docstgt(readme(_,_)).
+docstgt(manual(_,_)).
 
 % ===========================================================================
 :- doc(section, "Definition of builder commands").
@@ -728,6 +771,8 @@ ask_promote_bootstrap(Eng) :-
 % ---------------------------------------------------------------------------
 % configclean
 
+:- use_module(ciaobld(builder_aux), [builddir_clean/2]).
+
 % Clean the bundle configuration
 % TODO: split in a configclean for each (sub)bundle or workspace
 % Warning! configclean is the last cleaning step. If you clean all
@@ -784,100 +829,22 @@ ask_promote_bootstrap(Eng) :-
 %'cmd.recursive'(build, forward). % TODO: enable?
 'cmd.do.decl'(build).
 'cmd.do'(build, Target) :- !,
-	builder_cmd(build_bin, Target),
-	builder_cmd(build_docs, Target).
+	% (for all enabled grades -- except special ones like 'none', etc.)
+	Grades = ~findall(Grade, use_grade(Grade)),
+	builder_cmd_for_grades(build, Grades, Target).
 
 % Deletes all intermediate files, but leaves configuration settings
 % 'cmd.recursive'(clean, backward). % TODO: enable?
 'cmd.do.decl'(clean).
 'cmd.do'(clean, Target) :- !,
-	builder_cmd(clean_docs, Target),
-	builder_cmd(clean_bin, Target).
-
-% ---------------------------------------------------------------------------
-% build/clean (bin)
-
-'cmd.comment'(build_bin, ["building [bin]", "built [bin]"]).
-'cmd.grade'(build_bin, bin).
-'cmd.needs_update_builder'(build_bin).
-'cmd.needs_rescan'(build_bin).
-'cmd.needs_config'(build_bin).
-'cmd.recursive'(build_bin, forward).
-'cmd.do_before.decl'(build_bin).
-'cmd.do_before'(build_bin, Target) :- !,
-	builder_cmd(prepare_build_bin, Target).
-
-'cmd.comment'(prepare_build_bin, ["preparing build [bin]", "prepared build [bin]"]).
-'cmd.grade'(prepare_build_bin, custom_bin).
-
-:- use_module(ciaobld(builder_aux), [builddir_clean/2]).
-:- use_module(ciaobld(ciaoc_aux), [clean_tree/1]).
-:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
-:- use_module(library(pathnames), [path_concat/3]).
-
-% Like 'clean', but keeps documentation targets.
-% (This reverses the 'build_bin' and part of 'build_docs' actions)
-'cmd.comment'(clean_bin, ["cleaning [bin]", "cleaned [bin]"]).
-'cmd.grade'(clean_bin, bin).
-'cmd.needs_config'(clean_bin).
-'cmd.recursive'(clean_bin, backward).
-'cmd.do_after.decl'(clean_bin).
-'cmd.do_after'(clean_bin, Target) :- !,
-	( target_is_workspace(Target) -> true
-	; target_is_bundle(Target) ->
-	    do_clean_bundle(Target) 
-	; true 
-	).
-
-% TODO: make it fine grained, implement clean_bin on primtgts
-do_clean_bundle(Bundle) :-
-	% TODO: does not work with CIAOCACHEDIR! fix
-	% TODO: clean only on lib, etc. areas (not externals/ etc.)
-	% clean_tree(~bundle_path(Bundle, 'Manifest')) % TODO: only if it is a directory!
-	clean_tree(~bundle_path(Bundle, '.')).
-
-% Special case for the root build structure
-% TODO: add as the 'initial' dependency for every bundle? (with reference counting)
-% TODO: generalize for all workspaces
-do_clean_root_target(_Target) :-
-	builder_cmd(clean_bin, 'core.engine'), % TODO: clean with 'core'?
-	builder_cmd(clean_bin, 'core.exec_header'), % TODO: clean with 'core'?
-	% TODO: clean all builddir except configuration?
-	builddir_clean(core, pbundle), % TODO: 'core' hardwired
-	builddir_clean(core, bin). % TODO: 'core' hardwired
-
-% ---------------------------------------------------------------------------
-% build/clean (docs)
-
-'cmd.comment'(build_docs, ["building [docs]", "built [docs]"]).
-'cmd.grade'(build_docs, docs).
-'cmd.needs_update_builder'(build_docs).
-'cmd.needs_rescan'(build_docs).
-'cmd.needs_config'(build_docs).
-'cmd.recursive'(build_docs, forward).
-'cmd.do_before.decl'(build_docs).
-'cmd.do_before'(build_docs, Target) :- !,
-	builder_cmd(prepare_build_docs, Target).
-
-'cmd.comment'(prepare_build_docs, ["preparing build [docs]", "prepared build [docs]"]).
-'cmd.grade'(prepare_build_docs, custom_docs).
-%'cmd.needs_config'(prepare_build_docs).
-%'cmd.recursive'(prepare_build_docs, forward).
-
-% Clean documentation
-'cmd.comment'(clean_docs, ["cleaning [docs]", "cleaned [docs]"]).
-'cmd.grade'(clean_docs, docs).
-'cmd.needs_config'(clean_docs).
-'cmd.recursive'(clean_docs, backward).
-'cmd.do_after.decl'(clean_docs).
-'cmd.do_after'(clean_docs, Target) :- !,
-	( root_target(Target) -> % TODO: generalize for all workspaces
-	    builddir_clean(core, doc) % TODO: 'core' hardwired
-	; true
-	).
+	% (reverse order of grades)
+	Grades = ~reverse(~findall(Grade, use_grade(Grade))),
+	builder_cmd_for_grades(clean, Grades, Target).
 
 % ---------------------------------------------------------------------------
 % distclean
+
+:- use_module(ciaobld(builder_aux), [builddir_clean/2]).
 
 % Like 'clean' but also removes configuration settings.
 'cmd.needs_config'(distclean).
@@ -902,75 +869,18 @@ do_clean_root_target(_Target) :-
 %'cmd.recursive'(install, forward). % TODO: enable?
 'cmd.do.decl'(install).
 'cmd.do'(install, Target) :- !,
-	builder_cmd(install_bin, Target),
-	builder_cmd(install_docs, Target),
+	% (for all enabled grades -- except special ones like 'none', etc.)
+	Grades = ~findall(Grade, use_grade(Grade)),
+	builder_cmd_for_grades(install, Grades, Target),
 	builder_cmd(register, Target).
 
 %'cmd.recursive'(uninstall, backward). % TODO: enable?
 'cmd.do.decl'(uninstall).
 'cmd.do'(uninstall, Target) :- !,
 	builder_cmd(unregister, Target),
-	builder_cmd(uninstall_docs, Target),
-	builder_cmd(uninstall_bin, Target).
-
-% ---------------------------------------------------------------------------
-% install/uninstall (bin)
-
-:- use_module(ciaobld(install_aux), [
-  install_bin_dirs/1,
-  uninstall_bin_dirs/1,
-  install_bundlereg/1,
-  uninstall_bundlereg/1
-]).
-
-'cmd.comment'(install_bin, ["installing [bin]", "installed [bin]"]).
-'cmd.grade'(install_bin, bin).
-'cmd.only_global_instype'(install_bin).
-%'cmd.needs_update_builder'(install_bin).
-'cmd.needs_rescan'(install_bin).
-'cmd.recursive'(install_bin, forward).
-'cmd.do_before.decl'(install_bin).
-'cmd.do_before'(install_bin, Target) :- !,
-	( target_is_workspace(Target) -> true
-	; target_is_bundle(Target) -> install_bin_dirs(Target)
-	; true
-	).
-'cmd.do_after.decl'(install_bin).
-'cmd.do_after'(install_bin, Target) :- !,
-	( target_is_workspace(Target) -> true
-	; target_is_bundle(Target) -> install_bundlereg(Target) % Activate
-	; true
-	).
-
-'cmd.comment'(uninstall_bin, ["uninstalling [bin]", "uninstalled [bin]"]).
-'cmd.grade'(uninstall_bin, bin).
-'cmd.only_global_instype'(uninstall_bin).
-'cmd.recursive'(uninstall_bin, backward).
-'cmd.do_before.decl'(uninstall_bin).
-'cmd.do_before'(uninstall_bin, Target) :- !,
-	( target_is_workspace(Target) -> true
-	; target_is_bundle(Target) -> uninstall_bundlereg(Target) % Deactivate
-	; true
-	).
-'cmd.do_after.decl'(uninstall_bin).
-'cmd.do_after'(uninstall_bin, Target) :- !,
-	( target_is_workspace(Target) -> true
-	; target_is_bundle(Target) -> uninstall_bin_dirs(Target) % TODO: uninstall 'initial' bundle?
-	; true
-	).
-
-% ---------------------------------------------------------------------------
-% install/uninstall (docs)
-
-'cmd.comment'(install_docs, ["installing [docs]", "installed [docs]"]).
-'cmd.grade'(install_docs, docs).
-%'cmd.needs_update_builder'(install_docs).
-'cmd.needs_rescan'(install_docs).
-'cmd.recursive'(install_docs, forward).
-
-'cmd.comment'(uninstall_docs, ["uninstalling [docs]", "uninstalled [docs]"]).
-'cmd.grade'(uninstall_docs, docs).
-'cmd.recursive'(uninstall_docs, backward).
+	% (reverse order of grades)
+	Grades = ~reverse(~findall(Grade, use_grade(Grade))),
+	builder_cmd_for_grades(uninstall, Grades, Target).
 
 % ---------------------------------------------------------------------------
 % register/unregister

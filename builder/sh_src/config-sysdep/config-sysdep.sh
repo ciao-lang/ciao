@@ -480,8 +480,9 @@ case "$CIAOOS$CIAOARCH" in
 -s MAIN_MODULE=2 \
 -s ALIASING_FUNCTION_POINTERS=0 \
 -s EMULATE_FUNCTION_POINTER_CASTS=1 \
+-s LZ4=1 \
 -s ALLOW_MEMORY_GROWTH=1"
-	# -s LZ4=1 # allow compressed assets
+	# -s LZ4=1 # allow compressed assets # TODO: make it optional?
 	;;
 esac
 

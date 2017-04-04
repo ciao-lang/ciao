@@ -1,6 +1,7 @@
 :- module(builder_flags, [], [assertions, regtypes]).
 
 :- doc(title, "Flags for the builder").
+% (atomic name, single value)
 
 :- data builder_flag_/2.
 

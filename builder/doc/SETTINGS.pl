@@ -24,10 +24,11 @@ doc_structure :=
           ],
 	  % Command driver and definitions
           'builder_cmds'-[
+            % Grades (default)
+            'grade_bin',
+            'grade_docs',
             % Target names and resolution
             'builder_targets',
-            % Primitive targets
-            'builder_prim',
 	    % Build
             'third_party_install',
             'ciaoc_aux',

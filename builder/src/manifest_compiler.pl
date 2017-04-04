@@ -10,7 +10,7 @@
    @begin{itemize}
    @item dependencies to other bundles
    @item configuration flags (see @lib{bundle_configure})
-   @item primitive targets (see @lib{builder_prim})
+   @item primitive targets (see @lib{grade_bin}, @lib{grade_docs}, etc.)
    @item nested definitions for bundle parts
    @item custom definitions for build commands (see @lib{builder_cmds})
    @end{itemize}
