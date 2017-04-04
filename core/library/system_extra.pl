@@ -256,7 +256,11 @@ move_if_diff(From, To, NewOrOld) :-
 	% note: NewOrOld is unified at the end to ensure side-effects
 	( diff_files(From, To) ->
 	    del_file_nofail(To),
-	    rename_file(From, To),
+	    % NOTE: do not use rename_file/2 since it does not work
+	    %   across partitions (some Linux systems mount /tmp 
+            %   in a different partition)
+	    copy_file(From, To),
+	    del_file_nofail(From),
 	    NewOrOld = new
 	; del_file_nofail(From),
 	  NewOrOld = old
