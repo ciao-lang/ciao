@@ -26,9 +26,7 @@
 :- doc(bug, "Start at different ports, act as a proxy with other Ciao servers").
 :- doc(bug, "Allow different protocols?").
 
-% TODO: both are duplicated, customize?
-site_root_dir := ~path_concat(~ciao_root, 'build/site').
-%data_root_dir := ~path_concat(~ciao_root, 'build/data').
+:- use_module(ciaobld(config_common), [site_root_dir/1]).
 
 % Open HTTP server for files in this directory
 main([]) :-

@@ -67,4 +67,17 @@ concat_ext(exec, X) := ~atom_concat(X, ~get_exec_ext).
 concat_ext(shscript, X) := X.
 concat_ext(ext(Ext), X) := ~atom_concat(X, Ext).
 
+% ===========================================================================
+% TODO: move somewhere else?
 
+:- export(site_root_dir/1).
+% Files for HTTP serving
+site_root_dir := Path :-
+	Bundle = core, % TODO: allow any bundle
+	Path = ~bundle_path(Bundle, builddir, 'site').
+
+:- export(data_root_dir/1).
+% Files for per-bundle persistence
+data_root_dir := Path :-
+	Bundle = core, % TODO: allow any bundle
+	Path = ~bundle_path(Bundle, builddir, 'data').

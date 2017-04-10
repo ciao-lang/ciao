@@ -441,6 +441,7 @@ get_build_system(Lib, BuildSystem) :-
 :- doc(bug, "We use our system recursive, because the one available in
    the system pollutes the atom table.").
 
+% TODO: merge
 rec_delete_file_nofail(FILE) :-
 	process_call(path(rm), ['-Rf', FILE], [status(0)]).
 
