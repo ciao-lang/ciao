@@ -61,6 +61,8 @@
 '$builder_hook'(core_cmds:cmd('cmds/ciaodump')).
 '$builder_hook'(core_cmds:cmd('cmds/pldiff')).
 '$builder_hook'(core_cmds:cmd('cmds/ciaoc_sdyn')).
+% TODO: move to a separate bundle?
+'$builder_hook'(core_cmds:cmd('cmds/ciao-serve/ciao-serve')).
 
 % ---------------------------------------------------------------------------
 % Standalone compiler
