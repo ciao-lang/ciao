@@ -31,6 +31,7 @@ doc_structure :=
             'builder_targets',
 	    % Build
             'third_party_install',
+            'third_party_custom',
             'ciaoc_aux',
             'lpdoc_aux',
             'eng_maker',

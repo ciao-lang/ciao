@@ -71,3 +71,5 @@
 :- multifile m_bundle_config_entry/3.
 % m_bundle_foreign_config_tool(<Mod>,Name,Path)
 :- multifile m_bundle_foreign_config_tool/3.
+% m_bundle_foreign_dep(<Mod>,Kind,Name,Desc)
+:- multifile m_bundle_foreign_dep/4.
