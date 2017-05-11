@@ -1,51 +1,47 @@
-:- module( menu_generator , 
-	             [
-		      menu/1,
-		      menu/2,
-		      menu/3,
-		      menu/4,
-		      get_menu_flag/3,
-		      set_menu_flag/3,
-		      space/1,
-		      get_menu_configs/1,
-		      save_menu_config/1,
-		      remove_menu_config/1,
-		      restore_menu_config/1,
-		      show_menu_configs/0,
-		      show_menu_config/1,
-		      
-		      get_menu_options/2, % -> for JavaScript code!
-		     
-		      get_menu_flags/1,
-		      restore_menu_flags_list/1,
-		      get_menu_flags/2,
-		      restore_menu_flags/2,
+:- module(menu_generator, [
+	menu/1,
+	menu/2,
+	menu/3,
+	menu/4,
+	get_menu_flag/3,
+	set_menu_flag/3,
+	space/1,
+	get_menu_configs/1,
+	save_menu_config/1,
+	remove_menu_config/1,
+	restore_menu_config/1,
+	show_menu_configs/0,
+	show_menu_config/1,
+	%
+	get_menu_options/2, % -> for JavaScript code!
+	%
+	get_menu_flags/1,
+	restore_menu_flags_list/1,
+	get_menu_flags/2,
+	restore_menu_flags/2,
+	%
+	generate_js_menu/1,
+	eq/3,
+	neq/3,
+	uni_type/2,
+	vmember/2
+	%
+	% ,remove_less_restrictive_guards/3
+	% ,guard_included_in_path/3
+	% ,join_guard_and_path/3
+   ], [hiord, 
+       assertions,
+       regtypes,
+       argnames,
+       persdb,
+       nortchecks]).
 
-		      generate_js_menu/1,
-		      eq/3,
-		      neq/3,
-		      uni_type/2,
-		      vmember/2
-
-% ,remove_less_restrictive_guards/3
-% ,guard_included_in_path/3
-% ,join_guard_and_path/3
-		     ], 
-		     [ hiord, 
-		       assertions,
-		       regtypes,
-		       argnames,
-		       persdb,
-		       nortchecks
-		     ] ).
-
-:- include( library( 'menu/menu_common' ) ).
+:- include(library('menu/menu_common')).
 
 member_and_remove( A , [A|As] , As ) :-
 	!.
 member_and_remove( A , [B|As] , [B|Bs] ) :-
 	member_and_remove( A , As , Bs ).
-
 
 :- use_module(library(aggregates)).
 :- use_module(library(write)).
@@ -59,14 +55,11 @@ member_and_remove( A , [B|As] , [B|Bs] ) :-
 				   sublist/2
 				  ] ).
 
-:- data      menu_flag/3.
+:- data menu_flag/3.
 
+persistent_dir(menudbdir, '~/.ciao.d/menu_flags').
 
-persistent_dir( menudbdir , '~/.ciao.d/menu_flags' ).
-
-:- persistent( menu_config/2 , menudbdir ).
-
-
+:- persistent(menu_config/2, menudbdir).
 
 %:- multifile pp_flag/2 , 
 %	     valid_flag_values/2,
@@ -86,46 +79,31 @@ persistent_dir( menudbdir , '~/.ciao.d/menu_flags' ).
 
 :- trust pred menu_flag( Menu , Flag , Value ) :
 	term * atom * term
-
 # "This predicate is internal and stored the menu configuration.
  @var{Menu} is the menu, as defined in @pred{menu_opt/6} and
  @var{Flag} is the flag value stored. @var{Value} is the value
  stored.".
 
-
-
-
 :- trust pred menu_default( Menu , Flag , DefaultValue ) :
 	term * atm * atm
-
 # "@var{Menu} is a term that has to correspond with the 1st argument
   of @pred{Menu}. @var{Flag} is the desired flag to have a default
   value. @var{DefaultValue} is the default value of @var{Flag}.".
 
-
 :- trust pred menu_default( Menu , Flag , DefaultValue )  => 
 	atm  * atm * atm.
-
-
 :- trust pred menu_default( Menu , Flag , DefaultValue ) :
 	atm  * var * var
-
 # "This call mode can be used to ask which flags and its values
   has a menu @var{menu}".
 
-
 :- trust pred menu_default( Menu , Flag , DefaultValue ) :
 	atm  * atm * var
-
 # "This call mode can be used to ask which value have the flag
   @var{Flag} in the menu @var{menu}".
 
-
-
-
 :- pred menu_opt( Menu , Flag , Text , Guard , BeforePrinting , SelectedHook ) :
 	term * atm * atm * callable * callable * callable
-
 # "@var{Menu} is a term that specifies the menu name. It can be an
   atom or just a predicate of arity 1, where the 1st argument
   indicates the menu level (i.e., ana(1) is the level 1 of 'ana'
@@ -151,30 +129,22 @@ persistent_dir( menudbdir , '~/.ciao.d/menu_flags' ).
   executed (no action is taken whether it fails or not), and after the
   user has types the option @var{SelectedHook} is invoked.".
 
-
 :- trust pred menu_opt( Menu , Flag , Text , Guard , BeforePrinting ,
 	SelectedHook ) : term * term * term * term * term *term.
 
-
 :- trust pred menu_config( Menu , List ) =>
 	atm * list.
-
-
 :- trust pred menu_config( Menu , List ) :
 	atm * list
-
 # "@pred{menu_config/2} is used to store user menu configuration
    permanently.  @var{Menu} is a term that has to correspond with the
    1st argument of @pred{Menu}. @var{List} are the flags saved for
    that menu in the way [flag1=value1, flag2=value2, ...].".
 
-
 :- trust pred menu_config( Menu , List ) :
 	atm * var
-
 # "This call mode can be used to ask the @var{List} flag
   configuation of a menu @var{Menu}.".
-
 
 %% HOOKS
 %% -----
@@ -182,7 +152,6 @@ persistent_dir( menudbdir , '~/.ciao.d/menu_flags' ).
 :- pred hook_menu_flag_values( Menu , Flag , Values )
 	: atom * atom * var
         => menu_flag_values(Values)
-
 # "It is a hook. It is invoked whenever a menu question is
   printed. @var{Values} is a term which specifies the possible
   values. If @var{Values} is alist(List) -atom list-, then menu will
@@ -199,55 +168,40 @@ menu_flag_values(        X   ) :- list( X , atm ).
 menu_flag_values( ask( T ) ) :- 
 	( T == int ; T == nnegint ; T == atom ; T == atm ).
 
-
 :- pred hook_menu_check_flag_value( M , F , V ) # "It is a hook. It is
 invoked whenever the menu needs to check whether the answer introduced
 for the menu @var{M} is correct. This happens when
 @pred{hook_menu_flag_values/3} returns in its second argument
 something different than alist(_).".
 
-
 :- pred hook_menu_flag_help( M , F , H )
-
 # "It is a hook. It is invoked whenever the user ask for a help
   description, @var{H}, of the flag @var{F} in the menu @var{M}.".
 
-
 :- pred hook_menu_default_option( M , F , D )
-
 # "It is a hook. It is invoked whenever the menu needs to offer a
   default option to the user in the menu @var{M} and it has not been
   neither introduced before nor specified by @pred{menu_default/3}.".
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% DEFINITIONS         
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ---------------------------------------------------------------------------
+% DEFINITIONS         
 
 :- argnames cc( flag , message , guard, pre, post ).
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% THE OUTPUT FUNCTIONS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% ---------------------------------------------------------------------------
+% THE OUTPUT FUNCTIONS
 
 :- pred space( N ) : num( N )
 # "prints @var{N} spaces.".
 
-
 space( 0 ) :- !.
-
 space( N ) :-
 	N > 0,
 	!,
 	N1 is N - 1,
 	display( ' ' ),
 	space( N1 ).
-
 space( _ ).
-
-
-
 
 display_with_spaces( Label , DesiredLen ) :-
 	display( Label ),
@@ -255,9 +209,6 @@ display_with_spaces( Label , DesiredLen ) :-
 	atom_length( Label , Len ),
 	Rest is DesiredLen - Len - 1,
 	space( Rest ).
-
-
-
 
 mul_display( L ) :-
 	nmul_display( L , 0 , 79 ).
@@ -380,20 +331,15 @@ display_long_atom_n( X , I , Max ) :-
 	),	
 	display( YC ).
 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% THE MENU ITSELF 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ---------------------------------------------------------------------------
+% THE MENU ITSELF 
 
 :- set_prolog_flag( multi_arity_warnings, off ).
-
 
 :- pred menu( M ) # "Like menu( M , true ).".
 
 menu( M ) :- 
 	menu( M , true ).
-
 
 :- pred menu( M , Bool ) # "Like @pred{menu/4} with no selected
 options, taking the menu level from the term @var{M} (example: ana(1)
@@ -404,19 +350,16 @@ menu( M , B ) :-
 	atom( M ),
 	!,
 	menu( M , 0 , B ).
-
 menu( M , B ) :- 
 	M =.. [F,L],
 	!,
 	menu( F , L , B ).
-
 
 :- pred menu( M , Level , Bool ) # "Like @pred{menu/4} with no
 selected options.".
 
 menu( A , B, C ) :-
 	menu( A , B , C , [] ).
-
 
 :- pred menu( M , Level , Bool , AlreadySelectedOpts) # "Execute the
 menu @tt{X}. @var{Level} specifies the menu level. @var{Bool} decides
@@ -428,7 +371,6 @@ menu( X , Level , Bool , AlreadySelectedOpts ) :-
 	select_and_ask_menu( X , Level , Bool , AlreadySelectedOpts , Out ),
 	reverse( Out , Out2 ),
 	restore_menu_flags( X , Out2 ).
-
 
 select_and_ask_menu( X , Level , Bool , AlreadySelectedOpts , Out ) :-
 	findall( cc${flag    => O,
@@ -725,7 +667,7 @@ get_menu_flag( Menu , F , V ) :-
   @var{Flag}.".
 
 get_menu_options( Flag ,  V  ) :-
-	get_menu_options( _ , Flag ,  V  ).
+	get_menu_options( _ , Flag ,  V  ). % TODO: WRONG! Menu must be instantiated
 
 get_menu_options( Menu , Flag ,  V  ) :-
 	hook_menu_flag_values( Menu , Flag , Values ),
@@ -1156,7 +1098,7 @@ get_branch_sol(P , ASK , REST ) :-
 	    ;
 		member( Flag=MM , ASK_REST ),
 		MM==M,
-		get_menu_options( Flag , Opts ),
+		get_menu_options( Flag , Opts ), % TODO: Missing menu!
 		member( M , Opts )
 	    ),
 	    ASK =.. [M,L]
@@ -1347,6 +1289,7 @@ he started to create an user to make the call
 generate_js_menu( DoNotInclude ) :-
 	findall( menu_opt( Type , Flag , Title , Guard , B4_Print , AfterSel ),
 	         (menu_opt( Type , Flag , Title , Guard , B4_Print , AfterSel ),
+		  \+ unsupported_menu(Type),
 		  \+ member( Flag , DoNotInclude )
 		 ),
 		 L ),
@@ -1360,6 +1303,7 @@ generate_js_menu( DoNotInclude ) :-
 	remove_less_restrictive_guards_from_js( Js_PL , Js_PL2 ),
 	write_js_code( Js_PL2 ).
 
+unsupported_menu(selmod). % TODO: flags in this menu are weird (filesystem paths!)
 
 % For testting...
 % write_js_code( [] ).
@@ -1451,7 +1395,7 @@ generate_js_guards( [ M | Ms ] , [ J | Js ] ) :-
 	remove_menu_level_from_guard( Path__ , Path ),
 
 	% Options
-	get_menu_options( Flag , Options ),
+	get_menu_options(Menu, Flag, Options),
 
 	% Default Options
 	get_menu_flag( Menu , Flag , Def_Opt ),
@@ -1562,8 +1506,8 @@ join( Processed , M , C ) :-
 % [[inter_all=analyze, menu_level=naive],
 %  [inter_all=check_assertions,menu_level=expert,check_config_ana=on]]
 
-join_guard_and_path( [] , P  , [P] ).
-join_guard_and_path( G  , [] , [G] ).
+join_guard_and_path( [] , P  , [P] ) :- !.
+join_guard_and_path( G  , [] , [G] ) :- !.
 join_guard_and_path( G  , P  , GP  ) :-
 	join_guard_and_path__( G  , P  , GP ).
 
@@ -1598,6 +1542,8 @@ guard_included_in_path( [G|Gs] , P , [G|NP] ) :-
 display_options( ask( A , _ ) ) :-
 	!,
 	display( A ).
+display_options(alist(As)) :- !, % TODO: correct?
+	display_olist(As).
 display_options( Options ) :-
 	display_olist( Options ).
 
