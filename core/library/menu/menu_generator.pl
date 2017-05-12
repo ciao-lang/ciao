@@ -1125,13 +1125,13 @@ get_branch_sol(P , ASK , REST ) :-
 :- doc( generate_js_menu/1 , "Internal Info. Short description
 and general ideas about how the JS menu is generated.
 
-The current model for the JS menu is an array of @tt{menuq} (object in
+The current model for the JS menu is an array of @tt{MenuItem} (object in
 JS).
 
 @begin{verbatim}
 var assert_rtcheck = menus.length ;
 var v_assert_rtcheck ;
-menus[ menus.length ] = new menuq( 
+menus[ menus.length ] = new MenuItem( 
 	""assert_rtcheck"",
         ""Perform Run-Time Checks"",
         ""none,pred,pp_assrt,pp_code"",
@@ -1145,7 +1145,7 @@ the value of the index of the menu in the array. Another variable with
 'v_' (v = value) indicates the value (of the flag) choosed by the user
 in the combo-boxes that appear on the webpage (note you should not
 read this if you have not seen the webpage working). The object
-@tt{menuq} holds several things: the flag name (to find out the index
+@tt{MenuItem} holds several things: the flag name (to find out the index
 in the array in some JS functions), the title, the options (notice
 there is no space in the options, this is important!), default option
 and the guard.
@@ -1433,7 +1433,7 @@ write_js_code( [ M | Ms ] ) :-
 	display( ' ;\n' ),
 	
 	% Menu
-	display( 'menus[ menus.length ] = new menuq( "' ),
+	display( 'menus[ menus.length ] = new MenuItem( "' ),
 	display( Flag ),
 	display( '",\n                                   "'),
 	display( Title ),
