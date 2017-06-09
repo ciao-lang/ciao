@@ -77,7 +77,7 @@ quit(quit).
 davinci :-
 	\+ davinci(_,_,_),
 	command(Command, Args),
-	catch(process_call(Command, Args,
+	catch(process_call(path(Command), Args,
 	                   [stdin(stream(In)), stdout(stream(Out)),
 			    background(P)]),
 	      error(Error,Where),
