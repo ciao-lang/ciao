@@ -20,6 +20,9 @@
 :- doc(bug, "Missing tests. See @href{http://json.org/example.html}
    for many examples.").
 
+:- doc(bug, "For a parser, any JSON value may be acceptable. However
+  only object or array are valid as top-level for JSON text").
+
 :- use_module(library(strings), [string/3]). % (for DCGs)
 
 % ===========================================================================
@@ -67,11 +70,11 @@ attrs_to_str([X|Xs]) --> attr_to_str(X), ",", attrs_to_str(Xs).
 
 attr_to_str(Id=Val) --> "\"", key_to_str(Id), "\":", val_to_str(Val).
 
-key_to_str(X) --> { atom(X) }, !, { atom_codes(X, Cs) }, string(Cs).
+key_to_str(X) --> { atom(X) }, !, { atom_codes(X, Cs) }, stringq(Cs).
 key_to_str(X) --> { number(X) }, !, { number_codes(X, Cs) }, string(Cs).
-key_to_str(X) --> { is_list(X) }, !, string(X).
+key_to_str(X) --> { is_list(X) }, !, stringq(X).
 
-val_to_str(string(X)) --> !, "\"", string(X), "\"".
+val_to_str(string(X)) --> !, "\"", stringq(X), "\"".
 val_to_str(X) --> { number(X), number_codes(X, Cs) }, string(Cs).
 val_to_str(X) --> { X = json(_) }, !, obj_to_str(X).
 val_to_str(X) --> { is_list(X) }, !, list_to_str(X).
@@ -84,6 +87,10 @@ list_to_str(Xs) --> "[", list_to_str_(Xs), "]".
 list_to_str_([]) --> [].
 list_to_str_([X]) --> !, val_to_str(X).
 list_to_str_([X|Xs]) --> val_to_str(X), ",", list_to_str_(Xs).
+
+stringq([]) --> [].
+stringq([C|Cs]) --> { needs_quote(C, C2) }, !, "\\", [C2], stringq(Cs).
+stringq([C|Cs]) --> [C], stringq(Cs).
 
 :- export(string_to_json/2).
 :- pred string_to_json(+String, ?Term) :: string * json # "Decode
@@ -121,15 +128,13 @@ str_to_attr(Id=Val) -->
 quoted_string(Cs) --> "\"", quoted_string_(Cs).
 
 quoted_string_([]) --> "\"", !.
-quoted_string_("\""||Cs) --> "\\\"", !, quoted_string_(Cs).
-quoted_string_("\\"||Cs) --> "\\\\", !, quoted_string_(Cs).
-%quoted_string_("/"||Cs) --> "\\/", !, quoted_string_(Cs).
-quoted_string_("\b"||Cs) --> "\\b", !, quoted_string_(Cs).
-quoted_string_("\f"||Cs) --> "\\f", !, quoted_string_(Cs).
-quoted_string_("\n"||Cs) --> "\\n", !, quoted_string_(Cs).
-quoted_string_("\r"||Cs) --> "\\r", !, quoted_string_(Cs).
-quoted_string_("\t"||Cs) --> "\\t", !, quoted_string_(Cs).
-% TODO: Missing unicode
+quoted_string_([C|Cs]) --> "\\", [C0], { quoted_as(C0, C1) }, !, { C = C1 }, quoted_string_(Cs).
+% quoted_string_("\\"||Cs) --> "\\\\", !, quoted_string_(Cs).
+% quoted_string_("\b"||Cs) --> "\\b", !, quoted_string_(Cs).
+% quoted_string_("\f"||Cs) --> "\\f", !, quoted_string_(Cs).
+% quoted_string_("\n"||Cs) --> "\\n", !, quoted_string_(Cs).
+% quoted_string_("\r"||Cs) --> "\\r", !, quoted_string_(Cs).
+% quoted_string_("\t"||Cs) --> "\\t", !, quoted_string_(Cs).
 quoted_string_([C|Cs]) --> [C], quoted_string_(Cs).
 
 % (no leading blanks)
@@ -201,6 +206,25 @@ digits(Cs, Cs) --> !.
 digit(C) --> [C], { is_digit(C) }.
 
 is_digit(C) :- C >= 0'0, C =< 0'9.
+
+% TODO: Missing unicode
+needs_quote(0'\", 0'\").
+needs_quote(0'\\, 0'\\).
+needs_quote(0'\b, 0'b).
+needs_quote(0'\f, 0'f).
+needs_quote(0'\n, 0'n).
+needs_quote(0'\r, 0'r).
+needs_quote(0'\t, 0't).
+
+% TODO: Missing unicode
+% (reverse of needs_quote)
+quoted_as(0'\", 0'\").
+quoted_as(0'\\, 0'\\).
+quoted_as(0'b, 0'\b).
+quoted_as(0'f, 0'\f).
+quoted_as(0'n, 0'\n).
+quoted_as(0'r, 0'\r).
+quoted_as(0't, 0'\t).
 
 % ===========================================================================
 
