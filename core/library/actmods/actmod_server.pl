@@ -26,7 +26,9 @@ bootargs(More) :-
 	serve_socket(Socket,[]).
 
 save_addr(Port,More) :-
-        current_host(Host),
+        ( 'actmod.host'(Host) -> true % Try user-defined host
+	; current_host(Host)
+	),
         'actmod.save_addr'([a(Host,Port)|More]).
 
 serve_socket(Socket, Streams0) :-
