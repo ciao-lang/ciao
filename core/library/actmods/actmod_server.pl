@@ -7,7 +7,7 @@
 :- use_module(library(read)).
 :- use_module(library(aggregates), [findall/3]).
 
-:- multifile save_addr_actmod/1.
+:- include(library(actmods/actmod_hooks)).
 
 actmodmain :-
         current_prolog_flag(argv, Args),
@@ -27,7 +27,7 @@ bootargs(More) :-
 
 save_addr(Port,More) :-
         current_host(Host),
-        save_addr_actmod([a(Host,Port)|More]).
+        'actmod.save_addr'([a(Host,Port)|More]).
 
 serve_socket(Socket, Streams0) :-
 	wait_for_arrival(Socket,Streams0,ReadableStreams,Streams1),

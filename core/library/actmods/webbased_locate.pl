@@ -1,7 +1,7 @@
 
-:- module(webbased_locate,[module_address/2],[]).
+:- module(webbased_locate,['actmod.address'/2],[]).
 
-:- use_module(library(actmods/actmodrt)).
+:- use_module(library(actmods/actmod_rt)).
 :- use_module(library(actmods/webbased_common)).
 :- use_module(library(read_from_string), [read_from_string_atmvars/2]).
 :- use_module(library(lists), [append/3]).
@@ -10,13 +10,13 @@
 :- data address_db/2.
 :- data server/2.
 
-module_address(M, Address) :-
+'actmod.address'(M, Address) :-
 	current_fact(address_db(M, Address)), !.
-module_address(M, Address) :-
+'actmod.address'(M, Address) :-
 	server_address(Server),
-        ( remote_call(Server,module_address(M,Address)) 
+        ( 'actmod.call'(Server,'actmod.address'(M,Address)) 
 	-> asserta_fact(address_db(M, Address))
-	 ; throw(unable_to_connect(Server,module_address(M)))
+	 ; throw(unable_to_connect(Server,'actmod.address'(M)))
 	).
 
 server_address(Address):-

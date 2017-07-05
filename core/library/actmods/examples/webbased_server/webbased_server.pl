@@ -1,16 +1,16 @@
 
-:- module(webbased_server, [module_address/2,
-	                    my_module_address/3],
+:- module(webbased_server, ['actmod.address'/2,
+	                    'actmod.tell_address'/3],
 			   [persdb]).
 
 persistent_dir(actmods_db,'./webbased_db').
 
 :- persistent(module_address_db/3,actmods_db).
 
-module_address(M,Address):-
+'actmod.address'(M,Address):-
 	current_fact(module_address_db(M,Address,_Pid)).
 
-my_module_address(M,Address,Pid):-
+'actmod.tell_address'(M,Address,Pid):-
 	retractall(M),
 	assertz_fact(module_address_db(M,Address,Pid)).
 

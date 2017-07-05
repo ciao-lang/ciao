@@ -4,12 +4,12 @@
 :- use_module(library(pathnames)).
 :- use_module(library(read)).
 
-:- multifile save_addr_actmod/1.
+:- include(library(actmods/actmod_hooks)).
 
 % The file that contains the path to the directory that contains the 
 % address file has to be called '.addr'
 
-save_addr_actmod([Address]) :- !,
+'actmod.save_addr'([Address]) :- !,
 	(file_exists('./.addr')->
 	 open('./.addr', read, S),
 	 read(S, Location_Dir),
@@ -31,6 +31,6 @@ save_addr_actmod([Address]) :- !,
         set_output(OldOut),
         close(ST),
         umask(_, OldUmask).
-save_addr_actmod(_) :-
+'actmod.save_addr'(_) :-
         inform_user(['Bad number of arguments: either none or port number']),
  	halt(1).

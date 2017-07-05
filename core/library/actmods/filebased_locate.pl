@@ -1,4 +1,4 @@
-:- module(filebased_locate, [module_address/2], []).
+:- module(filebased_locate, ['actmod.address'/2], []).
 
 :- use_module(library(read)).
 :- use_module(library(system)).
@@ -8,9 +8,9 @@
 
 % look for address in address_db, else accesses .addr file and extends db 
 
-module_address(M, Address) :-
+'actmod.address'(M, Address) :-
 	current_fact(address_db(M, Address)), !.
-module_address(M, Address) :-
+'actmod.address'(M, Address) :-
 	current_fact(wd(CurrentDir)),
 	atom_concat(CurrentDir, '.addr', Loc),
 	(file_exists(Loc)->

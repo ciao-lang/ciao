@@ -1,9 +1,9 @@
-:- module(actmodrt, [remote_call/2], [assertions]).
+:- module(actmod_rt, ['actmod.call'/2], [assertions]).
 
 :- use_module(library(sockets)).
 :- use_module(library(read)).
 
-remote_call(a(Host,Port), Goal) :-
+'actmod.call'(a(Host,Port), Goal) :-
         remote_call_stream(Host, Port, Stream),
         current_output(OldOut),
         set_output(Stream),

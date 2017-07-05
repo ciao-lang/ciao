@@ -23,9 +23,9 @@ agent_s( end_of_file, end_of_file, _):-
 write_user_file(Mod,Loc,File):-
     mktemp('tmpciaoXXXXXX', File),
     open(File,write,S),
-    displayq(S,(:- use_module(library(Loc),[module_address/2]))),
+    displayq(S,(:- use_module(library(Loc),['actmod.address'/2]))),
     display(S,'.'), nl(S),
-    displayq(S,('$agent$address'(Agent,Add):- module_address(Agent,Add))),
+    displayq(S,('$agent$address'(Agent,Add):- 'actmod.address'(Agent,Add))),
     display(S,'.'), nl(S),
     display(S,(:- meta_predicate(exe(?,fact)))),
     display(S,'.'), nl(S),

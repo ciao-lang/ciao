@@ -1,6 +1,6 @@
 :- module(agent_call, [(::)/2,self/1], [assertions]).
 
-:- use_module(library(actmods/actmodrt), [remote_call/2]).
+:- use_module(library(actmods/actmod_rt), ['actmod.call'/2]).
 :- use_module(user, ['$agent$address'/2]).
 
 :- multifile '$actmod$name'/1.
@@ -19,6 +19,6 @@ self(X):- current_fact('$actmod$name'(X)).
 	Message=..[F|As],
 	Call=..[F,I|As],
 	'$agent$address'(Agent,Add),
-	remote_call(Add, Call).
+	'actmod.call'(Add, Call).
 ::(Agent,Message):-
 	throw(no_sender_id(::(Agent,Message))).

@@ -62,8 +62,8 @@ for the rest of modules of the agent that need to send messages.
     to locate connection addresses of agents. By convention, the names of these
     modules have a common prefix, which makes reference to the protocol, and
     have suffixes '_locate' and '_publish'. The 'publish' part of the protocol 
-    must define a multifile predicate @code{save_addr_actmod/1} and the 'locate' 
-    part export a predicate @code{module_address/2}. The first one publishes an
+    must define a multifile predicate @code{'actmod.save_addr'/1} and the 'locate' 
+    part export a predicate @code{'actmod.address'/2}. The first one publishes an
     agent address; the second one locates the address of an agent. Together, 
     both make it possible for agents to send and receive messages. All agents 
     in a multi-agent system must therefore use the same protocol. Upon compilation,
@@ -73,12 +73,12 @@ for the rest of modules of the agent that need to send messages.
     # "@var{Protocol} is the prefix to a library path where an active module
        rendezvous protocol can be found.".
 
-:- multifile save_addr_actmod/1.
-:- pred save_addr_actmod(Address)
+:- multifile 'actmod.save_addr'/1.
+:- pred 'actmod.save_addr'(Address)
     # "(protocol defined) publishes the agent's @var{Address}.".
 
-:- doc(doinclude,module_address/2).
-:- pred module_address(Agent,Address)
+:- doc(doinclude,'actmod.address'/2).
+:- pred 'actmod.address'(Agent,Address)
     # "(protocol defined) gives the @var{Address} of @var{Agent}.".
 
 :- doc(doinclude,:: /2).
