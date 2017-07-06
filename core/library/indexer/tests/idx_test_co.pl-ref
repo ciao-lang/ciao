@@ -5,7 +5,7 @@
 :-discontiguous 'indexer_foo/4_index_1'/2.
 :-discontiguous 'indexer_foo/4_index_2'/2.
 :-discontiguous 'indexer_foo/4'/5.
-:-use_module(library(indexer(hash)),[hash_term/2]).
+:-use_module(library(indexer/hash),[hash_term/2]).
 :-export(idx1/4).
 :-export(idx2/4).
 :-export(mymaplist/2).
