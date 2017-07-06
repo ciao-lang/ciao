@@ -1,7 +1,7 @@
 CIAOCMD ?= ciao
 
 webbased:
-	$(CIAOCMD) comp -a actmods/webserver_publish webbased_server
+	$(CIAOCMD) comp -a actmod/webserver_publish webbased_server
 	webbased_server &
 
 distclean:

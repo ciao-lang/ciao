@@ -546,7 +546,7 @@ create_main(Base, PublishMod, MainFile) :-
 		:-(use_package([])),
 		:-(use_module(Base)),
 		:-(use_module(library(PublishMod))),
-		:-(use_module(library(actmods/actmod_server),
+		:-(use_module(library(actmod/actmod_server),
 			[actmodmain/0])),
 		:-(main, actmodmain),
 		:-(meta_predicate(exe(?, fact)))

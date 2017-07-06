@@ -1,7 +1,7 @@
 % A simple active module client
-%:- module(simple_client,[add_pop/1, population/2, halt_server/0],[actmods]).
-:- use_package(actmods).
-:- use_module(library(actmods/filebased_locate)).
+%:- module(simple_client,[add_pop/1, population/2, halt_server/0],[actmod]).
+:- use_package(actmod).
+:- use_module(library(actmod/filebased_locate)).
 :- use_active_module(simple_server, [population/2, shutdown/0]).
 %% :- use_module(simple_server, [population/2, shutdown/0]).
 

@@ -1,14 +1,14 @@
 :- module(webbased_publish, [], []).
 
-:- use_module(library(actmods/actmod_rt)).
-:- use_module(library(actmods/webbased_common)).
+:- use_module(library(actmod/actmod_rt)).
+:- use_module(library(actmod/webbased_common)).
 :- use_module(library(read_from_string), [read_from_string_atmvars/2]).
 :- use_module(library(pathnames)).
 :- use_module(library(lists), [append/3]).
 :- use_module(library(pillow/http)).
 :- use_module(library(system)).
 
-:- include(library(actmods/actmod_hooks)).
+:- include(library(actmod/actmod_hooks)).
 
 'actmod.save_addr'([Address]) :- !,
 	current_executable(ExePath),

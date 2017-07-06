@@ -29,7 +29,7 @@
      them from other agents, answering back ok, will look like:
 @begin{verbatim}
 :- agent(simple,[inform/2,ok/1]).
-:- protocol('actmods/filebased').
+:- protocol('actmod/filebased').
 
 agent :-
     repeat,
@@ -102,6 +102,6 @@ agents which run under this protocol are started up. The host id and port number
 of the platform must then be given as arguments to the agents executables. 
 The protocol also allows to give an agent name to the agent upon start-up.
 A module suitable for a platform can be found in 
-@file{library(actmods/examples/webbased_server/webbased_server)}.
+@file{library(actmod/examples/webbased_server/webbased_server)}.
 ").
 

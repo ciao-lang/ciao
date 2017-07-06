@@ -1,5 +1,5 @@
 :- agent(one,[inform/2]).
-:- protocol('actmods/platformbased').
+:- protocol('actmod/platformbased').
 
 :- use_module(library(prompt)).
 

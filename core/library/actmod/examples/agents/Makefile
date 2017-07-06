@@ -1,9 +1,9 @@
 CIAOCMD ?= ciao
 
 build: 
-	$(CIAOCMD) comp -a actmods/webbased_publish agent1
+	$(CIAOCMD) comp -a actmod/webbased_publish agent1
 	agent1 &
-	$(CIAOCMD) comp -a actmods/webbased_publish agent2
+	$(CIAOCMD) comp -a actmod/webbased_publish agent2
 	agent2 &
 	$(CIAOCMD) comp test
 

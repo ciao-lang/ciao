@@ -3,9 +3,9 @@
 	                    'actmod.tell_address'/3],
 			   [persdb]).
 
-persistent_dir(actmods_db,'./webbased_db').
+persistent_dir(actmod_db,'./webbased_db').
 
-:- persistent(module_address_db/3,actmods_db).
+:- persistent(module_address_db/3,actmod_db).
 
 'actmod.address'(M,Address):-
 	current_fact(module_address_db(M,Address,_Pid)).

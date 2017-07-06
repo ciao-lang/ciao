@@ -1,6 +1,6 @@
-:- module(send, [send/2], [actmods, hiord]).
+:- module(send, [send/2], [actmod, hiord]).
 :- push_prolog_flag(unused_pred_warnings, no).
-:- use_module(library(actmods/webbased_locate)).
+:- use_module(library(actmod/webbased_locate)).
 :- use_active_module(agent1, [agent1/2]).
 :- use_active_module(agent2, [agent2/2]).
 

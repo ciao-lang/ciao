@@ -4,7 +4,7 @@
 :- use_module(library(pathnames)).
 :- use_module(library(read)).
 
-:- include(library(actmods/actmod_hooks)).
+:- include(library(actmod/actmod_hooks)).
 
 % The file that contains the path to the directory that contains the 
 % address file has to be called '.addr'

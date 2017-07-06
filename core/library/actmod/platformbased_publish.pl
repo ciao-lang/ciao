@@ -1,10 +1,10 @@
 :- module(platformbased_publish, [], []).
 
-:- use_module(library(actmods/actmod_rt), ['actmod.call'/2]).
+:- use_module(library(actmod/actmod_rt), ['actmod.call'/2]).
 :- use_module(library(pathnames)).
 :- use_module(library(system)).
 
-:- include(library(actmods/actmod_hooks)).
+:- include(library(actmod/actmod_hooks)).
 
 :- multifile '$platform$addr'/1.
 :- data '$platform$addr'/1.

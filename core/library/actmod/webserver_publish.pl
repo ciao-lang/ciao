@@ -1,9 +1,9 @@
 :- module(webserver_publish, [], []).
 
-:- use_module(library(actmods/webbased_common)).
+:- use_module(library(actmod/webbased_common)).
 :- use_module(library(system)).
 
-:- include(library(actmods/actmod_hooks)).
+:- include(library(actmod/actmod_hooks)).
 
 'actmod.save_addr'([Address]) :-
         get_pid(Pid),

@@ -232,9 +232,9 @@ do_ciaotests :-
 % 	-rm -f object_test/object_test
 % 	-rm -f test_java/plserver
 % 	-rm -f test_java/j2pl_test.class
-% 	-rm -f actmods_test/simple_server
-% 	-rm -f actmods_test/simple_client_with_main 
-% 	-rm -f actmods_test/*.addr
+% 	-rm -f actmod_test/simple_server
+% 	-rm -f actmod_test/simple_client_with_main 
+% 	-rm -f actmod_test/*.addr
 % 	-rm -f persistentdb/persistentdb
 % 	-rm -f persistentdb/queue 
 % 	-rm -f persistentdb/example_static

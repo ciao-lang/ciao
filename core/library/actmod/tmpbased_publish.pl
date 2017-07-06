@@ -1,10 +1,10 @@
 :- module(tmpbased_publish, [], []).
 
-:- use_module(library(actmods/tmpbased_common)).
+:- use_module(library(actmod/tmpbased_common)).
 :- use_module(library(pathnames)).
 :- use_module(library(system)).
 
-:- include(library(actmods/actmod_hooks)).
+:- include(library(actmod/actmod_hooks)).
 
 'actmod.save_addr'([Address]) :- !,
         current_executable(ExePath),

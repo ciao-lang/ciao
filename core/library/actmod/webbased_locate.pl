@@ -1,8 +1,8 @@
 
 :- module(webbased_locate,['actmod.address'/2],[]).
 
-:- use_module(library(actmods/actmod_rt)).
-:- use_module(library(actmods/webbased_common)).
+:- use_module(library(actmod/actmod_rt)).
+:- use_module(library(actmod/webbased_common)).
 :- use_module(library(read_from_string), [read_from_string_atmvars/2]).
 :- use_module(library(lists), [append/3]).
 :- use_module(library(pillow/http)).

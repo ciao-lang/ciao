@@ -1,6 +1,6 @@
 :- module(platformbased_locate, ['actmod.address'/2], []).
 
-:- use_module(library(actmods/actmod_rt), ['actmod.call'/2]).
+:- use_module(library(actmod/actmod_rt), ['actmod.call'/2]).
 
 :- multifile '$platform$addr'/1.
 :- data '$platform$addr'/1.

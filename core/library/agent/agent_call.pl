@@ -1,6 +1,6 @@
 :- module(agent_call, [(::)/2,self/1], [assertions]).
 
-:- use_module(library(actmods/actmod_rt), ['actmod.call'/2]).
+:- use_module(library(actmod/actmod_rt), ['actmod.call'/2]).
 :- use_module(user, ['$agent$address'/2]).
 
 :- multifile '$actmod$name'/1.

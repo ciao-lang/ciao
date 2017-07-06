@@ -8,7 +8,7 @@
 :- load_compilation_module(library(agent/agent_tr)).
 :- add_sentence_trans(agent_tr:agent_s/3, 750).
 
-%:- use_module(library(actmods/actmod_server),[actmodmain/0]).
+%:- use_module(library(actmod/actmod_server),[actmodmain/0]).
 
 %main:- actmod_server:actmodmain.
 

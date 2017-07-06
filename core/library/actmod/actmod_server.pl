@@ -7,7 +7,7 @@
 :- use_module(library(read)).
 :- use_module(library(aggregates), [findall/3]).
 
-:- include(library(actmods/actmod_hooks)).
+:- include(library(actmod/actmod_hooks)).
 
 actmodmain :-
         current_prolog_flag(argv, Args),

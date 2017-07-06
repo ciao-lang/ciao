@@ -82,7 +82,7 @@ predicate which has an infinite number of answers}.
   active module) will be listening once started, i.e., a ``protocol''
   to communicate with the active module.  The easiest way to
   do this is to make use of the rendezvous methods which are provided in the
-  Ciao distribution in the @tt{library/actmods} directory; currently,
+  Ciao distribution in the @tt{library/actmod} directory; currently,
   @tt{tmpbased...}, @tt{filebased...}, @tt{webbased...}, and
   @tt{platformbased...}. 
 
@@ -126,11 +126,11 @@ predicate which has an infinite number of answers}.
   command:
 
   @begin{verbatim}
-  ciaoc -a 'actmods/filebased_publish' simple_server
+  ciaoc -a 'actmod/filebased_publish' simple_server
   @end{verbatim}
 
   compiles the simple server example that comes with the distribution
-  (in the @tt{actmods/example} directory). The 
+  (in the @tt{actmod/example} directory). The 
   @tt{simple_client_with_main} example (in the same directory) can be
   compiled as usual:
 
@@ -138,10 +138,10 @@ predicate which has an infinite number of answers}.
   ciaoc simple_client_with_main
   @end{verbatim}
 
-  Note that the client uses the @tt{actmods} package, specifies the 
-  rendezvous method by importing @tt{library(actmods/filebased_locate)},
+  Note that the client uses the @tt{actmod} package, specifies the 
+  rendezvous method by importing @tt{library(actmod/filebased_locate)},
   and explicitely imports the ``remote'' predicates (@em{implicit imports
-  will not work}). Each module using the @tt{actmods} package @em{should
+  will not work}). Each module using the @tt{actmod} package @em{should
   only use one of the rendezvous methods}.
 
   Now, if the server is running (e.g., @tt{simple_server &} in Unix or
@@ -196,7 +196,7 @@ predicate which has an infinite number of answers}.
   @end{verbatim}
   The name server has to be compiled as an active module itself:
   @begin{verbatim}
-    ciaoc -a actmods/webserver_publish webbased_server
+    ciaoc -a actmod/webserver_publish webbased_server
   @end{verbatim}
   It has to be started in the server machine
   before the application and its active modules are compiled.
@@ -206,10 +206,10 @@ predicate which has an infinite number of answers}.
   complicated. You have to ensure that the name server, the application
   program, and all its active modules are compiled and executed with
   the same @tt{webbased_common.pl} module. One way to do this is to
-  create a subdirectory @tt{actmods} under the directory of your application,
+  create a subdirectory @tt{actmod} under the directory of your application,
   copy @tt{webbased_common.pl} to it, modify it, and then compile the
   name server, the application program, and its active modules using a
-  library path that guarantees that your @tt{actmods} directory is located
+  library path that guarantees that your @tt{actmod} directory is located
   by the compiler before the standard Ciao library. The same applies for
   when running all of them if the library loading is dynamic.
 
@@ -222,7 +222,7 @@ predicate which has an infinite number of answers}.
      :- initialization(asserta_fact(
 	library_directory('/root/path/to/my/particular/application') )).
   @end{verbatim}
-  then you have file @tt{webbased_common.pl} in a subdirectory @tt{actmods}
+  then you have file @tt{webbased_common.pl} in a subdirectory @tt{actmod}
   of the above cited path. You have to compile the name server, the active
   modules, and the rest of the application with:
   @begin{verbatim}

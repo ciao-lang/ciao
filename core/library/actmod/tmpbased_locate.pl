@@ -1,6 +1,6 @@
 :- module(tmpbased_locate, ['actmod.address'/2], []).
 
-:- use_module(library(actmods/tmpbased_common)).
+:- use_module(library(actmod/tmpbased_common)).
 :- use_module(library(read)).
 
 :- data address_db/2.

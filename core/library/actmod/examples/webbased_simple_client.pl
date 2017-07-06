@@ -1,7 +1,7 @@
 % A simple active module client connects to server via Web
-:- module(webbased_simple_client,[add_pop/1, population/2],[actmods]).
+:- module(webbased_simple_client,[add_pop/1, population/2],[actmod]).
 
-:- use_module(library(actmods/webbased_locate)).
+:- use_module(library(actmod/webbased_locate)).
 :- use_active_module(simple_server, [population/2]).
 
 
