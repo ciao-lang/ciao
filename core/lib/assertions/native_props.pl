@@ -220,6 +220,7 @@ instance(_). % processed in rtchecks_basic
 :- prop mshare(X) + (native(sharing(X)), no_rtcheck)
 # "The sharing pattern for the variables in the clause is @tt{@var{X}}.".
 
+% TODO: describe valid mshare like in constraint/1 (e.g. list of lists)?
 :- impl_defined(mshare/1).
 
 % --------------------------------------------------------------------------
@@ -916,6 +917,7 @@ sideff_hard(Goal) :- call(Goal).
 :- true prop constraint(C) + native
 # "@var{C} is a list of linear equations.".
 
+% TODO: should we define this here? (term structure of a valid constraint/1)
 constraint([]).
 constraint([Cons|Rest]) :-
 	constraint_(Cons),
@@ -965,7 +967,7 @@ ppl_var(Var) :-
 
 coefficient(Coeff) :-
 	ground(Coeff),
-	int(Coeff).
+	int(Coeff). % TODO: couldn't it be a num/1?
 
 % --------------------------------------------------------------------------
 :- doc(section, "Other properties").

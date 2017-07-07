@@ -64,6 +64,8 @@
 
 % ----------------------------------------------------------------------
 
+:- rtc_impl(native_props:constraint/1, native_props_rtc:rtc_constraint/1).
+
 :- rtc_impl(native_props:user_output/2, native_props_rtc:rtc_user_output/2).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

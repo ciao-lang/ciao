@@ -27,7 +27,9 @@
             rtc_signal/1,
             rtc_no_signal/2,
             rtc_no_signal/1,
- % other
+% polyhedral constraints
+            rtc_constraint/1,
+% other
             rtc_user_output/2
         ],[assertions, hiord]).
 
@@ -465,6 +467,64 @@ end_signal_check(Choice, Goal, CheckThrown) :-
 emit_signal(Choice, E) :-
 	retract_fact_nb(signal_db(Choice, _, _)),
 	assertz_fact(signal_db(Choice, yes, E)).
+
+% ----------------------------------------------------------------------
+:- meta_predicate rtc_contraint(list(goal)).
+
+rtc_constraint([]).
+rtc_constraint([C|Cs]) :-
+        check_if_valid(C),
+        rtc_constraint(Cs).
+
+% copied from native_props.pl --NS
+check_if_valid(=(Lin_Expr1, Lin_Expr2)) :-
+	lin_expr(Lin_Expr1),
+	lin_expr(Lin_Expr2),
+        Lin_Expr1 =:= Lin_Expr2.
+check_if_valid(=<(Lin_Expr1, Lin_Expr2)) :-
+	lin_expr(Lin_Expr1),
+	lin_expr(Lin_Expr2),
+        Lin_Expr1 =< Lin_Expr2.
+check_if_valid(>=(Lin_Expr1, Lin_Expr2)) :-
+	lin_expr(Lin_Expr1),
+	lin_expr(Lin_Expr2),
+        Lin_Expr1 >= Lin_Expr2.
+check_if_valid(<(Lin_Expr1, Lin_Expr2)) :-
+	lin_expr(Lin_Expr1),
+	lin_expr(Lin_Expr2),
+        Lin_Expr1 < Lin_Expr2.
+check_if_valid(>(Lin_Expr1, Lin_Expr2)) :-
+	lin_expr(Lin_Expr1),
+	lin_expr(Lin_Expr2),
+        Lin_Expr1 > Lin_Expr2.
+
+lin_expr(PPL_Var) :-
+	ppl_var(PPL_Var), !.
+lin_expr(Coeff) :-
+	coefficient(Coeff).
+lin_expr(+(Lin_Expr)) :-
+	lin_expr(Lin_Expr).
+lin_expr(-(Lin_Expr)) :-
+	lin_expr(Lin_Expr).
+lin_expr(+(Lin_Expr1, Lin_Expr2)) :-
+	lin_expr(Lin_Expr1),
+	lin_expr(Lin_Expr2).
+lin_expr(-(Lin_Expr1, Lin_Expr2)) :-
+	lin_expr(Lin_Expr1),
+	lin_expr(Lin_Expr2).
+lin_expr(*(Coeff, Lin_Expr)) :-
+	coefficient(Coeff),
+	lin_expr(Lin_Expr).
+lin_expr(*(Lin_Expr, Coeff)) :-
+	coefficient(Coeff),
+	lin_expr(Lin_Expr).
+
+ppl_var(Var) :-
+	var(Var).
+
+coefficient(Coeff) :-
+	ground(Coeff),
+	int(Coeff). % TODO: shouldn't it be a num/1?
 
 % ----------------------------------------------------------------------
 
