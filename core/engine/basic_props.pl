@@ -131,6 +131,19 @@ non-zeroary functors. By now there is a limit of 255 arguments.").
 struct([_|_]):- !.
 struct(T) :- functor(T, _, A), A>0. % compound(T).
 
+% TODO:[new-resources] needed for etermsvar?
+% :- export(vr/1).
+% :- doc(vr/1, "The type of all variables.").
+% 
+% :- true prop vr(T) + (regtype, native) # "@var{T} is a variable.".
+% :- true comp vr(T) + sideff(free).
+% :- true comp vr(T) : var(T) + eval.
+% :- trust success vr(T) => vr(T).
+% :- trust comp vr/1 + test_type(meta).
+% 
+% % Should be current var/1
+% vr(T) :- var(T).
+
 :- doc(gnd/1, "The type of all terms without variables.").
 
 :- true prop gnd(T) + (regtype, native) # "@var{T} is ground.".

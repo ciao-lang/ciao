@@ -36,6 +36,7 @@
 		relations/2,
 		finite_solutions/1,
 		solutions/2,
+		cardinality/3, % TODO:[new-resources]
 		no_choicepoints/1,
 		leaves_choicepoints/1,
 
@@ -55,6 +56,9 @@
 		steps_lb/2,
 		steps_o/2,
 		steps_ub/2,
+
+		rsize/2, % TODO:[new-resources]
+		resource/4, % TODO:[new-resources]
 
 		terminates/1,
 
@@ -1112,3 +1116,19 @@ valid_type([Type|Rest]) :-
 %% 	    '$setarg'(1, Solved, yes, true)
 %% 	).
 
+% TODO:[new-resources]
+
+:- prop rsize(Var,SizeDescr) + no_rtcheck
+   # "@var{Var} has its size defined by @var{SizeDescr}.".
+:- impl_defined(rsize/2).
+
+:- prop cardinality(Prop,Lower,Upper) + no_rtcheck
+   # "@var{Prop} has a number of solutions between
+      @var{Lower} and @var{Upper}.".
+:- impl_defined(cardinality/3).
+
+:- prop resource(Goal,Resource,Lower,Upper) + no_rtcheck 
+   # "The amount of resource usage of the computation of @var{Goal}
+      expressed in terms of @var{Resource} units is between
+      @var{Lower} and @var{Upper}.".
+:- impl_defined(resource/4).
