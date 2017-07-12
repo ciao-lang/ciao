@@ -374,7 +374,7 @@ simplify_module(Module, Module).
 :- pred compose(Type, SO, Module, File, LB, LE, Mess, Args)
 	: string * stream * atm * atm * int * int * format_control * list
 
-# "Print a generic message of type @var{Type}, to te stream
+# "Print a generic message of type @var{Type}, to the stream
       @var{SO}, flagged in module @var{Module}, while processing file
       @var{File}, between line numbers @var{LB} and @var{LE}, with
       error message @var{Mess} containing arguments @var{Args}.".
