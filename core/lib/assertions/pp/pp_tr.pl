@@ -118,7 +118,7 @@ get_pp_prelude(M, C) :- % all clauses in pp_post
 % compilation as the file is loaded implicitly by ciaoc)
 pp_output(M, M2) :-
 	% (e.g., foo.pl ==> foo.pp.pl)
-	atom_concat(M, '.pp', M2).
+	atom_concat(M, '.pp.pl', M2).
  
 % TODO: keep ciaopp alive for larger compilations?
 % TODO: (cloned from builder code)
