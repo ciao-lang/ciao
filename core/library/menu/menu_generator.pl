@@ -54,9 +54,6 @@ opt_to_menu(A, A).
 excluded_flag(menu_config_name).
 excluded_flag(menu_last_config).
 
-% NOTE: (For offline menu generation)
-unsupported_menu(selmod). % TODO: flags in this menu are weird (filesystem paths!) % TODO: seems old, remove from auto_interface?
-
 is_menu_level0(menu_level=naive).
 is_menu_level0(menu_java_level=naive).
 
@@ -976,7 +973,6 @@ is_list_with_no_vars( [A|B] ) :-
 
 enum_menu_opt(Menu, Flag, Title, Guard, BeforePrint, AfterSel) :-
 	menu_opt(Menu, Flag, Title, Guard, BeforePrint, AfterSel),
-	\+ unsupported_menu(Menu),
 	\+ excluded_flag(Flag).
 
 :- pred generate_offline_menu(EntryMenu, MenuItems)
