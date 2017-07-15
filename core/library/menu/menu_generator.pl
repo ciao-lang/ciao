@@ -263,14 +263,29 @@ menu(M) :- menu(M, true).
   help message or not.".
 
 menu(M, B) :-
-	norm_menu(M, M2),
+	norm_menu_node(M, M2),
 	M2 =.. [F, L],
 	menu(F, L, B).
 
 % Add level to menu, if needed
-norm_menu(M, M2) :- atom(M), !,
+norm_menu_node(M, M2) :- atom(M), !,
 	M2 =.. [M, 0].
-norm_menu(M, M).
+norm_menu_node(M, M).
+
+% Decomp menu and level
+:- export(decomp_menu_node/3).
+decomp_menu_node(M, M0, Level) :- atom(M), !,
+	M0 = M, Level = 0.
+decomp_menu_node(M, M0, Level) :-
+	functor(M, M0, 1),
+	arg(1, M, Level).
+
+% Comp menu from level % TODO: needed for menu defs enum, etc.
+:- export(comp_menu_node/3).
+comp_menu_node(M0, 0, M) :- !, M = M0.
+comp_menu_node(M0, Level, M) :-
+	functor(M, M0, 1),
+	arg(1, M, Level).
 
 :- pred menu(M, Level, Bool) # "Like @pred{menu/4} with no selected
    options.".
@@ -311,13 +326,10 @@ select_and_ask_menu(X, Level, Bool, AlreadySelectedOpts, Out) :-
 
 :- set_prolog_flag(multi_arity_warnings, on).
 
-% TODO: use norm_menu
+% TODO: use norm_menu_node
 menu_match_level(M, Functor, Level) :-
-	M =.. [Functor, L1],
-	!,
-	L1 =< Level.
-menu_match_level(M, Functor, _) :-
-	functor(M, Functor, 0).
+	decomp_menu_node(M, Functor, Level0),
+	Level0 =< Level.
 
 % If the flag already exists in Entry then we have to remove the
 % question
@@ -920,7 +932,7 @@ generate_offline_menu(EntryMenu, MenuItems) :-
 :- data menu_path/3. % TODO: why third argument?
 
 add_entry_menu_path(M) :-
-	norm_menu(M, M2),
+	norm_menu_node(M, M2),
 	data_facts:assertz_fact(menu_path(M2, [], no)).
 
 % (fill menu_path/3)
@@ -968,7 +980,7 @@ generate_menu_path_offline_kleene :-
 generate_menu_path_offline_kleene.
 
 generate_menu_path(M, Path) :-
-	norm_menu(M, M2),
+	norm_menu_node(M, M2),
 	generate_menu_path_(M2, Path).
 
 generate_menu_path_(M, Path) :-
