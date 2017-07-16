@@ -25,15 +25,8 @@ definition_t *int_address = NULL;
 
 static void abortmsg(int rc);
 
-static void interrupt_h(int signal_number)
-{
-  worker_t *w; 
-
-  if (!wam_initialized)                            /* wam not initialized */
-    at_exit(-1);
-
-  Arg = get_my_worker();
-
+/* Interrupt an specific worker */
+CVOID__PROTO(interrupt_worker, int signal_number) {
   Int_Heap_Warn = Heap_Start;
   SetEvent;
 #if defined(LINUX)
@@ -44,6 +37,17 @@ static void interrupt_h(int signal_number)
 #endif 
   if (int_address)
     SIGLONGJMP(abort_env, -1); 
+}
+
+void interrupt_h(int signal_number)
+{
+  worker_t *w; 
+
+  if (!wam_initialized)                            /* wam not initialized */
+    at_exit(-1);
+
+  Arg = get_my_worker();
+  CVOID__CALL(interrupt_worker, signal_number);
 }
 
 CVOID__PROTO(control_c_normal)
