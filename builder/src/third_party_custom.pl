@@ -58,7 +58,7 @@ install_npm_deps(Deps) :-
 
 install_npm_deps_(Deps) :-
 	( file_exists('package.json') -> true
-	; process_call(path(npm), [init, '-f'], [stdin(string("")]) % create if missing
+	; process_call(path(npm), [init, '-f'], [stdin(string(""))]) % create if missing
 	),
 	process_call(path(npm), [install, '--save'|Deps], []).
 
