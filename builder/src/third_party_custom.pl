@@ -58,7 +58,7 @@ install_npm_deps(Deps) :-
 
 install_npm_deps_(Deps) :-
 	( file_exists('package.json') -> true
-	; process_call(path(npm), [init, '-f'], []) % create if missing
+	; process_call(path(npm), [init, '-f'], [stdin(string("")]) % create if missing
 	),
 	process_call(path(npm), [install, '--save'|Deps], []).
 
@@ -68,7 +68,8 @@ install_bower_deps(Deps) :-
 	ExtDir = ~path_concat(ThirdParty, '3rd-bower'),
 	mkpath(ExtDir),
 	process_call(path(bower),
-	             ['--config.interactive=false',
+	             ['--allow-root',
+		      '--config.interactive=false',
 		      ~atom_concat('--config.directory=', ExtDir),
 		      install|Deps], []).
 
