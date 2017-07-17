@@ -8,7 +8,8 @@ varnamesl(D):- list(D,varnamepair).
 
 :- regtype varnamepair/1.
 
-varnamepair(X=Y):- varname(X), var(Y).
+%varnamepair(X=Y):- varname(X), var(Y).
+varnamepair(X=Y):- varname(X), term(Y). % TODO: PLG: Temporary fix for the demo. 
 
 :- regtype varname(N) # "@var{N} is a term representing a variable name.".
 
