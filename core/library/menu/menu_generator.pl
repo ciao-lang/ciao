@@ -6,6 +6,7 @@
 	get_menu_flag/3,
 	set_menu_flag/3,
 	space/1,
+	%
 	get_menu_configs/1,
 	save_menu_config/1,
 	remove_menu_config/1,
@@ -465,22 +466,16 @@ ask_option(OptsListArg, Default, _, OptOut) :-
 	    closest_option([h|OptsList], Opt, OptOut)
 	).
 
+% TODO: use fuzzy match (from IG)
 closest_option(List, Opt, OptOut) :-
 	atom_sub_member(List, Opt, PosibleOut),
-	(
-	    check_for_exact_match(PosibleOut, Opt, OptOut)
-	->
+	( check_for_exact_match(PosibleOut, Opt, OptOut) ->
 	    true
-	;
-	    (
-		PosibleOut == []
-	    ->
-		note_message("Incorrect Option",                             [])
-	    ;
-		note_message("Please be more specific. Posible Options: ~w",
-		    [PosibleOut])
-	    ),
-	    fail
+	; ( PosibleOut == [] ->
+	      note_message("Incorrect Option", [])
+	  ; note_message("Please be more specific. Posible Options: ~w", [PosibleOut])
+	  ),
+	  fail
 	).
 
 %
@@ -506,57 +501,6 @@ check_for_exact_match([A], _,   A).
 check_for_exact_match(A,   Opt, Opt) :-
 	member(Opt, A).
 
-:- pred restore_menu_flags(M, F)
-	: (atom(M), list(F))
-
-# "Restore the flag of the menu @var{M}. @var{F} is a list of terms F=V,
-  which indicate the flag (F) and the value (V). @var{M} is the target
-  menu to which those flags \"belong\". Additionally, @var{F} can
-  contains terms like @tt{changed_to_menu(NM)} that will put NM as the
-  new target menu.".
-
-restore_menu_flags(_Menu, [changed_to_menu(M)|Fs]) :-
-	!,
-	restore_menu_flags(M, Fs).
-restore_menu_flags(Menu, [F=V|Fs]) :-
-	!,
-	set_menu_flag(Menu, F, V),
-	restore_menu_flags(Menu, Fs).
-restore_menu_flags(_, []).
-
-:- pred set_menu_flag(M, F, V)
-	: (atom(M), atom(F), var(V))
-
-# "Set the value @var{V} of the flag @var{F} in the menu (-branch)
-  @var{M}.".
-
-set_menu_flag(Menu, F, V) :-
-	nonvar(V),
-	functor(Menu, NMenu, _),
-	(data_facts:retract_fact(menu_flag(NMenu, F, _)) ->true;true),
-	data_facts:assertz_fact(menu_flag(NMenu, F, V)).
-
-:- pred get_menu_flag(M, F, V)
-	: (atom(M), atom(F), var(V))
-
-# "Returns the value in @var{V} of the flag @var{F} in the menu
-  (-branch) @var{M}.".
-
-% There is already and option saved
-get_menu_flag(Menu, F, V) :-
-	functor(Menu, NMenu, _),
-	data_facts:current_fact(menu_flag(NMenu, F, Value)),
-	!,
-	Value = V.
-% Lets try with the "flat" value (menu of level 0)
-get_menu_flag(Menu, F, V) :-
-	functor(Menu, NMenu, _),
-	menu_default(NMenu, F, Value),
-	!,
-	V = Value.
-get_menu_flag(Menu, F, V) :-
-	hook_menu_default_option(Menu, F, V).
-
 %-----------------------------------------------------------------------------
 
 %% HOOKS-GLUE
@@ -578,13 +522,33 @@ get_menu_options(Menu, Flag, V) :-
 :- pop_prolog_flag(multi_arity_warnings).
 
 % ------------------------------------------------------------------------
-:- doc(section, "Save Menu Flags").
+:- doc(section, "Persistence of Menu Flags").
+
+:- use_module(library(pathnames), [path_split_list/2]).
+
+% Valid menu names must be simple (contain a single path component)
+% TODO: other definition?
+valid_saved_menu_name(Name) :-
+	alphanum_atom(Name),
+	!.
+valid_saved_menu_name(Name) :-
+	note_message("Invalid menu name: '~w' (use only alphanumeric)", [Name]),
+	fail.
+
+alphanum_atom(X) :- 
+	atom_codes(X, Cs),
+	\+ (member(C, Cs), \+ alphanum_code(C)).
+
+alphanum_code(C) :- code_class(C, Class), alphanum_class(Class).
+
+alphanum_class(1). % small letter
+alphanum_class(2). % capital letter (including '_')
+alphanum_class(3). % digit
 
 %:- entry save_menu_config(Name) : atm.
 
-:- pred save_menu_config(Name)
-	: atm
-# "Save the current flags configuration under the @var{Name} key.".
+:- pred save_menu_config(Name) : atm
+   # "Save the current flags configuration under the @var{Name} key.".
 
 % Here we have an especification problem. We decided to have 2 (or more)
 % menu levels. Basic levels hide some options from the user, while
@@ -615,54 +579,34 @@ save_menu_config(Name) :-
 	get_menu_flags(L),
 	% DTM: Not really sure if we want to do this. Read explication.
 	save_menu_flags_list(Name, L).
+
 save_menu_flags_list(Name, List) :-
-	(persdb_rt:retract_fact(menu_config(Name, _)), fail ; true),
+	( persdb_rt:retract_fact(menu_config(Name, _)),
+	  fail
+	; true
+	),
 	persdb_rt:assertz_fact(menu_config(Name, List)).
 
-%:- entry remove_menu_config(Name) : atm.
-
-:- pred remove_menu_config(Name)
-	: atm
-# "Remove the configuration stored with the @var{Name} key
-          (the same provided in @pred{save_menu_config/1}).".
+:- pred remove_menu_config(Name) : atm
+   # "Remove the configuration stored with the @var{Name} key (the
+      same provided in @pred{save_menu_config/1}).".
 
 remove_menu_config(Name) :-
 	persdb_rt:retract_fact(menu_config(Name, _)),
 	fail.
 remove_menu_config(_Name).
 
-%:- entry restore_menu_config( Name ) : atm.
-
-:- pred restore_menu_config(Name)
-	: atm
-# "Restore the configuration saved with the @var{Name}
-          key (the same provided in @pred{save_menu_config/1}).".
-
+:- pred restore_menu_config(Name) : atm
+   # "Restore the configuration saved with the @var{Name} key (the
+      same provided in @pred{save_menu_config/1}).".
 
 restore_menu_config(Name) :-
 	menu_config(Name, L),
 	restore_menu_flags_list(L).
 
-
-:- pred restore_menu_flags_list(L)
-	: list
-# "Restores menu flags. @var{L} is a list of tuple (M,F,V)
-          where M is the menu, F is the flag, and V is the value of
-          the flag F in the menu M.".
-
-% What happens with non existing flags?
-restore_menu_flags_list([]) :- !.
-restore_menu_flags_list([(A1, A2, A3)|As]) :-
-	(set_menu_flag(A1, A2, A3) ->true;true),
-	restore_menu_flags_list(As).
-
-
-
-
-:- pred get_menu_configs(X) : var(X) => list(X, atom)
-
-# "Returns a list of atoms in @var{X} with the name of stored
-  configurations.".
+:- pred get_menu_configs(X) : var(X) => list(X, atm)
+   # "Returns a list of atoms in @var{X} with the name of stored
+      configurations.".
 
 get_menu_configs(L) :-
 	findall(Name, menu_config(Name, _), L).
@@ -679,10 +623,9 @@ show_menu_list([A|B]) :-
 	write(A), nl,
 	show_menu_list(B).
 
-:- pred show_menu_config(C)
-	: atm
-# "Show specific configuration values pointed by @var{C} key
-	(the same provided in @pred{save_menu_config/1}).".
+:- pred show_menu_config(C) : atm
+   # "Show specific configuration values pointed by @var{C} key (the
+      same provided in @pred{save_menu_config/1}).".
 
 show_menu_config(Name) :-
 	menu_config(Name, F),
@@ -700,12 +643,43 @@ show_config_list([(A1, A2, A3)|As]) :-
 
 :- set_prolog_flag(multi_arity_warnings, off).
 
-:- pred get_menu_flags(L) : (var(L)) => list(L)
+% ---------------------------------------------------------------------------
+:- doc(section, "Save/Restore Menu Flags (to/from terms)").
 
-# "Return a list @var{L} of all current menu flags, composed by terms
-with the form (M,F,V), where M is the menu, F the flag, and V the
-value.  This list can be used as argument of
-@pred{restore_flags_list/1}".
+:- pred set_menu_flag(M, F, V) : (atm(M), atm(F), var(V))
+   # "Set the value @var{V} of the flag @var{F} in the menu (-branch)
+      @var{M}.".
+
+set_menu_flag(Menu, F, V) :-
+	nonvar(V),
+	functor(Menu, NMenu, _),
+	(data_facts:retract_fact(menu_flag(NMenu, F, _)) ->true;true),
+	data_facts:assertz_fact(menu_flag(NMenu, F, V)).
+
+:- pred get_menu_flag(M, F, V) : (atm(M), atm(F), var(V))
+   # "Returns the value in @var{V} of the flag @var{F} in the menu
+      (-branch) @var{M}.".
+
+% There is already and option saved
+get_menu_flag(Menu, F, V) :-
+	functor(Menu, NMenu, _),
+	data_facts:current_fact(menu_flag(NMenu, F, Value)),
+	!,
+	Value = V.
+% Lets try with the "flat" value (menu of level 0)
+get_menu_flag(Menu, F, V) :-
+	functor(Menu, NMenu, _),
+	menu_default(NMenu, F, Value),
+	!,
+	V = Value.
+get_menu_flag(Menu, F, V) :-
+	hook_menu_default_option(Menu, F, V).
+
+:- pred get_menu_flags(L) : (var(L)) => list(L)
+   # "Return a list @var{L} of all current menu flags, composed by
+      terms with the form (M,F,V), where M is the menu, F the flag,
+      and V the value.  This list can be used as argument of
+      @pred{restore_flags_list/1}".
 
 get_menu_flags(L) :-
 	findall((AF, B, C),
@@ -714,13 +688,10 @@ get_menu_flags(L) :-
 		get_menu_flag(A, B, C) ),
 	    L).
 
-:- pred get_menu_flags(M, L)
-	: (term(M), var(L))
-	=> list(L)
-
-# "Return a list @var{L} of the current menu @var{M} composed by terms
-with the form (F=V), F the flag, and V the value.  This list can be
-used as argument of @pred{restore_menu_flags/2}".
+:- pred get_menu_flags(M, L) : (term(M), var(L)) => list(L)
+   # "Return a list @var{L} of the current menu @var{M} composed by
+      terms with the form (F=V), F the flag, and V the value.  This
+      list can be used as argument of @pred{restore_menu_flags/2}".
 
 get_menu_flags(M, L) :-
 	functor(M, MF, _),
@@ -731,6 +702,31 @@ get_menu_flags(M, L) :-
 	    L).
 
 :- set_prolog_flag(multi_arity_warnings, on).
+
+:- pred restore_menu_flags_list(L) : list
+   # "Restores menu flags. @var{L} is a list of tuple (M,F,V) where M
+      is the menu, F is the flag, and V is the value of the flag F in
+      the menu M.".
+
+% What happens with non existing flags?
+restore_menu_flags_list([]) :- !.
+restore_menu_flags_list([(A1, A2, A3)|As]) :-
+	(set_menu_flag(A1, A2, A3) ->true;true),
+	restore_menu_flags_list(As).
+
+:- pred restore_menu_flags(M, F) : (atm(M), list(F))
+   # "Restore the flag of the menu @var{M}. @var{F} is a list of terms
+      F=V, which indicate the flag (F) and the value (V). @var{M} is
+      the target menu to which those flags \"belong\". Additionally,
+      @var{F} can contains terms like @tt{changed_to_menu(NM)} that
+      will put NM as the new target menu.".
+
+restore_menu_flags(_Menu, [changed_to_menu(M)|Fs]) :- !,
+	restore_menu_flags(M, Fs).
+restore_menu_flags(Menu, [F=V|Fs]) :- !,
+	set_menu_flag(Menu, F, V),
+	restore_menu_flags(Menu, Fs).
+restore_menu_flags(_, []).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Generation of offline menu items").
