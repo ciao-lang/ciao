@@ -5,6 +5,10 @@
 :- doc(author, "Jose F. Morales").
 
 % TODO: make it similar to typeslib? (identifiers to global objects)
+% TODO: new_modblob, delete_modblob, create new atom?
+% TODO: modblob_file (get file)
+% TODO: allow .c, .java, ... extensions?
+% TODO: modblob_read_terms? (MERGE with string_to_term and enable_deepfind_syntax)
 
 :- doc(module, "This module implements (temporary) modules-as-blobs
    facilities.  They allow the runtime creation of modules from
@@ -53,11 +57,6 @@ q(b).
 :- use_module(library(system_extra), [del_file_nofail/1]).
 :- use_module(library(write), [portray_clause/2]).
 :- use_module(library(pathnames), [path_concat/3, path_splitext/3]).
-
-% TODO: MERGE with string_to_term and enable_deepfind_syntax
-% TODO: new_modblob, delete_modblob, create new atom 
-% TODO: modblob_file
-% TODO: modblob_read_terms?
 
 % These facts are used to keep the name of the files (without
 % extension (.pl, .po, .itf, ...) that were created
@@ -123,6 +122,4 @@ clean_tmp_mod(FilePL) :-
 	path_splitext(FilePL, FileBase, '.pl'),
 	atom_concat(FileBase, '.itf', FileITF),
 	del_file_nofail(FileITF).
-
-
 
