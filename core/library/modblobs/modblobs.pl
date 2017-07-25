@@ -1,4 +1,4 @@
-:- module(modblobs, [tmp_mod/4, clean_tmp_mod/1], [assertions]).
+:- module(modblobs, [], [assertions, regtypes]).
 
 :- doc(title, "Modules as blobs").
 :- doc(author, "Isabel Garcia Contreras").
@@ -27,8 +27,8 @@
 
    @section{Examples}
 
-   The predicate @pred{tmp_mod/4} creates a new temporary module, that
-   can be deleted with @pred{clean_tmp_mod/1}. 
+   The predicate @pred{new_modblob/4} creates a new temporary module, that
+   can be deleted with @pred{delete_modblob/1}. 
 
    Module creation requires the module name, export list, program
    clauses, and returns the module object (currently a path). If a
@@ -37,7 +37,7 @@
    Example:
 
 @begin{verbatim}
-?- tmp_mod([(p(A) :- q(A)), (q(b))], [p/1], my_tmp_mod, Path).
+?- new_modblob([(p(A) :- q(A)), (q(b))], [p/1], my_tmp_mod, ModBlob), modblob_path(ModBlob, Path).
 Path = '/tmp/tmp_modsfbMY9Y/my_tmp_mod.pl' ?
 @end{verbatim}
 
@@ -73,15 +73,24 @@ get_tmp_subdir(X) :-
 	  set_fact(modblob_tmp_dir(X))
 	).
 
-:- pred tmp_mod(Clauses, ExportedPreds, Name, ModPath)
-	: list * list * atm * var => list * list * atm * atm
-    #"This predicate writes a list of clauses in a file with @var{name}
-     in a randomly generated folder of /tmp.".
-tmp_mod([FirstClause|Clauses], ExportedPreds, Name, Filename) :-
-	create_tmp_file_name(Name, FilePath),
-	assertz_fact(modblob_def(FilePath, Filename)),
+:- regtype modblob(X) # "@var{X} is a is a temporary module object".
+modblob(X) :- atm(X).
+
+:- export(new_modblob/4).
+:- pred new_modblob(Clauses, ExportedPreds, ModName, ModBlob)
+	: list * list * atm * var => list * list * atm * modblob
+   # "Write clauses @var{Clauses} in a temporary module identified by @var{ModBlob}.".
+new_modblob([FirstClause|Clauses], ExportedPreds, ModName, ModBlob) :-
+	create_tmp_file_name(ModName, ModPath),
+	atom_concat(ModPath, '.pl', Filename),
+	ModBlob = Filename, % TODO: temporarily, the same
+	% (assume this is new)
+	( modblob_def(ModPath, _) ->
+	    throw(bug_conflict_modblob(ModPath))
+	; true
+	),
+	assertz_fact(modblob_def(ModBlob, Filename)),
 	%
-	atom_concat(FilePath, '.pl', Filename),
 	open(Filename, write, S),
 	%
 	( module_clause(FirstClause) ->
@@ -112,14 +121,33 @@ write_clauses(Stream, [C|Cs]) :-
 	write_clauses(Stream, Cs).
 write_clauses(_, []).
 
-:- pred clean_tmp_mod(X) : atm(X)
-	#"Removes a created tmp file and its associated files".
+:- export(delete_modblob/1).
+:- pred delete_modblob(ModBlob) : modblob(ModBlob)
+   # "Removes the data associated to @var{ModBlob".
 % NOTE: It cleans only itf file because when performing search no more
 %   auxiliary files are created.
-clean_tmp_mod(FilePL) :-
-%	atom_concat(FileBase, '.pl', FilePL),
-	del_file_nofail(FilePL),
-	path_splitext(FilePL, FileBase, '.pl'),
-	atom_concat(FileBase, '.itf', FileITF),
-	del_file_nofail(FileITF).
+delete_modblob(ModBlob) :-
+	% check_modblob(ModBlob), % (done by modblob_path/2)
+	modblob_path(ModBlob, ModPath),
+	retract_fact(modblob_def(ModBlob, _)),
+	del_file_nofail(ModPath),
+	path_splitext(ModPath, ModBase, '.pl'),
+	atom_concat(ModBase, '.itf', ModITF),
+	del_file_nofail(ModITF).
+
+:- export(modblob_path/2).
+:- pred modblob_path(ModBlob, ModPath) : atm(ModBlob) => atm(ModPath)
+   # "Obtain the temporary file associated to @var{ModBlob}".
+modblob_path(ModBlob, ModPath) :-
+	check_modblob(ModBlob),
+	ModPath = ModBlob.
+	
+check_modblob(ModBlob) :-
+	nonvar(ModBlob),
+	modblob_def(ModBlob, _), !,
+	true.
+check_modblob(ModBlob) :-
+	throw(error(not_a_modblob(ModBlob), check_modblob/1)).
+	
+	
 
