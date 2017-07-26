@@ -58,7 +58,7 @@
 		steps_ub/2,
 
 		rsize/2, % TODO:[new-resources]
-		resource/4, % TODO:[new-resources]
+		costb/4, % TODO:[new-resources]
 
 		terminates/1,
 
@@ -1127,8 +1127,7 @@ valid_type([Type|Rest]) :-
       @var{Lower} and @var{Upper}.".
 :- impl_defined(cardinality/3).
 
-:- prop resource(Goal,Resource,Lower,Upper) + no_rtcheck 
-   # "The amount of resource usage of the computation of @var{Goal}
-      expressed in terms of @var{Resource} units is between
-      @var{Lower} and @var{Upper}.".
-:- impl_defined(resource/4).
+:- prop costb(Goal,Resource,Lower,Upper) + no_rtcheck 
+   # "The cost of the computation of @var{Goal} expressed in terms of
+     @var{Resources} units is between @var{Lower} and @var{Upper}.".
+:- impl_defined(costb/4).
