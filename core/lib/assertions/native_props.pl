@@ -1128,6 +1128,8 @@ valid_type([Type|Rest]) :-
 :- impl_defined(cardinality/3).
 
 :- prop costb(Goal,Resource,Lower,Upper) + no_rtcheck 
-   # "The cost of the computation of @var{Goal} expressed in terms of
-     @var{Resources} units is between @var{Lower} and @var{Upper}.".
+   # "@var{Lower} (resp. @var{Upper}) is a (safe) lower (resp. upper)
+     bound on the cost of the computation of @var{Goal} expressed in
+     terms of @var{Resource} units.".
+
 :- impl_defined(costb/4).
