@@ -34,7 +34,28 @@
 #if defined(__clang__)
 /* clang/llvm does not yet support explicit registers variables */
 #else
-#define MAP_TO_HW_REGISTERS
+/* Temporarily DISABLED:
+
+   It seems to be broken in GCC 6 (Ubuntu 17). A fix consinst on
+   disabling the use of 'ebx' register:
+   
+     // #define CIAO_REG_2(Type, Var) register Type Var asm("ebx")
+     #define CIAO_REG_2(Type, Var) Type Var
+
+   However, performance (using ecrc benchmark) does not seem to be
+   better on the general case (although it makes some particular
+   benchmarks faster). E.g., geometrical average KLIPS
+
+     32bit with HW regs    -> 17533.91836
+     32bit without HW regs -> 19492.57422
+     64bit without HW regs -> 23928.04371
+
+   We will keep this optimization temporarily disabled until we find a
+   better assignment.
+
+   MCL & JF
+*/
+/* #define MAP_TO_HW_REGISTERS */
 #endif
 
 /* TODO: missing x86_64 */
