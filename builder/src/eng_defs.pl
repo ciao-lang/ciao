@@ -263,3 +263,17 @@ active_eng_name(D, Eng) := Name :-
 	EngExt = ~eng_ext(Eng),
 	Name = ~concat_ext(EngExt, Name0).
 
+% ---------------------------------------------------------------------------
+% Special build paths for cmake components (see cmake_aux.pl)
+
+% TODO: If 'eng' above is generalized to any C target, then we could
+%   merge this definition. 
+
+:- export(bld_cmake_path/3).
+% Path under build/ (for Bundle workspace) where the CMake build area
+% for Name is stored. 'Name' must be a unique name in the workspace
+% (like, e.g., binary command names).
+bld_cmake_path(Bundle, Name, Path) :-
+	BuildDir0 = ~bundle_path(Bundle, builddir, cmake),
+	path_concat(BuildDir0, Name, Path).
+

@@ -38,6 +38,7 @@ doc_structure :=
             'eng_defs',
             'builder_aux',
             'install_aux',
+            'cmake_aux',
 	    % Installation
 	    'info_installer',
 	    'register_in_script',
