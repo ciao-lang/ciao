@@ -64,3 +64,9 @@ foreign_config_atmlist(Bundle, ForeignConfig, Var, Args) :-
 	atom_codes(X, Val),
 	parse_shell_args(X, Args).
 
+:- export(foreign_config_atm/4).
+% Like @pred{foreign_config_var/4} but obtains an atom as value
+foreign_config_atm(Bundle, ForeignConfig, Var, Val) :-
+	foreign_config_var(Bundle, ForeignConfig, Var, Val0),
+	atom_codes(Val, Val0).
+
