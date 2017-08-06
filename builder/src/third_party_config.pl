@@ -21,10 +21,10 @@
 
 % (Support for GNU pkg-config based libraries)
 
-:- export(foreign_config_var/4).
+:- export(foreign_config_str/4).
 % The configuration for foreign library @var{Foreign} from bundle
-% @var{Bundle} has value @var{Value} for variable @var{Var}.
-foreign_config_var(Bundle, Foreign, Var, Value) :-
+% @var{Bundle} has value @var{Value} (as a string) for variable @var{Var}.
+foreign_config_str(Bundle, Foreign, Var, Value) :-
 	foreign_config_tool_path(Bundle, Foreign, CfgToolPath),
 	process_call(CfgToolPath, [~atom_concat('--', Var)],
 	       [stdout(line(Value)), status(0)]).
@@ -43,7 +43,7 @@ foreign_config_tool_path(Bundle, Foreign, CfgToolPath) :-
 
 :- export(foreign_config_version/3).
 foreign_config_version(Bundle, Foreign, Version) :-
-	foreign_config_var(Bundle, Foreign, 'version', Str),
+	foreign_config_str(Bundle, Foreign, 'version', Str),
 	foreign_config_parse_version(Str, Version).
 
 % from "Major.Minor" string to [Major,Minor]
@@ -57,16 +57,16 @@ foreign_config_parse_version(Str, L) :-
 	).
 
 :- export(foreign_config_atmlist/4).
-% Like @pred{foreign_config_var/4} but parses the value as a list of
+% Like @pred{foreign_config_str/4} but parses the value as a list of
 % atoms using @pred{parse_shell_args/2}.
 foreign_config_atmlist(Bundle, ForeignConfig, Var, Args) :-
-	foreign_config_var(Bundle, ForeignConfig, Var, Val),
+	foreign_config_str(Bundle, ForeignConfig, Var, Val),
 	atom_codes(X, Val),
 	parse_shell_args(X, Args).
 
 :- export(foreign_config_atm/4).
-% Like @pred{foreign_config_var/4} but obtains an atom as value
+% Like @pred{foreign_config_str/4} but obtains an atom as value
 foreign_config_atm(Bundle, ForeignConfig, Var, Val) :-
-	foreign_config_var(Bundle, ForeignConfig, Var, Val0),
+	foreign_config_str(Bundle, ForeignConfig, Var, Val0),
 	atom_codes(Val, Val0).
 
