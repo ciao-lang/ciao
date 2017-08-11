@@ -68,30 +68,6 @@ value_assignment(A=V) :-
 define_flag(raw_form_values, [on,off], off).
 
 % ---------------------------------------------------------------------------
-
-
-
-% ---------------------------------------------------------------------------
-
-:- true pred html_report_error(Error)
-        # "Outputs error @var{Error} as a standard HTML page.".
-
-% Error handling
-html_report_error(X) :-
-        output_html([
-          cgi_reply,
-          start,
-          title("Error Report"), 
-          --,
-          h1(['Error:']),
-          --,
-          X,
-          --,
-          end]),
-        flush_output,
-        halt.
-
-% ---------------------------------------------------------------------------
 % Parsing of forms input
 
 :- doc(get_form_input(Dict), "Translates input from the form (with
@@ -543,7 +519,7 @@ hex_char(N,C) :- C is N-10+0'A.
 html_protect(Goal) :-
         catch(Goal,E,html_report_error(E)).
 html_protect(_) :-
-        html_report_error('Sorry, application failed.').
+        html_report_error('Application failed.').
 
 % ---------------------------------------------------------------------------
 % Support predicates
@@ -553,3 +529,68 @@ mappend([], []).
 mappend([S|Ss], R) :-
         append(S, R0, R),
         mappend(Ss, R0).
+
+% ---------------------------------------------------------------------------
+
+:- include(library(pillow/ops)). % for '$'/2 operator
+
+:- true pred html_report_error(Error)
+        # "Outputs error @var{Error} as a standard HTML page.".
+
+% Error handling
+html_report_error(Contents) :-
+	error500_template(Contents, HTML),
+        output_html([cgi_reply, HTML]),
+        flush_output,
+        halt.
+
+% % (old, simpler template)
+% error500_template(Contents, HTML) :-
+% 	HTML = [
+%           start,
+%           title("Error Report"), 
+%           --,
+%           h1(['Error:']),
+%           --,
+%           Contents,
+%           --,
+%           end
+%         ].
+
+% HTML template for internal server error
+error500_template(Contents, HTML) :-
+	Title = "Error 500 (Internal Server Error)",
+	HTML = [
+          declare("DOCTYPE html"),
+          start,
+          head([
+              meta$['charset'="utf-8"],
+              meta$['name'="viewport",
+	            'content'="initial-scale=1, "||
+                              "minimum-scale=1, "||
+                              "width=device-width"],
+	      title(Title)
+          ]),
+	  env(style, [type='text/css'], [
+	      'html,code {',
+	      '  font-family: arial, sans-serif;',
+	      '  font-size:16px; line-height: 1.3em;',
+	      '}',
+	      'html {',
+	      '  background: white; color: black;',
+	      '}',
+	      'body {',
+	      '  margin: 10% auto 0;',
+	      '  max-width:400px;',
+	      '  min-height:200px;',
+	      '  padding: 40px 0 20px',
+	      '}'
+          ]),
+          begin(body, []),
+	  b(Title), \\,
+	  %
+	  Contents,
+          end(body),
+	  end
+        ].
+
