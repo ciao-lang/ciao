@@ -32,7 +32,7 @@
    uses the predicates listed in @ref{Fast/concurrent update of facts}
    suffice.").
 
-:- doc(bug, "Use a single set of defintions. This one can be a
+:- doc(bug, "Use a single set of definitions. This one can be a
    property of the dynamic predicate itself").
 
 :- use_module(engine(internals)).
