@@ -5,25 +5,6 @@
         dynamic/1, data/1, erase/1, wellformed_body/3
         ],[assertions,isomodes,regtypes]).
 
-:- set_prolog_flag(multi_arity_warnings, off).
-
-:- use_module(engine(internals)).
-:- use_module(library(prolog_sys), [new_atom/1]).
-:- use_module(library(iso_misc), [sub_atom/5]).
-
-:- meta_predicate asserta(addmodule(addterm(clause))).
-:- meta_predicate asserta(addmodule(addterm(clause)), ?).
-:- meta_predicate assertz(addmodule(addterm(clause))).
-:- meta_predicate assertz(addmodule(addterm(clause)), ?).
-:- meta_predicate assert(addmodule(addterm(clause))).
-:- meta_predicate assert(addmodule(addterm(clause)), ?).
-:- meta_predicate retract(addmodule(addterm(retracting_clause))).
-:- meta_predicate retractall(addmodule(addterm(fact))).
-:- meta_predicate abolish(spec).
-:- meta_predicate dynamic(addmodule).
-:- meta_predicate data(addmodule).
-:- meta_predicate current_predicate(addmodule).
-
 :- doc(title,"Dynamic predicates").
 
 :- doc(author, "Daniel Cabeza").
@@ -58,6 +39,25 @@
    Note that using this library is very detrimental to global analysis,
    and that for most uses the predicates listed in
    @ref{Fast/concurrent update of facts} suffice.").
+
+:- set_prolog_flag(multi_arity_warnings, off).
+
+:- use_module(engine(internals)).
+:- use_module(library(prolog_sys), [new_atom/1]).
+:- use_module(library(iso_misc), [sub_atom/5]).
+
+:- meta_predicate asserta(addmodule(addterm(clause))).
+:- meta_predicate asserta(addmodule(addterm(clause)), ?).
+:- meta_predicate assertz(addmodule(addterm(clause))).
+:- meta_predicate assertz(addmodule(addterm(clause)), ?).
+:- meta_predicate assert(addmodule(addterm(clause))).
+:- meta_predicate assert(addmodule(addterm(clause)), ?).
+:- meta_predicate retract(addmodule(addterm(retracting_clause))).
+:- meta_predicate retractall(addmodule(addterm(fact))).
+:- meta_predicate abolish(spec).
+:- meta_predicate dynamic(addmodule).
+:- meta_predicate data(addmodule).
+:- meta_predicate current_predicate(addmodule).
 
 :- doc(doinclude, dynamic/1).
 

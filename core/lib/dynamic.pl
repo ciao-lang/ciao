@@ -5,6 +5,36 @@
         dynamic/1, data/1, wellformed_body/3
         ],[assertions,isomodes,regtypes]).
 
+:- doc(title,"Dynamic predicates (not source preserving)").
+
+:- doc(author, "The CLIP Group").
+
+:- doc(module,"This module implements the assert/retract family of
+   predicates to manipulate dynamic predicates.
+
+   @begin{alert}
+   This module does not preserve the original source definition of
+   dynamic predicates. That is, @pred{clause/2} may obtain the
+   asserted clauses in lower-level expanded form rather than in the
+   original shape. Use @lib{dynamic_clauses} if you need consulting
+   the original form.
+   @end{alert}
+
+   The predicates defined in this module allow modification of the
+   program as it is actually running.  Clauses can be added to the
+   program (@em{asserted}) or removed from the program (@em{retracted}).
+   For these predicates, the argument which corresponds to the clause
+   head must be instantiated to an atom or a compound term. The argument
+   corresponding to the clause must be instantiated either to a term
+   @tt{Head :- Body} or, if the body part is empty, to @tt{Head}. An
+   empty body part is represented as @tt{true}.  Note that using this
+   library is very detrimental to global analysis, and that for most
+   uses the predicates listed in @ref{Fast/concurrent update of facts}
+   suffice.").
+
+:- doc(bug, "Use a single set of defintions. This one can be a
+   property of the dynamic predicate itself").
+
 :- use_module(engine(internals)).
 :- use_module(library(prolog_sys), [new_atom/1]).
 
@@ -22,25 +52,6 @@
 :- meta_predicate clause(fact,?).
 :- meta_predicate clause(fact,?,?).
 :- meta_predicate current_predicate(addmodule).
-
-:- doc(title,"Dynamic predicates").
-
-:- doc(author, "The CLIP Group").
-
-:- doc(module,"This module implements the assert/retract family of
-   predicates to manipulate dynamic predicates.
-
-   The predicates defined in this module allow modification of the
-   program as it is actually running.  Clauses can be added to the
-   program (@em{asserted}) or removed from the program (@em{retracted}).
-   For these predicates, the argument which corresponds to the clause
-   head must be instantiated to an atom or a compound term. The argument
-   corresponding to the clause must be instantiated either to a term
-   @tt{Head :- Body} or, if the body part is empty, to @tt{Head}. An
-   empty body part is represented as @tt{true}.  Note that using this
-   library is very detrimental to global analysis, and that for most
-   uses the predicates listed in @ref{Fast/concurrent update of facts}
-   suffice.").
 
 :- doc(doinclude, dynamic/1).
 
