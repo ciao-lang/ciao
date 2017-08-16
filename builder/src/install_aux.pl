@@ -18,11 +18,11 @@
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 :- use_module(library(messages), [warning_message/2]).
 :- use_module(library(source_tree), [copy_file_tree/4]).
-:- use_module(library(system_extra), [mkpath/2]).
-:- use_module(library(system_extra), [warn_on_nosuccess/1]).
+:- use_module(library(system_extra), [mkpath/2, create_rel_link/2]).
+:- use_module(library(system_extra), [ignore_nosuccess/1, warn_on_nosuccess/1]).
 :- use_module(library(system), [delete_directory/1]).
 
-:- use_module(ciaobld(builder_aux), [create_rel_link/2, remove_dir_nofail/1]). % TODO: system?
+:- use_module(ciaobld(builder_aux), [remove_dir_nofail/1]). % TODO: system?
 :- use_module(ciaobld(config_common), [concat_ext/3, cmd_path/4]).
 
 % ===========================================================================
@@ -285,7 +285,7 @@ instdir_install(cmd_link_as(Kind, Bundle, Src, Dest)) :-
 	From = ~rootprefixed(~inst_cmd_path(Bundle, Kind, Src)),
 	To = ~rootprefixed(~active_cmd_path(Kind, Dest)),
 	instdir_install(dir(~active_bindir)),
-	create_rel_link(From, To).
+	ignore_nosuccess(create_rel_link(From, To)).
 %
 % TODO: separate 'ciao-config' exec to get options for CC/LD?
 % TODO: control engine 'activation' operation?
@@ -370,20 +370,20 @@ eng_active_bld(Eng) :-
 	% E.g., ciaoengine.<OSARCH> -> <OSARCH>/ciaoengine
 	A = ~eng_path(exec, Eng),
 	B = ~active_bld_eng_path(exec, Eng),
-	create_rel_link(A, B),
+	ignore_nosuccess(create_rel_link(A, B)),
 	% Link for active exec_anyarch (E.g., ciaoengine -> ciaoengine.<OSARCH>)
 	C = ~active_bld_eng_path(exec_anyarch, Eng),
-	create_rel_link(B, C).
+	ignore_nosuccess(create_rel_link(B, C)).
 
 % Like eng_active_bld/1, but for installed engines
 eng_active_inst(Eng) :-
 	% Link for active exec (E.g., ciaoengine.<OSARCH> -> ciaoengine-1.15/objs/<OSARCH>/ciaoengine) % TODO: 'activation' as a different operation?
 	A = ~rootprefixed(~inst_eng_path(exec, Eng)),
 	B = ~rootprefixed(~active_inst_eng_path(exec, Eng)),
-	create_rel_link(A, B),
+	ignore_nosuccess(create_rel_link(A, B)),
 	% Link for active exec_anyarch (E.g., ciaoengine -> ciaoengine.<OSARCH>)
 	C = ~rootprefixed(~active_inst_eng_path(exec_anyarch, Eng)),
-	create_rel_link(B, C).
+	ignore_nosuccess(create_rel_link(B, C)).
 
 % ---------------------------------------------------------------------------
 % (special for engines)
@@ -399,7 +399,6 @@ eng_active_inst(Eng) :-
 
 :- use_module(library(system_extra), [
     del_file_nofail/1,
-    ignore_nosuccess/1,
     set_file_perms/2,
     set_exec_perms/2]).
 :- use_module(library(system), [copy_file/3]).
@@ -452,7 +451,7 @@ install_doc(Bundle, ManualBase, DocFormat) :-
 		    % Create activation symlink
 		    path_split(ActTarget, ActTargetDir, _),
 		    mkpath(ActTargetDir, ~perms),
-		    create_rel_link(Target, ActTarget),
+		    ignore_nosuccess(create_rel_link(Target, ActTarget)),
 		    % Register
 		    register_doc(DocFormat, ActTarget)
 		; true

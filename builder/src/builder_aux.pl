@@ -4,7 +4,7 @@
 :- doc(title,  "Auxiliary Predicates for Builder").
 :- doc(author, "Ciao Development Team").
 
-:- use_module(library(pathnames), [path_dirname/2, path_concat/3]).
+:- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(bundle/bundle_flags)).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 :- use_module(ciaobld(messages_aux), [normal_message/2]).
@@ -80,7 +80,7 @@ invoke_ant(Dir, Args) :-
 :- doc(section, "Build area (builddir)").
 
 :- use_module(library(source_tree), [remove_dir/1]).
-:- use_module(library(system_extra), [mkpath/1]).
+:- use_module(library(system_extra), [mkpath/1, del_file_nofail/1]).
 
 :- export(ensure_builddir/2).
 % Prepare a build (sub)directory (Rel can be '.' or a relative path)
@@ -273,57 +273,9 @@ separate_with_blanks([A]) := [A] :- !.
 separate_with_blanks([A, B|Cs]) := [A, ' '|~separate_with_blanks([B|Cs])] :- !.
 
 % ===========================================================================
-% TODO: Move both create_rel_link/2 and relpath/3 to the libraries
-
-:- use_module(library(system), [copy_file/3]).
-:- use_module(library(system), [using_windows/0]).
-:- use_module(library(system_extra), [del_file_nofail/1]).
-:- use_module(library(system_extra), [ignore_nosuccess/1]).
+% TODO: remove_dir/1 should be at least in system_extra
 
 :- export(remove_dir_nofail/1).
 remove_dir_nofail(Dir2) :-
 	( file_exists(Dir2) -> remove_dir(Dir2) ; true ).
 
-:- export(create_rel_link/2).
-% Create a "relocatable" link (computing relative paths)
-% (e.g., "/a/b/c (symlink) -> /a/d/e" becomes "/a/b/c (symlink) -> ../d/e"
-create_rel_link(From, To) :-
-	path_dirname(To, ToDir),
-	relpath(ToDir, From, RelFrom),
-	create_link(RelFrom, To).
-
-%:- export(create_link/2).
-create_link(From, To) :-
-	del_file_nofail(To),
-	% TODO: better solution? windows lacks proper symlinks
-        ( using_windows ->
-            ignore_nosuccess(copy_file(From, To, [overwrite]))
-        ; ignore_nosuccess(copy_file(From, To, [overwrite, symlink]))
-        ).
-        % TODO: do not set perms on a symbolic link (the source may
-        %       not exist, as it happens in RPM generation)
-%	warn_on_nosuccess(set_file_perms(To, ~perms)).
-
-:- use_module(library(pathnames), [path_split_list/2, path_concat_list/2]).
-
-%:- export(relpath/3).
-% C is a path to B relative to A (using '..' if needed)
-% (e.g., "/a/b/c -> /a/d/e" becomes "/a/b/c -> ../../d/e".
-% Assume both are absolute, otherwise just return B.
-relpath(A, B, C) :-
-	path_split_list(A, As),
-	path_split_list(B, Bs),
-	As = ['/'|As0],
-	Bs = ['/'|Bs0],
-	!,
-	relpath_(As0, Bs0, Cs),
-	path_concat_list(Cs, C).
-relpath(_, B, B).
-
-% Consume common part
-relpath_([A|As], [A|Bs], Cs) :- !, relpath_(As, Bs, Cs).
-relpath_(As, Bs, Cs) :- relpath__(As, Bs, Cs).
-
-% Add '..' for each A component (go back)
-relpath__([_|As], Bs, ['..'|Cs]) :- !, relpath__(As, Bs, Cs).
-relpath__([], Bs, Bs). % Finish with rest

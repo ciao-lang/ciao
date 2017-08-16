@@ -580,6 +580,63 @@ rmtempdir(Path) :-
 tempdir_mark(Path, Mark) :-
 	path_concat(Path, 'CREATED_WITH_MKTEMPDIR', Mark).
 
+% ---------------------------------------------------------------------------
+% Symlinks, relative symlinks, and relative paths
+
+% :- use_module(library(system_extra), [del_file_nofail/1]).
+:- use_module(library(system), [copy_file/3]).
+:- use_module(library(system), [using_windows/0]).
+:- use_module(library(pathnames), [path_dirname/2]).
+
+:- export(create_rel_link/2).
+:- pred create_rel_link(From, To) # "Create a @em{relocatable} symlink
+   (computing relative paths) (e.g., @tt{/a/b/c} (symlink) -> /a/d/e}
+   becomes @tt{/a/b/c (symlink) -> ../d/e}".
+
+create_rel_link(From, To) :-
+	path_dirname(To, ToDir),
+	relpath(ToDir, From, RelFrom),
+	create_link(RelFrom, To).
+
+:- export(create_link/2).
+:- pred create_link(From, To) # "Create a symlink from @var{From} to
+   @var{To}. On platforms where symlinks are not supported (Windows)
+   the file is copied instead. The file @var{To} is removed if it
+   existed before.".
+
+create_link(From, To) :-
+	del_file_nofail(To),
+        ( using_windows ->
+            copy_file(From, To, [overwrite]) % TODO: better solution? windows lacks proper symlinks
+        ; copy_file(From, To, [overwrite, symlink])
+        ).
+
+:- use_module(library(pathnames), [path_split_list/2, path_concat_list/2]).
+
+:- export(relpath/3).
+:- pred relpath(A, B, C) # "@var{C} is a path to @var{B} relative to
+   @var{A} (using @tt{..} if needed) (e.g., @tt{/a/b/c -> /a/d/e}
+   becomes @tt{/a/b/c -> ../../d/e}.  Assume both are absolute,
+   otherwise just return @var{B}.".
+
+relpath(A, B, C) :-
+	path_split_list(A, As),
+	path_split_list(B, Bs),
+	As = ['/'|As0],
+	Bs = ['/'|Bs0],
+	!,
+	relpath_(As0, Bs0, Cs),
+	path_concat_list(Cs, C).
+relpath(_, B, B).
+
+% Consume common part
+relpath_([A|As], [A|Bs], Cs) :- !, relpath_(As, Bs, Cs).
+relpath_(As, Bs, Cs) :- relpath__(As, Bs, Cs).
+
+% Add '..' for each A component (go back)
+relpath__([_|As], Bs, ['..'|Cs]) :- !, relpath__(As, Bs, Cs).
+relpath__([], Bs, Bs). % Finish with rest
+
 % =========================================================================
 % TODO: preds from the SICStus lib that probably need to be implemented 
 % =========================================================================

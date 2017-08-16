@@ -28,7 +28,10 @@
 :- use_module(library(lists), [append/3]).
 :- use_module(library(aggregates), [findall/3]).
 %
-:- use_module(library(system_extra), [del_file_nofail/1]).
+:- use_module(library(system_extra), [
+	ignore_nosuccess/1,
+	del_file_nofail/1,
+	create_rel_link/2]).
 %
 :- use_module(library(pathnames), [path_concat/3, path_split/3, path_get_relative/3]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
@@ -39,7 +42,6 @@
 %
 :- use_module(ciaobld(builder_aux),
 	[ensure_builddir/2,
-	 create_rel_link/2,
 	 remove_dir_nofail/1]).
 
 % ===========================================================================
@@ -338,7 +340,7 @@ cmd_build_copy(Bundle, Kind, From, Name) :-
 cmd_build_link(Bundle, Kind, Src, Dest) :-
 	From = ~cmd_path(Bundle, Kind, Src),
 	To = ~cmd_path(Bundle, Kind, Dest),
-	create_rel_link(From, To).
+	ignore_nosuccess(create_rel_link(From, To)).
 
 :- use_module(library(sort), [sort/2]).
 	    

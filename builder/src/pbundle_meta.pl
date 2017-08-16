@@ -31,7 +31,7 @@ pbundle_meta_load(AbsFile) := PMeta :-
 	open(AbsFile, read, Stream),
 	read_tmpl(Stream, PMeta0),
 	close(Stream),
-	( path_concat(BaseDir, 'desc.tmpl', AbsFile) ->
+	( path_split(AbsFile, BaseDir, 'desc.tmpl') ->
 	    PMeta = [basedir = BaseDir|PMeta0]
 	; PMeta = PMeta0
 	).
