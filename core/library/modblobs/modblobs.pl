@@ -123,7 +123,7 @@ write_clauses(_, []).
 
 :- export(delete_modblob/1).
 :- pred delete_modblob(ModBlob) : modblob(ModBlob)
-   # "Removes the data associated to @var{ModBlob".
+   # "Removes the data associated to @var{ModBlob}".
 % NOTE: It cleans only itf file because when performing search no more
 %   auxiliary files are created.
 delete_modblob(ModBlob) :-
