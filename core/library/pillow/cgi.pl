@@ -341,8 +341,6 @@ form_request_method(M) :-
 
 % ---------------------------------------------------------------------------
 
-% TODO: it should use 'https' when needed
-
 :- doc(my_url(URL), "Unifies @var{URL} with the Uniform
    Resource Locator (WWW address) of this cgi executable.").
 
