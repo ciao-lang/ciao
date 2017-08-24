@@ -46,6 +46,7 @@ check_foreign_cmd(Bundle) :-
 	; true
 	).
 
+install_npm_deps([]) :- !. % (skip)
 install_npm_deps(Deps) :-
 	normal_message("installing third-party dependencies via npm", []),
 	third_party_path(prefix, ThirdParty), % TODO: add bundle to third_party_path/2
@@ -62,6 +63,7 @@ install_npm_deps_(Deps) :-
 	),
 	process_call(path(npm), [install, '--save'|Deps], []).
 
+install_bower_deps([]) :- !. % (skip)
 install_bower_deps(Deps) :-
 	normal_message("installing third-party dependencies via bower", []),
 	third_party_path(prefix, ThirdParty), % TODO: add bundle to third_party_path/2
