@@ -18,27 +18,42 @@
 :- use_module(library(system), [cd/1]).
 :- use_module(engine(internals), [ciao_root/1]).
 
-:- doc(bug, "We cannot use http_server.pl until we support an
-   extension to content/1 in http_response_string that serves files
-   without reading all the contents in memory").
+:- use_module(library(pillow/http_server), [http_bind/1, http_loop/1]).
+:- include(library(pillow/http_server_hooks)).
+
+:- doc(bug, "fix http_server:http_write_response/2 so that it can
+   serve files without loading them in memory").
 
 :- doc(bug, "Configure to allow serving a workspace, many binaries, etc.").
+:- doc(bug, "Merge with actmod_cgi").
 :- doc(bug, "Start at different ports, act as a proxy with other Ciao servers").
 :- doc(bug, "Allow different protocols?").
 
 :- use_module(ciaobld(config_common), [site_root_dir/1]).
 
-% Open HTTP server for files in this directory
-main([]) :-
-	format(user_error, "=> starting http server~n", []),
+http_file_path('', Path) :-
+	Path = ~site_root_dir.
+
+msg :-
 	format(user_error, "   Serving CIAOROOT/build/site files~n", []),
-	format(user_error, "   Server reachable at http://localhost:8000~n", []),
+	format(user_error, "   Server reachable at http://localhost:8000~n", []).
+
+% Open HTTP server for files at ~site_root_dir
+main([builtin]) :- !,
+	format(user_error, "=> starting built-in HTTP server~n", []),
+	msg,
+	Path = ~site_root_dir, cd(Path), % TODO: not needed?
+	http_bind(8000),
+	http_loop(_).
+main([]) :-
+	format(user_error, "=> starting external HTTP server~n", []),
+	msg,
 	Path = ~site_root_dir,
 	cd(Path),
-	server_start.
+	external_server_start.
 
-%server_start :- % simple server (no CGI)
+%external_server_start :- % simple server (no CGI)
 %	process_call(path(python), ['-m', 'SimpleHTTPServer'], []).
-server_start :- % simple server (with CGI under cgi-bin/)
+external_server_start :- % simple server (with CGI under cgi-bin/)
 	CgiServer = ~bundle_path(core, 'cmds/ciao-serve/cgi-server.py'),
 	process_call(path(python), [CgiServer], []).
