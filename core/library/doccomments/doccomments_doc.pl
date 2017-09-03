@@ -13,18 +13,42 @@ This is still a beta version for experimentation. Much functionality
 is implemented but syntax may change in the future.
 @end{alert}
 
-   This package allows using an alternative syntax for (@apl{LPdoc})
-   program assertions and machine-readable documentation inside
-   specially marked code comments.
+   This package allows 
+
+@begin{itemize}
+
+@item using an alternative, simpler, ``wiki-like'' syntax when writing
+      (@apl{LPdoc}) machine-readable documentation,
+
+@item including machine-readable documentation and assertions inside
+      code comments, and
+
+@item using a simplified format for program assertions.  
+
+@end{itemize}
+
+The overall objective is a allow a more lightweight look to
+machine-readable documentation and assertions as well as speeding up
+the process of documentation for many cases that do not require the
+full power of the documentation system and assertion language.
 
 @section{Motivation and Related Work}
 
-   In @apl{LPdoc}, assertions and documentation comments are read as
-   special declarations, as normal Prolog terms (similarly to code
-   comments in many languages like Lisp variants or Python). Although
-   this is convenient in practice, it is sometimes less flexible (no
-   doccomments allowed within the code) and less portable (when using
-   tools that do not understand the assertion language).
+   In @apl{LPdoc}, assertions and documentation comments are written
+   as special declarations, which are normal Prolog terms. This is
+   similar to code comments in many languages like Lisp variants or
+   Python. However, sometimes it is useful to be able to write
+   machine-readable documentation within code comments. This package
+   allows this by defining a special kind of code comments where this
+   is allowed.
+
+   Also, while the @apl{LPdoc} normal markup language (e.g., @tt{}) offers precision
+   it is
+
+
+    Although this is useful in practice, it is sometimes less
+   flexible (no doccomments allowed within the code) and less portable
+   (when using tools that do not understand the assertion language).
 
    This package tries to solve this issue by introducing a
    backwards-compatible comment syntax and a simplified lightweight

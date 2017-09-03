@@ -1,8 +1,8 @@
 :- package(doccomments).
 
-% Ensure that assertions are enabled
+% Ensure that assertions are enabled.
 :- use_package(assertions).
-% Tell LPdoc that contents of @include need to be translated from markdown
+% Tell LPdoc that contents of @include need to be translated from markdown.
 :- doc(pragma, partially_parsed_markdown).
 
 % NOTE: this package must be executed after 'condcomp' and before any
@@ -12,6 +12,6 @@
 :- add_sentence_trans(doccomments_tr:doccomments_sentence/3, 150).
 :- add_term_trans(doccomments_tr:doccomments_term/3, 150).
 
-% tell the reader to parse '%!' as special sentences
+% Tell the reader to parse '%!' as special sentences.
 :- set_prolog_flag(doccomments, on).
 
