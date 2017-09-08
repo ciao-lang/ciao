@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
@@ -578,6 +579,30 @@ CBOOL__PROTO(prolog_socket_buffering)
 }
 */
 
+// // assume s is a connected socket
+// 
+// socklen_t len;
+// struct sockaddr_storage addr;
+// char ipstr[INET6_ADDRSTRLEN];
+// int port;
+// 
+// len = sizeof addr;
+// getpeername(s, (struct sockaddr*)&addr, &len);
+// 
+// // deal with both IPv4 and IPv6:
+// if (addr.ss_family == AF_INET) {
+//     struct sockaddr_in *s = (struct sockaddr_in *)&addr;
+//     port = ntohs(s->sin_port);
+//     inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
+// } else { // AF_INET6
+//     struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
+//     port = ntohs(s->sin6_port);
+//     inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
+// }
+// 
+// printf("Peer IP address: %s\n", ipstr);
+
+
 /* hostname_address(+Hostname, ?Address) */
 
 #define MAX_BYTES_IN_HOST_ADDRESS 8             /* It is 4 at the present */
@@ -599,6 +624,7 @@ CBOOL__PROTO(prolog_hostname_address)
   if ((host = gethostbyname(GetString(hostname))) == NULL)
     MAJOR_FAULT("hostname_address/2: gethostbyname() failed");
 
+  /* TODO: use inet_ntop() instead? */
   while(bytes_index < host->h_length) {
     sprintf(&address[address_index], 
            "%u.", 
@@ -612,6 +638,42 @@ CBOOL__PROTO(prolog_hostname_address)
   return cunify(Arg, X(1), MakeString(address));
 }
 
+
+/* socket_getpeername(+Stream, ?Address) */
+
+CBOOL__PROTO(prolog_socket_getpeername)
+{
+  ERR__FUNCTOR("sockets:socket_getpeername", 2);
+  stream_node_t *s;
+  int error_code;
+
+  s = stream_to_ptr_check(X(0), 'r', &error_code);
+  if (!s) BUILTIN_ERROR(error_code, X(0), 1);
+
+  if (s->streammode != 's')
+    USAGE_FAULT("socket_recv/2: first argument must be a socket stream");
+  
+  socklen_t len;
+  struct sockaddr_storage addr;
+  char ipstr[INET6_ADDRSTRLEN];
+  /* int port; */
+
+  len = sizeof(addr);
+  getpeername(GetSmall(s->label), (struct sockaddr*)&addr, &len);
+
+  /* TODO: support IPv6 in sockets! */
+  if (addr.ss_family == AF_INET) {
+    struct sockaddr_in *s = (struct sockaddr_in *)&addr;
+    /* port = ntohs(s->sin_port); */
+    inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof(ipstr));
+  } else { /* AF_INET6 */
+    struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
+    /* port = ntohs(s->sin6_port); */
+    inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof(ipstr));
+  }
+
+  return cunify(Arg, X(1), MakeString(ipstr));
+}
 
 
 CBOOL__PROTO(sockets_c_init)

@@ -11,6 +11,7 @@
 	    socket_shutdown/2,
 %           socket_buffering/4,
 	    hostname_address/2,
+	    socket_getpeername/2,
 	    socket_type/1,
 	    shutdown_type/1,
 	    initial_from_ciaopp/0 
@@ -139,9 +140,10 @@ connect_to_socket(Host, Port, Stream):-
 :- true pred socket_recv_code(+Stream, ?String, ?Length) ::
         stream * string * int 
         + foreign_low(prolog_socket_receive)
- # "Receives a @var{String} from the socket associated to @var{Stream},
-    and returns its @var{Length}.  If @var{Length} is -1, no more data is 
-    available.".
+ # "Receives a @var{String} from the socket associated to
+    @var{Stream}, and returns its @var{Length}. For TCP, @var{Length}
+    is 0 if the peer has performed an orderly shutdown on the
+    socket.".
 
 
 :- pred socket_recv(+Stream, ?String) ::
@@ -169,6 +171,14 @@ shutdown_type(read_write).
         + foreign_low(prolog_hostname_address)
 # "@var{Address} is unified with the atom representing the address (in AF_INET
    format) corresponding to @var{Hostname}.".
+
+
+:- true pred socket_getpeername(+Stream, ?Address) :: stream * atm
+        + foreign_low(prolog_socket_getpeername)
+# "@var{Address} is unified with the atom representing the address (in
+  AF_INET or AF_INET6 format) of the peer connected to the socket
+  associated to @var{Stream}.".
+
 
  %% :- pred socket_buffering(+Stream, +Direction, -OldBuf, +NewBuffer) :: 
  %%         stream * atm * atm * atm 

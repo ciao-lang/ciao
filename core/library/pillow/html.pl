@@ -23,7 +23,6 @@
 :- use_module(library(strings), 
         [write_string/1, whitespace/2, whitespace0/2, string/3]).
 :- use_module(library(lists), [reverse/2, list_lookup/4]).
-:- use_module(library(pillow/pillow_aux)).
 
 % ---------------------------------------------------------------------------
 
@@ -253,12 +252,6 @@ tag_attrib((Att = Val)) :- atm(Att), string(Val).
    are marked with the prefix operator @tt{$} to indicate that they
    are selected (translates to a @tt{<select>} environment).
 
-   @item{@bf{form_reply}} @item{@bf{cgi_reply}} This two are equivalent,
-   they do not generate HTML, rather, the CGI protocol requires this
-   content descriptor to be used at the beginning by CGI executables
-   (including form handlers) when replying (translates to
-   @tt{Content-type: text/html}).
-
    @item{@em{name}@bf{(}@em{text}@bf{)}} A term with functor
    @em{name}/1, different from the special functors defined herein,
    represents an HTML environment of name @em{name} and included text
@@ -315,24 +308,6 @@ output_html(F) :-
         html_str(F,T,[]),
         write_string(T).
 
-:- true pred html_report_error(Error)
-        # "Outputs error @var{Error} as a standard HTML page.".
-
-% Error handling
-html_report_error(X) :-
-        output_html([
-          cgi_reply,
-          start,
-          title("Error Report"), 
-          --,
-          h1(['Error:']),
-          --,
-          X,
-          --,
-          end]),
-        flush_output,
-        halt.
-
 % HTML <-> Terms translation
 
 :- doc(html2terms(String,Terms), "@var{String} is a character list
@@ -344,6 +319,7 @@ html_report_error(X) :-
 :- true pred html2terms(+string,?canonic_html_term)
         # "Translates HTML code into a structured HTML-term.".
 
+% TODO: rename by html_term_string/2 and switch arg order?
 html2terms(Chars, Terms) :-
         var(Chars), !,
         html_str(Terms, Chars, []).
@@ -492,14 +468,6 @@ html_str(option(Name,Val,Options)) --> !,
         ">", newline,
         html_one_option(Options, Val),
         "</select>".
-html_str(form_reply) --> !,
-        "Content-type: text/html",
-        newline,
-        newline.
-html_str(cgi_reply) --> !,
-        "Content-type: text/html",
-        newline,
-        newline.
 html_str(prolog_term(T)) --> !,
         prolog_term(T).
 % Constructs
@@ -670,7 +638,7 @@ textarea_data(X) -->
         {atomic(X), name(X,S)}, !,
         string(S).
 textarea_data(L) -->
-        http_lines(L), !.
+        html_lines(L), !.
 textarea_data(S) -->
         string(S).
 
@@ -994,4 +962,34 @@ xml_tag_char(0':) --> ":".
 xml_tag_char(0'.) --> ".".
 xml_tag_char(0'-) --> "-".
 
+% ---------------------------------------------------------------------------
+% TODO: duplicated (or similar) in many modules
 
+atomic_or_string(X) -->
+        { atomic(X), name(X,S) }, !,
+        string(S).
+atomic_or_string(S) -->
+        string(S).
+
+loupalpha(C) --> loalpha(C), !.
+loupalpha(C) --> upalpha(CU), { C is CU+0'a-0'A }.
+
+loalpha(C) --> [C], {C >= 0'a, C =< 0'z}.
+
+upalpha(C) --> [C], {C >= 0'A, C =< 0'Z}.
+
+digit(C) --> [C], {C >= 0'0, C =< 0'9}.
+
+html_crlf --> [13,10], !.
+html_crlf --> [10].
+
+html_line([]) -->
+        html_crlf, !.
+html_line([X|T]) -->
+        [X],
+        html_line(T).
+
+html_lines([L|Ls]) -->
+        html_line(L), !,
+        html_lines(Ls).
+html_lines([]) --> "".
