@@ -138,13 +138,13 @@ process('$process'(_Joined, _OnReturn, _Pid,
    options:
 
    @begin{description}
-   @item @tt{status(ReturnCode)}: unifies return code with
+   @item{@tt{status(ReturnCode)}} unifies return code with
      @var{ReturnCode} upon process completion (no exception is thrown,
      may fail).
-   @item @tt{background(Process)}: execute asynchronously in
+   @item{@tt{background(Process)}} execute asynchronously in
      background; most errors (including input/output) are delayed to
      @pred{process_join/1}.
-   @item @tt{setsid}: call @tt{setsid()} on the child to create a new
+   @item{@tt{setsid}} call @tt{setsid()} on the child to create a new
      session (useful to create daemon processes
      @href{http://www.netzmafia.de/skripten/unix/linux-daemon-howto.html})
    @end{description}
@@ -154,19 +154,19 @@ process('$process'(_Joined, _OnReturn, _Pid,
    @regtype{process_channel/1}:
 
    @begin{description}
-   @item @tt{stdin(Channel)}: set channel for standard input
-   @item @tt{stdout(Channel)}: set channel for standard output
-   @item @tt{stderr(Channel)}: set channel for standard error
+   @item{@tt{stdin(Channel)}} set channel for standard input
+   @item{@tt{stdout(Channel)}} set channel for standard output
+   @item{@tt{stderr(Channel)}} set channel for standard error
    @end{description}
 
    The environment of the process can be modified with the following
    options:
 
    @begin{description}
-   @item @tt{cwd(Dir)}: execute command at the @var{Dir} directory
+   @item{@tt{cwd(Dir)}} execute command at the @var{Dir} directory
      (does not affect relative path for input/output redirection).
-   @item @tt{env(Env)}: modify the specified environment variables.
-   @item @tt{noenv(Env)}: unset the specified environment variables.
+   @item{@tt{env(Env)}} modify the specified environment variables.
+   @item{@tt{noenv(Env)}} unset the specified environment variables.
    @end{description}
 ").
 

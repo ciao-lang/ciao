@@ -12,12 +12,12 @@
    @tt{show_logs(ShowLogs)} indicates how logs are handled:
 
    @begin{description}
-   @item @tt{silent}: do not show any log (default).
-   @item @tt{always}: show logs (on success or error).
-   @item @tt{note_always}: note where logs are stored, but do not show them
+   @item{@tt{silent}} do not show any log (default).
+   @item{@tt{always}} show logs (on success or error).
+   @item{@tt{note_always}} note where logs are stored, but do not show them
      (on success or error).
-   @item @tt{on_error}: show logs (on error).
-   @item @tt{note_on_error}: note where logs are stored, but do not show them
+   @item{@tt{on_error}} show logs (on error).
+   @item{@tt{note_on_error}} note where logs are stored, but do not show them
      (on error).
    @end{description}
 ").

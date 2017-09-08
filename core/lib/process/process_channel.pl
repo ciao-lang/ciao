@@ -42,21 +42,21 @@
    standard file descriptors".
 :- doc(process_channel/1, "
    @begin{description}
-   @item @tt{default}: the default descriptor
-   @item @tt{null}: the null stream (@tt{/dev/null} file in POSIX, @tt{nul} in Windows)
-   @item @tt{pipe(-Stream)}: a pipe (@var{Stream} unified with the
+   @item{@tt{default}} the default descriptor
+   @item{@tt{null}} the null stream (@tt{/dev/null} file in POSIX, @tt{nul} in Windows)
+   @item{@tt{pipe(-Stream)}} a pipe (@var{Stream} unified with the
      parent's read/write end of the pipe)
-   @item @tt{file(+File)}: a file @var{File}
-   @item @tt{stream(+Stream)}: a stream @var{Stream} (must be opened
+   @item{@tt{file(+File)}} a file @var{File}
+   @item{@tt{stream(+Stream)}} a stream @var{Stream} (must be opened
      with the right mode)
-   @item @tt{file_append(+File)}: a file @var{File}, where writes are
+   @item{@tt{file_append(+File)}} a file @var{File}, where writes are
      appended to the end
-   @item @tt{string(?String)}: a string (list of codes)
-   @item @tt{line(?Line)}: a string, ignoring trailing new line character
-   @item @tt{atmlist(?Xs)}: a list of atoms (for each line)
-   @item @tt{terms(?Xs)}: terms, ended in full-stop (using
+   @item{@tt{string(?String)}} a string (list of codes)
+   @item{@tt{line(?Line)}} a string, ignoring trailing new line character
+   @item{@tt{atmlist(?Xs)}} a list of atoms (for each line)
+   @item{@tt{terms(?Xs)}} terms, ended in full-stop (using
      @pred{read_term/3} and @pred{write_canonical/2})
-   @item @tt{stdout}: (only valid for @tt{stderr(_)}) redirect to the same
+   @item{@tt{stdout}} (only valid for @tt{stderr(_)}) redirect to the same
      channel than stdout (useful for redirecting both standard output
      and standard error).
    @end{description}
