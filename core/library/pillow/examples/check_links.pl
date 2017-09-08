@@ -1,7 +1,5 @@
 :- module(check_links, [main/1,check_links/2],[]).
 :- use_package(pillow).
-:- use_module(library(http/http_client)).
-:- use_module(library(http/url)).
 
 :- use_module(library(format)).
 

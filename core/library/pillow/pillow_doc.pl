@@ -18,12 +18,9 @@
 ").
 
 :- doc(module,"@cindex{WWW, interfacing with}
-   @cindex{XML}@cindex{HTML}@cindex{JSON}
+   @cindex{XML}@cindex{CGI}@cindex{HTML}@cindex{JSON}@cindex{HTTP}
    This package implements a collection of libraries for HTML/XML/JSON
-   processing.
-
-   See @lib{http_doc} libraries for the @cindex{HTTP} protocol and
-   @cindex{CGI} programming.
+   processing, CGI programming, and HTTP conectivity.
 
    @section{Other PiLLoW releases}
    This code is is based on the original PiLLoW library

@@ -5,7 +5,7 @@
 :- use_module(library(actmod/webbased_common)).
 :- use_module(library(read_from_string), [read_from_string_atmvars/2]).
 :- use_module(library(lists), [append/3]).
-:- use_module(library(http/http_client)).
+:- use_module(library(pillow/http)).
 
 :- data address_db/2.
 :- data server/2.
