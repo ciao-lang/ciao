@@ -1,10 +1,13 @@
 :- module(use_url,
 	[use_module_url/2,use_module_url/3,use_module_url/4],
-	[assertions,pillow]).
+	[assertions]).
 :- use_module(library(compiler), [use_module/3]).
 :- use_module(library(system), 
 	[delete_directory/1,delete_file/1,directory_files/2,
 	 make_directory/1,mktemp_in_tmp/2]). 
+
+:- use_module(library(http/http_client)).
+:- use_module(library(http/url)).
 
 :- true pred use_module_url(Module, Url) : sourcename * string
         # "Imports from module @var{Module} all the predicates exported 
