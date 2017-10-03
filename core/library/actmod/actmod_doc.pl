@@ -122,7 +122,7 @@ predicate which has an infinite number of answers}.
 
   Active modules are compiled using the @tt{-a} option of the Ciao
   compiler (this can also be done from the interactive top-level shell
-  using @pred{make_actmod/2}). For example, issuing the following
+  using @pred{make_actmod/3}). For example, issuing the following
   command:
 
   @begin{verbatim}

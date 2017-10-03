@@ -5,7 +5,7 @@
         [make_po/1, unload/1,
          set_debug_mode/1, set_nodebug_mode/1]).
 :- use_module(library(compiler/exemaker), 
-        [make_actmod/2, force_lazy/1, undo_force_lazy/1,
+        [force_lazy/1, undo_force_lazy/1,
          dynamic_search_path/1]).
 :- use_module(library(compiler/c_itf), 
         [multifile/1]).

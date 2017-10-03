@@ -9,7 +9,7 @@
 		add_goal_trans/2,
                 % up/0 & top/0 checked explicitly
 		use_module/1, use_module/2, ensure_loaded/1,
-		make_exec/2,
+		make_exec/2, make_actmod/3,
 		include/1, use_package/1,
 		consult/1, compile/1, '.'/2,
 		debug_module/1, nodebug_module/1,
@@ -19,7 +19,7 @@
 	    ],
 	    [dcg, assertions, nortchecks, define_flag]).
 
-:- use_module(library(compiler/exemaker),        [make_exec/2]).
+:- use_module(library(compiler/exemaker), [make_exec/2, make_actmod/3]).
 :- use_module(library(compiler),
 	    [use_module/3, ensure_loaded/2,
 		set_debug_mode/1, set_nodebug_mode/1, mode_of_module/2,
@@ -63,6 +63,7 @@
 % ---------------------------------------------------------------------------
 
 :- redefining(make_exec/2).
+:- redefining(make_actmod/3).
 :- redefining(debug_module/1).
 :- redefining(debug_module_source/1).
 :- redefining(nodebug_module/1).
@@ -713,10 +714,12 @@ compile(File) :-
 	ensure_loaded(File).
 
 make_exec(Files, ExecName) :-
-	( Files = [_|_] ->
-	    exemaker:make_exec(Files, ExecName)
-	; exemaker:make_exec([Files], ExecName)
-	).
+	( Files = [_|_] -> Files2 = Files ; Files2 = [Files] ),
+	exemaker:make_exec(Files2, ExecName).
+
+make_actmod(Files, PublishMod, ExecName) :-
+	( Files = [_|_] -> Files2 = Files ; Files2 = [Files] ),
+	exemaker:make_actmod(Files2, PublishMod, ExecName).
 
 use_package([]) :- !.
 use_package([F|Fs]) :- !,

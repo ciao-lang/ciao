@@ -365,7 +365,7 @@ available when invoking @apl{ciaoc}:
 :- use_module(library(compiler/global_module_options)).
 
 :- use_module(library(compiler/exemaker),
-	    [make_exec/2, make_actmod/2, force_lazy/1, dynamic_search_path/1]).
+	    [make_exec/2, make_actmod/3, force_lazy/1, dynamic_search_path/1]).
 
 % ---------------------------------------------------------------------------
 
@@ -378,17 +378,20 @@ main(Args) :-
 	    halt(1)).
 
 % ---------------------------------------------------------------------------
-% Specify here the default action (if no options are given)
-% :- default_action(Action, Args).
+% Simple options, flag based options, and default action
+%
+%   :- simple_option(Option, Action, Help, Terminates, Args0, Args).
+%   NOTE: simple_option/6 is expanded as exec_simple_option/4.
+%   :- default_action(Action, Args). % (run if no 'finished' option is left)
+%   :- flag_based_option(FlagName, FlagValue, Option, Help).
+%   NOTE: flag_based_option/4 is expanded as flag_option/3.
+%
 % ---------------------------------------------------------------------------
 
-:- default_action((verbose_version, make_exec(Args, _ExecName)), Args).
+:- default_action(run_ciaoc(Args), Args).
 
-% ---------------------------------------------------------------------------
-% Specify here simple options
-% :- simple_option(Option, Action, Help, Terminates, Args0, Args).
-% NOTE: simple_option/6 is expanded as exec_simple_option/4.
-% ---------------------------------------------------------------------------
+:- data output_kind/1.
+:- data output_file/1.
 
 :- simple_option(['-h', '--help'],
     usage,
@@ -397,28 +400,28 @@ main(Args) :-
 %
 :- simple_option('-u',
     use_module(CFile, all, c_itf_internal),
-    "Use <file> for compilation, often used to include LibDir paths, etc.",
+    "<File> Use File for compilation, often used to include LibDir paths, etc.",
     continue, [CFile|Args], Args).
 %
 :- simple_option('-op',
     opt_suffix(_, Suff),
-    "Use <suffix> as the suffix for optimized (or otherwise tuned) code",
+    "<Suffix> Use Suffix as the suffix for optimized (or otherwise tuned) code",
     continue, [Suff|Args], Args).
 %
 :- simple_option('-L',
     asserta_fact(library_directory(Dir)),
-    "Look for libraries also in the <LibDir> directory",
+    "<LibDir> Look for libraries also in the LibDir directory",
     continue, [Dir|Args], Args).
 %
 :- simple_option('-c',
-    ( verbose_version, make_po(Args) ),
-    "Compile listed files (make .po objects)",
-    finished, Args, []).
+    set_fact(output_kind(po)),
+    "Generate .po objects for the input modules",
+    continue, Args, Args).
 %
 :- simple_option('-w',
-    ( verbose_version, make_wam(Args) ),
-    "Generate WAM code of listed files (in .wam files).",
-    finished, Args, []).
+    set_fact(output_kind(wam)),
+    "Generate .wam files (WAM code) for the input modules",
+    continue, Args, Args).
 %
 :- simple_option('-S',
     ( set_prolog_flag(executables, static),
@@ -431,48 +434,43 @@ main(Args) :-
 :- simple_option('-SS',
     ( set_prolog_flag(executables, static),
       set_prolog_flag(self_contained, EngCfg) ),
-    "Make standalone executable for <target> OS and architecture (and \n\t" ||
-    "optionally debugging level) (see ciao_sysconf for valid values for <target>), implies -s",
+    "<EngCfg> Make standalone executable for the EngCfg OS and architecture (and \n\t" ||
+    "optionally debugging level) (see ciao_sysconf for valid values for Target), implies -s",
     continue, [EngCfg|Args], Args).
 %
 :- simple_option('-ll',
     ( set_prolog_flag(executables, lazyload),
       force_lazy(Module) ),
-    "Force <module> to be loaded lazily,  implies -l",
+    "<Module> Force Module to be loaded lazily, implies -l",
     continue, [Module|Args], Args).
 %
 :- simple_option('-ac',
     ( read_from_atom(P0, P),
       glbmod_add_package(_, P) ),
-    "All the modules will be compiled using <Packages>",
+    "<Packages> Use Packages for compiling all modules",
     continue, [P0|Args], Args).
 %
 :- simple_option('-acm',
     ( read_from_atom(P0, P),
       glbmod_add_package(M, P) ),
-    "<Modules> will be compiled using <Packages>",
+    "<Module> <Packages> Use the given Packages (term) for compiling Module",
     continue, [M, P0|Args], Args).
 %
 :- simple_option('-d',
     assertz_fact(dynamic_search_path(Path)),
-    "Files using this path alias are dynamic (default: library)",
-    continue, [Path|Args],  Args).
+    "<Path> Files using this path alias are dynamic (default: library)",
+    continue, [Path|Args], Args).
 %
-% TODO: Fix option parsing (do not use a difflist)
 :- simple_option('-o',
-    ( verbose_version, make_exec([File|Files], ExecName) ),
-    "Make an executable from the listed files.",
-    finished, [ExecName, File|Files], []).
+    set_fact(output_file(OutputName)),
+    "<File> Specify output file name",
+    continue, [OutputName|Args], Args).
 %
 :- simple_option('-a',
-    ( verbose_version, make_actmod(Module, PublishMod) ),
-    "Make an active module",
-    finished, [PublishMod, Module], []).
+    set_fact(output_kind(actmod(PublishMod))),
+    "<PublishMod> Make an active module using address publish PublishMod",
+    continue, [PublishMod|Args], Args).
 
-% ---------------------------------------------------------------------------
-% Specify here flag based options
-% :- flag_based_option(FlagName, FlagValue, Option, Help).
-% NOTE: flag_based_option/4 is expanded as flag_option/3.
 % ---------------------------------------------------------------------------
 
 % TODO: Flags domain duplicated here (see flag problem in */Manifest/*.hooks.pl)
@@ -557,44 +555,43 @@ main(Args) :-
     "used in :- initialization(...) or :- on_abort(...) \n\t"||
     "declarations, or if it is the meta-argument of a metapredicate.").
 
-:- doc(bug, " Also if appears in the body of an assertion referred
-to a predicate being used, but that is not implemented, because the
-assertion reader is not included in the compiler yet -- EMM.").
+:- doc(bug, "Also if appears in the body of an assertion referred to a
+   predicate being used, but that is not implemented, because the
+   assertion reader is not included in the compiler yet -- EMM.").
+
+% ---------------------------------------------------------------------------
 
 verbose_version :-
 	current_prolog_flag(verbose_compilation, on), !,
 	'$bootversion'.
 verbose_version.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% NOTE:  base_message/2 is expanded as usage/0 and collects
-% the help for each option
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+run_ciaoc(Args) :-
+	verbose_version,
+	( output_file(OutputName) -> true
+	; OutputName = _ % (fill it later)
+	),
+	( output_kind(po) ->
+	    make_po(Args) % TODO: OutputName is ignored, show warning if nonvar?
+	; output_kind(wam) ->
+	    make_wam(Args) % TODO: OutputName is ignored, show warning if nonvar?
+	; output_kind(actmod(PublishMod)) ->
+	    make_actmod(Args, PublishMod, OutputName)
+	; % (default)
+	  make_exec(Args, OutputName)
+	).
+
+% ---------------------------------------------------------------------------
+% NOTE: base_message/2 is expanded as usage/0 and collects the help
+% for each option
+
 :- base_message('$bootversion', "\
-ciaoc <MiscOpts> <ExecOpts> [-o <execname>] <file> ...
 
-  Make an executable from the listed files.  If there is
-  more than one file, they must be non-module, and the
-  first one must include the main predicate.  The -o
-  option allows generating an arbitrary executable name.
+ciaoc [Opts] <Files>
 
-ciaoc <MiscOpts> <ExecOpts> -a <publishmod> <module>
+Compile the listed files. If there is more than one file, the first
+one is considered the main module (it must include the main predicate
+when creating an executable).
 
-  Make an active module executable from <module> with
-  address publish module <publishmod>.
-
-ciaoc <MiscOpts> -c  <file> ...
-
-  Compile listed files (make .po objects).
-
-ciaoc <MiscOpts> -w  <file> ...
-
-  Generate WAM code of listed files (in .wam files).
-
-<MiscOpts> can be: [-v] [-ri] [-u <file>]  [-rc] [-op <suffix>] [-L <LibDir>]
-
-<ExecOpts> can be: [-s|-S|-SS <target>|-z|-zl|-e|-l|(-ll <module>)*]
-                   (-d <alias>)* [-x]
-
-default extension for files is '.pl'
+The default extension for files is '.pl'.
 ").

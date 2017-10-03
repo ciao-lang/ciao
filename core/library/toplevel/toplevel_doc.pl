@@ -213,7 +213,7 @@ yes
         [make_po/1, unload/1,
          set_debug_mode/1, set_nodebug_mode/1]).
 :- reexport(library(compiler/exemaker),
-        [make_actmod/2, force_lazy/1, undo_force_lazy/1,
+        [make_actmod/3, force_lazy/1, undo_force_lazy/1,
          dynamic_search_path/1]).
 :- reexport(library(compiler/c_itf),
         [multifile/1]).
@@ -257,10 +257,10 @@ yes
         # "Provided for backward compatibility, obsoleted by
           @pred{ensure_loaded/1}.".
 
-:- true pred make_exec(File, ExecName)
+:- true pred make_exec(Files, ExecName)
 %        :: atm(ExecName)
-        : sourcenames(File) => atm(ExecName)
-        # "Make a Ciao executable from file (or files) @var{File},
+        : sourcenames(Files) => atm(ExecName)
+        # "Make a Ciao executable from file (or files) @var{Files},
            giving it name @var{ExecName}.  If @var{ExecName} is a
            variable, the compiler will choose a default name for the
            executable and will bind the variable @var{ExecName} to that
@@ -284,10 +284,11 @@ yes
         # "Set the loading mode of @var{File} to @em{compile}. See
           @ref{The interactive debugger}.".
 
-:- true pred make_actmod(ModuleFile, PublishMod) : sourcename * atm
-        # "Make an @concept{active module} executable from the module
-          residing in @var{ModuleFile}, using address publish module of
-          name @var{PublishMod} (which needs to be in the library paths).".
+:- true pred make_actmod(Files, PublishMod, ExecName) : sourcenames * atm * atm
+        # "Make an @concept{active module} executable from the modules
+          residing in @var{Files}, using address publish module of
+          name @var{PublishMod} (which needs to be in the library
+          paths).".
 
 :- true pred force_lazy(Module) : atm
         # "Force module of name @var{Module} to be loaded lazily in the

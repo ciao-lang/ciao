@@ -1,27 +1,27 @@
 :- module(exemaker,
 	    [make_exec/2,
-		make_actmod/2,
-		force_lazy/1,
-		undo_force_lazy/1,
-		dynamic_search_path/1],
+	     make_actmod/3,
+	     force_lazy/1,
+	     undo_force_lazy/1,
+	     dynamic_search_path/1],
 	    [assertions, define_flag]).
 
 :- use_module(library(compiler/c_itf_internal),
 	    [handle_exc/1,
-		process_file/7,
-		process_files_from/7,
-		false/1,
-		make_po_file/1,
-		base_name/2,
-		file_data/3,
-		module_error/1,
-		defines_module/2,
-		cleanup_c_itf_data/0,
-		processed/2,
-		exports/5,
-		imports_pred/7,
-		def_multifile/4,
-		decl/2]).
+	     process_file/7,
+	     process_files_from/7,
+	     false/1,
+	     make_po_file/1,
+	     base_name/2,
+	     file_data/3,
+	     module_error/1,
+	     defines_module/2,
+	     cleanup_c_itf_data/0,
+	     processed/2,
+	     exports/5,
+	     imports_pred/7,
+	     def_multifile/4,
+	     decl/2]).
 :- use_module(engine(meta_inc), [meta_inc_args/3]).
 :- use_module(engine(internals),
 	    [po_filename/2,
@@ -65,15 +65,20 @@ undo_force_lazy(Module) :- retractall_fact(ok_lazy(Module)).
 make_exec(Files, ExecName) :-
 	catch(make_exec_prot(Files, ExecName), Error, handle_exc(Error)).
 
-make_actmod(ModuleFile, PublishMod) :-
-% nonvar() below is always true for files
-	process_file(ModuleFile, nop, module, false, nonvar, false, false),
-	base_name(ModuleFile, Base),
+make_actmod(Files, PublishMod, ExecName) :-
+	Files = [MainFile|RestFiles],
+	% nonvar() below is always true for files
+	process_file(MainFile, nop, module, false, nonvar, false, false),
+	base_name(MainFile, Base),
 	file_data(Base, PlName, _),
-	get_os(OS),
-	resolve_execname(ExecName, Base, PlName, OS),
-	create_main(Base, PublishMod, MainFile),
-	catch(make_exec_prot([MainFile], ExecName), Error, handle_exc(Error)).
+	( var(ExecName) ->
+	    % (note that we change main file later)
+	    get_os(OS),
+	    resolve_execname(ExecName, Base, PlName, OS)
+	; true
+	),
+	create_main(Base, PublishMod, NewMainFile),
+	catch(make_exec_prot([NewMainFile|RestFiles], ExecName), Error, handle_exc(Error)).
 
 make_exec_prot(Files, ExecName) :-
 	process_files_from(Files, po, any,
