@@ -371,7 +371,7 @@ is_dir(Path) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(.(mimetypes)).
+:- use_module(library(http/mimetypes)).
 
 % Detect content type of a file (based on extension).
 %
