@@ -31,7 +31,6 @@ function find_source__() { # PATH
 	 -path "$1"'/'"$rel_builddir" -prune -o \
 	 -path "$1"'/regr-db' -prune -o \
 	 -path "$1"'/third-party' -prune -o \
-	 -path "$1"'/bndls/ciao_webide/externals' -prune -o \
 	 \( '!' -type d \
          '!' -name 'NOCOMPILE' -a \
          '!' -name 'NODISTRIBUTE' -a \

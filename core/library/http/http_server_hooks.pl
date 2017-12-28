@@ -1,12 +1,14 @@
 % (included)
 
-% http_handle(Path, Request, Response)
-%   (if fail, it uses http_file_path/2)
-:- discontiguous http_handle/3.
-:- multifile http_handle/3.
+% :- trait httpserv.
 
-% http_file_path(Dir, LocalDir):
+% 'httpserv.handle'(Path, Request, Response)
+%   (if fail, it uses 'httpserv.file_path'/2)
+:- discontiguous 'httpserv.handle'/3.
+:- multifile 'httpserv.handle'/3.
+
+% 'httpserv.file_path'(Dir, LocalDir):
 %   URI files under Dir are accessible from LocalDir in the local filesystem
-:- discontiguous http_file_path/2.
-:- multifile http_file_path/2.
+:- discontiguous 'httpserv.file_path'/2.
+:- multifile 'httpserv.file_path'/2.
 

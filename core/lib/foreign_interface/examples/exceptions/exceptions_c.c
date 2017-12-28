@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include <ciao_prolog.h>
 
 int codes_to_number_c(char *s) {

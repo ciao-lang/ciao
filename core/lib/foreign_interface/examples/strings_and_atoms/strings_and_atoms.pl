@@ -11,9 +11,9 @@
 	string + (foreign(get_static_str),returns(S),do_not_free(S)).
 	 
 :- true pred lookup_string(in(N),go(S)) ::
-	int * string + (foreign(get_str),returns(S)).
+	c_int * string + (foreign(get_str),returns(S)).
 :- true pred lookup_atom(in(N),go(S)) ::
-	int * atm + (foreign(get_str),returns(S)).
+	c_int * atm + (foreign(get_str),returns(S)).
 
 :- true pred show_string(in(S)) :: string + foreign(put_str).
 :- true pred show_atom(in(S)) :: atm + foreign(put_str).

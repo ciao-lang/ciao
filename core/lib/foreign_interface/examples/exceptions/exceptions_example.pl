@@ -7,7 +7,7 @@
 :- use_module(library(format)).
 
 % If the string is not a number raises an exception.
-:- true pred codes_to_number_c(in(X), go(Y)) :: string * int + (foreign, returns(Y)).
+:- true pred codes_to_number_c(in(X), go(Y)) :: string * c_int + (foreign, returns(Y)).
 
 safe_codes_to_number(X, Y) :-
         catch(codes_to_number_c(X, Y), Error, handle_exception(Error)).

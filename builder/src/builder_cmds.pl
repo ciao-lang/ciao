@@ -963,6 +963,7 @@ ask_promote_bootstrap(Eng) :-
 % Show bundle documentation
 
 :- use_module(ciaobld(lpdoc_aux), [show_doc/3]).
+:- use_module(ciaobld(manifest_compiler), [main_file_relpath/2]).
 
 % TODO: add command to locate path of a given command (use cmd_path)
 
@@ -984,10 +985,7 @@ ask_promote_bootstrap(Eng) :-
 	% just open all manuals
 	( % (failure-driven loop)
 	  manifest_call(Target, manual(_Base, Props)),
-	    ( member(main=Path, Props) -> true
-	    ; fail % ill-formed
-	    ),
-	    show_doc(Bundle, Path, DocFormat),
+	    show_doc(Bundle, ~main_file_relpath(Props), DocFormat),
 	    fail
 	; true
 	).

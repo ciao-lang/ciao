@@ -55,43 +55,6 @@ bundle_contents(ciao, Filter, X) :- !,
 	'$bundle_id'(Id), % (nondet)
 	\+ Id = ciao,
 	bundle_contents(Id, Filter, X).
-bundle_contents(core, Filter, X) :- !,
-	% TODO: Note that it does not include all parts!
-	( bundle_contents(part(core, engine), Filter, X)
-	; bundle_contents(part(core, compiler), Filter, X)
-	; bundle_contents(part(core, toplevel), Filter, X)
-	; bundle_contents(part(core, lib), Filter, X)
-	; bundle_contents(part(core, library), Filter, X)
-	).
-%
-bundle_contents(part(core, engine), Filter, X) :- !,
-	bundle_path(core, 'engine', F),
-	current_file_find(Filter, F, X).
-bundle_contents(part(core, compiler), Filter, X) :- !,
-	bundle_path(core, 'lib/compiler', F),
-	current_file_find(Filter, F, X).
-bundle_contents(part(core, toplevel), Filter, X) :- !,
-	bundle_path(core, 'library/toplevel', F),
-	current_file_find(Filter, F, X).
-%
-bundle_contents(part(core, lib), Filter, X) :- !,
-	bundle_path(core, 'lib/compiler', F1),
-	%
-	bundle_path(core, 'lib', F),
-	current_file_find(Filter, F, X),
-	% TODO: Hack, not in lib/compiler
-	\+ atom_concat(F1, _, X).
-bundle_contents(part(core, library), Filter, X) :- !,
-	bundle_path(core, 'library/toplevel', F1),
-	%
-	bundle_path(core, 'library', F),
-	current_file_find(Filter, F, X),
-	% TODO: Hack, not in library/toplevel
-	\+ atom_concat(F1, _, X).
-%
-bundle_contents(lpdoc, Filter, X) :- !,
-	bundle_path(lpdoc, 'src', F),
-	current_file_find(Filter, F, X).
 bundle_contents(Id, Filter, X) :- !,
 	bundle_path(Id, '.', F),
 	current_file_find(Filter, F, X).

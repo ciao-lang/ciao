@@ -215,8 +215,7 @@ tag_attrib((Att = Val)) :- atm(Att), string(Val).
    (there is only one argument) the method defaults to POST.
 
    @item{@bf{start_form}} Specifies the beginning of a form without
-   assigning address to the handler, so that the form handler will be
-   the cgi-bin executable producing the form.
+   assigning address to the handler.
 
    @item{@bf{end_form}} Specifies the end of a form.
 
