@@ -7,6 +7,8 @@
 :- use_module(library(system), [file_exists/1]).
 :- use_module(ciaobld(third_party_custom), [third_party_custom_path/2]).
 
+:- use_module(library(persdb/datadir), [ensure_datadir/2]). % TODO: sure?
+
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 :- use_module(library(pathnames), [path_is_absolute/1]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
@@ -54,18 +56,19 @@ site_link_bower_components :-
 	Path = ~third_party_custom_path(bower_components),
 	site_link_dir_(core, Path, '/bower_components').
  
-% TODO: allow more workspaces
 :- export(site_link_builddoc/0).
 % Symbolic link from build/doc to build/site
 site_link_builddoc :-
 	DocDir = ~bundle_path(core, builddir, 'doc'),
 	site_link_dir_(core, DocDir, '/ciao/build/doc').
 
-:- export(site_link_dir/3).
-site_link_dir(Bundle, From, To) :-
-	AbsFrom = ~bundle_path(Bundle, From),
-	site_link_dir_(Bundle, AbsFrom, To).
+:- export(site_link_datadir/2).
+% Symbolic link from custom datadir (at build/data) to build/site
+site_link_datadir(RelPath, To) :-
+	AbsFrom = ~ensure_datadir(RelPath),
+	site_link_dir_(core, AbsFrom, To).
 
+% TODO: use Bundle (or add workspace)
 site_link_dir_(Bundle, AbsFrom, To) :-
 	AbsTo = ~bundle_site_path(Bundle, To),
 	path_split(AbsTo, AbsToDir, _),
