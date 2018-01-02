@@ -5,7 +5,8 @@
 :- doc(author, "Ciao Deveveloper Team").
 
 :- doc(module, "This is a wrapper around @apl{lpdoc} to build the
-   documentation of a bundle.").
+   documentation of a bundle. It uses @tt{lpdoc} as an external
+   process so that no hard dependencies are introduced.").
 
 % ---------------------------------------------------------------------------
 

@@ -31,10 +31,12 @@ opendoc(Path) :-
       (@tt{generic} is the default)".
 
 opendoc(Path, Opts) :-
-	( use_emacs(Path, Opts, EmacsFun) ->
-	    view_in_emacs(EmacsFun, Path)
-	; generic_viewer(Viewer),
-	  process_call(path(Viewer), [Path], [])
+	get_viewer(Path, Opts, Viewer, Path2),
+	( Viewer = emacs(EmacsFun) -> view_in_emacs(EmacsFun, Path2)
+	; Viewer = osascript -> view_in_osascript(Path2)
+	; % Viewer = generic
+	  generic_viewer(ViewerCmd),
+	  process_call(path(ViewerCmd), [Path], [])
 	).
 
 % ---------------------------------------------------------------------------
@@ -49,34 +51,60 @@ has_protocol(Path) :-
 
 % ---------------------------------------------------------------------------
 	
-% use_emacs(+Path, +Opts, -Fun): 
-%   Use emacs to view document at Path with elisp function Fun
-use_emacs(Path, Opts, Fun) :-
-	( has_protocol(Path) -> Ext = '.html' % assume it is .html (skips anchors, etc.)
+% get_viewer(+Path, +Opts, -Viewer, -Path2): 
+%   Obtain Viewer to view document at Path:
+%
+%    - emacs(Fun): elisp function Fun
+%    - osascript: custom osascript (for macOS)
+%
+%   Path2 is a modified Path (if needed) for the specified viewer
+
+get_viewer(Path, Opts, Viewer, Path2) :-
+	( has_protocol(Path) -> Ext = '.html' % assume .html
 	; path_splitext(Path, _, Ext)
 	),
-	use_emacs_(Ext, Opts, Fun).
+	custom_viewer(Ext, Opts, Viewer),
+	!,
+	% Escape path (for elisp expression)
+	( has_protocol(Path) -> Path2 = Path
+	; absolute_file_name(Path, Path1),
+	  ( Ext = '.html' -> % force protocol
+	      Path2 = ~atom_concat('file://', Path1)
+	  ; Path2 = Path1
+	  )
+	).
+get_viewer(Path, _Opts, generic, Path).
 
-use_emacs_('.info', _, info).
-use_emacs_('.manl', _, man).
-use_emacs_('.html', Opts, 'eww') :-
-        member(in_emacs, Opts), !.
+custom_viewer('.info', _, emacs(info)).
+custom_viewer('.manl', _, emacs(man)).
+custom_viewer('.html', Opts, emacs(eww)) :- member(in_emacs, Opts), !.
+custom_viewer('.html', _Opts, osascript) :- get_os('DARWIN').
+
+% ---------------------------------------------------------------------------
+% Open with emacsclient
 
 view_in_emacs(EmacsFun, Path) :-
-	% Escape path (for elisp expression)
-	( has_protocol(Path) -> Path0 = Path
-	; absolute_file_name(Path, Path00),
-	  ( EmacsFun = eww -> % force protocol
-	      Path0 = ~atom_concat('file://', Path00)
-	  ; Path0 = Path
-	  )
-	),
-	atom_codes(Path0, Path1),
+	atom_codes(Path, Path1),
 	esc_codes(Path1, Path2, []),
 	atom_codes(Path3, Path2),
 	Code = ~atom_concat(['(', EmacsFun, ' \"', Path3, '\")']),
 	%
 	process_call(path(emacsclient), ['-n', '--eval', Code], []).
+
+% ---------------------------------------------------------------------------
+% Use `osascript` in macOS so that we can handle URL fragments
+% (E.g., file:///foo/bar.html#anchor). The `open` command ignores them
+% for file://
+
+view_in_osascript(Path) :-
+	atom_codes(Path, Path1),
+	esc_codes(Path1, Path2, []),
+	atom_codes(Path3, Path2),
+	Code = ~atom_concat(['open location \"', Path3, '\"']),
+	%
+	process_call(path(osascript), ['-e', Code], []).
+
+% ---------------------------------------------------------------------------
 
 % TODO: merge esc_codes/3 with elisp_interface.pl
 
