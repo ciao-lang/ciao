@@ -85,29 +85,9 @@ form_data_to_async_request(ServName, Input, async_request(ActMod, Cmd, Data, Blo
 	; Blobs = json([])
 	).
 
-get_form_value_string(Input, Name, String) :-
-	get_form_value(Input, Name, Lines),
-	( atom(Lines) -> % TODO: This should not be needed! Fix http form support?!
-	    atom_codes(Lines, String)
-	; lines_to_string(Lines, String)
-	).
-
 get_form_value_json(Input, Name, Value) :-
 	get_form_value_string(Input, Name, Value0),
 	string_to_json(Value0, Value).
-
-get_form_value_atm(Input, Name, Value) :-
-	get_form_value_string(Input, Name, Value0),
-	atom_codes(Value, Value0).
-
-:- use_module(library(lists), [append/3]).
-
-lines_to_string([], []).
-lines_to_string([S], T) :- !,
-	T = S.
-lines_to_string([S|Ss], T) :-
-	append(S, "\n"||S0, T),
-	lines_to_string(Ss, S0).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "From async response to HTTP response").
