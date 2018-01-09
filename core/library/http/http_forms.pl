@@ -94,7 +94,8 @@ get_form_value([_|Dic],Var,Val) :-
 :- pred get_form_value_string(+form_dict,+atm,?string).
 get_form_value_string(Input, Name, String) :-
 	get_form_value(Input, Name, Lines),
-	( atom(Lines) -> % TODO: This should not be needed! Fix http form support?!
+	( Lines = '$empty' -> String = "" % TODO: strange
+	; atom(Lines) -> % TODO: This should not be needed! Fix http form support?!
 	    atom_codes(Lines, String)
 	; lines_to_string(Lines, String)
 	).
