@@ -122,14 +122,11 @@ interpret_args(['-u', File|R], Opts) :- !,
 	use_module(File),
 	interpret_args(R, Opts).
 interpret_args(['-e', Query|R], Opts) :- !,
-	read_from_atom(Query, Term),
-	call(Term),
+	read_from_atom(Query, Goal),
+	'$shell_call'(Goal),
 	interpret_args(R, Opts).
 interpret_args(['-p', Prompt|R], Opts) :- !,
 	top_prompt(_, Prompt),
-	interpret_args(R, Opts).
-interpret_args(['-g', Goal|R], Opts) :- !,
-	'$shell_call'(Goal),
 	interpret_args(R, Opts).
 interpret_args(_Args, _) :-
 	display(
