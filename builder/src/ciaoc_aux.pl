@@ -50,7 +50,7 @@
 ciaoc := ~cmd_path(core, plexe, 'ciaoc').
 bootstrap_ciaoc := ~bundle_path(core, 'bootstrap/ciaoc.sta').
 
-:- use_module(ciaobld(config_common), [cmd_path/4, libcmd_path/4]).
+:- use_module(ciaobld(config_common), [cmd_path/4]).
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
 
 :- use_module(ciaobld(bundle_configure), [
@@ -91,44 +91,28 @@ invoke_boot_ciaoc(Args, Opts) :-
 %  - 'bootstrap_ciaoc': initial bootstrap ciaoc
 %  - 'final_ciaoc': (default)
 %      final ciaoc compiler (fixpoint when self-compiling)
-%  - 'libexec': command not run directly by humans
 %
 % Other options are:
 %
 %  - 'static': build a static executable (self-contained, so that
 %     changes in the compiled system libraries does not affect it)
-%  - 'standalone': standalone executable (self-contained, including
-%     engine)
-%  - 'actmod': compile as an active module
 %
 b_make_exec(Bundle, InFile, OutFile, Opts) :-
-	( member(libexec, Opts) ->
-	    ensure_builddir(Bundle, 'libexec'),
-	    FileBuild = ~libcmd_path(Bundle, plexe, OutFile)
-	; ensure_builddir(Bundle, 'bin'),
-	  FileBuild = ~cmd_path(Bundle, plexe, OutFile)
+	ensure_builddir(Bundle, 'bin'),
+	FileBuild = ~cmd_path(Bundle, plexe, OutFile),
+	( member(static, Opts) ->
+	    Static = ['-s']
+	; Static = []
 	),
 	path_split(InFile, Dir, Base),
 	In = ~atom_concat(Base, '.pl'),
-	ciaoc_args(Opts, FileBuild, In, Args, []),
+	Args = ['-x' | ~append(Static, ['-o', FileBuild, In])],
 	( member(final_ciaoc, Opts) ->
 	    cpx_process_call(~ciaoc, Args, [cwd(Dir)])
 	; member(bootstrap_ciaoc, Opts) ->
 	    cpx_process_call(~bootstrap_ciaoc, Args, [boot, cwd(Dir)])
 	; throw(bad_opts_in_b_make_exec(Opts))
 	).
-
-ciaoc_args(Opts, FileBuild, In) -->
-	['-x'], % TODO: always?
-	( { member(static, Opts)} -> ['-s']
-	; { member(standalone, Opts) } -> ['-S']
-	; []
-	),
-	( { member(actmod, Opts)} -> ['-a', 'actmod/tmpbased_publish'] % TODO: more?
-	; []
-	),
-	['-o', FileBuild],
-	[In].
 
 % TODO: Fix using CIAOCACHEDIR. We have a problem here: we build some
 %       libraries with the bootstrap compiler and others with the
@@ -323,32 +307,25 @@ create_windows_bat(Eng, BatCmd, Opts, EngExecOpts, OrigBundle, OrigCmd) :-
 % TODO: show the same kind of messages that are used when compiling libraries
 :- export(cmd_build/1).
 cmd_build(cmd_def(Bundle, In, Output, Props)) :-
-	prop_opts(Props, Opts, []),
-	( member(libexec, Opts) -> What = libexec ; What = command ),
+	( member(static, Props) ->
+	    % make static executable
+	    Opts = [static]
+	; Opts = []
+	),
 	( member(shscript, Props) ->
 	    true % TODO: invoke custom build predicate
 	; member(bootstrap_ciaoc, Props) ->
 	    % use bootstrap ciaoc
 	    % TODO: it should use 'build' configuration
-	    normal_message("compiling ~w (~w) [using bootstrap compiler]", [Output, What]),
+	    normal_message("compiling ~w (command) [using bootstrap compiler]", [Output]),
 	    b_make_exec(Bundle, In, Output, [bootstrap_ciaoc|Opts])
 	; % member(final_ciaoc, Props) ->
 	  % use final_ciaoc (default)
 	  % TODO: it should use 'build' configuration
 	  % TODO: Add options for other ciaoc iterations
-	  normal_message("compiling ~w (~w)", [Output, What]),
+	  normal_message("compiling ~w (command)", [Output]),
 	  b_make_exec(Bundle, In, Output, [final_ciaoc|Opts])
 	).
-
-% From cmd_build/1 Props to b_make_exec/4 Opts
-prop_opts(Props) -->
-	prop_opt(static, Props),
-	prop_opt(standalone, Props),
-	prop_opt(libexec, Props),
-	prop_opt(actmod, Props).
-
-prop_opt(Opt, Props) -->
-	( { member(Opt, Props) } -> [Opt] ; [] ).
 
 % TODO: REMOVE, add cmd options instead
 :- export(cmd_build_copy/4).

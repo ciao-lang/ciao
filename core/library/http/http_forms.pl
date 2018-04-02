@@ -87,36 +87,18 @@ get_form_value([Var=Val|_],Var,Val) :- !.
 get_form_value([_|Dic],Var,Val) :- 
         get_form_value(Dic,Var,Val).
 
-:- export(get_form_value_string/3).
-:- doc(get_form_value_string(Dict,Var,Val), "Like @pred{get_form_value/3} but
-   obtain @var{Val} as a string.").
+:- doc(text_lines(Val,Lines), "Transforms a value @var{Val} from a
+  text area to a list of lines @var{Lines}.  Not needed now,
+  automatically done.").
 
-:- pred get_form_value_string(+form_dict,+atm,?string).
-get_form_value_string(Input, Name, String) :-
-	get_form_value(Input, Name, Lines),
-	( Lines = '$empty' -> String = "" % TODO: strange
-	; atom(Lines) -> % TODO: This should not be needed! Fix http form support?!
-	    atom_codes(Lines, String)
-	; lines_to_string(Lines, String)
-	).
+:- pred text_lines(+form_value,-list(string)).
 
-:- export(get_form_value_atm/3).
-:- doc(get_form_value_atm(Dict,Var,Val), "Like @pred{get_form_value/3} but
-   obtain @var{Val} as an atom.").
-
-:- pred get_form_value_atm(+form_dict,+atm,?atm).
-get_form_value_atm(Input, Name, Value) :-
-	get_form_value_string(Input, Name, Value0),
-	atom_codes(Value, Value0).
-
-:- use_module(library(lists), [append/3]).
-
-lines_to_string([], []).
-lines_to_string([S], T) :- !,
-	T = S.
-lines_to_string([S|Ss], T) :-
-	append(S, "\n"||S0, T),
-	lines_to_string(Ss, S0).
+% Transform input from a text area to a list of lines - not needed now
+text_lines('$empty', []) :- !.
+text_lines(A, [L]) :-
+        atomic(A), !,
+        name(A,L).
+text_lines(T,T).
 
 :- export(form_empty_value/1).
 :- pred form_empty_value(Term)
@@ -133,19 +115,6 @@ empty_lines([]).
 empty_lines([L|Ls]) :-
         whitespace0(L, []),
         empty_lines(Ls), !.
-
-:- doc(text_lines(Val,Lines), "Transforms a value @var{Val} from a
-  text area to a list of lines @var{Lines}.  Not needed now,
-  automatically done.").
-
-:- pred text_lines(+form_value,-list(string)).
-
-% Transform input from a text area to a list of lines
-text_lines('$empty', []) :- !.
-text_lines(A, [L]) :-
-        atomic(A), !,
-        name(A,L).
-text_lines(T,T).
 
 :- export(form_default/3).
 :- pred form_default(+Val,+Default,-NewVal)

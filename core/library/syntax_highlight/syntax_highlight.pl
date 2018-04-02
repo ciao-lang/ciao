@@ -6,18 +6,16 @@
 %    source code languages. Currently it depends on external tools
 %    like \apl{emacs}.
 
-:- use_module(library(lists), [append/3]).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(emacs/emacs_batch),
 	[emacs_path/1, emacs_batch_call/3, emacs_clean_log/2]).
 
-% TODO: uses files! it can be quite slow
 % TODO: Implement as an interface; define different backend
 % TODO: adds dependency to 'ciao_emacs' bundle and emacs (should be weak refs)
 % TODO: We really need support for assets for generation of static binaries
-
+	
 % ---------------------------------------------------------------------------
 
 :- export(lang/1).
@@ -70,11 +68,12 @@ can_highlight(Lang) :-
 % TODO: allow other mode selection? precompile .el files?
 % TODO: this starts a new emacs process, reuse a emacs daemon instead!
 
-:- pred emacs_htmlfontify(+Lang, +Input, +Output) :: lang * atm * atm
+:- export(highlight_to_html/3).
+:- pred highlight_to_html(+Lang, +Input, +Output) :: lang * atm * atm
    # "Produce HTML `Output` file with syntax highlight from `Input`
       file (using emacs and htmlfontify, and `Lang`-mode mode)".
 
-emacs_htmlfontify(Lang, Input, Output) :-
+highlight_to_html(Lang, Input, Output) :-
 	absolute_file_name(library(syntax_highlight/'emacs-htmlfontify.el'), HfyEl), % TODO: find asset?
 	ciao_mode_el(SiteFileEl),
 	LogBase = 'ciao-highlight-log',
@@ -102,58 +101,23 @@ emacs_htmlfontify(Lang, Input, Output) :-
 :- use_module(library(port_reify), [once_port_reify/2, port_call/1]).
 :- use_module(library(file_utils), [string_to_file/2, file_to_string/2]).
 
-:- export(highlight_file_to_html_string/3).
-:- pred highlight_file_to_html_string(+Lang, +Input, ?Output) :: lang * atm * string
-   # "Produce HTML `Output` string with syntax highlight from `Input`
-      file (see @pred{highlight_to_html/3})".
-
-highlight_file_to_html_string(Lang, Input, Output) :-
-	mktemp_in_tmp('highlight-out-XXXXXX', OutF),
-	once_port_reify(emacs_htmlfontify(Lang, Input, OutF), Port),
-	file_to_string(OutF, Output0), % TODO: may fail?
-	del_file_nofail(OutF),
-	port_call(Port),
-	Output = ~str_remove_pre(Output0).
-
-:- export(highlight_string_to_html_string/3).
-:- pred highlight_string_to_html_string(+Lang, +Input, ?Output) :: lang * string * string
+:- export(highlight_to_html_string/3).
+:- pred highlight_to_html(+Lang, +Input, +Output) :: lang * string * string
    # "Produce HTML `Output` string with syntax highlight from `Input`
       string (see @pred{highlight_to_html/3})".
 
 % TODO: uses files! it can be quite slow
 
-highlight_string_to_html_string(Lang, Input, Output) :-
+highlight_to_html_string(Lang, Input, Output) :-
 	mktemp_in_tmp('highlight-in-XXXXXX', InF),
 	mktemp_in_tmp('highlight-out-XXXXXX', OutF),
 	string_to_file(Input, InF),
-	once_port_reify(emacs_htmlfontify(Lang, InF, OutF), Port),
+	once_port_reify(highlight_to_html(Lang, InF, OutF), Port),
 	file_to_string(OutF, Output0), % TODO: may fail?
 	del_file_nofail(InF),
 	del_file_nofail(OutF),
 	port_call(Port),
-	Output = ~str_remove_pre(Output0).
-
-% Try remove <pre></pre> (we add ours later)
-% TODO: not very nice (fix emacs elisp code instead?)
-str_remove_pre(X) := Y :-
-	append("\n<pre>"||Y0, "</pre>\n", X), !,
-	Y = Y0.
-str_remove_pre(X) := X.
-
-% ---------------------------------------------------------------------------
-
-:- use_module(library(pillow/html), [html_term/1, html2terms/2]).
-
-:- export(highlight_file_to_html_term/3).
-:- pred highlight_file_to_html_term(+Lang, +Input, ?Output) :: lang * atm * html_term
-   # "Produce HTML `Output` term with syntax highlight from `Input`
-      file (see @pred{highlight_to_html/3})".
-
-highlight_file_to_html_term(Lang, Input, Output) :-
-	highlight_file_to_html_string(Lang, Input, Output0),
-	Output = ~html2terms(Output0).
-
-% TODO: generalize/reuse process_channel.pl; as casting of streamed data
+	Output = Output0.
 
 % ---------------------------------------------------------------------------
 

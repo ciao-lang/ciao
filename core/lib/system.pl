@@ -169,6 +169,14 @@ datime_struct(datime(Year,Month,Day,Hour,Min,Sec)) :-
 
 :- impl_defined(datime/9).
 
+:- doc(bug, "In some situations, copy_file don't work when the
+second argument is a directory, example:
+
+ 	copy_file( 'site/ciaopp_online.html' ,
+	           ~distdir, yes),
+
+").
+
 % ---------------------------------------------------------------------------
 
 %:- trust pred errno(?atm).

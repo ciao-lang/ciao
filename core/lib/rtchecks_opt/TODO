@@ -1,4 +1,0 @@
-NOTES
-
- - shallow*.pl packages + noshallowrtc + no hide decl = (should be)
-     opt*.pl with "fast" instrumentation

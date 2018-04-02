@@ -8,7 +8,7 @@
    sources.").
 
 :- use_module(ciaobld(builder_cmds), [builder_cmd/2, target_is_workspace/1]).
-:- use_module(ciaobld(manifest_compiler), [target_is_bundle/1, main_file_path/3]).
+:- use_module(ciaobld(manifest_compiler), [target_is_bundle/1]).
 
 % ---------------------------------------------------------------------------
 
@@ -234,21 +234,13 @@ prim(cmd(_, _), _Bundle, clean_bin) :- !. % TODO: missing!
 prim(cmd(Name, Opts), Bundle, install_bin) :- !,
 	% TODO: show the same kind of messages that are used when compiling libraries
 	cmd_def_kind(Opts, K),
-	( member(libexec, Opts) ->
-	    normal_message("installing ~w (libexec)", [Name]),
-	    instdir_install(libcmd_copy(K, Bundle, Name))
-	; normal_message("installing ~w (command)", [Name]),
-	  instdir_install(cmd_copy_and_link(K, Bundle, Name))
-	).
+	normal_message("installing ~w (command)", [Name]),
+	instdir_install(cmd_copy_and_link(K, Bundle, Name)).
 prim(cmd(Name, Opts), Bundle, uninstall_bin) :- !,
 	% TODO: show the same kind of messages that are used when compiling libraries
 	cmd_def_kind(Opts, K),
-	( member(libexec, Opts) ->
-	    normal_message("uninstalling ~w (libexec)", [Name]),
-	    instdir_uninstall(libcmd_copy(K, Bundle, Name))
-	; normal_message("uninstalling ~w (command)", [Name]),
-	  instdir_uninstall(cmd_copy_and_link(K, Bundle, Name))
-	).
+	normal_message("uninstalling ~w (command)", [Name]),
+	instdir_uninstall(cmd_copy_and_link(K, Bundle, Name)).
 % eng/2: engines
 % TODO: mimic 'cmd'! (this is a very similar case)
 prim(eng(EngMainSpec, EngOpts), Bundle, build_bin) :- !,
@@ -295,10 +287,10 @@ assets_file_do(File, Bundle, Path, uninstall_bin) :- !,
 	instdir_uninstall(lib_file(Bundle, ~path_concat(Path, File))).
 	
 get_cmd_def(Bundle, Name, Opts) := Def :-
-	( AbsPath = ~main_file_path(Bundle, Opts) -> true
+	( member(main=Path, Opts) -> true
 	; throw(cmd_requires_main(Name, Opts))
 	),
-	Def = cmd_def(Bundle, AbsPath, Name, Opts).
+	Def = cmd_def(Bundle, ~bundle_path(Bundle, Path), Name, Opts).
 
 % Properties of commands
 % TODO: move to ciaoc_aux?

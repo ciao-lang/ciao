@@ -52,18 +52,13 @@ add_bindir() { # dir
 # Add path to INFOPATH
 add_infodir() { # dir
     if [ "${INFOPATH:-0}" = "0" ]; then
-	INFOPATH="$1": # see "man info", colon suffix keeps defaults
-    else 
-	INFOPATH=$(concat_nodup "$1" "$INFOPATH")
+	INFOPATH=/usr/info:/usr/share/info:/usr/local/info
     fi
+    INFOPATH=$(concat_nodup "$1" "$INFOPATH")
 }
 # Add path to MANPATH
 add_mandir() { # dir
-    if [ "${MANPATH:-0}" = "0" ]; then
-	MANPATH="$1": # see "man manpath", colon suffix keeps defaults
-    else
-	MANPATH=$(concat_nodup "$1" "$MANPATH")
-    fi
+    MANPATH=$(concat_nodup "$1" "$MANPATH")
 }
 
 # ---------------------------------------------------------------------------

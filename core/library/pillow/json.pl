@@ -1,4 +1,4 @@
-:- module(json, [], [assertions, regtypes, basicmodes, dcg, fsyntax]).
+:- module(json, [], [assertions, regtypes, basicmodes, dcg]).
 
 :- doc(title, "JSON encoder and decoder").
 
@@ -231,42 +231,3 @@ quoted_as(0't, 0'\t).
 % (Shallow test for lists)
 is_list([]).
 is_list([_|_]).
-
-% ===========================================================================
-% Other predicates for accessing term representation of JSON objects 
-
-:- export(json_get/3).
-% Lookup Key in JSON dictionary
-json_get(json(Xs), Key, Value) :-
-	member(Key0=Value0, Xs), Key == Key0, !,
-	Value = Value0.
-
-:- export(json_get_atm/3).
-% Lookup Key in JSON dictionary and translate to atm
-json_get_atm(Json, Key, Value) :-
-	json_get(Json, Key, Value0),
-	json_as_atm(Value0, Value).
-
-:- export(atomiclst_to_json_strlist/2).
-% From list of constants to JSON value
-atomiclst_to_json_strlist([]) := [].
-atomiclst_to_json_strlist([A|As]) := [~atomic_to_json_str(A)|Bs] :-
-	Bs = ~atomiclst_to_json_strlist(As).
-
-:- export(atomic_to_json_str/2).
-% From constant (atomic) to JSON value
-atomic_to_json_str(X) := string(R) :- number(X), !, number_codes(X, R).
-atomic_to_json_str(X) := string(R) :- atom(X), !, atom_codes(X, R).
-
-:- export(json_as_atm/2).
-% From json string to atom
-json_as_atm(Value, Atm) :-
-	Value = string(Xs),
-	atom_codes(Atm, Xs).
-
-:- export(json_as_num/2).
-% From json string to number
-json_as_num(Value, Num) :-
-	Value = string(Xs),
-	number_codes(Num, Xs).
-

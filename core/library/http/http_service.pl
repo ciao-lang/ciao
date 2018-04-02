@@ -1,4 +1,4 @@
-:- package(http_service). % TODO: :- trait http_service.
+:- package(http_service). % TODO: trait
 
 % Trait for HTTP service (based on library(http/http_serve))
 % 
@@ -22,15 +22,16 @@ main(_) :-
 	treat_request(Request, Response),
 	cgi_write_response(Response).
 
+% TODO: diferent URI? (not really CGIs) We could use /api/... /q/... etc.
+
 % (interface as HTTP server)
 
 :- use_module(library(http/http_service_rt)).
 
 :- include(library(http/http_server_hooks)).
 
-'httpserv.handle'(Path, Request, Response) :-
-	split_query_str(Path, URI, _),
+http_handle(Path, Request, Response) :-
 	service_name(Name),
-	service_path(Name, URI),
+	service_path(Name, Path),
 	!,
 	treat_request(Request, Response).

@@ -590,7 +590,7 @@ tempdir_mark(Path, Mark) :-
 
 :- export(create_rel_link/2).
 :- pred create_rel_link(From, To) # "Create a @em{relocatable} symlink
-   (computing relative paths) (e.g., @tt{/a/b/c (symlink) -> /a/d/e}
+   (computing relative paths) (e.g., @tt{/a/b/c} (symlink) -> /a/d/e}
    becomes @tt{/a/b/c (symlink) -> ../d/e}".
 
 create_rel_link(From, To) :-

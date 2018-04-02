@@ -8,13 +8,13 @@
 	+ (foreign, returns(Stack)).
 :- true pred ciao_stack_delete(in(_Stack)) :: address 
 	+ foreign.
-:- true pred ciao_stack_size(in(_Stack), go(Size)) ::  (address * c_int)  
+:- true pred ciao_stack_size(in(_Stack), go(Size)) ::  (address * int)  
 	+ (foreign, returns(Size)).
-:- true pred ciao_stack_push(in(_Stack), in(_Value)) :: (address * c_int) 
+:- true pred ciao_stack_push(in(_Stack), in(_Value)) :: (address * int) 
 	+ foreign.
 :- true pred ciao_stack_pop(in(_Stack)) ::  address
 	+ foreign.
-:- true pred ciao_stack_top(in(_Stack), go(Value)) ::  (address * c_int)  
+:- true pred ciao_stack_top(in(_Stack), go(Value)) ::  (address * int)  
 	+ (foreign, returns(Value)).
 
 cc_stack_new(cc_stack(X)) :-

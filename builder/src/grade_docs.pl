@@ -8,7 +8,6 @@
    from sources.").
 
 :- use_module(ciaobld(builder_cmds), [builder_cmd/2, root_target/1]).
-:- use_module(ciaobld(manifest_compiler), [main_file_relpath/2]).
 
 % ---------------------------------------------------------------------------
 
@@ -87,7 +86,10 @@
 prim(_, _, prebuild_docs) :- !. % (default is nop)
 prim(readme(OutName, Props), Bundle, build_docs) :- !,
 	normal_message("generating ~w (file)", [OutName]),
-	build_docs_readme(Bundle, ~main_file_relpath(Props), OutName).
+	( member(main=SrcPath, Props) -> true
+	; fail % ill-formed
+	),
+	build_docs_readme(Bundle, SrcPath, OutName).
 prim(readme(_OutName, _Props), _Bundle, clean_docs) :- !,
 	% (Not cleaned, assuming they are part of the sources)
 	% R = ~bundle_path(_Bundle, _OutName).
@@ -102,7 +104,10 @@ prim(readme(_OutName, _Props), _Bundle, uninstall_docs) :- !,
 %
 prim(manual(Base, Props), Bundle, build_docs) :- !,
 	normal_message("generating ~w (manual)", [Base]),
-	build_doc(Bundle, ~main_file_relpath(Props)).
+	( member(main=Path, Props) -> true
+	; fail % ill-formed
+	),
+	build_doc(Bundle, Path).
 prim(manual(_Base, _Props), _Bundle, clean_docs) :- !,
 	% TODO: use Manifest, use lpdoc to clean?
 	true.

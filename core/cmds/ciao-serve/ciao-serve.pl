@@ -1,65 +1,96 @@
 :- module(_, [main/1], [assertions, fsyntax]).
 
-:- doc(title, "Ciao server").
+:- doc(title, "Ciao as a server (using HTTP protocol)").
 :- doc(author, "Jose F. Morales").
 
-:- doc(module, "This command implements a server process for Ciao
-   services (active modules, HTTP requests, etc.). See
-   @lib{service_registry} and @lib{serve_http} for more details.").
+:- doc(module, "This command creates a server process (HTTP protocol)
+   to access data (e.g., under @tt{build/site}) and interact with
+   binaries (e.g., CGIs) in the current workspaces.
+
+   It can be used during development or combined with HTTP reverse
+   proxies (please use with care, we provide no sandboxing
+   mechanism).").
+
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
+:- use_module(library(format), [format/3]).
+:- use_module(library(process), [process_call/3]).
+:- use_module(library(pathnames), [path_concat/3]).
+:- use_module(library(system), [cd/1]).
+:- use_module(engine(internals), [ciao_root/1]).
+
+:- use_module(library(http/http_server), [http_bind/1, http_loop/1]).
+:- include(library(http/http_server_hooks)).
+
+:- doc(bug, "fix http_server:http_write_response/2 so that it can
+   serve files without loading them in memory").
+
+:- doc(bug, "Configure to allow serving a workspace, many binaries, etc.").
+:- doc(bug, "Merge with actmod_cgi").
+:- doc(bug, "Start at different ports, act as a proxy with other Ciao servers").
+:- doc(bug, "Allow different protocols?").
 
 :- use_module(ciaobld(config_common), [site_root_dir/1]).
-:- use_module(library(http/http_server), [http_bind/1, http_loop/1]).
-:- use_module(library(system), [cd/1]).
-:- use_module(library(format), [format/3]).
 
-:- use_module(library(service/service_loader), [service_stop_all/0]).
-:- use_module(library(service/service_registry), [reload_service_registry/0]).
-:- use_module(library(service/serve_http), []). % (implements httpserv.handle/3)
-
-:- use_module(library(service/actmod_ctl), []). % TODO: make it optional?
-
-:- doc(bug, "Customize available services").
-:- doc(bug, "Make it work as proxy").
-:- doc(bug, "Binding only to loopback (for security)").
-
-main(Args) :- serve(Args).
-
-help_msg("Usage: ciao-serve [-p Port] <action>
-
-where action is one of:
-  help - show this message
-  stop - kill running daemons
-  <default> - start the server
-
-").
-
-help :-
-	help_msg(Msg),
-	format(user_error, "~s", [Msg]).
-
-serve_banner(Port) :-
+msg :-
 	format(user_error, "   Serving CIAOROOT/build/site files~n", []),
-	format(user_error, "   Server reachable at http://localhost:~w~n", [Port]).
+	format(user_error, "   Server reachable at http://localhost:8000~n", []).
 
-serve([help]) :- !,
-	help.
-serve([stop]) :- !,
-	format(user_error, "=> stopping daemons~n", []),
-	reload_service_registry,
-	service_stop_all.
-serve(['-p', PortAtm]) :- !,
-	atom_codes(PortAtm, Cs),
-	number_codes(Port, Cs),
-	serve_at_port(Port).
-serve([]) :- !,
-	serve_at_port(8000).
-
-serve_at_port(Port) :-
-	format(user_error, "=> starting HTTP server~n", []),
-	reload_service_registry,
-	serve_banner(Port),
-	http_bind(Port),
+% Open HTTP server for files at ~site_root_dir
+main([builtin]) :- !,
+	format(user_error, "=> starting built-in HTTP server~n", []),
+	msg,
 	Path = ~site_root_dir, cd(Path), % TODO: not needed?
-	http_loop(ExitCode),
-	halt(ExitCode).
+	http_bind(8000),
+	http_loop(_).
+main([]) :-
+	format(user_error, "=> starting external HTTP server~n", []),
+	msg,
+	Path = ~site_root_dir,
+	cd(Path),
+	external_server_start.
 
+http_file_path('', Path) :-
+	Path = ~site_root_dir.
+
+% ---------------------------------------------------------------------------
+% Dynamic load of HTTP services (http_service.pl)
+
+:- use_module(.(ciao_service_holder)).
+:- use_module(library(http/http_service_rt)).
+
+http_handle(Path, Request, Response) :-
+	service_path(Name, Path),
+	\+ service_loaded(Name), % Abort rule if service is already loaded
+	!,
+	assertz_fact(service_loaded(Name)),
+	dynload_service(Name),
+	% Try again (handler may have been extended)
+	http_handle(Path, Request, Response).
+
+dynload_service(Name) :-
+	( service_entry(Name, dynmod(Mod)) ->
+	    format(user_error, "Loading service `~w`...~n", [Name]),
+	    ciao_service_holder:do_use_module(Mod),
+	    format(user_error, "Done~n", [])
+	; format(user_error, "error: service `~w` is not registered~n", [Name])
+	).
+
+:- data service_loaded/1.
+
+% TODO: configure! add entries in build/services/?
+
+service_entry(actmod, dynmod(ciaopp_online(actmod_cgi))). % TODO: talk directly with active modules here? (need some protocol though)
+%
+service_entry(download, dynmod(ciao_website(download_cgi/download))).
+service_entry(download_stats, dynmod(ciao_website(download_cgi/download_stats))).
+service_entry(finder_cgi, dynmod(deepfind_ui(finder_cgi))).
+service_entry(chat80, dynmod(chat80_ui(chat80_ui))).
+service_entry(web_ui, dynmod(ciao_webide(web_ui_serve))).
+
+% ---------------------------------------------------------------------------
+
+%externalserver_start :- % simple server (no CGI)
+%	process_call(path(python), ['-m', 'SimpleHTTPServer'], []).
+external_server_start :- % simple server (with CGI under cgi-bin/)
+	CgiServer = ~bundle_path(core, 'cmds/ciao-serve/cgi-server.py'),
+	process_call(path(python), [CgiServer], []).

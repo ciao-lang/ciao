@@ -23,7 +23,7 @@
 :- use_module(library(system), [delete_directory/1]).
 
 :- use_module(ciaobld(builder_aux), [remove_dir_nofail/1]). % TODO: system?
-:- use_module(ciaobld(config_common), [concat_ext/3, cmd_path/4, libcmd_path/4]).
+:- use_module(ciaobld(config_common), [concat_ext/3, cmd_path/4]).
 
 % ===========================================================================
 :- doc(section, "Paths for installation").
@@ -79,17 +79,10 @@ inst_builddir_path(Rel) := R :-
 	).
 
 :- export(inst_cmd_path/4).
-% Path for an executable command in global installations
-% (e.g., INST_CIAOROOT/build/bin/<CMD>)
+% Executable path in global installations
+% (e.g., INST_CIAOROOT/build/bin/ciaoc)
 inst_cmd_path(_Bundle, Kind, File) := Path :-
 	BinDir = ~inst_builddir_path('bin'),
-	Path = ~path_concat(BinDir, ~concat_ext(Kind, File)).
-
-:- export(inst_cmd_path/4).
-% Path for a libexec command in global installations
-% (e.g., INST_CIAOROOT/build/libexec/<CMD>)
-inst_libcmd_path(_Bundle, Kind, File) := Path :-
-	BinDir = ~inst_builddir_path('libexec'),
 	Path = ~path_concat(BinDir, ~concat_ext(Kind, File)).
 
 % ===========================================================================
@@ -294,12 +287,6 @@ instdir_install(cmd_link_as(Kind, Bundle, Src, Dest)) :-
 	instdir_install(dir(~active_bindir)),
 	ignore_nosuccess(create_rel_link(From, To)).
 %
-instdir_install(libcmd_copy(Kind, Bundle, File)) :-
-	From = ~libcmd_path(Bundle, Kind, File),
-	To = ~rootprefixed(~inst_libcmd_path(Bundle, Kind, File)),
-	instdir_install(dir(~inst_builddir_path('libexec'))),
-	install_bin_file(From, To).
-%
 % TODO: separate 'ciao-config' exec to get options for CC/LD?
 % TODO: control engine 'activation' operation?
 %
@@ -330,9 +317,6 @@ instdir_uninstall(cmd_link(Kind, File)) :-
 %
 instdir_uninstall(cmd_copy(Kind, Bundle, File)) :-
 	instdir_uninstall(file(~inst_cmd_path(Bundle, Kind, File))).
-%
-instdir_uninstall(libcmd_copy(Kind, Bundle, File)) :-
-	instdir_uninstall(file(~inst_libcmd_path(Bundle, Kind, File))).
 %
 instdir_uninstall(file(File)) :-
 	del_file_nofail(~rootprefixed(File)).

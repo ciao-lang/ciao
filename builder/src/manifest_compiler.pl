@@ -225,7 +225,6 @@ manifest_def(cmd(_)). % TODO: bintgt/1?
 manifest_def(cmd(_,_)). % TODO: bintgt/1?
 manifest_def(readme(_,_)). % TODO: docstgt/1?
 manifest_def(manual(_,_)). % TODO: docstgt/1?
-manifest_def(service(_,_)). % TODO: for service_registry.pl
 
 treat_sentence(Sent, Bundle) :- var(Sent), !,
 	error_message("Unbound variable is not a valid sentence at Manifest.pl for ~w", [Bundle]).
@@ -497,20 +496,6 @@ get_bundle_readme(Bundle, R) :-
 bundle_manual_base(Bundle) := R :-
 	manifest_call(Bundle, manual(Base, _Props)), % (nondet)
 	R = Base.
-
-:- export(main_file_relpath/2).
-% Relative path of the main file specified in some Props
-% (for manuals, readme, cmds, etc. entries in manifests)
-main_file_relpath(Props) := R :-
-	( member(main=SrcPath, Props) -> R = SrcPath
-	; fail
-	).
-
-:- export(main_file_path/3).
-% Absolute path of the main file specified in some Props
-% (for manuals, readme, cmds, etc. entries in manifests)
-main_file_path(Bundle, Props) := R :-
-	R = ~bundle_path(Bundle, ~main_file_relpath(Props)).
 
 
 

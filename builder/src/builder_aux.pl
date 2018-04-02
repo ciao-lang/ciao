@@ -99,8 +99,7 @@ builddir_clean(Bundle, config) :- !,
 	; true
 	).
 builddir_clean(Bundle, bin) :- !,
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'bin')),
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'libexec')).
+	remove_dir_nofail(~bundle_path(Bundle, builddir, 'bin')).
 builddir_clean(Bundle, pbundle) :- !,
 	remove_dir_nofail(~bundle_path(Bundle, builddir, 'pbundle')).
 builddir_clean(Bundle, doc) :- !,
@@ -138,10 +137,6 @@ wr_template(as_cmd(Bundle, Kind), Dir, File, Subst) :-
 kind_exec_perms(shscript).
 
 % ---------------------------------------------------------------------------
-
-% TODO: Add a version package instead?
-% TODO: generate a config_auto.pl and put there some config flags (for condcomp)
-% TODO: include config, etc. (for runtime)?
 
 :- use_module(library(bundle/bundle_info), [bundle_version/2]).
 

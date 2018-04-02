@@ -47,18 +47,10 @@ boot_eng_def(Eng) :-
 % TODO: Move to ciaoc_aux?
 
 :- export(cmd_path/4).
-% Path for executable commands in the build area
-% (e.g., build/bin/<CMD>)
+% Executable path in build area
+% (e.g., build/bin/ciaoc)
 cmd_path(Bundle, Kind, File) := Path :-
 	BinDir = ~bundle_path(Bundle, builddir, 'bin'),
-	Path = ~path_concat(BinDir, ~concat_ext(Kind, File)).
-
-:- export(libcmd_path/4).
-% Path for libexec commands in the build area (not intented to be run
-% directly by humans, e.g., like active modules)
-% (e.g., build/libexec/<CMD>)
-libcmd_path(Bundle, Kind, File) := Path :-
-	BinDir = ~bundle_path(Bundle, builddir, 'libexec'),
 	Path = ~path_concat(BinDir, ~concat_ext(Kind, File)).
 
 :- export(concat_ext/3).
@@ -76,7 +68,7 @@ concat_ext(shscript, X) := X.
 concat_ext(ext(Ext), X) := ~atom_concat(X, Ext).
 
 % ===========================================================================
-% TODO: document somewhere the directories under build/
+% TODO: move somewhere else?
 
 :- export(site_root_dir/1).
 % Files for HTTP serving
