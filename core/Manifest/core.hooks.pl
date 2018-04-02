@@ -61,8 +61,9 @@
 '$builder_hook'(core_cmds:cmd('cmds/ciaodump')).
 '$builder_hook'(core_cmds:cmd('cmds/pldiff')).
 '$builder_hook'(core_cmds:cmd('cmds/ciaoc_sdyn')).
-% TODO: move to a separate bundle?
 '$builder_hook'(core_cmds:cmd('cmds/ciao-serve/ciao-serve')).
+% TODO: temporary, see rundaemon.pl TODOs
+'$builder_hook'(core_cmds:cmd(rundaemon, [main='library/service/rundaemon', libexec])).
 
 % ---------------------------------------------------------------------------
 % Standalone compiler

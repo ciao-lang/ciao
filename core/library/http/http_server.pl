@@ -13,6 +13,14 @@
 %  server (see @pred{http_bind/1}, @pred{http_loop/1},
 %  @pred{http_shutdown/1}).
 %
+%  Clients of this module must use the @lib{http_server_hooks} package
+%  and implement the multifile @pred{httpserv.handle/3} (see
+%  @pred{http_loop/1} for details).
+%
+
+:- doc(bug, "implement file_contents/1 in
+   http_server:http_write_response/2 (so that it can serve files
+   without loading them in memory)").
 
 :- use_module(library(lists), [append/3, select/3, length/2]).
 :- use_module(library(strings), [string/3, write_string/2]).
@@ -280,8 +288,8 @@ http_bind(Port) :-
 :- pred http_loop(ExitCode)
    # "Listen and handle HTTP requests in a loop. You can terminate
       this loop by @pred{http_shutdown/1} predicate. Requests are
-      handled by multifile @pred{http_handle/3} and
-      @pred{http_file_path/2} predicates (declared in
+      handled by multifile @pred{httpserv.handle/3} and
+      @pred{httpserv.file_path/2} predicates (declared in
       @lib{http_server_hooks} file).".
 
 http_loop(ExitCode) :-
@@ -330,7 +338,7 @@ handle(Request, Response) :-
 	handle_(URIStr, Request, Response).
 
 handle_(Path, Request, Response) :-
-	http_handle(Path, Request, Response0),
+	'httpserv.handle'(Path, Request, Response0),
 	!,
 	Response = Response0.
 handle_(File0, Request, Response) :-
@@ -343,7 +351,7 @@ handle_(File0, Request, Response) :-
 	; % log(error, not_found(File)),
 	  Response = not_found(File)
 	),
-	% TODO: add a 'not_logged' or 'logged' part to responses; we only log requests not captured by http_handle/3
+	% TODO: add a 'not_logged' or 'logged' part to responses; we only log requests not captured by httpserv.handle/3
 	% TODO: log Response after expand_response
 	log_response(Request, Response). % TODO: make it optional? 
 
@@ -352,7 +360,7 @@ catcher(Error) :-
 	log(error, Error).
 
 locate_file(File, LocalFile) :-
-	http_file_path(Dir, LocalPath),
+	'httpserv.file_path'(Dir, LocalPath),
 	% TODO: use pathnames? (safer)
 	atom_concat(Dir, Rel, File), % File is under Dir
 	atom_concat(LocalPath, Rel, LocalFile0),
@@ -371,7 +379,7 @@ is_dir(Path) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(.(mimetypes)).
+:- use_module(library(http/mimetypes)).
 
 % Detect content type of a file (based on extension).
 %

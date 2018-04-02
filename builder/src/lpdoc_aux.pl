@@ -5,7 +5,8 @@
 :- doc(author, "Ciao Deveveloper Team").
 
 :- doc(module, "This is a wrapper around @apl{lpdoc} to build the
-   documentation of a bundle.").
+   documentation of a bundle. It uses @tt{lpdoc} as an external
+   process so that no hard dependencies are introduced.").
 
 % ---------------------------------------------------------------------------
 
@@ -54,6 +55,22 @@ build_docs_readme(Bundle, SrcPath, OutName) :-
 	Ascii = ~atom_concat(Name0, '.ascii'),
 	DocSrc = ~path_concat(DocDir, Ascii),
 	copy_file_or_dir(DocSrc, OutAbsFile).
+
+:- export(build_docs_readme_html/3).
+% Render README files as HTML (from .lpdoc to .html)
+build_docs_readme_html(Bundle, SrcPath, OutName) :-
+	ensure_builddir(Bundle, '.'), % TODO: needed?
+	ensure_builddir(Bundle, 'doc'), % TODO: add as dep to 'initial doc' bundle?
+	BundleDir = ~bundle_path(Bundle, '.'),
+	path_concat(BundleDir, SrcPath, SrcPath2),
+	DocDir = ~bundle_path(Bundle, builddir, 'doc'),
+	invoke_lpdoc(['--allow_markdown=yes',
+	              '--syntax_highlight=no',
+	              '--html_layout=embedded',
+	              ~atom_concat('--output_dir=', DocDir),
+	              ~atom_concat('--output_name=', OutName),
+		      '-t', 'html',
+	              SrcPath2]).
 
 :- export(build_doc/2).
 % TODO: build does not read format, install does, it is inconsistent

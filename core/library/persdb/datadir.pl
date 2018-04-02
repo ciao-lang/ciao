@@ -10,8 +10,8 @@
    @pred{deploy_data_root_dir/1} (multifile) or inside the temporary
    build directory (see @pred{config_common:data_root_dir/1}.
 
-   See @pred{ensure_datadir/2} for usage. This module is handy to 
-   selecting the directory for @lib{persdb} databases, e.g.:
+   See @pred{ensure_datadir/2} for usage. This module is handy to
+   select the directory for @lib{persdb} databases, e.g.:
 @begin{verbatim}
 persistent_dir(db, Dir) :- ensure_datadir('yourapp', Dir).
 @end{verbatim}

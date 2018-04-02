@@ -977,6 +977,8 @@ precomp_builddir_yield_(noa) := ~bundle_path(core, builddir, 'eng'). % noa level
 precomp_builddir_yield_(noa) := ~bundle_path(core, bootbuilddir, 'eng'). % noa level produces eng/
 precomp_builddir_yield_(noa) := ~bundle_path(core, builddir, 'bin'). % noa level produces bin/
 precomp_builddir_yield_(noa) := ~bundle_path(core, bootbuilddir, 'bin'). % noa level produces bin/
+precomp_builddir_yield_(noa) := ~bundle_path(core, builddir, 'libexec'). % noa level produces libexec/
+precomp_builddir_yield_(noa) := ~bundle_path(core, bootbuilddir, 'libexec'). % noa level produces libexec/
 precomp_builddir_yield_(noa) := ~bundle_path(core, builddir, 'bundlereg'). % noa level produces bundlereg/
 precomp_builddir_yield_(noa) := ~bundle_path(core, bootbuilddir, 'bundlereg'). % noa level produces bundlereg/
 % TODO: add a level to include third-party source?

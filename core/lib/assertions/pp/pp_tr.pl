@@ -44,9 +44,11 @@ pp_sent((:- pp_opt(Opt)), [], M) :- from_ciaopp(no), \+ pp_load(M), !,
 	add_pp_opt(Opt, M).
 pp_sent((:- pp_post(Cs)), [], M) :- from_ciaopp(no), \+ pp_load(M), !,
 	add_pp_post(Cs, M).
+pp_sent((:- pp_pre(Cs)), Cs, _M) :- from_ciaopp(yes), !.
 pp_sent((:- pp_cmd(_)), [], _M) :- !.
 pp_sent((:- pp_opt(_)), [], _M) :- !.
 pp_sent((:- pp_post(_)), [], _M) :- !.
+pp_sent((:- pp_pre(_)), [], _M) :- !.
 %
 pp_sent((:- module(_A,_B,_C)), Cs, M) :- from_ciaopp(no), pp_load(M), !,
 	% skip module/3, add prelude
@@ -64,11 +66,12 @@ pp_sent(end_of_file, Cs, M) :- from_ciaopp(no), \+ pp_load(M), !,
 	    pp_output(M, M2)
 	; M2 = M % load original file
 	),
-	append([(:- include(M2))], [end_of_file], Cs).
+	append([(:- include(M2)), (:- include(library(assertions/pp/dummy_end_of_file)))], [end_of_file], Cs).
 pp_sent(end_of_file, end_of_file, M) :- !,
 	from_ciaopp(R),
 	trace(doing_cleanup(M, R)),
 	cleanup(M).
+        % TODO: WRONG: fail. % (so that other translations can treat end_of_file)
 %
 pp_sent(_, [], M) :- from_ciaopp(no), \+ pp_load(M), !,
 	% Skip all sentences (we will feed from CiaoPP output)
@@ -107,9 +110,12 @@ get_pp_cmd(M, Cmd) :-
 get_pp_prelude(M, C) :-
 	pp_opt(rtchecks, M),
 	( C = (:- use_package(rtchecks))
-	% ; C = (:- use_package(library(rtchecks/rtchecks_rt_inline))) % TODO: does not work?
-	; C = (:- use_package(library(rtchecks/rtchecks_rt_library)))
+        % ; C = (:- use_package(library(rtchecks/rtchecks_rt_inline))) % TODO: does not work?
+        ; C = (:- use_package(library(rtchecks/rtchecks_rt_library)))
 	).
+get_pp_prelude(M, C) :-
+	pp_opt(rtchecks_shallow, M),
+	C = (:- use_package(rtchecks_shallow)).
 get_pp_prelude(M, C) :- % all clauses in pp_post
 	pp_post(Cs, M),
 	member(C, Cs).
@@ -119,7 +125,7 @@ get_pp_prelude(M, C) :- % all clauses in pp_post
 pp_output(M, M2) :-
 	% (e.g., foo.pl ==> foo.pp.pl)
 	atom_concat(M, '.pp.pl', M2).
- 
+
 % TODO: keep ciaopp alive for larger compilations?
 % TODO: (cloned from builder code)
 %:- export(invoke_ciaopp_batch/1).

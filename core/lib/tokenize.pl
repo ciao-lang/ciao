@@ -285,8 +285,8 @@ quoted_token(0'", S, Tokens, Tokens0) :-
 
 escape_sequence(0, _, _, Chars, Chars, Typ, Ch) :- !,
         getct(Ch, Typ).                     % continuation escape sequence
-escape_sequence(4, 0'^, _, [Char|Chars], Chars, NextTyp, NextCh) :-
-        getct(Ch, Typ),
+escape_sequence(4, 0'^, _, [Char|Chars], Chars, NextTyp, NextCh) :- !,
+        getct(Ch, Typ),                     % starts a control_escape_char
         ( control_character(Typ, Ch, CC) ->
               Char = CC,
               getct(NextCh, NextTyp)
