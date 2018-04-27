@@ -27,8 +27,7 @@
 halt :- '$exit'(0).
 
 
-:- pred halt(+int) => int + (iso, equiv(fail)).
-% TODO: equiv(fail) temporary until we implement more accurate builtin
+:- pred halt(+int) => int + iso.
 
 :- doc(halt(Code), "Halt the system, exiting to the invoking shell,
    returning exit code @var{Code}.").
@@ -109,8 +108,7 @@ intercept(Goal, Signal, Handler) :-
 	; true
 	).
 
-:- trust pred throw(Term) : nonvar(Term) + (iso, equiv(fail)).
-% TODO: equiv(fail) temporary until we implement more accurate builtin
+:- trust pred throw(Term) : nonvar(Term) + iso.
 
 :- doc(throw(Ball), "Raises an error, throwing the exception
    @var{Ball}, to be caught by an ancestor @pred{catch/3}.  The
