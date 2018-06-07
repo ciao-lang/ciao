@@ -26,8 +26,8 @@ typedef goal_descriptor_t *ciao_ctx;
 
 extern ciao_ctx ciao_implicit_ctx;
 
-typedef unsigned int ciao_choice;
-typedef unsigned int ciao_term;
+typedef unsigned long ciao_choice;
+typedef unsigned long ciao_term;
 typedef unsigned int ciao_bool;
 
 typedef struct _ciao_query_ _ciao_query_t;

@@ -958,6 +958,7 @@ ciao_bool ciao_more_solutions(ciao_ctx ctx, ciao_choice choice) {
 void ciao_cut(ciao_ctx ctx, ciao_choice choice) {
   worker_t *w = ctx->worker_registers;
   if (!ciao_more_solutions(ctx, choice)) return;
+  w->next_node = ChoiceFromInt(choice); /* needed? */
   w->node = ChoiceFromInt(choice);
   SetShadowregs(w->node);
   PROFILE__HOOK_CIAOCUT;
