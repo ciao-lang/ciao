@@ -5,7 +5,6 @@
 
 :- doc(author, "Jose F. Morales").
 :- doc(author, "Manuel Carro").
-:- doc(copyright, "The CLIP Group, 2001-2002").
 
 :- doc(summary, "The foreign interface module provides predicates
 for building automatically the shared object necessary for accessing C
@@ -116,12 +115,11 @@ the types and modes of the C function.  A sample declaration for
 @tt{prolog_predicate} which is implemented as
 @tt{foreign_function_name} is:
 
-
-   @begin{verbatim} 
-     :- true pred prolog_predicate(m1(Arg1), ... mN(ArgN)) :: 
-                  type1 * ... * typeN + 
-                  (foreign(foreign_function_name), returns(ArgR)).
-   @end{verbatim}
+@begin{verbatim} 
+:- true pred prolog_predicate(m1(Arg1), ... mN(ArgN)) :: 
+             type1 * ... * typeN + 
+             (foreign(foreign_function_name), returns(ArgR)).
+@end{verbatim}
 
 @noindent
 where @tt{m1}, ..., @tt{mN} and @tt{type1}, ..., @tt{typeN} are
@@ -141,10 +139,10 @@ value is ignored), then @tt{returns(ArgR)} must be removed. Note that
 @tt{returns} cannot be used without @tt{foreign}.  A simplified,
 minimal form is thus:
 
-   @begin{verbatim} 
-     :- true pred prolog_predicate(m1(Arg1), ... mN(ArgN)) :: 
-                  type1 * ... * typeN + foreign.
-   @end{verbatim}
+@begin{verbatim} 
+:- true pred prolog_predicate(m1(Arg1), ... mN(ArgN)) :: 
+             type1 * ... * typeN + foreign.
+@end{verbatim}
 
 @section{Equivalence between Ciao and C types}
 
@@ -236,8 +234,7 @@ or as
 should appear in the C code as
 
 @begin{verbatim}
-void get_int(int *thisint)
-@{
+void get_int(int *thisint) @{
         ....
 @}
 @end{verbatim}
@@ -245,7 +242,7 @@ void get_int(int *thisint)
 Note the type of the (single) argument of the function.  Besides, the
 return value of a function can always be used as an output argument,
 just by specifying to which Prolog arguments it corresponds, using the
-@tt{foreing/1} property.  The examples below illustrate this point,
+@tt{foreign/1} property.  The examples below illustrate this point,
 and the use of several assertions to guide the compilation.
 
 @section{Custom access to Prolog from C}
@@ -769,15 +766,7 @@ lazy and simpler -and probably slower.
 @includeverbatim{foreign_interface/examples/bignums/bigints_c.c}
 @end{verbatim}
 
-" 
-
-% TODO: Document C functions from Prolog?
- %% :- doc(doinclude,"ciao_term ciao_var();").
- %% :- doc("ciao_term ciao_var();", "Returns a fresh, unbound variable.").
-
-|| "
 @subsection{Interfacing with C++}
-
 
 Ciao code can be interfaced easily with C++ using this interface. The
 basic idea is to write C functions (functions prefixed by 'extern
@@ -798,4 +787,31 @@ C++ source files should be declared with their extension.
 @begin{verbatim}
 @includeverbatim{foreign_interface/examples/c++/cc_stack.cc}
 @end{verbatim}
+
+@subsection{Embedding a Ciao engine into a C/C++ application}
+
+It is possible to include a Ciao engine (compiled as a static or
+dynamic library) into an existing C or C++ application. To do that it
+is necessary to call the @tt{ciao_opts()} and @tt{ciao_init()} functions
+to initialize the engine and some @tt{ciao_load_qfile()} to load the necessary 
+bytecode files. The structure of the C program is similar to:
+
+@begin{verbatim}
+#include <ciao_prolog.h>
+
+int main(void) {
+  ciao_opts(\"program_name\", 0, NULL, 0, NULL, NULL);
+  ciao_init(NULL);
+  ciao_load_qfile(\"...\");
+  ...
+  return 0;
+}
+@end{verbatim}
+
+See files at @tt{foreign_interface/embedding_example/} for a complete detailed
+example including a sample build script.
 ").
+
+% TODO: Document C functions from Prolog?
+%% :- doc(doinclude,"ciao_term ciao_var();").
+%% :- doc("ciao_term ciao_var();", "Returns a fresh, unbound variable.").

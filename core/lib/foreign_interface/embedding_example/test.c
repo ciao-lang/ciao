@@ -1,6 +1,3 @@
-/* pushd ../../../; make clean_engine engine libciao; popd; make clean;
-   make test; ./test */
-
 #include <ciao_prolog.h>
 #include <stdio.h>
 #include <stdlib.h>
