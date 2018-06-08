@@ -22,7 +22,7 @@
 :- discontiguous('cmd.needs_rescan'/1).
 :- multifile 'cmd.needs_config'/1. % needs a configuration
 :- discontiguous('cmd.needs_config'/1).
-:- multifile 'cmd.allow_unknown_targets'/1. % allow unknown targets (e.g., for 'fetch')
+:- multifile 'cmd.allow_unknown_targets'/1. % allow unknown targets (e.g., for 'fetch'); also allow default target (.)
 :- discontiguous('cmd.allow_unknown_targets'/1).
 :- multifile 'cmd.no_manifest_load'/1. % manifest does not need to be loaded (only for some 'cmd.do'/2)
 :- discontiguous('cmd.no_manifest_load'/1).

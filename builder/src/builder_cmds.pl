@@ -59,23 +59,17 @@ set_opt(Opt) :-
 	throw(unknown_opt(Opt)).
 
 run_cmd(cmd_on_set(Cmd, Targets0)) :-
-	% Add a default target (if none is given)
-	( Targets0 = [] -> % guess some
-	    Targets = ['.']
-	; Targets = Targets0
-	),
-	%
 	( 'cmd.needs_update_builder'(Cmd) ->
 	    check_builder_update
 	; true
 	),
+	default_targets(Cmd, Targets0, Targets),
+	( 'cmd.allow_unknown_targets'(Cmd) -> OnUnknown = silent
+	; OnUnknown = error
+	),
 	( 'cmd.needs_rescan'(Cmd) ->
 	    rescan_targets(Targets)
 	; true
-	),
-	( 'cmd.allow_unknown_targets'(Cmd) ->
-	    OnUnknown = silent % allow unknowns during resolve
-	; OnUnknown = error
 	),
 	maybe_enable_default_grades,
 	resolve_targets(Targets, OnUnknown, Targets2),
@@ -83,6 +77,14 @@ run_cmd(cmd_on_set(Cmd, Targets0)) :-
 	builder_cmd_on_set(Cmd, Targets2).
 run_cmd(cmd(Cmd)) :-
 	builder_cmd_nobndl(Cmd).
+
+default_targets(Cmd, Targets0, Targets) :-
+	( Targets0 = [] ->
+	    ( 'cmd.allow_unknown_targets'(Cmd) -> throw(error_msg("No targets specified.", []))
+	    ; Targets = [.] % Default
+	    )
+	; Targets = Targets0
+	).
 
 % ===========================================================================
 
