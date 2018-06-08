@@ -28,4 +28,4 @@ our public sources. **Be aware when forking** this repository:
  - commit logs are still not available
  - some advanced or experimental features are not available
 
--- Ciao Development Team
+-- The Ciao Development Team

@@ -6,27 +6,29 @@
 :- doc(author, "Jose F. Morales").
 :- doc(author, "Manuel Carro").
 
-:- doc(summary, "The foreign interface module provides predicates
-for building automatically the shared object necessary for accessing C
-functions as Ciao predicates. Regular C functions do not have
-their data in the internal format required by Ciao, and thus an
-intermediate translation is necessary. Besides, run-time errors (such
-as wrong instantiation states) must be handled and, finally, C code
-must be compiled into a dynamically loadable object code form, which
-is OS-dependent.").
+:- doc(summary, "The foreign interface module provides predicates for
+building automatically the shared object necessary for accessing C
+functions as Ciao predicates. Regular C functions do not have their
+data in the internal format required by Ciao, and thus an intermediate
+translation is necessary. Besides, run-time errors (such as wrong
+instantiation states) must be handled and, finally, C code must be
+compiled into a dynamically loadable object code form, which is
+OS-dependent. The interface, including the coversions in
+representation, is built automatically based on the use of assertions
+to specify the expected types and modes of the arguments.").
 
 :- doc(module, "Ciao includes a high-level, flexible way to
-interface C and Prolog, based on the use of assertions to declare what
-are the expected types and modes of the arguments of a Prolog
+interface C and Prolog, based on the use of assertions to declare 
+the expected types and modes of the arguments of a Prolog
 predicate, and which C files contain the corresponding code.  To this
 end, the user provides:
 
 @begin{itemize}
 @item A set of C files, or a precompiled shared library,
-@item A Ciao module defining whith predicates are  implemented
+@item A Ciao module defining which predicates are  implemented
   in the C files and the types and modes of their arguments,  and   
-@item an (optional) set of flags required for the compilation of the
-files.
+@item an (optional) set of flags required for the compilation of the 
+  files.
 @end{itemize}
 
 The Ciao compiler analyzes the Prolog code written by the user
@@ -41,10 +43,10 @@ The compilation and dynamic linking of foreign sources is controled by
 the following declarations:
 @begin{itemize}
 
-@item @prop{use_foreign_source/1} specifies the foreign C (or
-C++) source file(s).
+@item @prop{use_foreign_source/1} specifies the foreign C (or C++)
+source file(s).
 
-@item @prop{use_foreign_library/1} specifies the external library(es)
+@item @prop{use_foreign_library/1} specifies the external library(ies)
 to be linked with the foreign sources.
 
 @item @prop{use_compiler/1} specifies the compiler to use.
@@ -56,11 +58,11 @@ to be linked with the foreign sources.
 @item @prop{extra_linker_opts/1} specifies the additional linker options. 
 @end{itemize}
 
-More details about those options can be found in @ref{Foreign Language
+More details about these options can be found in @ref{Foreign Language
 Interface Properties}.
 
 The compilation of the foreign sources together with the glue code
-is decomposed into the two phases:
+is decomposed into two phases:
 
 @begin{itemize}
 @item @bf{The Compilation phase}:
@@ -71,21 +73,21 @@ $ <Compiler> <CompilerOpts> -c <ExtraCompilerOptions> -o <ObjectFile> <SrcFile>
 @end{verbatim}
 where 
 @tt{<Compiler>} is the compiler command, 
-@tt{<CompilerOpts>} are some Ciao specific compiler options, 
+@tt{<CompilerOpts>} are some Ciao-specific compiler options, 
 and @tt{<ExtraCompilerOptions>} are the additional compiler options
 specified by the declaration(s) @prop{extra_compiler_opts/1}.
 
 
 @item @bf{The Linking phase}: 
 All the object files @tt{<ObjectFiles>} obtained by the compilation
-phase are linked together with the external libray(es) into a dynamic library
+phase are linked together with the external libray(ies) into a dynamic library
 @tt{<SOLib>} by a command of the form:
 @begin{verbatim} 
 $ <Linker> <CompilerOpts> -o <SOLib> <ObjectFiles> <ExternalLibs> <ExtraLinkerOptions>
 @end{verbatim}
 where 
 @tt{<Linker>} is the linker command, 
-@tt{<LinkerOpts>} are some Ciao specific linker options,
+@tt{<LinkerOpts>} are some Ciao-specific linker options,
 @tt{<ExternalLibs>} are the foreign libraries in order they are declared,
 and @tt{<ExtraLinkerOptions>} are the additional linker options 
 specified by the declaration(s) @prop{extra_linker_opts/1}.  
@@ -100,48 +102,65 @@ important.  See
 for more details.
 
 Once the foreign sources are compiled and linked together, the
-resulting library is dynamically loading using semantics of the
-RTLD_LOCAL flag of POSIX dlopen() function (See dlopen man page for
-additional details).  In other word the symbols defined in this
-dynamic library are not made available to resolve references in
-subsequently foreign loaded libraries. In particular the foreign
-sources cannot depend on a previously loaded foreign sources.
+resulting library is dynamically loaded using the semantics of the
+@tt{RTLD_LOCAL} flag of the POSIX @tt{dlopen()} function (see the
+@tt{dlopen} man page for additional details).  In other words, the
+symbols defined in this dynamic library are not made available to
+resolve references in subsequently foreign loaded libraries. In
+particular the foreign sources cannot depend on previously loaded
+foreign sources.
 
-@section{Declaration of Types}
+@section{Declaring Types and Modes}
 
 Each predicate implemented as a foreign C function must have
-accompanying declarations in the Ciao associated file stating
-the types and modes of the C function.  A sample declaration for
+accompanying declarations in the Ciao associated file stating the
+types and modes of the C function.  A sample declaration for
 @tt{prolog_predicate} which is implemented as
 @tt{foreign_function_name} is:
 
 @begin{verbatim} 
-:- true pred prolog_predicate(m1(Arg1), ... mN(ArgN)) :: 
-             type1 * ... * typeN + 
-             (foreign(foreign_function_name), returns(ArgR)).
+:- true pred prolog_predicate( m1(Arg1), ... mN(ArgN) ) 
+          :: type1 * ... * typeN 
+           + ( foreign(foreign_function_name), returns(ArgR) ).
 @end{verbatim}
 
-@noindent
-where @tt{m1}, ..., @tt{mN} and @tt{type1}, ..., @tt{typeN} are
-respectively the modes and types of the arguments.
-@tt{foreign_function_name} is the name of the C function
-implementing @pred{prolog_predicate/N}, and the result of this
-function is unified with @tt{ArgR}, which must be one of @tt{Arg1}
-... @tt{ArgN}.
+@noindent where
 
-This notation can be simplified in several ways.  If the name of the
-foreign function is the same as the name of the Ciao predicate,
-@tt{foreign(foreign_function_name)} can be replaced by
-@tt{foreign}. @tt{returns(ArgR)} specifies that the result of the
-function corresponds to the @tt{ArgR} argument of the Ciao
-predicate. If the foreign function does not return anything (or if its
-value is ignored), then @tt{returns(ArgR)} must be removed. Note that
-@tt{returns} cannot be used without @tt{foreign}.  A simplified,
-minimal form is thus:
+@begin{itemize}
+
+@item @tt{m1}, ..., @tt{mN} and @tt{type1}, ..., @tt{typeN} are
+  respectively the modes and types of the arguments (see
+  @ref{Equivalence between Ciao and C modes} and @ref{Equivalence
+  between Ciao and C types} for details).
+
+@item @tt{foreign_function_name} is the name of the C function
+  implementing @pred{prolog_predicate/N}, and
+
+@item @tt{returns(ArgR)} specifies that the result of this function is
+  unified with argument @tt{ArgR} of the Ciao predicate (which must be
+  one of @tt{Arg1} ... @tt{ArgN}).
+
+@end{itemize}
+
+This notation can be simplified in several ways:
+
+@begin{itemize}
+
+@item If the name of the foreign function is the same as the name of
+   the Ciao predicate, @tt{foreign(foreign_function_name)} can be
+   replaced by @tt{foreign}.
+
+@item If the foreign function does not return anything (or if its
+   value is ignored), then @tt{returns(ArgR)} must be removed. Note
+   that @tt{returns} cannot be used without @tt{foreign}.
+
+@end{itemize}
+
+A simplified, minimal form is thus:
 
 @begin{verbatim} 
-:- true pred prolog_predicate(m1(Arg1), ... mN(ArgN)) :: 
-             type1 * ... * typeN + foreign.
+:- true pred prolog_predicate(m1(Arg1), ... mN(ArgN)) 
+          :: type1 * ... * typeN + foreign.
 @end{verbatim}
 
 @section{Equivalence between Ciao and C types}
@@ -153,29 +172,39 @@ types.
 
 The names (and meaning) of the types known for performing that
 translation are to be found in @ref{Foreign Language Interface
-Properties}; they are also summarized below (Prolog types are on the
-left, and the corresponding C types on the right):
+Properties}; they are also summarized below (Prolog types are listed
+first and the corresponding C types after them):
 
-   @begin{itemize}
+@begin{itemize}
 
    @item @tt{c_short}, @tt{c_ushort}, @tt{c_int}, @tt{c_uint},
-     @tt{c_long}, @tt{c_ulong}, @tt{c_uintptr}, @tt{c_size} <->
+     @tt{c_long}, @tt{c_ulong}, @tt{c_uintptr}, @tt{c_size} 
+
+     correspond to the C types:
+
      @tt{short}, @tt{unsigned short}, @tt{int}, @tt{unsigned int},
      @tt{long}, @tt{unsigned long}, @tt{uintptr_t}, @tt{size_t}
 
-     (be aware the ranges of all types depends on the C data model, which differs in 32 and 64-bits).
+     (be aware that the ranges of all types depend on the C data
+     model, which differs in, e.g., 32 and 64-bit architectures).
 
    @item @tt{c_int8}, @tt{c_uint8}, @tt{c_int16}, @tt{c_uint16},
-     @tt{c_int32}, @tt{c_uint32}, @tt{c_int64}, @tt{c_uint64} <->
+     @tt{c_int32}, @tt{c_uint32}, @tt{c_int64}, @tt{c_uint64} 
+
+     correspond to the C types:
+
      @tt{int8_t}, @tt{uint8_t}, @tt{int16_t}, @tt{uint16_t},
-     @tt{int32_t}, @tt{uint32_t}, @tt{int64_t}, @tt{uint64_t}
+     @tt{int32_t}, @tt{uint32_t}, @tt{int64_t}, @tt{uint64_t}.
 
-   @item @tt{atm} <-> @tt{char *} (with trailing zero)
-   @item @tt{string} <-> @tt{char *} (with trailing zero)
+   @item @tt{atm} corresponds to C's '@tt{char *}' (with trailing zero).
+   @item @tt{string} corresponds to C's '@tt{char *}' (with trailing zero).
 
-   @item @tt{X_list} <-> @tt{T *} (an array of some ctype @tt{X} with C type @tt{T}, with associated length)
-   @item @tt{address} <-> @tt{void *}
-   @end{itemize}
+   @item @tt{X_list} corresponds to C's '@tt{T *}' (an array of some
+   ctype @tt{X} with C type @tt{T}, with associated length).
+
+   @item @tt{address} corresponds to C's '@tt{void *}'.
+
+@end{itemize}
 
 Strings, atoms, and lists of bytes are passed to (and from) C as
 dynamically (@tt{ciao_malloc}) created arrays of characters
@@ -188,7 +217,7 @@ type @regtype{X_list/1} requires an additional property,
 @prop{size_of/2}, to indicate which argument represents its size.
 
 Empty lists of bytes and integers are converted into C @tt{NULL}
-pointers, and vice versa.  Empty strings (@tt{[]}) and null atoms
+pointers, and vice-versa.  Empty strings (@tt{[]}) and null atoms
 (\'\') are converted into zero-length, zero-ended C strings
 (@em{\"\"}).  C @tt{NULL} strings and empty arrays (i.e., arrays
 with zero length) are transformed into the empty list or the null atom
@@ -219,16 +248,16 @@ ISO mode (or, equivalently, the go/1 mode) states that Prolog expects
 the C side to generate a (ground) value for that argument.  Arguments
 with output mode should appear in C functions as pointers to the
 corresponding base type (as it is usual with C), i.e., an argument
-which is an integer generated by the C file, declared as
+which is an integer generated by the C file, declared as:
 
 @begin{verbatim}
-:- true pred get_int(go(ThisInt)) :: c_int + foreign
+:- true pred get_int(go(ThisInt)) :: c_int + foreign.
 @end{verbatim}
 
-or as
+or as:
 
 @begin{verbatim}
-:- true pred get_int(-ThisInt) :: c_int + foreign
+:- true pred get_int(-ThisInt) :: c_int + foreign.
 @end{verbatim}
 
 should appear in the C code as
@@ -242,12 +271,12 @@ void get_int(int *thisint) @{
 Note the type of the (single) argument of the function.  Besides, the
 return value of a function can always be used as an output argument,
 just by specifying to which Prolog arguments it corresponds, using the
-@tt{foreign/1} property.  The examples below illustrate this point,
-and the use of several assertions to guide the compilation.
+@tt{returns/1} property.  The examples below illustrate this point,
+and the use of several assertions to guide the compilation process.
 
 @section{Custom access to Prolog from C}
 
-Automatic type conversions does not cover all the possible cases.  
+Automatic type conversion does not cover all the possible cases.  
 When the automatic type conversion is not enough (or if the user, for
 any reason, does not want to go through the automatic conversion), it
 is possible to instruct Ciao not to make implicit type
@@ -260,28 +289,28 @@ prototypes of these operations are placed on the
 the installation directory (the Ciao compiler knowns where it
 has been installed, and gives the C compiler the appropriate flags).
 This @em{non direct correspondence} mode is activated whenever a Ciao
-Prolog type unknown to the foreign interface (i.e., none of these in
+Prolog type unknown to the foreign interface (i.e., none of those in
 @ref{Foreign Language Interface Properties}) or the type @tt{any_term}
-(which is explicitly recognised by the foreign language interface) is
+(which is explicitly recognized by the foreign language interface) is
 found.  The latter is preferred, as it is much more informative, and
-external tools, as the the @concept{CiaoPP} preprocessor, can take
-advantage of them.
+external tools, such as the the @concept{CiaoPP} preprocessor, can 
+take advantage of them. 
 
 @subsection{Term construction}
 
 All term construction primitives return an argument of type
 @tt{ciao_term}, which is the result of constructing a term.  All Ciao
 Prolog terms can be built using the interface operations
-@tt{ciao_var()}, @tt{ciao_structure()}, @tt{ciao_X()}, etc.  There
+@tt{ciao_var()}, @tt{ciao_structure()}, @tt{ciao_}@em{X}@tt{()}, etc.  There
 are, however, variants and specialized versions of these operations
 which can be freely intermixed.  Using one version or another is a
 matter of taste and convenience.  We list below the prototypes of the
 primitives in order of complexity.
 
 Throughout this section, @bf{true}, when referred to a boolean value,
-correspond to the integer value @tt{1}, and @bf{false} correspond to
+corresponds to the integer value @tt{1}, and @bf{false} corresponds to
 the integer value @tt{0}, as is customary in C boolean expressions.
-These values also available as the (predefined) constants
+These values are also available as the (predefined) constants
 @tt{ciao_true} and @tt{ciao_false}, both of type @tt{ciao_bool}.
 
 @begin{itemize} 
@@ -289,9 +318,9 @@ These values also available as the (predefined) constants
 
   Returns a fresh, unbound variable.
 
-@item @tt{ciao_term ciao_mk_X(T i);}
+@item @tt{ciao_term ciao_mk_}@em{X}@tt{(T i);}
 
-  Creates a term of ctype @tt{X} from the value of @tt{i}, of the
+  Creates a term of ctype @em{X} from the value of @tt{i}, of the
   corresponding C type @tt{T}.
 
 @item @tt{ciao_term ciao_put_number_chars(char *number_string);}
@@ -500,7 +529,7 @@ to perform unification of terms.
 
 @subsection{Raising Exceptions}
 
-The following functions offers a way of throwing @concept{exceptions}
+The following functions offer a way of throwing @concept{exceptions}
 from C that can be caught in Prolog with @tt{catch/3}.  The term that
 reaches Prolog is exactly the same which was thrown by C.  The
 execution flow is broken at the point where
@@ -541,8 +570,8 @@ management.
 
 @subsection{Calling Prolog from C}
 
-It is also possible to make arbitraty calls to Prolog predicates from
-C.  There are two basic ways of make a query, depending on whether
+It is also possible to make arbitrary calls to Prolog predicates from
+C.  There are two basic ways of making a query, depending on whether
 only one solution is needed (or if the predicate to be called is known
 to generate only one solution), or if several solutions are required.
 
@@ -746,13 +775,13 @@ a exception is raised.
 @includeverbatim{foreign_interface/examples/exceptions/exceptions_c.c}
 @end{verbatim}
 
-@subsection{Testing number types and using unbound length integers}
+@subsection{Testing number types and using unbounded length integers}
 
-Unbound length integers (and, in general, any number) can be converted
+Unbounded length integers (and, in general, any number) can be converted
 to/from @tt{ciao_terms} by using strings.  The following examples show
 two possibilities: one which tries to be as smart as possible
 (checking whether numbers fit into a machine int or not), and being
-lazy and simpler -and probably slower.
+lazy and simpler --and probably slower.
 
 @bf{File} @em{bigints.pl}:
 
@@ -771,7 +800,7 @@ lazy and simpler -and probably slower.
 Ciao code can be interfaced easily with C++ using this interface. The
 basic idea is to write C functions (functions prefixed by 'extern
 \"C\"') within the C++ code to make the bridge between calls from
-Ciao to C++. Then, C++ objects can be casted as addresses.  Because
+Ciao to C++. Then, C++ objects can be cast as addresses.  Because
 the foreign interface assumes that the foreign source is classical C,
 C++ source files should be declared with their extension.
 
@@ -808,9 +837,8 @@ int main(void) {
 }
 @end{verbatim}
 
-See files at @tt{foreign_interface/embedding_example/} for a complete detailed
-example including a sample build script.
-").
+See the files at @tt{foreign_interface/embedding_example/} for a
+complete detailed example including a sample build script.  ").
 
 % TODO: Document C functions from Prolog?
 %% :- doc(doinclude,"ciao_term ciao_var();").
