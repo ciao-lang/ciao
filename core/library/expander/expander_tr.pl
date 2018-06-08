@@ -1,7 +1,7 @@
 :- module(expander_tr, [expand_sentence/4, expand_clause/4], [assertions]).
 
 :- doc(author, "The Ciao Development Team").
-:- doc(author, "David ").
+:- doc(author, "David Trallero").
 :- doc(author, "Edison Mera").
 
 :- doc(module, "Generates a file with the result of applying the
@@ -9,7 +9,7 @@
 
 :- doc(bug, "Goal and term expansions are not applied yet at the
    time this expansion intercepts the compiler results. It would be
-   easier to base this package in the same dump code shared by static
+   easier to base this package on the same dump code shared by static
    analysis tools.").
 
 % ---------------------------------------------------------------------------
