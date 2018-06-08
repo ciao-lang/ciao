@@ -3,7 +3,7 @@
 % TODO: Merge with library/menu
 
 :- doc(title, "Auxiliary Code for User Interaction").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- export(ask_option_value/6).
 :- pred ask_option_value(+Description, +Name, +ValidValues,

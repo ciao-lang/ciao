@@ -1,8 +1,8 @@
 :- use_package([assertions,doccomments]).
 :- doc(nodoc,assertions).
 
-%! \title HTTP client/server libraries
-%  \author Ciao Development Team
+%! \title  HTTP client/server libraries
+%  \author The Ciao Development Team
 %
 %  \module
 %

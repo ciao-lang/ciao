@@ -1,7 +1,7 @@
 :- module(_, [], [assertions, fsyntax, hiord]).
 
-:- doc(title, "Installation").
-:- doc(author, "Ciao Development Team").
+:- doc(title,  "Installation").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module implements basic operations for installing
    and uninstalling the contents of a bundle (source and binaries).

@@ -1,6 +1,6 @@
 :- module(hash, [hash_term/2], [assertions, nativeprops, nortchecks]).
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 :- doc(author, "Edison Mera").
 :- doc(author, "Jose F. Morales").
 

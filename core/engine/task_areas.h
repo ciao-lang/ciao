@@ -3,7 +3,7 @@
  *
  *  Data structures for tasks.
  *
- *  Copyright (C) 1997 The CLIP Group
+ *  Copyright (C) 1997 The Ciao Development Team
  */
 
 #ifndef _CIAO_TASK_AREAS_H

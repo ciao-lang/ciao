@@ -16,7 +16,7 @@
 % TODO: Integrate with other stream module? 
 :- doc(title,"File/Stream Utilities").
 
-:- doc(author,"The CLIP Group").
+:- doc(author,"The Ciao Development Team").
 
 :- doc(module,"This module implements a collection of predicates to
    read/write files (or streams) from/to several sources (lists of

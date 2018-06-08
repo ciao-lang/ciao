@@ -9,7 +9,7 @@
 
 :- doc(title,"Dictionaries").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module,"This module provides predicates for implementing
    dictionaries. Such dictionaries are currently implemented as

@@ -1,7 +1,7 @@
 :- module(third_party_custom, [], [assertions, basicmodes, fsyntax, hiord]).
 
 :- doc(title, "Installation of custom third-party components").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module implements installation of third-party
    components using custom installers (e.g., manual, @tt{npm},

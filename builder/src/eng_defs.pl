@@ -2,8 +2,8 @@
 
 :- doc(title, "Engine maker: defs and paths").
 % TODO: merge with third-party install?
-:- doc(author, "Ciao Development Team").
 :- doc(author, "Jose F. Morales").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "
 

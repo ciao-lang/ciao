@@ -1,7 +1,7 @@
 :- module(multipart_form_data, [], [assertions, regtypes, isomodes, dcg, hiord, doccomments]).
 
-%! \title Multipart Form data
-%  \author Ciao Development Team
+%! \title  Multipart Form data
+%  \author The Ciao Development Team
 %
 %  \module
 %

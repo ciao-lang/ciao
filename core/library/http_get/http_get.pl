@@ -3,7 +3,7 @@
 :- doc(title, "Simple HTTP Download").
 
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module provides a simple interface for
    downloading files from the Web. It supports HTTP, HTTPS, and FTP

@@ -1,19 +1,19 @@
 :- use_package(assertions).
 :- doc(nodoc,assertions).
 
-:- doc(title,"Foreign Language Interface").
+:- doc(title,"C Foreign Language Interface").
 
 :- doc(author, "Jose F. Morales").
 :- doc(author, "Manuel Carro").
 
-:- doc(summary, "The foreign interface module provides predicates for
-building automatically the shared object necessary for accessing C
-functions as Ciao predicates. Regular C functions do not have their
-data in the internal format required by Ciao, and thus an intermediate
-translation is necessary. Besides, run-time errors (such as wrong
-instantiation states) must be handled and, finally, C code must be
-compiled into a dynamically loadable object code form, which is
-OS-dependent. The interface, including the coversions in
+:- doc(summary, "The C foreign language interface module provides
+predicates for building automatically the shared object necessary for
+accessing C functions as Ciao predicates. Regular C functions do not
+have their data in the internal format required by Ciao, and thus an
+intermediate translation is necessary. Besides, run-time errors (such
+as wrong instantiation states) must be handled and, finally, C code
+must be compiled into a dynamically loadable object code form, which
+is OS-dependent. The interface, including the coversions in
 representation, is built automatically based on the use of assertions
 to specify the expected types and modes of the arguments.").
 

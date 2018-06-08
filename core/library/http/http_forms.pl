@@ -1,7 +1,7 @@
 :- module(http_forms, [], [assertions,isomodes,dcg,hiord,doccomments,define_flag]).
 
-%! \title Form Data and Query Strings
-%  \author Ciao Development Team
+%! \title  Form Data and Query Strings
+%  \author The Ciao Development Team
 %
 %  \module
 %

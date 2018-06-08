@@ -1,9 +1,9 @@
 :- module(pbundle_gen_bin, [], [assertions, fsyntax]).
 
 :- doc(title,  "Binary distributions").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
-:- doc(module, "Binary distributions contains precompiled code (both
+:- doc(module, "Binary distributions contain precompiled code (both
    portable and platform dependent.").
 
 :- use_module(ciaobld(pbundle_generator)).

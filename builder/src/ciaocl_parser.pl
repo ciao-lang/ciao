@@ -1,8 +1,8 @@
 :- module(_, [], [assertions, isomodes, regtypes, dcg]).
 
 :- doc(title, "Ciao Command-line Parser").
-:- doc(author, "Ciao Development Team").
 :- doc(author, "Jose F. Morales").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "Parser of builder commands (based on a generic command line parser).").
 

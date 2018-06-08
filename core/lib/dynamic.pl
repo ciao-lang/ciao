@@ -7,7 +7,7 @@
 
 :- doc(title,"Dynamic predicates (not source preserving)").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module,"This module implements the assert/retract family of
    predicates to manipulate dynamic predicates.

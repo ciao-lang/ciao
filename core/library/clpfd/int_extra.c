@@ -1,7 +1,7 @@
 /* ---------------------------------------------------------------------------
  This file is part of the clpfd package for Ciao
 
- Copyright (C) 2012-2014 Ciao Development Team
+ Copyright (C) 2012-2014 The Ciao Development Team
 
  Authors
    * Remy Haemmerle

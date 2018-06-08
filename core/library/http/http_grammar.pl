@@ -1,7 +1,7 @@
 :- module(http_grammar, [], [assertions, isomodes, dcg, doccomments]).
 
-%! \title Common grammar definitions for HTTP
-%  \author Ciao Development Team
+%! \title  Common grammar definitions for HTTP
+%  \author The Ciao Development Team
 %
 %  \module
 %

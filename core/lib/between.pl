@@ -2,7 +2,7 @@
 
 :- doc(title, "Enumeration of integers inside a range").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This modules enumerates integers between two
 	numbers, or checks that an integer lies within a range").

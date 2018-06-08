@@ -3,7 +3,7 @@
 
 :- doc(title,"Interactive Menus").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module,"This library package allows definition interactive menus").
 

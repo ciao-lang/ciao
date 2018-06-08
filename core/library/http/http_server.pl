@@ -1,7 +1,7 @@
 :- module(http_server,[], [assertions, isomodes, dcg, hiord, doccomments]).
 
-%! \title HTTP server
-%  \author Ciao Development Team
+%! \title  HTTP server
+%  \author The Ciao Development Team
 %  \author Jose F. Morales (multifile-based HTTP simple server)
 %
 %  \module

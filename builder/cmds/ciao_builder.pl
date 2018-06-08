@@ -1,8 +1,8 @@
 :- module(_, [], [fsyntax, assertions, isomodes, regtypes, dcg]).
 
 :- doc(title, "The standalone command-line builder").
-:- doc(author, "Ciao Development Team").
 :- doc(author, "Jose F. Morales").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "
 @cindex{builder, standalone} @apl{ciao_builder} is the Ciao standalone

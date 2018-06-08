@@ -1,7 +1,7 @@
 :- module(http_messages, [], [assertions, regtypes, isomodes, dcg, hiord, doccomments]).
 
-%! \title HTTP messages (response and request)
-%  \author Ciao Development Team
+%! \title  HTTP messages (response and request)
+%  \author The Ciao Development Team
 %
 %  \module
 %

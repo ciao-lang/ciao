@@ -1,7 +1,7 @@
 :- module(bundle_configure, [], [assertions, basicmodes, fsyntax, hiord]).
 
 :- doc(title, "Bundle Configuration").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module computes the values of bundle
    configuration flags (@lib{bundle_flags}) based on configuration

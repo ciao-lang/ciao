@@ -3,7 +3,7 @@
 
 :- doc(title,"Classic Prolog package").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module,"This library package allows the use of certain Prolog
    features which have become sort of 'classical' from many Prolog 

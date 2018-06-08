@@ -2,7 +2,7 @@
 
 :- doc(title, "Incomplete ISO Prolog predicates").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module implements some ISO Prolog predicates,
    but that are not complete yet.").

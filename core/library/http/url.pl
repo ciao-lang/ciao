@@ -1,7 +1,7 @@
 :- module(url, [], [assertions,isomodes,regtypes,dcg,doccomments]).
 
-%! \title URL encoding/decoding
-%  \author Ciao Development Team
+%! \title  URL encoding/decoding
+%  \author The Ciao Development Team
 %
 %  \module
 %  This module implements URL encoding/decoding predicates.

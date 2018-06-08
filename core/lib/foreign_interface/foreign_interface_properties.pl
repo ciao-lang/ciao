@@ -4,7 +4,7 @@
 
 :- doc(title, "Foreign Language Interface Properties").
 
-:- doc(module, "The foreign language interface uses some
+:- doc(module, "The C foreign language interface uses some
    properties to specify linking regimes, foreign files to be
    compiled, types of data available, memory allocation policies,
    etc.").
@@ -15,8 +15,8 @@
    These are all the properties available and a brief explanation of
    their meaning.  Some of them can depend on the operating system and
    architecture, and can be selected stating it with an atom which
-   represents that.  See @ref{Foreign Language Interface Guidelines
-   and Usage} for a longer explanation and some examples.").
+   represents that.  See @ref{C Foreign Language Interface} for a 
+   longer explanation and some examples."). 
 
 :- doc(author,"Jose F. Morales").
 :- doc(author,"Manuel Carro").

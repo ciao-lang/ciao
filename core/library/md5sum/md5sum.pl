@@ -4,7 +4,7 @@
 
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
 :- doc(author, "Jose F. Morales (minor changes)").
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module provides a predicate to compute the
    @href{http://en.wikipedia.org/wiki/MD5}{MD5 checksum} of a file, by

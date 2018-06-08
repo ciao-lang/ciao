@@ -6,7 +6,7 @@
  *  NOTE: This is a reduced version from homonymous version in
  *    optim_comp.
  *
- *  Copyright (C) 2013-2015 Ciao Development Team
+ *  Copyright (C) 2013-2015 The Ciao Development Team
  */
 
 #ifndef _CIAO_ABSMACH_PREDEF_H

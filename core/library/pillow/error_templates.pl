@@ -1,7 +1,7 @@
 :- module(error_templates, [], [assertions,isomodes,dcg]).
 
 :- doc(title, "HTML error responses").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module implements templates for generating HTML
    error responses.").

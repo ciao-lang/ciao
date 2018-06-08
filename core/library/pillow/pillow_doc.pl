@@ -7,7 +7,7 @@
 
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Manuel Hermenegildo").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- include(ciao_docsrc(common/'ClipAddress')).
 

@@ -6,7 +6,7 @@
 :- doc(title,"Sorting lists").  
 
 :- doc(author,"Richard A. O'Keefe (original version)").
-:- doc(author,"The CLIP Group (changes and modifications)").
+:- doc(author,"The Ciao Development Team (changes and modifications)").
 
 :- doc(module,"This module implements some sorting list
    predicates.").

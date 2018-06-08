@@ -5,14 +5,14 @@
 :- doc(author, "Jos@'{e} Luis Gonz@'{a}lez").
 :- doc(author, "Edison Mera").
 :- doc(author, "Jos@'{e} F. Morales").
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(ack, "This work builds on the work of Manuel Carro, Emilio
    Gallego and Edison Mera. Thank you also to Manuel Hermenegildo and
    Germ@'{a}n Puebla for their invaluable support.").
 
 :- doc(copyright,"Copyright @copyright{} 2006--2007 Jos@'{e} Luis
-   Gonz@'{a}lez/The CLIP Group.").
+   Gonz@'{a}lez/The Ciao Development Team.").
 
 % ===========================================================================
 

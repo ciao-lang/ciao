@@ -1,7 +1,7 @@
 :- module(third_party_config, [], [assertions, basicmodes, fsyntax, hiord]).
 
 :- doc(title, "Query configuration of third-party components").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module queries configuration values of installed
    third-party libraries (currently only @tt{GNU pkg-config} based

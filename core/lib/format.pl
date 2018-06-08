@@ -21,7 +21,7 @@
 % ------------------------------------------------------------------------
 :- doc(title,"Formatted output").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module,"The @tt{format} family of predicates is due to 
 	Quintus Prolog. They act as a Prolog interface to the C 

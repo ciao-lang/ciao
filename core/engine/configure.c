@@ -6,7 +6,7 @@
  *  during native code compilation.
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2002-2015 Ciao Development Team
+ *  Copyright (C) 2002-2015 The Ciao Development Team
  */
 
 #if defined(__svr4__) || defined(Solaris) || defined(DARWIN) || defined(BSD)

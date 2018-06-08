@@ -9,7 +9,7 @@
 
 :- doc(title,"Pattern (regular expression) matching").
 
-:- doc(author,"The CLIP Group").
+:- doc(author,"The Ciao Development Team").
 
 :- op(200, fy, (=~)).   % Like unary '+'
 

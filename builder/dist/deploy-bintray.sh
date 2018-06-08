@@ -2,7 +2,7 @@
 #
 # A simple script to deploy (Ciao) to BinTray.
 #
-# Copyright (C) 2017 Ciao Development Team
+# Copyright (C) 2017 The Ciao Development Team
 #
 
 help() {

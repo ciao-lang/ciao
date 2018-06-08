@@ -1,7 +1,7 @@
 :- module(pbundle_gen_src, [], [assertions, fsyntax]).
 
 :- doc(title,  "Source distributions").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 :- doc(module, "Generate clean source distributions.").
 
 :- use_module(ciaobld(pbundle_generator)).

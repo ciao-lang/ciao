@@ -7,7 +7,7 @@
 
 :- doc(title, "Basic predicates handling names of constants").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(usage, "These predicates are builtin in Ciao, so nothing special
    has to be done to use them.").

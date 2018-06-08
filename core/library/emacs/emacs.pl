@@ -12,7 +12,7 @@
 
 :- doc(title,"Calling emacs from Prolog").
 
-:- doc(author,"The CLIP Group").
+:- doc(author,"The Ciao Development Team").
 
 :- doc(module,"This library provides a @index{prolog-emacs
    interface}. This interface is complementary to (and independent

@@ -13,7 +13,7 @@
 
 :- doc(title, "Foreign Language Interface Builder").
 
-:- doc(module, "Low-level utilities for building foreign interfaces.
+:- doc(module, "Low-level utilities for building C foreign interfaces.
    End-users should not need to use them, as the Ciao compiler reads
    the user assertions and calls appropriately the predicates in this
    module.").

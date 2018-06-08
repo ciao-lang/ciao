@@ -1,8 +1,8 @@
 :- module(_, [], [assertions, basicmodes, nativeprops, fsyntax, hiord, regtypes]).
 
 :- doc(title,  "Bundle Information").
-:- doc(author, "Ciao Development Team").
 :- doc(author, "Jose F. Morales").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "Obtain information about the registered bundles.").
 % TODO: This is a higher level interface over bundlereg data that is

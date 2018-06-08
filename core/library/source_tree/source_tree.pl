@@ -3,7 +3,7 @@
 :- doc(title, "Operations on source trees").
 
 :- doc(author, "Jose F. Morales").
-:- doc(author, "The Ciao group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module defines predicates to operate on directory
    trees containing source code (@concept{source trees}). 

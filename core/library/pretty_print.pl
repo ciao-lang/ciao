@@ -16,7 +16,7 @@
 %% -----------------------------------------------------------------------
 :- doc(title,"A simple pretty-printer for Ciao programs").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module,"This library module writes out to standard output a 
 	clause or a list of clauses.").

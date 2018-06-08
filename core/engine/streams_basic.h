@@ -4,7 +4,7 @@
  *  Stream handling primitives (see engine(streams_basic)).
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2002-2015 Ciao Development Team
+ *  Copyright (C) 2002-2015 The Ciao Development Team
  */
 
 #ifndef _CIAO_STREAMS_BASIC_H

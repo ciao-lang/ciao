@@ -3,7 +3,7 @@
 :- doc(title, "The module system").
 
 :- doc(author,"Daniel Cabeza").
-:- doc(author,"The CLIP Group").
+:- doc(author,"The Ciao Development Team").
 
 :- doc(usage, "Modules are an intrinsic feature of Ciao, so nothing
    special has to be done to use them.").

@@ -3,7 +3,7 @@
 
 :- doc(title, "Term manipulation utilities").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module implements some utils to do term
    manipulation.").

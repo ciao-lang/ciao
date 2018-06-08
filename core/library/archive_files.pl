@@ -1,7 +1,7 @@
 :- module(archive_files, [], [assertions, basicmodes, nativeprops, regtypes, fsyntax]).
 
 :- doc(title, "File Archiver").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "This module offers predicates to generate file

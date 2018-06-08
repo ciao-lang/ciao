@@ -2,7 +2,7 @@
 
 :- doc(title,"Using the persdb library").
 
-:- doc(author,"The CLIP Group").
+:- doc(author,"The Ciao Development Team").
 
 :- doc(module,"Through the following examples we will try to
 	illustrate the two mains ways of declaring and using

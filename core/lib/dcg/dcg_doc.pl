@@ -3,7 +3,7 @@
 
 :- doc(title,"Definite Clause Grammars").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 %% see @cite{Les Grammaires de Metamorphos} by A.Colmerauer,
 %% Technical Report, Groupe d'Intelligence Artificielle,

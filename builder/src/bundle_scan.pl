@@ -1,8 +1,8 @@
 :- module(bundle_scan, [], [assertions, fsyntax]).
 
 :- doc(title, "Scanning and Registering of Bundles").
-:- doc(author, "Ciao Development Team").
 :- doc(author, "Jose F. Morales").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "Scanning source for bundles and processing of
    @tt{Manifest.pl} files.

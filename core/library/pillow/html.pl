@@ -8,7 +8,7 @@
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Manuel Hermenegildo").
 :- doc(author, "Sacha Varma").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module implements predicates for
    @concept{HTML}/@concept{XML} generation and parsing.").

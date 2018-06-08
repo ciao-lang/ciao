@@ -2,7 +2,7 @@
 
 % TODO: rename by builder_opts or flags?
 :- doc(title, "Commonly used config flags").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 :- doc(author, "Jose F. Morales").
 
 :- use_module(library(terms), [atom_concat/2]).

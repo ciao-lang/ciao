@@ -8,7 +8,7 @@
 :- doc(title,"Dynamic predicates").
 
 :- doc(author, "Daniel Cabeza").
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(usage, "To be able to handle dynamic predicates in a module,
    load the library package @lib{dynamic_clauses}, either by putting it

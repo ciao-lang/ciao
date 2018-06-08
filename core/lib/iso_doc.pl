@@ -5,7 +5,7 @@
 
 :- doc(title,"ISO-Prolog package").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module,"This library package allows the use of the
    @concept{ISO-Prolog} predicates in Ciao programs. The compatibility

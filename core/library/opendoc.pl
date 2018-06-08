@@ -1,10 +1,10 @@
 :- module(opendoc, [], [assertions, regtypes, dcg, basicmodes, fsyntax]).
 
 :- doc(title, "Open a document with an external application").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module provides predicates to open documents with
-   user's preferred external applications. It is based external
+   the user's preferred external applications. It is based on external
    commands typically provided by each operating system (e.g.,
    @tt{xdg-open} (Linux), @tt{cygstart} (Windows), @tt{open}
    (macOS)).").

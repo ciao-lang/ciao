@@ -8,7 +8,7 @@
 
 :- doc(title,"Term checking utilities").
 
-:- doc(author,"The CLIP Group").
+:- doc(author,"The Ciao Development Team").
 
 :- doc(module,"This module implements a basic set of term checking
    utilities.").

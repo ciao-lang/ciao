@@ -1,7 +1,7 @@
 :- module(info_installer, [], [assertions, regtypes, fsyntax]).
 
 :- doc(title, "Installation of info files").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module defines predicates to update (register and
    unregister) the @tt{dir} Info directory files.").

@@ -6,7 +6,7 @@
 
 :- doc(title, "The Iso Char module").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Edison Mera (documentation)").

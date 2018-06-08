@@ -14,7 +14,7 @@
 
 :- doc(title,"Lists of numbers").
 
-:- doc(author,"The CLIP Group").
+:- doc(author,"The Ciao Development Team").
 
 :- doc(module,"This module implements some kinds of lists of
    numbers.").

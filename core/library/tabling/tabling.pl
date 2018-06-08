@@ -9,7 +9,7 @@
 :- doc(filetype, package).
 
 :- doc(author,"Pablo Chico de Guzm@'{a}n Huerta").
-:- doc(author,"The CLIP Group").
+:- doc(author,"The Ciao Development Team").
 
 :- doc(title,"Tabling Execution").
  %% :- doc(subtitle,"(Using O-CHAT Technique)").

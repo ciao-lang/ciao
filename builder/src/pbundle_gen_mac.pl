@@ -7,13 +7,13 @@
 :- doc(title, "Mac OS X distributions").
 
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(ack, "This builds the Ciao Macport Portfile and Mac pkg installers.
              Thanks to Edison Mera for his support.").
 
 :- doc(copyright, "
-Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The CLIP Group.
+Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The Ciao Development Team.
 ").
 
 % ===========================================================================

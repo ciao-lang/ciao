@@ -1,8 +1,8 @@
 :- module(bundle_flags, [], [assertions, dcg, fsyntax]).
 
 :- doc(title, "Bundle configuration flags").
-:- doc(author, "Ciao Development Team").
 :- doc(author, "Jose F. Morales").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "@cindex{bundle flag} Bundle flags define parameters of
    the bundle configuration. These are similar to @concept{prolog

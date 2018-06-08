@@ -1,7 +1,8 @@
 :- module(expander_tr, [expand_sentence/4, expand_clause/4], [assertions]).
 
-:- doc(author, "The CLIP Group").
-:- doc(author, "Improved by Edison Mera.").
+:- doc(author, "The Ciao Development Team").
+:- doc(author, "David ").
+:- doc(author, "Edison Mera").
 
 :- doc(module, "Generates a file with the result of applying the
 	clause and sentence expansions in a module.").

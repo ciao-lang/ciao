@@ -3,7 +3,7 @@
 :- doc(title,  "Emacs batch calls").
 
 :- doc(author, "Jos@'{e} F. Morales (redesign, new code)").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(bug, "This needs to be merged with emacs.pl library").
 

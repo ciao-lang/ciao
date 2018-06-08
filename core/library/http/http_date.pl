@@ -1,7 +1,7 @@
 :- module(http_date, [], [assertions, isomodes, regtypes, dcg, hiord, doccomments]).
 
-%! \title HTTP dates
-%  \author Ciao Development Team
+%! \title  HTTP dates
+%  \author The Ciao Development Team
 %
 %  \module
 %

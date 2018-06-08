@@ -2,7 +2,7 @@
 
 :- doc(title,  "The interactive top-level shell").
 :- doc(author, "Daniel Cabeza").
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(usage, "The following predicates can be used at the top-level
    shell natively (but see also the commands available in @ref{The
@@ -10,7 +10,7 @@
    shell).").
 
 :- doc(copyright,"
-Copyright @copyright{} 1996-2002 Daniel Cabeza/The CLIP Group.
+Copyright @copyright{} 1996-2002 Daniel Cabeza/The Ciao Development Team.
 
 @include{DocCopyright.lpdoc}
 ").

@@ -42,7 +42,7 @@
 
 :- doc(title, "Printing status and error messages").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This is a very simple library for printing status
      and error messages to the console.").

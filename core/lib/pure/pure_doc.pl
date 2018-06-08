@@ -3,7 +3,7 @@
 
 :- doc(title,"Pure Prolog package").
 
-:- doc(author,"The CLIP Group").
+:- doc(author,"The Ciao Development Team").
  
 :- doc(module,"This library package allows the use of 
    @index{pure Prolog} in a Ciao module/program.

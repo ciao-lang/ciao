@@ -4,7 +4,7 @@
 :- doc(title,"Phrase Support for DCGs").
 
 :- doc(author, "Jose F. Morales").
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 %% see @cite{Les Grammaires de Metamorphos} by A.Colmerauer,
 %% Technical Report, Groupe d'Intelligence Artificielle,

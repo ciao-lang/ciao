@@ -2,7 +2,7 @@
 
 % TODO: redistribute predicates from this module?
 :- doc(title,  "Auxiliary Predicates for Builder").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(bundle/bundle_flags)).

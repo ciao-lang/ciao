@@ -85,7 +85,7 @@ yes
 @end{verbatim}
 ").
 
-:- doc(author, "Isabel Garcia").
+:- doc(author, "Isabel Garcia Contreras").
 :- doc(author, "Jose F. Morales").
 
 % TODO:

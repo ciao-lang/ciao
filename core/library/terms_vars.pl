@@ -8,7 +8,7 @@
 
 :- doc(title, "Sets of variables in terms").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module implements predicates to handle sets of
    variables in terms.").

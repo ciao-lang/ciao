@@ -1,7 +1,7 @@
 :- module(ciaoc, [main/1], [assertions, hiord, dcg, optparse, nortchecks]).
 
 :- doc(title,  "The standalone command-line compiler").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(copyright, "
 Copyright @copyright{} 1996-2002 Daniel Cabeza/The CLIP Group.

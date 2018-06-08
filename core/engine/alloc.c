@@ -4,7 +4,7 @@
  *  Checked memory allocation.
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2002-2015 Ciao Development Team
+ *  Copyright (C) 2002-2015 The Ciao Development Team
  */
 
 #if defined(Solaris) || defined(LINUX) || defined(DARWIN) || defined(BSD)

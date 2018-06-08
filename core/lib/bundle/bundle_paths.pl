@@ -1,8 +1,8 @@
 :- module(bundle_paths, [], [assertions, fsyntax, hiord, regtypes, isomodes]).
 
 :- doc(title, "Extended symbolic path names (for bundles)").
-:- doc(author, "Ciao Development Team").
 :- doc(author, "Jose F. Morales").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "Mapping between symbolic path names (bundle source
    code, build areas, compiled code, and documentation) and the

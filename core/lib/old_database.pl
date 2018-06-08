@@ -4,7 +4,7 @@
 
 :- doc(title,"Quintus-like internal database").
 
-:- doc(author,"The CLIP Group").
+:- doc(author,"The Ciao Development Team").
 
 :- doc(module," The predicates described in this section were
    introduced in early implementations of Prolog to provide efficient

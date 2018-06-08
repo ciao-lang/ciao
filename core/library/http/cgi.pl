@@ -1,7 +1,7 @@
 :- module(cgi, [], [assertions,isomodes,dcg,hiord,doccomments,define_flag]).
 
-%! \title CGI programming
-%  \author Ciao Development Team
+%! \title  CGI programming
+%  \author The Ciao Development Team
 %
 %  \module
 %

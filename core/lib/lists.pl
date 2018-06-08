@@ -18,7 +18,7 @@
 
 :- doc(title, "List processing").
 
-:- doc(author, "The CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module provides a set of predicates for list
            processing.").

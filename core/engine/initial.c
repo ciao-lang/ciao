@@ -4,7 +4,7 @@
  *  System initialization and extern defs for global Prolog terms.
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2002-2015 Ciao Development Team
+ *  Copyright (C) 2002-2015 The Ciao Development Team
  */
 
 #include <stdio.h>
