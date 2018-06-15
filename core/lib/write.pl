@@ -32,7 +32,7 @@
            in ISO-Prolog are included, plus other traditionally
            provided by Prolog Implementations. Output predicates are
            provided in two versions: one that uses the current output
-           stream and other in which the stream is specified
+           stream and another in which the stream is specified
            explicitly, as an additional first argument.").
 
 :- doc(define_flag/3,"Defines flags as follows:
