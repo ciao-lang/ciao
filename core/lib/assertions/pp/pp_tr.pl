@@ -110,7 +110,6 @@ get_pp_cmd(M, Cmd) :-
 get_pp_prelude(M, C) :-
 	pp_opt(rtchecks, M),
 	( C = (:- use_package(rtchecks))
-        % ; C = (:- use_package(library(rtchecks/rtchecks_rt_inline))) % TODO: does not work?
         ; C = (:- use_package(library(rtchecks/rtchecks_rt_library)))
 	).
 get_pp_prelude(M, C) :-

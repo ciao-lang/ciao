@@ -6,18 +6,19 @@
             generate_rtchecks/7,
             generate_rtchecks/11
         ],
-        [assertions, regtypes, nortchecks, nativeprops, isomodes, dcg, hiord]).
+        [assertions, regtypes, nortchecks, nativeprops, isomodes, dcg, hiord, fsyntax]).
 
-% You can test the inliner package with this module
-:- use_package(library(rtchecks/rtchecks_tr_inline)).
-% :- use_package(library(rtchecks/rtchecks_tr_library)).
+% [DEPRECATED] You can test the inliner package with this module --NS
+% :- use_package(library(rtchecks/rtchecks_tr_inline)).
+:- use_package(library(rtchecks/rtchecks_tr_library)).
 
 :- use_module(library(assertions/assertions_props), [head_pattern/1]).
 % see formulae, conj_to_list/2, list_to_conj/2
 :- use_module(library(aggregates), [findall/3, findall/4]).
+:- use_module(library(llists),     [flatten/2]).
 :- use_module(library(terms),      [atom_concat/2]).
-:- use_module(library(sort),       [keylist/1, keypair/1]).
-:- use_module(library(rtchecks/term_list), [collapse_terms/3]).
+:- use_module(library(sort),       [sort/2,keylist/1, keypair/1]).
+:- use_module(library(rtchecks/term_list), [push_term/3, collapse_terms/3]).
 :- use_module(library(assertions/assrt_lib),
         [
             assertion_read/9,
@@ -54,10 +55,12 @@ The semantic of run-time checks is explained in the paper:
 The rtchecks are generated in such a way that redundant tests are
 collapsed, in order to avoid overhead.
 
+@comment{
 Several instrumentation modes are provided to implement the run-time
 checks. One is inline, which instrument the code directly. The other
 mode is library, that use external metapredicates to do the checks,
 this mode save space but could have less performance.
+}
 
 Note that the instrumentation can be done in the call to predicates
 (transforming calls), or in the procedure definitions (transforming
@@ -169,8 +172,8 @@ current_assertion_2(Pred0, Status, Type, Pred, Compat, Call, Succ, Comp0,
 	assertion_read(Pred0, M, Status, Type, ABody, Dict0, S, LB, LE),
 	valid_assertions(Status, Type),
 	functor(Pred0, F, CA),
-	lit_clause_arity(M, F, A, CA),
-	\+ inline_db(F, A, _, M),
+	lit_clause_arity(M, F, A, CA),  % inliner_tr
+	\+ inline_db(F, A, _, M),       % inliner_tr
 	(
 	    (
 		current_prolog_flag(rtchecks_level, inner)
@@ -222,7 +225,7 @@ rtchecks_sentence_tr(end_of_file, Clauses, M, _) :-
                  Clauses),
         cleanup_db_0(M).
 rtchecks_sentence_tr(_, _, M, _) :-
-	in_inline_module_db(_, M),
+	in_inline_module_db(_, M),  % from inliner_tr
 	!,
 	fail.
 rtchecks_sentence_tr(Sentence, Sentence0, M, Dict) :-
@@ -438,25 +441,25 @@ calllit_expansion(Goal0, PDict, PredName, Loc, Goal) :-
 	put_call_stack(Goal0, litloc(LitName, Loc-PredName), Goal).
 
 rename_head(Tag, A, Head, Head1) :-
-	compound_struct(Head, F, Args),
+	compound_struct(Head, F, Args),    % inliner_tr
 	atom_number(NA, A),
 	atom_concat([F, '/', NA, '$rtc', Tag], F1),
-	compound_struct(Head1, F1, Args).
+	compound_struct(Head1, F1, Args).  % inliner_tr
 
 record_head_alias(Head0, Head, M) :-
 	functor(Head0, F0, A),
 	functor(Pred0, F0, A),
-	compound_struct(Pred0, _, Args),
+	compound_struct(Pred0, _, Args),   % inliner_tr
 	functor(Head, F, _),
-	compound_struct(Pred, F, Args),
+	compound_struct(Pred, F, Args),    % inliner_tr
 	assertz_fact(head_alias_db(Pred0, Pred, M)).
 
 record_goal_alias(Head0, Head, M) :-
 	functor(Head0, F0, A),
 	functor(Pred0, F0, A),
-	compound_struct(Pred0, _, Args),
+	compound_struct(Pred0, _, Args),   % inliner_tr
 	functor(Head, F, _),
-	compound_struct(Pred, F, Args),
+	compound_struct(Pred, F, Args),    % inliner_tr
 	assertz_fact(goal_alias_db(Pred0, Pred, M)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
