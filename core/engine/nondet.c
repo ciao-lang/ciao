@@ -466,7 +466,7 @@ CFUN__PROTO(current_instance, instance_t *)
   w->node->functor=find_definition(predicates_location,X(0),&junk,FALSE);
 #endif
   PredTrace("I",w->node->functor);
-  root =  TagToRoot(X(2));
+  root = TagToRoot(X(2));
   if (root->behavior_on_failure == DYNAMIC)
     return current_instance_noconc(Arg);
   else {
@@ -477,7 +477,7 @@ CFUN__PROTO(current_instance, instance_t *)
     else if (X(4) == atom_no_block)
       block = NO_BLOCK;
     else {
-      failc("$current_instance called with unkown 5th argument");
+      failc("$current_instance called with unknown 5th argument");
       return NULL;                         
     }
 #else
@@ -553,13 +553,16 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
   }
   else goto var_case_switch;
 
+  /* NOTE: We must cleanup unused registers up to DynamicPreserved so
+     that HEAPMARGIN_CALL does not break during GC */
+
   if (x2_next || x5_next) {
     ComputeA(w->local_top,w->node);
     X(X2_CHN) = PointerToTermOrZero(x2_next);
     X(ClockSlot) = MakeSmall(use_clock);
     X(X5_CHN) = PointerToTermOrZero(x5_next);
     X(RootArg) = PointerToTermOrZero(root);
-    /* Clean unused registers (JF & MCL) */
+    /* Cleanup unused registers (JF & MCL) */
     X(InvocationAttr) = MakeSmall(0); 
     X(PrevDynChpt) = MakeSmall(0); 
 
@@ -570,6 +573,12 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
     w->node->trail_top = w->trail_top;
     SaveGtop(w->node,w->global_top);
     NewShadowregs(w->global_top);
+  } else {
+    /* Cleanup unused registers */
+    X(X5_CHN) = MakeSmall(0);
+    X(RootArg) = MakeSmall(0);
+    X(InvocationAttr) = MakeSmall(0); 
+    X(PrevDynChpt) = MakeSmall(0); 
   }
 
   Release_Cond_lock(root->clause_insertion_cond);
@@ -891,6 +900,7 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
 
     /* pass root to RETRY_INSTANCE (MCL) */
     X(RootArg) = PointerToTermOrZero(root);  
+    X(InvocationAttr) = MakeSmall(0); /* avoid garbage */
     if (block == BLOCK)
       SET_BLOCKING(X(InvocationAttr));
     else

@@ -119,8 +119,9 @@
 #define PrevDynChpt 8
 #define DynamicPreserved 9
 
-#define BLOCKIDX (1<<0)
-#define EXECIDX  (1<<1)
+/* NOTE: was 1<<0 and 1<<1; avoid reserved bits */
+#define BLOCKIDX ((intmach_t)1<<tagged__num_offset)
+#define EXECIDX  ((intmach_t)1<<(tagged__num_offset+1))
 
 #define SET_BLOCKING(arg) (arg) = ((arg) | BLOCKIDX)
 #define SET_NONBLOCKING(arg) (arg) = ((arg) & ~BLOCKIDX)
