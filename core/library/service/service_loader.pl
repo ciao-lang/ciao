@@ -3,6 +3,8 @@
 :- doc(title, "Dynamic loader of Ciao services").
 :- doc(author, "Jose F. Morales").
 
+% TODO:T257 merge with active modules
+
 :- doc(module, "Dynamic loader of Ciao services. Only services listed
    on the @lib{service_registry} are considered. Services are loaded
    dynamically depending on the options specified in their registry
@@ -15,26 +17,32 @@
    @end{itemize}
    ").
 
-:- use_module(.(service_holder)).
 :- use_module(library(service/service_registry)).
-:- use_module(library(service/actmod_process)).
+:- use_module(library(actmod/actmod_process)).
+:- use_module(library(actmod/actmod_rt), [actI_init_named/2]).
 
 :- export(service_loaded/1).
 :- pred service_loaded(ServName) :: servname # "@var{ServName} is
    loaded".
 :- data service_loaded/1.
 
+% TODO:T253 Include in actmod_spawn and actI_init_named?
+:- include(library(actmod/actmod_hooks)). % (for '$static_named_actRef'/2)
+'$static_named_actRef'(ActRef, DMod) :- service_loaded(ActRef), !, DMod = ActRef.
+
 :- export(service_load/1).
 :- pred service_load(ServName) :: servname # "Load @var{ServName}".
 service_load(ServName) :-
-	service_load_mode(ServName, Bundle, Mode),
+	service_load_mode(ServName, Mode),
 	( Mode = dynmod(Mod) ->
-	    loader_message("Loading service `~w`... (dynmod)~n", [ServName]),
-	    service_holder:do_use_module(Mod)
-	; Mode = child ->
-	    % TODO: make sure that this works as expected
-	    loader_message("Loading service `~w`... (child actmod)~n", [ServName]),
-	    actmod_start(Bundle, ServName, [])
+	    loader_message("Loading actmod `~w`... (same process)~n", [ServName]),
+	    actmod_load_dynmod(Mod),
+	    loader_message("Spawning actmod `~w`... (same process)~n", [ServName]),
+	    % TODO: assumes static_named_actRef and "same process"
+	    actI_init_named(ServName, ServName)
+	; Mode = child(ExecPath) ->
+	    loader_message("Spawning actmod `~w`... (child)~n", [ServName]),
+	    actmod_spawn(ServName, [exec(ExecPath), child], _ActRef)
 	; % Redirect, daemon, etc. do nothing
 	  true
 	),
@@ -44,10 +52,11 @@ service_load(ServName) :-
 :- pred service_restart(ServName) :: servname # "Try to restart
    @var{ServName} if it was loaded as a daemon".
 service_restart(ServName) :-
-	service_load_mode(ServName, Bundle, Mode),
-	( Mode = daemon ->
-	    loader_message("Starting service `~w`... (daemon actmod)~n", [ServName]),
-	    actmod_start(Bundle, ServName, [daemon])
+	service_load_mode(ServName, Mode),
+	( Mode = daemon(ExecPath) ->
+	    loader_message("Spawning actmod `~w`... (daemon)~n", [ServName]),
+	    catch(actmod_spawn(ServName, [exec(ExecPath), daemon], _ActRef),
+	          _, true) % ignore errors (it may need some time to start)
 	; true % nothing
 	).
 
@@ -60,15 +69,12 @@ service_stop_all :-
 	; true
 	).
 
-% (see `rundaemon`)
-% Currently this is equivalent to:
-%
-%   $ kill `cat /tmp/Mod.pid`
 service_stop(ServName) :-
-	service_load_mode(ServName, Bundle, Mode),
-	( Mode = daemon ->
-	    actmod_kill(Bundle, ServName, Msg),
-	    loader_message("Killing ~w [~s]~n", [ServName, Msg])
+	service_load_mode(ServName, Mode),
+	( Mode = daemon(_ExecPath) ->
+	    ActRef = ServName, % TODO:T253 see [new-actref]
+	    catch(actmod_kill(ActRef, Msg), _E, fail), % ignore if we could not kill it
+	    loader_message("Killing ~w [~s]~n", [ActRef, Msg])
 	; true % nothing
 	).
 

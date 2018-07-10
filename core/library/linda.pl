@@ -60,10 +60,10 @@ ping_answer_ok(A) :-
 	inform_user(['{ERROR: linda_client/1: strange answer from server:',
                      A,'}']).	
 
-open_client(Host:Port,Stream) :-
-	atom(Host),
+open_client(Hostname:Port,Stream) :-
+	atom(Hostname),
 	integer(Port), !,
-	connect_to_socket(Host, Port, Stream).
+	connect_to_socket(Hostname, Port, Stream).
 open_client(Addr,_Stream) :-
 	inform_user(['{ERROR: open_client/3: Illegal network address: ',
                      Addr,'}']),

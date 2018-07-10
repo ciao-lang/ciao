@@ -18,8 +18,8 @@
    @includedef{url_term/1}").
 :- regtype url_term(URL) # "@var{URL} specifies a URL.".
 
-url_term(http(Host,Port,URIStr)) :-
-        atm(Host),
+url_term(http(Hostname,Port,URIStr)) :-
+        atm(Hostname),
         int(Port),
         string(URIStr).
 
@@ -44,22 +44,22 @@ url_info(Url, Info) :-
 url_info(Url, Info) :-
         info_to_url(Info, Url).
 
-url_to_info(Url, http(Host,Port,URIStr)) :-
-        http_url(Host, Port, URIStr, Url, []), !.
+url_to_info(Url, http(Hostname,Port,URIStr)) :-
+        http_url(Hostname, Port, URIStr, Url, []), !.
 % More protocols may be added here...
 
 % TODO: Add 'https' at least
-http_url(Host,Port,Doc) -->
+http_url(Hostname,Port,Doc) -->
         "http://",
-        internet_host(Host),
+        internet_host(Hostname),
         optional_port(Port),
         http_document(Doc).
 
-internet_host(Host) -->
+internet_host(Hostname) -->
         internet_host_char(C),
         internet_host_char_rest(Cs),
         {
-            atom_codes(Host, [C|Cs])
+            atom_codes(Hostname, [C|Cs])
         }.
 
 internet_host_char_rest([C|Cs]) -->
@@ -93,12 +93,12 @@ instantiated_string([C|Cs]) :-
         integer(C),
         instantiated_string(Cs).
 
-info_to_url(http(Host,Port,URIStr), Info) :- !,
-        atom(Host),
+info_to_url(http(Hostname,Port,URIStr), Info) :- !,
+        atom(Hostname),
         integer(Port),
-        atom_codes(Host, HostS),
+        atom_codes(Hostname, HostnameS),
         port_codes(Port, PortS),
-        mappend(["http://", HostS, PortS, URIStr], Info).
+        mappend(["http://", HostnameS, PortS, URIStr], Info).
 % More protocols may be added here...
 
 port_codes(80, "") :- !.
@@ -128,9 +128,9 @@ url_info_relative(URL, Base, Info) :-
         url_info_relative(URLStr, Base, Info).
 url_info_relative(URL, _Base, Info) :-
         url_info(URL, Info), !.
-url_info_relative(Path, http(Host,Port,_), http(Host,Port,Path)) :-
+url_info_relative(Path, http(Hostname,Port,_), http(Hostname,Port,Path)) :-
         Path = [0'/|_], !.
-url_info_relative(File, http(Host,Port,BaseDoc), http(Host,Port,URIStr)) :-
+url_info_relative(File, http(Hostname,Port,BaseDoc), http(Hostname,Port,URIStr)) :-
         \+ member(0':, File), % Naive check to ensure it is not a valid URL
         append(BasePath, BaseFile, BaseDoc),
         \+ member(0'/, BaseFile), !,

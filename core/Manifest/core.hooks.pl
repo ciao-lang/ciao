@@ -63,7 +63,7 @@
 '$builder_hook'(core_cmds:cmd('cmds/ciaoc_sdyn')).
 '$builder_hook'(core_cmds:cmd('cmds/ciao-serve/ciao-serve')).
 % TODO: temporary, see rundaemon.pl TODOs
-'$builder_hook'(core_cmds:cmd(rundaemon, [main='library/service/rundaemon', libexec])).
+'$builder_hook'(core_cmds:cmd(rundaemon, [main='library/actmod/rundaemon', libexec])).
 
 % ---------------------------------------------------------------------------
 % Standalone compiler
@@ -233,9 +233,6 @@ do_ciaotests :-
 % 	-rm -f object_test/object_test
 % 	-rm -f test_java/plserver
 % 	-rm -f test_java/j2pl_test.class
-% 	-rm -f actmod_test/simple_server
-% 	-rm -f actmod_test/simple_client_with_main 
-% 	-rm -f actmod_test/*.addr
 % 	-rm -f persistentdb/persistentdb
 % 	-rm -f persistentdb/queue 
 % 	-rm -f persistentdb/example_static

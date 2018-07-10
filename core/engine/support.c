@@ -84,22 +84,22 @@ void failc(char *mesg)
 
       intmach_t goal_id = eng_goal_from_thread_id(thrid);
       if (goal_id != 0) {
-        ENG_PRINTF(stream_user_error,
-		   "{ERROR (%s, goal 0x%" PRIxm ", thread 0x%" PRIxm "): %s}\n",
-		   source_path, (uintmach_t)goal_id,
-		   (uintmach_t)thrid, mesg);
+        fprintf(stderr,
+		"{ERROR (%s, goal 0x%" PRIxm ", thread 0x%" PRIxm "): %s}\n",
+		source_path, (uintmach_t)goal_id,
+		(uintmach_t)thrid, mesg);
       } else {
-        ENG_PRINTF(stream_user_error,
-		   "{ERROR (%s, thread 0x%" PRIxm "): %s}\n",
-		   source_path,
-		   (uintmach_t)thrid, mesg);
+        fprintf(stderr,
+		"{ERROR (%s, thread 0x%" PRIxm "): %s}\n",
+		source_path,
+		(uintmach_t)thrid, mesg);
       }
     } else {
-        ENG_PRINTF(stream_user_error, "{ERROR: %s}\n", mesg);
+      fprintf(stderr, "{ERROR: %s}\n", mesg);
     }
   }
   if (!wam_initialized){
-    printf("Wam not initialized, exiting!!!\n");
+    fprintf(stderr, "Wam not initialized, exiting!!!\n");
     at_exit(-1);
   }
 }
@@ -1407,20 +1407,16 @@ CBOOL__PROTO(start_node)
 #if defined(DEBUG_NODE)
 void display_functor(definition_t *functor)
 {
-  if(functor)
-    {
-      if(IsString((functor)->printname))
-	{
-	  fprintf(stderr, "'%s'/", GetString((functor)->printname));
-	}
-      else
-	{
-	  fprintf(stderr, "_/");
-	}
-      fprintf(stderr, "%d", (functor)->arity);
+  if (functor) {
+    if (IsString((functor)->printname)) {
+      fprintf(stderr, "'%s'/", GetString((functor)->printname));
+    } else {
+      fprintf(stderr, "_/");
     }
-  else
+    fprintf(stderr, "%d", (functor)->arity);
+  } else {
     fprintf(stderr, "_F");
+  }
 }
 # define DisplayCPFunctor(cp) display_functor(cp->functor)
 #else

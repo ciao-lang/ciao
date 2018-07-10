@@ -16,7 +16,10 @@
 :- use_module(library(service/service_registry), [reload_service_registry/0]).
 :- use_module(library(service/serve_http), []). % (implements httpserv.handle/3)
 
-:- use_module(library(service/actmod_ctl), []). % TODO: make it optional?
+:- use_module(library(actmod/actmod_dist), [dist_set_reg_protocol/1]).
+:- use_module(library(actmod/regp_filebased), []). % TODO: more protocols?
+
+% :- use_module(library(service/actmod_ctl), []). % TODO: make it optional?
 
 :- doc(bug, "Customize available services").
 :- doc(bug, "Make it work as proxy").
@@ -47,12 +50,17 @@ serve([stop]) :- !,
 	format(user_error, "=> stopping daemons~n", []),
 	reload_service_registry,
 	service_stop_all.
-serve(['-p', PortAtm]) :- !,
-	atom_codes(PortAtm, Cs),
-	number_codes(Port, Cs),
+serve(Args) :-
+	( Args = ['-p', PortAtm|Rest] ->
+	    atom_number(PortAtm, Port)
+	; % (leave Port unbound)
+	  Rest = Args
+	),
+	Rest = [],
+	% Select default port
+	( var(Port) -> Port = 8000 ; true ),
+	dist_set_reg_protocol(filebased), % TODO: customize? needed for actmod_http
 	serve_at_port(Port).
-serve([]) :- !,
-	serve_at_port(8000).
 
 serve_at_port(Port) :-
 	format(user_error, "=> starting HTTP server~n", []),
@@ -61,5 +69,6 @@ serve_at_port(Port) :-
 	http_bind(Port),
 	Path = ~site_root_dir, cd(Path), % TODO: not needed?
 	http_loop(ExitCode),
+	format(user_error, "=> HTTP server finished with exit code ~w~n", [ExitCode]),
 	halt(ExitCode).
 

@@ -98,8 +98,9 @@ http_read_content(Stream, Request, Request1, Tail) :-
 	http_read_content_n(Stream,Length,Tail,Content),
 	Request1 = [content(Content)|Request],
 	!.
-http_read_content(_Stream, Request, _, _) :-
-	log(error, failed(http_read_content/4, Request)).
+http_read_content(_Stream, Request, _, _) :- % TODO: exception?
+	log(error, failed(http_read_content/4, Request)),
+	fail.
 
 http_read_content_n(Stream,Length,AlreadyRead,Data):-
 	length(AlreadyRead,N),
@@ -136,10 +137,7 @@ http_write_response(Stream, Response) :-
 
 http_send_response(Stream, Response) :-
 	http_response(Response,ResponseChars,[]),
-	write_string(Stream,ResponseChars),
-%	write_string(user_output,"{{{RESPONSE IS:\n"),
-%	write_string(user_output,ResponseChars),
-%	write_string(user_output,"}}}\n"),
+	catch(write_string(Stream,ResponseChars), _Err, true), % TODO: log errors? (e.g., resource_error(undefined) due to broken pipe)
 	flush_output(Stream),
 	close(Stream). % TODO: could be keep Stream open? (see socket_select leak problem)
 	
@@ -233,16 +231,16 @@ needs_update(OldModifDate, ModifDate) :-
 
 :- export(http_serve_fetch/2).
 :- meta_predicate http_serve_fetch(?,pred(2)).
-:- pred http_serve_fetch(Stream, Server) # "Read a HTTP
-   request from @var{Stream}, obtain the response calling @var{Server}
-   predicate, and write the response the socket stream.".
+:- pred http_serve_fetch(Stream, Serve) # "Read a HTTP
+   request from @var{Stream}, obtain the response calling @var{Serve}
+   predicate, and write the response to the socket stream.".
 
-http_serve_fetch(Stream,Server):-
+http_serve_fetch(Stream,Serve):-
 	( http_read_request(Stream, Request) ->
 	    ( Request = [] ->
 	        % TODO: peer orderly closed; do something? (e.g., in multi-worker setting)
 	        true
-	    ; Server(Request, Response) ->
+	    ; Serve(Request, Response) ->
 	        http_write_response(Stream, Response)
 	    ; % Request (without Content) 
 	      log(error, failed(http_serve_fetch/2, Request))
@@ -295,8 +293,8 @@ http_bind(Port) :-
 http_loop(ExitCode) :-
 	curr_socket(Socket),
 	catch(serve_socket_loop(Socket),
-	      err_shutdown(Code),
-	      ExitCode=Code).
+	     err_shutdown(Code),
+	     ExitCode=Code).
 
 % TODO: I need to handle 'connection reset by peer'
 % TODO: Why is loop needed? Maybe due to interrupts
@@ -316,9 +314,9 @@ serve_socket_loop(Socket) :-
 http_shutdown(ExitCode) :-
 	assertz_fact(shutdown(ExitCode)).
 
-socket_serve(Stream) :-
+socket_serve(Stream, yes) :-
 	% TODO: Are Stream objects here leaking? (see C code)
-	http_serve_fetch(Stream,http_serve(Stream)),
+	http_serve_fetch(Stream,http_serve(Stream)), % Note: http_serve_fetch/1 closes Stream
 	( current_fact(shutdown(Code)) ->
 	    throw(err_shutdown(Code)) % TODO: better way?
 	; true

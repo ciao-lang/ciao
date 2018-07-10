@@ -53,7 +53,7 @@ CBOOL__PROTO(prolog_format_print_float)
   else if(precision<0)
     precision = 6;
   float_to_string(buf, precision, formatChar, f, 10);
-  print_string(Output_Stream_Ptr, buf);
+  print_string(Arg, Output_Stream_Ptr, buf);
 
   return TRUE;
 }
@@ -175,7 +175,7 @@ CBOOL__PROTO(prolog_format_print_integer)
 	}
     }
   
-  print_string(Output_Stream_Ptr, Atom_Buffer);
+  print_string(Arg, Output_Stream_Ptr, Atom_Buffer);
   return TRUE;
 }
 

@@ -1,6 +1,5 @@
 :- module(exemaker,
 	    [make_exec/2,
-	     make_actmod/3,
 	     force_lazy/1,
 	     undo_force_lazy/1,
 	     dynamic_search_path/1],
@@ -64,21 +63,6 @@ undo_force_lazy(Module) :- retractall_fact(ok_lazy(Module)).
 
 make_exec(Files, ExecName) :-
 	catch(make_exec_prot(Files, ExecName), Error, handle_exc(Error)).
-
-make_actmod(Files, PublishMod, ExecName) :-
-	Files = [MainFile|RestFiles],
-	% nonvar() below is always true for files
-	process_file(MainFile, nop, module, false, nonvar, false, false),
-	base_name(MainFile, Base),
-	file_data(Base, PlName, _),
-	( var(ExecName) ->
-	    % (note that we change main file later)
-	    get_os(OS),
-	    resolve_execname(ExecName, Base, PlName, OS)
-	; true
-	),
-	create_main(Base, PublishMod, NewMainFile),
-	catch(make_exec_prot([NewMainFile|RestFiles], ExecName), Error, handle_exc(Error)).
 
 make_exec_prot(Files, ExecName) :-
 	process_files_from(Files, po, any,
@@ -536,34 +520,7 @@ dump_pos([File|Files]) :-
 	dump_pos(Files).
 dump_pos([]).
 
-%%% --- Making main file for active modules --- %%%
-
-create_main(Base, PublishMod, MainFile) :-
-%        findall(:-(multifile(F/A)), def_multifile(Base, F, A, _),
-%                Specific_code, ExeFacts),
-	findall(exe(Pred, Pred), actmod_serves(Base, Pred), ExeFacts),
-	temp_filename(MainFile),
-	itf_filename(MainFile, ItfFile),
-	assertz_fact(tmp_file(ItfFile)),
-	po_filename(MainFile, PoFile),
-	assertz_fact(tmp_file(PoFile)),
-	terms_to_file([
-		:-(use_package([])),
-		:-(use_module(Base)),
-		:-(use_module(library(PublishMod))),
-		:-(use_module(library(actmod/actmod_server),
-			[actmodmain/0])),
-		:-(main, actmodmain),
-		:-(meta_predicate(exe(?, fact)))
-		|ExeFacts],
-		MainFile).
-
-actmod_serves(Base, Pred) :-
-	exports(Base, F, A, _, _),
-	functor(Pred, F, A).
-actmod_serves(Base, Pred) :-
-	def_multifile(Base, F, A, _),
-	functor(Pred, F, A).
+% ---------------------------------------------------------------------------
 
 :- data tmp_file/1.
 
@@ -577,10 +534,14 @@ delete_temp :-
 	fail.
 delete_temp.
 
+% ---------------------------------------------------------------------------
+
 verbose_message(M) :-
 	( current_prolog_flag(verbose_compilation, off), !
 	; message(M)
 	).
+
+% ---------------------------------------------------------------------------
 
 :- pred copy_stdout(File): sourcename(File) 
    # "Copies file @var{File} to standard output.".

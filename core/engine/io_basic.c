@@ -50,11 +50,11 @@ static inline int c_getc(FILE *f) {
 #define BYTE_EOF       (-1)
 #define BYTE_PAST_EOF  (-2)
 
-static c_rune_t readrune(stream_node_t *s, int type, definition_t *pred_address);
-static void writerune(c_rune_t r, stream_node_t *s);
-static void writerunen(c_rune_t r, int i, stream_node_t *s);
-static int readbyte(stream_node_t *s, definition_t *pred_address);
-static void writebyte(int ch, stream_node_t *s);
+static CFUN__PROTO(readrune, c_rune_t, stream_node_t *s, int type, definition_t *pred_address);
+static CVOID__PROTO(writerune, c_rune_t r, stream_node_t *s);
+static CVOID__PROTO(writerunen, c_rune_t r, int i, stream_node_t *s);
+static CFUN__PROTO(readbyte, int, stream_node_t *s, definition_t *pred_address);
+static CVOID__PROTO(writebyte, int ch, stream_node_t *s);
 
 #if defined(USE_MULTIBYTES)
 c_rune_t getmb(FILE * f);
@@ -110,10 +110,10 @@ CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
     ERROR_IN_ARG((X), (ArgNo), (TY_BYTE));			\
   }
 
+/* TODO: throw better exception */
 #define IO_ERROR(Message) {			\
-    /* TODO: throw an exception instead */	\
     perror((Message));				\
-    SERIOUS_FAULT("Aborting");			\
+    UNLOCATED_EXCEPTION(RESOURCE_ERROR(R_UNDEFINED)); \
 }
 
 
@@ -365,17 +365,17 @@ static inline void inc_counts(int ch, stream_node_t * stream) {
   stream->previous_rune = ch;
 }
 
-static void writerune(int ch, stream_node_t *s) {
+static CVOID__PROTO(writerune, int ch, stream_node_t *s) {
   FILE *f = s->streamfile;
   if (s->isatty) {
     s = root_stream_ptr;
     /* ignore errors on tty */
     putc(ch, f);
-  } else if (s->streammode != 's') { /* Not a socket */
+  } else if (s->streammode != 's') { /* not a socket */
     if (putc(ch, f) < 0) {
       IO_ERROR("putc() in writerune()");
     }
-  } else {
+  } else { /* a socket */
     char p;
     p = (char)ch;
     if (write(GetInteger(s->label), &p, (size_t)1) < 0) {
@@ -385,23 +385,23 @@ static void writerune(int ch, stream_node_t *s) {
   inc_counts(ch,s);
 }
 
-static void writerunen(int ch, int i, stream_node_t *s) {
+static CVOID__PROTO(writerunen, int ch, int i, stream_node_t *s) {
   while (--i >= 0) {
-    writerune(ch, s);
+    writerune(Arg, ch, s);
   }
 }
 
-static void writebyte(int ch, stream_node_t *s) {
+static CVOID__PROTO(writebyte, int ch, stream_node_t *s) {
   FILE *f = s->streamfile;
   if (s->isatty) {
     s = root_stream_ptr;
     /* ignore errors on tty */
     putc(ch, f);
-  } else if (s->streammode != 's') { /* Not a socket */
+  } else if (s->streammode != 's') { /* not a socket */
     if (putc(ch, f) < 0) {
       IO_ERROR("putc() in writebyte()");
     }
-  } else {
+  } else { /* a socket */
     char p;
     p = (char)ch;
     if (write(GetInteger(s->label), &p, (size_t)1) < 0) {
@@ -427,7 +427,7 @@ static void writebyte(int ch, stream_node_t *s) {
 
    op_type: DELRET, PEEK, GET, GET1, SKIPLN, or >= 0 for SKIP
  */
-static int readrune(stream_node_t *s,
+static CFUN__PROTO(readrune, int, stream_node_t *s,
 		    int op_type,
 		    definition_t *pred_address) {
   FILE *f = s->streamfile;
@@ -437,7 +437,7 @@ static int readrune(stream_node_t *s,
     int_address = pred_address;
     while (TRUE) {
       if (root_stream_ptr->rune_count==root_stream_ptr->last_nl_pos) {
-        print_string(stream_user_output,GetString(current_prompt));
+        print_string(Arg, stream_user_output,GetString(current_prompt));
           /* fflush(stdout); into print_string() MCL */
       }
 
@@ -462,7 +462,7 @@ static int readrune(stream_node_t *s,
         return r;
       }
     }
-  } else if (s->streammode != 's') { /* Not a socket */
+  } else if (s->streammode != 's') { /* not a socket */
     if (feof(f) && s->pending_rune == RUNE_VOID) {
       return RUNE_PAST_EOF; /* attempt to read past end of stream */
     }
@@ -486,7 +486,7 @@ static int readrune(stream_node_t *s,
       
       if (EXITCOND(op_type,r)) return r;
     }
-  } else {                                                  /* A socket */
+  } else { /* a socket */
     int fildes = GetInteger(s->label);
     
     if (s->socket_eof) return RUNE_PAST_EOF; /* attempt to read past end of stream */
@@ -521,15 +521,14 @@ static int readrune(stream_node_t *s,
   }
 }
 
-static int readbyte(stream_node_t *s,
-		    definition_t *pred_address) {
+static CFUN__PROTO(readbyte, int, stream_node_t *s, definition_t *pred_address) {
   FILE *f = s->streamfile;
   int i;
 
   if (s->isatty) {
     int_address = pred_address;
     if (root_stream_ptr->rune_count==root_stream_ptr->last_nl_pos) {
-      print_string(stream_user_output,GetString(current_prompt));
+      print_string(Arg, stream_user_output,GetString(current_prompt));
       /* fflush(stdout); into print_string() MCL */
     }
 
@@ -539,14 +538,14 @@ static int readbyte(stream_node_t *s,
     
     int_address = NULL; 
     return i;
-  } else if (s->streammode != 's') { /* Not a socket */
+  } else if (s->streammode != 's') { /* not a socket */
     if (feof(f)) return BYTE_PAST_EOF; /* attempt to read past end of stream */
     i = c_getc(f);
     if (i < 0 && ferror(f)) {
       IO_ERROR("getc() in readbyte()");
     }
     return i;
-  } else {                                                  /* A socket */
+  } else { /* a socket */
     unsigned char ch;
     int fildes = GetInteger(s->label);
     
@@ -573,9 +572,10 @@ static int readbyte(stream_node_t *s,
 /*----------------------------------------------------------------*/
 
 CBOOL__PROTO(flush_output) {
-  if ((Output_Stream_Ptr->streammode != 's')
-      && fflush(Output_Stream_Ptr->streamfile)) {
-    ENG_perror("fflush in flush_output/1");
+  if (Output_Stream_Ptr->streammode != 's') { /* not a socket */
+    if (fflush(Output_Stream_Ptr->streamfile)) {
+      ENG_perror("fflush in flush_output/1");
+    }
   }
   return TRUE;
 }
@@ -592,8 +592,10 @@ CBOOL__PROTO(flush_output1) {
     BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  if ((s->streammode != 's') && fflush(s->streamfile)) {
-    ENG_perror("fflush in flush_output/1");
+  if (s->streammode != 's') { /* not a socket */
+    if (fflush(s->streamfile)) {
+      ENG_perror("fflush in flush_output/1");
+    }
   }
   return TRUE;
 }
@@ -604,7 +606,7 @@ CBOOL__PROTO(getct) {
   ERR__FUNCTOR("io_basic:getct", 2);
   c_rune_t r;
 
-  r = readrune(Input_Stream_Ptr,GET,address_getct);
+  r = readrune(Arg,Input_Stream_Ptr,GET,address_getct);
 
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
@@ -621,7 +623,7 @@ CBOOL__PROTO(getct1) {
   ERR__FUNCTOR("io_basic:getct1", 2);
   c_rune_t r;
   
-  r = readrune(Input_Stream_Ptr,GET1,address_getct1); /* skip whitespace */
+  r = readrune(Arg,Input_Stream_Ptr,GET1,address_getct1); /* skip whitespace */
 
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
@@ -638,7 +640,7 @@ CBOOL__PROTO(get) {
   ERR__FUNCTOR("io_basic:get_code", 1);
   c_rune_t r;
 
-  r = readrune(Input_Stream_Ptr,GET,address_get);
+  r = readrune(Arg,Input_Stream_Ptr,GET,address_get);
 
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
@@ -660,7 +662,7 @@ CBOOL__PROTO(get2) {
     BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  r = readrune(s,GET,address_get2);
+  r = readrune(Arg,s,GET,address_get2);
 
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
@@ -675,7 +677,7 @@ CBOOL__PROTO(get1) {
   ERR__FUNCTOR("io_basic:get1_code", 1);
   c_rune_t r;
   
-  r = readrune(Input_Stream_Ptr,GET1,address_get1); /* skip whitespace */
+  r = readrune(Arg,Input_Stream_Ptr,GET1,address_get1); /* skip whitespace */
 
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
@@ -697,7 +699,7 @@ CBOOL__PROTO(get12) {
     BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  r = readrune(s,GET1,address_get12); /* skip whitespace */
+  r = readrune(Arg,s,GET1,address_get12); /* skip whitespace */
 
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
@@ -712,7 +714,7 @@ CBOOL__PROTO(peek) {
   ERR__FUNCTOR("io_basic:peek_code", 1);
   c_rune_t r;
 
-  r = readrune(Input_Stream_Ptr,PEEK,address_peek);
+  r = readrune(Arg,Input_Stream_Ptr,PEEK,address_peek);
 
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
@@ -734,7 +736,7 @@ CBOOL__PROTO(peek2) {
     BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  r = readrune(s,PEEK,address_peek2);
+  r = readrune(Arg,s,PEEK,address_peek2);
 
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
@@ -746,7 +748,7 @@ CBOOL__PROTO(peek2) {
 /*----------------------------------------------------------------*/
 
 CBOOL__PROTO(nl) {
-  writerune('\n',Output_Stream_Ptr);
+  writerune(Arg, '\n',Output_Stream_Ptr);
   return TRUE;
 }
 
@@ -762,7 +764,7 @@ CBOOL__PROTO(nl1) {
     BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  writerune('\n',s);
+  writerune(Arg, '\n',s);
   return TRUE;
 }
 
@@ -774,7 +776,7 @@ CBOOL__PROTO(put) {
 
   DEREF(X(0), X(0));
   CheckGetCharacterCode(X(0),r,1);
-  writerune(r,Output_Stream_Ptr);
+  writerune(Arg, r, Output_Stream_Ptr);
 
   return TRUE;
 }
@@ -794,7 +796,7 @@ CBOOL__PROTO(put2) {
 
   DEREF(X(1), X(1));
   CheckGetCharacterCode(X(1),r,2);
-  writerune(r,s);
+  writerune(Arg, r, s);
 
   return TRUE;
 }
@@ -809,7 +811,7 @@ CBOOL__PROTO(tab) {
     ERROR_IN_ARG(X(0),1,INTEGER);
   }
 
-  writerunen(' ',GetInteger(X(0)),Output_Stream_Ptr);
+  writerunen(Arg, ' ', GetInteger(X(0)), Output_Stream_Ptr);
   return TRUE;
 }
 
@@ -831,7 +833,7 @@ CBOOL__PROTO(tab2) {
     ERROR_IN_ARG(X(1),2,INTEGER);
   }
 
-  writerunen(' ',GetInteger(X(1)),s);
+  writerunen(Arg, ' ', GetInteger(X(1)), s);
   return TRUE;
 }
 
@@ -845,7 +847,7 @@ CBOOL__PROTO(skip) {
   CheckGetCharacterCode(X(0),r,1);
 
   for (r1=r+1; r1!=r && r1 != RUNE_PAST_EOF;) {
-    r1 = readrune(Input_Stream_Ptr,r,address_skip);
+    r1 = readrune(Arg,Input_Stream_Ptr,r,address_skip);
   }
 
   if (r1 == RUNE_PAST_EOF) {
@@ -872,7 +874,7 @@ CBOOL__PROTO(skip2) {
   CheckGetCharacterCode(X(1),r,2);
 
   for (r1=r+1; r1!=r && r1 != RUNE_PAST_EOF;) {
-    r1 = readrune(s,r,address_skip2);
+    r1 = readrune(Arg,s,r,address_skip2);
   }
 
   if (r1 == RUNE_PAST_EOF) {
@@ -889,11 +891,11 @@ CBOOL__PROTO(skip_line) {
   int r;
 
   for (r=0; r!=0xa && r!=0xd && r>=0;) {
-    r = readrune(Input_Stream_Ptr,SKIPLN,address_skip_line);
+    r = readrune(Arg,Input_Stream_Ptr,SKIPLN,address_skip_line);
   }
 
   if (r == 0xd) { /* Delete a possible 0xa (win end-of-line) */
-    readrune(Input_Stream_Ptr,DELRET,address_skip_line);
+    readrune(Arg,Input_Stream_Ptr,DELRET,address_skip_line);
   }
 
   return TRUE;
@@ -913,11 +915,11 @@ CBOOL__PROTO(skip_line1) {
   }
 
   for (r=0; r!=0xa && r!=0xd && r>=0;) {
-    r = readrune(s,SKIPLN,address_skip_line1);
+    r = readrune(Arg,s,SKIPLN,address_skip_line1);
   }
 
   if (r == 0xd) { /* Delete a possible 0xa (win end-of-line) */
-    readrune(s,DELRET,address_skip_line1);
+    readrune(Arg,s,DELRET,address_skip_line1);
   }
 
   return TRUE;
@@ -929,7 +931,7 @@ CBOOL__PROTO(get_byte1) {
   ERR__FUNCTOR("io_basic:get_byte", 1);
   int i;
 
-  i = readbyte(Input_Stream_Ptr,address_get);
+  i = readbyte(Arg,Input_Stream_Ptr,address_get);
 
   if (i == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
@@ -950,7 +952,7 @@ CBOOL__PROTO(get_byte2) {
     BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  i = readbyte(s,address_get2);
+  i = readbyte(Arg,s,address_get2);
 
   if (i == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
@@ -967,7 +969,7 @@ CBOOL__PROTO(put_byte1) {
 
   DEREF(X(0),X(0));
   CheckGetByte(X(0),i,1);;
-  writebyte(i,Output_Stream_Ptr);
+  writebyte(Arg,i,Output_Stream_Ptr);
 
   return TRUE;
 }
@@ -986,7 +988,7 @@ CBOOL__PROTO(put_byte2) {
 
   DEREF(X(1),X(1));
   CheckGetByte(X(1),i,2);;
-  writerune(i,s);
+  writerune(Arg, i, s);
 
   return TRUE;
 }
@@ -995,10 +997,12 @@ CBOOL__PROTO(put_byte2) {
 /* NOTE: Moved from streams_basic.c (DCG) */
 /*----------------------------------------------------------------*/
 
+/* TODO: should fflush() be moved where it is needed? slow? */
+
 /* This is essentially an open-coded fputs().  
    fputs() starts paying off at string lengths above 50 or so.
  */
-void print_string(stream_node_t *stream, char *p) {
+CVOID__PROTO(print_string, stream_node_t *stream, char *p) {
   FILE *fileptr = stream->streamfile;
   c_rune_t r;
 
@@ -1009,14 +1013,14 @@ void print_string(stream_node_t *stream, char *p) {
       putc(r,fileptr);
       inc_counts(r,stream);
     }
-  } else if (stream->streammode != 's') {                      /* Is not a socket */
+  } else if (stream->streammode != 's') { /* not a socket */
     for (r = *p++; r; r = *p++) {
       if (putc(r,fileptr) < 0) {
 	IO_ERROR("putc() in in print_string()");
       }
       inc_counts(r,stream);
     }
-  } else {
+  } else { /* a socket */
     size_t size = 0;
     char *q = p;
 
@@ -1033,13 +1037,13 @@ void print_string(stream_node_t *stream, char *p) {
 
 CVOID__PROTO(print_variable, stream_node_t *stream, tagged_t term) {
   number_to_string(Arg, var_address(Arg, term), 10);
-  print_string(stream, "_");
-  print_string(stream, Atom_Buffer);
+  print_string(Arg, stream, "_");
+  print_string(Arg, stream, Atom_Buffer);
 }
 
 CVOID__PROTO(print_number, stream_node_t *stream, tagged_t term) {
   number_to_string(Arg,term, 10);
-  print_string(stream, Atom_Buffer);
+  print_string(Arg, stream, Atom_Buffer);
 }
 
 #define FULL_ESCAPE_QUOTED_ATOMS 1
@@ -1059,7 +1063,7 @@ CVOID__PROTO(print_atom, stream_node_t *stream, tagged_t term) {
   atom_t *atomptr = TagToAtom(term);
 
   if (!atomptr->has_special) {
-    print_string(stream, atomptr->name);
+    print_string(Arg, stream, atomptr->name);
   } else {
 #if defined(USE_DYNAMIC_ATOM_SIZE)
     char *buf = checkalloc_ARRAY(char, PRINT_ATOM_BUFF_SIZE);
@@ -1113,7 +1117,7 @@ CVOID__PROTO(print_atom, stream_node_t *stream, tagged_t term) {
 #endif
     *bp++ = '\'';
     *bp++ = 0;
-    print_string(stream, buf);
+    print_string(Arg, stream, buf);
 #if defined(USE_DYNAMIC_ATOM_SIZE)
     checkdealloc_ARRAY(char, 2*MAXATOM+3, buf);
 #endif
@@ -1131,33 +1135,33 @@ CVOID__PROTO(display_term,
 
   switch (TagOf(term)) {
   case LST:
-    writerune('[',stream);
+    writerune(Arg,'[',stream);
     DerefCar(aux,term);
     display_term(Arg,aux, stream, quoted);
     DerefCdr(term,term);
     while(TagIsLST(term)) {
-      writerune(',',stream);
+      writerune(Arg,',',stream);
       DerefCar(aux,term);
       display_term(Arg,aux, stream, quoted);
       DerefCdr(term,term);
     }
     if (term!=atom_nil) {
-      writerune('|',stream);
+      writerune(Arg,'|',stream);
       display_term(Arg,term, stream, quoted);
     }
-    writerune(']',stream);
+    writerune(Arg,']',stream);
     break;
   case STR:
     if (STRIsLarge(term)) goto number;
     display_term(Arg,TagToHeadfunctor(term),stream, quoted);
-    writerune('(',stream);
+    writerune(Arg,'(',stream);
     arity = Arity(TagToHeadfunctor(term));
     for (i=1; i<=arity; i++) {
-      if (i>1) writerune(',',stream);
+      if (i>1) writerune(Arg,',',stream);
       DerefArg(aux,term,i);
       display_term(Arg,aux, stream, quoted);
     }
-    writerune(')',stream);
+    writerune(Arg,')',stream);
     break;
   case UBV:
   case SVA:
@@ -1171,7 +1175,7 @@ CVOID__PROTO(display_term,
     if (quoted) {
       print_atom(Arg,stream,term);
     } else {
-      print_string(stream,TagToAtom(term)->name);
+      print_string(Arg, stream,TagToAtom(term)->name);
     }
     break;
   case NUM:
@@ -1234,7 +1238,9 @@ CBOOL__PROTO(prolog_clearerr) {
     BUILTIN_ERROR(errcode,X(0),1);
   }
   
-  if (s->streammode != 's') clearerr(s->streamfile);
+  if (s->streammode != 's') { /* not a socket */
+    clearerr(s->streamfile);
+  }
 
   return TRUE;
 }
@@ -1262,7 +1268,7 @@ CBOOL__PROTO(prolog_fast_read_in_c) {
 
   /* NULL as predaddress (really did not bother to find out what to put)  */
 
-  i = readbyte(Input_Stream_Ptr, NULL);
+  i = readbyte(Arg, Input_Stream_Ptr, NULL);
   if (i == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
@@ -1293,7 +1299,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
   unsigned char *s = (unsigned char *) Atom_Buffer;
   int base;
   
-  k = readbyte(Input_Stream_Ptr, NULL);
+  k = readbyte(Arg, Input_Stream_Ptr, NULL);
   if (k == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
@@ -1325,7 +1331,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
         EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2);
 	s = (unsigned char *)Atom_Buffer+i;
       }
-      j = readbyte(Input_Stream_Ptr, NULL);
+      j = readbyte(Arg, Input_Stream_Ptr, NULL);
       if (j == BYTE_PAST_EOF) {
 	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
       }
@@ -1367,7 +1373,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       CHECK_HEAP_SPACE;
       return TRUE;
     case 'S':
-      i = readbyte(Input_Stream_Ptr, NULL);
+      i = readbyte(Arg, Input_Stream_Ptr, NULL);
       if (i == BYTE_PAST_EOF) {
 	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
       }
@@ -1389,10 +1395,9 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
   }
 }
 
-static inline void fast_write_string(stream_node_t *stream,
-				     const char * s) {
+static inline CVOID__PROTO(fast_write_string, stream_node_t *stream, const char * s) {
   for (;*s; s++) {
-    writebyte(*s, stream);
+    writebyte(Arg, *s, stream);
   }
 }
 
@@ -1400,7 +1405,7 @@ CVOID__PROTO(fast_write_number,
 	     stream_node_t *stream,
 	     tagged_t term) {
   number_to_string(Arg,term, 10);
-  fast_write_string(stream, Atom_Buffer);
+  fast_write_string(Arg, stream, Atom_Buffer);
 }
 
 CVOID__PROTO(prolog_fast_write_in_c_aux,
@@ -1414,7 +1419,7 @@ CBOOL__PROTO(prolog_fast_write_in_c) {
   int lastvar = 0;
 
   DEREF(X(0),X(0));
-  writebyte(FASTRW_VERSION,Output_Stream_Ptr);
+  writebyte(Arg, FASTRW_VERSION, Output_Stream_Ptr);
   prolog_fast_write_in_c_aux(Arg,X(0),vars,&lastvar);
   return TRUE;
 }
@@ -1432,8 +1437,8 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
     DerefCdr(in,in);
     if (TagIsSmall(term) && (i = GetSmall(term)))
       if ((i > 0) && (i < 256)) {
-	for (writebyte('"',Output_Stream_Ptr);i && (i < 256);) {
-	  writebyte(i,Output_Stream_Ptr);
+	for (writebyte(Arg,'"',Output_Stream_Ptr);i && (i < 256);) {
+	  writebyte(Arg,i,Output_Stream_Ptr);
 	  if (TagOf(in) == LST) {
 	    DerefCar(term,in);
 	    DerefCdr(in,in);
@@ -1443,14 +1448,14 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
 	      i = GetSmall(term);
 	    }
 	  } else {
-	    writebyte(0,Output_Stream_Ptr);
+	    writebyte(Arg,0,Output_Stream_Ptr);
 	    prolog_fast_write_in_c_aux(Arg,in,vars,lastvar);
 	    return;
 	  }	  
 	}
-	writebyte(0,Output_Stream_Ptr);
+	writebyte(Arg,0,Output_Stream_Ptr);
       }
-    writebyte('[',Output_Stream_Ptr);
+    writebyte(Arg,'[',Output_Stream_Ptr);
     prolog_fast_write_in_c_aux(Arg,term,vars,lastvar);
     prolog_fast_write_in_c_aux(Arg,in,vars,lastvar);
     return;
@@ -1458,7 +1463,7 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
   case SVA:
   case HVA:
   case CVA:
-    writebyte('_',Output_Stream_Ptr);
+    writebyte(Arg,'_',Output_Stream_Ptr);
     DEREF(in,in);
     for (i = 0;i < *lastvar; i++) {
       if (vars[i] == in) break;
@@ -1467,15 +1472,15 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
       vars[(*lastvar)++] = in;
     }
     sprintf((char *) Atom_Buffer,"%i",i);
-    fast_write_string(Output_Stream_Ptr,Atom_Buffer);
-    writebyte(0,Output_Stream_Ptr);
+    fast_write_string(Arg,Output_Stream_Ptr,Atom_Buffer);
+    writebyte(Arg,0,Output_Stream_Ptr);
     return;
   case STR:
     if (!STRIsLarge(in)) {
-      writebyte('S',Output_Stream_Ptr);
-      fast_write_string(Output_Stream_Ptr,TagToAtom(TagToHeadfunctor(in))->name);
-      writebyte(0,Output_Stream_Ptr);
-      writebyte(j = Arity(TagToHeadfunctor(in)),Output_Stream_Ptr);
+      writebyte(Arg,'S',Output_Stream_Ptr);
+      fast_write_string(Arg,Output_Stream_Ptr,TagToAtom(TagToHeadfunctor(in))->name);
+      writebyte(Arg,0,Output_Stream_Ptr);
+      writebyte(Arg,j = Arity(TagToHeadfunctor(in)),Output_Stream_Ptr);
       for (i = 1; i <= j; prolog_fast_write_in_c_aux(Arg,term,vars,lastvar)) {
 	DerefArg(term,in,i++);
       }
@@ -1483,20 +1488,20 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
     }
   case NUM:
     if (IsFloat(in)) {
-      writebyte('F',Output_Stream_Ptr);
+      writebyte(Arg,'F',Output_Stream_Ptr);
     } else {
-      writebyte('I',Output_Stream_Ptr);
+      writebyte(Arg,'I',Output_Stream_Ptr);
     }
     fast_write_number(Arg,Output_Stream_Ptr,in);
-    writebyte(0,Output_Stream_Ptr);
+    writebyte(Arg,0,Output_Stream_Ptr);
     return;
   case ATM:
     if (in != atom_nil) {
-      writebyte('A',Output_Stream_Ptr);
-      fast_write_string(Output_Stream_Ptr,TagToAtom(in)->name);
-      writebyte(0,Output_Stream_Ptr);
+      writebyte(Arg,'A',Output_Stream_Ptr);
+      fast_write_string(Arg,Output_Stream_Ptr,TagToAtom(in)->name);
+      writebyte(Arg,0,Output_Stream_Ptr);
     } else {
-      writebyte(']',Output_Stream_Ptr);
+      writebyte(Arg,']',Output_Stream_Ptr);
     }
     return;
   }
@@ -1521,7 +1526,7 @@ CVOID__PROTO(outLZ,
 	     unsigned char size) {
   Buffer[0] += Code*(1<<(BufferSize[0]));
   for (BufferSize[0] += size; BufferSize[0] >= 8; BufferSize[0] -= 8) {
-    writebyte(Buffer[0] % 256,Output_Stream_Ptr);
+    writebyte(Arg,Buffer[0] % 256,Output_Stream_Ptr);
     Buffer[0] /= 256;
   }
 }
@@ -1548,7 +1553,7 @@ CBOOL__PROTO(compressLZ) {
 
   f = s->streamfile;
   
-  writebyte(12,Output_Stream_Ptr);
+  writebyte(Arg,12,Output_Stream_Ptr);
 
   for (i = 0; i < 257; Size[i++] = 1) 
       { Dict[i] = &Vault[i];
@@ -1635,7 +1640,7 @@ CBOOL__PROTO(copyLZ) {
   
   if (i != 12) {
     while (i >= 0) {
-      writebyte(i,Output_Stream_Ptr);
+      writebyte(Arg,i,Output_Stream_Ptr);
       i = getc(f);
     }
     if (ferror(f)) {
@@ -1653,7 +1658,7 @@ CBOOL__PROTO(copyLZ) {
     First[0] = i;
     while(1) {
       for (i = 0; i < PrefixSize;) {
-	writebyte(First[i++],Output_Stream_Ptr);
+	writebyte(Arg,First[i++],Output_Stream_Ptr);
       }
       inLZ(Arg,f,&Carry,&CarrySize,&i,sizeLZ(++Last % 4096));
       return FALSE;

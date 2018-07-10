@@ -424,16 +424,14 @@ valid_channel(terms(_), _).
    # "Sends POSIX signal SIGTERM to the process @var{Process}, which
       asks politely for process termination.".
 process_terminate(Process) :-
-	process_pid(Process, Pid),
-	kill(Pid, 15). % SIGTERM=15
+	process_send_signal(Process, 15). % SIGTERM=15
 
 :- export(process_kill/1).
 :- pred process_kill(Process) : process(Process)
    # "Sends POSIX signal SIGKILL to the process @var{Process}, which
       forces process termination.".
 process_kill(Process) :-
-	process_pid(Process, Pid),
-	kill(Pid, 9). % SIGTERM=9
+	process_send_signal(Process, 9). % SIGKILL=9
 
 :- export(process_send_signal/2).
 :- pred process_send_signal(Process, Signal) : (process(Process), int(Signal))

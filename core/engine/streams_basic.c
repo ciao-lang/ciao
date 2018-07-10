@@ -541,10 +541,12 @@ CBOOL__PROTO(prolog_pipe)
 
 /* ------------------------------------------------------------------------- */
 
+/* TODO: pass Arg? */
 void ENG_perror(char *s)
 {
   /* ENG_PRINTF(stream_user_error, "%s: %s\n", s, sys_errlist[errno]); */
-  ENG_PRINTF(stream_user_error, "ERROR: %s: %s\n", s, strerror(errno)); 
+  /* ENG_PRINTF(stream_user_error, "ERROR: %s: %s\n", s, strerror(errno)); */
+  fprintf(stderr, "ERROR: %s: %s\n", s, strerror(errno));
 }
 
 /* ------------------------------------------------------------------------- */
@@ -860,8 +862,8 @@ extern char *eng_version;
 
 CBOOL__PROTO(prolog_bootversion)
 {
-  print_string(Output_Stream_Ptr, eng_version);
-  print_string(Output_Stream_Ptr, "\n");
+  print_string(Arg, Output_Stream_Ptr, eng_version);
+  print_string(Arg, Output_Stream_Ptr, "\n");
   return TRUE;
 }
 

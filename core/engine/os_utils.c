@@ -1103,36 +1103,55 @@ CBOOL__PROTO(prolog_unix_rmdir)
 
 /* --------------------------------------------------------------------------- */
 
+// #define USE_ADDRINFO 0
+#define USE_ADDRINFO 1
+
 /*
- *  current_host(?HostName).
+ *  current_host(?Hostname).
  */
 CBOOL__PROTO(prolog_current_host)
 {
   ERR__FUNCTOR("system:current_host", 1);
   char hostname[MAXHOSTNAMELEN*4];
 
-  if (gethostname(hostname, sizeof(hostname)) < 0)
+  if (gethostname(hostname, sizeof(hostname)) < 0) {
     BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+  }
 
   if (!strchr(hostname, '.')) {
-    struct hostent *host_entry;
-    char **aliases;
+#if USE_ADDRINFO
+    struct addrinfo *res;
+    struct addrinfo hints;
 
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_flags = AI_CANONNAME;
+
+    if (getaddrinfo(hostname, NULL, &hints, &res) != 0) {
+      BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+    }
+    strcpy(hostname, res->ai_canonname);
+    freeaddrinfo(res);
+#else
     /* If the name is not qualified, then pass the name through the name
        server to try get it fully qualified */
     /* if null, its a system error */
-    if ((host_entry = gethostbyname(hostname)) == NULL)
+
+    struct hostent *host_entry;
+    char **aliases;
+
+    if ((host_entry = gethostbyname(hostname)) == NULL) {
       BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+    }
     strcpy(hostname, host_entry->h_name);
 
     /* If h_name is not qualified, try one of the aliases */
-
     if ((aliases=host_entry->h_aliases)) {
       while (!strchr(hostname, '.') && *aliases)
 	strcpy(hostname, *aliases++);
       if (!strchr(hostname, '.'))
 	strcpy(hostname, host_entry->h_name);
     }
+#endif
 
 #if HAS_NIS
     /* If still unqualified, then get the domain name explicitly.

@@ -76,6 +76,7 @@ void enable_conditions()
   SIGNAL(SIGBUS,  abortmsg);
   SIGNAL(SIGSYS, abortmsg);
 #endif
+  SIGNAL(SIGPIPE, SIG_IGN); /* handle EPIPE error codes ourselves (write()) */
 }
 
 static void abortmsg(int rc)

@@ -72,13 +72,11 @@ num_of_connections(100).
 
 get_socket(Socket):-
         num_of_connections(Queue),
-        current_host(Host),
+        current_host(Hostname),
         socket_port(Port),
         bind_socket(Port, Queue, Socket),  %% Already in "listen" state
-        display('Bound to port '),
-        display(Port),
-        display(' in host '),
-        display(Host),
+        display('Bound to address '),
+        display((Hostname,Port)),
         nl.
 
 

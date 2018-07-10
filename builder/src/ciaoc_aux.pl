@@ -11,7 +11,7 @@
    @item Invoke the compiler as a external processes
    @item Batch compilation of collection of modules
    @item Emulator generation and compilation
-   @end{itemize}).
+   @end{itemize}.
 ").
 
 % (improvements)
@@ -99,7 +99,6 @@ invoke_boot_ciaoc(Args, Opts) :-
 %     changes in the compiled system libraries does not affect it)
 %  - 'standalone': standalone executable (self-contained, including
 %     engine)
-%  - 'actmod': compile as an active module
 %
 b_make_exec(Bundle, InFile, OutFile, Opts) :-
 	( member(libexec, Opts) ->
@@ -122,9 +121,6 @@ ciaoc_args(Opts, FileBuild, In) -->
 	['-x'], % TODO: always?
 	( { member(static, Opts)} -> ['-s']
 	; { member(standalone, Opts) } -> ['-S']
-	; []
-	),
-	( { member(actmod, Opts)} -> ['-a', 'actmod/tmpbased_publish'] % TODO: more?
 	; []
 	),
 	['-o', FileBuild],
@@ -344,8 +340,7 @@ cmd_build(cmd_def(Bundle, In, Output, Props)) :-
 prop_opts(Props) -->
 	prop_opt(static, Props),
 	prop_opt(standalone, Props),
-	prop_opt(libexec, Props),
-	prop_opt(actmod, Props).
+	prop_opt(libexec, Props).
 
 prop_opt(Opt, Props) -->
 	( { member(Opt, Props) } -> [Opt] ; [] ).

@@ -73,7 +73,7 @@ stream_node_t *new_socket_stream(tagged_t streamname, int socket)
   return insert_new_stream(s);
 }
 
-/* connect_to_socket(+Host, +Port, +Type, -Stream) */
+/* connect_to_socket(+Hostname, +Port, +Type, -Stream) */
 
 #define MAX_SOCK_NUMBER 65535
 
@@ -346,7 +346,7 @@ CBOOL__PROTO(prolog_select_socket)
     FD_SET(fd_to_include, &ready);
     if (fd_to_include > max_fd)  max_fd = fd_to_include;
   }
-  
+
   if (select(max_fd+1, &ready, (fd_set *)NULL, (fd_set *)NULL, timeoutptr) < 0)
     BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
     //MAJOR_FAULT("select_socket/5: select() call failed");

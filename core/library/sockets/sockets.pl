@@ -75,30 +75,31 @@ socket_type(rdm).
 :- true pred initial_from_ciaopp + foreign_low(init_from_ciaopp). 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-:- true pred connect_to_socket_type(+Host, +Port, +Type, -Stream) ::
+:- true pred connect_to_socket_type(+Hostname, +Port, +Type, -Stream) ::
         atom * int * socket_type * stream
         + foreign_low(prolog_connect_to_socket_type)
- # "Returns a @var{Stream} which connects to @var{Host}.  The @var{Type} of 
-    connection can be defined.  A @var{Stream} is returned, which can be 
-    used to @pred{write/2} to, to @pred{read/2}, to @pred{socket_send/2} to, 
-    or to @pred{socket_recv/2} from the socket.".
+ # "Returns a @var{Stream} which connects to @var{Hostname}.  The
+    @var{Type} of connection can be defined.  A @var{Stream} is
+    returned, which can be used to @pred{write/2} to, to
+    @pred{read/2}, to @pred{socket_send/2} to, or to
+    @pred{socket_recv/2} from the socket.".
 
 
-:- pred connect_to_socket(+Host, +Port, -Stream) ::
+:- pred connect_to_socket(+Hostname, +Port, -Stream) ::
         atm * int * stream
  # "Calls @pred{connect_to_socket_type/4} with SOCK_STREAM connection
     type.  This is the connection type you want in order to use the 
     @pred{write/2} and @pred{read/2} predicates (and other stream IO 
     related predicates).".
 
-connect_to_socket(Host, Port, Stream):-
-        connect_to_socket_type(Host, Port, stream, Stream).
+connect_to_socket(Hostname, Port, Stream):-
+        connect_to_socket_type(Hostname, Port, stream, Stream).
 
 
 :- true pred bind_socket(?Port, +Length, -Socket) ::
         int * int * int
         + foreign_low(prolog_bind_socket)
- # "Returs an AF_INET @var{Socket} bound to @var{Port} (which may be 
+ # "Returns an AF_INET @var{Socket} bound to @var{Port} (which may be 
     assigned by the OS or defined by the caller), and listens to it 
     (hence no listen call in this set of primitives).
     @var{Length} specifies the maximum number of pending connections.".

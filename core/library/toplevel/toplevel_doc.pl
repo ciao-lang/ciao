@@ -213,7 +213,7 @@ yes
         [make_po/1, unload/1,
          set_debug_mode/1, set_nodebug_mode/1]).
 :- reexport(library(compiler/exemaker),
-        [make_actmod/3, force_lazy/1, undo_force_lazy/1,
+        [force_lazy/1, undo_force_lazy/1,
          dynamic_search_path/1]).
 :- reexport(library(compiler/c_itf),
         [multifile/1]).
@@ -283,12 +283,6 @@ yes
 :- true pred set_nodebug_mode(File) : sourcename
         # "Set the loading mode of @var{File} to @em{compile}. See
           @ref{The interactive debugger}.".
-
-:- true pred make_actmod(Files, PublishMod, ExecName) : sourcenames * atm * atm
-        # "Make an @concept{active module} executable from the modules
-          residing in @var{Files}, using address publish module of
-          name @var{PublishMod} (which needs to be in the library
-          paths).".
 
 :- true pred force_lazy(Module) : atm
         # "Force module of name @var{Module} to be loaded lazily in the

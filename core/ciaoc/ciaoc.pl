@@ -365,7 +365,7 @@ available when invoking @apl{ciaoc}:
 :- use_module(library(compiler/global_module_options)).
 
 :- use_module(library(compiler/exemaker),
-	    [make_exec/2, make_actmod/3, force_lazy/1, dynamic_search_path/1]).
+	    [make_exec/2, force_lazy/1, dynamic_search_path/1]).
 
 % ---------------------------------------------------------------------------
 
@@ -465,11 +465,6 @@ main(Args) :-
     set_fact(output_file(OutputName)),
     "<File> Specify output file name",
     continue, [OutputName|Args], Args).
-%
-:- simple_option('-a',
-    set_fact(output_kind(actmod(PublishMod))),
-    "<PublishMod> Make an active module using address publish PublishMod",
-    continue, [PublishMod|Args], Args).
 
 % ---------------------------------------------------------------------------
 
@@ -575,8 +570,6 @@ run_ciaoc(Args) :-
 	    make_po(Args) % TODO: OutputName is ignored, show warning if nonvar?
 	; output_kind(wam) ->
 	    make_wam(Args) % TODO: OutputName is ignored, show warning if nonvar?
-	; output_kind(actmod(PublishMod)) ->
-	    make_actmod(Args, PublishMod, OutputName)
 	; % (default)
 	  make_exec(Args, OutputName)
 	).

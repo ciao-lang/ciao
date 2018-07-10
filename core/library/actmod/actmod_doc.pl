@@ -1,264 +1,234 @@
 :- use_package(assertions).
+:- use_package(regtypes).
 
 :- doc(nodoc,assertions).
 
-:- doc(title,"Active modules (high-level distributed execution)").
+:- doc(title, "Active modules").
+:- doc(subtitle, "A concurrency model with high-level distributed execution").
 
 :- doc(author,"Manuel Hermenegildo").
-:- doc(author,"Daniel Cabeza").
+:- doc(author,"Daniel Cabeza (original version before 1.16)").
+:- doc(author,"Jose F. Morales (revised version)").
 
-:- doc(bug,"The package provides no means for security: the accessing
-	application must take care of this (?).").
-
-:- doc(bug,"It can happen that there is a unique process for an 
-	active module serving calls from several different simultaneous
-	executions of the same application (or even different applications).
-        In this case, there might be
-	unwanted interactions (e.g., if the active module has state).").
-
-:- doc(bug,"Applications may fail if the name server or an active module
-	is restarted during execution of the application (since they might
-	restart at a different port than the one cached by the application).").
-
-:- doc(bug,"One may want name servers to reside at a fixed and known
-	machine and port number (this is known as a @em{service} and is
-	defined in @tt{/etc/services} in a Unix machine).").
+% TODO:T253 separate distributed protocol from concurrency in documentation
 
 :- doc(module,"
 
-Active modules @cite{ciao-dis-impl-parimp-www} provide a high-level
-model of @concept{inter-process communication} and
-@concept{distributed execution} (note that this is also possible using
-Ciao's communication and concurrency primitives, such as sockets,
-concurrent predicates, etc., but at a lower level of abstraction).  An
-@index{active module} (or an @index{active object}) is an ordinary
-module to which computational resources are attached, and which
-resides at a given location on the network.  Compiling an active
-module produces an executable which, when running, acts as a
-@em{server} for a number of predicates: the predicates exported by the
-module. Predicates exported by an active module can be accessed by a
-program on the network by simply ``using'' the module, which then
-imports such ``remote predicates.''  The process of ``using'' an
-active module does not involve transferring any code, but rather
-setting up things so that calls in the module using the active module
-are executed as remote procedure calls to the active module. This
-occurs in the same way independently of whether the active module and
-the using module are in the same machine or in different machines
-across the network.
+@begin{alert}
+This version corresponds to a revised model for active modules. See
+Ciao version 1.15 for the original first design as described in
+@cite{ciao-dis-impl-parimp-www}.
+@end{alert}
 
-Except for having to compile it in a special way (see below), an active
-module is identical from the programmer point of view to an ordinary
-module. A program using an active module imports it and uses it in the
-same way as any other module, except that it uses
-``@decl{use_active_module}'' rather than ``@decl{use_module}'' (see
-below). Also, an active module has an address (network address) which
-must be known in order to use it.  In order to use an active module it
-is necessary to know its address: different ``protocols'' are provided for
-this purpose (see below).
-@footnote{It is also possible to provide active modules via a WWW
-address.  However, we find it more straightforward to simply use
-socket addresses. In any case, this is generally hidden inside the
-access method and can be thus made transparent to the user.}
+@begin{alert}
+This library is currently the subject of active research.
+@end{alert}
 
-From the implementation point of view, active modules are essentially
-daemons: executables which are started as independent processes at the
-operating system level.  Communication with active modules is
-implemented using sockets (thus, the address of an active module is an
-IP socket address in a particular machine).  Requests to execute goals
-in the module are sent through the socket by remote programs.  When
-such a request arrives, the process running the active module takes it
-and executes it, returning through the socket the computed
-answers. These results are then taken and used by the remote
-processes. Backtracking over such remote calls works as usual and
-transparently.  The only limitation (this may change in the future,
-but it is currently done for efficiency reasons) is that all
-alternative answers are precomputed (and cached) upon the first call
-to an active module and thus @em{an active module should not export a
-predicate which has an infinite number of answers}.
+An @index{active module} is an ordinary module whose instances (copies
+sharing the same code but different state or data) have computational
+resources attached (e.g., computation steps shared in a fair fashion).
 
-  The first thing to do is to select a method whereby the client(s)
-  (the module(s) that will use the active module) can find out in
-  which machine/port (IP address/socket number) the server (i.e., the
-  active module) will be listening once started, i.e., a ``protocol''
-  to communicate with the active module.  The easiest way to
-  do this is to make use of the rendezvous methods which are provided in the
-  Ciao distribution in the @tt{library/actmod} directory; currently,
-  @tt{tmpbased...}, @tt{filebased...}, @tt{webbased...}, and
-  @tt{platformbased...}. 
+Active modules provide a high-level model of concurrency suitable for
+@concept{distributed execution} (and @concept{inter-process
+communication}) that is similar to @index{active object}s and
+@index{actor}s. Note that Ciao also offers lower-level primitives for
+concurrency and network-based communication.
 
-  The first one is based on saving the IP address and socket number of the
-  server in a file in a predefined directory (generally @tt{/tmp}, but
-  this can be changed by changing @tt{tmpbased_common.pl}).
+@section{Concurrency model and semantics}
 
-  The second one is similar but saves the info in the directory in
-  which the server is started (as @em{<module_name>}@tt{.addr}), or in the
-  directory that a @tt{.addr} file, if it exists, specifies. The
-  clients must be started in the same directory (or have access to a
-  file @tt{.addr} specifying the same directory). However, they can be
-  started in different machines, provided this directory is shared
-  (e.g., by NFS or Samba), or the file can be moved to an appropriate
-  directory on a different machine --provided the full path is the same.
+Each @index{active module instance} is internally composed of a local
+mailbox for queries (a queue of messages) and a query handler loop.
+Each active module instance is identified by a unique name (which can
+be provided or created automatically).
 
-  The third one is based on a @concept{name server} for active modules.
-  When an active module is started, it communicates its address to the
-  name server. When the client of the active module wants to communicate with
-  it, it asks the name server the active module address. This is all done
-  transparently to the user.
-  The name server must be running when the active module is started (and,
-  of course, when the application using it is executed). The location
-  of the name server for an application must be specified in an application
-  file named @tt{webbased_common.pl} (see Section 3.1 below).
+Calls to exported predicates of an active module are enqueued in the
+@concept{mailbox}. The query handler loop is a @bf{deterministic} loop that
+executes queries sequentially, sending back the results to the caller
+program (another active module instance) if needed. The composition of
+the (possibly) multiple answers from the callee and the caller is
+given be the @em{query protocols} defined below.
 
-  The fourth one is also based on a name server, but the address of the
-  name server is given as a parameter to the active modules when started.
+@begin{alert} 
+Query requests at the handler loop do not fail or leave
+choicepoints. When required, non-deterministic behaviour must be
+captured on the answer and treated on the callee by the @em{query
+protocols}. 
+@end{alert}
 
-  The rendezvous methods (or protocols) are encoded in two modules: a first
-  one, called @tt{...publish.pl}, is used by the server to publish its
-  info. The second one, called @tt{...locate.pl}, is used by the
-  client(s) to locate the server info. For efficiency, the client
-  methods maintain a cache of addresses, so that the server
-  information only needs to be read from the file system the first
-  time the active module is accessed.
+@subsection{Query protocols}
 
-  Active modules are compiled using the @tt{-a} option of the Ciao
-  compiler (this can also be done from the interactive top-level shell
-  using @pred{make_actmod/3}). For example, issuing the following
-  command:
+There exist several query protocols depending on the expected answers
+of a predicate. 
 
-  @begin{verbatim}
-  ciaoc -a 'actmod/filebased_publish' simple_server
-  @end{verbatim}
+@begin{itemize}
+@item @em{all solutions}: all answers to each query are precomputed on the
+  callee side and sent to the caller. Backtracking is supported by
+  enumeration on the caller side. @bf{Note}: calls to active module
+  predicates with an infinite number of solutions will obviously not
+  terminate with this query method.
 
-  compiles the simple server example that comes with the distribution
-  (in the @tt{actmod/example} directory). The 
-  @tt{simple_client_with_main} example (in the same directory) can be
-  compiled as usual:
+@item @em{cast}: no answer is required from the callee (equivalent to
+  @em{message passing} in distributed computation). It is useful when
+  the query performs side-effects or it sends back the answers to the
+  caller active module through another cast (a-la continuation-based
+  programming).
 
-  @begin{verbatim}
-  ciaoc simple_client_with_main
-  @end{verbatim}
+@item (experimental) @em{answers with suspensions}: the callee may
+  return a suspended computation and continue the execution on the
+  caller site.  Currently predicates must be declared as
+  @tt{suspendable}. The main focus of the current funcrionality is the
+  implementation of @tt{REST}ful applications via the (experimental)
+  HTTP interface.  @bf{Note}: support is limited, recommended only for
+  deterministic computations.
+@end{itemize}
 
-  Note that the client uses the @tt{actmod} package, specifies the 
-  rendezvous method by importing @tt{library(actmod/filebased_locate)},
-  and explicitely imports the ``remote'' predicates (@em{implicit imports
-  will not work}). Each module using the @tt{actmod} package @em{should
-  only use one of the rendezvous methods}.
+Further details on the semantics and concurrency model:
+@begin{itemize}
+@item The cost of calls depends on the size of the messages (arguments,
+  results, and the target @em{location})
+@item Deadlocks may happen due to the \"message processing lock\"
+  (e.g., A calls B, B calls A). Use @em{cast} instead.
+@end{itemize}
 
-  Now, if the server is running (e.g., @tt{simple_server &} in Unix or
-  double-clicking on it in Win32) when the client is executed it will
-  connect with the server to access the predicate(s) that it imports
-  from it.
+@begin{alert}
+@begin{itemize}
+@item Query protocols will be changed or extended in the future,
+  specially to optimize cost for particular cases.
+@item Suspendable predicates rely on the experimental @tt{fibers}
+  package. This may change in the future.
+@item Or-suspensions for lazily asking for more solutions are not
+  currently implemented (they are in development).
+@end{itemize}
+@end{alert}
 
-  A simpler even client @file{simple_client.pl} can be loaded into the
-  top level and its predicates called as usual (and they will connect
-  with the server if it is running).
+@subsection{Side-effects}
 
-  @section{Active modules as agents}
+All communication between active module instances should (in
+principle) happen through message passing. Instances should not share
+any global data. Sharing via dynamic/data predicates (or other global
+mechanisms) is seen as an @em{impure} side-effect w.r.t. this model and
+must be used with care (e.g., @em{caching}, hand-made
+optimizations, etc.).
 
-  It is rather easy to turn Ciao active modules into agents for some kind
-  of applications. The directory @tt{examples/agents} contains a
-  (hopefully) self-explanatory example.
+@subsection{Distributed}
 
+In a distributed setting active module instances may run on separate
+@em{node}s that can interchange messages through the network. See
+@lib{actmod_dist} for more details about the distribution protocol and
+how it can be extended.
+
+@section{Using active modules}
+
+Using active modules requires the use of the @lib{actmod} package:
+@begin{verbatim}
+:- module(...,...,[actmod]).
+@end{verbatim}
+
+This turns the current module into an active module and enables all
+the directives and features required to use other active modules.
+
+Predicates exported by an active module can be accessed by other
+active modules using the @decl{use_module/3} declaration with the
+@tt{active} option (see below).
+
+Note that the process of @em{using} an active module does not involve
+transferring any code, but rather setting up things so that calls in
+the module using the active module are executed as remote procedure
+calls to the active module.
+
+@section{Running active modules}
+
+For spawning active module instances (dynamic creation) see
+@lib{actmod_process}.
+
+Active modules may implement a @tt{main/1} predicate, if they want to
+receive command-line arguments or use the directive @tt{:- dist_node} to
+include a default @tt{main/1} for distributed nodes. See
+@lib{actmod_dist} for more details.
+
+@section{Examples}
+
+The following command:
+
+@begin{verbatim}
+ciaoc simple_server.pl
+@end{verbatim}
+
+compiles the simple server example that comes with the distribution
+(in the @tt{actmod/example} directory). The
+@tt{simple_client_with_main} example (in the same directory) can be
+compiled as usual:
+
+@begin{verbatim}
+ciaoc simple_client_with_main
+@end{verbatim}
+
+Now, if the server is running when the client is executed it will
+connect with the server to access the predicate(s) that it imports
+from it.
+
+An even simpler client @file{simple_client.pl} can be loaded into the
+top level and its predicates called as usual (and they will connect
+with the server if it is running).
 ").
 
-:- decl use_active_module(AModule,Imports) : sourcename * list(predname)
+% ---------------------------------------------------------------------------
 
-        # "Specifies that this code imports from the @em{active
-          module} defined in @var{AModule} the predicates in
-          @var{Imports}.  The imported predicates must be exported by
-          the active module. ".
+:- decl use_module(ModSpec,Imports,Opts) : 
+	sourcename * list(predname) * list(import_opt)
+   # "Import from @var{ModSpec} the predicates in @var{Imports} with
+      options @var{Opts}. If @var{Imports} is a free variable, all
+      predicates are imported.".
 
-:- doc(appendix,"The protocols @tt{webbased} and @tt{platformbased}
-  are described in this section with a bit more detail.
+:- regtype import_opt/1.
+:- doc(import_opt(Opt), "Options for @pred{use_module/3}:
+   @begin{itemize}
+   @item @tt{active}: import as an active module (which adds a
+     dependency to the module interface, not its code; it allows
+     @pred{actmod_spawn/3} and static named instances).
+   @item @tt{reg_protocol(RegProtocol)}: specify default name server protocol.
+   @item @tt{libexec}: use @tt{libexec} as spawning option by default.
+   @end{itemize}").
 
-  @section{Active module name servers (webbased protocol)}
+import_opt(active).
+import_opt(reg_protocol(_)).
+import_opt(libexec).
 
-  An application using a name server for active modules must have a file
-  named @tt{webbased_common.pl} that specifies where the name server
-  resides. It must have the @tt{URL} and the path which corresponds to
-  that @tt{URL} in the file system of the server machine (the one that 
-  hosts the @tt{URL}) of the file that will hold the name server address.
+% ---------------------------------------------------------------------------
 
-  The current distribution provides a file @tt{webbased_common.pl} that
-  can be used (after proper setting of its contents) for a server of
-  active modules for a whole installation. Alternatively, particular 
-  servers for each application can be set up (see below).
+% (High priority)
 
-  The current distribution also provides a module that can be used as
-  name server by any application. It is in
-  file @file{examples/webbased_server/webbased_server.pl}.
+:- doc(bug, "Current support for multiple instances from the same
+   module is limited and not fully implemented. The default is a
+   single instace per OS process, with the module name as active
+   module instance name.").
 
-  To set up a name server edit @tt{webbased_common.pl} to change its
-  contents appropriately as described above (@tt{URL} and corresponding
-  complete file path). Then recompile this library module:
-  @begin{verbatim}
-    ciaoc -c webbased_common
-  @end{verbatim}
-  The name server has to be compiled as an active module itself:
-  @begin{verbatim}
-    ciaoc -a actmod/webserver_publish webbased_server
-  @end{verbatim}
-  It has to be started in the server machine
-  before the application and its active modules are compiled.
+:- doc(bug, "Make sure that active module address is re-lookup on
+   broken connections, etc.").
 
-  Alternatively, you can copy @tt{webbased_common.pl} and use it to set
-  up name servers for particular applications. Currently, this is a bit
-  complicated. You have to ensure that the name server, the application
-  program, and all its active modules are compiled and executed with
-  the same @tt{webbased_common.pl} module. One way to do this is to
-  create a subdirectory @tt{actmod} under the directory of your application,
-  copy @tt{webbased_common.pl} to it, modify it, and then compile the
-  name server, the application program, and its active modules using a
-  library path that guarantees that your @tt{actmod} directory is located
-  by the compiler before the standard Ciao library. The same applies for
-  when running all of them if the library loading is dynamic.
+% TODO:T253 add `static` as new option for use_module/3:
+%    a single active module instance is reachable with the same
+%    name as the module
 
-  One way to do the above is using the @tt{-u} compiler option. Assume the
-  following file:
-  @begin{verbatim}
-     :- module(paths,[],[]).
-     :- multifile library_directory/1.
-     :- dynamic library_directory/1.
-     :- initialization(asserta_fact(
-	library_directory('/root/path/to/my/particular/application') )).
-  @end{verbatim}
-  then you have file @tt{webbased_common.pl} in a subdirectory @tt{actmod}
-  of the above cited path. You have to compile the name server, the active
-  modules, and the rest of the application with:
-  @begin{verbatim}
-    ciaoc -u paths -s ...
-  @end{verbatim}
-  to use your particular @tt{webbased_common.pl} and to make executables
-  statically link libraries. If they are dynamic, then you have to provide
-  for the above library_directory path to be set up upon execution. This
-  can be done, for example, by including module @tt{paths} into your
-  executables.
+% TODO:T253 explain .stub.pl: full code is not linked, only a stub
+%    (see implementation, requires a .stub.pl file).
+:- doc(bug, "Some features for active modules require a @tt{.stub.pl}
+   file, containing only the module interface (exported predicate with
+   their assertions). This file must be created manually. In future
+   versions it will not be needed.").
+:- doc(bug, "Option @tt{active} allow arbitrary values in
+   @var{ModSpec} and unrestricted interfaces (similar to the
+   @tt{import/2} declaration). Use with care.").
 
-  Addresses of active modules are saved by the name server in a subdirectory
-  @tt{webbased_db} of the directory where you start it
-  ---see @tt{examples/webbased_server/webbased_db/webbased_server}).
-  This allows to restart the server 
-  right away if it dies (since it saves its state).
-  This directory should be cleaned up regularly
-  of addresses of active modules which are no more active. To do this, stop
-  the server ---by killing it (its pid is in @tt{PATH/FILE}), and restart it
-  after cleaning up the files in the above mentioned directory.
+% TODO:T253 complete and document 'suspendable'
 
-  @section{Platforms (platformbased protocol)}
+% (Normal/low priority)
 
-  This protocol is also based on a name server. There are, however, two
-  differences with the above one: the name server address and the active
-  modules names are dynamic. On the one hand, the name server address
-  (IP address/socket number) is given to the active modules when they are 
-  started up. This might be convenient when using the same name server
-  executable for different applications starting up a different name server
-  process for each application. On the other hand, the name assigned to a given
-  active module can also be given as a parameter to the active module
-  when it is started up. This makes it easier to maintain a local name
-  space for particular applications (e.g., two modules with the same name 
-  can be used as active modules in the same application).
+:- doc(bug, "Include some means for security in the distribution
+   protocol.").
+% E.g., http://erlang.org/doc/apps/ssl/ssl_distribution.html
 
-  The code of a name server for the previous section protocol can also be
-  used for this protocol (e.g.,
-  file @file{examples/webbased_server/webbased_server.pl}).
-").
+:- doc(bug, "Document how to run as Unix services (e.g., fixed and
+   known machine and port number, start automatically, restart on
+   errors).").
+

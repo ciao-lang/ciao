@@ -1,10 +1,10 @@
-% A simple active module client
-%:- module(simple_client,[add_pop/1, population/2, halt_server/0],[actmod]).
-:- use_package(actmod).
-:- use_module(library(actmod/filebased_locate)).
-:- use_active_module(simple_server, [population/2, shutdown/0]).
-%% :- use_module(simple_server, [population/2, shutdown/0]).
+:- module(simple_client, [add_pop/1, population/2, halt_server/0], [actmod]).
 
+% A simple active module client
+
+:- use_module(simple_server, [population/2, shutdown/0], [active, reg_protocol(filebased)]).
+% :- use_module(simple_server, []). % (force actmod in same process) % TODO: add option for this
+% :- use_module(simple_server, [population/2, shutdown/0]). % (no actmod)
 
 :- use_module(library(aggregates)).
 
@@ -15,4 +15,6 @@ sumlist([X|T],S) :-
 	sumlist(T,S1),
 	S is X + S1.
 
-halt_server :- shutdown .
+halt_server :-
+	actmod_cast(simple_server:shutdown).
+

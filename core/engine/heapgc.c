@@ -692,7 +692,7 @@ CVOID__PROTO(GarbageCollect) {
 #endif
     if (current_gctrace != atom_off) {
       if (current_gctrace == atom_terse) {
-        print_string(Error_Stream_Ptr, "{GC}");
+        print_string(Arg, Error_Stream_Ptr, "{GC}");
       } else {
         ENG_TTYPRINTF("\n{GC}  Heap GC started\n");
         ENG_TTYPRINTF("Heap:   from 0x%p to 0x%p (total size = %" PRIdm ")\n",

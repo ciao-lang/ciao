@@ -77,19 +77,27 @@ add_service_entry(Bundle, Name, Props) :-
 	assertz_fact(service_entry_srvname(Name, Protocol)).
 
 :- use_module(ciaobld(manifest_compiler), [main_file_path/3]).
+:- use_module(ciaobld(config_common), [libcmd_path/4]).
 
-:- export(service_load_mode/3).
-% Obtain load mode and bundle of the given service
-% TODO: only first bundle
-% TODO: should Bundle be added/encoded inside Mode?
-service_load_mode(Name, Bundle, Mode) :-
-	( service_entry(Bundle, Name, Props0) -> % TODO: only first bundle; add bundle as param?
+:- export(service_load_mode/2).
+% Obtain load mode of the given service Name.
+% Mode is one of:
+%  - child(ExecPath): child process with executable at ExecPath
+%  - daemon(ExecPath): daemon process with executable at ExecPath
+%  - dynmod(AbsPath): module with code at AbsPath
+service_load_mode(Name, Mode) :-
+	( service_entry(Bundle, Name, Props0) -> % TODO: only first bundle; add bundle as param? follow workspaces instead?
 	    Props = Props0
 	; throw(service_not_found(Name))
 	),
-	( member(child, Props) -> Mode = child
-	; member(daemon, Props) -> Mode = daemon
-	; AbsPath = ~main_file_path(Bundle, Props) -> Mode = dynmod(AbsPath)
+	( member(child, Props) ->
+	    ExecPath = ~libcmd_path(Bundle, plexe, Name),
+	    Mode = child(ExecPath)
+	; member(daemon, Props) ->
+	    ExecPath = ~libcmd_path(Bundle, plexe, Name),
+	    Mode = daemon(ExecPath)
+	; AbsPath = ~main_file_path(Bundle, Props) ->
+	    Mode = dynmod(AbsPath)
 	; Mode = unknown
 	).
 
@@ -107,6 +115,9 @@ service_load_mode(Name, Bundle, Mode) :-
 reload_service_registry :-
 	display(user_error, '   Loading service registry...'), nl(user_error), % TODO: slow! (see notes above)
 	clean_service_entries,
+	% TODO: make it optional?
+	% add_service_entry(core, actmod_ctl, [actmod]),
+	%
 	( % (failure-driven loop)
 	  '$bundle_id'(Bundle),
 	  ensure_load_manifest(Bundle), % TODO: slow?

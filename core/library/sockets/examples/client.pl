@@ -25,19 +25,19 @@ it will read these pairs, add them, and return the result, which is locally
 checked.  The port number to connect is fixed at compile time.  
 ", []).
 
-main([HowMany, Host]):-
+main([HowMany, Hostname]):-
         atom_and_number(HowMany, N),
         socket_port(Port),
         statistics(walltime, _),
-        write_lots_of_data(N, Host, Port).
+        write_lots_of_data(N, Hostname, Port).
 
-write_lots_of_data(0, _Host, _Port).
-write_lots_of_data(N, Host, Port):-
+write_lots_of_data(0, _Hostname, _Port).
+write_lots_of_data(N, Hostname, Port):-
         N > 0,
         write_progress(N),
         random(1,1000,R1),
         random(1,1000,R2),
-        connect_to_socket(Host, Port, Stream), 
+        connect_to_socket(Hostname, Port, Stream), 
         display(Stream, R1), 
         nl(Stream),
         display(Stream, R2),
@@ -49,7 +49,7 @@ write_lots_of_data(N, Host, Port):-
         close(Stream),  
         check_correction(R1, R2, Number),
         N1 is N - 1, 
-        write_lots_of_data(N1, Host, Port).
+        write_lots_of_data(N1, Hostname, Port).
 
 atom_and_number(A, N):-
         atom_codes(A, Codes),
