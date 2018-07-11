@@ -58,7 +58,7 @@ default_ciaopath="$cross_ciaoroot"
 # Error message when there is no bootstrap (needed for autoboot.sh)
 
 # Email where bugs must be sent
-bugs_mail="ciao-bugs@clip.dia.fi.upm.es"
+bugs_mail="ciao-bugs@cliplab.org"
 
 no_bootstrap_error() { # ARGS
     cat <<EOF
