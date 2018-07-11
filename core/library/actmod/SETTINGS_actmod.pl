@@ -14,8 +14,6 @@ filepath := at_bundle(core, 'cmds').
 filepath := ~ciaofilepath_common.
 %
 filepath := at_bundle(ciao_emacs, 'elisp').
-% TODO: needed in CiaoMode.lpdoc because of @include{README_CIAOPP.lpdoc}
-filepath := at_bundle(ciaopp, 'doc/readmes'). % TODO: should not be here
 
 doc_structure := 
 	  'actmod/actmod_doc'-[
