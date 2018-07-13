@@ -374,15 +374,10 @@ num_code(0'-).
 % in_byte(-1).
 
 
-/*
 :- doc(predname(P),"@var{P} is a Name/Arity structure denoting
 	a predicate name: @includedef{predname/1}").
-:- true prop predname(P) + regtype
-   # "@var{P} is a predicate name spec @tt{atm}/@tt{int}.".
-*/
-:- true prop predname(P) + regtype
-   # "@var{P} is a Name/Arity structure denoting
-	a predicate name: @includedef{predname/1}".
+
+:- true prop predname(P) + regtype # "@var{P} is a predicate name".
 :- true comp predname(P) + sideff(free).
 :- true comp predname(P) : ground(P) + eval.
 :- trust success predname(P) => predname(P).
