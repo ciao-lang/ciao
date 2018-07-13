@@ -1,6 +1,8 @@
 :- module(diff, [diff/4, patch/3, diff_item/1], [assertions, hiord, regtypes]).
 
 :- doc(title, "Diff algorithm").
+:- doc(author, "Isabel Garcia Contreras").
+:- doc(author, "Jose F. Morales").
 
 :- doc(summary, "Algorithm for obtaining the minimum edit distance
 (insertions and deletions) between two lists.").
@@ -85,12 +87,9 @@ yes
 @end{verbatim}
 ").
 
-:- doc(author, "Isabel Garcia Contreras").
-:- doc(author, "Jose F. Morales").
-
-% TODO:
 :- doc(bug, "A match/3 predicate could be implemented to compute the
-longest common sequence between two lists (using a computed diff).").
+   longest common sequence between two lists (using a computed
+   diff).").
 
 :- use_module(library(lists), [length/2, reverse/2]).
 
