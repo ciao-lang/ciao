@@ -310,16 +310,6 @@ startup time @cite{ciaoc-entcs}:
   executable, any library which is compiled to accomplish this will be
   also compressed.
 
-@item{Active modules:} @cindex{modules, active} 
-
-  The compiler can also compile (via the @tt{-a} option) a given file
-  into an @index{active module} (see
-  @ref{Active modules (high-level distributed execution)}
-  for a description of this).  
-
-  @comment{The way the ... using address publish module of
-  name @var{PublishMod} (which needs to be in the library paths).}
-
 @end{description}
 
 @section{Intermediate files in the compilation process}
@@ -354,6 +344,13 @@ available when invoking @apl{ciaoc}:
 @includefact{usage_message/1}
 @end{verbatim}
 ").
+
+% @item{Active modules:} @cindex{modules, active} 
+% 
+%   The compiler can also compile (via the @tt{-a} option) a given file
+%   into an @index{active module} (see
+%   @ref{Active modules (high-level distributed execution)}
+%   for a description of this).  
 
 % ---------------------------------------------------------------------------
 
