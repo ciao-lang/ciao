@@ -1,44 +1,23 @@
-:- module(dynamic_rt, [
+:- module(dynamic_clauses_rt, [
         asserta/1, asserta/2, assertz/1, assertz/2, assert/1, assert/2,
         retract/1, retractall/1, abolish/1, clause/2, mfclause/2,
         current_predicate/1, current_predicate/2,
         dynamic/1, data/1, erase/1, wellformed_body/3
         ],[assertions,isomodes,regtypes]).
 
-:- doc(title,"Dynamic predicates").
+:- doc(title,"Dynamic predicates (runtime)").
 
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "The Ciao Development Team").
 
-:- doc(usage, "To be able to handle dynamic predicates in a module,
-   load the library package @lib{dynamic_clauses}, either by putting it
-   in the package list of the module or using the @decl{use_package/1}
-   directive.  Do not load directly the @lib{dynamic_rt} module.").
+:- doc(module, "This module implements the assert/retract family of
+   predicates to manipulate dynamic predicates, preserving the
+   original source definitions.
 
-:- doc(module,"The package @lib{dynamic_clauses} provides the
-   assert/retract family of predicates to manipulate dynamic predicates.
-
-   The defined predicates allow modification of the program as it is
-   actually running.  Clauses can be added to the program
-   (@em{asserted}) or removed from the program (@em{retracted}), as well
-   as inspected.  Note that in Ciao only the dynamic predicates of the
-   current module (or accessible dynamic multifile predicates) can be
-   accessed and modified.  This limits the bad impact to global analysis
-   of this dynamic modification of the program.  Thus, if dynamic
-   predicates are exported, to be able to inspect or modify them
-   externally some accessing predicates need to be implemented and
-   exported alongside.
-
-   For the inspecting/manipulating predicates, the argument which
-   corresponds to the clause head must be instantiated to an atom or a
-   compound term.  The argument corresponding to the clause must be
-   instantiated either to a term @tt{Head :- Body} or, if the body part
-   is empty, to @tt{Head}. An empty body part is represented as
-   @tt{true}.
-
-   Note that using this library is very detrimental to global analysis,
-   and that for most uses the predicates listed in
-   @ref{Fast/concurrent update of facts} suffice.").
+   @begin{alert}
+   Do not use this module directly (use the @lib{dynamic_clauses}
+   package instead).
+   @end{alert}").
 
 :- set_prolog_flag(multi_arity_warnings, off).
 
