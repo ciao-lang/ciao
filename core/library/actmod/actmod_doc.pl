@@ -10,7 +10,7 @@
 :- doc(author,"Daniel Cabeza (original version before 1.16)").
 :- doc(author,"Jose F. Morales (revised version)").
 
-% TODO:T253 separate distributed protocol from concurrency in documentation
+:- doc(stability, devel).
 
 :- doc(module,"
 
@@ -18,10 +18,6 @@
 This version corresponds to a revised model for active modules. See
 Ciao version 1.15 for the original first design as described in
 @cite{ciao-dis-impl-parimp-www}.
-@end{alert}
-
-@begin{alert}
-This library is currently the subject of active research.
 @end{alert}
 
 An @index{active module} is an ordinary module whose instances (copies
