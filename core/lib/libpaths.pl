@@ -1,17 +1,24 @@
 :- module(libpaths, [get_alias_path/0], [assertions]).
 
-:- doc(title, "Customizing library paths and path aliases").
+:- doc(title, "Customizing path aliases").
 
 :- doc(author,"Daniel Cabeza").
 
-:- doc(module, "This library provides means for customizing, from
-   environment variables, the libraries and @concept{path
-   alias}es known by an executable.  Many applications of Ciao,
-   including @apl{ciaoc}, @apl{ciaosh}, and @apl{ciao-shell} make use of
-   this library.  Note that if an executable is created dynamic, it will
-   try to load its components at startup, before the procedures of this
-   module can be invoked, so in this case all the components should be
-   in standard locations.").
+:- doc(module, "This library provides means for customizing the
+   @concept{path alias}es known by an executable from the
+   @tt{CIAOALIASPATH} environment variable.  This is used by many
+   applications of Ciao, including @apl{ciaoc}, @apl{ciaosh}, and
+   @apl{ciao-shell}, specially during system boostrapping.
+
+   @begin{alert}
+   This library is not recommended for user programs. Use
+   @concept{bundle}s instead.
+   @end{alert}").
+
+% Note that if an executable is created dynamic, it will try to load
+% its components at startup, before the procedures of this module can
+% be invoked, so in this case all the components should be in
+% standard locations.
 
 :- use_module(library(system)).
 :- use_module(library(lists)).

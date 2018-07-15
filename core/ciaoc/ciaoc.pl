@@ -129,17 +129,6 @@ hello dolly
 The name of the generated executable can be controlled with the
 @tt{-o} option (See @ref{Usage (ciaoc)}).
 
-@section{Paths used by the compiler during compilation}
-
-The compiler will look for files mentioned in commands such as
-@decl{use_module/1} or @decl{ensure_loaded/1} in the current
-directory.  Other paths can be added by including them in a file whose
-name is given to @tt{ciaoc} using the @tt{-u} option. This file should
-contain facts of the predicates @pred{file_search_path/2} and
-@pred{library_directory/1} (see the documentation for these predicates
-and also @ref{Customizing library paths and path aliases}
-for details).
-
 @section{Running executables from the command line}
 @cindex{executables, how to run} 
 
@@ -351,6 +340,18 @@ available when invoking @apl{ciaoc}:
 %   into an @index{active module} (see
 %   @ref{Active modules (high-level distributed execution)}
 %   for a description of this).  
+
+% (superseded by bundles)
+% @section{Paths used by the compiler during compilation}
+% 
+% The compiler will look for files mentioned in commands such as
+% @decl{use_module/1} or @decl{ensure_loaded/1} in the current
+% directory.  Other paths can be added by including them in a file whose
+% name is given to @tt{ciaoc} using the @tt{-u} option. This file should
+% contain facts of the predicates @pred{file_search_path/2} and
+% @pred{library_directory/1} (see the documentation for these predicates
+% and also @ref{Customizing path aliases}
+% for details).
 
 % ---------------------------------------------------------------------------
 
