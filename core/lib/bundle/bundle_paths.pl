@@ -134,7 +134,7 @@ ext_find_pl_filename(File, CurrDir, AbsFile) :-
 
 % E.g.,
 %   .../ciao/foo/lists.pl => library(lists)
-%     if 'foo' is a 'library' alias path of ciao
+%     if 'foo' is a 'library path' of ciao
 %   (otherwise, P = F)
 reverse_find_pl_filename(F, P) :-
 	findmax(P0, match_alias(F, P0), match_len, t(Alias, _, Rel)),
@@ -167,10 +167,10 @@ tidy_rel(Rel, Rel2) :-
    # "Find most specific @var{P} such that @tt{ext_find_pl_filename('', P, F)}.".
 % E.g.,
 %   .../core/foo/lists.pl => library(lists)
-%     if 'foo' is a 'library' alias path of 'core' bundle
+%     if 'foo' is a 'library path' of 'core' bundle
 %
 %   .../core/foo/lists.pl => at_bundle(core, 'foo/lists.pl')
-%     if 'foo' is not in an alias path of 'core' bundle
+%     if 'foo' is not in an path alias of 'core' bundle
 %
 %   (otherwise, Spec = AbsFile)
 

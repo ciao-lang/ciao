@@ -43,7 +43,8 @@ resolve_modset_list([F|Fs], Bs) :-
 :- use_module(engine(internals), ['$bundle_id'/1]).
 :- use_module(library(system), [working_directory/2]).
 
-% TODO: Declare in bundle which are the roots for compilable module search (e.g., paths in alias paths)
+% TODO: Declare in bundle which are the roots for compilable module
+%   search (e.g., paths in path aliases)
 % TODO: This is ad-hoc, fix
 :- export(bundle_contents/3).
 :- pred bundle_contents(+BundleOrPart, +Filter, -F) ::

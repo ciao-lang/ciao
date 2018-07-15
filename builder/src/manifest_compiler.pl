@@ -24,7 +24,7 @@ Configuration flags and nested definitions must be defined in a
    files into bundle registry entries. Bundle registries are written
    using @lib{fastrw} so that the support code to load them is
    minimal. They include cheaper runtime meta-information (like
-   dependencies, versions, alias paths, etc.).
+   dependencies, versions, @concept{path alias}es, etc.).
 
    For registered bundles, you can use @pred{ensure_load_manifest/1}
    and @pred{manifest_call/2} for loading and consulting a bundle
@@ -413,8 +413,8 @@ write_alias_path(AliasName=AliasPath, Bundle) :- !,
 write_alias_path(AliasPath, Bundle) :-
 	fast_write(bundle_alias_path(library, Bundle, AliasPath)).
 
-% Compute absolute paths names for alias paths (add @var{Base} to the
-% beginning of each relative alias path).
+% Compute absolute paths names for path aliases (add @var{Base} to the
+% beginning of each relative path alias).
 abs_alias_paths([], _, []).
 abs_alias_paths([RelAliasPath|RelAliasPaths], Base, [AliasPath|AliasPaths]) :-
 	abs_alias_path(RelAliasPath, Base, AliasPath),

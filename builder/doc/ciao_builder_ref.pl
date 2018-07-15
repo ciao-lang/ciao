@@ -42,7 +42,7 @@
    that are written with some common @em{global} assumptions in
    mind. Bundles include the necessary @em{meta-information} to
    specify their dependencies to other bundles, version information,
-   library alias paths, configuration options, licensing, authorship,
+   @concept{path alias}es, configuration options, licensing, authorship,
    generated commands (executables), entry point for manuals,
    dependencies to third-party software, etc.
 
@@ -64,7 +64,7 @@
 
    @begin{itemize}
    @item versions, authorship, etc.
-   @item library alias paths
+   @item @concept{path alias}es
    @item dependencies to other bundles
    @item entry points for manuals
    @item custom rules for build, installation, clean

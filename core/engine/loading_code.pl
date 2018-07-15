@@ -4,8 +4,9 @@
 
 :- doc(author, "Daniel Cabeza").
 
-:- doc(module, 
-        "Documentation for the directives used to load code into Ciao Prolog (both from the toplevel shell and by other modules).").
+:- doc(module, "Documentation for the directives used to load code
+   into Ciao Prolog (both from the toplevel shell and by other
+   modules).").
 
 :- doc(usage, "These directives are builtin in Ciao, so nothing special
    has to be done to use them.").

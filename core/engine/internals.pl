@@ -930,7 +930,7 @@ file_search_path(Alias, Path) :- '$bundle_alias_path'(Alias, _Bundle, Path).
 file_search_path(.,.).
 
 setup_paths :-
-	% Setup default alias paths
+	% Setup default path aliases
         ciao_root(CiaoRoot),
         path_concat(CiaoRoot, 'core/lib', LibPath),
         assertz_fact(library_directory(LibPath)),
