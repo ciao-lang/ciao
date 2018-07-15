@@ -9,28 +9,16 @@ If you find any problems during installation, please refer to
 @cindex{troubleshooting} See also @ref{Downloading new versions} and
 @ref{Reporting bugs}.
 
-@section{Obtaining the sources}
-
-The source code for the latest stable and development versions of Ciao
-is available from @href{https://ciao-lang.org} in the form of
-compressed packages (@tt{.tgz} or @tt{.tbz2} files). Another method to
-get the sources is from the Git repository (available for Ciao
-developers).
-
-@section{Supported platforms}
-
-Ciao supports Unix-like operating systems (Linux, BSD, Mac OS X) and
-Windows for serveral 32-bit and 64-bit architectures (@tt{amd64},
-@tt{x86}, @tt{arm}).
-
-@section{Requirements for build and installation}
+@section{Requirements}
 
 A minimal build requires:
 @begin{itemize}
+@item A supported operating system (Linux, BSD, Mac OS X, Windows)
+@item A supported architecture (@tt{amd64}, @tt{x86}, @tt{arm}).
 @item A relatively modern C compiler (GCC or clang)
-@item A POSIX-like environment (emulated in Windows using
-  Cygwin @href{http://cygwin.com} or MSYS2
-  @href{https://msys2.github.io}).
+@item A POSIX-like environment (partially emulated in Windows using
+  @href{http://cygwin.com}{Cygwin} or
+  @href{https://msys2.github.io}{MSYS2}).
 @end{itemize}
 
 Although Ciao implements its own build system, the @concept{GNU}
@@ -38,7 +26,7 @@ implementation of the @concept{make} Unix command is (still)
 used internally. If any of the installation steps stop right away with
 @apl{make} error messages, you probably need to install @tt{gmake}.
 
-@bf{Emacs} (@href{https://www.gnu.org/software/emacs/}) is highly
+@href{https://www.gnu.org/software/emacs/}{@bf{Emacs}} is highly
 recommended: the Ciao distribution includes a very powerful
 @cindex{development environment} @em{application development
 environment} which is based on @apl{emacs} and which enables, e.g.,
@@ -47,13 +35,13 @@ source-level debugging, context-sensitive on-line help, etc.
 
 In any case, it is easy to use Ciao from a terminal and edit code with
 any editor of your choice. The toplevel includes some minimal editing
-facility when @tt{rlwrap} is available
-(@href{https://github.com/hanslub42/rlwrap}).
+facility when @href{https://github.com/hanslub42/rlwrap}{rlwrap} is
+available.
 
 Finally, documentation generation in PDF format requires TeX and
 ImageMagick.
 
-@section{Installing dependencies before build}
+@subsection{Installing dependencies}
 
 Depending on the operating system and package management tool, you may
 need to install the following dependencies (using @tt{sudo} or as
@@ -176,7 +164,29 @@ To install the Java JDK on Fedora, please visit Sun Java website
 (@tt{http://java.sun.com/javase/downloads/index.jsp}) and follow the
 installation instructions there.
 
+@section{Network-based installation}
+@cindex{installation, network}
+
+Ciao can be installed from the network using a @tt{curl} pipe from
+@tt{https://ciao-lang.org/boot} to @tt{sh} in a terminal.
+
+The network installater (for Unix) is delivered as an HTTPs
+redirection to
+@tt{https://raw.githubusercontent.com/ciao-lang/ciao/master/ciao-boot.sh}
+(which contains the latest version of @tt{ciao-boot.sh} script). The
+bootstrap script recognizes that it is being called without sources
+automatically. Examples:
+
+@begin{verbatim}
+curl https://ciao-lang.org/boot -sSfL | sh
+curl https://ciao-lang.org/boot -sSfL | sh -s -- --prebuilt local-install
+curl https://ciao-lang.org/boot -sSfL | sh -s -- --no-prebuilt get devenv
+@end{verbatim}
+
 @section{Quick installation from source}
+
+The source code for the latest stable and development versions of Ciao
+is available from @href{https://ciao-lang.org}.
 
 Installation of Ciao from source is driven by the @tt{ciao-boot.sh}
 script (@tt{ciao-boot.bat} in Windows), which bootstraps and invokes

@@ -48,10 +48,6 @@ the build system} for more details on @em{phase 0}.
 
 @section{Configuration and build}
 
-@begin{alert}
-TODO: complete
-@end{alert}
-
 Configuration and build can be reverted with @em{clean} commands.  The
 meaning of @tt{clean} and @tt{distclean} is based on their standard
 meaning (see the @tt{Makefile} example at

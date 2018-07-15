@@ -1,0 +1,227 @@
+The @apl{ciao} command implements most bundle management operations.
+The most important commands are:
+
+@begin{verbatim}
+$ ciao list              # List bundles in current workspaces
+$ ciao build [<tgts>]    # Build
+$ ciao build -r [<tgts>] # Build, including dependencies
+$ ciao fetch [<tgts>]    # Fetch all dependencies of a bundle
+$ ciao get [<tgts>]      # Fetch, build, and install a bundle
+$ ciao rm [<tgts>]       # Remove a bundle
+@end{verbatim}
+
+Most commands accept one ore more targets (workspace paths, bundle
+directories, bundle names, or bundle aliases for location on the
+network). For example, valid targets are:
+@begin{itemize}
+@item (empty) (in which case Ciao locates the bundle above the current
+  directory)
+@item bundle names (e.g., @tt{chat80})
+@item paths to bundles (e.g., @tt{~/ciao/chat80})
+@item URL-like aliases to bundles (e.g., @tt{github.com/jfmc/chat80},
+  where @tt{chat80} is the bundle name)
+@end{itemize}
+
+Execute @tt{ciao help} to obtain a detailed list of commands.
+
+@section{Setting up workspaces}
+
+Ciao locate bundles by looking at one or more workspaces, given by the
+following (optional) environment variables:
+
+@begin{itemize}
+@item @tt{CIAOPATH}: colon-separated list of paths to individual
+  workspaces
+@item @tt{CIAOROOT}: the root directory of this Ciao installation
+  (either in binary or source form)
+@end{itemize}
+
+Workspaces from @tt{CIAOPATH} are consulted from left to right. If
+@tt{CIAOPATH} is undefined, a default value of @tt{~/.ciao} will be
+used. The first encountered workspace directory is denoted as the
+@em{top} workspace. The variable @tt{CIAOROOT} is usually not needed,
+except when the binaries is being relocated on the
+filesystem. @bf{Note:} @tt{CIAOPATH} should not point to @tt{CIAOROOT}
+(it is not needed and it may produce inconsistent builds).
+
+As mentioned in @ref{Full installation instructions}, setting up the
+environment uses the @apl{ciao-env} tool, which updates the @tt{PATH}
+and other environment variables to make commands and documentation
+(@tt{man}, @tt{info}) accessible by default.
+
+@bf{Configuring workspaces:} The directory @tt{~/ciao} can be added
+permanently as a workspace as follows. Include the following at the
+@tt{~/.emacs} file:
+
+@begin{verbatim}
+(setenv "CIAOPATH" (expand-file-name "~/ciao"))
+@end{verbatim}
+
+Then add these lines to the @tt{~/.bashrc} file:
+@begin{verbatim}
+export CIAOPATH=~/ciao
+@end{verbatim}
+
+It is possible to change @tt{CIAOPATH} temporarily from @tt{emacs}
+(@tt{M-x setenv}) or a shell in a terminal (executing @tt{export
+CIAOPATH=<path>})
+
+@section{Using and creating bundles}
+
+@bf{Creating new bundles:} For creating new bundles it is recommended
+to define a workspace directory (e.g., @tt{~/ciao}) and set the
+@var{CIAOPATH} environment variable to that directory.
+
+Bundles can be created from scratch or cloned from repositories, e.g.:
+@begin{verbatim}
+$ cd ~/ciao
+$ git clone https://github.com/jfmc/chat80
+@end{verbatim}
+
+At that point bundles can be managed with the @apl{ciao} command.  The
+@tt{ciao list} should display @tt{chat80} as a recognized bundle, and
+it should be possible to configure, build, or install it (e.g.,
+@tt{ciao build} at @tt{chat80} directory or @tt{ciao build chat80}
+anywhere).
+Most commands will rescan the bundles at the workspace, but it can be
+done manually with:
+@begin{verbatim}
+$ ciao rescan-bundles
+@end{verbatim}
+Note that existing toplevels may need to be restarted to recognize
+modules at the new bundles.
+
+@bf{Network installation:} It is possible to download, configure,
+build, and install automatically bundles from the network. For
+example:
+@begin{verbatim}
+ciao get github.com/jfmc/chat80
+@end{verbatim}
+will fetch and install @tt{chat80} under the top workspace
+(@tt{~/.ciao} if @tt{CIAOPATH} is unset) (see @lib{bundle_fetch}). The bundle name will be
+@tt{chat80}, while the rest of the bundle alias is used to locate the
+location on the network. The command:
+@begin{verbatim}
+ciao rm chat80
+@end{verbatim}
+removes the bundle (to prevent accidental data losses, only iff it has
+been marked as @em{downloaded}).
+
+@section{Workspaces during Ciao bootstrap}
+
+@comment{See
+@href{../ciao_builder.html/ciao_builder_refintro.html}{builder}
+documentation for more options and @em{one-liner} installation
+examples}
+@comment{TODO: cross manual links}
+
+In the context of calls to @tt{<srcdir>/ciao-boot.sh}, @tt{CIAOROOT}
+is implicitly set to the directory where @tt{ciao-boot.sh} is located
+(@tt{<srcdir>}) and @tt{CIAOPATH} is unset. Thus only bundles at
+@tt{<srcdir>} (including bundle @em{catalog} directories) are
+considered.
+
+This is useful to:
+
+@begin{itemize}
+@item prevent existing @tt{CIAOPATH} values interact with system builds
+@item fetch bundles during system build (e.g., the @tt{devenv} bundle)
+@end{itemize}
+
+@bf{Example:} the following command will bootstrap Ciao from source,
+as well as fetch and install the full development environment:
+
+@begin{verbatim}
+./ciao-boot.sh get devenv
+@end{verbatim}
+
+@section{Generating binary distributions}
+
+The @apl{ciaoc_sdyn} command can be used to generate binary
+distributions of executables with complex dependencies, including any
+3rd-party dynamic libraries.
+
+Example:
+@begin{verbatim}
+mkdir dist; cd dist
+ciaoc_sdyn ../src/YOURMAINEXEC
+cp ../src/SOMEASSET
+@end{verbatim}
+
+This creates a platform specific binary YOURMAINEXEC at @tt{dist/}
+directory, together with the collection of shared libraries for the
+dependencies.
+
+@begin{alert}
+Copying @tt{.so} or @tt{.dynlib} that corresponds to system libraries
+are not a good idea. To fix the issue the following command can be
+used:
+@begin{verbatim}
+rm -f libc.so.* libgcc_s.so.* libm.so.* libstdc++.so.*
+@end{verbatim}
+@end{alert}
+
+@subsection{Adding assets to binary distributions}
+
+The @pred{bundle_path/3} predicate (at @lib{bundle/bundle_paths}) can
+be used to obtain the absolute path name of a bundle or a relative
+path in a bundle.
+
+Example:
+
+@begin{verbatim}
+:- use_module(library(system), [file_exists/1]).
+:- use_module(library(pathnames), [path_concat/3]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
+
+% Find file X in the same directory as the executable
+% or in the sources.
+find_asset(Name, Path) :-
+	( current_executable(ExecPath),
+	  path_split(ExecPath, Dir, _)
+	; bundle_path(<SomeBundle>, 'images', Dir)
+	),
+	path_concat(Dir, Name, Path0),
+	file_exists(Path0),
+	!,
+	Path = Path0.
+@end{verbatim}
+
+The example predicate @tt{find_assert/2} above will look for arbitrary
+files in either the @tt{images/} directory or the directory of the
+current executable.
+
+@begin{verbatim}
+find_asset('spaceship.png', Sprite)
+@end{verbatim}
+
+@section{Troubleshooting}
+
+@bf{Q:} Changing the (workspace) directory of a bundle.
+
+@bf{A:} It would be enough to rescan bundles and configure (clean and
+build is recommended too). Go to the workspace and type the following:
+
+@begin{verbatim}
+ciao rescan-bundles
+ciao configure [<configuration-options>]
+@end{verbatim}
+
+@bf{Q:} Compilation of some module complains about missing
+  dependencies (to seemingly auto-generated code and third-party
+  libraries).
+
+@bf{A:} Make sure that the bundle and its dependencies are properly
+  configured and build (e.g., calling @tt{ciao build} for each of them
+  or with @tt{ciao build -r}). Some bundles (e.g., interfaces to
+  external solvers) require pre-build steps to download and compile
+  third-party code. This part of the compilation is not currently
+  handled by the Ciao compiler.
+
+@bf{Q:} Alias paths configured at @tt{.ciaorc} are not visible in
+  executables.
+
+@bf{A:} The @tt{.ciaorc} file is read only by the Ciao toplevel (not
+  arbitrary Ciao executables). Configure @concept{alias path}s through
+  manifest files instead.
+
