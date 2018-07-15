@@ -394,7 +394,7 @@ predicate_property_mod(_IM, EM, F, N, Prop) :-
 %       (or adopt a hash-table approach like in optim_comp)
 module_unconcat(MF, M, F) :-
 	atom_codes(MF, MFc),
-	append(Mc, [0':|Fc], MFc),
+	append(Mc, [0':|Fc], MFc), !,
 	atom_codes(M, Mc),
 	atom_codes(F, Fc).
 
