@@ -6,11 +6,11 @@
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "
-This package offers are minimalistic interface to execute tasks with
-file-based memoization. Tasks produce output in files and takes as
+This package offers a minimalistic interface to execute tasks with
+file-based memoization. Tasks produce output in files and take as
 input files or the output of other tasks. Tasks are memoized (not
-recomputed unless its input data has changed). Detection of changes in
-data is approximated by timestamps.
+recomputed unless their input data has changed). Detection of changes
+in data is approximated by timestamps.
 
 Definition of a task:
 @begin{verbatim}

@@ -19,6 +19,8 @@
 		show_message/2,
 		show_message/3,
 		show_message/4,
+% internal
+		show_message__/5,
 % types
 		message_t/1
 	    ],
@@ -60,8 +62,11 @@ message_type_label(error,   "ERROR").
 message_type_label(warning, "WARNING").
 message_type_label(note,    "NOTE").
 
-:- regtype message_t/1 # "The types of messaes supported by the
-   message predicate".
+:- doc(message_t/1, "This type defines the types of messages supported
+   by the message priting predicates. @includedef{message_t/1}").
+
+:- regtype message_t/1 # "The types of messages supported by the
+   message predicate.".
 
 message_t(error).
 message_t(warning).
@@ -69,8 +74,12 @@ message_t(note).
 message_t(simple).
 message_t(debug).
 
+:- doc(message_output_type/2, "This predicte specifies to what stream
+   (@texttt{user}, @texttt{user_error}, etc.) the message will be
+   written. @includedef{message_output_type/2}").
+
 :- pred message_output_type(Type, Output) :: message_t *
-	stream_alias # "Specifies where the message will be written".
+	stream_alias # "Specifies where the message will be written.".
 
 message_output_type(simple,  user).
 message_output_type(debug,   user_error).
@@ -109,10 +118,15 @@ show_message(Type, Message, A, Module) :-
 show_message(Type, Loc, Message, A, Module) :-
 	show_message__(Type, Loc, Message, A, Module).
 
+:- doc(hide,show_message__/5).
+
 show_message__(Type, Loc, Message, A, Module) :-
 	message_output_type(Type, SO),
 	show_message_(Type, SO, Loc, Message, A, Module).
 
+show_message_(optional, SO, _, Message, A, _) :-
+	!,
+	optional_message(SO, Message, A).
 show_message_(simple, SO, _, Message, A, _) :-
 	!,
 	simple_message(SO, Message, A).
