@@ -29,5 +29,11 @@
 
    Note that using this library is very detrimental to global analysis,
    and that for most uses the predicates listed in
-   @ref{Fast/concurrent update of facts} suffice.").
+   @ref{Fast/concurrent update of facts} suffice.
+
+   Example:
+@begin{verbatim}
+@includeverbatim{dynamic_clauses/examples/selfmodif.pl}
+@end{verbatim}
+").
 

@@ -1,6 +1,6 @@
 :- package(dynamic_clauses).
 :- new_declaration(dynamic_handling/0).
-:- use_module(library(dynamic_clauses_rt)).
+:- use_module(library(dynamic_clauses/dynamic_clauses_rt)).
 
 :- multifile '\3\mfclause'/2.
 :- data '\3\mfclause'/2.
