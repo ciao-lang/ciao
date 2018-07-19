@@ -175,7 +175,7 @@ defined in a module @file{foo.pl}):
     exported from both modules.
 
 
-  @item @file{$CIAOROOT/core/lib/rtchecks/rtcheks_rt_propimpl.pl}, a
+  @item @file{$CIAOROOT/core/lib/rtchecks/rtchecks_rt_propimpl.pl}, a
     database file that stores the links between different property
     implementations in the format of declarations '@tt{:-
     rtc_impl(ModOr:PropOr/ArityOr, ModRt:PropRt/ArityRt).}' where

@@ -50,9 +50,11 @@ Copyright @copyright{} 1989-2002 The CLIP Group / UPM
    is also mentioned here.
 
    There are two kinds of assertions: predicate assertions and program
-   point assertions. 
+   point assertions.
    All predicate assertions are currently placed as directives in the source
    code, i.e., preceded by ``@tt{:-}''.
+   More in-depth documentation on predicate assertions syntax can be found
+   in the @ref{Types and properties related to assertions} module.
    Program point assertions are placed as goals in clause bodies.
 
    @section{More info} 
@@ -67,6 +69,14 @@ Copyright @copyright{} 1989-2002 The CLIP Group / UPM
 %    Debugging of Constraint Logic Programs (Technical Report
 %    CLIP2/97.1)''. 
 }
+
+@comment{
+%   You might also refer to the @lib{rtchecks} library documentation
+%   (available from the @tt{ciaodbg} @concept{bundle})
+%   for examples of uses of
+%   assertions in run-time checking, unit-testing and profiling.
+}
+
    The assertion language implemented in this library
    is modeled after this design document, although, due to
    implementation issues, it may differ in some details. The purpose
@@ -434,6 +444,8 @@ Copyright @copyright{} 1989-2002 The CLIP Group / UPM
      defined by @var{PropertyConjunction} should hold in all the
      run-time stores corresponding to that program point.
      See also @ref{Run-time checking of assertions}.".
+% TODO: lpdoc cannot resolve the @ref above, as rtchecks
+%       documentation is now in the ciaodbg bundle --NS
 
 check(_).
 

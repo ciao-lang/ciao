@@ -76,12 +76,14 @@ implemented here.").
 	automatically, and perhaps, to show a warning informing the
 	user about such situation. --EMM").
 
-:- doc(bug, "Assertions must be defined before the predicate. This
-	is deliberate, since we preferred not to have to process all
-	the predicates, clauses and assertions at the end, losing the
-	locator information and confusing the debugger. In case of an
-	assertion defined later, a warning message is shown,
-	recommending to write a discontiguous directive (?). --EMM").
+:- doc(bug, "Assertions cannot be defined after the predicate.
+   Fix this, asking the compiler to rename heads and introduce
+   instrumentation at the end of sentence translation --JF").
+%% *Original bug message*: This is deliberate, since we preferred not to have to
+%% process all the predicates, clauses and assertions at the end, losing the
+%% locator information and confusing the debugger. In case of an assertion
+%% defined later, a warning message is shown, recommending to write a
+%% discontiguous directive (?). --EMM
 
 :- doc(bug, "Unimplemented: another level of instrumentation
 	should be defined to report what literal caused the throw of a
