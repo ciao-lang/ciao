@@ -1,18 +1,40 @@
-:- module(syntax_extensions, [], [assertions]).
+:- module(packages, [], [assertions]).
 
-:- doc(title, "Extending the syntax").
+:- doc(title, "Packages and language extensions").
 
 :- doc(author, "Daniel Cabeza").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(usage, "These directives are builtin in Ciao, so nothing special
    has to be done to use them.").
 
-:- doc(module, "This chapter documents the @concept{builtin
-   directives} in Ciao for extending the syntax of source files.
+:- doc(module, "This chapter documents @concept{package file}s and the
+   @concept{builtin directives} in Ciao for implementing syntactic and
+   semantic language extensions.
+
+   These directives allow the definition of new operators, new
+   declarations, code translations, etc. Although they can be used
+   directly in the source, it is recommented grouping them in
+   packages. Most Ciao extensions, such as functional syntax,
+   constraint solving, or breadth-first search are implemented as
+   packages.
 
    Note that the @concept{ISO-Prolog} directive
    @decl{char_conversion/2} is not implemented, since Ciao does not
    (yet) have a character conversion table.").
+
+% ---------------------------------------------------------------------------
+
+:- doc(doinclude,package/1).
+:- decl package(Name)
+        : modulename
+
+        # "Declares a package of name @var{Name}. Like in modules,
+          @var{Name} must match with the name of the file where the
+          package resides, without extension. This directive must
+          appear the first in the file.".
+
+% ---------------------------------------------------------------------------
 
 :- doc(doinclude,op/3).
 :- true decl op(Priority, Op_spec, Operator) :
@@ -21,6 +43,8 @@
           the rest of the current text, in the same way as the builtin
           @pred{op/3} does.  Its scope is local to the current text.
           Usually included in @concept{package file}s.".
+
+% ---------------------------------------------------------------------------
 
 :- doc(doinclude,new_declaration/1).
 :- true decl new_declaration(Predicate) : predname
@@ -45,6 +69,8 @@
           declarations in interface files makes them visible while processing
           other modules which make use of this one.".
 
+% ---------------------------------------------------------------------------
+
 :- doc(doinclude,load_compilation_module/1).
 :- true decl load_compilation_module(File) : sourcename
         # "Loads code defined in @var{File} into the compiler, usually
@@ -54,6 +80,8 @@
           application order of translations is determined by ascending
           @em{priority} numbers. Normally included in
           @concept{package file}s.".
+
+% ---------------------------------------------------------------------------
 
 :- doc(doinclude,add_sentence_trans/2).
 :- true decl add_sentence_trans(Predicate, Priority) :

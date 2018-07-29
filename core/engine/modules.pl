@@ -2,8 +2,8 @@
 
 :- doc(title, "The module system").
 
-:- doc(author,"Daniel Cabeza").
-:- doc(author,"The Ciao Development Team").
+:- doc(author, "Daniel Cabeza").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(usage, "Modules are an intrinsic feature of Ciao, so nothing
    special has to be done to use them.").
@@ -68,7 +68,7 @@
    name space of multifile predicates is independent, as if they
    belonged to the special module @tt{multifile}.
 
-   @subsubsection{Bsaic directives}
+   @subsubsection{Basic directives}
 
    Unlike in other Prolog systems, directives in Ciao are not goals to
    be @em{executed} by the compiler or top level. Instead, they are
@@ -404,23 +404,3 @@ argspec(pred(N)) :-
 :- decl on_abort(Goal) : callable
         # "@var{Goal} will be executed after an abort of the execution of
           any program containing the current code.".
-
-% ---------------------------------------------------------------------------
-
-:- doc(doinclude,package/1).
-:- decl package(Name)
-        : modulename
-
-        # "Declares a package of name @var{Name}. Like in modules,
-          @var{Name} must match with the name of the file where the
-          package resides, without extension. This directive must
-          appear the first in the file.
-
-          Package files provide syntactic extensions and their related
-          functionalities by defining operators, new declarations,
-          code translations, etc., as well as declaring imports from
-          other modules and defining additional code. Most Ciao
-          syntactic and semantic extensions, such as functional
-          syntax, constraint solving, or breadth-first search are
-          implemented as packages.".
-
