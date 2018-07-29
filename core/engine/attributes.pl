@@ -5,7 +5,7 @@
         detach_attribute/1],
         [assertions, nortchecks]).
 
-:- doc(title,"Attributed variables (deprecated)").
+:- doc(title, "Low-level attributed variables").
 
 
 :- doc(author,"Christian Holzbaur").
@@ -15,7 +15,7 @@
 :- doc(module, "
 
 @begin{alert}
-This module is deprecated. Prefer package @lib{attr}.
+Direct usage of this module is discouraged. Prefer package @lib{attr}.
 @end{alert}
 
 These predicates allow the manipulation of
