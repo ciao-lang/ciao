@@ -14,13 +14,20 @@
 
 :- doc(module, "Modularity is a basic notion in a modern computer
    language.  Modules allow dividing programs into several parts,
-   which have their own independent name spaces.  The module system in
-   Ciao @cite{ciao-modules-cl2000} is, as in most Prolog
-   implementations, @em{procedure based}.  This means that predicate
-   names are local to a module, but functor/atom names in data are
-   shared (at least by default).
+   which have their own independent name spaces.  Each module is
+   written in its own file (see @decl{module/2} and @decl{module/3})
+   and consists of a list of @concept{directives} and
+   @concept{predicate} definitions.
+
+   See @cite{ciao-modules-cl2000} for a detailed description of the
+   Ciao module system.
 
    @subsubsection{Visibility rules}
+
+   The module system in Ciao is, as in most Prolog implementations,
+   @em{procedure based}.  This means that predicate names are local to
+   a module, but functor/atom names in data are shared (at least by
+   default).
 
    The @em{predicates visible in a module} are the predicates
    defined in that module, plus the predicates imported from other
@@ -61,6 +68,23 @@
    name space of multifile predicates is independent, as if they
    belonged to the special module @tt{multifile}.
 
+   @subsubsection{Bsaic directives}
+
+   Unlike in other Prolog systems, directives in Ciao are not goals to
+   be @em{executed} by the compiler or top level. Instead, they are
+   @em{read} and acted upon by these programs. The advantage of this
+   is that the effect of the directives is consistent for executables,
+   code loaded in the top level, code analyzed by the preprocessor,
+   etc.
+
+   As a result, by default only the builtin directives or declarations
+   defined in this section are available in user programs. However, it is
+   possible to define new declarations @cindex{declarations, user
+   defined} using the @decl{new_declaration/1} and
+   @decl{new_declaration/2} directives (or using packages including
+   them). Also, packages may define new directives via code
+   translations.
+
    @subsubsection{Libraries imported by default ('builtins')}
 
    While in Ciao there are no 'built-in' predicates (i.e., predicates
@@ -90,8 +114,10 @@
    @lib{library(pure)} to define pure modules that do not import any
    traditional Prolog builtins; i.e., @concept{pure Prolog} code).").
 
+% ---------------------------------------------------------------------------
+
 :- doc(doinclude,module/3).
-:- true decl module(Name, Exports, Packages)
+:- decl module(Name, Exports, Packages)
         : modulename * list(predname) * list(sourcename)
 
         # "Declares a module of name @var{Name} which exports the
@@ -113,7 +139,7 @@
           @decl{module/3}.".
 
 :- doc(doinclude,module/2).
-:- true decl module(Name, Exports) : modulename * list(predname)
+:- decl module(Name, Exports) : modulename * list(predname)
 
         # "Same as directive @decl{module/3}, with an implicit package
           @tt{default}. This default package provides all the standard
@@ -121,37 +147,16 @@
           programs with traditional @decl{module/2} declarations can
           run without any change.".
 
-:- doc(doinclude,package/1).
-:- true decl package(Name)
-        : modulename
-
-        # "Declares a package of name @var{Name}. Like in modules,
-          @var{Name} must match with the name of the file where the
-          package resides, without extension. This directive must
-          appear the first in the file.
-
-          Package files provide syntactic extensions and their related
-          functionalities by defining operators, new declarations,
-          code translations, etc., as well as declaring imports from
-          other modules and defining additional code. Most Ciao
-          syntactic and semantic extensions, such as functional
-          syntax, constraint solving, or breadth-first search are
-          implemented as packages.".
-
-:- doc(doinclude,export/1).
-:- true decl export(Pred) : predname
-        # "Adds @var{Pred} to the set of exported predicates.".
-:- true decl export(Exports) : list(predname)
-        # "Adds @var{Exports} to the set of exported predicates.".
+% ---------------------------------------------------------------------------
 
 :- doc(doinclude,use_module/2).
-:- true decl use_module(Module, Imports) : sourcename * list(predname)
+:- decl use_module(Module, Imports) : sourcename * list(predname)
         # "Specifies that this code imports from the module defined in
           @var{Module} the predicates in @var{Imports}.  The imported
           predicates must be exported by the other module.".
 
 :- doc(doinclude,use_module/1).
-:- true decl use_module(Module) : sourcename
+:- decl use_module(Module) : sourcename
         # "Specifies that this code imports from the module defined in
           @var{Module} all the predicates exported by it.  The previous
           version with the explicit import list is preferred to this as
@@ -159,7 +164,7 @@
           other module changes.".
 
 :- doc(doinclude,import/2).
-:- true decl import(Module, Imports) : modulename * list(predname)
+:- decl import(Module, Imports) : modulename * list(predname)
         # "Declares that this code imports from the module with name
           @var{Module} the predicates in @var{Imports}.
 
@@ -188,7 +193,7 @@ main(X) :-
 ".
 
 :- doc(doinclude,reexport/2).
-:- true decl reexport(Module, Preds) : sourcename * list(predname)
+:- decl reexport(Module, Preds) : sourcename * list(predname)
         # "Specifies that this code reexports from the module defined in
           @var{Module} the predicates in @var{Preds}. This implies that
           this module imports from the module defined in @var{Module}
@@ -196,24 +201,72 @@ main(X) :-
           exports the predicates in @var{Preds} .".
 
 :- doc(doinclude,reexport/1).
-:- true decl reexport(Module) : sourcename
+:- decl reexport(Module) : sourcename
         # "Specifies that this code reexports from the module defined in
           @var{Module} all the predicates exported by it. This implies that
           this module imports from the module defined in @var{Module}
           all the predicates exported by it, an also that this module
           exports all such predicates .".
 
-:- doc(doinclude,meta_predicate/1).
+% ---------------------------------------------------------------------------
 
-:- true decl meta_predicate(MetaSpecs) : sequence(metaspec)
+:- doc(doinclude,export/1).
+:- decl export(Pred) : predname
+        # "Adds @var{Pred} to the set of exported predicates.".
+:- decl export(Exports) : list(predname)
+        # "Adds @var{Exports} to the set of exported predicates.".
+
+:- doc(doinclude,multifile/1).
+:- decl multifile(Predicates) : sequence_or_list(predname) + iso
+        # "Specifies that each predicate in @var{Predicates} may have
+          clauses in more than one file.  Each file that contains
+          clauses for a @concept{multifile predicate} must contain a
+          directive multifile for the predicate.  The directive should
+          precede all clauses of the affected predicates, and also
+          dynamic/data declarations for the predicate.  This directive
+          is defined as a prefix operator in the compiler.".
+
+:- doc(doinclude,meta_predicate/1).
+:- decl meta_predicate(MetaSpecs) : sequence(metaspec)
         # "Specifies that the predicates in @var{MetaSpecs} have
           arguments which have to be module expanded (predicates,
           goals, etc).  @decl{meta_predicate/1} directives are only
           mandatory for exported predicates (in modules).  This
           directive is defined as a prefix operator in the compiler.".
 
-:- doc(doinclude, modulename/1).
+:- doc(doinclude,redefining/1).
+:- decl redefining(Predicate) : compat(predname)
+        # "Specifies that this module redefines predicate
+          @var{Predicate}, also imported from other module, or imports
+          it from more than one module.  This prevents the compiler
+          giving warnings about redefinitions of that predicate.
+          @var{Predicate} can be partially (or totally) uninstantiated,
+          to allow disabling those warnings for several (or all) predicates at
+          once.".
 
+:- doc(doinclude,discontiguous/1).
+:- decl discontiguous(Predicates) : sequence_or_list(predname) + iso
+        # "Specifies that each predicate in @var{Predicates} may be
+          defined in this file by clauses which are not in consecutive
+          order.  Otherwise, a warning is signaled by the compiler when
+          clauses of a predicate are not consecutive (this behavior is
+          controllable by the @concept{prolog flag}
+          @em{discontiguous_warnings}).  The directive should
+          precede all clauses of the affected predicates.  This
+          directive is defined as a prefix operator in the compiler.".
+
+:- doc(doinclude,impl_defined/1).
+:- decl impl_defined(Predicates) : sequence_or_list(predname)
+        # "Specifies that each predicate in @var{Predicates} is
+          @em{impl}icitly @em{defined} in the current prolog source,
+          either because it is a builtin predicate or because it is
+          defined in a C file.  Otherwise, a warning is signaled by
+          the compiler when an exported predicate is not defined in
+          the module or imported from other module.".
+
+% ---------------------------------------------------------------------------
+
+:- doc(doinclude, modulename/1).
 :- doc(modulename/1, "A module name is an atom, not containing
         characters `:' or `$'.  Also, @tt{user} and @tt{multifile} are
         reserved, as well as the module names of all builtin modules
@@ -224,8 +277,9 @@ main(X) :-
 
 modulename(M) :- atm(M).
 
-:- doc(doinclude, metaspec/1).
+% ---------------------------------------------------------------------------
 
+:- doc(doinclude, metaspec/1).
 :- doc(metaspec/1, "A meta-predicate specification for a predicate
         is the functor of that predicate applied to terms which
         represent the kind of module expansion that should be applied to
@@ -298,3 +352,38 @@ argspec(addmodule(Meta)) :-
 	argspec(Meta).
 argspec(pred(N)) :-
 	nnegint(N).
+
+% ---------------------------------------------------------------------------
+
+:- doc(doinclude,initialization/1).
+:- decl initialization(Goal) : callable + iso
+        # "@var{Goal} will be executed at the start of the execution of
+          any program containing the current code. The initialization of a
+          module/file never runs before the initializations of the modules
+          from which the module/file imports (excluding circular 
+          dependences).".
+
+:- doc(doinclude,on_abort/1).
+:- decl on_abort(Goal) : callable
+        # "@var{Goal} will be executed after an abort of the execution of
+          any program containing the current code.".
+
+% ---------------------------------------------------------------------------
+
+:- doc(doinclude,package/1).
+:- decl package(Name)
+        : modulename
+
+        # "Declares a package of name @var{Name}. Like in modules,
+          @var{Name} must match with the name of the file where the
+          package resides, without extension. This directive must
+          appear the first in the file.
+
+          Package files provide syntactic extensions and their related
+          functionalities by defining operators, new declarations,
+          code translations, etc., as well as declaring imports from
+          other modules and defining additional code. Most Ciao
+          syntactic and semantic extensions, such as functional
+          syntax, constraint solving, or breadth-first search are
+          implemented as packages.".
+
