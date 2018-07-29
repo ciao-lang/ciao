@@ -4,7 +4,7 @@
          peek_char/1, peek_char/2,
          put_char/1, put_char/2], [assertions,isomodes]).
 
-:- doc(title, "The Iso Char module").
+:- doc(title, "The ISO Char module").
 
 :- doc(author, "The Ciao Development Team").
 
