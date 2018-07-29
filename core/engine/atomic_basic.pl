@@ -5,7 +5,7 @@
 
 %:- use_module(engine(internals), ['$prolog_radix'/2]).
 
-:- doc(title, "Basic predicates handling names of constants").
+:- doc(title, "Conversion between constants and strings").
 
 :- doc(author, "The Ciao Development Team").
 
@@ -13,8 +13,9 @@
    has to be done to use them.").
 
 :- doc(module, "The Ciao system provides builtin predicates which
-   allow dealing with names of constants (atoms or numbers).  Note that
-   sometimes strings (character code lists) are more suitable to handle
+   allow conversions between constants (atomic terms, i.e., atoms or
+   numbers) and their string representation (character code
+   lists). Note that sometimes strings are more suitable to handle
    sequences of characters.").
 
 :- doc(name(Const,String), "@var{String} is the list of the ASCII
