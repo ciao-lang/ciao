@@ -7,7 +7,7 @@
 :- use_module(engine(hiord_rt),     ['$meta_call'/1]).
 :- use_module(engine(exceptions_db)).
 
-:- doc(title, "Exception and Signal handling").
+:- doc(title, "Exception and signal handling").
 
 :- doc(author, "The Ciao Development Team").
 
