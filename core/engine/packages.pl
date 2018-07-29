@@ -23,6 +23,8 @@
    @decl{char_conversion/2} is not implemented, since Ciao does not
    (yet) have a character conversion table.").
 
+:- use_module(engine(modules), [modulename/1]).
+
 % ---------------------------------------------------------------------------
 
 :- doc(doinclude,package/1).

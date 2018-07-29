@@ -303,6 +303,7 @@ main(X) :-
 
 % ---------------------------------------------------------------------------
 
+:- export(modulename/1).
 :- doc(doinclude, modulename/1).
 :- doc(modulename/1, "A module name is an atom, not containing
         characters `:' or `$'.  Also, @tt{user} and @tt{multifile} are

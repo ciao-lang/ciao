@@ -1,7 +1,7 @@
 :- use_package(assertions).
 :- doc(nodoc,assertions). 
 
-:- doc(title, "Attributed Variables").
+:- doc(title, "Attributed variables").
 
 :- doc(author, "R@'{e}my Haemmerl@'{e}").  
 :- doc(author, "Christian Holzbaur").

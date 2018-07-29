@@ -1,7 +1,7 @@
 :- use_package([assertions]).
 :- doc(nodoc, assertions).
 
-:- doc(title, "Conditional Compilation").
+:- doc(title, "Conditional compilation").
 
 :- doc(author, "Jose F. Morales").
 

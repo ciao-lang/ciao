@@ -16,7 +16,7 @@
 
 %%---------------------------------------------------------------------
 
-:- doc(title,"Internal Runtime Information").
+:- doc(title,"Internal runtime information").
 
 :- doc(author,"Daniel Cabeza").
 :- doc(author,"Manuel Carro").
