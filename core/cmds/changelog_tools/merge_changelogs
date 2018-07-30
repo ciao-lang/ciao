@@ -2,7 +2,8 @@
 % -*- mode: ciao; -*-
 
 :- use_module(library(dec10_io)).
-:- use_module(library(ttyout)).
+%:- use_module(library(ttyout)).
+:- use_module(library(write)).
 :- use_module(library(read)).
 :- use_module(library(format)).
 :- use_module(library(lists)).
