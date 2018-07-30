@@ -41,7 +41,6 @@
 	    [assertions, dcg, hiord]).
 
 :- use_module(engine(debugger_support)).
-:- use_module(library(ttyout)).
 :- use_module(engine(internals), ['$prompt'/2, '$predicate_property'/3,
 		'$setarg'/4, term_to_meta/2, '$current_predicate'/2]).
 :- use_module(library(aggregates)).
@@ -55,6 +54,8 @@
 :- use_module(library(varnames/apply_dict)).
 :- use_module(library(varnames/complete_dict), [set_undefined_names/3]).
 :- use_module(engine(attributes)).
+
+:- use_module(library(toplevel/toplevel_io)).
 
 :- doc(hide, get_debugger_state/1).
 :- doc(hide, what_is_on/1).
@@ -78,14 +79,14 @@ reset_debugger(State) :-
 */
 
 get_command(Command) :-
-	ttydisplay(' ? '),
-	ttyflush,
-	ttyget(C1),
+	top_display(' ? '),
+	top_flush,
+	top_get(C1),
 	get_rest_command(C1, Command).
 
 get_rest_command(0'\n, 0'\n) :- !.
 get_rest_command(C1,   Command) :-
-	ttyget(C2),
+	top_get(C2),
 	get_arg(C2, C1, Command).
 
 get_arg(0'\n, C,  C) :- !.
@@ -93,7 +94,7 @@ get_arg(C2,   C1, [C1, Arg]) :-
 	C2 >= 0'0, C2 =< 0'9, !,
 	trd_digits(C2, 0, Arg).
 get_arg(0' , C1, C) :-
-	ttyget(C2),
+	top_get(C2),
 	get_arg(C2, C1, C).
 get_arg(C2, C1, [C1, Arg]) :-
 	trd_string(C2, Arg, "").
@@ -101,16 +102,16 @@ get_arg(C2, C1, [C1, Arg]) :-
 trd_digits(Ch, SoFar, I) :-
 	Ch >= 0'0, Ch =< 0'9, !,
 	Next is SoFar*10 + Ch - 0'0,
-	ttyget(Ch1),
+	top_get(Ch1),
 	trd_digits(Ch1, Next, I).
 trd_digits(0'\n, I, I) :- !.
 trd_digits(_,    I, J) :-
-	ttyget(Ch),
+	top_get(Ch),
 	trd_digits(Ch, I, J).
 
 trd_string(0'\n, I,       I) :- !.
 trd_string(Ch,   [Ch|I0], I) :-
-	ttyget(Ch1),
+	top_get(Ch1),
 	trd_string(Ch1, I0, I).
 
 mode_message(debug,
@@ -122,8 +123,8 @@ mode_message(off,
 
 what_is_on(Mode) :-
 	mode_message(Mode, Msg),
-	ttydisplay(Msg),
-	ttynl.
+	top_display(Msg),
+	top_nl.
 
 :- pred printopts(DefaultOption, Depth, Attribs, Vars).
 
@@ -188,26 +189,26 @@ print_attribute(A, Op, WriteOpts) :-
 
 % Command options
 debugging_options :-
-	ttydisplay('Debugging options:'), ttynl,
-	ttydisplay('   <cr>    creep            c      creep'), ttynl,
-	ttydisplay('    l      leap             s      skip'), ttynl,
-	ttydisplay('    r      retry            r <i>  retry i'), ttynl,
-	ttydisplay('    f      fail             f <i>  fail i'), ttynl,
-	ttydisplay('    d <av> display av       p <av> print av'), ttynl,
-	ttydisplay('    w <av> write av         a      abort'), ttynl,
-	ttydisplay('    v      variables        v <N>  variable N'), ttynl,
-	ttydisplay('    g      ancestors        g <n>  ancestors n'), ttynl,
-	ttydisplay('    n      nodebug          =      debugging'), ttynl,
-	ttydisplay('    +      spy this         -      nospy this'), ttynl,
-	ttydisplay('    @      command          u      unify'), ttynl,
-	ttydisplay('    <      reset printdepth < <n>  set printdepth'), ttynl,
-	ttydisplay('    ^      reset subterm    ^ <n>  set subterm'), ttynl,
-	ttydisplay('    ?      help             h      help'), ttynl,
-	ttynl,
-	ttydisplay('Note: In d, p and w options, you can add'), ttynl,
-	ttydisplay('  <a> to show attributes and <v> to show variables.'),
-	ttynl,
-	ttynl.
+	top_display('Debugging options:'), top_nl,
+	top_display('   <cr>    creep            c      creep'), top_nl,
+	top_display('    l      leap             s      skip'), top_nl,
+	top_display('    r      retry            r <i>  retry i'), top_nl,
+	top_display('    f      fail             f <i>  fail i'), top_nl,
+	top_display('    d <av> display av       p <av> print av'), top_nl,
+	top_display('    w <av> write av         a      abort'), top_nl,
+	top_display('    v      variables        v <N>  variable N'), top_nl,
+	top_display('    g      ancestors        g <n>  ancestors n'), top_nl,
+	top_display('    n      nodebug          =      debugging'), top_nl,
+	top_display('    +      spy this         -      nospy this'), top_nl,
+	top_display('    @      command          u      unify'), top_nl,
+	top_display('    <      reset printdepth < <n>  set printdepth'), top_nl,
+	top_display('    ^      reset subterm    ^ <n>  set subterm'), top_nl,
+	top_display('    ?      help             h      help'), top_nl,
+	top_nl,
+	top_display('Note: In d, p and w options, you can add'), top_nl,
+	top_display('  <a> to show attributes and <v> to show variables.'),
+	top_nl,
+	top_nl.
 
 display_nv0(Name=Value, Op, WO) :-
 	display_list(['\t   ', Name, ' = ']),
@@ -367,7 +368,7 @@ remove_spypoint(F, N, A) :-
 	'$spypoint'(F, on, off), !,
 	format(user, '{Spypoint removed from ~q}~n', [N/A]).
 remove_spypoint(_, N, A) :-
-	ttynl,
+	top_nl,
 	format(user, '{Cannot spy built-in predicate ~q}~n', [N/A]).
 
 spy1(Pred) :-
@@ -404,18 +405,18 @@ spypoint(X) :-
 all_spypoints :-
 	spypoint(_),
 	!,
-	ttydisplay('Spypoints:'),
+	top_display('Spypoints:'),
 	list_spypoints.
 all_spypoints :-
-	ttydisplay('{There are no spypoints}'), ttynl.
+	top_display('{There are no spypoints}'), top_nl.
 
 list_spypoints :-
 	spypoint(X),
 	functor(X, N, A),
-	ttynl, tab(user, 4), write(user, N/A),
+	top_nl, tab(user, 4), write(user, N/A),
 	fail.
 list_spypoints :-
-	ttynl.
+	top_nl.
 
 :- pred breakpt(Pred, Src, Ln0, Ln1, Number, RealLine)
 	: atm * sourcename * int * int * int * int
@@ -778,7 +779,7 @@ debugging :-
 	what_is_leashed,
 	what_maxdepth,
 	all_spypoints,
-	ttynl.
+	top_nl.
 
 :- prop port(X) + regtype.
 
@@ -864,9 +865,9 @@ do_once_command(Prompt, DebugCall, d(UDict, CDict, _ADict)) :-
 
 :- meta_predicate show_ancestors(?, ?, pred(2)).
 show_ancestors([_], _, _) :- !,
-	ttynl, ttydisplay('No ancestors.'), ttynl.
+	top_nl, top_display('No ancestors.'), top_nl.
 show_ancestors([_|CA], N, GetAttributedVars) :-
-	ttynl, ttydisplay('Ancestors:'), ttynl,
+	top_nl, top_display('Ancestors:'), top_nl,
 	list_ancestors(CA, N, GetAttributedVars).
 
 :- meta_predicate list_ancestors(?, ?, pred(2)).
@@ -878,7 +879,7 @@ list_ancestors([a(B, X, D, Dict)|As], N0, GetAttributedVars) :-
 	defaultopt(Op),
 	write_goal(Op, X, [], B, D, void, _Pred, _Src, nil, nil, Dict, nil,
 	    GetAttributedVars),
-	ttynl.
+	top_nl.
 
 :- meta_predicate debug_trace2(?, ?, ?, ?, ?, ?, ?, ?, pred(2), pred(1)).
 debug_trace2(X, State, Pred, Src, L0, L1, d(UDict, CDict), Number,
@@ -980,7 +981,7 @@ debug_port(X, B, D, Port, State, no, Pred, Src, Ln0, Ln1, Dict, Number,
 	defaultopt(Op),
 	write_goal(Op, X, [], B, D, Port, Pred, Src, Ln0, Ln1, Dict, Number,
 	    GetAttributedVars),
-	ttynl.
+	top_nl.
 debug_port(_, _, _, _, _, no, _, _, _, _, _, _, _, _).
 
 :- meta_predicate prompt_command(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,

@@ -9,6 +9,20 @@
 		adjust_debugger/0],
 	    [dcg, assertions, hiord, define_flag]).
 
+:- doc(title, "Predicates controlling the interactive debugger").
+
+:- doc(module, "This library implements predicates which are
+   normally used in the interactive top-level shell to debug
+   programs. A subset of them are available in the embeddable debugger.").
+
+:- doc(author, "A. Ciepielewski").
+:- doc(author, "Mats Carlsson").
+:- doc(author, "T. Chikayama").
+:- doc(author, "K. Shen").
+:- doc(author, "Daniel Cabeza").
+:- doc(author, "Manuel C. Rodriguez").
+:- doc(author, "Edison Mera").
+
 :- use_module(engine(debugger_support)).
 :- use_module(library(debugger/debugger_lib), [
 		adjust_debugger_state/2,
@@ -46,22 +60,9 @@
 :- use_module(engine(hiord_rt), ['$nodebug_call'/1, '$meta_call'/1]).
 :- use_module(engine(attributes)).
 :- use_module(library(format)).
-:- use_module(library(ttyout)).
-:- use_module(user,           ['$shell_call'/1]).
+:- use_module(user, ['$shell_call'/1]).
 
-:- doc(title, "Predicates controlling the interactive debugger").
-
-:- doc(module, "This library implements predicates which are
-   normally used in the interactive top-level shell to debug
-   programs. A subset of them are available in the embeddable debugger.").
-
-:- doc(author, "A. Ciepielewski").
-:- doc(author, "Mats Carlsson").
-:- doc(author, "T. Chikayama").
-:- doc(author, "K. Shen").
-:- doc(author, "Daniel Cabeza").
-:- doc(author, "Manuel C. Rodriguez").
-:- doc(author, "Edison Mera").
+:- use_module(library(toplevel/toplevel_io)).
 
 :- doc(hide, adjust_debugger/0).
 :- doc(hide, switch_off_debugger/0).
@@ -197,41 +198,41 @@ already_seen([T|_Ts], Term) :-
 already_seen([_T|Ts], Term) :- already_seen(Ts, Term).
 
 do_interrupt_command(0'@) :- !, % @(command)
-	ttyskipeol, do_once_command('| ?- ', debug_call, d([], [], [])),
+	top_skipeol, do_once_command('| ?- ', debug_call, d([], [], [])),
 	do_interrupt_command(0'\n).
 do_interrupt_command(0'a) :- !, % a(bort)
-	ttyskipeol, abort.
+	top_skipeol, abort.
 % do_interrupt_command(0'b) :- !, % b(reak)
-% 	ttyskipeol, break.
+% 	top_skipeol, break.
 do_interrupt_command(0'c) :- !, % c(ontinue)
-	ttyskipeol.
+	top_skipeol.
 do_interrupt_command(0'd) :- !, % d(ebug)
-	ttyskipeol, debug.
+	top_skipeol, debug.
 do_interrupt_command(0'e) :- !, % e(xit)
-	ttyskipeol, halt.
+	top_skipeol, halt.
 do_interrupt_command(0't) :- !, % t(race)
-	ttyskipeol, trace.
+	top_skipeol, trace.
 do_interrupt_command(0'\n) :- !, % cr
 	format(user, '~nCiao interruption (h for help)? ', []),
-	ttyflush,
-	ttyget(C),
+	top_flush,
+	top_get(C),
 	do_interrupt_command(C).
 do_interrupt_command(_) :- % h(elp) or other
-	ttyskipeol,
+	top_skipeol,
 	interrupt_options,
 	do_interrupt_command(0'\n).
 
 interrupt_options :-
-	ttynl,
-	ttydisplay('Ciao interrupt options:'), ttynl,
-	ttydisplay('    a        abort           - cause abort'), ttynl,
-%	ttydisplay('    b        break           - cause break'), ttynl,
-	ttydisplay('    c        continue        - do nothing'), ttynl,
-	ttydisplay('    d        debug           - start debugging'), ttynl,
-	ttydisplay('    t        trace           - start tracing'), ttynl,
-	ttydisplay('    e        exit            - cause exit'), ttynl,
-	ttydisplay('    @        command         - execute a command'), ttynl,
-	ttydisplay('    h        help            - get this list'), ttynl.
+	top_nl,
+	top_display('Ciao interrupt options:'), top_nl,
+	top_display('    a        abort           - cause abort'), top_nl,
+%	top_display('    b        break           - cause break'), top_nl,
+	top_display('    c        continue        - do nothing'), top_nl,
+	top_display('    d        debug           - start debugging'), top_nl,
+	top_display('    t        trace           - start tracing'), top_nl,
+	top_display('    e        exit            - cause exit'), top_nl,
+	top_display('    @        command         - execute a command'), top_nl,
+	top_display('    h        help            - get this list'), top_nl.
 
 % :- meta_predicate call_in_module(?, fact).
 

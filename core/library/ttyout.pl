@@ -34,8 +34,7 @@ ttynl :- nl(user).
 
 :- true comp ttyskipeol + deprecated.
 
-ttyskipeol :- skip_code(user, 0'
-                           ).
+ttyskipeol :- skip_code(user, 0'\n).
 
 :- true comp ttydisplay(_) + deprecated.
 

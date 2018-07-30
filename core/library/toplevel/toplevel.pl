@@ -28,10 +28,6 @@
 :- use_module(library(goal_trans), [add_goal_trans/3]).
 :- use_module(library(system),     [file_exists/1]).
 :- use_module(library(errhandle)).
-:- use_module(library(ttyout)).
-:- use_module(library(write),     [write/1, write_term/2]).
-:- use_module(library(read),      [read_term/3]).
-:- use_module(library(operators), [op/3]).
 :- use_module(library(sort),      [keysort/2]).
 :- use_module(library(attrdump),
 	    [copy_extract_attr/3, copy_extract_attr_nc/3]).
@@ -49,6 +45,11 @@
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(libpaths),   [get_alias_path/0]).
 :- use_module(library(dict),       [dic_lookup/3, dic_get/3]).
+
+:- use_module(library(toplevel/toplevel_io)).
+:- use_module(library(write),     [write/1, write_term/2]).
+:- use_module(library(read),      [read_term/3]).
+:- use_module(library(operators), [op/3]).
 
 :- use_module(library(rtchecks/rtchecks_utils), [call_rtc/1]).
 :- use_module(library(read_from_string)).
@@ -195,19 +196,19 @@ shell_query(Variables, Query) :-
 	prompt(_, Prompt),
 	!,
 	( Query == top ->
-	    (quiet_mode -> true ; ttynl), throw(go_top)
+	    (quiet_mode -> true ; top_nl), throw(go_top)
 	; valid_solution(Query, Variables, VarNames) ->
-	    (quiet_mode -> true ; ttynl, ttydisplay(yes))
-	; (quiet_mode -> true ; ttynl, ttydisplay(no))
+	    (quiet_mode -> true ; top_nl, top_display(yes))
+	; (quiet_mode -> true ; top_nl, top_display(no))
 	),
-	(quiet_mode -> true ; ttynl).
+	(quiet_mode -> true ; top_nl).
 shell_query(_Variables, end_of_file).
 
 debugger_info :-
 	get_debugger_state(State),
 	arg(1, State, T),
 	( T = off, !
-	; ttydisplay('{'), ttydisplay(T), ttydisplay('}\n')
+	; top_display('{'), top_display(T), top_display('}\n')
 	).
 
 get_query(Query, Dict, Names) :-
@@ -418,21 +419,21 @@ ok_solution('', _, _, MoreSols) :-
 	(Prompt = off ; Prompt = on, MoreSols = false),
 	!.
 ok_solution(Sep, Solution, Variables, MoreSols) :-
-	(Sep = '' -> ttynl, ttydisplay('true') ; true),
-	ttydisplay(' ? '),
-	ttyflush,
-	ttyget(C),
+	(Sep = '' -> top_nl, top_display('true') ; true),
+	top_display(' ? '),
+	top_flush,
+	top_get(C),
 	( C = 10 % end of line
-	; C = 0'y, ttyskip(10) % y(es)
-	; C = 0'Y, ttyskip(10) % Y(es)
+	; C = 0'y, top_skip(10) % y(es)
+	; C = 0'Y, top_skip(10) % Y(es)
 	; C = 0', -> % add another question
-	    ttyskip(10),
-	    ttynl,
+	    top_skip(10),
+	    top_nl,
 	    inc_query_level,
 	    shell_env(Variables),
 	    dec_query_level,
 	    display_ok_solution(Solution, Variables, MoreSols)
-	; ttyskip(10), fail % another solution
+	; top_skip(10), fail % another solution
 	).
 
 
