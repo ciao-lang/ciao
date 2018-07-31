@@ -147,7 +147,7 @@ instances of @tt{c:\\} need to be changed to @tt{c:/}.  For example:
 @section{Compiling the miscellaneous utilities under Windows}
 
 The @file{cmds} folder contains a number of utilities, documented in
-the manual in @em{PART V - Miscellaneous Standalone Utilities}.  In
+the manual in @em{Miscellaneous Standalone Utilities}.  In
 the Win32 distribution these utilities are not compiled by the
 installation process.  You can create the executable for each of them
 when needed by compiling the corresponding @tt{.pl} file.
