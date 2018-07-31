@@ -1,6 +1,8 @@
 :- module(queues, [q_empty/1, q_insert/3, q_member/2, q_delete/3],
 	[assertions]).
 
+:- doc(title, "Queues").
+
 q_empty(X-X).
 
 q_insert(E, H-[E|T], H-T).

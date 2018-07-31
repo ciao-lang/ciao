@@ -6,6 +6,9 @@
 		  ],
 		  [assertions, isomodes]).
 
+:- doc(title, "Lists of lists").
+:- doc(author, "The Ciao Development Team").
+
 :- use_module(library(lists), [append/3]).
 
 :- pred append/2 :: list(list) * list

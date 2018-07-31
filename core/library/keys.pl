@@ -1,11 +1,11 @@
-
 :- module(keys,
 	[ keys_and_values/3,
 	  keys_and_values/4,
 	  key_lookup/4
 	],
-	[ assertions
-	] ).
+	[assertions]).
+
+:- doc(title, "Key-value lists").
 
 keys_and_values([K|Ks],[V|Vs],[K=V|KVs]):-
 	keys_and_values(Ks,Vs,KVs).

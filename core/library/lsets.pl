@@ -1,4 +1,3 @@
-
 :- module(lsets,
 	[ merge_list_of_lists/2,
 	  merge_lists/3, 
@@ -16,6 +15,8 @@
 	  split_lists_from_list/4,
 	  powerset_of_set_of_sets/2
 	],[assertions]).
+
+:- doc(title, "Lists of sets").
 
 :- use_module(library(lists), [powerset/2]).
 :- use_module(library(sets), 
