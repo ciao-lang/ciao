@@ -1,5 +1,4 @@
 :- module(listing, [listing/0, listing/1],[assertions]).
-% This has to go to the toplevel
 
 :- use_module(engine(internals), 
         ['$current_clauses'/2,
@@ -9,6 +8,9 @@
          '$current_predicate'/2]).
 :- use_module(library(write), [portray_clause/1]).
 :- use_module(library(parse_spec), [parse_functor_spec/5]).
+
+% TODO: load in the toplevel by default?
+% TODO: combine with dynamic_clauses package
 
 listing :-
 	'$current_predicate'(_, Pred),

@@ -56,10 +56,12 @@ library @lib{compiler/c_itf}.
 :- doc(bug, "Abridged syntax is incompatible with option -modes.
    E.g.:
    ERROR (assrt_lib): (lns 87-89) arity mismatch in declaration for 
-                      compare(?atm,@term,@term) in term_compare
+                      compare(?atm,@@term,@@term) in term_compare
    with:
-          :- true pred compare(?atm,@term,@term)
+@begin{verbatim}
+          :- true pred compare(?atm,@@term,@@term)
                     => member([(=),(>),(<)]) * term * term.
+@end{verbatim}
    ").
 
 
