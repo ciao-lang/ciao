@@ -6,10 +6,18 @@
                      mode_of_module/2, module_of/2
                      ], [assertions]).
 
+:- doc(title, "Dynamic loading and compilation").
+
+:- doc(author, "The Ciao Development Team").
+
+:- doc(module, "This module provides an simplified interface to the
+   Ciao compiler front-end (see @lib{toplevel} for details).").
+
 :- use_module(library(system), [cd/1, working_directory/2]).
 :- use_module(library(compiler/c_itf_internal)).
 
 :- use_module(exemaker, [create_interfaces/0]).
+
 make_po(Files) :-
 	make_object(Files, po),
 	create_interfaces.
