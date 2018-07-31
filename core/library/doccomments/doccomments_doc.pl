@@ -1,69 +1,39 @@
 :- use_package(assertions).
 :- doc(nodoc,assertions).
 
-:- doc(title,"Documentation comments").
+:- doc(title, "Documentation comments").
 :- doc(subtitle, "Comment-style syntax for machine-readable comments").
 
-:- doc(author,"Jose F. Morales").
-:- doc(author,"Manuel Hermenegildo").
+:- doc(author, "Jose F. Morales").
+:- doc(author, "Manuel Hermenegildo").
+
+:- doc(stability, devel("This is still a beta version for
+   experimentation. Much functionality is implemented but syntax may
+   change in the future.")).
+
 :- doc(module,"
+   This package allows including machine-readable documentation
+   (including assertions) inside code comments.  Additionally, a
+   simpler lightweight markup syntax is enabled for (@apl{LPdoc})
+   documentation.
 
-@begin{alert} 
-This is still a beta version for experimentation. Much functionality
-is implemented but syntax may change in the future.
-@end{alert}
+   The overall objective is a allow speeding up the process of
+   documentation for many cases that do not require the full power of
+   the documentation system and assertion language, as well as
+   improving the portability (as documentation comments are simply
+   ignored when not supported by other Prolog systems).
 
-   This package allows 
-
-@begin{itemize}
-
-@item using an alternative, simpler, ``wiki-like'' syntax when writing
-      (@apl{LPdoc}) machine-readable documentation,
-
-@item including machine-readable documentation and assertions inside
-      code comments, and
-
-@item using a simplified format for program assertions.  
-
-@end{itemize}
-
-The overall objective is a allow a more lightweight look to
-machine-readable documentation and assertions as well as speeding up
-the process of documentation for many cases that do not require the
-full power of the documentation system and assertion language.
-
-@section{Motivation and Related Work}
-
-   In @apl{LPdoc}, assertions and documentation comments are written
-   as special declarations, which are normal Prolog terms. This is
-   similar to code comments in many languages like Lisp variants or
-   Python. However, sometimes it is useful to be able to write
-   machine-readable documentation within code comments. This package
-   allows this by defining a special kind of code comments where this
-   is allowed.
-
-   Also, while the @apl{LPdoc} normal markup language (e.g., @tt{}) offers precision
-   it is
-
-
-    Although this is useful in practice, it is sometimes less
-   flexible (no doccomments allowed within the code) and less portable
-   (when using tools that do not understand the assertion language).
-
-   This package tries to solve this issue by introducing a
-   backwards-compatible comment syntax and a simplified lightweight
-   markup. The syntax is partially inspired in the mark up syntax for
+   The syntax is partially inspired in the mark up syntax for
    @href{http://www.stack.nl/~dimitri/doxygen/markdown.html}{Doxygen},
    @href{http://coq.inria.fr/doc/Reference-Manual018.html#toc97}{Coqdoc},
    and
    @href{http://www.haskell.org/haddock/doc/html/ch03s08.html}{Haddock}.
 
-@section{Documentation comments}
+@section{Documentation comments as terms}
 
    This package enables grammar extensions that allow some special
    operators, which annotate the source code with documentation, are
-   then translated as @em{documentation assertions} understood
-   natively by LPdoc.
+   then translated as @em{documentation assertions}.
 
    The following pieces of text are understood as both prefix or
    postfix operators:
@@ -102,13 +72,7 @@ internal parsing routines. For more details, see the @lib{read} and
   term.
 @end{alert}
 
-@section{Lightweight markup}
-
-@begin{alert}
-  Refer to @tt{library/markdown} and @tt{library/markdown/examples} for documentation.
-@end{alert}
-
-@section{Relation with LPdoc comment assertions}
+@section{Relation with comment assertions}
 
 This package allows using an alternative syntax for machine-readable
 comments. Essentially, most comments of the form:
@@ -149,6 +113,8 @@ is equivalent to:
                 It can be used for several purposes.\").
 :- doc(hide,internal/3).
 @end{verbatim}
+
+See files distributed at @tt{markdown/examples/} for more examples.
 ").
 
 :- doc(bug, "The column number of the line of multiline @tt{/*...*/}
