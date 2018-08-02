@@ -39,7 +39,7 @@
 :- doc(atom_codes(Atom,String), "@var{String} is the list of the ASCII
    codes of the characters comprising the name of @var{Atom}.").
 
-:- test atom_codes(A,B): (A='año') => (B = "año") + (not_fails, is_det).
+:- test atom_codes(A,B): (A='aÃ±o') => (B = "aÃ±o") + (not_fails, is_det).
 
 :- trust pred atom_codes(+atm,?string) + eval.
 :- trust pred atom_codes(?atm,+string) + eval.
