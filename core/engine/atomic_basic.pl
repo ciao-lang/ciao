@@ -74,6 +74,11 @@ valid_base(32). valid_base(33). valid_base(34). valid_base(35). valid_base(36).
    of the ASCII codes of the characters comprising a representation of
    @var{Number} in base @var{Base}.").
 
+:- trust pred number_codes(+num,+int,?string) + eval.
+:- trust pred number_codes(-num,+int,+string) + eval.
+:- true comp number_codes/3 + ( sideff(free), native ).
+
+:- impl_defined(number_codes/3).
 
 :- test number_codes(A, B, C) : ( A = 0.0, valid_base(B) ) => C = "0.0".
 :- test number_codes(A, B, C) : ( valid_base(B), C="0.0" ) => A = 0.0.
@@ -90,40 +95,40 @@ valid_base(32). valid_base(33). valid_base(34). valid_base(35). valid_base(36).
 :- test number_codes(A, B, C) : ( A = 0.Nan, valid_base(B) ) => C = "0.Nan".
 :- test number_codes(A, B, C) : ( valid_base(B), C = "0.Nan" ) => A = 0.Nan.
 
-% TODO: number_codes/3 should not be a prop. Fix rtchecks.
-:- prop number_codes/3 # "We defined number_codes/3 as a property to
-        use it in the tests.".
-
-:- impl_defined(number_codes/3).
-
-:- test number_codes(A, B, C) :
-	(
-	    float_random(A),
-	    valid_base(B)
-	) =>
-	call((
-	    number_codes(A1, B, C),
-	    near(A1, A, 0.0000000001)
-	)) + times(50) # "Reversibility test 1".
-
-:- test number_codes(A, B, C) :
-	(
-	    float_random(A0),
-	    valid_base(B),
-	    number_codes(A0, B, C)
-	) =>
-	(
-	    near(A, A0, 0.0000000001)
-	) + times(50) # "Reversibility test 2".
+%% (temporarily disabled -- this is not a test but a test generator, it should
+%%  not be here since it is not deterministic and it may not appear)
+%%
+%% % TODO: number_codes_/3 should not be needed. Fix rtchecks.
+%% :- prop number_codes_/3 # "We defined number_codes_/3 as a property to
+%%         use it in the tests.".
+%% number_codes_(A,B,C) :- number_codes(A,B,C).
+%%
+%% % TODO: strange test (head should not be number_codes, e.g., like if testing that "reverse o reverse = id")
+%% :- test number_codes(A, B, C) :
+%% 	(
+%% 	    float_random(A),
+%% 	    valid_base(B)
+%% 	) =>
+%% 	call((
+%% 	    number_codes_(A1, B, C),
+%% 	    near(A1, A, 0.0000000001)
+%% 	)) + times(50) # "Reversibility test 1".
+%%
+%% :- test number_codes(A, B, C) :
+%% 	(
+%% 	    float_random(A0),
+%% 	    valid_base(B),
+%% 	    number_codes_(A0, B, C)
+%% 	) =>
+%% 	(
+%% 	    near(A, A0, 0.0000000001)
+%% 	) + times(50) # "Reversibility test 2".
+%%
+%% :- impl_defined(float_random/1).
+%% :- impl_defined(near/3).
 
 :- test number_codes(A, B, C) : ( A = 19.26, B = 10 ) => C = "19.26".
 :- test number_codes(A, B, C) : ( B = 10, C = "19.26" ) => A = 19.26.
-
-
-:- trust pred number_codes(+num,+int,?string) + eval.
-:- trust pred number_codes(-num,+int,+string) + eval.
-:- true comp number_codes/3 + ( sideff(free), native ).
-
 
 :- doc(atom_number(Atom,Number), "@var{Atom} can be read as a
    representation of @var{Number}.").
