@@ -14,7 +14,7 @@
 :- use_module(library(strings)).
 
 % TODO: Integrate with other stream module? 
-:- doc(title,"File/Stream Utilities").
+:- doc(title, "File/Stream utilities").
 
 :- doc(author,"The Ciao Development Team").
 
