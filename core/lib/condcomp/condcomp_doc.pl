@@ -25,7 +25,7 @@
 % :- else.
 % :- endif.
 
-:- doc(module, "This package defines a serie of directives for
+:- doc(module, "This package defines a series of directives for
 conditional compilation that allow the inclusion or exclusion of code
 blocks (which may contain nested conditional directives) based on the
 truth value at compile time of special goals called
@@ -47,17 +47,17 @@ if the condition in @tt{Cond1} is satisfied, else @tt{Block2} is
 included if @tt{Cond2} is satisfied (and so on for each @tt{elif}),
 and @tt{BlockN} if no previous condition is satisfied.
 
-@section{Conditional Conditions}
+@section{Conditions}
 
 The valid conditions are restricted to a subset of goals that can be
-safely evaluated at compile time. At this moment, we only accept the
-following ones:
+safely evaluated at compile time. At this moment, only the following
+ones are accepted:
 
 @begin{itemize}
 @item Compile-time values of prolog flags (@tt{current_prolog_flag/2}).
 @item Conjunctions, disjunctions, or negations of conditions.
 @item Calls to facts previously defined with @tt{:-
-  compilation_fact(Fact)}. This is a experimental feature that may change
+  compilation_fact(Fact)}. This is an experimental feature that may change
   in the future.
 @item @tt{defined(F/N)} (or @tt{defined(F)}, equivalent to
   @tt{defined(F/0)}), which succeeds only if there is a definition for
