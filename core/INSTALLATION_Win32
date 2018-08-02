@@ -193,10 +193,10 @@ Compiling the miscellaneous utilities under Windows
 ===================================================
 
 The `cmds' folder contains a number of utilities, documented in the
-manual in PART V - Miscellaneous Standalone Utilities. In the Win32
-distribution these utilities are not compiled by the installation
-process. You can create the executable for each of them when needed by
-compiling the corresponding `.pl' file.
+manual in Miscellaneous Standalone Utilities. In the Win32 distribution
+these utilities are not compiled by the installation process. You can
+create the executable for each of them when needed by compiling the
+corresponding `.pl' file.
 
 Server installation under Windows
 =================================
