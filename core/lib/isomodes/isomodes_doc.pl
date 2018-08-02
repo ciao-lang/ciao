@@ -1,5 +1,5 @@
 
-:- use_package([assertions]).
+:- use_package([assertions,metaprops]).
 :- doc(nodoc,assertions).
 % does not work:
 %:- doc(nodoc,metaprops).
