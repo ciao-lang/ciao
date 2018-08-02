@@ -1,22 +1,22 @@
 :- module(tokenize, [read_tokens/2,token/1],[assertions, define_flag]).
 
-:- doc(title, "Tokeniser").
+:- doc(title, "Tokenizer").
 :- doc(author, "The Ciao Development Team").
 
 /*  Copyright (C) 1996-2002 UPM-CLIP */
 
 :- doc(module, "This module defines the tokenizer for Ciao.  In
-   addition to optional flags, the main differences w.r.t. ISO-Prolo
+   addition to optional flags, the main differences w.r.t. the ISO-Prolog
    standard are:
 
 @begin{itemize}
-@item @tt{`} is a graphic char, there are not @tt{back_quoted_strings}
-@item @tt{\\\\} followed by any layout char (not only @tt{new_line}) in a string is a @tt{continuation_escape_sequence}
-@item @tt{\\\\^} starts a @tt{control_escape_char} in a string
-@item @tt{\\\\c} skips layout in a string
-@item @tt{\\\\e} = @tt{ESC}, @tt{\\\\d} = @tt{DEL}, @tt{\\\\s} = @tt{SPACE}
-@item @tt{13'23} is 23 in base 13 (same for other bases)
-@item @tt{0'}@tt{'} is accepted as @tt{0'}@tt{'}@tt{'} (if not followed by @tt{'})
+@item @tt{`} is a graphic char, there are no @tt{back_quoted_strings}.
+@item @tt{\\\\} followed by any layout char (not only @tt{new_line}) in a string is a @tt{continuation_escape_sequence}.
+@item @tt{\\\\^} starts a @tt{control_escape_char} in a string.
+@item @tt{\\\\c} skips layout in a string.
+@item @tt{\\\\e} = @tt{ESC}, @tt{\\\\d} = @tt{DEL}, @tt{\\\\s} = @tt{SPACE}.
+@item @tt{13'23} is 23 in base 13 (same for other bases).
+@item @tt{0'}@tt{'} is accepted as @tt{0'}@tt{'}@tt{'} (if not followed by @tt{'}).
 @end{itemize}
    ").
 
