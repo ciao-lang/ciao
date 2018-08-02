@@ -257,6 +257,9 @@ void init_some_bytecode(void) {
 }
 
 /* --------------------------------------------------------------------------- */
+#if defined(PROFILE)
+extern bool_t profile;       /* profile execution -- Shared */
+#endif
 
 CBOOL__PROTO(set_trace_calls)
 {

@@ -46,6 +46,11 @@
 #include <ciao/dynlink.h>
 #include <ciao/format.h>
 
+#if defined(PROFILE)
+#define __USE_GNU
+# include <dlfcn.h>
+#endif
+
 /* local declarations */
 
 static CBOOL__PROTO(prolog_atom_mode);
@@ -827,8 +832,10 @@ void init_locks(void){
 #if defined(PROFILE)
 void init_profiler(void) {
   if (profile_eng) {
-    void (*profile_init)(void) = (void (*)(void))dlsym(RTLD_DEFAULT, "profile_init");
-    void (*profile_enter_call_)(void) = (void (*)(void))dlsym(RTLD_DEFAULT, "profile_enter_call_");
+    void (*profile_init)(void) =
+      (void (*)(void))dlsym(RTLD_DEFAULT, "profile_init");
+    void (*profile_enter_call_)(void) =
+      (void (*)(void))dlsym(RTLD_DEFAULT, "profile_enter_call_");
     profile_rcc = TRUE;
     if (profile_init) profile_init();
     if (profile_enter_call_) profile_enter_call_();
