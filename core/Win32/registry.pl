@@ -1,6 +1,6 @@
 :- module(_, [win_reg/3], [dcg]).
 
-:- use_module(library(strings)).
+:- use_module(library(strings), [string/3]).
 :- use_module(library(lists), [length/2]).
 
 win_reg(Registry) -->

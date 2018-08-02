@@ -4,7 +4,7 @@
 :- use_package(assertions).
 :- use_module(library(lists), [append/3, length/2]).
 :- use_module(library(read)).
-:- use_module(library(strings)).
+:- use_module(library(strings), [get_line/2]).
 :- use_module(library(terms)).
 :- use_module(library(format)).
 :- use_module(library(system)).

@@ -1,8 +1,8 @@
-:- module(server, [main/1], []).
+:- module(_, [main/1], []).
 
 :- use_module(library(system)).
 :- use_module(library(sockets)).
-:- use_module(library(strings)).
+:- use_module(library(strings), [get_line/2]).
 :- use_module(library(iso_char)).
 :- use_module(library(format)).
 :- use_module(library(concurrency)).
