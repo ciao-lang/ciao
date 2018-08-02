@@ -10,7 +10,7 @@
    additional abstraction layer that divides large programs into sets
    of modules.").
 
-:- doc(module, "In the same way that modules can be seen as collection
+:- doc(module, "In the same way that modules can be seen as collections 
 of predicates, Ciao @concept{bundle}s define collections of
 modules. The visibility of bundles is determined by
 @concept{workspace}s. A workspace is a directory that may contain
@@ -31,10 +31,10 @@ cmds/            Modules implementing main/{0,1} (for CLI tools)
 Bundles include some @em{metadata} describing versions, dependencies,
 (relative) @concept{path alias}es, entry points for manuals and
 commands, additional pre-build, build, and installation rules,
-etc. This metadata is separated from the actual code into one
+etc. This metadata is separated from the actual code into a single 
 @tt{Manifest.pl} file at the root of the bundle, or inside the
-@tt{Manifest/} directory. A typical @tt{Manifest.pl} has the following
-form:
+@tt{Manifest/} directory. A typical @tt{Manifest.pl} file has the 
+following form:
 
 @begin{verbatim}
 :- bundle(<Name>).
@@ -52,12 +52,12 @@ manual(<ManName>, [main=<RelPathDocCfg>, ...]).
 
 where:
 @begin{itemize}
-@item @tt{version/1} specifies the bundle version
-@item @tt{depends/1} declares dependencies with other bundles
-@item @tt{alias_paths/1} declares @concept{path alias}es
-@item (multiple) @tt{lib/1} declares directories containing compilable modules
-@item (multiple) @tt{cmd/2} declares entry points for commands (executables)
-@item (multiple) @tt{manual/2} declares entry points for manuals
+@item @tt{version/1} specifies the bundle version.
+@item @tt{depends/1} declares dependencies with other bundles.
+@item @tt{alias_paths/1} declares @concept{path alias}es.
+@item (multiple) @tt{lib/1} declares directories containing compilable modules.
+@item (multiple) @tt{cmd/2} declares entry points for commands (executables).
+@item (multiple) @tt{manual/2} declares entry points for manuals.
 @end{itemize}
 
 @bf{Versioning:} Versions are specified as atoms (see
@@ -75,9 +75,9 @@ the bundles must be renamed (e.g. @tt{bndv1}, @tt{bndv2}).
 
 @begin{alert}
 @bf{Additional build rules:} Although the Ciao compiler is incremental
-and performs the compilation on-demand, some components may require
+and performs the compilation on demand, some components may require
 configuration steps and pre-building. For example, this is often the
-case of bindings to foreign third-party libraries. Currently these
+case for bindings to foreign third-party libraries. Currently these
 rules must be written in a @em{lower-level} module
 @tt{Manifest/<bundle>.hooks.pl}.
 @end{alert}
@@ -92,13 +92,13 @@ build/           (Generated automatically)
 <bundleN>/
 @end{verbatim}
 
-Each workspace directory contain a @tt{build/} directory with
+Each workspace directory contains a @tt{build/} directory with
 intermediate and final results of compilation (@tt{build/bin/}) and
 documentation generation (@tt{build/doc/}).
 
 @bf{Bundle catalogs:} workspaces may contain directories holding
 bundles. Such directories must be marked with an empty
-@tt{BUNDLE_CATALOG} file. In such case, bundles are visible only if
+@tt{BUNDLE_CATALOG} file. In that case, bundles are visible only if
 they are marked with an empty @tt{ACTIVE} file. This mecanism is
 useful to implement catalogs of bundles.
 ").
