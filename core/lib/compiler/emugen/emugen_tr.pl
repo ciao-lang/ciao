@@ -168,7 +168,7 @@ emit_code(G, M, Store) -->
 	{ tr_solve_unique(G, M, Store, Body) },
 	[Body].
 
-% TODO: duplicates :- use_module(library(file_utils), [string_to_file/2]).
+% TODO: duplicates :- use_module(library(streams_utils), [string_to_file/2]).
 write_string_to_file(File, String) :-
 	OutStream = ~open_output(File),
 	format("~s", [String]),

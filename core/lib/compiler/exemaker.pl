@@ -39,7 +39,7 @@
 :- use_module(library(compiler/engine_path), [get_engine_file/2]).
 :- use_module(library(compiler/pl2wam)).
 :- use_module(library(aggregates), [findall/3]).
-:- use_module(library(file_utils), [terms_to_file/2]).
+:- use_module(library(streams_utils), [terms_to_file/2]).
 
 :- use_module(library(ctrlcclean), [delete_on_ctrlc/2]).
 :- use_module(engine(internals),   [module_concat/3]).

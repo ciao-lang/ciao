@@ -54,7 +54,7 @@ has been accepted for inclusion in the post-conference proceedings.
 :- doc(bug, "The implementation can be improved.").
 
 :- use_module(library(lists), [append/3]).
-:- use_module(library(file_utils),
+:- use_module(library(streams_utils),
 	[file_to_string/2, string_to_file/2]).
 :- use_module(library(dict)).
 

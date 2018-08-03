@@ -253,7 +253,7 @@ http_serve_fetch(Stream,Serve):-
 	
 :- use_module(library(sockets)).
 :- use_module(library(sockets/sockets_io), [serve_socket/3]).
-:- use_module(library(file_utils), [file_to_string/2]).
+:- use_module(library(streams_utils), [file_to_string/2]).
 :- use_module(library(system), [file_exists/1, current_host/1, modif_time/2]).
 :- use_module(library(lists), [length/2, list_concat/2]).
 :- use_module(library(pathnames), [path_splitext/3]).

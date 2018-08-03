@@ -1013,7 +1013,7 @@ filter_def(installable_precomp(Level),
 :- doc(section, "Auxiliary predicates").
 % TODO: move somewhere else?
 
-:- use_module(library(file_utils), [file_to_string/2]).
+:- use_module(library(streams_utils), [file_to_string/2]).
 
 file_to_atoms(File, Atoms) :-
 	file_to_string(File, String),

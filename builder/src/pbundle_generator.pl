@@ -9,7 +9,7 @@
    and operating systems.").
 
 :- use_module(library(aggregates)).
-:- use_module(library(file_utils)).
+:- use_module(library(streams_utils)).
 :- use_module(library(lists)).
 :- use_module(library(llists)).
 :- use_module(library(terms), [atom_concat/2]).
@@ -111,7 +111,7 @@ pbundle_manuals(Target, ciao, "Ciao Manual") :- root_target(Target).
 pbundle_manuals(Target, ciaopp, "CiaoPP Manual") :- root_target(Target).
 pbundle_manuals(Target, lpdoc, "LPdoc Manual") :- root_target(Target).
 
-:- use_module(library(file_utils), [output_to_file/2]).
+:- use_module(library(streams_utils), [output_to_file/2]).
 :- use_module(library(version_strings), [version_split_patch/3]).
 
 %:- export(pbundle_generate_meta/2).

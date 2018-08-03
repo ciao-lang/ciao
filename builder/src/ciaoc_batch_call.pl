@@ -11,7 +11,7 @@
 :- use_module(library(lists), [length/2]).
 :- use_module(library(system), [delete_file/1, file_exists/1]).
 :- use_module(library(llists), [flatten/2]).
-:- use_module(library(file_utils), [string_to_file/2]).
+:- use_module(library(streams_utils), [string_to_file/2]).
 :- use_module(library(pathnames), [path_get_relative/3]).
 
 :- use_module(library(compiler),                [make_po/1]).

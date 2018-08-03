@@ -1,4 +1,4 @@
-:- module(file_utils, [
+:- module(streams_utils, [
 	  file_to_terms/2,
 	  terms_to_file/2,
 	  file_to_string/2,
@@ -13,13 +13,12 @@
 :- use_module(library(streams)).
 :- use_module(library(strings), [write_string/2]).
 
-% TODO: Integrate with other stream module? 
-:- doc(title, "File/Stream utilities").
+:- doc(title, "Stream utilities").
 
 :- doc(author,"The Ciao Development Team").
 
 :- doc(module,"This module implements a collection of predicates to
-   read/write files (or streams) from/to several sources (lists of
+   read/write streams (or files) from/to several sources (lists of
    terms, strings, predicate output, etc.), in a compact way.").
 
 % (pp) probably redundant

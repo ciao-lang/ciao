@@ -184,7 +184,7 @@ print_clause(Clause, S) :-
 
 :- use_module(library(system_extra), [move_if_diff/3]).
 :- use_module(library(system), [mktemp_in_tmp/2]).
-:- use_module(library(file_utils), [string_to_file/2]).
+:- use_module(library(streams_utils), [string_to_file/2]).
 
 :- export(update_file_from_clauses/3).
 % Like @pred{print_clauses_to_file/2} but preserves timestamp if file

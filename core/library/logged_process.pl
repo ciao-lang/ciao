@@ -22,7 +22,7 @@
    @end{description}
 ").
 
-:- use_module(library(file_utils), [stream_to_string/2]).
+:- use_module(library(streams_utils), [stream_to_string/2]).
 :- use_module(library(messages), [error_message/2, note_message/2]).
 :- use_module(library(lists), [select/3]).
 :- use_module(library(process),
