@@ -20,8 +20,8 @@
 
 :- include(library(pillow/ops)).
 % 
-:- use_module(library(strings), 
-        [write_string/1, whitespace/2, whitespace0/2, string/3]).
+:- use_module(library(streams_utils), [write_string/1]).
+:- use_module(library(strings), [whitespace/2, whitespace0/2, string/3]).
 :- use_module(library(lists), [reverse/2, list_lookup/4]).
 
 % ---------------------------------------------------------------------------

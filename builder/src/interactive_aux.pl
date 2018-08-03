@@ -70,7 +70,7 @@ read_line(Stream, String) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(strings), [get_line/1, write_string/1]).
+:- use_module(library(streams_utils), [get_line/1, write_string/1]).
 
 :- export(ask_yesno/1).
 % Prompt Question to the user, wait until 'yes' or 'no' is written

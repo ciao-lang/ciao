@@ -2,7 +2,7 @@
 
 :- use_module(library(system)).
 :- use_module(library(sockets)).
-:- use_module(library(strings), [get_line/2]).
+:- use_module(library(streams_utils), [get_line/2]).
 :- use_module(library(iso_char)).
 :- use_module(library(format)).
 :- use_module(library(concurrency)).

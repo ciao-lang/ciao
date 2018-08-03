@@ -13,7 +13,7 @@
 % TODO: move cookies to other place (e.g., http_serve, or a new http_common, etc.)
 
 :- use_module(library(strings), [whitespace0/2]).
-:- use_module(library(strings), [get_line/1]).
+:- use_module(library(streams_utils), [get_line/1]).
 :- use_module(library(lists), [append/3]).
 :- use_module(library(system), [getenvstr/2]).
 :- use_module(library(http/http_grammar), [http_media_type/5, http_crlf/2, http_lines/3, http_type_params/3]).
@@ -207,7 +207,7 @@ legal_cookie_char(C) -->
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(strings), [write_string/1]).
+:- use_module(library(streams_utils), [write_string/1]).
 
 :- export(cgi_write_response/1).
 :- pred cgi_write_response(Response) # "Writes the CGI response

@@ -1,8 +1,8 @@
 :- module(foreign_inliner_tr,[foreign_inliner_tr/3],[assertions]).
-:- use_module(library(write), [write/2]).
-:- use_module(library(strings), [write_string/2]).
-:- use_module(library(compiler/c_itf), [defines_module/2]).
 
+:- use_module(library(write), [write/2]).
+:- use_module(library(streams_utils), [write_string/2]).
+:- use_module(library(compiler/c_itf), [defines_module/2]).
 
 :- data opened/0.
 :- data inliner_dest/2.

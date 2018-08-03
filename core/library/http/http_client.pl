@@ -58,8 +58,7 @@ http_request_content(Options, Options1, Content) :-
 % ---------------------------------------------------------------------------
 
 :- use_module(library(sockets)).
-:- use_module(library(strings), [write_string/2]).
-:- use_module(library(streams_utils), [stream_to_string/2]).
+:- use_module(library(streams_utils), [write_string/2, stream_to_string/2]).
 
 :- pred http_transaction(+Host, +Port, +Request, +Timeout, -Response)
    :: atm * int * string * int * string

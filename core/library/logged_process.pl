@@ -121,7 +121,7 @@ treat_logs(ReturnCode, LogFile, ErrFile, OnReturn, ShowLogs, PCall) :-
 % ===========================================================================
 :- doc(section, "Process call where all output is quoted").
 
-:- use_module(library(strings), [get_line/2, write_string/1]).
+:- use_module(library(streams_utils), [get_line/2, write_string/1]).
 :- use_module(library(process), [process_call/3, process_join/1]).
 
 :- export(quoted_process_call/3).

@@ -23,7 +23,7 @@
    without loading them in memory)").
 
 :- use_module(library(lists), [append/3, select/3, length/2]).
-:- use_module(library(strings), [string/3, write_string/2]).
+:- use_module(library(streams_utils), [write_string/2]).
 :- use_module(library(pathnames), [path_concat/3]).
 
 % Grammar definitions

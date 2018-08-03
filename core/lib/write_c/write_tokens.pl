@@ -1,6 +1,6 @@
 :- module(write_tokens, [write_tokens/1], []).
 
-:- use_module(library(strings), [write_string/1]).
+:- use_module(library(streams_utils), [write_string/1]).
 :- use_module(library(write)).
 :- use_module(library(format)).
 
