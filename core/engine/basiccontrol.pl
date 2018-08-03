@@ -22,9 +22,11 @@
    predicates, except the predicates dealing with exceptions, which are
    in @ref{Exception and Signal handling}.").
 
-:- doc(usage, "These predicates/constructs are builtin in Ciao, so
-   nothing special has to be done to use them.  In fact, as they are
-   hardwired in some parts of the system, most of them cannot be redefined.").
+:- doc(usage, "These predicates are builtin in Ciao, so nothing
+   special has to be done to use them.").
+
+% TODO: In fact, some predicates and constructs are hardwired in parts
+%   of the system and most of them cannot be redefined.
 
 :- use_module(engine(internals), ['$unknown'/2, '$current_instance'/5, '$unlock_predicate'/1]).
 :- use_module(engine(hiord_rt), ['$meta_call'/1]).

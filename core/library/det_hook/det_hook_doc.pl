@@ -70,16 +70,6 @@ and '!!'/0 is not used, the database will populate with facts which
 will be consulted the next time a '!!'/0 is used.  This could cause
 incorrect executions.").
 
-:- doc(usage, "@begin{verbatim}
-:- use_module(library(det_hook_rt)).
-@end{verbatim}
-in which case, @tt{!!/0} is not available.
-
-Typically, this library is used as a package:
-@begin{verbatim}
-:- use_package(det_hook).
-@end{verbatim}").
-
 /*
 :- doc(doinclude, '!!'/0).
 :- pred '!!' # "Performs a special cut which prunes alternatives away,
