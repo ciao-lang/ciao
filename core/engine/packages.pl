@@ -1,6 +1,6 @@
 :- module(packages, [], [assertions]).
 
-:- doc(title, "Packages and language extensions").
+:- doc(title, "Packages and language extension").
 
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "The Ciao Development Team").
