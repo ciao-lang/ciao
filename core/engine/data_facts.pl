@@ -11,8 +11,7 @@
 :- doc(author,"Daniel Cabeza").
 :- doc(author,"Manuel Carro").
 
-:- doc(usage, "These predicates are builtin in Ciao, so nothing special
-   has to be done to use them.").
+:- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module,"@cindex{data predicate}Prolog implementations
     traditionally implement the concept of @concept{dynamic

@@ -12,8 +12,7 @@
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Edison Mera (improvements)").
 
-:- doc(usage, "These predicates are builtin in Ciao, so nothing special
-   has to be done to use them.").
+:- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module, "This module provides predicates for printing in a
    unified way informational messages, and also for printing some terms

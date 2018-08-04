@@ -1,4 +1,5 @@
 :- package(prelude).
+% TODO: this should be 'modbase'; 'nonpure' should be 'prelude'
 :- multifile '$primitive_meta_predicate'/2.
 :- discontiguous '$primitive_meta_predicate'/2.
 :- multifile '$current_module'/1.

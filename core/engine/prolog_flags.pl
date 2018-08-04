@@ -12,8 +12,7 @@
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Mats Carlsson").
 
-:- doc(usage, "These predicates are builtin in Ciao, so nothing special
-   has to be done to use them.").
+:- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module, "@cindex{prolog flag} Flags define some parameters of
    the system and control the behavior of system or library predicates.

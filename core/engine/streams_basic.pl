@@ -17,8 +17,7 @@
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Mats Carlsson").
 
-:- doc(usage, "These predicates are builtin in Ciao, so nothing special
-   has to be done to use them.").
+:- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module,"This module provides basic predicates for handling
    files and streams, in order to make input/output on them.").

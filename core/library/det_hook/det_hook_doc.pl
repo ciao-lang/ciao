@@ -1,4 +1,4 @@
-:- use_package([assertions, isomodes]).
+:- use_package([assertions]).
 
 :- doc(nodoc,assertions).
 

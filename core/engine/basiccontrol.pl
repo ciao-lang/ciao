@@ -22,8 +22,7 @@
    predicates, except the predicates dealing with exceptions, which are
    in @ref{Exception and Signal handling}.").
 
-:- doc(usage, "These predicates are builtin in Ciao, so nothing
-   special has to be done to use them.").
+:- doc(usage, "@include{InPrelude.lpdoc}").
 
 % TODO: In fact, some predicates and constructs are hardwired in parts
 %   of the system and most of them cannot be redefined.

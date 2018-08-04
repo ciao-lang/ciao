@@ -22,8 +22,7 @@
 :- doc(author,"Manuel Carro").
 :- doc(author,"Jose F. Morales").
 
-:- doc(usage, "These predicates are builtin in Ciao, so nothing special
-   has to be done to use them.").
+:- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module, "This module provides internal information about the
    current running engine and enviroment. That information includes

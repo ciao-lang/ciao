@@ -8,8 +8,7 @@
 :- doc(author,"Daniel Cabeza").
 :- doc(author,"Manuel Hermenegildo").
 
-:- doc(usage, "These predicates are builtin in Ciao, so nothing special
-   has to be done to use them.").
+:- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module,"This module provides basic term manipulation.").
 

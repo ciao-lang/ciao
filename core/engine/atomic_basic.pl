@@ -9,8 +9,7 @@
 
 :- doc(author, "The Ciao Development Team").
 
-:- doc(usage, "These predicates are builtin in Ciao, so nothing special
-   has to be done to use them.").
+:- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module, "The Ciao system provides builtin predicates which
    allow conversions between constants (atomic terms, i.e., atoms or

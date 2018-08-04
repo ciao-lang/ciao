@@ -13,8 +13,7 @@
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Mats Carlsson").
 
-:- doc(usage, "These predicates are builtin in Ciao, so nothing special
-   has to be done to use them.").
+:- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module, "This module provides predicates for character
    input/output and for canonical term output.  From the
