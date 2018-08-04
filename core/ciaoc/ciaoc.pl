@@ -548,9 +548,9 @@ main(Args) :-
     "used in :- initialization(...) or :- on_abort(...) \n\t"||
     "declarations, or if it is the meta-argument of a metapredicate.").
 
-:- doc(bug, "Also if appears in the body of an assertion referred to a
-   predicate being used, but that is not implemented, because the
-   assertion reader is not included in the compiler yet -- EMM.").
+% TODO: Also if appears in the body of an assertion referred to a
+%   predicate being used, but that is not implemented, because the
+%   assertion reader is not included in the compiler yet -- EMM.
 
 % ---------------------------------------------------------------------------
 
