@@ -68,7 +68,7 @@ ifeq ($(CC),emcc)
     RANLIB := llvm-ranlib
 endif
 
-# Fixes for Mac OS X (not using llvm-ranlib)
+# Fixes for macOS (not using llvm-ranlib)
 ifeq ($(shell uname -s),Darwin)
 ifeq ($(RANLIB),ranlib)
     # Make rpath work

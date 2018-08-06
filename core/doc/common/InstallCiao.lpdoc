@@ -13,7 +13,7 @@ If you find any problems during installation, please refer to
 
 A minimal build requires:
 @begin{itemize}
-@item A supported operating system (Linux, BSD, Mac OS X, Windows)
+@item A supported operating system (Linux, BSD, macOS, Windows)
 @item A supported architecture (@tt{amd64}, @tt{x86}, @tt{arm}).
 @item A relatively modern C compiler (GCC or clang)
 @item A POSIX-like environment (partially emulated in Windows using
@@ -94,11 +94,11 @@ $ pacman -S rlwrap
 $ pacman -S texlive-core texinfo imagemagick
 @end{verbatim}
 
-@item Mac OS X:
+@item macOS:
 @begin{itemize}
 @item Install command line tools for Xcode (from the App store)
 @item Install emacs and ImageMagick (and texinfo if needed, but recent
-    versions of Mac OS X include it). A software management tool like
+    versions of macOS include it). A software management tool like
     homebrew or macports is recommended, e.g. (as root/sudo):
 @begin{verbatim}
 $ brew install emacs-mac imagemagick
@@ -238,7 +238,7 @@ following sections.
 
 @section{Full installation instructions}
 @cindex{installation, Unix, full instructions}
-@cindex{installation, Mac OS X, full instructions}
+@cindex{installation, macOS, full instructions}
 
 @comment{
 @item @bf{Uncompress and unpackage:} (using @apl{gunzip} and @tt{tar

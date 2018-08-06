@@ -17,7 +17,7 @@ Requirements
 ============
 
 A minimal build requires:
-   * A supported operating system (Linux, BSD, Mac OS X, Windows)
+   * A supported operating system (Linux, BSD, macOS, Windows)
 
    * A supported architecture (`amd64', `x86', `arm').
 
@@ -91,11 +91,11 @@ administrator or `root' user):
           # Required for generating documentation in .pdf format
           $ pacman -S texlive-core texinfo imagemagick
 
-   * Mac OS X:
+   * macOS:
         * Install command line tools for Xcode (from the App store)
 
         * Install emacs and ImageMagick (and texinfo if needed, but
-          recent versions of Mac OS X include it). A software
+          recent versions of macOS include it). A software
           management tool like homebrew or macports is recommended,
           e.g. (as root/sudo):
                $ brew install emacs-mac imagemagick

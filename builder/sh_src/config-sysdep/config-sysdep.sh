@@ -493,7 +493,7 @@ LIBENG_CFLAGS="$CFLAGS"
 LIBENG_LDFLAGS="$LDFLAGS"
 
 # TODO: This hardwires a build path; use patchelf (Linux) or
-#   install_name_tool (Mac OS X) to fix during installation
+#   install_name_tool (macOS) to fix during installation
 LIBENG_RPATH="$bld_objdir"
 
 if [ x"$LIBENG_RPATH" != x ]; then

@@ -4,7 +4,7 @@
 %   when possible, use skel/template files, reuse binary installer
 %   scripts)
 
-:- doc(title, "Mac OS X distributions").
+:- doc(title, "macOS distributions").
 
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
 :- doc(author, "The Ciao Development Team").
@@ -144,7 +144,7 @@ gen_pbundle_hook(pkg, Target, _Options) :- !,
       with default arguments".
 
 gen_pbundle__pkg(Target) :-
-	normal_message("creating Mac OS X package", []),
+	normal_message("creating macOS package", []),
 	OutDir = ~pbundle_output_dir(Target),
 	TmpDir = ~make_temp_dir,
 	DestDir = ~path_concat(TmpDir, 'root'),
@@ -190,7 +190,7 @@ package_pkg(Target, DestPath, TmpDir, PPath, Name, Version, PName) :-
 	%
 	write_info_plist(InfoFile, Name, Version),
 	%
-	verbose_message("Packaging binary distribution for Mac OS X", []),
+	verbose_message("Packaging binary distribution for macOS", []),
 	process_call(~packageMaker,
 	       ['--root-volume-only', '--verbose',
 		'--root', DestPath,
@@ -449,7 +449,7 @@ write_welcome_html(ResourcesPath, Name, Version) :-
 </head>
 <body>
 <font face=\"Helvetica\">
-<b>Welcome to the ~w for Mac OS X Installer</b>
+<b>Welcome to the ~w for macOS Installer</b>
 <p>
 Ciao is a public domain, next generation multi-paradigm 
 programming environment with a unique set of features:
@@ -460,7 +460,7 @@ This installer will install the system in ~w.
 </p>
 <p>
 This installer guides you through the steps necessary to 
-install ~w ~w for Mac OS X. To get started, click Continue.
+install ~w ~w for macOS. To get started, click Continue.
 </p>
 </font>
 </body>
@@ -565,8 +565,8 @@ gen_pbundle_hook(app, Target, _Options) :- !,
 	gen_pbundle__app(Target).
 
 gen_pbundle__app(Target) :-
-	% Note: Mac OS X bundle IS NOT a Ciao bundle
-	normal_message("creating Mac OS X bundle (as .app)", []),
+	% Note: macOS bundle IS NOT a Ciao bundle
+	normal_message("creating macOS bundle (as .app)", []),
 	%
 	Domain = "org.ciao-lang.ciao", % TODO: get from target
 	BundleDirCore = ~inst_bundle_path(core, '.'),

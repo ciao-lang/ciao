@@ -98,7 +98,7 @@ user_so(X) :-
 	\+ atom_concat('/usr/lib/', _, X).
 
 % ---------------------------------------------------------------------------
-% Dynamic libraries for Mac OS X
+% Dynamic libraries for macOS
 
 % The shared library or executable given by file @var{F} depends on
 % the shared library @var{SO} (includes @var{F})
