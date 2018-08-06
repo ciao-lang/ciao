@@ -78,8 +78,6 @@
 
 :- rtc_impl(basic_props:nnegint/1, basic_props_rtc:rtc_nnegint/1).
 
-:- rtc_impl(basic_props:flt/1, basic_props_rtc:rtc_flt/1).
-
 :- rtc_impl(basic_props:num/1, basic_props_rtc:rtc_num/1).
 
 :- rtc_impl(basic_props:atm/1, basic_props_rtc:rtc_atm/1).
@@ -87,7 +85,3 @@
 :- rtc_impl(basic_props:struct/1, basic_props_rtc:rtc_struct/1).
 
 :- rtc_impl(basic_props:gnd/1, basic_props_rtc:rtc_gnd/1).
-
-:- rtc_impl(basic_props:compat/2, basic_props_rtc:rtc_compat/2).
-
-:- rtc_impl(basic_props:inst/2, basic_props_rtc:rtc_inst/2).

@@ -26,7 +26,7 @@
 :- use_module(library(terms_vars)).
 :- use_module(library(freeze)).
 :- use_module(library(hiordlib), [maplist/2, foldl/4]).
-:- use_module(engine(basic_props_rtc),[rtc_atm/1,rtc_int/1,rtc_nnegint/1,rtc_num/1]).
+:- use_module(engine(basic_props_rtc)).
 
 :- reexport(library(rtchecks/rtchecks_send)).
 
@@ -91,24 +91,26 @@ selectvars([V|L], VL0) :-
 	selectvars(L, VL).
 */
 
-% TODO: (see ugly comments below): these tables should go into
-% rtc_impl (with sections for compat, inst, etc.) --NS, JF
 
 :- meta_predicate non_compat(goal, ?).
 
 non_compat('$:'(Goal),Args) :- !, non_compat_(Goal,Args).
 
+% These first cases are really a hardwired runtime table for rtc_impl (needed
+% because in some parts of the system non_compat/2 is called programatically)
+% TODO: create automatically
 non_compat_('term_typing:var'(A)    , _   ) :- !, nonvar(A).
 non_compat_('term_typing:nonvar'(A) , _   ) :- !, var(A).
-non_compat_('basic_props:atm'(A)    , _   ) :- !, \+ rtc_atm(A).
-non_compat_('basic_props:int'(A)    , _   ) :- !, \+ rtc_int(A).
-non_compat_('basic_props:nnegint'(A), _   ) :- !, \+ rtc_nnegint(A).
-non_compat_('basic_props:num'(A)    , _   ) :- !, \+ rtc_num(A).
-non_compat_('basic_props_rtc:rtc_atm'(A)    , _   ) :- !, \+ rtc_atm(A). % TODO: ugly
-non_compat_('basic_props_rtc:rtc_int'(A)    , _   ) :- !, \+ rtc_int(A).
-non_compat_('basic_props_rtc:rtc_nnegint'(A), _   ) :- !, \+ rtc_nnegint(A).
-non_compat_('basic_props_rtc:rtc_num'(A)    , _   ) :- !, \+ rtc_num(A).
+%
+non_compat_('basic_props:atm'(A) , _   ) :- !, \+ compat_atm(A).
+non_compat_('basic_props:int'(A) , _   ) :- !, \+ compat_int(A).
+non_compat_('basic_props:nnegint'(A) ,_) :- !, \+ compat_nnegint(A).
+non_compat_('basic_props:num'(A) , _   ) :- !, \+ compat_num(A).
+non_compat_('basic_props:flt'(A) , _   ) :- !, \+ compat_flt(A).
+non_compat_('basic_props:struct'(A) , _) :- !, \+ compat_struct(A).
+%
 non_compat_(Goal                    , Args) :-
+% A generic implementation of non_compat/2
 	varset(Args, VS),
 	'$metachoice'(C),
 	maplist(cond_detach_attribute, VS),
@@ -133,17 +135,14 @@ attach_cut_fail(V, C) :- attach_attribute(V, '$cut_fail'(V, C)).
 
 non_inst('$:'(Goal),Args) :- !, non_inst_(Goal,Args).
 
+% These first cases are really a hardwired runtime table for rtc_impl (needed
+% because in some parts of the system non_inst/2 is called programatically)
+% TODO: create automatically
 non_inst_('term_typing:var'(A)   , _   ) :- !, nonvar(A).
 non_inst_('term_typing:nonvar'(A), _   ) :- !, var(A).
-non_inst_('basic_props:gnd'(A)   , _   ) :- !, \+ ground(A).
-non_inst_('basic_props:int'(A)   , _   ) :- !, \+ integer(A).
-non_inst_('basic_props:num'(A)   , _   ) :- !, \+ number(A).
-non_inst_('basic_props:atm'(A)   , _   ) :- !, \+ atom(A).
-non_inst_('basic_props_rtc:rtc_gnd'(A)   , _   ) :- !, \+ ground(A). % TODO: ugly
-non_inst_('basic_props_rtc:rtc_int'(A)   , _   ) :- !, \+ integer(A).
-non_inst_('basic_props_rtc:rtc_num'(A)   , _   ) :- !, \+ number(A).
-non_inst_('basic_props_rtc:rtc_atm'(A)   , _   ) :- !, \+ atom(A).
+%
 non_inst_(Goal                   , Args) :-
+% A generic implementation of non_inst/2
 	varset(Args, VS),
 	'$metachoice'(C),
 	maplist(cond_detach_attribute, VS),

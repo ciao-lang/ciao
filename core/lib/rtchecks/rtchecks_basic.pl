@@ -104,12 +104,12 @@ get_prop_args(Props, Pred, PropArgs) :-
 compound_check_props(NonCheck, Props, PropArgs, CheckProps) :-
         maplist(compound_check_prop(NonCheck), Props, PropArgs, CheckProps).
 
+% seems to be special treatment for respective properties in native_props --NS
 compound_check_prop(compat(Prop),   _, Args, non_compat(Prop, Args)) :- !.
 compound_check_prop(instance(Prop), _, Args, non_inst(Prop, Args)  ) :- !.
 compound_check_prop(succeeds(Prop), _, _   , \+(Prop)              ) :- !.
 compound_check_prop(Prop,    NonCheck, Args, NonCheckProp) :-
-	NonCheckProp =.. [NonCheck, Prop, Args].
-
+       NonCheckProp =.. [NonCheck, Prop, Args].
 
 :- pred get_checkc(ChkCType, Props, PropArgs, Names, Name, Exit, ChkC)
         : atm * list(struct) * list_of_lists * list(struct) * struct * var * var
@@ -143,7 +143,6 @@ get_checkc(compat, Props, PropArgs, Exit, checkc(CheckProps, Exit)) :-
 get_checkc(call, Props, PropArgs, Exit, checkc(CheckProps, Exit)) :-
 	compound_check_props(non_inst, Props, PropArgs, CheckProps).
 
-% used only in the unittest library ---NS
 :- pred get_checkif(ChkCType, Exit, PredName, Dict, Props, PropArgs, Names,
                     AsrLoc, ChkIf)
         :  atm * var * term * varnamesl * list(struct) * list_of_lists *
@@ -153,9 +152,9 @@ get_checkc(call, Props, PropArgs, Exit, checkc(CheckProps, Exit)) :-
 
 get_checkif(_, _, _, _, [], _, _, _, true) :- !.
 get_checkif(success, Exit, PredName, Dict, Props, PropArgs, Names, AsrLoc,
-	    checkif(Exit, success, PredName, Dict, CheckProps, Names,
-		AsrLoc)) :-
-	compound_check_props(non_inst, Props, PropArgs, CheckProps).
+            checkif(Exit, success, PredName, Dict, CheckProps, Names,
+            AsrLoc)) :-
+        compound_check_props(non_inst, Props, PropArgs, CheckProps).
 get_checkif(compatpos, Exit, PredName, Dict, Props, PropArgs, Names, AsrLoc,
 	    checkif(Exit, compatpos, PredName, Dict, CheckProps, Names,
 		AsrLoc)) :-

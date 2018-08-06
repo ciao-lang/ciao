@@ -21,3 +21,5 @@
 %:- include(rtchecks_rt_propimpl).       % TODO: check scoping of the
 %:- include('rtchecks_rt_propimpl.pl').  %       include/1 directive
 :- include(library(rtchecks/rtchecks_rt_propimpl)).
+:- use_module(engine(basic_props_rtc)).
+

@@ -707,7 +707,6 @@ add_nuvars_u(A, B, NUVars, NUVarsB) :-
 	selectnu(Vars0, Count0, NUVars1),
 	varset(NUVars+NUVars1, NUVarsB).
 
-% inst_list(L) :- \+ non_inst(List(L), L).
 inst_list(L) :- var(L), !, fail.
 inst_list([]).
 inst_list([_|L]) :- inst_list(L).

@@ -15,6 +15,7 @@
 %% :- use_package(hiord).
 :- set_prolog_flag(read_hiord, on).
 :- import(hiord_rt, [call/2]).
+:- use_module(library(terms_check), [instance/2]). % for inst/2
 
 :- doc(title,"Basic data types and properties").
 
@@ -58,7 +59,7 @@ term(_).
 :- trust success int(T) => int(T).
 :- trust comp int/1 + test_type(arithmetic).
 
-%:- impl_defined(int/1).
+%:- impl_defined(int/1).  % TODO:T279
 int(X) :- integer(X).
 
 :- doc(nnegint/1, "The type of non-negative integers, i.e.,
@@ -71,7 +72,7 @@ int(X) :- integer(X).
 :- trust success nnegint(T) => nnegint(T).
 :- trust comp nnegint/1 + test_type(arithmetic).
 
-%:- impl_defined(nnegint/1).
+%:- impl_defined(nnegint/1).  % TODO:T279
 nnegint(X) :- integer(X), X >= 0.
 
 :- doc(flt/1, "The type of floating-point numbers. The range of
@@ -88,7 +89,7 @@ nnegint(X) :- integer(X), X >= 0.
 :- trust success flt(T) => flt(T).
 :- trust comp flt/1 + test_type(meta).
 
-%:- impl_defined(flt/1).
+%:- impl_defined(flt/1).  % TODO:T279
 flt(X) :- float(X).
 
 :- doc(num/1, "The type of numbers, that is, integer or floating-point.").
@@ -99,8 +100,8 @@ flt(X) :- float(X).
 :- trust success num(T) => num(T).
 :- trust comp num/1 + test_type(arithmetic).
 
-% :- impl_defined(num/1).
-num(X) :- number(X).    
+% :- impl_defined(num/1).  % TODO:T279
+num(X) :- number(X).
 
 :- doc(atm/1, "The type of atoms, or non-numeric constants.  The
         size of atoms is unbound.").
@@ -111,7 +112,7 @@ num(X) :- number(X).
 :- trust success atm(T) => atm(T).
 :- trust comp atm/1 + test_type(arithmetic).
 
-%:- impl_defined(atm/1).
+%:- impl_defined(atm/1).  % TODO:T279
 atm(X) :- atom(X).
 
 :- doc(struct/1, "The type of compound terms, or terms with
@@ -126,7 +127,7 @@ non-zeroary functors. By now there is a limit of 255 arguments.").
 :- trust success struct(T) => struct(T).
 
 % NOTE: instantiation check version, kept for compatibility
-%:- impl_defined(struct/1).
+%:- impl_defined(struct/1).  % TODO:T279
 struct([_|_]):- !.
 struct(T) :- functor(T, _, A), A>0. % compound(T).
 
@@ -151,7 +152,7 @@ struct(T) :- functor(T, _, A), A>0. % compound(T).
 :- trust success gnd(T) => gnd(T).
 :- trust comp gnd/1 + test_type(meta).
 
-%:- impl_defined(gnd/1).
+%:- impl_defined(gnd/1).  % TODO:T279
 % NOTE: instantiation check version, kept for compatibility
 gnd(X) :- ground(X).
 
@@ -412,10 +413,13 @@ atm_or_atm_list(T) :- list(T, atm).
 %:- true comp compat(Term,Prop) + sideff(free).
 :- true comp compat(Term,Prop) : (ground(Term),ground(Prop)) + eval.
 
-:- impl_defined(compat/2).
+:- meta_predicate compat(?,pred(1)).
+
+compat(T, P) :- \+ \+ P(T).
 
 % No comment necessary: it is taken care of specially anyway in the
 % automatic documenter. (PBC: I guess this comment refers to compat/2)
+
 
 :- true prop inst(Term,Prop)
 	# "@var{Term} is instantiated enough to satisfy @var{Prop}.".
@@ -424,7 +428,12 @@ atm_or_atm_list(T) :- list(T, atm).
 
 :- meta_predicate inst(?,pred(1)).
 
-:- impl_defined(inst/2).
+inst( X , Prop ) :-
+	A = Prop( X ),
+	copy_term( A , AC ),
+	AC,
+	instance( A , AC ).
+
 
 :- true prop iso(G) # "@em{Complies with the ISO-Prolog standard.}".
 :- true comp iso(G) + sideff(free).
