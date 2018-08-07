@@ -15,7 +15,7 @@ development environment, and repositories at
 Please find detailed system description and installation instructions
 at:
 
-  - [README](core/README)
+  - [README](core/README.md)
   - [INSTALLATION](core/INSTALLATION)
   - [INSTALLATION_Win32](core/INSTALLATION_Win32)
 
