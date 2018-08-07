@@ -16,7 +16,7 @@
 
 %%---------------------------------------------------------------------
 
-:- doc(title,"Internal runtime information").
+:- doc(title, "Runtime system information").
 
 :- doc(author,"Daniel Cabeza").
 :- doc(author,"Manuel Carro").
@@ -25,15 +25,13 @@
 :- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module, "This module provides internal information about the
-   current running engine and enviroment. That information includes
-   the architecture, platform, operating system, location of
-   libraries, and C header files. That information is mainly used in
-   parts of the Ciao dynamic compilation (location of source,
-   generation of gluecode for the foreign interface, etc.).").
+   current running runtime system (engine and enviroment). That
+   information includes the architecture, platform, operating system,
+   location of libraries, and C header files. That information is
+   mainly used in parts of the Ciao dynamic compilation (location of
+   source, generation of gluecode for the foreign interface, etc.).").
 
 % TODO: GCC compilation options should appear here too.
-
-%%---------------------------------------------------------------------
 
 %%---------------------------------------------------------------------
 

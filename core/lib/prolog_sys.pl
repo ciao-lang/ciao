@@ -27,15 +27,15 @@
 
 :- use_module(engine(internals)).
 
-:- doc(title, "Prolog system internal predicates").
+:- doc(title, "Runtime system access").
 :- doc(author, "Manuel Carro").
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Jos@'{e} F. Morales").
 :- doc(author, "Mats Carlsson (original author)").
 
-:- doc(module, "This module implements some miscellaneous predicates
-   which provide access to some internal statistics, special properties
-   of the predicates, etc.").
+:- doc(module, "This module implements some predicates which provide
+   internal access to the Ciao runtime, like some internal statistics,
+   special properties of the predicates, etc.").
 
 % ---------------------------------------------------------------------------
 

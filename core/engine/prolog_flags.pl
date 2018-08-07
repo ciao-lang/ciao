@@ -7,7 +7,7 @@
 		gc/0, nogc/0, fileerrors/0, nofileerrors/0],
 	    [assertions, nortchecks, isomodes, define_flag]).
 
-:- doc(title, "Changing system behaviour and various flags").
+:- doc(title, "Runtime system behaviour and flags").
 
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Mats Carlsson").
