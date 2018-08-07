@@ -95,9 +95,9 @@ administrator or `root' user):
         * Install command line tools for Xcode (from the App store)
 
         * Install emacs and ImageMagick (and texinfo if needed, but
-          recent versions of macOS include it). A software
-          management tool like homebrew or macports is recommended,
-          e.g. (as root/sudo):
+          recent versions of macOS include it). A software management
+          tool like homebrew or macports is recommended, e.g. (as
+          root/sudo):
                $ brew install emacs-mac imagemagick
 
         * Install TexLive. If using homebrew we recommend installing
