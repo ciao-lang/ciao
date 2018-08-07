@@ -50,7 +50,7 @@ info_dirfile(Path) := ~path_concat(Path, 'dir').
 ensure_dirfile(DirFile) :-
 	( file_exists(DirFile) ->
 	    true
-	; % TODO: 'infodir' should live in the lpdoc source (lpdoc/lib)
+	; % TODO: 'infodir' should live in the lpdoc source (lpdoc/etc)
 	  copy_file(~absolute_file_name(ciaobld(infodir)),
 	    DirFile, [append])
 	).
