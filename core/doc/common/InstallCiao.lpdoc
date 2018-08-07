@@ -26,7 +26,7 @@ implementation of the @concept{make} Unix command is (still)
 used internally. If any of the installation steps stop right away with
 @apl{make} error messages, you probably need to install @tt{gmake}.
 
-@href{https://www.gnu.org/software/emacs/}{@bf{Emacs}} is highly
+Installing @href{https://www.gnu.org/software/emacs/}{@bf{Emacs}} is highly
 recommended: the Ciao distribution includes a very powerful
 @cindex{development environment} @em{application development
 environment} which is based on @apl{emacs} and which enables, e.g.,
@@ -34,8 +34,8 @@ syntax coloring, source code formatting, embedded top-level,
 source-level debugging, context-sensitive on-line help, etc.
 
 In any case, it is easy to use Ciao from a terminal and edit code with
-any editor of your choice. The toplevel includes some minimal editing
-facility when @href{https://github.com/hanslub42/rlwrap}{rlwrap} is
+any editor of your choice. The top level includes some minimal editing
+facilities when @href{https://github.com/hanslub42/rlwrap}{rlwrap} is
 available.
 
 Finally, documentation generation in PDF format requires TeX and
@@ -168,12 +168,13 @@ installation instructions there.
 @cindex{installation, network}
 
 Ciao can be installed from the network using a @tt{curl} pipe from
-@tt{https://ciao-lang.org/boot} to @tt{sh} in a terminal.
+@tt{https://ciao-lang.org/boot} to @tt{sh} in a terminal. This is
+probably the fastest/easiest way to install Ciao from sources.
 
 The network installater (for Unix) is delivered as an HTTPs
 redirection to
 @tt{https://raw.githubusercontent.com/ciao-lang/ciao/master/ciao-boot.sh}
-(which contains the latest version of @tt{ciao-boot.sh} script). The
+(which contains the latest version of the @tt{ciao-boot.sh} script). The
 bootstrap script recognizes that it is being called without sources
 automatically. Examples:
 
@@ -621,7 +622,7 @@ that @file{/bin/sh.exe} exists.
 @section{Troubleshooting (nasty messages and nifty workarounds)}
 @cindex{troubleshooting}
 
-The following a list of common installation problems:
+The following is a list of common installation problems:
 
 @begin{itemize}
 

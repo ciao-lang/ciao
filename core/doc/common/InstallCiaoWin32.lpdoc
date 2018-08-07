@@ -204,9 +204,3 @@ all of @tt{Keys}, @tt{Values}, and @tt{Data} in the @tt{Edit->Find}
 dialog), and delete each matching key (click on the left window to
 find the matching key for each entry found).
 
-
-%% Local Variables: 
-%% mode: CIAO
-%% update-version-comments: "off"
-%% End:
-
