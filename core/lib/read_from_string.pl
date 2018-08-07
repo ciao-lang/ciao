@@ -11,24 +11,20 @@
 	  basicmodes
 	]).
 
-:- doc(title,"Reading terms from strings").
+:- doc(title,"Term input from strings").
 
 :- doc(author,"Francisco Bueno").
 :- doc(author,"Daniel Cabeza").
 :- doc(author,"Manuel Hermenegildo").
 :- doc(author,"Jose F. Morales").
 
+:- doc(stability, devel("This implementation is incomplete")).
+
 :- doc(module, "This module implements predicates for reading
-   (parsing) terms from strings or atom codes.
+   (parsing) terms from strings or atom codes.").
 
-@begin{alert}
-  Use with extreme care. This is a quick and incomplete implementation.
-@end{alert}
-").
-
-:- doc(bug, "All predicates except @pred{read_from_atom/2} were
-   implemented as a quick hack initially written mainly for parsing
-   daVinci's messages. The good implementation should: a) create a
+:- doc(bug, "All predicates except @pred{read_from_atom/2} implement
+   an incomplete grammar. The good implementation should: a) create a
    read stream from a string, and b) call the standard reader.").
 
 :- use_module(library(dict)).
