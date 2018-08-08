@@ -7,8 +7,8 @@
 
 :- doc(author, "The Ciao Development Team").
 
-:- doc(module,"This package enables by default
-   @concept{ISO-Prolog} predicates in Ciao programs.
+:- doc(module,"This package makes the standard @concept{ISO-Prolog}
+   predicates available by default in Ciao programs. Note that this package is 
 
    Compliance with ISO is still not complete: currently there are some
    minor deviations in, e.g., the treatment of characters, the syntax,

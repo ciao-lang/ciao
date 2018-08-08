@@ -62,8 +62,8 @@ Copyright @copyright{} 1989-2002 The CLIP Group / UPM
    The facilities provided by the library are documented in the
    description of its component modules. This documentation is
    intended to provide information only at a ``reference manual''
-   level. For a more tutorial introduction to the subject and some
-   more examples please see @cite{assert-lang-disciplbook}.
+   level. For more tutorial introductions to the subject and some
+   more examples please see @cite{full-prolog-esop96,prog-glob-an,assert-lang-disciplbook,ciaopp-sas03-journal-scp-short,hermenegildo11:ciao-design-tplp}.
 @comment{
 % the document ``An Assertion Language for
 %    Debugging of Constraint Logic Programs (Technical Report
@@ -77,11 +77,11 @@ Copyright @copyright{} 1989-2002 The CLIP Group / UPM
 %   assertions in run-time checking, unit-testing and profiling.
 }
 
-   The assertion language implemented in this library
-   is modeled after this design document, although, due to
-   implementation issues, it may differ in some details. The purpose
-   of this manual is to document precisely what the implementation of
-   the library supports at any given point in time.
+   The assertion language implemented in this library follows these
+   documents, although, due to its evolution, it may differ in some
+   details. The purpose of this manual is to document precisely what
+   the implementation of the library supports at any given point in
+   time.
 
    @section{Some attention points} 
 
