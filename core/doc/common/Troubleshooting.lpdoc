@@ -1,0 +1,210 @@
+@cindex{troubleshooting}
+@cindex{bugs, reporting}
+@cindex{reporting bugs}
+
+If you experience any problem downloading, installing, or using Ciao
+you can send a message to @email{ciao-bug@@cliplab.org}. Please be as
+informative as possible in your messages, so that we can reproduce the
+bug.
+
+@begin{itemize}
+
+@item For @em{installation problems} we typically need to have the
+      installation method, the version and patch number of the Ciao
+      package (e.g., the name of the file downloaded), the output
+      produced by the installation process (you can capture it by
+      redirecting the output into a file or cutting and pasting with
+      the mouse), and the exact version of the Operating System you
+      are using (as well as the C compiler, if you took a source
+      distribution).
+
+@item For @em{problems during use} we also need the Ciao and OS
+      versions and, if possible, a small example of code which we can
+      run to reproduce the bug.
+
+@end{itemize}
+
+This is a list of common issues and their solutions:
+
+@begin{itemize}
+
+@item @bf{Problem:} Compilation errors appear when trying a new
+      installation/compilation after the previous one was aborted
+      (e.g., because of errors) or after a source upgrade from the
+      development version.
+
+      @bf{Possible reason and solution:} It is a good idea to clean up
+      any leftovers from the previous compilation. It the worst case,
+      if none of the clean commands work, try @tt{./ciao-boot.sh
+      emergency-clean}.
+
+@item @bf{Problem:}
+      In Windows (under Cygwin or MSYS2), many programs (including
+      @tt{emacs} and @tt{ciao}) exit with error messages like:
+
+      @tt{Doing vfork: resource temporarily unavailable}
+
+      @bf{Possible reason and solution:}
+
+      Cygwin needs a special memory layout to implement the fork
+      semantics in Win32
+      (@href{http://cygwin.com/ml/cygwin/2009-05/msg00413.html}).  A
+      workaround this problem is using the @tt{rebaseall} command,
+      which relocates all Cygwin DLLs into a layout that avoids
+      collisions:
+
+      @begin{itemize}
+      @item 1. End all cygwin processes.
+      @item 2. Run @tt{/bin/rebaseall} from @tt{c:\\cygwin\\bin\\ash}
+               (probably as administrator)
+      @end{itemize}
+@end{itemize}
+
+@comment{
+@item @bf{Problem:}
+
+      During engine compilation, messages such as the following appear:
+      @tt{tasks.c:102:PTHREAD_CANCEL_ASYNCHRONOUS undeclared (first
+      use of this function)}.
+
+      @bf{Possible reason and solution:}
+
+      Your (Linux?) system does not have (yet) the @concept{Posix
+      threads} library installed.  You can upgrade to one which does
+      have it, or download the library from
+
+      @href{http://pauillac.inria.fr/~xleroy/linuxthreads/index.html}
+
+      and install it, or disable the use of threads in Linux: for
+      this, set the flag @tt{core:use_threads} to @tt{no}, which will
+      avoid linking against thread libraries (it will disable the use
+      of thread-related primitives as well).
+
+      If you have any alternative threads library available, you can
+      tinker with @tt{engine/threads.h} and the @tt{config-sysdep.sh}
+      file in order to get the task managing macros right for your
+      system.  Be sure to link the right library.  If you succeed, we
+      (@email{ciao@@clip.dia.fi.upm.es}) will be happy of knowing
+      about what you have done.
+
+
+@item @bf{Problem:}
+
+      @tt{Segmentation Violation} (when starting the first executable)
+
+      @bf{Possible reason and solution:}
+
+      This has been observed with certain older versions of @apl{gcc}
+      which generated erroneous code under full optimization. The best
+      solution is to upgrade to a newer version of
+      @apl{gcc}. Alternatively, lowering the level of optimization (by
+      editing the @file{SETTINGS} file in the main directory of the
+      distribution) normally solves the problem, at the cost of
+      reduced execution speed.
+
+
+@item @bf{Problem:}
+      @tt{ciaoc: /home/clip/lib/ciao/ciao-X.Y/engine/ciaoengine: not found}
+
+      @bf{Possible reason and solution:}
+
+      @begin{itemize}
+
+      @item The system was not fully installed and the variable
+      @tt{CIAOENGINE} was not set.
+
+      @item The system was installed, the variable @tt{CIAOENGINE} is
+      set, but it is does not point to a valid engine.
+
+      @end{itemize}
+
+      See the output of @tt{ciao-env} for user settings for
+      environment variables.
+
+@item @bf{Problem:}
+
+      @tt{ERROR: File library(compiler) not found - aborting...}
+      (or any other library is not found)
+
+      @bf{Possible reason and solution:}
+
+      @begin{itemize}
+
+      @item The system was not installed and the variable @tt{CIAOROOT}
+      was not set.
+
+      @item The system is installed and the variable @tt{CIAOROOT} is wrong.
+
+      @end{itemize}
+
+      See the output of @tt{ciao-env} for user settings for
+      environment variables.
+
+@item @bf{Problem:}
+
+      @tt{ERROR: File <some_directory>/<some_file>.itf not found - aborting...}
+
+      @bf{Possible reason and solution:}
+
+      Can appear when compiling @tt{.pl} files.  The file to compile
+      (<some_file>.pl) is not in the directory <some_directory>.  You
+      gave a wrong file name or you are in the wrong directory.
+
+
+@item @bf{Problem:}
+
+      @tt{*ERROR*: /(write_option,1) is not a regular type} (and
+      similar ones)
+
+      @bf{Possible reason and solution:}
+
+      This is not a problem, but rather the type checker catching some
+      minor inconsistencies which may appear while compiling the
+      libraries.  Bug us to remove it, but ignore it for now.
+
+@item @bf{Problem:}
+
+      @tt{WARNING: Predicate <some_predicate>/<N> undefined in module
+      <some_module>}
+
+      @bf{Possible reason and solution:}
+
+      It can appear when the compiler is compiling Ciao library
+      modules.  If so, ignore it (we will fix it).  If it appears when
+      compiling user programs or modules, you may want to check your
+      program for those undefined predicates.
+
+@item @bf{Problem:}
+
+      @tt{make: Fatal error in reader: SHARED, line 12: Unexpected
+      end of line seen}
+
+      @bf{Possible reason and solution:}
+
+      You are using standard Unix make, not GNU's make implementation
+      (gmake).
+
+
+@item @bf{Problem:}
+
+      @tt{WARNING}s or @tt{ERROR}s while compiling the Ciao libraries
+      during installation.
+
+      @bf{Possible reason and solution:}
+
+      It is possible that you will see some such errors while
+      compiling the Ciao libraries during installation. This is
+      specially the case if you are installing a Beta or Alpha release
+      of Ciao. These releases (which have ``odd'' version numbers such
+      as 1.5 or 2.1) are typically snapshots of the development
+      directories, on which many developers are working
+      simultaneously, which may include libraries which have typically
+      not been tested yet as much as the ``official'' distributions
+      (those with ``even'' version numbers such as 1.6 or 2.8). Thus,
+      minor warnings may not have been eliminated yet or even errors
+      can sneak in. These warnings and errors should not affect the
+      overall operation of the system (e.g., if you do not use the
+      affected library).
+}
+
+	

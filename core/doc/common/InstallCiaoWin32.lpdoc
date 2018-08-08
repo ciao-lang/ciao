@@ -10,11 +10,6 @@ it is also possible to compile Ciao from the source distribution on
 these systems (please refer to @ref{Installing Ciao from the source
 distribution} for details).
 
-If you find any problems during installation, please refer to
-@ref{Troubleshooting (nasty messages and nifty workarounds)}.
-@cindex{troubleshooting} See also @ref{Downloading new versions} and
-@ref{Reporting bugs}.
-
 @section{Win32 binary installation summary}
 
 @noindent Please follow these steps (below we use the terms
