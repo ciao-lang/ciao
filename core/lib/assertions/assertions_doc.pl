@@ -63,7 +63,7 @@ Copyright @copyright{} 1989-2002 The CLIP Group / UPM
    description of its component modules. This documentation is
    intended to provide information only at a ``reference manual''
    level. For more tutorial introductions to the subject and some
-   more examples please see @cite{full-prolog-esop96,prog-glob-an,assert-lang-disciplbook,ciaopp-sas03-journal-scp-short,hermenegildo11:ciao-design-tplp}.
+   more examples please see @cite{full-prolog-esop96,prog-glob-an,assert-lang-disciplbook,ciaopp-sas03-journal-scp,hermenegildo11:ciao-design-tplp}.
 @comment{
 % the document ``An Assertion Language for
 %    Debugging of Constraint Logic Programs (Technical Report

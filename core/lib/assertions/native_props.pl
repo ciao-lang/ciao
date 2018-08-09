@@ -422,7 +422,7 @@ possibly_not_mut_exclusive(Goal) :- call(Goal).
 :- doc(not_fails(X), "Calls of the form @var{X} produce at least one
    solution (succeed), or do not terminate. This property is inferred
    and checked natively by CiaoPP using the domains and techniques of
-   @cite{non-failure-iclp97,nfplai-flops04-short}.").
+   @cite{non-failure-iclp97,nfplai-flops04}.").
 
 :- true prop not_fails(X) + native
 # "All the calls of the form @var{X} do not fail.".
@@ -462,7 +462,7 @@ possibly_fails(Goal) :- call(Goal).
    one clause whose test (guard) succeeds (i.e., all the calls of the
    form @var{X} are covered).  Note that nonfailure is the transitive
    closure (to all called predicates) of this
-   property. @cite{non-failure-iclp97,nfplai-flops04-short}.").
+   property. @cite{non-failure-iclp97,nfplai-flops04}.").
 
 :- prop covered(X) + rtcheck(unimplemented)
 # "All the calls of the form @var{X} are covered.".

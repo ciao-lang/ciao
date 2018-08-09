@@ -27,7 +27,7 @@
 
    @section{Other PiLLoW releases}
    This code is is based on the original PiLLoW library
-   @cite{pillow-ws-dist-short}), which can be downloaded from
+   @cite{pillow-ws-dist,pillow-tplp}), which can be downloaded from
    @href{http://clip.dia.fi.upm.es/Software/pillow/pillow.html}. There
    is also a @index{PiLLoW on-line tutorial} (slides) at
    @href{http://clip.dia.fi.upm.es/logalg/slides/C_pillow/C_pillow.html}
