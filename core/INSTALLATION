@@ -9,10 +9,6 @@ specific details, please read also the `INSTALLATION' file that comes
 with each component of Ciao. However, in most cases following this
 summary suffices.
 
-If you find any problems during installation, please refer to *Note
-Troubleshooting (nasty messages and nifty workarounds)::.  See also
-*Note Downloading new versions:: and *Note Reporting bugs::.
-
 Requirements
 ============
 
@@ -31,15 +27,16 @@ of the make Unix command is (still) used internally. If any of the
 installation steps stop right away with `make' error messages, you
 probably need to install `gmake'.
 
-Emacs (https://www.gnu.org/software/emacs/) is highly recommended: the
-Ciao distribution includes a very powerful  application development
-environment which is based on `emacs' and which enables, e.g., syntax
-coloring, source code formatting, embedded top-level, source-level
-debugging, context-sensitive on-line help, etc.
+Installing Emacs (https://www.gnu.org/software/emacs/) is highly
+recommended: the Ciao distribution includes a very powerful
+application development environment which is based on `emacs' and which
+enables, e.g., syntax coloring, source code formatting, embedded
+top-level, source-level debugging, context-sensitive on-line help, etc.
 
 In any case, it is easy to use Ciao from a terminal and edit code with
-any editor of your choice. The toplevel includes some minimal editing
-facility when rlwrap (https://github.com/hanslub42/rlwrap) is available.
+any editor of your choice. The top level includes some minimal editing
+facilities when rlwrap (https://github.com/hanslub42/rlwrap) is
+available.
 
 Finally, documentation generation in PDF format requires TeX and
 ImageMagick.
@@ -160,12 +157,13 @@ Network-based installation
 ==========================
 
 Ciao can be installed from the network using a `curl' pipe from
-`https://ciao-lang.org/boot' to `sh' in a terminal.
+`https://ciao-lang.org/boot' to `sh' in a terminal. This is probably
+the fastest/easiest way to install Ciao from sources.
 
 The network installater (for Unix) is delivered as an HTTPs redirection
 to
 `https://raw.githubusercontent.com/ciao-lang/ciao/master/ciao-boot.sh'
-(which contains the latest version of `ciao-boot.sh' script). The
+(which contains the latest version of the `ciao-boot.sh' script). The
 bootstrap script recognizes that it is being called without sources
 automatically. Examples:
 
@@ -357,14 +355,15 @@ Full installation instructions
      started" sections at the beginning of the manual.
 
 
-If you have any problems you may want to check *Note Troubleshooting
-(nasty messages and nifty workarounds)::.
+If you have any problems you may want to check *Note Troubleshooting::.
+
+Uninstalling
+============
 
 The system can be uninstalled by typing `./ciao-boot.sh uninstall' in
-the top directory. Configuration should have not changed since
-installation, so that the same directories are cleaned (i.e. the
-variables in `SETTINGS' should have the same value as when the install
-was performed).
+the top directory. To ensure that this process works, configuration
+should have not changed since installation, so that the same
+directories are cleaned.
 
 Checking for correct installation on Unix
 =========================================
@@ -437,17 +436,11 @@ instructions for their location).
 Cleaning up the source directory
 ================================
 
-After installation, the source directory can be cleaned up in several
-ways:
-
-   * `./ciao-boot.sh uninstall' removes the installation but does not
-     touch the source directories.
-
-   * `./ciao-boot.sh realclean' leaves the distribution is its original
-     form, throwing away any intermediate files (as well as any
-     unneeded files left behind by the Ciao developers), while still
-     allowing recompilation.
-
+After (global) installation, the source directory can be cleaned up
+using `./ciao-boot.sh realclean', leaves the distribution is its
+original form, throwing away any intermediate files (as well as any
+unneeded files left behind by the Ciao developers), while still
+allowing recompilation.
 
 Environment variables used by Ciao executables
 ==============================================
@@ -535,37 +528,4 @@ executables can be run as in Unix by simply typing their name at the
 `bash' shell command line without any associated `.bat' files. This
 only requires that the `bash' shell which comes with Cygnus Win32 be
 installed and accessible: simply, make sure that `/bin/sh.exe' exists.
-
-Troubleshooting (nasty messages and nifty workarounds)
-======================================================
-
-The following a list of common installation problems:
-
-   * Problem: Compilation errors appear when trying a new
-     installation/compilation after the previous one was aborted (e.g.,
-     because of errors) or after a source upgrade from the development
-     version.
-
-     Possible reason and solution: It is a good idea to clean up any
-     leftovers from the previous compilation. It the worst case, if
-     none of the clean commands work, try `./ciao-boot.sh
-     emergency-clean'.
-
-   * Problem: In Windows (under Cygwin or MSYS2), many programs
-     (including `emacs' and `ciao') exit with error messages like:
-
-     `Doing vfork: resource temporarily unavailable'
-
-     Possible reason and solution:
-
-     Cygwin needs a special memory layout to implement the fork
-     semantics in Win32
-     (`http://cygwin.com/ml/cygwin/2009-05/msg00413.html'). A
-     workaround this problem is using the `rebaseall' command, which
-     relocates all Cygwin DLLs into a layout that avoids collisions:
-
-        * 1. End all cygwin processes.
-
-        * 2. Run `/bin/rebaseall' from `c:\cygwin\bin\ash' (probably as
-          administrator)
 
