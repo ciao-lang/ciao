@@ -11,8 +11,7 @@
    means of performing operations on large quantities of data.  The
    introduction of indexed dynamic predicates have rendered these
    predicates obsolete, and the sole purpose of providing them is to
-   support existing code.  There is no reason whatsoever to use them
-   in new code.
+   support existing code.  Their use in new code is discouraged.
 
    These predicates store arbitrary terms in the database without
    interfering with the clauses which make up the program.  The terms
