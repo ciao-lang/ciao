@@ -11,7 +11,7 @@
 %    like @concept{CGI} programming.
 % 
 %    @bf{NOTE}: Parts of this code are based on the original PiLLoW
-%    library @cite{pillow-ws-dist-short}), which can be downloaded from
+%    library @cite{pillow-ws-dist}), which can be downloaded from
 %    @href{http://clip.dia.fi.upm.es/Software/pillow/pillow.html}.
 
 :- doc(bug, "This code implemented HTTP/1.0 (RFC 1945)

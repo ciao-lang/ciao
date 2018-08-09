@@ -12,7 +12,7 @@ Copyright @copyright{} 1996-2002 The CLIP Group.
 
 :- doc(module,"@apl{ciao-shell} is the Ciao script interpreter. It
   can be used to write @index{Prolog shell scripts} (see
-  @cite{sicstus-scripts-complangprolog-www,pillow-ws}), that is,
+  @cite{sicstus-scripts-complangprolog-www,pillow-ws-dist}), that is,
   executable files containing source code, which are compiled on
   demand.
 

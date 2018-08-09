@@ -1277,5 +1277,5 @@
    @cite{Hampaper,ngc-and-prolog} many functionalities from several
    previous independent development versions of Ciao
    @cite{ciao-prolog-compulog,ciao-ppcp,att-var-iclp,ciao-manual-tr," ||
-   "ciao-comp-dist-tr-deliv,ciao-ilps95,ciao-jicslp96-ws-update,pillow-ws," ||
+   "ciao-comp-dist-tr-deliv,ciao-ilps95,ciao-jicslp96-ws-update,pillow-ws-dist," ||
    "ciao-novascience}.").
