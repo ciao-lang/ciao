@@ -40,7 +40,7 @@
    pipe buffer size is limited)").
 
 :- pred read_from_atom(+Atom,-Term) # "Read the term @var{Term} from the
-   atom codes in @var{Atom}.".
+   codes in the name of @var{Atom}.".
 
 read_from_atom(Atom, Term) :-
 	pipe(ReadFrom, WriteTo),
@@ -55,13 +55,16 @@ read_from_atom(Atom, Term) :-
 % The quick but incomplete versions
 
 :- pred read_from_string_atmvars(+String,-Term) # "Read a term
-   @var{Term} from @var{String}. It ignores the unparsed rest of the
-   string (see @pred{read_from_string_atmvars/3}).".
+   @var{Term} from @var{String}. Variables are converted to atoms with
+   the name of the variable.  It there is some rest of the string left
+   after parsing the term, it is ignored (see
+   @pred{read_from_string_atmvars/3}).".
 
 :- test read_from_string_atmvars(A,T) : ( A = "a" ) => ( T = a ).
 :- test read_from_string_atmvars(A,T) : ( A = "1" ) => ( T = 1 ).
 :- test read_from_string_atmvars(A,T) : ( A = "A" ) => ( T = 'A' ).
 :- test read_from_string_atmvars(A,T) : ( A = "f(a)" ) => ( T = f(a) ).
+:- test read_from_string_atmvars(A,T) : ( A = "f(A)" ) => ( T = f('A') ).
 :- test read_from_string_atmvars(A,T) : ( A = "f/2" ) => ( T = f/2 ).
 
 read_from_string_atmvars(String,Term):-
@@ -72,15 +75,18 @@ read_from_string_atmvars(String,Term):-
 	readS_internal(String,Term, _, atmvars), !.
 
 :- pred read_from_string_atmvars(+String, -Term, ?Rest)
-      # "Read a term @var{Term} from @var{String} up to @var{Rest}
-         (which is the non-parsed rest of the list). Unquoted
-         uppercase identifiers are read as atoms instead of variables
-         (thus, the read term is always ground).".
+
+# "Read a term @var{Term} from @var{String} up to @var{Rest} (which is
+   the non-parsed rest of the list). Unquoted uppercase identifiers
+   (variables) are read as atoms instead of variables (thus, the read
+   term is always ground).".
 
 :- test read_from_string_atmvars(A,T,R) :
 	( A = "f(a)" ) => ( T = f(a), R = "" ).
 :- test read_from_string_atmvars(A,T,R) :
 	( A = "f(a) foo " ) => ( T = f(a), R = " foo " ).
+:- test read_from_string_atmvars(A,T,R) :
+	( A = "f(X) foo " ) => ( T = f('X'), R = " foo " ).
 
 read_from_string_atmvars(String, Term, Rest) :-
 	% TODO: use read and unify variable names later?
