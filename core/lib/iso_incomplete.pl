@@ -8,9 +8,11 @@
 
 :- doc(title, "Incomplete ISO Prolog predicates").
 
+:- doc(bug, "Merge with iso.pl and simply mark these predicates in the documentation as incomplete?"). 
+
 :- doc(author, "The Ciao Development Team").
 
-:- doc(module, "This module provides some sdditional ISO Prolog
+:- doc(module, "This module provides some additional ISO Prolog
    predicates whose implementation is not yet complete.").
 
 % :- entry open(+sourcename, +io_mode, ?stream, +open_option_list).

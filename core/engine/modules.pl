@@ -98,7 +98,8 @@
    described below. For example, for backward compatibility with
    traditional Prolog systems, if a @decl{module/2} declaration is
    used, then the traditional predicates that are built in in most
-   Prolog systems are imported in that module.
+   Prolog systems are imported in that module (see @ref{Classic
+   Prolog}).
 
    Predicates coming from builtin/default modules are imported before
    all other importations of the module. This allows the
@@ -145,7 +146,7 @@
           @tt{default}. This default package provides all the standard
           features provided by most Prolog systems so that Prolog
           programs with traditional @decl{module/2} declarations can
-          run without any change.".
+          run without any change. See @ref{Classic Prolog}.".
 
 % ---------------------------------------------------------------------------
 
