@@ -2,8 +2,6 @@
                      unify_with_occurs_check/2],
          [assertions, isomodes]).
 
-:- use_module(library(between)).
-
 :- doc(title, "Miscellaneous ISO Prolog predicates").
 
 :- doc(author, "Daniel Cabeza").
@@ -11,6 +9,8 @@
 
 :- doc(module, "This module implements some miscellaneous ISO
    Prolog predicates.").
+
+:- use_module(library(between)).
 
 :- meta_predicate(once(goal)).
 
