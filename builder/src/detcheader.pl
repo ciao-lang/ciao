@@ -6,7 +6,7 @@
    (under the include path)").
 
 :- use_module(library(lists), [append/3]).
-:- use_module(library(streams_utils), [string_to_file/2]).
+:- use_module(library(stream_utils), [string_to_file/2]).
 :- use_module(library(foreign_compilation), [compiler_and_opts/2]).
 :- use_module(library(system), [mktemp_in_tmp/2]).
 :- use_module(library(system_extra), [del_file_nofail/1]).

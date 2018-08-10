@@ -381,7 +381,7 @@ get_sysconf(Args, Val) :-
 
 :- use_module(library(pathnames), [path_dirname/2]).
 :- use_module(library(system_extra), [mkpath/1]).
-:- use_module(library(streams_utils), [string_to_file/2]).
+:- use_module(library(stream_utils), [string_to_file/2]).
 
 % Write Text to F, make sure that the path exists
 mkpath_and_write(Text, F) :-

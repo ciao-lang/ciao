@@ -100,7 +100,7 @@ emacs_htmlfontify(Lang, Input, Output) :-
 :- use_module(library(system), [mktemp_in_tmp/2]).
 :- use_module(library(system_extra), [del_file_nofail/1]).
 :- use_module(library(port_reify), [once_port_reify/2, port_call/1]).
-:- use_module(library(streams_utils), [string_to_file/2, file_to_string/2]).
+:- use_module(library(stream_utils), [string_to_file/2, file_to_string/2]).
 
 :- export(highlight_file_to_html_string/3).
 :- pred highlight_file_to_html_string(+Lang, +Input, ?Output) :: lang * atm * string

@@ -60,7 +60,7 @@ help_level(details). % Details about commands
 
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(lists), [length/2]).
-:- use_module(library(streams_utils), [write_string/1]).
+:- use_module(library(stream_utils), [write_string/1]).
 
 :- export(show_help/2).
 :- pred show_help(+Level, +Prof) :: help_level * atm

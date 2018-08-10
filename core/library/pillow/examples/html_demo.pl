@@ -1,5 +1,5 @@
 :- use_package(pillow).
-:- use_module(library(streams_utils), [string_to_file/2]).
+:- use_module(library(stream_utils), [string_to_file/2]).
 
 main :- 
 	HTML = [

@@ -26,7 +26,7 @@
 :- use_module(library(system), [copy_file/3, working_directory/2]).
 :- use_module(library(system_extra),
 	[copy_files/3, del_file_nofail/1, del_files_nofail/1]).
-:- use_module(library(streams_utils)).
+:- use_module(library(stream_utils)).
 :- use_module(library(version_strings), [version_split_patch/3]).
 
 :- use_module(engine(internals), ['$bundle_prop'/2]).

@@ -17,7 +17,7 @@
 :- doc(bug, "Allow hashing with configuration options?").
 :- doc(bug, "Allow hashing of binaries or distributions?").
 
-:- use_module(library(streams_utils), [string_to_file/2]).
+:- use_module(library(stream_utils), [string_to_file/2]).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(system_extra), [file_to_line/2]).
 :- use_module(library(terms), [atom_concat/2]).

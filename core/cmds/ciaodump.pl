@@ -57,7 +57,7 @@
 :- use_module(engine(internals)).
 :- use_module(library(streams)).
 :- use_module(library(system)).
-:- use_module(library(streams_utils), [file_to_string/2]).
+:- use_module(library(stream_utils), [file_to_string/2]).
 :- use_module(library(write), [numbervars/3, write/1]).
 :- use_module(library(read)).
 

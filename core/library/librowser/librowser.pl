@@ -392,7 +392,7 @@ write:write_canonical/2
 write:writeq/2
 write:write/2
 write:write_term/2
-streams_utils:write_string/2
+stream_utils:write_string/2
 res_exectime_hlm_gen:write_hlm_indep_each/2
 res_exectime_hlm_gen:write_hlm_indep_2/2
 res_exectime_hlm_gen:write_hlm_dep/2

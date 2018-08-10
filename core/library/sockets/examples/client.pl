@@ -2,7 +2,7 @@
 
 :- use_module(library(format), [format/2]).
 :- use_module(library(random), [random/3]).
-:- use_module(library(streams_utils), [get_line/2]).
+:- use_module(library(stream_utils), [get_line/2]).
 :- use_module(library(sockets), [connect_to_socket/3]).
 :- use_module(library(prolog_sys), [statistics/2]).
 :- use_module(library(concurrency)).

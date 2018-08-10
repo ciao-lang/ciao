@@ -110,7 +110,7 @@
 :- use_module(library(dynamic),    [wellformed_body/3]).
 :- use_module(library(pathnames),  [path_basename/2, path_concat/3]).
 :- use_module(library(strings),    [whitespace0/2]).
-:- use_module(library(streams_utils),    [get_line/1]).
+:- use_module(library(stream_utils),    [get_line/1]).
 :- use_module(library(ctrlcclean), [delete_on_ctrlc/2, ctrlcclean/0]).
 :- use_module(library(terms),      [copy_args/3, atom_concat/2]).
 :- use_module(library(hiordlib), [maplist/2, maplist/3]).

@@ -34,7 +34,7 @@
 :- use_module(library(messages)).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(lists), [list_concat/2, append/3]).
-:- use_module(library(streams_utils),
+:- use_module(library(stream_utils),
 	[file_to_string/2, string_to_file/2]).
 
 :- use_module(library(process), [process_call/3]).

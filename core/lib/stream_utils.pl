@@ -1,4 +1,4 @@
-:- module(streams_utils, [
+:- module(stream_utils, [
 	  stream_to_string/2,
 	  stream_to_string/3,
 	  get_line/2, get_line/1, line/1,

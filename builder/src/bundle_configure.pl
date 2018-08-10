@@ -250,7 +250,7 @@ save_modified_flags_sh(BundleSet) :-
 % TODO: make configurable?
 bundle_export_sh(core).
 
-:- use_module(library(streams_utils), [string_to_file/2]).
+:- use_module(library(stream_utils), [string_to_file/2]).
 :- use_module(library(aggregates), [findall/3]).
 
 export_bundle_flags_as_sh(FileName) :-

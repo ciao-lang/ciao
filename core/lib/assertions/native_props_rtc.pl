@@ -39,7 +39,7 @@
 :- use_module(library(sort),       [sort/2]).
 :- use_module(library(lists),      [length/2, append/3]).
 :- use_module(library(streams),    [open_output/2, close_output/1]).
-:- use_module(library(streams_utils), [file_to_string/2]).
+:- use_module(library(stream_utils), [file_to_string/2]).
 :- use_module(library(system),     [mktemp_in_tmp/2, delete_file/1]).
 :- use_module(library(terms_vars), [term_variables/2,varsbag/3]).
 :- use_module(library(lists),      [sublist/2]).

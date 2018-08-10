@@ -29,7 +29,7 @@
 	 delete_file/1]).
 :- use_module(library(read), [read_term/3]).
 :- use_module(library(write), [write/1, write_canonical/2]).
-:- use_module(library(streams_utils), [write_string/2, get_line/2, stream_to_string/2]).
+:- use_module(library(stream_utils), [write_string/2, get_line/2, stream_to_string/2]).
 
 % ===========================================================================
 

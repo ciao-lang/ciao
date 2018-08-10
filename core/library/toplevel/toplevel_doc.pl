@@ -172,30 +172,30 @@ top level.  Example interaction:
 @begin{verbatim}
 ?- directory_files('.',_Fs), member(F,_Fs).
 
-F = 'streams_utils.po' ? ,
+F = 'stream_utils.po' ? ,
 
 1 ?- file_property(F, mod_time(T)).
 
-F = 'streams_utils.po',
+F = 'stream_utils.po',
 T = 923497679 ? 
 
 yes
 1 ?- up.
 
-F = 'streams_utils.po' ? ;
+F = 'stream_utils.po' ? ;
 
-F = 'streams_utils.pl' ? ;
+F = 'stream_utils.pl' ? ;
 
-F = 'streams_utils.itf' ? ,
+F = 'stream_utils.itf' ? ,
 
 1 ?- file_property(F, mod_time(T)).
 
-F = 'streams_utils.itf',
+F = 'stream_utils.itf',
 T = 923497679 ? 
 
 yes
 1 ?- ^D
-F = 'streams_utils.itf' ? 
+F = 'stream_utils.itf' ? 
 
 yes
 ?- 
