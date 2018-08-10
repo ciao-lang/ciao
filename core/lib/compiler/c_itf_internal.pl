@@ -57,7 +57,7 @@
 	 ], [assertions, nortchecks, hiord, define_flag]).
 
 :- doc(title, "Compiler frontend").
-:- doc(author, "Ciao development team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module implements the Ciao compiler front-end.
 

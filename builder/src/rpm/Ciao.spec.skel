@@ -247,6 +247,6 @@ fi
 
 # Entries should only mention user-visible changes:
 %changelog
-* Tue Oct 11 2011 Ciao development team <ciao@clip.dia.fi.upm.es>
+* Tue Oct 11 2011 The Ciao Development Team <ciao@cliplab.org>
 - Check the documentation or visit https://ciao-lang.org for the
   release notes for this version.

@@ -4,7 +4,7 @@
 :- doc(title, "Bundles and workspaces").
 
 :- doc(author,"Jose F. Morales").
-:- doc(author,"Ciao Development Team").
+:- doc(author,"The Ciao Development Team").
 
 :- doc(summary, "Bundles extend the modularity of Ciao to include an
    additional abstraction layer that divides large programs into sets

@@ -4,7 +4,7 @@
 :- doc(title, "Bundle management").
 
 :- doc(author,"Jose F. Morales").
-:- doc(author,"Ciao Development Team").
+:- doc(author,"The Ciao Development Team").
 
 :- doc(module, "@include{BundleManagement.lpdoc}").
 

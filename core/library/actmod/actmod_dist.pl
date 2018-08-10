@@ -1,7 +1,7 @@
 :- module(actmod_dist, [], [assertions, regtypes, fsyntax]).
 
 :- doc(title, "Distribution protocol for active modules").
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "This is the code that handles setting up nodes in a distributed
