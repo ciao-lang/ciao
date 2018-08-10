@@ -18,7 +18,7 @@
 #include <ciao/start.h>
 #include <ciao/alloc.h>
 #include <ciao/wam_alloc.h>
-#include <ciao/streams_basic.h>
+#include <ciao/stream_basic.h>
 
 #include <ciao_prolog.h>
 

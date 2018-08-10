@@ -1068,7 +1068,7 @@ find_pl_filename(File, PlName, Base, Dir) :-
 
 % TODO: define a data types for module spec, slash paths, etc.
 
-% (called from streams_basic:absolute_file_name/7)
+% (called from stream_basic:absolute_file_name/7)
 :- export('$absolute_file_name_checked'/7).
 '$absolute_file_name_checked'(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir) :-
 	absolute_file_name_(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir).

@@ -28,5 +28,5 @@ TODO:
    attributes.pl data_facts.pl
    debugger_support.pl exceptions.pl hiord_rt.pl internals.pl
    io_aux.pl io_basic.pl mattr_global.pl mexpand.pl
-   prolog_flags.pl streams_basic.pl syntax_extensions.pl
+   prolog_flags.pl stream_basic.pl syntax_extensions.pl
    system_info.pl

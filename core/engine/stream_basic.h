@@ -1,7 +1,7 @@
 /*
- *  streams_basic.h
+ *  stream_basic.h
  *
- *  Stream handling primitives (see engine(streams_basic)).
+ *  Stream handling primitives (see engine(stream_basic)).
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
  *  Copyright (C) 2002-2015 The Ciao Development Team

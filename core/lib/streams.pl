@@ -4,7 +4,7 @@
         ],[assertions]).
 
 :- use_module(engine(internals)).
-:- use_module(engine(streams_basic), [stream/1]).
+:- use_module(engine(stream_basic), [stream/1]).
 
 :- doc(title,"Structured stream handling").
 

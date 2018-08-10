@@ -1,7 +1,7 @@
 /*
- *  streams_basic.c
+ *  stream_basic.c
  *
- *  Stream handling primitives (see engine(streams_basic))
+ *  Stream handling primitives (see engine(stream_basic))
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
  *  Copyright (C) 2002-2015 The Ciao Development Team
@@ -13,7 +13,7 @@
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
 #include <ciao/io_basic.h>
-#include <ciao/streams_basic.h>
+#include <ciao/stream_basic.h>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -336,7 +336,7 @@ stream_node_t *stream_to_ptr_check(tagged_t t,
 
 CBOOL__PROTO(prolog_open)
 {
-  ERR__FUNCTOR("streams_basic:$open", 3);
+  ERR__FUNCTOR("stream_basic:$open", 3);
   struct stat statbuf;
   FILE *fileptr;
   char *modecodif;
@@ -443,7 +443,7 @@ extern LOCK stream_list_l;
 
 CBOOL__PROTO(prolog_close)
 {
-  ERR__FUNCTOR("streams_basic:close", 1);
+  ERR__FUNCTOR("stream_basic:close", 1);
   stream_node_t *stream;
 
   stream = stream_to_ptr(X(0), 'x');
@@ -523,7 +523,7 @@ int pipe(int filedes[2]);
 
 CBOOL__PROTO(prolog_pipe)
 {
-  ERR__FUNCTOR("streams_basic:pipe", 2);
+  ERR__FUNCTOR("stream_basic:pipe", 2);
   FILE *in;
   FILE *out;
   int fd[2];
@@ -558,7 +558,7 @@ void ENG_perror(char *s)
 
 CBOOL__PROTO(prolog_current_input)
 {
-  ERR__FUNCTOR("streams_basic:current_input", 1);
+  ERR__FUNCTOR("stream_basic:current_input", 1);
   DEREF(X(0), X(0));
 
   if (is_var_or_alias_or_stream(Arg, X(0))) {
@@ -571,7 +571,7 @@ CBOOL__PROTO(prolog_current_input)
 
 CBOOL__PROTO(prolog_set_input)
 {
-  ERR__FUNCTOR("streams_basic:set_input", 1);
+  ERR__FUNCTOR("stream_basic:set_input", 1);
   int errcode;
   stream_node_t *stream;
 
@@ -590,7 +590,7 @@ CBOOL__PROTO(prolog_set_input)
 
 CBOOL__PROTO(prolog_current_output)
 {
-  ERR__FUNCTOR("streams_basic:current_output", 1);
+  ERR__FUNCTOR("stream_basic:current_output", 1);
   DEREF(X(0), X(0));
 
   if (is_var_or_alias_or_stream(Arg, X(0))) {
@@ -603,7 +603,7 @@ CBOOL__PROTO(prolog_current_output)
 
 CBOOL__PROTO(prolog_set_output)
 {
-  ERR__FUNCTOR("streams_basic:set_output", 1);
+  ERR__FUNCTOR("stream_basic:set_output", 1);
   int errcode;
   stream_node_t *stream;
 
@@ -702,7 +702,7 @@ CBOOL__PROTO(prolog_current_error)
 
 CBOOL__PROTO(prolog_stream_code)
 {
-  ERR__FUNCTOR("streams_basic:stream_code", 2);
+  ERR__FUNCTOR("stream_basic:stream_code", 2);
   int errcode;
   stream_node_t *s;
 
@@ -741,7 +741,7 @@ CBOOL__PROTO(prolog_stream_code)
 
 CBOOL__PROTO(character_count)
 {
-  ERR__FUNCTOR("streams_basic:character_count", 2);
+  ERR__FUNCTOR("stream_basic:character_count", 2);
   int errcode;
   stream_node_t *stream;
 
@@ -758,7 +758,7 @@ CBOOL__PROTO(character_count)
 
 CBOOL__PROTO(line_position)
 {
-  ERR__FUNCTOR("streams_basic:line_position", 2);
+  ERR__FUNCTOR("stream_basic:line_position", 2);
   int errcode;
   stream_node_t *stream;
 
@@ -775,7 +775,7 @@ CBOOL__PROTO(line_position)
 
 CBOOL__PROTO(line_count)
 {
-  ERR__FUNCTOR("streams_basic:line_count", 2);
+  ERR__FUNCTOR("stream_basic:line_count", 2);
   int errcode;
   stream_node_t *stream;
 

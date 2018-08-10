@@ -11,7 +11,7 @@
 :- use_module(engine(io_aux)). % TODO: not by default
 :- use_module(engine(io_basic)). % TODO: not by default
 :- use_module(engine(prolog_flags)). % TODO: not by default
-:- use_module(engine(streams_basic)). % TODO: not by default
+:- use_module(engine(stream_basic)). % TODO: not by default
 :- use_module(engine(system_info)). % TODO: not by default
 :- use_module(engine(term_basic)).
 :- use_module(engine(term_compare)).

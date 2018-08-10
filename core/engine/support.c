@@ -12,7 +12,7 @@
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
 #include <ciao/wamsupport.h>
-#include <ciao/streams_basic.h>
+#include <ciao/stream_basic.h>
 #include <ciao/bignum.h>
 #include <ciao/support.h>
 #include <ciao/alloc.h>

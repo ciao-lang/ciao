@@ -10,7 +10,7 @@
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
 #include <ciao/io_basic.h>
-#include <ciao/streams_basic.h>
+#include <ciao/stream_basic.h>
 #include <ciao/eng_dbg.h>
 
 #if defined(DEF_WR_DEBUG)

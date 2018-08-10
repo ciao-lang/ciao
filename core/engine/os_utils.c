@@ -61,7 +61,7 @@ int gethostname(char *name, int namelen);
 #include <ciao/os_signal.h>
 #include <ciao/io_basic.h>
 #include <ciao/os_utils.h>
-#include <ciao/streams_basic.h>
+#include <ciao/stream_basic.h>
 #include <ciao/stacks.h>
 #include <ciao/start.h>
 #include <ciao/alloc.h>

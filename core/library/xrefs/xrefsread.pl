@@ -34,7 +34,7 @@
 the_files([]).
 
 :- doc(doinclude,sourcename/1).
-:- doc(sourcename/1,"See @tt{engine(streams_basic)}.").
+:- doc(sourcename/1,"See @tt{engine(stream_basic)}.").
 
 :- pred set_files(List_of_files) : list(sourcename)
         # "Sets the current files to @var{List_of_files}.".

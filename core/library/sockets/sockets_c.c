@@ -4,7 +4,7 @@
 #include <ciao/support_macros.h>
 #include <ciao/support.h>
 #include <ciao/io_basic.h> /* RUNE_VOID */
-#include <ciao/streams_basic.h>
+#include <ciao/stream_basic.h>
 #include <ciao/stacks.h>
 #include <ciao/alloc.h>
 #include <ciao/wam_alloc.h>
@@ -46,7 +46,7 @@ tagged_t atom_buff;
 tagged_t atom_unbuff;
 */
 
-/* TODO: reuse code from streams_basic.h (e.g., update_stream, new_stream)? */
+/* TODO: reuse code from stream_basic.h (e.g., update_stream, new_stream)? */
 
 void update_socket_stream(stream_node_t *s, int socket)
 {

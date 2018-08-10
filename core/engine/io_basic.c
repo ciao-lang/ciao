@@ -26,7 +26,7 @@
 
 #include <ciao/term_support.h>
 #include <ciao/io_basic.h>
-#include <ciao/streams_basic.h>
+#include <ciao/stream_basic.h>
 #include <ciao/tasks.h>
 #include <ciao/start.h>
 #include <ciao/alloc.h>
@@ -583,7 +583,7 @@ CBOOL__PROTO(flush_output) {
 /*----------------------------------------------------------------*/
 
 CBOOL__PROTO(flush_output1) {
-  ERR__FUNCTOR("streams_basic:flush_output", 1);
+  ERR__FUNCTOR("stream_basic:flush_output", 1);
   int errcode;
   stream_node_t *s;
   
@@ -994,7 +994,7 @@ CBOOL__PROTO(put_byte2) {
 }
 
 /*----------------------------------------------------------------*/
-/* NOTE: Moved from streams_basic.c (DCG) */
+/* NOTE: Moved from stream_basic.c (DCG) */
 /*----------------------------------------------------------------*/
 
 /* TODO: should fflush() be moved where it is needed? slow? */
@@ -1229,7 +1229,7 @@ CBOOL__PROTO(prolog_displayq2) {
 }
 
 CBOOL__PROTO(prolog_clearerr) {
-  ERR__FUNCTOR("streams_basic:clearerr", 1);
+  ERR__FUNCTOR("stream_basic:clearerr", 1);
   int errcode;
   stream_node_t *s;
   

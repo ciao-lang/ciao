@@ -45,8 +45,8 @@
 
 :- '$native_include_c_source'('objareas.c').
 
-:- '$native_include_c_header'('streams_basic.h').
-:- '$native_include_c_source'('streams_basic.c').
+:- '$native_include_c_header'('stream_basic.h').
+:- '$native_include_c_source'('stream_basic.c').
 
 :- '$native_include_c_header'('timing.h').
 :- '$native_include_c_source'('timing.c').

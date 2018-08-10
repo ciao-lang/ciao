@@ -26,7 +26,7 @@
 #include <ciao/interrupt.h>
 
 #include <ciao/timing.h>
-#include <ciao/streams_basic.h>
+#include <ciao/stream_basic.h>
 
 #include <ciao/os_utils.h>
 
@@ -1078,21 +1078,21 @@ void init_once(void)
   define_c_mod_predicate("internals","ciao_root",1,prolog_ciao_root);
   define_c_mod_predicate("system_info","ciao_c_headers_dir",1,prolog_ciao_c_headers_dir);
 
-  /* streams_basic.c */
+  /* stream_basic.c */
   
-  define_c_mod_predicate("streams_basic","stream_code",2,prolog_stream_code);
+  define_c_mod_predicate("stream_basic","stream_code",2,prolog_stream_code);
   define_c_mod_predicate("internals","$bootversion",0,prolog_bootversion);
   define_c_mod_predicate("internals","$open",3,prolog_open);
-  define_c_mod_predicate("streams_basic","close",1,prolog_close); 
+  define_c_mod_predicate("stream_basic","close",1,prolog_close); 
   define_c_mod_predicate("internals","$unix_popen",3,prolog_unix_popen);
-  define_c_mod_predicate("streams_basic","character_count",2,character_count);
-  define_c_mod_predicate("streams_basic","line_position",2,line_position);
-  define_c_mod_predicate("streams_basic","line_count",2,line_count);
-  define_c_mod_predicate("streams_basic","current_input",1,prolog_current_input);
-  define_c_mod_predicate("streams_basic","set_input",1,prolog_set_input);
-  define_c_mod_predicate("streams_basic","current_output",1,prolog_current_output);
-  define_c_mod_predicate("streams_basic","set_output",1,prolog_set_output);
-  define_c_mod_predicate("streams_basic","pipe",2,prolog_pipe);
+  define_c_mod_predicate("stream_basic","character_count",2,character_count);
+  define_c_mod_predicate("stream_basic","line_position",2,line_position);
+  define_c_mod_predicate("stream_basic","line_count",2,line_count);
+  define_c_mod_predicate("stream_basic","current_input",1,prolog_current_input);
+  define_c_mod_predicate("stream_basic","set_input",1,prolog_set_input);
+  define_c_mod_predicate("stream_basic","current_output",1,prolog_current_output);
+  define_c_mod_predicate("stream_basic","set_output",1,prolog_set_output);
+  define_c_mod_predicate("stream_basic","pipe",2,prolog_pipe);
 
   define_c_mod_predicate("io_alias_redirection", "replace_stream",2, prolog_replace_stream);
   define_c_mod_predicate("io_alias_redirection", "get_stream",2, prolog_get_stream);
@@ -1137,8 +1137,8 @@ void init_once(void)
   /* io_basic.c */
   
   define_c_mod_predicate("io_basic","code_class",2,code_class);
-  define_c_mod_predicate("streams_basic","flush_output",0,flush_output);
-  define_c_mod_predicate("streams_basic","flush_output",1,flush_output1);
+  define_c_mod_predicate("stream_basic","flush_output",0,flush_output);
+  define_c_mod_predicate("stream_basic","flush_output",1,flush_output1);
   address_getct = define_c_mod_predicate("io_basic","getct",2,getct);
   address_getct1 = define_c_mod_predicate("io_basic","getct1",2,getct1);
   address_get = define_c_mod_predicate("io_basic","get_code",1,get);
@@ -1167,7 +1167,7 @@ void init_once(void)
   define_c_mod_predicate("io_basic","display",2,prolog_display2);
   define_c_mod_predicate("io_basic","displayq",1,prolog_displayq);
   define_c_mod_predicate("io_basic","displayq",2,prolog_displayq2);
-  define_c_mod_predicate("streams_basic","clearerr",1,prolog_clearerr);
+  define_c_mod_predicate("stream_basic","clearerr",1,prolog_clearerr);
   define_c_mod_predicate("fastrw","fast_read",1,prolog_fast_read_in_c);
   define_c_mod_predicate("fastrw","fast_write",1,prolog_fast_write_in_c);
   define_c_mod_predicate("compressed_bytecode","compressLZ",1,compressLZ);
@@ -1336,7 +1336,7 @@ void init_once(void)
 
   define_c_mod_predicate("basiccontrol","repeat",0,prolog_repeat);
   define_c_mod_predicate("prolog_sys","current_atom",1,current_atom);
-  define_c_mod_predicate("streams_basic","current_stream",3,current_stream);
+  define_c_mod_predicate("stream_basic","current_stream",3,current_stream);
   define_c_mod_predicate("internals","$current_predicate",2,current_predicate);
   define_c_mod_predicate("internals","$predicate_property",3,predicate_property);
   define_c_mod_predicate("internals","$current_clauses",2,current_clauses);

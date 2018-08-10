@@ -33,7 +33,7 @@ load_aliases:-
 	retractall_fact(file_alias(_,_)),
 	alias_file(File),
 	absolute_file_name(File,AbsFile),
-	streams_basic:open(AbsFile,read,S),
+	stream_basic:open(AbsFile,read,S),
 	load_it(S),
 	close(S),
 	fail.
@@ -55,7 +55,7 @@ load_it(S):-
 
 :- doc(open(File, Mode, Stream), "Open @var{File} with mode
    @var{Mode} and return in @var{Stream} the stream associated with the
-   file. It is like @pred{streams_basic:open/3}, but @var{File} is considered
+   file. It is like @pred{stream_basic:open/3}, but @var{File} is considered
    a symbolic name: either defined by @pred{user:file_alias/2} or as an 
    environment variable. Predicate @pred{user:file_alias/2} is inspected
    before the environment variables.").
@@ -64,10 +64,10 @@ load_it(S):-
 
 open(SymFileName,Mode,Stream):-
 	file_alias(SymFileName,FileName), !,
-	streams_basic:open(FileName,Mode,Stream).
+	stream_basic:open(FileName,Mode,Stream).
 open(SymFileName,Mode,Stream):-
 	getenvstr(SymFileName,FileName0),
 	atom_codes(FileName,FileName0), !,
-	streams_basic:open(FileName,Mode,Stream).
+	stream_basic:open(FileName,Mode,Stream).
 open(SymFileName,_Mode,_Stream):-
 	throw(error(unknown_symbolic_name(SymFileName),'symfnames:open'/3)).

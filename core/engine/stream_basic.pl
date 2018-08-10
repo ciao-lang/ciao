@@ -1,4 +1,4 @@
-:- module(streams_basic, [
+:- module(stream_basic, [
         open/3, open/4, open_option_list/1, close/1,
         set_input/1, current_input/1,
         set_output/1, current_output/1,

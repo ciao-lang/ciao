@@ -54,5 +54,5 @@ quit:- davinci_quit.
 
 :- doc(doinclude,set_files/1).
 :- doc(doinclude,sourcename/1).
-:- doc(sourcename/1,"See @tt{engine(streams_basic)}.").
+:- doc(sourcename/1,"See @tt{engine(stream_basic)}.").
 :- doc(doinclude,set_flag/1).

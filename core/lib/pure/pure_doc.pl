@@ -41,7 +41,7 @@
    @item @tt{engine(prolog_flags)}
 
          @ref{Changing system behaviour and various flags}.
-   @item @tt{engine(streams_basic)}
+   @item @tt{engine(stream_basic)}
 
          @ref{Basic file/stream handling}.
    @item @tt{engine(system_info)}
