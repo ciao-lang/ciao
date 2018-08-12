@@ -12,10 +12,6 @@ to compile Ciao from the source distribution on these systems (please
 refer to *Note Installing Ciao from the source distribution:: for
 details).
 
-If you find any problems during installation, please refer to *Note
-Troubleshooting (nasty messages and nifty workarounds)::.  See also
-*Note Downloading new versions:: and *Note Reporting bugs::.
-
 Win32 binary installation summary
 =================================
 
@@ -242,7 +238,4 @@ from the Windows `Start' menu), search (<^F>) for ciao in all registry
 entries (i.e., select all of `Keys', `Values', and `Data' in the
 `Edit->Find' dialog), and delete each matching key (click on the left
 window to find the matching key for each entry found).
-
-%% Local Variables: %% mode: CIAO %% update-version-comments: "off" %%
-End:
 
