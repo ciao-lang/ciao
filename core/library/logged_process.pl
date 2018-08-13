@@ -13,12 +13,15 @@
 
    @begin{description}
    @item{@tt{silent}} do not show any log (default).
-   @item{@tt{always}} show logs (on success or error).
-   @item{@tt{note_always}} note where logs are stored, but do not show them
-     (on success or error).
-   @item{@tt{on_error}} show logs (on error).
-   @item{@tt{note_on_error}} note where logs are stored, but do not show them
-     (on error).
+   @item{@tt{always}} always show logs (whether success or error).
+   @item{@tt{note_always}} always show a note indicating where logs 
+                      are stored, but do not show contents (whether 
+                      success or error).
+   @item{@tt{on_error}} show the logs if there is an error.
+   @item{@tt{note_on_error}} on error, show a note indicating where logs are 
+                      stored, but do not show contents.
+   @item{@tt{err_only}} on error, show stderr and a note indicating where 
+                      the stdout log is.
    @end{description}
 ").
 
@@ -78,24 +81,38 @@ treat_return_code(check_zero_status, ReturnCode, PCall) :-
 	; throw(error(return_code(ReturnCode, PCall), logged_process_call/3))
 	).
 
-show_log(always, success).
-show_log(always, error).
-show_log(on_error, error).
+% TODO: MH It is really two flags? when / what
+show_std_log(always, success).
+show_std_log(always, error).
+show_std_log(on_error, error).
+% 
+show_err_log(always, success).
+show_err_log(always, error).
+show_err_log(on_error, error).
+show_err_log(err_only, error).
 %
-note_log(note_always, success).
-note_log(note_always, error).
-note_log(note_on_error, error).
+note_std_log(note_always, success).
+note_std_log(note_always, error).
+note_std_log(note_on_error, error).
+note_std_log(err_only, error).
+%
+note_err_log(note_always, success).
+note_err_log(note_always, error).
+note_err_log(note_on_error, error).
 
 treat_logs(ReturnCode, LogFile, ErrFile, OnReturn, ShowLogs, PCall) :-
 	( ReturnCode = 0 ->
 	    Status = success
 	; Status = error
 	),
-	( show_log(ShowLogs, Status) ->
+	% Log 
+	( show_std_log(ShowLogs, Status) ->
 	    open(LogFile, read, StreamO),
 	    stream_to_string(StreamO, OutputString),
-	    display_string(OutputString),
-	    %
+	    display_string(OutputString)
+	; true
+	),
+	( show_err_log(ShowLogs, Status) ->
 	    open(ErrFile, read, StreamE),
 	    stream_to_string(StreamE, ErrorString),
 	    display_string(ErrorString)
@@ -112,10 +129,13 @@ treat_logs(ReturnCode, LogFile, ErrFile, OnReturn, ShowLogs, PCall) :-
 	                [Cmd, ReturnCode, Args, Opts])
 	),
         %
-	( note_log(ShowLogs, Status) ->
-	    note_message("Standard output log saved in: ~w", [LogFile]),
-	    note_message("Standard error log saved in: ~w", [ErrFile])
-	; true
+	( note_std_log(ShowLogs, Status) ->
+	    note_message("Standard output log saved in: ~w", [LogFile])
+	; true ),
+        %
+	( note_err_log(ShowLogs, Status) ->
+	    note_message("Standard error  log saved in: ~w", [ErrFile])
+	; true 
 	).
 
 % ===========================================================================
