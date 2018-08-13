@@ -87,8 +87,8 @@ treat_return_code(check_zero_status, ReturnCode, PCall) :-
 %   depending on Status for the given ShowLogs.
 showlog(note_always,     _,     note, note).
 showlog(always,          _,     show, show).
-showlog(on_error,        error, show, show).
 showlog(note_on_error,   error, note, note).
+showlog(on_error,        error, show, show).
 showlog(on_error_stderr, error, note, show).
 
 treat_logs(ReturnCode, LogFile, ErrFile, OnReturn, ShowLogs, PCall) :-
