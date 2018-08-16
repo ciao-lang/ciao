@@ -12,14 +12,11 @@
 		insert_posloc/7,
 		is_member_prop/2,
 		is_same_prop/2,
-		list_to_lits/2,
+		list_to_lits/2, % TODO:T67
 		lists_to_lits/2,
-		list_to_disj/2,
+		list_to_disj/2, % TODO:T67
 		lists_to_disj/2,
 		remove_element/3,
-		inliner_decl/4,
-		push_flags/3,
-		pop_flags/3,
 		compound_check_props/4
 	    ], [assertions, nortchecks, dcg, hiord]).
 
@@ -291,36 +288,3 @@ lists_to_disj(A0, L) :-
 	flatten(A0, A1),
 	remove_element(A1, fail, A2),
 	list_to_disj(A2, L).
-
-% ----------------------------------------------------------------------
-
-push_flags(inline) --> [].
-push_flags(yes) --> [(:- push_prolog_flag(single_var_warnings, off))].
-
-pop_flags(inline) --> [].
-pop_flags(yes) --> [(:- pop_prolog_flag(single_var_warnings))].
-
-% ----------------------------------------------------------------------
-
-inliner_decl(yes,    _) --> [].
-inliner_decl(inline, Pred) -->
-	{functor(Pred, F, A)},
-	inline_decl(F, A),
-	unfold_decl(F, A).
-
-inline_decl(F, A) -->
-	[(:- inline(F/A))].
-
-unfold_decl(F, A) -->
-	{
-	    functor(Unfold, F, A),
-	    fill_struct(1, Unfold, yes)
-	},
-	[(:- unfold(Unfold))].
-
-fill_struct(N, Unfold, Value) :-
-	arg(N, Unfold, Value) ->
-	N1 is N + 1,
-	fill_struct(N1, Unfold, Value)
-    ;
-	true.

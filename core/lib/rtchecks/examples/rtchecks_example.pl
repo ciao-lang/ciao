@@ -30,7 +30,6 @@
 :- doc(module, "Examples of assertions that can be processed by
 	the run-time checker.").
 
-:- set_prolog_flag(rtchecks_inline,  yes).
 :- set_prolog_flag(rtchecks_predloc, yes).
 :- set_prolog_flag(rtchecks_callloc, predicate).
 :- set_prolog_flag(rtchecks_asrloc,  yes).

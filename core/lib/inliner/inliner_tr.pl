@@ -48,7 +48,7 @@ of ciaopp.").
 :- data source_clause_db/3.
 :- data meta_pred_db/4.
 :- data rename_goal_db/4.
-:- data inline_db/4.
+:- data inline_db/4.  % TODO:T261
 :- data unused_inline_db/4.
 :- data renamer_db/3.
 :- data unused_renamer_db/4.
@@ -373,6 +373,7 @@ meta_unfold_each(addmodule(ArgSpec), UFldSpec) :-
 	meta_unfold_each(ArgSpec, UFldSpec).
 meta_unfold_each(_, no).
 
+% TODO:T261
 lit_clause_arity(M, F, LitArity, ClauseArity) :-
 	meta_predicate(F, LitArity, Meta, M),
 	meta_inc_args(Meta, LitArity, ClauseArity) -> true
@@ -1327,6 +1328,7 @@ cleanup_db(M) :-
 	retractall_fact(in_inline_module_db(_, M)),
 	retractall_fact(inline_module_db(_, _, _, M)).
 
+ % TODO:T261
 % :- pred compound_struct(Pred, F, Args) :: (term(Pred), atm(F), list(Args)).
 
 /*

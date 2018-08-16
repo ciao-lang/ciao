@@ -8,8 +8,6 @@
         ],
         [assertions, regtypes, nortchecks, nativeprops, isomodes, dcg, hiord, fsyntax]).
 
-% [DEPRECATED] You can test the inliner package with this module --NS
-% :- use_package(library(rtchecks/rtchecks_tr_inline)).
 :- use_package(library(rtchecks/rtchecks_tr_library)).
 
 :- use_module(library(assertions/assertions_props), [head_pattern/1]).
@@ -34,9 +32,8 @@
             location/1,
             location/3
         ]).
-:- use_module(library(inliner/inliner_tr),
+:- use_module(library(inliner/inliner_tr), % TODO:T261 --NS
         [
-            in_inline_module_db/2,
             inline_db/4,
             lit_clause_arity/4,
             compound_struct/3
@@ -162,7 +159,7 @@ proc_posponed_sentence(Clauses, M) :-
 	posponed_sentence_db(F, A, Head, Body0, loc(S, LB, LE), M, Dict),
 	asserta_fact(location(S, LB, LE), Ref),
 	transform_sentence(F, A, Head, Body0, Body, Clauses0, M, Dict),
-	add_cond_decl(Body0, Body, use_inline(F/A), Clauses0, Clauses),
+	add_cond_decl(Body0, Body, use_inline(F/A), Clauses0, Clauses), % TODO:T261
 	erase(Ref).
 
 remaining_preds(Preds, M) :-
@@ -174,8 +171,8 @@ current_assertion_2(Pred0, Status, Type, Pred, Compat, Call, Succ, Comp0,
 	assertion_read(Pred0, M, Status, Type, ABody, Dict0, S, LB, LE),
 	valid_assertions(Status, Type),
 	functor(Pred0, F, CA),
-	lit_clause_arity(M, F, A, CA),  % inliner_tr
-	\+ inline_db(F, A, _, M),       % inliner_tr
+	lit_clause_arity(M, F, A, CA),  % inliner_tr  % TODO:T261
+	\+ inline_db(F, A, _, M),       % data from inliner_tr  % TODO:T261
 	(
 	    (
 		current_prolog_flag(rtchecks_level, inner)
@@ -199,7 +196,7 @@ remaining_pred(F, A, M) :-
 
 black_list_pred('=', 2).
 
-proc_remaining_assertions(Preds, [(:- redefining(F/A)), (:- inline(F/A)),
+proc_remaining_assertions(Preds, [(:- redefining(F/A)), (:- inline(F/A)),  % TODO:T261
 		(:- inline(F1/A1))|Clauses], M, Dict) :-
 	member(F/A, Preds),
 	functor(Head, F, A),
@@ -226,10 +223,6 @@ rtchecks_sentence_tr(end_of_file, Clauses, M, _) :-
 		(:- push_prolog_flag(multi_arity_warnings,   off))|ClausesL0],
                  Clauses),
         cleanup_db_0(M).
-rtchecks_sentence_tr(_, _, M, _) :-
-	in_inline_module_db(_, M),  % from inliner_tr
-	!,
-	fail.
 rtchecks_sentence_tr(Sentence, Sentence0, M, Dict) :-
 	( do_rtchecks_sentence_tr(Sentence, Sentence0, M, Dict) -> true
 	; Sentence = Sentence0 ).
@@ -330,7 +323,7 @@ process_sentence(Head, Body0, Clauses, M, Dict) :-
 	    Clauses = []
 	;
 	    transform_sentence(F, A, Head, Body0, Body, Clauses0, M, Dict),
-	    add_cond_decl(Body0, Body, use_inline(F/A), Clauses0, Clauses)
+	    add_cond_decl(Body0, Body, use_inline(F/A), Clauses0, Clauses)  % TODO:T261
 	).
 
 transform_sentence(F, A, Head, Body0, Body, Clauses, M, Dict) :-
@@ -443,25 +436,25 @@ calllit_expansion(Goal0, PDict, PredName, Loc, Goal) :-
 	put_call_stack(Goal0, litloc(LitName, Loc-PredName), Goal).
 
 rename_head(Tag, A, Head, Head1) :-
-	compound_struct(Head, F, Args),    % inliner_tr
+	compound_struct(Head, F, Args),    % inliner_tr % TODO:T261
 	atom_number(NA, A),
 	atom_concat([F, '/', NA, '$rtc', Tag], F1),
-	compound_struct(Head1, F1, Args).  % inliner_tr
+	compound_struct(Head1, F1, Args).  % inliner_tr % TODO:T261
 
 record_head_alias(Head0, Head, M) :-
 	functor(Head0, F0, A),
 	functor(Pred0, F0, A),
-	compound_struct(Pred0, _, Args),   % inliner_tr
+	compound_struct(Pred0, _, Args),   % inliner_tr % TODO:T261
 	functor(Head, F, _),
-	compound_struct(Pred, F, Args),    % inliner_tr
+	compound_struct(Pred, F, Args),    % inliner_tr % TODO:T261
 	assertz_fact(head_alias_db(Pred0, Pred, M)).
 
 record_goal_alias(Head0, Head, M) :-
 	functor(Head0, F0, A),
 	functor(Pred0, F0, A),
-	compound_struct(Pred0, _, Args),   % inliner_tr
+	compound_struct(Pred0, _, Args),   % inliner_tr % TODO:T261
 	functor(Head, F, _),
-	compound_struct(Pred, F, Args),    % inliner_tr
+	compound_struct(Pred, F, Args),    % inliner_tr % TODO:T261
 	assertz_fact(goal_alias_db(Pred0, Pred, M)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -666,7 +659,7 @@ generate_rtchecks(F, A, M, Assertions, Pred, PDict, PLoc, UsePosLoc,
 		Body01 = Pred1,
 		lists_to_lits(Body0, Lits0)
 	    },
-	    [(:- use_inline(F/A)), (Pred :- Lits0)]
+	    [(:- use_inline(F/A)), (Pred :- Lits0)]  % TODO:T261
 	;
 	    {Pred = Pred1}
 	),
@@ -680,7 +673,7 @@ generate_rtchecks(F, A, M, Assertions, Pred, PDict, PLoc, UsePosLoc,
 		lists_to_lits(Body1, Lits1),
 		functor(Pred1, F1, A1)
 	    },
-	    [(:- use_inline(F1/A1)), (Pred1 :- Lits1)]
+	    [(:- use_inline(F1/A1)), (Pred1 :- Lits1)]  % TODO:T261
 	;
 	    {Pred1 = Pred2}
 	).
