@@ -10,8 +10,13 @@
 :- doc(module,"This package makes the standard @concept{ISO-Prolog}
    predicates available by default in the modules that include it. In
    particular, it includes the modules and packages listed in the
-   @em{Usage and interface} box below. Note that this package is also 
-   included when loading the @ref{Classic Prolog} package.
+   @em{Usage and interface} box below. Note that this package is also
+   included when loading the @ref{Classic Prolog} package (either
+   explicitly or implicity by using a @decl{module/2} declaration).
+   On the other hand, using this package by itself, i.e.: @tt{:-
+   module(..., ..., [iso]).}  @em{approximates} a strictly conforming
+   mode, i.e., a mode which rejects uses of non-ISO features (except
+   for those that are built-in in Ciao, such as the module system).
 
    Also note that library predicates that correspond to those in the
    ISO-Prolog standard are marked accordingly throughout the manuals,
@@ -20,15 +25,20 @@
 
    Compliance with ISO is still not complete: currently there are some
    minor deviations in, e.g., the treatment of characters, the syntax,
-   some of the arithmetic functions, and part of the error system.
-   Also, Ciao does not offer a strictly conforming mode which rejects
-   uses of non-ISO features. However, as mentioned in @ref{ISO-Prolog
-   compliance versus extensibility} in the introduction, the intention
-   of the Ciao developers is to complete progressively the ISO
-   standard support, as well as adapt to the corrigenda and reasonable
-   future extensions of the standard.
+   some of the arithmetic functions, and part of the error system.  In
+   particular, the @decl{char_conversion/2} directive is not
+   implemented, since Ciao does not (yet) have a character conversion
+   table.
+
+   However, as mentioned in @ref{ISO-Prolog compliance versus
+   extensibility} in the introduction, the intention of the Ciao
+   developers is to progressively complete ISO standard support, as
+   well as adapt to the corrigenda and reasonable extensions of the
+   standard as they appear.
 
 ").
+
+% TODO: 
 
 % @comment{Given that the final version of the ISO standard has only
 % been recently published,}

@@ -16,8 +16,15 @@
    language.  Modules allow dividing programs into several parts,
    which have their own independent name spaces.  Each module is
    written in its own file (see @decl{module/2} and @decl{module/3})
-   and consists of a list of @concept{directives} and
-   @concept{predicate} definitions.
+   and consists of a sequence of @concept{directives} and
+   @concept{predicate} definitions. 
+
+   Modules provide functionality to other modules by @em{exporting}
+   some of the predicates defined inside the module (and also through
+   @concept{multifile} predicates). However, a module does not modify
+   the @em{syntax} supported in a module that uses it. This is done
+   instead through the mechanism of @concept{package file}s (see
+   @rf{Packages and language extension}).  
 
    See @cite{ciao-modules-cl2000} for a detailed description of the
    Ciao module system.

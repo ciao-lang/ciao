@@ -9,19 +9,29 @@
    has to be done to use them.").
 
 :- doc(module, "This chapter documents @concept{package file}s and the
-   @concept{builtin directives} in Ciao for implementing syntactic and
-   semantic language extensions.
+   main @concept{builtin directives} that Ciao provides for
+   implementing syntactic and semantic language extensions.
 
    These directives allow the definition of new operators, new
-   declarations, code translations, etc. Although they can be used
-   directly in the source, it is recommented grouping them in
-   packages. Most Ciao extensions, such as functional syntax,
+   declarations, code translations, etc. Although these directives can
+   be used directly in any source file, it is highly recommended to
+   group them into @concept{package}s, where each package contains a
+   set of operators and transformations that together provide a
+   particular syntactic and semantic extension to the modules that
+   load it.  Most Ciao extensions, such as functional syntax,
    constraint solving, or breadth-first search are implemented as
-   packages.
+   packages. The structure and code of these Ciao library packages can
+   serve as useful examples of how to build packages in general.
 
-   Note that the @concept{ISO-Prolog} directive
-   @decl{char_conversion/2} is not implemented, since Ciao does not
-   (yet) have a character conversion table.").
+   See also @cite{ciao-modules-cl2000} for a detailed description of
+   the Ciao module system and, in particular, packages and the
+   language extension primitives.  
+
+").
+
+% TODO: Possibly add more explanation, possibly from the modules paper
+% (and include also the figure that explains the different passes),
+% and an example.
 
 :- use_module(engine(modules), [modulename/1]).
 
@@ -31,10 +41,10 @@
 :- decl package(Name)
         : modulename
 
-        # "Declares a package of name @var{Name}. Like in modules,
-          @var{Name} must match with the name of the file where the
-          package resides, without extension. This directive must
-          appear the first in the file.".
+        # "Declares the current file to be a package of name
+          @var{Name}. Like in modules, @var{Name} must match the name
+          of the file where the package resides, without
+          extension. This directive must appear first in the file.".
 
 % ---------------------------------------------------------------------------
 
