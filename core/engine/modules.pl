@@ -22,9 +22,9 @@
    Modules provide functionality to other modules by @em{exporting}
    some of the predicates defined inside the module (and also through
    @concept{multifile} predicates). However, a module does not modify
-   the @em{syntax} supported in a module that uses it. This is done
-   instead through the mechanism of @concept{package file}s (see
-   @rf{Packages and language extension}).  
+   the @em{syntax} that can be used in another module that loads
+   it. This is done instead through the mechanism of
+   @concept{package}s (see @ref{Packages and language extension}).
 
    See @cite{ciao-modules-cl2000} for a detailed description of the
    Ciao module system.
