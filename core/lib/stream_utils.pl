@@ -1,6 +1,6 @@
 :- module(stream_utils, [
-	  stream_to_string/2,
-	  stream_to_string/3,
+	  read_to_end/2,
+	  read_to_end/3,
 	  get_line/2, get_line/1, line/1,
 	  write_string/2, write_string/1,
 	  %
@@ -26,33 +26,31 @@
 % ===========================================================================
 :- doc(section, "Reading/writting from/to streams").
 
-:- pred stream_to_string(+Stream, -String): stream(Stream) =>
-   string(String) # "Reads all the characters from @var{Stream},
-   returns them in @var{String}, and closes @var{Stream}.".
+:- pred read_to_end(+Stream, -String) : stream(Stream) => string(String)
+# "Reads in @var{String} all the characters from @var{Stream} until an
+   EOF is found.".
 
-stream_to_string(Stream, String) :-
-	stream_to_string(Stream, String, []).
+read_to_end(Stream, String) :-
+	read_to_end(Stream, String, []).
 
-:- pred stream_to_string(+Stream, -String, ?Tail): stream(Stream) #
-   "Reads all the characters from @var{Stream}, returns them in
-   @var{String}, and closes @var{Stream}.  @var{Tail} is the end of
-   @var{String}".
+:- pred read_to_end(+Stream, -String, ?Tail): stream(Stream)
+# "Reads in the difference list @var{String}-@var{Tail} all the
+   characters from @var{Stream} until an EOF is found.".
 
-stream_to_string(Stream, String, Tail) :-
+read_to_end(Stream, String, Tail) :-
         current_input(OldIn),
         set_input(Stream),
-        read_to_close(String, Tail),
-        set_input(OldIn),
-        close(Stream).
+        read_to_end_(String, Tail),
+        set_input(OldIn).
 
-read_to_close(L, T) :-
+read_to_end_(L, T) :-
         get_code(C),
-        read_to_close1(C, L, T).
+        read_to_end_1(C, L, T).
 
-read_to_close1(-1, T, T) :- !.
-read_to_close1(C, [C|L], T) :-
+read_to_end_1(-1, T, T) :- !.
+read_to_end_1(C, [C|L], T) :-
         get_code(C1),
-        read_to_close1(C1, L, T).
+        read_to_end_1(C1, L, T).
 
 % ---------------------------------------------------------------------------
 
@@ -188,7 +186,8 @@ file_to_string(File, String) :-
 
 file_to_string(File, String, Tail) :-
         open(File, read, Stream),
-        stream_to_string(Stream, String, Tail).
+        read_to_end(Stream, String, Tail),
+	close(Stream).
 
 % ---------------------------------------------------------------------------
 

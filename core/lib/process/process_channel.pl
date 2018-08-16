@@ -29,7 +29,7 @@
 	 delete_file/1]).
 :- use_module(library(read), [read_term/3]).
 :- use_module(library(write), [write/1, write_canonical/2]).
-:- use_module(library(stream_utils), [write_string/2, get_line/2, stream_to_string/2]).
+:- use_module(library(stream_utils), [write_string/2, get_line/2, read_to_end/2]).
 
 % ===========================================================================
 
@@ -227,14 +227,10 @@ read_exception(Stream, E) :-
 	throw(E).
 
 % Note: ensure that all stream codes have been read.
-read_channel_(string(Term), Stream) :- !,
-	stream_to_string(Stream, Term0),
-	% close(Stream), (closed in stream_to_string)
-	Term = Term0.
-read_channel_(line(Term), Stream) :- !,
-	stream_to_string(Stream, String0),
-	% close(Stream), (closed in stream_to_string)
-	no_tr_nl(String0, Term).
+%
+% TODO: allow partial reads here? (i.e. line/1 read one line,
+%   discard_stream_data/1 just closes the stream, etc.)
+
 read_channel_(Channel, Stream) :-
 	( read_channel__(Channel, Stream),
 	  close(Stream) ->
@@ -243,7 +239,12 @@ read_channel_(Channel, Stream) :-
 	  fail
 	).
 
-% (May throw parsing errors)
+% Note: some may throw parsing errors
+read_channel__(string(Term), Stream) :- !,
+	read_to_end(Stream, Term).
+read_channel__(line(Term), Stream) :- !,
+	read_to_end(Stream, String0),
+	no_tr_nl(String0, Term).
 read_channel__(atmlist(Term), Stream) :- !,
 	read_lines(Stream, Term).
 read_channel__(terms(Term), Stream) :- !,
@@ -253,9 +254,10 @@ read_channel__(Channel, _Stream) :-
 
 % Read the rest of the stream code and close the stream
 % TODO: this can be done more efficiently
+% TODO: why not just close the stream?
 discard_stream_data(Stream) :-
-	\+ \+ stream_to_string(Stream, _).
-	% close(Stream). (closed in stream_to_string)
+	\+ \+ read_to_end(Stream, _),
+	close(Stream).
 
 :- pred read_channel_from_file(File, Channel) 
    # "Read the contents of channel @var{Channel} from file @var{File}".
