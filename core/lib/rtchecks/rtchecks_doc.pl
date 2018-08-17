@@ -79,19 +79,21 @@ explanation of the meaning:
                  debugging purposes, but is better to use the unittest library.
   @end{itemize}
 
-@item @code{rtchecks_inline}
-  @begin{itemize}
-   @item @code{no}     : Instrument rtchecks using call to library
-			 predicates present in @lib{rtchecks_rt.pl},
-			 @lib{nativeprops.pl} and @lib{basic_props.pl}.
-			 In this way, space is saved, but sacrifying
-			 performance due to usage of meta calls and
-			 external methods in the libraries. Default.
-   @item @code{yes}    : Expand library predicates inline as far as possible.
-			 In this way, the code is faster, because its avoids
-			 metacalls and usage of external methods, but the final
-			 executable could be bigger.
-  @end{itemize}
+@comment{
+%%  @item @code{rtchecks_inline} % TODO:T261
+%%   @begin{itemize}
+%%    @item @code{no}     : Instrument rtchecks using call to library
+%% 			 predicates present in @lib{rtchecks_rt.pl},
+%% 			 @lib{nativeprops.pl} and @lib{basic_props.pl}.
+%% 			 In this way, space is saved, but sacrifying
+%% 			 performance due to usage of meta calls and
+%% 			 external methods in the libraries. Default.
+%%    @item @code{yes}    : Expand library predicates inline as far as possible.
+%% 			 In this way, the code is faster, because its avoids
+%% 			 metacalls and usage of external methods, but the final
+%% 			 executable could be bigger.
+%%   @end{itemize}
+}
 
 @item @code{rtchecks_asrloc}
   Controls the usage of locators for the assertions in the error messages.

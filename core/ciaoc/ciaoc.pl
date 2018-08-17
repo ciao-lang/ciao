@@ -521,8 +521,9 @@ main(Args) :-
 :- flag_based_option(rtchecks_level, exports, [],
     "Use rtchecks only for external calls of the exported predicates").
 %
-:- flag_based_option(rtchecks_inline, yes, [],
-    "Expand library predicates inline as far as possible").
+%% TODO:T261
+%%:- flag_based_option(rtchecks_inline, yes, [],
+%%    "Expand library predicates inline as far as possible").
 %
 :- flag_based_option(rtchecks_asrloc, no, [],
     "Do not use assertion locators in the error messages").

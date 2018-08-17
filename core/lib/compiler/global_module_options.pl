@@ -186,18 +186,23 @@ rtcheck_packages(Packages0, RTPackages) :-
 	    RTPackages = [rtchecks|RTPackages0] % add 'rtchecks' package
 	),
 	!,
-	curr_rtcheck_package(Package),
-	RTPackages0 = [Package].
+  RTPackages0 = [library(rtchecks/rtchecks_rt_library)].
+% TODO:T261
+%% 	curr_rtcheck_package(Package),
+%% 	RTPackages0 = [Package].
+%
 rtcheck_packages(_Packages0, RTPackages) :-
 	RTPackages = [].
 
-% TODO: rtcheck_inline must also be a global_module_option, not a prolog flag
-% Package for 'rtcheck' (based on value of rtcheck_inline prolog flag)
-curr_rtcheck_package(Pkg) :-
-	( current_prolog_flag(rtchecks_inline, yes) ->
-	    Pkg = library(rtchecks/rtchecks_rt_inline)
-	; Pkg = library(rtchecks/rtchecks_rt_library)
-	).
+% TODO:T261
+%      (also revise the comment below) --NS
+%% % TODO: rtcheck_inline must also be a global_module_option, not a prolog flag
+%% % Package for 'rtcheck' (based on value of rtcheck_inline prolog flag)
+%% curr_rtcheck_package(Pkg) :-
+%% 	( current_prolog_flag(rtchecks_inline, yes) ->
+%% 	    Pkg = library(rtchecks/rtchecks_rt_inline)
+%% 	; Pkg = library(rtchecks/rtchecks_rt_library)
+%% 	).
 
 % ---------------------------------------------------------------------------
 % (from llists.pl, not included here to avoid one extra module in the compiler)

@@ -163,7 +163,7 @@ define_flag(rtchecks_trust,          [yes, no],                yes).
 define_flag(rtchecks_entry,          [yes, no],                yes).
 define_flag(rtchecks_exit,           [yes, no],                yes).
 define_flag(rtchecks_test,           [yes, no],                no).
-define_flag(rtchecks_inline,         [yes, no],                no).
+%% define_flag(rtchecks_inline,         [yes, no],                no). % TODO:T261
 define_flag(rtchecks_asrloc,         [yes, no],                yes).
 define_flag(rtchecks_predloc,        [yes, no],                yes).
 define_flag(rtchecks_callloc,        [no, literal, predicate], predicate).
