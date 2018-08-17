@@ -1,4 +1,7 @@
-:- module(default_predicates, [], [assertions]).
+:- use_package([assertions]).
+:- doc(nodoc,assertions).
+
+:- doc(filetype,package).
 
 :- doc(title,"Classic Prolog").
 
@@ -21,9 +24,6 @@
 
 ").
 
-
-% TODO: change the name of this package from default to classic_prolog (or something like that)
-	
 :- doc(usage, "All these modules, packages, and predicates are included by
    default in modules starting with a @decl{module/2} declaration or
    user files without a starting @decl{use_package/1} declaration.  In
@@ -42,21 +42,4 @@
    by defining @file{~/.ciaorc} (which can then include whatever
    alternative prelude is preferred).").
 
-:- reexport(library(aggregates)).
-:- reexport(library(dynamic)).
-:- reexport(library(read)).
-:- reexport(library(write)).
-:- reexport(library(operators), [op/3, current_op/3]).
-:- reexport(library(iso_char)).
-:- reexport(library(iso_misc)).
-:- reexport(library(format)).
-:- reexport(library(lists),
-        [append/3, delete/3, select/3, nth/3, last/2,reverse/2, length/2]).
-:- reexport(library(sort)).
-:- reexport(library(between)).
-:- reexport(library(compiler), [use_module/1, use_module/2, ensure_loaded/1]).
-:- reexport(library(system)).
-:- reexport(library(prolog_sys)).
-:- reexport(library(dec10_io)).
-:- reexport(library(old_database)).
-:- reexport(library(ttyout)).
+:- use_package(classic).
