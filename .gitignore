@@ -1,22 +1,27 @@
 *~
 *.po
 *.itf
+*.wam
 *.asr
 *.ast
 *.testout
 *.elc
+*_DARWINi686.o
 *_DARWINi686.a
 *_DARWINi686.dylib
 *_DARWINi686_glue.c
 *_DARWINi686_glue.o
+*_DARWINx86_64.o
 *_DARWINx86_64.a
 *_DARWINx86_64.dylib
 *_DARWINx86_64_glue.c
 *_DARWINx86_64_glue.o
+*_LINUXi686.o
 *_LINUXi686.a
 *_LINUXi686.dylib
 *_LINUXi686_glue.c
 *_LINUXi686_glue.o
+*_LINUXx86_64.o
 *_LINUXx86_64.a
 *_LINUXx86_64.dylib
 *_LINUXx86_64_glue.c
@@ -27,3 +32,25 @@
 /core_OC/bootstrap/backup/
 /tmp/
 ACTIVATE
+# Other automatically generated files which Ciao should eventually write under
+# the build/ directory instead (e.g., auto/), or with a different naming
+# convention (e.g., *.auto.pl instead of *_auto.pl).
+*_co.pl
+*.pp.pl
+*_auto.pl
+*_inline.c
+core/lib/compiler/header
+bndls/ciao_emacs/elisp/*
+bndls/testsuite/rtchecks/rtc_test.out
+bndls/testsuite/rtchecks/rtchecks_sysprops_rtx.regr-out
+bndls/testsuite/rtchecks/rtchecks_sysprops_rtx_queries.pl
+bndls/timingmodel/src/estimate
+bndls/ciao_java/lib/javall/javadoc/*.html
+bndls/ciao_java/lib/javall/javadoc/*.css
+bndls/ciao_java/lib/javall/javadoc/*.js
+bndls/ciao_java/lib/javall/javadoc/CiaoJava/*
+bndls/ciao_java/lib/javall/CiaoJava/*.class
+bndls/ciao_java/lib/javall/javadoc/package-list
+bndls/ciao_java/lib/javall/plserver
+ciaopp/ilciao/classes/*
+ciaopp/resources/predefres/res_exectime_hlm/auto/*
