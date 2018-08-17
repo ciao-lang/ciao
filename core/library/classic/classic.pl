@@ -2,11 +2,7 @@
 % Package implicitly used in Ciao modules defined with module/2
 % (specially for backward compatibility with other Prolog systems)
 
-:- if(defined('SHELL')).
-% (nothing, op/3 is treated by the toplevel)
-:- else.
 :- use_package(runtime_ops). % TODO: Not modular! Alters runtime behavior of modules not compiled with the default package!
-:- endif.
 
 :- use_package(dcg).
 :- if(defined('SHELL')).
