@@ -1,4 +1,6 @@
 :- package(nonpure).
+:- use_package(initial).
+
 % Package implicitly used in Ciao modules defined with module/3
 % (except if 'pure' package is used).
 
@@ -17,6 +19,5 @@
 :- use_module(engine(term_compare)).
 :- use_module(engine(term_typing)).
 :- use_module(engine(hiord_rt), [call/1]). % TODO: not by default
-:- use_module(engine(debugger_support), [srcdbg_spy/7]). % TODO: not by default? (except if internal)
+:- use_module(engine(debugger_support), [srcdbg_spy/7]). % TODO: internal, make it optional or hide
 
-:- use_package(condcomp).
