@@ -2,7 +2,6 @@
 
 :- use_package(assertions).
 :- use_package(hiord).
-:- use_package(library(inliner/inliner_ops)). % TODO:T261
 
 :- new_declaration(rtchecked/0).
 

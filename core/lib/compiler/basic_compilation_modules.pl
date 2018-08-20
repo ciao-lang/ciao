@@ -10,4 +10,4 @@
 
 % TODO: really?
 :- use_module(library(rtchecks/rtchecks_tr), []).
-:- use_module(library(inliner/inliner_tr),   []).
+

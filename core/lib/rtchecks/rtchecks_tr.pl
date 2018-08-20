@@ -32,12 +32,30 @@
             location/1,
             location/3
         ]).
-:- use_module(library(inliner/inliner_tr), % TODO:T261 --NS
-        [
-            inline_db/4,
-            lit_clause_arity/4,
-            compound_struct/3
-        ]).
+% ---------------------------------------------------------------------------
+
+:- use_module(library(compiler/c_itf_internal),
+	    [meta_args/2, imports_pred/7]). % TODO:T261 refine
+:- use_module(engine(meta_inc), [meta_inc_args/3]).
+
+% TODO:T261
+lit_clause_arity(M, F, LitArity, ClauseArity) :-
+        ( meta_predicate(F, LitArity, Meta, M),
+          meta_inc_args(Meta, LitArity, ClauseArity) ->
+            true
+        ;	LitArity = ClauseArity
+        ).
+
+meta_predicate(F, A, PredSpec, M) :-
+        multifile(M, F, A),
+        functor(PredSpec, F, A),
+        meta_args(multifile, PredSpec).
+meta_predicate(F, A, PredSpec, M) :-
+        functor(PredSpec, F, A),
+        defines_module(Base, M),
+        imports_pred(Base, _, F, A, _, PredSpec, _).
+
+% ---------------------------------------------------------------------------
 
 :- doc(author, "Edison Mera").
 
@@ -150,16 +168,10 @@ rtcheck_assr_type(comp).
 rtcheck_assr_type(exit).
 rtcheck_assr_type(success).
 
-add_cond_decl(Body0, Body, Decl, Clauses0, Clauses) :-
-	( Body0 == Body -> Clauses = Clauses0
-	; Clauses = [(:- Decl)|Clauses0]
-	).
-
 proc_posponed_sentence(Clauses, M) :-
 	posponed_sentence_db(F, A, Head, Body0, loc(S, LB, LE), M, Dict),
 	asserta_fact(location(S, LB, LE), Ref),
-	transform_sentence(F, A, Head, Body0, Body, Clauses0, M, Dict),
-	add_cond_decl(Body0, Body, use_inline(F/A), Clauses0, Clauses), % TODO:T261
+	transform_sentence(F, A, Head, Body0, _Body, Clauses, M, Dict),
 	erase(Ref).
 
 remaining_preds(Preds, M) :-
@@ -171,8 +183,7 @@ current_assertion_2(Pred0, Status, Type, Pred, Compat, Call, Succ, Comp0,
 	assertion_read(Pred0, M, Status, Type, ABody, Dict0, S, LB, LE),
 	valid_assertions(Status, Type),
 	functor(Pred0, F, CA),
-	lit_clause_arity(M, F, A, CA),  % inliner_tr  % TODO:T261
-	\+ inline_db(F, A, _, M),       % data from inliner_tr  % TODO:T261
+	lit_clause_arity(M, F, A, CA),  % TODO:T261
 	(
 	    (
 		current_prolog_flag(rtchecks_level, inner)
@@ -196,14 +207,11 @@ remaining_pred(F, A, M) :-
 
 black_list_pred('=', 2).
 
-proc_remaining_assertions(Preds, [(:- redefining(F/A)), (:- inline(F/A)),  % TODO:T261
-		(:- inline(F1/A1))|Clauses], M, Dict) :-
+proc_remaining_assertions(Preds, [(:- redefining(F/A))|Clauses], M, Dict) :- % TODO:T261
 	member(F/A, Preds),
 	functor(Head, F, A),
 	transform_sentence(F, A, Head, '$orig_call'(Head), _, Clauses, M,
-	    Dict),
-	head_alias_db(Head, Head1, M),
-	functor(Head1, F1, A1).
+	    Dict).
 
 rtchecks_sentence_tr(0,           _,       _, _) :- !,
         clean_rtc_impl_db.
@@ -322,8 +330,7 @@ process_sentence(Head, Body0, Clauses, M, Dict) :-
 		    Dict)),
 	    Clauses = []
 	;
-	    transform_sentence(F, A, Head, Body0, Body, Clauses0, M, Dict),
-	    add_cond_decl(Body0, Body, use_inline(F/A), Clauses0, Clauses)  % TODO:T261
+	    transform_sentence(F, A, Head, Body0, _Body, Clauses, M, Dict)
 	).
 
 transform_sentence(F, A, Head, Body0, Body, Clauses, M, Dict) :-
@@ -436,25 +443,25 @@ calllit_expansion(Goal0, PDict, PredName, Loc, Goal) :-
 	put_call_stack(Goal0, litloc(LitName, Loc-PredName), Goal).
 
 rename_head(Tag, A, Head, Head1) :-
-	compound_struct(Head, F, Args),    % inliner_tr % TODO:T261
+	Head =.. [F|Args],
 	atom_number(NA, A),
 	atom_concat([F, '/', NA, '$rtc', Tag], F1),
-	compound_struct(Head1, F1, Args).  % inliner_tr % TODO:T261
+	Head1 =.. [F1|Args].
 
 record_head_alias(Head0, Head, M) :-
 	functor(Head0, F0, A),
 	functor(Pred0, F0, A),
-	compound_struct(Pred0, _, Args),   % inliner_tr % TODO:T261
+	Pred0 =.. [_|Args],
 	functor(Head, F, _),
-	compound_struct(Pred, F, Args),    % inliner_tr % TODO:T261
+	Pred =.. [F|Args],
 	assertz_fact(head_alias_db(Pred0, Pred, M)).
 
 record_goal_alias(Head0, Head, M) :-
 	functor(Head0, F0, A),
 	functor(Pred0, F0, A),
-	compound_struct(Pred0, _, Args),   % inliner_tr % TODO:T261
+	Pred0 =.. [_|Args],
 	functor(Head, F, _),
-	compound_struct(Pred, F, Args),    % inliner_tr % TODO:T261
+	Pred =.. [F|Args],
 	assertz_fact(goal_alias_db(Pred0, Pred, M)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -647,7 +654,7 @@ generate_rtchecks(Assertions, Pred, PDict, PLoc, UsePosLoc, Lits, Goal) :-
 	lists_to_lits(Goal0, Lits),
 	!.
 
-generate_rtchecks(F, A, M, Assertions, Pred, PDict, PLoc, UsePosLoc,
+generate_rtchecks(_F, A, M, Assertions, Pred, PDict, PLoc, UsePosLoc,
 	    Pred2) -->
 	{generate_step1_rtchecks(Assertions, Pred, PLoc, UsePosLoc, Body0,
 		Body01)},
@@ -659,7 +666,7 @@ generate_rtchecks(F, A, M, Assertions, Pred, PDict, PLoc, UsePosLoc,
 		Body01 = Pred1,
 		lists_to_lits(Body0, Lits0)
 	    },
-	    [(:- use_inline(F/A)), (Pred :- Lits0)]  % TODO:T261
+	    [(Pred :- Lits0)]  % TODO:T261
 	;
 	    {Pred = Pred1}
 	),
@@ -670,10 +677,9 @@ generate_rtchecks(F, A, M, Assertions, Pred, PDict, PLoc, UsePosLoc,
 		Body1 \== Body12 ->
 		rename_head('1', A, Pred, Pred2),
 		Body12 = Pred2,
-		lists_to_lits(Body1, Lits1),
-		functor(Pred1, F1, A1)
+		lists_to_lits(Body1, Lits1)
 	    },
-	    [(:- use_inline(F1/A1)), (Pred1 :- Lits1)]  % TODO:T261
+	    [(Pred1 :- Lits1)]  % TODO:T261
 	;
 	    {Pred1 = Pred2}
 	).
