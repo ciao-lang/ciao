@@ -273,7 +273,7 @@ list([X|Xs], T) :-
 :- true prop nlist(L,T) + regtype #
 	"@var{L} is @var{T} or a nested list of @var{T}s.  Note that
 	if @var{T} is term, this type is equivalent to term, this
-	fact explain why we do not have a @pred{nlist/1} type".
+	fact explain why we do not have a @pred{nlist/1} type.".
 :- true comp nlist(L,T) + sideff(free).
 :- meta_predicate nlist(?, pred(1)).
 :- true comp nlist(L,T) : (ground(L),ground(T)) + eval.
@@ -394,7 +394,7 @@ num_code(0'-).
 :- doc(predname(P),"@var{P} is a Name/Arity structure denoting
 	a predicate name: @includedef{predname/1}").
 
-:- true prop predname(P) + regtype # "@var{P} is a predicate name".
+:- true prop predname(P) + regtype # "@var{P} is a predicate name.".
 :- true comp predname(P) + sideff(free).
 :- true comp predname(P) : ground(P) + eval.
 :- trust success predname(P) => predname(P).
@@ -423,7 +423,7 @@ atm_or_atm_list(T) :- list(T, atm).
    and @tt{[1|2]} are not.").
 
 :- true prop compat(Term,Prop)
-   # "@var{Term} is @em{compatible} with @var{Prop}".
+   # "@var{Term} is @em{compatible} with @var{Prop}.".
 :- meta_predicate compat(?, pred(1)).
 % not complety sure that assertiong below is completely correct,
 % unless side effects analysis understand pred(1) (metacalls).
