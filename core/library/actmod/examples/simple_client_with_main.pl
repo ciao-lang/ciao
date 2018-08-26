@@ -4,6 +4,7 @@
 
 :- use_module(simple_server, [population/2, shutdown/0], [active, reg_protocol(filebased)]).
 
+:- use_module(engine(io_basic)).
 :- use_module(library(aggregates)).
 :- use_module(library(errhandle)).
 

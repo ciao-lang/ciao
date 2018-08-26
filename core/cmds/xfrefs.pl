@@ -7,6 +7,7 @@
         [ assertions, regtypes
         ]).
 
+:- use_module(engine(stream_basic), [sourcename/1]).
 :- use_module(library(davinci)).
 :- use_module(library(xrefs), [xrefs_lgraph/2, xrefs_ugraph/2, xref/1]).
 :- reexport(library(xrefs),[ set_files/1, set_flag/1 ]).

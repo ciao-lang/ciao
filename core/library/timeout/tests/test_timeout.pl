@@ -2,6 +2,7 @@
 
 % TODO: document -- some seems broken
 
+:- use_module(engine(io_aux), [message/1]).
 :- use_module(library(timeout), [call_with_time_limit/3]).
 
 main([]):- test(2, _).

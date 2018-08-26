@@ -1,5 +1,7 @@
 :- module(_, _, [det_hook]).
 
+:- use_module(engine(io_basic)).
+
 get(Location, X, Y) :-
 	display(opening(Location)), nl,
 	OnCut = (display(closing(cut, Location)), nl),

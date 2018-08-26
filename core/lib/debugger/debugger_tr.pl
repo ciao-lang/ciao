@@ -3,7 +3,7 @@
 	    [assertions, hiord]).
 
 :- use_module(library(write),                  [printable_char/1]).
-:- use_module(library(lists),                  [delete/3, length/2]).
+:- use_module(library(lists),                  [member/2, delete/3, length/2]).
 :- use_module(library(sets),                   [insert/3]).
 :- use_module(library(debugger/debugger_lib), [functor_spec/5]).
 

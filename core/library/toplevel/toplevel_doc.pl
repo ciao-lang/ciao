@@ -202,6 +202,7 @@ yes
 @end{verbatim}
 ").
 
+:- use_module(engine(stream_basic), [sourcename/1]).
 :- reexport(library(toplevel),
         [use_module/1, use_module/2, ensure_loaded/1,
 	 make_exec/2,

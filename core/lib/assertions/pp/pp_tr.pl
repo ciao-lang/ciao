@@ -1,7 +1,7 @@
 :- module(pp_tr, [], []).
 
 :- use_module(library(process)).
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(system), [current_executable/1]).
 :- use_module(library(pathnames), [path_basename/2]).

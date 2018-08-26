@@ -1,15 +1,18 @@
 :- module(check_links, [main/1,check_links/2],[]).
+
 :- use_package(pillow).
 :- use_module(library(http/http_client)).
 :- use_module(library(http/url)).
+:- use_module(library(lists), [member/2]).
 
+:- use_module(engine(io_aux), [message/1, message/2]).
 :- use_module(library(format)).
 
 main([URL]) :- !,
         check_links(URL,BadLinks),
         report_bad_links(BadLinks).
 main(_) :-
-        error(['Usage: check_links <URL>']).
+        message(error, ['Usage: check_links <URL>']).
 
 check_links(URL,BadLinks) :-
         url_info(URL,URLInfo),

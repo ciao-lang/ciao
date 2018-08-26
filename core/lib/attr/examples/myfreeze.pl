@@ -1,4 +1,6 @@
-:- module(myfreeze, [myfreeze/2], [attr, dcg]).
+:- module(myfreeze, [myfreeze/2], [attr, dcg, hiord]).
+
+:- use_module(engine(io_basic)).
 
 :- meta_predicate(myfreeze(?, goal)). 
 

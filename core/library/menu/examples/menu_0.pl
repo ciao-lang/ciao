@@ -1,5 +1,7 @@
 :- module(_, [menu_demo/0], [assertions, regtypes, menu]).
 
+:- use_module(engine(io_basic)).
+
 % --------------------------------------------------------------------------
 % Entry point for testing:
 menu_demo :-

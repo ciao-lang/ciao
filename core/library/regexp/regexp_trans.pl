@@ -1,5 +1,7 @@
 :- module(regexp_trans, [pattern_unification/2], []).
 
+:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
+
 % TODO: This may be a special case of functional notation (JFMC)
 
 pattern_unification(:-(Head,Body), :-(NewHead,NewBody)) :-

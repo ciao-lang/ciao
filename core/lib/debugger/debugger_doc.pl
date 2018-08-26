@@ -237,6 +237,8 @@ See the following as a general example of use of the embedded debugger:
 @begin{verbatim}
 :- module( foo,[main/1],[assertions, debug]).
 
+:- use_module(engine(io_basic)).
+
 :- entry main/1.
 
 main(X) :- 

@@ -60,11 +60,12 @@ is_menu_level0(menu_java_level=naive).
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(lists), [select/3]).
+:- use_module(library(lists), [member/2, select/3]).
 
 member_and_remove(X, Xs, Ys) :- select(X, Xs, Ys), !.
 
 :- use_module(library(aggregates)).
+:- use_module(engine(stream_basic), [line_position/2]).
 :- use_module(library(write)).
 :- use_module(library(messages)).
 
@@ -131,6 +132,8 @@ menu_flag_values(ask(T)) :-
 
 % ---------------------------------------------------------------------------
 % THE OUTPUT FUNCTIONS
+
+:- use_module(engine(io_basic)).
 
 :- pred space(N) : num(N)
 # "prints @var{N} spaces.".

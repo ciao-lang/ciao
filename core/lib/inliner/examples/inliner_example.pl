@@ -3,6 +3,8 @@
 :- use_package(inliner).
 :- use_package(expander).
 
+:- use_module(engine(io_basic)).
+
 :- inline_module(inliner_example_inc).
 
 test2(A, B) :-

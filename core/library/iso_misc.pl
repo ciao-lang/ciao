@@ -10,6 +10,7 @@
 :- doc(module, "This module implements some miscellaneous ISO
    Prolog predicates.").
 
+:- use_module(engine(hiord_rt), [call/1]).
 :- use_module(library(between)).
 
 :- meta_predicate(once(goal)).

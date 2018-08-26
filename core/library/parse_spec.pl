@@ -1,7 +1,9 @@
 :- module(parse_spec, [parse_functor_spec/5], []).
 
 % Parse predicate spec or a list of them.
+% TODO: wrong module name
 
+:- use_module(engine(hiord_rt), [call/1]).
 :- use_module(engine(internals), 
         [module_concat/3, '$setarg'/4, '$current_predicate'/2]).
 

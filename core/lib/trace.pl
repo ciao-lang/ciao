@@ -2,6 +2,7 @@
 :- use_module(library(debugger/embedded_rt)).
 
 % TODO: Not very nice, avoid this use of initialization!
+:- use_module(engine(system_info), [this_module/1]).
 :- initialization((this_module(M), debug_module(M), trace)).
  
 :- new_declaration(spy/1).

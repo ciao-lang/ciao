@@ -13,6 +13,7 @@
 
 :- doc(bug, "Prune dependencies to builder (see TODO notes below)").
 
+:- use_module(library(lists), [member/2]).
 :- use_module(library(pathnames)).
 :- use_module(ciaobld(site_aux), [bundle_site_url/3]). % TODO: move to other module?
 
@@ -105,6 +106,7 @@ service_load_mode(Name, Mode) :-
 
 % TODO: change dynmod by main='...'? and dynmod?
 
+:- use_module(engine(io_basic)). % TODO: use message/2?
 :- use_module(engine(internals), ['$bundle_id'/1]).
 :- use_module(ciaobld(manifest_compiler), [
     ensure_load_manifest/1,
@@ -113,7 +115,8 @@ service_load_mode(Name, Mode) :-
 
 :- export(reload_service_registry/0).
 reload_service_registry :-
-	display(user_error, '   Loading service registry...'), nl(user_error), % TODO: slow! (see notes above)
+	display(user_error, '   Loading service registry...'), nl(user_error),
+	% TODO: slow! (see notes above)
 	clean_service_entries,
 	% TODO: make it optional?
 	% add_service_entry(core, actmod_ctl, [actmod]),

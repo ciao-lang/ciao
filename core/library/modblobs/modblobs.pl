@@ -55,6 +55,7 @@ q(b).
 
 :- use_module(library(system), [mktemp_in_tmp/2, make_directory/1]).
 :- use_module(library(system_extra), [del_file_nofail/1]).
+:- use_module(engine(stream_basic)).
 :- use_module(library(write), [portray_clause/2]).
 :- use_module(library(pathnames), [path_concat/3, path_splitext/3]).
 

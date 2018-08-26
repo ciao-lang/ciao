@@ -6,10 +6,6 @@
                 read_top_level/3, second_prompt/2, read_option/1],
 		[assertions, nortchecks, isomodes, define_flag]).
 
-:- use_module(library(tokenize)).
-:- use_module(library(operators)).
-:- use_module(library(lists), [list_insert/2, dlist/3, length/2, append/3]).
-
 :- doc(title,"Term input").  
 
 :- doc(module,"This module provides falicities to read terms in
@@ -23,6 +19,12 @@
 :- doc(author, "Manuel Carro (modifications and documentation)").
 :- doc(author, "Jose F. Morales (modifications for curly blocks,"||
                "postfix blocks, infix dot, string constants, and doccomments)").
+
+:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
+:- use_module(engine(stream_basic)).
+:- use_module(library(tokenize)).
+:- use_module(library(operators)).
+:- use_module(library(lists), [list_insert/2, dlist/3, length/2, append/3]).
 
 % TODO: Can this reader be implemented deterministically?
 %   The reader can do backtracking at some points:

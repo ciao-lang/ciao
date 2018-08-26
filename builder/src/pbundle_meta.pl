@@ -1,6 +1,7 @@
 :- module(pbundle_meta, [], [assertions, basicmodes,
 		nativeprops, fsyntax, hiord, regtypes]).
 
+:- use_module(engine(stream_basic)).
 :- use_module(library(read)).
 :- use_module(library(lists)).
 :- use_module(library(aggregates)).
@@ -108,8 +109,6 @@ list_meta_tmpl_(PDir, Dirs, F) :-
 	\+ Dir = 'current', % avoid it, its a symbolic link
 	F = ~path_concat(~path_concat(PDir, Dir), 'desc.tmpl'),
 	file_exists(F).
-
-:- use_module(library(lists), [append/3]).
 
 % ---------------------------------------------------------------------------
 

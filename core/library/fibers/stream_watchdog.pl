@@ -10,6 +10,8 @@
 
 :- use_module(library(sockets), [select_socket/5]).
 :- use_module(library(aggregates), [findall/3]).
+:- use_module(library(lists), [member/2]).
+:- use_module(engine(stream_basic), [stream/1]).
 
 % ---------------------------------------------------------------------------
 % Stream watchdog state

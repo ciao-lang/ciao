@@ -9,6 +9,8 @@
    flag}s but qualified by its bundle (i.e., @tt{Bundle:Name} is the
    flag @tt{Name} on bundle @tt{Bundle})").
 
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(streams), [open_output/2, close_output/1]).
 :- use_module(library(read), [read/2]).

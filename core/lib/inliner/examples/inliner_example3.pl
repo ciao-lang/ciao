@@ -1,5 +1,7 @@
 :- module(_, _, [hiord, inliner, expander]).
 
+:- use_module(engine(io_basic)).
+
 :- inline concat/3.
 :- unfold concat(yes, yes, no).
 :- export(concat/3).

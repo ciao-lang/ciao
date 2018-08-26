@@ -13,6 +13,8 @@
 %       cva/2				% general case
 %
 
+% :- use_module(engine(io_aux), [message/2]).
+
 :- set_prolog_flag(multi_arity_warnings, off).
 
 :- use_module(library(lists), [length/2]).
@@ -30,13 +32,13 @@ dump_print( Term) :-
 
 dump_internal( Term, Copy, Cs2) :-
   unmeta( Term, Copy1, Cs1, RootCvas1),
-  debug(['Dump, stage 1: ',RootCvas1,'\n',Cs1]),
+  % message(debug, ['Dump, stage 1: ',RootCvas1,'\n',Cs1]),
   remeta( Cs1),
   trans_ineq( Cs1, RootCvas1),
   make_indep( RootCvas1, RootCvas1), % after all simplex mods
                                      % (creates 'infeasible' rows)
-  unmeta( Copy1, Copy, Cs2, RootCvas2),
-  debug(['Dump, stage 2: ',RootCvas2,'\n',Cs2]).
+  unmeta( Copy1, Copy, Cs2, _RootCvas2).
+  % message(debug, ['Dump, stage 2: ',_RootCvas2,'\n',Cs2]).
 
 % Produce a copy of a (noncyclic) term with all CVA's replaced by fresh
 % ordinary vars. 2-phase approach because it helps to know which (cva)

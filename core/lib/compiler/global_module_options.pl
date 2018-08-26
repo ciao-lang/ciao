@@ -34,6 +34,9 @@
    based on some options. This will avoid many recompilations when
    switching between two (or more) fixed sets of options.").
 
+:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
+:- use_module(engine(stream_basic), [sourcename/1]).
+
 % ---------------------------------------------------------------------------
 % Global module options
 
@@ -130,7 +133,7 @@ glbmod_reset :-
 % TODO: Remove ad-hoc code for rtchecks, find a better solution. The
 %   current one mixes runtime flags with compile-time flags (JFMC)
 
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(aggregates), [findall/3]).
 
 :- export(glbmod_collect_packages/3).

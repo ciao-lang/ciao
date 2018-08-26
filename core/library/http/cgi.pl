@@ -13,12 +13,16 @@
 % TODO: move cookies to other place (e.g., http_serve, or a new http_common, etc.)
 
 :- use_module(library(strings), [whitespace0/2]).
+:- use_module(engine(io_basic)).
 :- use_module(library(stream_utils), [get_line/1]).
+:- use_module(engine(io_aux), [display_list/1, display_string/1]).
 :- use_module(library(lists), [append/3]).
 :- use_module(library(system), [getenvstr/2]).
 :- use_module(library(http/http_grammar), [http_media_type/5, http_crlf/2, http_lines/3, http_type_params/3]).
 :- use_module(library(http/http_forms)).
 :- use_module(library(http/multipart_form_data)).
+
+:- use_module(engine(prolog_flags), [current_prolog_flag/2]). % TODO: do not use flags for raw_form_values
 
 % ---------------------------------------------------------------------------
 % HTTP request from CGI environment
@@ -83,6 +87,7 @@ getenvatm(Name, Atm) :-
 	getenvstr(Name, Str),
 	atom_codes(Atm, Str).
 
+% TODO: move to stream_utils.pl
 % read N chars from input (N>=0)
 read_all(0, []) :- !.
 read_all(N, [C|Cs]) :-

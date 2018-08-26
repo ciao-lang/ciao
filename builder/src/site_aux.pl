@@ -14,6 +14,7 @@
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(system_extra), [mkpath/1]).
 :- use_module(library(glob), [glob/3]).
+:- use_module(library(lists), [member/2]).
 
 glob_cp(InDir, Glob, OutDir) :-
 	Fs = ~glob(InDir, Glob),

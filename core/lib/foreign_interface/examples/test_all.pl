@@ -1,5 +1,6 @@
 :- module(test_all, [main/0, test/1], []).
 
+:- use_module(library(lists), [member/2]).
 :- use_module(library(format)).
 
 file(addresses,'addresses/objects').

@@ -32,9 +32,11 @@
 :- doc(bug, "Implement more build systems (see GNU Guix manual)").
 :- doc(bug, "Easy import packages from other systems?").
 
+:- use_module(engine(system_info), [get_os/1, get_arch/1]).
+:- use_module(engine(io_aux), [message/1, message/2]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(terms), [atom_concat/2]).
-:- use_module(library(lists), [append/3, difference/3]).
+:- use_module(library(lists), [member/2, append/3, difference/3]).
 
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(http_get), [http_get/2]).
@@ -301,9 +303,8 @@ configure(Lib) :-
 	      [cwd(SrcDir), env(Env), status(0)])
 	; BuildSystem = custom ->
 	    m_third_party_custom_configure(Lib, Env)
-	; message(['ERROR: ', 'Unknown build system \'', BuildSystem,
-	           '\' for third-party \'', Lib, '\'']),
-	    fail
+	; message(error, ['Unknown build system \'', BuildSystem, '\' for third-party \'', Lib, '\'']),
+	  fail
 	),
 	message_end(Lib, Operation),!.
 
@@ -317,9 +318,8 @@ build(Lib) :-
 	; BuildSystem = custom ->
 	    get_env(Env),
 	    m_third_party_custom_build(Lib, Env)
-	; message(['ERROR: ', 'Unknown build system \'', BuildSystem,
-	           '\' for third-party \'', Lib, '\'']),
-	    fail
+	; message(error, ['Unknown build system \'', BuildSystem, '\' for third-party \'', Lib, '\'']),
+	  fail
 	),
 	message_end(Lib, Operation),!.
 
@@ -340,9 +340,8 @@ install(Lib) :- Operation = "install",
 	; BuildSystem = custom ->
 	    get_env(Env),
 	    m_third_party_custom_install(Lib, Env)
-	; message(['ERROR: ', 'Unknown build system \'', BuildSystem,
-	           '\' for third-party \'', Lib, '\'']),
-	    fail
+	; message(error, ['Unknown build system \'', BuildSystem, '\' for third-party \'', Lib, '\'']),
+	  fail
 	),
 	message_end(Lib, Operation),!.
 

@@ -25,6 +25,7 @@ invoke_lpdoc(Args) :-
 
 % ---------------------------------------------------------------------------
 
+:- use_module(engine(io_aux), [message/2]).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(source_tree), [copy_file_or_dir/2]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
@@ -90,7 +91,7 @@ build_doc(Bundle, Path) :-
 		'-t', 'all',
 		AbsPath])
 	; % Allow missing manuals (e.g., for NODISTRIBUTE content)
-	  warning(['Manual ', Path, ' is missing. Skipping build']) % TODO: error?
+	  message(warning, ['Manual ', Path, ' is missing. Skipping build']) % TODO: error?
 	).
 
 % ---------------------------------------------------------------------------
@@ -112,7 +113,7 @@ show_doc(Bundle, Path, DocFormat) :- % ManualBase
 		'--view', AbsPath])
 	; % Allow missing manuals (e.g., for NODISTRIBUTE content)
 	  % TODO: locate online?
-	  warning(['Manual ', Path, ' is missing.']) % TODO: error?
+	  message(warning, ['Manual ', Path, ' is missing.']) % TODO: error?
 	).
 
 % ---------------------------------------------------------------------------

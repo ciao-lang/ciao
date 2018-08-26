@@ -50,6 +50,9 @@
 %% Ciao end
     
 	  ]).
+
+:- use_module(engine(io_basic)).
+:- use_module(engine(io_aux), [message/2]).
 :- use_module(library(lists)).
 :- use_module(library(chr/local_assoc)).
 

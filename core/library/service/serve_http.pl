@@ -104,7 +104,7 @@ protected_send_and_receive(_ActRequest, ActResponse, Status) :-
 
 :- use_module(library(actmod/actmod_rt), [dist_log/1]).
 on_err(E) :-
-	dist_log([E]),
+	dist_log([~~(E)]),
 	fail.
 
 % TODO: do for any QProt

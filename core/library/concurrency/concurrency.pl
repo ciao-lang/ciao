@@ -19,6 +19,7 @@
 	[assertions, isomodes, foreign_interface]).
 
 :- use_module(library(prolog_sys), [new_atom/1]).
+:- use_module(engine(io_aux), [message/2]).
 
 :- use_module(engine(internals), [
         module_concat/3,
@@ -200,9 +201,7 @@ eng_status:- '$eng_status'.
         deprecated, and eng_goal_id/1 should be used instead.".
 
 eng_self(GoalId):-
-        display(user_error, 
-               'eng_self/1 is deprecated: use eng_goal_id/1 instead'),
-        nl,
+        message(error, ['eng_self/1 is deprecated: use eng_goal_id/1 instead']),
         eng_goal_id(GoalId).
 
 :- pred goal_id(?GoalId) :
@@ -212,8 +211,7 @@ eng_self(GoalId):-
         deprecated, and eng_goal_id/1 should be used instead.".
 
 goal_id(GoalId):- 
-        display(user_error, 
-               'goal_id/1 is deprecated: use eng_goal_id/1 instead'),
+        message(error, ['goal_id/1 is deprecated: use eng_goal_id/1 instead']),
         eng_self(GoalId).
 
 :- pred eng_goal_id(?GoalId) :

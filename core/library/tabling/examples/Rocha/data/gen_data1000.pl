@@ -1,6 +1,7 @@
 :- module(_, [main/0], []).
 
 :- use_module(library(between)).
+:- use_module(engine(io_basic)).
 :- use_module(library(write)).
 
 % NOTE: Execute this program to generate the data1000.pl benchmark

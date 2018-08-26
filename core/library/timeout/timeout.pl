@@ -12,6 +12,8 @@
 :- doc(bug, "Implement without threads").
 :- doc(bug, "See limitations of @pred{call_with_time_limit/3}.").
 
+:- use_module(engine(hiord_rt), [call/1]).
+
 :- pred call_with_time_limit(+Goal, +Time, +Handler) ::
      callable * int * callable 
    # "Succeed if @var{Goal} completes within @var{Time}

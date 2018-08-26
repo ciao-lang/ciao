@@ -16,8 +16,8 @@
 
 :- doc(author,"Francisco Bueno").
 
-% ISO-Prolog compatibility libraries
 :- use_module(library(format)).  
+:- use_module(engine(stream_basic)).  
 
 % Other libraries
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).

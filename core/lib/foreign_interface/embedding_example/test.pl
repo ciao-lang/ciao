@@ -1,5 +1,7 @@
 :- module(test, [main/0, mydisplay/1, numbers/1, member/2, complex_term/1], []).
 
+:- use_module(engine(io_basic)).
+
 main :-
 	display('hello from prolog'), nl.
 

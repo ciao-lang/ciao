@@ -1,5 +1,7 @@
 :- module(_, _, [assertions, regtypes, nativeprops, rtchecks, expander]).
 
+:- use_module(engine(io_basic)).
+
 :- pred nullasr(A, B).
 
 nullasr(_, _).

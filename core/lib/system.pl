@@ -92,7 +92,10 @@
    atom table. We need atom garbage collection and/or native
    strings.").
 
-:- use_module(library(lists), [append/3]).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(system_info), [get_exec_ext/1]).
+:- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3]).
+:- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 
 :- trust pred c_set_env(+atm,+atm).

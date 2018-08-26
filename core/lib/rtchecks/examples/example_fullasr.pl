@@ -12,6 +12,8 @@
 %   implementation and those for which there is none;
 % - each assertion part has at least 2 properties in it.
 
+:- use_module(engine(io_basic)).
+
 :- pred echo2(X,Y) :: (integer(X), gnd(Y))
                    :  (gnd(X), gnd(Y))
                    => (gnd(X), gnd(Y))

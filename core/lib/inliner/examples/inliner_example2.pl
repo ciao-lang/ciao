@@ -3,6 +3,8 @@
 
 :- use_package(expander).
 
+:- use_module(engine(io_basic)).
+
 :- unfold_meta.
 
 :- inline testpas2/2.

@@ -40,6 +40,10 @@
 	    ],
 	    [assertions, dcg, hiord]).
 
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
+:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(io_aux), [display_list/1]).
 :- use_module(engine(debugger_support)).
 :- use_module(engine(internals), ['$prompt'/2, '$predicate_property'/3,
 		'$setarg'/4, term_to_meta/2, '$current_predicate'/2]).
@@ -548,7 +552,7 @@ retry_hook_(X, B, D, [a(B, X, D, Dict)|A], A, Port, State, Dict) :-
 	D is D0+1,
 	( current_fact(debugdepth(M)), D=<M -> true
 	; adjust_debugger_state(State, trace),
-	    warning('Interpreter maxdepth exceeded')
+	  message(warning, ['Interpreter maxdepth exceeded'])
 	),
 	retry_hook(B, call, Port, '$$retry_hook').
 

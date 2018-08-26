@@ -1,5 +1,7 @@
 :- module(_, [aftr/3],[]).
 
+:- use_module(engine(io_aux), [message/2]).
+
 :- data bf_pred/3.
 
 aftr(end_of_file, L, M) :- !,
@@ -8,7 +10,7 @@ aftr(end_of_file, L, M) :- !,
 	    L= [(:- include(library(bf/af_rt))), end_of_file]
 	;
 	    L = end_of_file, 
-	    warning('bf/af package: no breadth-first predicate defined')
+	    message(warning, ['bf/af package: no breadth-first predicate defined'])
 	),
         retractall_fact(bf_pred(M,_,_)).
 aftr(<-(H,B), TrCls, M) :- !,

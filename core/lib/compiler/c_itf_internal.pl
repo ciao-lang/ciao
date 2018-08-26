@@ -75,6 +75,8 @@
 
 % ---------------------------------------------------------------------------
 
+:- use_module(engine(hiord_rt), [call/1]).
+
 :- use_module(library(compiler/translation)).
 :- use_module(library(compiler/pl2wam)).
 :- use_module(library(compiler/srcdbg), [srcdbg_expand/6]).
@@ -82,6 +84,15 @@
 :- use_module(library(compiler/global_module_options)).
 :- use_module(library(fastrw)).
 :- use_module(library(varnames/complete_dict)).
+:- use_module(engine(prolog_flags), [current_prolog_flag/2,
+     set_prolog_flag/2, prolog_flag/3, push_prolog_flag/2,
+     pop_prolog_flag/1]).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
+:- use_module(engine(io_aux), [display_term/1]). % TODO: move to terms_io?
+:- use_module(engine(io_aux), [message/1, message/2, message_lns/4]).
+:- use_module(engine(system_info), [current_module/1]).
+:- use_module(engine(system_info), [this_module/1]).
 :- use_module(engine(internals), [
 	filetype/3,
 	po_filename/2,
@@ -3254,7 +3265,7 @@ discard_delayed_dynlinks :-
 :- data foreign_library/2.
 
 check_dynlink(SoName, Module) :-
-	debug(['Calling ',check_dynlink(SoName, Module)]),
+	message(debug, ['Calling ',check_dynlink(SoName, Module)]),
 	current_fact(foreign_library(Module, LastSoTime)), !,
 	modif_time(SoName, SoTime),
 	( SoTime > LastSoTime ->
@@ -3264,12 +3275,12 @@ check_dynlink(SoName, Module) :-
 	; true
 	).
 check_dynlink(SoName, Module) :-
-	debug(['First time',''(check_dynlink(SoName, Module))]),
+	message(debug, ['First time',''(check_dynlink(SoName, Module))]),
 	modif_time(SoName, SoTime),
 	foreign_dynlink(SoName, Module),
 	assertz_fact(foreign_library(Module, SoTime)),
-	debug(['Asserted ',foreign_library(Module, SoTime)]),
-	debug(['Ended check_dynlink']).
+	message(debug, ['Asserted ',foreign_library(Module, SoTime)]),
+	message(debug, ['Ended check_dynlink']).
 
 check_dynunlink(Module) :-
 	retract_fact(foreign_library(Module, _)),

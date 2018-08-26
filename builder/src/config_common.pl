@@ -5,6 +5,7 @@
 :- doc(author, "The Ciao Development Team").
 :- doc(author, "Jose F. Morales").
 
+:- use_module(engine(system_info), [get_ciao_ext/1, get_exec_ext/1]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(pathnames), [path_concat/3]).
 

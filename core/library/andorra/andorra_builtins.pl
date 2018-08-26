@@ -2,10 +2,11 @@
 
 :- set_prolog_flag(multi_arity_warnings,off).
 
+:- use_module(engine(basic_props)). % TODO: rtc versions?
 :- use_module(library(terms_vars), [varset/2]).
 :- use_module(library(andorra/andorra_rt), [suspend_andorra/5]).
 
-
+% TODO: generate automatically?
 
 '>_andorra'(X,L,L1,_,Y):- 
  	( ground(X/Y) -> L=L1, X > Y ;

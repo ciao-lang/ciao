@@ -1,5 +1,7 @@
 :- module(_,[create_streams/2],[fsyntax,assertions,regtypes]).
 
+:- use_module(engine(stream_basic)).
+
 :- entry create_streams(A,B) : list(A,num).
 
 create_streams([])     := [].

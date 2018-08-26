@@ -7,7 +7,7 @@
 :- doc(module, "This module allows the execution of Ciao compiled
    programs (@tt{.cpx}) as child processes (see @lib{process}).").
 
-:- use_module(library(lists), [append/3, select/3]).
+:- use_module(library(lists), [member/2, append/3, select/3]).
 :- use_module(library(process)).
 :- use_module(library(system), [using_windows/0]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).

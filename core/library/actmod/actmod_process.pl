@@ -11,6 +11,7 @@
    (optionally in a new process) for an @var{DMod}.
    ").
 
+:- use_module(engine(stream_basic), [absolute_file_name/2]).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(system_extra), [del_file_nofail/1, file_to_line/2]).
 :- use_module(library(process), [
@@ -22,6 +23,7 @@
 :- include(library(actmod/actmod_hooks)).
 :- use_module(library(actmod/actmod_rt), [dist_log/1]).
 :- use_module(library(pathnames), [path_concat/3]).
+:- use_module(library(lists), [member/2]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Spawning active modules").
@@ -134,7 +136,7 @@ need_other_process(Opts) :-
 %   Spawn a DMod instance in a separate process
 actmod_spawn_process(DMod, Opts, ActRef) :-
 	singleton_actRef(DMod, ActRef),
-	dist_log(['spawning ', ActRef, ' (', DMod, ') with opts ', Opts]),
+	dist_log(['spawning ', ~~(ActRef), ' (', ~~(DMod), ') with opts ', ~~(Opts)]),
 	check_named(DMod, Opts, ActRef),
 	actI_alloc_named(DMod, ActRef), % ready to use this ActRef
 	process_args(DMod, Opts, ExecPath, ExecArgs),

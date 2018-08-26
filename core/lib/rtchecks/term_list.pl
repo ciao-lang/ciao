@@ -7,7 +7,7 @@
         [assertions, regtypes]).
 
 :- use_module(library(iso_misc), [compound/1]). % see bug comment in iso_misc
-:- use_module(library(lists),    [select/3]).
+:- use_module(library(lists),    [member/2, select/3]).
 :- use_module(library(assertions/native_props), [nonground/1]).
 
 :- doc(author, "Edison Mera").

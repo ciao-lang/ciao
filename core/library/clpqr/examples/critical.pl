@@ -1,6 +1,8 @@
 :- module(_,[go1/0, go2/0, go3/0, cpm/2, cpm/3, print_analysis/1], []).
 :- use_package(clpq).
 
+:- use_module(engine(io_aux), [message/1]).
+
 % Sample goals: go1/0, go2/0, go3/0
 
 :- set_prolog_flag(multi_arity_warnings, off).

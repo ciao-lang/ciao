@@ -1,6 +1,6 @@
 :- module(random_aggregates, [
     random_findall/4
-   ], [assertions, isomodes, nativeprops]).
+   ], [assertions, isomodes, nativeprops, hiord]).
 
 :- doc(title, "Randomized aggregates").
 :- doc(author, "Jose F. Morales").

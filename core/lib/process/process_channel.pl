@@ -23,6 +23,8 @@
 :- use_module(library(lists), [append/3]).
 :- use_module(library(port_reify)).
 
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 :- use_module(library(system),
 	[file_exists/1,
 	 mktemp_in_tmp/2,

@@ -2,6 +2,7 @@
 
 :- include(library(fsyntax/ops)).
 
+:- use_module(engine(io_aux), [message/2]).
 :- use_module(library(terms), [copy_args/3]).
 
 % Database to store declaration for the currently compiled module
@@ -95,13 +96,13 @@ defunc_decl(fun_eval(Spec), _, Mod) :- !,
         ; function_output_arg(Spec, Fun, A, QM) ->
             asserta_fact(fun_return(Fun, A, Mod, QM)),
             make_fun_eval(Fun, Mod, QM)
-        ; error(['Invalid fun_eval specification: ',Spec])
+        ; message(error, ['Invalid fun_eval specification: ',Spec])
         ).
 defunc_decl(fun_return(FSpec), _, Mod) :- !,
         ( function_output_arg(FSpec, Fun, A, QM) ->
             asserta_fact(fun_return(Fun, A, Mod, QM))
         ;
-            error(['Invalid fun_return specification: ',FSpec])
+            message(error, ['Invalid fun_return specification: ',FSpec])
         ).
 defunc_decl(lazy(Decl), (:- lazy(LazySpec)), Mod) :- !,
         defunc_lazy_decl(Decl, LazySpec, Mod).
@@ -126,7 +127,7 @@ defunc_lazy_decl(fun_eval(Spec), LazySpec, Mod) :- !,
             asserta_fact(fun_return(Fun, Arg, Mod, (-))),
             make_fun_eval(Fun, Mod, (-)),
             LazySpec = F/A-Arg
-        ; error(['Invalid fun_eval specification in lazy declaration: ',Spec])
+        ; message(error, ['Invalid fun_eval specification in lazy declaration: ',Spec])
         ).
 defunc_lazy_decl(fun_return(Spec), LazySpec, Mod) :- !,
         ( functor(Spec, F, A), has_tilde(A, Spec, Arg) ->
@@ -134,12 +135,11 @@ defunc_lazy_decl(fun_return(Spec), LazySpec, Mod) :- !,
             functor(Fun, F, Am1),
             asserta_fact(fun_return(Fun, Arg, Mod, (-))),
             LazySpec = F/A-Arg
-        ; error(['Invalid fun_return specification in lazy declaration: ',Spec])
+        ; message(error, ['Invalid fun_return specification in lazy declaration: ',Spec])
         ).
 
 warning_function_decl :-
-        warning(
-	   'Declaration "function" deprecated, please use "fun_eval" instead').
+        message(warning, ['Declaration "function" deprecated, please use "fun_eval" instead']).
 
 % Are arithmetic operation interpreted as functions?
 arith_flag(Mod, ArithF) :-
@@ -504,7 +504,7 @@ not_tilde(A, F) :-
         A1 is A-1,
         not_tilde(A1, F).
 not_tilde(_, F) :-
-        error(['More than one "~" marking function return argument in ',F]).
+        message(error, ['More than one "~" marking function return argument in ',F]).
 
 del_last_true(true, true).
 del_last_true((G, Gs), NG) :-

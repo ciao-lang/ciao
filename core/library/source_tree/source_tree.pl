@@ -198,7 +198,7 @@ walk_event(file).
 	 directory_files/2]).
 :- use_module(library(pathnames),
 	[path_concat/3, path_split/3, path_relocate/4]).
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 
 :- pred walk(+Filter, +BaseDir, +Action)
    # "Perform @var{Action} recursively on files matching @var{Filter}
@@ -1031,6 +1031,7 @@ strings_atoms(Line, [Atom]) :-
 
 % ----------------------------------------------------------------------------
 
+:- use_module(engine(stream_basic)).
 :- use_module(library(read), [read/2]).
 
 :- export(file_srctype/1).

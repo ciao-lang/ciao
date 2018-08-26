@@ -34,6 +34,7 @@
    archive).
 ").
 
+:- use_module(library(lists), [member/2]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(process), [process_call/3]).

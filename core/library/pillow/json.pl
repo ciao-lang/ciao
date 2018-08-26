@@ -1,6 +1,7 @@
 :- module(json, [], [assertions, regtypes, basicmodes, dcg, fsyntax]).
 
 :- doc(title, "JSON encoder and decoder").
+:- doc(author, "Jose F. Morales").
 
 :- doc(module, "This module defines a term representation for
    @href{http://json.org/}{JSON} (JavaScript Object Notation), as well
@@ -12,8 +13,6 @@
    @end{alert}
 ").
 
-:- doc(author, "Jose F. Morales").
-
 :- doc(bug, "The grammar probably incomplete. See
    @href{http://json.org} for a complete reference.").
 
@@ -24,6 +23,7 @@
   only object or array are valid as top-level for JSON text").
 
 :- use_module(library(strings), [string/3]). % (for DCGs)
+:- use_module(library(lists), [member/2]).
 
 % ===========================================================================
 

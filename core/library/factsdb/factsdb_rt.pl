@@ -5,6 +5,7 @@
 
 :- use_module(engine(internals), [term_to_meta/2]).
 :- use_module(library(counters)).
+:- use_module(engine(stream_basic)).
 :- use_module(library(read), [read/2]).
 :- use_module(library(persdb/persdb_cache)).
 

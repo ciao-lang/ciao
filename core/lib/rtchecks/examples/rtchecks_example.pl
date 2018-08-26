@@ -24,6 +24,7 @@
 		regtypes, rtchecks, expander]).
 
 :- use_module(library(aggregates)).
+:- use_module(engine(io_basic)).
 
 :- doc(author, "Edison Mera").
 

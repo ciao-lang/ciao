@@ -1,5 +1,6 @@
 :- module(lazytr, [lazy_sentence_translation/3], []).
 
+:- use_module(engine(io_aux), [message/2]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(lists), [reverse/2]).
 :- use_module(library(aggregates)).
@@ -58,7 +59,7 @@ treat_lazy_decl(Mod, Specification) :-
 	    make_proc_lazy(Mod, N, Args, Args)
 	; Specification = -(N/Args,Res) ->
 	    make_proc_lazy(Mod, N, Args, Res)
-	; inform_user(['Invalid lazy specification: ', Specification])
+	; message(warning, ['Invalid lazy specification: ', ~~(Specification)])
 	).
 
 lazy_sentence_translation_proc(Module, Head, Body, NewHead, NewBody) :-

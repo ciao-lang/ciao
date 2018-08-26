@@ -4,6 +4,7 @@
 % '$block'/2 predicate, which is called from wrappers introduced by
 % the block translation module.
 
+:- use_module(engine(hiord_rt), [call/1]).
 :- use_module(library(freeze)).
 
 :- meta_predicate('$block'(?, goal)).

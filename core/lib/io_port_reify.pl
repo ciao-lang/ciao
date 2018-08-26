@@ -11,6 +11,7 @@
 
 :- use_module(library(system), [mktemp_in_tmp/2]).
 :- use_module(library(system_extra), [del_file_nofail/1]).
+:- use_module(engine(stream_basic)).
 :- use_module(library(stream_utils), [file_to_string/2]).
 :- use_module(library(port_reify), [once_port_reify/2]).
 :- use_module(library(io_alias_redirection), [set_stream/3]).

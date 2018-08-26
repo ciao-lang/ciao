@@ -28,6 +28,7 @@ dir_to_bundle(BundleDir, Bundle) :-
 
 % ---------------------------------------------------------------------------
 
+:- use_module(engine(stream_basic)).
 :- use_module(engine(internals), [ciao_root/1, ciao_path/1]).
 :- use_module(library(pathnames), [path_get_relative/3]).
 
@@ -166,6 +167,8 @@ generate_version_auto(Bundle, File) :-
 % TODO: move somewhere else?
 
 :- use_module(library(write), [portray_clause/2]).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic), [display/2]).
 :- use_module(library(hiordlib), [maplist/2]).
 
 :- export(print_clauses_to_file/2).

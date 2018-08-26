@@ -17,6 +17,7 @@
 :- use_module(library(pathnames),
 	[pathname/1, path_concat/3, path_split_list/2,
 	 path_is_root/1]).
+:- use_module(library(lists), [member/2]).
 
 :- export(glob_pattern/1).
 

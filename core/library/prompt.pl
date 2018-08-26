@@ -1,4 +1,3 @@
-
 :- module(prompt,
 	[ prompt_for/1,
 	  prompt_for/2,
@@ -7,6 +6,8 @@
 	],
 	[
 	]).
+
+:- use_module(engine(io_basic)).
 
 prompt_for(Atom):- prompt_for(user,Atom).
 

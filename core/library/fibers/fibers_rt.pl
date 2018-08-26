@@ -182,6 +182,7 @@ get_async_ftypes(G, FTypes) :-
 % Obtain suspensions (including a continuation goal and transient state)
 % for the current actI
 
+% :- use_module(engine(io_aux), [message/2]).
 :- use_module(library(fibers/fibers_data)).
 
 % TODO: support incremental suspensions (save diff of states; see persistent preds)
@@ -195,7 +196,7 @@ get_async_ftypes(G, FTypes) :-
 %	( DMod2 = ~fnct_mod(G), fnct_property(G, async),
 %	  '$local_actmod'(DMod2),
 %	  \+ DMod = DMod2 -> % TODO: why?
-%	    inform_user(['WARNING: suspending non-current active module instance ', DMod2, ' (from ', DMod, ')'])
+%	    message(warning, ['suspending non-current active module instance ', DMod2, ' (from ', DMod, ')'])
 %	; true
 %	),
 	DMod = ~fnct_mod(G), fnct_property(G, async), % TODO:T253 see commented code above
@@ -210,7 +211,7 @@ get_async_ftypes(G, FTypes) :-
 '$fiber_susp_spawn'(G) := PA :-
 	DMod = ~fnct_mod(G), fnct_property(G, async),
 	% ( \+ '$local_actmod'(DMod) -> % NOTE: Not a problem, props in stub
-	%   inform_user(['WARNING: cannot spawn a non-active module ', DMod])
+	%     message(warning, ['cannot spawn a non-active module ', DMod])
 	% ; true
 	% ),
 	t_fresh_data(State),

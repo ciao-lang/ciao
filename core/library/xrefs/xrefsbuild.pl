@@ -1,12 +1,12 @@
-
 :- module(xrefsbuild,
 	[ xref/1,
 	  xrefs/2,
 	  set_flag/1
 	],
-	[ assertions, regtypes
+	[ assertions, regtypes, hiord
 	]).
 
+:- use_module(library(lists), [member/2]).
 :- use_module(library(sort), [sort/2]).  
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(xrefs/xrefsread), [meta_call/3, xrefs_files/1]).

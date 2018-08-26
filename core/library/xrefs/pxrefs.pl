@@ -9,6 +9,8 @@
 :- use_module(library(xrefs/xrefsbuild), [xrefs/2, xref/1]).
 :- reexport(library(xrefs/xrefsbuild),[ set_flag/1 ]).
 :- reexport(library(xrefs/xrefsread),[ set_files/1 ]).
+
+:- use_module(engine(io_basic)).
 :- use_module(library(write), [write/1]).  
 
 :- doc(title,"Lists of crossed-references between files").

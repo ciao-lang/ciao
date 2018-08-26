@@ -1,5 +1,6 @@
 :- module(id_tr, [id_sentence/3, id_clause/3],[assertions, hiord]).
 
+:- use_module(engine(io_aux), [message/2]).
 :- use_module(library(lists), [append/3]).
 :- use_module(library(terms), [atom_concat/2]).
 
@@ -13,7 +14,7 @@ id_sentence(end_of_file, end_of_file, Module):-!,
 	    current_fact(iterative(Module, _, _, _)) -> 
 	    true
 	;
-	    warning(['No iterative predicate declared in module ', Module])
+	    message(warning, ['No iterative predicate declared in module ', Module])
 	).
 id_sentence((:- Decl), [], Module):-
 	( 
@@ -46,7 +47,7 @@ declare_iterative(Module, F/N, Info):-
 	functor(Call, F, N), 
 	(
 	    current_fact(iterative(Module, Call, _, _)) ->
-	    warning(['Predicate ', Module:F/N, ' already delcared as iterative. Declaration ignored.'])
+	    message(warning, ['Predicate ', Module:F/N, ' already delcared as iterative. Declaration ignored.'])
 	;
 	    transform_iterative(Call, Call_depth, Depth),
 	    assertz_fact(iterative(Module, Call, (Call_depth,Depth), Info))

@@ -17,8 +17,9 @@ $ ciaoc_sdyn MAIN
 	po_filename/2,
 	so_filename/2,
 	find_pl_filename/4]).
+:- use_module(engine(system_info), [get_os/1]).
 :- use_module(library(aggregates), [findall/3]).
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(llists), [flatten/2]).
 :- use_module(library(system),
 	[file_exists/1, copy_file/3, delete_file/1, working_directory/2]).

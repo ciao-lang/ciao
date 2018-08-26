@@ -26,6 +26,9 @@
 :- use_module(library(lists)).
 :- use_module(library(llists), [flatten/2]).
 :- use_module(library(aggregates), [findall/3]).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(system_info),
+	[get_platform/1, ciao_c_headers_dir/1, eng_is_sharedlib/0]).
 :- use_module(library(system), [delete_file/1,modif_time0/2,file_exists/1]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(messages), 

@@ -124,6 +124,8 @@
 
 % ---------------------------------------------------------------------------
 
+:- use_module(engine(stream_basic), [sourcename/1]).
+
 :- doc(doinclude,module/3).
 :- decl module(Name, Exports, Packages)
         : modulename * list(predname) * list(sourcename)

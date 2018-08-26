@@ -21,7 +21,7 @@
 %% Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 %% ---------------------------------------------------------------------------
 :- module(fd_optim, [fd_minimize/2, fd_maximize/2], 
-	            [assertions, fsyntax]).
+	            [assertions, fsyntax, hiord]).
 :- doc(nodoc, assertions).
 
 :- doc(title, "Optimization constraints").

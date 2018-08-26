@@ -1,7 +1,7 @@
 :- module(webbased_common, [], []).
 
 :- use_module(library(read_from_string), [read_from_string_atmvars/2]).
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(http/http_client)).
 
 % ---------------------------------------------------------------------------

@@ -5,6 +5,8 @@
 
 :- doc(module, "Testing hiord and functions").
 
+:- use_module(engine(io_basic)).
+
 :- fun_eval hiord(true).
 
 test :-

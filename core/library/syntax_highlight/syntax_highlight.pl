@@ -8,6 +8,7 @@
 
 :- use_module(library(lists), [append/3]).
 :- use_module(library(system), [file_exists/1]).
+:- use_module(engine(stream_basic), [absolute_file_name/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(emacs/emacs_batch),

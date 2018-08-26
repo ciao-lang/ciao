@@ -1,8 +1,7 @@
 :- module(_,_,[functional]).
 
-:- use_module(library(write), [write/1]).
+:- use_module(engine(io_aux), [display_string/1]).
 
 testapp :- 
-	set_prolog_flag(write_strings,on),
 	X = " my ",
-	write("Hello" ++ X ++ "world!").
+	display_string("Hello" ++ X ++ "world!").

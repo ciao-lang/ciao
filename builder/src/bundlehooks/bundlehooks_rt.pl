@@ -1,5 +1,7 @@
 :- module(_, [], []).
 
+:- use_module(engine(hiord_rt), [call/1]).
+
 :- export(default_preinstalled/3).
 % Use preinstalled version by default if available
 :- meta_predicate default_preinstalled(goal, ?, ?).

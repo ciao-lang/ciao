@@ -15,6 +15,7 @@
    place to which the Prolog's standard error stream goes from within
    Prolog (e.g., to start a log file).").
 
+:- use_module(engine(stream_basic), [stream_alias/1, stream/1]).
 
 :- pred set_stream(+StreamAlias, +NewStream, ?OldStream): 
    stream_alias * stream * stream 

@@ -25,12 +25,15 @@
 		message_t/1
 	    ],
 	    [
-		assertions, regtypes, isomodes
+		assertions, regtypes, isomodes, hiord
 	    ]).
 
 %% NOTE: if you change the output format of messages you 
 %%       will probably also want to change ciao.el
 
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
+:- use_module(engine(prolog_flags)).
 :- use_module(library(format)).
 
 % Other libraries
@@ -360,6 +363,8 @@ compose(Type, SO, Module, Mess, Args) :-
 	simplify_module(Module, SimplifiedModule),
 	AllArgs = [Type, SimplifiedModule|Args],
 	compose_common(SO, CMess, AllArgs).
+
+:- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3]).
 
 compose_common(SO, CMess, AllArgs) :-
 	(

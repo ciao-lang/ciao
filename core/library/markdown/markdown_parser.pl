@@ -11,6 +11,7 @@
 :- use_module(library(read_from_string),
 	[read_from_string/2,
 	 read_from_string_opts/4]).
+:- use_module(library(lists), [member/2, append/3]).
 
 :- use_module(library(markdown/markdown_syntax)).
 
@@ -101,8 +102,6 @@ itemize_env(env(Cmd, Envs0), env(Cmd, Envs)) :-
 	; throw(failed_itemize_envs)
 	).
 itemize_env(Env, Env).
-
-:- use_module(library(lists), [append/3]).
 
 % Put together contiguous text inside 'section-like' environments.
 sectionize_envs([], []).

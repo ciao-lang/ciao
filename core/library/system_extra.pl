@@ -17,6 +17,7 @@
    atoms to represent file names. This pollutes the atom table. We
    need atom garbage collection and/or native strings.").
 
+:- use_module(engine(stream_basic)).
 :- use_module(library(system),
 	[working_directory/2,
 	 file_exists/1,

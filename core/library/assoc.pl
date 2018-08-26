@@ -442,11 +442,10 @@ new_N(yes(_),delete,N_Old,N_New) :- N_New is N_Old - 1.
        known to be no).  An error is thrown otherwise.".
 
 add_assoc(K,OldAssoc,Val,NewAssoc) :- 
-        put_assoc(K,OldAssoc,Val,NewAssoc,no) ->
-        true
-; 
-	error("add_assoc: key already appears in table").
-
+        ( put_assoc(K,OldAssoc,Val,NewAssoc,no) ->
+	    true
+	; throw(error(key_already_in_table, add_assoc/4))
+	).
 
 :- pred update_assoc(+K,+Assoc1,+V,-Assoc2,-OldVar) : (key(K),
      assoc_table(Assoc1), value(V), assoc_table(Assoc2), value(OldVar))
@@ -455,10 +454,10 @@ add_assoc(K,OldAssoc,Val,NewAssoc) :-
        known to be no).  An error is thrown otherwise.".
 
 update_assoc(K,OldAssoc,V,NewAssoc,OldVal) :- 
-        put_assoc(K,OldAssoc,V,NewAssoc,yes(OldVal)) ->
-	true
-;     
-	error("update_assoc: key does not appear in table").
+        ( put_assoc(K,OldAssoc,V,NewAssoc,yes(OldVal)) ->
+	    true
+	; throw(error(key_not_in_table, update_assoc/5))
+	).
 
 :- pred max_assoc(+Assoc, -Key, -Value) : 
      (assoc_table(Assoc), key(Key), value(Value))

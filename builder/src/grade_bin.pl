@@ -117,6 +117,7 @@ do_clean_bundle(Bundle) :-
 % ---------------------------------------------------------------------------
 % Primitive targets for bin grade
 
+:- use_module(library(lists), [member/2]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(ciaobld(messages_aux), [normal_message/2]).

@@ -6,6 +6,14 @@
         ],
         [assertions]).
 
+:- doc(author, "Edison Mera").      % code
+:- doc(author, "Nataliia Stulova"). % documentation
+
+:- doc(module, "This module contains predicates used to transform
+        run-time errors into human-readable messages.").
+
+:- use_module(engine(prolog_flags)).
+:- use_module(engine(io_aux)).
 :- use_module(library(lists), [append/3, reverse/2, select/3]).
 :- use_module(library(assertions/native_props), [is_det/1]).
 :- use_module(library(hiordlib), [maplist/3]).
@@ -15,14 +23,10 @@
 :- use_module(library(varnames/apply_dict),     [apply_dict/4]).
 :- use_module(library(varnames/complete_dict),  [complete_dict/4]).
 
-:- doc(author, "Edison Mera").      % code
-:- doc(author, "Nataliia Stulova"). % documentation
-
-:- doc(module, "This module contains predicates used to transform
-        run-time errors into human-readable messages.").
-
 % TODO: possibly move rtchecks_basic:get_pretty_names/5 and its
 %       related predicates here.
+
+:- use_module(engine(prolog_flags), [push_prolog_flag/2, pop_prolog_flag/1]). % TODO: needed? (see messages/1)
 
 % Used in the rtchecks and unittest libraries only
 :- pred pretty_messages(Messages) : list(Messages, message_info)

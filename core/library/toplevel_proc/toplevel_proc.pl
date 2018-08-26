@@ -24,6 +24,8 @@
 :- use_module(library(process)).
 :- use_module(library(format), [format/2, format/3]).
 :- use_module(library(stream_wait)).
+:- use_module(engine(stream_basic), [flush_output/1, close/1]).
+:- use_module(engine(io_basic)).
 
 :- use_module(ciaobld(config_common), [cmd_path/4]).
 cmd_execname(ciaosh) := ~cmd_path(core, plexe, 'ciaosh').

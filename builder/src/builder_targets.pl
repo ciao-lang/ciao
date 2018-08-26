@@ -114,8 +114,10 @@ resolve_target(Target0, OnUnknown, Target) :-
 % ---------------------------------------------------------------------------
 
 :- use_module(library(system), [file_properties/6]).
+:- use_module(engine(prolog_flags), [prolog_flag/3, set_prolog_flag/2]).
 
 % TODO: duplicated
+% TODO: better solution (e.g., catch exceptions)
 is_dir(Path) :-
         prolog_flag(fileerrors, OldFE, off),
         file_properties(Path, directory, [], [], [], []),

@@ -23,6 +23,7 @@
 % Save/restore transient data facts
 
 :- use_module(library(aggregates), [findall/3]).
+:- use_module(library(lists), [member/2]).
 
 :- export(t_data_restore/1).
 t_data_restore(State) :-

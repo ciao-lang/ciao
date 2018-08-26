@@ -6,7 +6,7 @@
 %  \module
 %  This module implements URL encoding/decoding predicates.
 
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(http/http_grammar), [digit/3, parse_integer/3, loalpha/3, upalpha/3]).
 
 % ----------------------------------------------------------------------------

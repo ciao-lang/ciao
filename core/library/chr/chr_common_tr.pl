@@ -1,9 +1,13 @@
+:- use_package(hiord).
+
 :- data module_cls/2.
 
 :- use_module(library(chr/aggregates_nat)).
 :- use_module(library(pretty_print)).
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(messages), [note_message/1]).
+:- use_module(engine(io_basic), [display/1, nl/0]).
+:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
 
 chr_compile_module( 0 , _ , M ) :-
 	retractall_fact( module_cls( M , _ ) ),

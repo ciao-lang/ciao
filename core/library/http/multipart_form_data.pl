@@ -7,7 +7,7 @@
 %
 %  Parsing of multipart/form-data media type (RFC7578).
 
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(http/http_forms), [lines_to_value/2]).
 :- use_module(library(http/http_grammar)).
 

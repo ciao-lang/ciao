@@ -1,5 +1,7 @@
 :- module(_, [bftr/3],[assertions]).
 
+:- use_module(engine(io_aux), [message/2]).
+
 :- data bf_pred/3.
 
 bftr(end_of_file, L, M) :- !,
@@ -8,7 +10,7 @@ bftr(end_of_file, L, M) :- !,
 	    L= [(:- include(library(bf/bf_rt))), end_of_file]
 	;
 	    L = end_of_file, 
-	    warning('bf package: no breadth-first predicate defined')
+	    message(warning, ['bf package: no breadth-first predicate defined'])
 	),
         retractall_fact(bf_pred(M,_,_)).
 bftr(<-(H,B), TrCls, M) :- !,

@@ -1,5 +1,6 @@
 :- module(queuedy, [main/1],[persdb,iso]).
 
+:- use_module(engine(io_aux), [message/2]).
 :- use_module(library(read)).
 :- use_module(library(write)).
 :- use_module(library(aggregates)).
@@ -9,7 +10,7 @@
 queue(first).
 queue(second).
 
-main([]) :- error('You have to provide a directory').
+main([]) :- message(error, ['You have to provide a directory']).
 main([Dir]) :-
         asserta_fact(persistent_dir(queue_dir,Dir)),
         initialize_db,

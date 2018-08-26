@@ -97,8 +97,8 @@ codif_opt(lock(Mode), _, Codif) :- !,
 codif_opt(lock_nb(Mode), _, Codif) :- !,
         lock_mode(Mode, M),
         atom_concat(l,M,Codif).
-codif_opt(Opt, Codif, Codif) :-
-        message(warning, ['Open option ',Opt,' not yet implemented']).
+codif_opt(_Opt, _Codif, _Codif) :- fail. % (caller will throw exception)
+        % message(warning, ['Open option ',Opt,' not yet implemented']).
 
 lock_mode(read, r).
 lock_mode(shared, r).

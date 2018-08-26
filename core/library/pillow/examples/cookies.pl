@@ -3,6 +3,7 @@
 :- use_module(library(pillow/html)).
 :- use_module(library(http/http_forms)).
 :- use_module(library(http/cgi)).
+:- use_module(library(lists), [member/2]).
 :- include(library(pillow/ops)).
 
 main :-

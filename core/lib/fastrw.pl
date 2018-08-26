@@ -20,6 +20,8 @@
 @end{itemize}
 ").
 
+:- use_module(engine(stream_basic)).  
+
 :- doc(bug, "Both @pred{fast_read/2} and @pred{fast_write/2} simply
    set the current output/input and call @pred{fast_read/1} and
    @pred{fast_write/1}.  Therefore, in the event an error happens

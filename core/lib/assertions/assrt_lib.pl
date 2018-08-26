@@ -71,6 +71,11 @@ library @lib{compiler/c_itf}.
 :- use_module(library(read)).
 
 % Other libraries
+:- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3,
+      push_prolog_flag/2, pop_prolog_flag/1]).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_aux), [display_term/1]).
+:- use_module(engine(io_aux), [message/1, message/2]).
 :- use_module(engine(internals), [asr_filename/2]).
 :- use_module(library(fastrw)).
 :- use_module(library(assertions/assrt_write), [write_assertion/6]).
@@ -82,7 +87,7 @@ library @lib{compiler/c_itf}.
 :- use_module(library(messages)).
 % :- use_module(library(miscprops)).
 %% :- use_module(library(formulae),[list_to_conj/2]).
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(system), 
 	[fmode/2,chmod/2,file_exists/1,file_exists/2,delete_file/1]).
 :- use_module(library(compiler/translation), 

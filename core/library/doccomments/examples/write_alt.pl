@@ -17,6 +17,10 @@
 :- use_module(library(sort)).
 :- use_module(engine(internals), ['$atom_mode'/2]).
 :- use_module(engine(attributes)).
+:- use_module(engine(io_basic)).
+:- use_module(engine(stream_basic)).
+
+:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
 
 %--------------------------------------------------------------------
 %! title: Term output

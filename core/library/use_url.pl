@@ -1,10 +1,14 @@
 :- module(use_url,
 	[use_module_url/2,use_module_url/3,use_module_url/4],
 	[assertions]).
+
+:- use_module(library(lists), [member/2]).
 :- use_module(library(compiler), [use_module/3]).
 :- use_module(library(system), 
 	[delete_directory/1,delete_file/1,directory_files/2,
 	 make_directory/1,mktemp_in_tmp/2]). 
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 
 :- use_module(library(http/http_client)).
 :- use_module(library(http/url)).

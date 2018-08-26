@@ -1,15 +1,17 @@
 :- module(internals, [], [assertions, basicmodes, nortchecks, regtypes]).
 
-:- use_module(user, [main/0, main/1, aborting/0]).
-
 :- doc(title, "Engine Internal Predicates").  
 
-:- doc(module, "This library lists a set of internal predicates
-   (written in C) used by the system code (including boot code). They
+:- doc(module, "This module defines internal predicates (most written
+   in C) used by the runtime system code (including boot code). They
    should not be used in user code. The file itself provides handles
    for the module system into the internal definitions.").
 
+:- use_module(user, [main/0, main/1, aborting/0]).
 :- use_module(engine(hiord_rt), ['SYSCALL'/1, '$nodebug_call'/1, '$meta_call'/1]).
+:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(prolog_flags), [current_prolog_flag/2, prolog_flag/3, set_prolog_flag/2]).
+:- use_module(engine(system_info), [get_os/1, get_arch/1, get_a_ext/1, get_so_ext/1]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Internal Debugging").
@@ -41,6 +43,8 @@
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Stream support").
+
+:- use_module(engine(stream_basic), [atm_or_int/1, stream/1]). % TODO: circular?
 
 :- export('$open'/3).
 :- trust pred '$open'(File,Mode,Stream) : (atm_or_int(File), atm(Mode)) => stream(Stream).
@@ -797,6 +801,8 @@ module_concat(_, X, X). % If a number, do not change to complain later
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Dynamic loading of libraries").
+
+:- use_module(engine(stream_basic), [close/1]).
 
 :- export(load_lib/2).
 :- pred load_lib(Module,File) : atm * atm.

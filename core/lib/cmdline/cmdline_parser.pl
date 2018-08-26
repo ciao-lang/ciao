@@ -91,7 +91,7 @@ parse_fmt([], _, _, _) --> !.
 % ---------------------------------------------------------------------------
 :- doc(section, "Parse command line elements (options, flags, targets)").
 
-:- use_module(library(lists), [list_concat/2]).
+:- use_module(library(lists), [member/2, list_concat/2]).
 :- use_module(library(hiordlib), [maplist/3]).
 
 parse_opts(OptsFmt, Opts) -->

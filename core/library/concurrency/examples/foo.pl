@@ -1,7 +1,9 @@
-:- module(foo, [main/0], []).
+:- module(foo, [main/0], [hiord]).
 
 :- use_module(library(concurrency)).
 :- use_module(library(system)).
+:- use_module(engine(io_basic)).
+:- use_module(engine(prolog_flags), [set_prolog_flag/2]).
 
 :- concurrent goal_solution_ready/1.
 

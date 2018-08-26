@@ -1,6 +1,6 @@
 :- module(http_service_rt, [], [assertions, basicmodes]).
 
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 
 % TODO: customize? see rpc_url_prefix in ciao-actmod.js
 

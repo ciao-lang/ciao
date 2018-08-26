@@ -10,9 +10,11 @@
 
 :- use_package(library(rtchecks/rtchecks_tr_library)).
 
+:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
 :- use_module(library(assertions/assertions_props), [head_pattern/1]).
 % see formulae, conj_to_list/2, list_to_conj/2
 :- use_module(library(aggregates), [findall/3, findall/4]).
+:- use_module(library(lists), [member/2, intersection/3, difference/3]).
 :- use_module(library(llists),     [flatten/2]).
 :- use_module(library(terms),      [atom_concat/2]).
 :- use_module(library(sort),       [sort/2,keylist/1, keypair/1]).
@@ -1004,8 +1006,6 @@ texec_warning(_, _, _, _).
 comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
 
 % ----------------------------------------------------------------------
-
-:- use_module(library(lists), [intersection/3, difference/3]).
 
 :- pred test_entry_body_goal(TestEntryBody, TestBodyGoal)
         : struct(TestEntryBody) => struct(TestBodyGoal)

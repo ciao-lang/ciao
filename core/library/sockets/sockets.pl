@@ -29,6 +29,8 @@
         Internet. The reader should also consult standard bibliography
         on the topic for a proper use of these primitives.").
 
+:- use_module(engine(stream_basic), [stream/1]).
+
 %% Socket types
 
 :- doc(doinclude,connect_to_socket_type/4).

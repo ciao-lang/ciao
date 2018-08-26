@@ -11,6 +11,7 @@
 :- doc(bug, "Waits is only supported for input streams").
 :- doc(bug, "It should not be required to set the stream to be unbuffered").  
 
+:- use_module(engine(stream_basic)).
 :- use_module(library(port_reify), [once_port_reify/2, port_call/1]).
 
 :- true pred input_wait__c(+int, +int) + (foreign_low). 

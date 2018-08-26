@@ -9,6 +9,7 @@
 % NOTE: LPdoc delegates to the builder the task of (un)installing info
 % files.
 
+:- use_module(engine(stream_basic), [absolute_file_name/2]).
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(system), [file_exists/1, copy_file/3]).

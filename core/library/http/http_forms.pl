@@ -15,7 +15,7 @@
 %  uses).
 
 :- use_module(library(strings), [whitespace0/2]).
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(http/http_grammar), [http_media_type/5, http_crlf/2, http_lines/3, http_type_params/3]).
 :- use_module(library(http/multipart_form_data)).
 
@@ -69,6 +69,8 @@ value_assignment(A=V) :-
         are always atoms, unchanged from its original value.").
 
 define_flag(raw_form_values, [on,off], off).
+
+:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
 
 % ----------------------------------------------------------------------------
 

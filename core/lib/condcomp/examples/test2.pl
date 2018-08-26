@@ -14,6 +14,7 @@
         pr(X) :- write(using_write(X)), nl.
     :- endif.
 :- else.
+    :- use_module(engine(io_basic)).
     :- if(use_quote(yes)).
         pr(X) :- displayq(using_display(X)), nl.
     :- else.

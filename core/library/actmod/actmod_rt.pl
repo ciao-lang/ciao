@@ -5,8 +5,11 @@
 :- include(library(actmod/actmod_hooks)).
 :- include(library(fibers/fibers_hooks)).
 
+:- use_module(engine(io_basic)).
+:- use_module(engine(io_aux), [message/2]).
 :- use_module(library(fibers/fibers_rt)).
 :- use_module(library(actmod/actmod_dist)).
+:- use_module(library(lists), [member/2, append/3]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "The mailbox").
@@ -322,7 +325,7 @@ check_empty_residue(Residue) :-
 '$actmod_meta'(Mod, Goal, Meta) :-
         ( '$actmod_exe'(Goal, Mod, Meta) -> true
         ; functor(Goal, F, N),
-	  inform_user(['ERROR: could not find active module predicate ', Mod, ':', F/N]),
+	  message(error, ['could not find active module predicate ', ''(Mod), ':', ''(F/N)]),
           Meta = fail % TODO: throw error instead?
         ).
 
@@ -342,8 +345,6 @@ local_answer_error(QProt, E) :-
 
 % TODO: See @pred{once_port_reify/2}, etc.
 % TODO: See rpc_run(), rpc_next() at ciao-actmod.js for the JavaScript equivalent
-
-:- use_module(library(lists), [append/3]).
 
 run_task([], _Stop, _, []) :- !.
 run_task([with_actref(NewDefTopMod, Residue0)|Residue], Stop, DefTopMod, Residue2) :- !,
@@ -588,6 +589,6 @@ dist_log(Msg) :-
 	    fid_to_actref(FID, ActRef)
 	; ActRef = '<main>' % no ActRef yet... not a problem for logging
 	),
-        inform_user([ActRef, ': '|Msg]).
+        message(inform, [ActRef, ': '|Msg]).
 
 

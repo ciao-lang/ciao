@@ -1,5 +1,7 @@
 :- use_package(clpq).
 
+:- use_module(library(lists), [member/2]).
+
 queens(N, Qs) :- constrain_values(N, N, Qs), place_queens(N, Qs).
 
 constrain_values(0, _N, []).

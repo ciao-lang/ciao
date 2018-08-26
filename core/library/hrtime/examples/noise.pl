@@ -7,6 +7,7 @@
 
 :- use_module(library(hrtime)).
 :- use_module(library(between)).
+:- use_module(engine(io_basic)).
 
 % TODO: does it make sense to use a Kalman filter here?
 

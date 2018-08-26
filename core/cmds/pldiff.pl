@@ -3,6 +3,7 @@
 
 :- use_package([assertions]).
 
+:- use_module(engine(stream_basic)).
 :- use_module(library(read), [read_term/3]).
 :- use_module(library(write), [numbervars/3]).
 :- use_module(library(format)).

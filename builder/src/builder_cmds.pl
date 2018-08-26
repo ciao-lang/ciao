@@ -17,6 +17,7 @@
 % 	 builder_cmd_nobndl/1,
 % 	 builder_cmd_on_set/2,
 % 	 set_default_recursive/1]).
+:- use_module(engine(io_basic)).
 :- use_module(ciaobld(builder_targets)).
 :- use_module(ciaobld(bundle_fetch), [bundle_fetch_cleanup/0]).
 :- use_module(ciaobld(builder_flags),
@@ -128,7 +129,7 @@ builder_cmd_nobndl(clean_tree(Dir)) :- !,
 :- doc(section, "Execute a builder command (with targets)").
 
 :- use_module(library(aggregates), [findall/3]).
-:- use_module(library(lists), [reverse/2]).
+:- use_module(library(lists), [member/2, reverse/2]).
 
 :- use_module(ciaobld(messages_aux), [cmd_message/3, dmc_message/3]).
 :- use_module(ciaobld(install_aux), [instype/1]).

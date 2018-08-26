@@ -25,7 +25,7 @@
 % TODO: Do not use a dummy file in gen_asr_file_main_rel/1 (assrt_lib
 %   cannot document main modules!)
 
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(aggregates), [findall/3]).
 %
 :- use_module(library(system_extra), [
@@ -235,6 +235,8 @@ number_to_atm2(X, Y) :-
 % ---------------------------------------------------------------------------
 :- doc(section, "Engine headers for bytecode executables").
 
+:- use_module(engine(io_basic)).
+:- use_module(engine(io_aux), [display_list/1]).
 :- use_module(library(streams), [open_output/2, close_output/1]).
 
 :- use_module(ciaobld(install_aux), [final_ciao_root/1]). % TODO: need relocate?

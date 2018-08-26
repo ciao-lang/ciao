@@ -89,6 +89,7 @@ decl_tr(dist_start(G), Cs, M) :- !, % Default startup goal (for a distributed no
 
 :- import(c_itf_internal, [module_from_base/2]). % TODO: export?
 :- use_module(library(system), [file_exists/1]).
+:- use_module(engine(stream_basic), [absolute_file_name/7]).
 
 decl_use_active_module(ModSpec, Imports, Opts, Cs, M) :-
 	lookup_actmod_files(ModSpec, DMod, StubPath),

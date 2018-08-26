@@ -1,5 +1,6 @@
 :- module(write_tokens, [write_tokens/1], []).
 
+:- use_module(engine(io_basic)).
 :- use_module(library(stream_utils), [write_string/1]).
 :- use_module(library(write)).
 :- use_module(library(format)).

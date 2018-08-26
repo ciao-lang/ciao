@@ -14,6 +14,8 @@
  %% :- use_package(library(tabling_swapping)).
 :- use_package(library(tabling)).
 
+:- use_module(engine(io_basic)).
+
 :- table a/0.
 :- table b/1.
 :- table c/1.

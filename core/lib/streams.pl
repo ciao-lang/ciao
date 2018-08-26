@@ -4,8 +4,9 @@
         ],[assertions]).
 
 :- use_module(engine(internals)).
-:- use_module(engine(stream_basic), [stream/1]).
+:- use_module(engine(stream_basic)).
 
+% TODO: Merge into stream_utils.pl
 :- doc(title,"Structured stream handling").
 
 :- pred open_null_stream(S) => stream(S).

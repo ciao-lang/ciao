@@ -19,6 +19,7 @@
 	    ],
 	    [dcg, assertions, nortchecks, define_flag]).
 
+:- use_module(engine(io_aux)).
 :- use_module(library(compiler/exemaker), [make_exec/2]).
 :- use_module(library(compiler),
 	    [use_module/3, ensure_loaded/2,
@@ -40,16 +41,25 @@
 	    ['$bootversion'/0, '$open'/3, '$empty_gcdef_bin'/0,
 	     '$force_interactive'/0]).
 :- use_module(engine(hiord_rt),    [call/1, '$nodebug_call'/1]).
-:- use_module(library(lists),      [difference/3]).
+:- use_module(engine(system_info), [this_module/1]).
+:- use_module(library(lists),      [member/2, difference/3]).
 :- use_module(library(format),     [format/3]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(libpaths),   [get_alias_path/0]).
 :- use_module(library(dict),       [dic_lookup/3, dic_get/3]).
 
 :- use_module(library(toplevel/toplevel_io)).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 :- use_module(library(write),     [write/1, write_term/2]).
 :- use_module(library(read),      [read_term/3]).
 :- use_module(library(operators), [op/3]).
+
+:- use_module(engine(prolog_flags), [prompt/2]). % TODO: move prompt/2 to some IO related module?
+:- use_module(engine(prolog_flags), [current_prolog_flag/2, prolog_flag/3]).
+
+% (see shell_directive/1)
+:- use_module(engine(prolog_flags), [set_prolog_flag/2, push_prolog_flag/2, pop_prolog_flag/1]).
 
 :- use_module(library(rtchecks/rtchecks_utils), [call_rtc/1]).
 :- use_module(library(read_from_string)).

@@ -18,6 +18,8 @@
 		get_debugger_state/1
 	    ]).
 
+:- use_module(engine(io_aux), [message/2]).
+
 :- reexport(library(debugger/debugger_lib), [
 		debug/0,
 		debug_module/1,
@@ -75,7 +77,7 @@ debuggable(debug, X, Pred, Src, _, Ln1, Number) :-
 
 :- meta_predicate debug_call(goal).
 
-debug_call(Goal) :- catch(Goal, E, error(['Thrown error ', E])).
+debug_call(Goal) :- catch(Goal, E, message(error, ['Thrown error ', E])).
 
 get_attributed_vars(Term, AtVars) :-
 	get_attributed_vars(Term, AtVars, []).

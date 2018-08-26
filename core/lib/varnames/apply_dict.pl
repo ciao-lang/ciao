@@ -2,6 +2,7 @@
 		select_applicable/4],
 	    [assertions, basicmodes, dcg, hiord, fsyntax, unittestdecls]).
 
+:- use_module(library(lists), [member/2]).
 :- use_module(library(varnames/dict_types)).
 
 sel_member(E, Applicable) -->

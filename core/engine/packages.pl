@@ -83,6 +83,8 @@
 
 % ---------------------------------------------------------------------------
 
+:- use_module(engine(stream_basic), [sourcename/1]).
+
 :- doc(doinclude,load_compilation_module/1).
 :- true decl load_compilation_module(File) : sourcename
         # "Loads code defined in @var{File} into the compiler, usually

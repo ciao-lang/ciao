@@ -1,5 +1,7 @@
 :- module(client, [main/1], []).
 
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 :- use_module(library(format), [format/2]).
 :- use_module(library(random), [random/3]).
 :- use_module(library(stream_utils), [get_line/2]).

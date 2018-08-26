@@ -6,6 +6,8 @@
 :- doc(module, "Examples of assertions for processing by the
 	run-time checker.").
 
+:- use_module(engine(io_basic)).
+
 :- set_prolog_flag(rtchecks_predloc, yes).
 :- set_prolog_flag(rtchecks_callloc, predicate).
 

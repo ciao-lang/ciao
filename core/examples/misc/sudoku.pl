@@ -23,6 +23,8 @@ popularity in 2005.
 
 ").
 
+:- use_module(engine(io_basic)).
+
 %:- entry sudoku_square_solve(M) : term(M).
 
 digit(1).

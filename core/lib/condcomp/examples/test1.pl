@@ -8,6 +8,7 @@
 pr(X) :-
 	write(using_write(X)), nl.
 :- else.
+:- use_module(engine(io_basic)).
 pr(X) :-
 	display(using_display(X)), nl.
 :- endif.

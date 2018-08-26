@@ -29,6 +29,7 @@
 
 :- use_module(engine(internals), ['$unknown'/2, '$current_instance'/5, '$unlock_predicate'/1]).
 :- use_module(engine(hiord_rt), ['$meta_call'/1]).
+:- use_module(engine(io_aux), [message/2]).
 :- use_module(library(debugger), [debug_trace/1]).
 
 % Compiled inline -- these are hooks for the interpreter.

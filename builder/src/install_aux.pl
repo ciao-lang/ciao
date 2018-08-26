@@ -477,7 +477,7 @@ install_doc(Bundle, ManualBase, DocFormat) :-
 	    ; % Register From (it has a different Info 'dir' file)
 	      register_doc(DocFormat, From)
 	    )
-	; true % warning(['File ', From, ' not generated yet. Skipping copy'])
+	; true % message(warning, ['File ', From, ' not generated yet. Skipping copy'])
 	).
 
 link_docformat(manl).

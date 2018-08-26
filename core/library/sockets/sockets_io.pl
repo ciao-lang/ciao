@@ -73,6 +73,8 @@ serve_one_stream(Stream,Serve,Handler,SS0,SS) :-
 % ---------------------------------------------------------------------------
 % Serialize terms using display_term/1, read/2
 
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_aux), [display_term/1]).
 :- use_module(library(read), [read/2]).
 
 :- pred socket_send_term(Stream,Term) :: stream * term

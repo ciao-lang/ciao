@@ -15,6 +15,8 @@
 :- doc(module, "This module provides some basic predicates according
    to the ISO specification of char manipulation.").
 
+:- use_module(engine(stream_basic), [stream/1]).
+:- use_module(engine(io_basic)).
 
 :- pred char_code(+atm, ?character_code) + iso.
 :- pred char_code(-atm, +character_code) + iso.

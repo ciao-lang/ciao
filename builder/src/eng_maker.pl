@@ -12,6 +12,7 @@
 
    See @lib{eng_defs} and @tt{build_engine.sh} for more details.").
 
+:- use_module(library(lists), [member/2]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(system_extra), [del_file_nofail/1]).
@@ -34,6 +35,8 @@
 
 % ===========================================================================
 :- doc(section, "Build of Engines").
+
+:- use_module(engine(io_basic), [display/2]). % TODO: use messages lib
 
 :- export(eng_build/1).
 eng_build(Eng0) :-
@@ -81,6 +84,7 @@ eng_emugen(Eng) :-
 	path_split(In, Dir, _),
 	invoke_boot_ciaoc(['-c', In], [cwd(Dir)]).
 
+:- use_module(engine(stream_basic), [absolute_file_name/2]).
 :- use_module(engine(internals), [a_filename/2]). % ('.a' static lib)
 
 get_static([], [], []).

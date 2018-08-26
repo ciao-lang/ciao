@@ -23,6 +23,7 @@
 :- use_module(library(lists)).
 :- use_module(library(write), [printable_char/1]).
 
+:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
 :- use_module(engine(internals), ['$atom_mode'/2]).
 :- use_module(library(operators)).
 

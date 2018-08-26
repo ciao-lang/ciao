@@ -1,5 +1,7 @@
 :- module(_, [menu_demo/0, test_menu/1], [menu]).
 
+:- use_module(library(lists), [member/2]).
+
 % Entry point.
 menu_demo :-    menu(select).
 % For testing: e.g., test_menu( br ) or test_menu( br(1) ).

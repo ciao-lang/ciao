@@ -18,6 +18,7 @@
          '$unlock_predicate'/1,
          '$current_instance'/5,
          '$current_predicate'/2]).
+:- use_module(engine(io_basic), [nl/0]).
 :- use_module(library(write), [portray_clause/1]).
 :- use_module(library(parse_spec), [parse_functor_spec/5]).
 

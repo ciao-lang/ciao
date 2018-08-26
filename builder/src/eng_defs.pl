@@ -70,6 +70,7 @@ src/*.c
 
 % NOTE: Synchronize with build_engine.sh definitions for bootstrap
 
+:- use_module(library(lists), [member/2]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).

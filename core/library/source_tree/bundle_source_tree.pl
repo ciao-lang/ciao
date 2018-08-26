@@ -18,6 +18,7 @@
 
 :- use_module(library(source_tree)).
 :- use_module(library(lists), [append/3]).
+:- use_module(engine(stream_basic), [absolute_file_name/7]).
 
 :- export(resolve_modset/2).
 :- pred resolve_modset(ModSet, Xs) # "@var{Xs} is a list of resolved

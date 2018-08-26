@@ -40,6 +40,8 @@ Configuration flags and nested definitions must be defined in a
 :- doc(bug, "Simplify reusing the module compiler and some translation
    modules").
 
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 % TODO: error_messages are ignored; mark erroneous Manifests
 :- use_module(library(messages), [error_message/2]).
 
@@ -291,7 +293,7 @@ file_to_atom(File, X) :-
 % ===========================================================================
 :- doc(section, "Call predicates from manifests").
 
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(terms), [atom_concat/2]).
 
 :- include(ciaobld(bundlehooks/bundlehooks_defs)).

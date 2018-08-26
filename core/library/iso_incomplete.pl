@@ -15,6 +15,8 @@
 :- doc(module, "This module provides some additional ISO Prolog
    predicates whose implementation is not yet complete.").
 
+:- use_module(engine(stream_basic)).
+
 % :- entry open(+sourcename, +io_mode, ?stream, +open_option_list).
 
 % original:

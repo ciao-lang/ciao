@@ -14,6 +14,7 @@
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
 :- use_module(library(errhandle), [error_protect/1]).  
 :- use_module(library(terms), [atom_concat/2]).  
+:- use_module(engine(stream_basic), [sourcename/1]).
 
 :- doc(title,"Finding crossed-references between modules/files").
 :- doc(subtitle_extra,"@bf{The CIAO System Documentation Series}").

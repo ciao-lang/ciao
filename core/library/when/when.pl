@@ -108,7 +108,7 @@ yes
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+:- use_module(engine(hiord_rt), [call/1]).
 %% :- use_module(engine(internals)).
 %% :- use_module(library(lists), [append/3]).
 :- use_module(library(terms_vars), [varset/2]).

@@ -1,4 +1,4 @@
-:- module(ciaodump, [main/1], [assertions]).
+:- module(ciaodump, [main/1], [assertions, hiord]).
 
 :- doc(title,"Display information about Ciao object files").
 
@@ -36,6 +36,10 @@
    @end{verbatim}
 ").
 
+:- use_module(engine(io_aux), [message/1]).
+:- use_module(engine(io_aux), [display_string/1]).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 :- use_module(library(read)).  
 :- use_module(library(fastrw)).  
 :- use_module(library(format)).  
@@ -54,6 +58,7 @@
 :- use_module(library(assertions/assrt_write)).
 :- use_module(library(compiler), [make_wam/1]).
 
+:- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3]).
 :- use_module(engine(internals)).
 :- use_module(library(streams)).
 :- use_module(library(system)).

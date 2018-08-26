@@ -6,6 +6,9 @@
 % TODO: Currently just a copy of old ttyout.
 % TODO: More abstract and flexible (replaceable?)
 
+:- use_module(engine(stream_basic), [flush_output/1]).
+:- use_module(engine(io_basic)).
+
 :- export(top_display/1).
 top_display(X) :- display(user, X).
 

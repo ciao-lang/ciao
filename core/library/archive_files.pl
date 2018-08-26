@@ -11,6 +11,7 @@
    the supported formats.
 ").
 
+:- use_module(engine(io_basic)).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(process), [process_call/3, process_pipe/2]).
 :- use_module(library(pathnames),

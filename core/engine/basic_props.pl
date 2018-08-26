@@ -10,13 +10,6 @@
 	 pe_type/1 ],
         [assertions, nortchecks, nativeprops]).
 
-%% Commented out to avoid including hiord_rt in all executables,
-%% put declarations instead:
-%% :- use_package(hiord).
-:- set_prolog_flag(read_hiord, on).
-:- import(hiord_rt, [call/2]).
-:- use_module(library(terms_check), [instance/2]). % for inst/2
-
 :- doc(title,"Basic data types and properties").
 
 :- doc(author,"Daniel Cabeza").
@@ -38,6 +31,14 @@
    and @pred{compat/2}) to ensure well-defined behaviour. For
    low-level instantiation checks we encourage the use
    @lib{term_typing} builtins.").
+
+%% Commented out to avoid including hiord_rt in all executables,
+%% put declarations instead:
+%% :- use_package(hiord).
+:- set_prolog_flag(read_hiord, on).
+:- use_module(engine(hiord_rt), [call/1]).
+:- import(hiord_rt, [call/2]). % TODO: import from hiord_rt instead?
+:- use_module(library(terms_check), [instance/2]). % for inst/2
 
 :- doc(term/1, "The most general type (includes all possible terms).").
 

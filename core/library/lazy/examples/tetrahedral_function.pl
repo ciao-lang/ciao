@@ -2,6 +2,8 @@
 
 :- fun_eval arith(true).
 
+:- use_module(engine(io_basic)).
+
 :- fun_eval write_row(_,_,~).
 write_row(X, X) := true
 	        :- display(X), nl.

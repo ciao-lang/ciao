@@ -37,6 +37,8 @@ ciaoc nameserver
 :- use_module(platformserver_mod, [tell_address/4, ask_address/3],
      [active, reg_protocol(platformserver)]).
 
+:- use_module(library(lists), [member/2]).
+
 % ---------------------------------------------------------------------------
 
 :- impl(actmod_publish, platformbased).

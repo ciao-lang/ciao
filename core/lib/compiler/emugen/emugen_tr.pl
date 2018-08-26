@@ -11,6 +11,7 @@
    generator. Please consider a more complete backport before further
    improvements are included here.").
 
+:- use_module(engine(io_aux), [message/2]).
 :- use_module(library(read)).
 :- use_module(library(format)).
 :- use_module(library(streams)).
@@ -178,6 +179,7 @@ write_string_to_file(File, String) :-
 % Error handler and diagnosis
 
 :- use_module(library(compiler/emugen/emugen_errors)).
+:- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3]).
 
 handler(E) :-
 	handler_msg(E, Msg),

@@ -9,7 +9,7 @@
 %  This module implements a client the @concept{HTTP} protocol.
 
 :- use_module(library(strings), [string/3]).
-:- use_module(library(lists), [select/3]).
+:- use_module(library(lists), [member/2, select/3]).
 :- use_module(library(http/url), [url_term/1]).
 
 % Grammar definitions
@@ -57,6 +57,7 @@ http_request_content(Options, Options1, Content) :-
 
 % ---------------------------------------------------------------------------
 
+:- use_module(engine(stream_basic)).
 :- use_module(library(sockets)).
 :- use_module(library(stream_utils), [write_string/2, read_to_end/2]).
 

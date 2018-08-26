@@ -9,6 +9,9 @@
 
 :- doc(module, "This module provides emulation of C-Prolog terminal I/O.").
 
+:- use_module(engine(stream_basic), [flush_output/1]).
+:- use_module(engine(io_basic)).
+
 :- pred ttyput(X) : int + (native, deprecated).
 
 ttyput(X) :- put_code(user, X).

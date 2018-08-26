@@ -32,6 +32,10 @@
 nonsingle([_]) :- !, fail.
 nonsingle(_).
 
+:- reexport(engine(basic_props), [member/2]). % TODO: reverse import relation?
+%%% Now in engine(basic_props)
+% :- pred member(X,Xs) # "@var{X} is an element of (list) @var{Xs}.".
+
 %%% Now in engine(basic_props)
 % :- pred member(X,Xs) # "@var{X} is an element of (list) @var{Xs}.".
 % 

@@ -13,3 +13,9 @@
 :- use_module(library(terms_check), [subsumes_term/2]).
 :- use_module(library(terms_vars), [term_variables/2]).
 :- use_module(library(cyclic_terms), [acyclic_term/1]).
+
+% TODO: refine? these were in old nonpure.pl
+:- use_module(engine(io_basic)).
+:- use_module(engine(prolog_flags)).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(hiord_rt), [call/1]).

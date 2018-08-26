@@ -1,6 +1,7 @@
-:- module(_,_).
+:- module(_,_,[]).
 
 :- use_package(library(fsyntax/examples/arrays)).
+:- use_module(engine(io_basic)).
 
 main(M) :-
 	V1 = a(1,3,4,5),

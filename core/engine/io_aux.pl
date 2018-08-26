@@ -1,25 +1,32 @@
 :- module(io_aux, [
-		message/2, message_lns/4, messages/1,
-		error/1, warning/1, note/1, message/1, debug/1,
-		inform_user/1, display_string/1, display_list/1, display_term/1,
+		message/2, message_lns/4, messages/1, message/1,
+		% error/1, warning/1, note/1, message/1, debug/1,
+		% inform_user/1,
+	        display_string/1, display_list/1, display_term/1,
 		% regtypes
 		message_info/1, message_type/1
 	    ],
 	    [assertions, nativeprops, nortchecks]).
 
+% TODO: rename to messages_basic.pl, move IO preds to stream_utils.pl
+
 :- doc(title, "Message printing primitives").
 
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Edison Mera (improvements)").
+:- doc(author, "Jose F. Morales").
 
 :- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module, "This module provides predicates for printing in a
-   unified way informational messages, and also for printing some terms
-   in a specific way.").
-
+   unified way informational messages. It is designed to be small and
+   do not have (strict) dependencies with other larger printing and
+   formatting libraries in the system.").
 
 :- use_module(engine(internals), ['$quiet_flag'/2]).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
+:- use_module(engine(system_info), [current_module/1]).
 
 :- import(write, [write/1, writeq/1, print/1, printq/1]).
 
@@ -144,9 +151,11 @@ allowed_type(off,     error) :- !.
 allowed_type(off,     warning) :- !.
 allowed_type(off,     note) :- !.
 allowed_type(off,     message) :- !.
+allowed_type(off,     inform) :- !. % TODO: 'inform' is temporary
 allowed_type(debug,   _).
 
 add_head(message, Mess, Mess) :- !.
+add_head(inform, Mess, Mess) :- !. % TODO: 'inform' is temporary
 add_head(debug,   Mess, Mess) :- !.
 add_head(Type,    Mess, NewMess) :-
 	label(Type, Label),
@@ -159,15 +168,17 @@ label(note,    'Note: ').
 :- export(add_lines/4).
 add_lines(L0, L1, Message, ['(lns ', L0, '-', L1, ') '|Message]).
 
+% TODO: remove
 :- doc(inform_user(Message), "Similar to @pred{message/1}, but
    @var{Message} is output with @pred{display_list/1}.  This predicate
    is obsolete, and may disappear in future versions.").
 
 inform_user(MessL) :-
 	'$quiet_flag'(Q, Q),
-	allowed_type(Q, message), !,
+	allowed_type(Q, inform), !,
+	message_output(inform, Output),
 	current_output(S),
-	set_output(user_error),
+	set_output(Output),
 	display_list(MessL), nl,
 	set_output(S).
 inform_user(_).
@@ -209,6 +220,7 @@ message_type(error).
 message_type(warning).
 message_type(note).
 message_type(message).
+message_type(inform). % TODO: 'inform' is temporary
 message_type(debug).
 
 :- pred message_output/2 :: message_type * atm.
@@ -217,6 +229,7 @@ message_output(error,   user_error).
 message_output(warning, user_error).
 message_output(note,    user_output).
 message_output(message, user).
+message_output(inform,  user_error). % TODO: 'inform' is temporary
 message_output(debug,   user_error).
 
 message_text(T) :- term(T).

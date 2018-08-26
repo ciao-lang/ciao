@@ -9,6 +9,8 @@
  %% :- use_package(library(tabling_swapping)).
 :- use_package(library(tabling)).
 
+:- use_module(engine(io_basic)).
+
 :- table t/1.
 :- table s/1.
 

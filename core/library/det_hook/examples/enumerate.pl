@@ -1,6 +1,6 @@
 :- module(_, _, [det_hook]).
 
-
+:- use_module(engine(io_basic)).
 
 enumerate(X):-
         display(enumerating), nl,

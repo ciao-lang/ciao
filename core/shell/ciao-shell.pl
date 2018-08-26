@@ -121,11 +121,14 @@ hello dolly
 @end{verbatim}
 ").
 
+:- use_module(engine(io_basic)).
 :- use_module(library(libpaths), [get_alias_path/0]).
 :- use_module(library(compiler), 
         [ensure_loaded/2, set_debug_mode/1]).
 :- use_module(library(errhandle)).
 :- use_module(engine(internals), ['$bootversion'/0]).
+:- use_module(engine(system_info), [this_module/1]).
+:- use_module(engine(prolog_flags), [current_prolog_flag/2, set_prolog_flag/2]).
 
 main :- get_alias_path,
         current_prolog_flag(argv, Args),

@@ -35,9 +35,10 @@
 
 % (rtcheck implementation for native_props.pl)
 
+:- use_module(engine(hiord_rt), [call/1]).
 :- use_module(engine(internals),   ['$setarg'/4]).
 :- use_module(library(sort),       [sort/2]).
-:- use_module(library(lists),      [length/2, append/3]).
+:- use_module(library(lists),      [member/2, length/2, append/3]).
 :- use_module(library(streams),    [open_output/2, close_output/1]).
 :- use_module(library(stream_utils), [file_to_string/2]).
 :- use_module(library(system),     [mktemp_in_tmp/2, delete_file/1]).
@@ -527,6 +528,8 @@ coefficient(Coeff) :-
 	int(Coeff). % TODO: shouldn't it be a num/1?
 
 % ----------------------------------------------------------------------
+
+:- use_module(engine(io_aux), [display_string/1]).
 
 :- meta_predicate rtc_user_output(goal, ?).
 

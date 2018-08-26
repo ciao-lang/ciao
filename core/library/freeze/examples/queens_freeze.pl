@@ -1,6 +1,9 @@
-:- module(_, _).
+:- module(_, _, []).
 
+:- use_module(library(prolog_sys), [statistics/2]).
+:- use_module(library(write)).
 :- use_module(library(freeze)).
+:- use_module(engine(io_aux), [message/2]).
 
 :- data counter/1.
 counter(0).

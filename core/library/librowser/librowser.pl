@@ -10,6 +10,8 @@
 
 %% ------------------------------------------------------------
 
+:- use_module(engine(io_aux), [message/1]).
+:- use_module(engine(io_basic)).
 :- use_module(library(read)).
 :- use_module(library(fastrw)).
 :- use_module(library(system)).
@@ -157,7 +159,7 @@ apropos_spec(Module:Pattern) :-
 
 update :-
 	retractall_fact(exports(_,_,_)),
-	inform_user(['Reading Ciao library info, please wait...']),
+	message(['Reading Ciao library info, please wait...']),
 	fail.
 update :-
 	bundle_src(_, Dir),
@@ -165,7 +167,7 @@ update :-
 	catch(extract_info_from(Dir_itf),_,true),
 	fail.
 update :-
-	inform_user(['Browser has been loaded...']),
+	message(['Browser has been loaded...']),
 	nl.
 
 update_when_needed :-
@@ -225,7 +227,7 @@ is_dir_nolink(FileName) :-
 extract_info_from([]).
 extract_info_from([itf(File,Mod)|Nf]) :-
 	open_input(File,IO),
-	inform_user(['{Reading interface info from ',Mod,'}']),
+	message(['{Reading interface info from ',''(Mod),'}']),
 	read_exports(Mod),
 	close_input(IO),
 	extract_info_from(Nf).
@@ -307,7 +309,7 @@ yes
 
 where(F/A) :-
 	exports(Module,F,A),
-	inform_user([F,'/',A,' exported at module ',Module]),
+	message([''(F/A),' exported at module ',''(Module)]),
 	fail.
 
 where(_).
@@ -356,10 +358,10 @@ yes
 describe(Module) :-
 	update_when_needed,
 	atom(Module),
-	inform_user(['Predicates at library ',Module,' : ']),
+	message(['Predicates at library ', ~~(Module),' : ']),
 	nl,
 	exports(Module,F,A),
-	inform_user([F,'/',A,' ']),
+	message([~~(F/A)]),
 	fail.
 describe(_).
 

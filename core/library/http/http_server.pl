@@ -22,7 +22,9 @@
    http_server:http_write_response/2 (so that it can serve files
    without loading them in memory)").
 
-:- use_module(library(lists), [append/3, select/3, length/2]).
+:- use_module(library(lists), [member/2, append/3, select/3, length/2]).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 :- use_module(library(stream_utils), [write_string/2]).
 :- use_module(library(pathnames), [path_concat/3]).
 
@@ -368,6 +370,7 @@ locate_file(File, LocalFile) :-
 	file_exists(LocalFile).
 
 :- use_module(library(system), [file_properties/6]).
+:- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3]).
 
 % TODO: duplicated
 is_dir(Path) :-

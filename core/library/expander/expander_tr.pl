@@ -14,7 +14,10 @@
 
 % ---------------------------------------------------------------------------
 
+:- use_module(engine(io_aux), [message/2]).
 :- use_module(library(aggregates)).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 :- use_module(library(write)).
 :- use_module(library(varnames/pretty_names)).
 
@@ -29,6 +32,8 @@ exports_pred(_,_,_) :- fail.
 :- endif.
 
 % ---------------------------------------------------------------------------
+
+:- use_module(engine(prolog_flags), [push_prolog_flag/2, pop_prolog_flag/1]). % TODO: do in a better way
 
 :- data io_output/1.
 
@@ -78,10 +83,10 @@ write_sentence(S, Dict) :-
 	    true
 	).
 
-expand_clause(clause(0, 0), clause(0, 0), Module, _) :-
+expand_clause(clause(0, 0), clause(0, 0), Module, _) :- % TODO: missing cut
 	defines_module(Base, Module),
 	atom_concat(Base, '_co.pl', F),
-	display(user_error, '{'), note([Module, ' expanded in ', F, '}']),
+	display('{'), message(note, [Module, ' expanded in ', F, '}']),
 	open(F, append, IO),
 	asserta_fact(io_output(IO)).
 expand_clause(clause(Head, Body), clause(Head, Body), _, Dict) :-
@@ -96,7 +101,7 @@ expand_clause(clause(Head, Body), clause(Head, Body), _, Dict) :-
 	;
 	    true
 	).
-expand_clause(A, A, _, _) :-
+expand_clause(A, A, _, _) :- % TODO: strange clause!
 	io_output(IO),
 	close(IO),
 	display([A, 'user_output']).

@@ -3,6 +3,7 @@
 :- module(_, _, [det_hook]).
 
 :- use_module(engine(internals)).
+:- use_module(engine(io_basic)).
 
 pr(I, X, Y) :-
 	display(open(I)), nl,

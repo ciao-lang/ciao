@@ -109,6 +109,7 @@
 
 %% TODO MH - Put only in the relevant parts
 :- set_prolog_flag(multi_arity_warnings, off).
+:- use_module(engine(hiord_rt)). % call/?
 
 % --------------------------------------------------------------------------
 :- doc(title, "Properties which are native to analyzers").
@@ -1010,6 +1011,8 @@ valid_type([Type|Rest]) :-
 
 :- impl_defined(user_output/2).
 
+% :- use_module(engine(io_aux), [display_string/1]).
+%
 %%%%%%%%%%%%%%
 %%%% This one is in the testing library (unittest)
 %% :- prop user_error(Goal, S) #

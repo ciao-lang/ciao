@@ -356,6 +356,7 @@ available when invoking @apl{ciaoc}:
 % ---------------------------------------------------------------------------
 
 :- use_module(engine(internals),        ['$bootversion'/0]).
+:- use_module(engine(system_info), [get_platform/1]).
 :- use_module(library(libpaths),        [get_alias_path/0]).
 :- use_module(library(compiler),        [make_po/1, make_wam/1, use_module/3]).
 :- use_module(library(compiler/c_itf), [opt_suffix/2]).
@@ -364,6 +365,8 @@ available when invoking @apl{ciaoc}:
 
 :- use_module(library(compiler/exemaker),
 	    [make_exec/2, force_lazy/1, dynamic_search_path/1]).
+
+:- use_module(engine(prolog_flags), [set_prolog_flag/2, current_prolog_flag/2]).
 
 % ---------------------------------------------------------------------------
 

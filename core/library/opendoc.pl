@@ -12,6 +12,7 @@
 :- use_module(library(pathnames), [path_splitext/3]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(terms), [atom_concat/2]).
+:- use_module(library(lists), [member/2]).
 :- use_module(engine(system_info), [get_os/1]).
 
 % ---------------------------------------------------------------------------
@@ -51,6 +52,8 @@ has_protocol(Path) :-
 
 % ---------------------------------------------------------------------------
 	
+:- use_module(engine(stream_basic), [absolute_file_name/2]).
+
 % get_viewer(+Path, +Opts, -Viewer, -Path2): 
 %   Obtain Viewer to view document at Path:
 %

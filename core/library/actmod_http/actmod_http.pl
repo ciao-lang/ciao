@@ -38,7 +38,8 @@
 :- use_module(library(http/http_forms)).
 :- use_module(library(http/http_service_rt), [service_path/2]).
 :- use_module(library(pillow/json)).
-:- use_module(library(lists), [append/3, length/2]).
+:- use_module(library(lists), [member/2, append/3, length/2]).
+:- use_module(engine(io_aux), [message/2]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "From HTTP request to actmod request").
@@ -280,7 +281,7 @@ async_json_encode_response_lit(Query) := R :-
 	       ; RPCMethod = 'normal_step'
 	       )
 	     )
-	; inform_user(['ERROR: undefined active module (async) predicate ', N/A]),
+	; message(error, ['undefined active module (async) predicate ', ''(N/A)]),
           Cmd = fail, % TODO: encode exception, throw error
 	  Data = json([args = []]),
 	  RPCMethod = none 

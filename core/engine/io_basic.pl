@@ -24,6 +24,8 @@
    stream as the first argument and a second which omits this argument
    and uses the current input or output stream.").
 
+:- use_module(engine(stream_basic)).
+
 :- doc(section,"Code Input/Output").
 
 :- doc(get_code(Stream, Code), "Reads from @var{Stream} the next

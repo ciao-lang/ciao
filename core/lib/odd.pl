@@ -7,6 +7,7 @@
 
 %%        call_residue/2, freeze/1, freeze/2, frozen/2.
 
+% :- use_module(engine(hiord_rt), [call/1]).
 :- use_module(engine(internals)).
 
 :- doc(title, "Miscellaneous predicates").
@@ -16,15 +17,11 @@
 :- doc(module, "This module implements some miscellaneous
    non-logical (but sometimes very useful) predicates.").
 
-
- %% call_user_def(Goal) :-
- %% 	'$predicate_property'(Goal, _, _),
- %% 	reset_debugger(State),
- %% 	(call(Goal); set_debugger(State), fail),
- %% 	(set_debugger(State); reset_debugger(_), fail).
-
-
-
+%% call_user_def(Goal) :-
+%% 	'$predicate_property'(Goal, _, _),
+%% 	reset_debugger(State),
+%% 	(call(Goal); set_debugger(State), fail),
+%% 	(set_debugger(State); reset_debugger(_), fail).
 
 :- pred setarg(Index, Term, NewArg) : integer * struct * term 
  # "Replace destructively argument @var{Index} in
@@ -35,9 +32,10 @@ assignment in Ciao Prolog.".
 setarg(I, F, X):-
         '$setarg'(I, F, X, on).
 
-:- pred undo(Goal) : callable => callable # "
-@tt{call(@var{Goal})} is executed on backtracking.  This is a major
-change to the normal @concept{control} of Ciao Prolog execution.".
+:- pred undo(Goal) : callable => callable
+ # "@tt{call(@var{Goal})} is executed on backtracking.  This is a
+    major change to the normal @concept{control} of Ciao Prolog
+    execution.".
 
 :- meta_predicate undo(goal).
 

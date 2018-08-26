@@ -1,5 +1,9 @@
 :- module(bundlehooks_tr, [defdep/3], [assertions]).
 
+:- use_module(library(lists), [member/2]).
+:- use_module(engine(io_aux), [message/2]).
+%:- use_module(engine(hiord_rt), [call/1]).
+
 :- data hook_decl/3.
 
 % by default the separator is '.' but could be ''

@@ -1,5 +1,7 @@
 :- module(_, [test1/0, test2/1, test3/2], [hiord, inliner, expander]).
 
+:- use_module(engine(io_basic)).
+
 % :- inline_module(library(hiordlib), [maplist/3]).
 :- use_module(.(inliner_example_mod_2), [test6/1]).
 :- inline_module(.(inliner_example_mod_2), [map/3]).

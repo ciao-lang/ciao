@@ -261,6 +261,8 @@ do_ciaotests :-
 :- use_module(ciaobld(messages_aux), [normal_message/2]).
 :- use_module(ciaobld(builder_cmds), [builder_cmd/2]). % TODO: dangerous!
 
+:- use_module(library(lists), [member/2]).
+
 % TODO: do configure and install of just the emacs mode (this is too complex)
 % 'environment_and_windows_bats' required by runwin32.bat, Ciao.iss.skel
 

@@ -11,6 +11,8 @@
    the use of attributed variables
    @cite{holzbaur-plilp92,holzbaur-phd}.").
 
+:- use_module(engine(hiord_rt), [call/1]).
+
 % Comment to use the new implementation
 :- compilation_fact(freeze__old).
 

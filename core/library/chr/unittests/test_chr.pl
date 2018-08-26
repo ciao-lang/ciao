@@ -1,5 +1,6 @@
 :- module(test_chr, [main/0], [assertions]).
 
+:- use_module(engine(stream_basic)).
 :- use_module(library(compiler)).
 :- use_module(library(messages)).
 :- use_module(library(iso_misc)).

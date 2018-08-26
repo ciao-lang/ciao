@@ -1,10 +1,12 @@
 :- module(persistentdb, [main/0], [assertions, unittestdecls, fsyntax]).
 
+:- use_module(engine(io_basic), [nl/0]).
 :- use_module(library(format)).
 :- use_module(library(system)).
 :- use_module(library(terms)).
 
 :- use_module(ciaobld(ciaoc_aux), [invoke_ciaoc/1]).
+:- use_module(engine(stream_basic)).
 :- use_module(library(process)).
 
 :- data where_command/2 .

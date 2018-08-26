@@ -27,6 +27,8 @@
 	assrt_set_comment/3,
 	maybe_assrt_extra/2]).
 
+:- use_module(library(lists), [member/2, append/3]).
+
 :- doc(bug, "Make assertion parsing optional? (or separate from this parser)").
 :- doc(bug, "Forbid tabs (do other markdown it?) and show an error
    when tabs are found. All indentation should be done with spaces.").
@@ -84,7 +86,6 @@ env_to_docstring(Env, A0, A) -->
 	; { throw(error(env(Env), env_to_docstring/5)) }
 	).
 
-:- use_module(library(lists), [append/3]).
 % (emit a string)
 s(Str, S, S0) :- append(Str, S0, S).
 

@@ -34,7 +34,7 @@
 		find_with_var_identity/4,
 		forall/3,
 		forsome/3
-	], []).
+	], [hiord]).
 
 :- use_module(library(lists)).
 :- use_module(library(chr/aggregates_nat)).

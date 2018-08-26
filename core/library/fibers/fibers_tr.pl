@@ -69,7 +69,7 @@ stub_base(FileBase, StubPath) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 
 :- export(sentence_tr/3).
 sentence_tr(0, 0, M) :- !,

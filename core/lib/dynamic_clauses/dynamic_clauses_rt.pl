@@ -21,6 +21,8 @@
 
 :- set_prolog_flag(multi_arity_warnings, off).
 
+:- use_module(engine(system_info), [current_module/1]).
+:- use_module(engine(system_info), [internal_module_id/1]).
 :- use_module(engine(internals)).
 :- use_module(library(prolog_sys), [new_atom/1]).
 :- use_module(library(iso_misc), [sub_atom/5]).
@@ -304,7 +306,7 @@ retract(Clause, Term, M) :-
 	arg(2, ClData, Body),
 	retract_internal(ClHead, ClBody),
 	( retract_internal(ClData, _True) -> true
-	; error(['Internal error in retract/1, please inform ciao-bug'])
+	; throw(bug(internal_error, retract/1))
 	).
 
 retract_internal(Head, Body) :-
@@ -332,7 +334,7 @@ retractall(Head, Term, M) :-
 retractall_(Head, ClData) :-
 	retract_internal(Head, _),
 	( retract_internal(ClData, _True) -> true
-	; error(['Internal error in retractall/1, please inform ciao-bug'])
+	; throw(bug(internal_error, retractall/1))
 	),
 	fail.
 retractall_(_, _).

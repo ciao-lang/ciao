@@ -3,6 +3,8 @@
 % A test suite for conditional compilation
 % Author: Jose F. Morales
 
+:- use_module(engine(io_basic)).
+
 :- if(current_prolog_flag(dialect, ciao)).
 dialect(ciao).
 :- else.

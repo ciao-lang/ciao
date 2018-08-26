@@ -8,6 +8,8 @@
    @concept{packaged bundle}s for distribution on different platforms
    and operating systems.").
 
+:- use_module(engine(system_info), [get_os/1, get_arch/1]).
+:- use_module(engine(prolog_flags)).
 :- use_module(library(aggregates)).
 :- use_module(library(stream_utils)).
 :- use_module(library(lists)).
@@ -144,6 +146,8 @@ pbundle_generate_meta_(Target, Desc) :-
 
 clauses_to_file(Desc, DescFile) :-
 	output_to_file(clauses_to_file_(Desc), DescFile).
+
+:- use_module(engine(prolog_flags), [push_prolog_flag/2, pop_prolog_flag/1]). % TODO: find a better solution?
 
 clauses_to_file_(Desc) :-
 	push_prolog_flag(write_strings, on),

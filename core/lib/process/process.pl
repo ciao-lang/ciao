@@ -111,9 +111,10 @@
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(lists), [append/3, select/3]).
+:- use_module(library(lists), [member/2, append/3, select/3]).
 :- use_module(library(port_reify)).
 
+:- use_module(engine(stream_basic)).
 :- use_module(engine(internals), ['$exec'/9]).
 :- use_module(library(system), 
 	[wait/2, kill/2, working_directory/2, using_windows/0]).

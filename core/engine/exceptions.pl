@@ -16,15 +16,13 @@
 :- doc(module, "This module includes predicates related to
    exceptions and signals, which alter the normal flow of Prolog.").
 
-:- primitive_meta_predicate(catch(goal,     ?, goal)).
-:- primitive_meta_predicate(intercept(goal, ?, goal)).
+% ---------------------------------------------------------------------------
 
 :- pred halt => true + (iso, native).
 
 :- doc(halt, "Halt the system, exiting to the invoking shell.").
 
 halt :- '$exit'(0).
-
 
 :- pred halt(+int) => int + (iso, equiv(fail)).
 % TODO: equiv(fail) temporary until we implement more accurate builtin
@@ -40,7 +38,9 @@ halt(N) :- throw(error(type_error(integer, N), halt/1-1)).
 
 abort :- '$exit'(-32768).
 
-%------ errors ------%
+% ---------------------------------------------------------------------------
+
+:- primitive_meta_predicate(catch(goal,     ?, goal)).
 
 :- trust pred catch(+callable, ?term, ?callable) + (iso, native).
 
@@ -72,41 +72,7 @@ catch(_, Error, Handler) :-
 	retract_fact_nb(thrown(Error)), !,
 	'$meta_call'(Handler).
 
-
-:- pred intercept(+callable, ?term, +callable).
-
-:- doc(intercept(Goal, Signal, Handler), "Executes @var{Goal}.  If
-   a signal is sent during its execution, @var{Signal} is unified with
-   the exception, and if the unification succeeds, @var{Handler} is
-   executed and then the execution resumes after the point where the
-   exception was thrown.  To avoid infinite loops if @var{Handler}
-   raises an exception which unifies with @var{Error}, the exception
-   handler is deactivated before executing @var{Handler}.  Note the
-   difference with builtin @pred{catch/3}, given the code 
-@begin{verbatim}
-p(X) :- send_signal(error), display('---').
-p(X) :- display(X).
-@end{verbatim}
-   the execution of ""@tt{intercept(p(0), E, display(E)),
-   display(.), fail.}"" results in the output ""@tt{error---.0.}"".").
-
-:- test intercept(G, S, H) : ( G=((A=a;A=b), send_signal(c(A))),
-	    S=c(A), H=display(A) ) + (not_fails, non_det)
-# "intercept/3 preserves determinism properties of Goal (even when
-   @var{H} and @var{G} share variables)".
-
-intercept(Goal, Signal, Handler) :-
-	'$metachoice'(Choice),
-	asserta_catching(Choice, Signal, Handler),
-	current_fact(catching(Choice, S, H)), % avoid unifs with Goal
-	'$metachoice'(BeforeChoice),
-	'$meta_call'(Goal),
-	'$metachoice'(AfterChoice),
-	retract_catching(Choice, S, H),
-	( BeforeChoice = AfterChoice -> % no more solutions
-	    ! % remove the unnecessary exception choice point
-	; true
-	).
+% ---------------------------------------------------------------------------
 
 :- trust pred throw(Term) : nonvar(Term) + (iso, equiv(fail)).
 % TODO: equiv(fail) temporary until we implement more accurate builtin
@@ -126,23 +92,43 @@ throw(Error) :-
 	E = Error, !,
 	throw_action('$catching', E, C, Ref).
 throw(Error) :-
-	display(user_error, '{'),
-	message(error, ['No handle found for thrown error ', ~~(Error), '}']),
-	retractall_fact(catching(_, _, _)),
-	retractall_fact(disabled(_)),
-	abort.
+	no_handler(Error).
 
+% ---------------------------------------------------------------------------
 
-send_signal2(Signal, _) :-
-	var(Signal), !,
-	throw(error(instantiation_error, signal/1 -1)).
-send_signal2(Signal, _) :-
-	current_fact(catching(C, E, H), Ref),
-	H \== '$catching',
-	\+ current_fact_nb(disabled(Ref)),
-	E = Signal, !,
-	throw_action(H, E, C, Ref).
-send_signal2(_Signal, false).
+:- primitive_meta_predicate(intercept(goal, ?, goal)).
+
+:- pred intercept(+callable, ?term, +callable).
+
+:- doc(intercept(Goal, Signal, Handler), "Executes @var{Goal}.  If
+   a signal is sent during its execution, @var{Signal} is unified with
+   the exception, and if the unification succeeds, @var{Handler} is
+   executed and then the execution resumes after the point where the
+   exception was thrown.  To avoid infinite loops if @var{Handler}
+   raises an exception which unifies with @var{Error}, the exception
+   handler is deactivated before executing @var{Handler}.  Note the
+   difference with builtin @pred{catch/3}, given the code 
+@begin{verbatim}
+p(X) :- send_signal(error), display('---').
+p(X) :- display(X).
+@end{verbatim}
+   the execution of ""@tt{intercept(p(0), E, display(E)),
+   display(.), fail.}"" results in the output ""@tt{error---.0.}"".").
+
+intercept(Goal, Signal, Handler) :-
+	'$metachoice'(Choice),
+	asserta_catching(Choice, Signal, Handler),
+	current_fact(catching(Choice, S, H)), % avoid unifs with Goal
+	'$metachoice'(BeforeChoice),
+	'$meta_call'(Goal),
+	'$metachoice'(AfterChoice),
+	retract_catching(Choice, S, H),
+	( BeforeChoice = AfterChoice -> % no more solutions
+	    ! % remove the unnecessary exception choice point
+	; true
+	).
+
+% ---------------------------------------------------------------------------
 
 :- trust pred send_signal(Term) : nonvar(Term).
 
@@ -151,7 +137,6 @@ send_signal2(_Signal, false).
    chosen. If the signal is not intercepted, the following error is
    thrown: @tt{error(unintercepted_signal(Signal),
    send_signal/1-1)}.").
-
 
 send_signal(Signal):-
 	(
@@ -171,6 +156,19 @@ send_signal(Signal):-
 send_silent_signal(Signal) :-
 	send_signal2(Signal, _).
 
+send_signal2(Signal, _) :-
+	var(Signal), !,
+	throw(error(instantiation_error, signal/1 -1)).
+send_signal2(Signal, _) :-
+	current_fact(catching(C, E, H), Ref),
+	H \== '$catching',
+	\+ current_fact_nb(disabled(Ref)),
+	E = Signal, !,
+	throw_action(H, E, C, Ref).
+send_signal2(_Signal, false).
+
+% ---------------------------------------------------------------------------
+
 throw_action('$catching', Error, Choice, _) :-
 	asserta_fact(thrown(Error)),
 	cut_to(Choice), % This cuts also next clause
@@ -189,3 +187,22 @@ cut_to(Choice) :-
 	retractall_fact(disabled(Ref)),
 	C = Choice,
 	'$metacut'(Choice).
+
+:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(io_basic), [display/2]).
+
+no_handler(Error) :-
+	display(user_error, '{'),
+	message(error, ['No handle found for thrown error ', ~~(Error), '}']),
+	retractall_fact(catching(_, _, _)),
+	retractall_fact(disabled(_)),
+	abort.
+
+% ---------------------------------------------------------------------------
+% TODO: move somewhere else
+
+% :- test intercept(G, S, H) : ( G=((A=a;A=b), send_signal(c(A))),
+% 	    S=c(A), H=display(A) ) + (not_fails, non_det)
+% # "intercept/3 preserves determinism properties of Goal (even when
+%    @var{H} and @var{G} share variables)".
+

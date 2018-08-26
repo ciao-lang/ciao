@@ -1,4 +1,6 @@
-:- module(_, [test/0], [inliner, expander]).
+:- module(_, [test/0], [inliner, hiord, expander]).
+
+:- use_module(engine(io_basic)).
 
 :- unfold_meta.
 

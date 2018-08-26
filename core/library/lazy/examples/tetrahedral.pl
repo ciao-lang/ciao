@@ -1,5 +1,7 @@
 :- module(tetrahedral, [test/1], [lazy]).
 
+:- use_module(engine(io_basic)).
+
 :- lazy write_row/2.
 write_row(X, X) :-
 	display(X), nl.

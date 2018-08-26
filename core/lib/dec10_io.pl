@@ -9,6 +9,8 @@
 :- doc(module,"This module implements the support for DEC-10
    Prolog style file I/O.").
 
+:- use_module(engine(stream_basic)).
+
 % Support DEC-10 style I/O.  We maintain a database
 % 	current_file_stream(File, Mode, Stream)
 % of Streams opened by see/1 and tell/1.  

@@ -128,6 +128,7 @@ propagate([C|Cs]) :-
 
 :- else.
 
+:- use_module(engine(hiord_rt), [call/1]).
 % For the js_backend
 propagate([]).
 propagate([C|Cs]) :-

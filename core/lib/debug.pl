@@ -1,6 +1,7 @@
 :- package(debug).
 
 :- use_module(library(debugger/embedded_rt)).
+:- use_module(engine(system_info), [this_module/1]).
 
 :- new_declaration(spy/1).
 :- op(900, fx, [(spy)]).

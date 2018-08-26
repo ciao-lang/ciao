@@ -11,6 +11,8 @@
 :- use_module(engine(hiord_rt), ['$meta_call'/1]).
 :- use_module(engine(meta_inc)).
 
+:- use_module(engine(system_info), [this_module/1]). % TODO: Do not use; use facts from parent
+
 % Backwards compatibility
 % body_expansion(A, M, QM, NA) :-
 %         body_expansion(A, M, QM, compile, NA)

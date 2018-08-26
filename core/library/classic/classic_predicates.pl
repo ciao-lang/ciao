@@ -18,7 +18,7 @@
 :- reexport(library(iso_misc)).
 :- reexport(library(format)).
 :- reexport(library(lists),
-        [append/3, delete/3, select/3, nth/3, last/2,reverse/2, length/2]).
+        [member/2, append/3, delete/3, select/3, nth/3, last/2,reverse/2, length/2]).
 :- reexport(library(sort)).
 :- reexport(library(between)).
 :- reexport(library(compiler), [use_module/1, use_module/2, ensure_loaded/1]).

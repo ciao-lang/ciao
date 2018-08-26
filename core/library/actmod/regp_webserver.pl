@@ -6,6 +6,8 @@
 
 :- use_module(library(actmod/webbased_common)).
 :- use_module(library(system), [umask/2]).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 
 % ---------------------------------------------------------------------------
 

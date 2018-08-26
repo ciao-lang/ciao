@@ -28,6 +28,7 @@
    read stream from a string, and b) call the standard reader.").
 
 :- use_module(library(dict)).
+:- use_module(engine(io_basic)).
 :- use_module(library(read)).
 :- use_module(library(operators)).
 :- use_module(library(port_reify)).
@@ -38,6 +39,8 @@
 :- doc(bug, "@pred{read_from_atom/2} is implemented using
    @pred{pipe/2}, which has deadlock problems (IO is synchronous and
    pipe buffer size is limited)").
+
+:- use_module(engine(stream_basic), [pipe/2, close/1]).
 
 :- pred read_from_atom(+Atom,-Term) # "Read the term @var{Term} from the
    codes in the name of @var{Atom}.".

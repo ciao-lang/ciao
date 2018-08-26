@@ -2,6 +2,8 @@
 
 :- use_module(library(system)).
 :- use_module(library(sockets)).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 :- use_module(library(stream_utils), [get_line/2]).
 :- use_module(library(iso_char)).
 :- use_module(library(format)).

@@ -108,6 +108,7 @@ ACTMOD_HOSTNAME        Address for listening connection
 ").
 
 :- use_module(library(system), [getenvstr/2]).
+:- use_module(library(lists), [member/2]).
 
 :- include(library(fibers/fibers_hooks)).
 :- include(library(actmod/actmod_hooks)).
@@ -251,6 +252,8 @@ dist_disconnect :-
 	; true
 	).
 
+:- use_module(engine(stream_basic), [current_stream/3]).
+
 :- export(get_addr_stream/2).
 % Obtain a socket connection from this node to a(Hostname,Port)
 % TODO: close on error?
@@ -272,7 +275,7 @@ dist_publish_actmod(ActRef, Mod, Opts) :-
 	dist_get_reg_protocol(RegProtocol),
 	get_pid(Pid),
 	(RegProtocol as actmod_publish).save_addr(ActRef, Mod, Address, Pid, Opts),
-        dist_log(['published ', Mod, ' node [pid=', Pid, ', addr=', Address, '] reg_protocol=', RegProtocol]).
+        dist_log(['published ', ~~(Mod), ' node [pid=', Pid, ', addr=', ~~(Address), '] reg_protocol=', ~~(RegProtocol)]).
 
 % ----------------------------------------------------------------
 :- doc(section, "Sockets send/receive").
@@ -462,7 +465,7 @@ send_error(E, _) :- throw(E).
 
 % TODO: improve, failure is not the right thing
 recv_error(E) :-
-	dist_log(['socket error: ', E]),
+	dist_log(['socket error: ', ''(E)]),
 	fail.
 
 % ---------------------------------------------------------------------------
@@ -498,6 +501,8 @@ actchn_unwatch_response(ActChn) :-
 %
 %    - any: any message
 %    - recv_response(_,_): a response through a response channel
+
+:- use_module(engine(stream_basic), [close/1]).
 
 % (fibers_hooks)
 '$handle_stream'(actmod_msg(MsgTy), Stream) :- !,

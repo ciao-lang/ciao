@@ -21,6 +21,10 @@
 	     imports_pred/7,
 	     def_multifile/4,
 	     decl/2]).
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
+:- use_module(engine(io_aux), [message/1, message/2]).
+:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
 :- use_module(engine(meta_inc), [meta_inc_args/3]).
 :- use_module(engine(internals),
 	    [po_filename/2,
@@ -35,11 +39,11 @@
 		delete_file/1,
 		set_exec_mode/2]).
 :- use_module(engine(internals), [ciao_root/1]).
-:- use_module(engine(system_info), [get_platform/1]).
+:- use_module(engine(system_info), [get_platform/1, get_os/1]).
 :- use_module(library(compiler/engine_path), [get_engine_file/2]).
 :- use_module(library(compiler/pl2wam)).
 :- use_module(library(aggregates), [findall/3]).
-:- use_module(library(stream_utils), [terms_to_file/2]).
+:- use_module(library(lists), [member/2]).
 
 :- use_module(library(ctrlcclean), [delete_on_ctrlc/2]).
 :- use_module(engine(internals),   [module_concat/3]).
@@ -481,7 +485,7 @@ generate_batch_Win32(ExecName) :-
 	close(Stream).
 
 generate_batch_Win32(_) :-
-	warning('Unable to create batch file').
+	message(warning, ['Unable to create batch file']).
 
 copy_pos(PoFiles, _) :- % OPA
 	current_prolog_flag(compress_exec, no), !,

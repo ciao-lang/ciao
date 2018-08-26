@@ -17,6 +17,7 @@
 
 :- use_module(engine(internals)).
 :- use_module(engine(attributes)).
+:- use_module(engine(hiord_rt), [call/1]).
 
 %% :- ensure_loaded(library(attrdecl)).
 

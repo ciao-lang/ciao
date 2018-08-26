@@ -1,13 +1,13 @@
-
 :- module(components,relevant_files/3,[assertions,hiord]).
 
 :- use_module(library(compiler/c_itf)).
+:- use_module(engine(stream_basic), [absolute_file_name/2]).
 :- use_module(library(errhandle), [error_protect/1]).  
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
 :- use_module(library(aggregates), [findall/3]).  
 :- use_module(library(sort), [sort/2]).  
 :- use_module(library(llists), [flatten/2]).  
-:- use_module(library(lists), [append/3]).  
+:- use_module(library(lists), [member/2, append/3]).  
 
 :- doc(module,"This utility allows you to gather the files that form
 	the frontier of the module interface of a component (a group of

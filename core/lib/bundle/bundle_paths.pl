@@ -8,6 +8,8 @@
    code, build areas, compiled code, and documentation) and the
    underlying file system.").
 
+:- use_module(engine(stream_basic),
+	[sourcename/1, absolute_file_name/7, fixed_absolute_file_name/3]).
 :- use_module(engine(internals),
 	[ciao_root/1,
 	 ciao_path/1,

@@ -5,6 +5,8 @@
 :- doc(module, "Example of runtime checking of an assertion about
 	an imported (or even builtin) predicate.").
 
+:- use_module(engine(io_basic)).
+
 %:- pred functor(F, A, N) : nonvar(F) => (atom(A), nnegint(N)).
 
 :- pred functor/3 : (nonvar * var * var) => (nonvar * atom * nnegint) + fails.

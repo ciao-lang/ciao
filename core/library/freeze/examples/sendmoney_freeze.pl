@@ -1,5 +1,6 @@
 :- module(_, _).
 
+:- use_module(library(lists), [member/2]).
 :- use_module(library(freeze)).
 
 % Example from B Prolog

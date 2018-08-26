@@ -2,8 +2,9 @@
 	              suspend_andorra/5,
 		      obtain_vars/2,
 		      simplify/2,
-		      verify_det/3],_).
+		      verify_det/3],[hiord]).
 
+:- use_module(engine(basic_props)). % TODO: rtc versions?
 :- use_module(library(terms_vars), [varset/2]).
 :- use_module(library(sort), [sort/2]).
 :- use_module(library(sets), 

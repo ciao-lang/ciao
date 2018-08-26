@@ -68,7 +68,7 @@ set_input_flag(Bundle:Name, Value) :-
 
 :- include(ciaobld(bundlehooks/bundlehooks_defs)).
 
-:- use_module(library(lists), [append/3]).
+:- use_module(library(lists), [member/2, append/3]).
 
 flag_def(Bundle:Name, X) :-
 	m_bundle_config_entry(Bundle, Name, Def),
@@ -426,6 +426,10 @@ config_get_flag(Flag) := Value :-
 % ---------------------------------------------------------------------------
 % Display the configuration options (for the command-line interface)
 
+:- use_module(engine(io_basic)).
+:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(io_aux), [display_string/1, display_list/1]).
+
 :- export(config_list_flags/1).
 % TODO: use Bundle
 config_list_flags(Bundle) :-
@@ -649,7 +653,7 @@ eval_config_rule(Flag, Seen) :-
 	  % Explain a particular default value
 	  ( nonvar(DefaultValue),
 	    flag_def(Flag, default_value_comment(DefaultValue, MessageVal)) ->
-	      warning($$(MessageVal))
+	      message(warning, $$(MessageVal))
 	  ; true
 	  ),
 	  % Choose value
@@ -782,6 +786,7 @@ display_option(ShowName, Value) :-
 % TODO: Bundle is missing
 
 :- use_module(library(aggregates), [findall/3]).
+:- use_module(engine(prolog_flags), [set_prolog_flag/2]).
 
 :- export(set_prolog_flags_from_bundle_flags/1).
 set_prolog_flags_from_bundle_flags(TFlagCmds) :-

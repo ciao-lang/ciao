@@ -100,6 +100,7 @@ reload_bundleregs_(BundleRegDir) :-
 % :- use_module(library(fastrw), [fast_read/1]).
 :- import(fastrw, [fast_read/1]).
 % :- use_module(engine(internals), ['$open'/3]).
+:- use_module(engine(stream_basic), [current_input/1, set_input/1, close/1]).
 
 :- export(load_bundlereg/1). % (exported for explicit loads)
 load_bundlereg(File) :-

@@ -1,6 +1,7 @@
 :- module(example_static, [main/0], [persdb]).
 
 :- use_module(library(aggregates)).
+:- use_module(engine(io_basic)).
 :- use_module(library(read)).
 :- use_module(library(write)).
 
