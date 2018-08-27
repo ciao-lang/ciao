@@ -11,6 +11,7 @@
    terms (to streams and files).").
 
 :- use_module(engine(stream_basic), [sourcename/1]).
+:- use_module(engine(io_basic)).
 :- use_module(library(read), [read/1]).
 :- use_module(library(streams)).
 
