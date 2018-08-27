@@ -3,7 +3,7 @@
 % Common predicates for all file-based publish/locate methods
 
 :- use_module(engine(stream_basic)).
-:- use_module(engine(messages_basic), [display_term/1]).
+:- use_module(library(terms_io), [term_write/1]).
 :- use_module(library(system), [file_exists/1, delete_file/1, umask/2]).
 :- use_module(library(read), [read/2]).
 :- use_module(library(pathnames), [path_concat/3]).
@@ -34,9 +34,9 @@ file_save_addr(Umask, AddrPath, DMod, Address, Pid) :-
         open(AddrPath, write, ST),
         current_output(OldOut),
         set_output(ST),
-        display_term(DMod),
-        display_term(Address),
-        display_term(pid(Pid)),
+        term_write(DMod),
+        term_write(Address),
+        term_write(pid(Pid)),
         set_output(OldOut),
         close(ST),
         umask(_, OldUmask).

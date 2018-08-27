@@ -71,10 +71,10 @@ serve_one_stream(Stream,Serve,Handler,SS0,SS) :-
 	).
 
 % ---------------------------------------------------------------------------
-% Serialize terms using display_term/1, read/2
+% Serialize terms using term_write/1, read/2
 
 :- use_module(engine(stream_basic)).
-:- use_module(engine(messages_basic), [display_term/1]).
+:- use_module(library(terms_io), [term_write/1]).
 :- use_module(library(read), [read/2]).
 
 :- pred socket_send_term(Stream,Term) :: stream * term
@@ -84,7 +84,7 @@ serve_one_stream(Stream,Serve,Handler,SS0,SS) :-
 socket_send_term(Stream,Term):-
 	current_output(Stream0),
 	set_output(Stream),
-	display_term(Term),
+	term_write(Term),
 	flush_output,
 	set_output(Stream0).
 

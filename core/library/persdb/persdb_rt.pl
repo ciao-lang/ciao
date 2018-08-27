@@ -16,7 +16,7 @@
         [assertions,regtypes,nortchecks, library(persdb/persdb_decl)]).
 
 :- use_module(engine(stream_basic)).
-:- use_module(engine(messages_basic), [display_term/1]).
+:- use_module(library(terms_io), [term_write/1]).
 :- use_module(engine(internals), [term_to_meta/2]).
 :- use_module(library(lists),    [select/3]).
 :- use_module(library(read)).
@@ -627,7 +627,7 @@ term_list_to_file(Terms, File, FilePerms) :-
 
 display_term_list([]).
 display_term_list([T|Ts]) :-
-        display_term(T),
+        term_write(T),
         display_term_list(Ts).
 
 % :- pred mv(Path1, Path2, Perms) ; "Rename a file, or create target with file permisssion Perms.".

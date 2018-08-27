@@ -74,7 +74,7 @@ library @lib{compiler/c_itf}.
 :- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3,
       push_prolog_flag/2, pop_prolog_flag/1]).
 :- use_module(engine(stream_basic)).
-:- use_module(engine(messages_basic), [display_term/1]).
+:- use_module(library(terms_io), [term_write/1]).
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(engine(internals), [asr_filename/2]).
 :- use_module(library(fastrw)).
@@ -391,7 +391,7 @@ generate_asr_file(Base,Verb,Component) :-
             current_output(CO),
             set_output(Stream),
             asr_version(V),
-            display_term(v(V)),
+            term_write(v(V)),
             write_asr_data_of(Base,Component),
             write_rel_data,
             set_output(CO),

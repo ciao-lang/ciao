@@ -5,7 +5,7 @@
 	[ assertions ]).
 
 :- use_module(engine(stream_basic)).
-:- use_module(engine(messages_basic), [display_term/1]).
+:- use_module(library(terms_io), [term_write/1]).
 :- use_module(library(lists)).
 :- use_module(library(system)).
 :- use_module(library(system_extra), [mkpath/1]).
@@ -47,7 +47,7 @@ add_term_to_file(Term, File, FilePerms) :-
         lock_file(File, FD, _),
         open(File,append,Stream),
         set_output(Stream),
-        display_term(Term),
+        term_write(Term),
         close(Stream),
         unlock_file(FD, _),
         set_output(OldOutput).

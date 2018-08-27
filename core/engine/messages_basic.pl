@@ -1,6 +1,6 @@
 :- module(messages_basic, [
 		message/2, message_lns/4, messages/1,
-	        lformat/1, display_string/1, display_list/1, display_term/1,
+	        lformat/1, display_list/1, display_string/1,
 		% regtypes
 		message_info/1, message_type/1
 	    ],
@@ -96,12 +96,6 @@ display_list([M|Ms]) :- !,
 display_list([]) :- !.
 display_list(M) :-
 	display(M).
-
-:- doc(display_term(Term), "Output @var{Term} in a way that a
-   @pred{read/1} will be able to read it back, even if operators
-   change.").
-
-display_term(T) :- displayq(T), display(' .\n').
 
 :- doc(display_string(String), "Output @var{String} as the sequence
    of characters it represents.").

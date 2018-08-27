@@ -89,7 +89,7 @@
      pop_prolog_flag/1]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(engine(messages_basic), [display_term/1]). % TODO: move to terms_io?
+:- use_module(library(terms_io), [term_write/1]).
 :- use_module(engine(messages_basic), [message/2, message_lns/4]).
 :- use_module(engine(system_info), [current_module/1]).
 :- use_module(engine(system_info), [this_module/1]).
@@ -1998,7 +1998,7 @@ generate_itf(ItfName, Dir, Mode, Base) :-
 	    set_output(Stream),
 	    itf_version(V),
 	    current_prolog_flag(itf_format, Format),
-	    display_term(v(V,Format)),
+	    term_write(v(V,Format)),
 	    write_itf_data_of(Format, Base),
 	    set_output(CO),
 	    close(Stream),
@@ -2018,7 +2018,7 @@ write_itf_data_of(Format, Base) :-
 write_itf_data_of(_, _).
 
 do_write(f,Term) :- fast_write(Term).
-do_write(r,Term) :- display_term(Term).
+do_write(r,Term) :- term_write(Term).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Read itf file").
