@@ -15,7 +15,9 @@
 :- doc(author,"Daniel Cabeza").
 :- doc(author,"Manuel Hermenegildo").
 
-:- doc(usage, "@include{InPrelude.lpdoc}").
+:- doc(usage, "This module is automatically imported by the
+   @lib{assertions} package. It can be imported explicitly with the
+   @tt{:- use_module(engine(basic_props))} directive.").
 
 :- doc(module,"@cindex{properties, basic} This library contains
    the set of basic properties used by the builtin predicates, and

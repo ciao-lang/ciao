@@ -27,6 +27,11 @@ Copyright @copyright{} 1989-2002 The CLIP Group / UPM
    static or dynamic debugging, verification, automatic documentation
    generation, etc.").
 
+:- doc(usage, "@tt{:- use_package(assertions).} or @tt{:-
+   module(...,...,[assertions]).}. Use the @lib{assertions_basic}
+   package to disable the implicit use of the @lib{basic_props}
+   module.").
+
 :- doc(module,"The @lib{assertions} package adds a number of new
    declaration definitions and new operator definitions which allow
    including @concept{program assertions} in user
