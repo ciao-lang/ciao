@@ -1,6 +1,6 @@
 :- module(queuedy, [main/1],[persdb,iso]).
 
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(read)).
 :- use_module(library(write)).
 :- use_module(library(aggregates)).

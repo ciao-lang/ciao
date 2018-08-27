@@ -9,7 +9,7 @@
 
 :- use_module(user, [main/0, main/1, aborting/0]).
 :- use_module(engine(hiord_rt), ['SYSCALL'/1, '$nodebug_call'/1, '$meta_call'/1]).
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(engine(prolog_flags), [current_prolog_flag/2, prolog_flag/3, set_prolog_flag/2]).
 :- use_module(engine(system_info), [get_os/1, get_arch/1, get_a_ext/1, get_so_ext/1]).
 

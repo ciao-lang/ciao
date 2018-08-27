@@ -27,7 +27,7 @@
 ").
 
 :- use_module(engine(io_basic), [nl/0]).
-:- use_module(engine(io_aux), [display_string/1]).
+:- use_module(engine(messages_basic), [display_string/1]).
 :- use_module(library(stream_utils), [file_to_string/2]).
 :- use_module(library(messages), [error_message/2, note_message/2]).
 :- use_module(library(lists), [select/3]).

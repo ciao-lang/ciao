@@ -1,6 +1,6 @@
 :- module(_, [aftr/3],[]).
 
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 
 :- data bf_pred/3.
 

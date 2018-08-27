@@ -182,7 +182,7 @@ get_async_ftypes(G, FTypes) :-
 % Obtain suspensions (including a continuation goal and transient state)
 % for the current actI
 
-% :- use_module(engine(io_aux), [message/2]).
+% :- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(fibers/fibers_data)).
 
 % TODO: support incremental suspensions (save diff of states; see persistent preds)

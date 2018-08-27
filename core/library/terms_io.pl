@@ -10,7 +10,7 @@
    terms to files.").
 
 :- use_module(engine(stream_basic), [sourcename/1]).
-:- use_module(engine(io_aux), [display_term/1]).
+:- use_module(engine(messages_basic), [display_term/1]).
 :- use_module(library(read), [read/1]).
 :- use_module(library(streams)).
 

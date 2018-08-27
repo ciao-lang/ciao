@@ -13,7 +13,7 @@
         run-time errors into human-readable messages.").
 
 :- use_module(engine(prolog_flags)).
-:- use_module(engine(io_aux)).
+:- use_module(engine(messages_basic)).
 :- use_module(library(lists), [append/3, reverse/2, select/3]).
 :- use_module(library(assertions/native_props), [is_det/1]).
 :- use_module(library(hiordlib), [maplist/3]).

@@ -2,7 +2,7 @@
 
 :- include(library(fsyntax/ops)).
 
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(terms), [copy_args/3]).
 
 % Database to store declaration for the currently compiled module

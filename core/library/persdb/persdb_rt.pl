@@ -16,7 +16,7 @@
         [assertions,regtypes,nortchecks, library(persdb/persdb_decl)]).
 
 :- use_module(engine(stream_basic)).
-:- use_module(engine(io_aux), [display_term/1]).
+:- use_module(engine(messages_basic), [display_term/1]).
 :- use_module(engine(internals), [term_to_meta/2]).
 :- use_module(library(lists),    [select/3]).
 :- use_module(library(read)).

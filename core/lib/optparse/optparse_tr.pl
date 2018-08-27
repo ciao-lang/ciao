@@ -110,7 +110,7 @@ optparse_tr((:- base_message(Action, Message0)),
 	    [(usage_message(Message)),
 		( usage :- Action,
 		    usage_message(Message1),
-		    message(['Usages:\n', $$(Message1)]) )], _) :-
+		    message(user, ['Usages:\n', $$(Message1)]) )], _) :-
 	findall(OptionStr, help_option_str(OptionStr), Options0),
 	flatten([Message0, Options0], Message).
 

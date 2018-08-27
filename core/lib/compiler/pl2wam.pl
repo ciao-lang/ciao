@@ -12,7 +12,7 @@
 
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(iso_misc), [compound/1]).
 :- use_module(library(sort)).
 :- use_module(library(dict)).

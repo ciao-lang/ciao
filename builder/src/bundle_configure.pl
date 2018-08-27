@@ -427,8 +427,8 @@ config_get_flag(Flag) := Value :-
 % Display the configuration options (for the command-line interface)
 
 :- use_module(engine(io_basic)).
-:- use_module(engine(io_aux), [message/2]).
-:- use_module(engine(io_aux), [display_string/1, display_list/1]).
+:- use_module(engine(messages_basic), [message/2]).
+:- use_module(engine(messages_basic), [display_string/1, display_list/1]).
 
 :- export(config_list_flags/1).
 % TODO: use Bundle

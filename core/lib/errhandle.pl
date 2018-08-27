@@ -1,7 +1,7 @@
 :- module(errhandle, [error_protect/1, handle_error/2], [assertions]).
 
 :- use_module(engine(io_basic)).
-:- use_module(engine(io_aux)).
+:- use_module(engine(messages_basic)).
 :- use_module(library(system)).
 :- use_module(library(rtchecks/rtchecks_utils)).
 
@@ -50,7 +50,7 @@ get_where(P/N-A, [P, '/', N, ', arg ', A, ' - '|T], T) :- !.
 get_where(P/N,   [P, '/', N, ' - '|T],              T) :- !.
 get_where(W,     [W, ' - '|T],                      T).
 
-% :- use_module(engine(io_aux), [display_list/1]).
+% :- use_module(engine(messages_basic), [display_list/1]).
 
 % OGRAMA: OLD VERSION ---------------------------------------------------
 % display_error(instantiation_error) :- !,

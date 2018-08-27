@@ -20,7 +20,7 @@
 :- use_module(engine(meta_inc), [meta_inc_args/3]).
 :- use_module(library(rtchecks/rtchecks_basic), [list_to_lits/2]).
 :- use_module(engine(stream_basic)).
-:- use_module(engine(io_aux), [messages/1]).
+:- use_module(engine(messages_basic), [messages/1]).
 :- use_module(engine(io_basic)).
 
 :- doc(author, "Edison Mera").

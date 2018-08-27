@@ -18,7 +18,7 @@
 		get_debugger_state/1
 	    ]).
 
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 
 :- reexport(library(debugger/debugger_lib), [
 		debug/0,

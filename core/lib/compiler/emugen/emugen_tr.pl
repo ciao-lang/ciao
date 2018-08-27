@@ -11,7 +11,7 @@
    generator. Please consider a more complete backport before further
    improvements are included here.").
 
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(read)).
 :- use_module(library(format)).
 :- use_module(library(streams)).

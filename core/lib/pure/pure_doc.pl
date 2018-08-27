@@ -32,7 +32,7 @@
    @item @tt{engine(exceptions)}
 
          @ref{Exception and Signal handling}.
-   @item @tt{engine(io_aux)}
+   @item @tt{engine(messages_basic)}
 
          @ref{Message printing primitives}.
    @item @tt{engine(io_basic)}

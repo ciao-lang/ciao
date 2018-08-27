@@ -36,8 +36,8 @@
    @end{verbatim}
 ").
 
-:- use_module(engine(io_aux), [message/1]).
-:- use_module(engine(io_aux), [display_string/1]).
+:- use_module(engine(messages_basic), [message/2]).
+:- use_module(engine(messages_basic), [display_string/1]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 :- use_module(library(read)).  
@@ -188,8 +188,8 @@ view_itf(File) :-
 	find_filename('.itf', File, AbsName),
         open_input(AbsName, InState),
         read(v(V,Format)),
-        message(['Version: ',V]),
-        message(['Format: ',Format]),
+        message(user, ['Version: ',V]),
+        message(user, ['Format: ',Format]),
         repeat,
           do_read(Format,ITF),
         ( ITF = end_of_file, !
@@ -215,7 +215,7 @@ view_asr0(File) :-
         open_input(AbsName,OldInput),
         read(Vstruct),
         arg(1,Vstruct,V),
-        message(['Version ',V]),
+        message(user, ['Version ',V]),
 	prolog_flag(write_strings, Old, on),
         show_fast_read,
 	set_prolog_flag(write_strings, Old),

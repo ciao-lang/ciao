@@ -115,7 +115,7 @@ mod_concat(M, N, N2) :-
 % ===========================================================================
 % SECOND-PASS
 
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(compiler/c_itf_internal), [
 	defines_module/2,
 	decl/2,

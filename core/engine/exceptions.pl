@@ -188,7 +188,7 @@ cut_to(Choice) :-
 	C = Choice,
 	'$metacut'(Choice).
 
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(engine(io_basic), [display/2]).
 
 no_handler(Error) :-

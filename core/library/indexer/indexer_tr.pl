@@ -6,7 +6,7 @@
 % Based on indexer.pl (1.6 06 Oct 1993) by Tom Howland
 % (originally ported to Ciao by Francisco Bueno, 8 Jan 2001).
 
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(dynamic), [assert/1, retractall/1]).
 :- use_module(library(lists), [member/2, append/3]).

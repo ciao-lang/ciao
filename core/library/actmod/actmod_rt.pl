@@ -6,7 +6,7 @@
 :- include(library(fibers/fibers_hooks)).
 
 :- use_module(engine(io_basic)).
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(fibers/fibers_rt)).
 :- use_module(library(actmod/actmod_dist)).
 :- use_module(library(lists), [member/2, append/3]).

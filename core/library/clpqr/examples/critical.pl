@@ -1,7 +1,7 @@
 :- module(_,[go1/0, go2/0, go3/0, cpm/2, cpm/3, print_analysis/1], []).
 :- use_package(clpq).
 
-:- use_module(engine(io_aux), [message/1]).
+:- use_module(engine(messages_basic), [message/2]).
 
 % Sample goals: go1/0, go2/0, go3/0
 
@@ -178,8 +178,8 @@ compute(Ls, Ec, Tf, Ff, Esj, Lcj, Esi, Lci, C) :-
 
 % display routines
 print_analysis(G) :-
-	message('\t\tNode\tEs\tLc'), 
-	message('Node1\tNode2\tT\tLs\tEc\tTf\tFf'), 
+	message(user, '\t\tNode\tEs\tLc'), 
+	message(user, 'Node1\tNode2\tT\tLs\tEc\tTf\tFf'), 
 	print_analysis1(G).
 print_analysis1([]).
 print_analysis1([H|T]) :- 
@@ -187,24 +187,24 @@ print_analysis1([H|T]) :-
 	print_analysis1(T).
 print_node(ad(I, Es, Lc, [], From)) :-
 	!,	
-	message('--------------------------------------------------'), 
-	message(['END NODE\t',I,'\t',Es,'\t',Lc]).
+	message(user, '--------------------------------------------------'), 
+	message(user, ['END NODE\t',I,'\t',Es,'\t',Lc]).
 print_node(ad(I, Es, Lc, To, [])) :-
 	!, 
-	message('--------------------------------------------------'), 
-	message(['START NODE\t',I,'\t',Es,'\t',Lc]), 
-	message('--------------------------------------------------'), 
+	message(user, '--------------------------------------------------'), 
+	message(user, ['START NODE\t',I,'\t',Es,'\t',Lc]), 
+	message(user, '--------------------------------------------------'), 
 	print_times(To, I).
 print_node(ad(I, Es, Lc, To, From)) :-
-	message('--------------------------------------------------'), 
-	message(['\t\t',I,'\t',Es,'\t',Lc]), 
-	message('--------------------------------------------------'), 
+	message(user, '--------------------------------------------------'), 
+	message(user, ['\t\t',I,'\t',Es,'\t',Lc]), 
+	message(user, '--------------------------------------------------'), 
 	print_times(To, I).
 
 print_times([], _).
 print_times([ed(V, C, Ls, Ec, Tf, Ff)|T], I) :-
         critical_mark(Tf,Cr),
-	message([I,'\t',V,'\t',C,'\t',Ls,'\t',Ec,'\t',Tf,'\t',Ff,'\t',Cr]), 
+	message(user, [I,'\t',V,'\t',C,'\t',Ls,'\t',Ec,'\t',Tf,'\t',Ff,'\t',Cr]), 
 	print_times(T, I).
 
 critical_mark(0,' *').

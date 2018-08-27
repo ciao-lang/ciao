@@ -42,8 +42,8 @@
 
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(engine(io_aux), [message/2]).
-:- use_module(engine(io_aux), [display_list/1]).
+:- use_module(engine(messages_basic), [message/2]).
+:- use_module(engine(messages_basic), [display_list/1]).
 :- use_module(engine(debugger_support)).
 :- use_module(engine(internals), ['$prompt'/2, '$predicate_property'/3,
 		'$setarg'/4, term_to_meta/2, '$current_predicate'/2]).

@@ -529,7 +529,7 @@ coefficient(Coeff) :-
 
 % ----------------------------------------------------------------------
 
-:- use_module(engine(io_aux), [display_string/1]).
+:- use_module(engine(messages_basic), [display_string/1]).
 
 :- meta_predicate rtc_user_output(goal, ?).
 

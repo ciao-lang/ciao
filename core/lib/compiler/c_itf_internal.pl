@@ -89,8 +89,8 @@
      pop_prolog_flag/1]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(engine(io_aux), [display_term/1]). % TODO: move to terms_io?
-:- use_module(engine(io_aux), [message/1, message/2, message_lns/4]).
+:- use_module(engine(messages_basic), [display_term/1]). % TODO: move to terms_io?
+:- use_module(engine(messages_basic), [message/2, message_lns/4]).
 :- use_module(engine(system_info), [current_module/1]).
 :- use_module(engine(system_info), [this_module/1]).
 :- use_module(engine(internals), [
@@ -1901,7 +1901,7 @@ check_itf_data(Base, _) :-
 	retractall_fact(module_error),
 	assertz_fact(module_error(Base)),
 	end_doing,
-	message(['{Compilation aborted}']),
+	message(user, ['{Compilation aborted}']),
 	signal_compilation_error,
 	fail.
 
@@ -2340,7 +2340,7 @@ make_file2_(PoName, Mode, Base, Dir, Module, Source) :- %OPA
 	current_output(So),
 	set_output(Out),
 	( current_prolog_flag(verbose_compilation,off) -> true
-	; message(['{Compressing library}'])
+	; message(user, ['{Compressing library}'])
 	),
 	compressLZ(TmpStream),
 	close(TmpStream),
@@ -2498,10 +2498,10 @@ activate_translation(_, _, _).
 
 do_add_trans(Goal, Decl, Src, Ln0, Ln1) :-
 	( call_trans(Goal) -> true
-	; message(['{In ',Src]),
+	; message(user, ['{In ',Src]),
 	  message_lns(warning, Ln0, Ln1,
 	              [Decl,' - declaration failed']),
-	  message('}')
+	  message(user, '}')
 	).
 
 % (Avoid meta-expansions)
@@ -2938,18 +2938,18 @@ put_src_if_needed(Src) :-
 	current_fact(last_error_in_src(Src0), Ref), !,
 	( Src = Src0 -> true
 	; erase(Ref),
-	  message('}'),
+	  message(user, '}'),
 	  put_src_if_needed(Src)
 	).
 put_src_if_needed(Src) :-
 	current_fact(compiling_src(Src)), !.
 put_src_if_needed(Src) :-
-	message(['{In ',Src]),
+	message(user, ['{In ',Src]),
 	asserta_fact(last_error_in_src(Src)).
 
 end_brace_if_needed :-
 	( retract_fact(last_error_in_src(_)) ->
-	    message('}')
+	    message(user, '}')
 	; true
 	).
 
@@ -3064,7 +3064,7 @@ use_mod_common(File, Type, Imports, ByThisModule) :-
 	gen_imports(Fake_Base),
 	retractall_fact(imports_all(Fake_Base, _)),
 	( current_fact(module_error) ->
-	    message(['{Compilation aborted}']),
+	    message(user, ['{Compilation aborted}']),
 	    signal_compilation_error,    
 	    retractall_fact(module_error),
 	    retractall_fact(imports_pred(Fake_Base, _, _, _, _, _, _)),
@@ -3073,7 +3073,7 @@ use_mod_common(File, Type, Imports, ByThisModule) :-
 	  defines_module(Base, Module),
 	  include_dyn_imports(ByThisModule, Module, Fake_Base),
 	  ( make_delayed_dynlinks -> true % JFMC
-	  ; message(['{Dynamic link failed}'])
+	  ; message(user, ['{Dynamic link failed}'])
 	  ),
 	  do_initialization(Module)
 	).
@@ -3087,7 +3087,7 @@ use_mod_user(File, ByThisModule) :-
 %         process_files_from_(File, in, any, 
 %                           load_compile, static_base, false, needs_reload),
 %       ( make_delayed_dynlinks -> true % JFMC
-%       ; message(['{Dynamic link failed}']),
+%       ; message(user, ['{Dynamic link failed}']),
 %         fail
 %       ), !,
 %         base_name(File, Base),
@@ -3566,18 +3566,18 @@ now_doing(M) :-
 	current_prolog_flag(verbose_compilation, VF),
 	now_doing_(VF, M).
 
-now_doing_(on, M)  :- message(['{'| M]).
+now_doing_(on, M)  :- message(user, ['{'| M]).
 now_doing_(off, M) :- asserta_fact(doing_what(M)).
 
 end_doing :-
 	current_prolog_flag(verbose_compilation, VF),
 	end_doing_(VF).
 
-end_doing_(on)  :- message('}').
+end_doing_(on)  :- message(user, '}').
 end_doing_(off) :-
 	retract_fact(doing_what(M)), !,
 	( retract_fact(doing_written(M)) ->
-	    message('}')
+	    message(user, '}')
 	; true
 	).
 
@@ -3590,7 +3590,7 @@ put_doing_(off) :-
 	current_fact(doing_what(M)), !,
 	( doing_written(M) -> true
 	; asserta_fact(doing_written(M)),
-	  message(['{'| M])
+	  message(user, ['{'| M])
 	).
 put_doing_(off).
 

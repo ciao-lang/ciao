@@ -1,6 +1,6 @@
 :- module(factsdb_tr,[factsdb_exp/2],[]).
 
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 
 factsdb_exp((:- facts(F/A,File)),[C1,C2]):-
 	atom(F),

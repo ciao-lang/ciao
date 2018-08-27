@@ -1011,7 +1011,7 @@ valid_type([Type|Rest]) :-
 
 :- impl_defined(user_output/2).
 
-% :- use_module(engine(io_aux), [display_string/1]).
+% :- use_module(engine(messages_basic), [display_string/1]).
 %
 %%%%%%%%%%%%%%
 %%%% This one is in the testing library (unittest)

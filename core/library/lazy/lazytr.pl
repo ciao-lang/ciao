@@ -1,6 +1,6 @@
 :- module(lazytr, [lazy_sentence_translation/3], []).
 
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(lists), [reverse/2]).
 :- use_module(library(aggregates)).

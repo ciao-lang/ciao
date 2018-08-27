@@ -74,8 +74,8 @@ library @lib{compiler/c_itf}.
 :- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3,
       push_prolog_flag/2, pop_prolog_flag/1]).
 :- use_module(engine(stream_basic)).
-:- use_module(engine(io_aux), [display_term/1]).
-:- use_module(engine(io_aux), [message/1, message/2]).
+:- use_module(engine(messages_basic), [display_term/1]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(engine(internals), [asr_filename/2]).
 :- use_module(library(fastrw)).
 :- use_module(library(assertions/assrt_write), [write_assertion/6]).
@@ -350,9 +350,9 @@ save_clause_of(Base,M):-
 	-> H=Head,
 	   B=Body
 	 ; % do the "second expansion"
-%	   io_aux:message(['{Original: ',(Head:-Body)]),
+%	   messages_basic:message(user, ['{Original: ',(Head:-Body)]),
 	   expand_clause(Head,Body,M,VarNames,H,B)
-%	   ,io_aux:message(['{Expanded: ',(H:-B)])
+%	   ,messages_basic:message(user, ['{Expanded: ',(H:-B)])
 	),
 	% one more patch!!
 	( var(VarNames) -> VarNames=[] ; true ),
@@ -398,9 +398,9 @@ generate_asr_file(Base,Verb,Component) :-
             close(Stream),
             chmod(AsrName, Mode),
             erase(Ref)
-        ;   message(['{In ',PlName]),
+        ;   message(user, ['{In ',PlName]),
 	    message(warning, ['cannot create ',AsrName]),
-	    message('}'),
+	    message(user, '}'),
 	    read_asr_file_(Base,Verb)
 	),
 	verb_message(Verb,'}'),
@@ -494,10 +494,10 @@ print_reexported_assertions_as_facts(Base,M) :-
 	     fast_write(assertion_read(PD,M,Status,Type,Body,Dict,S,LB,LE))
 	  ;  true
 	     %% MH2 Actually, this seems to be working now
-	     %% message(['{In ',Base,'.pl']),
+	     %% message(user, ['{In ',Base,'.pl']),
 	     %% message(warning,['pending reexport for ',F,'/',A,' from ',MI]),
 	     %% %% asserta_fact(pending_reexport(PD,Base,M,MI))
-   	     %% message('}')
+   	     %% message(user, '}')
 	  ),
 	  fail
 	; true ).
@@ -513,11 +513,11 @@ imports(M, MI, F, A):- imports(M, MI, F, A, _).
 :- set_prolog_flag(multi_arity_warnings, off).
 
 verb_message(verbose,Message) :-
-	io_aux:message(Message).
+	messages_basic:message(user, Message).
 verb_message(quiet,_Message).
 /*
 verb_message(verbose,Type,Message) :-
-	io_aux:message(Type,Message).
+	messages_basic:message(Type,Message).
 verb_message(quiet,_Type,_Message).
 */
 :- set_prolog_flag(multi_arity_warnings, on).
@@ -601,13 +601,13 @@ normalize_assertions_debug(M,Base) :-
 
 normalize_assertions_debug_opts(M,Base,Opts) :-
 	prolog_flag(write_strings, Old, on),
-	io_aux:message(['{Normalizing assertions in ',M,' (pass one)']),
+	messages_basic:message(user, ['{Normalizing assertions in ',M,' (pass one)']),
 	normalize_assertions_pass_one(M,Base),
-	io_aux:message('}'),
+	messages_basic:message(user, '}'),
 	print_unformatted_assertions(_M),
-	io_aux:message(['{Normalizing assertions in ',M,' (pass two)']),
+	messages_basic:message(user, ['{Normalizing assertions in ',M,' (pass two)']),
 	normalize_assertions_pass_two_opts(M,Opts),
-	io_aux:message('}'),
+	messages_basic:message(user, '}'),
         current_output(CI),
         set_output(user_error),
 	print_unformatted_assertions(_M),
@@ -625,13 +625,13 @@ normalize_assertions_debug_opts(M,Base,Opts) :-
 %% ---------------------------------------------------------------------------
 
 print_assertions(M) :-
-	io_aux:message('{Printing assertions read '),
+	messages_basic:message(user, '{Printing assertions read '),
 	assertion_read(PD,M,Status,Type,Body,Dict,_S,_LB,_LE),
 	%% Using now version in library(assrt_write)
 	write_assertion(PD,Status,Type,Body,Dict,status),
 	fail.
 print_assertions(_M) :-
-	io_aux:message('}').
+	messages_basic:message(user, '}').
 
 %% ---------------------------------------------------------------------------
 :- pred print_unformatted_assertions(M) :: moddesc # "Prints the
@@ -642,18 +642,18 @@ print_assertions(_M) :-
 %% ---------------------------------------------------------------------------
 
 print_unformatted_assertions(M) :-
-	io_aux:message('{Printing assertions read'),
+	messages_basic:message(user, '{Printing assertions read'),
 	assertion_read(PD,M,Status,Type,Body,Dict,_S,_LB,_LE),
 	%% Using now version in library(assrt_write)
 	local_write_assertion(PD,Status,Type,Body,Dict,status,M),
 	fail.
 print_unformatted_assertions(_M) :-
-	io_aux:message('}').
+	messages_basic:message(user, '}').
 
 local_write_assertion(PD,Status,Type,Body,_Dict,_Flag,M) :-
 	assertion_body(PD,DP,CP,AP,GP,CO,Body),
-	io_aux:message(['(in module ',M,':)']),
-	io_aux:message([':- ',Status,' ',Type,' ',PD,
+	messages_basic:message(user, ['(in module ',M,':)']),
+	messages_basic:message(user, [':- ',Status,' ',Type,' ',PD,
                        ' :: ',DP,' : ',CP,' => ',AP,' + ',GP,' # ',CO]).
 
 %% ---------------------------------------------------------------------------

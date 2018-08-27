@@ -39,7 +39,7 @@
 :- use_module(library(http/http_service_rt), [service_path/2]).
 :- use_module(library(pillow/json)).
 :- use_module(library(lists), [member/2, append/3, length/2]).
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "From HTTP request to actmod request").

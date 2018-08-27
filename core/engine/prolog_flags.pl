@@ -64,7 +64,7 @@
 @item{@tt{max_arity}} It is 255, so that no compound term (or predicate)
       can have more than this number of arguments.  Unchangeable.  @iso
 
-@item{@tt{quiet}} Controls which messages issued using @lib{io_aux}
+@item{@tt{quiet}} Controls which messages issued using @lib{messages_basic}
       are actually written.  As the system uses that library to emit
       its messages, this flag controls the @em{verbosity} of the
       system.  Possible states of the flag are:

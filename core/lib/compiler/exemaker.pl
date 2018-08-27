@@ -23,7 +23,7 @@
 	     decl/2]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(engine(io_aux), [message/1, message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(engine(prolog_flags), [current_prolog_flag/2]).
 :- use_module(engine(meta_inc), [meta_inc_args/3]).
 :- use_module(engine(internals),
@@ -85,7 +85,7 @@ make_exec_prot(Files, ExecName) :-
 	delete_temp,
 	cleanup_c_itf_data.
 make_exec_prot(_, _) :-
-	message('{Executable generation aborted}'),
+	message(user, '{Executable generation aborted}'),
 	retractall_fact(needs_interface(_, _)), % JFMC
 	cleanup_c_itf_data.
 
@@ -542,7 +542,7 @@ delete_temp.
 
 verbose_message(M) :-
 	( current_prolog_flag(verbose_compilation, off), !
-	; message(M)
+	; message(user, M)
 	).
 
 % ---------------------------------------------------------------------------

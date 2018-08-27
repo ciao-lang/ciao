@@ -33,7 +33,7 @@
 :- doc(bug, "Easy import packages from other systems?").
 
 :- use_module(engine(system_info), [get_os/1, get_arch/1]).
-:- use_module(engine(io_aux), [message/1, message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(lists), [member/2, append/3, difference/3]).
@@ -446,8 +446,8 @@ rec_delete_file_nofail(FILE) :-
 
 % TODO: merge with normal_message
 message_status(Lib, Msg, Status) :-
-	% message(['**',  ' ', Lib, ' ', 'auto', ' ', 'installation', ':', ' ', $$(Msg), ' ', [Status], ' ', '**']).
-	message(['   ', Lib, ' auto-installation', ':', ' ', $$(Msg), ' (', Status, ')']).
+	% message(user, ['**',  ' ', Lib, ' ', 'auto', ' ', 'installation', ':', ' ', $$(Msg), ' ', [Status], ' ', '**']).
+	message(user, ['   ', Lib, ' auto-installation', ':', ' ', $$(Msg), ' (', Status, ')']).
 	
 message_start(Lib, Msg) :- message_status(Lib, Msg, start).
 message_start(Lib, Msg) :- message_status(Lib, Msg, fail), fail.

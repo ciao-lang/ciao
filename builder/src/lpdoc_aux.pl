@@ -25,7 +25,7 @@ invoke_lpdoc(Args) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(source_tree), [copy_file_or_dir/2]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).

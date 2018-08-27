@@ -2,24 +2,24 @@
 
 % TODO: document -- some seems broken
 
-:- use_module(engine(io_aux), [message/1]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(timeout), [call_with_time_limit/3]).
 
 main([]):- test(2, _).
 
 test(2, Time):-
 	dichotomy((test(1, T), (T == 0 -> throw(time_limit_exceeded); true)), 3, 0, 15000, Time),
-	message(['Time (2) = ', Time]). 
+	message(user, ['Time (2) = ', Time]). 
 
 		     
 test(1, Time):-
 	dichotomy((queens(15, _L)), 5, 0, 100, Time),
-	message(['Time (1) = ', Time]). 
+	message(user, ['Time (1) = ', Time]). 
 				
 
 dichotomy(Call, N, LowerBound, UpperBound, Result):-
 	Time is (LowerBound + UpperBound) // 2,
-%	message([dichotomy(Call, N, LowerBound, UpperBound, 'Result'), ' ',  Time]),
+%	message(user, [dichotomy(Call, N, LowerBound, UpperBound, 'Result'), ' ',  Time]),
 	(
 	    \+ \+ (iterate(N, Time, Call, M), M > (N +1) // 2)  ->
 	    (

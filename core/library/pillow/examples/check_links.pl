@@ -5,7 +5,7 @@
 :- use_module(library(http/url)).
 :- use_module(library(lists), [member/2]).
 
-:- use_module(engine(io_aux), [message/1, message/2]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(format)).
 
 main([URL]) :- !,
@@ -54,5 +54,5 @@ fetch_url_status(_,timeout,timeout).
 
 report_bad_links([]).
 report_bad_links([badlink(U,P)|BLs]) :-
-        message(['URL ',U,' : ',P]),
+        message(user, ['URL ',U,' : ',P]),
         report_bad_links(BLs).

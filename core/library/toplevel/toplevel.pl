@@ -19,7 +19,7 @@
 	    ],
 	    [dcg, assertions, nortchecks, define_flag]).
 
-:- use_module(engine(io_aux)).
+:- use_module(engine(messages_basic)).
 :- use_module(library(compiler/exemaker), [make_exec/2]).
 :- use_module(library(compiler),
 	    [use_module/3, ensure_loaded/2,
@@ -154,7 +154,7 @@ include_if_exists(File) :-
 	).
 
 '$shell_abort' :-
-	message('{ Execution aborted }'),
+	message(user, '{ Execution aborted }'),
 	shell_body, % Enter toplevel again
 	( '$nodebug_call'(exit_hook), fail ; true ),
 	% TODO: This is useful for batched execution, but it may
@@ -576,10 +576,10 @@ do_include(Type, File) :-
 	'$open'(SourceFile, r, Stream),
 	include_st(Type, Stream, SourceBase),
 	close(Stream),
-	message('}').
+	message(user, '}').
 
-include_message(source, SourceFile) :- message(['{Including ', SourceFile]).
-include_message(package, SourceFile) :- message(['{Using package ', SourceFile]).
+include_message(source, SourceFile) :- message(user, ['{Including ', SourceFile]).
+include_message(package, SourceFile) :- message(user, ['{Using package ', SourceFile]).
 
 include_st(Type, Stream, Base) :-
 	current_fact(shell_module(ShMod)),
@@ -777,7 +777,7 @@ debug_module(M) :-
 	set_debug_module(M),
 	debugger:debug_module(M),
 	( mode_of_module(M, Mode), Mode \== interpreted(raw) ->
-	    message(['{Consider reloading module ', M, '}'])
+	    message(user, ['{Consider reloading module ', M, '}'])
 	; true
 	),
 	display_debugged.
@@ -791,7 +791,7 @@ debug_module_source(M) :-
 	set_debug_module_source(M),
 	debugger:debug_module_source(M),
 	( mode_of_module(M, Mode), Mode \== interpreted(srcdbg) ->
-	    message(['{Consider reloading module ', M, '}'])
+	    message(user, ['{Consider reloading module ', M, '}'])
 	; true
 	),
 	display_debugged.

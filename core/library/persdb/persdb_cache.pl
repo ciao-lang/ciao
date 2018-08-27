@@ -5,7 +5,7 @@
 	[ assertions ]).
 
 :- use_module(engine(stream_basic)).
-:- use_module(engine(io_aux), [display_term/1]).
+:- use_module(engine(messages_basic), [display_term/1]).
 :- use_module(library(lists)).
 :- use_module(library(system)).
 :- use_module(library(system_extra), [mkpath/1]).
