@@ -8,21 +8,25 @@
         display/2, display/1, displayq/2, displayq/1],
         [assertions, nortchecks, nativeprops, isomodes]).
 
-:- doc(title, "Basic input/output").
+:- doc(title, "Basic input/output stream operations").
 
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Mats Carlsson").
+:- doc(author, "Jose F. Morales (minor)").
 
-:- doc(usage, "@include{InPrelude.lpdoc}").
+% :- doc(usage, "@include{InPrelude.lpdoc}").
 
-:- doc(module, "This module provides predicates for character
-   input/output and for canonical term output.  From the
-   @concept{ISO-Prolog} predicates for character input/output, only
-   the @tt{_code} versions are provided, the @tt{_char} versions are
-   given by @lib{library(iso_char)}, using these.  Most predicates are
-   provided in two versions: one that specifies the input or output
-   stream as the first argument and a second which omits this argument
-   and uses the current input or output stream.").
+:- doc(module, "This module provides the basic input/output operations
+   on streams (byte/code input/output and canonical term output). Most
+   predicates are provided in two versions: one that specifies the
+   input or output stream as the first argument and a second which
+   omits this argument and uses the current input or output stream.
+
+   From the @concept{ISO-Prolog} predicates for character
+   input/output, only the @tt{_code} versions are provided, the
+   @tt{_char} versions are given by @lib{library(iso_char)}.").
+
+% NOTE: These are operations that new stream types should implement
 
 :- use_module(engine(stream_basic)).
 
