@@ -139,7 +139,6 @@ bool_t expand_file_name(const char *name, bool_t abs, char *target)
   int d = 0;
 
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
-#warning "TODO(MinGW): Fix open_null_stream"
   /* TODO: hack to avoid expansion of 'nul' reserved name. Instead of
      this, pass abs=FALSE in most places */
   if (strcmp(name, "nul") == 0 ||
@@ -1755,7 +1754,6 @@ CBOOL__PROTO(prolog_find_file)
 
   /* dirname */
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
-#warning "TODO(MinGW): Fix open_null_stream"
   /* TODO: pathBuf may be 'nul' or 'NUL' (see expand_file_name) */
   while (bp > pathBuf && *bp!='/')
     --bp;

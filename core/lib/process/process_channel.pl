@@ -44,7 +44,7 @@
 :- doc(process_channel/1, "
    @begin{description}
    @item{@tt{default}} the default descriptor
-   @item{@tt{null}} the null stream (@tt{/dev/null} file in POSIX, @tt{nul} in Windows)
+   @item{@tt{null}} the null stream (see @pred{dev_null/1})
    @item{@tt{pipe(-Stream)}} a pipe (@var{Stream} unified with the
      parent's read/write end of the pipe)
    @item{@tt{file(+File)}} a file @var{File}

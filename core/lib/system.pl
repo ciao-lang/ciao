@@ -16,6 +16,7 @@
 	    %
             extract_paths/2, % TODO: use c_extract_paths() from os_utils.c (take Prolog as reference)
 	    get_tmp_dir/1, % TODO: see TODO in predicate
+	    dev_null/1,
             current_host/1,
             current_executable/1,
             umask/2,
@@ -714,6 +715,15 @@ tmpdir(TmpDir) :- using_windows, !, % Windows
 	).
 tmpdir(TmpDir) :- % POSIX
 	c_get_env('TMPDIR', TmpDir).
+
+% ---------------------------------------------------------------------------
+
+:- pred dev_null(Path) => atm(Path)
+   # "File path for the null device (@tt{/dev/null} file in POSIX,
+     @tt{nul} in Windows)".
+
+dev_null(Path) :- using_windows, !, Path = 'nul'.
+dev_null('/dev/null').
 
 % ---------------------------------------------------------------------------
 

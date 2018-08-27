@@ -117,7 +117,7 @@
 :- use_module(engine(stream_basic)).
 :- use_module(engine(internals), ['$exec'/9]).
 :- use_module(library(system), 
-	[wait/2, kill/2, working_directory/2, using_windows/0]).
+	[wait/2, kill/2, working_directory/2, dev_null/1]).
 
 :- use_module(library(process/process_channel)).
 
@@ -399,9 +399,8 @@ getchannel(Std, Opts, Channel) :-
 	; Channel = default
 	).
 
-% TODO: treat 'null' in process_channel, use open_null_stream?
-norm_channel(null, Channel) :- using_windows, !, Channel = file('nul').
-norm_channel(null, Channel) :- !, Channel = file('/dev/null').
+% TODO: treat 'null' in process_channel?
+norm_channel(null, Channel) :- !, dev_null(Null), Channel = file(Null).
 norm_channel(Channel, Channel).
 
 % (check that Channel is a well formed and valid channel for the

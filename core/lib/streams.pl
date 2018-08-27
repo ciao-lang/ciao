@@ -1,5 +1,4 @@
 :- module(streams, [
-        open_null_stream/1,
         open_input/2, close_input/1, open_output/2, close_output/1
         ],[assertions]).
 
@@ -8,11 +7,6 @@
 
 % TODO: Merge into stream_utils.pl
 :- doc(title,"Structured stream handling").
-
-:- pred open_null_stream(S) => stream(S).
-
-open_null_stream(S) :-
-	'$open'('/dev/null', w, S).
 
 :- pred open_input(FileName,InputStreams)
          : sourcename(FileName)
