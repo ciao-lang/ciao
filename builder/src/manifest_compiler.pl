@@ -357,7 +357,7 @@ target_is_bundle(Target) :-
 
 :- use_module(library(fastrw), [fast_write/1]).
 :- use_module(engine(internals), [bundlereg_version/1]).
-:- use_module(library(streams), [open_output/2, close_output/1]).
+:- use_module(library(stream_utils), [open_output/2, close_output/1]).
 
 :- export(make_bundlereg/4).
 :- pred make_bundlereg(Bundle, BundleDir, FinalBundleDir, RegFile)

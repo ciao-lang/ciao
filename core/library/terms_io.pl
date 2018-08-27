@@ -13,7 +13,7 @@
 :- use_module(engine(stream_basic), [sourcename/1]).
 :- use_module(engine(io_basic)).
 :- use_module(library(read), [read/1]).
-:- use_module(library(streams)).
+:- use_module(library(stream_utils), [open_output/2, close_output/1, open_input/2, close_input/1]).
 
 :- pred file_to_terms(File, Terms) :
 	(sourcename(File), var(Terms)) => list(Terms)

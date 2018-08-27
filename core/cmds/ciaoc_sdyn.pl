@@ -27,7 +27,7 @@ $ ciaoc_sdyn MAIN
 	[path_split/3, path_concat/3, path_norm/2, path_is_relative/1]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(format), [format/3]).
-:- use_module(library(streams), [open_output/2, close_output/1]).
+:- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(engine(internals), [ciao_root/1]).
 
 % ---------------------------------------------------------------------------

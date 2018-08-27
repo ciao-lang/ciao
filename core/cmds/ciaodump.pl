@@ -60,8 +60,8 @@
 
 :- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3]).
 :- use_module(engine(internals)).
-:- use_module(library(streams)).
 :- use_module(library(system)).
+:- use_module(library(stream_utils), [open_input/2, close_input/1]).
 :- use_module(library(stream_utils), [file_to_string/2]).
 :- use_module(library(write), [numbervars/3, write/1]).
 :- use_module(library(read)).

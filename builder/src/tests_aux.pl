@@ -5,7 +5,6 @@
 
 % TODO: Do not use bash
 
-:- use_module(library(streams)).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(pathnames), [path_split/3]).

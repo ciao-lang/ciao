@@ -25,7 +25,6 @@
 :- module(trie, [consult/3]).
 
 :- use_module(library(write)).
-:- use_module(library(streams)).
 
 :- set_prolog_flag(multi_arity_warnings, off).
 

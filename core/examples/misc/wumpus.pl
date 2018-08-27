@@ -20,7 +20,6 @@
 :- use_module(library(lists)).
 :- use_module(library(aggregates)).
 :- use_module(library(sort)).
-:- use_module(library(streams)).
 
 :- set_prolog_flag(multi_arity_warnings, off).
 

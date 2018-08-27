@@ -15,7 +15,7 @@
 :- use_module(library(read)).
 :- use_module(library(fastrw)).
 :- use_module(library(system)).
-:- use_module(library(streams)).
+:- use_module(library(stream_utils), [open_input/2, close_input/1]).
 :- use_module(library(lists), [append/3]).
 :- use_module(library(fuzzy_search), [damerau_lev_dist/3]).
 :- use_module(library(pathnames), [path_concat/3]).

@@ -4,7 +4,7 @@
         [ assertions, regtypes
         ]).
 
-:- use_module(library(streams), [open_output/2, close_output/1]).
+:- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(library(terms), [atom_concat/2]).  
 :- use_module(library(xrefs/xrefsbuild), [xrefs/2, xref/1]).
 :- reexport(library(xrefs/xrefsbuild),[ set_flag/1 ]).

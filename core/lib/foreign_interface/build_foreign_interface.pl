@@ -22,7 +22,7 @@
 :- doc(author, "Manuel Carro").
 
 :- use_module(library(write_c)).
-:- use_module(library(streams)).
+:- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(library(lists)).
 :- use_module(library(llists), [flatten/2]).
 :- use_module(library(aggregates), [findall/3]).

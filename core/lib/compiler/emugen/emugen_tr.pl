@@ -13,8 +13,7 @@
 
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(read)).
-:- use_module(library(format)).
-:- use_module(library(streams)).
+:- use_module(library(stream_utils), [string_to_file/2]).
 :- use_module(library(lists)).
 :- use_module(library(aggregates), [findall/3, bagof/3]).
 :- use_module(library(pathnames), [path_concat/3]).
@@ -145,7 +144,7 @@ code_to_file_(M, Code, File) :-
 	emugen_code_dir(Eng, File, DestDir),
 	mkpath(DestDir),
 	File2 = ~path_concat(DestDir, File),
-	write_string_to_file(File2, String).
+	string_to_file(String, File2).
 
 % ---------------------------------------------------------------------------
 
@@ -168,12 +167,6 @@ code_to_cexp(code(Code), M, CExp) :-
 emit_code(G, M, Store) -->
 	{ tr_solve_unique(G, M, Store, Body) },
 	[Body].
-
-% TODO: duplicates :- use_module(library(stream_utils), [string_to_file/2]).
-write_string_to_file(File, String) :-
-	OutStream = ~open_output(File),
-	format("~s", [String]),
-	close_output(OutStream).
 
 % ---------------------------------------------------------------------------
 % Error handler and diagnosis

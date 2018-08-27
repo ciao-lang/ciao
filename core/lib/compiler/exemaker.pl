@@ -30,7 +30,7 @@
 	    [po_filename/2,
 		so_filename/2,
 		itf_filename/2]).
-:- use_module(library(streams), [open_input/2, close_input/1]).
+:- use_module(library(stream_utils), [open_input/2, close_input/1]).
 :- use_module(library(system),
 	    [file_exists/1,
 		modif_time0/2,

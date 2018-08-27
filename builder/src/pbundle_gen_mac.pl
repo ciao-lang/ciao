@@ -27,8 +27,8 @@ Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The Ciao Development Te
 :- use_module(library(process), [process_call/3, process_pipe/2]).
 :- use_module(library(system)).
 :- use_module(library(system_extra), [mkpath/2]).
-:- use_module(library(streams)).
 :- use_module(library(stream_utils)).
+:- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(library(pathnames), [path_concat/3]).
 
 :- use_module(library(bundle/bundle_flags), [restore_all_bundle_flags/0]).

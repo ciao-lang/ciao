@@ -237,7 +237,7 @@ number_to_atm2(X, Y) :-
 
 :- use_module(engine(io_basic)).
 :- use_module(engine(messages_basic), [display_list/1]).
-:- use_module(library(streams), [open_output/2, close_output/1]).
+:- use_module(library(stream_utils), [open_output/2, close_output/1]).
 
 :- use_module(ciaobld(install_aux), [final_ciao_root/1]). % TODO: need relocate?
 :- use_module(ciaobld(eng_defs), [eng_mainmod/2]).
@@ -279,7 +279,7 @@ clean_eng_exec_header(_Eng) :-
 	del_file_nofail(HeaderPath).
 
 :- use_module(library(system), [winpath/2]).
-:- use_module(library(streams), [open_output/2, close_output/1]).
+:- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(ciaobld(eng_defs), [eng_path/3]).
 
 % TODO: use .cmd (winnt) instead of .bat extension?

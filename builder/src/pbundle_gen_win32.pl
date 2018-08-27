@@ -13,12 +13,12 @@
 % ===========================================================================
 
 :- use_module(library(aggregates)).
-:- use_module(library(streams)).
 :- use_module(library(lists)).
 :- use_module(library(llists)).
 :- use_module(library(messages), [simple_message/1, simple_message/2]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(stream_utils)).
+:- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(engine(messages_basic), [display_list/1]).
 :- use_module(library(process), [process_call/3, process_pipe/2]).
 :- use_module(library(system), [winpath/3, winpath/2, working_directory/2]).

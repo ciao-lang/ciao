@@ -134,7 +134,7 @@ zip_archive__(SourceDir, FileList, Archive) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(streams), [open_output/2, close_output/1]).
+:- use_module(library(stream_utils), [open_output/2, close_output/1]).
 
 % (obtain FileList file)
 write_file_list_tmp(Files, TopDir, FileList) :-

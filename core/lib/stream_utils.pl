@@ -8,12 +8,15 @@
 	  file_to_string/3,
 	  string_to_file/2,
 	  %
-	  output_to_file/2],
+	  output_to_file/2,
+	  %
+	  open_input/2, close_input/1,
+	  open_output/2, close_output/1
+	],
         [assertions,isomodes,hiord]).
 
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(library(streams)). % TODO: merge here
 
 :- doc(title, "Stream utilities").
 
@@ -166,7 +169,61 @@ output_to_file(Goal, File) :-
 	open(File, write, OS),
 	current_output(CO),
 	set_output(OS),
-	call(Goal),
+	call(Goal), % TODO: use port_reify
 	set_output(CO),
 	close(OS).
+
+% ===========================================================================
+:- doc(section, "Structured stream handling").
+
+:- pred open_input(FileName,InputStreams)
+         : sourcename(FileName)
+        => input_handler(InputStreams).
+
+open_input(FileName, i(OldInput, NewInput)) :-
+        current_input(OldInput),
+        open(FileName, read, NewInput),
+        set_input(NewInput).
+
+:- pred close_input(InputStreams)
+         : input_handler(InputStreams)
+        => input_handler(InputStreams).
+
+close_input(i(OldInput, NewInput)) :- !,
+        set_input(OldInput),
+        close(NewInput).
+close_input(X) :-
+        throw(error(domain_error(open_input_handler, X), close_input/1-1)).
+
+:- pred open_output(FileName,OutputStreams)
+         : sourcename(FileName)
+        => output_handler(OutputStreams).
+
+open_output(FileName, o(OldOutput, NewOutput)) :-
+        current_output(OldOutput),
+        open(FileName, write, NewOutput),
+        set_output(NewOutput).
+
+:- pred close_output(OutputStreams)
+         : output_handler(OutputStreams)
+        => output_handler(OutputStreams).
+
+close_output(o(OldOutput, NewOutput)) :- !,
+        set_output(OldOutput),
+        close(NewOutput).
+close_output(X) :-
+        throw(error(domain_error(open_output_handler, X), close_output/1-1)).
+
+:- prop input_handler/1 + regtype.
+
+input_handler(i(Old,New)):-
+	stream(Old),
+	stream(New).
+
+:- prop output_handler/1 + regtype.
+
+output_handler(o(Old,New)):-
+	stream(Old),
+	stream(New).
+
 
