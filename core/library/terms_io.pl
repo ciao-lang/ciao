@@ -1,5 +1,6 @@
 :- module(terms_io, [
 	  file_to_terms/2,
+	  file_to_terms/3,
 	  terms_to_file/2,
 	  term_write/1],
         [assertions,isomodes]).
@@ -20,15 +21,23 @@
    # "Unifies @var{Terms} with the list of all terms in @var{File}.".
 
 file_to_terms(File, Terms) :-
+	file_to_terms(File, Terms, []).
+
+:- pred file_to_terms(File, Terms, Terms0) :
+	sourcename(File)
+   # "Read all terms in @vaR{File} into the difference list
+     @var{Terms}-@var{Terms0}.".
+
+file_to_terms(File, Terms, Terms0) :-
         open_input(File, IO),
         read(T),
-        read_terms(T, Terms),
+        read_terms(T, Terms, Terms0), % TODO: use port_reify
         close_input(IO).
 
-read_terms(end_of_file, []) :- !.
-read_terms(T, [T|Ts]) :-
+read_terms(end_of_file, Terms, Terms0) :- !, Terms = Terms0.
+read_terms(T, [T|Ts], Ts0) :-
         read(T1),
-        read_terms(T1, Ts).
+        read_terms(T1, Ts, Ts0).
 
 :- pred terms_to_file(File, Terms) : sourcename * list
    # "Writes the terms in list @var{Terms} (including the ending '.')
@@ -37,13 +46,13 @@ read_terms(T, [T|Ts]) :-
 terms_to_file(Terms, File) :-
 	check_is_list(Terms, term_to_file/2-1), !,
         open_output(File, IO),
-        display_term_list(Terms),
+        terms_write(Terms),
         close_output(IO).
 
-display_term_list([]).
-display_term_list([T|Ts]) :-
+terms_write([]).
+terms_write([T|Ts]) :-
         term_write(T),
-        display_term_list(Ts).
+        terms_write(Ts).
 
 check_is_list(X, Loc):-
 	var(X),

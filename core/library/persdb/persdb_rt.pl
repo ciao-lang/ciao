@@ -16,10 +16,9 @@
         [assertions,regtypes,nortchecks, library(persdb/persdb_decl)]).
 
 :- use_module(engine(stream_basic)).
-:- use_module(library(terms_io), [term_write/1]).
+:- use_module(library(terms_io), [file_to_terms/3, terms_to_file/2]).
 :- use_module(engine(internals), [term_to_meta/2]).
 :- use_module(library(lists),    [select/3]).
-:- use_module(library(read)).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(system)).
 :- use_module(library(file_locks)).
@@ -595,19 +594,8 @@ update_files_of(_, _).
 %  file File, Terms_ is the tail of the list
 file_to_term_list(File, Terms, Terms_) :-
         file_exists(File, 6), !,
-        current_input(OldInput),
-        open(File, read, Stream),
-        set_input(Stream),
-        read(T),
-        read_terms(T, Terms, Terms_),
-        set_input(OldInput),
-        close(Stream).
+	file_to_terms(File, Terms, Terms_).
 file_to_term_list(_File, Terms, Terms).
-
-read_terms(end_of_file, Ts, Ts) :- !.
-read_terms(T, [T|Ts], Ts_) :-
-        read(T1),
-        read_terms(T1, Ts, Ts_).
 
 % term_list_to_file(Terms, File, FilePerms) writes a list of terms Terms onto a file
 %  File
@@ -618,17 +606,7 @@ term_list_to_file(Terms, File, FilePerms) :-
 	; create(File, FilePerms) % just to put right permissions in File.
 	),
 %jcf-end
-        current_output(OldOutput),
-        open(File, write, Stream),
-        set_output(Stream),
-        display_term_list(Terms),
-        close(Stream),
-        set_output(OldOutput).    
-
-display_term_list([]).
-display_term_list([T|Ts]) :-
-        term_write(T),
-        display_term_list(Ts).
+	terms_to_file(Terms, File).
 
 % :- pred mv(Path1, Path2, Perms) ; "Rename a file, or create target with file permisssion Perms.".
 mv(Source, Target, _FilePerms):-

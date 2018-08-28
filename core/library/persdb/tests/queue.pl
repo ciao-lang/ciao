@@ -35,8 +35,8 @@ handle_action(slip(Term)) :-
 handle_action(out) :-
      (  retract_fact(queue(Term))
      -> writeq(Term),write('.'),nl
-     ;  write('FIFO empty.') ),
-     nl,
+     ;  write('FIFO empty.'),nl
+     ),
      main.
 handle_action(list) :-
      findall(Term,queue(Term),Terms),
