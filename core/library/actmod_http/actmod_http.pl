@@ -2,11 +2,8 @@
 
 :- doc(title, "Active modules over HTTP").
 
+:- doc(stability, devel).
 :- doc(module, "
-   @begin{alert}
-   This is an experimental library
-   @end{alert}
-
    This module offers support for active modules over HTTP (for static
    HTML generation or interaction with JS code). It implements the
    encoding/decoding of messages as JSON (for requests and responses,

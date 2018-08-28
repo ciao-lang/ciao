@@ -8,10 +8,10 @@
    environment, and sending and receiving messages (see mailbox)
    between active module instances.
 
-   @begin{alert}
+   @begin{note}
    The current distribution protocol provide no means for
    security. The application must take care of this.
-   @end{alert}
+   @end{note}
 
    This includes:
    @begin{itemize}
@@ -75,11 +75,11 @@ ACTMOD_HOSTNAME        Address for listening connection
 
    @section{Registry protocols}
    
-   @begin{alert}
+   @begin{note}
    The implementation currently uses the experimental @lib{traits}
    package (similar to @tt{multifile} predicates but with better
    control on the hooks interface).
-   @end{alert}
+   @end{note}
    
    A registry protocol implements the predicates to publish and locate
    addresses of active module instances. By convention, the

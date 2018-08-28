@@ -18,7 +18,7 @@
    mechanisms. This is useful for executing external programs, or
    implementing coarse-grained parallelism and concurrency.
 
-   @begin{alert}
+   @begin{note}
    @begin{itemize}
    @item Process creation via @tt{fork()} is relatively costly. Use only
      when address separation is necessary. Consider other concurrency
@@ -39,7 +39,7 @@
      @lib{library(glob)} for glob expansions (shell wildcard
      patterns).
    @end{itemize}
-   @end{alert}
+   @end{note}
 ").
 
 :- doc(bug, "(feature) Poll if a process has terminated").

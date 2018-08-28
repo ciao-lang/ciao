@@ -153,10 +153,10 @@ explanation of the meaning:
 
 @section{Creating versions of properties}
 
-@begin{alert}
- @bf{Note:} this is a new feature and under active development. The
- documentation may be partial/obsolete.
-@end{alert}
+@begin{note}
+@bf{Note:} this is a new feature and under active development. The
+documentation may be partial/obsolete.
+@end{note}
 
 In some cases declarative property definitions are not efficient enough
 to be used in the run-time checks instrumentation. In Ciao it is
@@ -199,8 +199,8 @@ For an example of a system library that uses this feature see the
 :- doc(usage,":- module(...,...,[...,rtchecks]).").
 
 :- doc(appendix,
-        "@begin{alert}
+        "@begin{note}
            @bf{Note:} the @tt{assertions} package must always be included
            together with the @tt{rtchecks} package
            (see @tt{core/lib/compiler/global_module_options.pl} for details).
-         @end{alert}").
+         @end{note}").

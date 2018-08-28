@@ -7,16 +7,15 @@
 
 :- doc(title, "Low-level attributed variables").
 
-
 :- doc(author,"Christian Holzbaur").
 :- doc(author,"Daniel Cabeza").
 :- doc(author,"Manuel Carro").
 
 :- doc(module, "
 
-@begin{alert}
+@begin{note}
 Direct usage of this module is discouraged. Prefer package @lib{attr}.
-@end{alert}
+@end{note}
 
 These predicates allow the manipulation of
    @index{attributed variables}. Attributes are special terms 

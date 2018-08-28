@@ -15,10 +15,10 @@
    @item custom definitions for build commands (see @lib{builder_cmds})
    @end{itemize}
 
-@begin{alert}
-Configuration flags and nested definitions must be defined in a
+@begin{note}
+NOTE: Configuration flags and nested definitions must be defined in a
 @tt{<bundle>.hooks.pl} module. 
-@end{alert}
+@end{note}
 
    Use @pred{make_bundlereg/4} for processing of @tt{Manifest.pl}
    files into bundle registry entries. Bundle registries are written
@@ -30,11 +30,11 @@ Configuration flags and nested definitions must be defined in a
    and @pred{manifest_call/2} for loading and consulting a bundle
    specification.
 
-   @begin{alert}
+   @begin{note}
    NOTE: Users should never call a custom build command definitions
    directly with @pred{manifest_call/2}. Use @lib{builder_cmds}
    instead.
-   @end{alert}
+   @end{note}
 ").
 
 :- doc(bug, "Simplify reusing the module compiler and some translation

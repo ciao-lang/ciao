@@ -4,6 +4,9 @@
 :- doc(author, "Remy Haemmerle").
 :- doc(author, "Jose F. Morales (minor changes)").
 
+:- doc(stability, devel("This is a preliminary implementation which
+   produces archives that are larger than needed")).
+
 :- doc(module, "This command creates standalone executables including
    assets, including foreign libraries, data files, modules that can
    be loaded dynamically, etc.
@@ -17,10 +20,6 @@ $ ciaoc_car SRC DST
    This will create a @tt{DST} executable (a shell script) and a
    @tt{DST.car} directory containing all assets (including relocatable
    binaries).
-
-@begin{alert}
-NOTE: This is experimental and will contain more files than needed.
-@end{alert}
 ").
 
 :- use_module(library(pathnames), [path_basename/2, path_concat/3]).

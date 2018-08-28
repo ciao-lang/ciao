@@ -24,7 +24,7 @@
 
    @section{Specification of third-party components}
 
-   @begin{alert}TO BE DONE@end{alert}").
+   @begin{alert}TODO: Document this feature@end{alert}").
 
 :- doc(bug, "Use Bundle to locate the third-party directory").
 :- doc(bug, "Write documentation").

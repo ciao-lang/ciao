@@ -9,7 +9,8 @@
    files).
 
 @begin{alert}
-DOCUMENT SYNTAX AND SEMANTICS OF CONFIGURATION RULES
+TODO: Write documentation for the syntax and semantics of
+configuration rules.
 @end{alert}
 
    The configuration process may invoke external configuration tools

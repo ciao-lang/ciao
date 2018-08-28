@@ -67,20 +67,20 @@ suffix. Omitted version numbers are assumed to be 0. Dependencies may
 include version constraints, e.g., @tt{core-[version>='1.15']} (see
 @pred{version_compare/3} for the definition of the comparison).
 
-@begin{alert}
+@begin{note}
 Currently the system supports only one version of a bundle
 at the same time. If two versions need to coexist at the same time,
 the bundles must be renamed (e.g. @tt{bndv1}, @tt{bndv2}).
-@end{alert}
+@end{note}
 
-@begin{alert}
+@begin{note}
 @bf{Additional build rules:} Although the Ciao compiler is incremental
 and performs the compilation on demand, some components may require
 configuration steps and pre-building. For example, this is often the
 case for bindings to foreign third-party libraries. Currently these
 rules must be written in a @em{lower-level} module
 @tt{Manifest/<bundle>.hooks.pl}.
-@end{alert}
+@end{note}
 
 @section{Workspaces}
 

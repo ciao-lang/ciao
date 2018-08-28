@@ -10,10 +10,10 @@
    applications of Ciao, including @apl{ciaoc}, @apl{ciaosh}, and
    @apl{ciao-shell}, specially during system boostrapping.
 
-   @begin{alert}
+   @begin{note}
    This library is not recommended for user programs. Use
    @concept{bundle}s instead.
-   @end{alert}").
+   @end{note}").
 
 % Note that if an executable is created dynamic, it will try to load
 % its components at startup, before the procedures of this module can

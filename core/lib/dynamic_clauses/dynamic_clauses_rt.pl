@@ -14,10 +14,10 @@
    predicates to manipulate dynamic predicates, preserving the
    original source definitions.
 
-   @begin{alert}
+   @begin{note}
    Do not use this module directly (use the @lib{dynamic_clauses}
    package instead).
-   @end{alert}").
+   @end{note}").
 
 :- set_prolog_flag(multi_arity_warnings, off).
 

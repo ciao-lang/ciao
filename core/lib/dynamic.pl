@@ -12,13 +12,13 @@
 :- doc(module,"This module implements the assert/retract family of
    predicates to manipulate dynamic predicates.
 
-   @begin{alert}
+   @begin{note}
    This module does not preserve the original source definition of
    dynamic predicates. That is, @pred{clause/2} may obtain the
    asserted clauses in lower-level expanded form rather than in the
    original shape. Use @lib{dynamic_clauses} if you need consulting
    the original form.
-   @end{alert}
+   @end{note}
 
    The predicates defined in this module allow modification of the
    program as it is actually running.  Clauses can be added to the

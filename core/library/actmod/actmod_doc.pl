@@ -14,11 +14,11 @@
 
 :- doc(module,"
 
-@begin{alert}
+@begin{note}
 This version corresponds to a revised model for active modules. See
 Ciao version 1.15 for the original first design as described in
 @cite{ciao-dis-impl-parimp-www}.
-@end{alert}
+@end{note}
 
 An @index{active module} is an ordinary module whose instances (copies
 sharing the same code but different state or data) have computational
@@ -44,12 +44,12 @@ program (another active module instance) if needed. The composition of
 the (possibly) multiple answers from the callee and the caller is
 given be the @em{query protocols} defined below.
 
-@begin{alert} 
+@begin{note} 
 Query requests at the handler loop do not fail or leave
 choicepoints. When required, non-deterministic behaviour must be
 captured on the answer and treated on the callee by the @em{query
 protocols}. 
-@end{alert}
+@end{note}
 
 @subsection{Query protocols}
 
@@ -86,7 +86,7 @@ Further details on the semantics and concurrency model:
   (e.g., A calls B, B calls A). Use @em{cast} instead.
 @end{itemize}
 
-@begin{alert}
+@begin{note}
 @begin{itemize}
 @item Query protocols will be changed or extended in the future,
   specially to optimize cost for particular cases.
@@ -95,7 +95,7 @@ Further details on the semantics and concurrency model:
 @item Or-suspensions for lazily asking for more solutions are not
   currently implemented (they are in development).
 @end{itemize}
-@end{alert}
+@end{note}
 
 @subsection{Side-effects}
 

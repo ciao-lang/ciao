@@ -3,14 +3,11 @@
 :- doc(title, "JSON encoder and decoder").
 :- doc(author, "Jose F. Morales").
 
+:- doc(stability, devel).
+
 :- doc(module, "This module defines a term representation for
    @href{http://json.org/}{JSON} (JavaScript Object Notation), as well
    as encoders and decoders.
-
-   @begin{alert}
-     This is an alpha version of the module. Use with care. Both the
-     interface and implementation may change in the future.
-   @end{alert}
 ").
 
 :- doc(bug, "The grammar probably incomplete. See

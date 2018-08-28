@@ -233,10 +233,10 @@ The translation to be performed is solely defined by the types of the
 arguments in the Ciao module (i.e., no inspection of the corresponding
 C file is done).
 
-@begin{alert}
+@begin{note}
 An incorrect selection of types may generate wrong C prototypes. Those
 problems are silently ignored during compilation.
-@end{alert}
+@end{note}
 
 @section{Equivalence between Ciao and C modes}
 

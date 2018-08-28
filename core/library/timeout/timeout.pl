@@ -7,7 +7,7 @@
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
 :- doc(author, "Jos@'{e} F. Morales (minor fixes)").
 
-:- doc(module, "@begin{alert}Experimental@end{alert}").
+:- doc(stability, devel).
 
 :- doc(bug, "Implement without threads").
 :- doc(bug, "See limitations of @pred{call_with_time_limit/3}.").

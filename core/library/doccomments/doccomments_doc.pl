@@ -62,7 +62,7 @@ program to generate the documentation.
 internal parsing routines. For more details, see the @lib{read} and
 @lib{tokenize} modules, and the @tt{doccomments} Prolog flag.
 
-@begin{alert} 
+@begin{note} 
   As @tt{# \"...\"} comments in LPdoc, this approach continues the
   @em{documentation in the AST}. Other systems take a similar
   approach (for example, see
@@ -70,7 +70,7 @@ internal parsing routines. For more details, see the @lib{read} and
   simpler approach could just parse documentation in one pass and
   generate clean code. It is not clear which one is better in the long
   term.
-@end{alert}
+@end{note}
 
 @section{Relation with comment assertions}
 
