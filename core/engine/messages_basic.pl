@@ -166,7 +166,7 @@ allowed_type(warning, warning) :- !.
 allowed_type(off,     error) :- !.
 allowed_type(off,     warning) :- !.
 allowed_type(off,     note) :- !.
-allowed_type(off,     message) :- !.
+allowed_type(off,     user) :- !.
 allowed_type(off,     inform) :- !. % TODO: 'inform' is temporary
 allowed_type(debug,   _).
 
