@@ -127,7 +127,7 @@ hello dolly
         [ensure_loaded/2, set_debug_mode/1]).
 :- use_module(library(errhandle)).
 :- use_module(engine(internals), ['$bootversion'/0]).
-:- use_module(engine(system_info), [this_module/1]).
+:- use_module(engine(hiord_rt), [this_module/1]).
 :- use_module(engine(prolog_flags), [current_prolog_flag/2, set_prolog_flag/2]).
 
 main :- get_alias_path,

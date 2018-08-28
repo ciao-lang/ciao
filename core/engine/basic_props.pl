@@ -1,8 +1,10 @@
 :- module(basic_props,
         [term/1, int/1, nnegint/1, flt/1, num/1, atm/1, struct/1,
-	 gnd/1, gndstr/1, constant/1, callable/1, % byte/1, in_byte/1,
+	 gnd/1, gndstr/1, constant/1,
+	 callable/1, internal_module_id/1,
 	 operator_specifier/1, list/1, list/2, nlist/2, member/2,
 	 sequence/2, sequence_or_list/2, character_code/1, string/1,
+	 % byte/1, in_byte/1,
 	 num_code/1, predname/1, atm_or_atm_list/1, compat/2, inst/2,
 	 iso/1, deprecated/1, not_further_inst/2, sideff/2, regtype/1,
 	 native/1, native/2, rtcheck/1, rtcheck/2, no_rtcheck/1, eval/1,
@@ -184,6 +186,18 @@ constant(T) :- num(T).
 
 callable(T) :- atm(T).
 callable(T) :- struct(T).
+
+
+% TODO: rename?
+:- doc(internal_module_id/1, "For a user file it is a term user/1
+	with an argument different for each user file, for
+	other modules is just the name of the module (as an atom).").
+
+:- prop internal_module_id(M) + regtype #
+	"@var{M} is an internal module identifier".
+
+internal_module_id(user(M)) :- atm(M). % TODO: do in other way?
+internal_module_id(M) :- atm(M).
 
 :- doc(operator_specifier/1, "The type and associativity of an
 operator is described by the following mnemonic atoms:

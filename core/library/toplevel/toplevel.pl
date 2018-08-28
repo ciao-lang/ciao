@@ -40,8 +40,7 @@
 :- use_module(engine(internals),
 	    ['$bootversion'/0, '$open'/3, '$empty_gcdef_bin'/0,
 	     '$force_interactive'/0]).
-:- use_module(engine(hiord_rt),    [call/1, '$nodebug_call'/1]).
-:- use_module(engine(system_info), [this_module/1]).
+:- use_module(engine(hiord_rt), [this_module/1, call/1, '$nodebug_call'/1]).
 :- use_module(library(lists),      [member/2, difference/3]).
 :- use_module(library(format),     [format/3]).
 :- use_module(library(aggregates), [findall/3]).

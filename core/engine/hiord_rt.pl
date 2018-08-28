@@ -4,7 +4,8 @@
 	    call/2 /* call/N, */, 
 	    'SYSCALL'/1, 
 	    '$nodebug_call'/1,
-	    '$meta_call'/1
+	    '$meta_call'/1,
+	    this_module/1
 	],[assertions, nortchecks, isomodes]).
 
 :- doc(title,"Higher-order").
@@ -63,3 +64,13 @@ calln(Pred, Args) :-
 
 :- trust pred '$meta_call'(+A) : callable(A) + native(call(A)).
 :- impl_defined('$meta_call'/1).
+
+
+:- meta_predicate this_module(addmodule).
+:- impl_defined(this_module/1). % TODO: avoid problems with addmodule and export
+
+this_module(M, M).
+
+:- trust pred this_module(Module) => internal_module_id #
+	"@var{Module} is the internal module identifier for current module.".
+

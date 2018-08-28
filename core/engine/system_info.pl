@@ -8,7 +8,6 @@
 	get_exec_ext/1,
 	get_so_ext/1,
 	get_a_ext/1,
-        this_module/1,
         current_module/1,
 	ciao_c_headers_dir/1
 	],
@@ -159,31 +158,3 @@ current_module(Module) :- '$current_module'(Module).
 	C.".
 :- impl_defined(ciao_c_headers_dir/1).
 
-%%---------------------------------------------------------------------
-% TODO: This is not the right module to place this predicate
-
-:- meta_predicate this_module(addmodule).
-:- impl_defined(this_module/1). % TODO: avoid problems with addmodule and export
-
-this_module(M, M).
-
-:- trust pred this_module(Module) => internal_module_id #
-	"@var{Module} is the internal module identifier for current module.".
-
-%%---------------------------------------------------------------------
-% TODO: This is not the right module to place this predicate
-
-:- doc(doinclude,internal_module_id/1).
-
-:- doc(internal_module_id/1, "For a user file it is a term user/1
-	with an argument different for each user file, for
-	other modules is just the name of the module (as an atom).").
-
-:- export(internal_module_id/1).
-:- prop internal_module_id(M) + regtype #
-	"@var{M} is an internal module identifier".
-
-internal_module_id(user(M)) :-
-	atm(M).
-internal_module_id(M) :- 
-	atm(M).
