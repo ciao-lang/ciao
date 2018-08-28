@@ -1,4 +1,4 @@
-:- module(expander_tr, [expand_sentence/4, expand_clause/4], [assertions]).
+:- module(expander_tr, [expand_sentence/4, expand_clause/4, expand_goal/3], [assertions]).
 
 :- doc(author, "The Ciao Development Team").
 :- doc(author, "David Trallero").
@@ -35,18 +35,19 @@ exports_pred(_,_,_) :- fail.
 
 :- use_module(engine(prolog_flags), [push_prolog_flag/2, pop_prolog_flag/1]). % TODO: do in a better way
 
-:- data io_output/1.
+:- data output_s/2.
 
-pretty_write(IO, Term) :-
+pretty_write(OutS, Term) :-
 	push_prolog_flag(write_strings, on),
-	write_term(IO, Term, [numbervars(true), quoted(true)]),
+	write_term(OutS, Term, [numbervars(true), quoted(true)]),
 	pop_prolog_flag(write_strings).
 
 expand_sentence(0, 0, Module, Dict) :-
 	defines_module(Base, Module),
 	atom_concat(Base, '_co.pl', F),
-	open(F, write, IO),
-	asserta_fact(io_output(IO)),
+	open(F, write, OutS),
+	retractall_fact(output_s(Module, _)),
+	asserta_fact(output_s(Module, OutS)),
 	findall(Package, ( package(Base, P),
 		(P = library(Package) -> true ; P = Package) ), Packages),
 	atom_concat(Module, '_co', Module_co),
@@ -55,28 +56,29 @@ expand_sentence(0, 0, Module, Dict) :-
 	(
 	    ModuleDecl = (:- module(Module_co, Exports, [])),
 	    pretty_names(Dict, ModuleDecl, ModuleDeclN),
-	    pretty_write(IO, ModuleDeclN),
-	    write(IO, '.\n'),
-	    pretty_write(IO, '$applied_packages'(Packages)),
-	    write(IO, '.\n'),
+	    pretty_write(OutS, ModuleDeclN),
+	    write(OutS, '.\n'),
+	    pretty_write(OutS, '$applied_packages'(Packages)),
+	    write(OutS, '.\n'),
 	    !,
 	    fail
 	;
 	    true
 	).
-expand_sentence((:- S), (:- S), _, Dict) :-
-	write_sentence((:- S), Dict).
-expand_sentence(end_of_file, end_of_file, _, _) :-
-	io_output(IO),
-	write(IO, '\n').
+expand_sentence((:- S), (:- S), M, Dict) :-
+	write_sentence((:- S), M, Dict).
+expand_sentence(end_of_file, end_of_file, Module, _) :-
+	% (Do not close it yet, do on clause/goal translation)
+	output_s(Module, OutS),
+	write(OutS, '\n').
 % expand_sentence(S, S, _, _).
 
-write_sentence(S, Dict) :-
-	io_output(IO),
+write_sentence(S, M, Dict) :-
+	output_s(M, OutS),
 	(
 	    pretty_names(Dict, S, SN),
-	    pretty_write(IO, SN),
-	    write(IO, '.\n'),
+	    pretty_write(OutS, SN),
+	    write(OutS, '.\n'),
 	    !,
 	    fail
 	;
@@ -87,71 +89,77 @@ expand_clause(clause(0, 0), clause(0, 0), Module, _) :- % TODO: missing cut
 	defines_module(Base, Module),
 	atom_concat(Base, '_co.pl', F),
 	display('{'), message(note, [Module, ' expanded in ', F, '}']),
-	open(F, append, IO),
-	asserta_fact(io_output(IO)).
-expand_clause(clause(Head, Body), clause(Head, Body), _, Dict) :-
-	io_output(IO),
+	( output_s(Module, OutS0) ->
+	    OutS = OutS0
+	; open(F, append, OutS),
+	  asserta_fact(output_s(Module, OutS))
+	).
+expand_clause(clause(Head, Body), clause(Head, Body), Module, Dict) :-
+	output_s(Module, OutS),
 	(
 	    pretty_names(Dict, Head-Body, HeadN-BodyN),
-	    pretty_write(IO, HeadN),
-	    write_body_ini(BodyN, IO, 8),
-	    write(IO, '.\n'),
+	    pretty_write(OutS, HeadN),
+	    write_body_ini(BodyN, OutS, 8),
+	    write(OutS, '.\n'),
 	    !,
 	    fail
 	;
 	    true
 	).
-expand_clause(A, A, _, _) :- % TODO: strange clause!
-	io_output(IO),
-	close(IO),
-	display([A, 'user_output']).
+
+% (called when clause/goal translations finish)
+expand_goal(end_of_file, _, M) :-
+	( retract_fact(output_s(M, OutS)) ->
+	    close(OutS)
+	; true
+	).
 
 write_body_ini(true, _,  _) :- !.
-write_body_ini(Body, IO, L) :-
-	write(IO, ' :-\n'),
-	write_body(Body, IO, L).
+write_body_ini(Body, OutS, L) :-
+	write(OutS, ' :-\n'),
+	write_body(Body, OutS, L).
 
-write_body_or(A, B, IO, L0) :-
+write_body_or(A, B, OutS, L0) :-
 	L is L0 + 4,
-	tab(IO, L0), write(IO, '(\n'),
-	write_body(A, IO, L), nl(IO),
-	tab(IO, L0), write(IO, ';\n'),
-	write_body(B, IO, L), nl(IO),
-	tab(IO, L0), write(IO, ')').
+	tab(OutS, L0), write(OutS, '(\n'),
+	write_body(A, OutS, L), nl(OutS),
+	tab(OutS, L0), write(OutS, ';\n'),
+	write_body(B, OutS, L), nl(OutS),
+	tab(OutS, L0), write(OutS, ')').
 
-write_body_implies(A, B, IO, L) :-
-	write_body(A, IO, L), write(IO, ' ->\n'),
-	write_body(B, IO, L).
+write_body_implies(A, B, OutS, L) :-
+	write_body(A, OutS, L), write(OutS, ' ->\n'),
+	write_body(B, OutS, L).
 
-write_body_and(A, B, IO, L) :-
-	write_body_par(A, IO, L), write(IO, ',\n'),
-	write_body(B, IO, L).
+write_body_and(A, B, OutS, L) :-
+	write_body_par(A, OutS, L), write(OutS, ',\n'),
+	write_body(B, OutS, L).
 
-write_body_sep(';'(A, B), IO, L) :-
-	write_body_or(A, B, IO, L).
-write_body_sep('->'(A, B), IO, L) :-
-	write_body_implies(A, B, IO, L).
-write_body_sep(','(A, B), IO, L) :-
-	write_body_and(A, B, IO, L).
+write_body_sep(';'(A, B), OutS, L) :-
+	write_body_or(A, B, OutS, L).
+write_body_sep('->'(A, B), OutS, L) :-
+	write_body_implies(A, B, OutS, L).
+write_body_sep(','(A, B), OutS, L) :-
+	write_body_and(A, B, OutS, L).
 
-write_body_sep_par(';'(A, B), IO, L) :-
-	write_body_or(A, B, IO, L).
-write_body_sep_par('->'(A, B), IO, L) :-
-	write_body_implies(A, B, IO, L).
-write_body_sep_par(','(A, B), IO, L0) :-
+write_body_sep_par(';'(A, B), OutS, L) :-
+	write_body_or(A, B, OutS, L).
+write_body_sep_par('->'(A, B), OutS, L) :-
+	write_body_implies(A, B, OutS, L).
+write_body_sep_par(','(A, B), OutS, L0) :-
 	L is L0 + 4,
-	tab(IO, L0), write(IO, '(\n'),
-	write_body_and(A, B, IO, L), nl(IO),
-	tab(IO, L0), write(IO, ')').
+	tab(OutS, L0), write(OutS, '(\n'),
+	write_body_and(A, B, OutS, L), nl(OutS),
+	tab(OutS, L0), write(OutS, ')').
 
-write_body_par(B, IO, L0) :-
-	write_body_sep_par(B, IO, L0),
+write_body_par(B, OutS, L0) :-
+	write_body_sep_par(B, OutS, L0),
 	!.
-write_body_par(B, IO, L0) :-
-	tab(IO, L0), pretty_write(IO, B).
+write_body_par(B, OutS, L0) :-
+	tab(OutS, L0), pretty_write(OutS, B).
 
-write_body(B, IO, L0) :-
-	write_body_sep(B, IO, L0),
+write_body(B, OutS, L0) :-
+	write_body_sep(B, OutS, L0),
 	!.
-write_body(B, IO, L0) :-
-	tab(IO, L0), pretty_write(IO, B).
+write_body(B, OutS, L0) :-
+	tab(OutS, L0), pretty_write(OutS, B).

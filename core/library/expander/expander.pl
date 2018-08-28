@@ -4,3 +4,4 @@
 :- load_compilation_module(library(expander/expander_tr)).
 :- add_sentence_trans(expander_tr:expand_sentence/4, 9910).
 :- add_clause_trans(expander_tr:expand_clause/4, 9910).
+:- add_goal_trans(expander_tr:expand_goal/3, 9910).
