@@ -8,7 +8,8 @@
 :- use_module(library(lists), [member/2]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(engine(messages_basic), [display_list/1, display_string/1]).
+:- use_module(engine(messages_basic), [display_list/1]).
+:- use_module(library(stream_utils), [write_string/1]).
 
 :- export(ask_option_value/6).
 :- pred ask_option_value(+Description, +Name, +ValidValues,
@@ -21,7 +22,7 @@
 ask_option_value(Description, Name, ValidValues,
 	         DefaultValue, PreviousValue, Value) :-
 	% Show description and default value
-	nl, display_string(Description), nl,
+	nl, write_string(Description), nl,
 	% Loop until we get a valid value
 	ask_option_loop(Name, ValidValues,
 	                DefaultValue, PreviousValue, Value).

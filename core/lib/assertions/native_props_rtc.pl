@@ -529,7 +529,7 @@ coefficient(Coeff) :-
 
 % ----------------------------------------------------------------------
 
-:- use_module(engine(messages_basic), [display_string/1]).
+:- use_module(library(stream_utils), [write_string/1]).
 
 :- meta_predicate rtc_user_output(goal, ?).
 
@@ -567,7 +567,7 @@ end_output_check(Choice, FileName, Goal, S) :-
 	close_output(SO),
 	file_to_string(FileName, S1),
 	delete_file(FileName),
-	display_string(S1),
+	write_string(S1),
 	(
 	    S \== S1 ->
 	    send_comp_rtcheck(Goal, user_output(S), user_output(S1))
@@ -575,5 +575,28 @@ end_output_check(Choice, FileName, Goal, S) :-
 	    true
 	),
 	!.
+
+%%%%%%%%%%%%%%
+%%%% This one is in the testing library (unittest)
+%% :- prop user_error(Goal, S) #
+%% 	"Calls of the form @var{Goal} write @var{S} to standard error.".
+%% 
+%% :- meta_predicate user_error(goal, ?).
+%% user_error(Goal, S) :-
+%% 	mktemp_in_tmp('tmpciaoXXXXXX', FileName),
+%% 	open_error(FileName, SO),
+%% 	call(Goal),
+%% 	close_error(SO),
+%% 	file_to_string(FileName, S1),
+%% 	write_string(S1),
+%% 	(
+%% 	    S \== S1 ->
+%% 	    send_comp_rtcheck(Goal, user_error(S), user_error(S1))
+%% 	;
+%% 	    true
+%% 	).
+%% 
+%%%%%%%%%%%%%%
+
 
 

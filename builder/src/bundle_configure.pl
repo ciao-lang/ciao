@@ -427,8 +427,8 @@ config_get_flag(Flag) := Value :-
 % Display the configuration options (for the command-line interface)
 
 :- use_module(engine(io_basic)).
-:- use_module(engine(messages_basic), [message/2]).
-:- use_module(engine(messages_basic), [display_string/1, display_list/1]).
+:- use_module(engine(messages_basic), [message/2, display_list/1]).
+:- use_module(library(stream_utils), [write_string/1]).
 
 :- export(config_list_flags/1).
 % TODO: use Bundle
@@ -467,7 +467,7 @@ describe_flag(Flag) :-
 	show_flag_and_domain(Flag),
 	nl,
 	flag_help_string(Flag, Help),
-	display_string(Help), nl.
+	write_string(Help), nl.
 
 % Extract help text from the detailed or brief help
 % TODO: compose both?
@@ -768,14 +768,14 @@ flag_show_string_(Flag, Comment, ShowName) :-
 display_default(Flag, Comment, Value) :-
 	flag_show_string_(Flag, Comment, ShowName),
 	display('   [ '),
-	display_string(ShowName),
+	write_string(ShowName),
 	display('? '),
 	display(Value),
 	display(' ]\n').
 
 display_option(ShowName, Value) :-
 	display('   '),
-	display_string(ShowName),
+	write_string(ShowName),
 	display('... '),
 	display_list([Value, '\n']).
 

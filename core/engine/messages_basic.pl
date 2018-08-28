@@ -1,6 +1,6 @@
 :- module(messages_basic, [
 		message/2, message_lns/4, messages/1,
-	        lformat/1, display_list/1, display_string/1,
+	        lformat/1, display_list/1,
 		% regtypes
 		message_info/1, message_type/1
 	    ],
@@ -25,6 +25,7 @@
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 :- use_module(engine(system_info), [current_module/1]).
+:- use_module(library(stream_utils), [write_string/1]).
 
 :- import(write, [write/1, writeq/1, print/1, printq/1]).
 
@@ -37,7 +38,7 @@
 @begin{description}
 
 @item{@tt{$$(String)}} @tt{String} is a string, which is output with
-   @pred{display_string/1}.
+   @pred{write_string/1}.
 
 @item{@tt{''(Term)}} @tt{Term} is output quoted.  If the module
    @lib{write} is loaded, the term is output with @pred{writeq/1}, else
@@ -78,7 +79,7 @@ output_message(M) :-
 	output_item(M).
 
 output_item(V) :- var(V), !, display(V).
-output_item($$(M)) :- !, display_string(M).
+output_item($$(M)) :- !, write_string(M).
 output_item({M}) :- !, (current_module(write) -> print(M) ; display(M)).
 output_item(''({M})) :- !, (current_module(write) -> printq(M) ; displayq(M)).
 output_item(''(M)) :- !, (current_module(write) -> writeq(M) ; displayq(M)).
@@ -96,14 +97,6 @@ display_list([M|Ms]) :- !,
 display_list([]) :- !.
 display_list(M) :-
 	display(M).
-
-:- doc(display_string(String), "Output @var{String} as the sequence
-   of characters it represents.").
-
-:- pred display_string(String) : string.
-
-display_string([]).
-display_string([C|Cs]) :- put_code(C), display_string(Cs).
 
 :- doc(bug, "@pred{message/2} assumes that a module with name 'write'
    is library(write).").

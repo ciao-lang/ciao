@@ -51,6 +51,7 @@
 :- use_module(library(toplevel/toplevel_io)).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
+:- use_module(library(stream_utils), [write_string/1]).
 :- use_module(library(write),     [write/1, write_term/2]).
 :- use_module(library(read),      [read_term/3]).
 :- use_module(library(operators), [op/3]).
@@ -408,7 +409,7 @@ display_solution((G1, G2), Sep0, Sep) :-
 display_solution((Var=Val), Sep, ',') :-
 	!,
 	display(Sep), nl,
-	display_string(Var),
+	write_string(Var),
 	display(' = '),
 	write_term(Val, [quoted(true), portrayed(true),
 		numbervars(true), priority(699)]).

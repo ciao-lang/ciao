@@ -14,8 +14,7 @@
 
 :- use_module(library(strings), [whitespace0/2]).
 :- use_module(engine(io_basic)).
-:- use_module(library(stream_utils), [get_line/1]).
-:- use_module(engine(messages_basic), [display_list/1, display_string/1]).
+:- use_module(library(stream_utils), [get_line/1, write_string/1]).
 :- use_module(library(lists), [append/3]).
 :- use_module(library(system), [getenvstr/2]).
 :- use_module(library(http/http_grammar), [http_media_type/5, http_crlf/2, http_lines/3, http_type_params/3]).
@@ -160,8 +159,10 @@ mappend([S|Ss], R) :-
 set_cookie(Name,Value) :-
         name(Value, String),
         form_encode_value(String, EValue, []),
-	display_list(['Set-Cookie: ',Name,'=']),
-        display_string(EValue),
+	display('Set-Cookie: '),
+	display(Name),
+	display('='),
+        write_string(EValue),
         nl.
 
 :- doc(get_cookies(Cookies), "Unifies @var{Cookies} with a
@@ -211,8 +212,6 @@ legal_cookie_char(C) -->
 	{C \== 0';, C\== 0'=}.
 
 % ---------------------------------------------------------------------------
-
-:- use_module(library(stream_utils), [write_string/1]).
 
 :- export(cgi_write_response/1).
 :- pred cgi_write_response(Response) # "Writes the CGI response

@@ -106,7 +106,6 @@ sensitive_builtin(messages_basic,note,1,0) .
 sensitive_builtin(messages_basic,message,1,0) .
 sensitive_builtin(messages_basic,debug,1,0) .
 sensitive_builtin(messages_basic,inform_user,1,0) .
-sensitive_builtin(messages_basic,display_string,1,0) .
 sensitive_builtin(messages_basic,display_list,1,0) .
 sensitive_builtin(terms_io,term_write,1,0) .
 sensitive_builtin(io_basic,get_code,2,0) .

@@ -1006,35 +1006,14 @@ valid_type([Type|Rest]) :-
 
 :- prop user_output(Goal, S) #
 	"Calls of the form @var{Goal} write @var{S} to standard output.".
-
 :- meta_predicate user_output(goal, ?).
-
 :- impl_defined(user_output/2).
 
-% :- use_module(engine(messages_basic), [display_string/1]).
-%
-%%%%%%%%%%%%%%
-%%%% This one is in the testing library (unittest)
 %% :- prop user_error(Goal, S) #
 %% 	"Calls of the form @var{Goal} write @var{S} to standard error.".
 %% 
 %% :- meta_predicate user_error(goal, ?).
-%% user_error(Goal, S) :-
-%% 	mktemp_in_tmp('tmpciaoXXXXXX', FileName),
-%% 	open_error(FileName, SO),
-%% 	call(Goal),
-%% 	close_error(SO),
-%% 	file_to_string(FileName, S1),
-%% 	display_string(S1),
-%% 	(
-%% 	    S \== S1 ->
-%% 	    send_comp_rtcheck(Goal, user_error(S), user_error(S1))
-%% 	;
-%% 	    true
-%% 	).
-%% 
-%%%%%%%%%%%%%%
-
+%% :- impl_defined(user_error/2).
 
 :- doc(bug, "MH: not really clear why this should be here.").
 

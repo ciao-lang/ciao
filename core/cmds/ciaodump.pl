@@ -37,7 +37,6 @@
 ").
 
 :- use_module(engine(messages_basic), [message/2]).
-:- use_module(engine(messages_basic), [display_string/1]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 :- use_module(library(read)).  
@@ -62,7 +61,6 @@
 :- use_module(engine(internals)).
 :- use_module(library(system)).
 :- use_module(library(stream_utils), [open_input/2, close_input/1]).
-:- use_module(library(stream_utils), [file_to_string/2]).
 :- use_module(library(write), [numbervars/3, write/1]).
 :- use_module(library(read)).
 
@@ -373,9 +371,11 @@ find_filename('.wam', File, AbsName) :-
 
 % ---------------------------------------------------------------------------
 
+:- use_module(library(stream_utils), [file_to_string/2, write_string/1]).
+
 view_wam(File):- 
 	make_wam([File]),
 	find_filename('.wam', File, AbsName),
 	file_to_string(AbsName, String),
-	display_string(String).
+	write_string(String).
 

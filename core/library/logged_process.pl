@@ -27,8 +27,7 @@
 ").
 
 :- use_module(engine(io_basic), [nl/0]).
-:- use_module(engine(messages_basic), [display_string/1]).
-:- use_module(library(stream_utils), [file_to_string/2]).
+:- use_module(library(stream_utils), [file_to_string/2, write_string/1]).
 :- use_module(library(messages), [error_message/2, note_message/2]).
 :- use_module(library(lists), [select/3]).
 :- use_module(library(process),
@@ -100,11 +99,11 @@ treat_logs(ReturnCode, LogFile, ErrFile, OnReturn, ShowLogs, PCall) :-
 	),
 	% Log 
 	( showlog(ShowLogs, Status, show, _) ->
-	    display_string(~file_to_string(LogFile))
+	    write_string(~file_to_string(LogFile))
 	; true
 	),
 	( showlog(ShowLogs, Status, _, show) ->
-	    display_string(~file_to_string(ErrFile))
+	    write_string(~file_to_string(ErrFile))
 	; true
 	),
 	%
