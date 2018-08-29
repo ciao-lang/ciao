@@ -509,7 +509,7 @@ maybe_enable_default_grades :-
 % ---------------------------------------------------------------------------
 % Grade loader
 
-:- use_module(engine(system_info), [current_module/1]).
+:- use_module(library(prolog_sys), [current_module/1]).
 :- use_module(ciaobld(grade_holder)).
 
 % (builtin grades)

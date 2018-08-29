@@ -24,7 +24,7 @@
 :- use_module(engine(internals), ['$quiet_flag'/2]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(engine(system_info), [current_module/1]).
+:- use_module(library(prolog_sys), [current_module/1]).
 :- use_module(library(stream_utils), [write_string/1]).
 
 :- import(write, [write/1, writeq/1, print/1, printq/1]).

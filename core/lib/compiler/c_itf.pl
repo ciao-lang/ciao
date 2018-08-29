@@ -33,7 +33,8 @@ add_clause_of(Base, Head, Body, VarNames, Source, Line0, Line1) :-
 	assertz_fact(c_itf_internal:clause_of(Base, Head, Body, VarNames, 
                      Source, Line0, Line1)).
 
-% See prelude.pl --EMM:
+% Predicates and declarations defined in modbase.pl
+
 internal_decl(multifile(_)).
 internal_decl(discontiguous(_)).
 internal_decl(dynamic(_)).

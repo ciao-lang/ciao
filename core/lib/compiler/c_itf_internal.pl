@@ -91,7 +91,7 @@
 :- use_module(engine(io_basic)).
 :- use_module(library(terms_io), [term_write/1]).
 :- use_module(engine(messages_basic), [message/2, message_lns/4]).
-:- use_module(engine(system_info), [current_module/1]).
+:- use_module(library(prolog_sys), [current_module/1]).
 :- use_module(engine(hiord_rt), [this_module/1]).
 :- use_module(engine(internals), [
 	filetype/3,

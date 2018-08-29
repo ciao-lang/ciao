@@ -35,9 +35,8 @@
 :- doc(bug, "Use a single set of definitions. This one can be a
    property of the dynamic predicate itself").
 
-:- use_module(engine(system_info), [current_module/1]).
 :- use_module(engine(internals)).
-:- use_module(library(prolog_sys), [new_atom/1]).
+:- use_module(library(prolog_sys), [current_module/1, new_atom/1]).
 
 :- meta_predicate asserta(clause).
 :- meta_predicate asserta(clause, ?).

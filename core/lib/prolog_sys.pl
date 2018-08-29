@@ -2,7 +2,6 @@
         statistics/0, statistics/2,
 	clockfreq_result/1,
 	tick_result/1,
-        new_atom/1,
 	% regtypes {
 	symbol_result/1,
 	gc_result/1,
@@ -16,10 +15,14 @@
 	time_option/1,
 	% },
 	%
+        current_atom/1,
+        new_atom/1,
+	current_module/1,
+	%
 	predicate_property/2,
 	predicate_property/3, % (+1 because of addmodule)
 	%
-        current_atom/1, garbage_collect/0,
+	garbage_collect/0,
         %
         set_heap_limit/1, current_heap_limit/1
         ],
@@ -242,11 +245,6 @@ statistics(stack_shifts, L) :- '$stack_shift_usage'(L).
 
 % ---------------------------------------------------------------------------
 
-:- trust pred garbage_collect # "Forces garbage collection when called.".
-:- impl_defined(garbage_collect/0).
-
-% ---------------------------------------------------------------------------
-
 :- trust pred current_atom(Atom) => atm
    # "Enumerates on backtracking all the existing atoms in the system.".
 :- impl_defined(current_atom/1).
@@ -261,6 +259,33 @@ the fly.".
 :- impl_defined(new_atom/1).
 
 % ---------------------------------------------------------------------------
+
+:- pred current_module(Module) => internal_module_id + native #
+   "Retrieves (on backtracking) all the loaded modules (either
+    statically or dynamically).".
+
+:- doc(current_module/1,
+	"This predicate will successively unify its argument with all
+	 module names currently loaded. Module names will be simple atoms.
+
+         When called using a free variable as argument, it will
+         retrieve on backtracking all modules currently loaded. This
+         is useful when called from the Ciao @apl{toplevel}.
+
+         When called using a module name as argument it will check
+         whether the given module is loaded or not. This is useful
+         when called from user programs.
+        ").
+
+current_module(Module) :- '$current_module'(Module).
+
+% ---------------------------------------------------------------------------
+
+% TODO: This may be safe to include in a intronspection (or reflection
+%   if some form of self-modification is allowed)
+
+% TODO: Define an unsafe version of predicate_property/2 that do not
+%   restricts to visible predicates?
 
 :- doc(bug, "
   The predicate @pred{predicate_property/2} needs more work:
@@ -415,6 +440,10 @@ rt20(multifile).
 rt20(wait).
 */
 
+% ---------------------------------------------------------------------------
+
+:- trust pred garbage_collect # "Forces garbage collection when called.".
+:- impl_defined(garbage_collect/0).
 
 :- doc(hide, set_heap_limit/1).
 :- doc(hide, current_heap_limit/1).

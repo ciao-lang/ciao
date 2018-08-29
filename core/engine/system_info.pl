@@ -8,12 +8,11 @@
 	get_exec_ext/1,
 	get_so_ext/1,
 	get_a_ext/1,
-        current_module/1,
 	ciao_c_headers_dir/1
 	],
         [assertions, nortchecks, isomodes]).
 
-%%---------------------------------------------------------------------
+% ---------------------------------------------------------------------------
 
 :- doc(title, "Runtime system information").
 
@@ -30,9 +29,9 @@
    mainly used in parts of the Ciao dynamic compilation (location of
    source, generation of gluecode for the foreign interface, etc.).").
 
-% TODO: GCC compilation options should appear here too.
+% TODO: GCC/clang compilation options should appear here too.
 
-%%---------------------------------------------------------------------
+% ---------------------------------------------------------------------------
 
 :- trust pred get_arch(?ArchDescriptor) => atm #
 	"Unifies @var{ArchDescriptor} with a simple atom which describes
@@ -60,7 +59,7 @@ no
 
 :- impl_defined(get_arch/1).
 
-%%---------------------------------------------------------------------
+% ---------------------------------------------------------------------------
 
 :- trust pred get_os(?OsDescriptor) => atm #
 	"Unifies @var{OsDescriptor} with a simple atom which describes
@@ -129,28 +128,7 @@ get_a_ext('.a'). % TODO: '.a' is fine for MinGW but this is typically '.lib' in 
 
 :- impl_defined(eng_is_sharedlib/0).
 
-%%---------------------------------------------------------------------
-
-:- pred current_module(Module) => internal_module_id + native #
-	"Retrieves (on backtracking) all currently loaded modules into
-         your application.".
-
-:- doc(current_module/1,
-	"This predicate will successively unify its argument with all
-	 module names currently loaded. Module names will be simple atoms.
-
-         When called using a free variable as argument, it will
-         retrieve on backtracking all modules currently loaded. This is 
-         usefull when called from the Ciao @apl{toplevel}.
-
-         When called using a module name as argument it will check whether
-         the given module is loaded or not. This is usefull when called
-         from user programs.
-        ").
-
-current_module(Module) :- '$current_module'(Module).
-
-%%---------------------------------------------------------------------
+% ---------------------------------------------------------------------------
 
 :- trust pred ciao_c_headers_dir(Path) => atm(Path) #
 	"@var{Path} is the path to the root of the installed Ciao

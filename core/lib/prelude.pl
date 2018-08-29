@@ -16,4 +16,3 @@
 :- dynamic '$imports'/5.
 :- multifile '$defines'/3.
 :- use_module(engine(term_basic), [functor/3]).
-%:- set_prolog_flag(unknown, fail).
