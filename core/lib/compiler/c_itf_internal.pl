@@ -136,8 +136,9 @@
 % ---------------------------------------------------------------------------
 :- doc(section, "The current compiler version").
 
-% It can be used in conditional code to test incremental changes in
-% the compiler source without intermediate compiler promotions:
+% The compiler version can be used in conditional code to test
+% incremental changes in the compiler source without intermediate
+% compiler promotions:
 %
 %   :- if('$with_compiler_version'(VPlus1)).
 %     << code using the new feature >>
@@ -150,6 +151,13 @@ compiler_version(108). % TODO: keep synchronized with optim_comp
 
 :- export(compiler_name/1).
 compiler_name(c_itf).
+
+% Interface version number. Increment to enforce invalidation of
+% previously compiled files. This is useful when incremental
+% compilation cannot deal with deep changes in the libraries (e.g.,
+% default imports) or the compiler (format, runtime information, etc.)
+
+itf_version(4).
 
 % ---------------------------------------------------------------------------
 % (Register static compilation modules that are part of bootstrap ciaoc)
@@ -2081,8 +2089,6 @@ do_get_base_name(File) :- get_base_name(File, _, _, _).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Format of itf files").
-
-itf_version(3).
 
 :- meta_predicate itf_data(?, ?, ?, fact).
 
