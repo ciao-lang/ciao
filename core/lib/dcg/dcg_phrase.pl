@@ -13,6 +13,6 @@
 :- else.
 :- use_module(engine(hiord_rt), [call/1]).
 :- export('\6\call_from_phrase'/1).
+'\6\call_from_phrase'(X) :- call(X).
 :- endif.
 
-'\6\call_from_phrase'(X) :- call(X).
