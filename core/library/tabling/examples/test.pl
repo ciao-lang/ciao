@@ -30,7 +30,6 @@
 	]).
 
 :- use_module(library(between)).
-:- use_module(library(prolog_sys)).
 :- use_module(library(lists)).
 
 :- use_module(kalah, [test/1,result/1,spend_time/2]).

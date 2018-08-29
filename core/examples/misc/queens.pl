@@ -3,7 +3,7 @@
 :- module(queens, [q/0,do_queens/0],[]).
 
 :- use_module(library(write)).
-:- use_module(library(prolog_sys)).
+:- use_module(library(prolog_sys), [statistics/2]).
 :- use_module(library(format)).
 
 %:- profile queens_list/2, queens3/3, sel/3.

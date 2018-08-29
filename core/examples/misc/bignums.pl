@@ -1,7 +1,7 @@
 :- module(bignums, [do_bignums/0]).
 
 :- use_module(library(write)).
-:- use_module(library(prolog_sys)).
+:- use_module(library(prolog_sys), [statistics/2]).
 
 do_bignums:-
         statistics(runtime, _),

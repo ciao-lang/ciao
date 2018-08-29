@@ -23,7 +23,6 @@
 :- reexport(library(between)).
 :- reexport(library(compiler), [use_module/1, use_module/2, ensure_loaded/1]).
 :- reexport(library(system)).
-:- reexport(library(prolog_sys)).
 :- reexport(library(dec10_io)).
 :- reexport(library(old_database)).
 :- reexport(library(ttyout)).

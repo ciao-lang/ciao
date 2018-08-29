@@ -5,7 +5,6 @@
  
  :- set_prolog_flag(multi_arity_warnings, off).
  
- :- use_module(library(prolog_sys)).
  :- use_module(library(write)).
 
 :- include(tabling_type).

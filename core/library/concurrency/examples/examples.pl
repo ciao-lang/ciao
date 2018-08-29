@@ -4,7 +4,6 @@
 :- use_module(library(format)).
 :- use_module(library(random)).
 :- use_module(library(system)).
-:- use_module(library(prolog_sys)).
 :- use_module(library(lists)).
 
 main:-
