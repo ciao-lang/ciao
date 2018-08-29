@@ -8,8 +8,11 @@
    bundle source code to shorter identifiers (which can be precise
    like cryptohashes for DVCS or coarse like release date, etc.).
 
-   @bf{NOTE:} Some functions (like Git commit number) simply ignore
-   uncommited changes in the source tree.").
+   @begin{note}
+   @bf{Note:} Some functions (like Git commit number) simply ignore
+   uncommited changes in the source tree.
+   @end{note}
+").
 
 :- doc(bug, "Do hashing of distributions instead of bundles?").
 :- doc(bug, "Hashing relies on Git or SVN identifiers of the whole

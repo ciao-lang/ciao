@@ -10,7 +10,7 @@
 %    server for the @concept{HTTP} protocol, and related technology
 %    like @concept{CGI} programming.
 % 
-%    @bf{NOTE}: Parts of this code are based on the original PiLLoW
+%    @bf{Note}: Parts of this code are based on the original PiLLoW
 %    library @cite{pillow-ws-dist}), which can be downloaded from
 %    @href{http://clip.dia.fi.upm.es/Software/pillow/pillow.html}.
 

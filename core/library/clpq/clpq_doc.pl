@@ -5,17 +5,14 @@
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Samir Genaim (Meta-programming predicates)").
 
-
-
 :- doc(module, "
-
-@bf{Note}: This package is currently being adapted to the new
+@begin{alert}
+@bf{Warning}: This package is currently being adapted to the new
 characteristics of the Ciao module system. This new version works
 right now with limitations, but it is under further development at the
 moment. Use with (lots of) caution.
-
+@end{alert}
 ").
-
 
 %% We include this file here so that the operators 
 %% appear in the documentation.

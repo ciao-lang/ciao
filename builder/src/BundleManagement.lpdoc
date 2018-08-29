@@ -41,8 +41,12 @@ Workspaces from @tt{CIAOPATH} are consulted from left to right. If
 used. The first encountered workspace directory is denoted as the
 @em{top} workspace. The variable @tt{CIAOROOT} is usually not needed,
 except when the binaries is being relocated on the
-filesystem. @bf{Note:} @tt{CIAOPATH} should not point to @tt{CIAOROOT}
-(it is not needed and it may produce inconsistent builds).
+filesystem.
+
+@begin{note}
+@bf{Note:} @tt{CIAOPATH} should not point to @tt{CIAOROOT} (it is not
+needed and it may produce inconsistent builds).
+@end{note}
 
 As mentioned in @ref{Full installation instructions}, setting up the
 environment uses the @apl{ciao-env} tool, which updates the @tt{PATH}

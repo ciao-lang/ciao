@@ -19,26 +19,21 @@
 %% :- doc(bug,"Although the documentation is acceptable at this
 %%    point, we are still really in beta mode in this regard.").
 
-:- doc(bug,"This is still just a first shot...").
+:- doc(summary,"@includefact{this_manual/1}").
 
-:- doc(summary,"
+:- doc(module,"@includefact{this_manual/1}").
 
-   @include{Warning.lpdoc}
+this_manual("
+  @begin{alert}
+  This (semi-automatically generated) manual is still
+  incomplete. It is however being updated regularly as the
+  machine-readable documentation of the different libraries is
+  completed.
+  @end{alert}
 
-   @includefact{this_manual/1}
-
-   ").
-
-:- doc(module,"
-
-   @include{Warning.lpdoc}
-
-   @includefact{this_manual/1}
-").
-
-this_manual("This is the internal manual for the Ciao compiler,
-  engine, and runtime libraries. It documents modules not included in
-  the reference manual.
+  This is the internal manual for the Ciao compiler, engine, and
+  runtime libraries. It documents modules not included in the
+  reference manual.
 
   Please consult the @em{alldocs} bundle for the Ciao reference
   manual.").

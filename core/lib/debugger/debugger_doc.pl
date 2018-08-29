@@ -51,6 +51,7 @@ specific line in the code, corresponding to a particular literal. There is
 a wide choice of control and information options available during debugging
 interaction.
 
+@begin{note}
 @bf{Note}: While the debugger described herein can be used in a
 standalone way (i.e., from an operating system shell or terminal
 window) in the same way as other Prolog debuggers, the most convenient
@@ -60,6 +61,7 @@ debugging-related facilities, including displaying the source code for
 the module(s) corresponding to the procedure being executed, and
 higlighting dynamically the code segments corresponding to the
 different execution steps.
+@end{note}
 
 @section{Marking modules and files for debugging in the top-level debugger}
 

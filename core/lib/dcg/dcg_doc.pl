@@ -30,12 +30,14 @@ meaning ``a possible form for @var{head} is @var{body}''.  Both
 @var{body} and @var{head} are sequences of one or more items linked by the
 standard Prolog conjunction operator ""@tt{,}"". 
 
+@begin{note}
 @bf{Note:} support for @pred{phrase/2} and @pred{phrase/3} is
 offered by the @lib{dcg/dcg_phrase} package. Those predicates may
 perform code translations at runtime, which in some cases is not
 desired feature (e.g., make precision of static analysis worse or
 increasing size of static executables). Thus, we separate by design
 the static and dynamic behaviours.
+@end{note}
 
 Definite clause grammars extend context-free grammars in the following ways:
 

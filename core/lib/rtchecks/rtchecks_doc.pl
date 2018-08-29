@@ -151,22 +151,23 @@ explanation of the meaning:
 
 @end{itemize}
 
-@section{Creating versions of properties}
+@section{Custom implementation for property checks}
 
 @begin{note}
 @bf{Note:} this is a new feature and under active development. The
 documentation may be partial/obsolete.
 @end{note}
 
-In some cases declarative property definitions are not efficient enough
-to be used in the run-time checks instrumentation. In Ciao it is
-possible to write an alternative version of property that can be used
-specifically in run-time checks, while keeping the main version 
-(which might be easier to read or is better understood by some static
-analyzer).
+The run-time check instrumentation can use custom property checks
+implementations. This is useful when defining native properties
+(without a clause-based definition supported by the default
+instrumentation) or when the generic run-time checks are not efficient
+enough. The custom implementation can be used specifically in run-time
+checks, while keeping a declarative version (which might be easier to
+read or is better understood by some static analyzer).
 
-To provide the custom property implementation for run-time checking
-it is necessary to edit two files (suppose the original property is
+To provide the custom property implementation for run-time checking it
+is recommended to edit two files (suppose the original property is
 defined in a module @file{foo.pl}):
 
 @begin{itemize}
@@ -175,7 +176,6 @@ defined in a module @file{foo.pl}):
     property implementation and is placed in the same folder as
     @file{foo.pl}. Make sure the custom property implementation is
     exported from both modules.
-
 
   @item @file{$CIAOROOT/core/lib/rtchecks/rtchecks_rt_propimpl.pl}, a
     database file that stores the links between different property

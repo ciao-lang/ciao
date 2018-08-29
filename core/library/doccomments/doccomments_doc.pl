@@ -58,9 +58,9 @@ Comments appear in the abstract syntax tree of the parsed programs as
 special terms. The @lib{doccomments} package extracts them from the
 program to generate the documentation.
 
-@bf{Note:} Reading comments symbolically requires cooperation with the
-internal parsing routines. For more details, see the @lib{read} and
-@lib{tokenize} modules, and the @tt{doccomments} Prolog flag.
+Note that reading comments symbolically requires cooperation with the
+internal parsing routines. For more details, see the @tt{doccomments}
+Prolog flag and its use in the @lib{read} and @lib{tokenize} modules.
 
 @begin{note} 
   As @tt{# \"...\"} comments in LPdoc, this approach continues the
