@@ -1,6 +1,6 @@
-:- use_package(assertions).
+:- use_package([assertions,regtypes]).
 :- doc(nodoc,assertions). 
-:- use_package(regtypes).
+:- doc(nodoc,assertions_basic). 
 :- doc(nodoc,regtypes). 
 
 :- doc(title, "Constraint programming over finite domains (new)").

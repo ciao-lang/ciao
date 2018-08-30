@@ -1,10 +1,6 @@
 :- use_package(assertions).
-
-%% Prevent documenter from doing anything with previous package
-:- doc(nodoc, assertions).
-
-%% File type not strictly needed (package is default for non-module
-%% files), but just in case things change 
+:- doc(nodoc,assertions).
+:- doc(nodoc,assertions_basic).
 :- doc(filetype, package).
 
 :- doc(title,"Pattern (regular expression) matching").

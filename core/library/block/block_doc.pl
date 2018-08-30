@@ -1,5 +1,6 @@
 :- use_package(assertions).
 :- doc(nodoc,assertions). 
+:- doc(nodoc,assertions_basic). 
 
 :- doc(title, "Block Declarations").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").

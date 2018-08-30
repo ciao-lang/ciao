@@ -1,5 +1,6 @@
 :- use_package(assertions).
 :- doc(nodoc,assertions).
+:- doc(nodoc,assertions_basic).
 
 :- doc(title, "Documentation comments").
 :- doc(subtitle, "Comment-style syntax for machine-readable comments").

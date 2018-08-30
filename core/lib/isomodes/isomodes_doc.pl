@@ -1,9 +1,8 @@
-
 :- use_package([assertions,metaprops]).
 :- doc(nodoc,assertions).
-% does not work:
-%:- doc(nodoc,metaprops).
-:- doc(hide,callme/2).
+:- doc(nodoc,assertions_basic).
+:- doc(nodoc,metaprops).
+:- doc(hide,callme/2). % TODO: needed since nodoc above does not hide this predicate
 
 :- doc(title,"ISO-Prolog modes").
  

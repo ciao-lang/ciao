@@ -1,8 +1,5 @@
 :- module(global_vars, [setval/2, getval/2, current/2], [hiord, assertions]).
 
-:- doc(nodoc, assertions).
-:- doc(nodoc, hiord).
-
 :- doc(title, "Backtrackable Global Variables").
 :- doc(author, "Jose F. Morales").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").

@@ -3,8 +3,6 @@
 		     update_mutable/2,
 		     mutable/1], [assertions, dcg]).
 
-:- doc(nodoc, assertions).
-
 :- doc(title, "Mutable Terms").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
 

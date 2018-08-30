@@ -1,6 +1,4 @@
 :- package(menu).
-:- use_package(assertions).
-:- doc(nodoc, assertions).
 
 :- load_compilation_module(library(menu/menu_tr)).
 :- add_sentence_trans(menu_tr:menu_term_expansion/3, 330).

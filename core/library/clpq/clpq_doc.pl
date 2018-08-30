@@ -1,5 +1,7 @@
 :- use_package(assertions).
 :- doc(nodoc,assertions).
+:- doc(nodoc,assertions_basic).
+
 :- doc(title, "Constraint programming over rationals").
 :- doc(author, "Christian Holzbaur").
 :- doc(author, "Daniel Cabeza").

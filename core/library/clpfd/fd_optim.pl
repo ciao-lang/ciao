@@ -22,7 +22,6 @@
 %% ---------------------------------------------------------------------------
 :- module(fd_optim, [fd_minimize/2, fd_maximize/2], 
 	            [assertions, fsyntax, hiord]).
-:- doc(nodoc, assertions).
 
 :- doc(title, "Optimization constraints").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").

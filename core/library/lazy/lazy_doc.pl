@@ -1,6 +1,6 @@
 :- use_package(assertions).
-
 :- doc(nodoc,assertions).
+:- doc(nodoc,assertions_basic).
 
 :- doc(title, "Lazy evaluation").
 

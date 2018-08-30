@@ -1,5 +1,6 @@
-:- use_package([assertions,iso]).
+:- use_package([assertions]).
 :- doc(nodoc,assertions).
+:- doc(nodoc,assertions_basic).
 
 :- doc(filetype,package).
 
@@ -37,6 +38,8 @@
    standard as they appear.
 
 ").
+
+:- use_package(iso).
 
 % TODO: 
 

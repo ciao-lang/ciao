@@ -1,5 +1,7 @@
 :- use_package([assertions,doccomments]).
 :- doc(nodoc,assertions).
+:- doc(nodoc,assertions_basic).
+:- doc(nodoc,doccomments).
 
 %! \title  HTTP client/server libraries
 %  \author The Ciao Development Team

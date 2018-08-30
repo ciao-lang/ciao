@@ -2,8 +2,6 @@
 	[det_try/3, '$pending_cut_goals'/0],
 	[assertions, isomodes]).
 
-:- doc(nodoc,assertions).
-
 :- doc(title, "Runtime predicates for call on determinate").
 
 :- doc(author, "Jose F. Morales").

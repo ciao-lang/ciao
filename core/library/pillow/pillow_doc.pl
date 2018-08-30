@@ -1,5 +1,6 @@
 :- use_package([assertions]).
 :- doc(nodoc,assertions).
+:- doc(nodoc,assertions_basic).
 
 :- doc(title, "Web programming libraries (PiLLoW)").
 :- doc(subtitle_extra,"REFERENCE MANUAL").

@@ -1,7 +1,7 @@
-:- use_package(assertions).
-:- use_package(regtypes).
-
+:- use_package([assertions,regtypes]).
 :- doc(nodoc,assertions).
+:- doc(nodoc,assertions_basic).
+:- doc(nodoc,regtypes).
 
 :- doc(title, "Active modules").
 :- doc(subtitle, "A concurrency model with high-level distributed execution").

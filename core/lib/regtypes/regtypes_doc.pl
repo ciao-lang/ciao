@@ -1,10 +1,6 @@
-
-:- use_package([assertions,pure]).
+:- use_package([assertions]).
 :- doc(nodoc,assertions).
-:- doc(nodoc,pure).
-
-:- use_module(library(assertions/assertions_props)).
-
+:- doc(nodoc,assertions_basic).
 :- doc(filetype,package).
 
 :- doc(title,"Declaring regular types").
@@ -40,6 +36,7 @@
    @include{regtypes/writing_props.lpdoc}
 ").
 
+:- use_module(library(assertions/assertions_props), [assrt_body/1, assrt_status/1]).
 
 :- use_package(library(regtypes)).
 

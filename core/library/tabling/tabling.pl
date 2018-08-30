@@ -1,10 +1,11 @@
 :- package(tabling).
 
-:- push_prolog_flag(unused_pred_warnings, no).
+% TODO: separate _doc.pl file
 
 :- use_package(assertions).
 
-:- doc(nodoc, assertions).
+:- doc(nodoc,assertions).
+:- doc(nodoc,assertions_basic).
 
 :- doc(filetype, package).
 
