@@ -1185,7 +1185,7 @@ void init_once(void)
 
 				/* misc.c */
   
-  define_c_mod_predicate("prolog_sys", "new_atom", 1, prolog_new_atom);
+  define_c_mod_predicate("runtime_control", "new_atom", 1, prolog_new_atom);
   define_c_mod_predicate("internals","$global_vars_get_root", 1, prolog_global_vars_get_root);
   define_c_mod_predicate("internals","$global_vars_set_root", 1, prolog_global_vars_set_root);
 #if defined(ATOMGC)
@@ -1319,7 +1319,7 @@ void init_once(void)
 
 				/* alloc.c */
 
-  define_c_mod_predicate("prolog_sys","statistics",0,statistics);
+  define_c_mod_predicate("runtime_control","statistics",0,statistics);
   define_c_mod_predicate("internals","$program_usage",1,program_usage);
   define_c_mod_predicate("internals","$internal_symbol_usage",1,internal_symbol_usage);
   define_c_mod_predicate("internals","$total_usage",1,total_usage);
@@ -1330,12 +1330,12 @@ void init_once(void)
   define_c_mod_predicate("internals","$gc_trace",2,gc_trace);
   define_c_mod_predicate("internals","$gc_margin",2,gc_margin);
   define_c_mod_predicate("internals","$gc_usage",1,gc_usage);
-  define_c_mod_predicate("prolog_sys","garbage_collect",0,gc_start);
+  define_c_mod_predicate("runtime_control","garbage_collect",0,gc_start);
 
 				/* nondet.c */
 
   define_c_mod_predicate("basiccontrol","repeat",0,prolog_repeat);
-  define_c_mod_predicate("prolog_sys","current_atom",1,current_atom);
+  define_c_mod_predicate("runtime_control","current_atom",1,current_atom);
   define_c_mod_predicate("stream_basic","current_stream",3,current_stream);
   define_c_mod_predicate("internals","$current_predicate",2,current_predicate);
   define_c_mod_predicate("internals","$predicate_property",3,predicate_property);

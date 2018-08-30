@@ -57,7 +57,7 @@
 :- use_module(library(assertions/assrt_write)).
 :- use_module(library(compiler), [make_wam/1]).
 
-:- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3]).
+:- use_module(engine(runtime_control), [set_prolog_flag/2, prolog_flag/3]).
 :- use_module(engine(internals)).
 :- use_module(library(system)).
 :- use_module(library(stream_utils), [open_input/2, close_input/1]).

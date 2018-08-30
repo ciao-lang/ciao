@@ -9,7 +9,7 @@
         [assertions, regtypes]).
 
 :- use_module(engine(io_basic)).
-:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
+:- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(library(write), []).
 :- use_module(library(debugger/debugger_lib), [tracertc/0]).
 :- use_module(library(aggregates), [findall/3]).

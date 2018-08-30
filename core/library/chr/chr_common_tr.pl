@@ -7,7 +7,7 @@
 :- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(messages), [note_message/1]).
 :- use_module(engine(io_basic), [display/1, nl/0]).
-:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
+:- use_module(engine(runtime_control), [current_prolog_flag/2]).
 
 chr_compile_module( 0 , _ , M ) :-
 	retractall_fact( module_cls( M , _ ) ),

@@ -370,7 +370,7 @@ locate_file(File, LocalFile) :-
 	file_exists(LocalFile).
 
 :- use_module(library(system), [file_properties/6]).
-:- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3]).
+:- use_module(engine(runtime_control), [set_prolog_flag/2, prolog_flag/3]).
 
 % TODO: duplicated
 is_dir(Path) :-

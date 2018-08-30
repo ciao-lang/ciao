@@ -84,14 +84,14 @@
 :- use_module(library(compiler/global_module_options)).
 :- use_module(library(fastrw)).
 :- use_module(library(varnames/complete_dict)).
-:- use_module(engine(prolog_flags), [current_prolog_flag/2,
+:- use_module(engine(runtime_control), [current_prolog_flag/2,
      set_prolog_flag/2, prolog_flag/3, push_prolog_flag/2,
      pop_prolog_flag/1]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 :- use_module(library(terms_io), [term_write/1]).
 :- use_module(engine(messages_basic), [message/2, message_lns/4]).
-:- use_module(library(prolog_sys), [current_module/1]).
+:- use_module(engine(runtime_control), [current_module/1]).
 :- use_module(engine(hiord_rt), [this_module/1]).
 :- use_module(engine(internals), [
 	filetype/3,

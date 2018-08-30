@@ -1,6 +1,6 @@
 :- module(condcomp_tr, [condcomp_sentence/3], []).
 
-:- use_module(engine(prolog_flags)).
+:- use_module(engine(runtime_control)).
 :- use_module(library(messages), 
 	[error_message/2,error_message/3]).
 
@@ -165,7 +165,7 @@ peval_cond(X, _Mod) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
+:- use_module(engine(runtime_control), [current_prolog_flag/2]).
 
 cond__def(current_prolog_flag(_, _), _Mod) :- !.
 cond__eval(current_prolog_flag(Flag, Value), _Mod) :- !,

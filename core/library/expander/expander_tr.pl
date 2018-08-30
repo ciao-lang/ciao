@@ -33,7 +33,7 @@ exports_pred(_,_,_) :- fail.
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(prolog_flags), [push_prolog_flag/2, pop_prolog_flag/1]). % TODO: do in a better way
+:- use_module(engine(runtime_control), [push_prolog_flag/2, pop_prolog_flag/1]). % TODO: do in a better way
 
 :- data output_s/2.
 

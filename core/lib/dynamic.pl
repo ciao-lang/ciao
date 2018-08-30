@@ -36,7 +36,7 @@
    property of the dynamic predicate itself").
 
 :- use_module(engine(internals)).
-:- use_module(library(prolog_sys), [current_module/1, new_atom/1]).
+:- use_module(engine(runtime_control), [current_module/1, new_atom/1]).
 
 :- meta_predicate asserta(clause).
 :- meta_predicate asserta(clause, ?).

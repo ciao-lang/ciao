@@ -366,7 +366,7 @@ available when invoking @apl{ciaoc}:
 :- use_module(library(compiler/exemaker),
 	    [make_exec/2, force_lazy/1, dynamic_search_path/1]).
 
-:- use_module(engine(prolog_flags), [set_prolog_flag/2, current_prolog_flag/2]).
+:- use_module(engine(runtime_control), [set_prolog_flag/2, current_prolog_flag/2]).
 
 % ---------------------------------------------------------------------------
 

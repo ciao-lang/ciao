@@ -2,7 +2,7 @@
 :- module(size, [mem/0], []).
 :- use_module(library(write)).
 :- use_module(library(format)).
-:- use_module(library(prolog_sys), [statistics/0, statistics/2]).
+:- use_module(engine(runtime_control), [statistics/0, statistics/2]).
 
 /* Test memory usage: construct a large integers list, then double
         copy it, and make another list doubling each element */

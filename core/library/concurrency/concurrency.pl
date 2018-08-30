@@ -18,7 +18,7 @@
         ],
 	[assertions, isomodes, foreign_interface]).
 
-:- use_module(library(prolog_sys), [new_atom/1]).
+:- use_module(engine(runtime_control), [new_atom/1]).
 :- use_module(engine(messages_basic), [message/2]).
 
 :- use_module(engine(internals), [

@@ -45,7 +45,7 @@
           that no repeated data structure conversions occur when the
           number of elements is close to the threshold.").
 
-%:- use_module(library(prolog_sys), [statistics/2]).
+%:- use_module(engine(runtime_control), [statistics/2]).
 %:- use_module(library(between)).
 
 :- use_module(library(hiordlib), [maplist/3, foldr/4]).

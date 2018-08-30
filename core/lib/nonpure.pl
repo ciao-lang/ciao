@@ -12,7 +12,7 @@
 :- use_module(engine(exceptions)).
 %K :- use_module(engine(messages_basic)). % TODO: not by default
 %K :- use_module(engine(io_basic)). % TODO: not by default
-%K :- use_module(engine(prolog_flags)). % TODO: not by default
+%K :- use_module(engine(runtime_control)). % TODO: not by default
 %K :- use_module(engine(stream_basic)). % TODO: not by default
 %K :- use_module(engine(system_info)). % TODO: not by default
 :- use_module(engine(term_basic)).

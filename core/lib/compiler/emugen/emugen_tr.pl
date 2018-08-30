@@ -97,7 +97,7 @@ exec_decl(update_op_ins(Op, Ins), M) :- !,
 % ---------------------------------------------------------------------------
 % Code generation
 
-:- use_module(library(prolog_sys), [statistics/2]).
+:- use_module(engine(runtime_control), [statistics/2]).
 
 %emugen_statistics.
 emugen_statistics :- fail.
@@ -172,7 +172,7 @@ emit_code(G, M, Store) -->
 % Error handler and diagnosis
 
 :- use_module(library(compiler/emugen/emugen_errors)).
-:- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3]).
+:- use_module(engine(runtime_control), [set_prolog_flag/2, prolog_flag/3]).
 
 handler(E) :-
 	handler_msg(E, Msg),

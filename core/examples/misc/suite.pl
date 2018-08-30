@@ -11,7 +11,7 @@
 :- use_module(jugs).
 
 :- use_module(library(write)).
-:- use_module(library(prolog_sys), [statistics/0]).
+:- use_module(engine(runtime_control), [statistics/0]).
 
 main:-
         line,

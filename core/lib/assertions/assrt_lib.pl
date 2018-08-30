@@ -71,7 +71,7 @@ library @lib{compiler/c_itf}.
 :- use_module(library(read)).
 
 % Other libraries
-:- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3,
+:- use_module(engine(runtime_control), [set_prolog_flag/2, prolog_flag/3,
       push_prolog_flag/2, pop_prolog_flag/1]).
 :- use_module(engine(stream_basic)).
 :- use_module(library(terms_io), [term_write/1]).

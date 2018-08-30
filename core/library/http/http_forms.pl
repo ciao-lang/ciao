@@ -70,7 +70,7 @@ value_assignment(A=V) :-
 
 define_flag(raw_form_values, [on,off], off).
 
-:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
+:- use_module(engine(runtime_control), [current_prolog_flag/2]).
 
 % ----------------------------------------------------------------------------
 

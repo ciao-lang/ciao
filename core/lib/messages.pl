@@ -33,7 +33,7 @@
 
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(engine(prolog_flags)).
+:- use_module(engine(runtime_control)).
 :- use_module(library(format)).
 
 % Other libraries
@@ -364,7 +364,7 @@ compose(Type, SO, Module, Mess, Args) :-
 	AllArgs = [Type, SimplifiedModule|Args],
 	compose_common(SO, CMess, AllArgs).
 
-:- use_module(engine(prolog_flags), [set_prolog_flag/2, prolog_flag/3]).
+:- use_module(engine(runtime_control), [set_prolog_flag/2, prolog_flag/3]).
 
 compose_common(SO, CMess, AllArgs) :-
 	(

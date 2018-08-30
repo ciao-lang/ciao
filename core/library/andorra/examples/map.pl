@@ -1,6 +1,6 @@
 :- module(map,[test/1,test_all/1]).
 
-:- use_module(library(prolog_sys), [statistics/2]).
+:- use_module(engine(runtime_control), [statistics/2]).
 
 %:- determinate(test_all(A),nonvar(A)).
 

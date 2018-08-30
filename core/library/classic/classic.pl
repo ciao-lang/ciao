@@ -8,8 +8,8 @@
 
 % TODO: refine? these were in old nonpure.pl
 :- use_module(engine(io_basic)).
-:- use_module(engine(prolog_flags)).
-:- use_module(library(prolog_sys)).
+:- use_module(engine(runtime_control)).
+:- use_module(engine(runtime_control)).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(hiord_rt), [call/1]).
 

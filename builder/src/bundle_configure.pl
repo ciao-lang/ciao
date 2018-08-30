@@ -787,7 +787,7 @@ display_option(ShowName, Value) :-
 % TODO: Bundle is missing
 
 :- use_module(library(aggregates), [findall/3]).
-:- use_module(engine(prolog_flags), [set_prolog_flag/2]).
+:- use_module(engine(runtime_control), [set_prolog_flag/2]).
 
 :- export(set_prolog_flags_from_bundle_flags/1).
 set_prolog_flags_from_bundle_flags(TFlagCmds) :-

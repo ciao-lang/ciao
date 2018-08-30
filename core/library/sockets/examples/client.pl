@@ -6,7 +6,7 @@
 :- use_module(library(random), [random/3]).
 :- use_module(library(stream_utils), [get_line/2]).
 :- use_module(library(sockets), [connect_to_socket/3]).
-:- use_module(library(prolog_sys), [statistics/2]).
+:- use_module(engine(runtime_control), [statistics/2]).
 :- use_module(library(concurrency)).
 
 :- use_module(socket_number).

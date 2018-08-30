@@ -6,7 +6,7 @@
 	    [assertions, nativeprops, dcg, define_flag]).
 
 :- use_module(engine(messages_basic), [messages/1]).
-:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
+:- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(library(lists)).
 :- use_module(library(hiordlib), [maplist/2, foldl/4]).
 :- use_module(library(llists)).

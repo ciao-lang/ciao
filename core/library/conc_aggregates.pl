@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :- use_module(engine(hiord_rt), [call/1]).
-:- use_module(library(prolog_sys), [new_atom/1]).
+:- use_module(engine(runtime_control), [new_atom/1]).
 
 :- doc(title,"All solutions concurrent predicates").
 :- doc(author,"Manuel Carro (concurrency-safeness)").

@@ -21,7 +21,7 @@
 :- use_module(library(http/http_forms)).
 :- use_module(library(http/multipart_form_data)).
 
-:- use_module(engine(prolog_flags), [current_prolog_flag/2]). % TODO: do not use flags for raw_form_values
+:- use_module(engine(runtime_control), [current_prolog_flag/2]). % TODO: do not use flags for raw_form_values
 
 % ---------------------------------------------------------------------------
 % HTTP request from CGI environment

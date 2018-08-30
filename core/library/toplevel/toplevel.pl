@@ -55,11 +55,11 @@
 :- use_module(library(read),      [read_term/3]).
 :- use_module(library(operators), [op/3]).
 
-:- use_module(engine(prolog_flags), [prompt/2]). % TODO: move prompt/2 to some IO related module?
-:- use_module(engine(prolog_flags), [current_prolog_flag/2, prolog_flag/3]).
+:- use_module(engine(runtime_control), [prompt/2]). % TODO: move prompt/2 to some IO related module?
+:- use_module(engine(runtime_control), [current_prolog_flag/2, prolog_flag/3]).
 
 % (see shell_directive/1)
-:- use_module(engine(prolog_flags), [set_prolog_flag/2, push_prolog_flag/2, pop_prolog_flag/1]).
+:- use_module(engine(runtime_control), [set_prolog_flag/2, push_prolog_flag/2, pop_prolog_flag/1]).
 
 :- use_module(library(rtchecks/rtchecks_utils), [call_rtc/1]).
 :- use_module(library(read_from_string)).

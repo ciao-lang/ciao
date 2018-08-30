@@ -1,6 +1,6 @@
 :- module(map_and_user,[test/1,test_all/1],[andorra]).
 
-:- use_module(library(prolog_sys), [statistics/2]).
+:- use_module(engine(runtime_control), [statistics/2]).
 :- use_module(library(write), [write/1]).
 
 

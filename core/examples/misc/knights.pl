@@ -14,7 +14,7 @@
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(engine(io_basic), [nl/0]).
 :- use_module(library(write), [write/1]).
-:- use_module(library(prolog_sys), [statistics/2]).
+:- use_module(engine(runtime_control), [statistics/2]).
 
  %% knights_print(5) performs 12385816 resolution steps (and fails...)
 

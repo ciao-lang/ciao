@@ -1,7 +1,7 @@
 :- module(fibonacci, [do_fib/0,fib/2],[]).
 
 :- use_module(library(write)).
-:- use_module(library(prolog_sys), [statistics/2]).
+:- use_module(engine(runtime_control), [statistics/2]).
 
 
 nat(X):- nonvar(X),!,

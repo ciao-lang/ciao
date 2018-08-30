@@ -1,7 +1,7 @@
 :- module(mqu,[queens/1],_).
 
 :- use_module(library(write), [write/1]).
-:- use_module(library(prolog_sys), [statistics/2]).
+:- use_module(engine(runtime_control), [statistics/2]).
 
 queens(A) :-
         queens(A,A,A,B),
