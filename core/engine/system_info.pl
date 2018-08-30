@@ -12,15 +12,11 @@
 	],
         [assertions, nortchecks, isomodes]).
 
-% ---------------------------------------------------------------------------
-
 :- doc(title, "Runtime system information").
 
 :- doc(author,"Daniel Cabeza").
 :- doc(author,"Manuel Carro").
 :- doc(author,"Jose F. Morales").
-
-:- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module, "This module provides internal information about the
    current running runtime system (engine and enviroment). That

@@ -14,8 +14,6 @@
 :- doc(author, "Mats Carlsson").
 :- doc(author, "Jose F. Morales (minor)").
 
-% :- doc(usage, "@include{InPrelude.lpdoc}").
-
 :- doc(module, "This module provides the basic input/output operations
    on streams (byte/code input/output and canonical term output). Most
    predicates are provided in two versions: one that specifies the

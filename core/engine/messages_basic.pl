@@ -6,15 +6,13 @@
 	    ],
 	    [assertions, nativeprops, nortchecks]).
 
-% TODO: rename to messages_basic.pl, move IO preds to stream_utils.pl
+% TODO: move lformat/1, display_list/1 to format_basic.pl?
 
 :- doc(title, "Message printing primitives").
 
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Edison Mera (improvements)").
 :- doc(author, "Jose F. Morales").
-
-:- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module, "This module provides predicates for printing in a
    unified way informational messages. It is designed to be small and

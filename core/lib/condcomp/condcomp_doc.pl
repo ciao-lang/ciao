@@ -25,6 +25,8 @@
 % :- else.
 % :- endif.
 
+:- doc(usage, "@include{InPrelude.lpdoc}").
+
 :- doc(module, "This package defines a series of directives for
 conditional compilation that allow the inclusion or exclusion of code
 blocks (which may contain nested conditional directives) based on the

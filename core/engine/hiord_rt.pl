@@ -8,7 +8,7 @@
 	    this_module/1
 	],[assertions, nortchecks, isomodes]).
 
-:- doc(title,"Higher-order").
+:- doc(title,"Higher-order support").
 
 :- doc(author,"Daniel Cabeza").
 
