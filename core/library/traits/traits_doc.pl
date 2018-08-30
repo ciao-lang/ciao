@@ -20,7 +20,10 @@
    multiple traits.
 
    This translation delegates on the underlying module system as much
-   as possible, e.g., for dealing with undefined predicates.
+   as possible, e.g., for dealing with undefined predicates. See
+   @ref{Example code and translation} for a complete example that
+   shows syntax, some special cases, and the translation to plain
+   clauses.
 
    Some important notes on the translation:
    @begin{itemize}
@@ -34,6 +37,11 @@
      @item any other functor is passed unaltered
      @end{itemize}
    @end{itemize}
+
+").
+
+:- doc(appendix, "
+   @section{Example code and translation}
 
    Example code:
 
