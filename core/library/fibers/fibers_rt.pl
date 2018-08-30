@@ -15,6 +15,8 @@
    @end{alert}
 ").
 
+:- use_module(engine(data_facts)).
+
 :- use_module(library(fibers/stream_watchdog)).
 
 :- include(library(fibers/fibers_hooks)).

@@ -1,5 +1,7 @@
 :- module(_, [afalltr/3],[]).
 
+:- use_module(engine(data_facts)).
+
 :- data bf_pred_all/3.
 
 afalltr(end_of_file, end_of_file, M) :- !,

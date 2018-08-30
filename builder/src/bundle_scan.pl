@@ -12,6 +12,7 @@
    and no syntactic sugar).
 ").
 
+:- use_module(engine(data_facts)).
 :- use_module(library(lists), [member/2]).
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(system_extra), [mkpath/1, del_file_nofail/1]).

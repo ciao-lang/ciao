@@ -6,6 +6,7 @@
 	[ assertions, regtypes, hiord
 	]).
 
+:- use_module(engine(data_facts)).
 :- use_module(library(lists), [member/2]).
 :- use_module(library(sort), [sort/2]).  
 :- use_module(library(terms), [atom_concat/2]).

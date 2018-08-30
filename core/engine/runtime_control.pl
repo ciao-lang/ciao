@@ -37,6 +37,7 @@
         ],
         [assertions, isomodes, nortchecks, define_flag]).
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(internals)).
 
 :- doc(title, "Runtime system control").

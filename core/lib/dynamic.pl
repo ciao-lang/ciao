@@ -35,6 +35,7 @@
 :- doc(bug, "Use a single set of definitions. This one can be a
    property of the dynamic predicate itself").
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(internals)).
 :- use_module(engine(runtime_control), [current_module/1, new_atom/1]).
 

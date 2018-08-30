@@ -20,6 +20,7 @@ configuration rules.
 %   parameters
 % TODO: export some config values as condcomp conditions
 
+:- use_module(engine(data_facts)).
 :- use_module(library(lists)).
 :- use_module(library(dynamic)).
 :- use_module(library(process), [process_call/3]).

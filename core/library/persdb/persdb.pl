@@ -1,6 +1,7 @@
 :- package(persdb).
 :- use_package(library(persdb/persdb_decl)).
 
+:- use_module(engine(data_facts)). % TODO: refine?
 :- use_module(library(persdb/persdb_rt), [%redefinebuiltins
         asserta_fact/1, 
         assertz_fact/1, 

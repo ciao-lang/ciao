@@ -11,6 +11,8 @@
 executes pending goals when the computation has no more
 alternatives.").
 
+:- use_module(engine(data_facts)).
+
 :- data cut_goal/2.
 
 :- pred det_try(Goal, OnCut, OnFail) : callable * callable *

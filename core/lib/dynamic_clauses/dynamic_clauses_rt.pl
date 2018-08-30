@@ -21,6 +21,7 @@
 
 :- set_prolog_flag(multi_arity_warnings, off).
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(internals)).
 :- use_module(engine(runtime_control), [new_atom/1, current_module/1]).
 :- use_module(library(iso_misc), [sub_atom/5]).

@@ -178,6 +178,7 @@ attr_portray_hook(_, Datum):-
 % Such properties are not specified explicilty in the documentation,
 % because, we judge it is a bad practive to rely on them.
 
+:- use_module(engine(data_facts)).
 :- use_module(library(odd), [setarg/3]).
 
 :- data next_id/1.

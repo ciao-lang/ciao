@@ -13,6 +13,8 @@
 %   fiberSusp/2
 %   fiberSuspSpawn/2
 
+:- use_module(engine(data_facts)).
+
 :- export(mod_error/2).
 :- export(is_exported_nd/3).
 :- include(library(fibers/mexpand_extra)).

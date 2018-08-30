@@ -1,5 +1,6 @@
 :- module(bundlehooks_tr, [defdep/3], [assertions]).
 
+:- use_module(engine(data_facts)).
 :- use_module(library(lists), [member/2]).
 :- use_module(engine(messages_basic), [message/2]).
 %:- use_module(engine(hiord_rt), [call/1]).

@@ -64,8 +64,7 @@ library @lib{compiler/c_itf}.
 @end{verbatim}
    ").
 
-
-% ISO-Prolog compatibility libraries
+:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(dynamic)).  
 :- use_module(library(read)).

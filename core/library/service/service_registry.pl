@@ -13,6 +13,8 @@
 
 :- doc(bug, "Prune dependencies to builder (see TODO notes below)").
 
+:- use_module(engine(data_facts)).
+
 :- use_module(library(lists), [member/2]).
 :- use_module(library(pathnames)).
 :- use_module(ciaobld(site_aux), [bundle_site_url/3]). % TODO: move to other module?

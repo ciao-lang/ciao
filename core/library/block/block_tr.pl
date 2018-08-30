@@ -11,6 +11,7 @@
 %     - renames blocking predicates
 %     - adds wrappers from $notr clauses
 
+:- use_module(engine(data_facts)).
 :- use_module(library(aggregates)).
 :- use_module(library(sort)).
 

@@ -1,5 +1,7 @@
 :- module(_, [main/1], []).
 
+:- use_module(engine(data_facts)).
+
 :- use_module(library(system)).
 :- use_module(library(sockets)).
 :- use_module(engine(stream_basic)).

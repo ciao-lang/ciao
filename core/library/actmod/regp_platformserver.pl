@@ -1,5 +1,7 @@
 :- module(regp_platformserver,[],[]).
 
+:- use_module(engine(data_facts)).
+
 % The 'platformserver' registry protocol (auxiliary for platformbased)
 
 :- include(library(actmod/actmod_hooks)).

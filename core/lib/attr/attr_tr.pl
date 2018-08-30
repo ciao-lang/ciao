@@ -1,5 +1,6 @@
 :- module(attr_tr, [sentence/3], []).
 
+:- use_module(engine(data_facts)).
 :- use_module(library(messages), [warning_message/2]).
 
 :- data found_hook/2.

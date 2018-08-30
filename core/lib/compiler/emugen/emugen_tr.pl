@@ -11,11 +11,13 @@
    generator. Please consider a more complete backport before further
    improvements are included here.").
 
+:- use_module(engine(data_facts)).
+:- use_module(library(aggregates), [findall/3, bagof/3]).
+
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(read)).
 :- use_module(library(stream_utils), [string_to_file/2]).
 :- use_module(library(lists)).
-:- use_module(library(aggregates), [findall/3, bagof/3]).
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(ciaobld(eng_defs), [emugen_code_dir/3]).
 

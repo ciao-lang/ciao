@@ -2,6 +2,7 @@
 
 % This module is (will be) a wrapper of c_itf_internal to 'legacy' applications.
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(io_basic)).
 
 :- reexport(library(compiler/c_itf_internal)).

@@ -7,6 +7,8 @@
             format_control/1],
 	[dcg,assertions,isomodes]).
 
+:- use_module(engine(data_facts)).
+
 :- use_module(library(write)).
 :- use_module(library(system)).
 % :- use_module(library(dcg/dcg_tr)). % This is not at all needed!!

@@ -2,8 +2,10 @@
 		lit_clause_arity/4, in_inline_module_db/2, compound_struct/3],
 	    [assertions, hiord, dcg]).
 
-:- use_module(library(pathnames)).
+:- use_module(engine(data_facts)).
 :- use_module(library(aggregates)).
+
+:- use_module(library(pathnames)).
 :- use_module(library(terms)).
 :- use_module(library(freeze)).
 :- use_module(library(sort)).

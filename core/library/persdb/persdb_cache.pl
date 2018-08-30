@@ -4,6 +4,8 @@
 	  get_pred_files/7, keyword/1, persistent/5 ],
 	[ assertions ]).
 
+:- use_module(engine(data_facts)).
+
 :- use_module(engine(stream_basic)).
 :- use_module(library(terms_io), [term_write/1]).
 :- use_module(library(lists)).

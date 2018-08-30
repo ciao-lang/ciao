@@ -1,7 +1,8 @@
 :- module(_, _, []).
 
-:- data catching/3, thrown/1, disabled/1.
+:- use_module(engine(data_facts)).
 
+:- data catching/3, thrown/1, disabled/1.
 
 asserta_catching(Ch, Er, Ha) :- asserta_fact(catching(Ch, Er, Ha)).
 asserta_catching(Ch, Er, Ha) :- retract_fact_nb(catching(Ch, Er, Ha)), fail.

@@ -8,8 +8,10 @@
    add or remove streams from a @em{watch} list, and monitoring
    watched streams for available data.").
 
-:- use_module(library(sockets), [select_socket/5]).
+:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
+
+:- use_module(library(sockets), [select_socket/5]).
 :- use_module(library(lists), [member/2]).
 :- use_module(engine(stream_basic), [stream/1]).
 

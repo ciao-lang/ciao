@@ -19,6 +19,9 @@
 	    ],
 	    [dcg, assertions, nortchecks, define_flag]).
 
+:- use_module(engine(data_facts)).
+:- use_module(library(aggregates), [findall/3]).
+
 :- use_module(engine(messages_basic)).
 :- use_module(library(compiler/exemaker), [make_exec/2]).
 :- use_module(library(compiler),
@@ -43,7 +46,6 @@
 :- use_module(engine(hiord_rt), [this_module/1, call/1, '$nodebug_call'/1]).
 :- use_module(library(lists),      [member/2, difference/3]).
 :- use_module(library(format),     [format/3]).
-:- use_module(library(aggregates), [findall/3]).
 :- use_module(library(libpaths),   [get_alias_path/0]).
 :- use_module(library(dict),       [dic_lookup/3, dic_get/3]).
 

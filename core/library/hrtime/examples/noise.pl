@@ -5,6 +5,8 @@
 %   can expect to see the see spikes when the CPU is doing other
 %   tasks.
 
+:- use_module(engine(data_facts)).
+
 :- use_module(library(hrtime)).
 :- use_module(library(between)).
 :- use_module(engine(io_basic)).

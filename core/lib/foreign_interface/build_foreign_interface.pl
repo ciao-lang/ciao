@@ -21,11 +21,13 @@
 :- doc(author, "Jose F. Morales").
 :- doc(author, "Manuel Carro").
 
+:- use_module(engine(data_facts)).
+:- use_module(library(aggregates), [findall/3]).
+
 :- use_module(library(write_c)).
 :- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(library(lists)).
 :- use_module(library(llists), [flatten/2]).
-:- use_module(library(aggregates), [findall/3]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(system_info),
 	[get_platform/1, ciao_c_headers_dir/1, eng_is_sharedlib/0]).

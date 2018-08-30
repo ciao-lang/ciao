@@ -6,6 +6,8 @@
 %    source code languages. Currently it depends on external tools
 %    like \apl{emacs}.
 
+:- use_module(engine(data_facts)).
+
 :- use_module(library(lists), [append/3]).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(engine(stream_basic), [absolute_file_name/2]).

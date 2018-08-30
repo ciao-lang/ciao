@@ -9,10 +9,12 @@
         ],
 	[assertions,nortchecks,isomodes,nativeprops,hiord]).
 
+:- use_module(engine(data_facts)).
+:- use_module(engine(internals), ['$setarg'/4]).
+
 :- use_module(library(sort)).
 :- use_module(library(lists), [length/2]).
 %:- use_module(engine(hiord_rt),[call/1]).
-:- use_module(engine(internals), ['$setarg'/4]).
 
 :- set_prolog_flag(multi_arity_warnings, off).
 

@@ -35,8 +35,10 @@
 
 % (rtcheck implementation for native_props.pl)
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(hiord_rt), [call/1]).
 :- use_module(engine(internals),   ['$setarg'/4]).
+
 :- use_module(library(sort),       [sort/2]).
 :- use_module(library(lists),      [member/2, length/2, append/3]).
 :- use_module(library(stream_utils), [open_output/2, close_output/1]).

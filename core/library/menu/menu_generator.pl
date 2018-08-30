@@ -33,6 +33,8 @@
 
 % TODO: Split this module into interactive menu, offline menu generation, etc.
 
+:- use_module(engine(data_facts)).
+
 % ---------------------------------------------------------------------------
 
 :- include(library('menu/menu_common')).

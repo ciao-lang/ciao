@@ -31,6 +31,7 @@
 
 :- include(.(clpfd_ops)).
 
+:- use_module(engine(data_facts)).
 :- use_module(library(clpfd/fd_term), [in/2, min/2, max/2]).
 :- use_module(library(clpfd/fd_constraints), ['a=t'/2]).
 %:- use_module(library(clpfd/fd_range), [default/1, min/2, max/2]).

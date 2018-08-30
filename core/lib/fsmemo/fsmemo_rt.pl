@@ -3,6 +3,7 @@
 :- doc(title, "Runtime for fsmemo").
 :- doc(author, "Jose F. Morales").
 
+:- use_module(engine(data_facts)).
 :- use_module(library(port_reify), [once_port_reify/2, port_call/1]).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(compiler/up_to_date), [up_to_date/2]).

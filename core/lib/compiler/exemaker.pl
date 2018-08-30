@@ -5,6 +5,9 @@
 	     dynamic_search_path/1],
 	    [assertions, define_flag]).
 
+:- use_module(engine(data_facts)).
+:- use_module(library(aggregates), [findall/3]).
+
 :- use_module(library(compiler/c_itf_internal),
 	    [handle_exc/1,
 	     process_file/7,
@@ -42,7 +45,6 @@
 :- use_module(engine(system_info), [get_platform/1, get_os/1]).
 :- use_module(library(compiler/engine_path), [get_engine_file/2]).
 :- use_module(library(compiler/pl2wam)).
-:- use_module(library(aggregates), [findall/3]).
 :- use_module(library(lists), [member/2]).
 
 :- use_module(library(ctrlcclean), [delete_on_ctrlc/2]).

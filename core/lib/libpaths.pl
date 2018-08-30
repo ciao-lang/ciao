@@ -20,6 +20,8 @@
 % be invoked, so in this case all the components should be in
 % standard locations.
 
+:- use_module(engine(data_facts)).
+
 :- use_module(library(system)).
 :- use_module(library(lists)).
 

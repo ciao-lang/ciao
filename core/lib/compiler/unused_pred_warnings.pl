@@ -5,12 +5,14 @@
 		record_pred_dependency/4],
 	    [assertions, nativeprops, dcg, define_flag]).
 
+:- use_module(engine(data_facts)).
+:- use_module(library(aggregates)).
+
 :- use_module(engine(messages_basic), [messages/1]).
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(library(lists)).
 :- use_module(library(hiordlib), [maplist/2, foldl/4]).
 :- use_module(library(llists)).
-:- use_module(library(aggregates)).
 :- use_module(library(sort)).
 :- use_module(library(terms_vars)).
 %:- use_module(library(formulae)).

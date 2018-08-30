@@ -9,7 +9,9 @@
         [ assertions, regtypes
         ]).
 
+:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3, setof/3]).
+
 :- use_module(library(compiler/c_itf)).
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
 :- use_module(library(errhandle), [error_protect/1]).  

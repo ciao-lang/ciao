@@ -37,6 +37,8 @@
 % ---------------------------------------------------------------------------
 :- doc(section, "Help modifiers").
 
+:- use_module(engine(data_facts)).
+
 :- data help_mode_/2.
 
 set_help_mode(Level, Prof) :-

@@ -3,6 +3,8 @@
 :- doc(title, "Flags for the builder").
 % (atomic name, single value)
 
+:- use_module(engine(data_facts)).
+
 :- data builder_flag_/2.
 
 :- export(get_builder_flag/2).

@@ -2,6 +2,7 @@
 	    send_silent_signal/1, halt/0, halt/1, abort/0],
 	    [assertions, nortchecks, isomodes]).
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(internals),    ['$exit'/1]).
 :- use_module(engine(basiccontrol), ['$metachoice'/1, '$metacut'/1]).
 :- use_module(engine(hiord_rt),     ['$meta_call'/1]).

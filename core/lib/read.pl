@@ -20,6 +20,7 @@
 :- doc(author, "Jose F. Morales (modifications for curly blocks,"||
                "postfix blocks, infix dot, string constants, and doccomments)").
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(engine(stream_basic)).
 :- use_module(library(tokenize)).

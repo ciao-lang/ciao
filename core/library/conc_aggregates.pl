@@ -2,6 +2,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(hiord_rt), [call/1]).
 :- use_module(engine(runtime_control), [new_atom/1]).
 

@@ -18,6 +18,7 @@
 :- meta_predicate add_term_trans(+, spec, +).
 :- meta_predicate add_clause_trans(+, spec, +).
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(hiord_rt), ['$meta_call'/1]).
 :- use_module(engine(internals), [term_to_meta/2]).
 :- use_module(library(lists), [append/3]).

@@ -33,8 +33,10 @@
 
 :- include(library(clpfd/fd_ops)).
 
-:- use_module(library(lists), [append/3, reverse/2, select/3]).
+:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
+
+:- use_module(library(lists), [append/3, reverse/2, select/3]).
 :- use_module(library(terms)).
 :- use_module(library(formulae), [list_to_conj/2]).
 

@@ -2,6 +2,8 @@
 
 % :- compilation_fact(trace_actmod). % Uncomment to enable tracing (for debugging)
 
+:- use_module(engine(data_facts)).
+
 :- include(library(actmod/actmod_hooks)).
 :- include(library(fibers/fibers_hooks)).
 

@@ -4,6 +4,7 @@
 		      simplify/2,
 		      verify_det/3],[hiord]).
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(basic_props)). % TODO: rtc versions?
 :- use_module(library(terms_vars), [varset/2]).
 :- use_module(library(sort), [sort/2]).

@@ -18,6 +18,7 @@ $ ciaoc_sdyn MAIN
 	so_filename/2,
 	find_pl_filename/4]).
 :- use_module(engine(system_info), [get_os/1]).
+:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(llists), [flatten/2]).

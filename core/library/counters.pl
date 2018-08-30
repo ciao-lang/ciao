@@ -1,5 +1,7 @@
 :- module(counters, [setcounter/2, getcounter/2, inccounter/2],[assertions]).
 
+:- use_module(engine(data_facts)).
+
 :- data counter/2.
 
 setcounter(Name, Val) :-

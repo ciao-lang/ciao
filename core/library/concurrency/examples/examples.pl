@@ -1,5 +1,6 @@
 %% :- module(examples, [main/0], []).
 
+:- use_module(engine(data_facts)).
 :- use_module(library(concurrency)).
 :- use_module(library(format)).
 :- use_module(library(random)).

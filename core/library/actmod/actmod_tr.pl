@@ -2,6 +2,8 @@
 
 % Translation module for active modules
 
+:- use_module(engine(data_facts)).
+
 :- use_module(library(fibers/fibers_tr),
 	[mod_error/2, stub_base/2, is_exported_nd/3]).
 

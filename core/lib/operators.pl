@@ -18,6 +18,8 @@
    defines more operators at compile time):
    @includedef{standard_ops/0}").
 
+:- use_module(engine(data_facts)).
+
 :- data current_op/5.
 
 :- doc(op(Precedence,Type,Name), "Declares the atom @var{Name} to be

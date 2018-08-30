@@ -2,6 +2,7 @@
 
 % Common predicates for all file-based publish/locate methods
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(stream_basic)).
 :- use_module(library(terms_io), [term_write/1]).
 :- use_module(library(system), [file_exists/1, delete_file/1, umask/2]).

@@ -40,6 +40,7 @@ NOTE: Configuration flags and nested definitions must be defined in a
 :- doc(bug, "Simplify reusing the module compiler and some translation
    modules").
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 % TODO: error_messages are ignored; mark erroneous Manifests

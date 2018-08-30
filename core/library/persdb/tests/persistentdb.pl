@@ -1,5 +1,6 @@
 :- module(persistentdb, [main/0], [assertions, unittestdecls, fsyntax]).
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(io_basic), [nl/0]).
 :- use_module(library(format)).
 :- use_module(library(system)).

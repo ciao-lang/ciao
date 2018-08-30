@@ -17,6 +17,7 @@
 
 % ---------------------------------------------------------------------------
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(attributes), [attach_attribute/2, 
                                    get_attribute/2, 
 				   detach_attribute/1]).
@@ -365,6 +366,7 @@ untag([H|T]):-
 % ---------------------------------------------------------------------------
 %%% copy_term/3 %%% 
 
+% TODO: low-level implementation, avoid assertz?
 :- export(copy_term/3).
 :- pred	copy_term(Term, Copy, Gs)  # 
 

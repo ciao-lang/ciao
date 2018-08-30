@@ -29,8 +29,10 @@ yes
 
 :- doc(bug, "weighted random sampling may not be hard to implement").
 
-:- use_module(library(random), [random/3]).
+:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
+
+:- use_module(library(random), [random/3]).
 
 :- data sample/2.
 :- data index/1.

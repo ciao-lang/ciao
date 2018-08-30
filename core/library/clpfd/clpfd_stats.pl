@@ -38,7 +38,11 @@
 :- use_module(library(format)).
 
 :- if(defined(collect_statistics)).
+
 % (Enabled collect statistics)
+
+:- use_module(engine(data_facts)).
+:- use_module(library(aggregates)).
 
 :- data fd_stats/2.
 
@@ -56,8 +60,6 @@ inc_stat(Stat) :-
 get_stat(Stat, R) :-
 	retract_fact(fd_stats(Stat, R)),
 	assertz_fact(fd_stats(Stat, 0)).
-
-:- use_module(library(aggregates)).
 
 clpfd_stats :-
 	stats_list(L),

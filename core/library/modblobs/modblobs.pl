@@ -53,6 +53,8 @@ q(b).
 
 % ---------------------------------------------------------------------------
 
+:- use_module(engine(data_facts)).
+
 :- use_module(library(system), [mktemp_in_tmp/2, make_directory/1]).
 :- use_module(library(system_extra), [del_file_nofail/1]).
 :- use_module(engine(stream_basic)).

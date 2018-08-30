@@ -40,6 +40,9 @@
 	    ],
 	    [assertions, dcg, hiord]).
 
+:- use_module(engine(data_facts)).
+:- use_module(library(aggregates)).
+
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 :- use_module(engine(messages_basic), [message/2]).
@@ -47,7 +50,6 @@
 :- use_module(engine(debugger_support)).
 :- use_module(engine(internals), ['$prompt'/2, '$predicate_property'/3,
 		'$setarg'/4, term_to_meta/2, '$current_predicate'/2]).
-:- use_module(library(aggregates)).
 :- use_module(library(lists)).
 :- use_module(library(format)).
 :- use_module(library(write)).

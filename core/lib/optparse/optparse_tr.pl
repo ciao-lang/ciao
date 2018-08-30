@@ -1,12 +1,5 @@
 :- module(optparse_tr, [optparse_tr/3], [assertions, nortchecks, define_flag]).
 
-:- use_module(library(hiordlib),   [maplist/3]).
-:- use_module(library(aggregates), [findall/3]).
-:- use_module(library(llists),     [flatten/2]).
-:- use_module(library(lists),      [append/3, length/2]).
-:- use_module(library(messages)).
-:- use_module(library(compiler/c_itf_internal), [location/1]).
-
 :- doc(author, "Edison Mera").
 :- doc(author, "Jose F. Morales (bug fixes)").
 
@@ -39,6 +32,15 @@ In the module that use this package, the predicate @pred{parse_args/1} is
 defined in order to facilitate parsing of command line options.
 
 ").
+
+:- use_module(engine(data_facts)).
+:- use_module(library(aggregates), [findall/3]).
+
+:- use_module(library(hiordlib),   [maplist/3]).
+:- use_module(library(llists),     [flatten/2]).
+:- use_module(library(lists),      [append/3, length/2]).
+:- use_module(library(messages)).
+:- use_module(library(compiler/c_itf_internal), [location/1]).
 
 simplify_value(yes, []) :- !.
 simplify_value(on,  []) :- !.

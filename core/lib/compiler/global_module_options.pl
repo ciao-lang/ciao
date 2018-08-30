@@ -34,6 +34,9 @@
    based on some options. This will avoid many recompilations when
    switching between two (or more) fixed sets of options.").
 
+:- use_module(engine(data_facts)).
+:- use_module(library(aggregates), [findall/3]).
+
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(engine(stream_basic), [sourcename/1]).
 
@@ -134,7 +137,6 @@ glbmod_reset :-
 %   current one mixes runtime flags with compile-time flags (JFMC)
 
 :- use_module(library(lists), [member/2, append/3]).
-:- use_module(library(aggregates), [findall/3]).
 
 :- export(glbmod_collect_packages/3).
 :- pred glbmod_collect_packages(Module, Packages0, Packages)

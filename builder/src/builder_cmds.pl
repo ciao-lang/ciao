@@ -12,6 +12,7 @@
 :- doc(section, "High-level builder interface").
 % TODO: move to separate module?
 
+:- use_module(engine(data_facts)).
 % :- use_module(ciaobld(builder_cmds),
 % 	[builder_cleanup/0,
 % 	 builder_cmd_nobndl/1,

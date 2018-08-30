@@ -1,8 +1,8 @@
 :- module(queue, [main/0],[persdb]).
 
+:- use_module(library(aggregates)).
 :- use_module(library(read)).
 :- use_module(library(write)).
-:- use_module(library(aggregates)).
 :- use_module(engine(runtime_control), [prompt/2]).
 
 persistent_dir(queue_dir,'./pers_queue').

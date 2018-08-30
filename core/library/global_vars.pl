@@ -39,6 +39,7 @@
 :- doc(bug, "No more than 255 modules can use global variables in a program.").
 :- doc(bug, "No more than 255 global variables can be used in a module.").
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(internals), ['$global_vars_get'/2]).
 
 :- data(module_counter/1).

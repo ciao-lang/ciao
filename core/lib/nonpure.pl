@@ -12,5 +12,4 @@
 :- use_module(engine(term_compare)).
 :- use_module(engine(term_typing)).
 :- use_module(engine(debugger_support), [srcdbg_spy/7]). % TODO: internal, make it optional or hide
-:- use_module(engine(data_facts)). % TODO: make it optional?
 

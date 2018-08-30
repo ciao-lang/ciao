@@ -1,10 +1,12 @@
 :- module(argnames_trans, [argnames_def/3, argnames_use/3, argnames_goal/3], [assertions, dcg]).
 
+:- use_module(engine(data_facts)).
+:- use_module(library(aggregates)).
+
 :- use_module(library(terms), [arg/2]).
 :- use_module(library(lists), [sequence_to_list/2, select/3]).
 :- use_module(library(messages)).
 :- use_module(library(compiler/c_itf_internal), [location/3]).
-:- use_module(library(aggregates)).
 
 % argnames(Functor, Arity, Str, Module)
 :- data argnames/4.

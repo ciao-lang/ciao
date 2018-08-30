@@ -75,6 +75,8 @@
 
 % ---------------------------------------------------------------------------
 
+:- use_module(engine(data_facts)).
+:- use_module(library(aggregates), [findall/3]).
 :- use_module(engine(hiord_rt), [call/1]).
 
 :- use_module(library(compiler/translation)).
@@ -117,7 +119,6 @@
 	modif_time0/2, modif_time/2, time/1, fmode/2, chmod/2,
 	working_directory/2, file_exists/1, file_exists/2, delete_file/1,
 	mktemp/2]).
-:- use_module(library(aggregates), [findall/3]).
 :- use_module(library(dynamic),    [wellformed_body/3]).
 :- use_module(library(pathnames),  [path_basename/2, path_concat/3]).
 :- use_module(library(strings),    [whitespace0/2]).

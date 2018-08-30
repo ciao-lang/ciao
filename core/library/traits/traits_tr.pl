@@ -27,6 +27,7 @@
 %   - For modules implementing traits better add the trait explicitly?
 %       gadget.p1 :- true.
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(terms), [atom_concat/2]).
 

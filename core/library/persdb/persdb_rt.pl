@@ -15,11 +15,13 @@
 	 create/2],
         [assertions,regtypes,nortchecks, library(persdb/persdb_decl)]).
 
+:- use_module(engine(data_facts)).
+:- use_module(library(aggregates), [findall/3]).
+
 :- use_module(engine(stream_basic)).
 :- use_module(library(terms_io), [file_to_terms/3, terms_to_file/2]).
 :- use_module(engine(internals), [term_to_meta/2]).
 :- use_module(library(lists),    [select/3]).
-:- use_module(library(aggregates), [findall/3]).
 :- use_module(library(system)).
 :- use_module(library(file_locks)).
 %:- use_module(engine(basic_props)).

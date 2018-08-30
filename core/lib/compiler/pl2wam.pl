@@ -10,6 +10,7 @@
         cleanup_compilation_data/0
                  ], [assertions,nortchecks,dcg]).
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 :- use_module(engine(messages_basic), [message/2]).

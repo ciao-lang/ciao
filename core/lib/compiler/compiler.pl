@@ -13,6 +13,7 @@
 :- doc(module, "This module provides an simplified interface to the
    Ciao compiler front-end (see @lib{toplevel} for details).").
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(stream_basic), [absolute_file_name/2]).
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(system), [cd/1, working_directory/2]).

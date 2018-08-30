@@ -17,6 +17,8 @@
    @end{itemize}
    ").
 
+:- use_module(engine(data_facts)).
+
 :- use_module(library(service/service_registry)).
 :- use_module(library(actmod/actmod_process)).
 :- use_module(library(actmod/actmod_rt), [actI_init_named/2]).

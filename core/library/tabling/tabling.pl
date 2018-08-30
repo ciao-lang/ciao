@@ -189,4 +189,3 @@ path_slg(X,Y) :-
 
 :- use_module(library(tabling/tabling_rt)).
 
-:- pop_prolog_flag(unused_pred_warnings).

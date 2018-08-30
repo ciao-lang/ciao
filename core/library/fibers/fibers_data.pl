@@ -7,6 +7,8 @@
    local to each @concept{fiber}, which we denote as
    @concept{transient} data predicates.").
 
+:- use_module(engine(data_facts)).
+
 % ---------------------------------------------------------------------------
 
 :- include(library(fibers/fibers_hooks)).
