@@ -22,7 +22,6 @@ configuration rules.
 
 :- use_module(engine(data_facts)).
 :- use_module(library(lists)).
-:- use_module(library(dynamic)).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(messages)).
 :- use_module(library(port_reify)).

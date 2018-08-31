@@ -9,7 +9,7 @@
          dynamic_search_path/1]).
 :- use_module(library(compiler/c_itf), 
         [multifile/1]).
-:- use_module(library(dynamic), [assertz/1]). % needed by use_package
+:- use_module(library(dynamic/dynamic_rt), [assertz/1]). % needed by use_package
 :- use_module(library(debugger), 
         [trace/0, notrace/0, debug/0, nodebug/0, spy/1, nospy/1,
  	nospyall/0, debugging/0, leash/1, maxdepth/1, 

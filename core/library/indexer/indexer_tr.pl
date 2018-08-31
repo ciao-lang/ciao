@@ -1,4 +1,4 @@
-:- module(indexer_tr, [expand_index_sent/3, expand_index_goal/3], [assertions]).
+:- module(indexer_tr, [expand_index_sent/3, expand_index_goal/3], [dynamic, assertions]).
 
 % An indexer package for Ciao.
 % Jose F. Morales
@@ -10,7 +10,6 @@
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(engine(messages_basic), [message/2]).
-:- use_module(library(dynamic), [assert/1, retractall/1]).
 :- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(terms), [atom_concat/2]).
 

@@ -119,7 +119,7 @@
 	modif_time0/2, modif_time/2, time/1, fmode/2, chmod/2,
 	working_directory/2, file_exists/1, file_exists/2, delete_file/1,
 	mktemp/2]).
-:- use_module(library(dynamic),    [wellformed_body/3]).
+:- use_module(library(dynamic/dynamic_rt),    [wellformed_body/3]).
 :- use_module(library(pathnames),  [path_basename/2, path_concat/3]).
 :- use_module(library(strings),    [whitespace0/2]).
 :- use_module(library(stream_utils),    [get_line/1]).

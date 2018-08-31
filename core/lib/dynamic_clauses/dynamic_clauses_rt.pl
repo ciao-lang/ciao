@@ -5,7 +5,9 @@
         dynamic/1, data/1, erase/1, wellformed_body/3
         ],[assertions,isomodes,regtypes]).
 
-:- doc(title,"Dynamic predicates (runtime)").
+:- doc(title,"Dynamic predicates (source preserving) (runtime)").
+
+% TODO: Merge duplicated code and definitions from dynamic_rt.pl
 
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "The Ciao Development Team").
@@ -18,8 +20,6 @@
    Do not use this module directly (use the @lib{dynamic_clauses}
    package instead).
    @end{note}").
-
-:- set_prolog_flag(multi_arity_warnings, off).
 
 :- use_module(engine(data_facts)).
 :- use_module(engine(internals)).
@@ -129,6 +129,8 @@ dynamic_decomposition(Clause, Term, M, Goal, ClHead, ClBody, ClData) :-
           fail
         ).
 
+:- push_prolog_flag(multi_arity_warnings, off).
+
 asserta_internal(Head, Body) :-
         '$compile_term'([Head|Body], Ptr0), 
         '$current_clauses'(Head, Root),
@@ -150,6 +152,8 @@ assertz_internal(Head, Body, Ref) :-
         '$current_clauses'(Head, Root),
 	'$insertz'(Root, Ptr0),
 	'$ptr_ref'(Ptr0, Ref).
+
+:- pop_prolog_flag(multi_arity_warnings).
 
 :- doc(erase(Ref), "Deletes the clause referenced by @var{Ref}, the
    identifier obtained by using @pred{asserta/2} or @pred{assertz/2}.").

@@ -5,6 +5,7 @@
 :- use_package(runtime_ops). % TODO: Not modular! Alters runtime behavior of modules not compiled with the default package!
 :- use_package(dcg).
 :- use_package(library(dcg/dcg_phrase)).
+:- use_package(dynamic).
 
 % TODO: refine? Not all exported predicates may be needed
 :- use_module(engine(data_facts)). % Note: Ciao extension, not ISO

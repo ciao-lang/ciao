@@ -236,8 +236,7 @@ yes
         # "The contents of the file @var{File} are included in the
           top-level shell.  For the moment, it only works with some
           directives, which are interpreted by the shell, or with normal
-          clauses (which are asserted), if library(dynamic) is loaded
-          beforehand.".
+          clauses (which are asserted).".
 
 :- true pred use_package(Package) : sourcenames
         # "Include the package or packages specified in @var{Package}.

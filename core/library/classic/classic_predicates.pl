@@ -10,7 +10,6 @@
    @concept{classical Prolog} package").
 
 :- reexport(library(aggregates)).
-:- reexport(library(dynamic)).
 :- reexport(library(read)).
 :- reexport(library(write)).
 :- reexport(library(operators), [op/3, current_op/3]).

@@ -1,13 +1,7 @@
-:- module(tabling_tr,
-        [
-            do_term_expansion/3
-        ]).
+:- module(tabling_tr, [do_term_expansion/3], [dynamic]).
 
-:- use_module(library(lists), 
-	[
-	    reverse/2,
-	    append/3
-	]).
+:- use_module(engine(io_basic)).
+:- use_module(library(lists), [reverse/2, append/3]).
 
 :- dynamic 'trans$tabled'/2, 'trans$default'/1.
 
