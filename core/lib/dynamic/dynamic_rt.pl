@@ -9,14 +9,12 @@
 
 :- doc(author, "The Ciao Development Team").
 
+:- doc(usage, "Do not use this module directly (use the @lib{dynamic}
+   package instead).").
+
 :- doc(module,"This module implements the assert/retract family of
    predicates to manipulate dynamic predicates. This module does not
-   preserve the original source definition of dynamic predicates.
-
-   @begin{note}
-   Do not use this module directly (use the @lib{dynamic} package
-   instead).
-   @end{note}").
+   preserve the original source definition of dynamic predicates.").
 
 :- use_module(engine(data_facts)).
 :- use_module(engine(internals)).

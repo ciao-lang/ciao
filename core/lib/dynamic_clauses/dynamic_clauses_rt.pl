@@ -12,14 +12,12 @@
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "The Ciao Development Team").
 
+:- doc(usage, "Do not use this module directly (use the
+   @lib{dynamic_clauses} package instead).").
+
 :- doc(module, "This module implements the assert/retract family of
    predicates to manipulate dynamic predicates, preserving the
-   original source definitions.
-
-   @begin{note}
-   Do not use this module directly (use the @lib{dynamic_clauses}
-   package instead).
-   @end{note}").
+   original source definitions.").
 
 :- use_module(engine(data_facts)).
 :- use_module(engine(internals)).
