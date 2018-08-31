@@ -6,7 +6,7 @@
 :- use_module(engine(hiord_rt), [call/1]).
 :- use_module(engine(runtime_control), [new_atom/1]).
 
-:- doc(title,"All solutions concurrent predicates").
+:- doc(title,"Aggregates (concurrency-safe)").
 :- doc(author,"Manuel Carro (concurrency-safeness)").
 
 :- doc(module,"This module implements thread-safe aggregation

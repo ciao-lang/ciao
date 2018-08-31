@@ -22,7 +22,7 @@
 
 :- on_abort(retractall_fact(solution(_))).
 
-:- doc(title,"All solutions predicates").
+:- doc(title,"Aggregates").
 
 :- doc(author,"Richard A. O'Keefe (first version)").
 :- doc(author,"David H.D. Warren (first version)").
