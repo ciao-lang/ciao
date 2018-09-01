@@ -1,4 +1,4 @@
-:- module(_, [
+:- module(data_facts, [
         asserta_fact/1, asserta_fact/2, assertz_fact/1, assertz_fact/2,
         current_fact/1, current_fact/2, retract_fact/1, retractall_fact/1,
         current_fact_nb/1, retract_fact_nb/1,

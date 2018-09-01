@@ -3,9 +3,8 @@
 	     force_lazy/1,
 	     undo_force_lazy/1,
 	     dynamic_search_path/1],
-	    [assertions, define_flag]).
+	    [assertions, define_flag, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(library(compiler/c_itf_internal),
@@ -96,38 +95,68 @@ treat_file(Base) :-
 	make_po_file(Base).
 
 % Base or Base related files will not be treated if:
-%   Base is in /lib, except /lib/engine
+%   Base is in /lib and not a module required for boot (see engine(internals))
 %   'check_libraries' flag is off
 %   'executables' flag is not static (dynamic or lazy)
 stopOnlib(Base) :-
 	current_prolog_flag(check_libraries, off),
 	current_prolog_flag(executables,     Mode), Mode \== static,
-	in_lib(Base).
+	in_lib_not_boot(Base).
 
 % Base (not related files) will not be treated if:
 %   Base is in /lib
 %   'check_libraries' flag is off
 skipOnlib(Base) :-
 	current_prolog_flag(check_libraries, off),
-	in_lib_or_engine(Base),
+	in_lib_or_boot(Base),
 	% TODO: collect in a different way
 	so_filename(Base, SoName),
 	(file_exists(SoName) -> assertz_fact(has_so_file(Base)) ; true).
 
-in_lib(Base) :-
+% ---------------------------------------------------------------------------
+% Classification of modules
+%
+%   lib ---> under /core/lib
+%   boot --> needed for booting the system (see engine(internals))
+%            Currently everything under engine(_) and some defined by
+%            boot_module/1
+
+% TODO: Obtain automatically (e.g., from dependencies of engine(internals))
+boot_module(datafacts_rt).
+% boot_module(pathnames).
+% boot_module(lists).
+
+in_lib_not_boot(Base) :-
 	ciao_root(CiaoRoot),
 	atom_concat(CiaoRoot, Name, Base),
 	( atom_concat('/core/lib', _, Name) -> true % In lib/ or library/
 	; fail
-	).
+	),
+	\+ boot_base(Base).
 
-in_lib_or_engine(Base) :-
+in_lib_or_boot(Base) :-
+	boot_base(Base),
+	!.
+in_lib_or_boot(Base) :-
 	ciao_root(CiaoRoot),
 	atom_concat(CiaoRoot, Name, Base),
 	( atom_concat('/core/lib', _, Name) -> true % In lib/ or library/
 	; atom_concat('/core/engine/', _, Name) -> true % In engine/
 	; fail
 	).
+
+boot_base(Base) :-
+	defines_module(Base, Module),
+	boot_module(Module),
+	!.
+boot_base(Base) :-
+	ciao_root(CiaoRoot),
+	atom_concat(CiaoRoot, Name, Base),
+	( atom_concat('/core/engine/', _, Name) -> true % In engine/
+	; fail
+	).
+
+% ---------------------------------------------------------------------------
 
 redo_po(Base) :-
 	po_filename(Base, PoName),
@@ -208,18 +237,18 @@ compute_load_types(lazyload, Bases) :-
 	compute_load_deps(Bases),
 	sta_eager_lazy(Bases).
 
-% file_is_sta(library(pathnames)).
-% file_is_sta(library(lists)).
+base_is_sta(Base) :-
+	boot_base(Base).
+
 file_is_dyn(library(_)).
 
 :- data dynamic_search_path/1.
 
 sta_or_dyn_type(Base, Dyn_type) :-
 	base_name(File, Base), !,
-	( %file_is_sta(File) ->
-	  %  Type = static
-	  % ;
-	  file_is_dyn(File) ->
+	( base_is_sta(Base) ->
+	    Type = static
+	; file_is_dyn(File) ->
 	    Type = Dyn_type
 	; dynamic_search_path(Fun), functor(File, Fun, _) ->
 	    Type = Dyn_type
@@ -233,10 +262,8 @@ sta_or_dyn_type(Base, Dyn_type) :-
 compute_load_deps([]).
 compute_load_deps([Base|Bases]) :-
 	base_name(File, Base), !,
-	( %file_is_sta(File) ->
-	  %  asserta_fact(load_type(Base, static))
-	  %;
-	  file_is_dyn(File) -> true
+	( base_is_sta(Base) -> asserta_fact(load_type(Base, static))
+	; file_is_dyn(File) -> true
 	; dynamic_search_path(Fun), functor(File, Fun, _) -> true
 	; asserta_fact(load_type(Base, static))
 	),
