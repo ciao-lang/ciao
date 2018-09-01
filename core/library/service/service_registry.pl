@@ -1,4 +1,4 @@
-:- module(service_registry, [], [regtypes, assertions, dcg, fsyntax]).
+:- module(service_registry, [], [regtypes, assertions, dcg, fsyntax, datafacts]).
 
 :- doc(title, "Service registry").
 :- doc(author, "Jose F. Morales").
@@ -13,7 +13,6 @@
 
 :- doc(bug, "Prune dependencies to builder (see TODO notes below)").
 
-:- use_module(engine(data_facts)).
 
 :- use_module(library(lists), [member/2]).
 :- use_module(library(pathnames)).

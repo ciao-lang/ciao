@@ -1,4 +1,4 @@
-:- module(actmod_process, [], [assertions, fsyntax, hiord, isomodes, regtypes]).
+:- module(actmod_process, [], [assertions, fsyntax, hiord, isomodes, regtypes, datafacts]).
 
 :- doc(title, "Active module processes").
 
@@ -11,7 +11,6 @@
    (optionally in a new process) for an @var{DMod}.
    ").
 
-:- use_module(engine(data_facts)).
 
 :- use_module(engine(stream_basic), [absolute_file_name/2]).
 :- use_module(library(system), [file_exists/1]).

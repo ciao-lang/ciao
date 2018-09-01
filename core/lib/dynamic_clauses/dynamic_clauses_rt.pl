@@ -3,7 +3,7 @@
         retract/1, retractall/1, abolish/1, clause/2, mfclause/2,
         current_predicate/1, current_predicate/2,
         dynamic/1, data/1, erase/1, wellformed_body/3
-        ],[assertions,isomodes,regtypes]).
+        ],[assertions,isomodes,regtypes,datafacts]).
 
 :- doc(title,"Dynamic predicates (source preserving) (runtime)").
 
@@ -19,7 +19,6 @@
    predicates to manipulate dynamic predicates, preserving the
    original source definitions.").
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(internals)).
 :- use_module(engine(runtime_control), [new_atom/1, current_module/1]).
 :- use_module(library(iso_misc), [sub_atom/5]).
@@ -157,9 +156,9 @@ assertz_internal(Head, Body, Ref) :-
    identifier obtained by using @pred{asserta/2} or @pred{assertz/2}.").
 
 erase((RefC, RefI)) :- !,
-        data_facts:erase(RefC),
-        data_facts:erase(RefI).
-erase(Ref) :- data_facts:erase(Ref).
+        datafacts_rt:erase(RefC),
+        datafacts_rt:erase(RefI).
+erase(Ref) :- datafacts_rt:erase(Ref).
 
 
 clause_head_and_body((H :- B),_T, H, B) :- !.

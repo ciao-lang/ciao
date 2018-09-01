@@ -1,9 +1,10 @@
 :- package(factsdb).
 
+:- use_package(datafacts).
+
 :- load_compilation_module(library(factsdb/factsdb_tr)).
 :- add_sentence_trans(factsdb_tr:factsdb_exp/2, 750). % TODO: Probably not right priority
 
-:- use_module(engine(data_facts)).
 :- use_module(library(factsdb/factsdb_rt), 
 	[asserta_fact/1, assertz_fact/1, call/1, current_fact/1,
 	 retract_fact/1]).

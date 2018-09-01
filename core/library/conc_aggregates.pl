@@ -1,10 +1,4 @@
-:- module(conc_aggregates, [findall/3], [assertions, isomodes, nativeprops]).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-:- use_module(engine(data_facts)).
-:- use_module(engine(hiord_rt), [call/1]).
-:- use_module(engine(runtime_control), [new_atom/1]).
+:- module(conc_aggregates, [findall/3], [assertions, isomodes, nativeprops, datafacts]).
 
 :- doc(title,"Aggregates (concurrency-safe)").
 :- doc(author,"Manuel Carro (concurrency-safeness)").
@@ -18,6 +12,9 @@ particular implementation is completely based on the one used in the
 @concept{aggregates} library (whose original authors were
 @author{Richard A. O'Keefe} and @author{David H.D. Warren}).
 ").
+
+:- use_module(engine(hiord_rt), [call/1]).
+:- use_module(engine(runtime_control), [new_atom/1]).
 
  %% 
  %%    When there are many solutions to a problem, and when all those

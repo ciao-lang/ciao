@@ -2,8 +2,7 @@
 
 :- use_package(dcg).
 %:- use_package('dcg/dcg_phrase').
-:- use_package(dynamic). % TODO: refine, not all are ISO
-:- use_module(engine(data_facts)). % TODO: refine, not all are ISO
+:- use_package(dynamic). % TODO: refine, not all are ISO (and includes datafacts)
 
 :- use_module(library(aggregates)).
 :- use_module(library(iso_misc)).

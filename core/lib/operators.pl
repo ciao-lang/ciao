@@ -1,10 +1,9 @@
-% Op declarations.
 :- module(operators, [
         op/3, current_op/3,
         % These used by read, write
         current_prefixop/3, current_infixop/4, current_postfixop/3,
 	standard_ops/0],
-	[assertions,isomodes]).
+	[assertions,isomodes,datafacts]).
 
 :- doc(title, "Defining operators").
 
@@ -18,7 +17,6 @@
    defines more operators at compile time):
    @includedef{standard_ops/0}").
 
-:- use_module(engine(data_facts)).
 
 :- data current_op/5.
 

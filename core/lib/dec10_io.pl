@@ -1,13 +1,12 @@
 :- module(dec10_io, [
         see/1, seeing/1, seen/0, tell/1, telling/1, told/0, close_file/1],
-	[assertions,regtypes]).
+	[assertions,regtypes,datafacts]).
 
 :- doc(title,"DEC-10 Prolog file IO").
 
 :- doc(module,"This module implements the support for DEC-10
    Prolog style file I/O.").
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(internals)).
 
 :- use_module(engine(stream_basic)).

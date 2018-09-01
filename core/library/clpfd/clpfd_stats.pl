@@ -29,7 +29,7 @@
 	[inc_stat/1,
 	 get_stat/2,
 	 clpfd_stats/0
-	],[assertions]).
+	],[assertions, datafacts]).
 
 :- doc(title, "Statistics for CLP(fd)").
 
@@ -41,7 +41,6 @@
 
 % (Enabled collect statistics)
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates)).
 
 :- data fd_stats/2.

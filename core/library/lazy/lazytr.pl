@@ -1,6 +1,5 @@
-:- module(lazytr, [lazy_sentence_translation/3], []).
+:- module(lazytr, [lazy_sentence_translation/3], [datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates)).
 
 :- use_module(engine(messages_basic), [message/2]).

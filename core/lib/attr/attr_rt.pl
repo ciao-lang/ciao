@@ -1,4 +1,4 @@
-:- module(attr_rt, [], [assertions, fsyntax, dcg]).
+:- module(attr_rt, [], [assertions, fsyntax, dcg, datafacts]).
 
 :- doc(title, "Attributed variables runtime").
 %:- doc(copyright,"@include{DocCopyright.lpdoc}").
@@ -17,7 +17,6 @@
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(attributes), [attach_attribute/2, 
                                    get_attribute/2, 
 				   detach_attribute/1]).

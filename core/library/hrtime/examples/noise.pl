@@ -1,11 +1,10 @@
-:- module(_, [main/0], []).
+:- module(_, [main/0], [datafacts]).
 
 % Example: measure continously the execution time of foo/0 predicate,
 %   and display an (ascii) graph w.r.t. estimated filtered value. We
 %   can expect to see the see spikes when the CPU is doing other
 %   tasks.
 
-:- use_module(engine(data_facts)).
 
 :- use_module(library(hrtime)).
 :- use_module(library(between)).

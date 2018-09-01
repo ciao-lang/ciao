@@ -1,4 +1,6 @@
-:- module(ciaoc, [main/1], [assertions, hiord, dcg, optparse, nortchecks]).
+:- module(ciaoc, [
+	main/1
+   ], [assertions, hiord, dcg, optparse, nortchecks, datafacts]).
 
 :- doc(title,  "The standalone command-line compiler").
 :- doc(author, "The Ciao Development Team").
@@ -355,7 +357,6 @@ available when invoking @apl{ciaoc}:
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(internals),        ['$bootversion'/0]).
 :- use_module(engine(system_info), [get_platform/1]).
 :- use_module(library(libpaths),        [get_alias_path/0]).

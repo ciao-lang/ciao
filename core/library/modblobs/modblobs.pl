@@ -1,4 +1,4 @@
-:- module(modblobs, [], [assertions, regtypes]).
+:- module(modblobs, [], [assertions, regtypes, datafacts]).
 
 :- doc(title, "Modules as blobs").
 :- doc(author, "Isabel Garcia Contreras").
@@ -53,7 +53,6 @@ q(b).
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(data_facts)).
 
 :- use_module(library(system), [mktemp_in_tmp/2, make_directory/1]).
 :- use_module(library(system_extra), [del_file_nofail/1]).

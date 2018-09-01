@@ -35,6 +35,6 @@
     Data predicates must be declared through a @decl{data/1}
     declaration.  Concurrent data predicates must be declared through
     a @decl{concurrent/1} declaration. The allowed operations on data
-    predicates are defined in @lib{data_facts}.
+    predicates are defined in @lib{datafacts_rt}.
 ").
 

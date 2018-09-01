@@ -23,7 +23,7 @@
 :- doc(author, "Manuel C. Rodriguez").
 :- doc(author, "Edison Mera").
 
-:- use_module(engine(data_facts)).
+:- use_module(library(datafacts/datafacts_rt)). % TODO: this one or datafacts package?
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(engine(debugger_support)).
 :- use_module(library(debugger/debugger_lib), [

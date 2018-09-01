@@ -38,9 +38,8 @@
 		spypoint/1,
 		trace/0
 	    ],
-	    [assertions, dcg, hiord]).
+	    [assertions, dcg, hiord, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates)).
 
 :- use_module(engine(stream_basic)).

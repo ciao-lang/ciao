@@ -1,4 +1,4 @@
-:- module(global_module_options, [], [assertions, define_flag]).
+:- module(global_module_options, [], [assertions, define_flag, datafacts]).
 
 :- doc(author, "Jose F. Morales"). % TODO: Merge with older optim_comp version
 :- doc(author, "Edison Mera"). % (original version for Ciao, just for packages)
@@ -34,7 +34,6 @@
    based on some options. This will avoid many recompilations when
    switching between two (or more) fixed sets of options.").
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).

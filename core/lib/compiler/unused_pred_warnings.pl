@@ -3,9 +3,8 @@
 		record_imports_dependencies/2, cleanup_upw_db/1, upw_assrt/2,
 		record_assrt_dependency/6, record_pred_dependency/5,
 		record_pred_dependency/4],
-	    [assertions, nativeprops, dcg, define_flag]).
+	    [assertions, nativeprops, dcg, define_flag, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates)).
 
 :- use_module(engine(messages_basic), [messages/1]).

@@ -1,4 +1,4 @@
-:- module(syntax_highlight, [], [assertions, doccomments, isomodes, regtypes, fsyntax]).
+:- module(syntax_highlight, [], [assertions, doccomments, isomodes, regtypes, fsyntax, datafacts]).
 
 %! \title A syntax highlighter
 %
@@ -6,7 +6,6 @@
 %    source code languages. Currently it depends on external tools
 %    like \apl{emacs}.
 
-:- use_module(engine(data_facts)).
 
 :- use_module(library(lists), [append/3]).
 :- use_module(library(system), [file_exists/1]).

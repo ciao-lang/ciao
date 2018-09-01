@@ -13,9 +13,8 @@
 	 update_files/0,
 	 update_files/1,
 	 create/2],
-        [assertions,regtypes,nortchecks, library(persdb/persdb_decl)]).
+        [assertions,regtypes,nortchecks, library(persdb/persdb_decl), datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(engine(stream_basic)).
@@ -292,7 +291,7 @@ passerta_fact(MPred):-
         current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)), !,
         delete_bak_if_no_ops(File_ops, File_bak),
         add_term_to_file(a(Pred), File_ops, FilePerms),
-        data_facts:asserta_fact(MPred).
+        datafacts_rt:asserta_fact(MPred).
 passerta_fact(MPred):-
         term_to_meta(Pred, MPred),
         throw(error(type_error(persistent_data,Pred), passerta_fact/2-1)).
@@ -311,7 +310,7 @@ asserta_fact(MPred):-
             delete_bak_if_no_ops(File_ops, File_bak),
             add_term_to_file(a(Pred), File_ops, FilePerms)
         ; true),
-        data_facts:asserta_fact(MPred).
+        datafacts_rt:asserta_fact(MPred).
 
 :- meta_predicate passertz_fact(fact).
 
@@ -331,7 +330,7 @@ passertz_fact(MPred):-
         current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)), !,
         delete_bak_if_no_ops(File_ops, File_bak),
         add_term_to_file(z(Pred), File_ops, FilePerms),
-        data_facts:assertz_fact(MPred).
+        datafacts_rt:assertz_fact(MPred).
 passertz_fact(MPred):-
         term_to_meta(Pred, MPred),
         throw(error(type_error(persistent_data,Pred), passertz_fact/2-1)).
@@ -350,7 +349,7 @@ assertz_fact(MPred):-
             delete_bak_if_no_ops(File_ops, File_bak),
             add_term_to_file(z(Pred), File_ops, FilePerms)
         ; true),
-        data_facts:assertz_fact(MPred).
+        datafacts_rt:assertz_fact(MPred).
 
 :- pred pretract_fact(Fact) : callable
 # "Persistent version of @pred{retract_fact/1}: deletes on backtracking
@@ -368,7 +367,7 @@ pretract_fact(MPred):-
         functor(Pred, F, N),
         current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)), !,
         delete_bak_if_no_ops(File_ops, File_bak),
-        data_facts:retract_fact(MPred),
+        datafacts_rt:retract_fact(MPred),
         add_term_to_file(r(Pred), File_ops, FilePerms).
 pretract_fact(MPred):-
         term_to_meta(Pred, MPred),
@@ -386,9 +385,9 @@ retract_fact(MPred):-
         functor(Pred, F, N),
         ( current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)) ->
 	    delete_bak_if_no_ops(File_ops, File_bak),
-            data_facts:retract_fact(MPred),
+            datafacts_rt:retract_fact(MPred),
 	    add_term_to_file(r(Pred), File_ops, FilePerms)
-        ; data_facts:retract_fact(MPred)
+        ; datafacts_rt:retract_fact(MPred)
         ).
 
 :- meta_predicate pretractall_fact(fact).
@@ -427,7 +426,7 @@ init_persdb :-
         current_fact(db_initialized), !.
 init_persdb :-
         initialize_db,
-        data_facts:assertz_fact(db_initialized).
+        datafacts_rt:assertz_fact(db_initialized).
 
 :- doc('$is_persistent'(Spec,Key), "Predicate @var{Spec} persists
    within database @var{Key}. Programmers should not define this predicate
@@ -442,7 +441,7 @@ init_persdb :-
 initialize_db :-
         '$is_persistent'(Spec, Key),
         make_persistent(Spec, Key),
-        data_facts:retract_fact('$is_persistent'(Spec, Key)),
+        datafacts_rt:retract_fact('$is_persistent'(Spec, Key)),
         fail.
 initialize_db.
 
@@ -467,7 +466,7 @@ make_persistent(Spec, Key) :-
 	), !,
         term_to_meta(F/A, Spec),
         get_pred_files(Dir, DirPerms, F, A, File, File_ops, File_bak),
-        data_facts:assertz_fact(persistent(F, A, File_ops, File, File_bak, FilePerms)),
+        datafacts_rt:assertz_fact(persistent(F, A, File_ops, File, File_bak, FilePerms)),
         functor(P, F, A),
         ini_persistent(P, File_ops, File, File_bak, FilePerms).
 make_persistent(Spec, _Key) :-
@@ -489,11 +488,11 @@ ini_persistent(P, File_ops, File, File_bak, FilePerms):-
                 )
             ; secure_update(File, File_ops, File_bak, NewTerms, FilePerms)
             ),
-            data_facts:retractall_fact(Pred)
+            datafacts_rt:retractall_fact(Pred)
         ; file_exists(File_bak) -> % System crash
             mv(File_bak, File, FilePerms),
             secure_update(File, File_ops, File_bak, NewTerms, FilePerms),
-            data_facts:retractall_fact(Pred)
+            datafacts_rt:retractall_fact(Pred)
         ; % Files not created yet
           findall(P, current_fact(Pred), Facts),
           term_list_to_file(Facts, File, FilePerms),
@@ -543,7 +542,7 @@ make_operation(r(Pred), Terms, Terms_, NTerms, Terms_) :-
 process_terms([]).
 process_terms([Fact|Facts]) :-
         term_to_meta(Fact, MFact),
-        data_facts:assertz_fact(MFact),
+        datafacts_rt:assertz_fact(MFact),
         process_terms(Facts).
 
 :- pred update_files # "Updates the files comprising the persistence set

@@ -1,4 +1,4 @@
-:- module(fibers_rt, [], [assertions, regtypes, fsyntax, hiord]).
+:- module(fibers_rt, [], [assertions, regtypes, fsyntax, hiord, datafacts]).
 
 :- doc(title, "Runtime support for fibers").
 
@@ -15,7 +15,6 @@
    @end{alert}
 ").
 
-:- use_module(engine(data_facts)).
 
 :- use_module(library(fibers/stream_watchdog)).
 

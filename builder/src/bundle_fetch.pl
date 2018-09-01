@@ -1,4 +1,4 @@
-:- module(_, [], [dcg, fsyntax, hiord, assertions, regtypes, isomodes]).
+:- module(_, [], [dcg, fsyntax, hiord, assertions, regtypes, isomodes, datafacts]).
 
 :- doc(title,  "Bundle Fetch").
 :- doc(author, "Jose F. Morales").
@@ -34,7 +34,6 @@
    archive).
 ").
 
-:- use_module(engine(data_facts)).
 :- use_module(library(lists), [member/2]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).

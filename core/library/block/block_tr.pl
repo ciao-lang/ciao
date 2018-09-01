@@ -1,4 +1,4 @@
-:- module(block_tr, [sentence_tr/3, clause_tr/3, conj2list/2], []).
+:- module(block_tr, [sentence_tr/3, clause_tr/3, conj2list/2], [datafacts]).
 
 % This is the translation module for block declarations, which
 % produces wrappers for each predicate with block declarations.
@@ -11,7 +11,6 @@
 %     - renames blocking predicates
 %     - adds wrappers from $notr clauses
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates)).
 :- use_module(library(sort)).
 

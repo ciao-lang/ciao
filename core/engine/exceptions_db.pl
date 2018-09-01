@@ -1,6 +1,4 @@
-:- module(_, _, []).
-
-:- use_module(engine(data_facts)).
+:- module(_, _, [datafacts]).
 
 :- data catching/3, thrown/1, disabled/1.
 

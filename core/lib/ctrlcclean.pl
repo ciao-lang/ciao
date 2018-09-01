@@ -1,7 +1,6 @@
 :- module(ctrlcclean, [ctrlc_clean/1, delete_on_ctrlc/2, ctrlcclean/0],
-	[assertions]).
+	[assertions, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(system), [delete_file/1, working_directory/2]).
 
 :- meta_predicate(ctrlc_clean(goal)).

@@ -31,11 +31,10 @@
             rtc_constraint/1,
 % other
             rtc_user_output/2
-        ],[assertions, hiord]).
+        ],[assertions, hiord, datafacts]).
 
 % (rtcheck implementation for native_props.pl)
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(hiord_rt), [call/1]).
 :- use_module(engine(internals),   ['$setarg'/4]).
 

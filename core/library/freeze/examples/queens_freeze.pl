@@ -1,6 +1,4 @@
-:- module(_, _, []).
-
-:- use_module(engine(data_facts)).
+:- module(_, _, [datafacts]).
 
 :- use_module(engine(runtime_control), [statistics/2]).
 :- use_module(library(write)).

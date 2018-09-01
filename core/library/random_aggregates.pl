@@ -1,6 +1,6 @@
 :- module(random_aggregates, [
     random_findall/4
-   ], [assertions, isomodes, nativeprops, hiord]).
+   ], [assertions, isomodes, nativeprops, hiord, datafacts]).
 
 :- doc(title, "Randomized aggregates").
 :- doc(author, "Jose F. Morales").
@@ -29,7 +29,6 @@ yes
 
 :- doc(bug, "weighted random sampling may not be hard to implement").
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(library(random), [random/3]).

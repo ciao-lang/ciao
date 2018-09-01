@@ -1,6 +1,6 @@
 :- module(old_database, [
         recorda/3, recordz/3, recorded/3, current_key/2
-			],[assertions,isomodes]).
+   ], [assertions,isomodes,datafacts]).
 
 :- doc(title,"Quintus-like internal database").
 
@@ -22,7 +22,6 @@
    identifier which uniquely identifies each recorded term and which
    is returned when the term is stored.  ").
 
-:- use_module(engine(data_facts)).
 
 :- data '$current instance'/2.
 

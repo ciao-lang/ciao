@@ -1,4 +1,4 @@
-:- module(datadir, [], [assertions, basicmodes, fsyntax]).
+:- module(datadir, [], [assertions, basicmodes, fsyntax, datafacts]).
 
 :- doc(title, "Manager for persistent data directories").
 :- doc(author, "Jose F. Morales").
@@ -19,7 +19,6 @@ persistent_dir(db, Dir) :- ensure_datadir('yourapp', Dir).
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(data_facts)).
 :- use_module(library(pathnames), [path_concat/3, path_is_relative/1]).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(system), [get_home/1]).

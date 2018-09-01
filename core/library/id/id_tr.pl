@@ -1,6 +1,5 @@
-:- module(id_tr, [id_sentence/3, id_clause/3],[assertions, hiord]).
+:- module(id_tr, [id_sentence/3, id_clause/3],[assertions, hiord, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(lists), [append/3]).
 :- use_module(library(terms), [atom_concat/2]).

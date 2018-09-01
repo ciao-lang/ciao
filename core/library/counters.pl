@@ -1,6 +1,4 @@
-:- module(counters, [setcounter/2, getcounter/2, inccounter/2],[assertions]).
-
-:- use_module(engine(data_facts)).
+:- module(counters, [setcounter/2, getcounter/2, inccounter/2], [assertions, datafacts]).
 
 :- data counter/2.
 

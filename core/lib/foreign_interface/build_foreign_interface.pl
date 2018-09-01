@@ -8,8 +8,8 @@
 	[assertions,
 	 basicmodes,
 	 dcg,
-	 fsyntax
-	]).
+	 fsyntax,
+	 datafacts]).
 
 :- doc(title, "Foreign Language Interface Builder").
 
@@ -21,7 +21,6 @@
 :- doc(author, "Jose F. Morales").
 :- doc(author, "Manuel Carro").
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(library(write_c)).

@@ -1,4 +1,4 @@
-:- module(ciaoc_sdyn, [], [assertions]).
+:- module(ciaoc_sdyn, [], [assertions, datafacts]).
 
 :- doc(title, "Standalone executables with foreign code").
 :- doc(author, "Jose F. Morales").
@@ -18,7 +18,6 @@ $ ciaoc_sdyn MAIN
 	so_filename/2,
 	find_pl_filename/4]).
 :- use_module(engine(system_info), [get_os/1]).
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(llists), [flatten/2]).

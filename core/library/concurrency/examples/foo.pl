@@ -1,6 +1,5 @@
-:- module(foo, [main/0], [hiord]).
+:- module(foo, [main/0], [hiord, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(concurrency)).
 :- use_module(library(system)).
 :- use_module(engine(io_basic)).

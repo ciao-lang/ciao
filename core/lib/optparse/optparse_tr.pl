@@ -1,4 +1,4 @@
-:- module(optparse_tr, [optparse_tr/3], [assertions, nortchecks, define_flag]).
+:- module(optparse_tr, [optparse_tr/3], [assertions, nortchecks, define_flag, datafacts]).
 
 :- doc(author, "Edison Mera").
 :- doc(author, "Jose F. Morales (bug fixes)").
@@ -33,7 +33,6 @@ defined in order to facilitate parsing of command line options.
 
 ").
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(library(hiordlib),   [maplist/3]).

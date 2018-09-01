@@ -37,7 +37,7 @@
 % ---------------------------------------------------------------------------
 :- doc(section, "Help modifiers").
 
-:- use_module(engine(data_facts)).
+:- use_package(datafacts).
 
 :- data help_mode_/2.
 

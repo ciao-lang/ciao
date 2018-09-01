@@ -1,4 +1,4 @@
-:- module(emugen_tr, [], [dcg, fsyntax, assertions]).
+:- module(emugen_tr, [], [dcg, fsyntax, assertions, datafacts]).
 
 :- doc(title, "Generator of Bytecode Emulator").
 :- doc(author, "Jose F. Morales").
@@ -11,7 +11,6 @@
    generator. Please consider a more complete backport before further
    improvements are included here.").
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3, bagof/3]).
 
 :- use_module(engine(messages_basic), [message/2]).

@@ -1,6 +1,5 @@
-:- module(symfnames,[open/3],[assertions,isomodes]).
+:- module(symfnames,[open/3],[assertions,isomodes,datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(stream_basic)).
 :- use_module(library(read), [read/2]).
 :- use_module(library(system), [getenvstr/2]).

@@ -1,6 +1,5 @@
-:- module(argnames_trans, [argnames_def/3, argnames_use/3, argnames_goal/3], [assertions, dcg]).
+:- module(argnames_trans, [argnames_def/3, argnames_use/3, argnames_goal/3], [assertions, dcg, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates)).
 
 :- use_module(library(terms), [arg/2]).

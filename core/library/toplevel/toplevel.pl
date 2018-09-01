@@ -17,9 +17,8 @@
 		display_debugged/0,
 		top_prompt/2
 	    ],
-	    [dcg, assertions, nortchecks, define_flag]).
+	    [dcg, assertions, nortchecks, define_flag, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(engine(messages_basic)).
@@ -658,7 +657,7 @@ interpret_data((:- Decl), L0, L1) :- !,
 	; bad_shell_directive(Decl, L0, L1)
 	).
 interpret_data(Clause, _, _) :-
-	% TODO: needs dynamic:assertz/1 in toplevel_scope.pl
+	% TODO: needs dynamic_rt:assertz/1 in toplevel_scope.pl
 	'$shell_call'(assertz(Clause)).
 
 bad_shell_directive(Decl, L0, L1) :-

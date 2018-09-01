@@ -6,9 +6,8 @@
 % 		notrace/0,
 % 		nodebug/0,
 % 		nodebugrtc/0],
-	    [dcg, assertions]).
+	    [dcg, assertions, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(internals), [term_to_meta/2]).
 :- use_module(engine(debugger_support), ['$spypoint'/3]).
 :- use_module(engine(hiord_rt),         ['$nodebug_call'/1]).

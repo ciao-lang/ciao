@@ -3,7 +3,7 @@
         retract/1, retractall/1, abolish/1,
         clause/2, clause/3, current_predicate/1, current_predicate/2,
         dynamic/1, data/1, wellformed_body/3
-        ],[assertions,isomodes,regtypes]).
+        ],[assertions,isomodes,regtypes,datafacts]).
 
 :- doc(title,"Dynamic predicates (not source preserving) (runtime)").
 
@@ -16,7 +16,6 @@
    predicates to manipulate dynamic predicates. This module does not
    preserve the original source definition of dynamic predicates.").
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(internals)).
 :- use_module(engine(runtime_control), [current_module/1, new_atom/1]).
 

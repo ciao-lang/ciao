@@ -1,4 +1,4 @@
-:- module(_, [], [assertions, basicmodes, nativeprops, fsyntax, hiord, regtypes]).
+:- module(_, [], [assertions, basicmodes, nativeprops, fsyntax, hiord, regtypes, datafacts]).
 
 :- doc(title,  "Bundle Hashing").
 :- doc(author, "Jos@'{e} F. Morales").
@@ -20,7 +20,6 @@
 :- doc(bug, "Allow hashing with configuration options?").
 :- doc(bug, "Allow hashing of binaries or distributions?").
 
-:- use_module(engine(data_facts)).
 :- use_module(library(stream_utils), [string_to_file/2]).
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(system_extra), [file_to_line/2]).

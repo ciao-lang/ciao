@@ -1,6 +1,5 @@
 :- use_package(hiord).
-
-:- use_module(engine(data_facts)).
+:- use_package(datafacts).
 
 :- data module_cls/2.
 

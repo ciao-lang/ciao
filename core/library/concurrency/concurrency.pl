@@ -16,9 +16,8 @@
 	atom_lock_state/2,
 	concurrent/1
         ],
-	[assertions, isomodes, foreign_interface]).
+	[assertions, isomodes, foreign_interface, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(runtime_control), [new_atom/1]).
 :- use_module(engine(messages_basic), [message/2]).
 

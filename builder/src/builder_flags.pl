@@ -1,9 +1,8 @@
-:- module(builder_flags, [], [assertions, regtypes]).
+:- module(builder_flags, [], [assertions, regtypes, datafacts]).
 
 :- doc(title, "Flags for the builder").
 % (atomic name, single value)
 
-:- use_module(engine(data_facts)).
 
 :- data builder_flag_/2.
 

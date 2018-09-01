@@ -1,6 +1,5 @@
-:- module(_, [bfalltr/3],[assertions]).
+:- module(_, [bfalltr/3], [assertions, datafacts]).
 
-:- use_module(engine(data_facts)).
 
 :- data bf_pred_all/3.
 

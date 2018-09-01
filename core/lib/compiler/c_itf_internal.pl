@@ -54,7 +54,7 @@
 	 make_po_file/1,
 	 % (module unload)
 	 abolish_module/1
-	 ], [assertions, nortchecks, hiord, define_flag]).
+	 ], [assertions, nortchecks, hiord, define_flag, datafacts]).
 
 :- doc(title, "Compiler frontend").
 :- doc(author, "The Ciao Development Team").
@@ -75,7 +75,6 @@
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(engine(hiord_rt), [call/1]).
 
@@ -148,7 +147,7 @@
 %   :- endif.
 
 :- export(compiler_version/1).
-compiler_version(108). % TODO: keep synchronized with optim_comp
+compiler_version(109). % TODO: keep synchronized with optim_comp
 
 :- export(compiler_name/1).
 compiler_name(c_itf).
@@ -158,7 +157,7 @@ compiler_name(c_itf).
 % compilation cannot deal with deep changes in the libraries (e.g.,
 % default imports) or the compiler (format, runtime information, etc.)
 
-itf_version(4).
+itf_version(5).
 
 % ---------------------------------------------------------------------------
 % (Register static compilation modules that are part of bootstrap ciaoc)

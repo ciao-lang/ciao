@@ -28,9 +28,7 @@
 	    denorm_goal_prop/3
 
 	],
-	[
-	    assertions, nortchecks, basicmodes, regtypes, dcg, hiord
-	]).
+	[assertions, nortchecks, basicmodes, regtypes, dcg, hiord, datafacts]).
 
 :- doc(title,"Assertion processing library").
 
@@ -64,7 +62,6 @@ library @lib{compiler/c_itf}.
 @end{verbatim}
    ").
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(read)).
 

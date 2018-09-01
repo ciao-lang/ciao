@@ -6,9 +6,8 @@
             load_rtchecks/1,
             rtcheck_error/1
         ],
-        [assertions, regtypes]).
+        [assertions, regtypes, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(engine(io_basic)).

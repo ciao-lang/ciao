@@ -1,4 +1,4 @@
-:- module(bundle_flags, [], [assertions, dcg, fsyntax]).
+:- module(bundle_flags, [], [assertions, dcg, fsyntax, datafacts]).
 
 :- doc(title, "Bundle configuration flags").
 :- doc(author, "Jose F. Morales").
@@ -9,7 +9,6 @@
    flag}s but qualified by its bundle (i.e., @tt{Bundle:Name} is the
    flag @tt{Name} on bundle @tt{Bundle})").
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 :- use_module(library(system), [file_exists/1]).

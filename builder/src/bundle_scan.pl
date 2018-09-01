@@ -1,4 +1,4 @@
-:- module(bundle_scan, [], [assertions, fsyntax]).
+:- module(bundle_scan, [], [assertions, fsyntax, datafacts]).
 
 :- doc(title, "Scanning and Registering of Bundles").
 :- doc(author, "Jose F. Morales").
@@ -12,7 +12,6 @@
    and no syntactic sugar).
 ").
 
-:- use_module(engine(data_facts)).
 :- use_module(library(lists), [member/2]).
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(system_extra), [mkpath/1, del_file_nofail/1]).

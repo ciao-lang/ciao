@@ -1,4 +1,4 @@
-:- module(_, [], [fsyntax, hiord, assertions, regtypes, isomodes]).
+:- module(_, [], [fsyntax, hiord, assertions, regtypes, isomodes, datafacts]).
 
 :- doc(title, "Builder Commands").
 :- doc(author, "Jose F. Morales").
@@ -12,7 +12,6 @@
 :- doc(section, "High-level builder interface").
 % TODO: move to separate module?
 
-:- use_module(engine(data_facts)).
 % :- use_module(ciaobld(builder_cmds),
 % 	[builder_cleanup/0,
 % 	 builder_cmd_nobndl/1,

@@ -1,8 +1,6 @@
-:- module(functionstr, [defunc/3, defunc_goal/2], []).
+:- module(functionstr, [defunc/3, defunc_goal/2], [datafacts]).
 
 :- include(library(fsyntax/ops)).
-
-:- use_module(engine(data_facts)).
 
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(terms), [copy_args/3]).

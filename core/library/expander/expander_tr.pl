@@ -1,4 +1,4 @@
-:- module(expander_tr, [expand_sentence/4, expand_clause/4, expand_goal/3], [assertions]).
+:- module(expander_tr, [expand_sentence/4, expand_clause/4, expand_goal/3], [assertions, datafacts]).
 
 :- doc(author, "The Ciao Development Team").
 :- doc(author, "David Trallero").
@@ -14,7 +14,6 @@
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates)).
 
 :- use_module(engine(messages_basic), [message/2]).

@@ -1,4 +1,3 @@
-
 :- module(xrefsread,
         [ xrefs_modules/2,
           xrefs_files/1,
@@ -6,10 +5,8 @@
           set_flag/1,
 	  meta_call/3
         ],
-        [ assertions, regtypes
-        ]).
+        [assertions, regtypes, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3, setof/3]).
 
 :- use_module(library(compiler/c_itf)).

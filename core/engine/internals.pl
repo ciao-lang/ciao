@@ -1,4 +1,4 @@
-:- module(internals, [], [assertions, basicmodes, nortchecks, regtypes]).
+:- module(internals, [], [assertions, basicmodes, nortchecks, regtypes, datafacts]).
 
 :- doc(title, "Engine Internal Predicates").  
 
@@ -7,7 +7,6 @@
    should not be used in user code. The file itself provides handles
    for the module system into the internal definitions.").
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(hiord_rt), ['SYSCALL'/1, '$nodebug_call'/1, '$meta_call'/1]).
 
 :- use_module(engine(messages_basic), [message/2]).

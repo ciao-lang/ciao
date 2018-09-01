@@ -1,4 +1,4 @@
-:- module(_, [], [fsyntax, hiord, assertions, regtypes, isomodes]).
+:- module(_, [], [fsyntax, hiord, assertions, regtypes, isomodes, datafacts]).
 
 :- doc(title, "Targets for builder").
 :- doc(author, "Jose F. Morales").
@@ -8,7 +8,6 @@
    workspaces) and resolved target names (absolute paths to workspace
    or symbolic bundle names)").
 
-:- use_module(engine(data_facts)).
 :- use_module(library(hiordlib), [maplist/2, maplist/3]).
 
 % ---------------------------------------------------------------------------

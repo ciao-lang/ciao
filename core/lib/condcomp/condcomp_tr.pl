@@ -1,6 +1,5 @@
-:- module(condcomp_tr, [condcomp_sentence/3], []).
+:- module(condcomp_tr, [condcomp_sentence/3], [datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(runtime_control)).
 :- use_module(library(messages), 
 	[error_message/2,error_message/3]).

@@ -1,6 +1,5 @@
-:- module(_, [aftr/3],[]).
+:- module(_, [aftr/3], [datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(messages_basic), [message/2]).
 
 :- data bf_pred/3.

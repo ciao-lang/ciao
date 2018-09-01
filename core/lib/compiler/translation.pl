@@ -11,14 +11,13 @@
         del_clause_trans/1,
         add_goal_trans/3,
         del_goal_trans/1
-        ], [assertions, nortchecks]).
+        ], [assertions, nortchecks, datafacts]).
 
 :- meta_predicate add_sentence_trans_and_init(+, spec, +).
 :- meta_predicate add_sentence_trans(+, spec, +).
 :- meta_predicate add_term_trans(+, spec, +).
 :- meta_predicate add_clause_trans(+, spec, +).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(hiord_rt), ['$meta_call'/1]).
 :- use_module(engine(internals), [term_to_meta/2]).
 :- use_module(library(lists), [append/3]).

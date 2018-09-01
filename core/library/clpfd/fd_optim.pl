@@ -21,7 +21,7 @@
 %% Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 %% ---------------------------------------------------------------------------
 :- module(fd_optim, [fd_minimize/2, fd_maximize/2], 
-	            [assertions, fsyntax, hiord]).
+	            [assertions, fsyntax, hiord, datafacts]).
 
 :- doc(title, "Optimization constraints").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
@@ -31,7 +31,6 @@
 
 :- include(.(clpfd_ops)).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(clpfd/fd_term), [in/2, min/2, max/2]).
 :- use_module(library(clpfd/fd_constraints), ['a=t'/2]).
 %:- use_module(library(clpfd/fd_range), [default/1, min/2, max/2]).

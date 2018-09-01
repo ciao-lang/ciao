@@ -1,4 +1,4 @@
-:- module(actmod_dist, [], [assertions, regtypes, fsyntax]).
+:- module(actmod_dist, [], [assertions, regtypes, fsyntax, datafacts]).
 
 :- doc(title, "Distribution protocol for active modules").
 :- doc(author, "The Ciao Development Team").
@@ -107,7 +107,6 @@ ACTMOD_HOSTNAME        Address for listening connection
    @end{itemize}
 ").
 
-:- use_module(engine(data_facts)).
 
 :- use_module(library(system), [getenvstr/2]).
 :- use_module(library(lists), [member/2]).

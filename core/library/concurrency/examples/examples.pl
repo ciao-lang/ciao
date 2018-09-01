@@ -1,6 +1,6 @@
-%% :- module(examples, [main/0], []).
+%% :- module(examples, [main/0], [datafacts]).
 
-:- use_module(engine(data_facts)).
+:- use_package(datafacts).
 :- use_module(library(concurrency)).
 :- use_module(library(format)).
 :- use_module(library(random)).

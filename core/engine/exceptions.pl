@@ -1,8 +1,7 @@
 :- module(exceptions, [catch/3, intercept/3, throw/1, send_signal/1,
 	    send_silent_signal/1, halt/0, halt/1, abort/0],
-	    [assertions, nortchecks, isomodes]).
+	    [assertions, nortchecks, isomodes, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(internals),    ['$exit'/1]).
 :- use_module(engine(basiccontrol), ['$metachoice'/1, '$metacut'/1]).
 :- use_module(engine(hiord_rt),     ['$meta_call'/1]).

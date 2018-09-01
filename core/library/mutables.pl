@@ -1,7 +1,7 @@
  :- module(mutables, [create_mutable/2,
 	             get_mutable/2,
 		     update_mutable/2,
-		     mutable/1], [assertions, dcg]).
+		     mutable/1], [assertions, dcg, datafacts]).
 
 :- doc(title, "Mutable Terms").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
@@ -178,7 +178,6 @@ attr_portray_hook(_, Datum):-
 % Such properties are not specified explicilty in the documentation,
 % because, we judge it is a bad practive to rely on them.
 
-:- use_module(engine(data_facts)).
 :- use_module(library(odd), [setarg/3]).
 
 :- data next_id/1.

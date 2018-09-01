@@ -1,4 +1,4 @@
-:- module(bundle_configure, [], [assertions, basicmodes, fsyntax, hiord]).
+:- module(bundle_configure, [], [assertions, basicmodes, fsyntax, hiord, datafacts]).
 
 :- doc(title, "Bundle Configuration").
 :- doc(author, "The Ciao Development Team").
@@ -20,7 +20,6 @@ configuration rules.
 %   parameters
 % TODO: export some config values as condcomp conditions
 
-:- use_module(engine(data_facts)).
 :- use_module(library(lists)).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(messages)).

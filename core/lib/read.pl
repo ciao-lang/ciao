@@ -1,10 +1,7 @@
-/*  Adapted from shared code written by D.H.D.Warren + Richard O'Keefe; */
-/*  all changes                                                         */
-/*  Copyright (C) 1997-2002 UPM-CLIP. */
-
-:- module(read, [read/1, read/2, read_term/2, read_term/3,
-                read_top_level/3, second_prompt/2, read_option/1],
-		[assertions, nortchecks, isomodes, define_flag]).
+:- module(read, [
+	read/1, read/2, read_term/2, read_term/3,
+	read_top_level/3, second_prompt/2, read_option/1
+   ], [assertions, nortchecks, isomodes, define_flag, datafacts]).
 
 :- doc(title,"Term input").  
 
@@ -14,13 +11,16 @@
    easy to write and can convey a lot of information in a
    human-readable fashion.").
 
+/*  Adapted from shared code written by D.H.D.Warren + Richard O'Keefe; */
+/*  all changes                                                         */
+/*  Copyright (C) 1997-2002 UPM-CLIP. */
+
 :- doc(author, "Daniel Cabeza (modifications and documentation,"||
 	       " adapted from SICStus 0.6 code)").
 :- doc(author, "Manuel Carro (modifications and documentation)").
 :- doc(author, "Jose F. Morales (modifications for curly blocks,"||
                "postfix blocks, infix dot, string constants, and doccomments)").
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(engine(stream_basic)).
 :- use_module(library(tokenize)).

@@ -1,6 +1,5 @@
-:- module(restricted_syntax_tr, [tr_sentence/3], []).
+:- module(restricted_syntax_tr, [tr_sentence/3], [datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(messages), [error_message/3]).
 :- use_module(library(compiler/c_itf_internal), [location/3, module_error/0]).
 

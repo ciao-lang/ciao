@@ -1,6 +1,4 @@
-:- module(_, [main/1], []).
-
-:- use_module(engine(data_facts)).
+:- module(_, [main/1], [datafacts]).
 
 :- use_module(library(system)).
 :- use_module(library(sockets)).

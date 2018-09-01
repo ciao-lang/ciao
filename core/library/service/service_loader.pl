@@ -1,4 +1,4 @@
-:- module(_, [], [assertions, regtypes, fsyntax]).
+:- module(_, [], [assertions, regtypes, fsyntax, datafacts]).
 
 :- doc(title, "Dynamic loader of Ciao services").
 :- doc(author, "Jose F. Morales").
@@ -17,7 +17,6 @@
    @end{itemize}
    ").
 
-:- use_module(engine(data_facts)).
 
 :- use_module(library(service/service_registry)).
 :- use_module(library(actmod/actmod_process)).

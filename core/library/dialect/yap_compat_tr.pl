@@ -1,4 +1,4 @@
-:- module(yap_compat_tr, [], []).
+:- module(yap_compat_tr, [], [datafacts]).
 :- include(library(dialect/yap_compat_ops)).
 
 % Yap compatibility mode for Ciao
@@ -16,7 +16,6 @@
 % Jose F. Morales
 % Thu Feb 12 13:48:26 CET 2009
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 % wrap_pred(FromM, FromN, A, ToN, Visibility, M): Predicate FromM:FromF/A is wrapped in module M as ToN/A

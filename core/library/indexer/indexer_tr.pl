@@ -6,7 +6,6 @@
 % Based on indexer.pl (1.6 06 Oct 1993) by Tom Howland
 % (originally ported to Ciao by Francisco Bueno, 8 Jan 2001).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(engine(messages_basic), [message/2]).

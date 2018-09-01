@@ -1,9 +1,8 @@
 :- module(factsdb_rt,
-	[ asserta_fact/1, assertz_fact/1, call/1, current_fact/1,
-	  retract_fact/1 ],
-	[ assertions ]).
+	[asserta_fact/1, assertz_fact/1, call/1, current_fact/1,
+	 retract_fact/1],
+	[assertions, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(internals), [term_to_meta/2]).
 :- use_module(library(counters)).
 :- use_module(engine(stream_basic)).
@@ -30,19 +29,19 @@
 
 :- meta_predicate current_fact(fact).
 :- pred current_fact(Fact) : callable
-# "Version of @pred{data_facts:current_fact/1} for filed predicates.
+# "Version of @pred{datafacts_rt:current_fact/1} for filed predicates.
    The current instance of @var{Fact} is interpreted as a fact and is
    unified with an actual fact in the current definition of the corresponding
    predicate. Therefore, with a fact previously asserted or filed in the DB
    file for the predicate, if it has not been retracted.
    The predicate concerned must be declared as @decl{facts}; if it is not,
-   then @pred{data_facts:current_fact/1} is used.".
+   then @pred{datafacts_rt:current_fact/1} is used.".
 
 current_fact(H):-
 	cached_call(H,File,T,D), !,
 	cache_call(File,T,D).
 current_fact(H):-
-	data_facts:current_fact(H).
+	datafacts_rt:current_fact(H).
 
 :- multifile '$factsdb$cached_goal'/3.
 :- doc('$factsdb$cached_goal'(Spec,Spec,Key), "Predicate @var{Spec} is
@@ -62,7 +61,7 @@ current_fact(H):-
 % H,T,D have all the same arguments, and their functors are related by:
 % term_to_meta(T,H), functor(T,P,A), module_concat(M,P,F), functor(D,F,A)
 cached_call(H,File,T,D):-
-	data_facts:current_fact(cached(H,T,D,File)), !.
+	datafacts_rt:current_fact(cached(H,T,D,File)), !.
 cached_call(H,File,T,D):-
 	'$factsdb$cached_goal'(H,D,Sym),
 	term_to_meta(T,H),
@@ -75,7 +74,7 @@ cached_call(H,File,T,D):-
 	functor(Data,N,A),
 	'$factsdb$cached_goal'(Meta,Data,Sym),
 	term_to_meta(Term,Meta),
-	data_facts:asserta_fact(cached(Meta,Term,Data,File)).
+	datafacts_rt:asserta_fact(cached(Meta,Term,Data,File)).
 
 :- meta_predicate call(fact).
 :- pred call(Fact) : callable
@@ -94,12 +93,12 @@ cache_call(File,T,D):-
 	call_cached(T,Val,File,D).
 
 call_cached(T,Val,_File,_):-
-	data_facts:current_fact(asserta_ed(T,Val)).
+	datafacts_rt:current_fact(asserta_ed(T,Val)).
 call_cached(T,Val,File,D):-
         open(File,read,S),
 	exe(S,T,Val,D).
 call_cached(T,Val,_File,_):-
-	data_facts:current_fact(assertz_ed(T,Val)).
+	datafacts_rt:current_fact(assertz_ed(T,Val)).
 
 exe(S,T,Val,D):-
 	repeat,
@@ -109,22 +108,22 @@ exe(S,T,Val,D):-
 	    close(S),
 	    fail
 	  ; X=D,
-	    \+ data_facts:retract_fact(retract_on_file(T,Val))
+	    \+ datafacts_rt:retract_fact(retract_on_file(T,Val))
 	  ).
 
 :- data asserta_ed/2, assertz_ed/2, retract_on_file/2.
 
 copy_db(H,Val):-
-	data_facts:current_fact(asserta_ed(H)),
-	data_facts:assertz_fact(asserta_ed(H,Val)),
+	datafacts_rt:current_fact(asserta_ed(H)),
+	datafacts_rt:assertz_fact(asserta_ed(H,Val)),
 	fail.
 copy_db(H,Val):-
-	data_facts:current_fact(assertz_ed(H)),
-	data_facts:assertz_fact(assertz_ed(H,Val)),
+	datafacts_rt:current_fact(assertz_ed(H)),
+	datafacts_rt:assertz_fact(assertz_ed(H,Val)),
 	fail.
 copy_db(H,Val):-
-	data_facts:current_fact(retract_on_file(H)),
-	data_facts:assertz_fact(retract_on_file(H,Val)),
+	datafacts_rt:current_fact(retract_on_file(H)),
+	datafacts_rt:assertz_fact(retract_on_file(H,Val)),
 	fail.
 copy_db(_H,_Val).
 
@@ -137,62 +136,62 @@ count(H,1):-
 
 :- meta_predicate asserta_fact(fact).
 :- pred asserta_fact(Fact) : callable
-# "Version of @pred{data_facts:asserta_fact/1} for filed predicates.
+# "Version of @pred{datafacts_rt:asserta_fact/1} for filed predicates.
    The current instance of @var{Fact} is interpreted as a fact and is
    added at the beginning of the definition of the corresponding
    predicate. Therefore, before all the facts filed in the
    DB file for the predicate. The predicate concerned must be declared
-   as @decl{facts}; if it is not, then @pred{data_facts:asserta_fact/1}
+   as @decl{facts}; if it is not, then @pred{datafacts_rt:asserta_fact/1}
    is used.".
 
 asserta_fact(H):-
 	cached_call(H,_File,T,D), !,
 	add_term_to_file_db(a(D),T),
-	data_facts:asserta_fact(asserta_ed(T)).
+	datafacts_rt:asserta_fact(asserta_ed(T)).
 asserta_fact(H):-
-	data_facts:asserta_fact(H).
+	datafacts_rt:asserta_fact(H).
 
 :- meta_predicate assertz_fact(fact).
 :- pred assertz_fact(Fact) : callable
-# "Version of @pred{data_facts:assertz_fact/1} for filed predicates.
+# "Version of @pred{datafacts_rt:assertz_fact/1} for filed predicates.
    The current instance of @var{Fact} is interpreted as a fact and is
    added at the end of the definition of the corresponding
    predicate. Therefore, after all the facts filed in the
    DB file for the predicate. The predicate concerned must be declared
-   as @decl{facts}; if it is not, then @pred{data_facts:assertz_fact/1}
+   as @decl{facts}; if it is not, then @pred{datafacts_rt:assertz_fact/1}
    is used.".
 
 assertz_fact(H):-
 	cached_call(H,_File,T,D), !,
 	add_term_to_file_db(z(D),T),
-	data_facts:assertz_fact(assertz_ed(T)).
+	datafacts_rt:assertz_fact(assertz_ed(T)).
 assertz_fact(H):-
-	data_facts:assertz_fact(H).
+	datafacts_rt:assertz_fact(H).
 
 :- meta_predicate retract_fact(fact).
 :- pred retract_fact(Fact) : callable
-# "Version of @pred{data_facts:retract_fact/1} for filed predicates.
+# "Version of @pred{datafacts_rt:retract_fact/1} for filed predicates.
    The current instance of @var{Fact} is interpreted as a fact and is
    unified with an actual fact in the current definition of the corresponding
    predicate; such a fact is deleted from the predicate definition. This
    is true even for the facts filed in the DB file for the predicate; but 
    these are NOT deleted from the file (unless the predicate is persistent).
    The predicate concerned must be declared as @decl{facts}; if it is not,
-   then @pred{data_facts:retract_fact/1} is used.".
+   then @pred{datafacts_rt:retract_fact/1} is used.".
 
 retract_fact(H):-
 	cached_call(H,_File,T,D), !,
 	retract_cached_fact(T),
 	add_term_to_file_db(r(D),T).
 retract_fact(H):-
-	data_facts:retract_fact(H).
+	datafacts_rt:retract_fact(H).
 
 retract_cached_fact(F):-
-	data_facts:retract_fact(asserta_ed(F)).
+	datafacts_rt:retract_fact(asserta_ed(F)).
 retract_cached_fact(F):-
-	data_facts:assertz_fact(retract_on_file(F)).
+	datafacts_rt:assertz_fact(retract_on_file(F)).
 retract_cached_fact(F):-
-	data_facts:retract_fact(assertz_ed(F,_)).
+	datafacts_rt:retract_fact(assertz_ed(F,_)).
 
 add_term_to_file_db(X,T):-
 	add_term_to_file_db(X,T,default).

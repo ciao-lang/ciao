@@ -1,4 +1,4 @@
-:- module(_, [], [assertions, fsyntax]).
+:- module(_, [], [assertions, fsyntax, datafacts]).
 
 :- doc(title,  "Emacs batch calls").
 
@@ -7,7 +7,6 @@
 
 :- doc(bug, "This needs to be merged with emacs.pl library").
 
-:- use_module(engine(data_facts)).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(pathnames), [path_concat/3]).
 

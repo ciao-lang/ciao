@@ -1,4 +1,4 @@
-:- module(http_server,[], [assertions, isomodes, dcg, hiord, doccomments]).
+:- module(http_server,[], [assertions, isomodes, dcg, hiord, doccomments, datafacts]).
 
 %! \title  HTTP server
 %  \author The Ciao Development Team
@@ -22,7 +22,6 @@
    http_server:http_write_response/2 (so that it can serve files
    without loading them in memory)").
 
-:- use_module(engine(data_facts)).
 
 :- use_module(library(lists), [member/2, append/3, select/3, length/2]).
 :- use_module(engine(stream_basic)).

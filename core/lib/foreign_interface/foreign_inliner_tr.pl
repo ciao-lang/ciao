@@ -1,6 +1,5 @@
-:- module(foreign_inliner_tr,[foreign_inliner_tr/3],[assertions]).
+:- module(foreign_inliner_tr,[foreign_inliner_tr/3],[assertions,datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(stream_basic), [open/3, close/1]).
 :- use_module(library(write), [write/2]).
 :- use_module(library(stream_utils), [write_string/2]).

@@ -1,6 +1,6 @@
 :- module(det_hook_rt,
 	[det_try/3, '$pending_cut_goals'/0],
-	[assertions, isomodes]).
+	[assertions, isomodes, datafacts]).
 
 :- doc(title, "Runtime predicates for call on determinate").
 
@@ -11,7 +11,6 @@
 executes pending goals when the computation has no more
 alternatives.").
 
-:- use_module(engine(data_facts)).
 
 :- data cut_goal/2.
 

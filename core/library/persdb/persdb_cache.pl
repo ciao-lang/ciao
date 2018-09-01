@@ -1,10 +1,8 @@
 :- module(persdb_cache,
-	[ add_term_to_file/3, add_term_to_file_db/3,
-	  delete_bak_if_no_ops/2, delete_file1/1,
-	  get_pred_files/7, keyword/1, persistent/5 ],
-	[ assertions ]).
-
-:- use_module(engine(data_facts)).
+	[add_term_to_file/3, add_term_to_file_db/3,
+	 delete_bak_if_no_ops/2, delete_file1/1,
+	 get_pred_files/7, keyword/1, persistent/5],
+	[assertions, datafacts]).
 
 :- use_module(engine(stream_basic)).
 :- use_module(library(terms_io), [term_write/1]).

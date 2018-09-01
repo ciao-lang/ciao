@@ -8,9 +8,8 @@
         proc_declaration/4,
         proc_declaration_in_mode/5,
         cleanup_compilation_data/0
-                 ], [assertions,nortchecks,dcg]).
+   ], [assertions,nortchecks,dcg,datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 :- use_module(engine(messages_basic), [message/2]).

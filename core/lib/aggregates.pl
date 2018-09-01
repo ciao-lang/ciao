@@ -6,10 +6,8 @@
         findnsols/4,
         findnsols/5,
  	(^)/2
-        ],
-	[assertions,nortchecks,isomodes,nativeprops,hiord]).
+   ], [assertions,nortchecks,isomodes,nativeprops,hiord,datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(internals), ['$setarg'/4]).
 
 :- use_module(library(sort)).

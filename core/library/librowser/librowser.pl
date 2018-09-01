@@ -6,11 +6,10 @@
 	    describe/1,
 	    system_lib/1,
 	    apropos/1
-	],[assertions, regexp]).
+	],[assertions, regexp, datafacts]).
 
 %% ------------------------------------------------------------
 
-:- use_module(engine(data_facts)).
 
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(engine(io_basic)).

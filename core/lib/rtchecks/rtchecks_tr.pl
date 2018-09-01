@@ -6,14 +6,13 @@
             generate_rtchecks/7,
             generate_rtchecks/11
         ],
-        [assertions, regtypes, nortchecks, nativeprops, isomodes, dcg, hiord, fsyntax]).
+        [assertions, regtypes, nortchecks, nativeprops, isomodes, dcg, hiord, fsyntax, datafacts]).
 
 :- use_package(library(rtchecks/rtchecks_tr_library)).
 
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(library(assertions/assertions_props), [head_pattern/1]).
 % see formulae, conj_to_list/2, list_to_conj/2
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3, findall/4]).
 :- use_module(library(lists), [member/2, intersection/3, difference/3]).
 :- use_module(library(llists),     [flatten/2]).

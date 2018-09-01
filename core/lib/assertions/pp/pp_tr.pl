@@ -1,6 +1,5 @@
-:- module(pp_tr, [], []).
+:- module(pp_tr, [], [datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(library(lists), [member/2, append/3]).

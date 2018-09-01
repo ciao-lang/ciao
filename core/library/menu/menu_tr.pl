@@ -1,6 +1,5 @@
-:- module(menu_tr, _, [assertions, regtypes]). % [ menu_term_expansion/3 ] ).
+:- module(menu_tr, _, [assertions, regtypes, datafacts]). % [ menu_term_expansion/3 ] ).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(engine(io_basic)).

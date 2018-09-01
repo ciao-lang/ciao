@@ -25,7 +25,7 @@
 %% Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 %% ---------------------------------------------------------------------------
 
-:- module(indexicals_tr, [translate/3], [assertions]).
+:- module(indexicals_tr, [translate/3], [assertions, datafacts]).
 
 :- doc(title, "Indexical Compiler").
 
@@ -33,7 +33,6 @@
 
 :- include(library(clpfd/fd_ops)).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(library(lists), [append/3, reverse/2, select/3]).

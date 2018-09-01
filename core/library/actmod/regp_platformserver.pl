@@ -1,6 +1,4 @@
-:- module(regp_platformserver,[],[]).
-
-:- use_module(engine(data_facts)).
+:- module(regp_platformserver,[],[datafacts]).
 
 % The 'platformserver' registry protocol (auxiliary for platformbased)
 

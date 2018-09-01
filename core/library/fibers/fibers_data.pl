@@ -1,4 +1,4 @@
-:- module(_, [], [assertions, dcg, fsyntax]).
+:- module(_, [], [assertions, dcg, fsyntax, datafacts]).
 
 :- doc(title, "Fiber-local data").
 :- doc(author, "Jose F. Morales").
@@ -7,7 +7,6 @@
    local to each @concept{fiber}, which we denote as
    @concept{transient} data predicates.").
 
-:- use_module(engine(data_facts)).
 
 % ---------------------------------------------------------------------------
 

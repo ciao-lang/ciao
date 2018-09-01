@@ -60,8 +60,8 @@ determinate_builtin(basiccontrol,true,0,0) .
 determinate_builtin(basiccontrol,fail,0,0) . 
 determinate_builtin(term_basic,=,2,0).
 determinate_builtin(basic_props,term,1,0) .
-determinate_builtin(data_facts,close_predicate,1,close_predicate(fact)) .
-determinate_builtin(data_facts,open_predicate,1,open_predicate(fact)) .
+determinate_builtin(datafacts_rt,close_predicate,1,close_predicate(fact)) .
+determinate_builtin(datafacts_rt,open_predicate,1,open_predicate(fact)) .
 determinate_builtin(term_basic,'C',3,0) .
 %prueba
 determinate_builtin(basiccontrol,!,0,0) .
@@ -89,15 +89,15 @@ sensitive_builtin(term_compare,@>,2,0).
 sensitive_builtin(term_compare,@>=,2,0). 
 sensitive_builtin(term_compare,compare,3,0).
 sensitive_builtin(basiccontrol,repeat,0,0). 
-sensitive_builtin(data_facts,asserta_fact,1,asserta_fact(fact)) .
-sensitive_builtin(data_facts,asserta_fact,2,asserta_fact(fact,?)) .
-sensitive_builtin(data_facts,assertz_fact,1,assertz_fact(fact)) .
-sensitive_builtin(data_facts,assertz_fact,2,assertz_fact(fact,?)) .
-sensitive_builtin(data_facts,retract_fact,1,retract_fact(fact)) .
-sensitive_builtin(data_facts,retractall_fact,1,retractall_fact(fact)) .
-sensitive_builtin(data_facts,retract_fact_nb,1,retract_fact_nb(fact)) .
-sensitive_builtin(data_facts,set_fact,1,set_fact(fact)) .
-sensitive_builtin(data_facts,erase,1,0) .
+sensitive_builtin(datafacts_rt,asserta_fact,1,asserta_fact(fact)) .
+sensitive_builtin(datafacts_rt,asserta_fact,2,asserta_fact(fact,?)) .
+sensitive_builtin(datafacts_rt,assertz_fact,1,assertz_fact(fact)) .
+sensitive_builtin(datafacts_rt,assertz_fact,2,assertz_fact(fact,?)) .
+sensitive_builtin(datafacts_rt,retract_fact,1,retract_fact(fact)) .
+sensitive_builtin(datafacts_rt,retractall_fact,1,retractall_fact(fact)) .
+sensitive_builtin(datafacts_rt,retract_fact_nb,1,retract_fact_nb(fact)) .
+sensitive_builtin(datafacts_rt,set_fact,1,set_fact(fact)) .
+sensitive_builtin(datafacts_rt,erase,1,0) .
 sensitive_builtin(messages_basic,message,2,0) .
 sensitive_builtin(messages_basic,message_lns,4,0) .
 sensitive_builtin(messages_basic,error,1,0) .

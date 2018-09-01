@@ -5,9 +5,8 @@
             sformat/3,
             format_to_string/3,
             format_control/1],
-	[dcg,assertions,isomodes]).
+	[dcg,assertions,isomodes,datafacts]).
 
-:- use_module(engine(data_facts)).
 
 :- use_module(library(write)).
 :- use_module(library(system)).

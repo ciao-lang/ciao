@@ -29,11 +29,11 @@
       regtypes,
       argnames,
       persdb,
-      nortchecks]).
+      nortchecks,
+      datafacts]).
 
 % TODO: Split this module into interactive menu, offline menu generation, etc.
 
-:- use_module(engine(data_facts)).
 
 % ---------------------------------------------------------------------------
 
@@ -658,8 +658,8 @@ show_config_list([(A1, A2, A3)|As]) :-
 set_menu_flag(Menu, F, V) :-
 	nonvar(V),
 	functor(Menu, NMenu, _),
-	(data_facts:retract_fact(menu_flag(NMenu, F, _)) ->true;true),
-	data_facts:assertz_fact(menu_flag(NMenu, F, V)).
+	(datafacts_rt:retract_fact(menu_flag(NMenu, F, _)) ->true;true),
+	datafacts_rt:assertz_fact(menu_flag(NMenu, F, V)).
 
 :- pred get_menu_flag(M, F, V) : (atm(M), atm(F), var(V))
    # "Returns the value in @var{V} of the flag @var{F} in the menu
@@ -668,7 +668,7 @@ set_menu_flag(Menu, F, V) :-
 % There is already and option saved
 get_menu_flag(Menu, F, V) :-
 	functor(Menu, NMenu, _),
-	data_facts:current_fact(menu_flag(NMenu, F, Value)),
+	datafacts_rt:current_fact(menu_flag(NMenu, F, Value)),
 	!,
 	Value = V.
 % Lets try with the "flat" value (menu of level 0)
@@ -919,7 +919,7 @@ enum_menu_opt(Menu, Flag, Title, Guard, BeforePrint, AfterSel) :-
 
 % TODO: Use _EntryMenu (hardwired to 'all')
 generate_offline_menu(EntryMenu, MenuItems) :-
-	data_facts:retractall_fact(menu_path(_, _, _)),
+	datafacts_rt:retractall_fact(menu_path(_, _, _)),
 	add_entry_menu_path(EntryMenu),
 	generate_menu_path_offline,
 	generate_menu_path_offline_kleene,
@@ -934,7 +934,7 @@ generate_offline_menu(EntryMenu, MenuItems) :-
 
 add_entry_menu_path(M) :-
 	norm_menu_node(M, M2),
-	data_facts:assertz_fact(menu_path(M2, [], no)).
+	datafacts_rt:assertz_fact(menu_path(M2, [], no)).
 
 % (fill menu_path/3)
 generate_menu_path_offline :-
@@ -945,7 +945,7 @@ generate_menu_path_offline :-
 	    tr_menu_level(B0, B),
 	    % trace(get_branch_sols(AfterSel, A, B)),
 	    trace(menu_path__0(A, B)),
-	    data_facts:assertz_fact(menu_path(A, B, no)),
+	    datafacts_rt:assertz_fact(menu_path(A, B, no)),
 	    % trace(menu_path(A,B)),
 	    fail
 	; true
@@ -953,7 +953,7 @@ generate_menu_path_offline :-
 
 generate_menu_path_offline_kleene :-
 	% Take A<-Path0
-	data_facts:current_fact(menu_path(A, Path0, no), Ref),
+	datafacts_rt:current_fact(menu_path(A, Path0, no), Ref),
 	trace(menu_path__iter(A, Path0)),
 	%
 	% Look Flag which node has which flags
@@ -965,17 +965,17 @@ generate_menu_path_offline_kleene :-
 	%
 	% Get the path to that node
 	generate_menu_path(Node, Path),
-	data_facts:erase(Ref),
+	datafacts_rt:erase(Ref),
 	\+ Path = [fail], % TODO: OK?
 	append(Path0, Path, BPath),
-	data_facts:assertz_fact(menu_path(A, BPath, yes)),
+	datafacts_rt:assertz_fact(menu_path(A, BPath, yes)),
 	trace(menu_path__first(A, Path0)),
 	trace(menu_path__node(Node)),
 	trace(menu_path__then(A, BPath)),
 	fail.
 generate_menu_path_offline_kleene :-
-	data_facts:retract_fact(menu_path(A, Path, no)),
-	data_facts:assertz_fact(menu_path(A, Path, yes)),
+	datafacts_rt:retract_fact(menu_path(A, Path, no)),
+	datafacts_rt:assertz_fact(menu_path(A, Path, yes)),
 	%	trace(keep_menu_path(A, B)),
 	fail.
 generate_menu_path_offline_kleene.

@@ -1,7 +1,5 @@
 :- module(pattern_filler, [get_pattern/2, complete_with_pattern/3],
-	    [assertions, regtypes]).
-
-:- use_module(engine(data_facts)).
+	    [assertions, regtypes, datafacts]).
 
 :- use_module(engine(io_basic)).
 :- use_module(library(read)).
