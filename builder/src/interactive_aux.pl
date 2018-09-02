@@ -2,7 +2,7 @@
 % TODO: Not the best module name
 % TODO: Merge with library/menu
 
-:- doc(title, "Auxiliary Code for User Interaction").
+:- doc(title, "Auxiliary code for user interaction").
 :- doc(author, "The Ciao Development Team").
 
 :- use_module(library(lists), [member/2]).

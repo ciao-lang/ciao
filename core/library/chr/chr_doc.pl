@@ -3,7 +3,6 @@
 :- doc(nodoc,assertions_basic).
 
 :- doc(title, "Constraing Handling Rules Package").
-
 :- doc(author, "Tom Schrijvers").
 
 :- doc(module, "This package is a port to Ciao Prolog of the

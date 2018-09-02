@@ -1,7 +1,7 @@
 :- module(vcs_git, [], [assertions, basicmodes,
 		nativeprops, fsyntax, hiord, regtypes]).
 
-:- doc(title, "VCS Abstraction for Git"). 
+:- doc(title, "VCS abstraction for Git"). 
 :- doc(author, "Jose F. Morales").
 
 :- doc(summary, "This module defines predicates to interact with the

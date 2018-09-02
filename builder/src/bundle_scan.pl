@@ -1,6 +1,6 @@
 :- module(bundle_scan, [], [assertions, fsyntax, datafacts]).
 
-:- doc(title, "Scanning and Registering of Bundles").
+:- doc(title, "Scanning and registering of bundles").
 :- doc(author, "Jose F. Morales").
 :- doc(author, "The Ciao Development Team").
 

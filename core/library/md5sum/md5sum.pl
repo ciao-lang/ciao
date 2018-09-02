@@ -1,6 +1,6 @@
 :- module(md5sum, [md5sum/2], [assertions]).
 
-:- doc(title, "MD5 Message-Digest Algorithm (md5sum)").
+:- doc(title, "MD5 Message-Digest algorithm (md5sum)").
 
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
 :- doc(author, "Jose F. Morales (minor changes)").

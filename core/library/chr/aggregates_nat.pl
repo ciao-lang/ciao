@@ -20,7 +20,7 @@
 
 :- on_abort(retractall_fact(solution(_))).
 
-:- doc(title,"All solutions predicates (No Attributes Version)").
+:- doc(title, "Aggregates (No Attributes Version)").
 
 :- doc(module,"@begin{alert}This is a copy of @lib{library(aggregates)} that
    ignores attributes of attributes variables. @end{alert} ").

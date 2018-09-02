@@ -1,6 +1,6 @@
 :- module(stream_watchdog, [], [assertions, datafacts]).
 
-:- doc(title, "Stream watchdog (Non-Blocking IO)").
+:- doc(title, "Stream watchdog (non-blocking IO)").
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "This module implements a @em{stream watchdog} module,

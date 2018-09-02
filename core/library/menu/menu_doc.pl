@@ -2,7 +2,7 @@
 :- doc(nodoc,assertions).
 :- doc(nodoc,assertions_basic).
 
-:- doc(title,"Interactive Menus").
+:- doc(title,"Interactive menus").
 
 :- doc(author, "The Ciao Development Team").
 

@@ -1,6 +1,6 @@
 :- module(_, [], [fsyntax, hiord, assertions, regtypes, isomodes, datafacts]).
 
-:- doc(title, "Builder Commands").
+:- doc(title, "Builder commands").
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "This module contains a high-level interface to the

@@ -1,6 +1,6 @@
 :- module(_, [], [assertions, isomodes, regtypes, dcg, fsyntax]).
 
-:- doc(title, "Ciao Command-line Help").
+:- doc(title, "Ciao command-line Help").
 :- doc(author, "The Ciao Development Team").
 :- doc(author, "Jose F. Morales").
 

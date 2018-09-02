@@ -37,7 +37,7 @@
 	[assertions, regtypes, fsyntax]).
 
 % TODO: [Emilio] Should't we call this file fd_chains.pl?
-:- doc(title, "Constraint Propagation Chains").
+:- doc(title, "Constraint propagation chains").
 
 :- use_package(library(clpfd/clpfd_options)).
 

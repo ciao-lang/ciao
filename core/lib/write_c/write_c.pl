@@ -1,13 +1,13 @@
 :- module(write_c, [write_c/4], [dcg, assertions, hiord]).
 
-:- use_module(library(write_c/write_tokens)).
-
-:- doc(title, "The C language in Prolog terms.").
+:- doc(title, "The C language in Prolog terms").
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "This module provides predicates for writing C
 	programs expressed with Prolog terms.").
 	
+:- use_module(library(write_c/write_tokens)).
+
 :- op(550, xfx, [($)]). % _$_ notation is private.
 
 % -----------------------------------------------------------------------------

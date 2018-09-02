@@ -3,7 +3,7 @@
 
 :- doc(author, "Edison Mera").
 
-:- doc(title, "High resolution time predicates.").
+:- doc(title, "High resolution time predicates").
 
 :- doc(module, "This module contains predicates used to facilitate
 	the usage of high resolution time functionality in several

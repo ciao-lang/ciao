@@ -33,7 +33,7 @@
 	    clpfd_error/2
 	], [assertions]).
 
-:- doc(title, "Auxiliary Predicates for the FD Implementation").
+:- doc(title, "Auxiliary predicates for the FD implementation").
 
 % TODO: include as a builtin? (JFMC)
 max(X, Y, X):- X > Y, !.

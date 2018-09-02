@@ -2,7 +2,7 @@
 :- doc(nodoc,assertions).
 :- doc(nodoc,assertions_basic).
 
-:- doc(title,"Emulator Description Language").
+:- doc(title,"Emulator description language").
 
 :- doc(author, "Jose F. Morales").
 

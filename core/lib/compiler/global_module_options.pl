@@ -3,7 +3,7 @@
 :- doc(author, "Jose F. Morales"). % TODO: Merge with older optim_comp version
 :- doc(author, "Edison Mera"). % (original version for Ciao, just for packages)
 
-:- doc(title, "Global Module Options").
+:- doc(title, "Global module options").
 
 :- doc(module, "This module provides the compiler interface for the
    specification of global module options. These options can modify

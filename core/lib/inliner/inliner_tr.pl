@@ -26,7 +26,7 @@
 
 :- doc(author, "Edison Mera").
 
-:- doc(title, "Inline expansions and unfolding.").
+:- doc(title, "Inline expansions and unfolding").
 
 :- doc(module, "This module provides an inliner, and an unfolder.
 

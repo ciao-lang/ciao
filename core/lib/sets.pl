@@ -10,14 +10,13 @@
 	[ assertions,basicmodes
 	]).
 
-:- use_module(library(sort)).
-
-:- doc(title, "Set Operations").
-
+:- doc(title, "Set operations").
 :- doc(author, "Lena Flood").
 
 :- doc(module, "This module implements set operations. Sets are
    just ordered lists.").
+
+:- use_module(library(sort)).
 
 :- pred insert(+Set1, +Element, -Set2) # "It is true when @var{Set2}
    is @var{Set1} with @var{Element} inserted in it, preserving the

@@ -1,6 +1,6 @@
 :- module(_, [], [assertions, regtypes, isomodes, hiord, regexp]).
 
-:- doc(title, "Text Templates").
+:- doc(title, "Text templates").
 
 :- doc(author, "Jose F. Morales").
 :- doc(author, "The Ciao Development Team").

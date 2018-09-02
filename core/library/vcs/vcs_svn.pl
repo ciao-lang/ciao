@@ -1,7 +1,7 @@
 :- module(vcs_svn, [], [assertions, basicmodes,
 		nativeprops, fsyntax, hiord, regtypes]).
 
-:- doc(title, "VCS Abstraction for SVN"). 
+:- doc(title, "VCS abstraction for SVN"). 
 :- doc(author, "Jose F. Morales").
 :- doc(author, "Edison Mera (original author)").
 

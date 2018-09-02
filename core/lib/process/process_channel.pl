@@ -1,6 +1,6 @@
 :- module(_, [], [assertions, regtypes, isomodes, hiord, dcg]).
 
-:- doc(title, "Process Channels").
+:- doc(title, "Process channels").
 
 :- doc(author, "Jose F. Morales").
 

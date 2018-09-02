@@ -3,7 +3,7 @@
 		     update_mutable/2,
 		     mutable/1], [assertions, dcg, datafacts]).
 
-:- doc(title, "Mutable Terms").
+:- doc(title, "Mutable terms").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
 
 :- doc(module, "This module provides mutable terms i.e. an abstract

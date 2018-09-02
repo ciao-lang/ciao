@@ -2,7 +2,7 @@
 :- doc(nodoc,assertions).
 :- doc(nodoc,assertions_basic).
 
-:- doc(title,"Phrase Support for DCGs").
+:- doc(title,"Phrase support for DCGs").
 
 :- doc(author, "Jose F. Morales").
 :- doc(author, "The Ciao Development Team").

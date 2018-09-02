@@ -1,6 +1,6 @@
 :- module(emugen_tr, [], [dcg, fsyntax, assertions, datafacts]).
 
-:- doc(title, "Generator of Bytecode Emulator").
+:- doc(title, "Generator of bytecode emulator").
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "This module generates part of the bytecode emulator

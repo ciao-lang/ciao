@@ -27,7 +27,7 @@
 
 :- module(indexicals_tr, [translate/3], [assertions, datafacts]).
 
-:- doc(title, "Indexical Compiler").
+:- doc(title, "Indexical compiler").
 
 :- use_package(library(clpfd/clpfd_options)).
 

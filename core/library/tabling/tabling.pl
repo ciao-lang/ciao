@@ -12,7 +12,7 @@
 :- doc(author,"Pablo Chico de Guzm@'{a}n Huerta").
 :- doc(author,"The Ciao Development Team").
 
-:- doc(title,"Tabling Execution").
+:- doc(title,"Tabling execution").
  %% :- doc(subtitle,"(Using O-CHAT Technique)").
 
 :- doc(module, "This module supports the evaluation of predicates

@@ -1,6 +1,6 @@
 :- module(_, [], [dcg, fsyntax, hiord, assertions, regtypes, isomodes, datafacts]).
 
-:- doc(title,  "Bundle Fetch").
+:- doc(title,  "Bundle fetch").
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "This module implements support for fetching bundles

@@ -1,6 +1,6 @@
 :- module(_, [detect_c_headers/1], [assertions, dcg]).
 
-:- doc(title, "C Header Detection").
+:- doc(title, "C header detection").
 
 :- doc(summary, "Detect if a C header can be found by the C compiler
    (under the include path)").

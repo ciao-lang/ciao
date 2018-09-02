@@ -69,7 +69,7 @@
 	],
 	[assertions, regtypes,  fsyntax, dcg]).
 
-:- doc(title, "Range Handling").
+:- doc(title, "Range handling").
 
 :- use_module(library(clpfd/fd_utils), [min/3, max/3, clpfd_error/2]).
 :- use_module(library(clpfd/int_extra), [lsb/2, msb/2, bits_set/2]).

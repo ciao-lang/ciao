@@ -2,7 +2,7 @@
 
 :- push_prolog_flag(multi_arity_warnings,off).
 
-:- doc(title, "Foreign Language Interface Properties").
+:- doc(title, "Foreign Language interface properties").
 
 :- doc(module, "The C foreign language interface uses some
    properties to specify linking regimes, foreign files to be

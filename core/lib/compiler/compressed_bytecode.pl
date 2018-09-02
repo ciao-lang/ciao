@@ -3,8 +3,7 @@
          copyLZ/1],
          [assertions]).
 
-:- doc(title, "Compression and Uncompression of Bytecode.").
-
+:- doc(title, "Compressed bytecode").
 :- doc(author, "Oscar Portela Arjona").
 
 % (defined in engine/io_basic.c)

@@ -65,7 +65,7 @@
 	],
 	[assertions, regtypes,  fsyntax, dcg]).
 
-:- doc(title, "Sparse Integer Ranges Implemented as List of Intervals").
+:- doc(title, "Sparse integer ranges implemented as list of intervals").
 
 :- use_module(library(clpfd/fd_utils), [min/3, max/3, clpfd_error/2]).
 

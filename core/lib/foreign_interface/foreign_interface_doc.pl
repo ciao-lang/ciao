@@ -2,7 +2,7 @@
 :- doc(nodoc,assertions).
 :- doc(nodoc,assertions_basic).
 
-:- doc(title,"C Foreign Language Interface").
+:- doc(title,"C Foreign Language interface").
 
 :- doc(author, "Jose F. Morales").
 :- doc(author, "Manuel Carro").

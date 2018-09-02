@@ -5,9 +5,9 @@
 :- use_module(library(stream_utils), [file_to_string/2, string_to_file/2]).
 :- use_module(library(lists), [length/2, append/3, reverse/2]).
 
-:- doc(title, "Register/unregister Code in Scripts (for bash, csh, emacs, etc.)").
+:- doc(title, "Register/unregister code in scripts (for bash, csh, emacs, etc.)").
 :- doc(author, "Jose F. Morales").
-:- doc(author, "CLIP Group").
+:- doc(author, "The Ciao Development Team").
 
 % TODO: We could want a special Key in the register command, so that
 %       different tools can register themselves? Or we can just add a

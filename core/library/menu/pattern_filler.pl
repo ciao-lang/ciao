@@ -12,7 +12,7 @@
 
 :- doc(author, "David Trallero Mena").
 
-:- doc(title, "Binary Operator Patterns Filler").
+:- doc(title, "Binary operator patterns filler").
 
 :- doc(module, "This module has been thought to complete terms that
    are composed using binary operators. This is really useful because

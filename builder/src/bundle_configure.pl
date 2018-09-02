@@ -1,6 +1,6 @@
 :- module(bundle_configure, [], [assertions, basicmodes, fsyntax, hiord, datafacts]).
 
-:- doc(title, "Bundle Configuration").
+:- doc(title, "Bundle configuration").
 :- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module computes the values of bundle

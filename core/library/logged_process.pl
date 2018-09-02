@@ -1,6 +1,6 @@
 :- module(logged_process, [], [assertions, regtypes, basicmodes, fsyntax]).
 
-:- doc(title, "Logged Processes").
+:- doc(title, "Logged processes").
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "A wrapper on top of @pred{process_call/3} with some

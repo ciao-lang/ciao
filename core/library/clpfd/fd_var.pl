@@ -36,7 +36,7 @@
 	],
 	[assertions, regtypes, fsyntax]).
 
-:- doc(title, "Finite Domain Variables").
+:- doc(title, "Finite domain variables").
 
 :- use_package(library(clpfd/clpfd_options)).
 

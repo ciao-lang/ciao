@@ -11,7 +11,7 @@
 	 fsyntax,
 	 datafacts]).
 
-:- doc(title, "Foreign Language Interface Builder").
+:- doc(title, "Foreign Language interface builder").
 
 :- doc(module, "Low-level utilities for building C foreign interfaces.
    End-users should not need to use them, as the Ciao compiler reads

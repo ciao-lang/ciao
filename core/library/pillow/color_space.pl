@@ -1,6 +1,6 @@
 :- module(color_space, [], [assertions]).
 
-:- doc(title, "Color Space Transformations").
+:- doc(title, "Color space transformations").
 :- doc(author, "Jose F. Morales").
 % :- doc(stability, experimental).
 

@@ -2,7 +2,7 @@
 :- doc(nodoc,assertions). 
 :- doc(nodoc,assertions_basic). 
 
-:- doc(title, "Block Declarations").
+:- doc(title, "Block declarations").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
 :- doc(author, "Jose F. Morales (documentation improvements)").
 

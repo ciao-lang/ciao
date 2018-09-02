@@ -1,6 +1,6 @@
 :- module(_, [], [assertions, basicmodes, nativeprops, fsyntax, hiord, regtypes]).
 
-:- doc(title,  "Bundle Information").
+:- doc(title,  "Bundle information").
 :- doc(author, "Jose F. Morales").
 :- doc(author, "The Ciao Development Team").
 

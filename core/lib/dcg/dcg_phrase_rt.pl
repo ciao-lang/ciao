@@ -5,7 +5,7 @@
 :- use_module(engine(hiord_rt), ['$meta_call'/1]).
 :- use_module(library(dcg/dcg_tr), [dcg_translate_dcg/5]).
 
-:- doc(title,"Runtime Support for DCGs").
+:- doc(title,"Runtime support for DCGs").
 
 :- doc(author, "Jose F. Morales").
 

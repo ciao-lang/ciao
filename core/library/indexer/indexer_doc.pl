@@ -2,7 +2,7 @@
 
 :- use_module(library(assertions/native_props), [nonground/1]).
 
-:- doc(title, "Multiple Argument Indexing").
+:- doc(title, "Multiple argument indexing").
 
 :- doc(author, "Anil Nair (original work)").
 :- doc(author, "Tom Howland"||

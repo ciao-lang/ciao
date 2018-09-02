@@ -1,6 +1,6 @@
 :- module(_, [], [assertions, regtypes, isomodes, hiord]).
 
-:- doc(title, "Call goals with reified IO and (exit) ports.").
+:- doc(title, "Call goals with reified IO and (exit) ports").
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "Predicates to delay the execution of the (exit) port

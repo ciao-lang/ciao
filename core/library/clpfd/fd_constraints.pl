@@ -55,7 +55,7 @@
 
 :- use_package(library(clpfd/indexicals)).
 
-:- doc(title,   "Basic Indexicals for the Finite Domain Library").
+:- doc(title,   "Basic indexicals for the Finite Domain library").
 
 :- doc(author,  "Emilio Jes@'{u}s Gallego Arias"). %
 :- doc(license, "GPL"). 

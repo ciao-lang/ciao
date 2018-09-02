@@ -1,6 +1,6 @@
 :- module(internals, [], [assertions, basicmodes, nortchecks, regtypes, datafacts]).
 
-:- doc(title, "Engine Internal Predicates").  
+:- doc(title, "Internal runtime predicates").  
 
 :- doc(module, "This module defines internal predicates (most written
    in C) used by the runtime system code (including boot code). They
