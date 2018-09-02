@@ -20,7 +20,7 @@
 
 :- on_abort(retractall_fact(solution(_))).
 
-:- doc(title,"Aggregates").
+:- doc(title,"Aggregates: gathering predicate solutions").
 
 :- doc(author,"Richard A. O'Keefe (first version)").
 :- doc(author,"David H.D. Warren (first version)").
