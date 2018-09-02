@@ -17,9 +17,6 @@
 :- doc(author, "T. Chikayama (first version)").
 :- doc(author, "K. Shen (first version)").
 
-%% :- include(ciao_docsrc(common/'ClipAddress')).
-%% :- include(ciao_docsrc(common/'Copyright')).
-
 :- doc(module,"
 
 The Ciao program development environment includes a number of advanced

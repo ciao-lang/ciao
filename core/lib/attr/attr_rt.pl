@@ -1,7 +1,7 @@
 :- module(attr_rt, [], [assertions, fsyntax, dcg, datafacts]).
 
 :- doc(title, "Attributed variables runtime").
-%:- doc(copyright,"@include{DocCopyright.lpdoc}").
+%:- doc(copyright,"@include{FreeDocLicense.lpdoc}").
 
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
 :- doc(author, "Christian Holzbaur").

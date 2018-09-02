@@ -31,7 +31,7 @@
 
 :- doc(author, "Emilio Jes@'{u}s Gallego Arias").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
-:- doc(copyright,"@include{DocCopyright.lpdoc}").
+:- doc(copyright,"@include{FreeDocLicense.lpdoc}").
 
 :- doc(module, "This module provides Finite Domain (FD) constraints and
 enumerating predicates for FD variables. See @lib{clpfd_doc} for

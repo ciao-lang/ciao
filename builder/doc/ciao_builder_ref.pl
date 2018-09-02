@@ -15,10 +15,6 @@
 :- doc(subtitle_extra,"@em{Generated/Printed on:} @today{}").
 %:- doc(subtitle_extra,"Technical Report CLIP 3/97-@version{}").
 
-% :- include(ciao_docsrc(common/'ClipAddress')).
-
-% :- include(ciao_docsrc(common/'Copyright')).
-
 :- doc(summary, "@apl{ciao_builder} is a
    @href{https://en.wikipedia.org/wiki/Build_automation}{build
    automation} system for managing Ciao libraries and

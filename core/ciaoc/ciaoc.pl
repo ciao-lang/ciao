@@ -8,7 +8,7 @@
 :- doc(copyright, "
 Copyright @copyright{} 1996-2002 Daniel Cabeza/The CLIP Group.
 
-@include{DocCopyright.lpdoc}
+@include{FreeDocLicense.lpdoc}
 ").
 
 :- doc(module, "@cindex{compiling, from command line}

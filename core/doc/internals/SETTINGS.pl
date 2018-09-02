@@ -1,6 +1,6 @@
 :- module(_, [], [doccfg]).
 
-:- include(ciao_docsrc(common/'LPDOCCOMMON')).
+:- include(core_docsrc(common/'LPDOCCOMMON')).
 
 output_name := 'ciao_internals'.
 

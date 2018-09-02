@@ -12,7 +12,7 @@
 :- doc(copyright,"
 Copyright @copyright{} 1996-2002 Daniel Cabeza/The Ciao Development Team.
 
-@include{DocCopyright.lpdoc}
+@include{FreeDocLicense.lpdoc}
 ").
 
 :- doc(module,"@apl{ciaosh} is the Ciao interactive top-level shell.

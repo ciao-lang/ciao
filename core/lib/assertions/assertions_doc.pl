@@ -13,7 +13,7 @@
 :- doc(copyright,"
 Copyright @copyright{} 1989-2002 The CLIP Group / UPM
 
-@include{DocCopyright.lpdoc}
+@include{FreeDocLicense.lpdoc}
 ").
 
 :- doc(summary,"This library provides packages and modules which allow

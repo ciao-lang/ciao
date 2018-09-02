@@ -41,7 +41,7 @@
 :- doc(copyright,"
 Copyright @copyright{} 1997-2002 The Clip Group.
 
-@include{DocCopyright.lpdoc}
+@include{FreeDocLicense.lpdoc}
 ").
 
 :- doc(summary,"This library provides a means to define and modify

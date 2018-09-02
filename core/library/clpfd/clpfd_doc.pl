@@ -7,7 +7,7 @@
 :- doc(author, "Emilio Jes@'{u}s Gallego Arias").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
 :- doc(author, "Jose F. Morales").
-:- doc(copyright,"@include{DocCopyright.lpdoc}").
+:- doc(copyright,"@include{FreeDocLicense.lpdoc}").
 
 :- doc(summary, "An implementation of constraint programming over
    finite domains.").

@@ -13,9 +13,6 @@
 :- doc(subtitle_extra,"@em{Generated/Printed on:} @today{}").
 %:- doc(subtitle_extra,"Technical Report CLIP 3/97-@version{}").
 
-:- include(ciao_docsrc(common/'ClipAddress')).
-:- include(ciao_docsrc(common/'Copyright')).
-
 %% :- doc(bug,"Although the documentation is acceptable at this
 %%    point, we are still really in beta mode in this regard.").
 

@@ -25,7 +25,7 @@
 
 :- doc(title, "Optimization constraints").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
-:- doc(copyright,"@include{DocCopyright.lpdoc}").
+:- doc(copyright,"@include{FreeDocLicense.lpdoc}").
 
 :- doc(summary, "This module provides meta-predicates for optimizing constraints.").
 

@@ -7,7 +7,7 @@
 :- doc(copyright,"
 Copyright @copyright{} 1996-2002 The CLIP Group.
 
-@include{DocCopyright.lpdoc}
+@include{FreeDocLicense.lpdoc}
 ").
 
 :- doc(module,"@apl{ciao-shell} is the Ciao script interpreter. It

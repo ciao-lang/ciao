@@ -10,11 +10,11 @@
 :- doc(author, "Manuel Hermenegildo").
 :- doc(author, "The Ciao Development Team").
 
-:- include(ciao_docsrc(common/'ClipAddress')).
+:- include(core_docsrc(common/'ClipAddress')).
 
 :- doc(copyright,"Copyright @copyright{} Daniel Cabeza and Manuel Hermenegildo
 
-@include{DocCopyright.lpdoc}
+@include{FreeDocLicense.lpdoc}
 
 ").
 
