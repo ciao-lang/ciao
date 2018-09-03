@@ -28,8 +28,6 @@
 	%
 	set_prolog_flag/2, current_prolog_flag/2, prolog_flag/3,
 	push_prolog_flag/2, pop_prolog_flag/1,
-	set_ciao_flag/2, current_ciao_flag/2, ciao_flag/3,
-	push_ciao_flag/2, pop_ciao_flag/1,
 	%
 	prompt/2,
 	%
@@ -653,41 +651,24 @@ define_flag(debug, [on,debug,trace,off], off).
 
 :- doc(set_prolog_flag(FlagName, Value),
 	    "Set existing flag @var{FlagName} to @var{Value}.").
-
 :- pred set_prolog_flag(+atm, +term) => atm * term + iso.
 
 set_prolog_flag(X, Y) :- nonvar(X), prolog_flag(X, _, Y), !. /* ISO */
 
-:- pred set_ciao_flag(FlagName, Value)
-	+ equiv(set_prolog_flag(FlagName, Value)).
-
-set_ciao_flag(FlagName, Value) :- set_prolog_flag(FlagName, Value).
-
 :- doc(current_prolog_flag(FlagName, Value),
 "@var{FlagName} is an existing flag and @var{Value} is the
            value currently associated with it.").
-
-
 :- pred current_prolog_flag/2 => atm * term.
 % inferred:
 %:- true pred current_prolog_flag(A,B)
 %         : ( term(A), term(B) )
 %        => ( rt274(A), term(B) ).
 
-
 current_prolog_flag(X, Y) :- prolog_flag(X, Y, Y). /* ISO */
-
-:- pred current_ciao_flag(FlagName, Value)
-	+ equiv(current_prolog_flag(FlagName, Value)).
-
-current_ciao_flag(FlagName, Value) :- current_prolog_flag(FlagName, Value).
 
 :- doc(prolog_flag(FlagName, OldValue, NewValue), "@var{FlagName} is
            an existing flag, unify @var{OldValue} with the value
            associated with it, and set it to new value @var{NewValue}.").
-
-
-
 :- pred prolog_flag(A, B, C) : (term(C), nonvar(C)) => (atm(A), term(B)).
 
 :- pred prolog_flag(FlagName, OldValue, NewValue)
@@ -701,10 +682,6 @@ prolog_flag(Flag, Old, New) :- var(Flag), !,
 	prolog_flag_2(Flag, Old, New).
 prolog_flag(Flag, Old, New) :-
 	prolog_flag_2(Flag, Old, New), !.
-
-:- pred ciao_flag(Flag, Old, New) + equiv(prolog_flag(Flag, Old, New)).
-
-ciao_flag(Flag, Old, New) :- prolog_flag(Flag, Old, New).
 
 prolog_flag_2(compiling, Old, New) :-
 	flag_value(Old, New, [unprofiled, profiled]),
@@ -782,12 +759,6 @@ push_prolog_flag(Flag, NewValue) :-
 
 :- doc(pop_prolog_flag(Flag), "Restore the value of @var{Flag}
    previous to the last non-canceled @pred{push_prolog_flag/2} on it.").
-
-:- pred push_ciao_flag(Flag, NewValue)
-	+ equiv(push_prolog_flag(Flag, NewValue)).
-
-push_ciao_flag(Flag, NewValue) :- push_prolog_flag(Flag, NewValue).
-
 :- pred pop_prolog_flag(+atm) => atm.
 
 pop_prolog_flag(Flag) :-
@@ -796,16 +767,11 @@ pop_prolog_flag(Flag) :-
 	!, % to avoid removal on backtracking --EMM
 	prolog_flag(Flag, _, OldValue).
 
-:- pred pop_ciao_flag(Flag) + equiv(pop_prolog_flag(Flag)).
-
-pop_ciao_flag(Flag) :- pop_prolog_flag(Flag).
 
 :- doc(prompt(Old, New), "Unify @var{Old} with the current prompt
    for reading, change it to @var{New}.").
 
-
 :- pred prompt(A, B) : atm(B) => atm(A).
-
 
 :- pred prompt(Old, New) : (var(Old), var(New)) => ( atm(Old),
 	    atm(New) ) # "Unify @var{Old} with the current prompt for
