@@ -404,6 +404,7 @@ generate_asr_file(Base,Verb,Component) :-
 :- pop_prolog_flag(multi_arity_warnings).
 
 %% Among other things, makes sure unfinished files are deleted on ctrlc
+% TODO: duplicated in c_itf_internal.pl (but not exported)
 stream_of_file(Path, Dir, Stream, Ref) :-
         file_exists(Dir, 2), % Write permission
         ( file_exists(Path) -> delete_file(Path) ; true ),
