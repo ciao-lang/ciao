@@ -7,6 +7,7 @@
 %:- compilation_fact(use_quote(no)).
 
 :- if(use_write(yes)).
+    :- use_module(engine(io_basic), [nl/0]).
     :- use_module(library(write)).
     :- if(use_quote(yes)).
         pr(X) :- writeq(using_write(X)), nl.

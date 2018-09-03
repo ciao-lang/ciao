@@ -57,7 +57,8 @@
 %         findall(Key - Template, Goal, As),
 %         smash(As,Key,Answers).
 
-:- use_module(library(write)).
+%:- use_module(library(streams)).
+%:- use_module(library(write)).
 
 find_with_var_identity(Template, IdVars, Goal, Answers) :-
          Key = foo(IdVars),

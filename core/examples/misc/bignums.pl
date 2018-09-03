@@ -1,5 +1,6 @@
 :- module(bignums, [do_bignums/0]).
 
+:- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(engine(runtime_control), [statistics/2]).
 

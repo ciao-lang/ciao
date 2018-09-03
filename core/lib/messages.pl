@@ -31,13 +31,11 @@
 %% NOTE: if you change the output format of messages you 
 %%       will probably also want to change ciao.el
 
-:- use_module(engine(stream_basic)).
-:- use_module(engine(io_basic)).
 :- use_module(engine(runtime_control)).
 :- use_module(library(format)).
 
-% Other libraries
 :- use_module(library(lists)).
+:- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(library(pathnames), [path_basename/2]).
 

@@ -39,9 +39,6 @@
            stream and another in which the stream is specified
            explicitly, as an additional first argument.").
 
-% Some reexports (for convenience)
-:- reexport(engine(io_basic), [nl/0, nl/1]).
-
 :- doc(define_flag/3,"Defines flags as follows:
         @includedef{define_flag/3}
         (See @ref{Changing system behaviour and various flags}).

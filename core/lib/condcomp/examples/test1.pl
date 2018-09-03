@@ -4,6 +4,7 @@
 :- compilation_fact(use_write).
 
 :- if(defined(use_write)).
+:- use_module(engine(io_basic), [nl/0]).
 :- use_module(library(write)).
 pr(X) :-
 	write(using_write(X)), nl.

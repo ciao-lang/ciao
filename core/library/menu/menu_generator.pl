@@ -67,7 +67,7 @@ is_menu_level0(menu_java_level=naive).
 member_and_remove(X, Xs, Ys) :- select(X, Xs, Ys), !.
 
 :- use_module(library(aggregates)).
-:- use_module(engine(stream_basic), [line_position/2]).
+:- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(library(messages)).
 

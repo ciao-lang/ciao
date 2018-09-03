@@ -42,8 +42,6 @@
 
 :- use_module(library(aggregates)).
 
-:- use_module(engine(stream_basic)).
-:- use_module(engine(io_basic)).
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(engine(messages_basic), [display_list/1]).
 :- use_module(engine(debugger_support)).
@@ -51,6 +49,7 @@
 		'$setarg'/4, term_to_meta/2, '$current_predicate'/2]).
 :- use_module(library(lists)).
 :- use_module(library(format)).
+:- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(library(hiordlib), [maplist/2, filter/3, foldl/4]).
 :- use_module(library(sort)).

@@ -1,5 +1,6 @@
 :- module(fibonacci, [do_fib/0,fib/2],[]).
 
+:- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(engine(runtime_control), [statistics/2]).
 

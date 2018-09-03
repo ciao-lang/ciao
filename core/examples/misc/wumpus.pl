@@ -16,6 +16,7 @@
 
 :- module(wumpus, [w/0,w/1]).
 
+:- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(library(lists)).
 :- use_module(library(aggregates)).

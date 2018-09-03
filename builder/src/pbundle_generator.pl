@@ -144,6 +144,7 @@ pbundle_generate_meta_(Target, Desc) :-
 		docs = Ds,
 		code = Fs].
 
+% TODO: duplicated?
 clauses_to_file(Desc, DescFile) :-
 	output_to_file(clauses_to_file_(Desc), DescFile).
 

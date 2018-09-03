@@ -10,6 +10,7 @@
 :- use_module(guardians).
 :- use_module(jugs).
 
+:- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(engine(runtime_control), [statistics/0]).
 

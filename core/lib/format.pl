@@ -8,13 +8,12 @@
 	[dcg,assertions,isomodes,datafacts]).
 
 
+:- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(library(system)).
 % :- use_module(library(dcg/dcg_tr)). % This is not at all needed!!
 % >> take '$format_print_float' & '$format_print_integer' out of emulator!DCG
 :- use_module(engine(internals)).
-:- use_module(engine(stream_basic)).
-:- use_module(engine(io_basic)).
 
 %% FOR TEMPORARILY PARTIALLY DOCUMENTING:
 :- use_module(library(assertions/doc_props)).

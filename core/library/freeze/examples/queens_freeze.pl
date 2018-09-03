@@ -1,6 +1,7 @@
 :- module(_, _, [datafacts]).
 
 :- use_module(engine(runtime_control), [statistics/2]).
+:- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(library(freeze)).
 :- use_module(engine(messages_basic), [message/2]).
@@ -13,7 +14,7 @@ counter(0).
 /* queens.pl */
 go:-
 	go_(12, T),
-	write('execution time is :'),write(T).
+	write('execution time is :'),write(T),nl.
 
 
 go_(Size, T):-

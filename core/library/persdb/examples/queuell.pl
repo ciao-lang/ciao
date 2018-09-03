@@ -1,5 +1,6 @@
 :- module(queuell, [main/0],['persdb/persdb_ll',iso]).
 
+:- use_module(library(streams)).
 :- use_module(library(read)).
 :- use_module(library(write)).
 :- use_module(library(aggregates)).

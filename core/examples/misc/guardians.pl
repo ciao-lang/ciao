@@ -27,8 +27,6 @@
  %%  make_cells(Cells,Start,State,Jail) should be used. 
 
 :- module(guardians, [guardians/3]).
-:- use_module(library(write)).
-
 
 guardians(NGuardians, NLocks, OpenCells):-
         make_jail(1, NLocks, OpenJail),

@@ -1,5 +1,4 @@
 :- use_package(clpq).
-:- use_module(library(write)).
 
 mmultiply([],_,[]).
 mmultiply([V0|Rest], V1, [Result|Others]):-  

@@ -408,6 +408,7 @@ meta_asserta_fact_nat(Fact) :-
         '$inserta'(Root, Ptr).
 
 
+%:- use_module(library(streams)).
 %:- use_module(library(write)).
 %trace(X):-
 %	write_term(user_error, X, []), 

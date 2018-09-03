@@ -2,7 +2,6 @@
 %:- module(queens, [q/0,do_queens/0],[profiler]).
 :- module(queens, [q/0,do_queens/0],[]).
 
-:- use_module(library(write)).
 :- use_module(engine(runtime_control), [statistics/2]).
 :- use_module(library(format)).
 

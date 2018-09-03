@@ -303,6 +303,7 @@ inc_c_number(M) :-
 
 :- if(defined(debug_translation)).
 % Code for debugging this translation
+:- use_module(library(streams)).
 :- use_module(library(write)).
 portray_clause(C):-
         write(C), nl.

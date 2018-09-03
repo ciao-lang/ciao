@@ -1,6 +1,6 @@
 
 :- module(size, [mem/0], []).
-:- use_module(library(write)).
+
 :- use_module(library(format)).
 :- use_module(engine(runtime_control), [statistics/0, statistics/2]).
 

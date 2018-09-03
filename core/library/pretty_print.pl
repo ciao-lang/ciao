@@ -11,8 +11,7 @@
 
 :- use_module(library(operators)).
 :- use_module(library(vndict)).
-:- use_module(engine(stream_basic)).
-:- use_module(engine(io_basic)).
+:- use_module(library(streams)).
 :- use_module(library(write)).
 
 %% -----------------------------------------------------------------------
