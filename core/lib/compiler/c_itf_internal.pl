@@ -544,9 +544,8 @@ ensure_imported(_, Module, F, A) :-
 define_ops :-
 	op(1150,  fx, [% (public),  % compatibility
 	               % (mode),    % compatibility
-	               (dynamic),
-	               (concurrent),
-	               (data),
+	               % (dynamic), % In dynamic.pl package
+	               % (concurrent), (data), % In datafacts.pl package
 	               (multifile),
 	               (meta_predicate),
 	               (discontiguous)]).

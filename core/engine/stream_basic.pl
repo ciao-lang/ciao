@@ -242,7 +242,7 @@ atm_or_int(X):- int(X).
 
 :- trust success file_search_path(X,Y) => (gnd(X), gnd(Y)).
 :- multifile file_search_path/2.
-:- dynamic file_search_path/2.
+:- dynamic(file_search_path/2). % (just declaration, dynamic not needed in this module)
 
 :- doc(library_directory(Path), "@var{Path} is a library path (a
    path represented by the @concept{path alias} @tt{library}). More
@@ -251,7 +251,7 @@ atm_or_int(X):- int(X).
 
 :- trust success library_directory(X) => gnd(X).
 :- multifile library_directory/1.
-:- dynamic library_directory/1.
+:- dynamic(library_directory/1). % (just declaration, dynamic not needed in this module)
 
 % TODO: Default behavior of this predicate may not be standard, fix
 %   (see fixed_absolute_file_name/3)

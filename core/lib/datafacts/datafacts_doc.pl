@@ -38,3 +38,5 @@
     predicates are defined in @lib{datafacts_rt}.
 ").
 
+% TODO: move ":- decl data(...)" here?
+% TODO: move ":- decl concurrent(...)" here?

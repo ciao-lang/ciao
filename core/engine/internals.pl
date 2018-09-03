@@ -927,11 +927,11 @@ poversion(version(67)).
 
 :- trust success library_directory(X) => gnd(X).
 :- multifile library_directory/1.
-:- dynamic library_directory/1.
+:- dynamic(library_directory/1). % (just declaration, dynamic not needed in this module)
 
 :- trust success file_search_path(X,Y) => (gnd(X), gnd(Y)).
 :- multifile file_search_path/2.
-:- dynamic file_search_path/2.
+:- dynamic(file_search_path/2). % (just declaration, dynamic not needed in this module)
 
 file_search_path(library, Lib) :- library_directory(Lib).
 file_search_path(Alias, Path) :- '$bundle_alias_path'(Alias, _Bundle, Path).

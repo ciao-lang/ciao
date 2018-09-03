@@ -25,7 +25,7 @@
 		message_t/1
 	    ],
 	    [
-		assertions, regtypes, isomodes, hiord
+		assertions, regtypes, isomodes, hiord, datafacts
 	    ]).
 
 %% NOTE: if you change the output format of messages you 

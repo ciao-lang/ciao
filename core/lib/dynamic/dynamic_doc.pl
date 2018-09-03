@@ -30,3 +30,4 @@
    analysis, and that for most uses the predicates listed in
    @ref{Fast/concurrent update of facts} suffice.").
 
+% TODO: move ":- decl dynamic(...)" here?

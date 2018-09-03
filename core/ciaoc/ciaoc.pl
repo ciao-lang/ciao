@@ -373,7 +373,7 @@ available when invoking @apl{ciaoc}:
 % ---------------------------------------------------------------------------
 
 :- multifile library_directory/1.
-:- dynamic library_directory/1.
+:- dynamic(library_directory/1). % (just declaration, dynamic not needed in this module)
 
 main(Args) :-
 	intercept((get_alias_path, parse_args(Args)),

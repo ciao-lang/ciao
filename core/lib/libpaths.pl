@@ -29,10 +29,12 @@
 
 
 :- trust success file_search_path(X,Y) => (gnd(X), gnd(Y)).
+:- multifile file_search_path/2.
+:- dynamic(file_search_path/2). % (just declaration, dynamic not needed in this module)
 
 :- trust success library_directory(X) => gnd(X).
-:- multifile file_search_path/2, library_directory/1.
-:- dynamic file_search_path/2, library_directory/1.
+:- multifile library_directory/1.
+:- dynamic(library_directory/1). % (just declaration, dynamic not needed in this module)
 
 :- doc(get_alias_path, "Consult the environment variable
    @tt{CIAOALIASPATH} and add facts to predicates

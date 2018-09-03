@@ -132,7 +132,7 @@ ext_find_pl_filename(File, CurrDir, AbsFile) :-
 % ---------------------------------------------------------------------------
 
 :- multifile file_search_path/2.
-:- dynamic file_search_path/2.
+:- dynamic(file_search_path/2). % (just declaration, dynamic not needed in this module)
 
 % E.g.,
 %   .../ciao/foo/lists.pl => library(lists)

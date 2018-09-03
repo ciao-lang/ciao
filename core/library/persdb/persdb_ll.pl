@@ -1,6 +1,7 @@
 :- package(persdb_ll).
 % Like 'persdb', but do not redefine builtins (*_fact predicates).
 
+:- use_package(datafacts). % TODO: needed? (at least for persdb_decl)
 :- use_package(library(persdb/persdb_decl)).
 
 :- use_module(library(persdb/persdb_rt), [%donotredefinebuiltins

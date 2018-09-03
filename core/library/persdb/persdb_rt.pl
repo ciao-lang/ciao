@@ -13,7 +13,7 @@
 	 update_files/0,
 	 update_files/1,
 	 create/2],
-        [assertions,regtypes,nortchecks, library(persdb/persdb_decl), datafacts]).
+        [assertions,regtypes,nortchecks,datafacts,library(persdb/persdb_decl)]).
 
 :- use_module(library(aggregates), [findall/3]).
 
