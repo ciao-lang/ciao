@@ -942,9 +942,9 @@ read_record_file_(PlName, Base, Type) :-
 	    warning_module_missing(Ln0, Ln1)
 	; true
 	),
-	do_use_package(prelude, Base, Module, Ln0, Ln1),
-	( nonvar(Packages), member(pure, Packages) -> 
+	( nonvar(Packages), member(Package, Packages), no_prelude(Package) -> 
 	    true
+%	; do_use_package(prelude, Base, Module, Ln0, Ln1)
 	; do_use_package(nonpure, Base, Module, Ln0, Ln1)
 	),
 	assert_export_list(Exports, Base, Ln0, Ln1),
@@ -965,6 +965,11 @@ read_record_file_(PlName, Base, Type) :-
 	assert_dyn_decl(Base, '$meta_args', 2, dynamic, 1, 1),
 	assert_dyn_decl(Base, '$imports', 5, dynamic, 1, 1),
 	close(Stream).
+
+% Packages that prevent the inclusion of nonpure
+%% Packages that prevent the inclusion of the prelude
+no_prelude(pure).
+no_prelude(noprelude).
 
 record_module_decl(sentence((:- module(Module, Exports)), VNs, _, Ln0, Ln1), Module, Base, Pl) :-
 	assertz_fact(clause_of(Base, 1, module(_, Exports), VNs, Pl, Ln0, Ln1)).
