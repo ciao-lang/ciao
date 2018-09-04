@@ -944,8 +944,7 @@ read_record_file_(PlName, Base, Type) :-
 	),
 	( nonvar(Packages), member(Package, Packages), no_prelude(Package) -> 
 	    true
-%	; do_use_package(prelude, Base, Module, Ln0, Ln1)
-	; do_use_package(nonpure, Base, Module, Ln0, Ln1)
+	; do_use_package(prelude, Base, Module, Ln0, Ln1)
 	),
 	assert_export_list(Exports, Base, Ln0, Ln1),
 	%
@@ -966,8 +965,7 @@ read_record_file_(PlName, Base, Type) :-
 	assert_dyn_decl(Base, '$imports', 5, dynamic, 1, 1),
 	close(Stream).
 
-% Packages that prevent the inclusion of nonpure
-%% Packages that prevent the inclusion of the prelude
+% Packages that prevent the inclusion of the prelude
 no_prelude(pure).
 no_prelude(noprelude).
 
