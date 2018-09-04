@@ -1,4 +1,4 @@
-:- module(metatypes_tr, [expand_metatypes/2], [pure]).
+:- module(metatypes_tr, [expand_metatypes/2], [noprelude]).
 
 % Add meta_predicate declarations from type declarations
 

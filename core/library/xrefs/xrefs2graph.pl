@@ -1,9 +1,8 @@
-
 :- module(xrefs2graph,[ xrefs2graph/2, xrefsnolabels/2 ],[assertions,pure]).
 
 :- use_module(library(sort), [sort/2]).
 :- use_module(engine(term_basic), [(=)/2]).
-:- use_module(engine(basiccontrol)).
+:- use_module(engine(basiccontrol), [(!)/0, (\+)/1]).
 
 %-----------------------------------------------------------------------------
 :- doc(xrefs2graph/2,"Converts a graph of xrefs to a dlgraph in the

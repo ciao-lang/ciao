@@ -116,11 +116,10 @@
    versions of these predicates or by importing them from other
    modules.
 
-   Importing explicitly from a builtin module, however, disables the
-   implicit importation of the rest of the builtin modules that would
-   be otherwise loaded (this feature is used for example by package
-   @lib{library(pure)} to define pure modules that do not import any
-   traditional Prolog builtins; i.e., @concept{pure Prolog} code).").
+   Moreover, the implicit importation of the basic modules can be
+   fully disabled by some special packages (for example, omitting all
+   default imports with @lib{noprelude}, or defining @concept{pure
+   Prolog} modules with the @lib{pure} package).").
 
 % ---------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 :- package(pure).
 :- use_package(initial).
 
-% This file is empty
+:- use_module(engine(basiccontrol),[','/2, fail/0, true/0]).
 
 %:- set_prolog_flag(unknown, fail).

@@ -2,7 +2,9 @@
 :- use_package(initial).
 
 % Package implicitly used in Ciao modules defined with module/3
-% (except if 'pure' package is used).
+% (except if 'noprelude' or 'pure' package is used).
+% 
+% This package is documented in BasicLang.lpdoc
 
 :- use_module(engine(arithmetic)).
 :- use_module(engine(atomic_basic)).
