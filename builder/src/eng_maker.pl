@@ -3,7 +3,7 @@
 :- doc(title,  "Engine maker").
 
 :- doc(author, "Jos@'{e} F. Morales").
-:- doc(author, "Ciao Deveveloper Team").
+:- doc(author, "The Ciao Developer Team").
 
 :- doc(module, "This module implements a minimalistic build system for
    the engine, which includes an incremental build system for C code,

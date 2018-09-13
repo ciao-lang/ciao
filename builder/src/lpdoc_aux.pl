@@ -2,7 +2,7 @@
 
 :- doc(title,  "Build documentation using LPdoc").
 :- doc(author, "Jos@'{e} F. Morales").
-:- doc(author, "Ciao Deveveloper Team").
+:- doc(author, "The Ciao Developer Team").
 
 :- doc(module, "This is a wrapper around @apl{lpdoc} to build the
    documentation of a bundle. It uses @tt{lpdoc} as an external

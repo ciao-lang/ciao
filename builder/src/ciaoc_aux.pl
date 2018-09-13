@@ -2,7 +2,7 @@
 
 :- doc(title,  "Build code using the Ciao compiler").
 :- doc(author, "Jos@'{e} F. Morales").
-:- doc(author, "Ciao Deveveloper Team").
+:- doc(author, "The Ciao Developer Team").
 
 :- doc(module, "This is a wrapper around @apl{ciaoc} (and other Ciao
    tools) that extends the functionality of the Ciao compiler:
