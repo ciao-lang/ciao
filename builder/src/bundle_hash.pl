@@ -2,7 +2,7 @@
 
 :- doc(title,  "Bundle hashing").
 :- doc(author, "Jos@'{e} F. Morales").
-:- doc(author, "The Ciao Developer Team").
+:- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module defines the operations to map the whole
    bundle source code to shorter identifiers (which can be precise

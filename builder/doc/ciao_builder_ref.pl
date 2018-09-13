@@ -4,7 +4,7 @@
 
 :- doc(title, "Build Automation for Ciao").
 
-:- doc(author, "The Ciao Developer Team").
+:- doc(author, "The Ciao Development Team").
 :- doc(author, "Jose F. Morales").
 
 % :- doc(logo, 'ciao-shadow-64h').
