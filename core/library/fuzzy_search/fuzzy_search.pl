@@ -8,7 +8,7 @@
 :- use_module(library(lists), [length/2, last/2]).
 :- use_module(library(hiordlib), [minimum/3]).
 
-:- doc(author, "Isabel Garcia Contreras").
+:- doc(author, "Isabel Garcia-Contreras").
 
 :- doc(title, "A fuzzy search and word metric library").
 

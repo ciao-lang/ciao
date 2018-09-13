@@ -1,7 +1,7 @@
 :- module(modblobs, [], [assertions, regtypes, datafacts]).
 
 :- doc(title, "Modules as blobs").
-:- doc(author, "Isabel Garcia Contreras").
+:- doc(author, "Isabel Garcia-Contreras").
 :- doc(author, "Jose F. Morales").
 
 % TODO: make it similar to typeslib? (identifiers to global objects)

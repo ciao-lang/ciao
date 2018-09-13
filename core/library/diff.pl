@@ -1,7 +1,7 @@
 :- module(diff, [diff/4, patch/3, diff_item/1], [assertions, hiord, regtypes]).
 
 :- doc(title, "Diff algorithm").
-:- doc(author, "Isabel Garcia Contreras").
+:- doc(author, "Isabel Garcia-Contreras").
 :- doc(author, "Jose F. Morales").
 
 :- doc(summary, "Algorithm for obtaining the minimum edit distance

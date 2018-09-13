@@ -33,7 +33,7 @@
 %% ------------------------------------------------------------
 
 :- doc(author, "Angel Fernandez Pineda").
-:- doc(author, "Isabel Garcia Contreras").
+:- doc(author, "Isabel Garcia-Contreras").
 
 :- doc(title, "The Ciao library browser").
 :- doc(subtitle, "A browser tool for the Ciao toplevel shell").
