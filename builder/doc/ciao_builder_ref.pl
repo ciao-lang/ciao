@@ -7,7 +7,7 @@
 :- doc(author, "The Ciao Development Team").
 :- doc(author, "Jose F. Morales").
 
-% :- doc(logo, 'ciao-shadow-64h').
+% :- doc(logo, 'ciao-logo').
 
 :- doc(subtitle_extra,"REFERENCE MANUAL").
 :- doc(subtitle_extra,"@bf{The Ciao Documentation Series}").

@@ -5,7 +5,7 @@
 :- doc(title,"The Ciao Internals").
 :- doc(subtitle,"The Ciao Compiler, Engine, and Runtime libraries").
 
-:- doc(logo, 'ciao-shadow-64h').
+:- doc(logo, 'ciao-logo').
 
 :- doc(subtitle_extra,"REFERENCE MANUAL").
 :- doc(subtitle_extra,"@bf{The Ciao Documentation Series}").
