@@ -128,15 +128,15 @@ assrt_body((Pr)):-               n_assrt_body(nabody(Pr,true,true,true,true)).
    in comments. Thus, @tt{p(Input,Parameter,Output)} is a valid head
    pattern.
 
-   @item A variable, as
-   above, but preceded by a ``@concept{mode}.'' This mode determines
-   in a compact way certain call or answer properties. For example,
-   the head pattern @tt{p(Input,+Parameter,Output)} is valid,
-   as long as @pred{+/1} is declared as a mode.
+   @item A variable, as above, but preceded by a ``@concept{mode}.''
+   This mode determines in a compact way certain call or answer
+   properties. For example, the head pattern
+   @tt{p(Input,+Parameter,Output)} is valid, as long as @pred{+/1} is
+   declared as a mode.
 
-   Acceptable modes are documented in @lib{library(basicmodes)} and
-   @lib{library(isomodes)}.  User defined modes are documented in
-   @pred{modedef/1}. @cindex{acceptable modes}
+   Some useful mode definitions can be found in the @lib{basicmodes}
+   and @lib{isomodes} libraries.  Users can define modes using the
+   @decl{modedef/1} declaration. @cindex{useful modes}
 
    @item Any term. In this case this term determines the instantiation
    state of the corresponding argument position of the predicate calls
