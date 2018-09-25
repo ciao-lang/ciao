@@ -24,7 +24,7 @@
 
 % ---------------------------------------------------------------------------
 % (Documentation)
-% TODO: implement documentation of interfaces
+% TODO: implement documentation of interfaces; see doccfg
 
 % :- trust pred menu_default( Menu , Flag , DefaultValue ) :
 % 	term * atm * atm
