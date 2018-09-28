@@ -62,16 +62,13 @@ is_menu_level0(menu_java_level=naive).
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(lists), [member/2, select/3]).
-
-member_and_remove(X, Xs, Ys) :- select(X, Xs, Ys), !.
-
 :- use_module(library(aggregates)).
 :- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(library(messages)).
 
 :- use_module(library(prompt)).
+:- use_module(library(lists), [member/2, select/3]).
 :- use_module(library(lists), [reverse/2, append/3, length/2]).
 
 :- data menu_flag/3.
