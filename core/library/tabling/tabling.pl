@@ -15,8 +15,9 @@
 :- doc(title,"Tabling execution").
  %% :- doc(subtitle,"(Using O-CHAT Technique)").
 
-:- doc(module, "This module supports the evaluation of predicates
-     using tabled resolution (@em{tabling}). Tabling is an alternative
+:- doc(stability,beta).
+:- doc(module, This module supports the evaluation of predicates using
+     tabled resolution (@em{tabling}). Tabling is an alternative
      execution strategy for logic programs that records calls and
      their answers in order to reuse them in future calls. It improves
      Prolog declarativity and can improve efficiency by avoiding
