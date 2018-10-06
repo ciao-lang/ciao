@@ -177,9 +177,11 @@ check_head(H, _, Spec, _) :-
         fail.
 check_head(H, M, Spec, ClData) :-
         functor(H, F, A),
+	% TODO:T309 use module_unconcat/3 (?)
         ( atom_concat('multifile:',_, F) ->
             ClData = 'multifile:\3\mfclause'(_,_)
         ; module_name(M, MN),
+	  % TODO:T309 use module_unconcat/3 (?)
 	  atom_concat(MN, ':', MC),
           atom_concat(MC, _, F) ->
             atom_concat(MC, '\3\clause', ClFun),

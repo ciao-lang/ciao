@@ -275,12 +275,14 @@ get_clause_id(structure(Name,Args), No, Name/Ar/No) :-
 % example in multifile clauses or user prolog files.
 
 mangle_clause(Module, Name/Ar/No, MangledName) :-
+	% TODO:T309 use runtime_control:module_unconcat/3
 	atom_codes(Name, NameC),
 	append(_ModuleC,":"||PredC,NameC),
 	!,
 	atom_codes(Pred, PredC),
 	atom_number(ArA, Ar),
 	atom_number(NoA, No),
+	% TODO:T309 use module_concat/3
 	atom_concat([Module,':', Pred, '/', ArA, '/', NoA, '$$'], MangledName).
 
 compile_internals([], _, []).

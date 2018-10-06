@@ -790,6 +790,7 @@ do_module_exp(QM, T, M, Primitive, Type, NT) :-
 meta_expansion_type(Type, X, M, QM, Primitive, NX, NG, NG_) :-
 	meta_expansion_type_(Type, X, M, QM, compile, Primitive, NX, NG, NG_).
 
+% TODO:T309 use module_concat/3
 :- export(module_concat/3).
 module_concat(user(_), X0, X) :- !,
         module_concat(user, X0, X).

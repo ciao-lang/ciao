@@ -699,8 +699,9 @@ current_debugged(Ms) :- findall(M, current_fact(debug_mod(M, _)), Ms).
 debug_module(M) :- atom(M), !,
 	( current_fact(debug_mod(M, _)) ->
 	    true
-	; atom_concat(M, ':', Mc),
-	    assertz_fact(debug_mod(M, Mc))
+	; % TODO:T309 use module_concat/3 (?)
+	  atom_concat(M, ':', Mc),
+	  assertz_fact(debug_mod(M, Mc))
 	).
 debug_module(M) :-
 	format(user_error, '{Bad module ~q - must be an atom}~n', [M]).

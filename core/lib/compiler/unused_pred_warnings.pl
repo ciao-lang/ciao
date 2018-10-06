@@ -319,6 +319,7 @@ is_being_used(Func, _, _) :-
 is_being_used(Func, Arity, Base) :-
 	defines_module(_, M),
 	atom(M),
+	% TODO:T309 use runtime_control:module_unconcat/3
 	atom_concat(M,   F0, Func),
 	atom_concat(':', F,  F0),
 	exports(Base, F, Arity0, _, Meta),
@@ -464,6 +465,7 @@ verify_dep(Base, M, FH, AH) :-
 	;
 	    (AL1 = AL ; get_meta_pred(M, _L, FL, AL1, AL, _)),
 	    current_fact(import_location(ML, F, AL1, _, _), Ref),
+	    % TODO:T309 use runtime_control:module_unconcat/3 (?)
 	    atom_concat(ML,  ':', ML0),
 	    atom_concat(ML0, F,   FL),
 	    erase(Ref)
@@ -478,6 +480,7 @@ verify_dep(Base, M, FH, AH) :-
 		    base_name(EndFile, BFile),
 		    defines_module(BFile, ML)
 		),
+		% TODO:T309 use runtime_control:module_unconcat/3 (?)
 		atom_concat(ML,  ':', ML1),
 		atom_concat(ML1, F,   FL) -> true
 	    ),
@@ -495,6 +498,7 @@ get_meta_pred(_M, _Pred, Func, Arity0, Arity, Meta) :-
 	!.
 get_meta_pred(M, _Pred, Func, Arity0, Arity, Meta) :-
 	(
+	    % TODO:T309 use module_concat/3
 	    ( atom_concat('multifile:', F, Func),
 		( var(Arity0) ->
 		    meta_args(M, Meta0),
@@ -508,6 +512,7 @@ get_meta_pred(M, _Pred, Func, Arity0, Arity, Meta) :-
 	    ;
 		(M = Module ; defines_module(_, Module)),
 		atom(Module),
+		% TODO:T309 use module_concat/3
 		atom_concat(Module,  ':', Module0),
 		atom_concat(Module0, F,   Func),
 		meta_args(Module, Meta0),

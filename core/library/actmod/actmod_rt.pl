@@ -429,6 +429,7 @@ rewrite_request(async, MG0, MG2, DefTopMod, ActRef) :-
 	MG2 = MG0,
 	ActRef = DefTopMod. % TODO:T253 see [new-actref]
 
+% TODO: like module_unconcat but using '.'
 % unconcat(+MG, +Mod, -G): Remove 'Mod.' from MG functor name to obtain G
 unconcat(MG, Mod, G) :-
 	MG =.. [MN|As],

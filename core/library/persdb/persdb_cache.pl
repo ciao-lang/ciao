@@ -54,6 +54,7 @@ add_term_to_file(Term, File, FilePerms) :-
 
 get_pred_files(Dir,DirPerms, Name, Arity, File, File_ops, File_bak):-
         add_final_slash(Dir, DIR),
+	% TODO:T309 use runtime_control:module_unconcat/3
         atom_codes(Name, NameString),
         append(Module,":"||PredName,NameString),
         atom_codes(Mod, Module),

@@ -194,6 +194,7 @@ get_pred_init(Call,ContPred) :-
 	name(N1,NName),
 	name(F,FName),	
 	module_name(Module),
+	% TODO:T309 use module_concat/3
 	append(Module,":",MAux),
 	append(MAux,FName,FullName),
 	append(FullName,NName,Name),
