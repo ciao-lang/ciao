@@ -25,6 +25,8 @@
 :- use_module(engine(internals), 
         [poversion/1, '$make_bytecode_object'/4, '$compiled_clause'/4,
          '$interpreted_clause'/2, '$set_property'/2, '$define_predicate'/2]).
+:- use_module(engine(internals), [module_concat/3]).
+:- use_module(engine(runtime_control), [module_unconcat/3]).
 
 :- use_module(library(compiler/pl2wam_tables)).
 
@@ -275,15 +277,12 @@ get_clause_id(structure(Name,Args), No, Name/Ar/No) :-
 % example in multifile clauses or user prolog files.
 
 mangle_clause(Module, Name/Ar/No, MangledName) :-
-	% TODO:T309 use runtime_control:module_unconcat/3
-	atom_codes(Name, NameC),
-	append(_ModuleC,":"||PredC,NameC),
+	module_unconcat(Name,_,Pred),
 	!,
-	atom_codes(Pred, PredC),
 	atom_number(ArA, Ar),
 	atom_number(NoA, No),
-	% TODO:T309 use module_concat/3
-	atom_concat([Module,':', Pred, '/', ArA, '/', NoA, '$$'], MangledName).
+	atom_concat([Pred, '/', ArA, '/', NoA, '$$'], MangledName0),
+	module_concat(Module,MangledName0,MangledName).
 
 compile_internals([], _, []).
 compile_internals([parsed_clause(Head,Body,Choice,No)|Cs], Profiled, [ClName-D|Ds]) :-
