@@ -187,8 +187,6 @@ define_flag(rtchecks_predloc,        [yes, no],                yes).
 define_flag(rtchecks_callloc,        [no, literal, predicate], predicate).
 define_flag(rtchecks_namefmt,        [short, long],            long).
 define_flag(rtchecks_abort_on_error, [yes, no],                no).
-%
-define_flag(unused_pred_warnings, [yes, no], no).
 
 % Keep asertions after reading
 % TODO: This is a temporary hack for assertions/assrt_lib. It needs better integration.
@@ -1370,23 +1368,17 @@ deprecated_decl_error(add_term_trans(_), 'Use add_term_trans/2').
 % ---------------------------------------------------------------------------
 :- doc(section, "'use_package' declaration").
 
+do_use_package([], _, _, _, _) :- !.
+do_use_package([F|Fs], Base, Module, Ln0, Ln1) :- !,
+	do_use_package(F, Base, Module, Ln0, Ln1),
+	do_use_package(Fs, Base, Module, Ln0, Ln1).
 do_use_package(F, Base, Module, Ln0, Ln1) :-
-	% Disable this type of warnings in packages:
-	do_push_pl_flag(unused_pred_warnings, no, Base, Ln0, Ln1),
-	do_use_package_(F, Base, Module, Ln0, Ln1),
-	do_pop_pl_flag(unused_pred_warnings, Base, Ln0, Ln1).
-
-do_use_package_([], _, _, _, _) :- !.
-do_use_package_([F|Fs], Base, Module, Ln0, Ln1) :- !,
-	do_use_package_(F, Base, Module, Ln0, Ln1),
-	do_use_package_(Fs, Base, Module, Ln0, Ln1).
-do_use_package_(F, Base, Module, Ln0, Ln1) :-
 	package_file(F, P), !,
 	( current_fact(package(Base,P)) -> true
 	; assertz_fact(package(Base,P)),
 	  do_include(package, P, Base, Module, Ln0, Ln1)
 	).
-do_use_package_(F, _, _, Ln0, Ln1) :-
+do_use_package(F, _, _, Ln0, Ln1) :-
 	compiler_error(Ln0, Ln1, bad_package_file(F)).
 
 package_file(F, P) :-

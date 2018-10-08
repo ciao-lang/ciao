@@ -7,15 +7,6 @@
 
 % (also available as reconfigurable prolog_flags)
 % TODO: declaration in modules should be extracted from this configuration
-:- bundle_flag(unused_pred_warnings, [
-    comment("Enable unused predicate warnings"),
-    details(
-      % .....................................................................
-      "If you wish to show warnings about unused predicates, set this\n"||
-      "variable to \"yes\"."),
-    config_prolog_flag(unused_pred_warnings,[yes,no],no),
-    interactive([advanced])
-]).
 :- bundle_flag(compress_exec, [
     config_prolog_flag(compress_exec,[yes,no],no)
 ]).

@@ -546,17 +546,6 @@ main(Args) :-
     "Show the stack of predicates that caused the failure. Instrument it \n\t"||
     "in the literal. This mode provides more information, because reports \n\t"||
     "also the literal in the body of the predicate").
-%
-:- flag_based_option(unused_pred_warnings, yes, [],
-    "Show warnings about unused predicates.  Note that a predicate is \n\t"||
-    "being used if it is exported, it appears in clause body of a \n\t"||
-    "predicate being used, in a multifile predicate, in a predicate \n\t"||
-    "used in :- initialization(...) or :- on_abort(...) \n\t"||
-    "declarations, or if it is the meta-argument of a metapredicate.").
-
-% TODO: Also if appears in the body of an assertion referred to a
-%   predicate being used, but that is not implemented, because the
-%   assertion reader is not included in the compiler yet -- EMM.
 
 % ---------------------------------------------------------------------------
 
