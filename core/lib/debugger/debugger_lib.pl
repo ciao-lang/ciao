@@ -42,6 +42,8 @@
 
 :- use_module(library(aggregates)).
 
+:- use_module(engine(internals), [module_concat/3]).
+:- use_module(engine(runtime_control), [module_unconcat/3]).
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(engine(messages_basic), [display_list/1]).
 :- use_module(engine(debugger_support)).
@@ -683,9 +685,9 @@ tracertc :-
     ;
 	true.
 
-:- data debug_mod/2.
+:- data debug_mod/1.
 
-current_debugged(Ms) :- findall(M, current_fact(debug_mod(M, _)), Ms).
+current_debugged(Ms) :- findall(M, current_fact(debug_mod(M)), Ms).
 
 :- pred debug_module(Module) : atm(Module)
 # "The debugger will take into acount module @var{Module}
@@ -697,19 +699,17 @@ current_debugged(Ms) :- findall(M, current_fact(debug_mod(M, _)), Ms).
 	  to be reloaded for source-level debugging.".
 
 debug_module(M) :- atom(M), !,
-	( current_fact(debug_mod(M, _)) ->
+	( current_fact(debug_mod(M)) ->
 	    true
-	; % TODO:T309 use module_concat/3 (?)
-	  atom_concat(M, ':', Mc),
-	  assertz_fact(debug_mod(M, Mc))
+	; assertz_fact(debug_mod(M))
 	).
 debug_module(M) :-
 	format(user_error, '{Bad module ~q - must be an atom}~n', [M]).
 
 in_debug_module(G) :-
 	functor(G, F, _),
-	current_fact(debug_mod(_, Mc)),
-	atom_concat(Mc, _, F).
+	current_fact(debug_mod(M)),
+	module_unconcat(F, M, _).
 
 :- pred nodebug_module(Module) : atm(Module)
 # "The debugger will not take into acount module @var{Module}.
@@ -718,7 +718,7 @@ in_debug_module(G) :-
           defining that module.".
 
 nodebug_module(M) :- % If M is a var, nodebug for all
-	retractall_fact(debug_mod(M, _)).
+	retractall_fact(debug_mod(M)).
 %        what_is_debugged.
 
 :- meta_predicate parse_functor_spec(?, ?, goal).
@@ -732,9 +732,8 @@ parse_functor_spec((S, Ss), GoalArg, Goal) :-
 parse_functor_spec(S, GoalArg, Goal) :-
 	Flag=f(0),
 	( functor_spec(S, Name, Low, High, M),
-	    % TODO:T309 use module_concat/3
-	    current_fact(debug_mod(M, Mc)),
-	    atom_concat(Mc, Name, PredName),
+	    current_fact(debug_mod(M)),
+	    module_concat(M, Name, PredName),
 	    '$current_predicate'(PredName, GoalArg),
 	    functor(GoalArg, _, N),
 	    N >= Low, N =< High,
