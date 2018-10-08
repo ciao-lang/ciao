@@ -28,7 +28,7 @@
 :- use_module(engine(debugger_support)).
 :- use_module(library(debugger/debugger_lib), [
 		adjust_debugger_state/2,
-		debug_mod/2,
+		in_debug_module/1,
 		debug_trace2/10,
 		do_once_command/3,
 		get_attributed_vars/3,
@@ -139,11 +139,6 @@ debuggable(_) :-
 	get_debugger_state(S),
 	arg(5, S, [a(_, Ancestor, _, _)|_]),
 	in_debug_module(Ancestor).
-
-in_debug_module(G) :-
-	functor(G, F, _),
-	current_fact(debug_mod(_, Mc)),
-	atom_concat(Mc, _, F).
 
 :- meta_predicate debug_call(goal).
 

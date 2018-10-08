@@ -4,7 +4,7 @@
 		breakpt/6,
 		current_debugged/1,
 		debug/0,
-		debug_mod/2,
+		in_debug_module/1,
 		debug_module/1,
 		debug_module_source/1,
 		debug_trace2/10,
@@ -706,6 +706,11 @@ debug_module(M) :- atom(M), !,
 debug_module(M) :-
 	format(user_error, '{Bad module ~q - must be an atom}~n', [M]).
 
+in_debug_module(G) :-
+	functor(G, F, _),
+	current_fact(debug_mod(_, Mc)),
+	atom_concat(Mc, _, F).
+
 :- pred nodebug_module(Module) : atm(Module)
 # "The debugger will not take into acount module @var{Module}.
           When issuing this command at the toplevel shell, the compiler is
@@ -727,6 +732,7 @@ parse_functor_spec((S, Ss), GoalArg, Goal) :-
 parse_functor_spec(S, GoalArg, Goal) :-
 	Flag=f(0),
 	( functor_spec(S, Name, Low, High, M),
+	    % TODO:T309 use module_concat/3
 	    current_fact(debug_mod(M, Mc)),
 	    atom_concat(Mc, Name, PredName),
 	    '$current_predicate'(PredName, GoalArg),
