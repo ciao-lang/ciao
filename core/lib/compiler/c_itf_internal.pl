@@ -81,7 +81,7 @@
 :- use_module(library(compiler/translation)).
 :- use_module(library(compiler/pl2wam)).
 :- use_module(library(compiler/srcdbg), [srcdbg_expand/6]).
-:- use_module(library(compiler/unused_pred_warnings)).
+%:- use_module(library(compiler/unused_pred_warnings)). % TODO: remove
 :- use_module(library(compiler/global_module_options)).
 :- use_module(library(fastrw)).
 :- use_module(library(varnames/complete_dict)).
@@ -188,6 +188,8 @@ define_flag(rtchecks_predloc,        [yes, no],                yes).
 define_flag(rtchecks_callloc,        [no, literal, predicate], predicate).
 define_flag(rtchecks_namefmt,        [short, long],            long).
 define_flag(rtchecks_abort_on_error, [yes, no],                no).
+%
+define_flag(unused_pred_warnings, [yes, no], no).
 
 % Keep asertions after reading
 % TODO: This is a temporary hack for assertions/assrt_lib. It needs better integration.
@@ -1151,12 +1153,12 @@ check_other_defines(_, _, _, _).
 % :- pred read_assertion/6 + not_fails.
 read_assertion(Assr, M, S, LB, LE, Dict) :-
 	( normalize_assertion(M, Assr, Pred, Status, T, B, S, LB, LE) ->
-	  assertz_fact(assertion_read(Pred, M, Status, T, B, Dict, S, LB, LE),
-	      Ref),
-	  ( current_prolog_flag(unused_pred_warnings, yes) ->
-	    assert_upw_assrt(Ref, M)
-	  ; true
-	  )
+	    assertz_fact(assertion_read(Pred, M, Status, T, B, Dict, S, LB, LE))
+%U	  assertz_fact(assertion_read(Pred, M, Status, T, B, Dict, S, LB, LE), Ref)
+%U	  ,( current_prolog_flag(unused_pred_warnings, yes) ->
+%U	    assert_upw_assrt(Ref, M)
+%U	  ; true
+%U	  )
 	; true % was not an assertion
 	).
 
@@ -1172,15 +1174,15 @@ process_expanded_data((:- Decl), Base, M, VNs,_Sings, Pl, Ln0, Ln1) :- !,
 	; error_in_lns(Ln0, Ln1, error, ['unknown declaration ',~~(Decl)])
 	),
 	( current_prolog_flag(read_assertions, yes), atom(M) ->
-	  read_assertion(Decl, M, Pl, Ln0, Ln1, VNs)
+	    read_assertion(Decl, M, Pl, Ln0, Ln1, VNs)
 	; true
 	),
-	( current_prolog_flag(unused_pred_warnings, yes) ->
-	  assert_upw_decl(Decl, Base, M, loc(Pl, Ln0, Ln1))
-	; true
-	),
+%U	( current_prolog_flag(unused_pred_warnings, yes) ->
+%U	  assert_upw_decl(Decl, Base, M, loc(Pl, Ln0, Ln1))
+%U	; true
+%U	),
 	assertz_fact(clause_of(Base, 1, Decl, VNs, Pl, Ln0, Ln1)).
-process_expanded_data((H :- B), Base, M, VNs, Sings, Pl, Ln0, Ln1) :- !,
+process_expanded_data((H :- B), Base, _M, VNs, Sings, Pl, Ln0, Ln1) :- !,
 	nonvar(H),
 	callable(H),
 	functor(H, F, A),
@@ -1193,11 +1195,12 @@ process_expanded_data((H :- B), Base, M, VNs, Sings, Pl, Ln0, Ln1) :- !,
 	defined_in_source(Base, F, A),
 	clause_check(F, A, Base, Ln0, Ln1),
 	singleton_check(Sings, F, A, Ln0, Ln1),
-	assertz_fact(clause_of(Base, H, B1, VNs, Pl, Ln0, Ln1), Ref),
-	( current_prolog_flag(unused_pred_warnings, yes) ->
-	  assert_upw_pred(Ref, M)
-	; true
-	),
+	assertz_fact(clause_of(Base, H, B1, VNs, Pl, Ln0, Ln1)),
+%U	assertz_fact(clause_of(Base, H, B1, VNs, Pl, Ln0, Ln1), Ref),
+%U	( current_prolog_flag(unused_pred_warnings, yes) ->
+%U	  assert_upw_pred(Ref, M)
+%U	; true
+%U	),
 	( dyn_decl(Base, F, A, dynamic) ->
 	    dynamic_handling(Base, F, A, H, B1, VNs, Pl, Ln0, Ln1)
 	; true
@@ -2391,17 +2394,18 @@ stream_of_file(Path, Dir, Stream, Ref) :-
 :- doc(section, "Expand and check assertions").
 
 check_assertions_syntax(M) :-
-	current_fact(assertion_read(_P, M, _S, T, B, Dict, S, LB, LE), ARef),
+	current_fact(assertion_read(_P, M, _S, T, B, Dict, S, LB, LE)),
+%U	current_fact(assertion_read(_P, M, _S, T, B, Dict, S, LB, LE), ARef),
 %	erase(ARef),
 	( T \== modedef, T \== test -> % Skip tests assertions, not processed here
 	    asserta_fact(location(S, LB, LE), LRef),
-	    assrt_module_expansion(M, T, B, Dict, Def, H, Props),
-	    erase(LRef),
-	    retract_fact(upw_assrt(ARef, M)),
-	    Loc = loc(S, LB, LE),
-	    record_assrt_dependency(M, T, Def, Loc, H, Props)
-	;
-	    retract_fact(upw_assrt(ARef, M))
+	    assrt_module_expansion(M, T, B, Dict, _Def, _H, _Props), % TODO: save? (e.g., for ciaopp/lpdoc)
+	    erase(LRef)
+%U	    ,retract_fact(upw_assrt(ARef, M)),
+%U	    Loc = loc(S, LB, LE),
+%U	    record_assrt_dependency(M, T, Def, Loc, H, Props)
+	; true
+%U	    retract_fact(upw_assrt(ARef, M))
 	),
 	fail.
 check_assertions_syntax(_).
@@ -2462,15 +2466,15 @@ compiler_pass(Source, Base, Module, Mode, Ok) :-
 	compile_goal_decl(initialization, Base, Module, Mode),
 	compile_goal_decl(on_abort, Base, Module, Mode),
 	compile_clauses(Base, Module, Mode),
-	( current_prolog_flag(unused_pred_warnings, yes) ->
-	  record_imports_dependencies(Base, Module)
-	; true
-	),
+%U	( current_prolog_flag(unused_pred_warnings, yes) ->
+%U	  record_imports_dependencies(Base, Module)
+%U	; true
+%U	),
 	( current_prolog_flag(read_assertions, yes) ->	
 	  check_assertions_syntax(Module)
 	; true
 	),
-	unused_pred_warnings(Base, Module),
+%U	unused_pred_warnings(Base, Module),
 	(current_fact(mexpand_error) -> Ok = no ; Ok = yes),
 	( Ok = yes ->
 	    compile_ldlibs(Base, Module, Mode),
@@ -2484,7 +2488,7 @@ compiler_pass(Source, Base, Module, Mode, Ok) :-
 	del_clause_trans(Module),
 	del_goal_trans(Module),
 	end_brace_if_needed,
-	cleanup_upw_db(Module),
+%U	cleanup_upw_db(Module),
 	cleanup_compilation_data.
 
 % ---------------------------------------------------------------------------
@@ -2534,12 +2538,12 @@ compile_clauses(Base, Module, Mode) :-
 	expand_clause(0, 0, Module, _, _, _), % Translator initialization
 	current_fact(clause_of(Base,H,B,Dict,Src,Ln0,Ln1), CRef),
 	  erase(CRef),
-	  Loc = loc(Src,Ln0,Ln1),
+%U	  Loc = loc(Src,Ln0,Ln1),
 	  asserta_fact(location(Src,Ln0,Ln1), Ref),
 	  ( number(H) ->
 	    true
 	  ; module_expansion(H, B, Module, Dict, Mode, _, _, H2, B2),
-	    record_pred_dependency(CRef, Module, H2, B2, Loc),
+%U	    record_pred_dependency(CRef, Module, H2, B2, Loc),
 	    compile_clause(Mode, H2, B2, Module)
 	  ),
 	  erase(Ref),
@@ -2618,10 +2622,10 @@ compile_goal_decls_([loc(Decl,Src,Ln0,Ln1)|_], DeclM, Module, Mode) :-
 	    DeclM2 = 'multifile:$on_abort'(XX)
 	; fail
 	),
-	( current_prolog_flag(unused_pred_warnings, yes) ->
-	  record_pred_dependency(Module, DeclM2, Goal1, loc(Src,Ln0,Ln1))
-	; true
-	),
+%U	( current_prolog_flag(unused_pred_warnings, yes) ->
+%U	  record_pred_dependency(Module, DeclM2, Goal1, loc(Src,Ln0,Ln1))
+%U	; true
+%U	),
 	compile_clause(Mode, DeclM2, Goal1, Module),
 	erase(Ref),
 	fail.
