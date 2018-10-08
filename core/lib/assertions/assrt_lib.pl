@@ -175,7 +175,6 @@ get_code_and_related_assertions_opts(I,Opts,M,Base,Suffix,Dir):-
 	;  Verb = quiet ),
 %	push_prolog_flag(runtime_checks, no),
 	push_prolog_flag(read_assertions, no), % Bug: needs better integration
-	push_prolog_flag(unused_pred_warnings, no), % Bug: this needs read_assertions
 	push_prolog_flag(keep_assertions, yes), % Do not clean assertions!
         error_protect(ctrlc_clean(
 		process_files_from(I, asr, any, 
@@ -183,7 +182,6 @@ get_code_and_related_assertions_opts(I,Opts,M,Base,Suffix,Dir):-
                                    false, false, needs_processing(I,Verb))
 				 )),
 	pop_prolog_flag(keep_assertions), % Do not clean assertions!
-	pop_prolog_flag(unused_pred_warnings),
 	pop_prolog_flag(read_assertions),
 %	pop_prolog_flag(runtime_checks),
 	get_file_data(I,Base,M,Suffix,Dir).

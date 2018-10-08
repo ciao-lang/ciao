@@ -97,12 +97,11 @@ regtype(A,P):- prop(A,P).
          abstract_type(T):- list(T).
         @end{verbatim}
 ").
-:- push_prolog_flag(unused_pred_warnings, no).
+
 :- prop prop_abs(Prop)
    # "@var{Prop} is a @concept{property abstraction}.".
 
 :- impl_defined(prop_abs/1).
-:- pop_prolog_flag(unused_pred_warnings).
 
 :- trust pred callme(A,B) : callable(A).
 :- multifile callme/2.

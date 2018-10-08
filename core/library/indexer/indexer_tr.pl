@@ -93,11 +93,9 @@ clean_indexer_db(Mod) :-
 % TODO: Using dynamic clauses.
 %       Isolate in other module, or implement in other way?
 
-:- push_prolog_flag(unused_pred_warnings, no).
 % Note: hash_term/2 is invoked from dynamically asserted clauses of
 % index_hash_index/4
 :- use_module(library(indexer/hash), [hash_term/2]).
-:- pop_prolog_flag(unused_pred_warnings).
 
 :- dynamic index_hash_index/4.
 

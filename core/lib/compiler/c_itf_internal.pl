@@ -3378,7 +3378,6 @@ compilation_mode(_, _, Profiling) :-
 % ---------------------------------------------------------------------------
 :- doc(section, "Load actions for load_compile").
 
-:- push_prolog_flag(unused_pred_warnings, no).
 load_interpreted(Source, Base, Module) :-
 	now_doing(['Consulting ',Source]),
 	compiler_pass(Source, Base, Module, interpreted, _Ok),
@@ -3406,7 +3405,6 @@ load_make_po(Base, Source, Dir, PoName, Profiling, Module) :-
 	),
 	end_doing,
 	compute_pred_module(Module).
-:- pop_prolog_flag(unused_pred_warnings).
 
 compute_pred_module(M) :-
 	retract_fact(incore_mode_of(Head, Mode)),

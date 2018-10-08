@@ -1,5 +1,3 @@
-:- push_prolog_flag(unused_pred_warnings, no).
-
 :- use_module(library(aggregates), [findall/4]).
 
 % TODO:
@@ -19,4 +17,4 @@
             aggregates:findall(u(Rest,T,Goal), '$bfcl'(A, Rest_, T), Us, Us_)
         ; aggregates:findall(u(Rest,Rest_,Goal), A, Us, Us_)
         ).
-:- pop_prolog_flag(unused_pred_warnings).
+

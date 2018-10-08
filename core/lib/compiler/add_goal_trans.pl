@@ -28,8 +28,6 @@ add_all_goal_trans([Prior-Tr|KVs], M) :-
 % ---------------------------------------------------------------------------
 % Priority queues (for storing transformations in order)
 
-:- push_prolog_flag(unused_pred_warnings, no).
-
 % TODO: move to sort? or define other adt?
 :- use_module(library(sort), [keysort/2]).
 
@@ -55,4 +53,4 @@ pqueue_values([], []).
 pqueue_values([_-V|Xs], [V|Vs]) :-
 	pqueue_values(Xs, Vs).
 
-:- pop_prolog_flag(unused_pred_warnings).
+

@@ -55,8 +55,8 @@ cmd_rw(global_install(Flags), Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
 %
 cmd_fmt(local_install_paranoid, [opts([interactive]), target_args, config_flags]).
 cmd_rw(local_install_paranoid(Flags), Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
-	Flags2 = [flag(builder:instype, 'local'),
-	          flag(builder:unused_pred_warnings, 'yes')|Flags],
+	Flags2 = [flag(builder:instype, 'local')
+	          /*,flag(builder:unused_pred_warnings, 'yes')*/|Flags], % TODO: enable lints, style checks, analysis, etc.?
 	Cmd2 = full_install(Flags2),
 	Opts2 = Opts, Args2 = Args,
 	CmdFmt2 = [target_args].
