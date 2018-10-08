@@ -18,6 +18,7 @@
         current_atom/1,
         new_atom/1,
 	current_module/1,
+	module_unconcat/3,
 	%
 	predicate_property/2,
 	predicate_property/3, % (+1 because of addmodule)
@@ -379,6 +380,21 @@ current_module(Module) :- '$current_module'(Module).
 
 % ---------------------------------------------------------------------------
 
+% The reverse of internals:module_concat/3
+% TODO: move to internals?
+% TODO: This is really inefficient; write in C
+%       (or adopt a hash-table approach like in optim_comp)
+module_unconcat(MF, M, F) :-
+	atom_codes(MF, MFc),
+	append(Mc, [0':|Fc], MFc), !,
+	atom_codes(M, Mc),
+	atom_codes(F, Fc).
+
+append([], Ys, Ys).
+append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs).
+
+% ---------------------------------------------------------------------------
+
 % TODO: This may be safe to include in a intronspection (or reflection
 %   if some form of self-modification is allowed)
 
@@ -512,31 +528,17 @@ predicate_property_mod(_IM, EM, F, N, Prop) :-
 	'$meta_args'(EM, G),
 	Prop = meta_predicate(G).
 
-% The reverse of module_concat
-% TODO: This is really inefficient; write in C
-%       (or adopt a hash-table approach like in optim_comp)
-module_unconcat(MF, M, F) :-
-	atom_codes(MF, MFc),
-	append(Mc, [0':|Fc], MFc), !,
-	atom_codes(M, Mc),
-	atom_codes(F, Fc).
-
-append([], Ys, Ys).
-append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs).
-
-/*
-% from the analysis:
-%LibCert% :- true success predicate_property(A,B) => ( callable(A), rt20(B) ).
-
-:- prop rt20/1 + regtype.
-
-rt20(compiled).
-rt20(concurrent).
-rt20(dynamic).
-rt20(interpreted).
-rt20(multifile).
-rt20(wait).
-*/
+%% % from the analysis:
+%% %LibCert% :- true success predicate_property(A,B) => ( callable(A), rt20(B) ).
+%% 
+%% :- prop rt20/1 + regtype.
+%% 
+%% rt20(compiled).
+%% rt20(concurrent).
+%% rt20(dynamic).
+%% rt20(interpreted).
+%% rt20(multifile).
+%% rt20(wait).
 
 % ---------------------------------------------------------------------------
 
