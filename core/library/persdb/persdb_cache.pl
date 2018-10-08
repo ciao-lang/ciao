@@ -4,6 +4,8 @@
 	 get_pred_files/7, keyword/1, persistent/5],
 	[assertions, datafacts]).
 
+:- use_module(engine(runtime_control), [module_unconcat/3]).
+
 :- use_module(engine(stream_basic)).
 :- use_module(library(terms_io), [term_write/1]).
 :- use_module(library(lists)).
@@ -54,10 +56,8 @@ add_term_to_file(Term, File, FilePerms) :-
 
 get_pred_files(Dir,DirPerms, Name, Arity, File, File_ops, File_bak):-
         add_final_slash(Dir, DIR),
-	% TODO:T309 use runtime_control:module_unconcat/3
-        atom_codes(Name, NameString),
-        append(Module,":"||PredName,NameString),
-        atom_codes(Mod, Module),
+	module_unconcat(Name, Mod, PredN),
+	atom_codes(PredN, PredName),
         atom_concat(DIR, Mod, DirMod),
         create_dir(DirMod,DirPerms),
         number_codes(Arity, AS),

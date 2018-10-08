@@ -1,5 +1,6 @@
 :- module(tabling_tr, [do_term_expansion/3], [dynamic]).
 
+:- use_module(engine(internals), [module_concat/3]).
 :- use_module(engine(io_basic)).
 :- use_module(library(lists), [reverse/2, append/3]).
 
@@ -14,11 +15,9 @@
 do_term_expansion(0,_,Module) :-
 	assert('trans$tabled'(0,0)), retractall('trans$tabled'(_,_)),
 	assert('trans$default'((prolog))),
-	(
-	    Module = user(_) ->
-	    Mod = "user"
-	;
-	    atom_codes(Module,Mod)
+	( Module = user(_) ->
+	    Mod = user
+	; Mod = Module
 	),
 	assert(module_name(Mod)).
 
@@ -187,18 +186,12 @@ convert_tabled_term(T,NT) :-
 	  ;
 	    NT = T
 	).
-	
+
 get_pred_init(Call,ContPred) :-
 	functor(Call,F,Arity),
-        N1 is 0,
-	name(N1,NName),
-	name(F,FName),	
+	atom_concat(F,'0',F0),
 	module_name(Module),
-	% TODO:T309 use module_concat/3
-	append(Module,":",MAux),
-	append(MAux,FName,FullName),
-	append(FullName,NName,Name),
-	name(ContPredName,Name),
+	module_concat(Module,F0,ContPredName),
 	functor(ContPred,ContPredName,Arity),
  	put_args(ContPred,Call,Arity).
 

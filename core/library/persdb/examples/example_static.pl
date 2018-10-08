@@ -1,4 +1,4 @@
-:- module(example_static,[main/1],[persdb,iso]).
+:- module(example_static,[main/0],[persdb,iso]).
 
 %% Declare the directory associated to the key "db" where the
 %% persistence sets of the persistent predicates are stored:

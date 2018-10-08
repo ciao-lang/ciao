@@ -381,9 +381,8 @@ current_module(Module) :- '$current_module'(Module).
 % ---------------------------------------------------------------------------
 
 % The reverse of internals:module_concat/3
-% TODO: move to internals?
-% TODO: This is really inefficient; write in C
-%       (or adopt a hash-table approach like in optim_comp)
+% TODO: move together with internals:module_concat/3?
+% TODO: inefficient, write in C or adopt a hash-table approach like in optim_comp
 module_unconcat(MF, M, F) :-
 	atom_codes(MF, MFc),
 	append(Mc, [0':|Fc], MFc), !,
