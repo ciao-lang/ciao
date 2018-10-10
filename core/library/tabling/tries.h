@@ -8,7 +8,7 @@
 
 #if !defined(_CIAO_ABSMACH_PREDEF_H)
 // TODO: Why not a typedef or Ciao definition? (JFMC)
-#define tagged_t unsigned long int
+// #define tagged_t unsigned long int
 #endif
 
 /* --------------------------- */
@@ -84,8 +84,8 @@
 
 typedef struct trie_hash {
   tagged_t entry;  /* for compatibility with the trie_node data structure */
-  int number_of_buckets;
-  int number_of_nodes;
+  intmach_t number_of_buckets;
+  intmach_t number_of_nodes;
   trie_node_t **buckets;
   struct trie_hash *next;
   struct trie_hash *prev;
@@ -107,9 +107,9 @@ typedef struct trie_hash {
 #define SIZEOF_TR_BUCKET  sizeof(TYPE_TR_NODE *)
 
 #define AS_TR_NODE_NEXT(ADDRESS)					\
-  (TrNode)((int)(ADDRESS) - sizeof(tagged_t) - 2 * sizeof(trie_node_t *))
+  (TrNode)((intmach_t)(ADDRESS) - sizeof(tagged_t) - 2 * sizeof(trie_node_t *))
 #define AS_TR_HASH_NEXT(ADDRESS)					\
-  (TrHash)((int)(ADDRESS)-sizeof(tagged_t)-2*sizeof(int)-sizeof(trie_node_t**))
+  (TrHash)((intmach_t)(ADDRESS)-sizeof(tagged_t)-2*sizeof(intmach_t)-sizeof(trie_node_t**))
 
 /* --------------------------- */
 /*           Macros            */
@@ -270,9 +270,9 @@ TrNode put_trie_entry(TrNode node, tagged_t entry, struct sf* sf);
 TrNode put_trie_answer(TrNode node, struct sf* ans, struct attrs* new_attrs);
 CVOID__PROTO(get_trie_answer, TrNode node, struct sf *sf);
 void remove_trie_entry(TrNode node);
-void trie_stats(int *nodes, int *hashes, int *buckets, int *memory);
-void trie_max_stats(int *nodes, int *hashes, int *buckets, int *memory);
-void trie_usage(TrNode node, int *entries, int *nodes, int *virtual_nodes);
+void trie_stats(intmach_t *nodes, intmach_t *hashes, intmach_t *buckets, intmach_t *memory);
+void trie_max_stats(intmach_t *nodes, intmach_t *hashes, intmach_t *buckets, intmach_t *memory);
+void trie_usage(TrNode node, intmach_t *entries, intmach_t *nodes, intmach_t *virtual_nodes);
 void print_trie(TrNode node);
 #endif
 

@@ -12,6 +12,29 @@
 /* -------------- */
 /* WARNING: these macros need Ciao tag scheme */
 
+#if defined(x86_64) || defined(Sparc64) || defined(ppc64) /* 64-bit */
+#define PairInitTag  0xC000000000000001  //to mark the begining of a list in trie.c
+#define PairEndTag   0xD000000000000001  //to mark the end of a list in trie.c
+
+#define CommaInitTag 0xB000000000000001  //to mark the begining of comma functor
+#define CommaEndTag  0xF000000000000001  //to mark the end of comma functor in trie.c
+
+#define LargeInitTag 0xB000000000000002  //to mark the begining of a large integer
+#define LargeEndTag  0xF000000000000002  //to mark the end of a large integer in trie.c
+
+#define FloatInitTag 0xB000000000000003  //to mark the begining of a float in trie.c
+#define FloatEndTag  0xF000000000000003  //to mark the end of a float in trie.c
+
+#define VarTrie      0xE000000000000001  //ID of trie vars
+#define AttrTrie     0xE000000000000002  //ID of trie attrs
+#define TrieVarIndex(TERM)  (((TERM) & 0x0FFFFFFFFFFFFFFF) >> 3)
+
+#define EMPTY_LIST   0xA0000000000000E0
+#define INTEGER_MARK 0xB000000000000008
+#define FLOAT_MARK   0x900000000000000C
+
+# else /* 32-bit */
+
 #define PairInitTag  0xC0000001  //to mark the begining of a list in trie.c
 #define PairEndTag   0xD0000001  //to mark the end of a list in trie.c
 
@@ -27,13 +50,17 @@
 #define VarTrie      0xE0000001  //ID of trie vars
 #define AttrTrie     0xE0000002  //ID of trie attrs
 #define TrieVarIndex(TERM)  (((TERM) & 0x0FFFFFFF) >> 3)
-#define NOEXECUTING  0x88000001
+
+#define EMPTY_LIST   0xA00000E0
+#define INTEGER_MARK 0xB0000008
+#define FLOAT_MARK   0x9000000C
+# endif /* end if 64-bit else 32-bits*/
+
+#define NOEXECUTING  atom_off
+
 
 //---------------------------//
 
-#define EMPTY_LIST 0xA00000E0
-#define INTEGER_MARK 0xB0000008
-#define FLOAT_MARK 0x9000000C
 #define GTOP state->worker_registers->global_top
 #define P_GTOP  w->global_top
 #define REGISTERS state->worker_registers
@@ -48,6 +75,8 @@
 #define MkAtomTerm(ATOM) (MakeString(ATOM))
 #define MkPairTerm(HEAD,TAIL) (chat_make_list(Arg->misc->goal_desc_ptr,(HEAD),(TAIL)))
 #define MkApplTerm(FUNCTOR,ARITY,ARGS) (chat_make_functor(Arg->misc->goal_desc_ptr,(FUNCTOR),(ARITY),(ARGS))) 
+/* From termdefs.h PointerToTerm */
+#define MkPtrTerm(INT) ((tagged_t)(INT) ^ (TaggedZero^MallocBase))
           
 
 /* ------------------------ */
@@ -61,7 +90,8 @@
 #define ArgOfTerm(A,TERM) (*TagToArg(TERM,A))
 #define NameOfFunctor(FUNCTOR) (((atom_t *)TagToAtom(SetArity(TagToHeadfunctor(FUNCTOR),0)))->name)
 #define ArityOfFunctor(FUNCTOR)(Arity(TagToHeadfunctor(FUNCTOR)))
-
+/* From termdefs.h TermToPointer */
+#define PtrOfTerm(TERM) ((tagged_t *)((TERM) ^ (TaggedZero^MallocBase)))
 
 /* -------------------- */
 /*      Test Terms      */
@@ -74,8 +104,14 @@
 #define IsVarTerm(TERM) (IsVar(TERM))
 #define IsNonVarTerm(TERM) (!IsVar(TERM))
 #define IsFreeVar(X) (IsVar(X) && ((X) == *TagToPointer(X)))
-#define IsTrieVar(TERM)  (((TERM) & 0xF0000003) == VarTrie)
+
+#if defined(x86_64) || defined(Sparc64) || defined(ppc64) /* 64-bit */
+#define IsTrieVar(TERM)   (((TERM) & 0xF000000000000003) == VarTrie)
+#define IsTrieAttr(TERM)  (((TERM) & 0xF000000000000003) == AttrTrie)
+#else /* 32-bit */
+#define IsTrieVar(TERM)   (((TERM) & 0xF0000003) == VarTrie)
 #define IsTrieAttr(TERM)  (((TERM) & 0xF0000003) == AttrTrie)
+#endif  /* end if 64-bit else 32-bit */
 
 /* -------------------- */
 /*      Unification     */

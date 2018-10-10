@@ -7,10 +7,16 @@ tagged_t chat_make_var(goal_descriptor_t *state)
   return resul;
 }			      
 
-tagged_t chat_make_integer(goal_descriptor_t *state, int i) 
+tagged_t chat_make_integer(goal_descriptor_t *state, intmach_t i) 
 {
   ciao_ensure_heap(state, 4);  //change to in my_heap
   return MakeInteger(REGISTERS, i);
+}
+
+tagged_t chat_make_pointer(goal_descriptor_t *state, intmach_t i) 
+{
+  ciao_ensure_heap(state, 4);
+  return MakeLarge(REGISTERS, i);
 }
 
 tagged_t chat_make_float(goal_descriptor_t *state, double f) 
@@ -28,13 +34,13 @@ tagged_t chat_make_list(goal_descriptor_t *state, tagged_t head, tagged_t tail)
   return list;
 }
 
-tagged_t chat_make_functor(goal_descriptor_t *state, tagged_t atom, int arity, tagged_t *args) 
+tagged_t chat_make_functor(goal_descriptor_t *state, tagged_t atom, intmach_t arity, tagged_t *args) 
 {
   worker_t * w = REGISTERS;
   if (arity == 0) return atom;
   else 
     {
-      int i;
+      intmach_t i;
       ciao_ensure_heap(state, 2 + arity);
       HeapPush(P_GTOP, atom);
       for (i = 0; i < arity; i++) HeapPush(P_GTOP, args[i]);

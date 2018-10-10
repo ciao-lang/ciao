@@ -16,7 +16,7 @@
  %% :- doc(subtitle,"(Using O-CHAT Technique)").
 
 :- doc(stability,beta).
-:- doc(module, This module supports the evaluation of predicates using
+:- doc(module, "This module supports the evaluation of predicates using
      tabled resolution (@em{tabling}). Tabling is an alternative
      execution strategy for logic programs that records calls and
      their answers in order to reuse them in future calls. It improves
@@ -25,7 +25,7 @@
      @cite{tamaki.iclp86-short,Warren92-short}. Tabling is guaranteed
      to terminate when Prolog programs have the @em{bounded term-depth
      property}. Some examples of the use of tabling can be found in
-     the sub-directory @em{examples} of the tabling library.
+     the sub-directory @em{tabling\_examples} of the tabling library.
 
      Adding a @decl{table/1} declaration to a predicate makes the
      compiler and run-time system distinguish the first occurrence
@@ -63,13 +63,22 @@
      system.
 
      Finally, our tabling implementation supports the combination of
-     tabling with constraints. By using @decl{const\_table\_module/1}
-     the user indicates the constraint domain to be combined with
-     tabling. This constraint domain must implement the predicates
-     @pred{lookup\_attr\_call/5}, @pred{lookup\_attr\_answer/4},
-     @pred{reinstall\_gen\_space/2} and @pred{consume\_attr\_answer/2}
-     as an API for the tabling engine. An implementation example can be
-     found in the @lib{different\_constraints} library.").
+     tabling with constraints. By using the TCLP interface of a
+     constraint solver, e.g., @decl{:- use_package(t\_clpq)} the
+     tabling engine uses the entailment check provided by the
+     constraint solver to detect more particular calls / answers. Some
+     examples of the use of TCLP can be found in the sub-directory
+     @em{tclp\_examples} of the tabling library.
+
+     The TCLP interface of a constraint solver must implement the
+     predicates @pred{call_domain_projection/2},
+     @pred{answer_domain_projection/2},
+     @pred{call_store_projection/3}, @pred{answer_store_projection/3},
+     @pred{call_entail/2}, @pred{answer_check_entail/3} and
+     @pred{apply_answer/2} as an API for the tabling engine. Some
+     examples of TCLP interfaces can be found in the
+     @lib{different\_constraints}, @lib{t\_clpq} and @lib{t\_clpr}
+     libraries.").
 
 :- doc(usage, "The @tt{TABLED_EXECUTION} flag must be set to @tt{yes} during
      system configuration in order to compile the engine with support
@@ -82,111 +91,36 @@
      cuts, and parallelism. In order to mitigate the impact of the
      current limitations in the memory management of tabling the size
      of the execution stacks is defined much larger than normal when
-     the tabling package is imported.").
+     the tabling package is imported. The implementation of TCLP is an
+     alpha version").
 
 
 :- doc(table/1,"It declares a tabled predicate.").
+
 :- new_declaration(table/1).
 
-:- doc(const_table_module/1,"It declares a tabled constraint module.").
-:- new_declaration(const_table_module/1).
+% :- new_declaration(const_table_module/1).
 
-:- op(1150, fx, [ table ]).
+:- new_declaration(active_tclp/0).
+:- new_declaration(table_aggregate/1).
+:- new_declaration(table_subsumption/0).
+
+:- op(1150, fx, [ table, table_aggregate, table_subsumption ]).
  %% :- op(1150, fx, [ const_table_module ]).
 
 :- load_compilation_module(library(tabling/tabling_tr)).
 :- add_sentence_trans(tabling_tr:do_term_expansion/3, 750). % TODO: Probably not right priority
 
-:- doc(doinclude,abolish_all_tables/0).
-:- doc(doinclude,tabled_call/1).
-:- doc(doinclude,lookup_trie/3).
-:- doc(doinclude,execute_call/4).
-:- doc(doinclude,consume_answer/4).
-:- doc(doinclude,new_answer/0).
-:- doc(doinclude,new_attr_answer/3).
-:- doc(doinclude,lookup_answer/2).
- %% :- doc(doinclude,'$forward_trail'/2).
-
-:- doc(appendix, "An example of translation of a tabled predicate in
- 	order to execute it with SLG resolution is shown below:
-
-@begin{verbatim}
-:- use_package(library(tabling)).
-:- table path/2.
-
-path(X,Z) :- 
-	edge(X,Y), 
-	path(Y,Z).
-
-path(X,Z) :-
-        edge(X,Z).
- @end{verbatim}
-
- is translated into:
-
-@begin{verbatim}
-path(X,Y) :- 
-	tabled_call('path:path_slg'(X,Y)).
-
-path_slg(X,Y) :- 
-	edge(X,Z),
-	tabled_call('path:path_slg'(Z,Y)),
-    new_answer.
-
-path_slg(X,Y) :-
-	edge(X,Y),
-	new_answer.
-@end{verbatim} 
-
-  This translation is adapted in case we are combining tabling with
-  constraints:
-
-@begin{verbatim}
-:- use_package(library(tabling)).
-:- use_package(library(difference_constraints)).
-:- use_package(library(difference_constraints/difference_constraints_tab)).
-:- table path/2.
-
-path(X,Z) :- 
-	edge(X,Y), 
-	path(Y,Z).
-
-path(X,Z) :-
-        edge(X,Z).
- @end{verbatim}
-
- is translated into:
-
-@begin{verbatim}
-path(X,Y) :- 
-	lookup_trie('path:path_slg'(X,Y),Root,SF),
-	difference_constraints:lookup_attr_call(Root,SF,PGen,CallSpace,LPrune),
-	execute_call('path:path_slg'(X,Y),SF,PGen,LPrune),	      
-	consume_answer(SF,PGen,AnsSpace,AttrVars),   
-	difference_constraints:reinstall_gen_space(SF,CallSpace),	      
-	difference_constraints:consume_attr_answer(AnsSpace,AttrVars).
-
-path_slg(X,Y) :- 
-	edge(X,Z),
-	lookup_trie('path:path_slg'(Z,Y),Root,SF),
-	difference_constraints:lookup_attr_call(Root,SF,PGen,CallSpace,LPrune),
-	execute_call('path:path_slg'(Z,Y),SF,PGen,LPrune),	      
-	consume_answer(SF,PGen,AnsSpace,AttrVars),   
-	difference_constraints:reinstall_gen_space(SF,CallSpace),	      
-	difference_constraints:consume_attr_answer(AnsSpace,AttrVars),
-	lookup_answer(Node,Attrs),
-	difference_constraints:lookup_attr_answer(Node,Attrs,Space,LPruneAns),
-	new_attr_answer(Node,Space,LPruneAns).
-
-path_slg(X,Y) :-
-	edge(X,Y),
-	lookup_answer(Node,Attrs),
-	difference_constraints:lookup_attr_answer(Node,Attrs,Space,LPruneAns),
-	new_attr_answer(Node,Space,LPruneAns).
-@end{verbatim} 
-
-  where some primitives have to be defined by the constraint domain
-  library.").
 
 :- use_module(library(tabling/tabling_rt)).
+
+:- reexport(library(tabling/tabling_rt),
+	    [
+		print_counters/0,        % debug:    print_counters_c
+		tabling_stats/0,
+		set_tabling_flag/2,      % debug:    set_tabling_flag_c
+		current_tabling_flag/2,  % debug:    current_tabling_flag_c
+		abolish_all_tables/0
+	    ]).
+
 

@@ -384,7 +384,7 @@ CBOOL__PROTO(bc_eq_large, tagged_t t, tagged_t *ptr);
 #if defined(TABLING)
 typedef struct node_tr_ node_tr_t;
 struct node_tr_ {
-  int size;
+  intmach_t size;
   tagged_t *trail_sg;
   node_tr_t *next;
   node_tr_t *chain;

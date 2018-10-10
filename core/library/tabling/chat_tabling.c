@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include <ciao_prolog.h>
+
 #include <ciao/support.h>
 #include <ciao/termdefs.h>
 #include <ciao/datadefs.h>
@@ -15,7 +16,6 @@
 #include <ciao/stacks.h>
 #include <ciao/instrdefs.h>
 #include <ciao/wam.h>
-
 #include <ciao/term_support.h>
 #include <ciao/nondet.h>
 #include <ciao/start.h>
@@ -24,11 +24,16 @@
 #include <ciao/wam_alloc.h>
 #include <ciao/io_basic.h>
 
+
 #include <ciao/tabling.h>
+
 #include "engine.h"
-#include "terms.h"
+#include "debug.h"
+#include "tabling_terms.h"
 #include "tries.h"
 #include "chat_tabling.h"
+
+//#include "call_prolog_functions.h"
 
 /* ----------- */
 /* Global Vars */
@@ -37,13 +42,14 @@
 #if defined(TABLING)
 //parent tabled call stack
 struct gen **ptcp_stk;     
-int iptcp_stk;
+intmach_t iptcp_stk;
 tagged_t args[2];
 tagged_t tmp_term;
 FTYPE_ctype(f_o) dummy_frame_op = LASTCALL; /* TODO: (JFMC) */
 
 //first trie node
 TrNode trie_node_top;
+TrNode auxiliar_trie;
 //last generator
 struct gen *last_gen_list;   
 
@@ -72,6 +78,8 @@ tagged_t atom_gen_tree_backtracking;
 #include "print_st.c"
 #include "terms.c"
 #include "tries.c"
+#include "exec_prolog_functions.c"
+#include "chat_tabling_tab.c"
 
 
 //#include <time.h>
@@ -100,7 +108,7 @@ void set_leader(struct gen* gen, struct gen *leader)
     }
 }			     
 
-int is_executing(struct gen *gen)
+intmach_t is_executing(struct gen *gen)
 {
   tagged_t term;
   DEREF(term,gen->on_exec);
@@ -462,6 +470,19 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
 }
 #endif
 
+CBOOL__PROTO(nd_back_answer_c) {
+#if defined(TABLING)
+
+  pop_choicept(Arg);
+  return FALSE;
+
+#else
+  printf("\nTABLING Flag must be activated\n");
+  return FALSE;
+#endif
+}
+
+
 CFUN__PROTO(complete, int,
 	    struct gen *call, struct gen *parentcall) {
   if (call == call->leader) 
@@ -542,6 +563,16 @@ CBOOL__PROTO(abolish_all_tables_c) {
 //  total_memory = 0;
   init_tries_module();
   trie_node_top = NULL;
+  auxiliar_trie = NULL;
+
+
+#if defined(ANS_COUNTER)
+  ans_no_saved=0;
+  ans_removed=0;
+  ans_saved=0;
+  ans_aggregated=0;
+#endif
+
 
 #if defined(DEBUG_ALL)
   printf("\nabolish END\n"); fflush(stdout);
@@ -554,7 +585,10 @@ CBOOL__PROTO(abolish_all_tables_c) {
 #endif
 }
 
-//tabled_call version for non constraint predicates
+/* -------------------------- */
+/*            tabled_call     */     
+/* -------------------------- */
+//tabled_call version for non constraint mode
 CBOOL__PROTO(tabled_call_c) {
 #if defined(TABLING)
 #if defined(DEBUG_ALL)
@@ -567,7 +601,7 @@ CBOOL__PROTO(tabled_call_c) {
   struct sf *sf = (struct sf*) checkalloc(sizeof(struct sf));
   struct gen *callid;
   TrNode node;
-  TABLED_CALL(Arg, ARG1, node, sf);
+  TABLED_CALL(Arg, X(0), node, sf);
   callid = (struct gen*) node->child;
 
   if (callid == NULL) //it is a generator
@@ -577,9 +611,9 @@ CBOOL__PROTO(tabled_call_c) {
       struct sf *sf_priv;
 #if defined(SWAPPING)
       sf_priv = (struct sf*) checkalloc(sizeof(struct sf));
-      //copy_term ARG1 -> private_term
+      //copy_term X(0) -> private_term
       tagged_t private_term = MkVarTerm(Arg);
-      args[0] = ARG1;
+      args[0] = X(0);
       args[1] = private_term;
       tagged_t copy_term_call = MkApplTerm(functor_copy_term,2,args);
       ciao_frame_re_begin(Arg->misc->goal_desc_ptr);
@@ -605,6 +639,14 @@ CBOOL__PROTO(tabled_call_c) {
 #endif
 
       INIT_CALLID(Arg, &callid, sf, on_exec, sf_priv);
+
+      //#if defined(DEBUG_ALL)
+      if (tabling_trace == atom_on) {
+	callid->realcall = X(0);
+	printf("Call no constraints id = %ld \t\t ", (long)callid->id);
+	PRINT_TERM(Arg, " ", X(0)); }
+      //#endif
+
       node->child = (TrNode) callid;
       PUSH_PTCP(callid);
 #if defined(DEBUG_ALL)
@@ -613,7 +655,7 @@ CBOOL__PROTO(tabled_call_c) {
       MAKE_UNDO_PUSH_PTCP(Arg,callid);
 
       int res;
-      EXECUTE_CALL(res,Arg, ARG1, callid);
+      EXECUTE_CALL(res,Arg, X(0), callid);
       return res;
     }
 
@@ -624,7 +666,7 @@ CBOOL__PROTO(tabled_call_c) {
   if (is_executing(leader))
     {
       //new dependency - update leader field
-      int i;
+      intmach_t i;
       for (i = iptcp_stk - 1; i > 0; i--)
 	{
 	  if (ptcp_stk[i]->leader->id <= leader->id) break;
@@ -650,158 +692,21 @@ CBOOL__PROTO(tabled_call_c) {
 #endif
 }
 
-//tabled_call version for constraint predicates 
-// + execute_call + consume_answer
-CBOOL__PROTO(lookup_trie_c) {
-#if defined(TABLING)
-#if defined(DEBUG_ALL)
-  printf("\nlookup_trie START\n"); fflush(stdout);
-#endif
 
-  //I cannot use stacks here because a consumer can read
-  //all its answers (from a complete generator) and this not
-  //chronological
-  struct sf *sf = (struct sf*) checkalloc(sizeof(struct sf));
-  struct gen *callid;
-  TrNode node;
-  TABLED_CALL(Arg, ARG1, node, sf);
 
-#if defined(DEBUG_ALL)
-  printf("\nlookup_trie END\n"); fflush(stdout);
-#endif
 
-  return Unify(ARG2,MkIntTerm((int)node)) && 
-    Unify(ARG3,MkIntTerm((int)sf));
 
-#else
-  printf("\nTABLING Flag must be activated\n");
-  return FALSE;
-#endif
-}
 
-CBOOL__PROTO(execute_call_c) {
-#if defined(TABLING)
-#if defined(DEBUG_ALL)
-  printf("\nexecute_call START\n"); fflush(stdout);
-#endif
-
-  DEREF(ARG1,ARG1);
-  DEREF(ARG2,ARG2);
-  DEREF(ARG3,ARG3);
-  DEREF(ARG4,ARG4);
-  //TODO: pruning of LPrune (4th argument)
-  struct sf *sf = (struct sf*) IntOfTerm(ARG2);
-  struct gen **callid = (struct gen**) IntOfTerm(ARG3);
-  if (*callid == NULL)
-    {
-      sf->isGen = 1;
-
-      tagged_t on_exec = MkVarTerm(Arg);
-      struct sf *sf_priv;
-
-      push_choicept(Arg, address_nd_resume_cons_c);
-      //TODO: storing this info in subgoal frame!
-      Arg->node->term[0] = (tagged_t)NULL;
-      Arg->node->term[1] = (tagged_t)ATTR;
-
-#if defined(SWAPPING)
-      //tricky frame for swapping
-      ComputeA(Arg->local_top,Arg->node);
-      Arg->local_top->next_insn = &dummy_frame_op;
-      Arg->local_top->frame = Arg->frame;
-      Arg->frame = Arg->local_top;
-      Arg->local_top = (frame_t *)Offset(Arg->local_top,EToY0);
-#endif
-
-      INIT_CALLID(Arg, callid, sf, on_exec, sf_priv);
-      PUSH_PTCP(*callid);
-#if defined(DEBUG_ALL)
-      printf("\nPUSH_PTCP %p\n",*callid);
-#endif
-      MAKE_UNDO_PUSH_PTCP(Arg,*callid);
-
-      int res;
-      EXECUTE_CALL(res,Arg, ARG1, *callid);
-#if defined(DEBUG_ALL)
-      printf("\nFIN tabled_call %d\n",res);
-#endif
-      return res;
-    }
-  else
-    sf->isGen = 0;
-
-  //  if ((*callid)->state != COMPLETE)		
-  struct gen *leader = get_leader(*callid);
-  set_leader(*callid,leader);
-  if (is_executing(leader))		
-    {									
-      int i;
-      for (i = iptcp_stk - 1; i > 0; i--)
-	{
-	  if (ptcp_stk[i]->leader->id <= leader->id) break;
-	  ptcp_stk[i]->leader = leader;
-	}
-    }									
-
-#if defined(DEBUG_ALL)
-  printf("\nexecute_call END\n"); fflush(stdout);
-#endif
-
-  return TRUE;
-
-#else
-  printf("\nTABLING Flag must be activated\n");
-  return FALSE;
-#endif
-}
-
-CBOOL__PROTO(consume_answer_c) {
-#if defined (TABLING)
-#if defined(DEBUG_ALL)
-  printf("\nconsume_answer START\n"); fflush(stdout);
-#endif
-
-  DEREF(ARG1,ARG1);
-  DEREF(ARG2,ARG2);
-  DEREF(ARG3,ARG3);
-  DEREF(ARG4,ARG4);
-
-  struct sf *sf = (struct sf*) IntOfTerm(ARG1);
-  struct gen *gen = *((struct gen**)IntOfTerm(ARG2));
-  struct cons_list* cons;
-
-  if (sf->isGen) {LastNodeTR = gen->last_node_tr;}
-
-  CONSUME_ANSWER(Arg, gen, sf, ATTR);
-
-  if (sf->isGen) {MAKE_CONSUMER(Arg, cons, gen, sf, gen);}
-  else {MAKE_CONSUMER(Arg, cons, gen, sf, MODE_CONSUMER);}
-
-  //TODO - I do not like this!
-  cons->cons->ans_space = ARG3;
-  cons->cons->attr_vars = ARG4;
-
-#if defined(DEBUG_ALL)
-  printf("\nconsume_answer END\n"); fflush(stdout);
-#endif
-  
-  return FALSE;
-
-#else
-  printf("\nTABLING Flag must be activated\n");
-  return FALSE;
-#endif
-}
-
-CBOOL__PROTO(nd_consume_answer_c) {
+CBOOL__PROTO(nd_consume_answer_c)
+{
 #if defined (TABLING)
 #if defined(DEBUG_ALL)
   printf("\nnd_consume_answer START\n"); fflush(stdout);
 #endif
 
   //TODO: take this info from data structures
-  struct sf *sf = (struct sf*) ARG1;
-  struct l_ans *l_ans = (struct l_ans*) ARG2;
+  struct sf *sf = (struct sf*) X(0);
+  struct l_ans *l_ans = (struct l_ans*) X(1);
   
   if(l_ans->next == NULL) 
     {
@@ -810,7 +715,7 @@ CBOOL__PROTO(nd_consume_answer_c) {
       checkdealloc((tagged_t *)sf,sizeof(struct sf));
       //check for swapping
 #if defined(SWAPPING)
-      struct gen *callid = (struct gen*) ARG3;
+      struct gen *callid = (struct gen*) X(2);
       if (callid->state != COMPLETE)
 	{
 	  struct gen *leader = get_leader(callid);
@@ -847,6 +752,340 @@ CBOOL__PROTO(nd_consume_answer_c) {
 #endif
 }
 
+
+/**                                 **/
+
+//tabled_call version for TCLP mode 
+// + execute_call + consume_answer
+CBOOL__PROTO(lookup_trie_c) {
+#if defined(TABLING)
+#if defined(DEBUG_ALL)
+  printf("\nlookup_trie START\n"); fflush(stdout);
+#endif
+
+  //I cannot use stacks here because a consumer can read
+  //all its answers (from a complete generator) and this not
+  //chronological
+  struct sf *sf = (struct sf*) checkalloc(sizeof(struct sf));
+  struct gen *callid;
+  TrNode node;
+  TABLED_CALL(Arg, X(0), node, sf);
+
+#if defined(DEBUG_ALL)
+  printf("\nlookup_trie END\n"); fflush(stdout);
+#endif
+
+  return Unify(X(1),MkIntTerm((intmach_t)node)) && 
+    Unify(X(2),MkIntTerm((intmach_t)sf));
+
+#else
+  printf("\nTABLING Flag must be activated\n");
+  return FALSE;
+#endif
+}
+
+
+CBOOL__PROTO(lookup_attr_call_c)
+{
+#if defined(TABLING)
+#if defined(DEBUG_ALL)
+  printf("\nlookup_attr_call START\n"); fflush(stdout);
+#endif
+
+  DEREF(X(0),X(0));
+  DEREF(X(1),X(1));
+
+  TrNode node =  (TrNode) IntOfTerm(X(0));
+  struct l_gen *l_gen = (struct l_gen*) node->child;
+  struct sf *sf = (struct sf*) IntOfTerm(X(1));
+  tagged_t list_of_attrs, attributes;
+  int i;
+  
+  // Maybe create this list previously and pass it as argument 
+  // (it is also used in loopup_attr_answer_c)
+
+  array_to_list(Arg, sf->attr_size, sf->attrs, &list_of_attrs); //if size == 0 -> list_of_attrs = atom_nil
+
+  exec_call_domain_projection(Arg, list_of_attrs, &attributes); //it should works for list_of_attrs == atom_nil
+
+  // Only mandatory to give the correct values to l_gen...
+  if (sf->attr_size == 0)
+    {
+      if (l_gen == NULL)
+	{	  
+	  ALLOC_GLOBAL_TABLE(l_gen, struct l_gen*, sizeof(struct l_gen));
+	  l_gen->node = NULL;
+	  l_gen->next = NULL;
+	  node->child = (TrNode) l_gen;
+
+	  exec_current_store(Arg, &l_gen->orig_space);
+	  exec_call_store_projection(Arg, list_of_attrs, attributes, &l_gen->space);
+	  l_gen->orig_attrs = save_term(Arg, attributes);
+	}
+    }
+  else // sf->attr_size > 0
+    {
+      for ( ; l_gen != NULL; l_gen = l_gen->next)
+	{
+	  if (exec_call_entail(Arg, list_of_attrs, attributes, l_gen->orig_attrs, l_gen->space))
+	    {	    
+	      break;
+	    }
+	}
+
+#if defined(DEBUG_ALL)
+      printf("\nLGEN = %p\n",l_gen);
+#endif
+      if (l_gen == NULL)
+	{
+	  ALLOC_GLOBAL_TABLE(l_gen, struct l_gen*, sizeof(struct l_gen));
+	  l_gen->node = NULL;
+	  l_gen->next = (struct l_gen*) node->child;
+	  node->child = (TrNode) l_gen;
+
+	  exec_current_store(Arg, &l_gen->orig_space);
+	  exec_call_store_projection(Arg, list_of_attrs, attributes, &l_gen->space);
+	  l_gen->orig_attrs = save_term(Arg, attributes);
+	}	
+    } // end if (sf->size == 0)
+
+#if defined(DEBUG_ALL)
+  printf("\nlookup_attr_call END\n"); fflush(stdout);
+#endif
+
+  tagged_t l_prune = (tagged_t)NULL;
+
+  //  PRINT_TERM(Arg, "CallSpace in lookup_trie ", MkIntTerm((int)l_gen));
+  
+  int check = Unify(X(2),MkIntTerm((intmach_t)(&(l_gen->node)))) &&
+    Unify(X(3),MkIntTerm((intmach_t)l_gen)) &&
+    Unify(X(4),MkIntTerm((intmach_t)l_prune));
+  return check;
+
+#else
+  printf("\nTABLING Flag must be activated\n");
+  return FALSE;
+#endif
+}
+
+
+CBOOL__PROTO(execute_call_c)
+{
+#if defined(TABLING)
+#if defined(DEBUG_ALL)
+  printf("\nexecute_call START\n"); fflush(stdout);
+#endif
+
+  DEREF(X(0),X(0));
+  DEREF(X(1),X(1));
+  DEREF(X(2),X(2));
+  DEREF(X(3),X(3));
+
+  //TODO: pruning of LPrune (4th argument)
+  struct sf *sf = (struct sf*) IntOfTerm(X(1));
+  struct gen **callid = (struct gen**) IntOfTerm(X(2));
+  if (*callid == NULL)
+    {
+      sf->isGen = 1;
+
+      tagged_t on_exec = MkVarTerm(Arg);
+      struct sf *sf_priv;
+
+      push_choicept(Arg, address_nd_resume_cons_c);
+      //TODO: storing this info in subgoal frame!
+      Arg->node->term[0] = (tagged_t)NULL;
+      Arg->node->term[1] = (tagged_t)ATTR;
+
+#if defined(SWAPPING)
+      //tricky frame for swapping
+      ComputeA(Arg->local_top,Arg->node);
+      Arg->local_top->next_insn = &dummy_frame_op;
+      Arg->local_top->frame = Arg->frame;
+      Arg->frame = Arg->local_top;
+      Arg->local_top = (frame_t *)Offset(Arg->local_top,EToY0);
+#endif
+
+      INIT_CALLID(Arg, callid, sf, on_exec, sf_priv);
+
+      //#if defined(DEBUG_ALL)
+      if (tabling_trace == atom_on) {
+	(*callid)->realcall = X(0);
+	printf("Call id = %ld \t\t ", (long)(*callid)->id);
+	PRINT_TERM(Arg, " ", X(0)); 
+      }
+      //#endif
+
+      PUSH_PTCP(*callid);
+#if defined(DEBUG_ALL)
+      printf("\nPUSH_PTCP %p\n",*callid);
+#endif
+      MAKE_UNDO_PUSH_PTCP(Arg,*callid);
+
+      int res;
+      EXECUTE_CALL(res,Arg, X(0), *callid);
+#if defined(DEBUG_ALL)
+      printf("\nFIN tabled_call %d\n",res);
+#endif
+      return res;
+    }
+  else
+    sf->isGen = 0;
+
+  //  if ((*callid)->state != COMPLETE)		
+  struct gen *leader = get_leader(*callid);
+  set_leader(*callid,leader);
+  if (is_executing(leader))		
+    {									
+      intmach_t i;
+      for (i = iptcp_stk - 1; i > 0; i--)
+	{
+	  if (ptcp_stk[i]->leader->id <= leader->id) break;
+	  ptcp_stk[i]->leader = leader;
+	}
+    }		
+  
+#if defined(DEBUG_ALL)
+  printf("\nexecute_call END\n"); fflush(stdout);
+#endif
+
+  return TRUE;
+
+#else
+  printf("\nTABLING Flag must be activated\n");
+  return FALSE;
+#endif
+}
+
+CBOOL__PROTO(consume_answer_c) {
+#if defined (TABLING)
+#if defined(DEBUG_ALL)
+  printf("\nconsume_answer START\n"); fflush(stdout);
+#endif
+
+  DEREF(X(0),X(0));
+  DEREF(X(1),X(1));
+  DEREF(X(2),X(2));
+  DEREF(X(3),X(3));
+
+  struct sf *sf = (struct sf*) IntOfTerm(X(0));
+  struct gen *gen = *((struct gen**)IntOfTerm(X(1)));
+  struct cons_list* cons;
+
+  if (sf->isGen) {LastNodeTR = gen->last_node_tr;}
+
+  CONSUME_ANSWER(Arg, gen, sf, ATTR); // push_choicept(nd_consume_answer_attr_c)
+
+  if (sf->isGen) {MAKE_CONSUMER(Arg, cons, gen, sf, gen);}
+  else {MAKE_CONSUMER(Arg, cons, gen, sf, MODE_CONSUMER);}
+
+  //TODO - I do not like this!
+  cons->cons->ans_space = X(2);
+  
+  PRINT_DEREF(Arg, "ans_space = X(2) = ", X(2));
+  cons->cons->attr_vars = X(3);
+  PRINT_DEREF(Arg, "attr_vars = X(3) = ", X(3));
+
+#if defined(DEBUG_ALL)
+  printf("\nconsume_answer END\n"); fflush(stdout);
+#endif
+  
+  return FALSE;
+
+#else
+  printf("\nTABLING Flag must be activated\n");
+  return FALSE;
+#endif
+}
+
+
+CBOOL__PROTO(reinstall_gen_space_c)
+{
+#if defined(TABLING)
+#if defined(DEBUG_ALL)
+  printf("\nreinstall_gen_space START\n"); fflush(stdout);
+#endif
+
+  DEREF(X(0),X(0));
+  DEREF(X(1),X(1));
+
+  struct sf *sf = (struct sf*) IntOfTerm(X(0));
+
+  /* printf("reinstall enter size %d Is gen? %d\n", sf->attr_size, sf->isGen); */
+  /* PRINT_TERM(Arg, "CallSpace in reisntall_gen_space ", X(1)); */
+
+
+  if (sf->isGen)
+    {
+      struct l_gen *l_gen = (struct l_gen*) IntOfTerm(X(1));
+      tagged_t list_of_attrs;
+
+      array_to_list(Arg, sf->attr_size, sf->attrs, &list_of_attrs);
+
+      exec_reinstall_store(Arg, list_of_attrs, l_gen->orig_attrs, l_gen->orig_space);
+    }
+
+#if defined(DEBUG_ALL)
+  printf("\nreinstall_gen_space END\n"); fflush(stdout);
+#endif
+
+  return TRUE;
+
+#else
+  printf("\nTABLING Flag must be activated\n");
+  return FALSE;
+#endif
+}
+
+
+CBOOL__PROTO(consume_attr_answer_c)
+{
+#if defined(TABLING)
+#if defined(DEBUG_ALL)
+  printf("\nconsume_attr_answer START\n"); fflush(stdout);
+#endif
+
+  PRINT_DEREF(Arg, "consume_attr_answer ", X(0));
+  DEREF(X(0),X(0));
+  DEREF(X(1),X(1));
+
+  //  PRINT_TERM(Arg, "Attrs in consume_attr_answer ", X(1));
+
+  struct attrs *attrs = (struct attrs*) IntOfTerm(X(1));
+  int result;
+
+  if (attrs->size > 0) 
+    {
+      struct l_ans *answ = (struct l_ans*) IntOfTerm(X(0));
+    
+      if (answ->valid) {
+	tagged_t list_of_attrs;
+     	array_to_list(Arg, attrs->size, attrs->attrs, &list_of_attrs);
+     	result = exec_apply_answer(Arg, list_of_attrs, answ->ans_attrs, answ->space);
+      }
+      else  {
+	result = FALSE;   // Do not apply NO valid ansers
+      }
+      
+      checkdealloc(attrs->attrs, attrs->size * sizeof(tagged_t));
+    }
+  else // attrs->size == 0 
+    { 
+      result = TRUE;
+    }
+
+  //  printf("Dealloc attrs %d\n", (int)attrs);
+  checkdealloc((tagged_t *)attrs, sizeof(struct attrs));
+
+  return result;
+
+#else
+  printf("\nTABLING Flag must be activated\n");
+  return FALSE;
+#endif
+}
+
+
+
 CBOOL__PROTO(nd_consume_answer_attr_c) {
 #if defined(TABLING)
 #if defined(DEBUG_ALL)
@@ -854,15 +1093,16 @@ CBOOL__PROTO(nd_consume_answer_attr_c) {
 #endif
 
   //TODO: take this info from data structures
-  struct sf *sf = (struct sf*) ARG1;
-  struct l_ans *l_ans = (struct l_ans*) ARG2;
+  struct sf *sf = (struct sf*) X(0);
+  struct l_ans *l_ans = (struct l_ans*) X(1);
 
   if(l_ans->next == NULL) 
     {
-      checkdealloc(sf->vars,sf->size * sizeof(tagged_t));		
+      checkdealloc(sf->vars,sf->size * sizeof(tagged_t));
       checkdealloc(sf->attrs,sf->attr_size * sizeof(tagged_t));	
-      checkdealloc((tagged_t *)sf,sizeof(struct sf));			       
+      checkdealloc((tagged_t *)sf,sizeof(struct sf));	
       pop_choicept(Arg);
+
       return FALSE;
     }
 
@@ -875,7 +1115,7 @@ CBOOL__PROTO(nd_consume_answer_attr_c) {
   get_trie_answer(Arg, l_ans->node, sf);
 
   struct attrs *attrs;
-  GET_ATTRS_ANSW(ARG4,l_ans->space,attrs,ARG5);
+  GET_ATTRS_ANSW(X(3),l_ans->space,attrs,X(4));
 
 #if defined(DEBUG_ALL)
   printf("\nnd_consume_answer_attr END\n"); fflush(stdout);
@@ -893,17 +1133,8 @@ CBOOL__PROTO(nd_consume_answer_attr_c) {
 #endif
 }
 
-CBOOL__PROTO(nd_back_answer_c) {
-#if defined(TABLING)
 
-  pop_choicept(Arg);
-  return FALSE;
 
-#else
-  printf("\nTABLING Flag must be activated\n");
-  return FALSE;
-#endif
-}
 
 //TODO: separate constraint and standard versions
 //TODO: optimize switch between consumers!
@@ -915,17 +1146,18 @@ CBOOL__PROTO(nd_resume_cons_c) {
 
 //  clock_t ts_ini, ts_fin;
 //
-  struct cons_list *icons_l_init = (struct cons_list*) ARG1;
+
+  struct cons_list *icons_l_init = (struct cons_list*) X(0);
   struct cons_list *icons_l = icons_l_init;
-  int is_attr = (int) ARG2;
+  intmach_t is_attr = (intmach_t) X(1);
 
   struct l_ans *l_ans;
   node_tr_t *inode_tr, *inode_tr_cons, *inode_tr_prev;
   struct attrs *attrs;  
-  int i, iTrail;
+  intmach_t i, iTrail;
 
 #if defined(DEBUG_ALL)
-  printf("\nCONS %p\n", icons_l); fflush(stdout);
+  printf("\nCONS %p is attr = %ld\n", icons_l, (long)is_attr); fflush(stdout);
 #endif
 
 //  ts_ini = clock();
@@ -939,7 +1171,7 @@ CBOOL__PROTO(nd_resume_cons_c) {
 	  //it was linked to previous LastNodeTR
 	  icons_l->cons->node_tr->chain = NULL; 
 	}
-      CHECK_NEXT_ANSWER;
+      CHECK_NEXT_ANSWER;  // goto consume_answer
 #if defined(SWAPPING)
       struct gen *leader = get_leader(icons_l->cons->gen);
       set_leader(icons_l->cons->gen,leader);
@@ -1020,7 +1252,7 @@ CBOOL__PROTO(nd_resume_cons_c) {
   // while (!l_ans->answer->active) l_ans = l_ans->sig;
   // there is always an active answer at the end.
 #if defined(DEBUG_ALL)
-  printf("\nConsuming from consumer %p\n",icons_l);
+  printf("\nConsuming from consumer %p\n", icons_l);
 #endif
   icons_l->cons->last_ans = l_ans;
   if (icons_l != icons_l_init)
@@ -1033,7 +1265,7 @@ CBOOL__PROTO(nd_resume_cons_c) {
 //      struct timeval t_ini, t_fin;
 //      gettimeofday(&t_ini,NULL);
       FORWARD_TRAIL(Arg,icons_l->cons,inode_tr,iTrail,
-		    inode_tr_cons,inode_tr_prev);
+		    inode_tr_cons,inode_tr_prev);      // XA check here
 //      gettimeofday(&t_fin,NULL);
 //      trail_time = trail_time + timeval_diff(&t_fin, &t_ini);
     }
@@ -1048,8 +1280,10 @@ CBOOL__PROTO(nd_resume_cons_c) {
   //TODO - it should be a consumer ATTR, right?
   if (is_attr)
     {
-      GET_ATTRS_ANSW(icons_l->cons->ans_space,l_ans->space,attrs,
-		     icons_l->cons->attr_vars);
+      GET_ATTRS_ANSW(icons_l->cons->ans_space,
+			 l_ans->space,
+			 attrs,
+			 icons_l->cons->attr_vars);
     }
 
 #if defined(DEBUG_ALL)
@@ -1079,7 +1313,12 @@ TrNode set_diff_answer_trie(struct attrs *attrs)
 }
 #endif
 
-//new_answer version for non constraint predicates
+
+
+/* -------------------------- */
+/*            new_answer      */     
+/* -------------------------- */
+//new_answer version for non constraint mode
 CBOOL__PROTO(new_answer_c) {
 #if defined(TABLING)
 #if defined(DEBUG_ALL)
@@ -1108,10 +1347,18 @@ CBOOL__PROTO(new_answer_c) {
 
   if (node->child == NULL)
     { 
+      //#if defined(DEBUG_ALL)
+      if (tabling_trace == atom_on) {
+	printf("New no constraints answer id = %ld \t ", (long)PTCP->id);
+	PRINT_TERM(Arg, " ", PTCP->realcall); }
+      //#endif
+
       struct l_ans *answ;
       ALLOC_GLOBAL_TABLE(answ, struct l_ans*, sizeof(struct l_ans));
       answ->node = node;
-      answ->space = NULL;
+      answ->space = (TrNode)NULL;
+      answ->ans_attrs = (TrNode)NULL;
+      answ->valid = TRUE;
       answ->next = NULL;
 
       if (PTCP->first_ans == NULL) PTCP->first_ans = answ;      
@@ -1153,10 +1400,13 @@ CBOOL__PROTO(new_answer_c) {
 #endif
 }
 
-//new_answer version for constraint predicates
-CBOOL__PROTO(lookup_answer_c) {
+
+//new_answer version for TCLP mode
+CBOOL__PROTO(new_answer_attr_c)
+{
 #if defined(TABLING)
 #if defined(DEBUG_ALL)
+  printf("\nnew_answer_attr START\n"); fflush(stdout);
   printf("\nlookup_answer START\n"); fflush(stdout);
 #endif
 
@@ -1169,38 +1419,132 @@ CBOOL__PROTO(lookup_answer_c) {
   printf("\nlookup_answer END\n"); fflush(stdout);
 #endif
 
-  return Unify(ARG1,MkIntTerm((int)node)) && 
-    Unify(ARG2,MkIntTerm((int)attrs));
 
-#else
-  printf("\nTABLING Flag must be activated\n");
-  return FALSE;
+#if defined(DEBUG_ALL)
+  printf("\nlookup_attr_answer START\n"); fflush(stdout);
 #endif
-}
 
-CBOOL__PROTO(new_attr_answer_c) {
-#if defined(TABLING)
+  struct l_ans *l_ans = (struct l_ans*) node->child;
+
+  tagged_t list_of_attrs, attributes, newattributes;
+  int i, comparation;
+
+  if (attrs->size ==  0)
+    {
+      if (l_ans != NULL)
+	{
+#if defined(DEBUG_ALL)
+	  printf("\nlookup_attr_answer END I\n"); fflush(stdout);
+#endif
+	  //Tabling_stk is used as tmp memory (this is safe)
+	  DEALLOC_TABLING_STK(attrs);
+	  return FALSE;
+	}
+    }
+  else // attrs->size > 0
+    {
+      array_to_list(Arg, attrs->size, attrs->attrs, &list_of_attrs);
+
+      exec_answer_domain_projection(Arg, list_of_attrs, &attributes);
+
+      //    look_more_general:
+      for ( ; l_ans != NULL; l_ans = l_ans->next)
+	{
+	  if (l_ans->valid) {
+	    comparation = exec_answer_check_entail(Arg, list_of_attrs, attributes, l_ans->ans_attrs, l_ans->space, &newattributes);
+	    if (comparation == 1) {
+#if defined(ANS_COUNTER)
+	      ans_no_saved++;
+#endif
+	      break;
+	    }
+	    else if (comparation == -1) { 
+#if defined(ANS_COUNTER)
+	      ans_removed++;
+#endif
+	      l_ans->valid = FALSE;
+	    }
+	    else if (comparation == 2) {
+#if defined(ANS_COUNTER)
+	      ans_aggregated++;
+#endif
+	      attributes = newattributes;
+	      l_ans->valid = FALSE;
+	    }
+	  } // check only the valid answers		 
+	}
+
+      if (l_ans != NULL)
+	{
+	  //Tabling_stk is used as tmp memory (this is safe)
+	  DEALLOC_TABLING_STK(attrs);
+#if defined(DEBUG_ALL)
+  printf("\nlookup_attr_answer END II\n"); fflush(stdout);
+#endif
+	  return FALSE;
+	}
+    } // end (attrs->size > 0)
+
+  ALLOC_GLOBAL_TABLE(l_ans, struct l_ans*, sizeof(struct l_ans));
+
+#if defined(ANS_COUNTER)
+  ans_saved++;
+  if (ans_saved  > 1140000)
+    print_counters_c(Arg);
+#endif
+
+  if (attrs->size == 0)
+    {
+      /* l_ans->space = (TrNode)NULL; */
+      /* l_ans->ans_attrs = (TrNode)NULL; */
+    }
+  else
+    {
+      exec_answer_store_projection(Arg, list_of_attrs, attributes, &l_ans->space);
+      
+      l_ans->ans_attrs = save_term(Arg, attributes);
+    }
+
+  l_ans->next = (struct l_ans*) node->child;
+  l_ans->valid = TRUE;
+  node->child = (TrNode)l_ans;
+
+  //Tabling_stk is used as tmp memory (this is safe)
+  DEALLOC_TABLING_STK(attrs);
+
+#if defined(DEBUG_ALL)
+  printf("\nlookup_attr_answer END III\n"); fflush(stdout);
+#endif
+
+  tagged_t l_prune = (tagged_t)NULL;
+
+#if defined(DEBUG_ALL)
+  printf("l_ans = %p\n", (void*)l_ans->space);
+#endif
+
 #if defined(DEBUG_ALL)
   printf("\nnew_attr_answer START\n"); fflush(stdout);
 #endif
 
-  DEREF(ARG1,ARG1);
-  DEREF(ARG2,ARG2);
-  DEREF(ARG3,ARG3);
 
-  //  struct l_prune_ans *l_prune = (l_prune_ans*) IntOfTerm(ARG3);
-  //  TODO: answer pruning!!
+  //#if defined(DEBUG_ALL)
+  if (tabling_trace == atom_on) {
+    printf("New answer id = %ld \t ", (long)PTCP->id);
+    PRINT_TERM(Arg, " ", PTCP->realcall); }
+  //#endif
 
   struct l_ans *answ;
   ALLOC_GLOBAL_TABLE(answ, struct l_ans*, sizeof(struct l_ans));
-  answ->node = (TrNode) IntOfTerm(ARG1);
-  answ->space = (void*) IntOfTerm(ARG2);
+  answ->node = node;                   //(TrNode) IntOfTerm(X(0));
+  answ->space = (TrNode)l_ans;       // IntOfTerm(X(1));
   answ->next = NULL;
 
   struct gen *call = PTCP;
   if (call->first_ans == NULL) call->first_ans = answ;      
   if (call->last_ans != NULL) call->last_ans->next = answ;
   call->last_ans = answ;
+
+
 
 #if defined(DEBUG_ALL)
   printf("\nnew_attr_answer END\n"); fflush(stdout);
@@ -1214,11 +1558,13 @@ CBOOL__PROTO(new_attr_answer_c) {
 #endif
 }
 
-CBOOL__PROTO(push_ptcp_c) {
+
+CBOOL__PROTO(push_ptcp_c)
+{
 #if defined (TABLING)
 
-  DEREF(ARG1,ARG1);
-  struct gen *gen = (struct gen*) IntOfTerm(ARG1);
+  DEREF(X(0),X(0));
+  struct gen *gen = (struct gen*) IntOfTerm(X(0));
   PUSH_PTCP(gen);
 #if defined(DEBUG_ALL)
   printf("\nPUSH_PTCP %p\n",gen);
@@ -1280,44 +1626,6 @@ CBOOL__PROTO(initial_tabling_c) {
   printf("\nInitial Tabling\n"); fflush(stdout);
 #endif
 
-
-  if (Heap_End != HeapOffset(Heap_Start, TABLING_GLOBALSTKSIZE))
-    {
-      int size = (TABLING_GLOBALSTKSIZE -
-		  HeapDifference(Heap_Start, w->global_top))/2;
-      heap_overflow(Arg,size);
-    }
-
-  if (Stack_End != StackOffset(Stack_Start, TABLING_LOCALSTKSIZE))
-    {
-      tagged_t *new_Stack_Start;
-      int reloc_factor;
-
-      new_Stack_Start = checkrealloc
-	(Stack_Start, StackDifference(Stack_Start,Stack_End)*sizeof(tagged_t),
-	 TABLING_LOCALSTKSIZE*sizeof(tagged_t));
-
-      reloc_factor = (char *)new_Stack_Start - (char *)Stack_Start;
-      stack_overflow_adjust_wam(w, reloc_factor);
-
-      /* Final adjustments */
-      Stack_Start = new_Stack_Start;		/* new bounds */
-      Stack_End = StackOffset(new_Stack_Start,TABLING_LOCALSTKSIZE);
-    }
-
-  if (Trail_End != TrailOffset(Trail_Start, TABLING_CHOICESTKSIZE +
-			       TABLING_TRAILSTKSIZE))
-    {
-      tagged_t *choice_top = (tagged_t *)w->node+w->value_trail;
-
-      int size = (TABLING_CHOICESTKSIZE + TABLING_TRAILSTKSIZE -
-		  ChoiceDifference(Choice_Start, choice_top) -
-		  TrailDifference(Trail_Start, w->trail_top)) / 2;
-
-      choice_overflow(Arg,size);
-    }  
-
-  
   functor_comma = SetArity(MakeString(","), 2);
   functor_copy_term = SetArity(MakeString("term_basic:copy_term"), 2);
   functor_forward_trail =
@@ -1339,6 +1647,7 @@ CBOOL__PROTO(initial_tabling_c) {
 //  total_memory = 0;
 
   trie_node_top = NULL;
+  auxiliar_trie = NULL;
   last_gen_list = NULL;
   init_tries_module();
   address_nd_consume_answer_c = def_retry_c(nd_consume_answer_c,3);
@@ -1350,6 +1659,57 @@ CBOOL__PROTO(initial_tabling_c) {
   //Initialize LastNodeTR
   INIT_NODE_TR(initial_node_tr);
   INIT_NODE_TR(LastNodeTR);
+
+  if (Heap_End != HeapOffset(Heap_Start, TABLING_GLOBALSTKSIZE))
+    {
+      intmach_t size = (TABLING_GLOBALSTKSIZE -
+		  HeapDifference(Heap_Start, w->global_top))/2;
+      heap_overflow(Arg,size);
+    }
+
+  if (Stack_End != StackOffset(Stack_Start, TABLING_LOCALSTKSIZE))
+    {
+      tagged_t *new_Stack_Start;
+      intmach_t reloc_factor;
+
+      new_Stack_Start = checkrealloc
+	(Stack_Start, StackDifference(Stack_Start,Stack_End)*sizeof(tagged_t),
+	 TABLING_LOCALSTKSIZE*sizeof(tagged_t));
+
+      reloc_factor = (char *)new_Stack_Start - (char *)Stack_Start;
+      stack_overflow_adjust_wam(w, reloc_factor);
+
+      /* Final adjustments */
+      Stack_Start = new_Stack_Start;		/* new bounds */
+      Stack_End = StackOffset(new_Stack_Start,TABLING_LOCALSTKSIZE);
+    }
+
+  if (Trail_End != TrailOffset(Trail_Start, TABLING_CHOICESTKSIZE +
+			       TABLING_TRAILSTKSIZE))
+    {
+      tagged_t *choice_top = (tagged_t *)w->node+w->value_trail;
+
+      intmach_t size = (TABLING_CHOICESTKSIZE + TABLING_TRAILSTKSIZE -
+		  ChoiceDifference(Choice_Start, choice_top) -
+		  TrailDifference(Trail_Start, w->trail_top)) / 2;
+
+      choice_overflow(Arg,size);
+    }  
+
+
+#if defined(ANS_COUNTER)
+  ans_no_saved=0;
+  ans_removed=0;
+  ans_saved=0;
+  ans_aggregated=0;
+#endif
+
+
+  /* printf("Heap (%p-%p) stack (%p-%p)\n\n", */
+  /* 	 Heap_Start, Heap_End, */
+  /* 	 Stack_Start, Stack_End); */
+  /* printf("GLOBAL_TABLE (%p-%p)\n\n", */
+  /* 	 global_table, global_table_end); */
 
   return TRUE;
 

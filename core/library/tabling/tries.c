@@ -20,14 +20,46 @@ static tagged_t ATTR_STACK[ATTR_STACK_SIZE];
 static tagged_t *stack_args, *stack_args_base;
 static tagged_t *stack_vars, *stack_vars_base;
 static tagged_t *stack_attrs, *stack_attrs_base;
-static int max_index;
-static int max_index_attr;
+static intmach_t max_index;
+static intmach_t max_index_attr;
 
-
+intmach_t variant = 0; 
 
 /* -------------------------- */
 /*     Inline Procedures      */
 /* -------------------------- */
+// int make_bindding = 0;
+
+static inline
+intmach_t check_term(tagged_t node_entry, tagged_t term) 
+{
+  //  printf("\tEVAL %x %x\n", node_entry, term);
+  if (!variant && node_entry != term)
+    {
+      if (IsTrieVar(node_entry))
+	{
+	  if (!IsTrieVar(term) || TrieVarIndex(node_entry) > TrieVarIndex(term))
+	    {
+	      //	    printf("subsumption Var %x %x\n", node_entry, term);
+	      //	      make_bindding = 1;
+	    }
+	  else
+	    return 0;
+	}
+      else if (IsTrieAttr(node_entry))
+	{
+	  if (!IsTrieVar(term) && (!IsTrieAttr(term) || TrieVarIndex(node_entry) > TrieVarIndex(term)))
+	    {
+	    //	    printf("subsumption Att\n");
+	    //  make_bindding = 2;
+	    }
+	  else
+	    return 0;
+	}
+    }
+  return node_entry == term;
+}
+
 
 static inline
 TrNode trie_node_check_insert(TrNode parent, tagged_t t) {
@@ -41,10 +73,10 @@ TrNode trie_node_check_insert(TrNode parent, tagged_t t) {
       return child;
     } else if (! IS_TRIE_HASH(child)) 
       {
-	int count = 0;
+	intmach_t count = 0;
 	do 
 	  {
-	    if (TrNode_entry(child) == t) return child;
+	    if (check_term(TrNode_entry(child), t)) return child;
 	    count++;
 	    child = TrNode_next(child);
 	  } 
@@ -78,14 +110,14 @@ TrNode trie_node_check_insert(TrNode parent, tagged_t t) {
 	  // is trie hash 
 	  TrHash hash;
 	  TrNode *bucket;
-	  int count;
+	  intmach_t count;
 	  hash = (TrHash) child;
 	  bucket = TrHash_bucket(hash, HASH_TERM(t, TrHash_seed(hash)));
 	  child = *bucket;
 	  count = 0;
 	  while (child) 
 	    {
-	      if (TrNode_entry(child) == t) return child;
+	      if (check_term(TrNode_entry(child), t)) return child;
 	      count++;
 	      child = TrNode_next(child);
 	    } 
@@ -99,7 +131,7 @@ TrNode trie_node_check_insert(TrNode parent, tagged_t t) {
 	    {
 	      // expand trie hash 
 	      TrNode chain, next, *first_bucket, *new_bucket;
-	      int seed;
+	      intmach_t seed;
 	      first_bucket = TrHash_buckets(hash);
 	      bucket = first_bucket + TrHash_num_buckets(hash);
 	      TrHash_num_buckets(hash) *= 2;
@@ -165,6 +197,7 @@ TrNode put_trie_entry(TrNode node, tagged_t entry, struct sf* sf)
   stack_vars_base = stack_vars = TERM_STACK + TERM_STACK_SIZE - 1;
   stack_attrs_base = stack_attrs = ATTR_STACK + ATTR_STACK_SIZE - 1;
 
+  //  printf("Enter put_trie_entry\n");
   node = put_trie(node, entry);
 
   //I cannot use stacks here because a consumer can read
@@ -176,7 +209,7 @@ TrNode put_trie_entry(TrNode node, tagged_t entry, struct sf* sf)
   sf->attr_size = (stack_attrs_base - stack_attrs) / 2;
   sf->attrs = (tagged_t*) checkalloc(sf->attr_size * sizeof(tagged_t));
  
-  int index = sf->size - 1;
+  intmach_t index = sf->size - 1;
   while (STACK_NOT_EMPTY(stack_vars++, stack_vars_base)) 
     {
       POP_DOWN(stack_vars);
@@ -192,7 +225,7 @@ TrNode put_trie_entry(TrNode node, tagged_t entry, struct sf* sf)
 #if defined(DEBUG_ALL)
       tagged_t term;
       DEREF(term,*stack_attrs);
-      printf("\nTRIES %lx %lx\n",term,*stack_attrs);
+      printf("\nTRIES %p %p\n",(void*)term,(void*)*stack_attrs);
 #endif
       sf->attrs[index--] = *stack_attrs;
     }
@@ -258,7 +291,7 @@ TrNode put_trie_answer(TrNode node, struct sf* ans, struct attrs* new_attrs)
   stack_vars_base = stack_vars = TERM_STACK + TERM_STACK_SIZE - 1;
   stack_attrs_base = stack_attrs = ATTR_STACK + ATTR_STACK_SIZE - 1;
 
-  int index;
+  intmach_t index;
   tagged_t t;
   tagged_t attr;
   for (index = 0; index < ans->attr_size; index++)
@@ -266,18 +299,20 @@ TrNode put_trie_answer(TrNode node, struct sf* ans, struct attrs* new_attrs)
       t = ans->attrs[index];
       DEREF(t,t);
 #if defined(DEBUG_ALL)
-      printf("\nT = %lx value %lx\n",t,*TagToPointer(t));
-      attr = fu1_get_attribute(NULL,t);
-      DEREF(attr,ArgOfTerm(1, attr));
-      printf("\nIN put_trie_answer %lx = %li\n",t,IntOfTerm(attr));
+      /* printf("\nT = %lx value %lx\n",t,*TagToPointer(t)); */
+      /* attr = fu1_get_attribute(NULL,t); */
+      /* DEREF(attr,ArgOfTerm(1, attr)); */
+      /* printf("\nIN put_trie_answer %lx = %li\n",t,IntOfTerm(attr)); */
 #endif
-      *TagToPointer(t) = AttrTrie | ((stack_attrs_base - stack_attrs) << 2);
+      if (TagOf(t) == CVA)
+	*TagToPointer(t) = AttrTrie | ((stack_attrs_base - stack_attrs) << 2);
       PUSH_UP(stack_attrs, t, ATTR_STACK);
       PUSH_UP(stack_attrs, stack_attrs, ATTR_STACK);
     }
 
   for (index = 0; index < ans->size; index++)
     {
+      //      printf("Enter put_trie_answer\n");
       node = put_trie(node, ans->vars[index]);
     }
 
@@ -292,24 +327,25 @@ TrNode put_trie_answer(TrNode node, struct sf* ans, struct attrs* new_attrs)
       new_attrs->size = (stack_attrs_base - stack_attrs) / 2;
       ALLOC_TABLING_STK(new_attrs->attrs, tagged_t*, 
 			new_attrs->size * sizeof(tagged_t));
-//     new_attrs->attrs = (tagged_t*) checkalloc
-//	(new_attrs->size * sizeof(tagged_t));
       index = new_attrs->size - 1;
     }
 
   while (STACK_NOT_EMPTY(stack_attrs++, stack_attrs_base)) 
     {
       POP_DOWN(stack_attrs);
-      *TagToPointer(*stack_attrs) = *stack_attrs;
+      if (IsVar(*stack_attrs) && IsTrieAttr(*TagToPointer(*stack_attrs)))
+	{
+	  *TagToPointer(*stack_attrs) = *stack_attrs;
+	}
       new_attrs->attrs[index--] = *stack_attrs;
 #if defined(DEBUG_ALL)
-      tagged_t term;
-      DEREF(term,*stack_attrs);
-      printf("\nTRIES 2 %lx %lx\n",term,*stack_attrs);
-      attr = fu1_get_attribute(NULL,new_attrs->attrs[index+1]);
-      DEREF(attr,ArgOfTerm(1, attr));
-      printf("\nOUT %d put_trie_answer %lx = %li\n",
-	     index+1,new_attrs->attrs[index+1],IntOfTerm(attr));
+      /* tagged_t term; */
+      /* DEREF(term,*stack_attrs); */
+      /* printf("\nTRIES 2 %lx %lx\n",term,*stack_attrs); */
+      /* attr = fu1_get_attribute(NULL,new_attrs->attrs[index+1]); */
+      /* DEREF(attr,ArgOfTerm(1, attr)); */
+      /* printf("\nOUT %d put_trie_answer %lx = %li\n", */
+      /* 	     index+1,new_attrs->attrs[index+1],IntOfTerm(attr)); */
 #endif
     }
 
@@ -336,7 +372,7 @@ static
 TrNode put_trie(TrNode node, tagged_t entry) 
 {
   tagged_t t;
-  int i;
+  intmach_t len, i;
   DEREF(t,entry);
   switch(TagOf(t))
     {
@@ -371,7 +407,7 @@ TrNode put_trie(TrNode node, tagged_t entry)
 	  return trie_node_check_insert(node, CommaEndTag);	    
 	}
 
-      int i;
+      intmach_t i;
       node = trie_node_check_insert(node, *TagToPointer(t));
       for (i = 1; i <= ArityOfFunctor(t); i++)
 	{
@@ -422,7 +458,7 @@ CVOID__PROTO(get_trie_answer, TrNode node, struct sf *sf) {
   max_index_attr = sf->attr_size - 1;
 
 
-  int i;
+  intmach_t i;
   for (i = 0; i < sf->attr_size; i++) 
     {
       stack_attrs_base[i] = sf->attrs[i];
@@ -444,7 +480,7 @@ CVOID__PROTO(get_trie_answer, TrNode node, struct sf *sf) {
 //	}
 //    }
 
-  int index;
+  intmach_t index;
   stack_args++;
   for (index = 0; index < sf->size; index++)
     {
@@ -489,10 +525,10 @@ CFUN__PROTO(get_trie, tagged_t,
 //      else if (IsTrieVar(t)) 
       if (IsTrieVar(t)) 
 	{
-	  int index = TrieVarIndex(t);
+	  intmach_t index = TrieVarIndex(t);
 	  if (index > max_index) 
 	    {
-	      int i;
+	      intmach_t i;
 	      stack_vars = &stack_vars_base[index + 1];
 	      if (stack_vars > stack_args + 1)
 		fprintf(stderr, "\nTries module: TERM_STACK full");
@@ -513,10 +549,10 @@ CFUN__PROTO(get_trie, tagged_t,
 	} 
       else if (IsTrieAttr(t)) 
 	{
-	  int index = TrieVarIndex(t);
+	  intmach_t index = TrieVarIndex(t);
 	  if (index > max_index_attr) 
 	    {
-	      int i;
+	      intmach_t i;
 	      stack_attrs = stack_attrs_base + index + 1;
 	      for (i = index; i > max_index_attr; i--)
 		stack_attrs_base[i] = 0;
@@ -536,7 +572,7 @@ CFUN__PROTO(get_trie, tagged_t,
       else
 	{
 	  DEREF(t,t); 
-	  int end = 1;
+	  intmach_t end = 1;
 	  tagged_t t2;
 	  tagged_t *stack_aux;
 	  double f;
@@ -603,7 +639,7 @@ CFUN__PROTO(get_trie, tagged_t,
 	    }
 	  if (!end)
 	    {
-	      int arity;
+	      intmach_t arity;
 	      switch(TagOf(t))
 		{
 		case ATM:
@@ -633,4 +669,46 @@ CFUN__PROTO(get_trie, tagged_t,
 
   return t;
 }
+
+
+TrNode put_trie_term(TrNode node, tagged_t term)
+{
+  stack_args_base = stack_args = TERM_STACK;
+  stack_vars_base = stack_vars = TERM_STACK + TERM_STACK_SIZE - 1;
+  stack_attrs_base = stack_attrs = ATTR_STACK + ATTR_STACK_SIZE - 1;
+  
+  //  printf("Enter put_trie_term\n");
+  node = put_trie(node, term);
+
+  while (STACK_NOT_EMPTY(stack_vars++, stack_vars_base)) 
+    {
+      POP_DOWN(stack_vars);
+      *TagToPointer(*stack_vars) = *stack_vars;
+    }
+
+  while (STACK_NOT_EMPTY(stack_attrs++, stack_attrs_base)) 
+    {
+      POP_DOWN(stack_attrs);
+      *TagToPointer(*stack_attrs) = *stack_attrs;
+    }
+
+  return node;
+}
+
+CFUN__PROTO(get_trie_term, tagged_t, TrNode node)
+{
+  stack_vars_base = stack_vars = TERM_STACK;
+  stack_args_base = stack_args = TERM_STACK + TERM_STACK_SIZE - 1;
+  stack_attrs_base = stack_attrs = ATTR_STACK;
+  max_index = -1;
+  max_index_attr = - 1;
+
+  tagged_t term;
+ 
+  term = get_trie(Arg, node, stack_args, &node);
+
+  return term;
+}
+
+
 #endif

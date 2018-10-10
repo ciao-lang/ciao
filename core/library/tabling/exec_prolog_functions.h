@@ -1,0 +1,8 @@
+#ifndef _CIAO_CALL_PROLOG_FUNCTIONS_H
+#define _CIAO_CALL_PROLOG_FUNCTIONS_H
+
+//#if defined(TABLING)
+
+//#endif
+
+#endif /* _CIAO_CALL_PROLOG_FUNCTIONS_H */

@@ -35,13 +35,17 @@ CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
 	{
 	  if (TagIsHVA(*TagToPointer(itrail)))
 	    {
-	      if (!HeapYounger(ind->global_top,*TagToPointer(itrail)))
-		NullifyTrailEntry(itrail);
+	      if (!HeapYounger(ind->global_top,*TagToPointer(itrail))) {
+		//		printf("\nNullifyTrailEntry !HeapYounger\n");
+		//		NullifyTrailEntry(itrail);
+	      }
 	    }
 	  else if (TagIsSVA(*TagToPointer(itrail)))
 	    {
-	      if (!StackYounger(ind->local_top,*TagToPointer(itrail)))
-		NullifyTrailEntry(itrail);
+	      if (!StackYounger(TagSVA(ind->local_top),*TagToPointer(itrail))) {
+		//		printf("\nNullifyTrailEntry !StackYounger\n");
+		//		NullifyTrailEntry(itrail);
+	      }
 	    }
 	}	
       ind->global_top = (tagged_t *)&(HeapFReg);

@@ -2,6 +2,12 @@
 #define _CIAO_CHAT_TABLING_H
 
 #if defined(TABLING)
+
+CBOOL__PROTO(array_to_list, intmach_t size, tagged_t *array, tagged_t*list);
+CFUN__PROTO(save_term, TrNode, tagged_t term);
+CFUN__PROTO(load_term, tagged_t, TrNode copy);
+
+
 /* --------------------------- */
 /*           Defines           */
 /* --------------------------- */
@@ -26,8 +32,8 @@ extern tagged_t atom_gen_tree_backtracking;
 
 #define TABLING_GLOBALSTKSIZE  (4800*kCells-1) 
 #define TABLING_LOCALSTKSIZE   (3000*kCells-1)
-#define TABLING_CHOICESTKSIZE  (1500*kCells-1)
-#define TABLING_TRAILSTKSIZE   (1500*kCells-1)
+#define TABLING_CHOICESTKSIZE  (3000*kCells-1)
+#define TABLING_TRAILSTKSIZE   (3000*kCells-1)
 #define PTCP_STKSIZE          2048
 
 /* --------------------------- */
@@ -87,10 +93,15 @@ extern tagged_t atom_gen_tree_backtracking;
 #define EXECUTE_CALL(BOOL, ARG, CALL, CALLID)				\
   {									\
     (CALLID)->state = EVALUATING;					\
+									\
+    int i;								\
     									\
+    PRINT_REG("\n\n\t EXECUTE_CALL - A -\n");				\
     ciao_frame_re_begin((ARG)->misc->goal_desc_ptr);			\
+    PRINT_REG("\n\n\t EXECUTE_CALL - B -\n");				\
     (BOOL) = ciao_commit_call_term(ciao_refer(CALL));			\
     ciao_frame_re_end();						\
+    PRINT_REG("\n\n\t EXECUTE_CALL - C -\n");				\
   }
 
 //TODO: take if (TYPE) out by defining two different CONSUME_ANSWER macros
@@ -188,7 +199,7 @@ extern tagged_t atom_gen_tree_backtracking;
 	     (iTrail) = (iTrail) + 2)					\
 	  {								\
 	    printf("\nState %lx\n",					\
-		   CTagToPointer((NodeTR)->trail_sg[(iTrail)]));	\
+		   *TagToPointer((NodeTR)->trail_sg[(iTrail)]));	\
 	  }								\
       }									\
   }
@@ -239,10 +250,13 @@ extern tagged_t atom_gen_tree_backtracking;
 	    else							\
 	      {								\
 		/*Execute forward trail*/				\
+		PRINT_REG("\n\t FORWARD_TRAIL - A -\n");		\
 		ciao_frame_re_begin((ARG)->misc->goal_desc_ptr);	\
+		PRINT_REG("\n\t FORWARD_TRAIL - B -\n");		\
 		tagged_t term = ArgOfTerm(1, (NodeTR)->trail_sg[(iTrail)]); \
 		ciao_commit_call_term(ciao_refer(term));		\
 		ciao_frame_re_end();					\
+		PRINT_REG("\n\t FORWARD_TRAIL - C -\n");		\
 	      }								\
 	  }								\
       }									\
@@ -265,10 +279,13 @@ extern tagged_t atom_gen_tree_backtracking;
 	    else							\
 	      {								\
 		/*Execute forward trail*/				\
+		PRINT_REG("\n\t UNTRAILING - A -\n");			\
 		ciao_frame_re_begin((ARG)->misc->goal_desc_ptr);	\
+		PRINT_REG("\n\t UNTRAILING - B -\n");			\
 		tagged_t term = ArgOfTerm(2, (NodeTR)->trail_sg[(iTrail)]); \
 		ciao_commit_call_term(ciao_refer(term));		\
 		ciao_frame_re_end();					\
+		PRINT_REG("\n\t UNTRAILING - C -\n");			\
 	      }								\
 	  }								\
       }									\
@@ -356,17 +373,46 @@ extern tagged_t atom_gen_tree_backtracking;
 
 #define GET_ATTRS_ANSW(SPACE,ANSW_SPACE,ATTRS,ATTR_VARS)		\
   {									\
-    Unify((SPACE),MkIntTerm((int)(ANSW_SPACE)));			\
-    (ATTRS) = (struct attrs*) checkalloc (sizeof(struct attrs));	\
+    Unify((SPACE),MkIntTerm((intmach_t)(ANSW_SPACE)));			\
+    (ATTRS) = (struct attrs*) checkalloc (sizeof(struct attrs));        \
     (ATTRS)->size = (stack_attrs - stack_attrs_base);			\
-    (ATTRS)->attrs = (tagged_t*) checkalloc				\
-      ((ATTRS)->size * sizeof(tagged_t));				\
-    int i;								\
-    for (i = 0; i < (ATTRS)->size; i++)					\
-      {									\
-	(ATTRS)->attrs[i] = stack_attrs_base[i];			\
-      }									\
-    Unify((ATTR_VARS),MkIntTerm((int)(ATTRS)));				\
+    if ((ATTRS)->size > 0)  {						\
+      (ATTRS)->attrs = (tagged_t*) checkalloc				\
+	((ATTRS)->size * sizeof(tagged_t));				\
+      intmach_t i;								\
+      for (i = 0; i < (ATTRS)->size; i++)				\
+	{								\
+	  (ATTRS)->attrs[i] = stack_attrs_base[i];			\
+	}								\
+    }									\
+    Unify((ATTR_VARS),MkIntTerm((intmach_t)(ATTRS)));				\
+  }
+
+#define GET_ATTRS_ANSW_ANS(SPACE,ANSW_SPACE,ATTRS,ATTR_VARS)		\
+  {									\
+    PRINT_DEREF(Arg, " SPACE ", SPACE);					\
+    printf(" Unify with ANSW_SPACE = %d\n", (intmach_t)ANSW_SPACE);		\
+    if (TagOf(*(TagToPointer(SPACE))) != NUM && *(TagToPointer(SPACE)) != SPACE) \
+      { printf("ERROR\n");						\
+	*(TagToPointer(SPACE)) = (SPACE);	}			\
+    PRINT_DEREF(Arg, " SPACE ", SPACE);					\
+    Unify((SPACE),MkIntTerm((intmach_t)(ANSW_SPACE)));			\
+    PRINT_DEREF(Arg, " SPACE ", SPACE);					\
+    (ATTRS) = (struct attrs*) checkalloc (sizeof(struct attrs));        \
+    (ATTRS)->size = (stack_attrs - stack_attrs_base);			\
+    if ((ATTRS)->size > 0)  {						\
+      (ATTRS)->attrs = (tagged_t*) checkalloc				\
+	((ATTRS)->size * sizeof(tagged_t));				\
+      intmach_t i;								\
+      for (i = 0; i < (ATTRS)->size; i++)				\
+	{								\
+	  (ATTRS)->attrs[i] = stack_attrs_base[i];			\
+	}								\
+    }									\
+    PRINT_DEREF(Arg, " ATTR_VARS ", ATTR_VARS);				\
+    printf(" Unify with ATTRS = %d\n", (intmach_t)ATTRS);			\
+    Unify((ATTR_VARS),MkIntTerm((intmach_t)(ATTRS)));				\
+    PRINT_DEREF(Arg, " ATTR_VARS ", ATTR_VARS);				\
   }
 
 #define MAKE_UNDO_PUSH_PTCP(ARG,GEN)					\
@@ -392,6 +438,97 @@ extern tagged_t atom_gen_tree_backtracking;
   {									\
     TrailPush((ARG)->trail_top,atom_gen_tree_backtracking);		\
   }
+
+#define REG_TO_SAVE 8
+
+#if defined(TRACE_REG)
+#define SAVE_REG				\
+  tagged_t save_args[REG_TO_SAVE];		\
+  printf("Before \n");				\
+  for (intmach_t i = 0; i < REG_TO_SAVE; i++)		\
+    {						\
+      save_args[i] =  X(i);			\
+      printf("X(%d) ",i);			\
+      PRINT_DEREF(Arg, " ", X(i));		\
+    }
+
+#define RESTORE_REG				\
+  printf("After \n");				\
+  for (intmach_t i = 0; i < REG_TO_SAVE; i++)		\
+    {						\
+      printf("X(%d) ",i);			\
+      PRINT_DEREF(Arg, " ", X(i));		\
+      X(i) = save_args[i];			\
+      printf("X(%d) ",i);			\
+      PRINT_DEREF(Arg, " ", X(i));		\
+    }
+  
+#define PRINT_REG(TEXT)				\
+  printf(TEXT);					\
+  for (intmach_t i = 0; i < REG_TO_SAVE; i++)		\
+    {						\
+      printf("X(%d) ",i);			\
+      PRINT_DEREF(Arg, " ", X(i));		\
+    }
+
+#define PRINT_TERM(ARG, TEXT, TERM)		      \
+  {						      \
+    printf(TEXT);				      \
+    display_term(ARG,TERM,Output_Stream_Ptr, TRUE);   \
+    printf("\n");				      \
+  }						      
+
+#define PRINT_DEREF(ARG, TEXT, TERM)			\
+  {							\
+    printf(TEXT);					\
+    printf(" (%p)", &(TERM));				\
+    tagged_t m_i, m_j;					\
+    m_i = TERM;						\
+    if (IsVar(m_i))					\
+      {							\
+	do							\
+	  {							\
+	    printf("\t");					\
+	    display_term(ARG,m_i,Output_Stream_Ptr, TRUE);	\
+	    printf(" (%p)", TagToPointer(m_i));			\
+	    if (m_i == (m_j = *TagToPointer(m_i)))		\
+	      {							\
+		printf(" <var> ");				\
+		break;						\
+	      }							\
+	  }							\
+	while (IsVar(m_i = m_j));				\
+	    printf("\t");					\
+	display_term(ARG,m_i,Output_Stream_Ptr, TRUE);		\
+      }								\
+    else							\
+      display_term(ARG,m_i,Output_Stream_Ptr, TRUE);		\
+    printf(" (end DEREF)\n");					\
+  }						      
+#else
+#define SAVE_REG				\
+  tagged_t save_args[REG_TO_SAVE];		\
+  for (intmach_t i = 0; i < REG_TO_SAVE; i++)		\
+    {						\
+      save_args[i] =  X(i);			\
+    }
+
+#define RESTORE_REG				\
+  for (intmach_t i = 0; i < REG_TO_SAVE; i++)		\
+    {						\
+      X(i) = save_args[i];			\
+    }
+  
+#define PRINT_REG(TEXT) {}
+#define PRINT_TERM(ARG, TEXT, TERM)		      \
+  {						      \
+    printf(TEXT);				      \
+    display_term(ARG,TERM,Output_Stream_Ptr, TRUE);   \
+    printf("\n");				      \
+  }
+#define PRINT_DEREF(ARG, TEXT, TERM) {}
+#endif
+
 
 #endif
 
