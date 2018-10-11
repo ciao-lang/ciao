@@ -19,7 +19,7 @@
    predicates to manipulate dynamic predicates, preserving the
    original source definitions.").
 
-:- use_module(engine(runtime_control), [module_unconcat/3]).
+:- use_module(engine(runtime_control), [module_split/3]).
 :- use_module(engine(internals)).
 :- use_module(engine(runtime_control), [new_atom/1, current_module/1]).
 :- use_module(library(iso_misc), [sub_atom/5]).
@@ -178,10 +178,10 @@ check_head(H, _, Spec, _) :-
         fail.
 check_head(H, M, Spec, ClData) :-
         functor(H, F, A),
-        ( module_unconcat(F, multifile, _) ->
+        ( module_split(F, multifile, _) ->
             ClData = 'multifile:\3\mfclause'(_,_)
         ; module_name(M, MN),
-	  module_unconcat(F, MN, _) ->
+	  module_split(F, MN, _) ->
             module_concat(MN, '\3\clause', ClFun),
             functor(ClData, ClFun, 2)
         ; throw(error(permision_error(modify, nonlocal_procedure, F/A),Spec)),

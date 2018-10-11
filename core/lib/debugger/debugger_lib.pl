@@ -43,7 +43,7 @@
 :- use_module(library(aggregates)).
 
 :- use_module(engine(internals), [module_concat/3]).
-:- use_module(engine(runtime_control), [module_unconcat/3]).
+:- use_module(engine(runtime_control), [module_split/3]).
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(engine(messages_basic), [display_list/1]).
 :- use_module(engine(debugger_support)).
@@ -709,7 +709,7 @@ debug_module(M) :-
 in_debug_module(G) :-
 	functor(G, F, _),
 	current_fact(debug_mod(M)),
-	module_unconcat(F, M, _).
+	module_split(F, M, _).
 
 :- pred nodebug_module(Module) : atm(Module)
 # "The debugger will not take into acount module @var{Module}.

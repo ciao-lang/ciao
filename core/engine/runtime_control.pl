@@ -18,7 +18,7 @@
         current_atom/1,
         new_atom/1,
 	current_module/1,
-	module_unconcat/3,
+	module_split/3,
 	%
 	predicate_property/2,
 	predicate_property/3, % (+1 because of addmodule)
@@ -383,7 +383,7 @@ current_module(Module) :- '$current_module'(Module).
 % The reverse of internals:module_concat/3
 % TODO: move together with internals:module_concat/3?
 % TODO: inefficient, write in C or adopt a hash-table approach like in optim_comp
-module_unconcat(MF, M, F) :-
+module_split(MF, M, F) :-
 	atom_codes(MF, MFc),
 	append(Mc, [0':|Fc], MFc), !,
 	atom_codes(M, Mc),
@@ -442,7 +442,7 @@ predicate_property(Head, Prop, CallerM) :- nonvar(Head), !,
 	( predicate_property_bits(Entry, Bits, Prop)
 	; % TODO: The slow part, reimplement
 	  functor(Head, MF, N),
-	  module_unconcat(MF, EM, F),
+	  module_split(MF, EM, F),
 	  % TODO: bug: the resolved predicate only give us the
 	  %       effective module name, so we cannot distinguish
 	  %       between querying the properties of a reexported
