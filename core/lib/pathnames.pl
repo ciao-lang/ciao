@@ -316,7 +316,8 @@ path_splitext(Path, NoExt, Ext) :-
 path_splitext_(Path, NoExt, Ext) :-
 	reverse(Path, R),
 	( append(ExtR, "."||NoExtR, R),
-	  \+ alldots(NoExtR)
+	  \+ alldots(NoExtR),
+	  nosep(ExtR)
 	->
 	    reverse(NoExtR, NoExt),
 	    reverse(ExtR, Ext0),
@@ -329,6 +330,11 @@ path_splitext_(Path, NoExt, Ext) :-
 alldots([]).
 alldots("/"||_) :- !.
 alldots("."||Xs) :- !, alldots(Xs).
+
+% no separators
+nosep([]).
+nosep("/"||_) :- !, fail.
+nosep([_|Xs]) :- nosep(Xs).
 
 % ---------------------------------------------------------------------------
 
