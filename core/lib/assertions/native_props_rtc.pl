@@ -2,7 +2,7 @@
         [
             rtc_succeeds/1,
 % sharing/aliasing, groundness:
-            rtc_mshare/1,
+	    rtc_mshare/2,
             rtc_covered/2,
             rtc_linear/1,
 % determinacy:
@@ -43,10 +43,10 @@
 :- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(library(stream_utils), [file_to_string/2]).
 :- use_module(library(system),     [mktemp_in_tmp/2, delete_file/1]).
-:- use_module(library(terms_vars), [term_variables/2,varsbag/3]).
-:- use_module(library(lists),      [sublist/2]).
-:- use_module(library(hiordlib), [maplist/3]).
+:- use_module(library(terms_vars), [term_variables/2,varsbag/3,varset/2]).
 :- use_module(library(rtchecks/rtchecks_send), [send_comp_rtcheck/3]).
+
+
 
 % ----------------------------------------------------------------------
 
@@ -57,36 +57,68 @@ rtc_succeeds(Goal) :- \+ \+ call(Goal). % processed in rtchecks_basic
 
 % ----------------------------------------------------------------------
 
-% MH These look strange as sharing sets! Also, it is really wrong: it
-% does not check the ground variables (the ones that do not appear in
-% the sahring set)). To make it complete we need to pass all clause
-% variables to mshare in another argument...
-:- test rtc_mshare(L) : (L = [[A], [p(A)]]) + fails.
-:- test rtc_mshare(L) : (L = [[A], [p(B)]]) + not_fails.
+% rtc_mshare(Vs,Sh): list(int-term) * list(list(int)).
+% During intrumentation we have assigned a unique identificator for
+% each variable in Vs, since on runtime they could be
+% indistinguishable, and we have sorted Sh lexicographically with
+% respect to Vs (e.g [a,b,c] ->
+% [[a],[a,b],[a,b,c],[a,c],[b],[b,c],[c]]). Now Sh uses those
+% identificators instead of the original variables, and Vs keeps the
+% correspondency between the variables and the identificators. Also,
+% we assume that Sh does not contain the empty set
 
-% MH: This run-time check simply cannot be done like this! It is
-% necessary to pass the variables (mshare/2) or read them from the
-% clause database or whatever.
-rtc_mshare(L) :-
-	maplist(term_variables, L, V),
-	\+ not_mshare(V).
+rtc_mshare(Vs,Sh) :-
+	varset(Vs,Us),
+	maplist_varset(Vs,Uss),
+	check_mshare(Us,Vs,Uss,Sh).
 
-% try to find a counter-example:
-not_mshare([V1|L]) :-
-	member(V2, L),
-	member(X1, V1),
-	member(X2, V2),
-	X1 == X2 -> true
-    ;
-	not_mshare(L).
+check_mshare([U|Us],Vs,Uss,Sh) :-
+	check_sharing_set(U,Vs,Uss,[[]|Sh],Uss2),
+	check_mshare(Us,Vs,Uss2,Sh).
+check_mshare([],_,_,_).
+
+% check(U,Vs,Uss,Sh,Uss2): checks that the sharing set of U according
+% to Vs appears in Sh. Sh is sorted lexicographically with respect to
+% Vs, Uss are the sets of free variables appearing in Vs, and U is the
+% first variable of all of those. Uss2 is Uss without U
+check_sharing_set(U,[N-_V|Vs],[[U1|Us]|Uss],Sh,[Us|Uss2]) :-
+	U==U1, !,
+	split_sh(Sh,N,NewSh,_), NewSh\=[],
+	check_sharing_set(U,Vs,Uss,NewSh,Uss2).
+check_sharing_set(U,[N-_V|Vs],[Us|Uss],Sh,[Us|Uss2]) :-
+	split_sh(Sh,N,_,NewSh),
+	check_sharing_set(U,Vs,Uss,NewSh,Uss2).
+check_sharing_set(_,[],[],[[]],[]).
+
+
+% split(Sh,V,Sh1,Sh2): splits Sh in those sharing sets which contain
+% V, without V, and those which not. Sh is sorted, and V is the first
+% variable of Sh. The empy set is included in Sh
+split_sh([],_,[],[]).
+split_sh([[]|Vss],W,Vss1,[[]|Vss2]) :- !,
+	split_sh(Vss,W,Vss1,Vss2).
+split_sh([[V|Vs]|Vss],V,[Vs|Vss1],Vss2) :- !,
+	split_sh(Vss,V,Vss1,Vss2).
+split_sh(Vss,_V,[],Vss).
+
+
+% for some reason, maplist/n doesn't work when called from
+% instrumentation. Maybe it has something to do with the module
+% expansion and non_inst (see T263).
+maplist_varset([],[]).
+maplist_varset([V|Vs],[Us|Uss]) :-
+	varset(V,Us),
+	maplist_varset(Vs,Uss).
 
 % ----------------------------------------------------------------------
 
-% rtcheck version for native_props:covered/2
-rtc_covered(X, Y) :-
-	varsbag(X, VarsX, []),
-	varsbag(Y, VarsY, []),
-	sublist(VarsX, VarsY).
+rtc_covered(X,Y) :-
+	\+ \+ (numbervars(Y,0,_), ground(X)).
+
+:- use_module(library(write), [numbervars/3]).
+
+% TODO: It can be made more efficient (it is not strictly necessary to
+% fully traverse Y)
 
 % ----------------------------------------------------------------------
 

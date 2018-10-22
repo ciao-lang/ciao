@@ -140,7 +140,6 @@ non_inst('$:'(Goal),Args) :- !, non_inst_(Goal,Args).
 % TODO: create automatically
 non_inst_('term_typing:var'(A)   , _   ) :- !, nonvar(A).
 non_inst_('term_typing:nonvar'(A), _   ) :- !, var(A).
-%
 non_inst_(Goal                   , Args) :-
 % A generic implementation of non_inst/2
 	varset(Args, VS),
