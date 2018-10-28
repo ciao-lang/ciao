@@ -60,8 +60,11 @@
 :- use_module(library(varnames/apply_dict)).
 :- use_module(library(varnames/complete_dict), [set_undefined_names/3]).
 :- use_module(engine(attributes)).
+:- use_module(library(cyclic_terms), [uncycle_term/2]).
 
 :- use_module(library(toplevel/toplevel_io)).
+
+:- use_module(engine(runtime_control), [current_prolog_flag/2]).
 
 :- doc(hide, get_debugger_state/1).
 :- doc(hide, what_is_on/1).
@@ -243,7 +246,7 @@ write_goal2(Op, Goal0, d(_, _, ADict0), AtVars0) :-
 	current_fact(printopts(_, D, A, V)),
 	sort(AtVars0, AtVars1),
 	( V == true ->
-	    apply_dict(t(ADict0, Goal0, AtVars1), ADict0, t(ADict, Goal, AtVars)),
+	    apply_dict_with_cycles(t(ADict0,Goal0,AtVars1),ADict0,t(ADict,Goal,AtVars)),	      
 	    foldl(sel_instantiated, ADict, AInst, [])
 	;
 	    ADict = ADict0,
@@ -252,8 +255,28 @@ write_goal2(Op, Goal0, d(_, _, ADict0), AtVars0) :-
 	),
 	get_write_options(A, AtVars, D, WriteOpts),
 	write_op(Op, Goal, WriteOpts),
-	(V == true -> maplist(display_nv(Op, WriteOpts), AInst) ;  true),
+	(V == true -> maplist(display_nv(Op, WriteOpts), AInst) ; true),
 	(A == true -> print_attributes(AtVars, Op, WriteOpts) ; true).
+
+
+apply_dict_with_cycles(t(ADict0,Goal0,AtVars0),ADict0,t(ADict,Goal,AtVars)) :-
+	current_prolog_flag(check_cycles,off), !,
+	apply_dict(t(ADict0,Goal0,AtVars0), ADict0, t(ADict, Goal, AtVars)).
+apply_dict_with_cycles(t(ADict0,Goal0,AtVars0),ADict0,t(ADict,Goal,AtVars)) :-
+	uncycle_term(Goal0-ADict0,(Goal1-ADict2,Cycles)),
+	close_list(Cycles),
+	as_dict(Cycles,DictCycles),
+	append(ADict2,DictCycles,ADict1),
+	set_undefined_names(ADict1,1,_),
+	apply_dict(t(ADict1,Goal1,AtVars0), ADict1, t(ADict, Goal, AtVars)).
+
+close_list([]) :- !.
+close_list([_|Xs]) :-
+	close_list(Xs).
+
+as_dict([],[]).
+as_dict([X-Y|L1],[Y=X|L2]) :-
+	as_dict(L1,L2).
 
 write_op(0'p, Goal, WriteOpts) :- write_term(Goal, WriteOpts).
 write_op(0'd, Goal, _) :- display(Goal).
@@ -896,7 +919,7 @@ debug_trace2(X, State, Pred, Src, L0, L1, d(UDict, CDict), Number,
 	    GetAttributedVars, DebugCall) :-
 	append(UDict, CDict, Dict0),
 	set_undefined_names(Dict0, 1, _),
-	select_applicable(X, Dict0, ADict),
+	select_applicable_with_cycles(X, Dict0, ADict),
 	Dict = d(UDict, CDict, ADict),
 	retry_hook_(X, B, D, NA, OA, Port, State, Dict),
 	'$setarg'(4, State, B,  on),
@@ -918,6 +941,13 @@ debug_trace2(X, State, Pred, Src, L0, L1, d(UDict, CDict), Number,
 	% Remove choicepoints in deterministic goals to speed up debugging -- EMM
 	(C0 == C1 -> ! ; true),
 	'$setarg'(5, State, OA, on).
+
+select_applicable_with_cycles(X,Dict,ADict) :-
+	current_prolog_flag(check_cycles,off), !,
+	select_applicable(X, Dict, ADict).
+select_applicable_with_cycles(X,Dict,ADict) :-
+	uncycle_term(X,(X1,_)),
+	select_applicable(X1, Dict, ADict).
 
 :- meta_predicate call_hook(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, pred(2), pred(1)).
 
