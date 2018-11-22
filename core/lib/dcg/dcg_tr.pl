@@ -26,6 +26,10 @@ dcg_translation(T1, T3, M) :-
         dcg_expansion_internal(T1, M, T2),
         T2 = T3.
 
+dcg_expansion_internal((:- '\6\use_call_in_module'), M, C) :- !,
+	% Trick, needed for dcg_phrase
+	% TODO: add meta-pred spec for DCGs, etc.
+	C = ('\6\call_in_module'(M, G) :- !, call(G)).
 dcg_expansion_internal((H,List-->B), M, (H1:-B2,B1)) :- !,
 	dcg_translate_dcg_atom(H, H1, S0, S1),
 	dcg_translate_dcg(List, B2, M, S1, S),
