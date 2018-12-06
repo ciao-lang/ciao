@@ -24,8 +24,9 @@
    (parsing) terms from strings or atom codes.").
 
 :- doc(bug, "All predicates except @pred{read_from_atom/2} implement
-   an incomplete grammar. The good implementation should: a) create a
-   read stream from a string, and b) call the standard reader.").
+   an incomplete grammar (e.g., operator priority is ignored). The
+   good implementation should: a) create a read stream from a string,
+   and b) call the standard reader.").
 
 :- use_module(library(dict)).
 :- use_module(engine(io_basic)).
@@ -75,7 +76,7 @@ read_from_string_atmvars(String,Term):-
 	%   cases. See clients of this predicate to implement the
 	%   desired behaviour.
 	% TODO: use read and unify variable names later?
-	readS_internal(String,Term, _, atmvars), !.
+	readS_internal(String,Term, _, atmvars), !. % TODO: Rest should be []!!!!
 
 :- pred read_from_string_atmvars(+String, -Term, ?Rest)
 

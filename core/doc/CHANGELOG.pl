@@ -1,4 +1,4 @@
-:- doc(version(1*16+0,2016/12/31,11:36*37+'CEST'), "
+:- doc(version(1*18+0,2018/12/06,11:25*08+'CEST'), "
    @begin{itemize}
    @item Backward-incompatible changes in this version:
       @begin{itemize}
@@ -95,7 +95,6 @@
       @end{itemize}
    @end{itemize}
 ").
-% 1.18
 
 % (We skip development version 1.17 this time)
 
