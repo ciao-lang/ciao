@@ -408,29 +408,29 @@ main(Args) :-
 %
 :- simple_option('-op',
     opt_suffix(_, Suff),
-    "<Suffix> Use Suffix as the suffix for optimized (or otherwise tuned) code",
+    "<Suffix> Use Suffix as the suffix for optimized (or otherwise tuned) code.",
     continue, [Suff|Args], Args).
 %
 :- simple_option('-L',
     asserta_fact(library_directory(Dir)),
-    "<LibDir> Look for libraries also in the LibDir directory",
+    "<LibDir> Look for libraries also in the LibDir directory.",
     continue, [Dir|Args], Args).
 %
 :- simple_option('-c',
     set_fact(output_kind(po)),
-    "Generate .po objects for the input modules",
+    "Generate .po objects for the input modules.",
     continue, Args, Args).
 %
 :- simple_option('-w',
     set_fact(output_kind(wam)),
-    "Generate .wam files (WAM code) for the input modules",
+    "Generate .wam files (WAM code) for the input modules.",
     continue, Args, Args).
 %
 :- simple_option('-S',
     ( set_prolog_flag(executables, static),
       get_platform(EngCfg),
       set_prolog_flag(self_contained, EngCfg) ),
-    "Make standalone executable for the current OS and architecture, implies -s",
+    "Make standalone executable for the current OS and architecture, implies -s.",
     continue, Args, Args).
 %
 % (See eng_defs:eng_cfg/2 for possible values)
@@ -438,35 +438,35 @@ main(Args) :-
     ( set_prolog_flag(executables, static),
       set_prolog_flag(self_contained, EngCfg) ),
     "<EngCfg> Make standalone executable for the EngCfg OS and architecture (and \n\t" ||
-    "optionally debugging level) (see ciao_sysconf for valid values for Target), implies -s",
+    "optionally debugging level) (see ciao_sysconf for valid values for Target), implies -s.",
     continue, [EngCfg|Args], Args).
 %
 :- simple_option('-ll',
     ( set_prolog_flag(executables, lazyload),
       force_lazy(Module) ),
-    "<Module> Force Module to be loaded lazily, implies -l",
+    "<Module> Force Module to be loaded lazily, implies -l.",
     continue, [Module|Args], Args).
 %
 :- simple_option('-ac',
     ( read_from_atom(P0, P),
       glbmod_add_package(_, P) ),
-    "<Packages> Use Packages for compiling all modules",
+    "<Packages> Use Packages for compiling all modules.",
     continue, [P0|Args], Args).
 %
 :- simple_option('-acm',
     ( read_from_atom(P0, P),
       glbmod_add_package(M, P) ),
-    "<Module> <Packages> Use the given Packages (term) for compiling Module",
+    "<Module> <Packages> Use the given Packages (term) for compiling Module.",
     continue, [M, P0|Args], Args).
 %
 :- simple_option('-d',
     assertz_fact(dynamic_search_path(Path)),
-    "<Path> Files using this path alias are dynamic (default: library)",
+    "<Path> Files using this path alias are dynamic (default: library).",
     continue, [Path|Args], Args).
 %
 :- simple_option('-o',
     set_fact(output_file(OutputName)),
-    "<File> Specify output file name",
+    "<File> Specify output file name.",
     continue, [OutputName|Args], Args).
 
 % ---------------------------------------------------------------------------
@@ -475,77 +475,79 @@ main(Args) :-
 % TODO: Some flags here are global options that cannot be safely selected on a module bases
 
 :- flag_based_option(verbose_compilation, on, '-v',
-    "Verbose mode").
+    "Verbose mode.").
 %
 :- flag_based_option(itf_format, r, '-ri',
-    "Generate human readable .itf files").
+    "Generate human-readable .itf files.").
 %
 :- flag_based_option(check_libraries, on, '-x',
-    "Incremental compilation in the Ciao standard library (for developers)").
+%    "Incremental compilation in the Ciao standard library (for developers).").
+    "Check for changes also in the Ciao standard library during incremental  \n\t"||
+    "compilation (for developers).").
 %
 :- flag_based_option(executables, static, '-s',
-    "Make a static executable (otherwise dynamic files are not included)").
+    "Make a static executable (otherwise dynamic files are not included).").
 %
 :- flag_based_option(compress_exec, yes, '-z',
-    "Generate executables with compressed bytecode").
+    "Generate executables with compressed bytecode.").
 %
 :- flag_based_option(compress_lib, yes, '-zl',
     "Generate libraries with compressed bytecode - any library (re)compiled as \n\t"||
-    "consequence of normal executable compilation will also be affected").
+    "consequence of normal executable compilation will also be affected.").
 %
 % NOTE: -e is redundant since it is already the default value -- EMM
 % :- flag_based_option(executables, eagerload, '-e',
-% "make executable with eager load of dynamic files at startup (default)").
+% "make executable with eager load of dynamic files at startup (default).").
 %
 :- flag_based_option(executables, lazyload, '-l',
-    "Idem with lazy load of dynamic files (except insecure cases)").
+    "Idem with lazy load of dynamic files (except insecure cases).").
 %
 % TODO: Is this necessary?
 :- flag_based_option(use_global_module_options, no, '-np',
-    "Ignore global module options").
+    "Ignore global module options.").
 %
 :- flag_based_option(read_assertions, no, '-na',
-    "Do not read the assertions in the code").
+    "Do not read the assertions in the code.").
 %
 :- flag_based_option(runtime_checks, yes, '-rc',
-    "Generate code with runtime checks, requires to read assertions").
+    "Generate code with runtime checks; requires reading assertions.").
 %
 :- flag_based_option(rtchecks_trust, no, [],
-    "Disable rtchecks for trust assertions").
+    "Disable rtchecks for trust assertions.").
 %
 :- flag_based_option(rtchecks_entry, no, [],
-    "Disable rtchecks for entry assertions").
+    "Disable rtchecks for entry assertions.").
 %
 :- flag_based_option(rtchecks_exit, no, [],
-    "Disable rtchecks for exit assertions").
+    "Disable rtchecks for exit assertions.").
 %
 :- flag_based_option(rtchecks_test, yes, [],
     "Enable rtchecks for test assertions (for debugging \n\t"||
-    "purposes only, unittest library is recommended)").
+    "purposes only, unittest library is recommended).").
 %
 :- flag_based_option(rtchecks_level, exports, [],
-    "Use rtchecks only for external calls of the exported predicates").
+    "Use rtchecks only for external calls of the exported predicates.").
 %
 %% TODO:T261
 %%:- flag_based_option(rtchecks_inline, yes, [],
 %%    "Expand library predicates inline as far as possible").
 %
 :- flag_based_option(rtchecks_asrloc, no, [],
-    "Do not use assertion locators in the error messages").
+    "Do not use assertion locators in the error messages.").
 %
 :- flag_based_option(rtchecks_predloc, no, [],
-    "Do not use predicate locators in the error messages").
+    "Do not use predicate locators in the error messages.").
 %
 :- flag_based_option(rtchecks_namefmt, short, [],
-    "Show the name of predicates and properties in a reduced format").
+    "Show the name of predicates and properties in a reduced format.").
 %
 :- flag_based_option(rtchecks_callloc, no, [],
-    "Do not show the stack of predicates that caused the failure").
+    "Do not show the stack of predicates that caused the failure.").
 %
 :- flag_based_option(rtchecks_callloc, literal, [],
     "Show the stack of predicates that caused the failure. Instrument it \n\t"||
     "in the literal. This mode provides more information, because reports \n\t"||
-    "also the literal in the body of the predicate").
+    "also the literal in the body of the predicate.").
 
 % ---------------------------------------------------------------------------
 
