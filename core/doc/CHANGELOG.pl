@@ -22,7 +22,7 @@
       @item Added @tt{noprelude} that prevents loading the prelude
          (default definitions)
       @item The @tt{pure} package now includes a minimum set of
-         control contructs @tt{(,)/2}, @tt{true/0}, @tt{fail/0}
+         control constructs @tt{(,)/2}, @tt{true/0}, @tt{fail/0}
       @end{itemize}
    @item Language, compiler, toplevel:
       @begin{itemize}
@@ -43,7 +43,7 @@
       @item Fixed @tt{ciaosh -e Goal} (accepts any goal), removed
          @tt{-g} option.
       @item DCG @tt{phrase/3} available by default in classic mode
-         (toplevel, user modueles, and modules declared with
+         (toplevel, user modules, and modules declared with
          @tt{module/2})
       @item Fixes in runtime check versions of @tt{mshare/1},
          @tt{indep/1}, @tt{indep/2}, and @tt{covered/2}.
@@ -117,7 +117,7 @@
       @item @tt{lib/engine/} merged into @tt{engine/} (no need to
          separate Prolog and C files).
       @item 64-bit port, enabled by default (this was a very large
-         change which required rewritting some parts of the engine).
+         change which required rewriting some parts of the engine).
       @item Adding @tt{--trace-instr} engine option (traces
          instructions, for debugging).
       @item Faster implementation of @tt{unify_with_occurs_check/2}.
@@ -199,7 +199,7 @@
          interface for child process creation, supporting stream
          redirection, background processes, signals, etc.).
       @item Added @tt{library(text_template)}, text-based templates.
-      @item Added @tt{library(http_get)} (retreive files via
+      @item Added @tt{library(http_get)} (retrieve files via
          HTTP/HTTPs/FTP protocol).
       @item Added @tt{system:get_home/1},
          @tt{system:find_executable/2}.
@@ -226,7 +226,7 @@
       @item Fix exception throw from C builtins during shallow
          backtracking.
       @item Allow exception throwing using arbitrary terms.
-      @item Foreign interface types correspoding to different
+      @item Foreign interface types corresponding to different
          fixed-width C types
          (@tt{c_int},@tt{c_size},@tt{c_uint8},etc.).
       @end{itemize}
@@ -324,7 +324,7 @@
       @item Debugged and improved performance of the CHR library port.
             (Remy Haemmerle)
       @item @tt{contrib/math}: A library with several math functions
-            that dependes on the GNU Scientific Library (GSL). (Edison
+            that depends on the GNU Scientific Library (GSL). (Edison
             Mera)
       @item @tt{io_aux.pl}: Added @pred{messages/1}
             predicate. Required to facilitate printing of compact
