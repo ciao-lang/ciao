@@ -1,5 +1,238 @@
-:- doc(version(1*16+0,2016/12/31,11:36*37+'CEST'), "TO BE WRITTEN").
-% TODO: Fill release notes for 1.16
+:- doc(version(1*16+0,2016/12/31,11:36*37+'CEST'), "
+   @begin{itemize}
+   @item Backward-incompatible changes in this version:
+      @begin{itemize}
+      @item Changed the defaults for modules declared with
+          @tt{module/3}.  The following predicates and features are no
+          longer included by default in module/3. They should be
+          enabled explicitly with the following packages or modules:
+          @begin{itemize}
+          @item @tt{call/N}: @tt{hiord} package
+          @item @tt{data}, @tt{concurrent} declarations,
+            @tt{assertz_fact/1}, etc.: @tt{datafacts} package
+          @item @tt{dynamic} declarations, @tt{assertz/1}, etc.:
+            @tt{dynamic} package
+          @item @tt{set_prolog_flag/2}, etc.:
+            @tt{engine(runtime_control)} (which merges deprecated
+            @tt{engine(prolog_flags)} and @tt{engine(prolog_sys)})
+          @item nl/0, nl/1, display/0, open/3, etc.: library(streams)
+            (which reexports stream handling and operations, namely
+            @tt{engine(stream_basic)} and @tt{engine(io_basic)})
+          @end{itemize}
+      @item Added @tt{noprelude} that prevents loading the prelude
+         (default definitions)
+      @item The @tt{pure} package now includes a minimum set of
+         control contructs @tt{(,)/2}, @tt{true/0}, @tt{fail/0}
+      @end{itemize}
+   @item Language, compiler, toplevel:
+      @begin{itemize}
+      @item Major update of the Ciao manual (basic language, language
+         extensions, Ciao standard library, additional libraries,
+         abstract data types, ISO and compatibility, etc.)
+      @item Built-in build system and software packaging system
+         (@em{bundles}) (see documentation for details)
+      @item Added (optional) @tt{CIAOROOT} and @tt{CIAOPATH}
+         environment variables (replace @tt{CIAOLIB}). @tt{CIAOROOT}
+         points to the root of the Ciao sources rather than the lib
+         directory.
+      @item New @tt{ciao-env} command to setup the environment for
+         some specific Ciao installation.
+      @item Fix @tt{MANPATH},@tt{INFOPATH} in @tt{ciao-env} (trailing
+         @tt{:} was incorrectly removed, it is meaningful and
+         represents default paths).
+      @item Fixed @tt{ciaosh -e Goal} (accepts any goal), removed
+         @tt{-g} option.
+      @item DCG @tt{phrase/3} available by default in classic mode
+         (toplevel, user modueles, and modules declared with
+         @tt{module/2})
+      @item Fixes in runtime check versions of @tt{mshare/1},
+         @tt{indep/1}, @tt{indep/2}, and @tt{covered/2}.
+      @item Fixes issues with cyclic terms in debugger (when
+         @tt{check_cycles} flag is activated).
+      @item (experimental) @tt{ciao-serve} command to start a Ciao
+         server to serve both HTTP and active module requests.
+      @end{itemize}
+   @item Ciao emacs mode:
+      @begin{itemize}
+      @item Added @tt{M-x ciao-set-ciao-root}, @tt{M-x
+        ciao-set-ciao-path} (see @tt{CIAOROOT} and @tt{CIAOPATH}
+        changes).
+      @item Improved syntax highlighting.
+      @end{itemize}
+   @item Engine:
+      @begin{itemize}
+      @item Fix a bug while freeing sources in @tt{eng_call/@{3,4@}}.
+      @item Fix bug in dynamic/data predicates (uninitialized
+         registers may lead to memory corruption during garbage
+         collection).
+      @item Added @tt{ciao_root/1}, replaces @tt{ciao_lib_dir/1}.
+      @item Improved documentation and examples for interfacing with
+         C/C++ (including embedding engines in C/C++ applications).
+      @end{itemize}
+   @item Libraries:
+      @begin{itemize}
+      @item Fix bug in tokenizer (dealing with @tt{@\\^} escape
+         sequences in strings).
+      @item Refurbished HTTP libraries (separated from pillow, see
+         documentation).
+      @item Added @tt{library(io_port_reify)} (like @tt{port_reify}
+         but allows IO redirection)
+      @item Added @tt{filter/3}, @tt{partition/4}, @tt{maplist/N} to
+         @tt{library(hiordlib)}
+      @item Added @tt{library(opendoc)} (opens a document with the
+         default OS viewer)
+      @item Revamped active modules model and implementation (see
+         documentation for details)
+      @item Renamed @tt{library(file_utils)} to
+         @tt{library(stream_utils)}.
+      @item Predicates @tt{stream_to_string/@{2,3@}} replaced by
+         @tt{read_to_end/@{2,3@}} (which do not close the stream).
+      @item Added @tt{library(terms_io)} (@tt{terms_to_file/2},
+         @tt{file_to_terms/2}).
+      @item (experimental) @tt{library(timeout)}
+         (@tt{call_with_time_limit/@{2,3@}}).
+      @item (experimental) package for traits (interfaces).
+      @end{itemize}
+   @end{itemize}
+").
+% 1.18
+
+% (We skip development version 1.17 this time)
+
+:- doc(version(1*16+0,2016/12/31,11:36*37+'CEST'), "
+   @begin{itemize}
+   @item Engine:
+      @begin{itemize}
+      @item Generating the emulator loop with our own code expansion
+         and emulator generator (emugen).
+      @item Refactor, cleanups, rewrite some engine parts.
+      @item Reworking custom engine compilation (under @tt{build/}
+         directory). Ciao headers must be included now using
+         @tt{#include <ciao/...>} rather than double quotes.
+      @item Fix bug in arithmetic shifting operators by 0.
+      @item Fix @tt{X is (1<<20)*(1<<10)} returned @tt{X=0} (detect
+         multiplication overflows using @tt{__builtin_smul_overflow}
+         to avoid C undefined behaviours, i.e., in clang)
+      @item Fixes in bignums and float to integer conversion in
+         64-bits mode.
+      @item @tt{lib/engine/} merged into @tt{engine/} (no need to
+         separate Prolog and C files).
+      @item 64-bit port, enabled by default (this was a very large
+         change which required rewritting some parts of the engine).
+      @item Adding @tt{--trace-instr} engine option (traces
+         instructions, for debugging).
+      @item Faster implementation of @tt{unify_with_occurs_check/2}.
+      @item Fix potential overflow in string to number conversion.
+      @item Better support for @tt{UTF8}.
+      @item Properly escaping all control characters in quoted atom
+         print (ISO compliance).
+      @item Fix ending of quoted atom and strings (ISO compliance).
+      @item Fix @tt{get_char/1} (ISO conformance, past end of file).
+      @item Fix in treatment of @tt{EOF} in IO predicates (do not
+         assume @tt{EOF == -1}).
+      @item @tt{CIAOARCH} replaced by @tt{CIAOOS} (e.g., Linux) and
+         @tt{CIAOARCH} (e.g., @tt{i686}). New @tt{ciao_sysconf}
+         command (replaces @tt{ciao_get_arch} script), which accepts
+         the arguments @tt{--os}, @tt{--arch}, and @tt{--osarch}.
+      @end{itemize}
+   @item Portability and OS support:
+      @begin{itemize}
+      @item Using @tt{clang} as default C compiler in MacOS.
+      @item Identify @tt{MINGW64_NT} as Win32 (which is commonly
+         accepted as a generic OS name which does not necessarily mean
+         32-bits).
+      @item Drop support for IRIX and SunOS4.
+      @item Improved support for NetBSD (NetBSD 7), FreeBSD.
+      @item Support for Raspberry Pi.
+      @item (experimental) support for MINGW32 and MINGW64 (and MSYS2)
+         builds (for Windows).
+      @item (experimental) support for EMSCRIPTEN as compilation
+         target.
+      @end{itemize}
+   @item Language, compiler, toplevel:
+      @begin{itemize}
+      @item Conditional compilation library @tt{library(condcomp)}
+         enabled by default.
+      @item Deprecated @tt{alias(a(b(...)))} as a module specifier
+         name (using the more compatible @tt{alias(a/b/...)} instead).
+      @item Fix exit status (returns 1) for toplevel and executables
+         on abort, e..g, due to uncaught exceptions or unexpected
+         failure.
+      @item New @tt{ciaoc_sdyn} tool to help in the distribution of
+         standalone executables with foreign code (collects all
+         required dynamic libraries).
+      @item Starting work on new build system.
+      @item (experimental) syntax extension for infix dot @tt{(A.B)}
+         (see @tt{set_prolog_flag(read_infix_dot, on)}).
+      @item (experimental) syntax extension for string data type (see
+         @tt{set_prolog_flag(read_string_data_type, on)}).
+      @end{itemize}
+   @item Libraries:
+      @begin{itemize}
+      @item Fix @tt{system:touch/1}, implemented through C
+      @tt{utime()}.
+      @item Fix buffer overflow in @tt{absolute_file_name/?} with
+         @tt{nul/NUL} in Win32 (it is a reserved name).
+      @item Fix bug in check for cyclic terms, implemented faster C
+         (low-level) version.
+      @item Fix @tt{get_tmp_dir/1} so that it always produce a
+         normalized path, no trailing @tt{/}, considers @tt{TMPDIR} on
+         POSIX systems.
+      @item Better use @tt{current_executable/1} implementation
+         (macOS: @tt{_NSGetExecutablePath()}, Linux: @tt{readlink} on
+         @tt{/proc/self/exe}, Windows: @tt{GetModuleFileName()} with
+         @tt{hModule = NULL}).
+      @item Added support for @tt{phrase/2} and @tt{phrase/3} in DCGs
+         (in @tt{dcg_phrase} package).
+      @item Added @tt{library(global_vars)}, backtrackable global
+         variables.
+      @item Added @tt{library(datetime)} (manipulate date and time in
+         different formats).
+      @item Added @tt{library(clpfd)}, new CLP(FD) implementation.
+      @item Added @tt{library(glob)} (support @em{glob} patterns,
+         filenames with wildcard characters).
+      @item Added @tt{library(pathnames)} -- predicates for file path
+         name manipulation, compatible with common semantics in other
+         languages.
+      @item Added @tt{library(port_reify)} (metacalls which reify the
+         @tt{exit} port so that it can be delayed).
+      @item Added @tt{library(process)} library (portable high level
+         interface for child process creation, supporting stream
+         redirection, background processes, signals, etc.).
+      @item Added @tt{library(text_template)}, text-based templates.
+      @item Added @tt{library(http_get)} (retreive files via
+         HTTP/HTTPs/FTP protocol).
+      @item Added @tt{system:get_home/1},
+         @tt{system:find_executable/2}.
+      @item Added @tt{system:extract_paths/2} (split atom containing a
+         colon-separated path list as individual paths).
+      @item Deprecated @tt{exec/?} from @tt{library(system)}.
+      @item Deprecated @tt{system:get_exec_dir/1} (can be replaced
+         with @tt{current_executable/1} and @tt{path_dirname/2}).
+      @item (experimental) @tt{library(indexer)}, a package that
+         extend first-argument indexing.
+      @item (experimental) heap limits exceptions
+         (@tt{set_heap_limit/1}).
+      @item (experimental) @tt{library(stream_wait)} (wait for input
+         to be available, with timeouts).
+      @end{itemize}
+   @item Ciao emacs mode:
+      @begin{itemize}
+      @item Cleanups, refactoring into smaller individual components
+         (highlighting, interaction with Ciao, etc.).
+      @item @tt{M-x ciao-grep*} emacs command (search over all code)
+      @end{itemize}
+   @item Foreign interface:
+      @begin{itemize}
+      @item Fix exception throw from C builtins during shallow
+         backtracking.
+      @item Allow exception throwing using arbitrary terms.
+      @item Foreign interface types correspoding to different
+         fixed-width C types
+         (@tt{c_int},@tt{c_size},@tt{c_uint8},etc.).
+      @end{itemize}
+   @end{itemize}
+").
 
 :- doc(version(1*14+2,2011/08/12,18:14*31+'CEST'), "
    Merging r13606 (trunk) into 1.14.
