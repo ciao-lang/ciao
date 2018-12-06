@@ -7,36 +7,36 @@
           longer included by default in module/3. They should be
           enabled explicitly with the following packages or modules:
           @begin{itemize}
-          @item @tt{call/N}: @tt{hiord} package
+          @item @tt{call/N}: @tt{hiord} package.
           @item @tt{data}, @tt{concurrent} declarations,
-            @tt{assertz_fact/1}, etc.: @tt{datafacts} package
+            @tt{assertz_fact/1}, etc.: @tt{datafacts} package.
           @item @tt{dynamic} declarations, @tt{assertz/1}, etc.:
-            @tt{dynamic} package
+            @tt{dynamic} package.
           @item @tt{set_prolog_flag/2}, etc.:
             @tt{engine(runtime_control)} (which merges deprecated
-            @tt{engine(prolog_flags)} and @tt{engine(prolog_sys)})
+            @tt{engine(prolog_flags)} and @tt{engine(prolog_sys)}).
           @item nl/0, nl/1, display/0, open/3, etc.: library(streams)
             (which reexports stream handling and operations, namely
-            @tt{engine(stream_basic)} and @tt{engine(io_basic)})
+            @tt{engine(stream_basic)} and @tt{engine(io_basic)}).
           @end{itemize}
       @item Added @tt{noprelude} that prevents loading the prelude
-         (default definitions)
+         (default definitions).
       @item The @tt{pure} package now includes a minimum set of
-         control constructs @tt{(,)/2}, @tt{true/0}, @tt{fail/0}
+         control constructs @tt{(,)/2}, @tt{true/0}, @tt{fail/0}.
       @end{itemize}
    @item Language, compiler, toplevel:
       @begin{itemize}
       @item Major update of the Ciao manual (basic language, language
          extensions, Ciao standard library, additional libraries,
-         abstract data types, ISO and compatibility, etc.)
+         abstract data types, ISO and compatibility, etc.).
       @item Built-in build system and software packaging system
-         (@em{bundles}) (see documentation for details)
+         (@em{bundles}) (see documentation for details).
       @item Added (optional) @tt{CIAOROOT} and @tt{CIAOPATH}
          environment variables (replace @tt{CIAOLIB}). @tt{CIAOROOT}
          points to the root of the Ciao sources rather than the lib
          directory.
-      @item New @tt{ciao-env} command to setup the environment for
-         some specific Ciao installation.
+      @item New @tt{ciao-env} command to set up the environment for
+         some specific Ciao installations.
       @item Fix @tt{MANPATH},@tt{INFOPATH} in @tt{ciao-env} (trailing
          @tt{:} was incorrectly removed, it is meaningful and
          represents default paths).
@@ -44,10 +44,10 @@
          @tt{-g} option.
       @item DCG @tt{phrase/3} available by default in classic mode
          (toplevel, user modules, and modules declared with
-         @tt{module/2})
+         @tt{module/2}).
       @item Fixes in runtime check versions of @tt{mshare/1},
          @tt{indep/1}, @tt{indep/2}, and @tt{covered/2}.
-      @item Fixes issues with cyclic terms in debugger (when
+      @item Fixed issues with cyclic terms in debugger (when
          @tt{check_cycles} flag is activated).
       @item (experimental) @tt{ciao-serve} command to start a Ciao
          server to serve both HTTP and active module requests.
@@ -61,8 +61,8 @@
       @end{itemize}
    @item Engine:
       @begin{itemize}
-      @item Fix a bug while freeing sources in @tt{eng_call/@{3,4@}}.
-      @item Fix bug in dynamic/data predicates (uninitialized
+      @item Fixed a bug while freeing sources in @tt{eng_call/@{3,4@}}.
+      @item Fixed bug in dynamic/data predicates (uninitialized
          registers may lead to memory corruption during garbage
          collection).
       @item Added @tt{ciao_root/1}, replaces @tt{ciao_lib_dir/1}.
@@ -71,18 +71,18 @@
       @end{itemize}
    @item Libraries:
       @begin{itemize}
-      @item Fix bug in tokenizer (dealing with @tt{@\\^} escape
+      @item Fixed bug in tokenizer (dealing with @tt{@\\^} escape
          sequences in strings).
       @item Refurbished HTTP libraries (separated from pillow, see
          documentation).
       @item Added @tt{library(io_port_reify)} (like @tt{port_reify}
-         but allows IO redirection)
+         but allows IO redirection).
       @item Added @tt{filter/3}, @tt{partition/4}, @tt{maplist/N} to
-         @tt{library(hiordlib)}
+         @tt{library(hiordlib)}.
       @item Added @tt{library(opendoc)} (opens a document with the
-         default OS viewer)
+         default OS viewer).
       @item Revamped active modules model and implementation (see
-         documentation for details)
+         documentation for details).
       @item Renamed @tt{library(file_utils)} to
          @tt{library(stream_utils)}.
       @item Predicates @tt{stream_to_string/@{2,3@}} replaced by
@@ -104,14 +104,14 @@
       @begin{itemize}
       @item Generating the emulator loop with our own code expansion
          and emulator generator (emugen).
-      @item Refactor, cleanups, rewrite some engine parts.
+      @item Refactor, clean up, rewrite some engine parts.
       @item Reworking custom engine compilation (under @tt{build/}
          directory). Ciao headers must be included now using
          @tt{#include <ciao/...>} rather than double quotes.
       @item Fix bug in arithmetic shifting operators by 0.
       @item Fix @tt{X is (1<<20)*(1<<10)} returned @tt{X=0} (detect
          multiplication overflows using @tt{__builtin_smul_overflow}
-         to avoid C undefined behaviours, i.e., in clang)
+         to avoid C undefined behaviours, i.e., in clang).
       @item Fixes in bignums and float to integer conversion in
          64-bits mode.
       @item @tt{lib/engine/} merged into @tt{engine/} (no need to
@@ -155,7 +155,7 @@
       @item Deprecated @tt{alias(a(b(...)))} as a module specifier
          name (using the more compatible @tt{alias(a/b/...)} instead).
       @item Fix exit status (returns 1) for toplevel and executables
-         on abort, e..g, due to uncaught exceptions or unexpected
+         on abort, e..g., due to uncaught exceptions or unexpected
          failure.
       @item New @tt{ciaoc_sdyn} tool to help in the distribution of
          standalone executables with foreign code (collects all
@@ -174,10 +174,10 @@
          @tt{nul/NUL} in Win32 (it is a reserved name).
       @item Fix bug in check for cyclic terms, implemented faster C
          (low-level) version.
-      @item Fix @tt{get_tmp_dir/1} so that it always produce a
-         normalized path, no trailing @tt{/}, considers @tt{TMPDIR} on
-         POSIX systems.
-      @item Better use @tt{current_executable/1} implementation
+      @item Fix @tt{get_tmp_dir/1} so that it always produces a
+         normalized path, with no trailing @tt{/}, and considering 
+         @tt{TMPDIR} on POSIX systems.
+      @item Better use of @tt{current_executable/1} implementation
          (macOS: @tt{_NSGetExecutablePath()}, Linux: @tt{readlink} on
          @tt{/proc/self/exe}, Windows: @tt{GetModuleFileName()} with
          @tt{hModule = NULL}).
@@ -185,41 +185,41 @@
          (in @tt{dcg_phrase} package).
       @item Added @tt{library(global_vars)}, backtrackable global
          variables.
-      @item Added @tt{library(datetime)} (manipulate date and time in
-         different formats).
+      @item Added @tt{library(datetime)}, manipulate date and time in
+         different formats.
       @item Added @tt{library(clpfd)}, new CLP(FD) implementation.
-      @item Added @tt{library(glob)} (support @em{glob} patterns,
-         filenames with wildcard characters).
-      @item Added @tt{library(pathnames)} -- predicates for file path
+      @item Added @tt{library(glob)}, support @em{glob} patterns,
+         filenames with wildcard characters.
+      @item Added @tt{library(pathnames)}, predicates for file path
          name manipulation, compatible with common semantics in other
          languages.
-      @item Added @tt{library(port_reify)} (metacalls which reify the
-         @tt{exit} port so that it can be delayed).
-      @item Added @tt{library(process)} library (portable high level
+      @item Added @tt{library(port_reify)}, metacalls which reify the
+         @tt{exit} port so that it can be delayed.
+      @item Added @tt{library(process)}, portable high-level
          interface for child process creation, supporting stream
-         redirection, background processes, signals, etc.).
+         redirection, background processes, signals, etc.
       @item Added @tt{library(text_template)}, text-based templates.
-      @item Added @tt{library(http_get)} (retrieve files via
-         HTTP/HTTPs/FTP protocol).
+      @item Added @tt{library(http_get)}, retrieve files via
+         HTTP/HTTPs/FTP protocol.
       @item Added @tt{system:get_home/1},
          @tt{system:find_executable/2}.
-      @item Added @tt{system:extract_paths/2} (split atom containing a
-         colon-separated path list as individual paths).
+      @item Added @tt{system:extract_paths/2}, split atom containing a
+         colon-separated path list as individual paths.
       @item Deprecated @tt{exec/?} from @tt{library(system)}.
-      @item Deprecated @tt{system:get_exec_dir/1} (can be replaced
-         with @tt{current_executable/1} and @tt{path_dirname/2}).
+      @item Deprecated @tt{system:get_exec_dir/1}, can be replaced
+         by @tt{current_executable/1} and @tt{path_dirname/2}.
       @item (experimental) @tt{library(indexer)}, a package that
-         extend first-argument indexing.
+         extends first-argument indexing.
       @item (experimental) heap limits exceptions
          (@tt{set_heap_limit/1}).
-      @item (experimental) @tt{library(stream_wait)} (wait for input
-         to be available, with timeouts).
+      @item (experimental) @tt{library(stream_wait)}, wait for input
+         to be available, with timeouts.
       @end{itemize}
    @item Ciao emacs mode:
       @begin{itemize}
       @item Cleanups, refactoring into smaller individual components
          (highlighting, interaction with Ciao, etc.).
-      @item @tt{M-x ciao-grep*} emacs command (search over all code)
+      @item @tt{M-x ciao-grep*} emacs command (search over all code).
       @end{itemize}
    @item Foreign interface:
       @begin{itemize}
@@ -228,7 +228,7 @@
       @item Allow exception throwing using arbitrary terms.
       @item Foreign interface types corresponding to different
          fixed-width C types
-         (@tt{c_int},@tt{c_size},@tt{c_uint8},etc.).
+         (@tt{c_int},@tt{c_size},@tt{c_uint8}, etc.).
       @end{itemize}
    @end{itemize}
 ").
