@@ -155,7 +155,7 @@
       @item Deprecated @tt{alias(a(b(...)))} as a module specifier
          name (using the more compatible @tt{alias(a/b/...)} instead).
       @item Fix exit status (returns 1) for toplevel and executables
-         on abort, e..g., due to uncaught exceptions or unexpected
+         on abort, e.g., due to uncaught exceptions or unexpected
          failure.
       @item New @tt{ciaoc_sdyn} tool to help in the distribution of
          standalone executables with foreign code (collects all
