@@ -1667,9 +1667,13 @@ do_redefining(Bad,_Base, Ln0, Ln1) :-
 % TODO: Load compilation modules in a separate module so that the
 %   scope of runtime module expansions is reduced.
 
-do_load_compilation_module(BFile, _, _) :-
-	in_mode(In),
-	processed(BFile, In), !.
+do_load_compilation_module(BFile, _, _) :- % TODO: simplify
+	% Already processed
+	in_mode(In), processed(BFile, In),
+	% and loaded dynamically (fix 'compmod_skip' bug)
+	defines_module(BFile, Module),
+	this_module(M), dyn_imports(M, Module),
+	!.
 do_load_compilation_module(_, File, Base) :-
 	undo_decls(Base),
 	this_module(M),
