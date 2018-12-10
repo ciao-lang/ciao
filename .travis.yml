@@ -52,5 +52,8 @@ env:
 os:
   - linux
   - osx
-    osx_image: xcode10.1
-    
+
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode10.1
