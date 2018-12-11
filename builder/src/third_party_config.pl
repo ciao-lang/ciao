@@ -1,4 +1,4 @@
-:- module(third_party_config, [], [assertions, basicmodes, fsyntax, hiord]).
+:- module(third_party_config, [], [assertions, basicmodes, fsyntax, dcg, hiord]).
 
 :- doc(title, "Query configuration of third-party components").
 :- doc(author, "The Ciao Development Team").
@@ -44,17 +44,22 @@ foreign_config_tool_path(Bundle, Foreign, CfgToolPath) :-
 :- export(foreign_config_version/3).
 foreign_config_version(Bundle, Foreign, Version) :-
 	foreign_config_str(Bundle, Foreign, 'version', Str),
-	foreign_config_parse_version(Str, Version).
+	parse_version(Version, Str, _).
 
-% from "Major.Minor" string to [Major,Minor]
-foreign_config_parse_version(Str, L) :-
-	( append(StrH, "." || StrT, Str) ->
-	    L = [H|T],
-	    number_codes(H, StrH),
-	    foreign_config_parse_version(StrT, T)
-	; L = [H],
-	  number_codes(H, Str)
-	).
+% Parse dot separated numbers, drop non-numeric parts (E.g., "1.3pre" -> [1,3])
+parse_version([X|Xs]) -->
+	parse_num(Cs), { number_codes(X, Cs) },
+        ( skip_dot -> parse_version(Xs) ; { Xs = [] } ).
+
+parse_num([C|Cs]) --> [C], { digit(C) }, parse_num0(Cs).
+
+parse_num0([]) --> !.
+parse_num0([C|Cs]) --> [C], { digit(C) }, parse_num0(Cs).
+
+digit(C) :- C >= 0'0, C =< 0'9.
+
+skip_dot --> ".", !.
+skip_dot --> [_], skip_dot.
 
 :- export(foreign_config_atmlist/4).
 % Like @pred{foreign_config_str/4} but parses the value as a list of
