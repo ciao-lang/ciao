@@ -94,6 +94,8 @@ third_party_name_instance(Lib, Id) :-
 source_tar(Lib, File) :-
 	( m_third_party_source_url(Lib, tar(URL)) ->
 	    path_split(URL, _Dir, File)
+	; m_third_party_source_url(Lib, tar(_URL, File0)) ->
+	    File = File0
 	; m_third_party_source_url(Lib, git(_URL, Branch)) ->
 	    atom_concat([Lib, '-', Branch, '.tgz'], File)
 	; throw(error(bad_third_party_source_url(Lib), third_pary_install:source_tar/2))
@@ -149,7 +151,7 @@ third_party_path(private(Lib, DirId), Path) :- level3(DirId, DirId2), !,
 third_party_path(real_sourcedir(Lib), Path) :- !,
 	% (get unique dir inside private(Lib, srcdir)),
 	m_third_party_source_url(Lib, TypedURL),
-	( member(TypedURL, [tar(_)]) ->
+	( member(TypedURL, [tar(_), tar(_,_)]) ->
 	    third_party_path(private(Lib, srcdir), PrivateSrcDir),
 	    directory_files(PrivateSrcDir, List),
 	    difference(List, ['..', '.'], [SourceDir]),
@@ -247,7 +249,9 @@ download(Lib) :-
 	message_start(Lib, Operation),
 	third_party_path(cachedir, CacheDir), mkdir(CacheDir),
 	third_party_path(cachetar(Lib), TarPath),
-	( m_third_party_source_url(Lib, tar(URL)) ->
+	( ( m_third_party_source_url(Lib, tar(URL))
+	  ; m_third_party_source_url(Lib, tar(URL,_))
+	  ) ->
 	    http_get(URL, file(TarPath))
 	; m_third_party_source_url(Lib, git(URL, Ref)) ->
 	    process_call(path(git),
@@ -298,6 +302,11 @@ configure(Lib) :-
 	( BuildSystem = gnu_build_system ->
 	    third_party_path(real_sourcedir(Lib), SrcDir),
 	    path_concat(SrcDir, configure, ConfigurePath),
+	    ( file_exists(ConfigurePath) ->
+	        true
+	    ; % No 'configure' script, try call 'autoreconf' ourselves
+	      process_call(path(autoreconf), ['-i'], [cwd(SrcDir)])
+	    ),
 	    get_config_options(Lib, Options),
 	    process_call(ConfigurePath, Options,
 	      [cwd(SrcDir), env(Env), status(0)])
