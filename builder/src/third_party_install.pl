@@ -174,12 +174,13 @@ third_party_relpath31(private(Lib, DirId), Path) :- level3(DirId, DirId2), !,
 
 get_env(Env) :-
 	findall(Var=Value, env(Var, Value), Env).
+
 get_config_options(Lib, Options) :-
 	findall(Option, (
 		  option2(Lib, Flag, Value),
 		  atom_concat(['--', Flag, '=', Value], Option);
 		  option1(Lib, Flag), atom_concat(['--', Flag], Option)
-			), Options).
+		), Options).
 
 :- doc(section, "Commands").
 
@@ -345,7 +346,7 @@ install(Lib) :- Operation = "install",
 	message_start(Lib, Operation),
 	get_build_system(Lib, BuildSystem),
 	( BuildSystem = gnu_build_system ->
-	  make(Lib, [install])
+	    make(Lib, [install])
 	; BuildSystem = custom ->
 	    get_env(Env),
 	    m_third_party_custom_install(Lib, Env)
