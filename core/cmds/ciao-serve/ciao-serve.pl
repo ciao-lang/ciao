@@ -44,7 +44,7 @@ serve_banner(Port) :-
 	format(user_error, "   Serving CIAOROOT/build/site files~n", []),
 	format(user_error, "   Server reachable at http://localhost:~w~n", [Port]).
 
-serve([help]) :- !,
+serve([X]) :- ( X = help ; X = '-h' ; X = '--help' ), !,
 	help.
 serve([stop]) :- !,
 	format(user_error, "=> stopping daemons~n", []),
