@@ -50,10 +50,6 @@ body_expansion(if(A,B,C), M, QM, Mode, if(NA,NB,NC)) :- ciaopp_expansion, !,
         body_expansion(C, M, QM, Mode, NC).
 body_expansion(!, _M, _QM, _Mode, !):- ciaopp_expansion, !.
 body_expansion(true,     _M, _QM, _Mode, true):- ciaopp_expansion, !.
-body_expansion(check(_), _M, _QM, _Mode, true):- pp_assertion, !.
-body_expansion(trust(_), _M, _QM, _Mode, true):- pp_assertion, !.
-body_expansion(true( _), _M, _QM, _Mode, true):- pp_assertion, !.
-body_expansion(false(_), _M, _QM, _Mode, true):- pp_assertion, !.
 body_expansion(A, M, QM, Mode, NC) :-
         current_fact(goal_trans(M,_,_)) ->
 	expand_goal(A, M, QM, NB), !,
@@ -69,21 +65,6 @@ body_expansion(Call, M, QM, Mode, NCall) :-
                             'hiord_rt:call'(NP,As)).
 body_expansion(A, M, QM, Mode, NA) :-
         atom_expansion_add_goals(A, M, QM, Mode, A1, NA, A1).
-
-% TODO: FIX! This is wrong since it ignores check/1 trust/1 true/1
-%   false/1 predicates even when assertions are not loaded. The right
-%   way is to enable a cheap pragma/flag from the assertions package
-%   (JFMC)
-
-pp_assertion :-
-	true.
-%	is_pp_assertion.
-
-% Not introduced yet until it be efficient -- EMM
-% is_pp_assertion(M) :-
-%	defines_module(Base, M),
-%	package(Base, library(assertions)),
-% 	!.
 
 % JF: todo: add a skip goal declaration?
 expand_inside(','(inside,inside), basiccontrol).
