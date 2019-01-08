@@ -11,8 +11,8 @@
 
 #if defined(TABLING)
 
-#define GLOBAL_TABLE_SIZE        (900000*kCells)
-#define TABLING_STK_SIZE         (25000*kCells)
+#define GLOBAL_TABLE_SIZE        (300000*kCells)
+#define TABLING_STK_SIZE         (30000*kCells)
 
 #define CONSUMER    0         
 #define GENERATOR   1
