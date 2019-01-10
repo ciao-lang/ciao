@@ -98,7 +98,7 @@ source_tar(Lib, File) :-
 	    File = File0
 	; m_third_party_source_url(Lib, git(_URL, Branch)) ->
 	    atom_concat([Lib, '-', Branch, '.tgz'], File)
-	; throw(error(bad_third_party_source_url(Lib), third_pary_install:source_tar/2))
+	; throw(error(bad_third_party_source_url(Lib), third_party_install:source_tar/2))
 	).
 
 % level1(DirId, Base): Paths in level-1 (in third-party prefix)
@@ -258,7 +258,7 @@ download(Lib) :-
 	    process_call(path(git),
 	                 ['archive', '--format', 'tgz', '--remote', URL, '--output', TarPath, Ref],
 			 [status(0)])
-	; throw(error(bad_third_party_source_url(Lib), third_pary_install:download/1))
+	; throw(error(bad_third_party_source_url(Lib), third_party_install:download/1))
 	),
 	message_end(Lib, Operation),!.
 
