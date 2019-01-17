@@ -1150,7 +1150,7 @@ static CFUN__PROTO(lsh_internal, tagged_t, tagged_t t, int dist, bcp_t liveinfo)
 static CFUN__PROTO(rsh_internal, tagged_t, tagged_t t, int dist, bcp_t liveinfo)
 {
   if (TagIsSmall(t)) {
-    if (dist>=tagged__size) {
+    if (dist>=tagged__num_size) {
       return MakeSmall((t>=TaggedZero)-1);
     } else {
       return ((intmach_t)((t>>dist)-(TaggedZero>>dist)) & (-MakeSmallDiff(1))) + TaggedZero;
