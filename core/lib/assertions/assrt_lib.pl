@@ -1140,8 +1140,9 @@ resolve_applications([Call|R],[Prop|NR],S,LB,LE) :-
 	   Prop =.. [PF|AllArgsResolved]
 	;  error_message(loc(S,LB,LE),
 	   "principal functor not sufficiently instantiated in mode: ~w",
-                         [Call])
-        ),
+                         [Call]),
+	   fail
+	),
 	resolve_applications(R,NR,S,LB,LE).
 resolve_applications([Prop|R],[NProp|NR],S,LB,LE) :-
 	nonvar(Prop),
@@ -1215,7 +1216,8 @@ norm_abridged_props(P,NP,PD,Arg,_M,_S,_LB,_LE) :-
 	\+ add_argvars(P,NArg,_,PD,NP), !.
 norm_abridged_props(_P,_NP,PD,_Arg,M,S,LB,LE) :-
 	error_message(loc(S,LB,LE),
-	   "arity mismatch in declaration for ~w in ~w",[PD,M]).
+	   "arity mismatch in declaration for ~w in ~w",[PD,M]),
+	fail.
 
 add_argvars('{}'(P),Arg,NArg,PD,NPs) :- 
 	!,
