@@ -11,6 +11,7 @@
 % ---------------------------------------------------------------------------
 % Libraries and manuals
 
+'$builder_hook'(lib('engine')).
 '$builder_hook'(lib('lib')).
 % WARNING: Ciao cannot compile 'clpq' and 'clpr' together.
 %   We build each of 'clpq' and 'clpr' as separate processes. They
