@@ -2024,18 +2024,19 @@ CBOOL__PROTO(prolog_extract_paths) {
   }
   pathlist = GetString(X(0));
 
-  tagged_t list = atom_nil;
+  /* Use X(0) as 'list' (so that we do not lose GC roots in calls to ENSURE_HEAP_LST) */
+  X(0) = atom_nil;
   char **paths = c_extract_paths(pathlist);
   if (paths != NULL) {
     int i;
     for (i = 0; paths[i] != NULL; i++) { }
     ENSURE_HEAP_LST(i, 2);
     for (; i>0; ) {
-      MakeLST(list, MakeString(paths[--i]), list);
+      MakeLST(X(0), MakeString(paths[--i]), X(0));
     }
     c_free_paths(paths);
   }
-  return cunify(Arg, list, X(1));
+  return cunify(Arg, X(0), X(1));
 }
 
 /* --------------------------------------------------------------------------- */
