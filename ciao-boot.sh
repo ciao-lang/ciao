@@ -4,7 +4,7 @@
 #
 #  Boot the Ciao builder (with or without sources)
 #
-#  Copyright (C) 2015-2018 Ciao Developer Team
+#  Copyright (C) 2015-2019 Ciao Developer Team
 #
 
 # Boot from existing sources
@@ -65,6 +65,22 @@ fetch_url() {
     curl --progress-bar -SfL "$url" | tar -xz --strip-components 1 -C "$ciaoroot" -f -
 }
 
+has() {
+    command -v "$1" > /dev/null 2>&1
+}
+missing() {
+    cat <<EOF    
+
+ERROR: $1 not found
+
+The command above is required for the selected installation. Please
+consult the required dependencies at the installation instructions for
+your operating system.
+
+EOF
+    exit 1
+}
+
 interactive() {
     # TODO: Experimental! This should be combined and simplified with
     # the '--interactive' flag in the builder.
@@ -91,14 +107,44 @@ Welcome to the interactive network installation for Ciao!
 (Press C-c to cancel)
 
 EOF
-    printf "Install a prebuilt distribution? (yes/no) "
-    read prebuilt < /dev/tty
-
-    printf "Install the development environment? (no/yes) "
+    printf "Install the development environment? (yes/no) "
     read use_devenv < /dev/tty
+
+    if [ x"$use_devenv" = x"no" ]; then
+	printf "Install a prebuilt distribution? (yes/no) "
+	read prebuilt < /dev/tty
+    else
+	# TODO: 'get' not working in prebuilt
+	prebuilt=no
+    fi
+
+    if [ x"$use_devenv" = x"no" ]; then
+	with_docs=yes # Just use default
+    else
+	printf "Install local documentation? (no/yes) "
+	read with_docs < /dev/tty
+    fi
 
     printf "Enable this installation by default? (yes/no) "
     read update_shell < /dev/tty
+
+    # Quickly check dependencies before we continue
+    has curl || missing "'curl' command"
+    # ! has rlwrap && missing "Command rlwrap"
+    if [ x"$prebuilt" = x"no" ]; then
+	has gcc || has clang || missing "C compiler (gcc, clang, etc.)"
+	has make || has gmake || missing "'make' command"
+    fi
+    if [ x"$use_devenv" = x"no" ]; then
+	true
+    else
+	has emacs || missing "'emacs' command"
+    fi
+    if [ x"$with_docs" = x"yes" ]; then
+	has bibtex || missing "'bibtex' command"
+	has makeinfo || missing "'makeinfo' command"
+	has convert || missing "'convert' command"
+    fi
 
     opts=
     if [ x"$prebuilt" = x"no" ]; then
@@ -106,16 +152,21 @@ EOF
     else
 	true # opts=" --prebuilt"
     fi
-    if [ x"$use_devenv" = x"yes" ]; then
-	cmd=" get devenv"
-    else
+    if [ x"$use_devenv" = x"no" ]; then
 	cmd=" local-install"
+    else
+	cmd=" get devenv"
     fi
     flags=
     if [ x"$update_shell" = x"no" ]; then
 	flags="$flags --core:update_bashrc=no --core:update_cshrc=no"
     else
 	true
+    fi
+    if [ x"$with_docs" = x"yes" ]; then
+	true
+    else
+	flags="$flags --builder:with_docs=no"
     fi
 
     cat <<EOF
@@ -137,7 +188,7 @@ EOF
 
 Installation is completed!
 EOF
-    if [ x"$update_shell" != x"yes" ]; then
+    if [ x"$update_shell" = x"no" ]; then
 	cat <<EOF
 
 Now you can enable this installation manually with (bash):
