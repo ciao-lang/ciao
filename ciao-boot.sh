@@ -139,11 +139,11 @@ EOF
 	true
     else
 	has emacs || missing "'emacs' command"
-    fi
-    if [ x"$with_docs" = x"yes" ]; then
-	has bibtex || missing "'bibtex' command"
-	has makeinfo || missing "'makeinfo' command"
-	has convert || missing "'convert' command"
+	if [ x"$with_docs" = x"yes" ]; then
+	    has bibtex || missing "'bibtex' command"
+	    has makeinfo || missing "'makeinfo' command"
+	    has convert || missing "'convert' command"
+	fi
     fi
 
     opts=
