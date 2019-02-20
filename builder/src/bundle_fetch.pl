@@ -133,6 +133,12 @@ bundle_src_origin(BundleAlias, github(Path, Ref)) :-
 	!,
 	Ref = master, % TODO: customize Ref
 	Path = BundleAlias.
+bundle_src_origin(BundleAlias, gitlab(Path, Ref)) :-
+	% Some gitlab instance (gitlab.[...]/)
+	atom_concat('gitlab.', _, BundleAlias),
+	!,
+	Ref = master, % TODO: customize Ref
+	Path = BundleAlias.
 bundle_src_origin(BundleAlias, git_archive(Path, Ref)) :-
 	% Git repositories at ciao-lang.org
 	atom_concat('ciao-lang.org/', _, BundleAlias),
@@ -146,6 +152,10 @@ bundle_relative_origin(github(Path0, _Ref), Bundle, Origin) :-
 	path_split(Path0, Path1, _),
 	path_concat(Path1, Bundle, Path),
 	Origin = github(Path, master).
+bundle_relative_origin(gitlab(Path0, _Ref), Bundle, Origin) :-
+	path_split(Path0, Path1, _),
+	path_concat(Path1, Bundle, Path),
+	Origin = gitlab(Path, master).
 bundle_relative_origin(git_archive(Path0, _Ref), Bundle, Origin) :-
 	path_split(Path0, Path1, _),
 	path_concat(Path1, Bundle, Path),
@@ -259,6 +269,10 @@ fetch_missing_(Origin, Bundle, BundleDir) :-
 
 fetch_src(github(Path, Ref), Bundle, File) :-
 	atom_concat(['https://', Path, '/archive/', Ref, '.tar.gz'], URL),
+	normal_message("fetching ~w source (~w) from ~w", [Bundle, Ref, URL]),
+	catch(http_get(URL, file(File)), _E, fail).
+fetch_src(gitlab(Path, Ref), Bundle, File) :-
+	atom_concat(['https://', Path, '/-/archive/', Ref, '.tar.gz'], URL),
 	normal_message("fetching ~w source (~w) from ~w", [Bundle, Ref, URL]),
 	catch(http_get(URL, file(File)), _E, fail).
 fetch_src(git_archive(Path, Ref), Bundle, File) :-
