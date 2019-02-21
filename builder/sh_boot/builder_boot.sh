@@ -130,7 +130,7 @@ clean_tree() {
 	-o -name "*_co.pl" \
 	-o -name "*_co.java" \
 	\) \
-	-exec /bin/rm -f {} \;
+	-exec rm -f {} \;
 }
 
 # Clean a whole builddir

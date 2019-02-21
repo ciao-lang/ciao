@@ -43,13 +43,13 @@ clean_tree() {
 	\
 	-o -name "*_auto.pl" \
 	-o -name "*_co.pl" \) \
-	-exec /bin/rm -f {} \;
+	-exec rm -f {} \;
 }
 
 # Clean the compilation output for just one module
 clean_mod() { # MOD
     test x"$1" = x"" && return
-    /bin/rm -f \
+    rm -f \
            "$1.asr" \
            "$1.ast" \
            "$1.itf" \
