@@ -280,9 +280,10 @@ else
 fi
 # Special cases where -fPIC is needed to allow compilation as shared library
 case "$CIAOOS$CIAOARCH" in
-    LINUXx86_64) OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
-    LINUXx86_JS) OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
-    BSDx86_64)   OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
+    LINUXx86_64)  OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
+    LINUXx86_JS)  OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
+    LINUXaarch64) OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
+    BSDx86_64)    OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
 esac
 # Select C standard
 OPTIM_FLAGS="-Wall -std=gnu11 $OPTIM_FLAGS"
