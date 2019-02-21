@@ -31,7 +31,7 @@ typedef double flt64_t;
 
 /* ------------------------------------------------------------------------- */
 
-#if defined(x86_64) || defined(Sparc64) || defined(ppc64) /* 64-bit */
+#if defined(x86_64) || defined(Sparc64) || defined(ppc64) || defined(aarch64) /* 64-bit */
 /* Definitions for 64-bit tag scheme */
 typedef int64_t intmach_t;
 typedef uint64_t uintmach_t;

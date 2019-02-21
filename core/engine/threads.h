@@ -58,6 +58,15 @@ typedef void *(*THREAD_START)(void *);
 #define Thread_Join(Id)     pthread_join(Id, NULL)
 #define Thread_Exit(Status) pthread_exit(Status)
 #define Thread_Id           pthread_self()
+#if defined(__ANDROID__)
+/* TODO: Android NDK (bionic) lacks pthread_cancel(). We replace it by
+   pthread_kill() by now but we'd additionally need proper use of
+   signals.  See https://github.com/tux-mind/libbthread for
+   details. */
+#define Allow_Thread_Cancel {}
+#define Disallow_Thread_Cancel {}
+#define Thread_Cancel(Id) pthread_kill(Id)
+#else
 #define Allow_Thread_Cancel \
      pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL); \
      pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -65,6 +74,7 @@ typedef void *(*THREAD_START)(void *);
      pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL); \
      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 #define Thread_Cancel(Id) pthread_cancel(Id)
+#endif
 #define Thread_Equal(thr1, thr2) pthread_equal(thr1, thr2)
 #define Thread_Dispose(ThrH) pthread_join(ThrH)
 #endif  

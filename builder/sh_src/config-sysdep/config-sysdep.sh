@@ -299,6 +299,7 @@ case "$CIAOOS$CIAOARCH" in
     *x86_64)         MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
     *x86_JS)         MEM_MNG_FLAG="" ;;
     *ppc64)          MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
+    *aarch64)        MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
     # (assume 32-bit)
     *) MEM_MNG_FLAG="-DUSE_MMAP -DANONYMOUS_MMAP" ;;
 esac
