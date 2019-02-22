@@ -147,9 +147,9 @@ explanation of the meaning:
   not have effect.
 
   @begin{itemize}
-   @item @code{yes} : Raising a run time error will abort the program.
+   @item @code{yes} : Raising a run time error will abort the program. Default
    @item @code{no}  : Raising a run time error will not stop the execution,
-                      but a message will be shown. Default.
+                      but a message will be shown.
   @end{itemize}
 
 @end{itemize}

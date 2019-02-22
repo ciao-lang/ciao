@@ -64,9 +64,6 @@
 :- bundle_flag(rtchecks_namefmt, [
     config_prolog_flag(rtchecks_namefmt,[short,long],long)
 ]).
-:- bundle_flag(rtchecks_abort_on_error, [
-    config_prolog_flag(rtchecks_abort_on_error,[yes,no],no)
-]).
 
 % ---------------------------------------------------------------------------
 % The command

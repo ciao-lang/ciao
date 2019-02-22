@@ -3,12 +3,12 @@
 :- use_module(engine(io_basic)).
 :- use_module(engine(messages_basic)).
 :- use_module(library(system)).
-:- use_module(library(rtchecks/rtchecks_utils)).
+:- use_module(library(rtchecks/rtchecks_utils), [handle_rtcheck/1]).
 
 :- meta_predicate(error_protect(goal)).
 
 error_protect(Goal) :-
-	RTError = rtcheck(_Type, _Pred, _Prop, _Valid, _Poss),
+	RTError = rtcheck(_Type, _Pred, _Dict, _Prop, _Valid, _Poss),
 	catch(catch(Goal, RTError, handle_rtcheck_error(RTError)),
 	    error(Error, Where), handle_error(Error, Where)).
 

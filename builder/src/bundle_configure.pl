@@ -789,14 +789,18 @@ display_option(ShowName, Value) :-
 :- use_module(engine(runtime_control), [set_prolog_flag/2]).
 
 :- export(set_prolog_flags_from_bundle_flags/1).
-set_prolog_flags_from_bundle_flags(TFlagCmds) :-
+set_prolog_flags_from_bundle_flags(Gs) :-
 	findall(
 	    set_prolog_flag(FlagName, CurrValue),
 	    (
 		config_flag_entry(FlagName, _Values, Default, CurrValue),
 		(CurrValue \== Default)
 	    ),
-	    TFlagCmds).
+	    Gs0),
+	% Import set_prolog_flag/2 if needed
+	( Gs0 = [] -> Gs = []
+	; Gs = [use_module(engine(runtime_control), [set_prolog_flag/2])|Gs0]
+	).
 
 % TODO: Store in saved configuration instead?
 config_flag_entry(Flag, Values, Default, CurrValue) :-

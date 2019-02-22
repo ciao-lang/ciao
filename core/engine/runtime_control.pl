@@ -636,8 +636,6 @@ define_flag(debug, [on,debug,trace,off], off).
 @end{verbatim}
 ").
 
-:- use_package(define_flag).
-
 :- doc(set_prolog_flag(FlagName, Value),
 	    "Set existing flag @var{FlagName} to @var{Value}.").
 :- pred set_prolog_flag(+atm, +term) => atm * term + iso.

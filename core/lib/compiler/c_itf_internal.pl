@@ -186,7 +186,6 @@ define_flag(rtchecks_asrloc,         [yes, no],                yes).
 define_flag(rtchecks_predloc,        [yes, no],                yes).
 define_flag(rtchecks_callloc,        [no, literal, predicate], predicate).
 define_flag(rtchecks_namefmt,        [short, long],            long).
-define_flag(rtchecks_abort_on_error, [yes, no],                no).
 
 % Keep asertions after reading
 % TODO: This is a temporary hack for assertions/assrt_lib. It needs better integration.

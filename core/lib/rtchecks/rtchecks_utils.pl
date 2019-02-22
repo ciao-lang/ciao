@@ -6,7 +6,7 @@
             load_rtchecks/1,
             rtcheck_error/1
         ],
-        [assertions, regtypes, datafacts]).
+        [assertions, regtypes, datafacts, define_flag]).
 
 :- use_module(library(aggregates), [findall/3]).
 
@@ -59,6 +59,8 @@ handle_rtcheck(RTCheck) :-
 	the execution continues. Alternatively, it is re-raised as an
 	exception depending on the flag rtchecks_abort_on_error
 	value.".
+
+define_flag(rtchecks_abort_on_error, [yes, no], yes).
 
 call_rtc(Goal) :-
 	Error = rtcheck(_Type, _Pred, _Dict, _Prop, _Valid, _Poss),
