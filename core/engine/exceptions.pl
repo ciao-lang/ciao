@@ -143,7 +143,7 @@ send_signal(Signal):-
 	    send_signal2(Signal, true) ->
 	    true
 	;
-	    throw(error(unintercepted_signal(instantiation_error), signal/1 -1))
+	    throw(error(unintercepted_signal(Signal), 'exceptions:send_signal'/1 -1))
 	).
 
 
@@ -158,7 +158,7 @@ send_silent_signal(Signal) :-
 
 send_signal2(Signal, _) :-
 	var(Signal), !,
-	throw(error(instantiation_error, signal/1 -1)).
+	throw(error(instantiation_error, 'exceptions:send_signal'/1 -1)).
 send_signal2(Signal, _) :-
 	current_fact(catching(C, E, H), Ref),
 	H \== '$catching',

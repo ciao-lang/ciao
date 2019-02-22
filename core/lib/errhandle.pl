@@ -106,6 +106,8 @@ get_error(domain_error(Domain, Culprit), ['expected ', Readable,
 get_error(syntax_error([L0, L1, Msg, ErrorLoc]),
 	    ['syntax error '|Message], T) :- !,
 	add_lines(L0, L1, ['\n', [](Msg), ':', ErrorLoc|T], Message).
+get_error(unintercepted_signal(Signal), Msg, T) :- !,
+	Msg = ['No handle found for sent signal ', ~~(Signal)|T].
 get_error(X, [X|T], T).
 
 translate_ball(atom,      'a non-numeric atom') :- !.
