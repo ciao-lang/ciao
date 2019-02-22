@@ -12,5 +12,4 @@ alias_paths([
     rtchecks = 'lib/rtchecks'
 ]).
 readme('INSTALLATION', [main='doc/common/INSTALLATION_CIAO.lpdoc']).
-readme('INSTALLATION_Win32', [main='doc/common/INSTALLATION_CIAO_Win32.lpdoc']).
 readme('CHANGELOG', [main='doc/common/CHANGELOG_CIAO.pl']).

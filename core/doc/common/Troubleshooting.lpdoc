@@ -38,26 +38,6 @@ This is a list of common issues and their solutions:
       if none of the clean commands work, try @tt{./ciao-boot.sh
       emergency-clean}.
 
-@item @bf{Problem:}
-      In Windows (under Cygwin or MSYS2), many programs (including
-      @tt{emacs} and @tt{ciao}) exit with error messages like:
-
-      @tt{Doing vfork: resource temporarily unavailable}
-
-      @bf{Possible reason and solution:}
-
-      Cygwin needs a special memory layout to implement the fork
-      semantics in Win32
-      (@href{http://cygwin.com/ml/cygwin/2009-05/msg00413.html}).  A
-      workaround this problem is using the @tt{rebaseall} command,
-      which relocates all Cygwin DLLs into a layout that avoids
-      collisions:
-
-      @begin{itemize}
-      @item 1. End all cygwin processes.
-      @item 2. Run @tt{/bin/rebaseall} from @tt{c:\\cygwin\\bin\\ash}
-               (probably as administrator)
-      @end{itemize}
 @end{itemize}
 
 @comment{
