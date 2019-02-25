@@ -131,9 +131,9 @@ explanation of the meaning:
 @item @code{rtchecks_namefmt}
   @begin{itemize}
    @item @code{long}   : Show the name of predicates, properties and the
-			 values of the variables
+			 values of the variables. Default.
    @item @code{short}  : Only show the name of the predicate in a reduced
-			 format. Default.
+			 format.
   @end{itemize}
 
 @item @code{rtchecks_abort_on_error}
