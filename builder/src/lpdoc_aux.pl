@@ -27,6 +27,7 @@ invoke_lpdoc(Args) :-
 
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(system), [file_exists/1]).
+:- use_module(library(system), [find_executable/2]).
 :- use_module(library(source_tree), [copy_file_or_dir/2]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(pathnames), [path_splitext/3]).
@@ -39,6 +40,9 @@ invoke_lpdoc(Args) :-
 % Creation of README files (from .lpdoc to ascii)
 % Output is moved to the bundle root directory.
 build_docs_readme(Bundle, SrcPath, OutName) :-
+	% TODO: currently a hardwired dependency for 'ascii' lpdoc backend, find a better solution
+	find_executable(makeinfo,_),
+	!,
 	ensure_builddir(Bundle, '.'), % TODO: needed?
 	ensure_builddir(Bundle, 'doc'), % TODO: add as dep to 'initial doc' bundle?
 	OutAbsFile = ~bundle_path(Bundle, OutName),
@@ -56,6 +60,8 @@ build_docs_readme(Bundle, SrcPath, OutName) :-
 	Ascii = ~atom_concat(Name0, '.ascii'),
 	DocSrc = ~path_concat(DocDir, Ascii),
 	copy_file_or_dir(DocSrc, OutAbsFile).
+build_docs_readme(_, _, _OutName) :-
+	message(warning, ['Skipping update, check dependencies for the LPdoc ascii backend']).
 
 :- export(build_docs_readme_html/3).
 % Render README files as HTML (from .lpdoc to .html)
