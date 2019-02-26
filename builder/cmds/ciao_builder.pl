@@ -133,7 +133,7 @@ force the recompilation and cleaning of that part (see
 
 % ===========================================================================
 
-:- use_module(library(errhandle), [handle_error/2]).
+:- use_module(library(errhandle), [handle_error/3]).
 :- use_module(library(messages), [error_message/2]).
 
 :- use_module(ciaobld(builder_cmds), [builder_run/2]).
@@ -226,7 +226,7 @@ handle_builder_error(builder_cmd_failed(Bundle, Part, Target)) :-
 	error_message("Command '~w' on bundle '~w' (part '~w') failed.~n", [Target, Bundle, Part]),
 	halt(1).
 handle_builder_error(error(Error, Where)) :-
-	handle_error(Error, Where).
+	handle_error(Error, Where, halt(1)).
 handle_builder_error(Error) :-
 	error_message("Unknown error '~w'.~n", [Error]),
 	halt(1).

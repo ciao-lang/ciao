@@ -78,7 +78,7 @@ library @lib{compiler/c_itf}.
 :- use_module(library(assertions/c_itf_props)).
 :- use_module(library(compiler/c_itf)).
 :- use_module(library(ctrlcclean), [ctrlc_clean/1,delete_on_ctrlc/2]).
-:- use_module(library(errhandle)).  
+:- use_module(library(errhandle), [error_protect/2]).  
 :- use_module(library(messages)).
 % :- use_module(library(miscprops)).
 %% :- use_module(library(formulae),[list_to_conj/2]).
@@ -180,7 +180,7 @@ get_code_and_related_assertions_opts(I,Opts,M,Base,Suffix,Dir):-
 		process_files_from(I, asr, any, 
 		                   process_file_assertions(I,Verb,Opts), 
                                    false, false, needs_processing(I,Verb))
-				 )),
+				 ),fail), % TODO: fail or abort? use once_port_reify?
 	pop_prolog_flag(keep_assertions), % Do not clean assertions!
 	pop_prolog_flag(read_assertions),
 %	pop_prolog_flag(runtime_checks),
