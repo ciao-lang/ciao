@@ -50,6 +50,7 @@ mimetype('.tif', 'image', 'tiff'). % Tagged Image File Format (TIFF)
 mimetype('.tiff', 'image', 'tiff'). % Tagged Image File Format (TIFF)
 mimetype('.ts', 'application', 'typescript'). % Typescript file
 mimetype('.ttf', 'font', 'ttf'). % TrueType Font
+mimetype('.wasm', 'application', 'wasm'). % WebAssembly
 mimetype('.wav', 'audio', 'x-wav'). % Waveform Audio Format
 mimetype('.weba', 'audio', 'webm'). % WEBM audio
 mimetype('.webm', 'video', 'webm'). % WEBM video
