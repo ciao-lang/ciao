@@ -478,13 +478,8 @@ case "$CIAOOS$CIAOARCH" in
 	# files)
         CFLAGS="-I$bld_srcdir $CFLAGS"
 	# Optimization flags must be included during link
-	LDFLAGS="$LDFLAGS $OPTIM_FLAGS --llvm-lto 1 \
--s MAIN_MODULE=2 \
--s ALIASING_FUNCTION_POINTERS=0 \
--s EMULATE_FUNCTION_POINTER_CASTS=1 \
--s LZ4=1 \
--s ALLOW_MEMORY_GROWTH=1"
-	# -s LZ4=1 # allow compressed assets # TODO: make it optional?
+	# TODO: extra flags are passed with EMMAKEN_CFLAGS
+	LDFLAGS="$LDFLAGS $OPTIM_FLAGS"
 	;;
 esac
 
