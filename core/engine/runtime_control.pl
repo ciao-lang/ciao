@@ -527,18 +527,6 @@ predicate_property_mod(_IM, EM, F, N, Prop) :-
 	'$meta_args'(EM, G),
 	Prop = meta_predicate(G).
 
-%% % from the analysis:
-%% %LibCert% :- true success predicate_property(A,B) => ( callable(A), rt20(B) ).
-%% 
-%% :- prop rt20/1 + regtype.
-%% 
-%% rt20(compiled).
-%% rt20(concurrent).
-%% rt20(dynamic).
-%% rt20(interpreted).
-%% rt20(multifile).
-%% rt20(wait).
-
 % ---------------------------------------------------------------------------
 
 :- trust pred garbage_collect # "Forces garbage collection when called.".
