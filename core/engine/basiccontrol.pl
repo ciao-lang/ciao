@@ -95,21 +95,21 @@ if(P, Q, R) :- undefined_goal(if(P,Q,R)).
 
 :- trust pred true/0 + ( iso, native, sideff(free),
 	is_det, not_fails, relations(1) ) # "Succeed (noop).".
-:- true comp true/0 + eval.
+:- trust comp true/0 + eval.
 :- impl_defined(true/0).
 
 :- trust pred otherwise/0.
-:- true comp otherwise/0 + ( sideff(free), eval ).
+:- trust comp otherwise/0 + ( sideff(free), eval ).
 :- impl_defined(otherwise/0).
 
 :- trust pred fail/0 + ( iso, native, sideff(free),
 	is_det, fails, relations(0) ) # "Fail, backtrack immediately.".
-:- true comp fail/0 + eval.
-:- true comp fail/0 + equiv(fail).
+:- trust comp fail/0 + eval.
+:- trust comp fail/0 + equiv(fail).
 :- impl_defined(fail/0).
 
 :- trust pred false/0.
-:- true comp false/0 + ( sideff(free), eval ).
+:- trust comp false/0 + ( sideff(free), eval ).
 :- impl_defined(false/0).
 
 :- trust pred repeat/0 + ( iso, native, sideff(free) ) # "Generates an infinite sequence of

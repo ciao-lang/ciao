@@ -94,7 +94,7 @@ empty_dir(D) :-
 	@var{Dir} (note that to move only one file to a directory,
 	@pred{rename_file/2} can be used).".
 
-:- true pred move_files(+list(atm), +atm).
+:- pred move_files(+list(atm), +atm).
 
 %% Need to do this better of course...
 
@@ -118,7 +118,7 @@ move_file(File, Dir) :-
 :- pred copy_files(Files, Dir) # "Like @pred{copy_files/3}, with empty
    options list.".
 
-:- true pred copy_files(+list(atm), +atm).
+:- pred copy_files(+list(atm), +atm).
 
 %% Need to do this better of course...
 copy_files(Files, Dir) :-
@@ -655,7 +655,7 @@ relpath__([], Bs, Bs). % Finish with rest
 %%    fails, an exception is raised unless the @tt{ignore} option is
 %%    specified.").
 %% 
-%% :- true pred delete_file(+atm,+list(delete_file_option)).
+%% :- pred delete_file(+atm,+list(delete_file_option)).
 %% 
 %% delete_file(FileName,[recursive]) :- delete_file(FileName,[recursive])
 %% 
@@ -664,7 +664,7 @@ relpath__([], Bs, Bs). % Finish with rest
 %% :- doc(delete_file(FileName), "Equivalent to
 %%    @tt{delete_file(FileName,[recursive])}.").
 %% 
-%% :- true pred delete_file(+atm).
+%% :- pred delete_file(+atm).
 %% 
 %% delete_file(FileName) :- delete_file(FileName,[recursive])
 %% 

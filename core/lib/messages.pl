@@ -56,8 +56,7 @@
 :- reexport(library(compiler/c_itf_internal), [location_t/1]).
 %% ---------------------------------------------------------------------------
 
-
-:- true pred message_type_label(Type, Label) :: message_t * string.
+:- pred message_type_label(Type, Label) :: message_t * string.
 
 message_type_label(error,   "ERROR").
 message_type_label(warning, "WARNING").

@@ -28,7 +28,7 @@ copy_term(X, Y) :-
         retract_fact('copy of'(Y)).
 @end{verbatim}".
 
-:- true comp copy_term(Term, Copy) : ground(Term) + eval.
+:- trust comp copy_term(Term, Copy) : ground(Term) + eval.
 
 :- impl_defined(copy_term/2).
 
@@ -43,7 +43,7 @@ copy_term(X, Y) :-
 :- trust comp '='(X,Y) + (sideff(free), native, iso, eval, is_det,
 	relations(inf), test_type(unification))
 	# "@var{X} and @var{Y} unify.". 
-:- true prop '='/2.
+:- prop '='/2.
 
 X=Y :- X=Y.
 
@@ -95,8 +95,8 @@ functor(X, Y, Z) :- functor(X, Y, Z).
 :- trust pred (?Term =.. ?List) => list(List) + ( sideff(free), native, iso )
 	# "The functor and arguments of the term @var{Term} comprise the
            list @var{List}.".
-:- true comp (+ =.. ?)  + eval.
-:- true comp (_ =.. List) : (list(List),const_head(List)) + eval.
+:- trust comp (+ =.. ?)  + eval.
+:- trust comp (_ =.. List) : (list(List),const_head(List)) + eval.
 
 X=..Y :- X=..Y.
 
@@ -113,7 +113,7 @@ const_head([Head|_]):-
            Internally used in @em{DCG grammar rules}. Defined as if by the 
            single clause: @tt{'C'([X|S], X, S).}".
 
-:- true comp 'C'(+,?,?) + eval.
+:- trust comp 'C'(+,?,?) + eval.
 
 'C'(X, Y, Z) :- 'C'(X, Y, Z).
 

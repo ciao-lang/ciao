@@ -55,8 +55,8 @@ foo(_).
 % TODO: In order to do this, we must detect strings followed by : as 
 % commands and other things as strings.
 
-:- true comp delete_non_ground/3 + sideff(soft).
-:- true comp delete_non_ground(L1,E,L2) : (ground(L1), ground(L2)) + eval.
+:- trust comp delete_non_ground/3 + sideff(soft).
+:- trust comp delete_non_ground(L1,E,L2) : (ground(L1), ground(L2)) + eval.
 
 delete_non_ground([A], _, [A]) :-
 	var(A), !.

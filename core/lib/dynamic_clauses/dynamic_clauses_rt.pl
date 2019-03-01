@@ -39,7 +39,7 @@
 
 :- doc(doinclude, dynamic/1).
 
-:- true decl dynamic(Predicates) : sequence_or_list(predname) + iso
+:- decl dynamic(Predicates) : sequence_or_list(predname) + iso
         # "Defines each predicate in @var{Predicates} as a
           @concept{dynamic predicate}.  If a predicate is defined
           dynamic in a file, it must be defined dynamic in every file

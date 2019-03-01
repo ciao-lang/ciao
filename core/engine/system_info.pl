@@ -109,17 +109,17 @@ get_platform(Platform) :-
         for executables.".
 :- impl_defined(get_exec_ext/1).
 
-:- true pred get_so_ext(?Ext) :: atm # "@var{Ext} is the default
+:- trust pred get_so_ext(?Ext) :: atm # "@var{Ext} is the default
 	extension for the shared libraries. For example, @tt{.dll} in
 	Windows and @tt{.so} in most Unix systems.".
 :- impl_defined(get_so_ext/1).
 
-:- true pred get_a_ext(?Ext) :: atm # "@var{Ext} is the default
+:- trust pred get_a_ext(?Ext) :: atm # "@var{Ext} is the default
 	extension for the static libraries.".
 
 get_a_ext('.a'). % TODO: '.a' is fine for MinGW but this is typically '.lib' in Windows
 
-:- true pred eng_is_sharedlib/0 # "This engine is linked as a shared
+:- trust pred eng_is_sharedlib/0 # "This engine is linked as a shared
    library (instead of as an executable)".
 
 :- impl_defined(eng_is_sharedlib/0).

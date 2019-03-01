@@ -15,7 +15,7 @@
 
 :- use_foreign_source(library(hrtime/hrtime)).
 
-:- true pred hrtime(go(T)) :: c_double + (foreign(prolog_hrtime), returns(T)) -->
+:- trust pred hrtime(go(T)) :: c_double + (foreign(prolog_hrtime), returns(T)) -->
 "
   double prolog_hrtime()
   {
@@ -23,7 +23,7 @@
   }
 ".
 
-:- true pred hrmethod(go(M)) :: atm
+:- trust pred hrmethod(go(M)) :: atm
 	+ (foreign(prolog_hrmethod), returns(M), do_not_free(M)) -->
 "
   char *prolog_hrmethod()
@@ -32,7 +32,7 @@
   }
 ".
 
-:- true pred hrfreq(go(T)) :: c_double + (foreign(prolog_hrfreq), returns(T)) -->
+:- trust pred hrfreq(go(T)) :: c_double + (foreign(prolog_hrfreq), returns(T)) -->
 "
   double prolog_hrfreq()
   {

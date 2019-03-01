@@ -333,7 +333,7 @@ fixed_absolute_file_name(X, CurrDir, Y) :-
 
 ").
 
-:- true prop stream_alias(S) + regtype # "@var{S} is the alias of an
+:- prop stream_alias(S) + regtype # "@var{S} is the alias of an
 open stream, i.e., an atom which represents a stream at Prolog
 level.".
 
@@ -343,7 +343,7 @@ stream_alias(user_output).
 stream_alias(user_error).
 
 
-:- true prop stream(S) + regtype # "@var{S} is an open stream.".
+:- prop stream(S) + regtype # "@var{S} is an open stream.".
 
 %  This does not capture the "not closed" fact
 stream(S):- stream_alias(S).
@@ -409,7 +409,7 @@ is equivalent to @tt{'/usr/local/src/utilities/sample.pl'}, if
    match is found.  For information on predefined path aliases or how
    to define new path aliases, see @pred{file_search_path/2}.  ").
 
-:- true prop sourcename(F) + regtype # "@var{F} is a source name.".
+:- prop sourcename(F) + regtype # "@var{F} is a source name.".
 
 sourcename(S) :- atm(S).
 sourcename(S) :- struct(S).
@@ -442,12 +442,12 @@ sourcename(S) :- struct(S).
    All file locking is implemented via the POSIX function fcntl().
    Please refer to its manual page for details.").
 
-:- true prop open_option_list(L) + regtype
+:- prop open_option_list(L) + regtype
         # "@var{L} is a list of options for @pred{open/4}.".
 
 open_option_list(L) :- list(L, open_option).
 
-:- true prop open_option(O) + regtype
+:- prop open_option(O) + regtype
         # "@var{O} is an option for @pred{open/4}.".
 
 open_option(lock).
@@ -457,7 +457,7 @@ open_option(lock_nb(Lock_Mode)) :- lock_mode(Lock_Mode).
 
 :- push_prolog_flag(multi_arity_warnings,off).
 
-:- true prop lock_mode(M) + regtype.
+:- prop lock_mode(M) + regtype.
 
 lock_mode(read).
 lock_mode(shared).

@@ -46,10 +46,10 @@
 
 :- doc(term/1, "The most general type (includes all possible terms).").
 
-:- true prop term(X) + (regtype, native) # "@var{X} is any term.".
-:- true comp term(X) + sideff(free).
-:- true comp term(X) + eval.
-:- true comp term(X) + equiv(true).
+:- trust prop term(X) + (regtype, native) # "@var{X} is any term.".
+:- trust comp term(X) + sideff(free).
+:- trust comp term(X) + eval.
+:- trust comp term(X) + equiv(true).
 :- trust success term(_) => true.
 
 term(_).
@@ -58,9 +58,9 @@ term(_).
         @tt{[-2^2147483616, 2^2147483616)}.  Thus for all practical
         purposes, the range of integers can be considered infinite.").
 
-:- true prop int(T) + (regtype, native) # "@var{T} is an integer.".
-:- true comp int(T) + sideff(free).
-:- true comp int(T) : nonvar(T) + (eval, is_det).
+:- trust prop int(T) + (regtype, native) # "@var{T} is an integer.".
+:- trust comp int(T) + sideff(free).
+:- trust comp int(T) : nonvar(T) + (eval, is_det).
 :- trust success int(T) => int(T).
 :- trust comp int/1 + test_type(arithmetic).
 
@@ -70,10 +70,10 @@ int(X) :- integer(X).
 :- doc(nnegint/1, "The type of non-negative integers, i.e.,
 	natural numbers.").
 
-:- true prop nnegint(T) + ( regtype, native )
+:- trust prop nnegint(T) + ( regtype, native )
 	# "@var{T} is a non-negative integer.".
-:- true comp nnegint(T) + sideff(free).
-:- true comp nnegint(T) : nonvar(T) + eval.
+:- trust comp nnegint(T) + sideff(free).
+:- trust comp nnegint(T) : nonvar(T) + eval.
 :- trust success nnegint(T) => nnegint(T).
 :- trust comp nnegint/1 + test_type(arithmetic).
 
@@ -88,9 +88,9 @@ nnegint(X) :- integer(X), X >= 0.
         Not-a-number, which arises as the result of indeterminate
         operations, represented as @tt{0.Nan}").
 
-:- true prop flt(T) + (regtype, native) # "@var{T} is a float.".
-:- true comp flt(T) + sideff(free).
-:- true comp flt(T) : nonvar(T) + (eval, is_det).
+:- trust prop flt(T) + (regtype, native) # "@var{T} is a float.".
+:- trust comp flt(T) + sideff(free).
+:- trust comp flt(T) : nonvar(T) + (eval, is_det).
 :- trust success flt(T) => flt(T).
 :- trust comp flt/1 + test_type(meta).
 
@@ -99,9 +99,9 @@ flt(X) :- float(X).
 
 :- doc(num/1, "The type of numbers, that is, integer or floating-point.").
 
-:- true prop num(T) + (regtype, native) # "@var{T} is a number.".
-:- true comp num(T) + (sideff(free),bind_ins).
-:- true comp num(T) : nonvar(T) + (eval, is_det).
+:- trust prop num(T) + (regtype, native) # "@var{T} is a number.".
+:- trust comp num(T) + (sideff(free),bind_ins).
+:- trust comp num(T) : nonvar(T) + (eval, is_det).
 :- trust success num(T) => num(T).
 :- trust comp num/1 + test_type(arithmetic).
 
@@ -111,9 +111,9 @@ num(X) :- number(X).
 :- doc(atm/1, "The type of atoms, or non-numeric constants.  The
         size of atoms is unbound.").
 
-:- true prop atm(T) + (regtype, native) # "@var{T} is an atom.".
-:- true comp atm(T) + sideff(free).
-:- true comp atm(T) : nonvar(T) + (eval, is_det).
+:- trust prop atm(T) + (regtype, native) # "@var{T} is an atom.".
+:- trust comp atm(T) + sideff(free).
+:- trust comp atm(T) : nonvar(T) + (eval, is_det).
 :- trust success atm(T) => atm(T).
 :- trust comp atm/1 + test_type(arithmetic).
 
@@ -126,9 +126,9 @@ non-zeroary functors. By now there is a limit of 255 arguments.").
 % TODO: struct/1 does not seem to be a regtype
 %       (see basic_props_rtc:rtc_struct/1 for details).
 
-:- true prop struct(T) + (regtype, native) # "@var{T} is a compound term.".
-:- true comp struct(T) + sideff(free).
-:- true comp struct(T) : nonvar(T) + eval.
+:- trust prop struct(T) + (regtype, native) # "@var{T} is a compound term.".
+:- trust comp struct(T) + sideff(free).
+:- trust comp struct(T) : nonvar(T) + eval.
 :- trust success struct(T) => struct(T).
 
 % NOTE: instantiation check version, kept for compatibility
@@ -140,9 +140,9 @@ struct(T) :- functor(T, _, A), A>0. % compound(T).
 % :- export(vr/1).
 % :- doc(vr/1, "The type of all variables.").
 % 
-% :- true prop vr(T) + (regtype, native) # "@var{T} is a variable.".
-% :- true comp vr(T) + sideff(free).
-% :- true comp vr(T) : var(T) + eval.
+% :- trust prop vr(T) + (regtype, native) # "@var{T} is a variable.".
+% :- trust comp vr(T) + sideff(free).
+% :- trust comp vr(T) : var(T) + eval.
 % :- trust success vr(T) => vr(T).
 % :- trust comp vr/1 + test_type(meta).
 % 
@@ -151,9 +151,9 @@ struct(T) :- functor(T, _, A), A>0. % compound(T).
 
 :- doc(gnd/1, "The type of all terms without variables.").
 
-:- true prop gnd(T) + (regtype, native) # "@var{T} is ground.".
-:- true comp gnd(T) + sideff(free).
-:- true comp gnd(T) : ground(T) + (eval, is_det).
+:- trust prop gnd(T) + (regtype, native) # "@var{T} is ground.".
+:- trust comp gnd(T) + sideff(free).
+:- trust comp gnd(T) : ground(T) + (eval, is_det).
 :- trust success gnd(T) => gnd(T).
 :- trust comp gnd/1 + test_type(meta).
 
@@ -161,27 +161,27 @@ struct(T) :- functor(T, _, A), A>0. % compound(T).
 % NOTE: instantiation check version, kept for compatibility
 gnd(X) :- ground(X).
 
-:- true prop gndstr(T) + (regtype, native) # "@var{T} is a ground compound term.".
-:- true comp gndstr(T) + sideff(free).
-:- true comp gndstr(T) : ground(T) + (eval, is_det).
+:- trust prop gndstr(T) + (regtype, native) # "@var{T} is a ground compound term.".
+:- trust comp gndstr(T) + sideff(free).
+:- trust comp gndstr(T) : ground(T) + (eval, is_det).
 :- trust success gndstr(T) => gndstr(T).
 
 gndstr(A) :- gnd(A), struct(A).
 
-:- true prop constant(T) + regtype
+:- prop constant(T) + regtype
    # "@var{T} is an atomic term (an atom or a number).".
-:- true comp constant(T) + sideff(free).
-:- true comp constant(T) : nonvar(T) + (eval, is_det).
+:- trust comp constant(T) + sideff(free).
+:- trust comp constant(T) : nonvar(T) + (eval, is_det).
 :- trust success constant(T) => constant(T).
 
 constant(T) :- atm(T).
 constant(T) :- num(T).
 
-:- true prop callable(T) + regtype
+:- prop callable(T) + regtype
    # "@var{T} is a term which represents a goal, i.e.,
         an atom or a structure.".
-:- true comp callable(T) + sideff(free).
-:- true comp callable(T) : nonvar(T) + (eval, is_det).
+:- trust comp callable(T) + sideff(free).
+:- trust comp callable(T) : nonvar(T) + (eval, is_det).
 :- trust success callable(T) => nonvar(T).
 
 callable(T) :- atm(T).
@@ -230,10 +230,10 @@ way around.
 @end{description}
 ").
 
-:- true prop operator_specifier(X) + regtype # "@var{X} specifies the type and
+:- prop operator_specifier(X) + regtype # "@var{X} specifies the type and
         associativity of an operator.".
-:- true comp operator_specifier(X) + sideff(free).
-:- true comp operator_specifier(X) : nonvar(X) + (eval, is_det, relations(7)).
+:- trust comp operator_specifier(X) + sideff(free).
+:- trust comp operator_specifier(X) : nonvar(X) + (eval, is_det, relations(7)).
 :- trust success operator_specifier(T) => operator_specifier(T).
 
 operator_specifier(fy).
@@ -248,9 +248,9 @@ operator_specifier(xf).
    functor @tt{'.'/2}, and its end is the atom @tt{[]}.  Defined as
    @includedef{list/1}").
 
-:- true prop list(L) + regtype # "@var{L} is a list.".
-:- true comp list(L) + sideff(free).
-:- true comp list(L) : ground(L) + (eval, is_det).
+:- prop list(L) + regtype # "@var{L} is a list.".
+:- trust comp list(L) + sideff(free).
+:- trust comp list(L) : ground(L) + (eval, is_det).
 :- trust success list(T) => list(T).
 
 list([]).
@@ -259,10 +259,10 @@ list([_|L]) :- list(L).
 :- doc(list(L,T), "@var{L} is a list, and for all its elements,
    @var{T} holds.").
 
-:- true prop list(L,T) + regtype # "@var{L} is a list of @var{T}s.".
-:- true comp list(L,T) + sideff(free).
+:- prop list(L,T) + regtype # "@var{L} is a list of @var{T}s.".
+:- trust comp list(L,T) + sideff(free).
 :- meta_predicate list(?, pred(1)).
-:- true comp list(L,T) : (ground(L),ground(T)) + eval.
+:- trust comp list(L,T) : (ground(L),ground(T)) + eval.
 :- trust success list(X,T) => list(X). % TODO: should be list(X,T), but does not work
 
 list([],_).
@@ -270,13 +270,13 @@ list([X|Xs], T) :-
         T(X),
         list(Xs, T).
 
-:- true prop nlist(L,T) + regtype #
+:- prop nlist(L,T) + regtype #
 	"@var{L} is @var{T} or a nested list of @var{T}s.  Note that
 	if @var{T} is term, this type is equivalent to term, this
 	fact explain why we do not have a @pred{nlist/1} type.".
-:- true comp nlist(L,T) + sideff(free).
+:- trust comp nlist(L,T) + sideff(free).
 :- meta_predicate nlist(?, pred(1)).
-:- true comp nlist(L,T) : (ground(L),ground(T)) + eval.
+:- trust comp nlist(L,T) : (ground(L),ground(T)) + eval.
 :- trust success nlist(X,T) => term(X).
 
 nlist([], _).
@@ -286,9 +286,9 @@ nlist([X|Xs], T) :-
 nlist(X, T) :-
 	T(X).
 
-:- true prop member(X,L) # "@var{X} is an element of @var{L}.".
-:- true comp member(X,L) + (sideff(free), bind_ins).
-:- true comp member(X,L) : list(L) + eval.
+:- prop member(X,L) # "@var{X} is an element of @var{L}.".
+:- trust comp member(X,L) + (sideff(free), bind_ins).
+:- trust comp member(X,L) : list(L) + eval.
 :- trust success member(_X,L) => list(L).
 :- trust success member(X,L) : ground(L) => ground(X).
 
@@ -299,11 +299,11 @@ member(X, [_Y|Xs]):- member(X, Xs).
    occurrences of the operator @op{','/2}.  For example, @tt{a, b, c} is
    a sequence of three atoms, @tt{a} is a sequence of one atom.").
 
-:- true prop sequence(S,T) + regtype # "@var{S} is a sequence of @var{T}s.".
-:- true comp sequence(S,T) + sideff(free).
+:- prop sequence(S,T) + regtype # "@var{S} is a sequence of @var{T}s.".
+:- trust comp sequence(S,T) + sideff(free).
 
 :- meta_predicate sequence(?, pred(1)).
-:- true comp sequence(S,T) : (ground(S), ground(T)) + eval.
+:- trust comp sequence(S,T) : (ground(S), ground(T)) + eval.
 :- trust success sequence(E,T) => (nonvar(E),ground(T)).
 
 sequence(E, T) :- T(E).
@@ -311,20 +311,20 @@ sequence((E,S), T) :-
         T(E),
         sequence(S,T).
 
-:- true prop sequence_or_list(S,T) + regtype
+:- prop sequence_or_list(S,T) + regtype
    # "@var{S} is a sequence or list of @var{T}s.".
-:- true comp sequence_or_list(S,T) + sideff(free).
+:- trust comp sequence_or_list(S,T) + sideff(free).
 :- meta_predicate sequence_or_list(?, pred(1)).
-:- true comp sequence_or_list(S,T) : (ground(S),ground(T)) + eval.
+:- trust comp sequence_or_list(S,T) : (ground(S),ground(T)) + eval.
 :- trust success sequence_or_list(E,T) => (nonvar(E),ground(T)).
 
 sequence_or_list(E, T) :- list(E,T).
 sequence_or_list(E, T) :- sequence(E, T).
 
-:- true prop character_code(T) + regtype
+:- prop character_code(T) + regtype
    # "@var{T} is an integer which is a character code.".
-:- true comp character_code(T) + sideff(free).
-:- true comp character_code(T) : nonvar(T) + eval.
+:- trust comp character_code(T) + sideff(free).
+:- trust comp character_code(T) : nonvar(T) + eval.
 :- trust success character_code(I) => character_code(I).
 
 character_code(I) :- int(I).
@@ -336,10 +336,10 @@ character_code(I) :- int(I).
         syntax when the list is not complete: @tt{\"st\"||R} is
         equivalent to @tt{[0's,0't|R]}.").
 
-:- true prop string(T) + regtype
+:- prop string(T) + regtype
    # "@var{T} is a string (a list of character codes).".
-:- true comp string(T) + sideff(free).
-:- true comp string(T) : ground(T) + eval.
+:- trust comp string(T) + sideff(free).
+:- trust comp string(T) : ground(T) + eval.
 :- trust success string(T) => string(T).
 
 string(T) :- list(T, character_code).
@@ -371,19 +371,19 @@ num_code(0'-).
 % TODO: To be decommented together with assertions about put_code and
 %       byte_code in io_basic.pl.
 % 
-% :- true prop byte(T) + regtype
+% :- prop byte(T) + regtype
 %    # "@var{T} is byte.".
-% :- true comp byte(T) + sideff(free).
-% :- true comp byte(T) : nonvar(T) + eval.
+% :- trust comp byte(T) + sideff(free).
+% :- trust comp byte(T) : nonvar(T) + eval.
 % :- trust success byte(I) => byte(I).
 % :- trust success byte(I) => int(I).
 %
 % byte(I) :- between(0, 0xff, I).
 %
-% :- true prop in_byte(T) + regtype
+% :- prop in_byte(T) + regtype
 %    # "@var{T} is a byte or the integer.".
-% :- true comp in_byte(T) + sideff(free).
-% :- true comp in_byte(T) : nonvar(T) + eval.
+% :- trust comp in_byte(T) + sideff(free).
+% :- trust comp in_byte(T) : nonvar(T) + eval.
 % :- trust success in_byte(I) => in_byte(I).
 % :- trust success in_byte(I) => int(I).
 %
@@ -394,19 +394,19 @@ num_code(0'-).
 :- doc(predname(P),"@var{P} is a Name/Arity structure denoting
 	a predicate name: @includedef{predname/1}").
 
-:- true prop predname(P) + regtype # "@var{P} is a predicate name.".
-:- true comp predname(P) + sideff(free).
-:- true comp predname(P) : ground(P) + eval.
+:- prop predname(P) + regtype # "@var{P} is a predicate name.".
+:- trust comp predname(P) + sideff(free).
+:- trust comp predname(P) : ground(P) + eval.
 :- trust success predname(P) => predname(P).
 
 predname(P/A) :-
 	atm(P),
 	nnegint(A).
 
-:- true prop atm_or_atm_list(T) + regtype
+:- prop atm_or_atm_list(T) + regtype
    # "@var{T} is an atom or a list of atoms.".
-:- true comp atm_or_atm_list(T) + sideff(free).
-:- true comp atm_or_atm_list(T) : ground(T) + eval.
+:- trust comp atm_or_atm_list(T) + sideff(free).
+:- trust comp atm_or_atm_list(T) : ground(T) + eval.
 :- trust success atm_or_atm_list(T) => atm_or_atm_list(T).
 
 atm_or_atm_list(T) :- atm(T).
@@ -422,13 +422,13 @@ atm_or_atm_list(T) :- list(T, atm).
    with the regular type @pred{list/1}, whereas the terms @tt{f(a)}
    and @tt{[1|2]} are not.").
 
-:- true prop compat(Term,Prop)
+:- prop compat(Term,Prop)
    # "@var{Term} is @em{compatible} with @var{Prop}.".
 :- meta_predicate compat(?, pred(1)).
 % not complety sure that assertiong below is completely correct,
 % unless side effects analysis understand pred(1) (metacalls).
-%:- true comp compat(Term,Prop) + sideff(free).
-:- true comp compat(Term,Prop) : (ground(Term),ground(Prop)) + eval.
+%:- trust comp compat(Term,Prop) + sideff(free).
+:- trust comp compat(Term,Prop) : (ground(Term),ground(Prop)) + eval.
 
 :- meta_predicate compat(?,pred(1)).
 
@@ -438,10 +438,10 @@ compat(T, P) :- \+ \+ P(T).
 % automatic documenter. (PBC: I guess this comment refers to compat/2)
 
 
-:- true prop inst(Term,Prop)
+:- prop inst(Term,Prop)
 	# "@var{Term} is instantiated enough to satisfy @var{Prop}.".
-:- true comp inst(Term,Prop) + sideff(free).
-:- true comp inst(Term,Prop) : (ground(Term),ground(Prop)) + eval.
+:- trust comp inst(Term,Prop) + sideff(free).
+:- trust comp inst(Term,Prop) : (ground(Term),ground(Prop)) + eval.
 
 :- meta_predicate inst(?,pred(1)).
 
@@ -452,8 +452,8 @@ inst( X , Prop ) :-
 	instance( A , AC ).
 
 
-:- true prop iso(G) # "@em{Complies with the ISO-Prolog standard.}".
-:- true comp iso(G) + sideff(free).
+:- prop iso(G) # "@em{Complies with the ISO-Prolog standard.}".
+:- trust comp iso(G) + sideff(free).
 
 :- meta_predicate iso(goal).
 
@@ -465,14 +465,14 @@ iso(Goal) :- call(Goal).
    date. Typically this is done because its functionality has been
    superseded by another predicate.").
 
-:- true prop deprecated(G) # "@bf{DEPRECATED.}".
-:- true comp deprecated(G) + sideff(free).
+:- prop deprecated(G) # "@bf{DEPRECATED.}".
+:- trust comp deprecated(G) + sideff(free).
 
 :- meta_predicate deprecated(goal).
 
 deprecated(Goal) :- call(Goal).
 
-:- true prop rtc_status(S) + regtype # "@var{S} is the status of the
+:- prop rtc_status(S) + regtype # "@var{S} is the status of the
 	runtime-check implementation for a given property. Valid
 	values are:
  @begin{itemize}
@@ -504,17 +504,17 @@ rtc_status(unimplemented).
 rtc_status(unknown).
 rtc_status(impossible).
 
-:- true prop rtcheck(G, Status) : callable * rtc_status # "The runtime
+:- prop rtcheck(G, Status) : callable * rtc_status # "The runtime
 	check of this property is @var{Status}.".
-:- true comp rtcheck(G, Status) + sideff(free).
+:- trust comp rtcheck(G, Status) + sideff(free).
 
 :- meta_predicate rtcheck(goal, ?).
 
 rtcheck(Goal, _) :- call(Goal).
 
-:- true prop rtcheck(G) : callable # "Equivalent to rtcheck(G, 
+:- prop rtcheck(G) : callable # "Equivalent to rtcheck(G, 
 	complete).".
-:- true comp rtcheck(G) + sideff(free).
+:- trust comp rtcheck(G) + sideff(free).
 
 :- meta_predicate rtcheck(goal).
 
@@ -525,17 +525,17 @@ rtcheck(Goal) :- rtcheck(Goal, complete).
 	run-time.  Equivalent to @tt{rtcheck(G, S)} with @tt{S}
 	unimplemented, impossible, etc.").
 
-:- true prop no_rtcheck(G) : callable # "@var{G} is not checked during
+:- prop no_rtcheck(G) : callable # "@var{G} is not checked during
    run-time checking.".
-:- true comp no_rtcheck(G) + sideff(free).
+:- trust comp no_rtcheck(G) + sideff(free).
 
 :- meta_predicate no_rtcheck(goal).
 
 no_rtcheck(Goal) :- rtcheck(Goal, impossible).
 
-:- true prop not_further_inst(G,V)
+:- prop not_further_inst(G,V)
         # "@var{V} is not further instantiated.". % by the predicate
-:- true comp not_further_inst(G,V) + (sideff(free), no_rtcheck).
+:- trust comp not_further_inst(G,V) + (sideff(free), no_rtcheck).
 
 :- meta_predicate not_further_inst(goal, ?).
 
@@ -547,79 +547,79 @@ not_further_inst(Goal, _) :- call(Goal).
    observable results which, however, do not affect subsequent execution,
    e.g., input/output), or hard (e.g., assert/retract).").
 
-:- true comp sideff(G,X) + (native, sideff(free), no_rtcheck).
-:- true prop sideff(G,X) : (callable(G), member(X,[free,soft,hard]))
+:- prop sideff(G,X) : (callable(G), member(X,[free,soft,hard]))
 # "@var{G} is side-effect @var{X}.".
+:- trust comp sideff(G,X) + (native, sideff(free), no_rtcheck).
 
 :- meta_predicate sideff(goal,?).
 
 sideff(Goal, _) :- call(Goal).
 
 % Built-in in CiaoPP
-:- true prop regtype(G) # "Defines a regular type.".
-:- true comp regtype(G) + sideff(free).
+:- prop regtype(G) # "Defines a regular type.".
+:- trust comp regtype(G) + sideff(free).
 :- meta_predicate regtype(goal).
 
 regtype(Goal) :- call(Goal).
 
 % Built-in in CiaoPP
-:- true prop native(Pred,Key)
+:- prop native(Pred,Key)
    # "This predicate is understood natively by CiaoPP as @var{Key}.".
 %%   # "Predicate @var{Pred} is understood natively by CiaoPP as @var{Key}.".
-:- true comp native(P,K) + sideff(free).
+:- trust comp native(P,K) + sideff(free).
 :- meta_predicate native(goal,?).
 
 native(Goal, _) :- call(Goal).
 
 % Built-in in CiaoPP
-:- true prop native(Pred)
+:- prop native(Pred)
    # "This predicate is understood natively by CiaoPP.".
 %%   # "Predicate @var{Pred} is understood natively by CiaoPP.".
-:- true comp native(P) + sideff(free).
+:- trust comp native(P) + sideff(free).
 :- meta_predicate native(goal).
 
 native(X) :- native(X, X).
 
-:- true prop eval(Goal) # "@var{Goal} is evaluable at compile-time.".
+:- prop eval(Goal) # "@var{Goal} is evaluable at compile-time.".
 
 :- meta_predicate eval(goal).
 eval(Goal) :- call(Goal).
 
-:- true prop equiv(Goal1,Goal2)
+:- prop equiv(Goal1,Goal2)
 	# "@var{Goal1} is equivalent to @var{Goal2}.".
 
 :- meta_predicate equiv(goal,goal).
 
 equiv(Goal, _) :- call(Goal).
 
-:- true prop bind_ins(Goal) # "@var{Goal} is binding insensitive.".
+:- prop bind_ins(Goal) # "@var{Goal} is binding insensitive.".
 
 :- meta_predicate bind_ins(goal).
 bind_ins(Goal) :- call(Goal).
 
-:- true prop error_free(Goal) # "@var{Goal} is error free.".
+:- prop error_free(Goal) # "@var{Goal} is error free.".
 
 :- meta_predicate error_free(goal).
 error_free(Goal) :- call(Goal).
 
-:- true prop memo(Goal) # "@var{Goal} should be memoized (not unfolded).".
+:- prop memo(Goal) # "@var{Goal} should be memoized (not unfolded).".
 
 :- meta_predicate memo(goal).
 memo(Goal) :- call(Goal).
 
-:- true prop filter(Vars,Goal) # "@var{Vars} should be filtered during
+:- prop filter(Vars,Goal) # "@var{Vars} should be filtered during
 	global control).".
 
 filter(Goal, _) :- call(Goal).
 
-:- true prop flag_values(X) + regtype # "Define the valid flag values".
+:- prop flag_values(X) + regtype # "Define the valid flag values".
 
 % TODO: seems wrong?
 flag_values(atom).
 flag_values(integer).
 flag_values(L):- list(L,atm).
 
-:- true prop pe_type(Goal) # "@var{Goal} will be filtered in partial
+:- prop pe_type(Goal) # "@var{Goal} will be filtered in partial
 	evaluation time according to the PE types defined in the
 	assertion.".
 

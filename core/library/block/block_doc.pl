@@ -50,7 +50,7 @@ merge_([H|X], [E|Y], [E|Z]) :- H @@>= E, merge([H|X], Y, Z).
 @end{verbatim}
 ").
 
-:- true decl block(BlockSpecs) : sequence_or_list(callable) #
+:- decl block(BlockSpecs) : sequence_or_list(callable) #
    "@var{BlockSpecs} specifies a disjunction of conditions.  Each
    condition is of the form @tt{predname(C1, ..., CN)} where each
    @var{CI} is either a @tt{-} if the call must suspend until the

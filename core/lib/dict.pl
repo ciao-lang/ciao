@@ -15,11 +15,11 @@
    dictionaries. Such dictionaries are currently implemented as
    ordered binary trees of key-value pairs.").
 
-:- true prop dictionary(D) + regtype # "@var{D} is a dictionary.".
+:- prop dictionary(D) + regtype # "@var{D} is a dictionary.".
 
 dictionary(X) :- term(X).  % A free variable is a valid dictionary.
 
-:- true prop non_empty_dictionary(D) + regtype # "@var{D} is a non-empty dictionary.".
+:- prop non_empty_dictionary(D) + regtype # "@var{D} is a non-empty dictionary.".
 
 non_empty_dictionary(dic(K,V,L,R)):-
 	term(K),
@@ -27,7 +27,7 @@ non_empty_dictionary(dic(K,V,L,R)):-
 	dictionary(L),
 	dictionary(R).
 
-:- true prop old_or_new(X) + regtype.
+:- prop old_or_new(X) + regtype.
 
 old_or_new(old).
 old_or_new(new).

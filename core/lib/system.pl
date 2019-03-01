@@ -138,7 +138,7 @@
  %%      milliseconds elapsed in the real world since the last call to
  %%      @pred{walltime/1}. The first call returns a meaningless number.").
  %% 
- %% :- true pred walltime(?int).
+ %% :- pred walltime(?int).
 
 :- doc(datime(Datime), "@var{Datime} is unified with a term of the
      form @tt{datime(Year,Month,Day,Hour,Minute,Second)} which contains
@@ -340,7 +340,7 @@ current_env_(I, Name, Value) :-
    from @var{Paths}. @var{Paths} is empty if @var{PathList} is the
    empty atom.").
 
-:- true pred extract_paths(+atm, ?list(atm)).
+:- trust pred extract_paths(+atm, ?list(atm)).
 :- impl_defined(extract_paths/2).
 
 % % (reference implementation which does not ignore empty paths)
@@ -621,7 +621,7 @@ chmod(Path, OldMode, NewMode) :-
         fmode(Path, OldMode),
         chmod(Path, NewMode).
 
-:- true pred set_exec_mode(+atm, +atm).
+:- pred set_exec_mode(+atm, +atm).
 
 :- doc(set_exec_mode(SourceName, ExecName), "Copies the
 	permissions of @var{SourceName} to @var{ExecName} adding
@@ -920,7 +920,7 @@ cyg2win_a(Path, WindifiedPath, Swap) :-
 	atom_codes(WindifiedPath, WindifiedCodes).
 
 % TODO: better name? equivalent to os.name=="nt" in python
-:- true pred using_windows # "Using the Windows native API (not
+:- trust pred using_windows # "Using the Windows native API (not
    POSIX)".
 
 :- impl_defined(using_windows/0).

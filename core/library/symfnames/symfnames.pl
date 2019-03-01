@@ -61,7 +61,7 @@ load_it(S):-
    environment variable. Predicate @pred{user:file_alias/2} is inspected
    before the environment variables.").
 
-:- true pred open(+term, +io_mode, ?stream).
+:- pred open(+term, +io_mode, ?stream).
 
 open(SymFileName,Mode,Stream):-
 	file_alias(SymFileName,FileName), !,

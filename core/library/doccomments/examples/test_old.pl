@@ -112,8 +112,8 @@
 %!  L2 is L1 without the ocurrences of E. E can be a nonground term so
 %   that all the elements in L1 it unifies with will be deleted.
 
-:- true comp delete_non_ground/3 + sideff(true).
-:- true comp delete_non_ground(L1,E,L2) : (ground(L1), ground(L2)) + eval.
+:- trust comp delete_non_ground/3 + sideff(true).
+:- trust comp delete_non_ground(L1,E,L2) : (ground(L1), ground(L2)) + eval.
 
 delete_non_ground([A], _, [A]) :-
 	var(A), !.

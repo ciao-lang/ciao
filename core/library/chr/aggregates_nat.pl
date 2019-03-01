@@ -60,7 +60,7 @@ no
 @end{verbatim}").
 
 
-:- true comp setof(X, Y, Z) + native(findall(X,Y,Z)).
+:- trust comp setof(X, Y, Z) + native(findall(X,Y,Z)).
 
 :- pred setof(@term, +callable, ?list) + iso.
 
@@ -83,7 +83,7 @@ setof(Template, Filter, Set) :-
    front of the @var{Generator}, using @pred{^/2}.").
 
 
-:- true comp bagof(X, Y, Z) + native(findall(X,Y,Z)).
+:- trust comp bagof(X, Y, Z) + native(findall(X,Y,Z)).
 
 :- pred bagof(@term, +callable, ?list) + iso.
 
@@ -123,7 +123,7 @@ bagof(Template, Generator, Bag) :-
      existentially quantified. Faster than the other aggregation
      predicates.").
 
-:- true pred findall(@term, +callable, ?list)
+:- trust pred findall(@term, +callable, ?list)
 	+ (iso, native, not_fails, is_det).
 
 :- meta_predicate findall(?,goal,?).
@@ -384,7 +384,7 @@ list_is_free_of([Head|Tail], Var) :-
    all other contexts, simply, execute the procedure call @var{P}.".
 
 :- meta_predicate('^'(?, goal)).
-:- true comp (_X^Y) + native(call(Y)).
+:- trust comp (_X^Y) + native(call(Y)).
 %% %%% Was as follows when in builtin.pl:
 %% (X^Y) :- undefined_goal((X^Y)).
 (_X^Y) :- call(Y).

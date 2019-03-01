@@ -33,7 +33,7 @@ open(F, M, S, _) :- open(F, M, S).
 
 close(S, _) :- close(S).
 
-:- true prop close_options(L) + regtype
+:- prop close_options(L) + regtype
 # "@var{L} is a list of @prop{close_option/1}.".
 
 close_options([]).
@@ -41,7 +41,7 @@ close_options([O|Os]):-
 	close_option(O),
 	close_options(Os).
 
-:- true prop close_option(O) + regtype 
+:- prop close_option(O) + regtype 
 # "@var{O} is an option for close/2: @includedef{close_option/1}.".
 
 :- doc(bug, "Incomplete list of options."). 
@@ -60,7 +60,7 @@ stream_property(S, P) :- % It is not complete
         ; P = output
         ).
 
-:- true prop stream_prop(P) + regtype
+:- prop stream_prop(P) + regtype
 # "@var{P} is a valid stream property: @includedef{stream_prop/1}".  
 
 :- doc(bug, "stream_prop/1 is not complete wrt iso standard.").

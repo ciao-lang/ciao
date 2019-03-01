@@ -230,7 +230,7 @@ instance(_). % processed in rtchecks_basic
 
 % --------------------------------------------------------------------------
 % Amadeo
-:- true prop indep(X, Y) + native(indep([[X, Y]]))
+:- trust prop indep(X, Y) + native(indep([[X, Y]]))
 # "@var{X} and @var{Y} do not have variables in common.".
 
 indep(A, B) :-
@@ -265,7 +265,7 @@ marked(Args, Mth) :-
 
 % --------------------------------------------------------------------------
 % Amadeo
-:- true prop indep(X) + native(indep(X))
+:- trust prop indep(X) + native(indep(X))
 # "The variables in the the pairs in @tt{@var{X}} are pairwise independent.".
 
 indep([]).
@@ -280,12 +280,12 @@ indep([[X, Y]|L]) :- indep(X, Y), indep(L).
 :- doc(covered(X, Y), "All variables occuring in @var{X} occur also
    in @var{Y}. Used by the non-strict independence-based annotators.").
 
-:- true prop covered(X, Y) + native # "@var{X} is covered by @var{Y}.".
+:- trust prop covered(X, Y) + native # "@var{X} is covered by @var{Y}.".
 
 :- impl_defined(covered/2).
 
 % --------------------------------------------------------------------------
-:- true prop linear(X) + native
+:- trust prop linear(X) + native
 # "@var{X} is instantiated to a linear term.".
 
 :- impl_defined(linear/1).
@@ -425,7 +425,7 @@ possibly_not_mut_exclusive(Goal) :- call(Goal).
    and checked natively by CiaoPP using the domains and techniques of
    @cite{non-failure-iclp97,nfplai-flops04}.").
 
-:- true prop not_fails(X) + native
+:- trust prop not_fails(X) + native
 # "All the calls of the form @var{X} do not fail.".
 
 :- meta_predicate not_fails(goal).
@@ -436,7 +436,7 @@ possibly_not_mut_exclusive(Goal) :- call(Goal).
 
 :- doc(fails(X), "Calls of the form @var{X} fail.").
 
-:- true prop fails(X) + native
+:- trust prop fails(X) + native
 # "Calls of the form @var{X} fail.".
 
 :- meta_predicate fails(goal).
@@ -919,7 +919,7 @@ sideff_hard(Goal) :- call(Goal).
    or @tt{[A = 3.4, B >= C]} are not. Used by polyhedra-based
    analyses.").
 
-:- true prop constraint(C) + native
+:- trust prop constraint(C) + native
 # "@var{C} is a list of linear equations.".
 
 % TODO: should we define this here? (term structure of a valid constraint/1)
@@ -984,7 +984,7 @@ coefficient(Coeff) :-
    for each variable, in the form @tt{V/[T1,..,TN]}. Note that tau is used
    in object-oriented programs only").
 
-:- true prop tau(TypeInfo) + native
+:- trust prop tau(TypeInfo) + native
 # "@var{Types} is a list of associations between variables and list of types".
 
 tau([]).

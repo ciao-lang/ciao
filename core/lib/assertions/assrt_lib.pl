@@ -57,7 +57,7 @@ library @lib{compiler/c_itf}.
                       compare(?atm,@@term,@@term) in term_compare
    with:
 @begin{verbatim}
-          :- true pred compare(?atm,@@term,@@term)
+          :- trust pred compare(?atm,@@term,@@term)
                     => member([(=),(>),(<)]) * term * term.
 @end{verbatim}
    ").

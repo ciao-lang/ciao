@@ -48,15 +48,15 @@ For example, here is a list of terms in standard order:
 
 :- prop (Term1 == Term2)
 	# "The terms @var{Term1} and @var{Term2} are strictly identical.".
-:- true comp (@Term1 == @Term2) + ( sideff(free), native ).
-:- true comp (Term1 == Term2) : (ground(Term1), ground(Term2)) + eval.
+:- trust comp (@Term1 == @Term2) + ( sideff(free), native ).
+:- trust comp (Term1 == Term2) : (ground(Term1), ground(Term2)) + eval.
 :- trust comp (Term1 == Term2) + (is_det, test_type(unification)).
 
 X==Y :- X==Y.
 
 :- trust pred (@Term1 \== @Term2) + ( sideff(free), native )
 	# "The terms @var{Term1} and @var{Term2} are not strictly identical.".
-:- true comp (Term1 \== Term2) : (ground(Term1), ground(Term2)) + eval.
+:- trust comp (Term1 \== Term2) : (ground(Term1), ground(Term2)) + eval.
 :- trust comp (Term1 \== Term2) + (is_det, test_type(unification)).
 
 X\==Y :- X\==Y.
@@ -64,7 +64,7 @@ X\==Y :- X\==Y.
 :- trust pred (@Term1 @< @Term2) + ( sideff(free), native )
 	# "The term @var{Term1} precedes the term @var{Term2} in the 
            standard order.".
-:- true comp (Term1 @< Term2) : (ground(Term1), ground(Term2)) + eval.
+:- trust comp (Term1 @< Term2) : (ground(Term1), ground(Term2)) + eval.
 
 X@<Y :- X@<Y.
 
@@ -72,7 +72,7 @@ X@<Y :- X@<Y.
 :- trust pred (@Term1 @=< @Term2) + ( sideff(free), native )
 	# "The term @var{Term1} precedes or is identical to the term
            @var{Term2} in the standard order.".
-:- true comp (Term1 @=< Term2) : (ground(Term1), ground(Term2)) + eval.
+:- trust comp (Term1 @=< Term2) : (ground(Term1), ground(Term2)) + eval.
 
 X@=<Y :- X@=<Y.
 
@@ -80,7 +80,7 @@ X@=<Y :- X@=<Y.
 :- trust pred (@Term1 @> @Term2) + ( sideff(free), native )
 	# "The term @var{Term1} follows the term @var{Term2} in the 
            standard order.".
-:- true comp (Term1 @> Term2) : (ground(Term1), ground(Term2)) + eval.
+:- trust comp (Term1 @> Term2) : (ground(Term1), ground(Term2)) + eval.
 
 X@>Y :- X@>Y.
 
@@ -88,7 +88,7 @@ X@>Y :- X@>Y.
 :- trust pred (@Term1 @>= @Term2) + ( sideff(free), native )
 	# "The term @var{Term1} follows or is identical to the term
            @var{Term2} in the standard order.".
-:- true comp (Term1 @>= Term2) : (ground(Term1), ground(Term2)) + eval.
+:- trust comp (Term1 @>= Term2) : (ground(Term1), ground(Term2)) + eval.
 
 X@>=Y :- X@>=Y.
 
@@ -102,7 +102,7 @@ X@>=Y :- X@>=Y.
 :- trust pred compare(?atm,@term,@term)
 	=> comparator * term * term + ( sideff(free), native ).
 
-:- true comp compare(_,Term1,Term2) : (ground(Term1), ground(Term2)) + eval.
+:- trust comp compare(_,Term1,Term2) : (ground(Term1), ground(Term2)) + eval.
 
 compare(X, Y, Z) :- compare(X, Y, Z).
 

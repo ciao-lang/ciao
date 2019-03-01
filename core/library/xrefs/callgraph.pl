@@ -23,7 +23,7 @@
 %-----------------------------------------------------------------------------
 % entry points
 
-:- true pred call_graph(File,Graph) : filename * var => ugraph(Graph)
+:- pred call_graph(File,Graph) : filename * var => ugraph(Graph)
 	# "@var{Graph} is the call-graph of the code in @var{File}.".
 
 call_graph(File,Graph):-
@@ -32,7 +32,7 @@ call_graph(File,Graph):-
 	clause_calls(Cls,F,Edges),
 	vertices_edges_to_ugraph([],Edges,Graph).
 
-:- true pred reachability(Graph,Sources,Reached,UnReached)
+:- pred reachability(Graph,Sources,Reached,UnReached)
 	: ugraph * list * var * var
         # "@var{Reached} are the vertices in @var{Graph} reachable from
            @var{Sources}, @var{UnReached} are the rest.".

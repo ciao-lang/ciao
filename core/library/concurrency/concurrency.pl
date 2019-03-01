@@ -51,37 +51,37 @@
    this case, just hangs. A better solution is planned for the future.").
 
 
-:- true pred '$eng_call'(+int,+int,+int,-int,-int,+int)
+:- trust pred '$eng_call'(+int,+int,+int,-int,-int,+int)
    + foreign_low(prolog_eng_call).
-:- true pred '$eng_backtrack'(+int,+int)
+:- trust pred '$eng_backtrack'(+int,+int)
    + foreign_low(prolog_eng_backtrack).
-:- true pred '$eng_cut'(+int)
+:- trust pred '$eng_cut'(+int)
    + foreign_low(prolog_eng_cut).
-:- true pred '$eng_release'(+int)
+:- trust pred '$eng_release'(+int)
    + foreign_low(prolog_eng_release).
-:- true pred '$eng_wait'(+int)
+:- trust pred '$eng_wait'(+int)
    + foreign_low(prolog_eng_wait).
-:- true pred '$eng_kill'(+int)
+:- trust pred '$eng_kill'(+int)
    + foreign_low(prolog_eng_kill).
-:- true pred '$eng_killothers'
+:- trust pred '$eng_killothers'
    + foreign_low(prolog_eng_killothers).
-:- true pred '$eng_self'(-int,-int)
+:- trust pred '$eng_self'(-int,-int)
    + foreign_low(prolog_eng_self).
-:- true pred '$eng_status'
+:- trust pred '$eng_status'
    + foreign_low(prolog_eng_status).
-:- true pred lock_atom(+int)
+:- trust pred lock_atom(+int)
    + foreign_low(prolog_lock_atom).
-:- true pred unlock_atom(+int)
+:- trust pred unlock_atom(+int)
    + foreign_low(prolog_unlock_atom).
-:- true pred atom_lock_state(+int,+int)
+:- trust pred atom_lock_state(+int,+int)
    + foreign_low(prolog_lock_atom_state).
-:- true pred '$concurrency_init' + foreign_low(prolog_concurrency_init).
+:- trust pred '$concurrency_init' + foreign_low(prolog_concurrency_init).
 
 :- meta_predicate(eng_call(goal, ?, ?, ?)).
 :- meta_predicate(eng_call(goal, ?, ?)).
 :- meta_predicate concurrent(addmodule).
 
-:- true pred eng_call(+Goal, +EngineCreation, +ThreadCreation, -GoalId) :
+:- pred eng_call(+Goal, +EngineCreation, +ThreadCreation, -GoalId) :
    callable * atm * atm * int
      # "Calls @var{Goal} in a new engine (stack set), possibly using a new
         thread, and returns a @var{GoalId} to designate this new goal

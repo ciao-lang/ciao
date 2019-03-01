@@ -63,12 +63,12 @@ env(a,[href=\"www.therainforestsite.com\"],
 <a href=\"www.therainforestsite.com\">Visit <img src=\"TRFS.gif\"></a>
    @end{verbatim}").
 
-:- true prop canonic_html_term(HTMLTerm) + regtype
+:- prop canonic_html_term(HTMLTerm) + regtype
         # "@var{HTMLTerm} is a term representing HTML code in canonical form.".
 
 canonic_html_term(T) :- list(T,canonic_html_item).
 
-:- true prop canonic_html_item/1 + regtype.
+:- prop canonic_html_item/1 + regtype.
 
 canonic_html_item(comment(S)) :- string(S).
 canonic_html_item(declare(S)) :- string(S).
@@ -105,12 +105,12 @@ elem(arc,[weigh=""3"",begin=""n1"",end=""n2""])
 
    @end{description}").
 
-:- true prop canonic_xml_term(XMLTerm) + regtype
+:- prop canonic_xml_term(XMLTerm) + regtype
         # "@var{XMLTerm} is a term representing XML code in canonical form.".
 
 canonic_xml_term(T) :- list(T,canonic_xml_item).
 
-:- true prop canonic_xml_item/1 + regtype.
+:- prop canonic_xml_item/1 + regtype.
 
 canonic_xml_item(Term) :- canonic_html_item(Term).
 canonic_xml_item(xmldecl(Atts)) :-
@@ -123,7 +123,7 @@ canonic_xml_item(elem(Tag,Atts)) :-
         atm(Tag),
         list(Atts,tag_attrib).
 
-:- true prop tag_attrib/1 + regtype.
+:- prop tag_attrib/1 + regtype.
 
 tag_attrib(Att) :- atm(Att).
 tag_attrib((Att = Val)) :- atm(Att), string(Val).
@@ -276,7 +276,7 @@ tag_attrib((Att = Val)) :- atm(Att), string(Val).
   ").
 
 
-:- true prop html_term(HTMLTerm) + regtype
+:- prop html_term(HTMLTerm) + regtype
         # "@var{HTMLTerm} is a term representing HTML code.".
 
 html_term(_).
@@ -287,7 +287,7 @@ html_term(_).
 % a term and then use html2terms/2 to translate the term into a string for
 % writing and to translate a string to a term for reading
 
-:- true pred html_expansion(Term,Expansion)
+:- pred html_expansion(Term,Expansion)
         # "Hook predicate to define macros.  Expand occurrences of
           @var{Term} into @var{Expansion}, in @pred{output_html/1}.
           Take care to not transform something into itself!".
@@ -300,7 +300,7 @@ html_expansion(it(X),i(X)).
 :- doc(output_html(HTMLTerm), "Outputs @var{HTMLTerm}, interpreted
    as an @pred{html_term/1}, to current output stream.").
 
-:- true pred output_html(+html_term).
+:- pred output_html(+html_term).
 
 % Translate html format and send to current output
 output_html(F) :-
@@ -313,9 +313,9 @@ output_html(F) :-
    containing HTML code and @var{Terms} is its prolog structured
    representation.").
 
-:- true pred html2terms(-string,+html_term)
+:- pred html2terms(-string,+html_term)
         # "Translates an HTML-term into the HTML code it represents.".
-:- true pred html2terms(+string,?canonic_html_term)
+:- pred html2terms(+string,?canonic_html_term)
         # "Translates HTML code into a structured HTML-term.".
 
 % TODO: rename by html_term_string/2 and switch arg order?
@@ -331,9 +331,9 @@ html2terms(Chars, Terms) :-
    containing XML code and @var{Terms} is its prolog structured
    representation.").
 
-:- true pred xml2terms(-string,+html_term)
+:- pred xml2terms(-string,+html_term)
         # "Translates a XML-term into the XML code it represents.".
-:- true pred xml2terms(+string,?canonic_xml_term)
+:- pred xml2terms(+string,?canonic_xml_term)
         # "Translates XML code into a structured XML-term.".
 
 xml2terms(Chars, Terms) :-
@@ -699,7 +699,7 @@ yes
 @end{verbatim}
 ").
 
-:- true pred html_template(+string,?canonic_html_term,?list).
+:- pred html_template(+string,?canonic_html_term,?list).
 
 html_template(Chars, Terms, Dict) :-
         parse_html([], Terms, Dict, Chars, []).

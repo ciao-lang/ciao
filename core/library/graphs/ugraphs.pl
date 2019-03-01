@@ -54,7 +54,7 @@
 
 ugraph(_).
 
-:- true pred point_to(+Vertex, +Graph, -Point_to) 
+:- pred point_to(+Vertex, +Graph, -Point_to) 
 
 # "Is true if @var{Point_to} is the list of nodes which go directly
    to @var{Vertex} in @var{Graph}.".
@@ -70,7 +70,7 @@ point_to_([Node-Neibs|Graph], Vertex, PointedTo):-
 point_to_([_|Graph], Vertex, PointedTo):-
         point_to_(Graph, Vertex, PointedTo).
 
-:- true pred transpose(+Graph, -Transpose) 
+:- pred transpose(+Graph, -Transpose) 
 
 # "Is true if @var{Transpose} is the graph computed by replacing each
    edge @tt{(u,v)} in @var{Graph} by its symmetric edge @tt{(v,u)}.
@@ -113,7 +113,7 @@ group_edges_([V0-X|Edges], V, [X|Neibs], RestEdges) :- V0==V, !,
 group_edges_(Edges, _, [], Edges).
 
 
-:- true pred neighbors(+Vertex, +Graph, -Neighbors)
+:- pred neighbors(+Vertex, +Graph, -Neighbors)
 
 # "Is true if @var{Vertex} is a vertex in @var{Graph} and
   @var{Neighbors} are its neighbors.".
@@ -122,7 +122,7 @@ neighbors(V, [V0-Neighbors|_], Neighbors) :- V0==V, !.
 neighbors(V, [_|Graph], Neighbors) :- neighbors(V, Graph, Neighbors).
 
 
-:- true pred add_vertices(+Graph1, +Vertices, -Graph2)
+:- pred add_vertices(+Graph1, +Vertices, -Graph2)
 
 #  "Is true if @var{Graph2} is @var{Graph1} with @var{Vertices} added to it.".
 
@@ -133,7 +133,7 @@ add_vertices(Graph0, Vs0, Graph) :-
 
 
 
-:- true pred del_vertices(+Graph1, +Vertices, -Graph2)
+:- pred del_vertices(+Graph1, +Vertices, -Graph2)
 
 # "Is true if @var{Graph2} is @var{Graph1} with @var{Vertices} and all
    edges to and from @var{Vertices} removed from it.".
@@ -144,7 +144,7 @@ del_vertices(Graph0, Vs0, Graph) :-
 
 
 
-:- true pred add_edges(+Graph1, +Edges, -Graph2) 
+:- pred add_edges(+Graph1, +Edges, -Graph2) 
 
 # "Is true if @var{Graph2} is @var{Graph1} with @var{Edges} and their
   'to' and 'from' vertices added to it.".
@@ -157,7 +157,7 @@ add_edges(Graph0, Edges0, Graph) :-
 	graph_union(Graph0, Graph1, Graph).
 
 
-:- true pred del_edges(+Graph1, +Edges, -Graph2)
+:- pred del_edges(+Graph1, +Edges, -Graph2)
 
 # "Is true if @var{Graph2} is @var{Graph1} with @var{Edges} removed from it.".
 
@@ -226,7 +226,7 @@ graph_del_vertices([V1-N1|G1], Set, [V1-N|G]) :-
 :- pop_prolog_flag(multi_arity_warnings).
 
 
-:- true pred rooted_subgraph(Graph, Sources, SubGraph)
+:- pred rooted_subgraph(Graph, Sources, SubGraph)
 	: ugraph * list * var => ugraph(SubGraph)
         # "@var{SubGraph} is the subgraph of @var{Graph} which is reachable 
            from @var{Sources}.".
@@ -258,7 +258,7 @@ lookup_(=, Head, Value, Tail, _, Value, [Head-Value|Tail]).
 lookup_(>, Head, Val, Tail, Element, Value, [Element-Value,Head-Val|Tail]).
 
 
-:- true pred edges(+Graph, -Edges) 
+:- pred edges(+Graph, -Edges) 
 
 # "Unifies @var{Edges} with the edges in @var{Graph}.".
 
@@ -271,7 +271,7 @@ edges_([], _, Edges, Edges).
 edges_([Neib|Neibs], Vertex, [Vertex-Neib|Edges], MoreEdges) :-
 	edges_(Neibs, Vertex, Edges, MoreEdges).
 
-:- true pred vertices(+Graph, -Vertices) 
+:- pred vertices(+Graph, -Vertices) 
 
 # "Unifies @var{Vertices} with the vertices in @var{Graph}.".
 

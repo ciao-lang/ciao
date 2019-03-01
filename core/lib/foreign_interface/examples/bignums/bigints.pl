@@ -5,15 +5,15 @@
 	],
 	[foreign_interface]).
 
-:- true pred make_smart_conversion_c(in(X), go(Y), go(How)):: 
-        any_term * any_term * any_term + foreign # 
+:- trust pred make_smart_conversion_c(in(X), go(Y), go(How))
+	:: any_term * any_term * any_term + foreign # 
 "Given a number @var{X}, it is unified with @var{Y} by using the most
 specific internal representation (short integer, float, or long
 integer).  @var{How} returns how the conversion was done.
 It behaves unpredictably if @var{X} is not a number.".
 
-:- true pred force_string_conversion_c(in(X), go(Y)):: 
-        any_term * any_term + foreign #
+:- trust pred force_string_conversion_c(in(X), go(Y))
+	:: any_term * any_term + foreign #
 "Given a number @var{X}, it is unified with @var{Y} by using the most
 general internal representation (a string of characters). It behaves
 unpredictably if @var{X} is not a number.".

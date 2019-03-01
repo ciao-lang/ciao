@@ -77,7 +77,7 @@ must_fail(aaa) :-
 	nl,
 	fail.
 
-:- true comp must_not_fail/0 + not_fails.
+:- trust comp must_not_fail/0 + not_fails.
 
 must_not_fail :-
 	display('not fail\n').

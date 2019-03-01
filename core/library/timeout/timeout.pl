@@ -86,21 +86,21 @@ init_alarm(Time, Id):-
 	; global_vars:setval(last, Id)
 	).
 
-:- true pred init_alarm_c(in(Time), in(Lats), go(Id)) :: c_int *  address * address 
+:- trust pred init_alarm_c(in(Time), in(Lats), go(Id)) :: c_int *  address * address 
 	+ (returns(Id), foreign(init_alarm)). 
 
 start_alarm(Id):-
 %	garbage, 
 	start_alarm_c(Id, 1).
 
-:- true pred start_alarm_c(in(Id), go(Status)) :: address * c_int
+:- trust pred start_alarm_c(in(Id), go(Status)) :: address * c_int
 	+ (returns(Status), foreign(start_alarm)).
 
 stop_alarm(Id):-
 %	garbage, 
 	stop_alarm_c(Id).
 
-:- true pred stop_alarm_c(in(Id)) :: address
+:- trust pred stop_alarm_c(in(Id)) :: address
 	+ (foreign(stop_alarm)).
 
 alarm_stat(Id, State, Send, IsOldest):-
@@ -121,7 +121,7 @@ alarm_stat(Id, State, Send, IsOldest):-
 	; IsOldest = true
 	).
 
-:- true pred alarm_stat_c(in(ID), go(State)) :: address * c_int
+:- trust pred alarm_stat_c(in(ID), go(State)) :: address * c_int
 	+ (returns(State),  foreign(alarm_stat)). 
 
 % garbage:- 
@@ -133,7 +133,7 @@ alarm_stat(Id, State, Send, IsOldest):-
 % 	    garbage_c(Id)
 % 	).
 % 
-% :- true pred garbage_c(in(Last)) :: address 
+% :- trust pred garbage_c(in(Last)) :: address 
 % 	+ (foreign(force_garbage)).
 
 :- use_foreign_source('alarm.c').

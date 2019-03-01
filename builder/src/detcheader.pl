@@ -13,7 +13,7 @@
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(port_reify), [once_port_reify/2]).
 
-:- true pred detect_c_headers(+list(filename)) # "Succeeds if all the
+:- pred detect_c_headers(+list(filename)) # "Succeeds if all the
 	c header files in the argument are valid.".
 
 detect_c_headers(Headers) :-

@@ -59,7 +59,7 @@ socket_type(seqpacket).
 socket_type(rdm).
 
 
-:- true pred initial + foreign_low(sockets_c_init) # "Initialization of values.".
+:- trust pred initial + foreign_low(sockets_c_init) # "Initialization of values.".
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PLEASE READ IT CAREFULLY:
@@ -74,10 +74,10 @@ socket_type(rdm).
 % of fixing this. I also decided not to include this predicate in
 % documentation for obvious reasons.  By Jorge Navas, April 1st.
 :- doc(hide,initial_from_ciaopp/0).
-:- true pred initial_from_ciaopp + foreign_low(init_from_ciaopp). 
+:- trust pred initial_from_ciaopp + foreign_low(init_from_ciaopp). 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-:- true pred connect_to_socket_type(+Hostname, +Port, +Type, -Stream) ::
+:- trust pred connect_to_socket_type(+Hostname, +Port, +Type, -Stream) ::
         atom * int * socket_type * stream
         + foreign_low(prolog_connect_to_socket_type)
  # "Returns a @var{Stream} which connects to @var{Hostname}.  The
@@ -98,7 +98,7 @@ connect_to_socket(Hostname, Port, Stream):-
         connect_to_socket_type(Hostname, Port, stream, Stream).
 
 
-:- true pred bind_socket(?Port, +Length, -Socket) ::
+:- trust pred bind_socket(?Port, +Length, -Socket) ::
         int * int * int
         + foreign_low(prolog_bind_socket)
  # "Returns an AF_INET @var{Socket} bound to @var{Port} (which may be 
@@ -107,13 +107,13 @@ connect_to_socket(Hostname, Port, Stream):-
     @var{Length} specifies the maximum number of pending connections.".
 
 
-:- true pred socket_accept(+Sock, -Stream) ::
+:- trust pred socket_accept(+Sock, -Stream) ::
         int * stream
         + foreign_low(prolog_socket_accept)
  # "Creates a new @var{Stream} connected to @var{Sock}.".
 
 
-:- true pred select_socket(+Socket, -NewStream, +TO_ms, +Streams, -ReadStreams)
+:- trust pred select_socket(+Socket, -NewStream, +TO_ms, +Streams, -ReadStreams)
         :: int * stream * int * list(stream) * list(stream)
         + foreign_low(prolog_select_socket)
 # "Wait for data available in a list of @var{Streams} and in a
@@ -130,7 +130,7 @@ connect_to_socket(Hostname, Port, Stream):-
    @var{NewStream}.".
 
 
-:- true pred socket_send(+Stream, +String) ::
+:- trust pred socket_send(+Stream, +String) ::
         stream * string 
         + foreign_low(prolog_socket_send)
  # "Sends @var{String} to the socket associated to @var{Stream}. The socket 
@@ -140,7 +140,7 @@ connect_to_socket(Hostname, Port, Stream):-
     Prolog.".
 
 
-:- true pred socket_recv_code(+Stream, ?String, ?Length) ::
+:- trust pred socket_recv_code(+Stream, ?String, ?Length) ::
         stream * string * int 
         + foreign_low(prolog_socket_receive)
  # "Receives a @var{String} from the socket associated to
@@ -156,7 +156,7 @@ connect_to_socket(Hostname, Port, Stream):-
 socket_recv(Stream, String):- socket_recv_code(Stream, String, _).
 
 
-:- true pred socket_shutdown(+Stream, +How) :: stream * shutdown_type
+:- trust pred socket_shutdown(+Stream, +How) :: stream * shutdown_type
         + foreign_low(prolog_socket_shutdown)
 # "Shut down a duplex communication socket with which @var{Stream} is
    associated.  All or part of the communication can be shutdown, depending on
@@ -170,13 +170,13 @@ shutdown_type(read).
 shutdown_type(write).
 shutdown_type(read_write).
 
-:- true pred hostname_address(+Hostname, ?Address) :: atm * atm
+:- trust pred hostname_address(+Hostname, ?Address) :: atm * atm
         + foreign_low(prolog_hostname_address)
 # "@var{Address} is unified with the atom representing the address (in AF_INET
    format) corresponding to @var{Hostname}.".
 
 
-:- true pred socket_getpeername(+Stream, ?Address) :: stream * atm
+:- trust pred socket_getpeername(+Stream, ?Address) :: stream * atm
         + foreign_low(prolog_socket_getpeername)
 # "@var{Address} is unified with the atom representing the address (in
   AF_INET or AF_INET6 format) of the peer connected to the socket

@@ -19,7 +19,7 @@
 
 :- doc(doinclude,data/1).
 
-:- true decl data(Predicates) : sequence_or_list(predname)
+:- decl data(Predicates) : sequence_or_list(predname)
         # "Defines each predicate in @var{Predicates} as a @concept{data
           predicate}.  If a predicate is defined data in a file, it must
           be defined data in every file containing clauses for that
@@ -29,7 +29,7 @@
 
 :- doc(doinclude,concurrent/1).
 
-:- true decl concurrent(Predicates) : sequence_or_list(predname)
+:- decl concurrent(Predicates) : sequence_or_list(predname)
         # "Defines each predicate in @var{Predicates} as a
           @concept{concurrent predicate}.  If a predicate is defined
           concurrent in a file, it must be defined concurrent in every
@@ -262,14 +262,14 @@ erase(Ref) :-
 
 % :- doc(doinclude, fact/1).
 % 
-% :- true prop fact(F) + regtype
+% :- prop fact(F) + regtype
 %    # "@var{F} is a fact (an atom or a structure).".
 % 
 % fact(F) :- callable(F).
 
 :- doc(doinclude, reference/1).
 :- export(reference/1).
-:- true prop reference(R) + regtype # "@var{R} is a reference of a
+:- prop reference(R) + regtype # "@var{R} is a reference of a
 dynamic or data clause.".
 
 reference('$ref'(_,_)).

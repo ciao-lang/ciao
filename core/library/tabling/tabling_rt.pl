@@ -86,7 +86,7 @@
 	'tabling_rt:reinstall_store'(Vars, DomOrig, Orig).
 
 
-:- true pred abolish_all_tables + foreign_low(abolish_all_tables_c) #
+:- trust pred abolish_all_tables + foreign_low(abolish_all_tables_c) #
 "Removes all tables currently in the system and frees all the memory
 held by Ciao for these structures. Predicates that have been declared
 as tabled remain so, but any information in their tables is
@@ -96,12 +96,12 @@ abolishing a large volume of tables.".
 
 
 %% tabled_call/1 and new_answer/0 standard predicate (without attributes)
-:- true pred tabled_call(+Call) :: callable +
+:- trust pred tabled_call(+Call) :: callable +
 	foreign_low(tabled_call_c) # "@pred{tabled_call/1} instruments calls
 to the tabled predicate @var{Call}. It checks if the call is a
 generator or a consumer using a trie structure.".
 
-:- true pred new_answer + foreign_low(new_answer_c) #
+:- trust pred new_answer + foreign_low(new_answer_c) #
 "@pred{new\_answer/0} adds an answer to the current generator and
  then fails.".
 
@@ -116,37 +116,37 @@ tabled_call_attr(PredInit) :-
 	consume_attr_answer(AnsSpace, AttrVars).
 
 
-:- true pred lookup_trie(+Call, -SF, -Root) :: callable * int * int +
+:- trust pred lookup_trie(+Call, -SF, -Root) :: callable * int * int +
 	foreign_low(lookup_trie_c) # "@pred{look_up_trie/3} instruments calls
 to the tabled predicate @var{Call}. It checks if the call is a
 generator or a consumer using a trie structure. @var{SF} is unified
 with the substitution factor of @var{Call} and @var{Root} is unified
 with the trie node of @var{Call}.".
 
-:- true pred execute_call(+Call, +SF, +Node, -LNodePrune) :: callable *
+:- trust pred execute_call(+Call, +SF, +Node, -LNodePrune) :: callable *
 	int * int * list + foreign_low(execute_call_c) #
 "@pred{execute_call/4} executes a tabled call and prunes
 @var{LNodePrune} generators.  @var{SF} is the substitution factor of
 @var{Call} and @var{Root} is the trie node of @var{Call}.".
 
-:- true pred consume_answer(+SF, +Node, -Space, -AttrVars) :: int * int *
+:- trust pred consume_answer(+SF, +Node, -Space, -AttrVars) :: int * int *
 	int * int + foreign_low(consume_answer_c) # "@pred{consume\_answer/4}
 consumes answers from the table. @var{SF} is the substitution factor
 of the tabled call, @var{Node} is the tabled call frame. @var{Space}
 is a pointer to the answer constraint store and @var{AttrVars} are the
 attributed variables of the tabled goal.".
 
-:- true pred new_answer_attr + foreign_low(new_answer_attr_c) # 
+:- trust pred new_answer_attr + foreign_low(new_answer_attr_c) # 
 "@pred{new\_answer\_attr/0} looks for a 
 previous answer which is identical up to variable renaming. ".
 
-% :- true pred lookup_answer(-Root, -Attrs) :: int * int +
+% :- trust pred lookup_answer(-Root, -Attrs) :: int * int +
 % 	foreign_low(lookup_answer_c) # "@pred{lookup\_answer/2} looks for a 
 % previous answer which is identical up to variable renaming. @var{Root}
 % is unified with the trie node corresponding with this answer and
 % @var{Attrs} is unified with its attributed variables.".
 
-% :- true pred new_attr_answer(+Ans, +Space, +LPruneAns) :: int * int *
+% :- trust pred new_attr_answer(+Ans, +Space, +LPruneAns) :: int * int *
 % 	list + foreign_low(new_attr_answer_c) # "@pred{new\_attr\_answer/3}
 % adds the answer @var{Ans} and its constraint store @var{Space} to the
 % current generator and then fails. It also prunes the consumption of
@@ -157,52 +157,52 @@ previous answer which is identical up to variable renaming. ".
 :- doc(initial_tabling/0, "Initializes the tabling module at the
 beginning.").
 
-:- true pred initial_tabling + foreign_low(initial_tabling_c).
+:- trust pred initial_tabling + foreign_low(initial_tabling_c).
 
-:- true pred '$gen_tree_backtracking' +
+:- trust pred '$gen_tree_backtracking' +
 	foreign_low(gen_tree_backtracking_c) #
 "@pred{'$gen\_tree\_backtracking'/0} is executed before
 	backtracking over a generator tree.".
 
-:- true pred '$pop_ptcp' + foreign_low(pop_ptcp_c) #
+:- trust pred '$pop_ptcp' + foreign_low(pop_ptcp_c) #
 	"@pred{'$pop\_ptcp'/0} pops an element from ptcp stack.".
 
-:- true pred '$push_ptcp'(+PTCP) :: int + foreign_low(push_ptcp_c) #
+:- trust pred '$push_ptcp'(+PTCP) :: int + foreign_low(push_ptcp_c) #
 	"@pred{'$push_ptcp'/1} push a generator pointer on the ptcp stack.".
 
 
 
 
-:- true pred lookup_attr_call(+Root, +SF, -Node, -CallSpace, -LNodePrune) ::
+:- trust pred lookup_attr_call(+Root, +SF, -Node, -CallSpace, -LNodePrune) ::
 	int * int * int * int *int + foreign_low(lookup_attr_call_c)
 # "Looks up a constrain tabled call.".
 
-% :- true pred lookup_attr_answer(+Root, +Attrs, -Space, -LPruneAns) ::
+% :- trust pred lookup_attr_answer(+Root, +Attrs, -Space, -LPruneAns) ::
 % 	int * int * int * int + foreign_low(lookup_attr_answer_c)
 % # "Looks up a constrain answer.".
 
-:- true pred reinstall_gen_space(+SF, +CallSpace) ::
+:- trust pred reinstall_gen_space(+SF, +CallSpace) ::
 	int * int + foreign_low(reinstall_gen_space_c)
 # "Looks up a constrain tabled call.".
 
-:- true pred consume_attr_answer(+AnsSpace, +AttrsVars) ::
+:- trust pred consume_attr_answer(+AnsSpace, +AttrsVars) ::
 	int * int + foreign_low(consume_attr_answer_c)
 # "Looks up a constrain tabled call.".
 
 
 
-:- true pred set_tabling_flag(-Flag,-Mode) :: 
+:- trust pred set_tabling_flag(-Flag,-Mode) :: 
 	atm * atm + foreign_low(set_tabling_flag_c).
-:- true pred current_tabling_flag(-Flag,+Mode) :: 
+:- trust pred current_tabling_flag(-Flag,+Mode) :: 
 	atm * atm + foreign_low(current_tabling_flag_c).
 
 %% control statistics tabling
-:- true pred tabling_stats + foreign_low(tabling_stats_c).
+:- trust pred tabling_stats + foreign_low(tabling_stats_c).
 
 %% control the answer strategy benchmark counters
 %% :- extra_compiler_opts(['-DANS_COUNTER']).
-%%:- true pred print_counters + foreign_low(print_counters_c).
- print_counters.
+%%:- trust pred print_counters + foreign_low(print_counters_c).
+print_counters.
 
 % :- use_module(library(messages)).
 % suspend_gc :-

@@ -20,7 +20,7 @@ ttytab(X) :- tab(user, X).
 
 ttyskip(X) :- skip_code(user, X).
 
-:- true comp ttyflush + (native, deprecated).
+:- trust comp ttyflush + (native, deprecated).
 
 ttyflush :- flush_output(user).
 
@@ -31,23 +31,23 @@ ttyget(N) :- get_code(user, N).
 
 ttyget1(N) :- get1_code(user, N).
 
-:- true comp ttynl + (native, deprecated).
+:- trust comp ttynl + (native, deprecated).
 
 ttynl :- nl(user).
 
-:- true comp ttyskipeol + deprecated.
+:- trust comp ttyskipeol + deprecated.
 
 ttyskipeol :- skip_code(user, 0'\n).
 
-:- true comp ttydisplay(_) + deprecated.
+:- trust comp ttydisplay(_) + deprecated.
 
 ttydisplay(X) :- display(user, X).
 
-:- true comp ttydisplayq(_) + deprecated.
+:- trust comp ttydisplayq(_) + deprecated.
 
 ttydisplayq(X) :- displayq(user, X).
 
-:- true comp ttydisplay_string(_) + deprecated.
+:- trust comp ttydisplay_string(_) + deprecated.
 
 ttydisplay_string([]).
 ttydisplay_string([X|Xs]) :-

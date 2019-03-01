@@ -46,12 +46,12 @@ weekday := monday    /*< lunae dies. */
 %  blocks. The compiler can optionally read them if necessary (they
 %  are not merely documentation):
 
-:- true comp len(A,B) + native.
-:- true pred len(L,N) : list * var => list * int
+:- trust comp len(A,B) + native.
+:- pred len(L,N) : list * var => list * int
    # "Computes the length of @var{L}".
-:- true pred len(L,N) : var * int => list * int
+:- pred len(L,N) : var * int => list * int
    # "Outputs @var{L} of length @var{N}".
-:- true pred len(L,N) : list * int => list * int
+:- pred len(L,N) : list * int => list * int
    # "Checks that @var{L} is of length @var{N}".
 
 len(L, N) :- var(N), !, llen(L, 0, N).
@@ -63,13 +63,13 @@ dlen(_,_,_). % incomplete
 % TODO: We need more compact ways of writing assertions (not only
 %   syntactic sugar, we need semantics for that). E.g.
 %
-%       :- true pred length(L,N):
+%       :- trust pred length(L,N):
 %          ( list * var => list * int  %< Computes the length of `L`
 %          | var  * int => list * int  %< Outputs `L` of length `N`
 %          | list * int => list * int  %< Checks that `L` is of length `N`
 %          ).
 %
-%       :- true pred length(L,N) =>
+%       :- trust pred length(L,N) =>
 %          ( list * int  %< Computes the length of `L`
 %          | list * int  %< Outputs `L` of length `N`
 %          | list * int  %< Checks that `L` is of length `N`

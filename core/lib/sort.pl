@@ -24,8 +24,8 @@
 
 :- test sort(A,B) : (A = [1,2,6,5,2,1]) => (B == [1,2,5,6]).
 
-:- true comp sort(A,B) : list(A) + eval.
-:- true comp sort(A,B) + sideff(free).
+:- trust comp sort(A,B) : list(A) + eval.
+:- trust comp sort(A,B) + sideff(free).
 
 sort(List, Sorted) :-
 	sort(List, -1, S, []), !,

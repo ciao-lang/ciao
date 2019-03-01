@@ -14,7 +14,7 @@
 :- use_module(engine(stream_basic)).
 :- use_module(library(port_reify), [once_port_reify/2, port_call/1]).
 
-:- true pred input_wait__c(+int, +int) + (foreign_low). 
+:- trust pred input_wait__c(+int, +int) + (foreign_low). 
 
 :- pred input_wait(+InputStream, +TimeOut) : stream * int # "Waits at
    most @var{TimeOut} microseconds for the stream @var{InputStream} to
@@ -58,4 +58,4 @@ input_set_unbuf(Stream):-
 :- pred input_set_unbuf # "Like @pred{input_wait/1}, but set the
    @concept{current input} to be unbuffered.".
 
-:- true pred input_set_unbuf + (foreign_low(input_set_unbuf__c)). 
+:- trust pred input_set_unbuf + (foreign_low(input_set_unbuf__c)). 

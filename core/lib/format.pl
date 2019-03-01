@@ -375,7 +375,7 @@ format_control(C) :- atm(C).
    # "Print @var{Arguments} onto current output stream according to format
       @var{Format}.".
 
-:- true comp format(C,A) + native(format(C,A)).
+:- trust comp format(C,A) + native(format(C,A)).
 
 format(Control, _) :-
         var(Control), !,
@@ -389,7 +389,7 @@ format(Control, Arguments) :-
    # "Print @var{Arguments} onto @var{Stream} according to format
       @var{Format}.".
 
-:- true comp format(S,C,A) + native(format(S,C,A)).
+:- trust comp format(S,C,A) + native(format(S,C,A)).
 
 format(_, Control, _) :-
         var(Control), !,
@@ -588,9 +588,9 @@ putn_list(N, [C|Chars]) :-
 
 % ===========================================================================
 
-% :- true comp format_to_string(S,C,A) + native(format_to_string(S,C,A)).
+% :- trust comp format_to_string(S,C,A) + native(format_to_string(S,C,A)).
 
-% :- true comp sformat(S,C,A) + native(sformat(S,C,A)).
+% :- trust comp sformat(S,C,A) + native(sformat(S,C,A)).
 
 :- pred format_to_string(Format, Arguments, String) 
    : (format_control(Format), list(Arguments)) => string(String)

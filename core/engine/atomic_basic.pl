@@ -31,7 +31,7 @@
 :- trust pred name(-constant,+string) + eval
    # "If @var{String} can be interpreted as a number, @var{Const} is unified
       with that number, otherwise with the atom whose name is @var{String}.".
-:- true comp name/2 + ( sideff(free), native ).
+:- trust comp name/2 + ( sideff(free), native ).
 :- impl_defined(name/2).
 
 
@@ -42,7 +42,7 @@
 
 :- trust pred atom_codes(+atm,?string) + eval.
 :- trust pred atom_codes(?atm,+string) + eval.
-:- true comp atom_codes/2 + ( sideff(free), native, iso, is_det ).
+:- trust comp atom_codes/2 + ( sideff(free), native, iso, is_det ).
 :- impl_defined(atom_codes/2).
 
 :- prop valid_base/1 + regtype # "Valid numeric base to convert
@@ -63,9 +63,9 @@ valid_base(32). valid_base(33). valid_base(34). valid_base(35). valid_base(36).
 
 :- trust pred number_codes(+num,?string) + eval.
 :- trust pred number_codes(-num,+string) + eval.
-:- true comp number_codes/2 + ( sideff(free), native, iso ).
+:- trust comp number_codes/2 + ( sideff(free), native, iso ).
 
-:- true success number_codes(A,B) : int(A) => list(B,num_code).
+:- trust success number_codes(A,B) : int(A) => list(B,num_code).
 
 :- impl_defined(number_codes/2).
 
@@ -75,7 +75,7 @@ valid_base(32). valid_base(33). valid_base(34). valid_base(35). valid_base(36).
 
 :- trust pred number_codes(+num,+int,?string) + eval.
 :- trust pred number_codes(-num,+int,+string) + eval.
-:- true comp number_codes/3 + ( sideff(free), native ).
+:- trust comp number_codes/3 + ( sideff(free), native ).
 
 :- impl_defined(number_codes/3).
 
@@ -155,12 +155,12 @@ valid_base(32). valid_base(33). valid_base(34). valid_base(35). valid_base(36).
 :- pred atom_number(+atm,?num) => atm * num  + eval.
 :- pred atom_number(-atm,+num) => atm * num + eval.
 
-:- true comp atom_number/2 + ( sideff(free), native, is_det ).
+:- trust comp atom_number/2 + ( sideff(free), native, is_det ).
 
 :- doc(atom_number(Atom,Base, Number), "@var{Atom} can be read as a
    representation of @var{Number} in base @var{Base}.").
 
-:- true comp atom_number/3 + ( sideff(free), native, is_det ).
+:- trust comp atom_number/3 + ( sideff(free), native, is_det ).
 
 :- pred atom_number(+atm,?num,+num).
 :- pred atom_number(-atm,+num,+num).
@@ -206,7 +206,7 @@ atom_number(A, B, N) :-
    characters forming the name of @var{Atom}.").
 
 :- trust pred atom_length(+atm,?int) + eval.
-:- true comp atom_length/2 + ( sideff(free), native, iso, is_det ).
+:- trust comp atom_length/2 + ( sideff(free), native, iso, is_det ).
 :- impl_defined(atom_length/2).
 
 :- doc(atom_concat(Atom_1,Atom_2,Atom_12), "@var{Atom_12} is the
@@ -220,7 +220,7 @@ atom_number(A, B, N) :-
    # "Take out of an atom a certain suffix (or fail if it cannot be done).".
 :- trust pred atom_concat(+atm,-atm,+atm) => atm * atm * atm + eval
    # "Take out of an atom a certain prefix (or fail if it cannot be done).".
-:- true comp atom_concat/3 + ( sideff(free), native, iso, is_det ).
+:- trust comp atom_concat/3 + ( sideff(free), native, iso, is_det ).
 
 :- impl_defined(atom_concat/3).
 
@@ -230,6 +230,6 @@ atom_number(A, B, N) :-
    @tt{sub_atom(summer,1,4,umme)} succeeds.").
 
 :- trust pred sub_atom(+atm,+int,+int,?atm) + eval.
-:- true comp sub_atom/4 + ( sideff(free), native ).
+:- trust comp sub_atom/4 + ( sideff(free), native ).
 
 :- impl_defined(sub_atom/4).

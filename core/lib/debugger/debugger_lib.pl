@@ -655,7 +655,7 @@ notrace :-
 
 :- doc(doinclude, multpredspec/1).
 
-:- true prop multpredspec/1 + regtype.
+:- prop multpredspec/1 + regtype.
 
 multpredspec(Mod:Spec) :- atm(Mod), multpredspec(Spec).
 multpredspec(Name/Low-High) :- atm(Name), int(Low), int(High).

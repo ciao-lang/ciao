@@ -65,9 +65,9 @@ nonsingle(_).
 :- success append(Xs,Ys,Zs) : (ground(Xs), ground(Ys)) => ground(Zs).
 :- success append(Xs,Ys,Zs) : ground(Zs) => (ground(Xs), ground(Ys)).
 
-:- true comp append(Xs,Ys,Zs) + sideff(free).
-:- true comp append(Xs,Ys,Zs) : list(Xs) + eval.
-:- true comp append(Xs,Ys,Zs) : list(Zs) + eval.
+:- trust comp append(Xs,Ys,Zs) + sideff(free).
+:- trust comp append(Xs,Ys,Zs) : list(Xs) + eval.
+:- trust comp append(Xs,Ys,Zs) : list(Zs) + eval.
 
 :- test append(A, B, C) : ( A = [1,2,3], B = [4, 5] ) => ( C = [1,
    2, 3, 4, 5] ) # "Simple call to append".
@@ -99,8 +99,8 @@ append([E|Es], L, [E|R]) :- append(Es, L, R).
 :- pred reverse(Xs,Ys) : list * term => list * list
    # "Reverses the order of elements in @var{Xs}.".
 
-:- true comp reverse/2 + sideff(free).
-:- true comp reverse(Xs,_Ys) : list(Xs) + eval.
+:- trust comp reverse/2 + sideff(free).
+:- trust comp reverse(Xs,_Ys) : list(Xs) + eval.
 
 reverse(Xs,Ys):- reverse(Xs,[],Ys).
 
@@ -120,8 +120,8 @@ reverse([E|Es],L,R) :- reverse(Es,[E|L],R).
 
 :- pred delete(L1,E,L2) => (list(L1), list(L2))
 # "@var{L2} is @var{L1} without the ocurrences of @var{E}.".
-:- true comp delete/3 + sideff(free).
-:- true comp delete(L1,E,L2) : (ground(L1), ground(L2)) + eval.
+:- trust comp delete/3 + sideff(free).
+:- trust comp delete(L1,E,L2) : (ground(L1), ground(L2)) + eval.
 
 delete([], _, []).
 delete([Head|Tail], Element, Rest) :-
@@ -134,8 +134,8 @@ delete([Head|Tail], Element, [Head|Rest]) :-
 # "@var{L2} is @var{L1} without the ocurrences of @var{E}. @var{E} can
 be a nonground term so that all the elements in @var{L1} it unifies
 with will be deleted".
-:- true comp delete_non_ground/3 + sideff(true).
-:- true comp delete_non_ground(L1,E,L2) : (ground(L1), ground(L2)) + eval.
+:- trust comp delete_non_ground/3 + sideff(true).
+:- trust comp delete_non_ground(L1,E,L2) : (ground(L1), ground(L2)) + eval.
 
 delete_non_ground([A], _, [A]) :-
 	var(A), !.
@@ -152,8 +152,8 @@ eq(A, B):- \+ \+ A = B.
 :- pred select(X,Xs,Ys) # "@var{Xs} and @var{Ys} have the same
    elements except for one occurrence of @var{X}.".
 
-:- true comp select/3 + sideff(free).
-:- true comp select(X,Xs,Ys) : (ground(X),ground(Xs)) + eval.
+:- trust comp select/3 + sideff(free).
+:- trust comp select(X,Xs,Ys) : (ground(X),ground(Xs)) + eval.
 
 select(E, [E|Es], Es).
 select(E, [X|Es], [X|L]) :- select(E, Es, L).
@@ -173,10 +173,10 @@ select(E, [X|Es], [X|L]) :- select(E, Es, L).
 %         : ((list(L), int(N)); (var(L),int(N)); (list(L), var(N))).
 
 
-:- true comp length(A,B) + native.
-:- true comp length/2 + sideff(free).
-:- true comp length(L,N) : list(L) + eval.
-:- true comp length(L,N) : integer(N) + eval.
+:- trust comp length(A,B) + native.
+:- trust comp length/2 + sideff(free).
+:- trust comp length(L,N) : list(L) + eval.
+:- trust comp length(L,N) : integer(N) + eval.
 
 length(L, N) :- var(N), !, llength(L, 0, N).
 length(L, N) :- dlength(L, 0, N).

@@ -1074,7 +1074,7 @@ find_pl_filename(File, PlName, Base, Dir) :-
 % find_c_filename(File, CName, Base, Dir) :- 
 % 	absolute_file_name_(File, [], '.c', '.', CName, Base, Dir).
 
-%:- true pred absolute_file_name(+sourcename,+atm,+atm,+atm,-atm,-atm,-atm).
+%:- pred absolute_file_name(+sourcename,+atm,+atm,+atm,-atm,-atm,-atm).
 
 % TODO: define a data types for module spec, slash paths, etc.
 

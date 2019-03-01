@@ -52,7 +52,7 @@ define_flag(doccomments, [on, off], off).
 %    ',' | '(' | ' (' | ')' | '[' | ']' | '|' | '{' | '}'
 %    '.' % end of term 
 
-:- true prop token(T) + regtype.
+:- prop token(T) + regtype.
 token(atom(A)):- atm(A).
 token(badatom(S)):- string(S).
 token(number(N)):- num(N).

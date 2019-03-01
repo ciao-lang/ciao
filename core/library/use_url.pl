@@ -13,7 +13,7 @@
 :- use_module(library(http/http_client)).
 :- use_module(library(http/url)).
 
-:- true pred use_module_url(Module, Url) : sourcename * string
+:- pred use_module_url(Module, Url) : sourcename * string
         # "Imports from module @var{Module} all the predicates exported 
           by it into the calling module. @var{Module} is loaded from
           @var{Url}. If @var{Url} is not accesible, it fails.".
@@ -22,7 +22,7 @@
 
 use_module_url(Mod,Url,This):- use_module_url(Mod,Url,all,This).
 
-:- true pred use_module_url(Module, Url, Imports) 
+:- pred use_module_url(Module, Url, Imports) 
 	: sourcename * string * list(predname)
         # "Imports from module @var{Module} the predicates in @var{Imports}
           (if exported) into the calling module. @var{Module} is loaded from

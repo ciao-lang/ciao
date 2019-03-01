@@ -67,7 +67,7 @@ varpair(X,X,N,N).
 	producing bindings for the variables of @var{Term1}. I.e.,
 	@tt{instance(@var{Term1},@var{Term2})} holds.").
 
-:- true prop instance(Term1,Term2) + native
+:- trust prop instance(Term1,Term2) + native
 	# "@var{Term1} is an instance of @var{Term2}.".
 
 :- pred subsumes_term(Term1,Term2) + iso
@@ -243,7 +243,8 @@ unifier_elem(X=Term) :- var(X), term(Term).
 
 unifier(Unifier) :- list(Unifier, unifier_elem).
 
-:- true pred unifiable(X, Y, Unifier) :
+% (defined in engine/term_support.c)
+:- trust pred unifiable(X, Y, Unifier) :
 	(term(X), term(Y)) => unifier(Unifier)
 
 	# "Unifies @var{Unifier} with the most general unifier between

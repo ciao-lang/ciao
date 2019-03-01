@@ -49,7 +49,7 @@
 % ---------------------------------------------------------------------------
 
 :- doc(doinclude,op/3).
-:- true decl op(Priority, Op_spec, Operator) :
+:- decl op(Priority, Op_spec, Operator) :
         int * operator_specifier * atm_or_atm_list + iso
         # "Updates the @concept{operator table} for reading the terms in
           the rest of the current text, in the same way as the builtin
@@ -59,7 +59,7 @@
 % ---------------------------------------------------------------------------
 
 :- doc(doinclude,new_declaration/1).
-:- true decl new_declaration(Predicate) : predname
+:- decl new_declaration(Predicate) : predname
         # "Declares @var{Predicate} to be a valid declaration in the
           rest of the current text.  Such declarations are simply
           ignored by the compiler or top level, but can be used by other
@@ -73,7 +73,7 @@
 
 
 :- doc(doinclude,new_declaration/2).
-:- true decl new_declaration(Predicate, In_Itf) : predname * switch
+:- decl new_declaration(Predicate, In_Itf) : predname * switch
         # "Declares @var{Predicate} to be a valid declaration in the
           rest of the current text.  Such declarations will be
           included in the @concept{interface file} for this file if
@@ -86,7 +86,7 @@
 :- use_module(engine(stream_basic), [sourcename/1]).
 
 :- doc(doinclude,load_compilation_module/1).
-:- true decl load_compilation_module(File) : sourcename
+:- decl load_compilation_module(File) : sourcename
         # "Loads code defined in @var{File} into the compiler, usually
           including predicates which define translations of clauses,
           sentences, and terms, for use with the declarations
@@ -98,7 +98,7 @@
 % ---------------------------------------------------------------------------
 
 :- doc(doinclude,add_sentence_trans/2).
-:- true decl add_sentence_trans(Predicate, Priority) :
+:- decl add_sentence_trans(Predicate, Priority) :
 	translation_predname * int
         # "Starts a translation, defined by @var{Predicate}, of the
           terms read by the compiler in the rest of the current text.
@@ -117,7 +117,7 @@
           included in @concept{package file}s.".
 
 :- doc(doinclude,add_term_trans/2).
-:- true decl add_term_trans(P, Priority) : translation_predname * int
+:- decl add_term_trans(P, Priority) : translation_predname * int
         # "Starts a translation, defined by @var{Predicate}, of the
           terms and sub-terms read by the compiler in the rest of the
           current text.  This translation is performed after all
@@ -131,7 +131,7 @@
           declaration.  Normally included in @concept{package file}s.".
 
 :- doc(doinclude,add_goal_trans/2).
-:- true decl add_goal_trans(Predicate, Priority) :
+:- decl add_goal_trans(Predicate, Priority) :
 	translation_predname * int
         # "Declares a translation, defined by @var{Predicate}, of the
           goals present in the clauses of the current text.  This
@@ -149,7 +149,7 @@
           compilation.  Normally included in @concept{package file}s.".
 
 :- doc(doinclude,add_clause_trans/2).
-:- true decl add_clause_trans(Predicate, Priority) :
+:- decl add_clause_trans(Predicate, Priority) :
 	translation_predname * int
         # "Declares a translation, defined by @var{Predicate}, of the
           clauses of the current text.  The translation is performed

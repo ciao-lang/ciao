@@ -171,7 +171,7 @@ when(Condition, Goal):-
         ).
 
 
-:- true prop wakeup_exp(T) + regtype
+:- prop wakeup_exp(T) + regtype
    # "@var{T} is a legal expression for delaying goals.".
 
 wakeup_exp(ground(_)).

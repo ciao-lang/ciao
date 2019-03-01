@@ -49,7 +49,7 @@ yes
 :- trust pred is(+A, +B) : num * arithexpression + (test_type(arithmetic)).
 :- trust pred is(+A, +B) : int * intexpression + (test_type(arithmetic)).
 :- trust comp is(A, B) + (size_metric(A, int), size_metric(B, int)).
-:- true comp is/2 + ( iso, native, sideff(free), bind_ins, is_det,
+:- trust comp is/2 + ( iso, native, sideff(free), bind_ins, is_det,
 	    relations(inf) ).
 
 X is Y :- X is +Y.
@@ -61,7 +61,7 @@ X is Y :- X is +Y.
 
 :- trust pred <(+A, +B) : arithexpression * arithexpression
 	+ (eval, size_metric(A, int), size_metric(B, int)).
-:- true comp (<) /2 + ( iso, native, sideff(free), bind_ins, is_det,
+:- trust comp (<) /2 + ( iso, native, sideff(free), bind_ins, is_det,
 	    relations(inf), test_type(arithmetic) ).
 
 X<Y :- X<Y.
@@ -73,7 +73,7 @@ X<Y :- X<Y.
 
 :- trust pred =<(+A, +B) : arithexpression * arithexpression
 	+ (eval, size_metric(A, int), size_metric(B, int)).
-:- true comp (=<) /2 + ( iso, native, sideff(free), bind_ins, is_det,
+:- trust comp (=<) /2 + ( iso, native, sideff(free), bind_ins, is_det,
 	    relations(inf), test_type(arithmetic) ).
 
 X=<Y :- X=<Y.
@@ -85,7 +85,7 @@ X=<Y :- X=<Y.
 
 :- trust pred >(+A, +B) : arithexpression * arithexpression
 	+ (eval, size_metric(A, int), size_metric(B, int)).
-:- true comp (>) /2 + ( iso, native, sideff(free), bind_ins, is_det,
+:- trust comp (>) /2 + ( iso, native, sideff(free), bind_ins, is_det,
 	    relations(inf), test_type(arithmetic) ).
 
 X>Y :- X>Y.
@@ -97,7 +97,7 @@ X>Y :- X>Y.
 
 :- trust pred >=(+A, +B) : arithexpression * arithexpression
 	+ (eval, size_metric(A, int), size_metric(B, int)).
-:- true comp (>=) /2 + ( iso, native, sideff(free), bind_ins, is_det,
+:- trust comp (>=) /2 + ( iso, native, sideff(free), bind_ins, is_det,
 	    relations(inf), test_type(arithmetic) ).
 
 X>=Y :- X>=Y.
@@ -108,7 +108,7 @@ X>=Y :- X>=Y.
 
 :- trust pred =:=(+A, +B) : arithexpression * arithexpression
 	+ (eval, size_metric(A, int), size_metric(B, int)).
-:- true comp (=:=) /2 + ( iso, native, sideff(free), bind_ins, is_det,
+:- trust comp (=:=) /2 + ( iso, native, sideff(free), bind_ins, is_det,
 	    relations(inf), test_type(arithmetic) ).
 
 X=:=Y :- X=:=Y.
@@ -120,7 +120,7 @@ X=:=Y :- X=:=Y.
 
 :- trust pred =\=(+A, +B) : arithexpression * arithexpression
 	+ (eval, size_metric(A, int), size_metric(B, int)).
-:- true comp (=\=) /2 + ( iso, native, sideff(free), bind_ins, is_det,
+:- trust comp (=\=) /2 + ( iso, native, sideff(free), bind_ins, is_det,
 	    relations(inf), test_type(arithmetic) ).
 
 X=\=Y :- X=\=Y.
@@ -278,7 +278,7 @@ arithexpression([X]) :- arithexpression(X).
 arithexpression(X) :- intexpression(X).
 
 :- prop intexpression(E) + regtype # "@var{E} is an integer expression.".
-:- true comp intexpression/1 + sideff(free).
+:- trust comp intexpression/1 + sideff(free).
 
 intexpression(X) :- int(X).
 intexpression(-X) :- intexpression(X).

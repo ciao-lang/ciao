@@ -24,17 +24,17 @@
 :- module(int_extra, [], [foreign_interface]).
 
 :- export(lsb/2).
-:- true pred lsb(+int, -int) 
+:- trust pred lsb(+int, -int) 
 	+ foreign_low(ciao_lsb).
 
 % NOTE: msb makes sense only for positive integer
 :- export(msb/2).
-:- true pred msb(+int, -int) 
+:- trust pred msb(+int, -int) 
 	+ foreign_low(ciao_msb).
 
 % NOTE: bits_set makes sense only for positive integer
 :- export(bits_set/2).
-:- true pred bits_set(+int, -int)
+:- trust pred bits_set(+int, -int)
 	+ foreign_low(ciao_bits_set).
 
 :- use_foreign_source(int_extra).

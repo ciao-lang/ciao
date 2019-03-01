@@ -24,7 +24,7 @@ kill `cat LOCKFILE`
 
 :- use_foreign_source(.(rundaemon)).
 
-:- true pred run_daemon(in(LockFile), in(ExecPath), in(Args))
+:- trust pred run_daemon(in(LockFile), in(ExecPath), in(Args))
        :: atm * atm * list(atm) + foreign_low(run_daemon).
 
 main([LockFile, ExecPath|Args]) :-

@@ -194,7 +194,7 @@
 
 :- doc(doinclude, time_option/1).  
 
-:- true prop time_option(M) + regtype # "Options to get information
+:- prop time_option(M) + regtype # "Options to get information
 about execution time.  @var{M} must be one of @tt{runtime},
 @tt{usertime}, @tt{systemtime} or @tt{walltime}.".
 
@@ -205,7 +205,7 @@ time_option(walltime).
 
 :- doc(doinclude, tick_option/1).  
 
-:- true prop tick_option(M) + regtype # "Options to get information about
+:- prop tick_option(M) + regtype # "Options to get information about
    execution ticks.".
 
 tick_option(runtick).
@@ -215,7 +215,7 @@ tick_option(walltick).
 
 :- doc(doinclude, clockfreq_option/1).  
 
-:- true prop clockfreq_option(M) + regtype # "Options to get information about
+:- prop clockfreq_option(M) + regtype # "Options to get information about
    the frequency of clocks used to get the ticks.".
 
 clockfreq_option(runclockfreq).
@@ -225,7 +225,7 @@ clockfreq_option(wallclockfreq).
 
 :- doc(doinclude, memory_option/1).
 
-:- true prop memory_option(M) + regtype # "Options to get information about
+:- prop memory_option(M) + regtype # "Options to get information about
 memory usage.".
 
 memory_option(memory).
@@ -238,7 +238,7 @@ memory_option(choice).
 
 :- doc(doinclude, garbage_collection_option/1).
 
-:- true prop garbage_collection_option(M) + regtype # "Options to get
+:- prop garbage_collection_option(M) + regtype # "Options to get
    information about garbage collection.".
 
 garbage_collection_option(garbage_collection).
@@ -246,14 +246,14 @@ garbage_collection_option(stack_shifts).
 
 :- doc(doinclude, symbol_option/1).
 
-:- true prop symbol_option(M) + regtype # "Option to get information
+:- prop symbol_option(M) + regtype # "Option to get information
    about the number of symbols in the program.".
 
 symbol_option(symbols).
 
 :- doc(doinclude, time_result/1).
 
-:- true prop time_result(Result) + regtype # "@var{Result} is a
+:- prop time_result(Result) + regtype # "@var{Result} is a
 two-element list of numbers.  The first number is the time since the
 start of the execution; the second number is the time since the
 previous consult to time.".
@@ -262,7 +262,7 @@ time_result([A, B]):- num(A), num(B).
 
 :- doc(doinclude, tick_result/1).
 
-:- true prop tick_result(Result) + regtype # "@var{Result} is a
+:- prop tick_result(Result) + regtype # "@var{Result} is a
 two-element list of numbers.  The first number is the number of ticks
 since the start of the execution; the second number is the number of
 ticks since the previous consult to tick.".
@@ -271,7 +271,7 @@ tick_result([A, B]):- num(A), num(B).
 
 :- doc(doinclude, clockfreq_result/1).
 
-:- true prop clockfreq_result(Result) + regtype # "@var{Result} is a
+:- prop clockfreq_result(Result) + regtype # "@var{Result} is a
 number.  It gives the frequency in hertz used by the clock get the
 ticks.".
 
@@ -279,7 +279,7 @@ clockfreq_result(A):- num(A).
 
 :- doc(doinclude, memory_result/1).
 
-:- true prop memory_result(Result) + regtype # "Result is a
+:- prop memory_result(Result) + regtype # "Result is a
 two-element list of integers.  The first element is the space taken up
 by the option selected, measured in bytes; the second integer is zero
 for program space (which grows as necessary), and the amount of free
@@ -289,7 +289,7 @@ memory_result([A, B]):- int(A), int(B).
 
 :- doc(doinclude, gc_result/1).
 
-:- true prop gc_result(Result) + regtype # "@var{Result} is a
+:- prop gc_result(Result) + regtype # "@var{Result} is a
 tree-element list of integers, related to @concept{garbage collection}
 and @concept{memory management}.  When @tt{stack_shifts} is selected,
 the first one is the number of shifts (reallocations) of the local
@@ -303,7 +303,7 @@ gc_result([A, B, C]):- int(A), int(B), int(C).
 
 :- doc(doinclude, symbol_result/1).
 
-:- true prop symbol_result(Result) + regtype # "@var{Result} is a
+:- prop symbol_result(Result) + regtype # "@var{Result} is a
    two-element list of integers.  The first one is the number of atom,
    functor, and predicate names in the symbol table.  The second is
    the number of predicates known to be defined (although maybe

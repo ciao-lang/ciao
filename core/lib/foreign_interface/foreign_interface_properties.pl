@@ -23,89 +23,89 @@
 
 :- doc(doinclude,use_foreign_source/1).
 
-:- true decl use_foreign_source(Files) : atm_or_atm_list #
+:- decl use_foreign_source(Files) : atm_or_atm_list #
    "@var{Files} is the (list of) foreign file(s) that will be linked
    with the glue-code file. If the file(s) do(es) not have extension, then
    the '.c' extension will be automatically added".
 
 :- doc(doinclude,use_foreign_source/2).
 
-:- true decl use_foreign_source(OsArch, Files) : atm * atm_or_atm_list
+:- decl use_foreign_source(OsArch, Files) : atm * atm_or_atm_list
    # "@var{Files} are the OS and architecture dependant foreign files.
    This allows compiling and linking different files depending on the
    O.S. and architecture.".
 
 :- doc(doinclude,use_foreign_library/1).
 
-:- true decl use_foreign_library(Libs) : atm_or_atm_list # "@var{Libs}
+:- decl use_foreign_library(Libs) : atm_or_atm_list # "@var{Libs}
    is the (list of) external library(es) needed to link the C files.
    Only the short name of the library (i.e., what would follow the
    @tt{-l} in the linker is needed.".
 
 :- doc(doinclude,use_foreign_library/2).
 
-:- true decl use_foreign_library(OsArch,Libs) : atm * atm_or_atm_list
+:- decl use_foreign_library(OsArch,Libs) : atm * atm_or_atm_list
 # "@var{Libs} are the OS and architecture dependant libraries.".
 
 :- doc(doinclude,extra_compiler_opts/1).
 
-:- true decl extra_compiler_opts(Opts) : atm_or_atm_list # "@var{Opts}
+:- decl extra_compiler_opts(Opts) : atm_or_atm_list # "@var{Opts}
    is the list of additional compiler options (e.g., optimization
    options) that will be used during the compilation.".
 
 :- doc(doinclude,extra_compiler_opts/2).
 
-:- true decl extra_compiler_opts(OsArch,Opts) : atm * atm_or_atm_list
+:- decl extra_compiler_opts(OsArch,Opts) : atm * atm_or_atm_list
    # "@var{Opts} are the OS and architecture dependant additional
    compiler options.".
 
 :- doc(doinclude,use_compiler/1).
 
-:- true decl use_compiler(Compiler) : atm # "@var{Compiler} is the
+:- decl use_compiler(Compiler) : atm # "@var{Compiler} is the
    compiler to use in this file.  When this option is used, the
    default (Ciao-provided) compiler options are not used; those
    specified in @pred{extra_compiler_options} are used instead.".
 
 :- doc(doinclude,use_compiler/2).
 
-:- true decl use_compiler(OsArch, Compiler) : atm * atm #
+:- decl use_compiler(OsArch, Compiler) : atm * atm #
    "@var{Compiler} is the compiler to use in this file when compiling
    for the architecture @var{OsArch}.  The option management is the
    same as in @pred{use_compiler/2}.".
 
 :- doc(doinclude,extra_linker_opts/1).
 
-:- true decl extra_linker_opts(Opts) : atm_or_atm_list # "@var{Opts}
+:- decl extra_linker_opts(Opts) : atm_or_atm_list # "@var{Opts}
    is the list of additional linker options that will be used during
    the linkage.".
 
 :- doc(doinclude,extra_linker_opts/2).
 
-:- true decl extra_linker_opts(OsArch,Opts) : atm * atm_or_atm_list #
+:- decl extra_linker_opts(OsArch,Opts) : atm * atm_or_atm_list #
    "@var{Opts} are the OS and architecture dependant additional linker
    options.".
 
 :- doc(doinclude,use_linker/1).
 
-:- true decl use_linker(Linker) : atm # "@var{Linker} is the linker to
+:- decl use_linker(Linker) : atm # "@var{Linker} is the linker to
    use in this file. When this option is used, the default
    (Ciao-provided) linker options are not used; those specified in
    @pred{extra_linker_options/1} are used instead.".
 
 :- doc(doinclude,use_linker/2).
 
-:- true decl use_linker(OsArch, Linker) : atm * atm # "@var{Compiler}
+:- decl use_linker(OsArch, Linker) : atm * atm # "@var{Compiler}
    is the linker to use in this file when compiling for the
    architecture @var{OsArch}.  The option management is the same as in
    @pred{use_compiler/2}.".
 
 :- doc(doinclude,foreign_inline/2).
 
-:- true decl foreign_inline(Term,Text) : predname * string #
+:- decl foreign_inline(Term,Text) : predname * string #
    "@var{Term} is a predicate name. @var{Text} is a source C code
    that define the predicate @var{Term}.".
 
-:- true decl foreign_inline(Text) : string # "This usage
+:- decl foreign_inline(Text) : string # "This usage
    of foreign_inline is to add globally the C source code that are in
    @var{Text}.".
 
@@ -123,8 +123,8 @@ address('$address'(Address)) :-
 :- regtype null(Address) # "@var{Address} is a null adress.".
 null('$address'(0)).
 
- %% :- true prop byte(Byte) + regtype # "@var{Byte} is a byte.".
- %% :- true comp byte(T) + sideff(free).
+ %% :- prop byte(Byte) + regtype # "@var{Byte} is a byte.".
+ %% :- trust comp byte(T) + sideff(free).
 
  %% It seems this definition is not a regular type (and saying it is a
  %% property does not help): 

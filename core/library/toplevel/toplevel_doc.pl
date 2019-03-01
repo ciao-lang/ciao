@@ -220,44 +220,44 @@ yes
         [multifile/1]).
 :- use_module(library(debugger), []).
 
-:- true pred use_module(Module) : sourcename
+:- pred use_module(Module) : sourcename
         # "Load into the top-level the module defined in
           @var{Module}, importing all the predicates it exports.".
 
-:- true pred use_module(Module, Imports) : sourcename * list(predname)
+:- pred use_module(Module, Imports) : sourcename * list(predname)
         # "Load into the top-level the module defined in
           @var{Module}, importing the predicates in @var{Imports}.".
 
-:- true pred ensure_loaded(File) : sourcenames
+:- pred ensure_loaded(File) : sourcenames
         # "Load into the top-level the code residing in file (or files)
            @var{File}, which is user (i.e. non-module) code.".
 
-:- true pred include(File) : sourcename
+:- pred include(File) : sourcename
         # "The contents of the file @var{File} are included in the
           top-level shell.  For the moment, it only works with some
           directives, which are interpreted by the shell, or with normal
           clauses (which are asserted).".
 
-:- true pred use_package(Package) : sourcenames
+:- pred use_package(Package) : sourcenames
         # "Include the package or packages specified in @var{Package}.
           Most package contents can be handled in the top level, but
           there are currently still some limitations.".
 
-:- true pred consult(File) : sourcenames
+:- pred consult(File) : sourcenames
         # "Provided for backward compatibility.  Similar to
            @pred{ensure_loaded/1}, but ensuring each listed file is
            loaded in consult mode (see @ref{The interactive debugger}).".
 
-:- true pred compile(File) : sourcenames
+:- pred compile(File) : sourcenames
         # "Provided for backward compatibility.  Similar to
            @pred{ensure_loaded/1}, but ensuring each listed file is
            loaded in compile mode (see @ref{The interactive debugger}).".
 
-:- true pred [File|Files] : sourcename * list(sourcename)
+:- pred [File|Files] : sourcename * list(sourcename)
         # "Provided for backward compatibility, obsoleted by
           @pred{ensure_loaded/1}.".
 
-:- true pred make_exec(Files, ExecName)
+:- pred make_exec(Files, ExecName)
 %        :: atm(ExecName)
         : sourcenames(Files) => atm(ExecName)
         # "Make a Ciao executable from file (or files) @var{Files},
@@ -269,35 +269,35 @@ yes
            executable will have extension @tt{.cpx}; else the executable
            will be named as the main prolog file without extension.".
 
-:- true pred make_po(Files) : sourcenames
+:- pred make_po(Files) : sourcenames
         # "Make object (@tt{.po}) files from @var{Files}. Equivalent to
           executing \"@tt{ciaoc -c}\" on the files.".
 
-:- true pred unload(File) : sourcename
+:- pred unload(File) : sourcename
         # "Unloads dynamically loaded file @var{File}.".
 
-:- true pred set_debug_mode(File) : sourcename
+:- pred set_debug_mode(File) : sourcename
         # "Set the loading mode of @var{File} to @em{consult}. See
           @ref{The interactive debugger}.".
 
-:- true pred set_nodebug_mode(File) : sourcename
+:- pred set_nodebug_mode(File) : sourcename
         # "Set the loading mode of @var{File} to @em{compile}. See
           @ref{The interactive debugger}.".
 
-:- true pred force_lazy(Module) : atm
+:- pred force_lazy(Module) : atm
         # "Force module of name @var{Module} to be loaded lazily in the
           subsequent created executables.".
 
-:- true pred undo_force_lazy(Module) :: atm
+:- pred undo_force_lazy(Module) :: atm
         # "Disable a previous @pred{force_lazy/1} on module @var{Module}
           (or, if it is uninstantiated, all previous @pred{force_lazy/1}).".
 
-:- true pred dynamic_search_path(Name) : atm
+:- pred dynamic_search_path(Name) : atm
         # "Asserting a fact to this data predicate, files using
           @concept{path alias} @var{Name} will be treated as dynamic in
           the subsequent created executables.".
 
-:- true pred multifile(Pred) : predname
+:- pred multifile(Pred) : predname
         # "Dynamically declare predicate @var{Pred} as multifile.  This
           is useful at the top-level shell to be able to call multifile
           predicates of loaded files.".
@@ -308,7 +308,7 @@ yes
            follows:@includedef{sourcenames/1} See @pred{sourcename/1}
            in @ref{Basic file/stream handling}").
 
-:- true prop sourcenames(Files)
+:- prop sourcenames(Files)
         # "@var{Files} is a source name or a list of source names.".
 
 sourcenames(File) :- sourcename(File).

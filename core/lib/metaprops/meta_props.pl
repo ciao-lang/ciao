@@ -39,7 +39,7 @@
 :- doc(call(P,A),
     "@var{A} has property @var{P} (provided that @var{P} is a property).
      Equivalent to @tt{P(A)}.").
-:- true prop call(P,A) : callable(P)
+:- prop call(P,A) : callable(P)
    # "@var{A} has property @var{P}.".
 
 %:- impl_defined(call/2).
@@ -47,7 +47,7 @@
 
 call(P,A):- hiord_rt:call(P,A).
 
-:- true prop prop(A,P) : prop(P,^((callable ; prop_abs)))
+:- prop prop(A,P) : prop(P,^((callable ; prop_abs)))
    # "@var{A} has property @var{P}.".
 
 prop(X,^(T)):- !,
@@ -66,7 +66,7 @@ prop_(A,X,T):-
 	prop(Arg,Type),
 	prop_(A1,X,T).
 
-:- true prop regtype(A,T) : prop(T,^((regtype;prop_abs)))
+:- prop regtype(A,T) : prop(T,^((regtype;prop_abs)))
    # "@var{A} is of type @var{T}.".
 
 regtype(A,P):- prop(A,P).
