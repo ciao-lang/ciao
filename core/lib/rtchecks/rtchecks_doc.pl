@@ -18,6 +18,8 @@
 	that it can be used independently of CiaoPP and also has
 	updated functionality.").
 
+:- doc(stability,beta).
+
 :- doc(module,
 
 "This package provides a complete implementation of run-time checks of
