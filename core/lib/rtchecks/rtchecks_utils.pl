@@ -42,7 +42,7 @@ rtcheck_type(compat).
 rtcheck_type(compatpos).
 rtcheck_type(calls).
 
-% ----------------------------------------------------------------------
+% ---------------------------------------------------------------------
 
 :- doc(handle_rtcheck/1, "Predicate that processes an rtcheck exception.").
 
