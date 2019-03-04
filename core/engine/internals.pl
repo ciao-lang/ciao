@@ -1168,16 +1168,18 @@ filetype(prolog_itf,        '.itf', noarch).
 filetype(prolog_assertion,  '.asr', noarch).
 filetype(prolog_assertion2, '.ast', noarch).
 filetype(prolog_testout,    '.testout', noarch).
+filetype(c_object,          '.o',   arch).
 filetype(gluecode_c,        '.c',   arch).
 filetype(gluecode_o,        '.o',   arch).
 filetype(gluecode_a,        Ext,    arch) :- get_a_ext(Ext).
 filetype(gluecode_so,       Ext,     arch) :- get_so_ext(Ext).
 
 % MCL: not all arch-dep files need to have the '_glue' marker
-glue_suffix(gluecode_c,        '_glue').
-glue_suffix(gluecode_o,        '_glue').
-glue_suffix(gluecode_a,        '').
-glue_suffix(gluecode_so,       '').
+glue_suffix(c_object,    '').
+glue_suffix(gluecode_c,  '_glue').
+glue_suffix(gluecode_o,  '_glue').
+glue_suffix(gluecode_a,  '').
+glue_suffix(gluecode_so, '').
 
 :- data opt_suff/1.
 

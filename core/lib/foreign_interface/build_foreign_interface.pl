@@ -735,8 +735,7 @@ get_foreign_files__2(Dir, Base, Decls, FFiles, OFiles, SOFile, AFile) :-
 	GlueFile = ~product_filename(gluecode_c, Base),
 	FFiles = [GlueFile|AbsFiles],
 	OFile = ~product_filename(gluecode_o, Base),
-	OSuffix = ~atom_concat(~atom_concat('_', ~get_platform), '.o'),
-	append_suffix(AbsBases, OSuffix, OFiles0),
+	append_osuffix(AbsBases, OFiles0),
 	OFiles = [OFile|OFiles0],
 	SOFile = ~product_filename(gluecode_so, Base),
 	AFile = ~product_filename(gluecode_a, Base).
@@ -754,10 +753,11 @@ absolute_base_names(Dir, [File|Files], [AbsFile|AbsFiles], [AbsBase|AbsBases]) :
 
 % -----------------------------------------------------------------------------
 
-append_suffix([], _, []) :- !.
-append_suffix([A0|As0], Suffix, [A|As]) :-
-	A = ~atom_concat(A0, Suffix), 
-	append_suffix(As0, Suffix, As).
+% Get c_object from bases 
+append_osuffix([], []) :- !.
+append_osuffix([Base|Bases], [OFile|OFiles]) :-
+	OFile = ~product_filename(c_object, Base),
+	append_osuffix(Bases, OFiles).
 
 % -----------------------------------------------------------------------------
 
