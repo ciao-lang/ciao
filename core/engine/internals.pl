@@ -952,9 +952,31 @@ setup_paths :-
 	get_ciaopath,
 	% Load bundleregs (if available)
 	reload_bundleregs,
-	% Setup for CIAOCACHEDIR
-	( c_get_env('CIAOCACHEDIR', CacheDir) ->
-	    assertz_fact(use_cache_dir(CacheDir))
+	% Setup for use_cache_dir if needed
+	( c_get_env('CIAOCCACHE', WithCCache), WithCCache = '1' -> % TODO: change ENV var name
+	    fill_cache_dir % new workspace-based method
+	; true
+	).
+
+:- use_module(engine(system_info), [ciao_c_headers_dir/1]).
+
+fill_cache_dir :- % cachedir relative to the workspace
+	( % Detect if we are using build/ or build-boot/
+	  ciao_root(Root),
+	  ciao_c_headers_dir(HDir),
+	  atom_concat(Root, RelHDir, HDir),
+	  atom_concat('/build-boot/', _, RelHDir) ->
+	    RelCacheDir = 'build-boot/cache'
+	; RelCacheDir = 'build/cache'
+	),
+	( % (failure-driven loop)
+	  ( ciao_path(Path)
+	  ; ciao_root(Path)
+	  ),
+	    atom_concat(Path, '/', Prefix),
+	    path_concat(Path, RelCacheDir, CacheDir),
+	    assertz_fact(use_cache_dir(CacheDir, Prefix)),
+	    fail
 	; true
 	).
 
@@ -1002,14 +1024,15 @@ product_filename(Type, Base0, Name) :-
 %	( Type = prolog_object -> display(po_filename_2(Name)), nl ; true ).
 	true.
 
-:- data use_cache_dir/1.
+:- data use_cache_dir/2.
 
 % %TO DEACTIVATE
 % TODO: translate to C to avoid atom polution
 % TODO: detect the bundle of each base to create shorter and relocatable names
 %translate_base(Base, Base) :- display(user_error, trbase(Base)), nl(user_error), fail.
-translate_base(Base, Base2) :-
-	use_cache_dir(CacheDir),
+translate_base(Base0, Base2) :-
+	use_cache_dir(CacheDir, Prefix),
+	atom_concat(Prefix, Base, Base0),
 	!,
 	atom_codes(Base, Codes),
 	translate_base_2(Codes, Codes1),
