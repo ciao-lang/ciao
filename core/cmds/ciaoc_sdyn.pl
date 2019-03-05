@@ -13,8 +13,6 @@ $ ciaoc_sdyn MAIN
 :- doc(bug, "Missing port to Windows (MinGW)").
 
 :- use_module(engine(internals), [
-	itf_filename/2,
-	po_filename/2,
 	so_filename/2,
 	find_pl_filename/4]).
 :- use_module(engine(system_info), [get_os/1]).
@@ -29,6 +27,8 @@ $ ciaoc_sdyn MAIN
 :- use_module(library(format), [format/3]).
 :- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(engine(internals), [ciao_root/1]).
+
+:- use_module(ciaobld(ciaoc_aux), [clean_mod0/1]).
 
 % ---------------------------------------------------------------------------
 
@@ -73,7 +73,8 @@ create_sdyn(MainF) :-
 	create_static_stub(MainMod, Stub),
 	process_call(path(ciaoc), ['-S', '-o', Out, Stub, MainF], []),
 	%
-	clean_mod(Stub),
+	find_pl_filename(Stub, _, StubBase, _),
+	clean_mod0(StubBase),
 	delete_file(Stub).
 create_sdyn(MainF) :- % Do a normal -S call to ciaoc
 	get_mod(MainF, MainMod),
@@ -83,13 +84,6 @@ create_sdyn(MainF) :- % Do a normal -S call to ciaoc
 get_mod(F, Mod) :-
 	find_pl_filename(F, _Pl, Base, _),
 	path_split(Base, _, Mod).
-
-clean_mod(F) :-
-	find_pl_filename(F, _Pl, Base, _),
-	po_filename(Base, PO),
-	itf_filename(Base, Itf),
-	( file_exists(PO) ->  delete_file(PO) ;  true ),
-	( file_exists(Itf) -> delete_file(Itf) ; true ).
 
 % ---------------------------------------------------------------------------
 
