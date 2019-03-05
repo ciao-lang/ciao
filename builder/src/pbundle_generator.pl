@@ -314,7 +314,7 @@ get_file_list(PBundleType, Target, BaseDir, RelFile) :-
 
 is_excluded(File, noa) :-
 	% Some noarch file of a module that contains foreign code
-	% TODO: Does not work with CIAOCACHEDIR
+	% TODO: Does not work with CIAOCCACHE
 	path_splitext(File, FileBase, Ext),
 	( Ext = '.po'
 	; Ext = '.itf'

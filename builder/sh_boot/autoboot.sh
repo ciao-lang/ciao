@@ -256,7 +256,7 @@ autoboot_build() { # builddir mainmod
     # It must be static to avoid bootstrapping problems (the compiler
     # compiling its own libraries).
     #
-    # TODO: CIAOCACHEDIR may allow non-static exec here
+    # TODO: CIAOCCACHE may allow non-static exec here
     #
     mkdir -p "$builddir/bin"
     builddir_exec "$builddir" "$boot_ciaoc" $boot__CIAOC_OPTS -s -x -o "$mainexec" "$2"

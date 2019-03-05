@@ -11,7 +11,7 @@
 % TODO: Symbolic links to bundles may not work as expected (due to
 %   mismatches between the real and symbolic path of files).
 
-% TODO: Use CIAOCACHEDIR and document
+% TODO: enable and document CIAOCCACHE
 
 % TODO: Detect at runtime the following: @tt{CIAOPATH} cannot be the
 %   same as your Ciao sources. Ciao sources cannot be in a

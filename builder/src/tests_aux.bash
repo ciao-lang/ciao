@@ -80,11 +80,12 @@ product_filename() { # relpath
         dir=`pwd`
         base=$f
     fi
-    if [ ! -z "${CIAOCACHEDIR:-}" ]; then
-	printf "%s" "$CIAOCACHEDIR/"`printf "$dir" | sed 's/\./../g;s/\//./g'`".$base"
-    else
-	printf "%s" "$dir/$base"
-    fi
+# TODO: support CIAOCCACHE
+#    if [ ! -z "${CIAOCACHEDIR:-}" ]; then
+#	printf "%s" "$CIAOCACHEDIR/"`printf "$dir" | sed 's/\./../g;s/\//./g'`".$base"
+#    else
+    printf "%s" "$dir/$base"
+#    fi
 }
 
 # Absolute path to the file in the regression database
@@ -189,13 +190,14 @@ do_clean_subdir() {
     local i b
     find . '(' -name '*.po' -or -name '*.itf' ')' -exec rm -f '{}' ';'
     # TODO: Prefix based solution instead? (it would remove old files too, and be faster)
-    if [ ! -z "${CIAOCACHEDIR:-}" ]; then
-	find . -name '*.pl' | while read i; do
-            b=`no_pl "$i"`
-            rm -f "`product_filename "$b".itf`"
-            rm -f "`product_filename "$b".po`" 
-	    done
-    fi
+# TODO: support CIAOCCACHE
+#    if [ ! -z "${CIAOCACHEDIR:-}" ]; then
+#	find . -name '*.pl' | while read i; do
+#            b=`no_pl "$i"`
+#            rm -f "`product_filename "$b".itf`"
+#            rm -f "`product_filename "$b".po`" 
+#	    done
+#    fi
 }
 
 do_clean() {

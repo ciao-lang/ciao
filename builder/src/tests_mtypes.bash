@@ -50,11 +50,12 @@ product_filename() { # relpath
         dir=`pwd`
         base=$f
     fi
-    if [ ! -z "${CIAOCACHEDIR:-}" ]; then
-	printf "%s" "$CIAOCACHEDIR/"`printf "$dir" | sed 's/\./../g;s/\//./g'`".$base"
-    else
-	printf "%s" "$dir/$base"
-    fi
+# TODO: support CIAOCCACHE
+#    if [ ! -z "${CIAOCACHEDIR:-}" ]; then
+#	printf "%s" "$CIAOCACHEDIR/"`printf "$dir" | sed 's/\./../g;s/\//./g'`".$base"
+#    else
+    printf "%s" "$dir/$base"
+#    fi
 }
 
 copy_test() { # test

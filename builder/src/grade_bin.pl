@@ -60,7 +60,6 @@
 
 % TODO: make it fine grained, implement clean_bin on primtgts
 do_clean_bundle(Bundle) :-
-	% TODO: does not work with CIAOCACHEDIR! fix
 	% TODO: clean only on lib, etc. areas (not externals/ etc.)
 	% clean_tree(~bundle_path(Bundle, 'Manifest')) % TODO: only if it is a directory!
 	clean_tree(~bundle_path(Bundle, '.')).
@@ -158,14 +157,14 @@ prim(lib(Path), Bundle, build_bin) :- !,
 prim(lib(_), _Bundle, clean_bin) :- !.
 prim(lib(Path), Bundle, install_bin) :- !,
 	% Install the module collection under Path (along compiled files)
-	% TODO: needs update for CIAOCACHEDIR!
+	% TODO: needs update for CIAOCCACHE!
 	normal_message("installing ~w/", [Path]),
 	From = ~bundle_path(Bundle, Path),
 	To = ~inst_bundle_path(Bundle, Path),
 	instdir_install(dir_rec(From, To)).
 prim(lib(Path), Bundle, uninstall_bin) :- !,
 	% Uninstall the previously installed module collection Path
-	% TODO: needs update for CIAOCACHEDIR!
+	% TODO: needs update for CIAOCCACHE!
 	To = ~inst_bundle_path(Bundle, Path),
 	instdir_uninstall(dir_rec(To)).
 % lib_force_build/1

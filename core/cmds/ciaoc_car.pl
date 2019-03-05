@@ -53,8 +53,7 @@ $ ciaoc_car SRC DST
 :- doc(bug, "Move part of $sh_boot_dir/car_exec_stub.sh as a 'ciao run BINARY' option?").
 :- doc(bug, "Use library(source_tree) instead of library(process)").
 :- doc(bug, "Do not copy all ciao, just bundles").
-:- doc(bug, "Make it work with CIAOCACHEDIR (use
-   library(source_tree) to copy .po/.itf)").
+:- doc(bug, "Make it work with CIAOCCACHE (use library(source_tree) to copy .po/.itf)").
 
 % ---------------------------------------------------------------------------
 

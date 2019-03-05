@@ -104,6 +104,7 @@ normal_message() {
 # ---------------------------------------------------------------------------
 
 # Clean the compilation output for all files, recursively
+# NOTE: keep synchronized with ciaoc_aux:clean_tree/1
 # TODO: Use *.glue.c, *.inline.c, *.co.pl, *.auto.pl, etc.
 clean_tree() {
     # NOTE: this code has been optimized (usually it should take less
@@ -208,22 +209,19 @@ EOF
 
     local rel_builddir="build" # TODO: hardwired here -- duplicated on the Prolog side
     local builddir="$ciaoroot/$rel_builddir"
-    # Cleaning the system builddir (includes bundlereg)
+    # Cleaning the system builddir (includes bundlereg/, cache/, etc.)
     clean_builddir "$builddir"
     # Clean exec_header # TODO: it should be created somewhere else
     rm -f "$ciaoroot"/core/lib/compiler/header
     # Try to clean leftovers (mostly .po and .itf) of any previous
     # compilation in the whole source tree.
+    # TODO: simplify when out-of-tree compilation is enabled
     for d in "$ciaoroot/"*; do
 	if [ -d "$d" ] && \
 	   [ x"`basename "$d"`" != x"third-party" ]; then
 	    clean_tree "$d"
 	fi
     done
-    # Clean CIAOCACHEDIR (if exists)
-    if [ ! -z "$CIAOCACHEDIR" ] && [ -x "$CIAOCACHEDIR" ]; then
-	clean_tree "$CIAOCACHEDIR"
-    fi
 }
 
 # ---------------------------------------------------------------------------

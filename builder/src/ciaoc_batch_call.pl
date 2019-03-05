@@ -59,7 +59,7 @@ do_comp_action(do_gaf, FileName) :- gaf(FileName).
 do_comp_action(do_gpo, FileName) :- gpo(FileName).
 
 gaf(FileName0) :-
-	absolute_file_name(FileName0, FileName), % (needed for reliable _filename with CIAOCACHEDIR)
+	absolute_file_name(FileName0, FileName), % (needed for reliable _filename with CIAOCCACHE)
 	pl_filename(FileBase, FileName),
 	asr_filename(FileBase, FileNameAsr),
 	( up_to_date(FileNameAsr, FileName) ->
@@ -96,7 +96,7 @@ get_dummy_file_name(FileName, DummyFileName) :-
 	atom_concat(FileBase, '_tmp_co.pl', DummyFileName).
 
 gpo(FileName0) :-
-	absolute_file_name(FileName0, FileName), % (needed for reliable _filename with CIAOCACHEDIR)
+	absolute_file_name(FileName0, FileName), % (needed for reliable _filename with CIAOCCACHE)
 	pl_filename(FileBase, FileName),
 	po_filename(FileBase, FileNamePo),
 	itf_filename(FileBase, FileNameItf),

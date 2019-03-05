@@ -126,10 +126,10 @@ ciaoc_args(Opts, FileBuild, In) -->
 	['-o', FileBuild],
 	[In].
 
-% TODO: Fix using CIAOCACHEDIR. We have a problem here: we build some
-%       libraries with the bootstrap compiler and others with the
-%       compiler that is built into ciao_builder. That may give us a
-%       lot of problems.
+% TODO: Fix using CIAOCCACHE by default. Document the main motivation:
+%       we build some libraries with the bootstrap compiler and others
+%       with the compiler that is built into ciao_builder. That may
+%       give us a lot of problems.
 %
 %       If we manage to have .po/.itf in a separate directory, we
 %       could just have a toplevel as our bootstrap (that is, a system
@@ -510,4 +510,3 @@ clean_aux_sh := Path :-
 clean_mod0(Base) :-
 	del_file_nofail(~po_filename(Base)),
 	del_file_nofail(~itf_filename(Base)).
-

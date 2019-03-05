@@ -1050,7 +1050,7 @@ translate_base_2([X|Xs0], [X|Xs]) :- !,
 	translate_base_2(Xs0, Xs).
 translate_base_2([], []).
 
-% TODO: Rewrite in a way that does not need find_pl_filename (when CIAOCACHEDIR is enabled)
+% TODO: Rewrite in a way that does not need find_pl_filename (when CIAOCCACHE is enabled)
 %:- export(find_so_filename/2).
 find_so_filename(File, Abs) :-
         get_os_arch_suffix(OsArchSuffix),
@@ -1068,7 +1068,7 @@ get_os_arch_suffix(OsArchSuffix) :-
         atom_concat(Os, Arch, OsArch),
         atom_concat('_', OsArch, OsArchSuffix).
 
-% TODO: Rewrite in a way that does not need find_pl_filename (when CIAOCACHEDIR is enabled)
+% TODO: Rewrite in a way that does not need find_pl_filename (when CIAOCCACHE is enabled)
 %:- export(find_po_filename/2).
 find_po_filename(File, Abs) :-
 	opt_suff(Opt),

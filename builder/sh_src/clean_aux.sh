@@ -13,7 +13,7 @@
 #  - The list of suffixes should be given by the system (the previous
 #    point would help).
 #
-#  - CIAOCACHEDIR may simplify some code
+#  - CIAOCCACHE may simplify some code
 #
 # ---------------------------------------------------------------------------
 
@@ -21,7 +21,9 @@
 set -e
 
 # Clean the compilation output for all files, recursively
-# TODO: really clean backup files *~ and #*?
+# TODO:
+#  - removing *_glue.c, *_inline.c, *_auto.c, *_co.pl may not be a good idea
+#    (use different names)
 clean_tree() {
     # NOTE: this code has been optimized (usually it should take less
     #   than 10 seconds)
