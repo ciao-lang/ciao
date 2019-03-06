@@ -22,7 +22,7 @@
 %
 :- use_module(library(sh_process), [sh_process_call/3]).
 :- use_module(ciaobld(messages_aux), [normal_message/2]).
-:- use_module(ciaobld(ciaoc_aux), [invoke_boot_ciaoc/2, clean_mod0/1]).
+:- use_module(ciaobld(ciaoc_aux), [invoke_boot_ciaoc/2]).
 :- use_module(ciaobld(eng_defs),
 	[eng_mainmod/2,
 	 eng_mainbase/2,
@@ -70,9 +70,16 @@ eng_clean(Eng) :-
 	% Ensure that byproducts of engine module compilation are
 	% generated on next build.
 	Base = ~eng_mainbase(Eng),
-	clean_mod0(Base),
+	clean_boot_mod(Base),
 	% Clean the engine build area
 	eng_clean_native(Eng).
+
+:- use_module(engine(internals), [po_filename/2, itf_filename/2]).
+
+% TODO: Use clean_mod/1 instead? (be careful since eng_build is using boot ciaoc)
+clean_boot_mod(Base) :-
+	del_file_nofail(~po_filename(Base)),
+	del_file_nofail(~itf_filename(Base)).
 
 % TODO: Merge with b_make_exec (this generates the C code for ciaoc
 %   using the boostrap compiler; in this branch of Ciao this code is

@@ -61,7 +61,7 @@ ciaosh_exec := ~cmd_path(core, plexe, 'ciaosh').
 
 :- export(invoke_ciaosh_batch/1).
 % Batch execution of queries using ciaosh and current config prolog flags
-% TODO: Create a module instead? (remember to clean_mod/1)
+% TODO: Create a module instead? (remember to call clean_mods/1)
 invoke_ciaosh_batch(Cmds) :-
 	add_config_prolog_flags(Cmds, Cmds2),
 	Options = [stdin(terms(Cmds2))],
@@ -104,13 +104,14 @@ b_make_exec(Bundle, InFile, OutFile, Opts) :-
 	( member(libexec, Opts) ->
 	    ensure_builddir(Bundle, 'libexec'),
 	    FileBuild = ~libcmd_path(Bundle, plexe, OutFile)
-	; ensure_builddir(Bundle, 'bin'),
+	; ensure_builddir(Bundle, 'bin'), % TODO: for 'bootstrap_ciaoc' it assumes that we want the output in build/ and not build-boot/!
 	  FileBuild = ~cmd_path(Bundle, plexe, OutFile)
 	),
 	path_split(InFile, Dir, Base),
 	In = ~atom_concat(Base, '.pl'),
 	ciaoc_args(Opts, FileBuild, In, Args, []),
 	( member(final_ciaoc, Opts) ->
+	    ensure_builddir(Bundle, 'cache'), % (for out-of-source builds) % TODO: move somewhere else?
 	    cpx_process_call(~ciaoc, Args, [cwd(Dir)])
 	; member(bootstrap_ciaoc, Opts) ->
 	    cpx_process_call(~bootstrap_ciaoc, Args, [boot, cwd(Dir)])
@@ -366,6 +367,7 @@ cmd_build_link(Bundle, Kind, Src, Dest) :-
 	    
 :- export(build_libs/2).
 build_libs(Bundle, BaseDir) :-
+	ensure_builddir(Bundle, 'cache'), % (for out-of-source builds) % TODO: move somewhere else?
 	% Relative dir for messages
 	BundleDir = ~bundle_path(Bundle, '.'),
 	( BaseDir = BundleDir ->
@@ -472,41 +474,23 @@ exists_and_compilable(Dir) :-
 % ===========================================================================
 :- doc(section, "Cleaning").
 
-% Clean (compilation files in) a directory tree (recursively)
+% NOTE: Call through invoke_ciaosh_batch/1 is needed to ensure that we
+% use the same build settings (e.g., cachedir for out-of-source) than
+% during module compilation.
+
 :- export(clean_tree/1).
+% TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
 clean_tree(Dir) :-
-	clean_aux(clean_tree, [Dir]).
+	invoke_ciaosh_batch([
+	  use_module(ciaobld(ciaoc_batch_call), [clean_tree/1]),
+	  clean_tree(Dir)
+	]).
 
-% Clean compilation files for a individual module (Base is file without .pl suffix)
-:- export(clean_mod/1).
-clean_mod(Base) :-
-	clean_aux(clean_mod, [Base]).
+:- export(clean_mods/1).
+% TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
+clean_mods(Bases) :-
+	invoke_ciaosh_batch([
+	  use_module(ciaobld(ciaoc_batch_call), [clean_mods/1]),
+	  clean_mods(Bases)
+	]).
 
-:- use_module(library(sh_process), [sh_process_call/3]).
-
-% TODO: reimplement in Prolog
-clean_aux(Command, Args) :-
-	OS = ~get_bundle_flag(core:os),
-	Arch = ~get_bundle_flag(core:arch),
-	Env = ['CIAOOS' = OS, 'CIAOARCH' = Arch], % (for 'clean_mod')
-	sh_process_call(~clean_aux_sh, [Command|Args], [env(Env)]).
-
-:- use_module(engine(internals), [ciao_root/1]).
-
-% TODO: could I use bundle_path(builder, 'sh_src/clean_aux.sh')? (perhaps it is not registered)
-clean_aux_sh := Path :-
-	ciao_root(CiaoRoot),
-	Path = ~path_concat(CiaoRoot, 'builder/sh_src/clean_aux.sh').
-
-% ---------------------------------------------------------------------------
-
-:- use_module(engine(internals),
-	[po_filename/2,
-	 itf_filename/2]).
-
-:- export(clean_mod0/1).
-% TODO: see profiler_auto_conf:clean_module/1
-% TODO: complete, replace sh version
-clean_mod0(Base) :-
-	del_file_nofail(~po_filename(Base)),
-	del_file_nofail(~itf_filename(Base)).

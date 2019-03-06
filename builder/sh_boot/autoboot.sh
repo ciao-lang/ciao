@@ -259,6 +259,7 @@ autoboot_build() { # builddir mainmod
     # TODO: CIAOCCACHE may allow non-static exec here
     #
     mkdir -p "$builddir/bin"
+    mkdir -p "$builddir/cache" # (for out-of-source builds)
     builddir_exec "$builddir" "$boot_ciaoc" $boot__CIAOC_OPTS -s -x -o "$mainexec" "$2"
     # Restore previous exec_header (if it existed)
     rm "$header" # Delete dummy header

@@ -4,7 +4,7 @@
 #
 #  Auxiliary functions to clean results of compilation
 #
-#  Copyright (C) 2015 Jose F. Morales, Ciao Developer team
+#  Copyright (C) 2015-2019 Jose F. Morales, Ciao Developer team
 #
 # ===========================================================================
 #
@@ -31,40 +31,50 @@ clean_tree() {
     # We cannot use -print0 | xargs -0 because -print0 is not compatible
     # with Solaris, nor -print | xargs because it is buggy
     test x"$1" = x"" && return
-    find "$1"/. -name ".svn" -prune -o \( \
-	-name "*.po" -o -name "*.itf" -o -name "*.wam" \
-	-o -name "*.asr" -o -name "*.ast" \
-	-o -name "*.testout" \
+    find "$1"/. -name '.svn' -prune -o \( \
+	-name '*.po' -o -name '*.itf' -o -name '*.wam' \
+	-o -name '*.asr' -o -name '*.ast' \
+	-o -name '*.testout' \
 	\
-	-o -name "*_glue.c" -o -name "*_inline.c" \
-	-o -name "*.o" -o -name "*.a" \
-	-o -name "*.so" -o -name "*.dll" -o -name "*.dylib" \
+	-o -name '*_glue.c' -o -name '*_inline.c' \
+	-o -name '*.o' -o -name '*.a' \
+	-o -name '*.so' -o -name '*.dll' -o -name '*.dylib' \
 	\
-	-o -name "*.log" -o -name "*.err" \
-	-o -name "tmpciao*" \
+	-o -name '*.log' -o -name '*.err' \
+	-o -name 'tmpciao*' \
 	\
-	-o -name "*_auto.pl" \
-	-o -name "*_co.pl" \) \
+	-o -name '*_auto.pl' \
+	-o -name '*_co.pl' \) \
 	-exec rm -f {} \;
 }
 
-# Clean the compilation output for just one module
-clean_mod() { # MOD
+# Clean the compilation output at some cachedir for some prefix
+# TODO:
+#  - removing *_glue.c, *_inline.c, *_auto.c, *_co.pl may not be a good idea
+#    (use different names)
+clean_cachedir() { # Dir Prefix
+    # NOTE: this code has been optimized (usually it should take less
+    #   than 10 seconds)
+    #
+    # We cannot use -print0 | xargs -0 because -print0 is not compatible
+    # with Solaris, nor -print | xargs because it is buggy
     test x"$1" = x"" && return
-    rm -f \
-           "$1.asr" \
-           "$1.ast" \
-           "$1.itf" \
-           "$1.po" \
-           "$1.testout" \
-	   "$1""_""$CIAOOS$CIAOARCH"".o" \
-	   "$1""_""$CIAOOS$CIAOARCH"".a" \
-	   "$1""_""$CIAOOS$CIAOARCH"".so" \
-           "$1""_""$CIAOOS$CIAOARCH"".dll" \
-	   "$1""_""$CIAOOS$CIAOARCH"".dylib" \
-           "$1""_""$CIAOOS$CIAOARCH""_glue.c" \
-           "$1""_""$CIAOOS$CIAOARCH""_glue.o" \
-	   "$1""_""$CIAOOS$CIAOARCH""_inline.c"
+    test x"$2" = x"" && return
+    find "$1"/. -name "$2"'.*' -a \( \
+	-name '*.po' -o -name '*.itf' -o -name '*.wam' \
+	-o -name '*.asr' -o -name '*.ast' \
+	-o -name '*.testout' \
+	\
+	-o -name '*_glue.c' -o -name '*_inline.c' \
+	-o -name '*.o' -o -name '*.a' \
+	-o -name '*.so' -o -name '*.dll' -o -name '*.dylib' \
+	\
+	-o -name '*.log' -o -name '*.err' \
+	-o -name 'tmpciao*' \
+	\
+	-o -name '*_auto.pl' \
+	-o -name '*_co.pl' \) \
+	-exec rm -f {} \;
 }
 
 # Call whatever comes in arguments

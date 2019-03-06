@@ -122,6 +122,62 @@ delete_if_exists(File) :-
 	).
 
 % ---------------------------------------------------------------------------
+% Cleaning
+
+:- use_module(engine(internals), [ciao_root/1]).
+:- use_module(library(pathnames), [path_concat/3, path_split/3]).
+:- use_module(library(sh_process), [sh_process_call/3]).
+:- use_module(engine(stream_basic), [fixed_absolute_file_name/3]).
+:- import(internals, [translate_base/2]). % TODO: export
+
+% Clean (compilation files in) a directory tree (recursively)
+:- export(clean_tree/1).
+clean_tree(Dir) :-
+	% Translate base to detect out-of-source builds
+	fixed_absolute_file_name(Dir, '.', AbsDir),
+	translate_base(AbsDir, AbsDir2),
+	( AbsDir2 = AbsDir -> % in-source build
+	    clean_aux(clean_tree, [Dir])
+	; % out-of-source build
+	  path_split(AbsDir2, CacheDir, Prefix),
+	  clean_aux(clean_cachedir, [CacheDir, Prefix]),
+	  % TODO: ideally this should not be needed with out-of-source
+	  % builds, but we still may produce some output there
+	  clean_aux(clean_tree, [Dir])
+	).
+
+clean_aux(Command, Args) :-
+	% TODO: reimplement in Prolog
+	ciao_root(CiaoRoot),
+	path_concat(CiaoRoot, 'builder/sh_src/clean_aux.sh', Sh),
+	sh_process_call(Sh, [Command|Args], []).
+
+% Clean compilation files for individual modules (Base is file without .pl suffix)
+:- export(clean_mods/1).
+clean_mods([]).
+clean_mods([Base|Bases]) :- clean_mod(Base), clean_mods(Bases).
+
+% TODO: complete, replace sh version
+%          "$1.asr"
+%          "$1.ast"
+%          "$1.itf"
+%          "$1.po"
+%          "$1.testout"
+% 	   "$1""_""$CIAOOS$CIAOARCH"".o"
+% 	   "$1""_""$CIAOOS$CIAOARCH"".a"
+% 	   "$1""_""$CIAOOS$CIAOARCH"".so"
+%          "$1""_""$CIAOOS$CIAOARCH"".dll"
+% 	   "$1""_""$CIAOOS$CIAOARCH"".dylib"
+%          "$1""_""$CIAOOS$CIAOARCH""_glue.c"
+%          "$1""_""$CIAOOS$CIAOARCH""_glue.o"
+% 	   "$1""_""$CIAOOS$CIAOARCH""_inline.c"
+clean_mod(Base) :-
+	itf_filename(Base, Itf),
+	po_filename(Base, Po),
+	delete_if_exists(Itf),
+	delete_if_exists(Po).
+
+% ---------------------------------------------------------------------------
 % Messages for compilation progress
 
 % TODO: it must have same format as normal_message, share code?

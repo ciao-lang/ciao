@@ -28,7 +28,7 @@ $ ciaoc_sdyn MAIN
 :- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(engine(internals), [ciao_root/1]).
 
-:- use_module(ciaobld(ciaoc_aux), [clean_mod0/1]).
+:- use_module(ciaobld(ciaoc_aux), [invoke_ciaoc/1, clean_mods/1]).
 
 % ---------------------------------------------------------------------------
 
@@ -71,15 +71,15 @@ create_sdyn(MainF) :-
 	get_mod(MainF, MainMod),
 	Out = MainMod,
 	create_static_stub(MainMod, Stub),
-	process_call(path(ciaoc), ['-S', '-o', Out, Stub, MainF], []),
+	invoke_ciaoc(['-S', '-o', Out, Stub, MainF]),
 	%
 	find_pl_filename(Stub, _, StubBase, _),
-	clean_mod0(StubBase),
+	clean_mods([StubBase]),
 	delete_file(Stub).
 create_sdyn(MainF) :- % Do a normal -S call to ciaoc
 	get_mod(MainF, MainMod),
 	Out = MainMod,
-	process_call(path(ciaoc), ['-S', '-o', Out, MainF], []).
+	invoke_ciaoc(['-S', '-o', Out, MainF]).
 
 get_mod(F, Mod) :-
 	find_pl_filename(F, _Pl, Base, _),
