@@ -23,6 +23,7 @@
 	     imports_pred/7,
 	     def_multifile/4,
 	     decl/2]).
+:- use_module(library(compiler/file_buffer)).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 :- use_module(engine(messages_basic), [message/2]).
@@ -36,9 +37,8 @@
 :- use_module(library(system),
 	    [file_exists/1,
 		modif_time0/2,
-		mktemp/2,
+		mktemp_in_tmp/2,
 		winpath/2,
-		delete_file/1,
 		set_exec_mode/2]).
 :- use_module(engine(internals), [ciao_root/1]).
 :- use_module(engine(system_info), [get_platform/1, get_os/1]).
@@ -80,7 +80,7 @@ make_exec_prot(Files, ExecName) :-
 	current_prolog_flag(executables, ExecMode),
 	compute_objects_loads(ExecMode, ExecFiles, InitLoads),
 	create_init(Module, ExecMode, MainDef, InitLoads, InitFile),
-	create_exec(ExecName, Base, [InitFile|ExecFiles]),
+	create_exec(ExecName, Base, InitFile, ExecFiles),
 	create_interfaces, % JFMC
 	!,
 	delete_temp,
@@ -110,8 +110,10 @@ skipOnlib(Base) :-
 	current_prolog_flag(check_libraries, off),
 	in_lib_or_boot(Base),
 	% TODO: collect in a different way
-	so_filename(Base, SoName),
-	(file_exists(SoName) -> assertz_fact(has_so_file(Base)) ; true).
+	( so_filename(Base, SoName), file_exists(SoName) ->
+	    assertz_fact(has_so_file(Base))
+	; true
+	).
 
 % ---------------------------------------------------------------------------
 % Classification of modules
@@ -170,13 +172,13 @@ redo_po(Base) :-
 
 treat_so_lib(Base) :-
 	( findall(X, decl(Base, X), Decls),
-	    do_interface(Decls) -> % JFMC
+	  do_interface(Decls) -> % JFMC
 	    assertz_fact(needs_interface(Base, Decls)),
 	    assertz_fact(has_so_file(Base))
-	; so_filename(Base, SoName),
-	    file_exists(SoName) ->
-	    assertz_fact(has_so_file(Base))
-	; true
+	; ( so_filename(Base, SoName), file_exists(SoName) ->
+	      assertz_fact(has_so_file(Base))
+	  ; true
+	  )
 	).
 
 compute_main_def(user(_), _,    void) :- !.
@@ -349,8 +351,7 @@ compute_exec_data([Base|Bases], ExFs, Lds) :- % both .so and .po - JFMC
 really_has_so_file(Base) :-
 	has_so_file(Base), !.
 really_has_so_file(Base) :-
-	so_filename(Base, SoName),
-	file_exists(SoName).
+	so_filename(Base, SoName), file_exists(SoName).
 
 %%% --- Making lazyload files --- %%%
 
@@ -359,8 +360,7 @@ make_lo(Module, Base, LoFile) :-
 	verbose_message(['{Making lazyloader file for ', Module]),
 	compute_required_loads(Base, Loads0, Pred),
 	Loads = ('internals:load_lib_lazy'(Module, File), Loads0),
-	temp_filename(LoFile),
-	delete_on_ctrlc(LoFile, Ref),
+	temp_filename(LoFile, Ref),
 	open(LoFile, write, Out),
 	Mode = ql(unprofiled),
 	reset_counter(Module),
@@ -403,8 +403,7 @@ define_stump_pred :-
 
 
 create_init(Module, ExecMode, MainDef, Loads, TmpPoFile) :-
-	temp_filename(TmpPoFile),
-	delete_on_ctrlc(TmpPoFile, Ref),
+	temp_filename(TmpPoFile, Ref),
 	open(TmpPoFile, write, Out),
 	verbose_message(['{Compiling auxiliary file ', TmpPoFile]),
 	Mode = ql(unprofiled),
@@ -436,25 +435,37 @@ compile_main_def(void).
 compile_main_def(clause(UserMain, ModMain)) :-
 	compile_clause(UserMain, ModMain).
 
-create_exec(ExecName, Base, PoFiles) :-
+create_exec(ExecName, Base, InitPo, PoFiles) :-
 	file_data(Base, PlName, _),
 	get_os(OS),
 	resolve_execname(ExecName, Base, PlName, OS),
+	% Regenerate ExecName if needed
+	% TODO: this is not correct if InitPo changes, make it optional? or save config for incremental builds?
+%	modif_time0(ExecName, ExecTime),
+%	( member(PoFile, PoFiles),
+%	  modif_time0(PoFile, PoTime),
+%	  ExecTime < PoTime -> % (InitPo is not checked)
+	    % Recompile, some Po is more recent
+	    create_exec_(ExecName, [InitPo|PoFiles]),
+	    set_exec_mode(PlName, ExecName),
+	    % Generate batch file if needed
+	    generate_batch(OS, ExecName).
+%	; true
+%	).
+
+create_exec_(ExecName, PoFiles) :-
+	file_buffer_begin(ExecName, no, Buffer, Stream),
+	current_prolog_flag(self_contained, EngCfg),
 	current_input(Si),
 	current_output(So),
-	(file_exists(ExecName) -> delete_file(ExecName) ; true),
-	delete_on_ctrlc(ExecName, Ref),
-	open(ExecName, write, Stream),
 	set_output(Stream),
-	current_prolog_flag(self_contained, EngCfg),
 	copy_header(EngCfg),
 	copy_pos(PoFiles, Stream),
-	close(Stream),
-	erase(Ref),
-	generate_batch(OS, ExecName), % Generate batch file if needed
 	set_input(Si),
 	set_output(So),
-	set_exec_mode(PlName, ExecName).
+	( file_buffer_commit(Buffer) -> true
+	; fail % TODO: handle error in a better way?
+	).
 
 % The chunk of code below tries to untangle the different installation
 % possibilities in order to find out which engine has to be
@@ -520,14 +531,15 @@ copy_pos(PoFiles, _) :- % OPA
 	current_prolog_flag(compress_exec, no), !,
 	dump_pos(PoFiles).
 copy_pos(PoFiles, Stream) :-
-	temp_filename(TmpFile),
+	temp_filename(TmpFile, Ref),
 	open(TmpFile, write, TmpStreamw),
 	set_output(TmpStreamw),
 	dump_pos(PoFiles),
 	close(TmpStreamw),
-	open(TmpFile, read, TmpStreamr),
+	erase(Ref),
+	%
 	set_output(Stream),
-	verbose_message(['{Compressing executable}']),
+	open(TmpFile, read, TmpStreamr),
 	compressLZ(TmpStreamr),
 	close(TmpStreamr).
 
@@ -557,13 +569,14 @@ dump_pos([]).
 
 :- data tmp_file/1.
 
-temp_filename(File) :-
-	mktemp('tmpciaoXXXXXX', File),
-	assertz_fact(tmp_file(File)).
+temp_filename(File, Ref) :-
+	mktemp_in_tmp('tmpciaoXXXXXX', File),
+	assertz_fact(tmp_file(File)),
+	delete_on_ctrlc(File, Ref).
 
 delete_temp :-
 	retract_fact(tmp_file(File)),
-	delete_file(File),
+	del_file_nofail(File),
 	fail.
 delete_temp.
 

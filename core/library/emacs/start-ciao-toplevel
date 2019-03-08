@@ -3,7 +3,7 @@
 
 :- use_package([]).
 :- use_module(library(emacs)).
-:- use_module(library(errhandle), [error_protect/2]).
+:- use_module(library(errhandle)).
 
 main(_) :-
-	error_protect(emacs_eval_nowait("(run-ciao-toplevel)"), abort).
+	error_protect(emacs_eval_nowait("(run-ciao-toplevel)")).

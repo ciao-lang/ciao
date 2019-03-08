@@ -9,7 +9,8 @@
 
 :- use_module(library(format), [format/3]).
 :- use_module(library(lists), [length/2]).
-:- use_module(library(system), [delete_file/1, file_exists/1]).
+:- use_module(library(system), [mktemp_in_tmp/2]).
+:- use_module(library(system_extra), [del_file_nofail/1]).
 :- use_module(library(llists), [flatten/2]).
 :- use_module(engine(stream_basic)).
 :- use_module(library(stream_utils), [string_to_file/2]).
@@ -69,31 +70,28 @@ gaf(FileName0) :-
 
 gen_asr_file_main_rel(FileName0) :-
 	absolute_file_name(FileName0, FileName),
-	gen_dummy_file(FileName, DummyFileNamePl),
-	gen_asr_file(DummyFileNamePl),
-	pl_filename(DummyFileName, DummyFileNamePl),
-	itf_filename(DummyFileName, DummyFileNameItf),
-	delete_file(DummyFileNamePl),
-	delete_file(DummyFileNameItf).
+	gen_dummy_file(FileName, DummyBase, DummyPl),
+	gen_asr_file(DummyPl),
+	itf_filename(DummyBase, DummyItf),
+	del_file_nofail(DummyPl),
+	del_file_nofail(DummyItf).
 
 gen_asr_file(FileName) :-
 	get_code_and_related_assertions(FileName, _M, _Base, _Suffix, _Dir),
 	cleanup_itf_cache,
 	cleanup_code_and_related_assertions.
 
-gen_dummy_file(FileName, DummyFileName) :-
-	get_dummy_file_name(FileName, DummyFileName),
+gen_dummy_file(FileName, DummyBase, DummyPl) :-
+	% (DummyBase must be an absolute path)
+	mktemp_in_tmp('tmpciaoXXXXXX', DummyBase),
+	atom_concat(DummyBase, '.pl', DummyPl),
 	atom_codes(FileName, SFileName),
 	flatten([
 		":- module(_, _, [assertions]).\n" ||
 		":- use_module(\'" || SFileName,
 		"\').\n" ||
 		"main."], Content),
-	string_to_file(Content, DummyFileName).
-
-get_dummy_file_name(FileName, DummyFileName) :-
-	pl_filename(FileBase, FileName),
-	atom_concat(FileBase, '_tmp_co.pl', DummyFileName).
+	string_to_file(Content, DummyPl).
 
 gpo(FileName0) :-
 	absolute_file_name(FileName0, FileName), % (needed for reliable _filename with CIAOCCACHE)
@@ -102,23 +100,19 @@ gpo(FileName0) :-
 	itf_filename(FileBase, FileNameItf),
 	( up_to_date(FileNamePo,  FileName),
 	  up_to_date(FileNameItf, FileName) ->
-	    true
-	; % Remove .itf and .po to force complation
+	    true % TODO: missing dep checks? use make_po instead?
+	; % TODO: The following was introduced by EMM (see comment
+	  %   below), but it is not worth it (specially if we want to
+	  %   use out-of-tree builds for rtchecks) --JF
 	  %
-	  % TODO: If runtime_checks are enabled, then the itf file
-	  % generated in gaf/1, could be not valid w.r.t. the
-	  % generated in gpo/1, that is why I delete the itf in the
-	  % gpo/1 predicate, when creating the po file. -- EMM
+	  % % "If runtime_checks are enabled, then the itf file
+	  % %  generated in gaf/1, could be not valid w.r.t. the
+	  % %  generated in gpo/1, that is why I delete the itf in the
+	  % %  gpo/1 predicate, when creating the po file. -- EMM"
+	  % del_file_nofail(FileNameItf),
+	  % del_file_nofail(FileNamePo),
 	  %
-	  delete_if_exists(FileNameItf),
-	  delete_if_exists(FileNamePo),
 	  make_po(FileName)
-	).
-
-delete_if_exists(File) :-
-	( file_exists(File) ->
-	    delete_file(File)
-	; true
 	).
 
 % ---------------------------------------------------------------------------
@@ -174,8 +168,8 @@ clean_mods([Base|Bases]) :- clean_mod(Base), clean_mods(Bases).
 clean_mod(Base) :-
 	itf_filename(Base, Itf),
 	po_filename(Base, Po),
-	delete_if_exists(Itf),
-	delete_if_exists(Po).
+	del_file_nofail(Itf),
+	del_file_nofail(Po).
 
 % ---------------------------------------------------------------------------
 % Messages for compilation progress

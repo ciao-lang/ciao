@@ -30,7 +30,7 @@
 		set_debug_module_source/1]).
 :- use_module(library(goal_trans), [add_goal_trans/3]).
 :- use_module(library(system),     [file_exists/1]).
-:- use_module(library(errhandle), [error_protect/2]).
+:- use_module(library(errhandle)).
 :- use_module(library(sort),      [keysort/2]).
 :- use_module(library(attrdump),
 	    [copy_extract_attr/3, copy_extract_attr_nc/3]).
@@ -164,7 +164,7 @@ include_if_exists(File) :-
 	halt(1).
 
 shell_body :-
-	intercept(error_protect(top_shell_env, fail), % TODO: fail or abort?
+	intercept(error_protect(top_shell_env),
 	    control_c,
 	    do_interrupt_command(0'\n)).
 
@@ -234,7 +234,7 @@ handle_syntax_error(L0, L1, Msg, ErrorLoc) :-
 
 valid_solution(Query, Variables, VarNames) :-
 	(adjust_debugger ; switch_off_debugger, fail),
-	error_protect(call_rtc(shell_call(Query, MoreSols, VarNames)), fail), % TODO: fail or abort?
+	error_protect(call_rtc(shell_call(Query, MoreSols, VarNames))),
 	(switch_off_debugger ;                 adjust_debugger, fail),
 	('$nodebug_call'(after_solution_hook), fail ;           true),
 	current_prolog_flag(check_cycles, CyclesFlag),

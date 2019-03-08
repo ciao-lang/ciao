@@ -82,6 +82,7 @@
 :- use_module(library(compiler/pl2wam)).
 :- use_module(library(compiler/srcdbg), [srcdbg_expand/6]).
 :- use_module(library(compiler/global_module_options)).
+:- use_module(library(compiler/file_buffer)).
 :- use_module(library(fastrw)).
 :- use_module(library(varnames/complete_dict)).
 :- use_module(engine(runtime_control), [current_prolog_flag/2,
@@ -115,20 +116,18 @@
 :- use_module(engine(internals), [ciao_root/1]).
 :- use_module(library(system), [
 	modif_time0/2, modif_time/2, time/1, fmode/2, chmod/2,
-	working_directory/2, file_exists/1, file_exists/2, delete_file/1,
-	mktemp/2]).
+	working_directory/2, file_exists/1]).
 :- use_module(library(dynamic/dynamic_rt),    [wellformed_body/3]).
 :- use_module(library(pathnames),  [path_basename/2, path_concat/3]).
 :- use_module(library(strings),    [whitespace0/2]).
 :- use_module(library(stream_utils),    [get_line/1]).
-:- use_module(library(ctrlcclean), [delete_on_ctrlc/2, ctrlcclean/0]).
+:- use_module(library(ctrlcclean), [ctrlcclean/0]).
 :- use_module(library(terms),      [copy_args/3, atom_concat/2]).
 :- use_module(library(hiordlib), [maplist/2, maplist/3]).
 :- use_module(library(lists)).
 :- use_module(library(read)).
 :- use_module(library(operators)).
 :- use_module(library(foreign_interface/build_foreign_interface)). % JFMC
-:- use_module(library(compiler/compressed_bytecode)). % OPA
 :- use_module(library(assertions/assrt_lib), [normalize_assertion/9,
 	assertion_body/7, assertion_read/9, comps_to_goal/3]).
 
@@ -801,7 +800,7 @@ do_treat_action(Action, Base, PlName, Dir, Type, TreatP, NewStatus) :-
 	      assertz_fact(already_have_itf(Base))
 	    ),
 	    ( check_itf_data(Base, PlName), % fails if incorrect imports/exports
-	      gen_itf(GenerateItf, Base, PlName, Dir, ItfName) ->
+	      gen_itf(GenerateItf, Base, PlName, ItfName) ->
 	        treat_file(Base, TreatP)
 	    ; true % (note: errors state elsewhere)
 	    ),
@@ -810,10 +809,10 @@ do_treat_action(Action, Base, PlName, Dir, Type, TreatP, NewStatus) :-
 	; fail
 	).
 
-gen_itf(nogen, _Base, _PlName, _Dir, _ItfName).
-gen_itf(gen_itf, Base, PlName, Dir, ItfName) :-
+gen_itf(nogen, _Base, _PlName, _ItfName).
+gen_itf(gen_itf, Base, PlName, ItfName) :-
 	( fmode(PlName, Mode), % TODO: rename Mode in process_file (this is a file mode!)
-	  generate_itf(ItfName, Dir, Mode, Base) ->
+	  generate_itf(ItfName, Mode, Base) ->
 	    time(Now),
 	    assertz_fact(time_of_itf_data(Base,Now))
 	; fail
@@ -824,7 +823,7 @@ treat_file(Base, TreatP) :-
 	defines_module(Base, M),
 	generate_module_data(Base, M),
 	( TreatP(Base) -> true
-	; message(warning, ['Treatment of ',Base,'(.pl) failed'])
+	; message(warning, ['Treatment of ',Base,'(.pl) failed (goal: ', ~~(TreatP), ')'])
 	),
 	delete_module_data(M).
 
@@ -870,13 +869,16 @@ get_base_name(File, Base, PlName, Dir) :-
 	).
 
 compute_base_name(File, Base, PlName, Dir) :-
-	prolog_flag(fileerrors, OldFE, off),
+	prolog_flag(fileerrors, OldFE, off), % (fail on file errors)
 	( functor(File, _, N), N =< 1,
 	  find_pl_filename(File, PlName, Base, Dir),
 	  file_exists(PlName) ->
-	    set_prolog_flag(fileerrors, OldFE)
-	; set_prolog_flag(fileerrors, OldFE),
-	  throw(error(existence_error(source_sink,File),
+	    OK = yes
+	; OK = no
+	),
+	set_prolog_flag(fileerrors, OldFE),
+	( OK = yes -> true
+	; throw(error(existence_error(source_sink,File),
 	              absolute_file_name/7-1))
 	).
 
@@ -1984,24 +1986,21 @@ do_expansion_checks(_).
 :- doc(section, "Generate itf file").
 % TODO: move to a separate file (not dealing with incremental compilation)
 
-generate_itf(ItfName, Dir, Mode, Base) :-
-	prolog_flag(fileerrors, OldFE, off),
-	( stream_of_file(ItfName, Dir, Stream, Ref) ->
-	    current_output(CO),
-	    set_output(Stream),
-	    itf_version(V),
-	    current_prolog_flag(itf_format, Format),
-	    term_write(v(V,Format)),
-	    write_itf_data_of(Format, Base),
-	    set_output(CO),
-	    close(Stream),
-	    chmod(ItfName, Mode),
-	    erase(Ref)
+generate_itf(ItfName, Mode, Base) :-
+	file_buffer_begin(ItfName, no, Buffer, Stream),
+	current_output(CO),
+	set_output(Stream),
+	itf_version(V),
+	current_prolog_flag(itf_format, Format),
+	term_write(v(V,Format)),
+	write_itf_data_of(Format, Base),
+	set_output(CO),
+	( file_buffer_commit(Buffer) ->
+	    chmod(ItfName, Mode)
 	; ( current_prolog_flag(verbose_compilation,off) -> true
 	  ; message(warning, ['cannot create ',ItfName])
 	  )
-	),
-	set_prolog_flag(fileerrors, OldFE).
+	).
 
 write_itf_data_of(Format, Base) :-
 	itf_data(ITF, Base, _, Fact),
@@ -2300,75 +2299,40 @@ file_older_than_itf(Base, File) :-
 	FileTime < ItfTime.
 
 make_po_file(Base) :-
-	make_file(Base, po_filename,  ql(unprofiled), 'Compiling ').
+	make_po_file_1(Base, po_filename,  ql(unprofiled), 'Compiling ').
 
 make_wam_file(Base) :-
-	make_file(Base, wam_filename, wam,            'Assembling ').
+	make_po_file_1(Base, wam_filename, wam, 'Assembling ').
 
-:- meta_predicate make_file(+, pred(2), +, +).
+:- meta_predicate make_po_file_1(+, pred(2), +, +).
 
-make_file(Base, FilePred, Mode, Message) :-
-	file_data(Base, Source, Dir),
+make_po_file_1(Base, FilePred, Mode, Message) :-
+	file_data(Base, Source, _Dir),
 	defines_module(Base, Module),
 	FilePred(Base, PoName),
 	now_doing([Message,Source]),
-	make_file2_(PoName, Mode, Base, Dir, Module, Source),
+	make_po_file_2(PoName, Mode, Base, Module, Source),
 	end_doing.
 
-make_file2_(PoName, Mode, Base, Dir, Module, Source) :-
-	current_prolog_flag(compress_lib,no),
-	make_file3_(PoName, Mode, Base, Dir, Module, Source, Ref, Ok),
-	fmode(Source, FMode),
-	chmod(PoName, FMode),
-	erase(Ref),
-	check_ok(PoName, Ok).
-make_file2_(PoName, Mode, Base, Dir, Module, Source) :- %OPA
-	current_prolog_flag(compress_lib,yes),      
-	open(PoName,write,Out),
-	mktemp('tmpciaoXXXXXX', TmpFile),
-	make_file3_(TmpFile, Mode, Base, Dir, Module, Source, Ref, Ok),
-	open(TmpFile,read,TmpStream),
-	current_output(So),
-	set_output(Out),
-	( current_prolog_flag(verbose_compilation,off) -> true
-	; message(user, ['{Compressing library}'])
-	),
-	compressLZ(TmpStream),
-	close(TmpStream),
-	close(Out),
-	set_output(So),
-	fmode(Source, FMode),
-	chmod(PoName, FMode),
-	erase(Ref),
-	delete_file(TmpFile),
-	check_ok(PoName, Ok).
-make_file2_(PoName, _, _, _, _, _) :-
-	( file_exists(PoName) ->
-	    message(warning, ['Unable to update ',PoName,
-	                      ' - using existing file'])
-	; throw(cannot_create(PoName))
-	).
-
-make_file3_(PoName, Mode, Base, Dir, Module, Source, Ref, Ok) :-
-	stream_of_file(PoName, Dir, Out, Ref), !, % May fail
+make_po_file_2(PoName, Mode, Base, Module, Source) :-
+	current_prolog_flag(compress_lib, Compress),
+	file_buffer_begin(PoName, Compress, Buffer, Stream),
 	reset_counter(Module),
-	set_compiler_mode_out(Mode, Out),
-	compiler_pass(Source, Base, Module, Mode, Ok),
-	retractall_fact(incore_mode_of(_, _)),
-	close(Out).
-
-check_ok(PoName, Ok) :-
-	( Ok = yes ->
-	    true
-	; % File had errors, remove .po
-	  delete_file(PoName) % todo: improve error handling
+	set_compiler_mode_out(Mode, Stream),
+	compiler_pass(Source, Base, Module, Mode, OK),
+	retractall_fact(incore_mode_of(_, _)), % TODO: why?
+	( OK = yes ->
+	    ( file_buffer_commit(Buffer) ->
+	        fmode(Source, FMode),
+		chmod(PoName, FMode)
+	    ; ( file_exists(PoName) ->
+		  message(warning, ['Unable to update ',PoName,
+		                    ' - using existing file'])
+	      ; throw(cannot_create(PoName))
+	      )
+	    )
+	; file_buffer_erase(Buffer) % TODO: keep previous version instead?
 	).
-
-stream_of_file(Path, Dir, Stream, Ref) :-
-	file_exists(Dir, 2), % Write permission
-	( file_exists(Path) -> delete_file(Path) ; true ),
-	delete_on_ctrlc(Path, Ref),
-	'$open'(Path, w, Stream).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Expand and check assertions").
@@ -2428,7 +2392,7 @@ expand_subbody(C, M, Dict, EC) :-
 % ---------------------------------------------------------------------------
 :- doc(section, "Module compilation pass (after source is read)").
 
-compiler_pass(Source, Base, Module, Mode, Ok) :-
+compiler_pass(Source, Base, Module, Mode, OK) :-
 	del_compiler_pass_data,
 	asserta_fact(compiling_src(Source)),
 	compile_multifile_decls(Base, Module, Mode),
@@ -2444,8 +2408,8 @@ compiler_pass(Source, Base, Module, Mode, Ok) :-
 	  check_assertions_syntax(Module)
 	; true
 	),
-	(current_fact(mexpand_error) -> Ok = no ; Ok = yes),
-	( Ok = yes ->
+	(current_fact(mexpand_error) -> OK = no ; OK = yes),
+	( OK = yes ->
 	    compile_ldlibs(Base, Module, Mode),
 	    compile_dependences(Base, Module, Mode),
 	    include_module_data(Mode, Module)
@@ -2651,17 +2615,15 @@ include_runtime_data(Mode, M) :-
 	fail.
 include_runtime_data(_, _).
 
-/*
-include_decl(Mode, Decl, F, A) :-
-	((Mode = ql(Pr) ; Mode = incoreql(Pr)) ->
-	    functor(P, F, A),
-	    proc_declaration_in_mode(ql(Pr), Decl, P, F, A)
-	; Mode = wam ->
-	    functor(P, F, A),
-	    proc_declaration_in_mode(wam, Decl, P, F, A)
-	; true
-	).
-*/
+% include_decl(Mode, Decl, F, A) :-
+% 	((Mode = ql(Pr) ; Mode = incoreql(Pr)) ->
+% 	    functor(P, F, A),
+% 	    proc_declaration_in_mode(ql(Pr), Decl, P, F, A)
+% 	; Mode = wam ->
+% 	    functor(P, F, A),
+% 	    proc_declaration_in_mode(wam, Decl, P, F, A)
+% 	; true
+% 	).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Compile declarations").
@@ -3123,7 +3085,7 @@ compute_load_action(Base, Module, Mode, Load_Action) :-
 	defines_module(Base, Module),
 	itf_filename(Base, ItfName),
 	modif_time0(ItfName, ItfTime),
-	file_data(Base, PlName, Dir),
+	file_data(Base, PlName, _Dir),
 	compilation_mode(PlName, Module, Mode),
 	( Mode = interpreted(_) ->
 	    ( modif_time0(PlName, PlTime),
@@ -3138,7 +3100,7 @@ compute_load_action(Base, Module, Mode, Load_Action) :-
 	    ; PoTime < ItfTime ) ->
 	      \+ not_changed(Module, Base, fail, _), % to give message
 	      Load_Action =
-	          load_make_po(Base, PlName, Dir, PoName, Mode, Module)
+	          load_make_po(Base, PlName, PoName, Mode, Module)
 	  ; not_changed(Module, Base, Mode, PoTime) -> fail
 	  ; abolish_module(Module),
 	    generate_multifile_data(Base, Module),
@@ -3375,29 +3337,34 @@ compilation_mode(_, _, Profiling) :-
 
 load_interpreted(Source, Base, Module) :-
 	now_doing(['Consulting ',Source]),
-	compiler_pass(Source, Base, Module, interpreted, _Ok),
+	compiler_pass(Source, Base, Module, interpreted, _OK),
 	end_doing,
-	% TODO: unload module if Ok is not 'yes'
+	% TODO: unload module if OK is not 'yes'
 	compute_pred_module(Module).
 
-load_make_po(Base, Source, Dir, PoName, Profiling, Module) :-
+load_make_po(Base, Source, PoName, Profiling, Module) :-
 	now_doing(['Compiling ',Source]),
-	( stream_of_file(PoName, Dir, Out, Ref) ->
-	    Mode = incoreql(Profiling),
-	    reset_counter(Module),
-	    set_compiler_mode_out(Mode, Out),
-	    compiler_pass(Source, Base, Module, Mode, Ok),
-	    close(Out),
-	    fmode(Source, FMode),
-	    chmod(PoName, FMode),
-	    erase(Ref),
-	    check_ok(PoName, Ok)
-	; Mode = incore(Profiling),
-	  reset_counter(Module),
-	  set_compiler_mode(Mode),
-	  % TODO: unload module if Ok is not 'yes'
-	  compiler_pass(Source, Base, Module, Mode, _Ok)
+	file_buffer_begin(PoName, no, Buffer, Stream),
+	Mode = incoreql(Profiling),
+	reset_counter(Module),
+	set_compiler_mode_out(Mode, Stream),
+	% TODO: unload module if OK is not 'yes'
+	compiler_pass(Source, Base, Module, Mode, OK),
+	( OK = yes ->
+	    ( file_buffer_commit(Buffer) ->
+	        fmode(Source, FMode),
+		chmod(PoName, FMode)
+	    ; true % TODO: show warning?
+	    )
+	; file_buffer_erase(Buffer) % TODO: keep previous version instead?
 	),
+	% TODO: add an option for just 'incore'? (it was done before when .po was not writable)
+	% Mode = incore(Profiling),
+	% reset_counter(Module),
+	% set_compiler_mode(Mode),
+	% % TODO: unload module if OK is not 'yes'
+	% compiler_pass(Source, Base, Module, Mode, _OK)
+	%
 	end_doing,
 	compute_pred_module(Module).
 

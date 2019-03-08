@@ -12,10 +12,11 @@
 :- doc(module, "This module contains predicates used to transform
         run-time errors into human-readable messages.").
 
-:- use_module(engine(messages_basic), [messages/1, message_info/1]).
+:- use_module(engine(runtime_control)).
+:- use_module(engine(messages_basic)).
 :- use_module(library(lists), [append/3, reverse/2, select/3]).
 :- use_module(library(assertions/native_props), [is_det/1]).
-:- use_module(library(hiordlib), [maplist/3, foldl/4]).
+:- use_module(library(hiordlib), [maplist/3]).
 :- use_module(library(rtchecks/compact_list),   [compact_list/2]).
 :- use_module(library(rtchecks/rtchecks_utils), [rtcheck_error/1]).
 :- use_module(library(varnames/dict_types),     [varnamesl/1]).
@@ -25,6 +26,8 @@
 % TODO: possibly move rtchecks_basic:get_pretty_names/5 and its
 %       related predicates here.
 
+:- use_module(engine(runtime_control), [push_prolog_flag/2, pop_prolog_flag/1]). % TODO: needed? (see messages/1)
+
 % Used in the rtchecks and unittest libraries only
 :- pred pretty_messages(Messages) : list(Messages, message_info)
         # "Sets the @tt{write_strings} flag to the value @tt{on},
@@ -33,8 +36,12 @@
         flag value to @tt{off}.".
 
 pretty_messages(Messages) :-
-	compact_list(Messages, Messages1), % TODO: IC: is this really needed?
-	messages(Messages1).
+	push_prolog_flag(write_strings, on),
+	compact_list(Messages, Messages1),
+	messages(Messages1),
+	fail.
+pretty_messages(_) :-
+	pop_prolog_flag(write_strings).
 
 :- pred rtcheck_to_messages(RTCheck, Messages0, Messages)
 	:: (list(Messages0, message_info), list(Messages, message_info))
@@ -54,9 +61,7 @@ rtcheck_to_messages(rtcheck(Type, Pred0, Dict, Prop0, Valid0, Positions0),
 	    '.\nIn *', Type, '*, unsatisfied property: \n\t',
 	    ''({Prop}), '.'|Text0],
 	( Valid = [] -> Text0 = Text1
-	;
-	    actual_props_to_messages(Valid,ActualProps,Text1),
-	    Text0 = ['\nWhere:'| ActualProps]
+	; Text0 = ['\nBecause: \n\t', ''({Valid}), '.'|Text1]
 	),
 	(
 	    select(message_lns(S, Ln0, Ln1, MessageType, Text2),
@@ -69,7 +74,6 @@ rtcheck_to_messages(rtcheck(Type, Pred0, Dict, Prop0, Valid0, Positions0),
 	    PosMessages1 = PosMessages
 	),
 	append([Message|PosMessages1], Messages, Messages0).
-
 
 % TODO: pretty_prop/3 is  used only in the rtchecks and unittest libs,
 %       and it almost duplicates varnames/pretty_names:pretty_names/3
@@ -109,13 +113,3 @@ position_to_message(asrloc(loc(S, Ln0, Ln1)),
 	    message_lns(S, Ln0, Ln1, error, [])).
 position_to_message(pploc(loc(S, Ln0, Ln1)),
 	    message_lns(S, Ln0, Ln1, error, [])).
-
-actual_props_to_messages(ActualProps,Messages,Tail) :-
-	foldl(actual_prop_to_message, ActualProps, Messages, Tail).
-
-actual_prop_to_message(X=Y,['\n\t', ''({var(X)}) | Tail], Tail) :-
-	X==Y, !.
-% temporary fix to write var(X) instead of X=X
-actual_prop_to_message(X,['\n\t', ''({X}) | Tail], Tail).
-
-% TODO: Use toplevel to do this right (e.g. X=Y instead of X=_1, Y=_1).

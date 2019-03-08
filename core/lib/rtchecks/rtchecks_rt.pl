@@ -16,7 +16,8 @@
 		% compat/1,
 		% inst/1,
 		% succeeds/1,
-		attach_cut_fail/2
+		attach_cut_fail/2,
+		select_defined/3
 	    ],
 	    [assertions, nortchecks, hiord]).
 
@@ -191,10 +192,17 @@ checkif(fail, _,       _,        _,    _,          _,      _).
 checkif(true, ErrType, PredName, Dict, CheckProps, NProps, AsrLocs) :-
 	rtcheck(ErrType, PredName, Dict, CheckProps, NProps, AsrLocs).
 
+select_defined(N=V, SDict0, SDict) :-
+	( var(V) ->
+	    SDict = SDict0
+	; SDict0 = [N=V|SDict]
+	).
+
 :- meta_predicate rtcheck(?, ?, ?, list(goal), ?, ?).
 rtcheck(ErrType, PredName, Dict, CheckProps, NProps, AsrLocs) :-
 	( disj_prop(CheckProps, NProps, PropName-ActualProp) ->
-	    send_rtcheck(ErrType, PredName, Dict, PropName, ActualProp, AsrLocs)
+	    foldl(select_defined, ActualProp, ActualProp1, []),
+	    send_rtcheck(ErrType, PredName, Dict, PropName, ActualProp1, AsrLocs)
 	; true
 	).
 

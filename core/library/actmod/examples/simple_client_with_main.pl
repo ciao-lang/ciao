@@ -6,10 +6,10 @@
 
 :- use_module(engine(io_basic)).
 :- use_module(library(aggregates)).
-:- use_module(library(errhandle), [error_protect/2]).
+:- use_module(library(errhandle)).
 
 main(_) :- 
-	error_protect(doit, abort).
+	error_protect(doit).
 
 doit :-
 	display('Checking connection to server...'), nl,

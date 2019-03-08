@@ -11,7 +11,7 @@
 
 :- use_module(library(compiler/c_itf)).
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
-:- use_module(library(errhandle), [error_protect/2]).
+:- use_module(library(errhandle), [error_protect/1]).  
 :- use_module(library(terms), [atom_concat/2]).  
 :- use_module(engine(stream_basic), [sourcename/1]).
 
@@ -130,7 +130,7 @@ pass_one([File|Files],Flag):-
                 process_file(File, xrefs, any, 
                              recorda(Flag),
                              false, false, always)
-                                 ),fail), % TODO: fail or abort?
+                                 )),
         pass_one(Files,Flag).
 pass_one([],_Flag).
 

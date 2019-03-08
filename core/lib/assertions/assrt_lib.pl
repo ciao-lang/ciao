@@ -77,14 +77,14 @@ library @lib{compiler/c_itf}.
 :- use_module(library(assertions/assertions_props)).
 :- use_module(library(assertions/c_itf_props)).
 :- use_module(library(compiler/c_itf)).
-:- use_module(library(ctrlcclean), [ctrlc_clean/1,delete_on_ctrlc/2]).
-:- use_module(library(errhandle), [error_protect/2]).  
+:- use_module(library(compiler/file_buffer)).
+:- use_module(library(ctrlcclean), [ctrlc_clean/1]).
+:- use_module(library(errhandle)).  
 :- use_module(library(messages)).
 % :- use_module(library(miscprops)).
 %% :- use_module(library(formulae),[list_to_conj/2]).
 :- use_module(library(lists), [member/2, append/3]).
-:- use_module(library(system), 
-	[fmode/2,chmod/2,file_exists/1,file_exists/2,delete_file/1]).
+:- use_module(library(system), [fmode/2,chmod/2,delete_file/1]).
 :- use_module(library(compiler/translation), 
 	[expand_clause/6,del_goal_trans/1,del_clause_trans/1]).
 
@@ -180,7 +180,7 @@ get_code_and_related_assertions_opts(I,Opts,M,Base,Suffix,Dir):-
 		process_files_from(I, asr, any, 
 		                   process_file_assertions(I,Verb,Opts), 
                                    false, false, needs_processing(I,Verb))
-				 ),fail), % TODO: fail or abort? use once_port_reify?
+				 )),
 	pop_prolog_flag(keep_assertions), % Do not clean assertions!
 	pop_prolog_flag(read_assertions),
 %	pop_prolog_flag(runtime_checks),
@@ -377,37 +377,26 @@ generate_asr_file(Base,V) :-
 generate_asr_file(Base,Verb,Component) :-
 	asr_filename(Base, AsrName),
 	verb_message(Verb,['{Generating ',AsrName]),
-	file_data(Base, PlName, Dir),
+	file_data(Base, PlName, _Dir),
         fmode(PlName, Mode),
-        prolog_flag(fileerrors, OldFE, off),
-        ( stream_of_file(AsrName, Dir, Stream, Ref) ->
-            current_output(CO),
-            set_output(Stream),
-            asr_version(V),
-            term_write(v(V)),
-            write_asr_data_of(Base,Component),
-            write_rel_data,
-            set_output(CO),
-            close(Stream),
-            chmod(AsrName, Mode),
-            erase(Ref)
-        ;   message(user, ['{In ',PlName]),
-	    message(warning, ['cannot create ',AsrName]),
-	    message(user, '}'),
-	    read_asr_file_(Base,Verb)
+        file_buffer_begin(AsrName, no, Buffer, Stream),
+	current_output(CO),
+	set_output(Stream),
+	asr_version(V),
+	term_write(v(V)),
+	write_asr_data_of(Base,Component),
+	write_rel_data,
+	set_output(CO),
+	( file_buffer_commit(Buffer) -> % TODO: warning on failed commit
+            chmod(AsrName, Mode)
+        ; message(user, ['{In ',PlName]),
+	  message(warning, ['cannot create ',AsrName]),
+	  message(user, '}') % TODO: error?
+	  % read_asr_file_(Base,Verb) % TODO: why? disabled --JF
 	),
-	verb_message(Verb,'}'),
-        set_prolog_flag(fileerrors, OldFE).
+	verb_message(Verb,'}').
 
 :- pop_prolog_flag(multi_arity_warnings).
-
-%% Among other things, makes sure unfinished files are deleted on ctrlc
-% TODO: duplicated in c_itf_internal.pl (but not exported)
-stream_of_file(Path, Dir, Stream, Ref) :-
-        file_exists(Dir, 2), % Write permission
-        ( file_exists(Path) -> delete_file(Path) ; true ),
-        delete_on_ctrlc(Path, Ref),
-        open(Path, write, Stream).
 
 %% Normalization has occurred by now
 write_asr_data_of(Base,Component) :-

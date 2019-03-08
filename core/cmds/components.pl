@@ -2,7 +2,7 @@
 
 :- use_module(library(compiler/c_itf)).
 :- use_module(engine(stream_basic), [absolute_file_name/2]).
-:- use_module(library(errhandle), [error_protect/2]).
+:- use_module(library(errhandle), [error_protect/1]).  
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
 :- use_module(library(aggregates), [findall/3]).  
 :- use_module(library(sort), [sort/2]).  
@@ -50,7 +50,7 @@ process([F|Files],AllFiles):-
 	error_protect(ctrlc_clean(
 	     process_files_from(F, asr, any, 
 	                ok(AllFiles), false, false, true)
-		      ),fail), % TODO: fail or abort?
+		      )),
 	process(Files,AllFiles).
 
 ok(Base,AllFiles):-

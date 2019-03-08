@@ -209,14 +209,14 @@ write_sents(Stub, Sents) :-
 :- data dylib/2.
 
 :- use_module(library(compiler/c_itf)).
-:- use_module(library(errhandle), [error_protect/2]).
+:- use_module(library(errhandle), [error_protect/1]).  
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
 
 collect_dylibs(F) :-
 	retractall_fact(dylib(_, _)),
 	error_protect(ctrlc_clean(
 	     process_files_from(F, asr, any, treat, false, false, true)
-		      ),fail). % TODO: fail or abort?
+		      )).
 
 treat(Base) :-
 	so_filename(Base, SO),

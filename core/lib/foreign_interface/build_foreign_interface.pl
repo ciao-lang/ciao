@@ -24,13 +24,12 @@
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(library(write_c)).
-:- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(library(lists)).
 :- use_module(library(llists), [flatten/2]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(system_info),
 	[get_platform/1, ciao_c_headers_dir/1, eng_is_sharedlib/0]).
-:- use_module(library(system), [delete_file/1,modif_time0/2,file_exists/1]).
+:- use_module(library(system), [modif_time0/2]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(messages), 
 	[error_message/2,error_message/3,
@@ -43,8 +42,9 @@
 	[compiler_and_opts/2,linker_and_opts/2]).
 :- use_module(library(compiler/c_itf)).
 :- use_module(library(compiler/engine_path), [get_engine_dir/2]).
+:- use_module(library(compiler/file_buffer)).
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
-:- use_module(library(errhandle), [error_protect/2]).  
+:- use_module(library(errhandle)).  
 :- use_module(engine(internals), [
 	product_filename/3,
 	find_pl_filename/4
@@ -124,7 +124,7 @@ get_decls(File, Decls) :-
 	find_pl_filename(File, PlName, Base, _),
         error_protect(ctrlc_clean(
 		process_files_from(PlName, in, module, get_decls_2(Decls),  
-                                   false, false, '='(Base))), fail). % TODO: fail or abort?
+                                   false, false, '='(Base)))).
 
 get_decls_2(Base, Decls) :-
 	findall(D, decl(Base, D), Decls).
@@ -134,7 +134,7 @@ get_decls_2(Base, Decls) :-
 gluecode(Rebuild, Base, PrologFile) :-
 	CFile = ~product_filename(gluecode_c, Base),
 	( Rebuild = no -> has_changed(PrologFile, CFile) ; true ), !,
-	( Rebuild = yes -> delete_files([CFile]) ; true ), 
+	( Rebuild = yes -> del_files_nofail([CFile]) ; true ), 
 	gluecode_2(PrologFile, CFile).
 gluecode(_, _, _).
 
@@ -152,18 +152,25 @@ gluecode_2(PrologFile, CFile) :-
 	  fail
 	), !.
 gluecode_2(_, CFile) :-
-       	delete_files([CFile]), 
+       	del_files_nofail([CFile]), 
 	fail.
 
 %debug_display_assertions([]) :- !.
 %debug_display_assertions([X|Xs]) :- format(user_error, "[assertion] ~w~n", [X]), debug_display_assertions(Xs).
 
 write_c_to_file(CFile, Program, Module) :-
-	open_output(CFile, Stream), 
-	( write_c(Program, Module, 0, _) ->
-	    close_output(Stream)
-	; close_output(Stream),
-	  fail
+        file_buffer_begin(CFile, no, Buffer, Stream),
+	current_output(CO),
+	set_output(Stream),
+	( write_c(Program, Module, 0, _) -> OK = yes ; OK = no ),
+	set_output(CO),
+	( OK = yes ->
+	    ( file_buffer_commit(Buffer) ->
+	        true
+	    ; fail % TODO: warning?
+	    )
+	; file_buffer_erase(Buffer),
+	  fail  % TODO: handle errors?
 	).
 
 % -----------------------------------------------------------------------------
@@ -175,10 +182,11 @@ has_changed(SourceFile, TargetFile) :-
 
 % -----------------------------------------------------------------------------
 
-delete_files([]) :- !.
-delete_files([F|Fs]) :- delete_if_exists(F), delete_files(Fs).
-
-delete_if_exists(F) :- ( file_exists(F) -> delete_file(F) ; true ).
+% TODO: duplicated
+del_files_nofail([]).
+del_files_nofail([File|Files]) :-
+	del_file_nofail(File),
+	del_files_nofail(Files).
 
 % -----------------------------------------------------------------------------
 
@@ -698,7 +706,7 @@ get_options(Decls, Option, Xs) :-
 compile_and_link(Rebuild, Dir, Base, Decls) :-
 	get_foreign_files(Dir, Base, Decls, CFiles, OFiles, SOFile, AFile),
 	( Rebuild = yes ->
-	    delete_files([SOFile, AFile|OFiles])
+	    del_files_nofail([SOFile, AFile|OFiles])
 	; true
 	),
         % format(user_error, "[trace-dir] ~w~n", [Dir]),
@@ -713,7 +721,7 @@ compile_and_link_2(Dir, Decls, CFiles, OFiles, SOFile, AFile) :-
 	foreign_link_a(OFiles, AFile),
 	!.
 compile_and_link_2(_, _, _, OFiles, SOFile, AFile) :-
-	delete_files([SOFile, AFile|OFiles]), 
+	del_files_nofail([SOFile, AFile|OFiles]), 
 	fail.
 
 % -----------------------------------------------------------------------------
