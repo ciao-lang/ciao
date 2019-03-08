@@ -44,7 +44,7 @@
 :- use_module(library(compiler/engine_path), [get_engine_dir/2]).
 :- use_module(library(compiler/file_buffer)).
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
-:- use_module(library(errhandle)).  
+:- use_module(library(errhandle), [error_protect/2]).  
 :- use_module(engine(internals), [
 	product_filename/3,
 	find_pl_filename/4
@@ -124,7 +124,7 @@ get_decls(File, Decls) :-
 	find_pl_filename(File, PlName, Base, _),
         error_protect(ctrlc_clean(
 		process_files_from(PlName, in, module, get_decls_2(Decls),  
-                                   false, false, '='(Base)))).
+                                   false, false, '='(Base))), fail). % TODO: fail or abort?
 
 get_decls_2(Base, Decls) :-
 	findall(D, decl(Base, D), Decls).

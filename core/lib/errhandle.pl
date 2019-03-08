@@ -1,16 +1,17 @@
-:- module(errhandle, [error_protect/1, handle_error/2], [assertions]).
+:- module(errhandle, [error_protect/2, handle_error/3], [assertions]).
 
 :- use_module(engine(io_basic)).
 :- use_module(engine(messages_basic)).
 :- use_module(library(system)).
 :- use_module(library(rtchecks/rtchecks_utils), [handle_rtcheck/1]).
+:- use_module(engine(hiord_rt), [call/1]).
 
-:- meta_predicate(error_protect(goal)).
+:- meta_predicate(error_protect(goal,goal)).
 
-error_protect(Goal) :-
+error_protect(Goal, OnError) :-
 	RTError = rtcheck(_Type, _Pred, _Dict, _Prop, _Valid, _Poss),
 	catch(catch(Goal, RTError, handle_rtcheck_error(RTError)),
-	    error(Error, Where), handle_error(Error, Where)).
+	    error(Error, Where), handle_error(Error, Where, OnError)).
 
 handle_rtcheck_error(RTError) :-
 	handle_rtcheck(RTError),
@@ -27,7 +28,9 @@ handle_rtcheck_error(RTError) :-
 %     ;
 % 	true.
 
-handle_error(Error, Where) :-
+:- meta_predicate handle_error(?,?,goal).
+
+handle_error(Error, Where, OnError) :-
 	get_error_message(Error, Where, Message),
 	display(user_error, '{'),
 	message(error, Message),
@@ -39,11 +42,15 @@ handle_error(Error, Where) :-
 % 	display_errno,
 % 	display('}'),
 % 	nl,
-	fail.
-
+	call(OnError).
+	
 get_error_message(Error, Where, Message0) :-
+	nonvar(Error), nonvar(Where),
 	get_where(Where, Message0, Message),
-	get_error(Error, Message, ['}']).
+	get_error(Error, Message, ['}']),
+	!.
+get_error_message(Error, Where, Message) :- % TODO: merge with exceptions:no_handler/1
+	Message = ['No handle found for thrown exception ', ~~(error(Error,Where)), '}'].
 
 get_where(unknown/ -1, T, T) :- !.
 get_where(P/N-A, [P, '/', N, ', arg ', A, ' - '|T], T) :- !.
@@ -108,7 +115,6 @@ get_error(syntax_error([L0, L1, Msg, ErrorLoc]),
 	add_lines(L0, L1, ['\n', [](Msg), ':', ErrorLoc|T], Message).
 get_error(unintercepted_signal(Signal), Msg, T) :- !,
 	Msg = ['No handle found for sent signal ', ~~(Signal)|T].
-get_error(X, [X|T], T).
 
 translate_ball(atom,      'a non-numeric atom') :- !.
 translate_ball(atomic,    'an atom (including a number)') :- !.

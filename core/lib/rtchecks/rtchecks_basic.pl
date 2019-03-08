@@ -190,8 +190,16 @@ propname_name(Name, Name-_).
 
 propdict_name(PropDict, _-PropDict).
 
+% Replaces the keys K of the dict, e.g. 'X', for their pretty name, e.g. '$VAR'('X')
+'atoms_to_$VAR'(Dict0,Dict) :-
+	apply_dict(Dict0,Dict0,Dict1),
+	maplist('atom_to_$VAR' ,Dict0,Dict1,Dict).
+
+'atom_to_$VAR'(Atom=V,Atom=PrettyV,PrettyV=V).
+
 long_prop_names(Props, PropNames, Dict, Names) :-
-	maplist(select_applicable(Dict), Props, PropDicts),
+	maplist(select_applicable(Dict), Props, PropDicts0),
+	maplist('atoms_to_$VAR',PropDicts0,PropDicts),
 	maplist(propname_name, PropNames, Names),
 	maplist(propdict_name, PropDicts, Names).
 
