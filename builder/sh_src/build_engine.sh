@@ -185,13 +185,12 @@ linkhere() {
 # Writes the input to FILE, only if contents are different (preserves timestamps)
 # TODO: Use 'update_file' in other parts of the build process (for some _auto.pl files and configuration options)
 update_file() { # FILE
-    local t="$1""-tmp"
+    local t="$1""-tmp-$$"
     cat > "$t"
     if cmp -s "$1" "$t"; then # same, keep original
 	rm "$t"
     else # different or new
-	rm -f "$1"
-	mv "$t" "$1"
+	mv "$t" "$1" # atomically replace "$1"
     fi
 }
 
