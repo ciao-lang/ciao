@@ -13,17 +13,17 @@ Requirements
 ============
 
 A minimal build requires:
-   * A supported operating system (Linux, BSD, macOS, Windows)
+   * A computing device running a supported operating system (Linux,
+     BSD, macOS, Windows, Android).
 
    * A supported architecture (`amd64', `x86', `arm').
 
-   * A relatively modern C compiler (GCC or clang)
+   * A relatively modern C compiler (GCC or clang).
 
-   * A POSIX-like environment (partially emulated in Windows using
-     Cygwin (http://cygwin.com) or MSYS2 (https://msys2.github.io)).
+   * A POSIX-like environment.
 
 Although Ciao implements its own build system, the GNU implementation
-of the make Unix command is (still) used internally. If any of the
+of the make command is (still) used internally. If any of the
 installation steps stop right away with `make' error messages, you
 probably need to install `gmake'.
 
@@ -48,27 +48,27 @@ Depending on the operating system and package management tool, you may
 need to install the following dependencies (using `sudo' or as
 administrator or `root' user):
 
-   * Debian/Ubuntu (14.04):
+   * Debian/Ubuntu:
           $ apt-get install build-essential
-          # Required for 32 bits compatibility mode (x86)
+          # (optional) for 32 bits compatibility mode (x86)
           $ apt-get install gcc-multilib libc6-i386 libc6-dev-i386 g++-multilib
-          # Required for emacs-based IDE
+          # (optional) for emacs-based IDE
           $ apt-get install emacs
-          # Optionally, for rlwrap
+          # (optional) for line edition from the terminal
           $ apt-get install rlwrap
-          # Required for generating documentation in .pdf format
+          # (optional) for generating documentation in PDF format
           $ apt-get install texlive texinfo imagemagick
      (valid for both `x86' and `arm' architectures)
 
    * Fedora:
           $ dnf install gcc make which kernel-headers kernel-devel emacs
-          # Required for emacs-based IDE
+          # (optional) for emacs-based IDE
           $ dnf install emacs
-          # Required for 32 bits compatibility mode (x86)
+          # (optional) for 32 bits compatibility mode (x86)
           $ dnf install glibc-devel.i686 glibc-devel libstdc++-devel.i686
-          # Optionally, for rlwrap
+          # (optional) for line edition from the terminal
           $ dnf install rlwrap
-          # Required for generating documentation in .pdf format
+          # (optional) for generating documentation in PDF format
           $ dnf install texlive texinfo texinfo-tex ImageMagick
      (use `yum' instead of `dnf' above in older versions of Fedora)
 
@@ -78,14 +78,14 @@ administrator or `root' user):
           # Dependencies for build and development environment
           # (base-devel: includes gcc, make, which)
           $ pacman -S base-devel linux-headers
-          # Required for 32 bits compatibility mode
+          # (optional) for 32 bits compatibility mode (x86)
           # NOTE: Remember to enable multilib (https://wiki.archlinux.org/index.php/Multilib)
           $ pacman -S lib32-glibc lib32-libstdc++5
-          # Required for emacs-based IDE
+          # (optional) for emacs-based IDE
           $ pacman -S emacs
-          # Optionally, for rlwrap
+          # (optional) for line edition from the terminal
           $ pacman -S rlwrap
-          # Required for generating documentation in .pdf format
+          # (optional) for generating documentation in PDF format
           $ pacman -S texlive-core texinfo imagemagick
 
    * macOS:
@@ -101,46 +101,56 @@ administrator or `root' user):
           the MacTeX distribution, available from:
           `https://www.tug.org/mactex'.
 
-        * Optionally, for rlwrap:
+        * Install the following packages:
+               # (optional) for line edition from the terminal
                $ brew install rlwrap
 
    * FreeBSD:
         * Install GCC or clang and the following packages:
-
-          $ pkg install gmake
-          # Required for emacs-based IDE
-          # (without X11)
-          $ pkg install emacs-nox ImageMagick-nox expat
-          # (with X11)
-          $ pkg install emacs ImageMagick expat
-          # Optionally, for rlwrap
-          $ pkg install rlwrap
-          # Required for generating documentation in .pdf format
-          $ pkg install texinfo texlive-full
+               $ pkg install gmake
+               # (optional) for emacs-based IDE
+               $ pkg install emacs ImageMagick expat
+               # NOTE: use emacs-nox and ImageMagick-nox if X11 support is not needed
+               # (optional) for line edition from the terminal
+               $ pkg install rlwrap
+               # (optional) for generating documentation in PDF format
+               $ pkg install texinfo texlive-full
 
    * NetBSD:
         * Install GCC or clang and the following packages:
+               $ pkgin install gmake
+               # (optional) for emacs-based IDE
+               $ pkgin install emacs ImageMagick expat
+               # (optional) for line edition from the terminal
+               $ pkgin install rlwrap
+               # (optional) for generating documentation in PDF format
+               $ pkgin install tex-texinfo texlive-collection-latex
 
-          $ pkgin install gmake
-          # Required for emacs-based IDE
-          $ pkgin install emacs ImageMagick expat
-          # Optionally, for rlwrap
-          $ pkgin install rlwrap
-          # Required for generating documentation in .pdf format
-          $ pkgin install tex-texinfo texlive-collection-latex
+   * Windows (using Windows Subsystem or Linux):
+        * Install WSL
+          (https://docs.microsoft.com/en-us/windows/wsl/install-win10)
+
+        * Install some Linux distribution (e.g., Ubuntu) from the
+          Windows Store.
+
+        * Open a `bash' terminal and install the dependencies for the
+          selected distribution (see points above), e.g., Debian/Ubuntu.
+
+   * Android (using the Termux Linux environment):
+        * Install Termux (https://termux.com/)
+
+        * Install the following packages:
+               $ pkg install clang make
+               # (optional) for emacs-based IDE
+               $ pkg install emacs
+               # (optional) for line edition from the terminal
+               $ pkg install rlwrap
+
 
 Additional dependencies:
 
-Official relases for the latest `emacs' versions can be downloaded from
-`https://www.gnu.org/software/emacs/#Obtaining' (See the `gnu/emacs'
-and `gnu/windows/emacs' directories in FTP mirrors). You can find
-answers to frequently asked questions (FAQ) about `emacs' in general at
-`http://www.gnu.org/software/emacs/manual/efaq.html' and about the
-Windows version at
-`http://www.gnu.org/software/emacs/manual/efaq-w32.html'.
-
-Some advanced libraries and components, like the cost analysis, require
-an additional set of software packages:
+Some advanced libraries and components require an additional set of
+software packages:
 
      # Debian/Ubuntu:
      $ apt-get install g++ libgsl0-dev libgsl0ldbl
@@ -160,8 +170,7 @@ Ciao can be installed from the network using a `curl' pipe from
 `https://ciao-lang.org/boot' to `sh' in a terminal. This is probably
 the fastest/easiest way to install Ciao from sources.
 
-The network installater (for Unix) is delivered as an HTTPs redirection
-to
+The network installater is delivered as an HTTPs redirection to
 `https://raw.githubusercontent.com/ciao-lang/ciao/master/ciao-boot.sh'
 (which contains the latest version of the `ciao-boot.sh' script). The
 bootstrap script recognizes that it is being called without sources
@@ -261,8 +270,8 @@ Full installation instructions
           version. It allows having several Ciao versions installed
           simultaneously.
 
-        * `--mandir': directory where the manuals in Unix `man' format
-          will be installed.
+        * `--mandir': directory where the manuals in `man' format will
+          be installed.
 
         * `--infodir': directory where the manuals in `info' format
           will be installed.
@@ -350,9 +359,9 @@ Full installation instructions
      `/usr/share/emacs/.../lisp/site-init.pl', etc.).
 
   5. Check installation / read documentation: You may now want to check
-     your installation (see *Note Checking for correct installation on
-     Unix::) and read the documentation. There are special "getting
-     started" sections at the beginning of the manual.
+     your installation (see *Note Checking for correct installation::)
+     and read the documentation. There are special "getting started"
+     sections at the beginning of the manual.
 
 
 If you have any problems you may want to check *Note Troubleshooting::.
@@ -365,8 +374,8 @@ the top directory. To ensure that this process works, configuration
 should have not changed since installation, so that the same
 directories are cleaned.
 
-Checking for correct installation on Unix
-=========================================
+Checking for correct installation
+=================================
 
 If everything has gone well, several applications and tools should be
 available to a normal user. Try the following while logged in as a
@@ -471,61 +480,4 @@ Portable Ciao applications (i.e., except self-contained standalone
 executables) can run on several machines with different architectures
 without any need for recompiling, provided the Ciao engine and
 libraries are correctly installed.
-
-Installation and compilation under Windows
-==========================================
-
-There are two possibilities in order to install Ciao on Windows
-machines:
-
-   * Installing from the Windows precompiled distribution. This is the
-     easiest since it requires no compilation and is highly
-     recommended. This is described in *Note Installing Ciao from a
-     Win32 binary distribution::.
-
-   * Installing the standard Ciao (Unix) system source distribution and
-     compiling it under Windows. This is somewhat more complex and
-     currently requires the (freely available) Cygnus Win32 development
-     libraries -described below.
-
-
-In order to compile Ciao for Win32 environments you need to have the
-(public domain) Cygnus Win32 and development libraries installed in
-your system. Compilation should be performed preferably under Windows
-NT-type systems.
-
-   * Thus, the first step, if Cygnus Win32 is not installed in your
-     system, is to download it (from, e.g.,
-     `http://www.cygnus.com/misc/gnu-win32') and install it. The
-     compilation process also requires that the executables `rm.exe',
-     `sh.exe', and `uname.exe' from the Cygnus distribution be copied
-     under `/bin' prior to starting the process (if these executables
-     are not available under `/bin' the compilation process will
-     produce a number of errors and eventually stop prematurely).
-
-   * Assuming all of the above is installed, type `./ciao-boot.sh
-     allwin32'. This will compile both the engine and the Ciao
-     libraries. In this process, system libraries that are normally
-     linked dynamically under Unix (i.e., those for which `.so'
-     dynamically loadable files are generated) are linked statically
-     into the engine (this is done instead of generating `.dll's
-     because of a limitation in the current version of the Cygnus Win32
-     environment). No actual installation is made at this point, i.e.,
-     this process leaves things in a similar state as if you had just
-     downloaded and uncompressed the precompiled distribution. Thus, in
-     order to complete the installation you should now:
-
-   * Follow now the instructions in *Note Installing Ciao from a Win32
-     binary distribution::.
-
-
-A further note regarding the executables generated by the Ciao compiler
-and top-level: the same considerations given in *Note Installing Ciao
-from a Win32 binary distribution:: apply regarding `.bat' files, etc.
-However, in a system in which Cygnus Win32 is installed these
-executables can also be used in a very simple way. In fact, the
-executables can be run as in Unix by simply typing their name at the
-`bash' shell command line without any associated `.bat' files. This
-only requires that the `bash' shell which comes with Cygnus Win32 be
-installed and accessible: simply, make sure that `/bin/sh.exe' exists.
 
