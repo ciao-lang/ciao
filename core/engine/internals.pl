@@ -952,10 +952,10 @@ setup_paths :-
 	get_ciaopath,
 	% Load bundleregs (if available)
 	reload_bundleregs,
-	% Setup for use_cache_dir if needed
-	( c_get_env('CIAOCCACHE', WithCCache), WithCCache = '1' -> % TODO: change ENV var name
-	    fill_cache_dir % new workspace-based method
-	; true
+	% Fill use_cache_dir
+	( c_get_env('CIAOCCACHE', '0') -> % TODO: build/engine option instead?
+	    true
+	; fill_cache_dir
 	).
 
 :- use_module(engine(system_info), [ciao_c_headers_dir/1]).
