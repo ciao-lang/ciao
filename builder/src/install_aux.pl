@@ -256,7 +256,7 @@ instdir_install(dir(Dir0)) :-
 	).
 % (copy all)
 instdir_install(dir_rec(FromDir, ToDir)) :-
-	copy_file_tree(installable_precomp(full),
+	copy_file_tree(installable_precomp(full), % TODO: make it work with CIAOCCACHE
 	               FromDir, ~rootprefixed(ToDir), ~perms).
 % (copy all except .po and .itf)
 instdir_install(src_dir_rec(FromDir, ToDir)) :-

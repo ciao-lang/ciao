@@ -157,16 +157,14 @@ prim(lib(Path), Bundle, build_bin) :- !,
 prim(lib(_), _Bundle, clean_bin) :- !.
 prim(lib(Path), Bundle, install_bin) :- !,
 	% Install the module collection under Path (along compiled files)
-	% TODO: needs update for CIAOCCACHE!
 	normal_message("installing ~w/", [Path]),
 	From = ~bundle_path(Bundle, Path),
 	To = ~inst_bundle_path(Bundle, Path),
-	instdir_install(dir_rec(From, To)).
+	instdir_install(dir_rec(From, To)). % TODO: make it work with CIAOCACHE
 prim(lib(Path), Bundle, uninstall_bin) :- !,
 	% Uninstall the previously installed module collection Path
-	% TODO: needs update for CIAOCCACHE!
 	To = ~inst_bundle_path(Bundle, Path),
-	instdir_uninstall(dir_rec(To)).
+	instdir_uninstall(dir_rec(To)). % TODO: make it work with CIAOCACHE
 % lib_force_build/1
 prim(lib_force_build(Path), Bundle, build_bin) :- !, % TODO: hack for library/clpq, library/clpr (see core bundle)
 	build_libs(Bundle, ~bundle_path(Bundle, Path)).

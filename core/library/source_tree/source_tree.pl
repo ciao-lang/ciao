@@ -77,7 +77,9 @@
    @end{verbatim}
 ").
 
-:- doc(bug, "(bug) Does not work with CIAOCCACHE enabled").
+:- doc(bug, "When CIAOCCACHE is enabled (out-of-tree builds),
+   @tt{precomp} does not include binaries from the @tt{build/cache}
+   and @tt{build-boot/cache} directory.").
 
 :- doc(bug, "(documentation) Add more examples").
 %

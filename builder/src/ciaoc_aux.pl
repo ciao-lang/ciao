@@ -19,8 +19,8 @@
 :- doc(bug, "Add interface to optim_comp").
 :- doc(bug, "Better build plans, start several jobs (workers)").
 
-% TODO: Make sure that .po/.itf files of ciao_builder (due to dynamic
-%    compilation) are not mixed with the build .po/.itf files.
+% TODO: With CIAOCCACHE (out-of-tree builds) enabled by default, the
+%  bootstrap system could be simplified to a (reduced?) toplevel.
 
 % TODO: Do not use a dummy file in gen_asr_file_main_rel/1 (assrt_lib
 %   cannot document main modules!)
@@ -126,15 +126,6 @@ ciaoc_args(Opts, FileBuild, In) -->
 	),
 	['-o', FileBuild],
 	[In].
-
-% TODO: Fix using CIAOCCACHE by default. Document the main motivation:
-%       we build some libraries with the bootstrap compiler and others
-%       with the compiler that is built into ciao_builder. That may
-%       give us a lot of problems.
-%
-%       If we manage to have .po/.itf in a separate directory, we
-%       could just have a toplevel as our bootstrap (that is, a system
-%       where dynamically loaded code is possible).
 
 % ---------------------------------------------------------------------------
 %% Create bundle archives

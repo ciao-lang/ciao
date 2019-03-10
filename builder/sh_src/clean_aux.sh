@@ -13,8 +13,6 @@
 #  - The list of suffixes should be given by the system (the previous
 #    point would help).
 #
-#  - CIAOCCACHE may simplify some code
-#
 # ---------------------------------------------------------------------------
 
 # Exit immediately if a simple command exits with a non-zero status

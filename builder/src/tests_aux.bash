@@ -185,24 +185,9 @@ do_bench() { # I
 
 # ---------------------------------------------------------------------------
 
-# TODO: This is an approximation (may leave .so files, etc.)
-do_clean_subdir() {
-    local i b
-    find . '(' -name '*.po' -or -name '*.itf' ')' -exec rm -f '{}' ';'
-    # TODO: Prefix based solution instead? (it would remove old files too, and be faster)
-# TODO: support CIAOCCACHE
-#    if [ ! -z "${CIAOCACHEDIR:-}" ]; then
-#	find . -name '*.pl' | while read i; do
-#            b=`no_pl "$i"`
-#            rm -f "`product_filename "$b".itf`"
-#            rm -f "`product_filename "$b".po`" 
-#	    done
-#    fi
-}
-
 do_clean() {
     local i b
-    do_clean_subdir
+    ciao clean-tree .
     # Clean binaries for benchmarks
     for i in ${BENCHMODS}; do
         b=`no_pl "$i"`

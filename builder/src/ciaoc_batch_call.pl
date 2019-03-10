@@ -60,7 +60,8 @@ do_comp_action(do_gaf, FileName) :- gaf(FileName).
 do_comp_action(do_gpo, FileName) :- gpo(FileName).
 
 gaf(FileName0) :-
-	absolute_file_name(FileName0, FileName), % (needed for reliable _filename with CIAOCCACHE)
+	% (absolute path needed in *_filename/2)
+	absolute_file_name(FileName0, FileName),
 	pl_filename(FileBase, FileName),
 	asr_filename(FileBase, FileNameAsr),
 	( up_to_date(FileNameAsr, FileName) ->
@@ -94,7 +95,8 @@ gen_dummy_file(FileName, DummyBase, DummyPl) :-
 	string_to_file(Content, DummyPl).
 
 gpo(FileName0) :-
-	absolute_file_name(FileName0, FileName), % (needed for reliable _filename with CIAOCCACHE)
+	% (absolute path needed in *_filename/2)
+	absolute_file_name(FileName0, FileName),
 	pl_filename(FileBase, FileName),
 	po_filename(FileBase, FileNamePo),
 	itf_filename(FileBase, FileNameItf),
