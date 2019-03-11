@@ -1,0 +1,162 @@
+stages:
+  - config
+  - build
+  - install
+  - basic-bundles
+  - test
+
+before_script:
+  - apk --update add git make tar curl
+
+configure:
+  stage: config
+  script:
+    - ./ciao-boot.sh configure --ciao_ppl:enabled=no
+  tags:
+    - ciao
+  artifacts:
+    expire_in: 2h
+    untracked: true
+    paths:
+      - build-boot/
+
+build:
+  stage: build
+  script:
+    - ./ciao-boot.sh build --bin core.ciaobase # builds engine
+    - ./ciao-boot.sh build --bin core
+  tags:
+    - ciao
+  artifacts:
+    expire_in: 2h
+    untracked: true
+    paths:
+      - build-boot/
+      - build/
+  dependencies:
+    - configure
+
+install:
+  stage: install
+  script:
+    - ./ciao-boot.sh install
+  tags:
+    - ciao
+  artifacts:
+    expire_in: 2h
+    untracked: true
+    paths:
+      - build-boot/
+      - build/
+  dependencies:
+    - build
+
+ciaopp:
+  stage: basic-bundles
+  script:
+    - ./ciao-boot.sh configure --ciao_ppl:enabled=no
+    - ./ciao-boot.sh build --bin # builds many things, ciao_gsl needed
+  tags:
+    - ciao
+  artifacts:
+    expire_in: 2h
+    untracked: true
+    paths:
+      - build-boot/
+      - build/
+  dependencies:
+    - install
+
+incanal:
+  stage: test
+  script:
+    - apk add bash gnuplot # add bash for the test scripts
+    - export PATH="/builds/ciao-lang/ciao-devel-mirror/build/bin:$PATH"
+    - cd ciaopp/src/plai/incanal/tests
+    - ./compile.sh
+    - ./quick_run.sh
+  tags:
+    - ciao
+  artifacts:
+    paths:
+      - ciaopp/src/plai/incanal/tests/test_results/
+  dependencies:
+    - ciaopp
+
+lpdoc:
+  stage: basic-bundles
+  script:
+    - ./ciao-boot.sh build --bin lpdoc
+  tags:
+    - ciao
+  dependencies:
+    - install
+
+bibutils:
+  stage: basic-bundles
+  script:
+    - touch bndls/bibutils/ACTIVATE
+    - export PATH="/builds/ciao-lang/ciao-devel-mirror/build/bin:$PATH"
+    - ciao rescan-bundles
+    - ciao build --bin bibutils
+  tags:
+    - ciao
+  dependencies:
+    - install
+
+jvm_in_ciao:
+  stage: basic-bundles
+  script:
+    - ./ciao-boot.sh build --bin jvm_in_ciao 
+  tags:
+    - ciao
+  dependencies:
+    - install
+
+ciao_gui:
+  stage: basic-bundles
+  script:
+    - touch bndls/ciao_gui/ACTIVATE
+    - export PATH="/builds/ciao-lang/ciao-devel-mirror/build/bin:$PATH"
+    - ciao rescan-bundles
+    - ciao build --bin ciao_gui
+  tags:
+    - ciao
+  dependencies:
+    - install
+
+wui:
+  stage: basic-bundles
+  script:
+    - apk add --update nodejs nodejs-npm
+    - npm install -g bower
+    - touch bndls/wui/ACTIVATE
+    - export PATH="/builds/ciao-lang/ciao-devel-mirror/build/bin:$PATH"
+    - ciao rescan-bundles
+    - ciao custom_run wui fetch_externals
+    - ciao build --bin wui
+    - ciao custom_run wui dist
+  tags:
+    - ciao
+  dependencies:
+    - install
+  artifacts:
+    expire_in: 2h
+    untracked: true
+    paths:
+      - build/
+  cache:
+    paths:
+      - third-party/
+
+catalog_ui:
+  stage: test
+  script:
+    - touch bndls/catalog_ui/ACTIVATE
+    - export PATH="/builds/ciao-lang/ciao-devel-mirror/build/bin:$PATH"
+    - ciao rescan-bundles
+    - ciao build --bin catalog_ui
+  tags:
+    - ciao
+  dependencies:
+    - wui
