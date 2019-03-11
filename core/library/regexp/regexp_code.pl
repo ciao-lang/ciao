@@ -20,7 +20,7 @@
 
 
 %% This one does not need to appear in the documentation.
-:- doc(nodoc, define_flag/3).
+:- doc(hide, define_flag/3).
 
 % TODO: this should be a parameter of the match predicates (JFMC)
 define_flag(case_insensitive,[on,off],off).

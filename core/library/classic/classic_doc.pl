@@ -16,12 +16,12 @@
    as well as others that are de-facto standard built-ins in most
    Prolog implementations. Consult the @lib{classic_predicates} module
    for the listing of the concrete predicates that are available and
-   the Ciao libraries they come from.  Apart from these, the features
-   defined in @ref{Definite Clause Grammars} and @ref{Enabling
-   operators at run-time} are also activated.
+   the Ciao libraries they come from (see pointer below).  Apart from
+   these, the features defined in @ref{Definite Clause Grammars} and
+   @ref{Enabling operators at run-time} are also activated.
 
    The loading of this package can be controlled as described in the
-   @em{Library usage} below and @ref{The module system}.
+   @em{Library usage} below and in @ref{The module system}.
 
 ").
 
@@ -43,4 +43,5 @@
    by defining @file{~/.ciaorc} (which can then include whatever
    alternative prelude is preferred).").
 
+:- doc(hide,'\6\call_in_module'/2).
 :- use_package(classic).

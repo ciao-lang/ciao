@@ -7,7 +7,7 @@
 :- doc(author, "Manuel Hermenegildo").
 
 :- doc(module, "This module reexports the predicates required by the
-   @concept{classical Prolog} package").
+   @concept{classical Prolog} package.").
 
 :- reexport(library(aggregates)).
 :- reexport(library(read)).
