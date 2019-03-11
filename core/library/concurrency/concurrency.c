@@ -281,8 +281,9 @@ CBOOL__PROTO(prolog_eng_call)
                          gd->thread_id,
                          gd->thread_handle);
     exec_result = TRUE;		/* Remote thread: always success */
-  } else
-    exec_result = (bool_t)startgoal((THREAD_ARG)(gd));
+  } else {
+    exec_result = (bool_t)((intmach_t)startgoal((THREAD_ARG)(gd)));
+  }
 
 #if defined(DEBUG) && defined(THREADS)
   if (debug_threads) printf("Goal %x created, continuing\n", (int)gd);
@@ -352,7 +353,7 @@ CBOOL__PROTO(prolog_eng_backtrack)
     exec_result = TRUE;	   /* thread-delegated backtracking always suceeds */
   } else {
     goal->action &= ~NEEDS_FREEING;
-    exec_result = (bool_t)make_backtracking((THREAD_ARG)goal);
+    exec_result = (bool_t)((intmach_t)make_backtracking((THREAD_ARG)goal));
   }
   return exec_result;
 }

@@ -411,23 +411,23 @@ CBOOL__PROTO(statistics)
 	     (intmach_t)(ciao_statistics.gc_acc*sizeof(tagged_t)));
 
   ENG_PRINTF(s,
-	     " runtime:    %10.6f sec. %12" PRIdm " ticks at %12" PRIdm " Hz\n",
+	     " runtime:    %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
 	     (flt64_t)(runtick0-ciao_statistics.starttick)/GET_CLOCKFREQ(ciao_statistics),
 	     runtick0-ciao_statistics.starttick,
 	     GET_CLOCKFREQ(ciao_statistics));
   ENG_PRINTF(s,
-	     " usertime:   %10.6f sec. %12" PRIdm " ticks at %12" PRIdm " Hz\n",
+	     " usertime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
 	     (flt64_t)(usertick0-ciao_statistics.startusertick)/ciao_statistics.userclockfreq,
 	     usertick0-ciao_statistics.startusertick,
 	     ciao_statistics.userclockfreq);
   ENG_PRINTF(s,
-	     " systemtime: %10.6f sec. %12" PRIdm " ticks at %12" PRIdm " Hz\n",
+	     " systemtime: %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
 	     (flt64_t)(systemtick0-ciao_statistics.startsystemtick)/ciao_statistics.systemclockfreq,
 	     systemtick0-ciao_statistics.startsystemtick,
 	     ciao_statistics.systemclockfreq);
 
   ENG_PRINTF(s,
-	     " walltime:   %10.6f sec. %12" PRIdm " ticks at %12" PRIdm " Hz\n\n",
+	     " walltime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n\n",
 	     (flt64_t)(walltick0-ciao_statistics.startwalltick)/ciao_statistics.wallclockfreq,
 	     walltick0-ciao_statistics.startwalltick,
 	     ciao_statistics.wallclockfreq);
