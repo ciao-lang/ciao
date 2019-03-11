@@ -25,24 +25,18 @@
 #endif
 
 /* Signed integer multiplication with overflow checking */
-#if tagged__size == 32
-#if __has_builtin(__builtin_smul_overflow)
+#if __has_builtin(__builtin_mul_overflow)
 #define SMUL_OVERFLOW(A, B, P, OVERFLOW) ({ \
-  if (__builtin_smul_overflow((A), (B), &P)) { OVERFLOW; } \
-    })
+  if (__builtin_mul_overflow((A), (B), &P)) { OVERFLOW; } \
+})
 #else
+#if tagged__size == 32
 #define SMUL_OVERFLOW(A, B, P, OVERFLOW) ({ \
   int64_t R = (int64_t)(A) * (int64_t)(B); \
   if (R > INT_MAX || R < INT_MIN) { OVERFLOW; } \
   P = (intmach_t)R; \
 })
-#endif
 #elif tagged__size == 64
-#if __has_builtin(__builtin_smulll_overflow)
-#define SMUL_OVERFLOW(A, B, P, OVERFLOW) ({ \
-  if (__builtin_smulll_overflow((A), (B), &P)) { OVERFLOW; } \
-    })
-#else
 #include <stdint.h>
 #define SMUL_OVERFLOW(A, B, P, OVERFLOW) ({ \
   __int128_t R = (__int128_t)(A) * (__int128_t)(B); \
