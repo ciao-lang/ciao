@@ -9,7 +9,7 @@
 
 :- use_module(engine(internals), ['$open'/3]).
 :- use_module(engine(stream_basic)).
-:- use_module(library(system), [delete_file/1, rename_file/2, mktemp_in_tmp/2]).
+:- use_module(library(system), [delete_file/1, rename_file/2, mktemp/2]).
 :- use_module(library(port_reify), [once_port_reify/2]).
 :- use_module(library(ctrlcclean), [delete_on_ctrlc/2]).
 :- use_module(engine(runtime_control), [set_prolog_flag/2, prolog_flag/3]).
@@ -27,8 +27,11 @@
 %   
 %   This is not expected to fail.
 file_buffer_begin(Path, Compress, Buffer, Stream) :-
-	% create a temporary file
-	mktemp_in_tmp('tmpciaoXXXXXX', TmpFile),
+	% Create a temporary file
+	% NOTE: do not create in /tmp, rename() requires the files in
+	% the same filesystem.
+	atom_concat(Path, '-tmpciaoXXXXXX', PathTmp0),
+	mktemp(PathTmp0, TmpFile), % TODO: fix mktemp, do not close the file
 	delete_on_ctrlc(TmpFile, Ref),
 	'$open'(TmpFile, w, TmpS), % TODO: recover on error?
 	Stream = TmpS,
@@ -42,7 +45,8 @@ file_buffer_begin(Path, Compress, Buffer, Stream) :-
 file_buffer_commit(file_buffer(Ref, Path, TmpFile, TmpS, Compress)) :-
 	close(TmpS),
 	( Compress = yes ->
-	    mktemp_in_tmp('tmpciaoXXXXXX', TmpFile2),
+	    atom_concat(Path, '-tmpciaoXXXXXX', PathTmp0),
+	    mktemp(PathTmp0, TmpFile2),
 	    compress_file(TmpFile, TmpFile2),
 	    delete_file(TmpFile)
 	; TmpFile2 = TmpFile
