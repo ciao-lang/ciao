@@ -68,10 +68,9 @@ do_clean_bundle(Bundle) :-
 % install/uninstall (bin)
 
 :- use_module(ciaobld(install_aux), [
-  install_bin_dirs/1,
-  uninstall_bin_dirs/1,
-  install_bundlereg/1,
-  uninstall_bundlereg/1
+  install_bin_dirs/1, uninstall_bin_dirs/1,
+  install_bundlereg/1, uninstall_bundlereg/1,
+  install_cachedir/1, uninstall_cachedir/1
 ]).
 
 'grade.cmd'(bin, install, install_bin).
@@ -92,7 +91,9 @@ do_clean_bundle(Bundle) :-
 'cmd.do_after.decl'(install_bin).
 'cmd.do_after'(install_bin, Target) :- !,
 	( target_is_workspace(Target) -> true
-	; target_is_bundle(Target) -> install_bundlereg(Target) % Activate
+	; target_is_bundle(Target) ->
+	    install_bundlereg(Target), % Activate
+	    install_cachedir(Target)
 	; true
 	).
 
@@ -103,7 +104,9 @@ do_clean_bundle(Bundle) :-
 'cmd.do_before.decl'(uninstall_bin).
 'cmd.do_before'(uninstall_bin, Target) :- !,
 	( target_is_workspace(Target) -> true
-	; target_is_bundle(Target) -> uninstall_bundlereg(Target) % Deactivate
+	; target_is_bundle(Target) -> 
+	    uninstall_cachedir(Target),
+	    uninstall_bundlereg(Target) % Deactivate
 	; true
 	).
 'cmd.do_after.decl'(uninstall_bin).

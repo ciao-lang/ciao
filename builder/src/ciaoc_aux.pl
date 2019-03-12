@@ -49,6 +49,7 @@
 
 ciaoc := ~cmd_path(core, plexe, 'ciaoc').
 bootstrap_ciaoc := ~bundle_path(core, 'bootstrap/ciaoc.sta').
+ciaosh_exec := ~cmd_path(core, plexe, 'ciaosh').
 
 :- use_module(ciaobld(config_common), [cmd_path/4, libcmd_path/4]).
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
@@ -57,27 +58,30 @@ bootstrap_ciaoc := ~bundle_path(core, 'bootstrap/ciaoc.sta').
     set_prolog_flags_from_bundle_flags/1
 ]).
 
-ciaosh_exec := ~cmd_path(core, plexe, 'ciaosh').
-
-:- export(invoke_ciaosh_batch/1).
-% Batch execution of queries using ciaosh and current config prolog flags
-% TODO: Create a module instead? (remember to call clean_mods/1)
-invoke_ciaosh_batch(Cmds) :-
-	add_config_prolog_flags(Cmds, Cmds2),
-	Options = [stdin(terms(Cmds2))],
-	cpx_process_call(~ciaosh_exec, ['-q', '-f'], Options).
-
-add_config_prolog_flags(Cmds, CmdsR) :-
-	set_prolog_flags_from_bundle_flags(SetPrologFlags),
-	append(SetPrologFlags, Cmds, CmdsR).
+:- export(invoke_boot_ciaoc/2).
+invoke_boot_ciaoc(Args, Opts) :-
+	cpx_process_call(~bootstrap_ciaoc, Args, [boot|Opts]).
 
 :- export(invoke_ciaoc/1).
 invoke_ciaoc(Args) :-
 	cpx_process_call(~ciaoc, Args, []).
 
-:- export(invoke_boot_ciaoc/2).
-invoke_boot_ciaoc(Args, Opts) :-
-	cpx_process_call(~bootstrap_ciaoc, Args, [boot|Opts]).
+:- export(invoke_ciaosh_batch/1).
+invoke_ciaosh_batch(Cmds) :-
+	invoke_ciaosh_batch(Cmds, []).
+
+:- export(invoke_ciaosh_batch/2).
+% Batch execution of queries using ciaosh and current config prolog flags
+% TODO: Create a module instead? (remember to call clean_mods/1)
+invoke_ciaosh_batch(Cmds, Opts) :-
+	add_config_prolog_flags(Cmds, Cmds2),
+	Opts2 = [stdin(terms(Cmds2))|Opts],
+	cpx_process_call(~ciaosh_exec, ['-q', '-f'], Opts2).
+
+add_config_prolog_flags(Cmds, CmdsR) :-
+	set_prolog_flags_from_bundle_flags(SetPrologFlags),
+	append(SetPrologFlags, Cmds, CmdsR).
+
 
 % ===========================================================================
 :- doc(section, "Build of Executables").
@@ -111,7 +115,7 @@ b_make_exec(Bundle, InFile, OutFile, Opts) :-
 	In = ~atom_concat(Base, '.pl'),
 	ciaoc_args(Opts, FileBuild, In, Args, []),
 	( member(final_ciaoc, Opts) ->
-	    ensure_builddir(Bundle, 'cache'), % (for out-of-source builds) % TODO: move somewhere else?
+	    ensure_builddir(Bundle, 'cache'), % (for out-of-tree builds) % TODO: create dir from ciaoc?
 	    cpx_process_call(~ciaoc, Args, [cwd(Dir)])
 	; member(bootstrap_ciaoc, Opts) ->
 	    cpx_process_call(~bootstrap_ciaoc, Args, [boot, cwd(Dir)])
@@ -358,7 +362,7 @@ cmd_build_link(Bundle, Kind, Src, Dest) :-
 	    
 :- export(build_libs/2).
 build_libs(Bundle, BaseDir) :-
-	ensure_builddir(Bundle, 'cache'), % (for out-of-source builds) % TODO: move somewhere else?
+	ensure_builddir(Bundle, 'cache'), % (for out-of-tree builds) % TODO: create dir from ciaoc?
 	% Relative dir for messages
 	BundleDir = ~bundle_path(Bundle, '.'),
 	( BaseDir = BundleDir ->
@@ -463,10 +467,10 @@ exists_and_compilable(Dir) :-
 	).
 
 % ===========================================================================
-:- doc(section, "Cleaning").
+:- doc(section, "Managing compiler output for trees").
 
 % NOTE: Call through invoke_ciaosh_batch/1 is needed to ensure that we
-% use the same build settings (e.g., cachedir for out-of-source) than
+% use the same build settings (e.g., cachedir for out-of-tree) than
 % during module compilation.
 
 :- export(clean_tree/1).
@@ -485,3 +489,11 @@ clean_mods(Bases) :-
 	  clean_mods(Bases)
 	]).
 
+:- export(cachedir_prefix/2).
+% Ask prefix for out-of-tree builds
+cachedir_prefix(Dir, Prefix) :-
+	invoke_ciaosh_batch([
+	  use_module(ciaobld(ciaoc_batch_call), [show_cachedir_prefix/1]),
+	  show_cachedir_prefix(Dir) % output to stdout
+	], [stdout(terms(Out))]),
+	Out = [yes(Prefix)].

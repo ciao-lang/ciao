@@ -79,7 +79,8 @@
 
 :- doc(bug, "When CIAOCCACHE is enabled (out-of-tree builds),
    @tt{precomp} does not include binaries from the @tt{build/cache}
-   and @tt{build-boot/cache} directory.").
+   and @tt{build-boot/cache} directory. This is currently handled
+   separately from the builder.").
 
 :- doc(bug, "(documentation) Add more examples").
 %
@@ -983,6 +984,8 @@ precomp_builddir_yield_(noa) := ~bundle_path(core, builddir, 'libexec'). % noa l
 precomp_builddir_yield_(noa) := ~bundle_path(core, bootbuilddir, 'libexec'). % noa level produces libexec/
 precomp_builddir_yield_(noa) := ~bundle_path(core, builddir, 'bundlereg'). % noa level produces bundlereg/
 precomp_builddir_yield_(noa) := ~bundle_path(core, bootbuilddir, 'bundlereg'). % noa level produces bundlereg/
+precomp_builddir_yield_(noa) := ~bundle_path(core, builddir, 'cache'). % noa level produces cache/
+precomp_builddir_yield_(noa) := ~bundle_path(core, bootbuilddir, 'cache'). % noa level produces cache/
 % TODO: add a level to include third-party source?
 % (see third_party_install.pl)
 precomp_builddir_yield_(bin) := ~path_concat(~ciao_root, 'third-party'). % bin level produces third-party/

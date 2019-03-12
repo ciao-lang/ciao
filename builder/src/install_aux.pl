@@ -17,7 +17,7 @@
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3, bundle_path/4]).
 :- use_module(library(messages), [warning_message/2]).
-:- use_module(library(source_tree), [copy_file_tree/4]).
+:- use_module(library(source_tree), [copy_file_tree/4, remove_glob/2]).
 :- use_module(library(system_extra), [mkpath/2, create_rel_link/2]).
 :- use_module(library(system_extra), [ignore_nosuccess/1, warn_on_nosuccess/1]).
 :- use_module(library(system), [delete_directory/1]).
@@ -166,7 +166,7 @@ active_cmd_path(Kind, File) := Path :-
 %% concat_ver(Bundle, A) := ~atom_concat([A, '-', ~version_nopatch(Bundle)]).
 
 % ===========================================================================
-:- doc(section, "Installation/uninstallation of directory layout and registry files").
+:- doc(section, "Installation/uninstallation of directory layout").
 
 :- export(install_bin_dirs/1).
 install_bin_dirs(Bundle) :-
@@ -180,7 +180,8 @@ uninstall_bin_dirs(Bundle) :-
 	instdir_uninstall(dir_if_empty(~inst_ciao_root)),
 	instdir_uninstall(dir_if_empty(~inst_ciao_root_base)).
 
-% ---------------------------------------------------------------------------
+% ===========================================================================
+:- doc(section, "Installation/uninstallation of registry files").
 % Bundle registry and flags installation
 
 % (this rewrites bundlereg with updated paths)
@@ -224,6 +225,42 @@ inst_bundlereg_dir(BundleRegDir) :-
 	get_bundlereg_dir(Wksp, BundleRegDir).
 
 % ===========================================================================
+:- doc(section, "Installation/uninstallation of cachedir files").
+
+:- use_module(ciaobld(ciaoc_aux), [cachedir_prefix/2]).
+:- use_module(library(streams)). % TODO: remove
+
+:- export(install_cachedir/1).
+install_cachedir(Bundle) :-
+	( bundle_cachedir_glob(Bundle, CacheDir, Glob) ->
+	    % out-of-tree build
+	    InstCacheDir = ~inst_cachedir,
+	    instdir_install(dir(InstCacheDir)),
+	    instdir_install(dir_prefix(CacheDir, Glob, InstCacheDir))
+	; true % in-tree build
+	).
+
+:- export(uninstall_cachedir/1).
+uninstall_cachedir(Bundle) :-
+	( bundle_cachedir_glob(Bundle, _CacheDir, Glob) ->
+	    % out-of-tree build
+	    InstCacheDir = ~inst_cachedir,
+	    instdir_uninstall(dir_prefix(Glob, InstCacheDir))
+	; true % in-tree build
+	).
+
+bundle_cachedir_glob(Bundle, CacheDir, Glob) :-
+	BundleDir = ~bundle_path(Bundle, '.'),
+	cachedir_prefix(BundleDir, Prefix), % (may fail)
+	% out-of-tree build
+	path_split(Prefix, CacheDir, RelPrefix),
+	Glob = ~atom_concat(RelPrefix, '.*'). % (e.g., bndls.lpdoc.*)
+
+inst_cachedir(CacheDir) :-
+	inst_ciao_root(Wksp),
+	path_concat(Wksp, 'build/cache', CacheDir).
+
+% ===========================================================================
 :- doc(section, "Installation/uninstallation of files and directories").
 
 :- use_module(ciaobld(builder_flags), [get_builder_flag/2]).
@@ -256,11 +293,15 @@ instdir_install(dir(Dir0)) :-
 	).
 % (copy all)
 instdir_install(dir_rec(FromDir, ToDir)) :-
-	copy_file_tree(installable_precomp(full), % TODO: make it work with CIAOCCACHE
+	copy_file_tree(installable_precomp(full),
 	               FromDir, ~rootprefixed(ToDir), ~perms).
 % (copy all except .po and .itf)
 instdir_install(src_dir_rec(FromDir, ToDir)) :-
 	copy_file_tree(installable_precomp(src),
+	               FromDir, ~rootprefixed(ToDir), ~perms).
+% (copy all matching a glob pattern)
+instdir_install(dir_prefix(FromDir, Glob, ToDir)) :-
+	copy_file_tree([file_p-match(name, glob(Glob))],
 	               FromDir, ~rootprefixed(ToDir), ~perms).
 %
 instdir_install(bin_file(From, To0)) :-
@@ -342,6 +383,10 @@ instdir_uninstall(dir_rec(Dir)) :-
 %
 instdir_uninstall(src_dir_rec(Dir)) :-
 	safe_remove_dir_nofail(Dir).
+%
+instdir_uninstall(dir_prefix(Prefix, Dir)) :-
+	Glob = ~atom_concat(Prefix, '.*'), % (e.g., bndls.lpdoc.*)
+	remove_glob(Dir, Glob).
 %
 instdir_uninstall(dir(Dir)) :-
 	warn_on_nosuccess(delete_directory(~rootprefixed(Dir))).

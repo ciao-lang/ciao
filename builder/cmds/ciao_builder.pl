@@ -129,10 +129,6 @@ build directory (@tt{build-boot/}). However, there are options to
 force the recompilation and cleaning of that part (see
 @tt{ciao-boot.sh} help for more information).").
 
-:- doc(bug, "Avoid ciao_builder mix .po/.itf of bootstrap and final
-   ciaoc; enforce CIAOCCACHE for @apl{ciao_builder} compilation,
-   independently of whether CIAOCCACHE is used by the user.").
-
 % TODO: document that opts and flags may end in '--'
 % TODO: move cmd_fmt and ciaocl_help together
 % TODO: allow --target=Tgt for some commands? (e.g., custom_run)

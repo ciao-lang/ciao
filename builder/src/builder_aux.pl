@@ -102,7 +102,7 @@ builddir_clean(Bundle, config) :- !,
 builddir_clean(Bundle, bin) :- !,
 	remove_dir_nofail(~bundle_path(Bundle, builddir, 'bin')),
 	remove_dir_nofail(~bundle_path(Bundle, builddir, 'libexec')),
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'cache')). % out-of-source builds
+	remove_dir_nofail(~bundle_path(Bundle, builddir, 'cache')). % out-of-tree builds
 builddir_clean(Bundle, pbundle) :- !,
 	remove_dir_nofail(~bundle_path(Bundle, builddir, 'pbundle')).
 builddir_clean(Bundle, doc) :- !,

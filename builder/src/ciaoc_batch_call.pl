@@ -123,22 +123,17 @@ gpo(FileName0) :-
 :- use_module(engine(internals), [ciao_root/1]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 :- use_module(library(sh_process), [sh_process_call/3]).
-:- use_module(engine(stream_basic), [fixed_absolute_file_name/3]).
-:- import(internals, [translate_base/2]). % TODO: export
 
 % Clean (compilation files in) a directory tree (recursively)
 :- export(clean_tree/1).
 clean_tree(Dir) :-
-	% Translate base to detect out-of-source builds
-	fixed_absolute_file_name(Dir, '.', AbsDir),
-	translate_base(AbsDir, AbsDir2),
-	( AbsDir2 = AbsDir -> % in-source build
+	( cachedir_prefix(Dir, Prefix) ->
+	    % out-of-tree build
+	    path_split(Prefix, CacheDir, RelPrefix),
+	    clean_aux(clean_cachedir, [CacheDir, RelPrefix]),
+	    % TODO: make it optional; it should not needed with out-of-tree builds
 	    clean_aux(clean_tree, [Dir])
-	; % out-of-source build
-	  path_split(AbsDir2, CacheDir, Prefix),
-	  clean_aux(clean_cachedir, [CacheDir, Prefix]),
-	  % TODO: ideally this should not be needed with out-of-source
-	  % builds, but we still may produce some output there
+	; % in-tree builds
 	  clean_aux(clean_tree, [Dir])
 	).
 
@@ -172,6 +167,30 @@ clean_mod(Base) :-
 	po_filename(Base, Po),
 	del_file_nofail(Itf),
 	del_file_nofail(Po).
+
+% ---------------------------------------------------------------------------
+% Support for cachedir
+
+:- use_module(engine(stream_basic), [fixed_absolute_file_name/3]).
+:- import(internals, [translate_base/2]). % TODO: export
+
+:- export(show_cachedir_prefix/1).
+% Show the absolute path prefix for out-of-tree compilation of files at Dir
+% (used from installation)
+show_cachedir_prefix(Dir) :-
+	( cachedir_prefix(Dir, Prefix) ->
+	    MaybePrefix = yes(Prefix)
+	; MaybePrefix = no
+	),
+	format(user_output, "~q.\n", [MaybePrefix]).
+
+% Prefix is the cachedir path prefix for out-of-tree builds.
+% Fails if out-of-tree builds is not enabled for Dir.
+cachedir_prefix(Dir, Prefix) :-
+	fixed_absolute_file_name(Dir, '.', AbsDir),
+	translate_base(AbsDir, AbsDir2),
+	\+ AbsDir2 = AbsDir, % out-of-tree builds
+	Prefix = AbsDir2.
 
 % ---------------------------------------------------------------------------
 % Messages for compilation progress
