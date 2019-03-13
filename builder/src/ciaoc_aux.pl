@@ -373,7 +373,7 @@ build_libs(Bundle, BaseDir) :-
 	),
 	% (CompActions: list of compiler actions (gpo, gaf))
 	build_mod_actions(CompActions),
-	compile_modules(compilable_module, BaseDir, RelDir, CompActions).
+	compile_modules(BaseDir, RelDir, CompActions).
 
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
 build_mod_actions(Actions) :-
@@ -385,15 +385,15 @@ build_mod_actions(Actions) :-
 	Actions0 = [do_gpo].
 
 % TODO: is Filter needed now?
-compile_modules(Filter, BaseDir, RelDir, CompActions) :-
+compile_modules(BaseDir, RelDir, CompActions) :-
 	findall(m(Dir, File, FileName),
-	  compilable_modules(Filter, BaseDir, Dir, File, FileName), ModulesU),
+	  compilable_modules(BaseDir, Dir, File, FileName), ModulesU),
 	sort(ModulesU, Modules),
 	show_duplicates(Modules),
 	compile_module_list(Modules, BaseDir, RelDir, CompActions).
 
-compilable_modules(Filter, BaseDir, Dir, File, FileName) :-
-	current_file_find(Filter, BaseDir, FileName),
+compilable_modules(BaseDir, Dir, File, FileName) :-
+	current_file_find(compilable_module, BaseDir, FileName),
 	path_split(FileName, Dir, File).
 
 show_duplicates(Modules) :-
@@ -421,20 +421,88 @@ sort_by_file_([m(Dir, File, FileName)|Modules],
 	    [m(File, Dir, FileName)|Modules2]) :-
 	sort_by_file_(Modules, Modules2).
 
-%:- export(compile_module_list/4).
-% TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
-compile_module_list(Modules, BaseDir, RelDir, CompActions) :-
-	tty(UsingTTY),
-	invoke_ciaosh_batch([
-	  use_module(ciaobld(ciaoc_batch_call), [compile_mods/5]),
-	  compile_mods(Modules, CompActions, BaseDir, RelDir, UsingTTY)
-	]).
+% ---------------------------------------------------------------------------
 
-tty(X) :-
-	( using_tty ->
-	    X = using_tty
-	; X = no_tty
+:- use_module(library(process), [process_join/1]).
+
+%:- export(compile_module_list/4).
+compile_module_list(Modules, BaseDir, RelDir, CompActions) :- 
+	build_workers(Workers),
+	( Workers > 1 ->
+	    % Do static task allocation (naive approach)
+	    split_k(Workers, Modules, Groups)
+	; Groups = [Modules]
+	),
+	report_mode(Workers, ReportMode),
+	create_build_workers(Groups, BaseDir, RelDir, CompActions, ReportMode, Ps),
+	join_processes(Ps),
+	display_summary(Modules, RelDir).
+
+create_build_workers([], _BaseDir, _RelDir, _CompActions, _ReportMode, []).
+create_build_workers([Modules|Groups], BaseDir, RelDir, CompActions, ReportMode, [P|Ps]) :-
+	invoke_ciaosh_batch([
+	  % TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
+	  use_module(ciaobld(ciaoc_batch_call), [compile_mods/5]),
+	  compile_mods(Modules, CompActions, BaseDir, RelDir, ReportMode)
+	], [background(P)]),
+	create_build_workers(Groups, BaseDir, RelDir, CompActions, ReportMode, Ps).
+
+join_processes([]).
+join_processes([P|Ps]) :-
+	process_join(P),
+	join_processes(Ps).
+
+:- use_module(library(system), [get_numcores/1]).
+
+build_workers(X) :-
+	( yes = ~get_bundle_flag(builder:parallel) ->
+	    get_numcores(X)
+	; X = 1 % parallel builds disabled
 	).
+
+% Report mode for compile_mods/5
+report_mode(Workers, repmode(Count,EraseLine)) :-
+	% Do not show count when using >1 workers
+	( Workers = 1 -> MayCount = yes 
+	; MayCount = no
+	),
+	% Erase lines when output is attached to a TTY
+	( using_tty -> Count = MayCount, EraseLine = yes
+	; Count = no, EraseLine = no
+	).
+
+display_summary(Modules, RelDir) :-
+	length(Modules, N),
+	normal_message("compiled ~w/ (~w modules)", [RelDir, N]).
+
+% ---------------------------------------------------------------------------
+
+:- use_module(library(lists), [length/2]).
+
+%:- export(split_k/3).
+% Split list Xs into K groups of approximatelly equal size.
+% (Empty groups are omitted)
+split_k(_K, [], Groups) :- !, Groups = [].
+split_k(K, Xs, Groups) :-
+	length(Xs, Len),
+	Q is Len//K, % quotient
+	R is Len-Q*K, % reminder
+	% Take R times Q+1 and the rest Q
+	split_k_(Xs, Q, R, Groups).
+
+split_k_([], _Q, _R, []) :- !.
+split_k_(Xs, Q, R, [Group|Groups]) :- !,
+	( R > 0 -> R1 is R-1, N is Q+1 ; R1=R, N=Q ),
+	take_n(N, Xs, Group, Xs2),
+	split_k_(Xs2, Q, R1, Groups).
+
+% Split Xs into lists As of length N and rest Bs.
+% If length of Xs is less than N, As=Xs and Bs=[].
+take_n(0, Xs, As, Bs) :- !, As=[], Bs=Xs.
+take_n(_, [], As, Bs) :- !, As=[], Bs=[].
+take_n(I, [X|Xs], [X|As], Bs) :- I > 0,
+	I1 is I - 1,
+	take_n(I1, Xs, As, Bs).
 
 % ===========================================================================
 :- doc(section, "Testing").
@@ -474,17 +542,17 @@ exists_and_compilable(Dir) :-
 % during module compilation.
 
 :- export(clean_tree/1).
-% TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
 clean_tree(Dir) :-
 	invoke_ciaosh_batch([
+          % TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
 	  use_module(ciaobld(ciaoc_batch_call), [clean_tree/1]),
 	  clean_tree(Dir)
 	]).
 
 :- export(clean_mods/1).
-% TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
 clean_mods(Bases) :-
 	invoke_ciaosh_batch([
+          % TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
 	  use_module(ciaobld(ciaoc_batch_call), [clean_mods/1]),
 	  clean_mods(Bases)
 	]).
@@ -493,6 +561,7 @@ clean_mods(Bases) :-
 % Ask prefix for out-of-tree builds
 cachedir_prefix(Dir, Prefix) :-
 	invoke_ciaosh_batch([
+          % TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
 	  use_module(ciaobld(ciaoc_batch_call), [show_cachedir_prefix/1]),
 	  show_cachedir_prefix(Dir) % output to stdout
 	], [stdout(terms(Out))]),

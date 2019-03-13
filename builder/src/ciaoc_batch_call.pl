@@ -29,25 +29,23 @@
 :- use_module(library(compiler/up_to_date)).
 
 :- export(compile_mods/5).
-compile_mods(Modules, CompActions, BaseDir, RelDir, UsingTTY) :-
+% Process modules, sequentially
+compile_mods(Modules, CompActions, BaseDir, RelDir, ReportMode) :-
 	length(Modules, N),
-	compile_mods_(Modules, CompActions, BaseDir, RelDir, UsingTTY, 1, N),
-	display_done(UsingTTY, RelDir, N).
+	compile_mods_(Modules, CompActions, BaseDir, RelDir, ReportMode, 1, N),
+	display_done(ReportMode).
 
-pl_filename(FileBase, FileName) :- % (reversible)
-	atom_concat(FileBase, '.pl',  FileName).
-
-compile_mods_([], _CompActions, _BaseDir, _RelDir, _UsingTTY, _I, _N).
-compile_mods_([M|Ms], CompActions, BaseDir, RelDir, UsingTTY, I, N) :-
-	compile_mod(M, CompActions, BaseDir, RelDir, UsingTTY, I, N),
+compile_mods_([], _CompActions, _BaseDir, _RelDir, _ReportMode, _I, _N).
+compile_mods_([M|Ms], CompActions, BaseDir, RelDir, ReportMode, I, N) :-
+	compile_mod(M, CompActions, BaseDir, RelDir, ReportMode, I, N),
 	I1 is I + 1,
-	compile_mods_(Ms, CompActions, BaseDir, RelDir, UsingTTY, I1, N).
+	compile_mods_(Ms, CompActions, BaseDir, RelDir, ReportMode, I1, N).
 
-compile_mod(m(_, _, FileName), CompActions, BaseDir, RelDir, UsingTTY, I, N) :-
+compile_mod(m(_, _, FileName), CompActions, BaseDir, RelDir, ReportMode, I, N) :-
 	( path_get_relative(BaseDir, FileName, File0) -> File = File0
 	; File = FileName
 	),
-	display_progress(UsingTTY, RelDir, File, I, N),
+	display_progress(ReportMode, RelDir, File, I, N),
 	do_comp_actions(CompActions, FileName),
 	cleanup_itf_cache. % TODO: needed?
 
@@ -62,7 +60,7 @@ do_comp_action(do_gpo, FileName) :- gpo(FileName).
 gaf(FileName0) :-
 	% (absolute path needed in *_filename/2)
 	absolute_file_name(FileName0, FileName),
-	pl_filename(FileBase, FileName),
+	get_base_name(FileName, FileBase),
 	asr_filename(FileBase, FileNameAsr),
 	( up_to_date(FileNameAsr, FileName) ->
 	    true
@@ -97,7 +95,7 @@ gen_dummy_file(FileName, DummyBase, DummyPl) :-
 gpo(FileName0) :-
 	% (absolute path needed in *_filename/2)
 	absolute_file_name(FileName0, FileName),
-	pl_filename(FileBase, FileName),
+	get_base_name(FileName, FileBase),
 	po_filename(FileBase, FileNamePo),
 	itf_filename(FileBase, FileNameItf),
 	( up_to_date(FileNamePo,  FileName),
@@ -116,6 +114,10 @@ gpo(FileName0) :-
 	  %
 	  make_po(FileName)
 	).
+
+% TODO: (partially) duplicated
+get_base_name(FileName, FileBase) :-
+	atom_concat(FileBase, '.pl',  FileName).
 
 % ---------------------------------------------------------------------------
 % Cleaning
@@ -197,15 +199,19 @@ cachedir_prefix(Dir, Prefix) :-
 
 % TODO: it must have same format as normal_message, share code?
 
-display_progress(using_tty, RelDir, File, I, N) :-
-	format(user_error, "\r   compiling [~w/~w] ~w/~w ", [I, N, RelDir, File]).
-display_progress(no_tty, RelDir, File, _, _) :-
-	format(user_error, "\n   compiling ~w/~w ", [RelDir, File]).
+display_progress(repmode(Count,EraseLine), RelDir, File, I, N) :-
+	newline_code(EraseLine, C),
+	( Count = yes ->
+	    format(user_error, "~w   compiling [~w/~w] ~w/~w ", [C, I, N, RelDir, File])
+	; format(user_error, "~w   compiling ~w/~w ", [C, RelDir, File])
+	).
 
-display_done(UsingTTY, RelDir, N) :-
-	newline_code(UsingTTY, C),
-	format(user_error, "~w   compiled ~w/ (~w modules)\n", [C, RelDir, N]).
+display_done(repmode(_,EraseLine)) :-
+	newline_code(EraseLine, C),
+	format(user_error, "~w", [C]).
 
-newline_code(using_tty, '\r').
-newline_code(no_tty,    '\n').
+% newline_code(EraseLine, Code)
+%newline_code(yes, '\r').
+newline_code(yes, '\33\[2K\r'). % erase line and carriage-return 
+newline_code(no,    '\n').
 

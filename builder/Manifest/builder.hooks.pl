@@ -55,6 +55,13 @@
     rule_default(yes)
 ]).
 
+:- bundle_flag(parallel, [
+    comment("Enable parallel builds (experimental)"),
+    valid_values([yes, no]),
+    %
+    rule_default(no)
+]).
+
 % ---------------------------------------------------------------------------
 
 :- doc(section, "Installation and registration type").
