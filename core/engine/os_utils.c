@@ -1633,10 +1633,31 @@ CBOOL__PROTO(prolog_getpwnam)
 */
 CBOOL__PROTO(prolog_get_numcores)
 {
-  long num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+  /* Guess number of physical cores from the logical core count */
+#if (defined(LINUX) || defined(DARWIN))
+  unsigned logical_cores = sysconf(_SC_NPROCESSORS_ONLN);
+#else
+  unsigned logical_cores = 1; /* TODO: implement */
+#endif
+
+#if (defined(i686) || defined(x86_64))
+  /* Ask if we do hyperthreading */
+  uint32_t regs[4];
+  __asm__ __volatile__ ("cpuid " :
+			"=a" (regs[0]),
+			"=b" (regs[1]),
+			"=c" (regs[2]),
+			"=d" (regs[3])
+			: "a" (1), "c" (0));
+  bool_t hyperthreading = regs[3] & (1 << 28);
+#else
+  bool_t hyperthreading = 0;
+#endif  
   tagged_t x0;
+  unsigned physical_cores = (hyperthreading ? logical_cores/2 : logical_cores);
+
   DEREF(x0, X(0));
-  return cunify(Arg, x0, MakeSmall((intmach_t)num_cores));
+  return cunify(Arg, x0, MakeSmall((intmach_t)physical_cores));
 }
 
 /* --------------------------------------------------------------------------- */
