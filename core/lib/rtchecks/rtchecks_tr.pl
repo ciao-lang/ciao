@@ -1031,10 +1031,9 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
 	intersection(GP, ~valid_texec_comp_props, GPTexec),
 	difference(GP, ~valid_texec_comp_props, GPProps),
         get_prop_impl(GPTexec,_,Pred,RtcGPTexec),
-        get_prop_impl(GPProps,_,Pred,RtcGPProps),
-        get_prop_impl(AP,_,Pred,RtcAP),
-        get_prop_impl(CP,_,Pred,RtcCP),
-	% TODO: Maybe the sencond argument is needed (Natalia introduced it for some reason)
+        get_prop_impl(GPProps,comp,Pred,RtcGPProps),
+        get_prop_impl(AP,success,Pred,RtcAP),
+        get_prop_impl(CP,calls,Pred,RtcCP),
         %
 	comps_to_goal(RtcGPTexec, TestBodyGoal, TestBodyGoal0),
 	comps_to_goal(RtcGPProps, GPPropsGoal, GPPropsGoal0),
