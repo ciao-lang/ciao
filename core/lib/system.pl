@@ -52,6 +52,8 @@
 	    get_pwnam/1,
 	    get_grnam/1,
 	    %
+	    get_numcores/1,
+	    %
             shell/0,
             shell/1,
             shell/2,
@@ -784,6 +786,13 @@ dev_null('/dev/null').
 
 :- trust pred get_grnam(?atm).
 :- impl_defined(get_grnam/1).
+
+% ---------------------------------------------------------------------------
+
+:- doc(get_numcores(N), "Unifies @var{N} with the number of CPU cores.").
+
+:- trust pred get_numcores(?int).
+:- impl_defined(get_numcores/1).
 
 % ---------------------------------------------------------------------------
 

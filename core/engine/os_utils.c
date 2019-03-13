@@ -1628,6 +1628,19 @@ CBOOL__PROTO(prolog_getpwnam)
 
 /* --------------------------------------------------------------------------- */
 
+/*
+  system:get_numcores(?N): N is the number of CPU cores
+*/
+CBOOL__PROTO(prolog_get_numcores)
+{
+  long num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+  tagged_t x0;
+  DEREF(x0, X(0));
+  return cunify(Arg, x0, MakeSmall((intmach_t)num_cores));
+}
+
+/* --------------------------------------------------------------------------- */
+
 /* internals:$find_file(+LibDir, +Path, +Opt, +Suffix, ?Found, -AbsPath, -AbsBase, -AbsDir)
  * (See documentation in internals.pl)
  */

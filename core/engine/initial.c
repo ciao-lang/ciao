@@ -1258,6 +1258,7 @@ void init_once(void)
   define_c_mod_predicate("system","get_gid", 1, prolog_getgid);
   define_c_mod_predicate("system","get_pwnam", 1, prolog_getpwnam);
   define_c_mod_predicate("system","get_grnam", 1, prolog_getgrnam);
+  define_c_mod_predicate("system","get_numcores", 1, prolog_get_numcores);
   define_c_mod_predicate("system_info","get_arch", 1, prolog_getarch);
   define_c_mod_predicate("system_info","get_os", 1, prolog_getos);
   define_c_mod_predicate("system_info","eng_debug_level", 1, prolog_eng_debug_level);
