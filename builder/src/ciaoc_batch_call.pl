@@ -200,7 +200,7 @@ cachedir_prefix(Dir, Prefix) :-
 % TODO: it must have same format as normal_message, share code?
 
 display_progress(repmode(Count,EraseLine), RelDir, File, I, N) :-
-	newline_code(EraseLine, C),
+	( I = 1 -> C = '' ; newline_code(EraseLine, C) ),
 	( Count = yes ->
 	    format(user_error, "~w   compiling [~w/~w] ~w/~w ", [C, I, N, RelDir, File])
 	; format(user_error, "~w   compiling ~w/~w ", [C, RelDir, File])
@@ -213,5 +213,5 @@ display_done(repmode(_,EraseLine)) :-
 % newline_code(EraseLine, Code)
 %newline_code(yes, '\r').
 newline_code(yes, '\33\[2K\r'). % erase line and carriage-return 
-newline_code(no,    '\n').
+newline_code(no,  '\n').
 
