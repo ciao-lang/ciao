@@ -577,10 +577,13 @@ prepare_grade(Grade, ParentTarget) :-
 	; true
 	).
 
-% System bundles are reachable (given 'recursive' flag) from Bundle:
+% Check if a system bundles is reachable from Target given the current
+% value of the 'recursive' flag:
 %
-%  - either we have unlimited bundle recursion
-%  - or Bundle is system bundle
+%  a) no recursion limit is selected (recursive=all_workspaces)
+%  b) recurse on the same workspace (recursive=same_workspace)
+%     and Target contains a system bundle
+%  c) target is the 'core' bundle itself
 %
 % This is used for grade requirements and it does not consider bundle
 % dependencies.
@@ -594,6 +597,7 @@ reach_sys_bundle(Target) :-
 	; split_target(Target, Bundle, _Part),
 	  is_sys_bundle(Bundle) % is a system bundle
 	).
+reach_sys_bundle(core). % (depends on itself) % TODO: 'core' hardwired
 
 % ---------------------------------------------------------------------------
 % Obtain primitive targets ("defs") for the grade
