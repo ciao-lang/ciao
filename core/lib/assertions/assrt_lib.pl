@@ -1,6 +1,6 @@
 :- module(assrt_lib,
 	[
-	    get_code_and_norm_assertions/2,
+	    %get_code_and_norm_assertions/2,
 	    get_code_and_related_assertions/5,
 	    get_code_and_related_assertions_opts/6,
 	    cleanup_code_and_related_assertions/0, 
@@ -186,9 +186,9 @@ get_code_and_related_assertions_opts(I,Opts,M,Base,Suffix,Dir):-
 %	pop_prolog_flag(runtime_checks),
 	get_file_data(I,Base,M,Suffix,Dir).
 
-get_code_and_norm_assertions(Base,M):-
-	process_file_assertions_(Base,[]),
-	defines_module(Base,M).
+%get_code_and_norm_assertions(Base,M):-
+%	process_file_assertions_(Base,[]),
+%	defines_module(Base,M).
 
 get_file_data(I,Base,M,Suffix,Dir):-
 	substract_pl(I,_Main,Suffix),
@@ -658,6 +658,7 @@ local_write_assertion(PD,Status,Type,Body,_Dict,_Flag,M) :-
 
 normalize_assertions_pass_one(M,Base) :-
 %	defines_module(Base,M),
+	retractall_fact(assertion_read(_,M,_,_,_,_,_,_,_)), % (just in case they where added and expanded in c_itf_internal:read_assertion/6) % TODO: better integration
 	(  %% Normalize all assertions in this module
 	   clause_of(Base,1,Assrt,Dict,S,LB,LE),
 	   normalize_one_assertion_pass_one(
@@ -733,7 +734,7 @@ pass_two_not_required(modedef). %% modedefs already transformed in pass one -- l
 normalize_assertions_pass_two_opts(M,Opts) :-
 	( assertion_read(PD,M,AStatus,AType,NAss,Dict,S,LB,LE),
 	  \+ pass_two_not_required(AType),
-	  retract_fact(assertion_read(PD,AM,AStatus,AType,NAss,Dict,S,LB,LE)),
+	  retract_fact(assertion_read(PD,AM,AStatus,AType,NAss,Dict,S,LB,LE)), % TODO: why AM instead of M?
 	  normalize_properties(NAss,NPropAss,M,F/A,Opts,AType,S,LB,LE),
 	  ( AType \== test -> check_body_properties(M,AM,F,A,NPropAss,S,LB,LE)
 	  ; true ), %% Unit-Tests will be checked when it be compiled, not here
