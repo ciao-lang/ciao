@@ -122,29 +122,6 @@ get_base_name(FileName, FileBase) :-
 % ---------------------------------------------------------------------------
 % Cleaning
 
-:- use_module(engine(internals), [ciao_root/1]).
-:- use_module(library(pathnames), [path_concat/3, path_split/3]).
-:- use_module(library(sh_process), [sh_process_call/3]).
-
-% Clean (compilation files in) a directory tree (recursively)
-:- export(clean_tree/1).
-clean_tree(Dir) :-
-	( cachedir_prefix(Dir, Prefix) ->
-	    % out-of-tree build
-	    path_split(Prefix, CacheDir, RelPrefix),
-	    clean_aux(clean_cachedir, [CacheDir, RelPrefix]),
-	    % TODO: make it optional; it should not needed with out-of-tree builds
-	    clean_aux(clean_tree, [Dir])
-	; % in-tree builds
-	  clean_aux(clean_tree, [Dir])
-	).
-
-clean_aux(Command, Args) :-
-	% TODO: reimplement in Prolog
-	ciao_root(CiaoRoot),
-	path_concat(CiaoRoot, 'builder/sh_src/clean_aux.sh', Sh),
-	sh_process_call(Sh, [Command|Args], []).
-
 % Clean compilation files for individual modules (Base is file without .pl suffix)
 :- export(clean_mods/1).
 clean_mods([]).
@@ -169,30 +146,6 @@ clean_mod(Base) :-
 	po_filename(Base, Po),
 	del_file_nofail(Itf),
 	del_file_nofail(Po).
-
-% ---------------------------------------------------------------------------
-% Support for cachedir
-
-:- use_module(engine(stream_basic), [fixed_absolute_file_name/3]).
-:- import(internals, [translate_base/2]). % TODO: export
-
-:- export(show_cachedir_prefix/1).
-% Show the absolute path prefix for out-of-tree compilation of files at Dir
-% (used from installation)
-show_cachedir_prefix(Dir) :-
-	( cachedir_prefix(Dir, Prefix) ->
-	    MaybePrefix = yes(Prefix)
-	; MaybePrefix = no
-	),
-	format(user_output, "~q.\n", [MaybePrefix]).
-
-% Prefix is the cachedir path prefix for out-of-tree builds.
-% Fails if out-of-tree builds is not enabled for Dir.
-cachedir_prefix(Dir, Prefix) :-
-	fixed_absolute_file_name(Dir, '.', AbsDir),
-	translate_base(AbsDir, AbsDir2),
-	\+ AbsDir2 = AbsDir, % out-of-tree builds
-	Prefix = AbsDir2.
 
 % ---------------------------------------------------------------------------
 % Messages for compilation progress

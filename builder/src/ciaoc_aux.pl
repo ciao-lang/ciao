@@ -537,19 +537,49 @@ exists_and_compilable(Dir) :-
 % ===========================================================================
 :- doc(section, "Managing compiler output for trees").
 
-% NOTE: Call through invoke_ciaosh_batch/1 is needed to ensure that we
-% use the same build settings (e.g., cachedir for out-of-tree) than
-% during module compilation.
+% NOTE: Most of these are "safe" implementations that are ensured to
+% work even if ciaosh or the engine are not working properly.
+
+:- use_module(ciaobld(builder_aux), [lookup_workspace/2]).
+:- use_module(engine(internals), [ciao_root/1]).
+:- use_module(library(sh_process), [sh_process_call/3]).
+
+:- import(internals, [translate_base_2/2]).
 
 :- export(clean_tree/1).
+% Clean (compilation files in) a directory tree (recursively).
 clean_tree(Dir) :-
-	invoke_ciaosh_batch([
-          % TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
-	  use_module(ciaobld(ciaoc_batch_call), [clean_tree/1]),
-	  clean_tree(Dir)
-	]).
+	( cachedir_prefix(Dir, Prefix) ->
+	    % out-of-tree build
+	    path_split(Prefix, CacheDir, RelPrefix),
+	    clean_aux(clean_cachedir, [CacheDir, RelPrefix]),
+	    % TODO: make it optional; it should not needed with out-of-tree builds
+	    clean_aux(clean_tree, [Dir])
+	; % in-tree builds
+	  clean_aux(clean_tree, [Dir])
+	).
+
+clean_aux(Command, Args) :-
+	% TODO: reimplement in Prolog
+	ciao_root(CiaoRoot),
+	path_concat(CiaoRoot, 'builder/sh_src/clean_aux.sh', Sh),
+	sh_process_call(Sh, [Command|Args], []).
+
+% TODO: keep synchronized with internals:translate_base/2
+% TODO: fail if CIAOCCACHE=0?
+:- export(cachedir_prefix/2).
+% Ask prefix for out-of-tree builds (safe version, do not .
+cachedir_prefix(Dir, Prefix) :-
+	lookup_workspace(Dir, Wksp),
+	path_get_relative(Wksp, Dir, Rel), % Dir is relative to Wksp
+	path_concat(Wksp, 'build/cache', CacheDir),
+	atom_codes(Rel, RelCs),
+	translate_base_2(RelCs, RelCs2),
+	atom_codes(Rel2, RelCs2),
+	path_concat(CacheDir, Rel2, Prefix).
 
 :- export(clean_mods/1).
+% TODO: make safe version?
 clean_mods(Bases) :-
 	invoke_ciaosh_batch([
           % TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
@@ -557,12 +587,3 @@ clean_mods(Bases) :-
 	  clean_mods(Bases)
 	]).
 
-:- export(cachedir_prefix/2).
-% Ask prefix for out-of-tree builds
-cachedir_prefix(Dir, Prefix) :-
-	invoke_ciaosh_batch([
-          % TODO: integrate ciaoc_batch_call.pl in ciaoc (or create another executable)
-	  use_module(ciaobld(ciaoc_batch_call), [show_cachedir_prefix/1]),
-	  show_cachedir_prefix(Dir) % output to stdout
-	], [stdout(terms(Out))]),
-	Out = [yes(Prefix)].
