@@ -23,8 +23,7 @@ configure:
 build:
   stage: build
   script:
-    - ./ciao-boot.sh build --bin core.ciaobase # builds engine
-    - ./ciao-boot.sh build --bin core
+    - ./ciao-boot.sh build --bin core builder
   tags:
     - ciao
   artifacts:
