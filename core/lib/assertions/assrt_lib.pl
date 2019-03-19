@@ -76,7 +76,17 @@ library @lib{compiler/c_itf}.
 :- use_module(library(assertions/assrt_write), [write_assertion/6]).
 :- use_module(library(assertions/assertions_props)).
 :- use_module(library(assertions/c_itf_props)).
-:- use_module(library(compiler/c_itf)).
+:- use_module(library(compiler/c_itf), [c_itf_internal_pred_decl/1]).
+:- use_module(library(compiler/c_itf_internal), [
+	cleanup_c_itf_data/0,
+	old_file_extension/2,
+	process_files_from/7, false/1,
+	clause_of/7,
+	comp_defines/1, activate_translation/3,
+	base_name/2, defines_module/2, file_data/3,
+	defines/3, defines_pred/3, exports/5, (multifile)/3,
+	imports/5, 
+	package/2]).
 :- use_module(library(compiler/file_buffer)).
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
 :- use_module(library(errhandle), [error_protect/2]).  
@@ -319,7 +329,7 @@ process_file_assertions(Base,_I,Verb,_Opts) :-
 	generate_asr_file(Base,Verb,related).
 
 process_file_assertions_(Base,Opts):-
-	c_itf:comp_defines(Base), %% force generation of defines/5 data
+	c_itf_internal:comp_defines(Base), %% force generation of defines/5 data
 	defines_module(Base,M),
 	normalize_assertions(M,Base,Opts),
 	%% We do not generate the asr file for main (it could be only 
@@ -339,13 +349,14 @@ process_file_assertions_(Base,Opts):-
 
 save_clause_of(Base,M):-
 	clause_of(Base,Head,Body,VarNames,Source,Line0,Line1),
-        ( number(Head)
-	-> H=Head,
-	   B=Body
-	 ; % do the "second expansion"
-%	   messages_basic:message(user, ['{Original: ',(Head:-Body)]),
-	   expand_clause(Head,Body,M,VarNames,H,B)
-%	   ,messages_basic:message(user, ['{Expanded: ',(H:-B)])
+        ( number(Head) ->
+	    \+ c_itf_internal_pred_decl(Body),
+	    H=Head,
+	    B=Body
+	; % do the "second expansion"
+%	  messages_basic:message(user, ['{Original: ',(Head:-Body)]),
+	  expand_clause(Head,Body,M,VarNames,H,B)
+%	  ,messages_basic:message(user, ['{Expanded: ',(H:-B)])
 	),
 	% one more patch!!
 	( var(VarNames) -> VarNames=[] ; true ),

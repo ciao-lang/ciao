@@ -2625,6 +2625,33 @@ include_runtime_data(_, _).
 % 	; true
 % 	).
 
+:- export(c_itf_internal_pred/2).
+% Internal predicates introduced during c_itf processing
+% (for runtime module expansion and some module hooks)
+c_itf_internal_pred('$primitive_meta_predicate',2).
+c_itf_internal_pred('$current_module',1).
+c_itf_internal_pred('$ldlibs',1).
+c_itf_internal_pred('$multifile',3).
+c_itf_internal_pred('$load_libs',0).
+c_itf_internal_pred('$meta_args',2).
+c_itf_internal_pred('$u',2).
+c_itf_internal_pred('$initialization',1).
+c_itf_internal_pred('$on_abort',1).
+c_itf_internal_pred('$imports',5).
+c_itf_internal_pred('$defines',3).
+
+:- export(c_itf_internal_pred_decl/1).
+% Declarations from c_itf_internal_pred/2
+c_itf_internal_pred_decl(Decl) :-
+	( Decl = multifile(FA) -> true
+	; Decl = discontiguous(FA) -> true
+	; Decl = dynamic(FA) -> true
+	; fail
+	),
+	nonvar(FA),
+	FA = Pred/Arity,
+	c_itf_internal_pred(Pred,Arity).
+
 % ---------------------------------------------------------------------------
 :- doc(section, "Compile declarations").
 

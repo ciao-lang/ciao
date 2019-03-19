@@ -208,7 +208,7 @@ write_sents(Stub, Sents) :-
 
 :- data dylib/2.
 
-:- use_module(library(compiler/c_itf)).
+:- use_module(library(compiler/c_itf), [process_files_from/7, false/1]).
 :- use_module(library(errhandle), [error_protect/2]).
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
 

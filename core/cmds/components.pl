@@ -1,6 +1,6 @@
 :- module(components,[relevant_files/3],[assertions,hiord,datafacts]).
 
-:- use_module(library(compiler/c_itf)).
+:- use_module(library(compiler/c_itf), [process_files_from/7, defines_module/2, imports/5, false/1]).
 :- use_module(engine(stream_basic), [absolute_file_name/2]).
 :- use_module(library(errhandle), [error_protect/2]).
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).

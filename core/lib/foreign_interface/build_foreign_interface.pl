@@ -40,7 +40,7 @@
 	 assertion_read/9]).
 :- use_module(library(foreign_compilation), 
 	[compiler_and_opts/2,linker_and_opts/2]).
-:- use_module(library(compiler/c_itf)).
+:- use_module(library(compiler/c_itf), [process_files_from/7, decl/2, false/1]).
 :- use_module(library(compiler/engine_path), [get_engine_dir/2]).
 :- use_module(library(compiler/file_buffer)).
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).

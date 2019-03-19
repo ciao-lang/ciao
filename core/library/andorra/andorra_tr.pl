@@ -4,7 +4,7 @@
 :- use_module(library(terms_vars), [varsbag/3]).
 
 
-:- use_module(library(compiler/c_itf)).
+:- use_module(library(compiler/c_itf), [imports/5]).
 
 
 :- data pred_replace/2.
