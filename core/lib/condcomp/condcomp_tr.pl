@@ -173,16 +173,16 @@ cond__eval(current_prolog_flag(Flag, Value), _Mod) :- !,
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(compiler/c_itf_internal),
+:- use_module(library(compiler/c_itf),
 	[compiler_version/1, compiler_name/1]).
 
 cond__def('$with_compiler_version'(_), _Mod) :- !.
 cond__eval('$with_compiler_version'(V), _Mod) :- !,
-	c_itf_internal:compiler_version(V).
+	c_itf:compiler_version(V).
 
 cond__def('$with_compiler_name'(_), _Mod) :- !.
 cond__eval('$with_compiler_name'(Name), _Mod) :- !,
-	c_itf_internal:compiler_name(Name).
+	c_itf:compiler_name(Name).
 
 % ---------------------------------------------------------------------------
 

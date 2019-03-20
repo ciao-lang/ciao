@@ -116,7 +116,7 @@ mod_concat(M, N, N2) :-
 % SECOND-PASS
 
 :- use_module(engine(messages_basic), [message/2]).
-:- use_module(library(compiler/c_itf_internal), [
+:- use_module(library(compiler/c_itf), [
 	defines_module/2,
 	decl/2,
 	uses/2,
@@ -164,7 +164,7 @@ is_exported_nd_(Base, F, A) :-
 is_exported_nd_(Base, F, A) :-
         exports_pred(Base, F, A).
 
-% TODO: generalize c_itf_internal:module_warning/1, use location
+% TODO: generalize c_itf:module_warning/1, use location
 mod_error(Mod, Err) :-
 	message(error, ['(in ', Mod, ') '|Err]),
 	set_fact(module_error).

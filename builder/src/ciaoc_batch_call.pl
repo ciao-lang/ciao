@@ -16,8 +16,8 @@
 :- use_module(library(stream_utils), [string_to_file/2]).
 :- use_module(library(pathnames), [path_get_relative/3]).
 
-:- use_module(library(compiler),                [make_po/1]).
-:- use_module(library(compiler/c_itf_internal), [cleanup_itf_cache/0]).
+:- use_module(library(compiler), [make_po/1]).
+:- use_module(library(compiler/c_itf), [cleanup_itf_cache/0]).
 :- use_module(library(assertions/assrt_lib),
     [get_code_and_related_assertions/5,
      cleanup_code_and_related_assertions/0]).

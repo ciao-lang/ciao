@@ -53,7 +53,7 @@
 :- doc(bug, "Debug message switching should really be done with an
    expansion, for performance.").
 
-:- reexport(library(compiler/c_itf_internal), [location_t/1]).
+:- reexport(library(compiler/c_itf), [location_t/1]).
 %% ---------------------------------------------------------------------------
 
 :- pred message_type_label(Type, Label) :: message_t * string.

@@ -76,8 +76,7 @@ library @lib{compiler/c_itf}.
 :- use_module(library(assertions/assrt_write), [write_assertion/6]).
 :- use_module(library(assertions/assertions_props)).
 :- use_module(library(assertions/c_itf_props)).
-:- use_module(library(compiler/c_itf), [c_itf_internal_pred_decl/1]).
-:- use_module(library(compiler/c_itf_internal), [
+:- use_module(library(compiler/c_itf), [
 	cleanup_c_itf_data/0,
 	old_file_extension/2,
 	process_files_from/7, false/1,
@@ -85,6 +84,7 @@ library @lib{compiler/c_itf}.
 	comp_defines/1, activate_translation/3,
 	base_name/2, defines_module/2, file_data/3,
 	defines/3, defines_pred/3, exports/5, (multifile)/3,
+	c_itf_internal_pred_decl/1,
 	imports/5, 
 	package/2]).
 :- use_module(library(compiler/file_buffer)).
@@ -329,7 +329,7 @@ process_file_assertions(Base,_I,Verb,_Opts) :-
 	generate_asr_file(Base,Verb,related).
 
 process_file_assertions_(Base,Opts):-
-	c_itf_internal:comp_defines(Base), %% force generation of defines/5 data
+	c_itf:comp_defines(Base), %% force generation of defines/5 data
 	defines_module(Base,M),
 	normalize_assertions(M,Base,Opts),
 	%% We do not generate the asr file for main (it could be only 
@@ -669,7 +669,7 @@ local_write_assertion(PD,Status,Type,Body,_Dict,_Flag,M) :-
 
 normalize_assertions_pass_one(M,Base) :-
 %	defines_module(Base,M),
-	retractall_fact(assertion_read(_,M,_,_,_,_,_,_,_)), % (just in case they where added and expanded in c_itf_internal:read_assertion/6) % TODO: better integration
+	retractall_fact(assertion_read(_,M,_,_,_,_,_,_,_)), % (just in case they where added and expanded in c_itf:read_assertion/6) % TODO: better integration
 	(  %% Normalize all assertions in this module
 	   clause_of(Base,1,Assrt,Dict,S,LB,LE),
 	   normalize_one_assertion_pass_one(

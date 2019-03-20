@@ -44,7 +44,7 @@
 :- use_module(library(format)).  
 :- use_module(library(aggregates)).  
 
-:- use_module(library(compiler/c_itf_internal)).
+:- use_module(library(compiler/c_itf)).
 :- use_module(library(assertions/assrt_lib), [
     cleanup_code_and_related_assertions/0,
     assertion_read/9,

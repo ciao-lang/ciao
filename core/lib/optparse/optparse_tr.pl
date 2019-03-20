@@ -39,7 +39,7 @@ defined in order to facilitate parsing of command line options.
 :- use_module(library(llists),     [flatten/2]).
 :- use_module(library(lists),      [append/3, length/2]).
 :- use_module(library(messages)).
-:- use_module(library(compiler/c_itf_internal), [location/1]).
+:- use_module(library(compiler/c_itf), [location/1]).
 
 simplify_value(yes, []) :- !.
 simplify_value(on,  []) :- !.

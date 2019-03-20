@@ -32,7 +32,7 @@
 
 % TODO: temporarily imported (so that incore_mode_of/2 can be updated
 %   for subdefs -- incore_mode_of/2 should be in internals)
-:- use_module(library(compiler/c_itf_internal), [incore_mode_of/2]).
+:- use_module(library(compiler/c_itf), [incore_mode_of/2]).
 
 :- set_prolog_flag(multi_arity_warnings, off).
 

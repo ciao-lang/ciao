@@ -15,7 +15,7 @@
 :- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(library(terms_check)).
-:- use_module(library(compiler/c_itf_internal),
+:- use_module(library(compiler/c_itf),
 	    [defines_module/2, meta_args/2, multifile/3, imports_pred/7,
 		exports_pred/3, location/1]).
 :- use_module(library(assertions/assrt_lib),    [assertion_read/9]).
@@ -251,7 +251,7 @@ file_base(File, Base) :-
 	path_splitext(FN, Base, _Ext).
 
 % :- use_module(library(read)).
-:- use_module(library(compiler/c_itf_internal),
+:- use_module(library(compiler/c_itf),
 	    [expand_module_decl/5, read_sentence/3]).
 process_inline_module(Alias, PredList,
 	    [(:- use_package(Package)),

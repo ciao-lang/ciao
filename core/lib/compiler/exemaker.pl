@@ -7,7 +7,7 @@
 
 :- use_module(library(aggregates), [findall/3]).
 
-:- use_module(library(compiler/c_itf_internal),
+:- use_module(library(compiler/c_itf),
 	    [handle_exc/1,
 	     process_file/7,
 	     process_files_from/7,

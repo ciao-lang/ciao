@@ -150,7 +150,7 @@ code_to_file_(M, Code, File) :-
 % ---------------------------------------------------------------------------
 
 :- use_module(library(bundle/bundle_paths), [reverse_bundle_path/3]).
-:- use_module(library(compiler/c_itf_internal), [defines_module/2]).
+:- use_module(library(compiler/c_itf), [defines_module/2]).
 
 % Engine definition for M
 this_eng_def(M, Eng) :-

@@ -26,7 +26,7 @@
             comps_to_goal/3,
             comps_to_goal/4
         ]).
-:- use_module(library(compiler/c_itf_internal),
+:- use_module(library(compiler/c_itf),
         [
             discontiguous/3,
             defines_module/2,
@@ -36,7 +36,7 @@
         ]).
 % ---------------------------------------------------------------------------
 
-:- use_module(library(compiler/c_itf_internal),
+:- use_module(library(compiler/c_itf),
 	    [meta_args/2, imports_pred/7]). % TODO:T261 refine
 :- use_module(engine(meta_inc), [meta_inc_args/3]).
 
@@ -283,7 +283,7 @@ rtchecks_goal_tr(Goal, Goal1, M) :-
 :- comment(bug, "Currently this will have problems with multifile
 	predicates. --EMM").
 
-:- use_module(library(compiler/c_itf_internal),
+:- use_module(library(compiler/c_itf),
 	    [multifile/3, defines/3, imports/5]).
 
 qualify_goal(M, Goal0, Goal) :-

@@ -2,7 +2,7 @@
 
 :- use_module(library(debugger), [call_in_module/2]).
 :- use_module(engine(runtime_control), [statistics/2]).
-:- use_module(library(compiler/c_itf_internal), [base_name/2]).
+:- use_module(library(compiler/c_itf), [base_name/2]).
 :- use_module(library(terms), [atom_concat/2]).
 
 

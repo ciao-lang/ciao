@@ -402,7 +402,7 @@ main(Args) :-
     finished, Args, Args).
 %
 :- simple_option('-u',
-    use_module(CFile, all, c_itf_internal),
+    use_module(CFile, all, c_itf),
     "<File> Use File for compilation, often used to include LibDir paths, etc.",
     continue, [CFile|Args], Args).
 %

@@ -1,6 +1,6 @@
 :- module(srcdbg, [srcdbg_expand/6], [assertions]).
 
-:- use_module(library(compiler/c_itf_internal), [location/3]).
+:- use_module(library(compiler/c_itf), [location/3]).
 :- use_module(library(debugger/debugger_tr)).
 
 :- pred srcdbg_expand/6 # "This is the expansion needed to perform

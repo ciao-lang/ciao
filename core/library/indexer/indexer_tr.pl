@@ -537,7 +537,7 @@ list_to_conj([A|As], (A,B)) :- list_to_conj(As, B).
 % ===========================================================================
 % Auxiliary code to ensure exports in translations
 %
-% TODO: Move as a expansion_tools lib or integrate in c_itf_internals?
+% TODO: Move as a expansion_tools lib or integrate in c_itf.pl?
 
 :- data import_done/4.
 :- data import_pending/4.

@@ -16,7 +16,7 @@ doc_structure :=
 %      'ciaoc',
       'compiler', % TODO: already in refman! include exemaker there too?
       'exemaker',
-      'c_itf_internal',
+      'c_itf',
       'pl2wam',
       % Emulator generator
       'emugen/emugen_doc',

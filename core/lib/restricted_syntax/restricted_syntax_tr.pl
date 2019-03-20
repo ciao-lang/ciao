@@ -1,7 +1,7 @@
 :- module(restricted_syntax_tr, [tr_sentence/3], [datafacts]).
 
 :- use_module(library(messages), [error_message/3]).
-:- use_module(library(compiler/c_itf_internal), [location/3, module_error/0]).
+:- use_module(library(compiler/c_itf), [location/3, module_error/0]).
 
 tr_sentence((:- Decl), [], _Mod) :- forbidden_decl(Decl), !,
 	set_fact(module_error),

@@ -570,7 +570,7 @@ shell_expand(RawQuery, VarNames, Query) :-
 
 include(File) :- do_include(source, File).
 
-% TODO: Share the duplicated logic with compiler/c_itf_internal.pl
+% TODO: Share the duplicated logic with compiler/c_itf.pl
 do_include(Type, File) :-
 	absolute_file_name(File, '_opt', '.pl', '.', SourceFile, SourceBase, _),
 	include_message(Type, SourceFile),
@@ -606,7 +606,7 @@ include_st(Type, Stream, Base) :-
 	  )
 	).
 
-% TODO: share duplicated code with c_itf_internal.pl
+% TODO: share duplicated code with c_itf.pl
 do_read_sentence(Stream, Sentence) :-
 	Opts = [ variable_names(VarNames),
 		 singletons(Singletons),

@@ -9,7 +9,7 @@
 
 :- use_module(library(aggregates), [findall/3, setof/3]).
 
-:- use_module(library(compiler/c_itf_internal)).
+:- use_module(library(compiler/c_itf)).
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
 :- use_module(library(errhandle), [error_protect/2]).
 :- use_module(library(terms), [atom_concat/2]).  

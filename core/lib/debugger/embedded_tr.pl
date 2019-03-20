@@ -5,7 +5,7 @@
 		srcdbg_no_expand_decl/3
 	    ], [assertions]).
 
-:- use_module(library(compiler/c_itf_internal), [location/3]).
+:- use_module(library(compiler/c_itf), [location/3]).
 :- use_module(library(lists),                    [reverse/2]).
 :- use_module(library(varnames/complete_dict)).
 :- use_module(library(debugger/debugger_tr)).

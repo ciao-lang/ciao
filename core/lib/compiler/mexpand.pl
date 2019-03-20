@@ -21,7 +21,7 @@
 body_expansion(V, M, QM, Mode, NA) :- var(V), !,
         ( Mode = retract ->
             this_module(internals), NA = V
-	; Mode = assert, this_module(c_itf_internal) ->
+	; Mode = assert, this_module(c_itf) ->
 	    fail
         ;
             body_expansion(hiord_rt:call(V), M, QM, Mode, NA)

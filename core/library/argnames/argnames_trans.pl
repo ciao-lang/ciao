@@ -5,7 +5,7 @@
 :- use_module(library(terms), [arg/2]).
 :- use_module(library(lists), [sequence_to_list/2, select/3]).
 :- use_module(library(messages)).
-:- use_module(library(compiler/c_itf_internal), [location/3]).
+:- use_module(library(compiler/c_itf), [location/3]).
 
 % argnames(Functor, Arity, Str, Module)
 :- data argnames/4.

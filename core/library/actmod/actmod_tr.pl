@@ -88,7 +88,7 @@ decl_tr(dist_start(G), Cs, M) :- !, % Default startup goal (for a distributed no
 	Cs = [],
 	assertz_fact(actmod_flag(M, dist_start(G))).
 
-:- import(c_itf_internal, [module_from_base/2]). % TODO: export?
+:- import(c_itf, [module_from_base/2]). % TODO: export?
 :- use_module(library(system), [file_exists/1]).
 :- use_module(engine(stream_basic), [absolute_file_name/7]).
 
