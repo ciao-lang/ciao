@@ -1,7 +1,7 @@
 :- module(_, [], [assertions, fsyntax, hiord, dcg]).
 
 :- doc(title,  "Basic support for CMake").
-:- doc(author, "Jos@'{e} F. Morales").
+:- doc(author, "Jose F. Morales").
 
 :- doc(module, "This module provides some very basic functionality to
    interface with the @href{https://cmake.org}{CMake} build automation

@@ -4,7 +4,7 @@
 
 :- doc(author, "Jos@'{e} Luis Gonz@'{a}lez").
 :- doc(author, "Edison Mera").
-:- doc(author, "Jos@'{e} F. Morales").
+:- doc(author, "Jose F. Morales").
 :- doc(author, "The Ciao Development Team").
 
 :- doc(ack, "This work builds on the work of Manuel Carro, Emilio

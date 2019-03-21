@@ -1,7 +1,7 @@
 :- module(_, [], [assertions, fsyntax, hiord, dcg]).
 
 :- doc(title,  "Build code using the Ciao compiler").
-:- doc(author, "Jos@'{e} F. Morales").
+:- doc(author, "Jose F. Morales").
 :- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This is a wrapper around @apl{ciaoc} (and other Ciao

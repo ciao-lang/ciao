@@ -1,7 +1,7 @@
 :- module(_, [], [fsyntax, hiord, assertions, regtypes, isomodes]).
 
 :- doc(title,  "Build documentation using LPdoc").
-:- doc(author, "Jos@'{e} F. Morales").
+:- doc(author, "Jose F. Morales").
 :- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This is a wrapper around @apl{lpdoc} to build the

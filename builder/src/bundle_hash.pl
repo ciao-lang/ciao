@@ -1,7 +1,7 @@
 :- module(_, [], [assertions, basicmodes, nativeprops, fsyntax, hiord, regtypes, datafacts]).
 
 :- doc(title,  "Bundle hashing").
-:- doc(author, "Jos@'{e} F. Morales").
+:- doc(author, "Jose F. Morales").
 :- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module defines the operations to map the whole

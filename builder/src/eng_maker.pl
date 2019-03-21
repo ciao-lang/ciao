@@ -2,7 +2,7 @@
 
 :- doc(title,  "Engine maker").
 
-:- doc(author, "Jos@'{e} F. Morales").
+:- doc(author, "Jose F. Morales").
 :- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This module implements a minimalistic build system for
