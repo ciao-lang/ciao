@@ -174,7 +174,7 @@ sabsmach_min_test() {
     ${prg}-stat.car/clean
     ${prg}-stat.car/compile_native
     exe_info ${prg}-stat
-    ciaodump --file dectok ${prg}-stat.car/noarch > ${prg}-stat.dead
+    ciaodump-oc --file dectok ${prg}-stat.car/noarch > ${prg}-stat.dead
     head -1 ${prg}-stat.dead # Print bytecode size
 #
     "$oc_builder" --cache-dir ${cache_dir} clean-cache
@@ -185,7 +185,7 @@ sabsmach_min_test() {
     echo "Compiling under alternative cache using dead info (dynamic exec)"
     echo "(note: will not run unless a full absmach executes the external modules)"
     "$oc_builder" comp-testing --dynexec ${prg}-dyn ${prg}
-    ciaodump --file dectok ${prg}-dyn > ${prg}-dyn.dead
+    ciaodump-oc --file dectok ${prg}-dyn > ${prg}-dyn.dead
     head -1 ${prg}-dyn.dead # Print bytecode size
 #
     "$oc_builder" --cache-dir ${cache_dir} clean-cache
@@ -269,8 +269,8 @@ EOF
     # Regenerate the compiler and tools
     ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$oc_builder" clean-cache
     ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$oc_builder" build-comp-testing
-    # Compile the ciaodump for testing
-    # Compile the ciaoloader for testing
+    # Compile ciaodump for testing
+    # Compile ciaoloader for testing
     ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$oc_builder" --stats build-loader-testing && \
     ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$oc_builder" build-cmds-testing
 }

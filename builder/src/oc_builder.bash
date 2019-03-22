@@ -469,33 +469,23 @@ setup_install() {
     loader_cmd=${bin_dir}/ciaoloader.car/run
 }
 
-setup_path() {
-    # Insert bin directory in path (without duplications)
-    # note: included ciaoroot to access this script
-    new_path=${bin_dir}:$ciaoroot/optim_comp:${PATH/${bin_dir}:/}
-}
-
 # type 'eval `$0 bash-env`'
 show_bash_env() {
     setup_install
-    setup_path
     cat <<EOF
 export CIAOROOT=${CIAOROOT};
 export CIAOCACHE=${CIAOCACHE};
 export CIAOLOADER=${loader_cmd};
-export PATH=${new_path};
 EOF
 }
 
 # type 'eval `$0 csh-env`'
 show_csh_env() {
     setup_install
-    setup_path
     cat <<EOF
 setenv CIAOROOT ${CIAOROOT};
 setenv CIAOCACHE ${CIAOCACHE};
 setenv CIAOLOADER ${loader_cmd};
-setenv PATH ${new_path};
 EOF
 }
 
@@ -570,8 +560,12 @@ build_cmds() {
 
     # Post update cmds operations
     pushd ${bin_dir} > /dev/null
-    rm -f ciao-toplevel${versuf}
-    ln -s ciaosh${versuf} ciao-toplevel${versuf}
+    rm -f "$ciaoroot"/build/bin/ciaodump-oc${versuf}
+    ln -s ${bin_dir}/ciaodump${versuf} "$ciaoroot"/build/bin/ciaodump-oc${versuf}
+    rm -f "$ciaoroot"/build/bin/ciao-shell-oc${versuf}
+    ln -s ${bin_dir}/ciao-shell${versuf} "$ciaoroot"/build/bin/ciao-shell-oc${versuf}
+    rm -f "$ciaoroot"/build/bin/ciaosh-oc${versuf}
+    ln -s ${bin_dir}/ciaosh${versuf} "$ciaoroot"/build/bin/ciaosh-oc${versuf}
     popd > /dev/null
 }
 

@@ -1,5 +1,5 @@
 # Utilities for native code disassembling
-# TODO: use ciaodump, which already defines it as archdump
+# TODO: use ciaodump or ciaodump-oc, which already defines it as archdump
 
 function archdump() {
     if command -v objdump > /dev/null 2>&1; then

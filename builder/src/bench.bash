@@ -124,7 +124,7 @@ checkexec() {
     # TODO: clean the user cache to ensure that the file is recompiled!
     echo "Compiling exec ${prg}"
     "$oc_builder" comp --dynexec ${prgout} ${prg} || return 1
-    ciaodump --file compile__emu ${prgout} > ${prgout}.disasm
+    ciaodump-oc --file compile__emu ${prgout} > ${prgout}.disasm
     compareexec brief ${prg}
 }
 
@@ -166,7 +166,7 @@ bringemu() {
     EMU_BCFILES=`cat curr/all_modules`
     for i in $EMU_BCFILES; do
 	j=`escape_mod_name ${i}`
-	ciaodump --disasm ${i} > curr/${j}.emu
+	ciaodump-oc --disasm ${i} > curr/${j}.emu
     done
     for i in $EMU_CFILES; do
 	cp ${compc_exe}.car/c/engine/${i} curr/${i}
@@ -253,12 +253,12 @@ checkmod() {
 	"$oc_builder" comp --comp-stats --do compile ${prg} && \
         echo "Generating native code (if required) for module ${prg}" && \
 	"$oc_builder" comp --do archcompile ${prg} || return 1    
-    ciaodump --module compile__dump ${prg} > ${prgout}.dump.txt
-    ciaodump --module compile__emu ${prg} > ${prgout}.emu.txt
-    ciaodump --module compile__c ${prg} > ${prgout}.native.txt
-    ciaodump --module compile__h ${prg} > ${prgout}.native_h.txt
-    ciaodump --module archcompile__s ${prg} > ${prgout}.s.txt
-    ciaodump --module archcompile__o ${prg} > ${prgout}.o.s.txt
+    ciaodump-oc --module compile__dump ${prg} > ${prgout}.dump.txt
+    ciaodump-oc --module compile__emu ${prg} > ${prgout}.emu.txt
+    ciaodump-oc --module compile__c ${prg} > ${prgout}.native.txt
+    ciaodump-oc --module compile__h ${prg} > ${prgout}.native_h.txt
+    ciaodump-oc --module archcompile__s ${prg} > ${prgout}.s.txt
+    ciaodump-oc --module archcompile__o ${prg} > ${prgout}.o.s.txt
     comparemod brief ${prg}
 }
 
@@ -279,11 +279,10 @@ evalmod() {
     rm -f ${outfile}
     echo "test: ${prg}"
     clean_trace
-#    echo "use_module(${prg}). main." | "$oc_builder" run-testing ${cache_dir}/bin/ciao-toplevel${sufver} 2>/dev/null
-    echo "use_module(${prg}). main." | ${cache_dir}/bin/ciao-toplevel 2>/dev/null
-#    echo "use_module(${prg}). main." | "$ciaoroot"/build/bin/ciaosh 2>/dev/null
+#    echo "use_module(${prg}). main." | "$oc_builder" run-testing ${cache_dir}/bin/ciaosh${sufver} 2>/dev/null
+    echo "use_module(${prg}). main." | ${cache_dir}/bin/ciaosh 2>/dev/null
     dump_trace
-#    ciaodump${versuf} --module dectok ${prg} 2>/dev/null | head -1 # Print bytecode size
+#    ciaodump-oc${versuf} --module dectok ${prg} 2>/dev/null | head -1 # Print bytecode size
 }
 
 # ---------------------------------------------------------------------------
@@ -301,7 +300,7 @@ evalexec() {
 #    "$oc_builder" run-testing ./${prg}
     ./${prgout}
     dump_trace
-    ciaodump --file dectok ${prgout} 2>/dev/null | head -1 # Print bytecode size
+    ciaodump-oc --file dectok ${prgout} 2>/dev/null | head -1 # Print bytecode size
 }
 
 # ---------------------------------------------------------------------------
@@ -408,7 +407,7 @@ function mtsys_evalmod() {
 #	    "$oc_builder" comp --bootstrap ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
 #	    ${mtsys_outdir}/${temp}.car/clean
 #	    ${mtsys_outdir}/${temp}.car/run
-#	    ciaodump --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
+#	    ciaodump-oc --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
 	    ;;
 	ciao3 ) # optimcomp with compilation to native code
 	    cpp -DSYSTEM=ciao3 -DCIAO3 -DOPT_MASK=63 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
@@ -429,7 +428,7 @@ function mtsys_evalmod() {
 	    ${mtsys_outdir}/${temp}.car/clean
 	    #todo: adding those options were good for the language-shootout, but the speedup was not impressive with ptoc: CIAOCCOPTS="-O3 -march=pentium4 -mfpmath=sse -msse2" 
 	    ${mtsys_outdir}/${temp}.car/run
-	    ciaodump --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
+	    ciaodump-oc --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
 	    ;;
 	sicstus )
 	    cpp -DSYSTEM=sicstus -DSICSTUS -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
