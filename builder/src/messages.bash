@@ -4,15 +4,27 @@
 
 # TODO: merge with messages_aux.pl (at least format)
 
-color__reset=`tput sgr0`
-color__title_message=`tput bold; tput el`
-color__mark=`tput setaf 6`
-color__message=`tput bold; tput smul; tput el`
-color__submessage=`tput el`
-color__verbosemessage=`tput el`
-color__ok_message=`tput bold; tput setaf 2; tput el`
-color__fail_message=`tput bold; tput setaf 1; tput el`
-color__b=`tput bold`
+if command -v tput > /dev/null 2>&1; then
+    color__reset=`tput sgr0`
+    color__title_message=`tput bold; tput el`
+    color__mark=`tput setaf 6`
+    color__message=`tput bold; tput smul; tput el`
+    color__submessage=`tput el`
+    color__verbosemessage=`tput el`
+    color__ok_message=`tput bold; tput setaf 2; tput el`
+    color__fail_message=`tput bold; tput setaf 1; tput el`
+    color__b=`tput bold`
+else
+    color__reset=""
+    color__title_message=""
+    color__mark=""
+    color__message=""
+    color__submessage=""
+    color__verbosemessage=""
+    color__ok_message=""
+    color__fail_message=""
+    color__b=""
+fi
 
 title_message() {
     echo "${color__title_message}--$*${color__reset}" 1>&2
