@@ -163,7 +163,7 @@ catalog_ui:
 oc_tests:
   stage: test
   script:
-    - touch bndls/catalog_ui/ACTIVATE
+    - apk add bash # add bash (currently required for optim-comp scripts)
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao rescan-bundles
     - ciao oc:tests full
