@@ -61,14 +61,15 @@ fi
 # Access to the builder
 
 rlexec_builder() {
-    if [ -x "$boot_ciaoengine" ]; then
+    if [ -x "$ciao_builder_bin" ]; then
+	rlexec "$ciao_builder_bin" "$@"
+    else
+	# if [ -x "$boot_ciaoengine" ]; then
 	unset CIAOALIASPATH
 	export CIAOROOT=$boot_ciaoroot
 	export CIAOHDIR=$boot_ciaohdir
 	export CIAOENGINE=$boot_ciaoengine
 	rlexec "$CIAOENGINE" "$@" -C -b "$boot_bindir/ciao_builder.sta"
-    else
-	rlexec "$ciao_builder_bin" "$@"
     fi
 }
 
