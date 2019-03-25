@@ -17,6 +17,7 @@ source "$builder_src"/archdump.bash
 source "$builder_src"/car.bash
 
 oc_builder=$builder_src/oc_builder.bash
+oc_scripts=$ciaoroot/builder/oc
 
 # ---------------------------------------------------------------------------
 
@@ -171,16 +172,16 @@ sabsmach_min_test() {
 
     echo "Compiling under alternative cache using dead info (static exec)"
     "$oc_builder" comp-testing --bootstrap ${prg}-stat ${prg}
-    ${prg}-stat.car/clean
-    ${prg}-stat.car/compile_native
+    "$oc_scripts"/clean.sh ${prg}-stat.car
+    "$oc_scripts"/compile_native.sh ${prg}-stat.car
     exe_info ${prg}-stat
     ciaodump-oc --file dectok ${prg}-stat.car/noarch > ${prg}-stat.dead
     head -1 ${prg}-stat.dead # Print bytecode size
 #
     "$oc_builder" --cache-dir ${cache_dir} clean-cache
     "$oc_builder" --cache-dir ${cache_dir} comp-testing --dead ${prg}-stat.dead --bootstrap ${prg}-small ${prg}
-    ${prg}-small.car/clean
-    ${prg}-small.car/compile_native
+    "$oc_scripts"/clean.sh ${prg}-small.car
+    "$oc_scripts"/compile_native.sh ${prg}-small.car
     exe_info ${prg}-small
     echo "Compiling under alternative cache using dead info (dynamic exec)"
     echo "(note: will not run unless a full absmach executes the external modules)"
@@ -190,8 +191,8 @@ sabsmach_min_test() {
 #
     "$oc_builder" --cache-dir ${cache_dir} clean-cache
     "$oc_builder" --cache-dir ${cache_dir} comp-testing --dead ${prg}-dyn.dead --bootstrap ${prg}-tiny ${prg}
-    ${prg}-tiny.car/clean
-    ${prg}-tiny.car/compile_native
+    "$oc_scripts"/clean.sh ${prg}-tiny.car
+    "$oc_scripts"/compile_native.sh ${prg}-tiny.car
     exe_info ${prg}-tiny
 }
 

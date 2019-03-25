@@ -1,0 +1,8 @@
+#!/bin/sh
+# Run executable (.car archive)
+
+# Physical directory where the script is located
+_base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
+        cd "$d";done;cd "$(dirname "$e")";pwd -P)
+
+CIAOCCONFIG=${_base}/configuration ${_base}/arch "$@" -C ${_base}/noarch ${CIAORTOPTS}

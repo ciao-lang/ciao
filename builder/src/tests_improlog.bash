@@ -17,6 +17,7 @@ source "$builder_src"/car.bash
 source "$builder_src"/archdump.bash
 
 oc_builder=$builder_src/oc_builder.bash
+oc_scripts=$ciaoroot/builder/oc
 
 # ---------------------------------------------------------------------------
 # Output directories
@@ -133,8 +134,8 @@ compile_one() {
 	    if "$oc_builder" comp --bootstrap ${execname} ${srcname} > ${logname} 2>&1; then
 		echo " [OK]"
 		warn_nonempty_log ${logname}
-		${execname}.car/clean
-		CIAOCCOPTS="${ciaoccopts}" CIAOLDOPTS="${ciaoldopts}" ${execname}.car/compile_native
+		"$oc_scripts"/clean.sh "$execname".car
+		CIAOCCOPTS="${ciaoccopts}" CIAOLDOPTS="${ciaoldopts}" "$oc_scripts"/compile_native.sh "$execname"
 		ok_improlog=$((${ok_improlog} + 1))
 	    else
 		delete_exe ${execname}
@@ -167,7 +168,7 @@ run_one() {
 	timename=$out_dir/${i}.time
 	if has_pl_ext ${i}; then
 #	    continue # enable to disable ImProlog
-	    if [ -r ${execname}.car/run ]; then
+	    if [ -r ${execname}.car/noarch ]; then
 		true
 	    else
 		continue

@@ -16,6 +16,7 @@ source "$builder_src"/compare_files.bash
 source "$builder_src"/archdump.bash
 
 oc_builder=$builder_src/oc_builder.bash
+oc_scripts=$ciaoroot/builder/oc
 
 # ---------------------------------------------------------------------------
 
@@ -405,8 +406,9 @@ function mtsys_evalmod() {
 	    popd > /dev/null
             # Using executables
 #	    "$oc_builder" comp --bootstrap ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
-#	    ${mtsys_outdir}/${temp}.car/clean
-#	    ${mtsys_outdir}/${temp}.car/run
+#	    "$oc_scripts"/clean.sh "${mtsys_outdir}/${temp}".car
+#	    "$oc_scripts"/compile_native.sh "${mtsys_outdir}/${temp}".car
+#	    "${mtsys_outdir}/${temp}".car/run
 #	    ciaodump-oc --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
 	    ;;
 	ciao3 ) # optimcomp with compilation to native code
@@ -425,9 +427,10 @@ function mtsys_evalmod() {
 #	    popd > /dev/null
             # Using executables
 	    "$oc_builder" comp --bootstrap ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
-	    ${mtsys_outdir}/${temp}.car/clean
+	    "$oc_scripts"/clean.sh "${mtsys_outdir}/${temp}".car
+	    "$oc_scripts"/compile_native.sh "${mtsys_outdir}/${temp}".car
 	    #todo: adding those options were good for the language-shootout, but the speedup was not impressive with ptoc: CIAOCCOPTS="-O3 -march=pentium4 -mfpmath=sse -msse2" 
-	    ${mtsys_outdir}/${temp}.car/run
+	    "${mtsys_outdir}/${temp}".car/run
 	    ciaodump-oc --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
 	    ;;
 	sicstus )

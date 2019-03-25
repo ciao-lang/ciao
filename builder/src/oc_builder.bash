@@ -21,6 +21,7 @@ source "$builder_src"/compat.bash
 source "$builder_src"/config.bash
 source "$builder_src"/messages.bash
 source "$builder_src"/car.bash
+oc_scripts=$ciaoroot/builder/oc
 
 # ---------------------------------------------------------------------------
 # Global info
@@ -192,7 +193,7 @@ fast_build_comp() {
 	i=`cat ${ok_step_file}`
 #	clean_cache
 #	delete_exe ${compc}
-	if run_exe ${comp[${i}]} ${compopts} --bootstrap ${compc} ${comp_module} && ${compc}.car/compile_native; then
+	if run_exe ${comp[${i}]} ${compopts} --bootstrap ${compc} ${comp_module} && "$oc_scripts"/compile_native.sh "${compc}".car; then
 	    true
 	else
 	    fail_message "Compilation failed"
@@ -303,7 +304,7 @@ ensure_comp() {
 comp() {
     ensure_comp
     rm -f ${ok_file}
-    ${compc}.car/run "$@" || { fail_message "failed"; exit -1; }
+    "${compc}".car/run "$@" || { fail_message "failed"; exit -1; }
 }
 
 # Execute the candidate compiler (compc) in debug mode
@@ -312,14 +313,14 @@ debug_comp() {
     # TODO: recompile with debug info?
     ensure_comp
     rm -f ${ok_file}
-    ${compc}.car/debug "$@" || { fail_message "failed"; exit -1; }
+    "$oc_scripts"/debug.sh "${compc}".car "$@" || { fail_message "failed"; exit -1; }
 }
 
 # Execute the compiler compiled with analysis
 comp_ana() {
     ensure_comp
     rm -f ${ok_file}
-    ${compana}.car/run "$@" || { fail_message "failed"; exit -1; }
+    "${compana}".car/run "$@" || { fail_message "failed"; exit -1; }
 }
 
 # ---------------------------------------------------------------------------
@@ -338,7 +339,7 @@ comp_testing() {
     set_vervars
     ensure_comp_testing
     rm -f ${ok_file}
-    ${compc}${versuf}.car/run "$@" || { fail_message "failed"; exit -1; }
+    "${compc}${versuf}".car/run "$@" || { fail_message "failed"; exit -1; }
 }
 
 # ---------------------------------------------------------------------------
@@ -373,10 +374,11 @@ run_exe() {
 	fail_message "Cannot find ${prg} executable"
 	exit -1
     fi
+    "$oc_scripts"/compile_native.sh "${prg}".car # TODO: do it when code is generated, but make sure that bootstrap does not contain 'arch', etc.
     if [ x"${stats}" = x"yes" ]; then
-	${prg}.car/run "$@" && ( test -r ${cache_dir}/tmp/ciao__trace.txt && cat ${cache_dir}/tmp/ciao__trace.txt || true )
+	"${prg}".car/run "$@" && ( test -r ${cache_dir}/tmp/ciao__trace.txt && cat ${cache_dir}/tmp/ciao__trace.txt || true )
     else
-	${prg}.car/run "$@"
+	"${prg}".car/run "$@"
     fi
 }
 
@@ -384,7 +386,7 @@ run_exe() {
 run_testing() {
     set_vervars
     setup_install
-    ${loader}${versuf}.car/run "$@"
+    "${loader}${versuf}".car/run "$@"
 }
 
 # ---------------------------------------------------------------------------
@@ -515,7 +517,7 @@ build_loader() {
     setup_install
     delete_exe ${loader}${versuf}
     comp_testing --bootstrap ${loader}${versuf} ${loader_module}
-    ${loader}${versuf}.car/compile_native
+    "$oc_scripts"/compile_native.sh "${loader}${versuf}".car
 }
 
 build_cmd() { # bundle cmd

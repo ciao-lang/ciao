@@ -1,0 +1,21 @@
+# Check if CC admits the given option (compiling a dummy file)
+cc_test_option() { # Option
+    if [ ! -z ${CC} ] && type ${CC} > /dev/null ; then 
+	TEMP_BASE=/tmp/cc_option_test_$$
+	TEMP_C=${TEMP_BASE}.c
+	TEMP_EXEC=${TEMP_BASE}.exe
+	TEMP_ERR=${TEMP_BASE}.err
+	echo 'main() {}' > ${TEMP_C}
+	${CC} "$1" ${TEMP_C} -o ${TEMP_EXEC} 2> ${TEMP_ERR}
+	if test -s ${TEMP_ERR} ; then
+	    RET=1 # false
+	else
+	    RET=0 # true
+	fi
+        # Get rid of the now unneeded intermediate files
+	/bin/rm -f ${TEMP_C} ${TEMP_EXEC} ${TEMP_ERR}
+    else
+	RET=1
+    fi
+    return ${RET}
+}
