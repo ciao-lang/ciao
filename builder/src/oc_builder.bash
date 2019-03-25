@@ -358,7 +358,7 @@ comp_js() {
     setup_install
     ensure_comp_js
 #    rm -f ${ok_file}
-    CIAOLOADER=${loader_cmd} ${bin_dir}/comp_js "$@" || { fail_message "failed"; exit -1; }
+    ${bin_dir}/comp_js "$@" || { fail_message "failed"; exit -1; }
 }
 
 # ---------------------------------------------------------------------------
@@ -465,8 +465,6 @@ setup_install() {
     loader_module=$ciaoroot/core_OC/cmds/loader
     # Set loader executable
     loader=${bin_dir}/ciaoloader
-    # Set loader command
-    loader_cmd=${bin_dir}/ciaoloader.car/run
 }
 
 # type 'eval `$0 bash-env`'
@@ -475,7 +473,6 @@ show_bash_env() {
     cat <<EOF
 export CIAOROOT=${CIAOROOT};
 export CIAOCACHE=${CIAOCACHE};
-export CIAOLOADER=${loader_cmd};
 EOF
 }
 
@@ -485,7 +482,6 @@ show_csh_env() {
     cat <<EOF
 setenv CIAOROOT ${CIAOROOT};
 setenv CIAOCACHE ${CIAOCACHE};
-setenv CIAOLOADER ${loader_cmd};
 EOF
 }
 
