@@ -14,8 +14,6 @@ source "$builder_src"/config.bash
 source "$builder_src"/messages.bash
 source "$builder_src"/compare_files.bash
 
-oc_builder=$builder_src/oc_builder.bash
-
 # ---------------------------------------------------------------------------
 # Configuration
 
@@ -55,14 +53,14 @@ function ptojs__compile_mod() {
     echo "Compiling module ${1}"
     # TODO: missing option to compile just a module
     file=`ptojs__adddir "${1}"`
-    "$oc_builder" comp-js ${ciao_opts} "${file}"
+    "$bin_dir"/ciao oc:comp-js ${ciao_opts} "${file}"
 }
 
 function ptojs__compile_exec() {
     local file
     echo "Compiling exec ${1}"
     file=`ptojs__adddir "${1}"`
-    "$oc_builder" comp-js ${ciao_opts} "${file}"
+    "$bin_dir"/ciao oc:comp-js ${ciao_opts} "${file}"
 }
 
 function ptojs__check_mod() {

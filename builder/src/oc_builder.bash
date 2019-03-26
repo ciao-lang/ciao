@@ -21,6 +21,7 @@ source "$builder_src"/compat.bash
 source "$builder_src"/config.bash
 source "$builder_src"/messages.bash
 source "$builder_src"/car.bash
+
 oc_scripts=$ciaoroot/builder/oc
 
 # ---------------------------------------------------------------------------
@@ -52,33 +53,33 @@ clean_dir() {
 }
 
 make_cache_structure() {
-    mkdir -p ${cache_dir}/mods-noarch
-    mkdir -p ${cache_dir}/mods-noarch/engine
-    mkdir -p ${cache_dir}/mods-arch
-    mkdir -p ${cache_dir}/user-noarch
-    mkdir -p ${cache_dir}/user-arch
-    mkdir -p ${cache_dir}/js-out
-    mkdir -p ${cache_dir}/tmp
+    mkdir -p "$cache_dir"/mods-noarch
+    mkdir -p "$cache_dir"/mods-noarch/engine
+    mkdir -p "$cache_dir"/mods-arch
+    mkdir -p "$cache_dir"/user-noarch
+    mkdir -p "$cache_dir"/user-arch
+    mkdir -p "$cache_dir"/js-out
+    mkdir -p "$cache_dir"/tmp
 }
 
 clean_cache() {
     verbosemessage "Cleaning compiler cache"
-    clean_dir ${cache_dir}/mods-noarch
-    clean_dir ${cache_dir}/mods-noarch/engine
-    clean_dir ${cache_dir}/mods-arch
-    clean_dir ${cache_dir}/user-noarch 
-    clean_dir ${cache_dir}/user-arch 
-    clean_dir ${cache_dir}/js-out
-    clean_dir ${cache_dir}/tmp
+    clean_dir "$cache_dir"/mods-noarch
+    clean_dir "$cache_dir"/mods-noarch/engine
+    clean_dir "$cache_dir"/mods-arch
+    clean_dir "$cache_dir"/user-noarch 
+    clean_dir "$cache_dir"/user-arch 
+    clean_dir "$cache_dir"/js-out
+    clean_dir "$cache_dir"/tmp
     make_cache_structure
 }
 
 clean_bin_cache() {
     verbosemessage "Cleaning compiler cache (action__compile)"
     make_cache_structure
-    rm -f ${cache_dir}/mods-noarch/*.bin
-    rm -f ${cache_dir}/user-noarch/*.bin
-    rm -f ${cache_dir}/tmp/*.bin
+    rm -f "$cache_dir"/mods-noarch/*.bin
+    rm -f "$cache_dir"/user-noarch/*.bin
+    rm -f "$cache_dir"/tmp/*.bin
 }
 
 clean_bootstrap() {
@@ -349,7 +350,7 @@ comp_testing() {
 
 # Ensure that the js_backend compiler exists
 ensure_comp_js() {
-    [ -x ${bin_dir}/comp_js ] || { \
+    [ -x "$cache_bin_dir"/comp_js ] || { \
       fail_message "No compiled compiler with JS-backend found, try `b \"build-cmds\"`"; exit -1; \
     }
 }
@@ -359,7 +360,7 @@ comp_js() {
     setup_install
     ensure_comp_js
 #    rm -f ${ok_file}
-    ${bin_dir}/comp_js "$@" || { fail_message "failed"; exit -1; }
+    "$cache_bin_dir"/comp_js "$@" || { fail_message "failed"; exit -1; }
 }
 
 # ---------------------------------------------------------------------------
@@ -376,7 +377,7 @@ run_exe() {
     fi
     "$oc_scripts"/compile_native.sh "${prg}".car # TODO: do it when code is generated, but make sure that bootstrap does not contain 'arch', etc.
     if [ x"${stats}" = x"yes" ]; then
-	"${prg}".car/run "$@" && ( test -r ${cache_dir}/tmp/ciao__trace.txt && cat ${cache_dir}/tmp/ciao__trace.txt || true )
+	"${prg}".car/run "$@" && ( test -r "$cache_dir"/tmp/ciao__trace.txt && cat "$cache_dir"/tmp/ciao__trace.txt || true )
     else
 	"${prg}".car/run "$@"
     fi
@@ -395,7 +396,7 @@ run_testing() {
 setup() {
     # Safety tests
     [ -z "$ciaoroot" ] && exit -1 
-    [ -z ${cache_dir} ] && exit -1 
+    [ -z "$cache_dir" ] && exit -1 
 
     # Set the compiler module name
     comp_module=$ciaoroot/core_OC/cmds/comp
@@ -429,7 +430,7 @@ setup() {
     compincb=${tmpcomp_dir}/compincb
 
     export CIAOROOT=$ciaoroot
-    export CIAOCACHE=${cache_dir}
+    export CIAOCACHE=$cache_dir
 }
 
 # Other options
@@ -466,25 +467,7 @@ setup_install() {
     # Set loader module name
     loader_module=$ciaoroot/core_OC/cmds/loader
     # Set loader executable
-    loader=${bin_dir}/ciaoloader
-}
-
-# type 'eval `$0 bash-env`'
-show_bash_env() {
-    setup_install
-    cat <<EOF
-export CIAOROOT=${CIAOROOT};
-export CIAOCACHE=${CIAOCACHE};
-EOF
-}
-
-# type 'eval `$0 csh-env`'
-show_csh_env() {
-    setup_install
-    cat <<EOF
-setenv CIAOROOT ${CIAOROOT};
-setenv CIAOCACHE ${CIAOCACHE};
-EOF
+    loader="$cache_bin_dir"/ciaoloader
 }
 
 set_vervars() {
@@ -513,7 +496,7 @@ build_comp_testing() {
 build_loader() {
     set_vervars
     message "Building the dynamic executable loader""${vermsg}"
-    ensure_bin_dir
+    ensure_cache_bin_dir
     setup_install
     delete_exe ${loader}${versuf}
     comp_testing --bootstrap ${loader}${versuf} ${loader_module}
@@ -524,13 +507,13 @@ build_cmd() { # bundle cmd
     local bundle=$1; shift
     local cmd cmdmain cmdexec
     set_vervars
-    ensure_bin_dir
+    ensure_cache_bin_dir
 
     cmd=$1
     
     cmd_message "$bundle" "building ${cmd}""${vermsg}"" (command)"
     cmdmain=$ciaoroot/$bundle/cmds/${cmd}
-    cmdexec=${bin_dir}/${cmd}
+    cmdexec="$cache_bin_dir"/${cmd}
     # TODO: use a directory per cmd and a PROPS file (like it is done for tests)?
     if [ -r ${cmdmain}.pl ]; then
 	case "$bundle" in
@@ -549,7 +532,7 @@ build_cmds() {
     set_vervars
     message "Building commands""${vermsg}"
 
-    ensure_bin_dir
+    ensure_cache_bin_dir
     # TODO: identify available commands automatically
     cmds="ciaodump ciaosh ciao-shell funcsize"
     for cmd in ${cmds}; do
@@ -557,13 +540,13 @@ build_cmds() {
     done
 
     # Post update cmds operations
-    pushd ${bin_dir} > /dev/null
-    rm -f "$ciaoroot"/build/bin/ciaodump-oc${versuf}
-    ln -s ${bin_dir}/ciaodump${versuf} "$ciaoroot"/build/bin/ciaodump-oc${versuf}
-    rm -f "$ciaoroot"/build/bin/ciao-shell-oc${versuf}
-    ln -s ${bin_dir}/ciao-shell${versuf} "$ciaoroot"/build/bin/ciao-shell-oc${versuf}
-    rm -f "$ciaoroot"/build/bin/ciaosh-oc${versuf}
-    ln -s ${bin_dir}/ciaosh${versuf} "$ciaoroot"/build/bin/ciaosh-oc${versuf}
+    pushd "$cache_bin_dir" > /dev/null
+    rm -f "$bin_dir"/ciaodump-oc${versuf}
+    ln -s "$cache_bin_dir"/ciaodump${versuf} "$bin_dir"/ciaodump-oc${versuf}
+    rm -f "$bin_dir"/ciao-shell-oc${versuf}
+    ln -s "$cache_bin_dir"/ciao-shell${versuf} "$bin_dir"/ciao-shell-oc${versuf}
+    rm -f "$bin_dir"/ciaosh-oc${versuf}
+    ln -s "$cache_bin_dir"/ciaosh${versuf} "$bin_dir"/ciaosh-oc${versuf}
     popd > /dev/null
 }
 
@@ -623,12 +606,14 @@ case $action in
     comp)          shift; comp "$@" ;;
     debug_comp)    shift; debug_comp "$@" ;;
     comp_ana)      shift; comp_ana "$@" ;;
+    # Building .car native code
+    car_build)     shift; "$oc_scripts"/compile_native.sh "$@" ;;
+    car_clean)     shift; "$oc_scripts"/clean.sh "$@" ;;
+    car_run)       shift; "$oc_scripts"/run.sh "$@" ;; # TODO: improve
+    car_debug)     shift; "$oc_scripts"/debug.sh "$@" ;; # TODO: improve
     # Calling the compiler with js_backend
     build_comp_js) shift; build_cmd "core_OCjs" comp_js ;;
     comp_js)       shift; comp_js "$@" ;;
-    # Setting up environment
-    bash_env)      show_bash_env ;;
-    csh_env)       show_csh_env ;;
     # Compiling the system
     build)         build_comp && build_loader && build_cmds ;;
     build_loader)  build_loader ;;

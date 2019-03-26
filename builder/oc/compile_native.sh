@@ -92,7 +92,19 @@ mkdir -p ${TARGET_DIR} >> ${log} 2>&1 && \
 compile ${CFILES} && \
 link ${CFILES}
 
-cat "${_base}"/car_header > "${_carbase}"/run
+cat > "${_carbase}"/run <<EOF
+#!/bin/sh
+# Run executable (.car archive)
+
+# Physical directory where the script is located
+_base=\$(e=\$0;while test -L "\$e";do d=\$(dirname "\$e");e=\$(readlink "\$e");\\
+        cd "\$d";done;cd "\$(dirname "\$e")";pwd -P)
+# Make sure that CIAOROOT and CIAOCACHE are defined
+r=\${CIAOROOT:-"$CIAOROOT"}
+c="\$r/build/oc-cache"
+c=\${CIAOCACHE:-\$c}
+CIAOROOT="\$r" CIAOCACHE="\$c" CIAOCCONFIG=\${_base}/configuration \${_base}/arch "\$@" -C \${_base}/noarch \${CIAORTOPTS}
+EOF
 chmod a+x "${_carbase}"/run
 
 [ -x ${execname} ] || { \

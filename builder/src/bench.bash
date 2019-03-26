@@ -15,9 +15,6 @@ source "$builder_src"/messages.bash
 source "$builder_src"/compare_files.bash
 source "$builder_src"/archdump.bash
 
-oc_builder=$builder_src/oc_builder.bash
-oc_scripts=$ciaoroot/builder/oc
-
 # ---------------------------------------------------------------------------
 
 action=$1
@@ -124,8 +121,8 @@ checkexec() {
     rm -f ${prgout}.disasm
     # TODO: clean the user cache to ensure that the file is recompiled!
     echo "Compiling exec ${prg}"
-    "$oc_builder" comp --dynexec ${prgout} ${prg} || return 1
-    ciaodump-oc --file compile__emu ${prgout} > ${prgout}.disasm
+    "$bin_dir"/ciao oc:comp --dynexec ${prgout} ${prg} || return 1
+    "$bin_dir"/ciaodump-oc --file compile__emu ${prgout} > ${prgout}.disasm
     compareexec brief ${prg}
 }
 
@@ -137,7 +134,7 @@ runexec() {
     ensure_regression_dir
     prgout=`get_prgout ${prg}`
     echo "Running exec ${prg}"
-    "$oc_builder" comp --dynexec ${prgout} ${prg} && ${prgout}
+    "$bin_dir"/ciao oc:comp --dynexec ${prgout} ${prg} && ${prgout}
 }
 
 # ---------------------------------------------------------------------------
@@ -163,11 +160,11 @@ bringemu() {
     mkdir -p curr
     mkdir -p prev
     #
-    "$oc_builder" comp --recursive-deps "$ciaoroot"/core_OC/cmds/comp > curr/all_modules
+    "$bin_dir"/ciao oc:comp --recursive-deps "$ciaoroot"/core_OC/cmds/comp > curr/all_modules
     EMU_BCFILES=`cat curr/all_modules`
     for i in $EMU_BCFILES; do
 	j=`escape_mod_name ${i}`
-	ciaodump-oc --disasm ${i} > curr/${j}.emu
+	"$bin_dir"/ciaodump-oc --disasm ${i} > curr/${j}.emu
     done
     for i in $EMU_CFILES; do
 	cp ${compc_exe}.car/c/engine/${i} curr/${i}
@@ -250,16 +247,16 @@ checkmod() {
     # TODO: do not touch, clean the user cache!
     touch ${prg}.pl && \
         echo "Compiling module ${prg}" && \
-#	CIAORTOPTS="-proft" "$oc_builder" comp --do compile ${prg} && \
-	"$oc_builder" comp --comp-stats --do compile ${prg} && \
+#	CIAORTOPTS="-proft" "$bin_dir"/ciao oc:comp --do compile ${prg} && \
+	"$bin_dir"/ciao oc:comp --comp-stats --do compile ${prg} && \
         echo "Generating native code (if required) for module ${prg}" && \
-	"$oc_builder" comp --do archcompile ${prg} || return 1    
-    ciaodump-oc --module compile__dump ${prg} > ${prgout}.dump.txt
-    ciaodump-oc --module compile__emu ${prg} > ${prgout}.emu.txt
-    ciaodump-oc --module compile__c ${prg} > ${prgout}.native.txt
-    ciaodump-oc --module compile__h ${prg} > ${prgout}.native_h.txt
-    ciaodump-oc --module archcompile__s ${prg} > ${prgout}.s.txt
-    ciaodump-oc --module archcompile__o ${prg} > ${prgout}.o.s.txt
+	"$bin_dir"/ciao oc:comp --do archcompile ${prg} || return 1    
+    "$bin_dir"/ciaodump-oc --module compile__dump ${prg} > ${prgout}.dump.txt
+    "$bin_dir"/ciaodump-oc --module compile__emu ${prg} > ${prgout}.emu.txt
+    "$bin_dir"/ciaodump-oc --module compile__c ${prg} > ${prgout}.native.txt
+    "$bin_dir"/ciaodump-oc --module compile__h ${prg} > ${prgout}.native_h.txt
+    "$bin_dir"/ciaodump-oc --module archcompile__s ${prg} > ${prgout}.s.txt
+    "$bin_dir"/ciaodump-oc --module archcompile__o ${prg} > ${prgout}.o.s.txt
     comparemod brief ${prg}
 }
 
@@ -280,10 +277,10 @@ evalmod() {
     rm -f ${outfile}
     echo "test: ${prg}"
     clean_trace
-#    echo "use_module(${prg}). main." | "$oc_builder" run-testing ${cache_dir}/bin/ciaosh${sufver} 2>/dev/null
+#    echo "use_module(${prg}). main." | "$bin_dir"/ciao oc:run-testing ${cache_dir}/bin/ciaosh${sufver} 2>/dev/null
     echo "use_module(${prg}). main." | ${cache_dir}/bin/ciaosh 2>/dev/null
     dump_trace
-#    ciaodump-oc${versuf} --module dectok ${prg} 2>/dev/null | head -1 # Print bytecode size
+#    "$bin_dir"/ciaodump-oc${versuf} --module dectok ${prg} 2>/dev/null | head -1 # Print bytecode size
 }
 
 # ---------------------------------------------------------------------------
@@ -295,13 +292,13 @@ evalexec() {
     prg=$1
     ensure_regression_dir
     prgout=`get_prgout ${prg}`
-#    "$oc_builder" comp-testing --dynexec ${prgout} ${prg}
-    "$oc_builder" comp --dynexec ${prgout} ${prg}
+#    "$bin_dir"/ciao oc:comp-testing --dynexec ${prgout} ${prg}
+    "$bin_dir"/ciao oc:comp --dynexec ${prgout} ${prg}
     clean_trace
-#    "$oc_builder" run-testing ./${prg}
+#    "$bin_dir"/ciao oc:run-testing ./${prg}
     ./${prgout}
     dump_trace
-    ciaodump-oc --file dectok ${prgout} 2>/dev/null | head -1 # Print bytecode size
+    "$bin_dir"/ciaodump-oc --file dectok ${prgout} 2>/dev/null | head -1 # Print bytecode size
 }
 
 # ---------------------------------------------------------------------------
@@ -330,7 +327,7 @@ function mtsys_checkmod() {
     esac
     popd > /dev/null
     pushd ${mtsys_outdir} > /dev/null
-    "$oc_builder" bench checkmod ${temp}
+    "$bin_dir"/ciao oc:bench checkmod ${temp}
     popd > /dev/null
 }
 
@@ -342,7 +339,7 @@ function mtsys_comparemod() {
     temp=temp_${mod}_${system}
     popd > /dev/null
     pushd ${mtsys_outdir} > /dev/null
-    "$oc_builder" bench comparemod ${temp}
+    "$bin_dir"/ciao oc:bench comparemod ${temp}
     popd > /dev/null
 }
 
@@ -354,7 +351,7 @@ function mtsys_briefcomparemod() {
     temp=temp_${mod}_${system}
     popd > /dev/null
     pushd ${mtsys_outdir} > /dev/null
-    "$oc_builder" bench briefcomparemod ${temp}
+    "$bin_dir"/ciao oc:bench briefcomparemod ${temp}
     popd > /dev/null
 }
 
@@ -366,7 +363,7 @@ function mtsys_savemod() {
     temp=temp_${mod}_${system}
     popd > /dev/null
     pushd ${mtsys_outdir} > /dev/null
-    "$oc_builder" bench savemod ${temp}
+    "$bin_dir"/ciao oc:bench savemod ${temp}
     popd > /dev/null
 }
 
@@ -402,36 +399,36 @@ function mtsys_evalmod() {
 	    cpp -DSYSTEM=ciao2 -DCIAO2 -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
             # Using the toplevel
 	    pushd ${mtsys_outdir} > /dev/null
-	    "$oc_builder" bench evalmod ${temp} || return 1
+	    "$bin_dir"/ciao oc:bench evalmod ${temp} || return 1
 	    popd > /dev/null
             # Using executables
-#	    "$oc_builder" comp --bootstrap ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
-#	    "$oc_scripts"/clean.sh "${mtsys_outdir}/${temp}".car
-#	    "$oc_scripts"/compile_native.sh "${mtsys_outdir}/${temp}".car
+#	    "$bin_dir"/ciao oc:comp --bootstrap ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
+#	    "$bin_dir"/ciao oc:car-clean "${mtsys_outdir}/${temp}".car
+#	    "$bin_dir"/ciao oc:car-build "${mtsys_outdir}/${temp}".car
 #	    "${mtsys_outdir}/${temp}".car/run
-#	    ciaodump-oc --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
+#	    "$bin_dir"/ciaodump-oc --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
 	    ;;
 	ciao3 ) # optimcomp with compilation to native code
 	    cpp -DSYSTEM=ciao3 -DCIAO3 -DOPT_MASK=63 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
             # Using the toplevel
 #	    pushd ${mtsys_outdir} > /dev/null
-#	    "$oc_builder" bench evalmod ${temp} || return 1
+#	    "$bin_dir"/ciao oc:bench evalmod ${temp} || return 1
 #	    popd > /dev/null
             # Using dynamic executables
             # TODO: does not work because the C code is not included
-#	    "$oc_builder" comp --dynexec ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
+#	    "$bin_dir"/ciao oc:comp --dynexec ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
 #	    ${mtsys_outdir}/${temp}
             # Check source
 #	    pushd ${mtsys_outdir} > /dev/null
-#	    "$oc_builder" bench checkmod ${temp}
+#	    "$bin_dir"/ciao oc:bench checkmod ${temp}
 #	    popd > /dev/null
             # Using executables
-	    "$oc_builder" comp --bootstrap ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
-	    "$oc_scripts"/clean.sh "${mtsys_outdir}/${temp}".car
-	    "$oc_scripts"/compile_native.sh "${mtsys_outdir}/${temp}".car
+	    "$bin_dir"/ciao oc:comp --bootstrap ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
+	    "$bin_dir"/ciao oc:car-clean "${mtsys_outdir}/${temp}".car
+	    "$bin_dir"/ciao oc:car-build "${mtsys_outdir}/${temp}".car
 	    #todo: adding those options were good for the language-shootout, but the speedup was not impressive with ptoc: CIAOCCOPTS="-O3 -march=pentium4 -mfpmath=sse -msse2" 
 	    "${mtsys_outdir}/${temp}".car/run
-	    ciaodump-oc --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
+	    "$bin_dir"/ciaodump-oc --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
 	    ;;
 	sicstus )
 	    cpp -DSYSTEM=sicstus -DSICSTUS -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
@@ -514,8 +511,6 @@ function sizefield() {
 }
 
 # ---------------------------------------------------------------------------
-
-eval `"$oc_builder" bash-env`
 
 # TODO: do not use save-no-ask by default, add parameters to save different
 # versions (e.g. for different architectures, absmach options, etc.)

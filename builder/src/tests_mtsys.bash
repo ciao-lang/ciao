@@ -10,9 +10,8 @@ _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
 
 old_dir=`pwd`; cd "$_base/../.."; ciaoroot=`pwd`; cd "$old_dir"; old_dir=
 builder_src=$ciaoroot/builder/src
-# source "$builder_src"/compat.bash
-
-oc_builder=$builder_src/oc_builder.bash
+source "$builder_src"/compat.bash
+source "$builder_src"/config.bash
 
 # ---------------------------------------------------------------------------
 
@@ -40,7 +39,7 @@ function do_tests { # arguments: system
     sys=$1
     for i in $TESTS; do
         pushd "${ciaoroot}/bndls/testsuite/suite/$i" > /dev/null
-        "$oc_builder" bench mtsys-evalmod-${sys} $i
+        "$bin_dir"/ciao oc:bench mtsys-evalmod-${sys} $i
         popd > /dev/null
     done
 }

@@ -1,19 +1,21 @@
 # ---------------------------------------------------------------------------
 # Configuration variables
 
-# cache_dir=${HOME}/.ciao-cache
+# Ciao bin dir
+bin_dir=$ciaoroot/build/bin
+# cache dir
 cache_dir=$ciaoroot/build/oc-cache
-# Set the directory where executables go
-bin_dir=${cache_dir}/bin
-
-tmpcomp_dir=${cache_dir}/tmpcomp
+# Set the directory where executables go at cache dir
+cache_bin_dir=$cache_dir/bin
+# temporary compiler steps
+tmpcomp_dir=$cache_dir/tmpcomp
 
 # ---------------------------------------------------------------------------
 # Custom procedures and post-initialization of variables computed from
 # the configuration variables
 
-ensure_bin_dir() {
-    mkdir -p "${bin_dir}"
+ensure_cache_bin_dir() {
+    mkdir -p "${cache_bin_dir}"
 }
 
 # ---------------------------------------------------------------------------

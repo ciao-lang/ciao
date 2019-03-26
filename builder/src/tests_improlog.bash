@@ -16,9 +16,6 @@ source "$builder_src"/compare_files.bash
 source "$builder_src"/car.bash
 source "$builder_src"/archdump.bash
 
-oc_builder=$builder_src/oc_builder.bash
-oc_scripts=$ciaoroot/builder/oc
-
 # ---------------------------------------------------------------------------
 # Output directories
 
@@ -131,11 +128,11 @@ compile_one() {
 	    echo -n "Compiling ImProlog version: ${i}"
 	    total_improlog=$((${total_improlog} + 1))
 	    touch ${srcname} # TODO: a kludge..
-	    if "$oc_builder" comp --bootstrap ${execname} ${srcname} > ${logname} 2>&1; then
+	    if "$bin_dir"/ciao oc:comp --bootstrap ${execname} ${srcname} > ${logname} 2>&1; then
 		echo " [OK]"
 		warn_nonempty_log ${logname}
-		"$oc_scripts"/clean.sh "$execname".car
-		CIAOCCOPTS="${ciaoccopts}" CIAOLDOPTS="${ciaoldopts}" "$oc_scripts"/compile_native.sh "$execname"
+		"$bin_dir"/ciao oc:car-clean "$execname".car
+		CIAOCCOPTS="${ciaoccopts}" CIAOLDOPTS="${ciaoldopts}" "$bin_dir"/ciao oc:car-build "$execname"
 		ok_improlog=$((${ok_improlog} + 1))
 	    else
 		delete_exe ${execname}

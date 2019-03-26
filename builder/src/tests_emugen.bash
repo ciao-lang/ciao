@@ -16,8 +16,6 @@ source "$builder_src"/compare_files.bash
 #source "$builder_src"/car.bash
 source "$builder_src"/archdump.bash
 
-#oc_builder=$builder_src/oc_builder.bash
-
 # ---------------------------------------------------------------------------
 # Description of the generated engine
 

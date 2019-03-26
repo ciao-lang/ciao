@@ -16,9 +16,6 @@ source "$builder_src"/config.bash
 source "$builder_src"/archdump.bash
 source "$builder_src"/car.bash
 
-oc_builder=$builder_src/oc_builder.bash
-oc_scripts=$ciaoroot/builder/oc
-
 # ---------------------------------------------------------------------------
 
 trap 'exit -1' SIGINT
@@ -28,19 +25,19 @@ trap 'exit -1' SIGINT
 fulltests() {
     testcomp
     testinccomp
-    "$oc_builder" build-all || return 0
-    "$oc_builder" build-comp-js || return 0 # for testing JS backend
+    "$bin_dir"/ciao oc:build-all || return 0
+    "$bin_dir"/ciao oc:build-comp-js || return 0 # for testing JS backend
     do_tests runexec runexec
     do_common check
 }
 
 testinccomp() {
-    "$oc_builder" --stats inc || return 0
+    "$bin_dir"/ciao --stats oc:inc || return 0
 }
 
 testcomp() {
-    "$oc_builder" --stats build-comp || return 0
-    "$oc_builder" bench briefcompareemu
+    "$bin_dir"/ciao --stats oc:build-comp || return 0
+    "$bin_dir"/ciao oc:bench briefcompareemu
 }
 
 do_common() {
@@ -48,7 +45,7 @@ do_common() {
     case ${ACTION} in
 	check) ;;
 	eval) ;;
-	*) "$oc_builder" bench ${ACTION}emu ;;
+	*) "$bin_dir"/ciao oc:bench ${ACTION}emu ;;
     esac
     do_tests checkexec ${ACTION}exec
     do_tests checkmod ${ACTION}mod
@@ -60,7 +57,7 @@ do_common() {
 
 # ---------------------------------------------------------------------------
 # Miscellaneous routines
-# TODO: share with oc_builder
+# TODO: share with oc_builder.bash
 
 # Dump emulator loop size for ciaoloader_testing
 
@@ -116,7 +113,7 @@ do_tests() {
 	test -d $i || continue
 	has_prop ${what} ${i}/PROPS || continue
 	pushd ${i} > /dev/null
-	"$oc_builder" bench ${action} ${i}
+	"$bin_dir"/ciao oc:bench ${action} ${i}
 	popd > /dev/null
     done
     popd > /dev/null
@@ -171,28 +168,28 @@ sabsmach_min_test() {
     mkdir -p ${cache_dir}
 
     echo "Compiling under alternative cache using dead info (static exec)"
-    "$oc_builder" comp-testing --bootstrap ${prg}-stat ${prg}
-    "$oc_scripts"/clean.sh ${prg}-stat.car
-    "$oc_scripts"/compile_native.sh ${prg}-stat.car
+    "$bin_dir"/ciao oc:comp-testing --bootstrap ${prg}-stat ${prg}
+    "$bin_dir"/ciao oc:car-clean ${prg}-stat.car
+    "$bin_dir"/ciao oc:car-build ${prg}-stat.car
     exe_info ${prg}-stat
-    ciaodump-oc --file dectok ${prg}-stat.car/noarch > ${prg}-stat.dead
+    "$bin_dir"/ciaodump-oc --file dectok ${prg}-stat.car/noarch > ${prg}-stat.dead
     head -1 ${prg}-stat.dead # Print bytecode size
 #
-    "$oc_builder" --cache-dir ${cache_dir} clean-cache
-    "$oc_builder" --cache-dir ${cache_dir} comp-testing --dead ${prg}-stat.dead --bootstrap ${prg}-small ${prg}
-    "$oc_scripts"/clean.sh ${prg}-small.car
-    "$oc_scripts"/compile_native.sh ${prg}-small.car
+    "$bin_dir"/ciao --cache-dir ${cache_dir} oc:clean-cache
+    "$bin_dir"/ciao --cache-dir ${cache_dir} oc:comp-testing --dead ${prg}-stat.dead --bootstrap ${prg}-small ${prg}
+    "$bin_dir"/ciao oc:car-clean ${prg}-small.car
+    "$bin_dir"/ciao oc:car-build ${prg}-small.car
     exe_info ${prg}-small
     echo "Compiling under alternative cache using dead info (dynamic exec)"
     echo "(note: will not run unless a full absmach executes the external modules)"
-    "$oc_builder" comp-testing --dynexec ${prg}-dyn ${prg}
-    ciaodump-oc --file dectok ${prg}-dyn > ${prg}-dyn.dead
+    "$bin_dir"/ciao oc:comp-testing --dynexec ${prg}-dyn ${prg}
+    "$bin_dir"/ciaodump-oc --file dectok ${prg}-dyn > ${prg}-dyn.dead
     head -1 ${prg}-dyn.dead # Print bytecode size
 #
-    "$oc_builder" --cache-dir ${cache_dir} clean-cache
-    "$oc_builder" --cache-dir ${cache_dir} comp-testing --dead ${prg}-dyn.dead --bootstrap ${prg}-tiny ${prg}
-    "$oc_scripts"/clean.sh ${prg}-tiny.car
-    "$oc_scripts"/compile_native.sh ${prg}-tiny.car
+    "$bin_dir"/ciao --cache-dir ${cache_dir} oc:clean-cache
+    "$bin_dir"/ciao --cache-dir ${cache_dir} oc:comp-testing --dead ${prg}-dyn.dead --bootstrap ${prg}-tiny ${prg}
+    "$bin_dir"/ciao oc:car-clean ${prg}-tiny.car
+    "$bin_dir"/ciao oc:car-build ${prg}-tiny.car
     exe_info ${prg}-tiny
 }
 
@@ -268,12 +265,12 @@ Preparing test (options group: ${OPTGRP}, options: ${OPTS}) (date: `date`)
 EOF
     cat "BUG: testing compiler and engine are not being used in evalmod, etc.! Add a flag to do eval with the testing system."
     # Regenerate the compiler and tools
-    ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$oc_builder" clean-cache
-    ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$oc_builder" build-comp-testing
+    ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$bin_dir"/ciao oc:clean-cache
+    ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$bin_dir"/ciao oc:build-comp-testing
     # Compile ciaodump for testing
     # Compile ciaoloader for testing
-    ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$oc_builder" --stats build-loader-testing && \
-    ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$oc_builder" build-cmds-testing
+    ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$bin_dir"/ciao --stats oc:build-loader-testing && \
+    ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$bin_dir"/ciao oc:build-cmds-testing
 }
 
 sabsmach_vers__do_test() {
