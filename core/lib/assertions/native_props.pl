@@ -1,98 +1,86 @@
 :- module(native_props, [
-% Meta-properties:
-% (should be at the beginning? in assertions?) 
-		compat/1,
-		instance/1,
-		succeeds/1,  % very crazy. TODO: rename!
-% Sharing/aliasing, groundness:
-     		mshare/1, % Read as possibly_share
-		indep/2,
-		indep/1,
-		covered/2,
-		linear/1,
-		nonground/1,
-		clique/1,
-		clique_1/1,
-
-% Determinacy:
-		is_det/1,
-		non_det/1,
-		possibly_nondet/1, % maybe_nondet?
-		mut_exclusive/1,
-		not_mut_exclusive/1,
-		possibly_not_mut_exclusive/1,
-
-% Non-failure: 
-		not_fails/1,
-		fails/1,
-		possibly_fails/1, % may_fail?
-		covered/1, 
-		not_covered/1,
-		possibly_not_covered/1,
-		test_type/2,
-
-% More general cardinality, choicepoints, and exact solutions:
-		num_solutions/2,
-		relations/2,
-		finite_solutions/1,
-		solutions/2,
-		cardinality/3, % TODO:[new-resources]
-		no_choicepoints/1,
-		leaves_choicepoints/1,
-
-% Data sizes, cost, termination:
-		size/2,
-		size/3,
-		size_lb/2,
-		size_ub/2,
-		size_o/2,
-
-		size_metric/3,
-		size_metric/4,
-		measure_t/1,
-		bound/1,
-
-		steps/2,
-		steps_lb/2,
-		steps_o/2,
-		steps_ub/2,
-
-		rsize/2, % TODO:[new-resources]
-		costb/4, % TODO:[new-resources]
-
-		terminates/1,
-
-% Exceptions:
-		exception/1,
-		exception/2,
-		possible_exceptions/2,
-		no_exception/1,
-		no_exception/2,
-
-% Signals:
-		signal/1,
-		signal/2,
-		possible_signals/2,
-		no_signal/1,
-		no_signal/2,
-
-% Other side-effects:
-		sideff_hard/1,
-		sideff_pure/1,
-		sideff_soft/1,
-
-% Polyhedral constraints:
-		constraint/1,
-
-% Other properties:
-		tau/1,
-		% intervals/2 %[LD]
-
-		user_output/2
-		% , user_error/2
-
-	    ],
-	    [assertions, regtypes]).
+	% Meta-properties:
+	% TODO: should be at the beginning? in assertions?
+	compat/1,
+	instance/1,
+	succeeds/1, % TODO: very crazy. % TODO: rename!
+	% Sharing/aliasing, groundness:
+	mshare/1, % TODO: Read as possibly_share
+	indep/2,
+	indep/1,
+	covered/2,
+	linear/1,
+	nonground/1,
+	clique/1,
+	clique_1/1,
+	% Determinacy:
+	is_det/1,
+	non_det/1,
+	possibly_nondet/1, % TODO: maybe_nondet?
+	mut_exclusive/1,
+	not_mut_exclusive/1,
+	possibly_not_mut_exclusive/1,
+	% Non-failure: 
+	not_fails/1,
+	fails/1,
+	possibly_fails/1, % TODO: may_fail?
+	covered/1, 
+	not_covered/1,
+	possibly_not_covered/1,
+	test_type/2,
+	% More general cardinality, choicepoints, and exact solutions:
+	num_solutions/2,
+	relations/2,
+	finite_solutions/1,
+	solutions/2,
+	cardinality/3, % TODO:[new-resources]
+	no_choicepoints/1,
+	leaves_choicepoints/1,
+	% Data sizes, cost, termination:
+	size/2,
+	size/3,
+	size_lb/2,
+	size_ub/2,
+	size_o/2,
+	%
+	size_metric/3,
+	size_metric/4,
+	measure_t/1,
+	bound/1,
+	%
+	steps/2,
+	steps_lb/2,
+	steps_o/2,
+	steps_ub/2,
+	%
+	rsize/2, % TODO:[new-resources]
+	costb/4, % TODO:[new-resources]
+	%
+	terminates/1,
+	% Exceptions:
+	exception/1,
+	exception/2,
+	possible_exceptions/2,
+	no_exception/1,
+	no_exception/2,
+	% Signals:
+	signal/1,
+	signal/2,
+	possible_signals/2,
+	no_signal/1,
+	no_signal/2,
+	% Other side-effects:
+	sideff_hard/1,
+	sideff_pure/1,
+	sideff_soft/1,
+	% Polyhedral constraints:
+	constraint/1,
+	% Other properties:
+	tau/1,
+	% intervals/2 %[LD]
+	user_output/2
+	% , user_error/2
+    ], [assertions, regtypes]).
 
 :- doc(bug, "MH: Some of these properties should be moved to rtchecks
    or testing libs.").
