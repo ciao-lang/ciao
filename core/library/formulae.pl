@@ -23,8 +23,6 @@
 	[ assertions, regtypes
 	]).
 
-:- use_module(library(messages)).
-
 :- doc(title,"Lists and conjunctions and disjunctions").
 
 :- doc(list_to_conj(List,Conj,End),"
@@ -79,10 +77,7 @@ list_to_conj([A|B], (A,Br)) :- B \== [], !,
 	list_to_conj_(B, Br).
 list_to_conj([A], A) :- !.
 list_to_conj(A, _) :-
-	error_message(
-		"Internal Error: Bad Arguments ~w when calling list_to_conj/2",
-	        [A]),
-	fail.
+	throw(error(domain_error(list, A), list_to_conj/2)).
 
 list_to_conj_(B, Br) :- var(B), var(Br), !,
 	[Br] = B.
@@ -155,10 +150,7 @@ list_to_disj([A|B], (A;Br)) :- B \== [], !,
 	list_to_disj_(B, Br).
 list_to_disj([A], A) :- !.
 list_to_disj(A, _) :-
-	error_message(
-		"Internal Error: Bad Arguments ~w when calling list_to_disj/2",
-	        [A]),
-	fail.
+	throw(error(domain_error(list, A), list_to_disj/2)).
 
 list_to_disj_(B, Br) :- var(B), var(Br), !,
 	[Br] = B.
