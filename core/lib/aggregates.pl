@@ -100,12 +100,8 @@ no
 ?- 
 @end{verbatim}").
 
-
 :- trust comp setof(X, Y, Z) + native(findall(X,Y,Z)).
-
 :- pred setof(@term, +callable, ?list) + iso.
-
-
 :- meta_predicate setof(?,goal,?).
 
 %% This predicate is defined on p51 of the Dec-10 Prolog manual.
@@ -123,11 +119,8 @@ setof(Template, Filter, Set) :-
    avoided by using existential quantifiers on the free variables in
    front of the @var{Generator}, using @pred{^/2}.").
 
-
 :- trust comp bagof(X, Y, Z) + native(findall(X,Y,Z)).
-
 :- pred bagof(@term, +callable, ?list) + iso.
-
 :- meta_predicate bagof(?,goal,?).
 
 %   bagof records three things under the key '.':
@@ -164,9 +157,7 @@ bagof(Template, Generator, Bag) :-
      existentially quantified. Faster than the other aggregation
      predicates.").
 
-:- trust pred findall(@term, +callable, ?list)
-	+ (iso, native, not_fails, is_det).
-
+:- trust pred findall(@term, +callable, ?list) + (iso, native, not_fails, is_det).
 :- meta_predicate findall(?,goal,?).
 
 %%  It is described in Clocksin & Mellish on p152.  The code they give has
@@ -180,9 +171,7 @@ findall(Template, Generator, List) :-
 :- pred findall(@term, +callable, ?term, ?term)
    # "As @pred{findall/3}, but returning in @var{Tail} the tail of
      @var{List} (findall(@var{Template}, @var{Generator}, @var{List}, @var{Tail})).".
-
 :- meta_predicate findall(?,goal,?,?).
-
 
 findall(Template, Generator, List, Tail) :-
         save_solutions(-Template, Generator),
@@ -195,8 +184,7 @@ findall(Template, Generator, List, Tail) :-
      list.  This predicate is especially useful if @var{Generator} may
      have an infinite number of solutions.").
 
- :- pred findnsols(+int,@term,+callable,?list).
-
+:- pred findnsols(+int,@term,+callable,?list).
 :- meta_predicate findnsols(?,?,goal,?).
 
 findnsols(N,E,P,L) :-
@@ -211,7 +199,6 @@ findnsols(_,_,_,[]).
      @var{List}.").
 
 :- pred findnsols(+int,@term,+callable,?,?).
-
 :- meta_predicate findnsols(?,?,goal,?,?).
 
 findnsols(N,E,P,L,T) :-
@@ -247,7 +234,6 @@ save_solutions(Template, Generator) :-
 save_solutions(_,_).
 
 :- pred list_solutions(List, Tail)
-
    # "Pulls all the @var{Template} instances out of the data base into
       @var{List}".
 
@@ -308,7 +294,6 @@ variable_in_list(T, [V|Vars], S0, S) :-
         ).
 
 :- pred concordant_subset(Kvpair, Key, Val) : (keylist(Kvpair), list(Val))
-
    # "Takes a list of @var{Key-Val} pairs which has been keysorted to bring
      all the identical keys together, and enumerates each different
      Key and the corresponding lists of values.".
@@ -317,9 +302,7 @@ concordant_subset([Key-Val|Rest], Clavis, Answer) :-
         concordant_subset(Rest, Key, List, More),
         concordant_subset(More, Key, [Val|List], Clavis, Answer).
 
-
 :-  pred concordant_subset(Rest, Key, List, More)
-
     # "Strips off all the Key-Val pairs from the from of Rest, putting
       the Val elements into List, and returning the left-over pairs,
       if any, as More.".
@@ -330,9 +313,7 @@ concordant_subset([Key-Val|Rest], Clavis, [Val|List], More) :-
         concordant_subset(Rest, Clavis, List, More).
 concordant_subset(More, _, [], More).
 
-
 :- pred concordant_subset/5
-
    # "Tries the current subset, and if that doesn't work if backs up
      and tries the next subset.  The first clause is there to save a
      choice point when this is the last possible subset.".
@@ -342,10 +323,8 @@ concordant_subset(_,    Key, Subset, Key, Subset).
 concordant_subset(More, _,   _,   Clavis, Answer) :-
         concordant_subset(More, Clavis, Answer).
 
-
-
+% TODO: implement in C?
 :- pred free_variables(Generator, Template, OldList, NewList)
-
    # "In order to handle variables properly, we have to find all the
       universally quantified variables in the @var{Generator}.  All
       variables as yet unbound are universally quantified, unless
@@ -428,4 +407,7 @@ list_is_free_of([Head|Tail], Var) :-
 :- trust comp (_X^Y) + native(call(Y)).
 %% %%% Was as follows when in builtin.pl:
 %% (X^Y) :- undefined_goal((X^Y)).
+:- if(defined(optim_comp)).
+:- '$allow_def'((^)/2).
+:- endif.
 (_X^Y) :- call(Y).
