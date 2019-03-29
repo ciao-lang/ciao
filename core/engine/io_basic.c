@@ -1428,24 +1428,25 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
 	     tagged_t in,
 	     tagged_t *vars,
 	     int *lastvar) {
-  int i,j;
+  int i, j;
+  intmach_t b;
   tagged_t term;
 
   switch (TagOf(in)) {
   case LST:
     DerefCar(term,in);
     DerefCdr(in,in);
-    if (TagIsSmall(term) && (i = GetSmall(term)))
-      if ((i > 0) && (i < 256)) {
-	for (writebyte(Arg,'"',Output_Stream_Ptr);i && (i < 256);) {
-	  writebyte(Arg,i,Output_Stream_Ptr);
+    if (TagIsSmall(term) && (b = GetSmall(term)))
+      if ((b > 0) && (b < 256)) {
+	for (writebyte(Arg,'"',Output_Stream_Ptr);(b > 0) && (b < 256);) {
+	  writebyte(Arg,b,Output_Stream_Ptr);
 	  if (TagOf(in) == LST) {
 	    DerefCar(term,in);
 	    DerefCdr(in,in);
 	    if (!TagIsSmall(term)) {
 	      break;
 	    } else {
-	      i = GetSmall(term);
+	      b = GetSmall(term);
 	    }
 	  } else {
 	    writebyte(Arg,0,Output_Stream_Ptr);
