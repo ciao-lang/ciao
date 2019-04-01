@@ -543,13 +543,15 @@ exists_and_compilable(Dir) :-
 :- use_module(ciaobld(builder_aux), [lookup_workspace/2]).
 :- use_module(engine(internals), [ciao_root/1]).
 :- use_module(library(sh_process), [sh_process_call/3]).
+:- use_module(engine(stream_basic), [fixed_absolute_file_name/3]).
 
 :- import(internals, [translate_base_2/2]).
 
 :- export(clean_tree/1).
 % Clean (compilation files in) a directory tree (recursively).
 clean_tree(Dir) :-
-	( cachedir_prefix(Dir, Prefix) ->
+	( fixed_absolute_file_name(Dir, '.', AbsDir),
+	  cachedir_prefix(AbsDir, Prefix) ->
 	    % out-of-tree build
 	    path_split(Prefix, CacheDir, RelPrefix),
 	    clean_aux(clean_cachedir, [CacheDir, RelPrefix]),
@@ -568,7 +570,8 @@ clean_aux(Command, Args) :-
 % TODO: keep synchronized with internals:translate_base/2
 % TODO: fail if CIAOCCACHE=0?
 :- export(cachedir_prefix/2).
-% Ask prefix for out-of-tree builds (safe version, do not .
+% Ask prefix for out-of-tree builds (safe version). Dir must be an
+% absolute path name.
 cachedir_prefix(Dir, Prefix) :-
 	lookup_workspace(Dir, Wksp),
 	path_get_relative(Wksp, Dir, Rel), % Dir is relative to Wksp
