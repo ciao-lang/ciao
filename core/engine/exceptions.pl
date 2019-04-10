@@ -35,7 +35,9 @@ halt(N) :- throw(error(type_error(integer, N), halt/1-1)).
 
 :- doc(abort, "Abort the current execution.").
 
-abort :- '$exit'(-32768).
+abort :-
+	reset_exceptions,
+	'$exit'(-32768).
 
 % ---------------------------------------------------------------------------
 
@@ -54,6 +56,11 @@ asserta_disabled(Ref) :- retract_fact_nb(disabled(Ref)), fail.
 
 retract_disabled(Ref) :- retract_fact_nb(disabled(Ref)).
 retract_disabled(Ref) :- asserta_fact(disabled(Ref)), fail.
+
+reset_exceptions :-
+	retractall_fact(catching(_, _, _)),
+	retractall_fact(disabled(_)),
+	retractall_fact(thrown(_)).
 
 % ---------------------------------------------------------------------------
 
@@ -211,8 +218,6 @@ cut_to(Choice) :-
 no_handler(Error) :-
 	display(user_error, '{'),
 	message(error, ['No handle found for thrown error ', ~~(Error), '}']),
-	retractall_fact(catching(_, _, _)),
-	retractall_fact(disabled(_)),
 	abort.
 
 % ---------------------------------------------------------------------------
