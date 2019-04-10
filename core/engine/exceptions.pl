@@ -5,7 +5,6 @@
 :- use_module(engine(internals),    ['$exit'/1]).
 :- use_module(engine(basiccontrol), ['$metachoice'/1, '$metacut'/1]).
 :- use_module(engine(hiord_rt),     ['$meta_call'/1]).
-:- use_module(engine(exceptions_db)).
 
 :- doc(title, "Exception and signal handling").
 
@@ -37,6 +36,24 @@ halt(N) :- throw(error(type_error(integer, N), halt/1-1)).
 :- doc(abort, "Abort the current execution.").
 
 abort :- '$exit'(-32768).
+
+% ---------------------------------------------------------------------------
+
+:- data catching/3.
+:- data thrown/1.
+:- data disabled/1.
+
+asserta_catching(Ch, Er, Ha) :- asserta_fact(catching(Ch, Er, Ha)).
+asserta_catching(Ch, Er, Ha) :- retract_fact_nb(catching(Ch, Er, Ha)), fail.
+
+retract_catching(Ch, Er, Ha) :- retract_fact_nb(catching(Ch, Er, Ha)).
+retract_catching(Ch, Er, Ha) :- asserta_fact(catching(Ch, Er, Ha)), fail.
+
+asserta_disabled(Ref) :- asserta_fact(disabled(Ref)).
+asserta_disabled(Ref) :- retract_fact_nb(disabled(Ref)), fail.
+
+retract_disabled(Ref) :- retract_fact_nb(disabled(Ref)).
+retract_disabled(Ref) :- asserta_fact(disabled(Ref)), fail.
 
 % ---------------------------------------------------------------------------
 
@@ -182,9 +199,9 @@ throw_action(Handler, _, _, Ref) :-
 	(BeforeChoice = AfterChoice -> ! ; true).
 
 cut_to(Choice) :-
-	current_fact(catching(C, _, _), Ref),
+	current_fact(catching(C, _, _), Ref), % TODO: throw from intecept???
 	erase(Ref),
-	retractall_fact(disabled(Ref)),
+	retractall_fact(disabled(Ref)), % TODO: not needed?
 	C = Choice,
 	'$metacut'(Choice).
 
