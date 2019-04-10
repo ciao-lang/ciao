@@ -44,9 +44,9 @@ abort :- '$exit'(-32768).
 :- data disabled/1.
 
 asserta_catching(Ch, Er, Ha) :- asserta_fact(catching(Ch, Er, Ha)).
-asserta_catching(Ch, Er, Ha) :- retract_fact_nb(catching(Ch, Er, Ha)), fail.
+asserta_catching(Ch, _, _) :- retract_fact_nb(catching(Ch, _, _)), fail.
 
-retract_catching(Ch, Er, Ha) :- retract_fact_nb(catching(Ch, Er, Ha)).
+retract_catching(Ch, _, _) :- retract_fact_nb(catching(Ch, _, _)).
 retract_catching(Ch, Er, Ha) :- asserta_fact(catching(Ch, Er, Ha)), fail.
 
 asserta_disabled(Ref) :- asserta_fact(disabled(Ref)).
