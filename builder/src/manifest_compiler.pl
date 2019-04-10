@@ -110,6 +110,7 @@ lookup_bundle_root_(File, BundleDir) :-
 :- use_module(library(port_reify), [once_port_reify/2, port_call/1]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(engine(internals), ['$bundle_id'/1]).
+:- use_module(ciaobld(builder_aux), [ensure_builddir/2]).
 
 :- doc(bug, "ensure_load_manifest/1 requires previous make_bundlereg").
 :- doc(bug, "ensure_load_manifest/1 not unloaded; no refcount or module GC").
@@ -148,6 +149,7 @@ ensure_load_manifest(Target) :-
 load_manifest_hooks(Bundle, BundleDir) :-
 	HooksFile = ~hooks_file(Bundle, BundleDir),
 	( file_exists(HooksFile) ->
+	    ensure_builddir(Bundle, 'cache'), % (for out-of-tree builds) % TODO: create dir from ciaoc?
 	    working_directory(PWD, BundleDir), % TODO: Needed here?
 	    once_port_reify(bundlehooks_holder:do_use_module(HooksFile), Port),
 	    cd(PWD),
