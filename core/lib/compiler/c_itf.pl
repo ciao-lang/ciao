@@ -2509,7 +2509,7 @@ compile_clause(incoreql(Pr), Head, Body, Module) :- !,
 	( Mode = incore(Pr) ->
 	      compile_clause(Head, Body) % in pl2wam
 	; compile_clause_in_mode(ql(Pr), Head, Body),
-	  % multifile or interpreted
+	  % multifile or interpreted % TODO: repeating work?
 	  compile_clause_incore(Mode, Head, Body, Module)
 	).
 compile_clause(Mode, Head, Body, Module) :- % incore(Pr) or interpreted
@@ -2740,14 +2740,15 @@ incore_internal_mode(incore(Profiling), Profiling).
 
 add_multifile_clause(H, B, M, Mode) :-
 	get_expanded_multifile(H, M, NH, Mode),
+	% (asserted before M is instantianted in NH)
 	functor(NH, _, A),
 	arg(A, NH, M),
 	assert_clause(NH, B).
 
 :- data expanded_multifile/2. % Multifile predicate HEAD is expanded with
 	                      % NEWPRED
-	
-get_expanded_multifile(H, _, P, _) :- expanded_multifile(H, P), !.
+
+get_expanded_multifile(H, _, P, _) :- expanded_multifile(H, P),	!.
 get_expanded_multifile(H, M, P, Mode) :-
 	functor(H, F, A),
 	( atom(M) -> atom_concat([F, '$', M, '$ex$'], Base)
@@ -2764,7 +2765,7 @@ get_expanded_multifile(H, M, P, Mode) :-
 	'$define_predicate'(N/A1, interpreted),
 	'$set_property'(P, dynamic).
 
-:- data mp_index/2.
+:- data mp_index/2. % TODO: clean?
 
 new_mp_name(Base, P) :-
 	( retract_fact(mp_index(Base, I)) -> true ; I = 0),
@@ -3319,6 +3320,7 @@ load_so(Base) :- % JFMC
 do_on_abolish(Head) :- retract_fact(pred_module(Head, _M)).
 
 :- data renamed_multifile/4. % Predicate HEAD was renamed to F/A in MODULE
+:- data pending_renamed_mf/4. % Pending renaming (generate wrapper clauses only when needed)
 
 :- export(abolish_module/1).
 abolish_module(Module) :-
@@ -3333,6 +3335,9 @@ abolish_module(Module) :-
 	functor(P, _, A),
 	arg(A, P, Module),
 	retract_clause(P, _),
+	fail.
+abolish_module(Module) :-
+	retract_fact(pending_renamed_mf(_, Module, _, _)),
 	fail.
 abolish_module(Module) :-
 	retract_fact(renamed_multifile(_, F, A, Module)),
@@ -3448,10 +3453,10 @@ qload_dyn_s(Stream, Module) :-
 ql_step('internals:$define_predicate'(N/A, Profiling), Module) :-
 	functor(Head, N, A), !,
 	incore_mode(incore(Profiling), Head, Mode),
-	handle_multifile_ql(Mode, Head, N, A, Profiling, Module).
+	handle_multifile_ql(Mode, Head, Profiling, Module).
 ql_step('internals:$define_predicate'(Pred, Profiling), Module) :-
 	ql_basepred(Pred, Base), !,
-	( renamed_multifile(Base, N, A, Module) ->
+	( get_renamed_multifile(Base, N, A, Module) ->
 	    subst_basepred(Pred, N/A, NewPred),
 	    '$define_predicate'(NewPred, Profiling)
 	; '$define_predicate'(Pred, Profiling)
@@ -3460,7 +3465,7 @@ ql_step('internals:$set_property'(Head,Prop), Module) :-
 	ql_set_prop(Prop, Head, Module), !.
 ql_step('internals:$interpreted_clause'(F/A,(H :- B)), Module) :-
 	functor(Pred, F, A), !,
-	( renamed_multifile(Pred, N,_A, Module) ->
+	( get_renamed_multifile(Pred, N,_A, Module) -> % TODO: why _A?
 	    functor(NH, N, A),
 	    copy_args(A, H, NH),
 	    assert_clause(NH, B)
@@ -3468,27 +3473,27 @@ ql_step('internals:$interpreted_clause'(F/A,(H :- B)), Module) :-
 	).
 ql_step('internals:$compiled_clause'(Pred,Obj,Mode,Data), Module) :-
 	ql_basepred(Pred, Base),  !,
-	( renamed_multifile(Base, N, A, Module) ->
+	( get_renamed_multifile(Base, N, A, Module) ->
 	    subst_basepred(Pred, N/A, NewPred),
 	    '$compiled_clause'(NewPred, Obj, Mode, Data)
 	; '$compiled_clause'(Pred,Obj,Mode,Data)
 	).
-/* if gauge
-ql_step(install_clause_model(Pred/I,Counters),_Module) :-
-	ql_basepred(Pred, Base), !,
-	incore_mode_of(Base, incore(profiled)), 
-	install_clause_model(Pred/I, Counters).
-ql_step(install_insn_model(Pred/I,Counters),_Module) :-
-	ql_basepred(Pred, Base), !,
-	incore_mode_of(Base, incore(profiled)), 
-	install_insn_model(Pred/I, Counters).
-*/
+% % if gauge
+% ql_step(install_clause_model(Pred/I,Counters),_Module) :-
+% 	ql_basepred(Pred, Base), !,
+% 	incore_mode_of(Base, incore(profiled)), 
+% 	install_clause_model(Pred/I, Counters).
+% ql_step(install_insn_model(Pred/I,Counters),_Module) :-
+% 	ql_basepred(Pred, Base), !,
+% 	incore_mode_of(Base, incore(profiled)), 
+% 	install_insn_model(Pred/I, Counters).
 ql_step(Goal, _) :-
 	error_in_lns(_,_,warning, ['Invalid po item ',Goal]).
 
 ql_set_prop(multifile, Head, Module) :-
 	functor(Head, F, A),
-	( '$set_property'(Head, multifile) ->
+	( pending_renamed_mf(Head, Module, _, _) -> true % do nothing, wait until it really exists
+	; '$set_property'(Head, multifile) ->
 	    ( multifile_pred(F, F_),
 	      multifile(Module, F_, A, Dyn),
 	      low_dyn_decl(Dyn, Dynamic),
@@ -3502,30 +3507,44 @@ ql_set_prop(multifile, Head, Module) :-
 	    ),
 	    retract_fact(incore_mode_of(Head, OldMode)),
 	    asserta_fact(incore_mode_of(Head, NewMode)),
-	    handle_multifile_ql(NewMode, Head, F, A, IM, Module)
+	    handle_multifile_ql(NewMode, Head, IM, Module)
 	; '$predicate_property'(Head, _, Bits) ->
 	    check_multifile_type(Module, F, A, Bits)
 	; true
 	).
 ql_set_prop(Prop, Head, Module) :-
 	contains1([dynamic, concurrent], Prop),
-	( '$set_property'(Head, Prop) -> true
-	; renamed_multifile(Head, N, A, Module) ->
-	    retract_fact(incore_mode_of(Head, _)),
-	    asserta_fact(incore_mode_of(Head, multifile(interpreted))),
-	    functor(NHead, N, A),
-	    '$set_property'(NHead, Prop)
-	).
+ 	( get_renamed_multifile(Head, N, A, Module) -> % TODO: this was on the 'else', why?
+ 	    retract_fact(incore_mode_of(Head, _)),
+ 	    asserta_fact(incore_mode_of(Head, multifile(interpreted))),
+ 	    functor(NHead, N, A),
+ 	    '$set_property'(NHead, Prop)
+ 	; '$set_property'(Head, Prop)
+ 	).
 
-handle_multifile_ql(incore(_), _, _, _, _, _).
-handle_multifile_ql(multifile(Mode), Head, F, A, IM, Module) :-
+% TODO: backport 'regmod' and clause mark from optim-comp (it fixes multifile_chpt, multifile_retract bugs)
+handle_multifile_ql(incore(_), _, _, _).
+handle_multifile_ql(multifile(Mode), Head, IM, Module) :-
+	% Just mark that we need a renamed clause
+	asserta_fact(pending_renamed_mf(Head, Module, Mode, IM)).
+%	get_renamed_multifile(Head, _N, _A, Module). % NOTE: uncomment to undo partial fix for multifile_chpt
+
+% Get the renamed multifile, add wrapper the first time
+get_renamed_multifile(Head, N, A, Module) :- 
+	renamed_multifile(Head, N0, A0, Module),
+	!,
+	N = N0, A = A0.
+get_renamed_multifile(Head, N, A, Module) :- 
+	retract_fact(pending_renamed_mf(Head, Module, Mode, IM)),
+	functor(Head, F, A),
 	( atom(Module) -> atom_concat([F, '$', Module, '$ql$'], Base)
 	; atom_concat(F, '$user$ql$', Base)
 	),
 	new_mp_name(Base, N),
-	functor(R, N, A),
+	functor(R, N, A), % TODO: compute in get_renamed_multifile instead
 	copy_args(A, Head, R),
 	add_multifile_clause(Head, R, Module, Mode),
+	functor(R, N, A),
 	'$define_predicate'(N/A, IM),
 	asserta_fact(renamed_multifile(Head, N, A, Module)).
 
