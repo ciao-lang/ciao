@@ -159,7 +159,7 @@ EOF
     fi
     flags=
     if [ x"$update_shell" = x"no" ]; then
-	flags="$flags --core:update_bashrc=no --core:update_cshrc=no"
+	flags="$flags --core:update_shell=no"
     else
 	true
     fi
@@ -191,7 +191,7 @@ EOF
     if [ x"$update_shell" = x"no" ]; then
 	cat <<EOF
 
-Now you can enable this installation manually with (bash):
+Now you can enable this installation manually with (bash, zsh):
   eval \$(~/.ciaoroot/$default_vers_bin/build/bin/ciao-env --sh)
 or (csh):
   eval \`~/.ciaoroot/$default_vers_bin/build/bin/ciao-env --csh\`

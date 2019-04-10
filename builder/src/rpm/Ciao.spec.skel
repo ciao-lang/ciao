@@ -158,8 +158,8 @@ environment with a unique set of features:
 
 ./ciao-boot.sh configure \
    --instype=global --prefix=%{_prefix} \
-   --core:update_bashrc=no --core:update_cshrc=no \
-   --ciao_emacs:enabled=yes --core:update_dotemacs=no \
+   --core:update_shell=no \
+   --ciao_emacs:enabled=yes --ciao_emacs:update_dotemacs=no \
    --ciao_emacs:emacs_site_start=%{emacs_sitestart_dir} \
    --ciao_emacs:emacsinitfile=%{emacs_sitestart_filename} \
    --mandir=%{_mandir} --infodir=%{_infodir} \

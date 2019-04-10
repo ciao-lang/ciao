@@ -13,54 +13,53 @@
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(system), [file_exists/1, get_home/1]).
 
-:- bundle_flag(update_bashrc, [
-    comment("Update bash initialization file"),
+:- bundle_flag(update_shell, [
+    comment("Update dot shell initialization files"),
     details(
       % .....................................................................
-      "Enable automatically this Ciao installation in bash shells."),
+      "Enable automatically this Ciao installation in bash/zsh/csh shells."),
     valid_values(['yes', 'no']),
     %
     rule_default(DefValue, (
       flag(builder:registration_type(SysregType)),
-      get_update_sh(SysregType, DefValue))),
-    %
-    interactive
-]).
-:- bundle_flag(update_cshrc, [
-    comment("Update csh initialization file"),
-    details(
-      % .....................................................................
-      "Enable automatically this Ciao installation in csh shells."),
-    valid_values(['yes', 'no']),
-    %
-    rule_default(DefValue, (
-      flag(builder:registration_type(SysregType)),
-      get_update_sh(SysregType, DefValue))),
+      get_update_shell(SysregType, DefValue))),
     %
     interactive
 ]).
 
-get_update_sh('all',  'no').
-get_update_sh('user', 'yes').
+get_update_shell('all',  'no').
+get_update_shell('user', 'yes').
 
 :- bundle_flag(dotbashrc, [
     comment("Shell initialization file for bash"),
     details(
       % .....................................................................
       "Initialization file for bash that will be updated."),
-    needed_if(flag(update_bashrc(yes))),
+    needed_if(flag(update_shell(yes))),
     rule_default(DefValue, (
       flag(builder:registration_type(SysregType)),
-      locate_rc(SysregType, sh, DefValue))),
+      locate_rc(SysregType, bash, DefValue))),
+    %
+    interactive
+]).
+:- bundle_flag(dotzshrc, [
+    comment("Shell initialization file for zsh"),
+    details(
+      % .....................................................................
+      "Initialization file for zsh that will be updated."),
+    needed_if(flag(update_shell(yes))),
+    rule_default(DefValue, (
+      flag(builder:registration_type(SysregType)),
+      locate_rc(SysregType, zsh, DefValue))),
     %
     interactive
 ]).
 :- bundle_flag(dotcshrc, [
-    comment("Csh/Tcsh initialization file"),
+    comment("Shell initialization file for csh/tcsh"),
     details(
       % .....................................................................
       "Initialization file for csh/tcsh that will be updated."),
-    needed_if(flag(update_cshrc(yes))),
+    needed_if(flag(update_shell(yes))),
     rule_default(DefValue, (
       flag(builder:registration_type(SysregType)),
       locate_rc(SysregType, csh, DefValue))),
@@ -77,11 +76,13 @@ locate_rc(SysregType, Sh) := F :-
 	  F = F0
 	).
 
-rcfile(all, sh) := '/etc/bash.bashrc'.
-rcfile(all, sh) := '/etc/bashrc'.
+rcfile(all, bash) := '/etc/bash.bashrc'.
+rcfile(all, bash) := '/etc/bashrc'.
+rcfile(all, zsh) := '/etc/zshrc'.
 rcfile(all, csh) := '/etc/csh.cshrc'.
 rcfile(all, csh) := '/etc/tcsh.tcshrc'.
-rcfile(user, sh) := ~path_concat(~get_home, '.bashrc').
+rcfile(user, bash) := ~path_concat(~get_home, '.bashrc').
+rcfile(user, zsh) := ~path_concat(~get_home, '.zshrc').
 rcfile(user, csh) := ~path_concat(~get_home, '.cshrc').
 rcfile(user, csh) := ~path_concat(~get_home, '.tcshrc').
 
@@ -120,41 +121,43 @@ rcfile(user, csh) := ~path_concat(~get_home, '.tcshrc').
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
 :- use_module(library(lists), [append/3]).
 
-'$builder_hook'(dot_shell:item_dep(dot_shell_csh)).
-'$builder_hook'(dot_shell:item_dep(dot_shell_sh)).
+update_shell := ~get_bundle_flag(core:update_shell).
 
-update_shell(sh) := ~get_bundle_flag(core:update_bashrc).
-update_shell(csh) := ~get_bundle_flag(core:update_cshrc).
-
-dotshell(sh) := ~get_bundle_flag(core:dotbashrc).
+dotshell(bash) := ~get_bundle_flag(core:dotbashrc).
+dotshell(zsh) := ~get_bundle_flag(core:dotzshrc).
 dotshell(csh) := ~get_bundle_flag(core:dotcshrc).
 
-'$builder_hook'(dot_shell_sh:register) :- register_shell(sh).
-'$builder_hook'(dot_shell_sh:unregister) :- unregister_shell(sh).
-
-'$builder_hook'(dot_shell_csh:register) :- register_shell(csh).
-'$builder_hook'(dot_shell_csh:unregister) :- unregister_shell(csh).
+'$builder_hook'(dot_shell:register) :-
+	( update_shell(yes) ->
+	    register_shell(bash),
+	    register_shell(zsh),
+	    register_shell(csh)
+	; true
+	).
+'$builder_hook'(dot_shell:unregister) :-
+	( update_shell(yes) ->
+	    unregister_shell(bash),
+	    unregister_shell(zsh),
+	    unregister_shell(csh)
+	; true
+	).
 
 register_shell(Sh) :-
-	( update_shell(Sh, yes) ->
-	    CiaoEnv = ~final_cmd_path(core, shscript, 'ciao-env'),
-	    eval_ciao_env(Sh, CiaoEnv, Str, []),
-	    warn_on_nosuccess(register_in_script(~dotshell(Sh), "#", Str))
-	; true
-	).
+	CiaoEnv = ~final_cmd_path(core, shscript, 'ciao-env'),
+	eval_ciao_env(Sh, CiaoEnv, Str, []),
+	warn_on_nosuccess(register_in_script(~dotshell(Sh), "#", Str)).
 unregister_shell(Sh) :-
-	( update_shell(Sh, yes) ->
-	    warn_on_nosuccess(unregister_from_script(~dotshell(Sh), "#"))
-	; true
-	).
+	warn_on_nosuccess(unregister_from_script(~dotshell(Sh), "#")).
 
 % Configuration code for the shell script interpreters
 % (evaluates output of ciao-env)
-eval_ciao_env(sh, CiaoEnv) -->
+eval_ciao_env(bash, CiaoEnv) -->
 	env_note,
 	"if [ -x ", emit_atom(CiaoEnv), " ] ; then\n"||
 	"  eval \"$(", emit_atom(CiaoEnv), " --sh)\"\n"||
 	"fi\n".
+eval_ciao_env(zsh, CiaoEnv) -->
+	eval_ciao_env(bash, CiaoEnv). % (same as bash)
 eval_ciao_env(csh, CiaoEnv) -->
 	env_note,
 	"if ( -x ", emit_atom(CiaoEnv), " ) then\n"||

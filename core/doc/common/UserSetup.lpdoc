@@ -19,6 +19,9 @@
         fi
 @end{verbatim}
 
+      @item For users of an @apl{zsh} shell, the same lines will be
+      added to @file{~/.zshrc}.
+
             This will set up things so that the Ciao executables are
             found and you can access the Ciao system manuals using the
             @apl{info} command. Note that, depending on your shell,
