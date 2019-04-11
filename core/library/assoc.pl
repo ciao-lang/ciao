@@ -237,7 +237,7 @@ del_assoc_cmp(=,Type_Old,list,Assoc_Old,K,Assoc_New,V) :-
 	(
 	    Type_Old == tree ->
 	    del_assoc_avl(Assoc_Old,K,Assoc_Temp,V,_),
-	    assoc_to_list_avl(Assoc_Temp,[],Assoc_New)
+	    assoc_to_list_avl(Assoc_Temp,L_Temp,L_Temp,Assoc_New,[])
 	;
 	    del_assoc_list(Assoc_Old,K,Assoc_New,V)
 	).
@@ -638,18 +638,32 @@ ord_pairs([_-_|Rest]) :-
        was a association in @var{Assoc}.".
 
 assoc_to_list(assoc_table(A,_,Type),L) :-
-	(
-	    Type == list ->
+	( Type == list ->
 	    L = A
-	;
-	    assoc_to_list_avl(A,[],L)
+	; assoc_to_list_avl(A,L_Temp,L_Temp,L,[])
 	).
 	
-assoc_to_list_avl(nil,L,L).
-assoc_to_list_avl(avl(K,V,L,R,_),List,Resul) :-
-	assoc_to_list_avl(L,List,L_Left),
-	append(L_Left,[K-V],L_Temp),
-	assoc_to_list_avl(R,L_Temp,Resul).
+assoc_to_list_avl(nil,L,L0,L,L0).
+assoc_to_list_avl(avl(K,V,L,R,_),List,List0,Resul,Resul0) :-
+	assoc_to_list_avl(L,List,List0,L_Temp,L_Temp1),
+	L_Temp1 = [K-V|L_Temp0],
+	assoc_to_list_avl(R,L_Temp,L_Temp0,Resul,Resul0).
+
+%% Non-linear version, replaced with a difference list above (JF)
+%
+% assoc_to_list(assoc_table(A,_,Type),L) :-
+% 	(
+% 	    Type == list ->
+% 	    L = A
+% 	;
+% 	    assoc_to_list_avl(A,[],L)
+% 	).
+% 	
+% assoc_to_list_avl(nil,L,L).
+% assoc_to_list_avl(avl(K,V,L,R,_),List,Resul) :-
+% 	assoc_to_list_avl(L,List,L_Left),
+% 	append(L_Left,[K-V],L_Temp),
+% 	assoc_to_list_avl(R,L_Temp,Resul).
 
 :- pred ord_list_to_assoc(+L,-Assoc) : 
      (ord_pairs(L),assoc_table(Assoc))
