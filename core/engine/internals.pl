@@ -554,68 +554,44 @@ call_with_cont([](_Goal_, _OnSuccess, OnFailure)):-
         'SYSCALL'(OnFailure).
 
 % --------------------------------------------------------------------------
-:- doc(section, "Ciao boot").
+:- doc(section, "Boot the machine").
 % (Initialization, module loading, and call to main/0 or main/1)
 
 % TODO: backport 'loader' from optim_comp (it will allow smaller executables)
 
-% :- export('$eng_call'/6).  % Concurrency hook
-% :- primitive_meta_predicate('$eng_call'(goal, ?, ?, ?, ?, ?)).
-% :- impl_defined('$eng_call'/6).
-
 :- data all_loaded/0.
-
-% :- use_module(engine(debugger_support), ['$debugger_mode'/0, '$debugger_state'/2]).
 
 :- entry boot/0.
 boot:-
         setup_paths,
-        ( '$load_libs' ; true ),
+        ( '$load_libs' ; true ), % load dyn linked libs (see exemaker.pl) % TODO: use loader.pl instead
+	prepare_stacks,
 	initialize_debugger_state,
-	initialize_global_vars,
-	initialize,
+	init_hooks,
+	!,
         asserta_fact(all_loaded),
-        gomain.
+        run_main_entry.
 boot:-
-        message(error,'Predicates user:main/0 and user:main/1 undefined, exiting...'),
+	message(error, '{Internal initialization failed}'),
         halt(1).
-
-gomain :-
-        '$predicate_property'('user:main',_,_), !,
-	( '$nodebug_call'(main) -> true ; global_failure ).
-gomain :-
-        '$predicate_property'('user:main'(_),_,_), !,
-        current_prolog_flag(argv, Args),
-        ( '$nodebug_call'(main(Args)) -> true ; global_failure ).
-
-global_failure :-
-        message(error, '{Program ended with failure}'),
-        halt(2).
 
 :- entry reboot/0.
 reboot :-
         all_loaded,
+	prepare_stacks,
 	initialize_debugger_state,
-	initialize_global_vars,
-	reinitialize,
-        ( '$predicate_property'('user:aborting',_,_) ->
-	    '$nodebug_call'(aborting)
-	; % Exit with error code 1 if no user:aborting/0 is defined
-	  % (for standalone executables)
-	  halt(1)
-	),
+	abort_hooks,
 	!.
 
-initialize :-
-	initialize_debugger_state,
-	initialize_global_vars,
-	initialize_2.
+% High level part of the WAM stack preparation
+prepare_stacks :-
+	'$global_vars_init'.
 
-initialize_2 :-
+init_hooks :-
 	main_module(M),
         initialize_module(M),
 	fail.
-initialize_2.
+init_hooks.
 
 % hack: since '$debugger_state' loads a global variable with a reference
 % to a heap term, once executed you should not fail...
@@ -623,6 +599,37 @@ initialize_debugger_state :-
 	'$current_module'(debugger), !,
 	'SYSCALL'('debugger:initialize_debugger_state').
 initialize_debugger_state.
+
+abort_hooks :-
+	( '$on_abort'(_), % module's abort hook
+	  fail
+	; % user's abort hook
+          ( '$predicate_property'('user:aborting',_,_) ->
+	      '$nodebug_call'(aborting)
+	  ; % Exit with error code 1 if no user:aborting/0 is defined
+	    % (for standalone executables)
+	    halt(1)
+	  )
+	).
+
+% Run the main entry
+run_main_entry :-
+        '$predicate_property'('user:main',_,_), !,
+	( '$nodebug_call'(main) -> true ; global_failure ).
+run_main_entry :-
+        '$predicate_property'('user:main'(_),_,_), !,
+        current_prolog_flag(argv, Args),
+        ( '$nodebug_call'(main(Args)) -> true ; global_failure ).
+run_main_entry :-
+        message(error,'Predicates user:main/0 and user:main/1 undefined, exiting...'),
+        halt(1).
+
+global_failure :-
+        message(error, '{Program ended with failure}'),
+        halt(2).
+
+% ---------------------------------------------------------------------------
+% TODO: move to rt_exp.pl?
 
 :- export(initialized/1).
 :- data initialized/1.
@@ -641,12 +648,7 @@ do_initialize_module(M) :-
         fail.
 do_initialize_module(_).
 
-reinitialize:-
-	'$on_abort'(_),
-	fail.
-reinitialize.
-
-% warp internal predicate, as requested by Jose Manuel
+% warp internal predicate, as requested by Jose Manuel % TODO: needed now?
 :- export(initialization/1).
 initialization(M) :- '$initialization'(M). 
 
@@ -664,22 +666,13 @@ initialization(M) :- '$initialization'(M).
 %   6 - absmach
 %
 %   [rest of Ciao]
-%   10 - CHR package (chr/hrpolog.pl)
+%   10 - CHR package (chr/hprolog.pl)
 %   11 - global_vars module
 %
 % TODO: move to a different file and share
 %       (core/engine/internals.pl and core_OC/engine/internals.pl)
 
-% non mutable version
-:- export('$global_vars_get'/2).
-'$global_vars_get'(I, X) :-
-        '$global_vars_get_root'(R),
-        arg(I, R, X).
-
-initialize_global_vars :-
-	F = '$glb'(_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
-	           _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_), % 32 global vars
-	'$global_vars_set_root'(F).
+:- include(.(global_variables)).
 
 :- impl_defined('$global_vars_get_root'/1).
 :- impl_defined('$global_vars_set_root'/1).

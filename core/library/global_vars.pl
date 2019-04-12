@@ -61,21 +61,13 @@ get_info(Module, Key, I, 1):-
 	
 :- use_module(library(mutables)).
 
-:- if(defined(optim_comp)).
-% TODO: use low-level implementation (a hash table 
-%   associated with the module)
 :- use_module(engine(internals), ['$global_vars_set'/2]).
 global_array(GlobalArray) :-
 	% (See engine(internals) for reserved low level global variables)
-	( '$global_vars_get'(11, 0) -> % (default value in optim_comp)
+	( '$global_vars_get'(11, 0) -> % (default value)
 	    '$global_vars_set'(11, GlobalArray)
 	; '$global_vars_get'(11, GlobalArray)
 	).
-:- else.
-global_array(GlobalArray) :-
-	% (See engine(internals) for reserved low level global variables)
-	'$global_vars_get'(11, GlobalArray).
-:- endif.
 
 global(Module, Key, Value):-
 	get_info(Module, Key, I, J),
