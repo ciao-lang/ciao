@@ -1,4 +1,4 @@
-%% :- module(examples, [main/0], []).
+:- module(_, [main/0], []).
 
 :- use_module(library(concurrency)).
 :- use_module(library(system)).
