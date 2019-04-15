@@ -109,8 +109,6 @@ catch(_, Error, Handler) :-
 	recv_error(Error),
 	'$meta_call'(Handler).
 
-% TODO: Initialize globals in CVOID__PROTO(local_init_each_time), otherwise threads do not have it!
-
 % ---------------------------------------------------------------------------
 
 :- trust pred throw(Term) : nonvar(Term) + (iso, equiv(fail)).
