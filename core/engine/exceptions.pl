@@ -223,8 +223,9 @@ send_signal_(_Signal, false).
 
 % TODO: linear search; replace with named global variables?
 match_signal_frame(Stack, Signal, SignalFrame) :-
-	Stack = signal_frame(Signal0,_,_,Prev),
-	( \+ \+ Signal = Signal0 -> SignalFrame = Stack
+	Stack = signal_frame(Signal0,_,Running,Prev),
+	( Running = inactive, \+ \+ Signal = Signal0 ->
+	    SignalFrame = Stack
 	; match_signal_frame(Prev, Signal, SignalFrame)
 	).
 
