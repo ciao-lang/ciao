@@ -2,20 +2,23 @@
 	    send_silent_signal/1, halt/0, halt/1, abort/0],
 	    [assertions, nortchecks, isomodes, datafacts]).
 
-:- use_module(engine(internals),    ['$exit'/1]).
-:- use_module(engine(basiccontrol), ['$metachoice'/1, '$metacut'/1]).
-:- use_module(engine(hiord_rt),     ['$meta_call'/1]).
-
 :- doc(title, "Exception and signal handling").
 
 :- doc(author, "The Ciao Development Team").
+:- doc(author, "Jose F. Morales (global vars version)").
 
 :- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module, "This module includes predicates related to
    exceptions and signals, which alter the normal flow of Prolog.").
 
+:- use_module(engine(basiccontrol), ['$metachoice'/1, '$metacut'/1]).
+:- use_module(engine(hiord_rt), ['$meta_call'/1]).
+:- use_module(engine(internals), ['$global_vars_get'/2, '$global_vars_set'/2]).
+
 % ---------------------------------------------------------------------------
+
+:- use_module(engine(internals), ['$exit'/1]).
 
 :- pred halt => true + (iso, native).
 
@@ -36,35 +39,44 @@ halt(N) :- throw(error(type_error(integer, N), halt/1-1)).
 :- doc(abort, "Abort the current execution.").
 
 abort :-
-	reset_exceptions,
+	reset_error,
 	'$exit'(-32768).
 
 % ---------------------------------------------------------------------------
 
-:- data catching/3.
-:- data thrown/1.
-:- data disabled/1.
+% TODO: thread-local predicate or non-backtrackable copy would
+% be faster (do not require any locks)
+:- concurrent thrown/2.
 
-asserta_catching(Ch, Er, Ha) :- asserta_fact(catching(Ch, Er, Ha)).
-asserta_catching(Ch, _, _) :- retract_fact_nb(catching(Ch, _, _)), fail.
+reset_error :-
+	% (just in case thrown/2 contains garbage)
+	eng_id(EngId),
+	retractall_fact(thrown(EngId,_)).
 
-retract_catching(Ch, _, _) :- retract_fact_nb(catching(Ch, _, _)).
-retract_catching(Ch, Er, Ha) :- asserta_fact(catching(Ch, Er, Ha)), fail.
+send_error(Error) :-
+	eng_id(EngId),
+	asserta_fact(thrown(EngId,Error)).
 
-asserta_disabled(Ref) :- asserta_fact(disabled(Ref)).
-asserta_disabled(Ref) :- retract_fact_nb(disabled(Ref)), fail.
+recv_error(Error) :-
+	eng_id(EngId),
+	retract_fact_nb(thrown(EngId,Error0)), !,
+	Error = Error0.
 
-retract_disabled(Ref) :- retract_fact_nb(disabled(Ref)).
-retract_disabled(Ref) :- asserta_fact(disabled(Ref)), fail.
+% (weak import, use predicate only if concurrency.pl loaded)
+:- import(concurrency, ['$eng_self'/2]).
+:- use_module(engine(internals), ['$predicate_property'/3]).
 
-reset_exceptions :-
-	retractall_fact(catching(_, _, _)),
-	retractall_fact(disabled(_)),
-	retractall_fact(thrown(_)).
+eng_id(EngId) :-
+	( '$predicate_property'('concurrency:$eng_self'(_,_),_,_) ->
+	    % Use GoalDesc (integer encoding an internal pointer) as
+	    % thread id.
+	    '$eng_self'(EngId, _)
+	; EngId = 0 % (this is safe here due to lifetime of thrown/2 facts)
+	).
 
 % ---------------------------------------------------------------------------
 
-:- primitive_meta_predicate(catch(goal,     ?, goal)).
+:- primitive_meta_predicate(catch(goal, ?, goal)).
 
 :- trust pred catch(+callable, ?term, ?callable) + (iso, native).
 
@@ -83,18 +95,21 @@ p(X) :- display(X).
 
 catch(Goal, Error, _) :-
 	'$metachoice'(Choice),
-	asserta_catching(Choice, Error, '$catching'),
-	'$metachoice'(BeforeChoice),
+	'$global_vars_get'(7,PrevStack),
+	'$global_vars_set'(7,catching_frame(Choice,Error,PrevStack)),
 	'$meta_call'(Goal),
 	'$metachoice'(AfterChoice),
-	retract_catching(Choice, Error, '$catching'),
-	( BeforeChoice = AfterChoice -> % no more solutions
+	'$global_vars_set'(7,PrevStack),
+	( Choice = AfterChoice -> % no more solutions
 	    ! % remove the unnecessary exception choice point
 	; true
 	).
 catch(_, Error, Handler) :-
-	retract_fact_nb(thrown(Error)), !,
+	% receive error term (see throw/1)
+	recv_error(Error),
 	'$meta_call'(Handler).
+
+% TODO: Initialize globals in CVOID__PROTO(local_init_each_time), otherwise threads do not have it!
 
 % ---------------------------------------------------------------------------
 
@@ -111,14 +126,38 @@ throw(Error) :-
 	var(Error), !,
 	throw(error(instantiation_error, throw/1 -1)).
 throw(Error) :-
-	current_fact(catching(C, E, '$catching'), Ref),
-	\+ current_fact_nb(disabled(Ref)),
-	E = Error, !,
-	throw_action('$catching', E, C, Ref).
+	'$global_vars_get'(7,Stack),
+	match_catching_frame(Stack, Error, Chpt, Prev),
+	!,
+	'$global_vars_set'(7,Prev), % unwind catching frames
+	% send error term (see catch/1)
+	send_error(Error),
+	% cut to Chpt and fail (call the handler)
+	'$metacut'(Chpt),
+	fail.
 throw(Error) :-
 	no_handler(Error).
 
+match_catching_frame(catching_frame(Chpt0,E0,Prev0), E, Chpt, Prev) :-
+	( E = E0 -> % TODO: unify? instance? \+ \+?
+	    Chpt = Chpt0,
+	    Prev = Prev0
+	; match_catching_frame(Prev0, E, Chpt, Prev)
+	).
+
 % ---------------------------------------------------------------------------
+
+:- use_module(engine(messages_basic), [message/2]).
+:- use_module(engine(io_basic), [display/2]).
+
+no_handler(Error) :-
+	display(user_error, '{'),
+	message(error, ['No handle found for thrown error ', ~~(Error), '}']),
+	abort.
+
+% ===========================================================================
+
+:- use_module(engine(internals), ['$setarg'/4]).
 
 :- primitive_meta_predicate(intercept(goal, ?, goal)).
 
@@ -140,17 +179,10 @@ p(X) :- display(X).
    display(.), fail.}"" results in the output ""@tt{error---.0.}"".").
 
 intercept(Goal, Signal, Handler) :-
-	'$metachoice'(Choice),
-	asserta_catching(Choice, Signal, Handler),
-	current_fact(catching(Choice, S, H)), % avoid unifs with Goal
-	'$metachoice'(BeforeChoice),
+	'$global_vars_get'(8,PrevStack),
+	'$global_vars_set'(8,signal_frame(Signal,Handler,inactive,PrevStack)),
 	'$meta_call'(Goal),
-	'$metachoice'(AfterChoice),
-	retract_catching(Choice, S, H),
-	( BeforeChoice = AfterChoice -> % no more solutions
-	    ! % remove the unnecessary exception choice point
-	; true
-	).
+	'$global_vars_set'(8,PrevStack).
 
 % ---------------------------------------------------------------------------
 
@@ -163,13 +195,10 @@ intercept(Goal, Signal, Handler) :-
    send_signal/1-1)}.").
 
 send_signal(Signal):-
-	(
-	    send_signal2(Signal, true) ->
+	( send_signal_(Signal, true) ->
 	    true
-	;
-	    throw(error(unintercepted_signal(Signal), 'exceptions:send_signal'/1 -1))
+	; throw(error(unintercepted_signal(Signal), 'exceptions:send_signal'/1 -1))
 	).
-
 
 :- trust pred send_silent_signal(Term) : nonvar(Term).
 
@@ -178,47 +207,28 @@ send_signal(Signal):-
    not intercepted (i.e. just suceeds silently)").
 
 send_silent_signal(Signal) :-
-	send_signal2(Signal, _).
+	send_signal_(Signal, _).
 
-send_signal2(Signal, _) :-
+send_signal_(Signal, _) :-
 	var(Signal), !,
 	throw(error(instantiation_error, 'exceptions:send_signal'/1 -1)).
-send_signal2(Signal, _) :-
-	current_fact(catching(C, E, H), Ref),
-	H \== '$catching',
-	\+ current_fact_nb(disabled(Ref)),
-	E = Signal, !,
-	throw_action(H, E, C, Ref).
-send_signal2(_Signal, false).
-
-% ---------------------------------------------------------------------------
-
-throw_action('$catching', Error, Choice, _) :-
-	asserta_fact(thrown(Error)),
-	cut_to(Choice), % This cuts also next clause
-	fail.
-throw_action(Handler, _, _, Ref) :-
-	asserta_disabled(Ref),
-	'$metachoice'(BeforeChoice),
+send_signal_(Signal, _) :-
+	'$global_vars_get'(8,Stack),
+	match_signal_frame(Stack, Signal, SignalFrame),
+	SignalFrame = signal_frame(S,H,_,_),
+	'$setarg'(3, SignalFrame, active, on), % Mark as active
+	!,
+	copy_term((S,H), (Signal,Handler)),
 	'$meta_call'(Handler),
-	'$metachoice'(AfterChoice),
-	retract_disabled(Ref),
-	(BeforeChoice = AfterChoice -> ! ; true).
+	'$setarg'(3, SignalFrame, inactive, on). % Mark again as inactive
+send_signal_(_Signal, false).
 
-cut_to(Choice) :-
-	current_fact(catching(C, _, _), Ref), % TODO: throw from intecept???
-	erase(Ref),
-	retractall_fact(disabled(Ref)), % TODO: not needed?
-	C = Choice,
-	'$metacut'(Choice).
-
-:- use_module(engine(messages_basic), [message/2]).
-:- use_module(engine(io_basic), [display/2]).
-
-no_handler(Error) :-
-	display(user_error, '{'),
-	message(error, ['No handle found for thrown error ', ~~(Error), '}']),
-	abort.
+% TODO: linear search; replace with named global variables?
+match_signal_frame(Stack, Signal, SignalFrame) :-
+	Stack = signal_frame(Signal0,_,_,Prev),
+	( \+ \+ Signal = Signal0 -> SignalFrame = Stack
+	; match_signal_frame(Prev, Signal, SignalFrame)
+	).
 
 % ---------------------------------------------------------------------------
 % TODO: move somewhere else
