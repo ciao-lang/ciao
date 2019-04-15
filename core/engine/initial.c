@@ -1415,7 +1415,6 @@ void glb_init_each_time(void)
 
 CVOID__PROTO(local_init_each_time)
 {
-  node_t *b = InitialNode;
 		
   /* Debugger state globals moved to per-thread variables because of
      reallocations of the atoms they point to when expanding the heap
@@ -1436,30 +1435,60 @@ CVOID__PROTO(local_init_each_time)
 
   Gc_Total_Grey = 0;
 
-  Arg->node = b;		            /* set up initial choicepoint */
-  b->frame = Arg->frame = (frame_t *)Stack_Start;
+  /* Initialize some top registers */
+  Arg->global_top = Heap_Start;
+  Arg->trail_top = Trail_Start;
 
-  TopConcChpt = b;           /* Initialize concurrent topmost choicepoint */
-  b->next_insn = exitcode;
+#if defined(USE_GLOBAL_VARS)
+  /* Initialize heap region for global variables (make sure this is
+     created after heap pointers are set and before the initial
+     choicepoint) */
+#define MAX_GLOBALS 32 /* currently it cannot be more than 255 */
+  {
+    tagged_t *ptr, *ptr2;
+    int i;
+    tagged_t functor_Dglb = deffunctor("$glb",MAX_GLOBALS);
+    
+    ptr2 = ptr = w->global_top;
+    HeapPush(ptr,functor_Dglb);
+    for (i = 0; i < MAX_GLOBALS; i++) {
+      HeapPush(ptr, MakeSmall(0));
+    }
+    w->global_top = ptr;
+    GLOBAL_VARS_ROOT = Tag(STR,ptr2);
+  }
+#endif
+
+  /* Setup initial frame */
+  Arg->frame = (frame_t *)Stack_Start;
+  Arg->local_top = (frame_t *)Offset(Arg->frame,EToY0);
+  Arg->frame->next_insn = NULL;   
+  Arg->frame->frame = NULL;
+
+  /* Setup initial choicepoint */
+  node_t *b = InitialNode;
+  Arg->node = b;		            
+  b->frame = Arg->frame;
+
   b->next_alt = termcode;
 
-  b->local_top = Arg->local_top = (frame_t *)Offset(Arg->frame,EToY0);
-  b->global_top = Arg->global_top = Heap_Start;
-  b->trail_top = Arg->trail_top = Trail_Start;
+  b->local_top = Arg->local_top;
+  b->global_top = Arg->global_top;
+  b->trail_top = Arg->trail_top;
+  b->next_insn = exitcode;
   b->term[0] = atom_nil;
 
   ChoiceptMarkPure(b);
   ChoiceptMarkStatic(b);
   ChoiceptMarkNoCVA(b);
 				
-  Arg->frame->next_insn = NULL;                     /* set up initial frame */
-  Arg->frame->frame = NULL;
-  
-  Arg->next_insn = bootcode;
-  Arg->value_trail = (int)InitialValueTrail;
   NewShadowregs(Arg->global_top);
   Arg->next_alt = NULL;
-				
+
+  Arg->value_trail = (int)InitialValueTrail;
+  TopConcChpt = b; /* Initialize concurrent topmost choicepoint */
+
+  Arg->next_insn = bootcode;
   Stop_This_Goal(Arg) = FALSE;
   Heap_Warn_Soft = Heap_Warn;
 
@@ -1471,11 +1500,6 @@ CVOID__PROTO(local_init_each_time)
 #endif
   init_streams_each_time(Arg);       /* set misc. variables, handle signals */
   control_c_normal(Arg);                               /* For threads also? */
-
-  /* Initialize global variables root */
-#if defined(USE_GLOBAL_VARS)
-  GLOBAL_VARS_ROOT = atom_nil;
-#endif
 }
 
 

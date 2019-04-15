@@ -11,10 +11,17 @@
 %   5 - unused, see compiler/dynload.pl
 %   6 - absmach
 %
-%   [rest of Ciao]
+%   [all Ciao]
+%   7 - exceptions.pl (catch/throw)
+%   8 - exceptions.pl (intercept/send_signal)
 %   10 - CHR package (chr/hprolog.pl)
 %   11 - global_vars module
 % ---------------------------------------------------------------------------
+
+% NOTE: It is possible to replace '$setarg'/4 by attributed varibles.
+%   Remember to use update_attribute instead of deteach/attach
+%   sequences, which creates arbitrarily long dereference chains
+%   (identified by Remy & Jose).
 
 % global variables based on setarg
 :- export('$global_vars_set'/2).
@@ -25,41 +32,3 @@
 '$global_vars_get'(I, X) :-
 	'$global_vars_get_root'(R),
 	arg(I, R, X).
-
-% TODO: Bad implementation! This creates long dereference chains
-%       Use update_attribute instead of deteach/attach sequences
-%       (detected in the main branch by Remy & Jose)
-%
-% TODO: it may worth implementing the new attributes
-%
-% % global variables based on cva variables
-% :- use_module(engine(attributes)).
-% :- use_module(engine(term_typing)).
-% :- export('$global_vars_set'/2).
-% '$global_vars_set'(I, X) :-
-% 	'$global_vars_get_root'(R),
-% 	arg(I, R, V),
-% 	( type(V, attv) ->
-% 	    detach_attribute(V)
-% 	; true
-% 	),
-% 	attach_attribute(V, v(X)).
-% :- export('$global_vars_get'/2).
-% '$global_vars_get'(I, X) :-
-% 	'$global_vars_get_root'(R),
-% 	arg(I, R, V),
-% 	( type(V, attv) ->
-% 	    get_attribute(V, v(X))
-% 	; attach_attribute(V, v(X))
-% 	).
-
-% NOTE: This has to be done before any choicepoint is created
-'$global_vars_init' :-
-	% % cva version
-	% % F = '$glb'(_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
-	% %            _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_), % 32 global vars
-	% setarg version	
-	F = '$glb'(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	           0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0), % 32 global vars
-	'$global_vars_set_root'(F).
-

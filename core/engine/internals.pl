@@ -558,14 +558,12 @@ call_with_cont([](_Goal_, _OnSuccess, OnFailure)):-
 % (Initialization, module loading, and call to main/0 or main/1)
 
 % TODO: backport 'loader' from optim_comp (it will allow smaller executables)
-
 :- data all_loaded/0.
 
 :- entry boot/0.
 boot:-
         setup_paths,
         ( '$load_libs' ; true ), % load dyn linked libs (see exemaker.pl) % TODO: use loader.pl instead
-	prepare_stacks,
 	initialize_debugger_state,
 	init_hooks,
 	!,
@@ -578,14 +576,10 @@ boot:-
 :- entry reboot/0.
 reboot :-
         all_loaded,
-	prepare_stacks,
+	% note: global vars are not reinitialized since they are backtrackable
 	initialize_debugger_state,
 	abort_hooks,
 	!.
-
-% High level part of the WAM stack preparation
-prepare_stacks :-
-	'$global_vars_init'.
 
 init_hooks :-
 	main_module(M),
@@ -675,7 +669,7 @@ initialization(M) :- '$initialization'(M).
 :- include(.(global_variables)).
 
 :- impl_defined('$global_vars_get_root'/1).
-:- impl_defined('$global_vars_set_root'/1).
+:- impl_defined('$global_vars_set_root'/1). % TODO: deprecate
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Support for runtime module expansions").
