@@ -11,34 +11,14 @@
 	capture times with high resolution, but even in such cases the
 	more accurate measurement method is provided.").
 
-:- foreign_inline("#include \"hrtime.h\"").
-
 :- use_foreign_source(library(hrtime/hrtime)).
 
-:- trust pred hrtime(go(T)) :: c_double + (foreign(prolog_hrtime), returns(T)) -->
-"
-  double prolog_hrtime()
-  {
-    return hrtime();
-  }
-".
+:- trust pred hrtime(go(T)) :: c_double + (foreign(prolog_hrtime), returns(T)).
 
 :- trust pred hrmethod(go(M)) :: atm
-	+ (foreign(prolog_hrmethod), returns(M), do_not_free(M)) -->
-"
-  char *prolog_hrmethod()
-  {
-    return HRTIME_METHOD;
-  }
-".
+	+ (foreign(prolog_hrmethod), returns(M), do_not_free(M)).
 
-:- trust pred hrfreq(go(T)) :: c_double + (foreign(prolog_hrfreq), returns(T)) -->
-"
-  double prolog_hrfreq()
-  {
-    return (double)hrfreq();
-  }
-".
+:- trust pred hrfreq(go(T)) :: c_double + (foreign(prolog_hrfreq), returns(T)).
 
 :- use_module(library(system)).
 

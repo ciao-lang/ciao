@@ -5,6 +5,23 @@
 
 #include "hrtime.h"
 
+/* hrtime/1 */
+double prolog_hrtime() {
+  return hrtime();
+}
+
+/* hrmethod/1 */
+char *prolog_hrmethod() {
+  return HRTIME_METHOD;
+}
+
+/* hrfreq/1 */
+double prolog_hrfreq() {
+  return (double)hrfreq();
+}
+
+/* --------------------------------------------------------------------------- */
+
 #if defined(__i386__) || defined(_M_IX86)
 
 # if defined(__BORLANDC__)
