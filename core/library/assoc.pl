@@ -56,6 +56,7 @@
 %if change_tree(N) then when assoc consists of N or more elements, 
 						%list --> avl_tree
 change_tree(45). %45
+
 change_list(25). %25
 
 :- regtype assoc_table(Assoc) 
@@ -90,18 +91,16 @@ avl_shape(avl(_Key, _Value, Left, Right, Bal)):-
 balance(-1).
 balance(0).
 balance(1).
-        
 
 :- pred is_assoc(+Assoc) : assoc_table(Assoc)
      # "True if @var{Assoc} is an @tt{assoc_table}.".
 
-is_assoc(assoc_table(L,N,list)) :-
+is_assoc(assoc_table(L,N,list)) :- !,
 	change_tree(MAX),
 	N =< MAX,
 	is_ord_pairs(L),
 	length(L,N).
-
-is_assoc(assoc_table(avl(K,_,L,R,H),N,tree)) :-
+is_assoc(assoc_table(avl(K,_,L,R,H),N,tree)) :- !,
 	change_list(MIN),
 	N >= MIN,
 	is_AVL(L,_,K,HL,NumL),
@@ -114,12 +113,10 @@ is_ord_pairs([]).
 is_ord_pairs([K-_|Rest]) :-
 	is_ord_pairs_aux(K,Rest).
 
-is_ord_pairs_aux(_,[]).
+is_ord_pairs_aux(_,[]) :- !.
 is_ord_pairs_aux(KPrev,[K-_|Rest]) :-
  	compare(<,KPrev,K),
  	is_ord_pairs_aux(K,Rest).
- 
-
 
 is_AVL(nil,_,_,0,0).
 is_AVL(avl(K,_,L,R,H),KMin,KMax,Deep,N) :-
@@ -165,13 +162,10 @@ value(_).
      # "@var{V} is the value associated to the key @var{K} in the
        assoc_table @var{Assoc}.".
 
-
 get_assoc(K,assoc_table(Assoc,_,Type),V) :- 
-	(
-	    Type == tree ->
+	( Type == tree ->
 	    get_assoc_avl(Assoc,K,V)
-	;
-	    get_assoc_list(Assoc,K,V)
+	; get_assoc_list(Assoc,K,V)
 	).
 
 %get_assoc if assoc is a list
@@ -225,28 +219,20 @@ del_max_assoc(Assoc,K,V,NewAssoc) :-
        its associated @var{Value}, and @var{Member} is unified with
        yes(Value).".
 
-
 del_assoc(K,assoc_table(Assoc_Old,N_Old,Type_Old),V,assoc_table(Assoc_New,N_New,Type_New)) :- 
 	change_list(N_Limit),
 	compare(Rel,N_Old,N_Limit),
 	del_assoc_cmp(Rel,Type_Old,Type_New,Assoc_Old,K,Assoc_New,V),
 	new_N(yes(V),delete,N_Old,N_New).
 
-del_assoc_cmp(=,Type_Old,list,Assoc_Old,K,Assoc_New,V) :-
-	!,
-	(
-	    Type_Old == tree ->
+del_assoc_cmp(=,Type_Old,list,Assoc_Old,K,Assoc_New,V) :- !,
+	( Type_Old == tree ->
 	    del_assoc_avl(Assoc_Old,K,Assoc_Temp,V,_),
 	    assoc_to_list_avl(Assoc_Temp,L_Temp,L_Temp,Assoc_New,[])
-	;
-	    del_assoc_list(Assoc_Old,K,Assoc_New,V)
+	; del_assoc_list(Assoc_Old,K,Assoc_New,V)
 	).
-	    
-
-del_assoc_cmp(_,list,list,Assoc_Old,K,Assoc_New,V) :-
+del_assoc_cmp(_,list,list,Assoc_Old,K,Assoc_New,V) :- !,
 	del_assoc_list(Assoc_Old,K,Assoc_New,V).
-
-
 del_assoc_cmp(_,tree,tree,Assoc_Old,K,Assoc_New,V) :-
 	del_assoc_avl(Assoc_Old,K,Assoc_New,V,_).
 
@@ -265,30 +251,28 @@ del_assoc_avl(avl(K,V,L,R,H), Key, Result, Member, Eq) :-
 	compare(Rel, Key, K),
 	del_assoc_avl_cmp(Rel, avl(K,V,L,R,H), Key, Result, Member, Eq).
 
-del_assoc_avl_cmp(<, avl(K,V,L,R,H), Key, Result, Member, Eq1) :- 
+del_assoc_avl_cmp(<, avl(K,V,L,R,H), Key, Result, Member, Eq1) :- !,
 	del_assoc_avl(L, Key, ABB, Member, Eq2),
 	New_H is H + 1,
 	new_FE_5(Eq2,New_H,avl(K,V,ABB,R,H),Result,delete,Eq1).
-
-del_assoc_avl_cmp(>, avl(K,V,L,R,H), Key, Result, Member, Eq1) :- 
+del_assoc_avl_cmp(>, avl(K,V,L,R,H), Key, Result, Member, Eq1) :- !,
 	del_assoc_avl(R, Key, ABB, Member, Eq2),
 	New_H is H - 1,
 	new_FE_5(Eq2,New_H,avl(K,V,L,ABB,H),Result,delete,Eq1).
-
-del_assoc_avl_cmp(=, avl(_,V,nil,nil,_), _, nil, V,yes).
-del_assoc_avl_cmp(=, avl(K,V,avl(LK,LV,nil,nil,_),nil,-1), _, Result, V, Eq) :-
+%
+del_assoc_avl_cmp(=, avl(_,V,nil,nil,_), _, nil, V,yes) :- !.
+del_assoc_avl_cmp(=, avl(K,V,avl(LK,LV,nil,nil,_),nil,-1), _, Result, V, Eq) :- !,
 	del_assoc_avl(avl(LK,LV,nil,avl(K,V,nil,nil,0),1), K, Result, _, Eq).
-del_assoc_avl_cmp(=, avl(K,V,L,R,H), _, Result, V, Eq) :-
+del_assoc_avl_cmp(=, avl(K,V,L,R,H), _, Result, V, Eq) :- !,
 	change_by_follow_higher(R,K,Higher_K,Higher_V,Change),
 	del_assoc_avl(Change,K,ABB,_,Eq2),
 	New_H is H - 1,
 	new_FE_5(Eq2,New_H,avl(Higher_K,Higher_V,L,ABB,H),Result,delete,Eq).
 
-change_by_follow_higher(avl(K,V,nil,nil,_),K_del,K,V,avl(K_del,V,nil,nil,0)).
-change_by_follow_higher(avl(K,V,nil,avl(RK,RV,nil,nil,RH),_),K_del,K,V,avl(RK,RV,avl(K_del,V,nil,nil,RH),nil,-1)).
+change_by_follow_higher(avl(K,V,nil,nil,_),K_del,K,V,avl(K_del,V,nil,nil,0)) :- !.
+change_by_follow_higher(avl(K,V,nil,avl(RK,RV,nil,nil,RH),_),K_del,K,V,avl(RK,RV,avl(K_del,V,nil,nil,RH),nil,-1)) :- !.
 change_by_follow_higher(avl(K,V,L,R,H), K_del,K_Change,V_Change,avl(K,V,Result,R,H)) :-
 	change_by_follow_higher(L,K_del,K_Change,V_Change,Result).
-	    
 
 :- pred get_assoc(+K,+Assoc,-Old,-NewAssoc,+New) : (key(K),
      assoc_table(Assoc), value(Old), assoc_table(NewAssoc), value(New))
@@ -319,7 +303,6 @@ put_assoc(Key, Assoc, Value, NewAssoc) :-
        @var{K}-@var{V} and @var{Member} is unified with
        yes(OldValue).".
 
-
 put_assoc(K, assoc_table(Assoc_Old,N_Old,Type_Old),
           V, assoc_table(Assoc_New,N_New,Type_New), Member) :- 
 	change_tree(N_Limit),
@@ -327,32 +310,22 @@ put_assoc(K, assoc_table(Assoc_Old,N_Old,Type_Old),
 	put_assoc_cmp(Rel,Type_Old,Type_New,Assoc_Old,K,Assoc_New,V,Member),
 	new_N(Member,put,N_Old,N_New).
 
-put_assoc_cmp(=,Type_Old,Type_New,Assoc_Old,K,Assoc_New,V,Member) :-
-	!,
-	(
-	    Type_Old == list ->
+put_assoc_cmp(=,Type_Old,Type_New,Assoc_Old,K,Assoc_New,V,Member) :- !,
+	( Type_Old == list ->
 	    put_assoc_list(Assoc_Old,K,Assoc_Temp,V,Member),
-	    (
-		Member == no ->
+	    ( Member == no ->
 		ord_list_to_assoc_avl(Assoc_Temp,nil,Assoc_New),
 		Type_New = tree
-	    ;
-		Type_New = list,
-		Assoc_New = Assoc_Temp
+	    ; Type_New = list,
+	      Assoc_New = Assoc_Temp
 	    )
-	;
-	    put_assoc_avl(Assoc_Old,K,Assoc_New,V,Member,_),
-	    Type_New = tree
+	; put_assoc_avl(Assoc_Old,K,Assoc_New,V,Member,_),
+	  Type_New = tree
 	).
-	    
-
-put_assoc_cmp(_,list,list,Assoc_Old,K,Assoc_New,V,Member) :-
+put_assoc_cmp(_,list,list,Assoc_Old,K,Assoc_New,V,Member) :- !,
 	put_assoc_list(Assoc_Old,K,Assoc_New,V,Member).
-
-
-put_assoc_cmp(_,tree,tree,Assoc_Old,K,Assoc_New,V,Member) :-
+put_assoc_cmp(_,tree,tree,Assoc_Old,K,Assoc_New,V,Member) :- !,
 	put_assoc_avl(Assoc_Old,K,Assoc_New,V,Member,_).
-
 
 %put_assoc if assoc is a list
 put_assoc_list([],K,[K-V],V,no).
@@ -385,19 +358,19 @@ put_assoc_avl_cmp(>, avl(K,V,L,R,H), Key, Result, Val, Member, Eq1) :-
 new_FE_5(no,_,AVL,AVL,_,no).
 new_FE_5(yes,Site,ABB,AVL,Op,Eq) :- new_FE_4(Site,Op,ABB,AVL,Eq).
 
-new_FE_4(0,insert,avl(K,V,L,R,_),avl(K,V,L,R,0),no).
-new_FE_4(0,delete,avl(K,V,L,R,_),avl(K,V,L,R,0),yes).
-new_FE_4(-1,insert,avl(K,V,L,R,_),avl(K,V,L,R,-1),yes).
-new_FE_4(-1,delete,avl(K,V,L,R,_),avl(K,V,L,R,-1),no).
-new_FE_4(1,insert,avl(K,V,L,R,_),avl(K,V,L,R,1),yes).
-new_FE_4(1,delete,avl(K,V,L,R,_),avl(K,V,L,R,1),no).
-new_FE_4(-2,Type,avl(K,V,avl(LK,LV,LL,LR,LH),R,_),AVL,Eq) :- 
+new_FE_4(0,insert,avl(K,V,L,R,_),avl(K,V,L,R,0),no) :- !.
+new_FE_4(0,delete,avl(K,V,L,R,_),avl(K,V,L,R,0),yes) :- !.
+new_FE_4(-1,insert,avl(K,V,L,R,_),avl(K,V,L,R,-1),yes) :- !. 
+new_FE_4(-1,delete,avl(K,V,L,R,_),avl(K,V,L,R,-1),no) :- !.
+new_FE_4(1,insert,avl(K,V,L,R,_),avl(K,V,L,R,1),yes) :- !.
+new_FE_4(1,delete,avl(K,V,L,R,_),avl(K,V,L,R,1),no) :- !.
+new_FE_4(-2,Type,avl(K,V,avl(LK,LV,LL,LR,LH),R,_),AVL,Eq) :- !,
 	get_rotation(-2,LH,ROT),
 	rotation(ROT,avl(K,V,avl(LK,LV,LL,LR,LH),R,-2),AVL),
 	AVL = avl(_,_,_,_,H),
 	continue_balancing(Type,H,Eq).
-
-new_FE_4(2,Type,avl(K,V,L,avl(RK,RV,RL,RR,RH),_),AVL,Eq) :- 
+%
+new_FE_4(2,Type,avl(K,V,L,avl(RK,RV,RL,RR,RH),_),AVL,Eq) :- !,
 	get_rotation(2,RH,ROT),
 	rotation(ROT,avl(K,V,L,avl(RK,RV,RL,RR,RH),2),AVL),
 	AVL = avl(_,_,_,_,H),
@@ -406,34 +379,33 @@ new_FE_4(2,Type,avl(K,V,L,avl(RK,RV,RL,RR,RH),_),AVL,Eq) :-
 continue_balancing(delete,0,yes) :- !.
 continue_balancing(_,_,no).
 
-get_rotation(2,-1,rdi).
-get_rotation(2,1,rsii).
-get_rotation(2,0,rsib).
-get_rotation(-2,1,rdd).
-get_rotation(-2,-1,rsdi).
-get_rotation(-2,0,rsdb).
+get_rotation(2,-1,rdi) :- !.
+get_rotation(2,1,rsii) :- !.
+get_rotation(2,0,rsib) :- !.
+get_rotation(-2,1,rdd) :- !.
+get_rotation(-2,-1,rsdi) :- !.
+get_rotation(-2,0,rsdb) :- !.
 
-rotation(rsii,avl(K,V,L,avl(RK,RV,RL,RR,_),_),avl(RK,RV,avl(K,V,L,RL,0),RR,0)).
-rotation(rsib,avl(K,V,L,avl(RK,RV,RL,RR,_),_),avl(RK,RV,avl(K,V,L,RL,1),RR,-1)).
-rotation(rsdi,avl(K,V,avl(LK,LV,LL,LR,_),R,_),avl(LK,LV,LL,avl(K,V,LR,R,0),0)).
-rotation(rsdb,avl(K,V,avl(LK,LV,LL,LR,_),R,_),avl(LK,LV,LL,avl(K,V,LR,R,-1),1)).
+rotation(rsii,avl(K,V,L,avl(RK,RV,RL,RR,_),_),avl(RK,RV,avl(K,V,L,RL,0),RR,0)) :- !.
+rotation(rsib,avl(K,V,L,avl(RK,RV,RL,RR,_),_),avl(RK,RV,avl(K,V,L,RL,1),RR,-1)) :- !.
+rotation(rsdi,avl(K,V,avl(LK,LV,LL,LR,_),R,_),avl(LK,LV,LL,avl(K,V,LR,R,0),0)) :- !.
+rotation(rsdb,avl(K,V,avl(LK,LV,LL,LR,_),R,_),avl(LK,LV,LL,avl(K,V,LR,R,-1),1)) :- !.
 rotation(rdi,avl(K,V,L,avl(RK,RV,avl(RLK,RLV,RLL,RLR,HRL),RR,_),_),
-	 avl(RLK,RLV,avl(K,V,L,RLL,HL),avl(RK,RV,RLR,RR,HR),0)) :-
+	 avl(RLK,RLV,avl(K,V,L,RLL,HL),avl(RK,RV,RLR,RR,HR),0)) :- !,
          height(HRL,HL,HR).
 rotation(rdd,avl(K,V,avl(LK,LV,LL,avl(LRK,LRV,LRL,LRR,HLR),_),R,_),
-	 avl(LRK,LRV,avl(LK,LV,LL,LRL,HL),avl(K,V,LRR,R,HR),0)) :-
+	 avl(LRK,LRV,avl(LK,LV,LL,LRL,HL),avl(K,V,LRR,R,HR),0)) :- !,
          height(HLR,HL,HR).
 
-height(0,0,0).
-height(-1,0,1).
-height(1,-1,0).
+height(0,0,0) :- !.
+height(-1,0,1) :- !.
+height(1,-1,0) :- !.
 
 %Figure out number of elements
-new_N(no,delete,N,N).
-new_N(no,put,N_Old,N_New) :- N_New is N_Old + 1.
-new_N(yes(_),put,N,N).
-new_N(yes(_),delete,N_Old,N_New) :- N_New is N_Old - 1.
-
+new_N(no,delete,N,N) :- !.
+new_N(no,put,N_Old,N_New) :- !, N_New is N_Old + 1.
+new_N(yes(_),put,N,N) :- !.
+new_N(yes(_),delete,N_Old,N_New) :- !, N_New is N_Old - 1.
 
 :- pred add_assoc(+K,+Assoc1,+V,-Assoc2) : 
      (key(K), assoc_table(Assoc1), value(V), assoc_table(Assoc2))
@@ -464,16 +436,16 @@ update_assoc(K,OldAssoc,V,NewAssoc,OldVal) :-
      # "@var{Key} and @var{Value} are the @tt{key} and @tt{value} of
        the element with the largest @tt{key} in @var{Assoc}.".
 
-max_assoc(assoc_table(L,_,list),KMax,V) :-
+max_assoc(assoc_table(L,_,list),KMax,V) :- !,
 	max_assoc_list(L,KMax,V).
-max_assoc(assoc_table(AVL,_,tree),KMax,V) :-
+max_assoc(assoc_table(AVL,_,tree),KMax,V) :- !,
 	max_assoc_avl(AVL,KMax,V).
 
-max_assoc_list([K1-V],K2,V) :- K2 = K1.
+max_assoc_list([K1-V],K2,V0) :- K2 == K1, !, V = V0.
 max_assoc_list([_-_|Rest],KMax,V) :- 
 	max_assoc_list(Rest,KMax,V).
 
-max_assoc_avl(avl(K1,V,_,nil,_),K2,V) :- K2 = K1.
+max_assoc_avl(avl(K1,V0,_,nil,_),K2,V) :- K2 == K1, !, V = V0.
 max_assoc_avl(avl(_,_,_,R,_),KMax,V) :-
 	max_assoc_avl(R,KMax,V).
 
@@ -482,11 +454,11 @@ max_assoc_avl(avl(_,_,_,R,_),KMax,V) :-
      # "@var{Key} and @var{Value} are @tt{key} and @tt{value} of the
        element with the smallest @tt{key} in @var{Assoc}.".
 
-min_assoc(assoc_table([K1-V|_],_,list),K2,V) :- K2 = K1.
+min_assoc(assoc_table([K1-V|_],_,list),K2,V0) :- K2 == K1, !, V = V0.
 min_assoc(assoc_table(AVL,_,tree),KMin,V) :-
 	min_assoc_avl(AVL,KMin,V).
 
-min_assoc_avl(avl(K1,V,nil,_,_),K2,V) :- K2 = K1.
+min_assoc_avl(avl(K1,V0,nil,_,_),K2,V) :- K2 == K1, !, V = V0.
 min_assoc_avl(avl(_,_,L,_,_),KMin,V) :-
 	min_assoc_avl(L,KMin,V).
 
@@ -495,56 +467,49 @@ min_assoc_avl(avl(_,_,L,_,_),KMin,V) :-
      # "@var{NextK} and @var{NextV} are the next @tt{key} and
        associated @tt{value} after @var{K} in @var{Assoc}.".
 
-get_next_assoc(K, assoc_table(L,_,list), NextK, NextV) :- 
+get_next_assoc(K, assoc_table(L,_,list), NextK, NextV) :- !,
 	get_next_assoc_list(L,K,NextK,NextV).
-
-get_next_assoc(K, assoc_table(AVL,_,tree), NextK, NextV) :- 
+get_next_assoc(K, assoc_table(AVL,_,tree), NextK, NextV) :- !,
 	get_next_assoc_avl(AVL,K,_,_,NextK,NextV),
 	nonvar(NextK).
 
-get_next_assoc_list([K1-_,NextK1-NextV|_],K2,NextK2,NextV) :- K1 == K2, NextK2 = NextK1.
+get_next_assoc_list([K1-_,NextK1-NextV|_],K2,NextK2,NextV) :- K1 == K2, !, NextK2 = NextK1.
 get_next_assoc_list([K_Act-_|Rest],K,NextK,NextV) :-
 	compare(<,K_Act,K),
 	get_next_assoc_list(Rest,K,NextK,NextV).
 
-get_next_assoc_avl(avl(K1,_,_,nil,_),K2,NextK1,NextV,NextK2,NextV) :- K1 == K2, NextK2 = NextK1, !.
-get_next_assoc_avl(avl(K1,_,_,R,_),K2,_,_,NextK,NextV) :- K1 == K2, 
-	!, min_assoc_avl(R,NextK,NextV).
+get_next_assoc_avl(avl(K1,_,_,nil,_),K2,NextK1,NextV,NextK2,NextV) :- K1 == K2, !, NextK2 = NextK1.
+get_next_assoc_avl(avl(K1,_,_,R,_),K2,_,_,NextK,NextV) :- K1 == K2, !,
+	min_assoc_avl(R,NextK,NextV).
 get_next_assoc_avl(avl(K_Act,V_Act,L,R,_),K,TmpK,TmpV,NextK,NextV) :-
-	(
-	    compare(<,K_Act,K) ->
+	( compare(<,K_Act,K) ->
 	    get_next_assoc_avl(R,K,TmpK,TmpV,NextK,NextV)
-	;
-	    get_next_assoc_avl(L,K,K_Act,V_Act,NextK,NextV)	    
+	; get_next_assoc_avl(L,K,K_Act,V_Act,NextK,NextV)	    
 	).
-
 
 :- pred get_prev_assoc(K, Assoc, PrevK, PrevV) : 
      (key(K), assoc_table(Assoc), key(PrevK), value(PrevV))
      # "@var{PrevK} and @var{PrevV} are the previous @tt{key} and
        associated @tt{value} after @var{K} in @var{Assoc}.".
 
-get_prev_assoc(K, assoc_table(L,_,list), PrevK, PrevV) :- 
+get_prev_assoc(K, assoc_table(L,_,list), PrevK, PrevV) :- !,
 	get_prev_assoc_list(L,K,PrevK,PrevV).
-
 get_prev_assoc(K, assoc_table(AVL,_,tree), PrevK, PrevV) :- 
 	get_prev_assoc_avl(AVL,K,_,_,PrevK,PrevV),
 	nonvar(PrevK).
 
-get_prev_assoc_list([PrevK1-PrevV,K1-_|_],K2,PrevK2,PrevV) :- K1 == K2, PrevK2 = PrevK1.
+get_prev_assoc_list([PrevK1-PrevV,K1-_|_],K2,PrevK2,PrevV) :- K1 == K2, !, PrevK2 = PrevK1.
 get_prev_assoc_list([K_Act-_|Rest],K,PrevK,PrevV) :-
 	compare(<,K_Act,K),
 	get_prev_assoc_list(Rest,K,PrevK,PrevV).
 
-get_prev_assoc_avl(avl(K1,_,nil,_,_),K2,PrevK1,PrevV,PrevK2,PrevV) :- K1 == K2, PrevK2 = PrevK1, !.
-get_prev_assoc_avl(avl(K1,_,L,_,_),K2,_,_,PrevK,PrevV) :- K1 == K2,
-	!, max_assoc_avl(L,PrevK,PrevV).
+get_prev_assoc_avl(avl(K1,_,nil,_,_),K2,PrevK1,PrevV,PrevK2,PrevV) :- K1 == K2, !, PrevK2 = PrevK1.
+get_prev_assoc_avl(avl(K1,_,L,_,_),K2,_,_,PrevK,PrevV) :- K1 == K2, !,
+	max_assoc_avl(L,PrevK,PrevV).
 get_prev_assoc_avl(avl(K_Act,V_Act,L,R,_),K,TmpK,TmpV,PrevK,PrevV) :-
-	(
-	    compare(<,K_Act,K) ->
+	( compare(<,K_Act,K) ->
 	    get_prev_assoc_avl(R,K,K_Act,V_Act,PrevK,PrevV)
-	;
-	    get_prev_assoc_avl(L,K,TmpK,TmpV,PrevK,PrevV)	    
+	; get_prev_assoc_avl(L,K,TmpK,TmpV,PrevK,PrevV)	    
 	).
 
 :- pred map_assoc(+Pred, +Assoc) 
@@ -582,11 +547,9 @@ map_assoc(Pred,Assoc,AssocNew) :-
 :- meta_predicate map(?, pred(3), ?).
 
 map(assoc_table(Assoc,N,Type),Pred,assoc_table(Result,N,Type)) :- 
-	(
-	    Type == tree ->
+	( Type == tree ->
 	    map_avl(Assoc,Pred,Result)
-	;
-	    hiordlib:maplist((_(K-V,K-R) :- Pred(K,V,R)),Assoc,Result)
+	; hiordlib:maplist((_(K-V,K-R) :- Pred(K,V,R)),Assoc,Result)
 	).
 
 map_avl(nil,_,nil).
@@ -623,15 +586,14 @@ ord_pairs([]).
 ord_pairs([_-_|Rest]) :-
 	ord_pairs(Rest).
 
-
- %% Not a regular type!
- %% :- regtype ord_pairs_aux(K, Rest).
- %% 
- %% ord_pairs_aux(_,[]).
- %% ord_pairs_aux(KPrev,[K-_|Rest]) :-
- %% 	KPrev @< K,
- %% 	ord_pairs_aux(K,Rest).
- %% 
+%% Not a regular type!
+%% :- regtype ord_pairs_aux(K, Rest).
+%% 
+%% ord_pairs_aux(_,[]).
+%% ord_pairs_aux(KPrev,[K-_|Rest]) :-
+%% 	KPrev @< K,
+%% 	ord_pairs_aux(K,Rest).
+%% 
 
 :- pred assoc_to_list(+Assoc,-L) : (assoc_table(Assoc), ord_pairs(L))
      # "Transforms @var{Assoc} into @var{L} where each pair of @var{L}
@@ -675,13 +637,11 @@ assoc_to_list_avl(avl(K,V,L,R,_),List,List0,Resul,Resul0) :-
 ord_list_to_assoc(Pairs,assoc_table(Assoc,Long,Type)) :- 
 	change_tree(N_Limit),
 	length(Pairs,Long),
-	(
-	    Long > N_Limit ->
+	( Long > N_Limit ->
 	    ord_list_to_assoc_avl(Pairs, nil, Assoc),
 	    Type = tree
-	;
-	    Assoc = Pairs,
-	    Type = list
+	; Assoc = Pairs,
+	  Type = list
 	).
 
 ord_list_to_assoc_avl([], AVL, AVL).
@@ -718,7 +678,7 @@ gen_assoc(K,Assoc,V) :-
 	assoc_to_list(Assoc,L),
 	select_pairs(L,K,V).
 
-select_pairs([K1-V|_],K2,V) :- K2 = K1.
+select_pairs([K1-V|_],K2,V0) :- K2 == K1, !, V = V0.
 select_pairs([_-_|Rest],K,V) :-
 	select_pairs(Rest,K,V).
 
