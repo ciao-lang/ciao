@@ -37,6 +37,7 @@ testinccomp() {
 
 testcomp() {
     "$bin_dir"/ciao --stats oc:build-comp || return 0
+    "$bin_dir"/ciao oc:build-cmds || return 0 # for ciaodump-oc, required in oc:bench
     "$bin_dir"/ciao oc:bench briefcompareemu
 }
 
