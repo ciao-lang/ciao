@@ -675,38 +675,40 @@ prolog_flag_2(version, Version_Term, Version_Term) :-
 	CommitInfo = commit_info(CommitBranch, CommitId, CommitDate, CommitDesc),
 	Version_Term = ciao(Version, Patch, CommitInfo).
 prolog_flag_2(dialect, ciao, ciao).
-prolog_flag_2(argv,    Args, Args) :-
+prolog_flag_2(argv, Args, Args) :-
 	'$unix_argv'(Args).
-prolog_flag_2(main_module, Old, New) :-
+prolog_flag_2(main_module, Old, New) :- % TODO: why?
 	flag_value(Old, New, atom),
 	set_flag(main_module, '', Old, New).
-prolog_flag_2(bounded,                   false,       false). % ISO 
-prolog_flag_2(double_quotes,             chars,       chars). % ISO
+prolog_flag_2(bounded, false, false). % ISO 
+prolog_flag_2(double_quotes, chars, chars). % ISO
 prolog_flag_2(integer_rounding_function, toward_zero, toward_zero). % ISO
-prolog_flag_2(max_arity,                 255,         255). % ISO
-prolog_flag_2(Flag,                      Old,         New) :-
+prolog_flag_2(max_arity, 255, 255). % ISO
+prolog_flag_2(Flag, Old, New) :-
 	define_flag(Flag, Values, Default),
 	flag_value(Old, New, Values),
 	set_flag(Flag, Default, Old, New).
 
 flag_value(Old, New, _) :- var(New), !, Old==New.
-flag_value(_,   New, Xs) :- flag_value_check(Xs, New).
+flag_value(_, New, Xs) :- flag_value_check(Xs, New).
 
-flag_value_check(atom,    X) :- atom(X).
-flag_value_check(integer, X) :- integer(X).
-flag_value_check([X|_],   X) :- !.
-flag_value_check([_|Xs],  X) :- flag_value_check(Xs, X).
+flag_value_check(atom, X) :- !, atom(X).
+flag_value_check(integer, X) :- !, integer(X).
+flag_value_check([X|_], X) :- !.
+flag_value_check([_|Xs], X) :- flag_value_check(Xs, X).
 
 :- data flag/2.
 set_flag(Flag, Default, Old, New) :-
-	( current_fact(flag(Flag, Tmp), Ptr)
-	-> Tmp=Old
-	; asserta_fact(flag(Flag, Default), Ptr),
-	    Default=Old ),
-	( Old==New
-	-> true
+	( current_fact(flag(Flag,Tmp),Ptr) ->
+	    Tmp=Old
+	; asserta_fact(flag(Flag,Default),Ptr),
+	  Default=Old
+	),
+	( Old==New ->
+	    true
 	; erase(Ptr),
-	    asserta_fact(flag(Flag, New)) ).
+	  asserta_fact(flag(Flag,New))
+	).
 
 :- data old_flag/2.
 
