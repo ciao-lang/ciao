@@ -1,8 +1,7 @@
-:- module(strings,
-        [whitespace/2, whitespace0/2,
-         string/3
-        ],
-        [dcg,assertions,isomodes]).
+:- module(strings, [
+	whitespace/2, whitespace0/2,
+	string/3
+   ], [assertions,isomodes]).
 
 :- doc(title, "String processing").
 :- doc(author, "Daniel Cabeza").
@@ -25,11 +24,9 @@
 @end{verbatim}
 ").
 
-:- pred whitespace(S1,S2)
-         : string(S1)
-        => string(S2).
+:- pred whitespace(S1,S2) : string(S1) => string(S2).
 
-whitespace --> whitespace_char, whitespace0.
+whitespace([X|Xs], Ys) :- whitespace_char(X), whitespace0(Xs, Ys).
 
 :- doc(whitespace0(String, Rest), "In a grammar rule, as
    @tt{whitespace0/0}, represents possible whitespace (any number of
@@ -44,18 +41,15 @@ whitespace --> whitespace_char, whitespace0.
 @end{verbatim}
 ").
 
+:- pred whitespace0(S1,S2) : string(S1) => string(S2).
 
-:- pred whitespace0(S1,S2)
-         : string(S1)
-        => string(S2).
+whitespace0([X|Xs], Ys) :- whitespace_char(X), whitespace0(Xs, Ys).
+whitespace0(Ys, Ys).
 
-whitespace0 --> whitespace_char, whitespace0.
-whitespace0 --> [].
-
-whitespace_char --> [10]. % newline
-whitespace_char --> [13]. % return
-whitespace_char --> [32]. % space
-whitespace_char --> [9].  % tab
+whitespace_char(10). % newline
+whitespace_char(13). % return
+whitespace_char(32). % space
+whitespace_char(9).  % tab
 
 :- doc(string(String, Head, Tail), "In a @concept{grammar rule}, as
    @tt{string/1}, represents literally @var{String}.  An example of use
@@ -68,14 +62,8 @@ double(A) -->
 @end{verbatim}
 ").
 
-
 :- pred string(?string,?string,?string).
+:- pred string(A,B,C) : list(C) => ( list(A), list(B) ).
 
-:- pred string(A,B,C)
-         : list(C)
-        => ( list(A), list(B) ).
-
-string([]) --> "".
-string([C|Cs]) -->
-        [C],
-        string(Cs).
+string([], Xs, Xs).
+string([C|Cs], [C|Cs0], Cs1) :- string(Cs, Cs0, Cs1).
