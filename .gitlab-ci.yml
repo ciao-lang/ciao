@@ -163,6 +163,16 @@ catalog_ui:
   dependencies:
     - wui
 
+core_tests:
+  stage: test
+  script:
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - ciao test core
+  tags:
+    - ciao
+  dependencies:
+    - install
+
 oc_tests:
   stage: test
   script:
