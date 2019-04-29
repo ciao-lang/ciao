@@ -2,7 +2,7 @@
 #
 #  ciao-env
 #
-#  Setup environment for shells
+#  Set up environment for shells
 #
 #  Copyright (C) 2017 Ciao Developer Team
 #
@@ -112,7 +112,7 @@ treat_ciaopath_2() {
 epilogue_sh() {
     cat <<EOF
 #
-# Run this command to setup your environment:
+# Run this command to set up your environment:
 #   eval "\$(ciao-env --sh)"
 EOF
 }
@@ -125,7 +125,7 @@ epilogue_csh() {
     #   /dev/null.
     cat <<EOF
 echo '' > /dev/null;
-echo 'Run this command to setup your environment:' > /dev/null;
+echo 'Run this command to set up your environment:' > /dev/null;
 echo '  eval \`ciao-env --csh\`' > /dev/null;
 EOF
 }
