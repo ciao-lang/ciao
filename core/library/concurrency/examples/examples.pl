@@ -1,6 +1,5 @@
 :- module(_, [main/0], [datafacts]).
 
-:- use_package(datafacts).
 :- use_module(library(streams)).
 :- use_module(library(concurrency)).
 :- use_module(library(format)).

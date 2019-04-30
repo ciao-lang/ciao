@@ -3,8 +3,8 @@
 % Add meta_predicate declarations from type declarations
 
 :- use_module(engine(basiccontrol)).
-:- use_module(engine(term_basic), [(=)/2, arg/3, functor/3]).
-:- use_module(engine(term_typing), [atom/1, integer/1]).
+:- use_module(engine(term_basic)).
+:- use_module(engine(term_typing)).
 :- use_module(engine(arithmetic)).
 
 expand_metatypes((:- meta_regtype(F/A)), Decl) :-
