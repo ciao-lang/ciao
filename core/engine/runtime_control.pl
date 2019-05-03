@@ -1,4 +1,4 @@
-:- module(runtime_control, [], [assertions, isomodes, nortchecks, define_flag, datafacts]).
+:- module(runtime_control, [], [noprelude, assertions, isomodes, nortchecks, define_flag, datafacts]).
 
 :- doc(title, "Runtime system control").
 :- doc(author, "Manuel Carro").
@@ -101,7 +101,25 @@
 @end{description}
 ").
 
-:- use_module(engine(internals)).
+:- use_module(engine(basiccontrol)).
+:- use_module(engine(term_basic)).
+:- use_module(engine(term_typing)).
+:- if(defined(optim_comp)).
+:- else.
+:- use_module(engine(atomic_basic)).
+:- use_module(engine(exceptions)).
+:- endif.
+:- use_module(engine(arithmetic)).
+:- use_module(engine(term_compare)).
+%
+:- if(defined(optim_comp)).
+:- use_module(engine(timing)).
+:- endif.
+:- use_module(engine(internals)). % TODO: refine?
+
+:- if(defined(optim_comp)).
+:- '$native_include_c_source'(.(runtime_control)).
+:- endif.
 
 % ---------------------------------------------------------------------------
 % Regtypes for statistics/0, statistics/2
@@ -236,9 +254,10 @@ symbol_result([A, B]):- int(A), int(B).
    up by the hash table (which is enlarged as needed).").
 
 :- export(statistics/0).
-:- trust pred statistics # "Prints statistics about the system.".
+:- pred statistics # "Prints statistics about the system.".
 :- impl_defined(statistics/0).
 
+% ---------------------------------------------------------------------------
 :- export(statistics/2).
 :- pred statistics(Tick_option, Tick_result) 
 	: tick_option * term => tick_option * tick_result 

@@ -10,15 +10,16 @@
 :- use_module(library(attr/attr_rt), [attvar/1, attvars_residuals/3]).
 :- use_module(engine(attributes)).
 
+% TODO: merge copy_extract_attr/3 and copy_extract_attr_nc/3
 
- %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- %% Copy is a copy of Term with fresh, non-attributed variables, and
- %% AttrList is a list containing a representation of the attributes
- %% which where associated with each attributed variables in Term.
- %% The variables contained in AttrList are the same (in the sense of
- %% ==/2) as those in Copy. Thus, Copy plus OrdAttr convey the
- %% same information as Term, but expanded.
- %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Copy is a copy of Term with fresh, non-attributed variables, and
+%% AttrList is a list containing a representation of the attributes
+%% which where associated with each attributed variables in Term.
+%% The variables contained in AttrList are the same (in the sense of
+%% ==/2) as those in Copy. Thus, Copy plus OrdAttr convey the
+%% same information as Term, but expanded.
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 copy_extract_attr(Term, Copy, AttrList) :-
         cp_attr(Term, Copy, Dict),
@@ -33,28 +34,23 @@ cp_attr(Term, Copy, Dict) :-
 
 cp_attr_(Var, Copy, _Seen, Dict) :-
         var(Var), !,
-        ( 
-	    attvar(Var) ->
+        ( attvar(Var) ->
 	    % RH : att_var v2.0 
 	    dic_lookup(Dict, Var, cva2(Copy, L_, T_), Stat),
-	    (
-		Stat = new ->
+	    ( Stat = new ->
 		attvars_residuals([Var], L, T), 
 		cp_attr(L, L_, Dict),
 		dic_lookup(Dict, T, v(T_), _)
-	    ;
-		true
+	    ; true
 	    )
-	;
-	    get_attribute(Var, Attrib) ->
+	; get_attribute(Var, Attrib) ->
 	    % RH : att_var v1.0
             dic_lookup(Dict, Var, cva(Copy,Attcopy), Stat),
             ( Stat = new ->
                 cp_attr(Attrib, Attcopy, Dict)
             ; true
             )
-	;
-	    dic_lookup(Dict, Var, v(Copy), _)
+	; dic_lookup(Dict, Var, v(Copy), _)
         ).
 cp_attr_(Const, Const, _Seen, _Dict) :-
         atomic(Const), !.
@@ -85,28 +81,22 @@ cp_attr_nc(Term, Copy, Dict) :-
         cp_attr_nc_t(Type, Term, Copy, Dict).
 
 cp_attr_nc_t(attv,      Cva,    Copy,     Dict) :-
-	(
-	    attvar(Cva) ->
+	( attvar(Cva) ->
 	    % RH : att_var v2.0 
 	    dic_lookup(Dict, Cva, cva2(Copy, L_, T_), Stat),
-	    (
-		Stat = new ->
+	    ( Stat = new ->
 		attvars_residuals([Cva], L, T), 
 		cp_attr_nc(L, L_, Dict),
 		dic_lookup(Dict, T, v(T_), _)
-	    ;
-		true
+	    ; true
 	    )
-	;
-	    % RH : att_var v1.0
-	    dic_lookup(Dict, Cva, cva(Copy,Attcopy), Stat),
-	    ( 
-		Stat = new ->
-		get_attribute(Cva, Attrib),
-		cp_attr_nc(Attrib, Attcopy, Dict)
-	    ;
-		true
-	    )
+	; % RH : att_var v1.0
+	  dic_lookup(Dict, Cva, cva(Copy,Attcopy), Stat),
+	  ( Stat = new ->
+	      get_attribute(Cva, Attrib),
+	      cp_attr_nc(Attrib, Attcopy, Dict)
+	  ; true
+	  )
 	).
 cp_attr_nc_t(var,       V,      Copy,     Dict) :-
         dic_lookup(Dict, V, v(Copy), _).
@@ -137,10 +127,28 @@ attrlist(Dict) --> {dictionary(Dict,_,Val,L,R)},
 
 attr(cva(Copy,Constr)) --> [attach_attribute(Copy, Constr)].
 attr(v(_)            ) --> [].
-attr(cva2(_, L,T), L, T).
+attr(cva2(_, L,T), L, T). % (insert the L-T difference list)
 
 
 reinstall_attributes([]).
 reinstall_attributes([attach_attribute(Copy, Constr)|Rest]):-
         attach_attribute(Copy, Constr),
         reinstall_attributes(Rest).
+
+% TODO: optim-comp version:
+%
+%  copy_extract_attr(Term, Copy, AttrList) :-
+%          cp_attr(Term, Copy, Dict),
+%          call(( attrs :: accum(AttrList), attrlist(Dict) )).
+% [...]
+% {
+% :- fluid attrs :: accum.
+% attrlist(Dict) :- var(Dict), !.
+% attrlist(Dict) :- dictionary(Dict,_,Val,L,R),
+%         attrlist(L),
+%         attr(Val),
+%         attrlist(R).
+% 
+% attr(cva(Copy,Constr)) :- attrs.add(attach_attribute(Copy, Constr)).
+% attr(v(_)            ).
+% }.

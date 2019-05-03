@@ -1,4 +1,4 @@
-:- module(tokenize, [read_tokens/2,token/1],[assertions, define_flag]).
+:- module(tokenize, [], [assertions, define_flag]).
 
 :- doc(title, "Tokenizer").
 :- doc(author, "The Ciao Development Team").
@@ -20,7 +20,6 @@
 @end{itemize}
    ").
 
-:- use_module(engine(io_basic)).
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
@@ -48,17 +47,18 @@ define_flag(doccomments, [on, off], off).
 %    number(number)
 %    string(string)
 %    var(term,string)
-%    '/* ...' % Fix font-lock */
+%    '/* ...' % TODO: Fix emacs font-lock */
 %    ',' | '(' | ' (' | ')' | '[' | ']' | '|' | '{' | '}'
 %    '.' % end of term 
 
+:- export(token/1).
 :- prop token(T) + regtype.
 token(atom(A)):- atm(A).
 token(badatom(S)):- string(S).
 token(number(N)):- num(N).
 token(string(S)):- string(S).
 token(var(T,S)):- term(T), string(S).
-token('/* ...'). % Fix font-lock */
+token('/* ...'). % TODO: Fix emacs font-lock */
 token(',').
 token('(').
 token(' (').
@@ -70,7 +70,7 @@ token('{').
 token('}').
 token('.').
 
-
+:- export(read_tokens/2).
 :- pred read_tokens(TokenList, Dictionary) 
 	=> (list(TokenList,token), dictionary(Dictionary)).
 
@@ -665,7 +665,7 @@ read_tokens_cont(Cont, Dict, Level, Tokens) :-
 	; Cont = cont_comment_or_doccomment(Typ, Ch) -> % comment or doccomment
 	    comment_or_doccomment_(Typ, Ch, Dict, Level, Tokens)
 	; Cont = cont_eof_comment ->
-	    Tokens = ['/* ...'] % Fix font-lock: */
+	    Tokens = ['/* ...'] % TODO: Fix emacs font-lock */
 	; fail
 	).
 

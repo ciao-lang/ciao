@@ -1,69 +1,54 @@
-:- module(toplevel,
-	    [toplevel/1, '$shell_abort'/0,
-		displayversion/0, version/1,
-		new_declaration/1, new_declaration/2,
-		%
-		load_compilation_module/1,
-		add_sentence_trans/2,
-		add_term_trans/2,
-		add_goal_trans/2,
-                % up/0 & top/0 checked explicitly
-		use_module/1, use_module/2, ensure_loaded/1,
-		make_exec/2,
-		include/1, use_package/1,
-		consult/1, compile/1, '.'/2,
-		debug_module/1, nodebug_module/1,
-		debug_module_source/1,
-		display_debugged/0,
-		top_prompt/2
-	    ],
-	    [dcg, assertions, nortchecks, define_flag, datafacts]).
+:- module(_, [], [assertions, nortchecks, define_flag, datafacts]).
 
-:- use_module(library(aggregates), [findall/3]).
-
-:- use_module(engine(messages_basic)).
-:- use_module(library(compiler/exemaker), [make_exec/2]).
-:- use_module(library(compiler),
-	    [use_module/3, ensure_loaded/2,
-		set_debug_mode/1, set_nodebug_mode/1, mode_of_module/2,
-		set_debug_module/1, set_nodebug_module/1,
-		set_debug_module_source/1]).
-:- use_module(library(goal_trans), [add_goal_trans/3]).
-:- use_module(library(system),     [file_exists/1]).
-:- use_module(library(errhandle), [error_protect/2]).
-:- use_module(library(sort),      [keysort/2]).
-:- use_module(library(attrdump),
-	    [copy_extract_attr/3, copy_extract_attr_nc/3]).
-:- use_module(library(debugger)).
-:- use_module(library(compiler/translation),
-	    [expand_term/4, add_sentence_trans_and_init/3, add_term_trans/3]).
-:- use_module(library(compiler/c_itf),
-	    [interpret_srcdbg/1, default_shell_package/1]).
-:- use_module(engine(internals),
-	    ['$bootversion'/0, '$open'/3, '$empty_gcdef_bin'/0,
-	     '$force_interactive'/0]).
+:- if(defined(optim_comp)).
+:- use_package(hiord).
+:- use_module(engine(hiord_rt), [call/1]).
+:- use_module(engine(system_info), [this_module/1]).
+:- use_package(compiler(complang_mini)).
+:- use_package(compiler(compiler_object)).
+:- else.
+:- use_package(dcg).
 :- use_module(engine(hiord_rt), [this_module/1, call/1, '$nodebug_call'/1]).
-:- use_module(library(lists),      [member/2, difference/3]).
-:- use_module(library(format),     [format/3]).
-:- use_module(library(libpaths),   [get_alias_path/0]).
-:- use_module(library(dict),       [dic_lookup/3, dic_get/3]).
+:- endif.
 
+% Dynamic module loading
+:- use_module(library(compiler), [use_module/3, ensure_loaded/2]).
+% Create executables
+:- use_module(library(compiler/exemaker), [make_exec/2]).
+
+% Source reader
+:- use_module(library(compiler/c_itf), [default_shell_package/1]).
+:- use_module(library(read), [read_term/3]).
+:- use_module(library(operators), [op/3]).
+%
+:- use_module(library(system), [file_exists/1]).
+:- use_module(library(errhandle), [error_protect/2]).
+:- use_module(library(attrdump), [copy_extract_attr/3, copy_extract_attr_nc/3]).
+:- use_module(library(debugger)).
+%
 :- use_module(library(toplevel/toplevel_io)).
+:- use_module(engine(messages_basic), [message/2, message_lns/4]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
+:- use_module(engine(internals), ['$open'/3]).
 :- use_module(library(stream_utils), [write_string/1]).
-:- use_module(library(write),     [write/1, write_term/2]).
-:- use_module(library(read),      [read_term/3]).
-:- use_module(library(operators), [op/3]).
+:- use_module(library(write), [write/1, write_term/2]).
+%
+:- use_module(engine(internals), ['$bootversion'/0, '$empty_gcdef_bin'/0, '$force_interactive'/0]).
+:- use_module(library(lists), [member/2]).
+:- use_module(library(libpaths), [get_alias_path/0]).
+:- use_module(library(dict), [dic_lookup/3, dic_get/3]).
 
-:- use_module(engine(runtime_control), [prompt/2]). % TODO: move prompt/2 to some IO related module?
 :- use_module(engine(runtime_control), [current_prolog_flag/2, prolog_flag/3]).
 
+:- if(defined(optim_comp)).
+:- else.
 % (see shell_directive/1)
 :- use_module(engine(runtime_control), [set_prolog_flag/2, push_prolog_flag/2, pop_prolog_flag/1]).
 
 :- use_module(library(rtchecks/rtchecks_utils), [call_rtc/1]).
 :- use_module(library(read_from_string)).
+:- endif.
 
 % ---------------------------------------------------------------------------
 % Access to toplevel_scope (a 'user' module)
@@ -74,10 +59,7 @@
 
 % ---------------------------------------------------------------------------
 
-:- redefining(make_exec/2).
-:- redefining(debug_module/1).
-:- redefining(debug_module_source/1).
-:- redefining(nodebug_module/1).
+:- use_module(engine(runtime_control), [prompt/2]). % TODO: move prompt/2 to some IO related module?
 
 :- multifile exit_hook/0, after_query_hook/0, after_solution_hook/0.
 
@@ -85,6 +67,7 @@ define_flag(prompt_alternatives_no_bindings, [on, off], off).
 
 :- data shell_module/1. % Module where queries are called
 
+:- export(toplevel/1).
 toplevel(Args) :-
 	get_alias_path,
 	%
@@ -154,6 +137,7 @@ include_if_exists(File) :-
 	  prolog_flag(quiet, _, QF)
 	).
 
+:- export('$shell_abort'/0).
 '$shell_abort' :-
 	message(user, '{ Execution aborted }'),
 	shell_body, % Enter toplevel again
@@ -189,11 +173,12 @@ shell_env(Vars) :-
 
 top_prompt_base('?- ').
 
+:- export(top_prompt/2).
 % Actually, sets top_prompt_base, but since seen externally, used simpler name
-top_prompt(OLD, NEW) :-
-	top_prompt_base(OLD),
-	retract_fact(top_prompt_base(OLD)),
-	asserta_fact(top_prompt_base(NEW)).
+top_prompt(Old, New) :-
+	top_prompt_base(Old),
+	retract_fact(top_prompt_base(Old)),
+	asserta_fact(top_prompt_base(New)).
 
 shell_query(Variables, Query) :-
 	'$empty_gcdef_bin', % Really get rid of abolished predicates
@@ -221,6 +206,8 @@ debugger_info :-
 	( T = off, !
 	; top_display('{'), top_display(T), top_display('}\n')
 	).
+
+% Note: up/0 & top/0 checked explicitly
 
 get_query(Query, Dict, Names) :-
 	read_term(user, RawQuery, [dictionary(Dict), variable_names(Names)]),
@@ -344,6 +331,8 @@ new_varname(N, Var) :-
 	number_codes(N, NS),
 	Var = "_"||NS.
 
+% ---------------------------------------------------------------------------
+
 :- multifile dump_constraints/3. /* For clp[qr] .DCG. */
 
 answer_constraints(Variables, Dict, Constraints) :-
@@ -433,23 +422,26 @@ ok_solution(Sep, Solution, Variables, MoreSols) :-
 	(Sep = '' -> top_nl, top_display('true') ; true),
 	top_display(' ? '),
 	top_flush,
-	top_get(C),
-	( C = 10 % end of line
-	; C = 0'y, top_skip(10) % y(es)
-	; C = 0'Y, top_skip(10) % Y(es)
-	; C = 0', -> % add another question
-	    top_skip(10),
+        top_get(C), ( C = 0'\n -> true ; top_skip(0'\n) ), % ask the user
+	( C = 0'y -> true % y(es)
+	; C = 0'Y -> true % Y(es)
+	; C = 0'\n -> true % end of line
+	; C = 0', ->
+	    % add another question
 	    top_nl,
 	    inc_query_level,
 	    shell_env(Variables),
 	    dec_query_level,
 	    display_ok_solution(Solution, Variables, MoreSols)
-	; top_skip(10), fail % another solution
+	; fail % another solution
 	).
 
-
-% This is like the one in library(write), except that variable names
+% ---------------------------------------------------------------------------
+% This is alike the one in library(write), except that variable names
 % start with "_"
+% TODO: do not duplicate code
+
+:- use_module(library(sort), [keysort/2]).
 
 prettyvars(Term, Variables) :-
 	collect_vars(Term, Vars0, []),
@@ -501,6 +493,8 @@ free_name_var(Name, Variables, N0, N1) :-
 free_name_var(X, Variables, N0, N2) :-
 	N1 is N0 + 1,
 	free_name_var(X, Variables, N1, N2).
+
+% ---------------------------------------------------------------------------
 	
 :- data querylevel/1.
 
@@ -535,8 +529,16 @@ set_top_prompt(N) :-
 	retractall_fact(top_prompt(_)),
 	asserta_fact(top_prompt(TP)).
 
+% ===========================================================================
+% Default declarations available from the toplevel
+
+% TODO: Can I unify declaration processing with compiler/frontend.pl?
+
+% ---------------------------------------------------------------------------
+
 :- data '$current version'/1.
 
+:- export(displayversion/0).
 displayversion :- % shall use current output
 	( '$bootversion',
 	    current_fact('$current version'(Msg)),
@@ -545,29 +547,18 @@ displayversion :- % shall use current output
 	; true
 	).
 
+:- export(version/1).
 version(A) :-
 	nonvar(A), !,
 	assertz_fact('$current version'(A)).
 version(_) :- throw(error(instantiation_error, version/1 -1)).
 
-shell_expand(V,         _,        Query) :- var(V), !, Query = call(V).
-shell_expand((:- Decl), VarNames, Query) :- !,
-	current_fact(shell_module(ShMod)),
-	expand_term((:- Decl), ShMod, VarNames, Query),
-	(Query = true -> true ; true). % unify Query if a var
-shell_expand(RawQuery, VarNames, Query) :-
-	current_fact(shell_module(ShMod)),
-	expand_term(('SHELL':-RawQuery), ShMod, VarNames, Expansion),
-	( Expansion = ('SHELL':-Query), !
-	; Query = fail,
-	  message(error, ['unexpected answer from expansion: ', Expansion])
-	).
-
-
-/* Including files (source or packages) in shell */
+% ---------------------------------------------------------------------------
+% Including files (source or packages) in shell
 
 :- data new_decl/1.
 
+:- export(include/1).
 include(File) :- do_include(source, File).
 
 % TODO: Share the duplicated logic with compiler/c_itf.pl
@@ -682,49 +673,38 @@ shell_directive(add_term_trans(_, _)).
 shell_directive(add_goal_trans(_, _)).
 shell_directive(multifile(_)).
 
+:- export(use_module/1).
 use_module(M) :-
 	use_module(M, all).
 
+:- export(use_module/2).
 use_module(M, Imports) :-
 	shell_module(Module),
 	use_module(M, Imports, Module).
 
+:- export(ensure_loaded/1).
 ensure_loaded([]) :- !.
 ensure_loaded([File|Files]) :- !,
-	shell_module(Module), % JF[] added module
-	compiler:ensure_loaded(File, Module), % JF[] added module
+	ensure_loaded__2(File),
 	ensure_loaded(Files).
 ensure_loaded(File) :-
+	ensure_loaded__2(File).
+
+ensure_loaded__2(File) :-
 	shell_module(Module), % JF[] added module
 	compiler:ensure_loaded(File, Module). % JF[] added module
 
+:- export('.'/2).
 [File|Files] :-
-	(Files = [] -> AllFiles = File ; AllFiles = [File|Files]),
-%% JF[] removed obsolete message
-%message(note,[[File|Files],' is obsolete, use ',
-%             ensure_loaded(AllFiles),' instead']),
 	ensure_loaded([File|Files]).
 
-consult([]) :- !.
-consult([File|Files]) :- !,
-	consult(File),
-	consult(Files).
-consult(File) :-
-	set_debug_mode(File),
-	ensure_loaded(File).
-
-compile([]) :- !.
-compile([File|Files]) :- !,
-	compile(File),
-	compile(Files).
-compile(File) :-
-	set_nodebug_mode(File),
-	ensure_loaded(File).
-
+:- export(make_exec/2).
+:- redefining(make_exec/2).
 make_exec(Files, ExecName) :-
 	( Files = [_|_] -> Files2 = Files ; Files2 = [Files] ),
 	exemaker:make_exec(Files2, ExecName).
 
+:- export(use_package/1).
 use_package([]) :- !.
 use_package([F|Fs]) :- !,
 	use_package(F),
@@ -736,8 +716,10 @@ use_package(F) :- functor(F, _, 1), !,
 use_package(F) :-
 	message(error, ['Bad package file ', ~~(F)]).
 
+:- export(new_declaration/2).
 new_declaration(S, _) :- new_declaration(S).
 
+:- export(new_declaration/1).
 new_declaration(S) :-
 	( S = F/A, functor(D, F, A) ->
 	    ( current_fact(new_decl(D)) -> true
@@ -747,12 +729,16 @@ new_declaration(S) :-
 		    'in new_declaration directive'])
 	).
 
+:- export(load_compilation_module/1).
 load_compilation_module(File) :-
 	this_module(M),
 	use_module(File, all, M), % Here for sentence/term expansions
 	shell_module(ShM),
 	use_module(File, all, ShM). % In toplevel_scope for goal expansions
 
+% ---------------------------------------------------------------------------
+
+:- export(add_sentence_trans/2).
 add_sentence_trans(P, Prior) :-
 	current_fact(shell_module(ShMod)),
 	( translation:add_sentence_trans_and_init(ShMod, P, Prior) ->
@@ -760,6 +746,9 @@ add_sentence_trans(P, Prior) :-
 	; message(warning, [add_sentence_trans(P, Prior), ' - declaration failed'])
 	).
 
+% ---------------------------------------------------------------------------
+
+:- export(add_term_trans/2).
 add_term_trans(P, Prior) :-
 	current_fact(shell_module(ShMod)),
 	( translation:add_term_trans(ShMod, P, Prior) ->
@@ -767,6 +756,33 @@ add_term_trans(P, Prior) :-
 	; message(warning, [add_term_trans(P, Prior), ' - declaration failed'])
 	).
 
+% ---------------------------------------------------------------------------
+
+:- doc(subsection, "Translation hooks (term and sentence)").
+
+:- use_module(library(compiler/translation),
+	    [expand_term/4, add_sentence_trans_and_init/3, add_term_trans/3]).
+
+shell_expand(V, _, Query) :- var(V), !, Query = call(V).
+shell_expand((:- Decl), VarNames, Query) :- !,
+	current_fact(shell_module(ShMod)),
+	expand_term((:- Decl), ShMod, VarNames, Query),
+	(Query = true -> true ; true). % unify Query if a var
+shell_expand(RawQuery, VarNames, Query) :-
+	current_fact(shell_module(ShMod)),
+	expand_term(('SHELL':-RawQuery), ShMod, VarNames, Expansion),
+	( Expansion = ('SHELL':-Query), !
+	; Query = fail,
+	  message(error, ['unexpected answer from expansion: ', Expansion])
+	).
+
+% ---------------------------------------------------------------------------
+
+:- doc(subsection, "Translation hooks (goal)").
+
+:- use_module(library(goal_trans), [add_goal_trans/3]).
+
+:- export(add_goal_trans/2).
 add_goal_trans(P, Prior) :-
 	current_fact(shell_module(ShMod)),
 	( goal_trans:add_goal_trans(ShMod, P, Prior) ->
@@ -774,41 +790,6 @@ add_goal_trans(P, Prior) :-
 	; message(warning, [add_goal_trans(P, Prior), ' - declaration failed'])
 	).
 
-debug_module(M) :-
-	set_debug_module(M),
-	debugger:debug_module(M),
-	( mode_of_module(M, Mode), Mode \== interpreted(raw) ->
-	    message(user, ['{Consider reloading module ', M, '}'])
-	; true
-	),
-	display_debugged.
+% ---------------------------------------------------------------------------
 
-nodebug_module(M) :-
-	set_nodebug_module(M),
-	debugger:nodebug_module(M),
-	display_debugged.
-
-debug_module_source(M) :-
-	set_debug_module_source(M),
-	debugger:debug_module_source(M),
-	( mode_of_module(M, Mode), Mode \== interpreted(srcdbg) ->
-	    message(user, ['{Consider reloading module ', M, '}'])
-	; true
-	),
-	display_debugged.
-
-display_debugged :-
-	current_debugged(Ms),
-	current_source_debugged(Ss),
-	difference(Ms, Ss, M),
-	( M = [] ->
-	    format(user, '{No module is selected for debugging}~n', [])
-	;        format(user, '{Modules selected for debugging: ~w}~n', [M])
-	),
-	( Ss = [] ->
-	    format(user, '{No module is selected for source debugging}~n', [])
-	; format(user, '{Modules selected for source debugging: ~w}~n', [Ss])
-	).
-
-current_source_debugged(Ss) :-
-	findall(S, current_fact(interpret_srcdbg(S)), Ss).
+:- include(library(toplevel/toplevel_debugger)).
