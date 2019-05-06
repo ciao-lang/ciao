@@ -336,6 +336,9 @@ Full installation instructions
                           eval "$(<prefix>/bin/ciao-env --sh)"
                        fi
 
+        * For users of an `zsh' shell, the same lines will be added to
+          `~/.zshrc'.
+
           This will set up things so that the Ciao executables are
           found and you can access the Ciao system manuals using the
           `info' command. Note that, depending on your shell, you may
