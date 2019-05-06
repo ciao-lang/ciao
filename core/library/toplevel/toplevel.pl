@@ -2,8 +2,7 @@
 
 :- if(defined(optim_comp)).
 :- use_package(hiord).
-:- use_module(engine(hiord_rt), [call/1]).
-:- use_module(engine(system_info), [this_module/1]).
+:- use_module(engine(hiord_rt), [this_module/1, call/1]).
 :- use_package(compiler(complang_mini)).
 :- use_package(compiler(compiler_object)).
 :- else.
@@ -11,26 +10,31 @@
 :- use_module(engine(hiord_rt), [this_module/1, call/1, '$nodebug_call'/1]).
 :- endif.
 
-% Dynamic module loading
-:- use_module(library(compiler), [use_module/3, ensure_loaded/2]).
-% Create executables
-:- use_module(library(compiler/exemaker), [make_exec/2]).
+:- if(defined(optim_comp)).
+% (all compile capabilities, e.g., compile from source, etc.)
+:- use_module(compiler(all_actions), []).
+:- endif.
 
-% Source reader
-:- use_module(library(compiler/c_itf), [default_shell_package/1]).
-:- use_module(library(read), [read_term/3]).
-:- use_module(library(operators), [op/3]).
-%
-:- use_module(library(system), [file_exists/1]).
-:- use_module(library(errhandle), [error_protect/2]).
-:- use_module(library(attrdump), [copy_extract_attr/3, copy_extract_attr_nc/3]).
+% Dynamic module loading
+:- if(defined(optim_comp)).
+:- use_module(compiler(dynload), [use_module/3, ensure_loaded/2]).
+:- else.
+:- use_module(library(compiler), [use_module/3, ensure_loaded/2]).
+:- endif.
+
+% Create executables
+:- if(defined(optim_comp)).
+% TODO: fixme
+:- else.
+:- use_module(library(compiler/exemaker), [make_exec/2]).
+:- endif.
+
 :- use_module(library(debugger)).
 %
 :- use_module(library(toplevel/toplevel_io)).
 :- use_module(engine(messages_basic), [message/2, message_lns/4]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(engine(internals), ['$open'/3]).
 :- use_module(library(stream_utils), [write_string/1]).
 :- use_module(library(write), [write/1, write_term/2]).
 %
@@ -59,7 +63,9 @@
 
 % ---------------------------------------------------------------------------
 
+:- use_module(library(system), [file_exists/1]).
 :- use_module(engine(runtime_control), [prompt/2]). % TODO: move prompt/2 to some IO related module?
+:- use_module(library(operators), [op/3]).
 
 :- multifile exit_hook/0, after_query_hook/0, after_solution_hook/0.
 
@@ -75,67 +81,72 @@ toplevel(Args) :-
 	retractall_fact(shell_module(_)), % clean shell_module/1
 	asserta_fact(shell_module(Module)),
 	%
-	interpret_args(Args, opts(true, true)),
+	retractall_fact(quiet_mode),
+	interpret_args(Args, true),
+	( quiet_mode -> true ; displayversion ),
 	op(900, fy, [(spy), (nospy)]),
 	shell_body,
 	( '$nodebug_call'(exit_hook), fail ; true ).
 
 :- data quiet_mode/0.
 
-interpret_args([], opts(Load_CiaoRC, DisplayMsgs)) :- !,
-	( Load_CiaoRC = true ->
-	    include_if_exists('~/.ciaorc')
-	;
-	    true
-	),
-	( DisplayMsgs = true ->
-	    displayversion
-	;
-	    assertz_fact(quiet_mode)
+interpret_args([], DefLoad) :- !,
+	( DefLoad = true ->
+	    load_default
+	; true
 	).
-interpret_args(['-f'|R], opts(_, DV)) :- !, % fast start
-	interpret_args(R, opts(false, DV)).
-interpret_args(['-q'|R], opts(LR, _)) :- !, % quiet mode
-	interpret_args(R, opts(LR, false)).
-interpret_args(['-i'|R], Opts) :- !,
+interpret_args(['-f'|R], _) :- !, % fast start
+	interpret_args(R, false).
+interpret_args(['-q'|R], DefLoad) :- !, % quiet mode
+	set_fact(quiet_mode),
+	interpret_args(R, DefLoad).
+interpret_args(['-i'|R], DefLoad) :- !,
 	'$force_interactive',
-	interpret_args(R, Opts).
+	interpret_args(R, DefLoad).
 interpret_args(['--version'], _) :- !,
 	'$bootversion', % Display Ciao version
 	halt.
-interpret_args(['-l', File|R], Opts) :- !,
+interpret_args(['-l',File|R], _) :- !,
 	( file_exists(File) ->
-	    include(File),
-	    Opts = opts(_, DV),
-	    Opts2 = opts(false, DV)
-	; Opts2 = Opts,
-	  message(warning, ['File not found (-l option): ', File])
+	    include(File)
+	; message(warning, ['File not found (-l option): ', File])
 	),
-	interpret_args(R, Opts2).
-interpret_args(['-u', File|R], Opts) :- !,
+	interpret_args(R, false).
+interpret_args(['-u',File|R], DefLoad) :- !,
 	use_module(File),
-	interpret_args(R, Opts).
-interpret_args(['-e', Query|R], Opts) :- !,
+	interpret_args(R, DefLoad).
+interpret_args(['-e',Query|R], DefLoad) :- !,
 	read_from_atom(Query, Goal),
 	'$shell_call'(Goal),
-	interpret_args(R, Opts).
-interpret_args(['-p', Prompt|R], Opts) :- !,
+	interpret_args(R, DefLoad).
+interpret_args(['-p',Prompt|R], DefLoad) :- !,
 	top_prompt(_, Prompt),
-	interpret_args(R, Opts).
+	interpret_args(R, DefLoad).
 interpret_args(_Args, _) :-
 	display(
 'Usage: ciaosh [-f] [-q] [-i] [-l <File>] [-u <File>] [-p <Prompt>] [-e <Query>]'),
 	nl,
 	halt(1).
 
-include_if_exists(File) :-
-	( file_exists(File) ->
-	    include(File)
-	; prolog_flag(quiet, QF, warning),
-	  default_shell_package(Package),
+load_default :-
+	RCFile = '~/.ciaorc',
+        ( file_exists(RCFile) ->
+            include(RCFile)
+        ; default_shell_package(Package),
+          prolog_flag(quiet, QF, warning),
 	  use_package(Package),
-	  prolog_flag(quiet, _, QF)
-	).
+          prolog_flag(quiet, _, QF) 
+        ).
+
+:- if(defined(optim_comp)).
+default_shell_package(default_for_ciaosh).
+:- else.
+:- use_module(library(compiler/c_itf), [default_shell_package/1]).
+:- endif.
+
+% ---------------------------------------------------------------------------
+
+:- use_module(library(errhandle), [error_protect/2]).
 
 :- export('$shell_abort'/0).
 '$shell_abort' :-
@@ -180,15 +191,17 @@ top_prompt(Old, New) :-
 	retract_fact(top_prompt_base(Old)),
 	asserta_fact(top_prompt_base(New)).
 
+% Note: up/0 & top/0 checked explicitly
+
 shell_query(Variables, Query) :-
+	% TODO: unsafe? what if some thread is still running?
 	'$empty_gcdef_bin', % Really get rid of abolished predicates
 	debugger_info,
 	current_fact(top_prompt(TP)),
 	prompt(Prompt, TP),
 	(true ; prompt(_, Prompt), fail),
-	catch(get_query(Query, Variables, VarNames),
-	    error(syntax_error([L0, L1, Msg, ErrorLoc]), _),
-	    (Query = fail, handle_syntax_error(L0, L1, Msg, ErrorLoc))),
+	get_query(Query, Variables, VarNames),
+	Query \== up,
 	prompt(_, Prompt),
 	!,
 	( Query == top ->
@@ -207,23 +220,15 @@ debugger_info :-
 	; top_display('{'), top_display(T), top_display('}\n')
 	).
 
-% Note: up/0 & top/0 checked explicitly
-
-get_query(Query, Dict, Names) :-
-	read_term(user, RawQuery, [dictionary(Dict), variable_names(Names)]),
-	shell_expand(RawQuery, Names, Query),
-	Query\==end_of_file,
-	Query\== up.
-
-handle_syntax_error(L0, L1, Msg, ErrorLoc) :-
-	display(user_error, '{SYNTAX '),
-	message_lns(error, L0, L1, [[](Msg), '\n', [](ErrorLoc), '\n}']).
+get_query(Query, Dict, VarNames) :-
+	read_query(RawQuery, Dict, VarNames),
+	shell_expand(RawQuery, VarNames, Query).
 
 valid_solution(Query, Variables, VarNames) :-
-	(adjust_debugger ; switch_off_debugger, fail),
-	error_protect(call_rtc(shell_call(Query, MoreSols, VarNames)), fail), % TODO: fail or abort?
-	(switch_off_debugger ;                 adjust_debugger, fail),
-	('$nodebug_call'(after_solution_hook), fail ;           true),
+	( adjust_debugger ; switch_off_debugger, fail ),
+	error_protect(call_rtc(shell_call(Query, MoreSols, VarNames)), fail), % TODO: unfold error_protect, fix query level + throw(a) issue
+	( switch_off_debugger ; adjust_debugger, fail ),
+	('$nodebug_call'(after_solution_hook), fail ; true),
 	current_prolog_flag(check_cycles, CyclesFlag),
 	( CyclesFlag = on ->
 	    compute_solution_cycles(Variables, Solution)
@@ -251,7 +256,6 @@ compute_solution_cycles(Variables, Solution) :-
 	uncycle_constraints(Constraints, NewVarIdx,
 	    Constraints_nc_eqs),
 	solution_eqs(Varq_nc2, Varq_nc2_, Solution, Constraints_nc_eqs).
-
 
 compute_solution_nocycles(Variables, Solution) :-
 	answer_constraints_nc(Variables, Dict, Constraints),
@@ -332,6 +336,8 @@ new_varname(N, Var) :-
 	Var = "_"||NS.
 
 % ---------------------------------------------------------------------------
+
+:- use_module(library(attrdump), [copy_extract_attr/3, copy_extract_attr_nc/3]).
 
 :- multifile dump_constraints/3. /* For clp[qr] .DCG. */
 
@@ -529,11 +535,6 @@ set_top_prompt(N) :-
 	retractall_fact(top_prompt(_)),
 	asserta_fact(top_prompt(TP)).
 
-% ===========================================================================
-% Default declarations available from the toplevel
-
-% TODO: Can I unify declaration processing with compiler/frontend.pl?
-
 % ---------------------------------------------------------------------------
 
 :- data '$current version'/1.
@@ -554,13 +555,34 @@ version(A) :-
 version(_) :- throw(error(instantiation_error, version/1 -1)).
 
 % ---------------------------------------------------------------------------
+% Query reader
+
+:- use_module(library(read), [read_term/3]).
+
+read_query(Query, Dict, VarNames) :-
+	repeat,
+	Opts = [dictionary(Dict), variable_names(VarNames)],
+	catch(read_term(user, Query, Opts),
+	      error(syntax_error([L0, L1, Msg, ErrorLoc]), _),
+	      handle_syntax_error(L0, L1, Msg, ErrorLoc)),
+	!,
+	Query \== end_of_file.
+
+handle_syntax_error(L0, L1, Msg, ErrorLoc) :-
+	display(user_error, '{SYNTAX '),
+	message_lns(error, L0, L1, [[](Msg), '\n', [](ErrorLoc), '\n}']),
+	fail.
+
+% ---------------------------------------------------------------------------
 % Including files (source or packages) in shell
+
+% TODO: move to an included file to the compiler
+
+:- use_module(engine(internals), ['$open'/3]).
 
 :- data new_decl/1.
 
-:- export(include/1).
-include(File) :- do_include(source, File).
-
+% (exported)
 % TODO: Share the duplicated logic with compiler/c_itf.pl
 do_include(Type, File) :-
 	absolute_file_name(File, '_opt', '.pl', '.', SourceFile, SourceBase, _),
@@ -673,13 +695,15 @@ shell_directive(add_term_trans(_, _)).
 shell_directive(add_goal_trans(_, _)).
 shell_directive(multifile(_)).
 
+% ---------------------------------------------------------------------------
+
 :- export(use_module/1).
 use_module(M) :-
 	use_module(M, all).
 
 :- export(use_module/2).
 use_module(M, Imports) :-
-	shell_module(Module),
+	current_fact(shell_module(Module)),
 	use_module(M, Imports, Module).
 
 :- export(ensure_loaded/1).
@@ -691,8 +715,8 @@ ensure_loaded(File) :-
 	ensure_loaded__2(File).
 
 ensure_loaded__2(File) :-
-	shell_module(Module), % JF[] added module
-	compiler:ensure_loaded(File, Module). % JF[] added module
+	current_fact(shell_module(Module)),
+	compiler:ensure_loaded(File, Module).
 
 :- export('.'/2).
 [File|Files] :-
@@ -703,6 +727,9 @@ ensure_loaded__2(File) :-
 make_exec(Files, ExecName) :-
 	( Files = [_|_] -> Files2 = Files ; Files2 = [Files] ),
 	exemaker:make_exec(Files2, ExecName).
+
+:- export(include/1).
+include(File) :- do_include(source, File).
 
 :- export(use_package/1).
 use_package([]) :- !.
@@ -733,7 +760,7 @@ new_declaration(S) :-
 load_compilation_module(File) :-
 	this_module(M),
 	use_module(File, all, M), % Here for sentence/term expansions
-	shell_module(ShM),
+	current_fact(shell_module(ShM)),
 	use_module(File, all, ShM). % In toplevel_scope for goal expansions
 
 % ---------------------------------------------------------------------------
