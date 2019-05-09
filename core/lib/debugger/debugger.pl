@@ -95,7 +95,7 @@
 %   - Trap arith errors in debug mode
 %------------- Built-in predicates for debugging------------------------
 
-define_flag(check_cycles, [on, off], off).
+define_flag(check_cycles, [on, off], off). % TODO: move somewhere else
 
 % define_flag(debug, [on,debug,trace,off], off).
 
