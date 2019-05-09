@@ -355,7 +355,7 @@ read_one_octal(3, D, [D], EndTyp, EndCh) :-
         getct(EndCh, EndTyp).
 read_one_octal(EndTyp, EndCh, [], EndTyp, EndCh).
 
-read_octal_iso(4, 92, []).  % ends in \
+read_octal_iso(4, 92, []) :- !.  % ends in \
 read_octal_iso(3, D, [D|Ds]) :-
         D =< 0'7, !,
         getct(Ch, Typ),
@@ -375,7 +375,7 @@ read_one_hexa(TD, D, [D], EndTyp, EndCh) :-
         getct(EndCh, EndTyp).
 read_one_hexa(EndTyp, EndCh, [], EndTyp, EndCh).
 
-read_hexa_iso(4, 92, []).  % ends in \
+read_hexa_iso(4, 92, []) :- !.  % ends in \
 read_hexa_iso(TD, D, [D|Ds]) :-
         hexa_digit(TD, D), !,
         getct(Ch, Typ),
