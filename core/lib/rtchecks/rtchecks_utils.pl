@@ -8,6 +8,8 @@
         ],
         [assertions, regtypes, datafacts, define_flag]).
 
+% TODO: refine and simplify
+
 :- use_module(library(aggregates), [findall/3]).
 
 :- use_module(engine(io_basic)).

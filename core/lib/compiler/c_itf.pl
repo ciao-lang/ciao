@@ -922,7 +922,7 @@ read_record_file(PlName, Base, Dir, Type) :-
 read_record_file_(PlName, Base, Type) :-
 	'$open'(PlName, r, Stream),
 	skip_shell_lines(Stream),
-	read_sentence(Stream, Base, Sentence),
+	( read_sentence(Stream, Base, Sentence) -> true ; fail ), % (once)
 	expand_module_decl(Sentence, Base, Type, module(Module, Exports, Packages), Rest),
 	(record_module_decl(Sentence, Module, Base, PlName) -> true ; true),
 	(Sentence = sentence(_, _, _, Ln0, Ln1) -> true ; Ln0 = 1, Ln1 = 1),
@@ -1058,8 +1058,8 @@ expand_list_tail(Data1, Data) :-
 	; Data = [Data1]
 	).
 
-% JF temporary: This information should be handled like meta_args (and cannot be a term expansion: it leads to a loop in basiccontrol)
-primitive_expand_term((:- primitive_meta_predicate(MP)), M, _, Data1) :-
+% TODO: JF temporary: This information should be handled like meta_args (and cannot be a term expansion: it leads to a loop in basiccontrol)
+primitive_expand_term((:- primitive_meta_predicate(MP)), M, _, Data1) :- % TODO: missing cut?
 	functor(MP, F, A),
 	functor(Pat, F, A),
 	Data1 = [(:- meta_predicate(MP)),
@@ -1091,20 +1091,17 @@ call_list_rev([G|Gs]) :-
 :- export(read_sentence/3).
 read_sentence(Stream, Base, Sentence) :-
 	repeat,
-	catch(do_read_sentence(Stream, Sentence),
-	      error(syntax_error([L0,L1,Msg,ErrorLoc]), _),
-	      handle_syntax_error(Base,L0,L1,Msg,ErrorLoc)).
-
-do_read_sentence(Stream, Sentence) :-
 	Opts = [ variable_names(VarNames),
 		 singletons(Singletons),
 		 lines(Ln0, Ln1) ],
-	read_term(Stream, Data, Opts),
+	catch(read_term(Stream, Data, Opts),
+	      error(syntax_error([L0,L1,Msg,ErrorLoc]), _),
+	      handle_syntax_error(Base,L0,L1,Msg,ErrorLoc)),
+	% !,
 	( Data = end_of_file ->
 	    Sentence = end_of_file(Ln0, Ln1)
 	; Sentence = sentence(Data, VarNames, Singletons, Ln0, Ln1)
-	),
-	!.
+	).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Default packages").
@@ -1148,7 +1145,7 @@ read_assertion(Assr, M, S, LB, LE, Dict) :-
 
 % note: this predicate handles code before module expansion
 process_expanded_data((?- Goal), _, _, _, _, _, _, _) :- !,
-	call(Goal), !. % Done at compile time
+	call(Goal), !. % TODO: Deprecate (or make it optional with a flag)
 process_expanded_data((:- Decl), Base, M, VNs,_Sings, Pl, Ln0, Ln1) :- !,
 	( is_any_known_decl(Decl, Base) ->
 	    ( process_decl(Decl, Base, M, VNs, Ln0, Ln1) -> true
@@ -1374,9 +1371,9 @@ do_use_package(F, _, _, Ln0, Ln1) :-
 	compiler_error(Ln0, Ln1, bad_package_file(F)).
 
 package_file(F, P) :-
-	atom(F) -> P = library(F)
-	;
-	functor(F,_,1) -> P = F.
+	( atom(F) -> P = library(F)
+	; functor(F,_,1) -> P = F
+	).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "'include' declaration").
@@ -1386,12 +1383,15 @@ do_include(Type, File, Base, Module,_Ln0,_Ln1) :-
 	nonvar(File),
 	get_base_name(File, SourceBase, SourceFile, _), !,
 	assertz_fact(includes(Base, File)),
+	%
 	now_doing_include(Type, SourceFile),
 	'$open'(SourceFile, r, Stream),
-	read_sentence(Stream, Base, Sentence),
+	( read_sentence(Stream, Base, Sentence) -> true ; fail ), % (once)
 	check_include_decl(Type, SourceBase, Sentence, Rest),
 	% TODO: Merge with read_record_file_/3
-	( member(Sentence2, Rest) ; read_sentence(Stream, Base, Sentence2) ),
+	( member(Sentence2, Rest)
+	; read_sentence(Stream, Base, Sentence2)
+	),
 	( Sentence2 = end_of_file(_, _) ->
 	    true
 	; process_sentence(Sentence2, Base, SourceFile, Module),

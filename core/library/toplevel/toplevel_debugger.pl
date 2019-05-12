@@ -94,24 +94,6 @@ needs_reloading(M, DebugMode) :-
 :- use_module(library(lists), [difference/3]).
 :- use_module(library(format), [format/3]).
 
-:- export(consult/1).
-consult([]) :- !.
-consult([File|Files]) :- !,
-	consult(File),
-	consult(Files).
-consult(File) :-
-	set_debug_mode(File),
-	ensure_loaded__2(File).
-
-:- export(compile/1).
-compile([]) :- !.
-compile([File|Files]) :- !,
-	compile(File),
-	compile(Files).
-compile(File) :-
-	set_nodebug_mode(File),
-	ensure_loaded__2(File).
-
 :- export(debug_module/1).
 :- redefining(debug_module/1).
 debug_module(M) :-
