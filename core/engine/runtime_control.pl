@@ -641,10 +641,6 @@ set_prolog_flag(X, Y) :- nonvar(X), prolog_flag(X, _, Y), !. /* ISO */
 "@var{FlagName} is an existing flag and @var{Value} is the
            value currently associated with it.").
 :- pred current_prolog_flag/2 => atm * term.
-% inferred:
-%:- true pred current_prolog_flag(A,B)
-%         : ( term(A), term(B) )
-%        => ( rt274(A), term(B) ).
 
 current_prolog_flag(X, Y) :- prolog_flag(X, Y, Y). /* ISO */
 
