@@ -1,7 +1,4 @@
-:- module(term_basic,
-        [(=)/2, (\=)/2, arg/3, functor/3, (=..)/2, non_empty_list/1,
-         copy_term/2, copy_term_nat/2, cyclic_term/1, 'C'/3],
-        [assertions, nativeprops, isomodes, nortchecks]).
+:- module(term_basic, [], [assertions, nativeprops, isomodes, nortchecks]).
 
 :- doc(title,"Basic term manipulation").
 
@@ -12,41 +9,18 @@
 
 :- doc(module,"This module provides basic term manipulation.").
 
-
-:- pred copy_term(Term, Copy) + ( sideff(free), native, iso )
-        # "@var{Copy} is a renaming of @var{Term}, such that brand new
-           variables have been substituted for all variables in
-           @var{Term}.  If any of the variables of @var{Term} have
-           @concept{attributes}, the copied variables will have copies
-           of the attributes as well. It behaves as if defined by:
-
-@begin{verbatim}
-:- data 'copy of'/1.
-
-copy_term(X, Y) :-
-        asserta_fact('copy of'(X)),
-        retract_fact('copy of'(Y)).
-@end{verbatim}".
-
-:- trust comp copy_term(Term, Copy) : ground(Term) + eval.
-
-:- impl_defined(copy_term/2).
-
-:- trust pred copy_term_nat(Term, Copy) + ( sideff(free) )
-        # "Same as @pred{copy_term/2}, except that attributes of
-          variables are not copied.".
-
-:- impl_defined(copy_term_nat/2).
-
-% Compiled inline -- these provide hooks for the interpreter and comments.
-
+% ---------------------------------------------------------------------------
+:- export((=)/2).
 :- trust comp '='(X,Y) + (sideff(free), native, iso, eval, is_det,
 	relations(inf), test_type(unification))
 	# "@var{X} and @var{Y} unify.". 
 :- prop '='/2.
 
+% Note: compiled inline -- these provide hooks for the interpreter and comments.
 X=Y :- X=Y.
 
+% ---------------------------------------------------------------------------
+:- export((\=)/2).
 :- trust pred \=(X,Y) + (sideff(free), bind_ins, iso, is_det)
 	# "@var{X} and @var{Y} are not unifiable.". 
 
@@ -56,6 +30,8 @@ X=Y :- X=Y.
 X \= X :- !, fail.
 _ \= _.
 
+% ---------------------------------------------------------------------------
+:- export(arg/3).
 :- trust pred arg(ArgNo, Term, Arg) : num(ArgNo) + (is_det, relations(inf)).
 :- trust pred arg(ArgNo, Term, Arg) : (num(ArgNo), gnd(Term)) => gnd(Arg).
 
@@ -68,9 +44,11 @@ _ \= _.
 % :- trust pred arg(+ArgNo,+Term,?Arg)
 % 	: (nnegint(ArgNo), struct(Term)) + eval.
 
+% Note: compiled inline -- these provide hooks for the interpreter and comments.
 arg(X, Y, Z) :- arg(X, Y, Z).
 
-
+% ---------------------------------------------------------------------------
+:- export(functor/3).
 :- trust pred functor(@Term,Name,Arity)
 	: nonvar(Term) => ( atm(Name), nnegint(Arity) )
 	+ ( sideff(free), native, iso, bind_ins, eval ).
@@ -89,23 +67,58 @@ arg(X, Y, Z) :- arg(X, Y, Z).
 
 :- trust comp functor/3 + ( sideff(free), native, iso, is_det ).
 
+% Note: compiled inline -- these provide hooks for the interpreter and comments.
 functor(X, Y, Z) :- functor(X, Y, Z).
 
-
+% ---------------------------------------------------------------------------
+:- export((=..)/2).
 :- trust pred (?Term =.. ?List) => list(List) + ( sideff(free), native, iso )
 	# "The functor and arguments of the term @var{Term} comprise the
            list @var{List}.".
 :- trust comp (+ =.. ?)  + eval.
 :- trust comp (_ =.. List) : (list(List),const_head(List)) + eval.
 
+% Note: compiled inline -- these provide hooks for the interpreter and comments.
 X=..Y :- X=..Y.
 
+% ---------------------------------------------------------------------------
+% TODO: move to basic_props.pl?
 :- export(const_head/1).
 :- prop const_head/1.
 
-const_head([Head|_]):-
-	constant(Head).
+const_head([Head|_]) :- constant(Head).
 
+% ---------------------------------------------------------------------------
+:- export(copy_term/2).
+:- trust pred copy_term(Term, Copy) + ( sideff(free), native, iso )
+        # "@var{Copy} is a renaming of @var{Term}, such that brand new
+           variables have been substituted for all variables in
+           @var{Term}.  If any of the variables of @var{Term} have
+           @concept{attributes}, the copied variables will have copies
+           of the attributes as well. It behaves as if defined by:
+
+@begin{verbatim}
+:- data 'copy of'/1.
+
+copy_term(X, Y) :-
+        asserta_fact('copy of'(X)),
+        retract_fact('copy of'(Y)).
+@end{verbatim}".
+
+:- trust comp copy_term(Term, Copy) : ground(Term) + eval.
+
+:- impl_defined(copy_term/2).
+
+% ---------------------------------------------------------------------------
+:- export(copy_term_nat/2).
+:- trust pred copy_term_nat(Term, Copy) + ( sideff(free) )
+        # "Same as @pred{copy_term/2}, except that attributes of
+          variables are not copied.".
+
+:- impl_defined(copy_term_nat/2).
+
+% ---------------------------------------------------------------------------
+:- export('C'/3).
 :- trust pred 'C'(S1,Terminal,S2) => list_functor(S1).
 :- trust success 'C'(S1,Terminal,S2) : non_empty_list(S1) =>  list(S2).
 :- trust pred 'C'(?S1,?Terminal,?S2) + ( sideff(free), native )
@@ -115,8 +128,11 @@ const_head([Head|_]):-
 
 :- trust comp 'C'(+,?,?) + eval.
 
+% Note: compiled inline -- these provide hooks for the interpreter and comments.
 'C'(X, Y, Z) :- 'C'(X, Y, Z).
 
+% ---------------------------------------------------------------------------
+% TODO: move to basic_props.pl?
 :- export(list_functor/1).
 :- prop list_functor(A) + regtype.
 
@@ -124,12 +140,17 @@ list_functor([A|B]):-
 	term(A),
 	term(B).
 
+% ---------------------------------------------------------------------------
+% TODO: move to basic_props.pl?
+:- export(non_empty_list/1).
 :- prop non_empty_list(A) + regtype # "A list that is not the empty
 	list [].".
 
 non_empty_list([_|B]):-
 	list(B).
 
+% ---------------------------------------------------------------------------
+:- export(cyclic_term/1).
 :- pred cyclic_term(T) # "True if @var{T} is cyclic (infinite).".
 
 :- impl_defined(cyclic_term/1). 
