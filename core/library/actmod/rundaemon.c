@@ -17,7 +17,7 @@ char *lock_file; /* path for lock file */
 
 /* Save process PID in a lock file */
 /* (use locks instead of O_EXCL, to avoid stale lock files) */
-int write_lock_pid() {
+int write_lock_pid(void) {
   char str[256];
   int f;
   f = open(lock_file, O_RDWR|O_CREAT, 0640);
@@ -30,7 +30,7 @@ int write_lock_pid() {
 }
 
 /* Forks the process and turn into a daemon */
-void daemonize() {
+void daemonize(void) {
   int i;
   int f;
   pid_t pid;

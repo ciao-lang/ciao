@@ -540,7 +540,7 @@ CBOOL__PROTO(make_bytecode_object)
           /* builtin(Integer) */
           tagged_t t1;
           DerefArg(t1,car,1);
-          EMIT_C((char *)builtintab[GetSmall(t1)]);
+          EMIT_C(builtintab[GetSmall(t1)]);
           break;
         }
         if (func==functor_large) {

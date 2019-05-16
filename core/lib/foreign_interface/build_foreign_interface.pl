@@ -523,7 +523,8 @@ foreign_prototype(ForeignName, Arguments, ResVar, NeedsCtx) -->
 	; ResCType = void, Arguments1 = Arguments
 	},
 	{ Args0 = ~foreign_prototype_args(Arguments1) },
-	{ NeedsCtx = yes -> Args = [ctx:ciao_ctx|Args0] ; Args = Args0 },
+	{ NeedsCtx = yes -> Args1 = [ctx:ciao_ctx|Args0] ; Args1 = Args0 },
+	{ Args1 = [] -> Args = [void] ; Args = Args1 },
 	[ForeignName:function(Args, ResCType)].
 
 foreign_prototype_args([]) := [] :- !.

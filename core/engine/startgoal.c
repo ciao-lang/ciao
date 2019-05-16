@@ -44,7 +44,7 @@ CBOOL__PROTO(eng_killothers_hook_)
   return TRUE;
 }
 
-cbool_pred_t eng_killothers_startgoal = eng_killothers_hook_;
+cbool0_t eng_killothers_startgoal = eng_killothers_hook_;
 
 int firstgoal(goal_descriptor_t *goal_desc, tagged_t goal_term) {
   int i, exit_code;

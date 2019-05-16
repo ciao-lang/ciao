@@ -286,7 +286,7 @@ case "$CIAOOS$CIAOARCH" in
     BSDx86_64)    OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
 esac
 # Select C standard
-OPTIM_FLAGS="-Wall -std=gnu11 $OPTIM_FLAGS"
+OPTIM_FLAGS="-Wall -Wstrict-prototypes -std=gnu11 $OPTIM_FLAGS"
 
 # Memory management primitives (own_malloc)
 # See engine/configure.c: USE_MMAP includes USE_OWN_MALLOC

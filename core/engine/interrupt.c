@@ -60,9 +60,8 @@ CVOID__PROTO(control_c_normal)
 
 /* Non-control-C exception handling. --GB & MC */
 
-void enable_conditions()
 /* set system exception signal handling */
-{
+void enable_conditions(void) {
   SIGNAL(SIGFPE,  abortmsg);
   SIGNAL(SIGSEGV, abortmsg);
   SIGNAL(SIGILL,  abortmsg);

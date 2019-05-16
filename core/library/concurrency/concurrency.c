@@ -418,7 +418,7 @@ intmach_t goal_from_thread_id_hook(THREAD_ID id)
 }
 
 extern intmach_t (*eng_goal_from_thread_id)(THREAD_ID id);
-extern cbool_pred_t eng_killothers_startgoal;
+extern cbool0_t eng_killothers_startgoal;
 
 CBOOL__PROTO(prolog_concurrency_init)
 {

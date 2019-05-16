@@ -199,23 +199,23 @@ Code itself can have documentation comments:
 This is a piece of C code:
 
     #include <stdio.h>
-    int main() { return 0; }
+    int main(void) { return 0; }
 
 Using backtick blocks:
 ```
 #include <stdio.h>
-int main() { return 0; }
+int main(void) { return 0; }
 ```
 
 Using backtick blocks and language:
 ```c
 #include <stdio.h>
-int main() { return 0; }
+int main(void) { return 0; }
 ```
 
 Same using `\\begin\{verbatim\} ... \\end\{verbatim\}`:
 
 \begin{verbatim}
 #include <stdio.h>
-int main() { return 0; }
+int main(void) { return 0; }
 \end{verbatim}

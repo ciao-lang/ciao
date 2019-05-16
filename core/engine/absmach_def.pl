@@ -1673,7 +1673,7 @@ retry_cq :-
 	if("w->next_alt",
 	  ("B->next_alt" <- "w->next_alt",
 	   "w->next_alt" <- "NULL")),
-	if(("!","(BcP(f_Cb, 2))(Arg)"), goto('fail')),
+	if(("!","((cbool0_t)BcP(f_C, 2))(Arg)"), goto('fail')),
 	goto_ins(proceed).
 
 :- ins_op_format(retry_c, 238, [f_C], [label(r)]).
@@ -1682,7 +1682,7 @@ retry_c :-
 	if("w->next_alt",
 	  ("B->next_alt" <- "w->next_alt",
 	   "w->next_alt" <- "NULL")),
-	if(("!","(BcP(f_Cb, 1))(Arg)"), goto('fail')),
+	if(("!","((cbool0_t)BcP(f_C, 1))(Arg)"), goto('fail')),
 	goto_ins(proceed).
 
 % _x0 instructions, where read-mode match has been done during indexing
@@ -1871,7 +1871,7 @@ function_1q :-
 	"Numstack_End" <- "NULL",
 	dec(op(f_x,"BcP(f_x, 2)"), A),
 	dec(op(f_x,"BcP(f_x, 3)"), B),
-	cfun_semidet(A, callexp('(BcP(f_Cf, 4))', ["Arg",B,["&","BcP(f_l, 6)"]])),
+	cfun_semidet(A, callexp('((ctagged1l_t)BcP(f_C, 4))', ["Arg",B,["&","BcP(f_l, 6)"]])),
 	dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
 
 :- ins_op_format(function_1, 223, [f_x,f_x,f_C,f_l,f_i], [label(r)]).
@@ -1880,7 +1880,7 @@ function_1 :-
 	"Numstack_End" <- "NULL",
 	dec(op(f_x,"BcP(f_x, 1)"), A),
 	dec(op(f_x,"BcP(f_x, 2)"), B),
-	cfun_semidet(A, callexp('(BcP(f_Cf, 3))', ["Arg",B,["&","BcP(f_l, 5)"]])),
+	cfun_semidet(A, callexp('((ctagged1l_t)BcP(f_C, 3))', ["Arg",B,["&","BcP(f_l, 5)"]])),
 	dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
 
 :- ins_op_format(function_2q, 224, [f_Q,f_x,f_x,f_x,f_C,f_l,f_i], [label(r)]).
@@ -1890,7 +1890,7 @@ function_2q :-
 	dec(op(f_x,"BcP(f_x, 2)"), A),
 	dec(op(f_x,"BcP(f_x, 3)"), B),
 	dec(op(f_x,"BcP(f_x, 4)"), C),
-	cfun_semidet(A, callexp('(BcP(f_Cf, 5))', ["Arg",B,C,["&","BcP(f_l, 7)"]])),
+	cfun_semidet(A, callexp('((ctagged2l_t)BcP(f_C, 5))', ["Arg",B,C,["&","BcP(f_l, 7)"]])),
 	dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
 
 :- ins_op_format(function_2, 225, [f_x,f_x,f_x,f_C,f_l,f_i], [label(r)]).
@@ -1900,21 +1900,21 @@ function_2 :-
 	dec(op(f_x,"BcP(f_x, 1)"), A),
 	dec(op(f_x,"BcP(f_x, 2)"), B),
 	dec(op(f_x,"BcP(f_x, 3)"), C),
-	cfun_semidet(A, callexp('(BcP(f_Cf, 4))', ["Arg",B,C,["&","BcP(f_l, 6)"]])),
+	cfun_semidet(A, callexp('((ctagged2l_t)BcP(f_C, 4))', ["Arg",B,C,["&","BcP(f_l, 6)"]])),
 	dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
 
 :- ins_op_format(builtin_1q, 226, [f_Q,f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_1q, r).
 builtin_1q :-
 	dec(op(f_x,"BcP(f_x, 2)"), A),
-	cblt_semidet(callexp('(BcP(f_Cb, 3))', ["Arg",A])),
+	cblt_semidet(callexp('((cbool1_t)BcP(f_C, 3))', ["Arg",A])),
 	dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x))+FTYPE_size(f_C)").
 
 :- ins_op_format(builtin_1, 227, [f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_1, r).
 builtin_1 :-
 	dec(op(f_x,"BcP(f_x, 1)"), A),
-	cblt_semidet(callexp('(BcP(f_Cb, 2))', ["Arg",A])),
+	cblt_semidet(callexp('((cbool1_t)BcP(f_C, 2))', ["Arg",A])),
 	dispatch("FTYPE_size(f_x)+FTYPE_size(f_C)").
 
 :- ins_op_format(builtin_2q, 228, [f_Q,f_x,f_x,f_C], [label(r)]).
@@ -1922,7 +1922,7 @@ builtin_1 :-
 builtin_2q :-
 	dec(op(f_x,"BcP(f_x, 2)"), A),
 	dec(op(f_x,"BcP(f_x, 3)"), B),
-	cblt_semidet(callexp('(BcP(f_Cb, 4))', ["Arg",A,B])),
+	cblt_semidet(callexp('((cbool2_t)BcP(f_C, 4))', ["Arg",A,B])),
 	dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)").
 
 :- ins_op_format(builtin_2, 229, [f_x,f_x,f_C], [label(r)]).
@@ -1930,7 +1930,7 @@ builtin_2q :-
 builtin_2 :-
 	dec(op(f_x,"BcP(f_x, 1)"), A),
 	dec(op(f_x,"BcP(f_x, 2)"), B),
-	cblt_semidet(callexp('(BcP(f_Cb, 3))', ["Arg",A,B])),
+	cblt_semidet(callexp('((cbool2_t)BcP(f_C, 3))', ["Arg",A,B])),
 	dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)").
 
 :- ins_op_format(builtin_3q, 230, [f_Q,f_x,f_x,f_x,f_C], [label(r)]).
@@ -1939,7 +1939,7 @@ builtin_3q :-
 	dec(op(f_x,"BcP(f_x, 2)"), A),
 	dec(op(f_x,"BcP(f_x, 3)"), B),
 	dec(op(f_x,"BcP(f_x, 4)"), C),
-	cblt_semidet(callexp('(BcP(f_Cb, 5))', ["Arg",A,B,C])),
+	cblt_semidet(callexp('((cbool3_t)BcP(f_C, 5))', ["Arg",A,B,C])),
 	dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)").
 
 :- ins_op_format(builtin_3, 231, [f_x,f_x,f_x,f_C], [label(r)]).
@@ -1948,7 +1948,7 @@ builtin_3 :-
 	dec(op(f_x,"BcP(f_x, 1)"), A),
 	dec(op(f_x,"BcP(f_x, 2)"), B),
 	dec(op(f_x,"BcP(f_x, 3)"), C),
-	cblt_semidet(callexp('(BcP(f_Cb, 4))', ["Arg",A,B,C])),
+	cblt_semidet(callexp('((cbool3_t)BcP(f_C, 4))', ["Arg",A,B,C])),
 	dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)").
 
 % backtracking into clause/2
@@ -3766,7 +3766,7 @@ pred_enter_c :-
 	pred_trace("\"C\""),
 	setmode(r),
 	% Changed by DCG to handle errors in Prolog
-	"i" <- "(*Func->code.cinfo)(Arg)",
+	"i" <- "(*(cbool0_t)Func->code.proc)(Arg)",
 	if("Expanded_Worker",
 	  (trace(worker_expansion_blt),
 	  if("desc == NULL",

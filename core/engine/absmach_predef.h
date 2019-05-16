@@ -194,7 +194,17 @@ extern __thread worker_t *w;
 /* ------------------------------------------------------------------------- */
 
 typedef struct worker_ worker_t; /* TODO: worker_t may not be defined yet */
-typedef bool_t (*cbool_pred_t)(worker_t *w);
+
+/* Pointer to bytecode */
+typedef void *bcp_t;
+
+typedef bool_t (*cbool0_t)(worker_t *);
+typedef bool_t (*cbool1_t)(worker_t *, tagged_t);
+typedef bool_t (*cbool2_t)(worker_t *, tagged_t, tagged_t);
+typedef bool_t (*cbool3_t)(worker_t *, tagged_t, tagged_t, tagged_t);
+/* TODO: optim_comp passes liveness separately */
+typedef tagged_t (*ctagged1l_t)(worker_t *, tagged_t, bcp_t);
+typedef tagged_t (*ctagged2l_t)(worker_t *, tagged_t, tagged_t, bcp_t);
 
 /* ------------------------------------------------------------------------- */
 /* Runtime definitions for the current instruction set */
@@ -213,9 +223,6 @@ typedef bool_t (*cbool_pred_t)(worker_t *w);
 #else
 #define BC_SCALE 1
 #endif
-
-/* Pointer to bytecode */
-typedef void *bcp_t;
 
 /*
  * NOTE: Extracted from automatically generated basiccontrol.native.h
@@ -289,13 +296,9 @@ typedef void *bcp_t;
 #define  FTYPE_size__f_y 4
 #define FTYPE_ctype__f_z uint32_t
 #define  FTYPE_size__f_z 4
-#define FTYPE_ctype__f_C char *
+#define FTYPE_ctype__f_C void *
 #define  FTYPE_size__f_C 8
 //#define FTYPE_ctype__f_Cc cbool_t
-#define FTYPE_ctype__f_Cb CInfo
-#define  FTYPE_size__f_Cb 8
-#define FTYPE_ctype__f_Cf TInfo
-#define  FTYPE_size__f_Cf 8
 #define FTYPE_ctype__f_Ci cinsnp_t
 #define  FTYPE_size__f_Ci 8
 #define FTYPE_ctype__f_E definition_t *
@@ -328,12 +331,12 @@ typedef void *bcp_t;
 #define  FTYPE_size__f_y 2
 #define FTYPE_ctype__f_z uint16_t
 #define  FTYPE_size__f_z 2
-#define FTYPE_ctype__f_C char *
+#define FTYPE_ctype__f_C void *
 #define  FTYPE_size__f_C 4
 //#define FTYPE_ctype__f_Cc cbool_t
-#define FTYPE_ctype__f_Cb CInfo
+#define FTYPE_ctype__f_Cb void *
 #define  FTYPE_size__f_Cb 4
-#define FTYPE_ctype__f_Cf TInfo
+#define FTYPE_ctype__f_Cf void *
 #define  FTYPE_size__f_Cf 4
 #define FTYPE_ctype__f_Ci cinsnp_t
 #define  FTYPE_size__f_Ci 4

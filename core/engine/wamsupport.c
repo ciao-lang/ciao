@@ -91,7 +91,7 @@ int p2_offset(uintmach_t insn)
   }
 }
 
-try_node_t *def_retry_c(cbool_pred_t proc, int arity)
+try_node_t *def_retry_c(cbool0_t proc, int arity)
 {
   try_node_t *item;
   bcp_t P;
@@ -114,7 +114,7 @@ try_node_t *def_retry_c(cbool_pred_t proc, int arity)
   item->next = item;
   EMIT_o(RETRY_CQ);
   EMIT_Q(0);
-  EMIT_C((char *)proc);
+  EMIT_C((void *)proc);
 #if defined(GAUGE)
   item->entry_counter = (intmach_t *)P;
   item->entry_counter[0] = 0;
@@ -305,11 +305,7 @@ CBOOL__PROTO(run_determ_c, tagged_t goal)
   if (func->enter_instr == ENTER_C) {
     for (i=func->arity, s=w->structure; --i>=0;)
       RefHeap(w->term[i],HeapOffset(s,i));
-#if 0                                                        /* was GAUGE */
-    return (*func->code.cinfo->procedure)(Arg);
-#else
-    return (*func->code.cinfo)(Arg);
-#endif
+    return (*(cbool0_t)func->code.proc)(Arg);
   } else {
     if (func->enter_instr == BUILTIN_CALL) {
       w->next_insn = bootcode;          /* Should have been initialized */

@@ -4,7 +4,7 @@ using namespace std;
 typedef stack<int> ciao_stack;
 
 extern "C" void *
-ciao_stack_new() 
+ciao_stack_new(void) 
 {
   return (void*) new ciao_stack;
 }

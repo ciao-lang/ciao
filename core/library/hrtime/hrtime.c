@@ -6,17 +6,17 @@
 #include "hrtime.h"
 
 /* hrtime/1 */
-double prolog_hrtime() {
+double prolog_hrtime(void) {
   return hrtime();
 }
 
 /* hrmethod/1 */
-char *prolog_hrmethod() {
+char *prolog_hrmethod(void) {
   return HRTIME_METHOD;
 }
 
 /* hrfreq/1 */
-double prolog_hrfreq() {
+double prolog_hrfreq(void) {
   return (double)hrfreq();
 }
 

@@ -290,7 +290,7 @@ void engine_init(const char *boot_path, const char *exec_path) {
 }
 
 /* Get executable path (when argv[0] is not reliable) */
-char *get_execpath() {
+char *get_execpath(void) {
   char buffer[MAXPATHLEN+1];
   size_t size = MAXPATHLEN+1;
 #if defined(LINUX)

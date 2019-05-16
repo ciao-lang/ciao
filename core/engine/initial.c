@@ -57,7 +57,7 @@ static CBOOL__PROTO(prolog_atom_mode);
 static definition_t *define_builtin(char *pname, int instr, int arity);
 static void classify_atom(atom_t *s);
 static CBOOL__PROTO(prolog_ciao_c_headers_dir);
-static void deffunction(char *atom, int arity, CInfo proc, int funcno);
+static void deffunction(char *atom, int arity, void *proc, int funcno);
 static void define_functions(void);
 
 statistics_t ciao_statistics = {
@@ -95,8 +95,7 @@ static char                  /* Shared -- for adding new atoms; need lock */
   *prolog_chars=NULL,
   *prolog_chars_end=NULL;
 
-CInfo builtintab[64];                                           /* Shared */
-
+void *builtintab[64];                                           /* Shared */
 
                 /* Shared -- related with the hashing of arith. functions */
 sw_on_key_t *switch_on_function;
@@ -579,7 +578,7 @@ static tagged_t deffunctor(char *pname, int arity)
 definition_t *define_c_mod_predicate(char *module,
 				     char *pname,
 				     int arity,
-				     bool_t (*procedure)())
+				     cbool0_t procedure)
 {
   definition_t *func;
   sw_on_key_node_t *keyval;
@@ -621,7 +620,7 @@ definition_t *define_c_mod_predicate(char *module,
   /* Previously in the else-part (DCG) */
   /*func->properties.public = public;*/
   SetEnterInstr(func,ENTER_C);
-  func->code.cinfo = procedure;
+  func->code.proc = (void *)procedure;
 
   INC_MEM_PROG(total_mem_count - current_mem);
   return func;
@@ -682,25 +681,25 @@ module_t *define_c_static_mod(char *module_name)
 
 static void deffunction(char *atom,
 			int arity,
-			CInfo proc,
+			void *proc,
 			int funcno)
 {
   tagged_t k = deffunctor(atom,arity);
   sw_on_key_node_t *node = incore_gethash(switch_on_function,k);
 
   node->key = k;
-  node->value.cinfo = builtintab[funcno] = proc;
+  node->value.proc = builtintab[funcno] = (void *)proc;
 }
 
 static void deffunction_nobtin(char *atom,
 			       int arity,
-			       CInfo proc)
+			       void *proc)
 {
   tagged_t k = deffunctor(atom,arity);
   sw_on_key_node_t *node = incore_gethash(switch_on_function,k);
 
   node->key = k;
-  node->value.cinfo = proc;
+  node->value.proc = proc;
 }
 
 
@@ -710,47 +709,47 @@ static void define_functions(void)
       new functions are added */
   switch_on_function = new_switch_on_key(64,NULL);
 
-  deffunction("-",1,(CInfo)fu1_minus,0);
-  deffunction("+",1,(CInfo)fu1_plus,1);
-  deffunction("--",1,(CInfo)fu1_sub1,2); /* shorthand for 'SUB1 FUNCTION' */
-  deffunction("++",1,(CInfo)fu1_add1,3); /* shorthand for 'ADD1 FUNCTION' */
-  deffunction("integer",1,(CInfo)fu1_integer,4);
-  deffunction("truncate",1,(CInfo)fu1_integer,4); /* alias of integer/1 (ISO)*/
-  deffunction("float",1,(CInfo)fu1_float,5);
-  deffunction("\\",1,(CInfo)fu1_not,6);
-  deffunction("+",2,(CInfo)fu2_plus,7);
-  deffunction("-",2,(CInfo)fu2_minus,8);
-  deffunction("*",2,(CInfo)fu2_times,9);
-  deffunction("/",2,(CInfo)fu2_fdivide,10);
-  deffunction("//",2,(CInfo)fu2_idivide,11);
-  deffunction("rem",2,(CInfo)fu2_rem,12); /* was "mod" (ISO) */
-  deffunction("#",2,(CInfo)fu2_xor,13); /* was "^" */
-  deffunction("/\\",2,(CInfo)fu2_and,14);
-  deffunction("\\/",2,(CInfo)fu2_or,15);
-  deffunction("<<",2,(CInfo)fu2_lsh,16);
-  deffunction(">>",2,(CInfo)fu2_rsh,17);
-  deffunction("mod",2,(CInfo)fu2_mod,18); /* (ISO) */
-  deffunction("abs",1,(CInfo)fu1_abs,19); /* (ISO) */
-  deffunction("sign",1,(CInfo)fu1_sign,49); /* (ISO) */
-  deffunction_nobtin("gcd",2,(CInfo)fu2_gcd);
+  deffunction("-",1,(void *)fu1_minus,0);
+  deffunction("+",1,(void *)fu1_plus,1);
+  deffunction("--",1,(void *)fu1_sub1,2); /* shorthand for 'SUB1 FUNCTION' */
+  deffunction("++",1,(void *)fu1_add1,3); /* shorthand for 'ADD1 FUNCTION' */
+  deffunction("integer",1,(void *)fu1_integer,4);
+  deffunction("truncate",1,(void *)fu1_integer,4); /* alias of integer/1 (ISO)*/
+  deffunction("float",1,(void *)fu1_float,5);
+  deffunction("\\",1,(void *)fu1_not,6);
+  deffunction("+",2,(void *)fu2_plus,7);
+  deffunction("-",2,(void *)fu2_minus,8);
+  deffunction("*",2,(void *)fu2_times,9);
+  deffunction("/",2,(void *)fu2_fdivide,10);
+  deffunction("//",2,(void *)fu2_idivide,11);
+  deffunction("rem",2,(void *)fu2_rem,12); /* was "mod" (ISO) */
+  deffunction("#",2,(void *)fu2_xor,13); /* was "^" */
+  deffunction("/\\",2,(void *)fu2_and,14);
+  deffunction("\\/",2,(void *)fu2_or,15);
+  deffunction("<<",2,(void *)fu2_lsh,16);
+  deffunction(">>",2,(void *)fu2_rsh,17);
+  deffunction("mod",2,(void *)fu2_mod,18); /* (ISO) */
+  deffunction("abs",1,(void *)fu1_abs,19); /* (ISO) */
+  deffunction("sign",1,(void *)fu1_sign,49); /* (ISO) */
+  deffunction_nobtin("gcd",2,(void *)fu2_gcd);
 
   /* all of these ISO */
-  deffunction("float_integer_part",1,(CInfo)fu1_intpart,50);
-  deffunction("float_fractional_part",1,(CInfo)fu1_fractpart,51);
-  deffunction("floor",1,(CInfo)fu1_floor,52);
-  deffunction("round",1,(CInfo)fu1_round,53);
-  deffunction("ceiling",1,(CInfo)fu1_ceil,54);
-  deffunction("**",2,(CInfo)fu2_pow,55);
-  deffunction_nobtin("exp",1,(CInfo)fu1_exp);
-  deffunction_nobtin("log",1,(CInfo)fu1_log);
-  deffunction_nobtin("sqrt",1,(CInfo)fu1_sqrt);
-  deffunction_nobtin("sin",1,(CInfo)fu1_sin);
-  deffunction_nobtin("cos",1,(CInfo)fu1_cos);
-  deffunction_nobtin("atan",1,(CInfo)fu1_atan);
+  deffunction("float_integer_part",1,(void *)fu1_intpart,50);
+  deffunction("float_fractional_part",1,(void *)fu1_fractpart,51);
+  deffunction("floor",1,(void *)fu1_floor,52);
+  deffunction("round",1,(void *)fu1_round,53);
+  deffunction("ceiling",1,(void *)fu1_ceil,54);
+  deffunction("**",2,(void *)fu2_pow,55);
+  deffunction_nobtin("exp",1,(void *)fu1_exp);
+  deffunction_nobtin("log",1,(void *)fu1_log);
+  deffunction_nobtin("sqrt",1,(void *)fu1_sqrt);
+  deffunction_nobtin("sin",1,(void *)fu1_sin);
+  deffunction_nobtin("cos",1,(void *)fu1_cos);
+  deffunction_nobtin("atan",1,(void *)fu1_atan);
 
   /* 41 & 42 are 68 & 79 in SICStus 2.1 */
-  deffunction("ARG FUNCTION",2,(CInfo)fu2_arg,41);
-  deffunction("COMPARE FUNCTION",2,(CInfo)fu2_compare,42);
+  deffunction("ARG FUNCTION",2,(void *)fu2_arg,41);
+  deffunction("COMPARE FUNCTION",2,(void *)fu2_compare,42);
 }
 
 
@@ -894,30 +893,30 @@ void init_once(void)
 
   define_functions();                  /* Uses builtintab up to number 17 */
 
-  builtintab[20] = bu1_atom;
-  builtintab[21] = bu1_atomic;
-  builtintab[22] = bu1_float;
-  builtintab[23] = bu1_integer;
-  builtintab[24] = bu1_nonvar;
-  builtintab[25] = bu1_number;
-  builtintab[26] = bu1_var;
-  builtintab[27] = bu2_lexeq;
-  builtintab[28] = bu2_lexne;
-  builtintab[29] = bu2_lexlt;
-  builtintab[30] = bu2_lexge;
-  builtintab[31] = bu2_lexgt;
-  builtintab[32] = bu2_lexle;
-  builtintab[33] = bu2_numeq;
-  builtintab[34] = bu2_numne;
-  builtintab[35] = bu2_numlt;
-  builtintab[36] = bu2_numge;
-  builtintab[37] = bu2_numgt;
-  builtintab[38] = bu2_numle;
-  builtintab[39] = bu1_if;
-  builtintab[40] = bu2_univ;
-  /* builtintab[41] = bu3_arg; */
-  /* builtintab[42] = bu3_compare; */
-  builtintab[43] = bu3_functor;
+  builtintab[20] = (void *)bu1_atom;
+  builtintab[21] = (void *)bu1_atomic;
+  builtintab[22] = (void *)bu1_float;
+  builtintab[23] = (void *)bu1_integer;
+  builtintab[24] = (void *)bu1_nonvar;
+  builtintab[25] = (void *)bu1_number;
+  builtintab[26] = (void *)bu1_var;
+  builtintab[27] = (void *)bu2_lexeq;
+  builtintab[28] = (void *)bu2_lexne;
+  builtintab[29] = (void *)bu2_lexlt;
+  builtintab[30] = (void *)bu2_lexge;
+  builtintab[31] = (void *)bu2_lexgt;
+  builtintab[32] = (void *)bu2_lexle;
+  builtintab[33] = (void *)bu2_numeq;
+  builtintab[34] = (void *)bu2_numne;
+  builtintab[35] = (void *)bu2_numlt;
+  builtintab[36] = (void *)bu2_numge;
+  builtintab[37] = (void *)bu2_numgt;
+  builtintab[38] = (void *)bu2_numle;
+  builtintab[39] = (void *)bu1_if;
+  builtintab[40] = (void *)bu2_univ;
+  /* builtintab[41] = (void *)bu3_arg; */
+  /* builtintab[42] = (void *)bu3_compare; */
+  builtintab[43] = (void *)bu3_functor;
 
   atm_var   = init_atom_check("var");
   atm_attv  = init_atom_check("attv");
@@ -927,11 +926,11 @@ void init_once(void)
   atm_atm   = init_atom_check("atom");
   atm_lst   = init_atom_check("list"); 
     
-  builtintab[44] = (CInfo) fu1_type;                         
-  builtintab[45] = (CInfo) fu1_get_attribute;
-  builtintab[46] = bu2_attach_attribute;
-  builtintab[47] = bu2_update_attribute;
-  builtintab[48] = bu1_detach_attribute;
+  builtintab[44] = (void *)fu1_type;                         
+  builtintab[45] = (void *)fu1_get_attribute;
+  builtintab[46] = (void *)bu2_attach_attribute;
+  builtintab[47] = (void *)bu2_update_attribute;
+  builtintab[48] = (void *)bu1_detach_attribute;
   
 #if defined(MARKERS)
   atom_success=init_atom_check("success");

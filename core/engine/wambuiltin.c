@@ -60,7 +60,7 @@ static CFUN__PROTO(rsh_internal, tagged_t, tagged_t t, int dist, bcp_t liveinfo)
 static CFUN__PROTO(evaluate, tagged_t, tagged_t v)
 {
   tagged_t t, u;
-  TInfo Proc;
+  void *proc;
 
  restart:
   switch (TagOf(v))
@@ -81,17 +81,17 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v)
       if (STRIsLarge(v))
 	return v;
       t = TagToHeadfunctor(v);
-      Proc = incore_gethash(switch_on_function,t)->value.tinfo;
+      proc = incore_gethash(switch_on_function,t)->value.proc;
       /* TODO: use different function pointer types */
-      if (Proc!=NULL) {
+      if (proc!=NULL) {
 	switch (Arity(t)) {
 	case 1:
 	  RefArg(t,v,1);
-	  return (*Proc)(Arg,t,NULL);
+	  return (*(ctagged1l_t)proc)(Arg,t,NULL);
 	case 2:
 	  RefArg(t,v,1);
 	  RefArg(u,v,2);
-	  return (*Proc)(Arg,t,u,NULL);
+	  return (*(ctagged2l_t)proc)(Arg,t,u,NULL);
 	}
       }
 

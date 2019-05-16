@@ -3,7 +3,7 @@
 		      [foreign_interface, assertions]).
 
 :- use_module(library(odd), [undo/1]).
-
+	
 :- trust pred ciao_stack_new(go(Stack)) :: address 
 	+ (foreign, returns(Stack)).
 :- trust pred ciao_stack_delete(in(_Stack)) :: address 

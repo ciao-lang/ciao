@@ -33,9 +33,7 @@ intmach_t num_of_predicates = 0;                                  /* Shared */
  /* Creates the wam structure, allocates its areas and initializes them.
     This returns an empty, fresh wam.  We do not add it here to the task
     state list; it needs its own thread, which we have after startwam() */
-
-worker_t *create_and_init_wam()
-{
+worker_t *create_and_init_wam(void) {
   worker_t *w;
   /*intmach_t saved_program_count = mem_prog_count;  */
 
@@ -51,8 +49,7 @@ worker_t *create_and_init_wam()
 worker_t *wam_list = NULL;
 SLOCK    wam_list_l;
 
-worker_t *free_wam()
-{
+worker_t *free_wam(void) {
   worker_t *free_wam;
 
   Wait_Acquire_slock(wam_list_l);
@@ -140,7 +137,7 @@ void add_wam(worker_t *worker)
 /* TODO: a global variable here is wrong if a clause is asserted in one worker and consulted in other */
 int reg_bank_size = XREGBANKSIZE; /* Shared? Strange use in compile_term_aux */
 
-worker_t *create_wam_storage() {
+worker_t *create_wam_storage(void) {
   worker_t *w;
 
   w = checkalloc_FLEXIBLE(worker_t, tagged_t, reg_bank_size);
@@ -302,8 +299,7 @@ CVOID__PROTO(reinitialize_wam_areas)
 
 /*  mem_start wrongly calculated, and mem_prog_count set to zero only once */
 /*
-void mem_prog_reset()
-{
+void mem_prog_reset(void) {
     mem_start = (char *)(&end);
 #if SMALLPTR_BASE
   if (mem_start < (char *)SMALLPTR_BASE)

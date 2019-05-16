@@ -185,10 +185,6 @@ struct und_info_ {
   int unused;
 };
 
-/* TODO: refine (use OptimComp defs) */
-typedef bool_t   (*CInfo)();
-typedef tagged_t (*TInfo)();
-
 extern stream_node_t *root_stream_ptr;
 
  /* Information about atoms */
@@ -252,8 +248,7 @@ struct sw_on_key_node_ {
     module_t *mod;                              /* module definition */
     int_info_t *irootp;                             /* indexer info? */
     atom_t *atomp;               /* Info on atoms and main functors  */
-    TInfo tinfo;                          /* CFUN C function pointer */
-    CInfo cinfo;                         /* CBOOL C function pointer */
+    void *proc;                /* C function pointer (CFUN or CBOOL) */
   } value;
 };
 
@@ -312,11 +307,7 @@ union definfo_ {
   int_info_t *intinfo;
   und_info_t *undinfo;
   incore_info_t *incoreinfo;
-#if 0 /* was GAUGE */
-  c_code_info_t *cinfo;
-#else
-  CInfo cinfo;
-#endif
+  void *proc;
 };
 
 struct definition_ {
@@ -353,7 +344,7 @@ struct module_ {
 /* Classified somewhere else */
 extern sw_on_key_node_t **atmtab;
 extern sw_on_key_t *ciao_atoms;
-extern CInfo builtintab[];
+extern void *builtintab[];
 
 typedef struct statistics_ statistics_t;
 struct statistics_ {
@@ -384,15 +375,7 @@ struct statistics_ {
 extern statistics_t ciao_statistics; /* Shared, I guess */
 
 #if defined(GAUGE)
-
-typedef struct c_code_info_ c_code_info_t;
-struct c_code_info_ {
-  CInfo procedure; 
-  intmach_t counter;
-};
-
 #define INCR_COUNTER(c)   ((*(c))++)
-
 #endif
 
 typedef struct other_stuff_ other_stuff_t;

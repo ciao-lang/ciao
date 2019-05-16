@@ -274,7 +274,7 @@ CBOOL__PROTO(nd_fake_choicept);
 CBOOL__PROTO(nd_suspension_point);
 #endif
 
-definition_t *define_c_mod_predicate(char *module, char  *pname, int arity, bool_t (*procedure)());
+definition_t *define_c_mod_predicate(char *module, char  *pname, int arity, cbool0_t procedure);
 void undefine_c_mod_predicate(char *module, char *pname, int arity); 
 
 module_t *define_c_static_mod(char *module_name);

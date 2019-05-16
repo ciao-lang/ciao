@@ -410,7 +410,7 @@ case ENTER_C:
 
 PredTrace("C",Func);
 StoreH;
-i = (*Func->code.cinfo)(Arg);
+i = (*(cbool0_t)Func->code.proc)(Arg);
 if (Expanded_Worker) {
 ON_DEBUG({
 printf("wam() detected worker expanded by C predicate\n");
@@ -1312,7 +1312,7 @@ if (w->next_alt) {
 B->next_alt = w->next_alt;
 w->next_alt = NULL;
                 }
-if (!(BcP(f_Cb, 2))(Arg)) {
+if (!((cbool0_t)BcP(f_C, 2))(Arg)) {
 goto fail;
                 }
 goto r_proceed;
@@ -1322,7 +1322,7 @@ if (w->next_alt) {
 B->next_alt = w->next_alt;
 w->next_alt = NULL;
                 }
-if (!(BcP(f_Cb, 1))(Arg)) {
+if (!((cbool0_t)BcP(f_C, 1))(Arg)) {
 goto fail;
                 }
 goto r_proceed;
@@ -1410,7 +1410,7 @@ goto ReadMode;
 r_function_1q:
 case FUNCTION_1Q:
 Numstack_End = NULL;
-if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)(BcP(f_Cf, 4))(Arg,Xb(BcP(f_x, 3)),&BcP(f_l, 6)))) {
+if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)((ctagged1l_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 3)),&BcP(f_l, 6)))) {
 goto fail;
                 }
 P += (FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
@@ -1418,7 +1418,7 @@ goto ReadMode;
 r_function_1:
 case FUNCTION_1:
 Numstack_End = NULL;
-if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)(BcP(f_Cf, 3))(Arg,Xb(BcP(f_x, 2)),&BcP(f_l, 5)))) {
+if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)((ctagged1l_t)BcP(f_C, 3))(Arg,Xb(BcP(f_x, 2)),&BcP(f_l, 5)))) {
 goto fail;
                 }
 P += (FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
@@ -1426,7 +1426,7 @@ goto ReadMode;
 r_function_2q:
 case FUNCTION_2Q:
 Numstack_End = NULL;
-if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)(BcP(f_Cf, 5))(Arg,Xb(BcP(f_x, 3)),Xb(BcP(f_x, 4)),&BcP(f_l, 7)))) {
+if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)((ctagged2l_t)BcP(f_C, 5))(Arg,Xb(BcP(f_x, 3)),Xb(BcP(f_x, 4)),&BcP(f_l, 7)))) {
 goto fail;
                 }
 P += (FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
@@ -1434,49 +1434,49 @@ goto ReadMode;
 r_function_2:
 case FUNCTION_2:
 Numstack_End = NULL;
-if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)(BcP(f_Cf, 4))(Arg,Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3)),&BcP(f_l, 6)))) {
+if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)((ctagged2l_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3)),&BcP(f_l, 6)))) {
 goto fail;
                 }
 P += (FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
 goto ReadMode;
 r_builtin_1q:
 case BUILTIN_1Q:
-if (!(BcP(f_Cb, 3))(Arg,Xb(BcP(f_x, 2)))) {
+if (!((cbool1_t)BcP(f_C, 3))(Arg,Xb(BcP(f_x, 2)))) {
 goto fail;
                 }
 P += (FTYPE_size(f_Q)+FTYPE_size(f_x))+FTYPE_size(f_C);
 goto ReadMode;
 r_builtin_1:
 case BUILTIN_1:
-if (!(BcP(f_Cb, 2))(Arg,Xb(BcP(f_x, 1)))) {
+if (!((cbool1_t)BcP(f_C, 2))(Arg,Xb(BcP(f_x, 1)))) {
 goto fail;
                 }
 P += FTYPE_size(f_x)+FTYPE_size(f_C);
 goto ReadMode;
 r_builtin_2q:
 case BUILTIN_2Q:
-if (!(BcP(f_Cb, 4))(Arg,Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3)))) {
+if (!((cbool2_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3)))) {
 goto fail;
                 }
 P += (FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C);
 goto ReadMode;
 r_builtin_2:
 case BUILTIN_2:
-if (!(BcP(f_Cb, 3))(Arg,Xb(BcP(f_x, 1)),Xb(BcP(f_x, 2)))) {
+if (!((cbool2_t)BcP(f_C, 3))(Arg,Xb(BcP(f_x, 1)),Xb(BcP(f_x, 2)))) {
 goto fail;
                 }
 P += (FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C);
 goto ReadMode;
 r_builtin_3q:
 case BUILTIN_3Q:
-if (!(BcP(f_Cb, 5))(Arg,Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3)),Xb(BcP(f_x, 4)))) {
+if (!((cbool3_t)BcP(f_C, 5))(Arg,Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3)),Xb(BcP(f_x, 4)))) {
 goto fail;
                 }
 P += (FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C);
 goto ReadMode;
 r_builtin_3:
 case BUILTIN_3:
-if (!(BcP(f_Cb, 4))(Arg,Xb(BcP(f_x, 1)),Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3)))) {
+if (!((cbool3_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 1)),Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3)))) {
 goto fail;
                 }
 P += (FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C);

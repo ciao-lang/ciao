@@ -683,7 +683,7 @@ CVOID__PROTO(getbytecode32, FILE *f,
 #endif
         ;
 
-      EMIT_C((char *)builtintab[atoi(workstring)]);
+      EMIT_C(builtintab[atoi(workstring)]);
       break;
     }
       
