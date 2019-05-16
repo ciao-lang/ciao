@@ -124,8 +124,7 @@ case "$CIAOOS$CIAOARCH" in
     LINUXx86_64) OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
 esac
 # Select C standard
-#OPTIM_FLAGS="-Wall -Wstrict-prototypes -std=gnu11 $OPTIM_FLAGS"
-OPTIM_FLAGS="-Wall -std=gnu11 $OPTIM_FLAGS" # TODO: bootstrap system and enable -Wstrict-prototypes
+OPTIM_FLAGS="-Wall -Wstrict-prototypes -std=gnu11 $OPTIM_FLAGS"
 
 # Memory management primitives (own_malloc)
 MEM_MNG_FLAGS=""
