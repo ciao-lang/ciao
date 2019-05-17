@@ -394,17 +394,32 @@ rtc_leaves_choicepoints(Goal) :-
 :- meta_predicate rtc_exception(goal, ?).
 
 % rtcheck version for native_props:exception/2
-rtc_exception(Goal, E) :-
-	catch(Goal, F,
-	    (
-		( E \= F ->
-		    send_comp_rtcheck(Goal, exception(E), exception(F))
-		;
-		    true
-		),
-		throw(F)
-	    )),
+
+rtc_exception(Goal,E) :-
+	Solved = solved(no),
+	(
+	    true
+	;
+	    arg(1, Solved, no) ->
+	    send_comp_rtcheck(Goal, exception(E), no_exception),
+	    fail
+	),
+	'$metachoice'(C0),
+	catch(Goal, F, handle_rtc_exception(Goal, F, E)),
+	'$metachoice'(C1),
+	( C0 == C1 -> !
+	; '$setarg'(1, Solved, yes, true) ),
 	send_comp_rtcheck(Goal, exception(E), no_exception).
+
+handle_rtc_exception(Goal, F, E) :-
+    ( F = rtcheck(_,_,_,_,_,_) -> true % ignore, propagate rtcheck
+    ; E \= F ->
+        send_comp_rtcheck(Goal, exception(E), exception(F))
+    ;
+        true
+    ),
+    throw(F).
+
 
 % ----------------------------------------------------------------------
 
@@ -412,8 +427,7 @@ rtc_exception(Goal, E) :-
 
 % rtcheck version for native_props:exception/1
 rtc_exception(Goal) :-
-	Goal,
-	send_comp_rtcheck(Goal, exception, no_exception).
+	rtc_exception(Goal,_).
 
 % ----------------------------------------------------------------------
 
@@ -429,11 +443,11 @@ rtc_no_exception(Goal, E) :- no_exception_2(Goal, no_exception(E), E).
 
 :- meta_predicate no_exception_2(goal, ?, ?).
 no_exception_2(Goal, Prop, E) :-
-	catch(Goal, E,
-	    (
-		send_comp_rtcheck(Goal, Prop, exception(E)),
-		throw(E)
-	    )).
+	catch(Goal, E, handle_no_exception_2(Goal,Prop,E)).
+handle_no_exception_2(Goal,Prop,E) :-
+	(E=rtcheck(_,_,_,_,_,_) -> true ; % ignore, propagate rtcheck
+	    send_comp_rtcheck(Goal, Prop, exception(E))),
+	    throw(E).
 
 % ----------------------------------------------------------------------
 
