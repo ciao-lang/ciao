@@ -487,10 +487,11 @@ record_goal_alias(Head0, Head, M) :-
 %% 	"check success pos",               /
 %% 	"check compat pos..."             /
 %%
+% TODO: LocStack outdated?
 %% call_stack(Goal, Loc) :-
 %% 	intercept(Goal,
 %% 	    rtcheck(LocStack, ...),
-%% 	    send_signal(rtcheck([Loc|LockStack], ...))).
+%% 	    send_signal(rtcheck([Loc|LocStack], ...))).
 %%
 %% 'pred$rtc1' :-
 %% 	body.
@@ -975,7 +976,7 @@ combine_locators(_,_,_,_,_,_).
 
 % ----------------------------------------------------------------------
 
-:- use_module(library(rtchecks/rtchecks_pretty), [pretty_messages/1]).
+:- use_module(engine(messages_basic), [messages/1]).
 
 :- pred texec_warning(AType, GPProps, Pred, AsrLoc)
         : (atm(AType), list(GPProps), term(Pred), struct(AsrLoc))
@@ -1002,7 +1003,7 @@ texec_warning(texec, GPProps, Pred, asrloc(loc(ASource, ALB, ALE))) :-
                  ' can have only unit test commands, ',
                  'not comp properties: \n', ''(GPNames),
                  '\nProcessing it as a test assertion']),
-        pretty_messages([Message]).
+        messages([Message]). % TODO: use message/2?
 texec_warning(_, _, _, _).
 
 comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].

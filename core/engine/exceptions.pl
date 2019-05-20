@@ -1,5 +1,5 @@
 :- module(exceptions, [catch/3, intercept/3, throw/1, send_signal/1,
-	    send_silent_signal/1, halt/0, halt/1, abort/0],
+	    send_signal/2, halt/0, halt/1, abort/0],
 	    [assertions, nortchecks, isomodes, datafacts]).
 
 :- doc(title, "Exception and signal handling").
@@ -192,30 +192,35 @@ intercept(Goal, Signal, Handler) :-
    thrown: @tt{error(unintercepted_signal(Signal),
    send_signal/1-1)}.").
 
+send_signal(Signal) :-
+	var(Signal), !,
+	throw(error(instantiation_error, 'exceptions:send_signal'/1 -1)).
 send_signal(Signal):-
-	( send_signal_(Signal, true) ->
+	send_signal_(Signal, Intercepted),
+	( Intercepted = true ->
 	    true
 	; throw(error(unintercepted_signal(Signal), 'exceptions:send_signal'/1 -1))
 	).
 
-:- trust pred send_silent_signal(Term) : nonvar(Term).
+:- trust pred send_signal(Term, Intercepted) : nonvar(Term).
 
-:- doc(send_silent_signal(Signal), "Emits a signal as
-   @pred{send_signal/1}, but does not throw an error if the signal is
-   not intercepted (i.e. just suceeds silently)").
+:- doc(send_signal(Signal, Intercepted), "Emits a signal as
+   @pred{send_signal/1}, @tt{Intercepted=false} if the signal is
+   not intercepted (i.e. just suceeds) or @tt{true} otherwise.").
 
-send_silent_signal(Signal) :-
-	send_signal_(Signal, _).
-
-send_signal_(Signal, _) :-
+send_signal(Signal, _) :-
 	var(Signal), !,
-	throw(error(instantiation_error, 'exceptions:send_signal'/1 -1)).
-send_signal_(Signal, _) :-
+	throw(error(instantiation_error, 'exceptions:send_signal'/2 -1)).
+send_signal(Signal, Intercepted) :-
+	send_signal_(Signal, Intercepted).
+
+send_signal_(Signal, Intercepted) :-
 	'$global_vars_get'(8,Stack),
 	match_signal_frame(Stack, Signal, SignalFrame),
 	SignalFrame = signal_frame(S,H,_,_),
 	'$setarg'(3, SignalFrame, active, on), % Mark as active
 	!,
+	Intercepted = true,
 	copy_term((S,H), (Signal,Handler)),
 	'$meta_call'(Handler),
 	'$setarg'(3, SignalFrame, inactive, on). % Mark again as inactive

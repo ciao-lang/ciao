@@ -130,7 +130,7 @@ pass_one([File|Files],Flag):-
                 process_file(File, xrefs, any, 
                              recorda(Flag),
                              false, false, always)
-                                 ),fail), % TODO: fail or abort?
+            ), fail), % TODO: fail or abort?
         pass_one(Files,Flag).
 pass_one([],_Flag).
 

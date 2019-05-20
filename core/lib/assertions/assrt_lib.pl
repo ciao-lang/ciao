@@ -190,7 +190,7 @@ get_code_and_related_assertions_opts(I,Opts,M,Base,Suffix,Dir):-
 		process_files_from(I, asr, any, 
 		                   process_file_assertions(I,Verb,Opts), 
                                    false, false, needs_processing(I,Verb))
-				 ),fail), % TODO: fail or abort? use once_port_reify?
+	    ), fail), % TODO: fail or abort? use once_port_reify?
 	pop_prolog_flag(keep_assertions), % Do not clean assertions!
 	pop_prolog_flag(read_assertions),
 %	pop_prolog_flag(runtime_checks),

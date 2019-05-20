@@ -136,7 +136,7 @@ force the recompilation and cleaning of that part (see
 
 % ===========================================================================
 
-:- use_module(library(errhandle), [handle_error/3]).
+:- use_module(library(errhandle), [default_error_message/1]).
 :- use_module(library(messages), [error_message/2]).
 
 :- use_module(ciaobld(builder_cmds), [builder_run/2]).
@@ -149,8 +149,10 @@ force the recompilation and cleaning of that part (see
 % Invocation from the command-line interface
 :- export(main/1).
 main(Args) :-
-	catch(main_(Args), E, handle_builder_error(E)),
+	catch(main_(Args), E, builder_error(E)),
 	!.
+
+builder_error(E) :- builder_error_message(E), halt(1).
     
 main_([Help0|Args]) :-
 	norm_underscores(Help0, Help),
@@ -196,15 +198,13 @@ To continue the installation, execute 'build' and 'install' commands.", []).
 show_post_message(_).
 
 % ===========================================================================
-:- doc(section, "Handle errors").
+:- doc(section, "Error messages").
 
-handle_builder_error(error_msg(Format, Args)) :-
-	error_message(Format, Args),
-	halt(1).
-handle_builder_error(not_in_builder_boot(Cmd)) :-
-	error_message("Command '~w' only available in 'ciao-boot.sh' or 'ciao-boot.bat'.~n", [Cmd]),
-	halt(1).
-handle_builder_error(unknown_target(Target)) :-
+builder_error_message(error_msg(Format, Args)) :- !,
+	error_message(Format, Args).
+builder_error_message(not_in_builder_boot(Cmd)) :- !,
+	error_message("Command '~w' only available in 'ciao-boot.sh' or 'ciao-boot.bat'.~n", [Cmd]).
+builder_error_message(unknown_target(Target)) :- !,
 	error_message(
 % ...........................................................................
 "'~w' does not look like a valid builder target.~n"||
@@ -214,24 +214,16 @@ handle_builder_error(unknown_target(Target)) :-
 "~n"||
 "Some possible reasons: the target is not reachable from CIAOROOT or CIAOPATH,~n"||
 "or it does not contain the ACTIVATE mark (for catalogues), or the bundle~n"||
-"sources are incomplete (no valid Manifest.pl?).", [Target]),
-	halt(1).
-handle_builder_error(unknown_bundle(Bundle)) :-
-	error_message("'~w' is not a known bundle.~n", [Bundle]),
-	halt(1).
-handle_builder_error(unknown_cmd(Cmd)) :-
-	error_message("Unknown command '~w'.~n", [Cmd]),
-	halt(1).
-handle_builder_error(builder_cmd_failed(Bundle, '', Target)) :- !,
-	error_message("Command '~w' on bundle '~w' failed.~n", [Target, Bundle]),
-	halt(1).
-handle_builder_error(builder_cmd_failed(Bundle, Part, Target)) :-
-	error_message("Command '~w' on bundle '~w' (part '~w') failed.~n", [Target, Bundle, Part]),
-	halt(1).
-handle_builder_error(error(Error, Where)) :-
-	handle_error(Error, Where, halt(1)).
-handle_builder_error(Error) :-
-	error_message("Unknown error '~w'.~n", [Error]),
-	halt(1).
+"sources are incomplete (no valid Manifest.pl?).", [Target]).
+builder_error_message(unknown_bundle(Bundle)) :- !,
+	error_message("'~w' is not a known bundle.~n", [Bundle]).
+builder_error_message(unknown_cmd(Cmd)) :- !,
+	error_message("Unknown command '~w'.~n", [Cmd]).
+builder_error_message(builder_cmd_failed(Bundle, '', Target)) :- !,
+	error_message("Command '~w' on bundle '~w' failed.~n", [Target, Bundle]).
+builder_error_message(builder_cmd_failed(Bundle, Part, Target)) :- !,
+	error_message("Command '~w' on bundle '~w' (part '~w') failed.~n", [Target, Bundle, Part]).
+builder_error_message(E) :-
+	default_error_message(E).
 
 

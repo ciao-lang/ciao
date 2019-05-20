@@ -188,14 +188,7 @@ compute_main_def(Module,  Base, clause(UserMain, MainGoal)) :-
 	functor(Main, main, Arity),
 	module_concat(user,   Main, UserMain),
 	module_concat(Module, Main, ModMain),
-% 	(current_prolog_flag(runtime_checks, no) ->
 	MainGoal = ModMain.
-% 	;
-% 	    module_concat(rtchecks_utils, call_rtc(ModMain), MainGoal)
-
-% 	    module_concat(rtchecks_utils, handle_rtcheck(E),          Handler ),
-% 	    module_concat(exceptions,     catch(ModMain, E, Handler), MainGoal)
-% 	).
 compute_main_def(Module, _, _) :-
 	message(error, ['module ', Module,
 		' should export main/0 or main/1']), fail.

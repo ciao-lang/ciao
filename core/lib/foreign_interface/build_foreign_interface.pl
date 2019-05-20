@@ -124,7 +124,8 @@ get_decls(File, Decls) :-
 	find_pl_filename(File, PlName, Base, _),
         error_protect(ctrlc_clean(
 		process_files_from(PlName, in, module, get_decls_2(Decls),  
-                                   false, false, '='(Base))), fail). % TODO: fail or abort?
+                                   false, false, '='(Base))
+            ), fail). % TODO: fail or abort?
 
 get_decls_2(Base, Decls) :-
 	findall(D, decl(Base, D), Decls).

@@ -19,8 +19,9 @@ send_rtcheck(ErrType, PredName, Dict, PropName, ActualProp0, AsrLocs) :-
 	% expose_attributes(ActualProp0, ActualProp),
         pretty_attributes(ActualProp0, Atts),
 	append(ActualProp0, Atts, ActualProp),
-	send_signal(rtcheck(ErrType, PredName, Dict, PropName, ActualProp,
-		AsrLocs)).
+	E = rtcheck(ErrType, PredName, Dict, PropName, ActualProp, AsrLocs),
+	send_signal(E, Intercepted),
+	( Intercepted = false -> throw(E) ; true ). % throw if no handler
 
 send_comp_rtcheck(PredName, PropName, ActualProp) :-
 	send_rtcheck(comp, PredName, [], PropName, [ActualProp], []).

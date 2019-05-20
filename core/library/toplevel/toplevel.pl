@@ -146,28 +146,7 @@ default_shell_package(default_for_ciaosh).
 
 % ---------------------------------------------------------------------------
 
-:- if(defined(optim_comp)).
-:- use_module(library(errhandle), [default_error_message/1]). % TODO: plug here runtime errors display
-:- else.
-:- use_module(library(rtchecks/rtchecks_utils), [handle_rtcheck/1]).
-:- use_module(library(errhandle), [handle_error/3]).
-% TODO: merge with exceptions.pl and errhandle.pl
-% TODO: Rename Error by Exception in exceptions.pl
-default_error_message(E) :- E = rtcheck(_,_,_,_,_,_), !,
-	handle_rtcheck(E). % TODO: wrong name, this just prints
-default_error_message(E) :- E = error(Error, Where), !,
-	handle_error(Error, Where, true). % TODO: wrong name, this just prints
-default_error_message(E) :-
-	display(user_error, '{'),
-	message(error, ['No handle found for thrown error ', ~~(E), '}']).
-:- endif.
-
-% ---------------------------------------------------------------------------
-
-:- if(defined(optim_comp)).
-:- else.
-:- use_module(library(errhandle), [error_protect/2]).
-:- endif.
+:- use_module(library(errhandle), [error_protect/2, default_error_message/1]).
 
 :- export('$shell_abort'/0). % (not a top-level command)
 '$shell_abort' :-
@@ -183,10 +162,12 @@ default_error_message(E) :-
 :- if(defined(optim_comp)).
 shell_body :-
 	reset_debugger(_), % TODO: needed?
-	intercept(top_shell_env, control_c, do_interrupt_command(0'\n)).
+	intercept(error_protect(top_shell_env, fail), % TODO: captures errors in after_query_hook, goal translations, etc. document?
+	    control_c,
+	    do_interrupt_command(0'\n)).
 :- else.
 shell_body :-
-	intercept(error_protect(top_shell_env, fail), % TODO: needed? fail or abort? (for after_query_hook, goal translations, etc?)
+	intercept(error_protect(top_shell_env, fail), % TODO: captures errors in after_query_hook, goal translations, etc. document?
 	    control_c,
 	    do_interrupt_command(0'\n)).
 :- endif.
@@ -240,18 +221,15 @@ display_status(Status) :- top_nl, top_display(Status), top_nl.
 
 % ---------------------------------------------------------------------------
 
-:- if(defined(optim_comp)).
-:- meta_predicate call_rtc(goal).
-call_rtc(G) :- call(G). % TODO: implement
-:- else.
-:- use_module(library(rtchecks/rtchecks_utils), [call_rtc/1]).
-:- endif.
+% TODO: FIXME: add (optional) tracertc/0 call in rtcheck/6 intercept
+% (here or in the rtchecks modules)
+% :- use_module(library(debugger/debugger_lib), [tracertc/0]).
 
 % (Result=no when no more solutions)
 query_call(RawQuery, ShMod, VarNames, Result) :-
 	shell_expand(RawQuery, ShMod, VarNames, Query),
 	( adjust_debugger ; switch_off_debugger, fail ),
-	( catch(call_rtc(query_call_(Query, ShMod, VarNames, Result)),
+	( catch(query_call_(Query, ShMod, VarNames, Result),
 	        E, (Result = exception(E)))
 	; Result = no % TODO: move outside adjust debugger, etc.
 	),

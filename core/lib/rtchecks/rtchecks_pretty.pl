@@ -1,10 +1,9 @@
 :- module(rtchecks_pretty,
         [
-            pretty_messages/1,
             pretty_prop/3,
-            rtcheck_to_messages/3
+            rtcheck_to_messages/2
         ],
-        [assertions]).
+        [assertions, regtypes]).
 
 :- doc(author, "Edison Mera").      % code
 :- doc(author, "Nataliia Stulova"). % documentation
@@ -12,12 +11,10 @@
 :- doc(module, "This module contains predicates used to transform
         run-time errors into human-readable messages.").
 
-:- use_module(engine(messages_basic), [messages/1, message_info/1]).
+:- use_module(engine(messages_basic), [message_info/1]).
 :- use_module(library(lists), [append/3, reverse/2, select/3]).
 :- use_module(library(assertions/native_props), [is_det/1]).
 :- use_module(library(hiordlib), [maplist/3, foldl/4]).
-:- use_module(library(rtchecks/compact_list),   [compact_list/2]).
-:- use_module(library(rtchecks/rtchecks_utils), [rtcheck_error/1]).
 :- use_module(library(varnames/dict_types),     [varnamesl/1]).
 :- use_module(library(varnames/apply_dict),     [apply_dict/4]).
 :- use_module(library(varnames/complete_dict),  [complete_dict/4]).
@@ -25,26 +22,31 @@
 % TODO: possibly move rtchecks_basic:get_pretty_names/5 and its
 %       related predicates here.
 
-% Used in the rtchecks and unittest libraries only
-:- pred pretty_messages(Messages) : list(Messages, message_info)
-        # "Sets the @tt{write_strings} flag to the value @tt{on},
-        removes duplicated items in the list of @var{Messages} and
-        prints them to the current output. After finishing, sets the
-        flag value to @tt{off}.".
+:- regtype rtcheck_error/1 #
+	"Specifies the format of a run-time check exception.".
 
-pretty_messages(Messages) :-
-	compact_list(Messages, Messages1), % TODO: IC: is this really needed?
-	messages(Messages1).
+rtcheck_error(rtcheck(Type, _Pred, Dict, _Prop, _Valid, Locs)) :-
+	rtcheck_type(Type),
+	list(Dict),
+	list(Locs).
 
-:- pred rtcheck_to_messages(RTCheck, Messages0, Messages)
-	:: (list(Messages0, message_info), list(Messages, message_info))
-        : rtcheck_error(RTCheck) + is_det
+:- regtype rtcheck_type/1 # "Specifies the type of run-time errors.".
+
+rtcheck_type(comp).
+rtcheck_type(pp_check).
+rtcheck_type(success).
+rtcheck_type(compat).
+rtcheck_type(compatpos).
+rtcheck_type(calls).
+
+:- pred rtcheck_to_messages(RTCheck, Messages)
+        : rtcheck_error(RTCheck) => list(Messages, message_info) + is_det
         # "Converts a single run-time error @var{RTCheck} into a list of
            one or multiple text messages @var{Messages0}. @var{Messages}
            is the tail.".
 
-rtcheck_to_messages(rtcheck(Type, Pred0, Dict, Prop0, Valid0, Positions0),
-	    Messages0, Messages) :-
+rtcheck_to_messages(E, Messages) :-
+	E = rtcheck(Type, Pred0, Dict, Prop0, Valid0, Positions0),
 	pretty_prop(t(Pred0, Prop0, Valid0, Positions0), Dict,
 	    t(Pred, Prop, Valid, Positions)),
 	maplist(position_to_message, Positions, PosMessages0),
@@ -68,8 +70,8 @@ rtcheck_to_messages(rtcheck(Type, Pred0, Dict, Prop0, Valid0, Positions0),
 	    Message = message(error, Text),
 	    PosMessages1 = PosMessages
 	),
-	append([Message|PosMessages1], Messages, Messages0).
-
+	Messages1 = [Message|PosMessages1],
+	compact_list(Messages1, Messages). % TODO: IC: is this really needed?
 
 % TODO: pretty_prop/3 is  used only in the rtchecks and unittest libs,
 %       and it almost duplicates varnames/pretty_names:pretty_names/3
@@ -119,3 +121,46 @@ actual_prop_to_message(X=Y,['\n\t', ''({var(X)}) | Tail], Tail) :-
 actual_prop_to_message(X,['\n\t', ''({X}) | Tail], Tail).
 
 % TODO: Use toplevel to do this right (e.g. X=Y instead of X=_1, Y=_1).
+
+% ---------------------------------------------------------------------------
+% TODO: ugly implementation, try to avoid it!
+
+:- use_module(library(lists), [length/2, append/3]).
+
+:- test compact_list(A, B) :
+	(A = [1, 2, 2, 2, 2, 3, 3, 4, 3, 4, 3, 4, 3, 4, 1, 5, 7, 1, 5, 7])
+	=> (B = [1, 2, 3, 4, 1, 5, 7]) + not_fails.
+
+:- pred compact_list(L, R) : list(L) => list(R)
+	# "Delete repeated sequences in a list.".
+
+compact_list(L, R) :-
+	compact_list_(L, 1, R).
+
+compact_list_(L, N, R) :-
+	( compact_list_n(L, N, R0) ->
+	    N1 is N + 1,
+	    compact_list_(R0, N1, R)
+	; L = R
+	).
+
+compact_list_n(L, N, R) :-
+	length(L1, N),
+	append(L1, R1, L),
+	compact_list_n_(L, L1, R1, N, R).
+
+compact_list_n_(L, L1, R1, N, R) :-
+	length(L2, N),
+	append(L2, R2, R1),
+	( L1 == L2 ->
+	    ( compact_list_n_(R1, L2, R2, N, R) ->
+	        true
+	    ; R1 = R
+	    )
+	; L = [E|L0],
+	  ( compact_list_n(L0, N, R0) ->
+	      R = [E|R0]
+	  ; R = L
+	  )
+	).
+

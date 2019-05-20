@@ -2185,14 +2185,14 @@ skip_lines_until_blank(_) :-
 :- doc(section, "Handler for compilation errors").
 
 signal_compilation_error :- 
-	send_silent_signal(compilation_error).
+	send_signal(compilation_error, _). % (ignore if there is no handler)
 
 :- export(handle_exc/1).
 handle_exc(cannot_create(File)) :- !,
 	message(error, ['Unable to create ',File,' - aborting...']), 
 	signal_compilation_error.
 handle_exc(error(Error, _)) :-
-	handle_error(Error), !, signal_compilation_error.
+	handle_file_error(Error), !, signal_compilation_error.
 handle_exc(unintercepted_signal(control_c)) :- !,
 	ctrlcclean, signal_compilation_error.
 handle_exc(compiler_loop) :- !, 
@@ -2200,9 +2200,9 @@ handle_exc(compiler_loop) :- !,
 	fail.
 handle_exc(Error) :- throw(Error).
 
-handle_error(existence_error(source_sink,File)) :-
+handle_file_error(existence_error(source_sink,File)) :-
 	error_in_lns(_,_,error, ['File ',File,' not found - aborting...']).
-handle_error(permission_error(open,source_sink,File)) :-
+handle_file_error(permission_error(open,source_sink,File)) :-
 	message(error, ['Cannot open ',File,' - aborting...']).
 
 warning_module_missing(L0, L1) :-
