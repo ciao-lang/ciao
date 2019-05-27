@@ -264,7 +264,7 @@ quiet_mode(off).
 % ---------------------------------------------------------------------------
 
 :- export('$eq'/2).
-:- trust pred '$eq'(Term,Term). %jcf% Not used in Prolog code.
+:- trust pred '$eq'/2. %jcf% Not used in Prolog code.
 :- impl_defined('$eq'/2).
 
 % ---------------------------------------------------------------------------
