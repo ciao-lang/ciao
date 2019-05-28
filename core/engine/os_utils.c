@@ -540,7 +540,7 @@ int __cdecl c_mkstemp(char *template_name) {
   return -1;
 }
 #else
-inline static int c_mkstemp(char *template_name) {
+static inline int c_mkstemp(char *template_name) {
   return mkstemp(template_name);
 }
 #endif
@@ -2202,7 +2202,7 @@ pid_t c_waitpid(pid_t pid, int *status) {
   return pid;
 }
 #else 
-inline static pid_t c_waitpid(pid_t pid, int *status) {
+static inline pid_t c_waitpid(pid_t pid, int *status) {
   return waitpid(pid, status, 0);
 }
 #endif
@@ -2814,7 +2814,7 @@ void c_create_process(process_t *pr) {
   }
 }
 
-inline static void default_fd_pair(int pair_fd[2]) {
+static inline void default_fd_pair(int pair_fd[2]) {
   pair_fd[Read] = -1; pair_fd[Write] = -1;
 }
 

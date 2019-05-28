@@ -404,7 +404,7 @@ struct absmachdef {
 
 /* ------------------------------------------------------------------------- */
 /* Runtime type info for unboxed data */
-/* TODO: use a single absmach_postdef.h file? */
+/* TODO: share ftype.h */
 /* TODO: move to absmach definition */
 
 #define FINISH_OP 32767

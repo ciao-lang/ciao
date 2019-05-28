@@ -45,8 +45,7 @@ http://www.cs.berkeley.edu/~jhauser/arithmetic/SoftFloat.html.
 | `a'.  If `a' is zero, 32 is returned.
 *----------------------------------------------------------------------------*/
 
-static char countLeadingZeros32(uint32_t a)
-{
+static char countLeadingZeros32(uint32_t a) {
   static const char countLeadingZerosHigh[] = {
     8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
@@ -85,8 +84,7 @@ static char countLeadingZeros32(uint32_t a)
 | `a'.  If `a' is zero, 64 is returned.
 *----------------------------------------------------------------------------*/
 
-static char countLeadingZeros64( uint64_t a )
-{
+static char countLeadingZeros64(uint64_t a) {
   char shiftCount;
 
   shiftCount = 0;
@@ -277,7 +275,7 @@ static char * scale(
   int l;
   int exp;
   int32_t scalee;
-  LONG_FLOAT scale;
+  ENG_LFLT scale;
 /*   long double scale; */
   //  union ieee854_long_double scaleb;
   uint64_t s = 0;
@@ -528,15 +526,8 @@ static char * scale(
   return buffer;
 }
 
-char * float_to_string(
-        char* buffer,
-        int precision,
-        char format,
-
-        double x,
-        int base)
-{
-/*   union ieee754_double r; */
+char *float_to_string(char* buffer, int precision, char format, double x, int base) {
+  /* union ieee754_double r; */
   int32_t be;
   uint64_t f; 
   uint64_t s;

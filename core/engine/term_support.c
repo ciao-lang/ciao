@@ -787,9 +787,8 @@ static int radixlim1;
 static int radixlim2;
 static int radixlim3;
 
-bool_t prolog_init_radix(void) {
+void prolog_init_radix(void) {
   int radix = GetSmall(current_radix);
-
   if (radix<10) {
     radixlim1 = '0'+radix;
     radixlim2 = 'a';
@@ -799,7 +798,6 @@ bool_t prolog_init_radix(void) {
     radixlim2 = 'a'+radix-10;
     radixlim3 = 'A'+radix-10;
   }
-  return TRUE;
 }
 
 static CBOOL__PROTO(prolog_constant_codes, bool_t a,bool_t n, int ci);
@@ -1332,7 +1330,7 @@ CVOID__PROTO(number_to_string, tagged_t term, int base) {
       tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
     } u;
     char *cbuf;
-    int eng_flt_signif = (int)((IEEE754_MANTISSA_LENGTH + 1) * invlog2[base] + 1);
+    int eng_flt_signif = ENG_FLT_SIGNIF_FOR_BASE(base);
 
     /* f = GetFloat(term); */
 #if LOG2_bignum_size == 5

@@ -273,8 +273,9 @@ void configure__fpbits(void) {
   i = (bits*0.301029995663981); /* #significant digits, bits*log_10(2) */
 
   f = 0.5e-9;			/* rounding factor if above 18 */
-  for (j=18; j>i; j--)
-    f*=10.0;
+  for (j=18; j>i; j--) {
+    f *= 10.0;
+  }
 
   printf("#define ENG_FLT_SIGNIF %d\n", i);
   printf("#define ENG_FLT_ROUND %.*g\n\n", i, f);

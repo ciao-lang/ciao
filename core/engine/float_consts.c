@@ -22,7 +22,7 @@
 
 
 // 309 = ceil(1024 * invlog2[10])
-LONG_FLOAT powtable10[309] = {
+ENG_LFLT powtable10[309] = {
   1.0e0l, 1.0e1l, 1.0e2l, 1.0e3l, 1.0e4l, 1.0e5l, 1.0e6l, 1.0e7l, 1.0e8l, 1.0e9l,
   1.0e10l, 1.0e11l, 1.0e12l, 1.0e13l, 1.0e14l, 1.0e15l, 1.0e16l, 1.0e17l, 1.0e18l, 1.0e19l,
   1.0e20l, 1.0e21l, 1.0e22l, 1.0e23l, 1.0e24l, 1.0e25l, 1.0e26l, 1.0e27l, 1.0e28l, 1.0e29l,
@@ -56,7 +56,7 @@ LONG_FLOAT powtable10[309] = {
   1.0e300l, 1.0e301l, 1.0e302l, 1.0e303l, 1.0e304l, 1.0e305l, 1.0e306l, 1.0e307l, 1.0e308l
 };
 
-LONG_FLOAT *powtable[37] = {
+ENG_LFLT *powtable[37] = {
   NULL,
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, powtable10,
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -65,7 +65,7 @@ LONG_FLOAT *powtable[37] = {
 };
 
 // 324 = ceil((MAX_EXP) * invlog2[10])
-LONG_FLOAT invpowtable10[324] = {
+ENG_LFLT invpowtable10[324] = {
   1.0e-0l, 1.0e-1l, 1.0e-2l, 1.0e-3l, 1.0e-4l, 1.0e-5l, 1.0e-6l, 1.0e-7l, 1.0e-8l, 1.0e-9l,
   1.0e-10l, 1.0e-11l, 1.0e-12l, 1.0e-13l, 1.0e-14l, 1.0e-15l, 1.0e-16l, 1.0e-17l, 1.0e-18l, 1.0e-19l,
   1.0e-20l, 1.0e-21l, 1.0e-22l, 1.0e-23l, 1.0e-24l, 1.0e-25l, 1.0e-26l, 1.0e-27l, 1.0e-28l, 1.0e-29l,
@@ -101,7 +101,7 @@ LONG_FLOAT invpowtable10[324] = {
   1.0e-320l, 1.0e-321l, 1.0e-322l, 1.0e-323l
 };
 
-LONG_FLOAT *invpowtable[] = {
+ENG_LFLT *invpowtable[] = {
   NULL,
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, invpowtable10,
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -112,8 +112,8 @@ LONG_FLOAT *invpowtable[] = {
 // fast implementation of the powl function, using the repeated square
 // method.  returns 0^0=1, to get continuity in x.
 
-LONG_FLOAT powl_int_sm(LONG_FLOAT x, int n) {
-  LONG_FLOAT value = 1.0l;
+ENG_LFLT powl_int_sm(ENG_LFLT x, int n) {
+  ENG_LFLT value = 1.0l;
   if(x==1)
     return 1;
   if(n < 0) {
@@ -133,7 +133,7 @@ LONG_FLOAT powl_int_sm(LONG_FLOAT x, int n) {
   return value;
 }
 
-LONG_FLOAT powl_int(int base, int exp) {
+ENG_LFLT powl_int(int base, int exp) {
   if (exp<0) {
     if (exp < -ceil((IEEE754_MAX_EXP) * invlog2[base])) {
       return 0;
@@ -239,12 +239,12 @@ void fillpowtable(int base) {
   int m = (int)floor(IEEE754_MAX_EXP*invlog2[base]);
   int n = (int)ceil(IEEE754_MIN_EXP*invlog2[base]);
 
-  powtable[base] = (LONG_FLOAT *)malloc((n+1)*sizeof(LONG_FLOAT));
+  powtable[base] = (ENG_LFLT *)malloc((n+1)*sizeof(ENG_LFLT));
   for(i=0;i<=n;i++) {
     (powtable[base])[i] = powl_int(base, i);
   }
 
-  invpowtable[base] = (LONG_FLOAT *)malloc((m+1)*sizeof(LONG_FLOAT));
+  invpowtable[base] = (ENG_LFLT *)malloc((m+1)*sizeof(ENG_LFLT));
   for(i=0;i<=m;i++) {
     (invpowtable[base])[i] = powl_int(base, -i);
   }

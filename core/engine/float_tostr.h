@@ -41,6 +41,8 @@
   ((((((uint32_t *)(&x))[IEEE854_INDEX_MANTISSA1_0]) & IEEE854_MASK_MANTISSA1_0) << IEEE854_SPLIT_MANTISSA1_0) \
   | (((((uint32_t *)(&x))[IEEE854_INDEX_MANTISSA1_1]) & IEEE854_MASK_MANTISSA1_1) >> IEEE854_SHIFT_MANTISSA1_1))
 
-char * float_to_string(char* buffer, int precision, char format, double x, int base);
+#define ENG_FLT_SIGNIF_FOR_BASE(BASE) ((int)((IEEE754_MANTISSA_LENGTH + 1) * invlog2[(BASE)] + 1))
+
+char *float_to_string(char* buffer, int precision, char format, double x, int base);
 
 #endif /* _CIAO_FLOAT_TOSTR_H */

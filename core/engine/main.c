@@ -15,13 +15,13 @@
 char eng_stub_length_holder[] = "This emulator executable has a size of        ";
 
 void eng_stub_set_length(int length);
-void at_exit(int exit_code);
-int start(int argc, char **argv);
+int engine_start(int argc, char **argv);
+void engine_exit(int exit_code);
 
 int main(int argc, char *argv[])
 {
   int len = atoi(&eng_stub_length_holder[38]);
   eng_stub_set_length(len);
-  at_exit(start(argc, argv));
+  engine_exit(engine_start(argc, argv));
   return 0;
 }

@@ -19,9 +19,9 @@
 
 /* #if defined(ppc) || defined (armv4l) */
 #if defined(USE_LONG_DOUBLE)
-typedef long double LONG_FLOAT;
+typedef long double ENG_LFLT;
 #else
-typedef double LONG_FLOAT;
+typedef double ENG_LFLT;
 #endif
 
 #define IEEE754_ABS_EXP (IEEE754_MASK_EXPONENT >> IEEE754_SHIFT_EXPONENT)       /* 2047 */
@@ -37,8 +37,8 @@ typedef double LONG_FLOAT;
 #define IEEE854_FIX_BIT (1LL << IEEE854_MANTISSA_LENGTH)
 
 extern double invlog2[];
-extern LONG_FLOAT *powtable[];
-extern LONG_FLOAT *invpowtable[];
+extern ENG_LFLT *powtable[];
+extern ENG_LFLT *invpowtable[];
 
 /* #define EXP_CHAR  36 */
 /* #define FRAC_SEP  36 */
@@ -65,6 +65,6 @@ void fillpowtable(int base);
 void freepowtable(int base);
 void fillallpowtable(void);
 void freeallpowtable(void);
-LONG_FLOAT powl_int(int base, int exp);
+ENG_LFLT powl_int(int base, int exp);
 
 #endif /* _CIAO_FLOAT_CONSTS_H */

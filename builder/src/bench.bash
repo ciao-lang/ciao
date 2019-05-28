@@ -144,8 +144,8 @@ EMU_CFILES="basiccontrol.native.c"
 EMU_HFILES="basiccontrol.native.h"
 #EMU_SFILES="basiccontrol.native engine__gc internals arithmetic"
 #EMU_OFILES="basiccontrol.native engine__gc internals arithmetic"
-EMU_SFILES="basiccontrol.native arithmetic atomic_basic attributes concurrency dynlink engine__alloc engine__bignum engine__ciao_prolog engine__debug engine__float_tostr engine__gc engine__interrupt engine__main engine__own_mmap engine__own_malloc engine__profile engine__registers engine__resources engine__threads internals io_basic prolog_sys ql_inout rt_exp stream_basic system system_info term_basic term_compare terms_check term_typing timing"
-EMU_OFILES="basiccontrol.native arithmetic atomic_basic attributes concurrency dynlink engine__alloc engine__bignum engine__ciao_prolog engine__debug engine__float_tostr engine__gc engine__interrupt engine__main engine__own_mmap engine__own_malloc engine__profile engine__registers engine__resources engine__threads internals io_basic prolog_sys ql_inout rt_exp stream_basic system system_info term_basic term_compare terms_check term_typing timing"
+EMU_SFILES="basiccontrol.native arithmetic atomic_basic attributes concurrency dynlink engine__alloc engine__bignum engine__ciao_prolog engine__debug engine__float_tostr engine__gc engine__interrupt engine__start engine__main engine__own_mmap engine__own_malloc engine__profile engine__registers engine__threads internals io_basic prolog_sys ql_inout rt_exp stream_basic system system_info term_basic term_compare terms_check term_typing timing"
+EMU_OFILES="basiccontrol.native arithmetic atomic_basic attributes concurrency dynlink engine__alloc engine__bignum engine__ciao_prolog engine__debug engine__float_tostr engine__gc engine__interrupt engine__start engine__main engine__own_mmap engine__own_malloc engine__profile engine__registers engine__threads internals io_basic prolog_sys ql_inout rt_exp stream_basic system system_info term_basic term_compare terms_check term_typing timing"
 # EMU_BCFILES=`cat curr/all_modules`
 
 compc_exe="${tmpcomp_dir}/compc"

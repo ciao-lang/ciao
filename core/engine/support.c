@@ -100,7 +100,7 @@ void failc(char *mesg)
   }
   if (!wam_initialized){
     fprintf(stderr, "Wam not initialized, exiting!!!\n");
-    at_exit(-1);
+    engine_exit(-1);
   }
 }
 

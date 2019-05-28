@@ -21,7 +21,7 @@ CBOOL__PROTO(c_cyclic_term, tagged_t);
 CBOOL__PROTO(prolog_unifiable);
 CBOOL__PROTO(prolog_unifyOC);
 CFUN__PROTO(cross_copy_term, tagged_t, tagged_t remote_term);
-bool_t prolog_init_radix(void);
+void prolog_init_radix(void);
 CBOOL__PROTO(prolog_name);
 CBOOL__PROTO(prolog_number_codes_2);
 CBOOL__PROTO(prolog_number_codes_3);

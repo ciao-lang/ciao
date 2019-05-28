@@ -43,8 +43,9 @@ void interrupt_h(int signal_number)
 {
   worker_t *w; 
 
-  if (!wam_initialized)                            /* wam not initialized */
-    at_exit(-1);
+  if (!wam_initialized) { /* wam not initialized */ 
+    engine_exit(-1);
+  }
 
   Arg = get_my_worker();
   CVOID__CALL(interrupt_worker, signal_number);

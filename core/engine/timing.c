@@ -331,7 +331,7 @@ CBOOL__PROTO(prolog_runtick)
 }
 
 /* New time medition functions */
-inline static CBOOL__PROTO(generic_clockfreq, inttime_t clockfreq)
+static inline CBOOL__PROTO(generic_clockfreq, inttime_t clockfreq)
 {
   /* while ciao not support inttime_t, return value must be cast to
     flt64_t */

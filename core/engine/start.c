@@ -43,7 +43,7 @@
 
 #include <ciao/global_defs.h>
 #include <ciao/task_areas.h>
-#include <ciao/float_consts.h>
+#include <ciao/float_consts.h> /* fillchardigit() */
 
 #include <ciao/wamsupport.h>
 #include <ciao/wam.h>
@@ -130,7 +130,7 @@ static void open_exec_skip_stub(const char *file, FILE **stream) {
     if (data.st_size == eng_stub_length) goto usage;
     if ((*stream = fopen(file,"rb")) == NULL) {
       fprintf(stderr,"%s: unable to open for read\n", file);
-      at_exit(1);
+      engine_exit(1);
     }
     fseek(*stream, eng_stub_length, SEEK_SET);
     return;
@@ -140,7 +140,7 @@ static void open_exec_skip_stub(const char *file, FILE **stream) {
 
  usage:
   fprintf(stderr, USAGE_STRING, file);
-  at_exit(1);
+  engine_exit(1);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -155,7 +155,7 @@ void init_winsock2(void) {
   int iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
   if (iResult != NO_ERROR) {
     fprintf(stderr, "Error at WSAStartup()\n");
-    at_exit(1);
+    engine_exit(1);
   }
 }
 #endif
@@ -312,7 +312,7 @@ char *get_execpath(void) {
   return strdup(buffer);
 }
 
-int start(int argc, char *argv[]) {
+int engine_start(int argc, char *argv[]) {
   int i;
   const char *boot_path = NULL;
   
@@ -455,7 +455,7 @@ void set_ciaoroot_directory(const char *boot_path, const char *exec_path) {
 		"%s\n%s\n",
 		"Registry key not found. Please remember to install Ciao Prolog",
 		"or to set the CIAOROOT environment variable!");
-	at_exit(1);
+	engine_exit(1);
       }
 
       /* TODO: Guess only in this case? (CIAOROOT not defined) */
@@ -576,10 +576,14 @@ static void guess_win32_env(const char *boot_path,
 void end_profiler(void);
 #endif
 
-void at_exit(int result) {
+void engine_finish(void) {
 #if defined(PROFILE)
   end_profiler();
 #endif
   fflush(NULL);
+}
+
+void engine_exit(int result) {
+  engine_finish();
   exit(result);
 }

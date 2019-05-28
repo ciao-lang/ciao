@@ -61,7 +61,7 @@
 
 #include <string.h>
 
-void ciao_at_exit(int result);
+void ciao_exit(int result);
 
 /*---------------------------------------------------------------------------*/
 
@@ -252,7 +252,7 @@ FILE *ciao_open_qfile(const char *boot_path) {
   if (qfile == NULL) qfile = fopen(source_path,"rb");
   if (qfile == NULL) {
     fprintf(stderr, "%s: boot file not found\n", source_path);
-    at_exit(1);
+    engine_exit(1);
     return NULL;
   } else { /* We have a bootfile we can read from */
     return qfile;
@@ -280,7 +280,7 @@ FILE *ciao_open_embedded_qfile(const char *program_name) {
   ciao_open_exec_skip_stub(program_name,&qfile);
   if (qfile == NULL) {
     fprintf(stderr,"%s: file not found\n", program_name);
-    at_exit(1);
+    engine_exit(1);
   }
   expand_file_name((char *)program_name,TRUE,(char *)source_path);
   return qfile;
@@ -786,8 +786,8 @@ ciao_bool ciao_equal(ciao_term x, ciao_term y) {
   return ciao_equal_s(ciao_implicit_ctx, x, y);
 }
 
-void ciao_at_exit(int result) {
-  at_exit(result);
+void ciao_exit(int result) {
+  engine_exit(result);
 }
 
 int ciao_firstgoal(ciao_ctx ctx, ciao_term goal) {
@@ -799,8 +799,6 @@ int ciao_firstgoal(ciao_ctx ctx, ciao_term goal) {
 int ciao_boot(ciao_ctx ctx) {
   return ciao_firstgoal(ctx, ciao_structure_s(ctx, "internals:boot", 0));
 }
-
-/* --------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------- */
 
