@@ -10,7 +10,7 @@
 
 :- doc(author, "The Ciao Development Team").
 
-:- doc(module, "This module provides an simplified interface to the
+:- doc(module, "This module provides a simplified interface to the
    Ciao compiler front-end (see @lib{toplevel} for details).").
 
 :- use_module(engine(stream_basic), [absolute_file_name/2]).

@@ -304,7 +304,19 @@ set_file_owner(File, Owner) :-
 	).
 
 :- export(set_file_perms/2).
-:- pred set_file_perms(File, Perms) # "Set file permissions.".
+:- pred set_file_perms(File, Perms) : perms_term(Perms) # "Set file permissions.".
+
+:- export(perms_term/1).
+:- regtype perms_term(Perms) # "@var{Perms} provides modes for User, Group, and Others.".
+
+:- doc(perms_term(Perms), "@var{Perms} is a permissions term providing
+   valid permission modes for User, Group, and Others. Defined as
+   follows: @includedef{perms_term/1}").
+
+perms_term(perms(U, G, O)) :- 
+	valid_mode(U),
+	valid_mode(G),
+	valid_mode(O).
 
 % (File can be a path)
 set_file_perms(File, Perms) :-
@@ -312,9 +324,9 @@ set_file_perms(File, Perms) :-
 	perms_to_mode(ExecMask, Perms, Mode),
 	chmod_if_needed(File, Mode).
 
-% If File is a regular file, get an mask with current execution bits
+% If File is a regular file, get a mask with current execution bits
 % for user,group,other. If File is a directory, get a mask with all
-% execution bit turned on.
+% execution bits turned on.
 execmask(File, ExecMask) :-
 	( file_property(File, type(directory)) ->
 	    ExecMask = 0o111
@@ -500,9 +512,9 @@ execute_permissions(perms(U, G, O), E) :-
 	E is NU << 6 + NG << 3 + NO.
 
 convert_permissions(perms(U, G, O), P) :-
-	valid_mode(U, NU),
-	valid_mode(G, NG),
-	valid_mode(O, NO),
+	mode_symb_bin(U, NU),
+	mode_symb_bin(G, NG),
+	mode_symb_bin(O, NO),
 	P is NU << 6 + NG << 3 + NO.
 
 % Meaning of uppercase X in permissions:
@@ -522,18 +534,25 @@ exec_mask_perms(rw  , 0).
 exec_mask_perms(rwx , 0).
 exec_mask_perms(rwX , 1).
 
-valid_mode( '' , 2'000).
-valid_mode( 'X', 2'000).
-valid_mode(  x , 2'001).
-valid_mode( w  , 2'010).
-valid_mode( wX , 2'010).
-valid_mode( wx , 2'011).
-valid_mode( r  , 2'100).
-valid_mode( rX , 2'100).
-valid_mode( rx , 2'101).
-valid_mode(rw  , 2'110).
-valid_mode(rwX , 2'110).
-valid_mode(rwx , 2'111).
+:- regtype valid_mode(M).
+
+:- export(valid_mode/1).
+valid_mode(M) :- 
+	mode_symb_bin(M,_).
+
+:- doc(doinclude, mode_symb_bin/2). 
+mode_symb_bin( '' , 2'000).
+mode_symb_bin( 'X', 2'000).
+mode_symb_bin(  x , 2'001).
+mode_symb_bin( w  , 2'010).
+mode_symb_bin( wX , 2'010).
+mode_symb_bin( wx , 2'011).
+mode_symb_bin( r  , 2'100).
+mode_symb_bin( rX , 2'100).
+mode_symb_bin( rx , 2'101).
+mode_symb_bin(rw  , 2'110).
+mode_symb_bin(rwX , 2'110).
+mode_symb_bin(rwx , 2'111).
 
 % ---------------------------------------------------------------------------
 % Create and remove a temporary directory

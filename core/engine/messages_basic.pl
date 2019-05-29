@@ -4,7 +4,7 @@
 		% regtypes
 		message_info/1, message_type/1
 	    ],
-	    [assertions, nativeprops, nortchecks]).
+    [assertions, nativeprops, nortchecks]).
 
 % TODO: move lformat/1, display_list/1 to format_basic.pl?
 
@@ -13,6 +13,7 @@
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Edison Mera (improvements)").
 :- doc(author, "Jose F. Morales").
+:- doc(author, "Manuel V. Hermenegildo").
 
 :- doc(module, "This module provides predicates for printing in a
    unified way informational messages. It is designed to be small and
@@ -31,7 +32,7 @@
 
 :- doc(doinclude, lformat_text/1).
 :- prop lformat_text(Message) + regtype # "@var{Message} is an item or
-   a list of items from this list:
+   a list of items from the following:
 
 @begin{description}
 
@@ -106,7 +107,7 @@ display_list(M) :-
    which is of type @var{Type}. The @tt{quiet} @index{prolog flag}
    (see @ref{Changing system behaviour and various flags}) controls
    which messages are actually output, depending on its type. Also,
-   for @tt{error}, @tt{warning} and @tt{note} messages, a prefix is
+   for @tt{error}, @tt{warning}, and @tt{note} messages, a prefix is
    output which denotes the severity of the message.".
 
 :- pred message_lns(Type, L0, L1, Message) : ( message_type(Type),
@@ -182,8 +183,8 @@ label(note,    'Note: ').
 :- export(add_lines/4).
 add_lines(L0, L1, Message, ['(lns ', L0, '-', L1, ') '|Message]).
 
-:- prop message_type/1 + regtype # "Specifies the different types of
-	messages.".
+:- prop message_type(M) + regtype # "@var{M} is one of the accepted message types.".
+:- doc(message_type(M), "@includedef{message_type/1}").
 
 message_type(error).
 message_type(warning).
