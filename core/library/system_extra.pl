@@ -306,6 +306,21 @@ set_file_owner(File, Owner) :-
 :- export(set_file_perms/2).
 :- pred set_file_perms(File, Perms) : perms_term(Perms) # "Set file permissions.".
 
+:- export(valid_mode/1).
+:- regtype valid_mode(M).
+valid_mode( '' ).
+valid_mode( 'X').
+valid_mode(  x ).
+valid_mode( w  ).
+valid_mode( wX ).
+valid_mode( wx ).
+valid_mode( r  ).
+valid_mode( rX ).
+valid_mode( rx ).
+valid_mode(rw  ).
+valid_mode(rwX ).
+valid_mode(rwx ).
+
 :- export(perms_term/1).
 :- regtype perms_term(Perms) # "@var{Perms} provides modes for User, Group, and Others.".
 
@@ -533,12 +548,6 @@ exec_mask_perms( rX , 1).
 exec_mask_perms(rw  , 0).
 exec_mask_perms(rwx , 0).
 exec_mask_perms(rwX , 1).
-
-:- regtype valid_mode(M).
-
-:- export(valid_mode/1).
-valid_mode(M) :- 
-	mode_symb_bin(M,_).
 
 :- doc(doinclude, mode_symb_bin/2). 
 mode_symb_bin( '' , 2'000).
