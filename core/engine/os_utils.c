@@ -69,6 +69,14 @@ int gethostname(char *name, int namelen);
 #if !defined(MAXPATHLEN)
 #define MAXPATHLEN 1024
 #endif
+// TODO: share defs, use <limits.h> to get PATH_MAX
+// #if !defined(MAXPATHLEN)
+// # if defined(PATH_MAX)
+// #  define MAXPATHLEN PATH_MAX
+// # else
+// #  define MAXPATHLEN 1024
+// # endif
+// #endif
 
 #define COPY_FLAG_OVERWRITE 0x1
 #define COPY_FLAG_TIMESTAMP 0x2

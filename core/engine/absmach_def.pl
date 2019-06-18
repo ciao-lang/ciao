@@ -3479,7 +3479,7 @@ code_suspend_on_t1 :-
 	[[update(mode(w))]],
 	emul_to_goal,
 	if(callexp('TagIsSVA', ["t1=X(0)"]), % t1 may have been globalised
-	  call('RefSVA', ["t1","X(0)"])).
+	  call('RefSVA', ["t1","X(0)"])). % TODO: continue on code_suspend_t3_on_t1?
 
 :- pred(code_suspend_t3_on_t1/0, [unfold]).
 code_suspend_t3_on_t1 :-

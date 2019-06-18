@@ -26,21 +26,15 @@
 #include <ciao/dynlink.h>
 #include <ciao/alloc.h>
 
+#if !defined(MAXPATHLEN)
+# define MAXPATHLEN 1024
+#endif
+
 static void unload_if_present(char *module_name);
 
 static void add_to_loaded_objects(char *module_name,
 				  void *handle,
 				  void (*end_func)(char *));
-
-/* Length of filenames */
-
-#if !defined(MAX_FILENAME)
-# if defined(FILENAME_MAX)
-# define MAX_FILENAME FILENAME_MAX
-# elif defined(MAXPATHLEN)
-# define MAX_FILENAME MAXPATHLEN
-# endif
-#endif
 
 /* Dynamic linking options.  This is really OS dependant. */
 /* And any other object can reference objects in the one we are loading */
@@ -113,10 +107,10 @@ CBOOL__PROTO(prolog_dynlink)
 
 
 #if defined(USE_ATOM_LEN)
-  if ((strindx = GetAtomLen(X(0))) > MAX_FILENAME)
+  if ((strindx = GetAtomLen(X(0))) > MAXPATHLEN)
     USAGE_FAULT("dynlink/2: full filename too long");
 #else
-  if ((strindx = strlen(lib_name)) > MAX_FILENAME)
+  if ((strindx = strlen(lib_name)) > MAXPATHLEN)
     USAGE_FAULT("dynlink/2: full filename too long");
 #endif
 

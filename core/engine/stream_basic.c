@@ -25,14 +25,6 @@
 #include <sys/param.h>
 #include <errno.h>
 
-#if !defined(MAXPATHLEN)
-# if defined(PATH_MAX)
-#  define MAXPATHLEN PATH_MAX
-# else
-#  define MAXPATHLEN 1024
-# endif
-#endif
-
 #define ENG_NOFILES 20
 
 #include <ciao/alloc.h>

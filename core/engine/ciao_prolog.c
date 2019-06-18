@@ -59,7 +59,6 @@
 # define MAXPATHLEN 1024
 #endif
 
-#include <string.h>
 
 void ciao_exit(int result);
 
