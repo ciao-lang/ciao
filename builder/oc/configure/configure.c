@@ -479,7 +479,7 @@ void configure__alloc(void) {
 /* ------------------------------------------------------------------------- */
 /* Call all configuration parts */
 
-int main() {
+int main(void) {
   configure__endianness();
   configure__alloc();
   configure__fpbits();
