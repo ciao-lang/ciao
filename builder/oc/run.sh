@@ -13,4 +13,4 @@ if [ -x ${_carbase}/arch ]; then
 else
   ${_base}/compile_native.sh "${_carbase}" || exit 1
 fi
-CIAOCCONFIG=${_carbase}/configuration ${_carbase}/arch "$@" -C ${_carbase}/noarch ${CIAORTOPTS}
+CIAOCCONFIG=${_carbase}/cfg/DEFAULT ${_carbase}/arch "$@" -C ${_carbase}/noarch ${CIAORTOPTS}

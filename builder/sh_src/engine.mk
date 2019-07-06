@@ -58,26 +58,16 @@ ENG_EXEC = $(ENG_NAME)$(EXECSUFFIX)
 ENG_SO := lib$(ENG_NAME)$(SOSUFFIX)
 ENG_A := lib$(ENG_NAME).a
 
-AR := ar
-AR_OPTS := -c -r
-RANLIB := ranlib
-# Fix AR,RANLIB for emcc
-ifeq ($(CC),emcc)
-    AR := llvm-ar
-    AR_OPTS := cr
-    RANLIB := llvm-ranlib
-endif
+LIBTOOL := libtool
 
 # Fixes for macOS (not using llvm-ranlib)
 ifeq ($(shell uname -s),Darwin)
-ifeq ($(RANLIB),ranlib)
     # Make rpath work
     ENG_SO_INSTALL_NAME := -install_name '@rpath/'$(ENG_SO)
     # Make uninitialized global variables in .a work (another option
     # is using -fno-common during compilation, but it somehow produced
     # slower executables)
-    RANLIB_OPTS := -c
-endif
+    LIBTOOL_OPTS := -no_warning_for_no_symbols -c
 endif
 
 .PHONY: engexec engexec_0 engexec_1 englib
@@ -116,8 +106,11 @@ $(ENG_SO): $(OBJFILES)
 # Engine as a static library
 # TODO: how deal with ENG_DEPLIBS?
 $(ENG_A): $(OBJFILES)
-	@$(AR) $(AR_OPTS) $(ENG_A) $(OBJFILES)
-	@$(RANLIB) $(RANLIB_OPTS) $(ENG_A)
+ifeq ($(CC),emcc) # Mimick libtool for emcc
+	@llvm-ar cr $(ENG_A) $(OBJFILES) && llvm-ranlib $(ENG_A)
+else
+	@$(LIBTOOL) -static $(LIBTOOL_OPTS) -o $(ENG_A) $(OBJFILES)
+endif
 
 # TODO: partial-link all OBJFILES in a single .o (useful?)
 #       where LDCOMBINE=-r

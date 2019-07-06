@@ -15,9 +15,9 @@ else
 fi
 echo "{Type 'run' to start the program}"
 if command -v gdb > /dev/null 2>&1; then
-    CIAOCCONFIG=${_carbase}/configuration gdb --silent -d ${_carbase}/c/engine --args ${_carbase}/arch "$@" -C ${_carbase}/noarch ${CIAORTOPTS}
+    CIAOCCONFIG=${_carbase}/cfg/DEFAULT gdb --silent -d ${_carbase}/c/engine --args ${_carbase}/arch "$@" -C ${_carbase}/noarch ${CIAORTOPTS}
 elif command -v lldb > /dev/null 2>&1; then
-    CIAOCCONFIG=${_carbase}/configuration lldb -- ${_carbase}/arch "$@" -C ${_carbase}/noarch ${CIAORTOPTS}
+    CIAOCCONFIG=${_carbase}/cfg/DEFAULT lldb -- ${_carbase}/arch "$@" -C ${_carbase}/noarch ${CIAORTOPTS}
 else
     echo "ERROR: no 'gdb' nor 'lldb' found" 1>&2
     exit -1
