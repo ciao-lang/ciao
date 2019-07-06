@@ -155,7 +155,7 @@ bringemu() {
     "$bin_dir"/ciao oc:comp --recursive-deps "$ciaoroot"/core_OC/cmds/comp > curr/all_modules
     for i in ${compc_exe}.car/c/engine/*.native.c; do basename "$i"; done > curr/all_cfiles
     for i in ${compc_exe}.car/c/engine/*.native.h; do basename "$i"; done > curr/all_hfiles
-    for i in ${compc_exe}.car/o/*.o; do basename "$i" .o; done > curr/all_ofiles
+    for i in ${compc_exe}.car/objs/DEFAULT/*.o; do basename "$i" .o; done > curr/all_ofiles
     EMU_BCFILES=`cat curr/all_modules`
     EMU_CFILES=`cat curr/all_cfiles`
     EMU_HFILES=`cat curr/all_hfiles`
@@ -171,7 +171,7 @@ bringemu() {
 	cp ${compc_exe}.car/c/engine/${i} curr/${i}
     done
     for i in $EMU_OFILES; do
-	archdump ${compc_exe}.car/o/${i}.o > curr/${i}.o.s
+	archdump ${compc_exe}.car/objs/DEFAULT/${i}.o > curr/${i}.o.s
     done
     popd > /dev/null
 }
