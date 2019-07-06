@@ -108,8 +108,10 @@ $(ENG_SO): $(OBJFILES)
 $(ENG_A): $(OBJFILES)
 ifeq ($(CC),emcc) # Mimick libtool for emcc
 	@llvm-ar cr $(ENG_A) $(OBJFILES) && llvm-ranlib $(ENG_A)
-else
+else ifeq ($(shell uname -s),Darwin)
 	@$(LIBTOOL) -static $(LIBTOOL_OPTS) -o $(ENG_A) $(OBJFILES)
+else
+	@ar -c -r $(ENG_A) $(OBJFILES) && ranlib $(ENG_A)
 endif
 
 # TODO: partial-link all OBJFILES in a single .o (useful?)

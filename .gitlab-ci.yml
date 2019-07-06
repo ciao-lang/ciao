@@ -9,7 +9,7 @@ stages:
   - test
 
 before_script:
-  - apk --update add git curl tar make libtool
+  - apk --update add git make tar curl
 
 configure:
   stage: config
