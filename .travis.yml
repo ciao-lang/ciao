@@ -99,7 +99,7 @@ before_install:
   - if [ $TRAVIS_OS_NAME == linux ] && [ $CC == gcc ]; then export CC=gcc-8; export CXX=g++-8; fi # otherwise gcc points to old gcc
   - # if [ $CC == clang ] && [ $TRAVIS_OS_NAME == osx ]; then brew install llvm; fi # && brew link --force llvm39
   - if [ $TRAVIS_OS_NAME == osx ] && [ $CC == gcc ]; then brew install gcc; brew link gcc; fi # && brew link --force llvm39
-  - if [ $TRAVIS_OS_NAME == osx ] && [ $CC == gcc ]; then export CC=gcc-8; export CXX=g++-8; fi # otherwise gcc points to clang
+  - if [ $TRAVIS_OS_NAME == osx ] && [ $CC == gcc ]; then export CC=gcc-9; export CXX=g++-9; fi # otherwise gcc points to clang
   - if [ $DEVENV == yes ] && [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install emacs; fi
   - if [ $DEVENV == yes ] && [ $TRAVIS_OS_NAME == osx ]; then echo "using default emacs"; fi # brew tap railwaycat/emacsmacport; brew install emacs-mac
   - if [ $DEVENV == yes ] && [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install texlive texinfo imagemagick; fi
