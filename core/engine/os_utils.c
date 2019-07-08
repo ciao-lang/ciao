@@ -25,9 +25,9 @@
 
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
 #if USE_ADDRINFO
-#include <windows.h>
 #include <winsock2.h>
-#else
+#include <ws2tcpip.h>
+#endif
 #endif
 
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
