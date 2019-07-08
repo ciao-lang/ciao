@@ -76,7 +76,11 @@ void enable_conditions(void) {
   SIGNAL(SIGBUS,  abortmsg);
   SIGNAL(SIGSYS, abortmsg);
 #endif
+#if defined(_WIN32) || defined(_WIN64)
+  /* No SIGPIPE MinGW */
+#else
   SIGNAL(SIGPIPE, SIG_IGN); /* handle EPIPE error codes ourselves (write()) */
+#endif
 }
 
 static void abortmsg(int rc)
