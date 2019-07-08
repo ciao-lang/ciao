@@ -138,7 +138,7 @@ trans_fd(A #\= B, Code) :-
 	;
 	    B = (X - Y) ->
 	    (
-		detect_number(X, Y, C, T) ->   % Take care of B + T and T + B
+		detect_number(X, Y, C, T), number(Y) -> % Take care of B - T % TODO: remove number(Y), add missing 'a+b<>t' for T - B
 		compile_fd_expr(A, CodeA, ResA),
 		compile_fd_expr(C, CodeC, ResC), 
 		Code = (CodeA, CodeC, 'a<>b-t'(ResA,ResC,T))
@@ -185,7 +185,7 @@ compile_fd_expr(A+B, (CodeA, CodeB, fd_term:new(Res), fd_constraints:'a+b=c'(Res
 
 %% Subtraction: constant and general expression
 compile_fd_expr(X-Y, (CodeA, fd_term:new(Res), fd_constraints:'a-t=c'(ResA, T, Res)), Res) :-
-        detect_number(X, Y, A, T), !,
+        detect_number(X, Y, A, T), number(Y), !, % TODO: remove number(Y), add missing 'a+c=t' for T-C
 	compile_fd_expr(A, CodeA, ResA).
 compile_fd_expr(A-B, (CodeA, CodeB, fd_term:new(Res), fd_constraints:'a-b=c'(ResA, ResB, Res)), Res) :- !,
 	compile_fd_expr(A, CodeA, ResA),
