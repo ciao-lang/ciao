@@ -8,6 +8,9 @@
  *  Copyright (C) 2015 Jose F. Morales, The Ciao Development Team
  */
 
+// #define USE_ADDRINFO 0
+#define USE_ADDRINFO 1
+
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -19,6 +22,13 @@
 #include <ctype.h>
 #include <errno.h>
 #include <utime.h>
+
+#if defined(_WIN32) || defined(_WIN64) /* MinGW */
+#if USE_ADDRINFO
+#include <windows.h>
+#include <winsock2.h>
+#else
+#endif
 
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
 #include <share.h> /* for our mkstemp fix */
@@ -1109,9 +1119,6 @@ CBOOL__PROTO(prolog_unix_rmdir)
 }
 
 /* --------------------------------------------------------------------------- */
-
-// #define USE_ADDRINFO 0
-#define USE_ADDRINFO 1
 
 /*
  *  current_host(?Hostname).
