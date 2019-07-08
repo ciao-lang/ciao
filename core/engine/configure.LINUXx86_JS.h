@@ -2,7 +2,7 @@
 /* Output of configure.c for LINUXx86_JS (Emscripten) platform */
 /* NOTE: Update if configure.c changes */
 
-#define BIGENDIAN 0
+#define IS_BIG_ENDIAN 0
 #define MallocBase5 0x0
 #define MIN_MEM_ALLOC_5 0x4000
 #define MallocBase4 0x0

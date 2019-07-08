@@ -287,7 +287,7 @@ void configure__fpbits(void) {
 /* ------------------------------------------------------------------------- */
 /* configure__endianness: Obtain system endianness
  * 
- * BIGENDIAN: 1 if the system is big-endian, 0 if the system is little-endian
+ * IS_BIG_ENDIAN: 1 if the system is big-endian, 0 if the system is little-endian
  */
 
 void configure__endianness(void) {
@@ -296,7 +296,7 @@ void configure__endianness(void) {
     unsigned int as_int;
   } u;
   u.as_int = 1;
-  printf("#define BIGENDIAN %d\n", (int)u.as_short[1]);
+  printf("#define IS_BIG_ENDIAN %d\n", (int)u.as_short[1]);
 }
 
 /* ------------------------------------------------------------------------- */

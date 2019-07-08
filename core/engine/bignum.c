@@ -47,7 +47,7 @@ static bignum_size_t bn_div_mod_quot_not_wanted(bignum_t *x, bignum_t *y, bignum
   SetBignumLength(P,L); \
 }
 
-#if BIGENDIAN
+#if IS_BIG_ENDIAN
 #define GetHalf(P,I) (((bignum_half_t *)(P))[((I)+1)^1])
 #else
 #define GetHalf(P,I) (((bignum_half_t *)(P))[(I)+1])
