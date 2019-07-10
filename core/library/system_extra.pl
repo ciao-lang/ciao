@@ -5,7 +5,9 @@
 :- doc(author, "Manuel Hermenegildo").
 :- doc(author, "Jose F. Morales").
 
-:- doc(module, "A convenient extension to library @lib{system}").
+:- doc(module, "This module groups some extensions to library
+   @lib{system} that have been found convenient, but which are still in
+   development, their interface has not been fixed, etc.").
 
 :- doc(bug, "Much of this should probably end up eventually in
    @lib{system}, but once we have worked out the best interface and,
@@ -263,11 +265,14 @@ compose_backup_filename(FileName, I, B) :-
 
 % TODO: merge with backup_file/1?
 :- export(move_if_diff/3).
-:- pred move_if_diff(From, To, NewOrOld) # "If @var{To} does not
-   exist of its contents are different than @var{From}, delete
-   @var{To} and rename @var{From} to @var{To}. @var{NewOrOld} is
-   unified with @tt{new} or @tt{old} depending on whether the new or
-   the old file is preserved.".
+:- pred move_if_diff(From, To, NewOrOld) 
+	: ( atm(From), atm(To) )
+       => atm(NewOrOld)
+
+# "If @var{To} does not exist, or its contents are different from
+   @var{From}, delete @var{To} and rename @var{From} to
+   @var{To}. @var{NewOrOld} is unified with @tt{new} or @tt{old}
+   depending on whether the new or the old file is preserved.".
 
 move_if_diff(From, To, NewOrOld) :-
 	% note: NewOrOld is unified at the end to ensure side-effects
@@ -320,7 +325,8 @@ set_file_owner(File, Owner) :-
 	).
 
 :- export(set_file_perms/2).
-:- pred set_file_perms(File, Perms) : perms_term(Perms) # "Set file permissions.".
+:- pred set_file_perms(File, Perms) : ( perms_term(Perms),atm(File) )
+# "Set permissions of @var{File} to @var{Perms}.".
 
 % (File can be a path)
 set_file_perms(File, Perms) :-
@@ -347,12 +353,11 @@ perms_term(perms(U, G, O)) :-
 :- export(valid_mode/1).
 :- regtype valid_mode(Mode)
 
+# "@var{Mode} is a file permissions mode.".
+
 :- doc(valid_mode(Mode), "@var{Mode} is an atom that provides a valid
    set of file permissions (a valid ``mode'').  Defined as follows:
-   @includedef{valid_mode/1} ").
-
-
-# "@var{Mode} is a file permissions mode.".
+   @includedef{valid_mode/1}").
 
 valid_mode( '' ).
 valid_mode( 'X').
