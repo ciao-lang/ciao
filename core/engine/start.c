@@ -481,7 +481,14 @@ void set_ciaoroot_directory(const char *boot_path, const char *exec_path) {
   
   /* If there is a CIAOHDIR variable, we always use its value */
   c_headers_directory = getenv("CIAOHDIR");
-  if (c_headers_directory == NULL) {
+  if (c_headers_directory != NULL) {
+#if defined(_WIN32) || defined(_WIN64)
+#warning "TODO(MinGW): check that normalize path of c_headers_directory is ok"
+    const char *aux = c_headers_directory;
+    c_headers_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
+    expand_file_name(aux,TRUE,c_headers_directory);
+#endif
+  } else { /* c_headers_directory == NULL */
     c_headers_directory = default_c_headers_dir;
   }
 }
