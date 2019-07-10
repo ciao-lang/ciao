@@ -80,14 +80,17 @@ datime_struct(datime(Year,Month,Day,Hour,Min,Sec)) :-
 %:- trust pred errno(?atm).
 %:- trust pred strerrno(?atm).
 
-:- regtype copy_option/1.
+:- export(copy_option/1).
+:- regtype copy_option(Opt)
+# "@var{Opt} is a file copy option. @includedef{copy_option/1}".
 
 copy_option(overwrite).  % overwrite
 copy_option(timestamp).  % preserve time stamp
 copy_option(symlink).    % create a symbolic link (in windows a shorcut)
 copy_option(append).     % If the target file exists, append the source to it
 
-:- regtype copy_options/1.
+:- export(copy_options/1).
+:- regtype copy_options(Opts) # "@var{Opts} is a list of file copy options.".
 
 copy_options(X) :-
 	list(X, copy_option).

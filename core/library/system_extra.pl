@@ -13,7 +13,7 @@
    here are in some cases just calls to Unix shell primitives or
    commands).").
 
-:- doc(bug, "All those predicates (including @lib{system} too) use
+:- doc(bug, "All these predicates (including @lib{system} too) use
    atoms to represent file names. This pollutes the atom table. We
    need atom garbage collection and/or native strings.").
 
@@ -29,7 +29,8 @@
 	 make_directory/2,
 	 rename_file/2,
 	 directory_files/2,
-	 using_windows/0]).
+	 using_windows/0,
+	 copy_options/1]).
 %
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(messages)).
@@ -47,10 +48,11 @@
 :- use_module(library(port_reify), [once_port_reify/2]).
 
 :- export(warn_on_nosuccess/1).
-:- pred warn_on_nosuccess(G) # "Call @var{G} (cut solutions) and show
+:- pred warn_on_nosuccess(G)
+# "Call @var{G} (cutting solutions, i.e., as @pred{once/1}) and show
    warning messages if something went wrong (failure and
    exceptions).".
-:- meta_predicate(warn_on_nosuccess(goal)).
+:- meta_predicate warn_on_nosuccess(goal).
 
 warn_on_nosuccess(G) :-
 	once_port_reify(G, Port),
@@ -71,6 +73,8 @@ ignore_nosuccess(G) :- once_port_reify(G, _).
 
 % TODO: Improve this implementation
 :- export(del_dir_if_empty/1).
+:- pred del_dir_if_empty(D) : atm
+# "Delete @var{D} if it is an empty directory.".
 del_dir_if_empty(Dir) :-
 	( empty_dir(Dir) ->
 	    delete_directory(Dir)
@@ -78,7 +82,8 @@ del_dir_if_empty(Dir) :-
 	).
 
 :- export(empty_dir/1).
-:- pred empty_dir(D) # "@var{D} is an empty directory".
+:- pred empty_dir(D) : atm(D)
+# "@var{D} is an empty directory".
 empty_dir(D) :-
 	\+ file_property(D, linkto(_)),
 	file_exists(D),
@@ -90,11 +95,10 @@ empty_dir(D) :-
 	!.
 
 :- export(move_files/2).
-:- pred move_files(Files, Dir) # "Move @var{Files} to directory
+:- pred move_files(Files, Dir) : list(atm) * atm
+# "Move @var{Files} to directory
 	@var{Dir} (note that to move only one file to a directory,
 	@pred{rename_file/2} can be used).".
-
-:- pred move_files(+list(atm), +atm).
 
 %% Need to do this better of course...
 
@@ -108,24 +112,26 @@ move_files_([File|Files], Dir) :-
 	move_files_(Files, Dir).
 
 :- export(move_file/2).
-:- pred move_file(File, Dir) # "Move @var{File} to directory
+:- pred move_file(File, Dir) : atm * atm
+# "Move @var{File} to directory
    @var{Dir}".
 move_file(File, Dir) :-
 	atom_concat(Dir, File, Target),
 	rename_file(File, Target).
 
 :- export(copy_files/2).
-:- pred copy_files(Files, Dir) # "Like @pred{copy_files/3}, with empty
-   options list.".
 
-:- pred copy_files(+list(atm), +atm).
+:- pred copy_files(Files, Dir) : list(atm) * atm
+# "Like @pred{copy_files/3}, with empty options list.".
 
 %% Need to do this better of course...
 copy_files(Files, Dir) :-
 	copy_files(Files, Dir, []).
 
 :- export(copy_files/3).
-:- pred copy_files(Files, Dir, Opts) # "Copy @var{Files} to directory
+:- pred copy_files(Files, Dir, Opts) : list(atm) * atm * copy_options
+
+# "Copy @var{Files} to directory
    @var{Dir}, using @var{Opts} as the option list for copy. See
    @pred{copy_file/3} for the list of options. Note that to move only
    one file to a directory, @pred{rename_file/2} can be used.".
@@ -136,8 +142,8 @@ copy_files([File|Files], DestDir,  CopyOptions) :-
 	copy_files(Files, DestDir, CopyOptions).
 
 :- export(copy_files_nofail/3).
-:- pred copy_files_nofail(Files, Dir, Opts) # "Like @pred{copy_files/3},
-   but do not fail in case of errors.".
+:- pred copy_files_nofail(Files, Dir, Opts) : list(atm) * atm * copy_options
+# "Like @pred{copy_files/3}, but do not fail in case of errors.".
 
 copy_files_nofail([],           _DestDir, _CopyOptions).
 copy_files_nofail([File|Files], DestDir,  CopyOptions) :-
@@ -145,10 +151,15 @@ copy_files_nofail([File|Files], DestDir,  CopyOptions) :-
 	copy_files_nofail(Files, DestDir, CopyOptions).
 
 :- export(del_file_nofail/1).
+:- pred del_file_nofail(File) : atm
+# "Like @pred{delete_file/1}, but do not fail in case of errors.".
 del_file_nofail(File) :-
 	ignore_nosuccess(delete_file(File)).
 
 :- export(del_files_nofail/1).
+:- pred del_files_nofail(Files) : list(atm)
+# "Like @pred{del_file_nofail/1}, but takes list of files in
+   @var{Files}.".
 del_files_nofail([]).
 del_files_nofail([File|Files]) :-
 	del_file_nofail(File),
@@ -196,6 +207,8 @@ del_files_nofail([File|Files]) :-
 % 	).
 
 :- export(file_to_line/2).
+:- pred file_to_line(File, Str) : list(atm) * string.
+
 file_to_line(File, Str) :-
 	file_to_string(File, Str0),
 	no_tr_nl(Str0, Str).
@@ -206,13 +219,16 @@ no_tr_nl(L, NL) :-
 no_tr_nl(L, L).
 
 :- export(replace_strings_in_file/3).
+:- pred replace_strings_in_file(Ss, F1, F2) : list(string) * atm * atm
+# "Like @pred{replace_strings/3} but from file @var{F1} to file @var{F2}.".
 replace_strings_in_file(Ss, F1, F2) :-
 	file_to_string(F1, F1S),
 	replace_strings(Ss, F1S, F2S),
 	string_to_file(F2S, F2).
 
 :- export(backup_file/1).
-:- pred backup_file(FileName) # "Save a backup copy of file @var{FileName}".
+:- pred backup_file(FileName) : atm
+# "Save a backup copy of file @var{FileName}".
 backup_file(FileName) :-
 	( file_exists(FileName) ->
 	    get_backup_filename(FileName, I, B),
@@ -248,10 +264,10 @@ compose_backup_filename(FileName, I, B) :-
 % TODO: merge with backup_file/1?
 :- export(move_if_diff/3).
 :- pred move_if_diff(From, To, NewOrOld) # "If @var{To} does not
-   exists of its contents are different than @var{From}, delete
+   exist of its contents are different than @var{From}, delete
    @var{To} and rename @var{From} to @var{To}. @var{NewOrOld} is
    unified with @tt{new} or @tt{old} depending on whether the new or
-   the old file are preserved.".
+   the old file is preserved.".
 
 move_if_diff(From, To, NewOrOld) :-
 	% note: NewOrOld is unified at the end to ensure side-effects
@@ -287,8 +303,8 @@ file_to_string_or_empty(File, Str) :-
 % TODO: missing get_file_perms
 
 :- export(set_file_owner/2).
-:- pred set_file_owner(File, Owner) # "Set user/group of a file. Do
-   nothing if @var{Owner} is free.".
+:- pred set_file_owner(+File, +Owner)
+# "Set user/group of a file.".
 
 set_file_owner(File, Owner) :-
 	( var(Owner) ->
@@ -306,8 +322,38 @@ set_file_owner(File, Owner) :-
 :- export(set_file_perms/2).
 :- pred set_file_perms(File, Perms) : perms_term(Perms) # "Set file permissions.".
 
+% (File can be a path)
+set_file_perms(File, Perms) :-
+	execmask(File, ExecMask),
+	perms_to_mode(ExecMask, Perms, Mode),
+	chmod_if_needed(File, Mode).
+
+:- export(perms_term/1).
+:- regtype perms_term(Perms)
+
+# "@var{Perms} is a term providing modes for User, Group, and
+   Others.".
+
+:- doc(perms_term(Perms), "@var{Perms} is a term providing valid
+   permissions (``modes'') for User, Group, and Others. These are all
+   @pred{valid_mode/1}s.  Defined as follows:
+   @includedef{perms_term/1}").
+
+perms_term(perms(U, G, O)) :- 
+	valid_mode(U),
+	valid_mode(G),
+	valid_mode(O).
+
 :- export(valid_mode/1).
-:- regtype valid_mode(M).
+:- regtype valid_mode(Mode)
+
+:- doc(valid_mode(Mode), "@var{Mode} is an atom that provides a valid
+   set of file permissions (a valid ``mode'').  Defined as follows:
+   @includedef{valid_mode/1} ").
+
+
+# "@var{Mode} is a file permissions mode.".
+
 valid_mode( '' ).
 valid_mode( 'X').
 valid_mode(  x ).
@@ -321,23 +367,6 @@ valid_mode(rw  ).
 valid_mode(rwX ).
 valid_mode(rwx ).
 
-:- export(perms_term/1).
-:- regtype perms_term(Perms) # "@var{Perms} provides modes for User, Group, and Others.".
-
-:- doc(perms_term(Perms), "@var{Perms} is a permissions term providing
-   valid permission modes for User, Group, and Others. Defined as
-   follows: @includedef{perms_term/1}").
-
-perms_term(perms(U, G, O)) :- 
-	valid_mode(U),
-	valid_mode(G),
-	valid_mode(O).
-
-% (File can be a path)
-set_file_perms(File, Perms) :-
-	execmask(File, ExecMask),
-	perms_to_mode(ExecMask, Perms, Mode),
-	chmod_if_needed(File, Mode).
 
 % If File is a regular file, get a mask with current execution bits
 % for user,group,other. If File is a directory, get a mask with all
@@ -549,7 +578,6 @@ exec_mask_perms(rw  , 0).
 exec_mask_perms(rwx , 0).
 exec_mask_perms(rwX , 1).
 
-:- doc(doinclude, mode_symb_bin/2). 
 mode_symb_bin( '' , 2'000).
 mode_symb_bin( 'X', 2'000).
 mode_symb_bin(  x , 2'001).
