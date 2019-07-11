@@ -24,6 +24,10 @@
 #include <utime.h>
 
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
+#include <windows.h> /* MoveFileEx() */
+#endif
+
+#if defined(_WIN32) || defined(_WIN64) /* MinGW */
 #if USE_ADDRINFO
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -959,6 +963,36 @@ CBOOL__PROTO(prolog_unix_delete)
   return TRUE;
 }
 
+#if defined(_WIN32) || defined(_WIN64) /* MinGW */
+static int unix_replace(char const *src, char const *dst) {
+  /* TODO: warning! this may not be atomic in Win32 */
+  if (MoveFileEx(src, dst, MOVEFILE_REPLACE_EXISTING)) {
+    return 0;
+  }
+
+  int error = GetLastError();
+  /* TODO: incomplete */
+  switch(error) {
+  case ERROR_FILE_NOT_FOUND:
+  case ERROR_PATH_NOT_FOUND:
+  case ERROR_BAD_PATHNAME:
+  case ERROR_DIRECTORY:
+    errno = ENOENT;
+    break;
+  case ERROR_ACCESS_DENIED:
+  case ERROR_SHARING_VIOLATION:
+    errno = EACCES;
+    break;
+  default: /* anything else */
+    errno = EINVAL;
+    break;
+  }
+
+  return -1;
+}
+#else
+#define unix_replace(S,D) rename((S),(D))
+#endif
 
 CBOOL__PROTO(prolog_unix_rename)
 {
@@ -993,7 +1027,7 @@ CBOOL__PROTO(prolog_unix_rename)
     BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(1), 2);
   }
   /* if anything fails, raise and exception */
-  if (rename(orig_name, new_name)) {
+  if (unix_replace(orig_name, new_name)) {
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case ENOENT: /* File does not exists */ 
