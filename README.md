@@ -21,11 +21,4 @@ at:
 
 
 ---
-**NOTE**: This repository is synchronized automatically from
-our public sources. **Be aware when forking** this repository:
-
- - commit ids will not be stable (history may be rewritten)
- - commit logs are still not available
- - some advanced or experimental features are not available
-
--- The Ciao Development Team
+**NOTE**: This repository is [automatically synchronized](https://github.com/ciao-lang/ciao-distro-tools) from the Ciao monorepo.
