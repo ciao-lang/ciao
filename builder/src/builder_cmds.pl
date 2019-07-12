@@ -404,7 +404,8 @@ bundle_dep(ParentBundle, Bundle) :-
 	).
 
 bundle_dep_(Bundle, Dep) :-
-	manifest_call(Bundle, dep(Dep, _)).
+	manifest_call(Bundle, dep(Dep, _)),
+	'$bundle_id'(Dep). % (so that missing (optional) bundles are ignored)
 
 :- use_module(library(bundle/bundle_paths), [bundle_path/4]).
 
