@@ -335,14 +335,15 @@ check_bundle_deps_(Bundle) :-
 	; true
 	).
 
-check_bundle_deps__(Bundle, Dep, Props) :-
-	( '$bundle_id'(Dep) -> true
-	; throw(error_msg("missing bundle `~w' (required by `~w')", [Dep, Bundle]))
-	),
+check_bundle_deps__(Bundle, Dep, Props) :- '$bundle_id'(Dep), !, % bundle is available
 	( check_bundle_constraints(Props, Dep) ->
 	    true
 	; throw(error_msg("requirements for bundle `~w' (required by `~w') are not met: ~q", [Dep, Bundle, Props]))
 	).
+check_bundle_deps__(_Bundle, _Dep, Props) :-
+	member(optional, Props), !. % ignore missing bundles if it was optional
+check_bundle_deps__(Bundle, Dep, _Props) :-
+	throw(error_msg("missing bundle `~w' (required by `~w')", [Dep, Bundle])).
 
 :- use_module(library(version_strings), [version_compare/3]).
 
