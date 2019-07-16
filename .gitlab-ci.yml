@@ -90,7 +90,7 @@ ciaopp_tests:
   allow_failure: true
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao test ciaopp
+    - ciao test ciaopp_extra
   tags:
     - ciao
   dependencies:
