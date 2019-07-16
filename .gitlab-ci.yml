@@ -79,9 +79,9 @@ incanal:
     - ./quick_run.sh
   tags:
     - ciao
-  artifacts:
-    paths:
-      - ciaopp/src/plai/incanal/tests/test_results/
+#  artifacts:
+#    paths:
+#      - ciaopp/src/plai/incanal/tests/test_results/
   dependencies:
     - ciaopp
 
