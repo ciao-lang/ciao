@@ -74,14 +74,14 @@ incanal:
   script:
     - apk add bash gnuplot # add bash for the test scripts
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - cd ciaopp_extra/tests/benchs/incanal
+    - cd ciaopp_tests/tests/incanal
     - ./compile.sh
     - ./quick_run.sh
   tags:
     - ciao
 #  artifacts:
 #    paths:
-#      - ciaopp_extra/tests/benchs/incanal/test_results/
+#      - ciaopp_tests/tests/incanal/test_results/
   dependencies:
     - ciaopp
 

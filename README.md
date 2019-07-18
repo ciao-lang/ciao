@@ -3,22 +3,38 @@
 
 # The Ciao Programming Language
 
-This is the main source code repository for
-[Ciao](https://ciao-lang.org). It contains the compiler, standard
-libraries, and build system. 
+[Ciao](https://ciao-lang.org) is a programming language that builds up
+from a logic-based simple kernel, and is designed to be extensible and
+modular. Its supports:
 
-The rest of components are distributed as separate bundles. See
-[devenv](https://github.com/ciao-lang/devenv) for a full Emacs-based
-development environment, and repositories at
-[ciao-lang](https://github.com/ciao-lang) for more bundles.
+ - **constraint** logic programming (and, in particular, **Prolog**)
+ - different levels of modularity (from small to large scale)
+   - **modules** as (analysis-friendly) compilation units
+   - **bundles** as collections of modules
+ - **packages** as modules implementing language extensions
+   (syntactic definitions, compilation options, compiler plugins)
+ - **assertions** (as an homogeneous framework that allows static and
+   dynamic verification to work cooperatively in a unified way)
+ - **multiparadigm** constructs (meta-programming, higher-order,
+   mutables, concurrency, functions, etc.) and interfacing with
+   **foreign** code
 
-Please find detailed system description and installation instructions
-at:
+This repository contains the compiler and Ciao standard libraries.
+Together with the `builder` bundle it can be used as a *minimal* Ciao
+installation.
 
-  - [README](core/README.md)
-  - [INSTALLATION](core/INSTALLATION)
-  - [INSTALLATION_Win32](core/INSTALLATION_Win32)
+Other advanced features (such as global program analysis and
+transformations, static debugging,
+[documentation generation](https://github.com/ciao-lang/lpdoc),
+[Emacs-based development environment](https://github.com/ciao-lang/devenv),
+etc.) are provided in [separate bundles](https://github.com/ciao-lang).
 
+## Installation
+
+Please consult the [quick installation](https://ciao-lang.org/install.html)
+instructions or refer to the [INSTALLATION](core/INSTALLATION) file.
+
+-- The Ciao Development Team
 
 ---
 **NOTE**: This repository is [automatically synchronized](https://github.com/ciao-lang/ciao-distro-tools) from the Ciao monorepo.
