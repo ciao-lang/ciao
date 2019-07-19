@@ -57,6 +57,15 @@ fix_symlinks() {
     done
 }
 
+# Rebuild some usermods to fix absolute paths
+# TODO: avoid absolute paths in usermods
+fix_usermods() {
+    # usermods and mods with dependency to usermods
+    rm -f "$ciaoroot"/build/cache/core.library.toplevel.toplevel_scope.* \
+          "$ciaoroot"/build/cache/core.library.toplevel.toplevel.*
+    "$ciaoroot"/builder/sh_boot/builder_boot.sh build core.shell
+}
+
 # Rebuild ciao-env and patch it to enable relocation (explicit
 # definitions for CIAOENGINE,CIAOHDIR,CIAOROOT)
 # TODO: a single CIAOROOT should be enough (or patching binaries)
@@ -89,4 +98,5 @@ cd "$ciaoroot" # (needed for installation)
 "$ciaoroot"/builder/sh_boot/builder_boot.sh configure "$@"
 fix_ciao_env
 fix_symlinks
+fix_usermods
 exec "$ciaoroot"/builder/sh_boot/builder_boot.sh "$cmd"
