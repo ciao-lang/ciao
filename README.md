@@ -34,7 +34,5 @@ etc.) are provided in [separate bundles](https://github.com/ciao-lang).
 Please consult the [quick installation](https://ciao-lang.org/install.html)
 instructions or refer to the [INSTALLATION](core/INSTALLATION) file.
 
--- The Ciao Development Team
-
 ---
 **NOTE**: This repository is [automatically synchronized](https://github.com/ciao-lang/ciao-distro-tools) from the Ciao monorepo.
