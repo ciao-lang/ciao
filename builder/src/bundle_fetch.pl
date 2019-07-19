@@ -219,6 +219,7 @@ fetch_deps(Bundle) :-
 % Missing dependencies
 missing_dep(Bundle, Dep) :-
 	manifest_call(Bundle, dep(Dep, Props)),
+	\+ member(optional, Props), % ignore missing bundle if it was optional
 	bundle_status(Dep, Status),
 	Status = missing,
 	% TODO: Not missing and not scanned? classify as missing?

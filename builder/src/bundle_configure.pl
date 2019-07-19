@@ -341,7 +341,7 @@ check_bundle_deps__(Bundle, Dep, Props) :- '$bundle_id'(Dep), !, % bundle is ava
 	; throw(error_msg("requirements for bundle `~w' (required by `~w') are not met: ~q", [Dep, Bundle, Props]))
 	).
 check_bundle_deps__(_Bundle, _Dep, Props) :-
-	member(optional, Props), !. % ignore missing bundles if it was optional
+	member(optional, Props), !. % ignore missing bundle if it was optional
 check_bundle_deps__(Bundle, Dep, _Props) :-
 	throw(error_msg("missing bundle `~w' (required by `~w')", [Dep, Bundle])).
 
