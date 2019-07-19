@@ -72,10 +72,11 @@ ciaopp:
 ciaopp_lite:
   stage: basic-bundles
   script:
+    - ./ciao-boot.sh clean ciaopp
     - mv ciaopp_extra/Manifest ciaopp_extra/Manifest-disabled
     - mv ciaopp_extra ciaopp_extra-disabled
     - ./ciao-boot.sh configure --ciao_ppl:enabled=no
-    - ./ciao-boot.sh build --bin
+    - ./ciao-boot.sh build --bin ciaopp
   tags:
     - ciao
   artifacts:
