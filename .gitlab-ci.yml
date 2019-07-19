@@ -69,6 +69,24 @@ ciaopp:
   dependencies:
     - install
 
+ciaopp_lite:
+  stage: basic-bundles
+  script:
+    - mv ciaopp_extra/Manifest ciaopp_extra/Manifest-disabled
+    - mv ciaopp_extra ciaopp_extra-disabled
+    - ./ciao-boot.sh configure --ciao_ppl:enabled=no
+    - ./ciao-boot.sh build --bin
+  tags:
+    - ciao
+  artifacts:
+    expire_in: 2h
+    untracked: true
+    paths:
+      - build-boot/
+      - build/
+  dependencies:
+    - install
+
 incanal:
   stage: test
   script:
@@ -84,6 +102,22 @@ incanal:
 #      - ciaopp_tests/tests/incanal/test_results/
   dependencies:
     - ciaopp
+
+incanal_lite:
+  stage: test
+  script:
+    - apk add bash gnuplot # add bash for the test scripts
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - cd ciaopp_tests/tests/incanal
+    - ./compile.sh
+    - ./quick_run.sh
+  tags:
+    - ciao
+#  artifacts:
+#    paths:
+#      - ciaopp_tests/tests/incanal/test_results/
+  dependencies:
+    - ciaopp_lite
 
 ciaopp_tests:
   stage: test
