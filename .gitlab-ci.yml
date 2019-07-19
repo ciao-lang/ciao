@@ -72,11 +72,11 @@ ciaopp:
 ciaopp_lite:
   stage: basic-bundles
   script:
-    - ./ciao-boot.sh clean ciaopp
-    - mv ciaopp_extra/Manifest ciaopp_extra/Manifest-disabled
-    - mv ciaopp_extra ciaopp_extra-disabled
-    - ./ciao-boot.sh configure --ciao_ppl:enabled=no
-    - ./ciao-boot.sh build --bin ciaopp
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - ciao clean ciaopp
+    - rm bndls/ciaopp_extra/ACTIVATE
+    - ciao rescan-bundles
+    - ciao build --bin ciaopp
   tags:
     - ciao
   artifacts:
@@ -93,14 +93,14 @@ incanal:
   script:
     - apk add bash gnuplot # add bash for the test scripts
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - cd ciaopp_tests/tests/incanal
+    - cd bndls/ciaopp_tests/tests/incanal
     - ./compile.sh
     - ./quick_run.sh
   tags:
     - ciao
 #  artifacts:
 #    paths:
-#      - ciaopp_tests/tests/incanal/test_results/
+#      - bndls/ciaopp_tests/tests/incanal/test_results/
   dependencies:
     - ciaopp
 
@@ -109,14 +109,14 @@ incanal_lite:
   script:
     - apk add bash gnuplot # add bash for the test scripts
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - cd ciaopp_tests/tests/incanal
+    - cd bndls/ciaopp_tests/tests/incanal
     - ./compile.sh
     - ./quick_run.sh
   tags:
     - ciao
 #  artifacts:
 #    paths:
-#      - ciaopp_tests/tests/incanal/test_results/
+#      - bndls/ciaopp_tests/tests/incanal/test_results/
   dependencies:
     - ciaopp_lite
 
