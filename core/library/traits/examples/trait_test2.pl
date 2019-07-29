@@ -1,17 +1,15 @@
-:- module(trait_test, [], [traits, assertions]).
+:- module(trait_test2, [], [traits, assertions]).
+% Version of trait_test.pl using default definitions
 
 :- trait(gadget, [
-    p1/0,
-    p2/0,
+    p1,
+    % (A.p2 :- fail),
+    (p2 :- fail),
     q/1,
     r/2
 ]).
 
 :- impl(gadget, datum0).
-
-(datum0 as gadget).p1.
-
-(datum0 as gadget).p2 :- fail.
 
 (datum0 as gadget).q(X) :- X = r1.
 
@@ -19,19 +17,15 @@
 
 :- impl(gadget, datum1/1).
 
-(datum1(_) as gadget).p1.
-
-(datum1(_) as gadget).p2 :- fail.
-
 (datum1(E1) as gadget).q(X) :- X = r1(E1).
 
 (datum1(E1) as gadget).r(X, Y) :- X = r1(E1), Y = r2.
 
 :- impl(gadget, datum2/2).
 
-(datum2(_,_) as gadget).p1.
-
-(datum2(_,_) as gadget).p2 :- fail.
+% (datum2(_,_) as gadget).p2 :- fail. % ok
+% (A as gadget).p2 :- A = datum2(_,_), fail. % ok
+% (A as gadget).p2 :- fail. % won't compile
 
 (datum2(E1,_) as gadget).q(X) :- X = r1(E1).
 
