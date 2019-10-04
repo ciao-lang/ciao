@@ -96,6 +96,7 @@ incanal:
     - cd bndls/ciaopp_tests/tests/incanal
     - ./compile.sh
     - ./quick_run.sh
+    - ./test_incanal_assrts.sh shfr
   tags:
     - ciao
 #  artifacts:
