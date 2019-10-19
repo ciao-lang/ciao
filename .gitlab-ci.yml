@@ -56,9 +56,9 @@ install:
 ciaopp:
   stage: basic-bundles
   script:
-    - # TODO: artifact too large; prebuilt 3rd party in docker base?
-    - # apk add m4 autoconf automake libtool # required for PPL build
-    - # ./ciao-boot.sh configure # --ciao_ppl:enabled=no
+    - true # TODO: artifact too large; prebuilt 3rd party in docker base?
+    - true # apk add m4 autoconf automake libtool # required for PPL build
+    - true # ./ciao-boot.sh configure # --ciao_ppl:enabled=no
     - ./ciao-boot.sh configure --ciao_ppl:enabled=no
     - ./ciao-boot.sh build --bin # builds all activated bundles (ciao_ppl, ciao_gsl included)
   tags:
