@@ -13,7 +13,7 @@ modular. Its supports:
    - **bundles** as collections of modules
  - **packages** as modules implementing language extensions
    (syntactic definitions, compilation options, compiler plugins)
- - **assertions** (as an homogeneous framework that allows static and
+ - **assertions** (as a homogeneous framework that allows static and
    dynamic verification to work cooperatively in a unified way)
  - **multiparadigm** constructs (meta-programming, higher-order,
    mutables, concurrency, functions, etc.) and interfacing with
