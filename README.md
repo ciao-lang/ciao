@@ -5,7 +5,7 @@
 
 [Ciao](https://ciao-lang.org) is a programming language that builds up
 from a logic-based simple kernel, and is designed to be extensible and
-modular. Its supports:
+modular. It supports:
 
  - **constraint** logic programming (and, in particular, **Prolog**)
  - different levels of modularity (from small to large scale)
