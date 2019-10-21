@@ -216,12 +216,16 @@ update_file_from_string(String, Path, NewOrOld) :-
 :- export(add_rpath/3).
 % Add rpaths (runtime search path for shared libraries)
 add_rpath(local_third_party, LinkerOpts0, LinkerOpts) :- !,
-	% TODO: better way to compute RelativeLibDir?
-	% (for 'ciaoc_car.pl')
-	ciao_root(CiaoRoot), % TODO: get workspace from bundle!
 	third_party_path(libdir, LibDir),
-	path_relocate(CiaoRoot, '.', LibDir, RelativeLibDir),
-	add_rpath_(RelativeLibDir, LinkerOpts0, LinkerOpts).
+	% % TODO: better way to compute RelativeLibDir?
+	% % (for 'ciaoc_car.pl')
+	% ciao_root(CiaoRoot), % TODO: get workspace from bundle!
+	% path_relocate(CiaoRoot, '.', LibDir, RelativeLibDir),
+	% add_rpath_(RelativeLibDir, LinkerOpts0, LinkerOpts),
+	%
+	% NOTE: Not using relative rpath (it is troublesome);
+	% relocation may be needed if moving third-party
+        add_rpath_(LibDir, LinkerOpts0, LinkerOpts). 
 add_rpath(executable_path, LinkerOpts0, LinkerOpts) :- !,
 	% (for 'ciaoc_sdyn')
 	% (note: not quoted here since we pass args with process_call/3)
