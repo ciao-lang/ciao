@@ -250,25 +250,7 @@ case "$CIAOOS$CIAOARCH" in
 esac
 
 # Code generation options
-OPTIM_FLAGS0="$ALIGN_FLAGS"
-case "$CIAOOS$CIAOARCH" in
-    # We are not using strict-aliasing to avoid problems in Solaris # TODO: wrong?
-    Solarisi686)    OPTIM_FLAGS0="$OPTIM_FLAGS0" ;;
-    SolarisSparc)   OPTIM_FLAGS0="$OPTIM_FLAGS0" ;;
-    SolarisSparc64) OPTIM_FLAGS0="$OPTIM_FLAGS0" ;;
-    LINUXalpha)     OPTIM_FLAGS0="$OPTIM_FLAGS0" ;;
-    #
-    *i686)     OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *x86_64)   OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *x86_JS)   OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *ppc)      OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *ppc64)    OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *Sparc)    OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *Sparc64)  OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *arm)      OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *armv4l)   OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-    *armv5tel) OPTIM_FLAGS0="-fomit-frame-pointer $OPTIM_FLAGS0" ;;
-esac
+OPTIM_FLAGS0="-fomit-frame-pointer $ALIGN_FLAGS"
 if test x"$core__OPTIM_LEVEL" = x"optimized"; then
     case "$CIAOOS$CIAOARCH" in
 	LINUXx86_JS) OPTIM_FLAGS="-fno-strict-aliasing -Oz -O3 $OPTIM_FLAGS0" ;;
@@ -285,6 +267,8 @@ case "$CIAOOS$CIAOARCH" in
     LINUXaarch64) OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
     BSDx86_64)    OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
 esac
+# Workaround bug in Darwin19/Xcode 11 (Catalina) # TODO: remove when they fix it
+OPTIM_FLAGS="-fno-stack-check $OPTIM_FLAGS"
 # Select C standard
 OPTIM_FLAGS="-Wall -Wstrict-prototypes -std=gnu11 $OPTIM_FLAGS"
 
