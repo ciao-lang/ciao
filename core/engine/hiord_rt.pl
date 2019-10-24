@@ -42,7 +42,7 @@ call(V, Args) :- calln(V, Args).
 calln(V, _) :- var(V), !, throw(error(instantiation_error, call/n-1)).
 calln(Pred, Args) :-
         Pred = 'PA'(Sh,_H,_B),
-        copy_term(Pred, 'PA'(Sh,Args,Goal)), !,
+        copy_term_nat(Pred, 'PA'(Sh,Args,Goal)), !,
         '$meta_call'(Goal).
 calln(Pred, Args) :-
         Pred = 'PA'(_Sh,H,_B),
