@@ -135,6 +135,17 @@ ciaopp_tests:
   dependencies:
     - ciaopp
 
+ciaopp_res_tests:
+  stage: test
+  allow_failure: true
+  script:
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - ciao custom_run ciaopp_extra resources_test
+  tags:
+    - ciao
+  dependencies:
+    - ciaopp
+
 lpdoc:
   stage: basic-bundles
   script:
