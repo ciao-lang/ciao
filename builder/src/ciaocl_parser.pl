@@ -163,3 +163,12 @@ cmd_rw(custom_run, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
 	Opts2 = Opts, Args2 = [Target],
 	CmdFmt2 = [target_arg].
 
+cmd_fmt(third_party_install, [raw_args]). % TODO: allow others?
+cmd_rw(third_party_install, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
+	( Args = [Target|CustomArgs] -> true
+	; throw(error_msg("'third_party_install' needs a target", []))
+	),
+	Cmd2 = third_party_install(CustomArgs),
+	Opts2 = Opts, Args2 = [Target],
+	CmdFmt2 = [target_arg].
+

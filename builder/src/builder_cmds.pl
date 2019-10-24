@@ -919,6 +919,18 @@ ask_promote_bootstrap(Eng) :-
 'cmd.grade'(custom_run(_,_), custom).
 
 % ---------------------------------------------------------------------------
+% third_party_install
+
+:- use_module(ciaobld(third_party_install), [auto_install/2]).
+% TODO: reuse 'build' command for this?
+
+'cmd.do.decl'(third_party_install(_)).
+'cmd.do'(third_party_install(_Args), Target) :- !,
+	split_target(Target, Bundle, Part),
+	% TODO: check that Bundle is a bundle and Part a 3rd party
+	third_party_install:auto_install(Bundle, Part).
+
+% ---------------------------------------------------------------------------
 % gen_pbundle
 
 % Backends for pbundle (distribution) generation 
