@@ -50,15 +50,22 @@ get_os_arch() { # (simpler version of ciao_sysconf)
     esac
 }
 
-select_src() {
-    vers=$default_vers_src
-    url=$default_url_src/$vers.tar.gz
+select_vers() { # requires: prebuilt
+    if [ $prebuilt = yes ]; then
+	vers=$default_vers_bin
+    else
+	vers=$default_vers_src
+    fi
 }
-select_bin() {
-    get_os_arch
-    cfg=$os$arch
-    vers=$default_vers_bin
-    url=$default_url_bin/ciao-$vers-$cfg.tar.gz
+
+select_url() { # requires: prebuilt, vers
+    if [ $prebuilt = yes ]; then
+	get_os_arch
+	cfg=$os$arch
+	url=$default_url_bin/ciao-$vers-$cfg.tar.gz
+    else
+	url=$default_url_src/$vers.tar.gz
+    fi
 }
 
 fetch_url() {
@@ -180,7 +187,7 @@ The selected installation is reproducible with:
 EOF
     read dummy < /dev/tty
 
-    if ! ( fetch_and_boot $opts$cmd$flags ); then
+    if ! ( fetch_and_boot $opts$cmd$flags ); then # (run in a subshell)
 	exit 1
     fi
 
@@ -189,6 +196,7 @@ EOF
 Installation is completed!
 EOF
     if [ x"$update_shell" = x"no" ]; then
+	select_vers # set 'vers' based on 'prebuilt'
 	cat <<EOF
 
 Now you can enable this installation manually with (bash, zsh):
@@ -214,21 +222,8 @@ fetch_and_boot() { # args
 	--prebuilt) shift; prebuilt=yes ;;
 	--no-prebuilt) shift; prebuilt=no ;;
     esac
-    if [ $prebuilt = yes ]; then
-	select_bin
-    else
-	select_src
-    fi
+    select_vers
     ciaoroot=$HOME/.ciaoroot/$vers
-
-    # Other commands
-    case $1 in
-	env)
-	    shift
-	    show_env
-	    exit 1
-	    ;;
-    esac
 
     # Prepare for download
     # TODO: split tar.gz into source, bin-$os$arch, etc. so that there is
@@ -246,6 +241,7 @@ EOF
     fi
     mkdir -p "$ciaoroot"
     # Download
+    select_url
     normal_message "fetching $bundle ($vers) from $url"
     fetch_url
     # Boot
