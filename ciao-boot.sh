@@ -86,8 +86,8 @@ interactive() {
     # the '--interactive' flag in the builder.
     get_os_arch
     cat <<EOF
-   ▄▄▄
- ▄▀   ▀ ▀   ▄▄▄   ▄▄▄     Default version: $default_vers_bin
+   ▄▄▄                    Default source version: $default_vers_src
+ ▄▀   ▀ ▀   ▄▄▄   ▄▄▄     Default binary version: $default_vers_bin
  █      █  █   █ █   █    Detected OS: $os
   ▀▄▄▄▀ ▀▄▄▀▄▄▀█▄▀▄▄▄▀    Detected architecture: $arch
 
@@ -192,9 +192,9 @@ EOF
 	cat <<EOF
 
 Now you can enable this installation manually with (bash, zsh):
-  eval \$(~/.ciaoroot/$default_vers_bin/build/bin/ciao-env --sh)
+  eval \$(~/.ciaoroot/$vers/build/bin/ciao-env --sh)
 or (csh):
-  eval \`~/.ciaoroot/$default_vers_bin/build/bin/ciao-env --csh\`
+  eval \`~/.ciaoroot/$vers/build/bin/ciao-env --csh\`
 EOF
     fi
     echo
