@@ -97,6 +97,7 @@ incanal:
   stage: test
   script:
     - apk add bash gnuplot # add bash for the test scripts
+    - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - cd bndls/ciaopp_tests/tests/incanal
     - ./compile.sh
@@ -130,8 +131,8 @@ ciaopp_tests:
   stage: test
   allow_failure: true
   script:
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao test ciaopp_extra
   tags:
     - ciao
@@ -142,8 +143,8 @@ ciaopp_res_tests:
   stage: test
   allow_failure: true
   script:
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao custom_run ciaopp_extra resources_test
   tags:
     - ciao
