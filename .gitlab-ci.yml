@@ -59,8 +59,10 @@ ciaopp:
     - echo # TODO: artifact too large; prebuilt 3rd party in docker base?
     - echo # apk add m4 autoconf automake libtool # required for PPL build
     - echo # ./ciao-boot.sh configure # --ciao_ppl:enabled=no
-    - ./ciao-boot.sh configure --ciao_ppl:enabled=no
-    - ./ciao-boot.sh build --bin # builds all activated bundles (ciao_ppl, ciao_gsl included)
+    - echo # ./ciao-boot.sh configure --ciao_ppl:enabled=no
+    - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
+    - ./ciao-boot.sh configure
+    - ./ciao-boot.sh build --bin # builds all activated bundles
   tags:
     - ciao
   artifacts:
@@ -129,6 +131,7 @@ ciaopp_tests:
   allow_failure: true
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
     - ciao test ciaopp_extra
   tags:
     - ciao
@@ -140,6 +143,7 @@ ciaopp_res_tests:
   allow_failure: true
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
     - ciao custom_run ciaopp_extra resources_test
   tags:
     - ciao
