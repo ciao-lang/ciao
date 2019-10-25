@@ -95,7 +95,7 @@ before_install:
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install libc6-i386 libc6-dev-i386; fi
   - if [ $TRAVIS_OS_NAME == linux ] && [ $CC == clang ]; then sudo apt-get install -y clang-3.9 clang-3.9-dev; fi
   - if [ $TRAVIS_OS_NAME == linux ] && [ $CC == gcc ]; then sudo apt-get install -y build-essential gcc-8 g++-8; fi
-  - if [ $TRAVIS_OS_NAME == linux ] && [ $CC == gcc ]; then sudo apt-get install gcc-8-multilib libc6-i386 libc6-dev-i386 g++-8-multilib; fi
+  - if [ $TRAVIS_OS_NAME == linux ] && [ $CC == gcc ]; then sudo apt-get install gcc-multilib g++-multilib gcc-8-multilib g++-8-multilib libc6-i386 libc6-dev-i386; fi
   - if [ $TRAVIS_OS_NAME == linux ] && [ $CC == gcc ]; then export CC=gcc-8; export CXX=g++-8; fi # otherwise gcc points to old gcc
   - # if [ $CC == clang ] && [ $TRAVIS_OS_NAME == osx ]; then brew install llvm; fi # && brew link --force llvm39
   - if [ $TRAVIS_OS_NAME == osx ] && [ $CC == gcc ]; then brew install gcc; brew link gcc; fi # && brew link --force llvm39
