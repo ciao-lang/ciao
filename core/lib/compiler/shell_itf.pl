@@ -119,9 +119,9 @@ process_expanded_data_list(Data0, ShMod, Ln0, Ln1) :-
 now_doing_include(source, SourceFile) :- now_doing(['Including ', SourceFile]).
 now_doing_include(package, SourceFile) :- now_doing(['Using package ', SourceFile]).
 
-now_doing(M) :- message(user, ['{'| M]).
+now_doing(M) :- message(inform, ['{'| M]).
 
-end_doing :- message(user, '}').
+end_doing :- message(inform, '}').
 
 :- use_module(library(compiler/c_itf), [module_from_base/2]).
 

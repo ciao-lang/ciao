@@ -35,7 +35,8 @@
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 :- use_module(library(terms_io), [term_write/1]).
-:- use_module(engine(messages_basic), [message/2, message_lns/4]).
+:- use_module(engine(messages_basic), [
+	message/2, message_lns/4, message_type_visible/1]).
 :- use_module(engine(runtime_control), [current_module/1]).
 :- use_module(engine(hiord_rt), [this_module/1]).
 :- use_module(engine(internals), [
@@ -2860,17 +2861,17 @@ del_compiler_pass_data :-
 
 % This predicate is called from mexpand
 module_warning(Error) :-
-	( put_doing,
+	module_warning_mess(Error, Type, MessL),
+	( put_doing(Type),
 	  current_fact(location(Src,L0,L1)) ->
 	    Location = location(Src,L0,L1)
 	; Location = none
 	),
 	( Location = none, ciaopp_expansion ->
 	    true % ignore
-	; module_warning_mess(Error, Type, MessL),
-	  ( Type = error -> set_mexpand_error ; true ),
+	; ( Type = error -> set_mexpand_error ; true ),
 	  ( Location = location(Src,L0,L1) ->
-	      put_src_if_needed(Src),
+	      put_src_if_needed(Type, Src),
 	      message_lns(Type, L0, L1, MessL)
 	  ; message(Type, MessL)
 	  )
@@ -2899,16 +2900,20 @@ module_warning_mess(short_pred_abs(PA,N), error,
 	['Predicate abstraction ',~~(PA),
 	 ' has too few arguments: should be ',N]).
 
-put_src_if_needed(Src) :-
+put_src_if_needed(Type, Src) :- message_type_visible(Type), !, % only if message is visible
+	put_src_if_needed_(Src).
+put_src_if_needed(_, _).
+
+put_src_if_needed_(Src) :-
 	current_fact(last_error_in_src(Src0), Ref), !,
 	( Src = Src0 -> true
 	; erase(Ref),
 	  message(error0, '}'),
-	  put_src_if_needed(Src)
+	  put_src_if_needed_(Src)
 	).
-put_src_if_needed(Src) :-
+put_src_if_needed_(Src) :-
 	current_fact(compiling_src(Src)), !.
-put_src_if_needed(Src) :-
+put_src_if_needed_(Src) :-
 	message(error0, ['{In ',Src]),
 	asserta_fact(last_error_in_src(Src)).
 
@@ -3582,9 +3587,10 @@ end_doing_(off) :-
 	; true
 	).
 
-put_doing :-
+put_doing(Type) :- message_type_visible(Type), !, % only if message is visible
 	current_prolog_flag(verbose_compilation, VF),
 	put_doing_(VF).
+put_doing(_).
 
 put_doing_(on).
 put_doing_(off) :-
@@ -3596,7 +3602,7 @@ put_doing_(off) :-
 put_doing_(off).
 
 error_in_lns(L0, L1, Type, Msg) :-
-	put_doing,
+	put_doing(Type),
 	( var(L0) -> message(Type, Msg)
 	; message_lns(Type, L0, L1, Msg)
 	).
