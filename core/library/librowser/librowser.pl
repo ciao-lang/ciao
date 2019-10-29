@@ -1,39 +1,14 @@
-:- module(librowser,
-	[
+:- module(librowser, [
 	    update/0,
 	    browse/2,
 	    where/1,
 	    describe/1,
-	    system_lib/1,
 	    apropos/1
-	],[assertions, regexp, datafacts]).
-
-%% ------------------------------------------------------------
-
-
-:- use_module(engine(messages_basic), [message/2]).
-:- use_module(engine(io_basic)).
-:- use_module(library(read)).
-:- use_module(library(fastrw)).
-:- use_module(library(system)).
-:- use_module(library(stream_utils), [open_input/2, close_input/1]).
-:- use_module(library(lists), [append/3]).
-:- use_module(library(fuzzy_search), [damerau_lev_dist/3]).
-:- use_module(library(pathnames), [path_concat/3]).
-
-:- use_module(engine(internals), ['$bundle_id'/1]).
-:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
-:- use_module(library(write), [writeq/1]).
-
-%% ------------------------------------------------------------
-
-:- data exports/3.
-:- data lastm/1.
-
-%% ------------------------------------------------------------
+	], [assertions, regexp, datafacts, dcg]).
 
 :- doc(author, "Angel Fernandez Pineda").
 :- doc(author, "Isabel Garcia-Contreras").
+:- doc(author, "Jose F. Morales (minor)").
 
 :- doc(title, "The Ciao library browser").
 :- doc(subtitle, "A browser tool for the Ciao toplevel shell").
@@ -84,8 +59,7 @@ yes
          should want to perform such a process after loading
          the Ciao toplevel:
 
-         @begin{verbatim}
-Ciao 0.9 #75: Fri Apr 30 19:04:24 MEST 1999
+@begin{verbatim}
 ?- use_module(library(librowser)).
 
 yes
@@ -97,6 +71,28 @@ yes
         loading @apl{ciaosh}, you may include those lines in your
         @em{.ciaorc} personal initialization file.
         ").
+
+%% ------------------------------------------------------------
+
+:- use_module(engine(messages_basic), [message/2]).
+:- use_module(engine(io_basic)).
+:- use_module(library(read)).
+:- use_module(library(fastrw)).
+:- use_module(library(system)).
+:- use_module(library(stream_utils), [open_input/2, close_input/1]).
+:- use_module(library(lists), [append/3]).
+:- use_module(library(fuzzy_search), [damerau_lev_dist/3]).
+:- use_module(library(pathnames), [path_concat/3]).
+
+:- use_module(engine(internals), ['$bundle_id'/1]).
+:- use_module(engine(internals), [itf_filename/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_path/3]).
+:- use_module(library(write), [writeq/1]).
+
+%% ------------------------------------------------------------
+
+:- data exports/3.
+:- data lastm/1.
 
 %% ------------------------------------------------------------
 %%
@@ -145,31 +141,28 @@ apropos_spec(Module:Pattern) :-
 %%
 %% ------------------------------------------------------------
 
-:- doc(update/0,
-	"This predicate will scan the Ciao @concept{system libraries} for
-	 predicate definitions. This may be done once time before
-	 calling any other predicate at this library.
+:- doc(update/0, "This predicate will scan the Ciao
+   @concept{libraries} for predicate definitions. This may be done
+   once time before calling any other predicate at this library.
 
-         update/0 will also be automatically called (once) when
-         calling any other predicate at librowser.").
+   @pred{update/0} will also be automatically called (once) when
+   calling any other predicate at librowser.").
 
-:- pred update #
-	"Creates an internal database of modules at Ciao
-	 @concept{system libraries}.".
-
+:- pred update # "Creates an internal database of modules at Ciao
+   @concept{libraries}.".
 
 update :-
 	retractall_fact(exports(_,_,_)),
-	message(user, ['Reading Ciao library info, please wait...']),
-	fail.
-update :-
-	bundle_src(_, Dir),
-	related_files_at(Dir,Dir_itf),
-	catch(extract_info_from(Dir_itf),_,true),
-	fail.
-update :-
-	message(user, ['Browser has been loaded...']),
-	nl.
+	message(note, ['Updating predicate index...']),
+	( % (failure-driven loop)
+	  '$bundle_id'(Bundle),
+	    bundle_path(Bundle, '.', Dir),
+	    itfs_from_dir(Dir, Fs, []),
+	    catch(read_itfs(Fs),_,true),
+	    fail
+	; true
+	),
+	message(note, ['Predicate index loaded']).
 
 update_when_needed :-
 	exports(_,_,_),
@@ -177,44 +170,36 @@ update_when_needed :-
 update_when_needed :-
 	update.
 
-bundle_src(Bundle, Path) :-
-	'$bundle_id'(Bundle),
-	\+ Bundle = ciao, % (skip this one, contains several)
-	bundle_path(Bundle, '.', Path).
-
 %% ------------------------------------------------------------
 
-related_files_at(Dir,Files) :-
-	directory_files(Dir,AllFiles),
-	related_files_at_aux(AllFiles,Dir,Files).
+itfs_from_dir(Dir) -->
+	{ directory_files(Dir,AllFiles) },
+	itfs_from_dir_(AllFiles,Dir).
 
-related_files_at_aux([],_,[]).
-related_files_at_aux(['.'|Nf],Dir,NNf) :-
+itfs_from_dir_([],_) --> [].
+itfs_from_dir_([F|Fs],Dir) -->
+	itfs_from_file(F,Dir),
+	itfs_from_dir_(Fs,Dir).
+
+itfs_from_file(File,_Dir) --> { ignored_file(File) }, !.
+itfs_from_file(File,Dir) -->
+	{ atom_concat(Module,'.pl',File) },
+	{ path_concat(Dir,Module,FileBase) },
+	{ itf_filename(FileBase, FileNameItf) },
+	{ file_exists(FileNameItf) },
 	!,
-	related_files_at_aux(Nf,Dir,NNf).
-related_files_at_aux(['..'|Nf],Dir,NNf) :-
+	[itf(FileNameItf,Module)].
+itfs_from_file(File,Dir) -->
+	{ path_concat(Dir,File,AbsFile) },
+	{ is_dir_nolink(AbsFile) },
+	% { file_property(AbsFile,type(directory)) },
 	!,
-	related_files_at_aux(Nf,Dir,NNf).
-related_files_at_aux([File|Nf],Dir,NNf) :-
-	atom_concat('.#',_,File),
-	!,
-	related_files_at_aux(Nf,Dir,NNf).
-related_files_at_aux([File|Nf],Dir,[itf(AbsFile,Module)|NNf]) :-
-	atom_concat(Module,'.itf',File),
-	!,
-	path_concat(Dir,File,AbsFile),
-	related_files_at_aux(Nf,Dir,NNf).
-related_files_at_aux([File|Nf],Dir,RelatedFiles) :-
-	path_concat(Dir,File,AbsFile),
-	is_dir_nolink(AbsFile),
-%	file_property(AbsFile,type(directory)),
-	!,
-	related_files_at_aux(Nf,Dir,NNf),
-	related_files_at(AbsFile, NewFiles),
-	append(NNf,NewFiles,RelatedFiles).
-related_files_at_aux([_|Nf],Dir,NNf) :-
-	!,
-	related_files_at_aux(Nf,Dir,NNf).
+	itfs_from_dir(AbsFile).
+itfs_from_file(_File,_Dir) --> [].
+
+ignored_file('.') :- !.
+ignored_file('..') :- !.
+ignored_file(F) :- atom_concat('.#',_,F), !.
 
 % TODO: copied from source_tree.pl, fix
 % FileName is a directory that is not a symbolic link
@@ -225,13 +210,13 @@ is_dir_nolink(FileName) :-
 
 %% ------------------------------------------------------------
 
-extract_info_from([]).
-extract_info_from([itf(File,Mod)|Nf]) :-
+read_itfs([]).
+read_itfs([itf(File,Mod)|Nf]) :-
 	open_input(File,IO),
-	message(user, ['{Reading interface info from ',''(Mod),'}']),
+	% message(user, ['{Reading interface info from ',''(Mod),'}']),
 	read_exports(Mod),
 	close_input(IO),
-	extract_info_from(Nf).
+	read_itfs(Nf).
 
 %% ------------------------------------------------------------
 
@@ -317,32 +302,15 @@ where(_).
 
 %% ------------------------------------------------------------
 
-:- doc(system_lib/1,
-	"It retrieves on backtracking all Ciao system libraries stored in
-         the internal database. Certainly,
-	 those which were scanned at @pred{update/0} calling.
-        ").
-
-:- pred system_lib(Module) : module_name #
-	"@var{Module} variable will be successively instantiated
-         to the system libaries stored in the internal database.".
-
-system_lib(Module) :-
-	update_when_needed,
-	exports(Module,_,_).
-
-%% ------------------------------------------------------------
-
 :- doc(describe/1,
 	"This one is used to find out which predicates were exported
-         by a given module. Very usefull when you know the library,
+         by a given module. Very useful when you know the library,
          but not the concrete predicate. For example:
 @begin{verbatim}
 ?- describe(librowser).
 Predicates at library librowser :
 
 apropos/1
-system_lib/1
 describe/1
 where/1
 browse/2
@@ -370,7 +338,7 @@ describe(_).
 
 :- doc(apropos/1,
 	"This tool makes use of @concept{regular expresions} in order
-	 to find predicate specifications. It is very usefull whether
+	 to find predicate specifications. It is very useful whether
          you can't remember the full name of a predicate.
          Regular expresions take the same format as described in
          library @lib{patterns}. Example:
