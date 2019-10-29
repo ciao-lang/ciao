@@ -165,9 +165,12 @@ message_type_visible(Type) :-
 	allowed_type(Q, Type).
 
 allowed_type(error,   error) :- !.
+allowed_type(error,   error0) :- !.
 allowed_type(warning, error) :- !.
+allowed_type(warning, error0) :- !.
 allowed_type(warning, warning) :- !.
 allowed_type(off,     error) :- !.
+allowed_type(off,     error0) :- !.
 allowed_type(off,     warning) :- !.
 allowed_type(off,     note) :- !.
 allowed_type(off,     user) :- !.
@@ -177,6 +180,7 @@ allowed_type(debug,   _).
 add_head(user, Mess, Mess) :- !. % TODO: needed?
 add_head(inform, Mess, Mess) :- !.
 add_head(debug,   Mess, Mess) :- !.
+add_head(error0, Mess, Mess) :- !.
 add_head(Type,    Mess, NewMess) :-
 	label(Type, Label),
 	NewMess = [Label|Mess].
@@ -192,6 +196,7 @@ add_lines(L0, L1, Message, ['(lns ', L0, '-', L1, ') '|Message]).
 :- doc(message_type(M), "@includedef{message_type/1}").
 
 message_type(error).
+message_type(error0). % like 'error' without any prefix
 message_type(warning).
 message_type(note). % to user_output % TODO: really?
 message_type(user). % to user % TODO: user_output? needed?
@@ -201,6 +206,7 @@ message_type(debug).
 :- pred message_output/2 :: message_type * atm.
 
 message_output(error,   user_error).
+message_output(error0,   user_error).
 message_output(warning, user_error).
 message_output(note,    user_output). % TODO: really?
 message_output(user, user). % TODO: needed?

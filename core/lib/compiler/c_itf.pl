@@ -1887,7 +1887,7 @@ check_itf_data(Base, _) :-
 	retractall_fact(module_error),
 	assertz_fact(module_error(Base)),
 	end_doing,
-	message(inform, ['{Compilation aborted}']),
+	message(error0, ['{Compilation aborted}']),
 	signal_compilation_error,
 	fail.
 
@@ -2438,10 +2438,10 @@ activate_translation(_, _, _).
 
 do_add_trans(Goal, Decl, Src, Ln0, Ln1) :-
 	( call_trans(Goal) -> true
-	; message(inform, ['{In ',Src]),
+	; message(error0, ['{In ',Src]),
 	  message_lns(warning, Ln0, Ln1,
 	              [Decl,' - declaration failed']),
-	  message(inform, '}')
+	  message(error0, '}')
 	).
 
 % (Avoid meta-expansions)
@@ -2903,18 +2903,18 @@ put_src_if_needed(Src) :-
 	current_fact(last_error_in_src(Src0), Ref), !,
 	( Src = Src0 -> true
 	; erase(Ref),
-	  message(inform, '}'),
+	  message(error0, '}'),
 	  put_src_if_needed(Src)
 	).
 put_src_if_needed(Src) :-
 	current_fact(compiling_src(Src)), !.
 put_src_if_needed(Src) :-
-	message(inform, ['{In ',Src]),
+	message(error0, ['{In ',Src]),
 	asserta_fact(last_error_in_src(Src)).
 
 end_brace_if_needed :-
 	( retract_fact(last_error_in_src(_)) ->
-	    message(inform, '}')
+	    message(error0, '}')
 	; true
 	).
 
@@ -3036,7 +3036,7 @@ use_mod_common(File, Type, Imports, ByThisModule) :-
 	gen_imports(Fake_Base),
 	retractall_fact(imports_all(Fake_Base, _)),
 	( current_fact(module_error) ->
-	    message(inform, ['{Compilation aborted}']),
+	    message(error0, ['{Compilation aborted}']),
 	    signal_compilation_error,    
 	    retractall_fact(module_error),
 	    retractall_fact(imports_pred(Fake_Base, _, _, _, _, _, _)),
@@ -3045,7 +3045,7 @@ use_mod_common(File, Type, Imports, ByThisModule) :-
 	  defines_module(Base, Module),
 	  include_dyn_imports(ByThisModule, Module, Fake_Base),
 	  ( make_delayed_dynlinks -> true % JFMC
-	  ; message(inform, ['{Dynamic link failed}'])
+	  ; message(error0, ['{Dynamic link failed}'])
 	  ),
 	  do_initialization(Module)
 	).
@@ -3060,7 +3060,7 @@ use_mod_user(File, ByThisModule) :-
 %         process_files_from_(File, in, any, 
 %                           load_compile, static_base, false, needs_reload),
 %       ( make_delayed_dynlinks -> true % JFMC
-%       ; message(inform, ['{Dynamic link failed}']),
+%       ; message(error0, ['{Dynamic link failed}']),
 %         fail
 %       ), !,
 %         base_name(File, Base),
@@ -3567,18 +3567,18 @@ now_doing(M) :-
 	current_prolog_flag(verbose_compilation, VF),
 	now_doing_(VF, M).
 
-now_doing_(on, M)  :- message(inform, ['{'| M]).
+now_doing_(on, M)  :- message(error0, ['{'| M]).
 now_doing_(off, M) :- asserta_fact(doing_what(M)).
 
 end_doing :-
 	current_prolog_flag(verbose_compilation, VF),
 	end_doing_(VF).
 
-end_doing_(on)  :- message(inform, '}').
+end_doing_(on)  :- message(error0, '}').
 end_doing_(off) :-
 	retract_fact(doing_what(M)), !,
 	( retract_fact(doing_written(M)) ->
-	    message(inform, '}')
+	    message(error0, '}')
 	; true
 	).
 
@@ -3591,7 +3591,7 @@ put_doing_(off) :-
 	current_fact(doing_what(M)), !,
 	( doing_written(M) -> true
 	; asserta_fact(doing_written(M)),
-	  message(inform, ['{'| M])
+	  message(error0, ['{'| M])
 	).
 put_doing_(off).
 

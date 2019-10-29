@@ -400,9 +400,9 @@ generate_asr_file(Base,Verb,Component) :-
 	set_output(CO),
 	( file_buffer_commit(Buffer) -> % TODO: warning on failed commit
             chmod(AsrName, Mode)
-        ; message(inform, ['{In ',PlName]),
-	  message(warning, ['cannot create ',AsrName]),
-	  message(inform, '}') % TODO: error?
+        ; message(error0, ['{In ',PlName]),
+	  message(warning, ['cannot create ',AsrName]), % TODO: error?
+	  message(error0, '}')
 	  % read_asr_file_(Base,Verb) % TODO: why? disabled --JF
 	),
 	verb_message(Verb,'}').
