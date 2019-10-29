@@ -150,7 +150,7 @@ default_shell_package(default_for_ciaosh).
 
 :- export('$shell_abort'/0). % (not a top-level command)
 '$shell_abort' :-
-	message(user, '{ Execution aborted }'),
+	message(inform, '{ Execution aborted }'),
 	% Enter toplevel again
 	shell_body,
 	shell_hook(exit),

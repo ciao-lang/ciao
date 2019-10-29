@@ -1,5 +1,6 @@
 :- module(messages_basic, [
 		message/2, message_lns/4, messages/1,
+		message_type_visible/1,
 	        lformat/1, display_list/1,
 		% regtypes
 		message_info/1, message_type/1
@@ -137,9 +138,7 @@ message(Type, Message) :-
 	message_output(Type, Output),
 	message_(Type, Output, Message).
 
-message_(Type, Output, Message) :-
-	'$quiet_flag'(Q, Q),
-	allowed_type(Q, Type), !,
+message_(Type, Output, Message) :- message_type_visible(Type), !,
 	add_head(Type, Message, MessL),
 	current_output(S),
 	set_output(Output),
@@ -147,9 +146,7 @@ message_(Type, Output, Message) :-
 	set_output(S).
 message_(_, _, _).
 
-message_lns(Type, L0, L1, Message) :-
-	'$quiet_flag'(Q, Q),
-	allowed_type(Q, Type), !,
+message_lns(Type, L0, L1, Message) :- message_type_visible(Type), !,
 	add_lines(L0, L1, Message, Messlns),
 	add_head(Type, Messlns, MessL),
 	current_output(S),
@@ -159,6 +156,14 @@ message_lns(Type, L0, L1, Message) :-
 	set_output(S).
 message_lns(_, _, _, _).
 
+:- pred message_type_visible(Type) : message_type(Type) # "Succeeds if
+  message type @var{Type} is visible according to the current value of
+  the @tt{quiet} @index{prolog flag}".
+
+message_type_visible(Type) :-
+	'$quiet_flag'(Q, Q),
+	allowed_type(Q, Type).
+
 allowed_type(error,   error) :- !.
 allowed_type(warning, error) :- !.
 allowed_type(warning, warning) :- !.
@@ -166,11 +171,11 @@ allowed_type(off,     error) :- !.
 allowed_type(off,     warning) :- !.
 allowed_type(off,     note) :- !.
 allowed_type(off,     user) :- !.
-allowed_type(off,     inform) :- !. % TODO: 'inform' is temporary
+allowed_type(off,     inform) :- !.
 allowed_type(debug,   _).
 
 add_head(user, Mess, Mess) :- !. % TODO: needed?
-add_head(inform, Mess, Mess) :- !. % TODO: 'inform' is temporary
+add_head(inform, Mess, Mess) :- !.
 add_head(debug,   Mess, Mess) :- !.
 add_head(Type,    Mess, NewMess) :-
 	label(Type, Label),
@@ -188,9 +193,9 @@ add_lines(L0, L1, Message, ['(lns ', L0, '-', L1, ') '|Message]).
 
 message_type(error).
 message_type(warning).
-message_type(note).
-message_type(user). % TODO: needed?
-message_type(inform). % TODO: 'inform' is temporary
+message_type(note). % to user_output % TODO: really?
+message_type(user). % to user % TODO: user_output? needed?
+message_type(inform). % to user_error, without any prefix
 message_type(debug).
 
 :- pred message_output/2 :: message_type * atm.
@@ -199,7 +204,7 @@ message_output(error,   user_error).
 message_output(warning, user_error).
 message_output(note,    user_output). % TODO: really?
 message_output(user, user). % TODO: needed?
-message_output(inform,  user_error). % TODO: 'inform' is temporary
+message_output(inform,  user_error).
 message_output(debug,   user_error).
 
 message_info(message_lns(Source, Ln0, Ln1, Type, Text)) :-

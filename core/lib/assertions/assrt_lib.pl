@@ -400,9 +400,9 @@ generate_asr_file(Base,Verb,Component) :-
 	set_output(CO),
 	( file_buffer_commit(Buffer) -> % TODO: warning on failed commit
             chmod(AsrName, Mode)
-        ; message(user, ['{In ',PlName]),
+        ; message(inform, ['{In ',PlName]),
 	  message(warning, ['cannot create ',AsrName]),
-	  message(user, '}') % TODO: error?
+	  message(inform, '}') % TODO: error?
 	  % read_asr_file_(Base,Verb) % TODO: why? disabled --JF
 	),
 	verb_message(Verb,'}').
@@ -507,13 +507,12 @@ imports(M, MI, F, A):- imports(M, MI, F, A, _).
 :- set_prolog_flag(multi_arity_warnings, off).
 
 verb_message(verbose,Message) :-
-	messages_basic:message(user, Message).
+	messages_basic:message(inform, Message).
 verb_message(quiet,_Message).
-/*
-verb_message(verbose,Type,Message) :-
-	messages_basic:message(Type,Message).
-verb_message(quiet,_Type,_Message).
-*/
+% verb_message(verbose,Type,Message) :-
+% 	messages_basic:message(Type,Message).
+% verb_message(quiet,_Type,_Message).
+
 :- set_prolog_flag(multi_arity_warnings, on).
 
 %% ---------------------------------------------------------------------------
@@ -580,34 +579,32 @@ normalize_assertion(M,Assrt,PD,AStatus,AType,NABody,S,LB,LE) :-
 	-> NABody = ABody
 	;  normalize_properties(ABody,NABody,M,_Functor,[],AType,S,LB,LE) ).
 
-/*
-%% ---------------------------------------------------------------------------
-:- pred normalize_assertions_debug(M,Base) :: moddesc * atm # "Same as
-   @pred{normalize_assertions/0} but it reports on the normalization
-   process by printing all assertions after normalization passes one
-   and two. If @var{M} is instantiated only information on module
-   @var{M} is printed. Otherwise information for all modules is
-   printed.".
-%% ---------------------------------------------------------------------------
-
-normalize_assertions_debug(M,Base) :-
-	normalize_assertions_debug_opts(M,Base,[]).
-
-normalize_assertions_debug_opts(M,Base,Opts) :-
-	prolog_flag(write_strings, Old, on),
-	messages_basic:message(user, ['{Normalizing assertions in ',M,' (pass one)']),
-	normalize_assertions_pass_one(M,Base),
-	messages_basic:message(user, '}'),
-	print_unformatted_assertions(_M),
-	messages_basic:message(user, ['{Normalizing assertions in ',M,' (pass two)']),
-	normalize_assertions_pass_two_opts(M,Opts),
-	messages_basic:message(user, '}'),
-        current_output(CI),
-        set_output(user_error),
-	print_unformatted_assertions(_M),
-        set_output(CI),
-	set_prolog_flag(write_strings, Old).
-*/
+% %% ---------------------------------------------------------------------------
+% :- pred normalize_assertions_debug(M,Base) :: moddesc * atm # "Same as
+%    @pred{normalize_assertions/0} but it reports on the normalization
+%    process by printing all assertions after normalization passes one
+%    and two. If @var{M} is instantiated only information on module
+%    @var{M} is printed. Otherwise information for all modules is
+%    printed.".
+% %% ---------------------------------------------------------------------------
+% 
+% normalize_assertions_debug(M,Base) :-
+% 	normalize_assertions_debug_opts(M,Base,[]).
+% 
+% normalize_assertions_debug_opts(M,Base,Opts) :-
+% 	prolog_flag(write_strings, Old, on),
+% 	messages_basic:message(inform, ['{Normalizing assertions in ',M,' (pass one)']),
+% 	normalize_assertions_pass_one(M,Base),
+% 	messages_basic:message(inform, '}'),
+% 	print_unformatted_assertions(_M),
+% 	messages_basic:message(inform, ['{Normalizing assertions in ',M,' (pass two)']),
+% 	normalize_assertions_pass_two_opts(M,Opts),
+% 	messages_basic:message(inform, '}'),
+%         current_output(CI),
+%         set_output(user_error),
+% 	print_unformatted_assertions(_M),
+%         set_output(CI),
+% 	set_prolog_flag(write_strings, Old).
 
 %% ---------------------------------------------------------------------------
 :- pred print_assertions(M) :: moddesc # "Prints the assertions stored
@@ -619,13 +616,13 @@ normalize_assertions_debug_opts(M,Base,Opts) :-
 %% ---------------------------------------------------------------------------
 
 print_assertions(M) :-
-	messages_basic:message(user, '{Printing assertions read '),
+	messages_basic:message(inform, '{Printing assertions read '),
 	assertion_read(PD,M,Status,Type,Body,Dict,_S,_LB,_LE),
 	%% Using now version in library(assrt_write)
 	write_assertion(PD,Status,Type,Body,Dict,status),
 	fail.
 print_assertions(_M) :-
-	messages_basic:message(user, '}').
+	messages_basic:message(inform, '}').
 
 %% ---------------------------------------------------------------------------
 :- pred print_unformatted_assertions(M) :: moddesc # "Prints the
@@ -636,18 +633,18 @@ print_assertions(_M) :-
 %% ---------------------------------------------------------------------------
 
 print_unformatted_assertions(M) :-
-	messages_basic:message(user, '{Printing assertions read'),
+	messages_basic:message(inform, '{Printing assertions read'),
 	assertion_read(PD,M,Status,Type,Body,Dict,_S,_LB,_LE),
 	%% Using now version in library(assrt_write)
 	local_write_assertion(PD,Status,Type,Body,Dict,status,M),
 	fail.
 print_unformatted_assertions(_M) :-
-	messages_basic:message(user, '}').
+	messages_basic:message(inform, '}').
 
 local_write_assertion(PD,Status,Type,Body,_Dict,_Flag,M) :-
 	assertion_body(PD,DP,CP,AP,GP,CO,Body),
-	messages_basic:message(user, ['(in module ',M,':)']),
-	messages_basic:message(user, [':- ',Status,' ',Type,' ',PD,
+	messages_basic:message(inform, ['(in module ',M,':)']),
+	messages_basic:message(inform, [':- ',Status,' ',Type,' ',PD,
                        ' :: ',DP,' : ',CP,' => ',AP,' + ',GP,' # ',CO]).
 
 %% ---------------------------------------------------------------------------
@@ -715,29 +712,27 @@ normalize_one_assertion_pass_one(M,Assrt,PD,AStatus,AType,NNAss,S,LB,LE) :-
 
 :- data assertion_read/9. 
 
-/*
-%% ---------------------------------------------------------------------------
-:- pred normalize_assertions_pass_two/1 # "For each assertion left by
-   @pred{normalize_assertions_pass_one/1} (except for @tt{modedef}
-   mode declarations, which are left as is) extracts all head
-   properties and modes, normalizes all body properties, adds the head
-   properties and the properties implied by the head modes to the body
-   properties, and checks that a definition (or, at least, a
-   declaration) is available for each property (issuing a warning
-   otherwise). The old (partially) normalized assertion is eliminated
-   and the fully normalized assertion is left asserted (again as an
-   @pred{assertion_read/9} fact) in its place. Body property
-   conjunctions are (currently) represented as lists to facilitate
-   processing.".
-
-:- pred normalize_assertions_pass_two_opts/2 # "Same as
-   @pred{normalize_assertions_pass_two/1} except that it admits options
-   in the second argument.".
-%% ---------------------------------------------------------------------------
-
-normalize_assertions_pass_two(M) :-
-	normalize_assertions_pass_two_opts(M,[]).
-*/
+% %% ---------------------------------------------------------------------------
+% :- pred normalize_assertions_pass_two/1 # "For each assertion left by
+%    @pred{normalize_assertions_pass_one/1} (except for @tt{modedef}
+%    mode declarations, which are left as is) extracts all head
+%    properties and modes, normalizes all body properties, adds the head
+%    properties and the properties implied by the head modes to the body
+%    properties, and checks that a definition (or, at least, a
+%    declaration) is available for each property (issuing a warning
+%    otherwise). The old (partially) normalized assertion is eliminated
+%    and the fully normalized assertion is left asserted (again as an
+%    @pred{assertion_read/9} fact) in its place. Body property
+%    conjunctions are (currently) represented as lists to facilitate
+%    processing.".
+% 
+% :- pred normalize_assertions_pass_two_opts/2 # "Same as
+%    @pred{normalize_assertions_pass_two/1} except that it admits options
+%    in the second argument.".
+% %% ---------------------------------------------------------------------------
+% 
+% normalize_assertions_pass_two(M) :-
+% 	normalize_assertions_pass_two_opts(M,[]).
 
 pass_two_not_required(modedef). %% modedefs already transformed in pass one -- leave as is
 %pass_two_not_required(test).    %% tests do not require transformation
@@ -795,20 +790,18 @@ normalize_assertion_body(M,AssrtType,UBody,_NBodyAndHead,S,LB,LE) :-
                       [AssrtType,M,UBody]),
 	fail.
 
-/*	
-% For debugging...
-report_assertion_body(ND) :-
-	prolog_flag(write_strings, Old, on),
-	assertion_body(PD,DP,CP,AP,GP,CO,ND),
-	simple_message("***~n",[]),
-	simple_message("Predicate = ~w~n",[PD]),
-	simple_message("Cmpt Info = ~w~n",[DP]),
-	simple_message("Call Info = ~w~n",[CP]),
-	simple_message("Answ Info = ~w~n",[AP]),
-	simple_message("Othe Info = ~w~n",[GP]),
-	simple_message("Comment   = ~s~n",[CO]),
-	set_prolog_flag(write_strings, Old).
-*/
+% % For debugging...
+% report_assertion_body(ND) :-
+% 	prolog_flag(write_strings, Old, on),
+% 	assertion_body(PD,DP,CP,AP,GP,CO,ND),
+% 	simple_message("***~n",[]),
+% 	simple_message("Predicate = ~w~n",[PD]),
+% 	simple_message("Cmpt Info = ~w~n",[DP]),
+% 	simple_message("Call Info = ~w~n",[CP]),
+% 	simple_message("Answ Info = ~w~n",[AP]),
+% 	simple_message("Othe Info = ~w~n",[GP]),
+% 	simple_message("Comment   = ~s~n",[CO]),
+% 	set_prolog_flag(write_strings, Old).
 
 %% ---------------------------------------------------------------------------
 % :- pred normalize_status_and_type(
