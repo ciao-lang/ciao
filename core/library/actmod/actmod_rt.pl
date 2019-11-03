@@ -1,4 +1,4 @@
-:- module(actmod_rt, [], [assertions, regtypes, hiord, fsyntax, datafacts]).
+:- module(actmod_rt, [], [assertions, regtypes, hiord_old, fsyntax, datafacts]).
 
 % :- compilation_fact(trace_actmod). % Uncomment to enable tracing (for debugging)
 

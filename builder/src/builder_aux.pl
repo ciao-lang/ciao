@@ -1,4 +1,4 @@
-:- module(_, [], [assertions, fsyntax, hiord]).
+:- module(_, [], [assertions, fsyntax, hiord_old]).
 
 % TODO: redistribute predicates from this module?
 :- doc(title,  "Auxiliary Predicates for Builder").

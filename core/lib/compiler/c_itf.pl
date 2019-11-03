@@ -1,4 +1,4 @@
-:- module(_, [], [assertions, nortchecks, hiord, define_flag, datafacts]).
+:- module(_, [], [assertions, nortchecks, hiord_old, define_flag, datafacts]).
 
 :- doc(title, "Compiler frontend").
 :- doc(author, "The Ciao Development Team").

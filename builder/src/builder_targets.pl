@@ -1,4 +1,4 @@
-:- module(_, [], [fsyntax, hiord, assertions, regtypes, isomodes, datafacts]).
+:- module(_, [], [fsyntax, hiord_old, assertions, regtypes, isomodes, datafacts]).
 
 :- doc(title, "Targets for builder").
 :- doc(author, "Jose F. Morales").

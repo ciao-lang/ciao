@@ -18,7 +18,7 @@
 		% succeeds/1,
 		attach_cut_fail/2
 	    ],
-	    [assertions, nortchecks, hiord]).
+	    [assertions, nortchecks, hiord_old]).
 
 :- use_module(engine(hiord_rt), ['$meta_call'/1]).
 :- use_module(engine(attributes)).

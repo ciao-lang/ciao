@@ -1,4 +1,4 @@
-:- module(srcdbg, [srcdbg_expand/6], [assertions]).
+:- module(srcdbg, [srcdbg_expand/6], [assertions, hiord_old]).
 
 :- use_module(library(compiler/c_itf), [location/3]).
 :- use_module(library(debugger/debugger_tr)).

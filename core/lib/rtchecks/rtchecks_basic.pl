@@ -18,7 +18,7 @@
 		lists_to_disj/2,
 		remove_element/3,
 		compound_check_props/4
-	    ], [assertions, nortchecks, dcg, hiord]).
+	    ], [assertions, nortchecks, dcg, hiord_old]).
 
 :- use_module(library(llists),     [flatten/2]).
 :- use_module(library(terms_vars), [varset/2, intersect_vars/3]).

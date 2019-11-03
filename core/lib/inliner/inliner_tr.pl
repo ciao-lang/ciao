@@ -1,6 +1,6 @@
 :- module(_, [inliner_sentence_tr/3, inliner_goal_tr/3, inline_db/4,
 		lit_clause_arity/4, in_inline_module_db/2, compound_struct/3],
-	    [assertions, hiord, dcg, datafacts]).
+	    [assertions, hiord_old, dcg, datafacts]).
 
 :- use_module(library(aggregates)).
 

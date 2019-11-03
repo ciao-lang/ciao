@@ -6,7 +6,7 @@
             generate_rtchecks/7,
             generate_rtchecks/11
         ],
-        [assertions, regtypes, nortchecks, nativeprops, isomodes, dcg, hiord, fsyntax, datafacts]).
+        [assertions, regtypes, nortchecks, nativeprops, isomodes, dcg, hiord_old, fsyntax, datafacts]).
 
 :- use_package(library(rtchecks/rtchecks_tr_library)).
 

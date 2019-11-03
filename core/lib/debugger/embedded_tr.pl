@@ -3,7 +3,7 @@
 		srcdbg_no_expand/4,
 		srcdbg_expand_decl/3,
 		srcdbg_no_expand_decl/3
-	    ], [assertions]).
+	    ], [assertions, hiord_old]).
 
 :- use_module(library(compiler/c_itf), [location/3]).
 :- use_module(library(lists),                    [reverse/2]).

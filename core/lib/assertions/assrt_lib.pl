@@ -28,7 +28,7 @@
 	    denorm_goal_prop/3
 
 	],
-	[assertions, nortchecks, basicmodes, regtypes, dcg, hiord, datafacts]).
+	[assertions, nortchecks, basicmodes, regtypes, dcg, hiord_old, datafacts]).
 
 :- doc(title,"Assertion processing library").
 

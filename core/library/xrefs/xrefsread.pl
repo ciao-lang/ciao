@@ -5,7 +5,7 @@
           set_flag/1,
 	  meta_call/3
         ],
-        [assertions, regtypes, datafacts]).
+        [assertions, regtypes, hiord_old, datafacts]).
 
 :- use_module(library(aggregates), [findall/3, setof/3]).
 

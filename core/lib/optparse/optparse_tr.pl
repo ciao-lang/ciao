@@ -1,4 +1,4 @@
-:- module(optparse_tr, [optparse_tr/3], [assertions, nortchecks, define_flag, datafacts]).
+:- module(optparse_tr, [optparse_tr/3], [assertions, nortchecks, define_flag, datafacts, hiord_old]).
 
 :- doc(author, "Edison Mera").
 :- doc(author, "Jose F. Morales (bug fixes)").

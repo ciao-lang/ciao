@@ -1,4 +1,4 @@
-:- module(http_server,[], [assertions, isomodes, dcg, hiord, doccomments, datafacts]).
+:- module(http_server,[], [assertions, isomodes, dcg, hiord_old, doccomments, datafacts]).
 
 %! \title  HTTP server
 %  \author The Ciao Development Team

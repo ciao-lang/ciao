@@ -7,6 +7,7 @@
 	],
 	[assertions,
 	 basicmodes,
+	 hiord_old,
 	 dcg,
 	 fsyntax,
 	 datafacts]).

@@ -264,7 +264,7 @@ expand_meta_of_type(pred(N), P, M, QM, Mode, NP):-
 	    functor(P, _, A),
 	    functor(NP1, NP1Name, _),
 	    functor(NP, NP1Name, A),
-	    unify_args(1, A, NP, 2, NP1)
+	    mexpand__unify_args(1, A, NP, 2, NP1)
 	; NP = NP0
 	).
 
@@ -287,19 +287,73 @@ pred_expansion((H :- B), N, M, QM, Mode, Term) :- !,
         pred_expansion_pa(H, B, N, M, QM, Mode, Term).
 % For higher-order terms, all variables are shared
 pred_expansion(P, N, M, QM, Mode, 'PA'(P,H,NG)) :-
-        nonvar(P),
-        functor(P, F, A),
-        atom(F),
-        functor(H,'',N),
-        T is N+A,
+	mexpand__missing_args(P, N, M, H, G),
         functor(G, F, T),
-        unify_args(1, A, P, 2, G), % Unify pred args skipping first
-        arg(1,H,I), % Unify first head arg
-        arg(1,G,I),
-        A2 is A+2,
-        unify_args(2, N, H, A2, G), % Unify rest head args
         atom_expansion(G, F, T, M, QM, G1, RM),
 	possibly_meta_expansion(F, T, G1, M, RM, Mode, NG, no, no).
+
+% Given P (arity A), create G (arity A+N) and H goal (arity N), where
+% H contains the N missing arguments, equivalent to the following
+% pseudocode:
+%
+%   P = F(P1,P2,P3,...Pa)
+%   H = ''(H1,H2,H3,...Hn)
+%   G = F(H1,P1,P2,...,Pa,H2,H3,...,Hn) % (hiord_old) % TODO: deprecate
+% (or)
+%   G = F(P1,P2,...,Pa,H1,H2,H3,...,Hn) % (hiord)
+%
+% If N is 0, then G = P.
+mexpand__missing_args(P, 0, _M, H, G) :- !, % (special case)
+	H = '',
+	G = P.
+mexpand__missing_args(P, N, M, H, G) :-
+	mexpand_imports(M, _, '$dummy_hiord_rt_old', 0, hiord_rt_old), % old-style argument order
+	!,
+	% decompose input goal P (of arity A)
+        nonvar(P), functor(P, F, A), atom(F),
+	% create anonymous goal H (to store variables for missing N arguments)
+        functor(H,'',N), % H: ''(H1,H2,H3,...Hn)
+	% create new goal G with N+A arity
+        T is N+A,
+        functor(G, F, T), % G: F(G1,G2,G3,...Gan)
+	%
+	% Obtain G: F(H1,P1,P2,...,Pa,H2,H3,...,Hn)
+	% (unify arguments 1..A of P with 2..A+1 of G)
+	% (P1 = G2, P2 = G3, ..., Pa = Ga1)
+        mexpand__unify_args(1, A, P, 2, G), % Unify pred args skipping first
+	% (unify argument 1 of H with argument 1 of G)
+	% (H1 = G1)
+        arg(1,H,I),
+        arg(1,G,I),
+	% (unify arguments 2..N of H with (A+2)..(A+N) of G)
+	% (H2 = Ga2, H3 = Ga3, ... Hn = Gan)
+        A2 is A+2,
+        mexpand__unify_args(2, N, H, A2, G).
+%	( A=0 -> true % TODO: irrelevant for PA, no message
+%	; display(user_error, oldstyle_pa(M,P,N,H,G)), nl(user_error)
+%	).
+mexpand__missing_args(P, N, _M, H, G) :-
+	% decompose input goal P (of arity A)
+        nonvar(P), functor(P, F, A), atom(F),
+	% create anonymous goal H (to store variables for missing N arguments)
+        functor(H,'',N), % H: ''(H1,H2,H3,...Hn)
+	% create new goal G with N+A arity
+        T is N+A,
+        functor(G, F, T), % G: F(G1,G2,G3,...Gan)
+	%
+	% Obtain G: F(H1,P1,P2,...,Pa,H2,H3,...,Hn)
+	% (unify arguments 1..A of P with 1..A of G)
+	% (P1 = G1, P2 = G2, ..., Pa = Ga)
+        mexpand__unify_args(1, A, P, 1, G), % Unify pred args
+	% (unify arguments 1..N of H with (A+1)..(A+N) of G)
+	% (H2 = Ga1, H3 = Ga3, ... Hn = Gan)
+        A1 is A+1,
+        mexpand__unify_args(1, N, H, A1, G).
+%	( A=0 -> true % TODO: irrelevant for PA, no message
+%	; display(user_error, newstyle_pa(_M,P,N,H,G)), nl(user_error)
+%	).
+%
+%:- import(io_basic, [display/2, nl/1]).
 
 pred_expansion_pa(Hh, B, N, M, QM, Mode, 'PA'(ShVs,H,NB)) :-
         head_and_shvs(Hh, H, ShVs),
@@ -320,13 +374,13 @@ check_pred(H, N, PredAbs) :-
             module_warning(big_pred_abs(PredAbs, N))
         ).
 
-unify_args(I, N,_F,_A,_G) :- I > N, !.
-unify_args(I, N, F, A, G) :- 
+mexpand__unify_args(I, N, _F, _A, _G) :- I > N, !.
+mexpand__unify_args(I, N, F, A, G) :- 
         arg(I, F, X),
         arg(A, G, X),
         I1 is I+1,
         A1 is A+1,
-        unify_args(I1, N, F, A1, G).
+        mexpand__unify_args(I1, N, F, A1, G).
 
 runtime_module_expansion(G,_Type, retract,_Primitive,_M,_QM, X, X, G) :- !.
 runtime_module_expansion(G,_Type,_Mode,_Primitive,_M,_QM, X, X, G) :-

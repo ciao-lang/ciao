@@ -38,7 +38,7 @@
 		spypoint/1,
 		trace/0
 	    ],
-	    [assertions, dcg, hiord, datafacts]).
+	    [assertions, dcg, hiord_old, datafacts]).
 
 :- use_module(library(aggregates)).
 
