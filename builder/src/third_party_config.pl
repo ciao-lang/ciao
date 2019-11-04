@@ -25,7 +25,9 @@
 % The configuration for foreign library @var{Foreign} from bundle
 % @var{Bundle} has value @var{Value} (as a string) for variable @var{Var}.
 foreign_config_str(Bundle, Foreign, Var, Value) :-
-	foreign_config_tool_path(Bundle, Foreign, CfgToolPath),
+	( foreign_config_tool_path(Bundle, Foreign, CfgToolPath) -> true
+	; throw(error(missing_foreign_config_tool(Bundle,Foreign), foreign_config_str/4))
+	),
 	process_call(CfgToolPath, [~atom_concat('--', Var)],
 	       [stdout(line(Value)), status(0)]).
 
