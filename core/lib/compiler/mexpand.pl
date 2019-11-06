@@ -54,15 +54,6 @@ body_expansion(A, M, QM, Mode, NC) :-
         current_fact(goal_trans(M,_,_)) ->
 	expand_goal(A, M, QM, NB), !,
 	body_expansion(NB, M, -, Mode, NC).
-body_expansion(Call, M, QM, Mode, NCall) :-
-        functor(Call, call, N), N > 1, % call/n
-        ( mexpand_imports(M, _, call, 2, HM) -> HM = hiord_rt ),
-        !,
-        Call =.. [_, P| LAs],
-        As =.. [''| LAs],
-        N1 is N-1,
-        meta_expansion_arg1(P, pred(N1), M, QM, Mode, true, NP, NCall,
-                            'hiord_rt:call'(NP,As)).
 body_expansion(A, M, QM, Mode, NA) :-
         atom_expansion_add_goals(A, M, QM, Mode, A1, NA, A1).
 
@@ -86,6 +77,15 @@ atom_expansion_add_goals(V, _, _, _, _, _, _) :- var(V), !, fail.
 atom_expansion_add_goals('$meta_call'(X), M, -, _Mode,
                          'hiord_rt:call'(X), G, G) :-
         accessible_in(M, hiord_rt, '$meta_call', 1), !.
+atom_expansion_add_goals(Call, M, QM, Mode, NCall, G, G) :-
+        functor(Call, call, N), N > 1, % call/n
+        ( mexpand_imports(M, _, call, 2, HM) -> HM = hiord_rt ),
+        !,
+        Call =.. [_, P| LAs],
+        As =.. [''| LAs],
+        N1 is N-1,
+        meta_expansion_arg1(P, pred(N1), M, QM, Mode, true, NP, NCall,
+                            'hiord_rt:call'(NP,As)).
 atom_expansion_add_goals(A, M, QM, Mode, NA, G, G_) :-
         functor(A, F, N),
         atom_expansion(A, F, N, M, QM, A1, RM),
@@ -205,11 +205,11 @@ meta_expansion_type_(Type, X, M, QM, Mode, Primitive, NX, NG, NG_) :-
 	( Type = list(Type2), nonvar(X), ( X = [] ; X = [_|_] ) ->
 	    meta_expansion_list(X, Type2, M, QM, Mode, Primitive, NX, NG, NG_)
 	; meta_expansion_arg1(X, Type, M, QM, Mode, Primitive, NX, NG, NG_)
-	).
+        ).
 
 meta_expansion_list(X, _, _, _, _, _, X, R, R) :-
-	var(X),
-	!.
+        var(X),
+        !.
 meta_expansion_list([], _,   _,  _,  _, _, [], R, R) :- !.
 meta_expansion_list([E|Es], Type, M, QM, Mode, Primitive, [NE|NEs], G, R) :- !,
         meta_expansion_arg1(E, Type, M, QM, Mode, Primitive, NE, G, G_),
@@ -239,9 +239,9 @@ expand_meta(A, Type, M, QM, Mode, NA) :-
         expand_meta_of_type(Type, A, M, QM, Mode, NA).
 
 expand_meta_of_type(_, Goal, _M, _QM, _Mode, Goal):-
-	var(Goal),
-	head_expansion,
-	!.
+        var(Goal),
+        head_expansion,
+        !.
 expand_meta_of_type(clause, C, M, QM,_Mode, NC) :- !,
         expand_clause(C, M, QM, assert, NC).
 expand_meta_of_type(retracting_clause, C, M, QM,_Mode, NC) :- !,
@@ -249,37 +249,37 @@ expand_meta_of_type(retracting_clause, C, M, QM,_Mode, NC) :- !,
 expand_meta_of_type(spec, S, M, QM,_Mode, NS):- !,
         spec_expansion(S, M, QM, NS).
 expand_meta_of_type(fact, Atom, M, QM, Mode, NAtom):- !,
-	atom_expansion_add_goals(Atom, M, QM, Mode, NAtom, no, no).
+        atom_expansion_add_goals(Atom, M, QM, Mode, NAtom, no, no).
 expand_meta_of_type(goal, Goal, M, QM, Mode, NGoal):- !,
-	body_expansion(Goal, M, QM, Mode, NGoal).
+        body_expansion(Goal, M, QM, Mode, NGoal).
 expand_meta_of_type(inside, Goal, M, QM, Mode, NGoal):- !,
-	body_expansion(Goal, M, QM, Mode, NGoal).
+        body_expansion(Goal, M, QM, Mode, NGoal).
 expand_meta_of_type(pred(0), Goal, M, QM, Mode, NGoal):- !,
-	body_expansion(Goal, M, QM, Mode, NGoal).
+        body_expansion(Goal, M, QM, Mode, NGoal).
 expand_meta_of_type(pred(N), P, M, QM, Mode, NP):-
         integer(N),
         pred_expansion(P, N, M, QM, Mode, NP0),
-	( ciaopp_expansion, \+ P = {_ :- _}, \+ P = (_ :- _) -> % predicate abstractions won't work
-	    NP0 = 'PA'(_,_,NP1),
-	    functor(P, _, A),
-	    functor(NP1, NP1Name, _),
-	    functor(NP, NP1Name, A),
-	    mexpand__unify_args(1, A, NP, 2, NP1)
-	; NP = NP0
-	).
+        ( ciaopp_expansion, \+ P = {_ :- _}, \+ P = (_ :- _) -> % predicate abstractions won't work
+            NP0 = 'PA'(_,_,NP1),
+            functor(P, _, A),
+            functor(NP1, NP1Name, _),
+            functor(NP, NP1Name, A),
+            mexpand__unify_args(1, A, NP, 2, NP1)
+        ; NP = NP0
+        ).
 
 expand_clause((H:-B), M, QM, Mode, (NH:-NB)):- !,
-	atom_expansion_add_goals(H, M, QM, Mode, NH, no, no),
-	body_expansion(B, M, QM, Mode, NB).
+        atom_expansion_add_goals(H, M, QM, Mode, NH, no, no),
+        body_expansion(B, M, QM, Mode, NB).
 expand_clause(H, M, QM, Mode, NH):- !,
-	atom_expansion_add_goals(H, M, QM, Mode, NH, no, no).
+        atom_expansion_add_goals(H, M, QM, Mode, NH, no, no).
 
 spec_expansion(F/A, M, QM, NF/A) :-
-	atom(F),
-	integer(A),
-	functor(G,F,A),
-	atom_expansion(G, F, A, M, QM, NG, _),
-	functor(NG,NF,A).
+        atom(F),
+        integer(A),
+        functor(G,F,A),
+        atom_expansion(G, F, A, M, QM, NG, _),
+        functor(NG,NF,A).
 
 pred_expansion({H :- B}, N, M, QM, Mode, Term) :- !,
         pred_expansion_pa(H, B, N, M, QM, Mode, Term).
@@ -287,10 +287,8 @@ pred_expansion((H :- B), N, M, QM, Mode, Term) :- !,
         pred_expansion_pa(H, B, N, M, QM, Mode, Term).
 % For higher-order terms, all variables are shared
 pred_expansion(P, N, M, QM, Mode, 'PA'(P,H,NG)) :-
-	mexpand__missing_args(P, N, M, H, G),
-        functor(G, F, T),
-        atom_expansion(G, F, T, M, QM, G1, RM),
-	possibly_meta_expansion(F, T, G1, M, RM, Mode, NG, no, no).
+        mexpand__missing_args(P, N, M, H, G),
+        atom_expansion_add_goals(G, M, QM, Mode, NG, no, no).
 
 % Given P (arity A), create G (arity A+N) and H goal (arity N), where
 % H contains the N missing arguments, equivalent to the following
@@ -304,56 +302,56 @@ pred_expansion(P, N, M, QM, Mode, 'PA'(P,H,NG)) :-
 %
 % If N is 0, then G = P.
 mexpand__missing_args(P, 0, _M, H, G) :- !, % (special case)
-	H = '',
-	G = P.
+        H = '',
+        G = P.
 mexpand__missing_args(P, N, M, H, G) :-
-	mexpand_imports(M, _, '$dummy_hiord_rt_old', 0, hiord_rt_old), % old-style argument order
-	!,
-	% decompose input goal P (of arity A)
+        mexpand_imports(M, _, '$dummy_hiord_rt_old', 0, hiord_rt_old), % old-style argument order
+        !,
+        % decompose input goal P (of arity A)
         nonvar(P), functor(P, F, A), atom(F),
-	% create anonymous goal H (to store variables for missing N arguments)
+        % create anonymous goal H (to store variables for missing N arguments)
         functor(H,'',N), % H: ''(H1,H2,H3,...Hn)
-	% create new goal G with N+A arity
+        % create new goal G with N+A arity
         T is N+A,
         functor(G, F, T), % G: F(G1,G2,G3,...Gan)
-	%
-	% Obtain G: F(H1,P1,P2,...,Pa,H2,H3,...,Hn)
-	% (unify arguments 1..A of P with 2..A+1 of G)
-	% (P1 = G2, P2 = G3, ..., Pa = Ga1)
+        %
+        % Obtain G: F(H1,P1,P2,...,Pa,H2,H3,...,Hn)
+        % (unify arguments 1..A of P with 2..A+1 of G)
+        % (P1 = G2, P2 = G3, ..., Pa = Ga1)
         mexpand__unify_args(1, A, P, 2, G), % Unify pred args skipping first
-	% (unify argument 1 of H with argument 1 of G)
-	% (H1 = G1)
+        % (unify argument 1 of H with argument 1 of G)
+        % (H1 = G1)
         arg(1,H,I),
         arg(1,G,I),
-	% (unify arguments 2..N of H with (A+2)..(A+N) of G)
-	% (H2 = Ga2, H3 = Ga3, ... Hn = Gan)
+        % (unify arguments 2..N of H with (A+2)..(A+N) of G)
+        % (H2 = Ga2, H3 = Ga3, ... Hn = Gan)
         A2 is A+2,
         mexpand__unify_args(2, N, H, A2, G).
-%	( A=0 -> true % TODO: irrelevant for PA, no message
-%	; display(user_error, oldstyle_pa(M,P,N,H,G)), nl(user_error)
-%	).
+%       ( A=0 -> true % TODO: irrelevant for PA, no message
+%       ; displayq(user_error, oldstyle_pa(M,P,N,H,G)), nl(user_error)
+%       ).
 mexpand__missing_args(P, N, _M, H, G) :-
-	% decompose input goal P (of arity A)
+        % decompose input goal P (of arity A)
         nonvar(P), functor(P, F, A), atom(F),
-	% create anonymous goal H (to store variables for missing N arguments)
+        % create anonymous goal H (to store variables for missing N arguments)
         functor(H,'',N), % H: ''(H1,H2,H3,...Hn)
-	% create new goal G with N+A arity
+        % create new goal G with N+A arity
         T is N+A,
         functor(G, F, T), % G: F(G1,G2,G3,...Gan)
-	%
-	% Obtain G: F(H1,P1,P2,...,Pa,H2,H3,...,Hn)
-	% (unify arguments 1..A of P with 1..A of G)
-	% (P1 = G1, P2 = G2, ..., Pa = Ga)
+        %
+        % Obtain G: F(H1,P1,P2,...,Pa,H2,H3,...,Hn)
+        % (unify arguments 1..A of P with 1..A of G)
+        % (P1 = G1, P2 = G2, ..., Pa = Ga)
         mexpand__unify_args(1, A, P, 1, G), % Unify pred args
-	% (unify arguments 1..N of H with (A+1)..(A+N) of G)
-	% (H2 = Ga1, H3 = Ga3, ... Hn = Gan)
+        % (unify arguments 1..N of H with (A+1)..(A+N) of G)
+        % (H2 = Ga1, H3 = Ga3, ... Hn = Gan)
         A1 is A+1,
         mexpand__unify_args(1, N, H, A1, G).
-%	( A=0 -> true % TODO: irrelevant for PA, no message
-%	; display(user_error, newstyle_pa(_M,P,N,H,G)), nl(user_error)
-%	).
+%       ( A=0 -> true % TODO: irrelevant for PA, no message
+%       ; displayq(user_error, newstyle_pa(_M,P,N,H,G)), nl(user_error)
+%       ).
 %
-%:- import(io_basic, [display/2, nl/1]).
+%:- import(io_basic, [displayq/2, nl/1]).
 
 pred_expansion_pa(Hh, B, N, M, QM, Mode, 'PA'(ShVs,H,NB)) :-
         head_and_shvs(Hh, H, ShVs),
