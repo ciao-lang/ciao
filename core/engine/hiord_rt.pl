@@ -41,11 +41,24 @@ call(V, Args) :- calln(V, Args).
 
 calln(V, _) :- var(V), !, throw(error(instantiation_error, call/n-1)).
 calln(Pred, Args) :-
-        Pred = 'PA'(Sh,_H,_B),
+        % ShEnv contains actual values while Sh,H,B contain fresh
+        % variables. This is needed to avoid copying the whole
+        % environment for every call.
+        % TODO: merge with fastcall.pl
+        Pred = 'PAEnv'(ShEnv,PA),
+        copy_term_nat(PA, 'PA'(ShEnv,Args,Goal)), !,
+        '$meta_call'(Goal).
+calln(Pred, Args) :-
+        Pred = 'PAEnv'(_ShEnv,'PA'(_Sh,H,_B)),
+        functor(H,'',N),
+        functor(Args,_,N), !, % Predicate abstraction OK, argument unif. failed
+        fail.
+calln(Pred, Args) :-
+        Pred = 'PA'(Sh,_H,_B), % TODO: Deprecate this case (without PAEnv)
         copy_term_nat(Pred, 'PA'(Sh,Args,Goal)), !,
         '$meta_call'(Goal).
 calln(Pred, Args) :-
-        Pred = 'PA'(_Sh,H,_B),
+        Pred = 'PA'(_Sh,H,_B), % TODO: Deprecate this case (without PAEnv)
         functor(H,'',N),
         functor(Args,_,N), !, % Predicate abstraction OK, argument unif. failed
         fail.

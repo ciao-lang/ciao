@@ -260,7 +260,9 @@ expand_meta_of_type(pred(N), P, M, QM, Mode, NP):-
         integer(N),
         pred_expansion(P, N, M, QM, Mode, NP0),
         ( ciaopp_expansion, \+ P = {_ :- _}, \+ P = (_ :- _) -> % predicate abstractions won't work
-            NP0 = 'PA'(_,_,NP1),
+            ( NP0 = 'PAEnv'(_,'PA'(_,_,NP1)) -> true
+            ; NP0 = 'PA'(_,_,NP1) % TODO: deprecate PA without PAEnv
+            ),
             functor(P, _, A),
             functor(NP1, NP1Name, _),
             functor(NP, NP1Name, A),
@@ -286,9 +288,10 @@ pred_expansion({H :- B}, N, M, QM, Mode, Term) :- !,
 pred_expansion((H :- B), N, M, QM, Mode, Term) :- !,
         pred_expansion_pa(H, B, N, M, QM, Mode, Term).
 % For higher-order terms, all variables are shared
-pred_expansion(P, N, M, QM, Mode, 'PA'(P,H,NG)) :-
+pred_expansion(P, N, M, QM, Mode, 'PAEnv'(P,PA)) :-
         mexpand__missing_args(P, N, M, H, G),
-        atom_expansion_add_goals(G, M, QM, Mode, NG, no, no).
+        atom_expansion_add_goals(G, M, QM, Mode, NG, no, no),
+        copy_term('PA'(P,H,NG),PA). % rename vars
 
 % Given P (arity A), create G (arity A+N) and H goal (arity N), where
 % H contains the N missing arguments, equivalent to the following
@@ -353,10 +356,11 @@ mexpand__missing_args(P, N, _M, H, G) :-
 %
 %:- import(io_basic, [displayq/2, nl/1]).
 
-pred_expansion_pa(Hh, B, N, M, QM, Mode, 'PA'(ShVs,H,NB)) :-
+pred_expansion_pa(Hh, B, N, M, QM, Mode, 'PAEnv'(ShVs,PA)) :-
         head_and_shvs(Hh, H, ShVs),
         check_pred(H, N, {Hh :- B}),
-        body_expansion(B, M, QM, Mode, NB).
+        body_expansion(B, M, QM, Mode, NB),
+        copy_term('PA'(ShVs,H,NB),PA). % rename vars
 
 head_and_shvs((ShVs-> H), H, ShVs) :- !.
 head_and_shvs(H, H, []).
