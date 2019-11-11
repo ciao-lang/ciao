@@ -840,7 +840,9 @@ restore_menu_flags(_, []).
 % would execute only the precondition we would get:
 % [assert_ctcheck=on].
 
-is_true_pa('$:'('PA'(true, _, _))).
+% TODO: avoid this!!!
+is_true_pa('$:'('PAEnv'(true,'PA'(true, _, _)))) :- !.
+is_true_pa('$:'('PA'(true, _, _))) :- !. % TODO: deprecate PA without PAEnv
 
 % TODO: cleaner
 guard_sols(P, SOL) :-
