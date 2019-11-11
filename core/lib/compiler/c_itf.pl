@@ -2366,7 +2366,8 @@ assrt_module_expansion(M, Type, Body, Dict, Defined, H, Props) :-
 % 	Trick to avoid duplicated warnings about undefined predicates:
 	comps_to_goal(Cp, Cp1, G),
 % 	This makes the syntax checking:
-	maplist((''(V1,V2) :- maplist(expand_subbody(M, Dict),V1,V2)),
+	maplist(([M,Dict] -> ''(V1,V2) :-
+                  maplist(expand_subbody(M, Dict),V1,V2)),
 	        [Co, Ca, Su, [Cp1]], Props).
 
 % Head expansion for assertions
@@ -2381,7 +2382,7 @@ assr_head_expansion(A, M, F, N, MQ, NA, Defined) :-
 	),
 	module_concat(MA, A, NA).
 
-expand_subbody(C, M, Dict, EC) :-
+expand_subbody(C, M, Dict, EC) :- % TODO: order requires hiord_old, fix
 	expand_head_body(in_assertion_body, C, M, Dict, asr, _, EC).
 % 	asbody_to_conj(CO, EC).
 
