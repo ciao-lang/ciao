@@ -4,8 +4,8 @@
 %% Copyright (C) 2006-2012 CLIP Group
 %%
 %% Authors
-%%   * Rémy Haemmerlé
-%%   * Emilio Jesús Gallego Arias
+%%   * RÃ©my HaemmerlÃ©
+%%   * Emilio JesÃºs Gallego Arias
 %%   * Jose F. Morales
 %%
 %% This program is free software; you can redistribute it and/or

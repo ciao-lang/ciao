@@ -4,10 +4,10 @@
 %% Copyright (C) 2006-2013 CLIP Group
 %%
 %% Originally written by:
-%%   * Emilio Jesús Gallego Arias
+%%   * Emilio JesÃºs Gallego Arias
 %%
 %% Modified by:
-%%   * Rémy Haemmerlé
+%%   * RÃ©my HaemmerlÃ©
 %%   * Jose F. Morales
 %%
 %% This program is free software; you can redistribute it and/or

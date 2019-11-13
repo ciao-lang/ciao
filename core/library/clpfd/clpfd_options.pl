@@ -4,7 +4,7 @@
 %% Copyright (C) 2006-2012 CLIP Group
 %%
 %% Written by:
-%%   * Rémy Haemmerlé
+%%   * RÃ©my HaemmerlÃ©
 %%   * Jose F. Morales
 %%
 %% This program is free software; you can redistribute it and/or

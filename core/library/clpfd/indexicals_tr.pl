@@ -4,7 +4,7 @@
 %% Copyright (C) 2006-2012 CLIP Group
 %%
 %% Originally written by:
-%%   * Emilio Jesús Gallego Arias
+%%   * Emilio JesÃºs Gallego Arias
 %%
 %% Modified by:
 %%   * Remy Haemmerle

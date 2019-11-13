@@ -8,7 +8,7 @@ Sudoku, also known as Number Place, is a logic-based placement
 puzzle.
 
 The aim of the puzzle is to enter a numerical digit from 1 through 9
-in each cell of a 9×9 grid made up of 3×3 subgrids (called
+in each cell of a 9Ã—9 grid made up of 3Ã—3 subgrids (called
 \"regions\"), starting with various digits given in some cells (the
 \"givens\").
 
