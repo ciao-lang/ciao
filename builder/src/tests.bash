@@ -47,9 +47,9 @@ testcomp() {
 do_common() {
     local ACTION=$1
     case ${ACTION} in
-	check) ;;
-	eval) ;;
-	*) "$bin_dir"/ciao oc:bench ${ACTION}emu ;;
+        check) ;;
+        eval) ;;
+        *) "$bin_dir"/ciao oc:bench ${ACTION}emu ;;
     esac
     do_tests checkexec ${ACTION}exec
     do_tests checkmod ${ACTION}mod
@@ -97,9 +97,9 @@ has_prop() {
     props=${2}
     test -r ${props} || return 1
     for i in `cat ${props}`; do
-	if [ ${i} == ${what} ]; then
-	    return 0
-	fi
+        if [ ${i} == ${what} ]; then
+            return 0
+        fi
     done
     return 1
 }
@@ -114,11 +114,11 @@ do_tests() {
     action=$2
     pushd "$ciaoroot"/bndls/testsuite/suite > /dev/null
     for i in *; do
-	test -d $i || continue
-	has_prop ${what} ${i}/PROPS || continue
-	pushd ${i} > /dev/null
-	"$bin_dir"/ciao oc:bench ${action} ${i}
-	popd > /dev/null
+        test -d $i || continue
+        has_prop ${what} ${i}/PROPS || continue
+        pushd ${i} > /dev/null
+        "$bin_dir"/ciao oc:bench ${action} ${i}
+        popd > /dev/null
     done
     popd > /dev/null
 }
@@ -212,8 +212,8 @@ sabsmach_min_clean() {
 
 sabsmach_min__all_compile() {
     for i in ${all}; do
-	echo "======= COMPILING $i ======="
-	sabsmach_min_test "$ciaoroot"/bndls/testsuite/sabsmach_min/${i}
+        echo "======= COMPILING $i ======="
+        sabsmach_min_test "$ciaoroot"/bndls/testsuite/sabsmach_min/${i}
     done
 }
 
@@ -222,18 +222,18 @@ sabsmach_min__all_compile_and_clean() {
     all="hello/hello comp/comp stream2/stream_dynamic_prolog stream2/stream_layered_prolog stream2/stream_naive_prolog"
 #all=$(for i in oc/*.pl; do echo oc/$(basename $i .pl); done)
     for i in ${all}; do
-	echo "======= COMPILING $i ======="
-	sabsmach_min_test "$ciaoroot"/bndls/testsuite/sabsmach_min/${i}
-	echo "======= CLEANING $i ======="
-	sabsmach_min_clean "$ciaoroot"/bndls/testsuite/sabsmach_min/${i}
+        echo "======= COMPILING $i ======="
+        sabsmach_min_test "$ciaoroot"/bndls/testsuite/sabsmach_min/${i}
+        echo "======= CLEANING $i ======="
+        sabsmach_min_clean "$ciaoroot"/bndls/testsuite/sabsmach_min/${i}
     done
 }
 
 sabsmach_min__all_clean() {
     rm -rf cache
     for i in ${all}; do
-	echo "======= CLEANING $i ======="
-	sabsmach_min_clean "$ciaoroot"/bndls/testsuite/sabsmach_min/${i}
+        echo "======= CLEANING $i ======="
+        sabsmach_min_clean "$ciaoroot"/bndls/testsuite/sabsmach_min/${i}
     done
 }
 
@@ -245,10 +245,10 @@ EOF
 
 sabsmach_min() {
     case $1 in
-	all-clean) sabsmach_min__all_clean ;;
-	all-compile) sabsmach_min__all_compile ;;
-	all-compile-and-clean) sabsmach_min__all_compile_and_clean ;;
-	*) sabsmach_min__help
+        all-clean) sabsmach_min__all_clean ;;
+        all-compile) sabsmach_min__all_compile ;;
+        all-compile-and-clean) sabsmach_min__all_compile_and_clean ;;
+        *) sabsmach_min__help
     esac
 }
 
@@ -287,9 +287,9 @@ Running test:  (options group: ${OPTGRP}, options: ${OPTS}) (date: `date`)
 EOF
     ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} emusize >> ${outfile}
     for t in 1 2 3; do
-	echo "Try ${t}"
-	echo "try: ${t}" >> ${outfile}
-	ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} do_tests evalexec evalexec >> ${outfile}
+        echo "Try ${t}"
+        echo "try: ${t}" >> ${outfile}
+        ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} do_tests evalexec evalexec >> ${outfile}
     done
 }
 
@@ -318,28 +318,28 @@ EOF
 sabsmach_vers__opts() {
     OPTGRP=${1}
     case ${OPTGRP} in
-	general)
-	    n=0
+        general)
+            n=0
             while [ ${n} -le ${GENERALOPTS} ]; do
-	        echo ${n}
-		n=$((${n}+1))
-	    done
-	    ;;
-	tags)
-	    n=1
+                echo ${n}
+                n=$((${n}+1))
+            done
+            ;;
+        tags)
+            n=1
             while [ ${n} -le ${TAGOPTS} ]; do
-	        echo "tagscheme${n}"
-		n=$((${n}+1))
-	    done
-	    ;;
+                echo "tagscheme${n}"
+                n=$((${n}+1))
+            done
+            ;;
     esac
 }
 
 sabsmach_vers__all() {
     OPTGRP=${1}
     for i in `sabsmach_vers__opts ${OPTGRP}`; do
-	OPT="${i}"
-	sabsmach_vers__prepare_test ${OPTGRP} ${OPT} && sabsmach_vers__do_test ${OPTGRP} ${OPT}
+        OPT="${i}"
+        sabsmach_vers__prepare_test ${OPTGRP} ${OPT} && sabsmach_vers__do_test ${OPTGRP} ${OPT}
     done
 }
 
@@ -361,11 +361,11 @@ sabsmach_vers() {
     cmd=${1}
     shift
     case ${cmd} in
-	clean) rm ${outfile} ;;
-	summary) sabsmach_vers__summary $* ;;
-	all) sabsmach_vers__header && sabsmach_vers__all $* ;;
-	single) sabsmach_vers__header && sabsmach_vers__prepare_test $* && sabsmach_vers__do_test $* ;;
-	*) sabsmach_vers__help
+        clean) rm ${outfile} ;;
+        summary) sabsmach_vers__summary $* ;;
+        all) sabsmach_vers__header && sabsmach_vers__all $* ;;
+        single) sabsmach_vers__header && sabsmach_vers__prepare_test $* && sabsmach_vers__do_test $* ;;
+        *) sabsmach_vers__help
     esac
 }
 

@@ -105,22 +105,22 @@ update_bootstrap() {
         bootstrap_modif_current=""
     fi
     if [ x"${bootstrap_modif_orig}" == x"${bootstrap_modif_current}" ]; then
-	submessage "Preserving bootstrap compiler"
+        submessage "Preserving bootstrap compiler"
         return 0
     else
-	submessage "Getting new bootstrap compiler"
-	rm -f ${ok_file}
-	rm -f ${ok_step_file}
-	rm -f ${bootstrap_modif}
-	delete_exe ${compb[1]}
-	if unpack_exe ${bootstrap} ${compb[1]}; then
-	    modif_time ${bootstrap} > ${bootstrap_modif}
-	else
-	    fail_message "Unpacking failed"
-	    return 1
-	fi
-	delete_exe ${comp[1]}
-	copy_exe ${compb[1]} ${comp[1]}
+        submessage "Getting new bootstrap compiler"
+        rm -f ${ok_file}
+        rm -f ${ok_step_file}
+        rm -f ${bootstrap_modif}
+        delete_exe ${compb[1]}
+        if unpack_exe ${bootstrap} ${compb[1]}; then
+            modif_time ${bootstrap} > ${bootstrap_modif}
+        else
+            fail_message "Unpacking failed"
+            return 1
+        fi
+        delete_exe ${comp[1]}
+        copy_exe ${compb[1]} ${comp[1]}
     fi
 }
 
@@ -150,36 +150,36 @@ build_comp__2() {
     rm -f ${ok_step_file}
     i=1
     while [ -t ]; do
-	i2=`expr ${i} + 1`
-	submessage ${compmessage[${i}]}
-	clean_cache
-	delete_exe ${compb[${i2}]}
-	if run_exe ${comp[${i}]} ${compopts} --bootstrap ${compb[${i2}]} ${comp_module}; then
-	    true
-	else
-	    fail_message "Compilation failed"
-	    return 1
-	fi
+        i2=`expr ${i} + 1`
+        submessage ${compmessage[${i}]}
+        clean_cache
+        delete_exe ${compb[${i2}]}
+        if run_exe ${comp[${i}]} ${compopts} --bootstrap ${compb[${i2}]} ${comp_module}; then
+            true
+        else
+            fail_message "Compilation failed"
+            return 1
+        fi
 
-	if compare_exe ${compb[${i}]} ${compb[${i2}]}; then
-	    echo > ${ok_file}
-	    echo ${i} > ${ok_step_file}
-	    delete_exe ${compcb}
-	    copy_exe ${compb[${i}]} ${compcb}
-	    delete_exe ${compc}
-	    copy_exe ${comp[${i}]} ${compc}
-	    ok_message ${okmessage[${i}]}
-	    return 0
-	else
-	    if [ ${i} -lt ${maxsteps} ]; then
-		i=${i2}
-		delete_exe ${comp[${i}]}
-		copy_exe ${compb[${i}]} ${comp[${i}]}
-	    else
-		fail_message "The compiler is incorrect! (no fixpoint found)"
-		return 1
-	    fi
-	fi
+        if compare_exe ${compb[${i}]} ${compb[${i2}]}; then
+            echo > ${ok_file}
+            echo ${i} > ${ok_step_file}
+            delete_exe ${compcb}
+            copy_exe ${compb[${i}]} ${compcb}
+            delete_exe ${compc}
+            copy_exe ${comp[${i}]} ${compc}
+            ok_message ${okmessage[${i}]}
+            return 0
+        else
+            if [ ${i} -lt ${maxsteps} ]; then
+                i=${i2}
+                delete_exe ${comp[${i}]}
+                copy_exe ${compb[${i}]} ${comp[${i}]}
+            else
+                fail_message "The compiler is incorrect! (no fixpoint found)"
+                return 1
+            fi
+        fi
     done
 }
 
@@ -191,26 +191,26 @@ fast_build_comp() {
     submessage "Warning: use at your own risk, some changes in the abstract machine and compiler may not be updated correctly!"
     rm -f ${ok_file}
     if [ -r ${ok_step_file} ]; then
-	i=`cat ${ok_step_file}`
-#	clean_cache
-#	delete_exe ${compc}
-	if run_exe ${comp[${i}]} ${compopts} --bootstrap ${compc} ${comp_module} && "$oc_scripts"/compile_native.sh "${compc}".car; then
-	    true
-	else
-	    fail_message "Compilation failed"
-	    return 1
-	fi
-	ok_message "Compilation finished"
+        i=`cat ${ok_step_file}`
+#       clean_cache
+#       delete_exe ${compc}
+        if run_exe ${comp[${i}]} ${compopts} --bootstrap ${compc} ${comp_module} && "$oc_scripts"/compile_native.sh "${compc}".car; then
+            true
+        else
+            fail_message "Compilation failed"
+            return 1
+        fi
+        ok_message "Compilation finished"
     else
-	fail_message "No valid compiler found, run build-comp before"
+        fail_message "No valid compiler found, run build-comp before"
     fi
 }
 
 status() {
     if [ -r ${ok_file} ]; then
-	ok_message ${okmessage[3]}
+        ok_message ${okmessage[3]}
     else
-	fail_message "The compiler is incorrect! (no fixpoint found)"
+        fail_message "The compiler is incorrect! (no fixpoint found)"
     fi
 }
 
@@ -231,18 +231,18 @@ stepinc() {
 stepinc_aux() {
     delete_exe ${compincb}
     if run_exe ${compc} ${compopts} --bootstrap ${compincb} ${comp_module}; then
-	true
+        true
     else
-	fail_message "Compilation failed"
-	return 1
+        fail_message "Compilation failed"
+        return 1
     fi
 
     if compare_exe ${compincb} ${compcb}; then
-	ok_message "Fixpoint found (incremental compilation seems to work)"
-	return 0
+        ok_message "Fixpoint found (incremental compilation seems to work)"
+        return 0
     else
-	fail_message "The compiler is incorrect! Incremental compilation does not work!"
-	return 1
+        fail_message "The compiler is incorrect! Incremental compilation does not work!"
+        return 1
     fi
 }
 
@@ -256,38 +256,38 @@ stepana() {
     if run_exe ${compc} ${compopts} --analyze-all --bootstrap ${compana} ${comp_module}; then
         true
     else
-	fail_message "compilation failed"
-	return 1
+        fail_message "compilation failed"
+        return 1
     fi
 }
 
 promote() {
     message "Promote"
     if [ -r ${ok_file} ]; then
-	bootstrap_backup="${backup_dir}/comp-`date +%Y%m%d%H%M%S`.tar"
-	submessage "Backing up to ${bootstrap_backup}"
-	mkdir -p "${backup_dir}" \
-	|| { fail_message "cannot create directory"; exit -1; } 
-	mv ${bootstrap} ${bootstrap_backup} \
-	|| { fail_message "cannot move"; exit -1; } 
-	pack_exe ${compcb} ${bootstrap} \
-	|| { fail_message "packing failed"; exit -1; } 
-	delete_exe ${comp[1]}
-	delete_exe ${compb[1]}
-	delete_exe ${comp[2]}
-	delete_exe ${compb[2]}
-	delete_exe ${comp[3]}
-	delete_exe ${compb[3]}
-	delete_exe ${compc}
-	delete_exe ${compcb}
-	delete_exe ${compincb}
-	ok_message "Promoted"
-	rm -f ${ok_file}
-	rm -f ${ok_step_file}
+        bootstrap_backup="${backup_dir}/comp-`date +%Y%m%d%H%M%S`.tar"
+        submessage "Backing up to ${bootstrap_backup}"
+        mkdir -p "${backup_dir}" \
+        || { fail_message "cannot create directory"; exit -1; } 
+        mv ${bootstrap} ${bootstrap_backup} \
+        || { fail_message "cannot move"; exit -1; } 
+        pack_exe ${compcb} ${bootstrap} \
+        || { fail_message "packing failed"; exit -1; } 
+        delete_exe ${comp[1]}
+        delete_exe ${compb[1]}
+        delete_exe ${comp[2]}
+        delete_exe ${compb[2]}
+        delete_exe ${comp[3]}
+        delete_exe ${compb[3]}
+        delete_exe ${compc}
+        delete_exe ${compcb}
+        delete_exe ${compincb}
+        ok_message "Promoted"
+        rm -f ${ok_file}
+        rm -f ${ok_step_file}
     else
-	fail_message "No valid new compiler found."
+        fail_message "No valid new compiler found."
         fail_message "Promoting is only allowed immediately after a successful \"build-comp\" command."
-	return 1
+        return 1
     fi
 }
 
@@ -372,14 +372,14 @@ run_exe() {
     prg=$1
     shift
     if [ ! -x ${prg}.car ]; then
-	fail_message "Cannot find ${prg} executable"
-	exit -1
+        fail_message "Cannot find ${prg} executable"
+        exit -1
     fi
     "$oc_scripts"/compile_native.sh "${prg}".car # TODO: do it when code is generated, but make sure that bootstrap does not contain 'arch', etc.
     if [ x"${stats}" = x"yes" ]; then
-	"${prg}".car/run "$@" && ( test -r "$cache_dir"/tmp/ciao__trace.txt && cat "$cache_dir"/tmp/ciao__trace.txt || true )
+        "${prg}".car/run "$@" && ( test -r "$cache_dir"/tmp/ciao__trace.txt && cat "$cache_dir"/tmp/ciao__trace.txt || true )
     else
-	"${prg}".car/run "$@"
+        "${prg}".car/run "$@"
     fi
 }
 
@@ -472,11 +472,11 @@ setup_install() {
 
 set_vervars() {
     if [ x"${VERNAME}" == x"" ]; then
-	vermsg=""
-	versuf=""
+        vermsg=""
+        versuf=""
     else
-	vermsg=" (${VERNAME} version)"
-	versuf="_${VERNAME}"
+        vermsg=" (${VERNAME} version)"
+        versuf="_${VERNAME}"
     fi
 }
 
@@ -486,10 +486,10 @@ build_comp_testing() {
     message "Building the compiler""${vermsg}"
     delete_exe ${compc}${versuf}
     if comp ${compopts} --bootstrap ${compc}${versuf} ${comp_module}; then
-	true
+        true
     else
-	fail_message "Compilation failed"
-	return 1
+        fail_message "Compilation failed"
+        return 1
     fi
 }
 
@@ -516,14 +516,14 @@ build_cmd() { # bundle cmd
     cmdexec="$cache_bin_dir"/${cmd}
     # TODO: use a directory per cmd and a PROPS file (like it is done for tests)?
     if [ -r ${cmdmain}.pl ]; then
-	case "$bundle" in
-	    core_OCjs) CIAOALIASPATH="compiler=$ciaoroot/core_OCjs/compiler" comp_testing --use-alias-path --dynexec ${cmdexec}${versuf} ${cmdmain} ;;
-	    *) comp_testing --dynexec ${cmdexec}${versuf} ${cmdmain}
-	esac
+        case "$bundle" in
+            core_OCjs) CIAOALIASPATH="compiler=$ciaoroot/core_OCjs/compiler" comp_testing --use-alias-path --dynexec ${cmdexec}${versuf} ${cmdmain} ;;
+            *) comp_testing --dynexec ${cmdexec}${versuf} ${cmdmain}
+        esac
     elif [ -r ${cmdmain}.c ]; then # TODO: port to Prolog
-	gcc -O3 -o ${cmdexec}${versuf} ${cmdmain}.c
+        gcc -O3 -o ${cmdexec}${versuf} ${cmdmain}.c
     else
-	fail_message "Not found source for ${cmd}"
+        fail_message "Not found source for ${cmd}"
     fi
 }
 
@@ -536,7 +536,7 @@ build_cmds() {
     # TODO: identify available commands automatically
     cmds="ciaodump ciaosh ciao-shell funcsize"
     for cmd in ${cmds}; do
-	build_cmd "core_OC" ${cmd}
+        build_cmd "core_OC" ${cmd}
     done
 
     # Post update cmds operations
@@ -571,13 +571,13 @@ js_backend() {
 # Get options
 while [ -t ]; do
     case $1 in
-	--cache-dir)   shift; set_cache_dir $1 ;;
-	--rtchecks)    enable_rtchecks ;;
-	--stats)       enable_stats ;;
-	--verbose)     enable_verbose ;;
-	--profile)     enable_profile ;;
-	-*)            fail_message "Unknown option '$1'"; exit -1 ;;
-	*)             break ;;
+        --cache-dir)   shift; set_cache_dir $1 ;;
+        --rtchecks)    enable_rtchecks ;;
+        --stats)       enable_stats ;;
+        --verbose)     enable_verbose ;;
+        --profile)     enable_profile ;;
+        -*)            fail_message "Unknown option '$1'"; exit -1 ;;
+        *)             break ;;
     esac
     shift
 done

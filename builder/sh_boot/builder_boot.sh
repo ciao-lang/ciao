@@ -114,24 +114,24 @@ clean_tree() {
     # with Solaris, nor -print | xargs because it is buggy
     test x"$1" = x"" && return
     find "$1"/. -name ".svn" -prune -o \( \
-	-name "*.po" -o -name "*.itf" -o -name "*.wam" \
-	-o -name "*.asr" -o -name "*.ast" \
-	-o -name "*.testout" \
-	\
-	-o -name "*.cpx" \
-	-o -name "*_glue.c" -o -name "*_inline.c" \
-	-o -name "*.o" -o -name "*.a" \
-	-o -name "*.so" -o -name "*.dll" -o -name "*.dylib" \
-	-o -name "*.class" \
-	\
-	-o -name "*.log" -o -name "*.err" \
-	-o -name "tmpciao*" \
-	\
-	-o -name "*_auto.pl" \
-	-o -name "*_co.pl" \
-	-o -name "*_co.java" \
-	\) \
-	-exec rm -f {} \;
+        -name "*.po" -o -name "*.itf" -o -name "*.wam" \
+        -o -name "*.asr" -o -name "*.ast" \
+        -o -name "*.testout" \
+        \
+        -o -name "*.cpx" \
+        -o -name "*_glue.c" -o -name "*_inline.c" \
+        -o -name "*.o" -o -name "*.a" \
+        -o -name "*.so" -o -name "*.dll" -o -name "*.dylib" \
+        -o -name "*.class" \
+        \
+        -o -name "*.log" -o -name "*.err" \
+        -o -name "tmpciao*" \
+        \
+        -o -name "*_auto.pl" \
+        -o -name "*_co.pl" \
+        -o -name "*_co.java" \
+        \) \
+        -exec rm -f {} \;
 }
 
 # Clean a whole builddir
@@ -141,13 +141,13 @@ clean_builddir() { # DIR
 
     # Safety check (clean operations are dangerous)
     if [ x"$dir" = x"" ]; then
-	cat >&2 <<EOF
+        cat >&2 <<EOF
 INTERNAL ERROR: missing argument in clean_builddir
 EOF
-	exit 1
+        exit 1
     elif [ -x "$dir" -a '(' ! -r "$dir/bundlereg/core.bundlecfg_sh" ')' ]; then
-	for i in "$dir/*"; do
-	    cat >&2 <<EOF
+        for i in "$dir/*"; do
+            cat >&2 <<EOF
 INTERNAL ERROR: suspicuous directory in clean_builddir:
 
 The directory "$dir" is not empty and does not look like a valid build
@@ -155,8 +155,8 @@ directory. For safety, this script is aborted.
 
 If correct, please clean manually the contents of the specified directory.
 EOF
-	    exit 1
-	done
+            exit 1
+        done
     fi
 
     rm -rf "$dir"
@@ -217,10 +217,10 @@ EOF
     # compilation in the whole source tree.
     # TODO: simplify when out-of-tree compilation is enabled
     for d in "$ciaoroot/"*; do
-	if [ -d "$d" ] && \
-	   [ x"`basename "$d"`" != x"third-party" ]; then
-	    clean_tree "$d"
-	fi
+        if [ -d "$d" ] && \
+           [ x"`basename "$d"`" != x"third-party" ]; then
+            clean_tree "$d"
+        fi
     done
 }
 
@@ -247,22 +247,22 @@ cmd=`echo "$cmd" | sed -e s:-:_:g`
 case "$cmd" in
     # Actions for which bootstrap is build automatically
     help|help_all|boot_build|configure|full_install|local_install|global_install|get)
-	autobuild=yes
-	;;
+        autobuild=yes
+        ;;
     # Actions for which bootstrap is rebuild automatically
     boot_rebuild)
-	autobuild=rebuild
-	;;
+        autobuild=rebuild
+        ;;
     # Actions that assume that the bootstrap is already built
     *)
-	autobuild=no
-	;;
+        autobuild=no
+        ;;
 esac
 # Replace help->help_boot
 case "$cmd" in
     help|help_all)
-	cmd="$cmd"_boot
-	;;
+        cmd="$cmd"_boot
+        ;;
 esac
 
 # If (re)build is necessary, pre-fetch configuration options for
@@ -277,11 +277,11 @@ fi
 case "$cmd" in
     # Special commands implemented in this script
     boot_build|boot_rebuild|boot_clean|realclean|emergency_clean)
-	eval cmd_"$cmd"
-	;;
+        eval cmd_"$cmd"
+        ;;
     # Actions implemented in ciao_builder
     *)
-	eng_name=$eng_name eng_cfg=`boot_eng_cfg` \
-	    autoboot_exec "$boot_builddir" "$builder_mod" "$cmd" "$@"
+        eng_name=$eng_name eng_cfg=`boot_eng_cfg` \
+            autoboot_exec "$boot_builddir" "$builder_mod" "$cmd" "$@"
 esac
 

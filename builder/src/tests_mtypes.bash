@@ -52,7 +52,7 @@ product_filename() { # relpath
     fi
 # TODO: support CIAOCCACHE
 #    if [ ! -z "${CIAOCACHEDIR:-}" ]; then
-#	printf "%s" "$CIAOCACHEDIR/"`printf "$dir" | sed 's/\./../g;s/\//./g'`".$base"
+#       printf "%s" "$CIAOCACHEDIR/"`printf "$dir" | sed 's/\./../g;s/\//./g'`".$base"
 #    else
     printf "%s" "$dir/$base"
 #    fi
@@ -71,21 +71,21 @@ cmd.check() {
     local i f
     ensure_dirs
     for i in $all_tests; do
-	echo "### Compiling $i ###"
-	copy_test "$i"
-	pushd "$outdir/$i" > /dev/null
-	if time ciaoc -x -c "$i" > "$i".err 2>&1 && \
-	    ciaoc -w "$i" > /dev/null 2>&1; then
-	    f=`product_filename "$i.wam"`
-	    if [ -f "$f" ]; then
-		cp "$f" "$i".wam
-	    else
-		echo > "$i".wam
-	    fi
-	else
-	    echo > "$i".wam
-	fi
-	popd > /dev/null
+        echo "### Compiling $i ###"
+        copy_test "$i"
+        pushd "$outdir/$i" > /dev/null
+        if time ciaoc -x -c "$i" > "$i".err 2>&1 && \
+            ciaoc -w "$i" > /dev/null 2>&1; then
+            f=`product_filename "$i.wam"`
+            if [ -f "$f" ]; then
+                cp "$f" "$i".wam
+            else
+                echo > "$i".wam
+            fi
+        else
+            echo > "$i".wam
+        fi
+        popd > /dev/null
     done
 }
 
@@ -93,21 +93,21 @@ cmd.eval() {
     local i j f
     ensure_dirs
     for i in $rt_tests; do
-	echo "### Eval of $i ###"
-	copy_test "$i"
-	pushd "$outdir/$i" > /dev/null
-	j="$i"rt
-	if ciaoc -x "$j" > /dev/null 2>&1 && \
-	   ciaoc -w "$j" > /dev/null 2>&1; then
-	    f=`product_filename "$j.wam"`
-	    if [ -f "$f" ]; then
-		cp "$f" "$j".wam
-	    else
-		echo > "$j".wam
-	    fi
-	    ( time ./"$j"; ) 2>&1
-	fi
-	popd > /dev/null
+        echo "### Eval of $i ###"
+        copy_test "$i"
+        pushd "$outdir/$i" > /dev/null
+        j="$i"rt
+        if ciaoc -x "$j" > /dev/null 2>&1 && \
+           ciaoc -w "$j" > /dev/null 2>&1; then
+            f=`product_filename "$j.wam"`
+            if [ -f "$f" ]; then
+                cp "$f" "$j".wam
+            else
+                echo > "$j".wam
+            fi
+            ( time ./"$j"; ) 2>&1
+        fi
+        popd > /dev/null
     done
 }
 
@@ -115,8 +115,8 @@ cmd.show_err() {
     local i
     ensure_dirs
     for i in $all_tests; do
-	echo "### Err of $i ###"
-	cat "$outdir/$i/$i.err"
+        echo "### Err of $i ###"
+        cat "$outdir/$i/$i.err"
     done
 }
 
@@ -124,13 +124,13 @@ cmd.show_po() {
     local i j
     ensure_dirs
     for i in $all_tests; do
-	echo "### Bytecode of $i ###"
-	cat "$outdir/$i/$i.wam"
+        echo "### Bytecode of $i ###"
+        cat "$outdir/$i/$i.wam"
     done
     for i in $rt_tests; do
-	j="$i"rt
-	echo "### Bytecode of $j ###"
-	cat "$outdir/$i/$j.wam"
+        j="$i"rt
+        echo "### Bytecode of $j ###"
+        cat "$outdir/$i/$j.wam"
     done
 }
 

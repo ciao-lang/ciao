@@ -69,10 +69,10 @@ ensure_exists() {
     local prg
     prg=$1
     if [ -r ${prg}.pl ] ; then
-	true
+        true
     else
-	echo "Program '${prg}' not found, aborting."
-	exit -1
+        echo "Program '${prg}' not found, aborting."
+        exit -1
     fi
 }
 
@@ -161,17 +161,17 @@ bringemu() {
     EMU_HFILES=`cat curr/all_hfiles`
     EMU_OFILES=`cat curr/all_ofiles`
     for i in $EMU_BCFILES; do
-	j=`escape_mod_name ${i}`
-	"$bin_dir"/ciaodump-oc --disasm ${i} > curr/${j}.emu
+        j=`escape_mod_name ${i}`
+        "$bin_dir"/ciaodump-oc --disasm ${i} > curr/${j}.emu
     done
     for i in $EMU_CFILES; do
-	cp ${compc_exe}.car/c/engine/${i} curr/${i}
+        cp ${compc_exe}.car/c/engine/${i} curr/${i}
     done
     for i in $EMU_HFILES; do
-	cp ${compc_exe}.car/c/engine/${i} curr/${i}
+        cp ${compc_exe}.car/c/engine/${i} curr/${i}
     done
     for i in $EMU_OFILES; do
-	archdump ${compc_exe}.car/objs/DEFAULT/${i}.o > curr/${i}.o.s
+        archdump ${compc_exe}.car/objs/DEFAULT/${i}.o > curr/${i}.o.s
     done
     popd > /dev/null
 }
@@ -194,17 +194,17 @@ compareemu() {
     EMU_HFILES=`cat curr/all_hfiles`
     EMU_OFILES=`cat curr/all_ofiles`
     for i in $EMU_BCFILES; do
-	j=`escape_mod_name ${i}`
-	difffiles "bytecode for ${i}" curr/${j}.emu prev/${j}.emu-0 ${mode} || ret=1
+        j=`escape_mod_name ${i}`
+        difffiles "bytecode for ${i}" curr/${j}.emu prev/${j}.emu-0 ${mode} || ret=1
     done
     for i in $EMU_CFILES; do
-	difffiles "generated C code ${i}" curr/${i} prev/${i}-0 ${mode} || ret=1
+        difffiles "generated C code ${i}" curr/${i} prev/${i}-0 ${mode} || ret=1
     done
     for i in $EMU_HFILES; do
-	difffiles "generated C header code ${i}" curr/${i} prev/${i}-0 ${mode} || ret=1
+        difffiles "generated C header code ${i}" curr/${i} prev/${i}-0 ${mode} || ret=1
     done
     for i in $EMU_OFILES; do
-	difffiles "disassembled C code ${i}.o.s" curr/${i}.o.s prev/${i}.o.s-0 ${mode} || ret=1
+        difffiles "disassembled C code ${i}.o.s" curr/${i}.o.s prev/${i}.o.s-0 ${mode} || ret=1
     done
     popd > /dev/null
     return ${ret}
@@ -242,10 +242,10 @@ checkmod() {
     # TODO: do not touch, clean the user cache!
     touch ${prg}.pl && \
         echo "Compiling module ${prg}" && \
-#	CIAORTOPTS="-proft" "$bin_dir"/ciao oc:comp --do compile ${prg} && \
-	"$bin_dir"/ciao oc:comp --comp-stats --do compile ${prg} && \
+#       CIAORTOPTS="-proft" "$bin_dir"/ciao oc:comp --do compile ${prg} && \
+        "$bin_dir"/ciao oc:comp --comp-stats --do compile ${prg} && \
         echo "Generating native code (if required) for module ${prg}" && \
-	"$bin_dir"/ciao oc:comp --do archcompile ${prg} || return 1    
+        "$bin_dir"/ciao oc:comp --do archcompile ${prg} || return 1    
     "$bin_dir"/ciaodump-oc --module compile__dump ${prg} > ${prgout}.dump.txt
     "$bin_dir"/ciaodump-oc --module compile__emu ${prg} > ${prgout}.emu.txt
     "$bin_dir"/ciaodump-oc --module compile__c ${prg} > ${prgout}.native.txt
@@ -313,12 +313,12 @@ function mtsys_checkmod() {
     pushd "$ciaoroot"/bndls/testsuite/suite/$mod/ > /dev/null
     temp=temp_${mod}_${system}
     case ${system} in
-	ciao2 ) # optimcomp without compilation to native code
-	    cpp -DSYSTEM=ciao2 -DCIAO2 -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
-	    ;;
-	ciao3 )
-	    cpp -DSYSTEM=ciao3 -DCIAO3 -DOPT_MASK=63 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
-	    ;;
+        ciao2 ) # optimcomp without compilation to native code
+            cpp -DSYSTEM=ciao2 -DCIAO2 -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
+            ;;
+        ciao3 )
+            cpp -DSYSTEM=ciao3 -DCIAO3 -DOPT_MASK=63 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
+            ;;
     esac
     popd > /dev/null
     pushd ${mtsys_outdir} > /dev/null
@@ -372,130 +372,130 @@ function mtsys_evalmod() {
 #    echo "test: ${mod}"
 
     case ${system} in
-	ciao ) # default ciaoc
-	    rm -f ${mtsys_outdir}/${temp}.itf
-	    rm -f ${mtsys_outdir}/${temp}.po
-	    cpp -DSYSTEM=ciao -DCIAO -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
-	    ciaoc ${mtsys_outdir}/${temp}.pl
-	    ${mtsys_outdir}/${temp}
-	    sizefield "${mtsys_outdir}/${temp}.po"
-	    ;;
-	ciao_1_6 ) # ciao 1.6
-	    rm -f ${mtsys_outdir}/${temp}.itf
-	    rm -f ${mtsys_outdir}/${temp}.po
-#	    CIAO_1_6_DIR="/Users/jfran/Documents/svn/ciao-1.6.0/ciaoc"
-	    cpp -DSYSTEM=ciao_1_6 -DCIAO -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
-#	    ${CIAO_1_6_DIR}/ciaoc ${mtsys_outdir}/${temp}.pl
-	    ciaoc-1.6 ${mtsys_outdir}/${temp}.pl
-	    ${mtsys_outdir}/${temp}
-	    sizefield "${mtsys_outdir}/${temp}.po"
-	    ;;
-	ciao2 ) # optimcomp without compilation to native code
-	    cpp -DSYSTEM=ciao2 -DCIAO2 -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
+        ciao ) # default ciaoc
+            rm -f ${mtsys_outdir}/${temp}.itf
+            rm -f ${mtsys_outdir}/${temp}.po
+            cpp -DSYSTEM=ciao -DCIAO -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
+            ciaoc ${mtsys_outdir}/${temp}.pl
+            ${mtsys_outdir}/${temp}
+            sizefield "${mtsys_outdir}/${temp}.po"
+            ;;
+        ciao_1_6 ) # ciao 1.6
+            rm -f ${mtsys_outdir}/${temp}.itf
+            rm -f ${mtsys_outdir}/${temp}.po
+#           CIAO_1_6_DIR="/Users/jfran/Documents/svn/ciao-1.6.0/ciaoc"
+            cpp -DSYSTEM=ciao_1_6 -DCIAO -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
+#           ${CIAO_1_6_DIR}/ciaoc ${mtsys_outdir}/${temp}.pl
+            ciaoc-1.6 ${mtsys_outdir}/${temp}.pl
+            ${mtsys_outdir}/${temp}
+            sizefield "${mtsys_outdir}/${temp}.po"
+            ;;
+        ciao2 ) # optimcomp without compilation to native code
+            cpp -DSYSTEM=ciao2 -DCIAO2 -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
             # Using the toplevel
-	    pushd ${mtsys_outdir} > /dev/null
-	    "$bin_dir"/ciao oc:bench evalmod ${temp} || return 1
-	    popd > /dev/null
+            pushd ${mtsys_outdir} > /dev/null
+            "$bin_dir"/ciao oc:bench evalmod ${temp} || return 1
+            popd > /dev/null
             # Using executables
-#	    "$bin_dir"/ciao oc:comp --bootstrap ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
-#	    "$bin_dir"/ciao oc:car-clean "${mtsys_outdir}/${temp}".car
-#	    "$bin_dir"/ciao oc:car-build "${mtsys_outdir}/${temp}".car
-#	    "${mtsys_outdir}/${temp}".car/run
-#	    "$bin_dir"/ciaodump-oc --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
-	    ;;
-	ciao3 ) # optimcomp with compilation to native code
-	    cpp -DSYSTEM=ciao3 -DCIAO3 -DOPT_MASK=63 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
+#           "$bin_dir"/ciao oc:comp --bootstrap ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
+#           "$bin_dir"/ciao oc:car-clean "${mtsys_outdir}/${temp}".car
+#           "$bin_dir"/ciao oc:car-build "${mtsys_outdir}/${temp}".car
+#           "${mtsys_outdir}/${temp}".car/run
+#           "$bin_dir"/ciaodump-oc --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
+            ;;
+        ciao3 ) # optimcomp with compilation to native code
+            cpp -DSYSTEM=ciao3 -DCIAO3 -DOPT_MASK=63 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
             # Using the toplevel
-#	    pushd ${mtsys_outdir} > /dev/null
-#	    "$bin_dir"/ciao oc:bench evalmod ${temp} || return 1
-#	    popd > /dev/null
+#           pushd ${mtsys_outdir} > /dev/null
+#           "$bin_dir"/ciao oc:bench evalmod ${temp} || return 1
+#           popd > /dev/null
             # Using dynamic executables
             # TODO: does not work because the C code is not included
-#	    "$bin_dir"/ciao oc:comp --dynexec ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
-#	    ${mtsys_outdir}/${temp}
+#           "$bin_dir"/ciao oc:comp --dynexec ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
+#           ${mtsys_outdir}/${temp}
             # Check source
-#	    pushd ${mtsys_outdir} > /dev/null
-#	    "$bin_dir"/ciao oc:bench checkmod ${temp}
-#	    popd > /dev/null
+#           pushd ${mtsys_outdir} > /dev/null
+#           "$bin_dir"/ciao oc:bench checkmod ${temp}
+#           popd > /dev/null
             # Using executables
-	    "$bin_dir"/ciao oc:comp --bootstrap ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
-	    "$bin_dir"/ciao oc:car-clean "${mtsys_outdir}/${temp}".car
-	    "$bin_dir"/ciao oc:car-build "${mtsys_outdir}/${temp}".car
-	    #todo: adding those options were good for the language-shootout, but the speedup was not impressive with ptoc: CIAOCCOPTS="-O3 -march=pentium4 -mfpmath=sse -msse2" 
-	    "${mtsys_outdir}/${temp}".car/run
-	    "$bin_dir"/ciaodump-oc --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
-	    ;;
-	sicstus )
-	    cpp -DSYSTEM=sicstus -DSICSTUS -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
-	    # TODO: missing get size of object
-	    echo > ${mtsys_outdir}/${temp}.object
-	    echo -ne "use_module('${mtsys_outdir}/${temp}.pl'), main, halt.\n" | sicstus-3.8.6
-	    sizefield "${mtsys_outdir}/${temp}.object"
-	    ;;
-	yap )
-	    cpp -DSYSTEM=yap -DYAP -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
-	    # TODO: missing get size of object
-	    echo > ${mtsys_outdir}/${temp}.object
-	    echo -ne "use_module('${mtsys_outdir}/${temp}.pl'), main, halt.\n" | yap
-	    sizefield "${mtsys_outdir}/${temp}.object"
-	    ;;
-	hprolog )
-	    cpp -DSYSTEM=hprolog -DHPROLOG -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
-	    # TODO: missing get size of object
-	    echo > ${mtsys_outdir}/${temp}.object
-	    echo -ne "use_module('${mtsys_outdir}/${temp}.pl'), temp:main, halt.\n" | hProlog
-	    sizefield "${mtsys_outdir}/${temp}.object"
-	    ;;
-	swiprolog )
-	    cpp -DSYSTEM=swiprolog -DSWIPROLOG -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
-	    # TODO: missing get size of object
-	    echo > ${mtsys_outdir}/${temp}.object
-	    echo -ne "use_module('${mtsys_outdir}/${temp}.pl'), temp:main, halt.\n" | swipl -q
-	    sizefield "${mtsys_outdir}/${temp}.object"
-	    ;;
-	swiprolog_opt )
-	    cpp -DSYSTEM=swiprolog_opt -DSWIPROLOG -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
-	    # TODO: missing get size of object
-	    echo > ${mtsys_outdir}/${temp}.object
-	    echo -ne "use_module('${mtsys_outdir}/${temp}.pl'), temp:main, halt.\n" | swipl -q -O
-	    sizefield "${mtsys_outdir}/${temp}.object"
-	    ;;
-	gprolog )
-	    echo ":- initialization(main)." > ${mtsys_outdir}/${temp}.pl
-	    cpp -DSYSTEM=gprolog -DGPROLOG -DOPT_MASK=0 -C -P < ${mod}.pl >> ${mtsys_outdir}/${temp}.pl
-	    gplc --no-top-level ${mtsys_outdir}/${temp}.pl -o ${mtsys_outdir}/${temp}
-	    # TODO: missing get size of object
-	    echo > ${mtsys_outdir}/${temp}.object
-	    ${mtsys_outdir}/${temp}
-	    sizefield "${mtsys_outdir}/${temp}.object"
-	    ;;
-	wamcc )
-	    echo ":- main." > ${mtsys_outdir}/${temp}.pl
-	    echo ":- main, halt." >> ${mtsys_outdir}/${temp}.pl
-	    cpp -DSYSTEM=wamcc -DWAMCC -DOPT_MASK=0 -C -P < ${mod}.pl >> ${mtsys_outdir}/${temp}.pl
-	    wamcc -c ${mtsys_outdir}/${temp}.pl
-	    w_gcc -c ${mtsys_outdir}/${temp}.c
-	    w_gcc -o ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp}.o -lwamcc
-	    # TODO: missing get size of object
-	    echo > ${mtsys_outdir}/${temp}.object
-	    mv ${mtsys_outdir}/${temp}.o ${mtsys_outdir}/${temp}.object
-	    ${mtsys_outdir}/${temp}
-	    sizefield "${mtsys_outdir}/${temp}.object"
-	    ;;
-	mercury )
-	    cpp -DMODULE=${mod} -DSYSTEM=mercury -DMERCURY -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.m
-	    PATH=$PATH:/usr/local/mercury-0.11.0/bin mmc -E -O9 ${mtsys_outdir}/${temp}.m -o ${mtsys_outdir}/${temp}
-	    ${mtsys_outdir}/${temp}
-	    sizefield "${mtsys_outdir}/${temp}.o"
-	    ;;
-	mercury-hlc )
-	    cpp -DMODULE=${mod} -DSYSTEM=mercury -DMERCURY -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.m
-	    PATH=$PATH:/usr/local/mercury-0.11.0/bin mmc --grade hlc -E -O9 ${mtsys_outdir}/${temp}.m -o ${mtsys_outdir}/${temp}
-	    ${mtsys_outdir}/${temp}
-	    sizefield "${mtsys_outdir}/${temp}.o"
-	    ;;
-	*)
-	    echo "Unknown system: ${system}"
+            "$bin_dir"/ciao oc:comp --bootstrap ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp} || return 1
+            "$bin_dir"/ciao oc:car-clean "${mtsys_outdir}/${temp}".car
+            "$bin_dir"/ciao oc:car-build "${mtsys_outdir}/${temp}".car
+            #todo: adding those options were good for the language-shootout, but the speedup was not impressive with ptoc: CIAOCCOPTS="-O3 -march=pentium4 -mfpmath=sse -msse2" 
+            "${mtsys_outdir}/${temp}".car/run
+            "$bin_dir"/ciaodump-oc --module dectok ${mtsys_outdir}/${temp} 2>/dev/null | head -1 # Print bytecode size
+            ;;
+        sicstus )
+            cpp -DSYSTEM=sicstus -DSICSTUS -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
+            # TODO: missing get size of object
+            echo > ${mtsys_outdir}/${temp}.object
+            echo -ne "use_module('${mtsys_outdir}/${temp}.pl'), main, halt.\n" | sicstus-3.8.6
+            sizefield "${mtsys_outdir}/${temp}.object"
+            ;;
+        yap )
+            cpp -DSYSTEM=yap -DYAP -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
+            # TODO: missing get size of object
+            echo > ${mtsys_outdir}/${temp}.object
+            echo -ne "use_module('${mtsys_outdir}/${temp}.pl'), main, halt.\n" | yap
+            sizefield "${mtsys_outdir}/${temp}.object"
+            ;;
+        hprolog )
+            cpp -DSYSTEM=hprolog -DHPROLOG -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
+            # TODO: missing get size of object
+            echo > ${mtsys_outdir}/${temp}.object
+            echo -ne "use_module('${mtsys_outdir}/${temp}.pl'), temp:main, halt.\n" | hProlog
+            sizefield "${mtsys_outdir}/${temp}.object"
+            ;;
+        swiprolog )
+            cpp -DSYSTEM=swiprolog -DSWIPROLOG -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
+            # TODO: missing get size of object
+            echo > ${mtsys_outdir}/${temp}.object
+            echo -ne "use_module('${mtsys_outdir}/${temp}.pl'), temp:main, halt.\n" | swipl -q
+            sizefield "${mtsys_outdir}/${temp}.object"
+            ;;
+        swiprolog_opt )
+            cpp -DSYSTEM=swiprolog_opt -DSWIPROLOG -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.pl
+            # TODO: missing get size of object
+            echo > ${mtsys_outdir}/${temp}.object
+            echo -ne "use_module('${mtsys_outdir}/${temp}.pl'), temp:main, halt.\n" | swipl -q -O
+            sizefield "${mtsys_outdir}/${temp}.object"
+            ;;
+        gprolog )
+            echo ":- initialization(main)." > ${mtsys_outdir}/${temp}.pl
+            cpp -DSYSTEM=gprolog -DGPROLOG -DOPT_MASK=0 -C -P < ${mod}.pl >> ${mtsys_outdir}/${temp}.pl
+            gplc --no-top-level ${mtsys_outdir}/${temp}.pl -o ${mtsys_outdir}/${temp}
+            # TODO: missing get size of object
+            echo > ${mtsys_outdir}/${temp}.object
+            ${mtsys_outdir}/${temp}
+            sizefield "${mtsys_outdir}/${temp}.object"
+            ;;
+        wamcc )
+            echo ":- main." > ${mtsys_outdir}/${temp}.pl
+            echo ":- main, halt." >> ${mtsys_outdir}/${temp}.pl
+            cpp -DSYSTEM=wamcc -DWAMCC -DOPT_MASK=0 -C -P < ${mod}.pl >> ${mtsys_outdir}/${temp}.pl
+            wamcc -c ${mtsys_outdir}/${temp}.pl
+            w_gcc -c ${mtsys_outdir}/${temp}.c
+            w_gcc -o ${mtsys_outdir}/${temp} ${mtsys_outdir}/${temp}.o -lwamcc
+            # TODO: missing get size of object
+            echo > ${mtsys_outdir}/${temp}.object
+            mv ${mtsys_outdir}/${temp}.o ${mtsys_outdir}/${temp}.object
+            ${mtsys_outdir}/${temp}
+            sizefield "${mtsys_outdir}/${temp}.object"
+            ;;
+        mercury )
+            cpp -DMODULE=${mod} -DSYSTEM=mercury -DMERCURY -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.m
+            PATH=$PATH:/usr/local/mercury-0.11.0/bin mmc -E -O9 ${mtsys_outdir}/${temp}.m -o ${mtsys_outdir}/${temp}
+            ${mtsys_outdir}/${temp}
+            sizefield "${mtsys_outdir}/${temp}.o"
+            ;;
+        mercury-hlc )
+            cpp -DMODULE=${mod} -DSYSTEM=mercury -DMERCURY -DOPT_MASK=0 -C -P < ${mod}.pl > ${mtsys_outdir}/${temp}.m
+            PATH=$PATH:/usr/local/mercury-0.11.0/bin mmc --grade hlc -E -O9 ${mtsys_outdir}/${temp}.m -o ${mtsys_outdir}/${temp}
+            ${mtsys_outdir}/${temp}
+            sizefield "${mtsys_outdir}/${temp}.o"
+            ;;
+        *)
+            echo "Unknown system: ${system}"
     esac
     popd > /dev/null
 }

@@ -49,27 +49,27 @@ bld_objdir="$build_engdir/objs/$eng_cfg"
 # Select target architecture
 case "$eng_cross_os$eng_cross_arch" in
     LINUXx86_JS)
-	CIAOOS=LINUX
-	CIAOARCH=x86_JS # uname() in Emscripten is x86-JS
-	;;
+        CIAOOS=LINUX
+        CIAOARCH=x86_JS # uname() in Emscripten is x86-JS
+        ;;
     *)
-	CIAOOS=$core__OS
-	CIAOARCH=$core__ARCH
-	;;
+        CIAOOS=$core__OS
+        CIAOARCH=$core__ARCH
+        ;;
 esac
 
 # Override core__OPTIM_LEVEL if needed
 # TODO: If really needed, move to the Prolog part?
 case "$core__DEBUG_LEVEL" in
     debug)
-	core__OPTIM_LEVEL=normal # TODO: why?
-	;;
+        core__OPTIM_LEVEL=normal # TODO: why?
+        ;;
     profile)
-	core__OPTIM_LEVEL=debug # TODO: why?
-	;;
+        core__OPTIM_LEVEL=debug # TODO: why?
+        ;;
     profile-debug)
-	core__OPTIM_LEVEL=debug # TODO: why?
-	;;
+        core__OPTIM_LEVEL=debug # TODO: why?
+        ;;
 esac
 
 # ===========================================================================
@@ -83,9 +83,9 @@ if [ x"$core__CUSTOM_CC" != x"" ]; then
     # Use custom values for CC and LD
     CC="$core__CUSTOM_CC"
     if [ x"$core__CUSTOM_LD" != x"" ]; then
-	LD="$core__CUSTOM_LD"
+        LD="$core__CUSTOM_LD"
     else
-	LD="$core__CUSTOM_CC"
+        LD="$core__CUSTOM_CC"
     fi
 elif [ x"$core__CUSTOM_LD" != x"" ]; then
     echo "Custom LD not valid without a custom CC" 1>&2
@@ -93,14 +93,14 @@ elif [ x"$core__CUSTOM_LD" != x"" ]; then
 else
     # Detect based on OS and architecture
     case "$CIAOOS$CIAOARCH" in
-	Solaris*)    CC=gcc; LD=ld ;;
-	LINUXarmv5tel)  CC=arm-linux-gcc; LD=arm-linux-gcc ;; # TODO: Recover cross compilation
-#	crossWin32i686)  CC=i386-mingw32-gcc; LD=i386-mingw32-gcc ;; # TODO: Recover cross compilation
-	DARWIN*)        CC=clang; LD=clang ;;
-	LINUXx86_JS)    CC=emcc; LD=emcc ;; # Emscripten
-	*)
-	    # The rest of the systems just use plain 'gcc'
-	    CC=gcc; LD=gcc ;;
+        Solaris*)    CC=gcc; LD=ld ;;
+        LINUXarmv5tel)  CC=arm-linux-gcc; LD=arm-linux-gcc ;; # TODO: Recover cross compilation
+#       crossWin32i686)  CC=i386-mingw32-gcc; LD=i386-mingw32-gcc ;; # TODO: Recover cross compilation
+        DARWIN*)        CC=clang; LD=clang ;;
+        LINUXx86_JS)    CC=emcc; LD=emcc ;; # Emscripten
+        *)
+            # The rest of the systems just use plain 'gcc'
+            CC=gcc; LD=gcc ;;
     esac
 fi
 
@@ -124,25 +124,25 @@ LD_THREAD_LIB=
 THREAD_FLAG=
 if test x"$core__USE_THREADS" = x"yes"; then
     case "$CIAOOS$CIAOARCH" in
-	SolarisSparc*)
-	    case "`/bin/uname -r`" in
-		5.[123456]* ) SOLARIS_VERSION=pre_7 ;;
-		5.* )         SOLARIS_VERSION=equal_post_7 ;;
-	    esac
-	    THREAD_FLAG="-D_REENTRANT -DTHREADS"
-	    if test x"$SOLARIS_VERSION" = x"pre_7"; then
-		LD_THREAD_LIB="-lpthread"
-	    else
-		LD_THREAD_LIB="-lpthread -lrt"
-	    fi
-	    ;;
-	Solaris*) LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
-	BSD*)     LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
-	DARWIN*)  THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
-	LINUXx86_JS) THREAD_FLAG="-D_REENTRANT" ;;
-	LINUX*)   LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
+        SolarisSparc*)
+            case "`/bin/uname -r`" in
+                5.[123456]* ) SOLARIS_VERSION=pre_7 ;;
+                5.* )         SOLARIS_VERSION=equal_post_7 ;;
+            esac
+            THREAD_FLAG="-D_REENTRANT -DTHREADS"
+            if test x"$SOLARIS_VERSION" = x"pre_7"; then
+                LD_THREAD_LIB="-lpthread"
+            else
+                LD_THREAD_LIB="-lpthread -lrt"
+            fi
+            ;;
+        Solaris*) LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
+        BSD*)     LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
+        DARWIN*)  THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
+        LINUXx86_JS) THREAD_FLAG="-D_REENTRANT" ;;
+        LINUX*)   LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
         # Threads and locks in Win32: no threads, no locks so far.
-	Win32*) THREAD_FLAG="-DTHREADS" ;;
+        Win32*) THREAD_FLAG="-DTHREADS" ;;
     esac
 fi
 
@@ -176,7 +176,7 @@ esac
 
 # Extension of shared libraries
 case "$CIAOOS$CIAOARCH" in
-    DARWIN*) 	    SOSUFFIX=".dylib" ;;
+    DARWIN*)        SOSUFFIX=".dylib" ;;
     Win32*)         SOSUFFIX=".dll" ;;
     # Assume .so for anything else
     *)              SOSUFFIX=".so" ;;
@@ -190,41 +190,41 @@ DEBUG_FLAGS=
 # Raise warning levels for questionable C code
 case "$core__DEBUG_LEVEL" in
     paranoid-debug)
-	DEBUG_FLAGS="$DEBUG_FLAGS -Wall -W -Wtraditional -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline"
-	;;
+        DEBUG_FLAGS="$DEBUG_FLAGS -Wall -W -Wtraditional -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Wconversion -Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline"
+        ;;
     debug|profile-debug)
-	DEBUG_FLAGS="$DEBUG_FLAGS -Wall"
-	;;
+        DEBUG_FLAGS="$DEBUG_FLAGS -Wall"
+        ;;
     *) ;;
 esac
 # C level debugging information
 # TODO: LINUXx86_JS: add ASSERTIONS=2 for debugging
 case "$core__DEBUG_LEVEL" in
     paranoid-debug|debug|profile-debug)
-	DEBUG_FLAGS="$DEBUG_FLAGS -g"
-	;;
+        DEBUG_FLAGS="$DEBUG_FLAGS -g"
+        ;;
     *) ;;
 esac
 # Instrument for gprof profiling
 case "$core__DEBUG_LEVEL" in
     profile|profile-debug)
-	DEBUG_FLAGS="$DEBUG_FLAGS -pg"
-	PROFILE_LD_FLAGS="-pg"
-	;;
+        DEBUG_FLAGS="$DEBUG_FLAGS -pg"
+        PROFILE_LD_FLAGS="-pg"
+        ;;
     *) ;;
 esac
 # WAM level debugging
 case "$core__DEBUG_LEVEL" in
     paranoid-debug|debug|profile-debug)
-	DEBUG_FLAGS="$DEBUG_FLAGS -DDEBUG"
-	;;
+        DEBUG_FLAGS="$DEBUG_FLAGS -DDEBUG"
+        ;;
     *) ;;
 esac
 # WAM level profiling
 case "$core__DEBUG_LEVEL" in
     profile|profile-debug)
-	DEBUG_FLAGS="$DEBUG_FLAGS -DPROFILE"
-	;;
+        DEBUG_FLAGS="$DEBUG_FLAGS -DPROFILE"
+        ;;
     *) ;;
 esac
 
@@ -253,8 +253,8 @@ esac
 OPTIM_FLAGS0="-fomit-frame-pointer $ALIGN_FLAGS"
 if test x"$core__OPTIM_LEVEL" = x"optimized"; then
     case "$CIAOOS$CIAOARCH" in
-	LINUXx86_JS) OPTIM_FLAGS="-fno-strict-aliasing -Oz -O3 $OPTIM_FLAGS0" ;;
-	*) OPTIM_FLAGS="-fno-strict-aliasing -O2 $OPTIM_FLAGS0"
+        LINUXx86_JS) OPTIM_FLAGS="-fno-strict-aliasing -Oz -O3 $OPTIM_FLAGS0" ;;
+        *) OPTIM_FLAGS="-fno-strict-aliasing -O2 $OPTIM_FLAGS0"
     esac
 else
     # TODO: Why not "-O2" as in OptimComp? which one is wrong?
@@ -305,13 +305,13 @@ SOCKETS_FLAG=
 LD_SOCKETS_LIB=
 case "$CIAOOS$CIAOARCH" in
     Win32*)
-	case "`uname -s`" in
-	    MINGW*)
-		LD_SOCKETS_LIB="-lws2_32" ; 
-		SOCKETS_FLAG="-D__USE_W32_SOCKETS" ; # needed for windows.h
-		;;
-	esac
-	;;
+        case "`uname -s`" in
+            MINGW*)
+                LD_SOCKETS_LIB="-lws2_32" ; 
+                SOCKETS_FLAG="-D__USE_W32_SOCKETS" ; # needed for windows.h
+                ;;
+        esac
+        ;;
 esac
 
 STAT_SOCKETS_LIB=
@@ -324,11 +324,11 @@ esac
 case "$CIAOOS$CIAOARCH" in
     BSD*)         LIBS0="-lm" ;;
     Win32*)
-	case "`uname -s`" in
-	    MINGW*) LIBS0="-lws2_32" ;;
-	    *) LIBS0= ;;
-	esac
-	;;
+        case "`uname -s`" in
+            MINGW*) LIBS0="-lws2_32" ;;
+            *) LIBS0= ;;
+        esac
+        ;;
     # LIBS=-ldl
     DARWIN*)      LIBS0= ;;
     Solaris*)     LIBS0="-ldl -lm -lnsl" ;;
@@ -346,16 +346,16 @@ esac
 #     Win32)
 #         #NOCONSOLEFLAG=-mwindows
 #         # Hack not to use Cygwin's but Microsoft libraries
-# 	NOCONSOLEFLAG="-mno-cygwin" ;;
+#       NOCONSOLEFLAG="-mno-cygwin" ;;
 #     *) true
 # esac
 
 # In Windows we need an executable built without console support 
 # ifeq ($CIAOOS,Win32)
-# 	cd $bld_objdir &&	do_gmake clean
-# 	do_gmake CONSOLEFLAG="$NOCONSOLEFLAG" dostateng
-# 	/bin/mv $bld_objdir/$ENGINAME.sta $bld_objdir/$ENGINAME_nc.sta
-# 	cd $bld_objdir &&	do_gmake clean
+#       cd $bld_objdir &&       do_gmake clean
+#       do_gmake CONSOLEFLAG="$NOCONSOLEFLAG" dostateng
+#       /bin/mv $bld_objdir/$ENGINAME.sta $bld_objdir/$ENGINAME_nc.sta
+#       cd $bld_objdir &&       do_gmake clean
 # endif
 
 # ---------------------------------------------------------------------------
@@ -393,9 +393,9 @@ LDSHARED="$LDSHARED $core__EXTRA_LDFLAGS"
 
 for f in $eng_addcfg; do
     if test -r "$f/config_sh"; then
-	ADD_STAT_LIBS=
-	. "$f/config_sh"
-	STAT_LIBS="$STAT_LIBS $ADD_STAT_LIBS"
+        ADD_STAT_LIBS=
+        . "$f/config_sh"
+        STAT_LIBS="$STAT_LIBS $ADD_STAT_LIBS"
     fi
 done
 
@@ -457,14 +457,14 @@ CFLAGS="-I$bld_hdir $CFLAGS"
 
 case "$CIAOOS$CIAOARCH" in
     LINUXx86_JS)
-	# It needs source dir in the include path (probably a bug:
-	# emcc does not locate included files from some symlinked .c
-	# files)
+        # It needs source dir in the include path (probably a bug:
+        # emcc does not locate included files from some symlinked .c
+        # files)
         CFLAGS="-I$bld_srcdir $CFLAGS"
-	# Optimization flags must be included during link
-	# TODO: extra flags are passed with EMMAKEN_CFLAGS
-	LDFLAGS="$LDFLAGS $OPTIM_FLAGS"
-	;;
+        # Optimization flags must be included during link
+        # TODO: extra flags are passed with EMMAKEN_CFLAGS
+        LDFLAGS="$LDFLAGS $OPTIM_FLAGS"
+        ;;
 esac
 
 # ===========================================================================

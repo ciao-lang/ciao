@@ -40,31 +40,31 @@ get_os_arch() { # (simpler version of ciao_sysconf)
     os=`uname -s`
     arch=`uname -m`
     case "$os" in
-	Linux) os=LINUX ;;
-	CYGWIN_*|MSYS_NT*|MINGW32_NT*|MINGW64_NT*) os=Win32 ;;
-	Darwin) os=DARWIN ;;
+        Linux) os=LINUX ;;
+        CYGWIN_*|MSYS_NT*|MINGW32_NT*|MINGW64_NT*) os=Win32 ;;
+        Darwin) os=DARWIN ;;
     esac
     case "$arch" in
-	i[3456]86|i86pc) arch=i686 ;;
-	x86_64|amd64) arch=x86_64 ;;
+        i[3456]86|i86pc) arch=i686 ;;
+        x86_64|amd64) arch=x86_64 ;;
     esac
 }
 
 select_vers() { # requires: prebuilt
     if [ $prebuilt = yes ]; then
-	vers=$default_vers_bin
+        vers=$default_vers_bin
     else
-	vers=$default_vers_src
+        vers=$default_vers_src
     fi
 }
 
 select_url() { # requires: prebuilt, vers
     if [ $prebuilt = yes ]; then
-	get_os_arch
-	cfg=$os$arch
-	url=$default_url_bin/ciao-$vers-$cfg.tar.gz
+        get_os_arch
+        cfg=$os$arch
+        url=$default_url_bin/ciao-$vers-$cfg.tar.gz
     else
-	url=$default_url_src/$vers.tar.gz
+        url=$default_url_src/$vers.tar.gz
     fi
 }
 
@@ -100,14 +100,14 @@ interactive() {
 
 EOF
     if ! [ -t 1 ] ; then
-	cat <<EOF
+        cat <<EOF
 No tty was detected. Aborting.
 
 Please visit https://ciao-lang.org for more information or try the
 non-interactive installation.
 
 EOF
-	exit 1
+        exit 1
     fi
     cat <<EOF
 Welcome to the interactive network installation for Ciao!
@@ -118,18 +118,18 @@ EOF
     read use_devenv < /dev/tty
 
     if [ x"$use_devenv" = x"no" ]; then
-	printf "Install a prebuilt distribution? (yes/no) "
-	read prebuilt < /dev/tty
+        printf "Install a prebuilt distribution? (yes/no) "
+        read prebuilt < /dev/tty
     else
-	# TODO: 'get' not working in prebuilt
-	prebuilt=no
+        # TODO: 'get' not working in prebuilt
+        prebuilt=no
     fi
 
     if [ x"$use_devenv" = x"no" ]; then
-	with_docs=yes # Just use default
+        with_docs=yes # Just use default
     else
-	printf "Install local documentation? (no/yes) "
-	read with_docs < /dev/tty
+        printf "Install local documentation? (no/yes) "
+        read with_docs < /dev/tty
     fi
 
     printf "Enable this installation by default? (yes/no) "
@@ -139,41 +139,41 @@ EOF
     has curl || missing "'curl' command"
     # ! has rlwrap && missing "Command rlwrap"
     if [ x"$prebuilt" = x"no" ]; then
-	has gcc || has clang || missing "C compiler (gcc, clang, etc.)"
-	has make || has gmake || missing "'make' command"
+        has gcc || has clang || missing "C compiler (gcc, clang, etc.)"
+        has make || has gmake || missing "'make' command"
     fi
     if [ x"$use_devenv" = x"no" ]; then
-	true
+        true
     else
-	has emacs || missing "'emacs' command"
-	if [ x"$with_docs" = x"yes" ]; then
-	    has bibtex || missing "'bibtex' command"
-	    has makeinfo || missing "'makeinfo' command"
-	    has convert || missing "'convert' command"
-	fi
+        has emacs || missing "'emacs' command"
+        if [ x"$with_docs" = x"yes" ]; then
+            has bibtex || missing "'bibtex' command"
+            has makeinfo || missing "'makeinfo' command"
+            has convert || missing "'convert' command"
+        fi
     fi
 
     opts=
     if [ x"$prebuilt" = x"no" ]; then
-	opts="$opts --no-prebuilt"
+        opts="$opts --no-prebuilt"
     else
-	true # opts=" --prebuilt"
+        true # opts=" --prebuilt"
     fi
     if [ x"$use_devenv" = x"no" ]; then
-	cmd=" local-install"
+        cmd=" local-install"
     else
-	cmd=" get devenv"
+        cmd=" get devenv"
     fi
     flags=
     if [ x"$update_shell" = x"no" ]; then
-	flags="$flags --core:update_shell=no"
+        flags="$flags --core:update_shell=no"
     else
-	true
+        true
     fi
     if [ x"$with_docs" = x"yes" ]; then
-	true
+        true
     else
-	flags="$flags --builder:with_docs=no"
+        flags="$flags --builder:with_docs=no"
     fi
 
     cat <<EOF
@@ -188,7 +188,7 @@ EOF
     read dummy < /dev/tty
 
     if ! ( fetch_and_boot $opts$cmd$flags ); then # (run in a subshell)
-	exit 1
+        exit 1
     fi
 
     cat <<EOF
@@ -196,8 +196,8 @@ EOF
 Installation is completed!
 EOF
     if [ x"$update_shell" = x"no" ]; then
-	select_vers # set 'vers' based on 'prebuilt'
-	cat <<EOF
+        select_vers # set 'vers' based on 'prebuilt'
+        cat <<EOF
 
 Now you can enable this installation manually with (bash, zsh):
   eval \$(~/.ciaoroot/$vers/build/bin/ciao-env --sh)
@@ -212,15 +212,15 @@ fetch_and_boot() { # args
     set_defaults
 
     if [ $# = 0 ]; then
-	interactive
-	exit 1
+        interactive
+        exit 1
     fi
 
     bundle=$default_bundle
     prebuilt=$default_prebuilt
     case $1 in
-	--prebuilt) shift; prebuilt=yes ;;
-	--no-prebuilt) shift; prebuilt=no ;;
+        --prebuilt) shift; prebuilt=yes ;;
+        --no-prebuilt) shift; prebuilt=no ;;
     esac
     select_vers
     ciaoroot=$HOME/.ciaoroot/$vers
@@ -229,7 +229,7 @@ fetch_and_boot() { # args
     # TODO: split tar.gz into source, bin-$os$arch, etc. so that there is
     #   no overlapping and we can do multi-architecture installs
     if [ -x "$ciaoroot" ]; then
-	cat <<EOF
+        cat <<EOF
 ERROR: '$vers' seems to be already installed at:
 
   $ciaoroot
@@ -237,7 +237,7 @@ ERROR: '$vers' seems to be already installed at:
 Please remove it to force a new installation.
 
 EOF
-	exit 1
+        exit 1
     fi
     mkdir -p "$ciaoroot"
     # Download
@@ -247,9 +247,9 @@ EOF
     # Boot
     cd "$ciaoroot" # TODO: really needed now?
     if [ $prebuilt = yes ]; then
-	CIAO_PREBUILT_CFG=$cfg exec "$ciaoroot"/builder/sh_boot/prebuilt_boot.sh "$@"
+        CIAO_PREBUILT_CFG=$cfg exec "$ciaoroot"/builder/sh_boot/prebuilt_boot.sh "$@"
     else
-	exec "$ciaoroot"/builder/sh_boot/builder_boot.sh "$@"
+        exec "$ciaoroot"/builder/sh_boot/builder_boot.sh "$@"
     fi
 }
 

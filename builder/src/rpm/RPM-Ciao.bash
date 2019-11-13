@@ -12,7 +12,7 @@ fi
 
 if ! grep '^%_topdir[ \t]' "$HOME"/.rpmmacros >/dev/null 2>&1
 then
-	echo "%_topdir $HOME/tmp/RpmBuild" >> "$HOME"/.rpmmacros
+        echo "%_topdir $HOME/tmp/RpmBuild" >> "$HOME"/.rpmmacros
 fi
 
 # This will ensure the creation of RPM related directories after a cleaning:
@@ -28,7 +28,7 @@ mkdir -p "`rpm --eval %_builddir`"
 
 if ! grep "^%_rpmfilename[ \t]" "$HOME"/.rpmmacros >/dev/null 2>&1
 then echo "%_rpmfilename %{ARCH}/%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}.rpm" >>\
-	"$HOME"/.rpmmacros
+        "$HOME"/.rpmmacros
 fi
 
 ln -s -f $1$2.tar.gz "$SOURCEDIR"/

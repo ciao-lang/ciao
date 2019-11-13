@@ -27,13 +27,13 @@ regression_dir="${regression_base}/${regression_name}"
 
 ensure_regression_dir() {
     if [ -r "${regression_dir}/.git" ]; then
-	true
+        true
     else
-	cat <<EOF
+        cat <<EOF
 The regression database directory \`${regression_dir}' is not found or
 does not seem to be cloned. Please, initialize submodules.
 EOF
-	exit -1
+        exit -1
     fi
 }
 

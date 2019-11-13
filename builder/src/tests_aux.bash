@@ -44,15 +44,15 @@ save_question() {
     local qst_what
     qst_what=$1
     while [ -t ]; do
-	printf "%s" "Really save results for ${qst_what}? (y/n) "
-	read qst_ok
-	if [ x"$qst_ok" == x"y" ]; then
-	    return 0
-	elif [ x"$qst_ok" == x"n" ]; then
-	    return 1
-	else
-	    echo "Unrecognized answer. Please type 'y' for 'yes' or 'n' for 'no'."
-	fi
+        printf "%s" "Really save results for ${qst_what}? (y/n) "
+        read qst_ok
+        if [ x"$qst_ok" == x"y" ]; then
+            return 0
+        elif [ x"$qst_ok" == x"n" ]; then
+            return 1
+        else
+            echo "Unrecognized answer. Please type 'y' for 'yes' or 'n' for 'no'."
+        fi
     done
 }
 
@@ -62,7 +62,7 @@ no_pl() { # path
     b=`basename "$1" .pl`
     d=`dirname "$1"`
     if [ "$d" != "." ]; then
-	b=$d/$b
+        b=$d/$b
     fi
     printf "%s" "$b"
 }
@@ -82,7 +82,7 @@ product_filename() { # relpath
     fi
 # TODO: support CIAOCCACHE
 #    if [ ! -z "${CIAOCACHEDIR:-}" ]; then
-#	printf "%s" "$CIAOCACHEDIR/"`printf "$dir" | sed 's/\./../g;s/\//./g'`".$base"
+#       printf "%s" "$CIAOCACHEDIR/"`printf "$dir" | sed 's/\./../g;s/\//./g'`".$base"
 #    else
     printf "%s" "$dir/$base"
 #    fi
@@ -127,8 +127,8 @@ do_check_all() {
     local I
     echo "Generating WAM code"
     for I in ${WAMCHECKMODS}; do
-	echo -n "  ${I} "
-	do_check ${I}
+        echo -n "  ${I} "
+        do_check ${I}
     done
 }
 
@@ -136,8 +136,8 @@ do_compare_all() {
     local I
     echo "Comparing WAM code"
     for I in ${WAMCHECKMODS}; do
-	echo -n "  ${I} "
-	do_compare ${I}
+        echo -n "  ${I} "
+        do_compare ${I}
     done
 }
 
@@ -145,8 +145,8 @@ do_briefcompare_all() {
     local I
     echo "Comparing WAM code"
     for I in ${WAMCHECKMODS}; do
-	echo -n "  ${I} "
-	do_briefcompare ${I}
+        echo -n "  ${I} "
+        do_briefcompare ${I}
     done
 }
 
@@ -154,8 +154,8 @@ do_save_all() {
     local I
     echo "Saving WAM code"
     for I in ${WAMCHECKMODS}; do
-#	echo -n "  ${I} "
-	do_save ${I}
+#       echo -n "  ${I} "
+        do_save ${I}
     done
 }
 
@@ -165,8 +165,8 @@ do_bench_all() {
     local I
     echo "% Benchmarking code"
     for I in ${BENCHMODS}; do
-	echo "%  ${I} "
-	do_bench ${I}
+        echo "%  ${I} "
+        do_bench ${I}
     done
 }
 
@@ -178,7 +178,7 @@ do_bench() { # I
     base=`basename "$1"`
     pushd "$dir" > /dev/null
     for t in `./"$base" --enum-tests`; do
-	./"$base" "${t}"
+        ./"$base" "${t}"
     done
     popd > /dev/null
 }
@@ -191,7 +191,7 @@ do_clean() {
     # Clean binaries for benchmarks
     for i in ${BENCHMODS}; do
         b=`no_pl "$i"`
-	rm -f "$b"
+        rm -f "$b"
     done
 }
 

@@ -44,39 +44,39 @@ set -e
 
 function ignored_charset() {
     case $1 in
-	"binary") return 0 ;; # TODO: only for empty files?
-	"ERROR: (null)") return 0 ;; # TODO: good only for 1-char files
-	*) return 1 ;;
+        "binary") return 0 ;; # TODO: only for empty files?
+        "ERROR: (null)") return 0 ;; # TODO: good only for 1-char files
+        *) return 1 ;;
     esac
 }
 
 function accepted_charset() {
     case $1 in
-	"us-ascii") return 0 ;;
-	*) return 1 ;;
+        "us-ascii") return 0 ;;
+        *) return 1 ;;
     esac
 }
 
 # Charset
 find_source "$@" | \
     while IFS= read i; do
-	if [ -f "$i" ]; then
-#	    chardet=`uchardet "$i" || echo UCHARDET-FAILED`
-	    charset=`file -b --mime-encoding "$i" || true`
-	    if ignored_charset "$charset"; then
-		true
-	    elif accepted_charset "$charset"; then
-		if grep -l `printf '\r\n'` "$i" > /dev/null 2>&1; then
- 		    echo "WARNING: DOS-style newlines: $i"
-		fi
-	    else
- 		echo "WARNING: encoding '$charset' not accepted: $i"
-	    fi
-	fi
+        if [ -f "$i" ]; then
+#           chardet=`uchardet "$i" || echo UCHARDET-FAILED`
+            charset=`file -b --mime-encoding "$i" || true`
+            if ignored_charset "$charset"; then
+                true
+            elif accepted_charset "$charset"; then
+                if grep -l `printf '\r\n'` "$i" > /dev/null 2>&1; then
+                    echo "WARNING: DOS-style newlines: $i"
+                fi
+            else
+                echo "WARNING: encoding '$charset' not accepted: $i"
+            fi
+        fi
     done
 
 # DOS-style newlines
 # find_source -type f -print0 | xargs -0 grep -l `printf '\r\n'` | \
 #     while IFS= read i; do
-# 	echo "WARNING: DOS-style newlines: $i"
+#       echo "WARNING: DOS-style newlines: $i"
 #     done

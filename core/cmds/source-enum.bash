@@ -16,22 +16,22 @@ function find_source0() { # [paths]
 function find_source_() { # [paths]
     local d
     for d in "$@"; do
-	find_source__ "$d"
+        find_source__ "$d"
     done
 }
 
 function find_source__() { # PATH
     find "$1" \
-	 -name '.svn' -prune -o \
-	 -name '.git' -prune -o \
-	 -name 'NOSEARCH' -prune -o \
-	 -name '3rd-bower' -prune -o \
-	 -name '3rd-npm' -prune -o \
-	 -path "$1"'/'"$boot_rel_builddir" -prune -o \
-	 -path "$1"'/'"$rel_builddir" -prune -o \
-	 -path "$1"'/regr-db' -prune -o \
-	 -path "$1"'/third-party' -prune -o \
-	 \( '!' -type d \
+         -name '.svn' -prune -o \
+         -name '.git' -prune -o \
+         -name 'NOSEARCH' -prune -o \
+         -name '3rd-bower' -prune -o \
+         -name '3rd-npm' -prune -o \
+         -path "$1"'/'"$boot_rel_builddir" -prune -o \
+         -path "$1"'/'"$rel_builddir" -prune -o \
+         -path "$1"'/regr-db' -prune -o \
+         -path "$1"'/third-party' -prune -o \
+         \( '!' -type d \
          '!' -name 'NOCOMPILE' -a \
          '!' -name 'NODISTRIBUTE' -a \
          '!' -name 'noarch' -a \
@@ -72,5 +72,5 @@ function find_source__() { # PATH
          '!' -name '*.xls' -a \
          '!' -name '*.opt' -a \
          '!' -name '*.info' \) \
-	 $FINDCMDS
+         $FINDCMDS
 }

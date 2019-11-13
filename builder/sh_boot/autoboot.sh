@@ -51,9 +51,9 @@ esac
 
 crossp() {
     if [ x"$pathtrans" = x"mingw_to_win" ]; then
-	cygpath -w "$@"
+        cygpath -w "$@"
     else
-	echo "$@"
+        echo "$@"
     fi
 }
 
@@ -133,10 +133,10 @@ setup_eng_vars() { # builddir
     local builddir="$1"
     shift
     if [ x"$eng_name" = x"" -o x"$eng_cfg" = x"" ] ; then
-	cat >&2 <<EOF
+        cat >&2 <<EOF
 INTERNAL_ERROR: missing $eng_name or $eng_cfg in setup_eng_vars
 EOF
-	exit 1
+        exit 1
     fi
 
     bld_engdir="$builddir/eng/$eng_name"
@@ -165,18 +165,18 @@ builddir_exec() { # builddir $cpxexec [ARGS] (and env)
     engdbg=""
     engopts=""
     if [ x"$boot__DEBUG_LEVEL" = x"debug" ]; then
-	# Use the C debugger to debug this run
-	# TODO: customize for other debuggers, allow interaction
-	# before/after execution, etc.
-	engdbg="lldb -o run -o quit --"
-	# engopts="--trace-calls --trace-instr --debug-gc"
+        # Use the C debugger to debug this run
+        # TODO: customize for other debuggers, allow interaction
+        # before/after execution, etc.
+        engdbg="lldb -o run -o quit --"
+        # engopts="--trace-calls --trace-instr --debug-gc"
     fi
     CIAOPATH="$default_ciaopath" \
         CIAOALIASPATH="$default_ciaoaliaspath" \
-	CIAOROOT=`crossp "$ciaoroot"` \
-	CIAOHDIR=`crossp "$bld_hdir"` \
-	CIAOENGINE=`crossp "$engexec"` \
-	    $engdbg "$engexec" "$@" -C -b "$cpxexec" $engopts
+        CIAOROOT=`crossp "$ciaoroot"` \
+        CIAOHDIR=`crossp "$bld_hdir"` \
+        CIAOENGINE=`crossp "$engexec"` \
+            $engdbg "$engexec" "$@" -C -b "$cpxexec" $engopts
 }
 
 # Invoke the engine build operation on builddir
@@ -185,7 +185,7 @@ builddir_do_engine() { # builddir (env: booteng_cdir)
     shift
     setup_eng_vars "$builddir"
     BLD_ENGDIR="$bld_engdir" ENG_CFG="$eng_cfg" BOOTENG_CDIR="$booteng_cdir" \
-	"$sh_src_dir"/build_engine.sh "$@"
+        "$sh_src_dir"/build_engine.sh "$@"
 }
 
 # ---------------------------------------------------------------------------
@@ -207,14 +207,14 @@ autoboot_autobuild() { # builddir mainmod (requires: $autobuild)
     if [ ! x"$autobuild" = x"rebuild" ] && \
        [ -f "$mainexec" ] && \
        builddir_do_engine "$1" engine_is_ok; then
-	return # Bootstrap is ready
+        return # Bootstrap is ready
     fi
 
     if [ x"$autobuild" = x"no" ]; then
         # TODO: detect (mark) in builddir if bootstrap
         #   compilation failed or it is just missing
-	no_bootstrap_error
-	exit 1
+        no_bootstrap_error
+        exit 1
     fi
     # $autobuild==yes or $autobuild==rebuild
     builddir_configure_boot "$1"
@@ -223,9 +223,9 @@ autoboot_autobuild() { # builddir mainmod (requires: $autobuild)
     builddir_version_info_boot
     builddir_config_sysdep_boot "$1"
     if autoboot_build "$1" "$2"; then
-	true
+        true
     else
-	failed_bootstrap_error
+        failed_bootstrap_error
     fi
 }
 
@@ -238,15 +238,15 @@ autoboot_build() { # builddir mainmod
 #    boot_normal_message "compiling native code for `basename "$boot_ciaoc"` $boot__OS$boot__ARCH (engine)"
     boot_normal_message "compiling $eng_name.$boot__OS$boot__ARCH (engine for `basename $boot_ciaoc`)"
     if booteng_cdir=`dirname "$boot_ciaoc"` builddir_do_engine "$builddir" build; then
-	true
+        true
     else
-	return 1
+        return 1
     fi
     # Backup exec_header, create a dummy one
     # TODO: an option in ciaoc to skip exec_header instead
     local header="$ciaoroot/core/lib/compiler/header"
     if [ -f "$header" ]; then
-	mv "$header" "$header".tmp
+        mv "$header" "$header".tmp
     fi
     touch "$header"
     #
@@ -264,7 +264,7 @@ autoboot_build() { # builddir mainmod
     # Restore previous exec_header (if it existed)
     rm "$header" # Delete dummy header
     if [ -f "$header".tmp ]; then
-	mv "$header".tmp "$header"
+        mv "$header".tmp "$header"
     fi
     #
     # NOTE: We assume that the builddir for 'ciaoc.sta' (which

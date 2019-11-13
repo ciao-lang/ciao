@@ -26,7 +26,7 @@ eng_cfg=$ENG_CFG
 c_files() {
     echo "engine__configuration.c"
     for m in `cat "$bld_engdir"/native_modules`; do
-	echo "${m}.c"
+        echo "${m}.c"
     done
 }
 
@@ -35,13 +35,13 @@ eng_make() {
     # Use gmake if available, otherwise expect make to be gmake
     if command -v gmake > /dev/null 2>&1; then make="gmake -s"; fi
     $make --no-print-directory -j$PROCESSORS \
- 	  -C "$bld_objdir" \
- 	  -f "$_base/../sh_src/engine.mk" \
-	  "$@" \
- 	  BLD_CDIR="$bld_cdir" \
- 	  BLD_OBJDIR="$bld_objdir" \
- 	  ENG_NAME="$eng_name" \
- 	  ENG_CFG_MK="$bld_cfgdir/config_mk"
+          -C "$bld_objdir" \
+          -f "$_base/../sh_src/engine.mk" \
+          "$@" \
+          BLD_CDIR="$bld_cdir" \
+          BLD_OBJDIR="$bld_objdir" \
+          ENG_NAME="$eng_name" \
+          ENG_CFG_MK="$bld_cfgdir/config_mk"
 }
 
 # ---------------------------------------------------------------------------
@@ -190,35 +190,35 @@ EOF
 
 parse_config_opts() {
     for option in "$@"; do
-	case "$option" in
-	    --*=*)
-		name="`echo "$option" | sed -e 's/=.*//;s/--//'`"
-		if test -n "`echo $name | sed 's/[a-z0-9-]//g'`"; then
-		    echo "{configuration error: invalid option name $name}" 1>&2
-		    exit 1
-		fi
-		name="`echo "$name" | sed -e 's/-/_/g'`" # replace - by _
-		value="`echo \"$option\" | sed 's/[^=]*=//'`"
-		eval "value_$name='$value'" ;;
+        case "$option" in
+            --*=*)
+                name="`echo "$option" | sed -e 's/=.*//;s/--//'`"
+                if test -n "`echo $name | sed 's/[a-z0-9-]//g'`"; then
+                    echo "{configuration error: invalid option name $name}" 1>&2
+                    exit 1
+                fi
+                name="`echo "$name" | sed -e 's/-/_/g'`" # replace - by _
+                value="`echo \"$option\" | sed 's/[^=]*=//'`"
+                eval "value_$name='$value'" ;;
 
-	    --*)
-		name="`echo "$option" | sed -e 's/--//'`"
-		if test -n "`echo $name | sed 's/[a-z0-9-]//g'`"; then
-		    echo "{configuration error: invalid option name $name}" 1>&2
-		    exit 1
-		fi
-		name="`echo "$name" | sed -e 's/-/_/g'`" # replace - by _
-		eval "option_$name=yes" ;;
+            --*)
+                name="`echo "$option" | sed -e 's/--//'`"
+                if test -n "`echo $name | sed 's/[a-z0-9-]//g'`"; then
+                    echo "{configuration error: invalid option name $name}" 1>&2
+                    exit 1
+                fi
+                name="`echo "$name" | sed -e 's/-/_/g'`" # replace - by _
+                eval "option_$name=yes" ;;
 
-	    *)
-		nonoption="$nonoption $option" ;;
-	esac
+            *)
+                nonoption="$nonoption $option" ;;
+        esac
     done
 
     for s_o in $section_opts; do
-	# Set default value of s_o if not set by the user
-	eval test -n '"${value_'${s_o}'}"' || \
-	    eval value_${s_o}='"${defaultval_'${s_o}'}"'
+        # Set default value of s_o if not set by the user
+        eval test -n '"${value_'${s_o}'}"' || \
+            eval value_${s_o}='"${defaultval_'${s_o}'}"'
     done
 }
 
@@ -229,18 +229,18 @@ emit_configuration_c() {
     VERSION_DIR="$bld_engdir"/version
     VERSIONTAG="`cat ${VERSION_DIR}/GlobalVersion` [optim_comp]"
     if test x"${INCLUDE_BUILD_INFO}" = x"yes"; then
-	BUILD_DATE=": `LC_ALL=C LANG=C date`"
-	# TODO: include revision info (merge with trunk/)
-	#    COMMIT_ID="`cat ${VERSION_DIR}/svnrev`"
-	#    if test x"${COMMIT_ID}" = x""; then
-	#	COMMIT_ID_INFO=""
-	#    else
-	#	COMMIT_ID_INFO=" (r${COMMIT_ID})"
-	#    fi
-	#    BUILD_INFO="Ciao ${VERSIONTAG}${COMMIT_ID_INFO}${BUILD_DATE}\n"
-	BUILD_INFO="Ciao ${VERSIONTAG}${BUILD_DATE}\n"
+        BUILD_DATE=": `LC_ALL=C LANG=C date`"
+        # TODO: include revision info (merge with trunk/)
+        #    COMMIT_ID="`cat ${VERSION_DIR}/svnrev`"
+        #    if test x"${COMMIT_ID}" = x""; then
+        #       COMMIT_ID_INFO=""
+        #    else
+        #       COMMIT_ID_INFO=" (r${COMMIT_ID})"
+        #    fi
+        #    BUILD_INFO="Ciao ${VERSIONTAG}${COMMIT_ID_INFO}${BUILD_DATE}\n"
+        BUILD_INFO="Ciao ${VERSIONTAG}${BUILD_DATE}\n"
     else
-	BUILD_INFO="Ciao ${VERSIONTAG}\n"
+        BUILD_INFO="Ciao ${VERSIONTAG}\n"
     fi
     cat <<EOF
 char *emulator_version = "${BUILD_INFO}";
@@ -257,7 +257,7 @@ EOF
 }
 emit_define() {
     if test x"$1" = x"yes"; then
-	echo "#define $2 1"
+        echo "#define $2 1"
     fi
 }
 emit_configuration_h() {
@@ -308,23 +308,23 @@ eng_build() { # (configure options)
     boot__OS=`"$sh_src_dir"/config-sysdep/ciao_sysconf --os`
     boot__ARCH=`"$sh_src_dir"/config-sysdep/ciao_sysconf --arch`
     if test x"${REQUIRE64}" = x"yes"; then
-	# TODO: see eng_maker:arch64/2
-	# check that we are compiling for a 64 bit architecture
-	case $boot__ARCH in
-	    Sparc64) true ;;
-	    x86_64)  true ;;
-	    ppc64)   true ;;
-	    *)       echo "{configuration error: This executable requires a 64 bit architecture}" 1>&2 && exit 1 ;;
-	esac
+        # TODO: see eng_maker:arch64/2
+        # check that we are compiling for a 64 bit architecture
+        case $boot__ARCH in
+            Sparc64) true ;;
+            x86_64)  true ;;
+            ppc64)   true ;;
+            *)       echo "{configuration error: This executable requires a 64 bit architecture}" 1>&2 && exit 1 ;;
+        esac
     else
-	# TODO: see eng_maker:arch64/2
-	# set 32 bit compatibility mode for 64 bit architectures,
-	# do nothing for 32 bit architectures
-	case $boot__ARCH in
-	    Sparc64) boot__ARCH=Sparc ;;
-	    x86_64)  boot__ARCH=i686 ;;
-	    ppc64)   boot__ARCH=ppc ;;
-	esac
+        # TODO: see eng_maker:arch64/2
+        # set 32 bit compatibility mode for 64 bit architectures,
+        # do nothing for 32 bit architectures
+        case $boot__ARCH in
+            Sparc64) boot__ARCH=Sparc ;;
+            x86_64)  boot__ARCH=i686 ;;
+            ppc64)   boot__ARCH=ppc ;;
+        esac
     fi
 
     value_use_threads=yes
@@ -368,8 +368,8 @@ EOF
     # Compile configure exec
     CONFIGURE="$bld_cfgdir/configure"
     ${CC} ${CFLAGS} ${LDFLAGS} -o ${CONFIGURE} \
-	  ${CONFIGURE_DIR}/configure.c \
-	  ${CONFIGURE_DIR}/engine__own_mmap.c
+          ${CONFIGURE_DIR}/configure.c \
+          ${CONFIGURE_DIR}/engine__own_mmap.c
     mkdir -p "$bld_cfgdir" || exit -1
     mkdir -p "$bld_cfgdir"/engine
     emit_configuration_c > "$bld_cfgdir/engine/engine__configuration.c"

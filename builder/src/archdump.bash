@@ -3,12 +3,12 @@
 
 function archdump() {
     if command -v objdump > /dev/null 2>&1; then
-	# Linux
-	objdump -d "$1"
+        # Linux
+        objdump -d "$1"
     elif command -v otool > /dev/null 2>&1; then
-	# macOS
-	otool -Vt "$1"
+        # macOS
+        otool -Vt "$1"
     else
-	echo "No disassembler found, cannot dump file \`$1'" 2>&1
+        echo "No disassembler found, cannot dump file \`$1'" 2>&1
     fi
 }

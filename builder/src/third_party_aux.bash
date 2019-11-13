@@ -32,8 +32,8 @@ srcdir="$THIRDPARTY/src"
 # handle both .zip and .tar.gz
 function uncompress_strip1() { # source target
     case $1 in
-	*.tgz|*.tar.gz) uncompress_tgz "$1" "$2" ;;
-	*.zip) uncompress_zip "$1" "$2" ;;
+        *.tgz|*.tar.gz) uncompress_tgz "$1" "$2" ;;
+        *.zip) uncompress_zip "$1" "$2" ;;
     esac
 }
 
@@ -42,7 +42,7 @@ function uncompress_zip() { # source target
     unzip -q -d "$temp" "$1"
     mkdir -p "$2"
     local f=("$temp"/*) # (array init)
-    if (( ${#f[@]} == 1 )) && [[ -d "${f[0]}" ]] ; then	# one element
+    if (( ${#f[@]} == 1 )) && [[ -d "${f[0]}" ]] ; then # one element
         mv "$temp"/*/* "$2"
     else # more than one element
         mv "$temp"/* "$2"
@@ -83,24 +83,24 @@ function fix_dylibs() {
     local pkg_libpath pkg_libpathAct
     # Fix install dir (it was /usr/local)
     case "$CIAO_OS" in
-	LINUX)
-	    pushd "$storedir/$pkg_name" > /dev/null 2>&1
-	    /sbin/ldconfig -n "lib"
+        LINUX)
+            pushd "$storedir/$pkg_name" > /dev/null 2>&1
+            /sbin/ldconfig -n "lib"
             # Link name without version
-	    if [ x"$pkg_libfileAct" != x"" ]; then
-		ln -sf "$pkg_libfile" "lib/$pkg_libfileAct"
-	    fi
-	    popd > /dev/null 2>&1
-	    ;;
-	DARWIN)
-	    pkg_libpath="$storedir/$pkg_name/lib/$pkg_libfile"
-	    pkg_libpathAct="$storedir/$pkg_name/lib/$pkg_libfileAct"
-	    install_name_tool -id "$pkg_libpath" "$pkg_libpath"
+            if [ x"$pkg_libfileAct" != x"" ]; then
+                ln -sf "$pkg_libfile" "lib/$pkg_libfileAct"
+            fi
+            popd > /dev/null 2>&1
+            ;;
+        DARWIN)
+            pkg_libpath="$storedir/$pkg_name/lib/$pkg_libfile"
+            pkg_libpathAct="$storedir/$pkg_name/lib/$pkg_libfileAct"
+            install_name_tool -id "$pkg_libpath" "$pkg_libpath"
             # Link name without version
-	    if [ x"$pkg_libfileAct" != x"" ]; then
-		ln -sf "$pkg_libpath" "$pkg_libpathAct"
-	    fi
-	    ;;
+            if [ x"$pkg_libfileAct" != x"" ]; then
+                ln -sf "$pkg_libpath" "$pkg_libpathAct"
+            fi
+            ;;
     esac
 }
 
@@ -109,19 +109,19 @@ function fix_dylibs() {
 function gen_config_auto() { # output
     local RPATH_OPTS=
     case "$CIAO_OS" in
-	LINUX)
-	    RPATH_OPTS="'-Wl,-rpath,$storedir/$pkg_name/lib,-rpath,\\'\$ORIGIN\\'',"
-	    ;;
+        LINUX)
+            RPATH_OPTS="'-Wl,-rpath,$storedir/$pkg_name/lib,-rpath,\\'\$ORIGIN\\'',"
+            ;;
     esac
     cat > "$1" <<EOF
 :- extra_compiler_opts([
-	'-I$storedir/$pkg_name/include'
-	]).
+    '-I$storedir/$pkg_name/include'
+   ]).
 :- extra_linker_opts(['-L.']).
 :- extra_linker_opts([
-	$RPATH_OPTS
-        '-L$storedir/$pkg_name/lib'
-	]).
+    $RPATH_OPTS
+    '-L$storedir/$pkg_name/lib'
+   ]).
 
 :- use_foreign_library(['$pkg_lib']).
 EOF
@@ -131,31 +131,31 @@ EOF
 
 function install_dist() { # Mode=bin|src
     if [ -x "$storedir/$pkg_name" ]; then
-	# echo "$pkg_name already downloaded" 1>&2
-	return 0
+        # echo "$pkg_name already downloaded" 1>&2
+        return 0
     fi
 
     if [ "$1" = bin ]; then
-	pkg_bin_origin
+        pkg_bin_origin
     else # src
-	pkg_src_origin
+        pkg_src_origin
     fi
     fetch_pkg
     if [ "$1" = bin ]; then
-	uncompress_pkg_bin
-	pkg_fix_bin
+        uncompress_pkg_bin
+        pkg_fix_bin
     else # src
-	# Build at srcdir
-	uncompress_pkg_src
-	pushd "$srcdir/$pkg_name" > /dev/null 2>&1
-	pkg_build
-	popd > /dev/null 2>&1
-	pushd "$srcdir/$pkg_name" > /dev/null 2>&1
-	# Cleanup storedir and install
-	rm -rf "$storedir/$pkg_name"
-	mkdir -p "$storedir/$pkg_name"
-	pkg_install
-	popd > /dev/null 2>&1
+        # Build at srcdir
+        uncompress_pkg_src
+        pushd "$srcdir/$pkg_name" > /dev/null 2>&1
+        pkg_build
+        popd > /dev/null 2>&1
+        pushd "$srcdir/$pkg_name" > /dev/null 2>&1
+        # Cleanup storedir and install
+        rm -rf "$storedir/$pkg_name"
+        mkdir -p "$storedir/$pkg_name"
+        pkg_install
+        popd > /dev/null 2>&1
     fi
     fix_dylibs
 }
@@ -172,6 +172,6 @@ case $1 in
     install_src_dist) install_dist src ;;
     gen_conf) shift; gen_config_auto "$1" ;;
     *)
-	echo "ERROR: Unknown action" 1>&2
-	exit 1
+        echo "ERROR: Unknown action" 1>&2
+        exit 1
 esac

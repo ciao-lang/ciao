@@ -30,20 +30,20 @@ clean_tree() {
     # with Solaris, nor -print | xargs because it is buggy
     test x"$1" = x"" && return
     find "$1"/. -name '.svn' -prune -o \( \
-	-name '*.po' -o -name '*.itf' -o -name '*.wam' \
-	-o -name '*.asr' -o -name '*.ast' \
-	-o -name '*.testout' \
-	\
-	-o -name '*_glue.c' -o -name '*_inline.c' \
-	-o -name '*.o' -o -name '*.a' \
-	-o -name '*.so' -o -name '*.dll' -o -name '*.dylib' \
-	\
-	-o -name '*.log' -o -name '*.err' \
-	-o -name 'tmpciao*' \
-	\
-	-o -name '*_auto.pl' \
-	-o -name '*_co.pl' \) \
-	-exec rm -f {} \;
+        -name '*.po' -o -name '*.itf' -o -name '*.wam' \
+        -o -name '*.asr' -o -name '*.ast' \
+        -o -name '*.testout' \
+        \
+        -o -name '*_glue.c' -o -name '*_inline.c' \
+        -o -name '*.o' -o -name '*.a' \
+        -o -name '*.so' -o -name '*.dll' -o -name '*.dylib' \
+        \
+        -o -name '*.log' -o -name '*.err' \
+        -o -name 'tmpciao*' \
+        \
+        -o -name '*_auto.pl' \
+        -o -name '*_co.pl' \) \
+        -exec rm -f {} \;
 }
 
 # Clean the compilation output at some cachedir for some prefix
@@ -59,20 +59,20 @@ clean_cachedir() { # Dir Prefix
     test x"$1" = x"" && return
     test x"$2" = x"" && return
     find "$1"/. -name "$2"'.*' -a \( \
-	-name '*.po' -o -name '*.itf' -o -name '*.wam' \
-	-o -name '*.asr' -o -name '*.ast' \
-	-o -name '*.testout' \
-	\
-	-o -name '*_glue.c' -o -name '*_inline.c' \
-	-o -name '*.o' -o -name '*.a' \
-	-o -name '*.so' -o -name '*.dll' -o -name '*.dylib' \
-	\
-	-o -name '*.log' -o -name '*.err' \
-	-o -name 'tmpciao*' \
-	\
-	-o -name '*_auto.pl' \
-	-o -name '*_co.pl' \) \
-	-exec rm -f {} \;
+        -name '*.po' -o -name '*.itf' -o -name '*.wam' \
+        -o -name '*.asr' -o -name '*.ast' \
+        -o -name '*.testout' \
+        \
+        -o -name '*_glue.c' -o -name '*_inline.c' \
+        -o -name '*.o' -o -name '*.a' \
+        -o -name '*.so' -o -name '*.dll' -o -name '*.dylib' \
+        \
+        -o -name '*.log' -o -name '*.err' \
+        -o -name 'tmpciao*' \
+        \
+        -o -name '*_auto.pl' \
+        -o -name '*_co.pl' \) \
+        -exec rm -f {} \;
 }
 
 # Call whatever comes in arguments

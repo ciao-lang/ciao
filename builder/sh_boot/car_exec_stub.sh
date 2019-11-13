@@ -41,7 +41,7 @@ if [ x"$saved_ciaoroot" != x"$ciaoroot" ]; then
     . "$sh_boot_dir/autoboot.sh"
     boot_builddir="$ciaoroot/build-boot"
     ( builddir_configure_boot "$boot_builddir" && \
-	"$ciaoroot/ciao-boot.sh" rescan-bundles "$ciaoroot" > /dev/null )
+        "$ciaoroot/ciao-boot.sh" rescan-bundles "$ciaoroot" > /dev/null )
     printf "%s" "$ciaoroot" > "$f_saved_ciaoroot"
     #
     # (for setup_env_vars)

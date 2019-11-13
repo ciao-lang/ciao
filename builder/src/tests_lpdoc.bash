@@ -63,55 +63,55 @@ function get_manual_infile() {
 # This is a hack... it has the version number hardwired.
 function get_manual_outfile() {
     case $1 in
-	ciao) echo "ciao-1.15.0" ;;
-	ciaopp_ref_man) echo "ciaopp-1.2.0" ;;
-	ciaopp_doc) echo "ciaopp_internals-1.2.0" ;;
-	lpdoc) echo "lpdoc-3.0.0" ;;
-	# for testing
-	ciaotest) echo "ciaotest" ;;
-	singlelpdoc) echo "singlelpdoc" ;;
-	*) echo ""
+        ciao) echo "ciao-1.15.0" ;;
+        ciaopp_ref_man) echo "ciaopp-1.2.0" ;;
+        ciaopp_doc) echo "ciaopp_internals-1.2.0" ;;
+        lpdoc) echo "lpdoc-3.0.0" ;;
+        # for testing
+        ciaotest) echo "ciaotest" ;;
+        singlelpdoc) echo "singlelpdoc" ;;
+        *) echo ""
     esac
 }
 
 function get_manual_dir() {
     case $1 in
-	ciao) echo "$ciaoroot/core" ;;
-	ciaopp_ref_man) echo "$ciaoroot/ciaopp" ;;
-	ciaopp_doc) echo "$ciaoroot/ciaopp" ;;
-	lpdoc) echo "$ciaoroot/lpdoc" ;;
-	# for testing
-	ciaotest) echo "$ciaoroot/bndls/testsuite/lpdoc/ciaotest" ;;
-	singlelpdoc) echo "$ciaoroot/bndls/testsuite/lpdoc/singlelpdoc" ;;
-	*) echo ""
+        ciao) echo "$ciaoroot/core" ;;
+        ciaopp_ref_man) echo "$ciaoroot/ciaopp" ;;
+        ciaopp_doc) echo "$ciaoroot/ciaopp" ;;
+        lpdoc) echo "$ciaoroot/lpdoc" ;;
+        # for testing
+        ciaotest) echo "$ciaoroot/bndls/testsuite/lpdoc/ciaotest" ;;
+        singlelpdoc) echo "$ciaoroot/bndls/testsuite/lpdoc/singlelpdoc" ;;
+        *) echo ""
     esac
 }
 
 function get_manual_outdir() {
     case $1 in
-	ciao) echo "$builddir_doc" ;;
-	ciaopp_ref_man) echo "$builddir_doc" ;;
-	ciaopp_doc) echo "$builddir_doc" ;;
-	lpdoc) echo "$builddir_doc" ;;
-	# for testing
-	ciaotest) echo "$ciaoroot/bndls/testsuite/lpdoc/ciaotest" ;;
-	singlelpdoc) echo "$ciaoroot/bndls/testsuite/lpdoc/singlelpdoc" ;;
-	*) echo ""
+        ciao) echo "$builddir_doc" ;;
+        ciaopp_ref_man) echo "$builddir_doc" ;;
+        ciaopp_doc) echo "$builddir_doc" ;;
+        lpdoc) echo "$builddir_doc" ;;
+        # for testing
+        ciaotest) echo "$ciaoroot/bndls/testsuite/lpdoc/ciaotest" ;;
+        singlelpdoc) echo "$ciaoroot/bndls/testsuite/lpdoc/singlelpdoc" ;;
+        *) echo ""
     esac
 }
 
 function get_manual_cmd() {
     case $1 in
-	ciao) echo "ciao build --docs alldocs" ;;
-	ciaopp_ref_man) echo "ciao build --docs ciaopp" ;;
-	ciaopp_doc) echo "ciao build --docs ciaopp" ;;
-	lpdoc) echo "ciao build --docs lpdoc" ;;
-	# for testing
-	ciaotest) cat <<EOF
+        ciao) echo "ciao build --docs alldocs" ;;
+        ciaopp_ref_man) echo "ciao build --docs ciaopp" ;;
+        ciaopp_doc) echo "ciao build --docs ciaopp" ;;
+        lpdoc) echo "ciao build --docs lpdoc" ;;
+        # for testing
+        ciaotest) cat <<EOF
 lpdoc --output_dir=$manual_outdir -t all $manual_infile
 EOF
-	    ;;
-	singlelpdoc) cat <<EOF
+            ;;
+        singlelpdoc) cat <<EOF
 lpdoc --output_dir=$manual_outdir -t texi $manual_infile && \
 lpdoc --output_dir=$manual_outdir -t html $manual_infile && \
 echo > singlelpdoc.infoindex && \
@@ -120,8 +120,8 @@ echo > singlelpdoc.pdf && \
 echo > singlelpdoc.dvi && \
 echo > singlelpdoc.manl
 EOF
-	    ;;
-	*) echo ""
+            ;;
+        *) echo ""
     esac
 }
 
@@ -166,10 +166,10 @@ function compare_docs() {
 
 function mydiff() {
     if [ ! -z "${DIFFCMD:-}" ]; then
-	diff -q $1 $2 || "${DIFFCMD}" $1 $2
+        diff -q $1 $2 || "${DIFFCMD}" $1 $2
     else
-	# Be silent, just say if files differ
-	diff -q $1 $2
+        # Be silent, just say if files differ
+        diff -q $1 $2
     fi
 }
 
@@ -244,9 +244,9 @@ function pick_manual() {
     manual_infile=`get_manual_infile "$manual"`
     manual_outfile=`get_manual_outfile "$manual"`
     if [ x"$manual_outfile" == x"" ]; then
-	echo "Unrecognized manual \`$manual'"
-	do_help
-	exit -1
+        echo "Unrecognized manual \`$manual'"
+        do_help
+        exit -1
     fi
     manual_outdir=`get_manual_outdir "$manual"`
     manual_dir=`get_manual_dir "$manual"`

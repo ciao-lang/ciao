@@ -45,9 +45,9 @@ cmd_message() { # target, message
 
 verbosemessage() {
     if [ x"${verbose}" = x"yes" ]; then
-	echo "${color__mark}  ${color__reset}${color__verbosemessage}($*)${color__reset}" 1>&2
+        echo "${color__mark}  ${color__reset}${color__verbosemessage}($*)${color__reset}" 1>&2
     else
-	true
+        true
     fi
 }
 

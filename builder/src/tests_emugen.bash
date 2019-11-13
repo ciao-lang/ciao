@@ -36,7 +36,7 @@ dir_ofiles=$builder_src/../../build/eng/$eng_name/objs/$eng_cfg
 get_ofiles() {
     local i
     for i in "$dir_ofiles"/*.o; do
-	basename "$i"
+        basename "$i"
     done
 }
 ofiles=`get_ofiles`
@@ -67,13 +67,13 @@ function bringemu() {
     mkdir -p prev
     # TODO: missing bytecode from ciaoc.sta
     for i in $hfiles_ciao; do
-	cp "$dir_hfiles_ciao"/"$i" curr/"$i"
+        cp "$dir_hfiles_ciao"/"$i" curr/"$i"
     done
     for i in $cfiles; do
-	cp "$dir_cfiles"/"$i" curr/"$i"
+        cp "$dir_cfiles"/"$i" curr/"$i"
     done
     for i in $ofiles; do
-	archdump "$dir_ofiles"/"$i" > curr/"$i".s
+        archdump "$dir_ofiles"/"$i" > curr/"$i".s
     done
     popd > /dev/null
 }
@@ -87,13 +87,13 @@ function compareemu() { # Args: mode
     ensure_emugen_regrdir
     pushd "$emugen_regrdir" > /dev/null
     for i in $hfiles_ciao; do
-	difffiles "generated C code $i" curr/$i prev/$i-0 $mode || ret=1
+        difffiles "generated C code $i" curr/$i prev/$i-0 $mode || ret=1
     done
     for i in $cfiles; do
-	difffiles "generated C code $i" curr/$i prev/$i-0 $mode || ret=1
+        difffiles "generated C code $i" curr/$i prev/$i-0 $mode || ret=1
     done
     for i in $ofiles; do
-	difffiles "disassembled gcc code $i.s" curr/$i.s prev/$i.s-0 $mode || ret=1
+        difffiles "disassembled gcc code $i.s" curr/$i.s prev/$i.s-0 $mode || ret=1
     done
     popd > /dev/null
     return $ret

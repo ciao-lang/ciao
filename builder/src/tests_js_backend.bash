@@ -30,9 +30,9 @@ V8Shell="${HOME}/Documents/svn/v8-read-only/v8"
 # TODO: Not really nice
 function ptojs__adddir() {
     if [ x"${testdir}" = x"" ]; then
-	echo "${1}"
+        echo "${1}"
     else
-	echo "${testdir}/${1}"
+        echo "${testdir}/${1}"
     fi
 }
 # TODO: Not really nice
@@ -100,12 +100,12 @@ function ptojs__eval_exec() { # file
 function custom_load() { # file
     file=`ptojs__get_outfile "${1}"`
     case ${platform} in
-	safari) open -a "/Applications/Safari.app" "${file}.html" ;;
-	chrome) open -a "/Applications/Google Chrome.app" "${file}.html" ;;
-	firefox) open -a "/Applications/Firefox.app" "${file}.html" ;;
-	opera) open -a "/Applications/Opera.app" "${file}.html" ;;
-	v8) ${V8Shell} "${file}.out.js" ;;
-	nodejs) node "${file}.out.js"
+        safari) open -a "/Applications/Safari.app" "${file}.html" ;;
+        chrome) open -a "/Applications/Google Chrome.app" "${file}.html" ;;
+        firefox) open -a "/Applications/Firefox.app" "${file}.html" ;;
+        opera) open -a "/Applications/Opera.app" "${file}.html" ;;
+        v8) ${V8Shell} "${file}.out.js" ;;
+        nodejs) node "${file}.out.js"
     esac
 }
 
@@ -218,8 +218,8 @@ function ptojs__compare_out() { # mode file
 }
 
 #    diff ${left} ${right}
-#    diff -q ${left} ${right} ||	opendiff ${left} ${right}
-#    diff -q ${left} ${right} ||	meld ${left} ${right}
+#    diff -q ${left} ${right} ||        opendiff ${left} ${right}
+#    diff -q ${left} ${right} ||        meld ${left} ${right}
 #    emacsclient --eval "(ediff \"${left}\" \"${right}\")"
 
 # TODO: some of this information should not be here
@@ -238,26 +238,26 @@ DEMOS_UI="demo queens_ui"
 
 # TODO: Obtain them automatically (there is a similar list in optim_comp tests)
 RUNTIME_MODS="arithmetic \
-	      attr_rt \
-	      basiccontrol \
-	      freeze \
-	      internals \
-	      io_basic \
-	      js_dom \
-	      js_foreign \
-	      mutables_rt \
-	      streams_div \
-	      streams_v8 \
-	      streams_nodejs \
-	      string_type_rt \
-	      term_basic \
-	      term_compare \
-	      term_typing"
+              attr_rt \
+              basiccontrol \
+              freeze \
+              internals \
+              io_basic \
+              js_dom \
+              js_foreign \
+              mutables_rt \
+              streams_div \
+              streams_v8 \
+              streams_nodejs \
+              string_type_rt \
+              term_basic \
+              term_compare \
+              term_typing"
 
 # Find the tests in the TESTS_DIR directory
 function find_tests() {
     if [ x"${TESTS}" = x"" ]; then
-	TESTS=`find_tests_`
+        TESTS=`find_tests_`
     fi
 }
 
@@ -275,8 +275,8 @@ function ptojs__regr_all() {
     platform="${TESTS_PLATFORM}"
     find_tests
     for i in ${TESTS}; do
-	testdir="${TESTS_DIR}/${i}"
-	ptojs__regr_exec ${i}
+        testdir="${TESTS_DIR}/${i}"
+        ptojs__regr_exec ${i}
     done
 }
 
@@ -288,7 +288,7 @@ function ptojs__bench_all() {
     platform="${BENCHS_PLATFORM}"
     testdir="${BENCHS_DIR}"
     for i in ${BENCHS}; do
-	ptojs__try_exec ${i}
+        ptojs__try_exec ${i}
     done
 }
 
@@ -296,40 +296,40 @@ function ptojs__check_all() {
     platform="${TESTS_PLATFORM}"
     find_tests
     for i in ${TESTS}; do
-	testdir="${TESTS_DIR}/${i}"
-	ptojs__check_exec ${i}
+        testdir="${TESTS_DIR}/${i}"
+        ptojs__check_exec ${i}
     done
     platform="${BENCHS_PLATFORM}"
     testdir="${BENCHS_DIR}"
     for i in ${BENCHS}; do
-	ptojs__check_exec ${i}
+        ptojs__check_exec ${i}
     done
     platform="${DEMOS_PLATFORM}"
     testdir="${DEMOS_DIR}"
     for i in ${DEMOS}; do
-	ptojs__check_exec ${i}
+        ptojs__check_exec ${i}
     done
     platform="${DEMOS_UI_PLATFORM}"
     testdir="${DEMOS_UI_DIR}"
     for i in ${DEMOS_UI}; do
-	ptojs__check_exec ${i}
+        ptojs__check_exec ${i}
     done
     # TODO: This should be 'check_mod', but 'compile_mod' is not working yet
     # Compare the runtime modules
     for i in ${RUNTIME_MODS}; do
-	ptojs__compare_mod brief ${i}
+        ptojs__compare_mod brief ${i}
     done
 }
 
 function ptojs__compare_all() { # mode
     # Compare the runtime modules
     for i in ${RUNTIME_MODS}; do
-	ptojs__compare_mod ${1} ${i}
+        ptojs__compare_mod ${1} ${i}
     done
     # Compare the tests
     find_tests
     for i in ${TESTS} ${BENCHS} ${DEMOS} ${DEMOS_UI}; do
-	ptojs__compare_exec ${1} ${i}
+        ptojs__compare_exec ${1} ${i}
     done
     #
     ptojs__compare_out_all    
@@ -339,7 +339,7 @@ function ptojs__compare_out_all() { # mode
     # Compare the output of the tests (for regression)
     find_tests
     for i in ${TESTS}; do
-	ptojs__compare_out ${1} ${i}
+        ptojs__compare_out ${1} ${i}
     done
 }
 
@@ -353,13 +353,13 @@ savecmd="save-no-ask"
 
 set_target_platform() { # platform
     case $1 in
-	nodejs) true ;;
-	v8) true ;;
-	safari) true ;;
-	chrome) true ;;
-	firefox) true ;;
-	opera) true ;;
-	*) fail_message "Bad target platform $1."; exit -1 ;;
+        nodejs) true ;;
+        v8) true ;;
+        safari) true ;;
+        chrome) true ;;
+        firefox) true ;;
+        opera) true ;;
+        *) fail_message "Bad target platform $1."; exit -1 ;;
     esac
     platform=$1
 }
@@ -376,9 +376,9 @@ function ptojs__eval_all() {
 # Get options
 while [ -t ]; do
     case $1 in
-	--target-platform)   shift; set_target_platform $1 ;;
-	-*)            fail_message "Bad option $1."; exit -1 ;;
-	*)             break ;;
+        --target-platform)   shift; set_target_platform $1 ;;
+        -*)            fail_message "Bad option $1."; exit -1 ;;
+        *)             break ;;
     esac
     shift
 done
