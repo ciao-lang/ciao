@@ -44,9 +44,9 @@ label([V|Vs],D):-
 
 range(N,N,[N]) :- !.
 range(M,N,[M|Ns]) :-
-	M < N,
-	M1 is M+1,
-	range(M1,N,Ns).
+    M < N,
+    M1 is M+1,
+    range(M1,N,Ns).
 
 myselect([X|Xs],Xs,X).
 myselect([Y|Ys],[Y|Zs],X) :- myselect(Ys,Zs,X).

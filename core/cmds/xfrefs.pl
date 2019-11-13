@@ -1,11 +1,11 @@
 
 :- module(xfrefs,
-        [ xfrefs/1,
-          xflinks/1,
-          quit/0
-        ],
-        [ assertions, regtypes
-        ]).
+    [ xfrefs/1,
+      xflinks/1,
+      quit/0
+    ],
+    [ assertions, regtypes
+    ]).
 
 :- use_module(engine(stream_basic), [sourcename/1]).
 :- use_module(library(davinci)).
@@ -18,36 +18,36 @@
 :- doc(author,"Francisco Bueno").
 
 :- doc(module,"This module allows displaying a graph of
-        crossed-references between source code in different files.
-        The graph is obtained using
-	@tt{library(xrefs)} and is displayed using daVinci (a
-        windows-based graphics graph displayer developed by U. of Bremen,
-	Germany), via @tt{library(davinci)}.
+    crossed-references between source code in different files.
+    The graph is obtained using
+    @tt{library(xrefs)} and is displayed using daVinci (a
+    windows-based graphics graph displayer developed by U. of Bremen,
+    Germany), via @tt{library(davinci)}.
 
-        See the documentation of these libraries for details.").
+    See the documentation of these libraries for details.").
 
 :- doc(bug,"@tt{quit/0} does nothing. daVinci has to be exited
-        from its own window.").
+    from its own window.").
 
 %-----------------------------------------------------------------------------
 % entry points
 
 :- pred xfrefs(Xrefs) : xref
-        # "Displays a graph of crossed-references of type @var{Xrefs}
-           for the current files.".
+    # "Displays a graph of crossed-references of type @var{Xrefs}
+       for the current files.".
 
 xfrefs(Xrefs):- 
-        xrefs_lgraph(Xrefs,Graph),
-        ( davinci -> true ; true ),
-        davinci_lgraph(Graph).
+    xrefs_lgraph(Xrefs,Graph),
+    ( davinci -> true ; true ),
+    davinci_lgraph(Graph).
 
 :- pred xflinks(Xrefs)
-        # "Like @tt{xfrefs/1} but edges have no labels.".
+    # "Like @tt{xfrefs/1} but edges have no labels.".
 
 xflinks(Xrefs):- 
-        xrefs_ugraph(Xrefs,Graph),
-        ( davinci -> true ; true ),
-        davinci_ugraph(Graph).
+    xrefs_ugraph(Xrefs,Graph),
+    ( davinci -> true ; true ),
+    davinci_ugraph(Graph).
 
 :- doc(quit/0,"Quits daVinci.").
 

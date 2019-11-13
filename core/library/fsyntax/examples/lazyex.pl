@@ -6,4 +6,4 @@
 :- lazy fun_eval fiblist/0.
 
 fiblist := [0, 1 | ~zipWith(+, FibL, ~tail(FibL))]
-        :- FibL = fiblist.
+    :- FibL = fiblist.

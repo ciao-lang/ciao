@@ -31,32 +31,32 @@
    # "Parse shell-style arguments from atom @var{Atm} into @var{Args}".
 
 parse_shell_args(Atm, Args) :-
-	atom_codes(Atm, Str),
-	blanks_and_args(Args, Str, []).
+    atom_codes(Atm, Str),
+    blanks_and_args(Args, Str, []).
 
 blanks_and_args(Args) -->
-	blanks,
-	( empty -> { Args = [] }
-	; args(nquoted, Args)
-	).
+    blanks,
+    ( empty -> { Args = [] }
+    ; args(nquoted, Args)
+    ).
 
 args(Kind, Args) -->
-	parse_arg(Kind, Ws),
-	{ atom_codes(X, Ws), Args = [X|Args0] },
-	blanks_and_args(Args0).
+    parse_arg(Kind, Ws),
+    { atom_codes(X, Ws), Args = [X|Args0] },
+    blanks_and_args(Args0).
 
 parse_arg(Kind, []) --> stop(Kind), !. % stop
 parse_arg(Kind, Ws) --> switch(Kind, Kind2), !, % switch Kind
-	parse_arg(Kind2, Ws).
+    parse_arg(Kind2, Ws).
 parse_arg(Kind, [C|Ws]) -->
-	pick_char(Kind, C),
-	parse_arg(Kind, Ws).
+    pick_char(Kind, C),
+    parse_arg(Kind, Ws).
 
 pick_char(Kind, C) -->
-	( [0'\\, C], { escaped(Kind, C) } -> % escaped character
-	    []
-	; [C] % any char
-	).
+    ( [0'\\, C], { escaped(Kind, C) } -> % escaped character
+        []
+    ; [C] % any char
+    ).
 
 stop(_) --> empty, !.
 stop(nquoted, Cs, Cs) :- Cs = [C|_], is_blank(C), !.

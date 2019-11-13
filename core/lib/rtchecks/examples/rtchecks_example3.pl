@@ -7,14 +7,14 @@
 nullasr(_, _).
 
 square(X, X2) :-
-	X2 is X * X,
-	check(X2 > 0).
+    X2 is X * X,
+    check(X2 > 0).
 
 % this should generate a runtime-check error:
 test1 :-
-	square(0, X2),
-	display(X2),
-	nl.
+    square(0, X2),
+    display(X2),
+    nl.
 
 :- regtype animal/1.
 

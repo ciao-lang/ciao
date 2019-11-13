@@ -46,7 +46,7 @@ Path = '/tmp/tmp_modsfbMY9Y/my_tmp_mod.pl' ?
 @begin{verbatim}
 :-module(_,[p/1],[]).
 p(A) :-
-        q(A).
+    q(A).
 q(b).
 @end{verbatim}
 ").
@@ -66,61 +66,61 @@ q(b).
 :- data modblob_tmp_dir/1.
 
 get_tmp_subdir(X) :-
-	( modblob_tmp_dir(X) ->
-	    true
-	; mktemp_in_tmp('modblob_XXXXXX', FileBase),
-	  del_file_nofail(FileBase),
-	  make_directory(FileBase),
-	  X = FileBase,
-	  set_fact(modblob_tmp_dir(X))
-	).
+    ( modblob_tmp_dir(X) ->
+        true
+    ; mktemp_in_tmp('modblob_XXXXXX', FileBase),
+      del_file_nofail(FileBase),
+      make_directory(FileBase),
+      X = FileBase,
+      set_fact(modblob_tmp_dir(X))
+    ).
 
 :- regtype modblob(X) # "@var{X} is a is a temporary module object".
 modblob(X) :- atm(X).
 
 :- export(new_modblob/4).
 :- pred new_modblob(Clauses, ExportedPreds, ModName, ModBlob)
-	: list * list * atm * var => list * list * atm * modblob
+    : list * list * atm * var => list * list * atm * modblob
    # "Write clauses @var{Clauses} in a temporary module identified by @var{ModBlob}.".
 new_modblob([FirstClause|Clauses], ExportedPreds, ModName, ModBlob) :-
-	create_tmp_file_name(ModName, ModPath),
-	atom_concat(ModPath, '.pl', Filename),
-	ModBlob = Filename, % TODO: temporarily, the same
-	% (assume this is new)
-	( modblob_def(ModPath, _) ->
-	    throw(bug_conflict_modblob(ModPath))
-	; true
-	),
-	assertz_fact(modblob_def(ModBlob, Filename)),
-	%
-	open(Filename, write, S),
-	%
-	( module_clause(FirstClause) ->
-	  portray_clause(S, FirstClause),
-	  RestClauses = Clauses
-	  ;
-	    portray_clause(S, (:- module(_,ExportedPreds,[]))),
-	    RestClauses = [FirstClause|Clauses]
-	),
-	write_clauses(S, RestClauses),
-	close(S).
+    create_tmp_file_name(ModName, ModPath),
+    atom_concat(ModPath, '.pl', Filename),
+    ModBlob = Filename, % TODO: temporarily, the same
+    % (assume this is new)
+    ( modblob_def(ModPath, _) ->
+        throw(bug_conflict_modblob(ModPath))
+    ; true
+    ),
+    assertz_fact(modblob_def(ModBlob, Filename)),
+    %
+    open(Filename, write, S),
+    %
+    ( module_clause(FirstClause) ->
+      portray_clause(S, FirstClause),
+      RestClauses = Clauses
+      ;
+        portray_clause(S, (:- module(_,ExportedPreds,[]))),
+        RestClauses = [FirstClause|Clauses]
+    ),
+    write_clauses(S, RestClauses),
+    close(S).
 
 module_clause(Clause) :-
-	nonvar(Clause),
-	Clause = ':-'(X),
-	functor(X, module, _).
+    nonvar(Clause),
+    Clause = ':-'(X),
+    functor(X, module, _).
 
 :- pred create_tmp_file_name(+ModName, -FilePath)
-	#"A file @var{ModName}, will be created, if there already
-         exists one, it will overwrite its content".
+    #"A file @var{ModName}, will be created, if there already
+     exists one, it will overwrite its content".
 create_tmp_file_name(FileName, FilePath) :-
-	get_tmp_subdir(Dir),
-	path_concat(Dir, FileName, FilePath).
+    get_tmp_subdir(Dir),
+    path_concat(Dir, FileName, FilePath).
 
 :- pred write_clauses(Stream, Clauses) : atm * list.
 write_clauses(Stream, [C|Cs]) :-
-	portray_clause(Stream, C),
-	write_clauses(Stream, Cs).
+    portray_clause(Stream, C),
+    write_clauses(Stream, Cs).
 write_clauses(_, []).
 
 :- export(delete_modblob/1).
@@ -129,27 +129,27 @@ write_clauses(_, []).
 % NOTE: It cleans only itf file because when performing search no more
 %   auxiliary files are created.
 delete_modblob(ModBlob) :-
-	% check_modblob(ModBlob), % (done by modblob_path/2)
-	modblob_path(ModBlob, ModPath),
-	retract_fact(modblob_def(ModBlob, _)),
-	del_file_nofail(ModPath),
-	path_splitext(ModPath, ModBase, '.pl'),
-	atom_concat(ModBase, '.itf', ModITF),
-	del_file_nofail(ModITF).
+    % check_modblob(ModBlob), % (done by modblob_path/2)
+    modblob_path(ModBlob, ModPath),
+    retract_fact(modblob_def(ModBlob, _)),
+    del_file_nofail(ModPath),
+    path_splitext(ModPath, ModBase, '.pl'),
+    atom_concat(ModBase, '.itf', ModITF),
+    del_file_nofail(ModITF).
 
 :- export(modblob_path/2).
 :- pred modblob_path(ModBlob, ModPath) : atm(ModBlob) => atm(ModPath)
    # "Obtain the temporary file associated to @var{ModBlob}".
 modblob_path(ModBlob, ModPath) :-
-	check_modblob(ModBlob),
-	ModPath = ModBlob.
-	
+    check_modblob(ModBlob),
+    ModPath = ModBlob.
+    
 check_modblob(ModBlob) :-
-	nonvar(ModBlob),
-	modblob_def(ModBlob, _), !,
-	true.
+    nonvar(ModBlob),
+    modblob_def(ModBlob, _), !,
+    true.
 check_modblob(ModBlob) :-
-	throw(error(not_a_modblob(ModBlob), check_modblob/1)).
-	
-	
+    throw(error(not_a_modblob(ModBlob), check_modblob/1)).
+    
+    
 

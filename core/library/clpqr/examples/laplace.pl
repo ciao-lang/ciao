@@ -12,33 +12,33 @@
 
 laplace([_, _]).
 laplace([H1, H2, H3|T]):-
-	laplace_vec(H1, H2, H3), 
-	laplace([H2, H3|T]).
+    laplace_vec(H1, H2, H3), 
+    laplace([H2, H3|T]).
 
 laplace_vec([_, _], [_, _], [_, _]).
 laplace_vec([_TL, T, TR|T1], [ML, M, MR|T2], [_BL, B, BR|T3]):-
-	B + T + ML + MR - 4 * M .=. 0, 
-	laplace_vec([T, TR|T1], [M, MR|T2], [B, BR|T3]).
+    B + T + ML + MR - 4 * M .=. 0, 
+    laplace_vec([T, TR|T1], [M, MR|T2], [B, BR|T3]).
 
 printmat([]).
 printmat([H|T]):-
-	printvec(H), 
-	printmat(T).
+    printvec(H), 
+    printmat(T).
 
 printvec([]):- nl.
 printvec([H|T]):-
-	printrat(H), 
-	printvec(T).
+    printrat(H), 
+    printvec(T).
 
 printrat(rat(N,D)) :- !,
-        X is N/D,
-        format(" ~2f",X).
+    X is N/D,
+    format(" ~2f",X).
 printrat(N) :-
-        X is N*100,
-        format(" ~2d",X).
+    X is N*100,
+    format(" ~2d",X).
 
 go1:-
-	X =  [
+    X =  [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
     [100, _, _, _, _, _, _, _, _, _, 100], 
     [100, _, _, _, _, _, _, _, _, _, 100], 
@@ -51,8 +51,8 @@ go1:-
     [100, _, _, _, _, _, _, _, _, _, 100], 
     [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
     ], 
-	laplace(X),
-	printmat(X).
+    laplace(X),
+    printmat(X).
 
 % Answer:
 % 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
@@ -68,13 +68,13 @@ go1:-
 % 100.0 100.0 100.0 100.0 100.0 100.0 100.0 100.0 100.0 100.0 100.0
 
 go2([B31, M32, M33, B34, B42, B43, B12, B13, B21, M22, M23, B24]) :-
-	laplace([
-    	[_B11, B12, B13, _B14], 
-    	[B21, M22, M23, B24], 
-    	[B31, M32, M33, B34], 
-    	[_B41, B42, B43, _B44]
+    laplace([
+    [_B11, B12, B13, _B14], 
+    [B21, M22, M23, B24], 
+    [B31, M32, M33, B34], 
+    [_B41, B42, B43, _B44]
     ]).
-    	  
+      
 
 % Answer:
 % 

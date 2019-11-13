@@ -26,11 +26,11 @@
 %% ---------------------------------------------------------------------------
 
 :- module(clpfd_debug_rt,
-	[
-	    clpfd_debug/2,
-	    clpfd_warning/2,
-	    clpfd_error/2
-	], []).
+    [
+        clpfd_debug/2,
+        clpfd_warning/2,
+        clpfd_error/2
+    ], []).
 
 :- use_module(library(format)).
 
@@ -40,11 +40,11 @@
 % Note: enabled/disabled at compile-time with a compilation module
 
 clpfd_debug(String, Args) :-
-	format(user_error, String, Args).
+    format(user_error, String, Args).
 
 clpfd_warning(String, Args) :-
-	format(user_error, String, Args).
+    format(user_error, String, Args).
 
 clpfd_error(String, Args) :-
-	format(user_error, String, Args),
-	fail.
+    format(user_error, String, Args),
+    fail.

@@ -137,11 +137,11 @@ Copyright @copyright{} 1989-2002 The CLIP Group / UPM
      modes of usage of predicate @tt{length/2} (see @lib{lists}):
      @begin{verbatim}
 :- pred length(L,N) : list * var => list * integer
-	# ""Computes the length of @var{L}."".
+    # ""Computes the length of @var{L}."".
 :- pred length(L,N) : var * integer => list * integer
-	# ""Outputs @var{L} of length @var{N}."".
+    # ""Outputs @var{L} of length @var{N}."".
 :- pred length(L,N) : list * integer => list * integer
-	# ""Checks that @var{L} is of length @var{N}."".
+    # ""Checks that @var{L} is of length @var{N}."".
      @end{verbatim}
 ").
 :- decl pred(AssertionBody) : assrt_body.

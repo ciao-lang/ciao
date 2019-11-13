@@ -1,7 +1,7 @@
 :- module(toplevel_proc, [
-	start/1, kill/1, 
-	format/3,
-	wait_for_answer/4
+    start/1, kill/1, 
+    format/3,
+    wait_for_answer/4
    ], [fsyntax, dcg, assertions]).
 
 :- doc(title, "Interactive top-level as an external process").
@@ -36,21 +36,21 @@ cmd_execname(ciaosh) := ~cmd_path(core, plexe, 'ciaosh').
    top-level identified by @var{TopLevelProc}.".
 
 format(TL, _Str, _Arg):-
-	var(TL), !,
-	throw(error(instantiation_error, 'toplevel_proc:format'/3-1)).
+    var(TL), !,
+    throw(error(instantiation_error, 'toplevel_proc:format'/3-1)).
 format(TL, Str, Args):-
-	Status = ~get_status(TL), !, 
-	(
-	    var(Status) ->
-	    true
-	;
-	    throw(error(toplevel_proc_dead, 'toplevel_proc:format'/3-1))
-	),
-	format:format(~get_input(TL), Str, Args), 
-	flush_output(~get_input(TL)).
-format(TL, _Str, _Args):-	
-	throw(error(domain_error(toplevel_proc, TL), 'toplevel_proc:format'/3-1)).
-	
+    Status = ~get_status(TL), !, 
+    (
+        var(Status) ->
+        true
+    ;
+        throw(error(toplevel_proc_dead, 'toplevel_proc:format'/3-1))
+    ),
+    format:format(~get_input(TL), Str, Args), 
+    flush_output(~get_input(TL)).
+format(TL, _Str, _Args):-       
+    throw(error(domain_error(toplevel_proc, TL), 'toplevel_proc:format'/3-1)).
+    
 get_input(toplevel(Stream, _, _, _, _)) :=  Stream.
 get_output(toplevel(_, Stream, _, _, _)) :=  Stream.
 get_error(toplevel(_, _, Stream, _, _)) :=  Stream.
@@ -61,32 +61,32 @@ get_status(toplevel(_, _, _, _, Status)) :=  Status.
    @var{TopLevelProc} with an implementation defined identifier.".
 
 start(TL):- 
-	TL = toplevel(IS, OS, ES, Process, _),
-	process_call(~cmd_execname(ciaosh), [],
-	             [stdin(stream(IS)), stdout(stream(OS)), stderr(stream(ES)),
-		      background(Process)]),
-	stream_wait:input_set_unbuf(OS),
-	stream_wait:input_set_unbuf(ES), 
-	toplevel_proc:format(TL, "true.\n\n", []), 
-	(
-	    wait_for_answer(TL, _, _, 2000000) ->
-	    true
-	;
-	    throw(error(unknown_error, 'toplevel_proc:start'/1))
-	).
+    TL = toplevel(IS, OS, ES, Process, _),
+    process_call(~cmd_execname(ciaosh), [],
+                 [stdin(stream(IS)), stdout(stream(OS)), stderr(stream(ES)),
+                  background(Process)]),
+    stream_wait:input_set_unbuf(OS),
+    stream_wait:input_set_unbuf(ES), 
+    toplevel_proc:format(TL, "true.\n\n", []), 
+    (
+        wait_for_answer(TL, _, _, 2000000) ->
+        true
+    ;
+        throw(error(unknown_error, 'toplevel_proc:start'/1))
+    ).
 
 :- pred kill(TopLevelProc) # "Kills the top-level identified by
    @var{TopLevelProc}, after having close its associated stream.
    Silently suceeds if the top-level have been previously killed".
 
 kill(TL):-
-	var(~get_status(TL)), !, 
-	close(~get_input(TL)), 
-	close(~get_output(TL)), 
-	close(~get_error(TL)), 
-	process_kill(~get_process(TL)),
-	% join to avoid zombies (kill just send signal)
-	process_join(~get_process(TL)).
+    var(~get_status(TL)), !, 
+    close(~get_input(TL)), 
+    close(~get_output(TL)), 
+    close(~get_error(TL)), 
+    process_kill(~get_process(TL)),
+    % join to avoid zombies (kill just send signal)
+    process_join(~get_process(TL)).
 kill(_).
 
 :- pred wait_for_answer(TopLevelProc, Str, EStr, TimeOut) # "Waits for
@@ -98,38 +98,38 @@ kill(_).
    read.".
 
 wait_for_answer(TL, Str, EStr, TimeOut) :-
-	wait_for_answer_(~get_output(TL), -1, TimeOut, Str, []),
-	get_error_string_(~get_error(TL), EStr, []).
+    wait_for_answer_(~get_output(TL), -1, TimeOut, Str, []),
+    get_error_string_(~get_error(TL), EStr, []).
 
 wait_for_answer_(S, C0, TimeOut) -->
-	{
-	    stream_wait:input_wait(S, TimeOut), !,
-	    get_code(S, C)
-	},
-	[C],
-	{
-	    (C0 = -1,  C = 0'n, C0_ = C;
-	    C0 = 0'n, C = 0'o, C0_ = 0;
-	    C0 = -1,  C = 0'y, C0_ = C;
-	    C0 = 0'y, C = 0'e, C0_ = C;
-	    C0 = 0'e, C = 0's, C0_ = 0);
-	    C0_ = -1 
-	},!,
-        (
-            {C0_ = 0} ->
-	    []
-	;
-	    {C = -1} ->
-	    [-1]
-	;
-	    wait_for_answer_(S, C0_, TimeOut)
-	).
+    {
+        stream_wait:input_wait(S, TimeOut), !,
+        get_code(S, C)
+    },
+    [C],
+    {
+        (C0 = -1,  C = 0'n, C0_ = C;
+        C0 = 0'n, C = 0'o, C0_ = 0;
+        C0 = -1,  C = 0'y, C0_ = C;
+        C0 = 0'y, C = 0'e, C0_ = C;
+        C0 = 0'e, C = 0's, C0_ = 0);
+        C0_ = -1 
+    },!,
+    (
+        {C0_ = 0} ->
+        []
+    ;
+        {C = -1} ->
+        [-1]
+    ;
+        wait_for_answer_(S, C0_, TimeOut)
+    ).
 
 get_error_string_(S) -->
-	{
-	    stream_wait:input_wait(S, 0),!,
-	    get_code(S, C)
-	},
-	[C], 
-	get_error_string_(S).
+    {
+        stream_wait:input_wait(S, 0),!,
+        get_code(S, C)
+    },
+    [C], 
+    get_error_string_(S).
 get_error_string_(_) --> [].

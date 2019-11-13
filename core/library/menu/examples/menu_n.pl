@@ -26,18 +26,18 @@ opt2  , 'Ask prev question' # opt_flag2 - yes.
 % - First a list of pair (flag-flag_value)
 % - Returns in 2nd arg the modified list
 opt_menu_branch( A , B) :-
- 	member( opt_br=OptBr , A ),
- 	menu_branch( A , OptBr , 0 , B ).
+    member( opt_br=OptBr , A ),
+    menu_branch( A , OptBr , 0 , B ).
 
 select_menu_branch( A , B) :-
- 	member( menu_level=L , A ),
-	( L == naive -> L1 = 0 ; L1 = 1 ),
- 	menu_branch( A , br , L1 , B1 ),
- 	menu_branch( B1 , opt , L1 , B ).
+    member( menu_level=L , A ),
+    ( L == naive -> L1 = 0 ; L1 = 1 ),
+    menu_branch( A , br , L1 , B1 ),
+    menu_branch( B1 , opt , L1 , B ).
 
 
 guard opt_guard( X ) :- 
-	member( opt_flag2=Y , X ), Y == yes.
+    member( opt_flag2=Y , X ), Y == yes.
 
 
 %% Definition of flags values
@@ -54,16 +54,16 @@ flag( opt_flag1 , [ opt1, opt2 , opt3 ] , opt1 ).
 flag( opt_flag2 , [ yes, no ] , opt1 ).
 
 get_menu_default_option( O , Def ) :-
-	flag( O , _ , Def ).
+    flag( O , _ , Def ).
 
 get_menu_help( _O , 'This Demos has no help!' ).
 
 menu_is_valid_flag_value( A , B ) :-
-	flag( A , V , _ ),
-	member( B , V ).
+    flag( A , V , _ ),
+    member( B , V ).
 
 menu_valid_flag_values( A , B ) :-
-	flag( A , B , _ ).
+    flag( A , B , _ ).
 */
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

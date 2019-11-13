@@ -1,5 +1,5 @@
 :- module(_, [testdisplay2/1, patatin/0, testdisplay/0, mydisplay_list/1,
-		testppp1/2, mylist/2, testdisplay3/2], [hiord, inliner]).
+            testppp1/2, mylist/2, testdisplay3/2], [hiord, inliner]).
 
 :- use_package(expander).
 
@@ -10,12 +10,12 @@
 :- inline testpas2/2.
 
 testpas2(A, B) :-
-	display(A),
-	display(B).
+    display(A),
+    display(B).
 
 :- export(testpas1/2).
 testpas1(A, B) :-
-	testpas2(A, B).
+    testpas2(A, B).
 
 :- inline ppp1/2.
 
@@ -30,8 +30,8 @@ ppp2([C], C).
 patatin2.
 
 testppp1(A, C) :-
-	ppp1([A], C),
-	ppp2([C], C).
+    ppp1([A], C),
+    ppp2([C], C).
 
 :- inline mylist/2.
 :- unfold mylist(yes, yes).
@@ -39,24 +39,24 @@ testppp1(A, C) :-
 
 mylist([],    _).
 mylist([E|L], T) :-
-	T(E),
-	mylist(L, T).
+    T(E),
+    mylist(L, T).
 
 :- meta_predicate testdisplay3(?, pred(1)).
 
 testdisplay3(A, T) :-
-	mylist([b|A], T).
+    mylist([b|A], T).
 
 :- inline mydisplay_list/1.
 :- unfold mydisplay_list(yes).
 
 mydisplay_list([]).
 mydisplay_list([L|Ls]) :-
-	display(L),
-	mydisplay_list(Ls).
+    display(L),
+    mydisplay_list(Ls).
 
 testdisplay :-
-	mydisplay_list([a, b, c]).
+    mydisplay_list([a, b, c]).
 
 testdisplay2(A) :-
-	mylist([a, b|A], display).
+    mylist([a, b|A], display).

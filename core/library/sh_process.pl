@@ -15,13 +15,13 @@
 
 :- export(sh_process_call/3).
 :- pred sh_process_call(Script, Args, Opts) :
-	( atm(Script), list(Args, process_arg), list(Opts, process_option) )
+    ( atm(Script), list(Args, process_arg), list(Opts, process_option) )
    # "Execute a @tt{sh} script in a child process, where @var{Script}
       is the script path.".
 
 sh_process_call(Script, Args, Opts) :-
-	( using_windows -> % (e.g., MinGW, assumes sh.exe is in path)
-	    process_call(path(sh), [Script|Args], Opts)
-	; process_call(Script, Args, Opts)
-	).
+    ( using_windows -> % (e.g., MinGW, assumes sh.exe is in path)
+        process_call(path(sh), [Script|Args], Opts)
+    ; process_call(Script, Args, Opts)
+    ).
 

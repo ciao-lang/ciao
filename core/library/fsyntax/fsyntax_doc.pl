@@ -114,7 +114,7 @@ fact(N) := N * ~fact(--N) :- N > 0.
    expressions:
 @begin{verbatim}
 fact(N) := N = 0 ? 1
-         | N > 0 ? N * ~fact(--N).
+     | N > 0 ? N * ~fact(--N).
 @end{verbatim}
    The declaration @tt{:- fun_eval defined(true)} allows to locally
    define as evaluable functions being defined, so that the @tt{~}
@@ -309,17 +309,17 @@ Both of the previous code fragments translate to the following code:
 @begin{verbatim}
 der(x, 1).
 der(C, 0) :-
-          number(C).
+      number(C).
 der(A + B, X + Y) :-
-          der(A, X),
-          der(B, Y).
+      der(A, X),
+      der(B, Y).
 der(C * A, C * X) :-
-          number(C),
-          der(A, X).
+      number(C),
+      der(A, X).
 der(x ** N, N * x ** N1) :-
-          integer(N),
-          N > 0,
-          N1 is N - 1.
+      integer(N),
+      N > 0,
+      N1 is N - 1.
 @end{verbatim}
 
   Functional notation interacts well with other Ciao language
@@ -390,17 +390,17 @@ access operator @tt{@@}:
 
 @begin{verbatim}
 fixed_array([N|Ms],A):-
-	functor(A,a,N),
-	rows(N,Ms,A).
+    functor(A,a,N),
+    rows(N,Ms,A).
 fixed_array([N],A):-
-	functor(A,a,N).
+    functor(A,a,N).
 
 rows(0,_,_).
 rows(N,Ms,A) :-
-        N > 0,
-        arg(N,A,Arg),
-        array(Ms,Arg),
-        rows(N-1,Ms,A).
+    N > 0,
+    arg(N,A,Arg),
+    array(Ms,Arg),
+    rows(N-1,Ms,A).
 
 :- pred @@(Array,Index,Elem) :: array * list(int) * int
    # \"@@var@{Elem@} is the @@var@{Index@}-th element of @@var@{Array@}.\".

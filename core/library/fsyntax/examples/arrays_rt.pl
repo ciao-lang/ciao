@@ -34,17 +34,17 @@ vector(V) :- fixed_array([N],V), int(N).
 # "@var{Array} is an array of fixed dimensions @var{Dim}.".
 
 fixed_array([N|Ms],A):-
-	functor(A,a,N),
-	rows(N,Ms,A).
+    functor(A,a,N),
+    rows(N,Ms,A).
 fixed_array([N],A):-
-	functor(A,a,N).
+    functor(A,a,N).
 
 rows(0,_Ms,_A).
 rows(N,Ms,A):-
-	N > 0,
-	arg(N,A,Arg),
-	fixed_array(Ms,Arg),
-	rows(N-1,Ms,A).
+    N > 0,
+    arg(N,A,Arg),
+    fixed_array(Ms,Arg),
+    rows(N-1,Ms,A).
 
 :- pred @(Array,Index,Elem):: array * dim * int
 # "@var{Elem} is the @var{Index}-th element of @var{Array}.".
@@ -56,16 +56,16 @@ V@[I|Js] := ~arg(I,V)@Js.
 # "@var{V3} is @var{V1} + @var{V2}.".
 
 V1 <+> V2 := V3 :-
-	V1 = ~fixed_array([N]),
-	V2 = ~fixed_array([N]),
-	V3 = ~fixed_array([N]),
-	V3 = ~vecplus_(N,V1,V2).
+    V1 = ~fixed_array([N]),
+    V2 = ~fixed_array([N]),
+    V3 = ~fixed_array([N]),
+    V3 = ~vecplus_(N,V1,V2).
 
 vecplus_(0,_,_,_).
 vecplus_(N,V1,V2,V3) :- 
-	N > 0,
-	V3@[N] = V1@[N] + V2@[N],
-	vecplus_(N-1,V1,V2,V3).
+    N > 0,
+    V3@[N] = V1@[N] + V2@[N],
+    vecplus_(N-1,V1,V2,V3).
 
 :- pred <*>(V1,V2,V3) :: vector * vector * vector
 # "@var{V3} is @var{V1} * @var{V2} (inner product).".

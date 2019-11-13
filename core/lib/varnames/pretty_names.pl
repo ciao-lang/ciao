@@ -8,6 +8,6 @@
 :- pred pretty_names(+varnamesl, ?term, ?term).
 
 pretty_names(Dict, Term0, Term) :-
-	complete_dict(Term0, Dict, [], CDict),
-	append(Dict, CDict, ADict),
-	apply_dict(Term0, ADict, Term).
+    complete_dict(Term0, Dict, [], CDict),
+    append(Dict, CDict, ADict),
+    apply_dict(Term0, ADict, Term).

@@ -66,13 +66,13 @@ nonsingle(_).
 
 % (doccomments with tabs)
 
-%!	aggregate(+Template, -Goal, -Result):
+%!      aggregate(+Template, -Goal, -Result):
 %
 %         Aggregate bindings in `Goal` according to `Template`.  The
 %         `aggregate/3` version performs `bagof/3` on `Goal`.
 aggregate(_, _, _).
 
-%!	agg(+Template, Goal, -Result) is nondet.
+%!      agg(+Template, Goal, -Result) is nondet.
 %
 %       Aggregate bindings in Goal according to Template.  The
 %       aggregate/3 version performs bagof/3 on Goal.

@@ -14,6 +14,6 @@
 :- initialization(debugger_init).
 
 debugger_init :-
-	debug,
-	this_module(M),
-	debug_module(M).
+    debug,
+    this_module(M),
+    debug_module(M).

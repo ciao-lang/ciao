@@ -121,32 +121,32 @@ http_request_param(_).
    # "Generate an HTTP request from a list of parameters".
 
 http_request_str(RequestURI, Options) -->
-	http_request_line(RequestURI, Options, Options1),
-	% TODO: specify request vs response?
-        ( 'PRINTING' ->
-	    print_headers(Options1)
-	; parse_headers(Options1, [])
-	).
+    http_request_line(RequestURI, Options, Options1),
+    % TODO: specify request vs response?
+    ( 'PRINTING' ->
+        print_headers(Options1)
+    ; parse_headers(Options1, [])
+    ).
 
 http_request_line(RequestURI, Options, Options1) -->
-        http_request_method(Options,Options1),
-        " ",
-        string(RequestURI),
-        " ",
-	!,
-	( 'PRINTING' -> http_http(1,0) % TODO: change version?
-	; http_http(_Major,_Minor) % TODO: do something with version?
-	),
-        http_crlf.
+    http_request_method(Options,Options1),
+    " ",
+    string(RequestURI),
+    " ",
+    !,
+    ( 'PRINTING' -> http_http(1,0) % TODO: change version?
+    ; http_http(_Major,_Minor) % TODO: do something with version?
+    ),
+    http_crlf.
 
 http_request_method(Options, Options1) --> 'PRINTING', !,
-        { select(method(Method), Options, Options1) -> true ; fail },
-	{ method_to_name(Method, Name) },
-	http_token(Name).
+    { select(method(Method), Options, Options1) -> true ; fail },
+    { method_to_name(Method, Name) },
+    http_token(Name).
 http_request_method(Options,Options1) -->
-	http_token(Name),
-	{ name_to_method(Name, Method) },
-	{ Options = [method(Method)|Options1] }.
+    http_token(Name),
+    { name_to_method(Name, Method) },
+    { Options = [method(Method)|Options1] }.
 
 method_to_name(head, 'HEAD').
 method_to_name(post, 'POST').
@@ -170,31 +170,31 @@ http_response_param(_).
 
 :- export(http_response/3).
 http_response(Response) -->
-	http_full_response(Response), !.
+    http_full_response(Response), !.
 % TODO: if full_response fails, it try the simple_response; is it OK?
 http_response(Response) -->
-	http_simple_response(Response).
+    http_simple_response(Response).
 
 http_full_response(Response) --> 'PRINTING', !,
-	% only the first one:
-	{ Status = status(_,_,_), select(Status,Response,Response2) }, !,
-        http_status_line(Status),
-	{ ( select(content(Body),Response2,Response3) -> true
-	  ; Response3=Response2,
-	    Body=[]
-	  )
-	},
-        print_headers(Response3),
-        http_entity_body(Body).
+    % only the first one:
+    { Status = status(_,_,_), select(Status,Response,Response2) }, !,
+    http_status_line(Status),
+    { ( select(content(Body),Response2,Response3) -> true
+      ; Response3=Response2,
+        Body=[]
+      )
+    },
+    print_headers(Response3),
+    http_entity_body(Body).
 http_full_response(Response) -->
-	{ Response = [Status|Response1] },
-        http_status_line(Status),
-        parse_headers(Response1,Response2),
-	{ Response2 = [content(Body)] },
-        http_entity_body(Body).
+    { Response = [Status|Response1] },
+    http_status_line(Status),
+    parse_headers(Response1,Response2),
+    { Response2 = [content(Body)] },
+    http_entity_body(Body).
 
 http_simple_response([content(Body)]) -->
-        http_entity_body(Body).
+    http_entity_body(Body).
 
 http_entity_body(B,B,[]).
 
@@ -206,40 +206,40 @@ http_entity_body(B,B,[]).
 
 parse_headers(Options, Options) --> http_crlf, !.
 parse_headers([Option|Options], Options0) -->
-        http_header(Option), !,
-        parse_headers(Options, Options0).
+    http_header(Option), !,
+    parse_headers(Options, Options0).
 
 print_headers([]) --> http_crlf.
 print_headers([Option|Options]) -->
-        http_header(Option), !,
-        print_headers(Options).
+    http_header(Option), !,
+    print_headers(Options).
 
 http_header(Option) --> 'PRINTING', !,
-	( { header_field(Option, Field) } ->
-	    % Use field name for output
-	    { header_shown(Field, FieldShown) },
-	    http_token(FieldShown), ":", http_lws,
-	    % Print values
-	    header_value(Field, Option)
-	; print_unknown_header(Option)
-	).
+    ( { header_field(Option, Field) } ->
+        % Use field name for output
+        { header_shown(Field, FieldShown) },
+        http_token(FieldShown), ":", http_lws,
+        % Print values
+        header_value(Field, Option)
+    ; print_unknown_header(Option)
+    ).
 http_header(Option) -->
-	% Parse normalized field name
-	http_lo_up_token(Field), ":", http_lws,
-	( { header_shown(Field, _) } ->
-	    % Parse values
-	    header_value(Field, Option)
-	; parse_unknown_header(Field, Option)
-	).
+    % Parse normalized field name
+    http_lo_up_token(Field), ":", http_lws,
+    ( { header_shown(Field, _) } ->
+        % Parse values
+        header_value(Field, Option)
+    ; parse_unknown_header(Field, Option)
+    ).
 
 print_unknown_header(O) -->
-        { functor(O,F,1), arg(1,O,A) },
-	http_field(F),
-        http_line(A).
+    { functor(O,F,1), arg(1,O,A) },
+    http_field(F),
+    http_line(A).
 
 parse_unknown_header(F, Option) -->
-        http_line(A),
-        { functor(Option,F,1), arg(1,Option,A) }.
+    http_line(A),
+    { functor(Option,F,1), arg(1,Option,A) }.
 
 % ---------------------------------------------------------------------------
 % Hooks for headers definition
@@ -268,135 +268,135 @@ parse_unknown_header(F, Option) -->
 header_field(pragma(_), 'pragma').
 header_shown('pragma', 'Pragma').
 header_value('pragma', pragma(P)) --> !,
-        http_line(P).
+    http_line(P).
 
 header_field(date(_), 'date').
 header_shown('date', 'Date').
 header_value('date', date(D)) --> !,
-        http_date_str(D),
-        http_crlf.
+    http_date_str(D),
+    http_crlf.
 
 header_field(location(_), 'location').
 header_shown('location', 'Location').
 header_value('location', location(URL)) --> !,
-        http_line_atm(URL).
+    http_line_atm(URL).
 
 header_field(server(_), 'server').
 header_shown('server', 'Server').
 header_value('server', server(S)) --> !,
-        http_line_atm(S).
+    http_line_atm(S).
 
 header_field(www_authenticate(_), 'www-authenticate').
 header_shown('www-authenticate', 'WWW-Authenticate').
 header_value('www-authenticate', www_authenticate(C)) --> !,
-        http_challenges(C),
-        http_lws0,
-        http_crlf.
+    http_challenges(C),
+    http_lws0,
+    http_crlf.
 
 header_field(allow(_), 'allow').
 header_shown('allow', 'Allow').
 header_value('allow', allow(Methods)) --> !,
-        http_token_list(Methods),
-        http_crlf.
+    http_token_list(Methods),
+    http_crlf.
 
 header_field(content_encoding(_), 'content-encoding').
 header_shown('content-encoding', 'Content-Encoding').
 header_value('content-encoding', content_encoding(E)) --> !,
-        http_lo_up_token(E),
-        http_lws0,
-        http_crlf.
+    http_lo_up_token(E),
+    http_lws0,
+    http_crlf.
 
 header_field(content_length(_), 'content-length').
 header_shown('content-length', 'Content-Length').
 header_value('content-length', content_length(L)) --> !,
-        integer_str(L),
-        http_lws0,
-        http_crlf.
+    integer_str(L),
+    http_lws0,
+    http_crlf.
 
 header_field(content_type(_,_,_), 'content-type').
 header_shown('content-type', 'Content-Type').
 header_value('content-type', content_type(Type,Subtype,Params)) --> !,
-        http_media_type(Type,Subtype,Params),
-        http_crlf.
+    http_media_type(Type,Subtype,Params),
+    http_crlf.
 
 header_field(expires(_), 'expires').
 header_shown('expires', 'Expires').
 header_value('expires', expires(D)) --> !,
-        http_date_str(D),
-        http_crlf.
+    http_date_str(D),
+    http_crlf.
 
 header_field(last_modified(_), 'last-modified').
 header_shown('last-modified', 'Last-Modified').
 header_value('last-modified', last_modified(D)) --> !,
-        http_date_str(D),
-        http_crlf.
+    http_date_str(D),
+    http_crlf.
 
 % --
 
 header_field(user_agent(_), 'user-agent').
 header_shown('user-agent', 'User-Agent').
 header_value('user-agent', user_agent(A)) --> !,
-        http_line_atm(A).
+    http_line_atm(A).
 
 header_field(if_modified_since(_), 'if-modified-since').
 header_shown('if-modified-since', 'If-Modified-Since').
 header_value('if-modified-since', if_modified_since(Date)) --> !,
-        http_date_str(Date),
-        http_crlf.
+    http_date_str(Date),
+    http_crlf.
 
 header_field(authorization(_,_), 'authorization').
 header_shown('authorization', 'Authorization').
 header_value('authorization', authorization(Scheme, Params)) --> !,
-        http_credentials(Scheme, Params),
-	http_crlf.
+    http_credentials(Scheme, Params),
+    http_crlf.
 
 % ---------------------------------------------------------------------------
 
 % TODO: "Basic" auth-scheme is not supported (need token68 - see https://tools.ietf.org/html/rfc7235#page-12) 
 http_credentials(Scheme,Params) -->
-        http_lo_up_token(Scheme),
-        http_sp,
-        http_auth_params(Params).
+    http_lo_up_token(Scheme),
+    http_sp,
+    http_auth_params(Params).
 
 % ----------------------------------------------------------------------------
 
 http_challenges([C|CS]) -->
-        http_maybe_commas,
-        http_challenge(C),
-        http_more_challenges(CS).
+    http_maybe_commas,
+    http_challenge(C),
+    http_more_challenges(CS).
 
 http_more_challenges([C|CS]) -->
-        http_commas,
-        http_challenge(C),
-        http_more_challenges(CS).
+    http_commas,
+    http_challenge(C),
+    http_more_challenges(CS).
 http_more_challenges([]) --> "".
 
 http_challenge(challenge(Scheme,Realm,Params)) -->
-        http_lo_up_token(Scheme),
-        http_sp,
-        http_auth_params([realm=Realm|Params]).
+    http_lo_up_token(Scheme),
+    http_sp,
+    http_auth_params([realm=Realm|Params]).
 
 % ----------------------------------------------------------------------------
 
 http_token_list([T|Ts]) -->
-        http_maybe_commas,
-        http_token(T),
-        http_token_list0(Ts).
+    http_maybe_commas,
+    http_token(T),
+    http_token_list0(Ts).
 
 http_token_list0([T|Ts]) -->
-        http_commas,
-        http_token(T),
-        http_token_list0(Ts).
+    http_commas,
+    http_token(T),
+    http_token_list0(Ts).
 http_token_list0([]) -->
-        http_maybe_commas.
+    http_maybe_commas.
 
 http_commas -->
-        http_lws0,",",http_lws0,
-        http_maybe_commas.
+    http_lws0,",",http_lws0,
+    http_maybe_commas.
 
 http_maybe_commas --> 'PRINTING', !.
 http_maybe_commas -->
-        ",", !, http_lws0,
-        http_maybe_commas.
+    ",", !, http_lws0,
+    http_maybe_commas.
 http_maybe_commas --> "".
 

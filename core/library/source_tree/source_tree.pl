@@ -45,12 +45,12 @@
 @begin{verbatim}
    if F is a directory and WalkP(F):
       if DirP(F):
-         Action 'enter' on F
-         call recursively for each file in F
-         Action 'exit' on F
+     Action 'enter' on F
+     call recursively for each file in F
+     Action 'exit' on F
    else:
       if FileP(F):
-         Action 'file' on F
+     Action 'file' on F
 @end{verbatim}
 
    @section{Efficiency and memory usage}
@@ -196,11 +196,11 @@ walk_event(file).
 :- doc(subsection, "Source tree walk algorithm").
 
 :- use_module(library(system),
-	[file_exists/1, file_exists/2,
-	 file_property/2,
-	 directory_files/2]).
+    [file_exists/1, file_exists/2,
+     file_property/2,
+     directory_files/2]).
 :- use_module(library(pathnames),
-	[path_concat/3, path_split/3, path_relocate/4]).
+    [path_concat/3, path_split/3, path_relocate/4]).
 :- use_module(library(lists), [member/2, append/3]).
 
 :- pred walk(+Filter, +BaseDir, +Action)
@@ -208,51 +208,51 @@ walk_event(file).
      under @var{BaseDir}.".
 
 walk(Filter, BaseDir, Action) :-
-	norm_filter(Filter, NFilter),
-	walk_dir(NFilter, BaseDir, [basedir(BaseDir)], Action).
+    norm_filter(Filter, NFilter),
+    walk_dir(NFilter, BaseDir, [basedir(BaseDir)], Action).
 
 walk_dir(NFilter, FileName, Env, Action) :-
-	DirEnv = [filename(FileName)|Env],
-        ( action_hook(Action, enter, DirEnv)         % Enter directory
-	; walk_dir_(FileName, Env, NFilter, Action) % Walk inside directory
-	; action_hook(Action, exit, DirEnv)          % Exit directory
-	).
+    DirEnv = [filename(FileName)|Env],
+    ( action_hook(Action, enter, DirEnv)         % Enter directory
+    ; walk_dir_(FileName, Env, NFilter, Action) % Walk inside directory
+    ; action_hook(Action, exit, DirEnv)          % Exit directory
+    ).
 
 walk_dir_(CurrDir, Env, NFilter, Action) :-
-	NFilter = nfilter(WalkP, DirP, FileP),
-	% (peep literals of FileP that depend on the current directory)
-        DirCtxEnv = ~peep_p(step_currdir(CurrDir), FileP, Env),
-	% Get CurrDir children
-	children(CurrDir, Env, ChildEnv, FileName),
-	%
-	( eval_p(WalkP, ChildEnv), % Walk on dir?
-	  is_dir_nolink(FileName) ->
-	    % Filter dir
-	    eval_p(DirP, ChildEnv),
-	    walk_dir(NFilter, FileName, Env, Action)
-	; % (peep literals of FileP that depend on filename)
-	  FileEnv = ~append(~peep_p(step_file, FileP, ChildEnv),
-	                    ~append(DirCtxEnv, ChildEnv)),
-	  % Filter file
-	  eval_p(FileP, FileEnv),
-	  action_hook(Action, file, FileEnv)
-	).
+    NFilter = nfilter(WalkP, DirP, FileP),
+    % (peep literals of FileP that depend on the current directory)
+    DirCtxEnv = ~peep_p(step_currdir(CurrDir), FileP, Env),
+    % Get CurrDir children
+    children(CurrDir, Env, ChildEnv, FileName),
+    %
+    ( eval_p(WalkP, ChildEnv), % Walk on dir?
+      is_dir_nolink(FileName) ->
+        % Filter dir
+        eval_p(DirP, ChildEnv),
+        walk_dir(NFilter, FileName, Env, Action)
+    ; % (peep literals of FileP that depend on filename)
+      FileEnv = ~append(~peep_p(step_file, FileP, ChildEnv),
+                        ~append(DirCtxEnv, ChildEnv)),
+      % Filter file
+      eval_p(FileP, FileEnv),
+      action_hook(Action, file, FileEnv)
+    ).
 
 children(CurrDir, Env, ChildEnv, FileName) :-
-	directory_files(CurrDir, Files),
-	member(Name, Files),
-	\+ dot_dir(Name),
-	path_concat(CurrDir, Name, FileName),
-	ChildEnv = [name(Name), filename(FileName)|Env].
+    directory_files(CurrDir, Files),
+    member(Name, Files),
+    \+ dot_dir(Name),
+    path_concat(CurrDir, Name, FileName),
+    ChildEnv = [name(Name), filename(FileName)|Env].
 
 dot_dir('.').
 dot_dir('..').
 
 % FileName is a directory that is not a symbolic link
 is_dir_nolink(FileName) :-
-	\+ file_property(FileName, linkto(_)),
-	file_exists(FileName),
-	file_property(FileName, type(directory)).
+    \+ file_property(FileName, linkto(_)),
+    file_exists(FileName),
+    file_property(FileName, type(directory)).
 
 :- pred foreach_file_find(+Filter, +BaseDir, +Action) ::
    source_filter * atm * walk_action
@@ -260,11 +260,11 @@ is_dir_nolink(FileName) :-
      @var{BaseDir}.".
 
 foreach_file_find(Filter, BaseDir, Action) :-
-	( % (failure-driven loop)
-	  walk(Filter, BaseDir, Action),
-	    fail
-	; true
-	).
+    ( % (failure-driven loop)
+      walk(Filter, BaseDir, Action),
+        fail
+    ; true
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -280,10 +280,10 @@ foreach_file_find(Filter, BaseDir, Action) :-
 
 % Normalize a tree filter
 norm_filter(Filter, NFilter) :-
-	ground(Filter), % (very coarse check)
-	( is_list(Filter) -> Filter2 = Filter ; Filter2 = [Filter] ),
-	Filter3 = ~reduce_filter(Filter2),
-	NFilter = ~expand_and_collect(Filter3).
+    ground(Filter), % (very coarse check)
+    ( is_list(Filter) -> Filter2 = Filter ; Filter2 = [Filter] ),
+    Filter3 = ~reduce_filter(Filter2),
+    NFilter = ~expand_and_collect(Filter3).
 
 is_list([]).
 is_list([_|_]).
@@ -291,57 +291,57 @@ is_list([_|_]).
 % Reduce a filter (apply filter_def/2)
 reduce_filter([]) := [].
 reduce_filter([X|Xs]) := Ys :-
-	( X = true ->
-	    Xs1 = Xs, Ys1 = Ys
-	; filter_def(X, Def) ->
-	    Xs1 = ~append(Def, Xs), Ys1 = Ys
-	; Xs1 = Xs, Ys = [X|Ys1]
-	),
-	Ys1 = ~reduce_filter(Xs1).
+    ( X = true ->
+        Xs1 = Xs, Ys1 = Ys
+    ; filter_def(X, Def) ->
+        Xs1 = ~append(Def, Xs), Ys1 = Ys
+    ; Xs1 = Xs, Ys = [X|Ys1]
+    ),
+    Ys1 = ~reduce_filter(Xs1).
 
 % Classify and expand filters
 expand_and_collect(Fs, NFilter) :-
-	NFilter = nfilter(~expand_and_collect_p(walk_p, Fs),
-			  ~expand_and_collect_p(dir_p, Fs),
-	                  ~expand_and_collect_p(file_p, Fs)).
+    NFilter = nfilter(~expand_and_collect_p(walk_p, Fs),
+                      ~expand_and_collect_p(dir_p, Fs),
+                      ~expand_and_collect_p(file_p, Fs)).
 
 % Collect literals of Cond from Fs and expand them
 expand_and_collect_p(Cond, Fs) := Expr :-
-	% Group all Cond
-	Exprs = ~findall(Expr0, member(Cond-Expr0, Fs)),
-	%
-	( Exprs = [] -> Expr = true % no filter
-	; Expr = ~expand_p(and(Exprs)) % conjunction of filters
-	).
+    % Group all Cond
+    Exprs = ~findall(Expr0, member(Cond-Expr0, Fs)),
+    %
+    ( Exprs = [] -> Expr = true % no filter
+    ; Expr = ~expand_p(and(Exprs)) % conjunction of filters
+    ).
 
 % Expand match literals (apply match_def/3)
 expand_p(not(Expr)) := P :- !,
-	P = not(~expand_p(Expr)).
+    P = not(~expand_p(Expr)).
 expand_p(and(Exprs)) := P :- !,
-	P = and(~expand_p_list(Exprs)).
+    P = and(~expand_p_list(Exprs)).
 expand_p(or(Exprs)) := P :- !,
-	P = or(~expand_p_list(Exprs)).
+    P = or(~expand_p_list(Exprs)).
 expand_p(match(Arg, Pattern)) := P :- !,
-	P = ~expand_match(Arg, Pattern).
+    P = ~expand_match(Arg, Pattern).
 expand_p(P) := P.
 
 expand_p_list([], []) :- !.
 expand_p_list([K|Ks], [K2|Ks2]) :-
-	K2 = ~expand_p(K),
-	expand_p_list(Ks, Ks2).
+    K2 = ~expand_p(K),
+    expand_p_list(Ks, Ks2).
 
 expand_match(Arg, glob(E), P) :- !, P = match_glob(Arg, E).
 expand_match(Arg, Pattern, P) :-
-	Pattern =.. [N, Kind],
-	E2 = ~sort(~findall(Def, match_def(Kind, N, Def))),
-	( E2 = [E] -> P = match_glob(Arg, E)
-	; P = or(~expand_match_list(E2, Arg))
-	).
+    Pattern =.. [N, Kind],
+    E2 = ~sort(~findall(Def, match_def(Kind, N, Def))),
+    ( E2 = [E] -> P = match_glob(Arg, E)
+    ; P = or(~expand_match_list(E2, Arg))
+    ).
 
 expand_match_list([], _Arg, []).
 expand_match_list([X|Xs], Arg, [X2|Xs2]) :-
-	X2 = match_glob(Arg, X),
-	expand_match_list(Xs, Arg, Xs2).
+    X2 = match_glob(Arg, X),
+    expand_match_list(Xs, Arg, Xs2).
 
 % ---------------------------------------------------------------------------
 
@@ -358,13 +358,13 @@ expand_match_list([X|Xs], Arg, [X2|Xs2]) :-
 env_get(Prop, Env) :- ( member(Prop, Env) -> true ; fail ).
 
 peep_p(Step, Expr, PrevEnv, Env) :-
-	Env = ~sort(~findall(E, (depend_p(Lit, Step, E), in_p(Expr, Lit)))),
-	eval_env_p(Env, PrevEnv, Step).
+    Env = ~sort(~findall(E, (depend_p(Lit, Step, E), in_p(Expr, Lit)))),
+    eval_env_p(Env, PrevEnv, Step).
 
 eval_env_p([], _, _).
 eval_env_p([E|Env], PrevEnv, Step) :-
-	eval_env(E, PrevEnv, Step),
-	eval_env_p(Env, PrevEnv, Step).
+    eval_env(E, PrevEnv, Step),
+    eval_env_p(Env, PrevEnv, Step).
 
 % in_p(Expr, Lit): Lit appears in the Expr formula
 in_p(or(Xs), Lit) :- !, in_list(Xs, Lit).
@@ -374,53 +374,53 @@ in_p(Lit, Lit).
 
 in_list([], _) :- fail.
 in_list([X|Xs], Lit) :-
-	( in_p(X, Lit)
-	; in_list(Xs, Lit)
-	).
+    ( in_p(X, Lit)
+    ; in_list(Xs, Lit)
+    ).
 
 % Evaluate formula on the given environment
 eval_p(true, _) :- !.
 eval_p(false, _) :- !, fail.
 eval_p(not(Expr), Env) :- !,
-	\+ eval_p(Expr, Env).
+    \+ eval_p(Expr, Env).
 eval_p(or(Exprs), Env) :- !,
-	( member(Expr, Exprs),
-	  eval_p(Expr, Env) -> true
-	; fail
-	).
+    ( member(Expr, Exprs),
+      eval_p(Expr, Env) -> true
+    ; fail
+    ).
 eval_p(and(Exprs), Env) :- !,
-	eval_conj(Exprs, Env).
+    eval_conj(Exprs, Env).
 eval_p(Expr, Env) :-
-	builtin_p(Expr, Env).
+    builtin_p(Expr, Env).
 
 eval_conj([], _).
 eval_conj([X|Xs], Env) :-
-	eval_p(X, Env),
-	eval_conj(Xs, Env).
+    eval_p(X, Env),
+    eval_conj(Xs, Env).
 
 % ---------------------------------------------------------------------------
 
 depend_p(glob_from_fileset(Files), step_currdir(_), or_from_files(Files, _)).
 builtin_p(glob_from_fileset(Files), Env) :- !,
-	% Get glob patterns from files in the base directory
-	% (must be precomputed in Env)
-	env_get(or_from_files(Files, Expr), Env),
-	eval_p(Expr, Env).
+    % Get glob patterns from files in the base directory
+    % (must be precomputed in Env)
+    env_get(or_from_files(Files, Expr), Env),
+    eval_p(Expr, Env).
 
 eval_env(or_from_files(Files, Expr), _, step_currdir(CurrDir)) :-
-	atoms_from_files(CurrDir, Files, Xs),
-	Expr = or(~findall(match_glob(name, X), member(X, Xs))).
+    atoms_from_files(CurrDir, Files, Xs),
+    Expr = or(~findall(match_glob(name, X), member(X, Xs))).
 
 % Read all atoms from a set of files
 atoms_from_files(BaseDir, Files, Exprs) :-
-	findall(Expr, atoms_from_files_(BaseDir, Files, Expr), Exprs).
+    findall(Expr, atoms_from_files_(BaseDir, Files, Expr), Exprs).
 
 atoms_from_files_(BaseDir, Files, Expr) :-
-	member(Name, Files),
-	path_concat(BaseDir, Name, File),
-	file_exists(File),
-	file_to_atoms(File, Exprs),
-	member(Expr, Exprs).
+    member(Name, Files),
+    path_concat(BaseDir, Name, File),
+    file_exists(File),
+    file_to_atoms(File, Exprs),
+    member(Expr, Exprs).
 
 % ---------------------------------------------------------------------------
 
@@ -432,31 +432,31 @@ atoms_from_files_(BaseDir, Files, Expr) :-
 
 % Elem matches Pattern
 builtin_p(match_glob(Elem, Pattern), Env) :- atom(Pattern), !,
-	( Elem = name -> env_get(name(X), Env)
-	; Elem = filename -> env_get(filename(X), Env)
-	; fail
-	),
-	match_term(Pattern, X).
+    ( Elem = name -> env_get(name(X), Env)
+    ; Elem = filename -> env_get(filename(X), Env)
+    ; fail
+    ),
+    match_term(Pattern, X).
 
 % ---------------------------------------------------------------------------
 
 builtin_p(dirmark(DirMark), Env) :- atom(DirMark), !,
-	env_get(filename(Dir), Env),
-	% The directory Dir is marked as specified in DirMark expression
-	path_concat(Dir, DirMark, DirMarkName),
-	file_exists(DirMarkName).
+    env_get(filename(Dir), Env),
+    % The directory Dir is marked as specified in DirMark expression
+    path_concat(Dir, DirMark, DirMarkName),
+    file_exists(DirMarkName).
 
 % ---------------------------------------------------------------------------
 
 depend_p(srctype(_), step_file, srctype(_)).
 builtin_p(srctype(SrcType), Env) :- atom(SrcType), !,
-	% file type is SrcType
-	env_get(srctype(SrcType0), Env),
-	SrcType = SrcType0.
+    % file type is SrcType
+    env_get(srctype(SrcType0), Env),
+    SrcType = SrcType0.
 
 eval_env(srctype(SrcType), PrevEnv, step_file) :-
-	env_get(filename(FileName), PrevEnv),
-	get_file_srctype(FileName, SrcType).
+    env_get(filename(FileName), PrevEnv),
+    get_file_srctype(FileName, SrcType).
 
 % ===========================================================================
 
@@ -468,21 +468,21 @@ eval_env(srctype(SrcType), PrevEnv, step_file) :-
 
 :- export(current_file_find/3).
 :- pred current_file_find(+Filter, +BaseDir, -FileName)
-	:: source_filter * atm * atm
+    :: source_filter * atm * atm
    # "Enumerates recursively all files @var{FileName} (absolute file
       name) in @var{BaseDir} directory files that match the
       corresponding @var{Filter}.".
 
 current_file_find(Filter, BaseDir, FileName) :-
-	walk(Filter, BaseDir, enum(FileName)).
+    walk(Filter, BaseDir, enum(FileName)).
 
 % Enumerate files
 action_hook(enum(FileName0), Event, Env) :-
-	( Event = file ->
-	    env_get(filename(FileName), Env),
-	    FileName0 = FileName
-	; fail
-	).
+    ( Event = file ->
+        env_get(filename(FileName), Env),
+        FileName0 = FileName
+    ; fail
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -497,7 +497,7 @@ action_hook(enum(FileName0), Event, Env) :-
      permissions @var{Perms}".
 
 copy_file_tree(Filter, SrcDir, DestDir, Perms) :-
-	foreach_file_find(Filter, SrcDir, copy(DestDir, Perms, _)).
+    foreach_file_find(Filter, SrcDir, copy(DestDir, Perms, _)).
 
 :- export(copy_file_tree/5).
 :- pred copy_file_tree(Filter, SrcDir, DestDir, Perms, Owner) 
@@ -505,47 +505,47 @@ copy_file_tree(Filter, SrcDir, DestDir, Perms) :-
      permissions @var{Perms} and owner @var{Owner}".
 
 copy_file_tree(Filter, SrcDir, DestDir, Perms, Owner) :-
-	foreach_file_find(Filter, SrcDir, copy(DestDir, Perms, Owner)).
+    foreach_file_find(Filter, SrcDir, copy(DestDir, Perms, Owner)).
 
 :- use_module(library(system),
-	[copy_file/2, copy_file/3]).
+    [copy_file/2, copy_file/3]).
 :- use_module(library(system_extra),
-	[mkpath/1, mkpath/2, mkpath/3,
-	 set_file_perms/2, set_file_owner/2]).
+    [mkpath/1, mkpath/2, mkpath/3,
+     set_file_perms/2, set_file_owner/2]).
 
 % Install files and directories
 action_hook(copy(DestDir, Perms, Owner), Event, Env) :-
-	env_get(basedir(BaseDir), Env),
-	env_get(filename(FileName), Env),
-	( Event = file ->
-	    path_relocate(BaseDir, DestDir, FileName, TargetFile),
-	    copy_file_perms(FileName, TargetFile,
-	                    [overwrite, timestamp], Perms, Owner)
-	; Event = enter ->
-	    path_relocate(BaseDir, DestDir, FileName, TargetDir),
-	    copy_mkpath(TargetDir, Perms, Owner)
-	; fail
-	).
+    env_get(basedir(BaseDir), Env),
+    env_get(filename(FileName), Env),
+    ( Event = file ->
+        path_relocate(BaseDir, DestDir, FileName, TargetFile),
+        copy_file_perms(FileName, TargetFile,
+                        [overwrite, timestamp], Perms, Owner)
+    ; Event = enter ->
+        path_relocate(BaseDir, DestDir, FileName, TargetDir),
+        copy_mkpath(TargetDir, Perms, Owner)
+    ; fail
+    ).
 
 % copy_mkpath(+TargetDir, +Perms, +Owner):
 %   mkpath with given file (optional) attributes
 copy_mkpath(TargetDir, Perms, Owner) :-
-	( var(Perms), var(Owner) ->
-	    mkpath(TargetDir)
-	; var(Owner) ->
-	    mkpath(TargetDir, Perms)
-	; mkpath(TargetDir, Perms, Owner)
-	).
+    ( var(Perms), var(Owner) ->
+        mkpath(TargetDir)
+    ; var(Owner) ->
+        mkpath(TargetDir, Perms)
+    ; mkpath(TargetDir, Perms, Owner)
+    ).
 
 % copy_file with given file (optional) attributes
 copy_file_perms(FileName, TargetFile, CopyOptions, Perms, Owner) :-
-	copy_file(FileName, TargetFile, CopyOptions),
-	( var(Perms) -> true
-	; set_file_perms(FileName, Perms)
-	),
-	( var(Owner) -> true
-	; set_file_owner(TargetFile, Owner)
-	).
+    copy_file(FileName, TargetFile, CopyOptions),
+    ( var(Perms) -> true
+    ; set_file_perms(FileName, Perms)
+    ),
+    ( var(Owner) -> true
+    ; set_file_owner(TargetFile, Owner)
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -560,15 +560,15 @@ copy_file_perms(FileName, TargetFile, CopyOptions, Perms, Owner) :-
       @tt{cleanable(PrecompLevel)} @pred{source_filter/1}).".
 
 clean_file_tree(PrecompLevel, Dir) :-
-	foreach_file_find([untainted, cleanable(PrecompLevel)], Dir, delete).
+    foreach_file_find([untainted, cleanable(PrecompLevel)], Dir, delete).
 
 % Delete files
 action_hook(delete, Event, Env) :-
-	env_get(filename(FileName), Env),
-	( Event = file ->
-	    delete_file(FileName)
-	; fail
-	).
+    env_get(filename(FileName), Env),
+    ( Event = file ->
+        delete_file(FileName)
+    ; fail
+    ).
 
 % ===========================================================================
 
@@ -583,31 +583,31 @@ action_hook(delete, Event, Env) :-
    all its contents are copied recursively.".
 
 copy_file_or_dir(FileName, DestDir) :-
-	( is_dir_nolink(FileName) ->
-	    path_split(FileName, _Dir, Name), % TODO: use path_split
-	    path_concat(DestDir, Name, T1),
-	    mkpath(T1),
-	    %
-	    foreach_file_find(true, FileName, copy(T1, _Perms, _Owner))
-	; copy_file(FileName, DestDir, [overwrite, timestamp])
-	).
+    ( is_dir_nolink(FileName) ->
+        path_split(FileName, _Dir, Name), % TODO: use path_split
+        path_concat(DestDir, Name, T1),
+        mkpath(T1),
+        %
+        foreach_file_find(true, FileName, copy(T1, _Perms, _Owner))
+    ; copy_file(FileName, DestDir, [overwrite, timestamp])
+    ).
 
 :- export(remove_dir/1).
 :- pred remove_dir(Dir) # "Delete the directory @var{Dir} and all its
    contents recursively. Throws exception if file does not exist.".
 
 remove_dir(Dir) :-
-	foreach_file_find(true, Dir, remove).
+    foreach_file_find(true, Dir, remove).
 
 % Delete files and directories
 action_hook(remove, Event, Env) :-
-	env_get(filename(FileName), Env),
-	( Event = file ->
-	    delete_file(FileName)
-	; Event = exit ->
-	    delete_directory(FileName)
-	; fail
-	).
+    env_get(filename(FileName), Env),
+    ( Event = file ->
+        delete_file(FileName)
+    ; Event = exit ->
+        delete_directory(FileName)
+    ; fail
+    ).
 
 :- export(remove_file_or_dir/1).
 :- pred remove_file_or_dir(FileName) # "Delete @var{FileName}. If
@@ -615,12 +615,12 @@ action_hook(remove, Event, Env) :-
    recursively. Ignore errors if file does not exist.".
 
 remove_file_or_dir(FileName) :-
-	( is_dir_nolink(FileName) ->
-	    remove_dir(FileName)
-	; file_exists(FileName) ->
-	    delete_file(FileName)
-	; true
-	).
+    ( is_dir_nolink(FileName) ->
+        remove_dir(FileName)
+    ; file_exists(FileName) ->
+        delete_file(FileName)
+    ; true
+    ).
 
 :- export(delete_glob/2).
 :- pred delete_glob(Dir, Pattern) # "Delete each file in directory
@@ -628,7 +628,7 @@ remove_file_or_dir(FileName) :-
    @var{Pattern}".
 
 delete_glob(Dir, Pattern) :-
-	foreach_glob_find(Dir, Pattern, delete_file).
+    foreach_glob_find(Dir, Pattern, delete_file).
 
 :- export(remove_glob/2).
 :- pred remove_glob(Dir, Pattern) # "Like @pred{delete_glob/2}, but
@@ -636,24 +636,24 @@ delete_glob(Dir, Pattern) :-
    @var{Dir}.".
 
 remove_glob(Dir, Pattern) :-
-	foreach_glob_find(Dir, Pattern, remove_file_or_dir).
+    foreach_glob_find(Dir, Pattern, remove_file_or_dir).
 
 foreach_glob_find(Dir, Pattern, Action) :-
-	( % (failure driven loop)
-	  file_exists(Dir),
-          current_file_find([nonrec,
-	                     file_p-match(name, glob(Pattern)) % match pattern
-                            ], Dir, FileName),
-	    process_file(Action, FileName),
-	    fail
-	; true
-	).
+    ( % (failure driven loop)
+      file_exists(Dir),
+      current_file_find([nonrec,
+                         file_p-match(name, glob(Pattern)) % match pattern
+                        ], Dir, FileName),
+        process_file(Action, FileName),
+        fail
+    ; true
+    ).
 
 % TODO: Use action_hook instead
 process_file(delete_file, FileName) :-
-	delete_file(FileName).
+    delete_file(FileName).
 process_file(remove_file_or_dir, FileName) :-
-	remove_file_or_dir(FileName).
+    remove_file_or_dir(FileName).
 
 % ===========================================================================
 
@@ -802,13 +802,13 @@ neg_proj(distributable) := nodistributable.
 neg_proj(testable) := notestable.
 
 list_dirmark(Kind) :=
-	~findall(dirmark(Mark), dirmark(Kind, Mark)).
+    ~findall(dirmark(Mark), dirmark(Kind, Mark)).
 
 list_fileset(Kind) :=
-	~findall(F, fileset(Kind, F)).
+    ~findall(F, fileset(Kind, F)).
 
 list_fileset_pattern(Kind) :=
-	~findall(match(name, glob(F)), fileset(Kind, F)).
+    ~findall(match(name, glob(F)), fileset(Kind, F)).
 
 % Marks for not compilable files
 
@@ -840,8 +840,8 @@ match_def(nocompilable, file) := 'Makefile.pl'.
 filter_def(srctype(SrcTypes), [
     file_p-match(name, file(pl_source)),
     file_p-or(~findall(srctype(T),
-                       ( atom(SrcTypes), T = SrcTypes
-		       ; member(T, SrcTypes))))
+                   ( atom(SrcTypes), T = SrcTypes
+                   ; member(T, SrcTypes))))
 ]).
 
 match_def(pl_source, file) := '*.pl'.
@@ -952,7 +952,7 @@ match_def(elisp_output, file) := '*.elc'.
 %
 % precomp_yield(Level): expected in a greater precompilation level
 match_def(precomp_yield(Level), PT) :=
-	~match_def(precomp_yield(~precomp_next(Level)), PT).
+    ~match_def(precomp_yield(~precomp_next(Level)), PT).
 match_def(precomp_yield(src), PT) := ~match_def(noarch, PT).
 match_def(precomp_yield(src), PT) := ~match_def(noarch_tmp, PT).%%
 match_def(precomp_yield(noa), PT) := ~match_def(arch, PT).
@@ -965,9 +965,9 @@ match_def(precomp_tmp, PT) := ~match_def(noarch_tmp, PT).
 match_def(precomp_tmp, PT) := ~match_def(arch_tmp, PT).
 %
 match_def(precomp_builddir_yield(Level), PT) :=
-	~match_def(precomp_builddir_yield(~precomp_next(Level)), PT).
+    ~match_def(precomp_builddir_yield(~precomp_next(Level)), PT).
 match_def(precomp_builddir_yield(Level), filename) :=
-	~precomp_builddir_yield_(Level).
+    ~precomp_builddir_yield_(Level).
 
 :- use_module(library(bundle/bundle_paths), [bundle_path/4]).
 :- use_module(engine(internals), [ciao_root/1]).
@@ -996,22 +996,22 @@ precomp_builddir_yield_(bin) := ~path_concat(~ciao_root, 'third-party'). % bin l
 :- doc(subsection, "Extended filter definitions").
 
 filter_def(compilable_module,
-	[untainted, proj(compilable), srctype(module)]).
+    [untainted, proj(compilable), srctype(module)]).
 
 filter_def(testable_module,
-	[untainted, proj(compilable), proj(testable), srctype(module)]).
+    [untainted, proj(compilable), proj(testable), srctype(module)]).
 
 filter_def(distributable_precomp(Level),
-	[untainted, proj(distributable),
-	 precomp(Level),
-	 precomp_builddir(Level),
-	 no_precomp_tmp]).
+    [untainted, proj(distributable),
+     precomp(Level),
+     precomp_builddir(Level),
+     no_precomp_tmp]).
 
 filter_def(installable_precomp(Level),
-	[untainted, proj(installable),
-	 precomp(Level),
-	 precomp_builddir(Level),
-	 no_precomp_tmp]).
+    [untainted, proj(installable),
+     precomp(Level),
+     precomp_builddir(Level),
+     no_precomp_tmp]).
 
 % ===========================================================================
 
@@ -1021,18 +1021,18 @@ filter_def(installable_precomp(Level),
 :- use_module(library(stream_utils), [file_to_string/2]).
 
 file_to_atoms(File, Atoms) :-
-	file_to_string(File, String),
-	strings_atoms(String, Atoms).
+    file_to_string(File, String),
+    strings_atoms(String, Atoms).
 
 strings_atoms("", []) :-
-	!.
+    !.
 strings_atoms(String, [Atom|Atoms]) :-
-	append(Line, [0'\n|Tail], String),
-	atom_codes(Atom, Line),
-	!,
-	strings_atoms(Tail, Atoms).
+    append(Line, [0'\n|Tail], String),
+    atom_codes(Atom, Line),
+    !,
+    strings_atoms(Tail, Atoms).
 strings_atoms(Line, [Atom]) :-
-	atom_codes(Atom, Line).
+    atom_codes(Atom, Line).
 
 % ----------------------------------------------------------------------------
 
@@ -1060,28 +1060,28 @@ file_srctype(include).
    package/1} directive.").
 
 get_file_srctype(FileName, Type) :-
-	% TODO: safety check (read/2 runs out of memory on wrong files)
-	atom_concat(_, '.pl', FileName),
-	%
-	read_first_term(FileName, Term),
-	( var(Term) -> fail
-	; ( Term = (:- module(_, _, _))
-	  ; Term = (:- module(_, _))
-	  ) ->
-	    Type = module
-	; Term = (:- package(_)) ->
-	    Type = package
-	; Type = include
-	).
+    % TODO: safety check (read/2 runs out of memory on wrong files)
+    atom_concat(_, '.pl', FileName),
+    %
+    read_first_term(FileName, Term),
+    ( var(Term) -> fail
+    ; ( Term = (:- module(_, _, _))
+      ; Term = (:- module(_, _))
+      ) ->
+        Type = module
+    ; Term = (:- package(_)) ->
+        Type = package
+    ; Type = include
+    ).
 
 % Read the first term (leave unbound on failure or exception)
 read_first_term(File, Term) :-
-	catch(open(File, read, Stream), _, fail), % (it may be a broken symlink)
-	( catch(read(Stream, Term), _, true) ->
-	    true
-	; true
-	),
-	close(Stream).
+    catch(open(File, read, Stream), _, fail), % (it may be a broken symlink)
+    ( catch(read(Stream, Term), _, true) ->
+        true
+    ; true
+    ),
+    close(Stream).
 
 % ===========================================================================
 %

@@ -1,5 +1,5 @@
 :- module(ciaoc, [
-	main/1
+    main/1
    ], [assertions, hiord, dcg, optparse, nortchecks, datafacts]).
 
 :- doc(title,  "The standalone command-line compiler").
@@ -366,7 +366,7 @@ available when invoking @apl{ciaoc}:
 :- use_module(library(compiler/global_module_options)).
 
 :- use_module(library(compiler/exemaker),
-	    [make_exec/2, force_lazy/1, dynamic_search_path/1]).
+        [make_exec/2, force_lazy/1, dynamic_search_path/1]).
 
 :- use_module(engine(runtime_control), [set_prolog_flag/2, current_prolog_flag/2]).
 
@@ -376,9 +376,9 @@ available when invoking @apl{ciaoc}:
 :- dynamic(library_directory/1). % (just declaration, dynamic not needed in this module)
 
 main(Args) :-
-	intercept((get_alias_path, parse_args(Args)),
-	    compilation_error,
-	    halt(1)).
+    intercept((get_alias_path, parse_args(Args)),
+        compilation_error,
+        halt(1)).
 
 % ---------------------------------------------------------------------------
 % Simple options, flag based options, and default action
@@ -552,22 +552,22 @@ main(Args) :-
 % ---------------------------------------------------------------------------
 
 verbose_version :-
-	current_prolog_flag(verbose_compilation, on), !,
-	'$bootversion'.
+    current_prolog_flag(verbose_compilation, on), !,
+    '$bootversion'.
 verbose_version.
 
 run_ciaoc(Args) :-
-	verbose_version,
-	( output_file(OutputName) -> true
-	; OutputName = _ % (fill it later)
-	),
-	( output_kind(po) ->
-	    make_po(Args) % TODO: OutputName is ignored, show warning if nonvar?
-	; output_kind(wam) ->
-	    make_wam(Args) % TODO: OutputName is ignored, show warning if nonvar?
-	; % (default)
-	  make_exec(Args, OutputName)
-	).
+    verbose_version,
+    ( output_file(OutputName) -> true
+    ; OutputName = _ % (fill it later)
+    ),
+    ( output_kind(po) ->
+        make_po(Args) % TODO: OutputName is ignored, show warning if nonvar?
+    ; output_kind(wam) ->
+        make_wam(Args) % TODO: OutputName is ignored, show warning if nonvar?
+    ; % (default)
+      make_exec(Args, OutputName)
+    ).
 
 % ---------------------------------------------------------------------------
 % NOTE: base_message/2 is expanded as usage/0 and collects the help

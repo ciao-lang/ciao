@@ -1,11 +1,11 @@
 :- module(aggregates, [
-        setof/3,
-        bagof/3,
-        findall/3,
-        findall/4,
-        findnsols/4,
-        findnsols/5,
- 	(^)/2
+    setof/3,
+    bagof/3,
+    findall/3,
+    findall/4,
+    findnsols/4,
+    findnsols/5,
+    (^)/2
    ], [assertions,nortchecks,isomodes,nativeprops,hiord,datafacts]).
 
 :- use_module(engine(internals), ['$setarg'/4]).
@@ -107,8 +107,8 @@ no
 %% This predicate is defined on p51 of the Dec-10 Prolog manual.
 
 setof(Template, Filter, Set) :-
-        bagof(Template, Filter, Bag),
-        sort(Bag, Set).
+    bagof(Template, Filter, Bag),
+    sort(Bag, Set).
 
 :- doc(bagof(Template, Generator, Bag), "Finds all the instances of
    the @var{Template} produced by the @var{Generator}, and returns them
@@ -136,21 +136,21 @@ setof(Template, Filter, Set) :-
 %   the common case when there are no free variables.
 
 bagof(Template, Generator, Bag) :-
-        free_variables(Generator, Template, [], Vars),
-        Vars \== [], !,
-        (   length(Vars, N),
-            N =< 255 ->
-              Key =.. [.|Vars]
-        ;   Key = .(Vars)
-        ),
-        save_solutions(Key-Template, Generator),
-        list_key_solutions(OmniumGatherum),
-        keysort(OmniumGatherum, Gamut), !,
-        concordant_subset(Gamut, Key, Answer),
-        Bag = Answer.
+    free_variables(Generator, Template, [], Vars),
+    Vars \== [], !,
+    (   length(Vars, N),
+        N =< 255 ->
+          Key =.. [.|Vars]
+    ;   Key = .(Vars)
+    ),
+    save_solutions(Key-Template, Generator),
+    list_key_solutions(OmniumGatherum),
+    keysort(OmniumGatherum, Gamut), !,
+    concordant_subset(Gamut, Key, Answer),
+    Bag = Answer.
 bagof(Template, Generator, Bag) :-
-        findall(Template, Generator, Bag),
-        Bag \== [].
+    findall(Template, Generator, Bag),
+    Bag \== [].
 
 :- doc(findall(Template, Generator, List), "A special case of bagof,
      where all free variables in the @var{Generator} are taken to be
@@ -165,8 +165,8 @@ bagof(Template, Generator, Bag) :-
 %%  this has not.
 
 findall(Template, Generator, List) :-
-        save_solutions(-Template, Generator),
-        list_solutions(List, []).
+    save_solutions(-Template, Generator),
+    list_solutions(List, []).
 
 :- pred findall(@term, +callable, ?term, ?term)
    # "As @pred{findall/3}, but returning in @var{Tail} the tail of
@@ -174,8 +174,8 @@ findall(Template, Generator, List) :-
 :- meta_predicate findall(?,goal,?,?).
 
 findall(Template, Generator, List, Tail) :-
-        save_solutions(-Template, Generator),
-        list_solutions(List, Tail).
+    save_solutions(-Template, Generator),
+    list_solutions(List, Tail).
 
 :- doc(findnsols(N,Template,Generator,List),
      "As @pred{findall/3}, but generating at most @var{N} solutions of
@@ -188,10 +188,10 @@ findall(Template, Generator, List, Tail) :-
 :- meta_predicate findnsols(?,?,goal,?).
 
 findnsols(N,E,P,L) :-
-        N > 0, !,
-        NSol=n(0),
-        save_n_solutions(NSol,N,-E,P),
-        list_solutions(L,[]).
+    N > 0, !,
+    NSol=n(0),
+    save_n_solutions(NSol,N,-E,P),
+    list_solutions(L,[]).
 findnsols(_,_,_,[]).
 
 :- doc(findnsols(N,Template,Generator,List,Tail),
@@ -202,21 +202,21 @@ findnsols(_,_,_,[]).
 :- meta_predicate findnsols(?,?,goal,?,?).
 
 findnsols(N,E,P,L,T) :-
-        N > 0, !,
-        NSol=n(0),
-        save_n_solutions(NSol,N,-E,P),
-        list_solutions(L,T).
+    N > 0, !,
+    NSol=n(0),
+    save_n_solutions(NSol,N,-E,P),
+    list_solutions(L,T).
 findnsols(_,_,_,T,T).
 
 :- meta_predicate save_n_solutions(?,?,?,goal).
 save_n_solutions(NSol, N, Template, Generator) :-
-        asserta_fact(solution('-')),
-        call(Generator),
-        asserta_fact(solution(Template)),
-        NSol = n(M),
-        M1 is M+1,
-        '$setarg'(1, NSol,M1,true),
-        M1 = N -> fail.
+    asserta_fact(solution('-')),
+    call(Generator),
+    asserta_fact(solution(Template)),
+    NSol = n(M),
+    M1 is M+1,
+    '$setarg'(1, NSol,M1,true),
+    M1 = N -> fail.
 save_n_solutions(_,_,_,_).
 
 :- pred save_solutions(Template, Generator)
@@ -227,10 +227,10 @@ save_n_solutions(_,_,_,_).
 :- meta_predicate save_solutions(?,goal).
 
 save_solutions(Template, Generator) :-
-        asserta_fact(solution('-')),
-        call(Generator),
-        asserta_fact(solution(Template)),
-        fail.
+    asserta_fact(solution('-')),
+    call(Generator),
+    asserta_fact(solution(Template)),
+    fail.
 save_solutions(_,_).
 
 :- pred list_solutions(List, Tail)
@@ -238,13 +238,13 @@ save_solutions(_,_).
       @var{List}".
 
 list_solutions(List, Tail) :-
-        retract_fact(solution(Term)), !,
-        list_solutions(Term,Tail,List).
+    retract_fact(solution(Term)), !,
+    list_solutions(Term,Tail,List).
 
 list_solutions('-',L,L) :- !.
 list_solutions(-Term,Sofar,List) :-
-        retract_fact(solution(NewTerm)), !,
-        list_solutions(NewTerm, [Term|Sofar],List).
+    retract_fact(solution(NewTerm)), !,
+    list_solutions(NewTerm, [Term|Sofar],List).
 
 :- pred list_key_solutions(List)
 
@@ -262,36 +262,36 @@ list_solutions(-Term,Sofar,List) :-
 %%   I'm not sure it's a good idea, so I'm not doing it now.
 
 list_key_solutions(List) :-
-        retract_fact(solution(Term)), !,
-        list_key_solutions(Term,_KeyVars,[],List).
+    retract_fact(solution(Term)), !,
+    list_key_solutions(Term,_KeyVars,[],List).
 
 list_key_solutions('-',_,L,L).
 list_key_solutions(Term,KeyVars,SoFar,Total) :-
-        Term = Key-_,
-        variables_of(Key, KeyVars, KeyVars, _),
-        retract_fact(solution(NewTerm)), !,
-        list_key_solutions(NewTerm,KeyVars,[Term|SoFar],Total).
+    Term = Key-_,
+    variables_of(Key, KeyVars, KeyVars, _),
+    retract_fact(solution(NewTerm)), !,
+    list_key_solutions(NewTerm,KeyVars,[Term|SoFar],Total).
 
 
 variables_of(T, Vars, S0, S) :-
-        var(T), !, variable_in_list(T, Vars, S0, S).
+    var(T), !, variable_in_list(T, Vars, S0, S).
 variables_of(T, Vars, S0, S) :-
-        functor(T, _, N),
-        variables_of(N, T, Vars, S0, S).
+    functor(T, _, N),
+    variables_of(N, T, Vars, S0, S).
 
 variables_of(0, _, _, S0, S) :- !, S0=S.
 variables_of(N, T, Vars, S0, S) :-
-        arg(N, T, A),
-        variables_of(A, Vars, S0, S1),
-        M is N-1,
-        variables_of(M, T, Vars, S1, S).
+    arg(N, T, A),
+    variables_of(A, Vars, S0, S1),
+    M is N-1,
+    variables_of(M, T, Vars, S1, S).
 
 variable_in_list(T, Vars, S0, S) :-
-        Vars==S0, !, S0=[T|S].
+    Vars==S0, !, S0=[T|S].
 variable_in_list(T, [V|Vars], S0, S) :-
-        (   T==V -> S0=S
-        ;   variable_in_list(T, Vars, S0, S)
-        ).
+    (   T==V -> S0=S
+    ;   variable_in_list(T, Vars, S0, S)
+    ).
 
 :- pred concordant_subset(Kvpair, Key, Val) : (keylist(Kvpair), list(Val))
    # "Takes a list of @var{Key-Val} pairs which has been keysorted to bring
@@ -299,8 +299,8 @@ variable_in_list(T, [V|Vars], S0, S) :-
      Key and the corresponding lists of values.".
 
 concordant_subset([Key-Val|Rest], Clavis, Answer) :-
-        concordant_subset(Rest, Key, List, More),
-        concordant_subset(More, Key, [Val|List], Clavis, Answer).
+    concordant_subset(Rest, Key, List, More),
+    concordant_subset(More, Key, [Val|List], Clavis, Answer).
 
 :-  pred concordant_subset(Rest, Key, List, More)
     # "Strips off all the Key-Val pairs from the from of Rest, putting
@@ -308,9 +308,9 @@ concordant_subset([Key-Val|Rest], Clavis, Answer) :-
       if any, as More.".
 
 concordant_subset([Key-Val|Rest], Clavis, [Val|List], More) :-
-        Key == Clavis,
-        !,
-        concordant_subset(Rest, Clavis, List, More).
+    Key == Clavis,
+    !,
+    concordant_subset(Rest, Clavis, List, More).
 concordant_subset(More, _, [], More).
 
 :- pred concordant_subset/5
@@ -321,7 +321,7 @@ concordant_subset(More, _, [], More).
 concordant_subset([],   Key, Subset, Key, Subset) :- !.
 concordant_subset(_,    Key, Subset, Key, Subset).
 concordant_subset(More, _,   _,   Clavis, Answer) :-
-        concordant_subset(More, Clavis, Answer).
+    concordant_subset(More, Clavis, Answer).
 
 % TODO: implement in C?
 :- pred free_variables(Generator, Template, OldList, NewList)
@@ -337,27 +337,27 @@ concordant_subset(More, _,   _,   Clavis, Answer) :-
     set, using @var{OldList} as an accumulator.".
 
 free_variables(Term, Bound, VarList, [Term|VarList]) :-
-        var(Term),
-        term_is_free_of(Bound, Term),
-        list_is_free_of(VarList, Term),
-        !.
+    var(Term),
+    term_is_free_of(Bound, Term),
+    list_is_free_of(VarList, Term),
+    !.
 free_variables(Term, _, VarList, VarList) :-
-        var(Term),
-        !.
+    var(Term),
+    !.
 free_variables(Term, Bound, OldList, NewList) :-
-        explicit_binding(Term, Bound, NewTerm, NewBound),
-        !,
-        free_variables(NewTerm, NewBound, OldList, NewList).
+    explicit_binding(Term, Bound, NewTerm, NewBound),
+    !,
+    free_variables(NewTerm, NewBound, OldList, NewList).
 free_variables(Term, Bound, OldList, NewList) :-
-        functor(Term, _, N),
-        free_variables(N, Term, Bound, OldList, NewList).
+    functor(Term, _, N),
+    free_variables(N, Term, Bound, OldList, NewList).
 
 free_variables(0, _, _, VarList, VarList) :- !.
 free_variables(N, Term, Bound, OldList, NewList) :-
-        arg(N, Term, Argument),
-        free_variables(Argument, Bound, OldList, MidList),
-        M is N-1,
-        free_variables(M, Term, Bound, MidList, NewList).
+    arg(N, Term, Argument),
+    free_variables(Argument, Bound, OldList, MidList),
+    M is N-1,
+    free_variables(M, Term, Bound, MidList, NewList).
 
 
 :- pred explicit_binding/4
@@ -368,34 +368,34 @@ free_variables(N, Term, Bound, OldList, NewList) :-
 
 explicit_binding(X, _, _, _) :- var(X), !, fail. % space saver
 explicit_binding('basiccontrol:\\+'(_), Bound,     fail,     Bound    ).
-explicit_binding('aggregates:^'(Var,Goal), Bound, Goal,	    Bound+Var).
+explicit_binding('aggregates:^'(Var,Goal), Bound, Goal,     Bound+Var).
 explicit_binding('aggregates:setof'(Var,Goal,Set), Bound,
-                                  Goal-Set, Bound+Var).
+                              Goal-Set, Bound+Var).
 explicit_binding('aggregates:bagof'(Var,Goal,Bag), Bound,
-                                  Goal-Bag, Bound+Var).
+                              Goal-Bag, Bound+Var).
 explicit_binding('aggregates:findall'(_,_,Bag), Bound,
-                                  Bag,      Bound    ).
+                              Bag,      Bound    ).
 
 
 term_is_free_of(Term, Var) :-
-	var(Term), !,
-	Term \== Var.
+    var(Term), !,
+    Term \== Var.
 term_is_free_of(Term, Var) :-
-	functor(Term, _, N),
-	term_is_free_of(N, Term, Var).
+    functor(Term, _, N),
+    term_is_free_of(N, Term, Var).
 
 term_is_free_of(0, _, _) :- !.
 term_is_free_of(N, Term, Var) :-
-	arg(N, Term, Argument),
-	term_is_free_of(Argument, Var),
-	M is N-1,
-	term_is_free_of(M, Term, Var).
+    arg(N, Term, Argument),
+    term_is_free_of(Argument, Var),
+    M is N-1,
+    term_is_free_of(M, Term, Var).
 
 
 list_is_free_of([], _).
 list_is_free_of([Head|Tail], Var) :-
-	Head \== Var,
-	list_is_free_of(Tail, Var).
+    Head \== Var,
+    list_is_free_of(Tail, Var).
 
 :- pred '^'(X,P) : (var(X), callable(P)) 
 # "Existential quantification: @var{X} is existentially quantified in

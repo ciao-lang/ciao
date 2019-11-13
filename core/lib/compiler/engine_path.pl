@@ -30,44 +30,44 @@
 
 :- export(get_engine_file/2).
 get_engine_file(EngCfg, EngPath) :-
-	eng_path(exec, eng_def0('ciaoengine', EngCfg), EngPath). % TODO: customize 'ciaoengine' (for using different engines)
+    eng_path(exec, eng_def0('ciaoengine', EngCfg), EngPath). % TODO: customize 'ciaoengine' (for using different engines)
 
 :- export(get_engine_dir/2).
 get_engine_dir(EngCfg, EngDir) :-
-	eng_path(exec, eng_def0('ciaoengine', EngCfg), EngPath), % TODO: customize 'ciaoengine' (for using different engines)
-	path_split(EngPath, EngDir, _).
+    eng_path(exec, eng_def0('ciaoengine', EngCfg), EngPath), % TODO: customize 'ciaoengine' (for using different engines)
+    path_split(EngPath, EngDir, _).
 
 % (equivalent to eng_defs:eng_path/3)
 eng_path(D, Eng, EngPath) :-
-	base_eng_path(Eng, EngDir),
-	rel_eng_path(D, Eng, Rel),
-	path_concat(EngDir, Rel, EngPath),
-	file_exists(EngPath).
+    base_eng_path(Eng, EngDir),
+    rel_eng_path(D, Eng, Rel),
+    path_concat(EngDir, Rel, EngPath),
+    file_exists(EngPath).
 
 % (equivalent to eng_defs:base_eng_path/3)
 % E.g., .../build/eng/EngMainMod
 base_eng_path(eng_def0(EngMainMod, _), Path) :-
-	ciao_root(CiaoRoot),
-	%
-	rel_builddir(RelBuildDir),
-	path_concat(CiaoRoot, RelBuildDir, BldDir),
-	path_concat(BldDir, 'eng', Path0),
-	%
-	path_concat(Path0, EngMainMod, Path).
+    ciao_root(CiaoRoot),
+    %
+    rel_builddir(RelBuildDir),
+    path_concat(CiaoRoot, RelBuildDir, BldDir),
+    path_concat(BldDir, 'eng', Path0),
+    %
+    path_concat(Path0, EngMainMod, Path).
 
 rel_builddir('build').
 
 % (equivalent to eng_defs:rel_eng_path/5)
 rel_eng_path(exec, Eng, Path) :-
-	rel_eng_path2(objdir, Eng, Path0),
-	%
-	Eng = eng_def0(EngMainMod, EngCfg),
-	Base0 = EngMainMod,
-	( atom_concat('Win32', _, EngCfg) -> % TODO: customize (allow cross(_,_))
-	    atom_concat(Base0, '.exe', Base)
-	; Base = Base0
-	),
-	path_concat(Path0, Base, Path).
+    rel_eng_path2(objdir, Eng, Path0),
+    %
+    Eng = eng_def0(EngMainMod, EngCfg),
+    Base0 = EngMainMod,
+    ( atom_concat('Win32', _, EngCfg) -> % TODO: customize (allow cross(_,_))
+        atom_concat(Base0, '.exe', Base)
+    ; Base = Base0
+    ),
+    path_concat(Path0, Base, Path).
 
 rel_eng_path2(objdir, eng_def0(_, EngCfg), Path) :-
-	path_concat('objs', EngCfg, Path).
+    path_concat('objs', EngCfg, Path).

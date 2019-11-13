@@ -40,28 +40,28 @@ persistent_dir(db, Dir) :- ensure_datadir('yourapp', Dir).
    @var{RelPath} directory. The directory is created if needed.".
 
 ensure_datadir(RelPath, Path) :-
-	( curr_datadir(RelPath, Path0) -> true
-	; get_datadir(RelPath, Path0),
-	  mkpath(Path0),
-	  assertz_fact(curr_datadir(RelPath, Path0))
-	),
-	Path = Path0.
+    ( curr_datadir(RelPath, Path0) -> true
+    ; get_datadir(RelPath, Path0),
+      mkpath(Path0),
+      assertz_fact(curr_datadir(RelPath, Path0))
+    ),
+    Path = Path0.
 
 % Directory for storing persistent data (with relative path RelPath)
 get_datadir(RelPath, D) :-
-	% Use the global download datadir
-	deploy_data_root_dir(D0),
-	( path_is_relative(D0) ->
-	    % (relative to home if it is a relative path) % TODO: I am not
-	    % sure if this is a good idea
-	    Home = ~get_home,
-	    path_concat(Home, D0, D1)
-	; D0 = D1
-	),
-	file_exists(D1),
-	!,
-        D = ~path_concat(D1, RelPath).
+    % Use the global download datadir
+    deploy_data_root_dir(D0),
+    ( path_is_relative(D0) ->
+        % (relative to home if it is a relative path) % TODO: I am not
+        % sure if this is a good idea
+        Home = ~get_home,
+        path_concat(Home, D0, D1)
+    ; D0 = D1
+    ),
+    file_exists(D1),
+    !,
+    D = ~path_concat(D1, RelPath).
 get_datadir(RelPath, D) :-
-	% Otherwise, use a local data path
-	data_root_dir(Dir0),
-        D = ~path_concat(Dir0, RelPath).
+    % Otherwise, use a local data path
+    data_root_dir(Dir0),
+    D = ~path_concat(Dir0, RelPath).

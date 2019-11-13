@@ -124,29 +124,29 @@ hello dolly
 :- use_module(engine(io_basic)).
 :- use_module(library(libpaths), [get_alias_path/0]).
 :- use_module(library(compiler), 
-        [ensure_loaded/2, set_debug_mode/1]).
+    [ensure_loaded/2, set_debug_mode/1]).
 :- use_module(library(errhandle), [error_protect/2]).
 :- use_module(engine(internals), ['$bootversion'/0]).
 :- use_module(engine(hiord_rt), [this_module/1]).
 :- use_module(engine(runtime_control), [current_prolog_flag/2, set_prolog_flag/2]).
 
 main :- get_alias_path,
-        current_prolog_flag(argv, Args),
-        set_prolog_flag(quiet, warning),
-	'$interpret_args'(Args). % Do not clash with user_defined predicates
+    current_prolog_flag(argv, Args),
+    set_prolog_flag(quiet, warning),
+    '$interpret_args'(Args). % Do not clash with user_defined predicates
 
 '$interpret_args'(['-i',File | Rest]) :- !,
-        set_debug_mode(File),
-        '$load&call'(File,Rest).
+    set_debug_mode(File),
+    '$load&call'(File,Rest).
 '$interpret_args'([File | Rest]) :- !,
-        '$load&call'(File,Rest).
+    '$load&call'(File,Rest).
 '$interpret_args'(_) :-
-        '$bootversion',
-        display('Please provide a source file to run!'), nl,
-        fail.
+    '$bootversion',
+    display('Please provide a source file to run!'), nl,
+    fail.
 
 '$load&call'(File,Rest) :-
-	this_module(Module),
-        ensure_loaded(File, Module),
-        set_prolog_flag(quiet, off),
-        error_protect(main(Rest),fail). % TODO: fail or abort?
+    this_module(Module),
+    ensure_loaded(File, Module),
+    set_prolog_flag(quiet, off),
+    error_protect(main(Rest),fail). % TODO: fail or abort?

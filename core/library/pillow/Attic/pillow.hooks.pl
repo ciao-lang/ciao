@@ -71,7 +71,7 @@ pillow_destdir := ~path_concat(~pillow_base_htmldir, ~pillow_destname).
 
 % TODO: ask bundle instead
 icon_address_auto :-
-	open(~bundle_path(core, 'library/pillow/icon_address_auto.pl'), write, OS),
-	portray_clause(OS, icon_base_address(~pillow_desturl)),
-	close(OS).
+    open(~bundle_path(core, 'library/pillow/icon_address_auto.pl'), write, OS),
+    portray_clause(OS, icon_base_address(~pillow_desturl)),
+    close(OS).
 

@@ -30,10 +30,10 @@ color := red   %< First case. See `bar/0`.
 :- regtype weekday/1 # "The @pred{weekday/1} regular type.
    @includedef{weekday/1}".
 weekday := monday    /*< lunae dies. */
-         | tuesday   /*< dies Martis. */
-         | wednesday /*< dies Mercurii. */
-         | thursday  /*< Thor's day. */
-         | friday    /*< day of Frigg. */.
+     | tuesday   /*< dies Martis. */
+     | wednesday /*< dies Mercurii. */
+     | thursday  /*< Thor's day. */
+     | friday    /*< day of Frigg. */.
 
 % ===========================================================================
 :- doc(section, "Documentation of assertions in programs").
@@ -78,9 +78,9 @@ dlen(_,_,_). % incomplete
 :- doc(subsection, "Simple assertions").
 
 :- export([
-	len_0/2,
-	len_v/2, len_m/2, len_t/2, 
-	len_vm/2, len_vt/2, len_mt/2, len_vmt/2]).
+    len_0/2,
+    len_v/2, len_m/2, len_t/2, 
+    len_vm/2, len_vt/2, len_mt/2, len_vmt/2]).
 
 :- pred len_0/2 # "Computes in the second argument the length of the
    first argument (@bf{showing}: no vars, no types, no modes).".

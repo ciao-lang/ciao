@@ -6,10 +6,10 @@
 % Example from B Prolog
 
 go:-
-	go_(12, L, SortedL, T),
-	write(L), nl, 
-	write(SortedL), nl,
-	write('execution time is :'),write(T).
+    go_(12, L, SortedL, T),
+    write(L), nl, 
+    write(SortedL), nl,
+    write('execution time is :'),write(T).
 
 go_(Size, L, SortedL, T):-
     srandom(Size), 
@@ -22,9 +22,9 @@ go_(Size, L, SortedL, T):-
 
 generate_random([], 0).
 generate_random([H|T], N):-
-	random(0, 1000, H), 
-	M is N - 1, 
-	generate_random(T, M).
+    random(0, 1000, H), 
+    M is N - 1, 
+    generate_random(T, M).
 
 psort(X,Y):-sorted(Y),permutation(X,Y).
 
@@ -46,11 +46,11 @@ myselect([Y|Ys],[Y|Zs],X) :- myselect(Ys,Zs,X).
 %%% test %%% 
 
 test(Size, T):-
-	go_(Size, L, SL, T), 
-	check_output(SL, L, 0).
+    go_(Size, L, SL, T), 
+    check_output(SL, L, 0).
 
 check_output([H|T], L, Prev):-
-	H >= Prev, 
-	select(H_, L, L_), H==H_, 
-	check_output(T, L_, H).
+    H >= Prev, 
+    select(H_, L, L_), H==H_, 
+    check_output(T, L_, H).
 check_output([], [], _).

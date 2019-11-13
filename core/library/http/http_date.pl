@@ -36,9 +36,9 @@
 % ---------------------------------------------------------------------------
 
 :- use_module(library(http/http_grammar), 
-	[ http_sp/2,
-	  'PARSING'/2, 'PRINTING'/2
-	]).
+    [ http_sp/2,
+      'PARSING'/2, 'PRINTING'/2
+    ]).
 
 % ---------------------------------------------------------------------------
 % Term representation of HTTP dates
@@ -49,11 +49,11 @@
 :- regtype http_date(Date) # "@var{Date} is a term denoting a date.".
 
 http_date(date(WeekDay,Day,Month,Year,Time)) :-
-        weekday(WeekDay),
-        int(Day),
-        month(Month),
-        int(Year),
-        hms_time(Time).
+    weekday(WeekDay),
+    int(Day),
+    month(Month),
+    int(Year),
+    hms_time(Time).
 
 :- export(weekday/1).
 :- regtype weekday(WeekDay) # "@var{WeekDay} is a term
@@ -94,65 +94,65 @@ hms_time(T) :- atm(T).
 
 :- export(http_date_str/3).
 http_date_str(Date) --> 'PRINTING', !,
-	{ Date = date(WeekDay,Day,Month,Year,Time) },
-	% (HTTP 1.1 requires writing only in rfc1123 format)
-        http_wkday(WeekDay), " ",
-        http_day(Day, 0'0), " ",
-        http_month(Month), " ",
-        http_year(Year), " ",
-	http_time(Time), " ",
-	"GMT".
+    { Date = date(WeekDay,Day,Month,Year,Time) },
+    % (HTTP 1.1 requires writing only in rfc1123 format)
+    http_wkday(WeekDay), " ",
+    http_day(Day, 0'0), " ",
+    http_month(Month), " ",
+    http_year(Year), " ",
+    http_time(Time), " ",
+    "GMT".
 http_date_str(Date) --> parse_rfc1123_date(Date), !.
 http_date_str(Date) --> parse_rfc850_date(Date), !.
 http_date_str(Date) --> parse_asctime_date(Date), !.
 
 parse_rfc1123_date(date(WeekDay,Day,Month,Year,Time)) -->
-        http_wkday(WeekDay),
-	( "," -> [] ; [] ), % try parse ','
-        http_sp,
-	http_date1(Day, Month, Year),
-        http_sp,
-	http_time(Time),
-        http_sp,
-	"GMT".
+    http_wkday(WeekDay),
+    ( "," -> [] ; [] ), % try parse ','
+    http_sp,
+    http_date1(Day, Month, Year),
+    http_sp,
+    http_time(Time),
+    http_sp,
+    "GMT".
 
 parse_rfc850_date(date(WeekDay,Day,Month,Year,Time)) -->
-        http_weekday(WeekDay),
-	",",
-        http_sp,
-	http_date2(Day, Month, Year),
-        http_sp,
-	http_time(Time),
-        http_sp,
-	"GMT".
+    http_weekday(WeekDay),
+    ",",
+    http_sp,
+    http_date2(Day, Month, Year),
+    http_sp,
+    http_time(Time),
+    http_sp,
+    "GMT".
 
 parse_asctime_date(date(WeekDay,Day,Month,Year,Time)) -->
-        http_wkday(WeekDay),
-        http_sp,
-	http_date3(Day, Month),
-        http_sp,
-	http_time(Time),
-        http_sp,
-	http_year(Year).
+    http_wkday(WeekDay),
+    http_sp,
+    http_date3(Day, Month),
+    http_sp,
+    http_time(Time),
+    http_sp,
+    http_year(Year).
 
 http_date1(Day, Month, Year) -->
-        http_day(Day, 0'0),
-        http_sp,
-        http_month(Month),
-        http_sp,
-        http_year(Year).
+    http_day(Day, 0'0),
+    http_sp,
+    http_month(Month),
+    http_sp,
+    http_year(Year).
 
 http_date2(Day, Month, Year) -->
-        http_day(Day, 0'0),
-        "-",
-        http_month(Month),
-        "-",
-        http_year2(Year).
+    http_day(Day, 0'0),
+    "-",
+    http_month(Month),
+    "-",
+    http_year2(Year).
 
 http_date3(Day, Month) -->
-        http_month(Month),
-	http_sp,
-        http_day(Day, 0' ).
+    http_month(Month),
+    http_sp,
+    http_day(Day, 0' ).
 
 http_wkday('Monday') --> "Mon", !.
 http_wkday('Tuesday') --> "Tue", !.
@@ -174,13 +174,13 @@ http_weekday('Sunday') --> "Sunday", !.
 %   E.g., "02", "12", etc. (LeftZ = 0'0)
 %   E.g., " 2", "12", etc. (LeftZ = 0' )
 http_day(Day, LeftZ) --> 'PRINTING', !,
-	{ number_codes(Day, Ds) },
-        { Ds = [D1,D2] -> true ; Ds = [D2], D1 = LeftZ },
-	[D1,D2].
+    { number_codes(Day, Ds) },
+    { Ds = [D1,D2] -> true ; Ds = [D2], D1 = LeftZ },
+    [D1,D2].
 http_day(Day, LeftZ) --> [D1,D2], !,
-	{ D1 = LeftZ -> number_codes(Day, [D2])
-	; number_codes(Day, [D1,D2])
-	}.
+    { D1 = LeftZ -> number_codes(Day, [D2])
+    ; number_codes(Day, [D1,D2])
+    }.
 
 http_month('January') --> "Jan".
 http_month('February') --> "Feb".
@@ -197,11 +197,11 @@ http_month('December') --> "Dec".
 
 % Assumes Year > 999
 http_year(Year) --> 'PRINTING', !,
-        { number_codes(Year,[Y1,Y2,Y3,Y4]) },
-        [Y1,Y2,Y3,Y4].
+    { number_codes(Year,[Y1,Y2,Y3,Y4]) },
+    [Y1,Y2,Y3,Y4].
 http_year(Year) -->
-        [Y1,Y2,Y3,Y4],
-        { number_codes(Year,[Y1,Y2,Y3,Y4]) }.
+    [Y1,Y2,Y3,Y4],
+    { number_codes(Year,[Y1,Y2,Y3,Y4]) }.
 
 % 2DIGIT year
 % On parsing, converts to 4DIGIT using POSIX conventions:
@@ -210,33 +210,33 @@ http_year(Year) -->
 % (70->1970, ..., 99->1999, 00->2000, ..., 69->2069)
 
 http_year2(Year) --> 'PRINTING', !,
-        { number_codes(Year,[_,_,Y3,Y4]) },
-        [Y3,Y4].
+    { number_codes(Year,[_,_,Y3,Y4]) },
+    [Y3,Y4].
 http_year2(Year) -->
-        [Y3,Y4],
-        { number_codes(Year0,[Y3,Y4]) },
-	{ Year0 =< 69 -> Year is 2000 + Year0
-	; Year is 1900 + Year0
-	}.
+    [Y3,Y4],
+    { number_codes(Year0,[Y3,Y4]) },
+    { Year0 =< 69 -> Year is 2000 + Year0
+    ; Year is 1900 + Year0
+    }.
 
 http_time(Time) --> 'PRINTING', !,
-        { atom_codes(Time,Time0),
-	  time_field(Time0,[H1,H2,0':|Time1]),
-          time_field(Time1,[M1,M2,0':|Time2]),
-          time_field(Time2,[S1,S2])
-	},
-        [H1,H2,0':,M1,M2,0':,S1,S2].
+    { atom_codes(Time,Time0),
+      time_field(Time0,[H1,H2,0':|Time1]),
+      time_field(Time1,[M1,M2,0':|Time2]),
+      time_field(Time2,[S1,S2])
+    },
+    [H1,H2,0':,M1,M2,0':,S1,S2].
 http_time(Time) -->
-	% (some clients generate this kind of time format)
-	http_2dig_or_1dig(H1,H2), [0':],
-	http_2dig_or_1dig(M1,M2), [0':],
-	http_2dig_or_1dig(S1,S2),
-        { atom_codes(Time,[H1,H2,0':,M1,M2,0':,S1,S2]) }.
+    % (some clients generate this kind of time format)
+    http_2dig_or_1dig(H1,H2), [0':],
+    http_2dig_or_1dig(M1,M2), [0':],
+    http_2dig_or_1dig(S1,S2),
+    { atom_codes(Time,[H1,H2,0':,M1,M2,0':,S1,S2]) }.
 
 http_2dig_or_1dig(H1,H2) -->
-        ( [H1,H2], { digit(H2) } -> []
-	; [H2], { H1 = 0'0 }
-	).
+    ( [H1,H2], { digit(H2) } -> []
+    ; [H2], { H1 = 0'0 }
+    ).
 
 digit(X) :- X >= 0'0, X =< 0'9.
 

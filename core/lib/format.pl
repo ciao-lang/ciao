@@ -1,11 +1,11 @@
 :- module(format, 
-	[
-            format/2, 
-            format/3,
-            sformat/3,
-            format_to_string/3,
-            format_control/1],
-	[dcg,assertions,isomodes,datafacts]).
+    [
+        format/2, 
+        format/3,
+        sformat/3,
+        format_to_string/3,
+        format_control/1],
+    [dcg,assertions,isomodes,datafacts]).
 
 
 :- use_module(library(streams)).
@@ -26,42 +26,42 @@
 :- doc(author, "The Ciao Development Team").
 
 :- doc(module,"The @tt{format} family of predicates is due to 
-	Quintus Prolog. They act as a Prolog interface to the C 
-	@tt{stdio} function @tt{printf()}, allowing formatted output.
+    Quintus Prolog. They act as a Prolog interface to the C 
+    @tt{stdio} function @tt{printf()}, allowing formatted output.
 
-	Output is formatted according to an output pattern which can
-        have either a format control sequence or any other character,
-	which will appear verbatim in the output. Control sequences
-        act as place-holders for the actual terms that will be output.
-        Thus  
-        @begin{verbatim}
-        ?- format(""Hello ~q!"",world).
-        @end{verbatim}
-        @noindent
-        will print @tt{Hello world!}.
+    Output is formatted according to an output pattern which can
+    have either a format control sequence or any other character,
+    which will appear verbatim in the output. Control sequences
+    act as place-holders for the actual terms that will be output.
+    Thus  
+    @begin{verbatim}
+    ?- format(""Hello ~q!"",world).
+    @end{verbatim}
+    @noindent
+    will print @tt{Hello world!}.
 
-        If there is only one item to print it may be supplied alone.
-        If there are more they have to be given as a list. If there are 
-        none then an empty list should be supplied. There has to be as
-        many items as control characters.
+    If there is only one item to print it may be supplied alone.
+    If there are more they have to be given as a list. If there are 
+    none then an empty list should be supplied. There has to be as
+    many items as control characters.
 
-        The character @tt{~} introduces a control sequence. To print 
-        a @tt{~} verbatim just repeat it:  
-        @begin{verbatim}
-        ?- format(""Hello ~~world!"", []).
-        @end{verbatim}
-        @noindent
-        will result in @tt{Hello ~world!}.
+    The character @tt{~} introduces a control sequence. To print 
+    a @tt{~} verbatim just repeat it:  
+    @begin{verbatim}
+    ?- format(""Hello ~~world!"", []).
+    @end{verbatim}
+    @noindent
+    will result in @tt{Hello ~world!}.
 
-        A format may be spread over several lines. The control
-        sequence @tt{\\\\c} followed by a @key{LFD} will translate to the 
-        empty string:  
-        @begin{verbatim}
-        ?- format(""Hello \\\\c
-        world!"", []).
-        @end{verbatim}
-        @noindent
-        will result in @tt{Hello world!}.").
+    A format may be spread over several lines. The control
+    sequence @tt{\\\\c} followed by a @key{LFD} will translate to the 
+    empty string:  
+    @begin{verbatim}
+    ?- format(""Hello \\\\c
+    world!"", []).
+    @end{verbatim}
+    @noindent
+    will result in @tt{Hello world!}.").
 
 :- doc(format_control/1,"
 The general format of a control sequence is @tt{~@var{N}@var{C}}.
@@ -366,9 +366,9 @@ format_control(C) :- atm(C).
 % format(+Stream, +Control, +Arguments)
 % Stream Stream
 % atom or list of chars Control corresponds roughly to the first argument of
-%				the C stdio function printf().
-% list or atom Arguments	corresponds to the rest of the printf()
-%				arguments
+%                               the C stdio function printf().
+% list or atom Arguments        corresponds to the rest of the printf()
+%                               arguments
 %
 
 :- pred format(Format,Arguments): format_control(Format)
@@ -378,11 +378,11 @@ format_control(C) :- atm(C).
 :- trust comp format(C,A) + native(format(C,A)).
 
 format(Control, _) :-
-        var(Control), !,
-        throw(error(instantiation_error, format/2-1)).
+    var(Control), !,
+    throw(error(instantiation_error, format/2-1)).
 format(Control, Arguments) :- format1(Control, Arguments), !.
 format(Control, Arguments) :-
-	throw(error(invalid_arguments(format(Control, Arguments)), format/2)).
+    throw(error(invalid_arguments(format(Control, Arguments)), format/2)).
 
 
 :- pred format(Stream,Format,Arguments):(stream(Stream), format_control(Format))
@@ -392,153 +392,153 @@ format(Control, Arguments) :-
 :- trust comp format(S,C,A) + native(format(S,C,A)).
 
 format(_, Control, _) :-
-        var(Control), !,
-        throw(error(instantiation_error, format/3-2)).
+    var(Control), !,
+    throw(error(instantiation_error, format/3-2)).
 format(Stream, Control, Arguments) :-
-        current_output(Curr),
-        set_output(Stream),
-	(   format1(Control, Arguments) -> OK=yes
-	;   OK=no
-	),
-        set_output(Curr),
-        OK=yes, !.
+    current_output(Curr),
+    set_output(Stream),
+    (   format1(Control, Arguments) -> OK=yes
+    ;   OK=no
+    ),
+    set_output(Curr),
+    OK=yes, !.
 format(_, Control, Arguments) :-
-	throw(error(invalid_arguments(format(..., Control, Arguments)), format/3)).
+    throw(error(invalid_arguments(format(..., Control, Arguments)), format/3)).
 
 format1(Control, Arguments) :-
-	(   atom(Control) -> atom_codes(Control, ControlList)
-	;   ControlList=Control
-	),
-	(   ArgumentList=Arguments
-	;   ArgumentList=[Arguments]
-	),
-	fmt_parse(ArgumentList, SpecList, ControlList, []), !,
-	current_output(Stream),
-	fmt_print(SpecList, 0, 0' , Stream).
+    (   atom(Control) -> atom_codes(Control, ControlList)
+    ;   ControlList=Control
+    ),
+    (   ArgumentList=Arguments
+    ;   ArgumentList=[Arguments]
+    ),
+    fmt_parse(ArgumentList, SpecList, ControlList, []), !,
+    current_output(Stream),
+    fmt_print(SpecList, 0, 0' , Stream).
 
 fmt_print([], _, _, _).
 fmt_print([X|Xs], Tab, Fill, Stream) :- fmt_print(X, Xs, Tab, Fill, Stream).
 
 fmt_print(settab(Arg,Tab0PlusArg,Pos,Tab), Xs, Tab0, Fill, Stream) :- !,
-	Tab0PlusArg is Tab0+Arg,
-	line_position(Stream, Pos),
-	(   Pos>Tab ->
-	    nl,
-	    putn(Tab, Fill)
-	;   Skip is Tab-Pos,
-	    putn(Skip, Fill)
-	),
-	fmt_print(Xs, Tab, Fill, Stream).
+    Tab0PlusArg is Tab0+Arg,
+    line_position(Stream, Pos),
+    (   Pos>Tab ->
+        nl,
+        putn(Tab, Fill)
+    ;   Skip is Tab-Pos,
+        putn(Skip, Fill)
+    ),
+    fmt_print(Xs, Tab, Fill, Stream).
 fmt_print(fill(Fill), Xs, Tab, _, Stream) :- !,
-	fmt_print(Xs, Tab, Fill, Stream).
+    fmt_print(Xs, Tab, Fill, Stream).
 fmt_print(spec(X,A,N), Xs, Tab, Fill, Stream) :- !,
-	line_count(Stream, Lc0),
-	fmt_pr(X, A, N),
-	line_count(Stream, Lc),
-	fmt_print(Lc0, Lc, Xs, Tab, Fill, Stream).
+    line_count(Stream, Lc0),
+    fmt_pr(X, A, N),
+    line_count(Stream, Lc),
+    fmt_print(Lc0, Lc, Xs, Tab, Fill, Stream).
 fmt_print(0'
-	  , Xs, _, _, Stream) :- !,
-	nl,
-	fmt_print(Xs, 0, 0' , Stream).
+      , Xs, _, _, Stream) :- !,
+    nl,
+    fmt_print(Xs, 0, 0' , Stream).
 fmt_print(C, Xs, Tab, Fill, Stream) :-
-	Char is integer(C),
-	put_code(Char),
-	fmt_print(Xs, Tab, Fill, Stream).
+    Char is integer(C),
+    put_code(Char),
+    fmt_print(Xs, Tab, Fill, Stream).
 
 fmt_print(Lc, Lc, Xs, Tab, Fill, Stream) :- !,
-	fmt_print(Xs, Tab, Fill, Stream).
+    fmt_print(Xs, Tab, Fill, Stream).
 fmt_print(_, _, Xs, _, _, Stream) :- !,
-	fmt_print(Xs, 0, 0' , Stream).
+    fmt_print(Xs, 0, 0' , Stream).
 
 fmt_parse([], []) --> [].
 fmt_parse(Args, Specs) --> [0'~, C1], !,
-	fmt_parse(C1, Args, Specs, 0, D, D).
+    fmt_parse(C1, Args, Specs, 0, D, D).
 fmt_parse(Args, Specs) --> [0'\\, 0'c, 0'
-                           ], !,
-	fmt_parse(Args, Specs).
+                       ], !,
+    fmt_parse(Args, Specs).
 fmt_parse(Args, [I|Specs]) --> [I],
-	{integer(I)},
-	fmt_parse(Args, Specs).
+    {integer(I)},
+    fmt_parse(Args, Specs).
 
 fmt_parse(C, Args, Specs, Sofar, _, D) --> {C>=0'0, C=<0'9}, !,
-	{N is 10*Sofar+C-0'0},
-	[C1], fmt_parse(C1, Args, Specs, N, N, D).
+    {N is 10*Sofar+C-0'0},
+    [C1], fmt_parse(C1, Args, Specs, N, N, D).
 fmt_parse(0'*, [N|Args], Specs, _, _, D) -->
-	{integer(N)},
-	[C1], fmt_parse(C1, Args, Specs, 0, N, D).
+    {integer(N)},
+    [C1], fmt_parse(C1, Args, Specs, 0, N, D).
 fmt_parse(0'~, Args, [0'~|Specs], _, 1, 1) -->
-	fmt_parse(Args, Specs).
+    fmt_parse(Args, Specs).
 fmt_parse(0'n, Args, [spec(0'c, 0'
-                          , N)|Specs], _, N, 1) -->
-	fmt_parse(Args, Specs).
+                      , N)|Specs], _, N, 1) -->
+    fmt_parse(Args, Specs).
 fmt_parse(0'N, Args, [settab(0,_,_,0)|Specs], _, 1, 1) -->
-	fmt_parse(Args, Specs).
+    fmt_parse(Args, Specs).
 fmt_parse(0'|, Args, [Spec|Specs], _, N, current) -->
-	(   {current=N} ->
-	    {Spec=settab(0,_,Tab,Tab)}
-	;   {Spec=settab(N,_,_,N)}
-	),
-	fmt_parse(Args, Specs).
+    (   {current=N} ->
+        {Spec=settab(0,_,Tab,Tab)}
+    ;   {Spec=settab(N,_,_,N)}
+    ),
+    fmt_parse(Args, Specs).
 fmt_parse(0'+, Args, [settab(N,Tab,_,Tab)|Specs], _, N, 8) -->
-	fmt_parse(Args, Specs).
+    fmt_parse(Args, Specs).
 fmt_parse(0't, Args, [fill(N)|Specs], _, N, 0' ) --> % faking
-	fmt_parse(Args, Specs).
+    fmt_parse(Args, Specs).
 fmt_parse(0'`, Args, [fill(Fill)|Specs], 0, _, _) -->
-	[Fill, 0't],
-	fmt_parse(Args, Specs).
+    [Fill, 0't],
+    fmt_parse(Args, Specs).
 fmt_parse(0'i, [_|Args], Specs, _, 1, 1) -->
-	fmt_parse(Args, Specs).
+    fmt_parse(Args, Specs).
 fmt_parse(0'a, [A|Args], [spec(0'a, A, 1)|Specs], _, 1, 1) -->
-	{atom(A)},
-	fmt_parse(Args, Specs).
+    {atom(A)},
+    fmt_parse(Args, Specs).
 fmt_parse(0'c, [A|Args], [spec(0'c, A, N)|Specs], _, N, 1) -->
-	{integer(A)},
-	fmt_parse(Args, Specs).
+    {integer(A)},
+    fmt_parse(Args, Specs).
 fmt_parse(0'k, [A|Args], [spec(0'k, A, 1)|Specs], _, 1, 1) -->
-	fmt_parse(Args, Specs).
+    fmt_parse(Args, Specs).
 fmt_parse(0'p, [A|Args], [spec(0'p, A, 1)|Specs], _, 1, 1) -->
-	fmt_parse(Args, Specs).
+    fmt_parse(Args, Specs).
 fmt_parse(0'q, [A|Args], [spec(0'q, A, 1)|Specs], _, 1, 1) -->
-	fmt_parse(Args, Specs).
+    fmt_parse(Args, Specs).
 fmt_parse(0'w, [A|Args], [spec(0'w, A, 1)|Specs], _, 1, 1) -->
-	fmt_parse(Args, Specs).
+    fmt_parse(Args, Specs).
 fmt_parse(0'e, [A|Args], [spec(0'e, V, N)|Specs], _, N, 6) -->
-	{V is float(A)},
-	fmt_parse(Args, Specs).
+    {V is float(A)},
+    fmt_parse(Args, Specs).
 fmt_parse(0'E, [A|Args], [spec(0'E, V, N)|Specs], _, N, 6) -->
-	{V is float(A)},
-	fmt_parse(Args, Specs).
+    {V is float(A)},
+    fmt_parse(Args, Specs).
 fmt_parse(0'f, [A|Args], [spec(0'f, V, N)|Specs], _, N, 6) -->
-	{V is float(A)},
-	fmt_parse(Args, Specs).
+    {V is float(A)},
+    fmt_parse(Args, Specs).
 fmt_parse(0'g, [A|Args], [spec(0'g, V, N)|Specs], _, N, 6) -->
-	{V is float(A)},
-	fmt_parse(Args, Specs).
+    {V is float(A)},
+    fmt_parse(Args, Specs).
 fmt_parse(0'G, [A|Args], [spec(0'G, V, N)|Specs], _, N, 6) -->
-	{V is float(A)},
-	fmt_parse(Args, Specs).
+    {V is float(A)},
+    fmt_parse(Args, Specs).
 fmt_parse(0'd, [A|Args], [spec(0'd, V, N)|Specs], _, N, 0) -->
-	{V is integer(A)},
-	fmt_parse(Args, Specs).
+    {V is integer(A)},
+    fmt_parse(Args, Specs).
 fmt_parse(0'D, [A|Args], [spec(0'D, V, N)|Specs], _, N, 0) -->
-	{V is integer(A)},
-	fmt_parse(Args, Specs).
+    {V is integer(A)},
+    fmt_parse(Args, Specs).
 fmt_parse(0'r, [A|Args], [spec(0'r, V, N)|Specs], _, N, 8) -->
-	{V is integer(A)},
-	fmt_parse(Args, Specs).
+    {V is integer(A)},
+    fmt_parse(Args, Specs).
 fmt_parse(0'R, [A|Args], [spec(0'R, V, N)|Specs], _, N, 8) -->
-	{V is integer(A)},
-	fmt_parse(Args, Specs).
+    {V is integer(A)},
+    fmt_parse(Args, Specs).
 fmt_parse(0's, [A|Args], [spec(0's, A, N)|Specs], _, N, Len) -->
-	{is_ascii_list(A, 0, Len)},
-	fmt_parse(Args, Specs).
+    {is_ascii_list(A, 0, Len)},
+    fmt_parse(Args, Specs).
 
 is_ascii_list(X, _, _) :- var(X), !, fail.
 is_ascii_list([], N, N).
 is_ascii_list([X|Xs], N0, N) :-
-	N1 is N0+1,
-	integer(X),
-	is_ascii_list(Xs, N1, N).
+    N1 is N0+1,
+    integer(X),
+    is_ascii_list(Xs, N1, N).
 
 fmt_pr(0'a, Arg, _) :- display(Arg).
 fmt_pr(0'k, Arg, _) :- write_canonical(Arg).
@@ -546,45 +546,45 @@ fmt_pr(0'p, Arg, _) :- print(Arg).
 fmt_pr(0'q, Arg, _) :- writeq(Arg).
 fmt_pr(0'w, Arg, _) :- write(Arg).
 fmt_pr(0'c, Arg, Number) :-
-	putn(Number, Arg).
+    putn(Number, Arg).
 fmt_pr(0'e, Arg, Number) :- 
-	'$format_print_float'(0'e, Arg, Number).
+    '$format_print_float'(0'e, Arg, Number).
 fmt_pr(0'E, Arg, Number) :-
-	'$format_print_float'(0'E, Arg, Number).
+    '$format_print_float'(0'E, Arg, Number).
 fmt_pr(0'f, Arg, Number) :-
-	'$format_print_float'(0'f, Arg, Number).
+    '$format_print_float'(0'f, Arg, Number).
 fmt_pr(0'g, Arg, Number) :-
-	'$format_print_float'(0'g, Arg, Number).
+    '$format_print_float'(0'g, Arg, Number).
 fmt_pr(0'G, Arg, Number) :-
-	'$format_print_float'(0'G, Arg, Number).
+    '$format_print_float'(0'G, Arg, Number).
 fmt_pr(0'd, Arg, Number) :-
-	'$format_print_integer'(0'd, Arg, Number).
+    '$format_print_integer'(0'd, Arg, Number).
 fmt_pr(0'D, Arg, Number) :-
-	'$format_print_integer'(0'D, Arg, Number).
+    '$format_print_integer'(0'D, Arg, Number).
 fmt_pr(0'r, Arg, Number) :-
-	'$format_print_integer'(0'r, Arg, Number).
+    '$format_print_integer'(0'r, Arg, Number).
 fmt_pr(0'R, Arg, Number) :-
-	'$format_print_integer'(0'R, Arg, Number).
+    '$format_print_integer'(0'R, Arg, Number).
 fmt_pr(0's, Arg, Number) :-
-	putn_list(Number, Arg).
+    putn_list(Number, Arg).
 
 putn(0, _) :- !.
 putn(N, C) :-
-	N>0, N1 is N-1,
-	Char is integer(C),
-	put_code(Char),
-	putn(N1, C).
+    N>0, N1 is N-1,
+    Char is integer(C),
+    put_code(Char),
+    putn(N1, C).
 
 putn_list(0, _) :- !.
 putn_list(N, []) :- !,
-	N1 is N-1,
-	put_code(0' ),
-	putn_list(N1, []).
+    N1 is N-1,
+    put_code(0' ),
+    putn_list(N1, []).
 putn_list(N, [C|Chars]) :-
-	N1 is N-1,
-	Char is integer(C),
-	put_code(Char),
-	putn_list(N1, Chars).
+    N1 is N-1,
+    Char is integer(C),
+    put_code(Char),
+    putn_list(N1, Chars).
 
 % ===========================================================================
 
@@ -609,21 +609,21 @@ putn_list(N, [C|Chars]) :-
    consider (the incomplete) @lib{format_to_string}.").
 
 format_to_string(Format, Args, String) :-
-	ensure_sformat_temp_filename(FileName),
-        ( FileName = pipe ->
-            pipe(Out, In),
-            format(In, Format, Args),
-            close(In),
-            get_codes(Out, String),
-            close(Out)
-        ; open(FileName, write, WriteStream),
-          format(WriteStream, Format, Args),
-          close(WriteStream),
-          open(FileName, read, ReadStream),
-          get_codes(ReadStream, String),
-          close(ReadStream),
-          delete_file(FileName)
-        ).
+    ensure_sformat_temp_filename(FileName),
+    ( FileName = pipe ->
+        pipe(Out, In),
+        format(In, Format, Args),
+        close(In),
+        get_codes(Out, String),
+        close(Out)
+    ; open(FileName, write, WriteStream),
+      format(WriteStream, Format, Args),
+      close(WriteStream),
+      open(FileName, read, ReadStream),
+      get_codes(ReadStream, String),
+      close(ReadStream),
+      delete_file(FileName)
+    ).
 
 :- pred sformat(String, Format, Arguments) 
     :   format_control(Format) => string(String)
@@ -634,12 +634,12 @@ sformat(String, Format, Args) :- format_to_string(Format, Args, String).
 
 %% Read a string from a stream.
 get_codes(Stream, Cs) :-
-	get_code(Stream, C),
-	( C = -1 ->
-	    Cs = []
-	; Cs = [C|Cs0],
-          get_codes(Stream, Cs0)
-	).
+    get_code(Stream, C),
+    ( C = -1 ->
+        Cs = []
+    ; Cs = [C|Cs0],
+      get_codes(Stream, Cs0)
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -652,24 +652,24 @@ get_codes(Stream, Cs) :-
 %% Initialization: create a file name in some suitable place (check
 %% several), otherwise put a note that a pipe has to be used.
 clean_sformat_temp_filename :-
-        retractall_fact(sformat_temp_filename(_)).
+    retractall_fact(sformat_temp_filename(_)).
 
 % Obtain the name for the temporary file
 ensure_sformat_temp_filename(FileName) :-
-        current_fact(sformat_temp_filename(FileName0)),
-	!,
-	FileName = FileName0.
+    current_fact(sformat_temp_filename(FileName0)),
+    !,
+    FileName = FileName0.
 ensure_sformat_temp_filename(FileName) :-
-        ( % Check that we can write to a temporary file
-	  get_sformat_temp_filename(FileName0) ->
-	    % File created, remove since we do not need it now
-            delete_file(FileName0)
-        ; FileName0 = pipe
-        ),
-	asserta_fact(sformat_temp_filename(FileName0)),
-	FileName = FileName0.
+    ( % Check that we can write to a temporary file
+      get_sformat_temp_filename(FileName0) ->
+        % File created, remove since we do not need it now
+        delete_file(FileName0)
+    ; FileName0 = pipe
+    ),
+    asserta_fact(sformat_temp_filename(FileName0)),
+    FileName = FileName0.
 
 get_sformat_temp_filename(FileName) :-
-	mktemp_in_tmp('format_to_string_XXXXXX', FileName).
+    mktemp_in_tmp('format_to_string_XXXXXX', FileName).
 
 % ---------------------------------------------------------------------------

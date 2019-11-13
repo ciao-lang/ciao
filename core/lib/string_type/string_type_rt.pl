@@ -37,20 +37,20 @@
 :- export(is_string/1).
 :- pred is_string(String) # "@var{String} is a string".
 is_string(String) :-
-	nonvar(String), functor(String, '\6\string', 1).
+    nonvar(String), functor(String, '\6\string', 1).
 
 :- export(string_codes/2).
 :- pred string_codes(String, Codes) # "@var{Codes} are the character
    codes (integer values) of @var{String}.".
 string_codes(String, Codes) :-
-        functor(String, '\6\string', 1),
-        arg(1, String, Codes).
+    functor(String, '\6\string', 1),
+    arg(1, String, Codes).
 
 :- export(atom_string/2).
 :- pred atom_string(Atom, String) # "@var{String} is the string that
    represents the name of atom @var{Atom}.".
 atom_string(Atom, String) :-
-        atom_codes(Atom, Codes),
-        functor(String, '\6\string', 1),
-        arg(1, String, Codes).
+    atom_codes(Atom, Codes),
+    functor(String, '\6\string', 1),
+    arg(1, String, Codes).
 

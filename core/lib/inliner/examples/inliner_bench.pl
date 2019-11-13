@@ -12,13 +12,13 @@
 
 :- meta_predicate measure(goal, ?).
 measure(Goal, Time) :-
-	hrtime(Time0),
-	Goal,
-	hrtime(Time1),
-	Time is Time1 - Time0.
+    hrtime(Time0),
+    Goal,
+    hrtime(Time1),
+    Time is Time1 - Time0.
 
 test1(Time) :-
-	measure(use_module(ciaopp(ciaopp)), Time).
+    measure(use_module(ciaopp(ciaopp)), Time).
 
 test2(Time) :-
-	measure(use_module(domain(fr_sets)), Time).
+    measure(use_module(domain(fr_sets)), Time).

@@ -1,6 +1,6 @@
 :- module(clpr_tr, [translate_clpqr/2
-          % , translate_hash/2
-             ],[]).
+      % , translate_hash/2
+         ],[]).
 
 :- include(library(clpqr/clpqr_ops)).
 

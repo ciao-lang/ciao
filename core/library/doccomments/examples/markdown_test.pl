@@ -105,10 +105,10 @@ color := (red   %< First case. See `bar/0`.
 %    \includedef{weekday/1}
 :- regtype weekday/1.
 weekday := (monday    /*< lunae dies. */)
-	 | (tuesday   /*< dies Martis. */)
-         | (wednesday /*< dies Mercurii. */)
-         | (thursday  /*< Thor's day. */)
-         | (friday    /*< day of Frigg. */).
+     | (tuesday   /*< dies Martis. */)
+     | (wednesday /*< dies Mercurii. */)
+     | (thursday  /*< Thor's day. */)
+     | (friday    /*< day of Frigg. */).
 
 %! \bug Fix ugly parenthesis around doccomments
 
@@ -155,9 +155,9 @@ dlen(_,_,_). % incomplete
 %! ## Simple assertions
 
 :- export([
-	len_0/2,
-	len_v/2, len_m/2, len_t/2,
-	len_vm/2, len_vt/2, len_mt/2, len_vmt/2]).
+    len_0/2,
+    len_v/2, len_m/2, len_t/2,
+    len_vm/2, len_vt/2, len_mt/2, len_vmt/2]).
 
 %! len_0/2: Computes in the second argument the length of the first
 %    argument (**showing**: no vars, no types, no modes).
@@ -194,9 +194,9 @@ len_vmt(_,_).
 %! ## Combination of types and modes
 
 :- export([
-	sim_a/1, sim_a0/1, sim_a1/1, sim_a2/1, sim_a3/1,
-	sim_b/1, sim_b0/1,
-	sim_c/1]).
+    sim_a/1, sim_a0/1, sim_a1/1, sim_a2/1, sim_a3/1,
+    sim_b/1, sim_b0/1,
+    sim_c/1]).
 
 :- pred sim_a(?list).
 sim_a(_).

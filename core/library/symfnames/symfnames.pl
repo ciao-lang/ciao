@@ -31,23 +31,23 @@
    is simply ignored.").
 
 load_aliases:-
-	retractall_fact(file_alias(_,_)),
-	alias_file(File),
-	absolute_file_name(File,AbsFile),
-	stream_basic:open(AbsFile,read,S),
-	load_it(S),
-	close(S),
-	fail.
+    retractall_fact(file_alias(_,_)),
+    alias_file(File),
+    absolute_file_name(File,AbsFile),
+    stream_basic:open(AbsFile,read,S),
+    load_it(S),
+    close(S),
+    fail.
 load_aliases.
 
 load_it(S):-
-	repeat,
-	  read(S,X),
-	  ( X==end_of_file, !
-	  ; X=file_alias(_,_),
-	    assertz_fact(X),
-	    fail
-	  ).
+    repeat,
+      read(S,X),
+      ( X==end_of_file, !
+      ; X=file_alias(_,_),
+        assertz_fact(X),
+        fail
+      ).
 
 :- multifile file_alias/2.
 :- data file_alias/2.
@@ -64,11 +64,11 @@ load_it(S):-
 :- pred open(+term, +io_mode, ?stream).
 
 open(SymFileName,Mode,Stream):-
-	file_alias(SymFileName,FileName), !,
-	stream_basic:open(FileName,Mode,Stream).
+    file_alias(SymFileName,FileName), !,
+    stream_basic:open(FileName,Mode,Stream).
 open(SymFileName,Mode,Stream):-
-	getenvstr(SymFileName,FileName0),
-	atom_codes(FileName,FileName0), !,
-	stream_basic:open(FileName,Mode,Stream).
+    getenvstr(SymFileName,FileName0),
+    atom_codes(FileName,FileName0), !,
+    stream_basic:open(FileName,Mode,Stream).
 open(SymFileName,_Mode,_Stream):-
-	throw(error(unknown_symbolic_name(SymFileName),'symfnames:open'/3)).
+    throw(error(unknown_symbolic_name(SymFileName),'symfnames:open'/3)).

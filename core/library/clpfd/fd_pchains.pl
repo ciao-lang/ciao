@@ -26,15 +26,15 @@
 %% ---------------------------------------------------------------------------
 
 :- module(fd_pchains,
-	[
-	    fd_pchains_t/1,
-	    fd_pchain_type_t/1,
+    [
+        fd_pchains_t/1,
+        fd_pchain_type_t/1,
 
-	    empty/1,
-	    add/3,
-	    execute/2
-	],
-	[assertions, regtypes, fsyntax]).
+        empty/1,
+        add/3,
+        execute/2
+    ],
+    [assertions, regtypes, fsyntax]).
 
 % TODO: [Emilio] Should't we call this file fd_chains.pl?
 :- doc(title, "Constraint propagation chains").
@@ -50,7 +50,7 @@ fd_pchains_t(_).
 
 % A goal is a callable
 % fd_propags_t(Chain) :-
-% 	list(Chain).
+%       list(Chain).
 
 :- regtype fd_pchain_t/1.
 fd_pchain_t(_).
@@ -95,10 +95,10 @@ execute(val, propagator(_,_,_,C)) :- propagate(C).
 % Also usefull for js_backend
 
 empty(propagator(C1,C2,C3,C4)):-
-	attach_attribute(C1, []), 
-	attach_attribute(C2, []), 
-	attach_attribute(C3, []), 
-	attach_attribute(C4, []).
+    attach_attribute(C1, []), 
+    attach_attribute(C2, []), 
+    attach_attribute(C3, []), 
+    attach_attribute(C4, []).
 
 add(min, propagator(C,_,_,_), Goal) :- get_attribute(C, C_), update_attribute(C, [Goal|C_]).
 add(max, propagator(_,C,_,_), Goal) :- get_attribute(C, C_), update_attribute(C, [Goal|C_]).
@@ -122,9 +122,9 @@ execute(val, propagator(_,_,_,C)) :- get_attribute(C, Goal), propagate(Goal).
 % correctness.
 propagate([]).
 propagate([C|Cs]) :-
-        inc_stat(chain_calls),
-        '$meta_call'(C),         % (see goal_to_closure/3)
-        propagate(Cs).
+    inc_stat(chain_calls),
+    '$meta_call'(C),         % (see goal_to_closure/3)
+    propagate(Cs).
 
 :- else.
 
@@ -132,8 +132,8 @@ propagate([C|Cs]) :-
 % For the js_backend
 propagate([]).
 propagate([C|Cs]) :-
-        call(C),
-        propagate(Cs).
+    call(C),
+    propagate(Cs).
 
 :- endif.
 
@@ -165,8 +165,8 @@ propagate([C|Cs]) :-
 % not_in_propagator(_Constraint, _):-!.
 % not_in_propagator(_Constraint, []).
 % not_in_propagator(Constraint, [C|Chain]) :-
-% 	\+ Constraint == C,
-% 	not_in_propagator(Constraint, Chain).
+%       \+ Constraint == C,
+%       not_in_propagator(Constraint, Chain).
 % :- else.
 % not_in_propagator(_, _).
 % :- endif.

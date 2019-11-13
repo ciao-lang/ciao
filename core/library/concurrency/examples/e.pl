@@ -4,5 +4,5 @@
 :- use_module(library(system)).
 
 main:-
-        eng_call(pause(1), create, create),
-        pause(2).
+    eng_call(pause(1), create, create),
+    pause(2).

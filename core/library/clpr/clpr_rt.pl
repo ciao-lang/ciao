@@ -1,17 +1,17 @@
 :- module(clpr_rt, 
-	[ nonzero/1,
- 	  clpr_freeze/2,
- 	  solve_generic_0/2,
- 	  solve_generic_1/4,
- 	  solve_generic_2/6,
- 	  solve_generic_3/8,
- 	  solve_generic_4/10,
- 	  solve_generic_5/12,
- 	  solve_generic_n/4 ], 
-	[ assertions, 
-	  library(clpr/clpr_src), 
-	  library(clpqr/clpqr_options)
-	]).
+    [ nonzero/1,
+      clpr_freeze/2,
+      solve_generic_0/2,
+      solve_generic_1/4,
+      solve_generic_2/6,
+      solve_generic_3/8,
+      solve_generic_4/10,
+      solve_generic_5/12,
+      solve_generic_n/4 ], 
+    [ assertions, 
+      library(clpr/clpr_src), 
+      library(clpqr/clpqr_options)
+    ]).
 
 
 :- use_module(library(clpr/solver_r)).

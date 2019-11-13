@@ -37,9 +37,9 @@
 :- use_package(library(factsdb)).
 
 :- doc(bug,"The DB files for persistent predicates have to be used
-	as such from the beginning. Using a DB file for a filed predicate
-	first, and then using it also when making the predicate persistent
-	won't work. Nor the other way around: using a DB file for a 
-	persistent predicate first, and then using it also when making 
-        the predicate filed.").
+    as such from the beginning. Using a DB file for a filed predicate
+    first, and then using it also when making the predicate persistent
+    won't work. Nor the other way around: using a DB file for a 
+    persistent predicate first, and then using it also when making 
+    the predicate filed.").
 

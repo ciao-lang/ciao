@@ -15,13 +15,13 @@
    ").
 
 :- pred lock_file(File, LockType, Result) :: atm * atm * atm # "Tries
-        to lock @var{File} with @var{LockType} and returns the result
-          (either @tt{true} or @tt{false}) in @var{Result}.".
+    to lock @var{File} with @var{LockType} and returns the result
+      (either @tt{true} or @tt{false}) in @var{Result}.".
 lock_file(_, _, _).
 
 :- pred unlock_file(File, Result) :: atm * atm # "Tries
-        to unlock @var{File} the result
-          (either @tt{true} or @tt{false}) in @var{Result}.".
+    to unlock @var{File} the result
+      (either @tt{true} or @tt{false}) in @var{Result}.".
 unlock_file(_,_).
 
 :- doc(bug, "file locks are not currently implemented.").

@@ -14,14 +14,14 @@ queue(first).
 queue(second).
 
 main :-
-        prompt(_Old, ''),
-	read(A),
-	( handle_action(A) ->
-	    true
-	; write('Unknown command.'),
-	  nl
-	),
-	main.
+    prompt(_Old, ''),
+    read(A),
+    ( handle_action(A) ->
+        true
+    ; write('Unknown command.'),
+      nl
+    ),
+    main.
 
 handle_action(end_of_file) :-
      halt.

@@ -1,19 +1,19 @@
 :- module(stream_utils, [
-	  read_to_end/2,
-	  read_to_end/3,
-	  get_line/2, get_line/1, line/1,
-	  write_string/2, write_string/1,
-	  %
-	  file_to_string/2,
-	  file_to_string/3,
-	  string_to_file/2,
-	  %
-	  output_to_file/2,
-	  %
-	  open_input/2, close_input/1,
-	  open_output/2, close_output/1
-	],
-        [assertions,isomodes,hiord]).
+      read_to_end/2,
+      read_to_end/3,
+      get_line/2, get_line/1, line/1,
+      write_string/2, write_string/1,
+      %
+      file_to_string/2,
+      file_to_string/3,
+      string_to_file/2,
+      %
+      output_to_file/2,
+      %
+      open_input/2, close_input/1,
+      open_output/2, close_output/1
+    ],
+    [assertions,isomodes,hiord]).
 
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
@@ -34,26 +34,26 @@
    EOF is found.".
 
 read_to_end(Stream, String) :-
-	read_to_end(Stream, String, []).
+    read_to_end(Stream, String, []).
 
 :- pred read_to_end(+Stream, -String, ?Tail): stream(Stream)
 # "Reads in the difference list @var{String}-@var{Tail} all the
    characters from @var{Stream} until an EOF is found.".
 
 read_to_end(Stream, String, Tail) :-
-        current_input(OldIn),
-        set_input(Stream),
-        read_to_end_(String, Tail),
-        set_input(OldIn).
+    current_input(OldIn),
+    set_input(Stream),
+    read_to_end_(String, Tail),
+    set_input(OldIn).
 
 read_to_end_(L, T) :-
-        get_code(C),
-        read_to_end_1(C, L, T).
+    get_code(C),
+    read_to_end_1(C, L, T).
 
 read_to_end_1(-1, T, T) :- !.
 read_to_end_1(C, [C|L], T) :-
-        get_code(C1),
-        read_to_end_1(C1, L, T).
+    get_code(C1),
+    read_to_end_1(C1, L, T).
 
 % ---------------------------------------------------------------------------
 
@@ -64,14 +64,14 @@ read_to_end_1(C, [C|L], T) :-
    returned.").
 
 :- pred get_line(S,L)
-         : stream(S)
-        => line(L).
+     : stream(S)
+    => line(L).
 
 get_line(Stream, Line) :-
-        current_input(OldIn),
-        set_input(Stream),
-        get_line(Line),
-        set_input(OldIn).
+    current_input(OldIn),
+    set_input(Stream),
+    get_line(Line),
+    set_input(OldIn).
 
 :- doc(get_line(Line), "Behaves like @tt{current_input(S),
    get_line(S,Line)}.").
@@ -79,25 +79,25 @@ get_line(Stream, Line) :-
 :- pred get_line(L) => line(L).
 
 get_line(Line) :-
-        get_code(C),
-        ( C = -1 -> Line = end_of_file
-        ; get_line_after(C, Cs),
-          Line = Cs
-        ).
+    get_code(C),
+    ( C = -1 -> Line = end_of_file
+    ; get_line_after(C, Cs),
+      Line = Cs
+    ).
 
 get_line_after(-1,[]) :- !, % EOF
-        current_input(S), clearerr(S).
+    current_input(S), clearerr(S).
 get_line_after(10,[]) :- !. % Newline
 get_line_after(13, R) :- !, % Return, delete if at end of line
-        get_code(C),
-        get_line_after(C, Cs),
-        ( Cs = [] ->
-              R = []
-        ; R = [13|Cs]
-        ).
+    get_code(C),
+    get_line_after(C, Cs),
+    ( Cs = [] ->
+          R = []
+    ; R = [13|Cs]
+    ).
 get_line_after(C, [C|Cs]) :-
-        get_code(C1),
-        get_line_after(C1, Cs).
+    get_code(C1),
+    get_line_after(C1, Cs).
 
 :- doc(doinclude,line/1).
 
@@ -112,22 +112,22 @@ line(end_of_file).
    @var{Stream}.").
 
 :- pred write_string(Stream,String)
-         : ( stream(Stream), string(String) ).
+     : ( stream(Stream), string(String) ).
 
 write_string(Stream, S) :-
-        current_output(OldOut),
-        set_output(Stream),
-        write_string(S),
-        set_output(OldOut).
+    current_output(OldOut),
+    set_output(Stream),
+    write_string(S),
+    set_output(OldOut).
 
 :- doc(write_string(String), "Behaves like @tt{current_input(S),
    write_string(S, String)}.").
 
 :- pred write_string(String)
-         : string(String).
+     : string(String).
 
 write_string(V) :- var(V), !,
-        throw(error(instantiation_error,write_string/1-1)).
+    throw(error(instantiation_error,write_string/1-1)).
 write_string([]).
 write_string([C|Cs]) :- put_code(C), write_string(Cs).
 
@@ -139,7 +139,7 @@ write_string([C|Cs]) :- put_code(C), write_string(Cs).
       and returns them in @var{String}.".
 
 file_to_string(File, String) :-
-	file_to_string(File, String, []).
+    file_to_string(File, String, []).
 
 :- pred file_to_string(+FileName, -String, ?Tail) : sourcename(FileName) =>
    string(String) # "Reads all the characters from the file
@@ -147,9 +147,9 @@ file_to_string(File, String) :-
    end of @var{String}.".
 
 file_to_string(File, String, Tail) :-
-        open(File, read, Stream),
-        read_to_end(Stream, String, Tail),
-	close(Stream).
+    open(File, read, Stream),
+    read_to_end(Stream, String, Tail),
+    close(Stream).
 
 % ---------------------------------------------------------------------------
 
@@ -158,72 +158,72 @@ file_to_string(File, String, Tail) :-
     them to file @var{FileName}.".
 
 string_to_file(String, File) :-
-	open(File, write, Stream),
-	write_string(Stream, String),
-	close(Stream).
+    open(File, write, Stream),
+    write_string(Stream, String),
+    close(Stream).
 
 % ---------------------------------------------------------------------------
 
 :- meta_predicate output_to_file(goal, ?).
 output_to_file(Goal, File) :-
-	open(File, write, OS),
-	current_output(CO),
-	set_output(OS),
-	call(Goal), % TODO: use port_reify
-	set_output(CO),
-	close(OS).
+    open(File, write, OS),
+    current_output(CO),
+    set_output(OS),
+    call(Goal), % TODO: use port_reify
+    set_output(CO),
+    close(OS).
 
 % ===========================================================================
 :- doc(section, "Structured stream handling").
 
 :- pred open_input(FileName,InputStreams)
-         : sourcename(FileName)
-        => input_handler(InputStreams).
+     : sourcename(FileName)
+    => input_handler(InputStreams).
 
 open_input(FileName, i(OldInput, NewInput)) :-
-        current_input(OldInput),
-        open(FileName, read, NewInput),
-        set_input(NewInput).
+    current_input(OldInput),
+    open(FileName, read, NewInput),
+    set_input(NewInput).
 
 :- pred close_input(InputStreams)
-         : input_handler(InputStreams)
-        => input_handler(InputStreams).
+     : input_handler(InputStreams)
+    => input_handler(InputStreams).
 
 close_input(i(OldInput, NewInput)) :- !,
-        set_input(OldInput),
-        close(NewInput).
+    set_input(OldInput),
+    close(NewInput).
 close_input(X) :-
-        throw(error(domain_error(open_input_handler, X), close_input/1-1)).
+    throw(error(domain_error(open_input_handler, X), close_input/1-1)).
 
 :- pred open_output(FileName,OutputStreams)
-         : sourcename(FileName)
-        => output_handler(OutputStreams).
+     : sourcename(FileName)
+    => output_handler(OutputStreams).
 
 open_output(FileName, o(OldOutput, NewOutput)) :-
-        current_output(OldOutput),
-        open(FileName, write, NewOutput),
-        set_output(NewOutput).
+    current_output(OldOutput),
+    open(FileName, write, NewOutput),
+    set_output(NewOutput).
 
 :- pred close_output(OutputStreams)
-         : output_handler(OutputStreams)
-        => output_handler(OutputStreams).
+     : output_handler(OutputStreams)
+    => output_handler(OutputStreams).
 
 close_output(o(OldOutput, NewOutput)) :- !,
-        set_output(OldOutput),
-        close(NewOutput).
+    set_output(OldOutput),
+    close(NewOutput).
 close_output(X) :-
-        throw(error(domain_error(open_output_handler, X), close_output/1-1)).
+    throw(error(domain_error(open_output_handler, X), close_output/1-1)).
 
 :- prop input_handler/1 + regtype.
 
 input_handler(i(Old,New)):-
-	stream(Old),
-	stream(New).
+    stream(Old),
+    stream(New).
 
 :- prop output_handler/1 + regtype.
 
 output_handler(o(Old,New)):-
-	stream(Old),
-	stream(New).
+    stream(Old),
+    stream(New).
 
 

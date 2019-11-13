@@ -1,10 +1,10 @@
 :- package(andorra).
 
 :- use_module(library(andorra/andorra_rt), [wakeup/2, 
-	                  suspend_andorra/5, 
-			  obtain_vars/2,
-			  verify_det/3,
-			  simplify/2]).
+                      suspend_andorra/5, 
+                      obtain_vars/2,
+                      verify_det/3,
+                      simplify/2]).
 
 :- use_module(library(andorra/andorra_builtins)).
 

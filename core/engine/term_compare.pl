@@ -1,6 +1,6 @@
 :- module(term_compare, [
-        (==)/2, (\==)/2, (@<)/2, (@=<)/2, (@>)/2, (@>=)/2, compare/3],
-        [assertions, nortchecks, nativeprops, isomodes]).
+    (==)/2, (\==)/2, (@<)/2, (@=<)/2, (@>)/2, (@>=)/2, compare/3],
+    [assertions, nortchecks, nativeprops, isomodes]).
 
 :- doc(title,"Comparing terms").
 
@@ -47,7 +47,7 @@ For example, here is a list of terms in standard order:
 
 
 :- prop (Term1 == Term2)
-	# "The terms @var{Term1} and @var{Term2} are strictly identical.".
+    # "The terms @var{Term1} and @var{Term2} are strictly identical.".
 :- trust comp (@Term1 == @Term2) + ( sideff(free), native ).
 :- trust comp (Term1 == Term2) : (ground(Term1), ground(Term2)) + eval.
 :- trust comp (Term1 == Term2) + (is_det, test_type(unification)).
@@ -55,52 +55,52 @@ For example, here is a list of terms in standard order:
 X==Y :- X==Y.
 
 :- trust pred (@Term1 \== @Term2) + ( sideff(free), native )
-	# "The terms @var{Term1} and @var{Term2} are not strictly identical.".
+    # "The terms @var{Term1} and @var{Term2} are not strictly identical.".
 :- trust comp (Term1 \== Term2) : (ground(Term1), ground(Term2)) + eval.
 :- trust comp (Term1 \== Term2) + (is_det, test_type(unification)).
 
 X\==Y :- X\==Y.
 
 :- trust pred (@Term1 @< @Term2) + ( sideff(free), native )
-	# "The term @var{Term1} precedes the term @var{Term2} in the 
-           standard order.".
+    # "The term @var{Term1} precedes the term @var{Term2} in the 
+       standard order.".
 :- trust comp (Term1 @< Term2) : (ground(Term1), ground(Term2)) + eval.
 
 X@<Y :- X@<Y.
 
 
 :- trust pred (@Term1 @=< @Term2) + ( sideff(free), native )
-	# "The term @var{Term1} precedes or is identical to the term
-           @var{Term2} in the standard order.".
+    # "The term @var{Term1} precedes or is identical to the term
+       @var{Term2} in the standard order.".
 :- trust comp (Term1 @=< Term2) : (ground(Term1), ground(Term2)) + eval.
 
 X@=<Y :- X@=<Y.
 
 
 :- trust pred (@Term1 @> @Term2) + ( sideff(free), native )
-	# "The term @var{Term1} follows the term @var{Term2} in the 
-           standard order.".
+    # "The term @var{Term1} follows the term @var{Term2} in the 
+       standard order.".
 :- trust comp (Term1 @> Term2) : (ground(Term1), ground(Term2)) + eval.
 
 X@>Y :- X@>Y.
 
 
 :- trust pred (@Term1 @>= @Term2) + ( sideff(free), native )
-	# "The term @var{Term1} follows or is identical to the term
-           @var{Term2} in the standard order.".
+    # "The term @var{Term1} follows or is identical to the term
+       @var{Term2} in the standard order.".
 :- trust comp (Term1 @>= Term2) : (ground(Term1), ground(Term2)) + eval.
 
 X@>=Y :- X@>=Y.
 
 :- doc(compare(Op,Term1,Term2) , "@var{Op} is the result of
-           comparing the terms @var{Term1} and @var{Term2}.").
+       comparing the terms @var{Term1} and @var{Term2}.").
 
 %:- trust pred compare(?atm,@term,@term)
-%	=> member([(=),(>),(<)]) * term * term + ( sideff(free), native ).
+%       => member([(=),(>),(<)]) * term * term + ( sideff(free), native ).
 
 
 :- trust pred compare(?atm,@term,@term)
-	=> comparator * term * term + ( sideff(free), native ).
+    => comparator * term * term + ( sideff(free), native ).
 
 :- trust comp compare(_,Term1,Term2) : (ground(Term1), ground(Term2)) + eval.
 

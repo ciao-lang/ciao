@@ -30,23 +30,23 @@ The problem is: Who owns the Zebra?  Who drinks water?
 :- argnames house(color, nation, pet, drink, car).
 
 zebra(Owns_zebra, Drinks_water, Street) :-
-        Street = [house${},house${},house${},house${},house${}],
-        member(house${nation => Owns_zebra, pet => zebra}, Street),
-        member(house${nation => Drinks_water, drink => water}, Street),
-        member(house${nation => englishman, color => red}, Street),
-        member(house${nation => spaniard, pet => dog}, Street),
-        member(house${drink => coffee, color => green}, Street),
-        member(house${nation => ukrainian, drink => tea}, Street),
-        left_right(house${color => ivory}, house${color => green}, Street),
-        member(house${car => porsche, pet => snails}, Street),
-        member(house${car => masserati, color => yellow}, Street),
-        Street = [_, _, house${drink => milk}, _, _],
-        Street = [house${nation => norwegian}|_],
-        next_to(house${car => saab}, house${pet => fox}, Street),
-        next_to(house${car => masserati}, house${pet => horse}, Street),
-        member(house${car => honda, drink => orange_juice}, Street),
-        member(house${nation => japanese, car => jaguar}, Street),
-        next_to(house${nation => norwegian}, house${color => blue}, Street).
+    Street = [house${},house${},house${},house${},house${}],
+    member(house${nation => Owns_zebra, pet => zebra}, Street),
+    member(house${nation => Drinks_water, drink => water}, Street),
+    member(house${nation => englishman, color => red}, Street),
+    member(house${nation => spaniard, pet => dog}, Street),
+    member(house${drink => coffee, color => green}, Street),
+    member(house${nation => ukrainian, drink => tea}, Street),
+    left_right(house${color => ivory}, house${color => green}, Street),
+    member(house${car => porsche, pet => snails}, Street),
+    member(house${car => masserati, color => yellow}, Street),
+    Street = [_, _, house${drink => milk}, _, _],
+    Street = [house${nation => norwegian}|_],
+    next_to(house${car => saab}, house${pet => fox}, Street),
+    next_to(house${car => masserati}, house${pet => horse}, Street),
+    member(house${car => honda, drink => orange_juice}, Street),
+    member(house${nation => japanese, car => jaguar}, Street),
+    next_to(house${nation => norwegian}, house${color => blue}, Street).
 
 
 member(X,[X|_]).

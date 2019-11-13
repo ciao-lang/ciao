@@ -3,7 +3,7 @@
 :- doc(author, "Edison Mera").
 
 :- doc(module, "Example of runtime checking of an assertion about
-	an imported (or even builtin) predicate.").
+    an imported (or even builtin) predicate.").
 
 :- use_module(engine(io_basic)).
 
@@ -14,6 +14,6 @@
 :- test functor(A,B,C) : (A=0) => (nonvar * atom * nnegint) + fails.
 
 test :-
-	functor(0, A, N),
-	display(A/N),
-	nl.
+    functor(0, A, N),
+    display(A/N),
+    nl.

@@ -14,10 +14,10 @@ p(b, e).
 :- renamer q/1.
 
 q(A) :-
-	p(a, A).
+    p(a, A).
 
 r(B) :-
-	p(b, B).
+    p(b, B).
 
 :- unfold output_data_example(yes, no).
 
@@ -27,12 +27,12 @@ r(B) :-
 output_data_example(_, _).
 
 output_data_examples(Examples, FileName) :-
-	maplist(output_data_example(FileName), Examples).
+    maplist(output_data_example(FileName), Examples).
 
 :- export(output_data_example_1/1).
 
 output_data_example_1(FileName) :- output_data_example(1, FileName).
 
 t(A,B) :-
-	output_data_examples(A, B),
-	q(A).
+    output_data_examples(A, B),
+    q(A).

@@ -12,17 +12,17 @@
 :- use_module(library(regexp/regexp_code)).
 
 :- doc(doinclude, [
-        match_shell/3,
-        match_shell/2,
-        match_posix/2,
-        match_posix/4,
-        match_posix_rest/3,
-        match_posix_matches/3,
-        match_struct/4,
-        match_pred/2,
-        replace_first/4,
-        replace_all/4
-                      ]).
+    match_shell/3,
+    match_shell/2,
+    match_posix/2,
+    match_posix/4,
+    match_posix_rest/3,
+    match_posix_matches/3,
+    match_struct/4,
+    match_pred/2,
+    replace_first/4,
+    replace_all/4
+                  ]).
 
 :- doc(module,"This library provides facilities for matching
    strings and terms against @index{patterns}. There are some @concept{prolog flags}
@@ -38,13 +38,13 @@
    a predicate. Thus, that argument must match with regexp. For example:
  
  @begin{verbatim}
-          pred ( =~ \"ab*c\", B) :- ...    
+      pred ( =~ \"ab*c\", B) :- ...    
  @end{verbatim}
 
 is equivalent to
 
  @begin{verbatim}
-          pred (X,B) :- match_posix(\"ab*c\",X,R), ...
+      pred (X,B) :- match_posix(\"ab*c\",X,R), ...
  @end{verbatim}
 
     So, there are two @concept{prolog flags} about this. One of this
@@ -59,7 +59,7 @@ is equivalent to
 @end{itemize}").
 
 :- doc(regexp_shell/1,
-        "Special characters for @var{regexp_shell} are:
+    "Special characters for @var{regexp_shell} are:
   @begin{description}
   @item{*} Matches any string that not begin by the character '.'.
   @item{?} Matches any single character whenever it is not a starting point.

@@ -15,5 +15,5 @@
 :- use_package(library(noprelude)).
 
 :- doc(bug,"Currently, the following builtin predicates/program
-	constructs cannot be redefined, in addition to @tt{true/0}:
-        @tt{(->)/2} @tt{(,)/2} @tt{(\+)/1} @tt{if/3}").
+    constructs cannot be redefined, in addition to @tt{true/0}:
+    @tt{(->)/2} @tt{(,)/2} @tt{(\+)/1} @tt{if/3}").

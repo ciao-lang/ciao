@@ -1,22 +1,22 @@
 :- module(lazy_lib,
-	[
-	    nums_from/2,
-	    nums_from_inc/3,
- 	    repeat/2,
- 	    cycle/2, 
- 	    take/3,
- 	    takeWhile/3,
- 	    drop/3,
- 	    dropWhile/3,
- 	    splitAt/3,
- 	    span/3,
- 	    tail/2,
-	    lazy_map/3,
-	    lazy_foldr/4,
-	    lazy_foldl/4,
- 	    zipWith/4
-	],
-	[regtypes, fsyntax, assertions, basicmodes, hiord, lazy]).
+    [
+        nums_from/2,
+        nums_from_inc/3,
+        repeat/2,
+        cycle/2, 
+        take/3,
+        takeWhile/3,
+        drop/3,
+        dropWhile/3,
+        splitAt/3,
+        span/3,
+        tail/2,
+        lazy_map/3,
+        lazy_foldr/4,
+        lazy_foldl/4,
+        zipWith/4
+    ],
+    [regtypes, fsyntax, assertions, basicmodes, hiord, lazy]).
 
 :- doc(title, "Lazy evaluation library").
 :- doc(author, "Amadeo Casas").
@@ -74,7 +74,7 @@ take(X, [H|T]) := [H | take(X-1, T)] :- X > 0.
 
 :- fun_eval takeWhile/2.
 takeWhile(P, [H|T]) := P(H) ? [H | takeWhile(P, T)]
-                     | [].
+                 | [].
 
 :- pred drop(+X,+ListA,-ListR): counter * list(term) * term => counter *
    list(term) * list(term) # "@var{ListR} is unified with the infinite list
@@ -97,8 +97,8 @@ dropWhile(_, List)  := List.
    lists.".
 
 tuple_of_lists((A, B)) :-
-	list(A),
-	list(B).
+    list(A),
+    list(B).
 
 :- pred splitAt(+X,+ListA,-Res): counter * list(term) * term =>
    counter * list(term) * tuple_of_lists # "@var{Res} is unified with

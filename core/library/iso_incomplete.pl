@@ -1,10 +1,10 @@
 :- module(iso_incomplete,
-	[close/2,
-	 close_options/1,
-	 close_option/1,
-	 stream_property/2,
-	 stream_prop/1],
-	 [assertions,isomodes]).
+    [close/2,
+     close_options/1,
+     close_option/1,
+     stream_property/2,
+     stream_prop/1],
+     [assertions,isomodes]).
 
 :- doc(title, "Incomplete ISO Prolog predicates").
 
@@ -38,8 +38,8 @@ close(S, _) :- close(S).
 
 close_options([]).
 close_options([O|Os]):-
-	close_option(O),
-	close_options(Os).
+    close_option(O),
+    close_options(Os).
 
 :- prop close_option(O) + regtype 
 # "@var{O} is an option for close/2: @includedef{close_option/1}.".
@@ -52,13 +52,13 @@ close_option(force(false)).
 :- pred stream_property(?stream, ?stream_prop).
 
 stream_property(S, P) :- % It is not complete
-        current_stream(File, Mode, S),
-        ( P = file_name(File)
-        ; P = mode(Mode)
-        ; Mode = read ->
-            P = input
-        ; P = output
-        ).
+    current_stream(File, Mode, S),
+    ( P = file_name(File)
+    ; P = mode(Mode)
+    ; Mode = read ->
+        P = input
+    ; P = output
+    ).
 
 :- prop stream_prop(P) + regtype
 # "@var{P} is a valid stream property: @includedef{stream_prop/1}".  
@@ -68,9 +68,9 @@ stream_property(S, P) :- % It is not complete
 stream_prop(input).
 stream_prop(output).
 stream_prop(file_name(File)):-
-	atm(File).
+    atm(File).
 stream_prop(mode(Mode)):-
-	atm(Mode).
+    atm(Mode).
 
 :- doc(bug, "at_end_of_stream :- not_yet_implemented.").
 :- doc(bug, "at_end_of_stream(_) :- not_yet_implemented.").

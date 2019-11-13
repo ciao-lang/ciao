@@ -1,9 +1,9 @@
 :- module(attributes, [
-        attach_attribute/2, 
-        get_attribute/2,
-        update_attribute/2,
-        detach_attribute/1],
-        [assertions, nortchecks]).
+    attach_attribute/2, 
+    get_attribute/2,
+    update_attribute/2,
+    detach_attribute/1],
+    [assertions, nortchecks]).
 
 :- doc(title, "Low-level attributed variables").
 
@@ -38,27 +38,27 @@ A-1010 Vienna, Austria").
 
 
 :- trust pred attach_attribute(Var,Attr) : var * nonvar => var * nonvar
-        # "Attach attribute @var{Attr} to @var{Var}.".
+    # "Attach attribute @var{Attr} to @var{Var}.".
 
 attach_attribute(X, Y) :- attach_attribute(X, Y).
 
 
 :- trust pred get_attribute(Var,Attr) : var(Var) => nonvar(Attr)
-        # "Unify @var{Attr} with the attribute of @var{Var}, or fail if
-          @var{Var} has no attribute.".
+    # "Unify @var{Attr} with the attribute of @var{Var}, or fail if
+      @var{Var} has no attribute.".
 
 get_attribute(X, Y) :- get_attribute(X, Y).
 
 
 :- trust pred update_attribute(Var,Attr) : var * nonvar => var * nonvar
-        # "Change the attribute of attributed variable @var{Var} to
-          @var{Attr}.".
+    # "Change the attribute of attributed variable @var{Var} to
+      @var{Attr}.".
 
 update_attribute(X, Y) :- update_attribute(X, Y).
 
 
 :- trust pred detach_attribute(Var) : var => var
-        # "Take out the attribute from the  attributed variable @var{Var}.".
+    # "Take out the attribute from the  attributed variable @var{Var}.".
 
 detach_attribute(X) :- detach_attribute(X).
 

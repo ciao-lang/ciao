@@ -41,15 +41,15 @@ exit_port(exception(_)).
       exception.".
 
 once_port_reify(Goal, Result) :-
-	catch(once_port_reify_(Goal, Result), E,
-	      Result = exception(E)).
+    catch(once_port_reify_(Goal, Result), E,
+          Result = exception(E)).
 
 :- meta_predicate once_port_reify_(goal, ?).
 once_port_reify_(Goal, Result) :-
-	( call(Goal) ->
-	    Result = success
-	; Result = failure
-	).
+    ( call(Goal) ->
+        Result = success
+    ; Result = failure
+    ).
 
 % ---------------------------------------------------------------------------
 

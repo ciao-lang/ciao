@@ -19,7 +19,7 @@
 :- else.
 :- use_module(library(system), [system_error_report/1]).
 :- use_module(library(rtchecks/rtchecks_pretty), [
-	rtcheck_to_messages/2 % TODO: make it optional?
+    rtcheck_to_messages/2 % TODO: make it optional?
    ]).
 :- endif.
 
@@ -30,17 +30,17 @@
    @var{OnError}.".
 
 error_protect(Goal, OnError) :-
-	% TODO: catch all errors?
-	RTError = rtcheck(_,_,_,_,_,_),
-	E = error(_,_),
-	catch(catch(Goal,
-	          RTError, handle_error(RTError, OnError)),
-	    E, handle_error(E, OnError)).
+    % TODO: catch all errors?
+    RTError = rtcheck(_,_,_,_,_,_),
+    E = error(_,_),
+    catch(catch(Goal,
+              RTError, handle_error(RTError, OnError)),
+        E, handle_error(E, OnError)).
 
 :- meta_predicate handle_error(?, goal).
 handle_error(E, OnError) :-
-	default_error_message(E),
-	call(OnError).
+    default_error_message(E),
+    call(OnError).
 
 :- export(default_error_message/1).
 :- pred default_error_message(E) # "Default pretty printer for the
@@ -49,21 +49,21 @@ handle_error(E, OnError) :-
 :- if(defined(optim_comp)).
 :- else.
 default_error_message(E) :- E = rtcheck(_,_,_,_,_,_), !,
-	rtcheck_to_messages(E, Messages), % TODO: merge with get_error_message/2
-	messages(Messages).
+    rtcheck_to_messages(E, Messages), % TODO: merge with get_error_message/2
+    messages(Messages).
 :- endif.
 default_error_message(E) :-
-	get_error_message(E, Message),
-	display(user_error, '{'),
-	message(error, Message).
+    get_error_message(E, Message),
+    display(user_error, '{'),
+    message(error, Message).
 
 get_error_message(error(Error, Where), Message0) :-
-	nonvar(Error), nonvar(Where),
-	get_where(Where, Message0, Message),
-	get_error(Error, Message, ['}']),
-	!.
+    nonvar(Error), nonvar(Where),
+    get_where(Where, Message0, Message),
+    get_error(Error, Message, ['}']),
+    !.
 get_error_message(E, Message) :- % TODO: merge with exceptions:no_handler/1
-	Message = ['No handle found for thrown exception ', ~~(E), '}'].
+    Message = ['No handle found for thrown exception ', ~~(E), '}'].
 
 get_where(unknown/ -1, T, T) :- !. % TODO: why? document
 get_where(P/N-A, [P,'/',N,', arg ',A,' - '|T], T) :- !.
@@ -74,11 +74,11 @@ get_where(W,     [W,' - '|T],                  T).
 get_error(system_error, ['system error'|T], T) :- !. % TODO: add system_error_report/1
 :- else.
 get_error(system_error, ['system error: ', SER|T], T) :- !,
-	system_error_report(SER).
+    system_error_report(SER).
 :- endif.
 get_error(syntax_error, ['syntax error'|T], T) :- !.
 get_error(resource_error(Type), [ResourceError|T], T) :- !, 
-	translate_resource_error(Type, ResourceError).
+    translate_resource_error(Type, ResourceError).
 get_error(user_error, ['user error (C interface?)'|T], T) :- !.
 get_error(evaluation_error(Type, Culprit),
     ['evaluation error ', Type, ' in ', Culprit|T], T) :- !.
@@ -98,7 +98,7 @@ get_error(existence_error(Type, Culprit),
 get_error(type_error(Type, Culprit),
     ['expected ', Readable,
      ', found ', Culprit|T], T) :- !,
-	translate_ball(Type, Readable).
+    translate_ball(Type, Readable).
 get_error(instantiation_error,
     ['argument is not sufficiently instantiated'|T], T):-!.
 get_error(uninstantiation_error(Culprit), 
@@ -107,12 +107,12 @@ get_error(uninstantiation_error(Culprit),
 get_error(domain_error(Domain, Culprit),
     ['expected ', Readable,
      ', found ', Culprit|T], T) :- !,
-	translate_ball(Domain, Readable).
+    translate_ball(Domain, Readable).
 get_error(syntax_error([L0, L1, Msg, ErrorLoc]),
     ['syntax error '|Message], T) :- !,
-	add_lines(L0, L1, ['\n', [](Msg), ':', ErrorLoc|T], Message).
+    add_lines(L0, L1, ['\n', [](Msg), ':', ErrorLoc|T], Message).
 get_error(unintercepted_signal(Signal), Msg, T) :- !, % TODO: deprecate
-	Msg = ['No handle found for sent signal ', ~~(Signal)|T].
+    Msg = ['No handle found for sent signal ', ~~(Signal)|T].
 
 translate_ball(atom,      'a non-numeric atom') :- !.
 translate_ball(atomic,    'an atom (including a number)') :- !.

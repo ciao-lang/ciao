@@ -7,12 +7,12 @@
 :- use_module(engine(io_basic), [nl/0]).
 :- use_module(library(write)).
 pr(X) :-
-	write(using_write(X)), nl.
+    write(using_write(X)), nl.
 :- else.
 :- use_module(engine(io_basic)).
 pr(X) :-
-	display(using_display(X)), nl.
+    display(using_display(X)), nl.
 :- endif.
 
 main :-
-	pr('hello world').
+    pr('hello world').

@@ -18,8 +18,8 @@
 % Note: hash_term(T,N) is O(size) where size is the number of
 % characters of the textual representation of the term!
 hash_term(T, N) :-
-	ground(T), !,
-	hash_term_(T, 63689, _, 0, N).
+    ground(T), !,
+    hash_term_(T, 63689, _, 0, N).
 hash_term(_, _).
 
 % Quintus: hash_term(foo(name,2,module), 1391).
@@ -30,30 +30,30 @@ hash_term(_, _).
 % :- inline rshash_/5.
 
 rshash_(X, A0, A1, H0, H1) :-
-	H1 is (H0 * A0 + X) /\ 0xFFFFFFFF,
-	A1 is (A0 * 378551) /\ 0xFFFFFFFF.
+    H1 is (H0 * A0 + X) /\ 0xFFFFFFFF,
+    A1 is (A0 * 378551) /\ 0xFFFFFFFF.
 
 hash_term_(T, A0, A, N0, N) :-
-	T =.. [X|List],
-	hash_const(X, A0, A1, N0, N1),
-	rshash_(0'(, A1, A2, N1, N2),
-	hash_list(List, A2, A3, N2, N3),
-	rshash_(0'), A3, A, N3, N).
+    T =.. [X|List],
+    hash_const(X, A0, A1, N0, N1),
+    rshash_(0'(, A1, A2, N1, N2),
+    hash_list(List, A2, A3, N2, N3),
+    rshash_(0'), A3, A, N3, N).
 
 hash_list([],     A,  A, N,  N).
 hash_list([X|Xs], A0, A, N0, N) :-
-	hash_term_(X, A0, A1, N0, N1),
-	rshash_(0',, A1, A2, N1, N2),
-	hash_list(Xs, A2, A, N2, N).
+    hash_term_(X, A0, A1, N0, N1),
+    rshash_(0',, A1, A2, N1, N2),
+    hash_list(Xs, A2, A, N2, N).
 
 hash_const(X, A0, A, N0, N) :-
-	name(X, L), % TODO: this can be really slow
-	rshash(L, A0, A, N0, N).
+    name(X, L), % TODO: this can be really slow
+    rshash(L, A0, A, N0, N).
 
 rshash([],     A,  A, H,  H).
 rshash([X|Xs], A0, A, H0, H) :-
-	rshash_(X, A0, A1, H0, H1),
-	rshash(Xs, A1, A, H1, H).
+    rshash_(X, A0, A1, H0, H1),
+    rshash(Xs, A1, A, H1, H).
 
 :- doc(bug, "Big performance improvements could be obtained by
    rewriting those predicates in C (e.g. A C implementation of

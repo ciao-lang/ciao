@@ -22,15 +22,15 @@ bundle_name(Bundle) := Bundle.
 :- export(bundle_version/2).
 % Bundle version (major, minor, patch and prerelease)
 bundle_version(Bundle) := Version :-
-	'$bundle_prop'(Bundle, version(Version)).
+    '$bundle_prop'(Bundle, version(Version)).
 
 % ---------------------------------------------------------------------------
 
 :- use_module(library(system), [file_exists/1]).
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(engine(internals), [
-	top_ciao_path/1,
-	'$bundle_id'/1]).
+    top_ciao_path/1,
+    '$bundle_id'/1]).
 
 % TODO: Generalize to include other flags (binary-only bundles, etc.)
 :- export(bundle_status/2).
@@ -42,33 +42,33 @@ bundle_version(Bundle) := Version :-
 %  - missing: bundle not available
 %
 bundle_status(Bundle, Status) :-
-	top_ciao_path(RootDir),
-	path_concat(RootDir, Bundle, BundleDir),
-	( file_exists(BundleDir) ->
-	    ( has_fetch_mark(BundleDir) -> Status = fetched
-	    ; Status = user
-	    )
-	; '$bundle_id'(Bundle) -> Status = nontop
-	; Status = missing
-	).
+    top_ciao_path(RootDir),
+    path_concat(RootDir, Bundle, BundleDir),
+    ( file_exists(BundleDir) ->
+        ( has_fetch_mark(BundleDir) -> Status = fetched
+        ; Status = user
+        )
+    ; '$bundle_id'(Bundle) -> Status = nontop
+    ; Status = missing
+    ).
 
 :- export(bundle_set_status_fetch/1).
 % Set 'fetch' status for a newly fetched bundle
 bundle_set_status_fetch(Bundle) :-
-	top_ciao_path(RootDir),
-	path_concat(RootDir, Bundle, BundleDir),
-	set_fetch_mark(BundleDir).
+    top_ciao_path(RootDir),
+    path_concat(RootDir, Bundle, BundleDir),
+    set_fetch_mark(BundleDir).
 
 :- use_module(library(system), [touch/1]).
 
 fetch_mark(Dir, F) :-
- 	path_concat(Dir, 'FETCHED_BUNDLE', F).
+    path_concat(Dir, 'FETCHED_BUNDLE', F).
 
 set_fetch_mark(Dir) :-
- 	touch(~fetch_mark(Dir)).
+    touch(~fetch_mark(Dir)).
 
 has_fetch_mark(Dir) :-
-	file_exists(~fetch_mark(Dir)).
+    file_exists(~fetch_mark(Dir)).
 
 
 

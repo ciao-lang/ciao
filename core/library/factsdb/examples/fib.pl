@@ -16,12 +16,12 @@ fib0(0,0).
 :- persistent(fib0/2,fib0db).
 
 fib(M,N) :-
-	fib0(M,N), !.
+    fib0(M,N), !.
 fib(M,N) :-
-	M > 1, 
-	M1 is M-1, 
-	M2 is M-2,
-	fib(M1,N1), 
-	fib(M2,N2),
-	N is N1+N2,
-	asserta_fact(fib0(M,N)).
+    M > 1, 
+    M1 is M-1, 
+    M2 is M-2,
+    fib(M1,N1), 
+    fib(M2,N2),
+    N is N1+N2,
+    asserta_fact(fib0(M,N)).

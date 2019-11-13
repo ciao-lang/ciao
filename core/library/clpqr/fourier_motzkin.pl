@@ -5,11 +5,11 @@
 % :- op(550, xfy, (:)).
 
 /*
-	elim seq X:
-		min X: pos x neg occ heuristic
-		generate crossproduct for x
-        	detach pos, neg
-		recompute pos, neg for X\x
+    elim seq X:
+            min X: pos x neg occ heuristic
+            generate crossproduct for x
+            detach pos, neg
+            recompute pos, neg for X\x
 */
 
 
@@ -20,13 +20,13 @@ fm_elim( [V|Vs], Eqs, Indeps) :-
   fm_elim( Rest, Eqs, Indeps).
 
 /*
-select_min_occ( [V|Vs], Eqs, Indeps, V-Pos-Neg, Vs) :- !,	% without heuristic
+select_min_occ( [V|Vs], Eqs, Indeps, V-Pos-Neg, Vs) :- !,       % without heuristic
   make_indep( Indeps, Indeps),
   occurences_v( V, Pos, Neg).
 */
-select_min_occ( Vs, Eqs, Indeps, Min, Rest) :- 			% with heuristic
+select_min_occ( Vs, Eqs, Indeps, Min, Rest) :-                  % with heuristic
   make_indep( Indeps, Indeps),
-  occurences( Vs, Eqs, Occs),					% nl, pp_occ( Occs),
+  occurences( Vs, Eqs, Occs),                                   % nl, pp_occ( Occs),
   Occs = [O|Os],
   sel_min( Os, O, Min),
   Min = Sel-_-_,
@@ -143,9 +143,9 @@ occurences_v( [D|De], V, Pos, Neg) :-
     get_attribute( Lin, _+H),
     nf_coeff_of( H, V, K) ->
       ( arith_eval( K<0) ->
-          Pos = Post, Neg = [':'(D,K)|Negt]
+      Pos = Post, Neg = [':'(D,K)|Negt]
       ;
-          Pos = [':'(D,K)|Post], Neg = Negt
+      Pos = [':'(D,K)|Post], Neg = Negt
       ),
       occurences_v( De, V, Post, Negt)
   ;
@@ -181,13 +181,13 @@ occurences_merge( [A-Pos-Neg|As], [B*Kb|Bs], Dep, NewA) :-
   compare( Rel, A, B),
   ( Rel = <, occurences_merge( [A-Pos-Neg|As], Bs, Dep, NewA)
   ; Rel = >, NewA = [A-Pos-Neg|NewAtail],
-             occurences_merge( As, [B*Kb|Bs], Dep, NewAtail)
+         occurences_merge( As, [B*Kb|Bs], Dep, NewAtail)
   ; Rel = =, ( arith_eval( Kb < 0) ->
-		 NewA = [A-Pos-[':'(Dep,Kb)|Neg] | NewAtail]
-             ;
-                 NewA = [A-[':'(Dep,Kb)|Pos]-Neg | NewAtail]
-             ),
-	     occurences_merge( As, Bs, Dep, NewAtail)
+             NewA = [A-Pos-[':'(Dep,Kb)|Neg] | NewAtail]
+         ;
+             NewA = [A-[':'(Dep,Kb)|Pos]-Neg | NewAtail]
+         ),
+         occurences_merge( As, Bs, Dep, NewAtail)
   ).
 
 % ------------------------------------------------------------------------------
@@ -205,9 +205,9 @@ simplex_transform( Eqs) :-
 simplex_transform_ineqs( De, In, Eqs) :-
   ( indep_le( In, I) ->
       ( dep_v_le( De, I, D) ->
-	  true
-      ; 					% this may happen if redundant ineqs are eliminated
-	  var_with_def( D, v, 1, 0, [I*1])
+      true
+      ;                                         % this may happen if redundant ineqs are eliminated
+      var_with_def( D, v, 1, 0, [I*1])
       ),
       swap( D, I, De1, In1),
       simplex_transform_ineqs( De1, In1, Eqs)

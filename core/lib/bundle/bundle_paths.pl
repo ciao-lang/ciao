@@ -9,21 +9,21 @@
    underlying file system.").
 
 :- use_module(engine(stream_basic),
-	[sourcename/1, absolute_file_name/7, fixed_absolute_file_name/3]).
+    [sourcename/1, absolute_file_name/7, fixed_absolute_file_name/3]).
 :- use_module(engine(internals),
-	[ciao_root/1,
-	 ciao_path/1,
-	 '$bundle_id'/1,
-	 '$bundle_srcdir'/2]).
+    [ciao_root/1,
+     ciao_path/1,
+     '$bundle_id'/1,
+     '$bundle_srcdir'/2]).
 :- use_module(library(system), [working_directory/2]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(pathnames), 
-	[path_concat/3,
-	 path_relocate/4, 
-	 path_split_list/2, 
-	 path_split/3,
-	 path_get_relative/3,
-	 path_splitext/3]).
+    [path_concat/3,
+     path_relocate/4, 
+     path_split_list/2, 
+     path_split/3,
+     path_get_relative/3,
+     path_splitext/3]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(lists), [append/3]).
 
@@ -36,7 +36,7 @@
    location of @var{Bundle}".
 
 bundle_path(Bundle, Rel, Path) :-
-	bundle_path(Bundle, src, Rel, Path).
+    bundle_path(Bundle, src, Rel, Path).
 
 :- export(bundle_path/4).
 :- pred bundle_path(+Bundle, +Location, +Rel, -Path) # "Obtain the
@@ -44,25 +44,25 @@ bundle_path(Bundle, Rel, Path) :-
    source code location of @var{Bundle}".
 
 bundle_path(Bundle, _Location, _Rel, _Path) :-
-	var(Bundle), !, throw(error(unbound_bundle, bundle_path/4)).
+    var(Bundle), !, throw(error(unbound_bundle, bundle_path/4)).
 bundle_path(_Bundle, Location, _Rel, _Path) :-
-	var(Location), !, throw(error(unbound_location, bundle_path/4)).
+    var(Location), !, throw(error(unbound_location, bundle_path/4)).
 bundle_path(_Bundle, _Location, Rel, _Path) :-
-	var(Rel), !, throw(error(unbound_rel, bundle_path/4)).
+    var(Rel), !, throw(error(unbound_rel, bundle_path/4)).
 bundle_path(Bundle, Location, Rel, Path) :- !,
-	loc_path(Location, Bundle, X),
-	( Rel = '.' -> Path = X ; path_concat(X, Rel, Path) ).
+    loc_path(Location, Bundle, X),
+    ( Rel = '.' -> Path = X ; path_concat(X, Rel, Path) ).
 
 loc_path(src, Bundle, R) :-
-	'$bundle_srcdir'(Bundle, R).
+    '$bundle_srcdir'(Bundle, R).
 loc_path(builddir, Bundle, R) :-
-	% Base for bundle build
-	bundle_workspace(Bundle, R0),
-	R = ~path_concat(R0, ~relbuild(build)).
+    % Base for bundle build
+    bundle_workspace(Bundle, R0),
+    R = ~path_concat(R0, ~relbuild(build)).
 loc_path(bootbuilddir, _Bundle, R) :-
-	% Base for bundle build (boot)
-	ciao_root(R0),
-	R = ~path_concat(R0, ~relbuild(bootbuild)).
+    % Base for bundle build (boot)
+    ciao_root(R0),
+    R = ~path_concat(R0, ~relbuild(bootbuild)).
 
 % relative directory names for builddir (see sh scripts too)
 relbuild(build, 'build'). % normal build
@@ -72,16 +72,16 @@ relbuild(bootbuild, 'build-boot'). % bootstrap build
 % Workspace corresponding to Bundle
 % TODO: store dynamically the wksp and the relative srcdir?
 bundle_workspace(Bundle, R0) :-
-	'$bundle_srcdir'(Bundle, Dir),
-	( ciao_path(Path)
-	; ciao_root(Path)
-	),
-	% Dir is relative to Path
-	( Path = Dir
-	; path_get_relative(Path, Dir, _)
-	),
-	!, 
-	R0 = Path.
+    '$bundle_srcdir'(Bundle, Dir),
+    ( ciao_path(Path)
+    ; ciao_root(Path)
+    ),
+    % Dir is relative to Path
+    ( Path = Dir
+    ; path_get_relative(Path, Dir, _)
+    ),
+    !, 
+    R0 = Path.
 
 % ---------------------------------------------------------------------------
 
@@ -91,12 +91,12 @@ bundle_workspace(Bundle, R0) :-
       @var{F}.  Find best (largest bundle dir) match.".
 
 reverse_bundle_path(F, Bundle, R) :-
-	findmax(P0, match_bndl(F, P0), match_len, t(Bundle, _, R)).
+    findmax(P0, match_bndl(F, P0), match_len, t(Bundle, _, R)).
 
 match_bndl(F, t(Bundle, BundleDir, R)) :-
-	'$bundle_id'(Bundle),
-	'$bundle_srcdir'(Bundle, BundleDir),
-	path_relocate(BundleDir, '', F, R).
+    '$bundle_id'(Bundle),
+    '$bundle_srcdir'(Bundle, BundleDir),
+    path_relocate(BundleDir, '', F, R).
 
 match_len(t(_, X, _), Len) :- atom_length(X, Len).
 
@@ -116,18 +116,18 @@ ext_sourcename(X) :- sourcename(X).
    # "Like @pred{fixed_absolute_file_name/3} but allows @tt{at_bundle(Bundle,RelPath)} paths.".
 
 ext_absolute_file_name(at_bundle(Bundle, RelPath), _CurrDir, AbsFile) :- !,
-	bundle_path(Bundle, RelPath, AbsFile).
+    bundle_path(Bundle, RelPath, AbsFile).
 ext_absolute_file_name(Path, CurrDir, AbsFile) :-
-	fixed_absolute_file_name(Path, CurrDir, AbsFile).
+    fixed_absolute_file_name(Path, CurrDir, AbsFile).
 
 :- export(ext_find_pl_filename/3).
 :- pred ext_find_pl_filename(+File, +CurrDir, -AbsFile) :: atm * ext_sourcename * atm
    # "Resolve a @regtype{ext_sourcename/1},  .".
 
 ext_find_pl_filename(File, CurrDir, AbsFile) :-
-	( File = at_bundle(Bundle, Rel) -> bundle_path(Bundle, Rel, AbsFile)
-	; absolute_file_name(File, '', '.pl', CurrDir, _, AbsFile, _)
-	).
+    ( File = at_bundle(Bundle, Rel) -> bundle_path(Bundle, Rel, AbsFile)
+    ; absolute_file_name(File, '', '.pl', CurrDir, _, AbsFile, _)
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -139,28 +139,28 @@ ext_find_pl_filename(File, CurrDir, AbsFile) :-
 %     if 'foo' is a 'library path' of ciao
 %   (otherwise, P = F)
 reverse_find_pl_filename(F, P) :-
-	findmax(P0, match_alias(F, P0), match_len, t(Alias, _, Rel)),
-	tidy_rel(Rel, Rel2),
-	P =.. [Alias, Rel2].
+    findmax(P0, match_alias(F, P0), match_len, t(Alias, _, Rel)),
+    tidy_rel(Rel, Rel2),
+    P =.. [Alias, Rel2].
 
 match_alias(F, t(Alias, AliasPath, R)) :-
-	file_search_path(Alias, AliasPath),
-	path_get_relative(AliasPath, F, R).
+    file_search_path(Alias, AliasPath),
+    path_get_relative(AliasPath, F, R).
 
 tidy_rel(Rel, Rel2) :-
-	% Remove .pl extension (if needed)
-	( path_splitext(Rel, Rel1, '.pl') -> true
-	; Rel1 = Rel
-	),
-	% Split in names
-	path_split_list(Rel1, Ns),
-	% Collapse same dir/mod name (if possible)
-	( append(Ns0, [N,N], Ns) ->
-	    append(Ns0, [N], Ns1)
-	; Ns1 = Ns
-	),
-	% Transform to slashpath
-	list_to_slash(Ns1, Rel2).
+    % Remove .pl extension (if needed)
+    ( path_splitext(Rel, Rel1, '.pl') -> true
+    ; Rel1 = Rel
+    ),
+    % Split in names
+    path_split_list(Rel1, Ns),
+    % Collapse same dir/mod name (if possible)
+    ( append(Ns0, [N,N], Ns) ->
+        append(Ns0, [N], Ns1)
+    ; Ns1 = Ns
+    ),
+    % Transform to slashpath
+    list_to_slash(Ns1, Rel2).
 
 % ---------------------------------------------------------------------------
 
@@ -177,12 +177,12 @@ tidy_rel(Rel, Rel2) :-
 %   (otherwise, Spec = AbsFile)
 
 reverse_ext_find_pl_filename(AbsFile, Spec) :- atom(AbsFile), !,
-	( reverse_find_pl_filename(AbsFile, Spec1) ->
-	    Spec = Spec1
-	; reverse_bundle_path(AbsFile, Bundle, R) ->
-	    Spec = at_bundle(Bundle, R)
-	; Spec = AbsFile
-	).
+    ( reverse_find_pl_filename(AbsFile, Spec1) ->
+        Spec = Spec1
+    ; reverse_bundle_path(AbsFile, Bundle, R) ->
+        Spec = at_bundle(Bundle, R)
+    ; Spec = AbsFile
+    ).
 reverse_ext_find_pl_filename(AbsFile, P) :- P = AbsFile.
 
 % ---------------------------------------------------------------------------
@@ -201,21 +201,21 @@ slashpath(A/_) :- slashpath(A).
    # "@var{Y} is the slashpath corresponding to @var{Xs}".
 
 list_to_slash([X|Xs], Y) :-
-	list_to_slash_(Xs, X, Y).
+    list_to_slash_(Xs, X, Y).
 
 list_to_slash_([], Y, Y).
 list_to_slash_([X|Xs], Y, Z) :-
-	list_to_slash_(Xs, Y/X, Z).
+    list_to_slash_(Xs, Y/X, Z).
 
 :- export(slash_to_list/2).
 :- pred slash_to_list(+X, -Ys) :: slashpath * list
    # "@var{Ys} is the list corresponding to @var{X} slashpath".
 
 slash_to_list(X, Ys) :-
-	slash_to_list_(X, Ys, []).
+    slash_to_list_(X, Ys, []).
 
 slash_to_list_(Y/X, Zs, Zs0) :- !,
-	slash_to_list_(Y, Zs, [X|Zs0]).
+    slash_to_list_(Y, Zs, [X|Zs0]).
 slash_to_list_(X, [X|Zs], Zs).
 
 % ---------------------------------------------------------------------------
@@ -223,24 +223,24 @@ slash_to_list_(X, [X|Zs], Zs).
 
 :- meta_predicate findmax(?, goal, pred(2), ?).
 findmax(V, Goal, SizeP, Max) :-
-	findall(V, Goal, Ps),
-	largest(Ps, SizeP, Max).
+    findall(V, Goal, Ps),
+    largest(Ps, SizeP, Max).
 
 % X with maximum L, so that SizeP(X,L).
 :- meta_predicate largest(?, pred(2), ?).
 largest([X|Xs], SizeP, R) :-
-	SizeP(X, Len),
-	largest_(Xs, X, Len, SizeP, R).
+    SizeP(X, Len),
+    largest_(Xs, X, Len, SizeP, R).
 
 :- meta_predicate largest_(?, ?, pred(2), ?).
 largest_([], R, _Len, _SizeP, R).
 largest_([X|Xs], A, Len, SizeP, R) :-
-	SizeP(X, XLen),
-	( XLen > Len ->
-	    A2 = X, Len2 = XLen
-	; A2 = A, Len2 = Len
-	),
-	largest_(Xs, A2, Len2, SizeP, R).
+    SizeP(X, XLen),
+    ( XLen > Len ->
+        A2 = X, Len2 = XLen
+    ; A2 = A, Len2 = Len
+    ),
+    largest_(Xs, A2, Len2, SizeP, R).
 
 % ---------------------------------------------------------------------------
 

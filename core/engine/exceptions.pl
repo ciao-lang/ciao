@@ -1,6 +1,6 @@
 :- module(exceptions, [catch/3, intercept/3, throw/1, send_signal/1,
-	    send_signal/2, halt/0, halt/1, abort/0],
-	    [assertions, nortchecks, isomodes, datafacts]).
+        send_signal/2, halt/0, halt/1, abort/0],
+        [assertions, nortchecks, isomodes, datafacts]).
 
 :- doc(title, "Exception and signal handling").
 
@@ -39,8 +39,8 @@ halt(N) :- throw(error(type_error(integer, N), halt/1-1)).
 :- doc(abort, "Abort the current execution.").
 
 abort :-
-	reset_error,
-	'$exit'(-32768).
+    reset_error,
+    '$exit'(-32768).
 
 % ---------------------------------------------------------------------------
 
@@ -49,30 +49,30 @@ abort :-
 :- concurrent thrown/2.
 
 reset_error :-
-	% (just in case thrown/2 contains garbage)
-	eng_id(EngId),
-	retractall_fact(thrown(EngId,_)).
+    % (just in case thrown/2 contains garbage)
+    eng_id(EngId),
+    retractall_fact(thrown(EngId,_)).
 
 send_error(Error) :-
-	eng_id(EngId),
-	asserta_fact(thrown(EngId,Error)).
+    eng_id(EngId),
+    asserta_fact(thrown(EngId,Error)).
 
 recv_error(Error) :-
-	eng_id(EngId),
-	retract_fact_nb(thrown(EngId,Error0)), !,
-	Error = Error0.
+    eng_id(EngId),
+    retract_fact_nb(thrown(EngId,Error0)), !,
+    Error = Error0.
 
 % (weak import, use predicate only if concurrency.pl loaded)
 :- import(concurrency, ['$eng_self'/2]).
 :- use_module(engine(internals), ['$predicate_property'/3]).
 
 eng_id(EngId) :-
-	( '$predicate_property'('concurrency:$eng_self'(_,_),_,_) ->
-	    % Use GoalDesc (integer encoding an internal pointer) as
-	    % thread id.
-	    '$eng_self'(EngId, _)
-	; EngId = 0 % (this is safe here due to lifetime of thrown/2 facts)
-	).
+    ( '$predicate_property'('concurrency:$eng_self'(_,_),_,_) ->
+        % Use GoalDesc (integer encoding an internal pointer) as
+        % thread id.
+        '$eng_self'(EngId, _)
+    ; EngId = 0 % (this is safe here due to lifetime of thrown/2 facts)
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -94,20 +94,20 @@ p(X) :- display(X).
    results in the output ""@tt{error.}"".").
 
 catch(Goal, Error, _) :-
-	'$metachoice'(Choice),
-	'$global_vars_get'(7,PrevStack),
-	'$global_vars_set'(7,catching_frame(Choice,Error,PrevStack)),
-	'$meta_call'(Goal),
-	'$metachoice'(AfterChoice),
-	'$global_vars_set'(7,PrevStack),
-	( Choice = AfterChoice -> % no more solutions
-	    ! % remove the unnecessary exception choice point
-	; true
-	).
+    '$metachoice'(Choice),
+    '$global_vars_get'(7,PrevStack),
+    '$global_vars_set'(7,catching_frame(Choice,Error,PrevStack)),
+    '$meta_call'(Goal),
+    '$metachoice'(AfterChoice),
+    '$global_vars_set'(7,PrevStack),
+    ( Choice = AfterChoice -> % no more solutions
+        ! % remove the unnecessary exception choice point
+    ; true
+    ).
 catch(_, Error, Handler) :-
-	% receive error term (see throw/1)
-	recv_error(Error),
-	'$meta_call'(Handler).
+    % receive error term (see throw/1)
+    recv_error(Error),
+    '$meta_call'(Handler).
 
 % ---------------------------------------------------------------------------
 
@@ -121,27 +121,27 @@ catch(_, Error, Handler) :-
    library predicates in cases of error.").
 
 throw(Error) :-
-	var(Error), !,
-	throw(error(instantiation_error, throw/1 -1)).
+    var(Error), !,
+    throw(error(instantiation_error, throw/1 -1)).
 throw(Error) :-
-	'$global_vars_get'(7,Stack),
-	match_catching_frame(Stack, Error, Chpt, Prev),
-	!,
-	'$global_vars_set'(7,Prev), % unwind catching frames
-	% send error term (see catch/1)
-	send_error(Error),
-	% cut to Chpt and fail (call the handler)
-	'$metacut'(Chpt),
-	fail.
+    '$global_vars_get'(7,Stack),
+    match_catching_frame(Stack, Error, Chpt, Prev),
+    !,
+    '$global_vars_set'(7,Prev), % unwind catching frames
+    % send error term (see catch/1)
+    send_error(Error),
+    % cut to Chpt and fail (call the handler)
+    '$metacut'(Chpt),
+    fail.
 throw(Error) :-
-	no_handler(Error).
+    no_handler(Error).
 
 match_catching_frame(catching_frame(Chpt0,E0,Prev0), E, Chpt, Prev) :-
-	( E = E0 -> % TODO: unify? instance? \+ \+?
-	    Chpt = Chpt0,
-	    Prev = Prev0
-	; match_catching_frame(Prev0, E, Chpt, Prev)
-	).
+    ( E = E0 -> % TODO: unify? instance? \+ \+?
+        Chpt = Chpt0,
+        Prev = Prev0
+    ; match_catching_frame(Prev0, E, Chpt, Prev)
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -149,9 +149,9 @@ match_catching_frame(catching_frame(Chpt0,E0,Prev0), E, Chpt, Prev) :-
 :- use_module(engine(io_basic), [display/2]).
 
 no_handler(Error) :-
-	display(user_error, '{'),
-	message(error, ['No handle found for thrown error ', ~~(Error), '}']),
-	abort.
+    display(user_error, '{'),
+    message(error, ['No handle found for thrown error ', ~~(Error), '}']),
+    abort.
 
 % ===========================================================================
 
@@ -177,10 +177,10 @@ p(X) :- display(X).
    display(.), fail.}"" results in the output ""@tt{error---.0.}"".").
 
 intercept(Goal, Signal, Handler) :-
-	'$global_vars_get'(8,PrevStack),
-	'$global_vars_set'(8,signal_frame(Signal,Handler,inactive,PrevStack)),
-	'$meta_call'(Goal),
-	'$global_vars_set'(8,PrevStack).
+    '$global_vars_get'(8,PrevStack),
+    '$global_vars_set'(8,signal_frame(Signal,Handler,inactive,PrevStack)),
+    '$meta_call'(Goal),
+    '$global_vars_set'(8,PrevStack).
 
 % ---------------------------------------------------------------------------
 
@@ -193,14 +193,14 @@ intercept(Goal, Signal, Handler) :-
    send_signal/1-1)}.").
 
 send_signal(Signal) :-
-	var(Signal), !,
-	throw(error(instantiation_error, 'exceptions:send_signal'/1 -1)).
+    var(Signal), !,
+    throw(error(instantiation_error, 'exceptions:send_signal'/1 -1)).
 send_signal(Signal):-
-	send_signal_(Signal, Intercepted),
-	( Intercepted = true ->
-	    true
-	; throw(error(unintercepted_signal(Signal), 'exceptions:send_signal'/1 -1))
-	).
+    send_signal_(Signal, Intercepted),
+    ( Intercepted = true ->
+        true
+    ; throw(error(unintercepted_signal(Signal), 'exceptions:send_signal'/1 -1))
+    ).
 
 :- trust pred send_signal(Term, Intercepted) : nonvar(Term).
 
@@ -209,36 +209,36 @@ send_signal(Signal):-
    not intercepted (i.e. just suceeds) or @tt{true} otherwise.").
 
 send_signal(Signal, _) :-
-	var(Signal), !,
-	throw(error(instantiation_error, 'exceptions:send_signal'/2 -1)).
+    var(Signal), !,
+    throw(error(instantiation_error, 'exceptions:send_signal'/2 -1)).
 send_signal(Signal, Intercepted) :-
-	send_signal_(Signal, Intercepted).
+    send_signal_(Signal, Intercepted).
 
 send_signal_(Signal, Intercepted) :-
-	'$global_vars_get'(8,Stack),
-	match_signal_frame(Stack, Signal, SignalFrame),
-	SignalFrame = signal_frame(S,H,_,_),
-	'$setarg'(3, SignalFrame, active, on), % Mark as active
-	!,
-	Intercepted = true,
-	copy_term((S,H), (Signal,Handler)),
-	'$meta_call'(Handler),
-	'$setarg'(3, SignalFrame, inactive, on). % Mark again as inactive
+    '$global_vars_get'(8,Stack),
+    match_signal_frame(Stack, Signal, SignalFrame),
+    SignalFrame = signal_frame(S,H,_,_),
+    '$setarg'(3, SignalFrame, active, on), % Mark as active
+    !,
+    Intercepted = true,
+    copy_term((S,H), (Signal,Handler)),
+    '$meta_call'(Handler),
+    '$setarg'(3, SignalFrame, inactive, on). % Mark again as inactive
 send_signal_(_Signal, false).
 
 % TODO: linear search; replace with named global variables?
 match_signal_frame(Stack, Signal, SignalFrame) :-
-	Stack = signal_frame(Signal0,_,Running,Prev),
-	( Running = inactive, \+ \+ Signal = Signal0 ->
-	    SignalFrame = Stack
-	; match_signal_frame(Prev, Signal, SignalFrame)
-	).
+    Stack = signal_frame(Signal0,_,Running,Prev),
+    ( Running = inactive, \+ \+ Signal = Signal0 ->
+        SignalFrame = Stack
+    ; match_signal_frame(Prev, Signal, SignalFrame)
+    ).
 
 % ---------------------------------------------------------------------------
 % TODO: move somewhere else
 
 % :- test intercept(G, S, H) : ( G=((A=a;A=b), send_signal(c(A))),
-% 	    S=c(A), H=display(A) ) + (not_fails, non_det)
+%           S=c(A), H=display(A) ) + (not_fails, non_det)
 % # "intercept/3 preserves determinism properties of Goal (even when
 %    @var{H} and @var{G} share variables)".
 

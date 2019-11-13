@@ -1,8 +1,8 @@
 :- module(term_typing, [
-		var/1, nonvar/1,
-		atom/1, integer/1, float/1, number/1, atomic/1,
-		ground/1, type/2],
-	    [assertions, nortchecks, nativeprops, isomodes]).
+            var/1, nonvar/1,
+            atom/1, integer/1, float/1, number/1, atomic/1,
+            ground/1, type/2],
+        [assertions, nortchecks, nativeprops, isomodes]).
 
 :- doc(title, "Extra-logical properties for typing").
 
@@ -12,8 +12,8 @@
 :- doc(usage, "@include{InPrelude.lpdoc}").
 
 :- doc(module, "This library contains traditional Prolog predicates
-        for testing types.  They depend on the state of instantiation of
-        their arguments, thus being of extra-logical nature.").
+    for testing types.  They depend on the state of instantiation of
+    their arguments, thus being of extra-logical nature.").
 
 :- trust prop ground(X) + native
 # "@var{X} is currently ground (it contains no variables).".
@@ -26,17 +26,17 @@
 
 /* % jfran: Now implemented in C 
 ground(Term):-
-	nonvar(Term),
-	functor(Term,_,N),
-	ground_(N,Term).
+    nonvar(Term),
+    functor(Term,_,N),
+    ground_(N,Term).
 
 ground_(0,_) :- !.
 ground_(N,Term):-
-	N > 0,
-	arg(N,Term,Arg),
-	ground(Arg),
-	N1 is N-1,
-	ground_(N1,Term).
+    N > 0,
+    arg(N,Term,Arg),
+    ground(Arg),
+    N1 is N-1,
+    ground_(N1,Term).
 */
 :- impl_defined(ground/1).
 

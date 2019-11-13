@@ -37,38 +37,38 @@ where action is one of:
 ").
 
 help :-
-	help_msg(Msg),
-	format(user_error, "~s", [Msg]).
+    help_msg(Msg),
+    format(user_error, "~s", [Msg]).
 
 serve_banner(Port) :-
-	format(user_error, "   Serving CIAOROOT/build/site files~n", []),
-	format(user_error, "   Server reachable at http://localhost:~w~n", [Port]).
+    format(user_error, "   Serving CIAOROOT/build/site files~n", []),
+    format(user_error, "   Server reachable at http://localhost:~w~n", [Port]).
 
 serve([X]) :- ( X = help ; X = '-h' ; X = '--help' ), !,
-	help.
+    help.
 serve([stop]) :- !,
-	format(user_error, "=> stopping daemons~n", []),
-	reload_service_registry,
-	service_stop_all.
+    format(user_error, "=> stopping daemons~n", []),
+    reload_service_registry,
+    service_stop_all.
 serve(Args) :-
-	( Args = ['-p', PortAtm|Rest] ->
-	    atom_number(PortAtm, Port)
-	; % (leave Port unbound)
-	  Rest = Args
-	),
-	Rest = [],
-	% Select default port
-	( var(Port) -> Port = 8000 ; true ),
-	dist_set_reg_protocol(filebased), % TODO: customize? needed for actmod_http
-	serve_at_port(Port).
+    ( Args = ['-p', PortAtm|Rest] ->
+        atom_number(PortAtm, Port)
+    ; % (leave Port unbound)
+      Rest = Args
+    ),
+    Rest = [],
+    % Select default port
+    ( var(Port) -> Port = 8000 ; true ),
+    dist_set_reg_protocol(filebased), % TODO: customize? needed for actmod_http
+    serve_at_port(Port).
 
 serve_at_port(Port) :-
-	format(user_error, "=> starting HTTP server~n", []),
-	reload_service_registry,
-	serve_banner(Port),
-	http_bind(Port),
-	Path = ~site_root_dir, cd(Path), % TODO: not needed?
-	http_loop(ExitCode),
-	format(user_error, "=> HTTP server finished with exit code ~w~n", [ExitCode]),
-	halt(ExitCode).
+    format(user_error, "=> starting HTTP server~n", []),
+    reload_service_registry,
+    serve_banner(Port),
+    http_bind(Port),
+    Path = ~site_root_dir, cd(Path), % TODO: not needed?
+    http_loop(ExitCode),
+    format(user_error, "=> HTTP server finished with exit code ~w~n", [ExitCode]),
+    halt(ExitCode).
 

@@ -1,19 +1,19 @@
 :- module(persdb_rt,
-        [passerta_fact/1, 
-         passertz_fact/1, 
-	 pretract_fact/1, 
-	 pretractall_fact/1,
-         asserta_fact/1, 
-         assertz_fact/1, 
-	 retract_fact/1,
-	 retractall_fact/1,
-         init_persdb/0, 
-	 initialize_db/0,
-	 make_persistent/2,
-	 update_files/0,
-	 update_files/1,
-	 create/2],
-        [assertions,regtypes,nortchecks,datafacts,library(persdb/persdb_decl)]).
+    [passerta_fact/1, 
+     passertz_fact/1, 
+     pretract_fact/1, 
+     pretractall_fact/1,
+     asserta_fact/1, 
+     assertz_fact/1, 
+     retract_fact/1,
+     retractall_fact/1,
+     init_persdb/0, 
+     initialize_db/0,
+     make_persistent/2,
+     update_files/0,
+     update_files/1,
+     create/2],
+    [assertions,regtypes,nortchecks,datafacts,library(persdb/persdb_decl)]).
 
 :- use_module(library(aggregates), [findall/3]).
 
@@ -267,7 +267,7 @@ persistent_dir(dbdir, '/home/clip/public_html/db').
 
 %% Note: declared by package persdb as multifile and data
 :- pred persistent_dir(Keyword,Location_Path,DirPerms,FilePerms) ::
-	keyword * directoryname * int * int
+    keyword * directoryname * int * int
 
 # "The same as @pred{persistent_dir/2}, but including also the
   permission modes for persistent directories and files.".
@@ -286,15 +286,15 @@ persistent_dir(dbdir, '/home/clip/public_html/db').
    @lib{'persdb/ll'} package.".
 
 passerta_fact(MPred):-
-        term_to_meta(Pred, MPred),
-        functor(Pred, F, N),
-        current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)), !,
-        delete_bak_if_no_ops(File_ops, File_bak),
-        add_term_to_file(a(Pred), File_ops, FilePerms),
-        datafacts_rt:asserta_fact(MPred).
+    term_to_meta(Pred, MPred),
+    functor(Pred, F, N),
+    current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)), !,
+    delete_bak_if_no_ops(File_ops, File_bak),
+    add_term_to_file(a(Pred), File_ops, FilePerms),
+    datafacts_rt:asserta_fact(MPred).
 passerta_fact(MPred):-
-        term_to_meta(Pred, MPred),
-        throw(error(type_error(persistent_data,Pred), passerta_fact/2-1)).
+    term_to_meta(Pred, MPred),
+    throw(error(type_error(persistent_data,Pred), passerta_fact/2-1)).
 
 :- meta_predicate asserta_fact(fact).
 
@@ -304,13 +304,13 @@ passerta_fact(MPred):-
    @lib{persdb} package.".
 
 asserta_fact(MPred):-
-        term_to_meta(Pred, MPred),
-        functor(Pred, F, N),
-        ( current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)) ->
-            delete_bak_if_no_ops(File_ops, File_bak),
-            add_term_to_file(a(Pred), File_ops, FilePerms)
-        ; true),
-        datafacts_rt:asserta_fact(MPred).
+    term_to_meta(Pred, MPred),
+    functor(Pred, F, N),
+    ( current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)) ->
+        delete_bak_if_no_ops(File_ops, File_bak),
+        add_term_to_file(a(Pred), File_ops, FilePerms)
+    ; true),
+    datafacts_rt:asserta_fact(MPred).
 
 :- meta_predicate passertz_fact(fact).
 
@@ -325,15 +325,15 @@ asserta_fact(MPred):-
    private variables.  Defined in the @lib{'persdb/ll'} package.".
 
 passertz_fact(MPred):-
-        term_to_meta(Pred, MPred),
-        functor(Pred, F, N),
-        current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)), !,
-        delete_bak_if_no_ops(File_ops, File_bak),
-        add_term_to_file(z(Pred), File_ops, FilePerms),
-        datafacts_rt:assertz_fact(MPred).
+    term_to_meta(Pred, MPred),
+    functor(Pred, F, N),
+    current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)), !,
+    delete_bak_if_no_ops(File_ops, File_bak),
+    add_term_to_file(z(Pred), File_ops, FilePerms),
+    datafacts_rt:assertz_fact(MPred).
 passertz_fact(MPred):-
-        term_to_meta(Pred, MPred),
-        throw(error(type_error(persistent_data,Pred), passertz_fact/2-1)).
+    term_to_meta(Pred, MPred),
+    throw(error(type_error(persistent_data,Pred), passertz_fact/2-1)).
 
 :- meta_predicate assertz_fact(fact).
 
@@ -343,13 +343,13 @@ passertz_fact(MPred):-
    @lib{persdb} package.".
 
 assertz_fact(MPred):-
-        term_to_meta(Pred, MPred),
-        functor(Pred, F, N),
-        ( current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)) ->
-            delete_bak_if_no_ops(File_ops, File_bak),
-            add_term_to_file(z(Pred), File_ops, FilePerms)
-        ; true),
-        datafacts_rt:assertz_fact(MPred).
+    term_to_meta(Pred, MPred),
+    functor(Pred, F, N),
+    ( current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)) ->
+        delete_bak_if_no_ops(File_ops, File_bak),
+        add_term_to_file(z(Pred), File_ops, FilePerms)
+    ; true),
+    datafacts_rt:assertz_fact(MPred).
 
 :- pred pretract_fact(Fact) : callable
 # "Persistent version of @pred{retract_fact/1}: deletes on backtracking
@@ -363,15 +363,15 @@ assertz_fact(MPred):-
    dynamic and the persistent databases.").
 
 pretract_fact(MPred):-
-        term_to_meta(Pred, MPred),
-        functor(Pred, F, N),
-        current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)), !,
-        delete_bak_if_no_ops(File_ops, File_bak),
-        datafacts_rt:retract_fact(MPred),
-        add_term_to_file(r(Pred), File_ops, FilePerms).
+    term_to_meta(Pred, MPred),
+    functor(Pred, F, N),
+    current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)), !,
+    delete_bak_if_no_ops(File_ops, File_bak),
+    datafacts_rt:retract_fact(MPred),
+    add_term_to_file(r(Pred), File_ops, FilePerms).
 pretract_fact(MPred):-
-        term_to_meta(Pred, MPred),
-        throw(error(type_error(persistent_data,Pred), pretract_fact/2-1)).
+    term_to_meta(Pred, MPred),
+    throw(error(type_error(persistent_data,Pred), pretract_fact/2-1)).
 
 :- pred retract_fact(Fact) : callable
 # "Same as @pred{pretract_fact/1}, but if the predicate concerned is not
@@ -381,14 +381,14 @@ pretract_fact(MPred):-
 :- meta_predicate retract_fact(fact).
 
 retract_fact(MPred):-
-        term_to_meta(Pred, MPred),
-        functor(Pred, F, N),
-        ( current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)) ->
-	    delete_bak_if_no_ops(File_ops, File_bak),
-            datafacts_rt:retract_fact(MPred),
-	    add_term_to_file(r(Pred), File_ops, FilePerms)
-        ; datafacts_rt:retract_fact(MPred)
-        ).
+    term_to_meta(Pred, MPred),
+    functor(Pred, F, N),
+    ( current_fact(persistent(F, N, File_ops, _, File_bak, FilePerms)) ->
+        delete_bak_if_no_ops(File_ops, File_bak),
+        datafacts_rt:retract_fact(MPred),
+        add_term_to_file(r(Pred), File_ops, FilePerms)
+    ; datafacts_rt:retract_fact(MPred)
+    ).
 
 :- meta_predicate pretractall_fact(fact).
 
@@ -396,8 +396,8 @@ retract_fact(MPred):-
    predicate in both, the dynamic and the persistent databases.").
 
 pretractall_fact(MPred):-
-	pretract_fact(MPred),
-	fail.
+    pretract_fact(MPred),
+    fail.
 pretractall_fact(_).
 
 :- pred retractall_fact(Fact) : callable
@@ -408,8 +408,8 @@ pretractall_fact(_).
 :- meta_predicate retractall_fact(fact).
 
 retractall_fact(MPred):-
-	persdb_rt:retract_fact(MPred),
-	fail.
+    persdb_rt:retract_fact(MPred),
+    fail.
 retractall_fact(_).
 
 :- data persistent/6.
@@ -423,10 +423,10 @@ retractall_fact(_).
    user code.".
 
 init_persdb :-
-        current_fact(db_initialized), !.
+    current_fact(db_initialized), !.
 init_persdb :-
-        initialize_db,
-        datafacts_rt:assertz_fact(db_initialized).
+    initialize_db,
+    datafacts_rt:assertz_fact(db_initialized).
 
 :- doc('$is_persistent'(Spec,Key), "Predicate @var{Spec} persists
    within database @var{Key}. Programmers should not define this predicate
@@ -439,17 +439,17 @@ init_persdb :-
 
 % Note: not using current_fact/2 and erase/1 because does not work in toplevel
 initialize_db :-
-        '$is_persistent'(Spec, Key),
-        make_persistent(Spec, Key),
-        datafacts_rt:retract_fact('$is_persistent'(Spec, Key)),
-        fail.
+    '$is_persistent'(Spec, Key),
+    make_persistent(Spec, Key),
+    datafacts_rt:retract_fact('$is_persistent'(Spec, Key)),
+    fail.
 initialize_db.
 
 :- export(meta_predname/1).
 :- regtype meta_predname/1.
 
 meta_predname('$:'(P)) :-
-	predname(P).
+    predname(P).
 
 :- pred make_persistent(PredDesc,Keyword) : meta_predname * keyword
 # "Dynamic version of the @decl{persistent} declaration.".
@@ -457,51 +457,51 @@ meta_predname('$:'(P)) :-
 :- meta_predicate make_persistent(spec, ?).
 
 make_persistent(Spec, Key) :-
-        ( % Both declarations are allowed.
-	    persistent_dir(Key, Dir, DirPerms, FilePerms)
-	;
-	    persistent_dir(Key, Dir),
-	    DirPerms = default, 
-	    FilePerms = default
-	), !,
-        term_to_meta(F/A, Spec),
-        get_pred_files(Dir, DirPerms, F, A, File, File_ops, File_bak),
-        datafacts_rt:assertz_fact(persistent(F, A, File_ops, File, File_bak, FilePerms)),
-        functor(P, F, A),
-        ini_persistent(P, File_ops, File, File_bak, FilePerms).
+    ( % Both declarations are allowed.
+        persistent_dir(Key, Dir, DirPerms, FilePerms)
+    ;
+        persistent_dir(Key, Dir),
+        DirPerms = default, 
+        FilePerms = default
+    ), !,
+    term_to_meta(F/A, Spec),
+    get_pred_files(Dir, DirPerms, F, A, File, File_ops, File_bak),
+    datafacts_rt:assertz_fact(persistent(F, A, File_ops, File, File_bak, FilePerms)),
+    functor(P, F, A),
+    ini_persistent(P, File_ops, File, File_bak, FilePerms).
 make_persistent(Spec, _Key) :-
-        throw(error(undefined_for(Spec), persistent_dir/2)).
+    throw(error(undefined_for(Spec), persistent_dir/2)).
 
 ini_persistent(P, File_ops, File, File_bak, FilePerms):- 
-        term_to_meta(P, Pred),
-        lock_file(File, Fd1, _),        
-        lock_file(File_ops, Fd2, _),    
-        lock_file(File_bak, Fd3, _),
-        ( file_exists(File) ->
-            ( file_exists(File_bak) ->
-                ( file_exists(File_ops) ->  % Operations maybe not concluded
-                    delete_file1(File),
-                    mv(File_bak, File, FilePerms),
-                    secure_update(File, File_ops, File_bak, NewTerms, FilePerms)
-                ; delete_file1(File_bak), % operations done
-                  file_to_term_list(File, NewTerms, [])
-                )
-            ; secure_update(File, File_ops, File_bak, NewTerms, FilePerms)
-            ),
-            datafacts_rt:retractall_fact(Pred)
-        ; file_exists(File_bak) -> % System crash
-            mv(File_bak, File, FilePerms),
-            secure_update(File, File_ops, File_bak, NewTerms, FilePerms),
-            datafacts_rt:retractall_fact(Pred)
-        ; % Files not created yet
-          findall(P, current_fact(Pred), Facts),
-          term_list_to_file(Facts, File, FilePerms),
-          NewTerms = []
+    term_to_meta(P, Pred),
+    lock_file(File, Fd1, _),        
+    lock_file(File_ops, Fd2, _),    
+    lock_file(File_bak, Fd3, _),
+    ( file_exists(File) ->
+        ( file_exists(File_bak) ->
+            ( file_exists(File_ops) ->  % Operations maybe not concluded
+                delete_file1(File),
+                mv(File_bak, File, FilePerms),
+                secure_update(File, File_ops, File_bak, NewTerms, FilePerms)
+            ; delete_file1(File_bak), % operations done
+              file_to_term_list(File, NewTerms, [])
+            )
+        ; secure_update(File, File_ops, File_bak, NewTerms, FilePerms)
         ),
-        unlock_file(Fd1, _),
-        unlock_file(Fd2, _),
-        unlock_file(Fd3, _),
-        process_terms(NewTerms).
+        datafacts_rt:retractall_fact(Pred)
+    ; file_exists(File_bak) -> % System crash
+        mv(File_bak, File, FilePerms),
+        secure_update(File, File_ops, File_bak, NewTerms, FilePerms),
+        datafacts_rt:retractall_fact(Pred)
+    ; % Files not created yet
+      findall(P, current_fact(Pred), Facts),
+      term_list_to_file(Facts, File, FilePerms),
+      NewTerms = []
+    ),
+    unlock_file(Fd1, _),
+    unlock_file(Fd2, _),
+    unlock_file(Fd3, _),
+    process_terms(NewTerms).
 
 % Steps in the process of updating:
 %  f  o
@@ -511,22 +511,22 @@ ini_persistent(P, File_ops, File, File_bak, FilePerms):-
 %  f+
 
 secure_update(File, File_ops, File_bak, NewTerms, FilePerms):-
-        file_to_term_list(File, Terms, Terms_),
-        ( file_exists(File_ops) ->
-            file_to_term_list(File_ops, Lops, []),
-            make_operations(Lops, Terms, Terms_, NewTerms),
-            mv(File, File_bak, FilePerms),
-            term_list_to_file(NewTerms, File, FilePerms),
-            delete_file1(File_ops),
-            delete_file1(File_bak)
-        ; Terms_ = [],
-          NewTerms = Terms
-        ).
+    file_to_term_list(File, Terms, Terms_),
+    ( file_exists(File_ops) ->
+        file_to_term_list(File_ops, Lops, []),
+        make_operations(Lops, Terms, Terms_, NewTerms),
+        mv(File, File_bak, FilePerms),
+        term_list_to_file(NewTerms, File, FilePerms),
+        delete_file1(File_ops),
+        delete_file1(File_bak)
+    ; Terms_ = [],
+      NewTerms = Terms
+    ).
 
 make_operations([], Terms, [], Terms).
 make_operations([Operation|Operations], Terms, Terms_, NewTerms):-
-        make_operation(Operation, Terms, Terms_, NTerms, NTerms_),
-        make_operations(Operations, NTerms, NTerms_, NewTerms).
+    make_operation(Operation, Terms, Terms_, NTerms, NTerms_),
+    make_operations(Operations, NTerms, NTerms_, NewTerms).
 
 % Adds a fact to the head of the list
 make_operation(a(Pred), Terms, Terms_, [Pred|Terms], Terms_).
@@ -534,22 +534,22 @@ make_operation(a(Pred), Terms, Terms_, [Pred|Terms], Terms_).
 make_operation(z(Pred), Terms, [Pred|Terms_], Terms, Terms_).
 % Removes the first fact which unify (exists)
 make_operation(r(Pred), Terms, Terms_, NTerms, Terms_) :-
-        select(Pred, Terms, NTerms), !.
+    select(Pred, Terms, NTerms), !.
 
 % process_terms(Facts) asserts the data contained in Facts into the
 %  dynamic database
 
 process_terms([]).
 process_terms([Fact|Facts]) :-
-        term_to_meta(Fact, MFact),
-        datafacts_rt:assertz_fact(MFact),
-        process_terms(Facts).
+    term_to_meta(Fact, MFact),
+    datafacts_rt:assertz_fact(MFact),
+    process_terms(Facts).
 
 :- pred update_files # "Updates the files comprising the persistence set
    of all persistent predicates defined in the application.".
 
 update_files :- 
-	update_files_of(_, _).
+    update_files_of(_, _).
 
 :- pred update_files(PredSpecList) :: list(predname)
 # "Updates the files comprising the persistence set of the persistent
@@ -559,75 +559,75 @@ update_files :-
 
 update_files([]) :- !.
 update_files([Spec|SpecL]) :-
-        term_to_meta(F/A, Spec),
-        update_files_of(F, A), 
-	!,
-        update_files(SpecL).
+    term_to_meta(F/A, Spec),
+    update_files_of(F, A), 
+    !,
+    update_files(SpecL).
 update_files(Bad) :-
-        throw(error(type_error(list(predname), Bad), update_files/1-1)).
+    throw(error(type_error(list(predname), Bad), update_files/1-1)).
 
 update_files_of(Pred, Arity) :-
-        current_fact(persistent(Pred, Arity, File_ops, File, File_bak, FilePerms)),
-        lock_file(File, Fd1, _),        
-        lock_file(File_ops, Fd2, _),    
-        lock_file(File_bak, Fd3, _),
-        ( file_exists(File) ->
-            ( file_exists(File_bak) ->
-                ( file_exists(File_ops) ->  % Operations maybe not concluded
-                    delete_file1(File),
-                    mv(File_bak, File, FilePerms),
-                    secure_update(File, File_ops, File_bak, _, FilePerms)
-                ; delete_file1(File_bak) % operations done
-                )
-            ; secure_update(File, File_ops, File_bak, _, FilePerms)
+    current_fact(persistent(Pred, Arity, File_ops, File, File_bak, FilePerms)),
+    lock_file(File, Fd1, _),        
+    lock_file(File_ops, Fd2, _),    
+    lock_file(File_bak, Fd3, _),
+    ( file_exists(File) ->
+        ( file_exists(File_bak) ->
+            ( file_exists(File_ops) ->  % Operations maybe not concluded
+                delete_file1(File),
+                mv(File_bak, File, FilePerms),
+                secure_update(File, File_ops, File_bak, _, FilePerms)
+            ; delete_file1(File_bak) % operations done
             )
-        ; mv(File_bak, File, FilePerms), % System crash
-          secure_update(File, File_ops, File_bak, _, FilePerms)
-        ),
-        unlock_file(Fd1, _),
-        unlock_file(Fd2, _),
-        unlock_file(Fd3, _),
-        fail.
+        ; secure_update(File, File_ops, File_bak, _, FilePerms)
+        )
+    ; mv(File_bak, File, FilePerms), % System crash
+      secure_update(File, File_ops, File_bak, _, FilePerms)
+    ),
+    unlock_file(Fd1, _),
+    unlock_file(Fd2, _),
+    unlock_file(Fd3, _),
+    fail.
 update_files_of(_, _).
        
 
 % file_to_term_list(File, Terms, Terms_) reads a list of terms Terms from a
 %  file File, Terms_ is the tail of the list
 file_to_term_list(File, Terms, Terms_) :-
-        file_exists(File, 6), !,
-	file_to_terms(File, Terms, Terms_).
+    file_exists(File, 6), !,
+    file_to_terms(File, Terms, Terms_).
 file_to_term_list(_File, Terms, Terms).
 
 % term_list_to_file(Terms, File, FilePerms) writes a list of terms Terms onto a file
 %  File
 term_list_to_file(Terms, File, FilePerms) :-
 %jcf-begin
-	( file_exists(File) ->
-	  true
-	; create(File, FilePerms) % just to put right permissions in File.
-	),
+    ( file_exists(File) ->
+      true
+    ; create(File, FilePerms) % just to put right permissions in File.
+    ),
 %jcf-end
-	terms_to_file(Terms, File).
+    terms_to_file(Terms, File).
 
 % :- pred mv(Path1, Path2, Perms) ; "Rename a file, or create target with file permisssion Perms.".
 mv(Source, Target, _FilePerms):-
-        file_exists(Source), !,
-        rename_file(Source, Target).
+    file_exists(Source), !,
+    rename_file(Source, Target).
 mv(_Source, Target, FilePerms):-
-        create(Target, FilePerms).
+    create(Target, FilePerms).
 
 % :- pred create(Path, FilePerms) ; "Creates a file with perms FilePerms.".
 create(Path, FilePerms):-
-        open(Path, write, S),
-        close(S),
-	(
-	    FilePerms = default -> 
-	    true
-	;
-	    umask(OldUMask,0),
-	    chmod(Path,FilePerms),
-	    umask(_,OldUMask)
-	). 
+    open(Path, write, S),
+    close(S),
+    (
+        FilePerms = default -> 
+        true
+    ;
+        umask(OldUMask,0),
+        chmod(Path,FilePerms),
+        umask(_,OldUMask)
+    ). 
 
 
 :- doc(doinclude, keyword/1).

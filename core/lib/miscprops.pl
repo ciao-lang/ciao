@@ -1,18 +1,18 @@
 :- module(miscprops,[
-%	               cost/2, %% Should be replaced by lower/upper/etc.
+%                      cost/2, %% Should be replaced by lower/upper/etc.
 % the corresponding lower/upper/etc. are now in assertions(native_props)
-		       directoryname/1, %% Not a regular type!
-%		       filename/1, %% Not a regular type!
+                   directoryname/1, %% Not a regular type!
+%                      filename/1, %% Not a regular type!
 % it is now in assertions(c_itf_props)
-		       formatstring/1, %% Not a regular type!
-		       moduletype/1,
-%		       no_fail/1,
+                   formatstring/1, %% Not a regular type!
+                   moduletype/1,
+%                      no_fail/1,
 % replaced by not_fails/1 in assertions(native_props)
-		       structofstrings/1 %% Not a regular type!
-		     ],
-                     [
-                       assertions,regtypes
-                     ]).
+                   structofstrings/1 %% Not a regular type!
+                 ],
+                 [
+                   assertions,regtypes
+                 ]).
 
 % :- use_module(engine(hiord_rt), [call/1]).
 
@@ -47,7 +47,7 @@
    # "@var{X} is an atom describing the name of a directory.".
 
 directoryname(X) :- 
-	atm(X).
+    atm(X).
 
 :- regtype formatstring(String) 
    # "@var{String} is a character string with formatting characters
@@ -55,7 +55,7 @@ directoryname(X) :-
 
 %% Not quite right...
 formatstring(X) :- 
-	string(X).
+    string(X).
 
 :- regtype moduletype(X) # "@var{X} is a module type (@tt{module} or 
    @tt{include} file).". 
@@ -67,11 +67,11 @@ moduletype(include).
    # "@var{S} is a structure of strings.".
 
 structofstrings(A) :-
-	A =.. [_F|Args],
-	allstrings(Args).
+    A =.. [_F|Args],
+    allstrings(Args).
 
 allstrings([H]) :-
-	string(H).
+    string(H).
 allstrings([H|T]) :-
-	string(H),
-	allstrings(T).
+    string(H),
+    allstrings(T).

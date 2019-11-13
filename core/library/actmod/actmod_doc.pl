@@ -173,7 +173,7 @@ with the server if it is running).
 :- use_module(engine(stream_basic), [sourcename/1]).
 
 :- decl use_module(ModSpec,Imports,Opts) : 
-	sourcename * list(predname) * list(import_opt)
+    sourcename * list(predname) * list(import_opt)
    # "Import from @var{ModSpec} the predicates in @var{Imports} with
       options @var{Opts}. If @var{Imports} is a free variable, all
       predicates are imported.".

@@ -28,28 +28,28 @@
 %:- pred md5sum(File, Result) : string => string.
 
 md5sum(File, Result) :-
-	% TODO: This can be resolved at compile time
-	get_os(OS),
-	( OS = 'DARWIN' ->
-	    Cmd = 'md5', Args = ['-r', File]
-	; Cmd = 'md5sum', Args = [File]
-	),
-	%
-	process_call(path(Cmd), Args,
-	             [stdout(string(Result1)), status(ErrCode)]),
-	( ErrCode == 0,
-	  length(Result, 32),
-	  append(Result, _, Result1),
-	  check_hexa(Result) ->
-	    true
-	; fail
-	).
+    % TODO: This can be resolved at compile time
+    get_os(OS),
+    ( OS = 'DARWIN' ->
+        Cmd = 'md5', Args = ['-r', File]
+    ; Cmd = 'md5sum', Args = [File]
+    ),
+    %
+    process_call(path(Cmd), Args,
+                 [stdout(string(Result1)), status(ErrCode)]),
+    ( ErrCode == 0,
+      length(Result, 32),
+      append(Result, _, Result1),
+      check_hexa(Result) ->
+        true
+    ; fail
+    ).
 
 check_hexa([H|T]) :-
-	( H >= 0'0, H =< 0'9 ;
-	  H >= 0'A, H =< 0'F ;
-	  H >= 0'a, H =< 0'f
-	), !,
-	check_hexa(T).
+    ( H >= 0'0, H =< 0'9 ;
+      H >= 0'A, H =< 0'F ;
+      H >= 0'a, H =< 0'f
+    ), !,
+    check_hexa(T).
 check_hexa([]).
 

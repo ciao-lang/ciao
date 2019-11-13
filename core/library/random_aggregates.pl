@@ -49,48 +49,48 @@ yes
    memory simultaneously.").
 
 random_findall(K, X, Goal, Ys) :-
-	% cleanup
-	reset_index,
-	retractall_fact(sample(_,_)),
-	% process solutions
-	sample_sols(K, X, Goal),
-	retract_fact(index(I)),
-	% make sure that we got enough samples
-	I >= K,
-	% get all samples
-	findall(X, retract_fact(sample(_,X)), Ys).
+    % cleanup
+    reset_index,
+    retractall_fact(sample(_,_)),
+    % process solutions
+    sample_sols(K, X, Goal),
+    retract_fact(index(I)),
+    % make sure that we got enough samples
+    I >= K,
+    % get all samples
+    findall(X, retract_fact(sample(_,X)), Ys).
 
 sample_sols(K, X, Goal) :-
-	( % (for all solutions)
-          call(Goal),
-	    inc_index(Index),
-	    sample_i(Index, K, X),
-	    fail
-	; true
-	).
+    ( % (for all solutions)
+      call(Goal),
+        inc_index(Index),
+        sample_i(Index, K, X),
+        fail
+    ; true
+    ).
 
 % Process solution at Index
 sample_i(Index, K, X) :-
-	( Index < K -> set_sample(Index, X)
-	; random(0, Index, R),
-	  ( R < K -> % replace with decreasing probabilty
-	      set_sample(R, X)
-	  ; true
-	  )
-	).
+    ( Index < K -> set_sample(Index, X)
+    ; random(0, Index, R),
+      ( R < K -> % replace with decreasing probabilty
+          set_sample(R, X)
+      ; true
+      )
+    ).
 
 % set index to 0
 reset_index :-
-	retractall_fact(index(_)),
-	assertz_fact(index(0)).
+    retractall_fact(index(_)),
+    assertz_fact(index(0)).
 
 % get current index and increment it
 inc_index(I) :-
-	retract_fact(index(I)),
-	I1 is I + 1,
-	assertz_fact(index(I1)).
+    retract_fact(index(I)),
+    I1 is I + 1,
+    assertz_fact(index(I1)).
 
 % set sample at index I
 set_sample(I, V) :-
-	retractall_fact(sample(I, _)),
-	assertz_fact(sample(I, V)).
+    retractall_fact(sample(I, _)),
+    assertz_fact(sample(I, V)).

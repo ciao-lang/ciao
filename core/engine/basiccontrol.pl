@@ -1,17 +1,17 @@
 :- module(basiccontrol, [
-        ','/2, ';'/2, '->'/2, !/0,
-	% '^'/2, %% Moved to aggregates M.H.
-	(\+)/1, if/3,
-        true/0, % This cannot change
-        fail/0, repeat/0,
-	false/0, otherwise/0,
-	'$metachoice'/1, '$metacut'/1, 
-	interpret_goal/2,
-	interpret_compiled_goal/2,
-	undefined_goal/1,
-	debug_goal/1
-	],
-        [assertions, nortchecks, isomodes, nativeprops]).
+    ','/2, ';'/2, '->'/2, !/0,
+    % '^'/2, %% Moved to aggregates M.H.
+    (\+)/1, if/3,
+    true/0, % This cannot change
+    fail/0, repeat/0,
+    false/0, otherwise/0,
+    '$metachoice'/1, '$metacut'/1, 
+    interpret_goal/2,
+    interpret_compiled_goal/2,
+    undefined_goal/1,
+    debug_goal/1
+    ],
+    [assertions, nortchecks, isomodes, nativeprops]).
 
 :- doc(title,"Control constructs/predicates").
 
@@ -67,7 +67,7 @@
 :- trust pred '!'/0 + ( iso, is_det, not_fails, relations(1) )
    # "Commit to any choices taken in the current predicate.". 
 
-!.						% simple enough
+!.                                              % simple enough
 
 %% Moved to aggregates. MH
 %% (X^Y) :- undefined_goal((X^Y)).
@@ -87,14 +87,14 @@
 
 
 :- trust pred if(+A,+B,+C) 
-	: (callable(A), callable(B), callable(C))
-        => (callable(A), callable(B), callable(C)).
+    : (callable(A), callable(B), callable(C))
+    => (callable(A), callable(B), callable(C)).
 
 :- primitive_meta_predicate(if(goal, goal, goal)).
 if(P, Q, R) :- undefined_goal(if(P,Q,R)).
 
 :- trust pred true/0 + ( iso, native, sideff(free),
-	is_det, not_fails, relations(1) ) # "Succeed (noop).".
+    is_det, not_fails, relations(1) ) # "Succeed (noop).".
 :- trust comp true/0 + eval.
 :- impl_defined(true/0).
 
@@ -103,7 +103,7 @@ if(P, Q, R) :- undefined_goal(if(P,Q,R)).
 :- impl_defined(otherwise/0).
 
 :- trust pred fail/0 + ( iso, native, sideff(free),
-	is_det, fails, relations(0) ) # "Fail, backtrack immediately.".
+    is_det, fails, relations(0) ) # "Fail, backtrack immediately.".
 :- trust comp fail/0 + eval.
 :- trust comp fail/0 + equiv(fail).
 :- impl_defined(fail/0).
@@ -135,10 +135,10 @@ if(P, Q, R) :- undefined_goal(if(P,Q,R)).
 % called from within the emulator
 
 interpret_goal(Head, Root) :-
-	'CHOICE IDIOM'(Cut),
-	'$current_instance'(Head, Body, Root, _, no_block),
-        '$unlock_predicate'(Root),
-	metacall(Body, Cut, interpret).
+    'CHOICE IDIOM'(Cut),
+    '$current_instance'(Head, Body, Root, _, no_block),
+    '$unlock_predicate'(Root),
+    metacall(Body, Cut, interpret).
 
 interpret_compiled_goal(Head, _) :- debug_trace(Head).
 
@@ -147,97 +147,97 @@ undefined_goal(X) :- 'CHOICE IDIOM'(Cut), metacall(X, Cut, undefined).
 debug_goal(X) :- 'CHOICE IDIOM'(Cut), metacall(X, Cut, debug).
 
 metacall(X, _, _) :-
-	var(X), !,
-        throw(error(instantiation_error, call/1-1)).
+    var(X), !,
+    throw(error(instantiation_error, call/1-1)).
 metacall('true', _, _) :- !.
 metacall('basiccontrol:true', _, _) :- !.
 metacall('basiccontrol:otherwise', _, _) :- !.
 metacall('basiccontrol:false', _, _) :- !, fail.
 metacall('fail', _, _) :- !, fail.
 metacall('basiccontrol:!', ?, _) :- !,
-        message(warning, '! illegal in \\+ or if-parts of ->, if; ignored').
+    message(warning, '! illegal in \\+ or if-parts of ->, if; ignored').
 metacall('basiccontrol:!', Cut, _) :- !,
-	'CUT IDIOM'(Cut).
+    'CUT IDIOM'(Cut).
 metacall('!', ?, _) :- !,
-        message(warning, '! illegal in \\+ or if-parts of ->, if; ignored').
+    message(warning, '! illegal in \\+ or if-parts of ->, if; ignored').
 metacall('!', Cut, _) :- !,
-	'CUT IDIOM'(Cut).
+    'CUT IDIOM'(Cut).
 % Can be removed??? - the problem is the cut...
 metacall('basiccontrol:,'(X, Y), Cut, _) :- !,
-	metacall(X, Cut, interpret),
-	metacall(Y, Cut, interpret).
+    metacall(X, Cut, interpret),
+    metacall(Y, Cut, interpret).
 metacall(','(X, Y), Cut, _) :- !,
-	metacall(X, Cut, interpret),
-	metacall(Y, Cut, interpret).
+    metacall(X, Cut, interpret),
+    metacall(Y, Cut, interpret).
 metacall('basiccontrol:;'('basiccontrol:->'(X,Y),Z), Cut, _) :- !,
-	(   metacall(X, ?, interpret) ->
-	    metacall(Y, Cut, interpret)
-	;   metacall(Z, Cut, interpret)
-	).
+    (   metacall(X, ?, interpret) ->
+        metacall(Y, Cut, interpret)
+    ;   metacall(Z, Cut, interpret)
+    ).
 metacall(';'('basiccontrol:->'(X,Y),Z), Cut, _) :- !,
-	(   metacall(X, ?, interpret) ->
-	    metacall(Y, Cut, interpret)
-	;   metacall(Z, Cut, interpret)
-	).
+    (   metacall(X, ?, interpret) ->
+        metacall(Y, Cut, interpret)
+    ;   metacall(Z, Cut, interpret)
+    ).
 metacall('basiccontrol:;'('->'(X,Y),Z), Cut, _) :- !,
-	(   metacall(X, ?, interpret) ->
-	    metacall(Y, Cut, interpret)
-	;   metacall(Z, Cut, interpret)
-	).
+    (   metacall(X, ?, interpret) ->
+        metacall(Y, Cut, interpret)
+    ;   metacall(Z, Cut, interpret)
+    ).
 metacall(';'('->'(X,Y),Z), Cut, _) :- !,
-	(   metacall(X, ?, interpret) ->
-	    metacall(Y, Cut, interpret)
-	;   metacall(Z, Cut, interpret)
-	).
+    (   metacall(X, ?, interpret) ->
+        metacall(Y, Cut, interpret)
+    ;   metacall(Z, Cut, interpret)
+    ).
 metacall('basiccontrol:->'(X,Y), Cut, _) :- !,
-	(   metacall(X, ?, interpret) ->
-	    metacall(Y, Cut, interpret)
-	).
+    (   metacall(X, ?, interpret) ->
+        metacall(Y, Cut, interpret)
+    ).
 metacall('->'(X,Y), Cut, _) :- !,
-	(   metacall(X, ?, interpret) ->
-	    metacall(Y, Cut, interpret)
-	).
+    (   metacall(X, ?, interpret) ->
+        metacall(Y, Cut, interpret)
+    ).
 metacall('basiccontrol:;'(X,Y), Cut, _) :- !,
-	(   metacall(X, Cut, interpret)
-	;   metacall(Y, Cut, interpret)
-	).
+    (   metacall(X, Cut, interpret)
+    ;   metacall(Y, Cut, interpret)
+    ).
 metacall(';'(X,Y), Cut, _) :- !,
-	(   metacall(X, Cut, interpret)
-	;   metacall(Y, Cut, interpret)
-	).
+    (   metacall(X, Cut, interpret)
+    ;   metacall(Y, Cut, interpret)
+    ).
 metacall('basiccontrol:\\+'(X), _, _) :- !,
-	\+ metacall(X, ?, interpret).
+    \+ metacall(X, ?, interpret).
 metacall('\\+'(X), _, _) :- !,
-	\+ metacall(X, ?, interpret).
+    \+ metacall(X, ?, interpret).
 metacall('basiccontrol:if'(P,Q,R), Cut, _) :- !,
-	if(metacall(P, ?, interpret),
-	   metacall(Q, Cut, interpret),
-	   metacall(R, Cut, interpret)).
+    if(metacall(P, ?, interpret),
+       metacall(Q, Cut, interpret),
+       metacall(R, Cut, interpret)).
 metacall('if'(P,Q,R), Cut, _) :- !,
-	if(metacall(P, ?, interpret),
-	   metacall(Q, Cut, interpret),
-	   metacall(R, Cut, interpret)).
+    if(metacall(P, ?, interpret),
+       metacall(Q, Cut, interpret),
+       metacall(R, Cut, interpret)).
 % Commented out to solve Jesus's bug (Jesus reported it ;) ) bug... remove these lines if you feel that everything works fine (Dec 10 2003) 
 %metacall('aggregates:^'(_,G), Cut, _) :- !,
-%	metacall(G, Cut, interpret).
+%       metacall(G, Cut, interpret).
 %metacall('^'(_,G), Cut, _) :- !,
-%	metacall(G, Cut, interpret).
+%       metacall(G, Cut, interpret).
 metacall(X, _, _) :-
-	number(X), !,
-	throw(error(type_error(callable,X), 'in metacall')).
+    number(X), !,
+    throw(error(type_error(callable,X), 'in metacall')).
 metacall(X, _, Mode) :-
-	metacall2(Mode, X).
+    metacall2(Mode, X).
 
 metacall2(interpret, X) :- '$meta_call'(X).
 metacall2(undefined, X) :- '$unknown'(F, F), do_undefined(F, X).
 metacall2(debug, X) :- debug_trace(X).
 
 do_undefined(error, X) :-
-        functor(X, F, A),
-        throw(error(existence_error(procedure, F/A), F/A)).
+    functor(X, F, A),
+    throw(error(existence_error(procedure, F/A), F/A)).
 do_undefined(warning, X) :-
-        message(warning, ['The predicate ', X, ' is undefined']),
-        fail.
+    message(warning, ['The predicate ', X, ' is undefined']),
+    fail.
 % do_undefined(fail, X) :- fail.
 
 

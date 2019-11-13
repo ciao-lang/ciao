@@ -20,14 +20,14 @@ ctrlc_clean(Goal) :- intercept(Goal, control_c, ctrlcclean).
 % TODO: document usage, it must be ended with erase/1
 :- export(delete_on_ctrlc/2).
 delete_on_ctrlc(File, Ref) :-
-        working_directory(Dir, Dir),
-        asserta_fact(del_on_ctrlc(Dir, File), Ref).
+    working_directory(Dir, Dir),
+    asserta_fact(del_on_ctrlc(Dir, File), Ref).
 
 :- export(ctrlcclean/0).
 ctrlcclean :-
-        retract_fact(del_on_ctrlc(Dir, File)),
-        working_directory(_, Dir),
-        delete_file(File),
-        fail.
+    retract_fact(del_on_ctrlc(Dir, File)),
+    working_directory(_, Dir),
+    delete_file(File),
+    fail.
 ctrlcclean :- halt.
 

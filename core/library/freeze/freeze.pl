@@ -65,57 +65,57 @@
 :- meta_predicate frozen(?, goal).
 
 freeze(X, Goal) :-
-        (
-            var(X) -> 
-            my_attach_attribute( V, '$frozen_goals'(V,Goal)),
-            X = V
-        ;
-            call(Goal)
-        ).
+    (
+        var(X) -> 
+        my_attach_attribute( V, '$frozen_goals'(V,Goal)),
+        X = V
+    ;
+        call(Goal)
+    ).
 
 my_verify_attribute('$frozen_goals'(_Var, Goal), _Value):-
-	call(Goal).
+    call(Goal).
 
 my_combine_attributes('$frozen_goals'(V1, G1), '$frozen_goals'(_V2, G2)):-
-	term_to_meta(T1, G1),
-        term_to_meta(T2, G2),
-        term_to_meta((T1,T2), G),
-        my_update_attribute(V1, '$frozen_goals'(V1, G)).
+    term_to_meta(T1, G1),
+    term_to_meta(T2, G2),
+    term_to_meta((T1,T2), G),
+    my_update_attribute(V1, '$frozen_goals'(V1, G)).
 
 :- pred frozen(X, Goal) => callable(Goal) # "@var{Goal} is currently delayed
    until variable @var{X} becomes bound.".
 
 frozen(Var, Goal):-
-	var(Var), 
-        (
-	    my_get_attribute(Var, '$frozen_goals'(_, Goal)), !
-	;
-	    Goal = true
-	).
+    var(Var), 
+    (
+        my_get_attribute(Var, '$frozen_goals'(_, Goal)), !
+    ;
+        Goal = true
+    ).
 
 :- if(defined(freeze__use_multi_attributes)).
 
 :- use_package(attr).
 
 attr_unify_hook(Attr1, Other):-
-	(
-	    nonvar(Other) ->
-	    my_verify_attribute(Attr1, Other)
-	;
-	    get_attr_local(Other, Attr2) ->
-	    my_combine_attributes(Attr1, Attr2)
-	;
-	    put_attr_local(Other, Attr1)
-	).
+    (
+        nonvar(Other) ->
+        my_verify_attribute(Attr1, Other)
+    ;
+        get_attr_local(Other, Attr2) ->
+        my_combine_attributes(Attr1, Attr2)
+    ;
+        put_attr_local(Other, Attr1)
+    ).
 
 my_attach_attribute(V, Attr):-
-	put_attr_local(V, Attr).
+    put_attr_local(V, Attr).
 
 my_update_attribute(V, Attr):-
-	put_attr_local(V, Attr).
+    put_attr_local(V, Attr).
 
 my_get_attribute(V, Attr):-
-	get_attr_local(V, Attr).
+    get_attr_local(V, Attr).
 
 :- else.
 
@@ -126,30 +126,30 @@ my_get_attribute(V, Attr):-
 :- multifile verify_attribute/2.
 
 verify_attribute(Attr, Value):-
-	Attr = '$frozen_goals'(Var, _Goal),
-        detach_attribute(Var),
-        Var = Value, 
-        my_verify_attribute(Attr, Value).
+    Attr = '$frozen_goals'(Var, _Goal),
+    detach_attribute(Var),
+    Var = Value, 
+    my_verify_attribute(Attr, Value).
 
 :- doc(hide,combine_attributes/2).
 
 :- multifile combine_attributes/2.
 
 combine_attributes(Attr1, Attr2):-
-	Attr1 = '$frozen_goals'(V1, _G1), 
-	Attr2 = '$frozen_goals'(V2, _G2),
-        detach_attribute(V2),
-        V1 = V2,
-	my_combine_attributes(Attr1, Attr2).
+    Attr1 = '$frozen_goals'(V1, _G1), 
+    Attr2 = '$frozen_goals'(V2, _G2),
+    detach_attribute(V2),
+    V1 = V2,
+    my_combine_attributes(Attr1, Attr2).
 
 my_attach_attribute(V, Attr):-
-	attach_attribute(V, Attr).
+    attach_attribute(V, Attr).
 
 my_update_attribute(V, Attr):-
-	update_attribute(V, Attr).
+    update_attribute(V, Attr).
 
 my_get_attribute(V, Attr):-
-	get_attribute(V, Attr).
+    get_attribute(V, Attr).
 
 :- endif. %% if(defined(freeze__use_multi_attributes)).
 

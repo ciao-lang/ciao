@@ -241,20 +241,20 @@ See the following as a general example of use of the embedded debugger:
 :- entry main/1.
 
 main(X) :- 
-         display(X),
-         spy(foo), 
-         foo(X), 
-         notrace,
-         nl.
+     display(X),
+     spy(foo), 
+     foo(X), 
+     notrace,
+     nl.
 
 foo([]).  
 foo([X|T]) :-  
-        trace,
-        bar(X), 
-        foo(T).
+    trace,
+    bar(X), 
+    foo(T).
 
 bar(X) :- 
-        display(X).
+    display(X).
 @end{verbatim}
 
 @section{The procedure box control flow model}
@@ -407,7 +407,7 @@ when using source-level debugging outside the Ciao @apl{emacs} mode, and it
 is as follows:
 
 @begin{verbatim}
-	   In /home/mcarlos/ciao/foo.pl (5-9) descendant-1
+       In /home/mcarlos/ciao/foo.pl (5-9) descendant-1
 S  13  7  Call: T user:descendant(dani,_123) ?
 @end{verbatim}
 

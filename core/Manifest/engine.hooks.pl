@@ -187,7 +187,7 @@
       "   paranoid-debug  -- Emulator with C level debugging info available\n"||
       "                      plus paranoid C compilation warnings."),
     valid_values(['nodebug', 'debug', 'profile', 'profile-debug',
-    	'paranoid-debug']),
+    'paranoid-debug']),
     %
     rule_default('nodebug'),
     %
@@ -205,9 +205,9 @@
   % TODO: Uses bootstrap ciaoc (see eng_maker.pl) -- allow configuration here
   add_stat_libs, % link statically against C system libraries
   static_mods([library(random),
-               library(sockets),
-               library(sha1),
-	       library(concurrency)]), % link statically against foreign code
+           library(sockets),
+           library(sha1),
+           library(concurrency)]), % link statically against foreign code
   % TODO: extract from static_mods
   static_cfgs([at_bundle(ciao_gsl, 'gsl')]) % see gsl.hooks.pl at 'ciao_gsl' bundle
 ])).

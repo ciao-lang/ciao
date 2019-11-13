@@ -1,6 +1,6 @@
 :- module(stream_wait, [input_wait/1, input_wait/2, 
-	                input_set_unbuf/0, input_set_unbuf/1], 
-	[foreign_interface, assertions]).
+                    input_set_unbuf/0, input_set_unbuf/1], 
+    [foreign_interface, assertions]).
 
 :- doc(title, "Wait for streams").
 :- doc(author, "Remy Haemmerle").
@@ -24,20 +24,20 @@
    @pred{input_set_unbuf/1} before any call.".
 
 input_wait(TimeOut):- var(TimeOut), !, 
-	throw(error(instantiation_error, 'stream_wait:input_wait'/1-1)).
+    throw(error(instantiation_error, 'stream_wait:input_wait'/1-1)).
 input_wait(TimeOut):- integer(TimeOut), !, 
-	Sec  is TimeOut // 1000000, 
-	USec is TimeOut mod 1000000,
-	input_wait__c(Sec, USec).
+    Sec  is TimeOut // 1000000, 
+    USec is TimeOut mod 1000000,
+    input_wait__c(Sec, USec).
 input_wait(TimeOut):-
-	throw(error(type_error(integer, TimeOut), 'stream_wait:input_wait'/1-1)).
+    throw(error(type_error(integer, TimeOut), 'stream_wait:input_wait'/1-1)).
 
 input_wait(Stream, TimeOut):-
-	current_input(CurIn),
-	set_input(Stream),
-	once_port_reify(input_wait(TimeOut), Port),
-	set_input(CurIn),
-	port_call(Port).
+    current_input(CurIn),
+    set_input(Stream),
+    once_port_reify(input_wait(TimeOut), Port),
+    set_input(CurIn),
+    port_call(Port).
 
 :- pred input_wait(+TimeOut) : int(TimeOut)
    # "Like @pred{input_wait/2}, but waits for the @concept{current input}.".
@@ -49,11 +49,11 @@ input_wait(Stream, TimeOut):-
    only once on any given stream, and before any I/O is performed.".
 
 input_set_unbuf(Stream):-
-	current_input(CurIn),
-	set_input(Stream),
-	( input_set_unbuf, fail
-	; set_input(CurIn)
-	).
+    current_input(CurIn),
+    set_input(Stream),
+    ( input_set_unbuf, fail
+    ; set_input(CurIn)
+    ).
 
 :- pred input_set_unbuf # "Like @pred{input_wait/1}, but set the
    @concept{current input} to be unbuffered.".

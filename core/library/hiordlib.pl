@@ -85,15 +85,15 @@ foldl(P, [X11,...,X1n], [Xm1,...,Xmn], V0, V) :-
 %    foldl: f(3, f(2, f(1, z)))
 
 foldl(P, Xs, V0, V) :-
-	foldl1(Xs, P, V0, V).
+    foldl1(Xs, P, V0, V).
 foldl(P, Xs, Ys, V0, V) :-
-	foldl2(Xs, P, Ys, V0, V).
+    foldl2(Xs, P, Ys, V0, V).
 foldl(P, Xs, Ys, Zs, V0, V) :-
-	foldl3(Xs, P, Ys, Zs, V0, V).
+    foldl3(Xs, P, Ys, Zs, V0, V).
 foldl(P, Xs, Ys, Zs, Us, V0, V) :-
-	foldl4(Xs, P, Ys, Zs, Us, V0, V).
+    foldl4(Xs, P, Ys, Zs, Us, V0, V).
 foldl(P, Xs, Ys, Zs, Us, Ws, V0, V) :-
-	foldl5(Xs, P, Ys, Zs, Us, Ws, V0, V).
+    foldl5(Xs, P, Ys, Zs, Us, Ws, V0, V).
 
 :- meta_predicate foldl1(?, pred(3), ?, ?).
 :- meta_predicate foldl2(?, pred(4), ?, ?, ?).
@@ -103,28 +103,28 @@ foldl(P, Xs, Ys, Zs, Us, Ws, V0, V) :-
 
 foldl1([], _P, V, V).
 foldl1([X|Xs], P, V0, V) :-
-	P(X, V0, V1),
-	foldl1(Xs, P, V1, V).
+    P(X, V0, V1),
+    foldl1(Xs, P, V1, V).
 
 foldl2([], _P, [], V, V).
 foldl2([X|Xs], P, [Y|Ys], V0, V) :-
-	P(X, Y, V0, V1),
-	foldl2(Xs, P, Ys, V1, V).
+    P(X, Y, V0, V1),
+    foldl2(Xs, P, Ys, V1, V).
 
 foldl3([], _P, [], [], V, V).
 foldl3([X|Xs], P, [Y|Ys], [Z|Zs], V0, V) :-
-	P(X, Y, Z, V0, V1),
-	foldl3(Xs, P, Ys, Zs, V1, V).
+    P(X, Y, Z, V0, V1),
+    foldl3(Xs, P, Ys, Zs, V1, V).
 
 foldl4([], _P, [], [], [], V, V).
 foldl4([X|Xs], P, [Y|Ys], [Z|Zs], [U|Us], V0, V) :-
-	P(X, Y, Z, U, V0, V1),
-	foldl4(Xs, P, Ys, Zs, Us, V1, V).
+    P(X, Y, Z, U, V0, V1),
+    foldl4(Xs, P, Ys, Zs, Us, V1, V).
 
 foldl5([], _P, [], [], [], [], V, V).
 foldl5([X|Xs], P, [Y|Ys], [Z|Zs], [U|Us], [W|Ws], V0, V) :-
-	P(X, Y, Z, U, W, V0, V1),
-	foldl5(Xs, P, Ys, Zs, Us, Ws, V1, V).
+    P(X, Y, Z, U, W, V0, V1),
+    foldl5(Xs, P, Ys, Zs, Us, Ws, V1, V).
 
 % (example)
 :- test foldl(P, Xs, V0, V) : (
@@ -193,13 +193,13 @@ arguments.  See @tt{foldl/N} examples").
 %    foldr: f(1, f(2, f(3, z)))
 
 foldr(P, Xs, V0, V) :-
-	foldr_(Xs, P, V0, V).
+    foldr_(Xs, P, V0, V).
 
 :- meta_predicate foldr_(?, pred(3), ?, ?).
 foldr_([], _P, Z, Z).
 foldr_([X|Xs], P, Z, R) :-
-	foldr_(Xs, P, Z, R1),
-	P(X, R1, R).
+    foldr_(Xs, P, Z, R1),
+    P(X, R1, R).
 
 % (example)
 :- test foldr(P, Xs, Y0, Y) : (
@@ -222,39 +222,39 @@ foldr_([X|Xs], P, Z, R) :-
 
 :- meta_predicate minimum(_, pred(2), _).
 :- pred minimum(?List, +SmallerThan, ?Minimum) : list * callable *
-	term # "@var{Minimum} is the smaller in the nonempty list
-	@var{List} according to the relation @var{SmallerThan}:
-	@pred{SmallerThan(X, Y)} succeeds iff X is smaller than Y.".
+    term # "@var{Minimum} is the smaller in the nonempty list
+    @var{List} according to the relation @var{SmallerThan}:
+    @pred{SmallerThan(X, Y)} succeeds iff X is smaller than Y.".
 
 minimum([X|Xs], Pred, Min) :- minimum_carry(Xs, Pred, X, Min).
 
 minimum_carry([],     _Pred, M,        M).
 minimum_carry([X|Xs], Pred,  MinSoFar, Min) :-
-	(
-	    Pred(MinSoFar, X) ->
-	    minimum_carry(Xs, Pred, MinSoFar, Min)
-	;
-	    minimum_carry(Xs, Pred, X, Min)
-	).
+    (
+        Pred(MinSoFar, X) ->
+        minimum_carry(Xs, Pred, MinSoFar, Min)
+    ;
+        minimum_carry(Xs, Pred, X, Min)
+    ).
 
 % ---------------------------------------------------------------------------
 
 :- meta_predicate filter(pred(1), +, ?).
 :- pred filter(+P, +Xs, ?Ys)
-	:: (callable(P), list(Xs), list(Ys)) + is_det
+    :: (callable(P), list(Xs), list(Ys)) + is_det
    # "@var{Ys} contains all elements @var{X} of @var{Xs} such that
      @tt{P(X)} holds (preserving the order)".
 
 filter(Goal, List, Included) :-
-	filter_(List, Goal, Included).
+    filter_(List, Goal, Included).
 
 filter_([], _, []).
 filter_([X|Xs], P, Ys) :-
-	( P(X) ->
-	    Ys = [X|Ys0]
-	; Ys = Ys0
-	),
-	filter_(Xs, P, Ys0).
+    ( P(X) ->
+        Ys = [X|Ys0]
+    ; Ys = Ys0
+    ),
+    filter_(Xs, P, Ys0).
 
 % ---------------------------------------------------------------------------
 
@@ -266,17 +266,17 @@ filter_([X|Xs], P, Ys) :-
       order)".
 
 partition(P, Xs, Ys, Zs) :-
-	partition_(Xs, P, Ys, Zs).
+    partition_(Xs, P, Ys, Zs).
 
 partition_([], _, [], []).
 partition_([X|Xs], P, Ys, Zs) :-
-	( P(X) ->
-	    Ys = [X|Ys0],
-	    Zs = Zs0
-	; Ys = Ys0,
-	  Zs = [X|Zs0]
-	),
-	partition_(Xs, P, Ys0, Zs0).
+    ( P(X) ->
+        Ys = [X|Ys0],
+        Zs = Zs0
+    ; Ys = Ys0,
+      Zs = [X|Zs0]
+    ),
+    partition_(Xs, P, Ys0, Zs0).
 
 :- test partition(P, Xs, Ys, Zs) : (
     P='>'(4), Xs=[1, 2, 3, 4, 5, 6]
@@ -292,26 +292,26 @@ partition_([X|Xs], P, Ys, Zs) :-
 :- meta_predicate maplist(pred(5), ?, ?, ?, ?, ?).
 
 :- pred maplist(+P, +Xs) ::
-	(callable(P), list(Xs))
+    (callable(P), list(Xs))
    # "@tt{P(X)} succeeds for each element @var{X} of @var{Xs}".
 %
 :- pred maplist(+P, +Xs, ?Ys) ::
-	(callable(P), list(Xs), list(Ys))
+    (callable(P), list(Xs), list(Ys))
    # "Like @pred{maplist/2} but applied to successive tuples
       from @var{Xs}, @var{Ys}.".
 %
 :- pred maplist(+P, +Xs, ?Ys, ?Zs) ::
-	(callable(P), list(Xs), list(Ys), list(Zs))
+    (callable(P), list(Xs), list(Ys), list(Zs))
    # "Like @pred{maplist/2} but applied to successive tuples
       from @var{Xs}, @var{Ys}, @var{Zs}.".
 %
 :- pred maplist(+P, +Xs, ?Ys, ?Zs, ?Vs) ::
-	(callable(P), list(Xs), list(Ys), list(Zs), list(Vs))
+    (callable(P), list(Xs), list(Ys), list(Zs), list(Vs))
    # "Like @pred{maplist/2} but applied to successive tuples
       from @var{Xs}, @var{Ys}, @var{Zs}, @var{Vs}.".
 %
 :- pred maplist(+P, +Xs, ?Ys, ?Zs, ?Vs, ?Ws) ::
-	(callable(P), list(Xs), list(Ys), list(Zs), list(Vs), list(Ws))
+    (callable(P), list(Xs), list(Ys), list(Zs), list(Vs), list(Ws))
    # "Like @pred{maplist/2} but applied to successive tuples
       from @var{Xs}, @var{Ys}, @var{Zs}, @var{Vs}, @var{Ws}.".
 
@@ -327,15 +327,15 @@ maplist(P, [X11,...,X1n], [Xm1,...,Xmn]) :-
 ").
 
 maplist(P, Xs) :-
-	maplist1(Xs, P).
+    maplist1(Xs, P).
 maplist(P, Xs, Ys) :-
-	maplist2(Xs, P, Ys).
+    maplist2(Xs, P, Ys).
 maplist(P, Xs, Ys, Zs) :-
-	maplist3(Xs, P, Ys, Zs).
+    maplist3(Xs, P, Ys, Zs).
 maplist(P, Xs, Ys, Zs, Vs) :-
-	maplist4(Xs, P, Ys, Zs, Vs).
+    maplist4(Xs, P, Ys, Zs, Vs).
 maplist(P, Xs, Ys, Zs, Vs, Ws) :-
-	maplist5(Xs, P, Ys, Zs, Vs, Ws).
+    maplist5(Xs, P, Ys, Zs, Vs, Ws).
 
 :- meta_predicate maplist1(?, pred(1)).
 :- meta_predicate maplist2(?, pred(2), ?).
@@ -345,28 +345,28 @@ maplist(P, Xs, Ys, Zs, Vs, Ws) :-
 
 maplist1([], _).
 maplist1([X|Xs], P) :-
-	P(X),
-	maplist1(Xs, P).
+    P(X),
+    maplist1(Xs, P).
 
 maplist2([], _, []).
 maplist2([X|Xs], P, [Y|Ys]) :-
-	P(X, Y),
-	maplist2(Xs, P, Ys).
+    P(X, Y),
+    maplist2(Xs, P, Ys).
 
 maplist3([], _, [], []).
 maplist3([X|Xs], P, [Y|Ys], [Z|Zs]) :-
-	P(X, Y, Z),
-	maplist3(Xs, P, Ys, Zs).
+    P(X, Y, Z),
+    maplist3(Xs, P, Ys, Zs).
 
 maplist4([], _, [], [], []).
 maplist4([X|Xs], P, [Y|Ys], [Z|Zs], [V|Vs]) :-
-	P(X, Y, Z, V),
-	maplist4(Xs, P, Ys, Zs, Vs).
+    P(X, Y, Z, V),
+    maplist4(Xs, P, Ys, Zs, Vs).
 
 maplist5([], _, [], [], [], []).
 maplist5([X|Xs], P, [Y|Ys], [Z|Zs], [V|Vs], [W|Ws]) :-
-	P(X, Y, Z, V, W),
-	maplist5(Xs, P, Ys, Zs, Vs, Ws).
+    P(X, Y, Z, V, W),
+    maplist5(Xs, P, Ys, Zs, Vs, Ws).
 
 :- load_test_module(library(lists), [nth/3, append/3]).
 

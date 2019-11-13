@@ -28,15 +28,15 @@ to start.
 
 
 main([NumberThreads]):-
-        atom_codes(NumberThreads, Codes),
-        number_codes(Number, Codes),
-        create_threads(Number),
-        get_socket(Socket),
-        wait_for_connections(Socket).
+    atom_codes(NumberThreads, Codes),
+    number_codes(Number, Codes),
+    create_threads(Number),
+    get_socket(Socket),
+    wait_for_connections(Socket).
 
 main(_):-
-        format("Error in invocation!~n", []),
-        main([]).
+    format("Error in invocation!~n", []),
+    main([]).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -45,23 +45,23 @@ main(_):-
 :- concurrent connection/1.
 
 wait_for_connections(Socket):-
-        repeat,
-        socket_accept(Socket, Stream),
+    repeat,
+    socket_accept(Socket, Stream),
 %        socket_buffering(Stream, read, _Old, unbuf),
-        assertz_fact(connection(Stream)),
-        fail.
+    assertz_fact(connection(Stream)),
+    fail.
 
 create_threads(0).
 create_threads(N):-
-        N > 0,
-        eng_call(handle_connection, create, create),
-        N1 is N - 1,
-        create_threads(N1).
+    N > 0,
+    eng_call(handle_connection, create, create),
+    N1 is N - 1,
+    create_threads(N1).
 
 handle_connection:-
-        retract_fact(connection(Stream)),
-        handle_stream(Stream),
-        fail.
+    retract_fact(connection(Stream)),
+    handle_stream(Stream),
+    fail.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,13 +73,13 @@ handle_connection:-
 num_of_connections(100).
 
 get_socket(Socket):-
-        num_of_connections(Queue),
-        current_host(Hostname),
-        socket_port(Port),
-        bind_socket(Port, Queue, Socket),  %% Already in "listen" state
-        display('Bound to address '),
-        display((Hostname,Port)),
-        nl.
+    num_of_connections(Queue),
+    current_host(Hostname),
+    socket_port(Port),
+    bind_socket(Port, Queue, Socket),  %% Already in "listen" state
+    display('Bound to address '),
+    display((Hostname,Port)),
+    nl.
 
 
 %% Receive a stream, and read two nuber from it, add them, and write
@@ -87,11 +87,11 @@ get_socket(Socket):-
 %% the daemon.
 
 handle_stream(Stream):-
-        get_line(Stream, FirstNumber),
-        number_codes(N1, FirstNumber),
-        get_line(Stream, SecondNumber),
-        number_codes(N2, SecondNumber),
-        N is N1 + N2,
-        display(Stream, N), 
-        nl(Stream),
-        close(Stream).
+    get_line(Stream, FirstNumber),
+    number_codes(N1, FirstNumber),
+    get_line(Stream, SecondNumber),
+    number_codes(N2, SecondNumber),
+    N is N1 + N2,
+    display(Stream, N), 
+    nl(Stream),
+    close(Stream).

@@ -107,7 +107,7 @@ any_term(_).
 :- export(address/1).
 :- regtype address(Address) # "@var{Address} is a memory address.".
 address('$address'(Address)) :-
-	int(Address).
+    int(Address).
 
 :- export(null/1).
 :- regtype null(Address) # "@var{Address} is a null adress.".

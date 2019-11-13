@@ -40,8 +40,8 @@ merge([H|X], [E|Y], [E|Z]) :- H @@>= E, merge([H|X], Y, Z).
 :- use_module(library(when)).
 
 merge(X,Y,Z) :-
-	when(((nonvar(X);nonvar(Z)),
-              (nonvar(Y);nonvar(Z))), merge_(X,Y,Z)).
+    when(((nonvar(X);nonvar(Z)),
+          (nonvar(Y);nonvar(Z))), merge_(X,Y,Z)).
 
 merge_([], Y, Y).
 merge_(X, [], X).

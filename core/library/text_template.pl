@@ -55,7 +55,7 @@ has been accepted for inclusion in the post-conference proceedings.
 
 :- use_module(library(lists), [append/3]).
 :- use_module(library(stream_utils),
-	[file_to_string/2, string_to_file/2]).
+    [file_to_string/2, string_to_file/2]).
 :- use_module(library(dict)).
 
 :- export(eval_template_file/3).
@@ -63,9 +63,9 @@ has been accepted for inclusion in the post-conference proceedings.
    @pred{eval_template_string/3}, using files.".
 
 eval_template_file(InFile, Subst, OutFile) :-
-	file_to_string(InFile, InString),
-	eval_template_string(InString, Subst, OutString),
-	string_to_file(OutString, OutFile).
+    file_to_string(InFile, InString),
+    eval_template_string(InString, Subst, OutString),
+    string_to_file(OutString, OutFile).
 
 :- export(eval_template_string/3).
 :- pred eval_template_string(In, Subst, Out) # "Evaluate the template
@@ -73,38 +73,38 @@ eval_template_file(InFile, Subst, OutFile) :-
    @var{Subst}.".
 
 eval_template_string(Str, Subst, Str2) :-
-	params_to_dic(Subst, Dic),
-	eval_template_string_(Dic, Str, Str2).
+    params_to_dic(Subst, Dic),
+    eval_template_string_(Dic, Str, Str2).
 
 % Replace "{{Key}}" strings in input by values from Dic
 eval_template_string_(Dic, Str, Str2) :-
- 	parse_key(Str, Before, Key, After), !,
- 	( dic_get(Dic, Key, Value) ->
-	    % TODO: what about Value=[]?
- 	    ( string(Value) -> ValueStr = Value
- 	    ; atom(Value) -> atom_codes(Value, ValueStr)
- 	    ; throw(unknown_value_in_replace_params(Value)) % TODO: good error?
- 	    ),
- 	    append(Before, S0, Str2),
- 	    append(ValueStr, S1, S0)
- 	; % not found, leave unchanged
- 	  % TODO: should it complain instead?
- 	  append(Before, S0, Str2),
-	  atom_codes(Key, KeyStr),
- 	  append("{{"||KeyStr, "}}"||S1, S0)
-	),
- 	eval_template_string_(Dic, After, S1).
+    parse_key(Str, Before, Key, After), !,
+    ( dic_get(Dic, Key, Value) ->
+        % TODO: what about Value=[]?
+        ( string(Value) -> ValueStr = Value
+        ; atom(Value) -> atom_codes(Value, ValueStr)
+        ; throw(unknown_value_in_replace_params(Value)) % TODO: good error?
+        ),
+        append(Before, S0, Str2),
+        append(ValueStr, S1, S0)
+    ; % not found, leave unchanged
+      % TODO: should it complain instead?
+      append(Before, S0, Str2),
+      atom_codes(Key, KeyStr),
+      append("{{"||KeyStr, "}}"||S1, S0)
+    ),
+    eval_template_string_(Dic, After, S1).
 eval_template_string_(_, Str, Str).
 
 % Find the first match of {{Key}} in Str
 parse_key(Str, Before, Key, After) :-
-	append(Before, "{{"||Str0, Str),
-	append(KeyStr, "}}"||After, Str0),
- 	atom_codes(Key, KeyStr),
- 	!.
+    append(Before, "{{"||Str0, Str),
+    append(KeyStr, "}}"||After, Str0),
+    atom_codes(Key, KeyStr),
+    !.
 
 params_to_dic([], _).
 params_to_dic([K=V|KVs], Dic) :-
-	dic_lookup(Dic, K, V),
-	params_to_dic(KVs, Dic).
+    dic_lookup(Dic, K, V),
+    params_to_dic(KVs, Dic).
 

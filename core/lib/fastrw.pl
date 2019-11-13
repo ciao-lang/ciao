@@ -1,9 +1,9 @@
 :- module(fastrw,
-        [fast_read/1,
-         fast_read/2,
-         fast_write/1,
-         fast_write/2],
-         [assertions,isomodes]).
+    [fast_read/1,
+     fast_read/2,
+     fast_write/1,
+     fast_write/2],
+     [assertions,isomodes]).
 
 :- doc(title, "Fast reading and writing of terms").
 
@@ -52,10 +52,10 @@
 :- pred fast_write(+stream,@term).
 
 fast_write(Stream, Term):-
-        current_output(Old),
-        set_output(Stream),
-        fast_write(Term),
-        set_output(Old).
+    current_output(Old),
+    set_output(Stream),
+    fast_write(Term),
+    set_output(Old).
 
 :- doc(fast_read(Stream, Term), "The next term is read from
    @var{Stream} and unified with @var{Term}. The syntax of the term
@@ -67,10 +67,10 @@ fast_write(Stream, Term):-
 :- pred fast_read(+stream,?term).
 
 fast_read(Stream, Term):-
-        current_input(Old),
-        set_input(Stream),
-        fast_read(Term),
-        set_input(Old).
+    current_input(Old),
+    set_input(Stream),
+    fast_read(Term),
+    set_input(Old).
 
 %% :- use_package(dcg).
 

@@ -75,29 +75,29 @@
 
 %% Less than, one of them is a constant
 trans_fd(T #< B, (CodeB, fd_constraints:'t<b'(T, ResB))) :-
-        number(T), !,
-	compile_fd_expr(B, CodeB, ResB).
+    number(T), !,
+    compile_fd_expr(B, CodeB, ResB).
 trans_fd(A #< T, (CodeA, fd_constraints:'a<t'(ResA, T))) :-
-        number(T), !,
-        compile_fd_expr(A, CodeA, ResA).
+    number(T), !,
+    compile_fd_expr(A, CodeA, ResA).
 %% General case
 trans_fd(A #< B, (CodeA, CodeB, fd_constraints:'a<b'(ResA, ResB))) :-
-	compile_fd_expr(A, CodeA, ResA),
-	compile_fd_expr(B, CodeB, ResB).
+    compile_fd_expr(A, CodeA, ResA),
+    compile_fd_expr(B, CodeB, ResB).
 
 %% Greater than in terms of less than
 trans_fd(A #> B, R):- trans_fd(B #< A, R).
 
 %% Less or equal: similar to the case above
 trans_fd(A #=< T, (CodeA, fd_constraints:'a=<t'(ResA,T))) :-
-        number(T), !,
-	compile_fd_expr(A, CodeA, ResA).
+    number(T), !,
+    compile_fd_expr(A, CodeA, ResA).
 trans_fd(T #=< B, (CodeB, fd_constraints:'t=<b'(T,ResB))) :-
-        number(T), !,
-	compile_fd_expr(B, CodeB, ResB).
+    number(T), !,
+    compile_fd_expr(B, CodeB, ResB).
 trans_fd(A #=< B, (CodeA, CodeB, fd_constraints:'a=<b'(ResA,ResB))) :-
-	compile_fd_expr(A, CodeA, ResA),
-	compile_fd_expr(B, CodeB, ResB).
+    compile_fd_expr(A, CodeA, ResA),
+    compile_fd_expr(B, CodeB, ResB).
 
 trans_fd(A #>= B, R) :- trans_fd(B #=< A, R).
 
@@ -107,55 +107,55 @@ trans_fd(A #>= B, R) :- trans_fd(B #=< A, R).
 %% in the equaliry constraint.
 %trans_fd(X #= Y, Code) :-
 %        isolate_var(X, Y, ABT, C), !,
-%	compile_fd_expr(ABT, Code, C).
+%       compile_fd_expr(ABT, Code, C).
 trans_fd(A #= B, (CodeA, CodeB, fd_constraints:'a=b'(ResA,ResB))) :-
-	compile_fd_expr(A, CodeA, ResA),
-	compile_fd_expr(B, CodeB, ResB).
+    compile_fd_expr(A, CodeA, ResA),
+    compile_fd_expr(B, CodeB, ResB).
 
 %% Disequality.  Several specialized disequality indexicals are
 %% defined in the indexicals library.  I am not sure they are useful
 %% in general, but I am translating them anyway.
 
 trans_fd(A #\= B, Code) :-
-	nonvar(B), !,
-	(
-	    number(B) ->
-	    compile_fd_expr(A, CodeA, ResA),
-	    Code = (CodeA, fd_constraints:'a<>t'(ResA, B))
-	;
-	    B = (X + Y) ->
-	    (
-		detect_number(X, Y, C, T) ->   % Take care of B + T and T + B
-		compile_fd_expr(A, CodeA, ResA),
-		compile_fd_expr(C, CodeC, ResC),
-		Code = (CodeA, CodeC, fd_constraints:'a<>b+t'(ResA,ResC,T))
-	    ;
-		compile_fd_expr(A, CodeA, ResA),
-		compile_fd_expr(X, CodeX, ResX),
-		compile_fd_expr(Y, CodeY, ResY),
-		Code = (CodeA, CodeX, CodeY, fd_constraints:'a<>b+c'(ResA,ResX,ResY))
-	    )
-	;
-	    B = (X - Y) ->
-	    (
-		detect_number(X, Y, C, T), number(Y) -> % Take care of B - T % TODO: remove number(Y), add missing 'a+b<>t' for T - B
-		compile_fd_expr(A, CodeA, ResA),
-		compile_fd_expr(C, CodeC, ResC), 
-		Code = (CodeA, CodeC, 'a<>b-t'(ResA,ResC,T))
-	    ;
-		compile_fd_expr(A, CodeA, ResA),
-		compile_fd_expr(X, CodeX, ResX),
-		compile_fd_expr(Y, CodeY, ResY),
-		Code = (CodeA, CodeX, CodeY, fd_constraints:'a<>b-c'(ResA,ResX,ResY))
-	    )
-	).
+    nonvar(B), !,
+    (
+        number(B) ->
+        compile_fd_expr(A, CodeA, ResA),
+        Code = (CodeA, fd_constraints:'a<>t'(ResA, B))
+    ;
+        B = (X + Y) ->
+        (
+            detect_number(X, Y, C, T) ->   % Take care of B + T and T + B
+            compile_fd_expr(A, CodeA, ResA),
+            compile_fd_expr(C, CodeC, ResC),
+            Code = (CodeA, CodeC, fd_constraints:'a<>b+t'(ResA,ResC,T))
+        ;
+            compile_fd_expr(A, CodeA, ResA),
+            compile_fd_expr(X, CodeX, ResX),
+            compile_fd_expr(Y, CodeY, ResY),
+            Code = (CodeA, CodeX, CodeY, fd_constraints:'a<>b+c'(ResA,ResX,ResY))
+        )
+    ;
+        B = (X - Y) ->
+        (
+            detect_number(X, Y, C, T), number(Y) -> % Take care of B - T % TODO: remove number(Y), add missing 'a+b<>t' for T - B
+            compile_fd_expr(A, CodeA, ResA),
+            compile_fd_expr(C, CodeC, ResC), 
+            Code = (CodeA, CodeC, 'a<>b-t'(ResA,ResC,T))
+        ;
+            compile_fd_expr(A, CodeA, ResA),
+            compile_fd_expr(X, CodeX, ResX),
+            compile_fd_expr(Y, CodeY, ResY),
+            Code = (CodeA, CodeX, CodeY, fd_constraints:'a<>b-c'(ResA,ResX,ResY))
+        )
+    ).
 trans_fd(A #\= B, Res) :-
-	nonvar(A), !, trans_fd(B #\= A, Res).
-	
+    nonvar(A), !, trans_fd(B #\= A, Res).
+    
 % General disequality
 trans_fd(A #\= B, (CodeA, CodeB, fd_constraints:'a<>b'(ResA,ResB))) :-!,
-	compile_fd_expr(A, CodeA, ResA),
-	compile_fd_expr(B, CodeB, ResB).
+    compile_fd_expr(A, CodeA, ResA),
+    compile_fd_expr(B, CodeB, ResB).
 
 %% Utility predicates: identify numbers and variables in order to
 %% select the most appropriate indexical.
@@ -173,30 +173,30 @@ detect_number(A, B, B, A):- number(A), !.
 compile_fd_expr(A, clpfd_rt:wrapper(A, X), X) :- var(A), !.
 
 %% Just an integer.
-compile_fd_expr(A, true, A) :- integer(A),	!.
+compile_fd_expr(A, true, A) :- integer(A),      !.
 
 %% Addition with a constant or with a general expression.
 compile_fd_expr(X+Y, (CodeA, fd_term:new(ResC), fd_constraints:'a+t=c'(ResA, T, ResC)), ResC) :-
-        detect_number(X, Y, A, T), !,
-	compile_fd_expr(A, CodeA, ResA).
+    detect_number(X, Y, A, T), !,
+    compile_fd_expr(A, CodeA, ResA).
 compile_fd_expr(A+B, (CodeA, CodeB, fd_term:new(Res), fd_constraints:'a+b=c'(ResA, ResB, Res)), Res) :- !,
-	compile_fd_expr(A, CodeA, ResA),
-	compile_fd_expr(B, CodeB, ResB).
+    compile_fd_expr(A, CodeA, ResA),
+    compile_fd_expr(B, CodeB, ResB).
 
 %% Subtraction: constant and general expression
 compile_fd_expr(X-Y, (CodeA, fd_term:new(Res), fd_constraints:'a-t=c'(ResA, T, Res)), Res) :-
-        detect_number(X, Y, A, T), number(Y), !, % TODO: remove number(Y), add missing 'a+c=t' for T-C
-	compile_fd_expr(A, CodeA, ResA).
+    detect_number(X, Y, A, T), number(Y), !, % TODO: remove number(Y), add missing 'a+c=t' for T-C
+    compile_fd_expr(A, CodeA, ResA).
 compile_fd_expr(A-B, (CodeA, CodeB, fd_term:new(Res), fd_constraints:'a-b=c'(ResA, ResB, Res)), Res) :- !,
-	compile_fd_expr(A, CodeA, ResA),
-	compile_fd_expr(B, CodeB, ResB).
+    compile_fd_expr(A, CodeA, ResA),
+    compile_fd_expr(B, CodeB, ResB).
 
 %% Multiplication by a number and general case
 compile_fd_expr(X*Y, (CodeB, fd_term:new(Res), fd_constraints:'a=b*t'(Res, VarB, T)), Res) :- 
-        detect_number(X, Y, B, T), !,
-	compile_fd_expr(B, CodeB, VarB).
+    detect_number(X, Y, B, T), !,
+    compile_fd_expr(B, CodeB, VarB).
 compile_fd_expr(B*C, (CodeB, CodeC, fd_term:new(Res), fd_constraints:'a=b*c'(Res, VarB, VarC)), Res) :- !,
-	compile_fd_expr(B, CodeB, VarB),
-	compile_fd_expr(C, CodeC, VarC).
+    compile_fd_expr(B, CodeB, VarB),
+    compile_fd_expr(C, CodeC, VarC).
 
 

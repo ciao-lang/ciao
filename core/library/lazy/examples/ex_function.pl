@@ -1,18 +1,18 @@
 :- module(ex_function,
-	[
-	    nats/1,
-	    nat/2,
-	    odds/1,
-	    even/1,
-	    ones/1,
-	    squares/1,
-	    odd_squares/1,
-	    even_squares/1,
-	    cubes/1,
-	    test_takeWhile/1,
-	    test_dropWhile/1
-	], 
-	[fsyntax, hiord, lazy]).
+    [
+        nats/1,
+        nat/2,
+        odds/1,
+        even/1,
+        ones/1,
+        squares/1,
+        odd_squares/1,
+        even_squares/1,
+        cubes/1,
+        test_takeWhile/1,
+        test_dropWhile/1
+    ], 
+    [fsyntax, hiord, lazy]).
 
 :- use_module(library(lazy/lazy_lib), _).
 
@@ -22,7 +22,7 @@
 nats := ~nums_from(0).
 
 :- fun_eval nat/1.
-nat(N) := ~take(N, nats).	
+nat(N) := ~take(N, nats).       
 
 :- lazy fun_eval odds/0.
 odds := ~nums_from_inc(1, 2).

@@ -45,33 +45,33 @@
 :- pred datime(?datime_struct).
 
 datime(datime(Year,Month,Day,Hour,Min,Sec)) :-
-        datime(_, Year, Month, Day, Hour, Min, Sec, _, _).
+    datime(_, Year, Month, Day, Hour, Min, Sec, _, _).
 
 % ---------------------------------------------------------------------------
 :- export(datime_struct/1).
 :- prop datime_struct/1 + regtype.
 
 datime_struct(datime(Year,Month,Day,Hour,Min,Sec)) :-
-        int(Year), int(Month), int(Day), int(Hour), int(Min), int(Sec).
+    int(Year), int(Month), int(Day), int(Hour), int(Min), int(Sec).
 
 % ---------------------------------------------------------------------------
 :- export(datime/9).
 :- doc(datime(Time,Year,Month,Day,Hour,Min,Sec,WeekDay,YearDay),
-	"@var{Time} is as in @pred{time/1}. @var{WeekDay} is the number
-	of days since Sunday, in the range 0 to 6.  @var{YearDay} is the
-	number of days since January 1, in the range 0 to 365.").
+    "@var{Time} is as in @pred{time/1}. @var{WeekDay} is the number
+    of days since Sunday, in the range 0 to 6.  @var{YearDay} is the
+    number of days since January 1, in the range 0 to 365.").
 
 :- trust pred datime(+int,?int,?int,?int,?int,?int,?int,?int,?int)
-        # "If @var{Time} is given, the rest of the arguments are unified
-        with the date and time to which the @var{Time} argument refers.".
+    # "If @var{Time} is given, the rest of the arguments are unified
+    with the date and time to which the @var{Time} argument refers.".
 
 :- trust pred datime(?int,+int,+int,+int,+int,+int,+int,?int,?int) #
-	"Bound @var{Time}, @var{WeekDay} and @var{YearDay} as
-	determined by the input arguments.".
+    "Bound @var{Time}, @var{WeekDay} and @var{YearDay} as
+    determined by the input arguments.".
 
 :- trust pred datime(-int,-int,-int,-int,-int,-int,-int,?int,?int)
-	# "Bound @var{Time} to current time and the rest of the
-	arguments refer to current time.".
+    # "Bound @var{Time} to current time and the rest of the
+    arguments refer to current time.".
 
 :- impl_defined(datime/9).
 
@@ -93,7 +93,7 @@ copy_option(append).     % If the target file exists, append the source to it
 :- regtype copy_options(Opts) # "@var{Opts} is a list of file copy options.".
 
 copy_options(X) :-
-	list(X, copy_option).
+    list(X, copy_option).
 
 copy_option_flag(overwrite, 1).
 copy_option_flag(timestamp, 2).
@@ -101,52 +101,52 @@ copy_option_flag(symlink,   4).
 copy_option_flag(append,    8).
 
 copy_options_flag(Options, Flag) :-
-	copy_options_flag_(Options, 0, Flag).
+    copy_options_flag_(Options, 0, Flag).
 
 copy_option_flag_(Option, F0, F) :-
-	copy_option_flag(Option, F1),
-	F is F0 \/ F1.
+    copy_option_flag(Option, F1),
+    F is F0 \/ F1.
 
 copy_options_flag_([], F, F).
 copy_options_flag_([Option|Options], F0, F) :-
-	copy_option_flag_(Option, F0, F1),
-	copy_options_flag_(Options, F1, F).
+    copy_option_flag_(Option, F0, F1),
+    copy_options_flag_(Options, F1, F).
 
 % ---------------------------------------------------------------------------
 :- export(copy_file/2).
 :- doc(copy_file(Source,Destination), "Copies the file @var{Source} to
-	@var{Destination}.").
+    @var{Destination}.").
 :- pred copy_file(+atm, +atm).
 
 copy_file(Source, Target) :-
-	copy_file(Source, Target, []).
+    copy_file(Source, Target, []).
 
 % ---------------------------------------------------------------------------
 :- export(copy_file/3).
 :- pred copy_file(+atm, +atm, +copy_options).
 
 copy_file( Source, _Target, _CopyOptions) :-
-	( \+atom(Source) ),
-	!,
-	throw(error(domain_error(atom,Source),copy_file/3-1)).
+    ( \+atom(Source) ),
+    !,
+    throw(error(domain_error(atom,Source),copy_file/3-1)).
 copy_file(_Source,  Target, _CopyOptions) :-
-	( \+atom(Target) ),
-	!,
-	throw(error(domain_error(atom,Target),copy_file/3-2)).
+    ( \+atom(Target) ),
+    !,
+    throw(error(domain_error(atom,Target),copy_file/3-2)).
 copy_file(_Source, _Target,  CopyOptions) :-
-	\+ copy_options(CopyOptions),
-	!,
-	throw(error(domain_error(copy_options,CopyOptions),copy_file/3-3)).
+    \+ copy_options(CopyOptions),
+    !,
+    throw(error(domain_error(copy_options,CopyOptions),copy_file/3-3)).
 copy_file(Source, Target, CopyOptions) :-
-	copy_options_flag(CopyOptions, CopyFlag),
-	( file_exists(Target),
-	  \+ file_property(Target, linkto(_)),
-	  file_property(Target, type(directory)) ->
-	    path_split(Source, _Dir, Name),
-	    path_concat(Target, Name, T1),
-	    c_copy_file(Source, T1, CopyFlag)
-	; c_copy_file(Source, Target, CopyFlag)
-	).
+    copy_options_flag(CopyOptions, CopyFlag),
+    ( file_exists(Target),
+      \+ file_property(Target, linkto(_)),
+      file_property(Target, type(directory)) ->
+        path_split(Source, _Dir, Name),
+        path_concat(Target, Name, T1),
+        c_copy_file(Source, T1, CopyFlag)
+    ; c_copy_file(Source, Target, CopyFlag)
+    ).
 
 :- trust pred c_copy_file(+atm,+atm,+int).
 :- impl_defined(c_copy_file/3).
@@ -158,10 +158,10 @@ copy_file(Source, Target, CopyOptions) :-
 :- pred getenvstr(+atm, ?string).
 
 getenvstr(Name, _Value) :- \+ atom(Name), !,
-	throw(error(domain_error(atom,Name),getenvstr/2-1)).
+    throw(error(domain_error(atom,Name),getenvstr/2-1)).
 getenvstr(Name, Value) :-
-	c_get_env(Name, Value2),
-	atom_codes(Value2,Value).
+    c_get_env(Name, Value2),
+    atom_codes(Value2,Value).
 
 :- trust pred c_get_env(+atm,?atm).
 :- impl_defined(c_get_env/2).
@@ -173,12 +173,12 @@ getenvstr(Name, Value) :-
 :- pred setenvstr(+atm, +string).
 
 setenvstr(Name, _Value) :- \+ atom(Name), !,
-	throw(error(domain_error(atom,Name),setenvstr/2-1)).
+    throw(error(domain_error(atom,Name),setenvstr/2-1)).
 setenvstr(_Name, Value) :- \+ ( Value = [_|_] ; Value = [] ), !,
-	throw(error(domain_error(character_code_list,Value),setenvstr/2-2)).
+    throw(error(domain_error(character_code_list,Value),setenvstr/2-2)).
 setenvstr(Name, Value) :-
-	atom_codes(Value2,Value),
-	c_set_env(Name, Value2).
+    atom_codes(Value2,Value),
+    c_set_env(Name, Value2).
 
 :- trust pred c_set_env(+atm,+atm).
 :- impl_defined(c_set_env/2).
@@ -190,11 +190,11 @@ setenvstr(Name, Value) :-
 :- pred set_env(+atm, +atm).
 
 set_env(Name, _Value) :- \+ atom(Name), !,
-	throw(error(domain_error(atom,Name),set_env/2-1)).
+    throw(error(domain_error(atom,Name),set_env/2-1)).
 set_env(_Name, Value) :- \+ atom(Value), !,
-	throw(error(domain_error(atom,Value),set_env/2-2)).
+    throw(error(domain_error(atom,Value),set_env/2-2)).
 set_env(Name, Value) :-
-	c_set_env(Name, Value).
+    c_set_env(Name, Value).
 
 % ---------------------------------------------------------------------------
 :- export(del_env/1).
@@ -203,9 +203,9 @@ set_env(Name, Value) :-
 :- pred del_env(+atm).
 
 del_env(Name) :- \+ atom(Name), !,
-	throw(error(domain_error(atom,Name),del_env/1-1)).
+    throw(error(domain_error(atom,Name),del_env/1-1)).
 del_env(Name) :-
-	c_del_env(Name).
+    c_del_env(Name).
 
 :- trust pred c_del_env(+atm).
 :- impl_defined(c_del_env/1).
@@ -219,19 +219,19 @@ del_env(Name) :-
 :- pred current_env(?atm, ?atm).
 
 current_env(Name, _Value) :- \+ ( var(Name) ; atom(Name) ), !,
-	throw(error(domain_error(var_or_atom,Name),current_env/2-1)).
+    throw(error(domain_error(var_or_atom,Name),current_env/2-1)).
 current_env(_Name, Value) :- \+ ( var(Value) ; atom(Value) ), !,
-	throw(error(domain_error(var_or_atom,Value),current_env/2-2)).
+    throw(error(domain_error(var_or_atom,Value),current_env/2-2)).
 current_env(Name, Value) :-
-	atom(Name) -> c_get_env(Name,Value);
-	current_env_(0, Name, Value).
+    atom(Name) -> c_get_env(Name,Value);
+    current_env_(0, Name, Value).
 
 current_env_(I, Name, Value) :-
-	c_current_env(I, Name2, Value2),
-	( Name=Name2, Value=Value2
-	; J is I + 1,
-	  current_env_(J, Name, Value)
-	).
+    c_current_env(I, Name2, Value2),
+    ( Name=Name2, Value=Value2
+    ; J is I + 1,
+      current_env_(J, Name, Value)
+    ).
 
 :- trust pred c_current_env(+int,?atm,?atm).
 :- impl_defined(c_current_env/3).
@@ -251,15 +251,15 @@ current_env_(I, Name, Value) :-
 %
 % extract_paths('', []) :- !.
 % extract_paths(PathList, [Path|Paths]) :-
-% 	atom_codes(PathList, [C|Cs]),
+%       atom_codes(PathList, [C|Cs]),
 %         extract_path(C, Cs, "", PathStr, Cs_),
-% 	atom_codes(Path, PathStr),
+%       atom_codes(Path, PathStr),
 %         extract_paths1(Cs_, Paths).
 % 
 % extract_paths0([], ['']).
 % extract_paths0([C|Cs], [Path|Paths]) :-
 %         extract_path(C, Cs, "", PathStr, Cs_),
-% 	atom_codes(Path, PathStr),
+%       atom_codes(Path, PathStr),
 %         extract_paths1(Cs_, Paths).
 % 
 % extract_paths1([], []).
@@ -284,7 +284,7 @@ current_env_(I, Name, Value) :-
 % ---------------------------------------------------------------------------
 :- export(current_host/1).
 :- doc(current_host(Hostname), "@var{Hostname} is unified with the
-        fully qualified name of the host.").
+    fully qualified name of the host.").
 :- trust pred current_host(?atm).
 :- impl_defined(current_host/1).
 
@@ -311,9 +311,9 @@ current_env_(I, Name, Value) :-
     "The process file creation mask was @var{OldMask}, and it is changed to @var{NewMask}.".
 
 :- trust pred umask(OldMask, NewMask)
-        : (var(OldMask), var(NewMask), OldMask == NewMask)
+    : (var(OldMask), var(NewMask), OldMask == NewMask)
        => (int(OldMask), int(NewMask))
-        # "Gets the process file creation mask without changing it.".
+    # "Gets the process file creation mask without changing it.".
 :- impl_defined(umask/2).
 
 % ---------------------------------------------------------------------------
@@ -325,8 +325,8 @@ current_env_(I, Name, Value) :-
      current working directory without changing anything else.").
 :- trust pred working_directory(?atm, +atm) # "Changes current working directory.".
 :- trust pred working_directory(OldDir, NewDir)
-         : (var(OldDir), var(NewDir), OldDir == NewDir) => atm * atm
-         # "Gets current working directory.".
+     : (var(OldDir), var(NewDir), OldDir == NewDir) => atm * atm
+     # "Gets current working directory.".
 :- impl_defined(working_directory/2).
 
 % ---------------------------------------------------------------------------
@@ -357,14 +357,14 @@ cd(Dir) :- working_directory(_, Dir).
 % ---------------------------------------------------------------------------
 :- export(mktemp_in_tmp/2).
 mktemp_in_tmp(Template, Filename) :-
-	get_tmp_dir(TmpDir),
-	path_concat(TmpDir, Template, TmpDirTemplate),
-	mktemp(TmpDirTemplate, Filename).
+    get_tmp_dir(TmpDir),
+    path_concat(TmpDir, Template, TmpDirTemplate),
+    mktemp(TmpDirTemplate, Filename).
 
 % ---------------------------------------------------------------------------
 :- export(file_exists/1).
 :- doc(file_exists(File), "Succeeds if @var{File} (a file or
-        directory) exists (and is accessible).").
+    directory) exists (and is accessible).").
 :- pred file_exists/1: atm.
 
 file_exists(Path) :- file_exists(Path, 0).
@@ -407,38 +407,38 @@ file_exists(Path) :- file_exists(Path, 0).
 :- pred file_property(+atm, ?struct).
 
 file_property(Path, Property) :-
-	file_property_(Property, Path).
+    file_property_(Property, Path).
 
 file_property_(Property, Path) :-
-	var(Property), !,
-	file_properties(Path, Type, Linkto, Time, Protection, Size),
-	( Property = type(Type)
-	; Linkto \== '', Property = linkto(Linkto)
-	; Property = mod_time(Time)
-	; Property = mode(Protection)
-	; Property = size(Size)
-	).
+    var(Property), !,
+    file_properties(Path, Type, Linkto, Time, Protection, Size),
+    ( Property = type(Type)
+    ; Linkto \== '', Property = linkto(Linkto)
+    ; Property = mod_time(Time)
+    ; Property = mode(Protection)
+    ; Property = size(Size)
+    ).
 file_property_(type(Type), Path) :- !,
-	file_properties(Path, Type0, [], [], [], []),
-	Type = Type0.
+    file_properties(Path, Type0, [], [], [], []),
+    Type = Type0.
 file_property_(linkto(File), Path) :- !,
-	file_properties(Path, [], File0, [], [], []),
-	File0 \== '',
-	File = File0.
+    file_properties(Path, [], File0, [], [], []),
+    File0 \== '',
+    File = File0.
 file_property_(mod_time(Time), Path) :- !,
-	file_properties(Path, [], [], Time, [], []).
+    file_properties(Path, [], [], Time, [], []).
 file_property_(mode(Protection), Path) :- !,
-	file_properties(Path, [], [], [], Protection, []).
+    file_properties(Path, [], [], [], Protection, []).
 file_property_(size(Size), Path) :- !,
-	file_properties(Path, [], [], [], [], Size).
+    file_properties(Path, [], [], [], [], Size).
 file_property_(Other, _) :-
-	throw(error(domain_error(file_property_type,Other),
-	file_property/2-2)).
+    throw(error(domain_error(file_property_type,Other),
+    file_property/2-2)).
 
 % ---------------------------------------------------------------------------
 :- export(file_properties/6).
 :- doc(file_properties(Path, Type, Linkto, Time, Protection, Size),
-        "The file @var{Path} has the following properties:
+    "The file @var{Path} has the following properties:
 
 @begin{itemize} 
 
@@ -469,12 +469,12 @@ file_property_(Other, _) :-
 :- pred modif_time(+atm, ?int).
 
 modif_time(Path, Time) :-
-        prolog_flag(fileerrors, OldFE, off),
-        ( file_properties(Path, [], [], Time, [], []) ->
-            set_prolog_flag(fileerrors, OldFE)
-        ; set_prolog_flag(fileerrors, OldFE),
-          fail
-        ).
+    prolog_flag(fileerrors, OldFE, off),
+    ( file_properties(Path, [], [], Time, [], []) ->
+        set_prolog_flag(fileerrors, OldFE)
+    ; set_prolog_flag(fileerrors, OldFE),
+      fail
+    ).
 
 % ---------------------------------------------------------------------------
 :- export(modif_time0/2).
@@ -484,12 +484,12 @@ modif_time(Path, Time) :-
 :- pred modif_time0(+atm, ?int).
 
 modif_time0(Path, Time) :-
-        prolog_flag(fileerrors, OldFE, off),
-        ( file_properties(Path, [], [], T, [], []), !
-        ; T = 0
-        ),
-        set_prolog_flag(fileerrors, OldFE),
-        Time = T.
+    prolog_flag(fileerrors, OldFE, off),
+    ( file_properties(Path, [], [], T, [], []), !
+    ; T = 0
+    ),
+    set_prolog_flag(fileerrors, OldFE),
+    Time = T.
 
 % ---------------------------------------------------------------------------
 :- export(touch/1).
@@ -508,16 +508,16 @@ modif_time0(Path, Time) :-
 % ---------------------------------------------------------------------------
 :- export(fmode/2).
 :- doc(fmode(File, Mode), "The file @var{File} has protection mode
-        @var{Mode}.").
+    @var{Mode}.").
 :- pred fmode(+atm, ?int).
 
 fmode(Path, Mode) :-
-        file_properties(Path, [], [], [], Mode, []).
+    file_properties(Path, [], [], [], Mode, []).
 
 % ---------------------------------------------------------------------------
 :- export(chmod/2).
 :- doc(chmod(File, NewMode), "Change the protection mode of file
-        @var{File} to @var{NewMode}.").
+    @var{File} to @var{NewMode}.").
 :- trust pred chmod(+atm, +int).
 :- impl_defined(chmod/2).
 
@@ -528,29 +528,29 @@ fmode(Path, Mode) :-
 :- pred chmod(+atm, ?int, +int).
 
 :- pred chmod(File, OldMode, NewMode)
-          : (atm(File), var(OldMode), var(NewMode))
-          => atm * atm * atm
-          # "If @var{OldMode} is identical to @var{NewMode} then it is 
-              equivalent to fmode(@var{File},@var{OldMode})".
+      : (atm(File), var(OldMode), var(NewMode))
+      => atm * atm * atm
+      # "If @var{OldMode} is identical to @var{NewMode} then it is 
+          equivalent to fmode(@var{File},@var{OldMode})".
 
 chmod(Path, OldMode, NewMode) :-
-        OldMode == NewMode, !,
-        fmode(Path, OldMode).
+    OldMode == NewMode, !,
+    fmode(Path, OldMode).
 chmod(Path, OldMode, NewMode) :-
-        fmode(Path, OldMode),
-        chmod(Path, NewMode).
+    fmode(Path, OldMode),
+    chmod(Path, NewMode).
 
 % ---------------------------------------------------------------------------
 :- export(set_exec_mode/2).
 :- doc(set_exec_mode(SourceName, ExecName), "Copies the
-	permissions of @var{SourceName} to @var{ExecName} adding
-	permissions to execute.").
+    permissions of @var{SourceName} to @var{ExecName} adding
+    permissions to execute.").
 :- pred set_exec_mode(+atm, +atm).
 
 set_exec_mode(SourceName, ExecName) :-
-        fmode(SourceName, M0),
-        M1 is M0 \/ ((M0 >> 2) /\ 0o111), % Copy read permissions to execute
-        chmod(ExecName, M1).
+    fmode(SourceName, M0),
+    M1 is M0 \/ ((M0 >> 2) /\ 0o111), % Copy read permissions to execute
+    chmod(ExecName, M1).
 
 % ---------------------------------------------------------------------------
 :- export(delete_directory/1).
@@ -567,7 +567,7 @@ set_exec_mode(SourceName, ExecName) :-
 % ---------------------------------------------------------------------------
 :- export(rename_file/2).
 :- doc(rename_file(File1, File2), 
-        "Change the name of  @var{File1} to @var{File2}.").
+    "Change the name of  @var{File1} to @var{File2}.").
 :- trust pred rename_file(+atm,+atm).
 :- impl_defined(rename_file/2).
 
@@ -582,11 +582,11 @@ set_exec_mode(SourceName, ExecName) :-
 % ---------------------------------------------------------------------------
 :- export(make_directory/1).
 :- doc(make_directory(DirName),
-        "Equivalent to @tt{make_directory(D,0o777)}.").
+    "Equivalent to @tt{make_directory(D,0o777)}.").
 :- pred make_directory(+atm).
 
 make_directory(D) :-
-        make_directory(D,0o777).
+    make_directory(D,0o777).
 
 % ---------------------------------------------------------------------------
 :- export(system_error_report/1).
@@ -595,7 +595,7 @@ make_directory(D) :-
   @tt{strerror} in POSIX.".
 
 system_error_report(X) :-
-	c_strerror(X).
+    c_strerror(X).
 
 :- trust pred c_strerror(-atm).
 :- impl_defined(c_strerror/1).
@@ -620,19 +620,19 @@ system_error_report(X) :-
    use @tt{.} as last resort.".
 
 get_tmp_dir(TmpDir) :-
-	( % get from environment
-          tmpdir(TmpDir0)
-	; % or, guess some dir
-	  try_tmpdir(TmpDir0),
-	  file_exists(TmpDir0, 2) % 2 is for writing
-	),
-	!,
-	fixed_absolute_file_name(TmpDir0, '.', TmpDir). % Normalize
+    ( % get from environment
+      tmpdir(TmpDir0)
+    ; % or, guess some dir
+      try_tmpdir(TmpDir0),
+      file_exists(TmpDir0, 2) % 2 is for writing
+    ),
+    !,
+    fixed_absolute_file_name(TmpDir0, '.', TmpDir). % Normalize
 
 try_tmpdir(TmpDir) :- using_windows, !,
-	try_tmpdir_win32(TmpDir).
+    try_tmpdir_win32(TmpDir).
 try_tmpdir(TmpDir) :-
-	try_tmpdir_posix(TmpDir).
+    try_tmpdir_posix(TmpDir).
 
 try_tmpdir_posix('/tmp').
 try_tmpdir_posix('/var/tmp').
@@ -646,12 +646,12 @@ try_tmpdir_win32('\\tmp').
 try_tmpdir_win32('.').
 
 tmpdir(TmpDir) :- using_windows, !, % Windows
-	( c_get_env('TMP', TmpDir0) -> TmpDir = TmpDir0
-	; c_get_env('TEMP', TmpDir0) -> TmpDir = TmpDir0
-	; fail
-	).
+    ( c_get_env('TMP', TmpDir0) -> TmpDir = TmpDir0
+    ; c_get_env('TEMP', TmpDir0) -> TmpDir = TmpDir0
+    ; fail
+    ).
 tmpdir(TmpDir) :- % POSIX
-	c_get_env('TMPDIR', TmpDir).
+    c_get_env('TMPDIR', TmpDir).
 
 % ---------------------------------------------------------------------------
 :- export(dev_null/1).
@@ -671,7 +671,7 @@ dev_null('/dev/null').
 % ---------------------------------------------------------------------------
 :- export(wait/2).
 :- trust pred wait(+Pid, -ReturnCode) :
-	 (int(Pid),var(ReturnCode))
+     (int(Pid),var(ReturnCode))
      =>  (int(ReturnCode))
    # "@pred{wait/2} waits for the process numbered @var{Pid}. Fails
       if the process does not terminate normally or in case of error
@@ -806,34 +806,34 @@ winpath_option(relative).
 :- pred winpath(A,B): (atm(A), atm(B)) => (atm(A),atm(B)).
 
 winpath(Path, WinPath) :-
-	winpath(full, Path, WinPath).
+    winpath(full, Path, WinPath).
 
 winpath(Full,_Path,_WinPath) :-
-	( \+ winpath_option(Full) ),
-	!,
-	throw(error(domain_error(winpath_option,Full),winpath/3-1)).
+    ( \+ winpath_option(Full) ),
+    !,
+    throw(error(domain_error(winpath_option,Full),winpath/3-1)).
 winpath(_Full, Path,_WinPath) :-
-	( \+ ( var(Path); atom(Path) ) ),
-	!,
-	throw(error(domain_error(var_or_atom,Path),winpath/3-2)).
+    ( \+ ( var(Path); atom(Path) ) ),
+    !,
+    throw(error(domain_error(var_or_atom,Path),winpath/3-2)).
 winpath(_Full,_Path, WinPath) :-
-	( \+ ( var(WinPath); atom(WinPath) ) ),
-	!,
-	throw(error(domain_error(var_or_atom,WinPath),winpath/3-3)).
+    ( \+ ( var(WinPath); atom(WinPath) ) ),
+    !,
+    throw(error(domain_error(var_or_atom,WinPath),winpath/3-3)).
 winpath(Full, Path, WinPath) :-
-	( var(Full), var(Path), var(WinPath) ),
-	!,
-	throw(error(instantiation_error)).
+    ( var(Full), var(Path), var(WinPath) ),
+    !,
+    throw(error(instantiation_error)).
 winpath(full, Path, WinPath) :-
-	( atom(Path) ->
-	    c_winpath(Path, WinPath)
-	; c_posixpath(WinPath, Path)
-	).
+    ( atom(Path) ->
+        c_winpath(Path, WinPath)
+    ; c_posixpath(WinPath, Path)
+    ).
 winpath(relative, Path, WinPath) :-
-	( atom(Path) ->
-	    c_winfile(Path, WinPath)
-	; c_posixfile(WinPath, Path)
-	).
+    ( atom(Path) ->
+        c_winfile(Path, WinPath)
+    ; c_posixfile(WinPath, Path)
+    ).
 
 :- trust pred c_posixpath(+atm,?atm).
 :- impl_defined(c_posixpath/2).
@@ -849,9 +849,9 @@ winpath(relative, Path, WinPath) :-
 :- doc(winpath_c/3, "Same as winpath/3, but for strings.").
 
 winpath_c(Option, Dir, Path) :-
-	atom_codes(DirA, Dir),
-	winpath(Option, DirA, PathA),
-	atom_codes(PathA, Path).
+    atom_codes(DirA, Dir),
+    winpath(Option, DirA, PathA),
+    atom_codes(PathA, Path).
 
 % ---------------------------------------------------------------------------
 :- export(cyg2win/3).
@@ -862,18 +862,18 @@ winpath_c(Option, Dir, Path) :-
    preserved.".
 
 cyg2win(Dir, Path, Swap) :-
-	winpath_c(relative, Dir, PathSwap),
-	no_swapslash(Swap, PathSwap, Path).
+    winpath_c(relative, Dir, PathSwap),
+    no_swapslash(Swap, PathSwap, Path).
 
 :- export(no_swapslash/3).
 % TODO: Check this code w.r.t. what the documentation says.
 no_swapslash(swap, Dir, Dir) :-
-	!.
+    !.
 no_swapslash(noswap, Dir, Path) :-
-	do_no_swapslash(Dir, Path).
+    do_no_swapslash(Dir, Path).
 
 do_no_swapslash(Dir, Path) :-
-	replace_characters(Dir, 0'\\, 0'/, Path).
+    replace_characters(Dir, 0'\\, 0'/, Path).
 
 % TODO: bad name
 :- doc(replace_characters(String, SearchChar, ReplaceChar,
@@ -882,8 +882,8 @@ do_no_swapslash(Dir, Path) :-
 
 replace_characters([], _, _, []).
 replace_characters([S|Ss], C, R, [T|Ts]) :-
-	replace_character(S, C, R, T),
-	replace_characters(Ss, C, R, Ts).
+    replace_character(S, C, R, T),
+    replace_characters(Ss, C, R, Ts).
 
 replace_character(S, S, R, R) :- !.
 replace_character(S, _, _, S).
@@ -893,9 +893,9 @@ replace_character(S, _, _, S).
 :- doc(cyg2win_a/3, "Same as cyg2win/3, but for atoms.").
 
 cyg2win_a(Path, WindifiedPath, Swap) :-
-	atom_codes(Path, Codes),
-	cyg2win(Codes, WindifiedCodes, Swap),
-	atom_codes(WindifiedPath, WindifiedCodes).
+    atom_codes(Path, Codes),
+    cyg2win(Codes, WindifiedCodes, Swap),
+    atom_codes(WindifiedPath, WindifiedCodes).
 
 % ---------------------------------------------------------------------------
 % TODO: better name? equivalent to os.name=="nt" in python
@@ -911,7 +911,7 @@ cyg2win_a(Path, WindifiedPath, Swap) :-
 environment variable in POSIX systems and APPDATA in Windows)".
 % TODO: use C function directly
 get_home(H) :-
-	fixed_absolute_file_name('~', '.', H).
+    fixed_absolute_file_name('~', '.', H).
 
 % ---------------------------------------------------------------------------
 :- export(find_executable/2). % TODO: use c_find_exec() from os_utils.c (take Prolog as reference)
@@ -922,33 +922,33 @@ get_home(H) :-
    @var{Path} depending on the current operating system.".
 
 find_executable(Name, Path) :-
-	exec_name(Name, ExecName), % (nondet)
-	find_executable_(ExecName, Path0),
-	!,
-	Path = Path0.
+    exec_name(Name, ExecName), % (nondet)
+    find_executable_(ExecName, Path0),
+    !,
+    Path = Path0.
 
 find_executable_(File, Path) :-
-	file_exists(File),
-	!,
-	Path = File. % TODO: strange, it may be relative...
+    file_exists(File),
+    !,
+    Path = File. % TODO: strange, it may be relative...
 find_executable_(File, Path) :-
-	get_paths(Dir), % (nondet)
-	path_concat(Dir, File, Path0),
-	file_exists(Path0),
-	!,
-	Path = Path0.
+    get_paths(Dir), % (nondet)
+    path_concat(Dir, File, Path0),
+    file_exists(Path0),
+    !,
+    Path = Path0.
 
 exec_name(Cmd, Exec) :-
-	% Try with executable extension first
-	get_exec_ext(Ext),
-	Ext \== '',
-	atom_concat(Cmd, Ext, Exec).
+    % Try with executable extension first
+    get_exec_ext(Ext),
+    Ext \== '',
+    atom_concat(Cmd, Ext, Exec).
 exec_name(Cmd, Cmd).
 
 % Dir is a directory in the PATH environment variable
 get_paths(Dir) :-
-	getenvstr('PATH', PathStr),
-	atom_codes(Path, PathStr),
-	extract_paths(Path, PathList),
-	member(Dir, PathList).
+    getenvstr('PATH', PathStr),
+    atom_codes(Path, PathStr),
+    extract_paths(Path, PathList),
+    member(Dir, PathList).
 

@@ -93,33 +93,33 @@ stringq([C|Cs]) --> [C], stringq(Cs).
 :- pred string_to_json(+String, ?Term) :: string * json # "Decode
    a character list as a JSON @var{Term}.".
 string_to_json(String, X) :-
-	str_to_obj(X, String, Rest),
-	blanks(Rest, []).
+    str_to_obj(X, String, Rest),
+    blanks(Rest, []).
 
 % (accept leading blanks)
 str_to_obj(json(Attrs)) -->
-	blanks, "{",
-	blanks, str_to_attrs_(Attrs).
+    blanks, "{",
+    blanks, str_to_attrs_(Attrs).
 
 % (no leading blanks)
 str_to_attrs_([]) --> "}", !.
 str_to_attrs_([X|Xs]) -->
-	str_to_attr(X),
-	blanks, str_to_attrs__(Xs).
+    str_to_attr(X),
+    blanks, str_to_attrs__(Xs).
 
 % (no leading blanks)
 str_to_attrs__([]) --> "}", !.
 str_to_attrs__([X|Xs]) -->
-	",",
-	blanks, str_to_attr(X),
-	blanks, str_to_attrs__(Xs).
+    ",",
+    blanks, str_to_attr(X),
+    blanks, str_to_attrs__(Xs).
 
 % (no leading blanks)
 str_to_attr(Id=Val) -->
-	quoted_string(Id0),
-	{ atom_codes(Id, Id0) },
-	blanks, ":",
-	blanks, str_to_val(Val).
+    quoted_string(Id0),
+    { atom_codes(Id, Id0) },
+    blanks, ":",
+    blanks, str_to_val(Val).
 
 % (no leading blanks)
 quoted_string(Cs) --> "\"", quoted_string_(Cs).
@@ -146,14 +146,14 @@ str_to_val(X) --> number_string(Cs), !, { number_codes(X, Cs) }.
 % (no leading blanks)
 str_to_list_([]) --> "]", !.
 str_to_list_([X|Xs]) -->
-	str_to_val(X),
-	blanks, str_to_list__(Xs).
+    str_to_val(X),
+    blanks, str_to_list__(Xs).
 
 % (no leading blanks)
 str_to_list__([]) --> "]", !.
 str_to_list__([X|Xs]) --> ",",
-	blanks, str_to_val(X),
-	blanks, str_to_list__(Xs).
+    blanks, str_to_val(X),
+    blanks, str_to_list__(Xs).
 
 blanks --> blank, !, blanks.
 blanks --> [].
@@ -168,20 +168,20 @@ number_string("-"||Cs) --> "-", !, number_string_(Cs).
 number_string(Cs) --> number_string_(Cs).
 
 number_string_(Cs) -->
-	int_string(Cs, Cs2),
-	maybe_frac(Cs2, Cs1, Frac),
-	maybe_exp(Cs1, [], Frac).
+    int_string(Cs, Cs2),
+    maybe_frac(Cs2, Cs1, Frac),
+    maybe_exp(Cs1, [], Frac).
 
 maybe_frac("."||Cs, Cs0, yes) --> ".", !, digits(Cs, Cs0).
 maybe_frac(Cs, Cs, no) --> !.
 
 maybe_exp(Cs, Cs0, Frac) -->
-	{ Frac = yes -> Cs2 = Cs
-	; % We have exponent but not fractional part, add it so that we
-	  % can used our number_codes/2 as usual.
-          Cs = ".0"||Cs2
-	},
-	exp(Cs2, Cs1), !, digits(Cs1, Cs0).
+    { Frac = yes -> Cs2 = Cs
+    ; % We have exponent but not fractional part, add it so that we
+      % can used our number_codes/2 as usual.
+      Cs = ".0"||Cs2
+    },
+    exp(Cs2, Cs1), !, digits(Cs1, Cs0).
 maybe_exp(Cs, Cs, _) --> !. 
 
 exp("e+"||Cs, Cs) --> "e+", !.
@@ -235,20 +235,20 @@ is_list([_|_]).
 :- export(json_get/3).
 % Lookup Key in JSON dictionary
 json_get(json(Xs), Key, Value) :-
-	member(Key0=Value0, Xs), Key == Key0, !,
-	Value = Value0.
+    member(Key0=Value0, Xs), Key == Key0, !,
+    Value = Value0.
 
 :- export(json_get_atm/3).
 % Lookup Key in JSON dictionary and translate to atm
 json_get_atm(Json, Key, Value) :-
-	json_get(Json, Key, Value0),
-	json_as_atm(Value0, Value).
+    json_get(Json, Key, Value0),
+    json_as_atm(Value0, Value).
 
 :- export(atomiclst_to_json_strlist/2).
 % From list of constants to JSON value
 atomiclst_to_json_strlist([]) := [].
 atomiclst_to_json_strlist([A|As]) := [~atomic_to_json_str(A)|Bs] :-
-	Bs = ~atomiclst_to_json_strlist(As).
+    Bs = ~atomiclst_to_json_strlist(As).
 
 :- export(atomic_to_json_str/2).
 % From constant (atomic) to JSON value
@@ -258,12 +258,12 @@ atomic_to_json_str(X) := string(R) :- atom(X), !, atom_codes(X, R).
 :- export(json_as_atm/2).
 % From json string to atom
 json_as_atm(Value, Atm) :-
-	Value = string(Xs),
-	atom_codes(Atm, Xs).
+    Value = string(Xs),
+    atom_codes(Atm, Xs).
 
 :- export(json_as_num/2).
 % From json string to number
 json_as_num(Value, Num) :-
-	Value = string(Xs),
-	number_codes(Num, Xs).
+    Value = string(Xs),
+    number_codes(Num, Xs).
 

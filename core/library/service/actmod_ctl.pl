@@ -14,13 +14,13 @@
 % Kill @var{ActRef}
 :- suspendable(kill(atm)).
 kill(ActRef) :-
-	ServName = ActRef, % TODO:T253 see [new-actref]
-	service_load_mode(ServName, Mode),
-	( Mode = daemon(_) ->
-	    % TODO: show message somewhere?
-	    actmod_kill(ActRef, _Msg)
-	; true % nothing
-	).
+    ServName = ActRef, % TODO:T253 see [new-actref]
+    service_load_mode(ServName, Mode),
+    ( Mode = daemon(_) ->
+        % TODO: show message somewhere?
+        actmod_kill(ActRef, _Msg)
+    ; true % nothing
+    ).
 
 % Ping (just to see if we are alive)
 :- suspendable(ping).

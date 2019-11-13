@@ -1,5 +1,5 @@
 :- module(usagedoc_modes, [
-	], [assertions, doccomments]).
+    ], [assertions, doccomments]).
 
 %! @title Assertions for Usage vs. Documentation (modes)
 %

@@ -6,6 +6,6 @@
 %:- op(  978 , xfx, '::' ). % 978 to avoid clash with assertions package
 :- op(  970 , xfx, '::' ). % 978 to avoid clash with assertions package
 :- op(  971 , xfx, '<-' ). % priority has to be less than 972 because 
-                           % this op is defined as unary in make_ops
+                       % this op is defined as unary in make_ops
 
 :- op(  900 , fy , guard ).

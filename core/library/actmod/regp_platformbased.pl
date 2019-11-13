@@ -44,25 +44,25 @@ ciaoc nameserver
 :- impl(actmod_publish, platformbased).
 
 (platformbased as actmod_publish).save_addr(ActRef, DMod, Address, Pid, Opts) :-
-	% Save platform address and current active module name
-	( member(reg_addr(RegAddr), Opts) ->
-	    set_platform_addr(RegAddr)
-	; throw(error(unknown_platform_addr, save_addr/5))
-	),
-	% Publish in the registry
-        ( tell_address(ActRef, DMod, Address, Pid) ->
-	    true
-	; throw(unable_to_register_at_platform(ActRef, DMod, Address, Pid))
-	).
+    % Save platform address and current active module name
+    ( member(reg_addr(RegAddr), Opts) ->
+        set_platform_addr(RegAddr)
+    ; throw(error(unknown_platform_addr, save_addr/5))
+    ),
+    % Publish in the registry
+    ( tell_address(ActRef, DMod, Address, Pid) ->
+        true
+    ; throw(unable_to_register_at_platform(ActRef, DMod, Address, Pid))
+    ).
 
 % ---------------------------------------------------------------------------
 
 :- impl(actmod_locate, platformbased).
 
 (platformbased as actmod_locate).remote_address(ActRef, DMod, Address) :-
-        ( ask_address(ActRef, DMod, Address0) -> true
-	; throw(no_address_for(ActRef))
-	),
-	Address = Address0.
+    ( ask_address(ActRef, DMod, Address0) -> true
+    ; throw(no_address_for(ActRef))
+    ),
+    Address = Address0.
 
 (platformbased as actmod_locate).cleanup_actI(_ActRef).

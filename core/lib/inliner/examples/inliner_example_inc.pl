@@ -7,5 +7,5 @@ dummypred(_).
 
 mymap([],    _,   []).
 mymap([E|L], Map, [M|R]) :-
-	Map(E, M),
-	mymap(L, Map, R).
+    Map(E, M),
+    mymap(L, Map, R).

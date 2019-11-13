@@ -1,5 +1,5 @@
 :- module(getopts, [getopts/4, cl_option/2],
-          [assertions,basicmodes,regtypes]).
+      [assertions,basicmodes,regtypes]).
 
 
 :- use_module(library(lists)).
@@ -9,7 +9,7 @@
 :- doc(author, "Manuel Carro").
 
 :- pred getopts(+Arguments, +Opts, ?Matched, ?Rest) ::
-        list(atom) * list(spec) * list(term) * list(term) # 
+    list(atom) * list(spec) * list(term) * list(term) # 
 
 "@concept{Ciao Prolog} parses the command-line arguments of its
 executables and passes them as a list of atoms to the @pred{main/1}
@@ -100,7 +100,7 @@ no
 @item Are all the options passed to the program legal options?  If this is not the case, which option(s) is/are not legal?
 @begin{verbatim}
 1 ?- getopts(Args, [file/1, output_file/1, 'create-dir', 
-                    encode, decode, unsorted], _, R).
+                encode, decode, unsorted], _, R).
 Args = ...
 R = ['--unsorte'] ? 
 @end{verbatim}
@@ -113,38 +113,38 @@ of the option list.
 ".
 
 getopts(Args, Opts, Matched, Rest):-
-        getopts_(Opts, Args, Matched, Rest).
+    getopts_(Opts, Args, Matched, Rest).
 
 getopts_([], Args, [], Args).
 getopts_([Option|Opts], Args, Matched, Rest):-
-        process_one_option(Args, Option, Matched0, Args0),
-        getopts_(Opts, Args0, Matched1, Rest),
-        append(Matched0, Matched1, Matched).
+    process_one_option(Args, Option, Matched0, Args0),
+    getopts_(Opts, Args0, Matched1, Rest),
+    append(Matched0, Matched1, Matched).
 
 
 process_one_option([], _Option, [], []).
 process_one_option([Arg|Args], Spec, Matched, Unmatched):-
-        (Spec = Name/Arity ; Spec = Name, Arity = 0), !,
-        (
-            (atom_concat('-',  Name, Arg);
-             atom_concat('--', Name, Arg)) ->
-             functor(OptFunct, Name, Arity), 
-             construct_option(1, Arity, Args, RestArgs, OptFunct),
-             Matched = [OptFunct|RestMatches],
-             process_one_option(RestArgs, Spec, RestMatches, Unmatched)
-            
-        ;
-            Unmatched = [Arg|RestUnmatched],
-            process_one_option(Args, Spec, Matched, RestUnmatched)
-        ).
+    (Spec = Name/Arity ; Spec = Name, Arity = 0), !,
+    (
+        (atom_concat('-',  Name, Arg);
+         atom_concat('--', Name, Arg)) ->
+         functor(OptFunct, Name, Arity), 
+         construct_option(1, Arity, Args, RestArgs, OptFunct),
+         Matched = [OptFunct|RestMatches],
+         process_one_option(RestArgs, Spec, RestMatches, Unmatched)
         
+    ;
+        Unmatched = [Arg|RestUnmatched],
+        process_one_option(Args, Spec, Matched, RestUnmatched)
+    ).
+    
 construct_option(Current, Arity, Args, Args, _OptFunctor):-
-        Current > Arity, !.
+    Current > Arity, !.
 construct_option(Current, Arity, [A|As], Rest, OptFunct):-
-        Current =< Arity,
-        arg(Current, OptFunct, A),
-        Next is Current + 1,
-        construct_option(Next, Arity, As, Rest, OptFunct).
+    Current =< Arity,
+    arg(Current, OptFunct, A),
+    Next is Current + 1,
+    construct_option(Next, Arity, As, Rest, OptFunct).
 
 
 :- pred cl_option(+Arguments, +Option) :: list(atom) * spec # "Check

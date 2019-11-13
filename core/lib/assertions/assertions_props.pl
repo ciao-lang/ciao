@@ -3,27 +3,27 @@
 %%% THIS REALLY NEEDS (not so) SERIOUS UPDATING 
 
 :- module(assertions_props,[
-	           assrt_body/1,
-		   head_pattern/1,
-		   complex_arg_property/1,
-		   property_conjunction/1,
-		   property_starterm/1,
-		   complex_goal_property/1,
+               assrt_body/1,
+               head_pattern/1,
+               complex_arg_property/1,
+               property_conjunction/1,
+               property_starterm/1,
+               complex_goal_property/1,
 
-		   nabody/1,
-		   dictionary/1,
+               nabody/1,
+               dictionary/1,
 
-                   c_assrt_body/1,
-		   s_assrt_body/1,
-		   g_assrt_body/1,
+               c_assrt_body/1,
+               s_assrt_body/1,
+               g_assrt_body/1,
 
-		   assrt_status/1,
-		   assrt_type/1,
-		   predfunctor/1,
-		   propfunctor/1,
-		   docstring/1
-		   ],
-         [ dcg,assertions,regtypes ]).
+               assrt_status/1,
+               assrt_type/1,
+               predfunctor/1,
+               propfunctor/1,
+               docstring/1
+               ],
+     [ dcg,assertions,regtypes ]).
 
 % ----------------------------------------------------------------------------
 
@@ -181,30 +181,30 @@ assrt_body((Pr)):-               n_assrt_body(nabody(Pr,true,true,true,true)).
    # "@var{Pr} is a head pattern.".
 
 head_pattern(Pr) :-
-	predname(Pr),
-	!.
+    predname(Pr),
+    !.
 head_pattern(Pr) :-
-	nonvar(Pr),
-	!,
-	Pr =.. [P|Args],
-	atom(P),
-	acceptable_args(Args).
+    nonvar(Pr),
+    !,
+    Pr =.. [P|Args],
+    atom(P),
+    acceptable_args(Args).
 head_pattern(_).
 
 acceptable_args([]).
 acceptable_args([A|As]) :-
-	acceptable_arg(A),
-	acceptable_args(As).
+    acceptable_arg(A),
+    acceptable_args(As).
 
 acceptable_arg(A) :- 
-	var(A).
+    var(A).
 acceptable_arg(A) :- 
-	ground(A).
+    ground(A).
 acceptable_arg(A) :- 
-	A =.. [M,V],
-	%%% Needs to be updated for the new mode definitions!
-	mode(M),
-	acceptable_arg(V).
+    A =.. [M,V],
+    %%% Needs to be updated for the new mode definitions!
+    mode(M),
+    acceptable_arg(V).
 
 % imprecise...
 mode(_).
@@ -225,9 +225,9 @@ mode(_).
 
 % imprecise...
 complex_arg_property(CP) :- 
-	property_conjunction(CP).
+    property_conjunction(CP).
 complex_arg_property(CP) :- 
-	property_starterm(CP).
+    property_starterm(CP).
 
 :- doc(property_conjunction/1,"This type defines the first,
    unabridged format in which properties can be expressed in the
@@ -251,10 +251,10 @@ complex_arg_property(CP) :-
      a variable which appears as a head argument.".
 
 property_conjunction(P) :-
-	property(P).
+    property(P).
 property_conjunction((P1,P2)) :-
-	property_conjunction(P1),
-	property_conjunction(P2).
+    property_conjunction(P1),
+    property_conjunction(P2).
 % Fixed Using rtchecks -- EMM
 :- doc(property_starterm/1,"This type defines a second,
    compact format in which properties can be expressed in the bodies
@@ -295,18 +295,18 @@ property_conjunction((P1,P2)) :-
      each such term are ground.".
 
 property_starterm(AP) :-
-	abridged_property(AP).
+    abridged_property(AP).
 property_starterm(AP1*AP2) :-
-	abridged_property(AP1),
-	abridged_property(AP2).
+    abridged_property(AP1),
+    abridged_property(AP2).
 
 %:- prop property(P) : nonvar(P).
 
 property(P) :-
-	nonvar(P),
-	!,
-	P =.. [_|Args],
-	contains_var(Args).
+    nonvar(P),
+    !,
+    P =.. [_|Args],
+    contains_var(Args).
 property(_).
 
 contains_var([A|_As]):- var(A), !.
@@ -315,10 +315,10 @@ contains_var([_A|As]):- contains_var(As).
 %:- prop abridged_property(P) : nonvar(P).
 
 abridged_property(P) :-
-	nonvar(P),
-	!,
-	P =.. [_|Args],
-	ground(Args).
+    nonvar(P),
+    !,
+    P =.. [_|Args],
+    ground(Args).
 abridged_property(_).
 
 :- doc(complex_goal_property(Props),
@@ -350,28 +350,28 @@ abridged_property(_).
 
 % imprecise...
 complex_goal_property(CP) :- 
-	property_conjunction(CP).
+    property_conjunction(CP).
 
 
 :- prop nabody(ABody)
-	# "@var{ABody} is a normalized assertion body.".
+    # "@var{ABody} is a normalized assertion body.".
 
 nabody((Pred::Compat:Call=>Succ+Comp#Comm)):-
-	head_pattern(Pred),
-	list(Compat,property),
-	list(Call,property),
-	list(Succ,property),
-	list(Comp,property),
-	docstring(Comm).
+    head_pattern(Pred),
+    list(Compat,property),
+    list(Call,property),
+    list(Succ,property),
+    list(Comp,property),
+    docstring(Comm).
 
 :- regtype dictionary(D)
-	# "@var{D} is a dictionary of variable names.".
+    # "@var{D} is a dictionary of variable names.".
 
 dictionary([]).
 dictionary([N=V|D]):-
-	string(N),
-	var(V),
-	dictionary(D).
+    string(N),
+    var(V),
+    dictionary(D).
 
 :- prop c_assrt_body(X) + regtype
    # "@var{X} is a call assertion body.".
@@ -531,18 +531,18 @@ g_assrt_body((Pr +GP)):-          n_assrt_body(nabody(Pr,true,true,GP,true)).
 %% :- regtype n_assrt_body(B) # 
 %%    # "This is an auxiliary type definition which defines the types of
 %%      the args that may appear in the bodies of assertions.".
-	
+    
 
 n_assrt_body(nabody(Pr,CP,AP,GP,CO)) :- 
-	head_pattern(Pr),
-	complex_arg_property(CP),
-	complex_arg_property(AP),
-	complex_goal_property(GP),
-	docstring(CO).
+    head_pattern(Pr),
+    complex_arg_property(CP),
+    complex_arg_property(AP),
+    complex_goal_property(GP),
+    docstring(CO).
 
 :- doc(assrt_status/1,"The types of assertion status. They have the
-	same meaning as the program-point assertions, and are as follows:
-        @includedef{assrt_status/1}").
+    same meaning as the program-point assertions, and are as follows:
+    @includedef{assrt_status/1}").
 :- prop assrt_status(X) + regtype
    # "@var{X} is an acceptable status for an assertion.".
 
@@ -553,7 +553,7 @@ assrt_status(checked).
 assrt_status(trust).
 
 :- doc(assrt_type/1,"The admissible kinds of assertions:
-        @includedef{assrt_type/1}").
+    @includedef{assrt_type/1}").
 :- prop assrt_type(X) + regtype
    # "@var{X} is an admissible kind of assertion.".
 

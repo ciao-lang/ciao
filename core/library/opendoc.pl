@@ -23,7 +23,7 @@
       application".
 
 opendoc(Path) :-
-	opendoc(Path, []).
+    opendoc(Path, []).
 
 :- export(opendoc/2).
 :- pred opendoc(+Target, +Opts) :: term * list
@@ -32,26 +32,26 @@ opendoc(Path) :-
       (@tt{generic} is the default)".
 
 opendoc(Path, Opts) :-
-	get_viewer(Path, Opts, Viewer, Path2),
-	( Viewer = emacs(EmacsFun) -> view_in_emacs(EmacsFun, Path2)
-	; Viewer = osascript -> view_in_osascript(Path2)
-	; % Viewer = generic
-	  generic_viewer(ViewerCmd),
-	  process_call(path(ViewerCmd), [Path], [])
-	).
+    get_viewer(Path, Opts, Viewer, Path2),
+    ( Viewer = emacs(EmacsFun) -> view_in_emacs(EmacsFun, Path2)
+    ; Viewer = osascript -> view_in_osascript(Path2)
+    ; % Viewer = generic
+      generic_viewer(ViewerCmd),
+      process_call(path(ViewerCmd), [Path], [])
+    ).
 
 % ---------------------------------------------------------------------------
 
 % Path is a URL with protocol
 has_protocol(Path) :-
-	( atom_concat('file://', _, Path) -> true
-	; atom_concat('http://', _, Path) -> true
-	; atom_concat('https://', _, Path) -> true
-	; fail
-	).
+    ( atom_concat('file://', _, Path) -> true
+    ; atom_concat('http://', _, Path) -> true
+    ; atom_concat('https://', _, Path) -> true
+    ; fail
+    ).
 
 % ---------------------------------------------------------------------------
-	
+    
 :- use_module(engine(stream_basic), [absolute_file_name/2]).
 
 % get_viewer(+Path, +Opts, -Viewer, -Path2): 
@@ -63,19 +63,19 @@ has_protocol(Path) :-
 %   Path2 is a modified Path (if needed) for the specified viewer
 
 get_viewer(Path, Opts, Viewer, Path2) :-
-	( has_protocol(Path) -> Ext = '.html' % assume .html
-	; path_splitext(Path, _, Ext)
-	),
-	custom_viewer(Ext, Opts, Viewer),
-	!,
-	% Escape path (for elisp expression)
-	( has_protocol(Path) -> Path2 = Path
-	; absolute_file_name(Path, Path1),
-	  ( Ext = '.html' -> % force protocol
-	      Path2 = ~atom_concat('file://', Path1)
-	  ; Path2 = Path1
-	  )
-	).
+    ( has_protocol(Path) -> Ext = '.html' % assume .html
+    ; path_splitext(Path, _, Ext)
+    ),
+    custom_viewer(Ext, Opts, Viewer),
+    !,
+    % Escape path (for elisp expression)
+    ( has_protocol(Path) -> Path2 = Path
+    ; absolute_file_name(Path, Path1),
+      ( Ext = '.html' -> % force protocol
+          Path2 = ~atom_concat('file://', Path1)
+      ; Path2 = Path1
+      )
+    ).
 get_viewer(Path, _Opts, generic, Path).
 
 custom_viewer('.info', _, emacs(info)).
@@ -87,12 +87,12 @@ custom_viewer('.html', _Opts, osascript) :- get_os('DARWIN').
 % Open with emacsclient
 
 view_in_emacs(EmacsFun, Path) :-
-	atom_codes(Path, Path1),
-	esc_codes(Path1, Path2, []),
-	atom_codes(Path3, Path2),
-	Code = ~atom_concat(['(', EmacsFun, ' \"', Path3, '\")']),
-	%
-	process_call(path(emacsclient), ['-n', '--eval', Code], []).
+    atom_codes(Path, Path1),
+    esc_codes(Path1, Path2, []),
+    atom_codes(Path3, Path2),
+    Code = ~atom_concat(['(', EmacsFun, ' \"', Path3, '\")']),
+    %
+    process_call(path(emacsclient), ['-n', '--eval', Code], []).
 
 % ---------------------------------------------------------------------------
 % Use `osascript` in macOS so that we can handle URL fragments
@@ -100,12 +100,12 @@ view_in_emacs(EmacsFun, Path) :-
 % for file://
 
 view_in_osascript(Path) :-
-	atom_codes(Path, Path1),
-	esc_codes(Path1, Path2, []),
-	atom_codes(Path3, Path2),
-	Code = ~atom_concat(['open location \"', Path3, '\"']),
-	%
-	process_call(path(osascript), ['-e', Code], []).
+    atom_codes(Path, Path1),
+    esc_codes(Path1, Path2, []),
+    atom_codes(Path3, Path2),
+    Code = ~atom_concat(['open location \"', Path3, '\"']),
+    %
+    process_call(path(osascript), ['-e', Code], []).
 
 % ---------------------------------------------------------------------------
 

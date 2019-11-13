@@ -1,12 +1,12 @@
 :- module(io_basic, [
-        get_code/2, get_code/1, get1_code/2, get1_code/1,
-        peek_code/2, peek_code/1, skip_code/2, skip_code/1,
-        skip_line/1, skip_line/0,
-        put_code/2, put_code/1, nl/1, nl/0, tab/2, tab/1,
-        code_class/2, getct/2, getct1/2,
-        get_byte/2, get_byte/1, put_byte/2, put_byte/1, 
-        display/2, display/1, displayq/2, displayq/1],
-        [assertions, nortchecks, nativeprops, isomodes]).
+    get_code/2, get_code/1, get1_code/2, get1_code/1,
+    peek_code/2, peek_code/1, skip_code/2, skip_code/1,
+    skip_line/1, skip_line/0,
+    put_code/2, put_code/1, nl/1, nl/0, tab/2, tab/1,
+    code_class/2, getct/2, getct1/2,
+    get_byte/2, get_byte/1, put_byte/2, put_byte/1, 
+    display/2, display/1, displayq/2, displayq/1],
+    [assertions, nortchecks, nativeprops, isomodes]).
 
 :- doc(title, "Basic input/output stream operations").
 

@@ -26,12 +26,12 @@
 %% ---------------------------------------------------------------------------
 
 :- module(fd_utils,
-	[
-	    min/3,
-	    max/3,
-	    member_ro/2,
-	    clpfd_error/2
-	], [assertions]).
+    [
+        min/3,
+        max/3,
+        member_ro/2,
+        clpfd_error/2
+    ], [assertions]).
 
 :- doc(title, "Auxiliary predicates for the FD implementation").
 
@@ -44,10 +44,10 @@ min(X, Y, Y):- X >= Y.
 
 % TODO: not implemented in Ciao?
 member_ro(X, [Y|_]) :-
-	X == Y.
+    X == Y.
 member_ro(X, [_|Xs]) :-
-	member_ro(X, Xs).
+    member_ro(X, Xs).
 
 
 clpfd_error(A, B):-
-	throw(error(A, B)).
+    throw(error(A, B)).

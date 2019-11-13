@@ -2,12 +2,12 @@
 
 % BUG: The assertions are treated before being normalized
 foreign_interface_tr(Assertion, Decls, _Mod) :-
-	is_assertion(Assertion),
-	assertion_pred(Assertion, Pred),
-	assertion_props(Assertion, Props),
-	foreign_prop(Props),
-	functor(Pred, Name, Arity),
-	Decls = [Assertion, (:- impl_defined(Name/Arity))].
+    is_assertion(Assertion),
+    assertion_pred(Assertion, Pred),
+    assertion_props(Assertion, Props),
+    foreign_prop(Props),
+    functor(Pred, Name, Arity),
+    Decls = [Assertion, (:- impl_defined(Name/Arity))].
 
 is_assertion((:- _ pred _)).
 

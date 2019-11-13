@@ -46,43 +46,43 @@ predicates outside the module will only be called  when they became the leftmost
 :- include(library(andorra/andorraops)).
 
 :- doc(determinate(Pred,Cond),"Declares determinacy conditions for a
-	predicate. Conditions @var{Cond} are on variables of arguments
-        of @var{Pred}. For example, in:
+    predicate. Conditions @var{Cond} are on variables of arguments
+    of @var{Pred}. For example, in:
 @begin{verbatim}
 :- determinate(member(A,B,C), ( A ?\= term(B,[1])  ; C?\=[_|_]) ).
 
 member(A,[A|B],B).
 member(A,[B|C],[B|D]) :-
-        A\==B,
-        member(A,C,D).
+    A\==B,
+    member(A,C,D).
 @end{verbatim}
-        the declaration states that a call @tt{member(A,B,C)} is
-        determinate when either @tt{A} doesn't unify with the first
-        argument of @tt{B} or @tt{C} doesn't unify with @tt{[_|_]}.").
+    the declaration states that a call @tt{member(A,B,C)} is
+    determinate when either @tt{A} doesn't unify with the first
+    argument of @tt{B} or @tt{C} doesn't unify with @tt{[_|_]}.").
 :- decl determinate(Pred,Cond) : predname * detcond
       # "States that the predicate @var{Pred} is determinate 
-         when @var{Cond} holds.".
+     when @var{Cond} holds.".
 
 :- doc(doinclude,detcond/1).
 :- doc(detcond/1,"Defined by: @includedef{detcond/1}
 @begin{itemize}
 @item @tt{ground/1} and @tt{nonvar/1} have the usual meaning.
 @item @tt{instatiated(A,Path)} means that the subterm of @tt{A}
-        addressed by @tt{Path} is not a variable. @tt{Path} is a 
-        list of integer numbers describing a path to the subterm 
-        regarding the whole term A as a tree. For example,
-        @tt{instantiated(f(g(X),h(i(Z),Y)),[2,1])} tests whether 
-        @tt{i(Z)} is not a variable. 
+    addressed by @tt{Path} is not a variable. @tt{Path} is a 
+    list of integer numbers describing a path to the subterm 
+    regarding the whole term A as a tree. For example,
+    @tt{instantiated(f(g(X),h(i(Z),Y)),[2,1])} tests whether 
+    @tt{i(Z)} is not a variable. 
 @item @tt{Term1 ?\\\\= Term2} means ``terms @tt{Term1} and @tt{Term2}
-        do not unify (when instantiated)''. @tt{Term1} and @tt{Term2}
-        can be either an argument of the predicate or a term 
-        @tt{term(V,Path)}, which
-        refers to the subterm of @tt{V} addressed by @tt{Path}. 
+    do not unify (when instantiated)''. @tt{Term1} and @tt{Term2}
+    can be either an argument of the predicate or a term 
+    @tt{term(V,Path)}, which
+    refers to the subterm of @tt{V} addressed by @tt{Path}. 
 @item @tt{Term1 ?= Term2} means ``terms @tt{Term1} and @tt{Term2}
-        unify (when instantiated)''. The same considerations above
-        apply to @tt{Term1} and @tt{Term2}.
+    unify (when instantiated)''. The same considerations above
+    apply to @tt{Term1} and @tt{Term2}.
 @item any other test that does not unify variables can also be used
-        ( @tt{==/2}, @tt{\\\\==/2}, @tt{atomic/1}).
+    ( @tt{==/2}, @tt{\\\\==/2}, @tt{atomic/1}).
 @end{itemize}").
 
 :- prop detcond(X) + regtype

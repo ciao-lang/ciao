@@ -204,112 +204,112 @@ yes
 
 :- use_module(engine(stream_basic), [sourcename/1]).
 :- reexport(library(toplevel),
-        [use_module/1, use_module/2, ensure_loaded/1,
-	 make_exec/2,
-         include/1, use_package/1, 
-	 consult/1, compile/1, '.'/2
-         ]).
+    [use_module/1, use_module/2, ensure_loaded/1,
+     make_exec/2,
+     include/1, use_package/1, 
+     consult/1, compile/1, '.'/2
+     ]).
 :- use_module(library(libpaths), []).
 :- reexport(library(compiler),
-        [make_po/1, unload/1,
-         set_debug_mode/1, set_nodebug_mode/1]).
+    [make_po/1, unload/1,
+     set_debug_mode/1, set_nodebug_mode/1]).
 :- reexport(library(compiler/exemaker),
-        [force_lazy/1, undo_force_lazy/1,
-         dynamic_search_path/1]).
+    [force_lazy/1, undo_force_lazy/1,
+     dynamic_search_path/1]).
 :- reexport(library(compiler/c_itf),
-        [multifile/1]).
+    [multifile/1]).
 :- use_module(library(debugger), []).
 
 :- pred use_module(Module) : sourcename
-        # "Load into the top-level the module defined in
-          @var{Module}, importing all the predicates it exports.".
+    # "Load into the top-level the module defined in
+      @var{Module}, importing all the predicates it exports.".
 
 :- pred use_module(Module, Imports) : sourcename * list(predname)
-        # "Load into the top-level the module defined in
-          @var{Module}, importing the predicates in @var{Imports}.".
+    # "Load into the top-level the module defined in
+      @var{Module}, importing the predicates in @var{Imports}.".
 
 :- pred ensure_loaded(File) : sourcenames
-        # "Load into the top-level the code residing in file (or files)
-           @var{File}, which is user (i.e. non-module) code.".
+    # "Load into the top-level the code residing in file (or files)
+       @var{File}, which is user (i.e. non-module) code.".
 
 :- pred include(File) : sourcename
-        # "The contents of the file @var{File} are included in the
-          top-level shell.  For the moment, it only works with some
-          directives, which are interpreted by the shell, or with normal
-          clauses (which are asserted).".
+    # "The contents of the file @var{File} are included in the
+      top-level shell.  For the moment, it only works with some
+      directives, which are interpreted by the shell, or with normal
+      clauses (which are asserted).".
 
 :- pred use_package(Package) : sourcenames
-        # "Include the package or packages specified in @var{Package}.
-          Most package contents can be handled in the top level, but
-          there are currently still some limitations.".
+    # "Include the package or packages specified in @var{Package}.
+      Most package contents can be handled in the top level, but
+      there are currently still some limitations.".
 
 :- pred consult(File) : sourcenames
-        # "Provided for backward compatibility.  Similar to
-           @pred{ensure_loaded/1}, but ensuring each listed file is
-           loaded in consult mode (see @ref{The interactive debugger}).".
+    # "Provided for backward compatibility.  Similar to
+       @pred{ensure_loaded/1}, but ensuring each listed file is
+       loaded in consult mode (see @ref{The interactive debugger}).".
 
 :- pred compile(File) : sourcenames
-        # "Provided for backward compatibility.  Similar to
-           @pred{ensure_loaded/1}, but ensuring each listed file is
-           loaded in compile mode (see @ref{The interactive debugger}).".
+    # "Provided for backward compatibility.  Similar to
+       @pred{ensure_loaded/1}, but ensuring each listed file is
+       loaded in compile mode (see @ref{The interactive debugger}).".
 
 :- pred [File|Files] : sourcename * list(sourcename)
-        # "Provided for backward compatibility, obsoleted by
-          @pred{ensure_loaded/1}.".
+    # "Provided for backward compatibility, obsoleted by
+      @pred{ensure_loaded/1}.".
 
 :- pred make_exec(Files, ExecName)
 %        :: atm(ExecName)
-        : sourcenames(Files) => atm(ExecName)
-        # "Make a Ciao executable from file (or files) @var{Files},
-           giving it name @var{ExecName}.  If @var{ExecName} is a
-           variable, the compiler will choose a default name for the
-           executable and will bind the variable @var{ExecName} to that
-           name.  The name is chosen as follows: if the main prolog file
-           has no @tt{.pl} extension or we are in Windows, the
-           executable will have extension @tt{.cpx}; else the executable
-           will be named as the main prolog file without extension.".
+    : sourcenames(Files) => atm(ExecName)
+    # "Make a Ciao executable from file (or files) @var{Files},
+       giving it name @var{ExecName}.  If @var{ExecName} is a
+       variable, the compiler will choose a default name for the
+       executable and will bind the variable @var{ExecName} to that
+       name.  The name is chosen as follows: if the main prolog file
+       has no @tt{.pl} extension or we are in Windows, the
+       executable will have extension @tt{.cpx}; else the executable
+       will be named as the main prolog file without extension.".
 
 :- pred make_po(Files) : sourcenames
-        # "Make object (@tt{.po}) files from @var{Files}. Equivalent to
-          executing \"@tt{ciaoc -c}\" on the files.".
+    # "Make object (@tt{.po}) files from @var{Files}. Equivalent to
+      executing \"@tt{ciaoc -c}\" on the files.".
 
 :- pred unload(File) : sourcename
-        # "Unloads dynamically loaded file @var{File}.".
+    # "Unloads dynamically loaded file @var{File}.".
 
 :- pred set_debug_mode(File) : sourcename
-        # "Set the loading mode of @var{File} to @em{consult}. See
-          @ref{The interactive debugger}.".
+    # "Set the loading mode of @var{File} to @em{consult}. See
+      @ref{The interactive debugger}.".
 
 :- pred set_nodebug_mode(File) : sourcename
-        # "Set the loading mode of @var{File} to @em{compile}. See
-          @ref{The interactive debugger}.".
+    # "Set the loading mode of @var{File} to @em{compile}. See
+      @ref{The interactive debugger}.".
 
 :- pred force_lazy(Module) : atm
-        # "Force module of name @var{Module} to be loaded lazily in the
-          subsequent created executables.".
+    # "Force module of name @var{Module} to be loaded lazily in the
+      subsequent created executables.".
 
 :- pred undo_force_lazy(Module) :: atm
-        # "Disable a previous @pred{force_lazy/1} on module @var{Module}
-          (or, if it is uninstantiated, all previous @pred{force_lazy/1}).".
+    # "Disable a previous @pred{force_lazy/1} on module @var{Module}
+      (or, if it is uninstantiated, all previous @pred{force_lazy/1}).".
 
 :- pred dynamic_search_path(Name) : atm
-        # "Asserting a fact to this data predicate, files using
-          @concept{path alias} @var{Name} will be treated as dynamic in
-          the subsequent created executables.".
+    # "Asserting a fact to this data predicate, files using
+      @concept{path alias} @var{Name} will be treated as dynamic in
+      the subsequent created executables.".
 
 :- pred multifile(Pred) : predname
-        # "Dynamically declare predicate @var{Pred} as multifile.  This
-          is useful at the top-level shell to be able to call multifile
-          predicates of loaded files.".
+    # "Dynamically declare predicate @var{Pred} as multifile.  This
+      is useful at the top-level shell to be able to call multifile
+      predicates of loaded files.".
 
 :- doc(doinclude, sourcenames/1).
 
 :- doc(sourcenames/1, "Is defined as
-           follows:@includedef{sourcenames/1} See @pred{sourcename/1}
-           in @ref{Basic file/stream handling}").
+       follows:@includedef{sourcenames/1} See @pred{sourcename/1}
+       in @ref{Basic file/stream handling}").
 
 :- prop sourcenames(Files)
-        # "@var{Files} is a source name or a list of source names.".
+    # "@var{Files} is a source name or a list of source names.".
 
 sourcenames(File) :- sourcename(File).
 sourcenames(Files) :- list(Files, sourcename).

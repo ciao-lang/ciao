@@ -1,7 +1,7 @@
 :- module(html, [
-        canonic_html_term/1, canonic_xml_term/1, html_term/1,
-        output_html/1, html2terms/2, xml2terms/2, html_template/3
-        ], [assertions,isomodes,dcg]).
+    canonic_html_term/1, canonic_xml_term/1, html_term/1,
+    output_html/1, html2terms/2, xml2terms/2, html_template/3
+    ], [assertions,isomodes,dcg]).
 
 :- doc(title, "HTML/XML parser and generator").
 
@@ -64,7 +64,7 @@ env(a,[href=\"www.therainforestsite.com\"],
    @end{verbatim}").
 
 :- prop canonic_html_term(HTMLTerm) + regtype
-        # "@var{HTMLTerm} is a term representing HTML code in canonical form.".
+    # "@var{HTMLTerm} is a term representing HTML code in canonical form.".
 
 canonic_html_term(T) :- list(T,canonic_html_item).
 
@@ -73,12 +73,12 @@ canonic_html_term(T) :- list(T,canonic_html_item).
 canonic_html_item(comment(S)) :- string(S).
 canonic_html_item(declare(S)) :- string(S).
 canonic_html_item(env(Tag,Atts,Terms)) :-
-        atm(Tag),
-        list(Atts,tag_attrib),
-        canonic_html_term(Terms).
+    atm(Tag),
+    list(Atts,tag_attrib),
+    canonic_html_term(Terms).
 canonic_html_item('$'(Tag,Atts)) :-
-        atm(Tag),
-        list(Atts,tag_attrib).
+    atm(Tag),
+    list(Atts,tag_attrib).
 canonic_html_item(S) :- string(S).
 
 :- doc(canonic_xml_term/1, "A term representing XML code in
@@ -106,7 +106,7 @@ elem(arc,[weigh=""3"",begin=""n1"",end=""n2""])
    @end{description}").
 
 :- prop canonic_xml_term(XMLTerm) + regtype
-        # "@var{XMLTerm} is a term representing XML code in canonical form.".
+    # "@var{XMLTerm} is a term representing XML code in canonical form.".
 
 canonic_xml_term(T) :- list(T,canonic_xml_item).
 
@@ -114,14 +114,14 @@ canonic_xml_term(T) :- list(T,canonic_xml_item).
 
 canonic_xml_item(Term) :- canonic_html_item(Term).
 canonic_xml_item(xmldecl(Atts)) :-
-        list(Atts,tag_attrib).
+    list(Atts,tag_attrib).
 canonic_xml_item(env(Tag,Atts,Terms)) :-
-        atm(Tag),
-        list(Atts,tag_attrib),
-        canonic_xml_term(Terms).
+    atm(Tag),
+    list(Atts,tag_attrib),
+    canonic_xml_term(Terms).
 canonic_xml_item(elem(Tag,Atts)) :-
-        atm(Tag),
-        list(Atts,tag_attrib).
+    atm(Tag),
+    list(Atts,tag_attrib).
 
 :- prop tag_attrib/1 + regtype.
 
@@ -277,7 +277,7 @@ tag_attrib((Att = Val)) :- atm(Att), string(Val).
 
 
 :- prop html_term(HTMLTerm) + regtype
-        # "@var{HTMLTerm} is a term representing HTML code.".
+    # "@var{HTMLTerm} is a term representing HTML code.".
 
 html_term(_).
 
@@ -288,9 +288,9 @@ html_term(_).
 % writing and to translate a string to a term for reading
 
 :- pred html_expansion(Term,Expansion)
-        # "Hook predicate to define macros.  Expand occurrences of
-          @var{Term} into @var{Expansion}, in @pred{output_html/1}.
-          Take care to not transform something into itself!".
+    # "Hook predicate to define macros.  Expand occurrences of
+      @var{Term} into @var{Expansion}, in @pred{output_html/1}.
+      Take care to not transform something into itself!".
 
 :- multifile html_expansion/2.
 
@@ -304,8 +304,8 @@ html_expansion(it(X),i(X)).
 
 % Translate html format and send to current output
 output_html(F) :-
-        html_str(F,T,[]),
-        write_string(T).
+    html_str(F,T,[]),
+    write_string(T).
 
 % HTML <-> Terms translation
 
@@ -314,16 +314,16 @@ output_html(F) :-
    representation.").
 
 :- pred html2terms(-string,+html_term)
-        # "Translates an HTML-term into the HTML code it represents.".
+    # "Translates an HTML-term into the HTML code it represents.".
 :- pred html2terms(+string,?canonic_html_term)
-        # "Translates HTML code into a structured HTML-term.".
+    # "Translates HTML code into a structured HTML-term.".
 
 % TODO: rename by html_term_string/2 and switch arg order?
 html2terms(Chars, Terms) :-
-        var(Chars), !,
-        html_str(Terms, Chars, []).
+    var(Chars), !,
+    html_str(Terms, Chars, []).
 html2terms(Chars, Terms) :-
-        parse_html([], Terms, [], Chars, []).
+    parse_html([], Terms, [], Chars, []).
 
 % XML <-> Terms translation
 
@@ -332,276 +332,276 @@ html2terms(Chars, Terms) :-
    representation.").
 
 :- pred xml2terms(-string,+html_term)
-        # "Translates a XML-term into the XML code it represents.".
+    # "Translates a XML-term into the XML code it represents.".
 :- pred xml2terms(+string,?canonic_xml_term)
-        # "Translates XML code into a structured XML-term.".
+    # "Translates XML code into a structured XML-term.".
 
 xml2terms(Chars, Terms) :-
-        var(Chars), !,
-        html_str(Terms, Chars, []). % Uses the same as HTML
+    var(Chars), !,
+    html_str(Terms, Chars, []). % Uses the same as HTML
 xml2terms(Chars, Terms) :-
-        parse_xml([], Terms, [], Chars, []).
+    parse_xml([], Terms, [], Chars, []).
 
 % ---------------------------------------------------------------------------
 %% Terms -> HTML/XML translation %%
 
 html_str(X) --> {var(X)}, !,
-        "<b>**Warning: free variable**</b>".
+    "<b>**Warning: free variable**</b>".
 html_str(T) --> {html_expansion(T,NT)}, !,
-        html_str(NT).
+    html_str(NT).
 html_str(start) --> !, "<html>".
 html_str(end)   --> !, "</html>".
 html_str(--)  --> !, newline, "<hr>", newline.
 html_str(\\) --> !, "<br>", newline.
 html_str($)  --> !, newline, "<p>".
 html_str(comment(C)) --> !,
-        "<!-- ",atomic_or_string(C)," -->",
-        newline.
+    "<!-- ",atomic_or_string(C)," -->",
+    newline.
 html_str(declare(C)) --> !,
-        "<!",atomic_or_string(C),">",
-        newline.
+    "<!",atomic_or_string(C),">",
+    newline.
 % XML declaration
 html_str(xmldecl(Atts)) --> !,
-        "<?xml",
-        html_atts(Atts),
-        "?>".
+    "<?xml",
+    html_atts(Atts),
+    "?>".
 html_str(image(Addr)) --> !,
-        "<img",
-        html_atts([src=Addr]),
-        ">".
+    "<img",
+    html_atts([src=Addr]),
+    ">".
 html_str(image(Addr,Atts)) --> !,
-        "<img",
-        html_atts([src=Addr|Atts]),
-        ">".
+    "<img",
+    html_atts([src=Addr|Atts]),
+    ">".
 html_str(ref(Addr,Text)) --> !,
-        "<a",
-        html_atts([href=Addr]),
-        ">",
-        html_str(Text),
-        "</a>".
+    "<a",
+    html_atts([href=Addr]),
+    ">",
+    html_str(Text),
+    "</a>".
 html_str(label(Label,Text)) --> !,
-        "<a",
-        html_atts([name=Label]),
-        ">",
-        html_str(Text),
-        "</a>".
+    "<a",
+    html_atts([name=Label]),
+    ">",
+    html_str(Text),
+    "</a>".
 html_str(heading(L,X)) -->
-        {number_codes(L,[N])}, !,
-        html_env([0'h,N],X),
-        newline.
+    {number_codes(L,[N])}, !,
+    html_env([0'h,N],X),
+    newline.
 html_str(itemize(L)) --> !,
-        "<ul>",
-        newline,
-        html_items(L),
-        "</ul>".
+    "<ul>",
+    newline,
+    html_items(L),
+    "</ul>".
 html_str(enumerate(L)) --> !,
-        "<ol>",
-        newline,
-        html_items(L),
-        "</ol>".
+    "<ol>",
+    newline,
+    html_items(L),
+    "</ol>".
 html_str(description(L)) --> !,
-        "<dl>",
-        newline,
-        html_descriptions(L),
-        "</dl>".
+    "<dl>",
+    newline,
+    html_descriptions(L),
+    "</dl>".
 html_str(preformatted(X)) --> !,
-        "<pre>",
-        newline,
-        preformatted_lines(X),
-        "</pre>".
+    "<pre>",
+    newline,
+    preformatted_lines(X),
+    "</pre>".
 html_str(entity(Name)) --> !,
-        "&",atomic_or_string(Name),";".
+    "&",atomic_or_string(Name),";".
 % Forms
 html_str(start_form) --> !,
-        "<form",
-        html_atts([method="POST"]),
-        ">",
-        newline.
+    "<form",
+    html_atts([method="POST"]),
+    ">",
+    newline.
 html_str(start_form(Addr)) --> !, 
-        "<form",
-        html_atts([method="POST", action=Addr]),
-        ">",
-        newline.
+    "<form",
+    html_atts([method="POST", action=Addr]),
+    ">",
+    newline.
 html_str(start_form(Addr,Atts)) --> !, 
-        "<form",
-        html_atts([action=Addr|Atts]),
-        ">",
-        newline.
+    "<form",
+    html_atts([action=Addr|Atts]),
+    ">",
+    newline.
 html_str(end_form) --> !,
-        "</form>", newline.
+    "</form>", newline.
 html_str(checkbox(Name,on)) --> !,
-        "<input",
-        html_atts([name=Name,type=checkbox,checked]),
-        ">".
+    "<input",
+    html_atts([name=Name,type=checkbox,checked]),
+    ">".
 html_str(checkbox(Name,_)) --> !,
-        "<input",
-        html_atts([name=Name,type=checkbox]),
-        ">".
+    "<input",
+    html_atts([name=Name,type=checkbox]),
+    ">".
 html_str(radio(Name,Value,Value)) --> !,
-        "<input",
-        html_atts([name=Name,type=radio,value=Value,checked]),
-        ">".
+    "<input",
+    html_atts([name=Name,type=radio,value=Value,checked]),
+    ">".
 html_str(radio(Name,Value,_)) --> !,
-        "<input",
-        html_atts([name=Name,type=radio,value=Value]),
-        ">".
+    "<input",
+    html_atts([name=Name,type=radio,value=Value]),
+    ">".
 html_str(input(Type,Atts)) --> !,
-        "<input",
-        html_atts([type=Type|Atts]),
-        ">".
+    "<input",
+    html_atts([type=Type|Atts]),
+    ">".
 html_str(textinput(Name,Atts,Text)) --> !,
-        "<textarea",
-        html_atts([name=Name|Atts]),
-        ">",
-        textarea_data(Text),
-        "</textarea>".
+    "<textarea",
+    html_atts([name=Name|Atts]),
+    ">",
+    textarea_data(Text),
+    "</textarea>".
 html_str(menu(Name,Atts,Items)) --> !,
-        "<select",
-        html_atts([name=Name|Atts]),
-        ">", newline,
-        html_options(Items),
-        "</select>".
+    "<select",
+    html_atts([name=Name|Atts]),
+    ">", newline,
+    html_options(Items),
+    "</select>".
 html_str(option(Name,Val,Options)) --> !,
-        "<select",
-        html_atts([name=Name]),
-        ">", newline,
-        html_one_option(Options, Val),
-        "</select>".
+    "<select",
+    html_atts([name=Name]),
+    ">", newline,
+    html_one_option(Options, Val),
+    "</select>".
 html_str(prolog_term(T)) --> !,
-        prolog_term(T).
+    prolog_term(T).
 % Constructs
 html_str(verbatim(Text)) --> !,
-        html_quoted(Text).
+    html_quoted(Text).
 html_str(nl) --> !, newline. % Just to improve HTML source readability
 html_str([]) --> !.
 html_str([E|Es]) --> !,
-        html_str(E),
-        html_str(Es).
+    html_str(E),
+    html_str(Es).
 html_str(begin(T)) --> {atom(T), atom_codes(T,TS)}, !,
-        "<",string(TS),">".
+    "<",string(TS),">".
 html_str(begin(T,Atts)) --> {atom(T), atom_codes(T,TS)}, !,
-        "<",string(TS),
-        html_atts(Atts),
-        ">".
+    "<",string(TS),
+    html_atts(Atts),
+    ">".
 html_str(end(T)) --> {atom(T), atom_codes(T,TS)}, !,
-        "</",string(TS),">".
+    "</",string(TS),">".
 html_str(env(Name,Atts,Text)) --> {atom(Name), atom_codes(Name,NS)}, !,
-        html_env_atts(NS,Atts,Text).
+    html_env_atts(NS,Atts,Text).
 html_str(T$Atts) --> {atom(T), atom_codes(T,TS)}, !,
-        "<",string(TS),
-        html_atts(Atts),
-        ">".
+    "<",string(TS),
+    html_atts(Atts),
+    ">".
 % XML empty element
 html_str(elem(N,Atts)) --> {atom(N), atom_codes(N,NS)}, !,
-        "<",string(NS),
-        html_atts(Atts),
-        "/>".
+    "<",string(NS),
+    html_atts(Atts),
+    "/>".
 html_str(F) --> {F =.. [Env,X], atom_codes(Env, ES)}, !,
-        html_env(ES,X).
+    html_env(ES,X).
 html_str(F) --> {F =.. [Env,Atts,X], atom_codes(Env, ES)}, !,
-        html_env_atts(ES,Atts,X).
+    html_env_atts(ES,Atts,X).
 html_str(C) --> {integer(C), C >= 0, C =< 255}, !, [C].
 html_str(T) -->
-        prolog_term(T).
+    prolog_term(T).
 
 newline --> [10].
 
 html_atts([]) --> [].
 html_atts([A|As]) -->
-        " ",
-        html_att(A),
-        html_atts(As).
+    " ",
+    html_att(A),
+    html_atts(As).
 
 html_att(A=V) --> {atom_codes(A,AS)}, !,
-        string(AS),"=""",html_quoted_quote(V),"""".
+    string(AS),"=""",html_quoted_quote(V),"""".
 html_att(A) -->  {atom_codes(A,AS)},
-        string(AS).
+    string(AS).
 
 html_quoted_quote(T) -->
-        { atomic(T), \+ T = "" -> name(T,TS) ; TS = T },
-        html_quoted_quote_chars(TS).
+    { atomic(T), \+ T = "" -> name(T,TS) ; TS = T },
+    html_quoted_quote_chars(TS).
 
 html_quoted_quote_chars([]) --> [].
 html_quoted_quote_chars([C|T]) -->
-        html_quoted_quote_char(C),
-        html_quoted_quote_chars(T).
+    html_quoted_quote_char(C),
+    html_quoted_quote_chars(T).
 
 html_quoted_quote_char(0'") --> !, "&quot;".
 html_quoted_quote_char(C)   --> [C].
 
 html_env(E,I) -->
-        "<",string(E),">",
-        html_str(I),
-        "</",string(E),">".
+    "<",string(E),">",
+    html_str(I),
+    "</",string(E),">".
 
 html_env_atts(E,Atts,I) -->
-        "<",string(E),
-        html_atts(Atts),
-        ">",
-        html_str(I),
-        "</",string(E),">".
+    "<",string(E),
+    html_atts(Atts),
+    ">",
+    html_str(I),
+    "</",string(E),">".
 
 html_items([]) --> [].
 html_items([It|Its]) -->
-        "<li>",
-        html_str(It),
-        "</li>",
-        newline,
-        html_items(Its).
+    "<li>",
+    html_str(It),
+    "</li>",
+    newline,
+    html_items(Its).
 
 html_descriptions([]) --> [].
 html_descriptions([D|Ds]) -->
-        html_description(D),
-        html_descriptions(Ds).
+    html_description(D),
+    html_descriptions(Ds).
 
 html_description((T,D)) --> !,
-        "<dt>",
-        html_str(T),
-        "</dt>",
-        newline,
-        html_description(D).
+    "<dt>",
+    html_str(T),
+    "</dt>",
+    newline,
+    html_description(D).
 html_description(D) -->
-        "<dd>",
-        html_str(D),
-        "</dd>",
-        newline.
+    "<dd>",
+    html_str(D),
+    "</dd>",
+    newline.
 
 preformatted_lines([]) --> [].
 preformatted_lines([X|Xs]) -->
-        html_str(X),
-        newline,
-        preformatted_lines(Xs).
+    html_str(X),
+    newline,
+    preformatted_lines(Xs).
 
 html_options([]) --> [].
 html_options([Op|Ops]) -->
-        html_option(Op),
-        newline,
-        html_options(Ops).
+    html_option(Op),
+    newline,
+    html_options(Ops).
 
 html_option($Op) --> !,
-        "<option selected>",html_quoted(Op),"</option>".
+    "<option selected>",html_quoted(Op),"</option>".
 html_option(Op) -->
-        "<option>",html_quoted(Op),"</option>".
+    "<option>",html_quoted(Op),"</option>".
 
 html_one_option([], _) --> [].
 html_one_option([Op|Ops], Sel) -->
-        "<option",
-        html_one_option_sel(Op, Sel),
-        ">",html_quoted(Op),"</option>",
-        newline,
-        html_one_option(Ops, Sel).
+    "<option",
+    html_one_option_sel(Op, Sel),
+    ">",html_quoted(Op),"</option>",
+    newline,
+    html_one_option(Ops, Sel).
 
 html_one_option_sel(Op, Op) --> !, " selected".
 html_one_option_sel(_, _) --> "".
 
 html_quoted(T) -->
-        {atomic(T) -> name(T,TS) ; TS = T},
-        html_quoted_chars(TS).
+    {atomic(T) -> name(T,TS) ; TS = T},
+    html_quoted_chars(TS).
 
 html_quoted_chars([]) --> [].
 html_quoted_chars([C|T]) -->
-        html_quoted_char(C),
-        html_quoted_chars(T).
+    html_quoted_char(C),
+    html_quoted_chars(T).
 
 html_quoted_char(0'>) --> !, "&gt;".
 html_quoted_char(0'<) --> !, "&lt;".
@@ -611,35 +611,35 @@ html_quoted_char(0'\n)--> !, "<br>".
 html_quoted_char(C)   --> [C].
 
 prolog_term(V) -->
-        {var(V)}, !, "_".
+    {var(V)}, !, "_".
 prolog_term(T) -->
-        {functor(T,F,A), atom_codes(F,FS)},
-        string(FS), prolog_term_maybe_args(A,T).
+    {functor(T,F,A), atom_codes(F,FS)},
+    string(FS), prolog_term_maybe_args(A,T).
 
 prolog_term_maybe_args(0,_) --> !, "".
 prolog_term_maybe_args(A,T) -->
-        "(",
-        prolog_term_args(1,A,T),
-        ")".
+    "(",
+    prolog_term_args(1,A,T),
+    ")".
 
 prolog_term_args(N, N, T) --> !,
-        {arg(N,T,A)},
-        prolog_term(A).
+    {arg(N,T,A)},
+    prolog_term(A).
 prolog_term_args(N, M, T) -->
-        {arg(N,T,A)},
-        prolog_term(A),
-        ",",
-        {N1 is N+1},
-        prolog_term_args(N1,M,T).
+    {arg(N,T,A)},
+    prolog_term(A),
+    ",",
+    {N1 is N+1},
+    prolog_term_args(N1,M,T).
 
 textarea_data('$empty') --> [], !.
 textarea_data(X) -->
-        {atomic(X), name(X,S)}, !,
-        string(S).
+    {atomic(X), name(X,S)}, !,
+    string(S).
 textarea_data(L) -->
-        html_lines(L), !.
+    html_lines(L), !.
 textarea_data(S) -->
-        string(S).
+    string(S).
 
 % ---------------------------------------------------------------------------
 
@@ -702,65 +702,65 @@ yes
 :- pred html_template(+string,?canonic_html_term,?list).
 
 html_template(Chars, Terms, Dict) :-
-        parse_html([], Terms, Dict, Chars, []).
+    parse_html([], Terms, Dict, Chars, []).
 
 % see a '<' - possible item
 parse_html(Stack,NStack,Dict) -->
-        "<",
-        {tidy_string(Stack, Stack2)},
-        html_unit(Stack2,Stack3,Dict), !,
-        parse_html(Stack3,NStack,Dict).
+    "<",
+    {tidy_string(Stack, Stack2)},
+    html_unit(Stack2,Stack3,Dict), !,
+    parse_html(Stack3,NStack,Dict).
 % build on an open string
 parse_html([Elem|Stack],NStack,Dict) -->
-        {nonvar(Elem), Elem = string(S,T)},
-        [C], !,
-        {T = [C|TT]},
-        parse_html([string(S,TT)|Stack],NStack,Dict).
+    {nonvar(Elem), Elem = string(S,T)},
+    [C], !,
+    {T = [C|TT]},
+    parse_html([string(S,TT)|Stack],NStack,Dict).
 % open a new string
 parse_html(Stack,NStack,Dict) -->
-        [C], !,
-        parse_html([string([C|T],T)|Stack],NStack,Dict).
+    [C], !,
+    parse_html([string([C|T],T)|Stack],NStack,Dict).
 % base case - close open strings
 parse_html(Stack,NStack,_Dict) --> "",
-        {tidy_string(Stack,Stack2),
-         reverse(Stack2,NStack)}.
+    {tidy_string(Stack,Stack2),
+     reverse(Stack2,NStack)}.
 
 % env terminators
 html_unit(S,NS,Dict) -->
-        "/",
-        html_tag(N),
-        whitespace0,
-        ">",
-        { poptokenstack(N,S,NS,Dict) },
-        !.
+    "/",
+    html_tag(N),
+    whitespace0,
+    ">",
+    { poptokenstack(N,S,NS,Dict) },
+    !.
 % comment
 html_unit(S,[comment(Text)|S],_Dict) -->
-        "!--",
-        string(Text),
-        "-->",
-        !.
+    "!--",
+    string(Text),
+    "-->",
+    !.
 % declaration
 html_unit(S,[declare(Text)|S],_Dict) -->
-        "!",
-        string(Text),
-        ">",
-        !.
+    "!",
+    string(Text),
+    ">",
+    !.
 % items
 html_unit(S,[N$A|S],Dict) -->
-        html_tag(N),
-        html_tag_atts(A,Dict),
-        whitespace0,
-        ">",
-        !.
+    html_tag(N),
+    html_tag_atts(A,Dict),
+    whitespace0,
+    ">",
+    !.
 
 html_tag(N) -->
-        loupalpha(C),
-        html_tag_rest(Cs),
-        { atom_codes(N,[C|Cs]) }.
+    loupalpha(C),
+    html_tag_rest(Cs),
+    { atom_codes(N,[C|Cs]) }.
 
 html_tag_rest([C|Cs]) -->
-        html_tag_char(C), !,
-        html_tag_rest(Cs).
+    html_tag_char(C), !,
+    html_tag_rest(Cs).
 html_tag_rest([]) --> "".
 
 html_tag_char(C) --> loupalpha(C), !.
@@ -771,177 +771,177 @@ html_tag_char(0'-) --> "-".
 
 html_tag_atts([],_Dict) --> "".
 html_tag_atts([A|As],Dict) -->
-        whitespace,
-        html_tag_att(A,Dict),
-        html_tag_atts(As,Dict).
+    whitespace,
+    html_tag_att(A,Dict),
+    html_tag_atts(As,Dict).
 
 % template variable
 html_tag_att(A,Dict) -->
-        "_", !, html_tag(N),
-        {list_lookup(Dict, (=), N, V)},
-        html_opt_value(A, V, Dict).
+    "_", !, html_tag(N),
+    {list_lookup(Dict, (=), N, V)},
+    html_opt_value(A, V, Dict).
 html_tag_att(A,Dict) -->
-        html_tag(N),
-        html_opt_value(A, N, Dict).
+    html_tag(N),
+    html_opt_value(A, N, Dict).
 
 html_opt_value(N = V, N, Dict) -->
-        whitespace0,
-        "=",
-        whitespace0,
-        html_value(V, Dict), !.
+    whitespace0,
+    "=",
+    whitespace0,
+    html_value(V, Dict), !.
 html_opt_value(N, N,_Dict) --> "".
 
 % template variable
 html_value(V, Dict) -->
-        "_", !,
-        html_tag(N),
-        {list_lookup(Dict, (=), N, V)}.
+    "_", !,
+    html_tag(N),
+    {list_lookup(Dict, (=), N, V)}.
 % html_value(V,_Dict) --> http_lo_up_token(V). % People do not write valid HTML
 html_value(V,_Dict) -->
-        """", !,
-        html_quoted_string(0'",V).
+    """", !,
+    html_quoted_string(0'",V).
 html_value(V,_Dict) -->
-        "'", !,
-        html_quoted_string(0'',V).
+    "'", !,
+    html_quoted_string(0'',V).
 html_value(V,_Dict) --> html_lax_value(V).
 
 html_quoted_string(Q, []) --> [Q], !.
 html_quoted_string(Q, [C|Cs]) -->
-        [C],
-        html_quoted_string(Q, Cs).
+    [C],
+    html_quoted_string(Q, Cs).
 
 html_lax_value([C|Cs]) --> [C], { C \== 0'> , C > 32 },
-        html_lax_value(Cs).
+    html_lax_value(Cs).
 html_lax_value([]) --> "".
 
 poptokenstack(EnvTag,Stack,NStack,Dict) :-
-        pop_ts(EnvTag,Stack,[],NStack,Dict),
-        !.
+    pop_ts(EnvTag,Stack,[],NStack,Dict),
+    !.
 poptokenstack(EnvTag,Stack,[SlashEnvTag$[]|Stack],_) :-
-        atom_concat('/',EnvTag,SlashEnvTag).
+    atom_concat('/',EnvTag,SlashEnvTag).
 
 pop_ts(EnvTag,[Elem|S],Insides,NS,Dict) :-
-        ( nonvar(Elem), Elem = EnvTag$Atts ->
-            elem_or_template_var(EnvTag,Atts,Insides,E,Dict),
-            NS = [E|S]
-        ; pop_ts(EnvTag,S,[Elem|Insides],NS,Dict)
-        ).
+    ( nonvar(Elem), Elem = EnvTag$Atts ->
+        elem_or_template_var(EnvTag,Atts,Insides,E,Dict),
+        NS = [E|S]
+    ; pop_ts(EnvTag,S,[Elem|Insides],NS,Dict)
+    ).
 
 elem_or_template_var('v',_,[NameS],Var,Dict) :-
-        catch(atom_codes(Name,NameS), _, fail),
-        list_lookup(Dict, (=), Name, Var),  !.
+    catch(atom_codes(Name,NameS), _, fail),
+    list_lookup(Dict, (=), Name, Var),  !.
 elem_or_template_var(EnvTag,Atts,Insides,env(EnvTag,Atts,Insides),_).
 
 tidy_string([Elem|Stack],[L|Stack]) :-
-        nonvar(Elem), Elem = string(L,T), !, T = [].
+    nonvar(Elem), Elem = string(L,T), !, T = [].
 tidy_string(Stack,Stack).
 
 % ---------------------------------------------------------------------------
 %% XML -> Terms translation %%
 
 parse_xml(Stack,NStack,Dict) -->
-        "<",
-        {tidy_string(Stack, Stack2)},
-        xml_unit(Stack2,Stack3,Dict), !,
-        parse_xml(Stack3,NStack,Dict).
+    "<",
+    {tidy_string(Stack, Stack2)},
+    xml_unit(Stack2,Stack3,Dict), !,
+    parse_xml(Stack3,NStack,Dict).
 % build on an open string
 parse_xml([Elem|Stack],NStack,Dict) -->
-        {nonvar(Elem), Elem = string(S,T)},
-        [C], !,
-        {T = [C|TT]},
-        parse_xml([string(S,TT)|Stack],NStack,Dict).
+    {nonvar(Elem), Elem = string(S,T)},
+    [C], !,
+    {T = [C|TT]},
+    parse_xml([string(S,TT)|Stack],NStack,Dict).
 % open a new string
 parse_xml(Stack,NStack,Dict) -->
-        [C], !,
-        parse_xml([string([C|T],T)|Stack],NStack,Dict).
+    [C], !,
+    parse_xml([string([C|T],T)|Stack],NStack,Dict).
 % base case - close open strings
 parse_xml(Stack,NStack,_Dict) --> "",
-        {tidy_string(Stack,Stack2),
-         reverse(Stack2,NStack)}.
+    {tidy_string(Stack,Stack2),
+     reverse(Stack2,NStack)}.
 
 % env terminators
 xml_unit(S,NS,Dict) -->
-        "/",
-        xml_tag(N),
-        whitespace0,
-        ">",
-        { poptokenstack(N,S,NS,Dict) },
-        !.
+    "/",
+    xml_tag(N),
+    whitespace0,
+    ">",
+    { poptokenstack(N,S,NS,Dict) },
+    !.
 % comment
 xml_unit(S,[comment(Text)|S],_Dict) -->
-        "!--",
-        string(Text),
-        "-->",
-        !.
+    "!--",
+    string(Text),
+    "-->",
+    !.
 % declaration
 xml_unit(S,[declare(Text)|S],_Dict) -->
-        "!",
-        string(Text),
-        ">",
-        !.
+    "!",
+    string(Text),
+    ">",
+    !.
 % xml declarations
 xml_unit(S,[xmldecl(Ats)|S],Dict) -->
-        "?xml",
-        xml_tag_atts(Ats,Dict),
-        whitespace0,
-        "?>",
-        !.
+    "?xml",
+    xml_tag_atts(Ats,Dict),
+    whitespace0,
+    "?>",
+    !.
 % elements or env beginnings
 xml_unit(S,[El|S],Dict) -->
-        xml_tag(N),
-        xml_tag_atts(A,Dict),
-        whitespace0,
-        elem_envbeg(El, N, A),
-        ">",
-        !.
+    xml_tag(N),
+    xml_tag_atts(A,Dict),
+    whitespace0,
+    elem_envbeg(El, N, A),
+    ">",
+    !.
 
 elem_envbeg(elem(N,A), N, A) -->
-        "/", !.
+    "/", !.
 elem_envbeg(N$A,N, A) --> "".
 
 xml_tag(N) -->
-        xml_tag_start(C),
-        xml_tag_rest(Cs),
-        { atom_codes(N,[C|Cs]) }.
+    xml_tag_start(C),
+    xml_tag_rest(Cs),
+    { atom_codes(N,[C|Cs]) }.
 
 xml_tag_atts([],_Dict) --> "".
 xml_tag_atts([A|As],Dict) -->
-        whitespace,
-        xml_tag_att(A,Dict),
-        xml_tag_atts(As,Dict).
+    whitespace,
+    xml_tag_att(A,Dict),
+    xml_tag_atts(As,Dict).
 
 xml_tag_att(N=V,Dict) -->
-        xml_tag(N),
-        whitespace0,
-        "=",
-        whitespace0,
-        xml_value(V, Dict).
+    xml_tag(N),
+    whitespace0,
+    "=",
+    whitespace0,
+    xml_value(V, Dict).
 
 xml_value(V, Dict) -->
-        "_", !,
-        xml_tag(N),
-        {list_lookup(Dict, (=), N, V)}.
+    "_", !,
+    xml_tag(N),
+    {list_lookup(Dict, (=), N, V)}.
 xml_value(V,_Dict) -->
-        """", !,
-        xml_quoted_string(0'",V).
+    """", !,
+    xml_quoted_string(0'",V).
 xml_value(V,_Dict) -->
-        "'", !,
-        xml_quoted_string(0'',V).
+    "'", !,
+    xml_quoted_string(0'',V).
 xml_value(V,_Dict) --> % This is not correct syntax
-        xml_bad_value(V).
+    xml_bad_value(V).
 
 xml_quoted_string(Q, []) --> [Q], !.
 xml_quoted_string(Q, [0'&,0'q,0'u,0'o,0't,0';|Cs]) -->
-        """", !,
-        xml_quoted_string(Q, Cs).
+    """", !,
+    xml_quoted_string(Q, Cs).
 xml_quoted_string(Q, [C|Cs]) -->
-        [C],
-        xml_quoted_string(Q, Cs).
+    [C],
+    xml_quoted_string(Q, Cs).
 
 xml_bad_value([]) --> "".
 xml_bad_value([C|Cs]) -->
-        [C],
-        xml_bad_value(Cs).
+    [C],
+    xml_bad_value(Cs).
 
 xml_tag_start(C) --> loalpha(C), !.
 xml_tag_start(C) --> upalpha(C), !.
@@ -949,8 +949,8 @@ xml_tag_start(0'_) --> "_".
 xml_tag_start(0':) --> ":".
 
 xml_tag_rest([C|Cs]) -->
-        xml_tag_char(C), !,
-        xml_tag_rest(Cs).
+    xml_tag_char(C), !,
+    xml_tag_rest(Cs).
 xml_tag_rest([]) --> "".
 
 xml_tag_char(C) --> loalpha(C), !.
@@ -965,10 +965,10 @@ xml_tag_char(0'-) --> "-".
 % TODO: duplicated (or similar) in many modules
 
 atomic_or_string(X) -->
-        { atomic(X), name(X,S) }, !,
-        string(S).
+    { atomic(X), name(X,S) }, !,
+    string(S).
 atomic_or_string(S) -->
-        string(S).
+    string(S).
 
 loupalpha(C) --> loalpha(C), !.
 loupalpha(C) --> upalpha(CU), { C is CU+0'a-0'A }.
@@ -983,12 +983,12 @@ html_crlf --> [13,10], !.
 html_crlf --> [10].
 
 html_line([]) -->
-        html_crlf, !.
+    html_crlf, !.
 html_line([X|T]) -->
-        [X],
-        html_line(T).
+    [X],
+    html_line(T).
 
 html_lines([L|Ls]) -->
-        html_line(L), !,
-        html_lines(Ls).
+    html_line(L), !,
+    html_lines(Ls).
 html_lines([]) --> "".

@@ -16,12 +16,12 @@
 
 % HTTP error responses
 html_error_response(Contents, Str) :-
-	error500_template(Contents, HTML),
-	html2terms(Str, HTML).
+    error500_template(Contents, HTML),
+    html2terms(Str, HTML).
 
 % % (old, simpler template)
 % error500_template(Contents, HTML) :-
-% 	HTML = [
+%       HTML = [
 %           start,
 %           title("Error Report"), 
 %           --,
@@ -34,38 +34,38 @@ html_error_response(Contents, Str) :-
 
 % HTML template for internal server error
 error500_template(Contents, HTML) :-
-	Title = "Error 500 (Internal Server Error)",
-	HTML = [
-          declare("DOCTYPE html"),
-          start,
-          head([
-              meta$['charset'="utf-8"],
-              meta$['name'="viewport",
-	            'content'="initial-scale=1, "||
-                              "minimum-scale=1, "||
-                              "width=device-width"],
-	      title(Title)
-          ]),
-	  env(style, [type='text/css'], [
-	      'html,code {',
-	      '  font-family: arial, sans-serif;',
-	      '  font-size:16px; line-height: 1.3em;',
-	      '}',
-	      'html {',
-	      '  background: white; color: black;',
-	      '}',
-	      'body {',
-	      '  margin: 10% auto 0;',
-	      '  max-width:400px;',
-	      '  min-height:200px;',
-	      '  padding: 40px 0 20px',
-	      '}'
-          ]),
-          begin(body, []),
-	  b(Title), \\,
-	  %
-	  Contents,
-          end(body),
-	  end
-        ].
+    Title = "Error 500 (Internal Server Error)",
+    HTML = [
+      declare("DOCTYPE html"),
+      start,
+      head([
+          meta$['charset'="utf-8"],
+          meta$['name'="viewport",
+                'content'="initial-scale=1, "||
+                          "minimum-scale=1, "||
+                          "width=device-width"],
+          title(Title)
+      ]),
+      env(style, [type='text/css'], [
+          'html,code {',
+          '  font-family: arial, sans-serif;',
+          '  font-size:16px; line-height: 1.3em;',
+          '}',
+          'html {',
+          '  background: white; color: black;',
+          '}',
+          'body {',
+          '  margin: 10% auto 0;',
+          '  max-width:400px;',
+          '  min-height:200px;',
+          '  padding: 40px 0 20px',
+          '}'
+      ]),
+      begin(body, []),
+      b(Title), \\,
+      %
+      Contents,
+      end(body),
+      end
+    ].
 

@@ -5,9 +5,9 @@
 
 main('mio.pl').
 adf(X):- 
-	( display(X) ->
-	  X==a
-	;
-	  X==b
-	).
+    ( display(X) ->
+      X==a
+    ;
+      X==b
+    ).
 

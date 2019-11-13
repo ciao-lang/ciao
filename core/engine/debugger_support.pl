@@ -20,11 +20,11 @@ t_port(call).
 :- export(t_debugger_state/1).
 :- prop t_debugger_state/1 + regtype.
 t_debugger_state(s(A,B,C,D,E)) :-
-	t_debug_flag(A),
-	t_debug_flag(B),
-	int(C),
-	int(D),
-	list(E,t_anc).
+    t_debug_flag(A),
+    t_debug_flag(B),
+    int(C),
+    int(D),
+    list(E,t_anc).
 
 :- export(t_debug_flag/1).
 :- prop t_debug_flag/1 + regtype.
@@ -59,30 +59,30 @@ t_on_off(off).
 :- meta_predicate srcdbg_spy(goal,?,?,?,?,?,?).
 
 srcdbg_spy(Goal, _, _, _, _, _, _) :-
-        term_to_meta(G, Goal),
-        '$meta_call'(G).
+    term_to_meta(G, Goal),
+    '$meta_call'(G).
 
 /*
 srcdbg_spy(Goal, _, _, _, _, _, _) :-
-	'$debugger_state'(State,State),
-	arg(1, State, X),
-	( X = off ->
-	     term_to_meta(G, Goal),
-	     '$meta_call'(G)
-	;
-	    true
-	).
+    '$debugger_state'(State,State),
+    arg(1, State, X),
+    ( X = off ->
+         term_to_meta(G, Goal),
+         '$meta_call'(G)
+    ;
+        true
+    ).
 */
 % srcdbg_spy(_,_,_,_,_,_):-
-%  	'$debugger_state'(State,State),
-%  	(  
-%  	    arg(1,State,trace)
-%  	;
-%  	    arg(1,State,debug)
-%  	),!.
+%       '$debugger_state'(State,State),
+%       (  
+%           arg(1,State,trace)
+%       ;
+%           arg(1,State,debug)
+%       ),!.
 
 % srcdbg_spy(Goal,_,_,_,_,_):-
-%  	'$debugger_state'(State,State),
-%  	arg(1,State,off),!,
-%  	term_to_meta(G,Goal),
-% 	'$meta_call'(G).
+%       '$debugger_state'(State,State),
+%       arg(1,State,off),!,
+%       term_to_meta(G,Goal),
+%       '$meta_call'(G).

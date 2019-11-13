@@ -13,8 +13,8 @@ counter(0).
 
 /* queens.pl */
 go:-
-	go_(12, T),
-	write('execution time is :'),write(T),nl.
+    go_(12, T),
+    write('execution time is :'),write(T),nl.
 
 
 go_(Size, T):-
@@ -56,9 +56,9 @@ make_list(N,[_|Rest]):-
 
 range(N,N,[N]) :- !.
 range(M,N,[M|Ns]) :-
-	M < N,
-	M1 is M+1,
-	range(M1,N,Ns).
+    M < N,
+    M1 is M+1,
+    range(M1,N,Ns).
 
 label([],_D).
 label([V|Vs],D):-
@@ -72,11 +72,11 @@ myselect([Y|Ys],[Y|Zs],X) :- myselect(Ys,Zs,X).
 %%% test %%%
 
 test(Size, T):-
-	retractall_fact(counter(_)),
-	assertz_fact(counter(0)), 
-	go_(Size, T), 
-	retract_fact(counter(I)), 
-	sol(Size, I).
+    retractall_fact(counter(_)),
+    assertz_fact(counter(0)), 
+    go_(Size, T), 
+    retract_fact(counter(I)), 
+    sol(Size, I).
 
 
 sol(1,1).
@@ -106,5 +106,5 @@ sol(24,227514171973736).
 sol(25,2207893435808352).
 sol(26,22317699616364044).
 sol(X, _):-
-	X >= 27, 
-	message(warning, 'queens_freeze : test no check').
+    X >= 27, 
+    message(warning, 'queens_freeze : test no check').

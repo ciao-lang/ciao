@@ -115,12 +115,12 @@
 :- use_module(library(tabling/tabling_rt)).
 
 :- reexport(library(tabling/tabling_rt),
-	    [
-		print_counters/0,        % debug:    print_counters_c
-		tabling_stats/0,
-		set_tabling_flag/2,      % debug:    set_tabling_flag_c
-		current_tabling_flag/2,  % debug:    current_tabling_flag_c
-		abolish_all_tables/0
-	    ]).
+        [
+            print_counters/0,        % debug:    print_counters_c
+            tabling_stats/0,
+            set_tabling_flag/2,      % debug:    set_tabling_flag_c
+            current_tabling_flag/2,  % debug:    current_tabling_flag_c
+            abolish_all_tables/0
+        ]).
 
 

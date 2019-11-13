@@ -1,115 +1,115 @@
 :- module(arithpreds,
-        [(-)/2,(+)/2,(--)/2,(++)/2,(+)/3,(-)/3,(*)/3,(//)/3,(/)/3,rem/3,mod/3,
-         abs/2,sign/2,float_integer_part/2,float_fractional_part/2,integer/2,
-         truncate/2,float/2,floor/2,round/2,ceiling/2,(**)/3,(>>)/3,(<<)/3,
-         (/\)/3,(\/)/3,(\)/2,(#)/3,exp/2,log/2,sqrt/2,sin/2,cos/2,atan/2,
-         gcd/3,arithfunctor/1],
-        []).
+    [(-)/2,(+)/2,(--)/2,(++)/2,(+)/3,(-)/3,(*)/3,(//)/3,(/)/3,rem/3,mod/3,
+     abs/2,sign/2,float_integer_part/2,float_fractional_part/2,integer/2,
+     truncate/2,float/2,floor/2,round/2,ceiling/2,(**)/3,(>>)/3,(<<)/3,
+     (/\)/3,(\/)/3,(\)/2,(#)/3,exp/2,log/2,sqrt/2,sin/2,cos/2,atan/2,
+     gcd/3,arithfunctor/1],
+    []).
 
 -(A,B) :-
-        B is -(A).
+    B is -(A).
 
 +(A,B) :-
-        B is +A.
+    B is +A.
 
 --(A,B) :-
-        B is --A.
+    B is --A.
 
 ++(A,B) :-
-        B is ++A.
+    B is ++A.
 
 +(A,B,C) :-
-        C is A+B.
+    C is A+B.
 
 -(A,B,C) :-
-        C is A-B.
+    C is A-B.
 
 *(A,B,C) :-
-        C is A*B.
+    C is A*B.
 
 //(A,B,C) :-
-        C is A//B.
+    C is A//B.
 
 /(A,B,C) :-
-        C is A/B.
+    C is A/B.
 
 rem(A,B,C) :-
-        C is A rem B.
+    C is A rem B.
 
 mod(A,B,C) :-
-        C is A mod B.
+    C is A mod B.
 
 abs(A,B) :-
-        B is abs(A).
+    B is abs(A).
 
 sign(A,B) :-
-        B is sign(A).
+    B is sign(A).
 
 float_integer_part(A,B) :-
-        B is float_integer_part(A).
+    B is float_integer_part(A).
 
 float_fractional_part(A,B) :-
-        B is float_fractional_part(A).
+    B is float_fractional_part(A).
 
 integer(A,B) :-
-        B is integer(A).
+    B is integer(A).
 
 truncate(A,B) :-
-        B is truncate(A).
+    B is truncate(A).
 
 float(A,B) :-
-        B is float(A).
+    B is float(A).
 
 floor(A,B) :-
-        B is floor(A).
+    B is floor(A).
 
 round(A,B) :-
-        B is round(A).
+    B is round(A).
 
 ceiling(A,B) :-
-        B is ceiling(A).
+    B is ceiling(A).
 
 **(A,B,C) :-
-        C is A**B.
+    C is A**B.
 
 >>(A,B,C) :-
-        C is A>>B.
+    C is A>>B.
 
 <<(A,B,C) :-
-        C is A<<B.
+    C is A<<B.
 
 /\(A,B,C) :-
-        C is A/\B.
+    C is A/\B.
 
 \/(A,B,C) :-
-        C is A\/B.
+    C is A\/B.
 
 \(A,B) :-
-        B is \A.
+    B is \A.
 
 #(A,B,C) :-
-        C is A#B.
+    C is A#B.
 
 exp(A,B) :-
-        B is exp(A).
+    B is exp(A).
 
 log(A,B) :-
-        B is log(A).
+    B is log(A).
 
 sqrt(A,B) :-
-        B is sqrt(A).
+    B is sqrt(A).
 
 sin(A,B) :-
-        B is sin(A).
+    B is sin(A).
 
 cos(A,B) :-
-        B is cos(A).
+    B is cos(A).
 
 atan(A,B) :-
-        B is atan(A).
+    B is atan(A).
 
 gcd(A,B,C) :-
-        C is gcd(A,B).
+    C is gcd(A,B).
 
 arithfunctor(-_) .
 arithfunctor(+_) .

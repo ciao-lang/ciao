@@ -13,10 +13,10 @@
 
 :- use_module(library(regexp/regexp_code), [match_term/2]).
 :- use_module(library(system),
-	[file_exists/1, file_property/2, directory_files/2]).
+    [file_exists/1, file_property/2, directory_files/2]).
 :- use_module(library(pathnames),
-	[pathname/1, path_concat/3, path_split_list/2,
-	 path_is_root/1]).
+    [pathname/1, path_concat/3, path_split_list/2,
+     path_is_root/1]).
 :- use_module(library(lists), [member/2]).
 
 :- export(glob_pattern/1).
@@ -30,7 +30,7 @@ glob_pattern(A) :- atm(A).
 
 :- export(glob/3).
 :- pred glob(Directory, Pattern, FileList)
-	:: pathname * pathname * list(pathname)
+    :: pathname * pathname * list(pathname)
    # "@var{FileList} is the list of pathnames matching the specified
       pathname pattern @var{Pattern}, relative to @var{Directory}.".
 
@@ -80,37 +80,37 @@ yes
 ").
 
 glob(Base, Pattern, Fs) :-
-	% Split Pattern path in components (each can be a pattern itself)
-	path_split_list(Pattern, Patterns1),
-	% Find matching patterns
-	( Patterns1 = [Root|Rest], path_is_root(Root) ->
-	    Base2 = Root, Patterns2 = Rest,
-	    findall(F, matching_path(Patterns2, '', Root, F), Fs)
-	; Base2 = Base, Patterns2 = Patterns1,
-	  findall(F, matching_path(Patterns2, Base2, '', F), Fs)
-	).
+    % Split Pattern path in components (each can be a pattern itself)
+    path_split_list(Pattern, Patterns1),
+    % Find matching patterns
+    ( Patterns1 = [Root|Rest], path_is_root(Root) ->
+        Base2 = Root, Patterns2 = Rest,
+        findall(F, matching_path(Patterns2, '', Root, F), Fs)
+    ; Base2 = Base, Patterns2 = Patterns1,
+      findall(F, matching_path(Patterns2, Base2, '', F), Fs)
+    ).
 
 matching_path([Pattern|Patterns], Base, Dir, F) :-
-	path_concat(Base, Dir, BaseDir),
-	file_exists(BaseDir),
-	directory_files(BaseDir, Files),
-	member(F0, Files),
-	match_term(Pattern, F0),
-	path_concat(Dir, F0, F1),
-	( Patterns = [] ->
-	    F = F1
-	; path_concat(Base, F1, BaseF1),
-	  file_property(BaseF1, type(directory)),
-	  matching_path(Patterns, Base, F1, F)
-	).
+    path_concat(Base, Dir, BaseDir),
+    file_exists(BaseDir),
+    directory_files(BaseDir, Files),
+    member(F0, Files),
+    match_term(Pattern, F0),
+    path_concat(Dir, F0, F1),
+    ( Patterns = [] ->
+        F = F1
+    ; path_concat(Base, F1, BaseF1),
+      file_property(BaseF1, type(directory)),
+      matching_path(Patterns, Base, F1, F)
+    ).
 
 :- export(glob/2).
 :- pred glob(Pattern, FileList)
-	:: pathname * list(pathname)
+    :: pathname * list(pathname)
    # "Like @pred{glob/3}, relative to the current directory
      (equivalent to @tt{glob('.', Pattern, FileList)})".
 
 glob(Pattern, FileList) :-
-	glob('.', Pattern, FileList).
+    glob('.', Pattern, FileList).
 
 

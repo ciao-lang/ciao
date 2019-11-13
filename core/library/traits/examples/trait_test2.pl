@@ -37,14 +37,14 @@
 
 :- test trait_test(X) =>
      X = [[true,false,r1,    [r1,    r2]],
-          [true,false,r1(e1),[r1(e1),r2]],
-          [true,false,r1(e1),[r1(e1),r2(e2)]]].
+      [true,false,r1(e1),[r1(e1),r2]],
+      [true,false,r1(e1),[r1(e1),r2(e2)]]].
 
 :- export(trait_test/1).
 trait_test([Y1,Y2,Y3]) :-
-	row(datum0,Y1),
-	row(datum1(e1),Y2),
-	row(datum2(e1,e2),Y3).
+    row(datum0,Y1),
+    row(datum1(e1),Y2),
+    row(datum2(e1,e2),Y3).
 
 row(A,Xs) :- findall(X,col(A,X),Xs).
 

@@ -1,16 +1,16 @@
 :- module(basic_props,
-        [term/1, int/1, nnegint/1, flt/1, num/1, atm/1, struct/1,
-	 gnd/1, gndstr/1, constant/1,
-	 callable/1, internal_module_id/1,
-	 operator_specifier/1, list/1, list/2, nlist/2, member/2,
-	 sequence/2, sequence_or_list/2, character_code/1, string/1,
-	 % byte/1, in_byte/1,
-	 num_code/1, predname/1, atm_or_atm_list/1, compat/2, inst/2,
-	 iso/1, deprecated/1, not_further_inst/2, sideff/2, regtype/1,
-	 native/1, native/2, rtcheck/1, rtcheck/2, no_rtcheck/1, eval/1,
-	 equiv/2, bind_ins/1, error_free/1, memo/1, filter/2, flag_values/1,
-	 pe_type/1 ],
-        [assertions, nortchecks, nativeprops]).
+    [term/1, int/1, nnegint/1, flt/1, num/1, atm/1, struct/1,
+     gnd/1, gndstr/1, constant/1,
+     callable/1, internal_module_id/1,
+     operator_specifier/1, list/1, list/2, nlist/2, member/2,
+     sequence/2, sequence_or_list/2, character_code/1, string/1,
+     % byte/1, in_byte/1,
+     num_code/1, predname/1, atm_or_atm_list/1, compat/2, inst/2,
+     iso/1, deprecated/1, not_further_inst/2, sideff/2, regtype/1,
+     native/1, native/2, rtcheck/1, rtcheck/2, no_rtcheck/1, eval/1,
+     equiv/2, bind_ins/1, error_free/1, memo/1, filter/2, flag_values/1,
+     pe_type/1 ],
+    [assertions, nortchecks, nativeprops]).
 
 :- doc(title,"Basic data types and properties").
 
@@ -55,8 +55,8 @@
 term(_).
 
 :- doc(int/1, "The type of integers. The range of integers is
-        @tt{[-2^2147483616, 2^2147483616)}.  Thus for all practical
-        purposes, the range of integers can be considered infinite.").
+    @tt{[-2^2147483616, 2^2147483616)}.  Thus for all practical
+    purposes, the range of integers can be considered infinite.").
 
 :- trust prop int(T) + (regtype, native) # "@var{T} is an integer.".
 :- trust comp int(T) + sideff(free).
@@ -68,10 +68,10 @@ term(_).
 int(X) :- integer(X).
 
 :- doc(nnegint/1, "The type of non-negative integers, i.e.,
-	natural numbers.").
+    natural numbers.").
 
 :- trust prop nnegint(T) + ( regtype, native )
-	# "@var{T} is a non-negative integer.".
+    # "@var{T} is a non-negative integer.".
 :- trust comp nnegint(T) + sideff(free).
 :- trust comp nnegint(T) : nonvar(T) + eval.
 :- trust success nnegint(T) => nnegint(T).
@@ -81,12 +81,12 @@ int(X) :- integer(X).
 nnegint(X) :- integer(X), X >= 0.
 
 :- doc(flt/1, "The type of floating-point numbers. The range of
-        floats is the one provided by the C @tt{double} type, typically
-        @tt{[4.9e-324, 1.8e+308]} (plus or minus).  There are also three
-        special values: Infinity, either positive or negative,
-        represented as @tt{1.0e1000} and @tt{-1.0e1000}; and
-        Not-a-number, which arises as the result of indeterminate
-        operations, represented as @tt{0.Nan}").
+    floats is the one provided by the C @tt{double} type, typically
+    @tt{[4.9e-324, 1.8e+308]} (plus or minus).  There are also three
+    special values: Infinity, either positive or negative,
+    represented as @tt{1.0e1000} and @tt{-1.0e1000}; and
+    Not-a-number, which arises as the result of indeterminate
+    operations, represented as @tt{0.Nan}").
 
 :- trust prop flt(T) + (regtype, native) # "@var{T} is a float.".
 :- trust comp flt(T) + sideff(free).
@@ -109,7 +109,7 @@ flt(X) :- float(X).
 num(X) :- number(X).
 
 :- doc(atm/1, "The type of atoms, or non-numeric constants.  The
-        size of atoms is unbound.").
+    size of atoms is unbound.").
 
 :- trust prop atm(T) + (regtype, native) # "@var{T} is an atom.".
 :- trust comp atm(T) + sideff(free).
@@ -179,7 +179,7 @@ constant(T) :- num(T).
 
 :- prop callable(T) + regtype
    # "@var{T} is a term which represents a goal, i.e.,
-        an atom or a structure.".
+    an atom or a structure.".
 :- trust comp callable(T) + sideff(free).
 :- trust comp callable(T) : nonvar(T) + (eval, is_det).
 :- trust success callable(T) => nonvar(T).
@@ -190,11 +190,11 @@ callable(T) :- struct(T).
 
 % TODO: rename?
 :- doc(internal_module_id/1, "For a user file it is a term user/1
-	with an argument different for each user file, for
-	other modules is just the name of the module (as an atom).").
+    with an argument different for each user file, for
+    other modules is just the name of the module (as an atom).").
 
 :- prop internal_module_id(M) + regtype #
-	"@var{M} is an internal module identifier".
+    "@var{M} is an internal module identifier".
 
 internal_module_id(user(M)) :- atm(M). % TODO: do in other way?
 internal_module_id(M) :- atm(M).
@@ -231,7 +231,7 @@ way around.
 ").
 
 :- prop operator_specifier(X) + regtype # "@var{X} specifies the type and
-        associativity of an operator.".
+    associativity of an operator.".
 :- trust comp operator_specifier(X) + sideff(free).
 :- trust comp operator_specifier(X) : nonvar(X) + (eval, is_det, relations(7)).
 :- trust success operator_specifier(T) => operator_specifier(T).
@@ -267,13 +267,13 @@ list([_|L]) :- list(L).
 
 list([],_).
 list([X|Xs], T) :-
-        T(X),
-        list(Xs, T).
+    T(X),
+    list(Xs, T).
 
 :- prop nlist(L,T) + regtype #
-	"@var{L} is @var{T} or a nested list of @var{T}s.  Note that
-	if @var{T} is term, this type is equivalent to term, this
-	fact explain why we do not have a @pred{nlist/1} type.".
+    "@var{L} is @var{T} or a nested list of @var{T}s.  Note that
+    if @var{T} is term, this type is equivalent to term, this
+    fact explain why we do not have a @pred{nlist/1} type.".
 :- trust comp nlist(L,T) + sideff(free).
 :- meta_predicate nlist(?, pred(1)).
 :- trust comp nlist(L,T) : (ground(L),ground(T)) + eval.
@@ -281,10 +281,10 @@ list([X|Xs], T) :-
 
 nlist([], _).
 nlist([X|Xs], T) :-
-        nlist(X, T),
-        nlist(Xs, T).
+    nlist(X, T),
+    nlist(Xs, T).
 nlist(X, T) :-
-	T(X).
+    T(X).
 
 :- prop member(X,L) # "@var{X} is an element of @var{L}.".
 :- trust comp member(X,L) + (sideff(free), bind_ins).
@@ -308,8 +308,8 @@ member(X, [_Y|Xs]):- member(X, Xs).
 
 sequence(E, T) :- T(E).
 sequence((E,S), T) :-
-        T(E),
-        sequence(S,T).
+    T(E),
+    sequence(S,T).
 
 :- prop sequence_or_list(S,T) + regtype
    # "@var{S} is a sequence or list of @var{T}s.".
@@ -330,11 +330,11 @@ sequence_or_list(E, T) :- sequence(E, T).
 character_code(I) :- int(I).
 
 :- doc(string/1, "A string is a list of character codes.  The usual
-        syntax for strings @tt{\"string\"} is allowed, which is
-        equivalent to @tt{[0's,0't,0'r,0'i,0'n,0'g]} or
-        @tt{[115,116,114,105,110,103]}.  There is also a special Ciao
-        syntax when the list is not complete: @tt{\"st\"||R} is
-        equivalent to @tt{[0's,0't|R]}.").
+    syntax for strings @tt{\"string\"} is allowed, which is
+    equivalent to @tt{[0's,0't,0'r,0'i,0'n,0'g]} or
+    @tt{[115,116,114,105,110,103]}.  There is also a special Ciao
+    syntax when the list is not complete: @tt{\"st\"||R} is
+    equivalent to @tt{[0's,0't|R]}.").
 
 :- prop string(T) + regtype
    # "@var{T} is a string (a list of character codes).".
@@ -345,8 +345,8 @@ character_code(I) :- int(I).
 string(T) :- list(T, character_code).
 
 :- doc(num_code/1, "These are the ASCII codes which can appear in
-	decimal representation of floating point and integer numbers,
-	including scientific notation and fractionary part.").
+    decimal representation of floating point and integer numbers,
+    including scientific notation and fractionary part.").
 
 :-  true prop num_code/1 + regtype.
 
@@ -392,7 +392,7 @@ num_code(0'-).
 
 
 :- doc(predname(P),"@var{P} is a Name/Arity structure denoting
-	a predicate name: @includedef{predname/1}").
+    a predicate name: @includedef{predname/1}").
 
 :- prop predname(P) + regtype # "@var{P} is a predicate name.".
 :- trust comp predname(P) + sideff(free).
@@ -400,8 +400,8 @@ num_code(0'-).
 :- trust success predname(P) => predname(P).
 
 predname(P/A) :-
-	atm(P),
-	nnegint(A).
+    atm(P),
+    nnegint(A).
 
 :- prop atm_or_atm_list(T) + regtype
    # "@var{T} is an atom or a list of atoms.".
@@ -439,17 +439,17 @@ compat(T, P) :- \+ \+ P(T).
 
 
 :- prop inst(Term,Prop)
-	# "@var{Term} is instantiated enough to satisfy @var{Prop}.".
+    # "@var{Term} is instantiated enough to satisfy @var{Prop}.".
 :- trust comp inst(Term,Prop) + sideff(free).
 :- trust comp inst(Term,Prop) : (ground(Term),ground(Prop)) + eval.
 
 :- meta_predicate inst(?,pred(1)).
 
 inst( X , Prop ) :-
-	A = Prop( X ),
-	copy_term( A , AC ),
-	AC,
-	instance( A , AC ).
+    A = Prop( X ),
+    copy_term( A , AC ),
+    AC,
+    instance( A , AC ).
 
 
 :- prop iso(G) # "@em{Complies with the ISO-Prolog standard.}".
@@ -473,27 +473,27 @@ iso(Goal) :- call(Goal).
 deprecated(Goal) :- call(Goal).
 
 :- prop rtc_status(S) + regtype # "@var{S} is the status of the
-	runtime-check implementation for a given property. Valid
-	values are:
+    runtime-check implementation for a given property. Valid
+    values are:
  @begin{itemize}
 
  @item complete: The implementation of the run-time check for this
-                 property is complete. i.e., an error is reported
-                 always if the property is violated. Default.
+             property is complete. i.e., an error is reported
+             always if the property is violated. Default.
 
  @item incomplete: The current run-time check is incomplete, i.e., it
-                   is possible that no error is reported even if the
-                   property is violated.
+               is possible that no error is reported even if the
+               property is violated.
 
  @item unimplemented: No run-time checker has been implemented (yet)
-                      for the property.
+                  for the property.
 
  @item unknown: It has not been determined yet whether the current
-                implementation of the run-time checker is complete or
-                not.
+            implementation of the run-time checker is complete or
+            not.
 
  @item impossible: The property cannot be checked at run time (for
-		   theoretical or practical reasons).
+               theoretical or practical reasons).
 
  @end{itemize}
 ".
@@ -505,7 +505,7 @@ rtc_status(unknown).
 rtc_status(impossible).
 
 :- prop rtcheck(G, Status) : callable * rtc_status # "The runtime
-	check of this property is @var{Status}.".
+    check of this property is @var{Status}.".
 :- trust comp rtcheck(G, Status) + sideff(free).
 
 :- meta_predicate rtcheck(goal, ?).
@@ -513,7 +513,7 @@ rtc_status(impossible).
 rtcheck(Goal, _) :- call(Goal).
 
 :- prop rtcheck(G) : callable # "Equivalent to rtcheck(G, 
-	complete).".
+    complete).".
 :- trust comp rtcheck(G) + sideff(free).
 
 :- meta_predicate rtcheck(goal).
@@ -521,9 +521,9 @@ rtcheck(Goal, _) :- call(Goal).
 rtcheck(Goal) :- rtcheck(Goal, complete).
 
 :- doc(no_rtcheck/1,"This comp pseudo-property is used to declare that
-	the assertion in which it appears should not be checked at
-	run-time.  Equivalent to @tt{rtcheck(G, S)} with @tt{S}
-	unimplemented, impossible, etc.").
+    the assertion in which it appears should not be checked at
+    run-time.  Equivalent to @tt{rtcheck(G, S)} with @tt{S}
+    unimplemented, impossible, etc.").
 
 :- prop no_rtcheck(G) : callable # "@var{G} is not checked during
    run-time checking.".
@@ -534,7 +534,7 @@ rtcheck(Goal) :- rtcheck(Goal, complete).
 no_rtcheck(Goal) :- rtcheck(Goal, impossible).
 
 :- prop not_further_inst(G,V)
-        # "@var{V} is not further instantiated.". % by the predicate
+    # "@var{V} is not further instantiated.". % by the predicate
 :- trust comp not_further_inst(G,V) + (sideff(free), no_rtcheck).
 
 :- meta_predicate not_further_inst(goal, ?).
@@ -586,7 +586,7 @@ native(X) :- native(X, X).
 eval(Goal) :- call(Goal).
 
 :- prop equiv(Goal1,Goal2)
-	# "@var{Goal1} is equivalent to @var{Goal2}.".
+    # "@var{Goal1} is equivalent to @var{Goal2}.".
 
 :- meta_predicate equiv(goal,goal).
 
@@ -608,7 +608,7 @@ error_free(Goal) :- call(Goal).
 memo(Goal) :- call(Goal).
 
 :- prop filter(Vars,Goal) # "@var{Vars} should be filtered during
-	global control).".
+    global control).".
 
 filter(Goal, _) :- call(Goal).
 
@@ -620,8 +620,8 @@ flag_values(integer).
 flag_values(L):- list(L,atm).
 
 :- prop pe_type(Goal) # "@var{Goal} will be filtered in partial
-	evaluation time according to the PE types defined in the
-	assertion.".
+    evaluation time according to the PE types defined in the
+    assertion.".
 
 :- meta_predicate pe_type(goal).
 pe_type(Goal) :- call(Goal).

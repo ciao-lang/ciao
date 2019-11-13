@@ -24,10 +24,10 @@ $ ciaoc_car SRC DST
 
 :- use_module(library(pathnames), [path_basename/2, path_concat/3]).
 :- use_module(library(system),
-	[mktemp_in_tmp/2,
-	 file_exists/1,
-	 delete_file/1, delete_directory/1,
-	 copy_file/2]).
+    [mktemp_in_tmp/2,
+     file_exists/1,
+     delete_file/1, delete_directory/1,
+     copy_file/2]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(process), [process_call/3]).
 
@@ -59,36 +59,36 @@ $ ciaoc_car SRC DST
 :- use_module(engine(internals), [ciao_root/1]).
 
 main([SRC, DST]):-
-	make_car_exec(SRC, DST).
+    make_car_exec(SRC, DST).
 
 make_car_exec(SRC, DST):-
-	ciao_root(CiaoRoot),
-	path_concat(CiaoRoot, 'builder/sh_boot/car_exec_stub.sh', ExecStub),
-	%
-	path_basename(DST, DST_BASE_NAME), 
-	%
-	atom_concat(DST, '.car', DST_CAR),
-	path_concat(DST_CAR, 'build/bin', DST_bindir),
-	path_concat(DST_bindir, DST_BASE_NAME, DST_BIN), 
-	%
-	mktemp_in_tmp('ciao_make_car.XXXXXXXX', TMP),
-	%
-	make_exec([SRC], TMP),
-	%
-	(file_exists(DST) -> rec_delete_file(DST) ;  true),
-	(file_exists(DST_CAR) -> rec_delete_file(DST_CAR);  true),
-	%
-	% ignore error 
-	rec_copy_file(CiaoRoot, DST_CAR),
-	rec_copy_file(ExecStub, DST), 
-	rec_copy_file(TMP, DST_BIN), 
-	rec_delete_file(TMP).
+    ciao_root(CiaoRoot),
+    path_concat(CiaoRoot, 'builder/sh_boot/car_exec_stub.sh', ExecStub),
+    %
+    path_basename(DST, DST_BASE_NAME), 
+    %
+    atom_concat(DST, '.car', DST_CAR),
+    path_concat(DST_CAR, 'build/bin', DST_bindir),
+    path_concat(DST_bindir, DST_BASE_NAME, DST_BIN), 
+    %
+    mktemp_in_tmp('ciao_make_car.XXXXXXXX', TMP),
+    %
+    make_exec([SRC], TMP),
+    %
+    (file_exists(DST) -> rec_delete_file(DST) ;  true),
+    (file_exists(DST_CAR) -> rec_delete_file(DST_CAR);  true),
+    %
+    % ignore error 
+    rec_copy_file(CiaoRoot, DST_CAR),
+    rec_copy_file(ExecStub, DST), 
+    rec_copy_file(TMP, DST_BIN), 
+    rec_delete_file(TMP).
 
 rec_copy_file(SRC, DST):-
-	process_call(path(cp), ['-fRp', SRC, DST], []).
+    process_call(path(cp), ['-fRp', SRC, DST], []).
 
 rec_delete_file(FILE):-
-	( process_call(path(rm), ['-R', FILE], [status(0)]) ->
-	    true
-	; throw(error(rec_delete_file/1))
-	).
+    ( process_call(path(rm), ['-R', FILE], [status(0)]) ->
+        true
+    ; throw(error(rec_delete_file/1))
+    ).

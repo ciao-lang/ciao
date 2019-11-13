@@ -31,7 +31,7 @@ normalize(Term, K, I, H) :-
 normalize(list,      _, _, _, _) :- !, fail.
 normalize(integer,   I, 1, I, []) :- !.
 normalize(float,     I, 1, I, []) :- !.
-normalize(atom,      Term, 1, 0, [Term*1]) :- !.		% constants: (e.g. eps)
+normalize(atom,      Term, 1, 0, [Term*1]) :- !.                % constants: (e.g. eps)
 normalize(structure, Term, K, I, H) :- !, normalize_structure(Term, K, I, H).
 normalize(attv,      X, K, I, H) :-  get_attribute(X, M), !, normalize_meta(M, K, I, H).
 % Default case: X is a variable without local attribute (_Type is var o attv.).
@@ -143,33 +143,33 @@ factor_kk(A,Ka, B,Kb, I,H) :-
   add_linear_11(Ha, Hb, H).
 
 add_f_log(1, [D*E|C], A, B, C) :- !,
-        factor_k(D, E, A, B).
+    factor_k(D, E, A, B).
 add_f_log(2, [D*E,F*G|C], A, B, C) :- !,
-        factor_kk(D, E, F, G, A, B).
+    factor_kk(D, E, F, G, A, B).
 add_f_log(3, [D*E,F*G,H*I|C], A, B, C) :- !,
-        factor_k(D, E, J, K),
-        factor_kk(F, G, H, I, L, M),
-        add_linear_11(K, M, B),
-        arith_eval(J+L, A).
+    factor_k(D, E, J, K),
+    factor_kk(F, G, H, I, L, M),
+    add_linear_11(K, M, B),
+    arith_eval(J+L, A).
 add_f_log(4, [D*E,F*G,H*I,J*K|C], A, B, C) :- !,
-        factor_kk(D, E, F, G, L, M),
-        factor_kk(H, I, J, K, N, O),
-        arith_eval(L+N, A),
-        add_linear_11(M, O, B).
+    factor_kk(D, E, F, G, L, M),
+    factor_kk(H, I, J, K, N, O),
+    arith_eval(L+N, A),
+    add_linear_11(M, O, B).
 add_f_log(5, [D*E,F*G,H*I,J*K,L*M|C], A, B, C) :- !,
-        factor_kk(D, E, F, G, N, O),
-        factor_k(H, I, P, Q),
-        factor_kk(J, K, L, M, R, S),
-        add_linear_11(Q, S, T),
-        arith_eval(N+P+R, A),
-        add_linear_11(O, T, B).
+    factor_kk(D, E, F, G, N, O),
+    factor_k(H, I, P, Q),
+    factor_kk(J, K, L, M, R, S),
+    add_linear_11(Q, S, T),
+    arith_eval(N+P+R, A),
+    add_linear_11(O, T, B).
 add_f_log(A, B, C, D, E) :-
-        F is A>>1,
-        G is A-F,
-        add_f_log(F, B, H, I, J),
-        add_f_log(G, J, K, L, E),
-        arith_eval(H+K, C),
-        add_linear_11(I, L, D).
+    F is A>>1,
+    G is A-F,
+    add_f_log(F, B, H, I, J),
+    add_f_log(G, J, K, L, E),
+    arith_eval(H+K, C),
+    add_linear_11(I, L, D).
 
 % ------------------------ lower level linear term ops -------------------------
 %
@@ -260,42 +260,42 @@ nf_order_merge([A|As], [B|Bs], Res) :-
 delete_factors(Set1, [],    Set1, []) :- !.
 delete_factors([],   Vars,  [],   Ks) :- !, delete_factors(Vars, Ks).
 delete_factors([Head1|Tail1], [V2|Tail2], Difference, Ks) :-
-        Head1 = V1*_,
-	compare(Order, V2, V1),
-	delete_factors(Order, Head1, Tail1, V2, Tail2, Difference, Ks).
+    Head1 = V1*_,
+    compare(Order, V2, V1),
+    delete_factors(Order, Head1, Tail1, V2, Tail2, Difference, Ks).
 
 delete_factors(=, _*K,     Tail1, _,     Tail2, Difference, [K|Ks]) :-
-	delete_factors(Tail1, Tail2, Difference, Ks).
+    delete_factors(Tail1, Tail2, Difference, Ks).
 delete_factors(<, Head1, Tail1, Head2, Tail2, [Head1|Difference], Ks) :-
-	delete_factors(Tail1, [Head2|Tail2], Difference, Ks).
+    delete_factors(Tail1, [Head2|Tail2], Difference, Ks).
 delete_factors(>, Head1, Tail1, _,     Tail2, Difference, [0|Ks]) :-
-	delete_factors([Head1|Tail1], Tail2, Difference, Ks).
+    delete_factors([Head1|Tail1], Tail2, Difference, Ks).
 */
 
 add_linear_ff([], _, A, B, C) :- !,
-        mult_linear_factor(A, B, C).
+    mult_linear_factor(A, B, C).
 add_linear_ff(A, B, [], _, C) :- !,
-        mult_linear_factor(A, B, C).
+    mult_linear_factor(A, B, C).
 add_linear_ff([E*F|D], A, [H*I|G], B, C) :-
-        compare(J, H, E),
-        (  J= =,
-	    arith_eval(A*F,K1),
-	    arith_eval(B*I,K2),
-	    arith_eval(K1+K2, K),
-            (  arith_eval(K1=:= -K2) ->
-                C=L
-            ;   C=[E*K|L]
-            ),
-            add_linear_ff(D, A, G, B, L)
-        ;   J= <,
-            C=[E*N|M],
-            arith_eval(A*F, N),
-            add_linear_ff(D, A, [H*I|G], B, M)
-        ;   J= >,
-            C=[H*P|O],
-            arith_eval(B*I, P),
-            add_linear_ff([E*F|D], A, G, B, O)
-        ).
+    compare(J, H, E),
+    (  J= =,
+        arith_eval(A*F,K1),
+        arith_eval(B*I,K2),
+        arith_eval(K1+K2, K),
+        (  arith_eval(K1=:= -K2) ->
+            C=L
+        ;   C=[E*K|L]
+        ),
+        add_linear_ff(D, A, G, B, L)
+    ;   J= <,
+        C=[E*N|M],
+        arith_eval(A*F, N),
+        add_linear_ff(D, A, [H*I|G], B, M)
+    ;   J= >,
+        C=[H*P|O],
+        arith_eval(B*I, P),
+        add_linear_ff([E*F|D], A, G, B, O)
+    ).
 
 % specialized versions thereof:
 % add_linear_11(A, B, Res) :- add_linear_ff(A, 1, B, 1, Res).
@@ -303,52 +303,52 @@ add_linear_ff([E*F|D], A, [H*I|G], B, C) :-
 add_linear_11([], A, A) :- !.
 add_linear_11(A, [], A) :- !.
 add_linear_11([E*F|D], [H*I|G], C) :-
-        compare(J, H, E),
-        (  J= =,
-	    arith_eval(F, K1),
-	    arith_eval(I, K2),
-            arith_eval(K1+K2, K),
-            (  arith_eval(K1=:= -K2) ->
-                C=L
-            ;   C=[E*K|L]
-            ),
-            add_linear_11(D, G, L)
-        ;   J= <,
-            C=[E*F|M],
-            add_linear_11(D, [H*I|G], M)
-        ;   J= >,
-            C=[H*I|O],
-            add_linear_11([E*F|D], G, O)
-        ).
+    compare(J, H, E),
+    (  J= =,
+        arith_eval(F, K1),
+        arith_eval(I, K2),
+        arith_eval(K1+K2, K),
+        (  arith_eval(K1=:= -K2) ->
+            C=L
+        ;   C=[E*K|L]
+        ),
+        add_linear_11(D, G, L)
+    ;   J= <,
+        C=[E*F|M],
+        add_linear_11(D, [H*I|G], M)
+    ;   J= >,
+        C=[H*I|O],
+        add_linear_11([E*F|D], G, O)
+    ).
 
 % add_linear_1f(A, B, K, Res) :- add_linear_ff(A, 1, B, K, Res).
 %
 add_linear_1f([], A, B, C) :- !,
-        mult_linear_factor(A, B, C).
+    mult_linear_factor(A, B, C).
 add_linear_1f(A, [], _, A) :- !.
 add_linear_1f([E*F|D], [H*I|G], B, C) :-
-        compare(J, H, E),
-        (  J= =,
-            arith_eval(F, K1),
-	    arith_eval(B*I, K2),
-            arith_eval(K1+K2, K),
-            (  arith_eval(K1=:= -K2) ->
-                C=L
-            ;   C=[E*K|L]
-            ),
-            add_linear_1f(D, G, B, L)
-        ;   J= <,
-            C=[E*F|M],
-            add_linear_1f(D, [H*I|G], B, M)
-        ;   J= >,
-            C=[H*P|O],
-            arith_eval(B*I, P),
-            add_linear_1f([E*F|D], G, B, O)
-        ).
+    compare(J, H, E),
+    (  J= =,
+        arith_eval(F, K1),
+        arith_eval(B*I, K2),
+        arith_eval(K1+K2, K),
+        (  arith_eval(K1=:= -K2) ->
+            C=L
+        ;   C=[E*K|L]
+        ),
+        add_linear_1f(D, G, B, L)
+    ;   J= <,
+        C=[E*F|M],
+        add_linear_1f(D, [H*I|G], B, M)
+    ;   J= >,
+        C=[H*P|O],
+        arith_eval(B*I, P),
+        add_linear_1f([E*F|D], G, B, O)
+    ).
 
-mult_linear_factor([], _, []).		% quite common
+mult_linear_factor([], _, []).          % quite common
 mult_linear_factor([H|T],  K, L ) :-
-  ( arith_eval(K=:=1) ->        		% avoid to copy
+  ( arith_eval(K=:=1) ->                        % avoid to copy
        L = [H|T]
   ;
        H = A*Fa,

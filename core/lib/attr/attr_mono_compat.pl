@@ -14,34 +14,34 @@ efficient.").
 :- use_module(library(lists), [append/3]).
 
 attach_attribute(Var, Attr):-
-	put_attr_local(Var, Attr).
+    put_attr_local(Var, Attr).
 
 update_attribute(Var, Attr):-
-	put_attr_local(Var, Attr).
+    put_attr_local(Var, Attr).
 
 get_attribute(Var, Attr):-
-	var(Var),
-	get_attr_local(Var, Attr).
+    var(Var),
+    get_attr_local(Var, Attr).
 
 detach_attribute(Var) :- nonvar(Var), !.
 detach_attribute(Var) :-
-	del_attr_local(Var).
+    del_attr_local(Var).
 
 attr_unify_hook(Attr1, Other):-
-        (
-            nonvar(Other) ->
-            verify_attribute(Attr1, Other)
-        ;
-            get_attr_local(Other, Attr2) ->
-            combine_attributes(Attr1, Attr2)
-        ;
-            put_attr_local(Other, Attr1)
-        ).
+    (
+        nonvar(Other) ->
+        verify_attribute(Attr1, Other)
+    ;
+        get_attr_local(Other, Attr2) ->
+        combine_attributes(Attr1, Attr2)
+    ;
+        put_attr_local(Other, Attr1)
+    ).
 
 :- push_prolog_flag(multi_arity_warnings, off).
 dump_constraints(Term, Copy, Cs, Cs0):-
-	dump_constraints(Term, Copy, Cs1), 
-	lists:append(Cs1, Cs0, Cs).
+    dump_constraints(Term, Copy, Cs1), 
+    lists:append(Cs1, Cs0, Cs).
 
 :- discontiguous(dump_constraints/3).
 dump_constraints(_, _, _) :- fail.

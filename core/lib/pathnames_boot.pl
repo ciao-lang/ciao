@@ -9,10 +9,10 @@
 
 path_concat('', B, R) :- !, R = B.
 path_concat(_A, B, R) :- '$path_is_absolute'(B), !,
-	R = B.
+    R = B.
 path_concat(A, B, R) :-
-	( atom_concat(_, '/', A) ->
-	    A0 = A
-        ; atom_concat(A, '/', A0) % add '/' if needed
-	),
-	atom_concat(A0, B, R).
+    ( atom_concat(_, '/', A) ->
+        A0 = A
+    ; atom_concat(A, '/', A0) % add '/' if needed
+    ),
+    atom_concat(A0, B, R).

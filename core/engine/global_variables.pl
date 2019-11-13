@@ -26,9 +26,9 @@
 % global variables based on setarg
 :- export('$global_vars_set'/2).
 '$global_vars_set'(I, X) :-
-	'$global_vars_get_root'(R),
-	'$setarg'(I, R, X, on).
+    '$global_vars_get_root'(R),
+    '$setarg'(I, R, X, on).
 :- export('$global_vars_get'/2).
 '$global_vars_get'(I, X) :-
-	'$global_vars_get_root'(R),
-	arg(I, R, X).
+    '$global_vars_get_root'(R),
+    arg(I, R, X).

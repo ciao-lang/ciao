@@ -18,4 +18,4 @@
 % :- unfold arith_eval(yes, no).
 % :- unfold ieee754_eps(yes).
 % :- inline_module(library(clpr/eval_r),
-% 	    [arith_eps/1, arith_zero/1, arith_eval/2, arith_eval/1]).
+%           [arith_eps/1, arith_zero/1, arith_eval/2, arith_eval/1]).

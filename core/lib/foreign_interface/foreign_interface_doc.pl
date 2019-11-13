@@ -121,8 +121,8 @@ types and modes of the C function.  A sample declaration for
 
 @begin{verbatim} 
 :- trust pred prolog_predicate( m1(Arg1), ... mN(ArgN) ) 
-         :: type1 * ... * typeN 
-          + ( foreign(foreign_function_name), returns(ArgR) ).
+     :: type1 * ... * typeN 
+      + ( foreign(foreign_function_name), returns(ArgR) ).
 @end{verbatim}
 
 @noindent where
@@ -161,7 +161,7 @@ A simplified, minimal form is thus:
 
 @begin{verbatim} 
 :- trust pred prolog_predicate(m1(Arg1), ... mN(ArgN)) 
-         :: type1 * ... * typeN + foreign.
+     :: type1 * ... * typeN + foreign.
 @end{verbatim}
 
 @section{Equivalence between Ciao and C types}
@@ -265,7 +265,7 @@ should appear in the C code as
 
 @begin{verbatim}
 void get_int(int *thisint) @{
-        ....
+    ....
 @}
 @end{verbatim}
 
@@ -763,9 +763,9 @@ The following example defines a predicate in C that converts a list of
 codes into a number using @tt{strtol()}. If this conversion fails, then
 a exception is raised.
 
-	
+    
 @bf{File} @em{exceptions_example.pl}:
-	
+    
 @begin{verbatim}
 @includeverbatim{foreign_interface/examples/exceptions/exceptions_example.pl}
 @end{verbatim}

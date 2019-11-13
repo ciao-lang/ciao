@@ -6,9 +6,9 @@
 
 create_streams([])     := [].
 create_streams([N|NL]) := [ ~open_file(Fname,write) | ~create_streams(NL) ] 
-	:-
- 	app("/tmp/../",~number_codes(N),Fname).
-%	app("/tmp/",~number_codes(N),Fname).
+    :-
+    app("/tmp/../",~number_codes(N),Fname).
+%       app("/tmp/",~number_codes(N),Fname).
 
 app([],L) := L.
 app([X|Xs],L) := [X|~app(Xs,L)].

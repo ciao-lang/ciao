@@ -12,7 +12,7 @@
    want to be part of the module being tested.").
 
 :- doc(bug, "load_compilation_module, load_test_module and
-             load_resource_module directives have similar behavior").
+         load_resource_module directives have similar behavior").
 
 :- use_module(engine(stream_basic), [sourcename/1]).
 

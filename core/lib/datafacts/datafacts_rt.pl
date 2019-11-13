@@ -1,10 +1,10 @@
 :- module(datafacts_rt, [
-        asserta_fact/1, asserta_fact/2, assertz_fact/1, assertz_fact/2,
-        current_fact/1, current_fact/2, retract_fact/1, retractall_fact/1,
-        current_fact_nb/1, retract_fact_nb/1,
-        close_predicate/1, open_predicate/1,
-        set_fact/1, erase/1],
-        [assertions, nortchecks, isomodes]).
+    asserta_fact/1, asserta_fact/2, assertz_fact/1, assertz_fact/2,
+    current_fact/1, current_fact/2, retract_fact/1, retractall_fact/1,
+    current_fact_nb/1, retract_fact_nb/1,
+    close_predicate/1, open_predicate/1,
+    set_fact/1, erase/1],
+    [assertions, nortchecks, isomodes]).
 
 :- doc(title,"Fast/concurrent update of facts (runtime)").
 
@@ -20,28 +20,28 @@
 :- doc(doinclude,data/1).
 
 :- decl data(Predicates) : sequence_or_list(predname)
-        # "Defines each predicate in @var{Predicates} as a @concept{data
-          predicate}.  If a predicate is defined data in a file, it must
-          be defined data in every file containing clauses for that
-          predicate. The directive should precede all clauses of the
-          affected predicates.  This directive is defined as a prefix
-          operator in the compiler.".
+    # "Defines each predicate in @var{Predicates} as a @concept{data
+      predicate}.  If a predicate is defined data in a file, it must
+      be defined data in every file containing clauses for that
+      predicate. The directive should precede all clauses of the
+      affected predicates.  This directive is defined as a prefix
+      operator in the compiler.".
 
 :- doc(doinclude,concurrent/1).
 
 :- decl concurrent(Predicates) : sequence_or_list(predname)
-        # "Defines each predicate in @var{Predicates} as a
-          @concept{concurrent predicate}.  If a predicate is defined
-          concurrent in a file, it must be defined concurrent in every
-          file containing clauses for that predicate. The directive
-          should precede all clauses of the affected predicates.  This
-          directive is defined as a prefix operator in the compiler.".
+    # "Defines each predicate in @var{Predicates} as a
+      @concept{concurrent predicate}.  If a predicate is defined
+      concurrent in a file, it must be defined concurrent in every
+      file containing clauses for that predicate. The directive
+      should precede all clauses of the affected predicates.  This
+      directive is defined as a prefix operator in the compiler.".
 
 :- use_module(engine(internals), [
-        term_to_meta/2, 
-        '$compile_term'/2,'$current_clauses'/2,'$inserta'/2,'$insertz'/2,
-        '$ptr_ref'/2,'$current_instance'/5,'$instance'/3,'$erase'/1,
-        '$close_predicate'/1, '$open_predicate'/1, '$unlock_predicate'/1]).
+    term_to_meta/2, 
+    '$compile_term'/2,'$current_clauses'/2,'$inserta'/2,'$insertz'/2,
+    '$ptr_ref'/2,'$current_instance'/5,'$instance'/3,'$erase'/1,
+    '$close_predicate'/1, '$open_predicate'/1, '$unlock_predicate'/1]).
 
 :- primitive_meta_predicate(asserta_fact(fact)).
 :- primitive_meta_predicate(asserta_fact(fact,-)).
@@ -64,12 +64,12 @@
 :- pred asserta_fact(+callable).
 
 asserta_fact(Fact) :-
-	meta_asserta_fact(Fact).
+    meta_asserta_fact(Fact).
 
 meta_asserta_fact(Fact) :-
-        '$compile_term'([Fact|'basiccontrol:true'], Ptr),
-	'$current_clauses'(Fact, Root),
-	'$inserta'(Root, Ptr).
+    '$compile_term'([Fact|'basiccontrol:true'], Ptr),
+    '$current_clauses'(Fact, Root),
+    '$inserta'(Root, Ptr).
 
 :- doc(asserta_fact(Fact,Ref), "Same as @pred{asserta_fact/1},
    instantiating @var{Ref} to a unique identifier of the asserted
@@ -79,10 +79,10 @@ meta_asserta_fact(Fact) :-
 :- pred asserta_fact(+callable,-reference).
 
 asserta_fact(Fact, Ref) :-
-        '$compile_term'([Fact|'basiccontrol:true'], Ptr),
-	'$current_clauses'(Fact, Root),
-	'$inserta'(Root, Ptr),
-        '$ptr_ref'(Ptr, Ref).
+    '$compile_term'([Fact|'basiccontrol:true'], Ptr),
+    '$current_clauses'(Fact, Root),
+    '$inserta'(Root, Ptr),
+    '$ptr_ref'(Ptr, Ref).
 
 :- doc(assertz_fact(Fact), "@var{Fact} is added to the corresponding
    @concept{data predicate}.  The fact becomes the last clause of the
@@ -92,9 +92,9 @@ asserta_fact(Fact, Ref) :-
 :- pred assertz_fact(+callable) => callable.
 
 assertz_fact(Fact) :-
-        '$compile_term'([Fact|'basiccontrol:true'], Ptr),
-	'$current_clauses'(Fact, Root),
-	'$insertz'(Root, Ptr).
+    '$compile_term'([Fact|'basiccontrol:true'], Ptr),
+    '$current_clauses'(Fact, Root),
+    '$insertz'(Root, Ptr).
 
 :- doc(assertz_fact(Fact,Ref), "Same as @pred{assertz_fact/1},
    instantiating @var{Ref} to a unique identifier of the asserted
@@ -104,10 +104,10 @@ assertz_fact(Fact) :-
 :- pred assertz_fact(+callable,-reference).
 
 assertz_fact(Fact, Ref) :-
-        '$compile_term'([Fact|'basiccontrol:true'], Ptr),
-	'$current_clauses'(Fact, Root),
-	'$insertz'(Root, Ptr),
-        '$ptr_ref'(Ptr, Ref).
+    '$compile_term'([Fact|'basiccontrol:true'], Ptr),
+    '$current_clauses'(Fact, Root),
+    '$insertz'(Root, Ptr),
+    '$ptr_ref'(Ptr, Ref).
 
 :- doc(current_fact(Fact), "Gives on backtracking all the facts
    defined as data or concurrent which unify with @var{Fact}.  It is
@@ -126,9 +126,9 @@ assertz_fact(Fact, Ref) :-
 :- pred current_fact(+callable) => callable.
 
 current_fact(Fact) :-
-	'$current_clauses'(Fact, Root),
-	'$current_instance'(Fact, ThisIsTrue, Root, _, block), this_is_true(ThisIsTrue),
-        '$unlock_predicate'(Root).
+    '$current_clauses'(Fact, Root),
+    '$current_instance'(Fact, ThisIsTrue, Root, _, block), this_is_true(ThisIsTrue),
+    '$unlock_predicate'(Root).
 
 :- doc(current_fact_nb(Fact), "Behaves as @pred{current_fact/1} but
    a fact is never waited on even if it is @concept{concurrent} and
@@ -138,9 +138,9 @@ current_fact(Fact) :-
 :- pred current_fact_nb(+callable) => callable.
 
 current_fact_nb(Fact) :-
-	'$current_clauses'(Fact, Root),
-	'$current_instance'(Fact, ThisIsTrue, Root, _, no_block), this_is_true(ThisIsTrue),
-        '$unlock_predicate'(Root).
+    '$current_clauses'(Fact, Root),
+    '$current_instance'(Fact, ThisIsTrue, Root, _, no_block), this_is_true(ThisIsTrue),
+    '$unlock_predicate'(Root).
 
 :- doc(current_fact(Fact,Ref), "@var{Fact} is a fact of a
    @concept{data predicate} and @var{Ref} is its reference identifying
@@ -156,13 +156,13 @@ current_fact_nb(Fact) :-
    @var{Fact} with the fact identified by it.".
 
 current_fact(Fact, Ref) :-
-	'$ptr_ref'(Ptr, Ref), !,
-	'$instance'(Fact, ThisIsTrue, Ptr), this_is_true(ThisIsTrue).
+    '$ptr_ref'(Ptr, Ref), !,
+    '$instance'(Fact, ThisIsTrue, Ptr), this_is_true(ThisIsTrue).
 current_fact(Fact, Ref) :-
-	'$current_clauses'(Fact, Root),
-	'$current_instance'(Fact, ThisIsTrue, Root, Ptr, no_block), this_is_true(ThisIsTrue),
-        '$ptr_ref'(Ptr, Ref),
-        '$unlock_predicate'(Root).
+    '$current_clauses'(Fact, Root),
+    '$current_instance'(Fact, ThisIsTrue, Root, Ptr, no_block), this_is_true(ThisIsTrue),
+    '$ptr_ref'(Ptr, Ref),
+    '$unlock_predicate'(Root).
 
 % JF,TODO: remove
 this_is_true(ThisIsTrue) :- ( ThisIsTrue = true -> true ; ThisIsTrue = 'basiccontrol:true' -> true ; fail ).
@@ -179,10 +179,10 @@ this_is_true(ThisIsTrue) :- ( ThisIsTrue = true -> true ; ThisIsTrue = 'basiccon
 :- pred retract_fact(+callable) => callable. 
 
 retract_fact(Fact) :-
-	'$current_clauses'(Fact, Root),
-        '$current_instance'(Fact, ThisIsTrue, Root, Ptr, block), this_is_true(ThisIsTrue),
-	'$erase'(Ptr),
-        '$unlock_predicate'(Root).
+    '$current_clauses'(Fact, Root),
+    '$current_instance'(Fact, ThisIsTrue, Root, Ptr, block), this_is_true(ThisIsTrue),
+    '$erase'(Ptr),
+    '$unlock_predicate'(Root).
 
 :- doc(retract_fact_nb(Fact), "Behaves as @pred{retract_fact/1}, but
    never waits on a fact, even if it has been declared as
@@ -192,10 +192,10 @@ retract_fact(Fact) :-
 :- pred retract_fact_nb(+callable) => callable.
 
 retract_fact_nb(Fact) :-
-	'$current_clauses'(Fact, Root),
-        '$current_instance'(Fact, ThisIsTrue, Root, Ptr, no_block), this_is_true(ThisIsTrue),
-	'$erase'(Ptr),
-        '$unlock_predicate'(Root).
+    '$current_clauses'(Fact, Root),
+    '$current_instance'(Fact, ThisIsTrue, Root, Ptr, no_block), this_is_true(ThisIsTrue),
+    '$erase'(Ptr),
+    '$unlock_predicate'(Root).
 
 :- doc(retractall_fact(Fact), "Erase all the facts of a
    @concept{data predicate} unifying with @var{Fact}.  Even if all facts
@@ -205,14 +205,14 @@ retract_fact_nb(Fact) :-
 :- pred retractall_fact(+callable) => callable. 
 
 retractall_fact(Fact) :-
-	meta_retractall_fact(Fact).
+    meta_retractall_fact(Fact).
 
 meta_retractall_fact(Fact) :-
-	'$current_clauses'(Fact, Root),
-        '$current_instance'(Fact, ThisIsTrue, Root, Ptr, no_block), this_is_true(ThisIsTrue),
-	'$erase'(Ptr),
-        '$unlock_predicate'(Root),
-	fail.
+    '$current_clauses'(Fact, Root),
+    '$current_instance'(Fact, ThisIsTrue, Root, Ptr, no_block), this_is_true(ThisIsTrue),
+    '$erase'(Ptr),
+    '$unlock_predicate'(Root),
+    fail.
 meta_retractall_fact(_).
 
 :- doc(close_predicate(Pred), "@cindex{closed} Changes the behavior
@@ -224,8 +224,8 @@ meta_retractall_fact(_).
 :- pred close_predicate(+callable) => callable.
 
 close_predicate(Fact):-
-        '$current_clauses'(Fact, Root),
-        '$close_predicate'(Root).
+    '$current_clauses'(Fact, Root),
+    '$close_predicate'(Root).
 
 :- doc(open_predicate(Pred), "Reverts the behavior of
    @concept{concurrent predicate} @var{Pred} to waiting instead of
@@ -235,8 +235,8 @@ close_predicate(Fact):-
 :- pred open_predicate(+callable) => callable.
 
 open_predicate(Fact):-
-        '$current_clauses'(Fact, Root),
-        '$open_predicate'(Root).
+    '$current_clauses'(Fact, Root),
+    '$open_predicate'(Root).
 
 :- doc(set_fact(Fact), "Sets @var{Fact} as the unique fact of the
    corresponding @concept{data predicate}.").
@@ -245,11 +245,11 @@ open_predicate(Fact):-
 :- pred set_fact(+callable) => callable.
 
 set_fact(Fact) :-
-        term_to_meta(Fact_t, Fact),
-        functor(Fact_t, F, A),
-        functor(Template, F, A),
-        meta_retractall_fact(Template),
-	meta_asserta_fact(Fact_t).
+    term_to_meta(Fact_t, Fact),
+    functor(Fact_t, F, A),
+    functor(Template, F, A),
+    meta_retractall_fact(Template),
+    meta_asserta_fact(Fact_t).
 
 :- doc(erase(Ref), "Deletes the clause referenced by @var{Ref}.").
 
@@ -257,8 +257,8 @@ set_fact(Fact) :-
 :- pred erase(+reference) => reference + native.
 
 erase(Ref) :-
-	'$ptr_ref'(Ptr, Ref),
-	'$erase'(Ptr).
+    '$ptr_ref'(Ptr, Ref),
+    '$erase'(Ptr).
 
 % :- doc(doinclude, fact/1).
 % 

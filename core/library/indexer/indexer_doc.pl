@@ -6,8 +6,8 @@
 
 :- doc(author, "Anil Nair (original work)").
 :- doc(author, "Tom Howland"||
-                   " (@href{http://home.pacbell.net/tomjdnh/pd.html},"||
-                   " derived the original work)").
+               " (@href{http://home.pacbell.net/tomjdnh/pd.html},"||
+               " derived the original work)").
 :- doc(author, "Francisco Bueno (initial port to Ciao)").
 :- doc(author, "Jose F. Morales (improvements in implementation and
    documentation)").
@@ -151,7 +151,7 @@ argspec(n).
 argspec(?).
 
 :- pred hash_term(T,N) : ground * var => int(N)
-	# "@var{N} is a hashing index for @var{T}.".
+    # "@var{N} is a hashing index for @var{T}.".
 :- pred hash_term(T,N) : nonground * var => var(N).
 :- doc(hash_term(Term,HashValue),
   "Provides an efficient way to calculate an integer @var{HashValue} for a

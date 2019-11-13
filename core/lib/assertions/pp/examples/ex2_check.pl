@@ -9,4 +9,4 @@
 :- pred foo(X) => atm(X).
 
 foo(X) :-
-	X = bar.
+    X = bar.

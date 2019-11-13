@@ -1,85 +1,85 @@
 :- module(native_props, [
-	% Meta-properties:
-	% TODO: should be at the beginning? in assertions?
-	compat/1,
-	instance/1,
-	succeeds/1, % TODO: very crazy. % TODO: rename!
-	% Sharing/aliasing, groundness:
-	mshare/1, % TODO: Read as possibly_share
-	indep/2,
-	indep/1,
-	covered/2,
-	linear/1,
-	nonground/1,
-	clique/1,
-	clique_1/1,
-	% Determinacy:
-	is_det/1,
-	non_det/1,
-	possibly_nondet/1, % TODO: maybe_nondet?
-	mut_exclusive/1,
-	not_mut_exclusive/1,
-	possibly_not_mut_exclusive/1,
-	% Non-failure: 
-	not_fails/1,
-	fails/1,
-	possibly_fails/1, % TODO: may_fail?
-	covered/1, 
-	not_covered/1,
-	possibly_not_covered/1,
-	test_type/2,
-	% More general cardinality, choicepoints, and exact solutions:
-	num_solutions/2,
-	relations/2,
-	finite_solutions/1,
-	solutions/2,
-	cardinality/3, % TODO:[new-resources]
-	no_choicepoints/1,
-	leaves_choicepoints/1,
-	% Data sizes, cost, termination:
-	size/2,
-	size/3,
-	size_lb/2,
-	size_ub/2,
-	size_o/2,
-	%
-	size_metric/3,
-	size_metric/4,
-	measure_t/1,
-	bound/1,
-	%
-	steps/2,
-	steps_lb/2,
-	steps_o/2,
-	steps_ub/2,
-	%
-	rsize/2, % TODO:[new-resources]
-	costb/4, % TODO:[new-resources]
-	%
-	terminates/1,
-	% Exceptions:
-	exception/1,
-	exception/2,
-	possible_exceptions/2,
-	no_exception/1,
-	no_exception/2,
-	% Signals:
-	signal/1,
-	signal/2,
-	possible_signals/2,
-	no_signal/1,
-	no_signal/2,
-	% Other side-effects:
-	sideff_hard/1,
-	sideff_pure/1,
-	sideff_soft/1,
-	% Polyhedral constraints:
-	constraint/1,
-	% Other properties:
-	tau/1,
-	% intervals/2 %[LD]
-	user_output/2
-	% , user_error/2
+    % Meta-properties:
+    % TODO: should be at the beginning? in assertions?
+    compat/1,
+    instance/1,
+    succeeds/1, % TODO: very crazy. % TODO: rename!
+    % Sharing/aliasing, groundness:
+    mshare/1, % TODO: Read as possibly_share
+    indep/2,
+    indep/1,
+    covered/2,
+    linear/1,
+    nonground/1,
+    clique/1,
+    clique_1/1,
+    % Determinacy:
+    is_det/1,
+    non_det/1,
+    possibly_nondet/1, % TODO: maybe_nondet?
+    mut_exclusive/1,
+    not_mut_exclusive/1,
+    possibly_not_mut_exclusive/1,
+    % Non-failure: 
+    not_fails/1,
+    fails/1,
+    possibly_fails/1, % TODO: may_fail?
+    covered/1, 
+    not_covered/1,
+    possibly_not_covered/1,
+    test_type/2,
+    % More general cardinality, choicepoints, and exact solutions:
+    num_solutions/2,
+    relations/2,
+    finite_solutions/1,
+    solutions/2,
+    cardinality/3, % TODO:[new-resources]
+    no_choicepoints/1,
+    leaves_choicepoints/1,
+    % Data sizes, cost, termination:
+    size/2,
+    size/3,
+    size_lb/2,
+    size_ub/2,
+    size_o/2,
+    %
+    size_metric/3,
+    size_metric/4,
+    measure_t/1,
+    bound/1,
+    %
+    steps/2,
+    steps_lb/2,
+    steps_o/2,
+    steps_ub/2,
+    %
+    rsize/2, % TODO:[new-resources]
+    costb/4, % TODO:[new-resources]
+    %
+    terminates/1,
+    % Exceptions:
+    exception/1,
+    exception/2,
+    possible_exceptions/2,
+    no_exception/1,
+    no_exception/2,
+    % Signals:
+    signal/1,
+    signal/2,
+    possible_signals/2,
+    no_signal/1,
+    no_signal/2,
+    % Other side-effects:
+    sideff_hard/1,
+    sideff_pure/1,
+    sideff_soft/1,
+    % Polyhedral constraints:
+    constraint/1,
+    % Other properties:
+    tau/1,
+    % intervals/2 %[LD]
+    user_output/2
+    % , user_error/2
     ], [assertions, regtypes]).
 
 :- doc(bug, "MH: Some of these properties should be moved to rtchecks
@@ -222,10 +222,10 @@ instance(_). % processed in rtchecks_basic
 # "@var{X} and @var{Y} do not have variables in common.".
 
 indep(A, B) :-
-	mark(A, Ground), % Ground is var if A ground
-	nonvar(Ground), % If 1st argument was ground, no need to proceed
-	marked(B), !,
-	fail.
+    mark(A, Ground), % Ground is var if A ground
+    nonvar(Ground), % If 1st argument was ground, no need to proceed
+    marked(B), !,
+    fail.
 indep(_, _).
 
 mark('$$Mark', no) :- !. % Mark the variable, signal variable found
@@ -233,23 +233,23 @@ mark(Atom,     _) :- atomic(Atom), !.
 mark(Complex,  GR) :- mark(Complex, 1, GR).
 
 mark(Args, Mth, GR) :-
-	arg(Mth, Args, ThisArg), !,
-	mark(ThisArg, GR),
-	Nth is Mth+1,
-	mark(Args, Nth, GR).
+    arg(Mth, Args, ThisArg), !,
+    mark(ThisArg, GR),
+    Nth is Mth+1,
+    mark(Args, Nth, GR).
 mark(_, _, _).
 
 marked(Term) :-
-	functor(Term, F, A),
-	( A > 0, !, marked(Term, 1)
-	; F = '$$Mark' ).
+    functor(Term, F, A),
+    ( A > 0, !, marked(Term, 1)
+    ; F = '$$Mark' ).
 
 marked(Args, Mth) :-
-	arg(Mth, Args, ThisArg), !,
-	( marked(ThisArg)
-	; Nth is Mth+1,
-	    marked(Args, Nth)
-	).
+    arg(Mth, Args, ThisArg), !,
+    ( marked(ThisArg)
+    ; Nth is Mth+1,
+        marked(Args, Nth)
+    ).
 
 % --------------------------------------------------------------------------
 % Amadeo
@@ -406,7 +406,7 @@ possibly_not_mut_exclusive(Goal) :- call(Goal).
 :- doc(section, "Failure and success").
 % --------------------------------------------------------------------------
 
-% not_fails = succeeds	or not_terminates. -- EMM
+% not_fails = succeeds  or not_terminates. -- EMM
 
 :- doc(not_fails(X), "Calls of the form @var{X} produce at least one
    solution (succeed), or do not terminate. This property is inferred
@@ -485,7 +485,7 @@ possibly_not_covered(Goal) :- call(Goal).
 % --------------------------------------------------------------------------
 
 :- prop test_type(X, T) # "Indicates the type of test that a predicate
-	performs.  Required by the nonfailure analyisis.".
+    performs.  Required by the nonfailure analyisis.".
 
 :- meta_predicate test_type(goal, ?).
 
@@ -618,7 +618,7 @@ size(_, _, _).
 % --------------------------------------------------------------------------
 
 :- prop size_metric(Head, Var, Metric)
-	:: measure_t(Metric) + no_rtcheck
+    :: measure_t(Metric) + no_rtcheck
 
 # "@var{Metric} is the measure used to determine the size of the terms
    that @var{Var} is bound to, for any type of approximation.".
@@ -629,7 +629,7 @@ size_metric(Goal, _, _) :- call(Goal).
 % --------------------------------------------------------------------------
 
 :- prop size_metric(Head, Approx, Var, Metric)
-	:: (bound(Approx), measure_t(Metric)) + no_rtcheck
+    :: (bound(Approx), measure_t(Metric)) + no_rtcheck
 
 # "@var{Metric} is the measure used to determine the size of the terms
    that variable @var{Var} bound to, for the approximation
@@ -647,13 +647,13 @@ size_metric(Goal, _, _, _) :- call(Goal).
    @begin{itemize}
 
    @item @tt{int}: The size of the term (which is an integer) is the
-         integer value itself.
+     integer value itself.
 
    @item @tt{length}: The size of the term (which is a list) is its
-         length.
+     length.
 
    @item @tt{size}: The size is the overall of the term (number of
-         subterms).
+     subterms).
 
    @item @tt{depth([_|_])}: The size of the term is its depth.
 
@@ -661,7 +661,7 @@ size_metric(Goal, _, _, _) :- call(Goal).
 %%    applications of its type definition.
 
    @item @tt{void}: Used to indicate that the size of this argument
-         should be ignored.
+     should be ignored.
 
    @end{itemize}
 
@@ -771,7 +771,7 @@ terminates(Goal) :- call(Goal).
 % --------------------------------------------------------------------------
 
 :- prop exception(Goal, E) # "Calls to @var{Goal} will throw an
-	exception that unifies with @var{E}.".
+    exception that unifies with @var{E}.".
 
 :- meta_predicate exception(goal, ?).
 
@@ -913,54 +913,54 @@ sideff_hard(Goal) :- call(Goal).
 % TODO: should we define this here? (term structure of a valid constraint/1)
 constraint([]).
 constraint([Cons|Rest]) :-
-	constraint_(Cons),
-	constraint(Rest).
+    constraint_(Cons),
+    constraint(Rest).
 
 constraint_(=(Lin_Expr1, Lin_Expr2)) :-
-	lin_expr(Lin_Expr1),
-	lin_expr(Lin_Expr2).
+    lin_expr(Lin_Expr1),
+    lin_expr(Lin_Expr2).
 constraint_(=<(Lin_Expr1, Lin_Expr2)) :-
-	lin_expr(Lin_Expr1),
-	lin_expr(Lin_Expr2).
+    lin_expr(Lin_Expr1),
+    lin_expr(Lin_Expr2).
 constraint_(>=(Lin_Expr1, Lin_Expr2)) :-
-	lin_expr(Lin_Expr1),
-	lin_expr(Lin_Expr2).
+    lin_expr(Lin_Expr1),
+    lin_expr(Lin_Expr2).
 constraint_(<(Lin_Expr1, Lin_Expr2)) :-
-	lin_expr(Lin_Expr1),
-	lin_expr(Lin_Expr2).
+    lin_expr(Lin_Expr1),
+    lin_expr(Lin_Expr2).
 constraint_(>(Lin_Expr1, Lin_Expr2)) :-
-	lin_expr(Lin_Expr1),
-	lin_expr(Lin_Expr2).
+    lin_expr(Lin_Expr1),
+    lin_expr(Lin_Expr2).
 
 lin_expr(PPL_Var) :-
-	ppl_var(PPL_Var), !.
+    ppl_var(PPL_Var), !.
 lin_expr(Coeff) :-
-	coefficient(Coeff).
+    coefficient(Coeff).
 % lin_expr(+(Lin_Expr), Vars, +(New_Lin_Expr)) :-
-% 	lin_expr(Lin_Expr, Vars, New_Lin_Expr).
+%       lin_expr(Lin_Expr, Vars, New_Lin_Expr).
 lin_expr(+(Lin_Expr)) :-
-	lin_expr(Lin_Expr).
+    lin_expr(Lin_Expr).
 lin_expr(-(Lin_Expr)) :-
-	lin_expr(Lin_Expr).
+    lin_expr(Lin_Expr).
 lin_expr(+(Lin_Expr1, Lin_Expr2)) :-
-	lin_expr(Lin_Expr1),
-	lin_expr(Lin_Expr2).
+    lin_expr(Lin_Expr1),
+    lin_expr(Lin_Expr2).
 lin_expr(-(Lin_Expr1, Lin_Expr2)) :-
-	lin_expr(Lin_Expr1),
-	lin_expr(Lin_Expr2).
+    lin_expr(Lin_Expr1),
+    lin_expr(Lin_Expr2).
 lin_expr(*(Coeff, Lin_Expr)) :-
-	coefficient(Coeff),
-	lin_expr(Lin_Expr).
+    coefficient(Coeff),
+    lin_expr(Lin_Expr).
 lin_expr(*(Lin_Expr, Coeff)) :-
-	coefficient(Coeff),
-	lin_expr(Lin_Expr).
+    coefficient(Coeff),
+    lin_expr(Lin_Expr).
 
 ppl_var(Var) :-
-	var(Var).
+    var(Var).
 
 coefficient(Coeff) :-
-	ground(Coeff),
-	int(Coeff). % TODO: couldn't it be a num/1?
+    ground(Coeff),
+    int(Coeff). % TODO: couldn't it be a num/1?
 
 % --------------------------------------------------------------------------
 :- doc(section, "Other properties").
@@ -977,28 +977,28 @@ coefficient(Coeff) :-
 
 tau([]).
 tau([Var/Type|R]) :-
-	var(Var),
-	list(Type),
-	valid_type(Type),
-	tau(R).
+    var(Var),
+    list(Type),
+    valid_type(Type),
+    tau(R).
 
 valid_type([Type]) :-
-	atom(Type).
+    atom(Type).
 valid_type([Type|Rest]) :-
-	atom(Type),
-	valid_type(Rest).
+    atom(Type),
+    valid_type(Rest).
 
 % --------------------------------------------------------------------------
 
 :- doc(bug, "Should be in unittest_props library?").
 
 :- prop user_output(Goal, S) #
-	"Calls of the form @var{Goal} write @var{S} to standard output.".
+    "Calls of the form @var{Goal} write @var{S} to standard output.".
 :- meta_predicate user_output(goal, ?).
 :- impl_defined(user_output/2).
 
 %% :- prop user_error(Goal, S) #
-%% 	"Calls of the form @var{Goal} write @var{S} to standard error.".
+%%      "Calls of the form @var{Goal} write @var{S} to standard error.".
 %% 
 %% :- meta_predicate user_error(goal, ?).
 %% :- impl_defined(user_error/2).
@@ -1034,57 +1034,57 @@ valid_type([Type|Rest]) :-
 %% 
 %% :- meta_predicate not_fails_is_det(goal).
 %% not_fails_is_det(Goal) :-
-%% 	Solved = solved(no),
-%% 	(
-%% 	    true
-%% 	;
-%% 	    arg(1, Solved, no) ->
-%% 	    send_comp_rtcheck(Goal, not_fails, fails),
-%% 	    fail
-%% 	),
-%% 	Goal,
-%% 	(
-%% 	    arg(1, Solved, no)
-%% 	->
-%% 	    true
-%% 	;
-%% 	    send_comp_rtcheck(Goal, is_det, non_det))
+%%      Solved = solved(no),
+%%      (
+%%          true
+%%      ;
+%%          arg(1, Solved, no) ->
+%%          send_comp_rtcheck(Goal, not_fails, fails),
+%%          fail
+%%      ),
+%%      Goal,
+%%      (
+%%          arg(1, Solved, no)
+%%      ->
+%%          true
+%%      ;
+%%          send_comp_rtcheck(Goal, is_det, non_det))
 %% % more than one solution!
-%% 	),
-%% 	'$setarg'(1, Solved, yes, true).
+%%      ),
+%%      '$setarg'(1, Solved, yes, true).
 %% 
 %% :- prop not_fails_non_det/1 
 %% # "Collapsed property of @var{not_fails/1} and @var{non_det/1}.".
 %% 
 %% :- meta_predicate not_fails_non_det(goal).
 %% not_fails_non_det(Goal) :-
-%% 	Solved = solved(no),
-%% 	(
-%% 	    true
-%% 	;
-%% 	    arg(1, Solved, no) ->
-%% 	    send_comp_rtcheck(Goal, not_fails, fails),
-%% 	    fail
-%% 	;
-%% 	    arg(1, Solved, one) ->
-%% 	    send_comp_rtcheck(Goal, non_det, is_det),
-%% 	    fail
-%% 	),
-%% 	'$metachoice'(C0),
-%% 	Goal,
-%% 	'$metachoice'(C1),
-%% 	(
-%% 	    arg(1, Solved, no) ->
-%% 	    (
-%% 		C1 == C0 ->
-%% 		!,
-%% 		send_comp_rtcheck(Goal, non_det, no_choicepoints))
-%% 	    ;
-%% 		'$setarg'(1, Solved, one, true)
-%% 	    )
-%% 	;
-%% 	    '$setarg'(1, Solved, yes, true)
-%% 	).
+%%      Solved = solved(no),
+%%      (
+%%          true
+%%      ;
+%%          arg(1, Solved, no) ->
+%%          send_comp_rtcheck(Goal, not_fails, fails),
+%%          fail
+%%      ;
+%%          arg(1, Solved, one) ->
+%%          send_comp_rtcheck(Goal, non_det, is_det),
+%%          fail
+%%      ),
+%%      '$metachoice'(C0),
+%%      Goal,
+%%      '$metachoice'(C1),
+%%      (
+%%          arg(1, Solved, no) ->
+%%          (
+%%              C1 == C0 ->
+%%              !,
+%%              send_comp_rtcheck(Goal, non_det, no_choicepoints))
+%%          ;
+%%              '$setarg'(1, Solved, one, true)
+%%          )
+%%      ;
+%%          '$setarg'(1, Solved, yes, true)
+%%      ).
 
 % TODO:[new-resources]
 

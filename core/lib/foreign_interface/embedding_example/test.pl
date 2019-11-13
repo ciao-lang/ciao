@@ -3,7 +3,7 @@
 :- use_module(engine(io_basic)).
 
 main :-
-	display('hello from prolog'), nl.
+    display('hello from prolog'), nl.
 
 mydisplay(X) :- display('from prolog '), display(X), nl.
 

@@ -29,31 +29,31 @@
    should in most cases access location @tt{NewURL}.").
 
 :- pred fetch_url(URL, Request, Response)
-        : (url_term(URL), list(Request, http_request_param))
+    : (url_term(URL), list(Request, http_request_param))
        => list(Response, http_response_param).
 
 fetch_url(http(Host, Port, URIStr), Request, Response) :-
-	timeout_option(Request, Timeout, Request0),
-	http_request_content(Request0, Request1, Content),
-	http_request_str(URIStr, Request1, Cs, Cs1),
-	string(Content, Cs1, []), % TODO: Do some encoding? Support multipart on client?
-	!,
-	http_transaction(Host, Port, Cs, Timeout, ResponseChars),
-	http_response(Response, ResponseChars, []).
+    timeout_option(Request, Timeout, Request0),
+    http_request_content(Request0, Request1, Content),
+    http_request_str(URIStr, Request1, Cs, Cs1),
+    string(Content, Cs1, []), % TODO: Do some encoding? Support multipart on client?
+    !,
+    http_transaction(Host, Port, Cs, Timeout, ResponseChars),
+    http_response(Response, ResponseChars, []).
 
 :- pred timeout_option(+Options, -Timeout, -RestOptions)
    # "Returns timeout option, by default 5 min. (300s).".
 
 timeout_option(Options, Timeout, RestOptions) :-
-        select(timeout(Timeout), Options, RestOptions), !.
+    select(timeout(Timeout), Options, RestOptions), !.
 timeout_option(Options, 300, Options).
 
 http_request_content(Options, Options1, Content) :-
-	( member(method(Method), Options) -> true ; fail ),
-	( Method = post ->
-	    ( select(content(Content),Options, Options1) -> true ; fail )
-        ; Content = [], Options = Options1
-	).
+    ( member(method(Method), Options) -> true ; fail ),
+    ( Method = post ->
+        ( select(content(Content),Options, Options1) -> true ; fail )
+    ; Content = [], Options = Options1
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -67,11 +67,11 @@ http_request_content(Options, Options1, Content) :-
       message.  Fails on timeout (@var{Timeout} in seconds).".
 
 http_transaction(Host, Port, Request, Timeout, Response) :-
-        connect_to_socket(Host, Port, Stream),
-        write_string(Stream, Request),
-        flush_output(Stream),
-	Timeout_ms is Timeout*1000,
-        select_socket(_,_,Timeout_ms,[Stream],R),
-        R \== [],  % Fail if timeout
-        read_to_end(Stream,Response),
-	close(Stream).
+    connect_to_socket(Host, Port, Stream),
+    write_string(Stream, Request),
+    flush_output(Stream),
+    Timeout_ms is Timeout*1000,
+    select_socket(_,_,Timeout_ms,[Stream],R),
+    R \== [],  % Fail if timeout
+    read_to_end(Stream,Response),
+    close(Stream).

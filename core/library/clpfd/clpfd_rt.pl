@@ -86,11 +86,11 @@ fd_expr(Var):- var(Var).
 fd_expr(I * Exp) :- int(I), fd_expr(Exp).
 fd_expr(Exp * I) :- int(I), fd_expr(Exp).
 fd_expr(Exp1 + Exp2) :- 
-        fd_expr(Exp1), fd_expr(Exp2).
+    fd_expr(Exp1), fd_expr(Exp2).
 fd_expr(Exp1 - Exp2) :- 
-        fd_expr(Exp1), fd_expr(Exp2).
+    fd_expr(Exp1), fd_expr(Exp2).
 fd_expr(- Exp) :- 
-        fd_expr(Exp).
+    fd_expr(Exp).
 
 :- doc(fd_expr/1,"A term denoting an arithmetic expression over FD
  variables: @includedef{fd_expr/1} FD expressions are used by
@@ -105,9 +105,9 @@ fd_expr(- Exp) :-
    @var{A} to be equal to the interpretation of @var{B}.".
 
 A #= B :-
-	linearize_fd(A, Al),
-	linearize_fd(B, Bl),
-	'a=b'(Al,Bl).
+    linearize_fd(A, Al),
+    linearize_fd(B, Bl),
+    'a=b'(Al,Bl).
 
 :- export('#\\='/2).  
 :- doc('#\\='/2, "Meta-constraint \"not equal\".").
@@ -115,9 +115,9 @@ A #= B :-
    @var{A} to be different from the interpretation of  @var{B}".
 
 A #\= B :-
-	linearize_fd(A, Al),
-	linearize_fd(B, Bl),
-	'a<>b'(Al,Bl).
+    linearize_fd(A, Al),
+    linearize_fd(B, Bl),
+    'a<>b'(Al,Bl).
 
 :- export('#<'/2). 
 :- doc('#\<'/2, "Meta-constraint \"smaller than\".").
@@ -127,9 +127,9 @@ smaller than the interpretation of @var{B}.".
 :- doc(fd_range_expr/1, "Meta-contraint").
 
 A #< B :-
-	linearize_fd(A, Al),
-	linearize_fd(B, Bl),
-	'a<b'(Al,Bl).
+    linearize_fd(A, Al),
+    linearize_fd(B, Bl),
+    'a<b'(Al,Bl).
 
 :- export('#=<'/2). 
 :- doc('#=<'/2, "Meta-constraint \"smaller or equal\".").
@@ -137,9 +137,9 @@ A #< B :-
 smaller or equal to @var{B}.".
 
 A #=< B :-
-	linearize_fd(A, Al),
-	linearize_fd(B, Bl),
-	fd_constraints:'a=<b'(Al,Bl).
+    linearize_fd(A, Al),
+    linearize_fd(B, Bl),
+    fd_constraints:'a=<b'(Al,Bl).
 
 :- export('#>'/2). 
 :- doc('#>'/2, "Meta-constraint \"greater than\".").
@@ -147,9 +147,9 @@ A #=< B :-
    @var{A} to be greater than the interpretation of @var{B}.".
 
 A #> B :-
-	linearize_fd(A, Al),
-	linearize_fd(B, Bl),
-	'a<b'(Bl,Al).
+    linearize_fd(A, Al),
+    linearize_fd(B, Bl),
+    'a<b'(Bl,Al).
 
 :- export('#>='/2). 
 :- doc('#>='/2, "Meta-constraint \"greater or equal\".").
@@ -157,39 +157,39 @@ A #> B :-
    @var{A} to be greater or equal than the interpretation of @var{B}.".
 
 A #>= B :-
-	linearize_fd(A, Al),
-	linearize_fd(B, Bl),
-	fd_constraints:'a=<b'(Bl,Al).
+    linearize_fd(A, Al),
+    linearize_fd(B, Bl),
+    fd_constraints:'a=<b'(Bl,Al).
 
 
 %% Just a var.
 linearize_fd(A, X) :-
-	var(A),!,
-	wrapper(A, X).
+    var(A),!,
+    wrapper(A, X).
 
 linearize_fd(A, A) :-
-	integer(A),
-	!.
+    integer(A),
+    !.
 
 linearize_fd(A+B, C) :-
-	linearize_fd(A, Al),
-	linearize_fd(B, Bl),
-	fd_term:new(C),
-	fd_constraints:'a+b=c'(Al,Bl,C),
-	!.
+    linearize_fd(A, Al),
+    linearize_fd(B, Bl),
+    fd_term:new(C),
+    fd_constraints:'a+b=c'(Al,Bl,C),
+    !.
 
 linearize_fd(A-B, C) :-
-	linearize_fd(A, Al),
-	linearize_fd(B, Bl),
-	'a-b=c'(Al,Bl,C),
-	!.
+    linearize_fd(A, Al),
+    linearize_fd(B, Bl),
+    'a-b=c'(Al,Bl,C),
+    !.
 
 linearize_fd(A*B, C) :-
-	linearize_fd(A, Al),
-	linearize_fd(B, Bl),
-	fd_term:new(C),
-	fd_constraints:'a=b*c'(C, Al,Bl),
-	!.
+    linearize_fd(A, Al),
+    linearize_fd(B, Bl),
+    fd_term:new(C),
+    fd_constraints:'a=b*c'(C, Al,Bl),
+    !.
 
 
 %% High level CP implementation.
@@ -203,15 +203,15 @@ to set the initial domain of an interval".
 
 domain([], _, _).
 domain([X|R], N1, N2) :-
-	fd_constraints:x_in_range(~wrapper(X), N1, N2),
-	domain(R, N1, N2).
+    fd_constraints:x_in_range(~wrapper(X), N1, N2),
+    domain(R, N1, N2).
 
 :- export(in/2).
 :- pred (Var in Range) : fdvar * fd_range_expr # "Constrains @var{Var}
 to take its value in the domain described by @var{Range}.".
 
 in(X, Range):-
-	fd_term:in(~wrapper(X), Range).
+    fd_term:in(~wrapper(X), Range).
 
 :- export(all_different/1).
 :- pred all_different(Vars) : list(fdvar) # "Constrains all elements in
@@ -221,7 +221,7 @@ triggered when a variable becomes ground, removing its value from the
 domain of the other variables.".
 
 all_different(L):-
-	fd_constraints:fd_all_different(~wrapper_list(L)).
+    fd_constraints:fd_all_different(~wrapper_list(L)).
 
 :- export(labeling/2).
 
@@ -244,22 +244,22 @@ in its domain is selected first. The minimal value of the domainis
 assigned, on bactracking the value is pruned form the domain and a new
 variable is selected.
 
-@end{itemize}	
+@end{itemize}   
 ".
 
 :- use_module(library(clpfd/fd_labeling), [labeling/2]).
 
 :- export(indomain/1).
 indomain(Var) :- 
-	clpfd_rt:label([Var]).
+    clpfd_rt:label([Var]).
 
 :- export(label/1).
 label(Vs) :- 
-	clpfd_rt:labeling([], Vs).
+    clpfd_rt:labeling([], Vs).
 
 :- export(labeling/2).
 labeling(Options, Vars):-
-	fd_labeling:labeling(Options, ~wrapper_list(Vars)).
+    fd_labeling:labeling(Options, ~wrapper_list(Vars)).
 
 
 :- use_module(library(clpfd/fd_optim), [fd_minimize/2, fd_maximize/2]).
@@ -267,45 +267,45 @@ labeling(Options, Vars):-
 :- export(minimize/2).
 :- meta_predicate(minimize(:, ?)).
 minimize(Goal, Var):-
-	fd_optim:fd_minimize(Goal, ~wrapper(Var)).
+    fd_optim:fd_minimize(Goal, ~wrapper(Var)).
 
 :- export(maximize/2).
 :- meta_predicate(maximize(:, ?)).
 maximize(Goal, Var):-
-	fd_optim:fd_maximize(Goal, ~wrapper(Var)).
+    fd_optim:fd_maximize(Goal, ~wrapper(Var)).
 
 
 :- use_package(attr).
 
 :- export(wrapper/2).
 wrapper(X, X):- integer(X), !.
-wrapper(A, X):-	get_attr_local(A, X), !.
+wrapper(A, X):- get_attr_local(A, X), !.
 wrapper(A, X):- var(A), !,
-	fd_term:new(X),
-	put_attr_local(A, X),
-	% Force instantiation of A when X represents an integer
-	fd_term:add_propag(X, val, 'fd_term:integerize'(X, A)).
+    fd_term:new(X),
+    put_attr_local(A, X),
+    % Force instantiation of A when X represents an integer
+    fd_term:add_propag(X, val, 'fd_term:integerize'(X, A)).
 
 wrapper_list([]) := [].
 wrapper_list([H|T]) := [~wrapper(H)| ~wrapper_list(T)].
 
 attr_unify_hook(IdxVar, Other):-
-        ( 
-            nonvar(Other) ->
-            (
-                integer(Other) ->
-                fd_constraints:'a=t'(IdxVar, Other)
-            ; 
-                clpfd_error("Unifying {_FDVAR~p} with non integer ~p~n", 
-		            [~var_id(IdxVar), Other])
-            )
+    ( 
+        nonvar(Other) ->
+        (
+            integer(Other) ->
+            fd_constraints:'a=t'(IdxVar, Other)
         ; 
-            get_attr_local(Other, IdxVar_) ->
-            fd_constraints:'a=b'(IdxVar, IdxVar_)
-        ;
-            put_attr_local(Other, IdxVar)
-        ).
+            clpfd_error("Unifying {_FDVAR~p} with non integer ~p~n", 
+                        [~var_id(IdxVar), Other])
+        )
+    ; 
+        get_attr_local(Other, IdxVar_) ->
+        fd_constraints:'a=b'(IdxVar, IdxVar_)
+    ;
+        put_attr_local(Other, IdxVar)
+    ).
 
 
 attribute_goals(Var) -->
-	[in(Var,~(fd_term:dom_term(~get_attr_local(Var))))].
+    [in(Var,~(fd_term:dom_term(~get_attr_local(Var))))].

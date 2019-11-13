@@ -1,5 +1,5 @@
 :- module(example_fullasr, [echo2/2],
-        [assertions, rtchecks, nativeprops, expander]).
+    [assertions, rtchecks, nativeprops, expander]).
 
 % minimal working example that can be used to test the new functionality
 % of the rtchecks package that allows to separate property definitions
@@ -15,11 +15,11 @@
 :- use_module(engine(io_basic)).
 
 :- pred echo2(X,Y) :: (integer(X), gnd(Y))
-                   :  (gnd(X), gnd(Y))
-                   => (gnd(X), gnd(Y))
-                   +  is_det # "Comment" .
+               :  (gnd(X), gnd(Y))
+               => (gnd(X), gnd(Y))
+               +  is_det # "Comment" .
 
 echo2(X,Y) :-
-        display(X),
-        display(' is '),
-        display(Y), nl.
+    display(X),
+    display(' is '),
+    display(Y), nl.

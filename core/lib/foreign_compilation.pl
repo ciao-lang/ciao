@@ -1,9 +1,9 @@
 :- module(foreign_compilation,
-        [
-            compiler_and_opts/2,
-            linker_and_opts/2
-        ],
-        [assertions, isomodes]).
+    [
+        compiler_and_opts/2,
+        linker_and_opts/2
+    ],
+    [assertions, isomodes]).
 
 :- doc(title,"Utilities for on-demand compilation of foreign files").
 
@@ -29,22 +29,22 @@
 :- impl_defined(foreign_opts_ldshared/1).
 
 :- pred compiler_and_opts(?Compiler, ?Opts) ::
-        atm * list(atm)
+    atm * list(atm)
  # "@var{CC} is the C compiler used to compile foreign code (including
    gluecode), using options @var{Opts}.".
 
 compiler_and_opts(CC, Opts):-
-        foreign_opts_cc(CC),
-	foreign_opts_ccshared(Opts0),
-	parse_shell_args(Opts0, Opts).
+    foreign_opts_cc(CC),
+    foreign_opts_ccshared(Opts0),
+    parse_shell_args(Opts0, Opts).
 
 :- pred linker_and_opts(?LD, ?Opts) ::
-        atm * list(atm)
+    atm * list(atm)
  # "@var{LD} is the linker program used to link foreign code, using
    options @var{Opts}.".
 
 linker_and_opts(LD, Opts):-
-        foreign_opts_ld(LD),
-	foreign_opts_ldshared(Opts0),
-	parse_shell_args(Opts0, Opts).
+    foreign_opts_ld(LD),
+    foreign_opts_ldshared(Opts0),
+    parse_shell_args(Opts0, Opts).
 

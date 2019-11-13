@@ -98,22 +98,22 @@ p(10, bad_elif).
 :- endif.
 
 test_p :-
-	% This should display no bad_case
-	( p(I, Status),
-	  \+ Status = ok,
-	  display(bad_case(I, Status)), nl,
-	  fail
-	; true
-	),
-	% This should display no missing_ok
-	( p(I, _), \+ (p(I, Status), Status = ok),
-	  display(missing_ok(I)), nl,
-	  fail
-	; true
-	).
+    % This should display no bad_case
+    ( p(I, Status),
+      \+ Status = ok,
+      display(bad_case(I, Status)), nl,
+      fail
+    ; true
+    ),
+    % This should display no missing_ok
+    ( p(I, _), \+ (p(I, Status), Status = ok),
+      display(missing_ok(I)), nl,
+      fail
+    ; true
+    ).
 
 main :-
-	test_p,
-	dialect(D),
-	display(dialect(D)),
-	nl.
+    test_p,
+    dialect(D),
+    display(dialect(D)),
+    nl.

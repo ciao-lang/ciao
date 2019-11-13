@@ -6,29 +6,29 @@
 % --------------------------------------------------------------------------
 % Entry point for testing:
 menu_demo :-    
-%	menu_branch( [] , entry , 0 , X ),
-%	nl, display(X), nl.
-	menu(entry), 
- 	print_flag(verb),
- 	print_flag(optimize),
- 	print_flag(lco).
+%       menu_branch( [] , entry , 0 , X ),
+%       nl, display(X), nl.
+    menu(entry), 
+    print_flag(verb),
+    print_flag(optimize),
+    print_flag(lco).
 
 print_flag(F) :-
-	nl, display('Value of '), display(F), display(' is: '),
-	get_menu_flag(entry,F,X),
-	display(X), nl.
+    nl, display('Value of '), display(F), display(' is: '),
+    get_menu_flag(entry,F,X),
+    display(X), nl.
 
 % --------------------------------------------------------------------------
 % Menu hooks:
 
 
 hook_menu_flag_values( _ ,  A , B ) :-
-	flag( A , B , _ ).
+    flag( A , B , _ ).
 
 % Help for flag.
 hook_menu_flag_help( _ , F , H ) :-
-	flag( F , _ , H ).
-	
+    flag( F , _ , H ).
+    
 % --------------------------------------------------------------------------
 % Flags (format determined by hooks):
 
@@ -47,14 +47,14 @@ hook_menu_flag_help( _ , F , H ) :-
  ana   , 'Choose mode analysis'   # modes     - sh.
 
 guard lco_guard( FlagValuePairList ) :- 
-	member( optimize=V , FlagValuePairList  ),
-	V == on.
+    member( optimize=V , FlagValuePairList  ),
+    V == on.
 
 %% guard lco_guard := (optimize = on,  foo = off) | 
-%% 	           (optimize = off, foo \= 1, foo \= 2).
+%%                 (optimize = off, foo \= 1, foo \= 2).
 
 post_ana( FlagValuePairList, NewFlagValuePairList ) :- 
-	menu_branch( FlagValuePairList , ana , 0 , NewFlagValuePairList ).
+    menu_branch( FlagValuePairList , ana , 0 , NewFlagValuePairList ).
 
 %% post post_ana := jump_to_menu( ana , 0 ).
 

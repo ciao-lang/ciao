@@ -1,7 +1,7 @@
  :- module(mutables, [create_mutable/2,
-	             get_mutable/2,
-		     update_mutable/2,
-		     mutable/1], [assertions, dcg, datafacts]).
+                 get_mutable/2,
+                 update_mutable/2,
+                 mutable/1], [assertions, dcg, datafacts]).
 
 :- doc(title, "Mutable terms").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
@@ -18,9 +18,9 @@
 
 % Example of strange behaviour of setarg/3
 % test1(L) :-
-%	X=t(_), arg(1, X, T), T=[], L = [_|T], setarg(1, X, L).
+%       X=t(_), arg(1, X, T), T=[], L = [_|T], setarg(1, X, L).
 % test2(L) :-
-%	X=t(_), arg(1, X, T), T=[T], L = [_|T], setarg(1, X, L).
+%       X=t(_), arg(1, X, T), T=[T], L = [_|T], setarg(1, X, L).
 % Totaly differents behaviours in gprolog / swi / ciao
 
 
@@ -99,12 +99,12 @@
 freshly created mutable term with initial value @var{Datum}.".
 
 :- pred get_mutable(Datum, Mutable) # "Unifies @var{Datum} with the
-        current value of the mutable term @var{Mutable}. @var{Mutable}
-        must be a mutable term.".
+    current value of the mutable term @var{Mutable}. @var{Mutable}
+    must be a mutable term.".
 
 :- pred update_mutable(Datum, Mutable) # "Updates the current value of
-	 the mutable term @var{Mutable} to become @var{Datum}.
-	 @var{Mutable} must be a mutable term.".
+     the mutable term @var{Mutable} to become @var{Datum}.
+     @var{Mutable} must be a mutable term.".
 
 :- pred mutable(Term) # "Succeeds if @var{Term} is currently
 instantiated to a mutable term.".
@@ -122,45 +122,45 @@ instantiated to a mutable term.".
 
 
 create_mutable(Datum, X):-
-        ( mutable(X) -> 
-	    throw(error(uninstantiation_error(X), create_mutable/2-1))
-	; put_attr_local(X, Datum)
-        ). 
+    ( mutable(X) -> 
+        throw(error(uninstantiation_error(X), create_mutable/2-1))
+    ; put_attr_local(X, Datum)
+    ). 
 
 get_mutable(Datum, Mutable):-
-	( mutable(Mutable) ->
-	    get_attr_local(Mutable, Datum)
-	; throw(error(instantiation_error, get_mutable/2-2))
-	). 
+    ( mutable(Mutable) ->
+        get_attr_local(Mutable, Datum)
+    ; throw(error(instantiation_error, get_mutable/2-2))
+    ). 
 
 update_mutable(Datum, Mutable):-
-	( mutable(Mutable) ->
-            put_attr_local(Mutable, Datum)
-	; throw(error(instantiation_error, update_mutable/2-2))
-	). 
+    ( mutable(Mutable) ->
+        put_attr_local(Mutable, Datum)
+    ; throw(error(instantiation_error, update_mutable/2-2))
+    ). 
 
 mutable(Term) :-
-	var(Term), get_attr_local(Term, _).
+    var(Term), get_attr_local(Term, _).
 
 
 attr_unify_hook(Attr1, Other):-
-	(
-	    nonvar(Other) ->
-	    fail
-	;
-	    get_attr_local(Other, _) ->
-	    fail
-	;
-	    put_attr_local(Other, Attr1)
-	).
+    (
+        nonvar(Other) ->
+        fail
+    ;
+        get_attr_local(Other, _) ->
+        fail
+    ;
+        put_attr_local(Other, Attr1)
+    ).
 
 attribute_goals(X) --> 
-	{ mutable(X) },
-	{ get_attr_local(X, Datum) }, 
-	[ mutables:create_mutable(Datum, X) ].
+    { mutable(X) },
+    { get_attr_local(X, Datum) }, 
+    [ mutables:create_mutable(Datum, X) ].
 
 attr_portray_hook(_, Datum):-
-	write('$mutable'(Datum)).
+    write('$mutable'(Datum)).
 
 
 :- else. % if(defined(mutables__use_attributes)).
@@ -185,25 +185,25 @@ attr_portray_hook(_, Datum):-
 next_id(0).
 
 create_mutable(Datum, X):-
-        ( var(X)  -> 
-	     retract_fact(next_id(I)), J is I + 1, assertz_fact(next_id(J)),
-             X = '$mutable'('$'(Datum), I) 
-        ; throw(error(uninstantiation_error(X), create_mutable/2-1))
-        ). 
+    ( var(X)  -> 
+         retract_fact(next_id(I)), J is I + 1, assertz_fact(next_id(J)),
+         X = '$mutable'('$'(Datum), I) 
+    ; throw(error(uninstantiation_error(X), create_mutable/2-1))
+    ). 
 
 get_mutable(Datum, Mutable):-
-	( mutable(Mutable) ->
-	    Mutable = '$mutable'('$'(Datum), _)
-	; throw(error(instantiation_error, get_mutable/2-2))
-	). 
+    ( mutable(Mutable) ->
+        Mutable = '$mutable'('$'(Datum), _)
+    ; throw(error(instantiation_error, get_mutable/2-2))
+    ). 
 
 update_mutable(Datum, Mutable):-
-	( mutable(Mutable) ->
-            setarg(1, Mutable, '$'(Datum))
-	; throw(error(instantiation_error, update_mutable/2-2))
-	). 
+    ( mutable(Mutable) ->
+        setarg(1, Mutable, '$'(Datum))
+    ; throw(error(instantiation_error, update_mutable/2-2))
+    ). 
 
 mutable(Term) :-
-	functor(Term, '$mutable', 2).
+    functor(Term, '$mutable', 2).
 
 :- endif. % if(defined(mutables__use_attributes)).

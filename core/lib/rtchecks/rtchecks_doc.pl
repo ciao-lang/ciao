@@ -8,15 +8,15 @@
 :- doc(author, "Nataliia Stulova").
 
 :- doc(summary, "This package provides a complete implementation
-	of run-time checks of predicate assertions. The program is
-	instrumented to check such assertions at run time, and in case
-	a property does not hold, the error is reported. It is possible
-        to define two different property versions: one purely declarative
-        and one specifically crafted for run-time checking. Note that
-	there is also an older package called rtchecks, by
-	@author{David Trallero Mena}. The advantage of this one is
-	that it can be used independently of CiaoPP and also has
-	updated functionality.").
+    of run-time checks of predicate assertions. The program is
+    instrumented to check such assertions at run time, and in case
+    a property does not hold, the error is reported. It is possible
+    to define two different property versions: one purely declarative
+    and one specifically crafted for run-time checking. Note that
+    there is also an older package called rtchecks, by
+    @author{David Trallero Mena}. The advantage of this one is
+    that it can be used independently of CiaoPP and also has
+    updated functionality.").
 
 :- doc(stability,beta).
 
@@ -53,7 +53,7 @@ explanation of the meaning:
 @item @code{rtchecks_level}
   @begin{itemize}
    @item @code{exports}: Only use rtchecks for external calls of the
-                         exported predicates.
+                     exported predicates.
    @item @code{inner}  : Use also rtchecks for internal calls. Default.
   @end{itemize}
 
@@ -79,22 +79,22 @@ explanation of the meaning:
   @begin{itemize}
    @item @code{no}     : Disable rtchecks for test assertions. Default.
    @item @code{yes}    : Enable  rtchecks for test assertions. Used for
-                 debugging purposes, but is better to use the unittest library.
+             debugging purposes, but is better to use the unittest library.
   @end{itemize}
 
 @comment{
 %%  @item @code{rtchecks_inline} % TODO:T261
 %%   @begin{itemize}
 %%    @item @code{no}     : Instrument rtchecks using call to library
-%% 			 predicates present in @lib{rtchecks_rt.pl},
-%% 			 @lib{nativeprops.pl} and @lib{basic_props.pl}.
-%% 			 In this way, space is saved, but sacrifying
-%% 			 performance due to usage of meta calls and
-%% 			 external methods in the libraries. Default.
+%%                       predicates present in @lib{rtchecks_rt.pl},
+%%                       @lib{nativeprops.pl} and @lib{basic_props.pl}.
+%%                       In this way, space is saved, but sacrifying
+%%                       performance due to usage of meta calls and
+%%                       external methods in the libraries. Default.
 %%    @item @code{yes}    : Expand library predicates inline as far as possible.
-%% 			 In this way, the code is faster, because its avoids
-%% 			 metacalls and usage of external methods, but the final
-%% 			 executable could be bigger.
+%%                       In this way, the code is faster, because its avoids
+%%                       metacalls and usage of external methods, but the final
+%%                       executable could be bigger.
 %%   @end{itemize}
 }
 
@@ -119,21 +119,21 @@ explanation of the meaning:
 @item @code{rtchecks_callloc}
   @begin{itemize}
    @item @code{no}       : Do not show the stack of predicates that caused
-			   the failure
+                       the failure
    @item @code{predicate}: Show the stack of predicates that caused the
-			   failure. Instrument it in the predicate. Default.
+                       failure. Instrument it in the predicate. Default.
    @item @code{literal}  : Show the stack of predicates that caused the
-			   failure. Instrument it in the literal. This mode
-			   provides more information, because reports also
-			   the literal in the body of the predicate.
+                       failure. Instrument it in the literal. This mode
+                       provides more information, because reports also
+                       the literal in the body of the predicate.
   @end{itemize}
 
 @item @code{rtchecks_namefmt}
   @begin{itemize}
    @item @code{long}   : Show the name of predicates, properties and the
-			 values of the variables. Default.
+                     values of the variables. Default.
    @item @code{short}  : Only show the name of the predicate in a reduced
-			 format.
+                     format.
   @end{itemize}
 
 @end{itemize}
@@ -186,11 +186,11 @@ For an example of a system library that uses this feature see the
 :- doc(usage,":- module(...,...,[...,rtchecks]).").
 
 :- doc(appendix,
-        "@begin{note}
-           @bf{Note:} the @tt{assertions} package must always be included
-           together with the @tt{rtchecks} package
-           (see @tt{core/lib/compiler/global_module_options.pl} for details).
-         @end{note}").
+    "@begin{note}
+       @bf{Note:} the @tt{assertions} package must always be included
+       together with the @tt{rtchecks} package
+       (see @tt{core/lib/compiler/global_module_options.pl} for details).
+     @end{note}").
 
 % (Deprecated)
 % @item @code{rtchecks_abort_on_error}

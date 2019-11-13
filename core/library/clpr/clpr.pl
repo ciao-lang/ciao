@@ -3,8 +3,8 @@
 :- use_module(library(clpr/clpr_rt)).
 :- use_module(library(clpr/clpr_attr), [attach_attribute/2]).
 :- use_module(library(clpr/solver_r),
-	    [solve_sign/2, solve_abs/2, solve_mix/4, solve_mult/3, solve_pow/3,
-		solve_trig/3, inf/2, sup/2, minimize/1, maximize/1]).
+        [solve_sign/2, solve_abs/2, solve_mix/4, solve_mult/3, solve_pow/3,
+            solve_trig/3, inf/2, sup/2, minimize/1, maximize/1]).
 
 %% :- use_module(library(clpr/clpr_dump)).
 :- multifile dump_constraints/3.

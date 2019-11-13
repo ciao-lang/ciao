@@ -1,14 +1,14 @@
 :- module(_,
-	[
-	    builtin_heap_usage/2,
-	    inline_codable/1,
-	    eval_builtin/1,
-	    name_of_builtin/3,
-	    name_of_builtin/4,
-	    name_of_builtin/5,
-	    name_of_function/3,
-	    name_of_function/4
-	], []).
+    [
+        builtin_heap_usage/2,
+        inline_codable/1,
+        eval_builtin/1,
+        name_of_builtin/3,
+        name_of_builtin/4,
+        name_of_builtin/5,
+        name_of_function/3,
+        name_of_function/4
+    ], []).
 
 %-----------------------------------------------------------------------------
 %                              TABLES
@@ -37,7 +37,7 @@ name_of_builtin('term_typing:number'(X), 25, X).
 name_of_builtin('term_typing:var'(X), 26, X).
 name_of_builtin('basiccontrol:IF BUILTIN'(X), 39, X).
 
-name_of_builtin('attributes:detach_attribute'(X), 48, X).	% DMCAI -- ATTRVARS
+name_of_builtin('attributes:detach_attribute'(X), 48, X).       % DMCAI -- ATTRVARS
 
 name_of_builtin('term_compare:=='(X,Y), 27, X, Y).
 name_of_builtin('term_compare:\\=='(X,Y), 28, X, Y).
@@ -51,7 +51,7 @@ name_of_builtin('arithmetic:<'(X,Y), 35, X, Y).
 name_of_builtin('arithmetic:>='(X,Y), 36, X, Y).
 name_of_builtin('arithmetic:>'(X,Y), 37, X, Y).
 name_of_builtin('arithmetic:=<'(X,Y), 38, X, Y).
-name_of_builtin('term_basic:=..'(X,Y), 40, X, Y).	
+name_of_builtin('term_basic:=..'(X,Y), 40, X, Y).       
 
 % Note: hole in numbers because builtins 41 to 43 appear below
 
@@ -69,8 +69,8 @@ name_of_builtin('term_basic:functor'(X,Y,Z), 43, X, Y, Z).
 
 
 
-builtin_heap_usage(40, H) :- !, H=512.		% max arity is 255
-builtin_heap_usage(43, H) :- !, H=256.		% max arity is 255
+builtin_heap_usage(40, H) :- !, H=512.          % max arity is 255
+builtin_heap_usage(43, H) :- !, H=256.          % max arity is 255
 builtin_heap_usage(_, 0).
 
 eval_builtin('arithmetic:=:='(_,_)).

@@ -1,5 +1,5 @@
 :- module(usagedoc_types, [
-	], [assertions, doccomments]).
+    ], [assertions, doccomments]).
 
 %! @title Assertions for Usage vs. Documentation (types)
 %

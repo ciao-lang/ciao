@@ -18,11 +18,11 @@ product(  4,    "Laptop",       "Dell",         4               ).
 % Note call to findall is equivalent to: findall(Q,product(_,_,Brand,Q),L).
 
 brand_stock(Brand,Stock) :-
-        findall(Q,product${brand=>Brand,quantity=>Q},L),
-        sumlist(L,Stock).
+    findall(Q,product${brand=>Brand,quantity=>Q},L),
+    sumlist(L,Stock).
 
 sumlist([],0).
 sumlist([X|T],S) :- 
-        sumlist(T,S1),
-        S is X + S1.
+    sumlist(T,S1),
+    S is X + S1.
 

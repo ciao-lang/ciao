@@ -38,9 +38,9 @@
 
 :- export('$ciao_version'/6).
 :- trust pred '$ciao_version'(Version, Patch,
-	                      CommitBranch, CommitId, CommitDate, CommitDesc) =>
-	(atm(Version), atm(Patch),
-	 atm(CommitBranch), atm(CommitId), atm(CommitDate), atm(CommitDesc)).
+                          CommitBranch, CommitId, CommitDate, CommitDesc) =>
+    (atm(Version), atm(Patch),
+     atm(CommitBranch), atm(CommitId), atm(CommitDate), atm(CommitDesc)).
 :- impl_defined('$ciao_version'/6).
 
 % ---------------------------------------------------------------------------
@@ -89,7 +89,7 @@ ref('$ref'(A,B)):- int(A), int(B).
 
 :- export('$make_bytecode_object'/4).
 :- trust pred '$make_bytecode_object'(Size,Counters,Tokens,Obj) 
-	: (int(Size), int(Counters), list(Tokens)) => int(Obj).
+    : (int(Size), int(Counters), list(Tokens)) => int(Obj).
 :- impl_defined('$make_bytecode_object'/4).
 
 :- export('$abolish'/1).
@@ -105,10 +105,10 @@ list_clause([Head|Body]):- callable(Head), body(Body).
 
 :- regtype body/1.
 body(X) :- 
-	callable(X).
+    callable(X).
 body((X,Xs)) :-
-	callable(X),
-	body(Xs).
+    callable(X),
+    body(Xs).
 
 :- export('$instance'/3).
 :- trust pred '$instance'(Head,Body,Ptr) : int(Ptr) => (callable(Head), body(Body)).
@@ -134,7 +134,7 @@ pred_mode(unprofiled).
 
 :- export('$compiled_clause'/4).
 :- trust pred '$compiled_clause'(Pred,Obj,Mode,Data) 
-	: (predname(Pred), int(Obj), pred_mode(Mode)). %jcf% No info about Data.
+    : (predname(Pred), int(Obj), pred_mode(Mode)). %jcf% No info about Data.
 :- impl_defined('$compiled_clause'/4).
 
 :- export('$empty_gcdef_bin'/0).
@@ -277,12 +277,12 @@ quiet_mode(off).
 
 :- export('$interpreted_clause'/2).
 :- trust pred '$interpreted_clause'(Pred,LClause) 
-	: (predname(Pred), list_clause(LClause)). %jcf% Check that these are the right types!
+    : (predname(Pred), list_clause(LClause)). %jcf% Check that these are the right types!
 :- impl_defined('$interpreted_clause'/2).
 
 % ---------------------------------------------------------------------------
 /* system.pl */
-	
+    
 :- export('$unix_popen'/3).
 :- trust pred '$unix_popen'/3. %jcf% Not used in Prolog code.
 :- impl_defined('$unix_popen'/3).
@@ -297,14 +297,14 @@ quiet_mode(off).
 
 :- export('$find_file'/8).
 :- trust pred '$find_file'(LibDir, Path, Opt, Suffix, Found, AbsFile, AbsBase, AbsDir)
-	: (atm(LibDir), atm(Path), atm(Opt), atm(Suffix))
-        => (true_fail(Found), atm(AbsFile), atm(AbsBase), atm(AbsDir)).
+    : (atm(LibDir), atm(Path), atm(Opt), atm(Suffix))
+    => (true_fail(Found), atm(AbsFile), atm(AbsBase), atm(AbsDir)).
 :- impl_defined('$find_file'/8).
 % $find_file(+LibDir, +Path, +Opt, +Suffix, ?Found, -AbsPath, -AbsBase, -AbsDir)
 %
 %   string LibDir       a library in which to search for Path
-%   string Path	        a path, may be absolute or relative. If LibDir
-%   	                is specified then Path must be relative to LibDir.
+%   string Path         a path, may be absolute or relative. If LibDir
+%                       is specified then Path must be relative to LibDir.
 %   string Opt          an optional suffix to Path, must precede Suffix, is
 %                       included in AbsBase
 %   string Suffix       an optional suffix to Path, not included in AbsBase
@@ -489,7 +489,7 @@ gc_list3([F1,I2,I3]) :- flt(F1), int(I2), int(I3).
 
 :- export('$current_instance'/5).
 :- trust pred '$current_instance'(Head, Body, Root, Ptr, Blocking) 
-	: (callable(Head), body(Body), int(Root), blocking_mode(Blocking)) => int(Ptr).
+    : (callable(Head), body(Body), int(Root), blocking_mode(Blocking)) => int(Ptr).
 :- impl_defined('$current_instance'/5).
 
 :- regtype blocking_mode/1.
@@ -548,10 +548,10 @@ blocking_mode(no_block).
 % Called from within the emulator, as possible boot goal for a wam
 :- entry call_with_cont/1.
 call_with_cont([](Goal, OnSuccess, _OnFailure)):-
-        'SYSCALL'(Goal),
-        'SYSCALL'(OnSuccess).
+    'SYSCALL'(Goal),
+    'SYSCALL'(OnSuccess).
 call_with_cont([](_Goal_, _OnSuccess, OnFailure)):-
-        'SYSCALL'(OnFailure).
+    'SYSCALL'(OnFailure).
 
 % --------------------------------------------------------------------------
 :- doc(section, "Boot the machine").
@@ -562,65 +562,65 @@ call_with_cont([](_Goal_, _OnSuccess, OnFailure)):-
 
 :- entry boot/0.
 boot:-
-        setup_paths,
-        ( '$load_libs' ; true ), % load dyn linked libs (see exemaker.pl) % TODO: use loader.pl instead
-	initialize_debugger_state,
-	init_hooks,
-	!,
-        asserta_fact(all_loaded),
-        run_main_entry.
+    setup_paths,
+    ( '$load_libs' ; true ), % load dyn linked libs (see exemaker.pl) % TODO: use loader.pl instead
+    initialize_debugger_state,
+    init_hooks,
+    !,
+    asserta_fact(all_loaded),
+    run_main_entry.
 boot:-
-	message(error, '{Internal initialization failed}'),
-        halt(1).
+    message(error, '{Internal initialization failed}'),
+    halt(1).
 
 :- entry reboot/0.
 reboot :-
-        all_loaded,
-	% note: global vars are not reinitialized since they are backtrackable
-	initialize_debugger_state,
-	abort_hooks,
-	!.
+    all_loaded,
+    % note: global vars are not reinitialized since they are backtrackable
+    initialize_debugger_state,
+    abort_hooks,
+    !.
 
 init_hooks :-
-	main_module(M),
-        initialize_module(M),
-	fail.
+    main_module(M),
+    initialize_module(M),
+    fail.
 init_hooks.
 
 % hack: since '$debugger_state' loads a global variable with a reference
 % to a heap term, once executed you should not fail...
 initialize_debugger_state :-
-	'$current_module'(debugger), !,
-	'SYSCALL'('debugger:initialize_debugger_state').
+    '$current_module'(debugger), !,
+    'SYSCALL'('debugger:initialize_debugger_state').
 initialize_debugger_state.
 
 abort_hooks :-
-	( '$on_abort'(_), % module's abort hook
-	  fail
-	; % user's abort hook
-          ( '$predicate_property'('user:aborting',_,_) ->
-	      '$nodebug_call'(aborting)
-	  ; % Exit with error code 1 if no user:aborting/0 is defined
-	    % (for standalone executables)
-	    halt(1)
-	  )
-	).
+    ( '$on_abort'(_), % module's abort hook
+      fail
+    ; % user's abort hook
+      ( '$predicate_property'('user:aborting',_,_) ->
+          '$nodebug_call'(aborting)
+      ; % Exit with error code 1 if no user:aborting/0 is defined
+        % (for standalone executables)
+        halt(1)
+      )
+    ).
 
 % Run the main entry
 run_main_entry :-
-        '$predicate_property'('user:main',_,_), !,
-	( '$nodebug_call'(main) -> true ; global_failure ).
+    '$predicate_property'('user:main',_,_), !,
+    ( '$nodebug_call'(main) -> true ; global_failure ).
 run_main_entry :-
-        '$predicate_property'('user:main'(_),_,_), !,
-        current_prolog_flag(argv, Args),
-        ( '$nodebug_call'(main(Args)) -> true ; global_failure ).
+    '$predicate_property'('user:main'(_),_,_), !,
+    current_prolog_flag(argv, Args),
+    ( '$nodebug_call'(main(Args)) -> true ; global_failure ).
 run_main_entry :-
-        message(error,'Predicates user:main/0 and user:main/1 undefined, exiting...'),
-        halt(1).
+    message(error,'Predicates user:main/0 and user:main/1 undefined, exiting...'),
+    halt(1).
 
 global_failure :-
-        message(error, '{Program ended with failure}'),
-        halt(2).
+    message(error, '{Program ended with failure}'),
+    halt(2).
 
 % ---------------------------------------------------------------------------
 % TODO: move to rt_exp.pl?
@@ -631,15 +631,15 @@ global_failure :-
 :- export(initialize_module/1).
 initialize_module(M) :- current_fact(initialized(M)), !.
 initialize_module(M) :- asserta_fact(initialized(M)),
-                        do_initialize_module(M).
+                    do_initialize_module(M).
 
 do_initialize_module(M) :-
-        '$u'(M, N),
-        initialize_module(N),
-        fail.
+    '$u'(M, N),
+    initialize_module(N),
+    fail.
 do_initialize_module(M) :-
-        '$initialization'(M),
-        fail.
+    '$initialization'(M),
+    fail.
 do_initialize_module(_).
 
 % warp internal predicate, as requested by Jose Manuel % TODO: needed now?
@@ -691,42 +691,42 @@ ciaopp_expansion :- fail.
 
 :- include(library(compiler/mexpand)).
 mexpand_meta_args(M, P, Primitive) :-
-	'$meta_args'(M, P),
-	( '$primitive_meta_predicate'(P, M) ->
-	    Primitive = true
-	; Primitive = fail
-	).
+    '$meta_args'(M, P),
+    ( '$primitive_meta_predicate'(P, M) ->
+        Primitive = true
+    ; Primitive = fail
+    ).
 mexpand_imports(M, IM, F, N, EM) :-
-	'$imports'(M, IM, F, N, EM).
+    '$imports'(M, IM, F, N, EM).
 mexpand_defines(M, F, N) :-
-	'$defines'(M, F, N).
+    '$defines'(M, F, N).
 mexpand_defines(M, F, N) :-
-	functor(Meta, F, N),
-	'$meta_args'(M, Meta),
-	meta_inc_args(Meta, N, N1),
-	'$defines'(M, F, N1).
+    functor(Meta, F, N),
+    '$meta_args'(M, Meta),
+    meta_inc_args(Meta, N, N1),
+    '$defines'(M, F, N1).
 mexpand_multifile(M, F, N) :-
-	'$multifile'(M, F, N).
+    '$multifile'(M, F, N).
 
 redefining(_,_,_). % Avoid imported_needs_qual warnings
 
 module_warning(not_defined(F, N, M)) :- !,
-        ( '$unknown'(fail,fail) -> true
-        ; message(warning, ['Predicate ',~~(F/N),' undefined in module ',M])
-        ).
+    ( '$unknown'(fail,fail) -> true
+    ; message(warning, ['Predicate ',~~(F/N),' undefined in module ',M])
+    ).
 module_warning(not_imported(F, N, M, QM)) :- !,
-        message(error, ['Bad module qualification of ',~~(F/N),
-                        ', module ',M,
-                        ' does not import the predicate from module ',QM]).
+    message(error, ['Bad module qualification of ',~~(F/N),
+                    ', module ',M,
+                    ' does not import the predicate from module ',QM]).
 module_warning(bad_pred_abs(PA)) :- !,
-        message(error, ['Bad predicate abstraction ',~~(PA),
-                          ' : head functor should be ''''']).
+    message(error, ['Bad predicate abstraction ',~~(PA),
+                      ' : head functor should be ''''']).
 module_warning(big_pred_abs(PA, N)) :- !,
-        message(error, ['Predicate abstraction ',~~(PA),
-                          ' has too many arguments: should be ',N]).
+    message(error, ['Predicate abstraction ',~~(PA),
+                      ' has too many arguments: should be ',N]).
 module_warning(short_pred_abs(PA, N)) :- !,
-        message(error, ['Predicate abstraction ',~~(PA),
-                          ' has too few arguments: should be ',N]).
+    message(error, ['Predicate abstraction ',~~(PA),
+                      ' has too few arguments: should be ',N]).
 
 :- export(term_to_meta/2).
 :- pred term_to_meta/2 # "Transforms a normal term to a meta-term.".
@@ -736,58 +736,58 @@ term_to_meta(X, '$:'(X)).
 % These two backwards compatibility
 :- export(last_module_exp/5).
 last_module_exp(T, Type, M, QM, NT) :-
-        rt_module_exp(T, Type, M, QM, true, NT).
+    rt_module_exp(T, Type, M, QM, true, NT).
 
 :- export(mid_module_exp/5).
 mid_module_exp(T, Type, M, QM, NT) :-
-        rt_module_exp(T, Type, M, QM, fail, NT).
+    rt_module_exp(T, Type, M, QM, fail, NT).
 
 
 rt_module_exp(V, _Type, _M, _QM, _Pr, V) :- var(V), !.
 rt_module_exp(T, _Type, _M, _QM,  Pr, NT) :-
-        T = '$:'(Tx), !, % already expanded
-        ( Pr = true -> NT = Tx ; NT = T).
+    T = '$:'(Tx), !, % already expanded
+    ( Pr = true -> NT = Tx ; NT = T).
 rt_module_exp(QM:T, Type, M,_QM, Pr, NT) :- !,
-        ( var(QM) ->
-            meta_expansion_type(Type, T, M, _, Pr, NT, no, no)
-        ; rt_module_exp(T, Type, M, QM, Pr, NT)
-        ).
+    ( var(QM) ->
+        meta_expansion_type(Type, T, M, _, Pr, NT, no, no)
+    ; rt_module_exp(T, Type, M, QM, Pr, NT)
+    ).
 rt_module_exp(T, Type, M, QM, Pr, NT) :-
-        do_module_exp(QM, T, M, Pr, Type, NT), !.
+    do_module_exp(QM, T, M, Pr, Type, NT), !.
 rt_module_exp(T,_Type,_M,_QM,_Pr, T).
 
 do_module_exp(QM, T, M, Primitive, Type, NT) :-
-        nonvar(QM),
-        functor(QM, XM, 1), !,
+    nonvar(QM),
+    functor(QM, XM, 1), !,
 %        accessible_in(M, XM, mod_exp, 5),
-        arg(1, QM, XQM),
-        atom_concat(XM, ':mod_exp', PX), % XM:mod_exp/5 makes the expansion
-        functor(GEXP, PX, 5),
-        '$predicate_property'(GEXP, _, _),
-        arg(1,GEXP,Type),
-        arg(2,GEXP,T),
-        arg(3,GEXP,M),
-        arg(4,GEXP,XQM),
-        arg(5,GEXP,XT),
-        '$meta_call'(GEXP),
-        term_to_meta_or_primitive(Primitive, XT, NT).
+    arg(1, QM, XQM),
+    atom_concat(XM, ':mod_exp', PX), % XM:mod_exp/5 makes the expansion
+    functor(GEXP, PX, 5),
+    '$predicate_property'(GEXP, _, _),
+    arg(1,GEXP,Type),
+    arg(2,GEXP,T),
+    arg(3,GEXP,M),
+    arg(4,GEXP,XQM),
+    arg(5,GEXP,XT),
+    '$meta_call'(GEXP),
+    term_to_meta_or_primitive(Primitive, XT, NT).
 do_module_exp(QM, T, M, Primitive, Type, NT) :-
-	meta_expansion_type(Type, T, M, QM, Primitive, NT, no, no).
+    meta_expansion_type(Type, T, M, QM, Primitive, NT, no, no).
 
 meta_expansion_type(Type, X, M, QM, Primitive, NX, NG, NG_) :-
-	meta_expansion_type_(Type, X, M, QM, compile, Primitive, NX, NG, NG_).
+    meta_expansion_type_(Type, X, M, QM, compile, Primitive, NX, NG, NG_).
 
 % TODO: move together with runtime_control:module_split/3?
 % TODO: inefficient, write in C or adopt a hash-table approach like in optim_comp
 :- export(module_concat/3).
 module_concat(user(_), X0, X) :- !,
-        module_concat(user, X0, X).
+    module_concat(user, X0, X).
 module_concat(Module, X0, X) :-
-	X0 =.. [F0|Args],
-        atom(F0), !,
-	atom_concat(Module, ':', Mc),
-	atom_concat(Mc, F0, F),
-	X =.. [F|Args].
+    X0 =.. [F0|Args],
+    atom(F0), !,
+    atom_concat(Module, ':', Mc),
+    atom_concat(Mc, F0, F),
+    X =.. [F|Args].
 module_concat(_, X, X). % If a number, do not change to complain later
 
 % ---------------------------------------------------------------------------
@@ -799,25 +799,25 @@ module_concat(_, X, X). % If a number, do not change to complain later
 :- pred load_lib(Module,File) : atm * atm.
 
 load_lib(Module,_File) :-
-        '$current_module'(Module), !.
+    '$current_module'(Module), !.
 load_lib(Module, File) :- % loads both .so and .po - JFMC
-        prolog_flag(fileerrors, OldFE, off),
-        ( find_pl_filename(File, _, Base, _),
-	  so_filename(Base, SoName),
-	  file_exists(SoName, 0),
-	    dynlink(SoName, Module),
+    prolog_flag(fileerrors, OldFE, off),
+    ( find_pl_filename(File, _, Base, _),
+      so_filename(Base, SoName),
+      file_exists(SoName, 0),
+        dynlink(SoName, Module),
 %            assertz_fact(current_module(Module)),
-	    fail
-	; true
-	),
-        ( find_po_filename(File, PoName),
-            poload(PoName),
-            ldlibs(Module),
-	    fail
-        ; true
-	),
-        set_prolog_flag(fileerrors, OldFE),
-        check_module_loaded(Module, File).
+        fail
+    ; true
+    ),
+    ( find_po_filename(File, PoName),
+        poload(PoName),
+        ldlibs(Module),
+        fail
+    ; true
+    ),
+    set_prolog_flag(fileerrors, OldFE),
+    check_module_loaded(Module, File).
 
 ldlibs(X) :- '$ldlibs'(X).
 
@@ -825,68 +825,68 @@ ldlibs(X) :- '$ldlibs'(X).
 
 :- entry load_lib_lazy/2.
 load_lib_lazy(Module,_File) :-
-        '$current_module'(Module), !.
+    '$current_module'(Module), !.
 load_lib_lazy(Module, File) :- % loads both .so and .po - JFMC
-        del_stumps(Module),
-        prolog_flag(fileerrors, OldFE, off),
-        ( find_po_filename(File, PoName),
-            poload(PoName),
-	    fail
-        ; true
-	),
-	( find_so_filename(File, SoName),
-	    dynlink(SoName, Module),
+    del_stumps(Module),
+    prolog_flag(fileerrors, OldFE, off),
+    ( find_po_filename(File, PoName),
+        poload(PoName),
+        fail
+    ; true
+    ),
+    ( find_so_filename(File, SoName),
+        dynlink(SoName, Module),
 %            assertz_fact(current_module(Module)),
-	    fail
-        ; true
-	),
-        set_prolog_flag(fileerrors, OldFE),
-        retractall_fact(initialized(Module)),
-        initialize_module(Module),
-        check_module_loaded(Module, File).
+        fail
+    ; true
+    ),
+    set_prolog_flag(fileerrors, OldFE),
+    retractall_fact(initialized(Module)),
+    initialize_module(Module),
+    check_module_loaded(Module, File).
 
 check_module_loaded(Module,_File) :- '$current_module'(Module), !.
 check_module_loaded(_Module,File) :-
-        message(error,['library ',File,' not found, exiting...']),
-        halt(1).
+    message(error,['library ',File,' not found, exiting...']),
+    halt(1).
 
 :- trust pred stump(A,B) => (atm(A), callable(B)).
 :- multifile stump/2.
 :- data stump/2.
 
 del_stumps(Module) :-
-        retract_fact(stump(Module, Pred)),
-        '$abolish'(Pred),
-        fail.
+    retract_fact(stump(Module, Pred)),
+    '$abolish'(Pred),
+    fail.
 del_stumps(_).
 
 % Low-level loading of objects (QL)
 poload(AbsName) :-
-	'$push_qlinfo',
-        '$open'(AbsName, r, Stream),            % Gives errors
-	'$qread'(Stream, Version),
-	poversion(Version), !,
-	repeat,
-	  '$qread'(Stream, Goal),
-          (   Goal= -1
-          ;   'SYSCALL'(Goal), fail
-          ), !,
-	'$pop_qlinfo',
-	close(Stream).
+    '$push_qlinfo',
+    '$open'(AbsName, r, Stream),            % Gives errors
+    '$qread'(Stream, Version),
+    poversion(Version), !,
+    repeat,
+      '$qread'(Stream, Goal),
+      (   Goal= -1
+      ;   'SYSCALL'(Goal), fail
+      ), !,
+    '$pop_qlinfo',
+    close(Stream).
 poload(AbsName) :-
-        message(error, ['could not load ', AbsName,
-                        ' (missing, corrupt, or wrong .po version)']),
-        halt(1).
+    message(error, ['could not load ', AbsName,
+                    ' (missing, corrupt, or wrong .po version)']),
+    halt(1).
 
 :- export(load_so/2).
 load_so(Module, File) :-
-	find_so_filename(File, SoName),
-        dynlink(SoName, Module).
+    find_so_filename(File, SoName),
+    dynlink(SoName, Module).
 
 :- export(load_po/1).
 load_po(File) :-
-	find_po_filename(File, PoName),
-        poload(PoName).
+    find_po_filename(File, PoName),
+    poload(PoName).
 
 :- export(poversion/1).
 poversion(version(67)).
@@ -927,89 +927,89 @@ file_search_path(Alias, Path) :- '$bundle_alias_path'(Alias, _Bundle, Path).
 file_search_path(.,.).
 
 setup_paths :-
-	% Setup default path aliases
-        ciao_root(CiaoRoot),
-        path_concat(CiaoRoot, 'core/lib', LibPath),
-        assertz_fact(library_directory(LibPath)),
-        path_concat(CiaoRoot, 'core/library', LibraryPath),
-        assertz_fact(library_directory(LibraryPath)),
-        path_concat(CiaoRoot, 'core/engine', Engine),
-        assertz_fact(file_search_path(engine, Engine)),
-	% Setup path for bundles (using CIAOPATH if available)
-	get_ciaopath,
-	% Load bundleregs (if available)
-	reload_bundleregs,
-	% Fill use_cache_dir
-	( c_get_env('CIAOCCACHE', '0') -> % TODO: build/engine option instead?
-	    true
-	; fill_cache_dir
-	).
+    % Setup default path aliases
+    ciao_root(CiaoRoot),
+    path_concat(CiaoRoot, 'core/lib', LibPath),
+    assertz_fact(library_directory(LibPath)),
+    path_concat(CiaoRoot, 'core/library', LibraryPath),
+    assertz_fact(library_directory(LibraryPath)),
+    path_concat(CiaoRoot, 'core/engine', Engine),
+    assertz_fact(file_search_path(engine, Engine)),
+    % Setup path for bundles (using CIAOPATH if available)
+    get_ciaopath,
+    % Load bundleregs (if available)
+    reload_bundleregs,
+    % Fill use_cache_dir
+    ( c_get_env('CIAOCCACHE', '0') -> % TODO: build/engine option instead?
+        true
+    ; fill_cache_dir
+    ).
 
 :- use_module(engine(system_info), [ciao_c_headers_dir/1]).
 
 fill_cache_dir :- % cachedir relative to the workspace
-	( % Detect if we are using build/ or build-boot/
-	  ciao_root(Root),
-	  ciao_c_headers_dir(HDir),
-	  atom_concat(Root, RelHDir, HDir),
-	  atom_concat('/build-boot/', _, RelHDir) ->
-	    RelCacheDir = 'build-boot/cache'
-	; RelCacheDir = 'build/cache'
-	),
-	( % (failure-driven loop)
-	  ( ciao_path(Path)
-	  ; ciao_root(Path)
-	  ),
-	    atom_concat(Path, '/', Prefix),
-	    path_concat(Path, RelCacheDir, CacheDir),
-	    assertz_fact(use_cache_dir(CacheDir, Prefix)),
-	    fail
-	; true
-	).
+    ( % Detect if we are using build/ or build-boot/
+      ciao_root(Root),
+      ciao_c_headers_dir(HDir),
+      atom_concat(Root, RelHDir, HDir),
+      atom_concat('/build-boot/', _, RelHDir) ->
+        RelCacheDir = 'build-boot/cache'
+    ; RelCacheDir = 'build/cache'
+    ),
+    ( % (failure-driven loop)
+      ( ciao_path(Path)
+      ; ciao_root(Path)
+      ),
+        atom_concat(Path, '/', Prefix),
+        path_concat(Path, RelCacheDir, CacheDir),
+        assertz_fact(use_cache_dir(CacheDir, Prefix)),
+        fail
+    ; true
+    ).
 
 %JF: filename for some type of files
 :- export(po_filename/2).
 po_filename(Base, Name) :-
-	product_filename(prolog_object, Base, Name).
+    product_filename(prolog_object, Base, Name).
 :- export(wam_filename/2).
 wam_filename(Base, Name) :-
-	product_filename(prolog_wam, Base, Name).
+    product_filename(prolog_wam, Base, Name).
 :- export(itf_filename/2).
 itf_filename(Base, Name) :-
-	product_filename(prolog_itf, Base, Name).
+    product_filename(prolog_itf, Base, Name).
 :- export(asr_filename/2).
 asr_filename(Base, Name) :-
-	product_filename(prolog_assertion, Base, Name).
+    product_filename(prolog_assertion, Base, Name).
 :- export(ast_filename/2). % (like .asr, for CiaoPP)
 ast_filename(Base, Name) :-
-	product_filename(prolog_assertion2, Base, Name).
+    product_filename(prolog_assertion2, Base, Name).
 :- export(a_filename/2).
 a_filename(Base, Name) :-
-	product_filename(gluecode_a, Base, Name).
+    product_filename(gluecode_a, Base, Name).
 :- export(so_filename/2).
 so_filename(Base, Name) :-
-	product_filename(gluecode_so, Base, Name).
+    product_filename(gluecode_so, Base, Name).
 %
 :- export(testout_filename/2). % (for unittests)
 testout_filename(Base, Name) :-
-	product_filename(prolog_testout, Base, Name).
+    product_filename(prolog_testout, Base, Name).
 
 % JF: Name of a file
 :- export(product_filename/3).
 product_filename(Type, Base0, Name) :-
-%	( Type = prolog_object -> display(po_filename(Base0)), nl ; true ),
-	filetype(Type, Ext, ArchDep),
-	( ArchDep = noarch ->
-	    Suffix = Ext
-	; get_os_arch_suffix(OsArchSuffix),
-          glue_suffix(Type, GlueSuffix),
-          atom_concat(OsArchSuffix, GlueSuffix, Suffix0),
-          atom_concat(Suffix0, Ext, Suffix)
-	),
-	translate_base(Base0, Base),
-	atom_concat(Base, Suffix, Name),
-%	( Type = prolog_object -> display(po_filename_2(Name)), nl ; true ).
-	true.
+%       ( Type = prolog_object -> display(po_filename(Base0)), nl ; true ),
+    filetype(Type, Ext, ArchDep),
+    ( ArchDep = noarch ->
+        Suffix = Ext
+    ; get_os_arch_suffix(OsArchSuffix),
+      glue_suffix(Type, GlueSuffix),
+      atom_concat(OsArchSuffix, GlueSuffix, Suffix0),
+      atom_concat(Suffix0, Ext, Suffix)
+    ),
+    translate_base(Base0, Base),
+    atom_concat(Base, Suffix, Name),
+%       ( Type = prolog_object -> display(po_filename_2(Name)), nl ; true ).
+    true.
 
 :- data use_cache_dir/2.
 
@@ -1018,71 +1018,71 @@ product_filename(Type, Base0, Name) :-
 % TODO: detect the bundle of each base to create shorter and relocatable names
 %translate_base(Base, Base) :- display(user_error, trbase(Base)), nl(user_error), fail.
 translate_base(Base0, Base2) :-
-	use_cache_dir(CacheDir, Prefix),
-	atom_concat(Prefix, Base, Base0),
-	!,
-	atom_codes(Base, Codes),
-	translate_base_2(Codes, Codes1),
-	atom_codes(Base1, Codes1),
-	path_concat(CacheDir, Base1, Base2).
-%	display(user_error, Base), nl(user_error),
-%	display(user_error, Base2), nl(user_error).
+    use_cache_dir(CacheDir, Prefix),
+    atom_concat(Prefix, Base, Base0),
+    !,
+    atom_codes(Base, Codes),
+    translate_base_2(Codes, Codes1),
+    atom_codes(Base1, Codes1),
+    path_concat(CacheDir, Base1, Base2).
+%       display(user_error, Base), nl(user_error),
+%       display(user_error, Base2), nl(user_error).
 translate_base(Base, Base).
 
 translate_base_2("."||Xs0, ".."||Xs) :- !, % (escape .)
-	translate_base_2(Xs0, Xs).
+    translate_base_2(Xs0, Xs).
 translate_base_2("/"||Xs0, "."||Xs) :- !,
-	translate_base_2(Xs0, Xs).
+    translate_base_2(Xs0, Xs).
 translate_base_2([X|Xs0], [X|Xs]) :- !,
-	translate_base_2(Xs0, Xs).
+    translate_base_2(Xs0, Xs).
 translate_base_2([], []).
 
 % TODO: Rewrite in a way that does not need find_pl_filename (when CIAOCCACHE is enabled)
 %:- export(find_so_filename/2).
 find_so_filename(File, Abs) :-
-        get_os_arch_suffix(OsArchSuffix),
-	get_so_ext(SOExt),
-        absolute_file_name_(File, OsArchSuffix, SOExt, '.', Abs, Base, _),
-        Abs \== Base,  % Has .so extension
-	!.
+    get_os_arch_suffix(OsArchSuffix),
+    get_so_ext(SOExt),
+    absolute_file_name_(File, OsArchSuffix, SOExt, '.', Abs, Base, _),
+    Abs \== Base,  % Has .so extension
+    !.
 find_so_filename(File, Abs) :-
-	find_pl_filename(File, _PlName, Base, _Dir),
-	so_filename(Base, Abs).
+    find_pl_filename(File, _PlName, Base, _Dir),
+    so_filename(Base, Abs).
 
 get_os_arch_suffix(OsArchSuffix) :-
-        get_os(Os),
-        get_arch(Arch),
-        atom_concat(Os, Arch, OsArch),
-        atom_concat('_', OsArch, OsArchSuffix).
+    get_os(Os),
+    get_arch(Arch),
+    atom_concat(Os, Arch, OsArch),
+    atom_concat('_', OsArch, OsArchSuffix).
 
 % TODO: Rewrite in a way that does not need find_pl_filename (when CIAOCCACHE is enabled)
 %:- export(find_po_filename/2).
 find_po_filename(File, Abs) :-
-	opt_suff(Opt),
-        absolute_file_name_(File, Opt, '.po', '.', Abs, Base, _),
-	Abs \== Base, % Has .po extension
-	!.
+    opt_suff(Opt),
+    absolute_file_name_(File, Opt, '.po', '.', Abs, Base, _),
+    Abs \== Base, % Has .po extension
+    !.
 find_po_filename(File, Abs) :-
-	find_pl_filename(File, _PlName, Base, _Dir),
-	po_filename(Base, Abs).
+    find_pl_filename(File, _PlName, Base, _Dir),
+    po_filename(Base, Abs).
 
 :- export(find_pl_filename/4).
 find_pl_filename(File, PlName, Base, Dir) :-
-	% TODO: if file is a path, ok... but if file is a module desc,
-	% this is not correct (= in ciao 1.9)
-	atom(File), !,
-        opt_suff(Opt),
-	( '$find_file'('.', File, Opt, '.pl', true, PlName, Base, Dir) ->
-	    true
-	; '$find_file'('.', File, Opt, '', true, PlName, Base, Dir)
-	).
+    % TODO: if file is a path, ok... but if file is a module desc,
+    % this is not correct (= in ciao 1.9)
+    atom(File), !,
+    opt_suff(Opt),
+    ( '$find_file'('.', File, Opt, '.pl', true, PlName, Base, Dir) ->
+        true
+    ; '$find_file'('.', File, Opt, '', true, PlName, Base, Dir)
+    ).
 find_pl_filename(File, PlName, Base, Dir) :- 
-        opt_suff(Opt),
-	absolute_file_name_(File, Opt, '.pl', '.', PlName, Base, Dir).
+    opt_suff(Opt),
+    absolute_file_name_(File, Opt, '.pl', '.', PlName, Base, Dir).
 
 % :- export(find_c_filename/4).
 % find_c_filename(File, CName, Base, Dir) :- 
-% 	absolute_file_name_(File, [], '.c', '.', CName, Base, Dir).
+%       absolute_file_name_(File, [], '.c', '.', CName, Base, Dir).
 
 %:- pred absolute_file_name(+sourcename,+atm,+atm,+atm,-atm,-atm,-atm).
 
@@ -1091,46 +1091,46 @@ find_pl_filename(File, PlName, Base, Dir) :-
 % (called from stream_basic:absolute_file_name/7)
 :- export('$absolute_file_name_checked'/7).
 '$absolute_file_name_checked'(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir) :-
-	absolute_file_name_(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir).
+    absolute_file_name_(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir).
 
 absolute_file_name_(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir) :-
-        % Test Spec to be an alias (e.g., library(a/b/c)).
-        nonvar(Spec),
-        functor(Spec, Alias, 1),
-        arg(1,Spec,Name0),
-	slash_to_path(Name0, Name),
-        atom(Name), !,
-        ( file_search_path(Alias, Dir),
-          atom(Dir),
-          '$find_file'(Dir, Name, Opt, Suffix, true, AbsFile, AbsBase, AbsDir) ->
-	    true
-        ; file_not_found_error(Spec)
-        ).
+    % Test Spec to be an alias (e.g., library(a/b/c)).
+    nonvar(Spec),
+    functor(Spec, Alias, 1),
+    arg(1,Spec,Name0),
+    slash_to_path(Name0, Name),
+    atom(Name), !,
+    ( file_search_path(Alias, Dir),
+      atom(Dir),
+      '$find_file'(Dir, Name, Opt, Suffix, true, AbsFile, AbsBase, AbsDir) ->
+        true
+    ; file_not_found_error(Spec)
+    ).
 absolute_file_name_(Name, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir) :-
-        atom(Name), !,
-        '$find_file'(CurrDir, Name, Opt, Suffix, _, AbsFile, AbsBase, AbsDir).
+    atom(Name), !,
+    '$find_file'(CurrDir, Name, Opt, Suffix, _, AbsFile, AbsBase, AbsDir).
 absolute_file_name_(X, _, _, _, _, _, _) :-
-        throw(error(domain_error(source_sink, X), absolute_file_name/7-1)).
+    throw(error(domain_error(source_sink, X), absolute_file_name/7-1)).
 
 file_not_found_error(Spec) :-
-	( '$ferror_flag'(on, on) ->
-	    throw(error(existence_error(source_sink,Spec), absolute_file_name/7-1))
-	; fail
-	).
+    ( '$ferror_flag'(on, on) ->
+        throw(error(existence_error(source_sink,Spec), absolute_file_name/7-1))
+    ; fail
+    ).
 
 % Get (relative) pathname from term notation (e.g., a/b/c -> 'a/b/c').
 % (see pathnames:pathname/1)
 slash_to_path((SubName/Name), Flat) :- !,
-	slash_to_path(SubName, SubFlat),
-	atom_concat(SubFlat, '/', SubFlat1),
-	atom_concat(SubFlat1, Name, Flat).
+    slash_to_path(SubName, SubFlat),
+    atom_concat(SubFlat, '/', SubFlat1),
+    atom_concat(SubFlat1, Name, Flat).
 slash_to_path(Spec, Flat) :-
-	atom(Spec),
-	!,
-	Flat = Spec.
+    atom(Spec),
+    !,
+    Flat = Spec.
 slash_to_path(Spec, _Flat) :-
-	% TODO: define a right type for Spec (module_spec does not exist) (perhaps sourcename/1)
-        throw(error(domain_error(module_spec, Spec), slash_to_path/2-1)).
+    % TODO: define a right type for Spec (module_spec does not exist) (perhaps sourcename/1)
+    throw(error(domain_error(module_spec, Spec), slash_to_path/2-1)).
 
 % TODO: engine(internals) should not import lib/ or library/ modules
 %
@@ -1141,9 +1141,9 @@ slash_to_path(Spec, _Flat) :-
 :- import(system, [c_get_env/2]).
 
 is_dir(Path) :-
-        prolog_flag(fileerrors, OldFE, off),
-        file_properties(Path, directory, [], [], [], []),
-        set_prolog_flag(fileerrors, OldFE).
+    prolog_flag(fileerrors, OldFE, off),
+    file_properties(Path, directory, [], [], [], []),
+    set_prolog_flag(fileerrors, OldFE).
 
 % JF: Information about file types involved in compilation
 % - THIS IS NOT A MIME-like LIST: 
@@ -1202,51 +1202,51 @@ opt_suff('_opt').
 :- entry error/5.
 
 error(Type, _, _, _, Error_Term) :-
-	in_range(foreign, Type, _), !,
-	throw(Error_Term).
+    in_range(foreign, Type, _), !,
+    throw(Error_Term).
 error(Type, PredName, PredArity, Arg, Culprit) :-
 %        display('In Error'(Type, Culprit)), nl,
-        error_term(Type, Culprit, Error_Term),
+    error_term(Type, Culprit, Error_Term),
 %        display(error_term_is(Error_Term)), nl,
-        where_term(PredName, PredArity, Arg, Where_Error),
-        throw(error(Error_Term, Where_Error)).
+    where_term(PredName, PredArity, Arg, Where_Error),
+    throw(error(Error_Term, Where_Error)).
 
 in_range(Type, Code, WhichWithinType):-
-        range_per_error(Range),
-        error_start(Type, Section),
-        Start is Section * Range,
-        Code >= Start,
-        Code < Start + Range,
-        WhichWithinType is Code - Start.
+    range_per_error(Range),
+    error_start(Type, Section),
+    Start is Section * Range,
+    Code >= Start,
+    Code < Start + Range,
+    WhichWithinType is Code - Start.
 
 error_term( 1, _, instantiation_error) :- !.
 error_term( 2, Culprit, uninstantiation_error(Culprit)) :- !.
 error_term(Code, _, system_error) :-   in_range(system, Code, _), !.
 error_term(Code, _, syntax_error) :-   in_range(syntax, Code, _), !.
 error_term(N, _, resource_error(Res)) :- 
-	in_range(res, N, Code), !, 
-	resource_code(Code, Res).
+    in_range(res, N, Code), !, 
+    resource_code(Code, Res).
 error_term(Code, _, user_error) :-     in_range(user,   Code, _), !.
 error_term(N, _Culprit, evaluation_error(Type)) :-
-        in_range(eval, N, Code), !,
-        evaluation_code(Code, Type).
+    in_range(eval, N, Code), !,
+    evaluation_code(Code, Type).
 error_term(N, _Culprit, representation_error(Type)) :-
-        in_range(repres, N, Code), !,
-        representation_code(Code, Type).
+    in_range(repres, N, Code), !,
+    representation_code(Code, Type).
 error_term(N, Culprit, type_error(Type, Culprit)) :-
-        in_range(type, N, Code),
-        type_code(Code, Type).
+    in_range(type, N, Code),
+    type_code(Code, Type).
 error_term(N, Culprit, domain_error(Type, Culprit)) :-
-        in_range(dom, N, Code),
-        domain_code(Code, Type).
+    in_range(dom, N, Code),
+    domain_code(Code, Type).
 error_term(N, Culprit, existence_error(Type, Culprit)) :-
-        in_range(exist, N, Code),
-        existence_code(Code, Type).
+    in_range(exist, N, Code),
+    existence_code(Code, Type).
 error_term(N, Culprit, permission_error(Permission, Object, Culprit)) :-
-        in_range(perm, N, Code),
-        get_obj_perm(Code,Obj,Per),
-        permission_type_code(Per, Permission),
-        permission_object_code(Obj, Object).
+    in_range(perm, N, Code),
+    get_obj_perm(Code,Obj,Per),
+    permission_type_code(Per, Permission),
+    permission_object_code(Obj, Object).
 
 
 %% Check error type and return get Code for every class of error.  This should
@@ -1265,9 +1265,9 @@ error_term(N, Culprit, permission_error(Permission, Object, Culprit)) :-
  %% is_permission_error(N,Code) :-     N>34, N<115, Code is N-35.
 
 get_obj_perm(Code, Obj, Perm) :-
-        Obj is Code mod 10,
-        Perm is Code // 10.
-             
+    Obj is Code mod 10,
+    Perm is Code // 10.
+         
 
  %% culprit_stream([], S) :- !, current_input(S).
  %% culprit_stream(S,S).
@@ -1366,7 +1366,7 @@ resource_code(1, heap).
 :- multifile('$internal_error_where_term'/4).
 
 where_term(PredName, PredArity, Arg, WhereError):-
-	'$internal_error_where_term'(PredName, PredArity, Arg, WhereError), !.
+    '$internal_error_where_term'(PredName, PredArity, Arg, WhereError), !.
 where_term(PredName, PredArity, 0, PredName/PredArity) :- !.
 where_term(PredName, PredArity, Arg, PredName/PredArity-Arg).
 

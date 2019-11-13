@@ -38,20 +38,20 @@ unset_emacs_path :- retractall_fact(custom_emacs_path(_)).
 
 :- export(emacs_type/1).
 emacs_type(Type) :-
-	custom_emacs_type(Type0),
-	!,
-	Type = Type0.
+    custom_emacs_type(Type0),
+    !,
+    Type = Type0.
 emacs_type(posix).
 
 :- export(emacs_path/1).
 emacs_path(Path) :-
-	custom_emacs_path(Path0),
-	winpath(Path, Path0),
-	!.
+    custom_emacs_path(Path0),
+    winpath(Path, Path0),
+    !.
 emacs_path(Path) :-
-	( current_bundle_flag(ciao_emacs:emacs_for_ciao, Path0) -> Path = Path0
-	; throw(error(no_emacs, emacs_path/1))
-	).
+    ( current_bundle_flag(ciao_emacs:emacs_for_ciao, Path0) -> Path = Path0
+    ; throw(error(no_emacs, emacs_path/1))
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ emacs_path(Path) :-
 
 :- export(emacs_style_path/2).
 emacs_style_path(Path0, Path) :- emacs_type('Win32'), !,
-	cyg2win_a(Path0, Path, noswap).
+    cyg2win_a(Path0, Path, noswap).
 emacs_style_path(Path, Path).
 
 % ---------------------------------------------------------------------------
@@ -69,16 +69,16 @@ emacs_style_path(Path, Path).
 % TODO: Use 'append' creation mode for logs? (use a single log)
 :- export(emacs_batch_call/3).
 emacs_batch_call(Dir, LogName, Args) :-
-	% Environment variables unset for this call
-	NoEnv = ['SHELL', 'EMACSLOADPATH', 'EMACSDOC'],
-	%
-	Log0 = ~path_concat(Dir, LogName),
-	%
-	logged_process_call(~emacs_path, ['-batch'|Args],
-	    [cwd(Dir),
-	     noenv(NoEnv),
-	     logbase(Log0),
-	     show_logs(on_error), status(_)]).
+    % Environment variables unset for this call
+    NoEnv = ['SHELL', 'EMACSLOADPATH', 'EMACSDOC'],
+    %
+    Log0 = ~path_concat(Dir, LogName),
+    %
+    logged_process_call(~emacs_path, ['-batch'|Args],
+        [cwd(Dir),
+         noenv(NoEnv),
+         logbase(Log0),
+         show_logs(on_error), status(_)]).
 
 % ---------------------------------------------------------------------------
 
@@ -88,11 +88,11 @@ emacs_batch_call(Dir, LogName, Args) :-
 :- export(emacs_clean_log/2).
 % Clean log files created during a emacs batch call
 emacs_clean_log(Dir, LogName) :-
-	Log0 = ~path_concat(Dir, LogName),
-	Out = ~atom_concat(Log0, '.log'),
-	Err = ~atom_concat(Log0, '.err'),
-	del_file_nofail(Out),
-	del_file_nofail(Err).
+    Log0 = ~path_concat(Dir, LogName),
+    Out = ~atom_concat(Log0, '.log'),
+    Err = ~atom_concat(Log0, '.err'),
+    del_file_nofail(Out),
+    del_file_nofail(Err).
 
 % ---------------------------------------------------------------------------
 
@@ -104,11 +104,11 @@ emacs_clean_log(Dir, LogName) :-
       the autoload file @var{AutoloadEL}.".
  
 emacs_update_autoloads(Dir, Log, AutoloadEL) :-
-	AutoloadEL2 = ~emacs_style_path(AutoloadEL),
-	% TODO: espape AutoloadEL2
-	emacs_batch_call(Dir, Log, 
-          ['--eval', ~atom_concat(['(setq generated-autoload-file "', AutoloadEL2, '")']),
-	   '-f', 'batch-update-autoloads', '.']).
+    AutoloadEL2 = ~emacs_style_path(AutoloadEL),
+    % TODO: espape AutoloadEL2
+    emacs_batch_call(Dir, Log, 
+      ['--eval', ~atom_concat(['(setq generated-autoload-file "', AutoloadEL2, '")']),
+       '-f', 'batch-update-autoloads', '.']).
 
 :- export(emacs_batch_byte_compile/3).
 :- pred emacs_batch_byte_compile(Dir, Log, EL_Files)
@@ -116,8 +116,8 @@ emacs_update_autoloads(Dir, Log, AutoloadEL) :-
       the specified @var{EL_Files} elisp files.".
 
 emacs_batch_byte_compile(Dir, Log, EL_Files) :-
-	emacs_batch_call(Dir, Log,
-	  ['--eval', '(setq load-path (cons "." load-path))',
-	   '-f', 'batch-byte-compile'|
-           EL_Files]).
+    emacs_batch_call(Dir, Log,
+      ['--eval', '(setq load-path (cons "." load-path))',
+       '-f', 'batch-byte-compile'|
+       EL_Files]).
 

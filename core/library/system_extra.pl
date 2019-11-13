@@ -21,25 +21,25 @@
 
 :- use_module(engine(stream_basic)).
 :- use_module(library(system),
-	[working_directory/2,
-	 file_exists/1,
-	 file_property/2,
-	 chmod/2, fmode/2,
-	 copy_file/2, copy_file/3,
-	 delete_file/1,
-	 delete_directory/1,
-	 make_directory/2,
-	 rename_file/2,
-	 directory_files/2,
-	 using_windows/0,
-	 copy_options/1]).
+    [working_directory/2,
+     file_exists/1,
+     file_property/2,
+     chmod/2, fmode/2,
+     copy_file/2, copy_file/3,
+     delete_file/1,
+     delete_directory/1,
+     make_directory/2,
+     rename_file/2,
+     directory_files/2,
+     using_windows/0,
+     copy_options/1]).
 %
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(messages)).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(lists), [list_concat/2, append/3]).
 :- use_module(library(stream_utils),
-	[file_to_string/2, string_to_file/2]).
+    [file_to_string/2, string_to_file/2]).
 
 :- use_module(library(process), [process_call/3]).
 
@@ -57,10 +57,10 @@
 :- meta_predicate warn_on_nosuccess(goal).
 
 warn_on_nosuccess(G) :-
-	once_port_reify(G, Port),
-	( Port = success -> true
-	; warning_message("goal ~w did not succeed", [G])
-	).
+    once_port_reify(G, Port),
+    ( Port = success -> true
+    ; warning_message("goal ~w did not succeed", [G])
+    ).
 
 :- export(ignore_nosuccess/1).
 :- pred ignore_nosuccess(G) # "Call @var{G} and ignore if something went wrong
@@ -78,48 +78,48 @@ ignore_nosuccess(G) :- once_port_reify(G, _).
 :- pred del_dir_if_empty(D) : atm
 # "Delete @var{D} if it is an empty directory.".
 del_dir_if_empty(Dir) :-
-	( empty_dir(Dir) ->
-	    delete_directory(Dir)
-	; true
-	).
+    ( empty_dir(Dir) ->
+        delete_directory(Dir)
+    ; true
+    ).
 
 :- export(empty_dir/1).
 :- pred empty_dir(D) : atm(D)
 # "@var{D} is an empty directory".
 empty_dir(D) :-
-	\+ file_property(D, linkto(_)),
-	file_exists(D),
-	file_property(D, type(directory)),
-	%
-	directory_files(D, Fs),
-	F1 = '..', F2 = '.',
-	( Fs = [F1,F2] ; Fs = [F2,F1] ),
-	!.
+    \+ file_property(D, linkto(_)),
+    file_exists(D),
+    file_property(D, type(directory)),
+    %
+    directory_files(D, Fs),
+    F1 = '..', F2 = '.',
+    ( Fs = [F1,F2] ; Fs = [F2,F1] ),
+    !.
 
 :- export(move_files/2).
 :- pred move_files(Files, Dir) : list(atm) * atm
 # "Move @var{Files} to directory
-	@var{Dir} (note that to move only one file to a directory,
-	@pred{rename_file/2} can be used).".
+    @var{Dir} (note that to move only one file to a directory,
+    @pred{rename_file/2} can be used).".
 
 %% Need to do this better of course...
 
 move_files(Files, Dir0) :-
-	path_concat(Dir0, '', Dir), % (adds trailing '/')
-	move_files_(Files, Dir).
+    path_concat(Dir0, '', Dir), % (adds trailing '/')
+    move_files_(Files, Dir).
 
 move_files_([],           _Dir).
 move_files_([File|Files], Dir) :-
-	move_file(File, Dir),
-	move_files_(Files, Dir).
+    move_file(File, Dir),
+    move_files_(Files, Dir).
 
 :- export(move_file/2).
 :- pred move_file(File, Dir) : atm * atm
 # "Move @var{File} to directory
    @var{Dir}".
 move_file(File, Dir) :-
-	atom_concat(Dir, File, Target),
-	rename_file(File, Target).
+    atom_concat(Dir, File, Target),
+    rename_file(File, Target).
 
 :- export(copy_files/2).
 
@@ -128,7 +128,7 @@ move_file(File, Dir) :-
 
 %% Need to do this better of course...
 copy_files(Files, Dir) :-
-	copy_files(Files, Dir, []).
+    copy_files(Files, Dir, []).
 
 :- export(copy_files/3).
 :- pred copy_files(Files, Dir, Opts) : list(atm) * atm * copy_options
@@ -140,8 +140,8 @@ copy_files(Files, Dir) :-
 
 copy_files([],           _DestDir, _CopyOptions).
 copy_files([File|Files], DestDir,  CopyOptions) :-
-	copy_file(File, DestDir, CopyOptions),
-	copy_files(Files, DestDir, CopyOptions).
+    copy_file(File, DestDir, CopyOptions),
+    copy_files(Files, DestDir, CopyOptions).
 
 :- export(copy_files_nofail/3).
 :- pred copy_files_nofail(Files, Dir, Opts) : list(atm) * atm * copy_options
@@ -149,14 +149,14 @@ copy_files([File|Files], DestDir,  CopyOptions) :-
 
 copy_files_nofail([],           _DestDir, _CopyOptions).
 copy_files_nofail([File|Files], DestDir,  CopyOptions) :-
-	ignore_nosuccess(copy_file(File, DestDir, CopyOptions)),
-	copy_files_nofail(Files, DestDir, CopyOptions).
+    ignore_nosuccess(copy_file(File, DestDir, CopyOptions)),
+    copy_files_nofail(Files, DestDir, CopyOptions).
 
 :- export(del_file_nofail/1).
 :- pred del_file_nofail(File) : atm
 # "Like @pred{delete_file/1}, but do not fail in case of errors.".
 del_file_nofail(File) :-
-	ignore_nosuccess(delete_file(File)).
+    ignore_nosuccess(delete_file(File)).
 
 :- export(del_files_nofail/1).
 :- pred del_files_nofail(Files) : list(atm)
@@ -164,109 +164,109 @@ del_file_nofail(File) :-
    @var{Files}.".
 del_files_nofail([]).
 del_files_nofail([File|Files]) :-
-	del_file_nofail(File),
-	del_files_nofail(Files).
+    del_file_nofail(File),
+    del_files_nofail(Files).
 
 % :- export(cat/2).
 % % TODO: isn't it just copy?
 % cat(Sources, Target) :-
-% 	( file_exists(Target) ->
-% 	    delete_file(Target)
-% 	; true
-% 	),
-% 	cat_append(Sources, Target).
+%       ( file_exists(Target) ->
+%           delete_file(Target)
+%       ; true
+%       ),
+%       cat_append(Sources, Target).
 
 % :- export(cat_append/2).
 % % TODO: isn't it something like file_append?
 % cat_append(Sources, Target) :-
-% 	open(Target, append, O),
-% 	( cat_append_stream(Sources, O) ->
-% 	    close(O)
-% 	; close(O)
-% 	).
+%       open(Target, append, O),
+%       ( cat_append_stream(Sources, O) ->
+%           close(O)
+%       ; close(O)
+%       ).
 
 % cat_append_stream([], _O) :-
-% 	!.
+%       !.
 % cat_append_stream([Source|Sources], O) :-
-% 	!,
-% 	cat_append_stream_one(Source, O),
-% 	cat_append_stream(Sources, O).
+%       !,
+%       cat_append_stream_one(Source, O),
+%       cat_append_stream(Sources, O).
 % cat_append_stream(Source, O) :-
-% 	cat_append_stream_one(Source, O).
+%       cat_append_stream_one(Source, O).
 
 % cat_append_stream_one(Source, O) :-
-% 	atom(Source),
-% 	Source \== [],
-% 	!,
-% 	open(Source, read, I),
-% 	copy_stream(I, O),
-% 	close(I).
+%       atom(Source),
+%       Source \== [],
+%       !,
+%       open(Source, read, I),
+%       copy_stream(I, O),
+%       close(I).
 
 % copy_stream(I, O) :-
-% 	get_code(I, Code),
-% 	( Code = -1 -> true
-% 	; put_code(O, Code), copy_stream(I, O)
-% 	).
+%       get_code(I, Code),
+%       ( Code = -1 -> true
+%       ; put_code(O, Code), copy_stream(I, O)
+%       ).
 
 :- export(file_to_line/2).
 :- pred file_to_line(File, Str) : list(atm) * string.
 
 file_to_line(File, Str) :-
-	file_to_string(File, Str0),
-	no_tr_nl(Str0, Str).
+    file_to_string(File, Str0),
+    no_tr_nl(Str0, Str).
 
 no_tr_nl(L, NL) :-
-	append(NL, [0'\n], L),
-	!.
+    append(NL, [0'\n], L),
+    !.
 no_tr_nl(L, L).
 
 :- export(replace_strings_in_file/3).
 :- pred replace_strings_in_file(Ss, F1, F2) : list(string) * atm * atm
 # "Like @pred{replace_strings/3} but from file @var{F1} to file @var{F2}.".
 replace_strings_in_file(Ss, F1, F2) :-
-	file_to_string(F1, F1S),
-	replace_strings(Ss, F1S, F2S),
-	string_to_file(F2S, F2).
+    file_to_string(F1, F1S),
+    replace_strings(Ss, F1S, F2S),
+    string_to_file(F2S, F2).
 
 :- export(backup_file/1).
 :- pred backup_file(FileName) : atm
 # "Save a backup copy of file @var{FileName}".
 backup_file(FileName) :-
-	( file_exists(FileName) ->
-	    get_backup_filename(FileName, I, B),
-	    ( I > 0,
-	      I0 is I - 1,
-	      compose_backup_filename(FileName, I0, B0),
-	      file_to_string(FileName, FileNameS),
-	      file_to_string(B0, BS),
-	      BS = FileNameS ->
-		true
-	    ; del_file_nofail(B),
-	      copy_file(FileName, B)
-	    )
-	; true
-	).
+    ( file_exists(FileName) ->
+        get_backup_filename(FileName, I, B),
+        ( I > 0,
+          I0 is I - 1,
+          compose_backup_filename(FileName, I0, B0),
+          file_to_string(FileName, FileNameS),
+          file_to_string(B0, BS),
+          BS = FileNameS ->
+            true
+        ; del_file_nofail(B),
+          copy_file(FileName, B)
+        )
+    ; true
+    ).
 
 % TODO: Simplify?
 get_backup_filename(FileName, I, B) :-
-	get_backup_filename_(FileName, 0, I, B).
+    get_backup_filename_(FileName, 0, I, B).
 
 get_backup_filename_(FileName, I, I, B) :-
-	compose_backup_filename(FileName, I, B),
-	\+ file_exists(B),
-	!.
+    compose_backup_filename(FileName, I, B),
+    \+ file_exists(B),
+    !.
 get_backup_filename_(FileName, I0, I, B) :-
-	I1 is I0 + 1,
-	get_backup_filename_(FileName, I1, I, B).
+    I1 is I0 + 1,
+    get_backup_filename_(FileName, I1, I, B).
 
 compose_backup_filename(FileName, I, B) :-
-	atom_number(IA, I),
-	atom_concat([FileName, '.bak~', IA, '~'], B).
+    atom_number(IA, I),
+    atom_concat([FileName, '.bak~', IA, '~'], B).
 
 % TODO: merge with backup_file/1?
 :- export(move_if_diff/3).
 :- pred move_if_diff(From, To, NewOrOld) 
-	: ( atm(From), atm(To) )
+    : ( atm(From), atm(To) )
        => atm(NewOrOld)
 
 # "If @var{To} does not exist, or its contents are different from
@@ -275,30 +275,30 @@ compose_backup_filename(FileName, I, B) :-
    depending on whether the new or the old file is preserved.".
 
 move_if_diff(From, To, NewOrOld) :-
-	% note: NewOrOld is unified at the end to ensure side-effects
-	( diff_files(From, To) ->
-	    del_file_nofail(To),
-	    % NOTE: do not use rename_file/2 since it does not work
-	    %   across partitions (some Linux systems mount /tmp 
-            %   in a different partition)
-	    copy_file(From, To),
-	    del_file_nofail(From),
-	    NewOrOld = new
-	; del_file_nofail(From),
-	  NewOrOld = old
-	).
+    % note: NewOrOld is unified at the end to ensure side-effects
+    ( diff_files(From, To) ->
+        del_file_nofail(To),
+        % NOTE: do not use rename_file/2 since it does not work
+        %   across partitions (some Linux systems mount /tmp 
+        %   in a different partition)
+        copy_file(From, To),
+        del_file_nofail(From),
+        NewOrOld = new
+    ; del_file_nofail(From),
+      NewOrOld = old
+    ).
 
 diff_files(A, B) :- \+ same_files(A, B).
 
 same_files(A, B) :-
-	file_to_string_or_empty(A, AStr),
-	file_to_string_or_empty(B, BStr),
-	AStr = BStr.
+    file_to_string_or_empty(A, AStr),
+    file_to_string_or_empty(B, BStr),
+    AStr = BStr.
 
 file_to_string_or_empty(File, Str) :-
-	( catch(file_to_string(File, Str0), _, fail) -> Str = Str0
-	; Str = ""
-	).
+    ( catch(file_to_string(File, Str0), _, fail) -> Str = Str0
+    ; Str = ""
+    ).
 
 % ===========================================================================
 
@@ -312,17 +312,17 @@ file_to_string_or_empty(File, Str) :-
 # "Set user/group of a file.".
 
 set_file_owner(File, Owner) :-
-	( var(Owner) ->
-	    throw(error(uninstantiation_error(Owner), set_file_owner/2-2))
-	; ( Owner = owner(User, Group) ->
-	      atom_concat([User, ':', Group], UserGrp)
-	  ; atom(Owner) ->
-	      UserGrp = Owner
-	  ; % TODO: fix error?
-	    throw(error(domain_error(owner, Owner), set_file_owner/2-2))
-	  ),
-	  process_call(path(chown), [UserGrp, File], [])
-	).
+    ( var(Owner) ->
+        throw(error(uninstantiation_error(Owner), set_file_owner/2-2))
+    ; ( Owner = owner(User, Group) ->
+          atom_concat([User, ':', Group], UserGrp)
+      ; atom(Owner) ->
+          UserGrp = Owner
+      ; % TODO: fix error?
+        throw(error(domain_error(owner, Owner), set_file_owner/2-2))
+      ),
+      process_call(path(chown), [UserGrp, File], [])
+    ).
 
 :- export(set_file_perms/2).
 :- pred set_file_perms(File, Perms) : ( perms_term(Perms),atm(File) )
@@ -330,9 +330,9 @@ set_file_owner(File, Owner) :-
 
 % (File can be a path)
 set_file_perms(File, Perms) :-
-	execmask(File, ExecMask),
-	perms_to_mode(ExecMask, Perms, Mode),
-	chmod_if_needed(File, Mode).
+    execmask(File, ExecMask),
+    perms_to_mode(ExecMask, Perms, Mode),
+    chmod_if_needed(File, Mode).
 
 :- export(perms_term/1).
 :- regtype perms_term(Perms)
@@ -346,9 +346,9 @@ set_file_perms(File, Perms) :-
    @includedef{perms_term/1}").
 
 perms_term(perms(U, G, O)) :- 
-	valid_mode(U),
-	valid_mode(G),
-	valid_mode(O).
+    valid_mode(U),
+    valid_mode(G),
+    valid_mode(O).
 
 :- export(valid_mode/1).
 :- regtype valid_mode(Mode)
@@ -377,11 +377,11 @@ valid_mode(rwx ).
 % for user,group,other. If File is a directory, get a mask with all
 % execution bits turned on.
 execmask(File, ExecMask) :-
-	( file_property(File, type(directory)) ->
-	    ExecMask = 0o111
-	; file_property(File, mode(OrigMode)),
-	  ExecMask is OrigMode /\ 0o111
-	).
+    ( file_property(File, type(directory)) ->
+        ExecMask = 0o111
+    ; file_property(File, mode(OrigMode)),
+      ExecMask is OrigMode /\ 0o111
+    ).
 
 % TODO: is set_exec_perms/2 really needed?
 
@@ -390,23 +390,23 @@ execmask(File, ExecMask) :-
    regular files as directories w.r.t. 'X' flag".
 % (File can be a path)
 set_exec_perms(File, Perms) :-
-	perms_to_mode(0o111, Perms, Mode),
-	chmod_if_needed(File, Mode).
+    perms_to_mode(0o111, Perms, Mode),
+    chmod_if_needed(File, Mode).
 
 % TODO: really needed?
 chmod_if_needed(File, Mode) :-
-	file_property(File, mode(OrigMode)),
-	( Mode == OrigMode -> % same mode, do nothing
-	    true
-	; chmod(File, Mode)
-	).
+    file_property(File, mode(OrigMode)),
+    ( Mode == OrigMode -> % same mode, do nothing
+        true
+    ; chmod(File, Mode)
+    ).
 
 :- export(mkpath/1).
 :- pred mkpath(Path): sourcename
    # "Creates the directories necessary to access the given @var{Path}
      (which can be absolute or relative).".
 mkpath(Dir) :-
-	mkpath_mode(Dir, 0o777).
+    mkpath_mode(Dir, 0o777).
 
 :- export(mkpath/2).
 :- pred mkpath(Path, Perms): sourcename * term
@@ -414,8 +414,8 @@ mkpath(Dir) :-
       @var{Perms}.".
 
 mkpath(Path, Perms) :-
-	perms_to_mode(0o111, Perms, Mode),
-	mkpath_mode(Path, Mode).
+    perms_to_mode(0o111, Perms, Mode),
+    mkpath_mode(Path, Mode).
 
 :- export(mkpath/3).
 :- pred mkpath(Path, Perms, Owner): sourcename * term * term
@@ -423,8 +423,8 @@ mkpath(Path, Perms) :-
      directories to @var{Perms} and @var{Owner}.".
 
 mkpath(Path, Perms, Owner) :-
-	perms_to_mode(0o111, Perms, Mode),
-	mkpath_mode(Path, Mode, Owner).
+    perms_to_mode(0o111, Perms, Mode),
+    mkpath_mode(Path, Mode, Owner).
 
 % TODO: reimplement (use library(pathnames))
 :- export(mkpath_mode/3).
@@ -432,17 +432,17 @@ mkpath(Path, Perms, Owner) :-
 % We are however delegating it to make_directory/2 and absolute_file_name/7
 % (called below).
 mkpath_mode(Path, Mode, Owner) :-
-%	absolute_file_name(Path, '', '', '.', AbsolutePath, _, _),
-%	atom_codes(AbsolutePath, AbsPathCodes),
-	atom_codes(Path, PathCodes),
-	( % If relative, transform it into absolute
-          ( PathCodes = "/"||_ ; drive_selector(PathCodes-_, _) ) ->
-            AbsPathCodes = PathCodes
-        ; working_directory(CurrentDir, CurrentDir),
-          atom_codes(CurrentDir, CurrentDirCodes),
-          append(CurrentDirCodes, "/"||PathCodes, AbsPathCodes)
-	),
-        make_abs_dir0(AbsPathCodes, '', Mode, Owner).
+%       absolute_file_name(Path, '', '', '.', AbsolutePath, _, _),
+%       atom_codes(AbsolutePath, AbsPathCodes),
+    atom_codes(Path, PathCodes),
+    ( % If relative, transform it into absolute
+      ( PathCodes = "/"||_ ; drive_selector(PathCodes-_, _) ) ->
+        AbsPathCodes = PathCodes
+    ; working_directory(CurrentDir, CurrentDir),
+      atom_codes(CurrentDir, CurrentDirCodes),
+      append(CurrentDirCodes, "/"||PathCodes, AbsPathCodes)
+    ),
+    make_abs_dir0(AbsPathCodes, '', Mode, Owner).
 
 % Making the intermediate directories: instead of cd'ing to
 % directories (which is something which can break and modify the
@@ -459,112 +459,112 @@ make_abs_dir0("", _, _Mode, _Owner):- !.
 % The recursive case: perform a step in the recursion and construct the
 % intermediate directory.
 make_abs_dir0(Path, IncPath, Mode, Owner):-
-        decompose0(Path, RestPath, Component-[]),
-	make_abs_dir2(RestPath, Component, IncPath, Mode, Owner).
+    decompose0(Path, RestPath, Component-[]),
+    make_abs_dir2(RestPath, Component, IncPath, Mode, Owner).
 
 make_abs_dir2(RestPath, Component, IncPath, Mode, Owner):-
-        % Transform into atom and add to partial path
-        atom_codes(PartComp, Component),
-        atom_concat(IncPath, PartComp, NewPath),
-        ( file_exists(NewPath) ->
-            true
-        ; make_directory(NewPath, Mode),
-	  ( var(Owner) ->
-	      true
-	  ; set_file_owner(NewPath, Owner)
-	  )
-        ),
-        make_abs_dir(RestPath, NewPath, Mode, Owner).
+    % Transform into atom and add to partial path
+    atom_codes(PartComp, Component),
+    atom_concat(IncPath, PartComp, NewPath),
+    ( file_exists(NewPath) ->
+        true
+    ; make_directory(NewPath, Mode),
+      ( var(Owner) ->
+          true
+      ; set_file_owner(NewPath, Owner)
+      )
+    ),
+    make_abs_dir(RestPath, NewPath, Mode, Owner).
 
 make_abs_dir("", _, _Mode, _Owner):- !.
 % The recursive case: perform a step in the recursion and construct the
 % intermediate directory.
 make_abs_dir(Path, IncPath, Mode, Owner):-
-        decompose(Path, RestPath, Component-[]),
-	make_abs_dir2(RestPath, Component, IncPath, Mode, Owner).
+    decompose(Path, RestPath, Component-[]),
+    make_abs_dir2(RestPath, Component, IncPath, Mode, Owner).
 
 % decompose("//"||PathWOSlash, RestPath, Queue):- !, 
 %         decompose("/"||PathWOSlash, RestPath, Queue).
 decompose0(PathWOSlash, RestPath, Queue-TailQ):-
-	using_windows, drive_selector(PathWOSlash-PathWOSlash0, Queue-Queue0), 
-	!,
-        decompose_aux(PathWOSlash0, RestPath, Queue0-TailQ).
+    using_windows, drive_selector(PathWOSlash-PathWOSlash0, Queue-Queue0), 
+    !,
+    decompose_aux(PathWOSlash0, RestPath, Queue0-TailQ).
 decompose0("/"||PathWOSlash, RestPath, "/"||Queue-TailQ):-
-        decompose_aux(PathWOSlash, RestPath, Queue-TailQ).
+    decompose_aux(PathWOSlash, RestPath, Queue-TailQ).
 
 decompose("/"||PathWOSlash, RestPath, "/"||Queue-TailQ):-
-        decompose_aux(PathWOSlash, RestPath, Queue-TailQ).
+    decompose_aux(PathWOSlash, RestPath, Queue-TailQ).
 
 decompose_aux("", "", Q-Q).
 decompose_aux("/"||P, "/"||P, Q-Q):- !.
 decompose_aux([P|Ps], RestP, [P|RestQ]-TailQ):- 
-        decompose_aux(Ps, RestP, RestQ-TailQ).
+    decompose_aux(Ps, RestP, RestQ-TailQ).
 
 % A windows drive letter
 drive_selector([D, 0':, 0'/|Path]-Path, [D, 0':, 0'/|Ds]-Ds) :-
-	( D >= 0'a, D =< 0'z -> true
-	; D >= 0'A, D =< 0'Z -> true
-	).
+    ( D >= 0'a, D =< 0'z -> true
+    ; D >= 0'A, D =< 0'Z -> true
+    ).
 
 %% mkpath_mode(Path, Mode) :-
-%% 	working_directory(CurrentDir, CurrentDir),
-%% 	mkpath_mode_aux(Path, Mode),
-%% 	working_directory(_, CurrentDir).
+%%      working_directory(CurrentDir, CurrentDir),
+%%      mkpath_mode_aux(Path, Mode),
+%%      working_directory(_, CurrentDir).
 %% 
 %% mkpath_mode_aux(Path, Mode) :-
-%% 	atom_concat(Head, Tail, Path),
-%% 	atom_concat('/', SubTail, Tail), !,
-%% 	(Head = '' ->
-%% 	 working_directory(CurrentDir, '/')
-%% 	;
-%% 	 ((file_exists(Head), file_property(Head, type(directory)))
-%% 	  ;
-%% 	   make_directory(Head, Mode) 
-%% 	 ),
-%% 	 working_directory(CurrentDir, Head)),
-%% 	mkpath_mode_aux(SubTail, Mode).
+%%      atom_concat(Head, Tail, Path),
+%%      atom_concat('/', SubTail, Tail), !,
+%%      (Head = '' ->
+%%       working_directory(CurrentDir, '/')
+%%      ;
+%%       ((file_exists(Head), file_property(Head, type(directory)))
+%%        ;
+%%         make_directory(Head, Mode) 
+%%       ),
+%%       working_directory(CurrentDir, Head)),
+%%      mkpath_mode_aux(SubTail, Mode).
 %% mkpath_mode_aux(Dir, Mode) :-
-%% 	make_directory(Dir, Mode).
-%% 	 
+%%      make_directory(Dir, Mode).
+%%       
 
 :- export(mkpath_mode/2).
 :- pred mkpath_mode(+sourcename,+int)
    # "Equivalent to @tt{mkpath_mode(Path,Mode,_)}.".
-	  
+      
 mkpath_mode(Path, Mode) :-
-        mkpath_mode(Path, Mode, _).
+    mkpath_mode(Path, Mode, _).
 
 :- export(mkpath_mode/1).
 :- pred mkpath_mode(+sourcename)
    # "Equivalent to @tt{mkpath_mode(Path,0o777,_)}.".
-	  
+      
 mkpath_mode(Path) :-
-        mkpath_mode(Path, 0o777, _).
+    mkpath_mode(Path, 0o777, _).
 
 % ---------------------------------------------------------------------------
 
 % (Note: ExecMask is applied to 'X' execution permissions)
 perms_to_mode(ExecMask, Perms, Mode) :-
-	( var(Perms) ->
-	    throw(error(uninstantiation_error(Perms), perms_to_mode/3-2))
-	; execute_permissions(Perms, Exec),
-	  convert_permissions(Perms, Perms2) ->
-	    Mode is Perms2 \/ (Exec /\ ExecMask)
-	; % TODO: fix error
-	  throw(invalid_permissions(Perms))
-	).
+    ( var(Perms) ->
+        throw(error(uninstantiation_error(Perms), perms_to_mode/3-2))
+    ; execute_permissions(Perms, Exec),
+      convert_permissions(Perms, Perms2) ->
+        Mode is Perms2 \/ (Exec /\ ExecMask)
+    ; % TODO: fix error
+      throw(invalid_permissions(Perms))
+    ).
 
 execute_permissions(perms(U, G, O), E) :-
-	exec_mask_perms(U, NU),
-	exec_mask_perms(G, NG),
-	exec_mask_perms(O, NO),
-	E is NU << 6 + NG << 3 + NO.
+    exec_mask_perms(U, NU),
+    exec_mask_perms(G, NG),
+    exec_mask_perms(O, NO),
+    E is NU << 6 + NG << 3 + NO.
 
 convert_permissions(perms(U, G, O), P) :-
-	mode_symb_bin(U, NU),
-	mode_symb_bin(G, NG),
-	mode_symb_bin(O, NO),
-	P is NU << 6 + NG << 3 + NO.
+    mode_symb_bin(U, NU),
+    mode_symb_bin(G, NG),
+    mode_symb_bin(O, NO),
+    P is NU << 6 + NG << 3 + NO.
 
 % Meaning of uppercase X in permissions:
 %  - if the file is a directory, set executable attribute
@@ -602,7 +602,7 @@ mode_symb_bin(rwx , 2'111).
 :- use_module(library(pathnames), [path_split/3, path_concat/3]).
 %:- use_module(library(system_extra), [mkpath/1]).
 :- use_module(library(system),
-	[mktemp_in_tmp/2, delete_file/1, touch/1, file_exists/1]).
+    [mktemp_in_tmp/2, delete_file/1, touch/1, file_exists/1]).
 :- use_module(library(source_tree), [remove_dir/1]).
 
 :- export(mktempdir_in_tmp/2).
@@ -613,16 +613,16 @@ mode_symb_bin(rwx , 2'111).
       safety check for @pred{rmtempdir/1}.".
 
 mktempdir_in_tmp(Template, Path) :-
-	% Create a temporary file and use the name for the dir
-	atom_concat('f_', Template, TemplateF),
-	mktemp_in_tmp(TemplateF, TmpF),
-	path_split(TmpF, TmpFB, TmpFN),
-	atom_concat('f_', TmpFN2, TmpFN),
-	path_concat(TmpFB, TmpFN2, Path),
-	mkpath(Path),
-	delete_file(TmpF),
-	tempdir_mark(Path, Mark),
-	touch(Mark).
+    % Create a temporary file and use the name for the dir
+    atom_concat('f_', Template, TemplateF),
+    mktemp_in_tmp(TemplateF, TmpF),
+    path_split(TmpF, TmpFB, TmpFN),
+    atom_concat('f_', TmpFN2, TmpFN),
+    path_concat(TmpFB, TmpFN2, Path),
+    mkpath(Path),
+    delete_file(TmpF),
+    tempdir_mark(Path, Mark),
+    touch(Mark).
 
 :- export(rmtempdir/1).
 :- pred rmtempdir(Path)
@@ -632,15 +632,15 @@ mktempdir_in_tmp(Template, Path) :-
       file is not in @var{Path}.".
 
 rmtempdir(Path) :-
-	tempdir_mark(Path, Mark),
-	file_exists(Mark),
-	!,
-	remove_dir(Path).
+    tempdir_mark(Path, Mark),
+    file_exists(Mark),
+    !,
+    remove_dir(Path).
 rmtempdir(Path) :-
-	throw(error(not_created_by_mktempdir_in_tmp(Path), rmtempdir/1)).
+    throw(error(not_created_by_mktempdir_in_tmp(Path), rmtempdir/1)).
 
 tempdir_mark(Path, Mark) :-
-	path_concat(Path, 'CREATED_WITH_MKTEMPDIR', Mark).
+    path_concat(Path, 'CREATED_WITH_MKTEMPDIR', Mark).
 
 % ---------------------------------------------------------------------------
 % Symlinks, relative symlinks, and relative paths
@@ -656,9 +656,9 @@ tempdir_mark(Path, Mark) :-
    becomes @tt{/a/b/c (symlink) -> ../d/e}".
 
 create_rel_link(From, To) :-
-	path_dirname(To, ToDir),
-	relpath(ToDir, From, RelFrom),
-	create_link(RelFrom, To).
+    path_dirname(To, ToDir),
+    relpath(ToDir, From, RelFrom),
+    create_link(RelFrom, To).
 
 :- export(create_link/2).
 :- pred create_link(From, To) # "Create a symlink from @var{From} to
@@ -667,11 +667,11 @@ create_rel_link(From, To) :-
    existed before.".
 
 create_link(From, To) :-
-	del_file_nofail(To),
-        ( using_windows ->
-            copy_file(From, To, [overwrite]) % TODO: better solution? windows lacks proper symlinks
-        ; copy_file(From, To, [overwrite, symlink])
-        ).
+    del_file_nofail(To),
+    ( using_windows ->
+        copy_file(From, To, [overwrite]) % TODO: better solution? windows lacks proper symlinks
+    ; copy_file(From, To, [overwrite, symlink])
+    ).
 
 :- use_module(library(pathnames), [path_split_list/2, path_concat_list/2]).
 
@@ -682,13 +682,13 @@ create_link(From, To) :-
    otherwise just return @var{B}.".
 
 relpath(A, B, C) :-
-	path_split_list(A, As),
-	path_split_list(B, Bs),
-	As = ['/'|As0],
-	Bs = ['/'|Bs0],
-	!,
-	relpath_(As0, Bs0, Cs),
-	path_concat_list(Cs, C).
+    path_split_list(A, As),
+    path_split_list(B, Bs),
+    As = ['/'|As0],
+    Bs = ['/'|Bs0],
+    !,
+    relpath_(As0, Bs0, Cs),
+    path_concat_list(Cs, C).
 relpath(_, B, B).
 
 % Consume common part
@@ -772,7 +772,7 @@ relpath__([], Bs, Bs). % Finish with rest
 % TODO: this implementation is not portable
 % TODO: probably, this should live in other module
 using_tty :-
-	process_call(path(stty), [], [stdout(null), stderr(null), status(0)]).
+    process_call(path(stty), [], [stdout(null), stderr(null), status(0)]).
 
 % ===========================================================================
 
@@ -782,13 +782,13 @@ using_tty :-
 
 :- export(datime_atom/1).
 datime_atom(T) :-
-	datime_string(S),
-	atom_codes(T, S).
+    datime_string(S),
+    atom_codes(T, S).
 
 :- export(datime_atom/2).
 datime_atom(D, T) :-
-	datime_string(D, S),
-	atom_codes(T, S).
+    datime_string(D, S),
+    atom_codes(T, S).
 
 :- export(datime_string/1).
 % datime, as a string
@@ -797,17 +797,17 @@ datime_string(S) :- datime_string(_, S).
 :- export(datime_string/2).
 % datime, as a string
 datime_string(T, S) :-
-	datime(T, Year, Month, Day, Hour, Min, Sec, _WeekDay, _YearDay),
-	datime_to_string(datime(Year, Month, Day, Hour, Min, Sec), S).
+    datime(T, Year, Month, Day, Hour, Min, Sec, _WeekDay, _YearDay),
+    datime_to_string(datime(Year, Month, Day, Hour, Min, Sec), S).
 
 :- export(datime_to_string/2).
 % From datime to string representation
 datime_to_string(datime(Year, Month, Day, Hour, Min, Sec), S) :-
-	number_codes(Day,  DayS), number_codes(Month, MonthS),
-	number_codes(Year, YearS), number_codes(Hour, HourS),
-	number_codes(Min,  MinS), number_codes(Sec, SecS),
-	list_concat([DayS, "/", MonthS, "/", YearS, " ", HourS, ":",
-		MinS, ":", SecS], S).
+    number_codes(Day,  DayS), number_codes(Month, MonthS),
+    number_codes(Year, YearS), number_codes(Hour, HourS),
+    number_codes(Min,  MinS), number_codes(Sec, SecS),
+    list_concat([DayS, "/", MonthS, "/", YearS, " ", HourS, ":",
+            MinS, ":", SecS], S).
 
 %% =========================================================================
 
@@ -819,33 +819,33 @@ datime_to_string(datime(Year, Month, Day, Hour, Min, Sec), S) :-
 % TODO: Move to some string related module?
 replace_strings([], O, O).
 replace_strings([[S1, S2]|Ss], I, O) :-
-	replace_string(I, S1, S2, TO),
-	replace_strings(Ss, TO, O).
+    replace_string(I, S1, S2, TO),
+    replace_strings(Ss, TO, O).
 
 replace_string(_I, S1, _S2, _TO) :-
-	atom(S1),
-	!,
-	throw(error(domain_error(string, atom), replace_string/4 -2)).
+    atom(S1),
+    !,
+    throw(error(domain_error(string, atom), replace_string/4 -2)).
 replace_string(I, S1, "", TO) :-
-	!,
-	do_replace_string(I, S1, "", TO).
+    !,
+    do_replace_string(I, S1, "", TO).
 replace_string(_I, _S1, S2, _TO) :-
-	atom(S2),
-	!,
-	throw(error(domain_error(string, atom), replace_string/4 -3)).
+    atom(S2),
+    !,
+    throw(error(domain_error(string, atom), replace_string/4 -3)).
 replace_string(I, S1, S2, TO) :-
-	do_replace_string(I, S1, S2, TO).
+    do_replace_string(I, S1, S2, TO).
 
 do_replace_string([], _S1, _S2, []) :- !.
 do_replace_string(I,  S1,  S2,  O) :-
-	match(S1, I, RI),
-	!,
-	append(S2, NO, O),
-	do_replace_string(RI, S1, S2, NO).
+    match(S1, I, RI),
+    !,
+    append(S2, NO, O),
+    do_replace_string(RI, S1, S2, NO).
 do_replace_string([H|RI], S1, S2, [H|RO]) :-
-	do_replace_string(RI, S1, S2, RO).
+    do_replace_string(RI, S1, S2, RO).
 
 match([],    I,      I).
 match([H|T], [H|IT], RI) :-
-	match(T, IT, RI).
+    match(T, IT, RI).
 

@@ -12,15 +12,15 @@
 % (interface as CGI process)
 
 :- use_module(library(http/cgi), [
-	cgi_read_request/1,
-	cgi_write_response/1
+    cgi_read_request/1,
+    cgi_write_response/1
 ]).
 
 :- export(main/1).
 main(_) :-
-	cgi_read_request(Request),
-	treat_request(Request, Response),
-	cgi_write_response(Response).
+    cgi_read_request(Request),
+    treat_request(Request, Response),
+    cgi_write_response(Response).
 
 % (interface as HTTP server)
 
@@ -29,8 +29,8 @@ main(_) :-
 :- include(library(http/http_server_hooks)).
 
 'httpserv.handle'(Path, Request, Response) :-
-	split_query_str(Path, URI, _),
-	service_name(Name),
-	service_path(Name, URI),
-	!,
-	treat_request(Request, Response).
+    split_query_str(Path, URI, _),
+    service_name(Name),
+    service_path(Name, URI),
+    !,
+    treat_request(Request, Response).

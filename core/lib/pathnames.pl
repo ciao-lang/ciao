@@ -20,7 +20,7 @@
 
 :- export(pathname/1).
 :- prop pathname(X) + regtype
-	# "@var{X} is a pathname (encoded as an atom)".
+    # "@var{X} is a pathname (encoded as an atom)".
 
 pathname(X) :- atm(X).
 
@@ -31,14 +31,14 @@ pathname(X) :- atm(X).
    # "@var{Path} is an absolute pathname".
 
 path_is_absolute(Path) :- '$path_is_absolute'(Path).
-%	atom_concat('/', _, Path).
+%       atom_concat('/', _, Path).
 
 :- export(path_is_relative/1).
 :- pred path_is_relative(+Path) :: pathname
    # "@var{Path} is a relative pathname".
 
 path_is_relative(Path) :-
-	\+ path_is_absolute(Path).
+    \+ path_is_absolute(Path).
 
 :- export(path_is_basename/1).
 :- pred path_is_basename(+Path) :: pathname
@@ -46,7 +46,7 @@ path_is_relative(Path) :-
      @tt{path_split(Path, '', _)}".
 
 path_is_basename(Path) :-
-	path_split(Path, '', _).
+    path_split(Path, '', _).
 
 :- export(path_is_root/1).
 :- pred path_is_root(+Path) :: pathname
@@ -55,14 +55,14 @@ path_is_basename(Path) :-
      '')}".
 
 path_is_root(Path) :-
-	\+ Path = '',
-	path_split(Path, Path, '').
+    \+ Path = '',
+    path_split(Path, Path, '').
 
 % ---------------------------------------------------------------------------
 
 :- export(path_concat/3).
 :- pred path_concat(+PathA, +PathB, ?Path)
-	:: pathname * pathname * pathname
+    :: pathname * pathname * pathname
    # "Concatenate pathnames @var{PathA} and @var{PathB} in a new path
       @var{Path}, adding a @tt{/} separator if needed. If @var{PathB}
       is @tt{''}, then @var{Path} is a @tt{/} ended path. If
@@ -72,19 +72,19 @@ path_is_root(Path) :-
 
 path_concat('', B, R) :- !, R = B.
 path_concat(_A, B, R) :- path_is_absolute(B), !,
-	R = B.
+    R = B.
 path_concat(A, B, R) :-
-	( atom_concat(_, '/', A) ->
-	    A0 = A
-        ; atom_concat(A, '/', A0) % add '/' if needed
-	),
-	atom_concat(A0, B, R).
+    ( atom_concat(_, '/', A) ->
+        A0 = A
+    ; atom_concat(A, '/', A0) % add '/' if needed
+    ),
+    atom_concat(A0, B, R).
 
 % ---------------------------------------------------------------------------
 
 :- export(path_split/3).
 :- pred path_split(+Path, +Dir, ?Base) ::
-	pathname * pathname * pathname
+    pathname * pathname * pathname
    # "Split @var{Path} into the directory part @var{Dir} and the
       basename part @var{Base}.".
 
@@ -105,38 +105,38 @@ path_concat(A, B, R) :-
       that is equivalent (modulo normalization) to @var{Path}. That
       is, for all @var{A}, @var{B}, @var{C}:
       @begin{verbatim}
-        path_split(A,B,C),
-        path_concat(B,C,D),
-        path_norm(A,An), path_norm(D,Dn), An = Dn.
+    path_split(A,B,C),
+    path_concat(B,C,D),
+    path_norm(A,An), path_norm(D,Dn), An = Dn.
       @end{verbatim}
     @end{itemize}").
 
 path_split(Path, Dir, Base) :-
-	atom_codes(Path, PathS),
-	path_split_(PathS, DirS, BaseS),
-	atom_codes(Dir, DirS),
-	atom_codes(Base, BaseS).
+    atom_codes(Path, PathS),
+    path_split_(PathS, DirS, BaseS),
+    atom_codes(Dir, DirS),
+    atom_codes(Base, BaseS).
 
 path_split_(Path, Dir, Base) :-
-	using_windows,
-	Path = [C,0':|Path0], is_alpha(C), !,
-	path_split__(Path0, Dir0, Base),
-	Dir = [C,0':|Dir0].
+    using_windows,
+    Path = [C,0':|Path0], is_alpha(C), !,
+    path_split__(Path0, Dir0, Base),
+    Dir = [C,0':|Dir0].
 path_split_(Path, Dir, Base) :-
-	path_split__(Path, Dir, Base).
+    path_split__(Path, Dir, Base).
 
 path_split__(Path, Dir, Base) :-
-	reverse(Path, R),
-	( append(BaseR, "/"||DirR, R) ->
-	    anysep(DirR, DirR2), % Strip all trailing /
-	    ( DirR2 = "" -> % (Dir is root, preserve all /)
-	        Dir = "/"||DirR
-	    ; reverse(DirR2, Dir)
-	    ),
-	    reverse(BaseR, Base)
-	; Dir = "",
-	  Base = Path
-	).
+    reverse(Path, R),
+    ( append(BaseR, "/"||DirR, R) ->
+        anysep(DirR, DirR2), % Strip all trailing /
+        ( DirR2 = "" -> % (Dir is root, preserve all /)
+            Dir = "/"||DirR
+        ; reverse(DirR2, Dir)
+        ),
+        reverse(BaseR, Base)
+    ; Dir = "",
+      Base = Path
+    ).
 
 is_alpha(X) :- X >= 0'a, X =< 0'z, !.
 is_alpha(X) :- X >= 0'A, X =< 0'Z.
@@ -145,7 +145,7 @@ is_alpha(X) :- X >= 0'A, X =< 0'Z.
 
 :- export(path_norm/2).
 :- pred path_norm(+Path, ?NormPath)
-	:: pathname * pathname
+    :: pathname * pathname
    # "@var{NormPath} is the normalized pathname version of
       @var{Path}.".
 
@@ -203,64 +203,64 @@ yes
    used). Document at least.").
 
 path_norm(Path, NormPath) :-
-	atom_codes(Path, PathS),
-	path_norm_(PathS, NormPathS),
-	atom_codes(NormPath, NormPathS).
+    atom_codes(Path, PathS),
+    path_norm_(PathS, NormPathS),
+    atom_codes(NormPath, NormPathS).
 
 path_norm_(Xs, Ys) :-
-	parse_names(Xs, Nss),
-	collapse_names(Nss, Nss2),
-	compose_names(Nss2, Ys).
+    parse_names(Xs, Nss),
+    collapse_names(Nss, Nss2),
+    compose_names(Nss2, Ys).
 
 compose_names([], Ys) :- !, Ys = ".".
 compose_names([Ns|Nss], Ys) :-
-	append(Ns, Ys1, Ys),
-	( Nss = [],
-	    ( Ns = "" ; Ns = "/" ) % (root)
-	->
-	    Ys1 = "/"
-	; Nss = [] -> Ys1 = []
-	; Ys1 = "/"||Ys0,
-	  compose_names(Nss, Ys0)
-	).
+    append(Ns, Ys1, Ys),
+    ( Nss = [],
+        ( Ns = "" ; Ns = "/" ) % (root)
+    ->
+        Ys1 = "/"
+    ; Nss = [] -> Ys1 = []
+    ; Ys1 = "/"||Ys0,
+      compose_names(Nss, Ys0)
+    ).
 
 % Collapse references to '..' and '.'
 collapse_names(Xs, Ys) :-
-	collapse_names_(Xs, [], Rs),
-	reverse(Rs, Ys).
+    collapse_names_(Xs, [], Rs),
+    reverse(Rs, Ys).
 
 % (Ss is the stack of names)
 collapse_names_([], Ss, Ss).
 collapse_names_([X|Xs], S, Rs) :-
-	( X = "." -> S1 = S % nothing
-	; % ignore '..' if previous is single or double root
-	  X = "..", ( S = [""] ; S = ["/"] ) ->
-	    S1 = S
-	; % try pop (except if previous is '..')
-	  X = "..", S = [Y|S0], \+ Y = ".." ->
-	    S1 = S0
-	; % otherwise, push
-	  S1 = [X|S]
-	),
-	collapse_names_(Xs, S1, Rs).
+    ( X = "." -> S1 = S % nothing
+    ; % ignore '..' if previous is single or double root
+      X = "..", ( S = [""] ; S = ["/"] ) ->
+        S1 = S
+    ; % try pop (except if previous is '..')
+      X = "..", S = [Y|S0], \+ Y = ".." ->
+        S1 = S0
+    ; % otherwise, push
+      S1 = [X|S]
+    ),
+    collapse_names_(Xs, S1, Rs).
 
 % Parse all '/' separated names
 parse_names("//"||Xs, Nss) :- \+ Xs = "/"||_, !, % (exception required by POSIX)
-	Nss = ["/"|Nss0],
-	parse_names_(Xs, Nss0).
+    Nss = ["/"|Nss0],
+    parse_names_(Xs, Nss0).
 parse_names(Xs, Nss) :-
-	parse_names_(Xs, Nss).
+    parse_names_(Xs, Nss).
 
 parse_names_([], []) :- !.
 parse_names_(Xs, [Ns|Nss]) :-
-	parse_name(Xs, Ns, Xs0),
-	parse_names_(Xs0, Nss).
+    parse_name(Xs, Ns, Xs0),
+    parse_names_(Xs0, Nss).
 
 % Parse a name ended with a separator (collapsing '/') or end of string
 parse_name([], Ns, []) :- !, Ns = [].
 parse_name("/"||Xs, Ns, Ys) :- !, Ns = [], anysep(Xs, Ys).
 parse_name([X|Xs], [X|Ns], Ys) :-
-	parse_name(Xs, Ns, Ys).
+    parse_name(Xs, Ns, Ys).
 
 % Zero or more '/'
 anysep("/"||Xs, Ys) :- !, anysep(Xs, Ys).
@@ -276,12 +276,12 @@ getsep_(Xs, Xs).
 
 :- export(path_splitext/3).
 :- pred path_splitext(+Path,?NoExt,?Ext) ::
-	pathname * pathname * pathname
+    pathname * pathname * pathname
    # "Split @var{Path} into its extension @var{Ext} and the rest of
       the pathname @var{NoExt}.".
 
 :- pred path_splitext(?Path,+NoExt,+Ext) ::
-	pathname * pathname * pathname
+    pathname * pathname * pathname
    # "Compose @var{Path} by concatenating the extension @var{Ext} to
       @var{NoExt} pathname.".
 
@@ -302,29 +302,29 @@ path_splitext('a/.foo.c.d', 'a/.foo.c', '.d')
 @end{verbatim}").
 
 path_splitext(Path, NoExt, Ext) :-
-	var(Path),
-	!,
-	NoExt \== '', % not valid % TODO: document
-	% TODO: any missing bad case? (e.g., cannot add extensions do 'all dots' NoExt)
-	atom_concat(NoExt, Ext, Path).
+    var(Path),
+    !,
+    NoExt \== '', % not valid % TODO: document
+    % TODO: any missing bad case? (e.g., cannot add extensions do 'all dots' NoExt)
+    atom_concat(NoExt, Ext, Path).
 path_splitext(Path, NoExt, Ext) :-
-	atom_codes(Path, PathS),
-	path_splitext_(PathS, NoExtS, ExtS),
-	atom_codes(NoExt, NoExtS),
-	atom_codes(Ext, ExtS).
+    atom_codes(Path, PathS),
+    path_splitext_(PathS, NoExtS, ExtS),
+    atom_codes(NoExt, NoExtS),
+    atom_codes(Ext, ExtS).
 
 path_splitext_(Path, NoExt, Ext) :-
-	reverse(Path, R),
-	( append(ExtR, "."||NoExtR, R),
-	  \+ alldots(NoExtR),
-	  nosep(ExtR)
-	->
-	    reverse(NoExtR, NoExt),
-	    reverse(ExtR, Ext0),
-	    Ext = "."||Ext0
-	; NoExt = Path,
-	  Ext = ""
-	).
+    reverse(Path, R),
+    ( append(ExtR, "."||NoExtR, R),
+      \+ alldots(NoExtR),
+      nosep(ExtR)
+    ->
+        reverse(NoExtR, NoExt),
+        reverse(ExtR, Ext0),
+        Ext = "."||Ext0
+    ; NoExt = Path,
+      Ext = ""
+    ).
 
 % all dots until / or end
 alldots([]).
@@ -344,7 +344,7 @@ nosep([_|Xs]) :- nosep(Xs).
       @var{Path} (equivalent to @tt{path_split(Path,_,Base)}).".
 
 path_basename(Path, Base) :-
-	path_split(Path, _, Base).
+    path_split(Path, _, Base).
 
 :- export(path_dirname/2).
 :- pred path_dirname(+Path,?Dir) :: pathname * pathname
@@ -352,73 +352,73 @@ path_basename(Path, Base) :-
       (equivalent to @tt{path_split(Path,Dir,_)}).".
 
 path_dirname(Path, Dir) :-
-	path_split(Path, Dir, _).
+    path_split(Path, Dir, _).
 
 % ---------------------------------------------------------------------------
 
 :- export(path_relocate/4).
 :- pred path_relocate(+FromDir, +ToDir, +FromPath, -ToPath)
-	:: pathname * pathname * pathname * pathname
+    :: pathname * pathname * pathname * pathname
    # "Replace @var{FromDir} prefix by @var{DestDir} in @var{FromDir}
       to generate @var{ToDir}".
 
 path_relocate(FromDir, ToDir, FromPath, ToPath) :-
-	FromDir = FromPath, !,
-	ToPath = ToDir.
+    FromDir = FromPath, !,
+    ToPath = ToDir.
 path_relocate(FromDir, ToDir, FromPath, ToPath) :-
-	path_concat(FromDir, '', FromDir2), % ensure we have a trailing /
-	atom_concat(FromDir2, Suffix, FromPath),
-	path_concat(ToDir, Suffix, ToPath).
+    path_concat(FromDir, '', FromDir2), % ensure we have a trailing /
+    atom_concat(FromDir2, Suffix, FromPath),
+    path_concat(ToDir, Suffix, ToPath).
 
 :- export(path_get_relative/3).
 :- pred path_get_relative(+BaseDir, +Path, -RelPath)
-	:: pathname * pathname * pathname
+    :: pathname * pathname * pathname
    # "Obtain path @var{RelPath} such that @tt{path_concat(BaseDir,
       RelPath, Path)} @var{RelPath} will not contain any trailing
       @tt{'/'}".
 
 path_get_relative(BaseDir, Path, RelPath) :-
-	path_concat(BaseDir, '', BaseDir2),
-	atom_concat(BaseDir2, RelPath, Path).
+    path_concat(BaseDir, '', BaseDir2),
+    atom_concat(BaseDir2, RelPath, Path).
 
 % ---------------------------------------------------------------------------
 
 :- export(path_split_list/2).
 :- pred path_split_list(+Path, ?Bases) ::
-	pathname * list(pathname)
+    pathname * list(pathname)
    # "Split @var{Path} into its components @var{Bases}, calling
       @pred{path_split/3} recursively.".
 
 path_split_list(Path, Ns) :-
-	path_split_list_(Path, [], Ns).
+    path_split_list_(Path, [], Ns).
 
 path_split_list_(Path, Ns0, Ns) :-
-	path_split(Path, Path0, N),
-	( Path = Path0, N = '' -> % Path is root
-	    Ns = [Path0|Ns0]
-	; Path0 = '' -> % Base case
-	    Ns = [N|Ns0]
-	; Ns1 = [N|Ns0],
-	  path_split_list_(Path0, Ns1, Ns)
-	).
+    path_split(Path, Path0, N),
+    ( Path = Path0, N = '' -> % Path is root
+        Ns = [Path0|Ns0]
+    ; Path0 = '' -> % Base case
+        Ns = [N|Ns0]
+    ; Ns1 = [N|Ns0],
+      path_split_list_(Path0, Ns1, Ns)
+    ).
 
 :- export(path_concat_list/2).
 :- pred path_concat_list(+Bases, ?Path)
-	:: list(pathname) * pathname
+    :: list(pathname) * pathname
    # "Concatenate all components in @var{Bases} a new path @var{Path},
       calling @pred{path_concat/3} recursively.  ".
 
 path_concat_list(Ns, Path) :-
-	path_concat_list_(Ns, '', Path).
+    path_concat_list_(Ns, '', Path).
 
 path_concat_list_(Ns, Path0, Path) :-
-	( Ns = [] ->
-	    Path = Path0
-	; Ns = [N|Ns0] ->
-	    path_concat(Path0, N, Path1),
-	    path_concat_list_(Ns0, Path1, Path)
-	; fail
-	).
+    ( Ns = [] ->
+        Path = Path0
+    ; Ns = [N|Ns0] ->
+        path_concat(Path0, N, Path1),
+        path_concat_list_(Ns0, Path1, Path)
+    ; fail
+    ).
 
 % ---------------------------------------------------------------------------
 

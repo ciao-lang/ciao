@@ -48,7 +48,7 @@ solve_one(V, Const) :-
   arith_eval(I-Const, I1),
   solve_lin(H, I1).
 
-solve_two(V1, V2, C) :-	% V1 = V2*C
+solve_two(V1, V2, C) :- % V1 = V2*C
   (arith_zero(C) ->
       solve_one(V1, 0)
   ;
@@ -85,45 +85,45 @@ solve_lin_1([H2|T], I, H1) :-
       get_attribute(Pivot, eqn_var(_,Tm,Lin,_,_)),
       update_attribute(Lin, Inh1+Hom1),
       (Tm = l(_) ->
-          ph1(Pivot, FinDe, _)				% simplex
+      ph1(Pivot, FinDe, _)                          % simplex
       ;
-          true
+      true
       )
   ; Fresh = none,
       attach_attribute(Ref, p(EqsType,FinDe,Det,In1,Int)),
       FinDe = [Pivot|De],
-      H1 = Pivot*Coeff, Rest = [H2|T],			% take first
+      H1 = Pivot*Coeff, Rest = [H2|T],                  % take first
       delete_otl(In, Pivot, In1),
       arith_eval(-I/Coeff, Inh1),
       arith_eval(-1/Coeff, K),
       mult_linear_factor(Rest, K, Hom1),
       get_attribute(Pivot, eqn_var(_,Tm,Lin,_,_)),
-      (EqsType = 2'00,                    		% our best client
-          bs_00(De, Pivot, Inh1, Hom1),
-          update_attribute(Lin, Inh1+Hom1)
+      (EqsType = 2'00,                                  % our best client
+      bs_00(De, Pivot, Inh1, Hom1),
+      update_attribute(Lin, Inh1+Hom1)
       ; EqsType = 2'01,
-          bs_01(De, Pivot, Inh1, Hom1, G0, (true,true)),
-          update_attribute(Lin, Inh1+Hom1),
-          '$meta_call'(G0)
+      bs_01(De, Pivot, Inh1, Hom1, G0, (true,true)),
+      update_attribute(Lin, Inh1+Hom1),
+      '$meta_call'(G0)
       ; EqsType = 2'10,
-          bs_10(De, Pivot, Inh1, Hom1, InfN),
-          update_attribute(Lin, Inh1+Hom1),
-          (Tm = l(_),
-            arith_eval(Inh1>=0) ->
-              Inf is 1\/InfN
-          ;   Inf = InfN
-          ),
-          simplex_reconsider(Inf, Ref)
+      bs_10(De, Pivot, Inh1, Hom1, InfN),
+      update_attribute(Lin, Inh1+Hom1),
+      (Tm = l(_),
+        arith_eval(Inh1>=0) ->
+          Inf is 1\/InfN
+      ;   Inf = InfN
+      ),
+      simplex_reconsider(Inf, Ref)
       ; EqsType = 2'11,
-          bs_11(De, Pivot, Inh1, Hom1, G0, (true,true), InfN),
-          update_attribute(Lin, Inh1+Hom1),
-          (Tm = l(_),
-            arith_eval(Inh1>=0) ->
-              Inf is 1\/InfN
-          ;   Inf = InfN
-          ),
-          simplex_reconsider(Inf, Ref),
-          '$meta_call'(G0)
+      bs_11(De, Pivot, Inh1, Hom1, G0, (true,true), InfN),
+      update_attribute(Lin, Inh1+Hom1),
+      (Tm = l(_),
+        arith_eval(Inh1>=0) ->
+          Inf is 1\/InfN
+      ;   Inf = InfN
+      ),
+      simplex_reconsider(Inf, Ref),
+      '$meta_call'(G0)
       )
   ).
 
@@ -131,36 +131,36 @@ solve_lin_1([H2|T], I, H1) :-
 % is is not called so frequently ...
 %
 solve_lin_1(B*C, A) :-
-        get_attribute(B, eqn_var(_,V,_,D,S)),
-           get_attribute(D, p(F,K, N,L,O)),
-        update_attribute(D, p(F,Kf,N,H,O)),
-        delete_otl(L, B, H),
-        arith_eval(-(A/C), P),
-        (  F=0,
-            bs_00(K, B, P, []),
-	    strip_dep(K, Kf),
-            ground_meta(B, P)
-        ;   F=1,
-            bs_01(K, B, P, [], Q, (true,true)),
-	    strip_dep(K, Kf),
-            collect_nls(S, Q, T),
-            ground_meta(B, P),
-            '$meta_call'(T)
-        ;   F=2,
-            guard_slack(V, P),
-            bs_10(K, B, P, [], U),
-	    strip_dep(K, Kf),
-            ground_meta(B, P),
-            simplex_reconsider(U, D)
-        ;   F=3,
-            guard_slack(V, P),
-            bs_11(K, B, P, [], X, (true,true), Y),
-	    strip_dep(K, Kf),
-            collect_nls(S, X, B1),
-            ground_meta(B, P),
-            simplex_reconsider(Y, D),
-            '$meta_call'(B1)
-        ).
+    get_attribute(B, eqn_var(_,V,_,D,S)),
+       get_attribute(D, p(F,K, N,L,O)),
+    update_attribute(D, p(F,Kf,N,H,O)),
+    delete_otl(L, B, H),
+    arith_eval(-(A/C), P),
+    (  F=0,
+        bs_00(K, B, P, []),
+        strip_dep(K, Kf),
+        ground_meta(B, P)
+    ;   F=1,
+        bs_01(K, B, P, [], Q, (true,true)),
+        strip_dep(K, Kf),
+        collect_nls(S, Q, T),
+        ground_meta(B, P),
+        '$meta_call'(T)
+    ;   F=2,
+        guard_slack(V, P),
+        bs_10(K, B, P, [], U),
+        strip_dep(K, Kf),
+        ground_meta(B, P),
+        simplex_reconsider(U, D)
+    ;   F=3,
+        guard_slack(V, P),
+        bs_11(K, B, P, [], X, (true,true), Y),
+        strip_dep(K, Kf),
+        collect_nls(S, X, B1),
+        ground_meta(B, P),
+        simplex_reconsider(Y, D),
+        '$meta_call'(B1)
+    ).
 
 strip_dep(De, De) :- var(De), !.
 strip_dep([D|De], Fix) :-
@@ -190,25 +190,25 @@ solve_eq_nbs(Hom, Inh, Var, Type) :-
   attach_attribute(Var, eqn_var(Var,Type,Lin,Ref,_)),
   attach_attribute(Lin, Inh+Hom),
   (Type = l(_) ->
-      ph1(Var, Dep, _)					% simplex
+      ph1(Var, Dep, _)                                  % simplex
   ;
       true
   ).
 
 bs_00(V, _, _, _) :- var(V), !.
 bs_00([V|Vs], Mark, Inh, Hom) :-
-        (  get_attribute(V, eqn_var(_,_,Lin,_,_)),
-            get_attribute(Lin, K+L),
-	    nf_substitute(Mark, Inh, Hom, K, L, O, P) ->
-            (  P=[] ->
-                ground_meta(V, O),
-                bs_00(Vs, Mark, Inh, Hom)
-            ;
-  		update_attribute(Lin, O+P),
-                bs_00(Vs, Mark, Inh, Hom)
-            )
-        ;   bs_00(Vs, Mark, Inh, Hom)
-        ).
+    (  get_attribute(V, eqn_var(_,_,Lin,_,_)),
+        get_attribute(Lin, K+L),
+        nf_substitute(Mark, Inh, Hom, K, L, O, P) ->
+        (  P=[] ->
+            ground_meta(V, O),
+            bs_00(Vs, Mark, Inh, Hom)
+        ;
+            update_attribute(Lin, O+P),
+            bs_00(Vs, Mark, Inh, Hom)
+        )
+    ;   bs_00(Vs, Mark, Inh, Hom)
+    ).
 
 /*
 bs_first_00([], Inh, V) :- !,
@@ -220,19 +220,19 @@ bs_first_00(Hom, Inh, V) :-
 
 bs_01(V,      _,    _,   _,   G1, G1) :- var(V), !.
 bs_01([V|Vs], Mark, Inh, Hom, G3, G1) :-
-        (  get_attribute(V, eqn_var(_,_,Lin,_,Nl)),
-            get_attribute(Lin, K+L),
-	    nf_substitute(Mark, Inh, Hom, K, L, O, P) ->
-            (  P=[] ->
-                ground_meta(V, O),
-		collect_nls(Nl, G1, G2),
-                bs_01(Vs, Mark, Inh, Hom, G3, G2)
-            ;
-  		update_attribute(Lin, O+P),
-                bs_01(Vs, Mark, Inh, Hom, G3, G1)
-            )
-        ;   bs_01(Vs, Mark, Inh, Hom, G3, G1)
-        ).
+    (  get_attribute(V, eqn_var(_,_,Lin,_,Nl)),
+        get_attribute(Lin, K+L),
+        nf_substitute(Mark, Inh, Hom, K, L, O, P) ->
+        (  P=[] ->
+            ground_meta(V, O),
+            collect_nls(Nl, G1, G2),
+            bs_01(Vs, Mark, Inh, Hom, G3, G2)
+        ;
+            update_attribute(Lin, O+P),
+            bs_01(Vs, Mark, Inh, Hom, G3, G1)
+        )
+    ;   bs_01(Vs, Mark, Inh, Hom, G3, G1)
+    ).
 
 /*
 bs_first_01([], Inh, V, G2, G1) :- !,
@@ -260,25 +260,25 @@ join_goals(A, B, (A,B)).
 
 bs_10(V,      _,    _,   _,   Infeasible) :- var(V), (Infeasible = 0 ; Infeasible = 1), !.
 bs_10([V|Vs], Mark, Inh, Hom, Infeasible) :-
-        (  get_attribute(V, eqn_var(_,T,Lin,_,_)),
-            get_attribute(Lin, K+L),
-	    nf_substitute(Mark, Inh, Hom, K, L, O, P) ->
-            (  P=[] ->
-                guard_slack(T, O),
-                ground_meta(V, O),
-                bs_10(Vs, Mark, Inh, Hom, Infeasible)
-	    ;   var(Infeasible),
-		T = l(_),
- 		arith_eval(O >= 0) ->
- 		  Infeasible = 1,
-  		  update_attribute(Lin, O+P),
-                  bs_10(Vs, Mark, Inh, Hom, Infeasible)
-            ;
-  		update_attribute(Lin, O+P),
-                bs_10(Vs, Mark, Inh, Hom, Infeasible)
-            )
-        ;   bs_10(Vs, Mark, Inh, Hom, Infeasible)
-        ).
+    (  get_attribute(V, eqn_var(_,T,Lin,_,_)),
+        get_attribute(Lin, K+L),
+        nf_substitute(Mark, Inh, Hom, K, L, O, P) ->
+        (  P=[] ->
+            guard_slack(T, O),
+            ground_meta(V, O),
+            bs_10(Vs, Mark, Inh, Hom, Infeasible)
+        ;   var(Infeasible),
+            T = l(_),
+            arith_eval(O >= 0) ->
+              Infeasible = 1,
+              update_attribute(Lin, O+P),
+              bs_10(Vs, Mark, Inh, Hom, Infeasible)
+        ;
+            update_attribute(Lin, O+P),
+            bs_10(Vs, Mark, Inh, Hom, Infeasible)
+        )
+    ;   bs_10(Vs, Mark, Inh, Hom, Infeasible)
+    ).
 /*
 bs_first_10([], Inh, V, 0) :- !,
   get_attribute(V, eqn_var(_,T,_,_,_)),
@@ -296,26 +296,26 @@ bs_first_10(Hom, Inh, V, Infeasible) :-
 */
 bs_11(V,      _,    _,   _,   G1, G1,  Infeasible) :- var(V), (Infeasible = 0 ; Infeasible = 1), !.
 bs_11([V|Vs], Mark, Inh, Hom, G3, G1, Infeasible) :-
-        (  get_attribute(V, eqn_var(_,T,Lin,_,Nl)),
-            get_attribute(Lin, K+L),
-	    nf_substitute(Mark, Inh, Hom, K, L, O, P) ->
-            (  P=[] ->
-                guard_slack(T, O),
-		collect_nls(Nl, G1, G2),
-                ground_meta(V, O),
-                bs_11(Vs, Mark, Inh, Hom, G3, G2, Infeasible)
-	    ;   var(Infeasible),
-                T = l(_),
- 		arith_eval(O >= 0) ->
- 		  Infeasible = 1,
-  		  update_attribute(Lin, O+P),
-                  bs_11(Vs, Mark, Inh, Hom, G3, G1, Infeasible)
-            ;
-  		update_attribute(Lin, O+P),
-                bs_11(Vs, Mark, Inh, Hom, G3, G1, Infeasible)
-            )
-        ;   bs_11(Vs, Mark, Inh, Hom, G3, G1, Infeasible)
-        ).
+    (  get_attribute(V, eqn_var(_,T,Lin,_,Nl)),
+        get_attribute(Lin, K+L),
+        nf_substitute(Mark, Inh, Hom, K, L, O, P) ->
+        (  P=[] ->
+            guard_slack(T, O),
+            collect_nls(Nl, G1, G2),
+            ground_meta(V, O),
+            bs_11(Vs, Mark, Inh, Hom, G3, G2, Infeasible)
+        ;   var(Infeasible),
+            T = l(_),
+            arith_eval(O >= 0) ->
+              Infeasible = 1,
+              update_attribute(Lin, O+P),
+              bs_11(Vs, Mark, Inh, Hom, G3, G1, Infeasible)
+        ;
+            update_attribute(Lin, O+P),
+            bs_11(Vs, Mark, Inh, Hom, G3, G1, Infeasible)
+        )
+    ;   bs_11(Vs, Mark, Inh, Hom, G3, G1, Infeasible)
+    ).
 /*
 bs_first_11([], Inh, V, G2, G1, 0) :- !,
   get_attribute(V, eqn_var(_,T,_,_,Nl)),
@@ -358,14 +358,14 @@ swap(Dep, Indep, Deps, Ins) :-
 
 swap_bs(V, _, _, _) :- var(V), !.
 swap_bs([V|Vs], Mark, Inh, Hom) :-
-        (  get_attribute(V, eqn_var(_,_,Lin,_,_)),
-            get_attribute(Lin, K+L),
-	    nf_substitute(Mark, Inh, Hom, K, L, O, P) ->
-  		update_attribute(Lin, O+P),
-                swap_bs(Vs, Mark, Inh, Hom)
-        ;
-                swap_bs(Vs, Mark, Inh, Hom)
-        ).
+    (  get_attribute(V, eqn_var(_,_,Lin,_,_)),
+        get_attribute(Lin, K+L),
+        nf_substitute(Mark, Inh, Hom, K, L, O, P) ->
+            update_attribute(Lin, O+P),
+            swap_bs(Vs, Mark, Inh, Hom)
+    ;
+            swap_bs(Vs, Mark, Inh, Hom)
+    ).
 
 % ----------------------------------- crossref --------------------------------------
 
@@ -398,17 +398,17 @@ join_eqs([V*_|Vs], Final, Et1, Et2, De,DeTail, In,InTail, Fresh) :-
       detach_attribute(Ref),
       Ref = Final,
       (var(Dev) ->
-         Fresh = fresh(V),
-         collect_equate_eqs(Vs, Final, Et11, Et2, De,DeTail, In,InTail)
+     Fresh = fresh(V),
+     collect_equate_eqs(Vs, Final, Et11, Et2, De,DeTail, In,InTail)
       ;
-         Dev = De, Inv = In,
-         join_eqs(Vs, Final, Et11, Et2, Det,DeTail, Int,InTail, Fresh)
+     Dev = De, Inv = In,
+     join_eqs(Vs, Final, Et11, Et2, Det,DeTail, Int,InTail, Fresh)
       )
   ).
 
-delete_otl(L,      _,   _) :- var(L), !, fail.	% safety
-% delete_otl(L,      _,   L) :- var(L), !. 		% safety, 2nd interpretation
-delete_otl([X|Xs], Var, Xs) :- Var == X, !.		% determinism
+delete_otl(L,      _,   _) :- var(L), !, fail.  % safety
+% delete_otl(L,      _,   L) :- var(L), !.              % safety, 2nd interpretation
+delete_otl([X|Xs], Var, Xs) :- Var == X, !.             % determinism
 delete_otl([X|Xs], Var, [X|Xs1]) :- delete_otl(Xs, Var, Xs1).
 
 % --------------------------------- inequalities ------------------------------
@@ -418,8 +418,8 @@ delete_otl([X|Xs], Var, [X|Xs1]) :- delete_otl(Xs, Var, Xs1).
 
 guard_slack(v,      _).
 guard_slack(l(T),   I) :- (T = e, arith_eval(I =< 0)
-                           ; T = t, arith_eval(I  < 0)
-                           ).
+                       ; T = t, arith_eval(I  < 0)
+                       ).
 guard_slack(nz,     I) :- \+ arith_zero(I).
 
 
@@ -440,26 +440,26 @@ var_with_def(Var, Type, K, I, H) :-
 % to use such values in procedures not implemented with clpqr -- EMM.
 
 % ground_meta(M, Val) :-
-% 	detach_attribute(M),
-% 	M = Val.
+%       detach_attribute(M),
+%       M = Val.
 
 % This version will show the solutions as restrictions, but only for
 % clpr.  For clpq it have the same effect that the version above
 % because float(Val) fail. To use results outside use as_float/2 --EMM.
 
 ground_meta(M, Val) :-
-	(
-	    float(Val) ->
-	    update_attribute(M, float(Val))
-	;
-	    detach_attribute(M),
-	    M = Val
-	).
+    (
+        float(Val) ->
+        update_attribute(M, float(Val))
+    ;
+        detach_attribute(M),
+        M = Val
+    ).
 
 % eqn_var_new(EqType, Self)
-% Eqs types:       	0 plain equations
+% Eqs types:            0 plain equations
 %                       1 with pending nl_goals
-%                      10 with inequalities		guard_slack
+%                      10 with inequalities             guard_slack
 %
 eqn_var_new( v, X) :-
   attach_attribute(Self, eqn_var(Self, v,Lin,Ref,_)),
@@ -480,7 +480,7 @@ eqn_var_new(nz, X) :-
 eqn_type_mask(      v, 2'00).
 eqn_type_mask(   l(_), 2'10).
 eqn_type_mask(     nz, 2'10).
-eqn_type_mask(   none, 2'00).				% nonlin stuff in dumper
+eqn_type_mask(   none, 2'00).                           % nonlin stuff in dumper
 eqn_type_mask(nl(_,_), 2'01).
 
 join_eqn_types([T|Ts], Type) :-

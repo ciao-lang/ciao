@@ -10,5 +10,5 @@ add_pop(S) :- findall(P,population(_,P),L), sumlist(L,S).
 
 sumlist([],0).
 sumlist([X|T],S) :- 
-	sumlist(T,S1),
-	S is X + S1.
+    sumlist(T,S1),
+    S is X + S1.

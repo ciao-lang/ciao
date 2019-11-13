@@ -27,23 +27,23 @@
       output it in the channel @var{Output}.".
 
 http_get(URL, Output):-
-	detect_command(curl), !, curl(URL, Output).
+    detect_command(curl), !, curl(URL, Output).
 http_get(URL, Output):-
-	detect_command(wget), !, wget(URL, Output).
+    detect_command(wget), !, wget(URL, Output).
 http_get(_, _) :- 
-	throw(error(http_get/2, neither_wget_nor_curl_found)).
+    throw(error(http_get/2, neither_wget_nor_curl_found)).
 
 % Silently fail if the command cannot be found in the path or does not
 % answer successfully to '--version' option.
 detect_command(Cmd):-
-	catch(detect_command_(Cmd), _E, fail).
+    catch(detect_command_(Cmd), _E, fail).
 
 detect_command_(Cmd):-
-	process_call(path(Cmd), ['--version'], [stdout(null), stderr(null), status(0)]).
+    process_call(path(Cmd), ['--version'], [stdout(null), stderr(null), status(0)]).
 
 curl(URL, Output):-
-	% '-L' is needed to follow HTTP redirects
-	process_call(path(curl), ['-s', '-L', URL], [stdout(Output)]).
+    % '-L' is needed to follow HTTP redirects
+    process_call(path(curl), ['-s', '-L', URL], [stdout(Output)]).
 
 wget(URL, Output):-
-	process_call(path(wget), ['-q', URL, '-O', '-'], [stdout(Output)]).
+    process_call(path(wget), ['-q', URL, '-O', '-'], [stdout(Output)]).

@@ -12,25 +12,25 @@
 :- export(test4/3).
 :- meta_predicate test4(?,pred(2),?).
 test4(X, Y, Z) :-
-	map(X, Y, Z).
+    map(X, Y, Z).
 
 :- export(test5/1).
 test5(A) :-
-	test6(A).
+    test6(A).
 
 p(A,A).
 
 test1 :-
-	map([a,b,c], p, Q),
-	display(Q),
-	nl.
+    map([a,b,c], p, Q),
+    display(Q),
+    nl.
 
 test2(X) :-
-	map(X, p, Q),
-	display(Q),
-	nl.
+    map(X, p, Q),
+    display(Q),
+    nl.
 
 test3(X, Y) :-
-	map(X, p, Y),
-	display(Y),
-	nl.
+    map(X, p, Y),
+    display(Y),
+    nl.

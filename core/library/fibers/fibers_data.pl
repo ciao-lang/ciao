@@ -28,16 +28,16 @@
 
 :- export(t_data_restore/1).
 t_data_restore(State) :-
-	retractall_fact(t_data(_)),
-	( member(Fact, State),
-	    assertz_fact(t_data(Fact)),
-	    fail
-	; true
-	).
+    retractall_fact(t_data(_)),
+    ( member(Fact, State),
+        assertz_fact(t_data(Fact)),
+        fail
+    ; true
+    ).
 
 :- export(t_data_dump/1).
 t_data_dump(State) :-
-	findall(Fact, t_data(Fact), State).
+    findall(Fact, t_data(Fact), State).
 
 % ---------------------------------------------------------------------------
 
@@ -47,36 +47,36 @@ t_data_dump(State) :-
 % :- meta_predicate t_defined_data(transient).
 :- export('$t_defined_data'/1).
 '$t_defined_data'(Fact) :-
-	( (Fact as transient).decl -> true ; fail ).
+    ( (Fact as transient).decl -> true ; fail ).
 
 % :- meta_predicate t_current_fact(transient).
 :- export('$t_current_fact'/1).
 % Get value of @var{Fact} in @var{State}
 '$t_current_fact'(Fact) :- !,
-	fresh_fact(Fact, Fact0),
-	( current_fact(t_data(Fact0)) ->
-	    Fact = Fact0
-	; % Not found, fail
-	  fail
-	).
+    fresh_fact(Fact, Fact0),
+    ( current_fact(t_data(Fact0)) ->
+        Fact = Fact0
+    ; % Not found, fail
+      fail
+    ).
 
 % :- meta_predicate t_set_fact(transient).
 :- export('$t_set_fact'/1).
 % Set new value for @var{Fact}
 '$t_set_fact'(Fact) :-
- 	fresh_fact(Fact, Fact0),
- 	( retract_fact(t_data(Fact0)) -> true ; true ),
-	assertz_fact(t_data(Fact)).
+    fresh_fact(Fact, Fact0),
+    ( retract_fact(t_data(Fact0)) -> true ; true ),
+    assertz_fact(t_data(Fact)).
 
 % Forget args of @var{Fact} in @var{Fact2}
 fresh_fact(Fact, Fact2) :-
-	functor(Fact, F, N),
-	functor(Fact2, F, N).
+    functor(Fact, F, N),
+    functor(Fact2, F, N).
 
 % ---------------------------------------------------------------------------
 
 :- export(apply1/3).
 apply1(N, X) := Y :-
-	functor(Y, N, 1),
-	arg(1, Y, X).
+    functor(Y, N, 1),
+    arg(1, Y, X).
 

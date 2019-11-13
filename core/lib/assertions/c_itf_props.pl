@@ -1,5 +1,5 @@
 :- module(c_itf_props,[ moddesc/1, filename/1, switch/1 ],
-	[ assertions, regtypes ]).
+    [ assertions, regtypes ]).
 
 :- doc(title,"Some types and properties related to c_itf").
 
@@ -18,7 +18,7 @@ moddesc(user(X)) :- atm(X).
 % ---------------------------------------------------------------------------
 
 filename(X) :- 
-	atm(X).
+    atm(X).
 
 % ---------------------------------------------------------------------------
 :- regtype switch(X) 

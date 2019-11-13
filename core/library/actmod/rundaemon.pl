@@ -28,4 +28,4 @@ kill `cat LOCKFILE`
        :: atm * atm * list(atm) + foreign_low(run_daemon).
 
 main([LockFile, ExecPath|Args]) :-
-	run_daemon(LockFile, ExecPath, Args).
+    run_daemon(LockFile, ExecPath, Args).

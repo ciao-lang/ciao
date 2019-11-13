@@ -1,7 +1,7 @@
 :- module(factsdb_rt,
-	[asserta_fact/1, assertz_fact/1, call/1, current_fact/1,
-	 retract_fact/1],
-	[assertions, datafacts]).
+    [asserta_fact/1, assertz_fact/1, call/1, current_fact/1,
+     retract_fact/1],
+    [assertions, datafacts]).
 
 :- use_module(engine(internals), [term_to_meta/2]).
 :- use_module(library(counters)).
@@ -23,7 +23,7 @@
 
 :- doc(doinclude,keyword/1).
 :- doc(keyword/1,"See @lib{persdb_rt}. The same conventions for location
-	of DB files apply in both packages.").
+    of DB files apply in both packages.").
 
 % ------------------------------------------------------------------------
 
@@ -38,10 +38,10 @@
    then @pred{datafacts_rt:current_fact/1} is used.".
 
 current_fact(H):-
-	cached_call(H,File,T,D), !,
-	cache_call(File,T,D).
+    cached_call(H,File,T,D), !,
+    cache_call(File,T,D).
 current_fact(H):-
-	datafacts_rt:current_fact(H).
+    datafacts_rt:current_fact(H).
 
 :- multifile '$factsdb$cached_goal'/3.
 :- doc('$factsdb$cached_goal'(Spec,Spec,Key), "Predicate @var{Spec} is
@@ -56,25 +56,25 @@ current_fact(H):-
 :- multifile file_alias/2.
 :- data file_alias/2.
 :- doc(file_alias/2, "See @lib{symfnames}. This predicate is used
-	only if @pred{persistent_dir/2} fails.").
+    only if @pred{persistent_dir/2} fails.").
 
 % H,T,D have all the same arguments, and their functors are related by:
 % term_to_meta(T,H), functor(T,P,A), module_concat(M,P,F), functor(D,F,A)
 cached_call(H,File,T,D):-
-	datafacts_rt:current_fact(cached(H,T,D,File)), !.
+    datafacts_rt:current_fact(cached(H,T,D,File)), !.
 cached_call(H,File,T,D):-
-	'$factsdb$cached_goal'(H,D,Sym),
-	term_to_meta(T,H),
-	functor(T,F,A),
-	( ( persistent_dir(Sym,Dir) ; file_alias(Sym,Dir) )
-	-> get_pred_files(Dir,default,F,A,File,_ops,_bak)
-	 ; throw(error(unknown_symbolic_name(Sym),'factsbd_rt:call'/1))
-	),
-	functor(D,N,A),
-	functor(Data,N,A),
-	'$factsdb$cached_goal'(Meta,Data,Sym),
-	term_to_meta(Term,Meta),
-	datafacts_rt:asserta_fact(cached(Meta,Term,Data,File)).
+    '$factsdb$cached_goal'(H,D,Sym),
+    term_to_meta(T,H),
+    functor(T,F,A),
+    ( ( persistent_dir(Sym,Dir) ; file_alias(Sym,Dir) )
+    -> get_pred_files(Dir,default,F,A,File,_ops,_bak)
+     ; throw(error(unknown_symbolic_name(Sym),'factsbd_rt:call'/1))
+    ),
+    functor(D,N,A),
+    functor(Data,N,A),
+    '$factsdb$cached_goal'(Meta,Data,Sym),
+    term_to_meta(Term,Meta),
+    datafacts_rt:asserta_fact(cached(Meta,Term,Data,File)).
 
 :- meta_predicate call(fact).
 :- pred call(Fact) : callable
@@ -82,55 +82,55 @@ cached_call(H,File,T,D):-
    @decl{facts}. If it is not, an exception is raised.".
 
 call(H):-
-	cached_call(H,File,T,D), !,
-	cache_call(File,T,D).
+    cached_call(H,File,T,D), !,
+    cache_call(File,T,D).
 call(H):-
-	throw(error(unknown_call(H),'factsbd_rt:call'/1)).
+    throw(error(unknown_call(H),'factsbd_rt:call'/1)).
 
 cache_call(File,T,D):-
-	count(T,Val),
-	copy_db(T,Val),
-	call_cached(T,Val,File,D).
+    count(T,Val),
+    copy_db(T,Val),
+    call_cached(T,Val,File,D).
 
 call_cached(T,Val,_File,_):-
-	datafacts_rt:current_fact(asserta_ed(T,Val)).
+    datafacts_rt:current_fact(asserta_ed(T,Val)).
 call_cached(T,Val,File,D):-
-        open(File,read,S),
-	exe(S,T,Val,D).
+    open(File,read,S),
+    exe(S,T,Val,D).
 call_cached(T,Val,_File,_):-
-	datafacts_rt:current_fact(assertz_ed(T,Val)).
+    datafacts_rt:current_fact(assertz_ed(T,Val)).
 
 exe(S,T,Val,D):-
-	repeat,
-	  read(S,X),
-	  ( X==end_of_file,
-	    !,
-	    close(S),
-	    fail
-	  ; X=D,
-	    \+ datafacts_rt:retract_fact(retract_on_file(T,Val))
-	  ).
+    repeat,
+      read(S,X),
+      ( X==end_of_file,
+        !,
+        close(S),
+        fail
+      ; X=D,
+        \+ datafacts_rt:retract_fact(retract_on_file(T,Val))
+      ).
 
 :- data asserta_ed/2, assertz_ed/2, retract_on_file/2.
 
 copy_db(H,Val):-
-	datafacts_rt:current_fact(asserta_ed(H)),
-	datafacts_rt:assertz_fact(asserta_ed(H,Val)),
-	fail.
+    datafacts_rt:current_fact(asserta_ed(H)),
+    datafacts_rt:assertz_fact(asserta_ed(H,Val)),
+    fail.
 copy_db(H,Val):-
-	datafacts_rt:current_fact(assertz_ed(H)),
-	datafacts_rt:assertz_fact(assertz_ed(H,Val)),
-	fail.
+    datafacts_rt:current_fact(assertz_ed(H)),
+    datafacts_rt:assertz_fact(assertz_ed(H,Val)),
+    fail.
 copy_db(H,Val):-
-	datafacts_rt:current_fact(retract_on_file(H)),
-	datafacts_rt:assertz_fact(retract_on_file(H,Val)),
-	fail.
+    datafacts_rt:current_fact(retract_on_file(H)),
+    datafacts_rt:assertz_fact(retract_on_file(H,Val)),
+    fail.
 copy_db(_H,_Val).
 
 count(H,Val):-
-	inccounter(H,Val), !.
+    inccounter(H,Val), !.
 count(H,1):-
-	setcounter(H,2).
+    setcounter(H,2).
 
 :- data asserta_ed/1, assertz_ed/1, retract_on_file/1.
 
@@ -145,11 +145,11 @@ count(H,1):-
    is used.".
 
 asserta_fact(H):-
-	cached_call(H,_File,T,D), !,
-	add_term_to_file_db(a(D),T),
-	datafacts_rt:asserta_fact(asserta_ed(T)).
+    cached_call(H,_File,T,D), !,
+    add_term_to_file_db(a(D),T),
+    datafacts_rt:asserta_fact(asserta_ed(T)).
 asserta_fact(H):-
-	datafacts_rt:asserta_fact(H).
+    datafacts_rt:asserta_fact(H).
 
 :- meta_predicate assertz_fact(fact).
 :- pred assertz_fact(Fact) : callable
@@ -162,11 +162,11 @@ asserta_fact(H):-
    is used.".
 
 assertz_fact(H):-
-	cached_call(H,_File,T,D), !,
-	add_term_to_file_db(z(D),T),
-	datafacts_rt:assertz_fact(assertz_ed(T)).
+    cached_call(H,_File,T,D), !,
+    add_term_to_file_db(z(D),T),
+    datafacts_rt:assertz_fact(assertz_ed(T)).
 assertz_fact(H):-
-	datafacts_rt:assertz_fact(H).
+    datafacts_rt:assertz_fact(H).
 
 :- meta_predicate retract_fact(fact).
 :- pred retract_fact(Fact) : callable
@@ -180,21 +180,21 @@ assertz_fact(H):-
    then @pred{datafacts_rt:retract_fact/1} is used.".
 
 retract_fact(H):-
-	cached_call(H,_File,T,D), !,
-	retract_cached_fact(T),
-	add_term_to_file_db(r(D),T).
+    cached_call(H,_File,T,D), !,
+    retract_cached_fact(T),
+    add_term_to_file_db(r(D),T).
 retract_fact(H):-
-	datafacts_rt:retract_fact(H).
+    datafacts_rt:retract_fact(H).
 
 retract_cached_fact(F):-
-	datafacts_rt:retract_fact(asserta_ed(F)).
+    datafacts_rt:retract_fact(asserta_ed(F)).
 retract_cached_fact(F):-
-	datafacts_rt:assertz_fact(retract_on_file(F)).
+    datafacts_rt:assertz_fact(retract_on_file(F)).
 retract_cached_fact(F):-
-	datafacts_rt:retract_fact(assertz_ed(F,_)).
+    datafacts_rt:retract_fact(assertz_ed(F,_)).
 
 add_term_to_file_db(X,T):-
-	add_term_to_file_db(X,T,default).
+    add_term_to_file_db(X,T,default).
 
 % ------------------------------------------------------------------------
 

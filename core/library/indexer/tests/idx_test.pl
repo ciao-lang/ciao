@@ -36,18 +36,18 @@ idx2(_,z,_,_) :- baz.
 :- meta_predicate mymaplist(pred(1), ?).
 mymaplist(_,    []).
 mymaplist(Goal, [Elem|Tail]) :-
-	call(Goal, Elem),
-	mymaplist(Goal, Tail).
+    call(Goal, Elem),
+    mymaplist(Goal, Tail).
 
 %% The code above should be equivalent to thid one:
 %
 %:- export(maplist/2).
 %:- meta_predicate maplist(pred(1), ?).
 %maplist(Goal, List) :-
-%	maplist_(List, Goal).
+%       maplist_(List, Goal).
 %
 %:- meta_predicate maplist_(?, pred(1)).
 %maplist_([], _).
 %maplist_([Elem|Tail], Goal) :-
-%	call(Goal, Elem),
-%	maplist_(Tail, Goal).
+%       call(Goal, Elem),
+%       maplist_(Tail, Goal).

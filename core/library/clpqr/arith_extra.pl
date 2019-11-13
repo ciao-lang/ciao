@@ -2,7 +2,7 @@
 
 :- doc(author, "Edison Mera").
 :- doc(module, "Implements basic scientific functions that are missing
-	in is/2 predicate.").
+    in is/2 predicate.").
 
 tan(X, Y) :- Y is sin(X)/cos(X).
 asin(X, Y) :- Y is 2 * atan(X/(1+sqrt(1 - X*X))).

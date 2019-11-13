@@ -1,9 +1,9 @@
 :- module(sockets_io, [
-	serve_socket/3,
-	socket_send_term/2,
-	socket_recv_term/2,
-	socket_send_fastrw/2,
-	socket_recv_fastrw/2
+    serve_socket/3,
+    socket_send_term/2,
+    socket_recv_term/2,
+    socket_send_fastrw/2,
+    socket_recv_fastrw/2
    ], [assertions, hiord, regtypes]).
 
 :- doc(title, "Sockets I/O").
@@ -35,40 +35,40 @@ socket(S):- int(S).
 
 :- meta_predicate serve_socket(?,pred(2),pred(1)).
 serve_socket(Socket,Serve,Handler) :-
-	serve_socket_(Socket,Serve,Handler,[]).
+    serve_socket_(Socket,Serve,Handler,[]).
 
 :- meta_predicate serve_socket_(?,pred(2),pred(1),?).
 serve_socket_(Socket,Serve,Handler,Streams0) :-
-	wait_for_arrival(Socket,Streams0,ReadableStreams,Streams1),
-	serve_streams(ReadableStreams,Serve,Handler,Streams1,Streams2),
-	serve_socket_(Socket,Serve,Handler,Streams2).
+    wait_for_arrival(Socket,Streams0,ReadableStreams,Streams1),
+    serve_streams(ReadableStreams,Serve,Handler,Streams1,Streams2),
+    serve_socket_(Socket,Serve,Handler,Streams2).
 
 % Waits for either one or all of the following:
 %   1) A connection is done to 'Socket'
 %   2) It is possible to read from a stream
 
 wait_for_arrival(Socket,Streams0,ReadableStreams,Streams) :-
-	% TODO: use pselect() -- avoids race conditions?
-	select_socket(Socket,NewStream,off,Streams0,ReadableStreams),
-	new_stream_in_list(NewStream,Streams0,Streams).
+    % TODO: use pselect() -- avoids race conditions?
+    select_socket(Socket,NewStream,off,Streams0,ReadableStreams),
+    new_stream_in_list(NewStream,Streams0,Streams).
 
 new_stream_in_list(NewStream,Streams,Streams) :-
-	var(NewStream),!.
+    var(NewStream),!.
 new_stream_in_list(NewStream,Streams0,[NewStream|Streams0]).
 
 :- meta_predicate serve_streams(?,pred(2),pred(1),?,?).
 serve_streams([],_Serve,_H,SS,SS).
 serve_streams([Stream|Streams],Serve,Handler,SS0,SS) :-
-	serve_one_stream(Stream,Serve,Handler,SS0,SS1),
-	serve_streams(Streams,Serve,Handler,SS1,SS).
+    serve_one_stream(Stream,Serve,Handler,SS0,SS1),
+    serve_streams(Streams,Serve,Handler,SS1,SS).
 
 :- meta_predicate serve_one_stream(?,pred(2),pred(1),?,?).
 serve_one_stream(Stream,Serve,Handler,SS0,SS) :-
-	catch(Serve(Stream,Unwatch),Error,Handler(Error)),
-	( Unwatch = yes ->
-	    delete(SS0,Stream,SS)
-	; SS0 = SS
-	).
+    catch(Serve(Stream,Unwatch),Error,Handler(Error)),
+    ( Unwatch = yes ->
+        delete(SS0,Stream,SS)
+    ; SS0 = SS
+    ).
 
 % ---------------------------------------------------------------------------
 % Serialize terms using term_write/1, read/2
@@ -78,18 +78,18 @@ serve_one_stream(Stream,Serve,Handler,SS0,SS) :-
 :- use_module(library(read), [read/2]).
 
 :- pred socket_send_term(Stream,Term) :: stream * term
-        # "Writes @var{Term} to @var{Stream} in a way that it is safe
-           for a socket connection on @var{Stream}.".
+    # "Writes @var{Term} to @var{Stream} in a way that it is safe
+       for a socket connection on @var{Stream}.".
 
 socket_send_term(Stream,Term):-
-	current_output(Stream0),
-	set_output(Stream),
-	term_write(Term),
-	flush_output,
-	set_output(Stream0).
+    current_output(Stream0),
+    set_output(Stream),
+    term_write(Term),
+    flush_output,
+    set_output(Stream0).
 
 socket_recv_term(Stream, Out) :-
-        read(Stream, Out).
+    read(Stream, Out).
 
 % ---------------------------------------------------------------------------
 % Serialize terms using fastrw
@@ -97,14 +97,14 @@ socket_recv_term(Stream, Out) :-
 :- use_module(library(fastrw), [fast_write/1, fast_read/1]).
 
 socket_send_fastrw(Stream, T) :-
-	current_output(CU),
-	set_output(Stream),
-	fast_write(T),
-	flush_output(Stream),
-	set_output(CU).
+    current_output(CU),
+    set_output(Stream),
+    fast_write(T),
+    flush_output(Stream),
+    set_output(CU).
 
 socket_recv_fastrw(Stream, T) :-
-	current_input(CU),
-	set_input(Stream),
-	fast_read(T),
-	set_input(CU).
+    current_input(CU),
+    set_input(Stream),
+    fast_read(T),
+    set_input(CU).

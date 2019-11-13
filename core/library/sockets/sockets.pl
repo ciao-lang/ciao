@@ -1,22 +1,22 @@
 :- module(sockets,
-        [
-	    connect_to_socket_type/4,
-	    connect_to_socket/3,
-	    bind_socket/3,
-	    socket_accept/2,
-	    select_socket/5,
-	    socket_send/2,
-	    socket_recv_code/3,
-	    socket_recv/2,
-	    socket_shutdown/2,
+    [
+        connect_to_socket_type/4,
+        connect_to_socket/3,
+        bind_socket/3,
+        socket_accept/2,
+        select_socket/5,
+        socket_send/2,
+        socket_recv_code/3,
+        socket_recv/2,
+        socket_shutdown/2,
 %           socket_buffering/4,
-	    hostname_address/2,
-	    socket_getpeername/2,
-	    socket_type/1,
-	    shutdown_type/1,
-	    initial_from_ciaopp/0 
-	],
-	[assertions,isomodes,regtypes,foreign_interface]).
+        hostname_address/2,
+        socket_getpeername/2,
+        socket_type/1,
+        shutdown_type/1,
+        initial_from_ciaopp/0 
+    ],
+    [assertions,isomodes,regtypes,foreign_interface]).
 
 :- doc(title, "The socket interface").
 
@@ -24,10 +24,10 @@
 :- doc(author, "Daniel Cabeza").
 
 :- doc(module, "This module defines primitives to open sockets,
-        send, and receive data from them.  This allows communicating
-        with other processes, on the same machine or across the
-        Internet. The reader should also consult standard bibliography
-        on the topic for a proper use of these primitives.").
+    send, and receive data from them.  This allows communicating
+    with other processes, on the same machine or across the
+    Internet. The reader should also consult standard bibliography
+    on the topic for a proper use of these primitives.").
 
 :- use_module(engine(stream_basic), [stream/1]).
 
@@ -78,8 +78,8 @@ socket_type(rdm).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :- trust pred connect_to_socket_type(+Hostname, +Port, +Type, -Stream) ::
-        atom * int * socket_type * stream
-        + foreign_low(prolog_connect_to_socket_type)
+    atom * int * socket_type * stream
+    + foreign_low(prolog_connect_to_socket_type)
  # "Returns a @var{Stream} which connects to @var{Hostname}.  The
     @var{Type} of connection can be defined.  A @var{Stream} is
     returned, which can be used to @pred{write/2} to, to
@@ -88,19 +88,19 @@ socket_type(rdm).
 
 
 :- pred connect_to_socket(+Hostname, +Port, -Stream) ::
-        atm * int * stream
+    atm * int * stream
  # "Calls @pred{connect_to_socket_type/4} with SOCK_STREAM connection
     type.  This is the connection type you want in order to use the 
     @pred{write/2} and @pred{read/2} predicates (and other stream IO 
     related predicates).".
 
 connect_to_socket(Hostname, Port, Stream):-
-        connect_to_socket_type(Hostname, Port, stream, Stream).
+    connect_to_socket_type(Hostname, Port, stream, Stream).
 
 
 :- trust pred bind_socket(?Port, +Length, -Socket) ::
-        int * int * int
-        + foreign_low(prolog_bind_socket)
+    int * int * int
+    + foreign_low(prolog_bind_socket)
  # "Returns an AF_INET @var{Socket} bound to @var{Port} (which may be 
     assigned by the OS or defined by the caller), and listens to it 
     (hence no listen call in this set of primitives).
@@ -108,14 +108,14 @@ connect_to_socket(Hostname, Port, Stream):-
 
 
 :- trust pred socket_accept(+Sock, -Stream) ::
-        int * stream
-        + foreign_low(prolog_socket_accept)
+    int * stream
+    + foreign_low(prolog_socket_accept)
  # "Creates a new @var{Stream} connected to @var{Sock}.".
 
 
 :- trust pred select_socket(+Socket, -NewStream, +TO_ms, +Streams, -ReadStreams)
-        :: int * stream * int * list(stream) * list(stream)
-        + foreign_low(prolog_select_socket)
+    :: int * stream * int * list(stream) * list(stream)
+    + foreign_low(prolog_select_socket)
 # "Wait for data available in a list of @var{Streams} and in a
    @var{Socket}. @var{Streams} is a list of Prolog streams which will be
    tested for reading.  @var{Socket} is a socket (i.e., an integer denoting
@@ -131,8 +131,8 @@ connect_to_socket(Hostname, Port, Stream):-
 
 
 :- trust pred socket_send(+Stream, +String) ::
-        stream * string 
-        + foreign_low(prolog_socket_send)
+    stream * string 
+    + foreign_low(prolog_socket_send)
  # "Sends @var{String} to the socket associated to @var{Stream}. The socket 
     has to be in connected state. @var{String} is not supposed to be 
     NULL terminated, since it is a Prolog string.  If a NULL terminated 
@@ -141,8 +141,8 @@ connect_to_socket(Hostname, Port, Stream):-
 
 
 :- trust pred socket_recv_code(+Stream, ?String, ?Length) ::
-        stream * string * int 
-        + foreign_low(prolog_socket_receive)
+    stream * string * int 
+    + foreign_low(prolog_socket_receive)
  # "Receives a @var{String} from the socket associated to
     @var{Stream}, and returns its @var{Length}. For TCP, @var{Length}
     is 0 if the peer has performed an orderly shutdown on the
@@ -150,14 +150,14 @@ connect_to_socket(Hostname, Port, Stream):-
 
 
 :- pred socket_recv(+Stream, ?String) ::
-        stream * string
+    stream * string
  # "As @pred{socket_recv_code/3}, but the return code is ignored.".
 
 socket_recv(Stream, String):- socket_recv_code(Stream, String, _).
 
 
 :- trust pred socket_shutdown(+Stream, +How) :: stream * shutdown_type
-        + foreign_low(prolog_socket_shutdown)
+    + foreign_low(prolog_socket_shutdown)
 # "Shut down a duplex communication socket with which @var{Stream} is
    associated.  All or part of the communication can be shutdown, depending on
    the value of @var{How}. The atoms @tt{read}, @tt{write}, or
@@ -171,13 +171,13 @@ shutdown_type(write).
 shutdown_type(read_write).
 
 :- trust pred hostname_address(+Hostname, ?Address) :: atm * atm
-        + foreign_low(prolog_hostname_address)
+    + foreign_low(prolog_hostname_address)
 # "@var{Address} is unified with the atom representing the address (in AF_INET
    format) corresponding to @var{Hostname}.".
 
 
 :- trust pred socket_getpeername(+Stream, ?Address) :: stream * atm
-        + foreign_low(prolog_socket_getpeername)
+    + foreign_low(prolog_socket_getpeername)
 # "@var{Address} is unified with the atom representing the address (in
   AF_INET or AF_INET6 format) of the peer connected to the socket
   associated to @var{Stream}.".

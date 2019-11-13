@@ -1,5 +1,5 @@
 :- module(vcs_git, [], [assertions, basicmodes,
-		nativeprops, fsyntax, hiord, regtypes]).
+            nativeprops, fsyntax, hiord, regtypes]).
 
 :- doc(title, "VCS abstraction for Git"). 
 :- doc(author, "Jose F. Morales").
@@ -19,7 +19,7 @@
 :- pred git_repo_at_dir(D) # "There is a Git repository at directory @var{D}".
 
 git_repo_at_dir(Dir) :-
-	file_exists(~path_concat(Dir, '.git')).
+    file_exists(~path_concat(Dir, '.git')).
 
 % ---------------------------------------------------------------------------
 
@@ -28,10 +28,10 @@ git_repo_at_dir(Dir) :-
 % Execute a Git command on the specified directory, ignore standard
 % error, and get standard output as an atom.
 git_output(Path, Args, R) :-
-	process_call(path(git), Args,
-	             [cwd(Path),
-		      stderr(null), stdout(line(R0)),
-		      status(0)]),
-	atom_codes(R, R0).
+    process_call(path(git), Args,
+                 [cwd(Path),
+                  stderr(null), stdout(line(R0)),
+                  status(0)]),
+    atom_codes(R, R0).
 
 

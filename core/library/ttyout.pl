@@ -1,8 +1,8 @@
 :- module(ttyout, [
-        ttyget/1, ttyget1/1, ttynl/0, ttyput/1, ttyskip/1, ttytab/1,
-        ttyflush/0, ttydisplay/1, ttydisplayq/1, ttyskipeol/0,
-        ttydisplay_string/1
-        ],[assertions]).
+    ttyget/1, ttyget1/1, ttynl/0, ttyput/1, ttyskip/1, ttytab/1,
+    ttyflush/0, ttydisplay/1, ttydisplayq/1, ttyskipeol/0,
+    ttydisplay_string/1
+    ],[assertions]).
 
 :- doc(title, "C-Prolog terminal I/O").
 :- doc(author, "The Ciao Development Team").
@@ -51,5 +51,5 @@ ttydisplayq(X) :- displayq(user, X).
 
 ttydisplay_string([]).
 ttydisplay_string([X|Xs]) :-
-        put_code(user, X),
-        ttydisplay_string(Xs).
+    put_code(user, X),
+    ttydisplay_string(Xs).

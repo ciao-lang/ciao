@@ -22,8 +22,8 @@
 :- data '$bundle_prop'/2.
 
 clean_bundlereg_db :-
-	retractall_fact('$bundle_id'(_)),
-	retractall_fact('$bundle_regfile'(_, _)),
-	retractall_fact('$bundle_prop'(_, _)),
-	retractall_fact('$bundle_srcdir'(_, _)),
-	retractall_fact('$bundle_alias_path'(_, _, _)).
+    retractall_fact('$bundle_id'(_)),
+    retractall_fact('$bundle_regfile'(_, _)),
+    retractall_fact('$bundle_prop'(_, _)),
+    retractall_fact('$bundle_srcdir'(_, _)),
+    retractall_fact('$bundle_alias_path'(_, _, _)).

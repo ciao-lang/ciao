@@ -31,32 +31,32 @@
 % :- use_module(im).
 
 percepciones(Mov, Mundo, NuevoMundo, Percepciones, Dec):-
-        Mundo = m(robot(Xr, Yr), Oro, Objetos),
-        aplica_mov(Mov, Xr, Yr, Objetos, NXr, NYr), !,
-        calcula_percepciones(Objetos, NXr, NYr, Oro, NOro, Percepciones, Dec),
-        NuevoMundo = m(robot(NXr, NYr), NOro, Objetos).
+    Mundo = m(robot(Xr, Yr), Oro, Objetos),
+    aplica_mov(Mov, Xr, Yr, Objetos, NXr, NYr), !,
+    calcula_percepciones(Objetos, NXr, NYr, Oro, NOro, Percepciones, Dec),
+    NuevoMundo = m(robot(NXr, NYr), NOro, Objetos).
 percepciones(_Mov, Mundo, Mundo, [golpe], 2).
 
 aplica_mov(Mov, Xr, Yr, Objetos, NXr, NYr):-
-        delta_coord(Mov, Dx, Dy),
-        NXr is Xr + Dx,
-        NYr is Yr + Dy,
-        dentro_mundo(Objetos, NXr, NYr).
+    delta_coord(Mov, Dx, Dy),
+    NXr is Xr + Dx,
+    NYr is Yr + Dy,
+    dentro_mundo(Objetos, NXr, NYr).
 
 calcula_percepciones(Objetos, X, Y, SitOro, NSitOro, P, Dec) :-
-        objeto_en(Objetos, X, Y, Ob),
-        comprueba_oro(Ob, SitOro, NSitOro, P, P_),
-        calcula(Ob, Dec),
-        findall(Percepcion, percepcion_cercana(Objetos, X, Y, Percepcion), P1),
-        sort(P1, P_).                    %%  Remove duplicates
+    objeto_en(Objetos, X, Y, Ob),
+    comprueba_oro(Ob, SitOro, NSitOro, P, P_),
+    calcula(Ob, Dec),
+    findall(Percepcion, percepcion_cercana(Objetos, X, Y, Percepcion), P1),
+    sort(P1, P_).                    %%  Remove duplicates
 
 percepcion_cercana(Objetos, X, Y, Percepcion) :-
-        delta_coord(_, Dx, Dy),
-        NX is X+Dx,
-        NY is Y+Dy,
-        dentro_mundo(Objetos, NX, NY),
-        objeto_en(Objetos, NX, NY, Ob),
-        produce(Ob, Percepcion).
+    delta_coord(_, Dx, Dy),
+    NX is X+Dx,
+    NY is Y+Dy,
+    dentro_mundo(Objetos, NX, NY),
+    objeto_en(Objetos, NX, NY, Ob),
+    produce(Ob, Percepcion).
 
 comprueba_oro(0'o, suelo, robot, [brillo|P], P):- !.
 comprueba_oro(_Ob, SitOro, SitOro, P, P).
@@ -75,14 +75,14 @@ delta_coord(e,  1,  0).
 delta_coord(o, -1,  0).
 
 dentro_mundo(mat(DimX, DimY, _), X, Y) :-
-        X > 0,
-        X =< DimX,
-        Y > 0,
-        Y =< DimY.
+    X > 0,
+    X =< DimX,
+    Y > 0,
+    Y =< DimY.
 
 objeto_en(mat(_, _, Objetos), X, Y, Ob) :-
-        arg(Y, Objetos, Columna),
-        arg(X, Columna, Ob).
+    arg(Y, Objetos, Columna),
+    arg(X, Columna, Ob).
 
 dims(mat(DimX, DimY, _), DimX, DimY).
 
@@ -92,77 +92,77 @@ dims(mat(DimX, DimY, _), DimX, DimY).
 w:- w(world).
 
 w(File):-
-        mundo(File, Mundo),
-        despertar(Cons),
-        Mundo = m(Inicio, Oro, Objetos),
-        Inicio = robot(Xr, Yr),
-        calcula_percepciones(Objetos, Xr, Yr, Oro, _NOro, Percepciones, _Dec),
-        acciones(Mundo, 1000, Cons, Percepciones, Inicio).
+    mundo(File, Mundo),
+    despertar(Cons),
+    Mundo = m(Inicio, Oro, Objetos),
+    Inicio = robot(Xr, Yr),
+    calcula_percepciones(Objetos, Xr, Yr, Oro, _NOro, Percepciones, _Dec),
+    acciones(Mundo, 1000, Cons, Percepciones, Inicio).
 
 acciones(Mundo, Score, Cons, Percepciones, Inicio):-
-        Score > 0,
-        robot(Cons, Percepciones, Mov, NewCons), !,
-        continua(Mov, Mundo, Score, NewCons, Inicio).
+    Score > 0,
+    robot(Cons, Percepciones, Mov, NewCons), !,
+    continua(Mov, Mundo, Score, NewCons, Inicio).
 acciones(_Mundo, _, _, _, _):-
-        write_out(['AAAAAAAaaaaaaaaaaahhhhhhhhh!!!!!!!!']).
+    write_out(['AAAAAAAaaaaaaaaaaahhhhhhhhh!!!!!!!!']).
 
 continua(q, Mundo, Score, _, Inicio) :- !,
-        comprobar_salida(Mundo, Inicio, Score).
+    comprobar_salida(Mundo, Inicio, Score).
 continua(Mov, Mundo, Score, Cons, Inicio) :-
-        percepciones(Mov, Mundo, NuevoMundo, Percepciones, Dec),
-        NuevoScore is Score - Dec,
-        acciones(NuevoMundo, NuevoScore, Cons, Percepciones, Inicio).
+    percepciones(Mov, Mundo, NuevoMundo, Percepciones, Dec),
+    NuevoScore is Score - Dec,
+    acciones(NuevoMundo, NuevoScore, Cons, Percepciones, Inicio).
 
 comprobar_salida(Mundo, Inicio, Score) :-
-        Mundo = m(Inicio, robot, _Objetos), !,
-        write_out(['Bien hecho! Puntuacion = ', Score]).
+    Mundo = m(Inicio, robot, _Objetos), !,
+    write_out(['Bien hecho! Puntuacion = ', Score]).
 comprobar_salida(_, _, _) :-
-        write_out(['Salida ilegal!']).
+    write_out(['Salida ilegal!']).
 
 mundo(File, Mundo) :-
-        open(File, read, St),
-        lee_fila(St, List, Robot),
-        Fila =.. [h|List],
-        lee_otras_filas(St, [Fila], Filas, Robot),
-        close(St),
-        M =.. [h|Filas],
-        functor(M, _, Rows),
-        functor(Fila, _, Cols),
-        Mat = mat(Cols, Rows, M),
-        posicion(Robot, Mat, RobotPos),
-        Mundo = m(RobotPos, suelo, Mat).
+    open(File, read, St),
+    lee_fila(St, List, Robot),
+    Fila =.. [h|List],
+    lee_otras_filas(St, [Fila], Filas, Robot),
+    close(St),
+    M =.. [h|Filas],
+    functor(M, _, Rows),
+    functor(Fila, _, Cols),
+    Mat = mat(Cols, Rows, M),
+    posicion(Robot, Mat, RobotPos),
+    Mundo = m(RobotPos, suelo, Mat).
 
 lee_fila(St, List, Robot) :-
-        get_code(St, C),
-        lee_fila_(C, St, List, Robot).
+    get_code(St, C),
+    lee_fila_(C, St, List, Robot).
 
 lee_fila_(0'\n, _, [], _) :- !. % newline
 lee_fila_(0'r, St, [R|L], R) :- !,
-        get_code(St, C),
-        lee_fila_(C, St, L, _).
+    get_code(St, C),
+    lee_fila_(C, St, L, _).
 lee_fila_(O, St, [O|L], R) :-
-        get_code(St, C),
-        lee_fila_(C, St, L, R).
+    get_code(St, C),
+    lee_fila_(C, St, L, R).
 
 lee_otras_filas(St, Filas0, Filas, R) :-
-        get_code(St, C),
-        lee_otras_filas_(C, St, Filas0, Filas, R).
+    get_code(St, C),
+    lee_otras_filas_(C, St, Filas0, Filas, R).
 
 lee_otras_filas_(-1, _, Filas, Filas, _) :- !. % EOF 
 lee_otras_filas_(0'\n, _, Filas, Filas, _) :- !. % Linea en blanco
 lee_otras_filas_(C, St, Filas0, Filas, Robot) :-
-        lee_fila_(C, St, List, Robot),
-        Fila =.. [h|List],
-        get_code(St, D),
-        lee_otras_filas_(D, St, [Fila|Filas0], Filas, Robot).
+    lee_fila_(C, St, List, Robot),
+    Fila =.. [h|List],
+    get_code(St, D),
+    lee_otras_filas_(D, St, [Fila|Filas0], Filas, Robot).
 
 posicion(Robot, mat(Cols, Rows, M), robot(X,Y)) :-
-        between(1, Rows, Y),
-        between(1, Cols, X),
-        arg(Y, M, F),
-        arg(X, F, O),
-        O == Robot, !,
-        Robot = 0'n.        
+    between(1, Rows, Y),
+    between(1, Cols, X),
+    arg(Y, M, F),
+    arg(X, F, O),
+    O == Robot, !,
+    Robot = 0'n.        
 
  %% between(Min, Max, X) :-
  %%         Min =< Max,

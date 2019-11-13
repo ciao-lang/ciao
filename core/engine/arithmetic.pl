@@ -1,7 +1,7 @@
 :- module(arithmetic, [
-		(is) /2, (<) /2, (=<) /2, (>) /2, (>=) /2, (=:=) /2, (=\=) /2,
-		arithexpression/1, intexpression/1],
-	    [assertions, nortchecks, nativeprops, isomodes]).
+            (is) /2, (<) /2, (=<) /2, (>) /2, (>=) /2, (=:=) /2, (=\=) /2,
+            arithexpression/1, intexpression/1],
+        [assertions, nortchecks, nativeprops, isomodes]).
 
 :- doc(title, "Arithmetic").
 
@@ -36,21 +36,21 @@ yes
 %:- trust pred is(X,Y) : arithexpression(Y) => num(X) + iso.
 
 :- doc(bug, "We could improve the precision if we had
-	(arithexpression,\+intexpression) but we need a relational
-	domain. -- EMM, JFMC").
+    (arithexpression,\+intexpression) but we need a relational
+    domain. -- EMM, JFMC").
 
 :- test (X is Y) : (Y = sqrt(4)) => (X = 2.0) # "is/2, sqrt
    test".
 
 :- trust pred is(-A, +B) : var * arithexpression
-	=> (num(A), arithexpression(B), size(A, int(B))) + (not_fails, eval).
+    => (num(A), arithexpression(B), size(A, int(B))) + (not_fails, eval).
 :- trust pred is(-A, +B) : var * intexpression
-	=> (int(A), intexpression(B), size(A, int(B))) + (not_fails, eval).
+    => (int(A), intexpression(B), size(A, int(B))) + (not_fails, eval).
 :- trust pred is(+A, +B) : num * arithexpression + (test_type(arithmetic)).
 :- trust pred is(+A, +B) : int * intexpression + (test_type(arithmetic)).
 :- trust comp is(A, B) + (size_metric(A, int), size_metric(B, int)).
 :- trust comp is/2 + ( iso, native, sideff(free), bind_ins, is_det,
-	    relations(inf) ).
+        relations(inf) ).
 
 X is Y :- X is +Y.
 
@@ -60,9 +60,9 @@ X is Y :- X is +Y.
 
 
 :- trust pred <(+A, +B) : arithexpression * arithexpression
-	+ (eval, size_metric(A, int), size_metric(B, int)).
+    + (eval, size_metric(A, int), size_metric(B, int)).
 :- trust comp (<) /2 + ( iso, native, sideff(free), bind_ins, is_det,
-	    relations(inf), test_type(arithmetic) ).
+        relations(inf), test_type(arithmetic) ).
 
 X<Y :- X<Y.
 
@@ -72,9 +72,9 @@ X<Y :- X<Y.
 
 
 :- trust pred =<(+A, +B) : arithexpression * arithexpression
-	+ (eval, size_metric(A, int), size_metric(B, int)).
+    + (eval, size_metric(A, int), size_metric(B, int)).
 :- trust comp (=<) /2 + ( iso, native, sideff(free), bind_ins, is_det,
-	    relations(inf), test_type(arithmetic) ).
+        relations(inf), test_type(arithmetic) ).
 
 X=<Y :- X=<Y.
 
@@ -84,9 +84,9 @@ X=<Y :- X=<Y.
 
 
 :- trust pred >(+A, +B) : arithexpression * arithexpression
-	+ (eval, size_metric(A, int), size_metric(B, int)).
+    + (eval, size_metric(A, int), size_metric(B, int)).
 :- trust comp (>) /2 + ( iso, native, sideff(free), bind_ins, is_det,
-	    relations(inf), test_type(arithmetic) ).
+        relations(inf), test_type(arithmetic) ).
 
 X>Y :- X>Y.
 
@@ -96,9 +96,9 @@ X>Y :- X>Y.
 
 
 :- trust pred >=(+A, +B) : arithexpression * arithexpression
-	+ (eval, size_metric(A, int), size_metric(B, int)).
+    + (eval, size_metric(A, int), size_metric(B, int)).
 :- trust comp (>=) /2 + ( iso, native, sideff(free), bind_ins, is_det,
-	    relations(inf), test_type(arithmetic) ).
+        relations(inf), test_type(arithmetic) ).
 
 X>=Y :- X>=Y.
 
@@ -107,9 +107,9 @@ X>=Y :- X>=Y.
 
 
 :- trust pred =:=(+A, +B) : arithexpression * arithexpression
-	+ (eval, size_metric(A, int), size_metric(B, int)).
+    + (eval, size_metric(A, int), size_metric(B, int)).
 :- trust comp (=:=) /2 + ( iso, native, sideff(free), bind_ins, is_det,
-	    relations(inf), test_type(arithmetic) ).
+        relations(inf), test_type(arithmetic) ).
 
 X=:=Y :- X=:=Y.
 
@@ -119,9 +119,9 @@ X=:=Y :- X=:=Y.
 
 
 :- trust pred =\=(+A, +B) : arithexpression * arithexpression
-	+ (eval, size_metric(A, int), size_metric(B, int)).
+    + (eval, size_metric(A, int), size_metric(B, int)).
 :- trust comp (=\=) /2 + ( iso, native, sideff(free), bind_ins, is_det,
-	    relations(inf), test_type(arithmetic) ).
+        relations(inf), test_type(arithmetic) ).
 
 X=\=Y :- X=\=Y.
 

@@ -12,7 +12,7 @@ inf_rows( De,     []) :- var( De), !.
 inf_rows( [D|De], Res) :-
   ( get_attribute( D, eqn_var(_,l(_),Lin,_,_)),
     get_attribute( Lin, I+_),
-    arith_eval( I >= 0) ->  				% maybe infeasible
+    arith_eval( I >= 0) ->                              % maybe infeasible
       Res = [D|R],
       inf_rows( De, R)
   ;
@@ -24,7 +24,7 @@ reconsider( [V|Vs], _) :-
   ( get_attribute( V, eqn_var(_,_,_,Ref,_)) ->
       get_attribute( Ref, p(_,De,_,_,_)),
       ph1( V, De, State),
-      ( State = stop					% eq, will callback
+      ( State = stop                                    % eq, will callback
       ; State = go,  reconsider( Vs, De)
       )
   ;
@@ -35,12 +35,12 @@ reconsider( [V|Vs], _) :-
 %
 solve_ineq_le( [], I) :- !, arith_eval( I =< 0).
 solve_ineq_le( H,  I) :-
-  var_with_def( _Var, l(e), 1, I, H).			% callback ph1
+  var_with_def( _Var, l(e), 1, I, H).                   % callback ph1
 
 %
 solve_ineq_lt( [], I) :- !, arith_eval( I < 0).
 solve_ineq_lt( H,  I) :-
-  var_with_def( _Var, l(t), 1, I, H). 			% callback ph1
+  var_with_def( _Var, l(t), 1, I, H).                   % callback ph1
 
 % ------------------------------ optimization ---------------------------
 
@@ -116,9 +116,9 @@ ph1( Var, De0, Res) :-
       ph1_dec( H, Var, De0, De1),
       ph1( Var, De1, Res)
   ; ph2_dec( H, De0, De1, Stat) ->
-      ( Stat = stop, T = l(e),   			% shortcut, solve_lin would fail
-		     Res = stop,
-                     solve_lin( H, 0)
+      ( Stat = stop, T = l(e),                          % shortcut, solve_lin would fail
+                 Res = stop,
+                 solve_lin( H, 0)
       ; Stat = go,   ph1( Var, De1, Res)
       )
   ;
@@ -138,33 +138,33 @@ all_neg_l( [Col*K|Cols]) :-
 % This is guarded by I > 0 -> Inf is never indep in this loop
 %
 ph1_dec( [Col*K|Cols], Inf, De0, De1) :-
-  ( arith_eval( K < 0) ->   				% need pos
+  ( arith_eval( K < 0) ->                               % need pos
      ( get_attribute( Col, eqn_var(_,l(_),_,_,_)) ->
-         ph1_dec( Cols, Inf, De0, De1)
+     ph1_dec( Cols, Inf, De0, De1)
      ;
-         get_attribute( Inf, eqn_var(_,_,Lin,_,_)),
-         get_attribute( Lin, I+_),
-         arith_eval( -I/K, Intro), 			% if we take the infeasible row ..
-         min_pos( De0, Col, Inf, Row, Intro),		% never fails
-         swap( Row, Col, De1)
+     get_attribute( Inf, eqn_var(_,_,Lin,_,_)),
+     get_attribute( Lin, I+_),
+     arith_eval( -I/K, Intro),                      % if we take the infeasible row ..
+     min_pos( De0, Col, Inf, Row, Intro),           % never fails
+     swap( Row, Col, De1)
      )
-  ;         						% need neg
+  ;                                                     % need neg
      get_attribute( Inf, eqn_var(_,_,Lin,_,_)),
      get_attribute( Lin, I+_),
      arith_eval( -I/K, Intro),
-     max_neg( De0, Col, Inf, Row, Intro),		% never fails
+     max_neg( De0, Col, Inf, Row, Intro),               % never fails
      swap( Row, Col, De1)
   ).
 
 ph2_dec( [],           De,  De,  stop).
 ph2_dec( [Col*K|Cols], De0, De1, Res) :-
   ( arith_eval( K < 0) ->
-     ( get_attribute( Col, eqn_var(_,l(_),_,_,_)) ->  	% cannot get > 0, try next
-         ph2_dec( Cols, De0, De1, Res)
+     ( get_attribute( Col, eqn_var(_,l(_),_,_,_)) ->    % cannot get > 0, try next
+     ph2_dec( Cols, De0, De1, Res)
      ;
-         Res = go,
-         min_pos( De0, Col, Row),
-         swap( Row, Col, De1)
+     Res = go,
+     min_pos( De0, Col, Row),
+     swap( Row, Col, De1)
      )
   ;
      Res = go,
@@ -175,12 +175,12 @@ ph2_dec( [Col*K|Cols], De0, De1, Res) :-
 ph2_inc( [],           De,  De,  stop).
 ph2_inc( [Col*K|Cols], De0, De1, Res) :-
   ( arith_eval( K > 0) ->
-     ( get_attribute( Col, eqn_var(_,l(_),_,_,_)) ->   	% cannot get > 0, try next
-         ph2_inc( Cols, De0, De1, Res)
+     ( get_attribute( Col, eqn_var(_,l(_),_,_,_)) ->    % cannot get > 0, try next
+     ph2_inc( Cols, De0, De1, Res)
      ;
-         Res = go,
-         min_pos( De0, Col, Row),
-         swap( Row, Col, De1)
+     Res = go,
+     min_pos( De0, Col, Row),
+     swap( Row, Col, De1)
      )
   ;
      Res = go,
@@ -192,9 +192,9 @@ min_pos( De,     _,   _) :- var( De), !, fail.
 min_pos( [D|De], Col, M) :-
   ( get_attribute( D, eqn_var(_,l(_),Lin,_,_)),
     get_attribute( Lin, I+H),
-    arith_eval( I =< 0),				% feasible ?
+    arith_eval( I =< 0),                                % feasible ?
     nf_coeff_of( H, Col, K),
-    arith_eval( K > 0),		       			% feasible for exchange
+    arith_eval( K > 0),                                 % feasible for exchange
     arith_eval( -I/K, Mv0) ->
       min_pos( De, Col, D, M, Mv0)
   ;
@@ -205,15 +205,15 @@ min_pos( De,     _,   M,  M, _) :- var( De), !.
 min_pos( [D|De], Col, M0, M, Mv0) :-
   ( get_attribute( D, eqn_var(_,l(_),Lin,_,_)),
     get_attribute( Lin, I+H),
-    arith_eval( I =< 0),				% feasible ?
+    arith_eval( I =< 0),                                % feasible ?
     nf_coeff_of( H, Col, K),
-    arith_eval( K > 0),     				% feasible for exchange
+    arith_eval( K > 0),                                 % feasible for exchange
     arith_eval( -I/K, Mv1),
-    arith_eval( Mv1 < Mv0) ->				% tighter
-      ( arith_zero( Mv1) -> 				% tightest
-          M = D
+    arith_eval( Mv1 < Mv0) ->                           % tighter
+      ( arith_zero( Mv1) ->                             % tightest
+      M = D
       ;
-          min_pos( De, Col, D,  M, Mv1)
+      min_pos( De, Col, D,  M, Mv1)
       )
   ;
       min_pos( De, Col, M0, M, Mv0)
@@ -223,9 +223,9 @@ max_neg( De,     _,   _) :- var( De), !, fail.
 max_neg( [D|De], Col, M) :-
   ( get_attribute( D, eqn_var(_,l(_),Lin,_,_)),
     get_attribute( Lin, I+H),
-    arith_eval( I =< 0),				% feasible ?
+    arith_eval( I =< 0),                                % feasible ?
     nf_coeff_of( H, Col, K),
-    arith_eval( K < 0),       				% feasible for exchange
+    arith_eval( K < 0),                                 % feasible for exchange
     arith_eval( -I/K, Mv0) ->
       max_neg( De, Col, D, M, Mv0)
   ;
@@ -236,15 +236,15 @@ max_neg( De,     _,   M,  M, _) :- var( De), !.
 max_neg( [D|De], Col, M0, M, Mv0) :-
   ( get_attribute( D, eqn_var(_,l(_),Lin,_,_)),
     get_attribute( Lin, I+H),
-    arith_eval( I =< 0),				% feasible ?
+    arith_eval( I =< 0),                                % feasible ?
     nf_coeff_of( H, Col, K),
-    arith_eval( K < 0),     				% feasible for exchange
+    arith_eval( K < 0),                                 % feasible for exchange
     arith_eval( -I/K, Mv1),
-    arith_eval( Mv1 > Mv0) ->				% tighter
-      ( arith_zero( Mv1) -> 				% tightest
-          M = D
+    arith_eval( Mv1 > Mv0) ->                           % tighter
+      ( arith_zero( Mv1) ->                             % tightest
+      M = D
       ;
-          max_neg( De, Col, D,  M, Mv1)
+      max_neg( De, Col, D,  M, Mv1)
       )
   ;
       max_neg( De, Col, M0, M, Mv0)
@@ -272,24 +272,24 @@ narrow_indep( [I|Indep], Eqs) :-
     attach_attribute( New, eqn_var(New,v,Lin,Eqs,Nl)),
     attach_attribute( Lin, 0+[New*1]),
     get_attribute( Eqs, p(_,De,_,_,_)),
-    swap_bs( De, I, 0, [New*1]),				% need id of I in this pass
+    swap_bs( De, I, 0, [New*1]),                                % need id of I in this pass
     detach_attribute( I),
     I = New,
     other_type( T, Ot),
-    \+ var_with_def( _, Ot, 1, 0, [New* -1]) -> 		% calls ph1
-      								% l(_) on I was redundant
-       narrow_indep( Indep, Eqs)				% iterate
-  ;                                                     	% l(_) on I is not redundant
-       narrow_indep( Indep, Eqs)				% iterate
+    \+ var_with_def( _, Ot, 1, 0, [New* -1]) ->                 % calls ph1
+                                                            % l(_) on I was redundant
+       narrow_indep( Indep, Eqs)                                % iterate
+  ;                                                             % l(_) on I is not redundant
+       narrow_indep( Indep, Eqs)                                % iterate
   ).
 
 narrow_dep( De) :- var( De), !.
 narrow_dep( [D|De]) :-
   ( get_attribute( D, eqn_var(_,l(T),Lin,Ref,Nl)) ->
-      ( \+ simplex_non_redundant( T, D, Lin, Ref, Nl) ->	% \+ is for encapsulation
-          detach_attribute( D)					% redundant, remove
+      ( \+ simplex_non_redundant( T, D, Lin, Ref, Nl) ->        % \+ is for encapsulation
+      detach_attribute( D)                                  % redundant, remove
       ;
-          true							% nonredundant
+      true                                                  % nonredundant
       ),
       narrow_dep( De)
   ;

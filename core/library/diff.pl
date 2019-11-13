@@ -40,16 +40,16 @@ V[1] = 0
 For D = 0 to MAX Do
    For k = -D to D in steps of 2 Do
       If k = -D or (k \= D and V[k-1] < V[k+1] Then
-	x = V[k+1]
+    x = V[k+1]
       Else
-	x = V[k-1] + 1
-	y = x - k
+    x = V[k-1] + 1
+    y = x - k
       While (x < N, y < M and a(x+1) = b(y+1) Do
-	(x,y) = (x+1,y+1)
+    (x,y) = (x+1,y+1)
       V[k] = x
       If (x >= N and y >= M) Then
-	    Length of an SES is D
-	    Stop
+        Length of an SES is D
+        Stop
 
 Length of an SES is greater than MAX
 @end{verbatim}
@@ -95,68 +95,68 @@ yes
 
 :- meta_predicate diff(?, ?, pred(2), ?).
 :- pred diff(Ls1, Ls2, Compare, Diff) : (list(Ls1), list(Ls2)) => list(Diff, diff_item)
-	#"@var{Diff} are the changes needed to transform @var{Ls1}
-	into @var{Ls2}.".
+    #"@var{Diff} are the changes needed to transform @var{Ls1}
+    into @var{Ls2}.".
 
 diff(As, Bs, Compare, Diff) :-
-	loop(Bs, As, Compare, _, Stop),
-	Stop = stop(diag(_, [], [], RevDiff)),
-	reverse(RevDiff, Diff).
+    loop(Bs, As, Compare, _, Stop),
+    Stop = stop(diag(_, [], [], RevDiff)),
+    reverse(RevDiff, Diff).
 
 :- meta_predicate loop(?, ?, pred(2), ?, ?).
 loop(As, Bs, Compare, DKs, Stop) :-
-	length(As, N),
-	length(Bs, M),
-	Max is M+N,
-	diag1(As, Bs, DK1),
-	loop_d(0, Max, Compare, [DK1], DKs, Stop).
+    length(As, N),
+    length(Bs, M),
+    Max is M+N,
+    diag1(As, Bs, DK1),
+    loop_d(0, Max, Compare, [DK1], DKs, Stop).
 
 :- meta_predicate loop_d(?, ?, pred(2), ?, ?).
 loop_d(D, Max, _, DKs, DKs, _Stop) :- D > Max, !.
 loop_d(D, Max, Compare, DKs, DKs2, Stop) :-
-	Kinit is -D,
-	loop_k(Kinit, D, Compare, DKs, DKs1, Stop),
-	( nonvar(Stop) ->
-	    true
-	; D1 is D + 1,
-	  loop_d(D1, Max, Compare, DKs1, DKs2, Stop)
-	).
+    Kinit is -D,
+    loop_k(Kinit, D, Compare, DKs, DKs1, Stop),
+    ( nonvar(Stop) ->
+        true
+    ; D1 is D + 1,
+      loop_d(D1, Max, Compare, DKs1, DKs2, Stop)
+    ).
 
 :- meta_predicate loop_k(?, ?, pred(2), ?, ?, ?).
 loop_k(K, D, _, _, [], _Stop) :- K > D, !.
 loop_k(K, D, Compare, [DK1], [DK], Stop) :- K=0, D=0, !,
-	samediag(DK1, DK, Compare),
-	( stopdiag(DK) ->
-	    Stop = stop(DK)
-	; true
-	).
+    samediag(DK1, DK, Compare),
+    ( stopdiag(DK) ->
+        Stop = stop(DK)
+    ; true
+    ).
 loop_k(K, D, Compare, [DKprev], [DK2], Stop) :- K=D, !,
-	moveright(DKprev, DK),
-	samediag(DK,DK2,Compare),
-	( stopdiag(DK2) ->
-	    Stop = stop(DK2)
-	; true
-	).
+    moveright(DKprev, DK),
+    samediag(DK,DK2,Compare),
+    ( stopdiag(DK2) ->
+        Stop = stop(DK2)
+    ; true
+    ).
 loop_k(K, D, Compare, [DKnext|DKothers], [DK2|DKs], Stop) :- K is -D, !,
-	movedown(DKnext, DK),
-	%seek(DK, DK2, Compare, DKs, Stop).
-	samediag(DK,DK2,Compare),
-	( stopdiag(DK2) ->
-	    Stop = stop(DK2), DKs=[]
-	; K1 is K + 2,
-	  loop_k(K1, D, Compare, [DKnext|DKothers], DKs, Stop)
-	).
+    movedown(DKnext, DK),
+    %seek(DK, DK2, Compare, DKs, Stop).
+    samediag(DK,DK2,Compare),
+    ( stopdiag(DK2) ->
+        Stop = stop(DK2), DKs=[]
+    ; K1 is K + 2,
+      loop_k(K1, D, Compare, [DKnext|DKothers], DKs, Stop)
+    ).
 loop_k(K, D, Compare, [DKprev, DKnext|DKothers], [DK2|DKs], Stop) :- !,
-	( less(DKprev, DKnext) ->
-	    movedown(DKnext, DK)
-	; moveright(DKprev, DK)
-	),
-	samediag(DK,DK2,Compare),
-	( stopdiag(DK2) ->
-	    Stop = stop(DK2), DKs=[]
-	; K1 is K + 2,
-	  loop_k(K1, D, Compare, [DKnext|DKothers], DKs, Stop)
-	).
+    ( less(DKprev, DKnext) ->
+        movedown(DKnext, DK)
+    ; moveright(DKprev, DK)
+    ),
+    samediag(DK,DK2,Compare),
+    ( stopdiag(DK2) ->
+        Stop = stop(DK2), DKs=[]
+    ; K1 is K + 2,
+      loop_k(K1, D, Compare, [DKnext|DKothers], DKs, Stop)
+    ).
 
 stopdiag(diag(_,[],[],_Ops)).
 
@@ -164,53 +164,53 @@ less(diag(X1,_,_,_), diag(X2,_,_,_)) :- X1 < X2.
 
 % (delete)
 movedown(DK1,DK) :-
-	DK1 = diag(X,As,[B|Bs],Ops), !,
-	DK  = diag(X,As,Bs,[del(X,B)|Ops]).
+    DK1 = diag(X,As,[B|Bs],Ops), !,
+    DK  = diag(X,As,Bs,[del(X,B)|Ops]).
 movedown(DK1,DK) :-
-	DK1 = diag(X,As,[],Ops), !,
-	DK  = diag(X,As,[],Ops). % (advance on non existing elements)
+    DK1 = diag(X,As,[],Ops), !,
+    DK  = diag(X,As,[],Ops). % (advance on non existing elements)
 
 % (insert A)
 moveright(DK1,DK) :-
-	DK1 = diag(X,[A|As],Bs,Ops), !,
-	X1 is X+1,
-	DK  = diag(X1,As,Bs,[ins(X,A)|Ops]).
+    DK1 = diag(X,[A|As],Bs,Ops), !,
+    X1 is X+1,
+    DK  = diag(X1,As,Bs,[ins(X,A)|Ops]).
 moveright(DK1,DK) :- % (advance on non existing elements)
-	DK1 = diag(X,[],Bs,Ops), !,
-	X1 is X+1,
-	DK  = diag(X1,[],Bs,Ops).
+    DK1 = diag(X,[],Bs,Ops), !,
+    X1 is X+1,
+    DK  = diag(X1,[],Bs,Ops).
 
 % first diagnoal (V[1]=0)
 diag1(As,Bs,diag(0,As,Bs,[])).
 
 :- meta_predicate samediag(?, ?, pred(2)).
 samediag(diag(X,As,Bs,Ops),diag(X2,As2,Bs2,Ops), Compare) :-
-	samediag_(As,Bs,Compare,As2,Bs2,X,X2).
+    samediag_(As,Bs,Compare,As2,Bs2,X,X2).
 
 :- meta_predicate samediag_(?, ?, pred(2), ?, ?, ?, ?, ?).
 samediag_([A|As],[B|Bs],Compare,As2,Bs2,X,X2) :-
-	Compare(A,B), !,
-	X1 is X+1,
-	samediag_(As,Bs,Compare,As2,Bs2,X1,X2).
+    Compare(A,B), !,
+    X1 is X+1,
+    samediag_(As,Bs,Compare,As2,Bs2,X1,X2).
 samediag_(As,Bs,_,As,Bs,X,X).
 
 % --------------------------------------------------
 :- pred patch(Ls, Diff, LNew) : (list(Ls), list(Diff, diff_item)) => list(LNew)
-	#"Apply a list of changes (@var{Diff}) onto a @var{Ls}.".
+    #"Apply a list of changes (@var{Diff}) onto a @var{Ls}.".
 patch(Ls, Diff, LNew) :-
-	patch_(Diff, Ls, 0, LNew).
+    patch_(Diff, Ls, 0, LNew).
 
 patch_([], Ls, _, Ls) :- !.
 patch_([ins(Pos, Elem)|Diff], Ls, Cont, [Elem|NewLs]) :-
-	Pos = Cont, !,
-	Cont1 is Cont + 1,
-	patch_(Diff, Ls, Cont1, NewLs).
+    Pos = Cont, !,
+    Cont1 is Cont + 1,
+    patch_(Diff, Ls, Cont1, NewLs).
 patch_([del(Pos, _Elem)|Diff], [_|Ls], Cont, NewLs) :-
-	Pos = Cont, !,
-	patch_(Diff, Ls, Cont, NewLs).
+    Pos = Cont, !,
+    patch_(Diff, Ls, Cont, NewLs).
 patch_(Diff, [Elem|Ls], Cont, [Elem|NewLs]) :-
-	Cont1 is Cont + 1,
-	patch_(Diff, Ls, Cont1, NewLs).
+    Cont1 is Cont + 1,
+    patch_(Diff, Ls, Cont1, NewLs).
 
 :- regtype diff_item(X) # "@var{X} is a single edition in a sequence
    (insertion or deletion)".

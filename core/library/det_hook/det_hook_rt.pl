@@ -1,6 +1,6 @@
 :- module(det_hook_rt,
-	[det_try/3, '$pending_cut_goals'/0],
-	[assertions, isomodes, datafacts]).
+    [det_try/3, '$pending_cut_goals'/0],
+    [assertions, isomodes, datafacts]).
 
 :- doc(title, "Runtime predicates for call on determinate").
 
@@ -24,29 +24,29 @@ provided by this module.".
 :- meta_predicate det_try(goal, goal, goal).
 
 det_try(Action, OnCutGoal, OnFailGoal) :-
-	cut_goal(OnCutGoal),
-	(Action ; remove_cut_goal, OnFailGoal, fail).
-	
+    cut_goal(OnCutGoal),
+    (Action ; remove_cut_goal, OnFailGoal, fail).
+    
 cut_goal(Goal) :-
-	'$metachoice'(C),
-	asserta_fact(cut_goal(C, Goal)).
+    '$metachoice'(C),
+    asserta_fact(cut_goal(C, Goal)).
 
 remove_cut_goal :-
-	'$metachoice'(C),
-	retract_fact(cut_goal(C, _)).
+    '$metachoice'(C),
+    retract_fact(cut_goal(C, _)).
 
 :- doc(hide, '$pending_cut_goals'/0).
 
 '$pending_cut_goals' :-
-	'$metachoice'(X),
-	pending_cut_goals_2(X).
+    '$metachoice'(X),
+    pending_cut_goals_2(X).
 
 pending_cut_goals_2(X) :-
-	current_fact(cut_goal(C, Goal)), 
-	C >= X, !,
-	retract_fact(cut_goal(C, Goal)),
-	Goal,
-	pending_cut_goals_2(X).
+    current_fact(cut_goal(C, Goal)), 
+    C >= X, !,
+    retract_fact(cut_goal(C, Goal)),
+    Goal,
+    pending_cut_goals_2(X).
 pending_cut_goals_2(_).
 
 /*

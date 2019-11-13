@@ -44,19 +44,19 @@ ciaoc -c webbased_common
 :- impl(actmod_publish, webbased).
 
 (webbased as actmod_publish).save_addr(ActRef, DMod, Address, Pid, _Opts) :-
-        ( tell_address(ActRef, DMod, Address, Pid) ->
-	    true
-	; throw(unable_to_register_at_platform(ActRef, DMod, Address, Pid))
-	).
+    ( tell_address(ActRef, DMod, Address, Pid) ->
+        true
+    ; throw(unable_to_register_at_platform(ActRef, DMod, Address, Pid))
+    ).
 
 % ---------------------------------------------------------------------------
 
 :- impl(actmod_locate, webbased).
 
 (webbased as actmod_locate).remote_address(ActRef, DMod, Address) :-
-        ( ask_address(ActRef, DMod, Address0) -> true
-	; throw(no_address_for(ActRef))
-	),
-	Address = Address0.
+    ( ask_address(ActRef, DMod, Address0) -> true
+    ; throw(no_address_for(ActRef))
+    ),
+    Address = Address0.
 
 (webbased as actmod_locate).cleanup_actI(_ActRef).

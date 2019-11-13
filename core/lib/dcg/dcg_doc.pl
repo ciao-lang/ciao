@@ -130,9 +130,9 @@ If there is more than one non-terminal on the right-hand side, as in
 
 @begin{verbatim}
 p(X, Y) --> 
-        q(X), 
-        r(X, Y),
-        s(Y).
+    q(X), 
+    r(X, Y),
+    s(Y).
 @end{verbatim}
 
 @noindent
@@ -140,9 +140,9 @@ then corresponding input and output arguments are identified, as in
 
 @begin{verbatim}
 p(X, Y, S0, S) :- 
-        q(X, S0, S1), 
-        r(X, Y, S1, S2), 
-        r(Y, S2, S).
+    q(X, S0, S1), 
+    r(X, Y, S1, S2), 
+    r(Y, S2, S).
 @end{verbatim}
 
 Terminals are translated using the built-in predicate
@@ -160,10 +160,10 @@ is translated by
 
 @begin{verbatim}
 p(X, S0, S) :-
-        'C'(S0, go, S1), 
-        'C'(S1, to, S2), 
-        q(X, S2, S3), 
-        'C'(S3, stop, S).
+    'C'(S0, go, S1), 
+    'C'(S1, to, S2), 
+    q(X, S2, S3), 
+    'C'(S3, stop, S).
 @end{verbatim}
 
 Extra conditions expressed as explicit procedure calls naturally translate
@@ -178,10 +178,10 @@ translates to
 
 @begin{verbatim}
 p(X, S0, S) :- 
-        'C'(S0, X, S1), 
-        integer(X), 
-        X>0, 
-        q(X, S1, S).
+    'C'(S0, X, S1), 
+    integer(X), 
+    X>0, 
+    q(X, S1, S).
 @end{verbatim}
 
 Similarly, a cut is translated literally.
@@ -204,9 +204,9 @@ Disjunction has a fairly obvious translation, e.g.
 
 @begin{verbatim}
 args(X, Y) --> 
-        (   dir(X), [to], indir(Y)
-        ;   indir(Y), dir(X)
-        ).
+    (   dir(X), [to], indir(Y)
+    ;   indir(Y), dir(X)
+    ).
 @end{verbatim}
 
 @noindent
@@ -214,12 +214,12 @@ translates to
 
 @begin{verbatim}
 args(X, Y, S0, S) :-
-        (   dir(X, S0, S1), 
-            'C'(S1, to, S2), 
-            indir(Y, S2, S)
-        ;   indir(Y, S0, S1), 
-            dir(X, S1, S)
-        ).
+    (   dir(X, S0, S1), 
+        'C'(S1, to, S2), 
+        indir(Y, S2, S)
+    ;   indir(Y, S0, S1), 
+        dir(X, S1, S)
+    ).
 @end{verbatim}
 
 ").

@@ -11,10 +11,10 @@ top:-
     nrev(L,_).
 
 go:-
-	go_(500, L, L1, T),
-	write(L),nl,
-	write(L1),nl,
-	write('execution time is :'),write(T).
+    go_(500, L, L1, T),
+    write(L),nl,
+    write(L1),nl,
+    write('execution time is :'),write(T).
 
 
 go_(Size, L, L1, T):- 
@@ -52,13 +52,13 @@ concat1([X|Xs],L1,L2):-
 %%%% Test %%%% 
 
 test(Size, T):-
-	go_(Size, _L, L1, T), 
-	check_output(L1, 0, Size).
+    go_(Size, _L, L1, T), 
+    check_output(L1, 0, Size).
 
 check_output(L, N0, N2):-
-	functor(L, '.', 2),!, 
-	L = [M|T],
-	N1 is N0 + 1,
-	M == N1, 
-	check_output(T, N1, N2).
+    functor(L, '.', 2),!, 
+    L = [M|T],
+    N1 is N0 + 1,
+    M == N1, 
+    check_output(T, N1, N2).
 check_output(L, N, N):- L == [].

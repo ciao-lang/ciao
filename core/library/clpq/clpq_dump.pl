@@ -1,6 +1,6 @@
 :- module(clpq_dump, 
-	[clpqr_dump_constraints/3, dump_internal/3], 
-	[dcg, library(clpq/clpq_src)]).
+    [clpqr_dump_constraints/3, dump_internal/3], 
+    [dcg, library(clpq/clpq_src)]).
 
 :- include(library(clpqr/clpqr_ops)).
 

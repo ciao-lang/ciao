@@ -1,7 +1,7 @@
 :- module(compressed_bytecode,
-        [compressLZ/1,
-         copyLZ/1],
-         [assertions]).
+    [compressLZ/1,
+     copyLZ/1],
+     [assertions]).
 
 :- doc(title, "Compressed bytecode").
 :- doc(author, "Oscar Portela Arjona").

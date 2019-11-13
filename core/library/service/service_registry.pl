@@ -27,13 +27,13 @@ servname(X) :- atm(X).
 %   Entry point for HTTP (browser) on the specified Bundle.
 %   `Name` is a global name (assumed to be unique) % TODO: qualify bundle if needed?
 bundle_http_entry(Bundle, Name, URL) :-
-	service_entry(Bundle, Name, Props),
-	( member(http, Props) -> true ; fail ),
-	( member(redirect(Addr0), Props) -> URL0 = Addr0
-	; atom_concat('/', Name, URL0) % TODO: share
-	),
-	\+ member(hide, Props),
-	bundle_site_url(Bundle, URL0, URL).
+    service_entry(Bundle, Name, Props),
+    ( member(http, Props) -> true ; fail ),
+    ( member(redirect(Addr0), Props) -> URL0 = Addr0
+    ; atom_concat('/', Name, URL0) % TODO: share
+    ),
+    \+ member(hide, Props),
+    bundle_site_url(Bundle, URL0, URL).
 
 % ---------------------------------------------------------------------------
 
@@ -59,24 +59,24 @@ bundle_http_entry(Bundle, Name, URL) :-
 
 :- export(service_entry/3).
 service_entry(Bundle, Name, Props) :-
-	service_entry_(Bundle, Name, Props).
+    service_entry_(Bundle, Name, Props).
 % service_entry(core, actmod_ctl, [actmod, main=..., hide]). % (statically loaded from ciao-serve.pl)
 
 :- export(service_lookup/2).
 service_lookup(Name, Protocol) :-
-	service_entry_srvname(Name, Protocol).
+    service_entry_srvname(Name, Protocol).
 
 clean_service_entries :-
-	retractall_fact(service_entry_(_, _, _)),
-	retractall_fact(service_entry_srvname(_, _)).
+    retractall_fact(service_entry_(_, _, _)),
+    retractall_fact(service_entry_srvname(_, _)).
 
 add_service_entry(Bundle, Name, Props) :-
-	( member(actmod, Props) -> Protocol = actmod
-	; member(http, Props) -> Protocol = http
-	; Protocol = unknown
-	),
-	assertz_fact(service_entry_(Bundle, Name, Props)),
-	assertz_fact(service_entry_srvname(Name, Protocol)).
+    ( member(actmod, Props) -> Protocol = actmod
+    ; member(http, Props) -> Protocol = http
+    ; Protocol = unknown
+    ),
+    assertz_fact(service_entry_(Bundle, Name, Props)),
+    assertz_fact(service_entry_srvname(Name, Protocol)).
 
 :- use_module(ciaobld(manifest_compiler), [main_file_path/3]).
 :- use_module(ciaobld(config_common), [libcmd_path/4]).
@@ -88,20 +88,20 @@ add_service_entry(Bundle, Name, Props) :-
 %  - daemon(ExecPath): daemon process with executable at ExecPath
 %  - dynmod(AbsPath): module with code at AbsPath
 service_load_mode(Name, Mode) :-
-	( service_entry(Bundle, Name, Props0) -> % TODO: only first bundle; add bundle as param? follow workspaces instead?
-	    Props = Props0
-	; throw(service_not_found(Name))
-	),
-	( member(child, Props) ->
-	    ExecPath = ~libcmd_path(Bundle, plexe, Name),
-	    Mode = child(ExecPath)
-	; member(daemon, Props) ->
-	    ExecPath = ~libcmd_path(Bundle, plexe, Name),
-	    Mode = daemon(ExecPath)
-	; AbsPath = ~main_file_path(Bundle, Props) ->
-	    Mode = dynmod(AbsPath)
-	; Mode = unknown
-	).
+    ( service_entry(Bundle, Name, Props0) -> % TODO: only first bundle; add bundle as param? follow workspaces instead?
+        Props = Props0
+    ; throw(service_not_found(Name))
+    ),
+    ( member(child, Props) ->
+        ExecPath = ~libcmd_path(Bundle, plexe, Name),
+        Mode = child(ExecPath)
+    ; member(daemon, Props) ->
+        ExecPath = ~libcmd_path(Bundle, plexe, Name),
+        Mode = daemon(ExecPath)
+    ; AbsPath = ~main_file_path(Bundle, Props) ->
+        Mode = dynmod(AbsPath)
+    ; Mode = unknown
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -116,19 +116,19 @@ service_load_mode(Name, Mode) :-
 
 :- export(reload_service_registry/0).
 reload_service_registry :-
-	display(user_error, '   Loading service registry...'), nl(user_error),
-	% TODO: slow! (see notes above)
-	clean_service_entries,
-	% TODO: make it optional?
-	% add_service_entry(core, actmod_ctl, [actmod]),
-	%
-	( % (failure-driven loop)
-	  '$bundle_id'(Bundle),
-	  ensure_load_manifest(Bundle), % TODO: slow?
-	  manifest_call(Bundle, service(Name, Props)),
-	    add_service_entry(Bundle, Name, Props),
-	    fail
-	; true
-	),
-	display(user_error, '   Service registry loaded'), nl(user_error).
+    display(user_error, '   Loading service registry...'), nl(user_error),
+    % TODO: slow! (see notes above)
+    clean_service_entries,
+    % TODO: make it optional?
+    % add_service_entry(core, actmod_ctl, [actmod]),
+    %
+    ( % (failure-driven loop)
+      '$bundle_id'(Bundle),
+      ensure_load_manifest(Bundle), % TODO: slow?
+      manifest_call(Bundle, service(Name, Props)),
+        add_service_entry(Bundle, Name, Props),
+        fail
+    ; true
+    ),
+    display(user_error, '   Service registry loaded'), nl(user_error).
 

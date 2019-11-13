@@ -7,6 +7,6 @@
 
 %% Assumes that source file exists
 up_to_date(Target, Source) :-
-	modif_time(Source, SourceTime),
-	modif_time0(Target, TargetTime),
-	SourceTime =< TargetTime.
+    modif_time(Source, SourceTime),
+    modif_time0(Target, TargetTime),
+    SourceTime =< TargetTime.

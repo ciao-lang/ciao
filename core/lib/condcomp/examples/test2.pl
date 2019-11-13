@@ -10,18 +10,18 @@
     :- use_module(engine(io_basic), [nl/0]).
     :- use_module(library(write)).
     :- if(use_quote(yes)).
-        pr(X) :- writeq(using_write(X)), nl.
+    pr(X) :- writeq(using_write(X)), nl.
     :- else.
-        pr(X) :- write(using_write(X)), nl.
+    pr(X) :- write(using_write(X)), nl.
     :- endif.
 :- else.
     :- use_module(engine(io_basic)).
     :- if(use_quote(yes)).
-        pr(X) :- displayq(using_display(X)), nl.
+    pr(X) :- displayq(using_display(X)), nl.
     :- else.
-        pr(X) :- display(using_display(X)), nl.
+    pr(X) :- display(using_display(X)), nl.
     :- endif.
 :- endif.
 
 main :-
-	pr('hello world').
+    pr('hello world').

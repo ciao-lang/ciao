@@ -37,8 +37,8 @@
 :- pred init_stream_watch # "Initialize the stream watchdog module".
 
 init_stream_watch :-
-	retractall_fact(ready_stream(_)),
-	retractall_fact(watched_stream(_,_)).
+    retractall_fact(ready_stream(_)),
+    retractall_fact(watched_stream(_,_)).
 
 % ---------------------------------------------------------------------------
 
@@ -47,19 +47,19 @@ init_stream_watch :-
    the watch list (with attribute @var{StreamAttr})".
 
 watch_stream(Stream, StreamAttr) :-
-	( current_fact(watched_stream(Stream, _)) ->
-	    throw(already_watched(Stream))
-	; assertz_fact(watched_stream(Stream, StreamAttr))
-	).
+    ( current_fact(watched_stream(Stream, _)) ->
+        throw(already_watched(Stream))
+    ; assertz_fact(watched_stream(Stream, StreamAttr))
+    ).
 
 :- export(unwatch_stream/1).
 :- pred unwatch_stream(Stream) # "Remove @var{Stream} from the watch
    list".
 
 unwatch_stream(Stream) :-
-	( retract_fact(watched_stream(Stream, _)) -> true
-	; true 
-	).
+    ( retract_fact(watched_stream(Stream, _)) -> true
+    ; true 
+    ).
 
 :- doc(bug, "@pred{watch_socket/2}: only one socket can be watched").
 
@@ -69,15 +69,15 @@ unwatch_stream(Stream) :-
    incomming streams)".
 
 watch_socket(Socket, NewStreamAttr) :-
-	retractall_fact(watched_socket(_, _)),
-	assertz_fact(watched_socket(Socket, NewStreamAttr)).
+    retractall_fact(watched_socket(_, _)),
+    assertz_fact(watched_socket(Socket, NewStreamAttr)).
 
 :- export(unwatch_socket/1).
 :- pred unwatch_socket(Socket) # "Remove @var{Socket} from the watch
    list".
 
 unwatch_socket(Socket) :-
-	retractall_fact(watched_socket(Socket, _)).
+    retractall_fact(watched_socket(Socket, _)).
 
 % ---------------------------------------------------------------------------
 
@@ -96,24 +96,24 @@ unwatch_socket(Socket) :-
    change to ready status or @var{Timeout} has expired.".
 
 wait_streams(Timeout) :-
-	( watched_socket(Socket,NewStreamAttr) -> true ; Socket = no ),
-	findall(X, other_stream(X), InStreams),
-	( Socket = no, \+ watched_stream(_,_) ->
-	    ReadableStreams = dried_streams % no new messages can arrive
-	; select_socket(Socket,NewStream,Timeout,InStreams,ReadableStreams),
-	  % Watch a new socket connection if needed
-	  ( var(NewStream) -> true
-	  ; watch_stream(NewStream, NewStreamAttr)
-	  ),
-	  % TODO: OS signals may interrupt select() with no ready
-	  %   stream (ReadableStream=[] after select_socket/5). Repeat?
-	  ( % (failure-driven loop)
-	    member(S, ReadableStreams),
-	      assertz_fact(ready_stream(S)), % TODO: unwatch and watch again?
-	      fail
-	  ; true
-	  )
-	).
+    ( watched_socket(Socket,NewStreamAttr) -> true ; Socket = no ),
+    findall(X, other_stream(X), InStreams),
+    ( Socket = no, \+ watched_stream(_,_) ->
+        ReadableStreams = dried_streams % no new messages can arrive
+    ; select_socket(Socket,NewStream,Timeout,InStreams,ReadableStreams),
+      % Watch a new socket connection if needed
+      ( var(NewStream) -> true
+      ; watch_stream(NewStream, NewStreamAttr)
+      ),
+      % TODO: OS signals may interrupt select() with no ready
+      %   stream (ReadableStream=[] after select_socket/5). Repeat?
+      ( % (failure-driven loop)
+        member(S, ReadableStreams),
+          assertz_fact(ready_stream(S)), % TODO: unwatch and watch again?
+          fail
+      ; true
+      )
+    ).
 
 % A watched stream that is not marked as ready
 other_stream(S) :- watched_stream(S, _), \+ ready_stream(S).
@@ -125,8 +125,8 @@ other_stream(S) :- watched_stream(S, _), \+ ready_stream(S).
    accept new connections, nor streams to watch.".
 
 dried_streams :-
-	\+ watched_socket(_,_),
-	\+ watched_stream(_,_).
+    \+ watched_socket(_,_),
+    \+ watched_stream(_,_).
 
 % ---------------------------------------------------------------------------
 
@@ -137,8 +137,8 @@ dried_streams :-
    the ready queue before processing.".
 
 current_ready_stream(Stream, StreamAttr, Ref) :-
-	current_fact(ready_stream(Stream), Ref),
-	( current_fact(watched_stream(Stream, StreamAttr0)) ->
-	    StreamAttr = StreamAttr0
-	; throw(bug(no_watched_stream(Stream), current_ready_stream/3)) % (buf if reachable)
-	).
+    current_fact(ready_stream(Stream), Ref),
+    ( current_fact(watched_stream(Stream, StreamAttr0)) ->
+        StreamAttr = StreamAttr0
+    ; throw(bug(no_watched_stream(Stream), current_ready_stream/3)) % (buf if reachable)
+    ).

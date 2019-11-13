@@ -1,12 +1,12 @@
 :- module(hiord_rt, 
-	[
-	    call/1,
-	    call/2 /* call/N, */, 
-	    'SYSCALL'/1, 
-	    '$nodebug_call'/1,
-	    '$meta_call'/1,
-	    this_module/1
-	],[assertions, nortchecks, isomodes]).
+    [
+        call/1,
+        call/2 /* call/N, */, 
+        'SYSCALL'/1, 
+        '$nodebug_call'/1,
+        '$meta_call'/1,
+        this_module/1
+    ],[assertions, nortchecks, isomodes]).
 
 :- doc(title,"Higher-order support").
 
@@ -41,30 +41,30 @@ call(V, Args) :- calln(V, Args).
 
 calln(V, _) :- var(V), !, throw(error(instantiation_error, call/n-1)).
 calln(Pred, Args) :-
-        % ShEnv contains actual values while Sh,H,B contain fresh
-        % variables. This is needed to avoid copying the whole
-        % environment for every call.
-        % TODO: merge with fastcall.pl
-        Pred = 'PAEnv'(ShEnv,PA),
-        copy_term_nat(PA, 'PA'(ShEnv,Args,Goal)), !,
-        '$meta_call'(Goal).
+    % ShEnv contains actual values while Sh,H,B contain fresh
+    % variables. This is needed to avoid copying the whole
+    % environment for every call.
+    % TODO: merge with fastcall.pl
+    Pred = 'PAEnv'(ShEnv,PA),
+    copy_term_nat(PA, 'PA'(ShEnv,Args,Goal)), !,
+    '$meta_call'(Goal).
 calln(Pred, Args) :-
-        Pred = 'PAEnv'(_ShEnv,'PA'(_Sh,H,_B)),
-        functor(H,'',N),
-        functor(Args,_,N), !, % Predicate abstraction OK, argument unif. failed
-        fail.
+    Pred = 'PAEnv'(_ShEnv,'PA'(_Sh,H,_B)),
+    functor(H,'',N),
+    functor(Args,_,N), !, % Predicate abstraction OK, argument unif. failed
+    fail.
 calln(Pred, Args) :-
-        Pred = 'PA'(Sh,_H,_B), % TODO: Deprecate this case (without PAEnv)
-        copy_term_nat(Pred, 'PA'(Sh,Args,Goal)), !,
-        '$meta_call'(Goal).
+    Pred = 'PA'(Sh,_H,_B), % TODO: Deprecate this case (without PAEnv)
+    copy_term_nat(Pred, 'PA'(Sh,Args,Goal)), !,
+    '$meta_call'(Goal).
 calln(Pred, Args) :-
-        Pred = 'PA'(_Sh,H,_B), % TODO: Deprecate this case (without PAEnv)
-        functor(H,'',N),
-        functor(Args,_,N), !, % Predicate abstraction OK, argument unif. failed
-        fail.
+    Pred = 'PA'(_Sh,H,_B), % TODO: Deprecate this case (without PAEnv)
+    functor(H,'',N),
+    functor(Args,_,N), !, % Predicate abstraction OK, argument unif. failed
+    fail.
 calln(Pred, Args) :-
-        functor(Args,_,N),
-        throw(error(type_error(pred(N),Pred), call/n-1)).
+    functor(Args,_,N),
+    throw(error(type_error(pred(N),Pred), call/n-1)).
 
 
 :- trust pred 'SYSCALL'(+callable).
@@ -85,5 +85,5 @@ calln(Pred, Args) :-
 this_module(M, M).
 
 :- trust pred this_module(Module) => internal_module_id #
-	"@var{Module} is the internal module identifier for current module.".
+    "@var{Module} is the internal module identifier for current module.".
 

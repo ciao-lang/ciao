@@ -26,10 +26,10 @@
 %% ---------------------------------------------------------------------------
 
 :- module(clpfd_stats, 
-	[inc_stat/1,
-	 get_stat/2,
-	 clpfd_stats/0
-	],[assertions, datafacts]).
+    [inc_stat/1,
+     get_stat/2,
+     clpfd_stats/0
+    ],[assertions, datafacts]).
 
 :- doc(title, "Statistics for CLP(fd)").
 
@@ -52,26 +52,26 @@ fd_stats(int_tell_succ, 0).
 fd_stats(int_tell_fail, 0).
 
 inc_stat(Stat) :-
-	retract_fact(fd_stats(Stat, N)),
-	N1 is N + 1,
-	assertz_fact(fd_stats(Stat, N1)).
+    retract_fact(fd_stats(Stat, N)),
+    N1 is N + 1,
+    assertz_fact(fd_stats(Stat, N1)).
 
 get_stat(Stat, R) :-
-	retract_fact(fd_stats(Stat, R)),
-	assertz_fact(fd_stats(Stat, 0)).
+    retract_fact(fd_stats(Stat, R)),
+    assertz_fact(fd_stats(Stat, 0)).
 
 clpfd_stats :-
-	stats_list(L),
-	print_stats(L).
+    stats_list(L),
+    print_stats(L).
 
 stats_list(L) :-
-	findall(S, fd_stats(S, _), L).
+    findall(S, fd_stats(S, _), L).
 
 print_stats([]).
 print_stats([S|Sl]) :-
-	get_stat(S, N),
-	format(user_error, "~p value: ~p~n", [S,N]),
-	print_stats(Sl).
+    get_stat(S, N),
+    format(user_error, "~p value: ~p~n", [S,N]),
+    print_stats(Sl).
 
 :- else.
 % (Disabled collect statistics)
@@ -81,8 +81,8 @@ inc_stat(_).
 get_stat(_, 0).
 
 clpfd_stats:-
-        format(user_error, 
-               "CLP(FD) statistics not turned on at compile time.~n", []),
-        format(user_error, "See the `clpfd_options' file for a list of compile time options.~n", []).
+    format(user_error, 
+           "CLP(FD) statistics not turned on at compile time.~n", []),
+    format(user_error, "See the `clpfd_options' file for a list of compile time options.~n", []).
 :- endif.
 

@@ -1,22 +1,22 @@
 :- module(basic_props_rtc,
-        [
-            % instantiation checks
-            rtc_int/1,
-            rtc_nnegint/1,
-            rtc_flt/1,
-            rtc_num/1,
-            rtc_atm/1,
-            rtc_struct/1,
-            rtc_gnd/1,
-            % compatibility checks
-            compat_int/1,
-            compat_nnegint/1,
-            compat_flt/1,
-            compat_num/1,
-            compat_atm/1,
-            compat_struct/1
-        ],
-        [nativeprops]).
+    [
+        % instantiation checks
+        rtc_int/1,
+        rtc_nnegint/1,
+        rtc_flt/1,
+        rtc_num/1,
+        rtc_atm/1,
+        rtc_struct/1,
+        rtc_gnd/1,
+        % compatibility checks
+        compat_int/1,
+        compat_nnegint/1,
+        compat_flt/1,
+        compat_num/1,
+        compat_atm/1,
+        compat_struct/1
+    ],
+    [nativeprops]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -119,12 +119,12 @@ compat_struct(T) :- nonvar(T), !, rtc_struct(T).
 rtc_gnd(X)  :- var(X), !, fail.
 rtc_gnd([]) :- !.
 rtc_gnd(T)  :-
-        functor(T, _, A),
-        grnd_args(A, T).
+    functor(T, _, A),
+    grnd_args(A, T).
 
 grnd_args(0, _).
 grnd_args(N, T) :-
-        arg(N, T, A),
-        rtc_gnd(A),
-        N1 is N-1,
-        grnd_args(N1, T).
+    arg(N, T, A),
+    rtc_gnd(A),
+    N1 is N-1,
+    grnd_args(N1, T).

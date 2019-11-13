@@ -1,6 +1,6 @@
 :- module(io_alias_redirection, 
-          [set_stream/3, get_stream/2], 
-	  [assertions, basicmodes]).
+      [set_stream/3, get_stream/2], 
+      [assertions, basicmodes]).
 
 :- doc(title,"Accessing and redirecting the stream aliases").
 
@@ -26,8 +26,8 @@
    @var{StreamAlias}.".
 
 set_stream(StreamAlias, NewStream, OldStream):-
-        get_stream(StreamAlias, OldStream),
-        replace_stream(StreamAlias, NewStream).
+    get_stream(StreamAlias, OldStream),
+    replace_stream(StreamAlias, NewStream).
 
 :- pred get_stream(+StreamAlias, ?Stream): stream_alias * stream 
 # "Return in @var{Stream} the stream associated with

@@ -27,25 +27,25 @@
 % TODO: implement documentation of interfaces; see doccfg
 
 % :- trust pred menu_default( Menu , Flag , DefaultValue ) :
-% 	term * atm * atm
+%       term * atm * atm
 % # "@var{Menu} is a term that has to correspond with the 1st argument
 %   of @pred{Menu}. @var{Flag} is the desired flag to have a default
 %   value. @var{DefaultValue} is the default value of @var{Flag}.".
 % 
 % :- trust pred menu_default( Menu , Flag , DefaultValue )  => 
-% 	atm  * atm * atm.
+%       atm  * atm * atm.
 % :- trust pred menu_default( Menu , Flag , DefaultValue ) :
-% 	atm  * var * var
+%       atm  * var * var
 % # "This call mode can be used to ask which flags and its values
 %   has a menu @var{menu}".
 % 
 % :- trust pred menu_default( Menu , Flag , DefaultValue ) :
-% 	atm  * atm * var
+%       atm  * atm * var
 % # "This call mode can be used to ask which value have the flag
 %   @var{Flag} in the menu @var{menu}".
 
 % :- pred menu_opt( Menu , Flag , Text , Guard , BeforePrinting , SelectedHook ) :
-% 	term * atm * atm * callable * callable * callable
+%       term * atm * atm * callable * callable * callable
 % # "@var{Menu} is a term that specifies the menu name. It can be an
 %   atom or just a predicate of arity 1, where the 1st argument
 %   indicates the menu level (i.e., ana(1) is the level 1 of 'ana'
@@ -72,11 +72,11 @@
 %   user has types the option @var{SelectedHook} is invoked.".
 % 
 % :- trust pred menu_opt( Menu , Flag , Text , Guard , BeforePrinting ,
-% 	SelectedHook ) : term * term * term * term * term *term.
+%       SelectedHook ) : term * term * term * term * term *term.
 
 % :- pred hook_menu_flag_values(Menu, Flag, Values)
-% 	: atom * atom * var
-% 	=> menu_flag_values(Values)
+%       : atom * atom * var
+%       => menu_flag_values(Values)
 %   # "It is a hook. It is invoked whenever a menu question is
 %   printed. @var{Values} is a term which specifies the possible
 %   values. If @var{Values} is alist(List) -atom list-, then menu will

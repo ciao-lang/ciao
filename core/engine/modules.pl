@@ -127,48 +127,48 @@
 
 :- doc(doinclude,module/3).
 :- decl module(Name, Exports, Packages)
-        : modulename * list(predname) * list(sourcename)
+    : modulename * list(predname) * list(sourcename)
 
-        # "Declares a module of name @var{Name} which exports the
-          predicates in @var{Exports}, and uses the packages in
-          @var{Packages}.  @var{Name} must match with the name of the
-          file where the module resides, without extension.  For each
-          source in @var{Packages}, a @concept{package file} is used.
-          If the source is specified with a @concept{path alias}, this
-          is the file included, if it is an atom, the library paths
-          are searched. See @decl{package/1} for a brief description
-          of package files.
+    # "Declares a module of name @var{Name} which exports the
+      predicates in @var{Exports}, and uses the packages in
+      @var{Packages}.  @var{Name} must match with the name of the
+      file where the module resides, without extension.  For each
+      source in @var{Packages}, a @concept{package file} is used.
+      If the source is specified with a @concept{path alias}, this
+      is the file included, if it is an atom, the library paths
+      are searched. See @decl{package/1} for a brief description
+      of package files.
 
-          This directive must appear the first in the file.
+      This directive must appear the first in the file.
 
-          Also, if the compiler finds an unknown declaration as the
-          first term in a file, the name of the declaration is regarded
-          as a package library to be included, and the arguments of the
-          declaration (if present) are interpreted like the arguments of
-          @decl{module/3}.".
+      Also, if the compiler finds an unknown declaration as the
+      first term in a file, the name of the declaration is regarded
+      as a package library to be included, and the arguments of the
+      declaration (if present) are interpreted like the arguments of
+      @decl{module/3}.".
 
 :- doc(doinclude,module/2).
 :- decl module(Name, Exports) : modulename * list(predname)
 
-        # "Same as directive @decl{module/3}, with an implicit package
-          @tt{default}. This default package provides all the standard
-          features provided by most Prolog systems so that Prolog
-          programs with traditional @decl{module/2} declarations can
-          run without any change. See @ref{Classic Prolog}.".
+    # "Same as directive @decl{module/3}, with an implicit package
+      @tt{default}. This default package provides all the standard
+      features provided by most Prolog systems so that Prolog
+      programs with traditional @decl{module/2} declarations can
+      run without any change. See @ref{Classic Prolog}.".
 
 % ---------------------------------------------------------------------------
 
 :- doc(doinclude,use_package/1).
 :- doc(use_package(Package),"Specifies the use in this file of the
-          packages defined in @var{Package}.  See the description of the
-          third argument of @decl{module/3} for an explanation of
-          @concept{package file}s.
+      packages defined in @var{Package}.  See the description of the
+      third argument of @decl{module/3} for an explanation of
+      @concept{package file}s.
 
-          This directive must appear the first in the file, or just
-          after a @decl{module/3} declaration.  A file with no module
-          declaration, in the absence of this directive, uses an
-          implicit package @tt{default} (see @ref{Other predicates and
-          features defined by default}).").
+      This directive must appear the first in the file, or just
+      after a @decl{module/3} declaration.  A file with no module
+      declaration, in the absence of this directive, uses an
+      implicit package @tt{default} (see @ref{Other predicates and
+      features defined by default}).").
 
 :- decl use_package(Package) : sourcename.
 :- decl use_package(Package) : list(sourcename).
@@ -177,35 +177,35 @@
 
 :- doc(doinclude,use_module/2).
 :- decl use_module(Module, Imports) : sourcename * list(predname)
-        # "Specifies that this code imports from the module defined in
-          @var{Module} the predicates in @var{Imports}.  The imported
-          predicates must be exported by the other module.".
+    # "Specifies that this code imports from the module defined in
+      @var{Module} the predicates in @var{Imports}.  The imported
+      predicates must be exported by the other module.".
 
 :- doc(doinclude,use_module/1).
 :- decl use_module(Module) : sourcename
-        # "Specifies that this code imports from the module defined in
-          @var{Module} all the predicates exported by it.  The previous
-          version with the explicit import list is preferred to this as
-          it minimizes the chances to have to recompile this code if the
-          other module changes.".
+    # "Specifies that this code imports from the module defined in
+      @var{Module} all the predicates exported by it.  The previous
+      version with the explicit import list is preferred to this as
+      it minimizes the chances to have to recompile this code if the
+      other module changes.".
 
 :- doc(doinclude,import/2).
 :- decl import(Module, Imports) : modulename * list(predname)
-        # "Declares that this code imports from the module with name
-          @var{Module} the predicates in @var{Imports}.
+    # "Declares that this code imports from the module with name
+      @var{Module} the predicates in @var{Imports}.
 
-          @bf{Important note:} this declaration is intended to be used
-          when the current module or the imported module is going to be
-          dynamically loaded, and so the compiler does not include the
-          code of the imported module in the current executable (if only
-          because the compiler cannot know the location of the module
-          file at the time of compilation).  For the same reason the
-          predicates imported are not checked to be exported by
-          @var{Module}.  Its use in other cases is strongly discouraged,
-          as it disallows many compiler optimizations.
+      @bf{Important note:} this declaration is intended to be used
+      when the current module or the imported module is going to be
+      dynamically loaded, and so the compiler does not include the
+      code of the imported module in the current executable (if only
+      because the compiler cannot know the location of the module
+      file at the time of compilation).  For the same reason the
+      predicates imported are not checked to be exported by
+      @var{Module}.  Its use in other cases is strongly discouraged,
+      as it disallows many compiler optimizations.
 
-          This is an example of such a case for a dynamically loaded
-          module:
+      This is an example of such a case for a dynamically loaded
+      module:
 
 @begin{verbatim}
 :- module(_,_).
@@ -220,105 +220,105 @@ main(X) :-
 
 :- doc(doinclude,reexport/2).
 :- decl reexport(Module, Preds) : sourcename * list(predname)
-        # "Specifies that this code reexports from the module defined in
-          @var{Module} the predicates in @var{Preds}. This implies that
-          this module imports from the module defined in @var{Module}
-          the predicates in @var{Preds}, an also that this module
-          exports the predicates in @var{Preds} .".
+    # "Specifies that this code reexports from the module defined in
+      @var{Module} the predicates in @var{Preds}. This implies that
+      this module imports from the module defined in @var{Module}
+      the predicates in @var{Preds}, an also that this module
+      exports the predicates in @var{Preds} .".
 
 :- doc(doinclude,reexport/1).
 :- decl reexport(Module) : sourcename
-        # "Specifies that this code reexports from the module defined in
-          @var{Module} all the predicates exported by it. This implies that
-          this module imports from the module defined in @var{Module}
-          all the predicates exported by it, an also that this module
-          exports all such predicates .".
+    # "Specifies that this code reexports from the module defined in
+      @var{Module} all the predicates exported by it. This implies that
+      this module imports from the module defined in @var{Module}
+      all the predicates exported by it, an also that this module
+      exports all such predicates .".
 
 :- doc(doinclude,ensure_loaded/1).
 :- decl ensure_loaded(File) : sourcename + iso
-        # "Specifies that the code present in @var{File} will be
-          included in the executable being prepared, in the @tt{user}
-          module.  The file @var{File} cannot have a module
-          declaration.  This directive is intended to be used by
-          programs not divided in modules.  Dividing programs into
-          modules is however strongly encouraged, since most of the
-          attractive features of Ciao (such as static debugging and
-          global optimization) are only partially available for
-          @tt{user} modules.".
+    # "Specifies that the code present in @var{File} will be
+      included in the executable being prepared, in the @tt{user}
+      module.  The file @var{File} cannot have a module
+      declaration.  This directive is intended to be used by
+      programs not divided in modules.  Dividing programs into
+      modules is however strongly encouraged, since most of the
+      attractive features of Ciao (such as static debugging and
+      global optimization) are only partially available for
+      @tt{user} modules.".
 
 % ---------------------------------------------------------------------------
 
 :- doc(doinclude,include/1).
 :- decl include(File) : sourcename + iso
-        # "The contents of the file @var{File} are included in the
-          current program text exactly as if they had been written in
-          place of this directive.".
+    # "The contents of the file @var{File} are included in the
+      current program text exactly as if they had been written in
+      place of this directive.".
 
 % ---------------------------------------------------------------------------
 
 :- doc(doinclude,export/1).
 :- decl export(Pred) : predname
-        # "Adds @var{Pred} to the set of exported predicates.".
+    # "Adds @var{Pred} to the set of exported predicates.".
 :- decl export(Exports) : list(predname)
-        # "Adds @var{Exports} to the set of exported predicates.".
+    # "Adds @var{Exports} to the set of exported predicates.".
 
 :- doc(doinclude,multifile/1).
 :- decl multifile(Predicates) : sequence_or_list(predname) + iso
-        # "Specifies that each predicate in @var{Predicates} may have
-          clauses in more than one file.  Each file that contains
-          clauses for a @concept{multifile predicate} must contain a
-          directive multifile for the predicate.  The directive should
-          precede all clauses of the affected predicates, and also
-          dynamic/data declarations for the predicate.  This directive
-          is defined as a prefix operator in the compiler.".
+    # "Specifies that each predicate in @var{Predicates} may have
+      clauses in more than one file.  Each file that contains
+      clauses for a @concept{multifile predicate} must contain a
+      directive multifile for the predicate.  The directive should
+      precede all clauses of the affected predicates, and also
+      dynamic/data declarations for the predicate.  This directive
+      is defined as a prefix operator in the compiler.".
 
 :- doc(doinclude,meta_predicate/1).
 :- decl meta_predicate(MetaSpecs) : sequence(metaspec)
-        # "Specifies that the predicates in @var{MetaSpecs} have
-          arguments which have to be module expanded (predicates,
-          goals, etc).  @decl{meta_predicate/1} directives are only
-          mandatory for exported predicates (in modules).  This
-          directive is defined as a prefix operator in the compiler.".
+    # "Specifies that the predicates in @var{MetaSpecs} have
+      arguments which have to be module expanded (predicates,
+      goals, etc).  @decl{meta_predicate/1} directives are only
+      mandatory for exported predicates (in modules).  This
+      directive is defined as a prefix operator in the compiler.".
 
 :- doc(doinclude,redefining/1).
 :- decl redefining(Predicate) : compat(predname)
-        # "Specifies that this module redefines predicate
-          @var{Predicate}, also imported from other module, or imports
-          it from more than one module.  This prevents the compiler
-          giving warnings about redefinitions of that predicate.
-          @var{Predicate} can be partially (or totally) uninstantiated,
-          to allow disabling those warnings for several (or all) predicates at
-          once.".
+    # "Specifies that this module redefines predicate
+      @var{Predicate}, also imported from other module, or imports
+      it from more than one module.  This prevents the compiler
+      giving warnings about redefinitions of that predicate.
+      @var{Predicate} can be partially (or totally) uninstantiated,
+      to allow disabling those warnings for several (or all) predicates at
+      once.".
 
 :- doc(doinclude,discontiguous/1).
 :- decl discontiguous(Predicates) : sequence_or_list(predname) + iso
-        # "Specifies that each predicate in @var{Predicates} may be
-          defined in this file by clauses which are not in consecutive
-          order.  Otherwise, a warning is signaled by the compiler when
-          clauses of a predicate are not consecutive (this behavior is
-          controllable by the @concept{prolog flag}
-          @em{discontiguous_warnings}).  The directive should
-          precede all clauses of the affected predicates.  This
-          directive is defined as a prefix operator in the compiler.".
+    # "Specifies that each predicate in @var{Predicates} may be
+      defined in this file by clauses which are not in consecutive
+      order.  Otherwise, a warning is signaled by the compiler when
+      clauses of a predicate are not consecutive (this behavior is
+      controllable by the @concept{prolog flag}
+      @em{discontiguous_warnings}).  The directive should
+      precede all clauses of the affected predicates.  This
+      directive is defined as a prefix operator in the compiler.".
 
 :- doc(doinclude,impl_defined/1).
 :- decl impl_defined(Predicates) : sequence_or_list(predname)
-        # "Specifies that each predicate in @var{Predicates} is
-          @em{impl}icitly @em{defined} in the current prolog source,
-          either because it is a builtin predicate or because it is
-          defined in a C file.  Otherwise, a warning is signaled by
-          the compiler when an exported predicate is not defined in
-          the module or imported from other module.".
+    # "Specifies that each predicate in @var{Predicates} is
+      @em{impl}icitly @em{defined} in the current prolog source,
+      either because it is a builtin predicate or because it is
+      defined in a C file.  Otherwise, a warning is signaled by
+      the compiler when an exported predicate is not defined in
+      the module or imported from other module.".
 
 % ---------------------------------------------------------------------------
 
 :- export(modulename/1).
 :- doc(doinclude, modulename/1).
 :- doc(modulename/1, "A module name is an atom, not containing
-        characters `:' or `$'.  Also, @tt{user} and @tt{multifile} are
-        reserved, as well as the module names of all builtin modules
-        (because in an executable all modules must have distinct
-        names).").
+    characters `:' or `$'.  Also, @tt{user} and @tt{multifile} are
+    reserved, as well as the module names of all builtin modules
+    (because in an executable all modules must have distinct
+    names).").
 
 :- prop modulename(M) + regtype # "@var{M} is a module name (an atom).".
 
@@ -328,89 +328,89 @@ modulename(M) :- atm(M).
 
 :- doc(doinclude, metaspec/1).
 :- doc(metaspec/1, "A meta-predicate specification for a predicate
-        is the functor of that predicate applied to terms which
-        represent the kind of module expansion that should be applied to
-        each argument.  Possible contents are represented as:
+    is the functor of that predicate applied to terms which
+    represent the kind of module expansion that should be applied to
+    each argument.  Possible contents are represented as:
 
-        @begin{description}
+    @begin{description}
 
-        @item{@tt{?,+,-,_}} These values denote that this argument is not
-        module expanded.
+    @item{@tt{?,+,-,_}} These values denote that this argument is not
+    module expanded.
 
-        @item{@tt{goal}} This argument will be a term denoting a goal
-        (either a simple or complex one) which will be called.  For
-        commpatibility reasons it can be named as @tt{:} as well.
+    @item{@tt{goal}} This argument will be a term denoting a goal
+    (either a simple or complex one) which will be called.  For
+    commpatibility reasons it can be named as @tt{:} as well.
 
-        @item{@tt{clause}} This argument will be a term denoting a clause.
+    @item{@tt{clause}} This argument will be a term denoting a clause.
 
-        @item{@tt{fact}} This argument should be instantiated to a term
-        denoting a fact (head-only clause).
+    @item{@tt{fact}} This argument should be instantiated to a term
+    denoting a fact (head-only clause).
 
-        @item{@tt{spec}} This argument should be instantiated to a predicate
-        name, as Functor/Arity.
+    @item{@tt{spec}} This argument should be instantiated to a predicate
+    name, as Functor/Arity.
 
-        @item{@tt{pred(@em{N})}} This argument should be instantiated to
-        a predicate construct to be called by means of a
-        @tt{call/@em{N}} predicate call (see @pred{call/2}).
+    @item{@tt{pred(@em{N})}} This argument should be instantiated to
+    a predicate construct to be called by means of a
+    @tt{call/@em{N}} predicate call (see @pred{call/2}).
 
-        @item{@tt{list(@em{Meta})}} This argument should be instantiated
-        to a list of terms as described by @em{Meta}
-        (e.g. @tt{list(goal)}).
+    @item{@tt{list(@em{Meta})}} This argument should be instantiated
+    to a list of terms as described by @em{Meta}
+    (e.g. @tt{list(goal)}).
 
-        @item{@tt{addterm(Meta)}} This argument should be instantiated
-        to the meta-data specified by @em{Meta}, and an argument added
-        after this one will carry the original data without module
-        expansion.  Not intended to be used by normal users. 
+    @item{@tt{addterm(Meta)}} This argument should be instantiated
+    to the meta-data specified by @em{Meta}, and an argument added
+    after this one will carry the original data without module
+    expansion.  Not intended to be used by normal users. 
 
-        @item{@tt{addmodule(Meta)}} This argument should be instantiated
-        to the meta-data specified by @em{Meta}, and in an argument
-        added after this one will be passed the calling module, for
-        example to allow handling more involved meta-data by using
-        conversion builtins.  @tt{addmodule} is an alias of
-        @tt{addmodule(?)}. Not intended to be used by normal users. 
+    @item{@tt{addmodule(Meta)}} This argument should be instantiated
+    to the meta-data specified by @em{Meta}, and in an argument
+    added after this one will be passed the calling module, for
+    example to allow handling more involved meta-data by using
+    conversion builtins.  @tt{addmodule} is an alias of
+    @tt{addmodule(?)}. Not intended to be used by normal users. 
 
-        @end{description}").
+    @end{description}").
 
 :- prop metaspec(M) + regtype # "@var{M} is a meta-predicate specification.".
 
 metaspec(M) :-
-	var(M),
-	!,
-	atm(F),
-	list(A, argspec),
-	M =.. [F|A]. % TODO: This is not a regtype!
+    var(M),
+    !,
+    atm(F),
+    list(A, argspec),
+    M =.. [F|A]. % TODO: This is not a regtype!
 metaspec(M) :-
-	M =.. [F|A], % TODO: This is not a regtype!
-	atm(F),
-	list(A, argspec).
+    M =.. [F|A], % TODO: This is not a regtype!
+    atm(F),
+    list(A, argspec).
 
 :- prop argspec(A) + regtype # "@var{A} is an argument of a
-	meta-predicate specificacion.".
+    meta-predicate specificacion.".
 
 argspec(goal).
 argspec(clause).
 argspec(fact).
 argspec(spec).
 argspec(list(Meta)) :-
-	argspec(Meta).
+    argspec(Meta).
 argspec(addterm(Meta)) :-
-	argspec(Meta).
+    argspec(Meta).
 argspec(addmodule(Meta)) :-
-	argspec(Meta).
+    argspec(Meta).
 argspec(pred(N)) :-
-	nnegint(N).
+    nnegint(N).
 
 % ---------------------------------------------------------------------------
 
 :- doc(doinclude,initialization/1).
 :- decl initialization(Goal) : callable + iso
-        # "@var{Goal} will be executed at the start of the execution of
-          any program containing the current code. The initialization of a
-          module/file never runs before the initializations of the modules
-          from which the module/file imports (excluding circular 
-          dependences).".
+    # "@var{Goal} will be executed at the start of the execution of
+      any program containing the current code. The initialization of a
+      module/file never runs before the initializations of the modules
+      from which the module/file imports (excluding circular 
+      dependences).".
 
 :- doc(doinclude,on_abort/1).
 :- decl on_abort(Goal) : callable
-        # "@var{Goal} will be executed after an abort of the execution of
-          any program containing the current code.".
+    # "@var{Goal} will be executed after an abort of the execution of
+      any program containing the current code.".

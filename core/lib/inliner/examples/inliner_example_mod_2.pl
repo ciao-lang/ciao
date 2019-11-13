@@ -6,7 +6,7 @@ map([],     _, []).
 map([A|As], P, [B|Bs]) :- P(A, B), map(As, P, Bs).
 
 test6(A) :-
-	test7(A).
+    test7(A).
 
 test7(a).
 test7(b).

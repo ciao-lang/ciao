@@ -1,5 +1,5 @@
 :- module(regtypes_tr, [expand_regtypes/2],
-	    [assertions, nortchecks, isomodes]).
+        [assertions, nortchecks, isomodes]).
 
 :- doc(title, "Regular type definition support").
 

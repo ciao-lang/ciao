@@ -83,7 +83,7 @@ zebra(Owns_zebra, Drinks_water, Street) :-
    member(house$@{drink=>coffee,color=>green@}, Street),
    left_right(house$@{color=>ivory@}, house$@{color=>green@}, Street),
    member(house$@{car=>porsche,pet=>snails@}, Street),
-        ...
+    ...
 @end{verbatim}
 
    Another syntax supported, useful mainly in declarations to avoid

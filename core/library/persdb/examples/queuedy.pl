@@ -13,9 +13,9 @@ queue(second).
 
 main([]) :- message(error, ['You have to provide a directory']).
 main([Dir]) :-
-        asserta_fact(persistent_dir(queue_dir,Dir)),
-        initialize_db,
-        main.
+    asserta_fact(persistent_dir(queue_dir,Dir)),
+    initialize_db,
+    main.
 
 main:-
      write('Action ( in(Term). | slip(Term) | out. | list. | halt. ): '),

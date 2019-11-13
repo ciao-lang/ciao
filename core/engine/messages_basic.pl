@@ -1,10 +1,10 @@
 :- module(messages_basic, [
-		message/2, message_lns/4, messages/1,
-		message_type_visible/1,
-	        lformat/1, display_list/1,
-		% regtypes
-		message_info/1, message_type/1
-	    ],
+            message/2, message_lns/4, messages/1,
+            message_type_visible/1,
+            lformat/1, display_list/1,
+            % regtypes
+            message_info/1, message_type/1
+        ],
     [assertions, nativeprops, nortchecks]).
 
 % TODO: move lformat/1, display_list/1 to format_basic.pl?
@@ -69,14 +69,14 @@ lformat_text(T) :- term(T).
     description of the text formatting.".
 
 lformat(Ms) :-
-	output_message(Ms).
+    output_message(Ms).
 
 output_message([M|Ms]) :- !,
-	output_item(M),
-	output_message(Ms).
+    output_item(M),
+    output_message(Ms).
 output_message([]) :- !.
 output_message(M) :-
-	output_item(M).
+    output_item(M).
 
 output_item(V) :- var(V), !, display(V).
 output_item($$(M)) :- !, write_string(M).
@@ -92,11 +92,11 @@ output_item(M) :- display(M).
    @pred{display/1} on @var{List}.").
 
 display_list([M|Ms]) :- !,
-	display(M),
-	display_list(Ms).
+    display(M),
+    display_list(Ms).
 display_list([]) :- !.
 display_list(M) :-
-	display(M).
+    display(M).
 
 :- doc(bug, "@pred{message/2} assumes that a module with name 'write'
    is library(write).").
@@ -104,7 +104,7 @@ display_list(M) :-
 % ---------------------------------------------------------------------------
 
 :- pred message(Type, Message) : ( message_type(Type),
-	    lformat_text(Message) ) # "Output to standard error @var{Message},
+        lformat_text(Message) ) # "Output to standard error @var{Message},
    which is of type @var{Type}. The @tt{quiet} @index{prolog flag}
    (see @ref{Changing system behaviour and various flags}) controls
    which messages are actually output, depending on its type. Also,
@@ -112,16 +112,16 @@ display_list(M) :-
    output which denotes the severity of the message.".
 
 :- pred message_lns(Type, L0, L1, Message) : ( message_type(Type),
-	    nnegint(L0), nnegint(L1), lformat_text(Message) ) # "Output to
-	standard error @var{Message}, which is of type @var{Type}, and
-	occurs between lines @var{L0} and @var{L1}.  This is the same
-	as @pred{message/2}, but printing the lines where the message
-	occurs in a unified way (this is useful because automatic
-	tools such as the emacs mode know how to parse them).".
+        nnegint(L0), nnegint(L1), lformat_text(Message) ) # "Output to
+    standard error @var{Message}, which is of type @var{Type}, and
+    occurs between lines @var{L0} and @var{L1}.  This is the same
+    as @pred{message/2}, but printing the lines where the message
+    occurs in a unified way (this is useful because automatic
+    tools such as the emacs mode know how to parse them).".
 
 :- pred messages(Messages) : list(Messages, message_info) # "Print
-	each element in @var{Messages} using @pred{message/2} or
-	@pred{message_lns/4} predicates.".
+    each element in @var{Messages} using @pred{message/2} or
+    @pred{message_lns/4} predicates.".
 
 % TODO: Make the library stateful such that this applies to other
 %   preds here: "If the element should be printed using
@@ -129,31 +129,31 @@ display_list(M) :-
 %   print the same file name several times."
 
 :- prop message_info/1 + regtype # "The type of the elements to be
-	printed using the @pred{messages/1} predicate.  Defined as
-	@includedef{message_info/1}.".
+    printed using the @pred{messages/1} predicate.  Defined as
+    @includedef{message_info/1}.".
 
 % Auxiliary IO predicates:
 
 message(Type, Message) :-
-	message_output(Type, Output),
-	message_(Type, Output, Message).
+    message_output(Type, Output),
+    message_(Type, Output, Message).
 
 message_(Type, Output, Message) :- message_type_visible(Type), !,
-	add_head(Type, Message, MessL),
-	current_output(S),
-	set_output(Output),
-	output_message(MessL), nl,
-	set_output(S).
+    add_head(Type, Message, MessL),
+    current_output(S),
+    set_output(Output),
+    output_message(MessL), nl,
+    set_output(S).
 message_(_, _, _).
 
 message_lns(Type, L0, L1, Message) :- message_type_visible(Type), !,
-	add_lines(L0, L1, Message, Messlns),
-	add_head(Type, Messlns, MessL),
-	current_output(S),
-	message_output(Type, Output),
-	set_output(Output),
-	output_message(MessL), nl,
-	set_output(S).
+    add_lines(L0, L1, Message, Messlns),
+    add_head(Type, Messlns, MessL),
+    current_output(S),
+    message_output(Type, Output),
+    set_output(Output),
+    output_message(MessL), nl,
+    set_output(S).
 message_lns(_, _, _, _).
 
 :- pred message_type_visible(Type) : message_type(Type) # "Succeeds if
@@ -161,8 +161,8 @@ message_lns(_, _, _, _).
   the @tt{quiet} @index{prolog flag}".
 
 message_type_visible(Type) :-
-	'$quiet_flag'(Q, Q),
-	allowed_type(Q, Type).
+    '$quiet_flag'(Q, Q),
+    allowed_type(Q, Type).
 
 allowed_type(error,   error) :- !.
 allowed_type(error,   error0) :- !.
@@ -182,8 +182,8 @@ add_head(inform, Mess, Mess) :- !.
 add_head(debug,   Mess, Mess) :- !.
 add_head(error0, Mess, Mess) :- !.
 add_head(Type,    Mess, NewMess) :-
-	label(Type, Label),
-	NewMess = [Label|Mess].
+    label(Type, Label),
+    NewMess = [Label|Mess].
 
 label(error,   'ERROR: ').
 label(warning, 'WARNING: ').
@@ -214,11 +214,11 @@ message_output(inform,  user_error).
 message_output(debug,   user_error).
 
 message_info(message_lns(Source, Ln0, Ln1, Type, Text)) :-
-	atm(Source),
-	nnegint(Ln0),
-	nnegint(Ln1),
-	message_type(Type),
-	lformat_text(Text).
+    atm(Source),
+    nnegint(Ln0),
+    nnegint(Ln1),
+    message_type(Type),
+    lformat_text(Text).
 message_info(message(Type, Text)) :- atm(Type), lformat_text(Text).
 message_info(error(Text)) :- lformat_text(Text).
 message_info(warning(Text)) :- lformat_text(Text).
@@ -228,23 +228,23 @@ message_info(debug(Text)) :- lformat_text(Text).
 
 show_close('', _) :- !.
 show_close(_,  Output) :-
-	message_(user, Output, '}\n'). % TODO: possibly at wrong stream!
+    message_(user, Output, '}\n'). % TODO: possibly at wrong stream!
 
 show_source(SourceOutput,  SourceOutput) :- !.
 show_source(Source-Output, Source0-Output0) :-
-	show_close(Source0, Output0),
-	message_(user, Output, ['{In ', Source]). % TODO: possibly at wrong stream!
+    show_close(Source0, Output0),
+    message_(user, Output, ['{In ', Source]). % TODO: possibly at wrong stream!
 
 show_message(MessageInfo, SourceOutput, SourceOutput) :-
-	show_message0(MessageInfo),
-	!.
+    show_message0(MessageInfo),
+    !.
 show_message(MessageInfo0, SourceOutput0, Source-Output) :-
-	MessageInfo0 =.. [FuncName, Source|Args],
-	MessageInfo =.. [FuncName|Args],
-	message_info_type(MessageInfo0, Type),
-	message_output(Type, Output),
-	show_source(Source-Output, SourceOutput0),
-	show_message0(MessageInfo).
+    MessageInfo0 =.. [FuncName, Source|Args],
+    MessageInfo =.. [FuncName|Args],
+    message_info_type(MessageInfo0, Type),
+    message_output(Type, Output),
+    show_source(Source-Output, SourceOutput0),
+    show_message0(MessageInfo).
 
 :- pred message_info_type/2 : nonvar * term + no_choicepoints.
 :- pred message_info_type/2 : var * term.
@@ -258,7 +258,7 @@ message_info_type(note(_),                       note).
 message_info_type(debug(_),                      debug).
 
 show_message0(message_lns(Ln0, Ln1, Type, Text)) :-
-	message_lns(Type, Ln0, Ln1, Text).
+    message_lns(Type, Ln0, Ln1, Text).
 show_message0(message(Type, Text)) :- !, message(Type, Text).
 show_message0(error(Text)) :- message(error, Text).
 show_message0(warning(Text)) :- message(warning, Text).
@@ -268,10 +268,10 @@ show_message0(debug(Text)) :- message(debug, Text).
 
 messages([]).
 messages([Message|Messages]) :-
-	show_message(Message, ''-'', SourceOutput),
-	messages2(Messages, SourceOutput).
+    show_message(Message, ''-'', SourceOutput),
+    messages2(Messages, SourceOutput).
 
 messages2([],                 Source-Output) :- show_close(Source, Output).
 messages2([Message|Messages], SourceOutput0) :-
-	show_message(Message, SourceOutput0, SourceOutput),
-	messages2(Messages, SourceOutput).
+    show_message(Message, SourceOutput0, SourceOutput),
+    messages2(Messages, SourceOutput).

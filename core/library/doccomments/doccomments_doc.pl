@@ -111,7 +111,7 @@ is equivalent to:
 :- doc(title, \"A nice module\").
 :- doc(author,\"Pro Grammer\").
 :- doc(module,\"This is a very nice module indeed. 
-                It can be used for several purposes.\").
+            It can be used for several purposes.\").
 :- doc(hide,internal/3).
 @end{verbatim}
 

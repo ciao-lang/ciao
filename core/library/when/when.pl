@@ -31,7 +31,7 @@ and then define a 'safe' @pred{max/3} as
 
 @begin{verbatim}
 max(X, Y, Z):-
-        when((ground(X),ground(Y)), gmax(X, Y, Z)).
+    when((ground(X),ground(Y)), gmax(X, Y, Z)).
 @end{verbatim}
 
 which can be called as follows:
@@ -50,7 +50,7 @@ Alternatively, @pred{max/3} could have been defined as
 
 @begin{verbatim}
 max(X, Y, Z):-
-        when(ground((X, Y)), gmax(X, Y, Z)).
+    when(ground((X, Y)), gmax(X, Y, Z)).
 @end{verbatim}
 
 with the same effects as above.  More complex implementations are
@@ -114,12 +114,12 @@ yes
 :- use_module(library(terms_vars), [varset/2]).
 :- use_module(library(sort), [sort/2]).
 :- use_module(library(sets), 
-        [
-            insert/3, 
-            ord_union/3, 
-            ord_delete/3, 
-            ord_intersection_diff/4
-        ]).
+    [
+        insert/3, 
+        ord_union/3, 
+        ord_delete/3, 
+        ord_intersection_diff/4
+    ]).
 
 :- meta_predicate when(?, goal).
 
@@ -150,12 +150,12 @@ predicates, the order in which these are executed is not defined.".
  %% Will probably wait for a BDD to do that.
 
 when(Condition, Goal):-
-        Condition \== true,
-        simplify(Condition, Simplified),
-        (
-            Simplified = true ->
-            call(Goal)
-        ;
+    Condition \== true,
+    simplify(Condition, Simplified),
+    (
+        Simplified = true ->
+        call(Goal)
+    ;
  %% The attribute of a variable is a list of attributed variables;
  %% each of them has an attribute with the real expression and goal.
  %% This final attribute is '$when'(Expression, Goal, VarToLink, ListOfLinked).
@@ -164,11 +164,11 @@ when(Condition, Goal):-
  %% ListOfLinked is the list of variables which appear in Expression,
  %% i.e., the list of variables which can possibly trigger the
  %% execution of Goal.
-            varset(Simplified, AllVars),
-            NewAttribute = '$when'(Simplified, Goal, VarToLink, AllVars),
-            my_attach_attribute(VarToLink, NewAttribute),
-            add_when_to_var_list(AllVars, VarToLink)
-        ).
+        varset(Simplified, AllVars),
+        NewAttribute = '$when'(Simplified, Goal, VarToLink, AllVars),
+        my_attach_attribute(VarToLink, NewAttribute),
+        add_when_to_var_list(AllVars, VarToLink)
+    ).
 
 
 :- prop wakeup_exp(T) + regtype
@@ -184,20 +184,20 @@ wakeup_exp((C1; C2)):- wakeup_exp(C1), wakeup_exp(C2).
 
 add_when_to_var_list([], _VarToLink).
 add_when_to_var_list([Var|Vars], VarToLink):-
-        (
-            my_get_attribute(Var, '$attvarlist'(Var, AttVarSet)) -> 
-            insert(AttVarSet, VarToLink, NewAttVarSet),
-            my_update_attribute(Var, '$attvarlist'(Var, NewAttVarSet))
-        ;
-            my_attach_attribute(Var, '$attvarlist'(Var, [VarToLink]))
-        ),
-        add_when_to_var_list(Vars, VarToLink).
+    (
+        my_get_attribute(Var, '$attvarlist'(Var, AttVarSet)) -> 
+        insert(AttVarSet, VarToLink, NewAttVarSet),
+        my_update_attribute(Var, '$attvarlist'(Var, NewAttVarSet))
+    ;
+        my_attach_attribute(Var, '$attvarlist'(Var, [VarToLink]))
+    ),
+    add_when_to_var_list(Vars, VarToLink).
 
 
 my_verify_attribute(Attr, _Value):-
-	Attr = '$attvarlist'(_Var, AttVarSet),
-        update_ind_vars(AttVarSet, Goals),
-        execute_goals(Goals).
+    Attr = '$attvarlist'(_Var, AttVarSet),
+    update_ind_vars(AttVarSet, Goals),
+    execute_goals(Goals).
 
 
 
@@ -213,29 +213,29 @@ my_verify_attribute(Attr, _Value):-
 
 update_ind_vars([], []).
 update_ind_vars([IndVar|IndVars], Goals):-
-        my_get_attribute(IndVar, '$when'(Exp, Goal, _, VarList)),
-        simplify(Exp, SimpExp),
+    my_get_attribute(IndVar, '$when'(Exp, Goal, _, VarList)),
+    simplify(Exp, SimpExp),
  %% We could generate NewVarSet from the new Value and the old Exp,
  %% taking into account what has changed, but this is much simpler.
-        varset(SimpExp, NewVarSet),
-        NewAttribute = '$when'(SimpExp, Goal, IndVar, NewVarSet),
-        my_update_attribute(IndVar, NewAttribute),
+    varset(SimpExp, NewVarSet),
+    NewAttribute = '$when'(SimpExp, Goal, IndVar, NewVarSet),
+    my_update_attribute(IndVar, NewAttribute),
  %% Find out which variables have been added and which variables have
  %% been removed.  Some variables in VarSet could not be variables any
  %% longer, so the order is not meaningful: they have to be sorted again.
-        sort(VarList, VarSet),
-        ord_intersection_diff(VarSet, NewVarSet, Inters, ToRemove),
-        ord_intersection_diff(NewVarSet, VarSet, Inters, ToAdd),
-        remove_indvar(ToRemove, IndVar),
-        add_indvar(ToAdd, IndVar),
+    sort(VarList, VarSet),
+    ord_intersection_diff(VarSet, NewVarSet, Inters, ToRemove),
+    ord_intersection_diff(NewVarSet, VarSet, Inters, ToAdd),
+    remove_indvar(ToRemove, IndVar),
+    add_indvar(ToAdd, IndVar),
  %% Call goals whose associated condition became true
-        (
-            SimpExp = true ->
-            Goals = [Goal|RestGoals]
-        ;
-            Goals = RestGoals
-        ),
-        update_ind_vars(IndVars, RestGoals).
+    (
+        SimpExp = true ->
+        Goals = [Goal|RestGoals]
+    ;
+        Goals = RestGoals
+    ),
+    update_ind_vars(IndVars, RestGoals).
 
 
 
@@ -245,39 +245,39 @@ update_ind_vars([IndVar|IndVars], Goals):-
 
 remove_indvar([], _IndVar).
 remove_indvar([V|Vs], IndVar):-
+    (
+        var(V) ->
+        my_get_attribute(V, '$attvarlist'(V, AttVarSet)),
+        ord_delete(AttVarSet, IndVar, NewAttVarSet),
         (
-            var(V) ->
-            my_get_attribute(V, '$attvarlist'(V, AttVarSet)),
-            ord_delete(AttVarSet, IndVar, NewAttVarSet),
-            (
-                NewAttVarSet = [] ->
-                my_detach_attribute(V)
-            ;
-                my_update_attribute(V, '$attvarlist'(V, NewAttVarSet))
-            )
+            NewAttVarSet = [] ->
+            my_detach_attribute(V)
         ;
-            true
-        ),
-        remove_indvar(Vs, IndVar).
+            my_update_attribute(V, '$attvarlist'(V, NewAttVarSet))
+        )
+    ;
+        true
+    ),
+    remove_indvar(Vs, IndVar).
 
 
 add_indvar([], _IndVar).
 add_indvar([V|Vs], IndVar):-
-        (
-            my_get_attribute(V, '$attvarlist'(V, AttVarSet)) ->
-            insert(AttVarSet, IndVar, NewAttVarSet),
-            my_update_attribute(V, '$attvarlist'(V, NewAttVarSet))
-        ;
-            my_attach_attribute(V, '$attvarlist'(V, [IndVar]))
-        ),
-        add_indvar(Vs, IndVar).
+    (
+        my_get_attribute(V, '$attvarlist'(V, AttVarSet)) ->
+        insert(AttVarSet, IndVar, NewAttVarSet),
+        my_update_attribute(V, '$attvarlist'(V, NewAttVarSet))
+    ;
+        my_attach_attribute(V, '$attvarlist'(V, [IndVar]))
+    ),
+    add_indvar(Vs, IndVar).
 
 
 execute_goals([]).
 execute_goals([G|Gs]):-
-        call(G),
-        execute_goals(Gs).
-            
+    call(G),
+    execute_goals(Gs).
+        
 
  %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %% Simply add the goals and conditions hanging from the two
@@ -287,23 +287,23 @@ execute_goals([G|Gs]):-
  %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 my_combine_attributes(Attr1, Attr2) :- 
-	Attr1 = '$attvarlist'(V1, List1),  Attr2 = '$attvarlist'(_V2, List2),
-        ord_union(List1, List2, FinalList),
-        my_update_attribute(V1, '$attvarlist'(V1, FinalList)),
+    Attr1 = '$attvarlist'(V1, List1),  Attr2 = '$attvarlist'(_V2, List2),
+    ord_union(List1, List2, FinalList),
+    my_update_attribute(V1, '$attvarlist'(V1, FinalList)),
  %% We have to check whether there are repeated variables in the back
  %% link list of each attribute.  Think of, for example, 
  %% when((ground(U); nonvar(V)), t1), U = V.
-        reduce_to_set(FinalList).
+    reduce_to_set(FinalList).
 
 
 reduce_to_set([]).
 reduce_to_set([IndVar|IndVars]):-
-        my_get_attribute(IndVar, '$when'(Exp, Goal, _, BackList)),
+    my_get_attribute(IndVar, '$when'(Exp, Goal, _, BackList)),
  %% Do we need to make it here?  Or can we delay until we need it to
  %% be a set?
-        sort(BackList, SortedBackList),
-        my_update_attribute(IndVar, '$when'(Exp, Goal, IndVar, SortedBackList)),
-        reduce_to_set(IndVars).
+    sort(BackList, SortedBackList),
+    my_update_attribute(IndVar, '$when'(Exp, Goal, IndVar, SortedBackList)),
+    reduce_to_set(IndVars).
 
 
  %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -314,8 +314,8 @@ reduce_to_set([IndVar|IndVars]):-
 simplify(true, true).
 simplify(ground(Term), true):- ground(Term), !.
 simplify(ground(Term), NewTerm):-
-        varset(Term, AllVars),
-        conjunction(AllVars, NewTerm).
+    varset(Term, AllVars),
+    conjunction(AllVars, NewTerm).
  %%
  %% The code below seems to be slower.  Test with more benchmarks.
  %%
@@ -333,24 +333,24 @@ simplify(nonvar(Term), nonvar(Term)).
  %% Evaluate conjunctions and disjunctions.
 
 simplify((C1, C2), Result):-
-        simplify(C1, R1), !,
-        simplify(C2, R2), !,
-        and(R1, R2, Result).
+    simplify(C1, R1), !,
+    simplify(C2, R2), !,
+    and(R1, R2, Result).
 
 simplify((C1; C2), Result):-
-        simplify(C1, R1), !,
-        (
-            R1 = true ->
-            Result = true
-        ;
-            simplify(C2, R2), !,
-            or(R1, R2, Result)
-        ).
+    simplify(C1, R1), !,
+    (
+        R1 = true ->
+        Result = true
+    ;
+        simplify(C2, R2), !,
+        or(R1, R2, Result)
+    ).
 
 
 conjunction([G], ground(G)):- !.
 conjunction([V|Vs], (ground(V), Rest)):- 
-        conjunction(Vs, Rest).
+    conjunction(Vs, Rest).
 
 
 and(true, true, true):- !.
@@ -370,28 +370,28 @@ or(C1, C2, (C1; C2)):- !.
 :- use_package(attr).
 
 attr_unify_hook(Attr1, Other):-
-	(
-	    nonvar(Other) ->
-	    my_verify_attribute(Attr1, Other)
-	;
-	    get_attr_local(Other, Attr2) ->
-	    my_combine_attributes(Attr1, Attr2)
-	;
-	    put_attr_local(Other, Attr1)
-	).
+    (
+        nonvar(Other) ->
+        my_verify_attribute(Attr1, Other)
+    ;
+        get_attr_local(Other, Attr2) ->
+        my_combine_attributes(Attr1, Attr2)
+    ;
+        put_attr_local(Other, Attr1)
+    ).
 
 my_attach_attribute(V, Attr):-
-	put_attr_local(V, Attr).
+    put_attr_local(V, Attr).
 
 my_update_attribute(V, Attr):-
-	put_attr_local(V, Attr).
+    put_attr_local(V, Attr).
 
 my_get_attribute(V, Attr):-
-	get_attr_local(V, Attr).
+    get_attr_local(V, Attr).
 
 my_detach_attribute(V):-
-	 del_attr_local(V).
-        
+     del_attr_local(V).
+    
 
 :- else. %% if(defined(when__use_multi_attributes)). 
 
@@ -402,33 +402,33 @@ my_detach_attribute(V):-
 :- multifile verify_attribute/2.
 
 verify_attribute(Attr, Value):-
-	Attr = '$attvarlist'(Var, _AttVarSet),
-        detach_attribute(Var),
-        Var = Value,
-	my_verify_attribute(Attr, Value).
+    Attr = '$attvarlist'(Var, _AttVarSet),
+    detach_attribute(Var),
+    Var = Value,
+    my_verify_attribute(Attr, Value).
 
 :- doc(hide,combine_attributes/2).
 
 :- multifile combine_attributes/2.
  
 combine_attributes(Attr1, Attr2):-
-	Attr1 = '$attvarlist'(V1, _List1),  Attr2 = '$attvarlist'(V2, _List2),
-        detach_attribute(V1),
-        detach_attribute(V2),
-        V1 = V2,
-	my_combine_attributes(Attr1, Attr2).
+    Attr1 = '$attvarlist'(V1, _List1),  Attr2 = '$attvarlist'(V2, _List2),
+    detach_attribute(V1),
+    detach_attribute(V2),
+    V1 = V2,
+    my_combine_attributes(Attr1, Attr2).
  
 my_attach_attribute(V, Attr):-
-	attach_attribute(V, Attr).
+    attach_attribute(V, Attr).
 
 my_update_attribute(V, Attr):-
-	update_attribute(V, Attr).
+    update_attribute(V, Attr).
 
 my_get_attribute(V, Attr):-
-	get_attribute(V, Attr).
+    get_attribute(V, Attr).
 
 my_detach_attribute(V):-
-	detach_attribute(V).
+    detach_attribute(V).
 
 :- endif. %% if(defined(when__use_multi_attributes)).
 

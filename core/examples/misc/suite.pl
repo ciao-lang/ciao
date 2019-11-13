@@ -15,78 +15,78 @@
 :- use_module(engine(runtime_control), [statistics/0]).
 
 main:-
-        line,
-        write('Executing suite of benchmarks'), nl,
-        knights,
-        size,
-        queens,
-        trie,
-        wumpus,
-        fib,
-        bignums,
-        guardians,
-        jugs,
-        statistics.
+    line,
+    write('Executing suite of benchmarks'), nl,
+    knights,
+    size,
+    queens,
+    trie,
+    wumpus,
+    fib,
+    bignums,
+    guardians,
+    jugs,
+    statistics.
 
 
 knights:-
-        line,
-        write('knights tour.  Should fail.'), nl,
-        main(4).
+    line,
+    write('knights tour.  Should fail.'), nl,
+    main(4).
 knights.
 
 
 size:-
-        line,
-        write('Memory operations.  Should give info about mem. and gc'), nl,
-        mem.
+    line,
+    write('Memory operations.  Should give info about mem. and gc'), nl,
+    mem.
 
 queens:-
-        line,
-        write('All solutions to the 11 queens problem'), nl,
-        q.
+    line,
+    write('All solutions to the 11 queens problem'), nl,
+    q.
 
 
 trie:- 
-        line,
-        write('Construct a trie and search some words in it'), nl,
-        consult([variable, speed, queen, var],['knights.pl',
-        world, 'robot.pl', 'size.pl', 'trie.pl', 'wumpus.pl', 'queens.pl'],
-        Donde),
-        write(donde = Donde), nl.
+    line,
+    write('Construct a trie and search some words in it'), nl,
+    consult([variable, speed, queen, var],['knights.pl',
+    world, 'robot.pl', 'size.pl', 'trie.pl', 'wumpus.pl', 'queens.pl'],
+    Donde),
+    write(donde = Donde), nl.
 
 wumpus:-
-        line,
-        write('Solve a wumpus world'), nl,
-        w(world),
-        nl.
+    line,
+    write('Solve a wumpus world'), nl,
+    w(world),
+    nl.
 
 fib:-
-        line,
-        write('Working out the inverse fibonacci...'), nl,
-        do_fib.
-        
+    line,
+    write('Working out the inverse fibonacci...'), nl,
+    do_fib.
+    
 bignums:-
-        line,
-        write('Working with big integers...'), nl,
-        do_bignums.
+    line,
+    write('Working with big integers...'), nl,
+    do_bignums.
 
 guardians:-
-        line,
-        write('Solving the guardians and locks problem...'), nl,
-        guardians(1000,200,Unlocked),
-        write('Unlocked cells: '),
-        write(Unlocked),
-        write('.'), nl.
+    line,
+    write('Solving the guardians and locks problem...'), nl,
+    guardians(1000,200,Unlocked),
+    write('Unlocked cells: '),
+    write(Unlocked),
+    write('.'), nl.
 
 jugs:-
-        line,
-        write('Solving the jugs problem...'), nl,
-        solve_jugs(Solution),
-        write('Solution: '),
-        write(Solution),
-        write('.'), nl,
-        line.
+    line,
+    write('Solving the jugs problem...'), nl,
+    solve_jugs(Solution),
+    write('Solution: '),
+    write(Solution),
+    write('.'), nl,
+    line.
 
 
 line:- write(

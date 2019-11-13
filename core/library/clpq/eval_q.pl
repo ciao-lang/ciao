@@ -1,30 +1,30 @@
 :- module(eval_q, [
-        arith_eps/1, arith_zero/1, arith_eval/2, arith_eval/1,
-	as_float/2, float_rat/2,
-        'arith_zero-1'/1,
-        'arith_zero-1'/2,
-        'arith_zero-*1'/2,
-        'arith_eval<1'/1,
-        'arith_eval<1'/2,
-        'arith_eval>1'/1,
-        'arith_eval=<1'/1,
-        'arith_eval>=1'/1,
-        'arith_eval+1'/3,
-        'arith_eval+1'/4,
-        'arith_eval++1'/4,
-        'arith_eval+++1'/5,
-        'arith_eval+*1'/4,
-        'arith_eval+*1'/5,
-        'arith_eval-1'/2,
-        'arith_eval-1'/3,
-        'arith_eval-*1'/4,
-        'arith_eval-*1'/5,
-        'arith_eval-/1'/3,
-        'arith_eval-/2'/3,
-        'arith_eval*1'/3,
-        'arith_eval*1'/4,
-        'arith_eval/-11'/2
-                ], []).
+    arith_eps/1, arith_zero/1, arith_eval/2, arith_eval/1,
+    as_float/2, float_rat/2,
+    'arith_zero-1'/1,
+    'arith_zero-1'/2,
+    'arith_zero-*1'/2,
+    'arith_eval<1'/1,
+    'arith_eval<1'/2,
+    'arith_eval>1'/1,
+    'arith_eval=<1'/1,
+    'arith_eval>=1'/1,
+    'arith_eval+1'/3,
+    'arith_eval+1'/4,
+    'arith_eval++1'/4,
+    'arith_eval+++1'/5,
+    'arith_eval+*1'/4,
+    'arith_eval+*1'/5,
+    'arith_eval-1'/2,
+    'arith_eval-1'/3,
+    'arith_eval-*1'/4,
+    'arith_eval-*1'/5,
+    'arith_eval-/1'/3,
+    'arith_eval-/2'/3,
+    'arith_eval*1'/3,
+    'arith_eval*1'/4,
+    'arith_eval/-11'/2
+            ], []).
 
 :- use_module(library(clpqr/arith_extra)).
 % For rationals
@@ -132,7 +132,7 @@ divq(Na,Da, Nb,Db, Nc,Dc) :-
 addq(Na,Da, Nb,Db, Nc,Dc) :-
   Gcd1 is gcd(Da,Db),
   ( Gcd1 = 1 ->          % This is the case (for random input) with
-                         % probability 6/(pi**2).
+                     % probability 6/(pi**2).
    Nc is Na*Db + Nb*Da,
    Dc is Da*Db
   ;
@@ -145,7 +145,7 @@ addq(Na,Da, Nb,Db, Nc,Dc) :-
 subq(Na,Da, Nb,Db, Nc,Dc) :-
   Gcd1 is gcd(Da,Db),
   ( Gcd1 = 1 ->          % This is the case (for random input) with
-                         % probability 6/(pi**2).
+                     % probability 6/(pi**2).
    Nc is Na*Db - Nb*Da,
    Dc is Da*Db
   ;
@@ -173,7 +173,7 @@ comq(Na,Da, Nb,Db, S) :-  % todo: avoid multiplication by looking a signs first 
 % ----------------------------- float -> rational -----------------------------
 
 float_rat(F, Rat) :-
-  float_rat(30, F, F, [], Rat).  	% at most 30 iterations
+  float_rat(30, F, F, [], Rat).         % at most 30 iterations
 
 float_rat(0, _, _,  Cf, Res) :- !, ecf( Cf, Res).
 float_rat(N, F, Fo, Cf, Res) :-
@@ -213,9 +213,9 @@ as_float(Exp, Float) :-
 % arith_zero(A*B-1) :- 'arith_zero-*1'(A,B).
 % arith_zero(A-1) :- 'arith_zero-1'(A).
 
-% arith_eval(A<0)	:-'arith_eval<1'(A).
-% arith_eval(A>0)	:-'arith_eval>1'(A).
-% arith_eval(A<B)	:-'arith_eval<1'(A,B).
+% arith_eval(A<0)       :-'arith_eval<1'(A).
+% arith_eval(A>0)       :-'arith_eval>1'(A).
+% arith_eval(A<B)       :-'arith_eval<1'(A,B).
 % arith_eval(A=<0):-'arith_eval=<1'(A).
 % arith_eval(A>=0):-'arith_eval>=1'(A).
 % arith_eval(A-B,C):-'arith_eval-1'(A,B,C).
@@ -269,7 +269,7 @@ as_float(Exp, Float) :-
 'arith_eval<1'(A, B) :-
     rat_runtime(A, C, D),
     rat_runtime(B, E, F),
-	C*F < D*E.
+    C*F < D*E.
 
 % 'arith_eval=<1'(A):-arith_eval(A=<0)
 'arith_eval=<1'(A) :-

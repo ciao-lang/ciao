@@ -35,14 +35,14 @@
 
 :- pred fd_range_type(string) # "Name of the range module (for debug purposes)".
 
-:- regtype fd_range_bound_t/1 #	"Type of a range bound. Used in min and max and operations".
+:- regtype fd_range_bound_t/1 # "Type of a range bound. Used in min and max and operations".
 
 :- regtype fd_range_t/1 # "Type of a range object".
 
 :- pred default(-fd_range_t) # "Returns The Default Range".
 
 :- pred new(+int, +int, -fd_range_t) #
-	"Create a new FD range from two integers".
+    "Create a new FD range from two integers".
 
 :- pred is_singleton(+fd_range_t) # "The range is a singleton".
 

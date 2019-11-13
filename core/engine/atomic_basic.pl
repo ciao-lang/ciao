@@ -1,7 +1,7 @@
 :- module(atomic_basic, [ name/2, atom_codes/2, number_codes/2, number_codes/3,
-	atom_number/2, atom_number/3, atom_length/2, atom_concat/3,
-	sub_atom/4, valid_base/1], [assertions, nortchecks, isomodes,
-	nativeprops, unittestdecls]).
+    atom_number/2, atom_number/3, atom_length/2, atom_concat/3,
+    sub_atom/4, valid_base/1], [assertions, nortchecks, isomodes,
+    nativeprops, unittestdecls]).
 
 %:- use_module(engine(internals), ['$prolog_radix'/2]).
 
@@ -104,24 +104,24 @@ valid_base(32). valid_base(33). valid_base(34). valid_base(35). valid_base(36).
 %%
 %% % TODO: strange test (head should not be number_codes, e.g., like if testing that "reverse o reverse = id")
 %% :- test number_codes(A, B, C) :
-%% 	(
-%% 	    float_random(A),
-%% 	    valid_base(B)
-%% 	) =>
-%% 	call((
-%% 	    number_codes_(A1, B, C),
-%% 	    near(A1, A, 0.0000000001)
-%% 	)) + times(50) # "Reversibility test 1".
+%%      (
+%%          float_random(A),
+%%          valid_base(B)
+%%      ) =>
+%%      call((
+%%          number_codes_(A1, B, C),
+%%          near(A1, A, 0.0000000001)
+%%      )) + times(50) # "Reversibility test 1".
 %%
 %% :- test number_codes(A, B, C) :
-%% 	(
-%% 	    float_random(A0),
-%% 	    valid_base(B),
-%% 	    number_codes_(A0, B, C)
-%% 	) =>
-%% 	(
-%% 	    near(A, A0, 0.0000000001)
-%% 	) + times(50) # "Reversibility test 2".
+%%      (
+%%          float_random(A0),
+%%          valid_base(B),
+%%          number_codes_(A0, B, C)
+%%      ) =>
+%%      (
+%%          near(A, A0, 0.0000000001)
+%%      ) + times(50) # "Reversibility test 2".
 %%
 %% :- impl_defined(float_random/1).
 %% :- impl_defined(near/3).
@@ -166,41 +166,41 @@ valid_base(32). valid_base(33). valid_base(34). valid_base(35). valid_base(36).
 :- pred atom_number(-atm,+num,+num).
 
 atom_number(A, N) :-
-	atom_number(A, 10, N).
+    atom_number(A, 10, N).
 
 atom_number(A, B, N) :-
-        atom(A), integer(B), number(N), !,
-        atom_codes(A, S),
-        number_codes(N0, B, S),
-        N = N0.               % So that atom_number('2.3e1',23.0) succeeds
+    atom(A), integer(B), number(N), !,
+    atom_codes(A, S),
+    number_codes(N0, B, S),
+    N = N0.               % So that atom_number('2.3e1',23.0) succeeds
 atom_number(A, B, N) :-
-        atom(A), integer(B), var(N), !,
-        atom_codes(A, S),
-        number_codes(N, B, S).
+    atom(A), integer(B), var(N), !,
+    atom_codes(A, S),
+    number_codes(N, B, S).
 atom_number(A, B, N) :-
-        var(A), integer(B), number(N), !,
-        number_codes(N, B, S),
-        atom_codes(A, S).
+    var(A), integer(B), number(N), !,
+    number_codes(N, B, S),
+    atom_codes(A, S).
 atom_number(A, B, N) :-
-        ( var(A) ->
-	  ( var(B) ->
-	    throw(error(instantiation_error, atom_number/3-2))
-	  ; \+ int(B) -> throw(error(type_error(integer, B), atom_number/3-2))
-	  ; ( var(N) ->
-	      throw(error(instantiation_error, atom_number/3-1))
-	    ; throw(error(type_error(number, N), atom_number/3-3))
-	    )
-	  )
-        ; atom(A) ->
-	  ( var(B) -> throw(error(instantiation_error, atom_number/3-2))
-	  ; \+ int(B) -> throw(error(type_error(integer, B), atom_number/3-2))
-	  ; throw(error(type_error(number, N), atom_number/3-3))
-	  )
-        ; ( var(B) -> throw(error(instantiation_error, atom_number/3-2))
-	  ; \+ nnegint(B) -> throw(error(type_error(integer, B), atom_number/3-2))
-	  ; throw(error(type_error(atom, A), atom_number/3-1))
-	  )
-        ).
+    ( var(A) ->
+      ( var(B) ->
+        throw(error(instantiation_error, atom_number/3-2))
+      ; \+ int(B) -> throw(error(type_error(integer, B), atom_number/3-2))
+      ; ( var(N) ->
+          throw(error(instantiation_error, atom_number/3-1))
+        ; throw(error(type_error(number, N), atom_number/3-3))
+        )
+      )
+    ; atom(A) ->
+      ( var(B) -> throw(error(instantiation_error, atom_number/3-2))
+      ; \+ int(B) -> throw(error(type_error(integer, B), atom_number/3-2))
+      ; throw(error(type_error(number, N), atom_number/3-3))
+      )
+    ; ( var(B) -> throw(error(instantiation_error, atom_number/3-2))
+      ; \+ nnegint(B) -> throw(error(type_error(integer, B), atom_number/3-2))
+      ; throw(error(type_error(atom, A), atom_number/3-1))
+      )
+    ).
 
 :- doc(atom_length(Atom,Length), "@var{Length} is the number of
    characters forming the name of @var{Atom}.").

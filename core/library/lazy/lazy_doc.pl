@@ -151,7 +151,7 @@ nums_from(X) := [X | nums_from(X+1)].
 @begin{verbatim}
 :- lazy fun_eval fiblist/0.
 fiblist := [0, 1 | ~zipWith(add, FibL, ~tail(FibL))]
-        :- FibL = fiblist.
+    :- FibL = fiblist.
 @end{verbatim}
 
 
@@ -161,12 +161,12 @@ fiblist := [0, 1 | ~zipWith(add, FibL, ~tail(FibL))]
 
 @begin{verbatim}
 fiblist(X) :- 
-          freeze(X, 'fiblist_$$lazy$$'(X)).
+      freeze(X, 'fiblist_$$lazy$$'(X)).
 
 'fiblist_$$lazy$$'([0, 1 | Rest]) :- 
-          fiblist(FibL), 
-          tail(FibL, T), 
-          zipWith(add, FibL, T, Rest).
+      fiblist(FibL), 
+      tail(FibL, T), 
+      zipWith(add, FibL, T, Rest).
 @end{verbatim}
 
 

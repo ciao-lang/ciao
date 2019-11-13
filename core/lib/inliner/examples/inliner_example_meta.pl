@@ -8,13 +8,13 @@
 
 :- meta_predicate test1(addmodule(addterm(goal))).
 test1(A, B, C) :-
-	display(A),
-	nl,
-	display(B),
-	nl,
-	display(C),
-	nl,
-	call(A).
+    display(A),
+    nl,
+    display(B),
+    nl,
+    display(C),
+    nl,
+    call(A).
 
 test :-
-	test1(display(a)).
+    test1(display(a)).

@@ -21,7 +21,7 @@
 %% Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 %% ---------------------------------------------------------------------------
 :- module(fd_optim, [fd_minimize/2, fd_maximize/2], 
-	            [assertions, fsyntax, hiord, datafacts]).
+                [assertions, fsyntax, hiord, datafacts]).
 
 :- doc(title, "Optimization constraints").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
@@ -51,50 +51,50 @@ the rest of the store) the last solution is recomputed since it is
 optimal.".
 
 fd_minimize(Goal, Var) :-
-	new_cur_obj(J),
-	catch(fd_minimize_(Goal, Var, J), 
-	      E, 
-	      (
-		  del_cur_obj(J),
-		  throw(E)
-	      )),
-	del_cur_obj(J).
-				
+    new_cur_obj(J),
+    catch(fd_minimize_(Goal, Var, J), 
+          E, 
+          (
+              del_cur_obj(J),
+              throw(E)
+          )),
+    del_cur_obj(J).
+                            
 fd_minimize_(_Goal, _Var, I):-
-	set_cur_obj(I, 99999),
-	% set_cur_obj(I, ~(fd_range:max(~(fd_range:default)))),
-	fail.
+    set_cur_obj(I, 99999),
+    % set_cur_obj(I, ~(fd_range:max(~(fd_range:default)))),
+    fail.
 :- if((defined(optim_comp), backend(js_backend))).
 % TODO: the two versions are equivalent, but the JS-backend has
 %       problems compiling the second one (fix)
 fd_minimize_(Goal, Var, I):-
-	repeat,
-	get_cur_obj(I, Obj),
-	Obj_ is Obj - 1,
-	( 
-	    fd_term:in(Var, 0..Obj_), call(Goal) -> 
-	    fd_term:min(Var, Min),
-	    set_cur_obj(I, Min),
-	    fail
-	; 
-	    true
-	),
-	!, % (cuts 'repeat')
-	fd_constraints:'a=t'(Var, Obj),
-	call(Goal).
+    repeat,
+    get_cur_obj(I, Obj),
+    Obj_ is Obj - 1,
+    ( 
+        fd_term:in(Var, 0..Obj_), call(Goal) -> 
+        fd_term:min(Var, Min),
+        set_cur_obj(I, Min),
+        fail
+    ; 
+        true
+    ),
+    !, % (cuts 'repeat')
+    fd_constraints:'a=t'(Var, Obj),
+    call(Goal).
 :- else.
 fd_minimize_(Goal, Var, I):-
-	repeat,
-	get_cur_obj(I, Obj),
-	Obj_ is Obj - 1,
-	( Var in  0..Obj_, call(Goal) -> 
-	    fd_term:min(Var, Min),
-	    set_cur_obj(I, Min),
-	    fail
-	; !, % (cuts 'repeat')
-	  fd_constraints:'a=t'(Var, Obj),
-	  call(Goal)
-	).
+    repeat,
+    get_cur_obj(I, Obj),
+    Obj_ is Obj - 1,
+    ( Var in  0..Obj_, call(Goal) -> 
+        fd_term:min(Var, Min),
+        set_cur_obj(I, Min),
+        fail
+    ; !, % (cuts 'repeat')
+      fd_constraints:'a=t'(Var, Obj),
+      call(Goal)
+    ).
 :- endif.
 
 
@@ -106,48 +106,48 @@ fd_minimize_(Goal, Var, I):-
 :- meta_predicate(fd_maximize_(:, ?, ?)).
 
 fd_maximize(Goal, Var) :-
-	new_cur_obj(J),
-	catch(fd_maximize_(Goal, Var, J), 
-	      E, 
-	      (
-		  del_cur_obj(J), 
-		  throw(E)
-	      )),
-	del_cur_obj(J).
-				
+    new_cur_obj(J),
+    catch(fd_maximize_(Goal, Var, J), 
+          E, 
+          (
+              del_cur_obj(J), 
+              throw(E)
+          )),
+    del_cur_obj(J).
+                            
 fd_maximize_(_Goal, _Var, I):-
-	set_cur_obj(I, -9999),
-	% set_cur_obj(I, ~(fd_range:min(~(fd_range:default)))),
-	fail.
+    set_cur_obj(I, -9999),
+    % set_cur_obj(I, ~(fd_range:min(~(fd_range:default)))),
+    fail.
 :- if((defined(optim_comp), backend(js_backend))).
 % TODO: the two versions are equivalent, but the JS-backend has
 %       problems compiling the second one (fix)
 fd_maximize_(Goal, Var, I):-
-	repeat,
-	get_cur_obj(I, Obj),
-	Obj_ is Obj - 1,
-	( fd_term:in(Var,0..Obj_), call(Goal) -> 
-	    fd_term:max(Var, Min),
-	    set_cur_obj(I, Min),
-	    fail
-	; true
-	),
-	!, % (cuts 'repeat')
-	fd_constraints:'a=t'(Var, Obj),
-	call(Goal).
+    repeat,
+    get_cur_obj(I, Obj),
+    Obj_ is Obj - 1,
+    ( fd_term:in(Var,0..Obj_), call(Goal) -> 
+        fd_term:max(Var, Min),
+        set_cur_obj(I, Min),
+        fail
+    ; true
+    ),
+    !, % (cuts 'repeat')
+    fd_constraints:'a=t'(Var, Obj),
+    call(Goal).
 :- else.
 fd_maximize_(Goal, Var, I):-
-	repeat,
-	get_cur_obj(I, Obj),
-	Obj_ is Obj - 1,
-	( Var in  0..Obj_, call(Goal) -> 
-	    fd_term:max(Var, Min),
-	    set_cur_obj(I, Min),
-	    fail
-	; !, % (cuts 'repeat')
-	  fd_constraints:'a=t'(Var, Obj),
-	  call(Goal)
-	).
+    repeat,
+    get_cur_obj(I, Obj),
+    Obj_ is Obj - 1,
+    ( Var in  0..Obj_, call(Goal) -> 
+        fd_term:max(Var, Min),
+        set_cur_obj(I, Min),
+        fail
+    ; !, % (cuts 'repeat')
+      fd_constraints:'a=t'(Var, Obj),
+      call(Goal)
+    ).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -162,19 +162,19 @@ fd_maximize_(Goal, Var, I):-
 
 % Allocate a new global variable J
 new_cur_obj(J) :-
-	'\6\dot'(mutables_rt,nb_mut_num(0, J)). % TODO: syntax hack to avoid parsing problems with condcomp
+    '\6\dot'(mutables_rt,nb_mut_num(0, J)). % TODO: syntax hack to avoid parsing problems with condcomp
 
 % Delete the global variable J
 del_cur_obj(_). % (reclaimed as GC)
 
 % Unify Val with the current value of J
 get_cur_obj(J, Val) :-
-	Val = '@'(J).
+    Val = '@'(J).
 
 % Set the value of J to Val
 set_cur_obj(J, Val) :-
-	'<-'(J, Val).
-	
+    '<-'(J, Val).
+    
 :- else.
 
 :- data(cur_obj/2).
@@ -183,21 +183,21 @@ cur_obj(-1, _).
 
 % Allocate a new global variable J
 new_cur_obj(J) :-
-	current_fact(cur_obj(I, _)), !,
-	J is I + 1.
+    current_fact(cur_obj(I, _)), !,
+    J is I + 1.
 
 % Delete the global variable J
 del_cur_obj(J) :-
-	retractall_fact(cur_obj(J, _)).
+    retractall_fact(cur_obj(J, _)).
 
 % Unify Val with the current value of J
 get_cur_obj(J, Val) :-
-	current_fact(cur_obj(J, Val)), !.
+    current_fact(cur_obj(J, Val)), !.
 
 % Set the value of J to Val
 set_cur_obj(J, Val) :-
-	retractall_fact(cur_obj(J, _)), 
-	asserta_fact(cur_obj(J, Val)).
+    retractall_fact(cur_obj(J, _)), 
+    asserta_fact(cur_obj(J, Val)).
 
 :- endif.
 

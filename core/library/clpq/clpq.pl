@@ -2,8 +2,8 @@
 :- include(library(clpqr/clpqr_ops)).
 :- use_module(library(clpq/clpq_rt)).
 :- use_module(library(clpq/solver_q),
-	    [solve_sign/2, solve_abs/2, solve_mix/4, solve_mult/3, solve_pow/3,
-		solve_trig/3, inf/2, sup/2, minimize/1, maximize/1]).
+        [solve_sign/2, solve_abs/2, solve_mix/4, solve_mult/3, solve_pow/3,
+            solve_trig/3, inf/2, sup/2, minimize/1, maximize/1]).
 
 :- multifile dump_constraints/3.
 

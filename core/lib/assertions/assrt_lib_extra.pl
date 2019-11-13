@@ -25,61 +25,61 @@ assertions and experimetal syntactic extensions:
 :- export(assrt_set_comment/3).
 % Replace the comment of `Body0` with by `Co` in `Body`.
 assrt_set_comment(ABody0, CO, ABody) :-
-	assertion_body(PD,DP,CP,AP,GP,_CO0,ABody0),
-	assertion_body(PD,DP,CP,AP,GP,CO,ABody).
+    assertion_body(PD,DP,CP,AP,GP,_CO0,ABody0),
+    assertion_body(PD,DP,CP,AP,GP,CO,ABody).
 
 :- export(maybe_assrt_extra/2).
 % Normalize an assertion declaration, or leave unchanged.
 maybe_assrt_extra(Decl0, Decl) :-
-	assrt_extra(Decl0, Decl1), !, Decl = Decl1.
+    assrt_extra(Decl0, Decl1), !, Decl = Decl1.
 maybe_assrt_extra(Decl, Decl).
 
 :- export(assrt_extra/2).
 % (fail if this is not extra syntax for assertions)
 assrt_extra((:- pred ABody), (:- pred ABody2)) :-
-	% TODO: Use normalize_status_and_type
-	norm_body_extra(ABody, _, ABody1),
-	!, % if fail, assume that it was not an assertion
-	norm_args(ABody1, ABody2).
+    % TODO: Use normalize_status_and_type
+    norm_body_extra(ABody, _, ABody1),
+    !, % if fail, assume that it was not an assertion
+    norm_args(ABody1, ABody2).
 
 norm_args(ABody0, ABody) :-
-	assertion_body(PD0,true,CP,AP,GP,CO,ABody0),
-%	display(aa(assertion_body(PD0,true,CP,AP,GP,CO,ABody0))), nl,
-	PD0 =.. [H|Args0],
-	extract_types(Args0, Args, DP1),
-	list_to_prod(DP1, DP),
-	\+ useless_type_annot(DP),
-	!,
-	PD =..[H|Args],
-%	display(aa(assertion_body(PD,DP,CP,AP,GP,CO,ABody0))), nl,
-	assertion_body(PD,DP,CP,AP,GP,CO,ABody).
+    assertion_body(PD0,true,CP,AP,GP,CO,ABody0),
+%       display(aa(assertion_body(PD0,true,CP,AP,GP,CO,ABody0))), nl,
+    PD0 =.. [H|Args0],
+    extract_types(Args0, Args, DP1),
+    list_to_prod(DP1, DP),
+    \+ useless_type_annot(DP),
+    !,
+    PD =..[H|Args],
+%       display(aa(assertion_body(PD,DP,CP,AP,GP,CO,ABody0))), nl,
+    assertion_body(PD,DP,CP,AP,GP,CO,ABody).
 norm_args(ABody, ABody).
 
 extract_types([], [], []).
 extract_types([A0|As0], [A|As], [T|Ts]) :-
-	extract_type(A0, A, T),
-	extract_types(As0, As, Ts).
+    extract_type(A0, A, T),
+    extract_types(As0, As, Ts).
 
 extract_type(A, A, term) :- var(A), !.
 extract_type(X :: Type0, A, Type) :- !,
-	% A type annotation (X can be an argument or a moded argument)
-	A = X, Type = Type0. 
+    % A type annotation (X can be an argument or a moded argument)
+    A = X, Type = Type0. 
 extract_type(M, A, Type) :-
-	functor(M, N, A),
-	A1 is A + 1,
-	functor(M1, N, A1),
-	is_modedef(M1),
-	% A moded argument, do nothing
-	!,
-	A = M, Type = term.
+    functor(M, N, A),
+    A1 is A + 1,
+    functor(M1, N, A1),
+    is_modedef(M1),
+    % A moded argument, do nothing
+    !,
+    A = M, Type = term.
 extract_type(X, A, Type) :-
-	% Assume that it is a type
-	A = '?',
-	Type = X.
+    % Assume that it is a type
+    A = '?',
+    Type = X.
 
 useless_type_annot(term).
 useless_type_annot(A * B) :-
-	useless_type_annot(A), useless_type_annot(B).
+    useless_type_annot(A), useless_type_annot(B).
 
 % ---------------------------------------------------------------------------
 % TODO: Move to the assertion library to avoid this ugly hack.
@@ -100,11 +100,11 @@ is_modedef(go(_)).   is_modedef(go(_,_)).
 :- export(list_to_prod/2).
 % From [A1,...,An] to (A1*...*An) ('*' is left associative).
 list_to_prod([A|As], B) :-
-	list_to_prod_(As, A, B).
+    list_to_prod_(As, A, B).
 
 list_to_prod_([], Acc, R) :- !, R = Acc.
 list_to_prod_([A|As], Acc, R) :- 
-	list_to_prod_(As, Acc * A, R).
+    list_to_prod_(As, Acc * A, R).
 
 :- export(norm_body_extra/3).
 % Extended assrt_lib:norm_body/3 with 'is' for comments.
@@ -174,17 +174,17 @@ norm_body_extra((PD                    ),t,(PD::true:true=>true+true#"")):-!.%00
 % TODO: perhaps fixing normalize_assertions is simpler, at least for some case
 
 assrt_replace_pd(Assrt, NewPD, Assrt2, OldPD) :- 
-	( Assrt =.. [AType,UBody] ->
-	    AStatus = ''
-	; Assrt =.. [AType,AStatus,UBody] ->
-	    true
-	; fail
-	),
-	replace_pd(UBody, UBody2, OldPD, NewPD),
-	( AStatus = '' ->
-	    Assrt2  =.. [AType,UBody2]
-	; Assrt2 =.. [AType,AStatus,UBody2]
-	).
+    ( Assrt =.. [AType,UBody] ->
+        AStatus = ''
+    ; Assrt =.. [AType,AStatus,UBody] ->
+        true
+    ; fail
+    ),
+    replace_pd(UBody, UBody2, OldPD, NewPD),
+    ( AStatus = '' ->
+        Assrt2  =.. [AType,UBody2]
+    ; Assrt2 =.. [AType,AStatus,UBody2]
+    ).
 
 % Replace PD in an assertion body without normalizing it
 replace_pd((PD0::DP:CP=>AP+GP#CO),(PD1::DP:CP=>AP+GP#CO),PD0,PD1):-!.%11111

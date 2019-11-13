@@ -11,7 +11,7 @@ qsort(X) := ~qsort_(X, []).
 :- fun_eval qsort_(_,~).
 qsort_([], Acc)    := Acc.
 qsort_([X|T], Acc) := ~qsort_(S, [X|~qsort_(G, Acc)])
-                   :- (S, G) = ~partition(T, X).
+               :- (S, G) = ~partition(T, X).
 
 :- fun_eval partition(_,_,~).
 partition([], _)    := ([], []).
@@ -24,5 +24,5 @@ gen_list(X) := [~random(1,1000000)|~gen_list(X-1)] :- X > 0.
 
 :- fun_eval test(_,~).
 test(X) :=
-	~take(X,~qsort(~gen_list(X))).
+    ~take(X,~qsort(~gen_list(X))).
 

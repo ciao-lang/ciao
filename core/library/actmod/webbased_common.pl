@@ -26,17 +26,17 @@ common_path(PATH):- server_public_address(_,PATH).
 
 :- export(fetch_server_addr/2).
 fetch_server_addr(URL, NSAddr) :-
-	( fetch_url(URL,[],Response) -> true
-	; Response = []
-	),
-	( member(content(String),Response) -> true
-	; String = Response
-	),
-	( append(String0,[_],String) -> true
-	; String0 = String
-	),
-	( read_from_string_atmvars(String0,server(NSAddr,_)) ->
-	    true
-	; name(NSAddr,String0),
-	  throw(wrong_webserver_remote_address(NSAddr))
-	).
+    ( fetch_url(URL,[],Response) -> true
+    ; Response = []
+    ),
+    ( member(content(String),Response) -> true
+    ; String = Response
+    ),
+    ( append(String0,[_],String) -> true
+    ; String0 = String
+    ),
+    ( read_from_string_atmvars(String0,server(NSAddr,_)) ->
+        true
+    ; name(NSAddr,String0),
+      throw(wrong_webserver_remote_address(NSAddr))
+    ).

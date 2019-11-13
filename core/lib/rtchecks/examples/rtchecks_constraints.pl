@@ -1,20 +1,20 @@
 :- module(rtchecks_constraints,[test/0, sum/3],
-        [
-         assertions
-        ,regtypes
-        ,nativeprops
-        ,rtchecks
-        ]).
+    [
+     assertions
+    ,regtypes
+    ,nativeprops
+    ,rtchecks
+    ]).
 
 :- use_package(expander).
 
 % TODO: have examples of all acceptable constraints --NS
 
 test :-
-        % wrong calls
-        mul(-2,-2,4),
-        % wrong success
-        sum(2,2,_).
+    % wrong calls
+    mul(-2,-2,4),
+    % wrong success
+    sum(2,2,_).
 
 :- pred sum(A,B,C) => constraint([A + B >= C]).
 

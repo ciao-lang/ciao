@@ -68,13 +68,13 @@ get_update_shell('user', 'yes').
 ]).
 
 locate_rc(SysregType, Sh) := F :-
-	( F= ~rcfile(SysregType, Sh),
-	  file_exists(F) -> % first that exists
-	    true
-	; % or just first
-	  F0 = ~rcfile(SysregType, Sh), !,
-	  F = F0
-	).
+    ( F= ~rcfile(SysregType, Sh),
+      file_exists(F) -> % first that exists
+        true
+    ; % or just first
+      F0 = ~rcfile(SysregType, Sh), !,
+      F = F0
+    ).
 
 rcfile(all, bash) := '/etc/bash.bashrc'.
 rcfile(all, bash) := '/etc/bashrc'.
@@ -101,11 +101,11 @@ rcfile(user, csh) := ~path_concat(~get_home, '.tcshrc').
 %'$builder_hook'(ciao_env:cmd('ciao_env', [main='NONE_AUTOGEN', shscript])). % TODO: only for installation
 '$builder_hook'(ciao_env:cmd_raw(shscript, 'ciao-env', [])) :- !. % TODO: only for installation
 '$builder_hook'(ciao_env:build_bin) :- % (overrides build)
-	Eng = ~default_eng_def,
-	wr_template(as_cmd(core, shscript), ~bundle_path(core, 'cmds'), 'ciao-env', [
-	    'CiaoRoot' = ~final_ciao_root,
-	    'EngMainMod' = ~eng_mainmod(Eng)
-        ]).
+    Eng = ~default_eng_def,
+    wr_template(as_cmd(core, shscript), ~bundle_path(core, 'cmds'), 'ciao-env', [
+        'CiaoRoot' = ~final_ciao_root,
+        'EngMainMod' = ~eng_mainmod(Eng)
+    ]).
 
 % ---------------------------------------------------------------------------
 % Register in shell
@@ -115,7 +115,7 @@ rcfile(user, csh) := ~path_concat(~get_home, '.tcshrc').
 :- use_module(library(system_extra), [warn_on_nosuccess/1]).
 :- use_module(library(system_extra), [del_file_nofail/1]).
 :- use_module(ciaobld(register_in_script), [
- 	register_in_script/3, unregister_from_script/2]).
+    register_in_script/3, unregister_from_script/2]).
 :- use_module(ciaobld(install_aux), [final_cmd_path/4]).
 
 :- use_module(library(bundle/bundle_flags), [get_bundle_flag/2]).
@@ -128,49 +128,49 @@ dotshell(zsh) := ~get_bundle_flag(core:dotzshrc).
 dotshell(csh) := ~get_bundle_flag(core:dotcshrc).
 
 '$builder_hook'(dot_shell:register) :-
-	( update_shell(yes) ->
-	    register_shell(bash),
-	    register_shell(zsh),
-	    register_shell(csh)
-	; true
-	).
+    ( update_shell(yes) ->
+        register_shell(bash),
+        register_shell(zsh),
+        register_shell(csh)
+    ; true
+    ).
 '$builder_hook'(dot_shell:unregister) :-
-	( update_shell(yes) ->
-	    unregister_shell(bash),
-	    unregister_shell(zsh),
-	    unregister_shell(csh)
-	; true
-	).
+    ( update_shell(yes) ->
+        unregister_shell(bash),
+        unregister_shell(zsh),
+        unregister_shell(csh)
+    ; true
+    ).
 
 register_shell(Sh) :-
-	CiaoEnv = ~final_cmd_path(core, shscript, 'ciao-env'),
-	eval_ciao_env(Sh, CiaoEnv, Str, []),
-	warn_on_nosuccess(register_in_script(~dotshell(Sh), "#", Str)).
+    CiaoEnv = ~final_cmd_path(core, shscript, 'ciao-env'),
+    eval_ciao_env(Sh, CiaoEnv, Str, []),
+    warn_on_nosuccess(register_in_script(~dotshell(Sh), "#", Str)).
 unregister_shell(Sh) :-
-	warn_on_nosuccess(unregister_from_script(~dotshell(Sh), "#")).
+    warn_on_nosuccess(unregister_from_script(~dotshell(Sh), "#")).
 
 % Configuration code for the shell script interpreters
 % (evaluates output of ciao-env)
 eval_ciao_env(bash, CiaoEnv) -->
-	env_note,
-	"if [ -x ", emit_atom(CiaoEnv), " ] ; then\n"||
-	"  eval \"$(", emit_atom(CiaoEnv), " --sh)\"\n"||
-	"fi\n".
+    env_note,
+    "if [ -x ", emit_atom(CiaoEnv), " ] ; then\n"||
+    "  eval \"$(", emit_atom(CiaoEnv), " --sh)\"\n"||
+    "fi\n".
 eval_ciao_env(zsh, CiaoEnv) -->
-	eval_ciao_env(bash, CiaoEnv). % (same as bash)
+    eval_ciao_env(bash, CiaoEnv). % (same as bash)
 eval_ciao_env(csh, CiaoEnv) -->
-	env_note,
-	"if ( -x ", emit_atom(CiaoEnv), " ) then\n"||
-	"  eval `", emit_atom(CiaoEnv), " --csh`\n"||
-	"endif\n".
+    env_note,
+    "if ( -x ", emit_atom(CiaoEnv), " ) then\n"||
+    "  eval `", emit_atom(CiaoEnv), " --csh`\n"||
+    "endif\n".
 
 env_note -->
-	"# You should customize CIAOPATH before this chunk if you place bundles in\n",
-        "# places other than ~/.ciao\n".
+    "# You should customize CIAOPATH before this chunk if you place bundles in\n",
+    "# places other than ~/.ciao\n".
 
 % (emit an atom codes in a DCG)
 emit_atom(X, S, S0) :-
-	atom_codes(X, Codes),
-	append(Codes, S0, S).
+    atom_codes(X, Codes),
+    append(Codes, S0, S).
 
 

@@ -13,7 +13,7 @@
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(emacs/emacs_batch),
-	[emacs_path/1, emacs_batch_call/3, emacs_clean_log/2]).
+    [emacs_path/1, emacs_batch_call/3, emacs_clean_log/2]).
 
 % TODO: uses files! it can be quite slow
 % TODO: Implement as an interface; define different backend
@@ -41,7 +41,7 @@ lang('text').
 % ---------------------------------------------------------------------------
 
 ciao_mode_el(F) :-
-	bundle_path(ciao_emacs, 'elisp/ciao-site-file.el', F).
+    bundle_path(ciao_emacs, 'elisp/ciao-site-file.el', F).
 
 % ---------------------------------------------------------------------------
 
@@ -56,16 +56,16 @@ ciao_mode_el(F) :-
 can_highlight(Lang) :- var(Lang), !, fail.
 can_highlight(Lang) :- can_highlight(Lang, S), !, S = yes.
 can_highlight(Lang) :-
-	( lang(Lang),
-	  catch(emacs_path(E), _, fail),
-	  file_exists(E),
-	  ciao_mode_el(F), % TODO: this one only for 'ciao'?
-	  file_exists(F) ->
-	    S = yes
-	; S = no
-	),
-	assertz_fact(can_highlight(Lang, S)),
-	S = yes.
+    ( lang(Lang),
+      catch(emacs_path(E), _, fail),
+      file_exists(E),
+      ciao_mode_el(F), % TODO: this one only for 'ciao'?
+      file_exists(F) ->
+        S = yes
+    ; S = no
+    ),
+    assertz_fact(can_highlight(Lang, S)),
+    S = yes.
 
 % ---------------------------------------------------------------------------
 
@@ -77,25 +77,25 @@ can_highlight(Lang) :-
       file (using emacs and htmlfontify, and `Lang`-mode mode)".
 
 emacs_htmlfontify(Lang, Input, Output) :-
-	absolute_file_name(library(syntax_highlight/'emacs-htmlfontify.el'), HfyEl), % TODO: find asset?
-	ciao_mode_el(SiteFileEl),
-	LogBase = 'ciao-highlight-log',
-	emacs_batch_call('.', LogBase,
-	     ['-Q',
-              '-l', SiteFileEl,
-	      '-l', HfyEl,
-	      Lang,
-	      Input,
-	      Output]),
-	emacs_clean_log('.', LogBase).
-%	process_call(~emacs_path,
-%	     ['-Q', '-batch',
+    absolute_file_name(library(syntax_highlight/'emacs-htmlfontify.el'), HfyEl), % TODO: find asset?
+    ciao_mode_el(SiteFileEl),
+    LogBase = 'ciao-highlight-log',
+    emacs_batch_call('.', LogBase,
+         ['-Q',
+          '-l', SiteFileEl,
+          '-l', HfyEl,
+          Lang,
+          Input,
+          Output]),
+    emacs_clean_log('.', LogBase).
+%       process_call(~emacs_path,
+%            ['-Q', '-batch',
 %              '-l', SiteFileEl,
-%	      '-l', HfyEl,
-%	      Lang,
-%	      Input,
-%	      Output],
-%	     [noenv(['EMACSLOADPATH', 'EMACSDOC'])]).
+%             '-l', HfyEl,
+%             Lang,
+%             Input,
+%             Output],
+%            [noenv(['EMACSLOADPATH', 'EMACSDOC'])]).
 
 % ---------------------------------------------------------------------------
 
@@ -110,12 +110,12 @@ emacs_htmlfontify(Lang, Input, Output) :-
       file (see @pred{highlight_to_html/3})".
 
 highlight_file_to_html_string(Lang, Input, Output) :-
-	mktemp_in_tmp('highlight-out-XXXXXX', OutF),
-	once_port_reify(emacs_htmlfontify(Lang, Input, OutF), Port),
-	file_to_string(OutF, Output0), % TODO: may fail?
-	del_file_nofail(OutF),
-	port_call(Port),
-	Output = ~str_remove_pre(Output0).
+    mktemp_in_tmp('highlight-out-XXXXXX', OutF),
+    once_port_reify(emacs_htmlfontify(Lang, Input, OutF), Port),
+    file_to_string(OutF, Output0), % TODO: may fail?
+    del_file_nofail(OutF),
+    port_call(Port),
+    Output = ~str_remove_pre(Output0).
 
 :- export(highlight_string_to_html_string/3).
 :- pred highlight_string_to_html_string(+Lang, +Input, ?Output) :: lang * string * string
@@ -125,21 +125,21 @@ highlight_file_to_html_string(Lang, Input, Output) :-
 % TODO: uses files! it can be quite slow
 
 highlight_string_to_html_string(Lang, Input, Output) :-
-	mktemp_in_tmp('highlight-in-XXXXXX', InF),
-	mktemp_in_tmp('highlight-out-XXXXXX', OutF),
-	string_to_file(Input, InF),
-	once_port_reify(emacs_htmlfontify(Lang, InF, OutF), Port),
-	file_to_string(OutF, Output0), % TODO: may fail?
-	del_file_nofail(InF),
-	del_file_nofail(OutF),
-	port_call(Port),
-	Output = ~str_remove_pre(Output0).
+    mktemp_in_tmp('highlight-in-XXXXXX', InF),
+    mktemp_in_tmp('highlight-out-XXXXXX', OutF),
+    string_to_file(Input, InF),
+    once_port_reify(emacs_htmlfontify(Lang, InF, OutF), Port),
+    file_to_string(OutF, Output0), % TODO: may fail?
+    del_file_nofail(InF),
+    del_file_nofail(OutF),
+    port_call(Port),
+    Output = ~str_remove_pre(Output0).
 
 % Try remove <pre></pre> (we add ours later)
 % TODO: not very nice (fix emacs elisp code instead?)
 str_remove_pre(X) := Y :-
-	append("\n<pre>"||Y0, "</pre>\n", X), !,
-	Y = Y0.
+    append("\n<pre>"||Y0, "</pre>\n", X), !,
+    Y = Y0.
 str_remove_pre(X) := X.
 
 % ---------------------------------------------------------------------------
@@ -152,8 +152,8 @@ str_remove_pre(X) := X.
       file (see @pred{highlight_to_html/3})".
 
 highlight_file_to_html_term(Lang, Input, Output) :-
-	highlight_file_to_html_string(Lang, Input, Output0),
-	Output = ~html2terms(Output0).
+    highlight_file_to_html_string(Lang, Input, Output0),
+    Output = ~html2terms(Output0).
 
 % TODO: generalize/reuse process_channel.pl; as casting of streamed data
 
@@ -168,12 +168,12 @@ highlight_file_to_html_term(Lang, Input, Output) :-
    `Lang` of file `File` (may look at contents)".
 
 detect_language(File, Lang) :-
-	path_splitext(File, _, Ext),
-	( detect_language_(Ext, Lang) ->
-	    true
-	; Lang = text
-	).
-	
+    path_splitext(File, _, Ext),
+    ( detect_language_(Ext, Lang) ->
+        true
+    ; Lang = text
+    ).
+    
 detect_language_('.pl', 'ciao').
 detect_language_('.c', 'c').
 detect_language_('.h', 'c').

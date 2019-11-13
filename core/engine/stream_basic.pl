@@ -1,16 +1,16 @@
 :- module(stream_basic, [
-        open/3, open/4, open_option_list/1, close/1,
-        set_input/1, current_input/1,
-        set_output/1, current_output/1,
-        character_count/2, line_count/2, line_position/2,
-        flush_output/1, flush_output/0, clearerr/1,
-        current_stream/3, stream_code/2,
-        absolute_file_name/2, absolute_file_name/7,
-	pipe/2,
-        sourcename/1, stream/1, stream_alias/1, io_mode/1, 
-        atm_or_int/1
-        ],
-        [assertions, nortchecks, isomodes]).
+    open/3, open/4, open_option_list/1, close/1,
+    set_input/1, current_input/1,
+    set_output/1, current_output/1,
+    character_count/2, line_count/2, line_position/2,
+    flush_output/1, flush_output/0, clearerr/1,
+    current_stream/3, stream_code/2,
+    absolute_file_name/2, absolute_file_name/7,
+    pipe/2,
+    sourcename/1, stream/1, stream_alias/1, io_mode/1, 
+    atm_or_int/1
+    ],
+    [assertions, nortchecks, isomodes]).
 
 :- doc(title, "Basic file/stream handling").
 
@@ -28,14 +28,14 @@
 
 
 :- pred open(+sourcename, +io_mode, ?stream) + (iso, native)
-        # "Normal use.".
+    # "Normal use.".
 
 :- pred open(+int, +io_mode, ?stream) # "In the special case that
-        @var{File} is an integer, it is assumed to be a file
-        descriptor passed to Prolog from a foreign function call. The
-        file descriptor is connected to a Prolog stream (invoking the
-        C POSIX function @tt{fdopen()}) which is unified with
-        @var{Stream}.".
+    @var{File} is an integer, it is assumed to be a file
+    descriptor passed to Prolog from a foreign function call. The
+    file descriptor is connected to a Prolog stream (invoking the
+    C POSIX function @tt{fdopen()}) which is unified with
+    @var{Stream}.".
 
 :- doc(open(File, Mode, Stream, Options), "Same as
    @tt{open(@var{File}, @var{Mode}, @var{Stream})} with options @var{Options}.
@@ -45,58 +45,58 @@
 :- pred open(+sourcename, +io_mode, ?stream, +open_option_list) + native.
 
 open(FileName, Mode, S) :-
-        open_internal(FileName, Mode, S, [], 3).
+    open_internal(FileName, Mode, S, [], 3).
 
 open(FileName, Mode, S, Opts) :-
-        open_internal(FileName, Mode, S, Opts, 4).
+    open_internal(FileName, Mode, S, Opts, 4).
 
 open_internal(FileName, Mode, S, Opts, N) :-
-        var(S),
-        atom(FileName),
-        nonvar(Mode),
-        io_mode(Mode), !,
-        ( var(Opts) ->
-	    throw(error(instantiation_error, open/N-4))
-	; codif_opts(Opts, '', Codif) ->
-            sub_atom(Mode, 0, 1, M),
-	    atom_concat(M, Codif, MCodif),
-	    ( integer(FileName) -> AbsoluteFileName=FileName
-	    ; absolute_file_name(FileName, '', '', '.', AbsoluteFileName, _, _)
-	    ),
-	    '$open'(AbsoluteFileName, MCodif, S)
-	;
-	  throw(error(domain_error(open_option_list, Opts), open/N-4))
-	).
+    var(S),
+    atom(FileName),
+    nonvar(Mode),
+    io_mode(Mode), !,
+    ( var(Opts) ->
+        throw(error(instantiation_error, open/N-4))
+    ; codif_opts(Opts, '', Codif) ->
+        sub_atom(Mode, 0, 1, M),
+        atom_concat(M, Codif, MCodif),
+        ( integer(FileName) -> AbsoluteFileName=FileName
+        ; absolute_file_name(FileName, '', '', '.', AbsoluteFileName, _, _)
+        ),
+        '$open'(AbsoluteFileName, MCodif, S)
+    ;
+      throw(error(domain_error(open_option_list, Opts), open/N-4))
+    ).
 open_internal(_, _, S, _, N) :- nonvar(S), !,
-        throw(error(uninstantiation_error(S), open/N-3)).
+    throw(error(uninstantiation_error(S), open/N-3)).
 open_internal(FileName, _, _, _, N) :- var(FileName), !,
-        throw(error(instantiation_error, open/N-1)).
+    throw(error(instantiation_error, open/N-1)).
 open_internal(FileName, _, _, _, N) :- nonvar(FileName), !,
-        throw(error(domain_error(source_sink, FileName), open/N-1)).
+    throw(error(domain_error(source_sink, FileName), open/N-1)).
 open_internal(_, Mode, _, _, N) :- var(Mode), !,
-        throw(error(instantiation_error, open/N-2)).
+    throw(error(instantiation_error, open/N-2)).
 open_internal(_, Mode, _, _, N) :- atom(Mode), !,
-        throw(error(domain_error(io_mode, Mode), open/N-2)).
+    throw(error(domain_error(io_mode, Mode), open/N-2)).
 open_internal(_, Mode, _, _, N) :- nonvar(Mode), \+ atom(Mode), !,
-        throw(error(type_error(atom, Mode), open/N-2)).
+    throw(error(type_error(atom, Mode), open/N-2)).
 
 codif_opts([], Codif, Codif).
 codif_opts([Opt|Opts], InCodif, OutCodif):-
-	codif_opt(Opt, InCodif, Codif),
-	codif_opts(Opts, Codif, OutCodif).
+    codif_opt(Opt, InCodif, Codif),
+    codif_opts(Opts, Codif, OutCodif).
 
 codif_opt(V, _, _) :- var(V), !, fail.
 codif_opt(lock, _, b) :- !.
 codif_opt(lock_nb, _, l) :- !.
 /* SWI options */
 codif_opt(lock(Mode), _, Codif) :- !,
-        lock_mode(Mode, M),
-        atom_concat(b,M,Codif).
+    lock_mode(Mode, M),
+    atom_concat(b,M,Codif).
 codif_opt(lock_nb(Mode), _, Codif) :- !,
-        lock_mode(Mode, M),
-        atom_concat(l,M,Codif).
+    lock_mode(Mode, M),
+    atom_concat(l,M,Codif).
 codif_opt(_Opt, _Codif, _Codif) :- fail. % (caller will throw exception)
-        % message(warning, ['Open option ',Opt,' not yet implemented']).
+    % message(warning, ['Open option ',Opt,' not yet implemented']).
 
 lock_mode(read, r).
 lock_mode(shared, r).
@@ -118,7 +118,7 @@ lock_mode(exclusive, w).
 
 
 :- prop io_mode(M) + regtype # "@var{M} is an opening mode ('read',
-        'write' or 'append').".
+    'write' or 'append').".
 
 io_mode(read).
 io_mode(write).
@@ -193,7 +193,7 @@ checking whether a stream is the standard input or output.").
 :- impl_defined(flush_output/0).
 
 :- doc(clearerr(Stream), "Clear the end-of-file and error indicators
-           for input stream @var{Stream}.").
+       for input stream @var{Stream}.").
 
 :- trust pred clearerr(+stream) => stream.
 :- impl_defined(clearerr/1).
@@ -272,9 +272,9 @@ atm_or_int(X):- int(X).
       @var{RelFileSpec}.".
 
 absolute_file_name(File, Abs) :-
-        File==user, !, Abs=user.
+    File==user, !, Abs=user.
 absolute_file_name(File, Abs) :-
-        absolute_file_name(File, '_opt', '.pl', '.', Abs, _, _).
+    absolute_file_name(File, '_opt', '.pl', '.', Abs, _, _).
 
 :- doc(
    absolute_file_name(Spec, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir),
@@ -289,31 +289,31 @@ absolute_file_name(File, Abs) :-
 
 
 :- pred absolute_file_name(+sourcename,+atm,+atm,+atm,-atm,-atm,-atm)
-	+ native.
+    + native.
 
 % Error catching for three arguments predicates of absolute_file_name/7
 abs_file_name_check_atom(Arg, Number):-
-        ( atom(Arg) -> 
-            true 
-        ; throw(error(type_error(atom, Arg), absolute_file_name/7-Number))
-        ).
+    ( atom(Arg) -> 
+        true 
+    ; throw(error(type_error(atom, Arg), absolute_file_name/7-Number))
+    ).
 
 absolute_file_name(Spec, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir) :-
-        abs_file_name_check_atom(Opt, 2),
-        abs_file_name_check_atom(Suffix, 3),
-        abs_file_name_check_atom(CurrDir, 4),
-        '$absolute_file_name_checked'(Spec, Opt, Suffix, CurrDir, 
-                                      AbsFile, AbsBase, AbsDir).
+    abs_file_name_check_atom(Opt, 2),
+    abs_file_name_check_atom(Suffix, 3),
+    abs_file_name_check_atom(CurrDir, 4),
+    '$absolute_file_name_checked'(Spec, Opt, Suffix, CurrDir, 
+                                  AbsFile, AbsBase, AbsDir).
 
 :- export(fixed_absolute_file_name/3).
 % TODO: There is a problem with absolute_file_name/?, reported by
 % Paulo Moura (it duplicates the last name -- this is necessary for
 % locating modules but really strange for the end user).
 fixed_absolute_file_name(X, CurrDir, Y) :-
-	Dummy = '/(((...D-U-M-M-Y...)))',
-	atom_concat(X, Dummy, X1),
-        absolute_file_name(X1, '_opt', '.pl', CurrDir, Y1, _, _),
-	atom_concat(Y, Dummy, Y1).
+    Dummy = '/(((...D-U-M-M-Y...)))',
+    atom_concat(X, Dummy, X1),
+    absolute_file_name(X1, '_opt', '.pl', CurrDir, Y1, _, _),
+    atom_concat(Y, Dummy, Y1).
 
 :- doc(stream/1, "Streams correspond to the file pointers used at
    the operating system level, and usually represent opened files.
@@ -349,7 +349,7 @@ stream_alias(user_error).
 stream(S):- stream_alias(S).
 stream(user).    %% 'user' is special: its mode depends on context!
 stream('$stream'(X,Y)) :- 
-        int(X), int(Y).
+    int(X), int(Y).
 
 % TODO: We need to distinguish sourcename from plain pathnames. Most
 %   of those expansions are applied to all pathnames in os_utils.c
@@ -443,12 +443,12 @@ sourcename(S) :- struct(S).
    Please refer to its manual page for details.").
 
 :- prop open_option_list(L) + regtype
-        # "@var{L} is a list of options for @pred{open/4}.".
+    # "@var{L} is a list of options for @pred{open/4}.".
 
 open_option_list(L) :- list(L, open_option).
 
 :- prop open_option(O) + regtype
-        # "@var{O} is an option for @pred{open/4}.".
+    # "@var{O} is an option for @pred{open/4}.".
 
 open_option(lock).
 open_option(lock_nb).

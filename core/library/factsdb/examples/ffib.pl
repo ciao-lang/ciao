@@ -5,9 +5,9 @@
 ffib(0,0).
 ffib(1,1).
 ffib(M,N) :-
-	M > 1, 
-	M1 is M-1, 
-	M2 is M-2,
-	ffib(M1,N1), 
-	ffib(M2,N2),
-	N is N1+N2.
+    M > 1, 
+    M1 is M-1, 
+    M2 is M-2,
+    ffib(M1,N1), 
+    ffib(M2,N2),
+    N is N1+N2.

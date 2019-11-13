@@ -1,5 +1,5 @@
 :- module(dcg_phrase_rt, [phrase/2, phrase/3], 
-	[assertions, nortchecks, isomodes]).
+    [assertions, nortchecks, isomodes]).
 
 :- use_module(engine(internals), [module_concat/3]).
 :- use_module(library(dcg/dcg_tr), [dcg_translate_dcg/5]).
@@ -22,11 +22,11 @@
 :- doc(phrase(Phrase,List),"Like @tt{phrase(Phrase,List,[])}.").
 :- meta_predicate phrase(addmodule,?).
 phrase(P, _, _) :-
-	var(P), !,
-	throw(error(instantiation_error, phrase/2-1)).
+    var(P), !,
+    throw(error(instantiation_error, phrase/2-1)).
 phrase(P, M, L) :-
-	dcg_translate_dcg(P, P1, M, L, []), !,
-	'\6\call_in_module'(M, P1).
+    dcg_translate_dcg(P, P1, M, L, []), !,
+    '\6\call_in_module'(M, P1).
 
 :- pred phrase(+Phrase,?List,?Remainder)
 # "The list @var{List} is a phrase of type @var{Phrase} (according to
@@ -35,11 +35,11 @@ phrase(P, M, L) :-
    is what remains of the list after a phrase has been found.".
 :- meta_predicate phrase(addmodule,?,?).
 phrase(P, _, _, _) :-
-	var(P), !,
-	throw(error(instantiation_error, phrase/3-1)).
+    var(P), !,
+    throw(error(instantiation_error, phrase/3-1)).
 phrase(P, M, L, R) :-
-	dcg_translate_dcg(P, P1, M, L, R), !,
-	'\6\call_in_module'(M, P1).
+    dcg_translate_dcg(P, P1, M, L, R), !,
+    '\6\call_in_module'(M, P1).
 
 
 

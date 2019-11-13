@@ -2,30 +2,30 @@
 % Expansion for clp(Q).
 
 expand(Goal, Code) :-
-        ( Goal = arith_eval(_)
-        ; Goal = arith_eval(_,_)
-        ; Goal = arith_zero(_)
-        ),
-        pattern(Pattern, Code),
-        pm(Pattern, Goal),
-        Pattern = Goal.
+    ( Goal = arith_eval(_)
+    ; Goal = arith_eval(_,_)
+    ; Goal = arith_zero(_)
+    ),
+    pattern(Pattern, Code),
+    pm(Pattern, Goal),
+    Pattern = Goal.
 
 pm(Pattern, Data) :-
-        var(Pattern), !,
-        leaf(Data).
+    var(Pattern), !,
+    leaf(Data).
 pm(Pattern, Data) :-
-        nonvar(Data),
-        functor(Pattern, N, A),
-        functor(Data,    N, A),
-        pm_args(A, Pattern, Data).
+    nonvar(Data),
+    functor(Pattern, N, A),
+    functor(Data,    N, A),
+    pm_args(A, Pattern, Data).
 
 pm_args(0, _, _) :- !.
 pm_args(N, P, D) :-
-        arg(N, P, Pa),
-        arg(N, D, Da),
-        pm(Pa, Da),
-        N1 is N-1,
-        pm_args(N1, P, D).
+    arg(N, P, Pa),
+    arg(N, D, Da),
+    pm(Pa, Da),
+    N1 is N-1,
+    pm_args(N1, P, D).
 
 leaf(V) :- var(V).
 leaf(N) :- number(N).

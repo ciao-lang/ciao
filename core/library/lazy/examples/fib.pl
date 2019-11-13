@@ -5,11 +5,11 @@
 
 :- lazy fibs/1.
 fibs([0, 1 | R]) :- 
-	fibs(L1),
-	L2 = L1,
-	tail(L2, T),
-	zipWith((_(X,Y,Z) :- Z is X + Y), L1, T, R).
+    fibs(L1),
+    L2 = L1,
+    tail(L2, T),
+    zipWith((_(X,Y,Z) :- Z is X + Y), L1, T, R).
 
 main(N, Y) :-
-	fibs(L),
-	nth(N, L, Y).
+    fibs(L),
+    nth(N, L, Y).

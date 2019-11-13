@@ -3,94 +3,94 @@
    @item Backward-incompatible changes in this version:
       @begin{itemize}
       @item Changed the defaults for modules declared with
-          @tt{module/3}.  The following predicates and features are no
-          longer included by default in module/3. They should be
-          enabled explicitly with the following packages or modules:
-          @begin{itemize}
-          @item @tt{call/N}: @tt{hiord} package.
-          @item @tt{data}, @tt{concurrent} declarations,
-            @tt{assertz_fact/1}, etc.: @tt{datafacts} package.
-          @item @tt{dynamic} declarations, @tt{assertz/1}, etc.:
-            @tt{dynamic} package.
-          @item @tt{set_prolog_flag/2}, etc.:
-            @tt{engine(runtime_control)} (which merges deprecated
-            @tt{engine(prolog_flags)} and @tt{engine(prolog_sys)}).
-          @item nl/0, nl/1, display/0, open/3, etc.: library(streams)
-            (which reexports stream handling and operations, namely
-            @tt{engine(stream_basic)} and @tt{engine(io_basic)}).
-          @end{itemize}
+      @tt{module/3}.  The following predicates and features are no
+      longer included by default in module/3. They should be
+      enabled explicitly with the following packages or modules:
+      @begin{itemize}
+      @item @tt{call/N}: @tt{hiord} package.
+      @item @tt{data}, @tt{concurrent} declarations,
+        @tt{assertz_fact/1}, etc.: @tt{datafacts} package.
+      @item @tt{dynamic} declarations, @tt{assertz/1}, etc.:
+        @tt{dynamic} package.
+      @item @tt{set_prolog_flag/2}, etc.:
+        @tt{engine(runtime_control)} (which merges deprecated
+        @tt{engine(prolog_flags)} and @tt{engine(prolog_sys)}).
+      @item nl/0, nl/1, display/0, open/3, etc.: library(streams)
+        (which reexports stream handling and operations, namely
+        @tt{engine(stream_basic)} and @tt{engine(io_basic)}).
+      @end{itemize}
       @item Added @tt{noprelude} that prevents loading the prelude
-         (default definitions).
+     (default definitions).
       @item The @tt{pure} package now includes a minimum set of
-         control constructs @tt{(,)/2}, @tt{true/0}, @tt{fail/0}.
+     control constructs @tt{(,)/2}, @tt{true/0}, @tt{fail/0}.
       @end{itemize}
    @item Language, compiler, toplevel:
       @begin{itemize}
       @item Major update of the Ciao manual (basic language, language
-         extensions, Ciao standard library, additional libraries,
-         abstract data types, ISO and compatibility, etc.).
+     extensions, Ciao standard library, additional libraries,
+     abstract data types, ISO and compatibility, etc.).
       @item Built-in build system and software packaging system
-         (@em{bundles}) (see documentation for details).
+     (@em{bundles}) (see documentation for details).
       @item Added (optional) @tt{CIAOROOT} and @tt{CIAOPATH}
-         environment variables (replace @tt{CIAOLIB}). @tt{CIAOROOT}
-         points to the root of the Ciao sources rather than the lib
-         directory.
+     environment variables (replace @tt{CIAOLIB}). @tt{CIAOROOT}
+     points to the root of the Ciao sources rather than the lib
+     directory.
       @item New @tt{ciao-env} command to set up the environment for
-         some specific Ciao installations.
+     some specific Ciao installations.
       @item Fix @tt{MANPATH},@tt{INFOPATH} in @tt{ciao-env} (trailing
-         @tt{:} was incorrectly removed, it is meaningful and
-         represents default paths).
+     @tt{:} was incorrectly removed, it is meaningful and
+     represents default paths).
       @item Fixed @tt{ciaosh -e Goal} (accepts any goal), removed
-         @tt{-g} option.
+     @tt{-g} option.
       @item DCG @tt{phrase/3} available by default in classic mode
-         (toplevel, user modules, and modules declared with
-         @tt{module/2}).
+     (toplevel, user modules, and modules declared with
+     @tt{module/2}).
       @item Fixes in runtime check versions of @tt{mshare/1},
-         @tt{indep/1}, @tt{indep/2}, and @tt{covered/2}.
+     @tt{indep/1}, @tt{indep/2}, and @tt{covered/2}.
       @item Fixed issues with cyclic terms in debugger (when
-         @tt{check_cycles} flag is activated).
+     @tt{check_cycles} flag is activated).
       @item (experimental) @tt{ciao-serve} command to start a Ciao
-         server to serve both HTTP and active module requests.
+     server to serve both HTTP and active module requests.
       @end{itemize}
    @item Ciao emacs mode:
       @begin{itemize}
       @item Added @tt{M-x ciao-set-ciao-root}, @tt{M-x
-        ciao-set-ciao-path} (see @tt{CIAOROOT} and @tt{CIAOPATH}
-        changes).
+    ciao-set-ciao-path} (see @tt{CIAOROOT} and @tt{CIAOPATH}
+    changes).
       @item Improved syntax highlighting.
       @end{itemize}
    @item Engine:
       @begin{itemize}
       @item Fixed a bug while freeing sources in @tt{eng_call/@{3,4@}}.
       @item Fixed bug in dynamic/data predicates (uninitialized
-         registers may lead to memory corruption during garbage
-         collection).
+     registers may lead to memory corruption during garbage
+     collection).
       @item Added @tt{ciao_root/1}, replaces @tt{ciao_lib_dir/1}.
       @item Improved documentation and examples for interfacing with
-         C/C++ (including embedding engines in C/C++ applications).
+     C/C++ (including embedding engines in C/C++ applications).
       @end{itemize}
    @item Libraries:
       @begin{itemize}
       @item Fixed bug in tokenizer (dealing with @tt{@\\^} escape
-         sequences in strings).
+     sequences in strings).
       @item Refurbished HTTP libraries (separated from pillow, see
-         documentation).
+     documentation).
       @item Added @tt{library(io_port_reify)} (like @tt{port_reify}
-         but allows IO redirection).
+     but allows IO redirection).
       @item Added @tt{filter/3}, @tt{partition/4}, @tt{maplist/N} to
-         @tt{library(hiordlib)}.
+     @tt{library(hiordlib)}.
       @item Added @tt{library(opendoc)} (opens a document with the
-         default OS viewer).
+     default OS viewer).
       @item Revamped active modules model and implementation (see
-         documentation for details).
+     documentation for details).
       @item Renamed @tt{library(file_utils)} to
-         @tt{library(stream_utils)}.
+     @tt{library(stream_utils)}.
       @item Predicates @tt{stream_to_string/@{2,3@}} replaced by
-         @tt{read_to_end/@{2,3@}} (which do not close the stream).
+     @tt{read_to_end/@{2,3@}} (which do not close the stream).
       @item Added @tt{library(terms_io)} (@tt{terms_to_file/2},
-         @tt{file_to_terms/2}).
+     @tt{file_to_terms/2}).
       @item (experimental) @tt{library(timeout)}
-         (@tt{call_with_time_limit/@{2,3@}}).
+     (@tt{call_with_time_limit/@{2,3@}}).
       @item (experimental) package for traits (interfaces).
       @end{itemize}
    @end{itemize}
@@ -103,132 +103,132 @@
    @item Engine:
       @begin{itemize}
       @item Generating the emulator loop with our own code expansion
-         and emulator generator (emugen).
+     and emulator generator (emugen).
       @item Refactor, clean up, rewrite some engine parts.
       @item Reworking custom engine compilation (under @tt{build/}
-         directory). Ciao headers must be included now using
-         @tt{#include <ciao/...>} rather than double quotes.
+     directory). Ciao headers must be included now using
+     @tt{#include <ciao/...>} rather than double quotes.
       @item Fix bug in arithmetic shifting operators by 0.
       @item Fix @tt{X is (1<<20)*(1<<10)} returned @tt{X=0} (detect
-         multiplication overflows using @tt{__builtin_smul_overflow}
-         to avoid C undefined behaviours, i.e., in clang).
+     multiplication overflows using @tt{__builtin_smul_overflow}
+     to avoid C undefined behaviours, i.e., in clang).
       @item Fixes in bignums and float to integer conversion in
-         64-bits mode.
+     64-bits mode.
       @item @tt{lib/engine/} merged into @tt{engine/} (no need to
-         separate Prolog and C files).
+     separate Prolog and C files).
       @item 64-bit port, enabled by default (this was a very large
-         change which required rewriting some parts of the engine).
+     change which required rewriting some parts of the engine).
       @item Adding @tt{--trace-instr} engine option (traces
-         instructions, for debugging).
+     instructions, for debugging).
       @item Faster implementation of @tt{unify_with_occurs_check/2}.
       @item Fix potential overflow in string to number conversion.
       @item Better support for @tt{UTF8}.
       @item Properly escaping all control characters in quoted atom
-         print (ISO compliance).
+     print (ISO compliance).
       @item Fix ending of quoted atom and strings (ISO compliance).
       @item Fix @tt{get_char/1} (ISO conformance, past end of file).
       @item Fix in treatment of @tt{EOF} in IO predicates (do not
-         assume @tt{EOF == -1}).
+     assume @tt{EOF == -1}).
       @item @tt{CIAOARCH} replaced by @tt{CIAOOS} (e.g., Linux) and
-         @tt{CIAOARCH} (e.g., @tt{i686}). New @tt{ciao_sysconf}
-         command (replaces @tt{ciao_get_arch} script), which accepts
-         the arguments @tt{--os}, @tt{--arch}, and @tt{--osarch}.
+     @tt{CIAOARCH} (e.g., @tt{i686}). New @tt{ciao_sysconf}
+     command (replaces @tt{ciao_get_arch} script), which accepts
+     the arguments @tt{--os}, @tt{--arch}, and @tt{--osarch}.
       @end{itemize}
    @item Portability and OS support:
       @begin{itemize}
       @item Using @tt{clang} as default C compiler in MacOS.
       @item Identify @tt{MINGW64_NT} as Win32 (which is commonly
-         accepted as a generic OS name which does not necessarily mean
-         32-bits).
+     accepted as a generic OS name which does not necessarily mean
+     32-bits).
       @item Drop support for IRIX and SunOS4.
       @item Improved support for NetBSD (NetBSD 7), FreeBSD.
       @item Support for Raspberry Pi.
       @item (experimental) support for MINGW32 and MINGW64 (and MSYS2)
-         builds (for Windows).
+     builds (for Windows).
       @item (experimental) support for EMSCRIPTEN as compilation
-         target.
+     target.
       @end{itemize}
    @item Language, compiler, toplevel:
       @begin{itemize}
       @item Conditional compilation library @tt{library(condcomp)}
-         enabled by default.
+     enabled by default.
       @item Deprecated @tt{alias(a(b(...)))} as a module specifier
-         name (using the more compatible @tt{alias(a/b/...)} instead).
+     name (using the more compatible @tt{alias(a/b/...)} instead).
       @item Fix exit status (returns 1) for toplevel and executables
-         on abort, e.g., due to uncaught exceptions or unexpected
-         failure.
+     on abort, e.g., due to uncaught exceptions or unexpected
+     failure.
       @item New @tt{ciaoc_sdyn} tool to help in the distribution of
-         standalone executables with foreign code (collects all
-         required dynamic libraries).
+     standalone executables with foreign code (collects all
+     required dynamic libraries).
       @item Starting work on new build system.
       @item (experimental) syntax extension for infix dot @tt{(A.B)}
-         (see @tt{set_prolog_flag(read_infix_dot, on)}).
+     (see @tt{set_prolog_flag(read_infix_dot, on)}).
       @item (experimental) syntax extension for string data type (see
-         @tt{set_prolog_flag(read_string_data_type, on)}).
+     @tt{set_prolog_flag(read_string_data_type, on)}).
       @end{itemize}
    @item Libraries:
       @begin{itemize}
       @item Fix @tt{system:touch/1}, implemented through C
       @tt{utime()}.
       @item Fix buffer overflow in @tt{absolute_file_name/?} with
-         @tt{nul/NUL} in Win32 (it is a reserved name).
+     @tt{nul/NUL} in Win32 (it is a reserved name).
       @item Fix bug in check for cyclic terms, implemented faster C
-         (low-level) version.
+     (low-level) version.
       @item Fix @tt{get_tmp_dir/1} so that it always produces a
-         normalized path, with no trailing @tt{/}, and considering 
-         @tt{TMPDIR} on POSIX systems.
+     normalized path, with no trailing @tt{/}, and considering 
+     @tt{TMPDIR} on POSIX systems.
       @item Better use of @tt{current_executable/1} implementation
-         (macOS: @tt{_NSGetExecutablePath()}, Linux: @tt{readlink} on
-         @tt{/proc/self/exe}, Windows: @tt{GetModuleFileName()} with
-         @tt{hModule = NULL}).
+     (macOS: @tt{_NSGetExecutablePath()}, Linux: @tt{readlink} on
+     @tt{/proc/self/exe}, Windows: @tt{GetModuleFileName()} with
+     @tt{hModule = NULL}).
       @item Added support for @tt{phrase/2} and @tt{phrase/3} in DCGs
-         (in @tt{dcg_phrase} package).
+     (in @tt{dcg_phrase} package).
       @item Added @tt{library(global_vars)}, backtrackable global
-         variables.
+     variables.
       @item Added @tt{library(datetime)}, manipulate date and time in
-         different formats.
+     different formats.
       @item Added @tt{library(clpfd)}, new CLP(FD) implementation.
       @item Added @tt{library(glob)}, support @em{glob} patterns,
-         filenames with wildcard characters.
+     filenames with wildcard characters.
       @item Added @tt{library(pathnames)}, predicates for file path
-         name manipulation, compatible with common semantics in other
-         languages.
+     name manipulation, compatible with common semantics in other
+     languages.
       @item Added @tt{library(port_reify)}, metacalls which reify the
-         @tt{exit} port so that it can be delayed.
+     @tt{exit} port so that it can be delayed.
       @item Added @tt{library(process)}, portable high-level
-         interface for child process creation, supporting stream
-         redirection, background processes, signals, etc.
+     interface for child process creation, supporting stream
+     redirection, background processes, signals, etc.
       @item Added @tt{library(text_template)}, text-based templates.
       @item Added @tt{library(http_get)}, retrieve files via
-         HTTP/HTTPs/FTP protocol.
+     HTTP/HTTPs/FTP protocol.
       @item Added @tt{system:get_home/1},
-         @tt{system:find_executable/2}.
+     @tt{system:find_executable/2}.
       @item Added @tt{system:extract_paths/2}, split atom containing a
-         colon-separated path list as individual paths.
+     colon-separated path list as individual paths.
       @item Deprecated @tt{exec/?} from @tt{library(system)}.
       @item Deprecated @tt{system:get_exec_dir/1}, can be replaced
-         by @tt{current_executable/1} and @tt{path_dirname/2}.
+     by @tt{current_executable/1} and @tt{path_dirname/2}.
       @item (experimental) @tt{library(indexer)}, a package that
-         extends first-argument indexing.
+     extends first-argument indexing.
       @item (experimental) heap limits exceptions
-         (@tt{set_heap_limit/1}).
+     (@tt{set_heap_limit/1}).
       @item (experimental) @tt{library(stream_wait)}, wait for input
-         to be available, with timeouts.
+     to be available, with timeouts.
       @end{itemize}
    @item Ciao emacs mode:
       @begin{itemize}
       @item Cleanups, refactoring into smaller individual components
-         (highlighting, interaction with Ciao, etc.).
+     (highlighting, interaction with Ciao, etc.).
       @item @tt{M-x ciao-grep*} emacs command (search over all code).
       @end{itemize}
    @item Foreign interface:
       @begin{itemize}
       @item Fix exception throw from C builtins during shallow
-         backtracking.
+     backtracking.
       @item Allow exception throwing using arbitrary terms.
       @item Foreign interface types corresponding to different
-         fixed-width C types
-         (@tt{c_int},@tt{c_size},@tt{c_uint8}, etc.).
+     fixed-width C types
+     (@tt{c_int},@tt{c_size},@tt{c_uint8}, etc.).
       @end{itemize}
    @end{itemize}
 ").
@@ -254,152 +254,152 @@
    @item Extensions to functional notation:
       @begin{itemize}
       @item Introduced @tt{fsyntax} package (just functional
-            syntax). (Daniel Cabeza)
+        syntax). (Daniel Cabeza)
       @item Added support to define on the fly a return argument
-            different from the default one
-            (e.g. @tt{~functor(~,f,2)}). (Daniel Cabeza)
+        different from the default one
+        (e.g. @tt{~functor(~,f,2)}). (Daniel Cabeza)
       @item Use of '@tt{:- function(defined(true)).}' so that the
-            defined function does not need to be preceded by @tt{~} in the
-            return expression of a functional clause. (Daniel Cabeza)
+        defined function does not need to be preceded by @tt{~} in the
+        return expression of a functional clause. (Daniel Cabeza)
       @item Functional notation: added to documentation to reflect more
-            of the FLOPS paper text and explanations.  Added new
-            functional syntax examples: arrays, combination with
-            constraints, using func notation for properties, lazy
-            evaluation, etc. (Manuel Hermenegildo)
+        of the FLOPS paper text and explanations.  Added new
+        functional syntax examples: arrays, combination with
+        constraints, using func notation for properties, lazy
+        evaluation, etc. (Manuel Hermenegildo)
       @item Added functional abstractions to @tt{fsyntax} and correct
-            handling of predicate abstractions (the functions in the body
-            where expanded outside the abstraction). (Jose Morales)
+        handling of predicate abstractions (the functions in the body
+        where expanded outside the abstraction). (Jose Morales)
       @item Improved translation of functions. In particular, old
-            translation could lose last call optimization for functions
-            with body or with conditional expressions.  Furthermore, the
-            translation avoids now some superfluous intermediate
-            unifications.  To be studied more involved
-            optimizations. (Daniel Cabeza, Jose Morales).
+        translation could lose last call optimization for functions
+        with body or with conditional expressions.  Furthermore, the
+        translation avoids now some superfluous intermediate
+        unifications.  To be studied more involved
+        optimizations. (Daniel Cabeza, Jose Morales).
       @item More superfluous unifications taken out from translated code,
-            in cases where a goal @tt{~f(X) = /Term/} appears in the
-            body. (Daniel Cabeza)
+        in cases where a goal @tt{~f(X) = /Term/} appears in the
+        body. (Daniel Cabeza)
       @item Added @tt{library/argnames_fsyntax.pl}: Package to be able to
-            use @tt{$~/2} as an operator. (Daniel Cabeza)
+        use @tt{$~/2} as an operator. (Daniel Cabeza)
       @item Added a new example for lazy evaluation, saving memory using
-            lazy instead of eager evaluation. (Amadeo Casas)
+        lazy instead of eager evaluation. (Amadeo Casas)
       @end{itemize}
 
    @item Improvements to signals and exceptions:
       @begin{itemize}
       @item Distinguished between exceptions and signals. Exceptions are
-            thrown and caught (using @pred{throw/1} and @pred{catch/3}).
-            Signals are sent and intercepted (using @pred{send_signal/1}
-            and @pred{intercept/3}).  (Jose Morales, Remy Haemmerle)
+        thrown and caught (using @pred{throw/1} and @pred{catch/3}).
+        Signals are sent and intercepted (using @pred{send_signal/1}
+        and @pred{intercept/3}).  (Jose Morales, Remy Haemmerle)
       @item Back-port of the (improved) low-level exception handling from
-            @tt{optim_comp} branch. (Jose Morales)
+        @tt{optim_comp} branch. (Jose Morales)
       @item Fixed @pred{intercept/3} bug, with caused the toplevel to not
-            properly handle exceptions after one was handled and
-            displayed (bug reported by Samir Genaim on 04 Dec 05, in ciao
-            mailing list, subject ``@tt{ciao top-level : exception
-            handling}'').  Updated documentation. (Daniel Cabeza)
+        properly handle exceptions after one was handled and
+        displayed (bug reported by Samir Genaim on 04 Dec 05, in ciao
+        mailing list, subject ``@tt{ciao top-level : exception
+        handling}'').  Updated documentation. (Daniel Cabeza)
       @item @pred{intercept/3} does not leave pending choice points if
-            the called goal is deterministic (the same optimization that
-            was done for @pred{catch/3}). (Jose Morales)
+        the called goal is deterministic (the same optimization that
+        was done for @pred{catch/3}). (Jose Morales)
       @end{itemize}
 
    @item New/improved libraries:
       @begin{itemize}
       @item New @tt{assoc} library to represent association tables.
-            (Manuel Carro, Pablo Chico)
+        (Manuel Carro, Pablo Chico)
       @item New @tt{regexp} library to handle regular expressions.
-            (Manuel Carro, Pablo Chico)
+        (Manuel Carro, Pablo Chico)
       @item Fixed bug in string_to_number that affected ASCII to
-            floating point number conversions (@pred{number_codes/2}
-            and bytecode read). (Jose Morales)
+        floating point number conversions (@pred{number_codes/2}
+        and bytecode read). (Jose Morales)
       @item @tt{system.pl}: Added predicates @pred{copy_file/2} and
-            @pred{copy_file/3}. Added predicates @pred{get_uid/1},
-            @pred{get_gid/1}, @pred{get_pwnam/1}, @pred{get_grnam/1}
-            implemented natively to get default user and groups of the
-            current process. (Edison Mera)
+        @pred{copy_file/3}. Added predicates @pred{get_uid/1},
+        @pred{get_gid/1}, @pred{get_pwnam/1}, @pred{get_grnam/1}
+        implemented natively to get default user and groups of the
+        current process. (Edison Mera)
       @item Added library for mutable variables. (Remy Haemmerle)
       @item Added package for block declarations (experimental). (Remy
-            Haemmerle)
+        Haemmerle)
       @item Ported CHR as a Ciao package (experimental). (Tom
-            Schrijvers)
+        Schrijvers)
       @item Debugged and improved performance of the CHR library port.
-            (Remy Haemmerle)
+        (Remy Haemmerle)
       @item @tt{contrib/math}: A library with several math functions
-            that depends on the GNU Scientific Library (GSL). (Edison
-            Mera)
+        that depends on the GNU Scientific Library (GSL). (Edison
+        Mera)
       @item @tt{io_aux.pl}: Added @pred{messages/1}
-            predicate. Required to facilitate printing of compact
-            messages (compatible with emacs). (Edison Mera)
+        predicate. Required to facilitate printing of compact
+        messages (compatible with emacs). (Edison Mera)
       @item Added library @tt{hrtimer.pl} that allow us to measure the
-            time using the higest resolution timer available in the
-            current system. (Edison Mera)
+        time using the higest resolution timer available in the
+        current system. (Edison Mera)
       @item Global logical (backtrackable) variables (experimental).
-            (Jose Morales)
+        (Jose Morales)
       @item New dynamic handling (@tt{dynamic_clauses} package).  Not
-            yet documented. (Daniel Cabeza)
+        yet documented. (Daniel Cabeza)
       @item Moved @tt{\=} from @tt{iso_misc} to
-            @tt{term_basic}. (Daniel Cabeza)
+        @tt{term_basic}. (Daniel Cabeza)
       @item @tt{lib/lists.pl}: Added predicate
-            @pred{sequence_to_list/2}. (Daniel Cabeza)
+        @pred{sequence_to_list/2}. (Daniel Cabeza)
       @item @tt{lib/lists.pl}: Codification of @pred{subordlist/2}
-            improved.  Solutions are given in other order. (Daniel
-            Cabeza)
+        improved.  Solutions are given in other order. (Daniel
+        Cabeza)
       @item @tt{lib/filenames.pl}: Added
-            @pred{file_directory_base_name/3}. (Daniel Cabeza)
+        @pred{file_directory_base_name/3}. (Daniel Cabeza)
       @item @tt{library/symlink_locks.pl}: preliminary library to make
-            locks a la emacs. (Daniel Cabeza)
+        locks a la emacs. (Daniel Cabeza)
       @item @tt{lib/between.pl}: Bug in @tt{between/3} fixed: when the
-            low bound was a float, an smaller integer was
-            generated. (Daniel Cabeza)
+        low bound was a float, an smaller integer was
+        generated. (Daniel Cabeza)
       @item Fixed bug related to implication operator @tt{->} in Fuzzy
-            Prolog (Claudio Vaucheret)
+        Prolog (Claudio Vaucheret)
       @item @tt{contrib/gendot}: Generator of dot files, for drawing graphs
-            using the dot tool. (Claudio Ochoa)
+        using the dot tool. (Claudio Ochoa)
       @item Addded @tt{zeromq} library (bindings for the Zero Message
-            Queue (ZeroMQ, 0MQ) cross-platform messaging middleware)
-            (Dragan Ivanovic)
+        Queue (ZeroMQ, 0MQ) cross-platform messaging middleware)
+        (Dragan Ivanovic)
       @item Minor documentation changes in @tt{javall} library (Jesus
-            Correas)
+        Correas)
       @item Fix a bug in calculator @tt{pl2java} example (Jesus
-            Correas)
+        Correas)
       @item @tt{lib/aggregates.pl}: Deleted duplicated clauses of
-            @pred{findnsols/4}, detected by Pawel. (Daniel Cabeza)
+        @pred{findnsols/4}, detected by Pawel. (Daniel Cabeza)
       @item Added library to transform between color spaces (HSL and
-            HVS) (experimental). (Jose Morales)
+        HVS) (experimental). (Jose Morales)
       @item Added module qualification in DCGs. (Remy Haemmerle, Jose
-            Morales)
+        Morales)
       @item @pred{prolog_sys:predicate_property/2} behaves similar to
-            other Prolog systems (thanks to Paulo Moura for reporting
-            this bug). (Jose Morales)
+        other Prolog systems (thanks to Paulo Moura for reporting
+        this bug). (Jose Morales)
       @item Added DHT library (implementation of distributed hash
-            table) (Arsen Kostenko)
+        table) (Arsen Kostenko)
       @item Adding property @tt{intervals/2} in @tt{native_props.pl}
-            (for intervals information) (Luthfi Darmawan)
+        (for intervals information) (Luthfi Darmawan)
       @item Added code to call polynomial root finding of GSL (Luthfi
-            Darmawan)
+        Darmawan)
       @item Some improvements (not total, but easy to complete) to
-            error messages given by errhandle.pl .  Also, some of the
-            errors in @tt{sockets_c.c} are now proper exceptions
-            instead of faults. (Manuel Carro)
+        error messages given by errhandle.pl .  Also, some of the
+        errors in @tt{sockets_c.c} are now proper exceptions
+        instead of faults. (Manuel Carro)
       @item @tt{sockets} library: added a library (@tt{nsl}) needed
-            for Solaris (Manuel Carro)
+        for Solaris (Manuel Carro)
       @item Driver, utilities, and benchmarking programs from the ECRC
-            suite.  These are aimed at testing some well-defined
-            characteristics of a Prolog system. (Manuel Carro)
+        suite.  These are aimed at testing some well-defined
+        characteristics of a Prolog system. (Manuel Carro)
       @item @tt{library/getopts.pl}: A module to get command-line
-            options and values. Intended to be used by Ciao
-            executables. (Manuel Carro)
+        options and values. Intended to be used by Ciao
+        executables. (Manuel Carro)
       @end{itemize}
 
    @item Improved ISO compliance:
       @begin{itemize}
       @item Ported the Prolog ISO conformance testing.
       @item Fixed read of files containing single ``@tt{%}'' char
-            (reported by Ulrich Neumerkel). (Jose Morales)
+        (reported by Ulrich Neumerkel). (Jose Morales)
       @item Added exceptions in @pred{=../2}. (Remy Haemmerle)
       @item Added exceptions in arithmetic predicates. (Remy
-            Haemmerle)
+        Haemmerle)
       @item Arithmetics integer functions throw exceptions when used
-            with floats. (Remy Haemmerle)
+        with floats. (Remy Haemmerle)
       @item Added exceptions for resource errors. (Remy Haemmerle)
       @end{itemize}
 
@@ -407,444 +407,444 @@
       @begin{itemize}
       @item Improved CLPQ documentation. (Manuel Hermenegildo)
       @item Added clp_meta/1 and clp_entailed/1 to the clpq and clpr
-            packages (Samir Genaim):
-            @begin{itemize}
-            @item @tt{clp_meta/1}: meta-programming with clp constraints,
-      	          e.g, @tt{clp_meta([A.>.B,B.>.1])}.
-            @item @tt{clp_entailed/1}: checks if the store entails
-                  specific cnstraints, e.g, @tt{clp_entailed([A.>.B])}
-                  succeeds if the current store entailes @tt{A.>.B},
-                  otherwise fails.
-            @end{itemize}
+        packages (Samir Genaim):
+        @begin{itemize}
+        @item @tt{clp_meta/1}: meta-programming with clp constraints,
+              e.g, @tt{clp_meta([A.>.B,B.>.1])}.
+        @item @tt{clp_entailed/1}: checks if the store entails
+              specific cnstraints, e.g, @tt{clp_entailed([A.>.B])}
+              succeeds if the current store entailes @tt{A.>.B},
+              otherwise fails.
+        @end{itemize}
       @item Exported the simplex predicates from CLP(Q,R). (Samir Genaim)
       @end{itemize}
 
    @item Other language extensions:
       @begin{itemize}
       @item Added new @tt{bf/bfall} package. It allows running all
-            predicates in a given module in breadth-first mode without
-            changing the syntax of the clauses (i.e., no @tt{<-}
-            needed). Meant basically for experimentation and,
-            specially, teaching pure logic programming.  (Manuel
-            Hermenegildo)
+        predicates in a given module in breadth-first mode without
+        changing the syntax of the clauses (i.e., no @tt{<-}
+        needed). Meant basically for experimentation and,
+        specially, teaching pure logic programming.  (Manuel
+        Hermenegildo)
       @item Added @tt{afall} package in the same line as @tt{bf/bfall}
-            (very useful!). (Manuel Hermenegildo)
+        (very useful!). (Manuel Hermenegildo)
       @item Improved documentation of @tt{bf} and @tt{af}
-            packages. (Manuel Hermenegildo)
+        packages. (Manuel Hermenegildo)
       @item Added partial commons-style dialect support, including
-            dialect flag. (Manuel Hermenegildo)
+        dialect flag. (Manuel Hermenegildo)
       @item @tt{yap_compat} and @tt{commons_compat} compatibility
-            packages (for Yap and Prolog Commons dialects). (Jose
-            Morales)
+        packages (for Yap and Prolog Commons dialects). (Jose
+        Morales)
       @item @tt{argnames} package: enhanced to allow argument name
-            resolution at runtime. (Jose Morales)
+        resolution at runtime. (Jose Morales)
       @item A package for conditional compilation of code (@tt{:-
-            use_package(condcomp)}). (Jose Morales)
+        use_package(condcomp)}). (Jose Morales)
       @end{itemize}
 
    @item Extensions for parallelism (And-Prolog):
       @begin{itemize}
       @item Low-level support for andprolog library has been taken out
-            of the engine and moved to @tt{library/apll} in a similar
-            way as the sockets library. We are planning to reduce the
-            size of the actual engine further, by taking some
-            components out of engine, such as locks, in future
-            releases. (Amadeo Casas)
+        of the engine and moved to @tt{library/apll} in a similar
+        way as the sockets library. We are planning to reduce the
+        size of the actual engine further, by taking some
+        components out of engine, such as locks, in future
+        releases. (Amadeo Casas)
       @item Improved support for deterministic parallel goals,
-            including some bug fixes. (Amadeo Casas)
+        including some bug fixes. (Amadeo Casas)
       @item Goal stack definition added to the engine. (Amadeo Casas)
       @item And-parallel code and the definition of goal stacks in the
-            engine are now wrapped with conditionals (via
-            @tt{AND_PARALLEL_EXECUTION} variable), to avoid the
-            machinery necessary to run programs in parallel affects in
-            any case the sequential execution. (Amadeo Casas)
+        engine are now wrapped with conditionals (via
+        @tt{AND_PARALLEL_EXECUTION} variable), to avoid the
+        machinery necessary to run programs in parallel affects in
+        any case the sequential execution. (Amadeo Casas)
       @item Stack expansion supported when more than one agent is
-            present in the execution of parallel deterministic
-            programs. This feature is still in experimental. Support
-            for stack expansion in nondeterministic benchmarks will be
-            added in a future release. (Amadeo Casas)
+        present in the execution of parallel deterministic
+        programs. This feature is still in experimental. Support
+        for stack expansion in nondeterministic benchmarks will be
+        added in a future release. (Amadeo Casas)
       @item Support for stack unwinding in deterministic parallel
-            programs, via @tt{metachoice}/@tt{metacut}. However,
-            garbage collection in parallel programs is still
-            unsupported. We are planning to include support for it in
-            a future release. (Amadeo Casas)
+        programs, via @tt{metachoice}/@tt{metacut}. However,
+        garbage collection in parallel programs is still
+        unsupported. We are planning to include support for it in
+        a future release. (Amadeo Casas)
       @item Backward execution of nondeterministic parallel goals made
-            via events, without speculation and continuation
-            join. (Amadeo Casas)
+        via events, without speculation and continuation
+        join. (Amadeo Casas)
       @item Improved agents support. New primitives included that aim
-            at increasing the flexibility of creation and management
-            of agents. (Amadeo Casas)
+        at increasing the flexibility of creation and management
+        of agents. (Amadeo Casas)
       @item Agents synchronization is done now by using locks, instead
-            of using @tt{assertz}/@tt{retract}, to improve efficiency
-            in the execution of parallel programs. (Amadeo Casas)
+        of using @tt{assertz}/@tt{retract}, to improve efficiency
+        in the execution of parallel programs. (Amadeo Casas)
       @item Optimized version of @tt{call/1} to invoke deterministic
-            goals in parallel has been added
-            (@tt{call_handler_det/1}). (Amadeo Casas)
+        goals in parallel has been added
+        (@tt{call_handler_det/1}). (Amadeo Casas)
       @item Optimization: locks/@tt{new_atom} only created when the
-            goal is stolen by other process, and not when this is
-            pushed on to the @tt{goal_stack}. (Amadeo Casas)
+        goal is stolen by other process, and not when this is
+        pushed on to the @tt{goal_stack}. (Amadeo Casas)
       @item Integration with the new annotation algorithms supported
-            by CiaoPP, both with and without preservation of the order
-            of the solutions. (Amadeo Casas)
+        by CiaoPP, both with and without preservation of the order
+        of the solutions. (Amadeo Casas)
       @item New set of examples added to the @tt{andprolog}
-            library. (Amadeo Casas)
+        library. (Amadeo Casas)
       @item Several bug fixes to remove some cases in execution of
-            parallel code in which races could appear. (Amadeo Casas)
+        parallel code in which races could appear. (Amadeo Casas)
       @item @tt{andprolog_rt:&} by @tt{par_rt:&} have been moved to
-            @tt{native_builtin} (Amadeo Casas)
+        @tt{native_builtin} (Amadeo Casas)
       @item @tt{indep/1} and @tt{indep/2} have been moved to
-            @tt{native_props}, as @tt{ground/1}, @tt{var/1},
-            etc. (Amadeo Casas)
+        @tt{native_props}, as @tt{ground/1}, @tt{var/1},
+        etc. (Amadeo Casas)
       @item Added assertions to the @tt{library/apll} and
-            @tt{library/andprolog} libraries. (Amadeo Casas)
+        @tt{library/andprolog} libraries. (Amadeo Casas)
       @item Removed clauses in @tt{pretty_print} for the @tt{&>/2} and
-            @tt{<&/1} operators. (Amadeo Casas)
+        @tt{<&/1} operators. (Amadeo Casas)
       @item Shorter code for @tt{<& / 1} and @tt{<&! / 1} (Manuel
-            Carro)
+        Carro)
       @item Trying to solve some problems when resetting WAM pointers
-            (Manuel Carro)
+        (Manuel Carro)
       @item Better code to clean the stacks (Manuel Carro)
       @end{itemize}
 
    @item Improvements to foreign (C language) interface:
       @begin{itemize}
       @item Better support for cygwin and handling of dll libraries in
-            Windows.  Now usage of external dll libraries are supported
-            in Windows under cygwin. (Edison Mera)
+        Windows.  Now usage of external dll libraries are supported
+        in Windows under cygwin. (Edison Mera)
       @item Improvements to documentation of foreign interface (examples).
-            (Manuel Hermenegildo)
+        (Manuel Hermenegildo)
       @item Allow reentrant calls from Prolog to C and then from C to
-            Prolog. (Jose Morales)
+        Prolog. (Jose Morales)
       @item Fix bug that prevented @tt{ciaoc -c MODULE} from generating
-            dynamic @tt{.so} libraries files. (Jose Morales)
+        dynamic @tt{.so} libraries files. (Jose Morales)
       @item Fix bug that prevented @tt{ciaoc MODULE && rm MODULE && ciaoc
-            MODULE} from emitting correct executables (previously,
-            dynamic @tt{.so} libraries files where ignored in executable
-            recompilations when only the main file was missing). (Jose
-            Morales)
+        MODULE} from emitting correct executables (previously,
+        dynamic @tt{.so} libraries files where ignored in executable
+        recompilations when only the main file was missing). (Jose
+        Morales)
       @end{itemize}
 
    @item Run-Time Checking and Unit Tests:
       @begin{itemize}
       @item Added support to perfom run-time checking of assertions
-            and predicates outside @apl{ciaopp} (see the documentation
-            for more details).  In addition to those already
-            available, the new properties that can be run-time checked
-            are: @tt{exception/1}, @tt{exception/2},
-            @tt{no_exception/1}, @tt{no_exception/2},
-            @tt{user_output/2}, @tt{solutions/2},
-            @tt{num_solutions/2}, @tt{no_signal/1}, @tt{no_signal/2},
-            @tt{signal/1}, @tt{signal/2}, @tt{signals/2},
-            @tt{throws/2}.  See library
-            @tt{assertions/native_props.pl} (Edison Mera)
+        and predicates outside @apl{ciaopp} (see the documentation
+        for more details).  In addition to those already
+        available, the new properties that can be run-time checked
+        are: @tt{exception/1}, @tt{exception/2},
+        @tt{no_exception/1}, @tt{no_exception/2},
+        @tt{user_output/2}, @tt{solutions/2},
+        @tt{num_solutions/2}, @tt{no_signal/1}, @tt{no_signal/2},
+        @tt{signal/1}, @tt{signal/2}, @tt{signals/2},
+        @tt{throws/2}.  See library
+        @tt{assertions/native_props.pl} (Edison Mera)
       @item Added support for testing via the @lib{unittest} library.
-            Documentation available at
-            @tt{library(unittest/unittest)}. (Edison Mera)
+        Documentation available at
+        @tt{library(unittest/unittest)}. (Edison Mera)
       @end{itemize}
 
    @item Profiling:
       @begin{itemize}
       @item Improved profiler, now it is cost center-based and works
-            together with the run-time checking machinery in order to
-            also validate execution time-related properties. (Edison
-            Mera)
+        together with the run-time checking machinery in order to
+        also validate execution time-related properties. (Edison
+        Mera)
       @item A tool for automatic bottleneck detection has been
-            developed, which is able to point at the predicates
-            responsible of lack of performance in a program. (Edison
-            Mera)
+        developed, which is able to point at the predicates
+        responsible of lack of performance in a program. (Edison
+        Mera)
       @item Improved profiler documentation. (Manuel Hermenegildo)
       @end{itemize}
 
    @item Debugger enhancements:
       @begin{itemize}
       @item Added the flag @tt{check_cycles} to control whether the
-            debugger takes care of cyclic terms while displaying
-            goals.  The rationale is that to check for cyclic terms
-            may lead to very high response times when having big
-            terms.  By default the flag is in off, which implies that
-            a cyclic term in the execution could cause infinite loops
-            (but otherwise the debugger is much more speedy). (Daniel
-            Cabeza)
+        debugger takes care of cyclic terms while displaying
+        goals.  The rationale is that to check for cyclic terms
+        may lead to very high response times when having big
+        terms.  By default the flag is in off, which implies that
+        a cyclic term in the execution could cause infinite loops
+        (but otherwise the debugger is much more speedy). (Daniel
+        Cabeza)
       @item Show the variable names instead of underscores with
-            numbers.  Added option @tt{v} to show the variables
-            list. Added @tt{v <N>} option, where @tt{N} is the
-            @tt{Name} of the variable you like to watch
-            (experimental). (Edison Mera)
+        numbers.  Added option @tt{v} to show the variables
+        list. Added @tt{v <N>} option, where @tt{N} is the
+        @tt{Name} of the variable you like to watch
+        (experimental). (Edison Mera)
       @item Distinguish between program variables and
-            compiler-introduced variables. Show variables modified in
-            the current goal. (Edison Mera)
+        compiler-introduced variables. Show variables modified in
+        the current goal. (Edison Mera)
       @item @tt{debug_mode} does not leave useless choicepoints (Jose
-            Morales)
+        Morales)
       @end{itemize}
 
    @item Emacs mode:
       @begin{itemize}
       @item Made ciao mode NOT ask by default if one wants to set up
-            version control when first saving a file. This makes more
-            sense if using other version control systems and probably
-            in any case (several users had asked for this). There is a
-            global customizable variable (which appears in the LPdoc
-            area) which can be set to revert to the old behaviour.
-            Updated the manual accordingly. (Manuel Hermenegildo)
+        version control when first saving a file. This makes more
+        sense if using other version control systems and probably
+        in any case (several users had asked for this). There is a
+        global customizable variable (which appears in the LPdoc
+        area) which can be set to revert to the old behaviour.
+        Updated the manual accordingly. (Manuel Hermenegildo)
       @item Added possibility of chosing which emacs Ciao should use
-            during compilation, by LPdoc, etc. Previously only a
-            default emacs was used which is not always the right
-            thing, specially, e.g., in Mac OS X, where the
-            latest/right emacs may not even be in the paths. Other
-            minor typos etc. (Manuel Hermenegildo)
+        during compilation, by LPdoc, etc. Previously only a
+        default emacs was used which is not always the right
+        thing, specially, e.g., in Mac OS X, where the
+        latest/right emacs may not even be in the paths. Other
+        minor typos etc. (Manuel Hermenegildo)
       @item Moved the version control menu entries to the LPdoc
-            menu. (Manuel Hermenegildo)
+        menu. (Manuel Hermenegildo)
       @item Updated highlighting for new functional syntax, unit
-            tests, and all other new features. (Manuel Hermenegildo)
+        tests, and all other new features. (Manuel Hermenegildo)
       @item Completed CiaoPP-java environment (menus, buttons, etc.)
-            and automated loading when visiting Java files (still
-            through hand modification of .emacs).  CiaoPP help (e.g.,
-            for properties) now also available in Java mode.  (Manuel
-            Hermenegildo)
+        and automated loading when visiting Java files (still
+        through hand modification of .emacs).  CiaoPP help (e.g.,
+        for properties) now also available in Java mode.  (Manuel
+        Hermenegildo)
       @item Changes to graphical interface to adapt better to current
-            functionality of CiaoPP option browser.  Also some minor
-            aesthetic changes. (Manuel Hermenegildo)
+        functionality of CiaoPP option browser.  Also some minor
+        aesthetic changes. (Manuel Hermenegildo)
       @item Various changes and fixes to adapt to emacs-22/23 lisp. In
-            particular, fixed cursor error in emacs 23 in Ciao shell
-            (from Emilio Gallego). Also fixed prompt in ciaopp and
-            LPdoc buffers for emacs 23. (Manuel Hermenegildo)
+        particular, fixed cursor error in emacs 23 in Ciao shell
+        (from Emilio Gallego). Also fixed prompt in ciaopp and
+        LPdoc buffers for emacs 23. (Manuel Hermenegildo)
       @item Unified several versions of the Ciao emacs mode (including
-            the one with the experimental toolbar in xemacs) that had
-            diverged. Sorely needed to be able to make progress
-            without duplication. (Manuel Hermenegildo)
+        the one with the experimental toolbar in xemacs) that had
+        diverged. Sorely needed to be able to make progress
+        without duplication. (Manuel Hermenegildo)
       @item New version of ciao.el supporting tool bar in xemacs and
-            also, and perhaps more importantly, in newer emacsen (>=
-            22), where it previously did not work either. New icons
-            with opaque background for xemacs tool bar. (Manuel
-            Hermenegildo)
+        also, and perhaps more importantly, in newer emacsen (>=
+        22), where it previously did not work either. New icons
+        with opaque background for xemacs tool bar. (Manuel
+        Hermenegildo)
       @item Using @tt{key-description} instead of a combination of
-            @tt{text-char-description} and @tt{string-to-char}.  This
-            fixes a bug in the Ciao Emacs Mode when running in emacs
-            23, that shows wrong descriptions for @tt{M-...} key
-            bindings. The new code runs correctly in emacs 21 and
-            22. (Jose Morales)
+        @tt{text-char-description} and @tt{string-to-char}.  This
+        fixes a bug in the Ciao Emacs Mode when running in emacs
+        23, that shows wrong descriptions for @tt{M-...} key
+        bindings. The new code runs correctly in emacs 21 and
+        22. (Jose Morales)
       @item Coloring strings before functional calls and @tt{0'}
-            characters (strings like @tt{\"~w\"} were colored
-            incorrectly) (Jose Morales)
+        characters (strings like @tt{\"~w\"} were colored
+        incorrectly) (Jose Morales)
       @item @tt{@@begin@{verbatim@}} and @tt{@@include} colored as
-            LPdoc commands only inside LPdoc comments. (Jose Morales)
+        LPdoc commands only inside LPdoc comments. (Jose Morales)
       @item Fixed colors for dark backgrounds (workaround to avoid a
-            bug in emacs) (Jose Morales)
+        bug in emacs) (Jose Morales)
       @item Added an automatic indenter (contrib/plindent) and
-            formatting tool, under emacs you can invoque it using the
-            keyword @tt{C-c I} in the current buffer containing your
-            prolog source. (Edison Mera)
+        formatting tool, under emacs you can invoque it using the
+        keyword @tt{C-c I} in the current buffer containing your
+        prolog source. (Edison Mera)
       @end{itemize}
 
    @item Packaging and distribution:
       @begin{itemize}
       @item User-friendly, binary installers for several systems are
-            now generated regularly and automatically: Ubuntu/Debian,
-            Fedora/RedHat, Windows (XP, Vista, 7) and MacOSX. (Edison
-            Mera, Remy Haemmerle)
+        now generated regularly and automatically: Ubuntu/Debian,
+        Fedora/RedHat, Windows (XP, Vista, 7) and MacOSX. (Edison
+        Mera, Remy Haemmerle)
       @end{itemize}
 
    @item Improvements in Ciao toplevel:
       @begin{itemize}
       @item Introduced @tt{check_cycles} @tt{prolog_flag} which
-            controls whether the toplevel handles or not cyclic terms.
-            Flag is set to false by default (cycles not detected and
-            handled) in order to speed up responses. (Daniel Cabeza)
+        controls whether the toplevel handles or not cyclic terms.
+        Flag is set to false by default (cycles not detected and
+        handled) in order to speed up responses. (Daniel Cabeza)
       @item Modified @pred{valid_solution/2} so that it asks no
-            question when there are no pending choice points and the
-            @tt{prompt_alternatives_no_bindings} prolog flag is
-            on. (Jose Morales)
+        question when there are no pending choice points and the
+        @tt{prompt_alternatives_no_bindings} prolog flag is
+        on. (Jose Morales)
       @item Now 'Y' can be used as well as 'y' to accept a solution of a
-            query. (Daniel Cabeza)
+        query. (Daniel Cabeza)
       @item Added newline before @tt{true} when displaying empty
-            solutions. (Jose Morales)
+        solutions. (Jose Morales)
       @item Multifile declarations of packages used by the toplevel were
-            not properly handled.  Fixed. (Daniel Cabeza)
+        not properly handled.  Fixed. (Daniel Cabeza)
       @item Fixed bug in output of bindings when current output
-            changed.
+        changed.
       @item Changes so that including files in the toplevel (or loading
-            packages) does not invoke an expansion of the ending
-            end_of_file.  This makes sense because the toplevel code is
-            never completed, and thus no cleanup code of translations is
-            invoked. (Daniel Cabeza)
+        packages) does not invoke an expansion of the ending
+        end_of_file.  This makes sense because the toplevel code is
+        never completed, and thus no cleanup code of translations is
+        invoked. (Daniel Cabeza)
       @end{itemize}
 
    @item Compiler enhancements and bug fixes:
       @begin{itemize}
       @item Added a command line option to @tt{ciaoc} for generating code
-            with runtime checks. (Daniel Cabeza)
+        with runtime checks. (Daniel Cabeza)
       @item Now the compiler reads assertions by default (when using the
-            assertion package), and verifies their syntax. (Edison Mera)
+        assertion package), and verifies their syntax. (Edison Mera)
       @item Added option @tt{-w} to @tt{ciaoc} compiler to generate the
-            WAM code of the specified prolog files. (Edison Mera)
+        WAM code of the specified prolog files. (Edison Mera)
       @item Fixed bug in exemaker: now when
-            @pred{main/0} and @pred{main/1} exists, @pred{main/0} is
-            always the program entry (before in modules either could
-            be). (Daniel Cabeza)
+        @pred{main/0} and @pred{main/1} exists, @pred{main/0} is
+        always the program entry (before in modules either could
+        be). (Daniel Cabeza)
       @item Fixed bug: when compiling a file, if an imported file had no
-            itf and it used the redefining declaration, the declaration was
-            forgotten between the reading of the imported file (to get
-            its interface) and its later compilation.  By now those
-            declarations are never forgotten, but perhaps it could be
-            done better. (Daniel Cabeza)
+        itf and it used the redefining declaration, the declaration was
+        forgotten between the reading of the imported file (to get
+        its interface) and its later compilation.  By now those
+        declarations are never forgotten, but perhaps it could be
+        done better. (Daniel Cabeza)
       @item The unloading of files kept some data related to them, which
-            caused in some cases errors or warnings regarding module
-            redefinitions.  Now this is fixed. (Daniel Cabeza)
+        caused in some cases errors or warnings regarding module
+        redefinitions.  Now this is fixed. (Daniel Cabeza)
       @item Undefined predicate warnings also for predicate calls
-            qualified with current module (bug detected by Pawel
-            Pietrzak). (Daniel Cabeza)
+        qualified with current module (bug detected by Pawel
+        Pietrzak). (Daniel Cabeza)
       @item Fixed bug @tt{debugger_include} (that is, now a change in a
-            file included from a module which is debugged is detected
-            when the module is reloaded). (Daniel Cabeza)
+        file included from a module which is debugged is detected
+        when the module is reloaded). (Daniel Cabeza)
       @item Fixed @tt{a(B) :- _=B, b, c(B)} bug in compilation of
-            unification. (Jose Morales)
+        unification. (Jose Morales)
       @end{itemize}
 
    @item Improving general support for language extensions:
       @begin{itemize}
       @item Every package starts with '@tt{:- package(...)}' declaration
-            now.  This allows a clear distinction between packages,
-            modules, and files that are just included; all of them using
-            the same @tt{.pl} extension. (Jose Morales)
+        now.  This allows a clear distinction between packages,
+        modules, and files that are just included; all of them using
+        the same @tt{.pl} extension. (Jose Morales)
       @item Added priority in syntax translations. Users are not required
-            to know the details of translations in order to use them
-            (experimental: the the correct order for all the Ciao
-            packages is still not fixed) (Jose Morales)
+        to know the details of translations in order to use them
+        (experimental: the the correct order for all the Ciao
+        packages is still not fixed) (Jose Morales)
       @item Now the initialization of sentence translations is done in
-            the translation package, when they are added.  In this way,
-            previous active translations cannot affect the initialization
-            of new translations, and initializations are not started each
-            time a new sentence translation is added.  Additionally, now
-            the initialization of sentence translations in the toplevel
-            is done (there was a bug). (Daniel Cabeza)
+        the translation package, when they are added.  In this way,
+        previous active translations cannot affect the initialization
+        of new translations, and initializations are not started each
+        time a new sentence translation is added.  Additionally, now
+        the initialization of sentence translations in the toplevel
+        is done (there was a bug). (Daniel Cabeza)
       @item Added @tt{addterm(Meta)} meta-data specification for the
-            implementation of the changes to provide a correct
-            @pred{clause/2} predicate. (Daniel Cabeza)
+        implementation of the changes to provide a correct
+        @pred{clause/2} predicate. (Daniel Cabeza)
       @item Generalized @tt{addmodule} meta-data specification to
-            @tt{addmodule(Meta)}, @tt{addmodule} is now an alias for
-            @tt{addmodule(?)}.  Needed for the implementation of the
-            changes to provide a correct @pred{clause/2}
-            predicate. (Daniel Cabeza)
+        @tt{addmodule(Meta)}, @tt{addmodule} is now an alias for
+        @tt{addmodule(?)}.  Needed for the implementation of the
+        changes to provide a correct @pred{clause/2}
+        predicate. (Daniel Cabeza)
       @end{itemize}
 
    @item Improvements to system assertions:
       @begin{itemize}
       @item Added regtype @pred{basic_props:num_code/1} and more
-            assertions to @tt{basic_props.pl} (German Puebla)
+        assertions to @tt{basic_props.pl} (German Puebla)
       @item Added trust assertion for
-            @pred{atomic_basic:number_codes/2} in order to have more
-            accurate analysis info (first argument a number and second
-            argument is a list of num_codes) (German Puebla)
+        @pred{atomic_basic:number_codes/2} in order to have more
+        accurate analysis info (first argument a number and second
+        argument is a list of num_codes) (German Puebla)
       @item Added some more binding insensitivity assertions in
-            @tt{basic_props.pl} (German Puebla)
+        @tt{basic_props.pl} (German Puebla)
       @item Added the @pred{basic_props:filter/2} property which is
-            used at the global control level in order to guarantee
-            termination. (German Puebla)
+        used at the global control level in order to guarantee
+        termination. (German Puebla)
       @item Added @tt{equiv} assertion for @pred{basiccontrol:fail/0}
-            (German Puebla)
+        (German Puebla)
       @item Modified eval assertion so that partial evaluation does
-            not loop with ill-typed, semi-instantiated calls to
-            @pred{is/2} (this problem was reported some time ago)
-            (German Puebla)
+        not loop with ill-typed, semi-instantiated calls to
+        @pred{is/2} (this problem was reported some time ago)
+        (German Puebla)
       @item Replaced @tt{true} assertions for arithmetic predicates
-            with @tt{trust} assertions (@tt{arithmetic.pl}). (German
-            Puebla)
+        with @tt{trust} assertions (@tt{arithmetic.pl}). (German
+        Puebla)
       @item Added assertions for @pred{term_basic:'\='/2} (the @em{not
-            unification}) (German Puebla)
+        unification}) (German Puebla)
       @item Added assertions for @pred{lists:nth/3} predicate and
-            @pred{lists:reverse/3}. (German Puebla)
+        @pred{lists:reverse/3}. (German Puebla)
       @item Changed calls to @pred{atom/1} to @pred{atm/1} in
-            @pred{c_itf_props:moddesc/1} (it is a regular type) (Jesus
-            Correas)
+        @pred{c_itf_props:moddesc/1} (it is a regular type) (Jesus
+        Correas)
       @item @pred{formulae:assert_body_type/1} switched to @tt{prop},
-            it is not a @tt{regtype}. (Jesus Correas)
+        it is not a @tt{regtype}. (Jesus Correas)
       @item Added assertions to @pred{atom_concat/2}. (Jesus Correas)
       @item Added some assertions to @tt{dec10_io}, @tt{lists},
-            @tt{strings} libraries. (Jesus Correas)
+        @tt{strings} libraries. (Jesus Correas)
       @item Removed @tt{check} from pred and success froom many
-            library assertions. (Jesus Correas)
+        library assertions. (Jesus Correas)
       @item Fixed a problem when reading multiple disjunction in
-            assertions (@tt{library/formulae.pl} and
-            @tt{lib/assertions/assrt_write.pl}). (Pawel Pietrzak)
+        assertions (@tt{library/formulae.pl} and
+        @tt{lib/assertions/assrt_write.pl}). (Pawel Pietrzak)
       @item Added/improved assertions in several modules under
-            @tt{lib/} (Pawel Pietrzak)
+        @tt{lib/} (Pawel Pietrzak)
       @end{itemize}
 
    @item Engine enhancements:
       @begin{itemize}
       @item Added support for Ciao compilation in @tt{ppc64}
-            architecture. (Manuel Carro)
+        architecture. (Manuel Carro)
       @item @tt{sun4v} added in @tt{ciao_get_arch}. (Amadeo Casas)
       @item Solved compilation issue in Sparc. (Manuel Carro, Amadeo
-            Casas)
+        Casas)
       @item Support for 64 bits Intel processor (in 32-bit compatibility
-            mode). (Manuel Carro)
+        mode). (Manuel Carro)
       @item Switched the default memory manager from linear to the binary
-            tree version (which improves management of small memory
-            blocks). (Remy Haemmerle)
+        tree version (which improves management of small memory
+        blocks). (Remy Haemmerle)
       @item Using @tt{mmap} in Linux/i86, Linux/Sparc and Mac OS X
-            (Manuel Carro)
+        (Manuel Carro)
       @item A rename of the macro @tt{REGISTER} to @tt{CIAO_REGISTER}.
-            There have been reports of the macro name clashing with an
-            equally-named one in third-party packages (namely, the PPL
-            library). (Manuel Carro)
+        There have been reports of the macro name clashing with an
+        equally-named one in third-party packages (namely, the PPL
+        library). (Manuel Carro)
       @item A set of macros @tt{CIAO_REG_n} (@tt{n} currently goes from
-            @tt{1} to @tt{4}, but it can be enlarged) to force the GCC
-            compiler to store a variable in a register.  This includes
-            assignments of hardware registers for @tt{n = 1} to @tt{3},
-            in seemingly ascending order of effectiveness.  See coments
-            in registers.h (Manuel Carro)
+        @tt{1} to @tt{4}, but it can be enlarged) to force the GCC
+        compiler to store a variable in a register.  This includes
+        assignments of hardware registers for @tt{n = 1} to @tt{3},
+        in seemingly ascending order of effectiveness.  See coments
+        in registers.h (Manuel Carro)
       @item An assignement of (local) variables to be definitely stored
-            in registers for some (not all) functions in the engine --
-            notably @tt{wam.c}.  These were decided making profiling of C
-            code to find out bottlenecks and many test runs with
-            different assignments of C variables to registers. (Manuel
-            Carro)
+        in registers for some (not all) functions in the engine --
+        notably @tt{wam.c}.  These were decided making profiling of C
+        code to find out bottlenecks and many test runs with
+        different assignments of C variables to registers. (Manuel
+        Carro)
       @item Changed symbol name to avoid clashes with other third-party
-            packages (such as minisat). (Manuel Carro)
+        packages (such as minisat). (Manuel Carro)
       @item Fixed a memory alignment problem (for RISC architectures
-            where words must be word-aligned, like Sparc). (Jose Morales)
+        where words must be word-aligned, like Sparc). (Jose Morales)
       @item Unifying some internal names (towards merge with optim_comp
-            experimental branch). (Jose Morales)
+        experimental branch). (Jose Morales)
       @end{itemize}
 
    @item Attributed variables:
       @begin{itemize}
       @item Attributes of variables are correctly displayed in the
-            toplevel even if they contain cyclic terms.  Equations added
-            in order to define cyclic terms in attributes are output
-            after the attributes, and do use always new variable names
-            (doing otherwise was very involved). (Daniel Cabeza)
+        toplevel even if they contain cyclic terms.  Equations added
+        in order to define cyclic terms in attributes are output
+        after the attributes, and do use always new variable names
+        (doing otherwise was very involved). (Daniel Cabeza)
       @item @tt{lib/attrdump.pl}: The library now works for infinite
-            (cyclic) terms. (Daniel Cabeza)
+        (cyclic) terms. (Daniel Cabeza)
       @item Changed multifile predicate @pred{dump/3} to
-            @pred{dump_constraints/3}. (Daniel Cabeza)
+        @pred{dump_constraints/3}. (Daniel Cabeza)
       @item Added @pred{copy_extract_attr_nc/3} which is a faster version
-            of @pred{copy_extract_attr/3} but does not handle cyclic
-            terms properly. (Daniel Cabeza)
+        of @pred{copy_extract_attr/3} but does not handle cyclic
+        terms properly. (Daniel Cabeza)
       @item Added @pred{term_basic:copy_term_nat/2} to copy a term
-            taking out attributes. (Daniel Cabeza)
+        taking out attributes. (Daniel Cabeza)
       @end{itemize}
 
    @item Documentation:
       @begin{itemize}
       @item Added @tt{deprecated/1}. (Manuel Hermenegildo)
       @item Improvements to documentation of @tt{rtchecks} and
-            tests. (Manuel Hermenegildo)
+        tests. (Manuel Hermenegildo)
       @item Many updates to manuals: dates, copyrights, etc. Some text
-            updates also. (Manuel Hermenegildo)
+        updates also. (Manuel Hermenegildo)
       @item Fixed all manual generation errors reported by LPdoc
-            (still a number of warnings and notes left). (Manuel
-            Hermenegildo)
+        (still a number of warnings and notes left). (Manuel
+        Hermenegildo)
       @item Adding some structure (minor) to all manuals (Ciao, LPdoc,
-            CiaoPP) using new LPdoc @tt{doc_structure/1}. (Jose
-            Morales)
+        CiaoPP) using new LPdoc @tt{doc_structure/1}. (Jose
+        Morales)
       @end{itemize}
 
    @item Ciao Website:
       @begin{itemize}
       @item Redesigned the Ciao website. It is generated again through
-            LPdoc, but with new approach. (Jose Morales)
+        LPdoc, but with new approach. (Jose Morales)
       @end{itemize}
    @end{itemize}
 ").
@@ -854,21 +854,21 @@
    Backports and bug fixes to stable 1.10:
    @begin{itemize}
    @item Changes to make Ciao 1.10 compile with the latest GCC
-         releases.
+     releases.
    @item Imported from
-         @tt{CiaoDE/branches/CiaoDE-memory_management-20051016},
-         changes from revisions 4909 to 4910: Changes to make Ciao
-         issue a better message at startup if the allocated memory
-         does not fall within the limits precomputed at compile time
-         (plus some code tidying).
+     @tt{CiaoDE/branches/CiaoDE-memory_management-20051016},
+     changes from revisions 4909 to 4910: Changes to make Ciao
+     issue a better message at startup if the allocated memory
+     does not fall within the limits precomputed at compile time
+     (plus some code tidying).
    @item Port of revisions 5415, 5426, 5431, 5438, 5546, 5547 applied
-         to Ciao 1.13 to Ciao 1.10 in order to make it use @tt{mmap()}
-         when possible and to make it compile on newer Linux kernels.
-         Tested in Ubuntu, Fedora (with older kernel) and MacOSX.
+     to Ciao 1.13 to Ciao 1.10 in order to make it use @tt{mmap()}
+     when possible and to make it compile on newer Linux kernels.
+     Tested in Ubuntu, Fedora (with older kernel) and MacOSX.
    @item Configuration files for DARWIN (ppc) and 64-bit platforms
-         (Intel and Sparc, both in 32-bit compatibility mode).
+     (Intel and Sparc, both in 32-bit compatibility mode).
    @item Force the creation of the module containing the foreign
-         interface compilation options before they are needed.
+     interface compilation options before they are needed.
    @end{itemize}
 ").
 
@@ -901,37 +901,37 @@
       @item Improved emacs inferior (interaction) mode for Ciao and CiaoPP.
       @item Xemacs compatibility improved (thanks to A. Rigo).
       @item New icons and modifications in the environment for the 
-            preprocessor.
+        preprocessor.
       @item Icons now installed in a separate dir.          
       @item Compatibility with newer versions of @apl{Cygwin}.
       @item Changes to programming environment:
-            @begin{itemize}
-            @item Double-click startup of programming environment. 
-            @item Reorganized menus: help and customization grouped in 
-                  separate menus.
-            @item Error location extended.
-            @item Automatic/Manual location of errors produced when 
-                  running Ciao tools now customizable.
-            @item Presentation of CiaoPP preprocessor output improved.
-            @end{itemize}
+        @begin{itemize}
+        @item Double-click startup of programming environment. 
+        @item Reorganized menus: help and customization grouped in 
+              separate menus.
+        @item Error location extended.
+        @item Automatic/Manual location of errors produced when 
+              running Ciao tools now customizable.
+        @item Presentation of CiaoPP preprocessor output improved.
+        @end{itemize}
       @item Faces and coloring improved:
-            @begin{itemize}
-            @item Faces for syntax-based highlighting more customizable.
-            @item Syntax-based coloring greatly
-                  improved. Literal-level assertions also correctly
-                  colored now.
-            @item Syntax-based coloring now also working on ASCII
-                  terminals (for newer versions of emacs).
-            @item Listing user-defined directives allowed to be colored in
-                  special face.
-            @item Syntax errors now colored also in inferior buffers.
-            @item Customizable faces now appear in the documentation.
-            @item Added new tool bar button (and binding) to refontify
-                  block/buffer.
-            @item Error marks now cleared automatically also when 
-                  generating docs.
-            @item Added some fixes to hooks in lpdoc buffer.
-            @end{itemize}  
+        @begin{itemize}
+        @item Faces for syntax-based highlighting more customizable.
+        @item Syntax-based coloring greatly
+              improved. Literal-level assertions also correctly
+              colored now.
+        @item Syntax-based coloring now also working on ASCII
+              terminals (for newer versions of emacs).
+        @item Listing user-defined directives allowed to be colored in
+              special face.
+        @item Syntax errors now colored also in inferior buffers.
+        @item Customizable faces now appear in the documentation.
+        @item Added new tool bar button (and binding) to refontify
+              block/buffer.
+        @item Error marks now cleared automatically also when 
+              generating docs.
+        @item Added some fixes to hooks in lpdoc buffer.
+        @end{itemize}  
       @end{itemize}
    @item Bug fixes in compiler.
       @begin{itemize}
@@ -941,7 +941,7 @@
    @item Improvements related to supported platforms
       @begin{itemize}
       @item Compilation and installation in different palatforms have been 
-            improved.
+        improved.
       @item New Mac OS X kernels supported.
       @end{itemize}
 
@@ -949,19 +949,19 @@
       @begin{itemize}
       @item Got rid of several segmentation violation problems.
       @item Number of significant decimal digits to be printed now computed 
-            accurately.
+        accurately.
       @item Added support to test conversion of a Ciao integer into a machine 
-            int.
+        int.
       @item Unbound length atoms now always working.
       @item C interface .h files reachable through a more standard location 
-            (thanks to R. Bagnara).
+        (thanks to R. Bagnara).
       @item Compatibility with newer versions of gcc.
       @end{itemize}
 
    @item New libraries and utilities added to the system:
       @begin{itemize}
       @item Factsdb: facts defined in external files can now be automatically 
-            cached on-demand.
+        cached on-demand.
       @item Symfnames: File aliasing to internal streams added.
       @end{itemize}
 
@@ -978,72 +978,72 @@
    @item Some libraries greatly improved:
       @begin{itemize}
       @item Interface to Tcl/Tk very improved. 
-          @begin{itemize}
-          @item Corrected many bugs in both interaction Prolog to
-                Tcl/Tk and viceversa.
-          @item Execution of Prolog goals from TclTk revamped.
-          @item Treatment of Tcl events corrected.
-          @item Predicate  @pred{tcl_eval/3} now allows the execution of Tcl 
-                procedures running multiple Prolog goals.
-          @item Documentation heavily reworked.
-          @item Fixed unification of prolog goals run from the Tcl side.
-          @end{itemize}
+      @begin{itemize}
+      @item Corrected many bugs in both interaction Prolog to
+            Tcl/Tk and viceversa.
+      @item Execution of Prolog goals from TclTk revamped.
+      @item Treatment of Tcl events corrected.
+      @item Predicate  @pred{tcl_eval/3} now allows the execution of Tcl 
+            procedures running multiple Prolog goals.
+      @item Documentation heavily reworked.
+      @item Fixed unification of prolog goals run from the Tcl side.
+      @end{itemize}
       @item Pillow library improved in many senses.
-          @begin{itemize}
-          @item HTTP media type parameter values returned are always strings 
-                now, not atoms. 
-          @item Changed verbatim() pillow term so that newlines are translated 
-                to <br>.
-          @item Changed management of cookies so that special characters in 
-                values are correctly handled. 
-          @item Added predicate @pred{url_query_values/2}, reversible. 
-                Predicate @pred{url_query/2} now obsolete.
-          @item Now attribute values in tags are escaped to handle values 
-                which have double quotes.
-          @item Improved @pred{get_form_input/1} and @pred{url_query/2} so 
-                that names of parameters having unusual characters are always 
-                correctly handled.
-          @end{itemize}
+      @begin{itemize}
+      @item HTTP media type parameter values returned are always strings 
+            now, not atoms. 
+      @item Changed verbatim() pillow term so that newlines are translated 
+            to <br>.
+      @item Changed management of cookies so that special characters in 
+            values are correctly handled. 
+      @item Added predicate @pred{url_query_values/2}, reversible. 
+            Predicate @pred{url_query/2} now obsolete.
+      @item Now attribute values in tags are escaped to handle values 
+            which have double quotes.
+      @item Improved @pred{get_form_input/1} and @pred{url_query/2} so 
+            that names of parameters having unusual characters are always 
+            correctly handled.
+      @end{itemize}
       @item Fixed bug in tokenizer regarding non-terminated single or 
-            multiple-line comments.  When the last line of a file has a 
-            single-line comment and does not end in a newline, it is accepted 
-            as correct.  When an open-comment /* sequence is not terminated in 
-            a file, a syntax error exception is thrown.
+        multiple-line comments.  When the last line of a file has a 
+        single-line comment and does not end in a newline, it is accepted 
+        as correct.  When an open-comment /* sequence is not terminated in 
+        a file, a syntax error exception is thrown.
       @end{itemize}
 
    @item Other libraries improved:
       @begin{itemize}
       @item Added native_props to assertions package and included
-            @pred{nonground/1}.
+        @pred{nonground/1}.
       @item In atom2terms, changed interpretation of double quoted strings so 
-            that they are not parsed to terms.
+        that they are not parsed to terms.
       @item Control on exceptions improved.
       @item Added @pred{native/1,2} to basic_props.
       @item Davinci error processing improved.
       @item Foreign predicates are now automatically declared as 
-            implementation-defined.
+        implementation-defined.
       @item In lists, added @pred{cross_product/2} to compute the cartesian 
-            product of a list of lists. Also added 
-            @pred{delete_non_ground/3}, enabling deletion of nonground terms 
-            from a list. 
+        product of a list of lists. Also added 
+        @pred{delete_non_ground/3}, enabling deletion of nonground terms 
+        from a list. 
       @item In llists added @pred{transpose/2} and changed @pred{append/2} 
-            implementation with a much more efficient code. 
+        implementation with a much more efficient code. 
       @item The make library has been improved.
       @item In persdb, added @pred{pretractall_fact/1} and 
-            @pred{retractall_fact/1} as persdb native capabilities. 
+        @pred{retractall_fact/1} as persdb native capabilities. 
       @item Improved behavior with user environment from persdb.
       @item In persdb, added support for @pred{persistent_dir/4},
-            which includes arguments to specify permission modes for
-            persistent directory and files.
+        which includes arguments to specify permission modes for
+        persistent directory and files.
       @item Some minor updates in persdb_sql.
       @item Added treatment of operators and module:pred calls to
-            pretty-printer.
+        pretty-printer.
       @item Updated report of read of syntax errors.
       @item File locking capabilities included in @pred{open/3}.
       @item Several improvements in library system.
       @item New input/output facilities added to sockets.
       @item Added @pred{most_specific_generalization/3} and 
-            @pred{most_general_instance/3} to terms_check.
+        @pred{most_general_instance/3} to terms_check.
       @item Added @pred{sort_dict/2} to library vndict.
       @item The xref library now treats also empty references.
       @end{itemize}
@@ -1051,8 +1051,8 @@
    @item Miscellaneous updates:
       @begin{itemize}
       @item Extended documentation in libraries actmods, arrays, 
-            foreign_interface, javall, persdb_mysql, prolog_sys, old_database, 
-            and terms_vars.
+        foreign_interface, javall, persdb_mysql, prolog_sys, old_database, 
+        and terms_vars.
       @end{itemize}
    @end{itemize}").
 
@@ -1085,9 +1085,9 @@
        @begin{itemize}
        @item Support for Mac OS X 10.1, based on the Darwin kernel.
        @item Initial support for compilation on Linux for Power PC
-             (contributed by @author{Paulo Moura}).
+         (contributed by @author{Paulo Moura}).
        @item Workaround for incorrect C compilation while using newer
-             (> 2.95) gcc compilers.
+         (> 2.95) gcc compilers.
        @item .bat files generated in Windows.
        @end{itemize}
    
@@ -1095,90 +1095,90 @@
        @begin{itemize}
        @item Corrected a bug which caused wrong code generation in some cases.
        @item Changed execution of initialization directives.  Now the
-             initialization of a module/file never runs before the
-             initializations of the modules from which the module/file
-             imports (excluding circular dependences).
+         initialization of a module/file never runs before the
+         initializations of the modules from which the module/file
+         imports (excluding circular dependences).
        @item The engine is more intelligent when looking for an engine
-             to execute bytecode; this caters for a variety of
-             situations when setting explicitly the CIAOLIB
-             environment variable.
+         to execute bytecode; this caters for a variety of
+         situations when setting explicitly the CIAOLIB
+         environment variable.
        @item Fixed bugs in the toplevel: behaviour of @tt{module:main}
-             calls and initialization of a module (now happens after
-             related modules are loaded).
+         calls and initialization of a module (now happens after
+         related modules are loaded).
        @item Layout char not needed any more to end Prolog files.
        @item Syntax errors now disable .itf creation, so that they
-             show next time the code is used without change.
+         show next time the code is used without change.
        @item Redefinition warnings now issued only when an unqualified call
-             is seen. 
+         is seen. 
        @item Context menu in Windows can now load a file into the toplevel.
        @item Updated Windows installation in order to run CGI
-             executables under Windows: a new information item is
-             added to the registry.
+         executables under Windows: a new information item is
+         added to the registry.
        @item Added new directories found in recent Linux distributions to
-             INFOPATH. 
+         INFOPATH. 
        @item Emacs-based environment and debugger improved:
-           @begin{itemize}
-           @item Errors located immediataly after code loading.
-           @item Improved ciao-check-types-modes (preprocessor progress
-                 now visible). 
-           @item Fixed loading regions repeatedly (no more predicate
-                 redefinition warnings).
-           @item Added entries in @apl{ciaopp} menu to set verbosity of output.
-           @item Fixed some additional xemacs compatibility issues
-                 (related to searches). 
-           @item Errors reported by inferior processes are now
-                 explored in forward order (i.e., the first error
-                 rewported is the first one highlighted). Improved
-                 tracking of errors.
-           @item Specific tool bar now available, with icons for main
-                 fuctions (works from emacs 21.1 on). Also, other
-                 minor adaptations for working with emacs 21.1 and
-                 later.
-           @item Debugger faces are now locally defined (and better
-                 customization). This also improves comtability with xemacs
-                 (which has different faces).
-           @item Direct access to a common use of the preprocessor
-                 (checking modes/types and locating errors) from toolbar.
-           @item Inferior modes for Ciao and CiaoPP improved: contextual
-                 help turned on by default.
-           @item Fixes to set-query. Also, previous query now appears
-                 in prompt.
-           @item Improved behaviour of stored query.
-           @item Improved behaviour of recentering, finding errors, etc.
-           @item Wait for prompt has better termination characteristics.
-           @item Added new interactive entry points (M-x): ciao,
-                 prolog, ciaopp.
-           @item Better tracking of last inferior buffer used.
-           @item Miscellanous bugs removed; some colors changed to
-                 adapt to different Emacs versions.
-           @item Fixed some remaining incompatibilities with xemacs.
-           @item @tt{:- doc} now also supported and highlighted.
-           @item Eliminated need for calendar.el
-           @item Added some missing library directives to fontlock
-                 list, organized this better.
-           @end{itemize}
+       @begin{itemize}
+       @item Errors located immediataly after code loading.
+       @item Improved ciao-check-types-modes (preprocessor progress
+             now visible). 
+       @item Fixed loading regions repeatedly (no more predicate
+             redefinition warnings).
+       @item Added entries in @apl{ciaopp} menu to set verbosity of output.
+       @item Fixed some additional xemacs compatibility issues
+             (related to searches). 
+       @item Errors reported by inferior processes are now
+             explored in forward order (i.e., the first error
+             rewported is the first one highlighted). Improved
+             tracking of errors.
+       @item Specific tool bar now available, with icons for main
+             fuctions (works from emacs 21.1 on). Also, other
+             minor adaptations for working with emacs 21.1 and
+             later.
+       @item Debugger faces are now locally defined (and better
+             customization). This also improves comtability with xemacs
+             (which has different faces).
+       @item Direct access to a common use of the preprocessor
+             (checking modes/types and locating errors) from toolbar.
+       @item Inferior modes for Ciao and CiaoPP improved: contextual
+             help turned on by default.
+       @item Fixes to set-query. Also, previous query now appears
+             in prompt.
+       @item Improved behaviour of stored query.
+       @item Improved behaviour of recentering, finding errors, etc.
+       @item Wait for prompt has better termination characteristics.
+       @item Added new interactive entry points (M-x): ciao,
+             prolog, ciaopp.
+       @item Better tracking of last inferior buffer used.
+       @item Miscellanous bugs removed; some colors changed to
+             adapt to different Emacs versions.
+       @item Fixed some remaining incompatibilities with xemacs.
+       @item @tt{:- doc} now also supported and highlighted.
+       @item Eliminated need for calendar.el
+       @item Added some missing library directives to fontlock
+             list, organized this better.
+       @end{itemize}
        @end{itemize}
    
    @item New libraries added to the system:
        @begin{itemize}
        @item hiord: new library which needs to be loaded in order to use
-               higher-order call/N and P(X) syntax. Improved model for predicate
-               abstractions. 
+           higher-order call/N and P(X) syntax. Improved model for predicate
+           abstractions. 
        @item fuzzy: allows representing fuzzy information in the form or
-               Prolog rules.
+           Prolog rules.
        @item use_url: allows loading a module remotely by using a WWW
-               address of the module source code
+           address of the module source code
        @item andorra: alternative search method where goals which become
-               deterministic at run time are executed before others.
+           deterministic at run time are executed before others.
        @item iterative deepening (id): alternative search method which makes a
-               depth-first search until a predetermined depth is reached.
-               Complete but in general cheaper than breadth first.
+           depth-first search until a predetermined depth is reached.
+           Complete but in general cheaper than breadth first.
        @item det_hook: allows making actions when a deterministic
-               situation is reached.
+           situation is reached.
        @item ProVRML: read VRML code and translate it into Prolog terms,
-               and the other way around.
+           and the other way around.
        @item io_alias_redirection: change where stdin/stdout/stderr point to
-               from within Ciao programs.
+           from within Ciao programs.
        @item tcl_tk: an interface to Tcl/Tk programs.
        @item tcl_tk_obj: object-based interface to Tcl/Tk graphical
        objects.
@@ -1189,49 +1189,49 @@
        @begin{itemize}
        @item WebDB: utilities to create WWW-based database interfaces.
        @item Improved java interface implementation (this forced
-             renaming some interface primitives). 
+         renaming some interface primitives). 
        @item User-transparent persistent predicate database revamped:
-           @begin{itemize}
-           @item Implemented passerta_fact/1 (asserta_fact/1).
-           @item Now it is never necessary to explicitly call
-                 init_persdb, a call to initialize_db is only needed
-                 after dynamically defining facts of persistent_dir/2.
-                 Thus, pcurrent_fact/1 predicate eliminated.
-           @item Facts of persistent predicates included in the
-                 program code are now included in the persistent
-                 database when it is created.  They are ignored in
-                 successive executions.
-           @item Files where persistent predicates reside are now
-                 created inside a directory named as the module where
-                 the persistent predicates are defined, and are named
-                 as F_A* for predicate F/A.
-           @item Now there are two packages: persdb and 'persdb/ll'
-                 (for low level).  In the first, the standard builtins
-                 asserta_fact/1, assertz_fact/1, and retract_fact/1
-                 are replaced by new versions which handle persistent
-                 data predicates, behaving as usual for normal data
-                 predicates.  In the second package, predicates with
-                 names starting with 'p' are defined, so that there is
-                 not overhead in calling the standard builtins.
-           @item Needed declarations for persistent_dir/2 are now
-                 included in the packages.
-           @end{itemize}
+       @begin{itemize}
+       @item Implemented passerta_fact/1 (asserta_fact/1).
+       @item Now it is never necessary to explicitly call
+             init_persdb, a call to initialize_db is only needed
+             after dynamically defining facts of persistent_dir/2.
+             Thus, pcurrent_fact/1 predicate eliminated.
+       @item Facts of persistent predicates included in the
+             program code are now included in the persistent
+             database when it is created.  They are ignored in
+             successive executions.
+       @item Files where persistent predicates reside are now
+             created inside a directory named as the module where
+             the persistent predicates are defined, and are named
+             as F_A* for predicate F/A.
+       @item Now there are two packages: persdb and 'persdb/ll'
+             (for low level).  In the first, the standard builtins
+             asserta_fact/1, assertz_fact/1, and retract_fact/1
+             are replaced by new versions which handle persistent
+             data predicates, behaving as usual for normal data
+             predicates.  In the second package, predicates with
+             names starting with 'p' are defined, so that there is
+             not overhead in calling the standard builtins.
+       @item Needed declarations for persistent_dir/2 are now
+             included in the packages.
+       @end{itemize}
    
        @item SQL now works with mysql.
        @item system: expanded to contain more predicates which act as
-             interface to the underlying system /  operating system.  
+         interface to the underlying system /  operating system.  
        @end{itemize}
    
    @item Other libraries improved:
        @begin{itemize}
        @item xref: creates cross-references among Prolog files.
        @item concurrency: new predicates to create new concurrent
-             predicates on-the-fly.
+         predicates on-the-fly.
        @item sockets: bugs corrected.
        @item objects: concurrent facts now properly recognized.
        @item fast read/write: bugs corrected.
        @item Added 'webbased' protocol for active modules: publication of
-             active module address can now be made through WWW.
+         active module address can now be made through WWW.
        @item Predicates in library(dynmods) moved to library(compiler).
        @item Expansion and meta predicates improved.
        @item Pretty printing.
@@ -1241,37 +1241,37 @@
        @end{itemize}
    
    @item Updates to builtins (there are a few more; these are the most
-         relevant):
+     relevant):
 
        @begin{itemize}
        @item Added a prolog_flag to retrieve the version and patch.
        @item current_predicate/1 in library(dynamic) now enumerates
-             non-engine modules, prolog_sys:current_predicate/2 no longer
-             exists.
+         non-engine modules, prolog_sys:current_predicate/2 no longer
+         exists.
        @item exec/* bug fixed.
        @item srandom/1 bug fixed.
        @end{itemize}
    
    @item Updates for C interface:
-         @begin{itemize}
-         @item Fixed bugs in already existing code.
-         @item Added support for creation and traversing of Prolog data
-         structures from C predicates.
-         @item Added support for raising Prolog exceptions from C
-         predicates. 
-         @item Preliminary support for calling Prolog from C.
-         @end{itemize}
+     @begin{itemize}
+     @item Fixed bugs in already existing code.
+     @item Added support for creation and traversing of Prolog data
+     structures from C predicates.
+     @item Added support for raising Prolog exceptions from C
+     predicates. 
+     @item Preliminary support for calling Prolog from C.
+     @end{itemize}
    
    @item Miscellaneous updates:
-         @begin{itemize}
-         @item Installation made more robust.
-         @item Some pending documentation added.
-         @item 'ciao' script now adds (locally) to path the place where
-         it has been installed, so that other programs can be located
-         without being explicitly in the $PATH.
-         @item Loading programs is somewhat faster now.
-         @item Some improvement in printing path names in Windows.
-         @end{itemize}
+     @begin{itemize}
+     @item Installation made more robust.
+     @item Some pending documentation added.
+     @item 'ciao' script now adds (locally) to path the place where
+     it has been installed, so that other programs can be located
+     without being explicitly in the $PATH.
+     @item Loading programs is somewhat faster now.
+     @item Some improvement in printing path names in Windows.
+     @end{itemize}
    @end{itemize}").
 
 % :- doc(version(1*7+203,2002/04/20,13:38*54+'CEST'), "Minor changes
@@ -1362,7 +1362,7 @@
    @item Documentation greatly improved.
    @item Automatic (re)compilation of foreign files.
    @item Concurrency primitives revamped; restored &Prolog-like 
-         multiengine capability. 
+     multiengine capability. 
    @item Windows installation and overall operation greatly improved.
    @item New version of O'Ciao class/object library, with improved performance.
    @item Added support for ""predicate abstractions"" in call/N. 
@@ -1395,11 +1395,11 @@
    @item Changed syntax/1 declaration to use_package/1.
    @item Added add_clause_trans/1 declaration.
    @item Changed format of .itf files such that a '+' stands for all
-         the standard imports from engine, which are included in c_itf
-         source internally (from engine(builtin_exports)).  Further
-         changes in itf data handling, so that once an .itf file is
-         read in a session, the file is cached and next time it is
-         needed no access to the file system is required.
+     the standard imports from engine, which are included in c_itf
+     source internally (from engine(builtin_exports)).  Further
+     changes in itf data handling, so that once an .itf file is
+     read in a session, the file is cached and next time it is
+     needed no access to the file system is required.
    @item Many bugs fixed.
    @end{itemize}").
 
@@ -1418,12 +1418,12 @@
 :- doc(version(0*8+0,1998/10/27,13:12*36+'MET'), "
    @begin{itemize}
    @item Changed compiler so that only one pass is done, eliminated @tt{.dep}
-         files.
+     files.
    @item New concurrency primitives.
    @item Changed assertion comment operator to #.
    @item Implemented higher-order with call/N.
    @item Integrated SQL-interface to external databases with 
-         persistent predicate concept. 
+     persistent predicate concept. 
    @item First implementation of object oriented programming package.
    @item Some bugs fixed.
    @end{itemize}").
@@ -1443,14 +1443,14 @@
 :- doc(version(0*6+0,1998/07/16,21:12*07+'MET DST'), "
    @begin{itemize}
    @item Defining other path aliases (in addition to 'library') which can
-         be loaded dynamically in executables is now possible.
+     be loaded dynamically in executables is now possible.
    @item Added the posibility to define multifile predicates in the shell.
    @item Added the posibility to define dynamic predicates dynamically.
    @item Added addmodule meta-argument type.
    @item Implemented persistent data predicates.
    @item New version of PiLLoW WWW library (XML, templates, etc.).
    @item Ported active modules from ``distributed Ciao'' (independent 
-         development version of Ciao).
+     development version of Ciao).
    @item Implemented lazy loading in executables.
    @item Modularized engine(builtin).
    @item Some bugs fixed.

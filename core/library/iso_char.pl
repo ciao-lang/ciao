@@ -1,8 +1,8 @@
 :- module(iso_char,
-        [char_code/2, atom_chars/2, number_chars/2,char_codes/2,
-         get_char/1, get_char/2,
-         peek_char/1, peek_char/2,
-         put_char/1, put_char/2], [assertions,isomodes]).
+    [char_code/2, atom_chars/2, number_chars/2,char_codes/2,
+     get_char/1, get_char/2,
+     peek_char/1, peek_char/2,
+     put_char/1, put_char/2], [assertions,isomodes]).
 
 :- doc(title, "ISO Chars").
 
@@ -25,7 +25,7 @@
    the one char atom @var{Char} is @var{Code}.").
 
 char_code(Ch, C) :- 
-	    atom_codes(Ch, [C]).
+        atom_codes(Ch, [C]).
 
 % Corrected assertions:
 :- pred atom_chars(+atm,?list(atm)) + iso.
@@ -40,12 +40,12 @@ char_code(Ch, C) :-
    successive characters of the name of atom @var{Atom}").
 
 atom_chars(Atom, Chars) :-
-        atom(Atom), !,
-        atom_codes(Atom, S),
-        char_codes(Chars, S).
+    atom(Atom), !,
+    atom_codes(Atom, S),
+    char_codes(Chars, S).
 atom_chars(Atom, Chars) :-
-        char_codes(Chars, S),
-        atom_codes(Atom, S).
+    char_codes(Chars, S),
+    atom_codes(Atom, S).
 
 
 :- pred number_chars(+num, ?list(atm)) + iso.
@@ -56,12 +56,12 @@ atom_chars(Atom, Chars) :-
    character sequence of @var{Number} which could be output").
 
 number_chars(Number, Chars) :-
-        number(Number), !,
-        number_codes(Number, S),
-        char_codes(Chars, S).
+    number(Number), !,
+    number_codes(Number, S),
+    char_codes(Chars, S).
 number_chars(Number, Chars) :-
-        char_codes(Chars, S),
-        number_codes(Number, S).
+    char_codes(Chars, S),
+    number_codes(Number, S).
 
 
 :- pred char_codes(+list(atm), ?list(character_code)).
@@ -69,8 +69,8 @@ number_chars(Number, Chars) :-
 
 char_codes([], []).
 char_codes([Char|Chars],[C|Cs]) :-
-        char_code(Char, C),
-        char_codes(Chars, Cs).
+    char_code(Char, C),
+    char_codes(Chars, Cs).
 
 get_char(C)   :- get_code(B), code_to_char_or_eof(B,C).
 

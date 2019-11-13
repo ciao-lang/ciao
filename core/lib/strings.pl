@@ -1,6 +1,6 @@
 :- module(strings, [
-	whitespace/2, whitespace0/2,
-	string/3
+    whitespace/2, whitespace0/2,
+    string/3
    ], [assertions,isomodes]).
 
 :- doc(title, "String processing").
@@ -57,8 +57,8 @@ whitespace_char(9).  % tab
 
 @begin{verbatim}
 double(A) -->
-        string(A),
-        string(A).
+    string(A),
+    string(A).
 @end{verbatim}
 ").
 

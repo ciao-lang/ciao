@@ -27,7 +27,7 @@
 :- use_module(ciaobld(config_common), [site_root_dir/1]).
 
 'httpserv.file_path'('', Path) :-
-	Path = ~site_root_dir.
+    Path = ~site_root_dir.
 
 % ---------------------------------------------------------------------------
 :- doc(section, "HTTP handler with active module bridge").
@@ -48,68 +48,68 @@
 %  - bridge between HTTP and active modules
 
 'httpserv.handle'(Path, Request, Response) :-
-	http_decode_service(Path, ServName, Protocol),
-	( service_loaded(ServName), Protocol = http ->
-	    fail % delegate on other 'httpserv.handle' clauses
-	; !, % cut - do not consider other handlers
-	  http_handle_(ServName, Protocol, Path, Request, Response)
-	).
+    http_decode_service(Path, ServName, Protocol),
+    ( service_loaded(ServName), Protocol = http ->
+        fail % delegate on other 'httpserv.handle' clauses
+    ; !, % cut - do not consider other handlers
+      http_handle_(ServName, Protocol, Path, Request, Response)
+    ).
 
 http_handle_(ServName, Protocol, Path, Request, Response) :-
-	( \+ service_loaded(ServName) ->
-	    % Load and try again the HTTP handler (which may be extended)
-	    service_load(ServName),
-	    'httpserv.handle'(Path, Request, Response)
-	; % Use bridge between HTTP and other protocols
-	  http_bridge(Protocol, ServName, Request, Response, Status),
-	  ( Status = need_restart ->
-	      service_restart(ServName)
-	  ; true
-	  )
-	).
+    ( \+ service_loaded(ServName) ->
+        % Load and try again the HTTP handler (which may be extended)
+        service_load(ServName),
+        'httpserv.handle'(Path, Request, Response)
+    ; % Use bridge between HTTP and other protocols
+      http_bridge(Protocol, ServName, Request, Response, Status),
+      ( Status = need_restart ->
+          service_restart(ServName)
+      ; true
+      )
+    ).
 
 http_decode_service(Path, ServName, Protocol) :-
-	split_query_str(Path, URI, _),
-	service_path(ServName, URI),
-	service_lookup(ServName, Protocol).
+    split_query_str(Path, URI, _),
+    service_path(ServName, URI),
+    service_lookup(ServName, Protocol).
 
 % TODO: use io_sched, etc.
 http_bridge(actmod, ServName, Request, Response, Status) :- !,
-	force_set_actref(serve_http), % TODO: hack, use fibers in ciao-serve main
-	% bridge between HTTP and active modules
-	actRequest_from_http(ServName, Request, ActRequest),
-	protected_send_and_receive(ActRequest, ActResponse, Status),
-	actResponse_to_http(ActResponse, Response).
+    force_set_actref(serve_http), % TODO: hack, use fibers in ciao-serve main
+    % bridge between HTTP and active modules
+    actRequest_from_http(ServName, Request, ActRequest),
+    protected_send_and_receive(ActRequest, ActResponse, Status),
+    actResponse_to_http(ActResponse, Response).
 http_bridge(Protocol, _, _, _, _) :- !,
-	throw(unknown_protocol(Protocol)).
+    throw(unknown_protocol(Protocol)).
 
 % Route the request to the active module (in-process or remote).
 % The active module is asked to be (re)started if needed.
 protected_send_and_receive(ActRequest, ActResponse, Status) :-
-	get_actI(ActRequest, ActRef),
-	% TODO: distinguish failure from error
-	catch(actI_send_call(ActRef, async_json, ActRequest), E, on_err(E)),
-	% TODO: do not block here?
-	catch(actI_receive_response(ActRef, ActResponse0), E, on_err(E)),
-	!,
-	Status = ok,
-	ActResponse = ActResponse0.
+    get_actI(ActRequest, ActRef),
+    % TODO: distinguish failure from error
+    catch(actI_send_call(ActRef, async_json, ActRequest), E, on_err(E)),
+    % TODO: do not block here?
+    catch(actI_receive_response(ActRef, ActResponse0), E, on_err(E)),
+    !,
+    Status = ok,
+    ActResponse = ActResponse0.
 protected_send_and_receive(_ActRequest, ActResponse, Status) :-
-	% Error during call.
-	% We send the 'not ready' message and mark Status as 'need_restart'
-	% We not try the async call immediately again since the daemon
-	% may need some time to start.
-	Status = need_restart,
-	not_ready_response(async_json, ActResponse).
+    % Error during call.
+    % We send the 'not ready' message and mark Status as 'need_restart'
+    % We not try the async call immediately again since the daemon
+    % may need some time to start.
+    Status = need_restart,
+    not_ready_response(async_json, ActResponse).
 
 :- use_module(library(actmod/actmod_rt), [dist_log/1]).
 on_err(E) :-
-	dist_log([~~(E)]),
-	fail.
+    dist_log([~~(E)]),
+    fail.
 
 % TODO: do for any QProt
 not_ready_response(async_json, ActResponse) :-
-        system_error_report(ErrorMsg0),
-	atom_codes(ErrorMsg0, ErrorMsg),
-	ActResponse = ~async_json_error(not_ready, ErrorMsg).
+    system_error_report(ErrorMsg0),
+    atom_codes(ErrorMsg0, ErrorMsg),
+    ActResponse = ~async_json_error(not_ready, ErrorMsg).
 

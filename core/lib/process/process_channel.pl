@@ -26,9 +26,9 @@
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 :- use_module(library(system),
-	[file_exists/1,
-	 mktemp_in_tmp/2,
-	 delete_file/1]).
+    [file_exists/1,
+     mktemp_in_tmp/2,
+     delete_file/1]).
 :- use_module(library(read), [read_term/3]).
 :- use_module(library(write), [write/1, write_canonical/2]).
 :- use_module(library(stream_utils), [write_string/2, get_line/2, read_to_end/2]).
@@ -87,25 +87,25 @@ term_channel(terms(_)).
 :- pred channel_bindings(Channels, ChannelBinds) 
    # "Create channel bindings (taking into account pipes)".
 channel_bindings(Channels, ChannelBinds) :-
-	count_pipes(Channels, Pipes0),
-	channel_bindings_(Channels, ChannelBinds, Pipes0, _Pipes).
+    count_pipes(Channels, Pipes0),
+    channel_bindings_(Channels, ChannelBinds, Pipes0, _Pipes).
 
 channel_bindings_([], [], Pipes, Pipes).
 channel_bindings_([Channel|Channels], [ChannelBind|ChannelBinds], Pipes0, Pipes) :-
-	channel_binding(Channel, ChannelBind, Pipes0, PipesN),
-	Pipes1 is Pipes0 + PipesN,
-	channel_bindings_(Channels, ChannelBinds, Pipes1, Pipes).
+    channel_binding(Channel, ChannelBind, Pipes0, PipesN),
+    Pipes1 is Pipes0 + PipesN,
+    channel_bindings_(Channels, ChannelBinds, Pipes1, Pipes).
 
 % Pipes is the number of pipe(_) channels in Channels
 count_pipes(Channels, Pipes) :-
-	count_pipes_(Channels, 0, Pipes).
+    count_pipes_(Channels, 0, Pipes).
 
 count_pipes_([], Pipes, Pipes).
 count_pipes_([Channel|Channels], Pipes0, Pipes) :- Channel = pipe(_), !,
-	Pipes1 is Pipes0 + 1,
-	count_pipes_(Channels, Pipes1, Pipes).
+    Pipes1 is Pipes0 + 1,
+    count_pipes_(Channels, Pipes1, Pipes).
 count_pipes_([_|Channels], Pipes0, Pipes) :-
-	count_pipes_(Channels, Pipes0, Pipes).
+    count_pipes_(Channels, Pipes0, Pipes).
 
 % ---------------------------------------------------------------------------
 
@@ -145,37 +145,37 @@ count_pipes_([_|Channels], Pipes0, Pipes) :-
 %       @end{itemize}
 
 channel_binding(Channel, ChannelB, CurrPipes, PipesN) :-
-	term_channel(Channel),
-	!,
-	( CurrPipes = 0 -> % no pipe is being used yet
-	    % Select a pipe channel
-	    Channel2 = pipe(_),
-	    Tmp = no,
-	    ChannelB = '$binding'(Channel, Channel2, Tmp, async, _Res),
-	    PipesN = 1
-	; % Use a temporary file
-	  % TODO: check umask?
-	  mktemp_in_tmp('ciao-channel-XXXXXX', File), Tmp = yes,
-	  Channel2 = file(File),
-	  ChannelB = '$binding'(Channel, Channel2, Tmp, sync, _Res),
-	  PipesN = 0
-	).
+    term_channel(Channel),
+    !,
+    ( CurrPipes = 0 -> % no pipe is being used yet
+        % Select a pipe channel
+        Channel2 = pipe(_),
+        Tmp = no,
+        ChannelB = '$binding'(Channel, Channel2, Tmp, async, _Res),
+        PipesN = 1
+    ; % Use a temporary file
+      % TODO: check umask?
+      mktemp_in_tmp('ciao-channel-XXXXXX', File), Tmp = yes,
+      Channel2 = file(File),
+      ChannelB = '$binding'(Channel, Channel2, Tmp, sync, _Res),
+      PipesN = 0
+    ).
 channel_binding(Channel, ChannelB, _CurrPipes, 0) :-
-	Res = success, % (no transfer)
-	ChannelB = '$binding'(Channel, Channel, no, none, Res).
+    Res = success, % (no transfer)
+    ChannelB = '$binding'(Channel, Channel, no, none, Res).
 
 :- export(cleanup_binding/1).
 :- pred cleanup_binding(ChannelB)
    # "Cleanup temporaries due to channel file-based bindings.".
 cleanup_binding('$binding'(_, file(File), yes, _, _)) :- !,
-	delete_file(File).
+    delete_file(File).
 cleanup_binding(_).
 
 :- export(binding_port_call/1).
 :- pred binding_port_call(ChannelB)
    # "Do port_call/1 on the result of channel transfer (send or receive).".
 binding_port_call('$binding'(_Channel, _Channel2, _Tmp, _TrMode, Res)) :-
-	port_call(Res).
+    port_call(Res).
 
 % ---------------------------------------------------------------------------
 
@@ -186,12 +186,12 @@ binding_port_call('$binding'(_Channel, _Channel2, _Tmp, _TrMode, Res)) :-
      @pred{binding_port_call/1}).".
 
 send_input(Mode, '$binding'(Channel, Channel2, _, Mode, Res)) :- !,
-	( Channel2 = pipe(Stream) ->
-	    once_port_reify(write_channel(Stream, Channel), Res)
-	; Channel2 = file(File) ->
-	    once_port_reify(write_channel_to_file(File, Channel), Res)
-	; Res = success
-	).
+    ( Channel2 = pipe(Stream) ->
+        once_port_reify(write_channel(Stream, Channel), Res)
+    ; Channel2 = file(File) ->
+        once_port_reify(write_channel_to_file(File, Channel), Res)
+    ; Res = success
+    ).
 send_input(_, _).
 
 :- export(receive_output/2).
@@ -201,12 +201,12 @@ send_input(_, _).
      @pred{binding_port_call/1}).".
 
 receive_output(Mode, '$binding'(Channel, Channel2, _, Mode, Res)) :- !,
-	( Channel2 = pipe(Stream) ->
-	    once_port_reify(read_channel(Stream, Channel), Res)
-	; Channel2 = file(File) ->
-	    once_port_reify(read_channel_from_file(File, Channel), Res)
-	; Res = success
-	).
+    ( Channel2 = pipe(Stream) ->
+        once_port_reify(read_channel(Stream, Channel), Res)
+    ; Channel2 = file(File) ->
+        once_port_reify(read_channel_from_file(File, Channel), Res)
+    ; Res = success
+    ).
 receive_output(_, _).
 
 % ---------------------------------------------------------------------------
@@ -222,11 +222,11 @@ receive_output(_, _).
       afterwards (independently on the result).".
 
 read_channel(Stream, Channel) :-
-	catch(read_channel_(Channel, Stream), E, read_exception(Stream, E)).
+    catch(read_channel_(Channel, Stream), E, read_exception(Stream, E)).
 
 read_exception(Stream, E) :-
-	discard_stream_data(Stream),
-	throw(E).
+    discard_stream_data(Stream),
+    throw(E).
 
 % Note: ensure that all stream codes have been read.
 %
@@ -234,107 +234,107 @@ read_exception(Stream, E) :-
 %   discard_stream_data/1 just closes the stream, etc.)
 
 read_channel_(Channel, Stream) :-
-	( read_channel__(Channel, Stream),
-	  close(Stream) ->
-	    true
-	; discard_stream_data(Stream),
-	  fail
-	).
+    ( read_channel__(Channel, Stream),
+      close(Stream) ->
+        true
+    ; discard_stream_data(Stream),
+      fail
+    ).
 
 % Note: some may throw parsing errors
 read_channel__(string(Term), Stream) :- !,
-	read_to_end(Stream, Term).
+    read_to_end(Stream, Term).
 read_channel__(line(Term), Stream) :- !,
-	read_to_end(Stream, String0),
-	no_tr_nl(String0, Term).
+    read_to_end(Stream, String0),
+    no_tr_nl(String0, Term).
 read_channel__(atmlist(Term), Stream) :- !,
-	read_lines(Stream, Term).
+    read_lines(Stream, Term).
 read_channel__(terms(Term), Stream) :- !,
-	read_terms(Stream, Term).
+    read_terms(Stream, Term).
 read_channel__(Channel, _Stream) :-
-	throw(error(bad_channel(Channel), read_channel/2)).
+    throw(error(bad_channel(Channel), read_channel/2)).
 
 % Read the rest of the stream code and close the stream
 % TODO: this can be done more efficiently
 % TODO: why not just close the stream?
 discard_stream_data(Stream) :-
-	\+ \+ read_to_end(Stream, _),
-	close(Stream).
+    \+ \+ read_to_end(Stream, _),
+    close(Stream).
 
 :- pred read_channel_from_file(File, Channel) 
    # "Read the contents of channel @var{Channel} from file @var{File}".
 read_channel_from_file(File, Channel) :-
-	open(File, read, Stream),
-	read_channel(Stream, Channel).
+    open(File, read, Stream),
+    read_channel(Stream, Channel).
 
 :- pred write_channel(Stream, Channel)
    # "Write the contents of channel @var{Channel} to stream @var{Stream}".
 write_channel(Stream, Channel) :-
-	( write_channel_(Channel, Stream) ->
-	    close(Stream)
-	; close(Stream),
-	  fail
-	).
+    ( write_channel_(Channel, Stream) ->
+        close(Stream)
+    ; close(Stream),
+      fail
+    ).
 
 write_channel_(string(Term), Stream) :- !,
-	write_string(Stream, Term).
+    write_string(Stream, Term).
 write_channel_(line(Term), Stream) :- !,
-	write_string(Stream, Term),
-	nl(Stream).
+    write_string(Stream, Term),
+    nl(Stream).
 write_channel_(atmlist(Term), Stream) :- !,
-	write_lines(Stream, Term).
+    write_lines(Stream, Term).
 write_channel_(terms(Term), Stream) :- !,
-	write_terms(Stream, Term).
+    write_terms(Stream, Term).
 write_channel_(Channel, _) :-
-	throw(error(bad_channel(Channel), write_channel/2)).
+    throw(error(bad_channel(Channel), write_channel/2)).
 
 :- pred write_channel_to_file(File, Channel) 
    # "Write the contents of channel @var{Channel} to file @var{File}".
 write_channel_to_file(File, Channel) :-
-	open(File, write, Stream),
-	write_channel(Stream, Channel).
+    open(File, write, Stream),
+    write_channel(Stream, Channel).
 
 % ---------------------------------------------------------------------------
 
 no_tr_nl(L, NL) :-
-	append(NL, [0'\n], L),
-	!.
+    append(NL, [0'\n], L),
+    !.
 no_tr_nl(L, L).
 
 % read each line as individual atoms
 read_lines(Stream, Xs) :-
-	get_line(Stream, L),
-	!,
-	( L = end_of_file ->
-	    Xs = []
-	; atom_codes(X, L),
-	  Xs = [X|Xs0],
-	  read_lines(Stream, Xs0)
-	).
+    get_line(Stream, L),
+    !,
+    ( L = end_of_file ->
+        Xs = []
+    ; atom_codes(X, L),
+      Xs = [X|Xs0],
+      read_lines(Stream, Xs0)
+    ).
 read_lines(_, []).
 
 % write individual atoms as lines
 write_lines(_, []) :- !.
 write_lines(Stream, [X|Xs0]) :-
-	display(Stream, X), nl(Stream),
-	write_lines(Stream, Xs0).
+    display(Stream, X), nl(Stream),
+    write_lines(Stream, Xs0).
 
 % read terms (ended in full-stop)
 read_terms(Stream, Xs) :-
-	read_term(Stream, X, []),
-	!,
-	( X = end_of_file ->
-	    Xs = []
-	; Xs = [X|Xs0],
-	  read_terms(Stream, Xs0)
-	).
+    read_term(Stream, X, []),
+    !,
+    ( X = end_of_file ->
+        Xs = []
+    ; Xs = [X|Xs0],
+      read_terms(Stream, Xs0)
+    ).
 read_terms(_, []).
 
 % write terms (ended in full-stop)
 write_terms(_, []) :- !.
 write_terms(Stream, [X|Xs0]) :-
-	write_canonical(Stream, X), display(Stream, ' .'), nl(Stream),
-	write_terms(Stream, Xs0).
+    write_canonical(Stream, X), display(Stream, ' .'), nl(Stream),
+    write_terms(Stream, Xs0).
 
 % ---------------------------------------------------------------------------
 
@@ -346,14 +346,14 @@ write_terms(Stream, [X|Xs0]) :-
 %     os_utils.c for details)
 
 open_redirect('$binding'(_Channel, Channel2, _Tmp, _TrMode, _Res), Mode, S) :-
-	open_redirect_(Channel2, Mode, S).
+    open_redirect_(Channel2, Mode, S).
 
 open_redirect_(file(File), read, S) :- !,
-	open(File, read, S).
+    open(File, read, S).
 open_redirect_(file(File), write, S) :- !,
-	open(File, write, S).
+    open(File, write, S).
 open_redirect_(file_append(File), write, S) :- !,
-	open(File, append, S).
+    open(File, append, S).
 open_redirect_(pipe(Stream), _, S) :- !, S = Stream.
 open_redirect_(stream(Stream), _, S) :- !, S = Stream.
 open_redirect_(stdout, _, S) :- !, S = stdout.
@@ -363,11 +363,11 @@ open_redirect_(_, _, []).
 :- pred close_redirect(ChannelB, S)
    # "Close stream file redirections (for internals:'$exec'/9).".
 close_redirect('$binding'(_Channel, Channel2, _Tmp, _TrMode, _Res), S) :-
-	( Channel2 = file(_)
-	; Channel2 = file_append(_)
-	),
-	!,
-	close(S).
+    ( Channel2 = file(_)
+    ; Channel2 = file_append(_)
+    ),
+    !,
+    close(S).
 close_redirect(_, _).
 
 

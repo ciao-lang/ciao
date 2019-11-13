@@ -8,9 +8,9 @@
 %:- determinate( test, true ).
 
 test:-
-        solve(A,B,C,D,E,F,G,H),
-%	wakeup(_1,_3), to include in the result!!!
-        print_out(A,B,C,D,E,F,G,H).
+    solve(A,B,C,D,E,F,G,H),
+%       wakeup(_1,_3), to include in the result!!!
+    print_out(A,B,C,D,E,F,G,H).
 
 %:- determinate( go, true ).
 
@@ -19,51 +19,51 @@ go:- solve(S,E,N,D,M,O,R,Y).
 %:- determinate( go(X), true ).
 
 go(fn(S,E,N,D,M,O,R,Y)):- solve(S,E,N,D,M,O,R,Y),
-			print_out(S,E,N,D,M,O,R,Y).
+                    print_out(S,E,N,D,M,O,R,Y).
 
 %:- determinate( solve(S,E,N,D,M,O,R,Y), true ).
 
 solve(S,E,N,D,M,O,R,Y):- 
-	M = 1,			%% M must be 1
-	carry(C1,C2,C3),
-	ganerate(S,E,N,D,M,O,R,Y),
-	S > 0,			%% S can't be 0
-	const(0,D,E,Y,C1),  	%% D+E = Y+10*C1
-	const(C1,N,R,E,C2),	%% C1+N+R = E+10*C2
-	const(C2,E,O,N,C3),	%% C2+E+O = N+10*C3
-	const(C3,S,M,O,M).	%% C3+S+M = O+10*M
+    M = 1,                  %% M must be 1
+    carry(C1,C2,C3),
+    ganerate(S,E,N,D,M,O,R,Y),
+    S > 0,                  %% S can't be 0
+    const(0,D,E,Y,C1),      %% D+E = Y+10*C1
+    const(C1,N,R,E,C2),     %% C1+N+R = E+10*C2
+    const(C2,E,O,N,C3),     %% C2+E+O = N+10*C3
+    const(C3,S,M,O,M).      %% C3+S+M = O+10*M
 
 
 %:- determinate(  const(A,B,C,D,E), (
-%	ground(E), ground(D), ground(B), ground(C) ;
-%	ground(D), ground(E), ground(A), ground(C) ;
-%	ground(A), ground(E), ground(D), ground(B) ;
-%	ground(B), ground(E), ground(A), ground(C) ;
-%	ground(C), ground(D), ground(A), ground(B) ) ).
+%       ground(E), ground(D), ground(B), ground(C) ;
+%       ground(D), ground(E), ground(A), ground(C) ;
+%       ground(A), ground(E), ground(D), ground(B) ;
+%       ground(B), ground(E), ground(A), ground(C) ;
+%       ground(C), ground(D), ground(A), ground(B) ) ).
 
-const(A,B,C,D,E):-		%% if only A is unbound
-	A is 10 * E + D - B - C,!.
-const(A,B,C,D,E):-		%% if only B is unbound
-	B is 10 * E + D - A - C,!.
-const(A,B,C,D,E):-		%% if only C is unbound
-	C is 10 * E + D - A - B,!.
-const(A,B,C,D,E):-		%% if only D is unbound
-	D is C - 10 * E + A + B,!.
-const(A,B,C,D,E):-		%% if only E is unbound
-	E is (C - D + A + B) / 10.
-	
+const(A,B,C,D,E):-              %% if only A is unbound
+    A is 10 * E + D - B - C,!.
+const(A,B,C,D,E):-              %% if only B is unbound
+    B is 10 * E + D - A - C,!.
+const(A,B,C,D,E):-              %% if only C is unbound
+    C is 10 * E + D - A - B,!.
+const(A,B,C,D,E):-              %% if only D is unbound
+    D is C - 10 * E + A + B,!.
+const(A,B,C,D,E):-              %% if only E is unbound
+    E is (C - D + A + B) / 10.
+    
 %:- determinate( ganerate(S,E,N,D,M,O,R,Y), true ).
 
 ganerate(S,E,N,D,M,O,R,Y):- 
-	digi(S,1), 
-	digi(E,2), 
-	digi(N,3), 
-	digi(D,4), 
-	digi(M,5),
-	digi(O,6), 
-	digi(R,7), 
-	digi(Y,8), 
-	difflist([S,E,N,D,M,O,R,Y]).
+    digi(S,1), 
+    digi(E,2), 
+    digi(N,3), 
+    digi(D,4), 
+    digi(M,5),
+    digi(O,6), 
+    digi(R,7), 
+    digi(Y,8), 
+    difflist([S,E,N,D,M,O,R,Y]).
 
 %:- determinate( difflist(A), nonvar(A) ).
 
@@ -107,13 +107,13 @@ carry(0,0,0).
 %:- determinate( print_out(S,E,N,D,M,O,R,Y), true ).
 
 print_out(S,E,N,D,M,O,R,Y):- 
-	write('    SEND'), nl,
-     	write(' +  MORE'), nl,
-	write('-----------'), nl,
-	write('   MONEY'), nl, nl,
-	write('The solution is:'), nl, nl,
-	write('   '), write(S),write(E),write(N),write(D), nl,
-	write(' + '), write(M),write(O),write(R),write(E), nl,
-	write('-----------'), nl,
-	write('  '),
-	write(M),write(O),write(N),write(E),write(Y), nl.
+    write('    SEND'), nl,
+    write(' +  MORE'), nl,
+    write('-----------'), nl,
+    write('   MONEY'), nl, nl,
+    write('The solution is:'), nl, nl,
+    write('   '), write(S),write(E),write(N),write(D), nl,
+    write(' + '), write(M),write(O),write(R),write(E), nl,
+    write('-----------'), nl,
+    write('  '),
+    write(M),write(O),write(N),write(E),write(Y), nl.

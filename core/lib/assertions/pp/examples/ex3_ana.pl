@@ -9,4 +9,4 @@
 :- pred foo(X) => number(X).
 
 foo(X) :-
-	X = bar.
+    X = bar.

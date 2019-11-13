@@ -116,13 +116,13 @@
 :- trust comp delete_non_ground(L1,E,L2) : (ground(L1), ground(L2)) + eval.
 
 delete_non_ground([A], _, [A]) :-
-	var(A), !.
+    var(A), !.
 delete_non_ground([], _, []).
 delete_non_ground([Head|Tail], Element, Rest) :-
-	eq(Head,Element), !,
-	delete_non_ground(Tail, Element, Rest).
+    eq(Head,Element), !,
+    delete_non_ground(Tail, Element, Rest).
 delete_non_ground([Head|Tail], Element, [Head|Rest]) :-
-	delete_non_ground(Tail, Element, Rest).
+    delete_non_ground(Tail, Element, Rest).
 
 eq(A, B):- \+ \+ A = B.
 

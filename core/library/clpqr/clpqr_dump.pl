@@ -8,9 +8,9 @@
 % Intermediate terms produced by unmeta that have to be
 % covered by remeta and tidy_constraint
 %
-%	float/1, eqs/3,
+%       float/1, eqs/3,
 %       term_wrap/1, clpr_frozen/1
-%       cva/2				% general case
+%       cva/2                           % general case
 %
 
 % :- use_module(engine(messages_basic), [message/2]).
@@ -36,7 +36,7 @@ dump_internal( Term, Copy, Cs2) :-
   remeta( Cs1),
   trans_ineq( Cs1, RootCvas1),
   make_indep( RootCvas1, RootCvas1), % after all simplex mods
-                                     % (creates 'infeasible' rows)
+                                 % (creates 'infeasible' rows)
   unmeta( Copy1, Copy, Cs2, _RootCvas2).
   % message(debug, ['Dump, stage 2: ',_RootCvas2,'\n',Cs2]).
 
@@ -45,7 +45,7 @@ dump_internal( Term, Copy, Cs2) :-
 % vars are reachable from the Term
 %
 unmeta( Term, Copy, MetaPlan, Roots) :-
-  ct_top( Term, Copy, Dict, root), 		% nl, pd( Dict, 0), nl,
+  ct_top( Term, Copy, Dict, root),              % nl, pd( Dict, 0), nl,
   ct_eqs( Dict),
   closure2list( Dict, Roots, [], MetaPlan, []).
 
@@ -140,10 +140,10 @@ ct_eqs( Dict) :-
 
 ct_eqs( T,          _,    _) :- var( T), !.
 ct_eqs( t(L,Key,R), Dict, Applied) :-
-  ( Key = eqs(Eqs,T2,Dep,Indep), var(T2) ->			% a new one
+  ( Key = eqs(Eqs,T2,Dep,Indep), var(T2) ->                     % a new one
       Applied = true,
       get_attribute( Eqs, p(_,De,_,In,_)),
-      eqn_type_mask( v, T0),					% solve.pl
+      eqn_type_mask( v, T0),                                    % solve.pl
       closure_dep( De, Dict, Dep, T0, T1),
       closure_indep( In, Dict, Indep, T1, T2)
   ;
@@ -170,10 +170,10 @@ closure_dep( [D|De], Dict, Res, T1, T3) :-
     ( T = l(_)
     ; T = nz
     ; Nc = nl(_,_)
-    ; Loc == root						% don't unify !!!
+    ; Loc == root                                               % don't unify !!!
     ; Stat = old
     ) ->
-      eqn_type_mask( T, Tm1),					% solve.pl
+      eqn_type_mask( T, Tm1),                                   % solve.pl
       eqn_type_mask( Nc, Tm2),
       join_eqn_types( [T1,Tm1,Tm2], T2),
       get_attribute( Def, I+H),
@@ -189,7 +189,7 @@ closure_indep( [I|Is], Dict, [indep(Copy,T,Nc)|Rest], T1, T3) :-
   get_attribute( I, eqn_var(_,T,_,_,Nl)),
   dict_insert( Dict, cva(I,Copy,_,irrelevant), _),
   closure_nl_att( Nl, Dict, Nc),
-  eqn_type_mask( T, Tm1),					% solve.pl
+  eqn_type_mask( T, Tm1),                                       % solve.pl
   eqn_type_mask( Nc, Tm2),
   join_eqn_types( [T1,Tm1,Tm2], T2),
   closure_indep( Is, Dict, Rest, T2, T3).
@@ -225,7 +225,7 @@ closure_nl_system( (A,B), Copy, Dict) :- !,
   closure_nl_system( B, Bc, Dict),
   join_goals( Ac, Bc, Copy).
 closure_nl_system( Goal, Copy, Dict) :-
-  arg( 1, Goal, Mutex),					% convention
+  arg( 1, Goal, Mutex),                                 % convention
   ( var( Mutex) ->
       %
       % The double mux/1 wrap is need because Mutex is also copied as part of Goal -
@@ -310,7 +310,7 @@ remeta_rest( clpr_frozen(Goals), Var) :-
   ; Goals = nl(S,U),
       attach_attribute( X, clpr_frozen(X,S,U)), X=Var
   ).
-remeta_rest( cva(Attrib), Var) :-			% general case
+remeta_rest( cva(Attrib), Var) :-                       % general case
   attach_attribute( X, Attrib), X=Var.
 
 remeta_hom( 1, [X*K|T], T, [X*K]) :- !.
@@ -343,11 +343,11 @@ make_indep( [V|Vs], Indep) :-
   ( get_attribute( V, eqn_var(_,_,Lin,_,_)) ->
      get_attribute( Lin, I+H),
      ( indep_var( H, I, V) ->
-         true
+     true
      ; nonindep( H, Inr, Indep) ->
-         swap( V, Inr, _)
+     swap( V, Inr, _)
      ;
-         true
+     true
      )
   ;
      true
@@ -402,7 +402,7 @@ collect_elim( V,      _,     []) :- var( V), !.
 collect_elim( [V|Vs], Roots, Res) :-
   ( memq( V, Roots) ->
       collect_elim( Vs, Roots, Res)
-  ; get_attribute( V, eqn_var(_,_,_,_,Nl)),		% hands off if there nonlins
+  ; get_attribute( V, eqn_var(_,_,_,_,Nl)),             % hands off if there nonlins
     get_attribute( Nl, (S,U)),
     ( U \== true
     ; pending_sys_nl( S)
@@ -444,7 +444,7 @@ tidy_constraint( float(F), V, Dict) -->
 tidy_constraint( clpr_frozen(Goals), Var, Dict) -->
   tidy_nonlin( Goals, Var, Dict).
 %
-tidy_constraint( cva(Attrib), V, Dict) --> 		% general case
+tidy_constraint( cva(Attrib), V, Dict) -->              % general case
   { dict_insert( Dict, eq(V,_,no), _) },
   [ attach_attribute(V,Attrib) ].
 
@@ -484,9 +484,9 @@ tidy_constraint_dep( nz, I, H, V, Dict) -->
 tidy_constraint_dep( l(Type), I, [V*K|Vs], V, _) -->
   {
      ( arith_eval( K > 0) ->
-         Rel = <
+     Rel = <
      ;
-         Rel = >
+     Rel = >
      ),
      arith_eval( -1/K, K1),
      arith_eval( I*K1, I1),
@@ -506,9 +506,9 @@ tidy_frozen_system( (A,B), Dict) --> !,
   tidy_frozen_system( B, Dict).
 tidy_frozen_system( Goal, Dict) -->
   ( {
-      arg( 1, Goal, Mutex),				% convention
-      var( Mutex),					% once only
-      Mutex = dumped					% this is *our* copy anyway
+      arg( 1, Goal, Mutex),                             % convention
+      var( Mutex),                                      % once only
+      Mutex = dumped                                    % this is *our* copy anyway
     } ->
       tidy_frozen_system_op( Goal, Dict)
   ;
@@ -567,10 +567,10 @@ tidy_eqs( Dict) --> {var(Dict)}, !, [].
 %% Changed to display constraints as .=. (DCG)
 % tidy_eqs( t(L,eq(Var,Rhs,Flag),R)) -->
 %   ( {var(Var),Flag=yes,free_of_var(Var,Rhs)} ->
-%       { Rhs = [Var|Tail] },			% execute first
-%       tidy_eqs_l( Tail, Var)                   	% collect rest
+%       { Rhs = [Var|Tail] },                   % execute first
+%       tidy_eqs_l( Tail, Var)                          % collect rest
 %   ;
-%       tidy_eqs_l(Rhs,Var) 			% collect all
+%       tidy_eqs_l(Rhs,Var)                     % collect all
 %   ),
 %   tidy_eqs( L),
 %   tidy_eqs( R).
@@ -616,41 +616,41 @@ dict_insert( t(L,Key0,R), Key, Occ) :-
 %   pd( R, D1).
 /*
 free_of_var(Variable, Term) :-
-	Term == Variable,
-	!,
-	fail.
+    Term == Variable,
+    !,
+    fail.
 free_of_var(Variable, Term) :-
-	nonvar( Term),
-	functor(Term, _, Arity),
-	Arity > 0,
-	!,
-	free_of_var(Arity, Term, Variable).
+    nonvar( Term),
+    functor(Term, _, Arity),
+    Arity > 0,
+    !,
+    free_of_var(Arity, Term, Variable).
 free_of_var(_, _).
 
 free_of_var(1, Term, Variable) :- !,
-	arg(1, Term, Argument),
-	free_of_var(Variable, Argument).
+    arg(1, Term, Argument),
+    free_of_var(Variable, Argument).
 free_of_var(N, Term, Variable) :-
-	arg(N, Term, Argument),
-	free_of_var(Variable, Argument),
-	M is N-1,
-	free_of_var(M, Term, Variable).
+    arg(N, Term, Argument),
+    free_of_var(Variable, Argument),
+    M is N-1,
+    free_of_var(M, Term, Variable).
 */
 % ----------------------------------- support ---------------------------------
 
 nf_to_sum( Hk, Ik, Sum) :-
   ( arith_zero( Ik) ->
       ( Hk = [Var*Kid|Fs] ->
-         ( arith_eval( Kid=:=  1) ->
-             New = Var
-         ; arith_eval( Kid=:= -1) ->
-             New = -Var
-         ;
-             New = Kid*Var
-         ),
-         nf_to_sum1( Fs, New, Sum)
+     ( arith_eval( Kid=:=  1) ->
+         New = Var
+     ; arith_eval( Kid=:= -1) ->
+         New = -Var
+     ;
+         New = Kid*Var
+     ),
+     nf_to_sum1( Fs, New, Sum)
       ;
-         Sum = 0
+     Sum = 0
       )
   ;
       nf_to_sum1( Hk, Ik, Sum)

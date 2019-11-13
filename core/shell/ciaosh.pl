@@ -3,4 +3,4 @@
 :- use_module(library(toplevel)).
 
 main(Args) :-
-	toplevel(Args).
+    toplevel(Args).

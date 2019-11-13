@@ -1,11 +1,11 @@
 
 :- module(xmrefs,
-        [ xmrefs/0,
-          xmlinks/0,
-          quit/0
-        ],
-        [ assertions, regtypes
-        ]).
+    [ xmrefs/0,
+      xmlinks/0,
+      quit/0
+    ],
+    [ assertions, regtypes
+    ]).
 
 :- use_module(engine(stream_basic), [sourcename/1]).
 :- use_module(library(davinci)).
@@ -18,34 +18,34 @@
 :- doc(author,"Francisco Bueno").
 
 :- doc(module,"This module allows displaying a graph of
-        crossed-references between modules. The graph is obtained using
-	@tt{library(xrefs/mrefs)} and is displayed using daVinci (a
-        windows-based graphics graph displayer developed by U. of Bremen,
-	Germany), via @tt{library(davinci)}.
+    crossed-references between modules. The graph is obtained using
+    @tt{library(xrefs/mrefs)} and is displayed using daVinci (a
+    windows-based graphics graph displayer developed by U. of Bremen,
+    Germany), via @tt{library(davinci)}.
 
-        See the documentation of these libraries for details.").
+    See the documentation of these libraries for details.").
 
 :- doc(bug,"@tt{quit/0} does nothing. daVinci has to be exited
-        from its own window.").
+    from its own window.").
 
 %-----------------------------------------------------------------------------
 % entry points
 
 :- pred xmrefs 
-        # "Displays a graph of crossed-references for the current files.".
+    # "Displays a graph of crossed-references for the current files.".
 
 xmrefs:- 
-        mrefs_lgraph(Graph),
-        ( davinci -> true ; true ),
-        davinci_lgraph(Graph).
+    mrefs_lgraph(Graph),
+    ( davinci -> true ; true ),
+    davinci_lgraph(Graph).
 
 :- pred xmlinks
-        # "Like @tt{xmrefs/0} but edges have no labels.".
+    # "Like @tt{xmrefs/0} but edges have no labels.".
 
 xmlinks:- 
-        mrefs_ugraph(Graph),
-        ( davinci -> true ; true ),
-        davinci_ugraph(Graph).
+    mrefs_ugraph(Graph),
+    ( davinci -> true ; true ),
+    davinci_ugraph(Graph).
 
 :- doc(quit/0,"Quits daVinci.").
 

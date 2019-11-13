@@ -120,27 +120,27 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 % (merge below?)
 %'$builder_hook'(ciaocl:cmd('ciao', [main='NONE_AUTOGEN', shscript])). % TODO: only for installation
 '$builder_hook'(ciaocl:cmd_raw(shscript, 'ciao', Opts)) :- % TODO: only for installation
-	( install_prolog_name(yes) ->
-	    Opts = [link_as('prolog')]
-	; Opts = []
-	).
+    ( install_prolog_name(yes) ->
+        Opts = [link_as('prolog')]
+    ; Opts = []
+    ).
 '$builder_hook'(ciaocl:build_bin) :- % (overrides build)
-	BootEng = ~boot_eng_def,
-	wr_template(as_cmd(core, shscript), ~bundle_path(core, 'cmds'), 'ciao', [
-	    'ExtraCommands' = ~ciao_extra_commands, % (for toplevel)
-	    %
-	    % Access to boot builder
-	    % TODO: only used in local-install, global installation uses the builder exec (is it OK?)
-	    % TODO: (MinGW) is cmd.exe enough? (at least for bootstrap) consider PowerShell scripts for Windows?
-	    'boot_ciaoroot' = ~ciao_root,
-	    'boot_bindir' = ~bundle_path(core, bootbuilddir, 'bin'),
-	    'boot_ciaohdir' = ~eng_path(hdir, BootEng),
-	    'boot_ciaoengine' = ~eng_path(exec, BootEng)
-        ]),
- 	( install_prolog_name(yes) ->
- 	    cmd_build_link(core, shscript, 'ciao', 'prolog')
- 	; true
- 	).
+    BootEng = ~boot_eng_def,
+    wr_template(as_cmd(core, shscript), ~bundle_path(core, 'cmds'), 'ciao', [
+        'ExtraCommands' = ~ciao_extra_commands, % (for toplevel)
+        %
+        % Access to boot builder
+        % TODO: only used in local-install, global installation uses the builder exec (is it OK?)
+        % TODO: (MinGW) is cmd.exe enough? (at least for bootstrap) consider PowerShell scripts for Windows?
+        'boot_ciaoroot' = ~ciao_root,
+        'boot_bindir' = ~bundle_path(core, bootbuilddir, 'bin'),
+        'boot_ciaohdir' = ~eng_path(hdir, BootEng),
+        'boot_ciaoengine' = ~eng_path(exec, BootEng)
+    ]),
+    ( install_prolog_name(yes) ->
+        cmd_build_link(core, shscript, 'ciao', 'prolog')
+    ; true
+    ).
 
 :- use_module(library(format), [sformat/3]).
 :- use_module(ciaobld(bundle_configure), [
@@ -149,17 +149,17 @@ install_prolog_name := ~get_bundle_flag(core:install_prolog_name).
 
 % TODO: store these flags during prepare_build_bin in a separate file, load them without need to rebuild the commands?
 ciao_extra_commands(ExtraCommands) :-
-	sformat(ExtraCommands, "-e '~w'",
-	    [~list_to_lits(~set_prolog_flags_from_bundle_flags)]).
+    sformat(ExtraCommands, "-e '~w'",
+        [~list_to_lits(~set_prolog_flags_from_bundle_flags)]).
 
 % TODO: import from formulae
 list_to_lits([],     true).
 list_to_lits([X|Xs], Lits) :-
-	list_to_lits2(Xs, X, Lits).
+    list_to_lits2(Xs, X, Lits).
 
 list_to_lits2([],     X,  X).
 list_to_lits2([X|Xs], X0, (X0, Lits)) :-
-	list_to_lits2(Xs, X, Lits).
+    list_to_lits2(Xs, X, Lits).
 
 % ---------------------------------------------------------------------------
 % Command for detection of system configuration
@@ -177,8 +177,8 @@ ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
 '$builder_hook'(item_nested(ciao_sysconf)).
 '$builder_hook'(ciao_sysconf:cmd('ciao_sysconf', [main='NONE_AUTOGEN', shscript])).
 '$builder_hook'(ciao_sysconf:build_bin) :- % (override build)
-	% (we just copy the script from the builder)
-	cmd_build_copy(core, shscript, ~ciao_sysconf_sh, 'ciao_sysconf').
+    % (we just copy the script from the builder)
+    cmd_build_copy(core, shscript, ~ciao_sysconf_sh, 'ciao_sysconf').
 
 % ---------------------------------------------------------------------------
 % Engine
@@ -196,53 +196,53 @@ ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 
 '$builder_hook'(test) :- !,
-	runtests_dir(core, 'lib'),
-	runtests_dir(core, 'library'),
-	runtests_ciaotests_hook. % integration tests
+    runtests_dir(core, 'lib'),
+    runtests_dir(core, 'library'),
+    runtests_ciaotests_hook. % integration tests
 
 :- use_module(library(system), [working_directory/2]).
 :- use_module(ciaobld(ciaoc_aux), [
-	exists_and_compilable/1,
-        invoke_ciaosh_batch/1]).
+    exists_and_compilable/1,
+    invoke_ciaosh_batch/1]).
 
 % Run Ciao integration tests
 runtests_ciaotests_hook :-
-	( exists_and_compilable(~bundle_path(core, 'tests')) ->
-	    do_ciaotests % TODO: missing cleaning code! (see below)
-	; true
-	).
+    ( exists_and_compilable(~bundle_path(core, 'tests')) ->
+        do_ciaotests % TODO: missing cleaning code! (see below)
+    ; true
+    ).
 
 do_ciaotests :-
-	working_directory(ThisDir, ~bundle_path(core, 'tests')),
-	invoke_ciaosh_batch([
-	  use_module(core_tests(run_tests), [run_tests/0]),
-	  run_tests:run_tests
-	]),
-	working_directory(_, ThisDir).
+    working_directory(ThisDir, ~bundle_path(core, 'tests')),
+    invoke_ciaosh_batch([
+      use_module(core_tests(run_tests), [run_tests/0]),
+      run_tests:run_tests
+    ]),
+    working_directory(_, ThisDir).
 
 % TODO: Missing cleaning code! (incomplete)
-% 	find . -name '*.po' -exec rm {} \;
-% 	find . -name '*.itf' -exec rm {} \;
-% 	find . -name '*.a' -exec rm {} \;
-% 	find . -name '*.o' -exec rm {} \;
-% 	find . -name '*.so' -exec rm {} \;
-% 	find . -name '*.dll' -exec rm {} \;
-% 	find . -name '*_glue.c' -exec rm {} \;
-% 	find . -name 'tmpciao*' -exec rm {} \;
-% 	find . -name '*.log' -exec rm {} \;
-% 	-rm -f load_dynlibs/load_dynlibs
-% 	-rm -f object_test/object_test
-% 	-rm -f test_java/plserver
-% 	-rm -f test_java/j2pl_test.class
-% 	-rm -f persistentdb/persistentdb
-% 	-rm -f persistentdb/queue 
-% 	-rm -f persistentdb/example_static
-% 	-rm -f persistentdb/example_dynamic 
-% 	-rm -f remote_exec/client
-% 	-rm -f remote_exec/server
-% 	-rm -f run_tests
-% 	-rm -rf pers
-% 	-rm -rf pers_queue
+%       find . -name '*.po' -exec rm {} \;
+%       find . -name '*.itf' -exec rm {} \;
+%       find . -name '*.a' -exec rm {} \;
+%       find . -name '*.o' -exec rm {} \;
+%       find . -name '*.so' -exec rm {} \;
+%       find . -name '*.dll' -exec rm {} \;
+%       find . -name '*_glue.c' -exec rm {} \;
+%       find . -name 'tmpciao*' -exec rm {} \;
+%       find . -name '*.log' -exec rm {} \;
+%       -rm -f load_dynlibs/load_dynlibs
+%       -rm -f object_test/object_test
+%       -rm -f test_java/plserver
+%       -rm -f test_java/j2pl_test.class
+%       -rm -f persistentdb/persistentdb
+%       -rm -f persistentdb/queue 
+%       -rm -f persistentdb/example_static
+%       -rm -f persistentdb/example_dynamic 
+%       -rm -f remote_exec/client
+%       -rm -f remote_exec/server
+%       -rm -f run_tests
+%       -rm -rf pers
+%       -rm -rf pers_queue
 
 % ===========================================================================
 
@@ -254,8 +254,8 @@ do_ciaotests :-
 :- use_module(ciaobld(ciaoc_aux), [create_windows_bat/6]).
 
 :- use_module(library(emacs/emacs_batch),
-	[set_emacs_type/1, unset_emacs_type/0,
-	 set_emacs_path/1, unset_emacs_path/0]).
+    [set_emacs_type/1, unset_emacs_type/0,
+     set_emacs_path/1, unset_emacs_path/0]).
 :- use_module(ciaobld(bundle_configure), [config_set_flag/2]). % TODO: dangerous!
 :- use_module(engine(internals), ['$bundle_id'/1]).
 
@@ -271,40 +271,40 @@ do_ciaotests :-
 % Accepts this parameter:
 %   --emacs_path=EmacsDir (as a windows path)
 '$builder_hook'(custom_run(environment_and_windows_bats, Args)) :-
-	( '$bundle_id'(ciao_emacs) -> % has ciao_emacs?
-	    ciao_emacs_reinstall_win32(Args)
-	; true
-	),
-	% Fix executables
-	builder_cmd(build_bin, 'core.exec_header'),
-	windows_bats.
+    ( '$bundle_id'(ciao_emacs) -> % has ciao_emacs?
+        ciao_emacs_reinstall_win32(Args)
+    ; true
+    ),
+    % Fix executables
+    builder_cmd(build_bin, 'core.exec_header'),
+    windows_bats.
 
 ciao_emacs_reinstall_win32(Args) :-
-	( member(Arg, Args),
-	    atom_concat('--emacs_path=', EmacsPath, Arg) ->
-	    set_emacs_path(EmacsPath)
-	; true
-	),
-	set_emacs_type('Win32'), % TODO: patch config instead?
-	config_set_flag(ciao_emacs:enabled, 'yes'), % TODO: dangerous!
-	builder_cmd(build_bin, 'ciao_emacs.emacs_mode'), % TODO: needed?
-	builder_cmd(install, 'ciao_emacs.emacs_mode'), % TODO: needed?
-	% (put ciao-mode-init.el in place)
-	builder_cmd(install, 'ciao_emacs.dot_emacs'),
-	unset_emacs_type,
-	unset_emacs_path.
+    ( member(Arg, Args),
+        atom_concat('--emacs_path=', EmacsPath, Arg) ->
+        set_emacs_path(EmacsPath)
+    ; true
+    ),
+    set_emacs_type('Win32'), % TODO: patch config instead?
+    config_set_flag(ciao_emacs:enabled, 'yes'), % TODO: dangerous!
+    builder_cmd(build_bin, 'ciao_emacs.emacs_mode'), % TODO: needed?
+    builder_cmd(install, 'ciao_emacs.emacs_mode'), % TODO: needed?
+    % (put ciao-mode-init.el in place)
+    builder_cmd(install, 'ciao_emacs.dot_emacs'),
+    unset_emacs_type,
+    unset_emacs_path.
 
 % TODO: make sure that 'ciao' is the same in Win32 and unix (currently it isn't)
 % TODO: Add a build_cmds_fix_win action that just creates this
 windows_bats :-
-	normal_message("creating .bat files for commands", []),
-	Eng = ~default_eng_def,
-	( % (failure-driven loop)
-	  win_cmd_and_opts(BatCmd, Opts, EngExecOpts, OrigCmd),
-	    create_windows_bat(Eng, BatCmd, Opts, EngExecOpts, core, OrigCmd),
-	    fail
-	; true
-	).
+    normal_message("creating .bat files for commands", []),
+    Eng = ~default_eng_def,
+    ( % (failure-driven loop)
+      win_cmd_and_opts(BatCmd, Opts, EngExecOpts, OrigCmd),
+        create_windows_bat(Eng, BatCmd, Opts, EngExecOpts, core, OrigCmd),
+        fail
+    ; true
+    ).
 
 % TODO: Pass '-i' to the toplevel, not the engine, from the emacs mode
 %   (not all ciaosh calls need interactive mode).
@@ -319,5 +319,5 @@ win_cmd_and_opts(ciaosh, '', '-i', ciaosh).
 win_cmd_and_opts(ciaoc, '', '', ciaoc).
 % TODO: move together with ciao (sh) generation (see ciaocl:build_bin)
 win_cmd_and_opts(ciao, Atm, '-i', ciaosh) :- 
-	atom_codes(Atm, ~ciao_extra_commands).
+    atom_codes(Atm, ~ciao_extra_commands).
 

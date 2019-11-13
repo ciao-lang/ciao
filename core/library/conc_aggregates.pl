@@ -66,22 +66,22 @@ of bagof, where all free variables in the @var{Generator} are taken to
 be existentially quantified. Safe in concurrent applications.".
 
 findall(Template, Goal, Solutions):-
-        new_atom(Id),
-        assert_solutions(-Template, Goal, Id),
-        recover_solutions(Id, [], Solutions).
+    new_atom(Id),
+    assert_solutions(-Template, Goal, Id),
+    recover_solutions(Id, [], Solutions).
 
 assert_solutions(Template, Goal, Id):-
-        asserta_fact('$$temp_sol_conc_findall'(Id, '-')),
-        call(Goal),
-        asserta_fact('$$temp_sol_conc_findall'(Id, Template)),
-        fail.
+    asserta_fact('$$temp_sol_conc_findall'(Id, '-')),
+    call(Goal),
+    asserta_fact('$$temp_sol_conc_findall'(Id, Template)),
+    fail.
 assert_solutions(_Template, _Goal, _Id).
 
 recover_solutions(Id, List, Tail):-
-        retract_fact_nb('$$temp_sol_conc_findall'(Id, Term)), !,
-        list_all_sols(Term, Id, List, Tail).
+    retract_fact_nb('$$temp_sol_conc_findall'(Id, Term)), !,
+    list_all_sols(Term, Id, List, Tail).
 
 list_all_sols('-', _Id, List, List):- !.
 list_all_sols(-Term, Id, SoFar, Rest):-
-        retract_fact_nb('$$temp_sol_conc_findall'(Id, NewTerm)), !,
-        list_all_sols(NewTerm, Id, [Term|SoFar], Rest).
+    retract_fact_nb('$$temp_sol_conc_findall'(Id, NewTerm)), !,
+    list_all_sols(NewTerm, Id, [Term|SoFar], Rest).
