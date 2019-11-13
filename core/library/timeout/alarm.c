@@ -89,7 +89,7 @@ void * ciao_alarm(void * ptr){
     { 
       pthread_mutex_lock(older_sent_signal_mutex);
       if ((older_sent_signal == 0) || (data->number < older_sent_signal))
-	  older_sent_signal = data->number;
+          older_sent_signal = data->number;
       pthread_mutex_unlock(older_sent_signal_mutex);
       data->state = DONE;
       data->sent = ciao_true; 
@@ -115,26 +115,26 @@ struct alarm_data * init_alarm(int time, struct alarm_data * last){
   if (last == NULL) 
     {
       if ( older_sent_signal_mutex == NULL )  
-	// first call: initialize library.
-	{
-	  // printf("initialize library\n");
+        // first call: initialize library.
+        {
+          // printf("initialize library\n");
 
-	  // main_pid = getpid();
-	  main_worker = get_my_worker();
+          // main_pid = getpid();
+          main_worker = get_my_worker();
 
-	  older_sent_signal_mutex = ciao_malloc(sizeof(pthread_mutex_t));
-	  pthread_mutex_init(older_sent_signal_mutex, NULL);
+          older_sent_signal_mutex = ciao_malloc(sizeof(pthread_mutex_t));
+          pthread_mutex_init(older_sent_signal_mutex, NULL);
 
-	  // printf("library initialized\n");
-	}
+          // printf("library initialized\n");
+        }
       else 
-	{
-	  //printf("garbage all alarms\n");
-	  
-	  garbage(&(ciao_alarms));
+        {
+          //printf("garbage all alarms\n");
+          
+          garbage(&(ciao_alarms));
 
-	  // printf("all alarms garbaged\n");
-	}
+          // printf("all alarms garbaged\n");
+        }
 
       older_sent_signal = 0; 
       number = 1;
@@ -143,7 +143,7 @@ struct alarm_data * init_alarm(int time, struct alarm_data * last){
   else
     { 
       // printf("garbage all alarms older that %d\n", last->next);
-	  
+          
       garbage(&(last->next));
       
       number = last->number + 1;
@@ -236,7 +236,7 @@ int alarm_stat(struct alarm_data * data){
   pthread_mutex_lock(older_sent_signal_mutex);
   if (older_sent_signal == data->number)
   {
-    value = (value | (1 << 3));  	
+    value = (value | (1 << 3));         
     older_sent_signal = 0;
   }
   pthread_mutex_unlock(older_sent_signal_mutex);

@@ -1,7 +1,7 @@
 #if defined(TABLING)
 static TrNode put_trie(TrNode node, tagged_t entry);
 static CFUN__PROTO(get_trie, tagged_t,
-		   TrNode node, tagged_t *stack_list, TrNode *cur_node);
+                   TrNode node, tagged_t *stack_list, TrNode *cur_node);
 //static void free_child_nodes(TrNode node);
 //static void traverse_trie_usage(TrNode node, int depth);
 
@@ -37,25 +37,25 @@ intmach_t check_term(tagged_t node_entry, tagged_t term)
   if (!variant && node_entry != term)
     {
       if (IsTrieVar(node_entry))
-	{
-	  if (!IsTrieVar(term) || TrieVarIndex(node_entry) > TrieVarIndex(term))
-	    {
-	      //	    printf("subsumption Var %x %x\n", node_entry, term);
-	      //	      make_bindding = 1;
-	    }
-	  else
-	    return 0;
-	}
+        {
+          if (!IsTrieVar(term) || TrieVarIndex(node_entry) > TrieVarIndex(term))
+            {
+              //            printf("subsumption Var %x %x\n", node_entry, term);
+              //              make_bindding = 1;
+            }
+          else
+            return 0;
+        }
       else if (IsTrieAttr(node_entry))
-	{
-	  if (!IsTrieVar(term) && (!IsTrieAttr(term) || TrieVarIndex(node_entry) > TrieVarIndex(term)))
-	    {
-	    //	    printf("subsumption Att\n");
-	    //  make_bindding = 2;
-	    }
-	  else
-	    return 0;
-	}
+        {
+          if (!IsTrieVar(term) && (!IsTrieAttr(term) || TrieVarIndex(node_entry) > TrieVarIndex(term)))
+            {
+            //      printf("subsumption Att\n");
+            //  make_bindding = 2;
+            }
+          else
+            return 0;
+        }
     }
   return node_entry == term;
 }
@@ -73,91 +73,91 @@ TrNode trie_node_check_insert(TrNode parent, tagged_t t) {
       return child;
     } else if (! IS_TRIE_HASH(child)) 
       {
-	intmach_t count = 0;
-	do 
-	  {
-	    if (check_term(TrNode_entry(child), t)) return child;
-	    count++;
-	    child = TrNode_next(child);
-	  } 
-	while (child);
-	new_trie_node(child, t, parent, NULL, TrNode_child(parent), NULL);
-	if (++count > MAX_NODES_PER_TRIE_LEVEL) 
-	  {
-	    // alloc a new trie hash
-	    TrHash hash;
-	    TrNode chain, next, *bucket;
-	    new_trie_hash(hash, count);
-	    chain = child;
-	    do 
-	      {
-		bucket = TrHash_bucket(hash, HASH_TERM(TrNode_entry(chain), 
-						       BASE_HASH_BUCKETS - 1));
-		next = TrNode_next(chain);
-		TrNode_next(chain) = *bucket;
-		*bucket = chain;
-		chain = next;
-	      } 
-	    while (chain);
-	    TrNode_child(parent) = (TrNode) hash;
-	  } else 
-	    {
-	      TrNode_child(parent) = child;
-	    }
-	return child;
+        intmach_t count = 0;
+        do 
+          {
+            if (check_term(TrNode_entry(child), t)) return child;
+            count++;
+            child = TrNode_next(child);
+          } 
+        while (child);
+        new_trie_node(child, t, parent, NULL, TrNode_child(parent), NULL);
+        if (++count > MAX_NODES_PER_TRIE_LEVEL) 
+          {
+            // alloc a new trie hash
+            TrHash hash;
+            TrNode chain, next, *bucket;
+            new_trie_hash(hash, count);
+            chain = child;
+            do 
+              {
+                bucket = TrHash_bucket(hash, HASH_TERM(TrNode_entry(chain), 
+                                                       BASE_HASH_BUCKETS - 1));
+                next = TrNode_next(chain);
+                TrNode_next(chain) = *bucket;
+                *bucket = chain;
+                chain = next;
+              } 
+            while (chain);
+            TrNode_child(parent) = (TrNode) hash;
+          } else 
+            {
+              TrNode_child(parent) = child;
+            }
+        return child;
       } else 
-	{
-	  // is trie hash 
-	  TrHash hash;
-	  TrNode *bucket;
-	  intmach_t count;
-	  hash = (TrHash) child;
-	  bucket = TrHash_bucket(hash, HASH_TERM(t, TrHash_seed(hash)));
-	  child = *bucket;
-	  count = 0;
-	  while (child) 
-	    {
-	      if (check_term(TrNode_entry(child), t)) return child;
-	      count++;
-	      child = TrNode_next(child);
-	    } 
-	  while (child);
-	  TrHash_num_nodes(hash)++;
-	  new_trie_node(child, t, parent, NULL, *bucket, 
-			AS_TR_NODE_NEXT(bucket));
-	  *bucket = child;
-	  if (count > MAX_NODES_PER_BUCKET && 
-	      TrHash_num_nodes(hash) > TrHash_num_buckets(hash)) 
-	    {
-	      // expand trie hash 
-	      TrNode chain, next, *first_bucket, *new_bucket;
-	      intmach_t seed;
-	      first_bucket = TrHash_buckets(hash);
-	      bucket = first_bucket + TrHash_num_buckets(hash);
-	      TrHash_num_buckets(hash) *= 2;
-	      new_hash_buckets(hash, TrHash_num_buckets(hash)); 
-	      seed = TrHash_num_buckets(hash) - 1;
-	      do 
-		{
-		  if (*--bucket) 
-		    {
-		      chain = *bucket;
-		      do 
-			{
-			  new_bucket = TrHash_bucket
-			    (hash, HASH_TERM(TrNode_entry(chain), seed));
-			  next = TrNode_next(chain);
-			  TrNode_next(chain) = *new_bucket;
-			  *new_bucket = chain;
-			  chain = next;
-			} 
-		      while (chain);
-		    }
-		} 
-	      while (bucket != first_bucket);
-	    }
-	  return child;
-	}
+        {
+          // is trie hash 
+          TrHash hash;
+          TrNode *bucket;
+          intmach_t count;
+          hash = (TrHash) child;
+          bucket = TrHash_bucket(hash, HASH_TERM(t, TrHash_seed(hash)));
+          child = *bucket;
+          count = 0;
+          while (child) 
+            {
+              if (check_term(TrNode_entry(child), t)) return child;
+              count++;
+              child = TrNode_next(child);
+            } 
+          while (child);
+          TrHash_num_nodes(hash)++;
+          new_trie_node(child, t, parent, NULL, *bucket, 
+                        AS_TR_NODE_NEXT(bucket));
+          *bucket = child;
+          if (count > MAX_NODES_PER_BUCKET && 
+              TrHash_num_nodes(hash) > TrHash_num_buckets(hash)) 
+            {
+              // expand trie hash 
+              TrNode chain, next, *first_bucket, *new_bucket;
+              intmach_t seed;
+              first_bucket = TrHash_buckets(hash);
+              bucket = first_bucket + TrHash_num_buckets(hash);
+              TrHash_num_buckets(hash) *= 2;
+              new_hash_buckets(hash, TrHash_num_buckets(hash)); 
+              seed = TrHash_num_buckets(hash) - 1;
+              do 
+                {
+                  if (*--bucket) 
+                    {
+                      chain = *bucket;
+                      do 
+                        {
+                          new_bucket = TrHash_bucket
+                            (hash, HASH_TERM(TrNode_entry(chain), seed));
+                          next = TrNode_next(chain);
+                          TrNode_next(chain) = *new_bucket;
+                          *new_bucket = chain;
+                          chain = next;
+                        } 
+                      while (chain);
+                    }
+                } 
+              while (bucket != first_bucket);
+            }
+          return child;
+        }
 }
 
 /* -------------------------- */
@@ -261,11 +261,11 @@ TrNode put_trie_entry(TrNode node, tagged_t entry, struct sf* sf)
 //      POP_DOWN(stack_vars);
 //      *TagToPointer(*stack_vars) = *stack_vars;
 //      if (TagIsCVA(*stack_vars))
-//	{
-//	  tagged_t attr = fu1_get_attribute(NULL,*stack_vars);
-//	  DEREF(attr,ArgOfTerm(1, attr));
-//	  new_attr[index_attr--] = IntOfTerm(attr);
-//	}
+//      {
+//        tagged_t attr = fu1_get_attribute(NULL,*stack_vars);
+//        DEREF(attr,ArgOfTerm(1, attr));
+//        new_attr[index_attr--] = IntOfTerm(attr);
+//      }
 //    }
 //  new_attr[0] = 0;
 //
@@ -305,7 +305,7 @@ TrNode put_trie_answer(TrNode node, struct sf* ans, struct attrs* new_attrs)
       /* printf("\nIN put_trie_answer %lx = %li\n",t,IntOfTerm(attr)); */
 #endif
       if (TagOf(t) == CVA)
-	*TagToPointer(t) = AttrTrie | ((stack_attrs_base - stack_attrs) << 2);
+        *TagToPointer(t) = AttrTrie | ((stack_attrs_base - stack_attrs) << 2);
       PUSH_UP(stack_attrs, t, ATTR_STACK);
       PUSH_UP(stack_attrs, stack_attrs, ATTR_STACK);
     }
@@ -326,7 +326,7 @@ TrNode put_trie_answer(TrNode node, struct sf* ans, struct attrs* new_attrs)
     {
       new_attrs->size = (stack_attrs_base - stack_attrs) / 2;
       ALLOC_TABLING_STK(new_attrs->attrs, tagged_t*, 
-			new_attrs->size * sizeof(tagged_t));
+                        new_attrs->size * sizeof(tagged_t));
       index = new_attrs->size - 1;
     }
 
@@ -334,9 +334,9 @@ TrNode put_trie_answer(TrNode node, struct sf* ans, struct attrs* new_attrs)
     {
       POP_DOWN(stack_attrs);
       if (IsVar(*stack_attrs) && IsTrieAttr(*TagToPointer(*stack_attrs)))
-	{
-	  *TagToPointer(*stack_attrs) = *stack_attrs;
-	}
+        {
+          *TagToPointer(*stack_attrs) = *stack_attrs;
+        }
       new_attrs->attrs[index--] = *stack_attrs;
 #if defined(DEBUG_ALL)
       /* tagged_t term; */
@@ -345,7 +345,7 @@ TrNode put_trie_answer(TrNode node, struct sf* ans, struct attrs* new_attrs)
       /* attr = fu1_get_attribute(NULL,new_attrs->attrs[index+1]); */
       /* DEREF(attr,ArgOfTerm(1, attr)); */
       /* printf("\nOUT %d put_trie_answer %lx = %li\n", */
-      /* 	     index+1,new_attrs->attrs[index+1],IntOfTerm(attr)); */
+      /*             index+1,new_attrs->attrs[index+1],IntOfTerm(attr)); */
 #endif
     }
 
@@ -379,47 +379,47 @@ TrNode put_trie(TrNode node, tagged_t entry)
     case STR:
       if (IsTrieVar(t) || IsTrieAttr(t)) return trie_node_check_insert(node, t);
       if (IsIntTerm(t))    // BIG NUMBERs
-	{
-	  node = trie_node_check_insert(node, LargeInitTag);
-	  for (i =  bn_length(TagToPointer(t)) + 1; i >= 0; i--)
-	    node = trie_node_check_insert(node, *(TagToPointer(t) + i));
-	  return trie_node_check_insert(node, LargeEndTag);
-	}
+        {
+          node = trie_node_check_insert(node, LargeInitTag);
+          for (i =  bn_length(TagToPointer(t)) + 1; i >= 0; i--)
+            node = trie_node_check_insert(node, *(TagToPointer(t) + i));
+          return trie_node_check_insert(node, LargeEndTag);
+        }
       if (IsFloatTerm(t)) 
-	{
-	  node = trie_node_check_insert(node, FloatInitTag);
-	  node = trie_node_check_insert(node, *(TagToPointer(t) + 1));
-	  node = trie_node_check_insert(node, *(TagToPointer(t) + 2));
-	  return trie_node_check_insert(node, FloatEndTag);
-	}
+        {
+          node = trie_node_check_insert(node, FloatInitTag);
+          node = trie_node_check_insert(node, *(TagToPointer(t) + 1));
+          node = trie_node_check_insert(node, *(TagToPointer(t) + 2));
+          return trie_node_check_insert(node, FloatEndTag);
+        }
       if (!strcmp(NameOfFunctor(t),",") && ArityOfFunctor(t)  == 2) 
-	{
-	  node = trie_node_check_insert(node, CommaInitTag);
-	  do 
-	    {
-	      node = put_trie(node, ArgOfTerm(1, t));
-	      DEREF(t,ArgOfTerm(2, t));
-	    } 
-	  while (IsApplTerm(t) && 
-		 !strcmp(NameOfFunctor(t),",") && 
-		 ArityOfFunctor(t)  == 2);
-	  node = put_trie(node, t);
-	  return trie_node_check_insert(node, CommaEndTag);	    
-	}
+        {
+          node = trie_node_check_insert(node, CommaInitTag);
+          do 
+            {
+              node = put_trie(node, ArgOfTerm(1, t));
+              DEREF(t,ArgOfTerm(2, t));
+            } 
+          while (IsApplTerm(t) && 
+                 !strcmp(NameOfFunctor(t),",") && 
+                 ArityOfFunctor(t)  == 2);
+          node = put_trie(node, t);
+          return trie_node_check_insert(node, CommaEndTag);         
+        }
 
       intmach_t i;
       node = trie_node_check_insert(node, *TagToPointer(t));
       for (i = 1; i <= ArityOfFunctor(t); i++)
-	{
-	  node = put_trie(node, ArgOfTerm(i, t));
-	}
+        {
+          node = put_trie(node, ArgOfTerm(i, t));
+        }
       return node;
     case ATM:
     case NUM:
       return trie_node_check_insert(node, t);
     case CVA:
       node = trie_node_check_insert
-	(node, AttrTrie | ((stack_attrs_base - stack_attrs) << 2));
+        (node, AttrTrie | ((stack_attrs_base - stack_attrs) << 2));
       *TagToPointer(t) = AttrTrie | ((stack_attrs_base - stack_attrs) << 2);
       PUSH_UP(stack_attrs, t, ATTR_STACK);
       PUSH_UP(stack_attrs, stack_attrs, ATTR_STACK);
@@ -428,7 +428,7 @@ TrNode put_trie(TrNode node, tagged_t entry)
     case SVA:
     case UBV:
       node = trie_node_check_insert
-	(node, VarTrie | ((stack_vars_base - stack_vars) << 2));
+        (node, VarTrie | ((stack_vars_base - stack_vars) << 2));
       *TagToPointer(t) = VarTrie | ((stack_vars_base - stack_vars) << 2);
       PUSH_UP(stack_vars, t, stack_args);
       PUSH_UP(stack_vars, stack_vars, stack_args);
@@ -436,10 +436,10 @@ TrNode put_trie(TrNode node, tagged_t entry)
     case LST:
       node = trie_node_check_insert(node, PairInitTag);
       do 
-	{
-	  node = put_trie(node, HeadOfTerm(t));
-	  DEREF(t,TailOfTerm(t));
-	} 
+        {
+          node = put_trie(node, HeadOfTerm(t));
+          DEREF(t,TailOfTerm(t));
+        } 
       while (IsPairTerm(t));
       node = put_trie(node, t);
       return trie_node_check_insert(node, PairEndTag);
@@ -470,14 +470,14 @@ CVOID__PROTO(get_trie_answer, TrNode node, struct sf *sf) {
 //  for (i = answerG->not_new_size - 1; i <= max_index; i++)
 //    {
 //      if ((stack_vars_base[i]) && TagIsCVA(*TagToPointer(stack_vars_base[i])))
-//	{	
-//	  *TagToPointer(stack_vars_base[i]) = stack_vars_base[i];
-//	  tagged_t id[2];
-//	  id[0] = MkIntTerm(new_diff_var_space(space));
-//	  id[1] = stack_vars_base[i];
-//	  id[0] = MkApplTerm("$separation_id", 2, id);
-//	  bu2_attach_attribute(Arg,stack_vars_base[i],id[0]);
-//	}
+//      {       
+//        *TagToPointer(stack_vars_base[i]) = stack_vars_base[i];
+//        tagged_t id[2];
+//        id[0] = MkIntTerm(new_diff_var_space(space));
+//        id[1] = stack_vars_base[i];
+//        id[0] = MkApplTerm("$separation_id", 2, id);
+//        bu2_attach_attribute(Arg,stack_vars_base[i],id[0]);
+//      }
 //    }
 
   intmach_t index;
@@ -491,178 +491,178 @@ CVOID__PROTO(get_trie_answer, TrNode node, struct sf *sf) {
 
 static
 CFUN__PROTO(get_trie, tagged_t,
-	    TrNode node, tagged_t *stack_mark, TrNode *cur_node) {
+            TrNode node, tagged_t *stack_mark, TrNode *cur_node) {
   tagged_t t;
 
   while (TrNode_parent(node)) 
     {
       t = TrNode_entry(node);
 //      if (IsTrieAttr(t)) 
-//	{
-//	  int index = TrieVarIndex(t);
-//	  if (index > max_index) 
-//	    {
-//	      int i;
-//	      stack_vars = stack_vars_base + index + 1;
-//	      if (stack_vars > stack_args + 1)
-//		fprintf(stderr, "\nTries module: TERM_STACK full");
-//	      for (i = index; i > max_index; i--)
-//		stack_vars_base[i] = 0;
-//	      max_index = index;
-//	    }
-//	  if (stack_vars_base[index]) 
-//	    {
-//	      t = stack_vars_base[index];
-//	    } 
-//	  else 
-//	    {
-//	      t = MkVarTerm();
-//	      *TagToPointer(t) = Tag(CVA,TagToPointer(MkVarTerm()));	      
-//	      stack_vars_base[index] = t;
-//	    }
-//	  PUSH_UP(stack_args, t, stack_vars);
-//	}
+//      {
+//        int index = TrieVarIndex(t);
+//        if (index > max_index) 
+//          {
+//            int i;
+//            stack_vars = stack_vars_base + index + 1;
+//            if (stack_vars > stack_args + 1)
+//              fprintf(stderr, "\nTries module: TERM_STACK full");
+//            for (i = index; i > max_index; i--)
+//              stack_vars_base[i] = 0;
+//            max_index = index;
+//          }
+//        if (stack_vars_base[index]) 
+//          {
+//            t = stack_vars_base[index];
+//          } 
+//        else 
+//          {
+//            t = MkVarTerm();
+//            *TagToPointer(t) = Tag(CVA,TagToPointer(MkVarTerm()));          
+//            stack_vars_base[index] = t;
+//          }
+//        PUSH_UP(stack_args, t, stack_vars);
+//      }
 //      else if (IsTrieVar(t)) 
       if (IsTrieVar(t)) 
-	{
-	  intmach_t index = TrieVarIndex(t);
-	  if (index > max_index) 
-	    {
-	      intmach_t i;
-	      stack_vars = &stack_vars_base[index + 1];
-	      if (stack_vars > stack_args + 1)
-		fprintf(stderr, "\nTries module: TERM_STACK full");
-	      for (i = index; i > max_index; i--)
-		stack_vars_base[i] = 0;
-	      max_index = index;
-	    }
-	  if (stack_vars_base[index]) 
-	    {
-	      t = stack_vars_base[index];
-	    } 
-	  else 
-	    {
-	      t = MkVarTerm(Arg);
-	      stack_vars_base[index] = t;
-	    }
-	  PUSH_UP(stack_args, t, stack_vars);
-	} 
+        {
+          intmach_t index = TrieVarIndex(t);
+          if (index > max_index) 
+            {
+              intmach_t i;
+              stack_vars = &stack_vars_base[index + 1];
+              if (stack_vars > stack_args + 1)
+                fprintf(stderr, "\nTries module: TERM_STACK full");
+              for (i = index; i > max_index; i--)
+                stack_vars_base[i] = 0;
+              max_index = index;
+            }
+          if (stack_vars_base[index]) 
+            {
+              t = stack_vars_base[index];
+            } 
+          else 
+            {
+              t = MkVarTerm(Arg);
+              stack_vars_base[index] = t;
+            }
+          PUSH_UP(stack_args, t, stack_vars);
+        } 
       else if (IsTrieAttr(t)) 
-	{
-	  intmach_t index = TrieVarIndex(t);
-	  if (index > max_index_attr) 
-	    {
-	      intmach_t i;
-	      stack_attrs = stack_attrs_base + index + 1;
-	      for (i = index; i > max_index_attr; i--)
-		stack_attrs_base[i] = 0;
-	      max_index_attr = index;
-	    }
-	  if (stack_attrs_base[index]) 
-	    {
-	      t = stack_attrs_base[index];
-	    } 
-	  else 
-	    {
-	      t = MkVarTerm(Arg);
-	      stack_attrs_base[index] = t;
-	    }
-	  PUSH_UP(stack_args, t, stack_vars);
-	} 
+        {
+          intmach_t index = TrieVarIndex(t);
+          if (index > max_index_attr) 
+            {
+              intmach_t i;
+              stack_attrs = stack_attrs_base + index + 1;
+              for (i = index; i > max_index_attr; i--)
+                stack_attrs_base[i] = 0;
+              max_index_attr = index;
+            }
+          if (stack_attrs_base[index]) 
+            {
+              t = stack_attrs_base[index];
+            } 
+          else 
+            {
+              t = MkVarTerm(Arg);
+              stack_attrs_base[index] = t;
+            }
+          PUSH_UP(stack_args, t, stack_vars);
+        } 
       else
-	{
-	  DEREF(t,t); 
-	  intmach_t end = 1;
-	  tagged_t t2;
-	  tagged_t *stack_aux;
-	  double f;
-	  tagged_t *p;
-	  switch(t)
-	    {
-	    case FloatInitTag:
-	    case LargeInitTag:
-	      break;
-	    case LargeEndTag:
-	      p = w->global_top;   // make the big number on the heap
-	      while (TrNode_entry(node) != LargeInitTag) {
-		node = TrNode_parent(node);
-		*p++ = TrNode_entry(node);
-	      }
-	      PUSH_UP(stack_args, Tag(STR, w->global_top), stack_vars);
-	      w->global_top = p;   // move the heap pointer to the end of the big number
-	      break;
-	    case FloatEndTag:
-	      p = (tagged_t *)((void *) &f); // to avoid gcc warning 
-	      node = TrNode_parent(node);
-	      *(p + 1) = TrNode_entry(node);
-	      node = TrNode_parent(node);
-	      *p = TrNode_entry(node);
-	      node = TrNode_parent(node); 
-	      t = MkFloatTerm(f);
-	      PUSH_UP(stack_args, t, stack_vars);
-	      break;
-	    case CommaEndTag:
-	      node = TrNode_parent(node);
-	      t = get_trie(Arg, node, stack_args, &node);
-	      PUSH_UP(stack_args, t, stack_vars);
-	      break;
-	    case CommaInitTag: 
-	      stack_aux = stack_mark;
-	      stack_aux--;
-	      while (STACK_NOT_EMPTY(stack_aux, stack_args)) 
-		{
-		  t = MkApplTerm(functor_comma, 2, stack_aux);
-		  *stack_aux = t;
-		  stack_aux--;
-		}
-	      stack_args = stack_mark;
-	      *cur_node = node;
-	      return t;
-	    case PairEndTag:
-	      node = TrNode_parent(node);
-	      t = get_trie(Arg, node, stack_args, &node);
-	      PUSH_UP(stack_args, t, stack_vars);
-	      break;
-	    case PairInitTag:
-	      stack_aux = stack_mark;
-	      t = *stack_aux--;
-	      while (STACK_NOT_EMPTY(stack_aux, stack_args)) 
-		{
-		  t2 = *stack_aux--;
-		  t = MkPairTerm(t2, t);
-		}
-	      stack_args = stack_mark;
-	      *cur_node = node;
-	      return t;
-	    default:
-	      end = 0;
-	    }
-	  if (!end)
-	    {
-	      intmach_t arity;
-	      switch(TagOf(t))
-		{
-		case ATM:
-		  arity = Arity(t);
-		  if (arity == 0)
-		    {
-		      PUSH_UP(stack_args, t, stack_vars);
-		    }
-		  else
-		    {
-		      t = MkApplTerm(t, arity, stack_args + 1);
-		      stack_args += arity;
-		      PUSH_UP(stack_args, t, stack_vars);
-		    }
-		  break;
-		case NUM:
-		  PUSH_UP(stack_args, t, stack_vars);
-		  break;
-		default:
-		  break;
-		}
-	    } 
-	}
+        {
+          DEREF(t,t); 
+          intmach_t end = 1;
+          tagged_t t2;
+          tagged_t *stack_aux;
+          double f;
+          tagged_t *p;
+          switch(t)
+            {
+            case FloatInitTag:
+            case LargeInitTag:
+              break;
+            case LargeEndTag:
+              p = w->global_top;   // make the big number on the heap
+              while (TrNode_entry(node) != LargeInitTag) {
+                node = TrNode_parent(node);
+                *p++ = TrNode_entry(node);
+              }
+              PUSH_UP(stack_args, Tag(STR, w->global_top), stack_vars);
+              w->global_top = p;   // move the heap pointer to the end of the big number
+              break;
+            case FloatEndTag:
+              p = (tagged_t *)((void *) &f); // to avoid gcc warning 
+              node = TrNode_parent(node);
+              *(p + 1) = TrNode_entry(node);
+              node = TrNode_parent(node);
+              *p = TrNode_entry(node);
+              node = TrNode_parent(node); 
+              t = MkFloatTerm(f);
+              PUSH_UP(stack_args, t, stack_vars);
+              break;
+            case CommaEndTag:
+              node = TrNode_parent(node);
+              t = get_trie(Arg, node, stack_args, &node);
+              PUSH_UP(stack_args, t, stack_vars);
+              break;
+            case CommaInitTag: 
+              stack_aux = stack_mark;
+              stack_aux--;
+              while (STACK_NOT_EMPTY(stack_aux, stack_args)) 
+                {
+                  t = MkApplTerm(functor_comma, 2, stack_aux);
+                  *stack_aux = t;
+                  stack_aux--;
+                }
+              stack_args = stack_mark;
+              *cur_node = node;
+              return t;
+            case PairEndTag:
+              node = TrNode_parent(node);
+              t = get_trie(Arg, node, stack_args, &node);
+              PUSH_UP(stack_args, t, stack_vars);
+              break;
+            case PairInitTag:
+              stack_aux = stack_mark;
+              t = *stack_aux--;
+              while (STACK_NOT_EMPTY(stack_aux, stack_args)) 
+                {
+                  t2 = *stack_aux--;
+                  t = MkPairTerm(t2, t);
+                }
+              stack_args = stack_mark;
+              *cur_node = node;
+              return t;
+            default:
+              end = 0;
+            }
+          if (!end)
+            {
+              intmach_t arity;
+              switch(TagOf(t))
+                {
+                case ATM:
+                  arity = Arity(t);
+                  if (arity == 0)
+                    {
+                      PUSH_UP(stack_args, t, stack_vars);
+                    }
+                  else
+                    {
+                      t = MkApplTerm(t, arity, stack_args + 1);
+                      stack_args += arity;
+                      PUSH_UP(stack_args, t, stack_vars);
+                    }
+                  break;
+                case NUM:
+                  PUSH_UP(stack_args, t, stack_vars);
+                  break;
+                default:
+                  break;
+                }
+            } 
+        }
       node = TrNode_parent(node);
     }
   *cur_node = node;

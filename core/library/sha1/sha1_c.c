@@ -16,10 +16,10 @@ Still 100% Public Domain
 
 Corrected a problem which generated improper hash values on 16 bit machines
 Routine SHA1Update changed from
-	void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned int
+        void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned int
 len)
 to
-	void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned
+        void SHA1Update(SHA1_CTX* context, unsigned char* data, unsigned
 long len)
 
 The 'len' parameter was declared an int which works fine on 32 bit machines.
@@ -95,7 +95,7 @@ typedef unsigned long int uint32;
 #endif /*i386*/
 
 
-/* #include <process.h> */	/* prototype for exit() - JHB */
+/* #include <process.h> */      /* prototype for exit() - JHB */
 /* Using return() instead of exit() - SWR */
 
 typedef struct {
@@ -106,7 +106,7 @@ typedef struct {
 
 void SHA1Transform(uint32 state[5], unsigned char buffer[64]);
 void SHA1Init(SHA1_CTX* context);
-void SHA1Update(SHA1_CTX* context, unsigned char* data, uint32 len);	/*
+void SHA1Update(SHA1_CTX* context, unsigned char* data, uint32 len);    /*
 JHB */
 void SHA1Final(unsigned char digest[20], SHA1_CTX* context);
 
@@ -134,13 +134,13 @@ void SHA1Final(unsigned char digest[20], SHA1_CTX* context);
 #ifdef VERBOSE  /* SAK */
 void SHAPrintContext(SHA1_CTX *context, char *msg){
   printf("%s (%d,%d) %x %x %x %x %x\n",
-	 msg,
-	 context->count[0], context->count[1], 
-	 context->state[0],
-	 context->state[1],
-	 context->state[2],
-	 context->state[3],
-	 context->state[4]);
+         msg,
+         context->count[0], context->count[1], 
+         context->state[0],
+         context->state[1],
+         context->state[2],
+         context->state[3],
+         context->state[4]);
 }
 #endif
 
@@ -215,10 +215,10 @@ void SHA1Init(SHA1_CTX* context)
 
 /* Run your data through this. */
 
-void SHA1Update(SHA1_CTX* context, unsigned char* data, uint32 len)	/*
+void SHA1Update(SHA1_CTX* context, unsigned char* data, uint32 len)     /*
 JHB */
 {
-uint32 i, j;	/* JHB */
+uint32 i, j;    /* JHB */
 
 #ifdef VERBOSE
     SHAPrintContext(context, "before");
@@ -246,7 +246,7 @@ uint32 i, j;	/* JHB */
 
 void SHA1Final(unsigned char digest[20], SHA1_CTX* context)
 {
-uint32 i;	/* JHB */
+uint32 i;       /* JHB */
 unsigned char finalcount[8];
 
     for (i = 0; i < 8; i++) {
@@ -264,11 +264,11 @@ unsigned char finalcount[8];
          ((context->state[i>>2] >> ((3-(i & 3)) * 8) ) & 255);
     }
     /* Wipe variables */
-    i = 0;	/* JHB */
+    i = 0;      /* JHB */
     memset(context->buffer, 0, 64);
     memset(context->state, 0, 20);
     memset(context->count, 0, 8);
-    memset(finalcount, 0, 8);	/* SWR */
+    memset(finalcount, 0, 8);   /* SWR */
 #ifdef SHA1HANDSOFF  /* make SHA1Transform overwrite it's own static vars */
     SHA1Transform(context->state, context->buffer);
 #endif

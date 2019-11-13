@@ -257,13 +257,13 @@ CBOOL__PROTO(prolog_socket_accept)
 /* Aux function */
 
 static CFUN__PROTO(stream_list, tagged_t,
-		   int max_fd, fd_set *ready_set)
+                   int max_fd, fd_set *ready_set)
 {
   int this_fd;
   tagged_t list = atom_nil;
   stream_node_t *temp_stream;
   
-  for (this_fd = max_fd; this_fd >= 0; this_fd--)	
+  for (this_fd = max_fd; this_fd >= 0; this_fd--)       
     if (FD_ISSET(this_fd, ready_set)){  /* stream for every fd in the set */
       temp_stream = root_stream_ptr->forward;
       while (
@@ -335,14 +335,14 @@ CBOOL__PROTO(prolog_select_socket)
   while (cdr!=atom_nil) {
     DerefCar(car,cdr);
     DerefCdr(cdr,cdr);
-	
+        
     if (!(stream = stream_to_ptr(car, 'r')))          /* Check any stream */
       USAGE_FAULT("select_socket/5: illegal stream (or stream mode) in list");
 
     fd_to_include = GetSmall(stream->label);
     if (fd_to_include < 0 || fd_to_include > FD_SETSIZE)
       USAGE_FAULT("select_socket/5: illegal stream in list or wrong file descriptor in stream");
-	
+        
     FD_SET(fd_to_include, &ready);
     if (fd_to_include > max_fd)  max_fd = fd_to_include;
   }
@@ -397,9 +397,9 @@ CBOOL__PROTO(prolog_socket_send)
       BUILTIN_ERROR(TYPE_ERROR(CHARACTER_CODE_LIST),X(1),2);
     else if (msglen == Atom_Buffer_Length) {                   /* realloc */
       Atom_Buffer = checkrealloc_ARRAY(char,
-				       msglen,
-				       Atom_Buffer_Length<<=1,
-				       Atom_Buffer);
+                                       msglen,
+                                       Atom_Buffer_Length<<=1,
+                                       Atom_Buffer);
       buffpt = (unsigned char *)Atom_Buffer+msglen;
     }
     DerefCar(car,cdr);
@@ -472,7 +472,7 @@ CBOOL__PROTO(prolog_socket_receive)
     
   buffpt = &buffer[bytes_read-1];
   cdr = atom_nil;
-  while (bytes_read>0)	{
+  while (bytes_read>0)  {
     bytes_read--;
     MakeLST(cdr,MakeSmall(*(buffpt--)), cdr);/* No need to cast *(buffpt--) */
   }

@@ -296,7 +296,7 @@ ON_DEBUG({
 if (debug_choicepoints) {
 fprintf(stderr, "Failing: node = %x, next_node = %x, conc. node = %x\n", (int)w->node, (int)w->next_node, (int)TopConcChpt);
       }
-if ((w->misc->top_conc_chpt < w->node) && 	    (w->misc->top_conc_chpt < w->next_node)) {
+if ((w->misc->top_conc_chpt < w->node) &&           (w->misc->top_conc_chpt < w->next_node)) {
 fprintf(stderr, "********** what happened here?\n");
       }
 });

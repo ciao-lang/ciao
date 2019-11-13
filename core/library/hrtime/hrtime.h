@@ -27,28 +27,28 @@ extern uint64 __cdecl hrtime(void);
 # define HRTIME_METHOD "rdtsc"
 
 #  if defined(SERIALIZE_WITH_CPUID)
-#   define hrtime()					\
-  ({							\
-    register uint32 x, y;				\
-    __asm__ __volatile__("pushl %eax");			\
-    __asm__ __volatile__("pushl %ebx");			\
-    __asm__ __volatile__("pushl %edx");			\
-    __asm__ __volatile__("pushl %ecx");			\
-    __asm__ __volatile__("xorl %eax, %eax");		\
-    __asm__ __volatile__("cpuid");			\
-    __asm__ __volatile__("rdtsc" : "=a"(x), "=d(y)");	\
-    __asm__ __volatile__("popl %ecx");			\
-    __asm__ __volatile__("popl %edx");			\
-    __asm__ __volatile__("popl %ebx");			\
-    __asm__ __volatile__("popl %eax");			\
-    ((uint64)x|((uint64)y)<<32);			\
+#   define hrtime()                                     \
+  ({                                                    \
+    register uint32 x, y;                               \
+    __asm__ __volatile__("pushl %eax");                 \
+    __asm__ __volatile__("pushl %ebx");                 \
+    __asm__ __volatile__("pushl %edx");                 \
+    __asm__ __volatile__("pushl %ecx");                 \
+    __asm__ __volatile__("xorl %eax, %eax");            \
+    __asm__ __volatile__("cpuid");                      \
+    __asm__ __volatile__("rdtsc" : "=a"(x), "=d(y)");   \
+    __asm__ __volatile__("popl %ecx");                  \
+    __asm__ __volatile__("popl %edx");                  \
+    __asm__ __volatile__("popl %ebx");                  \
+    __asm__ __volatile__("popl %eax");                  \
+    ((uint64)x|((uint64)y)<<32);                        \
   })
 #  else
-#   define hrtime()					\
-  ({							\
-    register uint32 x, y;				\
-    __asm__ __volatile__("rdtsc" : "=a"(x), "=d"(y));	\
-    ((uint64)x|((uint64)y)<<32);			\
+#   define hrtime()                                     \
+  ({                                                    \
+    register uint32 x, y;                               \
+    __asm__ __volatile__("rdtsc" : "=a"(x), "=d"(y));   \
+    ((uint64)x|((uint64)y)<<32);                        \
   })
 #  endif
 
@@ -61,19 +61,19 @@ extern uint64 hrfreq(void);
 # define HRTIME_METHOD "rdtsc_64"
 
 #  if defined(SERIALIZE_WITH_CPUID)
-#   define hrtime()					\
-  ({							\
-    register uint32 x, y;				\
-    __asm__ __volatile__("cpuid");			\
-    __asm__ __volatile__("rdtsc" : "=a"(x), "=d"(y));	\
-    ((uint64)x|((uint64)y)<<32);			\
+#   define hrtime()                                     \
+  ({                                                    \
+    register uint32 x, y;                               \
+    __asm__ __volatile__("cpuid");                      \
+    __asm__ __volatile__("rdtsc" : "=a"(x), "=d"(y));   \
+    ((uint64)x|((uint64)y)<<32);                        \
   })
 #  else
-#   define hrtime()					\
-  ({							\
-    register uint32 x, y;				\
-    __asm__ __volatile__("rdtsc" : "=a"(x), "=d"(y));	\
-    ((uint64)x|((uint64)y)<<32);			\
+#   define hrtime()                                     \
+  ({                                                    \
+    register uint32 x, y;                               \
+    __asm__ __volatile__("rdtsc" : "=a"(x), "=d"(y));   \
+    ((uint64)x|((uint64)y)<<32);                        \
   })
 #  endif
 
@@ -97,11 +97,11 @@ __inline__ uint64 hrtime(void) {
 # define HRTIME_METHOD "mftb_64"
 */
 
-#define hrtime()					\
-  ({							\
-    register uint64 x;					\
-    __asm__ __volatile__ ("mftb %0"  : "=r"(t));	\
-    x;							\
+#define hrtime()                                        \
+  ({                                                    \
+    register uint64 x;                                  \
+    __asm__ __volatile__ ("mftb %0"  : "=r"(t));        \
+    x;                                                  \
   })
 
 #define hrfreq() ((uint64)1<<20)
@@ -124,11 +124,11 @@ __inline__ uint64 hrtime(void) {
 
 # define HRTIME_METHOD "gettimeofday"
 
-#define hrtime()						\
-  ({								\
-    struct timeval tp;						\
-    gettimeofday(&tp, 0L);					\
-    (uint64)tp.tv_sec*1000000 + ((uint64)tp.tv_usec);		\
+#define hrtime()                                                \
+  ({                                                            \
+    struct timeval tp;                                          \
+    gettimeofday(&tp, 0L);                                      \
+    (uint64)tp.tv_sec*1000000 + ((uint64)tp.tv_usec);           \
   })
 
 #define hrfreq() ((uint64)1000000ll)

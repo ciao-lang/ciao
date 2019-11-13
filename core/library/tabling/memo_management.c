@@ -3,16 +3,16 @@ CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
   //Updating new values
   HeapFReg = Arg->global_top;
   if (StackYounger(NodeLocalTop(Arg->node), 
-		   StackCharOffset(Arg->frame,FrameSize(Arg->next_insn)))) 
+                   StackCharOffset(Arg->frame,FrameSize(Arg->next_insn)))) 
     {
       if (!StackYounger(StackFReg,NodeLocalTop(Arg->node))) 
-	StackFReg = NodeLocalTop(Arg->node); 
+        StackFReg = NodeLocalTop(Arg->node); 
     }
   else 
     {
       if (!StackYounger(StackFReg,
-			StackCharOffset(Arg->frame,FrameSize(Arg->next_insn))))
-	StackFReg = StackCharOffset(Arg->frame,FrameSize(Arg->next_insn));
+                        StackCharOffset(Arg->frame,FrameSize(Arg->next_insn))))
+        StackFReg = StackCharOffset(Arg->frame,FrameSize(Arg->next_insn));
     }
 
   //Updating pointers for generator.
@@ -32,37 +32,37 @@ CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
        ind = ChoiceCharOffset(ind,-ind->next_alt->node_offset))
     {
       for (; !TrailYounger(ind->trail_top,itrail); itrail--)
-	{
-	  if (TagIsHVA(*TagToPointer(itrail)))
-	    {
-	      if (!HeapYounger(ind->global_top,*TagToPointer(itrail))) {
-		//		printf("\nNullifyTrailEntry !HeapYounger\n");
-		//		NullifyTrailEntry(itrail);
-	      }
-	    }
-	  else if (TagIsSVA(*TagToPointer(itrail)))
-	    {
-	      if (!StackYounger(TagSVA(ind->local_top),*TagToPointer(itrail))) {
-		//		printf("\nNullifyTrailEntry !StackYounger\n");
-		//		NullifyTrailEntry(itrail);
-	      }
-	    }
-	}	
+        {
+          if (TagIsHVA(*TagToPointer(itrail)))
+            {
+              if (!HeapYounger(ind->global_top,*TagToPointer(itrail))) {
+                //              printf("\nNullifyTrailEntry !HeapYounger\n");
+                //              NullifyTrailEntry(itrail);
+              }
+            }
+          else if (TagIsSVA(*TagToPointer(itrail)))
+            {
+              if (!StackYounger(TagSVA(ind->local_top),*TagToPointer(itrail))) {
+                //              printf("\nNullifyTrailEntry !StackYounger\n");
+                //              NullifyTrailEntry(itrail);
+              }
+            }
+        }       
       ind->global_top = (tagged_t *)&(HeapFReg);
       ind->local_top = (frame_t *)orig_node_tr;
       
 #if defined(SWAPPING)
       //is this a back_answer_cp?
       if (ind->next_alt == address_nd_back_answer_c)
-	{
-	  printf("\nQue carajo\n");
-	  //is the generator in its original place? or was it swapped?
-	  if (((struct gen*)ind->term[0])->answer_cp == PREV_CP(ind))
-	    {
-	      ((struct gen*)ind->term[0])->last_node_tr = orig_node_tr;
-	      ind = ((struct gen*)ind->term[0])->node;
-	    }
-	}
+        {
+          printf("\nQue carajo\n");
+          //is the generator in its original place? or was it swapped?
+          if (((struct gen*)ind->term[0])->answer_cp == PREV_CP(ind))
+            {
+              ((struct gen*)ind->term[0])->last_node_tr = orig_node_tr;
+              ind = ((struct gen*)ind->term[0])->node;
+            }
+        }
 #endif
     }
 

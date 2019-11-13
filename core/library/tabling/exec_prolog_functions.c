@@ -23,7 +23,7 @@ CBOOL__PROTO(exec_call_domain_projection, tagged_t list_of_attrs, tagged_t *attr
   exec_args[1] = MkVarTerm(Arg);
  
   exec_functor = MkApplTerm(SetArity(MakeString("tabling_rt:$call_domain_projection"),2)
-			    , 2, exec_args);
+                            , 2, exec_args);
 
   if (TRACE_EXEC) PRINT_TERM(Arg, "\t\t exec_call_domain_projection = ", exec_functor);
 
@@ -37,7 +37,7 @@ CBOOL__PROTO(exec_call_domain_projection, tagged_t list_of_attrs, tagged_t *attr
     {
       *attributes = exec_args[1];
       if (TRACE_EXEC)
-	PRINT_TERM(Arg, "\t\t EXIT - exec_call_domain_projection = ", exec_functor);
+        PRINT_TERM(Arg, "\t\t EXIT - exec_call_domain_projection = ", exec_functor);
     }  
   else 
     {
@@ -62,7 +62,7 @@ CBOOL__PROTO(exec_answer_domain_projection, tagged_t list_of_attrs, tagged_t *at
   PRINT_REG("\n");
 
   exec_functor = MkApplTerm(SetArity(MakeString("tabling_rt:$answer_domain_projection"),2)
-			    , 2, exec_args);
+                            , 2, exec_args);
 
   if (TRACE_EXEC) PRINT_TERM(Arg, "\t\t exec_answer_domain_projection = ", exec_functor);
 
@@ -75,7 +75,7 @@ CBOOL__PROTO(exec_answer_domain_projection, tagged_t list_of_attrs, tagged_t *at
     {
       *attributes = exec_args[1];
       if (TRACE_EXEC) 
-	PRINT_TERM(Arg, "\t\t EXIT - exec_answer_domain_projection = ", exec_functor);
+        PRINT_TERM(Arg, "\t\t EXIT - exec_answer_domain_projection = ", exec_functor);
 
     }  
   else 
@@ -103,7 +103,7 @@ CBOOL__PROTO(exec_call_store_projection, tagged_t list_of_attrs, tagged_t attrib
   PRINT_REG("\n");
 
   exec_functor = MkApplTerm(SetArity(MakeString("tabling_rt:$call_store_projection"),3)
-			    , 3, exec_args);
+                            , 3, exec_args);
 
   if (TRACE_EXEC) PRINT_TERM(Arg, "\t\t exec_call_store_projection = ", exec_functor);
 
@@ -143,7 +143,7 @@ CBOOL__PROTO(exec_answer_store_projection, tagged_t list_of_attrs, tagged_t attr
   PRINT_REG("\n");
 
   exec_functor = MkApplTerm(SetArity(MakeString("tabling_rt:$answer_store_projection"),3)
-			    , 3, exec_args);
+                            , 3, exec_args);
 
   if (TRACE_EXEC) PRINT_TERM(Arg, "\t\t exec_answer_store_projection = ", exec_functor);
 
@@ -190,7 +190,7 @@ CBOOL__PROTO(exec_call_entail, tagged_t list_of_attrs, tagged_t attributesA, TrN
   PRINT_REG("\n");
 
   exec_functor = MkApplTerm(SetArity(MakeString("tabling_rt:$call_entail"),4)
-			    , 4, exec_args);
+                            , 4, exec_args);
 
   if (TRACE_EXEC) PRINT_TERM(Arg, "\t\t exec_call_entail = ", exec_functor);
 
@@ -222,7 +222,7 @@ CBOOL__PROTO(exec_answer_check_entail, tagged_t list_of_attrs, tagged_t attribut
   PRINT_REG("\n");
 
   exec_functor = MkApplTerm(SetArity(MakeString("tabling_rt:$answer_check_entail"),6)
-			    , 6, exec_args);
+                            , 6, exec_args);
 
   if (TRACE_EXEC) PRINT_TERM(Arg, "\t\t exec_answer_check_entail = ", exec_functor) ;
 
@@ -263,7 +263,7 @@ CBOOL__PROTO(exec_apply_answer, tagged_t list_of_attrs, TrNode ans_attrs, TrNode
   PRINT_REG("\n");
 
   exec_functor = MkApplTerm(SetArity(MakeString("tabling_rt:$apply_answer"),3)
-			    , 3, exec_args);
+                            , 3, exec_args);
 
   if (TRACE_EXEC) PRINT_TERM(Arg, "\t\t exec_apply_answer = ", exec_functor);
 
@@ -295,7 +295,7 @@ CBOOL__PROTO(exec_current_store, TrNode *orig)
   PRINT_REG("\n");
 
   exec_functor = MkApplTerm(SetArity(MakeString("tabling_rt:$current_store"),1)
-			    , 1, exec_args);
+                            , 1, exec_args);
 
   if (TRACE_EXEC) PRINT_TERM(Arg, "\t\t exec_current_store = ", exec_functor);
 
@@ -338,7 +338,7 @@ CBOOL__PROTO(exec_reinstall_store, tagged_t list_of_attrs, TrNode attributes, Tr
   PRINT_REG("\n");
 
   exec_functor = MkApplTerm(SetArity(MakeString("tabling_rt:$reinstall_store"),3)
-			    , 3, exec_args);
+                            , 3, exec_args);
 
   if (TRACE_EXEC) PRINT_TERM(Arg, "\t\t exec_reinstall_store = ", exec_functor);
 

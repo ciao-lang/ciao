@@ -106,9 +106,9 @@ typedef struct trie_hash {
 #define SIZEOF_TR_HASH    sizeof(TYPE_TR_HASH)
 #define SIZEOF_TR_BUCKET  sizeof(TYPE_TR_NODE *)
 
-#define AS_TR_NODE_NEXT(ADDRESS)					\
+#define AS_TR_NODE_NEXT(ADDRESS)                                        \
   (TrNode)((intmach_t)(ADDRESS) - sizeof(tagged_t) - 2 * sizeof(trie_node_t *))
-#define AS_TR_HASH_NEXT(ADDRESS)					\
+#define AS_TR_HASH_NEXT(ADDRESS)                                        \
   (TrHash)((intmach_t)(ADDRESS)-sizeof(tagged_t)-2*sizeof(intmach_t)-sizeof(trie_node_t**))
 
 /* --------------------------- */
@@ -138,25 +138,25 @@ typedef struct trie_hash {
             fprintf(stderr, "\nTries module: TERM_STACK full");      \
           *STACK = (tagged_t)(ITEM);                        \
           STACK++;                                                   \
-	}
+        }
 
 
-#define free_struct(STR)			\
+#define free_struct(STR)                        \
   FreeSpaceFromYap((char *) (STR))
 #define free_trie_node(STR)                                          \
-  free_struct(STR);						     \
+  free_struct(STR);                                                  \
   STATS_node_dec()
 #define free_hash_buckets(STR, NUM_BUCKETS)                          \
-  free_struct(STR);						     \
+  free_struct(STR);                                                  \
   STATS_buckets_dec(NUM_BUCKETS)
 #define free_trie_hash(STR)                                          \
-  free_struct(STR);						     \
+  free_struct(STR);                                                  \
   STATS_hash_dec()
 
 
 
 #ifdef ALLOW_REMOVE_TRIE
-#define TrNode_allow_remove_trie(TR_NODE, PREV)			     \
+#define TrNode_allow_remove_trie(TR_NODE, PREV)                      \
         TrNode_prev(TR_NODE) = PREV;                                 \
         TrNode_hits(TR_NODE) = 0
 #else
@@ -164,7 +164,7 @@ typedef struct trie_hash {
 #endif /* ALLOW_REMOVE_TRIE */
 
 #define new_trie_node(TR_NODE, ENTRY, PARENT, CHILD, NEXT, PREV)     \
-  ALLOC_GLOBAL_TABLE(TR_NODE, trie_node_t*, SIZEOF_TR_NODE);	     \
+  ALLOC_GLOBAL_TABLE(TR_NODE, trie_node_t*, SIZEOF_TR_NODE);         \
         TrNode_entry(TR_NODE) = ENTRY;                               \
         TrNode_parent(TR_NODE) = PARENT;                             \
         TrNode_child(TR_NODE) = CHILD;                               \
@@ -173,7 +173,7 @@ typedef struct trie_hash {
 //        STATS_node_inc()
 #define new_hash_buckets(TR_HASH, NUM_BUCKETS)                       \
         { int i; void **ptr;                                         \
-	  ALLOC_GLOBAL_TABLE(ptr, void **, NUM_BUCKETS * sizeof(void *)); \
+          ALLOC_GLOBAL_TABLE(ptr, void **, NUM_BUCKETS * sizeof(void *)); \
           TrHash_buckets(TR_HASH) = (TYPE_TR_NODE **) ptr;           \
           for (i = NUM_BUCKETS; i != 0; i--)                         \
             *ptr++ = NULL;                                           \
@@ -186,10 +186,10 @@ typedef struct trie_hash {
         TrHash_num_buckets(TR_HASH) = BASE_HASH_BUCKETS;             \
         new_hash_buckets(TR_HASH, BASE_HASH_BUCKETS);                \
         TrHash_num_nodes(TR_HASH) = NUM_NODES;                       \
-	TrHash_next(TR_HASH) = HASHES;                               \
+        TrHash_next(TR_HASH) = HASHES;                               \
         TrHash_prev(TR_HASH) = AS_TR_HASH_NEXT(&HASHES);             \
         if (HASHES)                                                  \
-	  TrHash_prev(HASHES) = TR_HASH;                             \
+          TrHash_prev(HASHES) = TR_HASH;                             \
         HASHES = TR_HASH;                                            
 //        STATS_hash_inc()
 
@@ -224,38 +224,38 @@ typedef struct trie_hash {
         BUCKETS_IN_USE -= N;                                         \
         MEMORY_IN_USE -= (N) * SIZEOF_TR_BUCKET
 
-//#define INIT_SEPARATION_LIST(GLIST,SPACE,NODE,NOT_NEW_SIZE,SIZE,ATTRS)	
-//  {									
-//    GLIST->sig = (struct separation_list*) NODE->child;			
-//    GLIST->active = TRUE;						
-//    NODE->child = (TrNode) GLIST;					
-//    GLIST->answer = NODE;						
-//    if (SIZE > 1)							
-//      {									
-//	if (SPACE == NULL) GLIST->space = clone_space(space);		
-//	else GLIST->space = SPACE;					
-//      }									
-//    else GLIST->space = NULL;						
-//    GLIST->not_new_size = NOT_NEW_SIZE;					
-//    GLIST->size = SIZE;							
-//    GLIST->attrs = ATTRS;						
+//#define INIT_SEPARATION_LIST(GLIST,SPACE,NODE,NOT_NEW_SIZE,SIZE,ATTRS)        
+//  {                                                                   
+//    GLIST->sig = (struct separation_list*) NODE->child;                       
+//    GLIST->active = TRUE;                                             
+//    NODE->child = (TrNode) GLIST;                                     
+//    GLIST->answer = NODE;                                             
+//    if (SIZE > 1)                                                     
+//      {                                                                       
+//      if (SPACE == NULL) GLIST->space = clone_space(space);           
+//      else GLIST->space = SPACE;                                      
+//      }                                                                       
+//    else GLIST->space = NULL;                                         
+//    GLIST->not_new_size = NOT_NEW_SIZE;                                       
+//    GLIST->size = SIZE;                                                       
+//    GLIST->attrs = ATTRS;                                             
 //  }
 
-//#define CANCELLING_ENTAILED_ANSWERS(GLIST)			
-//  {								
-//    struct separation_list *g_list = GLIST;			
-//    struct separation_list *prev = g_list;			
-//    g_list = g_list->sig;					
-//    for ( ; g_list != NULL; g_list = g_list->sig)		
-//      {								
-//	if (is_entailed_c(g_list,GLIST))			
-//	  {							
-//	    prev->sig = g_list->sig;				
-//	    delete_space(g_list->space);			
-//	    g_list->active = FALSE;				
-//	  }							
-//	else prev = g_list;					
-//      }								
+//#define CANCELLING_ENTAILED_ANSWERS(GLIST)                    
+//  {                                                           
+//    struct separation_list *g_list = GLIST;                   
+//    struct separation_list *prev = g_list;                    
+//    g_list = g_list->sig;                                     
+//    for ( ; g_list != NULL; g_list = g_list->sig)             
+//      {                                                               
+//      if (is_entailed_c(g_list,GLIST))                        
+//        {                                                     
+//          prev->sig = g_list->sig;                            
+//          delete_space(g_list->space);                        
+//          g_list->active = FALSE;                             
+//        }                                                     
+//      else prev = g_list;                                     
+//      }                                                               
 //  }
 
 /* --------------------------- */

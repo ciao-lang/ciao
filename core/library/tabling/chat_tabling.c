@@ -96,7 +96,7 @@ struct gen *get_leader(struct gen *gen)
 {
   while (gen != gen->leader) gen = gen->leader;
   return gen;  
-}			     
+}                            
 
 void set_leader(struct gen* gen, struct gen *leader)
 {
@@ -106,18 +106,18 @@ void set_leader(struct gen* gen, struct gen *leader)
       gen->leader = leader;
       gen = aux;
     }
-}			     
+}                            
 
 intmach_t is_executing(struct gen *gen)
 {
   tagged_t term;
   DEREF(term,gen->on_exec);
   return IsVarTerm(term);  
-}			     
+}                            
 
 CFUN__PROTO(get_cons,
-	    struct cons_list*,
-	    struct sf *sf, struct gen *gen, struct gen *last_gen) {
+            struct cons_list*,
+            struct sf *sf, struct gen *gen, struct gen *last_gen) {
   struct cons_list* res;
   ALLOC_TABLING_STK(res,struct cons_list*,sizeof(struct cons_list));
   ALLOC_TABLING_STK(res->cons,struct cons*,sizeof(struct cons));
@@ -176,7 +176,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
 #if defined(DEBUG_SWAPPING)
   printf("\nSWAPPING OPERATION\n");
   printf("\nGENERATOR %p: choice %p trail %p\n",
-	 oldGen, oldGen->node, oldGen->node->trail_top);
+         oldGen, oldGen->node, oldGen->node->trail_top);
   printf("\nANSWER: choice %p trail %p\n", oldGen->answer_cp, oldGen->answer_tr);
 #endif
   
@@ -193,20 +193,20 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
 #if defined(DEBUG_SWAPPING)
       printf("\nSWAPPING OPERATION\n");
       printf("\nGENERATOR %p: choice %p trail %p\n",
-	     oldGen, oldGen->node, oldGen->node->trail_top);
+             oldGen, oldGen->node, oldGen->node->trail_top);
       printf("\nANSWER: choice %p trail %p\n", 
-	     oldGen->answer_cp, oldGen->answer_tr);
+             oldGen->answer_cp, oldGen->answer_tr);
 
       for(inode = Arg->node; !ChoiceYounger(oldGen->node,inode); 
-	  inode = PREV_CP(inode))
-	{
-	  printf("\nNode %p=%p trail value %p=%p\n",
-		 inode,inode->next_alt,inode->trail_top,
-		 (void*)*TagToPointer(inode->trail_top));
-	}
+          inode = PREV_CP(inode))
+        {
+          printf("\nNode %p=%p trail value %p=%p\n",
+                 inode,inode->next_alt,inode->trail_top,
+                 (void*)*TagToPointer(inode->trail_top));
+        }
       for (itrail = Arg->trail_top; 
-	   !TrailYounger(oldGen->node->trail_top,itrail); itrail--)
-	printf("\nitrail %p=%x\n",itrail,*TagToPointer(itrail));
+           !TrailYounger(oldGen->node->trail_top,itrail); itrail--)
+        printf("\nitrail %p=%x\n",itrail,*TagToPointer(itrail));
 #endif
 
       // STEP ZERO: Calculate sizes of auxiliary data structures.
@@ -214,9 +214,9 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
       oldgen_cp_tam = ChoiceCharDifference(oldGen, oldGen->answer_cp);
       younger_cp_tam = ChoiceCharDifference(oldGen->answer_cp,Arg->node);
       oldgen_tr_tam = TrailCharDifference(oldGen->node->trail_top,
-					  oldGen->answer_tr);
+                                          oldGen->answer_tr);
       younger_tr_tam = TrailCharDifference(oldGen->answer_tr,Arg->trail_top);
-	  
+          
       // STEP ONE: save memory for auxiliary data structures
       // Behavior of memcpy when overlapping is undetermined.
       // Therefore, we need to move younger section of stack to another
@@ -232,161 +232,161 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
 
       frontier_tr = TrailCharOffset(Arg->trail_top, -oldgen_tr_tam);
       if (oldgen_tr_tam > younger_tr_tam)
-	{
-	  // STEP ONE: Copy trail cells of oldgen execution to
-	  // auxiliary data structures
-	  memcpy(aux_stack, oldGen->node->trail_top, oldgen_tr_tam);
-	  // STEP TWO: Move younger trail cells down
-	  memcpy(oldGen->node->trail_top, oldGen->answer_tr, younger_tr_tam);
-	  // STEP THREE: Move oldgen trail cells to top of stack
-	  memcpy(frontier_tr, aux_stack, oldgen_tr_tam);
-	}
+        {
+          // STEP ONE: Copy trail cells of oldgen execution to
+          // auxiliary data structures
+          memcpy(aux_stack, oldGen->node->trail_top, oldgen_tr_tam);
+          // STEP TWO: Move younger trail cells down
+          memcpy(oldGen->node->trail_top, oldGen->answer_tr, younger_tr_tam);
+          // STEP THREE: Move oldgen trail cells to top of stack
+          memcpy(frontier_tr, aux_stack, oldgen_tr_tam);
+        }
       else
-	{
-	  memcpy(aux_stack, oldGen->answer_tr, younger_tr_tam);
-	  memcpy(frontier_tr, oldGen->node->trail_top, oldgen_tr_tam);
-	  memcpy(oldGen->node->trail_top, aux_stack, younger_tr_tam);
-	}
+        {
+          memcpy(aux_stack, oldGen->answer_tr, younger_tr_tam);
+          memcpy(frontier_tr, oldGen->node->trail_top, oldgen_tr_tam);
+          memcpy(oldGen->node->trail_top, aux_stack, younger_tr_tam);
+        }
 
       frontier_cp = ChoiceCharOffset(Arg->node, -oldgen_cp_tam);
       if (oldgen_cp_tam > younger_cp_tam)
-	{
-	  // STEP ONE: Copy choice points of goal execution to
-	  // auxiliary data structures
-	  memcpy(aux_stack, oldGen->answer_cp, oldgen_cp_tam);
-	  // STEP TWO: Move younger choice points down
-	  memcpy(frontier_cp, Arg->node, younger_cp_tam);
-	  // STEP THREE: Move pargoal_node to top of stack
-	  memcpy(Arg->node, aux_stack, oldgen_cp_tam);
-	}
+        {
+          // STEP ONE: Copy choice points of goal execution to
+          // auxiliary data structures
+          memcpy(aux_stack, oldGen->answer_cp, oldgen_cp_tam);
+          // STEP TWO: Move younger choice points down
+          memcpy(frontier_cp, Arg->node, younger_cp_tam);
+          // STEP THREE: Move pargoal_node to top of stack
+          memcpy(Arg->node, aux_stack, oldgen_cp_tam);
+        }
       else
-	{
-	  memcpy(aux_stack, Arg->node, younger_cp_tam);
-	  memcpy(Arg->node, oldGen->answer_cp, oldgen_cp_tam);
-	  memcpy(frontier_cp, aux_stack, younger_cp_tam);
-	}
+        {
+          memcpy(aux_stack, Arg->node, younger_cp_tam);
+          memcpy(Arg->node, oldGen->answer_cp, oldgen_cp_tam);
+          memcpy(frontier_cp, aux_stack, younger_cp_tam);
+        }
       DEALLOC_TABLING_STK(aux_stack);
 
       // STEP SIX: Update trail pointers of choice points that are
       // moved down the stack
       for (inode = frontier_cp; ChoiceYounger(inode,oldGen->node);
-	   inode = PREV_CP(inode))
-	inode->trail_top = TrailCharOffset(inode->trail_top, -oldgen_tr_tam);
+           inode = PREV_CP(inode))
+        inode->trail_top = TrailCharOffset(inode->trail_top, -oldgen_tr_tam);
 
       // STEP SEVEN: Update trail pointers of choice points that are
       // moved on top of the stack (and nullify fake trails)
       itrail = Arg->trail_top;
       for (inode = Arg->node; ChoiceYounger(inode, frontier_cp); 
-	   inode = PREV_CP(inode))
-	{
-	  //nullifying fake trail cells
-	  if (inode->global_top != (tagged_t*)(&(HeapFReg)))
-	    {
-	      for (; !TrailYounger(inode->trail_top,itrail); itrail--)
-		{
-		  if (TagIsHVA(*TagToPointer(itrail)))
-		    {
-		      if (!HeapYounger(inode->global_top,*TagToPointer(itrail)))
-			NullifyTrailEntry(itrail);
-		    }
-		  else if (TagIsSVA(*TagToPointer(itrail)))
-		    {
-		      if (!StackYounger(inode->local_top,*TagToPointer(itrail)))
-			NullifyTrailEntry(itrail);
-		    }
-		}	
-	      //Protect current memory if node is not frozen
-	      inode->global_top = Arg->global_top;
-	      inode->local_top = Arg->local_top;
-	    }
-	  //Update trail pointer
-	  inode->trail_top = TrailCharOffset(inode->trail_top, younger_tr_tam);
-	}
-	  
+           inode = PREV_CP(inode))
+        {
+          //nullifying fake trail cells
+          if (inode->global_top != (tagged_t*)(&(HeapFReg)))
+            {
+              for (; !TrailYounger(inode->trail_top,itrail); itrail--)
+                {
+                  if (TagIsHVA(*TagToPointer(itrail)))
+                    {
+                      if (!HeapYounger(inode->global_top,*TagToPointer(itrail)))
+                        NullifyTrailEntry(itrail);
+                    }
+                  else if (TagIsSVA(*TagToPointer(itrail)))
+                    {
+                      if (!StackYounger(inode->local_top,*TagToPointer(itrail)))
+                        NullifyTrailEntry(itrail);
+                    }
+                }       
+              //Protect current memory if node is not frozen
+              inode->global_top = Arg->global_top;
+              inode->local_top = Arg->local_top;
+            }
+          //Update trail pointer
+          inode->trail_top = TrailCharOffset(inode->trail_top, younger_tr_tam);
+        }
+          
       // STEP EIGHT: answer_cp and answer_tr pointers of generators
       for (igen = last_gen_list; igen != NULL; igen = igen->prev)
-	{
-	  if (ChoiceYounger(igen->node,oldGen->node))
-	    {
-	      if (ChoiceYounger(igen->answer_cp,oldGen->answer_cp))
-		igen->answer_cp = 
-		  ChoiceCharOffset(igen->answer_cp,-oldgen_cp_tam);
-	      else
-		igen->answer_cp = 
-		  ChoiceCharOffset(igen->answer_cp, younger_cp_tam);
-	    }
+        {
+          if (ChoiceYounger(igen->node,oldGen->node))
+            {
+              if (ChoiceYounger(igen->answer_cp,oldGen->answer_cp))
+                igen->answer_cp = 
+                  ChoiceCharOffset(igen->answer_cp,-oldgen_cp_tam);
+              else
+                igen->answer_cp = 
+                  ChoiceCharOffset(igen->answer_cp, younger_cp_tam);
+            }
 
-	  if (igen->answer_cp == NULL) continue;
+          if (igen->answer_cp == NULL) continue;
 
-	  if (ChoiceYounger(igen->answer_cp,oldGen->node))
-	    {
-	      if (ChoiceYounger(igen->answer_cp,oldGen->answer_cp))
-		igen->answer_cp = 
-		  ChoiceCharOffset(igen->answer_cp,-oldgen_cp_tam);
-	      else
-		igen->answer_cp = 
-		  ChoiceCharOffset(igen->answer_cp, younger_cp_tam);
-	    }
+          if (ChoiceYounger(igen->answer_cp,oldGen->node))
+            {
+              if (ChoiceYounger(igen->answer_cp,oldGen->answer_cp))
+                igen->answer_cp = 
+                  ChoiceCharOffset(igen->answer_cp,-oldgen_cp_tam);
+              else
+                igen->answer_cp = 
+                  ChoiceCharOffset(igen->answer_cp, younger_cp_tam);
+            }
 
-	  if (TrailYounger(igen->answer_tr,oldGen->node->trail_top))
-	    {
-	      if (TrailYounger(igen->answer_tr,oldGen->answer_tr))
-		igen->answer_tr = 
-		  TrailCharOffset(igen->answer_tr,-oldgen_tr_tam);
-	      else
-		igen->answer_tr = 
-		  TrailCharOffset(igen->answer_tr, younger_tr_tam);
-	    }
-	}
+          if (TrailYounger(igen->answer_tr,oldGen->node->trail_top))
+            {
+              if (TrailYounger(igen->answer_tr,oldGen->answer_tr))
+                igen->answer_tr = 
+                  TrailCharOffset(igen->answer_tr,-oldgen_tr_tam);
+              else
+                igen->answer_tr = 
+                  TrailCharOffset(igen->answer_tr, younger_tr_tam);
+            }
+        }
 
       //Reordering generator list executions
       if (oldGen != last_gen_list)
-	{
-	  igen = oldGen->post;
-	  oldGen->post = NULL;
-	  while ((igen->ptcp->post == NULL) && (igen->post != NULL))
-	    {
-	      igen = igen->post;
-	      igen->prev->post = NULL;
-	    }
-	  //Not need to reorder - just reinstall post fields.
-	  if (igen->post != NULL) 
-	    {
-	      //Moving subchain
-	      struct gen *aux = igen->prev;
-	      aux->post = NULL;
-	      last_gen_list->post = oldGen;
-	      igen->prev = oldGen->prev;
-	      oldGen->prev = last_gen_list;
-	      int last_id = last_gen_list->id + 1;
-	      last_gen_list = aux;
-	      igen = aux;
-	      //Reinstall post fields
-	      for ( ; aux != oldGen; aux = aux->prev)
-		aux->prev->post = aux;
-	      for ( ; aux != NULL; aux = aux->post)
-		aux->id = last_id++;
-	    }
-	  for ( ; igen != oldGen; igen = igen->prev)
-	    {
-	      igen->leader = igen;
-	      igen->prev->post = igen;
-	    }
-	  igen->leader = igen;
-	}
+        {
+          igen = oldGen->post;
+          oldGen->post = NULL;
+          while ((igen->ptcp->post == NULL) && (igen->post != NULL))
+            {
+              igen = igen->post;
+              igen->prev->post = NULL;
+            }
+          //Not need to reorder - just reinstall post fields.
+          if (igen->post != NULL) 
+            {
+              //Moving subchain
+              struct gen *aux = igen->prev;
+              aux->post = NULL;
+              last_gen_list->post = oldGen;
+              igen->prev = oldGen->prev;
+              oldGen->prev = last_gen_list;
+              int last_id = last_gen_list->id + 1;
+              last_gen_list = aux;
+              igen = aux;
+              //Reinstall post fields
+              for ( ; aux != oldGen; aux = aux->prev)
+                aux->prev->post = aux;
+              for ( ; aux != NULL; aux = aux->post)
+                aux->id = last_id++;
+            }
+          for ( ; igen != oldGen; igen = igen->prev)
+            {
+              igen->leader = igen;
+              igen->prev->post = igen;
+            }
+          igen->leader = igen;
+        }
       
 #if defined(DEBUG_SWAPPING)
       printf("\nPOST SWAPPING\n");
       for(inode = Arg->node; !ChoiceYounger(oldGen->node,inode); 
-	  inode = PREV_CP(inode))
-	{
-	  printf("\nNode %p=%p trail value %p=%p\n",
-		 inode,inode->next_alt,inode->trail_top,
-		 (void*)*TagToPointer(inode->trail_top));
-	}
+          inode = PREV_CP(inode))
+        {
+          printf("\nNode %p=%p trail value %p=%p\n",
+                 inode,inode->next_alt,inode->trail_top,
+                 (void*)*TagToPointer(inode->trail_top));
+        }
       for (itrail = Arg->trail_top; 
-	   !TrailYounger(oldGen->node->trail_top,itrail); itrail--)
-	printf("\nitrail %p=%p\n",itrail,(void*)*TagToPointer(itrail));
+           !TrailYounger(oldGen->node->trail_top,itrail); itrail--)
+        printf("\nitrail %p=%p\n",itrail,(void*)*TagToPointer(itrail));
 #endif
     }
 
@@ -403,10 +403,10 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
       //next cp is back_answer -> arity = 1
       inode = ChoiceCharOffset(oldGen->node,ArityToOffset(1));
       if (inode->global_top == (tagged_t*)(&(HeapFReg)))
-	{
-	  oldGen->node->global_top = (tagged_t*)(&(HeapFReg));
-	  oldGen->node->local_top = inode->local_top;
-	}
+        {
+          oldGen->node->global_top = (tagged_t*)(&(HeapFReg));
+          oldGen->node->local_top = inode->local_top;
+        }
     }
 
   SetShadowregs(Arg->node);
@@ -457,15 +457,15 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
   for (igen = last_gen_list; igen != oldGen->prev; igen = igen->prev)
     {
       for (icons = igen->first_cons; icons != NULL; icons = icons->next)
-	{
-	  if ((icons->type == CONSUMER) && is_executing(icons->cons->gen))
-	    {	     
-	      for  (aux_gen = icons->cons->ptcp;
-		    aux_gen->leader->id > icons->cons->gen->id;
-		    aux_gen = aux_gen->ptcp)
-		aux_gen->leader = icons->cons->gen;
-	    }	    
-	}
+        {
+          if ((icons->type == CONSUMER) && is_executing(icons->cons->gen))
+            {        
+              for  (aux_gen = icons->cons->ptcp;
+                    aux_gen->leader->id > icons->cons->gen->id;
+                    aux_gen = aux_gen->ptcp)
+                aux_gen->leader = icons->cons->gen;
+            }       
+        }
     }
 }
 #endif
@@ -484,7 +484,7 @@ CBOOL__PROTO(nd_back_answer_c) {
 
 
 CFUN__PROTO(complete, int,
-	    struct gen *call, struct gen *parentcall) {
+            struct gen *call, struct gen *parentcall) {
   if (call == call->leader) 
     {
       HeapFReg = call->heap_freg;
@@ -497,36 +497,36 @@ CFUN__PROTO(complete, int,
 #if defined(SWAPPING)
       struct gen *igen = last_gen_list;
       while (igen != NULL)
-	{
-	  if (igen->leader == call)
-	    {
-	      igen->state = COMPLETE;
-	      igen->on_exec = NOEXECUTING;
-	      if (igen == last_gen_list)
-		{
-		  last_gen_list = igen->prev;
-		  last_gen_list->post = NULL;
-		}
-	    }
-	  igen = igen->prev;
-	} 
+        {
+          if (igen->leader == call)
+            {
+              igen->state = COMPLETE;
+              igen->on_exec = NOEXECUTING;
+              if (igen == last_gen_list)
+                {
+                  last_gen_list = igen->prev;
+                  last_gen_list->post = NULL;
+                }
+            }
+          igen = igen->prev;
+        } 
       igen = last_gen_list;
       while (igen != NULL)
-	{
-	  if ((igen->prev != NULL) && (igen->prev->state == COMPLETE))
-	    {
-	      igen->prev = igen->prev->prev;
-	      igen->prev->post = igen;
-	    }
-	  else igen = igen->prev;
-	} 
+        {
+          if ((igen->prev != NULL) && (igen->prev->state == COMPLETE))
+            {
+              igen->prev = igen->prev->prev;
+              igen->prev->post = igen;
+            }
+          else igen = igen->prev;
+        } 
 #else
       while (last_gen_list != call->prev)
-	{
-	  last_gen_list->state = COMPLETE;
-	  last_gen_list->on_exec = NOEXECUTING;
-	  last_gen_list = last_gen_list->prev;
-	} 
+        {
+          last_gen_list->state = COMPLETE;
+          last_gen_list->on_exec = NOEXECUTING;
+          last_gen_list = last_gen_list->prev;
+        } 
       if (last_gen_list != NULL) last_gen_list->post = NULL;
 #endif
     }
@@ -555,11 +555,11 @@ CBOOL__PROTO(abolish_all_tables_c) {
 //  printf("\nTOTAL MEMORY %g\n",(total_memory-24816)/(double)1024);
 //  ComputeA(Arg->local_top,Arg->node);
 //  printf("\nINIT %d %d %d %d %d\n",
-//	 HeapCharDifference(Arg->heap_start,Arg->global_top),
-//	 StackCharDifference(Arg->stack_start,Arg->local_top),
-//	 TrailCharDifference(Arg->trail_start,Arg->trail_top),
-//	 ChoiceCharDifference(Arg->choice_start,Arg->node),
-//	 (tabling_stack_free - tabling_stack) * sizeof(tagged_t));
+//       HeapCharDifference(Arg->heap_start,Arg->global_top),
+//       StackCharDifference(Arg->stack_start,Arg->local_top),
+//       TrailCharDifference(Arg->trail_start,Arg->trail_top),
+//       ChoiceCharDifference(Arg->choice_start,Arg->node),
+//       (tabling_stack_free - tabling_stack) * sizeof(tagged_t));
 //  total_memory = 0;
   init_tries_module();
   trie_node_top = NULL;
@@ -642,9 +642,9 @@ CBOOL__PROTO(tabled_call_c) {
 
       //#if defined(DEBUG_ALL)
       if (tabling_trace == atom_on) {
-	callid->realcall = X(0);
-	printf("Call no constraints id = %ld \t\t ", (long)callid->id);
-	PRINT_TERM(Arg, " ", X(0)); }
+        callid->realcall = X(0);
+        printf("Call no constraints id = %ld \t\t ", (long)callid->id);
+        PRINT_TERM(Arg, " ", X(0)); }
       //#endif
 
       node->child = (TrNode) callid;
@@ -668,11 +668,11 @@ CBOOL__PROTO(tabled_call_c) {
       //new dependency - update leader field
       intmach_t i;
       for (i = iptcp_stk - 1; i > 0; i--)
-	{
-	  if (ptcp_stk[i]->leader->id <= leader->id) break;
-	  ptcp_stk[i]->leader = leader;
-	}
-    }									
+        {
+          if (ptcp_stk[i]->leader->id <= leader->id) break;
+          ptcp_stk[i]->leader = leader;
+        }
+    }                                                                   
   
   struct cons_list* cons;
   CONSUME_ANSWER(Arg, callid, sf, NO_ATTR);
@@ -710,27 +710,27 @@ CBOOL__PROTO(nd_consume_answer_c)
   
   if(l_ans->next == NULL) 
     {
-      checkdealloc(sf->vars,sf->size * sizeof(tagged_t));		
-      checkdealloc(sf->attrs,sf->attr_size * sizeof(tagged_t));	
+      checkdealloc(sf->vars,sf->size * sizeof(tagged_t));               
+      checkdealloc(sf->attrs,sf->attr_size * sizeof(tagged_t)); 
       checkdealloc((tagged_t *)sf,sizeof(struct sf));
       //check for swapping
 #if defined(SWAPPING)
       struct gen *callid = (struct gen*) X(2);
       if (callid->state != COMPLETE)
-	{
-	  struct gen *leader = get_leader(callid);
-	  set_leader(callid,leader);
-	  if (!is_executing(leader)) swapping(Arg,callid);
-	  else
-	    {
-	      pop_choicept(Arg);
-	      struct cons_list* cons;
-	      MAKE_CONSUMER(Arg, cons, callid, sf, CONSUMER);
-	    }
-	}
+        {
+          struct gen *leader = get_leader(callid);
+          set_leader(callid,leader);
+          if (!is_executing(leader)) swapping(Arg,callid);
+          else
+            {
+              pop_choicept(Arg);
+              struct cons_list* cons;
+              MAKE_CONSUMER(Arg, cons, callid, sf, CONSUMER);
+            }
+        }
       else
 #endif
-	pop_choicept(Arg);
+        pop_choicept(Arg);
       return FALSE;
     }
 
@@ -812,41 +812,41 @@ CBOOL__PROTO(lookup_attr_call_c)
   if (sf->attr_size == 0)
     {
       if (l_gen == NULL)
-	{	  
-	  ALLOC_GLOBAL_TABLE(l_gen, struct l_gen*, sizeof(struct l_gen));
-	  l_gen->node = NULL;
-	  l_gen->next = NULL;
-	  node->child = (TrNode) l_gen;
+        {         
+          ALLOC_GLOBAL_TABLE(l_gen, struct l_gen*, sizeof(struct l_gen));
+          l_gen->node = NULL;
+          l_gen->next = NULL;
+          node->child = (TrNode) l_gen;
 
-	  exec_current_store(Arg, &l_gen->orig_space);
-	  exec_call_store_projection(Arg, list_of_attrs, attributes, &l_gen->space);
-	  l_gen->orig_attrs = save_term(Arg, attributes);
-	}
+          exec_current_store(Arg, &l_gen->orig_space);
+          exec_call_store_projection(Arg, list_of_attrs, attributes, &l_gen->space);
+          l_gen->orig_attrs = save_term(Arg, attributes);
+        }
     }
   else // sf->attr_size > 0
     {
       for ( ; l_gen != NULL; l_gen = l_gen->next)
-	{
-	  if (exec_call_entail(Arg, list_of_attrs, attributes, l_gen->orig_attrs, l_gen->space))
-	    {	    
-	      break;
-	    }
-	}
+        {
+          if (exec_call_entail(Arg, list_of_attrs, attributes, l_gen->orig_attrs, l_gen->space))
+            {       
+              break;
+            }
+        }
 
 #if defined(DEBUG_ALL)
       printf("\nLGEN = %p\n",l_gen);
 #endif
       if (l_gen == NULL)
-	{
-	  ALLOC_GLOBAL_TABLE(l_gen, struct l_gen*, sizeof(struct l_gen));
-	  l_gen->node = NULL;
-	  l_gen->next = (struct l_gen*) node->child;
-	  node->child = (TrNode) l_gen;
+        {
+          ALLOC_GLOBAL_TABLE(l_gen, struct l_gen*, sizeof(struct l_gen));
+          l_gen->node = NULL;
+          l_gen->next = (struct l_gen*) node->child;
+          node->child = (TrNode) l_gen;
 
-	  exec_current_store(Arg, &l_gen->orig_space);
-	  exec_call_store_projection(Arg, list_of_attrs, attributes, &l_gen->space);
-	  l_gen->orig_attrs = save_term(Arg, attributes);
-	}	
+          exec_current_store(Arg, &l_gen->orig_space);
+          exec_call_store_projection(Arg, list_of_attrs, attributes, &l_gen->space);
+          l_gen->orig_attrs = save_term(Arg, attributes);
+        }       
     } // end if (sf->size == 0)
 
 #if defined(DEBUG_ALL)
@@ -909,9 +909,9 @@ CBOOL__PROTO(execute_call_c)
 
       //#if defined(DEBUG_ALL)
       if (tabling_trace == atom_on) {
-	(*callid)->realcall = X(0);
-	printf("Call id = %ld \t\t ", (long)(*callid)->id);
-	PRINT_TERM(Arg, " ", X(0)); 
+        (*callid)->realcall = X(0);
+        printf("Call id = %ld \t\t ", (long)(*callid)->id);
+        PRINT_TERM(Arg, " ", X(0)); 
       }
       //#endif
 
@@ -931,18 +931,18 @@ CBOOL__PROTO(execute_call_c)
   else
     sf->isGen = 0;
 
-  //  if ((*callid)->state != COMPLETE)		
+  //  if ((*callid)->state != COMPLETE)         
   struct gen *leader = get_leader(*callid);
   set_leader(*callid,leader);
-  if (is_executing(leader))		
-    {									
+  if (is_executing(leader))             
+    {                                                                   
       intmach_t i;
       for (i = iptcp_stk - 1; i > 0; i--)
-	{
-	  if (ptcp_stk[i]->leader->id <= leader->id) break;
-	  ptcp_stk[i]->leader = leader;
-	}
-    }		
+        {
+          if (ptcp_stk[i]->leader->id <= leader->id) break;
+          ptcp_stk[i]->leader = leader;
+        }
+    }           
   
 #if defined(DEBUG_ALL)
   printf("\nexecute_call END\n"); fflush(stdout);
@@ -1058,12 +1058,12 @@ CBOOL__PROTO(consume_attr_answer_c)
       struct l_ans *answ = (struct l_ans*) IntOfTerm(X(0));
     
       if (answ->valid) {
-	tagged_t list_of_attrs;
-     	array_to_list(Arg, attrs->size, attrs->attrs, &list_of_attrs);
-     	result = exec_apply_answer(Arg, list_of_attrs, answ->ans_attrs, answ->space);
+        tagged_t list_of_attrs;
+        array_to_list(Arg, attrs->size, attrs->attrs, &list_of_attrs);
+        result = exec_apply_answer(Arg, list_of_attrs, answ->ans_attrs, answ->space);
       }
       else  {
-	result = FALSE;   // Do not apply NO valid ansers
+        result = FALSE;   // Do not apply NO valid ansers
       }
       
       checkdealloc(attrs->attrs, attrs->size * sizeof(tagged_t));
@@ -1099,8 +1099,8 @@ CBOOL__PROTO(nd_consume_answer_attr_c) {
   if(l_ans->next == NULL) 
     {
       checkdealloc(sf->vars,sf->size * sizeof(tagged_t));
-      checkdealloc(sf->attrs,sf->attr_size * sizeof(tagged_t));	
-      checkdealloc((tagged_t *)sf,sizeof(struct sf));	
+      checkdealloc(sf->attrs,sf->attr_size * sizeof(tagged_t)); 
+      checkdealloc((tagged_t *)sf,sizeof(struct sf));   
       pop_choicept(Arg);
 
       return FALSE;
@@ -1124,8 +1124,8 @@ CBOOL__PROTO(nd_consume_answer_attr_c) {
   return TRUE;
   //  return separation_add_answer_constraint_c
   //(l_ans->answer->space, l_ans->answer->size, 
-  //			  sf->attrs, l_ans->answer->attrs, 
-  //			  l_ans->answer->not_new_size);
+  //                      sf->attrs, l_ans->answer->attrs, 
+  //                      l_ans->answer->not_new_size);
 
 #else
   printf("\nTABLING Flag must be activated\n");
@@ -1166,20 +1166,20 @@ CBOOL__PROTO(nd_resume_cons_c) {
     {
       //Link shared trail of children consumers
       if (LastNodeTR != icons_l->cons->node_tr)
-	{
-	  LastNodeTR->next = icons_l->cons->node_tr;
-	  //it was linked to previous LastNodeTR
-	  icons_l->cons->node_tr->chain = NULL; 
-	}
+        {
+          LastNodeTR->next = icons_l->cons->node_tr;
+          //it was linked to previous LastNodeTR
+          icons_l->cons->node_tr->chain = NULL; 
+        }
       CHECK_NEXT_ANSWER;  // goto consume_answer
 #if defined(SWAPPING)
       struct gen *leader = get_leader(icons_l->cons->gen);
       set_leader(icons_l->cons->gen,leader);
       if (!is_executing(leader))
-	{
-	  swapping(Arg,icons_l->cons->gen);
-	  return FALSE;
-	}
+        {
+          swapping(Arg,icons_l->cons->gen);
+          return FALSE;
+        }
 #endif
       //Untrailing of previous consumer
 //      clock_t t_ini, t_fin;
@@ -1202,7 +1202,7 @@ CBOOL__PROTO(nd_resume_cons_c) {
       //Updating gen->node pointers
       struct gen *gen = last_gen_list;
       while (gen != LAST_PTCP)
-	gen->node = Arg->node;
+        gen->node = Arg->node;
 #endif
     }
   
@@ -1265,7 +1265,7 @@ CBOOL__PROTO(nd_resume_cons_c) {
 //      struct timeval t_ini, t_fin;
 //      gettimeofday(&t_ini,NULL);
       FORWARD_TRAIL(Arg,icons_l->cons,inode_tr,iTrail,
-		    inode_tr_cons,inode_tr_prev);      // XA check here
+                    inode_tr_cons,inode_tr_prev);      // XA check here
 //      gettimeofday(&t_fin,NULL);
 //      trail_time = trail_time + timeval_diff(&t_fin, &t_ini);
     }
@@ -1281,9 +1281,9 @@ CBOOL__PROTO(nd_resume_cons_c) {
   if (is_attr)
     {
       GET_ATTRS_ANSW(icons_l->cons->ans_space,
-			 l_ans->space,
-			 attrs,
-			 icons_l->cons->attr_vars);
+                         l_ans->space,
+                         attrs,
+                         icons_l->cons->attr_vars);
     }
 
 #if defined(DEBUG_ALL)
@@ -1335,11 +1335,11 @@ CBOOL__PROTO(new_answer_c) {
 //  if (current_memory > total_memory)
 //    {
 ////      printf("\nNew TOTAL %d %d %d %d %d\n",
-////	     HeapCharDifference(Arg->heap_start,Arg->global_top),
-////	     StackCharDifference(Arg->stack_start,Arg->local_top),
-////	     TrailCharDifference(Arg->trail_start,Arg->trail_top),
-////	     ChoiceCharDifference(Arg->choice_start,Arg->node),
-////	     (tabling_stack_free - tabling_stack) * sizeof(tagged_t));
+////         HeapCharDifference(Arg->heap_start,Arg->global_top),
+////         StackCharDifference(Arg->stack_start,Arg->local_top),
+////         TrailCharDifference(Arg->trail_start,Arg->trail_top),
+////         ChoiceCharDifference(Arg->choice_start,Arg->node),
+////         (tabling_stack_free - tabling_stack) * sizeof(tagged_t));
 //      total_memory = current_memory;
 //    }
 
@@ -1349,8 +1349,8 @@ CBOOL__PROTO(new_answer_c) {
     { 
       //#if defined(DEBUG_ALL)
       if (tabling_trace == atom_on) {
-	printf("New no constraints answer id = %ld \t ", (long)PTCP->id);
-	PRINT_TERM(Arg, " ", PTCP->realcall); }
+        printf("New no constraints answer id = %ld \t ", (long)PTCP->id);
+        PRINT_TERM(Arg, " ", PTCP->realcall); }
       //#endif
 
       struct l_ans *answ;
@@ -1432,14 +1432,14 @@ CBOOL__PROTO(new_answer_attr_c)
   if (attrs->size ==  0)
     {
       if (l_ans != NULL)
-	{
+        {
 #if defined(DEBUG_ALL)
-	  printf("\nlookup_attr_answer END I\n"); fflush(stdout);
+          printf("\nlookup_attr_answer END I\n"); fflush(stdout);
 #endif
-	  //Tabling_stk is used as tmp memory (this is safe)
-	  DEALLOC_TABLING_STK(attrs);
-	  return FALSE;
-	}
+          //Tabling_stk is used as tmp memory (this is safe)
+          DEALLOC_TABLING_STK(attrs);
+          return FALSE;
+        }
     }
   else // attrs->size > 0
     {
@@ -1449,40 +1449,40 @@ CBOOL__PROTO(new_answer_attr_c)
 
       //    look_more_general:
       for ( ; l_ans != NULL; l_ans = l_ans->next)
-	{
-	  if (l_ans->valid) {
-	    comparation = exec_answer_check_entail(Arg, list_of_attrs, attributes, l_ans->ans_attrs, l_ans->space, &newattributes);
-	    if (comparation == 1) {
+        {
+          if (l_ans->valid) {
+            comparation = exec_answer_check_entail(Arg, list_of_attrs, attributes, l_ans->ans_attrs, l_ans->space, &newattributes);
+            if (comparation == 1) {
 #if defined(ANS_COUNTER)
-	      ans_no_saved++;
+              ans_no_saved++;
 #endif
-	      break;
-	    }
-	    else if (comparation == -1) { 
+              break;
+            }
+            else if (comparation == -1) { 
 #if defined(ANS_COUNTER)
-	      ans_removed++;
+              ans_removed++;
 #endif
-	      l_ans->valid = FALSE;
-	    }
-	    else if (comparation == 2) {
+              l_ans->valid = FALSE;
+            }
+            else if (comparation == 2) {
 #if defined(ANS_COUNTER)
-	      ans_aggregated++;
+              ans_aggregated++;
 #endif
-	      attributes = newattributes;
-	      l_ans->valid = FALSE;
-	    }
-	  } // check only the valid answers		 
-	}
+              attributes = newattributes;
+              l_ans->valid = FALSE;
+            }
+          } // check only the valid answers              
+        }
 
       if (l_ans != NULL)
-	{
-	  //Tabling_stk is used as tmp memory (this is safe)
-	  DEALLOC_TABLING_STK(attrs);
+        {
+          //Tabling_stk is used as tmp memory (this is safe)
+          DEALLOC_TABLING_STK(attrs);
 #if defined(DEBUG_ALL)
   printf("\nlookup_attr_answer END II\n"); fflush(stdout);
 #endif
-	  return FALSE;
-	}
+          return FALSE;
+        }
     } // end (attrs->size > 0)
 
   ALLOC_GLOBAL_TABLE(l_ans, struct l_ans*, sizeof(struct l_ans));
@@ -1663,7 +1663,7 @@ CBOOL__PROTO(initial_tabling_c) {
   if (Heap_End != HeapOffset(Heap_Start, TABLING_GLOBALSTKSIZE))
     {
       intmach_t size = (TABLING_GLOBALSTKSIZE -
-		  HeapDifference(Heap_Start, w->global_top))/2;
+                  HeapDifference(Heap_Start, w->global_top))/2;
       heap_overflow(Arg,size);
     }
 
@@ -1673,25 +1673,25 @@ CBOOL__PROTO(initial_tabling_c) {
       intmach_t reloc_factor;
 
       new_Stack_Start = checkrealloc
-	(Stack_Start, StackDifference(Stack_Start,Stack_End)*sizeof(tagged_t),
-	 TABLING_LOCALSTKSIZE*sizeof(tagged_t));
+        (Stack_Start, StackDifference(Stack_Start,Stack_End)*sizeof(tagged_t),
+         TABLING_LOCALSTKSIZE*sizeof(tagged_t));
 
       reloc_factor = (char *)new_Stack_Start - (char *)Stack_Start;
       stack_overflow_adjust_wam(w, reloc_factor);
 
       /* Final adjustments */
-      Stack_Start = new_Stack_Start;		/* new bounds */
+      Stack_Start = new_Stack_Start;            /* new bounds */
       Stack_End = StackOffset(new_Stack_Start,TABLING_LOCALSTKSIZE);
     }
 
   if (Trail_End != TrailOffset(Trail_Start, TABLING_CHOICESTKSIZE +
-			       TABLING_TRAILSTKSIZE))
+                               TABLING_TRAILSTKSIZE))
     {
       tagged_t *choice_top = (tagged_t *)w->node+w->value_trail;
 
       intmach_t size = (TABLING_CHOICESTKSIZE + TABLING_TRAILSTKSIZE -
-		  ChoiceDifference(Choice_Start, choice_top) -
-		  TrailDifference(Trail_Start, w->trail_top)) / 2;
+                  ChoiceDifference(Choice_Start, choice_top) -
+                  TrailDifference(Trail_Start, w->trail_top)) / 2;
 
       choice_overflow(Arg,size);
     }  
@@ -1706,10 +1706,10 @@ CBOOL__PROTO(initial_tabling_c) {
 
 
   /* printf("Heap (%p-%p) stack (%p-%p)\n\n", */
-  /* 	 Heap_Start, Heap_End, */
-  /* 	 Stack_Start, Stack_End); */
+  /*     Heap_Start, Heap_End, */
+  /*     Stack_Start, Stack_End); */
   /* printf("GLOBAL_TABLE (%p-%p)\n\n", */
-  /* 	 global_table, global_table_end); */
+  /*     global_table, global_table_end); */
 
   return TRUE;
 

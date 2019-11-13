@@ -123,20 +123,20 @@ CBOOL__PROTO(tabling_stats_c){
   frame_t *newa;
 
   /* printf("Heap   (%p-%p)  global_top  = (%p) %d \n", */
-  /* 	 Heap_Start, Heap_End, w->global_top, (int)HeapDifference(Heap_Start, w->global_top)); */
+  /*     Heap_Start, Heap_End, w->global_top, (int)HeapDifference(Heap_Start, w->global_top)); */
   /* ComputeA(newa,w->node); */
   /* printf("Stack  (%p-%p)  local_top   = (%p) %d \n", */
-  /* 	 Stack_Start, Stack_End, newa, (int)StackDifference(Stack_Start, newa)); */
+  /*     Stack_Start, Stack_End, newa, (int)StackDifference(Stack_Start, newa)); */
   /* printf("Trail  (%p-%p)  trail_top   = (%p) %d \n", */
-  /* 	 Trail_Start, Trail_End, w->trail_top, (int)TrailDifference(Trail_Start, w->trail_top)); */
+  /*     Trail_Start, Trail_End, w->trail_top, (int)TrailDifference(Trail_Start, w->trail_top)); */
   /* printf("Choice (%p-%p)  choice_top  = (%p) %d \n", */
-  /* 	 Choice_Start, Choice_End, w->node+w->value_trail, (int)ChoiceDifference(Choice_Start, w->node+w->value_trail)); */
+  /*     Choice_Start, Choice_End, w->node+w->value_trail, (int)ChoiceDifference(Choice_Start, w->node+w->value_trail)); */
 
   printf("TABLING_GLOBAL_TABLE (%p-%p) size = %lu\n\n",
-  	 global_table, global_table_end, (global_table_free-global_table));
+         global_table, global_table_end, (global_table_free-global_table));
 
   printf("TABLING_STACK_TABLE  (%p-%p) size = %lu\n\n",
-  	 tabling_stack, tabling_stack_end, (tabling_stack_free-tabling_stack));
+         tabling_stack, tabling_stack_end, (tabling_stack_free-tabling_stack));
 
   return TRUE;
 

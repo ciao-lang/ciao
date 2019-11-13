@@ -195,9 +195,9 @@ CBOOL__PROTO(prolog_eng_status)
 
 #define NOT_CALLABLE(What) IsVar(What) || TagIsSmall(What) || TagIsLarge(What)
 
-#define ENSURE_CALLABLE(What, ArgNum)			\
-  if (NOT_CALLABLE(What)) {				\
-    BUILTIN_ERROR(TYPE_ERROR(CALLABLE), What, ArgNum);	\
+#define ENSURE_CALLABLE(What, ArgNum)                   \
+  if (NOT_CALLABLE(What)) {                             \
+    BUILTIN_ERROR(TYPE_ERROR(CALLABLE), What, ArgNum);  \
   }
 
 
@@ -254,12 +254,12 @@ CBOOL__PROTO(prolog_eng_call)
   DEREF(X(5), X(5));
   if (X(5) == atom_true) keep_stacks = KEEP_STACKS;
 
-  gd = gimme_a_new_gd();	/* In a future we will wait for a free wam */
+  gd = gimme_a_new_gd();        /* In a future we will wait for a free wam */
 
-  gd->goal = X(0);		/* Got goal id + memory space, go on! */
+  gd->goal = X(0);              /* Got goal id + memory space, go on! */
   gd->action = create_wam | keep_stacks | create_thread;
 
-  {  				            /* Copy goal to remote thread */
+  {                                         /* Copy goal to remote thread */
     /* Incredible hack: we set X(0) in the new worker to point to the goal
        structure copied in the memory space of that new worker. We can use
        the already existent macros just by locally renaming the Arg (c.f.,
@@ -280,7 +280,7 @@ CBOOL__PROTO(prolog_eng_call)
                          gd,
                          gd->thread_id,
                          gd->thread_handle);
-    exec_result = TRUE;		/* Remote thread: always success */
+    exec_result = TRUE;         /* Remote thread: always success */
   } else {
     exec_result = (bool_t)((intmach_t)startgoal((THREAD_ARG)(gd)));
   }
@@ -347,10 +347,10 @@ CBOOL__PROTO(prolog_eng_backtrack)
   if (create_thread) {
     goal->action |= NEEDS_FREEING;
     Thread_Create_GoalId(make_backtracking,
-			 goal,
-			 goal->thread_id,
-			 goal->thread_handle);
-    exec_result = TRUE;	   /* thread-delegated backtracking always suceeds */
+                         goal,
+                         goal->thread_id,
+                         goal->thread_handle);
+    exec_result = TRUE;    /* thread-delegated backtracking always suceeds */
   } else {
     goal->action &= ~NEEDS_FREEING;
     exec_result = (bool_t)((intmach_t)make_backtracking((THREAD_ARG)goal));
@@ -387,7 +387,7 @@ CBOOL__PROTO(prolog_eng_cut)
     MAJOR_FAULT("Trying to cut a working or non assigned goal")
   }
 
-  goal_desc->state = WORKING;	/* Nobody else should access it */
+  goal_desc->state = WORKING;   /* Nobody else should access it */
   Release_slock(goal_desc->goal_lock_l);
 
   goal_desc->action |= BACKTRACKING;

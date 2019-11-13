@@ -5,7 +5,7 @@ tagged_t chat_make_var(goal_descriptor_t *state)
   tagged_t resul = TagHVA(GTOP);
   HeapPush(GTOP, resul);
   return resul;
-}			      
+}                             
 
 tagged_t chat_make_integer(goal_descriptor_t *state, intmach_t i) 
 {

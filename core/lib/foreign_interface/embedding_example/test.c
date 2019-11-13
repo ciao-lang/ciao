@@ -85,14 +85,14 @@ int main(void)
 
   printf("t8:\n");
   list = ciao_listn(7,
-		       ciao_mk_c_int(2),
-		       ciao_mk_c_int(3),
-		       ciao_mk_c_int(5),
-		       ciao_mk_c_int(7),
-		       ciao_mk_c_int(11),
-		       ciao_mk_c_int(13),
-		       ciao_mk_c_int(17)
-		       );
+                       ciao_mk_c_int(2),
+                       ciao_mk_c_int(3),
+                       ciao_mk_c_int(5),
+                       ciao_mk_c_int(7),
+                       ciao_mk_c_int(11),
+                       ciao_mk_c_int(13),
+                       ciao_mk_c_int(17)
+                       );
   printf("t9:\n");
   printf("Created var %ld\n", list);
 

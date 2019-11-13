@@ -78,7 +78,7 @@ uint64 hrfreq(void) {
   unsigned int hertz;
   size_t size = sizeof(int);
   int mib[2] = {CTL_HW, HW_CPU_FREQ};
-	
+        
   sysctl(mib, 2, &hertz, &size, NULL, 0);
   return hertz;
 }
