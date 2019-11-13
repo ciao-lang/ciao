@@ -145,7 +145,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
   
   Wait_Acquire_slock(goal_desc->goal_lock_l);
   if (goal_desc->worker_registers->next_alt == termcode){
-    unlink_wam(goal_desc);	/* We can make the WAM available right now */
+    unlink_wam(goal_desc);      /* We can make the WAM available right now */
     goal_desc->state = FAILED;
   } else goal_desc->state = PENDING_SOLS;
 

@@ -222,52 +222,52 @@ tagged_t atom_failure;
 
 tagged_t atom_share;             /* "share" */
 tagged_t atom_noshare;           /* "noshare" */
-tagged_t atom_nil;		/* "[]" */
-tagged_t atom_list;		/* "." */
-tagged_t atom_read;		/* "read"  */
-tagged_t atom_write;		/* "write" */
-tagged_t atom_append;		/* "append" */
-tagged_t atom_socket;		/* "socket" */
-tagged_t atom_symlink;		/* "symlink" */
-tagged_t atom_regular;		/* "regular" */
-tagged_t atom_directory;		/* "directory" */
-tagged_t atom_fifo;		/* "fifo" */
-tagged_t atom_stdout;		/* "stdout" */
-tagged_t atom_unknown;		/* "unknown" */
-tagged_t atom_prolog;		/* "prolog"  */
-tagged_t atom_lessthan;		/* "<" */
-tagged_t atom_greaterthan;	/* ">" */
-tagged_t atom_equal;		/* "=" */
-tagged_t atom_off;		/* "off" */
-tagged_t atom_on;		/* "on" */
-tagged_t atom_error;		/* "error" */
-tagged_t atom_trace;		/* "trace" */
-tagged_t atom_debug;		/* "debug" */
-tagged_t atom_fail;		/* "fail" */
-tagged_t atom_all;		/* "all" */
-tagged_t atom_terse;		/* "terse" */
-tagged_t atom_verbose;		/* "verbose" */
-tagged_t atom_compiled;		/* "compiled" */
-tagged_t atom_interpreted;	/* "interpreted" */
-tagged_t atom_builtin;		/* "built_in" */
-tagged_t atom_true;		/* "true" */
-tagged_t atom_false;		/* "false" */
-tagged_t atom_retry_hook;	/* "$$retry_hook" */
-tagged_t atom_unprofiled;	/* "unprofiled" */
-tagged_t atom_profiled;   	/* "profiled" */
-/* tagged_t atom_public; */		/* "public" */
-tagged_t atom_concurrent;	/* "concurrent" */
-tagged_t atom_wait;		/* "wait" */
-tagged_t atom_dynamic;		/* "dynamic" */
-tagged_t atom_multifile;		/* "multifile" */
+tagged_t atom_nil;              /* "[]" */
+tagged_t atom_list;             /* "." */
+tagged_t atom_read;             /* "read"  */
+tagged_t atom_write;            /* "write" */
+tagged_t atom_append;           /* "append" */
+tagged_t atom_socket;           /* "socket" */
+tagged_t atom_symlink;          /* "symlink" */
+tagged_t atom_regular;          /* "regular" */
+tagged_t atom_directory;                /* "directory" */
+tagged_t atom_fifo;             /* "fifo" */
+tagged_t atom_stdout;           /* "stdout" */
+tagged_t atom_unknown;          /* "unknown" */
+tagged_t atom_prolog;           /* "prolog"  */
+tagged_t atom_lessthan;         /* "<" */
+tagged_t atom_greaterthan;      /* ">" */
+tagged_t atom_equal;            /* "=" */
+tagged_t atom_off;              /* "off" */
+tagged_t atom_on;               /* "on" */
+tagged_t atom_error;            /* "error" */
+tagged_t atom_trace;            /* "trace" */
+tagged_t atom_debug;            /* "debug" */
+tagged_t atom_fail;             /* "fail" */
+tagged_t atom_all;              /* "all" */
+tagged_t atom_terse;            /* "terse" */
+tagged_t atom_verbose;          /* "verbose" */
+tagged_t atom_compiled;         /* "compiled" */
+tagged_t atom_interpreted;      /* "interpreted" */
+tagged_t atom_builtin;          /* "built_in" */
+tagged_t atom_true;             /* "true" */
+tagged_t atom_false;            /* "false" */
+tagged_t atom_retry_hook;       /* "$$retry_hook" */
+tagged_t atom_unprofiled;       /* "unprofiled" */
+tagged_t atom_profiled;         /* "profiled" */
+/* tagged_t atom_public; */             /* "public" */
+tagged_t atom_concurrent;       /* "concurrent" */
+tagged_t atom_wait;             /* "wait" */
+tagged_t atom_dynamic;          /* "dynamic" */
+tagged_t atom_multifile;                /* "multifile" */
 tagged_t atom_user;            /* "user" */
 tagged_t atom_att;             /* "att" */
 
 tagged_t atom_default_ciaoroot;
 tagged_t atom_default_c_headers_dir;
 
-tagged_t atom_block;      	/* "block" */
-tagged_t atom_no_block;	        /* "no_block" */
+tagged_t atom_block;            /* "block" */
+tagged_t atom_no_block;         /* "no_block" */
 
 tagged_t atom_self;                   /* "self" */
 tagged_t atom_create;                 /* "create" */
@@ -396,9 +396,9 @@ static void classify_atom(atom_t *s)
   bool_t seen_alpha = FALSE;
   bool_t seen_symbol = FALSE;
   
-  s->has_dquote = FALSE;	/* TRUE if symbolchars only */
-  s->has_squote = FALSE;	/* TRUE if ! ; [] {} OR contains a "'" */
-  s->has_special = FALSE;	/* TRUE if needs quoting */
+  s->has_dquote = FALSE;        /* TRUE if symbolchars only */
+  s->has_squote = FALSE;        /* TRUE if ! ; [] {} OR contains a "'" */
+  s->has_special = FALSE;       /* TRUE if needs quoting */
   while ((r = *cp++)) {
     if (r=='\'')
       s->has_squote = s->has_special = TRUE;
@@ -422,10 +422,10 @@ static void classify_atom(atom_t *s)
        (r0=='{' && r1=='}' && r2==0)))
     s->has_special=FALSE, s->has_squote=TRUE;
   else if (!s->has_special &&
-	   (RuneIsUpperCase(r0) ||
-	    RuneIsDigit(r0) ||
-	    (r0=='.' && r1==0) ||
-	    (r0=='/' && r1=='*')))
+           (RuneIsUpperCase(r0) ||
+            RuneIsDigit(r0) ||
+            (r0=='.' && r1==0) ||
+            (r0=='/' && r1=='*')))
     s->has_special=TRUE;
 }
 
@@ -456,11 +456,11 @@ static void classify_atom(atom_t *s)
 
 #if defined(USE_ATOM_LEN)
 atom_t *new_atom_check(char *str,
-		       unsigned int str_len,
-		       unsigned int index)
+                       unsigned int str_len,
+                       unsigned int index)
 #else
 atom_t *new_atom_check(char *str,
-		       unsigned int index)
+                       unsigned int index)
 #endif
 {
   atom_t *s;
@@ -512,7 +512,7 @@ void reclassify_atoms(void)
   for (i=0; i<ciao_atoms->count; i++)
     classify_atom(atmtab[i]->value.atomp);
 }
-*/		
+*/              
 
 
 /* $atom_mode(+Atom, -Context)
@@ -552,8 +552,8 @@ static CBOOL__PROTO(prolog_ciao_c_headers_dir)
 }
 
 static definition_t *define_builtin(char *pname,
-				    int instr,
-				    int arity)
+                                    int instr,
+                                    int arity)
 {
   definition_t *func;
   intmach_t current_mem = total_mem_count;
@@ -576,9 +576,9 @@ static tagged_t deffunctor(char *pname, int arity)
   procedure: Pointer to C function
  */
 definition_t *define_c_mod_predicate(char *module,
-				     char *pname,
-				     int arity,
-				     cbool0_t procedure)
+                                     char *pname,
+                                     int arity,
+                                     cbool0_t procedure)
 {
   definition_t *func;
   sw_on_key_node_t *keyval;
@@ -680,9 +680,9 @@ module_t *define_c_static_mod(char *module_name)
   ------------------------------------------------------------  */
 
 static void deffunction(char *atom,
-			int arity,
-			void *proc,
-			int funcno)
+                        int arity,
+                        void *proc,
+                        int funcno)
 {
   tagged_t k = deffunctor(atom,arity);
   sw_on_key_node_t *node = incore_gethash(switch_on_function,k);
@@ -692,8 +692,8 @@ static void deffunction(char *atom,
 }
 
 static void deffunction_nobtin(char *atom,
-			       int arity,
-			       void *proc)
+                               int arity,
+                               void *proc)
 {
   tagged_t k = deffunctor(atom,arity);
   sw_on_key_node_t *node = incore_gethash(switch_on_function,k);
@@ -758,21 +758,21 @@ void init_kanji(void)
   c_rune_t i;
   char *cp;
 
-  for (i=0; i<128; i++)		/* default: whitespace */
+  for (i=0; i<128; i++)         /* default: whitespace */
       symbolrune[i] = 0;
   for (i=128; i<256; i++)
-    symbolrune[i] = 1;		/* accept 128..255 as lowercase */
+    symbolrune[i] = 1;          /* accept 128..255 as lowercase */
   
   for (cp="abcdefghijklmnopqrstuvwxyz"; (i = *cp++); )
-    symbolrune[i]=1;		/* lowercase */
+    symbolrune[i]=1;            /* lowercase */
   for (cp="ABCDEFGHIJKLMNOPQRSTUVWXYZ_"; (i = *cp++); )
-    symbolrune[i]=2;		/* uppercase */
+    symbolrune[i]=2;            /* uppercase */
   for (cp="0123456789"; (i = *cp++); )
-    symbolrune[i]=3;		/* digits */
+    symbolrune[i]=3;            /* digits */
   for (cp="#$&*+-./:<=>?@^\\`~"; (i = *cp++); )
-    symbolrune[i]=4;		/* symbolchars */
+    symbolrune[i]=4;            /* symbolchars */
   for (cp="!;\"'%(),[]{|}"; (i = *cp++); )
-    symbolrune[i]=5;		/* punctuation */
+    symbolrune[i]=5;            /* punctuation */
 }
 
 
@@ -781,16 +781,16 @@ void init_latin1(void)
   c_rune_t i;
 
   init_kanji();
-  for (i=128; i<161; i++)	/* 128..160 are whitespace */
+  for (i=128; i<161; i++)       /* 128..160 are whitespace */
     symbolrune[i]=0;
-  for (i=161; i<192; i++)	/* 161..191 are symbolchars */
+  for (i=161; i<192; i++)       /* 161..191 are symbolchars */
     symbolrune[i]=4;
-  for (i=192; i<223; i++)	/* 192..222 are uppercase */
+  for (i=192; i<223; i++)       /* 192..222 are uppercase */
     symbolrune[i]=2;
-  for (i=223; i<256; i++)	/* 223..255 are lowercase */
+  for (i=223; i<256; i++)       /* 223..255 are lowercase */
     symbolrune[i]=1;
-  symbolrune[215]=4;		/* 215 (mult sign) is a symbolchar */
-  symbolrune[247]=4;		/* 247 (div sign) is a symbolchar */
+  symbolrune[215]=4;            /* 215 (mult sign) is a symbolchar */
+  symbolrune[247]=4;            /* 247 (div sign) is a symbolchar */
 }
 
 
@@ -1105,11 +1105,11 @@ void init_once(void)
   define_c_mod_predicate("internals","$insertz",2,insertz);
   define_c_mod_predicate("internals","$make_bytecode_object",4,make_bytecode_object);
 
-				/* support.c */
+                                /* support.c */
   define_c_mod_predicate("terms_check","$instance",2,cinstance);
   define_c_mod_predicate("term_typing","ground",1,cground);
 
-				/* term_support.c */
+                                /* term_support.c */
 
   define_c_mod_predicate("atomic_basic","name",2,prolog_name);
   define_c_mod_predicate("atomic_basic","atom_codes",2,prolog_atom_codes);
@@ -1124,7 +1124,7 @@ void init_once(void)
   define_c_mod_predicate("terms_check","unifiable",3,prolog_unifiable);
   define_c_mod_predicate("iso_misc","unify_with_occurs_check",2,prolog_unifyOC);
 
-				/* indexing.c */
+                                /* indexing.c */
   define_c_mod_predicate("internals","$abolish",1,prolog_abolish); 
   define_c_mod_predicate("internals","$define_predicate",2,define_predicate);
   define_c_mod_predicate("internals","$erase_clause",1,erase_clause);
@@ -1172,17 +1172,17 @@ void init_once(void)
   define_c_mod_predicate("compressed_bytecode","compressLZ",1,compressLZ);
   define_c_mod_predicate("compressed_bytecode","copyLZ",1,copyLZ);
 
-				/* wamsupport.c */
+                                /* wamsupport.c */
   
   define_c_mod_predicate("internals","$ddt",1,set_trace_calls);
 
-				/* qread.c */
+                                /* qread.c */
 
   define_c_mod_predicate("internals","$qread",2,prolog_qread);
   define_c_mod_predicate("internals","$push_qlinfo",0,push_qlinfo);
   define_c_mod_predicate("internals","$pop_qlinfo",0,pop_qlinfo);
 
-				/* misc.c */
+                                /* misc.c */
   
   define_c_mod_predicate("runtime_control", "new_atom", 1, prolog_new_atom);
   define_c_mod_predicate("internals","$global_vars_get_root", 1, prolog_global_vars_get_root);
@@ -1280,12 +1280,12 @@ void init_once(void)
   define_c_mod_predicate("internals","dynlink", 2, prolog_dynlink);
   define_c_mod_predicate("internals","dynunlink", 1, prolog_dynunlink); 
 
-				/* format.c */
+                                /* format.c */
   
   define_c_mod_predicate("internals","$format_print_float",3,prolog_format_print_float);
   define_c_mod_predicate("internals","$format_print_integer",3,prolog_format_print_integer);
 
-				/* timing.c */
+                                /* timing.c */
 
   define_c_mod_predicate("internals","$runtime",1,prolog_runtime);
   define_c_mod_predicate("internals","$usertime",1,prolog_usertime);
@@ -1309,7 +1309,7 @@ void init_once(void)
   define_c_mod_predicate("internals","$systemclockfreq",1,prolog_systemclockfreq);
   define_c_mod_predicate("internals","$wallclockfreq",1,prolog_wallclockfreq);
 
-				/* stacks.c */
+                                /* stacks.c */
 
   define_c_mod_predicate("internals","$termheap_usage",1,termheap_usage);
   define_c_mod_predicate("internals","$envstack_usage",1,envstack_usage);
@@ -1317,7 +1317,7 @@ void init_once(void)
   define_c_mod_predicate("internals","$choice_usage",1,choice_usage);
   define_c_mod_predicate("internals","$stack_shift_usage",1,stack_shift_usage);
 
-				/* alloc.c */
+                                /* alloc.c */
 
   define_c_mod_predicate("runtime_control","statistics",0,statistics);
   define_c_mod_predicate("internals","$program_usage",1,program_usage);
@@ -1332,7 +1332,7 @@ void init_once(void)
   define_c_mod_predicate("internals","$gc_usage",1,gc_usage);
   define_c_mod_predicate("runtime_control","garbage_collect",0,gc_start);
 
-				/* nondet.c */
+                                /* nondet.c */
 
   define_c_mod_predicate("basiccontrol","repeat",0,prolog_repeat);
   define_c_mod_predicate("runtime_control","current_atom",1,current_atom);
@@ -1347,7 +1347,7 @@ void init_once(void)
   define_c_mod_predicate("internals","$open_predicate",1,open_predicate);
 
 #if defined(GAUGE)
-  				/* gauge.c */
+                                /* gauge.c */
 
   define_c_mod_predicate("internals","$emulated_clause_counters",4,emulated_clause_counters);
   define_c_mod_predicate("internals","$counter_values",3,counter_values);
@@ -1414,7 +1414,7 @@ void glb_init_each_time(void)
 
 CVOID__PROTO(local_init_each_time)
 {
-		
+                
   /* Debugger state globals moved to per-thread variables because of
      reallocations of the atoms they point to when expanding the heap
      --- this caused the program to break, since a C variable could be
@@ -1466,7 +1466,7 @@ CVOID__PROTO(local_init_each_time)
 
   /* Setup initial choicepoint */
   node_t *b = InitialNode;
-  Arg->node = b;		            
+  Arg->node = b;                            
   b->frame = Arg->frame;
 
   b->next_alt = termcode;
@@ -1480,7 +1480,7 @@ CVOID__PROTO(local_init_each_time)
   ChoiceptMarkPure(b);
   ChoiceptMarkStatic(b);
   ChoiceptMarkNoCVA(b);
-				
+                                
   NewShadowregs(Arg->global_top);
   Arg->next_alt = NULL;
 

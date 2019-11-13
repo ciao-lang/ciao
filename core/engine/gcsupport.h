@@ -26,10 +26,10 @@
    next= TagToPointer(*curr); \
    *curr= gc_PutValue((tagged_t)temp,*curr); }
 
-#define gc_TrailStart		TagToPointer(w->segment_node->trail_top)
-#define gc_HeapStart		(NodeGlobalTop(w->segment_node))
-#define gc_StackStart		(NodeLocalTop(w->segment_node))
-#define gc_ChoiceStart		(w->segment_node)
+#define gc_TrailStart           TagToPointer(w->segment_node->trail_top)
+#define gc_HeapStart            (NodeGlobalTop(w->segment_node))
+#define gc_StackStart           (NodeLocalTop(w->segment_node))
+#define gc_ChoiceStart          (w->segment_node)
 
 #define gc_ReverseChoice(cp,prevcp,alt) \
 { \

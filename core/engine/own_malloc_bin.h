@@ -287,7 +287,7 @@ static void remove_free_block(MEM_BLOCK *block)
 }
 
 void change_free_block(MEM_BLOCK *block,
-		       intmach_t increment)
+                       intmach_t increment)
 {
   remove_free_block(block);
   block->size += increment;
@@ -347,7 +347,7 @@ void print_mem_map(void)
 /* Creates a new tree node and initializes all of its fields. */
 
 BLOCK_TREE *create_new_node(MEM_BLOCK *block,
-			    BLOCK_TREE *parent)
+                            BLOCK_TREE *parent)
 {
   BLOCK_TREE *node;
 
@@ -370,7 +370,7 @@ BLOCK_TREE *create_new_node(MEM_BLOCK *block,
    nonempty block list hanging from the node */
 
 void add_block_to_node(BLOCK_TREE *node,
-		       MEM_BLOCK *block)
+                       MEM_BLOCK *block)
 {
   MEM_BLOCK *first = node->block_list;
 
@@ -382,7 +382,7 @@ void add_block_to_node(BLOCK_TREE *node,
 }
 
 void remove_block_from_node(BLOCK_TREE *node,
-			    MEM_BLOCK *block)
+                            MEM_BLOCK *block)
 {
   MEM_BLOCK *previous = block->prev_free,
             *next     = block->next_free;
@@ -399,8 +399,8 @@ void remove_block_from_node(BLOCK_TREE *node,
    NULL if last block . */
 
 static void insert_block(MEM_BLOCK *block,
-			 MEM_BLOCK *previous,
-			 MEM_BLOCK *next)
+                         MEM_BLOCK *previous,
+                         MEM_BLOCK *next)
 {
   block->bck = previous;
   block->fwd = next;
@@ -415,7 +415,7 @@ static void insert_block(MEM_BLOCK *block,
    return pointer to memory area and split the block into two if needed. */
 
 static tagged_t *reserve_block(intmach_t req_tagged,
-			       MEM_BLOCK *block)
+                               MEM_BLOCK *block)
 {
 #if defined(DEBUG)
   if (block->size < req_tagged){

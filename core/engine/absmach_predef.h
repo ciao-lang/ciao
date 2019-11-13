@@ -468,34 +468,34 @@ struct absmachdef {
       goto emit; \
     } else { \
       if (fmt[fmt_s].i >= fmt[fmt_s].n) { \
-	/* pop one level */ \
-	FMT_POP(); \
-	goto again; \
+        /* pop one level */ \
+        FMT_POP(); \
+        goto again; \
       } else { \
-	FMT_ADVANCE((ID)); \
+        FMT_ADVANCE((ID)); \
       } \
       switch (FTYPE_type((ABSMACHDEF)->ftype_info, (ID))) { \
       case FTYPEDEF_BASIC: { \
           EMIT_BASIC; \
-	  goto emit; \
+          goto emit; \
         } \
       case FTYPEDEF_BLOB: { \
           EMIT_BLOB; \
-	  goto emit; \
+          goto emit; \
         } \
       case FTYPEDEF_STR: { \
-	  /* push one level */ \
-	  FMT_PUSH_STR(FTYPE_str__args((ABSMACHDEF)->ftype_info, (ID)), FTYPE_str__arity((ABSMACHDEF)->ftype_info, (ID))); \
-	  goto again; \
+          /* push one level */ \
+          FMT_PUSH_STR(FTYPE_str__args((ABSMACHDEF)->ftype_info, (ID)), FTYPE_str__arity((ABSMACHDEF)->ftype_info, (ID))); \
+          goto again; \
         } \
       case FTYPEDEF_ARRAY: { \
-	  intval_t ARRAY_I; \
-	  GET_ARRAY_I; \
-	  /* push one level */ \
-	  FMT_PUSH_ARRAY(FTYPE_array__argtype((ABSMACHDEF)->ftype_info, (ID)), ARRAY_I); \
-	  ftype_id = FTYPE_array__itype((ABSMACHDEF)->ftype_info, (ID)); \
-	  EMIT_ARRAY_I; \
-	  goto emit; \
+          intval_t ARRAY_I; \
+          GET_ARRAY_I; \
+          /* push one level */ \
+          FMT_PUSH_ARRAY(FTYPE_array__argtype((ABSMACHDEF)->ftype_info, (ID)), ARRAY_I); \
+          ftype_id = FTYPE_array__itype((ABSMACHDEF)->ftype_info, (ID)); \
+          EMIT_ARRAY_I; \
+          goto emit; \
         } \
       } \
     } \
@@ -538,9 +538,9 @@ struct absmachdef {
 #define LIVEINFO__HEAP(P) BCOp((P), FTYPE_ctype(f_l), 0)
 #define LIVEINFO__ARITY(P) BCOp((P), FTYPE_ctype(f_i), FTYPE_size(f_l))
 #define LIVEINFO__INIT(P, HEAP, ARITY) ({ \
-      char *ptr = (P); /* conform to strict-aliasing rules */	\
-      LIVEINFO__HEAP(ptr) = (HEAP);				\
-      LIVEINFO__ARITY(ptr) = (ARITY);				\
+      char *ptr = (P); /* conform to strict-aliasing rules */   \
+      LIVEINFO__HEAP(ptr) = (HEAP);                             \
+      LIVEINFO__ARITY(ptr) = (ARITY);                           \
     })
 typedef char liveinfo_t[LIVEINFO__SIZE];
 
@@ -563,7 +563,7 @@ typedef char liveinfo_t[LIVEINFO__SIZE];
 #define EMIT_C(X) EMITtok(f_C, (X))
 #define EMIT_i(X) EMITtok(f_i, (X))
 /*
-#define EMIT_Blob(BLOB) {					 \
+#define EMIT_Blob(BLOB) {                                        \
   P = BCoff(P, copy_blob(TagpPtr(STR,(BLOB)), (tagged_t *)P)); \
 }
 */

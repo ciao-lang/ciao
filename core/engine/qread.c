@@ -198,9 +198,9 @@ CVOID__PROTO(bytecode_rewrite, bcp_t begin, bcp_t end) {
 
   TRACE_REWRITE({
       fprintf(stderr, "  bytecode - 0x%" PRIxm " bytes - start at 0x%" PRIxm ", det at 0x%" PRIxm "\n",
-	      (intmach_t)((char *)end - (char *)p),
-	      (uintmach_t)FTYPE_size(f_i),
-	      (uintmach_t)BCOp(begin, FTYPE_ctype(f_i), 0));
+              (intmach_t)((char *)end - (char *)p),
+              (uintmach_t)FTYPE_size(f_i),
+              (uintmach_t)BCOp(begin, FTYPE_ctype(f_i), 0));
     });
   while (p != NULL && p < end) {
     p = CFUN__EVAL(rewrite_instr, p, begin);
@@ -251,9 +251,9 @@ CFUN__PROTO(rewrite_instr, bcp_t, bcp_t p, bcp_t begin) {
       check_align(p, FTYPE_size(f_e));
 #if PATCH_BC32
       {
-	intmach_t e;
-	e = BCOp(p, FTYPE_ctype(f_e), 0);
-	BCOp(p, FTYPE_ctype(f_e), 0) = Yop(BC32_Yinv(e));
+        intmach_t e;
+        e = BCOp(p, FTYPE_ctype(f_e), 0);
+        BCOp(p, FTYPE_ctype(f_e), 0) = Yop(BC32_Yinv(e));
       }
 #endif
       TRACE_REWRITE({ fprintf(stderr, "%ld", (long)BCOp(p, FTYPE_ctype(f_e), 0)); });
@@ -262,19 +262,19 @@ CFUN__PROTO(rewrite_instr, bcp_t, bcp_t p, bcp_t begin) {
     case FTYPE_id(f_f):
       check_align(p, FTYPE_size(f_f));
       TRACE_REWRITE({
-	  tagged_t t;
-	  t = BCOp(p, FTYPE_ctype(f_f), 0);
-	  fprintf(stderr, "%s/%ld", GetString(t), (long)Arity(t));
-	});
+          tagged_t t;
+          t = BCOp(p, FTYPE_ctype(f_f), 0);
+          fprintf(stderr, "%s/%ld", GetString(t), (long)Arity(t));
+        });
       p = BCoff(p, FTYPE_size(f_f));
       break;
     case FTYPE_id(f_i):
       check_align(p, FTYPE_size(f_i));
 #if PATCH_BC32
       if (opcode == BRANCH) { /* the operand is an offset */
-	intmach_t v;
-	v = BCOp(p, FTYPE_ctype(f_i), 0);
-	BCOp(p, FTYPE_ctype(f_i), 0) = v * BC_SCALE;
+        intmach_t v;
+        v = BCOp(p, FTYPE_ctype(f_i), 0);
+        BCOp(p, FTYPE_ctype(f_i), 0) = v * BC_SCALE;
       }
 #endif
       TRACE_REWRITE({ fprintf(stderr, "%ld", (long)BCOp(p, FTYPE_ctype(f_i), 0)); });
@@ -304,21 +304,21 @@ CFUN__PROTO(rewrite_instr, bcp_t, bcp_t p, bcp_t begin) {
     case FTYPE_id(f_t):
       check_align(p, FTYPE_size(f_t));
       TRACE_REWRITE({
-	  tagged_t t;
-	  t = BCOp(p, FTYPE_ctype(f_t), 0);
-	  //CVOID__CALL(display_term, t, Output_Stream_Ptr, TRUE);
-	  /* (not relocated yet!) */
-	  fprintf(stderr, "%" PRIxm, t);
-	});
+          tagged_t t;
+          t = BCOp(p, FTYPE_ctype(f_t), 0);
+          //CVOID__CALL(display_term, t, Output_Stream_Ptr, TRUE);
+          /* (not relocated yet!) */
+          fprintf(stderr, "%" PRIxm, t);
+        });
       p = BCoff(p, FTYPE_size(f_t));
       break;
     case FTYPE_id(f_x):
       check_align(p, FTYPE_size(f_x));
 #if PATCH_BC32
       {
-	intmach_t x;
-	x = BCOp(p, FTYPE_ctype(f_x), 0);
-	BCOp(p, FTYPE_ctype(f_x), 0) = Xop(BC32_Xinv(x));
+        intmach_t x;
+        x = BCOp(p, FTYPE_ctype(f_x), 0);
+        BCOp(p, FTYPE_ctype(f_x), 0) = Xop(BC32_Xinv(x));
       }
 #endif
       TRACE_REWRITE({ fprintf(stderr, "%ld", (long)Xinv(BCOp(p, FTYPE_ctype(f_x), 0))); });
@@ -328,9 +328,9 @@ CFUN__PROTO(rewrite_instr, bcp_t, bcp_t p, bcp_t begin) {
       check_align(p, FTYPE_size(f_y));
 #if PATCH_BC32
       {
-	intmach_t y;
-	y = BCOp(p, FTYPE_ctype(f_y), 0);
-	BCOp(p, FTYPE_ctype(f_y), 0) = Yop(BC32_Yinv(y));
+        intmach_t y;
+        y = BCOp(p, FTYPE_ctype(f_y), 0);
+        BCOp(p, FTYPE_ctype(f_y), 0) = Yop(BC32_Yinv(y));
       }
 #endif
       TRACE_REWRITE({ fprintf(stderr, "%ld", (long)Yinv(BCOp(p, FTYPE_ctype(f_y), 0))); });
@@ -340,14 +340,14 @@ CFUN__PROTO(rewrite_instr, bcp_t, bcp_t p, bcp_t begin) {
       check_align(p, FTYPE_size(f_z));
 #if PATCH_BC32
       {
-	intmach_t z;
-	z = BCOp(p, FTYPE_ctype(f_z), 0);
-	if (z & 1) {
-	  z = Yop(BC32_Yinv(z + 1)) - 1;
-	} else {
-	  z = Yop(BC32_Yinv(z));
-	}
-	BCOp(p, FTYPE_ctype(f_z), 0) = z;
+        intmach_t z;
+        z = BCOp(p, FTYPE_ctype(f_z), 0);
+        if (z & 1) {
+          z = Yop(BC32_Yinv(z + 1)) - 1;
+        } else {
+          z = Yop(BC32_Yinv(z));
+        }
+        BCOp(p, FTYPE_ctype(f_z), 0) = z;
       }
 #endif
       bytecode_rewrite__z(BCOp(p, FTYPE_ctype(f_z), 0));
@@ -356,21 +356,21 @@ CFUN__PROTO(rewrite_instr, bcp_t, bcp_t p, bcp_t begin) {
     case FTYPE_id(f_C):
       check_align(p, FTYPE_size(f_C));
       TRACE_REWRITE({
-	  char *ptr;
-	  ptr = BCOp(p, FTYPE_ctype(f_C), 0);
-	  fprintf(stderr, "%p", ptr);
-	});
+          char *ptr;
+          ptr = BCOp(p, FTYPE_ctype(f_C), 0);
+          fprintf(stderr, "%p", ptr);
+        });
       p = BCoff(p, FTYPE_size(f_C));
       break;
     case FTYPE_id(f_E):
       check_align(p, FTYPE_size(f_E));
       TRACE_REWRITE({
-	  definition_t *d;
-	  d = BCOp(p, FTYPE_ctype(f_E), 0);
-	  //fprintf(stderr, "%s/%ld", GetString(FuncName(d)), (long)FuncArity(d));
-	  /* (not relocated yet) */
-	  fprintf(stderr, "%p", d);
-	});
+          definition_t *d;
+          d = BCOp(p, FTYPE_ctype(f_E), 0);
+          //fprintf(stderr, "%s/%ld", GetString(FuncName(d)), (long)FuncArity(d));
+          /* (not relocated yet) */
+          fprintf(stderr, "%p", d);
+        });
       p = BCoff(p, FTYPE_size(f_E));
       break;
     case FTYPE_id(f_Q):
@@ -380,50 +380,50 @@ CFUN__PROTO(rewrite_instr, bcp_t, bcp_t p, bcp_t begin) {
       check_align(p, FTYPE_size(f_i));
       k = BCOp(p, FTYPE_ctype(f_i), 0); p = BCoff(p, FTYPE_size(f_i));
       for (j = 0; j < k; j++) {
-	TRACE_REWRITE({ if (j > 0) fprintf(stderr, " "); });
-	check_align(p, FTYPE_size(f_y));
+        TRACE_REWRITE({ if (j > 0) fprintf(stderr, " "); });
+        check_align(p, FTYPE_size(f_y));
 #if PATCH_BC32
-	{
-	  intmach_t y;
-	  y = BCOp(p, FTYPE_ctype(f_y), 0);
-	  BCOp(p, FTYPE_ctype(f_y), 0) = Yop(BC32_Yinv(y));
-	}
+        {
+          intmach_t y;
+          y = BCOp(p, FTYPE_ctype(f_y), 0);
+          BCOp(p, FTYPE_ctype(f_y), 0) = Yop(BC32_Yinv(y));
+        }
 #endif
-	TRACE_REWRITE({ fprintf(stderr, "%ld", (long)Yinv(BCOp(p, FTYPE_ctype(f_y), 0))); });
-	p = BCoff(p, FTYPE_size(f_y));
+        TRACE_REWRITE({ fprintf(stderr, "%ld", (long)Yinv(BCOp(p, FTYPE_ctype(f_y), 0))); });
+        p = BCoff(p, FTYPE_size(f_y));
       }
       break;
     case FTYPE_id(f_Z):
       check_align(p, FTYPE_size(f_i));
       k = BCOp(p, FTYPE_ctype(f_i), 0); p = BCoff(p, FTYPE_size(f_i));
       for (j = 0; j < k; j++) {
-	TRACE_REWRITE({ if (j > 0) fprintf(stderr, " "); });
-	check_align(p, FTYPE_size(f_z));
+        TRACE_REWRITE({ if (j > 0) fprintf(stderr, " "); });
+        check_align(p, FTYPE_size(f_z));
 #if PATCH_BC32
-	{
-	  intmach_t z;
-	  z = BCOp(p, FTYPE_ctype(f_z), 0);
-	  if (z & 1) {
-	    z = Yop(BC32_Yinv(z + 1)) - 1;
-	  } else {
-	    z = Yop(BC32_Yinv(z));
-	  }
-	  BCOp(p, FTYPE_ctype(f_z), 0) = z;
-	}
+        {
+          intmach_t z;
+          z = BCOp(p, FTYPE_ctype(f_z), 0);
+          if (z & 1) {
+            z = Yop(BC32_Yinv(z + 1)) - 1;
+          } else {
+            z = Yop(BC32_Yinv(z));
+          }
+          BCOp(p, FTYPE_ctype(f_z), 0) = z;
+        }
 #endif
-	TRACE_REWRITE({ bytecode_rewrite__z(BCOp(p, FTYPE_ctype(f_z), 0)); });
-	p = BCoff(p, FTYPE_size(f_z));
+        TRACE_REWRITE({ bytecode_rewrite__z(BCOp(p, FTYPE_ctype(f_z), 0)); });
+        p = BCoff(p, FTYPE_size(f_z));
       }
       break;
     case FTYPE_id(f_b):
       /* todo[ts]: change if more blob types are added */
       check_align(p, FTYPE_size(f_i));
       TRACE_REWRITE({
-	tagged_t *h = w->global_top;
-	tagged_t t;
-	t = MakeBlob((tagged_t *)p);
-	CVOID__CALL(display_term, t, Output_Stream_Ptr, TRUE);
-	w->global_top = h;
+        tagged_t *h = w->global_top;
+        tagged_t t;
+        t = MakeBlob((tagged_t *)p);
+        CVOID__CALL(display_term, t, Output_Stream_Ptr, TRUE);
+        w->global_top = h;
       });
       //      p = BCoff(p, BlobFunctorSizeAligned(*(tagged_t *)p)+sizeof(functor_t));
       p = BCoff(p, BlobFunctorSizeAligned((tagged_t *)p));
@@ -540,9 +540,9 @@ CVOID__PROTO(dump_instr, bcp_t p) {
     case FTYPE_id(f_C):
       check_align(p, FTYPE_size(f_C));
       {
-	char *ptr;
-	ptr = BCOp(p, FTYPE_ctype(f_C), 0);
-	fprintf(stderr, "%p", ptr);
+        char *ptr;
+        ptr = BCOp(p, FTYPE_ctype(f_C), 0);
+        fprintf(stderr, "%p", ptr);
       }
       p = BCoff(p, FTYPE_size(f_C));
       break;
@@ -561,31 +561,31 @@ CVOID__PROTO(dump_instr, bcp_t p) {
       check_align(p, FTYPE_size(f_i));
       k = BCOp(p, FTYPE_ctype(f_i), 0); p = BCoff(p, FTYPE_size(f_i));
       for (j = 0; j < k; j++) {
-	if (j > 0) fprintf(stderr, " ");
-	check_align(p, FTYPE_size(f_y));
-	fprintf(stderr, "%ld", (long)Yinv(BCOp(p, FTYPE_ctype(f_y), 0)));
-	p = BCoff(p, FTYPE_size(f_y));
+        if (j > 0) fprintf(stderr, " ");
+        check_align(p, FTYPE_size(f_y));
+        fprintf(stderr, "%ld", (long)Yinv(BCOp(p, FTYPE_ctype(f_y), 0)));
+        p = BCoff(p, FTYPE_size(f_y));
       }
       break;
     case FTYPE_id(f_Z):
       check_align(p, FTYPE_size(f_i));
       k = BCOp(p, FTYPE_ctype(f_i), 0); p = BCoff(p, FTYPE_size(f_i));
       for (j = 0; j < k; j++) {
-	if (j > 0) fprintf(stderr, " ");
-	check_align(p, FTYPE_size(f_z));
-	dump_instr_z(BCOp(p, FTYPE_ctype(f_z), 0));
-	p = BCoff(p, FTYPE_size(f_z));
+        if (j > 0) fprintf(stderr, " ");
+        check_align(p, FTYPE_size(f_z));
+        dump_instr_z(BCOp(p, FTYPE_ctype(f_z), 0));
+        p = BCoff(p, FTYPE_size(f_z));
       }
       break;
     case FTYPE_id(f_b):
       /* todo[ts]: change if more blob types are added */
       check_align(p, FTYPE_size(f_i));
       {
-	tagged_t *h = w->global_top;
-	tagged_t t;
-	t = MakeBlob((tagged_t *)p);
-	CVOID__CALL(display_term, t, Output_Stream_Ptr, TRUE);
-	w->global_top = h;
+        tagged_t *h = w->global_top;
+        tagged_t t;
+        t = MakeBlob((tagged_t *)p);
+        CVOID__CALL(display_term, t, Output_Stream_Ptr, TRUE);
+        w->global_top = h;
       }
       fprintf(stderr, "%llx\n", *(tagged_t *)p);
       p = BCoff(p, BlobFunctorSizeAligned((tagged_t *)p));
@@ -604,8 +604,8 @@ CVOID__PROTO(dump_instr, bcp_t p) {
 /* --------------------------------------------------------------------------- */
 
 CVOID__PROTO(getbytecode32, FILE *f,
-	     bcp_t P,
-	     int length) {
+             bcp_t P,
+             int length) {
   char c;
   bcp_t begin = P;
 
@@ -618,32 +618,32 @@ CVOID__PROTO(getbytecode32, FILE *f,
       
       while ((c = ws[i++] = GETC(f))) {
         if (i == Atom_Buffer_Length) {
-	  EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2);
-	  ws = Atom_Buffer;
+          EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2);
+          ws = Atom_Buffer;
         }
       }
 
       /* TODO: This is can be improved. 
 
          We ensure that there is at least (length/sizeof(tagged_t)+4)
-	 available words in the heap. We load the number into the
-	 heap, copy it to the bytecode, and then move the heap pointer
-	 back.
+         available words in the heap. We load the number into the
+         heap, copy it to the bytecode, and then move the heap pointer
+         back.
       */
       /* TODO: Use Numstack for temporaries? */
       {
-	int arity = 2;
-	int cells = (length / sizeof(tagged_t)) + 4 + arity;
-	if (HeapDifference(w->global_top,Heap_End)<cells) {
-	  explicit_heap_overflow(Arg,cells,5);
-	}
+        int arity = 2;
+        int cells = (length / sizeof(tagged_t)) + 4 + arity;
+        if (HeapDifference(w->global_top,Heap_End)<cells) {
+          explicit_heap_overflow(Arg,cells,5);
+        }
       }
       h = w->global_top;
 //#if BC_SCALE==2
 //      fprintf(stderr, "trace: reading number %s\n", Atom_Buffer);
 //#endif
       if (!string_to_number(w, Atom_Buffer, 10, &t, 5)) {
-	SERIOUS_FAULT("$qread: wrong number!");
+        SERIOUS_FAULT("$qread: wrong number!");
       }
       int sz;
 #if BC_SCALE==2
@@ -799,9 +799,9 @@ char *Dict[4096], *First, Vault[200000], compressed, remaining;
    bytecode are recognized because they begin by ^L the bytecode sequence. */
 
 #define InLZ(n,n2) { for (; size < n; size += 8) \
-	                  i += GETC_LZ(stream)*(1<<size); \
+                          i += GETC_LZ(stream)*(1<<size); \
                      Buffer[--BufferP] = i % n2; \
-      	             i /= n2; \
+                     i /= n2; \
                      size -= n; }    
       
 int readLZ(FILE *stream) {
@@ -816,7 +816,7 @@ int readLZ(FILE *stream) {
       while (BufferP > 3584)
         InLZ(9,512);
       while (BufferP > 3072)
-        InLZ(10,1024);	  
+        InLZ(10,1024);    
       while (BufferP > 2048)
         InLZ(11,2048);
       while (BufferP) 
@@ -886,9 +886,9 @@ void expand_qload(void) {
   /*intmach_t prog_mem = mem_prog_count;*/ /* preserve over reallocs */
   
   qlarray = checkrealloc_ARRAY(tagged_t,
-			       qllimit,
-			       qllimit*2,
-			       qlarray-o);
+                               qllimit,
+                               qllimit*2,
+                               qlarray-o);
   for (i=qllimit; i>0;) {
     --i;
     qlarray[i+o]=qlarray[i];
@@ -903,10 +903,10 @@ emul_info_t *latest_bytecode;               /* Shared, locked access */
 int latest_bytecode_size;                   /* Shared, locked access */
 
 static CVOID__PROTO(load_dbnode32,
-		    int Li,
-		    FILE *f,
-		    int codelength,
-		    int counter_cnt) {
+                    int Li,
+                    FILE *f,
+                    int codelength,
+                    int counter_cnt) {
   emul_info_t *db;
   /*int i;*/
 
@@ -915,16 +915,16 @@ static CVOID__PROTO(load_dbnode32,
 #if defined(GAUGE)
   /* TODO: size was aligned to 4 -- not needed now? JFMC */
   checkalloc_FLEXIBLE_S(emul_info_t,
-			objsize,
-			char,
-			(codelength + counter_cnt*sizeof(intmach_t)),
-			db);
+                        objsize,
+                        char,
+                        (codelength + counter_cnt*sizeof(intmach_t)),
+                        db);
 #else
   checkalloc_FLEXIBLE_S(emul_info_t,
-			objsize,
-			char,
-			codelength,
-			db);
+                        objsize,
+                        char,
+                        codelength,
+                        db);
 #endif
 
   getbytecode32(Arg,f,(bcp_t)db->emulcode,codelength);
@@ -990,8 +990,8 @@ void reloc_emul_entry(int Li, intmach_t Label) {
 
 /* Read 32-bit .po files (fits into 64-bit bytecode if needed) */
 CBOOL__PROTO(qread1, 
-	     FILE *qfile,
-	     tagged_t *rungoal) {
+             FILE *qfile,
+             tagged_t *rungoal) {
   int Li = 0, Lj = 0;
   tagged_t *h = w->global_top;
   int pad;
@@ -1006,24 +1006,24 @@ CBOOL__PROTO(qread1,
       Last = 4095;
       remaining = BufferP = 0;
       { 
-	int i = 0;
-	for(;i < 257; Size[i++] = 1) (Dict[i]=&Vault[i])[0]= i%256;
+        int i = 0;
+        for(;i < 257; Size[i++] = 1) (Dict[i]=&Vault[i])[0]= i%256;
       }
       break;
 #endif
     case ISSCRIPT:
       {
-	int chr;	    
-	do chr = GETC(qfile);
-	while ((chr != EOF) && (chr != 12));
+        int chr;            
+        do chr = GETC(qfile);
+        while ((chr != EOF) && (chr != 12));
       }
       break;
     case ENSURE_SPACE:
       pad = qr_int32(qfile);
       if (HeapDifference(h,Heap_End) < pad) {
-	w->global_top = h;
-	explicit_heap_overflow(Arg,pad,2);
-	h = w->global_top;
+        w->global_top = h;
+        explicit_heap_overflow(Arg,pad,2);
+        h = w->global_top;
       }
       break;
     case LOAD_ATOM:

@@ -19,15 +19,15 @@
 
 static try_node_t *get_null_alt(int arity);
 
-bcp_t startgoalcode;		       /* WAM code to start a goal -- Shared */
-bcp_t bootcode;		       /* WAM bootstrap to run bootgoal -- Shared */
+bcp_t startgoalcode;                   /* WAM code to start a goal -- Shared */
+bcp_t bootcode;                /* WAM bootstrap to run bootgoal -- Shared */
 // #if defined(INTERNAL_CALLING)
-// bcp_t internal_calling;		       /* WAM bootstrap to run bootgoal -- Shared */
+// bcp_t internal_calling;                     /* WAM bootstrap to run bootgoal -- Shared */
 // #endif
 bcp_t startgoalcode_cont;    /* Specify cont. on success and failure -- Shared */
 bcp_t contcode;/* continuations of FrameSize N after exceptions -- Shared */
-bcp_t failcode;	      /* continuation of FrameSize 0 that fails -- Shared */
-bcp_t exitcode;	  /* continuation of FrameSize 0 that exits wam -- Shared */
+bcp_t failcode;       /* continuation of FrameSize 0 that fails -- Shared */
+bcp_t exitcode;   /* continuation of FrameSize 0 that exits wam -- Shared */
 
 static bcp_t insnfail;                              /* Shared */
 try_node_t *null_alt = NULL;/* linked list of null alternatives - Shared*/
@@ -45,11 +45,11 @@ static try_node_t *get_null_alt(int arity)
     if (a->node_offset == ArityToOffset(arity)) return a;
 
   a = (try_node_t *)checkalloc(sizeof(try_node_t)
-			       + sizeof(try_node_t *)
+                               + sizeof(try_node_t *)
 #if defined(GAUGE)
-			       + 2*sizeof(intmach_t)
+                               + 2*sizeof(intmach_t)
 #endif
-			       );
+                               );
 
   INC_MEM_PROG(total_mem_count - current_mem);
 
@@ -57,13 +57,13 @@ static try_node_t *get_null_alt(int arity)
   a->number = 0;
   a->emul_p = insnfail;
   a->emul_p2 = insnfail;
-  (a+1)->next = null_alt;	/* tail of list */
+  (a+1)->next = null_alt;       /* tail of list */
 #if defined(GAUGE)
   a->entry_counter = (intmach_t *)(a+1)+1;
   a->entry_counter[0] = 0;
   a->entry_counter[1] = 0;
 #endif
-  a->next = NULL;		/* no more alternatives */
+  a->next = NULL;               /* no more alternatives */
   null_alt = a;
   return a;
 }
@@ -97,16 +97,16 @@ try_node_t *def_retry_c(cbool0_t proc, int arity)
   bcp_t P;
 
   item = (try_node_t *)
-	     checkalloc(sizeof(try_node_t)
-			// TODO check if this emul_info_t makes sense here
-			//+SIZEOF_FLEXIBLE_STRUCT(emul_info_t, char, FTYPE_size(f_o))
-			+FTYPE_size(f_o)
-			+FTYPE_size(f_Q)
-			+FTYPE_size(f_C)
+             checkalloc(sizeof(try_node_t)
+                        // TODO check if this emul_info_t makes sense here
+                        //+SIZEOF_FLEXIBLE_STRUCT(emul_info_t, char, FTYPE_size(f_o))
+                        +FTYPE_size(f_o)
+                        +FTYPE_size(f_Q)
+                        +FTYPE_size(f_C)
 #if defined(GAUGE)
-			+2*sizeof(intmach_t)
+                        +2*sizeof(intmach_t)
 #endif
-			);
+                        );
   item->node_offset = ArityToOffset(arity);
   item->number = 0;
   P = item->emul_p = (bcp_t )(((char *)item)+sizeof(try_node_t));
@@ -134,12 +134,12 @@ void init_some_bytecode(void) {
   {
     bcp_t P = (bcp_t)
       checkalloc_ARRAY(char,
-		       (FTYPE_size(f_o)+
-			FTYPE_size(f_Q)+
-			FTYPE_size(f_E)+
-			FTYPE_size(f_e)+
-			FTYPE_size(f_o)+
-			2*FTYPE_size(f_i))); /* TODO: needed? */
+                       (FTYPE_size(f_o)+
+                        FTYPE_size(f_Q)+
+                        FTYPE_size(f_E)+
+                        FTYPE_size(f_e)+
+                        FTYPE_size(f_o)+
+                        2*FTYPE_size(f_i))); /* TODO: needed? */
     bootcode = P;
     EMIT_o(CALLQ);
     EMIT_Q(0);
@@ -178,12 +178,12 @@ void init_some_bytecode(void) {
   {
     bcp_t P = (bcp_t)
       checkalloc_ARRAY(char,
-		       (FTYPE_size(f_o)+
-			FTYPE_size(f_Q)+
-			FTYPE_size(f_E)+
-			FTYPE_size(f_e)+
-			FTYPE_size(f_o)+
-			2*FTYPE_size(f_i))); /* TODO: needed? */
+                       (FTYPE_size(f_o)+
+                        FTYPE_size(f_Q)+
+                        FTYPE_size(f_E)+
+                        FTYPE_size(f_e)+
+                        FTYPE_size(f_o)+
+                        2*FTYPE_size(f_i))); /* TODO: needed? */
     startgoalcode = P;
     EMIT_o(CALLQ);
     EMIT_Q(0);
@@ -200,12 +200,12 @@ void init_some_bytecode(void) {
   {
     bcp_t P = (bcp_t)
       checkalloc_ARRAY(char,
-		       (FTYPE_size(f_o)+
-			FTYPE_size(f_Q)+
-			FTYPE_size(f_E)+
-			FTYPE_size(f_e)+
-			FTYPE_size(f_o)+
-			2*FTYPE_size(f_i))); /* TODO: needed? */
+                       (FTYPE_size(f_o)+
+                        FTYPE_size(f_Q)+
+                        FTYPE_size(f_E)+
+                        FTYPE_size(f_e)+
+                        FTYPE_size(f_o)+
+                        2*FTYPE_size(f_i))); /* TODO: needed? */
     startgoalcode_cont = P;
     EMIT_o(CALLQ);
     EMIT_Q(0);
@@ -225,10 +225,10 @@ void init_some_bytecode(void) {
   {
     bcp_t P = (bcp_t)
       checkalloc_ARRAY(char,
-		       (FTYPE_size(f_e)+
-			FTYPE_size(f_o)+
-			FTYPE_size(f_E)+
-			2*FTYPE_size(f_i))); /* TODO: needed? */
+                       (FTYPE_size(f_e)+
+                        FTYPE_size(f_o)+
+                        FTYPE_size(f_E)+
+                        2*FTYPE_size(f_i))); /* TODO: needed? */
 
     fail_alt = get_null_alt(0);
 
@@ -243,10 +243,10 @@ void init_some_bytecode(void) {
   {
     bcp_t P = (bcp_t)
       checkalloc_ARRAY(char,
-		       (FTYPE_size(f_e)+
-			FTYPE_size(f_o)+
-			FTYPE_size(f_i) /* TODO: needed? */
-			)*ARITYLIMIT);
+                       (FTYPE_size(f_e)+
+                        FTYPE_size(f_o)+
+                        FTYPE_size(f_i) /* TODO: needed? */
+                        )*ARITYLIMIT);
     int i;
     contcode = BCoff(P, FTYPE_size(f_e));
     for (i=0; i<ARITYLIMIT; i++) {

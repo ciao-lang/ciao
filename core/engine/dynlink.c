@@ -33,8 +33,8 @@
 static void unload_if_present(char *module_name);
 
 static void add_to_loaded_objects(char *module_name,
-				  void *handle,
-				  void (*end_func)(char *));
+                                  void *handle,
+                                  void (*end_func)(char *));
 
 /* Dynamic linking options.  This is really OS dependant. */
 /* And any other object can reference objects in the one we are loading */
@@ -96,7 +96,7 @@ CBOOL__PROTO(prolog_dynlink)
   DEREF(X(0), X(0));
   if (!TagIsATM(X(0))) {
     sprintf(errmsg, "dynlink(_, %s): first argument must be an atom",
-	    module_name);
+            module_name);
     USAGE_FAULT(errmsg);
   }
   lib_name = (char *)GetString(X(0));
@@ -126,10 +126,10 @@ CBOOL__PROTO(prolog_dynlink)
   if (lib_handle == NULL) {
 #if defined(_WIN32) || defined(_WIN64)
     sprintf(errmsg, "dynlink(%s, %s): could not load library\n %s)",
-	    lib_name, module_name, "unknown error"/*dlerror()*/);
+            lib_name, module_name, "unknown error"/*dlerror()*/);
 #else
     sprintf(errmsg, "dynlink(%s, %s): could not load library\n %s)",
-	    lib_name, module_name, dlerror());
+            lib_name, module_name, dlerror());
 #endif
     USAGE_FAULT(errmsg);
   }
@@ -150,7 +150,7 @@ CBOOL__PROTO(prolog_dynlink)
     dlclose(lib_handle);
 #endif
     sprintf(errmsg, "dynlink(%s, %s): could not find initialization function",
-	    lib_name, module_name);
+            lib_name, module_name);
     USAGE_FAULT(errmsg);
   }
 
@@ -247,8 +247,8 @@ void unload_if_present(char *module_name)
       dlclose(to_remove->handle);
 #endif
       checkdealloc_ARRAY(char,
-			 strlen(to_remove->module_name)+1,
-			 to_remove->module_name);
+                         strlen(to_remove->module_name)+1,
+                         to_remove->module_name);
       checkdealloc_TYPE(lobj_t, to_remove);
     }
   }
@@ -261,8 +261,8 @@ void unload_if_present(char *module_name)
 /* Associate an object with its module_name */
 
 void add_to_loaded_objects(char *module_name,
-			   void *handle,
-			   void (*end_func)(char *))
+                           void *handle,
+                           void (*end_func)(char *))
 {
   lobj_t *new_object = checkalloc_TYPE(lobj_t);
 
@@ -273,7 +273,7 @@ void add_to_loaded_objects(char *module_name,
   strcpy(new_object->module_name, module_name);
   new_object->handle = handle;
   new_object->end_func = end_func; /* JFMC: will be called just before
-				      dlclose */
+                                      dlclose */
   new_object->next = (lobj_t *)all_loaded_objects;
   all_loaded_objects = new_object;
 #if defined(DEBUG)

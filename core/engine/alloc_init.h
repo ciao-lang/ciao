@@ -30,7 +30,7 @@
 #endif
 
 
-#define CONTPAD 128		/* min. amount of heap at proceed */
+#define CONTPAD 128             /* min. amount of heap at proceed */
 #define CALLPAD (2*(MAXATOM) + CONTPAD) /* min. amount of heap at call */
 #define EXCEPAD (CALLPAD*2) /* min. amount of heap at low-level throw */
 
@@ -55,12 +55,12 @@
 
 #define STACKPAD (2*ARITYLIMIT + 16) /* min. amount of stack at allocate */
 
-				/* min. amount of trail/choice at try */
+                                /* min. amount of trail/choice at try */
 #define CHOICEPAD (2*ARITYLIMIT)
 
 
-#define ATMTABSIZE  (4*kCells)	/* size of global atom table  */
-#define QLOADSIZE   (2*kCells)	/* plenty at present */
+#define ATMTABSIZE  (4*kCells)  /* size of global atom table  */
+#define QLOADSIZE   (2*kCells)  /* plenty at present */
 
 #if (defined(ANDPARALLEL) || defined(PARBACK))
 

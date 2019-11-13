@@ -87,45 +87,45 @@
 { \
     for (;;) \
       { \
-	  if (!IsVar(Reg)) \
-	    NVACode \
-	  else if (Reg & TagBitSVA) \
-	    { RefSVA(Aux,Reg); \
-	      if (Reg!=Aux) { Reg=Aux; continue; } \
-	      else SVACode \
-	    } \
-	  else if (!(Reg & TagBitCVA)) \
-	    { RefHVA(Aux,Reg); \
-	      if (Reg!=Aux) { Reg=Aux; continue; } \
-	      else HVACode \
-	    } \
-	  else \
-	    { RefCVA(Aux,Reg); \
-	      if (Reg!=Aux) { Reg=Aux; continue; } \
-	      else CVACode \
-	    } \
-	  break; \
-	} \
+          if (!IsVar(Reg)) \
+            NVACode \
+          else if (Reg & TagBitSVA) \
+            { RefSVA(Aux,Reg); \
+              if (Reg!=Aux) { Reg=Aux; continue; } \
+              else SVACode \
+            } \
+          else if (!(Reg & TagBitCVA)) \
+            { RefHVA(Aux,Reg); \
+              if (Reg!=Aux) { Reg=Aux; continue; } \
+              else HVACode \
+            } \
+          else \
+            { RefCVA(Aux,Reg); \
+              if (Reg!=Aux) { Reg=Aux; continue; } \
+              else CVACode \
+            } \
+          break; \
+        } \
 }
 
 #define SwitchOnHeapVar(Reg,Aux,HVACode,CVACode,NVACode) \
 { \
     for (;;) \
       { \
-	  if (!IsVar(Reg)) \
-	    NVACode \
-	  else if (!(Reg & TagBitCVA)) \
-	    { RefHVA(Aux,Reg); \
-	      if (Reg!=Aux) { Reg=Aux; continue; } \
-	      else HVACode \
-	    } \
-	  else \
-	    { RefCVA(Aux,Reg); \
-	      if (Reg!=Aux) { Reg=Aux; continue; } \
-	      else CVACode \
-	    } \
-	  break; \
-	} \
+          if (!IsVar(Reg)) \
+            NVACode \
+          else if (!(Reg & TagBitCVA)) \
+            { RefHVA(Aux,Reg); \
+              if (Reg!=Aux) { Reg=Aux; continue; } \
+              else HVACode \
+            } \
+          else \
+            { RefCVA(Aux,Reg); \
+              if (Reg!=Aux) { Reg=Aux; continue; } \
+              else CVACode \
+            } \
+          break; \
+        } \
 }
 
 
@@ -135,26 +135,26 @@
   if (IsVar(Reg)) \
     do \
       if (Reg == (Aux = *TagToPointer(Reg))) \
-	{VarCode;break;} \
+        {VarCode;break;} \
     while (IsVar(Reg=Aux)); \
 }
 
 #define DerefHeapSwitch(Reg,Aux,VarCode) DerefSwitch(Reg,Aux,VarCode)
 
 
-#define YoungerHeapVar(Q,R)	HeapYounger(Q,R)
-#define YoungerStackVar(Q,R)	StackYounger(Q,R)
+#define YoungerHeapVar(Q,R)     HeapYounger(Q,R)
+#define YoungerStackVar(Q,R)    StackYounger(Q,R)
 
 #if defined(PARBACK) || defined(ANDPARALLEL)
-#define CondHVA(X)		(!OffHeaptop(X,w->global_uncond) || !OnHeap(TagToPointer(X)))
-#define CondCVA(X)		(!OffHeaptop(TagHVA(TagToCVA(X)),w->global_uncond) || !OnHeap(TagToPointer(X)))
-#define CondSVA(X)		(!OffStacktop(X,w->local_uncond) || !OnStack(TagToPointer(X)))
+#define CondHVA(X)              (!OffHeaptop(X,w->global_uncond) || !OnHeap(TagToPointer(X)))
+#define CondCVA(X)              (!OffHeaptop(TagHVA(TagToCVA(X)),w->global_uncond) || !OnHeap(TagToPointer(X)))
+#define CondSVA(X)              (!OffStacktop(X,w->local_uncond) || !OnStack(TagToPointer(X)))
 #else
-#define CondHVA(X)		(!OffHeaptop(X,w->global_uncond))
-#define CondCVA(X)		(!OffHeaptop(TagHVA(TagToCVA(X)),w->global_uncond))
-#define CondSVA(X)		(!OffStacktop(X,w->local_uncond))
+#define CondHVA(X)              (!OffHeaptop(X,w->global_uncond))
+#define CondCVA(X)              (!OffHeaptop(TagHVA(TagToCVA(X)),w->global_uncond))
+#define CondSVA(X)              (!OffStacktop(X,w->local_uncond))
 #endif
-#define CondStackvar(X)		CondSVA(X)
+#define CondStackvar(X)         CondSVA(X)
 
 /* segfault patch -- jf */
 CVOID__PROTO(trail_push_check, tagged_t x);
@@ -166,25 +166,25 @@ CVOID__PROTO(trail_push_check, tagged_t x);
   *TagToCVA(U) = V; \
 }
 
-#define BindCVA(U,V)				\
-  {						\
-    Wake;					\
-    TrailPushCheck(w->trail_top,U);		\
-    *TagToCVA(U) = V;				\
+#define BindCVA(U,V)                            \
+  {                                             \
+    Wake;                                       \
+    TrailPushCheck(w->trail_top,U);             \
+    *TagToCVA(U) = V;                           \
   }
 
-#define BindSVA(U,V)				\
-  {						\
-    if (CondSVA(U))				\
-      TrailPushCheck(w->trail_top,U);		\
-    *TagToSVA(U) = V;				\
+#define BindSVA(U,V)                            \
+  {                                             \
+    if (CondSVA(U))                             \
+      TrailPushCheck(w->trail_top,U);           \
+    *TagToSVA(U) = V;                           \
   }
 
-#define BindHVA(U,V)				\
-  {						\
-    if (CondHVA(U))				\
-      TrailPushCheck(w->trail_top,U);		\
-    *TagToHVA(U) = V;				\
+#define BindHVA(U,V)                            \
+  {                                             \
+    if (CondHVA(U))                             \
+      TrailPushCheck(w->trail_top,U);           \
+    *TagToHVA(U) = V;                           \
   }
 
 #define Wake \
@@ -195,24 +195,24 @@ CVOID__PROTO(trail_push_check, tagged_t x);
 #define WakeCount (TestEvent ? HeapCharDifference(Heap_Warn_Soft,Heap_Start) : 0)
 
 //TODO: nullify fake trail entries with a predicate which makes nothing.
-#define PlainUntrail(TR,Ref,CONT)					\
-  {									\
-    Ref = TrailPop(TR);							\
-    if (!IsVar(Ref))							\
-      {if (!IsCanceled(Ref)) CONT}					\
-    else								\
-      *TagToPointer(Ref) = Ref;						\
+#define PlainUntrail(TR,Ref,CONT)                                       \
+  {                                                                     \
+    Ref = TrailPop(TR);                                                 \
+    if (!IsVar(Ref))                                                    \
+      {if (!IsCanceled(Ref)) CONT}                                      \
+    else                                                                \
+      *TagToPointer(Ref) = Ref;                                         \
   } 
 
 /* SERIOUS_FAULT - a fault that should not occur- indicating a corruption
                   such as following the STR tag not coming to a FNT tag
-		  this kind of fault may not need to be testing in final
-		  version but must in testing cause a total abort
+                  this kind of fault may not need to be testing in final
+                  version but must in testing cause a total abort
    USAGE_FAULT   - a fault in the usage(incorrect parameters) of a 
                   builtin predicate - an error message is written.
    MINOR_FAULT   - a fault that should result in a error message being
                   written somewhere, but the builtin predicate just
-		  fails and is not aborted
+                  fails and is not aborted
 */
 
 
@@ -436,13 +436,13 @@ void failc(char *mesg);
   } \
 })
 
-#define UNLOCATED_EXCEPTION(Code) {		\
-    ErrCode = Code;				\
-    ErrFuncName = "unknown";			\
-    ErrFuncArity = -1;				\
-    ErrArgNo = 0;				\
-    Culprit = TaggedZero;			\
-    EXCEPTION__THROW;				\
+#define UNLOCATED_EXCEPTION(Code) {             \
+    ErrCode = Code;                             \
+    ErrFuncName = "unknown";                    \
+    ErrFuncArity = -1;                          \
+    ErrArgNo = 0;                               \
+    Culprit = TaggedZero;                       \
+    EXCEPTION__THROW;                           \
   }
 
 #define EXCEPTION__THROW SIGLONGJMP(*w->misc->errhandler, 1)
@@ -497,18 +497,18 @@ void failc(char *mesg);
 #define Unify_constant(U,V) \
 { tagged_t m_t0, m_u=U, m_t1=V; \
   SwitchOnVar(m_t1,m_t0,{BindHVA(m_t1,m_u);}, \
-	            {BindCVA(m_t1,m_u);}, \
-	            {BindSVA(m_t1,m_u);}, \
-		    {if (m_t1!=m_u) return FALSE;}) \
+                    {BindCVA(m_t1,m_u);}, \
+                    {BindSVA(m_t1,m_u);}, \
+                    {if (m_t1!=m_u) return FALSE;}) \
 }
 
 #define EXPAND_ATOM_BUFFER(new_max_atom_length) \
 { \
      Atom_Buffer = \
        checkrealloc_ARRAY(char, \
-			  Atom_Buffer_Length,	       \
-			  new_max_atom_length,	       \
-			  Atom_Buffer);		       \
+                          Atom_Buffer_Length,          \
+                          new_max_atom_length,         \
+                          Atom_Buffer);                \
     Atom_Buffer_Length = new_max_atom_length; \
     UpdateHeapMargins(); \
 }

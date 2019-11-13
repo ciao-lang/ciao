@@ -60,7 +60,7 @@ CFUN__PROTO(fu1_get_attribute, tagged_t, tagged_t x) {
       return *TagToGoal(x);
     }
   }); 
-  return ERRORTAG;				                  /* fail */
+  return ERRORTAG;                                                /* fail */
 }
 
 /* 
@@ -68,8 +68,8 @@ CFUN__PROTO(fu1_get_attribute, tagged_t, tagged_t x) {
 */
 
 CBOOL__PROTO(bu2_attach_attribute,
-	     tagged_t var,
-	     tagged_t constr) {
+             tagged_t var,
+             tagged_t constr) {
   tagged_t t0;
   tagged_t *h = w->global_top;
         
@@ -77,14 +77,14 @@ CBOOL__PROTO(bu2_attach_attribute,
   DEREF(var,var);
   if (TagIsHVA(var)) {
     LoadCVA(t0,h);
-    if (CondHVA(var))	{
+    if (CondHVA(var))   {
       TrailPush(w->trail_top,var);
       *TagToHVA(var) = t0;
     } else {
       *TagToHVA(var) = t0;
     }
   } else {
-    if (TagIsSVA(var)) { 			          /* unsafe value */
+    if (TagIsSVA(var)) {                                  /* unsafe value */
       tagged_t *ptr = h;
       LoadHVA(t0,ptr);
       h = ptr;
@@ -98,7 +98,7 @@ CBOOL__PROTO(bu2_attach_attribute,
   }
   
   HeapPush(h,constr);
-  HeapPush(h,PointerToTerm(address_true));	                  /* func */
+  HeapPush(h,PointerToTerm(address_true));                        /* func */
   
   w->global_top = h;
   if (ChoiceYounger(w->node,TrailOffset(w->trail_top,CHOICEPAD)))
@@ -115,7 +115,7 @@ CBOOL__PROTO(bu1_detach_attribute, tagged_t x) {
   DerefSwitch(x,t,{
     if ( VarIsCVA(x) ) {
       LoadHVA(t,h);
-      BindCVA_NoWake(x,t);			               /* trailed */
+      BindCVA_NoWake(x,t);                                     /* trailed */
       w->global_top = h;
       return TRUE;
     }
@@ -126,8 +126,8 @@ CBOOL__PROTO(bu1_detach_attribute, tagged_t x) {
 /* think about optimizations a la setarg */
 
 CBOOL__PROTO(bu2_update_attribute,
-	     tagged_t x,
-	     tagged_t constr) {
+             tagged_t x,
+             tagged_t constr) {
   tagged_t t;
   tagged_t *h = w->global_top;
               
@@ -136,8 +136,8 @@ CBOOL__PROTO(bu2_update_attribute,
     if ( VarIsCVA(x) ) { 
       LoadCVA(t,h); 
       HeapPush(h,constr);
-      HeapPush(h,PointerToTerm(address_true));	                  /* func */
-      BindCVA_NoWake(x,t);			               /* trailed */
+      HeapPush(h,PointerToTerm(address_true));                    /* func */
+      BindCVA_NoWake(x,t);                                     /* trailed */
       w->global_top = h;
       return TRUE;
     }
@@ -173,7 +173,7 @@ CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
     }
     
     sofar++; 
-    *TagToPointer(ref) = ref;     		               /* untrail */
+    *TagToPointer(ref) = ref;                                  /* untrail */
     
     HeapPush( h, ref); 
     HeapPush( h, value);  
@@ -181,11 +181,11 @@ CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
     HeapPush( h, X(0));
     X(0) = Tag(LST,h-2);
     
-    if ( !CondCVA(ref))	
+    if ( !CondCVA(ref)) 
       tr0=tr, *tr=0; 
   }
   w->global_top = h;
-  Heap_Warn_Soft = Heap_Start;			     /* make WakeCount==0 */
+  Heap_Warn_Soft = Heap_Start;                       /* make WakeCount==0 */
   
   if (sofar<wake_count) {
     SERIOUS_FAULT("wake - unable to find all goals");
@@ -223,16 +223,16 @@ CVOID__PROTO(collect_one_pending_unification) {
     }
     
     sofar++; 
-    *TagToPointer(ref) = ref;     		               /* untrail */
+    *TagToPointer(ref) = ref;                                  /* untrail */
     
     /*   X(0) = *TagToGoal(ref);*/
     X(0) = ref ;
     X(1) = value;
     
-    if ( !CondCVA(ref))	
+    if ( !CondCVA(ref)) 
       tr0=tr, *tr=0; 
   }
-  Heap_Warn_Soft = Heap_Start;			     /* make WakeCount==0 */
+  Heap_Warn_Soft = Heap_Start;                       /* make WakeCount==0 */
   
   if ( !sofar ) {
     SERIOUS_FAULT("wake - unable to find all goals");
@@ -272,37 +272,37 @@ CBOOL__PROTO(c_setarg, intmach_t, tagged_t, tagged_t, bool_t);
 #define CELL_VAL(CELL)  *TagToArg((CELL),2)
 #define CELL_NEXT(CELL) *TagToArg((CELL),3)
 
-#define DEREF_AND_ENSURE_ATOM_MODKEY(KEY) ({				\
-      tagged_t  tmp;							\
-      DerefSwitch((KEY),						\
-		  tmp,							\
-		  BUILTIN_ERROR(INSTANTIATION_ERROR, (KEY), 2););	\
-      if (!TagIsATM((KEY))) {						\
-	if ((!TagIsSTR((KEY))) ||					\
-	    (TagToHeadfunctor((KEY)) != SetArity(atom_user, 1)))	\
-	  { BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), (KEY), 2); }		\
-	(KEY) = atom_user;						\
-      }									\
+#define DEREF_AND_ENSURE_ATOM_MODKEY(KEY) ({                            \
+      tagged_t  tmp;                                                    \
+      DerefSwitch((KEY),                                                \
+                  tmp,                                                  \
+                  BUILTIN_ERROR(INSTANTIATION_ERROR, (KEY), 2););       \
+      if (!TagIsATM((KEY))) {                                           \
+        if ((!TagIsSTR((KEY))) ||                                       \
+            (TagToHeadfunctor((KEY)) != SetArity(atom_user, 1)))        \
+          { BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), (KEY), 2); }         \
+        (KEY) = atom_user;                                              \
+      }                                                                 \
     })
 
-#define LOOK_FOR_CELL(CELL, KEY, K, BEFORE_CODE, NIL_CODE) ({	\
-      do {							\
-	BEFORE_CODE;						\
-	(CELL) = CELL_NEXT(CELL);				\
-	if ((CELL) == atom_nil) { NIL_CODE; }			\
-	(K) = CELL_KEY(CELL);					\
-      } while( (KEY) < (K) );					\
+#define LOOK_FOR_CELL(CELL, KEY, K, BEFORE_CODE, NIL_CODE) ({   \
+      do {                                                      \
+        BEFORE_CODE;                                            \
+        (CELL) = CELL_NEXT(CELL);                               \
+        if ((CELL) == atom_nil) { NIL_CODE; }                   \
+        (K) = CELL_KEY(CELL);                                   \
+      } while( (KEY) < (K) );                                   \
     })
 
 /* 
    The following code checks the variable uses multi-attributes. 
    Otherwise it silently fails.
 */
-#define ACCESS_ATTR_STR(ATTRVAR, COMPLEX) ({		\
-      (COMPLEX) = *TagToGoal((ATTRVAR));		\
-      if (!TagIsSTR((COMPLEX)) ||			\
-	  TagToHeadfunctor((COMPLEX)) != MULTI_ATTR_F)	\
-	{ return FALSE; }				\
+#define ACCESS_ATTR_STR(ATTRVAR, COMPLEX) ({            \
+      (COMPLEX) = *TagToGoal((ATTRVAR));                \
+      if (!TagIsSTR((COMPLEX)) ||                       \
+          TagToHeadfunctor((COMPLEX)) != MULTI_ATTR_F)  \
+        { return FALSE; }                               \
 })
 
 CBOOL__PROTO(get_attr__3) {
@@ -347,13 +347,13 @@ CBOOL__PROTO(put_attr__3) {
     ACCESS_ATTR_STR(var, complex);
     
     LOOK_FOR_CELL(complex, key, k, 
-		  {prev = complex;}, 
-		  {next = atom_nil; goto insert_cell;});
+                  {prev = complex;}, 
+                  {next = atom_nil; goto insert_cell;});
 
     if (key == k)  {
       if (!IsVar(val)) {
-	/* setarg/3 is safe, since val is not variable. */
-	return c_setarg(Arg, 2, complex, val, TRUE);
+        /* setarg/3 is safe, since val is not variable. */
+        return c_setarg(Arg, 2, complex, val, TRUE);
       }
       /* setarg/3 is not safe, since val is variables. Then replace the all cell. */
       next = CELL_NEXT(complex);
@@ -407,8 +407,8 @@ CBOOL__PROTO(del_attr__2) {
   key = X(1); DEREF_AND_ENSURE_ATOM_MODKEY(key);
  
   LOOK_FOR_CELL(complex, key, k, 
-		{ prev = complex; }, 
-		{ return TRUE; });
+                { prev = complex; }, 
+                { return TRUE; });
   
   if (key == k)  {
     return c_setarg(Arg, 3, prev, CELL_NEXT(complex), TRUE);
@@ -458,10 +458,10 @@ CBOOL__PROTO(type_attr__3) {
 */ 
 
 CBOOL__PROTO(c_setarg,
-	     intmach_t number,
-	     tagged_t complex,
-	     tagged_t newarg,
-	     bool_t backtrackable) {
+             intmach_t number,
+             tagged_t complex,
+             tagged_t newarg,
+             bool_t backtrackable) {
   X(0) = MakeSmall(number);
   X(1) = complex;
   X(2) = newarg;

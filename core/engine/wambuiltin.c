@@ -71,28 +71,28 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v)
     case LST:
       DerefCdr(t,v);
       if (t==atom_nil) {
-	DerefCar(v,v);
-	goto restart;
+        DerefCar(v,v);
+        goto restart;
       } else {
-	return v;
+        return v;
       }
 
     case STR:
       if (STRIsLarge(v))
-	return v;
+        return v;
       t = TagToHeadfunctor(v);
       proc = incore_gethash(switch_on_function,t)->value.proc;
       /* TODO: use different function pointer types */
       if (proc!=NULL) {
-	switch (Arity(t)) {
-	case 1:
-	  RefArg(t,v,1);
-	  return (*(ctagged1l_t)proc)(Arg,t,NULL);
-	case 2:
-	  RefArg(t,v,1);
-	  RefArg(u,v,2);
-	  return (*(ctagged2l_t)proc)(Arg,t,u,NULL);
-	}
+        switch (Arity(t)) {
+        case 1:
+          RefArg(t,v,1);
+          return (*(ctagged1l_t)proc)(Arg,t,NULL);
+        case 2:
+          RefArg(t,v,1);
+          RefArg(u,v,2);
+          return (*(ctagged2l_t)proc)(Arg,t,u,NULL);
+        }
       }
 
     default:
@@ -100,32 +100,32 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v)
     }
 }
 
-#define NDEREF(Wam, Reg, ArgNo, Aux)					\
-  {									\
-    DerefSwitch(Reg,Aux,						\
-		BUILTIN_ERROR(INSTANTIATION_ERROR, (Reg), (ArgNo));)	\
-      if (!IsNumber(Reg))						\
-	{								\
-	  Reg = evaluate(Wam, Reg);					\
-	  if(!IsNumber(Reg))						\
-	    BUILTIN_ERROR(TYPE_ERROR(EVALUABLE), (Reg), (ArgNo));	\
-	}								\
+#define NDEREF(Wam, Reg, ArgNo, Aux)                                    \
+  {                                                                     \
+    DerefSwitch(Reg,Aux,                                                \
+                BUILTIN_ERROR(INSTANTIATION_ERROR, (Reg), (ArgNo));)    \
+      if (!IsNumber(Reg))                                               \
+        {                                                               \
+          Reg = evaluate(Wam, Reg);                                     \
+          if(!IsNumber(Reg))                                            \
+            BUILTIN_ERROR(TYPE_ERROR(EVALUABLE), (Reg), (ArgNo));       \
+        }                                                               \
   }
 /* NDEREF_I */
-#define NDEREF_I(Wam, Reg, ArgNo, Aux)					\
-  { 									\
-    DerefSwitch(Reg,Aux,						\
-		BUILTIN_ERROR(INSTANTIATION_ERROR, (Reg), (ArgNo));)	\
-      if (!IsInteger(Reg))						\
-	{								\
-	  Reg = evaluate(Wam, Reg);					\
-	  if(!TagIsSmall(Reg)) {					\
-	    if(!TagIsLarge(Reg))					\
-	      BUILTIN_ERROR(TYPE_ERROR(EVALUABLE), (Reg), (ArgNo));	\
-	    if(LargeIsFloat(Reg))					\
-	      BUILTIN_ERROR(TYPE_ERROR(INTEGER), (Reg), (ArgNo));	\
-	  }								\
-	}								\
+#define NDEREF_I(Wam, Reg, ArgNo, Aux)                                  \
+  {                                                                     \
+    DerefSwitch(Reg,Aux,                                                \
+                BUILTIN_ERROR(INSTANTIATION_ERROR, (Reg), (ArgNo));)    \
+      if (!IsInteger(Reg))                                              \
+        {                                                               \
+          Reg = evaluate(Wam, Reg);                                     \
+          if(!TagIsSmall(Reg)) {                                        \
+            if(!TagIsLarge(Reg))                                        \
+              BUILTIN_ERROR(TYPE_ERROR(EVALUABLE), (Reg), (ArgNo));     \
+            if(LargeIsFloat(Reg))                                       \
+              BUILTIN_ERROR(TYPE_ERROR(INTEGER), (Reg), (ArgNo));       \
+          }                                                             \
+        }                                                               \
   }
 
 /* --------------------------------------------------------------------------- */
@@ -405,17 +405,17 @@ CBOOL__PROTO(bu3_functor,
       tagged_t tagarity;
       
       if (TermIsAtomic(term))
-	tagarity = TaggedZero;
+        tagarity = TaggedZero;
       else if (!(term & TagBitFunctor))
-	term = atom_list,
-	tagarity = MakeSmall(2);
+        term = atom_list,
+        tagarity = MakeSmall(2);
       else
-	{
-	  tagged_t f = TagToHeadfunctor(term);
-	  
-	  term = SetArity(f,0),
-	  tagarity = MakeSmall(Arity(f));
-	}
+        {
+          tagged_t f = TagToHeadfunctor(term);
+          
+          term = SetArity(f,0),
+          tagarity = MakeSmall(Arity(f));
+        }
 
       Unify_constant(tagarity,arity);
       return cunify(Arg,term,name);
@@ -423,35 +423,35 @@ CBOOL__PROTO(bu3_functor,
  construct:
     {
       DerefSwitch(name, t0, 
-		  BUILTIN_ERROR(INSTANTIATION_ERROR, name, 2););
+                  BUILTIN_ERROR(INSTANTIATION_ERROR, name, 2););
       DerefSwitch(arity, t0,
-		  BUILTIN_ERROR(INSTANTIATION_ERROR, arity, 3););
+                  BUILTIN_ERROR(INSTANTIATION_ERROR, arity, 3););
 
       if (TermIsAtomic(name)) 
-	{
-	  if (arity == TaggedZero) return cunify(Arg,name,term);
-	  else if (arity > TaggedZero) 
-	    {
-	      if (TagIsATM(name)) 
-		{
-		  if (arity < MakeSmall(ARITYLIMIT))
-		    return 
-		      cunify(Arg, make_structure(Arg, SetArity(name,GetSmall(arity))), term);
-		  else if (IsInteger(arity)) 
-		    BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ARITY), arity, 3);
-		  else
-		    BUILTIN_ERROR(TYPE_ERROR(INTEGER),arity, 3);
-		}
-	      else if (IsInteger(arity))
-		BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), name, 2);
-	      else
-		BUILTIN_ERROR(TYPE_ERROR(INTEGER), arity, 3);
-	    }
-	  else
-	    BUILTIN_ERROR(DOMAIN_ERROR(NOT_LESS_THAN_ZERO), arity, 3);
-	}
+        {
+          if (arity == TaggedZero) return cunify(Arg,name,term);
+          else if (arity > TaggedZero) 
+            {
+              if (TagIsATM(name)) 
+                {
+                  if (arity < MakeSmall(ARITYLIMIT))
+                    return 
+                      cunify(Arg, make_structure(Arg, SetArity(name,GetSmall(arity))), term);
+                  else if (IsInteger(arity)) 
+                    BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ARITY), arity, 3);
+                  else
+                    BUILTIN_ERROR(TYPE_ERROR(INTEGER),arity, 3);
+                }
+              else if (IsInteger(arity))
+                BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), name, 2);
+              else
+                BUILTIN_ERROR(TYPE_ERROR(INTEGER), arity, 3);
+            }
+          else
+            BUILTIN_ERROR(DOMAIN_ERROR(NOT_LESS_THAN_ZERO), arity, 3);
+        }
       else
-	BUILTIN_ERROR(TYPE_ERROR(ATOMIC), name, 2);
+        BUILTIN_ERROR(TYPE_ERROR(ATOMIC), name, 2);
     }
     
 }
@@ -459,9 +459,9 @@ CBOOL__PROTO(bu3_functor,
 
 // Old code without exception
 CBOOL__PROTO(bu3_functor, 
-	     tagged_t term,
-	     tagged_t name,
-	     tagged_t arity)
+             tagged_t term,
+             tagged_t name,
+             tagged_t arity)
 {
   tagged_t t0;
   
@@ -470,17 +470,17 @@ CBOOL__PROTO(bu3_functor,
       tagged_t tagarity;
       
       if (TermIsAtomic(term))
-	tagarity = TaggedZero;
+        tagarity = TaggedZero;
       else if (!(term & TagBitFunctor))
-	term = atom_list,
-	tagarity = MakeSmall(2);
+        term = atom_list,
+        tagarity = MakeSmall(2);
       else
-	{
-	  tagged_t f = TagToHeadfunctor(term);
-	  
-	  term = SetArity(f,0),
-	  tagarity = MakeSmall(Arity(f));
-	}
+        {
+          tagged_t f = TagToHeadfunctor(term);
+          
+          term = SetArity(f,0),
+          tagarity = MakeSmall(Arity(f));
+        }
 
       Unify_constant(tagarity,arity);
       return cunify(Arg,term,name);
@@ -490,14 +490,14 @@ CBOOL__PROTO(bu3_functor,
       DerefSwitch(name,t0,;);
       DerefSwitch(arity,t0,;);
       if (TermIsAtomic(name) && (arity==TaggedZero))
-	return cunify(Arg,name,term);
+        return cunify(Arg,name,term);
       else if (TagIsATM(name) &&
-	       (arity>TaggedZero) && (arity<MakeSmall(ARITYLIMIT)))
-	return cunify(Arg,
+               (arity>TaggedZero) && (arity<MakeSmall(ARITYLIMIT)))
+        return cunify(Arg,
                       make_structure(Arg, SetArity(name,GetSmall(arity))),
                       term);
       else
-	return FALSE;
+        return FALSE;
     }
 }
 
@@ -505,8 +505,8 @@ CBOOL__PROTO(bu3_functor,
 /*---------------------------------------------------------------*/
 
 CBOOL__PROTO(bu2_univ, 
-	     tagged_t term,
-	     tagged_t list)
+             tagged_t term,
+             tagged_t list)
 { 
   ERR__FUNCTOR("term_basic:=..", 2);
   CIAO_REG_1(tagged_t, car);
@@ -552,9 +552,9 @@ CBOOL__PROTO(bu2_univ,
   if (!TagIsLST(cdr))
     {
       if (cdr == atom_nil)
-	BUILTIN_ERROR(DOMAIN_ERROR(NON_EMPTY_LIST), list, 2); 
+        BUILTIN_ERROR(DOMAIN_ERROR(NON_EMPTY_LIST), list, 2); 
       else
-	BUILTIN_ERROR(TYPE_ERROR(LIST), list, 2); 
+        BUILTIN_ERROR(TYPE_ERROR(LIST), list, 2); 
     }
 
   DerefCar(f,cdr);
@@ -562,9 +562,9 @@ CBOOL__PROTO(bu2_univ,
   if (cdr==atom_nil)
     {
       if (TermIsAtomic(f))
-	return cunify(Arg,f,term);
+        return cunify(Arg,f,term);
       else 
-	BUILTIN_ERROR(TYPE_ERROR(ATOMIC), f, 2); 
+        BUILTIN_ERROR(TYPE_ERROR(ATOMIC), f, 2); 
     }
   else if (IsVar(f))
     goto bomb;
@@ -823,7 +823,7 @@ CFUN__PROTO(fu1_sub1, tagged_t, tagged_t X0, bcp_t liveinfo)
   }
 }
 
-				/* binary functions */
+                                /* binary functions */
 
 CFUN__PROTO(fu2_plus, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
 {
@@ -1231,7 +1231,7 @@ CFUN__PROTO(fu2_rsh, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
 /*  GCD for rat arithm., ch feb 92
     
     This works through the following mechanism:
-		
+                
     - The arithm. functions (via is/2,</2,...) apply NDEREF to their
       args which calls evaluate [wamsupport.c] which, when it sees
       terms, calls the corresponding function ( max arity = 2). Eval
@@ -1247,7 +1247,7 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   CIAO_REG_2(tagged_t, t1);
   CIAO_REG_3(tagged_t, v);
 
-  int type = 3;			/* big x big */ 
+  int type = 3;                 /* big x big */ 
   
   u=X0; 
   NDEREF_I(Arg, u, 0, t1);
@@ -1255,7 +1255,7 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
     type -= 2;
     if (u<=TaggedZero) {
       u = (u==TaggedLow ? make_integer_check(Arg, GetSmall(TaggedHigh), liveinfo)
-	                : TaggedZero-(u-TaggedZero));
+                        : TaggedZero-(u-TaggedZero));
     }
   } else if (!bn_positive((bignum_t *)TagToSTR(u))) {
     u = bn_call(Arg,bn_minus,u,0, liveinfo);
@@ -1267,7 +1267,7 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
     type -= 1;
     if (v<=TaggedZero) {
       v = (v==TaggedLow ? make_integer_check(Arg, GetSmall(TaggedHigh), liveinfo)
-	                : TaggedZero-(v-TaggedZero));
+                        : TaggedZero-(v-TaggedZero));
     }
   } else if (!bn_positive((bignum_t *)TagToSTR(v))) {
     v = bn_call(Arg,bn_minus,v,0, liveinfo);
@@ -1278,30 +1278,30 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   /*bn_quotient_wanted = FALSE;*/
 
   for (;;) {
-    switch (type) {  			/*     u x v     */
-      case 0:				/* small x small */
+    switch (type) {                     /*     u x v     */
+      case 0:                           /* small x small */
   small_x_small:
-      	{ uintmach_t x = GetSmall(u), y = GetSmall(v);
-      	  for (;;) {
-	    x = x % y; if ( x==0 ) return MakeSmall(y);
-	    y = y % x; if ( y==0 ) return MakeSmall(x);
-      	  }
-	}
-      case 1:				/* small x big   */
-	v = bn_call(Arg,bn_quotient_remainder_quot_not_wanted,v,u, liveinfo);
-	if ( v==TaggedZero ) return u;
-	goto small_x_small;
+        { uintmach_t x = GetSmall(u), y = GetSmall(v);
+          for (;;) {
+            x = x % y; if ( x==0 ) return MakeSmall(y);
+            y = y % x; if ( y==0 ) return MakeSmall(x);
+          }
+        }
+      case 1:                           /* small x big   */
+        v = bn_call(Arg,bn_quotient_remainder_quot_not_wanted,v,u, liveinfo);
+        if ( v==TaggedZero ) return u;
+        goto small_x_small;
       case 2:                           /*   big x small */
- 	u = bn_call(Arg,bn_quotient_remainder_quot_not_wanted,u,v, liveinfo);
-	if ( u==TaggedZero ) return v;
-	goto small_x_small;
-      case 3:				/*   big x big   */
-	u = bn_call(Arg,bn_quotient_remainder_quot_not_wanted,u,v, liveinfo); 
-	if ( u==TaggedZero ) return v;
-	if ( TagIsSmall(u) ) type -= 2;
-	v = bn_call(Arg,bn_quotient_remainder_quot_not_wanted,v,u, liveinfo); 
-	if ( v==TaggedZero ) return u;
-	if ( TagIsSmall(v) ) type -= 1;
+        u = bn_call(Arg,bn_quotient_remainder_quot_not_wanted,u,v, liveinfo);
+        if ( u==TaggedZero ) return v;
+        goto small_x_small;
+      case 3:                           /*   big x big   */
+        u = bn_call(Arg,bn_quotient_remainder_quot_not_wanted,u,v, liveinfo); 
+        if ( u==TaggedZero ) return v;
+        if ( TagIsSmall(u) ) type -= 2;
+        v = bn_call(Arg,bn_quotient_remainder_quot_not_wanted,v,u, liveinfo); 
+        if ( v==TaggedZero ) return u;
+        if ( TagIsSmall(v) ) type -= 1;
     }
   }
 } 
@@ -1527,18 +1527,18 @@ CFUN__PROTO(fu1_atan, tagged_t, tagged_t X0, bcp_t liveinfo)
       RefArg(t0,complex,i);
       return t0;
     }
-  else if (IsComplex(complex))	/\* i.e. list *\/
+  else if (IsComplex(complex))  /\* i.e. list *\/
     {
       if (i == 1)
-	{
-	  RefCar(t0,complex);
-	  return t0;
-	}
+        {
+          RefCar(t0,complex);
+          return t0;
+        }
       else if (i == 2)
-	{
-	  RefCdr(t0,complex);
-	  return t0;
-	}
+        {
+          RefCdr(t0,complex);
+          return t0;
+        }
       else return FALSE;
     }
   // comment next line for full ISO compliance
@@ -1568,7 +1568,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex, bcp_t liveinfo
     RefArg(t0,complex,i);
     return t0;
   } else if (IsComplex(complex)) { // i.e. list 
-    if (number==MakeSmall(1))	{
+    if (number==MakeSmall(1))   {
       RefCar(t0,complex);
       return t0;
     } else if (number==MakeSmall(2)) {

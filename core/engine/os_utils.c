@@ -128,28 +128,28 @@ CBOOL__PROTO(prolog_using_windows)
 #define DriveLen 2
 inline bool_t path_has_drive_selector(const char *path) {
   return (isalpha(path[0]) && path[1]==':' &&
-	  (path[2]=='/' || path[2]=='\\' || path[2]==(char)0));
+          (path[2]=='/' || path[2]=='\\' || path[2]==(char)0));
 }
 #endif
 
 /* Local macros for expand_file_name */
-#define TARGET_CONCAT(STR) { 			\
-    strcpy(&target[d], (STR));			\
-    d += strlen(&target[d]);			\
+#define TARGET_CONCAT(STR) {                    \
+    strcpy(&target[d], (STR));                  \
+    d += strlen(&target[d]);                    \
   }
-#define TARGET_ADD(CH) { 			\
-    target[d++] = (CH);				\
+#define TARGET_ADD(CH) {                        \
+    target[d++] = (CH);                         \
   }
 #define NAME_END(C) ((C) == 0 || (C) == '/')
-#define GET_NAME(STR, N) {			\
-    N = 0;					\
-    for (;;) {		                        \
-      char c = *src;		                \
-      if (NAME_END(c)) break;			\
-      STR[N++] = c;				\
-      src++;					\
-    }						\
-    STR[N] = 0;					\
+#define GET_NAME(STR, N) {                      \
+    N = 0;                                      \
+    for (;;) {                                  \
+      char c = *src;                            \
+      if (NAME_END(c)) break;                   \
+      STR[N++] = c;                             \
+      src++;                                    \
+    }                                           \
+    STR[N] = 0;                                 \
   }
 
 /* Expand and normalize a pathname */
@@ -246,7 +246,7 @@ bool_t expand_file_name(const char *name, bool_t abs, char *target)
     } else {
       value = getenv(var);
       if (value == NULL) {
-	USAGE_FAULT("file name: undefined variable");
+        USAGE_FAULT("file name: undefined variable");
       }
     }
     TARGET_CONCAT(value);
@@ -265,14 +265,14 @@ bool_t expand_file_name(const char *name, bool_t abs, char *target)
       value = getenv("HOME");
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
       if (value == NULL) {
-	/* Get home directory from APPDATA (compatible with emacs on Windows)
-	   (typically C:\Users\username\AppData\Roaming on Windows Vista/7/2008)
-	*/
-	value = getenv("APPDATA");
+        /* Get home directory from APPDATA (compatible with emacs on Windows)
+           (typically C:\Users\username\AppData\Roaming on Windows Vista/7/2008)
+        */
+        value = getenv("APPDATA");
       }
 #endif      
       if (value == NULL) {
-	USAGE_FAULT("file name: cannot obtain home directory for the current user");
+        USAGE_FAULT("file name: cannot obtain home directory for the current user");
       }
     } else {
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
@@ -281,7 +281,7 @@ bool_t expand_file_name(const char *name, bool_t abs, char *target)
 #else
       struct passwd *pw = getpwnam(var);
       if (pw == NULL) {
-	USAGE_FAULT("file name: no such user");
+        USAGE_FAULT("file name: no such user");
       }
       value = (char *)pw->pw_dir;
 #endif
@@ -311,21 +311,21 @@ bool_t expand_file_name(const char *name, bool_t abs, char *target)
       goto skip_comp;
     } else if (src[1] == '.' && NAME_END(src[2])) { /* ".." component */
       if (d == 0) {
-	/* target == "", cannot cancel */
+        /* target == "", cannot cancel */
       } else if (d == 1) {
-	/* target == "/", skip ".." component */
-	goto skip_comp;
+        /* target == "/", skip ".." component */
+        goto skip_comp;
       } else if (d == 3 && 
-		 target[d-3] == '.' && target[d-2] == '.') {
-	/* target == "../", cannot cancel */
+                 target[d-3] == '.' && target[d-2] == '.') {
+        /* target == "../", cannot cancel */
       } else if (d > 3 && target[d-4] == '/' &&
-		 target[d-3] == '.' && target[d-2] == '.') {
-	/* target == "???/../", cannot cancel */
+                 target[d-3] == '.' && target[d-2] == '.') {
+        /* target == "???/../", cannot cancel */
       } else {
-	/* Cancel last element */
-	d--; /* move before prev '/' */
-	for (; d > 0 && target[d-1] != '/'; d--) {}
-	goto skip_comp;
+        /* Cancel last element */
+        d--; /* move before prev '/' */
+        for (; d > 0 && target[d-1] != '/'; d--) {}
+        goto skip_comp;
       }
     }
   }
@@ -446,14 +446,14 @@ CBOOL__PROTO(prolog_unix_cd)
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case ENOENT: /* File does not exists */ 
-	BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(1), 2);
-	break ;
+        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(1), 2);
+        break ;
       case EACCES: /* We dont have permissions in the directory */
-	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(1), 2);
-	break ;
+        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(1), 2);
+        break ;
       default: /* Who knows */
-	BUILTIN_ERROR(SYSTEM_ERROR, X(1), 2);
-	break ;
+        BUILTIN_ERROR(SYSTEM_ERROR, X(1), 2);
+        break ;
       }
     } else {
       /* Silently fails */
@@ -553,7 +553,7 @@ int __cdecl c_mkstemp(char *template_name) {
       template_name[j] = letters[rand () % 62];
     }
     fd = _sopen(template_name,
-		_O_RDWR | _O_CREAT | _O_EXCL | /*_O_TEMPORARY |*/ _O_BINARY,
+                _O_RDWR | _O_CREAT | _O_EXCL | /*_O_TEMPORARY |*/ _O_BINARY,
                 _SH_DENYRW, _S_IREAD | _S_IWRITE);
     if (fd != -1) return fd;
     if (fd == -1 && errno != EEXIST) return -1;
@@ -660,22 +660,22 @@ CBOOL__PROTO(prolog_directory_files)
       /* First, identifying the error type: */
       switch(errno) {
       case EACCES:
-	BUILTIN_ERROR(PERMISSION_ERROR(OPEN, SOURCE_SINK), X(0), 1);
-	break;
+        BUILTIN_ERROR(PERMISSION_ERROR(OPEN, SOURCE_SINK), X(0), 1);
+        break;
       case ENOENT:
-	BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1);
-	break;
+        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1);
+        break;
       case ENOTDIR:
-	BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(0), 1);
-	break;
+        BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(0), 1);
+        break;
       case EMFILE:
       case ENFILE:
       case ENOMEM:
-	BUILTIN_ERROR(RESOURCE_ERROR(R_UNDEFINED), X(0), 1);
-	break;
+        BUILTIN_ERROR(RESOURCE_ERROR(R_UNDEFINED), X(0), 1);
+        break;
       default:
-	BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
-	break;
+        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        break;
       }
     } else {
       /* Silently fails */
@@ -743,20 +743,20 @@ CBOOL__PROTO(prolog_file_properties)
 
     if (stat(pathBuf, &statbuf)) {
       if (current_ferror_flag==atom_on) {
-	switch (errno) {
-	  case ENOENT: /* File does not exists */ 
-	    BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1);
-	    break ;
-	  case EACCES: /* We dont have permissions in the directory */
-	    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
-	    break ;
-	  default: /* Who knows */
-	    BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);		    
-	    break ;
-	  }
+        switch (errno) {
+          case ENOENT: /* File does not exists */ 
+            BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1);
+            break ;
+          case EACCES: /* We dont have permissions in the directory */
+            BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+            break ;
+          default: /* Who knows */
+            BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);                   
+            break ;
+          }
       } else {
-	/* Silently fails */
-	return FALSE;
+        /* Silently fails */
+        return FALSE;
       }
     }
 
@@ -778,7 +778,7 @@ CBOOL__PROTO(prolog_file_properties)
     if (X(3)!=atom_nil) {
       /* Cannot be Unify_constant because it is a large integer */
       if (!cunify(Arg, MakeInteger(Arg, statbuf.st_mtime), X(3))) {
-	return FALSE;
+        return FALSE;
       }
     }
     if (X(4)!=atom_nil) {
@@ -819,10 +819,10 @@ CBOOL__PROTO(prolog_touch)
 #if defined(_WIN32) || defined(_WIN64)
 #warning "TODO(MinGW): fix touch: struct stat sb; if (stat(file,&sb)) { create } else utime"
 #else
-	    | O_NONBLOCK | O_NOCTTY
+            | O_NONBLOCK | O_NOCTTY
 #endif
-	    ,
-	    S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+            ,
+            S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
   if (fd == -1) open_errno = errno;
 
   if (fd != -1 && close(fd) < 0) {
@@ -880,14 +880,14 @@ CBOOL__PROTO(prolog_unix_chmod)
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case ENOENT: /* File does not exists */ 
-	BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1);
-	break ;
+        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1);
+        break ;
       case EACCES: /* We dont have permissions in the directory */
-	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
-	break ;
+        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+        break ;
       default: /* Who knows */
-	BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
-	break ;
+        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        break ;
       }
     } else {
       return FALSE;
@@ -945,14 +945,14 @@ CBOOL__PROTO(prolog_unix_delete)
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case ENOENT: /* File does not exists */ 
-	BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1); 
-	break ;
+        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1); 
+        break ;
       case EACCES: /* We dont have permissions in the directory */
-	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
-	break ;
+        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+        break ;
       default: /* Who knows */
-	BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
-	break ;
+        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        break ;
       }
     } else {
       /* Silently fails */
@@ -1031,14 +1031,14 @@ CBOOL__PROTO(prolog_unix_rename)
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case ENOENT: /* File does not exists */ 
-	BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(1), 2); 
-	break ;
+        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(1), 2); 
+        break ;
       case EACCES: /* We dont have permissions in the directory */
-	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(1), 2);
-	break ;
+        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(1), 2);
+        break ;
       default: /* Who knows */
-	BUILTIN_ERROR(SYSTEM_ERROR, X(1), 2);
-	break ;
+        BUILTIN_ERROR(SYSTEM_ERROR, X(1), 2);
+        break ;
       }
     } else {
       /* Silently fails */
@@ -1092,14 +1092,14 @@ CBOOL__PROTO(prolog_unix_mkdir)
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case EACCES: /* We dont have permissions in the directory */
-	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
-	break ;
+        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+        break ;
       case ENOENT: /* Path does not exists */ 
-	BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1); 
-	break ;
+        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1); 
+        break ;
       default: /* Who knows */
-	BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
-	break ;
+        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        break ;
       }
     } else {
       /* Silently fails */
@@ -1136,14 +1136,14 @@ CBOOL__PROTO(prolog_unix_rmdir)
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case ENOENT: /* File does not exists */ 
-	BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1); 
-	break ;
+        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1); 
+        break ;
       case EACCES: /* We dont have permissions in the directory */
-	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
-	break ;
+        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+        break ;
       default: /* Who knows */
-	BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
-	break ;
+        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        break ;
       }
     } else {
       return FALSE;
@@ -1195,9 +1195,9 @@ CBOOL__PROTO(prolog_current_host)
     /* If h_name is not qualified, try one of the aliases */
     if ((aliases=host_entry->h_aliases)) {
       while (!strchr(hostname, '.') && *aliases)
-	strcpy(hostname, *aliases++);
+        strcpy(hostname, *aliases++);
       if (!strchr(hostname, '.'))
-	strcpy(hostname, host_entry->h_name);
+        strcpy(hostname, host_entry->h_name);
     }
 #endif
 
@@ -1209,7 +1209,7 @@ CBOOL__PROTO(prolog_current_host)
       char domain[MAXHOSTNAMELEN*3];
 
       if (getdomainname(domain, sizeof(domain)) < 0)
-	BUILTIN_ERROR(SYSTEM_ERROR, Arg, 1);
+        BUILTIN_ERROR(SYSTEM_ERROR, Arg, 1);
       strcat(hostname, ".");
       strcat(hostname, domain);
     }
@@ -1412,15 +1412,15 @@ CBOOL__PROTO(prolog_c_copy_file)
 #else
     if (copy_flag & COPY_FLAG_OVERWRITE) {
       if(unlink(destination)==-1) {
-	if (errno != ENOENT)
-	  return check_errno(Arg, 1);
+        if (errno != ENOENT)
+          return check_errno(Arg, 1);
       }
 #if defined(__CYGWIN32__) || defined(__CYGWIN__)
       if(access(destination, 0)) {
-	if(unlink(destination)==-1) {
-	  if (errno != ENOENT)
-	    return check_errno(Arg, 1);
-	}
+        if(unlink(destination)==-1) {
+          if (errno != ENOENT)
+            return check_errno(Arg, 1);
+        }
       }
 #endif
     }
@@ -1460,18 +1460,18 @@ CBOOL__PROTO(prolog_c_copy_file)
     }
     while((s=read(fd_source, buffer, BUF_MAX))!=0){
       if(s==-1){
-	close(fd_source);
-	close(fd_destination);
-	BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        close(fd_source);
+        close(fd_destination);
+        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
       }
       else
-	{
-	  if(write(fd_destination, buffer, s)==-1){
-	    close(fd_source);
-	    close(fd_destination);
-	    BUILTIN_ERROR(SYSTEM_ERROR, X(1), 2);
-	  }
-	}
+        {
+          if(write(fd_destination, buffer, s)==-1){
+            close(fd_source);
+            close(fd_destination);
+            BUILTIN_ERROR(SYSTEM_ERROR, X(1), 2);
+          }
+        }
     }
     close(fd_source);
     close(fd_destination);
@@ -1549,7 +1549,7 @@ CBOOL__PROTO(prolog_c_current_env)
   checkdealloc_ARRAY(char, n+1, name);
 
   return (cunify(Arg, name_term, X(1)) &&
-	  cunify(Arg, value_term, X(2)));
+          cunify(Arg, value_term, X(2)));
 }
 
 /* --------------------------------------------------------------------------- */
@@ -1693,11 +1693,11 @@ CBOOL__PROTO(prolog_get_numcores)
   /* Ask if we do hyperthreading */
   uint32_t regs[4];
   __asm__ __volatile__ ("cpuid " :
-			"=a" (regs[0]),
-			"=b" (regs[1]),
-			"=c" (regs[2]),
-			"=d" (regs[3])
-			: "a" (1), "c" (0));
+                        "=a" (regs[0]),
+                        "=b" (regs[1]),
+                        "=c" (regs[2]),
+                        "=d" (regs[3])
+                        : "a" (1), "c" (0));
   bool_t hyperthreading = regs[3] & (1 << 28);
 #else
   bool_t hyperthreading = 0;
@@ -2072,7 +2072,7 @@ char *c_paths_insert_new(const char *envpath, const char *path) {
 
   /* Is PATHLIST_SEP needed? */
   bool_t needs_sep = (envpath[0] != '\0' &&
-		      envpath[strlen(envpath) - 1] != PATHLIST_SEP);
+                      envpath[strlen(envpath) - 1] != PATHLIST_SEP);
 
   /* Length of new_envpath */
   int len = strlen(envpath) + (needs_sep ? 1 : 0);
@@ -2184,11 +2184,11 @@ CBOOL__PROTO(prolog_version)
   DEREF(X(4), X(4));
   DEREF(X(5), X(5));
   return (cunify(Arg, MakeString(ciao_version),  X(0)) &&
-	  cunify(Arg, MakeString(ciao_patch),    X(1)) &&
-	  cunify(Arg, MakeString(ciao_commit_branch), X(2)) &&
-	  cunify(Arg, MakeString(ciao_commit_id), X(3)) &&
-	  cunify(Arg, MakeString(ciao_commit_date), X(4)) &&
-	  cunify(Arg, MakeString(ciao_commit_desc), X(5)));
+          cunify(Arg, MakeString(ciao_patch),    X(1)) &&
+          cunify(Arg, MakeString(ciao_commit_branch), X(2)) &&
+          cunify(Arg, MakeString(ciao_commit_id), X(3)) &&
+          cunify(Arg, MakeString(ciao_commit_date), X(4)) &&
+          cunify(Arg, MakeString(ciao_commit_desc), X(5)));
 }
 
 extern char *ciao_suffix;
@@ -2332,7 +2332,7 @@ CBOOL__PROTO(prolog_kill)
 
 /*
  * internals:'$exec'(+Cmd, +Args, ?InS, ?OutS, ?ErrS,
- * 		     +Env, +Cwd, +Flags, -PID):
+ *                   +Env, +Cwd, +Flags, -PID):
  *   See library(process) for details.
  */
 
@@ -2350,115 +2350,115 @@ CBOOL__PROTO(prolog_kill)
 #if defined(_WIN32) || defined(_WIN64)
 int err_win_to_posix(DWORD winerr)
 {
-	int error = ENOSYS;
-	switch(winerr) {
-	case ERROR_ACCESS_DENIED: error = EACCES; break;
-	case ERROR_ACCOUNT_DISABLED: error = EACCES; break;
-	case ERROR_ACCOUNT_RESTRICTION: error = EACCES; break;
-	case ERROR_ALREADY_ASSIGNED: error = EBUSY; break;
-	case ERROR_ALREADY_EXISTS: error = EEXIST; break;
-	case ERROR_ARITHMETIC_OVERFLOW: error = ERANGE; break;
-	case ERROR_BAD_COMMAND: error = EIO; break;
-	case ERROR_BAD_DEVICE: error = ENODEV; break;
-	case ERROR_BAD_DRIVER_LEVEL: error = ENXIO; break;
-	case ERROR_BAD_EXE_FORMAT: error = ENOEXEC; break;
-	case ERROR_BAD_FORMAT: error = ENOEXEC; break;
-	case ERROR_BAD_LENGTH: error = EINVAL; break;
-	case ERROR_BAD_PATHNAME: error = ENOENT; break;
-	case ERROR_BAD_PIPE: error = EPIPE; break;
-	case ERROR_BAD_UNIT: error = ENODEV; break;
-	case ERROR_BAD_USERNAME: error = EINVAL; break;
-	case ERROR_BROKEN_PIPE: error = EPIPE; break;
-	case ERROR_BUFFER_OVERFLOW: error = ENAMETOOLONG; break;
-	case ERROR_BUSY: error = EBUSY; break;
-	case ERROR_BUSY_DRIVE: error = EBUSY; break;
-	case ERROR_CALL_NOT_IMPLEMENTED: error = ENOSYS; break;
-	case ERROR_CANNOT_MAKE: error = EACCES; break;
-	case ERROR_CANTOPEN: error = EIO; break;
-	case ERROR_CANTREAD: error = EIO; break;
-	case ERROR_CANTWRITE: error = EIO; break;
-	case ERROR_CRC: error = EIO; break;
-	case ERROR_CURRENT_DIRECTORY: error = EACCES; break;
-	case ERROR_DEVICE_IN_USE: error = EBUSY; break;
-	case ERROR_DEV_NOT_EXIST: error = ENODEV; break;
-	case ERROR_DIRECTORY: error = EINVAL; break;
-	case ERROR_DIR_NOT_EMPTY: error = ENOTEMPTY; break;
-	case ERROR_DISK_CHANGE: error = EIO; break;
-	case ERROR_DISK_FULL: error = ENOSPC; break;
-	case ERROR_DRIVE_LOCKED: error = EBUSY; break;
-	case ERROR_ENVVAR_NOT_FOUND: error = EINVAL; break;
-	case ERROR_EXE_MARKED_INVALID: error = ENOEXEC; break;
-	case ERROR_FILENAME_EXCED_RANGE: error = ENAMETOOLONG; break;
-	case ERROR_FILE_EXISTS: error = EEXIST; break;
-	case ERROR_FILE_INVALID: error = ENODEV; break;
-	case ERROR_FILE_NOT_FOUND: error = ENOENT; break;
-	case ERROR_GEN_FAILURE: error = EIO; break;
-	case ERROR_HANDLE_DISK_FULL: error = ENOSPC; break;
-	case ERROR_INSUFFICIENT_BUFFER: error = ENOMEM; break;
-	case ERROR_INVALID_ACCESS: error = EACCES; break;
-	case ERROR_INVALID_ADDRESS: error = EFAULT; break;
-	case ERROR_INVALID_BLOCK: error = EFAULT; break;
-	case ERROR_INVALID_DATA: error = EINVAL; break;
-	case ERROR_INVALID_DRIVE: error = ENODEV; break;
-	case ERROR_INVALID_EXE_SIGNATURE: error = ENOEXEC; break;
-	case ERROR_INVALID_FLAGS: error = EINVAL; break;
-	case ERROR_INVALID_FUNCTION: error = ENOSYS; break;
-	case ERROR_INVALID_HANDLE: error = EBADF; break;
-	case ERROR_INVALID_LOGON_HOURS: error = EACCES; break;
-	case ERROR_INVALID_NAME: error = EINVAL; break;
-	case ERROR_INVALID_OWNER: error = EINVAL; break;
-	case ERROR_INVALID_PARAMETER: error = EINVAL; break;
-	case ERROR_INVALID_PASSWORD: error = EPERM; break;
-	case ERROR_INVALID_PRIMARY_GROUP: error = EINVAL; break;
-	case ERROR_INVALID_SIGNAL_NUMBER: error = EINVAL; break;
-	case ERROR_INVALID_TARGET_HANDLE: error = EIO; break;
-	case ERROR_INVALID_WORKSTATION: error = EACCES; break;
-	case ERROR_IO_DEVICE: error = EIO; break;
-	case ERROR_IO_INCOMPLETE: error = EINTR; break;
-	case ERROR_LOCKED: error = EBUSY; break;
-	case ERROR_LOCK_VIOLATION: error = EACCES; break;
-	case ERROR_LOGON_FAILURE: error = EACCES; break;
-	case ERROR_MAPPED_ALIGNMENT: error = EINVAL; break;
-	case ERROR_META_EXPANSION_TOO_LONG: error = E2BIG; break;
-	case ERROR_MORE_DATA: error = EPIPE; break;
-	case ERROR_NEGATIVE_SEEK: error = ESPIPE; break;
-	case ERROR_NOACCESS: error = EFAULT; break;
-	case ERROR_NONE_MAPPED: error = EINVAL; break;
-	case ERROR_NOT_ENOUGH_MEMORY: error = ENOMEM; break;
-	case ERROR_NOT_READY: error = EAGAIN; break;
-	case ERROR_NOT_SAME_DEVICE: error = EXDEV; break;
-	case ERROR_NO_DATA: error = EPIPE; break;
-	case ERROR_NO_MORE_SEARCH_HANDLES: error = EIO; break;
-	case ERROR_NO_PROC_SLOTS: error = EAGAIN; break;
-	case ERROR_NO_SUCH_PRIVILEGE: error = EACCES; break;
-	case ERROR_OPEN_FAILED: error = EIO; break;
-	case ERROR_OPEN_FILES: error = EBUSY; break;
-	case ERROR_OPERATION_ABORTED: error = EINTR; break;
-	case ERROR_OUTOFMEMORY: error = ENOMEM; break;
-	case ERROR_PASSWORD_EXPIRED: error = EACCES; break;
-	case ERROR_PATH_BUSY: error = EBUSY; break;
-	case ERROR_PATH_NOT_FOUND: error = ENOENT; break;
-	case ERROR_PIPE_BUSY: error = EBUSY; break;
-	case ERROR_PIPE_CONNECTED: error = EPIPE; break;
-	case ERROR_PIPE_LISTENING: error = EPIPE; break;
-	case ERROR_PIPE_NOT_CONNECTED: error = EPIPE; break;
-	case ERROR_PRIVILEGE_NOT_HELD: error = EACCES; break;
-	case ERROR_READ_FAULT: error = EIO; break;
-	case ERROR_SEEK: error = EIO; break;
-	case ERROR_SEEK_ON_DEVICE: error = ESPIPE; break;
-	case ERROR_SHARING_BUFFER_EXCEEDED: error = ENFILE; break;
-	case ERROR_SHARING_VIOLATION: error = EACCES; break;
-	case ERROR_STACK_OVERFLOW: error = ENOMEM; break;
-	case ERROR_SWAPERROR: error = ENOENT; break;
-	case ERROR_TOO_MANY_MODULES: error = EMFILE; break;
-	case ERROR_TOO_MANY_OPEN_FILES: error = EMFILE; break;
-	case ERROR_UNRECOGNIZED_MEDIA: error = ENXIO; break;
-	case ERROR_UNRECOGNIZED_VOLUME: error = ENODEV; break;
-	case ERROR_WAIT_NO_CHILDREN: error = ECHILD; break;
-	case ERROR_WRITE_FAULT: error = EIO; break;
-	case ERROR_WRITE_PROTECT: error = EROFS; break;
-	}
-	return error;
+        int error = ENOSYS;
+        switch(winerr) {
+        case ERROR_ACCESS_DENIED: error = EACCES; break;
+        case ERROR_ACCOUNT_DISABLED: error = EACCES; break;
+        case ERROR_ACCOUNT_RESTRICTION: error = EACCES; break;
+        case ERROR_ALREADY_ASSIGNED: error = EBUSY; break;
+        case ERROR_ALREADY_EXISTS: error = EEXIST; break;
+        case ERROR_ARITHMETIC_OVERFLOW: error = ERANGE; break;
+        case ERROR_BAD_COMMAND: error = EIO; break;
+        case ERROR_BAD_DEVICE: error = ENODEV; break;
+        case ERROR_BAD_DRIVER_LEVEL: error = ENXIO; break;
+        case ERROR_BAD_EXE_FORMAT: error = ENOEXEC; break;
+        case ERROR_BAD_FORMAT: error = ENOEXEC; break;
+        case ERROR_BAD_LENGTH: error = EINVAL; break;
+        case ERROR_BAD_PATHNAME: error = ENOENT; break;
+        case ERROR_BAD_PIPE: error = EPIPE; break;
+        case ERROR_BAD_UNIT: error = ENODEV; break;
+        case ERROR_BAD_USERNAME: error = EINVAL; break;
+        case ERROR_BROKEN_PIPE: error = EPIPE; break;
+        case ERROR_BUFFER_OVERFLOW: error = ENAMETOOLONG; break;
+        case ERROR_BUSY: error = EBUSY; break;
+        case ERROR_BUSY_DRIVE: error = EBUSY; break;
+        case ERROR_CALL_NOT_IMPLEMENTED: error = ENOSYS; break;
+        case ERROR_CANNOT_MAKE: error = EACCES; break;
+        case ERROR_CANTOPEN: error = EIO; break;
+        case ERROR_CANTREAD: error = EIO; break;
+        case ERROR_CANTWRITE: error = EIO; break;
+        case ERROR_CRC: error = EIO; break;
+        case ERROR_CURRENT_DIRECTORY: error = EACCES; break;
+        case ERROR_DEVICE_IN_USE: error = EBUSY; break;
+        case ERROR_DEV_NOT_EXIST: error = ENODEV; break;
+        case ERROR_DIRECTORY: error = EINVAL; break;
+        case ERROR_DIR_NOT_EMPTY: error = ENOTEMPTY; break;
+        case ERROR_DISK_CHANGE: error = EIO; break;
+        case ERROR_DISK_FULL: error = ENOSPC; break;
+        case ERROR_DRIVE_LOCKED: error = EBUSY; break;
+        case ERROR_ENVVAR_NOT_FOUND: error = EINVAL; break;
+        case ERROR_EXE_MARKED_INVALID: error = ENOEXEC; break;
+        case ERROR_FILENAME_EXCED_RANGE: error = ENAMETOOLONG; break;
+        case ERROR_FILE_EXISTS: error = EEXIST; break;
+        case ERROR_FILE_INVALID: error = ENODEV; break;
+        case ERROR_FILE_NOT_FOUND: error = ENOENT; break;
+        case ERROR_GEN_FAILURE: error = EIO; break;
+        case ERROR_HANDLE_DISK_FULL: error = ENOSPC; break;
+        case ERROR_INSUFFICIENT_BUFFER: error = ENOMEM; break;
+        case ERROR_INVALID_ACCESS: error = EACCES; break;
+        case ERROR_INVALID_ADDRESS: error = EFAULT; break;
+        case ERROR_INVALID_BLOCK: error = EFAULT; break;
+        case ERROR_INVALID_DATA: error = EINVAL; break;
+        case ERROR_INVALID_DRIVE: error = ENODEV; break;
+        case ERROR_INVALID_EXE_SIGNATURE: error = ENOEXEC; break;
+        case ERROR_INVALID_FLAGS: error = EINVAL; break;
+        case ERROR_INVALID_FUNCTION: error = ENOSYS; break;
+        case ERROR_INVALID_HANDLE: error = EBADF; break;
+        case ERROR_INVALID_LOGON_HOURS: error = EACCES; break;
+        case ERROR_INVALID_NAME: error = EINVAL; break;
+        case ERROR_INVALID_OWNER: error = EINVAL; break;
+        case ERROR_INVALID_PARAMETER: error = EINVAL; break;
+        case ERROR_INVALID_PASSWORD: error = EPERM; break;
+        case ERROR_INVALID_PRIMARY_GROUP: error = EINVAL; break;
+        case ERROR_INVALID_SIGNAL_NUMBER: error = EINVAL; break;
+        case ERROR_INVALID_TARGET_HANDLE: error = EIO; break;
+        case ERROR_INVALID_WORKSTATION: error = EACCES; break;
+        case ERROR_IO_DEVICE: error = EIO; break;
+        case ERROR_IO_INCOMPLETE: error = EINTR; break;
+        case ERROR_LOCKED: error = EBUSY; break;
+        case ERROR_LOCK_VIOLATION: error = EACCES; break;
+        case ERROR_LOGON_FAILURE: error = EACCES; break;
+        case ERROR_MAPPED_ALIGNMENT: error = EINVAL; break;
+        case ERROR_META_EXPANSION_TOO_LONG: error = E2BIG; break;
+        case ERROR_MORE_DATA: error = EPIPE; break;
+        case ERROR_NEGATIVE_SEEK: error = ESPIPE; break;
+        case ERROR_NOACCESS: error = EFAULT; break;
+        case ERROR_NONE_MAPPED: error = EINVAL; break;
+        case ERROR_NOT_ENOUGH_MEMORY: error = ENOMEM; break;
+        case ERROR_NOT_READY: error = EAGAIN; break;
+        case ERROR_NOT_SAME_DEVICE: error = EXDEV; break;
+        case ERROR_NO_DATA: error = EPIPE; break;
+        case ERROR_NO_MORE_SEARCH_HANDLES: error = EIO; break;
+        case ERROR_NO_PROC_SLOTS: error = EAGAIN; break;
+        case ERROR_NO_SUCH_PRIVILEGE: error = EACCES; break;
+        case ERROR_OPEN_FAILED: error = EIO; break;
+        case ERROR_OPEN_FILES: error = EBUSY; break;
+        case ERROR_OPERATION_ABORTED: error = EINTR; break;
+        case ERROR_OUTOFMEMORY: error = ENOMEM; break;
+        case ERROR_PASSWORD_EXPIRED: error = EACCES; break;
+        case ERROR_PATH_BUSY: error = EBUSY; break;
+        case ERROR_PATH_NOT_FOUND: error = ENOENT; break;
+        case ERROR_PIPE_BUSY: error = EBUSY; break;
+        case ERROR_PIPE_CONNECTED: error = EPIPE; break;
+        case ERROR_PIPE_LISTENING: error = EPIPE; break;
+        case ERROR_PIPE_NOT_CONNECTED: error = EPIPE; break;
+        case ERROR_PRIVILEGE_NOT_HELD: error = EACCES; break;
+        case ERROR_READ_FAULT: error = EIO; break;
+        case ERROR_SEEK: error = EIO; break;
+        case ERROR_SEEK_ON_DEVICE: error = ESPIPE; break;
+        case ERROR_SHARING_BUFFER_EXCEEDED: error = ENFILE; break;
+        case ERROR_SHARING_VIOLATION: error = EACCES; break;
+        case ERROR_STACK_OVERFLOW: error = ENOMEM; break;
+        case ERROR_SWAPERROR: error = ENOENT; break;
+        case ERROR_TOO_MANY_MODULES: error = EMFILE; break;
+        case ERROR_TOO_MANY_OPEN_FILES: error = EMFILE; break;
+        case ERROR_UNRECOGNIZED_MEDIA: error = ENXIO; break;
+        case ERROR_UNRECOGNIZED_VOLUME: error = ENODEV; break;
+        case ERROR_WAIT_NO_CHILDREN: error = ECHILD; break;
+        case ERROR_WRITE_FAULT: error = EIO; break;
+        case ERROR_WRITE_PROTECT: error = EROFS; break;
+        }
+        return error;
 }
 #endif
 
@@ -2524,9 +2524,9 @@ static int win32_quote_arg(char *dst, const char *arg) {
     } else if (*p == '\\') {
       int count = 0;
       while (*p == '\\') {
-	count++;
-	p++;
-	len++;
+        count++;
+        p++;
+        len++;
       }
       if (*p == '"') n += count*2 + 1;
       continue;
@@ -2544,17 +2544,17 @@ static int win32_quote_arg(char *dst, const char *arg) {
     *d++ = '"';
     while (*arg) {
       if (*arg == '"')
-	*d++ = '\\';
+        *d++ = '\\';
       else if (*arg == '\\') {
-	int count = 0;
-	while (*arg == '\\') {
-	  count++;
-	  *d++ = *arg++;
-	}
-	if (*arg == '"') {
-	  while (count-- > 0) *d++ = '\\';
-	  *d++ = '\\';
-	}
+        int count = 0;
+        while (*arg == '\\') {
+          count++;
+          *d++ = *arg++;
+        }
+        if (*arg == '"') {
+          while (count-- > 0) *d++ = '\\';
+          *d++ = '\\';
+        }
       }
       *d++ = *arg++;
     }
@@ -2618,9 +2618,9 @@ static char *updated_envblk(string_pair_t *deltaenv) {
   for (i = 0; deltaenv[i][0] != NULL; i++) {
     if (deltaenv[i][1] == NULL) continue;
     len += (strlen(deltaenv[i][0]) +
-	    1 + /* '=' */
-	    strlen(deltaenv[i][1]) +
-	    1); /* '\0' */
+            1 + /* '=' */
+            strlen(deltaenv[i][1]) +
+            1); /* '\0' */
   }
   len++; /* Final '\0' */
 
@@ -2636,7 +2636,7 @@ static char *updated_envblk(string_pair_t *deltaenv) {
     for (j = 0; deltaenv[j][0] != NULL; j++) {
       int jlen = strlen(deltaenv[j][0]);
       if (strncmp(environ[i], deltaenv[j][0], jlen) == 0 &&
-	  environ[i][jlen] == '=') match = TRUE;
+          environ[i][jlen] == '=') match = TRUE;
     }
     if (match) continue;
     int ilen = strlen(environ[i]); /* copy */
@@ -2680,8 +2680,8 @@ static void update_env(string_pair_t *deltaenv) {
 /* Is the process associated to a console? */
 static bool_t has_console(void) {
   HANDLE cons = CreateFile("CONOUT$", GENERIC_WRITE,
-			   FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
-			   FILE_ATTRIBUTE_NORMAL, NULL);
+                           FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
+                           FILE_ATTRIBUTE_NORMAL, NULL);
   if (cons == INVALID_HANDLE_VALUE) {
     return FALSE;
   } else {
@@ -2746,7 +2746,7 @@ static void spawn_process(process_t *pr) {
   memset(&pi, 0, sizeof(pi));
 //  fprintf(stderr, "CreateProcess([%s], [%s])\n", cmd, qargs);
   ret = CreateProcess(cmd, qargs, NULL, NULL, TRUE, flags,
-		      envblk, dir, &si, &pi);
+                      envblk, dir, &si, &pi);
   if (envblk != NULL) free(envblk);
   free(qargs);
 
@@ -2872,9 +2872,9 @@ static inline void default_fd_pair(int pair_fd[2]) {
  * [] for default).
  */
 CVOID__PROTO(get_fd_pair, 
-	     tagged_t std,
-	     int pair_fd[2],
-	     int mode)
+             tagged_t std,
+             int pair_fd[2],
+             int mode)
 {
   stream_node_t *s;
 
@@ -2900,10 +2900,10 @@ CVOID__PROTO(get_fd_pair,
 /* When std specifies a pipe, unify it with a Prolog stream connected
  * to the parent's end of the pipe */
 CBOOL__PROTO(unify_fd_pair, 
-	     tagged_t streamname,
-	     tagged_t std,
-	     int pair_fd[2],
-	     int mode)
+             tagged_t streamname,
+             tagged_t std,
+             int pair_fd[2],
+             int mode)
 {
   stream_node_t *str = NULL;
   if (pair_fd[mode] != -1) {
@@ -2918,7 +2918,7 @@ CBOOL__PROTO(unify_fd_pair,
 
 /* Parse internal representation for env(Env) (see process.pl) */
 CBOOL__PROTO(get_deltaenv, 
-	     tagged_t list, string_pair_t **deltaenv, int *deltaenv_n)
+             tagged_t list, string_pair_t **deltaenv, int *deltaenv_n)
 {
   tagged_t head;
   tagged_t name;
@@ -3114,7 +3114,7 @@ CBOOL__PROTO(prolog_exec)
     unif_stderr = unify_fd_pair(Arg, X(0), X(4), pr.pair_err, Read);
 
     return (unif_stdin && unif_stdout && unif_stderr &&
-	    cunify(Arg, MakeSmall(pr.pid), X(8)));
+            cunify(Arg, MakeSmall(pr.pid), X(8)));
   }
 }
 

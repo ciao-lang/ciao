@@ -126,9 +126,9 @@ char * nextDigit(
     }
     else {
       if(buffer[-1]==FLOAT_POINT)
-	buffer[-2] = digits[1];
+        buffer[-2] = digits[1];
       else
-	buffer[-1] = digits[1];
+        buffer[-1] = digits[1];
     }
   }
   return buffer;
@@ -267,7 +267,7 @@ static char * scale(
         uint64_t m0,
         int base,
         char digits[],
-	char exponents[],
+        char exponents[],
         int isLow,
         int isHigh,
         int e)
@@ -323,7 +323,7 @@ static char * scale(
 
   // fix exponent
     if ( ( isHigh && ((r + m1 > s)||((r + m1 == s)&& 0 >= sa)))
-	 || ( !isHigh && (r + m1 > s)) ) {
+         || ( !isHigh && (r + m1 > s)) ) {
       //(*exp)++;
     } else {
       r  *= base;
@@ -341,7 +341,7 @@ static char * scale(
   case 'E':case 'e':
     accuracy = precision + 1;
     buffer = generate(++buffer, accuracy,
-	r,
+        r,
         s,
         sa,
         m1,
@@ -544,11 +544,11 @@ char *float_to_string(char* buffer, int precision, char format, double x, int ba
 /*   e = be - IEEE754_BIA_EXP; */
 
 /*   printf("x=%f\nmantissa0=%lx\nmantissa1=%lx\nexponent=%lx\nnegative=%lx\n", */
-/* 	 x, */
-/* 	 IEEE754_MANTISSA0(x), */
-/* 	 IEEE754_MANTISSA1(x), */
-/* 	 IEEE754_EXPONENT(x), */
-/* 	 IEEE754_NEGATIVE(x)); */
+/*       x, */
+/*       IEEE754_MANTISSA0(x), */
+/*       IEEE754_MANTISSA1(x), */
+/*       IEEE754_EXPONENT(x), */
+/*       IEEE754_NEGATIVE(x)); */
 /*   printf("f=%llx\n",f);   */
 
 
@@ -609,21 +609,21 @@ char *float_to_string(char* buffer, int precision, char format, double x, int ba
     okHigh = !(f & 1);
     if ( e >= 0 ) {
       if ( f != IEEE754_FIX_BIT ) {
-	buffer = scale(buffer, precision, format, f, 1, 1, 1, base, digits, exponents, okLow, okHigh, e);
-	//scale(buffer, pos, precision, f<<d, 1<<d, 1, 1, B, okLow, okHigh, f, e);
+        buffer = scale(buffer, precision, format, f, 1, 1, 1, base, digits, exponents, okLow, okHigh, e);
+        //scale(buffer, pos, precision, f<<d, 1<<d, 1, 1, B, okLow, okHigh, f, e);
       }
       else {
-	buffer = scale(buffer, precision, format, f, 2, 2, 1, base, digits, exponents, okLow, okHigh, e);
-	//scale(buffer, pos, precision, f<<(d+1), 1<<(d+1), 2, 1, B, okLow, okHigh, f, e);
+        buffer = scale(buffer, precision, format, f, 2, 2, 1, base, digits, exponents, okLow, okHigh, e);
+        //scale(buffer, pos, precision, f<<(d+1), 1<<(d+1), 2, 1, B, okLow, okHigh, f, e);
         }
     }
     else {
       if (be == 0 || f != IEEE754_FIX_BIT) {
-	buffer = scale(buffer, precision, format, f, 1, 1, 1, base, digits, exponents, okLow, okHigh, e);
-	//scale(buffer, pos, precision, f<<d, 1<<d, 1, 1, B, okLow, okHigh, f, e);
+        buffer = scale(buffer, precision, format, f, 1, 1, 1, base, digits, exponents, okLow, okHigh, e);
+        //scale(buffer, pos, precision, f<<d, 1<<d, 1, 1, B, okLow, okHigh, f, e);
       } else {
-	buffer = scale(buffer, precision, format, f, 2, 2, 1, base, digits, exponents, okLow, okHigh, e);
-	//scale(buffer, pos, precision, f<<(d+1), 1<<(d+1), 2, 1, B, okLow, okHigh, f, e);
+        buffer = scale(buffer, precision, format, f, 2, 2, 1, base, digits, exponents, okLow, okHigh, e);
+        //scale(buffer, pos, precision, f<<(d+1), 1<<(d+1), 2, 1, B, okLow, okHigh, f, e);
       }
     }
   }

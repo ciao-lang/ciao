@@ -76,8 +76,8 @@ ciao_term ciao_var(void);
 ciao_term ciao_structure_a_s(ciao_ctx ctx, const char *name, int arity, ciao_term *args);
 ciao_term ciao_structure_a(const char *name, int arity, ciao_term *args);
 
-#define Decl_ciao_mk_X(CType, DeclType)				\
-  ciao_term ciao_mk_##CType(DeclType x);			\
+#define Decl_ciao_mk_X(CType, DeclType)                         \
+  ciao_term ciao_mk_##CType(DeclType x);                        \
   ciao_term ciao_mk_##CType##_s(ciao_ctx ctx, DeclType x);
 
 Decl_ciao_mk_X(c_short, short)
@@ -106,7 +106,7 @@ Decl_ciao_mk_X(c_uint64, uint64_t)
    - For floating point: ciao_is_number_s(ctx, term)
 */
 
-#define Decl_ciao_get_X(CType, DeclType)		       \
+#define Decl_ciao_get_X(CType, DeclType)                       \
   DeclType ciao_get_##CType##_s(ciao_ctx ctx, ciao_term term); \
   DeclType ciao_get_##CType(ciao_term term);
 

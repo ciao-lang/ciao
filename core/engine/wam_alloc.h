@@ -25,18 +25,18 @@ extern intmach_t num_of_predicates;
 extern intmach_t mem_prog_count;
 
 #if defined(DEBUG)
-#define INC_MEM_PROG(SIZE) { 					 \
-  if (debug_mem) { 						 \
-    fprintf(stderr, "Program memory increased by %" PRIdm " bytes\n",	 \
-	    (intmach_t)(SIZE));					 \
+#define INC_MEM_PROG(SIZE) {                                     \
+  if (debug_mem) {                                               \
+    fprintf(stderr, "Program memory increased by %" PRIdm " bytes\n",    \
+            (intmach_t)(SIZE));                                  \
   }                                                              \
-  mem_prog_count = mem_prog_count + (SIZE);	                 \
+  mem_prog_count = mem_prog_count + (SIZE);                      \
   }
-#define DEC_MEM_PROG(SIZE) { 					 \
-  if (debug_mem) {						 \
-    fprintf(stderr, "Program memory decreased by %" PRIdm " bytes\n",	 \
-	    (intmach_t)(SIZE));				         \
-  }						                 \
+#define DEC_MEM_PROG(SIZE) {                                     \
+  if (debug_mem) {                                               \
+    fprintf(stderr, "Program memory decreased by %" PRIdm " bytes\n",    \
+            (intmach_t)(SIZE));                                  \
+  }                                                              \
   mem_prog_count = mem_prog_count - (SIZE);                      \
   }
 #else

@@ -37,9 +37,9 @@
 
 static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2);
 static CFUN__PROTO(compare_args_aux, int,
-		   int arity,
-		   tagged_t *pt1, tagged_t *pt2,
-		   tagged_t *x1, tagged_t *x2);
+                   int arity,
+                   tagged_t *pt1, tagged_t *pt2,
+                   tagged_t *x1, tagged_t *x2);
 
 #if defined(USE_GLOBAL_VARS)
 CBOOL__PROTO(prolog_global_vars_set_root) {
@@ -78,10 +78,10 @@ CFUN__PROTO(compare_help, int, tagged_t x1, tagged_t x2)
       
       pt2 = (tagged_t *)w->node;
       do
-	{
-	  pt1 = (tagged_t *)pt2[i++];
-	  *pt1 = pt2[i++];
-	}
+        {
+          pt1 = (tagged_t *)pt2[i++];
+          *pt1 = pt2[i++];
+        }
       while (i<InitialValueTrail);
       w->value_trail = (intmach_t)InitialValueTrail;
     }
@@ -97,7 +97,7 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
   tagged_t *pt1;
   tagged_t *pt2;
 
-  int i, j, urank, vrank;	/* FLO=1, INT=2, ATM=3, COMPLEX=4 */
+  int i, j, urank, vrank;       /* FLO=1, INT=2, ATM=3, COMPLEX=4 */
 
  in:
   u=x1, v=x2;
@@ -109,11 +109,11 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
   if (u & TagBitComplex)
     {
       if (u & TagBitFunctor)
-	t1 = TagToHeadfunctor(u),
-        /*	urank = (!(t1&TagBitFunctor) ? 2 : t1&QMask ? 1 : 4);*/
-	urank = (!(t1&TagBitFunctor) ? 1 : t1&QMask ? 2 : 4);
+        t1 = TagToHeadfunctor(u),
+        /*      urank = (!(t1&TagBitFunctor) ? 2 : t1&QMask ? 1 : 4);*/
+        urank = (!(t1&TagBitFunctor) ? 1 : t1&QMask ? 2 : 4);
       else
-	urank = 4;
+        urank = 4;
     }
   else
     /*    urank = (u&TagBitFunctor ? 3 : 1);*/
@@ -121,11 +121,11 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
   if (v & TagBitComplex)
     {
       if (v & TagBitFunctor)
-	t1 = TagToHeadfunctor(v),
-        /*	vrank = (!(t1&TagBitFunctor) ? 2 : t1&QMask ? 1 : 4);*/
-	vrank = (!(t1&TagBitFunctor) ? 1 : t1&QMask ? 2 : 4);
+        t1 = TagToHeadfunctor(v),
+        /*      vrank = (!(t1&TagBitFunctor) ? 2 : t1&QMask ? 1 : 4);*/
+        vrank = (!(t1&TagBitFunctor) ? 1 : t1&QMask ? 2 : 4);
       else
-	vrank = 4;
+        vrank = 4;
     }
   else
     /*    vrank = (v&TagBitFunctor ? 3 : 1);*/
@@ -135,75 +135,75 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
   if (urank>vrank) return 1;
   switch (urank)
     {
-    case 1:			/* FLO, FLO */
+    case 1:                     /* FLO, FLO */
       {
-	union {
-	  flt64_t i;
-	  tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
-	} u1;
-	union {
-	  flt64_t i;
-	  tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
-	} u2;
-	u1.i = GetFloat(u);
-	u2.i = GetFloat(v);
+        union {
+          flt64_t i;
+          tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
+        } u1;
+        union {
+          flt64_t i;
+          tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
+        } u2;
+        u1.i = GetFloat(u);
+        u2.i = GetFloat(v);
 
-	if (u1.i<u2.i) {
-	  return -1;
-	} else if (u1.i>u2.i) {
-	  return 1;
-	} else {
-	  /* otherwise, compare bits (this is lexicographical ordering) */
-	  u1.i = -u1.i;
-	  u2.i = -u2.i;
+        if (u1.i<u2.i) {
+          return -1;
+        } else if (u1.i>u2.i) {
+          return 1;
+        } else {
+          /* otherwise, compare bits (this is lexicographical ordering) */
+          u1.i = -u1.i;
+          u2.i = -u2.i;
 #if LOG2_bignum_size == 5
-	  if (u1.p[0] == u2.p[0]) {
-	    return (u1.p[1] < u2.p[1] ? -1 : u1.p[1] > u2.p[1] ? 1 : 0);
-	  } else {
-	    return (u1.p[0] < u2.p[0] ? -1 : /*u1.p[0] > u2.p[0] ?*/ 1 /*: 0*/);
-	  }
+          if (u1.p[0] == u2.p[0]) {
+            return (u1.p[1] < u2.p[1] ? -1 : u1.p[1] > u2.p[1] ? 1 : 0);
+          } else {
+            return (u1.p[0] < u2.p[0] ? -1 : /*u1.p[0] > u2.p[0] ?*/ 1 /*: 0*/);
+          }
 #elif LOG2_bignum_size == 6
-	  return (u1.p[0] < u2.p[0] ? -1 : u1.p[0] > u2.p[0] ? 1 : 0);
+          return (u1.p[0] < u2.p[0] ? -1 : u1.p[0] > u2.p[0] ? 1 : 0);
 #endif
-	}
+        }
       }
-    case 2:			/* INT, INT */
+    case 2:                     /* INT, INT */
       {
-	if (TagIsSmall(u)&&TagIsSmall(v))
-	  return (u<v ? -1 : u>v); 
-	else if (TagIsSmall(u))
-	  return (bn_positive((bignum_t *)TagToSTR(v)) ? -1 : 1);
-	else if (TagIsSmall(v))
-	  return (bn_positive((bignum_t *)TagToSTR(u)) ? 1 : -1);
-	else
-	  return bn_compare((bignum_t *)TagToSTR(u),(bignum_t *)TagToSTR(v));
+        if (TagIsSmall(u)&&TagIsSmall(v))
+          return (u<v ? -1 : u>v); 
+        else if (TagIsSmall(u))
+          return (bn_positive((bignum_t *)TagToSTR(v)) ? -1 : 1);
+        else if (TagIsSmall(v))
+          return (bn_positive((bignum_t *)TagToSTR(u)) ? 1 : -1);
+        else
+          return bn_compare((bignum_t *)TagToSTR(u),(bignum_t *)TagToSTR(v));
       }
-    case 3:			/* ATM, ATM */
+    case 3:                     /* ATM, ATM */
       break;
-    case 4:			/* COMPLEX, COMPLEX */
+    case 4:                     /* COMPLEX, COMPLEX */
       if (u & TagBitFunctor)
-	pt1 = TagToSTR(u), u = *pt1++, i = Arity(u);
+        pt1 = TagToSTR(u), u = *pt1++, i = Arity(u);
       else
-	pt1 = TagToLST(u), u = functor_list, i = 2;
+        pt1 = TagToLST(u), u = functor_list, i = 2;
       if (v & TagBitFunctor)
-	pt2 = TagToSTR(v), v = *pt2++, j = Arity(v);
+        pt2 = TagToSTR(v), v = *pt2++, j = Arity(v);
       else
-	pt2 = TagToLST(v), v = functor_list, j = 2;
+        pt2 = TagToLST(v), v = functor_list, j = 2;
       
       if (u==v)
-	{
-	  int result = compare_args_aux(Arg,i,pt1,pt2,&x1,&x2);
-	  
-	  if (result) return result;
-	  goto in;
-	}
+        {
+          int result = compare_args_aux(Arg,i,pt1,pt2,&x1,&x2);
+          
+          if (result) return result;
+          goto in;
+        }
       else if (i!=j)
-	return (i<j ? -1 : 1);
+        return (i<j ? -1 : 1);
       else
-	break;
+        break;
     }
 
-				/* UNSIGNED strcmp */
+                                /* UNSIGNED strcmp */
   {
     unsigned char *up = (unsigned char *)GetString(u);
     unsigned char *vp = (unsigned char *)GetString(v);
@@ -221,11 +221,11 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
 }
 
 static CFUN__PROTO(compare_args_aux, int,
-		   int arity,
-		   tagged_t *pt1,
-		   tagged_t *pt2,
-		   tagged_t *x1,
-		   tagged_t *x2)
+                   int arity,
+                   tagged_t *pt1,
+                   tagged_t *pt2,
+                   tagged_t *x1,
+                   tagged_t *x2)
 {
   int result;
   tagged_t 
@@ -236,7 +236,7 @@ static CFUN__PROTO(compare_args_aux, int,
      See cunify_args(). */
   
   if (ChoiceYounger(ChoiceOffset(w->node,2*CHOICEPAD-w->value_trail),w->trail_top))
-				/* really: < 2*arity */
+                                /* really: < 2*arity */
     choice_overflow(Arg,2*CHOICEPAD);
   for (result=0; !result && arity>0; --arity) {
     t1 = *pt1;
@@ -351,12 +351,12 @@ CBOOL__PROTO(retry_cut)
     {
       DEREF(number,nd->term[0]);
       if (nd->term[3]==atom_retry_hook && number<=X(0))
-	{
-	  nd->term[1] = X(1);	/* always dereferenced */
-	  w->node = nd;
-	  SetShadowregs(nd);
-	  break;
-	}
+        {
+          nd->term[1] = X(1);   /* always dereferenced */
+          w->node = nd;
+          SetShadowregs(nd);
+          break;
+        }
     }
   return ChoiceYounger(nd,Choice_Start);
 }
@@ -404,7 +404,7 @@ CBOOL__PROTO(setarg)
       goto barf1;
     
     ptr = TagToArg(complex,i);
-  } else if (IsComplex(complex)){	/* i.e. list */
+  } else if (IsComplex(complex)){       /* i.e. list */
     if (number==MakeSmall(1))
       ptr = TagToCar(complex);
     else if (number==MakeSmall(2))
@@ -728,33 +728,33 @@ CFUN__PROTO(find_constraints, intmach_t, tagged_t *limit)
   while (limit < (tagged_t *)NodeGlobalTop(cp))
     {
       node_t *prevcp =
-	ChoiceCharOffset(cp,-cp->next_alt->node_offset);
+        ChoiceCharOffset(cp,-cp->next_alt->node_offset);
       
       if (1 /* !ChoiceptTestNoCVA(cp)*/)
-	{
-	  tagged_t *h = NodeGlobalTop(prevcp); 
+        {
+          tagged_t *h = NodeGlobalTop(prevcp); 
 
-	  if (h<limit) h = limit;
-	  while (h < (tagged_t *)NodeGlobalTop(cp))
-	    {
-	      tagged_t v = *h++;
-	      
-	      if (v&QMask) h += LargeArity(v);
-	      else if (TagIsATM(v)) h += Arity(v);
-	      else if (v==Tag(CVA,h-1))
-		{
-		  h[-1] = *w->trail_top;
-		  *w->trail_top = v;
-		  found++;
-		  h += 2;
-		  purecp = prevcp;
-		}
-	    }
-	  /* Christian Holzbaur pointed out that this is unsafe, e.g.
+          if (h<limit) h = limit;
+          while (h < (tagged_t *)NodeGlobalTop(cp))
+            {
+              tagged_t v = *h++;
+              
+              if (v&QMask) h += LargeArity(v);
+              else if (TagIsATM(v)) h += Arity(v);
+              else if (v==Tag(CVA,h-1))
+                {
+                  h[-1] = *w->trail_top;
+                  *w->trail_top = v;
+                  found++;
+                  h += 2;
+                  purecp = prevcp;
+                }
+            }
+          /* Christian Holzbaur pointed out that this is unsafe, e.g.
              | ?- dif(X,1), (true; fail), (X=2; frozen(X,Fr)).
-	  if (purecp!=prevcp && limit<=NodeGlobalTop(prevcp))
-	    ChoiceptMarkNoCVA(cp); */
-	}
+          if (purecp!=prevcp && limit<=NodeGlobalTop(prevcp))
+            ChoiceptMarkNoCVA(cp); */
+        }
       
       cp = prevcp;
     }
@@ -784,21 +784,21 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   tagged_t t0, t1, t2, *pt1, *pt2;
   intmach_t i;
   tagged_t item, other;
-				/* avoid stack variables */
+                                /* avoid stack variables */
   if (!w->structure)
     {
       if (TagIsSVA(t0=X(0)))
-	{
-	  LoadHVA(X(0),w->global_top);
-	  BindSVA(t0,X(0));
-	}
+        {
+          LoadHVA(X(0),w->global_top);
+          BindSVA(t0,X(0));
+        }
       if (TagIsSVA(t0=X(1)))
-	{
-	  LoadHVA(X(1),w->global_top);
-	  BindSVA(t0,X(1));
-	}
+        {
+          LoadHVA(X(1),w->global_top);
+          BindSVA(t0,X(1));
+        }
     }
-				/* establish skeletal choicepoint */
+                                /* establish skeletal choicepoint */
   b = w->node;
   w->next_alt = address_nd_repeat; /* arity=0 */
   ComputeA(w->local_top,b);
@@ -822,14 +822,14 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   if (TrailYounger(pt1=w->trail_top, t2))
     {
       do
-	{
-	  if (IsVar(other))
-	    {
-	      item = pt1[-1];	/* variable */
-	      other = *TagToPointer(item);
-	    }
-	  PlainUntrail(pt1,t0,{});
-	}
+        {
+          if (IsVar(other))
+            {
+              item = pt1[-1];   /* variable */
+              other = *TagToPointer(item);
+            }
+          PlainUntrail(pt1,t0,{});
+        }
       while (TrailYounger(pt1, t2));
       w->trail_top = pt1;
     }
@@ -839,14 +839,14 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   w->next_alt = NULL;
   SetShadowregs(b);
 
-				/* succeed, fail, or suspend */
+                                /* succeed, fail, or suspend */
   if (item==atom_lessthan)
     return TRUE;
   else if (item==atom_equal)
     return FALSE;
   
 
-				/* construct goal on the heap */
+                                /* construct goal on the heap */
   pt2 = w->global_top;
   if (w->structure)
     X(2) = Tag(STR,w->structure-1);
@@ -859,45 +859,45 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
     }
 
 
-				/* constrain pivot variable(s) */
+                                /* constrain pivot variable(s) */
   for (i=0, t1=item; i<2; i++, t1=other)
     {
       if (IsVar(t1))
-	  {
-	    if (TagIsHVA(t1))
-	      {
-		LoadCVA(t0,pt2);
-		if (CondHVA(t1)) {
-		    TrailPush(pt1,t1);
-		    *TagToHVA(t1) = t0;
-		} else {
-		  *TagToHVA(t1) = t0;
-		}
-		goto check_trail;
-	      }
-	    else if (!CondCVA(t1))
-	      {
-		HeapPush(pt2,*TagToGoal(t1));
-		HeapPush(pt2,*TagToDef(t1));
-		*TagToGoal(t1) = Tag(LST,HeapOffset(pt2,-2));
-		*TagToDef(t1) = Tag(LST,pt2);
-	      }
-	    else
-	      {
-		LoadCVA(t0,pt2);
-		HeapPush(pt2,Tag(LST,TagToGoal(t1)));
-		HeapPush(pt2,Tag(LST,HeapOffset(pt2,1)));
-		TrailPush(pt1,t1);
-		*TagToCVA(t1) = t0;
-	      check_trail:
-		if (ChoiceYounger(w->node,TrailOffset(pt1,CHOICEPAD)))
-		  w->trail_top = pt1,
-		  choice_overflow(Arg,CHOICEPAD),
-		  pt1 = w->trail_top;
-	      }
-	    HeapPush(pt2,X(2));
-	    HeapPush(pt2,PointerToTerm(address_dif));
-	  }
+          {
+            if (TagIsHVA(t1))
+              {
+                LoadCVA(t0,pt2);
+                if (CondHVA(t1)) {
+                    TrailPush(pt1,t1);
+                    *TagToHVA(t1) = t0;
+                } else {
+                  *TagToHVA(t1) = t0;
+                }
+                goto check_trail;
+              }
+            else if (!CondCVA(t1))
+              {
+                HeapPush(pt2,*TagToGoal(t1));
+                HeapPush(pt2,*TagToDef(t1));
+                *TagToGoal(t1) = Tag(LST,HeapOffset(pt2,-2));
+                *TagToDef(t1) = Tag(LST,pt2);
+              }
+            else
+              {
+                LoadCVA(t0,pt2);
+                HeapPush(pt2,Tag(LST,TagToGoal(t1)));
+                HeapPush(pt2,Tag(LST,HeapOffset(pt2,1)));
+                TrailPush(pt1,t1);
+                *TagToCVA(t1) = t0;
+              check_trail:
+                if (ChoiceYounger(w->node,TrailOffset(pt1,CHOICEPAD)))
+                  w->trail_top = pt1,
+                  choice_overflow(Arg,CHOICEPAD),
+                  pt1 = w->trail_top;
+              }
+            HeapPush(pt2,X(2));
+            HeapPush(pt2,PointerToTerm(address_dif));
+          }
     }
   w->global_top = pt2;
   w->trail_top = pt1;
@@ -984,8 +984,8 @@ bool_t insertz_aux(int_info_t *root, instance_t *n)
     n->next_forward = NULL;
 
     loc = (n->key==ERRORTAG ? &root->varcase :
-	   n->key==functor_list ? &root->lstcase :
-	   &dyn_puthash(&root->indexer,n->key)->value.instp);
+           n->key==functor_list ? &root->lstcase :
+           &dyn_puthash(&root->indexer,n->key)->value.instp);
     
     if (!(*loc)){
       n->next_backward = n;

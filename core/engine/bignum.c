@@ -42,7 +42,7 @@ static bignum_size_t bn_div_mod_quot_not_wanted(bignum_t *x, bignum_t *y, bignum
 
 #define WordPositive(W) ((signed_bignum_t)(W)>=0)
 
-#define BignumCheck(P,L) { 	      \
+#define BignumCheck(P,L) {            \
   if ((P)+(L)+2 > zmax) return (L)+2; \
   SetBignumLength(P,L); \
 }
@@ -149,9 +149,9 @@ static void bn_canonize(bignum_t *x) {
 }
 
 bignum_size_t bn_add(bignum_t *x,
-		     bignum_t *y,
-		     bignum_t *z,
-		     bignum_t *zmax) {
+                     bignum_t *y,
+                     bignum_t *z,
+                     bignum_t *zmax) {
   int i;
   bignum_t *w, xi, wi;
   bignum_t sign_extension; 
@@ -214,9 +214,9 @@ bignum_size_t bn_add(bignum_t *x,
 }
 
 bignum_size_t bn_incr(bignum_t *x,
-		      bignum_t *ignore,
-		      bignum_t *z,
-		      bignum_t *zmax) {
+                      bignum_t *ignore,
+                      bignum_t *z,
+                      bignum_t *zmax) {
   int i, k;
   int xlen = BignumLength(x);
   int max = xlen+BignumPositive(x);
@@ -236,9 +236,9 @@ bignum_size_t bn_incr(bignum_t *x,
 }
 
 bignum_size_t bn_plus(bignum_t *x,
-		      bignum_t *ignore,
-		      bignum_t *z,
-		      bignum_t *zmax) {
+                      bignum_t *ignore,
+                      bignum_t *z,
+                      bignum_t *zmax) {
   int xlen = BignumLength(x);
   int i;
 
@@ -251,9 +251,9 @@ bignum_size_t bn_plus(bignum_t *x,
 }
 
 bignum_size_t bn_subtract(bignum_t *x,
-			  bignum_t *y,
-			  bignum_t *z,
-			  bignum_t *zmax) {
+                          bignum_t *y,
+                          bignum_t *z,
+                          bignum_t *zmax) {
   int i;
   bignum_t *w, xi;
   bignum_t sign_extension;
@@ -290,11 +290,11 @@ bignum_size_t bn_subtract(bignum_t *x,
       xi = x[i];
       z[i] = xi-sign_extension;
       if (z[i] > xi)
-	goto se_with_carry;
+        goto se_with_carry;
     } else {
       z[i] = sign_extension-y[i];
       if (z[i] > sign_extension)
-	goto se_with_carry;
+        goto se_with_carry;
     }
   }
   goto check_sign_overflow;
@@ -328,9 +328,9 @@ bignum_size_t bn_subtract(bignum_t *x,
 }
 
 bignum_size_t bn_decr(bignum_t *x,
-		      bignum_t *ignore,
-		      bignum_t *z,
-		      bignum_t *zmax) {
+                      bignum_t *ignore,
+                      bignum_t *z,
+                      bignum_t *zmax) {
   int i, k;
   int xlen = BignumLength(x);
   int max = xlen+(!BignumPositive(x));
@@ -350,9 +350,9 @@ bignum_size_t bn_decr(bignum_t *x,
 }
 
 bignum_size_t bn_minus(bignum_t *x,
-		       bignum_t *ignore,
-		       bignum_t *z,
-		       bignum_t *zmax) {
+                       bignum_t *ignore,
+                       bignum_t *z,
+                       bignum_t *zmax) {
   int xlen = BignumLength(x);
   int i;
 
@@ -374,9 +374,9 @@ bignum_size_t bn_minus(bignum_t *x,
 }
 
 bignum_size_t bn_and(bignum_t *x,
-		     bignum_t *y,
-		     bignum_t *z,
-		     bignum_t *zmax) {
+                     bignum_t *y,
+                     bignum_t *z,
+                     bignum_t *zmax) {
   int i;
   int min, max;
   bignum_t mask;
@@ -411,9 +411,9 @@ bignum_size_t bn_and(bignum_t *x,
 }
 
 bignum_size_t bn_or(bignum_t *x,
-		    bignum_t *y,
-		    bignum_t *z,
-		    bignum_t *zmax) {
+                    bignum_t *y,
+                    bignum_t *z,
+                    bignum_t *zmax) {
   int i;
   int min, max;
   bignum_t mask;
@@ -448,9 +448,9 @@ bignum_size_t bn_or(bignum_t *x,
 }
 
 bignum_size_t bn_xor(bignum_t *x,
-		     bignum_t *y,
-		     bignum_t *z,
-		     bignum_t *zmax) {
+                     bignum_t *y,
+                     bignum_t *z,
+                     bignum_t *zmax) {
   int i;
   int min, max;
   bignum_t mask;
@@ -485,9 +485,9 @@ bignum_size_t bn_xor(bignum_t *x,
 }
 
 bignum_size_t bn_not(bignum_t *x,
-		     bignum_t *y,
-		     bignum_t *z,
-		     bignum_t *zmax) {
+                     bignum_t *y,
+                     bignum_t *z,
+                     bignum_t *zmax) {
   int i;
   int xlen = BignumLength(x);
 
@@ -508,9 +508,9 @@ bignum_size_t bn_not(bignum_t *x,
 /*bignum_t bn_shift_dist; */
 
 bignum_size_t bn_lshift(bignum_t *x,
-			bignum_t *dist,
-			bignum_t *z,
-			bignum_t *zmax) {
+                        bignum_t *dist,
+                        bignum_t *z,
+                        bignum_t *zmax) {
   bignum_t xi;
   bool_t xs = BignumPositive(x);
   int xlen = BignumLength(x);
@@ -550,9 +550,9 @@ bignum_size_t bn_lshift(bignum_t *x,
 }
 
 bignum_size_t bn_rshift(bignum_t *x,
-			bignum_t *dist,
-			bignum_t *z,
-			bignum_t *zmax) {
+                        bignum_t *dist,
+                        bignum_t *z,
+                        bignum_t *zmax) {
   bignum_t xi;
   bool_t xs = BignumPositive(x);
   int xlen = BignumLength(x);
@@ -591,7 +591,7 @@ bignum_size_t bn_rshift(bignum_t *x,
 }
 
 bignum_size_t bn_compare(bignum_t *x,
-			 bignum_t *y) {
+                         bignum_t *y) {
   int xlen = BignumLength(x);
   int ylen = BignumLength(y);
   bool_t xs = BignumPositive(x);
@@ -606,7 +606,7 @@ bignum_size_t bn_compare(bignum_t *x,
 
     while (--i) {
       if (x[i]!=y[i]) {
-	return (x[i]<y[i] ? -1 : 1);
+        return (x[i]<y[i] ? -1 : 1);
       }
     }
     return 0;
@@ -615,10 +615,10 @@ bignum_size_t bn_compare(bignum_t *x,
 
 /* y is shorter than x */
 static void bn_mult_knuth(bignum_t *x,
-			  int xlen,
-			  bignum_t *y,
-			  int ylen,
-			  bignum_t *z) {
+                          int xlen,
+                          bignum_t *y,
+                          int ylen,
+                          bignum_t *z) {
   int i, j;
   bignum_half_t yj;
 
@@ -631,8 +631,8 @@ static void bn_mult_knuth(bignum_t *x,
       bignum_t t=0;
 
       for (i=1; i<=xlen; i++) {
-	t = (bignum_t)GetHalf(z,i+j-1) + (bignum_t)GetHalf(x,i)*yj + (t>>HalfUnit);
-	GetHalf(z,i+j-1) = t&HalfMask;
+        t = (bignum_t)GetHalf(z,i+j-1) + (bignum_t)GetHalf(x,i)*yj + (t>>HalfUnit);
+        GetHalf(z,i+j-1) = t&HalfMask;
       }
       GetHalf(z,xlen+j) = (t>>HalfUnit);
     }
@@ -673,9 +673,9 @@ bignum_size_t bn_multiply(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax)
 // }
 
 static bignum_size_t bn_div_mod_quot_wanted(bignum_t *x,
-					    bignum_t *y,
-					    bignum_t *z,
-					    bignum_t *zmax) {
+                                            bignum_t *y,
+                                            bignum_t *z,
+                                            bignum_t *zmax) {
   int d;
   int xlen = BignumLength(x);
   int ylen = BignumLength(y);
@@ -749,7 +749,7 @@ static bignum_size_t bn_div_mod_quot_wanted(bignum_t *x,
     v1qhat = (bignum_t)v1*(bignum_t)qj;
     v2qhat = (bignum_t)v2*(bignum_t)qj;
     while (carry-v1qhat < ((bignum_t)1<<HalfUnit) &&
-	   v2qhat > ((carry-v1qhat)<<HalfUnit)+u[j-2]) {
+           v2qhat > ((carry-v1qhat)<<HalfUnit)+u[j-2]) {
       qj--;
       v1qhat -= v1;
       v2qhat -= v2;
@@ -758,9 +758,9 @@ static bignum_size_t bn_div_mod_quot_wanted(bignum_t *x,
     /* Multiply and subtract. */
     if ((q[j]=qj)) {
       for (carry=0, i=0, k=j-vlen; i<vlen-2; i++, k++) {
-	carry = (bignum_t)u[k] - (bignum_t)v[i]*qj - carry;
-	u[k] = carry & HalfMask;
-	carry = ((bignum_t)u[k]-carry)>>HalfUnit;
+        carry = (bignum_t)u[k] - (bignum_t)v[i]*qj - carry;
+        u[k] = carry & HalfMask;
+        carry = ((bignum_t)u[k]-carry)>>HalfUnit;
       }
       carry = (bignum_t)u[k] - v2qhat - carry;
       u[k] = carry & HalfMask;
@@ -773,13 +773,13 @@ static bignum_size_t bn_div_mod_quot_wanted(bignum_t *x,
       u[j] = carry & HalfMask;
       carry = ((bignum_t)u[j]-carry)>>HalfUnit;
       if (carry) {
-	q[j]--;
-	for (carry=0, i=0, k=j-vlen; i<vlen; i++, k++) {
-	  carry += (bignum_t)u[k] + (bignum_t)v[i];
-	  u[k] = carry & HalfMask;
-	  carry = carry>>HalfUnit;
-	}
-	u[j] += carry;
+        q[j]--;
+        for (carry=0, i=0, k=j-vlen; i<vlen; i++, k++) {
+          carry += (bignum_t)u[k] + (bignum_t)v[i];
+          u[k] = carry & HalfMask;
+          carry = carry>>HalfUnit;
+        }
+        u[j] += carry;
       }
     }
   }
@@ -794,9 +794,9 @@ static bignum_size_t bn_div_mod_quot_wanted(bignum_t *x,
 }
 
 static bignum_size_t bn_div_mod_quot_not_wanted(bignum_t *x,
-						bignum_t *y,
-						bignum_t *z,
-						bignum_t *zmax)
+                                                bignum_t *y,
+                                                bignum_t *z,
+                                                bignum_t *zmax)
 {
   int d;
   int xlen = BignumLength(x);
@@ -865,7 +865,7 @@ static bignum_size_t bn_div_mod_quot_not_wanted(bignum_t *x,
     v1qhat = (bignum_t)v1*(bignum_t)qj;
     v2qhat = (bignum_t)v2*(bignum_t)qj;
     while (carry-v1qhat < ((bignum_t)1<<HalfUnit) &&
-	   v2qhat > ((carry-v1qhat)<<HalfUnit)+u[j-2]) {
+           v2qhat > ((carry-v1qhat)<<HalfUnit)+u[j-2]) {
       qj--;
       v1qhat -= v1;
       v2qhat -= v2;
@@ -874,9 +874,9 @@ static bignum_size_t bn_div_mod_quot_not_wanted(bignum_t *x,
     /* Multiply and subtract. */
     if ((q[j]=qj)) {
       for (carry=0, i=0, k=j-vlen; i<vlen-2; i++, k++) {
-	carry = (bignum_t)u[k] - (bignum_t)v[i]*qj - carry;
-	u[k] = carry & HalfMask;
-	carry = ((bignum_t)u[k]-carry)>>HalfUnit;
+        carry = (bignum_t)u[k] - (bignum_t)v[i]*qj - carry;
+        u[k] = carry & HalfMask;
+        carry = ((bignum_t)u[k]-carry)>>HalfUnit;
       }
       carry = (bignum_t)u[k] - v2qhat - carry;
       u[k] = carry & HalfMask;
@@ -889,13 +889,13 @@ static bignum_size_t bn_div_mod_quot_not_wanted(bignum_t *x,
       u[j] = carry & HalfMask;
       carry = ((bignum_t)u[j]-carry)>>HalfUnit;
       if (carry) {
-	q[j]--;
-	for (carry=0, i=0, k=j-vlen; i<vlen; i++, k++) {
-	  carry += (bignum_t)u[k] + (bignum_t)v[i];
-	  u[k] = carry & HalfMask;
-	  carry = carry>>HalfUnit;
-	}
-	u[j] += carry;
+        q[j]--;
+        for (carry=0, i=0, k=j-vlen; i<vlen; i++, k++) {
+          carry += (bignum_t)u[k] + (bignum_t)v[i];
+          u[k] = carry & HalfMask;
+          carry = carry>>HalfUnit;
+        }
+        u[j] += carry;
       }
     }
   }
@@ -913,9 +913,9 @@ static bignum_size_t bn_div_mod_quot_not_wanted(bignum_t *x,
 }
 
 bignum_size_t bn_quotient_remainder_quot_wanted(bignum_t *x,
-						bignum_t *y,
-						bignum_t *z,
-						bignum_t *zmax) {
+                                                bignum_t *y,
+                                                bignum_t *z,
+                                                bignum_t *zmax) {
   bool_t sx = BignumPositive(x);
   bool_t sy = BignumPositive(y);
   int value;
@@ -935,9 +935,9 @@ bignum_size_t bn_quotient_remainder_quot_wanted(bignum_t *x,
 }
 
 bignum_size_t bn_quotient_remainder_quot_not_wanted(bignum_t *x,
-						    bignum_t *y,
-						    bignum_t *z,
-						    bignum_t *zmax) {
+                                                    bignum_t *y,
+                                                    bignum_t *z,
+                                                    bignum_t *zmax) {
   bool_t sx = BignumPositive(x);
   bool_t sy = BignumPositive(y);
   int value;
@@ -959,11 +959,11 @@ bignum_size_t bn_quotient_remainder_quot_not_wanted(bignum_t *x,
 #define FLTBITS 64
 
 bignum_size_t bn_from_float(bignum_t *x,
-			    bignum_t *ignore,
-			    bignum_t *z,
-			    bignum_t *zmax) {
+                            bignum_t *ignore,
+                            bignum_t *z,
+                            bignum_t *zmax) {
   flt64_t f;
-  flt64_t norm = 4294967296.0;	/* 2**(FLTBITS/2) */
+  flt64_t norm = 4294967296.0;  /* 2**(FLTBITS/2) */
   flt64_t norm2 = norm*norm; /* 2**FLTBITS */
 #if LOG2_bignum_size == 5
   uint32_t *fp = (uint32_t *)(&f);
@@ -977,7 +977,7 @@ bignum_size_t bn_from_float(bignum_t *x,
 #endif
 
 #if LOG2_bignum_size == 5
-  fp[0] = x[1];			/* GetFloat(x) */
+  fp[0] = x[1];                 /* GetFloat(x) */
   fp[1] = x[2];
 #elif LOG2_bignum_size == 6
   f = *((flt64_t *)&x[1]); /* GetFloat(x) */
@@ -1048,9 +1048,9 @@ bignum_size_t bn_from_float(bignum_t *x,
 
 /* Precond: x is a syntactically correct string denoting an integer */
 bignum_size_t bn_from_string(char *x,
-			     bignum_t *z,
-			     bignum_t *zmax,
-			     int base) {
+                             bignum_t *z,
+                             bignum_t *zmax,
+                             int base) {
   bool_t sx;
   int j;
   int zlen;

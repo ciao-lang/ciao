@@ -31,24 +31,24 @@
 /* local declarations */
 
 static CBOOL__PROTO(cunify_args_aux, 
-		    int arity,
-		    tagged_t *pt1,
-		    tagged_t *pt2,
-		    tagged_t *x1,
-		    tagged_t *x2);
+                    int arity,
+                    tagged_t *pt1,
+                    tagged_t *pt2,
+                    tagged_t *x1,
+                    tagged_t *x2);
 static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2);
 static CVOID__PROTO(numstack_overflow);
 static definition_t **find_subdef_chain(definition_t *f, intmach_t clause_no);
 static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity);
 #if defined(USE_ATOM_LEN)
 static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw, 
-				      tagged_t key, 
-				      char *str,
-				      uintmach_t str_len);
+                                      tagged_t key, 
+                                      char *str,
+                                      uintmach_t str_len);
 #else
 static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw, 
-				      tagged_t key, 
-				      char *str);
+                                      tagged_t key, 
+                                      char *str);
 #endif
 
 
@@ -85,14 +85,14 @@ void failc(char *mesg)
       intmach_t goal_id = eng_goal_from_thread_id(thrid);
       if (goal_id != 0) {
         fprintf(stderr,
-		"{ERROR (%s, goal 0x%" PRIxm ", thread 0x%" PRIxm "): %s}\n",
-		source_path, (uintmach_t)goal_id,
-		(uintmach_t)thrid, mesg);
+                "{ERROR (%s, goal 0x%" PRIxm ", thread 0x%" PRIxm "): %s}\n",
+                source_path, (uintmach_t)goal_id,
+                (uintmach_t)thrid, mesg);
       } else {
         fprintf(stderr,
-		"{ERROR (%s, thread 0x%" PRIxm "): %s}\n",
-		source_path,
-		(uintmach_t)thrid, mesg);
+                "{ERROR (%s, thread 0x%" PRIxm "): %s}\n",
+                source_path,
+                (uintmach_t)thrid, mesg);
       }
     } else {
       fprintf(stderr, "{ERROR: %s}\n", mesg);
@@ -124,13 +124,13 @@ CVOID__PROTO(trail_push_check, tagged_t x) {
 
 #if defined(USE_ATOM_LEN)
 static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw,
-				      tagged_t key,
-				      char *str,
-				      uintmach_t str_len)
+                                      tagged_t key,
+                                      char *str,
+                                      uintmach_t str_len)
 #else
 static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw,
-				      tagged_t key,
-				      char *str)
+                                      tagged_t key,
+                                      char *str)
 #endif
 {
   sw_on_key_node_t *hnode;
@@ -186,16 +186,16 @@ tagged_t init_atom_check(char *str)
 #endif
   }
 
-  hashcode = (hashcode<<3)+4;	/* low bits are masked away; ensure it is
-				   not 0 --- it cannot be 1, either, which is
-				   very important for atom GC */
+  hashcode = (hashcode<<3)+4;   /* low bits are masked away; ensure it is
+                                   not 0 --- it cannot be 1, either, which is
+                                   very important for atom GC */
 /*
   while ((hnode=incore_gethash(ciao_atoms, (tagged_t)hashcode)) &&
-	 hnode->key==(tagged_t)hashcode &&
-	 strcmp(hnode->value.atomp->name, str)!=0)
+         hnode->key==(tagged_t)hashcode &&
+         strcmp(hnode->value.atomp->name, str)!=0)
     hashcode += 233509<<3;         233509 is prime, and so is
-				   233509&0x1ffff, 233509&0x0ffff, ...,
-				   233509&0x00007
+                                   233509&0x1ffff, 233509&0x0ffff, ...,
+                                   233509&0x00007
 */
 
 #if defined(USE_ATOM_LEN)
@@ -258,9 +258,9 @@ tagged_t init_atom_check(char *str)
     }
 
     atmtab = checkrealloc_ARRAY(sw_on_key_node_t *,
-				count,
-				2*count,
-				(tagged_t *)atmtab);
+                                count,
+                                2*count,
+                                (tagged_t *)atmtab);
 
 #if defined(ATOMGC)      /* Clean up the upper part of the new atom table */
     for (i = count; i < 2*count; i++)
@@ -269,9 +269,9 @@ tagged_t init_atom_check(char *str)
 #endif
 
     checkdealloc_FLEXIBLE(sw_on_key_t,
-			  sw_on_key_node_t,
-			  size,
-			  ciao_atoms);
+                          sw_on_key_node_t,
+                          size,
+                          ciao_atoms);
     new_table->count = count;
 #if defined(USE_ATOM_LEN)
     hnode = atom_gethash(new_table, (tagged_t)hashcode, str, atom_len);
@@ -309,7 +309,7 @@ tagged_t init_atom_check(char *str)
 
 /* make large object on the heap */
 CFUN__PROTO(make_large, tagged_t,
-	    tagged_t *ptr)
+            tagged_t *ptr)
 {
   tagged_t *h = w->global_top;
   tagged_t f = *ptr;
@@ -424,10 +424,10 @@ static CVOID__PROTO(numstack_overflow)
 }
 
 CFUN__PROTO(bn_call,
-	    tagged_t,
-	    bn_fun_t f,
-	    tagged_t x, tagged_t y,
-	    bcp_t liveinfo)
+            tagged_t,
+            bn_fun_t f,
+            tagged_t x, tagged_t y,
+            bcp_t liveinfo)
 {
   bignum_size_t req;
   tagged_t xx[2], yy[2];
@@ -483,9 +483,9 @@ CFUN__PROTO(bn_call,
 }
 
 CFUN__PROTO(make_integer_check,
-	    tagged_t,
-	    intmach_t i,
-	    bcp_t liveinfo)
+            tagged_t,
+            intmach_t i,
+            bcp_t liveinfo)
 {
   tagged_t *h;
 
@@ -514,8 +514,8 @@ CFUN__PROTO(make_integer_check,
 }
 
 CFUN__PROTO(make_float_check, tagged_t,
-	    flt64_t i,
-	    bcp_t liveinfo)
+            flt64_t i,
+            bcp_t liveinfo)
 {
   tagged_t *h;
   union {
@@ -630,8 +630,8 @@ module_t *new_module(tagged_t mod_atm)
 /*------------------------------------------------------------*/
 
 void expand_sw_on_key(sw_on_key_t **psw,
-		      try_node_t *otherwise,
-		      bool_t deletep)
+                      try_node_t *otherwise,
+                      bool_t deletep)
 {
   sw_on_key_node_t *h1, *h2;
   intmach_t size = SwitchSize(*psw);
@@ -650,9 +650,9 @@ void expand_sw_on_key(sw_on_key_t **psw,
 
   if (deletep) {
     checkdealloc_FLEXIBLE(sw_on_key_t,
-			  sw_on_key_node_t,
-			  size,
-			  *psw);
+                          sw_on_key_node_t,
+                          size,
+                          *psw);
   } else {
     leave_to_gc(TABLE, (char *)(*psw));
   }
@@ -661,9 +661,9 @@ void expand_sw_on_key(sw_on_key_t **psw,
 }
 
 void add_definition(sw_on_key_t **swp,
-		    sw_on_key_node_t *node,
-		    tagged_t key,
-		    definition_t *def)
+                    sw_on_key_node_t *node,
+                    tagged_t key,
+                    definition_t *def)
 {
   node->key=key;
   node->value.def=def;
@@ -672,9 +672,9 @@ void add_definition(sw_on_key_t **swp,
 }
 
 definition_t *insert_definition(sw_on_key_t **swp,
-				tagged_t tagpname,
-				int arity,
-				bool_t insertp)
+                                tagged_t tagpname,
+                                int arity,
+                                bool_t insertp)
 {
   sw_on_key_node_t *keyval;
   definition_t *value = NULL;
@@ -699,9 +699,9 @@ definition_t *insert_definition(sw_on_key_t **swp,
 }
 
 void add_module(sw_on_key_t **swp,
-		sw_on_key_node_t *node,
-		tagged_t key,
-		module_t *mod)
+                sw_on_key_node_t *node,
+                tagged_t key,
+                module_t *mod)
 {
   node->key=key;
   node->value.mod=mod;
@@ -710,8 +710,8 @@ void add_module(sw_on_key_t **swp,
 }
 
 module_t *insert_module(sw_on_key_t **swp,
-			tagged_t mod_atm,
-			bool_t insertp)
+                        tagged_t mod_atm,
+                        bool_t insertp)
 {
   sw_on_key_node_t *keyval;
   module_t *value = NULL;
@@ -739,7 +739,7 @@ module_t *insert_module(sw_on_key_t **swp,
 
 /* Create a most general term for a given functor or small int. */
 CFUN__PROTO(make_structure, tagged_t,
-	    tagged_t functor)
+            tagged_t functor)
 {
   intmach_t ar = Arity(functor);
   tagged_t *h = w->global_top;
@@ -763,8 +763,8 @@ CFUN__PROTO(make_structure, tagged_t,
 }
 
 definition_t *find_definition(sw_on_key_t **swp,
-			      tagged_t term, tagged_t **argl,
-			      bool_t insertp)
+                              tagged_t term, tagged_t **argl,
+                              bool_t insertp)
 {
   int arity;
 
@@ -845,24 +845,24 @@ static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
 
       f = parse_definition(tagname);
       if (f==NULL)
-	return NULL;
+        return NULL;
       i = f->predtyp;
       if (i > ENTER_FASTCODE_INDEXED)
-	return NULL;
+        return NULL;
       pf = find_subdef_chain(f, clause_no);
 
       if (!(*pf))
-	f = *pf = new_functor((tagged_t)f|3, arity);
+        f = *pf = new_functor((tagged_t)f|3, arity);
       else
-	{
-	  for (i=1, f1 = *pf;
-	       !(f1->printname&2);
-	       i++, f1 = (definition_t *)TagToPointer(f1->printname))
-	    if (i==subdef_no) break;
-	
-	  if (i==subdef_no) return f1;
-	  f1->printname = (tagged_t)(f=new_functor(f1->printname, arity))|1;
-	}
+        {
+          for (i=1, f1 = *pf;
+               !(f1->printname&2);
+               i++, f1 = (definition_t *)TagToPointer(f1->printname))
+            if (i==subdef_no) break;
+        
+          if (i==subdef_no) return f1;
+          f1->printname = (tagged_t)(f=new_functor(f1->printname, arity))|1;
+        }
       return f;
     }
 
@@ -872,8 +872,8 @@ static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
 }
 
 static CBOOL__PROTO(cunify_args_aux,
-		    int arity, tagged_t *pt1, tagged_t *pt2,
-		    tagged_t *x1, tagged_t *x2);
+                    int arity, tagged_t *pt1, tagged_t *pt2,
+                    tagged_t *x1, tagged_t *x2);
 static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2);
 
 /* Unify the argument lists of two compund terms.
@@ -882,9 +882,9 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2);
  * arity - number of arguments.
  */
 CBOOL__PROTO(cunify_args, 
-	     int arity,
-	     tagged_t *pt1,
-	     tagged_t *pt2)
+             int arity,
+             tagged_t *pt1,
+             tagged_t *pt2)
 {
   tagged_t x1, x2;
   bool_t result =
@@ -904,11 +904,11 @@ CBOOL__PROTO(cunify_args,
 }
 
 static CBOOL__PROTO(cunify_args_aux, 
-		    int arity,
-		    tagged_t *pt1,
-		    tagged_t *pt2,
-		    tagged_t *x1,
-		    tagged_t *x2)
+                    int arity,
+                    tagged_t *pt1,
+                    tagged_t *pt2,
+                    tagged_t *x1,
+                    tagged_t *x2)
 {
   tagged_t t1 = ~0;
   tagged_t t2 = ~0;
@@ -919,7 +919,7 @@ static CBOOL__PROTO(cunify_args_aux,
      values. */
 
   if (ChoiceYounger(ChoiceOffset(w->node,2*CHOICEPAD-w->value_trail),w->trail_top))
-				/* really: < 2*arity */
+                                /* really: < 2*arity */
     choice_overflow(Arg,2*CHOICEPAD);
   for (; arity>0; --arity) {
     t1 = *pt1, t2 = *pt2;
@@ -993,76 +993,76 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
   u=x1, v=x2;
 
   SwitchOnVar(u,t1,
-	      {goto u_is_hva;},
-	      {goto u_is_cva;},
-	      {goto u_is_sva;},
-	      ;);
+              {goto u_is_hva;},
+              {goto u_is_cva;},
+              {goto u_is_sva;},
+              ;);
 
-				/* one non variable */
+                                /* one non variable */
   SwitchOnVar(v,t1,
-	      { BindHVA(v,u); goto win; },
-	      { BindCVA(v,u); goto win; },
-	      { BindSVA(v,u); goto win; },
-	      ;);
+              { BindHVA(v,u); goto win; },
+              { BindCVA(v,u); goto win; },
+              { BindSVA(v,u); goto win; },
+              ;);
 
-				/* two non variables */
-  if (!(v ^= u))		/* are they equal? */
+                                /* two non variables */
+  if (!(v ^= u))                /* are they equal? */
     goto win;
-  else if (v>=QMask)		/* not the same type? */
+  else if (v>=QMask)            /* not the same type? */
     goto lose;
   else if (!(u & TagBitComplex)) /* atomic? (& not LNUM)*/
     goto lose;
   else if (!(u & TagBitFunctor)) /* list? */
     {
-      v ^= u;			/* restore v */
+      v ^= u;                   /* restore v */
       if (cunify_args_aux(Arg,2,TagToCar(u),TagToCar(v),&x1,&x2))
-	goto in;
+        goto in;
       else
-	goto lose;
+        goto lose;
     }
-  else				/* structure. */
+  else                          /* structure. */
     {
-      v ^= u;			/* restore v */
+      v ^= u;                   /* restore v */
       if (TagToHeadfunctor(u) != (t1=TagToHeadfunctor(v)))
-	goto lose;
-      else if (t1&QMask)	/* large number */
-	{
-	  intmach_t i;
-	
-	  for (i = LargeArity(t1)-1; i>0; i--)
-	    if (*TagToArg(u,i) != *TagToArg(v,i)) goto lose;
-	  goto win;
-	}
+        goto lose;
+      else if (t1&QMask)        /* large number */
+        {
+          intmach_t i;
+        
+          for (i = LargeArity(t1)-1; i>0; i--)
+            if (*TagToArg(u,i) != *TagToArg(v,i)) goto lose;
+          goto win;
+        }
       if (cunify_args_aux(Arg,Arity(t1),TagToArg(u,1),TagToArg(v,1),&x1,&x2))
-	goto in;
+        goto in;
       else
-	goto lose;
+        goto lose;
     }
 
  u_is_hva:
   SwitchOnVar(v,t1,
-	      { if (u==v)
-		  ;
-		else if (YoungerHeapVar(TagToHVA(v),TagToHVA(u)))
-		  BindHVA(v,u)
-		else
-		  BindHVA(u,v); },
-	      { BindHVA(u,v); },
-	      { BindSVA(v,u); },
-	      { BindHVA(u,v); });
+              { if (u==v)
+                  ;
+                else if (YoungerHeapVar(TagToHVA(v),TagToHVA(u)))
+                  BindHVA(v,u)
+                else
+                  BindHVA(u,v); },
+              { BindHVA(u,v); },
+              { BindSVA(v,u); },
+              { BindHVA(u,v); });
   goto win;
 
  u_is_cva:
   SwitchOnVar(v,t1,
-	      { BindHVA(v,u); },
-	      { if (u==v)
-		  ;
-		else if (YoungerHeapVar(TagToCVA(v),TagToCVA(u)))
-		  { BindCVA(v,u); }
-		else
-		  { BindCVA(u,v); } },
-	      { BindSVA(v,u); },
-	      { BindCVA(u,v); });
+              { BindHVA(v,u); },
+              { if (u==v)
+                  ;
+                else if (YoungerHeapVar(TagToCVA(v),TagToCVA(u)))
+                  { BindCVA(v,u); }
+                else
+                  { BindCVA(u,v); } },
+              { BindSVA(v,u); },
+              { BindCVA(u,v); });
   goto win;
 
  u_is_sva:
@@ -1070,15 +1070,15 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
     {
       RefSVA(t1,v);
       if (v == t1)
-	{
-	  if (u==v)
-	    ;
-	  else if (YoungerStackVar(TagToSVA(v),TagToSVA(u)))
-	    BindSVA(v,u)
-	  else
-	    BindSVA(u,v);
-	  goto win;
-	}
+        {
+          if (u==v)
+            ;
+          else if (YoungerStackVar(TagToSVA(v),TagToSVA(u)))
+            BindSVA(v,u)
+          else
+            BindSVA(u,v);
+          goto win;
+        }
     }
   BindSVA(u,v);
 
@@ -1092,27 +1092,27 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
 /* ------------------------------------------------------------------------- */
 /* instance */
 static CBOOL__PROTO(cinstance_args_aux,
-		    int arity, tagged_t *pt1, tagged_t *pt2,
-		    tagged_t *x1, tagged_t *x2, intmach_t *n);
+                    int arity, tagged_t *pt1, tagged_t *pt2,
+                    tagged_t *x1, tagged_t *x2, intmach_t *n);
 static CBOOL__PROTO(cinstance_aux, tagged_t x1, tagged_t x2, intmach_t *n);
 
 CBOOL__PROTO(cinstance_args, 
-	     int arity,
-	     tagged_t *pt1,
-	     tagged_t *pt2,
-	     intmach_t *n)
+             int arity,
+             tagged_t *pt1,
+             tagged_t *pt2,
+             intmach_t *n)
 {
   tagged_t x1, x2;
   return cinstance_args_aux(Arg,arity,pt1,pt2,&x1,&x2,n) && cinstance_aux(Arg,x1,x2,n);
 }
 
 static CBOOL__PROTO(cinstance_args_aux, 
-		    int arity,
-		    tagged_t *pt1,
-		    tagged_t *pt2,
-		    tagged_t *x1,
-		    tagged_t *x2,
-		    intmach_t *n)
+                    int arity,
+                    tagged_t *pt1,
+                    tagged_t *pt2,
+                    tagged_t *x1,
+                    tagged_t *x2,
+                    intmach_t *n)
 {
   tagged_t 
     t1 = ~0,
@@ -1123,7 +1123,7 @@ static CBOOL__PROTO(cinstance_args_aux,
      values. */
 
   if (ChoiceYounger(ChoiceOffset(w->node,2*CHOICEPAD),w->trail_top))
-				/* really: < 2*arity */
+                                /* really: < 2*arity */
     choice_overflow(Arg,2*CHOICEPAD);
   for (; arity>0; --arity) {
     t1 = *pt1, t2 = *pt2;
@@ -1154,26 +1154,26 @@ CBOOL__PROTO(cinstance)
   t2 = X(1);
 #endif
 
-  push_choicept(Arg,fail_alt);	/* try, arity=0 */
+  push_choicept(Arg,fail_alt);  /* try, arity=0 */
 
   result = cinstance_aux(Arg,X(0),X(1),&n);
 
   pt1 = pt2 = TagToPointer(w->node->trail_top); /* untrail */
   while (!OffTrailtop(pt2,w->trail_top)) {
-    t1 = TrailNext(pt2);	/* old var */
+    t1 = TrailNext(pt2);        /* old var */
     *TagToPointer(t1) = t1;
   }
   w->trail_top = pt1;
 
-  pop_choicept(Arg);		/* trust */
+  pop_choicept(Arg);            /* trust */
 
   return result;
 }
 
 static CBOOL__PROTO(cinstance_aux, 
-		    tagged_t x1,
-		    tagged_t x2,
-		    intmach_t *n)
+                    tagged_t x1,
+                    tagged_t x2,
+                    intmach_t *n)
 {
   tagged_t u, v, t1, nt;
 
@@ -1182,17 +1182,17 @@ static CBOOL__PROTO(cinstance_aux,
 
   nt = MakeSmall(*n);
   SwitchOnVar(u,t1,
-	      { goto u_is_hva; },
-	      { goto lose; }, /* CVAs are not supported */
-	      { goto u_is_sva; },
-	      { goto one_non_var; });
+              { goto u_is_hva; },
+              { goto lose; }, /* CVAs are not supported */
+              { goto u_is_sva; },
+              { goto one_non_var; });
   /* note that if deref(u) == deref(v), the following code must do nothing */
  u_is_hva:
   SwitchOnVar(v,t1,
               { BindHVA(v, nt); },
               { goto lose; }, /* CVAs are not supported */
-	      { BindSVA(v, nt); },
-	      { goto lose; });
+              { BindSVA(v, nt); },
+              { goto lose; });
   if (u != v) BindHVA(u, nt);
   goto var_win;
 
@@ -1200,8 +1200,8 @@ static CBOOL__PROTO(cinstance_aux,
   SwitchOnVar(v,t1,
               { BindHVA(v, nt); },
               { goto lose; }, /* CVAs are not supported */
-	      { BindSVA(v, nt); },
-	      { goto lose; });
+              { BindSVA(v, nt); },
+              { goto lose; });
   if (u != v) BindSVA(u, nt);
   goto var_win;
 
@@ -1210,45 +1210,45 @@ static CBOOL__PROTO(cinstance_aux,
   goto win;
 
  one_non_var:
-				/* one non variable */
+                                /* one non variable */
   SwitchOnVar(v,t1,
-	      { BindHVA(v,u); goto win; },
-	      { BindCVA(v,u); goto win; },
-	      { BindSVA(v,u); goto win; },
-	      ;);
+              { BindHVA(v,u); goto win; },
+              { BindCVA(v,u); goto win; },
+              { BindSVA(v,u); goto win; },
+              ;);
 
-				/* two non variables */
-  if (!(v ^= u))		/* are they equal? */
+                                /* two non variables */
+  if (!(v ^= u))                /* are they equal? */
     goto win;
-  else if (v>=QMask)		/* not the same type? */
+  else if (v>=QMask)            /* not the same type? */
     goto lose;
   else if (!(u & TagBitComplex)) /* atomic? (& not LNUM)*/
     goto lose;
   else if (!(u & TagBitFunctor)) /* list? */
     {
-      v ^= u;			/* restore v */
+      v ^= u;                   /* restore v */
       if (cinstance_args_aux(Arg,2,TagToCar(u),TagToCar(v),&x1,&x2,n))
-	goto in;
+        goto in;
       else
-	goto lose;
+        goto lose;
     }
-  else				/* structure. */
+  else                          /* structure. */
     {
-      v ^= u;			/* restore v */
+      v ^= u;                   /* restore v */
       if (TagToHeadfunctor(u) != (t1=TagToHeadfunctor(v)))
-	goto lose;
-      else if (t1&QMask)	/* large number */
-	{
-	  intmach_t i;
-	
-	  for (i = LargeArity(t1)-1; i>0; i--)
-	    if (*TagToArg(u,i) != *TagToArg(v,i)) goto lose;
-	  goto win;
-	}
+        goto lose;
+      else if (t1&QMask)        /* large number */
+        {
+          intmach_t i;
+        
+          for (i = LargeArity(t1)-1; i>0; i--)
+            if (*TagToArg(u,i) != *TagToArg(v,i)) goto lose;
+          goto win;
+        }
       if (cinstance_args_aux(Arg,Arity(t1),TagToArg(u,1),TagToArg(v,1),&x1,&x2,n))
-	goto in;
+        goto in;
       else
-	goto lose;
+        goto lose;
     }
 
  win:
@@ -1264,9 +1264,9 @@ static CBOOL__PROTO(cground_args_aux, int arity, tagged_t *pt1, tagged_t *x1);
 static CBOOL__PROTO(cground_aux, tagged_t x1);
 
 static CBOOL__PROTO(cground_args_aux, 
-		    int arity,
-		    tagged_t *pt1,
-		    tagged_t *x1)
+                    int arity,
+                    tagged_t *pt1,
+                    tagged_t *x1)
 {
   tagged_t 
     t1 = ~0;
@@ -1292,31 +1292,31 @@ static CBOOL__PROTO(cground_aux, tagged_t x1)
   u=x1;
 
   SwitchOnVar(u,t1,
-	      { goto lose; },
-	      { goto lose; }, /* CVAs are not supported */
-	      { goto lose; },
-	      { goto non_var; });
+              { goto lose; },
+              { goto lose; }, /* CVAs are not supported */
+              { goto lose; },
+              { goto non_var; });
 
  non_var:
   if (TagIsATM(u)) goto win;
   if (TagIsSmall(u)) goto win;
   if (TagIsLST(u)) {
       if (cground_args_aux(Arg,2,TagToCar(u),&x1))
-	goto in;
+        goto in;
       else
-	goto lose;
+        goto lose;
     }
-  else				/* structure. */
+  else                          /* structure. */
     {
       t1=TagToHeadfunctor(u);
-      if (t1&QMask)	/* large number */
-	{
-	  goto win;
-	}
+      if (t1&QMask)     /* large number */
+        {
+          goto win;
+        }
       if (cground_args_aux(Arg,Arity(t1),TagToArg(u,1),&x1))
-	goto in;
+        goto in;
       else
-	goto lose;
+        goto lose;
     }
 
  lose:
@@ -1448,7 +1448,7 @@ CVOID__PROTO(show_nodes, node_t *cp_younger, node_t *cp_older)
     fprintf(stderr, "/%" PRIdm ",", number);
     number = cp_younger->next_alt->number;
     cp_younger = ChoiceCharOffset(cp_younger,
-				  -cp_younger->next_alt->node_offset);
+                                  -cp_younger->next_alt->node_offset);
   }
   if (!ChoiceYounger(cp_older, cp_younger)) {
     fprintf(stderr,"\n  ");

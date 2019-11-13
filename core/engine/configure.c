@@ -88,17 +88,17 @@ void find_fp_bits(int *t) {
 } 
 
 void get_mask_descr(int size,
-		    volatile unsigned int *lx,
-		    volatile unsigned int *ly,
-		    unsigned int *mask,
-		    unsigned int *indx,
-		    unsigned int *shft) {
+                    volatile unsigned int *lx,
+                    volatile unsigned int *ly,
+                    unsigned int *mask,
+                    unsigned int *indx,
+                    unsigned int *shft) {
   for(*indx=0; *indx<size; (*indx)++) {
     *mask = lx[*indx] ^ ly[*indx];
     if(*mask) {
       *shft = 0;
       while(((*mask >> *shft) & (unsigned int)1)==0) {
-	(*shft)++;
+        (*shft)++;
       }
       return;
     }
@@ -109,14 +109,14 @@ void get_mask_descr(int size,
 }
 
 #define EMIT_MASK_DESC(STD, PART, MASK, INDEX, SHIFT) {         \
-    printf("#define " STD "_MASK_" PART "  0x%08X\n", (MASK));	\
-    printf("#define " STD "_INDEX_" PART " %d\n", (INDEX));	\
-    printf("#define " STD "_SHIFT_" PART " %d\n", (SHIFT));	\
+    printf("#define " STD "_MASK_" PART "  0x%08X\n", (MASK));  \
+    printf("#define " STD "_INDEX_" PART " %d\n", (INDEX));     \
+    printf("#define " STD "_SHIFT_" PART " %d\n", (SHIFT));     \
   }
 #define EMIT_MASK_DESC0(STD, PART, MASK, INDEX, SPLIT) {         \
-    printf("#define " STD "_MASK_" PART "  0x%08X\n", (MASK));	\
-    printf("#define " STD "_INDEX_" PART " %d\n", (INDEX));	\
-    printf("#define " STD "_SPLIT_" PART " %d\n", (SPLIT));	\
+    printf("#define " STD "_MASK_" PART "  0x%08X\n", (MASK));  \
+    printf("#define " STD "_INDEX_" PART " %d\n", (INDEX));     \
+    printf("#define " STD "_SPLIT_" PART " %d\n", (SPLIT));     \
   }
 
 /* This function will calculate some values related to the internal
@@ -272,7 +272,7 @@ void configure__fpbits(void) {
 
   i = (bits*0.301029995663981); /* #significant digits, bits*log_10(2) */
 
-  f = 0.5e-9;			/* rounding factor if above 18 */
+  f = 0.5e-9;                   /* rounding factor if above 18 */
   for (j=18; j>i; j--) {
     f *= 10.0;
   }
@@ -403,30 +403,30 @@ void find_malloc_base(uintptr_t tagmask, uintptr_t *malloc_base0, size_t *min_me
     while(1) {
       chunk = (void *)malloc(size);
       if (chunk == NULL) {
-	/* tagmask is never 0, use MIN_MEM_BLOCK_CHARS */
-	malloc_base = (uintptr_t)0;
-	min_mem_alloc = MIN_MEM_BLOCK_CHARS;
-	break;
+        /* tagmask is never 0, use MIN_MEM_BLOCK_CHARS */
+        malloc_base = (uintptr_t)0;
+        min_mem_alloc = MIN_MEM_BLOCK_CHARS;
+        break;
       } else {
-	if (((uintptr_t)chunk & tagmask) == 0) {
-	  /* not yet non-zero, continue */
-	  free(chunk);
-	  size *= 2;
-	  if (size > MAX_MEM_BLOCK_CHARS) {
-	    /* not found, assume tag bits are always 0 */
-	    malloc_base = (uintptr_t)0;
-	    min_mem_alloc = MIN_MEM_BLOCK_CHARS;
-	    break;
-	  }
-	} else {
-	  /* Use that one, assume that there will be no more changes in
-	     the upper bits */
-	  malloc_base = (uintptr_t)chunk & tagmask;
-	  free(chunk);
-	  min_mem_alloc = (size > MIN_MEM_BLOCK_CHARS ?
-			   size : MIN_MEM_BLOCK_CHARS);
-	  break;
-	}
+        if (((uintptr_t)chunk & tagmask) == 0) {
+          /* not yet non-zero, continue */
+          free(chunk);
+          size *= 2;
+          if (size > MAX_MEM_BLOCK_CHARS) {
+            /* not found, assume tag bits are always 0 */
+            malloc_base = (uintptr_t)0;
+            min_mem_alloc = MIN_MEM_BLOCK_CHARS;
+            break;
+          }
+        } else {
+          /* Use that one, assume that there will be no more changes in
+             the upper bits */
+          malloc_base = (uintptr_t)chunk & tagmask;
+          free(chunk);
+          min_mem_alloc = (size > MIN_MEM_BLOCK_CHARS ?
+                           size : MIN_MEM_BLOCK_CHARS);
+          break;
+        }
       }
     }
   }

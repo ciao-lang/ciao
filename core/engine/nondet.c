@@ -38,19 +38,19 @@ static CFUN__PROTO(current_instance_noconc, instance_t *);
 static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block);
 
 static bool_t wait_for_an_instance_pointer(instance_t **ins_pptr1,
-					   instance_t **ins_pptr2,
-					   int_info_t *root,
-					   BlockingType block);
+                                           instance_t **ins_pptr2,
+                                           int_info_t *root,
+                                           BlockingType block);
 
 static instance_t *first_possible_instance(tagged_t head,
-					   int_info_t *root,
-					   instance_t **x2_n,
-					   instance_t **x5_n);
+                                           int_info_t *root,
+                                           instance_t **x2_n,
+                                           instance_t **x5_n);
 
 static instance_handle_t *make_handle_to(instance_t *inst,
-					 int_info_t *root,
-					 tagged_t head,
-					 WhichChain chain);
+                                         int_info_t *root,
+                                         tagged_t head,
+                                         WhichChain chain);
 
 static void remove_handle(instance_handle_t *xi,
                           int_info_t *root,
@@ -62,13 +62,13 @@ static void change_handle_to_instance(instance_handle_t *handle,
                                       WhichChain chain);
 
 static void unlink_handle(instance_handle_t *xi, 
-			  int_info_t *rt, 
-			  WhichChain chain);
+                          int_info_t *rt, 
+                          WhichChain chain);
 
 static void link_handle(instance_handle_t *handle,
-			instance_t *inst,
-			int_info_t *root,
-			WhichChain chain);
+                        instance_t *inst,
+                        int_info_t *root,
+                        WhichChain chain);
 
 /* -------------------------------------------------------------------
    FRAME/CHOICEPT MANIPULATIONS
@@ -413,17 +413,17 @@ CBOOL__PROTO(nd_predicate_property)
     {
       keyval = &table->node[j];
       if ((d = keyval->value.def) &&
-	  d->predtyp != ENTER_UNDEFINED)
-	{
-	  if (j==0)
-	    pop_choicept(Arg);
-	  else
-	    w->node->term[3] = MakeSmall(j);
-	  Unify_constant(MakeSmall(d->predtyp),X(1));
-	  Unify_constant(MakeSmall(predicate_property_bits(d)),X(2));
-	  return cunify(Arg,make_structure(Arg,SetArity(d->printname,d->arity)),
-			X(0));
-	}
+          d->predtyp != ENTER_UNDEFINED)
+        {
+          if (j==0)
+            pop_choicept(Arg);
+          else
+            w->node->term[3] = MakeSmall(j);
+          Unify_constant(MakeSmall(d->predtyp),X(1));
+          Unify_constant(MakeSmall(predicate_property_bits(d)),X(2));
+          return cunify(Arg,make_structure(Arg,SetArity(d->printname,d->arity)),
+                        X(0));
+        }
     }
   pop_choicept(Arg);
   return FALSE;
@@ -546,7 +546,7 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
         hnode = incore_gethash(root->indexer,TagToHeadfunctor(head));
       else
         hnode = incore_gethash(root->indexer,head);
-	
+        
       x5_chain = ACTIVE_INSTANCE(Arg,hnode->value.instp,use_clock,FALSE);
       goto xn_switch;
     }
@@ -608,14 +608,14 @@ CBOOL__PROTO(first_instance)
   }
 
   if (!inst)
-    return FALSE;		                          /* no solutions */
+    return FALSE;                                         /* no solutions */
   *TagToPointer(X(1)) = PointerToTerm(inst);
 
   return TRUE;
 }
 
 /* ------------------------------------------------------------------
-	  NEXT_INSTANCE
+          NEXT_INSTANCE
    -----------------------------------------------------------------------*/
 
 CBOOL__PROTO(next_instance, instance_t **ipp)
@@ -632,26 +632,26 @@ CBOOL__PROTO(next_instance, instance_t **ipp)
     Wait_Acquire_Cond_lock(root->clause_insertion_cond);
 
     if (x2_insp == x5_insp)
-	x2_insp = x5_insp = ACTIVE_INSTANCE(Arg,x2_insp->forward,clock,TRUE);
+        x2_insp = x5_insp = ACTIVE_INSTANCE(Arg,x2_insp->forward,clock,TRUE);
     else if (!x2_insp)
     {
     x5_alt:
-	*ipp = x5_insp;
-	x5_insp = ACTIVE_INSTANCE(Arg,x5_insp->next_forward,clock,FALSE);
+        *ipp = x5_insp;
+        x5_insp = ACTIVE_INSTANCE(Arg,x5_insp->next_forward,clock,FALSE);
     }
     else if (!x5_insp)
     x2_alt:
-	x2_insp = ACTIVE_INSTANCE(Arg,x2_insp->next_forward,clock,FALSE);
+        x2_insp = ACTIVE_INSTANCE(Arg,x2_insp->next_forward,clock,FALSE);
 
     else if (x2_insp->rank < x5_insp->rank)
-	goto x2_alt;
+        goto x2_alt;
     else
-	goto x5_alt;
+        goto x5_alt;
 
     Release_Cond_lock(root->clause_insertion_cond);
 
     if (!x2_insp && !x5_insp)
-	return FALSE;
+        return FALSE;
     else {
       w->node->term[X2_CHN] = X(X2_CHN) = PointerToTermOrZero(x2_insp);
       w->node->term[X5_CHN] = X(X5_CHN) = PointerToTermOrZero(x5_insp);
@@ -662,7 +662,7 @@ CBOOL__PROTO(next_instance, instance_t **ipp)
 
 #if defined(OLD_DATABASE)
 /* ------------------------------------------------------------------
-	$CURRENT_KEY/4
+        $CURRENT_KEY/4
    -----------------------------------------------------------------------*/
 
 tagged_t decode_instance_key(instance_t *);
@@ -697,7 +697,7 @@ CBOOL__PROTO(current_key)
 
           if (HeapDifference(w->global_top,Heap_End)<CONTPAD+ar+3) {
             explicit_heap_overflow(Arg,SOFT_HEAPPAD+ar,5);
-	  }
+          }
 
           MakeLST(X(4),decode_instance_key(inst),X(4));
           inst = ACTIVE_INSTANCE(Arg,inst->next_forward,use_clock,FALSE);
@@ -726,7 +726,7 @@ CBOOL__PROTO(current_key)
       if (inst && (hnode->key & mask) == (X(2) & mask)) {
         if (HeapDifference(w->global_top,Heap_End)<CONTPAD+ARITYLIMIT+3) {
           explicit_heap_overflow(Arg,SOFT_HEAPPAD,5);
-	}
+        }
 
         MakeLST(X(4),make_structure(Arg,hnode->key),X(4));
       }
@@ -738,7 +738,7 @@ CBOOL__PROTO(current_key)
 
           if (HeapDifference(w->global_top,Heap_End)<CONTPAD+ar+3) {
             explicit_heap_overflow(Arg,SOFT_HEAPPAD+ar,5);
-	  }
+          }
 
           MakeLST(X(4),decode_instance_key(inst),X(4));
           inst = ACTIVE_INSTANCE(Arg,inst->next_forward,use_clock,FALSE);
@@ -822,7 +822,7 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
 #if defined(DEBUG)
   if (debug_concchoicepoints) 
     fprintf(stderr, "** Entering current_instance_conc, node = 0x%p, next_node = 0x%p, conc. = 0x%p\n",
-	    w->node, w->next_node, TopConcChpt);
+            w->node, w->next_node, TopConcChpt);
 #endif
 
   do {
@@ -930,9 +930,9 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
 }
 
 static bool_t wait_for_an_instance_pointer(instance_t **inst_pptr1,
-					   instance_t **inst_pptr2,
-					   int_info_t *root,
-					   BlockingType block)
+                                           instance_t **inst_pptr2,
+                                           int_info_t *root,
+                                           BlockingType block)
 {
 
   volatile instance_t *pptr1 = NULL, *pptr2 = NULL;
@@ -966,9 +966,9 @@ static bool_t wait_for_an_instance_pointer(instance_t **inst_pptr1,
 }
 
 static instance_t *first_possible_instance(tagged_t x0,
-					   int_info_t *root,
-					   instance_t **x2_n,
-					   instance_t **x5_n)
+                                           int_info_t *root,
+                                           instance_t **x2_n,
+                                           instance_t **x5_n)
 {
   instance_t *x2_chain, *x5_chain;
   instance_t *x2_next, *x5_next;
@@ -1188,9 +1188,9 @@ void jump_to_next_instance(x2_insp, x5_insp,
 */
 
 instance_handle_t *make_handle_to(instance_t *inst,
-				  int_info_t *root,
-				  tagged_t head,
-				  WhichChain chain)
+                                  int_info_t *root,
+                                  tagged_t head,
+                                  WhichChain chain)
 {
   instance_handle_t *this_handle;
                                                      /* Create the handle */
@@ -1213,8 +1213,8 @@ instance_handle_t *make_handle_to(instance_t *inst,
    or from an instance record: need to update the pointer itself. */
 
 void remove_handle(instance_handle_t *xi,
-		   int_info_t *root,
-		   WhichChain chain)
+                   int_info_t *root,
+                   WhichChain chain)
 {
   unlink_handle(xi, root, chain);
   checkdealloc_TYPE(instance_handle_t, xi);
@@ -1232,9 +1232,9 @@ void remove_handle(instance_handle_t *xi,
 /* Make a handle to point to a new instance. */
 
 static void change_handle_to_instance(instance_handle_t *handle,
-				      instance_t *new_inst,
-				      int_info_t *root,
-				      WhichChain chain)
+                                      instance_t *new_inst,
+                                      int_info_t *root,
+                                      WhichChain chain)
 {
   if (handle->inst_ptr != new_inst) {      /* Do not move if not necessary */
 #if defined(DEBUG)
@@ -1242,7 +1242,7 @@ static void change_handle_to_instance(instance_handle_t *handle,
       fprintf(stderr, 
               "*** %" PRIdm "(%" PRIdm ") changes handle 0x%p from instance 0x%p to 0x%p\n", 
               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-	      handle, handle->inst_ptr, new_inst);
+              handle, handle->inst_ptr, new_inst);
 #endif
     unlink_handle(handle, root, chain);
     link_handle(handle, new_inst, root, chain);
@@ -1255,9 +1255,9 @@ static void change_handle_to_instance(instance_handle_t *handle,
   chain: Is that X2 or X5?
  */
 static void link_handle(instance_handle_t *handle,
-			instance_t *inst,
-			int_info_t *root,
-			WhichChain chain)
+                        instance_t *inst,
+                        int_info_t *root,
+                        WhichChain chain)
 {
 #if defined(DEBUG) 
   if (debug_conc && Cond_Lock_is_unset(root->clause_insertion_cond))
@@ -1289,8 +1289,8 @@ static void link_handle(instance_handle_t *handle,
 }
 
 static void unlink_handle(instance_handle_t *xi,
-			  int_info_t *root,
-			  WhichChain chain)
+                          int_info_t *root,
+                          WhichChain chain)
 {
   instance_t *inst;
 
@@ -1330,8 +1330,8 @@ static void unlink_handle(instance_handle_t *xi,
     point to the instance destinst */
 
 void move_queue(instance_handle_t **srcq,
-		instance_handle_t **destq,
-		instance_t *destinst)
+                instance_handle_t **destq,
+                instance_t *destinst)
 {
   instance_handle_t *last, *running = *srcq;
 
@@ -1382,7 +1382,7 @@ void move_queue(instance_handle_t **srcq,
    topmost dynamic choicepoint after the call!). */
 
 void remove_link_chains(node_t **topdynamic,
-			node_t *chpttoclear)
+                        node_t *chpttoclear)
 {
   node_t *movingtop = *topdynamic;
 #if defined(DEBUG) && defined(THREADS)

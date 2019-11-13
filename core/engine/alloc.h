@@ -55,32 +55,32 @@ void checkdealloc(tagged_t *ptr, intmach_t decr);
 
 #define checkdealloc_FLEXIBLE(Type, ArrayType, ArrayLen, Ptr) \
   checkdealloc((tagged_t *)(Ptr), \
-	       SIZEOF_FLEXIBLE_STRUCT(Type, \
-				      ArrayType, \
-				      (ArrayLen)))
+               SIZEOF_FLEXIBLE_STRUCT(Type, \
+                                      ArrayType, \
+                                      (ArrayLen)))
 
 #define checkrealloc_FLEXIBLE(Type, ArrayType, ArrayLen0, ArrayLen1, Ptr) \
   ((Type *)checkrealloc((tagged_t *)(Ptr), \
-			SIZEOF_FLEXIBLE_STRUCT(Type, \
-					       ArrayType, \
-					       (ArrayLen0)), \
-			SIZEOF_FLEXIBLE_STRUCT(Type, \
-					       ArrayType, \
-					       (ArrayLen1))))
+                        SIZEOF_FLEXIBLE_STRUCT(Type, \
+                                               ArrayType, \
+                                               (ArrayLen0)), \
+                        SIZEOF_FLEXIBLE_STRUCT(Type, \
+                                               ArrayType, \
+                                               (ArrayLen1))))
 
 /* Memory management for flexible objects with a size field */
 
 #define checkalloc_FLEXIBLE_S(Type, SizeField, ArrayType, ArrayLen, Ptr) ({ \
   Type *__ptr; \
   intmach_t __len = SIZEOF_FLEXIBLE_STRUCT(Type, ArrayType, (ArrayLen)); \
-  __ptr = (Type *)checkalloc(__len);				   \
-  __ptr->SizeField = __len;					   \
-  Ptr = __ptr;							   \
+  __ptr = (Type *)checkalloc(__len);                               \
+  __ptr->SizeField = __len;                                        \
+  Ptr = __ptr;                                                     \
 })
 
 #define checkdealloc_FLEXIBLE_S(Type, SizeField, Ptr) \
   checkdealloc((tagged_t *)(Ptr), \
-	       (Ptr)->SizeField)
+               (Ptr)->SizeField)
 
 /* Memory management for arrays */
 
@@ -90,10 +90,10 @@ void checkdealloc(tagged_t *ptr, intmach_t decr);
 #define checkrealloc_ARRAY(ArrayType, ArrayLen0, ArrayLen1, Ptr) \
   ((ArrayType *)checkrealloc((tagged_t *)(Ptr), \
                              (ArrayLen0) * sizeof(ArrayType), \
-			     (ArrayLen1) * sizeof(ArrayType)))
+                             (ArrayLen1) * sizeof(ArrayType)))
 
 #define checkdealloc_ARRAY(ArrayType, ArrayLen, Ptr) \
   checkdealloc((tagged_t *)(Ptr), \
-	       (ArrayLen) * sizeof(ArrayType))
+               (ArrayLen) * sizeof(ArrayType))
 
 #endif /* _CIAO_ALLOC_H */

@@ -278,7 +278,7 @@ void unlink_wam(goal_descriptor_t *goal)
 
   w = goal->worker_registers;
   if (w != NULL) {
-#if defined(THREADS)		/* Clean the possible conc. chpt. */
+#if defined(THREADS)            /* Clean the possible conc. chpt. */
     remove_link_chains(&TopConcChpt, InitialNode);
 #endif
     dissociate_wam_goal(w, goal);
@@ -295,15 +295,15 @@ void unlink_wam(goal_descriptor_t *goal)
 
 void make_goal_desc_free(goal_descriptor_t *goal)
 {
-  unlink_wam(goal);		/* Clean WAM, put it back to free list */
+  unlink_wam(goal);             /* Clean WAM, put it back to free list */
 
   Wait_Acquire_slock(goal_desc_list_l);
   //  fprintf(stderr, "MAKE GOAL DESC FREE %p\n", goal);
   goal->state = IDLE;
-				/* Unlink from current place */
+                                /* Unlink from current place */
   goal->backward->forward = goal->forward;
   goal->forward->backward = goal->backward;
-				/* Link at the beginning */
+                                /* Link at the beginning */
   goal->forward = goal_desc_list;
   goal->backward = goal_desc_list->backward;
   goal_desc_list->backward->forward = goal;

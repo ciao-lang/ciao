@@ -14,7 +14,7 @@ typedef enum {
   IDLE,      /* The memory areas are available for being used by a thread */
   WORKING,                 /* The memory areas are being used by a thread */
   PENDING_SOLS,               /* Frozen --  backtracking can be requested */
-  FAILED	             /* Frozen -- but no more solutions available */
+  FAILED                     /* Frozen -- but no more solutions available */
 } Thread_State;
 
 /* Save wam() local variables, to reenter after leaving it blocked (e.g., if
@@ -22,12 +22,12 @@ typedef enum {
 
 typedef struct wam_private_ wam_private_t;
 struct wam_private_ {
-  bcp_t p;		                               /* program counter */
+  bcp_t p;                                             /* program counter */
   int i;
   tagged_t *pt1, *pt2, t0, t1, t2, t3;
   bcp_t ptemp;
   int wam_exit_code;
-  instance_t *ins;	
+  instance_t *ins;      
 };
 
 /* Possible actions requested from the toplevel. */
@@ -57,9 +57,9 @@ struct goal_descriptor_ {
   /* If any thread is working on the WAM, these are the points to interact
      with it */
   THREAD_ID thread_id;
-  THREAD_T  thread_handle;	/* Different from thread_id in Win32 */
-  int      action;		/* Defines the behavior of the goal */
-  tagged_t goal;		/* The pointer to the goal to execute */
+  THREAD_T  thread_handle;      /* Different from thread_id in Win32 */
+  int      action;              /* Defines the behavior of the goal */
+  tagged_t goal;                /* The pointer to the goal to execute */
   /* NOTE: due to Term <-> int conversions, this cannot be unsigned */
   /* TODO: change type for global_goal_number? */
   intmach_t goal_number;        /* Snapshot of global counter */

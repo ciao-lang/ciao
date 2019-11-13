@@ -96,9 +96,9 @@ union clause_link_ {
 struct emul_info_ {
   clause_link_t next;          /* next clause OR no. of clauses */
   definition_t *subdefs;
-  intmach_t objsize;	                         /* total # chars */
+  intmach_t objsize;                             /* total # chars */
 #if defined(GAUGE)
-  intmach_t *counters;	    /* Pointer to clause's first counter. */
+  intmach_t *counters;      /* Pointer to clause's first counter. */
 #endif
   char emulcode[FLEXIBLE_SIZE];
 };
@@ -108,10 +108,10 @@ struct emul_info_ {
 /* CLAUSE_TAIL */
 #define CLAUSE_TAIL_INSNS_SIZE FTYPE_size(f_o) /* TODO: (JFMC) why? */
 #define IS_CLAUSE_TAIL(EP) (EP->objsize == 0)
-#define ALLOC_CLAUSE_TAIL(EP) {						\
+#define ALLOC_CLAUSE_TAIL(EP) {                                         \
     EP = checkalloc_FLEXIBLE(emul_info_t, char, CLAUSE_TAIL_INSNS_SIZE); \
-    EP->subdefs = NULL;							\
-    EP->objsize = 0;							\
+    EP->subdefs = NULL;                                                 \
+    EP->objsize = 0;                                                    \
   }
 
 /* All invocations looking at an instance of an concurrent predicate will
@@ -151,7 +151,7 @@ struct instance_ {
   instance_handle_t *pending_x2;       /* Seen by invocations looking @ here */
   instance_handle_t *pending_x5;       /* Seen by invocations looking @ here */
 
-  int objsize;		                                 /* total # chars */
+  int objsize;                                           /* total # chars */
   char emulcode[FLEXIBLE_SIZE];
 };
 
@@ -215,10 +215,10 @@ struct atom_ {
 struct try_node_ {
   try_node_t *next;                      /* Next alternative or NULL */
   bcp_t emul_p;                    /* write mode or not first alternative */
-  bcp_t emul_p2;		          /* read mode, first alternative */
-  short node_offset;		       /* offset from choicepoint to next */
+  bcp_t emul_p2;                          /* read mode, first alternative */
+  short node_offset;                   /* offset from choicepoint to next */
   /*short number;*/
-  uintmach_t number;		    /* clause number for this alternative */
+  uintmach_t number;                /* clause number for this alternative */
                              /* Gauge specific fields MUST come after this*/
 #if defined(GAUGE)
   intmach_t *entry_counter;        /* Offset of counter for clause entry */
@@ -229,7 +229,7 @@ struct try_node_ {
 
 #define ArityToOffset(A)  \
   (((A)+(SIZEOF_FLEXIBLE_STRUCT(node_t, tagged_t, 0)/sizeof(tagged_t))) * sizeof(tagged_t))
-#define OffsetToArity(O)						\
+#define OffsetToArity(O)                                                \
   (((O)/sizeof(tagged_t))-(SIZEOF_FLEXIBLE_STRUCT(node_t, tagged_t, 0)/sizeof(tagged_t)))
 
 #define SwitchSize(X) (((X)->mask / sizeof(sw_on_key_node_t))+1) 
@@ -280,7 +280,7 @@ struct sw_on_key_ {
 
 typedef struct incore_info_ incore_info_t;
 struct incore_info_ {
-  clause_link_t clauses;	                          /* first clause */
+  clause_link_t clauses;                                  /* first clause */
   /* Pointer to either "next" field of last clause or "clauses"  */
   clause_link_t *clauses_tail;
 #if defined(CACHE_INCREMENTAL_CLAUSE_INSERTION)
@@ -298,8 +298,8 @@ struct incore_info_ {
   (F)->enter_instr = \
     (F)->properties.spy ? SPYPOINT : \
       (F)->properties.wait ? WAITPOINT : \
-	(F)->properties.breakp ? BREAKPOINT : \
-	  (F)->predtyp; \
+        (F)->properties.breakp ? BREAKPOINT : \
+          (F)->predtyp; \
 }
 
 typedef union definfo_ definfo_t;
@@ -313,7 +313,7 @@ union definfo_ {
 struct definition_ {
   enter_instr_t enter_instr;
   short arity; /*  */
-  tagged_t printname;	                        /* or sibling pointer | 1 */
+  tagged_t printname;                           /* or sibling pointer | 1 */
                                                 /* or parent pointer | 3 */
   struct {
     unsigned int spy:1;
@@ -348,13 +348,13 @@ extern void *builtintab[];
 
 typedef struct statistics_ statistics_t;
 struct statistics_ {
-  inttime_t ss_tick;		             /* time spent stack_shifting */
-  intmach_t ss_global;		                       /* # global shifts */
-  intmach_t ss_local;		                       /* # local shifts  */
-  intmach_t ss_control;	                        /* # control/trail shifts */
-  inttime_t gc_tick;		                 /* Total GC ticks (sec) */
-  intmach_t gc_count;		                 /* # garbage collections */
-  intmach_t gc_acc;		            /* Total reclaimed heap space */
+  inttime_t ss_tick;                         /* time spent stack_shifting */
+  intmach_t ss_global;                                 /* # global shifts */
+  intmach_t ss_local;                                  /* # local shifts  */
+  intmach_t ss_control;                         /* # control/trail shifts */
+  inttime_t gc_tick;                             /* Total GC ticks (sec) */
+  intmach_t gc_count;                            /* # garbage collections */
+  intmach_t gc_acc;                         /* Total reclaimed heap space */
 
   inttime_t starttick;
   inttime_t lasttick;

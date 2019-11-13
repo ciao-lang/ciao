@@ -42,15 +42,15 @@
 
 char *tryalloc_errstring;
 
-#define MEMORY_FAULT(MESSAGE) {			\
-    tryalloc_errstring = (MESSAGE);		\
-    return NULL;				\
+#define MEMORY_FAULT(MESSAGE) {                 \
+    tryalloc_errstring = (MESSAGE);             \
+    return NULL;                                \
   }
 
-#define CHECK_FOR_MEMORY_FAULT(ALLOC_CALL)  {	   \
-    tagged_t *__ptr = (ALLOC_CALL);		   \
+#define CHECK_FOR_MEMORY_FAULT(ALLOC_CALL)  {      \
+    tagged_t *__ptr = (ALLOC_CALL);                \
     if (!__ptr) SERIOUS_FAULT(tryalloc_errstring); \
-    return __ptr;				   \
+    return __ptr;                                  \
   }
 
 /* segfault patch -- jf */
@@ -139,8 +139,8 @@ tagged_t *tryalloc(intmach_t size)
     else {
       p=get_tiny_blocks();
       if (!p) {                                      /* get_tiny_block fails */
-	Release_slock(mem_mng_l);
-	return NULL;
+        Release_slock(mem_mng_l);
+        return NULL;
       }
     }
   } else {                                           /* size > THRESHHOLD */
@@ -214,8 +214,8 @@ tagged_t *tryrealloc(tagged_t *ptr, intmach_t decr, intmach_t size)
       }
       /* segfault patch -- jf */
       if (!ENSURE_ADDRESSABLE(p, size)) {
-	Release_slock(mem_mng_l);
-	MEMORY_FAULT("Memory out of addressable bounds [Malloc()]");
+        Release_slock(mem_mng_l);
+        MEMORY_FAULT("Memory out of addressable bounds [Malloc()]");
       }
       total_mem_count += size;
       memcpy(p, ptr, ALIGN_TO(sizeof(tagged_t), decr));
@@ -225,11 +225,11 @@ tagged_t *tryrealloc(tagged_t *ptr, intmach_t decr, intmach_t size)
   } else {                                           /* decr > THRESHHOLD */
     if (size<=THRESHHOLD) {
       if (!(p=tiny_blocks)) {
-	p=get_tiny_blocks(); 
-	if (!p) {                                    /* get_tiny_block fails */
-	  Release_slock(mem_mng_l);
-	  return NULL;
-	}
+        p=get_tiny_blocks(); 
+        if (!p) {                                    /* get_tiny_block fails */
+          Release_slock(mem_mng_l);
+          return NULL;
+        }
       }
       memcpy(p, ptr, ALIGN_TO(sizeof(tagged_t), size));
     } else {
@@ -241,8 +241,8 @@ tagged_t *tryrealloc(tagged_t *ptr, intmach_t decr, intmach_t size)
       }
       /* segfault patch -- jf */
       if (!ENSURE_ADDRESSABLE(p, size)) {
-	Release_slock(mem_mng_l);
-	MEMORY_FAULT("Memory out of addressable bounds [Realloc()]");
+        Release_slock(mem_mng_l);
+        MEMORY_FAULT("Memory out of addressable bounds [Realloc()]");
       }
       total_mem_count += (size-decr);
 #if defined(USE_TINY_BLOCKS)

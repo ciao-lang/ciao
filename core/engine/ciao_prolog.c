@@ -338,12 +338,12 @@ ciao_term ciao_structure_a(const char *name, int arity, ciao_term *args) {
 }
 
 #define Def_ciao_mk_X(CType, DeclType, Cells, Make, CastType) \
-ciao_term ciao_mk_##CType##_s(ciao_ctx ctx, DeclType x) {	\
-  worker_t *w = ctx->worker_registers;				\
-  ciao_ensure_heap(ctx, Cells);					\
-  return ciao_ref(ctx, Make(w, (CastType)x));			\
-}								\
-ciao_term ciao_mk_##CType(DeclType x) {			\
+ciao_term ciao_mk_##CType##_s(ciao_ctx ctx, DeclType x) {       \
+  worker_t *w = ctx->worker_registers;                          \
+  ciao_ensure_heap(ctx, Cells);                                 \
+  return ciao_ref(ctx, Make(w, (CastType)x));                   \
+}                                                               \
+ciao_term ciao_mk_##CType(DeclType x) {                 \
   return ciao_mk_##CType##_s(ciao_implicit_ctx, x); \
 }
 
@@ -368,13 +368,13 @@ Def_ciao_mk_X(c_uint32, uint32_t, 4, MakeInteger, intmach_t) // WRONG in 32 bits
 Def_ciao_mk_X(c_uint64, uint64_t, 4, MakeInteger, intmach_t) // WRONG in 32 bits, WRONG in 64 bits (sign bit)
 
 #define Def_ciao_get_X(CType, DeclType, Get) \
-DeclType ciao_get_##CType##_s(ciao_ctx ctx, ciao_term term) {	\
-  tagged_t t;							\
-  t = ciao_unref(ctx, term);					\
-  DEREF(t, t);							\
-  return (DeclType)Get(t);					\
-}								\
-DeclType ciao_get_##CType(ciao_term term) {			\
+DeclType ciao_get_##CType##_s(ciao_ctx ctx, ciao_term term) {   \
+  tagged_t t;                                                   \
+  t = ciao_unref(ctx, term);                                    \
+  DEREF(t, t);                                                  \
+  return (DeclType)Get(t);                                      \
+}                                                               \
+DeclType ciao_get_##CType(ciao_term term) {                     \
   return ciao_get_##CType##_s(ciao_implicit_ctx, term); \
 }
 
@@ -498,9 +498,9 @@ ciao_term ciao_put_number_chars_s(ciao_ctx ctx, char *number_string) {
   tagged_t result;
   (void)string_to_number( ctx->worker_registers, 
                           number_string,
-			  GetSmall(current_radix),
+                          GetSmall(current_radix),
                           &result,
-			  0);
+                          0);
   return ciao_ref(ctx, result);
 }
 
@@ -1198,18 +1198,18 @@ ciao_term ciao_ref(ciao_ctx ctx, tagged_t x) {
     for (j = 0; j < chunks - 1; j++) {
       k++;
       for (i = 0; i < REF_TABLE_CHUNK_SIZE - 2; i++) {
-	y[k] = x[k];
-	if (k == term) goto end;
-	k++;
+        y[k] = x[k];
+        if (k == term) goto end;
+        k++;
       }
       k++;
     }
     if (chunks > 0) {
       k++;
       for (i = 0; i < REF_TABLE_CHUNK_SIZE - 1; i++) {
-	y[k] = x[k];
-	if (k == term) goto end;
-	k++;
+        y[k] = x[k];
+        if (k == term) goto end;
+        k++;
       }
     }
   end:
@@ -1246,7 +1246,7 @@ void ciao_frame_begin_s(ciao_ctx ctx) {
 
   arity = 3;
 
-  ComputeE;		
+  ComputeE;             
   E->next_insn = w->next_insn;
   E->frame = w->frame;
   w->frame = E;

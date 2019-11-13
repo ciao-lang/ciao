@@ -116,7 +116,7 @@ static tagged_t cvas_found;
   tagged_t shunt_src; \
   while (IsVar(shunt_dest) && \
          !gc_IsMarked(shunt_src = *TagToPointer(shunt_dest)) && \
-	 shunt_src!=shunt_dest) \
+         shunt_src!=shunt_dest) \
     shunt_dest = shunt_src; \
 }
 
@@ -187,7 +187,7 @@ static CVOID__PROTO(shuntVariables) {
         i = FrameSize(frame->next_insn);
         frame = frame->frame;
       }
-	
+        
       pt = cp->term+OffsetToArity(alt->node_offset);
       while (pt!=cp->term) {
         --pt;
@@ -208,7 +208,7 @@ static CVOID__PROTO(markTrail) {
   tagged_t v;
   intmach_t wake_count = WakeCount;
 
-  while (Cvas_Found!=atom_nil)	/* mark unbound CVAs */
+  while (Cvas_Found!=atom_nil)  /* mark unbound CVAs */
     *tr = v = Cvas_Found,
     Cvas_Found = *TagToCVA(v),
     gc_UnmarkM(Cvas_Found),
@@ -222,18 +222,18 @@ static CVOID__PROTO(markTrail) {
        tagged_t v;
 
        while (TagIsCVA(l))
-	 v = l,
-	 l = *TagToPointer(v),
-	 *TagToPointer(v) = v;
+         v = l,
+         l = *TagToPointer(v),
+         *TagToPointer(v) = v;
      }
      */
-				/* mark newly bound CVAs */
+                                /* mark newly bound CVAs */
   while (wake_count>0){
     tagged_t v= TrailPop(tr);
 
     if (TagIsCVA(v))
       --wake_count,
-	markVariable(Arg, tr);
+        markVariable(Arg, tr);
   }
 
 #if defined(SEGMENTED_GC)
@@ -246,7 +246,7 @@ static CVOID__PROTO(markTrail) {
       if (v!=0 && !gc_IsMarked(v) &&
           ((IsHeapVar(v) && !OffHeaptop(p,Gc_Heap_Start)) ||
            (IsStackVar(v) && !OffStacktop(p,Gc_Stack_Start)))) {
-        gc_MarkM(*tr);	                     /* so won't look at it again */
+        gc_MarkM(*tr);                       /* so won't look at it again */
         if (IsHeapTerm(*p) && !gc_IsMarked(*p) &&
             OffHeaptop(TagToPointer(*p),Gc_Heap_Start)) {
           Gcgrey-= Total_Found;
@@ -266,18 +266,18 @@ static CVOID__PROTO(markFrames, frame_t *frame, bcp_t l) {
 
     while (OffStacktop(frame,Gc_Stack_Start))
       {
-	ev= (tagged_t *)StackCharOffset(frame,FrameSize(l));
-	while (ev!=frame->term)
-	  {
-	    tagged_t v;
-	
-	    StackDecr(ev);
-	    if (gc_IsMarked(v= *ev)) return;
-	    if (IsHeapTerm(v))
-	      markVariable(Arg, ev);
-	    else
-	      gc_MarkM(*ev);
-	  }
+        ev= (tagged_t *)StackCharOffset(frame,FrameSize(l));
+        while (ev!=frame->term)
+          {
+            tagged_t v;
+        
+            StackDecr(ev);
+            if (gc_IsMarked(v= *ev)) return;
+            if (IsHeapTerm(v))
+              markVariable(Arg, ev);
+            else
+              gc_MarkM(*ev);
+          }
       l= frame->next_insn;
       frame= frame->frame;
     }
@@ -301,41 +301,41 @@ static CVOID__PROTO(markChoicepoints) {
 
       markFrames(Arg, cp->frame, cp->next_insn);
       while ((i--)>0)
-	{
-	  if (IsHeapTerm(cp->term[i]))
-	    markVariable(Arg, &cp->term[i]);
-	}
+        {
+          if (IsHeapTerm(cp->term[i]))
+            markVariable(Arg, &cp->term[i]);
+        }
       cp = ChoiceCharOffset(cp, -n);
 
       /* mark goals and unbound constrained variables;
-	 reset unmarked bound variables
-	 between cp->trail_top and tr */
+         reset unmarked bound variables
+         between cp->trail_top and tr */
 
       limit = TagToPointer(cp->trail_top);
       while (TrailYounger(tr,limit))
-	{
-	  tagged_t v = TrailPop(tr);
-	
-	  if (v==(tagged_t)NULL || gc_IsMarked(v))
-	    ;
-	  else if (!IsVar(v))
-	    markVariable(Arg, tr);
+        {
+          tagged_t v = TrailPop(tr);
+        
+          if (v==(tagged_t)NULL || gc_IsMarked(v))
+            ;
+          else if (!IsVar(v))
+            markVariable(Arg, tr);
 #ifdef EARLY_RESET
-	  else if (TagIsCVA(v))
-	    {
-	      if (!gc_IsMarked(*TagToCVA(v)))
-		*TagToCVA(v)= v, markVariable(Arg, tr), *tr= 0;
-	    }
-	  else
-	    {
-	      if (!gc_IsMarked(*TagToPointer(v)))
-		*TagToPointer(v)= v, *tr= 0;
-	    }
+          else if (TagIsCVA(v))
+            {
+              if (!gc_IsMarked(*TagToCVA(v)))
+                *TagToCVA(v)= v, markVariable(Arg, tr), *tr= 0;
+            }
+          else
+            {
+              if (!gc_IsMarked(*TagToPointer(v)))
+                *TagToPointer(v)= v, *tr= 0;
+            }
 #else
-	  else if (TagIsCVA(v))
-	    markVariable(Arg, tr);
+          else if (TagIsCVA(v))
+            markVariable(Arg, tr);
 #endif
-	}
+        }
     }
 }
 
@@ -353,15 +353,15 @@ CVOID__PROTO(compressTrail, bool_t from_gc) {
     curr = dest = Gc_Trail_Start;
     while (ChoiceYounger(Gc_Aux_Node,cp))
       {
-	gc_UndoChoice(cp,prevcp,alt);
-	limit = TagToPointer(cp->trail_top);
-	while (TrailYounger(limit,curr))
-	  {
-	    if ((cv = TrailNext(curr)))
-	      TrailPush(dest,cv);
-	  }
-	cp->trail_top -= limit-dest;
-	if (from_gc) ChoiceptMarkPure(cp);
+        gc_UndoChoice(cp,prevcp,alt);
+        limit = TagToPointer(cp->trail_top);
+        while (TrailYounger(limit,curr))
+          {
+            if ((cv = TrailNext(curr)))
+              TrailPush(dest,cv);
+          }
+        cp->trail_top -= limit-dest;
+        if (from_gc) ChoiceptMarkPure(cp);
       }
 
     w->trail_top = dest;
@@ -389,50 +389,50 @@ static CVOID__PROTO(markVariable, tagged_t *start) {
     switch(TagOf(*current))
       {
       case SVA: /* No pointers from heap to stack */
-	SERIOUS_FAULT("GC: stack variable in heap");
+        SERIOUS_FAULT("GC: stack variable in heap");
       case CVA: /* new 3-field CVA */
                 /* N.B. there can be LST pointers to the second cell as well */
-	if (!gc_IsForM(*(next+2)))
-	  {			/* no marking in progress as CVA nor as LST */
-				/* treat as 3-cell tuple */
-	    gc_MarkF(PreHeapRead(next));
-	    gc_MarkF(PreHeapRead(next));
-	    gc_Reverse(current,next);
-	    goto forward;
-          }			/* otherwise, just treat the value cell */
+        if (!gc_IsForM(*(next+2)))
+          {                     /* no marking in progress as CVA nor as LST */
+                                /* treat as 3-cell tuple */
+            gc_MarkF(PreHeapRead(next));
+            gc_MarkF(PreHeapRead(next));
+            gc_Reverse(current,next);
+            goto forward;
+          }                     /* otherwise, just treat the value cell */
       case HVA:
-	if (gc_IsForM(*next)) goto backward;
-	gc_Reverse(current,next);
-	goto forward;
+        if (gc_IsForM(*next)) goto backward;
+        gc_Reverse(current,next);
+        goto forward;
       case LST:
-	if (gc_IsFirst(*(next+1)) ||
-	    (gc_IsMarked(*next) &&
-	    gc_IsMarked(*(next+1))))
+        if (gc_IsFirst(*(next+1)) ||
+            (gc_IsMarked(*next) &&
+            gc_IsMarked(*(next+1))))
           goto backward;
-	gc_MarkF(PreHeapRead(next));
-	gc_Reverse(current,next);
-	goto forward;
+        gc_MarkF(PreHeapRead(next));
+        gc_Reverse(current,next);
+        goto forward;
       case STR:
-	if (gc_IsMarked(*next))
-	  ;
-	else if (*next&QMask)	/* box */
-	  {
-	    intmach_t ar = LargeArity(*next);
-	
-	    gc_MarkM(*next);
-	    Total_Found += ar+1;
-	  }
-	else if (!gc_IsFirst(*(next+1)))
-	  {
-	    intmach_t n;
-	
-	    for (n = Arity(*next); n>0; --n)
-	      gc_MarkF(PreHeapRead(next));
-	    gc_Reverse(current,next);
-	    goto forward;
-	  }
+        if (gc_IsMarked(*next))
+          ;
+        else if (*next&QMask)   /* box */
+          {
+            intmach_t ar = LargeArity(*next);
+        
+            gc_MarkM(*next);
+            Total_Found += ar+1;
+          }
+        else if (!gc_IsFirst(*(next+1)))
+          {
+            intmach_t n;
+        
+            for (n = Arity(*next); n>0; --n)
+              gc_MarkF(PreHeapRead(next));
+            gc_Reverse(current,next);
+            goto forward;
+          }
       default: /* all other treated as constants */
-	; /* goto backward */
+        ; /* goto backward */
       }
  backward:
   while (!gc_IsFirst(*current))
@@ -478,11 +478,11 @@ static void updateRelocationChain(tagged_t *curr, tagged_t *dest)
     /* F-bit is set in *curr */
     c1= *curr;
     do {
-	j= TagToPointer(c1);
-	j1= *j;
-	c1= gc_PutValueFirst(j1,c1);
-	*(j)= gc_PutValueFirst((tagged_t)dest,j1);
-	        /* dest is a pointer, i.e its F-bit is FALSE */
+        j= TagToPointer(c1);
+        j1= *j;
+        c1= gc_PutValueFirst(j1,c1);
+        *(j)= gc_PutValueFirst((tagged_t)dest,j1);
+                /* dest is a pointer, i.e its F-bit is FALSE */
     }
     while (gc_IsFirst(c1));
     *curr= c1;
@@ -501,23 +501,23 @@ static CVOID__PROTO(sweepTrail) {
       p= TagToPointer(v);
 #if defined(SEGMENTED_GC)
       if ((IsHeapVar(v) && !OffHeaptop(p,Gc_Heap_Start)) ||
-	  (IsStackVar(v) && !OffStacktop(p,Gc_Stack_Start)))
-	{
-	  tagged_t *p1= TagToPointer(*p);
-	
-	  if (IsHeapTerm(*p) &&
-	      gc_IsMarked(*p) &&
-	      OffHeaptop(p1,Gc_Heap_Start))
-	    {
-	      gc_UnmarkM(*p);
-	      intoRelocationChain(p1,p);
-	    }
-	}
+          (IsStackVar(v) && !OffStacktop(p,Gc_Stack_Start)))
+        {
+          tagged_t *p1= TagToPointer(*p);
+        
+          if (IsHeapTerm(*p) &&
+              gc_IsMarked(*p) &&
+              OffHeaptop(p1,Gc_Heap_Start))
+            {
+              gc_UnmarkM(*p);
+              intoRelocationChain(p1,p);
+            }
+        }
       else if (IsHeapTerm(v) && OffHeaptop(p,Gc_Heap_Start))
-	intoRelocationChain(p,tr);
+        intoRelocationChain(p,tr);
 #else
       if (IsHeapTerm(v))
-	intoRelocationChain(p,tr);
+        intoRelocationChain(p,tr);
 #endif
     }
 }
@@ -528,24 +528,24 @@ static CVOID__PROTO(sweepFrames, frame_t *frame, bcp_t l) {
 
     while (OffStacktop(frame,Gc_Stack_Start))
       {
-	ev= (tagged_t *)StackCharOffset(frame,FrameSize(l));
-	while (ev!=frame->term)
-	  {
-	    tagged_t v, *p;
-	
+        ev= (tagged_t *)StackCharOffset(frame,FrameSize(l));
+        while (ev!=frame->term)
+          {
+            tagged_t v, *p;
+        
             StackDecr(ev);
-	    if( !gc_IsMarked(v= *ev) ) return;
-	    gc_UnmarkM(*ev);
-	    p= TagToPointer(v);
-	    if( IsHeapTerm(v)
+            if( !gc_IsMarked(v= *ev) ) return;
+            gc_UnmarkM(*ev);
+            p= TagToPointer(v);
+            if( IsHeapTerm(v)
 #if defined(SEGMENTED_GC)
-	       && OffHeaptop(p,Gc_Heap_Start)
+               && OffHeaptop(p,Gc_Heap_Start)
 #endif
-	       )
-	      intoRelocationChain(p,ev);
-	  }
-	l= frame->next_insn;
-	frame= frame->frame;
+               )
+              intoRelocationChain(p,ev);
+          }
+        l= frame->next_insn;
+        frame= frame->frame;
       }
 }
 
@@ -554,24 +554,24 @@ static CVOID__PROTO(sweepChoicepoints) { /* sweep choicepoints and corresponding
 
     while (ChoiceYounger(cp,Gc_Choice_Start))
       {
-	intmach_t n = cp->next_alt->node_offset;
-	intmach_t i = OffsetToArity(n);
+        intmach_t n = cp->next_alt->node_offset;
+        intmach_t i = OffsetToArity(n);
 
-	sweepFrames(Arg, cp->frame, cp->next_insn);
-	while ((i--)>0)
-	  {
-	    tagged_t v= cp->term[i];
-	    tagged_t *p= TagToPointer(v);
-	
-	    gc_UnmarkM(cp->term[i]);
-	    if (IsHeapTerm(v)
+        sweepFrames(Arg, cp->frame, cp->next_insn);
+        while ((i--)>0)
+          {
+            tagged_t v= cp->term[i];
+            tagged_t *p= TagToPointer(v);
+        
+            gc_UnmarkM(cp->term[i]);
+            if (IsHeapTerm(v)
 #if defined(SEGMENTED_GC)
-		&& OffHeaptop(p,Gc_Heap_Start)
+                && OffHeaptop(p,Gc_Heap_Start)
 #endif
-		)
-	      intoRelocationChain(p, &cp->term[i]);
-	  }
-	cp = ChoiceCharOffset(cp, -n);
+                )
+              intoRelocationChain(p, &cp->term[i]);
+          }
+        cp = ChoiceCharOffset(cp, -n);
       }
 }
 
@@ -585,83 +585,83 @@ static CVOID__PROTO(compressHeap) {
 
     /* the upward phase */
     while (ChoiceYounger(cp,Gc_Choice_Start)) {
-	cp->global_top = dest;
-	cp=ChoiceCharOffset(cp,-cp->next_alt->node_offset);
-	
-	while (HeapYounger(curr,NodeGlobalTop(cp))) {
-	    cv= HeapPop(curr);
-	    if (cv&QMask) {	/* skip to box header */
-    		extra = LargeArity(cv);
-		
-		curr -= extra;
-		cv = *curr;
-		if (gc_IsMarked(cv))
-		  dest -= extra;
-		else
-		  garbage_words += extra;
-	      } else
-	      extra = 0;
-	    if (gc_IsMarked(cv)) {
-	      if (garbage_words) {
-		curr[extra+1] = MakeLength(garbage_words - 2);
-		garbage_words = 0;
-	      }
-	      HeapDecr(dest);
-	      if (gc_IsFirst(cv)) {
-		updateRelocationChain(curr,dest);
-		cv= *curr;
-	      }
-	      if (IsHeapTerm(cv)) {
-		tagged_t *p= TagToPointer(cv);
-		
-		if (HeapYounger(curr,p)
+        cp->global_top = dest;
+        cp=ChoiceCharOffset(cp,-cp->next_alt->node_offset);
+        
+        while (HeapYounger(curr,NodeGlobalTop(cp))) {
+            cv= HeapPop(curr);
+            if (cv&QMask) {     /* skip to box header */
+                extra = LargeArity(cv);
+                
+                curr -= extra;
+                cv = *curr;
+                if (gc_IsMarked(cv))
+                  dest -= extra;
+                else
+                  garbage_words += extra;
+              } else
+              extra = 0;
+            if (gc_IsMarked(cv)) {
+              if (garbage_words) {
+                curr[extra+1] = MakeLength(garbage_words - 2);
+                garbage_words = 0;
+              }
+              HeapDecr(dest);
+              if (gc_IsFirst(cv)) {
+                updateRelocationChain(curr,dest);
+                cv= *curr;
+              }
+              if (IsHeapTerm(cv)) {
+                tagged_t *p= TagToPointer(cv);
+                
+                if (HeapYounger(curr,p)
 #if defined(SEGMENTED_GC)
-		    && OffHeaptop(p,Gc_Heap_Start)
+                    && OffHeaptop(p,Gc_Heap_Start)
 #endif
-		    ) {
-		  intoRelocationChain(p,curr);
-		} else if (p==curr) { /* a cell pointing to itself */
-		  *curr= gc_PutValue((tagged_t)dest,cv);
-		}
-	      }
-	    } else {
-	      garbage_words++;
-	    }
-	}
+                    ) {
+                  intoRelocationChain(p,curr);
+                } else if (p==curr) { /* a cell pointing to itself */
+                  *curr= gc_PutValue((tagged_t)dest,cv);
+                }
+              }
+            } else {
+              garbage_words++;
+            }
+        }
     }
 
     /* The downward phase */
     /* curr and dest both point to the beginning of the heap */
     curr += garbage_words;
     while (HeapYounger(w->global_top,curr)) {
-	cv= *curr;
-	if (gc_IsMarked(cv)) {
-	    if (gc_IsFirst(cv)) {
-		updateRelocationChain(curr,dest);
-		cv= *curr;
-	      }
-	    gc_UnmarkM(cv);  /* M and F-flags off */
-	    {
-	      tagged_t *p= TagToPointer(cv);
-	
-	      if (IsHeapTerm(cv) && HeapYounger(p,curr)) {		
-		  /* move the current cell and insert into the reloc.chain */
-		  *dest= cv;
-		  intoRelocationChain(p,dest);
-		}
-	      else if (cv&QMask) { /* move a box */
-		  *curr = cv;
-		  for (extra = LargeArity(cv); extra>0; extra--)
-		    *dest++ = *curr++;
-		  *dest = cv;
-		} else		/* just move the current cell */
-		*dest= cv;
-	    }
-	    (void)HeapNext(dest);
-	  }
-	else			/* skip a box---all garbage is boxed */
-	  curr += LargeArity(cv);
-	(void)HeapNext(curr);
+        cv= *curr;
+        if (gc_IsMarked(cv)) {
+            if (gc_IsFirst(cv)) {
+                updateRelocationChain(curr,dest);
+                cv= *curr;
+              }
+            gc_UnmarkM(cv);  /* M and F-flags off */
+            {
+              tagged_t *p= TagToPointer(cv);
+        
+              if (IsHeapTerm(cv) && HeapYounger(p,curr)) {              
+                  /* move the current cell and insert into the reloc.chain */
+                  *dest= cv;
+                  intoRelocationChain(p,dest);
+                }
+              else if (cv&QMask) { /* move a box */
+                  *curr = cv;
+                  for (extra = LargeArity(cv); extra>0; extra--)
+                    *dest++ = *curr++;
+                  *dest = cv;
+                } else          /* just move the current cell */
+                *dest= cv;
+            }
+            (void)HeapNext(dest);
+          }
+        else                    /* skip a box---all garbage is boxed */
+          curr += LargeArity(cv);
+        (void)HeapNext(curr);
       }
     w->global_top = dest;
 }
@@ -696,39 +696,39 @@ CVOID__PROTO(GarbageCollect) {
       } else {
         ENG_TTYPRINTF("\n{GC}  Heap GC started\n");
         ENG_TTYPRINTF("Heap:   from 0x%p to 0x%p (total size = %" PRIdm ")\n",
-		      Heap_Start, 
-		      Heap_End,
-		      (intmach_t)HeapDifference(Heap_Start, Heap_End));
+                      Heap_Start, 
+                      Heap_End,
+                      (intmach_t)HeapDifference(Heap_Start, Heap_End));
         ENG_TTYPRINTF("        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
-		      w->global_top,  
-		      (intmach_t)HeapDifference(Heap_Start, w->global_top),
-		      (intmach_t)HeapDifference(w->global_top, Heap_End));
+                      w->global_top,  
+                      (intmach_t)HeapDifference(Heap_Start, w->global_top),
+                      (intmach_t)HeapDifference(w->global_top, Heap_End));
         ENG_TTYPRINTF("        GC start at 0x%p\n", 
-		      gc_HeapStart);
+                      gc_HeapStart);
 
         ENG_TTYPRINTF("Stack:  from 0x%p to 0x%p (total size = %" PRIdm ")\n",
-		      Stack_Start, 
-		      Stack_End,
-		      (intmach_t)StackDifference(Stack_Start, Stack_End));
+                      Stack_Start, 
+                      Stack_End,
+                      (intmach_t)StackDifference(Stack_Start, Stack_End));
         ENG_TTYPRINTF("        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
-		      w->local_top, 
-		      (intmach_t)StackDifference(Stack_Start,w->local_top),
-		      (intmach_t)StackDifference(w->local_top, Stack_End));
+                      w->local_top, 
+                      (intmach_t)StackDifference(Stack_Start,w->local_top),
+                      (intmach_t)StackDifference(w->local_top, Stack_End));
         ENG_TTYPRINTF("        GC start at 0x%p\n", 
-		      gc_StackStart);
+                      gc_StackStart);
 
         ENG_TTYPRINTF("Choice/Trail: from 0x%p to 0x%p (total size = %" PRIdm ")\n",
-		      Choice_Start, 
-		      Choice_End,
+                      Choice_Start, 
+                      Choice_End,
                       (intmach_t)ChoiceDifference(Choice_Start,Choice_End));
         ENG_TTYPRINTF("        Ch. top at 0x%p (used = %" PRIdm ")\n", 
-		      w->node, 
-		      (intmach_t)ChoiceDifference(Choice_Start, w->node));
+                      w->node, 
+                      (intmach_t)ChoiceDifference(Choice_Start, w->node));
         ENG_TTYPRINTF("        Tr. top at 0x%p (used = %" PRIdm ")\n", 
-		      w->trail_top, 
-		      (intmach_t)TrailDifference(Trail_Start,w->trail_top));
+                      w->trail_top, 
+                      (intmach_t)TrailDifference(Trail_Start,w->trail_top));
         ENG_TTYPRINTF("        Ch./Tr. free %" PRIdm "\n",
-		      (intmach_t)ChoiceDifference(w->node, w->trail_top));
+                      (intmach_t)ChoiceDifference(w->node, w->trail_top));
       }
     }
 
@@ -769,25 +769,25 @@ CVOID__PROTO(GarbageCollect) {
     Gc_Total_Grey += Gcgrey;
     t1 = (t2= BASE_RUNTICK)-t1;
     if (current_gctrace == atom_verbose) {
-	ENG_TTYPRINTF("        mark: %" PRIdm " cells marked in %.3f sec\n",
-		      Total_Found,t1);
+        ENG_TTYPRINTF("        mark: %" PRIdm " cells marked in %.3f sec\n",
+                      Total_Found,t1);
 #if defined(SEGMENTED_GC)
-	ENG_TTYPRINTF("        no more than %" PRIdm " garbage cells left\n",
-		      Gcgrey);
+        ENG_TTYPRINTF("        no more than %" PRIdm " garbage cells left\n",
+                      Gcgrey);
 #endif
       }
 
     sweepTrail(Arg);
     sweepChoicepoints(Arg);
     compressHeap(Arg);
-				/* pop special regs from the trail stack */
+                                /* pop special regs from the trail stack */
     Current_Debugger_State = TrailPop(w->trail_top);
 #if defined(USE_GLOBAL_VARS)
     GLOBAL_VARS_ROOT = TrailPop(w->trail_top);
 #endif
     
-    SetShadowregs(w->node);	/* shadow regs may have changed */
-				/* statistics */
+    SetShadowregs(w->node);     /* shadow regs may have changed */
+                                /* statistics */
     t2= BASE_RUNTICK-t2;
     ciao_statistics.gc_tick   += t1+t2;
     ciao_statistics.starttick += t1+t2;
@@ -795,24 +795,24 @@ CVOID__PROTO(GarbageCollect) {
     ciao_statistics.gc_count++;
     ciao_statistics.gc_acc+= hz-HeapDifference(Heap_Start,w->global_top);
     if( current_gctrace==atom_verbose ) {
-	ENG_TTYPRINTF("        Heap: %" PRIdm " cells reclaimed in %.3f sec\n",
-		      (intmach_t)(hz-HeapDifference(Heap_Start,w->global_top)),
-		      t2);
+        ENG_TTYPRINTF("        Heap: %" PRIdm " cells reclaimed in %.3f sec\n",
+                      (intmach_t)(hz-HeapDifference(Heap_Start,w->global_top)),
+                      t2);
         ENG_TTYPRINTF("Heap:   from 0x%p to 0x%p (total size = %" PRIdm ")\n",
-		      Heap_Start, 
-		      Heap_End,
-		      (intmach_t)HeapDifference(Heap_Start, Heap_End));
+                      Heap_Start, 
+                      Heap_End,
+                      (intmach_t)HeapDifference(Heap_Start, Heap_End));
         ENG_TTYPRINTF("        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
-		      w->global_top,  
-		      (intmach_t)HeapDifference(Heap_Start, w->global_top),
-		      (intmach_t)HeapDifference(w->global_top, Heap_End));
+                      w->global_top,  
+                      (intmach_t)HeapDifference(Heap_Start, w->global_top),
+                      (intmach_t)HeapDifference(w->global_top, Heap_End));
         ENG_TTYPRINTF("        GC start at 0x%p\n", 
-		      gc_HeapStart);
+                      gc_HeapStart);
 
-	ENG_TTYPRINTF("        Total: %" PRIdm " cells reclaimed in %" PRIdm " gc's\n",
-		      ciao_statistics.gc_acc,ciao_statistics.gc_count);
-	ENG_TTYPRINTF("        GC time = %.6f  Total= %.6f\n\n",
-		      ((flt64_t)(t1+t2))/GET_CLOCKFREQ(ciao_statistics),
+        ENG_TTYPRINTF("        Total: %" PRIdm " cells reclaimed in %" PRIdm " gc's\n",
+                      ciao_statistics.gc_acc,ciao_statistics.gc_count);
+        ENG_TTYPRINTF("        GC time = %.6f  Total= %.6f\n\n",
+                      ((flt64_t)(t1+t2))/GET_CLOCKFREQ(ciao_statistics),
                       ((flt64_t)ciao_statistics.gc_tick)/GET_CLOCKFREQ(ciao_statistics));
       }
 }

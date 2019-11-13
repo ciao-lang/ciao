@@ -216,10 +216,10 @@ flt64_t walltime(void)
   plattforms where the speed is given in GHz.
  */
 static CBOOL__PROTO(generic_time,
-		    inttime_t (*time_function)(void),
-		    inttime_t starttick,
-		    inttime_t *lasttick,
-		    inttime_t clockfreq)
+                    inttime_t (*time_function)(void),
+                    inttime_t starttick,
+                    inttime_t *lasttick,
+                    inttime_t clockfreq)
 {
   /*int st,lt; */
   inttime_t st,lt;
@@ -278,9 +278,9 @@ CBOOL__PROTO(prolog_walltime)
 
 /* New time medition functions */
 static CBOOL__PROTO(generic_tick,
-		    inttime_t (*time_function)(void),
-		    inttime_t starttick,
-		    inttime_t *lasttick)
+                    inttime_t (*time_function)(void),
+                    inttime_t starttick,
+                    inttime_t *lasttick)
 {
   /*int st,lt; */
   inttime_t st,lt;
@@ -402,8 +402,8 @@ CBOOL__PROTO(prolog_datime)
     datime->tm_sec =GetInteger(X(6));
     inputtime = mktime(datime);
     return(cunify(Arg,MakeInteger(Arg,inputtime),X(0))
-	   && cunify(Arg,MakeSmall(datime->tm_wday),X(7))
-	   && cunify(Arg,MakeSmall(datime->tm_yday),X(8)));
+           && cunify(Arg,MakeSmall(datime->tm_wday),X(7))
+           && cunify(Arg,MakeSmall(datime->tm_yday),X(8)));
   } else {
     struct tm *datime;
     time_t inputtime;
@@ -419,13 +419,13 @@ CBOOL__PROTO(prolog_datime)
     datime = localtime(&inputtime);
     
     return(cunify(Arg,MakeSmall((datime->tm_year)+1900),X(1))
-	   && cunify(Arg,MakeSmall((datime->tm_mon)+1), X(2))
-	   && cunify(Arg,MakeSmall(datime->tm_mday),X(3))
-	   && cunify(Arg,MakeSmall(datime->tm_hour),X(4))
-	   && cunify(Arg,MakeSmall(datime->tm_min), X(5))
-	   && cunify(Arg,MakeSmall(datime->tm_sec), X(6))
-	   && cunify(Arg,MakeSmall(datime->tm_wday),X(7))
-	   && cunify(Arg,MakeSmall(datime->tm_yday),X(8)));
+           && cunify(Arg,MakeSmall((datime->tm_mon)+1), X(2))
+           && cunify(Arg,MakeSmall(datime->tm_mday),X(3))
+           && cunify(Arg,MakeSmall(datime->tm_hour),X(4))
+           && cunify(Arg,MakeSmall(datime->tm_min), X(5))
+           && cunify(Arg,MakeSmall(datime->tm_sec), X(6))
+           && cunify(Arg,MakeSmall(datime->tm_wday),X(7))
+           && cunify(Arg,MakeSmall(datime->tm_yday),X(8)));
   }
 }
 

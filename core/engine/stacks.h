@@ -26,7 +26,7 @@ CBOOL__PROTO(heap_limit);
 #if defined(ANDPARALLEL)
 //bool_t is_rem_Hterm(tagged_t term, worker_t *w, worker_t *remote_w);
 CVOID__PROTO(heap_overflow_adjust_wam,
-	     intmach_t reloc_factor, tagged_t *newh, bool_t remote_reloc, worker_t *remote_worker);
+             intmach_t reloc_factor, tagged_t *newh, bool_t remote_reloc, worker_t *remote_worker);
 #else
 CVOID__PROTO(heap_overflow_adjust_wam, intmach_t reloc_factor, tagged_t *newh);
 #endif
@@ -40,17 +40,17 @@ CBOOL__PROTO(undo_heap_overflow_excep);
  * N - number of cells
  * Arity - number of live X regs
  */
-#define ENSURE_HEAP(N, Arity) {					\
-    if (HeapDifference(w->global_top,Heap_End)<CONTPAD+(N)) {		\
-      explicit_heap_overflow(Arg,CONTPAD+(N),(Arity));			\
-    }									\
+#define ENSURE_HEAP(N, Arity) {                                 \
+    if (HeapDifference(w->global_top,Heap_End)<CONTPAD+(N)) {           \
+      explicit_heap_overflow(Arg,CONTPAD+(N),(Arity));                  \
+    }                                                                   \
   }
 
 /* Make sure that there is enough heap to allocate N bytes */
-#define ENSURE_HEAP_BYTES(N, Arity) {					\
-    if (HeapCharDifference(w->global_top,Heap_End)<(N)) {		\
+#define ENSURE_HEAP_BYTES(N, Arity) {                                   \
+    if (HeapCharDifference(w->global_top,Heap_End)<(N)) {               \
       explicit_heap_overflow(Arg,((N)+sizeof(tagged_t)-1)/sizeof(tagged_t),(Arity)); \
-    }									\
+    }                                                                   \
   }
 
 /* Make sure that there is enough heap to construct a list spine.

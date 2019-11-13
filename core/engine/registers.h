@@ -85,11 +85,11 @@
 
 #define Arg w
 
-#define WToX0		(SIZEOF_FLEXIBLE_STRUCT(worker_t, tagged_t, 0)/sizeof(tagged_t))
-#define Xb(I)		(*CharOffset(w,I)) /* I as bytecode operand */
-#define X(I)		(w->term[I]) /* I as zero-based */
-#define Xop(X)	(((X)+WToX0)*sizeof(tagged_t))
-#define Xinv(X)	(((X)/sizeof(tagged_t))-WToX0)
+#define WToX0           (SIZEOF_FLEXIBLE_STRUCT(worker_t, tagged_t, 0)/sizeof(tagged_t))
+#define Xb(I)           (*CharOffset(w,I)) /* I as bytecode operand */
+#define X(I)            (w->term[I]) /* I as zero-based */
+#define Xop(X)  (((X)+WToX0)*sizeof(tagged_t))
+#define Xinv(X) (((X)/sizeof(tagged_t))-WToX0)
 
 /* # X regs used for control in choicepoints for dynamic code */
 /*
@@ -140,14 +140,14 @@
 /* initial value_trail size: leave room for an extra choicept */
 #define InitialValueTrail (-(SIZEOF_FLEXIBLE_STRUCT(node_t, tagged_t, 0)/sizeof(tagged_t)))
 
-#define EToY0		(SIZEOF_FLEXIBLE_STRUCT(frame_t, tagged_t, 0)/sizeof(tagged_t))
-#define Yb(I)		(*CharOffset(E,I)) /* I as bytecode operand */
-#define Y(I)		(E->term[I]) /* I as zero-based */
-#define Yop(X)	(((X)+EToY0)*sizeof(tagged_t))
-#define Yinv(X)	(((X)/sizeof(tagged_t))-EToY0)
+#define EToY0           (SIZEOF_FLEXIBLE_STRUCT(frame_t, tagged_t, 0)/sizeof(tagged_t))
+#define Yb(I)           (*CharOffset(E,I)) /* I as bytecode operand */
+#define Y(I)            (E->term[I]) /* I as zero-based */
+#define Yop(X)  (((X)+EToY0)*sizeof(tagged_t))
+#define Yinv(X) (((X)/sizeof(tagged_t))-EToY0)
 
 #define FrameSize(L) BCOp0((L), FTYPE_ctype(f_e), -FTYPE_size(f_e))
-#define FrameSizeToCount(O)	((O)/sizeof(tagged_t)-EToY0)
+#define FrameSizeToCount(O)     ((O)/sizeof(tagged_t)-EToY0)
 
 /* Private areas for a thread, related to the overall wam status */
 
@@ -384,12 +384,12 @@
 #define Culprit w->misc->culprit
 
 #if defined(TABLING)
-#define NodeLocalTop(Node)					\
-  (((Node)->global_top != (tagged_t*)(&(HeapFReg))) ?		\
+#define NodeLocalTop(Node)                                      \
+  (((Node)->global_top != (tagged_t*)(&(HeapFReg))) ?           \
    (Node)->local_top : StackFReg)
 
-#define NodeGlobalTop(Node)					\
-  (((Node)->global_top != (tagged_t*)(&(HeapFReg))) ?		\
+#define NodeGlobalTop(Node)                                     \
+  (((Node)->global_top != (tagged_t*)(&(HeapFReg))) ?           \
    (Node)->global_top : HeapFReg)
 
 #else
@@ -471,8 +471,8 @@
 
 /* EVENTS    ------------------------------------- */
 
-#define SetEvent	(TestEvent ? 0 : (Heap_Warn_Soft = Heap_Start))
-#define TestEvent	(Heap_Warn!=Heap_Warn_Soft)
+#define SetEvent        (TestEvent ? 0 : (Heap_Warn_Soft = Heap_Start))
+#define TestEvent       (Heap_Warn!=Heap_Warn_Soft)
 
 /* MARGINS   ------------------------------------- */
 

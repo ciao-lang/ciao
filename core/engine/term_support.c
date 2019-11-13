@@ -38,39 +38,39 @@
 /* local declarations */
 
 static CBOOL__PROTO(c_term, 
-		    tagged_t t,
-		    int Xreg,
-		    int FreeReg,
-		    int x_variables,
-		    tagged_t **trail_origo,
-		    bcp_t *current_insn);
+                    tagged_t t,
+                    int Xreg,
+                    int FreeReg,
+                    int x_variables,
+                    tagged_t **trail_origo,
+                    bcp_t *current_insn);
 static CBOOL__PROTO(prolog_constant_codes, 
-		    bool_t atomp,
-		    bool_t numberp,
-		    int ci);
+                    bool_t atomp,
+                    bool_t numberp,
+                    int ci);
 static CFUN__PROTO(emit_unify_void, bcp_t, bcp_t P);
 static CVOID__PROTO(c_term_mark,
-		    tagged_t t,
-		    intmach_t temps,
-		    intmach_t *cells,
-		    intmach_t *maxtemps,
-		    intmach_t *bsize,
-		    tagged_t **trail_origo);
+                    tagged_t t,
+                    intmach_t temps,
+                    intmach_t *cells,
+                    intmach_t *maxtemps,
+                    intmach_t *bsize,
+                    tagged_t **trail_origo);
 static CVOID__PROTO(c_term_trail_push,
-		    tagged_t t,
-		    tagged_t **trail_origo);
+                    tagged_t t,
+                    tagged_t **trail_origo);
 static CVOID__PROTO(copy_it, tagged_t *loc);
 static CVOID__PROTO(copy_it_nat, tagged_t *loc);
 
 /* NOTE: Aligned to the size of the pointers! */
-#define ODDOP(Insn)	   \
-  if (((uintptr_t)P)&(sizeof(uintptr_t)-1))	\
-    { EMIT(Insn-0); }	\
+#define ODDOP(Insn)        \
+  if (((uintptr_t)P)&(sizeof(uintptr_t)-1))     \
+    { EMIT(Insn-0); }   \
   else \
     { EMIT(Insn-1); EMIT_Q(0); }
 #define EVENOP(Insn) \
-  if (!(((uintptr_t)P)&(sizeof(uintptr_t)-1)))	\
-    { EMIT(Insn-0); }				\
+  if (!(((uintptr_t)P)&(sizeof(uintptr_t)-1)))  \
+    { EMIT(Insn-0); }                           \
   else \
     { EMIT(Insn-1); EMIT_Q(0); }
 #define EMIT(I) { Last_Insn=P; EMIT_o((I)); }
@@ -107,15 +107,15 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc);
 
 static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo);
 static CVOID__PROTO(c_term_mark,
-		    tagged_t t, intmach_t temps,
-		    intmach_t *cells, intmach_t *maxtemps, intmach_t *bsize, tagged_t **trail_origo);
+                    tagged_t t, intmach_t temps,
+                    intmach_t *cells, intmach_t *maxtemps, intmach_t *bsize, tagged_t **trail_origo);
 static CFUN__PROTO(emit_unify_void, bcp_t, bcp_t P);
 static CBOOL__PROTO(c_term, tagged_t t, int Xreg, int FreeReg,
-		    int x_variables, tagged_t **trail_origo,
-		    bcp_t *current_insn);
+                    int x_variables, tagged_t **trail_origo,
+                    bcp_t *current_insn);
 CBOOL__PROTO(compile_term, worker_t **new_worker);
 CFUN__PROTO(compile_term_aux, instance_t *,
-	    tagged_t head, tagged_t body, worker_t **new_worker);
+            tagged_t head, tagged_t body, worker_t **new_worker);
 
 static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo) {
   if (!ChoiceDifference(w->node,w->trail_top)) {
@@ -138,10 +138,10 @@ static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo) {
 #define Tr(Str)
 
 static CVOID__PROTO(c_term_mark,
-		    tagged_t t,
-		    intmach_t temps,
-		    intmach_t *cells, intmach_t *maxtemps, intmach_t *bsize,
-		    tagged_t **trail_origo) {
+                    tagged_t t,
+                    intmach_t temps,
+                    intmach_t *cells, intmach_t *maxtemps, intmach_t *bsize,
+                    tagged_t **trail_origo) {
   CIAO_REG_2(tagged_t, t1);
   int i, arity;
 
@@ -151,14 +151,14 @@ static CVOID__PROTO(c_term_mark,
   if (!(t & TagBitComplex)) { /* NUM or ATM */
     if (t&QMask && t&TagBitFunctor) { /* ATM with QMask mark */
       if (!(t&3)) {
-	/* unify_variable */
-	Tr("m:x");
-	*bsize += FTYPE_size(f_x);
-	(*TagToPointer(*TagToPointer(t)))++;
+        /* unify_variable */
+        Tr("m:x");
+        *bsize += FTYPE_size(f_x);
+        (*TagToPointer(*TagToPointer(t)))++;
       } else {
-	/* unify_value */
-	Tr("m:x");
-	*bsize += FTYPE_size(f_x);
+        /* unify_value */
+        Tr("m:x");
+        *bsize += FTYPE_size(f_x);
       }
     } else if (t!=atom_nil) {
       /* unify_ + pad + constant */
@@ -171,9 +171,9 @@ static CVOID__PROTO(c_term_mark,
     Tr("m:x+o (?)");
     Tr("m:x");
     *bsize += (FTYPE_size(f_x)+
-	       FTYPE_size(f_o)+
-	       FTYPE_size(f_x)+
-	       2*FTYPE_size(f_o));
+               FTYPE_size(f_o)+
+               FTYPE_size(f_x)+
+               2*FTYPE_size(f_o));
     *cells += 2;
     if (*maxtemps < temps) {
       *maxtemps = temps;
@@ -191,11 +191,11 @@ static CVOID__PROTO(c_term_mark,
       Tr("m:x+o (?)");
       Tr("m:(Q)+x+o(?)+bnlen");
       *bsize += (FTYPE_size(f_x)+
-		 FTYPE_size(f_o)+
-		 FTYPE_size(f_Q)+
-		 FTYPE_size(f_x)+
-		 FTYPE_size(f_o)+
-		 arity);
+                 FTYPE_size(f_o)+
+                 FTYPE_size(f_Q)+
+                 FTYPE_size(f_x)+
+                 FTYPE_size(f_o)+
+                 arity);
       *cells += 1+(arity / sizeof(tagged_t));
       return;
     } else {
@@ -204,19 +204,19 @@ static CVOID__PROTO(c_term_mark,
       Tr("m:x+o (?)");
       Tr("m:(Q)+x+f");
       *bsize += (FTYPE_size(f_x)+
-		 FTYPE_size(f_o)+
-		 FTYPE_size(f_Q)+
-		 FTYPE_size(f_x)+
-		 FTYPE_size(f_f)+
-		 arity*FTYPE_size(f_o));
+                 FTYPE_size(f_o)+
+                 FTYPE_size(f_Q)+
+                 FTYPE_size(f_x)+
+                 FTYPE_size(f_f)+
+                 arity*FTYPE_size(f_o));
       *cells += 1+arity;
       if (*maxtemps < temps) {
-	*maxtemps = temps;
+        *maxtemps = temps;
       }
       for (i=1; i<arity; i++) {
-	Tr("m:o"); /* (from *bsize+=) */
-	RefArg(t1,t,i);
-	c_term_mark(Arg, t1, temps+arity-i, cells, maxtemps, bsize, trail_origo);
+        Tr("m:o"); /* (from *bsize+=) */
+        RefArg(t1,t,i);
+        c_term_mark(Arg, t1, temps+arity-i, cells, maxtemps, bsize, trail_origo);
       }
       Tr("m:o"); /* (from *bsize+=) */
       RefArg(t,t,arity);
@@ -233,10 +233,10 @@ static CVOID__PROTO(c_term_mark,
     Tr("m:o");
     Tr("m:o");
     *bsize += (FTYPE_size(f_x)+
-	       FTYPE_size(f_o)+
-	       FTYPE_size(f_x)+
-	       FTYPE_size(f_o)+
-	       FTYPE_size(f_o));
+               FTYPE_size(f_o)+
+               FTYPE_size(f_x)+
+               FTYPE_size(f_o)+
+               FTYPE_size(f_o));
     if (*maxtemps < temps) {
       *maxtemps = temps;
     }
@@ -275,11 +275,11 @@ static CFUN__PROTO(emit_unify_void, bcp_t, bcp_t P) {
 }
 
 static CBOOL__PROTO(c_term, 
-		    tagged_t t,
-		    int Xreg, int FreeReg,
-		    int x_variables,
-		    tagged_t **trail_origo,
-		    bcp_t *current_insn) {
+                    tagged_t t,
+                    int Xreg, int FreeReg,
+                    int x_variables,
+                    tagged_t **trail_origo,
+                    bcp_t *current_insn) {
   bcp_t psave;
   tagged_t *ssave;
   int i, ar = ~0, decr, Treg;
@@ -334,19 +334,19 @@ static CBOOL__PROTO(c_term,
   term_is_var:
     {
       if ((t&3)!=3) { /* get_variable */
-	Tr("e:o+x+x");
-	EMIT(GET_X_VARIABLE);
-	EMITtok(f_x, Xop(Xreg));
-	EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
-	if (t&2) { /* enqueue constraint */
-	  c_term_trail_push(Arg,t,trail_origo);
-	}
-	*TagToPointer(*TagToPointer(t)) |= 3;
+        Tr("e:o+x+x");
+        EMIT(GET_X_VARIABLE);
+        EMITtok(f_x, Xop(Xreg));
+        EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
+        if (t&2) { /* enqueue constraint */
+          c_term_trail_push(Arg,t,trail_origo);
+        }
+        *TagToPointer(*TagToPointer(t)) |= 3;
       } else { /* get_value */
-	Tr("e:o+x+x");
-	EMIT(GET_X_VALUE);
-	EMITtok(f_x, Xop(Xreg));
-	EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
+        Tr("e:o+x+x");
+        EMIT(GET_X_VALUE);
+        EMITtok(f_x, Xop(Xreg));
+        EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
       }
       *current_insn = P;
       return TRUE;
@@ -364,46 +364,46 @@ static CBOOL__PROTO(c_term,
     switch (TagOf(t)) {
     case LST:
       if ((i==ar) && (Treg==reg_bank_size)) {
-	Tr("e:o");
-	EMIT(UNIFY_LIST);
-	s = TagToLST(t);
-	i=0, ar=2;
+        Tr("e:o");
+        EMIT(UNIFY_LIST);
+        s = TagToLST(t);
+        i=0, ar=2;
       } else {
-	Tr("e:o+x");
-	EMIT(UNIFY_X_VARIABLE);
-	EMITtok(f_x, Xop(Treg++));
+        Tr("e:o+x");
+        EMIT(UNIFY_X_VARIABLE);
+        EMITtok(f_x, Xop(Treg++));
       }
       break;
     case STR:
       if (STRIsLarge(t)) {
-	if ((i==ar) && (Treg==reg_bank_size)) {
-	  Tr("e:o(Q)+bnlen");
-	  ODDOP(UNIFY_LARGE);
-	  P = BCoff(P, compile_large(t, P));
-	} else {
-	  Tr("e:o+x");
-	  EMIT(UNIFY_X_VARIABLE);
-	  EMITtok(f_x, Xop(Treg++));
-	}
+        if ((i==ar) && (Treg==reg_bank_size)) {
+          Tr("e:o(Q)+bnlen");
+          ODDOP(UNIFY_LARGE);
+          P = BCoff(P, compile_large(t, P));
+        } else {
+          Tr("e:o+x");
+          EMIT(UNIFY_X_VARIABLE);
+          EMITtok(f_x, Xop(Treg++));
+        }
       } else if ((i==ar) && (Treg==reg_bank_size)) {
-	Tr("e:o(Q)+f");
-	ODDOP(UNIFY_STRUCTURE);
-	EMIT_f(TagToHeadfunctor(t));
-	s = TagToArg(t,1);
-	i=0, ar=Arity(TagToHeadfunctor(t));
+        Tr("e:o(Q)+f");
+        ODDOP(UNIFY_STRUCTURE);
+        EMIT_f(TagToHeadfunctor(t));
+        s = TagToArg(t,1);
+        i=0, ar=Arity(TagToHeadfunctor(t));
       } else {
-	Tr("e:o+x");
-	EMIT(UNIFY_X_VARIABLE);
-	EMITtok(f_x, Xop(Treg++));
+        Tr("e:o+x");
+        EMIT(UNIFY_X_VARIABLE);
+        EMITtok(f_x, Xop(Treg++));
       }
       break;
     case ATM:
       if (t & QMask) {
-	goto arg_is_var;
+        goto arg_is_var;
       } else if (t==atom_nil) {
-	Tr("e:o");
-	EMIT(UNIFY_NIL);
-	break;
+        Tr("e:o");
+        EMIT(UNIFY_NIL);
+        break;
       }
     case NUM:
       Tr("e:o(Q)+t");
@@ -413,19 +413,19 @@ static CBOOL__PROTO(c_term,
 
     arg_is_var:
       {
-	if ((t&3)!=3) { /* unify_variable */
-	  Tr("e:o+x");
-	  EMIT(UNIFY_X_VARIABLE);
-	  EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
-	  if (t&2)	/* enqueue constraint */
-	    c_term_trail_push(Arg,t,trail_origo);
-	  *TagToPointer(*TagToPointer(t)) |= 3;
-	} else { /* unify_value */
-	  Tr("e:o+x");
-	  EMIT(UNIFY_X_VALUE);
-	  EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
-	}
-	break;
+        if ((t&3)!=3) { /* unify_variable */
+          Tr("e:o+x");
+          EMIT(UNIFY_X_VARIABLE);
+          EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
+          if (t&2)      /* enqueue constraint */
+            c_term_trail_push(Arg,t,trail_origo);
+          *TagToPointer(*TagToPointer(t)) |= 3;
+        } else { /* unify_value */
+          Tr("e:o+x");
+          EMIT(UNIFY_X_VALUE);
+          EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
+        }
+        break;
       }
 
     arg_is_void:
@@ -474,12 +474,12 @@ static CBOOL__PROTO(c_term,
     case UNIFY_X_VARIABLE:
       i = Xinv(BCOp(P, FTYPE_ctype(f_x), 0));
       if (i>=reg_bank_size) {
-	EMITtok(f_x, Xop(i-decr)); /* TODO: patch? */
-	DerefHeapNext(t,s);
-	if (!c_term(Arg,t,i-decr,i-decr,x_variables,
-		    trail_origo,current_insn))
-	  return FALSE;
-	break;
+        EMITtok(f_x, Xop(i-decr)); /* TODO: patch? */
+        DerefHeapNext(t,s);
+        if (!c_term(Arg,t,i-decr,i-decr,x_variables,
+                    trail_origo,current_insn))
+          return FALSE;
+        break;
       }
     case UNIFY_X_VALUE:
       P = BCoff(P, FTYPE_size(f_x));
@@ -510,7 +510,7 @@ static CBOOL__PROTO(c_term,
    pointer if the worker has changed, or to null if it has. */
 
 CBOOL__PROTO(compile_term, 
-	     worker_t **new_worker) {
+             worker_t **new_worker) {
   tagged_t head, body;
   instance_t *object;
 
@@ -541,8 +541,8 @@ CBOOL__PROTO(compile_term,
    call choice_overflow, which expands stacks). */
 
 CFUN__PROTO(compile_term_aux, instance_t *,
-	    tagged_t head, tagged_t body,
-	    worker_t **new_worker) {
+            tagged_t head, tagged_t body,
+            worker_t **new_worker) {
   int truesize;
   //  tagged_t t0, *pt1, *pt2;
   CIAO_REG_1(tagged_t, t0);
@@ -576,9 +576,9 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   if (cells>=STATIC_CALLPAD) { /* (was SOFT_HEAPPAD) */
     Tr("m:o(Q)+l+i");
     bsize += (FTYPE_size(f_o)+
-	      FTYPE_size(f_Q)+
-	      FTYPE_size(f_l)+
-	      FTYPE_size(f_i));
+              FTYPE_size(f_Q)+
+              FTYPE_size(f_l)+
+              FTYPE_size(f_i));
   }
 
   /* tidy out void vars */
@@ -586,7 +586,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   while (pt1 < Arg->trail_top) {
     t0 = TrailNext(pt1);
     if (*TagToPointer(t0) & 3) {
-      *TagToPointer(t0) -= (char *)(pt1-1)-(char *)pt2,	TrailPush(pt2,t0);
+      *TagToPointer(t0) -= (char *)(pt1-1)-(char *)pt2, TrailPush(pt2,t0);
     } else {
       *TagToPointer(t0) = t0;
     }
@@ -594,7 +594,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   Arg->trail_top = pt2;
   x_variables = pt2-trail_origo;
 
-				/* ensure enough X registers */
+                                /* ensure enough X registers */
   if (x_variables+maxtemps > reg_bank_size) {
     int size0 = reg_bank_size;
       
@@ -605,10 +605,10 @@ CFUN__PROTO(compile_term_aux, instance_t *,
 
     *new_worker = /* For local use */
       checkrealloc_FLEXIBLE(worker_t,
-			    tagged_t,
-			    size0,
-			    reg_bank_size,
-			    Arg);
+                            tagged_t,
+                            size0,
+                            reg_bank_size,
+                            Arg);
 #if defined(DEBUG)
     fprintf(stderr, "Reallocing WRB from %p to %p\n", Arg, *new_worker);
 #endif
@@ -742,10 +742,10 @@ tagged_t decode_instance_key(instance_t *inst) {
       P = BCoff(P, FTYPE_size(f_Q));
     case GET_LARGE:
       if (xreg == Xinv(BCOp(P, FTYPE_ctype(f_x), 0)))
-	return MakeLarge(BCoff(P, FTYPE_size(f_x)));
+        return MakeLarge(BCoff(P, FTYPE_size(f_x)));
       P = BCoff(P, 
-		FTYPE_size(f_x)+
-		LargeSize((*(tagged_t *)(BCoff(P, FTYPE_size(f_x))))));
+                FTYPE_size(f_x)+
+                LargeSize((*(tagged_t *)(BCoff(P, FTYPE_size(f_x))))));
       break;
     case UNIFY_CONSTANTQ:
       P = BCoff(P, FTYPE_size(f_Q));
@@ -764,7 +764,7 @@ tagged_t decode_instance_key(instance_t *inst) {
       break;
     case UNIFY_X_VARIABLE:
       if (xreg == -1)
-	xreg = Xinv(BCOp(P, FTYPE_ctype(f_x), 0));
+        xreg = Xinv(BCOp(P, FTYPE_ctype(f_x), 0));
     case UNIFY_X_VALUE:
     case UNIFY_VOID:
     case GET_LIST:
@@ -832,10 +832,10 @@ CBOOL__PROTO(prolog_number_codes_3) {
    returned.  Otherwise, TRUE is returned and the conversion is done */
 
 CBOOL__PROTO(string_to_number, 
-	     char *AtBuf,
-	     int base,
-	     tagged_t *strnum,
-	     int arity) {
+             char *AtBuf,
+             int base,
+             tagged_t *strnum,
+             int arity) {
   bool_t sign = FALSE;
   char *s = AtBuf;
   int i, d;
@@ -891,50 +891,50 @@ CBOOL__PROTO(string_to_number,
       s = AtBuf + (sign ? 1 : 0);
       i = *s++;
       do {
-	m = m * base+char_digit[i];
-	i = *s++;
+        m = m * base+char_digit[i];
+        i = *s++;
       } while(i!=FLOAT_POINT);
       i = *s++;
       d = char_digit[i];
       if ((0 <= d) && (d < base)) {
-	char exponent_lower = exponents_lower[base];
-	char exponent_upper = exponents_upper[base];
+        char exponent_lower = exponents_lower[base];
+        char exponent_upper = exponents_upper[base];
         do {
-	  m = m * base + char_digit[i];
-	  exp++;
+          m = m * base + char_digit[i];
+          exp++;
           i = *s++;
-	  d = char_digit[i];
+          d = char_digit[i];
         } while ((0 <= d) && (d < base) && 
                  (i != exponent_lower) && (i != exponent_upper));
         if ((i==exponent_lower) || (i==exponent_upper)) {
           i = *s++;
           if ((i=='+') || (i=='-')) {
-	    if (i=='-') se=-1;
-	    i = *s++;
-	  }
-	  d = char_digit[i];
+            if (i=='-') se=-1;
+            i = *s++;
+          }
+          d = char_digit[i];
           if ((0<=d) && (d<base)) {
             do {
-	      e = e * base + d;
+              e = e * base + d;
               i = *s++;
-	      d = char_digit[i];
-	    } while ((0<=d) && (d<base));
+              d = char_digit[i];
+            } while ((0<=d) && (d<base));
           } else {
-	    i = -1;
-	  }
+            i = -1;
+          }
         }
       } else {
-	i = -1;
+        i = -1;
       }
       if (i!=-1) {
-	if (se==1) {
-	  exp = -exp + e;
-	} else {
-	  exp = -exp - e;
-	}
-	num = m * powl_int(base, exp);
-	*strnum = MakeFloat(Arg, sign ? -num : num);
-	return TRUE;
+        if (se==1) {
+          exp = -exp + e;
+        } else {
+          exp = -exp - e;
+        }
+        num = m * powl_int(base, exp);
+        *strnum = MakeFloat(Arg, sign ? -num : num);
+        return TRUE;
       }
     }
   }
@@ -1196,11 +1196,11 @@ CBOOL__PROTO(prolog_atom_concat)
 
 #if defined(USE_DYNAMIC_ATOM_SIZE)
       if (new_atom_length >= Atom_Buffer_Length) {
-	EXPAND_ATOM_BUFFER(new_atom_length);
+        EXPAND_ATOM_BUFFER(new_atom_length);
       }
 #else
       if (new_atom_length > MAXATOM) {
-	BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ATOM_LENGTH), X(2), 3);
+        BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ATOM_LENGTH), X(2), 3);
       }
 #endif
 
@@ -1257,7 +1257,7 @@ CBOOL__PROTO(prolog_atom_concat)
 #endif
 
       if (new_atom_length >= Atom_Buffer_Length) 
-	EXPAND_ATOM_BUFFER(new_atom_length+1);
+        EXPAND_ATOM_BUFFER(new_atom_length+1);
 
       s = s2+new_atom_length;
 
@@ -1345,7 +1345,7 @@ CVOID__PROTO(number_to_string, tagged_t term, int base) {
        implement the expected Prolog behavior */
 
     /*       if (1024 > Atom_Buffer_Length) */
-    /* 	EXPAND_ATOM_BUFFER(102400); */
+    /*  EXPAND_ATOM_BUFFER(102400); */
     cbuf = Atom_Buffer;
     cbuf = float_to_string(cbuf, eng_flt_signif, 'p', u.i, base);
   } else {
@@ -1393,33 +1393,33 @@ CBOOL__PROTO(prolog_copy_term) {
 
   t1 = X(0);
   SwitchOnVar(t1,t2,
-	      { return TRUE; },
-	      {},
-	      { return TRUE; },
-	      {});
+              { return TRUE; },
+              {},
+              { return TRUE; },
+              {});
 
   X(0) = t1;
-  push_choicept(Arg,fail_alt);	/* try, arity=0 */
-  push_frame(Arg,2);		/* allocate, size=2 */
+  push_choicept(Arg,fail_alt);  /* try, arity=0 */
+  push_frame(Arg,2);            /* allocate, size=2 */
 
   copy_it(Arg,&w->frame->term[0]); /* do the copying */
 
   pt1 = pt2 = TagToPointer(w->node->trail_top); /* untrail */
   while (!OffTrailtop(pt2,w->trail_top)) {
-    t1 = TrailNext(pt2);	/* old var */
+    t1 = TrailNext(pt2);        /* old var */
     *TagToPointer(t1) = t1;
   }
   w->trail_top = pt1;
 
   pop_frame(Arg);
-  pop_choicept(Arg);		/* trust */
+  pop_choicept(Arg);            /* trust */
   return cunify(Arg,X(0),X(1));
 }
 
 static CVOID__PROTO(copy_it, tagged_t *loc) {
   tagged_t t1, t2, *pt1, *pt2;
   int i;
-  int term_so_far;		/* size of new heap before copying subterms */
+  int term_so_far;              /* size of new heap before copying subterms */
 
  start:
   RefHeap(t1,loc);
@@ -1442,7 +1442,7 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
     GCTEST(CHOICEPAD);
     for (i=Arity(t2); i>1; --i)
       copy_it(Arg,HeapOffset(TopOfOldHeap,term_so_far-i));
-  } else {				                           /* LST */
+  } else {                                                         /* LST */
     pt1 = TagToLST(t1);
     pt2 = w->global_top;
     *loc = Tag(LST,pt2);
@@ -1487,26 +1487,26 @@ CBOOL__PROTO(prolog_copy_term_nat)
 
   t1 = X(0);
   SwitchOnVar(t1,t2,
-	      { return TRUE; },
-	      { return TRUE; },
-	      { return TRUE; },
-	      {});
+              { return TRUE; },
+              { return TRUE; },
+              { return TRUE; },
+              {});
 
   X(0) = t1;
-  push_choicept(Arg,fail_alt);	/* try, arity=0 */
-  push_frame(Arg,2);		/* allocate, size=2 */
+  push_choicept(Arg,fail_alt);  /* try, arity=0 */
+  push_frame(Arg,2);            /* allocate, size=2 */
 
   copy_it_nat(Arg,&w->frame->term[0]); /* do the copying */
 
   pt1 = pt2 = TagToPointer(w->node->trail_top); /* untrail */
   while (!OffTrailtop(pt2,w->trail_top)) {
-    t1 = TrailNext(pt2);	/* old var */
+    t1 = TrailNext(pt2);        /* old var */
     *TagToPointer(t1) = t1;
   }
   w->trail_top = pt1;
 
   pop_frame(Arg);
-  pop_choicept(Arg);		/* trust */
+  pop_choicept(Arg);            /* trust */
   return cunify(Arg,X(0),X(1));
 }
 
@@ -1515,7 +1515,7 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
 {
   tagged_t t1, t2, *pt1, *pt2;
   int i;
-  int term_so_far;		/* size of new heap before copying subterms */
+  int term_so_far;              /* size of new heap before copying subterms */
 
  start:
   RefHeap(t1,loc);
@@ -1538,7 +1538,7 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
     GCTEST(CHOICEPAD);
     for (i=Arity(t2); i>1; --i)
       copy_it_nat(Arg,HeapOffset(TopOfOldHeap,term_so_far-i));
-  } else {				                           /* LST */
+  } else {                                                         /* LST */
     pt1 = TagToLST(t1);
     pt2 = w->global_top;
     *loc = Tag(LST,pt2);
@@ -1759,7 +1759,7 @@ CBOOL__PROTO(prolog_unifiable)
   tagged_t * limit, *tr;
 
   /* Forces trailing of bindings and saves the top of the trail. */
-  push_choicept(Arg,fail_alt);	
+  push_choicept(Arg,fail_alt);  
   /* Saves the arguments in case of GC. */
   push_frame(Arg,3);
 
@@ -1792,7 +1792,7 @@ CBOOL__PROTO(prolog_unifiable)
   
   w->trail_top = limit;
   pop_frame(Arg);
-  pop_choicept(Arg);	
+  pop_choicept(Arg);    
 
   return cunify(Arg, X(2), t);
 }  
@@ -1805,10 +1805,10 @@ CBOOL__PROTO(prolog_unifiable)
 static CBOOL__PROTO(var_occurs, tagged_t v, tagged_t x1);
 
 static CBOOL__PROTO(var_occurs_args_aux, 
-		    tagged_t v,
-		    int arity,
-		    tagged_t *pt1,
-		    tagged_t *x1) {
+                    tagged_t v,
+                    int arity,
+                    tagged_t *pt1,
+                    tagged_t *x1) {
   tagged_t 
     t1 = ~0;
   for (; arity>0; --arity) {
@@ -1827,10 +1827,10 @@ static CBOOL__PROTO(var_occurs, tagged_t v, tagged_t x1) {
   u=x1;
 
   SwitchOnVar(u,t1,
-	      { goto var; },
-	      { goto var; },
-	      { goto var; },
-	      { goto non_var; });
+              { goto var; },
+              { goto var; },
+              { goto var; },
+              { goto non_var; });
 
  non_var:
   if (TagIsATM(u)) goto lose;
@@ -1843,7 +1843,7 @@ static CBOOL__PROTO(var_occurs, tagged_t v, tagged_t x1) {
   } else { /* structure. */
     t1=TagToHeadfunctor(u);
     if (t1&QMask) { /* large number */
-	  goto lose;
+          goto lose;
     } if (!var_occurs_args_aux(Arg,v,Arity(t1),TagToArg(u,1),&x1)) {
       goto in;
     } else {
@@ -1866,8 +1866,8 @@ static CBOOL__PROTO(var_occurs, tagged_t v, tagged_t x1) {
 
 #if defined(UNIFY_OC_INLINE)
 static CBOOL__PROTO(cunifyOC_args_aux,
-		    int arity, tagged_t *pt1, tagged_t *pt2,
-		    tagged_t *x1, tagged_t *x2);
+                    int arity, tagged_t *pt1, tagged_t *pt2,
+                    tagged_t *x1, tagged_t *x2);
 static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2);
 
 /* Unify the argument lists of two compund terms. (with occurs-check)
@@ -1876,19 +1876,19 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2);
  * arity - number of arguments.
  */
 CBOOL__PROTO(cunifyOC_args, 
-	     int arity,
-	     tagged_t *pt1,
-	     tagged_t *pt2) {
+             int arity,
+             tagged_t *pt1,
+             tagged_t *pt2) {
   tagged_t x1, x2;
   return (cunifyOC_args_aux(Arg,arity,pt1,pt2,&x1,&x2) && cunifyOC_aux(Arg,x1,x2));
 }
 
 static CBOOL__PROTO(cunifyOC_args_aux, 
-		    int arity,
-		    tagged_t *pt1,
-		    tagged_t *pt2,
-		    tagged_t *x1,
-		    tagged_t *x2) {
+                    int arity,
+                    tagged_t *pt1,
+                    tagged_t *pt2,
+                    tagged_t *x1,
+                    tagged_t *x2) {
   tagged_t t1 = ~0;
   tagged_t t2 = ~0;
   tagged_t t3;
@@ -1904,7 +1904,7 @@ static CBOOL__PROTO(cunifyOC_args_aux,
       DerefHeapSwitch(t1,t3,{ goto noforward; });
       DerefHeapSwitch(t2,t3,{ goto noforward; });
       if (t1!=t2 && IsComplex(t1&t2)) {
-	/* NOTE: do forward args from pt2 to pt1 */ 
+        /* NOTE: do forward args from pt2 to pt1 */ 
       noforward:
         if (arity>1 && !cunifyOC_aux(Arg,t1,t2))
           return FALSE;
@@ -1954,41 +1954,41 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
   u=x1, v=x2;
 
   SwitchOnVar(u,t1,
-	      {goto u_is_hva;},
-	      {goto u_is_cva;},
-	      {goto u_is_sva;},
-	      {});
+              {goto u_is_hva;},
+              {goto u_is_cva;},
+              {goto u_is_sva;},
+              {});
 
-				/* one non variable */
+                                /* one non variable */
   SwitchOnVar(v,t1,
-	      { OccurCheck(v,u,{goto lose;}); BindHVA(v,u); goto win; },
-	      { OccurCheck(v,u,{goto lose;}); BindCVA(v,u); goto win; },
-	      { OccurCheck(v,u,{goto lose;}); BindSVA(v,u); goto win; },
-	      {});
+              { OccurCheck(v,u,{goto lose;}); BindHVA(v,u); goto win; },
+              { OccurCheck(v,u,{goto lose;}); BindCVA(v,u); goto win; },
+              { OccurCheck(v,u,{goto lose;}); BindSVA(v,u); goto win; },
+              {});
 
-				/* two non variables */
-  if (!(v ^= u)) {		/* are they equal? */
+                                /* two non variables */
+  if (!(v ^= u)) {              /* are they equal? */
     goto win;
-  } else if (v>=QMask) {		/* not the same type? */
+  } else if (v>=QMask) {                /* not the same type? */
     goto lose;
   } else if (!(u & TagBitComplex)) { /* atomic? (& not LNUM)*/
     goto lose;
   } else if (!(u & TagBitFunctor)) { /* list? */
-    v ^= u;			/* restore v */
+    v ^= u;                     /* restore v */
     if (cunifyOC_args_aux(Arg,2,TagToCar(u),TagToCar(v),&x1,&x2)) {
       goto in;
     } else {
       goto lose;
     }
-  } else {				/* structure. */
-    v ^= u;			/* restore v */
+  } else {                              /* structure. */
+    v ^= u;                     /* restore v */
     if (TagToHeadfunctor(u) != (t1=TagToHeadfunctor(v))) {
       goto lose;
-    } else if (t1&QMask) {	/* large number */
+    } else if (t1&QMask) {      /* large number */
       int i;
-	
+        
       for (i = LargeArity(t1)-1; i>0; i--)
-	if (*TagToArg(u,i) != *TagToArg(v,i)) goto lose;
+        if (*TagToArg(u,i) != *TagToArg(v,i)) goto lose;
       goto win;
     }
     if (cunifyOC_args_aux(Arg,Arity(t1),TagToArg(u,1),TagToArg(v,1),&x1,&x2)) {
@@ -2002,9 +2002,9 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
   SwitchOnVar(v,t1, {
       if (u==v) {
       } else if (YoungerHeapVar(TagToHVA(v),TagToHVA(u))) {
-	BindHVA(v,u);
+        BindHVA(v,u);
       } else {
-	BindHVA(u,v); 
+        BindHVA(u,v); 
       } 
     }, {
       BindHVA(u,v);
@@ -2020,9 +2020,9 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
       BindHVA(v,u);
     }, { if (u==v) {
       } else if (YoungerHeapVar(TagToCVA(v),TagToCVA(u))) {
-	BindCVA(v,u);
+        BindCVA(v,u);
       } else {
-	BindCVA(u,v); 
+        BindCVA(u,v); 
       } 
     }, {
       BindSVA(v,u);
@@ -2037,9 +2037,9 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
     if (v == t1) {
       if (u==v) {
       } else if (YoungerStackVar(TagToSVA(v),TagToSVA(u))) {
-	BindSVA(v,u);
+        BindSVA(v,u);
       } else {
-	BindSVA(u,v);
+        BindSVA(u,v);
       }
       goto win;
     }

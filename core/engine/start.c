@@ -107,7 +107,7 @@ CVOID__PROTO(load_ql_files, FILE *qfile)
 
   push_qlinfo(NULL);
 
-  more_ql = qread1(w,qfile,&X(0));	            /* ignore version no. */
+  more_ql = qread1(w,qfile,&X(0));                  /* ignore version no. */
   w->global_top = NodeGlobalTop(w->node);           /* Reset heap pointer */
   
   while (more_ql) {
@@ -174,7 +174,7 @@ void eng_stub_set_length(int len) {
 
 #if defined(Win32)
 static void guess_win32_env(const char *boot_path,
-			    const char *emulator);
+                            const char *emulator);
 #endif
 
 /* Process engine options after "-C" argument */
@@ -205,34 +205,34 @@ void engine_set_opts(const char **optv, int optc, const char **boot_path) {
     else
 #if defined(PROFILE)
       if (strcmp(optv[i], "--profile") == 0)        /* Simple profile */
-	profile_eng = TRUE;
+        profile_eng = TRUE;
       else if (strcmp(optv[i], "--profile-time") == 0)         /* Include time */
-	profile_eng = TRUE;
+        profile_eng = TRUE;
     /* {profile_eng = TRUE; prof_include_time = TRUE;} */
       else
 #endif
-	if (strcmp(optv[i], "--trace-calls") == 0) /* Trace predicate calls */
-	  trace_calls = TRUE;
+        if (strcmp(optv[i], "--trace-calls") == 0) /* Trace predicate calls */
+          trace_calls = TRUE;
 #if defined(DEBUG)
-	else if (strcmp(optv[i], "--trace-instr") == 0) /* Trace instructions */
-	  trace_instr = TRUE;
-	else if (strcmp(optv[i], "--debug-chpt") == 0)  /*debug regular choicepoints*/
-	  debug_choicepoints = TRUE;
-	else if (strcmp(optv[i], "--debug-conc-chpt") == 0) /*conc. choicepoints*/
-	  debug_concchoicepoints = TRUE;
-	else if (strcmp(optv[i], "--debug-threads") == 0)           /* debug threads */
-	  debug_threads = TRUE;
-	else if (strcmp(optv[i], "--debug-gc") == 0)      /* debug garb. coll. */
-	  debug_gc = TRUE;
-	else if (strcmp(optv[i], "--debug-mem") == 0)       /* debug mem. man. */
-	  debug_mem = TRUE;
-	else if (strcmp(optv[i], "--debug-conc") == 0)    /* debug concurrency */
-	  debug_conc = TRUE;
-	else if (strcmp(optv[i],"--debug-dynlink") == 0)
-	  debug_dynlink = TRUE;
+        else if (strcmp(optv[i], "--trace-instr") == 0) /* Trace instructions */
+          trace_instr = TRUE;
+        else if (strcmp(optv[i], "--debug-chpt") == 0)  /*debug regular choicepoints*/
+          debug_choicepoints = TRUE;
+        else if (strcmp(optv[i], "--debug-conc-chpt") == 0) /*conc. choicepoints*/
+          debug_concchoicepoints = TRUE;
+        else if (strcmp(optv[i], "--debug-threads") == 0)           /* debug threads */
+          debug_threads = TRUE;
+        else if (strcmp(optv[i], "--debug-gc") == 0)      /* debug garb. coll. */
+          debug_gc = TRUE;
+        else if (strcmp(optv[i], "--debug-mem") == 0)       /* debug mem. man. */
+          debug_mem = TRUE;
+        else if (strcmp(optv[i], "--debug-conc") == 0)    /* debug concurrency */
+          debug_conc = TRUE;
+        else if (strcmp(optv[i],"--debug-dynlink") == 0)
+          debug_dynlink = TRUE;
 #endif
-	else if (strcmp(optv[i], "-C") != 0)  /* Ignore other "-C" */
-	  fprintf(stderr,"Warning: %s ignored\n",optv[i]);
+        else if (strcmp(optv[i], "-C") != 0)  /* Ignore other "-C" */
+          fprintf(stderr,"Warning: %s ignored\n",optv[i]);
   }
 #if defined(PROFILE)
   if (profile||trace_calls) stop_on_pred_calls = TRUE;
@@ -267,7 +267,7 @@ void engine_init(const char *boot_path, const char *exec_path) {
   lc_ctype = getenv("LC_CTYPE");
   if ((lc_ctype!=NULL &&
        (strcmp(lc_ctype,"ja_JP.EUC")==0 || 
-	strcmp(lc_ctype,"ja_JP.euc")==0))) {
+        strcmp(lc_ctype,"ja_JP.euc")==0))) {
     init_kanji();
   } else {
     init_latin1();
@@ -378,7 +378,7 @@ int engine_start(int argc, char *argv[]) {
     if (i > 0 && strcmp(source_path+i,".bat") == 0){
       int j;
       for (j = 1; ciao_suffix[j] && (i+j < MAXPATHLEN); j++) {
-	source_path[i+j] = ciao_suffix[j];
+        source_path[i+j] = ciao_suffix[j];
       }
     } else if (i > 0 && strcmp(source_path+i, ciao_suffix) != 0) {
       strcat(source_path, ciao_suffix);
@@ -426,7 +426,7 @@ void set_ciaoroot_directory(const char *boot_path, const char *exec_path) {
     if (using_windows()) { /* running in a Windows non-cygwin shell */
       /* Obtain ciaoroot_directory from the Windows registry */
       /* (for Windows executables) and
-	 set a couple more of variables */
+         set a couple more of variables */
       
       /* These are for the registry */
       HKEY SOFTWAREKey, CiaoPrologKey;
@@ -436,26 +436,26 @@ void set_ciaoroot_directory(const char *boot_path, const char *exec_path) {
       ciaoroot_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
      
       if (( RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE"), 0, KEY_READ,
-			 &SOFTWAREKey) == ERROR_SUCCESS ) &&
-	  ( RegOpenKeyEx(SOFTWAREKey, TEXT("Ciao Prolog"), 0, KEY_READ,
-			 &CiaoPrologKey) == ERROR_SUCCESS ) &&
-	  ( RegQueryValueEx(CiaoPrologKey, TEXT("ciaoroot"), NULL, NULL,
-		            (LPBYTE)aux, &buffer_size) == ERROR_SUCCESS )) {
+                         &SOFTWAREKey) == ERROR_SUCCESS ) &&
+          ( RegOpenKeyEx(SOFTWAREKey, TEXT("Ciao Prolog"), 0, KEY_READ,
+                         &CiaoPrologKey) == ERROR_SUCCESS ) &&
+          ( RegQueryValueEx(CiaoPrologKey, TEXT("ciaoroot"), NULL, NULL,
+                            (LPBYTE)aux, &buffer_size) == ERROR_SUCCESS )) {
 #if defined(_WIN32) || defined(_WIN64)
 #warning "TODO(MinGW): check that normalize path of ciaoroot_directory is ok"
-	expand_file_name(aux,TRUE,ciaoroot_directory);
-	// strncpy(ciaoroot_directory, aux, MAXPATHLEN);
+        expand_file_name(aux,TRUE,ciaoroot_directory);
+        // strncpy(ciaoroot_directory, aux, MAXPATHLEN);
 #else
-	cygwin_conv_to_full_posix_path(aux, ciaoroot_directory);
+        cygwin_conv_to_full_posix_path(aux, ciaoroot_directory);
 #endif
-	RegCloseKey(SOFTWAREKey);
-	RegCloseKey(CiaoPrologKey);
+        RegCloseKey(SOFTWAREKey);
+        RegCloseKey(CiaoPrologKey);
       } else if (boot_path != NULL) { // else open the emulator itself
-	fprintf(stderr,
-		"%s\n%s\n",
-		"Registry key not found. Please remember to install Ciao Prolog",
-		"or to set the CIAOROOT environment variable!");
-	engine_exit(1);
+        fprintf(stderr,
+                "%s\n%s\n",
+                "Registry key not found. Please remember to install Ciao Prolog",
+                "or to set the CIAOROOT environment variable!");
+        engine_exit(1);
       }
 
       /* TODO: Guess only in this case? (CIAOROOT not defined) */
@@ -509,7 +509,7 @@ int setenv(const char *name, const char *value, int overwrite);
    directoy.
  */
 static void guess_win32_env(const char *boot_path,
-			    const char *exec_path) {
+                            const char *exec_path) {
   static const char *shexe = "/sh.exe";
   char path[MAXPATHLEN+1];
 
@@ -552,7 +552,7 @@ static void guess_win32_env(const char *boot_path,
     if (aux != NULL) {
       *aux = '\0';
       if (strchr(path,'/') != NULL) { /* TODO: allow? */
-	binpath = path;
+        binpath = path;
       }
     }
   }

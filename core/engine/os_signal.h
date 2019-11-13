@@ -32,12 +32,12 @@
 /* NOTE: Use sigsuspend() for sigpause() */ 
 
 #if defined(Solaris)
-#define SIGNAL(SIG,HDL) {			\
-  struct sigaction act;				\
-  sigemptyset(&act.sa_mask);			\
-  act.sa_flags = 0 | SA_NODEFER;		\
-  act.sa_handler = HDL;				\
-  sigaction(SIG,&act,(struct sigaction *)NULL);	\
+#define SIGNAL(SIG,HDL) {                       \
+  struct sigaction act;                         \
+  sigemptyset(&act.sa_mask);                    \
+  act.sa_flags = 0 | SA_NODEFER;                \
+  act.sa_handler = HDL;                         \
+  sigaction(SIG,&act,(struct sigaction *)NULL); \
 }
 #else
 #define SIGNAL signal

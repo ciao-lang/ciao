@@ -22,7 +22,7 @@
 #define gc_PutValue(p,x) Deposit(p,POINTERMASK,x)
 #define gc_PutValueFirst(p,x) Deposit(p,POINTERMASK|GC_FIRSTMASK,x)
 
-#define PreHeapRead(X)		(*++(X))
-#define HeapPop(X)		(*--(X))
+#define PreHeapRead(X)          (*++(X))
+#define HeapPop(X)              (*--(X))
 
 #endif /* _CIAO_GCDATADEFS_H */

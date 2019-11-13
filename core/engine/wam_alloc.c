@@ -280,9 +280,9 @@ CVOID__PROTO(reinitialize_wam_areas)
 
   if (Atom_Buffer_Length != STATICMAXATOM) {
     Atom_Buffer = checkrealloc_ARRAY(char, 
-				     Atom_Buffer_Length,
-				     STATICMAXATOM,
-				     Atom_Buffer);
+                                     Atom_Buffer_Length,
+                                     STATICMAXATOM,
+                                     Atom_Buffer);
     Atom_Buffer_Length = STATICMAXATOM;
   }
 
@@ -357,76 +357,76 @@ CBOOL__PROTO(statistics)
   runtick0=usertick0;
 
   ENG_PRINTF(s,
-	     "memory used (total)    %10" PRIdm " bytes\n",
-	     total_mem_count);
+             "memory used (total)    %10" PRIdm " bytes\n",
+             total_mem_count);
   ENG_PRINTF(s, 
-	     "   program space (including reserved for atoms): %" PRIdm " bytes\n", 
-	     mem_prog_count);
+             "   program space (including reserved for atoms): %" PRIdm " bytes\n", 
+             mem_prog_count);
 
   ENG_PRINTF(s,
-	     "   number of atoms and functor/predicate names: %" PRIdm "\n", 
-	     ciao_atoms->count);
+             "   number of atoms and functor/predicate names: %" PRIdm "\n", 
+             ciao_atoms->count);
   ENG_PRINTF(s,
-	     "   number of predicate definitions: %" PRIdm "\n", 
-	     num_of_predicates);
+             "   number of predicate definitions: %" PRIdm "\n", 
+             num_of_predicates);
 
   used = HeapCharDifference(Heap_Start,w->global_top);
   free = HeapCharDifference(w->global_top,Heap_End);
   ENG_PRINTF(s, 
-	     "   global stack   %10" PRIdm " bytes:%" PRIdm " in use,%10" PRIdm " free\n",
-	     used+free, used, free);
+             "   global stack   %10" PRIdm " bytes:%" PRIdm " in use,%10" PRIdm " free\n",
+             used+free, used, free);
 
   ComputeA(newa,w->node);
   used = StackCharDifference(Stack_Start,newa);
   free = StackCharDifference(newa,Stack_End);
   ENG_PRINTF(s,
-	     "   local stack    %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n",
-	     used+free, used, free);
+             "   local stack    %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n",
+             used+free, used, free);
 
   used = TrailCharDifference(Trail_Start,w->trail_top);
   free = TrailCharDifference(w->trail_top,w->node)/2;
   ENG_PRINTF(s,
-	     "   trail stack    %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n",
-	     used+free, used, free);
+             "   trail stack    %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n",
+             used+free, used, free);
 
   used = ChoiceCharDifference(Choice_Start,w->node);
   free = ChoiceCharDifference(w->node,w->trail_top)/2;
   ENG_PRINTF(s,
-	     "   control stack  %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n\n",
-	     used+free, used, free);
+             "   control stack  %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n\n",
+             used+free, used, free);
 
   ENG_PRINTF(s,
-	     " %10.6f sec. for %" PRIdm " global, %" PRIdm " local, and %" PRIdm " control space overflows\n",
-	     ((flt64_t)ciao_statistics.ss_tick)/GET_CLOCKFREQ(ciao_statistics),
-	     ciao_statistics.ss_global,
-	     ciao_statistics.ss_local, ciao_statistics.ss_control);
+             " %10.6f sec. for %" PRIdm " global, %" PRIdm " local, and %" PRIdm " control space overflows\n",
+             ((flt64_t)ciao_statistics.ss_tick)/GET_CLOCKFREQ(ciao_statistics),
+             ciao_statistics.ss_global,
+             ciao_statistics.ss_local, ciao_statistics.ss_control);
   ENG_PRINTF(s,
-	     " %10.6f sec. for %" PRIdm " garbage collections which collected %" PRIdm " bytes\n\n",
-	     ((flt64_t)ciao_statistics.gc_tick)/GET_CLOCKFREQ(ciao_statistics),
-	     ciao_statistics.gc_count,
-	     (intmach_t)(ciao_statistics.gc_acc*sizeof(tagged_t)));
+             " %10.6f sec. for %" PRIdm " garbage collections which collected %" PRIdm " bytes\n\n",
+             ((flt64_t)ciao_statistics.gc_tick)/GET_CLOCKFREQ(ciao_statistics),
+             ciao_statistics.gc_count,
+             (intmach_t)(ciao_statistics.gc_acc*sizeof(tagged_t)));
 
   ENG_PRINTF(s,
-	     " runtime:    %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
-	     (flt64_t)(runtick0-ciao_statistics.starttick)/GET_CLOCKFREQ(ciao_statistics),
-	     runtick0-ciao_statistics.starttick,
-	     GET_CLOCKFREQ(ciao_statistics));
+             " runtime:    %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
+             (flt64_t)(runtick0-ciao_statistics.starttick)/GET_CLOCKFREQ(ciao_statistics),
+             runtick0-ciao_statistics.starttick,
+             GET_CLOCKFREQ(ciao_statistics));
   ENG_PRINTF(s,
-	     " usertime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
-	     (flt64_t)(usertick0-ciao_statistics.startusertick)/ciao_statistics.userclockfreq,
-	     usertick0-ciao_statistics.startusertick,
-	     ciao_statistics.userclockfreq);
+             " usertime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
+             (flt64_t)(usertick0-ciao_statistics.startusertick)/ciao_statistics.userclockfreq,
+             usertick0-ciao_statistics.startusertick,
+             ciao_statistics.userclockfreq);
   ENG_PRINTF(s,
-	     " systemtime: %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
-	     (flt64_t)(systemtick0-ciao_statistics.startsystemtick)/ciao_statistics.systemclockfreq,
-	     systemtick0-ciao_statistics.startsystemtick,
-	     ciao_statistics.systemclockfreq);
+             " systemtime: %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
+             (flt64_t)(systemtick0-ciao_statistics.startsystemtick)/ciao_statistics.systemclockfreq,
+             systemtick0-ciao_statistics.startsystemtick,
+             ciao_statistics.systemclockfreq);
 
   ENG_PRINTF(s,
-	     " walltime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n\n",
-	     (flt64_t)(walltick0-ciao_statistics.startwalltick)/ciao_statistics.wallclockfreq,
-	     walltick0-ciao_statistics.startwalltick,
-	     ciao_statistics.wallclockfreq);
+             " walltime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n\n",
+             (flt64_t)(walltick0-ciao_statistics.startwalltick)/ciao_statistics.wallclockfreq,
+             walltick0-ciao_statistics.startwalltick,
+             ciao_statistics.wallclockfreq);
 
   return TRUE;
 }

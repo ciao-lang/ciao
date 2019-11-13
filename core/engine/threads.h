@@ -35,8 +35,8 @@
 #if defined(USE_POSIX_THREADS)
 #include <pthread.h>
 
-typedef pthread_t THREAD_T;	/* The type of a thread */
-typedef pthread_t THREAD_ID;	/* The unique identifier of a thread */
+typedef pthread_t THREAD_T;     /* The type of a thread */
+typedef pthread_t THREAD_ID;    /* The unique identifier of a thread */
 typedef void *    THREAD_ARG;
 typedef void *    THREAD_RES_T;
 typedef void *(*THREAD_START)(void *);
@@ -84,9 +84,9 @@ typedef void *(*THREAD_START)(void *);
 #if defined(USE_WIN32_THREADS)
 #include <ciao/windows.h>
 
-typedef HANDLE THREAD_T;	/* The thread object */
-typedef DWORD  THREAD_ID;	/* The unique thread identifier */
-typedef LPVOID THREAD_ARG;	/* The argument to the initial thread call */
+typedef HANDLE THREAD_T;        /* The thread object */
+typedef DWORD  THREAD_ID;       /* The unique thread identifier */
+typedef LPVOID THREAD_ARG;      /* The argument to the initial thread call */
 typedef DWORD  THREAD_RES_T;
 typedef LPTHREAD_START_ROUTINE  THREAD_START; /* The type of the routine */
 
@@ -107,7 +107,7 @@ typedef LPTHREAD_START_ROUTINE  THREAD_START; /* The type of the routine */
     in order to avoid warnings because of return type */
 #define _beginthreadex(security, stack_size, start_proc, arg, flags, pid) \
 CreateThread(security, stack_size, (LPTHREAD_START_ROUTINE) start_proc, \
-	     arg, flags, pid)      
+             arg, flags, pid)      
  #define _endthreadex ExitThread      
  #endif 
 
@@ -149,7 +149,7 @@ CreateThread(security, stack_size, (LPTHREAD_START_ROUTINE) start_proc, \
 #endif
 
 typedef int THREAD_T;
-typedef int THREAD_ID;	/* The unique identifier of a thread */
+typedef int THREAD_ID;  /* The unique identifier of a thread */
 typedef void *THREAD_ARG;
 typedef void *THREAD_RES_T;
 typedef void *(*THREAD_START)(void *);

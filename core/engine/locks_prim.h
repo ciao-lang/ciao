@@ -125,36 +125,36 @@ typedef volatile struct {
 /* ------------------------------------------------------------------------- */
 /* Untested for MIPS! */
 # if defined(mips)
-#   define asm_ll(adr)						\
-  ({ int _ret;							\
-     asm volatile ("ll %0,%1"					\
-	: "=r" (_ret), "=m" (*(adr))	/* Output %0,%1 */	\
-	: "m"  (*(adr)));		/* Input (%2) */	\
-     _ret;							\
+#   define asm_ll(adr)                                          \
+  ({ int _ret;                                                  \
+     asm volatile ("ll %0,%1"                                   \
+        : "=r" (_ret), "=m" (*(adr))    /* Output %0,%1 */      \
+        : "m"  (*(adr)));               /* Input (%2) */        \
+     _ret;                                                      \
   })
 
-#   define asm_sc(adr,reg)					\
-  ({ int _ret;							\
-     asm volatile ("sc %0,%1"					\
-	: "=r" (_ret), "=m" (*(adr))	/* Output %0,%1 */	\
-	: "m"  (*(adr)), "0" (reg));	/* Input (%2),%0 */	\
-     _ret;							\
+#   define asm_sc(adr,reg)                                      \
+  ({ int _ret;                                                  \
+     asm volatile ("sc %0,%1"                                   \
+        : "=r" (_ret), "=m" (*(adr))    /* Output %0,%1 */      \
+        : "m"  (*(adr)), "0" (reg));    /* Input (%2),%0 */     \
+     _ret;                                                      \
   })
 
-#  define aswap(p,v)						\
-  ({ int _ret;							\
-     do { _ret = asm_ll(p); } while(! asm_sc(p, v));		\
-     _ret;							\
+#  define aswap(p,v)                                            \
+  ({ int _ret;                                                  \
+     do { _ret = asm_ll(p); } while(! asm_sc(p, v));            \
+     _ret;                                                      \
   })
 
 #define mips_try_lock(p) (*(LockOffset(p))=1)
 
-# define mips_lock(p)						\
-do { if (mips_try_lock(p)) break;			        \
-     {{ t_lock_wait(); }}					\
-     {{ t_debug(__FILE__,__LINE__); }}				\
-     while(*(LockOffset*p))==1) continue;		        \
-     {{ t_lock_ready(); }}					\
+# define mips_lock(p)                                           \
+do { if (mips_try_lock(p)) break;                               \
+     {{ t_lock_wait(); }}                                       \
+     {{ t_debug(__FILE__,__LINE__); }}                          \
+     while(*(LockOffset*p))==1) continue;                       \
+     {{ t_lock_ready(); }}                                      \
    } while(1)
 # endif
 

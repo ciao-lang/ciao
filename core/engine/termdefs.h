@@ -77,7 +77,7 @@ typedef struct module_ module_t; /* defined in objareas.h */
 
 #if defined(DEBUG) || defined(PROFILE)
 # define DEBUG_NODE /* Adds functor information in choicepoints
-			to facilitate debugging */
+                        to facilitate debugging */
 #endif
 /* # define DEBUG_NODE   */
 
@@ -90,48 +90,48 @@ typedef struct module_ module_t; /* defined in objareas.h */
 #define ARITYOFFSET (tagged__size-TAGSIZE-1-ARITYSIZE)
 #define ARITYLIMIT (1<<ARITYSIZE) /* 256 */
 
-#define TAGMASK		((((tagged_t)1<<TAGSIZE)-1)<<TAGOFFSET) /* E000...0000 */
-#define QMask		((tagged_t)1<<TAGOFFSET>>1) /* 1000...0000 */
-#define ZMask		((tagged_t)1<<TAGOFFSET>>2) /* 0800...0000 */
+#define TAGMASK         ((((tagged_t)1<<TAGSIZE)-1)<<TAGOFFSET) /* E000...0000 */
+#define QMask           ((tagged_t)1<<TAGOFFSET>>1) /* 1000...0000 */
+#define ZMask           ((tagged_t)1<<TAGOFFSET>>2) /* 0800...0000 */
  
-#define INDEXMASK	(((tagged_t)1<<ARITYOFFSET)-1) /* 000F...FFFF */
-#define TagIndex(T,P)	(((T)<<TAGOFFSET)+((tagged_t)((P)<<tagged__atm_offset)))
-#define TagIndexDiff(P)	((tagged_t)((P)<<tagged__atm_offset))
-#define IndexPart(T)	(((T)&INDEXMASK)>>tagged__atm_offset)
+#define INDEXMASK       (((tagged_t)1<<ARITYOFFSET)-1) /* 000F...FFFF */
+#define TagIndex(T,P)   (((T)<<TAGOFFSET)+((tagged_t)((P)<<tagged__atm_offset)))
+#define TagIndexDiff(P) ((tagged_t)((P)<<tagged__atm_offset))
+#define IndexPart(T)    (((T)&INDEXMASK)>>tagged__atm_offset)
 
-#define POINTERMASK	(QMask-(1<<tagged__ptr_offset)) /* 0FFF...FFFC */
-#define PointerPart(T)	((intmach_t)((T)&POINTERMASK))  
+#define POINTERMASK     (QMask-(1<<tagged__ptr_offset)) /* 0FFF...FFFC */
+#define PointerPart(T)  ((intmach_t)((T)&POINTERMASK))  
 #if SMALLPTR_BASE
-#define TagToPointer(T)	((tagged_t *)(((tagged_t)(T)&POINTERMASK)+SMALLPTR_BASE))
+#define TagToPointer(T) ((tagged_t *)(((tagged_t)(T)&POINTERMASK)+SMALLPTR_BASE))
 #else
-#define TagToPointer(T)	((tagged_t *)((tagged_t)(T)&POINTERMASK))
+#define TagToPointer(T) ((tagged_t *)((tagged_t)(T)&POINTERMASK))
 #endif
 
 /* Tag(T,P) creates tagged_t from tag T and pointer P */
 #if SMALLPTR_BASE
-#define Tag(T,P)	(((T)<<TAGOFFSET)+((tagged_t)(P) & POINTERMASK))
+#define Tag(T,P)        (((T)<<TAGOFFSET)+((tagged_t)(P) & POINTERMASK))
 #else
-#define Tag(T,P)	(((T)<<TAGOFFSET)+((tagged_t)(P)))
+#define Tag(T,P)        (((T)<<TAGOFFSET)+((tagged_t)(P)))
 #endif
 
 // #define MaxAtomCount (INDEXMASK>>tagged__atm_offset)
 #define MaxAtomCount (((tagged_t)1<<(tagged__size-TAGSIZE-1-ARITYSIZE-tagged__atm_offset))-1)
 
-#define HasTag(X,T)	(((X) & TAGMASK) == ((T)<<TAGOFFSET))
-#define TagOf(P)	((P)>>TAGOFFSET)  /* collects tag */
-#define CT(T1,T2)	((T1)<<TAGSIZE|(T2)) /* for concatenating tags     */
+#define HasTag(X,T)     (((X) & TAGMASK) == ((T)<<TAGOFFSET))
+#define TagOf(P)        ((P)>>TAGOFFSET)  /* collects tag */
+#define CT(T1,T2)       ((T1)<<TAGSIZE|(T2)) /* for concatenating tags     */
 
-#define IsVar(A)	((stagged_t)(A)>=0)        /* variable tags begin with 0 */
+#define IsVar(A)        ((stagged_t)(A)>=0)        /* variable tags begin with 0 */
 
-#define TagIsHVA(X)	((X) < CVA<<TAGOFFSET)
-#define TagIsCVA(X)	HasTag(X,CVA)
-#define TagIsSVA(X)	((stagged_t)(X) >= (stagged_t)(SVA<<TAGOFFSET))
-#define TagIsSmall(X)	((stagged_t)(X) < (stagged_t)TaggedHigh)
+#define TagIsHVA(X)     ((X) < CVA<<TAGOFFSET)
+#define TagIsCVA(X)     HasTag(X,CVA)
+#define TagIsSVA(X)     ((stagged_t)(X) >= (stagged_t)(SVA<<TAGOFFSET))
+#define TagIsSmall(X)   ((stagged_t)(X) < (stagged_t)TaggedHigh)
 #define TagIsLarge(X)   (TagIsSTR(X) && STRIsLarge(X))
-#define TagIsNUM(X)	((stagged_t)(X) < (stagged_t)(ATM<<TAGOFFSET)) 
-#define TagIsATM(X)	HasTag(X,ATM)
-#define TagIsLST(X)	HasTag(X,LST)
-#define TagIsSTR(X)	((X) >= (STR<<TAGOFFSET))
+#define TagIsNUM(X)     ((stagged_t)(X) < (stagged_t)(ATM<<TAGOFFSET)) 
+#define TagIsATM(X)     HasTag(X,ATM)
+#define TagIsLST(X)     HasTag(X,LST)
+#define TagIsSTR(X)     ((X) >= (STR<<TAGOFFSET))
 #define TagIsStructure(X) (TagIsSTR(X) && !STRIsLarge(X))
 #define STRIsLarge(X)   (TagToHeadfunctor(X) & QMask)
 
@@ -139,36 +139,36 @@ typedef struct module_ module_t; /* defined in objareas.h */
 /* NOTE: pointers must be in the SMALLPTR_BASE range and they must be
    aligned to 1<<tagged__num_offset (32-bits) */
 #if SMALLPTR_BASE
-#define TermToPointer(X)	((tagged_t *)((X) ^ (TaggedZero^SMALLPTR_BASE)))
-#define TermToPointerOrNull(X)	((tagged_t *)((X)==TaggedZero ? 0 : \
-					    (X) ^ (TaggedZero^SMALLPTR_BASE)))
-#define PointerToTerm(X)	((tagged_t)(X) ^ (TaggedZero^SMALLPTR_BASE))
-#define PointerToTermOrZero(X)	(!(X) ? TaggedZero : \
-				 (tagged_t)(X) ^ (TaggedZero^SMALLPTR_BASE))
+#define TermToPointer(X)        ((tagged_t *)((X) ^ (TaggedZero^SMALLPTR_BASE)))
+#define TermToPointerOrNull(X)  ((tagged_t *)((X)==TaggedZero ? 0 : \
+                                            (X) ^ (TaggedZero^SMALLPTR_BASE)))
+#define PointerToTerm(X)        ((tagged_t)(X) ^ (TaggedZero^SMALLPTR_BASE))
+#define PointerToTermOrZero(X)  (!(X) ? TaggedZero : \
+                                 (tagged_t)(X) ^ (TaggedZero^SMALLPTR_BASE))
 #else
-#define TermToPointer(X)	((tagged_t *)((X) ^ TaggedZero))
-#define TermToPointerOrNull(X)	((tagged_t *)((X) ^ TaggedZero))
-#define PointerToTerm(X)	((tagged_t)(X) ^ TaggedZero)
-#define PointerToTermOrZero(X)	((tagged_t)(X) ^ TaggedZero)
+#define TermToPointer(X)        ((tagged_t *)((X) ^ TaggedZero))
+#define TermToPointerOrNull(X)  ((tagged_t *)((X) ^ TaggedZero))
+#define PointerToTerm(X)        ((tagged_t)(X) ^ TaggedZero)
+#define PointerToTermOrZero(X)  ((tagged_t)(X) ^ TaggedZero)
 #endif
 
 /* Assuming IsVar(X): */
-#define VarIsCVA(X)	((stagged_t)(X<<1) >= (stagged_t)(CVA<<1<<TAGOFFSET))
+#define VarIsCVA(X)     ((stagged_t)(X<<1) >= (stagged_t)(CVA<<1<<TAGOFFSET))
 
 /* Assuming !IsVar(X): */
-#define TermIsATM(X)	((stagged_t)(X<<1) >= (stagged_t)(ATM<<1<<TAGOFFSET))
-#define TermIsLST(X)	((stagged_t)(X<<1) < (stagged_t)(STR<<1<<TAGOFFSET))
+#define TermIsATM(X)    ((stagged_t)(X<<1) >= (stagged_t)(ATM<<1<<TAGOFFSET))
+#define TermIsLST(X)    ((stagged_t)(X<<1) < (stagged_t)(STR<<1<<TAGOFFSET))
 
 /* Test for HVA, CVA, LST, STR i.e. 0, 1, 6, 7 (and LNUM)*/
 /* This works for some machines, but not for others...
-   #define IsHeapTerm(A)	((stagged_t)(A)+(SVA<<TAGOFFSET)>=0)
+   #define IsHeapTerm(A)        ((stagged_t)(A)+(SVA<<TAGOFFSET)>=0)
 */
-#define IsHeapTerm(A)	((tagged_t)(A)+(SVA<<TAGOFFSET) < (NUM<<TAGOFFSET))
+#define IsHeapTerm(A)   ((tagged_t)(A)+(SVA<<TAGOFFSET) < (NUM<<TAGOFFSET))
 
-#define IsHeapVar(X)	((X) < (SVA<<TAGOFFSET))
-#define IsStackVar(X)	((stagged_t)(X) >= (stagged_t)(SVA<<TAGOFFSET))
-#define IsAtomic(X)	((stagged_t)(X) < (stagged_t)(LST<<TAGOFFSET))
-#define IsComplex(X)	((X) >= (LST<<TAGOFFSET))
+#define IsHeapVar(X)    ((X) < (SVA<<TAGOFFSET))
+#define IsStackVar(X)   ((stagged_t)(X) >= (stagged_t)(SVA<<TAGOFFSET))
+#define IsAtomic(X)     ((stagged_t)(X) < (stagged_t)(LST<<TAGOFFSET))
+#define IsComplex(X)    ((X) >= (LST<<TAGOFFSET))
 
 #define TermIsAtomic(X) (IsAtomic(X) || TagIsLarge(X))
 #define TermIsComplex(X) (IsComplex(X) && !TagIsLarge(X))
@@ -181,21 +181,21 @@ typedef struct module_ module_t; /* defined in objareas.h */
 
 /* If this ordering ever changes, must update TagToHVA etc. too! */
 
-#define HVA ((tagged_t)0)		/* heap variable */
-#define CVA ((tagged_t)1)		/* constrained variable */
-#define SVA ((tagged_t)2)		/* stack variable */
-#define UBV ((tagged_t)3)		/* Unbound -- low bits are array index */
+#define HVA ((tagged_t)0)               /* heap variable */
+#define CVA ((tagged_t)1)               /* constrained variable */
+#define SVA ((tagged_t)2)               /* stack variable */
+#define UBV ((tagged_t)3)               /* Unbound -- low bits are array index */
 
-#define NUM ((tagged_t)4)		/* number: small integer */
-#define ATM ((tagged_t)5)		/* atom: low part is atmtab index */
-#define LST ((tagged_t)6)		/* list */
-#define STR ((tagged_t)7)		/* structure */
+#define NUM ((tagged_t)4)               /* number: small integer */
+#define ATM ((tagged_t)5)               /* atom: low part is atmtab index */
+#define LST ((tagged_t)6)               /* list */
+#define STR ((tagged_t)7)               /* structure */
 
 #define MAXTAG 7
 #define NOTAG 8
 
-#define ERRORTAG   ((tagged_t)0)	/* ERRORTAG is a tagged_t pointer guaranteed 
-				   to be different from all tagged_t objects */
+#define ERRORTAG   ((tagged_t)0)        /* ERRORTAG is a tagged_t pointer guaranteed 
+                                   to be different from all tagged_t objects */
 
 /* Tags + one more bit: 
    Funny objects are represented as small ints.
@@ -207,23 +207,23 @@ typedef struct module_ module_t; /* defined in objareas.h */
    ATM = atom as index in atmtab.
 */
 
-#define TaggedLow	Tag(NUM,0)
-#define TaggedZero	(TaggedLow+ZMask)
-#define TaggedHigh	(TaggedLow+QMask)
+#define TaggedLow       Tag(NUM,0)
+#define TaggedZero      (TaggedLow+ZMask)
+#define TaggedHigh      (TaggedLow+QMask)
 #define tagged__num_size (tagged__size - TAGSIZE - 1 - tagged__num_offset)
 #define SmallIntMax ((intval_t)(((uintval_t)1<<(tagged__num_size-1))-1))
 #define SmallIntMin (((intval_t)(-1)<<(tagged__num_size-1)))
-#define HighInt	(SmallIntMax+1)
+#define HighInt (SmallIntMax+1)
 
 /* A small integer */
-#define MakeSmall(X)	(((tagged_t)((intmach_t)(X)<<tagged__num_offset))+TaggedZero)
+#define MakeSmall(X)    (((tagged_t)((intmach_t)(X)<<tagged__num_offset))+TaggedZero)
 /* Get integer from small integer */
-#define GetSmall(X)	((intmach_t)(((X)>>tagged__num_offset)-(TaggedZero>>tagged__num_offset)))
+#define GetSmall(X)     ((intmach_t)(((X)>>tagged__num_offset)-(TaggedZero>>tagged__num_offset)))
 /* Difference between integer and TaggedZero */  
 #define MakeSmallDiff(X) ((intmach_t)(X)<<tagged__num_offset)
 
 /* Get string of an atom */
-#define GetString(X)	(TagToAtom(X)->name)
+#define GetString(X)    (TagToAtom(X)->name)
 
 #define USE_ATOM_LEN
 
@@ -232,9 +232,9 @@ typedef struct module_ module_t; /* defined in objareas.h */
 #endif
 
 /* 1 + no. untyped words */
-#define LargeArity(X)	(PointerPart(X)>>tagged__atm_offset)
+#define LargeArity(X)   (PointerPart(X)>>tagged__atm_offset)
 /* LargeArity() in bytes */
-#define LargeSize(X)	((PointerPart(X)>>tagged__atm_offset)*sizeof(tagged_t))
+#define LargeSize(X)    ((PointerPart(X)>>tagged__atm_offset)*sizeof(tagged_t))
 
 #define MakeLength(L) ((bignum_t)(TagIndexDiff((L))+TagIndex(ATM,1)+QMask))
 #define GetBignumLength(T) (((T) - MakeLength(0))>>tagged__atm_offset)
@@ -246,19 +246,19 @@ typedef struct module_ module_t; /* defined in objareas.h */
 
 #define MakeLarge(ARG,Ptr) make_large(ARG,(tagged_t *)(Ptr))
 #define MakeInteger(ARG, X) (IntIsSmall(X) ? MakeSmall(X) : make_integer(ARG,X))
-#define MakeFloat(ARG,X)	make_float(ARG,X)
-#define MakeAtom(X)	TagIndex(ATM,X)
-#define MakeString(X)	init_atom_check(X)
+#define MakeFloat(ARG,X)        make_float(ARG,X)
+#define MakeAtom(X)     TagIndex(ATM,X)
+#define MakeString(X)   init_atom_check(X)
 
-#define GetInteger(X)	(TagIsSmall(X) ? GetSmall(X) : get_integer(X))
+#define GetInteger(X)   (TagIsSmall(X) ? GetSmall(X) : get_integer(X))
 #define GetFloat(X)     (TagIsSmall(X) ? (flt64_t)GetSmall(X) : get_float(X))
 
-#define IntIsSmall(X)	((X) >= -HighInt && (X) < HighInt)
-#define IsInteger(X)	(TagIsSmall(X) || (TagIsLarge(X) && !LargeIsFloat(X)))
-#define IsFloat(X)	(TagIsLarge(X) && LargeIsFloat(X))
-#define IsNumber(X)	(TagIsSmall(X) || TagIsLarge(X))
-#define IsAtom(X)	TagIsATM(X)
-#define IsString(X)	TagIsATM(X)
+#define IntIsSmall(X)   ((X) >= -HighInt && (X) < HighInt)
+#define IsInteger(X)    (TagIsSmall(X) || (TagIsLarge(X) && !LargeIsFloat(X)))
+#define IsFloat(X)      (TagIsLarge(X) && LargeIsFloat(X))
+#define IsNumber(X)     (TagIsSmall(X) || TagIsLarge(X))
+#define IsAtom(X)       TagIsATM(X)
+#define IsString(X)     TagIsATM(X)
 
 #if BC_SCALE==2
 /* Int is small in BC32 (for BC_SCALE==2) */
@@ -273,25 +273,25 @@ typedef struct module_ module_t; /* defined in objareas.h */
 /* X is an Integer that fits in an intmach_t.
    This is the postcondition of MakeInteger.
 */ 
-#define IsIntegerFix(X)	(TagIsSmall(X) || (TagIsSTR(X) && TagToHeadfunctor(X)==MakeFunctorFix))
+#define IsIntegerFix(X) (TagIsSmall(X) || (TagIsSTR(X) && TagToHeadfunctor(X)==MakeFunctorFix))
 
 /* Finish the large integer at `HTop` and move `HTop` forward. If the
  * large integer can be represented as a small int, keep it
  * unchanged. `Out` is assigned the a STR tagged (large) or small int.
  */
 // TODO: ar==2 assumes that sizeof(bignum_t) == sizeof(intmach_t) == sizeof(tagged_t)
-#define FinishInt(HTop, Out) ({			\
-  tagged_t *h_ = (HTop);			\
-  int ar_ = LargeArity(h_[0]);			\
-  tagged_t r_;					\
+#define FinishInt(HTop, Out) ({                 \
+  tagged_t *h_ = (HTop);                        \
+  int ar_ = LargeArity(h_[0]);                  \
+  tagged_t r_;                                  \
   if (ar_ == 2 && IntIsSmall((intmach_t)h_[1])) { \
-    r_ = MakeSmall(h_[1]);			\
-  } else {					\
-    (HTop) += ar_+1;				\
-    h_[ar_] = h_[0];				\
-    r_ = Tag(STR,h_);				\
-  }						\
-  (Out) = r_;					\
+    r_ = MakeSmall(h_[1]);                      \
+  } else {                                      \
+    (HTop) += ar_+1;                            \
+    h_[ar_] = h_[0];                            \
+    r_ = Tag(STR,h_);                           \
+  }                                             \
+  (Out) = r_;                                   \
 })
 
 /* TODO: backport from optim_comp */
@@ -323,16 +323,16 @@ typedef struct module_ module_t; /* defined in objareas.h */
 CFUN__PROTO(bc_make_large, tagged_t, tagged_t *ptr);
 CBOOL__PROTO(bc_eq_large, tagged_t t, tagged_t *ptr);
 #define BC_MakeLarge(ARG, Ptr) bc_make_large(ARG,(tagged_t *)(Ptr))
-#define BC_EqLarge(T, Ptr, FailCode) {					\
-    if (!bc_eq_large(Arg, (T), (tagged_t *)(Ptr))) FailCode;		\
+#define BC_EqLarge(T, Ptr, FailCode) {                                  \
+    if (!bc_eq_large(Arg, (T), (tagged_t *)(Ptr))) FailCode;            \
   }
 #else
 #define BC_MakeLarge(ARG, Ptr) make_large(ARG,(tagged_t *)(Ptr))
-#define BC_EqLarge(T, Ptr, FailCode) {					\
-    if (!TagIsSTR((T))) FailCode;					\
-    for (i=LargeArity(*(tagged_t *)(Ptr)); i>0; i--) {			\
-      if (((tagged_t *)(Ptr))[i-1] != *TagToArg((T),i-1)) FailCode;	\
-    }									\
+#define BC_EqLarge(T, Ptr, FailCode) {                                  \
+    if (!TagIsSTR((T))) FailCode;                                       \
+    for (i=LargeArity(*(tagged_t *)(Ptr)); i>0; i--) {                  \
+      if (((tagged_t *)(Ptr))[i-1] != *TagToArg((T),i-1)) FailCode;     \
+    }                                                                   \
   }
 #endif
 
@@ -340,46 +340,46 @@ CBOOL__PROTO(bc_eq_large, tagged_t t, tagged_t *ptr);
 /* manipulating tagged_t objects removing tag and getting correct type of
    pointer  */
 
-#define TagToHVA(x)	((tagged_t*)((x)+SMALLPTR_BASE)) /* tag = 0 */
-#define TagToCVA(x)	((tagged_t*)((x)-(CVA<<TAGOFFSET)+SMALLPTR_BASE))
-#define TagToSVA(x)	((tagged_t*)((x)-(SVA<<TAGOFFSET)+SMALLPTR_BASE))
-#define TagToUBV(x)	((tagged_t*)((x)-(UBV<<TAGOFFSET)+SMALLPTR_BASE))
-#define TagToLST(x)	((tagged_t*)((x)-(LST<<TAGOFFSET)+SMALLPTR_BASE))
-#define TagToSTR(x)	((tagged_t*)((x)-(STR<<TAGOFFSET)+SMALLPTR_BASE))
+#define TagToHVA(x)     ((tagged_t*)((x)+SMALLPTR_BASE)) /* tag = 0 */
+#define TagToCVA(x)     ((tagged_t*)((x)-(CVA<<TAGOFFSET)+SMALLPTR_BASE))
+#define TagToSVA(x)     ((tagged_t*)((x)-(SVA<<TAGOFFSET)+SMALLPTR_BASE))
+#define TagToUBV(x)     ((tagged_t*)((x)-(UBV<<TAGOFFSET)+SMALLPTR_BASE))
+#define TagToLST(x)     ((tagged_t*)((x)-(LST<<TAGOFFSET)+SMALLPTR_BASE))
+#define TagToSTR(x)     ((tagged_t*)((x)-(STR<<TAGOFFSET)+SMALLPTR_BASE))
 
-#define TagHVA(x)	Tag(HVA,x)
-#define TagSVA(x)	Tag(SVA,x)
-#define TagCVA(x)	Tag(CVA,x)
+#define TagHVA(x)       Tag(HVA,x)
+#define TagSVA(x)       Tag(SVA,x)
+#define TagCVA(x)       Tag(CVA,x)
 
 /* Functor hackery. --MC */
 /*-----------------------*/
 
-#define Arity(X)	(PointerPart(X)>>ARITYOFFSET)
-#define SetArity(X,A)	((tagged_t)(((X) & (TAGMASK | INDEXMASK)) | ((tagged_t)A<<ARITYOFFSET)))
+#define Arity(X)        (PointerPart(X)>>ARITYOFFSET)
+#define SetArity(X,A)   ((tagged_t)(((X) & (TAGMASK | INDEXMASK)) | ((tagged_t)A<<ARITYOFFSET)))
 
-#define TagToAtom(X)	(atmtab[IndexPart(X)]->value.atomp)
+#define TagToAtom(X)    (atmtab[IndexPart(X)]->value.atomp)
 
     /* finding the principal functor of a structure */
     /* finding the arguments of a structure, first argument is 1 */
     /* finding the car & cdr of a list. */
     /* finding the constraints of a CVA. */
 #define TagToHeadfunctor(X) (*TagToSTR(X))
-#define TagToArg(X,N)	HeapOffset(TagToSTR(X),N)
-#define TagToCar(X)	TagToLST(X)
-#define TagToCdr(X)	HeapOffset(TagToLST(X),1)
-#define TagToGoal(X)	HeapOffset(TagToCVA(X),1)
-#define TagToDef(X)	HeapOffset(TagToCVA(X),2)
+#define TagToArg(X,N)   HeapOffset(TagToSTR(X),N)
+#define TagToCar(X)     TagToLST(X)
+#define TagToCdr(X)     HeapOffset(TagToLST(X),1)
+#define TagToGoal(X)    HeapOffset(TagToCVA(X),1)
+#define TagToDef(X)     HeapOffset(TagToCVA(X),2)
 
-#define TagToInstance(X)	((instance_t *)TermToPointerOrNull(X))
-#define TagToInstHandle(X)	((instance_handle_t *) TermToPointerOrNull(X))
-#define TagToInstancePtr(X)	((instance_t **)TermToPointerOrNull(X))
-#define TagToStream(X)	((stream_node_t *)TermToPointer(X))
-#define TagToLock(X)	((LOCK *)TermToPointer(X))
-#define TagToSLock(X)	((SLOCK *)TermToPointer(X))
-#define TagToBool(X)	((bool_t *)TermToPointer(X))
-#define TagToRoot(X)	((int_info_t *)TermToPointer(X))
-#define TagToEmul(X)	((emul_info_t *)TermToPointer(X))
-#define TagToFunctor(X)	((definition_t *)TermToPointer(X))
+#define TagToInstance(X)        ((instance_t *)TermToPointerOrNull(X))
+#define TagToInstHandle(X)      ((instance_handle_t *) TermToPointerOrNull(X))
+#define TagToInstancePtr(X)     ((instance_t **)TermToPointerOrNull(X))
+#define TagToStream(X)  ((stream_node_t *)TermToPointer(X))
+#define TagToLock(X)    ((LOCK *)TermToPointer(X))
+#define TagToSLock(X)   ((SLOCK *)TermToPointer(X))
+#define TagToBool(X)    ((bool_t *)TermToPointer(X))
+#define TagToRoot(X)    ((int_info_t *)TermToPointer(X))
+#define TagToEmul(X)    ((emul_info_t *)TermToPointer(X))
+#define TagToFunctor(X) ((definition_t *)TermToPointer(X))
 
 #if defined(TABLING)
 typedef struct node_tr_ node_tr_t;
@@ -791,35 +791,35 @@ struct worker_ {
   tagged_t *trail_start;
   tagged_t *trail_end;
 
-  node_t *node;		/* choice pointer */
-  node_t *next_node;	/* -""- at predicate entry */
-  node_t *segment_node;	/* gc's segment choice point */
-  bcp_t insn;			/* program counter */
-  tagged_t *structure;		/* structure pointer */
-  tagged_t global_uncond;		/* first uncond. global variable */
-  tagged_t local_uncond;		/* first uncond. local variable no. */
-  intmach_t value_trail;		/* size of value_trail extension of w->node */
+  node_t *node;         /* choice pointer */
+  node_t *next_node;    /* -""- at predicate entry */
+  node_t *segment_node; /* gc's segment choice point */
+  bcp_t insn;                   /* program counter */
+  tagged_t *structure;          /* structure pointer */
+  tagged_t global_uncond;               /* first uncond. global variable */
+  tagged_t local_uncond;                /* first uncond. local variable no. */
+  intmach_t value_trail;                /* size of value_trail extension of w->node */
 
   /* incidentally, the rest is similar to a node_t */
-  tagged_t *trail_top;		/* trail pointer */
-  tagged_t *global_top;		/* heap pointer */
-  try_node_t *next_alt;	/* next clause at predicate entry */
-  frame_t *frame;		/* environment pointer */
-  bcp_t next_insn;		/* continuation */
-  frame_t *local_top;	/* local stack pointer, or NULL if invalid */
-  tagged_t term[FLEXIBLE_SIZE];		/* temporary variables */
+  tagged_t *trail_top;          /* trail pointer */
+  tagged_t *global_top;         /* heap pointer */
+  try_node_t *next_alt; /* next clause at predicate entry */
+  frame_t *frame;               /* environment pointer */
+  bcp_t next_insn;              /* continuation */
+  frame_t *local_top;   /* local stack pointer, or NULL if invalid */
+  tagged_t term[FLEXIBLE_SIZE];         /* temporary variables */
 };
 
 
-struct frame_ {			/* a.k.a. environment */
-  frame_t *frame;		/* continuation frame pointer */
-  bcp_t next_insn;		/* continuation program pointer */
-  tagged_t term[FLEXIBLE_SIZE];	/* permanent variables */
+struct frame_ {                 /* a.k.a. environment */
+  frame_t *frame;               /* continuation frame pointer */
+  bcp_t next_insn;              /* continuation program pointer */
+  tagged_t term[FLEXIBLE_SIZE]; /* permanent variables */
 };
 
 typedef enum {CHOICE,MARKER} node_type;
 
-struct node_ {			/* a.k.a. marker. Collapsed with a Chpt? */
+struct node_ {                  /* a.k.a. marker. Collapsed with a Chpt? */
 /* #if defined(MARKERS) */
   /*  node_type type_of_node;*/
 /* #endif */

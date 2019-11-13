@@ -33,7 +33,7 @@ myDEREF(Xderef,X)
       aux3 = *aux4;
       m_i = aux3;
       if (m_i == m_j)
-	break;
+        break;
     }
     while (IsVar(m_i=m_j)); 
 
@@ -67,7 +67,7 @@ CVOID__PROTO(wr_tagged_rec, tagged_t t) {
     wr_tagged_rec(Arg,temp);
     RefCdr(temp,t);
     t = safe_deref(temp);
-    while(TagIsLST(t))	{
+    while(TagIsLST(t))  {
       putchar(',');
       RefCar(temp,t);
       wr_tagged_rec(Arg,temp);
@@ -184,7 +184,7 @@ CVOID__PROTO(wr_call, char *s, definition_t *func) {
       display_term(Arg,X(0),Output_Stream_Ptr, TRUE);
 #if defined(TRACE_CALLS_SHOW_ARGS) /* display all args */
       for (i = 1; i < func->arity; i++) {
-	printf(",");
+        printf(",");
         display_term(Arg,X(i),Output_Stream_Ptr, TRUE);
       }
 #else

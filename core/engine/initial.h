@@ -21,11 +21,11 @@ extern sw_on_key_t *switch_on_function;
 
 #if defined(USE_ATOM_LEN)
 atom_t *new_atom_check(char *str, 
-		       unsigned int str_len,
-		       unsigned int index);
+                       unsigned int str_len,
+                       unsigned int index);
 #else
 atom_t *new_atom_check(char *str, 
-		       unsigned int index);
+                       unsigned int index);
 #endif
 
 void glb_init_each_time(void);

@@ -40,15 +40,15 @@ static void free_info(enter_instr_t enter_instr, char *info);
 static void init_interpreted(definition_t *f);
 
 
-#define ISNOTRY(T)		(((T)==NULL) || ((T)==fail_alt))
+#define ISNOTRY(T)              (((T)==NULL) || ((T)==fail_alt))
 
 /* Indexing for the incore compiler. */
 
 /* Patch bytecode information related to the last clause inserted */
 
 static void set_nondet(try_node_t *t,
-		       incore_info_t *def,
-		       bool_t first)
+                       incore_info_t *def,
+                       bool_t first)
 {
   uintmach_t i;
   emul_info_t *cl;
@@ -96,9 +96,9 @@ static void set_nondet(try_node_t *t,
 
 
 static void incore_insert(try_node_t **t0,
-			  int effar,
-			  emul_info_t *ref,
-			  incore_info_t *def)
+                          int effar,
+                          emul_info_t *ref,
+                          incore_info_t *def)
 {
   try_node_t **t1 = t0;
   try_node_t *t;
@@ -149,7 +149,7 @@ static try_node_t *incore_copy(try_node_t *from)
 
 /* get location of try chain for a key */
 sw_on_key_node_t *incore_gethash(sw_on_key_t *sw,
-				 tagged_t key)
+                                 tagged_t key)
 {
   CIAO_REG_2(sw_on_key_node_t *, hnode);
   CIAO_REG_3(intmach_t, i);
@@ -165,7 +165,7 @@ sw_on_key_node_t *incore_gethash(sw_on_key_t *sw,
 }
 
 sw_on_key_t *new_switch_on_key(intmach_t size,
-			       try_node_t *otherwise)
+                               try_node_t *otherwise)
 {
   intmach_t i;
   sw_on_key_t *sw;
@@ -189,17 +189,17 @@ has table try nodes; I am passing a NULL pointer which is checked by
 incore_insert() and not used.  */
 
 static void incore_puthash(sw_on_key_t **psw,
-			   int effar,
-			   emul_info_t *current,
-			   incore_info_t *def,
-			   tagged_t k)
+                           int effar,
+                           emul_info_t *current,
+                           incore_info_t *def,
+                           tagged_t k)
 {
   intmach_t i;
   sw_on_key_node_t *h1;
   try_node_t *otherwise = NULL;
   intmach_t size = SwitchSize(*psw);
 
-  if (k==ERRORTAG){		/* add an alt. to default and to every key */
+  if (k==ERRORTAG){             /* add an alt. to default and to every key */
     for (i=0; i<size; i++) {
       h1 = &(*psw)->node[i];
       if (h1->key)
@@ -250,9 +250,9 @@ static void free_sw_on_key(sw_on_key_t **sw)
   }
 
   checkdealloc_FLEXIBLE(sw_on_key_t,
-			sw_on_key_node_t,
-			size,
-			*sw);
+                        sw_on_key_node_t,
+                        size,
+                        *sw);
   (*sw)=NULL;
 }
 
@@ -306,9 +306,9 @@ void leave_to_gc(enter_instr_t type, char *info) {
     size = gcdef_count;
     gcdef_limit *= 2;
     gcdef_bin = checkrealloc_ARRAY(gcdef_t,
-				   size,
-				   size*2,
-				   gcdef_bin);
+                                   size,
+                                   size*2,
+                                   gcdef_bin);
   }
 
   gcdef_bin[gcdef_count].enter_instr = type;
@@ -400,45 +400,45 @@ static void free_info(enter_instr_t enter_instr, char *info)
       break;
     case ENTER_INTERPRETED:
       {
-	int_info_t *int_info = (int_info_t *)info;
-	instance_t *n, *m;
-	intmach_t size = SwitchSize(int_info->indexer);
+        int_info_t *int_info = (int_info_t *)info;
+        instance_t *n, *m;
+        intmach_t size = SwitchSize(int_info->indexer);
 
- 	for (n = int_info->first; n; n=m) {
+        for (n = int_info->first; n; n=m) {
           m=n->forward;
           n->rank = ERRORTAG;
           checkdealloc_FLEXIBLE_S(instance_t, objsize, n);
         }
         
-	checkdealloc_FLEXIBLE(sw_on_key_t,
-			      sw_on_key_node_t,
-			      size,
-			      int_info->indexer);
+        checkdealloc_FLEXIBLE(sw_on_key_t,
+                              sw_on_key_node_t,
+                              size,
+                              int_info->indexer);
         
-	checkdealloc_TYPE(int_info_t, info);
-	break;
+        checkdealloc_TYPE(int_info_t, info);
+        break;
       }
     case TABLE:
       {
-	sw_on_key_t *sw = (sw_on_key_t *)info;
-	intmach_t size = SwitchSize(sw);
-	checkdealloc_FLEXIBLE(sw_on_key_t,
-			      sw_on_key_node_t,
-			      size,
-			      sw);
-	break;
+        sw_on_key_t *sw = (sw_on_key_t *)info;
+        intmach_t size = SwitchSize(sw);
+        checkdealloc_FLEXIBLE(sw_on_key_t,
+                              sw_on_key_node_t,
+                              size,
+                              sw);
+        break;
       }
     case EMUL_INFO:
       {
-	free_emulinfo((emul_info_t *)info);
-	break;
+        free_emulinfo((emul_info_t *)info);
+        break;
       }
     case OTHER_STUFF:
       {
-	other_stuff_t *other = (other_stuff_t *)info;
-	checkdealloc((tagged_t *)other->pointer, other->size);
-	checkdealloc_TYPE(other_stuff_t, info);
-	break;
+        other_stuff_t *other = (other_stuff_t *)info;
+        checkdealloc((tagged_t *)other->pointer, other->size);
+        checkdealloc_TYPE(other_stuff_t, info);
+        break;
       }
     default:
       break;
@@ -524,7 +524,7 @@ CBOOL__PROTO(define_predicate)
 
   DEREF(X(1),X(1));
   type = (X(1)==atom_unprofiled ?  ENTER_COMPACTCODE :
-    	  X(1)==atom_profiled   ? ENTER_PROFILEDCODE :
+          X(1)==atom_profiled   ? ENTER_PROFILEDCODE :
           ENTER_INTERPRETED);
 
   switch (type) {
@@ -594,13 +594,13 @@ CBOOL__PROTO(compiled_clause)
   emul_info_t *ep, **epp;
   intmach_t current_mem = total_mem_count;
 
-  DEREF(X(0),X(0));		/* Predicate spec */
+  DEREF(X(0),X(0));             /* Predicate spec */
   if ((f=parse_definition(X(0)))==NULL)
     USAGE_FAULT("$emulated_clause: bad 1st arg");
-  DEREF(X(1),X(1));		/* Bytecode object */
+  DEREF(X(1),X(1));             /* Bytecode object */
   ref = TagToEmul(X(1));
-  DEREF(X(2),X(2));		/* Mode */
-  DEREF(X(3),X(3));		/* f(Type,Key[,Base,Woff,Roff]) */
+  DEREF(X(2),X(2));             /* Mode */
+  DEREF(X(3),X(3));             /* f(Type,Key[,Base,Woff,Roff]) */
   DerefArg(t1,X(3),1);
   type = GetSmall(t1);
   DerefArg(key,X(3),2);
@@ -609,7 +609,7 @@ CBOOL__PROTO(compiled_clause)
   else if (TagIsSTR(key))
     key = TagToHeadfunctor(key);
 
-  				/* add a new clause. */
+                                /* add a new clause. */
   d = f->code.incoreinfo;
 
   ep = (emul_info_t *)d->clauses_tail; /* TODO: (JFMC) assumes that &clauses_tail->next == clauses_tail */
@@ -620,9 +620,9 @@ CBOOL__PROTO(compiled_clause)
     ref->next.ptr = ep->next.ptr;
     *epp = ref;
     checkdealloc_FLEXIBLE(emul_info_t,
-			  char,
-			  CLAUSE_TAIL_INSNS_SIZE,
-			  ep);
+                          char,
+                          CLAUSE_TAIL_INSNS_SIZE,
+                          ep);
   } else {
     ref->next.number = d->clauses_tail->number + 1;
     d->clauses_tail->ptr = ref;

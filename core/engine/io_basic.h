@@ -51,10 +51,10 @@ CBOOL__PROTO(copyLZ); /* OPA */
 
 CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 
-#define ENG_PRINTF(S, FMT, ...) {	  \
-    char m_buf[2048];			  \
+#define ENG_PRINTF(S, FMT, ...) {         \
+    char m_buf[2048];                     \
     sprintf(m_buf, FMT , ## __VA_ARGS__); \
-    print_string(Arg, S, m_buf);		  \
+    print_string(Arg, S, m_buf);                  \
   }
 
 #define ENG_TTYPRINTF(FMT, ...) ENG_PRINTF(Error_Stream_Ptr, FMT , ## __VA_ARGS__)

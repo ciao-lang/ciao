@@ -80,31 +80,31 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define P		p
-#define B		((node_t *)pt1)
-#define E		((frame_t *)pt1)
+#define P               p
+#define B               ((node_t *)pt1)
+#define E               ((frame_t *)pt1)
 #define SetE(X)         (pt1 = (tagged_t *)(X))
-#define H		pt2
-#define S		pt2
-#define Func		((definition_t *)P)
+#define H               pt2
+#define S               pt2
+#define Func            ((definition_t *)P)
 
 /* ------------------------------------------------------------------------- */
 
-#define Setfunc(X)	{ P = (bcp_t)(X); }
+#define Setfunc(X)      { P = (bcp_t)(X); }
 #define SetA(Frame,Ptr) { \
   w->local_top = (frame_t *)(Ptr); \
 }
 
 #define SETUP_PENDING_CALL(ADDR) { \
-  ComputeE;			      \
-  Y(0) = PointerToTerm(Func);			      \
-  for(i=0; i<Func->arity; i++) Y(i+1) = X(i);	      \
-  E->next_insn = w->next_insn;			      \
-  E->frame = w->frame;				      \
-  w->frame = E;					       \
-  w->next_insn = CONTCODE(i+1);			       \
-  SetA(E,Offset(E,EToY0+i+1));			       \
-  Setfunc(ADDR);				       \
+  ComputeE;                           \
+  Y(0) = PointerToTerm(Func);                         \
+  for(i=0; i<Func->arity; i++) Y(i+1) = X(i);         \
+  E->next_insn = w->next_insn;                        \
+  E->frame = w->frame;                                \
+  w->frame = E;                                        \
+  w->next_insn = CONTCODE(i+1);                        \
+  SetA(E,Offset(E,EToY0+i+1));                         \
+  Setfunc(ADDR);                                       \
 }
 
 /* Do not edit this defn - it's a special case of ComputeA. */
@@ -112,10 +112,10 @@
   if (w->local_top) {                                        \
     SetE(w->local_top);                                     \
   } else {                                                   \
-    SetE(NodeLocalTop(w->node));			      \
-    if (!StackYounger(E,w->frame))				\
+    SetE(NodeLocalTop(w->node));                              \
+    if (!StackYounger(E,w->frame))                              \
       SetE(StackCharOffset(w->frame,FrameSize(w->next_insn))); \
-  } 							\
+  }                                                     \
 }
 
 /* ------------------------------------------------------------------------- */

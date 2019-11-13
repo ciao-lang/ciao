@@ -19,9 +19,9 @@
 
 /*
  * bool_t prolog_format_print_float(formatChar,arg,precision)
- * char formatChar;	Selects type of format.
- * flt64_t arg;		Value to be printed.
- * intmach_t precision;	Precision of printed item.
+ * char formatChar;     Selects type of format.
+ * flt64_t arg;         Value to be printed.
+ * intmach_t precision; Precision of printed item.
  *
  * Description: Print a FLOAT value on file file according to the format
  * specified by formatChar and the precision specified by precision.
@@ -60,9 +60,9 @@ CBOOL__PROTO(prolog_format_print_float)
 
 /*
  * bool_t prolog_format_print_integer(formatChar,arg,precision)
- * char formatChar;	Selects type of format.
- * intmach_t arg;	Value to be printed.
- * intmach_t precision;	Precision or radix of printed item.
+ * char formatChar;     Selects type of format.
+ * intmach_t arg;       Value to be printed.
+ * intmach_t precision; Precision or radix of printed item.
  *
  * Description: Print an INTEGER value on file file according to the format
  * specified by formatChar and the precision specified by precision.
@@ -99,43 +99,43 @@ CBOOL__PROTO(prolog_format_print_integer)
       int n = precision-usilen+1;
       
       if (n>0)
-	{
-	  int i;
-	  int dig1 = (Atom_Buffer[0] == '-');
-	  int slen = strlen(Atom_Buffer);
-	  
-	  while (slen+n+1 > (i=Atom_Buffer_Length)) {
-	    Atom_Buffer_Length <<= 1;
-	    Atom_Buffer = checkrealloc_ARRAY(char,
-					     i,
-					     Atom_Buffer_Length,
-					     Atom_Buffer);
-	  }
-	  UpdateHeapMargins();
-	  
-	  for (i=slen; i>=dig1; i--)
-	    Atom_Buffer[i+n] = Atom_Buffer[i];
-	  for (i=dig1+n-1; i>=dig1; i--)
-	    Atom_Buffer[i] = '0';
-	}
+        {
+          int i;
+          int dig1 = (Atom_Buffer[0] == '-');
+          int slen = strlen(Atom_Buffer);
+          
+          while (slen+n+1 > (i=Atom_Buffer_Length)) {
+            Atom_Buffer_Length <<= 1;
+            Atom_Buffer = checkrealloc_ARRAY(char,
+                                             i,
+                                             Atom_Buffer_Length,
+                                             Atom_Buffer);
+          }
+          UpdateHeapMargins();
+          
+          for (i=slen; i>=dig1; i--)
+            Atom_Buffer[i+n] = Atom_Buffer[i];
+          for (i=dig1+n-1; i>=dig1; i--)
+            Atom_Buffer[i] = '0';
+        }
 
       {
-	int i;
-	int slen = strlen(Atom_Buffer);
-	int ppos = slen-precision;
-	
-	if (slen+2 > (i=Atom_Buffer_Length)) {
-	  Atom_Buffer_Length <<= 1;
-	  Atom_Buffer = checkrealloc_ARRAY(char,
-					   i,
-					   Atom_Buffer_Length,
-					   Atom_Buffer);
-	  UpdateHeapMargins();
-	}
-	
-	for (i=slen; i>=ppos; i--)
-	  Atom_Buffer[i+1] = Atom_Buffer[i];
-	Atom_Buffer[ppos] = '.';
+        int i;
+        int slen = strlen(Atom_Buffer);
+        int ppos = slen-precision;
+        
+        if (slen+2 > (i=Atom_Buffer_Length)) {
+          Atom_Buffer_Length <<= 1;
+          Atom_Buffer = checkrealloc_ARRAY(char,
+                                           i,
+                                           Atom_Buffer_Length,
+                                           Atom_Buffer);
+          UpdateHeapMargins();
+        }
+        
+        for (i=slen; i>=ppos; i--)
+          Atom_Buffer[i+1] = Atom_Buffer[i];
+        Atom_Buffer[ppos] = '.';
       }
     }
   if (formatChar=='D')
@@ -146,33 +146,33 @@ CBOOL__PROTO(prolog_format_print_integer)
       int ppos = slen;
       
       for (i=dig1, count=0; i<ppos; i++)
-	{
-	  if (Atom_Buffer[i]=='.') ppos=i;
-	  else count++;
-	}
+        {
+          if (Atom_Buffer[i]=='.') ppos=i;
+          else count++;
+        }
       count = (count-1)/3;
       
       if (count>0)
-	{
-	  if (slen+count+1 > (i=Atom_Buffer_Length)) {
-	    Atom_Buffer_Length <<= 1;
-	    Atom_Buffer = checkrealloc_ARRAY(char,
-					     i,
-					     Atom_Buffer_Length,
-					     Atom_Buffer);
-	    UpdateHeapMargins();
-	  }
-	  
-	  for (i=slen; i>=ppos; i--) {
-	    Atom_Buffer[i+count] = Atom_Buffer[i];
-	  }
-	  for (i=ppos-1; count>0; count--) {
-	    Atom_Buffer[i+count] = Atom_Buffer[i]; i--;
-	    Atom_Buffer[i+count] = Atom_Buffer[i]; i--;
-	    Atom_Buffer[i+count] = Atom_Buffer[i]; i--;
-	    Atom_Buffer[i+count] = ',';
-	  }
-	}
+        {
+          if (slen+count+1 > (i=Atom_Buffer_Length)) {
+            Atom_Buffer_Length <<= 1;
+            Atom_Buffer = checkrealloc_ARRAY(char,
+                                             i,
+                                             Atom_Buffer_Length,
+                                             Atom_Buffer);
+            UpdateHeapMargins();
+          }
+          
+          for (i=slen; i>=ppos; i--) {
+            Atom_Buffer[i+count] = Atom_Buffer[i];
+          }
+          for (i=ppos-1; count>0; count--) {
+            Atom_Buffer[i+count] = Atom_Buffer[i]; i--;
+            Atom_Buffer[i+count] = Atom_Buffer[i]; i--;
+            Atom_Buffer[i+count] = Atom_Buffer[i]; i--;
+            Atom_Buffer[i+count] = ',';
+          }
+        }
     }
   
   print_string(Arg, Output_Stream_Ptr, Atom_Buffer);

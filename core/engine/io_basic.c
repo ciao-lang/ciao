@@ -93,26 +93,26 @@ CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 
 #define CheckGetCharacterCode(X,C,ArgNo) {                              \
     if (TagIsSmall(X)) {                                                \
-      if (!isValidRune(C = GetSmall(X))) {				\
+      if (!isValidRune(C = GetSmall(X))) {                              \
         BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo)); \
-      }									\
+      }                                                                 \
     }                                                                   \
-    else if (TagIsLarge(X) && !LargeIsFloat(X)) { /* bigint */		\
+    else if (TagIsLarge(X) && !LargeIsFloat(X)) { /* bigint */          \
       BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo)); \
     }                                                                   \
     else {                                                              \
-      ERROR_IN_ARG((X), (ArgNo), INTEGER);				\
+      ERROR_IN_ARG((X), (ArgNo), INTEGER);                              \
     }                                                                   \
   }
 
-#define CheckGetByte(X,C,ArgNo)					\
-  if (!TagIsSmall((X)) || !isValidRune((C) = GetSmall((X)))) {	\
-    ERROR_IN_ARG((X), (ArgNo), (TY_BYTE));			\
+#define CheckGetByte(X,C,ArgNo)                                 \
+  if (!TagIsSmall((X)) || !isValidRune((C) = GetSmall((X)))) {  \
+    ERROR_IN_ARG((X), (ArgNo), (TY_BYTE));                      \
   }
 
 /* TODO: throw better exception */
-#define IO_ERROR(Message) {			\
-    perror((Message));				\
+#define IO_ERROR(Message) {                     \
+    perror((Message));                          \
     UNLOCATED_EXCEPTION(RESOURCE_ERROR(R_UNDEFINED)); \
 }
 
@@ -428,8 +428,8 @@ static CVOID__PROTO(writebyte, int ch, stream_node_t *s) {
    op_type: DELRET, PEEK, GET, GET1, SKIPLN, or >= 0 for SKIP
  */
 static CFUN__PROTO(readrune, int, stream_node_t *s,
-		    int op_type,
-		    definition_t *pred_address) {
+                    int op_type,
+                    definition_t *pred_address) {
   FILE *f = s->streamfile;
   c_rune_t r;
 
@@ -442,10 +442,10 @@ static CFUN__PROTO(readrune, int, stream_node_t *s,
       }
 
       if (s->pending_rune == RUNE_VOID) { /* There is no char returned by peek */
-	/* ignore errors in tty */
-	r = c_getc(f);
+        /* ignore errors in tty */
+        r = c_getc(f);
       } else {
-	r = s->pending_rune;
+        r = s->pending_rune;
         s->pending_rune = RUNE_VOID;
       }
       
@@ -472,10 +472,10 @@ static CFUN__PROTO(readrune, int, stream_node_t *s,
         r = s->pending_rune;
         s->pending_rune = RUNE_VOID;
       } else {
-	r = c_getc(f);
-	if (r < 0 && ferror(f)) {
-	  IO_ERROR("getc() in readrune()");
-	}
+        r = c_getc(f);
+        if (r < 0 && ferror(f)) {
+          IO_ERROR("getc() in readrune()");
+        }
       }
 
       if (GIVEBACKCOND(op_type,r)) {
@@ -505,7 +505,7 @@ static CFUN__PROTO(readrune, int, stream_node_t *s,
           IO_ERROR("read() in readrune()");
         }
       } else {
-	r = s->pending_rune;
+        r = s->pending_rune;
         s->pending_rune = RUNE_VOID;
       }
       
@@ -1016,7 +1016,7 @@ CVOID__PROTO(print_string, stream_node_t *stream, char *p) {
   } else if (stream->streammode != 's') { /* not a socket */
     for (r = *p++; r; r = *p++) {
       if (putc(r,fileptr) < 0) {
-	IO_ERROR("putc() in in print_string()");
+        IO_ERROR("putc() in in print_string()");
       }
       inc_counts(r,stream);
     }
@@ -1079,39 +1079,39 @@ CVOID__PROTO(print_atom, stream_node_t *stream, tagged_t term) {
     while ((r = *ch++)) {
       /* See tokenize.pl for table of symbolic control chars */
       if (symbolrune[r] == 0) {
-	switch (r) {
-	case 7: PRINT_CONTROL_RUNE('a'); break;
-	case 8: PRINT_CONTROL_RUNE('b'); break;
-	case 9: PRINT_CONTROL_RUNE('t'); break;
-	case 10: PRINT_CONTROL_RUNE('n'); break;
-	case 11: PRINT_CONTROL_RUNE('v'); break;
-	case 12: PRINT_CONTROL_RUNE('f'); break;
-	case 13: PRINT_CONTROL_RUNE('r'); break;
-	  /* case 27: PRINT_CONTROL_RUNE('e'); break; */
-	case 32: *bp++ = ' '; break;
-	  /* case 127: PRINT_CONTROL_RUNE('d'); break; */
-	default:
-	  *bp++ = '\\';
-	  *bp++ = '0' + ((r >> 6) & 7);
-	  *bp++ = '0' + ((r >> 3) & 7);
-	  *bp++ = '0' + (r & 7);
-	  *bp++ = '\\';
-	}
+        switch (r) {
+        case 7: PRINT_CONTROL_RUNE('a'); break;
+        case 8: PRINT_CONTROL_RUNE('b'); break;
+        case 9: PRINT_CONTROL_RUNE('t'); break;
+        case 10: PRINT_CONTROL_RUNE('n'); break;
+        case 11: PRINT_CONTROL_RUNE('v'); break;
+        case 12: PRINT_CONTROL_RUNE('f'); break;
+        case 13: PRINT_CONTROL_RUNE('r'); break;
+          /* case 27: PRINT_CONTROL_RUNE('e'); break; */
+        case 32: *bp++ = ' '; break;
+          /* case 127: PRINT_CONTROL_RUNE('d'); break; */
+        default:
+          *bp++ = '\\';
+          *bp++ = '0' + ((r >> 6) & 7);
+          *bp++ = '0' + ((r >> 3) & 7);
+          *bp++ = '0' + (r & 7);
+          *bp++ = '\\';
+        }
       } else {
-	if (r=='\'' || r=='\\') { *bp++ = r; }
-	*bp++ = r;
+        if (r=='\'' || r=='\\') { *bp++ = r; }
+        *bp++ = r;
       }
     }
 #else
     if (atomptr->has_squote) {
       while ((r = *ch++)) {
-	if (r=='\'' || r=='\\') { *bp++ = r; }
-	*bp++ = r;
+        if (r=='\'' || r=='\\') { *bp++ = r; }
+        *bp++ = r;
       }
     } else {
       while ((r = *ch++)) {
-	if (r=='\\') { *bp++ = r; }
-	*bp++ = r;
+        if (r=='\\') { *bp++ = r; }
+        *bp++ = r;
       }
     }
 #endif
@@ -1124,12 +1124,12 @@ CVOID__PROTO(print_atom, stream_node_t *stream, tagged_t term) {
   }
 }
 
-/*   --------------------------------------------------------------  */	 
+/*   --------------------------------------------------------------  */  
 
 CVOID__PROTO(display_term,
-	     tagged_t term,
-	     stream_node_t *stream,
-	     bool_t quoted) {
+             tagged_t term,
+             stream_node_t *stream,
+             bool_t quoted) {
   tagged_t aux;
   int arity,i;
 
@@ -1253,9 +1253,9 @@ CBOOL__PROTO(prolog_clearerr) {
 #define SPACE_FACTOR 64  /* kludge to ensure more heap space before reading */
 
 CBOOL__PROTO(prolog_fast_read_in_c_aux, 
-	     tagged_t *out,
-	     tagged_t *vars,
-	     int *lastvar);
+             tagged_t *out,
+             tagged_t *vars,
+             int *lastvar);
 
 /* OPA */
 CBOOL__PROTO(prolog_fast_read_in_c) {
@@ -1282,18 +1282,18 @@ CBOOL__PROTO(prolog_fast_read_in_c) {
 }
 
 #if defined(DEBUG)
-#define CHECK_HEAP_SPACE					\
-  if (HeapDifference(w->global_top,Heap_End) < CONTPAD) {	\
-    fprintf(stderr, "Out of heap space in fast_read()\n");	\
+#define CHECK_HEAP_SPACE                                        \
+  if (HeapDifference(w->global_top,Heap_End) < CONTPAD) {       \
+    fprintf(stderr, "Out of heap space in fast_read()\n");      \
   }
 #else
 #define CHECK_HEAP_SPACE
 #endif
 
 CBOOL__PROTO(prolog_fast_read_in_c_aux, 
-	     tagged_t *out,
-	     tagged_t *vars,
-	     int *lastvar) {
+             tagged_t *out,
+             tagged_t *vars,
+             int *lastvar) {
   ERR__FUNCTOR("fastrw:fast_read", 1);
   int i,k,j;
   unsigned char *s = (unsigned char *) Atom_Buffer;
@@ -1329,21 +1329,21 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
     for (i=0; j; i++) {
       if (i == Atom_Buffer_Length) {
         EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2);
-	s = (unsigned char *)Atom_Buffer+i;
+        s = (unsigned char *)Atom_Buffer+i;
       }
       j = readbyte(Arg, Input_Stream_Ptr, NULL);
       if (j == BYTE_PAST_EOF) {
-	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
       }
       *s++ = j;
     }
     switch (k) {
     case '_':
       {
-	tagged_t *h = w->global_top;
-	if ((i = atoi(Atom_Buffer)) == *lastvar)
-	  *h = vars[(*lastvar)++] = TagHVA(w->global_top++);
-	*out = vars[i];
+        tagged_t *h = w->global_top;
+        if ((i = atoi(Atom_Buffer)) == *lastvar)
+          *h = vars[(*lastvar)++] = TagHVA(w->global_top++);
+        *out = vars[i];
       }
       CHECK_HEAP_SPACE;
       return TRUE;
@@ -1362,30 +1362,30 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       return TRUE;
     case '"':
       {
-	tagged_t *h = w->global_top;
-	i--;
-	/* ENSURE_HEAP_LST(i, 1); */
-	while (i--) {
-	  MakeLST(*out,MakeSmall(((unsigned char *)Atom_Buffer)[i]),*out);
-	}
-	if (!prolog_fast_read_in_c_aux(Arg,h+1,vars,lastvar)) return FALSE;
+        tagged_t *h = w->global_top;
+        i--;
+        /* ENSURE_HEAP_LST(i, 1); */
+        while (i--) {
+          MakeLST(*out,MakeSmall(((unsigned char *)Atom_Buffer)[i]),*out);
+        }
+        if (!prolog_fast_read_in_c_aux(Arg,h+1,vars,lastvar)) return FALSE;
       }
       CHECK_HEAP_SPACE;
       return TRUE;
     case 'S':
       i = readbyte(Arg, Input_Stream_Ptr, NULL);
       if (i == BYTE_PAST_EOF) {
-	BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
       }
       {
-	tagged_t *h = w->global_top;
-	/* ENSURE_HEAP(i+1, 1); */
-	*h = SetArity(MakeString(Atom_Buffer),i);
-	*out = Tag(STR,h++);
-	w->global_top += i+1;
-	while(i--) {
-	  if (!prolog_fast_read_in_c_aux(Arg,h++,vars,lastvar)) return FALSE;
-	}
+        tagged_t *h = w->global_top;
+        /* ENSURE_HEAP(i+1, 1); */
+        *h = SetArity(MakeString(Atom_Buffer),i);
+        *out = Tag(STR,h++);
+        w->global_top += i+1;
+        while(i--) {
+          if (!prolog_fast_read_in_c_aux(Arg,h++,vars,lastvar)) return FALSE;
+        }
       }
       CHECK_HEAP_SPACE;
       return TRUE;
@@ -1402,16 +1402,16 @@ static inline CVOID__PROTO(fast_write_string, stream_node_t *stream, const char 
 }
 
 CVOID__PROTO(fast_write_number,
-	     stream_node_t *stream,
-	     tagged_t term) {
+             stream_node_t *stream,
+             tagged_t term) {
   number_to_string(Arg,term, 10);
   fast_write_string(Arg, stream, Atom_Buffer);
 }
 
 CVOID__PROTO(prolog_fast_write_in_c_aux,
-	     tagged_t in,
-	     tagged_t *vars, 
-	     int *lastvar);
+             tagged_t in,
+             tagged_t *vars, 
+             int *lastvar);
 
 /* OPA */
 CBOOL__PROTO(prolog_fast_write_in_c) {
@@ -1425,9 +1425,9 @@ CBOOL__PROTO(prolog_fast_write_in_c) {
 }
 
 CVOID__PROTO(prolog_fast_write_in_c_aux,
-	     tagged_t in,
-	     tagged_t *vars,
-	     int *lastvar) {
+             tagged_t in,
+             tagged_t *vars,
+             int *lastvar) {
   int i, j;
   intmach_t b;
   tagged_t term;
@@ -1438,23 +1438,23 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
     DerefCdr(in,in);
     if (TagIsSmall(term) && (b = GetSmall(term)))
       if ((b > 0) && (b < 256)) {
-	for (writebyte(Arg,'"',Output_Stream_Ptr);(b > 0) && (b < 256);) {
-	  writebyte(Arg,b,Output_Stream_Ptr);
-	  if (TagOf(in) == LST) {
-	    DerefCar(term,in);
-	    DerefCdr(in,in);
-	    if (!TagIsSmall(term)) {
-	      break;
-	    } else {
-	      b = GetSmall(term);
-	    }
-	  } else {
-	    writebyte(Arg,0,Output_Stream_Ptr);
-	    prolog_fast_write_in_c_aux(Arg,in,vars,lastvar);
-	    return;
-	  }	  
-	}
-	writebyte(Arg,0,Output_Stream_Ptr);
+        for (writebyte(Arg,'"',Output_Stream_Ptr);(b > 0) && (b < 256);) {
+          writebyte(Arg,b,Output_Stream_Ptr);
+          if (TagOf(in) == LST) {
+            DerefCar(term,in);
+            DerefCdr(in,in);
+            if (!TagIsSmall(term)) {
+              break;
+            } else {
+              b = GetSmall(term);
+            }
+          } else {
+            writebyte(Arg,0,Output_Stream_Ptr);
+            prolog_fast_write_in_c_aux(Arg,in,vars,lastvar);
+            return;
+          }       
+        }
+        writebyte(Arg,0,Output_Stream_Ptr);
       }
     writebyte(Arg,'[',Output_Stream_Ptr);
     prolog_fast_write_in_c_aux(Arg,term,vars,lastvar);
@@ -1483,7 +1483,7 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
       writebyte(Arg,0,Output_Stream_Ptr);
       writebyte(Arg,j = Arity(TagToHeadfunctor(in)),Output_Stream_Ptr);
       for (i = 1; i <= j; prolog_fast_write_in_c_aux(Arg,term,vars,lastvar)) {
-	DerefArg(term,in,i++);
+        DerefArg(term,in,i++);
       }
       return;
     }
@@ -1521,10 +1521,10 @@ unsigned char sizeLZ(int n) {
 }
 
 CVOID__PROTO(outLZ,
-	     int *Buffer,
-	     char *BufferSize,
-	     int Code,
-	     unsigned char size) {
+             int *Buffer,
+             char *BufferSize,
+             int Code,
+             unsigned char size) {
   Buffer[0] += Code*(1<<(BufferSize[0]));
   for (BufferSize[0] += size; BufferSize[0] >= 8; BufferSize[0] -= 8) {
     writebyte(Arg,Buffer[0] % 256,Output_Stream_Ptr);
@@ -1566,18 +1566,18 @@ CBOOL__PROTO(compressLZ) {
     for (i = Entry; Entry <= Last; Entry++) {
       if ((Size[Entry] == PrefixSize) && (Dict[Entry][0] == First[0])
           && !(memcmp(&Dict[Entry][1],&First[1],PrefixSize-1))) {
-	break;
+        break;
       }
     }
     if (Entry > Last) {
       Entry = First[PrefixSize-1];
       outLZ(Arg,&Carry,&CarrySize,i,sizeLZ(Last));
       if (Last == 4095) {
-	First = &Vault[Last = 256];
+        First = &Vault[Last = 256];
       } else {
-	Dict[++Last] = First;
-	Size[Last] = PrefixSize;
-	First += PrefixSize;
+        Dict[++Last] = First;
+        Size[Last] = PrefixSize;
+        First += PrefixSize;
       }
       First[0] = Entry;
       PrefixSize = 1;
@@ -1597,8 +1597,8 @@ CBOOL__PROTO(compressLZ) {
 }
 
 static CVOID__PROTO(inLZ, FILE *f,
-		    int *Buffer, char *BufferSize,
-		    int *Code, char size) {
+                    int *Buffer, char *BufferSize,
+                    int *Code, char size) {
   //  ERR__FUNCTOR("compressed_bytecode:copyLZ", 1);
   int i;
 
@@ -1606,7 +1606,7 @@ static CVOID__PROTO(inLZ, FILE *f,
     i = getc(f);
     if (i < 0) {
       if (ferror(f)) {
-	IO_ERROR("getc() in inLZ()");
+        IO_ERROR("getc() in inLZ()");
       }
     } 
     Buffer[0] += ((unsigned char) i)*(1<<BufferSize[0]);
@@ -1659,18 +1659,18 @@ CBOOL__PROTO(copyLZ) {
     First[0] = i;
     while(1) {
       for (i = 0; i < PrefixSize;) {
-	writebyte(Arg,First[i++],Output_Stream_Ptr);
+        writebyte(Arg,First[i++],Output_Stream_Ptr);
       }
       inLZ(Arg,f,&Carry,&CarrySize,&i,sizeLZ(++Last % 4096));
       return FALSE;
       if (i == 256) return TRUE;
       if (Last == 4096) {
         (First = &Vault[Last = 256])[0] = i;
-	PrefixSize = 1;
+        PrefixSize = 1;
       } else {
-	Size[Last] = PrefixSize+1;
-	(Dict[Last] = First)[PrefixSize] = Dict[i][0];
-	(void)memmove(First += Size[Last],Dict[i],PrefixSize = Size[i]);
+        Size[Last] = PrefixSize+1;
+        (Dict[Last] = First)[PrefixSize] = Dict[i][0];
+        (void)memmove(First += Size[Last],Dict[i],PrefixSize = Size[i]);
       }
     }
   }

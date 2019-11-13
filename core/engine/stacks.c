@@ -117,7 +117,7 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity)
   /* ensure that w->node is fleshed out fully i.e. do a "neck" */
   /* arity of choicept could be greater than arity of clause */
   /* DO NOT clear w->next_alt -- we are still in "shallow mode" */
-  if (!b->next_alt) {			/* try */
+  if (!b->next_alt) {                   /* try */
     b->next_alt = w->next_alt; /* 4 contiguous moves */
     b->frame = w->frame;
     b->next_insn = w->next_insn;
@@ -132,7 +132,7 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity)
     }
     if (ChoiceYounger(ChoiceOffset(b,CHOICEPAD),w->trail_top))
       choice_overflow(Arg,CHOICEPAD),
-	b = w->node;
+        b = w->node;
   }
   
   /* ensure that X regs are seen by heap_overflow(): make a frame */
@@ -170,8 +170,8 @@ static CVOID__PROTO(calculate_segment_node)
 
 #if defined(ANDPARALLEL)
 bool_t is_rem_Hterm(tagged_t term,
-		    worker_t *w,
-		    worker_t *remote_w)
+                    worker_t *w,
+                    worker_t *remote_w)
 {
   if (remote_w == NULL)  // local case
     return !(((TagToPointer(term) >= w->heap_start) &&
@@ -219,7 +219,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
   for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux))
     while (Suspend_Of(aux) == RELEASED) {
       if (Suspend_Of(aux) == RELEASED)
-	Suspend_Of(aux) = TOSUSPEND;
+        Suspend_Of(aux) = TOSUSPEND;
     }
 #endif
 
@@ -230,13 +230,13 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
     SaveLtop(w->node);
 
   if (pad<0)
-    pad = -pad;			/* in compile_term: disable trail_gc */
+    pad = -pad;                 /* in compile_term: disable trail_gc */
   else {
     calculate_segment_node(Arg);
     trail_gc(Arg);
     compressTrail(Arg,FALSE);
   }
-				/* ASSUMED: --CHOICE, TRAIL++ */
+                                /* ASSUMED: --CHOICE, TRAIL++ */
 
   choice_top = (tagged_t *)w->node+w->value_trail;
   if (ChoiceYounger(ChoiceOffset(choice_top,2*pad),w->trail_top)) {
@@ -249,9 +249,9 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
       oldcount = ChoiceDifference(Choice_Start,Choice_End);
       newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
       newtr = checkrealloc_ARRAY(tagged_t,
-				 oldcount,
-				 newcount,
-				 Trail_Start);
+                                 oldcount,
+                                 newcount,
+                                 Trail_Start);
 #if defined(DEBUG)
       if (debug_gc)
         printf("Thread %" PRIdm " is reallocing TRAIL from %p to %p\n", 
@@ -274,7 +274,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
 #endif
       {
         tagged_t *x;
-	/* We have to relocate the concurrent topmost choicepoint */
+        /* We have to relocate the concurrent topmost choicepoint */
 #if defined(THREADS)
         node_t *concchpt;
 #endif
@@ -320,10 +320,10 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
     parallel_exec_entry_t *lpe = Last_Parallel_Exec;
     while (lpe != NULL) {
       if (lpe->init != NULL)
-	lpe->init = (node_t *)((char *)lpe->init+reloc_factor+
+        lpe->init = (node_t *)((char *)lpe->init+reloc_factor+
                     (newcount-oldcount)*sizeof(tagged_t));
       if (lpe->end != NULL)
-	lpe->end = (node_t *)((char *)lpe->end+reloc_factor+
+        lpe->end = (node_t *)((char *)lpe->end+reloc_factor+
                    (newcount-oldcount)*sizeof(tagged_t));
       lpe = lpe->prev;
     }
@@ -393,7 +393,7 @@ CVOID__PROTO(stack_overflow)
   for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux))
     while (Suspend_Of(aux) == RELEASED) {
       if (Suspend_Of(aux) == RELEASED)
-	Suspend_Of(aux) = TOSUSPEND;
+        Suspend_Of(aux) = TOSUSPEND;
     }
 #endif
 
@@ -401,9 +401,9 @@ CVOID__PROTO(stack_overflow)
 
   count = 2*StackDifference(Stack_Start,Stack_End);
   newh = checkrealloc_ARRAY(tagged_t,
-			    count/2,
-			    count,
-			    Stack_Start);
+                            count/2,
+                            count,
+                            Stack_Start);
 #if defined(DEBUG)
   if (debug_gc)
     printf("Thread %" PRIdm " is reallocing STACK from %p to %p\n", 
@@ -417,8 +417,8 @@ CVOID__PROTO(stack_overflow)
   stack_overflow_adjust_wam(w,reloc_factor);
 
   /* Final adjustments */
-  Stack_Start = newh;		/* new low bound */
-  Stack_End = newh+count;	/* new high bound */
+  Stack_Start = newh;           /* new low bound */
+  Stack_End = newh+count;       /* new high bound */
   Stack_Warn = StackOffset(Stack_End,-STACKPAD);
   ciao_statistics.ss_local++;
   tick0 = BASE_RUNTICK-tick0;
@@ -461,7 +461,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor)
     while (TrailYounger(w->trail_top,pt1)) {
       t1 = TrailNext(pt1);
       if (TagIsSVA(t1))
-	*(pt1-1) += reloc_factor;
+        *(pt1-1) += reloc_factor;
     }
 
     /* relocate pointers in choice&env stks */
@@ -473,7 +473,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor)
       for (pt1=n->term; pt1!=(tagged_t *)n2;) {
         t1 = ChoicePrev(pt1);
         if (TagIsSVA(t1))
-	  *(pt1-1) += reloc_factor;
+          *(pt1-1) += reloc_factor;
       }
       
       i = FrameSize(n->next_insn);
@@ -483,12 +483,12 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor)
         while (pt1!=frame->term){
           t1 = *(--pt1);
           if (TagIsSVA(t1))
-	    *pt1 += reloc_factor;
+            *pt1 += reloc_factor;
         }
         if (frame->frame)
-	  *(tagged_t *)(&frame->frame) += reloc_factor,
-	    i = FrameSize(frame->next_insn),
-	    frame = frame->frame;
+          *(tagged_t *)(&frame->frame) += reloc_factor,
+            i = FrameSize(frame->next_insn),
+            frame = frame->frame;
         else
           frame = NULL;
       }
@@ -549,7 +549,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
   for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux))
     while (Suspend_Of(aux) == RELEASED) {
       if (Suspend_Of(aux) == RELEASED)
-	Suspend_Of(aux) = TOSUSPEND;
+        Suspend_Of(aux) = TOSUSPEND;
     }
 #endif
 
@@ -606,22 +606,22 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     if (!newh) {
       /* Raise a heap overflow exception */
       Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn
-		       ? HeapOffset(Heap_End,-HARD_HEAPPAD)
-		       : Heap_Start);
+                       ? HeapOffset(Heap_End,-HARD_HEAPPAD)
+                       : Heap_Start);
       Heap_Warn = HeapOffset(Heap_End,-HARD_HEAPPAD);
       if ( wake_count < 0)
-	Heap_Warn_Soft = Int_Heap_Warn;
+        Heap_Warn_Soft = Int_Heap_Warn;
       else 
-	Heap_Warn_Soft = Heap_Start;
+        Heap_Warn_Soft = Heap_Start;
 
       TrailPush(w->trail_top,atom_undo_heap_overflow_excep);
       UNLOCATED_EXCEPTION(RESOURCE_ERROR(R_STACK));
     }
 #else 
     newh = checkrealloc_ARRAY(tagged_t,
-			      oldcount,
-			      newcount,
-			      Heap_Start);
+                              oldcount,
+                              newcount,
+                              Heap_Start);
 #endif
 
 #if defined(DEBUG)
@@ -648,7 +648,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
 
 #if defined(USE_OVERFLOW_EXCEPTIONS)
     if ((Heap_Limit != 0)  &&                             /* Heap limit is on */
-	(Heap_Limit < newcount - DEFAULT_SOFT_HEAPPAD))   /* Heap bigger than Heap limit */
+        (Heap_Limit < newcount - DEFAULT_SOFT_HEAPPAD))   /* Heap bigger than Heap limit */
       SOFT_HEAPPAD = newcount - Heap_Limit;
 
 #endif
@@ -686,14 +686,14 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
 
 #if defined(ANDPARALLEL)
 CVOID__PROTO(heap_overflow_adjust_wam,
-	     intmach_t reloc_factor,
-	     tagged_t *newh,
-	     bool_t rem_reloc,
-	     worker_t *rem_w)
+             intmach_t reloc_factor,
+             tagged_t *newh,
+             bool_t rem_reloc,
+             worker_t *rem_w)
 #else
 CVOID__PROTO(heap_overflow_adjust_wam,
-	     intmach_t reloc_factor,
-	     tagged_t *newh)
+             intmach_t reloc_factor,
+             tagged_t *newh)
 #endif
 {
   node_t *n, *n2 = NULL;
@@ -729,10 +729,10 @@ CVOID__PROTO(heap_overflow_adjust_wam,
       if (t1&QMask) pt1 += LargeArity(t1);
       else if (IsHeapTerm(t1)) {
 #if defined(ANDPARALLEL)
-	if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
+        if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
             ((rem_reloc == REMOTE) && is_rem_Hterm(t1,w,rem_w)))
 #endif
-	  *(pt1-1) += reloc_factor;
+          *(pt1-1) += reloc_factor;
       }
     }
 
@@ -750,10 +750,10 @@ CVOID__PROTO(heap_overflow_adjust_wam,
       t1 = TrailNext(pt1);
       if (IsHeapTerm(t1)) {
 #if defined(ANDPARALLEL)
-	if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
+        if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
             ((rem_reloc == REMOTE) && is_rem_Hterm(t1,w,rem_w)))
 #endif
-	  *(pt1-1) += reloc_factor;
+          *(pt1-1) += reloc_factor;
       }
     }
     Current_Debugger_State = TrailPop(w->trail_top);
@@ -764,19 +764,19 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     tagged_t x1 = (tagged_t)NULL;
     if (gle != NULL) {
       if (((rem_reloc == LOCAL) && !is_rem_Hterm(gle->handler,w,rem_w)) ||
-	  ((rem_reloc == REMOTE) && is_rem_Hterm(gle->handler,w,rem_w))) {
-	DerefArg(x1,gle->handler,1);
-	((par_handler_t *) TermToPointer(x1))->goal += reloc_factor;
-	gle->handler += reloc_factor;
+          ((rem_reloc == REMOTE) && is_rem_Hterm(gle->handler,w,rem_w))) {
+        DerefArg(x1,gle->handler,1);
+        ((par_handler_t *) TermToPointer(x1))->goal += reloc_factor;
+        gle->handler += reloc_factor;
       }
       while (gle != Goal_List_Top) {
-	gle = gle->next;
-	if (((rem_reloc == LOCAL) && !is_rem_Hterm(gle->handler,w,rem_w)) ||
-	    ((rem_reloc == REMOTE) && is_rem_Hterm(gle->handler,w,rem_w))) {
-	  DerefArg(x1,gle->handler,1);
-	  ((par_handler_t *) TermToPointer(x1))->goal += reloc_factor;
-	  gle->handler += reloc_factor;
-	}
+        gle = gle->next;
+        if (((rem_reloc == LOCAL) && !is_rem_Hterm(gle->handler,w,rem_w)) ||
+            ((rem_reloc == REMOTE) && is_rem_Hterm(gle->handler,w,rem_w))) {
+          DerefArg(x1,gle->handler,1);
+          ((par_handler_t *) TermToPointer(x1))->goal += reloc_factor;
+          gle->handler += reloc_factor;
+        }
       }
     }
 
@@ -784,13 +784,13 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     event_entry_t *eqe = Event_Queue_Start;
     if (eqe != NULL) {
       if (((rem_reloc == LOCAL) && !is_rem_Hterm(eqe->handler,w,rem_w)) ||
-	  ((rem_reloc == REMOTE) && is_rem_Hterm(eqe->handler,w,rem_w)))
-	eqe->handler += reloc_factor;
+          ((rem_reloc == REMOTE) && is_rem_Hterm(eqe->handler,w,rem_w)))
+        eqe->handler += reloc_factor;
       while (eqe != Event_Queue_Top) {
-	eqe = eqe->next;
-	if (((rem_reloc == LOCAL) && !is_rem_Hterm(eqe->handler,w,rem_w)) ||
-	    ((rem_reloc == REMOTE) && is_rem_Hterm(eqe->handler,w,rem_w)))
-	  eqe->handler += reloc_factor;
+        eqe = eqe->next;
+        if (((rem_reloc == LOCAL) && !is_rem_Hterm(eqe->handler,w,rem_w)) ||
+            ((rem_reloc == REMOTE) && is_rem_Hterm(eqe->handler,w,rem_w)))
+          eqe->handler += reloc_factor;
       }
     }
 #endif
@@ -798,50 +798,50 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     /* relocate pointers in choice&env stks */
     for (n=aux_node; n!=InitialNode && n->next_alt!=NULL; n=n2)
       {
-	if (n->next_alt != NULL) {
-	  n2=ChoiceCharOffset(n,-n->next_alt->node_offset);
-	  for (pt1=n->term; pt1!=(tagged_t *)n2;)
-	    {
-	      t1 = ChoicePrev(pt1);
-	      if (IsHeapTerm(t1)) {
+        if (n->next_alt != NULL) {
+          n2=ChoiceCharOffset(n,-n->next_alt->node_offset);
+          for (pt1=n->term; pt1!=(tagged_t *)n2;)
+            {
+              t1 = ChoicePrev(pt1);
+              if (IsHeapTerm(t1)) {
 #if defined(ANDPARALLEL)
-		if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
-		    ((rem_reloc == REMOTE) && is_rem_Hterm(t1,w,rem_w)))
+                if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
+                    ((rem_reloc == REMOTE) && is_rem_Hterm(t1,w,rem_w)))
 #endif
-		  *(pt1-1) += reloc_factor;
-	      }
-	    }
-	  i = FrameSize(n->next_insn);
-	  frame = n->frame;
-	  while ((frame >= (frame_t*) NodeLocalTop(n2)) && frame->next_insn != NULL)
-	    {
-	      pt1 = (tagged_t *)StackCharOffset(frame,i);
-	      while (pt1!=frame->term)
-		{
-		  t1 = *(--pt1);
-		  if (IsHeapTerm(t1)) {
+                  *(pt1-1) += reloc_factor;
+              }
+            }
+          i = FrameSize(n->next_insn);
+          frame = n->frame;
+          while ((frame >= (frame_t*) NodeLocalTop(n2)) && frame->next_insn != NULL)
+            {
+              pt1 = (tagged_t *)StackCharOffset(frame,i);
+              while (pt1!=frame->term)
+                {
+                  t1 = *(--pt1);
+                  if (IsHeapTerm(t1)) {
 #if defined(ANDPARALLEL)
-		    if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
-			((rem_reloc == REMOTE) && is_rem_Hterm(t1,w,rem_w)))
+                    if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
+                        ((rem_reloc == REMOTE) && is_rem_Hterm(t1,w,rem_w)))
 #endif
-		      *pt1 += reloc_factor;
-		  }
-		}
-	      i = FrameSize(frame->next_insn);
-	      frame = frame->frame;
-	    } 
+                      *pt1 += reloc_factor;
+                  }
+                }
+              i = FrameSize(frame->next_insn);
+              frame = frame->frame;
+            } 
 
-	  //TABLING ->> How to translate???
+          //TABLING ->> How to translate???
 #if defined(ANDPARALLEL)
-	  if (rem_reloc == LOCAL)
-	    *(tagged_t *)(&n->global_top) += reloc_factor;
+          if (rem_reloc == LOCAL)
+            *(tagged_t *)(&n->global_top) += reloc_factor;
 #else
-	  *(tagged_t *)(&n->global_top) += reloc_factor;
+          *(tagged_t *)(&n->global_top) += reloc_factor;
 #endif
-	}
+        }
       }
 
-	  //TABLING ->> How to translate???
+          //TABLING ->> How to translate???
 #if defined(ANDPARALLEL)
     if (rem_reloc == LOCAL)
       *(tagged_t *)(&n->global_top) += reloc_factor;
@@ -870,27 +870,27 @@ CVOID__PROTO(collect_goals_from_trail, intmach_t wake_count)
 
       ref = TrailPop(tr);
       if (!TagIsCVA(ref))
-	continue;
+        continue;
       RefCVA(value,ref);
       if (value==ref)
-	SERIOUS_FAULT("wake - unable to find all goals");
+        SERIOUS_FAULT("wake - unable to find all goals");
       if (sofar++ > 1)
-	{
-	  HeapPush(h,X(0));
-	  HeapPush(h,X(1));
-	  X(1) = Tag(LST,HeapOffset(h,-2));
-	}
+        {
+          HeapPush(h,X(0));
+          HeapPush(h,X(1));
+          X(1) = Tag(LST,HeapOffset(h,-2));
+        }
       else if (sofar > 1)
-	X(1) = X(0);
+        X(1) = X(0);
 
       X(0) = Tag(LST,TagToGoal(ref));
       if (!CondCVA(ref))
-	{
-	  tr0=tr, *tr=0;
-	}
+        {
+          tr0=tr, *tr=0;
+        }
     }
   w->global_top = h;
-  Heap_Warn_Soft = Heap_Start;	/* make WakeCount==0 */
+  Heap_Warn_Soft = Heap_Start;  /* make WakeCount==0 */
 
   if (sofar<wake_count)
     SERIOUS_FAULT("wake - unable to find all goals")
@@ -904,12 +904,12 @@ CVOID__PROTO(collect_goals_from_trail, intmach_t wake_count)
     {
       h = tr = tr0;
       while (TrailYounger(w->trail_top,tr))
-	{
-	  tagged_t ref;
-	  
-	  if ((ref = TrailNext(tr)))
-	    TrailPush(h,ref);
-	}
+        {
+          tagged_t ref;
+          
+          if ((ref = TrailNext(tr)))
+            TrailPush(h,ref);
+        }
       w->trail_top = h;
     }
 }
@@ -975,7 +975,7 @@ CVOID__PROTO(trail_gc)
           if (!CondHVA(t1))
             *tr = 0;
         } else if (wake_count>0) --wake_count;
-	  else if (!CondCVA(t1)) *tr = 0;
+          else if (!CondCVA(t1)) *tr = 0;
     }
     b = ChoiceCharOffset(b,-b->next_alt->node_offset);
   }
@@ -993,8 +993,8 @@ CBOOL__PROTO(undo_heap_overflow_excep)
   intmach_t wake_count = WakeCount;
 
   Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn
-		   ? HeapOffset(Heap_End,-SOFT_HEAPPAD)
-		   : Heap_Start);
+                   ? HeapOffset(Heap_End,-SOFT_HEAPPAD)
+                   : Heap_Start);
   Heap_Warn = HeapOffset(Heap_End,-SOFT_HEAPPAD);
   if (wake_count<0){
     Heap_Warn_Soft = Int_Heap_Warn;
@@ -1023,8 +1023,8 @@ CBOOL__PROTO(heap_limit)
     SOFT_HEAPPAD = HeapDifference(Heap_Start,Heap_End) - Heap_Limit;
   
   Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn
-		   ? HeapOffset(Heap_End,-SOFT_HEAPPAD)
-		   : Heap_Start);
+                   ? HeapOffset(Heap_End,-SOFT_HEAPPAD)
+                   : Heap_Start);
   Heap_Warn = HeapOffset(Heap_End,-SOFT_HEAPPAD);
   
   if (wake_count>=0)

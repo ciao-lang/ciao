@@ -31,119 +31,119 @@ extern tagged_t *tabling_stack_end;
 
 #define TABLING_STK_TOP tabling_stack_free
 
-#define INIT_GLOBAL_TABLE						\
-  {									\
+#define INIT_GLOBAL_TABLE                                               \
+  {                                                                     \
     global_table = (tagged_t*) checkalloc (GLOBAL_TABLE_SIZE * sizeof(tagged_t*)); \
-    global_table_free = global_table;					\
-    global_table_end = global_table + GLOBAL_TABLE_SIZE;		\
+    global_table_free = global_table;                                   \
+    global_table_end = global_table + GLOBAL_TABLE_SIZE;                \
   }
 
-#define INIT_TABLING_STACK						\
-  {									\
+#define INIT_TABLING_STACK                                              \
+  {                                                                     \
     tabling_stack = (tagged_t*) checkalloc (TABLING_STK_SIZE * sizeof(tagged_t*)); \
-    tabling_stack_free = tabling_stack;					\
-    tabling_stack_end = tabling_stack + TABLING_STK_SIZE;		\
+    tabling_stack_free = tabling_stack;                                 \
+    tabling_stack_end = tabling_stack + TABLING_STK_SIZE;               \
   }
 
-#define ALLOC_GLOBAL_TABLE(PTR,PTR_TYPE,SIZE)				\
-  {									\
-    (PTR) = (PTR_TYPE)global_table_free;				\
-    global_table_free += (SIZE) / sizeof(tagged_t*);			\
-    if (global_table_free >= global_table_end)				\
-      fprintf(stderr, "Global table memory exhausted\n");		\
+#define ALLOC_GLOBAL_TABLE(PTR,PTR_TYPE,SIZE)                           \
+  {                                                                     \
+    (PTR) = (PTR_TYPE)global_table_free;                                \
+    global_table_free += (SIZE) / sizeof(tagged_t*);                    \
+    if (global_table_free >= global_table_end)                          \
+      fprintf(stderr, "Global table memory exhausted\n");               \
   }
 
-#define ALLOC_TABLING_STK(PTR,PTR_TYPE,SIZE)				\
-  {									\
-    (PTR) = (PTR_TYPE)tabling_stack_free;				\
-    tabling_stack_free += (SIZE) / sizeof(tagged_t*);			\
-    if (tabling_stack_free >= tabling_stack_end)			\
-      fprintf(stderr, "Tabling stack exhausted\n");			\
+#define ALLOC_TABLING_STK(PTR,PTR_TYPE,SIZE)                            \
+  {                                                                     \
+    (PTR) = (PTR_TYPE)tabling_stack_free;                               \
+    tabling_stack_free += (SIZE) / sizeof(tagged_t*);                   \
+    if (tabling_stack_free >= tabling_stack_end)                        \
+      fprintf(stderr, "Tabling stack exhausted\n");                     \
   }
 
-#define DEALLOC_GLOBAL_TABLE					\
-  {								\
-    global_table_free  = global_table;				\
+#define DEALLOC_GLOBAL_TABLE                                    \
+  {                                                             \
+    global_table_free  = global_table;                          \
   }
 
-#define DEALLOC_TABLING_STK(PTR)				\
-  {								\
-    tabling_stack_free = (tagged_t *)(PTR);			\
+#define DEALLOC_TABLING_STK(PTR)                                \
+  {                                                             \
+    tabling_stack_free = (tagged_t *)(PTR);                     \
   }
 
-#define INIT_NODE_TR(NodeTR)						\
-  {									\
-    ALLOC_TABLING_STK((NodeTR),node_tr_t*,sizeof(node_tr_t));		\
-    NODE_TR_SIZE(NodeTR) = 0;						\
-    NODE_TR_TRAIL_SG(NodeTR) = NULL;					\
-    NODE_TR_NEXT(NodeTR) = NULL;					\
-    NODE_TR_CHAIN(NodeTR) = NULL;					\
+#define INIT_NODE_TR(NodeTR)                                            \
+  {                                                                     \
+    ALLOC_TABLING_STK((NodeTR),node_tr_t*,sizeof(node_tr_t));           \
+    NODE_TR_SIZE(NodeTR) = 0;                                           \
+    NODE_TR_TRAIL_SG(NodeTR) = NULL;                                    \
+    NODE_TR_NEXT(NodeTR) = NULL;                                        \
+    NODE_TR_CHAIN(NodeTR) = NULL;                                       \
   }
 
-#define INIT_REG_NODE_TR(NodeTR)					\
-  {									\
-    ALLOC_TABLING_STK((NodeTR), tagged_t, sizeof(node_tr_t));		\
-    NODE_TR_NEXT(NodeTR) = NULL;					\
-    NODE_TR_CHAIN(NodeTR) = NULL;					\
+#define INIT_REG_NODE_TR(NodeTR)                                        \
+  {                                                                     \
+    ALLOC_TABLING_STK((NodeTR), tagged_t, sizeof(node_tr_t));           \
+    NODE_TR_NEXT(NodeTR) = NULL;                                        \
+    NODE_TR_CHAIN(NodeTR) = NULL;                                       \
     NODE_TR_SIZE(NodeTR) = (w->trail_top - TagToPointer(B->trail_top)) * 2; \
-    ALLOC_TABLING_STK							\
-      (NODE_TR_TRAIL_SG(NodeTR), tagged_t*,				\
-       NODE_TR_SIZE(NodeTR) * sizeof(tagged_t));			\
+    ALLOC_TABLING_STK                                                   \
+      (NODE_TR_TRAIL_SG(NodeTR), tagged_t*,                             \
+       NODE_TR_SIZE(NodeTR) * sizeof(tagged_t));                        \
   }
 
-#define MAKE_TRAIL_CACTUS_STACK						\
-  {									\
-    if (FrozenChpt(B) && (FirstNodeTR(B) != NULL))			\
-      {									\
-	/* Create current node_trail */					\
-	INIT_REG_NODE_TR(t0);						\
-	/*printf("\nMAKING CACTUS STACK %p\n",t0);*/			\
-									\
-	if (NODE_TR_SIZE(t0))						\
-	  {								\
-	    tagged_t *pt3 = NODE_TR_TRAIL_SG(t0);		\
-	    for (pt2 = w->trail_top-1,					\
-		   t2=(tagged_t)TagToPointer(B->trail_top);		\
-		 !TrailYounger(t2,pt2); pt2--)				\
-	      {								\
-		t3 = *pt2;						\
-		if (IsVar(t3))						\
-		  {							\
-		    *pt3 = t3; pt3++;					\
-		    *pt3 = *TagToPointer(t3); pt3++;			\
-		  }							\
-		else							\
-		  {							\
-		    if (*TagToPointer(t3) == functor_forward_trail)	\
-		      { 						\
-			*pt3 = t3; pt3++;				\
-			*pt3 = t3; pt3++;				\
-		      } 						\
-		    else						\
-		      NODE_TR_SIZE(t0) = NODE_TR_SIZE(t0) - 2;		\
-		  }							\
-	      }								\
-	    								\
-	    /*children trail segments point to the new node_trail*/	\
-	    for (t1 = (tagged_t)NODE_TR_CHAIN(FirstNodeTR(B));		\
-		 t1 != (tagged_t)NULL;					\
-		 t1 = (tagged_t)NODE_TR_CHAIN(t1))			\
-	      {								\
-		NODE_TR_NEXT(t1) = (node_tr_t *)t0;			\
-		/*printf("\n%p parent of %p\n",t0,t1);*/		\
-	      }								\
-									\
-	    /*Link from first_node_tr*/					\
-	    NODE_TR_CHAIN(FirstNodeTR(B)) = (node_tr_t *)t0;		\
-	    /*printf("\nChain of %p = %p\n",FirstNodeTR(B),t0);*/	\
-									\
-	    /*Update last_node_tr*/					\
-	    LastNodeTR = (node_tr_t *)t0;				\
-	    /*printf("\nLastNodeTR %p\n",LastNodeTR);*/			\
-	  }								\
-	/*Mark current choice_pt*/					\
-	SetFirstNodeTR(B,NULL);						\
-      }									\
+#define MAKE_TRAIL_CACTUS_STACK                                         \
+  {                                                                     \
+    if (FrozenChpt(B) && (FirstNodeTR(B) != NULL))                      \
+      {                                                                 \
+        /* Create current node_trail */                                 \
+        INIT_REG_NODE_TR(t0);                                           \
+        /*printf("\nMAKING CACTUS STACK %p\n",t0);*/                    \
+                                                                        \
+        if (NODE_TR_SIZE(t0))                                           \
+          {                                                             \
+            tagged_t *pt3 = NODE_TR_TRAIL_SG(t0);               \
+            for (pt2 = w->trail_top-1,                                  \
+                   t2=(tagged_t)TagToPointer(B->trail_top);             \
+                 !TrailYounger(t2,pt2); pt2--)                          \
+              {                                                         \
+                t3 = *pt2;                                              \
+                if (IsVar(t3))                                          \
+                  {                                                     \
+                    *pt3 = t3; pt3++;                                   \
+                    *pt3 = *TagToPointer(t3); pt3++;                    \
+                  }                                                     \
+                else                                                    \
+                  {                                                     \
+                    if (*TagToPointer(t3) == functor_forward_trail)     \
+                      {                                                 \
+                        *pt3 = t3; pt3++;                               \
+                        *pt3 = t3; pt3++;                               \
+                      }                                                 \
+                    else                                                \
+                      NODE_TR_SIZE(t0) = NODE_TR_SIZE(t0) - 2;          \
+                  }                                                     \
+              }                                                         \
+                                                                        \
+            /*children trail segments point to the new node_trail*/     \
+            for (t1 = (tagged_t)NODE_TR_CHAIN(FirstNodeTR(B));          \
+                 t1 != (tagged_t)NULL;                                  \
+                 t1 = (tagged_t)NODE_TR_CHAIN(t1))                      \
+              {                                                         \
+                NODE_TR_NEXT(t1) = (node_tr_t *)t0;                     \
+                /*printf("\n%p parent of %p\n",t0,t1);*/                \
+              }                                                         \
+                                                                        \
+            /*Link from first_node_tr*/                                 \
+            NODE_TR_CHAIN(FirstNodeTR(B)) = (node_tr_t *)t0;            \
+            /*printf("\nChain of %p = %p\n",FirstNodeTR(B),t0);*/       \
+                                                                        \
+            /*Update last_node_tr*/                                     \
+            LastNodeTR = (node_tr_t *)t0;                               \
+            /*printf("\nLastNodeTR %p\n",LastNodeTR);*/                 \
+          }                                                             \
+        /*Mark current choice_pt*/                                      \
+        SetFirstNodeTR(B,NULL);                                         \
+      }                                                                 \
   }
 
 

@@ -181,15 +181,15 @@ CBOOL__PROTO(prolog_ptr_ref)
 
       x2=X(1); DerefSwitch(x2,x1,;);
       if (!TagIsSTR(x2) || (TagToHeadfunctor(x2) != functor_Dref))
-	return FALSE;
+        return FALSE;
 
       DerefArg(x1,x2,1);
       DerefArg(x2,x2,2);
       if (!TagIsSmall(x1) ||
-	  !(n=TagToInstance(x1)) ||
+          !(n=TagToInstance(x1)) ||
            n->rank != x2 ||
-	   n->death != 0xffff)	  
-	return FALSE;
+           n->death != 0xffff)    
+        return FALSE;
 
       Unify_constant(PointerToTerm(n),X(0));
       return TRUE;
@@ -260,15 +260,15 @@ CBOOL__PROTO(inserta)
 #endif
     
     loc = (n->key==ERRORTAG ? &root->varcase :
-	   n->key==functor_list ? &root->lstcase :
-	   &dyn_puthash(&root->indexer,n->key)->value.instp);
+           n->key==functor_list ? &root->lstcase :
+           &dyn_puthash(&root->indexer,n->key)->value.instp);
     
     if (!(*loc))
-	n->next_forward = NULL,	n->next_backward = n;
+        n->next_forward = NULL, n->next_backward = n;
     else
-	n->next_forward = (*loc),
-	n->next_backward = (*loc)->next_backward,
-	(*loc)->next_backward = n;
+        n->next_forward = (*loc),
+        n->next_backward = (*loc)->next_backward,
+        (*loc)->next_backward = n;
     (*loc) = n;
     
 #if defined(THREADS)
@@ -349,11 +349,11 @@ CBOOL__PROTO(insertz)
 #endif
 
     loc = (n->key==ERRORTAG ? &root->varcase :
-	   n->key==functor_list ? &root->lstcase :
-	   &dyn_puthash(&root->indexer,n->key)->value.instp);
+           n->key==functor_list ? &root->lstcase :
+           &dyn_puthash(&root->indexer,n->key)->value.instp);
     
     if (!(*loc)) {
-	n->next_backward = n;
+        n->next_backward = n;
         (*loc) = n;
     } else {
       n->next_backward = (*loc)->next_backward;
@@ -449,9 +449,9 @@ CBOOL__PROTO(make_bytecode_object)
   intmach_t current_mem = total_mem_count;
   intmach_t bsize;
 
-  DEREF(num,X(0));		/* Must be PHYSICAL size in characters! */
+  DEREF(num,X(0));              /* Must be PHYSICAL size in characters! */
 #if defined(GAUGE)
-  DEREF(num1,X(1));		/* Number of Counters */
+  DEREF(num1,X(1));             /* Number of Counters */
 #endif
   DEREF(list,X(2));
 
@@ -460,16 +460,16 @@ CBOOL__PROTO(make_bytecode_object)
 #if defined(GAUGE)
   counter_cnt = GetInteger(num1);
   checkalloc_FLEXIBLE_S(emul_info_t,
-			objsize,
-			char,
-			(bsize + counter_cnt*sizeof(intmach_t)),
-			object);
+                        objsize,
+                        char,
+                        (bsize + counter_cnt*sizeof(intmach_t)),
+                        object);
 #else
   checkalloc_FLEXIBLE_S(emul_info_t,
-			objsize,
-			char,
-			bsize,
-			object);
+                        objsize,
+                        char,
+                        bsize,
+                        object);
 #endif
 
   object->next.ptr = NULL;
@@ -496,13 +496,13 @@ CBOOL__PROTO(make_bytecode_object)
     case ATM:
       {
         if (car == atom_counter) {
-	  /* NOTE: this is a pointer */
+          /* NOTE: this is a pointer */
           EMITtok(f_counter, (char *)current_counter);
-	  current_counter++;
+          current_counter++;
           --counter_cnt;
         } else {
           USAGE_FAULT("make_bytecode_object: bad spec");
-	}
+        }
         break;
       }
 #endif
@@ -525,9 +525,9 @@ CBOOL__PROTO(make_bytecode_object)
         
         if(func==functor_tagged) {
           /* TAGGED(Term) */
-	  tagged_t t;
+          tagged_t t;
           DerefArg(t,car,1);
-	  EMIT_t(t);
+          EMIT_t(t);
           break;
         }
         if(func==functor_emul_entry) {
@@ -545,13 +545,13 @@ CBOOL__PROTO(make_bytecode_object)
         }
         if (func==functor_large) {
           DerefArg(car,car,1);
-	  int sz;
+          int sz;
 #if BC_SCALE==2
-	  sz = compile_large_bc32(car, P);
+          sz = compile_large_bc32(car, P);
 #else
-	  sz = compile_large(car, P);
+          sz = compile_large(car, P);
 #endif
-	  P = BCoff(P, sz);
+          P = BCoff(P, sz);
           break;
         }
         if(func==functor_long) {
@@ -592,9 +592,9 @@ CBOOL__PROTO(make_bytecode_object)
 
 /* A LOGICAL VIEW OF DYNAMIC CODE UPDATES.
    Scheme adapted from
-	T. Lindholm, R. A. O'Keefe, ``Efficient Implementation of a
-	Defensible Semantics for Dynamic PROLOG Code'', Proc. 4th International
-	Conference on Logic Programming, Melbourne, 1987.
+        T. Lindholm, R. A. O'Keefe, ``Efficient Implementation of a
+        Defensible Semantics for Dynamic PROLOG Code'', Proc. 4th International
+        Conference on Logic Programming, Melbourne, 1987.
    All modifications are my own inventions.
    Mats Carlsson.
 
@@ -630,17 +630,17 @@ CBOOL__PROTO(make_bytecode_object)
    either (1a) it is not downstream of any chpt for same root, or
           (1b) it was born after any such chpt, or
           (1c) it died before any such chpt.
-	  */
+          */
 
 /*
   normal: if normal==TRUE follow first-chain else next_forward
 */
 
 CFUN__PROTO(active_instance,
-	    instance_t *,
-	    instance_t *i,
-	    int itime,
-	    bool_t normal)
+            instance_t *,
+            instance_t *i,
+            int itime,
+            bool_t normal)
 {
   CIAO_REG_2(node_t *, b);
   CIAO_REG_3(instance_t *, j);
@@ -650,7 +650,7 @@ CFUN__PROTO(active_instance,
   instance_clock_t lotime = time;
   tagged_t lorank = TaggedHigh;
 
-  if (!latest_static->next_alt)		          /* if called from wam() */
+  if (!latest_static->next_alt)                   /* if called from wam() */
     latest_static = w->next_node;
 
   for (b=latest_static; !ChoiceptTestStatic(b); b=b2)  {
@@ -666,7 +666,7 @@ CFUN__PROTO(active_instance,
       if (j && (j->root==i->root)) {
         lotime = GetSmall(b->term[4]);
         if (lorank>j->rank) lorank=j->rank;
-      }	  
+      }   
     }
   }
   
@@ -679,10 +679,10 @@ CFUN__PROTO(active_instance,
   
   if (normal) {                                 /* Follow forward-chain ? */
     while (i &&
-	   i->death != 0xffff &&
-	   (lotime >= i->death ||
-	    time < i->birth ||
-	    (time >= i->death && lorank > i->rank)))  {
+           i->death != 0xffff &&
+           (lotime >= i->death ||
+            time < i->birth ||
+            (time >= i->death && lorank > i->rank)))  {
       j=i->forward;
       expunge_instance(i);
       i=j;
@@ -692,10 +692,10 @@ CFUN__PROTO(active_instance,
   }
   else {                                   /* follow next_forward-chain ! */
     while (i &&
-	   i->death != 0xffff &&
-	   (lotime >= i->death ||
-	    time < i->birth ||
-	    (time >= i->death && lorank > i->rank))) {
+           i->death != 0xffff &&
+           (lotime >= i->death ||
+            time < i->birth ||
+            (time >= i->death && lorank > i->rank))) {
       j=i->next_forward;
       expunge_instance(i);
       i=j;
@@ -744,7 +744,7 @@ CVOID__PROTO(clock_overflow)
       t = GetSmall(b->term[4]);
       if (current!=t) {
         current=t;
-	count++;
+        count++;
       }
     }
   }
@@ -774,7 +774,7 @@ CVOID__PROTO(clock_overflow)
 }
 
 static void relocate_table_clocks(sw_on_key_t *sw,
-				  instance_clock_t *clocks)
+                                  instance_clock_t *clocks)
 {
   sw_on_key_node_t *keyval;
   definition_t *d;
@@ -784,12 +784,12 @@ static void relocate_table_clocks(sw_on_key_t *sw,
     keyval = &sw->node[j];
     if ((d = keyval->value.def) &&
         d->predtyp==ENTER_INTERPRETED)
-      relocate_clocks(d->code.intinfo->first,clocks);	
+      relocate_clocks(d->code.intinfo->first,clocks);   
   }
 }
 
 void relocate_clocks(instance_t *inst,
-		     instance_clock_t *clocks)
+                     instance_clock_t *clocks)
 {
   int i, j;
   instance_t *next;
@@ -798,16 +798,16 @@ void relocate_clocks(instance_t *inst,
     {
       next = inst->forward;
       for (i=0; inst->birth>clocks[i]; i++)
-	;
+        ;
       inst->birth = i;
       if (inst->death!=0xffff)
-	{
-	  for (j=i; inst->death>clocks[j]; j++)
-	    ;
-	  inst->death = j;
-	  if (i==j)
+        {
+          for (j=i; inst->death>clocks[j]; j++)
+            ;
+          inst->death = j;
+          if (i==j)
             expunge_instance(inst);
-	}
+        }
     }
 }
 
@@ -831,26 +831,26 @@ void expunge_instance(instance_t *i)
                 (int)Thread_Id, (int)GET_INC_COUNTER);
 #endif
   
-    if (!i->forward)		/* last ? */
-	root->first->backward = i->backward;
+    if (!i->forward)            /* last ? */
+        root->first->backward = i->backward;
     else
-	i->forward->backward = i->backward;
+        i->forward->backward = i->backward;
 
-    if (i == root->first)	/* first ? */
-    	root->first = i->forward;
+    if (i == root->first)       /* first ? */
+        root->first = i->forward;
     else
       i->backward->forward = i->forward;
     
     loc = (i->key==ERRORTAG ? &root->varcase :
-	   i->key==functor_list ? &root->lstcase :
-	   &incore_gethash(root->indexer,i->key)->value.instp);
+           i->key==functor_list ? &root->lstcase :
+           &incore_gethash(root->indexer,i->key)->value.instp);
   
-    if (!i->next_forward)	/* last ? */
+    if (!i->next_forward)       /* last ? */
         (*loc)->next_backward = i->next_backward;
     else
         i->next_forward->next_backward = i->next_backward;
     
-    if (i == (*loc))		/* first ? */
+    if (i == (*loc))            /* first ? */
         (*loc) = i->next_forward;
     else
         i->next_backward->next_forward = i->next_forward;
