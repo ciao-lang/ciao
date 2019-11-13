@@ -28,9 +28,9 @@
 :- discontiguous('cmd.no_manifest_load'/1).
 %
 :- multifile 'cmd.recursive'/2. % recursive on dependencies
-                                %  - forward: dependencies first
-                                %  - backward: dependencies later
-                                %  - none (or undeclared): do not process deps
+                            %  - forward: dependencies first
+                            %  - backward: dependencies later
+                            %  - none (or undeclared): do not process deps
 :- discontiguous('cmd.recursive'/2).
 %
 :- multifile 'cmd.do_before.decl'/1. % has 'cmd.do_before'/2

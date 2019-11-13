@@ -25,33 +25,33 @@
 % The configuration for foreign library @var{Foreign} from bundle
 % @var{Bundle} has value @var{Value} (as a string) for variable @var{Var}.
 foreign_config_str(Bundle, Foreign, Var, Value) :-
-	( foreign_config_tool_path(Bundle, Foreign, CfgToolPath) -> true
-	; throw(error(missing_foreign_config_tool(Bundle,Foreign), foreign_config_str/4))
-	),
-	process_call(CfgToolPath, [~atom_concat('--', Var)],
-	       [stdout(line(Value)), status(0)]).
+    ( foreign_config_tool_path(Bundle, Foreign, CfgToolPath) -> true
+    ; throw(error(missing_foreign_config_tool(Bundle,Foreign), foreign_config_str/4))
+    ),
+    process_call(CfgToolPath, [~atom_concat('--', Var)],
+           [stdout(line(Value)), status(0)]).
 
 % TODO: cache path
 foreign_config_tool_path(Bundle, Foreign, CfgToolPath) :-
-	% TODO: do not use m_bundle_foreign_config_tool? use third party decls instead?
-	m_bundle_foreign_config_tool(Bundle, Foreign, CfgTool),
-	( current_bundle_flag(Bundle:auto_install, 'yes') ->
-	    % Look in third-party bin
-	    third_party_path(bindir, ThirdPartyBinDir),
-	    path_concat(ThirdPartyBinDir, CfgTool, CfgToolPath),
-	    file_exists(CfgToolPath)
-	; find_executable(CfgTool, CfgToolPath)
-	).
+    % TODO: do not use m_bundle_foreign_config_tool? use third party decls instead?
+    m_bundle_foreign_config_tool(Bundle, Foreign, CfgTool),
+    ( current_bundle_flag(Bundle:auto_install, 'yes') ->
+        % Look in third-party bin
+        third_party_path(bindir, ThirdPartyBinDir),
+        path_concat(ThirdPartyBinDir, CfgTool, CfgToolPath),
+        file_exists(CfgToolPath)
+    ; find_executable(CfgTool, CfgToolPath)
+    ).
 
 :- export(foreign_config_version/3).
 foreign_config_version(Bundle, Foreign, Version) :-
-	foreign_config_str(Bundle, Foreign, 'version', Str),
-	parse_version(Version, Str, _).
+    foreign_config_str(Bundle, Foreign, 'version', Str),
+    parse_version(Version, Str, _).
 
 % Parse dot separated numbers, drop non-numeric parts (E.g., "1.3pre" -> [1,3])
 parse_version([X|Xs]) -->
-	parse_num(Cs), { number_codes(X, Cs) },
-        ( skip_dot -> parse_version(Xs) ; { Xs = [] } ).
+    parse_num(Cs), { number_codes(X, Cs) },
+    ( skip_dot -> parse_version(Xs) ; { Xs = [] } ).
 
 parse_num([C|Cs]) --> [C], { digit(C) }, parse_num0(Cs).
 
@@ -67,13 +67,13 @@ skip_dot --> [_], skip_dot.
 % Like @pred{foreign_config_str/4} but parses the value as a list of
 % atoms using @pred{parse_shell_args/2}.
 foreign_config_atmlist(Bundle, ForeignConfig, Var, Args) :-
-	foreign_config_str(Bundle, ForeignConfig, Var, Val),
-	atom_codes(X, Val),
-	parse_shell_args(X, Args).
+    foreign_config_str(Bundle, ForeignConfig, Var, Val),
+    atom_codes(X, Val),
+    parse_shell_args(X, Args).
 
 :- export(foreign_config_atm/4).
 % Like @pred{foreign_config_str/4} but obtains an atom as value
 foreign_config_atm(Bundle, ForeignConfig, Var, Val) :-
-	foreign_config_str(Bundle, ForeignConfig, Var, Val0),
-	atom_codes(Val, Val0).
+    foreign_config_str(Bundle, ForeignConfig, Var, Val0),
+    atom_codes(Val, Val0).
 

@@ -24,14 +24,14 @@
 :- use_module(ciaobld(messages_aux), [normal_message/2]).
 :- use_module(ciaobld(ciaoc_aux), [invoke_boot_ciaoc/2]).
 :- use_module(ciaobld(eng_defs),
-	[eng_mainmod/2,
-	 eng_mainbase/2,
-	 eng_srcdirs/2,
-	 eng_opts/2,
-	 eng_h_alias/2,
-	 eng_cfg/2,
-	 active_eng_name/3, % (only for message)
-	 eng_path/3]).
+    [eng_mainmod/2,
+     eng_mainbase/2,
+     eng_srcdirs/2,
+     eng_opts/2,
+     eng_h_alias/2,
+     eng_cfg/2,
+     active_eng_name/3, % (only for message)
+     eng_path/3]).
 
 % ===========================================================================
 :- doc(section, "Build of Engines").
@@ -40,71 +40,71 @@
 
 :- export(eng_build/1).
 eng_build(Eng0) :-
-	% Static dependencies
-	eng_add_static_objs(Eng0, Eng),
-	normal_message("compiling ~w (engine)", [~active_eng_name(exec, Eng)]),
-	% Generate source
- 	eng_emugen(Eng),
-	eng_create_init(Eng),
-	% Sysdep configuration
-	eng_config_sysdep(Eng),
-	% Version info
- 	eng_prebuild_version_info(Eng),
-	% Build native
- 	eng_build_native(Eng).
+    % Static dependencies
+    eng_add_static_objs(Eng0, Eng),
+    normal_message("compiling ~w (engine)", [~active_eng_name(exec, Eng)]),
+    % Generate source
+    eng_emugen(Eng),
+    eng_create_init(Eng),
+    % Sysdep configuration
+    eng_config_sysdep(Eng),
+    % Version info
+    eng_prebuild_version_info(Eng),
+    % Build native
+    eng_build_native(Eng).
 
 % Add objects for static modules
 eng_add_static_objs(Eng0, Eng) :-
-	Eng0 = eng_def(Bundle, EngMainSpec, EngOpts0),
-	( member(static_mods(StatMods), EngOpts0) ->
-	    display(user_error, 'WARNING: static_mods(_) assumes that libraries are already compiled!\n'), % TODO: fix, enrich exprs
-	    get_static(StatMods, StatBases, AddObjs),
-	    EngOpts = [static_bases(StatBases), static_objs(AddObjs)|EngOpts0]
-	; EngOpts = EngOpts0
-	),
-	Eng = eng_def(Bundle, EngMainSpec, EngOpts).
+    Eng0 = eng_def(Bundle, EngMainSpec, EngOpts0),
+    ( member(static_mods(StatMods), EngOpts0) ->
+        display(user_error, 'WARNING: static_mods(_) assumes that libraries are already compiled!\n'), % TODO: fix, enrich exprs
+        get_static(StatMods, StatBases, AddObjs),
+        EngOpts = [static_bases(StatBases), static_objs(AddObjs)|EngOpts0]
+    ; EngOpts = EngOpts0
+    ),
+    Eng = eng_def(Bundle, EngMainSpec, EngOpts).
 
 :- export(eng_clean/1).
 % Clean the engine (including .pl sources)
 eng_clean(Eng) :-
-	% Ensure that byproducts of engine module compilation are
-	% generated on next build.
-	Base = ~eng_mainbase(Eng),
-	clean_boot_mod(Base),
-	% Clean the engine build area
-	eng_clean_native(Eng).
+    % Ensure that byproducts of engine module compilation are
+    % generated on next build.
+    Base = ~eng_mainbase(Eng),
+    clean_boot_mod(Base),
+    % Clean the engine build area
+    eng_clean_native(Eng).
 
 :- use_module(engine(internals), [po_filename/2, itf_filename/2]).
 
 % TODO: Use clean_mod/1 instead? (be careful since eng_build is using boot ciaoc)
 clean_boot_mod(Base) :-
-	del_file_nofail(~po_filename(Base)),
-	del_file_nofail(~itf_filename(Base)).
+    del_file_nofail(~po_filename(Base)),
+    del_file_nofail(~itf_filename(Base)).
 
 % TODO: Merge with b_make_exec (this generates the C code for ciaoc
 %   using the boostrap compiler; in this branch of Ciao this code is
 %   reused for all other Ciao static executables)
 %:- export(eng_emugen/1).
 eng_emugen(Eng) :-
-	Base = ~eng_mainbase(Eng),
-	In = ~atom_concat(Base, '.pl'),
-	path_split(In, Dir, _),
-	invoke_boot_ciaoc(['-c', In], [cwd(Dir)]).
+    Base = ~eng_mainbase(Eng),
+    In = ~atom_concat(Base, '.pl'),
+    path_split(In, Dir, _),
+    invoke_boot_ciaoc(['-c', In], [cwd(Dir)]).
 
 :- use_module(engine(stream_basic), [absolute_file_name/2]).
 :- use_module(engine(internals), [a_filename/2]). % ('.a' static lib)
 
 get_static([], [], []).
 get_static([Spec|Specs], [Base|Bases], [FileA|FilesA]) :-
-	absolute_file_name(Spec, File),
-	atom_concat(Base, '.pl', File),
-	a_filename(Base, FileA),
-	file_exists(FileA),
-	!,
-	get_static(Specs, Bases, FilesA).
+    absolute_file_name(Spec, File),
+    atom_concat(Base, '.pl', File),
+    a_filename(Base, FileA),
+    file_exists(FileA),
+    !,
+    get_static(Specs, Bases, FilesA).
 get_static([_Spec|Specs], Bases, FilesA) :-
-	% module does not seem to have foreign code (.a)
-	get_static(Specs, Bases, FilesA).
+    % module does not seem to have foreign code (.a)
+    get_static(Specs, Bases, FilesA).
 
 % ---------------------------------------------------------------------------
 % Create engine initialization code
@@ -112,13 +112,13 @@ get_static([_Spec|Specs], Bases, FilesA) :-
 %:- export(eng_create_init/1).
 % Generates engine initialization code
 eng_create_init(Eng) :-
-	F = ~path_concat(~eng_path(cdir, Eng), 'eng_static_mod.c'),
-	EngOpts = ~eng_opts(Eng),
-	eng_static_mod_c(EngOpts, Text, []),
-	mkpath_and_write(Text, F).
+    F = ~path_concat(~eng_path(cdir, Eng), 'eng_static_mod.c'),
+    EngOpts = ~eng_opts(Eng),
+    eng_static_mod_c(EngOpts, Text, []),
+    mkpath_and_write(Text, F).
 
 eng_static_mod_c(EngOpts) --> { member(static_bases(Bases), EngOpts) }, !,
-	stat_mod_inits(Bases).
+    stat_mod_inits(Bases).
 eng_static_mod_c(_EngOpts) --> [].
 
 stat_mod_inits([]) --> [].
@@ -126,14 +126,14 @@ stat_mod_inits([Base|Bases]) --> stat_mod_init(Base), stat_mod_inits(Bases).
 
 % Generate C code to register and initialize the static module
 stat_mod_init(Base) -->
-	{ path_split(Base, _, Mod) },
-	% TODO: identifier mangling/demanging for Mod as C identifier (share with foreign interface)
-	% TODO: escape Mod as string
-	"{ ",
-	"void ", atm(Mod), "_init(char *module);", " ",
-	"define_c_static_mod(\"", atm(Mod), "\");",
-	atm(Mod), "_init(\"", atm(Mod), "\");",
-	" }\n".
+    { path_split(Base, _, Mod) },
+    % TODO: identifier mangling/demanging for Mod as C identifier (share with foreign interface)
+    % TODO: escape Mod as string
+    "{ ",
+    "void ", atm(Mod), "_init(char *module);", " ",
+    "define_c_static_mod(\"", atm(Mod), "\");",
+    atm(Mod), "_init(\"", atm(Mod), "\");",
+    " }\n".
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Sysdep configuration step (see config-sysdep.sh)").
@@ -147,9 +147,9 @@ stat_mod_init(Base) -->
 % File where eng_config_sysdep/1 expects the bundle flags (in .sh format)
 % (see bundle_flags_file/2)
 bundle_flags_sh_file := Path :-
-	ciao_root(CiaoRoot),
-	get_bundlereg_dir(CiaoRoot, BundleRegDir),
-	path_concat(BundleRegDir, 'core.bundlecfg_sh', Path). % TODO: hardwired 'core'
+    ciao_root(CiaoRoot),
+    get_bundlereg_dir(CiaoRoot, BundleRegDir),
+    path_concat(BundleRegDir, 'core.bundlecfg_sh', Path). % TODO: hardwired 'core'
 
 %:- export(eng_config_sysdep/1).
 % Generates 'meta_sh' and perform sysdep configuration (for this
@@ -163,14 +163,14 @@ bundle_flags_sh_file := Path :-
 %   - <bld_engcfg>/config_sh: sysdep config for engine (includes config for C compiler too)
 %
 eng_config_sysdep(Eng) :-
-	CfgInput = ~bundle_flags_sh_file,
-	EngDir = ~eng_path(engdir, Eng),
-	EngCfg = ~eng_cfg(Eng),
-	EngMetaSh = ~path_concat(~eng_path(cfgdir, Eng), 'meta_sh'),
-	create_eng_meta_sh(Eng, CfgInput, EngMetaSh),
-	sh_process_call(~config_sysdep_sh,
-	       [EngDir, EngCfg],
-	       [cwd(~bundle_path(core, '.'))]). % TODO: why? 'core' hardwired?
+    CfgInput = ~bundle_flags_sh_file,
+    EngDir = ~eng_path(engdir, Eng),
+    EngCfg = ~eng_cfg(Eng),
+    EngMetaSh = ~path_concat(~eng_path(cfgdir, Eng), 'meta_sh'),
+    create_eng_meta_sh(Eng, CfgInput, EngMetaSh),
+    sh_process_call(~config_sysdep_sh,
+           [EngDir, EngCfg],
+           [cwd(~bundle_path(core, '.'))]). % TODO: why? 'core' hardwired?
 
 config_sysdep_sh := ~bundle_path(builder, 'sh_src/config-sysdep/config-sysdep.sh').
 
@@ -181,66 +181,66 @@ config_sysdep_sh := ~bundle_path(builder, 'sh_src/config-sysdep/config-sysdep.sh
 %   form).
 
 create_eng_meta_sh(Eng, CfgInput, EngMetaSh) :-
-	eng_meta_sh(Eng, CfgInput, Text, []),
-	mkpath_and_write(Text, EngMetaSh).
+    eng_meta_sh(Eng, CfgInput, Text, []),
+    mkpath_and_write(Text, EngMetaSh).
 
 % TODO: Document: many dirs with .c and .h are "materalized" into a single code view during build_engine.sh
 eng_meta_sh(Eng, CfgInput) -->
-	{ EngMainMod = ~eng_mainmod(Eng) },
-	{ EngSrcDirs = ~eng_srcdirs(Eng) },
-	{ EngOpts = ~eng_opts(Eng) },
-	% engine name
-	sh_def('eng_name', EngMainMod),
-	% sub-directory in include/ for engine headers
-	{ eng_h_alias(Eng, HAlias) },
-	sh_def('eng_h_alias', HAlias), % TODO: allow many? (alias=path:alias=...)
-	% directory for engine source (not autogenerated)
-	% TODO: separate with ':' like paths?
-	{ EngSrcPath = ~atom_concat_with_blanks(EngSrcDirs) },
-	sh_def('eng_srcpath', EngSrcPath),
-	% use STAT_LIBS (system static libs)
-	( { member(add_stat_libs, EngOpts) } ->
-	    sh_def('eng_use_stat_libs', yes)
-	; sh_def('eng_use_stat_libs', no)
-	),
-	% cross compilation
-	( { member(cross(CrossOs, CrossArch), EngOpts) } ->
-	    sh_def('eng_cross_os', CrossOs),
-	    sh_def('eng_cross_arch', CrossArch)
-	; []
-	),
-	% default built-in CIAOROOT
-	% TODO: add also directories for patching paths for so/dylibs?
-	( { member(default_ciaoroot(DefCiaoRoot), EngOpts) } ->
-	    sh_def('eng_default_ciaoroot', DefCiaoRoot)
-	; []
-	),
-	% static .a for foreign code
-	{ member(static_objs(AddObjs0), EngOpts) ->
-            AddObjs = ~atom_concat_with_blanks(AddObjs0)
-	; AddObjs = ''
-	},
-	sh_def('eng_addobj', AddObjs),
-	% extra configuration (config_sh) for static foreign code
-	{ member(static_cfgs(AddCfgs0), EngOpts) ->
-            AddCfgs = ~atom_concat_with_blanks(~cfgdirs(AddCfgs0))
-	; AddCfgs = ''
-	},
-	sh_def('eng_addcfg', AddCfgs),
-	% Input for configuration
-	sh_def('eng_core_config', CfgInput).
+    { EngMainMod = ~eng_mainmod(Eng) },
+    { EngSrcDirs = ~eng_srcdirs(Eng) },
+    { EngOpts = ~eng_opts(Eng) },
+    % engine name
+    sh_def('eng_name', EngMainMod),
+    % sub-directory in include/ for engine headers
+    { eng_h_alias(Eng, HAlias) },
+    sh_def('eng_h_alias', HAlias), % TODO: allow many? (alias=path:alias=...)
+    % directory for engine source (not autogenerated)
+    % TODO: separate with ':' like paths?
+    { EngSrcPath = ~atom_concat_with_blanks(EngSrcDirs) },
+    sh_def('eng_srcpath', EngSrcPath),
+    % use STAT_LIBS (system static libs)
+    ( { member(add_stat_libs, EngOpts) } ->
+        sh_def('eng_use_stat_libs', yes)
+    ; sh_def('eng_use_stat_libs', no)
+    ),
+    % cross compilation
+    ( { member(cross(CrossOs, CrossArch), EngOpts) } ->
+        sh_def('eng_cross_os', CrossOs),
+        sh_def('eng_cross_arch', CrossArch)
+    ; []
+    ),
+    % default built-in CIAOROOT
+    % TODO: add also directories for patching paths for so/dylibs?
+    ( { member(default_ciaoroot(DefCiaoRoot), EngOpts) } ->
+        sh_def('eng_default_ciaoroot', DefCiaoRoot)
+    ; []
+    ),
+    % static .a for foreign code
+    { member(static_objs(AddObjs0), EngOpts) ->
+        AddObjs = ~atom_concat_with_blanks(AddObjs0)
+    ; AddObjs = ''
+    },
+    sh_def('eng_addobj', AddObjs),
+    % extra configuration (config_sh) for static foreign code
+    { member(static_cfgs(AddCfgs0), EngOpts) ->
+        AddCfgs = ~atom_concat_with_blanks(~cfgdirs(AddCfgs0))
+    ; AddCfgs = ''
+    },
+    sh_def('eng_addcfg', AddCfgs),
+    % Input for configuration
+    sh_def('eng_core_config', CfgInput).
 
 cfgdirs([], []).
 cfgdirs([at_bundle(B, Spec)|Xs], [Y|Ys]) :-
-	Eng = eng_def(B, Spec, []), % TODO: not necessarily an engine! fix
-	Y = ~eng_path(cfgdir, Eng),
-	cfgdirs(Xs, Ys).
+    Eng = eng_def(B, Spec, []), % TODO: not necessarily an engine! fix
+    Y = ~eng_path(cfgdir, Eng),
+    cfgdirs(Xs, Ys).
 
 % TODO: Missing escape (if needed)
 sh_def(Var,Val) -->
-	atm(Var),
-	"=\"", atm(Val),
-	"\"\n".
+    atm(Var),
+    "=\"", atm(Val),
+    "\"\n".
 
 atm(X) --> { atom_codes(X, Cs) }, str(Cs).
 
@@ -270,58 +270,58 @@ separate_with_blanks([A, B|Cs]) := [A, ' '|~separate_with_blanks([B|Cs])] :- !.
 %   Prolog -- write a dummy version for bootstrapping
 %
 eng_prebuild_version_info(Eng) :-
-	VerBundle = core, % bundle used to extract version
-	gen_eng_version_h(VerBundle, Eng),
-	gen_eng_version_c(VerBundle, Eng).
+    VerBundle = core, % bundle used to extract version
+    gen_eng_version_h(VerBundle, Eng),
+    gen_eng_version_c(VerBundle, Eng).
 
 gen_eng_version_h(VerBundle, Eng) :-
-	H = ~path_concat(~eng_path(hdir, Eng), ~eng_h_alias(Eng)),
-	VerH = ~path_concat(H, 'version.h'),
-	( file_exists(VerH) -> % TODO: update file if contents change
-	    true
-	; version_h(VerBundle, TextH, []),
-	  mkpath_and_write(TextH, VerH)
-	).
+    H = ~path_concat(~eng_path(hdir, Eng), ~eng_h_alias(Eng)),
+    VerH = ~path_concat(H, 'version.h'),
+    ( file_exists(VerH) -> % TODO: update file if contents change
+        true
+    ; version_h(VerBundle, TextH, []),
+      mkpath_and_write(TextH, VerH)
+    ).
 
 gen_eng_version_c(VerBundle, Eng) :-
-	VerC = ~path_concat(~eng_path(cdir, Eng), 'version.c'),
-	( file_exists(VerC) -> % TODO: update file if contents change
-	    true
-	; version_c(VerBundle, TextC, []),
-	  mkpath_and_write(TextC, VerC)
-	).
+    VerC = ~path_concat(~eng_path(cdir, Eng), 'version.c'),
+    ( file_exists(VerC) -> % TODO: update file if contents change
+        true
+    ; version_c(VerBundle, TextC, []),
+      mkpath_and_write(TextC, VerC)
+    ).
 
 version_h(Bundle) -->
-	"#define CIAO_VERSION_STRING \"Ciao \" ",
-	version_h_(Bundle),
-	"\n".
+    "#define CIAO_VERSION_STRING \"Ciao \" ",
+    version_h_(Bundle),
+    "\n".
 
 % TODO: Do not include commit info? Make version optional?
 version_h_(Bundle) -->
-	{ CommitDate = ~bundle_commit_info(Bundle, date) },
-	{ CommitDesc = ~bundle_commit_info(Bundle, desc) },
-	{ \+ CommitDesc = 'Unknown' },
-	!,
-	"\"", atm(CommitDesc), "\" \" (\" \"", atm(CommitDate), "\" \")\"".
+    { CommitDate = ~bundle_commit_info(Bundle, date) },
+    { CommitDesc = ~bundle_commit_info(Bundle, desc) },
+    { \+ CommitDesc = 'Unknown' },
+    !,
+    "\"", atm(CommitDesc), "\" \" (\" \"", atm(CommitDate), "\" \")\"".
 version_h_(Bundle) -->
-	% No commit info
-	{ Version = ~bundle_version(Bundle) },
-	"\"", atm(Version), "\"".
+    % No commit info
+    { Version = ~bundle_version(Bundle) },
+    "\"", atm(Version), "\"".
 
 version_c(Bundle) -->
-	{ Version = ~bundle_version(Bundle) },
-	{ version_split_patch(Version, VersionNopatch, Patch) },
-	{ CommitBranch = ~bundle_commit_info(Bundle, branch) },
-	{ CommitId = ~bundle_commit_info(Bundle, id) },
-	{ CommitDate = ~bundle_commit_info(Bundle, date) },
-	{ CommitDesc = ~bundle_commit_info(Bundle, desc) },
-	% TODO: Use just version? (do not define ciao_patch, commit info, etc.)
-	"char *ciao_version = \"", atm(VersionNopatch), "\";\n",
-	"char *ciao_patch = \"", atm(Patch), "\";\n",
-	"char *ciao_commit_branch = \"", atm(CommitBranch), "\";\n",
-	"char *ciao_commit_id = \"", atm(CommitId), "\";\n",
-	"char *ciao_commit_date = \"", atm(CommitDate), "\";\n",
-	"char *ciao_commit_desc = \"", atm(CommitDesc), "\";\n".
+    { Version = ~bundle_version(Bundle) },
+    { version_split_patch(Version, VersionNopatch, Patch) },
+    { CommitBranch = ~bundle_commit_info(Bundle, branch) },
+    { CommitId = ~bundle_commit_info(Bundle, id) },
+    { CommitDate = ~bundle_commit_info(Bundle, date) },
+    { CommitDesc = ~bundle_commit_info(Bundle, desc) },
+    % TODO: Use just version? (do not define ciao_patch, commit info, etc.)
+    "char *ciao_version = \"", atm(VersionNopatch), "\";\n",
+    "char *ciao_patch = \"", atm(Patch), "\";\n",
+    "char *ciao_commit_branch = \"", atm(CommitBranch), "\";\n",
+    "char *ciao_commit_id = \"", atm(CommitId), "\";\n",
+    "char *ciao_commit_date = \"", atm(CommitDate), "\";\n",
+    "char *ciao_commit_desc = \"", atm(CommitDesc), "\";\n".
 
 % ===========================================================================
 :- doc(section, "Interface to SH implementation").
@@ -329,26 +329,26 @@ version_c(Bundle) -->
 % Commands for building engines
 % (creates the engine build area implicitly)
 eng_build_native(Eng) :-
-	build_engine_(Eng, build, []).
+    build_engine_(Eng, build, []).
 
 % Clean the engine build area
 eng_clean_native(Eng) :-
-	build_engine_(Eng, clean, []).
+    build_engine_(Eng, clean, []).
 
 build_engine_(Eng, Target, Env0) :-
-	EngDir = ~eng_path(engdir, Eng),
-	EngCfg = ~eng_cfg(Eng),
-	% (input: look at build_engine.sh)
-	Env = ['BLD_ENGDIR' = EngDir,
-	       'ENG_CFG' = EngCfg|Env0],
-	sh_process_call(~build_engine_sh, [Target], [env(Env)]).
+    EngDir = ~eng_path(engdir, Eng),
+    EngCfg = ~eng_cfg(Eng),
+    % (input: look at build_engine.sh)
+    Env = ['BLD_ENGDIR' = EngDir,
+           'ENG_CFG' = EngCfg|Env0],
+    sh_process_call(~build_engine_sh, [Target], [env(Env)]).
 
 :- use_module(engine(internals), [ciao_root/1]).
 
 % TODO: could I use bundle_path(builder, 'sh_src/build_engine.sh')? (it should be registered)
 build_engine_sh := Path :-
-	ciao_root(CiaoRoot),
-	Path = ~path_concat(CiaoRoot, 'builder/sh_src/build_engine.sh').
+    ciao_root(CiaoRoot),
+    Path = ~path_concat(CiaoRoot, 'builder/sh_src/build_engine.sh').
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Detect OS and architecture").
@@ -357,7 +357,7 @@ build_engine_sh := Path :-
 :- export(sysconf_os/1).
 % Detect the current operating system.
 sysconf_os(OS) :-
-	get_sysconf(['--os'], OS).
+    get_sysconf(['--os'], OS).
 
 % (See scan_bootstrap_opts.sh)
 
@@ -365,11 +365,11 @@ sysconf_os(OS) :-
 % Detect the current architecture. Select 32 or 64 bits if M32 or M64
 % is 'yes', respectively.
 sysconf_arch(M32, M64, Arch) :-
-	get_sysconf(['--arch'], Arch0),
-	( M32 = yes -> arch32(Arch0, Arch)
-	; M64 = yes -> arch64(Arch0, Arch)
-	; Arch = Arch0
-	).
+    get_sysconf(['--arch'], Arch0),
+    ( M32 = yes -> arch32(Arch0, Arch)
+    ; M64 = yes -> arch64(Arch0, Arch)
+    ; Arch = Arch0
+    ).
 
 arch32('Sparc64', 'Sparc') :- !.
 arch32('x86_64', 'i686') :- !.
@@ -384,9 +384,9 @@ arch64(_, empty). % force error % TODO: emit error instead?
 ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
 
 get_sysconf(Args, Val) :-
-	sh_process_call(~ciao_sysconf_sh, Args,
-	                [stderr(stdout), stdout(string(Val0)), status(_)]),
-	atom_codes(Val, Val0).
+    sh_process_call(~ciao_sysconf_sh, Args,
+                    [stderr(stdout), stdout(string(Val0)), status(_)]),
+    atom_codes(Val, Val0).
 
 % ---------------------------------------------------------------------------
 
@@ -396,7 +396,7 @@ get_sysconf(Args, Val) :-
 
 % Write Text to F, make sure that the path exists
 mkpath_and_write(Text, F) :-
-	path_dirname(F, D),
-	mkpath(D),
-	string_to_file(Text, F).
+    path_dirname(F, D),
+    mkpath(D),
+    string_to_file(Text, F).
 

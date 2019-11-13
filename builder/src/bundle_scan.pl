@@ -38,53 +38,53 @@
 
 % TODO: Allow a single bundle (use BundleSet?)
 scan_bundles_at_path(Path) :-
-	% Find bundles under Path and scan
-	find_bundles(Path),
-	once_port_reify(scan_bundles_at_path_(Path), Port),
-	cleanup_find_bundles,
-	port_call(Port).
+    % Find bundles under Path and scan
+    find_bundles(Path),
+    once_port_reify(scan_bundles_at_path_(Path), Port),
+    cleanup_find_bundles,
+    port_call(Port).
 
 % TODO: Assumes that Path corresponds to some valid workspace
 scan_bundles_at_path_(Path) :- % (requires find_bundles/2 data)
-	% Create bundleregs
-	ensure_bundlereg_dir(Path),
-	( % (failure-driven loop)
-	  found_bundle(_Name, BundleDir),
-	    create_bundlereg(BundleDir, Path),
-	    fail
-	; true
-	),
-	% Remove orphan bundleregs (including configuration)
-	swipe_bundlereg_dir(Path),
-	% Finally reload bundleregs
-	reload_bundleregs.
+    % Create bundleregs
+    ensure_bundlereg_dir(Path),
+    ( % (failure-driven loop)
+      found_bundle(_Name, BundleDir),
+        create_bundlereg(BundleDir, Path),
+        fail
+    ; true
+    ),
+    % Remove orphan bundleregs (including configuration)
+    swipe_bundlereg_dir(Path),
+    % Finally reload bundleregs
+    reload_bundleregs.
 
 swipe_bundlereg_dir(Wksp) :-
-	get_bundlereg_dir(Wksp, BundleRegDir),
-	directory_files(BundleRegDir, Files),
-	( member(File, Files),
-	    ( orphan_reg_file(File) ->
-	        path_concat(BundleRegDir, File, AbsFile),
-	        delete_file(AbsFile)
-	    ; true
-	    ),
-	    fail
-	; true
-	).
+    get_bundlereg_dir(Wksp, BundleRegDir),
+    directory_files(BundleRegDir, Files),
+    ( member(File, Files),
+        ( orphan_reg_file(File) ->
+            path_concat(BundleRegDir, File, AbsFile),
+            delete_file(AbsFile)
+        ; true
+        ),
+        fail
+    ; true
+    ).
 
 % A .bundlereg, .bundlecfg, or .bundlecfg_sh file for a bundle that is
 % no longer available.
 orphan_reg_file(File) :-
-	( atom_concat(Name, '.bundlereg', File) -> true
-	; atom_concat(Name, '.bundlecfg', File) -> true
-	; atom_concat(Name, '.bundlecfg_sh', File) -> true
-	),
-	\+ found_bundle(Name, _).
+    ( atom_concat(Name, '.bundlereg', File) -> true
+    ; atom_concat(Name, '.bundlecfg', File) -> true
+    ; atom_concat(Name, '.bundlecfg_sh', File) -> true
+    ),
+    \+ found_bundle(Name, _).
 
 % Ensure that build/bundlereg exists in for Wksp workspace
 ensure_bundlereg_dir(Wksp) :-
-	get_bundlereg_dir(Wksp, BundleRegDir),
-	mkpath(BundleRegDir).
+    get_bundlereg_dir(Wksp, BundleRegDir),
+    mkpath(BundleRegDir).
 
 % ---------------------------------------------------------------------------
 
@@ -98,14 +98,14 @@ ensure_bundlereg_dir(Wksp) :-
 % when done.
 
 find_bundles(Path) :-
-	cleanup_find_bundles,
-	( % (failure-driven loop)
-	  bundledirs_at_dir(Path, no, Dir),
-	    bundledir_to_name(Dir, Bundle),
-	    assertz_fact(found_bundle(Bundle, Dir)),
-	    fail
-	; true
-	).
+    cleanup_find_bundles,
+    ( % (failure-driven loop)
+      bundledirs_at_dir(Path, no, Dir),
+        bundledir_to_name(Dir, Bundle),
+        assertz_fact(found_bundle(Bundle, Dir)),
+        fail
+    ; true
+    ).
 
 cleanup_find_bundles :- retractall_fact(found_bundle(_, _)).
 
@@ -120,34 +120,34 @@ cleanup_find_bundles :- retractall_fact(found_bundle(_, _)).
 %
 % (nondet)
 bundledirs_at_dir(Src, Optional, BundleDir) :-
-	\+ is_bundledir(Src), % (it cannot be a bundle)
-	directory_files(Src, Files),
-	member(File, Files),
-	\+ not_bundle(File),
-	path_concat(Src, File, Dir),
-	\+ directory_has_mark(nocompile, Dir), % TODO: not needed now?
-	%
-	( directory_has_mark(bundle_catalog, Dir) ->
-	    % search recursively on the catalog (only if ACTIVATE is set on the bundle)
-	    bundledirs_at_dir(Dir, yes, BundleDir)
-	; is_bundledir(Dir) -> % a bundle
-	    ( Optional = yes -> directory_has_mark(activate, Dir) ; true ),
-	    BundleDir = Dir
-	; fail % (none, backtrack)
-	).
+    \+ is_bundledir(Src), % (it cannot be a bundle)
+    directory_files(Src, Files),
+    member(File, Files),
+    \+ not_bundle(File),
+    path_concat(Src, File, Dir),
+    \+ directory_has_mark(nocompile, Dir), % TODO: not needed now?
+    %
+    ( directory_has_mark(bundle_catalog, Dir) ->
+        % search recursively on the catalog (only if ACTIVATE is set on the bundle)
+        bundledirs_at_dir(Dir, yes, BundleDir)
+    ; is_bundledir(Dir) -> % a bundle
+        ( Optional = yes -> directory_has_mark(activate, Dir) ; true ),
+        BundleDir = Dir
+    ; fail % (none, backtrack)
+    ).
 
 not_bundle('.').
 not_bundle('..').
 
 directory_has_mark(nocompile, Dir) :-
-	path_concat(Dir, 'NOCOMPILE', F),
-	file_exists(F).
+    path_concat(Dir, 'NOCOMPILE', F),
+    file_exists(F).
 directory_has_mark(bundle_catalog, Dir) :-
-	path_concat(Dir, 'BUNDLE_CATALOG', F),
-	file_exists(F).
+    path_concat(Dir, 'BUNDLE_CATALOG', F),
+    file_exists(F).
 directory_has_mark(activate, Dir) :-
-	path_concat(Dir, 'ACTIVATE', F),
-	file_exists(F).
+    path_concat(Dir, 'ACTIVATE', F),
+    file_exists(F).
 
 % ---------------------------------------------------------------------------
 
@@ -161,20 +161,20 @@ directory_has_mark(activate, Dir) :-
 
 % TODO: extract name from Manifest?
 bundledir_to_name(BundleDir, Bundle) :-
-	path_split(BundleDir, _, Bundle).
+    path_split(BundleDir, _, Bundle).
 
 :- export(create_bundlereg/2).
 % Create a bundlereg for bundle at @var{BundleDir} (for workspace Wksp)
 create_bundlereg(BundleDir, Wksp) :-
-	bundledir_to_name(BundleDir, Bundle), % bundle name from path
-	get_bundlereg_dir(Wksp, BundleRegDir),
-	bundlereg_filename(Bundle, BundleRegDir, RegFile),
-	make_bundlereg(Bundle, BundleDir, BundleDir, RegFile).
+    bundledir_to_name(BundleDir, Bundle), % bundle name from path
+    get_bundlereg_dir(Wksp, BundleRegDir),
+    bundlereg_filename(Bundle, BundleRegDir, RegFile),
+    make_bundlereg(Bundle, BundleDir, BundleDir, RegFile).
 
 :- export(remove_bundlereg/2).
 % Remove the bundlereg for bundle @var{Bundle} (for workspace Wksp)
 remove_bundlereg(Bundle, Wksp) :-
-	get_bundlereg_dir(Wksp, BundleRegDir),
-	bundlereg_filename(Bundle, BundleRegDir, RegFile),
-	del_file_nofail(RegFile).
+    get_bundlereg_dir(Wksp, BundleRegDir),
+    bundlereg_filename(Bundle, BundleRegDir, RegFile),
+    del_file_nofail(RegFile).
 

@@ -17,20 +17,20 @@
 
 % (hook)
 gen_pbundle_hook(bin, Target, _Options) :- !,
-	dist_gen_commit_info(Target),
-	gen_pbundle_common(Target, bin, [tgz, tbz]).
+    dist_gen_commit_info(Target),
+    gen_pbundle_common(Target, bin, [tgz, tbz]).
 gen_pbundle_hook(bin_tgz, Target, _Options) :- !,
-	dist_gen_commit_info(Target),
-	gen_pbundle_common(Target, bin, [tgz]).
+    dist_gen_commit_info(Target),
+    gen_pbundle_common(Target, bin, [tgz]).
 gen_pbundle_hook(bin_tbz, Target, _Options) :- !,
-	dist_gen_commit_info(Target),
-	gen_pbundle_common(Target, bin, [tbz]).
+    dist_gen_commit_info(Target),
+    gen_pbundle_common(Target, bin, [tbz]).
 gen_pbundle_hook(noa, Target, _Options) :- !,
-	dist_gen_commit_info(Target),
-	gen_pbundle_common(Target, noa, [tgz, tbz]).
+    dist_gen_commit_info(Target),
+    gen_pbundle_common(Target, noa, [tgz, tbz]).
 gen_pbundle_hook(noa_tgz, Target, _Options) :- !,
-	dist_gen_commit_info(Target),
-	gen_pbundle_common(Target, noa, [tgz]).
+    dist_gen_commit_info(Target),
+    gen_pbundle_common(Target, noa, [tgz]).
 gen_pbundle_hook(noa_tbz, Target, _Options) :- !,
-	dist_gen_commit_info(Target),
-	gen_pbundle_common(Target, noa, [tbz]).
+    dist_gen_commit_info(Target),
+    gen_pbundle_common(Target, noa, [tbz]).

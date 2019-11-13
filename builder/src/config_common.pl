@@ -37,12 +37,12 @@ docformat := pdf|manl|info|html. % | ps.
 % TODO: Generalize with options, flags, etc.
 :- export(default_eng_def/1).
 default_eng_def(Eng) :-
-	Eng = eng_def(core, 'engine/ciaoengine', []).
+    Eng = eng_def(core, 'engine/ciaoengine', []).
 
 % Boot engine
 :- export(boot_eng_def/1).
 boot_eng_def(Eng) :-
-	Eng = eng_def(core, 'engine/ciaoengine', [boot]).
+    Eng = eng_def(core, 'engine/ciaoengine', [boot]).
 
 % ===========================================================================
 % TODO: Move to ciaoc_aux?
@@ -51,16 +51,16 @@ boot_eng_def(Eng) :-
 % Path for executable commands in the build area
 % (e.g., build/bin/<CMD>)
 cmd_path(Bundle, Kind, File) := Path :-
-	BinDir = ~bundle_path(Bundle, builddir, 'bin'),
-	Path = ~path_concat(BinDir, ~concat_ext(Kind, File)).
+    BinDir = ~bundle_path(Bundle, builddir, 'bin'),
+    Path = ~path_concat(BinDir, ~concat_ext(Kind, File)).
 
 :- export(libcmd_path/4).
 % Path for libexec commands in the build area (not intented to be run
 % directly by humans, e.g., like active modules)
 % (e.g., build/libexec/<CMD>)
 libcmd_path(Bundle, Kind, File) := Path :-
-	BinDir = ~bundle_path(Bundle, builddir, 'libexec'),
-	Path = ~path_concat(BinDir, ~concat_ext(Kind, File)).
+    BinDir = ~bundle_path(Bundle, builddir, 'libexec'),
+    Path = ~path_concat(BinDir, ~concat_ext(Kind, File)).
 
 :- export(concat_ext/3).
 % Obtain 'A'+'Ext' where Ext is the default extension (For the current
@@ -82,11 +82,11 @@ concat_ext(ext(Ext), X) := ~atom_concat(X, Ext).
 :- export(site_root_dir/1).
 % Files for HTTP serving
 site_root_dir := Path :-
-	Bundle = core, % TODO: allow any bundle
-	Path = ~bundle_path(Bundle, builddir, 'site').
+    Bundle = core, % TODO: allow any bundle
+    Path = ~bundle_path(Bundle, builddir, 'site').
 
 :- export(data_root_dir/1).
 % Files for per-bundle persistence
 data_root_dir := Path :-
-	Bundle = core, % TODO: allow any bundle
-	Path = ~bundle_path(Bundle, builddir, 'data').
+    Bundle = core, % TODO: allow any bundle
+    Path = ~bundle_path(Bundle, builddir, 'data').

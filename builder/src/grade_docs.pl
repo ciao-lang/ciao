@@ -35,7 +35,7 @@
 'cmd.recursive'(build_docs, forward).
 'cmd.do_before.decl'(build_docs).
 'cmd.do_before'(build_docs, Target) :- !,
-	builder_cmd(prepare_build_docs, Target).
+    builder_cmd(prepare_build_docs, Target).
 
 'cmd.comment'(prepare_build_docs, ["preparing build [docs]", "prepared build [docs]"]).
 'cmd.grade'(prepare_build_docs, custom_docs).
@@ -49,10 +49,10 @@
 'cmd.recursive'(clean_docs, backward).
 'cmd.do_after.decl'(clean_docs).
 'cmd.do_after'(clean_docs, Target) :- !,
-	( root_target(Target) -> % TODO: generalize for all workspaces
-	    builddir_clean(core, doc) % TODO: 'core' hardwired
-	; true
-	).
+    ( root_target(Target) -> % TODO: generalize for all workspaces
+        builddir_clean(core, doc) % TODO: 'core' hardwired
+    ; true
+    ).
 
 % ---------------------------------------------------------------------------
 % install/uninstall (docs)
@@ -82,52 +82,52 @@
 
 'grade.prim_kind'(docs, docs) :- !.
 'grade.prim_do'(docs, Prim, Bundle, Cmd) :- !,
-	prim(Prim, Bundle, Cmd).
+    prim(Prim, Bundle, Cmd).
 
 prim(_, _, prebuild_docs) :- !. % (default is nop)
 prim(readme(OutName, Props), Bundle, build_docs) :- !,
-	normal_message("generating ~w (file)", [OutName]),
-	build_docs_readme(Bundle, ~main_file_relpath(Props), OutName).
+    normal_message("generating ~w (file)", [OutName]),
+    build_docs_readme(Bundle, ~main_file_relpath(Props), OutName).
 prim(readme(_OutName, _Props), _Bundle, clean_docs) :- !,
-	% (Not cleaned, assuming they are part of the sources)
-	% R = ~bundle_path(_Bundle, _OutName).
-	% del_file_nofail(R).
-	true.
+    % (Not cleaned, assuming they are part of the sources)
+    % R = ~bundle_path(_Bundle, _OutName).
+    % del_file_nofail(R).
+    true.
 prim(readme(_OutName, _Props), _Bundle, install_docs) :- !,
-	% Not installed (part of the sources)
-	true.
+    % Not installed (part of the sources)
+    true.
 prim(readme(_OutName, _Props), _Bundle, uninstall_docs) :- !,
-	% Not installed (part of the sources)
-	true.
+    % Not installed (part of the sources)
+    true.
 %
 prim(manual(Base, Props), Bundle, build_docs) :- !,
-	normal_message("generating ~w (manual)", [Base]),
-	build_doc(Bundle, ~main_file_relpath(Props)).
+    normal_message("generating ~w (manual)", [Base]),
+    build_doc(Bundle, ~main_file_relpath(Props)).
 prim(manual(_Base, _Props), _Bundle, clean_docs) :- !,
-	% TODO: use Manifest, use lpdoc to clean?
-	true.
+    % TODO: use Manifest, use lpdoc to clean?
+    true.
 prim(manual(Base, _Props), Bundle, install_docs) :- !,
-	normal_message("installing ~w (manual)", [Base]),
-	install_doc_all_formats(Bundle, Base).
+    normal_message("installing ~w (manual)", [Base]),
+    install_doc_all_formats(Bundle, Base).
 prim(manual(Base, _Props), Bundle, uninstall_docs) :- !,
-	normal_message("uninstalling ~w (manual)", [Base]),
-	uninstall_doc_all_formats(Bundle, Base).
+    normal_message("uninstalling ~w (manual)", [Base]),
+    uninstall_doc_all_formats(Bundle, Base).
 prim(X, Bundle, Cmd) :- !,
-	throw(unknown_docstgt(X, Bundle, Cmd)).
+    throw(unknown_docstgt(X, Bundle, Cmd)).
 
 install_doc_all_formats(Bundle, Base) :-
-	( % (failure-driven loop)
-	  docformat(DocFormat), % (nondet)
-	    install_doc(Bundle, Base, DocFormat),
-	    fail
-	; true
-	).
+    ( % (failure-driven loop)
+      docformat(DocFormat), % (nondet)
+        install_doc(Bundle, Base, DocFormat),
+        fail
+    ; true
+    ).
 
 uninstall_doc_all_formats(Bundle, Base) :-
-	( % (failure-driven loop)
-	  docformat(DocFormat), % (nondet)
-	    uninstall_doc(Bundle, Base, DocFormat),
-	    fail
-	; true
-	).
+    ( % (failure-driven loop)
+      docformat(DocFormat), % (nondet)
+        uninstall_doc(Bundle, Base, DocFormat),
+        fail
+    ; true
+    ).
 

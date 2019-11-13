@@ -19,12 +19,12 @@
 :- export(dir_to_bundle/2).
 % Lookup Bundle defined at BundleDir
 dir_to_bundle(BundleDir, Bundle) :-
-	% (backtracks until we find a match)
-	'$bundle_id'(Bundle0),
-	Dir = ~bundle_path(Bundle0, '.'),
-	Dir == BundleDir,
-	!,
-	Bundle = Bundle0.
+    % (backtracks until we find a match)
+    '$bundle_id'(Bundle0),
+    Dir = ~bundle_path(Bundle0, '.'),
+    Dir == BundleDir,
+    !,
+    Bundle = Bundle0.
 
 % ---------------------------------------------------------------------------
 
@@ -36,19 +36,19 @@ dir_to_bundle(BundleDir, Bundle) :-
 % Detect the workspace for the given File (a directory or normal
 % file), using ciao_root/1 and ciao_path/1.
 lookup_workspace(File, Path) :-
-	fixed_absolute_file_name(File, '.', Path0),
-	( lookup_workspace_(Path0, Path1) ->
-	    Path1 = Path
-	; fail
-	).
+    fixed_absolute_file_name(File, '.', Path0),
+    ( lookup_workspace_(Path0, Path1) ->
+        Path1 = Path
+    ; fail
+    ).
 
 lookup_workspace_(Path0, Path) :-
-	( ciao_path(Path)
-	; ciao_root(Path)
-	),
-	( Path0 = Path -> true
-	; path_get_relative(Path, Path0, _) % Path0 is relative to Path
-	).
+    ( ciao_path(Path)
+    ; ciao_root(Path)
+    ),
+    ( Path0 = Path -> true
+    ; path_get_relative(Path, Path0, _) % Path0 is relative to Path
+    ).
 
 % ===========================================================================
 :- doc(section, "Invokation of external tools").
@@ -64,18 +64,18 @@ gmake := ~get_bundle_flag(builder:gmake_cmd).
 
 :- export(invoke_gmake/2).
 invoke_gmake(Dir, Args) :-
-	verbose_message("Executing `make' on `~w' with arguments ~w", [Dir, Args]),
-	Env = ['CIAOCMD' = ~ciaocmd],
-	Options = [cwd(Dir), env(Env)],
-	quoted_process_call(~gmake, Args, Options).
+    verbose_message("Executing `make' on `~w' with arguments ~w", [Dir, Args]),
+    Env = ['CIAOCMD' = ~ciaocmd],
+    Options = [cwd(Dir), env(Env)],
+    quoted_process_call(~gmake, Args, Options).
 
 :- export(invoke_ant/2).
 % Compilation of foreign Java code through Apache Ant (http://ant.apache.org/)
 % TODO: Make Ant command configurable?
 invoke_ant(Dir, Args) :-
-	verbose_message("Executing `ant' on `~w' with arguments ~w", [Dir, Args]),
-	Options = [cwd(Dir)],
-	quoted_process_call(path(ant), Args, Options).
+    verbose_message("Executing `ant' on `~w' with arguments ~w", [Dir, Args]),
+    Options = [cwd(Dir)],
+    quoted_process_call(path(ant), Args, Options).
 
 % ===========================================================================
 :- doc(section, "Build area (builddir)").
@@ -86,29 +86,29 @@ invoke_ant(Dir, Args) :-
 :- export(ensure_builddir/2).
 % Prepare a build (sub)directory (Rel can be '.' or a relative path)
 ensure_builddir(Bundle, Rel) :-
- 	mkpath(~bundle_path(Bundle, builddir, Rel)).
+    mkpath(~bundle_path(Bundle, builddir, Rel)).
 
 % Special clean targets for builddir
 % TODO: Clean per bundle? (e.g., for bin/ it is complex, similar to uninstall)
 :- export(builddir_clean/2).
 builddir_clean(Bundle, bundlereg) :- !,
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'bundlereg')).
+    remove_dir_nofail(~bundle_path(Bundle, builddir, 'bundlereg')).
 builddir_clean(Bundle, config) :- !,
-	( Bundle = core -> % TODO: fix!!! clean per bundle!
-	    del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/core.bundlecfg')),
-	    del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/core.bundlecfg_sh'))
-	; true
-	).
+    ( Bundle = core -> % TODO: fix!!! clean per bundle!
+        del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/core.bundlecfg')),
+        del_file_nofail(~bundle_path(Bundle, builddir, 'bundlereg/core.bundlecfg_sh'))
+    ; true
+    ).
 builddir_clean(Bundle, bin) :- !,
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'bin')),
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'libexec')),
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'cache')). % out-of-tree builds
+    remove_dir_nofail(~bundle_path(Bundle, builddir, 'bin')),
+    remove_dir_nofail(~bundle_path(Bundle, builddir, 'libexec')),
+    remove_dir_nofail(~bundle_path(Bundle, builddir, 'cache')). % out-of-tree builds
 builddir_clean(Bundle, pbundle) :- !,
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'pbundle')).
+    remove_dir_nofail(~bundle_path(Bundle, builddir, 'pbundle')).
 builddir_clean(Bundle, doc) :- !,
-	remove_dir_nofail(~bundle_path(Bundle, builddir, 'doc')).
+    remove_dir_nofail(~bundle_path(Bundle, builddir, 'doc')).
 builddir_clean(Bundle, all) :-
-	remove_dir_nofail(~bundle_path(Bundle, builddir, '.')).
+    remove_dir_nofail(~bundle_path(Bundle, builddir, '.')).
 
 % ===========================================================================
 :- doc(section, "Build Template Files with Parameters").
@@ -121,21 +121,21 @@ builddir_clean(Bundle, all) :-
 % Generate files based on text templates
 % TODO: improve
 wr_template(at(OutDir), Dir, File, Subst) :-
-	In = ~path_concat(Dir, ~atom_concat(File, '.skel')),
-	Out = ~path_concat(OutDir, File),
-	eval_template_file(In, Subst, Out).
+    In = ~path_concat(Dir, ~atom_concat(File, '.skel')),
+    Out = ~path_concat(OutDir, File),
+    eval_template_file(In, Subst, Out).
 wr_template(origin, Dir, File, Subst) :-
-	In = ~path_concat(Dir, ~atom_concat(File, '.skel')),
-	Out = ~path_concat(Dir, File),
-	eval_template_file(In, Subst, Out).
+    In = ~path_concat(Dir, ~atom_concat(File, '.skel')),
+    Out = ~path_concat(Dir, File),
+    eval_template_file(In, Subst, Out).
 wr_template(as_cmd(Bundle, Kind), Dir, File, Subst) :-
-	In = ~path_concat(Dir, ~atom_concat(File, '.skel')),
-	Out = ~cmd_path(Bundle, Kind, File),
-	eval_template_file(In, Subst, Out),
-	( kind_exec_perms(Kind) ->
-	    warn_on_nosuccess(set_exec_perms(Out, perms(rwX, rwX, rX)))
-	; true
-	).
+    In = ~path_concat(Dir, ~atom_concat(File, '.skel')),
+    Out = ~cmd_path(Bundle, Kind, File),
+    eval_template_file(In, Subst, Out),
+    ( kind_exec_perms(Kind) ->
+        warn_on_nosuccess(set_exec_perms(Out, perms(rwX, rwX, rX)))
+    ; true
+    ).
 
 kind_exec_perms(shscript).
 
@@ -156,13 +156,13 @@ kind_exec_perms(shscript).
 % version of Bundle, build time, and compiler version.
 
 generate_version_auto(Bundle, File) :-
-	Version = ~bundle_version(Bundle),
-	CVersion = ~bundle_version(core),
-	%
-	VersionAtm = ~atom_concat([
-	  Version, ' (compiled with Ciao ', CVersion, ')'
-        ]),
-	update_file_from_clauses([version(VersionAtm)], File, _).
+    Version = ~bundle_version(Bundle),
+    CVersion = ~bundle_version(core),
+    %
+    VersionAtm = ~atom_concat([
+      Version, ' (compiled with Ciao ', CVersion, ')'
+    ]),
+    update_file_from_clauses([version(VersionAtm)], File, _).
 
 % ---------------------------------------------------------------------------
 % TODO: move somewhere else?
@@ -175,13 +175,13 @@ generate_version_auto(Bundle, File) :-
 :- export(print_clauses_to_file/2).
 % Portray clauses to a file
 print_clauses_to_file(Clauses, Path) :-
-        open(Path, write, S),
-	display(S, '% Do not edit -- generated automatically\n\n'), % TODO: optional?
-	maplist(print_clause(S), Clauses),
-	close(S).
+    open(Path, write, S),
+    display(S, '% Do not edit -- generated automatically\n\n'), % TODO: optional?
+    maplist(print_clause(S), Clauses),
+    close(S).
 
 print_clause(Clause, S) :-
- 	portray_clause(S, Clause).
+    portray_clause(S, Clause).
 
 % ---------------------------------------------------------------------------
 % TODO: move somewhere else?
@@ -194,17 +194,17 @@ print_clause(Clause, S) :-
 % Like @pred{print_clauses_to_file/2} but preserves timestamp if file
 % contents have not changed.
 update_file_from_clauses(Clauses, Path, NewOrOld) :-
-	mktemp_in_tmp('clauses-XXXXXX', File),
-	print_clauses_to_file(Clauses, File),
-	move_if_diff(File, Path, NewOrOld).
+    mktemp_in_tmp('clauses-XXXXXX', File),
+    print_clauses_to_file(Clauses, File),
+    move_if_diff(File, Path, NewOrOld).
 
 :- export(update_file_from_string/3).
 % Like @pred{string_to_file/2} but preserves timestamp if file
 % contents have not changed.
 update_file_from_string(String, Path, NewOrOld) :-
-	mktemp_in_tmp('clauses-XXXXXX', File),
-	string_to_file(String, File),
-	move_if_diff(File, Path, NewOrOld).
+    mktemp_in_tmp('clauses-XXXXXX', File),
+    string_to_file(String, File),
+    move_if_diff(File, Path, NewOrOld).
 
 % ===========================================================================
 % TODO: move to eng_maker.pl?
@@ -216,24 +216,24 @@ update_file_from_string(String, Path, NewOrOld) :-
 :- export(add_rpath/3).
 % Add rpaths (runtime search path for shared libraries)
 add_rpath(local_third_party, LinkerOpts0, LinkerOpts) :- !,
-	third_party_path(libdir, LibDir),
-	% % TODO: better way to compute RelativeLibDir?
-	% % (for 'ciaoc_car.pl')
-	% ciao_root(CiaoRoot), % TODO: get workspace from bundle!
-	% path_relocate(CiaoRoot, '.', LibDir, RelativeLibDir),
-	% add_rpath_(RelativeLibDir, LinkerOpts0, LinkerOpts),
-	%
-	% NOTE: Not using relative rpath (it is troublesome);
-	% relocation may be needed if moving third-party
-        add_rpath_(LibDir, LinkerOpts0, LinkerOpts). 
+    third_party_path(libdir, LibDir),
+    % % TODO: better way to compute RelativeLibDir?
+    % % (for 'ciaoc_car.pl')
+    % ciao_root(CiaoRoot), % TODO: get workspace from bundle!
+    % path_relocate(CiaoRoot, '.', LibDir, RelativeLibDir),
+    % add_rpath_(RelativeLibDir, LinkerOpts0, LinkerOpts),
+    %
+    % NOTE: Not using relative rpath (it is troublesome);
+    % relocation may be needed if moving third-party
+    add_rpath_(LibDir, LinkerOpts0, LinkerOpts). 
 add_rpath(executable_path, LinkerOpts0, LinkerOpts) :- !,
-	% (for 'ciaoc_sdyn')
-	% (note: not quoted here since we pass args with process_call/3)
-	add_rpath_('$ORIGIN', LinkerOpts0, LinkerOpts).
+    % (for 'ciaoc_sdyn')
+    % (note: not quoted here since we pass args with process_call/3)
+    add_rpath_('$ORIGIN', LinkerOpts0, LinkerOpts).
 
 add_rpath_(Path, LinkerOpts0, LinkerOpts) :-
-	Opt = ~atom_concat('-Wl,-rpath,', Path),
-	LinkerOpts = [Opt|LinkerOpts0].
+    Opt = ~atom_concat('-Wl,-rpath,', Path),
+    LinkerOpts = [Opt|LinkerOpts0].
 
 % ===========================================================================
 % Alternative hooks for installation of third-party code
@@ -249,18 +249,18 @@ add_rpath_(Path, LinkerOpts0, LinkerOpts) :-
 third_party_aux_sh := ~bundle_path(builder, 'src/third_party_aux.bash').
 
 third_party_defs_sh(Bundle, ForeignName) := Path :-
-	Dir = ~bundle_path(Bundle, 'Manifest'),
-	DefsSh = ~atom_concat(ForeignName, '.defs.sh'),
-	Path = ~path_concat(Dir, DefsSh).
+    Dir = ~bundle_path(Bundle, 'Manifest'),
+    DefsSh = ~atom_concat(ForeignName, '.defs.sh'),
+    Path = ~path_concat(Dir, DefsSh).
 
 :- export(third_party_aux/3).
 third_party_aux(Bundle, ForeignName, Args) :- 
-	DefsSh = ~third_party_defs_sh(Bundle, ForeignName),
-	OS = ~get_bundle_flag(core:os),
-	Arch = ~get_bundle_flag(core:arch),
-	third_party_path(prefix, ThirdParty), % TODO: add bundle to third_party_path/2
-	Env = ['CIAO_OS'=OS, 'CIAO_ARCH'=Arch, 'THIRDPARTY'=ThirdParty],
-	process_call(~third_party_aux_sh, [DefsSh|Args], [env(Env)]).
+    DefsSh = ~third_party_defs_sh(Bundle, ForeignName),
+    OS = ~get_bundle_flag(core:os),
+    Arch = ~get_bundle_flag(core:arch),
+    third_party_path(prefix, ThirdParty), % TODO: add bundle to third_party_path/2
+    Env = ['CIAO_OS'=OS, 'CIAO_ARCH'=Arch, 'THIRDPARTY'=ThirdParty],
+    process_call(~third_party_aux_sh, [DefsSh|Args], [env(Env)]).
 
 % ===========================================================================
 
@@ -269,13 +269,13 @@ third_party_aux(Bundle, ForeignName, Args) :-
 
 :- export(update_stat_config_sh/2).
 update_stat_config_sh(Eng, LinkerOpts) :-
-	% TODO: missing quote
-	LinkerOptsStr = ~atom_codes(~atom_concat_with_blanks(LinkerOpts)),
-	Str = ~flatten(["ADD_STAT_LIBS=\'"||LinkerOptsStr, "\'\n"]),
-	%
-	CfgDir = ~eng_path(cfgdir, Eng), 
-	mkpath(CfgDir),
-	update_file_from_string(Str, ~path_concat(CfgDir, 'config_sh'), _).
+    % TODO: missing quote
+    LinkerOptsStr = ~atom_codes(~atom_concat_with_blanks(LinkerOpts)),
+    Str = ~flatten(["ADD_STAT_LIBS=\'"||LinkerOptsStr, "\'\n"]),
+    %
+    CfgDir = ~eng_path(cfgdir, Eng), 
+    mkpath(CfgDir),
+    update_file_from_string(Str, ~path_concat(CfgDir, 'config_sh'), _).
 
 :- use_module(library(terms), [atom_concat/2]).
 
@@ -290,5 +290,5 @@ separate_with_blanks([A, B|Cs]) := [A, ' '|~separate_with_blanks([B|Cs])] :- !.
 
 :- export(remove_dir_nofail/1).
 remove_dir_nofail(Dir2) :-
-	( file_exists(Dir2) -> remove_dir(Dir2) ; true ).
+    ( file_exists(Dir2) -> remove_dir(Dir2) ; true ).
 

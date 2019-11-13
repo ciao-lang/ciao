@@ -65,7 +65,7 @@ cmd_usage(boot_clean, "", [
 ]).
 
 grp_def(quickstart, "Quick start commands") :-
-        help_mode(_, boot).
+    help_mode(_, boot).
 %
 cmd_grp(local_install, quickstart).
 cmd_usage(local_install, "[<opts>] [<targets>] [<flags>]", [
@@ -95,7 +95,7 @@ cmd_usage(local_install_paranoid, "[<opts>] [<targets>] [<flags>]", [
 ]) :- advanced.
 
 grp_def(promotion, "Bootstrap promotion (for system developers)") :-
-        advanced.
+    advanced.
 %
 cmd_grp(boot_promote, promotion).
 cmd_usage(boot_promote, "", [
@@ -162,39 +162,39 @@ cmd_usage(configure, "[<opts>] [<targets>] [<flags>] ", [
     "(not needed when using default settings)"
 ]).
 cmd_details(configure, Text) :-
-	Text = [
+    Text = [
+      %2........................________________________________________________
+      % "(discarding any previous selection)",
+      "The following arguments for configure are accepted:",
+      "",
+      "  --interactive           Interactive configuration",
+      "                          (existing previous configuration is consulted)",
+      "  --list-flags            List the bundle configuration flags",
+      "  --describe-flag <flag>  Describe the configuration flag",
+      % TODO: Use this one with care (it does not use rules)
+      "  --get-flag <flag>       Show value of the configuration flag",
+      "  --set-flag <flag>=<value> Force flag value (dangerous!)"|Text0],
+    ( help_mode(_, boot) ->
+        Text0 = [
           %2........................________________________________________________
-          % "(discarding any previous selection)",
-	  "The following arguments for configure are accepted:",
-	  "",
-	  "  --interactive           Interactive configuration",
-	  "                          (existing previous configuration is consulted)",
-	  "  --list-flags            List the bundle configuration flags",
-	  "  --describe-flag <flag>  Describe the configuration flag",
-	  % TODO: Use this one with care (it does not use rules)
-	  "  --get-flag <flag>       Show value of the configuration flag",
-	  "  --set-flag <flag>=<value> Force flag value (dangerous!)"|Text0],
-        ( help_mode(_, boot) ->
-            Text0 = [
-              %2........................________________________________________________
-              "",
-              "These core flags are recognized and used for bootstrap:",
-              "",
-              "  --core:os=OS                Target OS",
-              "  --core:arch=ARCH            Target architecture",
-              "  --core:m32=[yes|no]         Force 32-bit architecture",
-              "  --core:m64=[yes|no]         Force 64-bit architecture",
-              "  --core:custom-cc=CC         Select a custom C compiler",
-              "  --core:custom-ld=LD         Select a custom C linker (optional, uses",
-              "                              custom C compiler if not provided)",
-              "  --core:extra-cflags=FLAGS   Use additional flags for C compiler",
-              "  --core:extra-ldflags=FLAGS  Use additional flags for C linker",
-              "  --core:debug-level          Debug level for C code",
-              "",
-              "Use same options with --boot:_ qualifier to affect only the bootstrap."
-            ]
-        ; Text0 = []
-        ).
+          "",
+          "These core flags are recognized and used for bootstrap:",
+          "",
+          "  --core:os=OS                Target OS",
+          "  --core:arch=ARCH            Target architecture",
+          "  --core:m32=[yes|no]         Force 32-bit architecture",
+          "  --core:m64=[yes|no]         Force 64-bit architecture",
+          "  --core:custom-cc=CC         Select a custom C compiler",
+          "  --core:custom-ld=LD         Select a custom C linker (optional, uses",
+          "                              custom C compiler if not provided)",
+          "  --core:extra-cflags=FLAGS   Use additional flags for C compiler",
+          "  --core:extra-ldflags=FLAGS  Use additional flags for C linker",
+          "  --core:debug-level          Debug level for C code",
+          "",
+          "Use same options with --boot:_ qualifier to affect only the bootstrap."
+        ]
+    ; Text0 = []
+    ).
 %
 cmd_grp('--', configure).
 %

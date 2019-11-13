@@ -22,14 +22,14 @@
 
 % TODO: check behavior on error
 dirfile_install_info(InfoFile, TargetDir) :-
-	DirFile = ~info_dirfile(TargetDir),
-	% Create a info 'dir' file, if it does not exist
-	ensure_dirfile(DirFile),
-	% Then install InfoFile
-	process_call(path('install-info'), 
-	       [~atom_concat('--dir-file=', DirFile),
-		InfoFile],
-	       [stderr(null), stdout(null)]).
+    DirFile = ~info_dirfile(TargetDir),
+    % Create a info 'dir' file, if it does not exist
+    ensure_dirfile(DirFile),
+    % Then install InfoFile
+    process_call(path('install-info'), 
+           [~atom_concat('--dir-file=', DirFile),
+            InfoFile],
+           [stderr(null), stdout(null)]).
 
 :- export(dirfile_uninstall_info/2).
 :- pred dirfile_uninstall_info(InfoFile, TargetDir) 
@@ -38,20 +38,20 @@ dirfile_install_info(InfoFile, TargetDir) :-
 
 % TODO: check behavior on error
 dirfile_uninstall_info(InfoFile, TargetDir) :-
-	DirFile = ~info_dirfile(TargetDir),
-	process_call(path('install-info'),
-	       ['--remove',
-		~atom_concat('--dir-file=', DirFile),
-		InfoFile],
-	       [stderr(null), stdout(null), status(0)]).
+    DirFile = ~info_dirfile(TargetDir),
+    process_call(path('install-info'),
+           ['--remove',
+            ~atom_concat('--dir-file=', DirFile),
+            InfoFile],
+           [stderr(null), stdout(null), status(0)]).
 
 info_dirfile(Path) := ~path_concat(Path, 'dir').
 
 % TODO: section name in "infodir" must be synchronized with INFO-DIR-SECTION in .infoindex
 ensure_dirfile(DirFile) :-
-	( file_exists(DirFile) ->
-	    true
-	; % TODO: 'infodir' should live in the lpdoc source (lpdoc/etc)
-	  copy_file(~absolute_file_name(ciaobld(infodir)),
-	    DirFile, [append])
-	).
+    ( file_exists(DirFile) ->
+        true
+    ; % TODO: 'infodir' should live in the lpdoc source (lpdoc/etc)
+      copy_file(~absolute_file_name(ciaobld(infodir)),
+        DirFile, [append])
+    ).

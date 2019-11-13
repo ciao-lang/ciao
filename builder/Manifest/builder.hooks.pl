@@ -217,13 +217,13 @@ concat_if_not_null(Prefix, Rel, Path) :- path_concat(Prefix, Rel, Path).
 % Locate Cmd or any of its variants (defined in
 % @pred{cmd_op/2}).
 get_cmd_op(Cmd, CmdPath) :-
-	( cmd_op(Cmd, CmdName),
-	  find_executable(CmdName, Path0) ->
-	    CmdPath = Path0
-	; error_message("Cannot find any version of '" ||
-		        (~append(~atom_codes(Cmd), "' command in the path."))),
-	  fail
-	).
+    ( cmd_op(Cmd, CmdName),
+      find_executable(CmdName, Path0) ->
+        CmdPath = Path0
+    ; error_message("Cannot find any version of '" ||
+                    (~append(~atom_codes(Cmd), "' command in the path."))),
+      fail
+    ).
 
 % Detect GNU make
 :- bundle_flag(gmake_cmd, [

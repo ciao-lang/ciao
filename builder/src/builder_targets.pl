@@ -32,17 +32,17 @@ workspace(X) :- atm(X).
 
 :- use_module(ciaobld(bundle_scan), [scan_bundles_at_path/1]).
 :- use_module(engine(internals),
-	['$bundle_id'/1,
-	 '$bundle_srcdir'/2]).
+    ['$bundle_id'/1,
+     '$bundle_srcdir'/2]).
 :- use_module(ciaobld(builder_aux),
-	[lookup_workspace/2,
-	 dir_to_bundle/2]).
+    [lookup_workspace/2,
+     dir_to_bundle/2]).
 :- use_module(ciaobld(manifest_compiler),
-	[lookup_bundle_root/2,
-	 split_target/3]).
+    [lookup_bundle_root/2,
+     split_target/3]).
 :- use_module(ciaobld(bundle_fetch),
-	[check_bundle_alias/3,
-	 add_bundle_origin/2]).
+    [check_bundle_alias/3,
+     add_bundle_origin/2]).
 
 :- data target_workspace/1. 
 
@@ -53,33 +53,33 @@ workspace(X) :- atm(X).
    # "(Re)scan bundles at the workspaces where targets are located".
 
 rescan_targets(Targets) :-
-	retractall_fact(target_workspace(_)),
-	maplist(collect_workspace, Targets),
-	( target_workspace(Path),
-	    scan_bundles_at_path(Path),
-	    fail
-	; true
-	),
-	retractall_fact(target_workspace(_)).
+    retractall_fact(target_workspace(_)),
+    maplist(collect_workspace, Targets),
+    ( target_workspace(Path),
+        scan_bundles_at_path(Path),
+        fail
+    ; true
+    ),
+    retractall_fact(target_workspace(_)).
 
 collect_workspace(Target) :-
-	( target_to_workspace(Target, Path) ->
-	    ( target_workspace(Path) -> true
-	    ; assertz_fact(target_workspace(Path))
-	    )
-	; true
-	).
+    ( target_to_workspace(Target, Path) ->
+        ( target_workspace(Path) -> true
+        ; assertz_fact(target_workspace(Path))
+        )
+    ; true
+    ).
 
 % (Fail if target does not correspond to a directory known workspace
 % or a directory under a known bundle)
 target_to_workspace(Target, Path) :-
-	( is_dir(Target) ->
-	    Path0 = Target
-	; split_target(Target, Bundle, _Part),
-	  '$bundle_id'(Bundle),
-	  '$bundle_srcdir'(Bundle, Path0)
-	),
-	lookup_workspace(Path0, Path).
+    ( is_dir(Target) ->
+        Path0 = Target
+    ; split_target(Target, Bundle, _Part),
+      '$bundle_id'(Bundle),
+      '$bundle_srcdir'(Bundle, Path0)
+    ),
+    lookup_workspace(Path0, Path).
 
 :- export(resolve_targets/3).
 :- pred resolve_targets(+Targets0, OnUnknown, -Targets) :: list(atm) * term * list(target)
@@ -87,29 +87,29 @@ target_to_workspace(Target, Path) :-
      @pred{rescan_targets/1} has been called".
 
 resolve_targets(Targets0, OnUnknown, Targets) :-
-	maplist(resolve_target(OnUnknown), Targets0, Targets).
+    maplist(resolve_target(OnUnknown), Targets0, Targets).
 
 :- pred resolve_target(+Target0, +OnUnknown, -Target) :: atm * term *target.
 resolve_target(Target0, OnUnknown, Target) :-
-	( is_dir(Target0),
-	  lookup_bundle_root(Target0, BundleDir),
-	  dir_to_bundle(BundleDir, Bundle) ->
-	    Target = Bundle
-	; is_dir(Target0),
-	  lookup_workspace(Target0, Target1) -> % Target1 is absolute file name at this point
-	    Target = Target1 % (absolute paths are workspace targets)
-	; check_bundle_alias(Target0, Origin, Bundle) ->
-            add_bundle_origin(Bundle, Origin),
-	    Target = Bundle
-	; split_target(Target0, Bundle, _Part),
-	  '$bundle_id'(Bundle) ->
-	    Target = Target0 % TODO: missing check that _Part is a valid item
-	; ( OnUnknown = error ->
-	      throw(unknown_target(Target0))
-	  ; % OnUnknown = silent
-	    Target = Target0
-	  )
-	).
+    ( is_dir(Target0),
+      lookup_bundle_root(Target0, BundleDir),
+      dir_to_bundle(BundleDir, Bundle) ->
+        Target = Bundle
+    ; is_dir(Target0),
+      lookup_workspace(Target0, Target1) -> % Target1 is absolute file name at this point
+        Target = Target1 % (absolute paths are workspace targets)
+    ; check_bundle_alias(Target0, Origin, Bundle) ->
+        add_bundle_origin(Bundle, Origin),
+        Target = Bundle
+    ; split_target(Target0, Bundle, _Part),
+      '$bundle_id'(Bundle) ->
+        Target = Target0 % TODO: missing check that _Part is a valid item
+    ; ( OnUnknown = error ->
+          throw(unknown_target(Target0))
+      ; % OnUnknown = silent
+        Target = Target0
+      )
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -119,6 +119,6 @@ resolve_target(Target0, OnUnknown, Target) :-
 % TODO: duplicated
 % TODO: better solution (e.g., catch exceptions)
 is_dir(Path) :-
-        prolog_flag(fileerrors, OldFE, off),
-        file_properties(Path, directory, [], [], [], []),
-        set_prolog_flag(fileerrors, OldFE).
+    prolog_flag(fileerrors, OldFE, off),
+    file_properties(Path, directory, [], [], [], []),
+    set_prolog_flag(fileerrors, OldFE).

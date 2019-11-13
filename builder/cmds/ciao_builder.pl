@@ -86,19 +86,19 @@ staging area, such that no extra space is necessary.
 
 @begin{verbatim}
 
-          .............         install             ...........
-          .           .---------------------------->.         .
-          .           .        (generated           .         .
-          .............         files such          ...........
+      .............         install             ...........
+      .           .---------------------------->.         .
+      .           .        (generated           .         .
+      .............         files such          ...........
        Build Staging Area       as binaries)      Installation Area
-               .^.                                 _
-                | build                            /|
-                |                                 /
-          .............          install         /
-          .           .-------------------------'
-          .           .         (source files
-          .............          such as examples,
-           Source Code           images, etc.)
+           .^.                                 _
+            | build                            /|
+            |                                 /
+      .............          install         /
+      .           .-------------------------'
+      .           .         (source files
+      .............          such as examples,
+       Source Code           images, etc.)
 @end{verbatim}
 
 The @tt{install} command is undone with the @tt{uninstall} command.
@@ -149,26 +149,26 @@ force the recompilation and cleaning of that part (see
 % Invocation from the command-line interface
 :- export(main/1).
 main(Args) :-
-	catch(main_(Args), E, builder_error(E)),
-	!.
+    catch(main_(Args), E, builder_error(E)),
+    !.
 
 builder_error(E) :- builder_error_message(E), halt(1).
     
 main_([Help0|Args]) :-
-	norm_underscores(Help0, Help),
-	help_mode(Help, Level, Prof), 
-	!,
-	( Args = [] ->
-	    show_help(Level, Prof)
-	; Args = [Arg0] ->
-	    norm_underscores(Arg0, Cmd),
-	    show_help_cmd(Cmd, Prof)
-	; fail
-	).
+    norm_underscores(Help0, Help),
+    help_mode(Help, Level, Prof), 
+    !,
+    ( Args = [] ->
+        show_help(Level, Prof)
+    ; Args = [Arg0] ->
+        norm_underscores(Arg0, Cmd),
+        show_help_cmd(Cmd, Prof)
+    ; fail
+    ).
 main_(Args) :-
-	parse_cmd(Args, Cmd, Opts),
-	builder_run(Cmd, Opts),
-	post_message(Cmd).
+    parse_cmd(Args, Cmd, Opts),
+    builder_run(Cmd, Opts),
+    post_message(Cmd).
 
 help_mode('help', summary, normal).
 help_mode('help_all', all, normal).
@@ -182,13 +182,13 @@ help_mode('help_all_boot', all, boot).
 
 % Show a help message after the command (only when run from a TTY)
 post_message(Cmd) :-
-	( using_tty ->
-	    show_post_message(Cmd)
-	; true
-	).
+    ( using_tty ->
+        show_post_message(Cmd)
+    ; true
+    ).
 
 show_post_message(cmd_on_set(configure(_), _)) :- !,
-	normal_message(
+    normal_message(
 "
 Please check that all the configuration values above (if any) are
 correct. If not, you can change or customize the configuration using
@@ -201,11 +201,11 @@ show_post_message(_).
 :- doc(section, "Error messages").
 
 builder_error_message(error_msg(Format, Args)) :- !,
-	error_message(Format, Args).
+    error_message(Format, Args).
 builder_error_message(not_in_builder_boot(Cmd)) :- !,
-	error_message("Command '~w' only available in 'ciao-boot.sh' or 'ciao-boot.bat'.~n", [Cmd]).
+    error_message("Command '~w' only available in 'ciao-boot.sh' or 'ciao-boot.bat'.~n", [Cmd]).
 builder_error_message(unknown_target(Target)) :- !,
-	error_message(
+    error_message(
 % ...........................................................................
 "'~w' does not look like a valid builder target.~n"||
 "~n"||
@@ -216,14 +216,14 @@ builder_error_message(unknown_target(Target)) :- !,
 "or it does not contain the ACTIVATE mark (for catalogues), or the bundle~n"||
 "sources are incomplete (no valid Manifest.pl?).", [Target]).
 builder_error_message(unknown_bundle(Bundle)) :- !,
-	error_message("'~w' is not a known bundle.~n", [Bundle]).
+    error_message("'~w' is not a known bundle.~n", [Bundle]).
 builder_error_message(unknown_cmd(Cmd)) :- !,
-	error_message("Unknown command '~w'.~n", [Cmd]).
+    error_message("Unknown command '~w'.~n", [Cmd]).
 builder_error_message(builder_cmd_failed(Bundle, '', Target)) :- !,
-	error_message("Command '~w' on bundle '~w' failed.~n", [Target, Bundle]).
+    error_message("Command '~w' on bundle '~w' failed.~n", [Target, Bundle]).
 builder_error_message(builder_cmd_failed(Bundle, Part, Target)) :- !,
-	error_message("Command '~w' on bundle '~w' (part '~w') failed.~n", [Target, Bundle, Part]).
+    error_message("Command '~w' on bundle '~w' (part '~w') failed.~n", [Target, Bundle, Part]).
 builder_error_message(E) :-
-	default_error_message(E).
+    default_error_message(E).
 
 

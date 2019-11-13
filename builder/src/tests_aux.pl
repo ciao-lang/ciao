@@ -12,11 +12,11 @@
 :- export(bundle_test/2).
 % Perform the bundle tests
 bundle_test(BundleDir, Action) :- !,
-	( test_action(Action) ->
-	    true
-	; throw(error(['Unknown test action ', Action]))
-	),
-	exec_aux(BundleDir, [Action]).
+    ( test_action(Action) ->
+        true
+    ; throw(error(['Unknown test action ', Action]))
+    ),
+    exec_aux(BundleDir, [Action]).
 
 test_action(check).
 test_action(compare).
@@ -25,15 +25,15 @@ test_action(save).
 test_action(bench).
 
 exec_aux(BundleDir, Args) :-
-	path_split(BundleDir, _, BundleName),
-	exec_aux_(BundleDir, BundleName, Args).
-	
+    path_split(BundleDir, _, BundleName),
+    exec_aux_(BundleDir, BundleName, Args).
+    
 exec_aux_(BundleDir, BundleName, Args) :-
-	Env = ['CURR_BUNDLEDIR' = BundleDir,
-	       'CURR_BUNDLENAME' = BundleName],
-	bundle_path(builder, 'src/tests_aux.bash', Exec),
-	process_call(Exec, Args, 
-	             [env(Env), cwd(BundleDir)]).
+    Env = ['CURR_BUNDLEDIR' = BundleDir,
+           'CURR_BUNDLENAME' = BundleName],
+    bundle_path(builder, 'src/tests_aux.bash', Exec),
+    process_call(Exec, Args, 
+                 [env(Env), cwd(BundleDir)]).
 
 
 

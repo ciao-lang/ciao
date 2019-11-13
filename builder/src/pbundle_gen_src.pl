@@ -11,12 +11,12 @@
 
 % (hook)
 gen_pbundle_hook(src, Target, _Options) :- !,
-	dist_gen_commit_info(Target),
-	gen_pbundle_common(Target, src, [tgz, tbz]).
+    dist_gen_commit_info(Target),
+    gen_pbundle_common(Target, src, [tgz, tbz]).
 gen_pbundle_hook(tgz, Target, _Options) :- !,
-	dist_gen_commit_info(Target),
-	gen_pbundle_common(Target, src, [tgz]).
+    dist_gen_commit_info(Target),
+    gen_pbundle_common(Target, src, [tgz]).
 gen_pbundle_hook(tbz, Target, _Options) :- !,
-	dist_gen_commit_info(Target),
-	gen_pbundle_common(Target, src, [tbz]).
+    dist_gen_commit_info(Target),
+    gen_pbundle_common(Target, src, [tbz]).
 
