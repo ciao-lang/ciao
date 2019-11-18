@@ -280,7 +280,7 @@ rtchecks_goal_tr('$test_entry_body'(A,B,C,D), Goal1, _M) :- !, % unittest
 rtchecks_goal_tr(Goal, Goal1, M) :-
     goal_alias_db(Goal, Goal1, M), !.
 
-:- comment(bug, "Currently this will have problems with multifile
+:- doc(bug, "Currently this will have problems with multifile
     predicates. --EMM").
 
 :- use_module(library(compiler/c_itf),
