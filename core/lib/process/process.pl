@@ -151,7 +151,7 @@ process('$process'(_Joined, _OnReturn, _Pid,
    @end{description}
 
    The process standard input, output, and error file descriptors
-   (streams from the Prolog side) can be bind to several
+   (streams from the Prolog side) can be bound to several
    @regtype{process_channel/1}:
 
    @begin{description}

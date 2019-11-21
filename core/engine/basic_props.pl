@@ -273,7 +273,7 @@ list([X|Xs], T) :-
 :- prop nlist(L,T) + regtype #
     "@var{L} is @var{T} or a nested list of @var{T}s.  Note that
     if @var{T} is term, this type is equivalent to term, this
-    fact explain why we do not have a @pred{nlist/1} type.".
+    fact explains why we do not have an @pred{nlist/1} type.".
 :- trust comp nlist(L,T) + sideff(free).
 :- meta_predicate nlist(?, pred(1)).
 :- trust comp nlist(L,T) : (ground(L),ground(T)) + eval.
@@ -295,7 +295,7 @@ nlist(X, T) :-
 member(X, [X|_]).
 member(X, [_Y|Xs]):- member(X, Xs).
 
-:- doc(sequence/2, "A sequence is formed with zero, one or more
+:- doc(sequence/2, "A sequence is formed with zero, one, or more
    occurrences of the operator @op{','/2}.  For example, @tt{a, b, c} is
    a sequence of three atoms, @tt{a} is a sequence of one atom.").
 
