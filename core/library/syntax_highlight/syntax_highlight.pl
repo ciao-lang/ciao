@@ -12,8 +12,8 @@
 :- use_module(engine(stream_basic), [absolute_file_name/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(process), [process_call/3]).
-:- use_module(library(emacs/emacs_batch),
-    [emacs_path/1, emacs_batch_call/3, emacs_clean_log/2]).
+:- use_module(library(emacs/emacs_batch), [
+    emacs_path/1, emacs_batch_call/2]).
 
 % TODO: uses files! it can be quite slow
 % TODO: Implement as an interface; define different backend
@@ -40,8 +40,7 @@ lang('text').
 
 % ---------------------------------------------------------------------------
 
-ciao_mode_el(F) :-
-    bundle_path(ciao_emacs, 'elisp/ciao-site-file.el', F).
+ciao_mode_el := ~bundle_path(ciao_emacs, 'elisp/ciao-site-file.el').
 
 % ---------------------------------------------------------------------------
 
@@ -77,25 +76,16 @@ can_highlight(Lang) :-
       file (using emacs and htmlfontify, and `Lang`-mode mode)".
 
 emacs_htmlfontify(Lang, Input, Output) :-
-    absolute_file_name(library(syntax_highlight/'emacs-htmlfontify.el'), HfyEl), % TODO: find asset?
-    ciao_mode_el(SiteFileEl),
-    LogBase = 'ciao-highlight-log',
-    emacs_batch_call('.', LogBase,
-         ['-Q',
-          '-l', SiteFileEl,
-          '-l', HfyEl,
-          Lang,
-          Input,
-          Output]),
-    emacs_clean_log('.', LogBase).
-%       process_call(~emacs_path,
-%            ['-Q', '-batch',
-%              '-l', SiteFileEl,
-%             '-l', HfyEl,
-%             Lang,
-%             Input,
-%             Output],
-%            [noenv(['EMACSLOADPATH', 'EMACSDOC'])]).
+    HfyEl = ~absolute_file_name(library(syntax_highlight/'emacs-htmlfontify.el')), % TODO: find asset?
+    SiteFileEl = ~ciao_mode_el,
+    emacs_batch_call(
+        ['-Q',
+         '-l', SiteFileEl,
+         '-l', HfyEl,
+         Lang,
+         Input,
+         Output],
+        [stdout(null), stderr(null), status(_)]).
 
 % ---------------------------------------------------------------------------
 

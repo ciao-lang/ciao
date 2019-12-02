@@ -64,60 +64,45 @@ emacs_style_path(Path, Path).
 
 % ---------------------------------------------------------------------------
 
-:- use_module(library(logged_process), [logged_process_call/3]).
+:- use_module(library(process), [process_call/3]).
 
-% TODO: Use 'append' creation mode for logs? (use a single log)
-:- export(emacs_batch_call/3).
-emacs_batch_call(Dir, LogName, Args) :-
-    % Environment variables unset for this call
+:- export(emacs_batch_call/2).
+:- pred emacs_batch_call(Args, Opts)
+   # "Process call to @tt{emacs} in batch mode with extra arguments
+      @var{Args} and process call options @var{Opts}".
+
+emacs_batch_call(Args, Opts) :-
+    % unset some environment variables
     NoEnv = ['SHELL', 'EMACSLOADPATH', 'EMACSDOC'],
-    %
-    Log0 = ~path_concat(Dir, LogName),
-    %
-    logged_process_call(~emacs_path, ['-batch'|Args],
-        [cwd(Dir),
-         noenv(NoEnv),
-         logbase(Log0),
-         show_logs(on_error), status(_)]).
-
-% ---------------------------------------------------------------------------
-
-:- use_module(library(system_extra), [del_file_nofail/1]).
-
-% TODO: move to library(logged_process)
-:- export(emacs_clean_log/2).
-% Clean log files created during a emacs batch call
-emacs_clean_log(Dir, LogName) :-
-    Log0 = ~path_concat(Dir, LogName),
-    Out = ~atom_concat(Log0, '.log'),
-    Err = ~atom_concat(Log0, '.err'),
-    del_file_nofail(Out),
-    del_file_nofail(Err).
+    process_call(~emacs_path,
+                 ['-batch'|Args],
+                 [noenv(NoEnv)|Opts]).
 
 % ---------------------------------------------------------------------------
 
 :- use_module(library(terms), [atom_concat/2]).
 
-:- export(emacs_update_autoloads/3).
-:- pred emacs_update_autoloads(Dir, Log, AutoloadEL)
+:- export(emacs_update_autoloads/2).
+:- pred emacs_update_autoloads(Dir, AutoloadEL)
    # "Invoke the Emacs @tt{'batch-update-autoloads'} function to generate
       the autoload file @var{AutoloadEL}.".
  
-emacs_update_autoloads(Dir, Log, AutoloadEL) :-
+emacs_update_autoloads(Dir, AutoloadEL) :-
     AutoloadEL2 = ~emacs_style_path(AutoloadEL),
     % TODO: espape AutoloadEL2
-    emacs_batch_call(Dir, Log, 
-      ['--eval', ~atom_concat(['(setq generated-autoload-file "', AutoloadEL2, '")']),
-       '-f', 'batch-update-autoloads', '.']).
+    emacs_batch_call(
+        ['--eval', ~atom_concat(['(setq generated-autoload-file "', AutoloadEL2, '")']),
+         '-f', 'batch-update-autoloads', '.'],
+        [cwd(Dir), status(_)]).
 
-:- export(emacs_batch_byte_compile/3).
-:- pred emacs_batch_byte_compile(Dir, Log, EL_Files)
+:- export(emacs_batch_byte_compile/2).
+:- pred emacs_batch_byte_compile(Dir, EL_Files)
    # "Invoke the Emacs '@tt{'batch-byte-compile'} function to byte compile 
       the specified @var{EL_Files} elisp files.".
 
-emacs_batch_byte_compile(Dir, Log, EL_Files) :-
-    emacs_batch_call(Dir, Log,
-      ['--eval', '(setq load-path (cons "." load-path))',
-       '-f', 'batch-byte-compile'|
-       EL_Files]).
+emacs_batch_byte_compile(Dir, EL_Files) :-
+    emacs_batch_call(
+        ['--eval', '(setq load-path (cons "." load-path))',
+         '-f', 'batch-byte-compile'|EL_Files],
+        [cwd(Dir), status(_)]).
 
