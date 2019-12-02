@@ -34,7 +34,9 @@
 % Uses setarg/3 for imperative assignment.
 % Comment to use attributed variables.
 :- if(\+ (defined(optim_comp), backend(js_backend))).
-:- compilation_fact(fd_use_setarg).
+%:- compilation_fact(fd_use_setarg).
+% TODO: attr_rt:attvarset/2 does not support cyclic terms properly,
+%   this breaks dump
 :- endif.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

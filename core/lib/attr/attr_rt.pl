@@ -304,7 +304,8 @@ del_attrs(Var):-
 
 %%% term_attrs/2 %%% 
 
-:- export(attvarset/2).
+% TODO: cycles are not supported in are not supported in As from att(_,_,As)
+%:- export(attvarset/2).
 :- pred attvarset(X, Vars) # 
 
 "@var{AttVars} is a list of all attributed variables in Term and its
@@ -331,9 +332,8 @@ attvarset(X, Vars):-
 %   - or a nil list 
 attvarset_(X, Vars, Tail) :-
     var(X), !,                           % X is var
-    (
-        attributes:get_attribute(X, A),  % X is attr variable
-        A = att(_, false, As) ->         % X is untagged 
+    ( attributes:get_attribute(X, A),    % X is attr variable
+      A = att(_, false, As) ->           % X is untagged 
         Vars = [X|Tail0],                % Vars is not nil 
         % tag variable
         '$setarg'(2, A, true, true),     % then tag X (unbacktrble setarg)

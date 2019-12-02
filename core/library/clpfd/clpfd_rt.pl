@@ -306,6 +306,7 @@ attr_unify_hook(IdxVar, Other):-
         put_attr_local(Other, IdxVar)
     ).
 
-
+% TODO: this is incomplete (it loses information)
+%attribute_goals(_) --> !, { fail }.
 attribute_goals(Var) -->
     [in(Var,~(fd_term:dom_term(~get_attr_local(Var))))].
