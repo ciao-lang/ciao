@@ -162,7 +162,7 @@ select_vals(InstallInfo, [check(A)|Vals]) :-
     select_vals(InstallInfo2, Vals).
 select_vals(_InstallInfo, []) :- !.
 
-gen_singleton_check([check(A)], fd_term:is_singleton(A)).
+gen_singleton_check([check(A)], fd_term:is_singleton(A)) :- !.
 gen_singleton_check([check(A)|Xs], (fd_term:is_singleton(A),Code)) :- !,
     gen_singleton_check(Xs, Code).
 
