@@ -49,7 +49,7 @@
 
 %:- compilation_fact(fd_use_range_finite_intervals).
 :- compilation_fact(fd_use_range_intervals).
-% :- compilation_fact(fd_use_range_bits).
+% :- compilation_fact(fd_use_range_bits). % TODO: slower in benchmarks!
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Uncomment to enable collection of statistics
