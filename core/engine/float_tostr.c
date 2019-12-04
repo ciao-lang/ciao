@@ -33,7 +33,7 @@ G. Burger, R. Kent Dybvig. Indiana University Computer Science
 Department. Lindley Hall 215.  Boomington, Indiana 47405.
 {burger,dyb}@cs.indiana.edu.  1996 by ACM."
 
-Some ideas has been taked reading the softfloat library, from
+Some ideas have been taken reading the softfloat library, from
 John R. Hauser, available at
 http://www.cs.berkeley.edu/~jhauser/arithmetic/SoftFloat.html.
 

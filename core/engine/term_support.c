@@ -1042,7 +1042,7 @@ static CBOOL__PROTO(prolog_constant_codes,
       base = GetSmall(current_radix);
     }
     if ((base < 2)||(base > 36)) {
-      printf("--9--\n");
+      //printf("--9--\n");
       BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK),X(1),2);
     }
     if (string_to_number(Arg, Atom_Buffer, base, &result, ci+1)) {
