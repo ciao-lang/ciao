@@ -108,11 +108,8 @@
 
 :- '$native_include_c_source'('bignum.c').
 
-:- '$native_include_c_header'('float_consts.h').
-:- '$native_include_c_source'('float_consts.c').
-
-:- '$native_include_c_header'('float_tostr.h').
-:- '$native_include_c_source'('float_tostr.c').
+:- '$native_include_c_header'('dtoa_ryu.h').
+:- '$native_include_c_source'('dtoa_ryu.c').
 
 % TODO: Add ciao_prolog as another library; try to avoid the noalias hack
 :- '$native_include_c_header'('ciao_prolog.h', noalias).

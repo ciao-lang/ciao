@@ -11,7 +11,6 @@
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
 #include <ciao/alloc.h>
-#include <ciao/float_tostr.h>
 #include <ciao/format.h>
 #include <ciao/wambuiltin.h> /* fu1_integer() */
 #include <ciao/term_support.h>
@@ -32,28 +31,34 @@
 #define MAX_OUTPUT_DIGITS 1023
 #define BUFF_SIZE         2048
 
-CBOOL__PROTO(prolog_format_print_float)
-{
-  intmach_t precision;
-  char buf[BUFF_SIZE], formatChar;
-  double f;
+/* See format.pl documentation, using the underlying C printf
+   implementation is the expected behavior */
+CBOOL__PROTO(prolog_format_print_float) {
+  int precision;
+  char fmtstr[16];
+  char b[BUFF_SIZE];
+  char format_ch;
+  flt64_t f;
 
   DEREF(X(0),X(0));
-  formatChar = GetInteger(X(0));
+  format_ch = GetInteger(X(0));
   DEREF(X(1),X(1));
   DEREF(X(2),X(2));
   precision = GetInteger(X(2));
   
-  /* New code (Edison): */
-
   f = GetFloat(X(1));
 
-  if(formatChar=='f' && precision > 1023)
+  /* Limit precision */
+  if (precision > 1023) {
     precision = 1023;
-  else if(precision<0)
-    precision = 6;
-  float_to_string(buf, precision, formatChar, f, 10);
-  print_string(Arg, Output_Stream_Ptr, buf);
+  } else if (precision<0) {
+    precision = 6; /* default printf precision */
+  }
+
+  /* Assume format_ch in {'e','E','f','g','G'} */
+  snprintf(fmtstr, 16, "%%.%d%c", precision, format_ch);
+  snprintf(b, BUFF_SIZE, fmtstr, f);
+  print_string(Arg, Output_Stream_Ptr, b);
 
   return TRUE;
 }

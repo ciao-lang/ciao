@@ -534,7 +534,7 @@ read_after_dot_N(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S)|Tokens]) :-
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 
 read_after_dot_Na(0'n, 1, Nan, Dict, Level, Tokens) :- !,
-    Nan is 0/0,
+    number_codes(Nan,"0.Nan"), %Nan is 0/0,
     getct(Ch, Typ),
     read_tokens(Typ, Ch, Dict, Level, Tokens).
 read_after_dot_Na(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S)|Tokens]) :-
@@ -556,7 +556,7 @@ read_after_dot_I(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S)|Tokens]) :-
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 
 read_after_dot_In(0'f, 1, Inf, Dict, Level, Tokens) :- !,
-    Inf is 1/0,
+    number_codes(Inf, "0.Inf"), %Inf is 1/0,
     getct(Ch, Typ),
     read_tokens(Typ, Ch, Dict, Level, Tokens).
 read_after_dot_In(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S)|Tokens]) :-

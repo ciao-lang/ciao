@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h> /* NAN, INFINITY */
 
 #include <ciao/threads.h>
 #include <ciao/datadefs.h>
@@ -20,7 +21,7 @@
 #include <ciao/instrdefs.h>
 #include <ciao/task_areas.h> /* For register bank reallocation */
 #include <ciao/objareas.h>
-#include <ciao/float_tostr.h>
+#include <ciao/dtoa_ryu.h>
 #include <ciao/term_support.h>
 #include <ciao/start.h>
 #include <ciao/alloc.h>
@@ -822,6 +823,43 @@ CBOOL__PROTO(prolog_number_codes_3) {
   return prolog_constant_codes(Arg,FALSE,TRUE,2);
 }
 
+static inline bool_t is_digit10(char c) {
+  return c >= '0' && c <= '9';
+}
+
+static inline bool_t str_to_flt64(char *AtBuf, int base, flt64_t *rnum) {
+  char *s = AtBuf;
+
+  if (base != 10) return FALSE;
+
+  /* first pass to check syntax */
+  char c;
+  c = *s++;
+  /* skip sign */
+  if (c=='-') c = *s++;
+  /* skip AAA in AAA.BBB */
+  while(is_digit10(c)) { c = *s++; };
+  /* skip '.' */
+  if (c!='.') return FALSE;
+  c = *s++;
+  /* skip BBB in AAA.BBB */
+  if (!is_digit10(c)) return FALSE;
+  c = *s++;
+  while(is_digit10(c)) { c = *s++; };
+  /* skip exponent */
+  if (c=='e' || c=='E') {
+    c = *s++;
+    if (c=='+' || c=='-') c = *s++;
+    if (!is_digit10(c)) return FALSE;
+    c = *s++;
+    while(is_digit10(c)) { c = *s++; };
+  }
+  if (c!='\0') return FALSE;
+  /* convert, asumming no errors */ 
+  *rnum = atof(AtBuf);
+  return TRUE;
+}
+
  /* INTEGER :== [minus]{digit} */
  /* FLOAT :== [minus]{digit}.{digit}[exp[sign]{digit}] */
  /* ATOM :== {char} */
@@ -836,109 +874,67 @@ CBOOL__PROTO(string_to_number,
              int base,
              tagged_t *strnum,
              int arity) {
+  static const char char_digit[] = {
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+     0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,-1,-1,-1,-1,-1, /* 0-9 */
+    -1,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24, /* A... */
+    25,26,27,28,29,30,31,32,33,34,35,-1,-1,-1,-1,-1, /* ...Z */
+    -1,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24, /* a... */
+    25,26,27,28,29,30,31,32,33,34,35,-1,-1,-1,-1,-1, /* ...z */
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+  };
+
   bool_t sign = FALSE;
   char *s = AtBuf;
   int i, d;
-  flt64_t m = 0.0;
-  double num;
-  int exp=0,e=0,se=1;
   i = *s++;
   if (i=='-') {
     sign = TRUE;
     i = *s++;
   }
-  /* First, consider special cases */
-  if ((i=='0') &&
-     (s[0]==FLOAT_POINT) &&
-     (s[1]=='N') &&
-     (s[2]=='a') &&
-     (s[3]=='n') &&
-     (s[4]=='\0'))
-  {
-    *strnum=MakeFloat(Arg,0.0/0.0); /* Nan */
-    return TRUE;
-  }
-  if ((i=='0') &&
-     (s[0]==FLOAT_POINT) &&
-     (s[1]=='I') &&
-     (s[2]=='n') &&
-     (s[3]=='f') &&
-     (s[4]=='\0')) {
-    if (sign) {
-      num = -1.0/0.0;
-    } else {
-      num = 1.0/0.0;
+  /* special cases: nan and infinity */
+  if (i=='0') {
+    if (strcmp(s, ".Nan")==0) {
+      double num = sign ? -NAN : NAN;
+      *strnum = MakeFloat(Arg, num);
+      return TRUE;
+    } else if (strcmp(s, ".Inf")==0) {
+      double num = sign ? -INFINITY : INFINITY;
+      *strnum = MakeFloat(Arg, num);
+      return TRUE;
     }
-    *strnum=MakeFloat(Arg,num); /* Inf */
-    return TRUE;
   }
+  /* integers or float */
   d = char_digit[i];
   while (0 <= d && d < base) {
     i = *s++;
     d = char_digit[i];
   }
-  if ((s - AtBuf) - sign > 1) {
-    if (i==0) {
-      /* It is an integer, either a small or a bignum */
-      StringToInt(AtBuf, base, *strnum, arity);
+  if ((s - AtBuf) - sign <= 1) {    
+    return FALSE; /* No digit found! */
+  }
+  if (i=='\0') { /* ended in \0, integer (small or bignum) */
+    StringToInt(AtBuf, base, *strnum, arity);
+    return TRUE;
+  } else if (i=='.') { /* maybe a float */ /* TODO: allow 1e0 syntax (see tokenize.pl too) */
+    flt64_t num;
+    if (str_to_flt64(AtBuf, base, &num)) {
+      *strnum = MakeFloat(Arg, num);
       return TRUE;
-    }
-
-/* It is a float. Note that if is a float, after the point the digits
-   must not be upper case to avoid confussion with the exponent
-   indicator. This is true only if base > 10 + 'e'-'a'*/
-    if (i==FLOAT_POINT) {
-      s = AtBuf + (sign ? 1 : 0);
-      i = *s++;
-      do {
-        m = m * base+char_digit[i];
-        i = *s++;
-      } while(i!=FLOAT_POINT);
-      i = *s++;
-      d = char_digit[i];
-      if ((0 <= d) && (d < base)) {
-        char exponent_lower = exponents_lower[base];
-        char exponent_upper = exponents_upper[base];
-        do {
-          m = m * base + char_digit[i];
-          exp++;
-          i = *s++;
-          d = char_digit[i];
-        } while ((0 <= d) && (d < base) && 
-                 (i != exponent_lower) && (i != exponent_upper));
-        if ((i==exponent_lower) || (i==exponent_upper)) {
-          i = *s++;
-          if ((i=='+') || (i=='-')) {
-            if (i=='-') se=-1;
-            i = *s++;
-          }
-          d = char_digit[i];
-          if ((0<=d) && (d<base)) {
-            do {
-              e = e * base + d;
-              i = *s++;
-              d = char_digit[i];
-            } while ((0<=d) && (d<base));
-          } else {
-            i = -1;
-          }
-        }
-      } else {
-        i = -1;
-      }
-      if (i!=-1) {
-        if (se==1) {
-          exp = -exp + e;
-        } else {
-          exp = -exp - e;
-        }
-        num = m * powl_int(base, exp);
-        *strnum = MakeFloat(Arg, sign ? -num : num);
-        return TRUE;
-      }
+    } else {
+      return FALSE;
     }
   }
-  /* Could not make the conversion --- maybe a non-numeric atom */
+  /* maybe a non-numeric atom */
   return FALSE;
 }
 
@@ -1068,7 +1064,8 @@ static CBOOL__PROTO(prolog_constant_codes,
     } else { // if (ci==1)
       base = GetSmall(current_radix);
     }
-    if ((base < 2)||(base > 36)) {
+    if ((base < 2)||(base > 36)||
+        (base != 10 && IsFloat(X(0)))) {
       BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK),X(1),2);
     }
     number_to_string(Arg,X(0),base);
@@ -1293,7 +1290,7 @@ CBOOL__PROTO(prolog_atom_concat)
   }
 }
 
-/* Precond: 2<=abs(base)<=36 */
+/* Precond: 2<=abs(base)<=36 for integers, base==10 for floats */
 CVOID__PROTO(number_to_string, tagged_t term, int base) {
   if (TagIsSmall(term)) {
     intmach_t l = GetSmall(term);
@@ -1330,7 +1327,6 @@ CVOID__PROTO(number_to_string, tagged_t term, int base) {
       tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
     } u;
     char *cbuf;
-    int eng_flt_signif = ENG_FLT_SIGNIF_FOR_BASE(base);
 
     /* f = GetFloat(term); */
 #if LOG2_bignum_size == 5
@@ -1340,14 +1336,9 @@ CVOID__PROTO(number_to_string, tagged_t term, int base) {
     u.p[0] = *TagToArg(term,1);
 #endif
 
-    /* Print using the default precision.  'p' is a new 'prolog' :-)
-       format not considered by, e.g., the printf family, to
-       implement the expected Prolog behavior */
-
-    /*       if (1024 > Atom_Buffer_Length) */
-    /*  EXPAND_ATOM_BUFFER(102400); */
+    /* if (1024 > Atom_Buffer_Length) EXPAND_ATOM_BUFFER(102400); */
     cbuf = Atom_Buffer;
-    cbuf = float_to_string(cbuf, eng_flt_signif, 'p', u.i, base);
+    dtoa_ryu(u.i, cbuf); /* assume base==10 */
   } else {
     bn_to_string(Arg,(bignum_t *)TagToSTR(term),base);
   }
@@ -2071,4 +2062,3 @@ CFUN__PROTO(c_list_length, int, tagged_t list) {
   }
   return (list==atom_nil) ? len : (-1);
 }
-

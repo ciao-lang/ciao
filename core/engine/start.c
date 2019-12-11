@@ -43,7 +43,6 @@
 
 #include <ciao/global_defs.h>
 #include <ciao/task_areas.h>
-#include <ciao/float_consts.h> /* fillchardigit() */
 
 #include <ciao/wamsupport.h>
 #include <ciao/wam.h>
@@ -257,7 +256,6 @@ void engine_init(const char *boot_path, const char *exec_path) {
   init_locks();                                  /* global, first of all! */
 
   init_statistics();                             /* init the statistics related info */
-  fillchardigit();                               /* prepares the char digit table */
 
 #if defined(DEBUG)
   RESET_COUNTER;
