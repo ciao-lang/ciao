@@ -109,7 +109,7 @@ no_index :- \+ file_exists(~path_concat(~site_root_dir, 'index.html')).
 
 render_page := R :-
     R = [
-      start,
+      begin(html, [lang="en"]), % start % TODO: asttributes not working here
       title('Ciao documentation index'),
       h1('Ciao documentation index'),
       Docs,
