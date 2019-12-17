@@ -87,6 +87,7 @@ serve_at_port(Port) :-
 :- use_module(ciaobld(config_common), [site_root_dir/1]).
 :- use_module(ciaobld(site_aux), [site_link_builddoc/0]).
 :- use_module(library(aggregates), [findall/3]).
+:- use_module(library(sort), [sort/2]).
 :- use_module(library(system), [file_exists/1, directory_files/2]).
 :- use_module(library(pathnames), [path_concat/3, path_splitext/3]).
 
@@ -115,7 +116,7 @@ render_page := R :-
       end
     ],
     DocDir = ~path_concat(~site_root_dir, 'ciao/build/doc'),
-    directory_files(DocDir, Fs),
+    Fs = ~sort(~directory_files(DocDir)),
     findall(Doc, (member(F, Fs), docitem(F, Doc)), Docs).
 
 docitem(F, Doc) :-
