@@ -514,7 +514,7 @@ bignum_size_t bn_lshift(bignum_t *x,
   bignum_t xi;
   bool_t xs = BignumPositive(x);
   int xlen = BignumLength(x);
-  int shift = GetFull(dist);
+  intmach_t shift = GetFull(dist);
   int div, rem;
   int i;
 
@@ -556,8 +556,8 @@ bignum_size_t bn_rshift(bignum_t *x,
   bignum_t xi;
   bool_t xs = BignumPositive(x);
   int xlen = BignumLength(x);
-  int shift = GetFull(dist);
-  int div, rem;
+  intmach_t shift = GetFull(dist);
+  intmach_t div, rem;
   int i;
 
   div = shift >> LOG2_bignum_size;

@@ -46,8 +46,8 @@
 #endif
 #endif
 
-static CFUN__PROTO(lsh_internal, tagged_t, tagged_t t, int dist, bcp_t liveinfo);
-static CFUN__PROTO(rsh_internal, tagged_t, tagged_t t, int dist, bcp_t liveinfo);
+static CFUN__PROTO(lsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liveinfo);
+static CFUN__PROTO(rsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liveinfo);
 
 /* --------------------------------------------------------------------------- */
 
@@ -1103,7 +1103,7 @@ CFUN__PROTO(fu2_or, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   }
 }
 
-static CFUN__PROTO(lsh_internal, tagged_t, tagged_t t, int dist, bcp_t liveinfo)
+static CFUN__PROTO(lsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liveinfo)
 {
   tagged_t u;
   
@@ -1138,10 +1138,10 @@ static CFUN__PROTO(lsh_internal, tagged_t, tagged_t t, int dist, bcp_t liveinfo)
     */
   }
 
-  return bn_call(Arg, bn_lshift, t, MakeInteger(Arg,(intmach_t)dist), liveinfo);
+  return bn_call(Arg, bn_lshift, t, MakeInteger(Arg,dist), liveinfo);
 }
 
-static CFUN__PROTO(rsh_internal, tagged_t, tagged_t t, int dist, bcp_t liveinfo)
+static CFUN__PROTO(rsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liveinfo)
 {
   if (TagIsSmall(t)) {
     if (dist>=tagged__num_size) {
@@ -1151,11 +1151,20 @@ static CFUN__PROTO(rsh_internal, tagged_t, tagged_t t, int dist, bcp_t liveinfo)
     }
   }
 
-  return bn_call(Arg, bn_rshift, t, MakeInteger(Arg,(intmach_t)dist), liveinfo);
+  return bn_call(Arg, bn_rshift, t, MakeInteger(Arg,dist), liveinfo);
+}
+
+/* pre: t is an integer */
+static inline bool_t int_is_nonneg(tagged_t t) {
+  if (TagIsSmall(t)) {
+    return (t >= TaggedZero);
+  } else { /* t is bignum */
+    return bn_positive((bignum_t *)TagToSTR(t));
+  }
 }
 
 /* 
-   For shiffting operations we assume it is not possible to allocate
+   For shifting operations we assume it is not possible to allocate
    enough memory to represent any number bigger than
    2^(2^INTMACH_MAX).  Therefore shifting to the left any number by
    more than 2^INTMACH_MAX throws a memory overflow exception and
@@ -1191,7 +1200,8 @@ CFUN__PROTO(fu2_lsh, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
     BUILTIN_ERROR(RESOURCE_ERROR(R_STACK), u, 2); 
   } else {
     /* -u > 2^INTMACH_MAX */
-    return TaggedZero;
+    /* was: return TaggedZero; */
+    return (int_is_nonneg(t) ? TaggedZero : TaggedZero-MakeSmallDiff(1));
   }  
 }
 
@@ -1221,7 +1231,8 @@ CFUN__PROTO(fu2_rsh, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
     }
   } else if (bn_positive((bignum_t *)TagToSTR(u)) || t == TaggedZero) {
     /* u > 2^INTMACH_MAX */
-    return TaggedZero;
+    /* was: return TaggedZero; */
+    return (int_is_nonneg(t) ? TaggedZero : TaggedZero-MakeSmallDiff(1));
   } else {
     /* -u > 2^INTMACH_MAX */
     BUILTIN_ERROR(RESOURCE_ERROR(R_STACK), u, 2); 
