@@ -60,7 +60,7 @@
 :- use_module(engine(internals)).
 :- use_module(library(system)).
 :- use_module(library(stream_utils), [open_input/2, close_input/1]).
-:- use_module(library(write), [numbervars/3, write/1]).
+:- use_module(library(write), [numbervars/3, writeq/1]).
 :- use_module(library(read)).
 
 :- use_module(library(pathnames), [path_split/3]).
@@ -220,7 +220,7 @@ view_asr0(File) :-
 
 show_fast_read :-
     ( fast_read(R) ->
-        write(R), nl,
+        \+ \+ ( numbervars(R, 0, _N), writeq(R), nl ), 
         show_fast_read
     ; true
     ).
