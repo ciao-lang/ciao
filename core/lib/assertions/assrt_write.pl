@@ -97,26 +97,26 @@ write_assertion_as_double_comment(Stream,Goal,Status,Type,Body,Dict,Flag):-
 
 write_assertion_(Goal,Status,Type,Body,Dict,Flag,AsComm,Stream):-       
     % unify_vars(Dict),
-    varnamesl2dict( Dict, VnDict ),
-    complete_dict_alpha( VnDict , Goal , D2 ),
+    varnamesl2dict(Dict, VnDict),
+    complete_dict_alpha(VnDict, Goal, D2),
     % DTM: Maybe someone instantiated our variables when doing a write!!!
-    ( rename( Goal , D2 ) -> true ; true ),
-    ( Flag=nostatus
-    -> write_nostatus_assertion(AsComm,Type,Goal,Stream)
-     ; write_status_assertion(AsComm,Status,Type,Goal,Stream)
+    ( rename(Goal, D2) -> true ; true ),
+    ( Flag=nostatus ->
+        write_nostatus_assertion(AsComm,Type,Goal,Stream)
+    ; write_status_assertion(AsComm,Status,Type,Goal,Stream)
     ),
-    complete_dict_alpha( D2, Body, D3 ),
-    ( rename( Body, D3 ) -> true ; true),
+    complete_dict_alpha(D2, Body, D3),
+    ( rename(Body, D3) -> true ; true ),
     assertion_body(Goal,Compat,Call,Succ,Comp,Comm,Body),
     write_if_not_empty(Compat,'::',AsComm,conj,Stream),
     decide_on_call(Call,FormC),
-    write_if_not_empty(Call,' :',AsComm,FormC,Stream),
+    write_if_not_empty(Call,':',AsComm,FormC,Stream), % ' :'
     decide_on_call(Succ,FormS),
     write_if_not_empty(Succ,'=>',AsComm,FormS,Stream),
     decide_on_call(Comp,FormP),
-    write_if_not_empty(Comp,' +',AsComm,FormP,Stream),
+    write_if_not_empty(Comp,'+',AsComm,FormP,Stream), % ' +'
     write_comment(Comm,AsComm,Stream),
-    format(Stream,".~n~n",[]),
+    format(Stream,".~n",[]),
     !.
 write_assertion_(_Goal,Status,Type,Body,_Dict,_Flag,_AsComm,_Stream):-
     error_message("Error printing assertion:~n:- ~w ~w ~w~n",
@@ -143,11 +143,11 @@ write_comment(Comm,AsComm,S):-
     write_comment_as_comment(AsComm,CC,S).
 
 write_comment_as_comment(double,Comm,S):-
-    format(S,'~n%% %% ~8|#  "~s"',[Comm]).
+    format(S,'~n%% %% ~3|# "~s"',[Comm]).
 write_comment_as_comment(yes,Comm,S):-
-    format(S,'~n%% ~8|#  "~s"',[Comm]).
+    format(S,'~n%% ~3|# "~s"',[Comm]).
 write_comment_as_comment(no,Comm,S):-
-    format(S,'~n~8|#  "~s"',[Comm]).
+    format(S,'~n~3|# "~s"',[Comm]).
 
 
 check_comas_in_comment( [] , [] ).
@@ -164,18 +164,12 @@ write_if_not_empty([[]]    ,_Mod,_AsComm,disj,_):- !.
 write_if_not_empty([[true]],_Mod,_AsComm,disj,_):- !.
 write_if_not_empty(List    ,Mod,AsComm,Form,Stream):-
     write_as_comment(AsComm,Mod,Stream),
-    (
-        List = [(C1;C2)]
-    ->
+    ( List = [(C1;C2)] ->
 %           conj_to_list_of_list( (C1;C2) , L1 , [] ),
         conj_to_list_of_list( (C1;C2) , L1 ),
         print_prop_list(Form, L1 ,Stream)
-    ;
-        print_prop_list(Form,List,Stream)
+    ; print_prop_list(Form,List,Stream)
     ).
-
-
-
 
 % conj_to_list_of_list( (A,B) ,  Ac  , TAc ) :-
 %       !,
@@ -189,52 +183,35 @@ write_if_not_empty(List    ,Mod,AsComm,Form,Stream):-
 
 % conj_to_list_of_list( A , [ A | T ] , T ).
 
-
-
-
 % conj_to_list( (A,B) , [A|Bs] ) :-
 %       !,
 %       conj_to_list( B , Bs ).
 % conj_to_list( A , [A] ).
 
+conj_to_list_of_list((A;B), [A|Bs]) :- list(A), !,
+    conj_to_list_of_list(B, Bs).
+conj_to_list_of_list((A;B), [AL|Bs]) :- !,
+    conj_to_list(A, AL),
+    conj_to_list_of_list(B, Bs).
+conj_to_list_of_list(A, [A]) :- list(A), !.
+conj_to_list_of_list(A, [AL]) :-
+    conj_to_list(A, AL).
 
-
-conj_to_list_of_list( (A;B) , [A|Bs] ) :-
-    list( A ),
-    !,
-    conj_to_list_of_list( B , Bs ).
-conj_to_list_of_list( (A;B) , [AL|Bs] ) :-
-    !,
-    conj_to_list( A , AL ),
-    conj_to_list_of_list( B , Bs ).
-conj_to_list_of_list( A , [A] ) :-
-    list( A ),
-    !.
-conj_to_list_of_list( A , [AL] ) :-
-    conj_to_list( A , AL ).
-
-
-conj_to_list( (A,B) , [A|Bs] ) :-
-    !,
-    conj_to_list( B , Bs ).
-conj_to_list( A , [A] ).
-
+conj_to_list((A,B), [A|Bs]) :- !,
+    conj_to_list(B, Bs).
+conj_to_list(A, [A]).
 
 % disj_to_list( (A,B) , [A|Bs] ) :-
 %       !,
 %       disj_to_list( B , Bs ).
 % disj_to_list( A , A ).
 
-
-
-
-
 write_as_comment(double,Mod,S):-
-    format(S,"~n%% %% ~8|~w ",[Mod]).
+    format(S,"~n%% %% ~3|~w ",[Mod]).
 write_as_comment(yes,Mod,S):-
-    format(S,"~n%% ~8|~w ",[Mod]).
+    format(S,"~n%% ~3|~w ",[Mod]).
 write_as_comment(no,Mod,S):-
-    format(S,"~n~8|~w ",[Mod]).
+    format(S,"~n~3|~w ",[Mod]).
 
 print_prop_list(conj,List,S):-
     print_conjunction(List,S).
@@ -256,18 +233,17 @@ print_tail_disj([Prop|Props],S):-
     print_conjunction_1(Prop,S),
     print_tail_disj(Props,S).
 
-print_conjunction_1([],S) :-
-    !,
+print_conjunction_1([],S) :- !,
     format(S,"true",[]).
 print_conjunction_1(A,S) :-
     print_conjunction(A,S).
 
-
 print_conjunction([],_S).
 print_conjunction([Prop],S):- !,
-    ( Prop = _ : _ ->
-      format(S,"(~q)",[Prop])
-    ; format(S, "~q" ,[Prop])).
+    ( Prop = (_:_) ->
+        format(S,"(~q)",[Prop])
+    ; format(S, "~q" ,[Prop])
+    ).
 print_conjunction([Prop|Props],S):-
     format(S,"( ~q",[Prop]),
     print_tail_conj(Props,S).
@@ -286,8 +262,7 @@ unify_vars([N=V|Dict]):-
 */
 
 % DTM: this case appears in :- calls p(X): (ground(X);var(X)).
-decide_on_call([(_;_)],disj):-
-    !.
+decide_on_call([(_;_)],disj):- !.
 decide_on_call(Call,disj):-
     list(Call,list), !.
 decide_on_call(_Call,conj).
