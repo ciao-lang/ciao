@@ -143,11 +143,11 @@ write_comment(Comm,AsComm,S):-
     write_comment_as_comment(AsComm,CC,S).
 
 write_comment_as_comment(double,Comm,S):-
-    format(S,'~n%% %% ~3|# "~s"',[Comm]).
+    format(S,'~n%% %%    # "~s"',[Comm]).
 write_comment_as_comment(yes,Comm,S):-
-    format(S,'~n%% ~3|# "~s"',[Comm]).
+    format(S,'~n%%    # "~s"',[Comm]).
 write_comment_as_comment(no,Comm,S):-
-    format(S,'~n~3|# "~s"',[Comm]).
+    format(S,'~n   # "~s"',[Comm]).
 
 
 check_comas_in_comment( [] , [] ).
@@ -207,11 +207,11 @@ conj_to_list(A, [A]).
 % disj_to_list( A , A ).
 
 write_as_comment(double,Mod,S):-
-    format(S,"~n%% %% ~3|~w ",[Mod]).
+    format(S,"~n%% %%    ~w ",[Mod]).
 write_as_comment(yes,Mod,S):-
-    format(S,"~n%% ~3|~w ",[Mod]).
+    format(S,"~n%%    ~w ",[Mod]).
 write_as_comment(no,Mod,S):-
-    format(S,"~n~3|~w ",[Mod]).
+    format(S,"~n   ~w ",[Mod]).
 
 print_prop_list(conj,List,S):-
     print_conjunction(List,S).
