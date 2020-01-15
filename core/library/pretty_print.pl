@@ -1,36 +1,30 @@
-:- module(pretty_print,
-    [ 
-      pretty_print/2,
-      pretty_print/3,
-      pretty_print/4
-    ],
-    [ assertions,
-      regtypes,
-      fsyntax
-    ]).
+:- module(pretty_print, [ 
+    pretty_print/2,
+    pretty_print/3,
+    pretty_print/4
+], [assertions, regtypes, fsyntax]).
+
+:- doc(title,"A simple pretty-printer for Ciao programs").
+:- doc(author, "The Ciao Development Team").
+
+:- doc(module,"This library module writes out to standard output a
+   clause or a list of clauses.").
+
+%% :- doc(bug,"1. Bodies that finish with an operator can not be read in.
+%%     E.g., foo(X) :- X='?' is written foo(X) :- X= ?.
+%%     Should be foo(X) :- X= ? .").
+
+:- doc(bug , "2.- If the priority of and operator, &/1 or &/2, is
+   redefined with lower priority than :-/2 or ./1, the written term is
+   incorrect because it does not include parenthesis to make Ciao
+   associate and operator first." ).
+
+%% -----------------------------------------------------------------------
 
 :- use_module(library(operators)).
 :- use_module(library(vndict)).
 :- use_module(library(streams)).
 :- use_module(library(write)).
-
-%% -----------------------------------------------------------------------
-:- doc(title,"A simple pretty-printer for Ciao programs").
-
-:- doc(author, "The Ciao Development Team").
-
-:- doc(module,"This library module writes out to standard output a 
-    clause or a list of clauses.").
-
-%% :- doc(bug,"1. Bodies that finish with an operator can not be read in.
-%%     E.g., foo(X) :- X='?' is written foo(X) :- X= ?.
-%%     Should be foo(X) :- X= ? .
-%% ").
-
-:- doc( bug , "2.- If the priority of and operator, &/1 or &/2, is
-redefined with lower priority than :-/2 or ./1, the written term is
-incorrect because it does not include parenthesis to make Ciao
-associate and operator first." ).
 
 %% -----------------------------------------------------------------------
 
@@ -161,21 +155,22 @@ pp(clause(H,!),_K,S):- !,
     writeq(S,H),
     write(S,' :- !.').
 pp(clause(H,B),K,S):- !,
+    Tab=4,
     writeq(S,H),
-    write(S,' :-'), nl(S),
-    ppb(B,8,K,S),
+    write(S,' :-'),
+    nl_tab(S,Tab), ppb(B,Tab,K,S),
     write(S,'.').
 pp(H,K,S):-
     pp(clause(H,true),K,S).
 
 ppb((A,B),Tab,K,S) :- !,
     ppb(A,Tab,K,S),
-    write(S,','), nl(S),
-    ppb(B,Tab,K,S).
+    write(S,','),
+    nl_tab(S,Tab), ppb(B,Tab,K,S).
 ppb('&'(A,B),Tab,K,S) :- !,
     ppc(A,Tab,K,S),
-    write(S,' &'), nl(S),
-    ppc(B,Tab,K,S).
+    write(S,' &'),
+    nl_tab(S,Tab), ppc(B,Tab,K,S).
 % ppb('&>'(A,B),Tab,K,S) :- !,
 %       ppc(A,Tab,K,S),
 %       write(S,' &> '),
@@ -186,54 +181,55 @@ ppb('&'(A,B),Tab,K,S) :- !,
 ppb(('&'(A)),Tab,K,S) :- !,
     ppb(A,Tab,K,S),
     write(S,' &').
-ppb(true(B),Tab,K,S) :- !,
-    tab(S,Tab), write(S,'true('), nl(S),
-    NTab1 is Tab+4,
-    NTab2 is Tab+7,
-    ppc(B,NTab2,K,S), nl(S),
-    tab(S,NTab1), write(S,')').
+ppb(true(B),Tab,K,S) :- B=(_,_), !, % (special case)
+    NTab2 is Tab+4,
+    write(S,'true(('),
+    nl_tab(S,NTab2), ppb(B,NTab2,K,S),
+    nl_tab(S,Tab), write(S,'))').
+% ppb(true(B),Tab,K,S) :- !,
+%     NTab2 is Tab+4,
+%     write(S,'true('),
+%     nl_tab(S,NTab2), ppc(B,NTab2,K,S),
+%     nl_tab(S,Tab), write(S,')').
 ppb((A->B;C),Tab,K,S) :- !,
-    tab(S,Tab), write(S,'('), nl(S),
     NTab1 is Tab+2,
-    NTab2 is Tab+5,
+    NTab2 is Tab+4,
+    write(S,'( '),
     ppb(A,NTab1,K,S),
-    write(S,' ->'), nl(S),
-    ppb(B,NTab2,K,S), nl(S),
-    tab(S,Tab), write(S,';'), nl(S),
-    ppb(C,NTab2,K,S), nl(S),
-    tab(S,Tab), write(S,')').
+    write(S,' ->'),
+    nl_tab(S,NTab2), ppb(B,NTab2,K,S),
+    nl_tab(S,Tab), write(S,'; '),
+    ppb(C,NTab1,K,S),
+    nl_tab(S,Tab), write(S,')').
 ppb((A->B),Tab,K,S) :- !,
-    tab(S,Tab), write(S,'('), nl(S),
     NTab1 is Tab+2,
-    NTab2 is Tab+5,
+    NTab2 is Tab+4,
+    write(S,'( '),
     ppb(A,NTab1,K,S),
-    write(S,' ->'), nl(S),
-    ppb(B,NTab2,K,S), nl(S),
-    tab(S,Tab), write(S,')').
+    write(S,' ->'),
+    nl_tab(S,NTab2), ppb(B,NTab2,K,S),
+    nl_tab(S,Tab), write(S,')').
 ppb((A;B),Tab,K,S) :- !,
-    tab(S,Tab), write(S,'('), nl(S),
-    NTab is Tab+5,
-    ppb(A,NTab,K,S), nl(S),
-    tab(S,Tab), write(S,';'), nl(S),
-    ppb(B,NTab,K,S), nl(S),
-    tab(S,Tab), write(S,')').
+    NTab is Tab+2,
+    write(S,'( '),
+    ppb(A,NTab,K,S),
+    nl_tab(S,Tab), write(S,'; '),
+    ppb(B,NTab,K,S),
+    nl_tab(S,Tab), write(S,')').
 ppb('=>'(A,B),Tab,K,S) :- !,
-    tab(S,Tab), write(S,'('), nl(S),
-    NTab is Tab+5,
-    ppb(A,NTab,K,S), nl(S),
-    tab(S,Tab), write(S,'=>'), nl(S),
-    ppb(B,NTab,K,S), nl(S),
-    tab(S,Tab), write(S,')').
-% Not anymore!!!
-%% ppb(A:_,Tab,K) :- !,
-%%      ppg(A,Tab,K).
+    write(S,'( '),
+    NTab is Tab+2,
+    ppb(A,NTab,K,S),
+    nl_tab(S,Tab), write(S,'=>'),
+    nl_tab(S,NTab), ppb(B,NTab,K,S),
+    nl_tab(S,Tab), write(S,')').
 ppb(A,Tab,K,S) :-
     ppg(A,Tab,K,S).
 
 ppc('&'(A,B),Tab,K,S) :- !,
     ppc(A,Tab,K,S),
-    write(S,' &'), nl(S),
-    ppc(B,Tab,K,S).
+    write(S,' &'),
+    nl_tab(S,Tab), ppc(B,Tab,K,S).
 % ppc('&>'(A,B),Tab,K,S) :- !,
 %       ppc(A,Tab,K,S),
 %       write(S,' &> '),
@@ -241,15 +237,13 @@ ppc('&'(A,B),Tab,K,S) :- !,
 % ppc('<&'(A),Tab,K,S) :- !,
 %       ppc(A,Tab,K,S),
 %       write(S,' <&').
-ppc(X,Tab,K,S) :-
-    functor(X,F,2),
-%       ( F=',' ; F='=>' ; F=';' ; F='->' ), !,
-% for the rest, '(' is written by ppb itself:
-    F=',' , !,
-    tab(S,Tab), write(S,'('), nl(S),
-    NTab is Tab+1,
-    ppb(X,NTab,K,S), nl(S),
-    tab(S,Tab), write(S,')').
+ppc(X,Tab,K,S) :- X = (_,_), !,
+    % functor(X,F,2), ( F=',' ; F='=>' ; F=';' ; F='->' ), !,
+    % for the rest, '(' is written by ppb itself:
+    NTab is Tab+2,
+    write(S,'( '),
+    ppb(X,NTab,K,S),
+    write(S,' )').
 ppc(A,Tab,K,S) :-
     ppb(A,Tab,K,S).
 
@@ -258,19 +252,17 @@ ppg(when(A,B),Tab,yes,S) :- !,
     ppb((ask(A)->B),Tab,ask,S),
     write(S,' & ').
 % complex-ask with an &
-ppg(ask(A,B),Tab,yes,S) :- !,
-    tab(S,Tab),
+ppg(ask(A,B),_Tab,yes,S) :- !,
     writeq(S,ask(A,B)),
     write(S,' & ').
 % simple or qualified atomic goal
-ppg(A,Tab,_K,S) :-
+ppg(A,_Tab,_K,S) :-
     functor(A,F,_),
     current_op(X,_,F),
     current_op(Y,_,','),
     X >= Y, !,
-    tab(S,Tab),
     write(S,'( '), writeq(S,A), write(S,' )').
-ppg(A,Tab,_K,S) :-
-    tab(S,Tab),
+ppg(A,_Tab,_K,S) :-
     writeq(S,A).
 
+nl_tab(S,Tab) :- nl(S), tab(S,Tab).
