@@ -49,9 +49,6 @@
 :- bundle_flag(rtchecks_test, [
     config_prolog_flag(rtchecks_test,[yes,no],no)
 ]).
-%% :- bundle_flag(rtchecks_inline, [
-%%     config_prolog_flag(rtchecks_inline,[yes,no],no) % TODO:T261
-%% ]).
 :- bundle_flag(rtchecks_asrloc, [
     config_prolog_flag(rtchecks_asrloc,[yes,no],yes)
 ]).

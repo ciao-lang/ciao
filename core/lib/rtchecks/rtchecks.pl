@@ -22,3 +22,5 @@
 :- include(library(rtchecks/rtchecks_rt_propimpl)).
 :- use_module(engine(basic_props_rtc)).
 
+:- use_module(library(rtchecks/rtchecks_rt)).
+

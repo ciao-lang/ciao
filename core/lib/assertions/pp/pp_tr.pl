@@ -110,9 +110,7 @@ get_pp_cmd(M, Cmd) :-
 %       C = (:- impl_defined(mshare/1)). % TODO: is this missing in nativeprops package?
 get_pp_prelude(M, C) :-
     pp_opt(rtchecks, M),
-    ( C = (:- use_package(rtchecks))
-    ; C = (:- use_package(library(rtchecks/rtchecks_rt_library)))
-    ).
+    C = (:- use_package(rtchecks)).
 get_pp_prelude(M, C) :-
     pp_opt(rtchecks_shallow, M),
     C = (:- use_package(rtchecks_shallow)).

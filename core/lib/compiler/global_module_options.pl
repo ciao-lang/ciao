@@ -165,48 +165,18 @@ glbmod_collect_packages_(Module, Packages0, Packages) :-
 % ---------------------------------------------------------------------------
 % Fix packages for rtchecks
 
-% TODO: I fixed this code, but it is still a kludge: it only captures
-%   rtchecks when it appears in the third argument of module/3
-%   declaration.
+% TODO: use conditional compilation to enable rtchecks properly from
+% the assertions package
 
 % Extend the list of packages with rtchecks if necessary
 rtchecks_fix_packages(Packages0, Packages) :-
-    rtcheck_packages(Packages0, RTPackages),
-    append(Packages0, RTPackages, Packages).
-
-rtcheck_packages(Packages0, RTPackages) :-
-    member(nortchecks, Packages0), % TODO: ugly (use a compile-time flag instead)
-    !,
-    RTPackages = [].
-rtcheck_packages(Packages0, RTPackages) :-
-    % No rtchecks without assertions
-    \+ member(assertions, Packages0), % TODO: show warning?
-    !,
-    RTPackages = [].
-rtcheck_packages(Packages0, RTPackages) :-
-    ( member(rtchecks, Packages0) ->
-        RTPackages = RTPackages0 % 'rtcheck' already in list
-    ; current_prolog_flag(runtime_checks, yes) ->
-        RTPackages = [rtchecks|RTPackages0] % add 'rtchecks' package
-    ),
-    !,
-  RTPackages0 = [library(rtchecks/rtchecks_rt_library)].
-% TODO:T261
-%%      curr_rtcheck_package(Package),
-%%      RTPackages0 = [Package].
-%
-rtcheck_packages(_Packages0, RTPackages) :-
-    RTPackages = [].
-
-% TODO:T261
-%      (also revise the comment below) --NS
-%% % TODO: rtcheck_inline must also be a global_module_option, not a prolog flag
-%% % Package for 'rtcheck' (based on value of rtcheck_inline prolog flag)
-%% curr_rtcheck_package(Pkg) :-
-%%      ( current_prolog_flag(rtchecks_inline, yes) ->
-%%          Pkg = library(rtchecks/rtchecks_rt_inline)
-%%      ; Pkg = library(rtchecks/rtchecks_rt_library)
-%%      ).
+    ( current_prolog_flag(runtime_checks, yes),
+      \+ member(nortchecks, Packages0),
+      member(assertions, Packages0) ->
+        % TODO: allow rtchecks without assertions? show warnings?
+        append(Packages0, [rtchecks], Packages)
+    ; Packages = Packages0
+    ).
 
 % ---------------------------------------------------------------------------
 % (from llists.pl, not included here to avoid one extra module in the compiler)

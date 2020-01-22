@@ -1,6 +1,7 @@
-:- module(_, [inliner_sentence_tr/3, inliner_goal_tr/3, inline_db/4,
-            lit_clause_arity/4, in_inline_module_db/2, compound_struct/3],
-        [assertions, hiord_old, dcg, datafacts]).
+:- module(_, [
+    inliner_sentence_tr/3, inliner_goal_tr/3,
+    in_inline_module_db/2,
+], [assertions, hiord_old, dcg, datafacts]).
 
 :- use_module(library(aggregates)).
 
@@ -51,7 +52,7 @@ of ciaopp.").
 :- data source_clause_db/3.
 :- data meta_pred_db/4.
 :- data rename_goal_db/4.
-:- data inline_db/4.  % TODO:T261
+:- data inline_db/4.
 :- data unused_inline_db/4.
 :- data renamer_db/3.
 :- data unused_renamer_db/4.
@@ -372,12 +373,12 @@ meta_unfold_each(addmodule(ArgSpec), UFldSpec) :-
     meta_unfold_each(ArgSpec, UFldSpec).
 meta_unfold_each(_, no).
 
-% TODO:T261
 lit_clause_arity(M, F, LitArity, ClauseArity) :-
-    meta_predicate(F, LitArity, Meta, M),
-    meta_inc_args(Meta, LitArity, ClauseArity) -> true
-    ;
-    LitArity = ClauseArity.
+    ( meta_predicate(F, LitArity, Meta, M),
+      meta_inc_args(Meta, LitArity, ClauseArity) ->
+        true
+    ; LitArity = ClauseArity
+    ).
 
 assert_clause_if_required(Head, F, LitArity, Body, M) :-
     ( functor(Spec, F, LitArity), unfold_db(Spec, M)
@@ -1326,14 +1327,6 @@ cleanup_db(M) :-
     retractall_fact(use_module_db(_, _, _, M)),
     retractall_fact(in_inline_module_db(_, M)),
     retractall_fact(inline_module_db(_, _, _, M)).
-
- % TODO:T261
-% :- pred compound_struct(Pred, F, Args) :: (term(Pred), atm(F), list(Args)).
-
-/*
-compound_struct(Pred, F, Args) :-
-    Pred =.. [F|Args].
-*/
 
 compound_struct(Pred, F, Args) :-
     var(Pred),

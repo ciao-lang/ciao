@@ -1,51 +1,47 @@
-:- module(rtchecks_tr,
-    [
-        rtchecks_sentence_tr/4,
-        rtchecks_goal_tr/3,
-        collect_assertions/3,
-        generate_rtchecks/7,
-        generate_rtchecks/11
-    ],
-    [assertions, regtypes, nortchecks, nativeprops, isomodes, dcg, hiord_old, fsyntax, datafacts]).
+:- module(rtchecks_tr, [
+    rtchecks_sentence_tr/4,
+    rtchecks_goal_tr/3,
+    collect_assertions/3,
+    generate_rtchecks/7,
+    generate_rtchecks/11
+], [assertions, regtypes, nortchecks, nativeprops, isomodes, dcg, hiord_old, fsyntax, datafacts]).
 
-:- use_package(library(rtchecks/rtchecks_tr_library)).
+:- use_module(library(hiordlib), [maplist/3]).
+:- use_module(library(rtchecks/rtchecks_basic)).
+:- use_module(library(rtchecks/rtchecks_meta)).
 
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(library(assertions/assertions_props), [head_pattern/1]).
 % see formulae, conj_to_list/2, list_to_conj/2
 :- use_module(library(aggregates), [findall/3, findall/4]).
 :- use_module(library(lists), [member/2, intersection/3, difference/3]).
-:- use_module(library(llists),     [flatten/2]).
-:- use_module(library(terms),      [atom_concat/2]).
-:- use_module(library(sort),       [sort/2,keylist/1, keypair/1]).
+:- use_module(library(lists), [append/3, reverse/2, select/3]).
+:- use_module(library(llists), [flatten/2]).
+:- use_module(library(terms), [atom_concat/2]).
+:- use_module(library(sort), [sort/2, keylist/1, keypair/1]).
 :- use_module(library(rtchecks/term_list), [push_term/3, collapse_terms/3]).
-:- use_module(library(assertions/assrt_lib),
-    [
-        assertion_read/9,
-        assertion_body/7,
-        comps_to_goal/3,
-        comps_to_goal/4
-    ]).
-:- use_module(library(compiler/c_itf),
-    [
-        discontiguous/3,
-        defines_module/2,
-        exports_pred/3,
-        location/1,
-        location/3
-    ]).
+:- use_module(library(assertions/assrt_lib), [
+    assertion_read/9,
+    assertion_body/7,
+    comps_to_goal/3,
+    comps_to_goal/4]).
+:- use_module(library(compiler/c_itf), [
+    discontiguous/3,
+    defines_module/2,
+    exports_pred/3,
+    location/1,
+    location/3]).
+
 % ---------------------------------------------------------------------------
 
-:- use_module(library(compiler/c_itf),
-        [meta_args/2, imports_pred/7]). % TODO:T261 refine
+:- use_module(library(compiler/c_itf), [meta_args/2, imports_pred/7]). % TODO: refine
 :- use_module(engine(meta_inc), [meta_inc_args/3]).
 
-% TODO:T261
 lit_clause_arity(M, F, LitArity, ClauseArity) :-
     ( meta_predicate(F, LitArity, Meta, M),
       meta_inc_args(Meta, LitArity, ClauseArity) ->
         true
-    ;       LitArity = ClauseArity
+    ; LitArity = ClauseArity
     ).
 
 meta_predicate(F, A, PredSpec, M) :-
@@ -185,7 +181,7 @@ current_assertion_2(Pred0, Status, Type, Pred, Compat, Call, Succ, Comp0,
     assertion_read(Pred0, M, Status, Type, ABody, Dict0, S, LB, LE),
     valid_assertions(Status, Type),
     functor(Pred0, F, CA),
-    lit_clause_arity(M, F, A, CA),  % TODO:T261
+    lit_clause_arity(M, F, A, CA),
     (
         (
             current_prolog_flag(rtchecks_level, inner)
@@ -209,11 +205,10 @@ remaining_pred(F, A, M) :-
 
 black_list_pred('=', 2).
 
-proc_remaining_assertions(Preds, [(:- redefining(F/A))|Clauses], M, Dict) :- % TODO:T261
+proc_remaining_assertions(Preds, [(:- redefining(F/A))|Clauses], M, Dict) :-
     member(F/A, Preds),
     functor(Head, F, A),
-    transform_sentence(F, A, Head, '$orig_call'(Head), _, Clauses, M,
-        Dict).
+    transform_sentence(F, A, Head, '$orig_call'(Head), _, Clauses, M, Dict).
 
 rtchecks_sentence_tr(0,           _,       _, _) :- !,
     clean_rtc_impl_db.
@@ -657,34 +652,25 @@ generate_rtchecks(Assertions, Pred, PDict, PLoc, UsePosLoc, Lits, Goal) :-
     lists_to_lits(Goal0, Lits),
     !.
 
-generate_rtchecks(_F, A, M, Assertions, Pred, PDict, PLoc, UsePosLoc,
-        Pred2) -->
-    {generate_step1_rtchecks(Assertions, Pred, PLoc, UsePosLoc, Body0,
-            Body01)},
-    (
-        {(Body0 \== Body01)} ->
-        {
-            rename_head('0', A, Pred, Pred1),
-            record_goal_alias(Pred, Pred1, M),
-            Body01 = Pred1,
-            lists_to_lits(Body0, Lits0)
+generate_rtchecks(_F, A, M, Assertions, Pred, PDict, PLoc, UsePosLoc, Pred2) -->
+    { generate_step1_rtchecks(Assertions, Pred, PLoc, UsePosLoc, Body0, Body01) },
+    ( { Body0 \== Body01 } ->
+        { rename_head('0', A, Pred, Pred1),
+          record_goal_alias(Pred, Pred1, M),
+          Body01 = Pred1,
+          lists_to_lits(Body0, Lits0)
         },
-        [(Pred :- Lits0)]  % TODO:T261
-    ;
-        {Pred = Pred1}
+        [(Pred :- Lits0)]
+    ; {Pred = Pred1}
     ),
-    {generate_step2_rtchecks(Assertions, Pred, PDict, PLoc, UsePosLoc,
-            Body1, Body12)},
-    (
-        {
-            Body1 \== Body12 ->
-            rename_head('1', A, Pred, Pred2),
-            Body12 = Pred2,
-            lists_to_lits(Body1, Lits1)
+    { generate_step2_rtchecks(Assertions, Pred, PDict, PLoc, UsePosLoc, Body1, Body12) },
+    ( { Body1 \== Body12 } ->
+        { rename_head('1', A, Pred, Pred2),
+          Body12 = Pred2,
+          lists_to_lits(Body1, Lits1)
         },
-        [(Pred1 :- Lits1)]  % TODO:T261
-    ;
-        {Pred1 = Pred2}
+        [(Pred1 :- Lits1)]
+    ; {Pred1 = Pred2}
     ).
 
 current_assertion(Pred0, M,
