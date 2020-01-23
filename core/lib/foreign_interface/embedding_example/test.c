@@ -52,7 +52,8 @@ int main(void)
 
   printf("Loading test.po...\n");
 
-  ciao_load_qfile("test.po");
+  // ciao_load_qfile("test.po");
+  ciao_load_qfile("test.cpx");
 
   printf("Testing...\n");
 

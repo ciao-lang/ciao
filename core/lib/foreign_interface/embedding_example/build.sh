@@ -7,7 +7,8 @@ ciaolib=$engdir/objs/$osarch/libciaoengine.a
 
 . $config
 
-ciaoc -c test.pl
+# ciaoc -c test.pl
+ciaoc -o test.cpx -s test.pl
 $CC -c $CFLAGS $CCSHARED test.c
 $LD $LDFLAGS -o test test.o $ciaolib
 
