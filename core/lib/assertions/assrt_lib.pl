@@ -30,6 +30,8 @@
     ],
     [assertions, nortchecks, basicmodes, regtypes, dcg, hiord_old, datafacts]).
 
+%:- compilation_fact(assrt_newho).
+
 :- doc(title,"Assertion processing library").
 
 :- doc(author,"Manuel Hermenegildo").
@@ -1229,12 +1231,22 @@ add_tuple_argvars(P,Arg,NArg,PD,[NP]) :-
 
 add_argvar(M:P,Arg,NArg,PD,M:NP) :- !,
     add_argvar(P,Arg,NArg,PD,NP).
+:- if(defined(assrt_newho)).
+add_argvar(P,Arg,NArg,PD,NP) :-
+    arg(Arg,PD,Var),
+    var(Var), !,
+    NArg = Arg,
+    P =.. [F|Vars],
+    append(Vars,[Var],Vars2),
+    NP =.. [F|Vars2].
+:- else.
 add_argvar(P,Arg,NArg,PD,NP) :-
     arg(Arg,PD,Var),
     var(Var), !,
     NArg = Arg,
     P =.. [F|Vars],
     NP =.. [F,Var|Vars].
+:- endif.
 add_argvar(P,Arg,NArg,PD,NP) :-
     NArg1 is Arg-1,
     NArg1 > 0,
