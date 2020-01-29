@@ -26,7 +26,7 @@ configure:
 build:
   stage: build
   script:
-    - ./ciao-boot.sh build --bin core builder
+    - ./ciao-boot.sh build --bin core builder ciaodbg
   tags:
     - ciao
   artifacts:
