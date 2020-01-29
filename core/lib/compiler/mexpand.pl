@@ -266,7 +266,10 @@ expand_meta_of_type(pred(N), P, M, QM, Mode, NP):-
         functor(P, _, A),
         functor(NP1, NP1Name, _),
         functor(NP, NP1Name, A),
-        mexpand__unify_args(1, A, NP, 2, NP1)
+        ( mexpand_imports(M, _, '$dummy_hiord_rt_old', 0, hiord_rt_old) -> % old-style argument order
+            mexpand__unify_args(1, A, NP, 2, NP1)
+        ; mexpand__unify_args(1, A, NP, 1, NP1)
+        )
     ; NP = NP0
     ).
 

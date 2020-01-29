@@ -26,8 +26,6 @@
 %
 % ===========================================================================
 
-%:- compilation_fact(assrt_newho).
-
 :- use_module(library(assertions/assertions_props)).
 :- use_module(library(assertions/c_itf_props)).
 
@@ -597,22 +595,11 @@ add_tuple_argvars(P,Arg,NArg,PD,[NP]) :-
 
 add_argvar(M:P,Arg,NArg,PD,M:NP) :- !,
     add_argvar(P,Arg,NArg,PD,NP).
-:- if(defined(assrt_newho)).
 add_argvar(P,Arg,NArg,PD,NP) :-
     arg(Arg,PD,Var),
     var(Var), !,
     NArg = Arg,
-    P =.. [F|Vars],
-    append(Vars,[Var],Vars2),
-    NP =.. [F|Vars2].
-:- else.
-add_argvar(P,Arg,NArg,PD,NP) :-
-    arg(Arg,PD,Var),
-    var(Var), !,
-    NArg = Arg,
-    P =.. [F|Vars],
-    NP =.. [F,Var|Vars].
-:- endif.
+    prop_apply(P,Var,NP).
 add_argvar(P,Arg,NArg,PD,NP) :-
     NArg1 is Arg-1,
     NArg1 > 0,

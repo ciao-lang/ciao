@@ -699,16 +699,6 @@ comps_to_goal(Comp) -->
     global properties in to successive meta-calls, but in the
     third argument you can use your own selector.".
 
-:- test comps_to_goal(Comp, Goal, Pred) :
-    (
-        Comp = [not_fails(p(A)), is_det(p(A)), exception(p(A), exc)],
-        Pred = p(A)
-    ) =>
-    (
-        Goal = not_fails(is_det(exception(p(A),exc)))
-    ).
-
-
 :- meta_predicate comps_to_goal(?, pred(3), ?, ?).
 comps_to_goal([],             _) --> [].
 comps_to_goal([Check|Checks], Goal) -->
@@ -720,6 +710,56 @@ comps_to_goal2([], Check, Goal) -->
 comps_to_goal2([Check|Checks], Check0, Goal) -->
     Goal(Check0),
     comps_to_goal2(Checks, Check, Goal).
+
+:- test comps_to_goal(Comp, Goal, Pred) :
+    (
+        Comp = [not_fails(p(A)), is_det(p(A)), exception(p(A), exc)],
+        Pred = p(A)
+    ) =>
+    (
+        Goal = not_fails(is_det(exception(p(A),exc)))
+    ).
+
+% ---------------------------------------------------------------------------
+
+:- use_module(library(lists), [append/3]).
+
+:- export(prop_apply/3).
+:- export(prop_unapply/3).
+:- export(prop_argvar/2).
+
+% :- compilation_fact(assrt_newho). % TODO: Enable to define new hiord
+
+:- if(defined(assrt_newho)). % TODO: versions for hiord_old, deprecate
+% prop_apply(+P, +X, -PX): From P(A1,...,An) and X to P(A1,...,An,X)
+prop_apply(P, X, PX) :-
+    P =.. [F|Args],
+    append(Args,[X],ArgsX),
+    PX =.. [F|ArgsX].
+
+% prop_unapply(+PX, -P, -X): From P(A1,...,An,X) to P(A1,...,An) and X
+prop_unapply(PX, P, X) :-
+    PX =.. [F|ArgsX],
+    append(Args,[X],ArgsX),
+    !, % TODO: cut needed? (make sure that there are no chpts)
+    P =.. [F|Args].
+
+% prop_argvar(+PX,-X): From P(A1,...,An,X) obtain X
+prop_argvar(PX, X) :-
+    functor(PX,_,N),
+    arg(N,PX,X).
+:- else.
+prop_apply(P, X, PX) :-
+    P =.. [F|Args],
+    PX =.. [F,X|Args].
+
+prop_unapply(PX, P, X) :-
+    PX =.. [F,X|Args],
+    P =.. [F|Args].
+
+prop_argvar(PX, X) :-
+    arg(1,PX,X).
+:- endif.
 
 %% ---------------------------------------------------------------------------
 :- pred print_assertions(M) :: moddesc # "Prints the assertions stored
