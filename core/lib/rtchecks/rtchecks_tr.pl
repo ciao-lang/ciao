@@ -866,6 +866,8 @@ comps_to_comp_lit(Exit, Comp, Body0, Body) :-
     comps_parts_to_comp_lit(Exit, Comp, Body1, Body),
     lists_to_lits(Body1, Body0).
 
+% TODO: try_sols should really be "max_sols", since the test assertion
+%       harness tries all solutions by default.
 valid_texec_comp_props([times(_, _), try_sols(_, _)]).
 
 comps_parts_to_comp_lit(Exit, Comp0, Body0, Body) :-
