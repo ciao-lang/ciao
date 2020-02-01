@@ -12,10 +12,10 @@
  *   - pretty human readable format (based on Grisu2)
  *   - format adapted to Ciao (0.Inf, 0.Nan, etc.)
  *
- *  The Ryu algorithm is self-contained, do not require dynamic
+ *  The Ryu algorithm is self-contained, does not require dynamic
  *  memory, runs several times faster than other conversion
  *  algorithms, ensures the generation of the shortest decimal
- *  representation, and maintains round-trip safety (parsing recover
+ *  representation, and maintains round-trip safety (parsing recovers
  *  the original number).
  * 
  *  [1] https://github.com/ulfjack/ryu/tree
