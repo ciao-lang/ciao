@@ -15,7 +15,7 @@
 
 :- export(sh_process_call/3).
 :- pred sh_process_call(Script, Args, Opts) :
-    ( atm(Script), list(Args, process_arg), list(Opts, process_option) )
+    ( atm(Script), list(process_arg, Args), list(process_option, Opts) )
    # "Execute a @tt{sh} script in a child process, where @var{Script}
       is the script path.".
 

@@ -16,11 +16,13 @@ expand_metatypes((:- meta_regtype(F/A)), Decl) :-
     ; Decl = []
     ).
 
-% TODO: Why this order? I would write list(T,X) instead of list(X,T)
-%       --jfran
-meta_of_regtype(1, MP) :- !,
-    arg(1, MP, ?).
 meta_of_regtype(N, MP) :-
+    arg(N, MP, ?),
+    N1 is N-1,
+    meta_of_regtype_(N1, MP).
+
+meta_of_regtype_(N, _) :- N =< 0, !.
+meta_of_regtype_(N, MP) :-
     arg(N, MP, pred(1)),
     N1 is N-1,
-    meta_of_regtype(N1, MP).
+    meta_of_regtype_(N1, MP).

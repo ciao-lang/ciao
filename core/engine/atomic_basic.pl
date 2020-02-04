@@ -65,7 +65,7 @@ valid_base(32). valid_base(33). valid_base(34). valid_base(35). valid_base(36).
 :- trust pred number_codes(-num,+string) + eval.
 :- trust comp number_codes/2 + ( sideff(free), native, iso ).
 
-:- trust success number_codes(A,B) : int(A) => list(B,num_code).
+:- trust success number_codes(A,B) : int(A) => list(num_code,B).
 
 :- impl_defined(number_codes/2).
 

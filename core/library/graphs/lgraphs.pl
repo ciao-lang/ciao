@@ -11,9 +11,9 @@
 :- use_module(library(sort)).
 :- use_module(library(sets), [ord_union/3]).
 
-:- regtype lgraph(Graph,Type)
-    # "@var{Graph} is a labeled graph of @var{Type} terms.".
-
+:- regtype lgraph(Type,Graph)
+   # "@var{Graph} is a labeled graph of @var{Type} terms.".
+:- meta_predicate lgraph(pred(1),?).
 lgraph(_,_).
 
 :- doc(vertices_edges_to_lgraph(Vertices0, Edges, Graph), "This

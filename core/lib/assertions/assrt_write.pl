@@ -263,6 +263,8 @@ unify_vars([N=V|Dict]):-
 
 % DTM: this case appears in :- calls p(X): (ground(X);var(X)).
 decide_on_call([(_;_)],disj):- !.
-decide_on_call(Call,disj):-
-    list(Call,list), !.
+decide_on_call(Call,disj):- llist(Call), !.
 decide_on_call(_Call,conj).
+
+llist([]).
+llist([X|Xs]) :- list(X), llist(Xs).

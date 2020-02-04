@@ -119,8 +119,8 @@ persistent_dir(menudbdir, '~/.ciao.d/menu_flags').
 :- export(menu_flag_values/1).
 :- regtype menu_flag_values(X) # "Flag values".
 
-menu_flag_values(alist(X)) :- list(X, atm).
-menu_flag_values(X) :- list(X, atm).
+menu_flag_values(alist(X)) :- list(atm, X).
+menu_flag_values(X) :- list(atm, X).
 menu_flag_values(ask(T)) :-
     (T == int ; T == nnegint ; T == atom ; T == atm).
 
@@ -606,7 +606,7 @@ restore_menu_config(Name) :-
     menu_config(Name, L),
     restore_menu_flags_list(L).
 
-:- pred get_menu_configs(X) : var(X) => list(X, atm)
+:- pred get_menu_configs(X) : var(X) => list(atm, X)
    # "Returns a list of atoms in @var{X} with the name of stored
       configurations.".
 

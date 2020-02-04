@@ -241,7 +241,7 @@ unifier_elem(X=Term) :- var(X), term(Term).
 :- regtype unifier(X) # "@var{X} is a unifier.".
 :- doc(unifier/1, "@includedef{unifier/1}").
 
-unifier(Unifier) :- list(Unifier, unifier_elem).
+unifier(Unifier) :- list(unifier_elem, Unifier).
 
 % (defined in engine/term_support.c)
 :- trust pred unifiable(X, Y, Unifier) :

@@ -7,7 +7,7 @@
     ],
     [assertions,
      basicmodes,
-     hiord_old,
+     hiord,
      dcg,
      fsyntax,
      datafacts]).
@@ -128,7 +128,7 @@ get_decls(File, Decls) :-
                                false, false, '='(Base))
         ), fail). % TODO: fail or abort?
 
-get_decls_2(Base, Decls) :-
+get_decls_2(Decls, Base) :-
     findall(D, decl(Base, D), Decls).
 
 % -----------------------------------------------------------------------------

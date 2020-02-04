@@ -18,13 +18,12 @@
             % succeeds/1,
             attach_cut_fail/2
         ],
-        [assertions, nortchecks, hiord_old]).
+        [assertions, nortchecks, hiord]).
 
 :- use_module(engine(hiord_rt), ['$meta_call'/1]).
 :- use_module(engine(attributes)).
 :- use_module(library(terms_vars)).
 :- use_module(library(freeze)).
-:- use_module(library(hiordlib), [maplist/2, foldl/4]).
 :- use_module(engine(basic_props_rtc)).
 
 :- reexport(library(rtchecks/rtchecks_send)).
@@ -112,21 +111,38 @@ non_compat_(Goal                    , Args) :-
 % A generic implementation of non_compat/2
     varset(Args, VS),
     '$metachoice'(C),
-    maplist(cond_detach_attribute, VS),
-    maplist(freeze('$metacut'(C)), VS),
+    cond_detach_attribute_list(VS),
+    freeze_metacut_list(VS, C),
     '$meta_call'(Goal),
     % selectvars(Args, VS1),
     % varset(VS1, VS2),
-    maplist(cond_detach_attribute, VS),
+    cond_detach_attribute_list(VS),
     !,
     fail.
 non_compat_(_, _).
 
+cond_detach_attribute_list([]).
+cond_detach_attribute_list([V|Vs]) :-
+    cond_detach_attribute(V),
+    cond_detach_attribute_list(Vs).
+
 cond_detach_attribute(V) :-
-    get_attribute(V, _) ->
-    detach_attribute(V)
-    ;
-    true.
+    ( get_attribute(V, _) -> detach_attribute(V) ; true ).
+
+detach_attribute_list([]).
+detach_attribute_list([V|Vs]) :-
+    detach_attribute(V),
+    detach_attribute_list(Vs).
+
+freeze_metacut_list([], _).
+freeze_metacut_list([V|Vs], C) :-
+    freeze(V, '$metacut'(C)),
+    freeze_metacut_list(Vs, C).
+
+attach_cut_fail_list([], _).
+attach_cut_fail_list([V|Vs], C) :-
+    attach_cut_fail(V, C),
+    attach_cut_fail_list(Vs, C).
 
 attach_cut_fail(V, C) :- attach_attribute(V, '$cut_fail'(V, C)).
 
@@ -143,10 +159,10 @@ non_inst_(Goal                   , Args) :-
 % A generic implementation of non_inst/2
     varset(Args, VS),
     '$metachoice'(C),
-    maplist(cond_detach_attribute, VS),
-    maplist(attach_cut_fail(C), VS),
+    cond_detach_attribute_list(VS),
+    attach_cut_fail_list(VS,C),
     '$meta_call'(Goal),
-    maplist(detach_attribute, VS),
+    detach_attribute_list(VS),
     !,
     fail.
 non_inst_(_, _).

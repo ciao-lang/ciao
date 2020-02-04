@@ -18,7 +18,7 @@
     %
     comps_to_goal/3,
     comps_to_goal/4
-], [assertions, nortchecks, basicmodes, regtypes, dcg, hiord_old, datafacts]).
+], [assertions, nortchecks, basicmodes, regtypes, dcg, hiord, datafacts]).
 
 :- doc(title,"Assertion processing library").
 :- doc(author,"Manuel Hermenegildo").
@@ -229,18 +229,18 @@ substract_pl(F,F,'').
    it.".
 
 %% Main file will be processed (read) even if it hasn't changed.
-needs_processing(Base,I,_Verb) :- 
+needs_processing(I,_Verb,Base) :- 
     base_name(I,Base),
     % format("*** needs_proc: Will process fully (later) ~w.asr~n",[Base]),
     !.
 %% Aux file, valid .asr file, valid version: read .asr data
-needs_processing(Base,_I,Verb) :- 
+needs_processing(_I,Verb,Base) :- 
     \+ old_file_extension(Base, '.asr'),
     read_asr_file_(Base,Verb), % Fails if wrong version!
     !,
     fail.
 %% Aux file, invalid .asr file or invalid version: generate .asr data (later).
-needs_processing(_Base,_I,_Verb) :- 
+needs_processing(_I,_Verb,_Base) :- 
     % format("*** needs_proc: Should generate (later) ~w.asr~n",[Base]),
     true.
 
@@ -303,12 +303,12 @@ read_asr_data_loop(Verb) :-
    file, generating the corresponding @tt{.asr} file. In the case of the
    main file, also reads in the code.".
 
-process_file_assertions(Base,I,_Verb,Opts) :- 
+process_file_assertions(I,_Verb,Opts,Base) :- 
     % Main file
     base_name(I,Base),
     !,
     process_file_assertions_(Base,Opts).
-process_file_assertions(Base,_I,Verb,_Opts) :-
+process_file_assertions(_I,Verb,_Opts,Base) :-
     % Other files
     defines_module(Base,M),
     normalize_assertions(M,Base,[]),
@@ -728,9 +728,6 @@ comps_to_goal2([Check|Checks], Check0, Goal) -->
 :- export(prop_unapply/3).
 :- export(prop_argvar/2).
 
-% :- compilation_fact(assrt_newho). % TODO: Enable to define new hiord
-
-:- if(defined(assrt_newho)). % TODO: versions for hiord_old, deprecate
 % prop_apply(+P, +X, -PX): From P(A1,...,An) and X to P(A1,...,An,X)
 prop_apply(P, X, PX) :-
     P =.. [F|Args],
@@ -748,18 +745,6 @@ prop_unapply(PX, P, X) :-
 prop_argvar(PX, X) :-
     functor(PX,_,N),
     arg(N,PX,X).
-:- else.
-prop_apply(P, X, PX) :-
-    P =.. [F|Args],
-    PX =.. [F,X|Args].
-
-prop_unapply(PX, P, X) :-
-    PX =.. [F,X|Args],
-    P =.. [F|Args].
-
-prop_argvar(PX, X) :-
-    arg(1,PX,X).
-:- endif.
 
 %% ---------------------------------------------------------------------------
 :- pred print_assertions(M) :: moddesc # "Prints the assertions stored

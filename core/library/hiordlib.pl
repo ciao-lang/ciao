@@ -279,7 +279,7 @@ partition_([X|Xs], P, Ys, Zs) :-
     partition_(Xs, P, Ys0, Zs0).
 
 :- test partition(P, Xs, Ys, Zs) : (
-    P='>'(4), Xs=[1, 2, 3, 4, 5, 6]
+    P='<'(4), Xs=[1, 2, 3, 4, 5, 6]
    ) => (Ys=[5, 6], Zs=[1, 2, 3, 4]) + not_fails.
 
 % ---------------------------------------------------------------------------
@@ -371,18 +371,18 @@ maplist5([X|Xs], P, [Y|Ys], [Z|Zs], [V|Vs], [W|Ws]) :-
 :- load_test_module(library(lists), [nth/3, append/3]).
 
 :- test maplist(P, A, B) : (
-    P = arg(f(a, b, c, d)),
+    P = (''(X,Y) :- arg(X,f(a, b, c, d),Y)),
     A = [1, 3, 2]
    ) => (B = [a, c, b]) + (not_fails, is_det).
 
 :- test maplist(P, A, B) : (
-    P = nth([a, b, c, d]),
+    P = (''(X,Y) :- nth(X,[a, b, c, d],Y)),
     A = [1, 3, 2]
    ) => (B = [a, c, b]) + (not_fails, is_det).
 
 :- test maplist(P, A, B) : (
     P = append("."),
     A = ["D", "C"]
-   ) => (B = ["D.", "C."]) + (not_fails, is_det).
+   ) => (B = [".D", ".C"]) + (not_fails, is_det).
 
 

@@ -153,7 +153,7 @@ assrt_body((Pr)):-               n_assrt_body(nabody(Pr,true,true,true,true)).
    valid for mode @pred{+/1} defined in @lib{library(isomodes)}, and
    equivalent in this case to having the head pattern
    @tt{p(Input,A,Output)} and stating that the property
-   @tt{list(A,int)} holds for the calls of the  predicate.
+   @tt{list(int,A)} holds for the calls of the  predicate.
 
    @item Any term preceded by a ``@concept{mode}.'' In this case, only
    one variable is admitted, it has to be the first argument of the mode,
@@ -164,7 +164,7 @@ assrt_body((Pr)):-               n_assrt_body(nabody(Pr,true,true,true,true)).
    is valid for mode @pred{+/2} defined in @lib{library(isomodes)}, and
    equivalent in this case to having the head pattern
    @tt{p(Input,Parameter,Output)} and stating that the property
-   @tt{list(Parameter,int)} holds for the calls of the  predicate.
+   @tt{list(int,Parameter)} holds for the calls of the  predicate.
 
    @end{itemize} 
 
@@ -237,7 +237,7 @@ complex_arg_property(CP) :-
 
    @begin{itemize} 
 
-   @item @tt{(integer(X),list(Y,integer))}: @var{X} has the property
+   @item @tt{(integer(X),list(integer,Y))}: @var{X} has the property
    @pred{integer/1} and @var{Y} has the property @pred{list/2}, with
    second argument @tt{integer}.
 
@@ -358,10 +358,10 @@ complex_goal_property(CP) :-
 
 nabody((Pred::Compat:Call=>Succ+Comp#Comm)):-
     head_pattern(Pred),
-    list(Compat,property),
-    list(Call,property),
-    list(Succ,property),
-    list(Comp,property),
+    list(property,Compat),
+    list(property,Call),
+    list(property,Succ),
+    list(property,Comp),
     docstring(Comm).
 
 :- regtype dictionary(D)

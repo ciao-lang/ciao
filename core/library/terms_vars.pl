@@ -111,9 +111,12 @@ extract_vartype(N, Term, Bag) :-
 
 %-------------------------------------------------------------------------
 
-:- pred varset_in_args(T, LL) : nonvar(T) => list(LL, list(var)) # "Each
+:- if((defined(optim_comp),'$with_compiler_version'(109))).
+:- else.
+:- pred varset_in_args(T, LL) : nonvar(T) => list(list(var), LL) # "Each
    list of @var{LL} contains the variables of an argument of @var{T},
    for each argument, and in left to right order.".
+:- endif.
 
 varset_in_args(Term, Xss) :-
     Term =.. [_|Args],

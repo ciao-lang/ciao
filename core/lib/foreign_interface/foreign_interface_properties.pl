@@ -205,15 +205,15 @@ c_uint64(B):- int(B).
 
 :- export(c_uint8_list/1).
 :- regtype c_uint8_list(List) # "@var{List} is a list of @regtype{c_uint8/1}.".
-c_uint8_list(List) :- list(List,c_uint8).
+c_uint8_list(List) :- list(c_uint8,List).
 
 :- export(c_int_list/1).
 :- regtype c_int_list(List) # "@var{List} is a list of @regtype{c_int/1}.".
-c_int_list(List) :- list(List,c_int).
+c_int_list(List) :- list(c_int,List).
 
 :- export(c_double_list/1).
 :- regtype c_double_list(List) # "@var{List} is a list of @regtype{c_double/1}.".
-c_double_list(List) :- list(List,c_double).
+c_double_list(List) :- list(c_double,List).
 
 :- export(size_of/3).
 :- prop size_of(Name,ListVar,SizeVar)

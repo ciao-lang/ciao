@@ -90,7 +90,7 @@ member(A,[B|C],[B|D]) :-
 
 detcond(ground(X)):- var(X).
 detcond(nonvar(X)):- var(X).
-detcond(instatiated(A,Path)):- var(A), list(Path,int).
+detcond(instatiated(A,Path)):- var(A), list(int,Path).
 detcond(Term1 ?\= Term2):- path(Term1), path(Term2).
 detcond(Term1 ?= Term2):- path(Term1), path(Term2).
 detcond(Test):- test(Test).
@@ -102,7 +102,7 @@ detcond(Test):- test(Test).
 :- prop path/1 + regtype.
 
 path(X):- var(X).
-path(X):- list(X,int).
+path(X):- list(int,X).
 
 :- doc(appendix,"The andorra transformation will include the 
    following predicates into the code of the module that uses the

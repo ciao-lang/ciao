@@ -94,7 +94,7 @@ yes
 :- use_module(library(lists), [length/2, reverse/2]).
 
 :- meta_predicate diff(?, ?, pred(2), ?).
-:- pred diff(Ls1, Ls2, Compare, Diff) : (list(Ls1), list(Ls2)) => list(Diff, diff_item)
+:- pred diff(Ls1, Ls2, Compare, Diff) : (list(Ls1), list(Ls2)) => list(diff_item, Diff)
     #"@var{Diff} are the changes needed to transform @var{Ls1}
     into @var{Ls2}.".
 

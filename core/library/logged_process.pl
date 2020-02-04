@@ -35,7 +35,7 @@
 
 :- export(logged_process_call/3).
 :- pred process_call(Cmd, Args, Opts) :
-    ( process_cmd(Cmd), list(Args, process_arg), list(Opts, process_option) )
+    ( process_cmd(Cmd), list(process_arg, Args), list(process_option, Opts) )
    # "Like @pred{process_call/3}, but logs of standard input and output.".
 
 logged_process_call(Cmd, Args, Opts) :-

@@ -292,7 +292,7 @@ quiet_mode(off).
 :- impl_defined('$exec'/9).
 
 :- export('$unix_argv'/1).
-:- trust pred '$unix_argv'(Argv) : list(Arg,atm).
+:- trust pred '$unix_argv'(Argv) : list(atm,Arg).
 :- impl_defined('$unix_argv'/1).
 
 :- export('$find_file'/8).

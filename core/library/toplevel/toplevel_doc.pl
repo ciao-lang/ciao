@@ -312,4 +312,4 @@ yes
     # "@var{Files} is a source name or a list of source names.".
 
 sourcenames(File) :- sourcename(File).
-sourcenames(Files) :- list(Files, sourcename).
+sourcenames(Files) :- list(sourcename, Files).

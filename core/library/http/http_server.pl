@@ -1,4 +1,4 @@
-:- module(http_server,[], [assertions, isomodes, dcg, hiord_old, doccomments, datafacts]).
+:- module(http_server,[], [assertions, isomodes, dcg, hiord, doccomments, datafacts]).
 
 %! \title  HTTP server
 %  \author The Ciao Development Team
@@ -325,7 +325,7 @@ socket_serve(Stream, yes) :-
     ; true
     ).
 
-http_serve(Request, _Stream, Response) :-
+http_serve(_Stream, Request, Response) :-
     log(note, received_message(Request)),
     ( handle(Request,Response0) ->
         Response = Response0

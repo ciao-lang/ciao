@@ -377,12 +377,12 @@ metaspec(M) :-
     var(M),
     !,
     atm(F),
-    list(A, argspec),
+    list(argspec, A),
     M =.. [F|A]. % TODO: This is not a regtype!
 metaspec(M) :-
     M =.. [F|A], % TODO: This is not a regtype!
     atm(F),
-    list(A, argspec).
+    list(argspec, A).
 
 :- prop argspec(A) + regtype # "@var{A} is an argument of a
     meta-predicate specificacion.".

@@ -111,7 +111,7 @@ merge(>, O, Os, N1, [N|Ns], [N1|Set]) :-
 
 :- pred keysort(+keylist,?keylist) + native
     # "@var{List2} is the (key-)sorted list corresponding to @var{List1}.".
-%% :- trust pred keysort(+list(Arg1,keypair),?list(Arg2,keypair))
+%% :- trust pred keysort(+list(keypair),?list(keypair))
 %%      # "@var{Arg1} is the (key-)sorted list corresponding to @var{Arg2}.".
 
 %   Keysorting.  Adapted from O'Keefe's code, but uses recursion instead of

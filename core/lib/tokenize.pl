@@ -72,7 +72,7 @@ token('.').
 
 :- export(read_tokens/2).
 :- pred read_tokens(TokenList, Dictionary) 
-    => (list(TokenList,token), dictionary(Dictionary)).
+    => (list(token,TokenList), dictionary(Dictionary)).
 
 read_tokens(TokenList, Dictionary) :-
     getct1(Ch, Type),

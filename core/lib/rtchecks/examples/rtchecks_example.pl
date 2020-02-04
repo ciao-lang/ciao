@@ -49,7 +49,7 @@ is_animal(An) :- animal(An).
 
 :- check pred animals(+Anim) : list(animal).
 
-animals(Animals) :- list(Animals, animal).
+animals(Animals) :- list(animal, Animals).
 
 :- export(ptt/0).
 ptt :- fail.
@@ -112,7 +112,7 @@ show_if_domestic(A) :-
     display(A),
     nl.
 
-:- check pred get_domestic_list(A) : var(A) => list(A, animal).
+:- check pred get_domestic_list(A) : var(A) => list(animal, A).
 
 get_domestic_list(A) :-
     findall(Animal, what_kind(Animal, domestic), A).

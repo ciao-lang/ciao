@@ -5,7 +5,7 @@
             collect_checks/3,
             compound_rtchecks/6,
             compound_rtchecks_end/5
-        ], [assertions, dcg, hiord_old]).
+        ], [assertions, dcg, hiord]).
 
 :- use_module(library(lists)).
 :- use_module(library(sort)).

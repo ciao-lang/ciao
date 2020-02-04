@@ -119,7 +119,7 @@ display_list(M) :-
     occurs in a unified way (this is useful because automatic
     tools such as the emacs mode know how to parse them).".
 
-:- pred messages(Messages) : list(Messages, message_info) # "Print
+:- pred messages(Messages) : list(message_info, Messages) # "Print
     each element in @var{Messages} using @pred{message/2} or
     @pred{message_lns/4} predicates.".
 

@@ -95,7 +95,7 @@ collapse_terms(G, L0, L) :-
 %        | whose counters are >1 or the '$meta$rtc'/2 elements
 
 :- pred collapse_term(Terms, Counts, CTerms, Tail)
-    :  (list(Terms, eq), list(Counts, eq), var(CTerms), list(Tail))
+    :  (list(eq, Terms), list(eq, Counts), var(CTerms), list(Tail))
     => list(CTerms)
     # "Given the list of variable counters @var{Counts} and a list
        of terms @var{Terms}, where some of the variables from
@@ -158,7 +158,7 @@ collapse_term([E|L0], C0, R0, R) :-
 % intended use
 :- pred count_vars(Term, Tail, VarCounts)
     :: (list(Term), list(Tail))
-    :  (nonground(Term), var(VarCounts)) => list(VarCounts,eq)
+    :  (nonground(Term), var(VarCounts)) => list(eq,VarCounts)
     # "For a term @var{Term} produces a list @var{VarCounts} of
        counters of all free variables that appear in @var{Term}.
        @var{Tail} is the tail of @var{VarCounts}. Each element of
@@ -166,13 +166,13 @@ collapse_term([E|L0], C0, R0, R) :-
     % see unittest_base:group_list/3 for a similar functionality
 % actual use
 :- pred count_vars(Term, Counts0, Counts)
-    :  (ground(Term), list(Counts0,eq), var(Counts))
+    :  (ground(Term), list(eq,Counts0), var(Counts))
     => (Counts0 = Counts)
     # "For a ground term @var{Term} simply unifies its 2nd and 3rd
        arguments on success.".
 :- pred count_vars(Term, Counts0, Counts)
-    :  (nonground(Term), list(Counts0,eq), var(Counts))
-    => list(Counts, eq)
+    :  (nonground(Term), list(eq,Counts0), var(Counts))
+    => list(eq, Counts)
     # "Increments the counters of those variables in @var{Tail},
        that are free in the @var{Term}, and moves them to the head
        of the list, thus obtaining the @var{Counts} from

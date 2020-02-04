@@ -20,7 +20,7 @@ cpx_process_option(X) :- process_option(X).
 
 :- export(cpx_process_call/3).
 :- pred cpx_process_call(Cmd, Args, Opts) :
-    ( atm(Cmd), list(Args, process_arg), list(Opts, cpx_process_option) )
+    ( atm(Cmd), list(process_arg, Args), list(cpx_process_option, Opts) )
    # "Execute a Ciao binary @var{Cmd} in a child process. It setups
       the environment to use the current local engine. If @tt{boot} is
       added to @var{Opts} then it uses the bootstrap engine.".

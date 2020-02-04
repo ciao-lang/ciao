@@ -296,6 +296,8 @@ pred_expansion(P, N, M, QM, Mode, 'PAEnv'(P,PA)) :-
     atom_expansion_add_goals(G, M, QM, Mode, NG, no, no),
     copy_term('PA'(P,H,NG),PA). % rename vars
 
+:- use_module(engine(io_basic), [display/2, nl/1]).
+
 % Given P (arity A), create G (arity A+N) and H goal (arity N), where
 % H contains the N missing arguments, equivalent to the following
 % pseudocode:
@@ -313,6 +315,7 @@ mexpand__missing_args(P, 0, _M, H, G) :- !, % (special case)
 mexpand__missing_args(P, N, M, H, G) :-
     mexpand_imports(M, _, '$dummy_hiord_rt_old', 0, hiord_rt_old), % old-style argument order
     !,
+    ( atom(P) -> true ; display(user_error, mexpand__missing_args(P, N, M, H, G)), nl(user_error) ),
     % decompose input goal P (of arity A)
     nonvar(P), functor(P, F, A), atom(F),
     % create anonymous goal H (to store variables for missing N arguments)

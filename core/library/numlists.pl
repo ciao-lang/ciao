@@ -47,13 +47,13 @@ sum_list([X|Xs],N0,N):-
     N1 is N0 + X,
     sum_list(Xs,N1,N).
 
-:- pred sum_list_of_lists(Lists,N) : list(List,numlist) => num(N)
+:- pred sum_list_of_lists(Lists,N) : list(numlist,List) => num(N)
    # "@var{N} is the total sum of the elements of the lists of @var{Lists}.".
 
 sum_list_of_lists(Xss,N):- sum_list_of_lists(Xss,0,N).
 
 :- pred sum_list_of_lists(Lists,N0,N)
-    : ( list(List,numlist), num(N0) ) => num(N)
+    : ( list(numlist,List), num(N0) ) => num(N)
    # "@var{N} is the total sum of the elements of the lists of @var{Lists}
       plus @var{N0}.".
 

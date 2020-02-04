@@ -445,7 +445,7 @@ sourcename(S) :- struct(S).
 :- prop open_option_list(L) + regtype
     # "@var{L} is a list of options for @pred{open/4}.".
 
-open_option_list(L) :- list(L, open_option).
+open_option_list(L) :- list(open_option, L).
 
 :- prop open_option(O) + regtype
     # "@var{O} is an option for @pred{open/4}.".

@@ -1,4 +1,4 @@
-:- module(actmod_rt, [], [assertions, regtypes, hiord_old, fsyntax, datafacts]).
+:- module(actmod_rt, [], [assertions, regtypes, hiord, fsyntax, datafacts]).
 
 % :- compilation_fact(trace_actmod). % Uncomment to enable tracing (for debugging)
 
@@ -225,7 +225,7 @@ actI_receive_response(CalleeRef, Response) :-
     do_query(Msg).
 
 % TODO: add a suspendable(_) version? (no io_sched_nested/2)
-got_response(Msg, Response) :-
+got_response(Response, Msg) :-
     Msg = response(CalleeRef,Response),
     CalleeChn = ~actref_to_actchn(CalleeRef),
     actchn_unwatch_response(CalleeChn), % TODO: OK? unwatching later

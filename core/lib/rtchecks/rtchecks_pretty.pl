@@ -40,7 +40,7 @@ rtcheck_type(compatpos).
 rtcheck_type(calls).
 
 :- pred rtcheck_to_messages(RTCheck, Messages)
-    : rtcheck_error(RTCheck) => list(Messages, message_info) + is_det
+    : rtcheck_error(RTCheck) => list(message_info, Messages) + is_det
     # "Converts a single run-time error @var{RTCheck} into a list of
        one or multiple text messages @var{Messages0}. @var{Messages}
        is the tail.".

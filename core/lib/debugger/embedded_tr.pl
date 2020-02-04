@@ -3,7 +3,7 @@
             srcdbg_no_expand/4,
             srcdbg_expand_decl/3,
             srcdbg_no_expand_decl/3
-        ], [assertions, hiord_old]).
+        ], [assertions, hiord]).
 
 :- use_module(library(compiler/c_itf), [location/3]).
 :- use_module(library(lists),                    [reverse/2]).
@@ -39,10 +39,10 @@ srcdbg_no_expand(clause(Head, Old_B), clause(Head, New_B), _Mod, Dict) :-
         expand_goal(Src, L0, L1, Dict, Dict1, noexpand)),
     Dict1 = Dict.
 
-expand_goal(Goal0, _, _, _, _, _, Expand, Xs, Ys, Goal) :-
+expand_goal(_, _, _, _, _, Expand, Goal0, Xs, Ys, Goal) :-
     expand_spec(Goal0, Goal, Xs, Ys, Expand),
     !.
-expand_goal(Goal0, Src, L0, L1, Dict, Dict1, Expand, Xs, Ys, Goal) :-
+expand_goal(Src, L0, L1, Dict, Dict1, Expand, Goal0, Xs, Ys, Goal) :-
     expand_byrd(Goal0, Src, L0, L1, Dict, Dict1, Expand, Xs, Ys, Goal).
 
 expand_spec(true, true, Xs, Ys, _) :-

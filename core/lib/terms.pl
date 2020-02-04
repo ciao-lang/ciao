@@ -146,9 +146,8 @@ args(X, M, T, A) :-
    they appear. If @var{Atm} is an atom at call then @var{Atms} can
    contain free variables.").
 
-:- pred atom_concat(Atms, Atm) : list(Atms, atm) => atm(Atm).
-:- pred atom_concat(Atms, Atm) :: list(Atms, atm) : atm(Atm) => list(Atms, atm
-    ).
+:- pred atom_concat(Atms, Atm) : list(atm, Atms) => atm(Atm).
+:- pred atom_concat(Atms, Atm) :: list(atm, Atms) : atm(Atm) => list(atm, Atms).
 
 atom_concat([], '') :- !.
 atom_concat(L,  Atom) :-

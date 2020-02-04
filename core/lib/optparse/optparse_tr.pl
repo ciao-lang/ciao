@@ -1,4 +1,4 @@
-:- module(optparse_tr, [optparse_tr/3], [assertions, nortchecks, define_flag, datafacts, hiord_old]).
+:- module(optparse_tr, [optparse_tr/3], [assertions, nortchecks, define_flag, datafacts, hiord]).
 
 :- doc(author, "Edison Mera").
 :- doc(author, "Jose F. Morales (bug fixes)").
@@ -57,7 +57,7 @@ flag_name_value_option(Name, Value0, Option) :-
 
 :- data help_option/2.
 
-option_to_clause(Option, Action, Terminate, Args0, Args,
+option_to_clause(Action, Terminate, Args0, Args, Option,
         (exec_option(Option, Terminate, Args0, Args) :- Action)).
 
 optparse_tr(0,           _, _) :- cleanup_db.

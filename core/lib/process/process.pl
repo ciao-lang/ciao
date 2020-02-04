@@ -207,7 +207,7 @@ process_arg(X) :- atm(X).
 
 :- export(process_call/3).
 :- pred process_call(Cmd, Args, Opts) :
-    ( process_cmd(Cmd), list(Args, process_arg), list(Opts, process_option) )
+    ( process_cmd(Cmd), list(process_arg, Args), list(process_option, Opts) )
    # "Execute a command in a child process, where @var{Cmd} is the
       executable path. Use @tt{path(Exec)} for executing a program
       @var{Exec} reachable from the @tt{PATH} environment variable".
@@ -446,7 +446,7 @@ process_send_signal(Process, Signal) :-
 
 :- meta_predicate process_fork(goal, ?).
 :- pred process_fork(Goal, Opts) :
-    ( callable(Goal), list(Opts, process_option) )
+    ( callable(Goal), list(process_option, Opts) )
    # "Execute @var{Goal} in a forked process.".
 
 process_fork(Goal, Opts) :-

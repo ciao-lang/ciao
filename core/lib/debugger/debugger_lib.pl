@@ -38,7 +38,7 @@
             spypoint/1,
             trace/0
         ],
-        [assertions, dcg, hiord_old, datafacts]).
+        [assertions, dcg, hiord, datafacts]).
 
 :- use_module(library(aggregates)).
 
@@ -189,7 +189,7 @@ get_attributed_vars_args(N, X, At0, At2) :-
 print_attributes(As, Op, WriteOpts) :-
     maplist(print_attribute(Op, WriteOpts), As).
 
-print_attribute(A, Op, WriteOpts) :-
+print_attribute(Op, WriteOpts, A) :-
     nl,
     tab(10), % 10 blanks
     display('['),
@@ -223,7 +223,7 @@ display_nv0(Name=Value, Op, WO) :-
     display_list(['\t   ', Name, ' = ']),
     write_op(Op, Value, WO).
 
-display_nv(NameValue, Op, WO) :-
+display_nv(Op, WO, NameValue) :-
     display(','), nl,
     display_nv0(NameValue, Op, WO).
 

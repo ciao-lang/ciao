@@ -38,7 +38,7 @@
 
 dgraph(graph(V,E)):-
     list(V),
-    list(E,pair).
+    list(pair,E).
 
 :- doc(doinclude,pair/1).
 :- regtype pair(P) # "@var{P} is a pair @tt{(_,_)}.".
@@ -54,7 +54,7 @@ pair((_,_)).
 
 dlgraph(graph(V,E)):-
     list(V),
-    list(E,triple).
+    list(triple,E).
 
 :- doc(doinclude,triple/1).
 :- regtype triple(P) # "@var{P} is a triple @tt{(_,_,_)}.".

@@ -5,7 +5,7 @@
       set_flag/1,
       meta_call/3
     ],
-    [assertions, regtypes, hiord_old, datafacts]).
+    [assertions, regtypes, hiord, datafacts]).
 
 :- use_module(library(aggregates), [findall/3, setof/3]).
 
@@ -136,11 +136,11 @@ pass_one([],_Flag).
 
 always(_BaseName).
 
-recorda(BaseName,modules):- !,
+recorda(modules,BaseName):- !,
     defines_module(BaseName,M),
     recorda_imported(M),
     asserta_fact(module_read(M)).
-recorda(BaseName,files):-
+recorda(files,BaseName):-
     recorda_clauses(BaseName).
 
 recorda_clauses(BaseName):-

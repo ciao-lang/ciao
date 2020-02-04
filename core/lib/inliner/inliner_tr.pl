@@ -1,7 +1,7 @@
 :- module(_, [
     inliner_sentence_tr/3, inliner_goal_tr/3,
     in_inline_module_db/2
-], [assertions, hiord_old, dcg, datafacts]).
+], [assertions, hiord, dcg, datafacts]).
 
 :- use_module(library(aggregates)).
 
@@ -662,21 +662,21 @@ lit_neg(A, fail) :-
     !.
 lit_neg(A, \+(A)).
 
-termcount(V, Term, N0, N) :-
+termcount(Term, N0, V, N) :-
     V == Term,
     !,
     N is N0 + 1.
-termcount(V, Term, N0, N) :-
+termcount(Term, N0, V, N) :-
     nonvar(Term),
     !,
     termcount_(1, V, Term, N0, N).
-termcount(_, _, N, N).
+termcount(_, N, _, N).
 
 termcount_(I, V, Term, N0, N) :-
     arg(I, Term, Arg),
     I1 is I + 1,
     !,
-    termcount(V, Arg, N0, N1),
+    termcount(Arg, N0, V, N1),
     termcount_(I1, V, Term, N1, N).
 termcount_(_, _, _, N, N).
 
@@ -1032,7 +1032,7 @@ gen_unfolder(iparams(_, _, NUVars, Vars0, _, M), Goal0, F,
     ),
     copy_term(Pred0-Params3, Pred-Params).
 
-rename_head_clause((Head0 :- Body), Head1, Head2, (Head :- Body)) :-
+rename_head_clause(Head1, Head2, (Head0 :- Body), (Head :- Body)) :-
     copy_term(Head1-Head2, Head3-Head),
     Head0 = Head3.
 

@@ -92,8 +92,7 @@ copy_option(append).     % If the target file exists, append the source to it
 :- export(copy_options/1).
 :- regtype copy_options(Opts) # "@var{Opts} is a list of file copy options.".
 
-copy_options(X) :-
-    list(X, copy_option).
+copy_options(X) :- list(copy_option, X).
 
 copy_option_flag(overwrite, 1).
 copy_option_flag(timestamp, 2).

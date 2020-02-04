@@ -2,7 +2,7 @@
 
 :- use_module(engine(stream_basic)).
 
-:- entry create_streams(A,B) : list(A,num).
+:- entry create_streams(A,B) : list(num,A).
 
 create_streams([])     := [].
 create_streams([N|NL]) := [ ~open_file(Fname,write) | ~create_streams(NL) ] 
@@ -23,7 +23,7 @@ open_file(Fname,Mode) := ~open(File,Mode) :- atom_codes(File,Fname).
 
 :- check calls open_file(Fname,_,_) : safe_name(Fname).
 
-:- regtype  safe_name/1.    safe_name("/tmp/" || L) :- list(L,alphnum_code).
+:- regtype  safe_name/1.    safe_name("/tmp/" || L) :- list(alphnum_code,L).
   
 :- regtype  alphnum_code/1. alphnum_code := ~alph_code | ~num_code.
 

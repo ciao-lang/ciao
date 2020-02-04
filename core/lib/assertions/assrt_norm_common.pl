@@ -499,8 +499,8 @@ resolve_applications([Call|R],[Prop|NR],S,LB,LE) :-
     (  nonvar(CF)
     -> CF =.. [PF|FArgs],
        %% we take care of call(foo(X),Y)
-       %PBC Wrong: append(FArgs,Args,AllArgs), 
-       apply(Args,FArgs,AllArgs), 
+       append(FArgs,Args,AllArgs), % TODO: merge with prop_apply/3? (>1 args)
+       % apply(Args,FArgs,AllArgs),  % (version for old hiord)
        %% we take care recursively of nesting: call(foo,X,call(bar,Y))
        resolve_applications(AllArgs,AllArgsResolved,S,LB,LE),
        Prop =.. [PF|AllArgsResolved]
@@ -525,9 +525,10 @@ diff_append_props([H|T],PH-PT) :-
     PH=[H|NPT],
     diff_append_props(T,NPT-PT).
 
-apply([],Args,Args).
-apply([A|Args],FArgs,[A|AllArgs]):-
-    append(FArgs,Args,AllArgs).
+% Note: for old hiord, deprecated
+%   apply([],Args,Args).
+%   apply([A|Args],FArgs,[A|AllArgs]):-
+%       append(FArgs,Args,AllArgs).
 
 %% ---------------------------------------------------------------------------
 :- doc(norm_arg_props/8,"@var{Props} is a term describing

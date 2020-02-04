@@ -29,8 +29,8 @@
    should in most cases access location @tt{NewURL}.").
 
 :- pred fetch_url(URL, Request, Response)
-    : (url_term(URL), list(Request, http_request_param))
-       => list(Response, http_response_param).
+    : (url_term(URL), list(http_request_param, Request))
+       => list(http_response_param, Response).
 
 fetch_url(http(Host, Port, URIStr), Request, Response) :-
     timeout_option(Request, Timeout, Request0),

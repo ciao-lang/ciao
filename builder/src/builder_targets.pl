@@ -1,4 +1,4 @@
-:- module(_, [], [fsyntax, hiord_old, assertions, regtypes, isomodes, datafacts]).
+:- module(_, [], [fsyntax, hiord, assertions, regtypes, isomodes, datafacts]).
 
 :- doc(title, "Targets for builder").
 :- doc(author, "Jose F. Morales").
@@ -89,8 +89,8 @@ target_to_workspace(Target, Path) :-
 resolve_targets(Targets0, OnUnknown, Targets) :-
     maplist(resolve_target(OnUnknown), Targets0, Targets).
 
-:- pred resolve_target(+Target0, +OnUnknown, -Target) :: atm * term *target.
-resolve_target(Target0, OnUnknown, Target) :-
+:- pred resolve_target(+OnUnknown, +Target0, -Target) :: term * atm *target.
+resolve_target(OnUnknown, Target0, Target) :-
     ( is_dir(Target0),
       lookup_bundle_root(Target0, BundleDir),
       dir_to_bundle(BundleDir, Bundle) ->

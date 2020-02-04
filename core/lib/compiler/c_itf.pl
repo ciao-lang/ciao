@@ -1,4 +1,4 @@
-:- module(_, [], [assertions, nortchecks, hiord_old, define_flag, datafacts]).
+:- module(_, [], [assertions, nortchecks, hiord, define_flag, datafacts]).
 
 :- doc(title, "Compiler frontend").
 :- doc(author, "The Ciao Development Team").
@@ -933,12 +933,12 @@ read_record_file_(PlName, Base, Type) :-
     ),
     ( nonvar(Packages), member(Package, Packages), no_prelude(Package) -> 
         true
-    ; do_use_package(prelude, Base, Module, Ln0, Ln1)
+    ; do_use_package(Base, Module, Ln0, Ln1, prelude)
     ),
     assert_export_list(Exports, Base, Ln0, Ln1),
     %
     glbmod_collect_packages(Module, Packages, Packages2),
-    process_packages(Packages2, Base, Module, Ln0, Ln1),
+    process_packages(Base, Module, Ln0, Ln1, Packages2),
     %
     ( member(Sentence2, Rest) ; read_sentence(Stream, Base, Sentence2) ),
     ( Sentence2 = end_of_file(Ln0b, Ln1b) ->
@@ -963,7 +963,7 @@ record_module_decl(sentence((:- module(Module, Exports)), VNs, _, Ln0, Ln1), Mod
 record_module_decl(sentence((:- module(Module, Exports, Packages)), VNs, _, Ln0, Ln1), Module, Base, Pl) :-
     assertz_fact(clause_of(Base, 1, module(_, Exports, Packages), VNs, Pl, Ln0, Ln1)).
 
-process_packages(Packages, Base, Module, Ln0, Ln1) :-
+process_packages(Base, Module, Ln0, Ln1, Packages) :-
     maplist(do_use_package(Base, Module, Ln0, Ln1), Packages).
 
 process_sentence(Sentence, Base, Pl, Module) :-
@@ -1269,11 +1269,11 @@ process_decl(module(_,_,_),_Base,_M,_VNs, Ln0, Ln1) :- !,
 process_decl(package(_),_Base,_M,_VNs, Ln0, Ln1) :- !,
     compiler_error(Ln0, Ln1, nonstarting_package).
 process_decl(use_package(Package), Base, M,_VNs, Ln0, Ln1) :- !,
-    do_use_package(Package, Base, M, Ln0, Ln1).
+    do_use_package(Base, M, Ln0, Ln1, Package).
 process_decl(syntax(Syntax), Base, M,_VNs, Ln0, Ln1) :- !,
     message(warning,
             'syntax/1 declaration is obsolete, use use_package/1.'),
-    do_use_package(Syntax, Base, M, Ln0, Ln1).
+    do_use_package(Base, M, Ln0, Ln1, Syntax).
 process_decl(include(File), Base, M,_VNs, Ln0, Ln1) :- !,
     do_include(source, File, Base, M, Ln0, Ln1).
 process_decl(export(Exports), Base,_M,_VNs, Ln0, Ln1) :- !,
@@ -1357,17 +1357,20 @@ deprecated_decl_error(add_term_trans(_), 'Use add_term_trans/2').
 % ---------------------------------------------------------------------------
 :- doc(section, "'use_package' declaration").
 
-do_use_package([], _, _, _, _) :- !.
-do_use_package([F|Fs], Base, Module, Ln0, Ln1) :- !,
-    do_use_package(F, Base, Module, Ln0, Ln1),
-    do_use_package(Fs, Base, Module, Ln0, Ln1).
-do_use_package(F, Base, Module, Ln0, Ln1) :-
+do_use_package(Base, Module, Ln0, Ln1, Fs) :-
+    do_use_package_(Fs, Base, Module, Ln0, Ln1).
+
+do_use_package_([], _, _, _, _) :- !.
+do_use_package_([F|Fs], Base, Module, Ln0, Ln1) :- !,
+    do_use_package_(F, Base, Module, Ln0, Ln1),
+    do_use_package_(Fs, Base, Module, Ln0, Ln1).
+do_use_package_(F, Base, Module, Ln0, Ln1) :-
     package_file(F, P), !,
     ( current_fact(package(Base,P)) -> true
     ; assertz_fact(package(Base,P)),
       do_include(package, P, Base, Module, Ln0, Ln1)
     ).
-do_use_package(F, _, _, Ln0, Ln1) :-
+do_use_package_(F, _, _, Ln0, Ln1) :-
     compiler_error(Ln0, Ln1, bad_package_file(F)).
 
 package_file(F, P) :-
@@ -1631,7 +1634,7 @@ do_impl_defined(SL, Base, Ln0, Ln1) :-
     fail.
 do_impl_defined(_, _, _, _).
 
-bad_spec_error(Spec, Decl, Ln0, Ln1) :-
+bad_spec_error(Decl, Ln0, Ln1, Spec) :-
     compiler_error(Ln0, Ln1, badly_formed(Decl,Spec)).
 
 % ---------------------------------------------------------------------------
@@ -2381,7 +2384,7 @@ assr_head_expansion(A, M, F, N, MQ, NA, Defined) :-
     ),
     module_concat(MA, A, NA).
 
-expand_subbody(C, M, Dict, EC) :- % TODO: order requires hiord_old, fix
+expand_subbody(M, Dict, C, EC) :-
     expand_head_body(in_assertion_body, C, M, Dict, asr, _, EC).
 %       asbody_to_conj(CO, EC).
 

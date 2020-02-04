@@ -24,7 +24,7 @@ t_debugger_state(s(A,B,C,D,E)) :-
     t_debug_flag(B),
     int(C),
     int(D),
-    list(E,t_anc).
+    list(t_anc,E).
 
 :- export(t_debug_flag/1).
 :- prop t_debug_flag/1 + regtype.

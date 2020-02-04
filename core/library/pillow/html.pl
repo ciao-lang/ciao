@@ -66,7 +66,7 @@ env(a,[href=\"www.therainforestsite.com\"],
 :- prop canonic_html_term(HTMLTerm) + regtype
     # "@var{HTMLTerm} is a term representing HTML code in canonical form.".
 
-canonic_html_term(T) :- list(T,canonic_html_item).
+canonic_html_term(T) :- list(canonic_html_item,T).
 
 :- prop canonic_html_item/1 + regtype.
 
@@ -74,11 +74,11 @@ canonic_html_item(comment(S)) :- string(S).
 canonic_html_item(declare(S)) :- string(S).
 canonic_html_item(env(Tag,Atts,Terms)) :-
     atm(Tag),
-    list(Atts,tag_attrib),
+    list(tag_attrib,Atts),
     canonic_html_term(Terms).
 canonic_html_item('$'(Tag,Atts)) :-
     atm(Tag),
-    list(Atts,tag_attrib).
+    list(tag_attrib,Atts).
 canonic_html_item(S) :- string(S).
 
 :- doc(canonic_xml_term/1, "A term representing XML code in
@@ -108,20 +108,20 @@ elem(arc,[weigh=""3"",begin=""n1"",end=""n2""])
 :- prop canonic_xml_term(XMLTerm) + regtype
     # "@var{XMLTerm} is a term representing XML code in canonical form.".
 
-canonic_xml_term(T) :- list(T,canonic_xml_item).
+canonic_xml_term(T) :- list(canonic_xml_item,T).
 
 :- prop canonic_xml_item/1 + regtype.
 
 canonic_xml_item(Term) :- canonic_html_item(Term).
 canonic_xml_item(xmldecl(Atts)) :-
-    list(Atts,tag_attrib).
+    list(tag_attrib,Atts).
 canonic_xml_item(env(Tag,Atts,Terms)) :-
     atm(Tag),
-    list(Atts,tag_attrib),
+    list(tag_attrib,Atts),
     canonic_xml_term(Terms).
 canonic_xml_item(elem(Tag,Atts)) :-
     atm(Tag),
-    list(Atts,tag_attrib).
+    list(tag_attrib,Atts).
 
 :- prop tag_attrib/1 + regtype.
 

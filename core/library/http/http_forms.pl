@@ -26,7 +26,7 @@
    # "@var{Dict} is a dictionary of values of the attributes of a
      form.  It is a list of @tt{form_assignment}".
 
-form_dict(Dict) :- list(Dict,form_assignment).
+form_dict(Dict) :- list(form_assignment,Dict).
 
 :- export(form_assignment/1).
 :- prop form_assignment(Eq) + regtype
@@ -44,14 +44,14 @@ form_assignment(A=V) :-
 
 form_value(A) :- atm(A).
 form_value(N) :- num(N).
-form_value(L) :- list(L,string).
+form_value(L) :- list(string,L).
 
 :- export(value_dict/1).
 :- prop value_dict(Dict) + regtype
    # "@var{Dict} is a dictionary of values. It is a list of
       pairs @em{atom}=@em{constant}.".
 
-value_dict(Dict) :- list(Dict,value_assignment).
+value_dict(Dict) :- list(value_assignment,Dict).
 
 value_assignment(A=V) :-
     atm(A),

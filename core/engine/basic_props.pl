@@ -259,31 +259,31 @@ list([_|L]) :- list(L).
 :- doc(list(L,T), "@var{L} is a list, and for all its elements,
    @var{T} holds.").
 
-:- prop list(L,T) + regtype # "@var{L} is a list of @var{T}s.".
-:- trust comp list(L,T) + sideff(free).
-:- meta_predicate list(?, pred(1)).
-:- trust comp list(L,T) : (ground(L),ground(T)) + eval.
-:- trust success list(X,T) => list(X). % TODO: should be list(X,T), but does not work
+:- prop list(T,L) + regtype # "@var{L} is a list of @var{T}s.".
+:- trust comp list(T,L) + sideff(free).
+:- meta_predicate list(pred(1), ?).
+:- trust comp list(T,L) : (ground(T),ground(L)) + eval.
+:- trust success list(T,X) => list(X). % TODO: should be list(T,X), but does not work
 
-list([],_).
-list([X|Xs], T) :-
+list(_, []).
+list(T, [X|Xs]) :-
     T(X),
-    list(Xs, T).
+    list(T, Xs).
 
-:- prop nlist(L,T) + regtype #
+:- prop nlist(T,L) + regtype #
     "@var{L} is @var{T} or a nested list of @var{T}s.  Note that
     if @var{T} is term, this type is equivalent to term, this
     fact explains why we do not have an @pred{nlist/1} type.".
-:- trust comp nlist(L,T) + sideff(free).
-:- meta_predicate nlist(?, pred(1)).
-:- trust comp nlist(L,T) : (ground(L),ground(T)) + eval.
-:- trust success nlist(X,T) => term(X).
+:- trust comp nlist(T,L) + sideff(free).
+:- meta_predicate nlist(pred(1), ?).
+:- trust comp nlist(T,L) : (ground(T),ground(L)) + eval.
+:- trust success nlist(T,X) => term(X).
 
-nlist([], _).
-nlist([X|Xs], T) :-
-    nlist(X, T),
-    nlist(Xs, T).
-nlist(X, T) :-
+nlist(_, []).
+nlist(T, [X|Xs]) :-
+    nlist(T, X),
+    nlist(T, Xs).
+nlist(T, X) :-
     T(X).
 
 :- prop member(X,L) # "@var{X} is an element of @var{L}.".
@@ -299,27 +299,27 @@ member(X, [_Y|Xs]):- member(X, Xs).
    occurrences of the operator @op{','/2}.  For example, @tt{a, b, c} is
    a sequence of three atoms, @tt{a} is a sequence of one atom.").
 
-:- prop sequence(S,T) + regtype # "@var{S} is a sequence of @var{T}s.".
-:- trust comp sequence(S,T) + sideff(free).
+:- prop sequence(T,S) + regtype # "@var{S} is a sequence of @var{T}s.".
+:- trust comp sequence(T,S) + sideff(free).
 
-:- meta_predicate sequence(?, pred(1)).
-:- trust comp sequence(S,T) : (ground(S), ground(T)) + eval.
-:- trust success sequence(E,T) => (nonvar(E),ground(T)).
+:- meta_predicate sequence(pred(1), ?).
+:- trust comp sequence(T,S) : (ground(T), ground(S)) + eval.
+:- trust success sequence(T,E) => (ground(T), nonvar(E)).
 
-sequence(E, T) :- T(E).
-sequence((E,S), T) :-
+sequence(T, E) :- T(E).
+sequence(T, (E,S)) :-
     T(E),
-    sequence(S,T).
+    sequence(T,S).
 
-:- prop sequence_or_list(S,T) + regtype
+:- prop sequence_or_list(T,S) + regtype
    # "@var{S} is a sequence or list of @var{T}s.".
-:- trust comp sequence_or_list(S,T) + sideff(free).
-:- meta_predicate sequence_or_list(?, pred(1)).
-:- trust comp sequence_or_list(S,T) : (ground(S),ground(T)) + eval.
-:- trust success sequence_or_list(E,T) => (nonvar(E),ground(T)).
+:- trust comp sequence_or_list(T,S) + sideff(free).
+:- meta_predicate sequence_or_list(pred(1), ?).
+:- trust comp sequence_or_list(T,S) : (ground(T),ground(S)) + eval.
+:- trust success sequence_or_list(T,E) => (ground(T),nonvar(E)).
 
-sequence_or_list(E, T) :- list(E,T).
-sequence_or_list(E, T) :- sequence(E, T).
+sequence_or_list(T, E) :- list(T,E).
+sequence_or_list(T, E) :- sequence(T, E).
 
 :- prop character_code(T) + regtype
    # "@var{T} is an integer which is a character code.".
@@ -342,7 +342,7 @@ character_code(I) :- int(I).
 :- trust comp string(T) : ground(T) + eval.
 :- trust success string(T) => string(T).
 
-string(T) :- list(T, character_code).
+string(T) :- list(character_code, T).
 
 :- doc(num_code/1, "These are the ASCII codes which can appear in
     decimal representation of floating point and integer numbers,
@@ -410,7 +410,7 @@ predname(P/A) :-
 :- trust success atm_or_atm_list(T) => atm_or_atm_list(T).
 
 atm_or_atm_list(T) :- atm(T).
-atm_or_atm_list(T) :- list(T, atm).
+atm_or_atm_list(T) :- list(atm, T).
 
 
 :- doc(compat/2,"This property captures the notion of type or
@@ -617,7 +617,7 @@ filter(Goal, _) :- call(Goal).
 % TODO: seems wrong?
 flag_values(atom).
 flag_values(integer).
-flag_values(L):- list(L,atm).
+flag_values(L):- list(atm,L).
 
 :- prop pe_type(Goal) # "@var{Goal} will be filtered in partial
     evaluation time according to the PE types defined in the

@@ -225,7 +225,7 @@ all_different(L):-
 
 :- export(labeling/2).
 
-:- pred labeling(Options, Vars) : list(Vars, fdvar) # "Assigns a value
+:- pred labeling(Options, Vars) : list(fdvar, Vars) # "Assigns a value
 to each variable in @var{Vars} according to the labeling options given
 by @var{Options}. This predicate is re-executable on backtracking.
 

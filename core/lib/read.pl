@@ -127,12 +127,10 @@ option_list(Os, _, _, _, _, _, Arg) :-
 
 :- doc(doinclude, read_option/1).
 
-:- prop read_option(?Option) => atom + regtype # "@var{Option} is an
-allowed @pred{read_term/[2,3]} option. These options are:
-@includedef{read_option/1}
-They can be used to return the singleton
-variables in the term, a list of variables, etc.".
-
+:- prop read_option(Option) + regtype
+   # "@var{Option} is an allowed @pred{read_term/[2,3]} option. These
+   options are: @includedef{read_option/1} They can be used to return
+   the singleton variables in the term, a list of variables, etc.".
 
 read_option(variables(_V)).
 read_option(variable_names(_N)).

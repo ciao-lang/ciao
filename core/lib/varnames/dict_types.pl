@@ -4,7 +4,7 @@
      # "@var{D} is a list of @tt{Name=Var} pairs, where @tt{Var} is a 
     variable and @tt{Name} its name.".
 
-varnamesl(D):- list(D,varnamepair).
+varnamesl(D):- list(varnamepair,D).
 
 :- regtype varnamepair/1.
 

@@ -1,4 +1,4 @@
-:- module(_, [], [assertions, fsyntax, hiord_old]).
+:- module(_, [], [assertions, fsyntax, hiord]).
 
 % TODO: redistribute predicates from this module?
 :- doc(title,  "Auxiliary Predicates for Builder").
@@ -180,7 +180,7 @@ print_clauses_to_file(Clauses, Path) :-
     maplist(print_clause(S), Clauses),
     close(S).
 
-print_clause(Clause, S) :-
+print_clause(S, Clause) :-
     portray_clause(S, Clause).
 
 % ---------------------------------------------------------------------------

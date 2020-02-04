@@ -11,10 +11,7 @@
     intersection/3, union/3, difference/3, sublist/2, subordlist/2,
     equal_lists/2, list_to_list_of_lists/2, powerset/2, cross_product/2,
     sequence_to_list/2
-    ],
-    [
-    assertions,isomodes,metatypes,hiord,nativeprops
-    ]).
+], [assertions,isomodes,hiord,nativeprops]).
 
 :- doc(title, "List processing").
 
@@ -247,12 +244,12 @@ add_before_existing([E|Es], E0, E1, NEEs) :-
     add_before_existing(Es, E0, E1, NEs), !,
     NEEs = [E|NEs].
 
-:- prop list1(X,Y)  # "@var{X} is a list of @var{Y}s of at least one element.".
-:- meta_regtype(list1/2).
+:- prop list1(T,X) + regtype # "@var{X} is a list of @var{Y}s of at least one element.".
+:- meta_predicate list1(pred(1),?).
 
-list1([X|R],T) :- 
+list1(T,[X|R]) :- 
     T(X),
-    list(R,T).
+    list(T,R).
 
 :- pred dlist(List,DList,Tail) # "@var{List} is the result of
    removing @var{Tail} from the end of @var{DList} (makes a difference
@@ -262,7 +259,7 @@ list1([X|R],T) :-
 dlist([], X, X).
 dlist([X|Y], [X|L], T) :- dlist(Y, L, T).
 
-:- pred list_concat(LL,L): list(LL,list) => list(L) # "@var{L} is the
+:- pred list_concat(LL,L): list(list,LL) => list(L) # "@var{L} is the
    concatenation of all the lists in @var{LL}.".
 
 list_concat([],[]).

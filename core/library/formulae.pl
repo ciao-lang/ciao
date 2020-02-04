@@ -322,7 +322,7 @@ p_exp2list__(Goal, [Goal]).
 
 :- prop assert_body_type/1.
 
-assert_body_type(X) :- list(X, assert_body_type__).
+assert_body_type(X) :- list(assert_body_type__, X).
 
 % TODO: strange prop
 assert_body_type__(A) :- A = (_;_), !, abt_only_disj(A).

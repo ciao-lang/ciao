@@ -23,7 +23,7 @@
 array(A) :- struct(A).
 
 :- regtype dim(D) # "@var{D} represents the dimensions of an array.".
-dim(D) :- list(D,int).
+dim(D) :- list(int,D).
 
 :- regtype vector(V) # "@var{V} is a one-dimensional fixed-size array.".
 vector(V) :- fixed_array([N],V), int(N).

@@ -70,7 +70,7 @@ process_channel(file(_File)).
 process_channel(file_append(_File)).
 process_channel(string(String)) :- string(String).
 process_channel(line(Line)) :- string(Line).
-process_channel(atmlist(Xs)) :- list(Xs, atm).
+process_channel(atmlist(Xs)) :- list(atm, Xs).
 process_channel(terms(Xs)) :- list(Xs).
 process_channel(stdout).
 

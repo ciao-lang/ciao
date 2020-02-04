@@ -18,7 +18,7 @@
             lists_to_disj/2,
             remove_element/3,
             compound_check_props/4
-        ], [assertions, nortchecks, dcg, hiord_old]).
+        ], [assertions, nortchecks, dcg, hiord]).
 
 :- use_module(library(llists),     [flatten/2]).
 :- use_module(library(terms_vars), [varset/2, intersect_vars/3]).
@@ -83,8 +83,10 @@ insert_posloc((UsePredLoc, UseAsrLoc), PredName0, PLoc0, ALoc,
 get_prop_args(Props, Pred, PropArgs) :-
     varset(Pred, Vars),
     maplist(varset, Props, PropVars),
-    maplist(intersect_vars(Vars), PropVars, PropArgs),
+    maplist(my_intersect_vars(Vars), PropVars, PropArgs),
     !.
+
+my_intersect_vars(A,B,C) :- intersect_vars(B,A,C). % TODO: simulate old order, skip?
 
 % ----------------------------------------------------------------------
 
@@ -101,11 +103,14 @@ get_prop_args(Props, Pred, PropArgs) :-
 compound_check_props(NonCheck, Props, PropArgs, CheckProps) :-
     maplist(compound_check_prop(NonCheck), Props, PropArgs, CheckProps).
 
+compound_check_prop(NonCheck, Prop, Args, NonCheckProp) :-
+    compound_check_prop_(Prop, NonCheck, Args, NonCheckProp).
+
 % seems to be special treatment for respective properties in native_props --NS
-compound_check_prop(compat(Prop),   _, Args, non_compat(Prop, Args)) :- !.
-compound_check_prop(instance(Prop), _, Args, non_inst(Prop, Args)  ) :- !.
-compound_check_prop(succeeds(Prop), _, _   , \+(Prop)              ) :- !.
-compound_check_prop(Prop,    NonCheck, Args, NonCheckProp) :-
+compound_check_prop_(compat(Prop),   _, Args, non_compat(Prop, Args)) :- !.
+compound_check_prop_(instance(Prop), _, Args, non_inst(Prop, Args)  ) :- !.
+compound_check_prop_(succeeds(Prop), _, _   , \+(Prop)              ) :- !.
+compound_check_prop_(Prop,    NonCheck, Args, NonCheckProp) :-
        NonCheckProp =.. [NonCheck, Prop, Args].
 
 :- pred get_checkc(ChkCType, Props, PropArgs, Names, Name, Exit, ChkC)
@@ -157,7 +162,7 @@ get_checkif(compatpos, Exit, PredName, Dict, Props, PropArgs, Names, AsrLoc,
             AsrLoc)) :-
     compound_check_props(non_compat, Props, PropArgs, CheckProps).
 
-checkif_to_lit(CheckPosL, Params, CheckPos) :-
+checkif_to_lit(Params, CheckPosL, CheckPos) :-
     Params = pos(Pred, PType),
     CheckPosL = i(AsrLoc, PredName, Dict, Compat, CompatNames, Exit),
     get_prop_args(Compat, Pred, Args),
@@ -198,10 +203,13 @@ propdict_name(PropDict, _-PropDict).
 'atom_to_$VAR'(Atom=V,Atom=PrettyV,PrettyV=V).
 
 long_prop_names(Props, PropNames, Dict, Names) :-
-    maplist(select_applicable(Dict), Props, PropDicts0),
+    maplist(my_select_applicable(Dict), Props, PropDicts0),
     maplist('atoms_to_$VAR',PropDicts0,PropDicts),
     maplist(propname_name, PropNames, Names),
     maplist(propdict_name, PropDicts, Names).
+
+my_select_applicable(Dict, Prop, PropDict) :-
+    select_applicable(Prop, Dict, PropDict).
 
 % in this predicate, PredName and the name of each property must be ground
 % to avoid undesired unifications.
