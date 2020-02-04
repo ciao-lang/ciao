@@ -259,7 +259,7 @@ num_solutions_eq(Goal, N) :-
           ; send_comp_rtcheck(Goal, num_solutions(N), num_solutions(N1))
           )
       ; ( N1 > N ->
-            send_comp_rtcheck(Goal, num_solutions(N), num_solutions('>'(N))),
+            send_comp_rtcheck(Goal, num_solutions(N), num_solutions('<'(N))), % N < number of solutions (i.e. more than N solutions)
             '$setarg'(1, Sols, done, true)
         ; '$setarg'(1, Sols, N1, true)
         )
