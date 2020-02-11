@@ -9,8 +9,7 @@
     portray_clause/2, portray_clause/1,
     numbervars/3, prettyvars/1,
     printable_char/1
-    ], 
-    [dcg, assertions, nortchecks, nativeprops, isomodes, define_flag]).
+], [assertions, nortchecks, nativeprops, isomodes, define_flag]).
 
 :- use_module(engine(io_basic)).
 :- use_module(library(operators)).
@@ -322,7 +321,6 @@ sticky_contexts(alpha, quote).
 sticky_contexts(quote, alpha).
 */
 
-
 :- pred printable_char(+Char): character_code # 
 "@var{Char} is the code of a character which can be printed.".
 
@@ -405,10 +403,11 @@ write_out(Atom, Options, _, _, _, _, Ci, Co) :-
     write_atom(Quote, Atom, Ci, Co).
 write_out(N, _, _, _, _, _, Ci, 2'000) :-
     number(N), !,
-    ( ( N < 0 ; N == -0.0 ) -> maybe_space(Ci, 2'010)
-                    % We are using -0.0 because such number
-                    % exists in IEEE 754 specification
-    ;   maybe_space(Ci, 2'000)
+    ( ( N < 0 ; N == -0.0 ) ->
+        % We are using -0.0 because such number
+        % exists in IEEE 754 specification
+        maybe_space(Ci, 2'010)
+    ; maybe_space(Ci, 2'000)
     ),
     displayq(N).
 write_out(Term, Options, _, _, Depth, _, Ci, 2'100) :-
@@ -479,9 +478,8 @@ write_out_(2, F, Term, Quote, Options, Prio, PrePrio, Depth, Lpar, Ci, Co) :-
     arg(1, Term, A),
     write_out(A, Options, P, 1200, Depth, Lpar1, C1, C2),
     ( F = '|' ->
-      write_atom(false, '|', C2, C3)
-    ;
-      write_atom(Quote, F, C2, C3)
+        write_atom(false, '|', C2, C3)
+    ; write_atom(Quote, F, C2, C3)
     ),
     arg(2, Term, B),
     write_out(B, Options, Q, Q, Depth, '(', C3, C4),
@@ -604,22 +602,17 @@ put_string_code(0'\\) :- !, display('\\\\').
 put_string_code(C) :- put_code(C).
 
 :- export(write_attribute/1).
-
 %% --- DTM: Note: if portray_attribute use some indexing (==) with 
 %% the variable, then portray_attribute could misbehave when printing on toplevel.
-
-write_attribute( Var ) :-
-    get_attribute( Var , Attr ),
-    ( \+ portray_attribute( Attr, Var ) ->
-      % portray_attribute might bind variables
-      displayq( Attr )
+write_attribute(Var) :-
+    get_attribute(Var, Attr),
+    ( \+ portray_attribute(Attr, Var) ->
+        % portray_attribute might bind variables
+        displayq( Attr )
     ; true
     ).
 
-
-
-/* portraying clauses */
-
+% portraying clauses
 
 :- pred prettyvars(?Term): term
     # "Similar to @tt{numbervars(Term,0,_)}, except that singleton
@@ -633,21 +626,21 @@ prettyvars(Term) :-
     keysort(Vars0, Vars),
     pretty_vars(Vars, 0).
 
-collect_vars(Var) -->
-    {var(Var)}, !, [Var-[]].
-collect_vars([X|Xs]) --> !,
-    collect_vars(X),
-    collect_vars(Xs).
-collect_vars(X) -->
-    {functor(X, _, A)},
-    collect_vars_(0, A, X).
+collect_vars(Var, Vs, Vs0) :-
+    var(Var), !, Vs=[Var-[]|Vs0].
+collect_vars([X|Xs], Vs, Vs0) :-
+    collect_vars(X, Vs, Vs1),
+    collect_vars(Xs, Vs1, Vs0).
+collect_vars(X, Vs, Vs0) :-
+    functor(X, _, A),
+    collect_vars_(0, A, X, Vs, Vs0).
 
-collect_vars_(A, A, _) --> !.
-collect_vars_(A0, A, X) -->
-    {A1 is A0+1},
-    {arg(A1, X, X1)},
-    collect_vars(X1),
-    collect_vars_(A1, A, X).
+collect_vars_(A, A, _, Vs, Vs0) :- !, Vs=Vs0.
+collect_vars_(A0, A, X, Vs, Vs0) :-
+    A1 is A0+1,
+    arg(A1, X, X1),
+    collect_vars(X1, Vs, Vs1),
+    collect_vars_(A1, A, X, Vs1, Vs0).
 
 pretty_vars([], _).
 pretty_vars([X,Y|Xs], N0) :-
@@ -664,6 +657,48 @@ pretty_vars_([X|Xs], Y, N0) :-
 pretty_vars_(Xs, _, N0) :-
     pretty_vars(Xs, N0).
 
+% % % (fluid vars version)
+% prettyvars(Term) :-
+%     call(( vars :: accum(Vars0), collect_vars(Term) )),
+%     keysort(Vars0, Vars),
+%     pretty_vars(Vars, 0).
+% 
+% {
+% :- fluid vars :: accum.
+% collect_vars(Var) :-
+%     var(Var), !, vars.add(Var-[]).
+% collect_vars([X|Xs]) :- !,
+%     collect_vars(X),
+%     collect_vars(Xs).
+% collect_vars(X) :-
+%     functor(X, _, A),
+%     collect_vars_(0, A, X).
+% 
+% collect_vars_(A, A, _) :- !.
+% collect_vars_(A0, A, X) :-
+%     A1 is A0+1,
+%     arg(A1, X, X1),
+%     collect_vars(X1),
+%     collect_vars_(A1, A, X).
+% }.
+
+% % (dcg version)
+%
+% collect_vars(Var) -->
+%     {var(Var)}, !, [Var-[]].
+% collect_vars([X|Xs]) --> !,
+%     collect_vars(X),
+%     collect_vars(Xs).
+% collect_vars(X) -->
+%     {functor(X, _, A)},
+%     collect_vars_(0, A, X).
+% 
+% collect_vars_(A, A, _) --> !.
+% collect_vars_(A0, A, X) -->
+%     {A1 is A0+1},
+%     {arg(A1, X, X1)},
+%     collect_vars(X1),
+%     collect_vars_(A1, A, X).
 
 :- pred portray_clause(?Clause): term
     # "Behaves like @tt{current_output(S), portray_clause(S,Term)}.". 
@@ -675,12 +710,10 @@ portray_clause(Clause) :-
     fail.
 portray_clause(_).
 
-
 :- pred portray_clause(@Stream, ?Clause): stream * term
     # "Outputs the clause @var{Clause} onto @var{Stream}, pretty printing
  its variables and using indentation, including a period at the end. This
  predicate is used by @tt{listing/0}.". 
-
 
 portray_clause(Stream, Clause) :-
     current_output(Curr),
@@ -700,7 +733,7 @@ portray_clause1((Pred:-Body)) :- !,
     ;   'list clauses'(Body, 0, 8, Co),
         write_fullstop(Co)
     ).
-portray_clause1((Pred-->Body)) :- !,
+portray_clause1('-->'(Pred, Body)) :- !,
     write_out(Pred, options(true,false,true,false,1000000), 1199, 1200, -1, '(', 2'100, _), % writeq
     'list clauses'(Body, 2, 8, Co),
     write_fullstop(Co).
@@ -776,7 +809,6 @@ write_fullstop(Ci) :-
     'list clauses'(A, L, E, _),
     nl, tab(D).
 
-
 :- pred numbervars(?Term, +N, ?M): term * int * term => term * int * int 
     # "Unifies each of the variables in term @var{Term} with a term
  of the form @tt{'$VAR'(I)} where @tt{I} is an integer from @var{N}
@@ -790,9 +822,9 @@ write_fullstop(Ci) :-
 % It's too expensive to support cyclic structures.
 numbervars(X, N0, N) :-
     ( integer(N0) ->
-            numbervars1(X, N0, N)
+        numbervars1(X, N0, N)
     ; var(N0) ->
-            throw(error(instantiation_error, numbervars/3-2))
+        throw(error(instantiation_error, numbervars/3-2))
     ; throw(error(type_error(integer, N0), numbervars/3-2))
     ).
 
