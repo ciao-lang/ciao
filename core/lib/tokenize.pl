@@ -47,9 +47,14 @@ define_flag(doccomments, [on, off], off).
 %    number(number)
 %    string(string)
 %    var(term,string)
-%    '/* ...' % TODO: Fix emacs font-lock */
+%    '/* ...'
 %    ',' | '(' | ' (' | ')' | '[' | ']' | '|' | '{' | '}'
 %    '.' % end of term 
+
+:- if(defined(optim_comp)).
+% suspension-based read of curly blocks
+:- compilation_fact(suspension_curly_block).
+:- endif.
 
 :- export(token/1).
 :- prop token(T) + regtype.
@@ -58,7 +63,7 @@ token(badatom(S)):- string(S).
 token(number(N)):- num(N).
 token(string(S)):- string(S).
 token(var(T,S)):- term(T), string(S).
-token('/* ...'). % TODO: Fix emacs font-lock */
+token('/* ...').
 token(',').
 token('(').
 token(' (').
@@ -69,6 +74,10 @@ token('|').
 token('{').
 token('}').
 token('.').
+:- if(defined(suspension_curly_block)).
+% Suspension token, for reading curly_blocks incrementally
+token(suspension(S)) :- term(S).
+:- endif.
 
 :- export(read_tokens/2).
 :- pred read_tokens(TokenList, Dictionary) 
@@ -80,6 +89,16 @@ read_tokens(TokenList, Dictionary) :-
     '$prompt'(Old, SP),
     read_tokens(Type, Ch, Dictionary, 0, TokenList),
     '$prompt'(_, Old).
+
+:- if(defined(suspension_curly_block)).
+:- export(resume_read_tokens/3).
+resume_read_tokens(Suspension, Dictionary, TokenList) :-
+    Suspension = read_tokens(Typ, Ch, Level),
+    second_prompt(SP, SP),
+    '$prompt'(Old, SP),
+    read_tokens(Typ, Ch, Dictionary, Level, TokenList),
+    '$prompt'(_, Old).
+:- endif.
 
 % The only difference between read_tokens_after_layout(Typ, Ch, D, Tokens)
 % and read_tokens/4 is what they do when Ch is "(".  The former finds the
@@ -177,10 +196,20 @@ read_tokens_solo(0'[, Dict, Level, ['['|Tokens]) :-
 read_tokens_solo(0'], Dict, Level, [']'|Tokens]) :-
     getct1(NextCh, NextTyp),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
+:- if(defined(suspension_curly_block)).
 read_tokens_solo(0'{, Dict, Level0, ['{'|Tokens]) :-
-    getct1(NextCh, NextTyp),
     Level is Level0 + 1,
+    getct1(NextCh, NextTyp),
+    ( current_prolog_flag(read_curly_blocks, on) ->
+        Tokens = [suspension(read_tokens(NextTyp, NextCh, Level))]
+    ; read_tokens(NextTyp, NextCh, Dict, Level, Tokens)
+    ).
+:- else.
+read_tokens_solo(0'{, Dict, Level0, ['{'|Tokens]) :-
+    Level is Level0 + 1,
+    getct1(NextCh, NextTyp),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
+:- endif.
 read_tokens_solo(0'|, Dict, Level, ['|'|Tokens]) :-
     getct1(NextCh, NextTyp),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
@@ -230,12 +259,21 @@ read_symbol(LastTyp, LastCh, [], LastCh, LastTyp).
 % this is just an ordinary symbol and we call read_symbol to process it.
 
 read_fullstop(-1, _, _, _Level, [.]) :- !. % end of file
+:- if(defined(suspension_curly_block)).
+read_fullstop(0, Ch, _Dict, Level, [(.)|Tokens]) :- !, % END OF CLAUSE
+    ( Level > 0, current_prolog_flag(read_curly_blocks, on) ->
+        % Return a suspension token to continue reading clauses
+        Tokens = [suspension(read_tokens(0, Ch, Level))]
+    ; Tokens = [] % stop clause read
+    ).
+:- else.
 read_fullstop(0, Ch, Dict, Level, [(.)|Tokens]) :- !, % END OF CLAUSE
     ( Level > 0, current_prolog_flag(read_curly_blocks, on) ->
-        % continue fetching tokens (we may be inside a '{' '}' block)
+        % Continue fetching tokens (we may be inside a '{' '}' block)
         read_tokens(0, Ch, Dict, Level, Tokens)
     ; Tokens = [] % stop clause read
     ).
+:- endif.
 read_fullstop(5, 0'%, _, _Level, [.]) :- !,             % END OF CLAUSE,
     % TODO: read doccomment?
     skip_line.                              % skip newline
@@ -665,7 +703,7 @@ read_tokens_cont(Cont, Dict, Level, Tokens) :-
     ; Cont = cont_comment_or_doccomment(Typ, Ch) -> % comment or doccomment
         comment_or_doccomment_(Typ, Ch, Dict, Level, Tokens)
     ; Cont = cont_eof_comment ->
-        Tokens = ['/* ...'] % TODO: Fix emacs font-lock */
+        Tokens = ['/* ...']
     ; fail
     ).
 
@@ -812,4 +850,3 @@ read_doccomment_text__asterisk(_, NextCh0, Chars, Cont) :-
     getct(Ch, Typ),
     Chars = [0'*, NextCh0|Chars0],
     read_doccomment_text(Typ, Ch, Chars0, Cont).
-

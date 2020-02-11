@@ -53,7 +53,6 @@ writeq_quick(Term) :- atomic(Term), displayq(Term).
 write_quick(Term) :- var(Term), display(Term).
 write_quick(Term) :- atomic(Term), display(Term).
 
-
 :- pred write_term(@Stream, ?Term, +OptList) :
    stream * term * list(write_option) +  iso
 
@@ -207,7 +206,6 @@ write_canonical(Term) :-
     Options = options(true,true,false,false,1000000),
     write_out(Term, Options, 1200, 0, 0, '(', 2'100, _).
 
-
 :- pred print(@Stream, ?Term): stream * term
     # "Behaves like @tt{write_term(Stream, Term,
        [numbervars(true), portrayed(true)])}.".
@@ -219,14 +217,12 @@ print(Stream, Term) :-
     print(Term),
     set_output(Curr).
 
-
 :- pred print(?Term): term
     # "Behaves like @tt{current_output(S), print(S,Term)}.".
 
 print(Term) :-
     Options = options(false,false,true,true,1000000),
     write_out(Term, Options, 1200, 0, 0, '(', 2'100, _).
-
 
 :- pred printq(@Stream, ?Term): stream * term
     # "Behaves like @tt{write_term(Stream, Term,
@@ -239,14 +235,12 @@ printq(Stream, Term) :-
     printq(Term),
     set_output(Curr).
 
-
 :- pred printq(?Term): term
     # "Behaves like @tt{current_output(S), printq(S,Term)}.".
 
 printq(Term) :-
     Options = options(true,false,true,true,1000000),
     write_out(Term, Options, 1200, 0, 0, '(', 2'100, _).
-
 
 :- trust pred write(@Stream, ?Term): stream * term + (iso, is_det)
     # "Behaves like @tt{write_term(Stream, Term, [numbervars(true)])}.".
@@ -258,7 +252,6 @@ write(Stream, Term) :-
     write(Term),
     set_output(Curr).
 
-
 :- trust pred write(?Term): term + (iso, is_det)
     # "Behaves like @tt{current_output(S), write(S,Term)}.".
 
@@ -268,13 +261,11 @@ write(Term) :-
     Options = options(false,false,true,false,1000000),
     write_out(Term, Options, 1200, 0, 0, '(', 2'100, _).
 
-
 :- pred write_list1(+list)
     # "Writes a list to current output one element in each line.".
 
 write_list1([]).
 write_list1([H|L]) :- writeq(H), nl, write_list1(L).
-
 
 :- trust pred writeq(@Stream, ?Term): stream * term + (iso, is_det)
     # "Behaves like @tt{write_term(Stream, Term, [quoted(true),
@@ -286,7 +277,6 @@ writeq(Stream, Term) :-
           error(ErrT, _), throw(error(ErrT,writeq/2-1))),
     writeq(Term),
     set_output(Curr).
-
 
 :- trust pred writeq(?Term): term + (iso, is_det)
     # "Behaves like @tt{current_output(S), writeq(S,Term)}.".
