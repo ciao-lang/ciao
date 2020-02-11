@@ -607,23 +607,13 @@ syntax_error(Message, Tokens) :-
     asserta_fact('syntax error'(Message, AfterError)), !,
     fail.
 
-:- if(defined(optim_comp)).
 syntax_error_data(lines(Ln0, Ln1), Tokens, ErrorTerm) :-
-    ErrorTerm = syntax_error(Ln0, Ln1, Msg, ErrorLoc),
+    ErrorTerm = syntax_error([Ln0,Ln1,Msg,ErrorLoc]),
     the_syntax_error([], 1000000, Msg0, AfterError),
     tokens_items(Msg0, Msg),
     length(Tokens, Length),
     BeforeError is Length-AfterError,
     error_localization(Tokens, BeforeError, '', ErrorLoc).
-:- else.
-syntax_error_data(lines(Ln0, Ln1), Tokens, ErrorTerm) :-
-    ErrorTerm = syntax_error([Ln0,Ln1,Msg,ErrorLoc]), % TODO: flat term
-    the_syntax_error([], 1000000, Msg0, AfterError),
-    tokens_items(Msg0, Msg),
-    length(Tokens, Length),
-    BeforeError is Length-AfterError,
-    error_localization(Tokens, BeforeError, '', ErrorLoc).
-:- endif.
 
 the_syntax_error(Msg0, AfterError0, Msg, AfterError) :-
     current_fact('syntax error'(Msg1,AfterError1), Ptr), !,
