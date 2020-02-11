@@ -51,10 +51,8 @@ define_flag(doccomments, [on, off], off).
 %    ',' | '(' | ' (' | ')' | '[' | ']' | '|' | '{' | '}'
 %    '.' % end of term 
 
-:- if(defined(optim_comp)).
-% suspension-based read of curly blocks
+% suspension-based read of curly blocks (see library(read))
 :- compilation_fact(suspension_curly_block).
-:- endif.
 
 :- export(token/1).
 :- prop token(T) + regtype.

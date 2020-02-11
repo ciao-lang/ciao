@@ -21,10 +21,8 @@
 :- doc(author, "Jose F. Morales (modifications for curly blocks,"||
            "postfix blocks, infix dot, string constants, and doccomments)").
 
-:- if(defined(optim_comp)).
-% suspension-based read of curly blocks
+% suspension-based read of curly blocks (see library(tokenize))
 :- compilation_fact(suspension_curly_block).
-:- endif.
 
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(engine(stream_basic)).
