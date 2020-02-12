@@ -111,13 +111,11 @@ itf_version(5).
 % ---------------------------------------------------------------------------
 :- doc(section, "Compiler flags and settings").
 
-define_flag(single_var_warnings,    [on,  off], on).
-define_flag(discontiguous_warnings, [on,  off], on).
-define_flag(multi_arity_warnings,   [on,  off], on).
 define_flag(verbose_compilation,    [on,  off], off).
 define_flag(itf_format,             [f,   r],   f). % f=fast{read,write}, r=prolog terms.
 define_flag(compress_lib,           [yes, no],  no).
 define_flag(read_assertions,        [yes, no],  yes).
+
 % runtime checks related flags:
 define_flag(runtime_checks,          [yes, no],                no).
 define_flag(rtchecks_level,          [inner, exports],         inner).
@@ -153,25 +151,27 @@ opt_suffix(Old, New) :-
 :- export(defines_module/2).
 :- pred defines_module(Base, Module)
     # "The source @var{Base}.pl defines module @var{Module}.".
+:- data defines_module/2.
 
 :- pred direct_export(Base, F, A, DefType, Meta)
     # "The source @var{Base}.pl directly exports predicate @var{F}/@var{A},
        defined as @var{DefType} (static, implicit, dynamic, data or
        concurrent) and with meta_predicate declaration @var{Meta}
        (which can be 0 if it has not).".
+:- data direct_export/5.
 
 :- export(def_multifile/4).
 :- pred def_multifile(Base, F, A, DynType)
     # "The source @var{Base}.pl defines multifile predicate
        @var{F}/@var{A}, defined as @var{DynType} (static, dynamic, data
        or concurrent).".
+:- data def_multifile/4.
 
 :- export(decl/2).
 :- pred decl(Base, Decl)
     # "The source @var{Base}.pl contains the declaration @var{Decl}
        as an itf-exported new_declaration.".
-
-:- data defines_module/2, direct_export/5, def_multifile/4, decl/2.
+:- data decl/2.
 
 :- export(exports/5).
 :- pred exports(Base, F, A, DefType, Meta)
@@ -191,16 +191,17 @@ exports(Base, F, A, DefType, Meta) :-
 :- export(uses/2).
 :- pred uses(Base, File)
     # "The source @var{Base}.pl imports from file @var{File}.".
+:- data uses/2.
 
 :- export(adds/2).
 :- pred adds(Base, File)
     # "The source @var{Base}.pl does @decl{ensure_loaded/1} of file
        @var{File}.".
+:- data adds/2.
 
 :- pred reexports_from(Base, File)
     # "The source @var{Base}.pl reexports from file @var{File}.".
-
-:- data uses/2, adds/2, reexports_from/2.
+:- data reexports_from/2.
 
 :- export(uses_file/2).
 :- pred uses_file(Base, File)
@@ -221,30 +222,33 @@ uses_file(Base, File) :- uses(Base, File).
        in @var{ImpFile}, otherwise it is the file in which the
        predicate resides (due to reexportations).  Stored in itf
        file for dependency check.".
+:- data imports_pred/7.
 
 :- export(imports_all/2).
 :- pred imports_all(Base, ImpFile)
     # "The source @var{Base}.pl imports all predicates of @var{ImpFile}.".
+:- data imports_all/2.
 
 :- pred reexports(Base, File, F, A)
     # "The source @var{Base}.pl reexports predicate @var{F}/@var{A}
       from file @var{File}.".
+:- data reexports/4.
 
 :- pred reexports_all(Base, File)
     # "The source @var{Base}.pl reexports all predicates of @var{File}.".
+:- data reexports_all/2.
 
 :- export(includes/2).
 :- pred includes(Base, File)
     # "The source @var{Base}.pl includes file @var{File}.  Stored in
        itf file for dependency check.".
+:- data includes/2.
 
 :- export(loads/2).
 :- pred loads(Base, File)
     # "The source @var{Base}.pl does load_compilation_module of file
        @var{File}.  Stored in itf file for dependency check.".
-
-:- data imports_pred/7, imports_all/2,
-    reexports/4, reexports_all/2, includes/2, loads/2.
+:- data loads/2.
 
 delete_itf_data(Base) :-
     retractall_fact(defines_module(Base,_)),
@@ -261,6 +265,72 @@ delete_itf_data(Base) :-
     retractall_fact(reexports(Base, _, _, _)),
     retractall_fact(decl(Base,_)).
 
+do_use_module(UsedFile, Imports, Base, Ln0, Ln1) :-
+    nonvar(UsedFile),
+    ( UsedFile = user -> true
+    ; get_base_name(UsedFile, UsedBase, _, _),
+      ( UsedBase = Base ->  Ignore = true
+      ; current_fact(uses(Base, UsedFile)) -> true
+      ; assertz_fact(uses(Base, UsedFile))
+      )
+    ), !,
+    ( nonvar(Ignore) -> true
+    ; store_imports(Imports, UsedFile, Base, Ln0, Ln1)
+    ).
+do_use_module(UsedFile,_Imports,_Base, Ln0, Ln1) :-
+    compiler_error(Ln0, Ln1, bad_use_module(UsedFile)).
+
+store_imports(all, user,_Base, Ln0, Ln1) :- !,
+    compiler_error(Ln0, Ln1, all_user).
+store_imports(all, File, Base,_Ln0,_Ln1) :- !,
+    assertz_fact(imports_all(Base, File)).
+store_imports(Imports, File, Base, Ln0, Ln1) :-
+    store_import_list(Imports, File, Base, Ln0, Ln1).
+
+store_import_list([I|Is], File, Base, Ln0, Ln1) :- !,
+    store_import(I, File, Base, Ln0, Ln1),
+    store_import_list(Is, File, Base, Ln0, Ln1).
+store_import_list([], _, _, _, _) :- !.
+store_import_list(Bad, _, _, Ln0, Ln1) :-
+    compiler_error(Ln0, Ln1, bad_import_list(Bad)).
+
+store_import(F/A, File, Base, _, _) :-
+    atom(F), integer(A), !,
+    assertz_fact(imports_expl(Base, File, F, A)).
+store_import(Bad, _, _, Ln0, Ln1) :-
+    compiler_error(Ln0, Ln1, bad_import_spec(Bad)).
+
+do_reexport(UsedFile, Preds, Base, Ln0, Ln1) :-
+    nonvar(UsedFile),
+    get_base_name(UsedFile, _, _, _), !,
+    ( current_fact(uses(Base, UsedFile)) -> true
+    ; assertz_fact(uses(Base, UsedFile))
+    ),
+    ( current_fact(reexports_from(Base, UsedFile)) -> true
+    ; assertz_fact(reexports_from(Base, UsedFile))
+    ),
+    store_reexports(Preds, UsedFile, Base, Ln0, Ln1).
+do_reexport(UsedFile,_Preds,_Base, Ln0, Ln1) :-
+    compiler_error(Ln0, Ln1, bad_file(UsedFile)).
+
+store_reexports(all, File, Base,_Ln0,_Ln1) :- !,
+    assertz_fact(reexports_all(Base, File)).
+store_reexports(Preds, File, Base, Ln0, Ln1) :-
+    store_reexport_list(Preds, File, Base, Ln0, Ln1).
+
+store_reexport_list([P|Ps], File, Base, Ln0, Ln1) :- !,
+    store_reexport(P, File, Base, Ln0, Ln1),
+    store_reexport_list(Ps, File, Base, Ln0, Ln1).
+store_reexport_list([], _, _, _, _) :- !.
+store_reexport_list(Bad, _, _, Ln0, Ln1) :-
+    compiler_error(Ln0, Ln1, bad_import_list(Bad)).
+
+store_reexport(F/A, File, Base, _, _) :-
+    atom(F), integer(A), !,
+    assertz_fact(reexports(Base, File, F, A)).
+store_reexport(Bad, _, _, Ln0, Ln1) :-
+    compiler_error(Ln0, Ln1, bad_import_spec(Bad)).
+
 % ---------------------------------------------------------------------------
 :- doc(section, "Other data coming from read_record_file/4").
 
@@ -275,28 +345,32 @@ delete_itf_data(Base) :-
        @var{Line0} and @var{Line1}.  In the special case that
        @var{Head} is a number, @var{Body} is the body of a
        declaration.".
+:- data clause_of/7.
 
 :- export(package/2).
 :- pred package(Base, Package).
+:- data package/2.
 
 :- export(imports_nocheck/4).
 :- pred imports_nocheck(Base, Module, F, A)
     # "The source @var{Base}.pl imports predicate @var{F}/@var{A}
        from module @var{Module} using @decl{import/2}.".
+:- data imports_nocheck/4.
 
 :- export(defines_pred/3).
 :- pred defines_pred(Base, F, A).
+:- data defines_pred/3.
 
 :- pred impl_defines(Base, F, A).
+:- data impl_defines/3.
 
 :- export(meta_pred/4).
 :- pred meta_pred(Base, F, A, Meta).
+:- data meta_pred/4.
 
 :- export(dyn_decl/4).
 :- pred dyn_decl(Base, F, A, Decl). % Does not contain multifile preds.
-
-:- data clause_of/7, package/2, defines_pred/3, impl_defines/3, dyn_decl/4,
-    meta_pred/4, imports_nocheck/4.
+:- data dyn_decl/4.
 
 delete_file_data(Base) :-
     retractall_fact(clause_of(Base,_,_,_,_,_,_)),
@@ -306,6 +380,25 @@ delete_file_data(Base) :-
     retractall_fact(impl_defines(Base,_,_)),
     retractall_fact(meta_pred(Base,_,_,_)),
     retractall_fact(dyn_decl(Base,_,_,_)).
+
+do_import(Module, Imports, Base, Ln0, Ln1) :-
+    atom(Module), !,
+    store_import_nocheck_list(Imports, Module, Base, Ln0, Ln1).
+do_import(Module, _, _, Ln0, Ln1) :-
+    compiler_error(Ln0, Ln1, bad_import(Module)).
+
+store_import_nocheck_list([I|Is], Module, Base, Ln0, Ln1) :- !,
+    store_import_nocheck(I, Module, Base, Ln0, Ln1),
+    store_import_nocheck_list(Is, Module, Base, Ln0, Ln1).
+store_import_nocheck_list([], _, _, _, _) :- !.
+store_import_nocheck_list(Bad, _, _, Ln0, Ln1) :-
+    compiler_error(Ln0, Ln1, bad_import_list(Bad)).
+
+store_import_nocheck(F/A, Module, Base, _, _) :-
+    atom(F), integer(A), !,
+    assertz_fact(imports_nocheck(Base, Module, F, A)).
+store_import_nocheck(Bad, _, _, Ln0, Ln1) :-
+    compiler_error(Ln0, Ln1, bad_import_spec(Bad)).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Data used by the assertion library").
@@ -317,7 +410,6 @@ delete_file_data(Base) :-
        concurrent) and with meta_predicate declaration @var{Meta}
        (which can be 0 if it has not).  Generated by calling
        @pred{comp_defines/1}.".
-
 :- data defines/5.
 
 delete_assrtlib_data :-
@@ -472,7 +564,6 @@ clean_read_record_data(Base) :-
 :- pred expansion_check(Base, Pred)
     # "@var{Pred} will be executed before file @var{Base}.pl is compiled
        to make additional checks, with @var{Base} as its first argument.".
-
 :- data expansion_check/2.
 
 % These are deleted when computing imports_pred/7
@@ -1027,7 +1118,7 @@ normalize_module_decl(module(Module, Exports), _,
     default_package(Package).
 % Unknown firts declaration may include package
 normalize_module_decl(PackageDecl, Base, module(Module, Exports, Package)) :-
-    \+ is_any_known_decl(PackageDecl, Base),
+    \+ is_known_decl(PackageDecl, Base),
     functor(PackageDecl, Package0, _),
     catch(get_base_name(library(Package0), _, _, _),_,fail), !,
     ( arg(1, PackageDecl, Module) -> true ; true ),
@@ -1066,6 +1157,25 @@ primitive_expand_term((:- primitive_meta_predicate(MP)), M, _, Data1) :- % TODO:
              ('$primitive_meta_predicate'(Pat, M))].
 primitive_expand_term(Data0, M, VNs, Data1) :-
     expand_term(Data0, M, VNs, Data1).
+
+% ---------------------------------------------------------------------------
+:- doc(section, "'export' declaration").
+
+assert_export_list(All, Base, _Ln0,_Ln1) :-
+    var(All), !,
+    assertz_fact(exports_pred(Base, all, all)).
+assert_export_list([Exp|Exports], Base, Ln0, Ln1) :- !,
+    assert_export(Exp, Base, Ln0, Ln1),
+    assert_export_list(Exports, Base, Ln0, Ln1).
+assert_export_list([],_Base,_Ln0,_Ln1) :- !.
+assert_export_list(Exp, Base, Ln0, Ln1) :-
+    assert_export(Exp, Base, Ln0, Ln1).
+
+assert_export(F/A, Base,_Ln0,_Ln1) :-
+    atom(F), integer(A), !,
+    assertz_fact(exports_pred(Base, F, A)).
+assert_export(Spec,_Base, Ln0, Ln1) :-
+    compiler_error(Ln0, Ln1, bad_export(Spec)).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Support for declaration contexts").
@@ -1147,13 +1257,7 @@ read_assertion(Assr, M, S, LB, LE, Dict) :-
 process_expanded_data((?- Goal), _, _, _, _, _, _, _) :- !,
     call(Goal), !. % TODO: Deprecate (or make it optional with a flag)
 process_expanded_data((:- Decl), Base, M, VNs,_Sings, Pl, Ln0, Ln1) :- !,
-    ( is_any_known_decl(Decl, Base) ->
-        ( process_decl(Decl, Base, M, VNs, Ln0, Ln1) -> true
-        ; error_in_lns(Ln0, Ln1, error, ['declaration processing failed ',
-            ~~(Decl)])
-        )
-    ; error_in_lns(Ln0, Ln1, error, ['unknown declaration ',~~(Decl)])
-    ),
+    process_decl(Decl, Base, M, VNs, Ln0, Ln1),
     ( current_prolog_flag(read_assertions, yes), atom(M) ->
         read_assertion(Decl, M, Pl, Ln0, Ln1, VNs)
     ; true
@@ -1219,618 +1323,34 @@ construct((\+ _)).
 construct(if(_, _, _)).
 construct((_ ^ _)).
 
-is_any_known_decl(D, _) :- is_known_decl(D), !.
-is_any_known_decl(D, Base) :- new_decl(Base, D, _), !.
+:- discontiguous(decl__treatDom/1).
+:- discontiguous(decl__treat/6).
 
-is_known_decl(module(_,_)).
-is_known_decl(module(_,_,_)).
-is_known_decl(package(_)).
-is_known_decl(use_package(_)).
-is_known_decl(syntax(_)).
-is_known_decl(include(_)).
-is_known_decl(export(_)).
-is_known_decl(use_module(_,_)).
-is_known_decl(use_module(_)).
-is_known_decl(import(_,_)).
-is_known_decl(ensure_loaded(_)).
-is_known_decl(reexport(_)).
-is_known_decl(reexport(_,_)).
-is_known_decl(meta_predicate(_)).
-is_known_decl(multifile(_)).
-is_known_decl(data(_)).
-is_known_decl(dynamic(_)).
-is_known_decl(concurrent(_)).
-is_known_decl(impl_defined(_)).
-is_known_decl(discontiguous(_)).
-is_known_decl(redefining(_)).
-is_known_decl(load_compilation_module(_)).
-is_known_decl(op(_, _, _)).
-is_known_decl(set_prolog_flag(_, _)).
-is_known_decl(push_prolog_flag(_, _)).
-is_known_decl(pop_prolog_flag(_)).
-is_known_decl(new_declaration(_)).
-is_known_decl(new_declaration(_, _)).
-is_known_decl(add_sentence_trans(_,_)).
-is_known_decl(add_term_trans(_,_)).
-is_known_decl(add_clause_trans(_,_)).
-is_known_decl(add_goal_trans(_,_)).
-is_known_decl(initialization(_)).
-is_known_decl(on_abort(_)).
-% Deprecated declarations (show warning)
-is_known_decl(add_sentence_trans(_)).
-is_known_decl(add_term_trans(_)).
-is_known_decl(add_clause_trans(_)).
-is_known_decl(add_goal_trans(_)).
+is_known_decl(D, _) :- decl__treatDom(D), !.
+is_known_decl(D, Base) :- new_decl(Base, D, _), !.
 
-process_decl(module(_,_),_Base,_M,_VNs, Ln0, Ln1) :- !,
-    compiler_error(Ln0, Ln1, nonstarting(module,2)).
-process_decl(module(_,_,_),_Base,_M,_VNs, Ln0, Ln1) :- !,
-    compiler_error(Ln0, Ln1, nonstarting(module,3)).
-process_decl(package(_),_Base,_M,_VNs, Ln0, Ln1) :- !,
-    compiler_error(Ln0, Ln1, nonstarting_package).
-process_decl(use_package(Package), Base, M,_VNs, Ln0, Ln1) :- !,
-    do_use_package(Base, M, Ln0, Ln1, Package).
-process_decl(syntax(Syntax), Base, M,_VNs, Ln0, Ln1) :- !,
-    message(warning,
-            'syntax/1 declaration is obsolete, use use_package/1.'),
-    do_use_package(Base, M, Ln0, Ln1, Syntax).
-process_decl(include(File), Base, M,_VNs, Ln0, Ln1) :- !,
-    do_include(source, File, Base, M, Ln0, Ln1).
-process_decl(export(Exports), Base,_M,_VNs, Ln0, Ln1) :- !,
-    assert_export_list(Exports, Base, Ln0, Ln1).
-process_decl(use_module(File,Imports), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_use_module(File, Imports, Base, Ln0, Ln1).
-process_decl(use_module(File), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_use_module(File, all, Base, Ln0, Ln1).
-process_decl(import(Module,Imports), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_import(Module, Imports, Base, Ln0, Ln1).
-process_decl(ensure_loaded(File), Base,_M,_VNs,_Ln0,_Ln1) :- !,
-    get_base_name(File, _, _, _),
-    assertz_fact(adds(Base,File)).
-process_decl(reexport(File), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_reexport(File, all, Base, Ln0, Ln1).
-process_decl(reexport(File,Preds), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_reexport(File, Preds, Base, Ln0, Ln1).
-process_decl(meta_predicate(Spec), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_meta_predicate(Spec, Base, Ln0, Ln1).
-process_decl(multifile(Spec), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_multifile(Spec, Base, Ln0, Ln1).
-process_decl(data(L), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_dyn_decl(L, Base, data, Ln0, Ln1).
-process_decl(dynamic(L), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_dyn_decl(L, Base, dynamic, Ln0, Ln1).
-process_decl(concurrent(L), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_dyn_decl(L, Base, concurrent, Ln0, Ln1).
-process_decl(impl_defined(L), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_impl_defined(L, Base, Ln0, Ln1).
-process_decl(discontiguous(L), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_discontiguous(L, Base, Ln0, Ln1).
-process_decl(redefining(P), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_redefining(P, Base, Ln0, Ln1).
-process_decl(load_compilation_module(File), Base,_M,_VNs,_Ln0,_Ln1) :- !,
-    get_base_name(File, BFile, _, _),
-    assertz_fact(loads(Base, File)),
-    do_load_compilation_module(BFile, File, Base).
-process_decl(op(P, F, O), Base,_M,_VNs,_Ln0,_Ln1) :- !,
-    do_op(P, F, O, Base).
-process_decl(set_prolog_flag(Flag, Value), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_set_pl_flag(Flag, Value, Base, Ln0, Ln1).
-process_decl(push_prolog_flag(Flag, Value), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_push_pl_flag(Flag, Value, Base, Ln0, Ln1).
-process_decl(pop_prolog_flag(Flag), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_pop_pl_flag(Flag, Base, Ln0, Ln1).
-process_decl(new_declaration(S), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_new_decl(S, off, Base, Ln0, Ln1).
-process_decl(new_declaration(S, ITF), Base,_M,_VNs, Ln0, Ln1) :- !,
-    do_new_decl(S, ITF, Base, Ln0, Ln1).
-process_decl(add_sentence_trans(P, Prior), Base, M,_VNs, Ln0, Ln1) :- !,
-    check_qualified_hook(P, add_sentence_trans, 2, Ln0, Ln1),
-    do_add_sentence_trans(M, P, Prior, Base, Ln0, Ln1).
-process_decl(add_term_trans(P, Prior), Base, M,_VNs, Ln0, Ln1) :- !,
-    check_qualified_hook(P, add_term_trans, 2, Ln0, Ln1),
-    do_add_term_trans(M, P, Prior, Base, Ln0, Ln1).
-% These four processed from clause_of
-process_decl(add_clause_trans(P, _),_Base,_M,_VNs,Ln0,Ln1) :- !,
-    % Just check that the hook is module qualified
-    check_qualified_hook(P, add_clause_trans, 2, Ln0, Ln1).
-process_decl(add_goal_trans(P, _),_Base,_M,_VNs,Ln0,Ln1) :- !,
-    % Just check that the hook is module qualified
-    check_qualified_hook(P, add_goal_trans, 2, Ln0, Ln1).
-process_decl(initialization(_),_Base,_M,_VNs,_Ln0,_Ln1) :- !.
-process_decl(on_abort(_),_Base,_M,_VNs,_Ln0,_Ln1) :- !.
-%
-process_decl(Decl, _Base, _M,_VNs, Ln0, Ln1) :-
-    deprecated_decl_error(Decl, Msg), !,
-    functor(Decl, F, A),
-    compiler_error(Ln0, Ln1, deprecated_decl_error(F, A, [' '|Msg])).
-% User-defined declarations
+process_decl(D, Base, M, VNs, Ln0, Ln1) :- decl__treatDom(D), !,
+    ( decl__treat(D, Base, M, VNs, Ln0, Ln1) -> true
+    ; error_in_lns(Ln0, Ln1, error, ['declaration processing failed ', ~~(D)])
+    ).
 process_decl(D, Base,_M,_VNs,_Ln0,_Ln1) :-
+    % User-defined declarations
     new_decl(Base, D, ITF), !,
     ( ITF = on -> assertz_fact(decl(Base, D)) ; true).
+process_decl(D, _Base,_M,_VNs, Ln0, Ln1) :-
+    error_in_lns(Ln0, Ln1, error, ['unknown declaration ',~~(D)]).
 
-% Deprecated declarations where recovery is not possible
-deprecated_decl_error(add_clause_trans(_), 'Use add_clause_trans/2').
-deprecated_decl_error(add_goal_trans(_), 'Use add_goal_trans/2').
-deprecated_decl_error(add_sentence_trans(_), 'Use add_sentence_trans/2').
-deprecated_decl_error(add_term_trans(_), 'Use add_term_trans/2').
-
-% ---------------------------------------------------------------------------
-:- doc(section, "'use_package' declaration").
-
-do_use_package(Base, Module, Ln0, Ln1, Fs) :-
-    do_use_package_(Fs, Base, Module, Ln0, Ln1).
-
-do_use_package_([], _, _, _, _) :- !.
-do_use_package_([F|Fs], Base, Module, Ln0, Ln1) :- !,
-    do_use_package_(F, Base, Module, Ln0, Ln1),
-    do_use_package_(Fs, Base, Module, Ln0, Ln1).
-do_use_package_(F, Base, Module, Ln0, Ln1) :-
-    package_file(F, P), !,
-    ( current_fact(package(Base,P)) -> true
-    ; assertz_fact(package(Base,P)),
-      do_include(package, P, Base, Module, Ln0, Ln1)
-    ).
-do_use_package_(F, _, _, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_package_file(F)).
-
-package_file(F, P) :-
-    ( atom(F) -> P = library(F)
-    ; functor(F,_,1) -> P = F
-    ).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "'include' declaration").
-
-% Type can be 'source' for included files, 'package' for packages.
-do_include(Type, File, Base, Module,_Ln0,_Ln1) :-
-    nonvar(File),
-    get_base_name(File, SourceBase, SourceFile, _), !,
-    assertz_fact(includes(Base, File)),
-    %
-    now_doing_include(Type, SourceFile),
-    '$open'(SourceFile, r, Stream),
-    ( read_sentence(Stream, Base, Sentence) -> true ; fail ), % (once)
-    check_include_decl(Type, SourceBase, Sentence, Rest),
-    % TODO: Merge with read_record_file_/3
-    ( member(Sentence2, Rest)
-    ; read_sentence(Stream, Base, Sentence2)
-    ),
-    ( Sentence2 = end_of_file(_, _) ->
-        true
-    ; process_sentence(Sentence2, Base, SourceFile, Module),
-      fail
-    ),
-    !,
-    close(Stream),
-    end_doing.
-do_include(_Type, File,_Base,_Module, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_file(File)).
-
-now_doing_include(source, SourceFile) :- now_doing(['Including ',SourceFile]).
-now_doing_include(package, SourceFile) :- now_doing(['Using package ',SourceFile]).
-
-% Check that packages contains the right declarations. Nothing is
-% required for included source.
-check_include_decl(source, _, Sentence, [Sentence]).
-check_include_decl(package, SourceBase, Sentence, Sentences) :-
-    ( Sentence = sentence(Data, _, _, Ln0, Ln1),
-      Data = (:- package(M)) ->
-        Sentences = [],
-        module_from_base(SourceBase, SM),
-        ( SM = M -> % Allow vars in package declarations
-            true
-        ; compiler_error(Ln0, Ln1, bad_package(SourceBase, M))
-        )
-    ; % Do not consume the sentence, it is not a valid package declaration
-      Sentences = [Sentence],
-      sentence_lines(Sentence, Ln0, Ln1),
-      warning_package_missing(Ln0, Ln1)
-    ).
-    
-sentence_lines(sentence(_,_,_,Ln0,Ln1), Ln0, Ln1).
-sentence_lines(end_of_file(Ln0,Ln1), Ln0, Ln1).
-    
-warning_package_missing(L0, L1) :-
-    error_in_lns(L0, L1, warning,
-                 ['Source used as package without package declaration']).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "'export' declaration").
-
-assert_export_list(All, Base, _Ln0,_Ln1) :-
-    var(All), !,
-    assertz_fact(exports_pred(Base, all, all)).
-assert_export_list([Exp|Exports], Base, Ln0, Ln1) :- !,
-    assert_export(Exp, Base, Ln0, Ln1),
-    assert_export_list(Exports, Base, Ln0, Ln1).
-assert_export_list([],_Base,_Ln0,_Ln1) :- !.
-assert_export_list(Exp, Base, Ln0, Ln1) :-
-    assert_export(Exp, Base, Ln0, Ln1).
-
-assert_export(F/A, Base,_Ln0,_Ln1) :-
-    atom(F), integer(A), !,
-    assertz_fact(exports_pred(Base, F, A)).
-assert_export(Spec,_Base, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_export(Spec)).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "'use_module' declaration").
-
-do_use_module(UsedFile, Imports, Base, Ln0, Ln1) :-
-    nonvar(UsedFile),
-    ( UsedFile = user -> true
-    ; get_base_name(UsedFile, UsedBase, _, _),
-      ( UsedBase = Base ->  Ignore = true
-      ; current_fact(uses(Base, UsedFile)) -> true
-      ; assertz_fact(uses(Base, UsedFile))
-      )
-    ), !,
-    ( nonvar(Ignore) -> true
-    ; store_imports(Imports, UsedFile, Base, Ln0, Ln1)
-    ).
-do_use_module(UsedFile,_Imports,_Base, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_use_module(UsedFile)).
-
-store_imports(all, user,_Base, Ln0, Ln1) :- !,
-    compiler_error(Ln0, Ln1, all_user).
-store_imports(all, File, Base,_Ln0,_Ln1) :- !,
-    assertz_fact(imports_all(Base, File)).
-store_imports(Imports, File, Base, Ln0, Ln1) :-
-    store_import_list(Imports, File, Base, Ln0, Ln1).
-
-store_import_list([I|Is], File, Base, Ln0, Ln1) :- !,
-    store_import(I, File, Base, Ln0, Ln1),
-    store_import_list(Is, File, Base, Ln0, Ln1).
-store_import_list([], _, _, _, _) :- !.
-store_import_list(Bad, _, _, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_import_list(Bad)).
-
-store_import(F/A, File, Base, _, _) :-
-    atom(F), integer(A), !,
-    assertz_fact(imports_expl(Base, File, F, A)).
-store_import(Bad, _, _, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_import_spec(Bad)).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "'import' declaration").
-
-do_import(Module, Imports, Base, Ln0, Ln1) :-
-    atom(Module), !,
-    store_import_nocheck_list(Imports, Module, Base, Ln0, Ln1).
-do_import(Module, _, _, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_import(Module)).
-
-store_import_nocheck_list([I|Is], Module, Base, Ln0, Ln1) :- !,
-    store_import_nocheck(I, Module, Base, Ln0, Ln1),
-    store_import_nocheck_list(Is, Module, Base, Ln0, Ln1).
-store_import_nocheck_list([], _, _, _, _) :- !.
-store_import_nocheck_list(Bad, _, _, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_import_list(Bad)).
-
-store_import_nocheck(F/A, Module, Base, _, _) :-
-    atom(F), integer(A), !,
-    assertz_fact(imports_nocheck(Base, Module, F, A)).
-store_import_nocheck(Bad, _, _, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_import_spec(Bad)).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "'reexport' declaration").
-
-do_reexport(UsedFile, Preds, Base, Ln0, Ln1) :-
-    nonvar(UsedFile),
-    get_base_name(UsedFile, _, _, _), !,
-    ( current_fact(uses(Base, UsedFile)) -> true
-    ; assertz_fact(uses(Base, UsedFile))
-    ),
-    ( current_fact(reexports_from(Base, UsedFile)) -> true
-    ; assertz_fact(reexports_from(Base, UsedFile))
-    ),
-    store_reexports(Preds, UsedFile, Base, Ln0, Ln1).
-do_reexport(UsedFile,_Preds,_Base, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_file(UsedFile)).
-
-store_reexports(all, File, Base,_Ln0,_Ln1) :- !,
-    assertz_fact(reexports_all(Base, File)).
-store_reexports(Preds, File, Base, Ln0, Ln1) :-
-    store_reexport_list(Preds, File, Base, Ln0, Ln1).
-
-store_reexport_list([P|Ps], File, Base, Ln0, Ln1) :- !,
-    store_reexport(P, File, Base, Ln0, Ln1),
-    store_reexport_list(Ps, File, Base, Ln0, Ln1).
-store_reexport_list([], _, _, _, _) :- !.
-store_reexport_list(Bad, _, _, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_import_list(Bad)).
-
-store_reexport(F/A, File, Base, _, _) :-
-    atom(F), integer(A), !,
-    assertz_fact(reexports(Base, File, F, A)).
-store_reexport(Bad, _, _, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_import_spec(Bad)).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "'meta_predicate' declaration").
-
-do_meta_predicate(V, _, Ln0, Ln1) :- var(V), !,
-    compiler_error(Ln0, Ln1, bad_meta_predicate(V)).
-%do_meta_predicate((Spec0,Spec), Base, Ln0, Ln1) :- !,
-%        do_meta_predicate(Spec0, Base, Ln0, Ln1),
-%        do_meta_predicate(Spec, Base, Ln0, Ln1).
-do_meta_predicate(Spec, Base,_Ln0,_Ln1) :-
-    functor(Spec, F, A),
-    atom(F), integer(A),
-    functor(NSpec, F, A),
-    normalize_meta_args(1, A, Spec, NSpec), !,
-    assertz_fact(meta_pred(Base,F,A,NSpec)).
-do_meta_predicate(Bad, _, Ln0, Ln1) :-
-    compiler_error(Ln0, Ln1, bad_meta_predicate(Bad)).
-
-
-normalize_meta_args(N, A, _, _):- N>A, !.
-normalize_meta_args(N, A, Spec, NSpec):-
-    arg(N, Spec, X),
-    normalize_meta_arg(X, NX),
-    arg(N, NSpec, NX),
-    N1 is N+1,
-    normalize_meta_args(N1, A, Spec, NSpec).
-
-normalize_meta_arg('?', '?'). % A variable is valid also!
-normalize_meta_arg('-', '?').
-normalize_meta_arg('+', '?').
-normalize_meta_arg(':', goal).
-normalize_meta_arg(addmodule, addmodule(?)).
-normalize_meta_arg(addmodule(X), addmodule(Xn)) :-
-    normalize_meta_arg(X, Xn).
-normalize_meta_arg(X, X) :- real_meta_arg(X).
-
-real_meta_arg(goal).
-real_meta_arg(clause).
-real_meta_arg(retracting_clause).
-real_meta_arg(fact).
-real_meta_arg(spec).
-real_meta_arg(pred(N)) :- integer(N), N>=0, N=<255.
-real_meta_arg(list(X)) :- real_meta_arg(X).
-real_meta_arg(addterm(X)) :- real_meta_arg(X).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "'multifile' declaration").
-
-do_multifile(Spec, Base, Ln0, Ln1) :-
-    sequence_contains(Spec, bad_spec_error(multifile, Ln0, Ln1), F, A),
-      ( retract_fact(defines_pred(Base,F,A)) -> true ; true ),
-      add_multifile_pred(Base,F,A),
-    fail.
-do_multifile(_, _, _, _).
-
-add_multifile_pred(Base,F,A) :-
-      ( current_fact(multifile_pred(Base,F,A)) -> true
-      ; assertz_fact(multifile_pred(Base,F,A))
-      ).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "'data', 'dynamic', 'concurrent' declaration").
-
-do_dyn_decl(Spec, Base, Decl, Ln0, Ln1) :-
-    sequence_contains(Spec, bad_spec_error(Decl, Ln0, Ln1), F, A),
-      defined_in_source(Base, F, A),
-      assert_dyn_decl(Base, F, A, Decl, Ln0, Ln1),
-    fail.
-do_dyn_decl(_, _, _, _, _).
-
-assert_dyn_decl(Base, F, A, Decl, Ln0, Ln1) :-
-    dyn_decl(Base, F, A, Decl2), !,
-    ( Decl2 = Decl -> true
-    ; compiler_error(Ln0, Ln1, incompatible_decl(F,A,Decl,Decl2))
-    ).
-assert_dyn_decl(Base, F, A, Decl,_Ln0,_Ln1) :-
-    assertz_fact(dyn_decl(Base, F, A, Decl)).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "'impl_defined' declaration").
-
-do_impl_defined(SL, Base, Ln0, Ln1) :-
-    sequence_contains(SL, bad_spec_error(impl_defined, Ln0, Ln1), F, A),
-      defined_in_source(Base, F, A),
-      asserta_fact(impl_defines(Base, F, A)),
-    fail.
-do_impl_defined(_, _, _, _).
+warning_failed_decl(Ln0, Ln1, Decl) :-
+    error_in_lns(Ln0, Ln1, warning, [Decl,' - declaration failed']).
 
 bad_spec_error(Decl, Ln0, Ln1, Spec) :-
     compiler_error(Ln0, Ln1, badly_formed(Decl,Spec)).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "'discontiguous' declaration").
+:- doc(section, "Language definitions for the front-end").
 
-do_discontiguous(L, Base, Ln0, Ln1) :-
-    sequence_contains(L, bad_spec_error(discontiguous, Ln0, Ln1), F, A),
-      asserta_fact(discontiguous(F,A,Base)),
-    fail.
-do_discontiguous(_, _, _, _).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "'redefining' declaration").
-
-do_redefining(F/A, Base, _, _) :- !,
-    defines_module(Base, M),
-    asserta_fact(redefining(M, F, A)).
-do_redefining(Bad,_Base, Ln0, Ln1) :-
-    error_in_lns(Ln0, Ln1, error,
-                 ['bad predicate indicator pattern ',~~(Bad)]).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "'load_compilation_module' declaration").
-
-% TODO: Load compilation modules in a separate module so that the
-%   scope of runtime module expansions is reduced.
-
-do_load_compilation_module(BFile, _, _) :- % TODO: simplify
-    % Already processed
-    in_mode(In), processed(BFile, In),
-    % and loaded dynamically (fix 'compmod_skip' bug)
-    defines_module(BFile, Module),
-    this_module(M), dyn_imports(M, Module),
-    !.
-do_load_compilation_module(_, File, Base) :-
-    undo_decls(Base),
-    this_module(M),
-    use_mod(File, all, M),
-    redo_decls(Base).
-
-% Translation hooks without module qualification is ambiguous.
-% (there is no explicit connection with load_compilaion_module)
-check_qualified_hook(P, DeclF, DeclA, Ln0, Ln1) :-
-    ( nonvar(P), P = (_:_) -> true
-    ; error_in_lns(Ln0, Ln1, error,
-                   ['Refusing to process ',~~(DeclF/DeclA),
-                    ', missing module qualification in ', ~~(P)])
-    ).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "op/3 declaration").
-
-do_op(P, F, O, Base) :-
-    ( ensure_op_undone(P, F, O, Base),
-      op(P, F, O), ! % This can give errors
-    ; true).
-
-ensure_op_undone(Prec, F, Ops, Base) :-
-    integer(Prec), 0=<Prec, Prec=<1200,
-    nonvar(F),
-    op_type(F, T),
-    atom_or_atom_list(Ops), !,
-    ensure_ops_undone(Ops, F, T, Prec, Base).
-ensure_op_undone(_, _, _, _). % do not fail to give errors
-
-ensure_ops_undone([Op|Ops], F, T, Prec, Base) :- !,
-    ensure_ops_undone(Op, F, T, Prec, Base),
-    ensure_ops_undone(Ops, F, T, Prec, Base).
-ensure_ops_undone([], _, _, _, _) :- !.
-ensure_ops_undone(Op, F, T, Prec, Base) :-
-    ( current_op(CPrec, CF, Op), op_type(CF, T) ->
-      asserta_fact(undo_decl(Base,op(Prec,F,Op),op(CPrec,CF,Op)))
-    ; asserta_fact(undo_decl(Base,op(Prec,F,Op),op(0,F,Op)))
-    ).
-
-op_type(fy, pre).
-op_type(fx, pre).
-op_type(yfx, in).
-op_type(xfy, in).
-op_type(xfx, in).
-op_type(yf, post).
-op_type(xf, post).
-
-atom_or_atom_list(A) :- atom(A), !.
-atom_or_atom_list([A|L]) :-
-    atom(A),
-    atom_or_atom_list(L).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "prolog_flag declarations").
-
-do_set_pl_flag(Flag, Value, Base, Ln0, Ln1) :-
-    ( prolog_flag(Flag, Old, Value) ->
-        asserta_fact(undo_decl(Base, set_prolog_flag(Flag,Value),
-                                     set_prolog_flag(Flag,Old)))
-    ; warning_failed_decl(Ln0, Ln1, set_prolog_flag(Flag, Value))
-    ).
-
-do_push_pl_flag(Flag, Value, Base, Ln0, Ln1) :-
-    ( push_prolog_flag(Flag, Value) ->
-        asserta_fact(undo_decl(Base, push_prolog_flag(Flag,Value),
-                                     pop_prolog_flag(Flag)))
-    ; warning_failed_decl(Ln0, Ln1, push_prolog_flag(Flag, Value))
-    ).
-
-do_pop_pl_flag(Flag, Base, Ln0, Ln1) :-
-    ( current_prolog_flag(Flag, Value),
-      pop_prolog_flag(Flag) ->
-        asserta_fact(undo_decl(Base, pop_prolog_flag(Flag),
-                                     push_prolog_flag(Flag,Value)))
-    ; warning_failed_decl(Ln0, Ln1, pop_prolog_flag(Flag))
-    ).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "sentence and term translations declarations").
-
-do_add_sentence_trans(M, P, Prior, Base, Ln0, Ln1) :-
-    ( add_sentence_trans_and_init(M, P, Prior) ->
-        asserta_fact(undo_decl(Base, add_sentence_trans(M, P, Prior),
-                                     del_sentence_trans(M)))
-    ; warning_failed_decl(Ln0, Ln1, add_sentence_trans(P, Prior))
-    ).
-
-do_add_term_trans(M, P, Prior, Base, Ln0, Ln1) :-
-    % TODO: if predicate P does not exist, compilation complains a lot of times
-    ( add_term_trans(M, P, Prior) ->
-        asserta_fact(undo_decl(Base, add_term_trans(M, P, Prior),
-                                     del_term_trans(M)))
-    ; warning_failed_decl(Ln0, Ln1, add_term_trans(P, Prior))
-    ).
-
-warning_failed_decl(Ln0, Ln1, Decl) :-
-    error_in_lns(Ln0, Ln1, warning, [Decl,' - declaration failed']).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "new_declaration declaration").
-
-do_new_decl(S, ITF, Base, Ln0, Ln1) :-
-    ( S = F/A, functor(D, F, A) ->
-        asserta_fact(new_decl(Base, D, ITF))
-    ; compiler_error(Ln0, Ln1, badly_formed(new_declaration, S))
-    ).
-
-% ---------------------------------------------------------------------------
-:- doc(section, "Clause-level checks (singletons, etc.)").
-
-exports_meta(Base, F, A) :-
-    meta_pred(Base, F, A1, Meta),
-    meta_inc_args(Meta, A1, A),
-    exports_pred(Base, F, A1).
-
-exports_meta_pred(Base, F, A) :- exports_pred(Base, F, A).
-exports_meta_pred(Base, F, A) :- exports_meta(Base, F, A).
-
-clause_check(F, A, Base,_Ln0,_Ln1) :-
-    reading_pred(F, A, Base), !.
-clause_check(F, A, Base, Ln0, Ln1) :-
-    current_prolog_flag(multi_arity_warnings, on),
-    pred_read(F, A0, Base),
-    A0 =\= A,
-    \+ (exports_meta_pred(Base, F, A), exports_meta_pred(Base, F, A0)),
-    error_in_lns(Ln0, Ln1, warning, ['predicate ',~~(F/A),
-                 ' is already defined with arity ',A0]),
-    fail.
-clause_check(F, A, Base, Ln0, Ln1) :-
-    already_read_pred(F, A, Base),
-    current_prolog_flag(discontiguous_warnings, on),
-    \+ discontiguous(F, A, Base),
-    error_in_lns(Ln0, Ln1, warning,
-                 ['clauses of ',~~(F/A),' are discontiguous']),
-    fail.
-clause_check(F, A, Base,_Ln0,_Ln1) :-
-    retractall_fact(reading_pred(_,_,Base)),
-    asserta_fact(reading_pred(F,A,Base)).
-
-already_read_pred(F, A, Base) :- pred_read(F, A, Base), !.
-already_read_pred(F, A, Base) :- asserta_fact(pred_read(F,A,Base)), fail.
-
-singleton_check(Singletons, F, A, Ln0, Ln1) :-
-    current_prolog_flag(single_var_warnings, on), !,
-    no_underlines(Singletons, BadSingletons),
-    singleton_check1(BadSingletons, F, A, Ln0, Ln1).
-singleton_check(_, _, _, _, _).
-
-no_underlines([], []).
-no_underlines([N=_|Eqs], Ns) :-
-    ( atom_concat('_', _, N) ->
-          no_underlines(Eqs, Ns)
-    ; Ns = [N|Ns_],
-      no_underlines(Eqs, Ns_)
-    ).
-
-singleton_check1([], _, _, _, _) :- !.
-singleton_check1(BadSingletons, F, A, Ln0, Ln1) :-
-    error_in_lns(Ln0, Ln1, warning,
-      [BadSingletons,' - singleton variables in ',~~(F/A)]).
+:- include(library(compiler/frontend_core)).
+:- include(library(compiler/clause_check)).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Generate exports and multifile data").
@@ -2256,8 +1776,6 @@ compiler_error_data(incompatible_decl(F,A,Decl,Decl2),
                    ' but it was already defined ',Decl2]).
 compiler_error_data(module_redefined(OtherFile, _SourceFile, M),
     ['Module ',M,' already defined in source ',OtherFile]).
-compiler_error_data(deprecated_decl_error(F,A,Msg),
-    ['Declaration ',~~(F/A), ' is deprecated.'|Msg]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Compilation to .po").
