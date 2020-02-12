@@ -94,7 +94,7 @@ process_sentence(Sentence2, ShMod) :-
 
 % (partially duplicated in c_itf.pl)
 expand_term_to_list(Data0, M, VNs, Data) :-
-    expand_term(Data0, M, VNs, Data1),
+    do_expand_term(Data0, M, VNs, Data1),
     expand_list_tail(Data1, Data).
 
 % (duplicated in c_itf.pl)
@@ -107,6 +107,16 @@ expand_list_tail(Data1, Data) :-
     ; Data1 = [] ->
         Data = Data1
     ; Data = [Data1]
+    ).
+
+:- use_module(library(condcomp/condcomp_tr), [condcomp_sentence/3]).
+
+% (partially duplicated in c_itf.pl)
+do_expand_term(Data0, M, VNs, Data) :-
+    % Update conditional compilation state and filter sentence
+    % TODO: merge with core_OC
+    ( condcomp_sentence(Data0, Data1, M), Data1 = [] -> Data = []
+    ; expand_term(Data0, M, VNs, Data)
     ).
 
 process_expanded_data_list(Data0, ShMod, Ln0, Ln1) :-

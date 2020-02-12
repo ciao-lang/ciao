@@ -13,6 +13,8 @@
     del_goal_trans/1
     ], [assertions, nortchecks, datafacts]).
 
+%! \title Term, sentence, clause, and goal translations
+
 :- meta_predicate add_sentence_trans_and_init(+, spec, +).
 :- meta_predicate add_sentence_trans(+, spec, +).
 :- meta_predicate add_term_trans(+, spec, +).

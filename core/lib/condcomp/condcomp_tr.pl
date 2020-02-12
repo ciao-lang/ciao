@@ -1,5 +1,7 @@
 :- module(condcomp_tr, [condcomp_sentence/3], [datafacts]).
 
+% TODO: merge with process_entences.pl in core_OC
+
 :- use_module(engine(runtime_control)).
 :- use_module(library(messages), 
     [error_message/2,error_message/3]).

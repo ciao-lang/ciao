@@ -1135,7 +1135,7 @@ normalize_module_decl(PackageDecl, Base, module(Module, Exports, Package)) :-
 user_module_decl(Base, Packages, module(user(Base), [], Packages)).
 
 expand_term_to_list(Data0, M, VNs, Data) :-
-    primitive_expand_term(Data0, M, VNs, Data1),
+    do_expand_term(Data0, M, VNs, Data1),
     expand_list_tail(Data1, Data).
 
 expand_list_tail(Data1, Data) :-
@@ -1149,14 +1149,20 @@ expand_list_tail(Data1, Data) :-
     ; Data = [Data1]
     ).
 
-% TODO: JF temporary: This information should be handled like meta_args (and cannot be a term expansion: it leads to a loop in basiccontrol)
-primitive_expand_term((:- primitive_meta_predicate(MP)), M, _, Data1) :- % TODO: missing cut?
+:- use_module(library(condcomp/condcomp_tr), [condcomp_sentence/3]).
+
+do_expand_term((:- primitive_meta_predicate(MP)), M, _, Data1) :- !,
+    % TODO: JF temporary: This information should be handled like meta_args (and cannot be a term expansion: it leads to a loop in basiccontrol)
     functor(MP, F, A),
     functor(Pat, F, A),
     Data1 = [(:- meta_predicate(MP)),
              ('$primitive_meta_predicate'(Pat, M))].
-primitive_expand_term(Data0, M, VNs, Data1) :-
-    expand_term(Data0, M, VNs, Data1).
+do_expand_term(Data0, M, VNs, Data) :-
+    % Update conditional compilation state and filter sentence
+    % TODO: merge with core_OC
+    ( condcomp_sentence(Data0, Data1, M), Data1 = [] -> Data = []
+    ; expand_term(Data0, M, VNs, Data)
+    ).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "'export' declaration").
