@@ -109,7 +109,7 @@ expand_list_tail(Data1, Data) :-
     ; Data = [Data1]
     ).
 
-:- use_module(library(condcomp/condcomp_tr), [condcomp_sentence/3]).
+:- use_module(library(compiler/frontend_condcomp), [condcomp_sentence/3]).
 
 % (partially duplicated in c_itf.pl)
 do_expand_term(Data0, M, VNs, Data) :-

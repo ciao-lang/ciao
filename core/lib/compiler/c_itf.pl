@@ -1149,7 +1149,7 @@ expand_list_tail(Data1, Data) :-
     ; Data = [Data1]
     ).
 
-:- use_module(library(condcomp/condcomp_tr), [condcomp_sentence/3]).
+:- use_module(library(compiler/frontend_condcomp), [condcomp_sentence/3]).
 
 do_expand_term((:- primitive_meta_predicate(MP)), M, _, Data1) :- !,
     % TODO: JF temporary: This information should be handled like meta_args (and cannot be a term expansion: it leads to a loop in basiccontrol)
