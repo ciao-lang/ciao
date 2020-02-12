@@ -11,7 +11,6 @@
     printable_char/1
 ], [assertions, nortchecks, nativeprops, isomodes, define_flag]).
 
-:- use_module(engine(io_basic)).
 :- use_module(library(operators)).
 :- use_module(library(sort)).
 :- use_module(engine(internals), ['$atom_mode'/2]).
@@ -628,7 +627,7 @@ prettyvars(Term) :-
 
 collect_vars(Var, Vs, Vs0) :-
     var(Var), !, Vs=[Var-[]|Vs0].
-collect_vars([X|Xs], Vs, Vs0) :-
+collect_vars([X|Xs], Vs, Vs0) :- !,
     collect_vars(X, Vs, Vs1),
     collect_vars(Xs, Vs1, Vs0).
 collect_vars(X, Vs, Vs0) :-
