@@ -3,8 +3,10 @@
 % (specially for backward compatibility with other Prolog systems)
 
 :- use_package(runtime_ops). % TODO: Not modular! Alters runtime behavior of modules not compiled with the default package!
+
 :- use_package(dcg).
 :- use_package(library(dcg/dcg_phrase)).
+
 :- use_package(dynamic). % Note: includes some Ciao extensions
 
 % TODO: refine? Not all exported predicates may be needed
