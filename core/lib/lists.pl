@@ -32,9 +32,6 @@ nonsingle(_).
 :- reexport(engine(basic_props), [member/2]). % TODO: reverse import relation?
 %%% Now in engine(basic_props)
 % :- pred member(X,Xs) # "@var{X} is an element of (list) @var{Xs}.".
-
-%%% Now in engine(basic_props)
-% :- pred member(X,Xs) # "@var{X} is an element of (list) @var{Xs}.".
 % 
 % member(X, [X|_]).
 % member(X, [_Y|Xs]):- member(X, Xs).
@@ -42,16 +39,19 @@ nonsingle(_).
 %:- pred append(Xs, Ys)    # "@var{Ys} is the elements of @var{Xs} appended.".
 %append([], []).
 %append([L|Ls], R) :-
-%       appends(Ls, L, R).
+%    appends(Ls, L, R).
 %appends([], L, L).
 %appends([L|Ls], L2, R) :-
-%       append(L2, L, L3),
-%       appends(Ls, L3, R).
+%    append(L2, L, L3),
+%    appends(Ls, L3, R).
 
-
+:- if(defined(optim_comp)). % TODO: fix?
+% :- pred append(Xs,Ys,Zs) # "@var{Zs} is @var{Ys} appended to @var{Xs}.".
+:- else.
 % This case is needed for open-lists
 :- success append(Xs,Ys,Zs) => list(Xs)
 # "@var{Zs} is @var{Ys} appended to @var{Xs}.".
+:- endif.
 
 % More specific cases:
 :- pred append(Xs,Ys,Zs)::(list(Xs), list(Ys), list(Zs)).
@@ -101,22 +101,21 @@ append([E|Es], L, [E|R]) :- append(Es, L, R).
 
 reverse(Xs,Ys):- reverse(Xs,[],Ys).
 
+
 :- test reverse(A, B, C) :: ( var(B) ) : ( A = [1, 2, 3] ) => ( C =
    [3, 2, 1 | B] ) + true # "reverse/3 test".
-
 
 :- pred reverse(A,B,C) # "Reverse the order of elements in @var{A},
    and append it with @var{B}.".
 :- trust comp reverse/3 + sideff(free).
 :- trust comp reverse(Xs,Ys,Zs) : (list(Xs), list(Ys)) + eval.
 
-
 reverse([], L, L).
 reverse([E|Es],L,R) :- reverse(Es,[E|L],R).
 
 
 :- pred delete(L1,E,L2) => (list(L1), list(L2))
-# "@var{L2} is @var{L1} without the ocurrences of @var{E}.".
+   # "@var{L2} is @var{L1} without the ocurrences of @var{E}.".
 :- trust comp delete/3 + sideff(free).
 :- trust comp delete(L1,E,L2) : (ground(L1), ground(L2)) + eval.
 
@@ -148,7 +147,6 @@ eq(A, B):- \+ \+ A = B.
 
 :- pred select(X,Xs,Ys) # "@var{Xs} and @var{Ys} have the same
    elements except for one occurrence of @var{X}.".
-
 :- trust comp select/3 + sideff(free).
 :- trust comp select(X,Xs,Ys) : (ground(X),ground(Xs)) + eval.
 
@@ -158,17 +156,14 @@ select(E, [X|Es], [X|L]) :- select(E, Es, L).
 
 :- pred length(L,N) : list * var => list * int
     # "Computes the length of @var{L}.".
-
 :- pred length(L,N) : var * int => list * int
     # "Outputs @var{L} of length @var{N}.".
-
 :- pred length(L,N) : list * int => list * int
     # "Checks that @var{L} is of length @var{N}.".
 
 % Problems with this assertion: triple disjunction = nested disjunction
 %:- calls length(L,N)
 %         : ((list(L), int(N)); (var(L),int(N)); (list(L), var(N))).
-
 
 :- trust comp length(A,B) + native.
 :- trust comp length/2 + sideff(free).
@@ -186,7 +181,6 @@ dlength([_|L], I0, I) :- I0<I, I1 is I0+1, dlength(L, I1, I).
 
 :- doc(nth(N, List, Elem), "@var{N} is the position in @var{List} of
    @var{Elem}.  @var{N} counts from one.").
-
 
 :- pred nth(+int, ?list, ?term)
     # "Unifies @var{Elem} and the @var{N}th element of @var{List}.".
@@ -255,7 +249,6 @@ list1(T,[X|R]) :-
    removing @var{Tail} from the end of @var{DList} (makes a difference
    list from a list).".
 
-
 dlist([], X, X).
 dlist([X|Y], [X|L], T) :- dlist(Y, L, T).
 
@@ -287,8 +280,8 @@ list_insert([_|List], Term) :-
 insert_last(Xs, X, Ys):- append(Xs, [X], Ys).
 
 
-:- pred contains_ro/2 # "Impure membership (does not instantiate
-a variable in its first argument.".
+:- pred contains_ro/2 # "Impure membership (does not instantiate a
+   variable in its first argument.".
 
 contains_ro([], _) :- !, fail.
 contains_ro([X|_], X).
@@ -306,8 +299,7 @@ contains1([_|Xs], X) :- contains1(Xs, X).
 nocontainsx([], _).
 nocontainsx([X1|Xs], X) :- X\==X1, nocontainsx(Xs, X).
 
-:- pred last(L,X) # "@var{X} is the last element of list
-@var{L}.".
+:- pred last(L,X) # "@var{X} is the last element of list @var{L}.".
 
 last([E|L], X) :- last_aux(L, E, X).
 
@@ -356,8 +348,7 @@ intset_insert([D|Ds], A, [D|Bs]) :- intset_insert(Ds, A, Bs).
 intset_delete([D|Ds], D, Set) :- !, Set=Ds.
 intset_delete([D|Ds], A, [D|Ds1]) :- A>D, intset_delete(Ds, A, Ds1).
 
-:- pred intset_in(E, Set) # "Succeds iff @var{E} is element of
-@var{Set}".
+:- pred intset_in(E, Set) # "Succeds iff @var{E} is element of @var{Set}".
 
 intset_in(O, [O1|Os]) :-
     (   O1<O -> intset_in(O, Os)
@@ -367,7 +358,7 @@ intset_in(O, [O1|Os]) :-
 :- pred intset_sequence(N,L1,L2) # "Generates an ordered set of
    numbers from 0 to @var{N}-1, and append it to @var{L1}.".
 
-intset_sequence(0, L0, L) :- !, L=L0.  
+intset_sequence(0, L0, L) :- !, L=L0.
 intset_sequence(N, L0, L) :- M is N-1, intset_sequence(M, [M|L0], L).
 
 %------------------------------------------------------------------------------
@@ -392,7 +383,6 @@ intersection([_|Residue], List, Intersection) :-
  # "@var{List} has the elements which are in @var{List1} followed by
  the elements which are in @var{List2} but not in @var{List1}.".
 
-
 union([], List2, List2).
 union([Element|Residue], List, Union) :-
     member(Element, List), !,
@@ -404,7 +394,6 @@ union([Element|Residue], List, [Element|Union]) :-
     : (list(List1), list(List2)) => list(List) 
  # "@var{List} has the elements which are in @var{List1} but not in
  @var{List2}.".
-
 
 difference([], _, []) :- !.
 difference([Element|Residue], List, Difference) :-
@@ -440,12 +429,12 @@ equal_lists(List1, List2) :-
 
 
 :- pred list_to_list_of_lists(List,LList) 
-: list(List) => list_of_lists(LList).
+   : list(List) => list_of_lists(LList).
 
 :- pred list_to_list_of_lists(List,LList) 
-: list_of_lists(LList) => list(List) 
-# "@var{LList} is the list of one element lists with elements of
-    @var{List}.".
+   : list_of_lists(LList) => list(List) 
+   # "@var{LList} is the list of one element lists with elements of
+   @var{List}.".
 
 list_to_list_of_lists([],[]).
 list_to_list_of_lists([X|Xs],[[X]|Xss]) :-
