@@ -724,17 +724,17 @@ portray_clause1(:-(Command)) :-
     functor(Command, Key, 1),
     current_op(_, fx, Key), !,
     arg(1, Command, Body),
-    'list clauses'(Body, :-(Key), 8, Co),
+    'list clauses'(Body, :-(Key), 4, Co),
     write_fullstop(Co).
 portray_clause1((Pred:-Body)) :- !,
     write_out(Pred, options(true,false,true,false,1000000), 1199, 1200, -1, '(', 2'100, Ci), % writeq
     (   Body=true -> write_fullstop(Ci)
-    ;   'list clauses'(Body, 0, 8, Co),
+    ;   'list clauses'(Body, 0, 4, Co),
         write_fullstop(Co)
     ).
 portray_clause1('-->'(Pred, Body)) :- !,
     write_out(Pred, options(true,false,true,false,1000000), 1199, 1200, -1, '(', 2'100, _), % writeq
-    'list clauses'(Body, 2, 8, Co),
+    'list clauses'(Body, 2, 4, Co),
     write_fullstop(Co).
 portray_clause1(Pred) :-
     write_out(Pred, options(true,false,true,false,1000000), 1200, 0, -1, '(', 2'100, Ci), % writeq
@@ -754,9 +754,10 @@ write_fullstop(Ci) :-
     'list disj 2'(B, D).
 'list clauses'((A->B), L, D, 2'100) :- !,
     'list magic'(L, D),
-    E is D+4,
+    E is D+2,
     'list clauses'(A, 3, E, _),
-    'list clauses'(B, 5, E, _),
+    E2 is D+4,
+    'list clauses'(B, 5, E2, _),
     nl, tab(D),
     put_code(0')).
 'list clauses'(!, 0, _, 2'100) :- !,
@@ -780,9 +781,9 @@ write_fullstop(Ci) :-
     display(' -->'),
     nl, tab(D).
 'list magic'(3, _) :-
-    display('(   ').
+    display('( ').
 'list magic'(4, _) :-
-    display(';   ').
+    display('; ').
 'list magic'(5, D) :-
     display(' ->'),
     nl, tab(D).
@@ -799,12 +800,13 @@ write_fullstop(Ci) :-
     put_code(0')).
 
 'list disj 1'((A->B), L, D) :- !,
-    E is D+4,
+    E is D+2,
     'list clauses'(A, L, E, _),
-    'list clauses'(B, 5, E, _),
+    E2 is D+4,
+    'list clauses'(B, 5, E2, _),
     nl, tab(D).
 'list disj 1'(A, L, D) :-
-    E is D+4,
+    E is D+2,
     'list clauses'(A, L, E, _),
     nl, tab(D).
 
