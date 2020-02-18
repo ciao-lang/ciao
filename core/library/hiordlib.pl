@@ -228,6 +228,7 @@ foldr_([X|Xs], P, Z, R) :-
 
 minimum([X|Xs], Pred, Min) :- minimum_carry(Xs, Pred, X, Min).
 
+:- meta_predicate minimum_carry(_, pred(2), _, _).
 minimum_carry([],     _Pred, M,        M).
 minimum_carry([X|Xs], Pred,  MinSoFar, Min) :-
     (
@@ -248,6 +249,7 @@ minimum_carry([X|Xs], Pred,  MinSoFar, Min) :-
 filter(Goal, List, Included) :-
     filter_(List, Goal, Included).
 
+:- meta_predicate filter_(?, pred(1), ?).
 filter_([], _, []).
 filter_([X|Xs], P, Ys) :-
     ( P(X) ->
@@ -268,6 +270,7 @@ filter_([X|Xs], P, Ys) :-
 partition(P, Xs, Ys, Zs) :-
     partition_(Xs, P, Ys, Zs).
 
+:- meta_predicate partition_(?, pred(1), ?, ?).
 partition_([], _, [], []).
 partition_([X|Xs], P, Ys, Zs) :-
     ( P(X) ->
