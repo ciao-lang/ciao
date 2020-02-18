@@ -1,30 +1,28 @@
-:- module(assoc,
-    [ empty_assoc/1,
-      assoc_to_list/2,
-      is_assoc/1,
-      min_assoc/3,
-      max_assoc/3,
-      gen_assoc/3,
-      get_assoc/3,
-      get_assoc/5,
-      get_next_assoc/4,
-      get_prev_assoc/4,
-      list_to_assoc/2,
-      ord_list_to_assoc/2,
-      map_assoc/2,
-      map_assoc/3,
-      map/3,
-      foldr/4,
-      put_assoc/4,
-      put_assoc/5,
-      add_assoc/4,
-      update_assoc/5,
-      del_assoc/4,
-      del_min_assoc/4,
-      del_max_assoc/4
-%         tabla_tiempos/5,
-    ],
-    [assertions, basicmodes, hiord, regtypes]).
+:- module(_, [
+    empty_assoc/1,
+    assoc_to_list/2,
+    is_assoc/1,
+    min_assoc/3,
+    max_assoc/3,
+    gen_assoc/3,
+    get_assoc/3,
+    get_assoc/5,
+    get_next_assoc/4,
+    get_prev_assoc/4,
+    list_to_assoc/2,
+    ord_list_to_assoc/2,
+    map_assoc/2,
+    map_assoc/3,
+    map/3,
+    foldr/4,
+    put_assoc/4,
+    put_assoc/5,
+    add_assoc/4,
+    update_assoc/5,
+    del_assoc/4,
+    del_min_assoc/4,
+    del_max_assoc/4
+], [assertions, basicmodes, hiord, regtypes]).
 
 :- doc(title,"Association between key and value").
 
@@ -523,8 +521,9 @@ map_assoc(Pred,Assoc) :-
     assoc_to_list(Assoc,L),
     map_list(L,Pred).
 
+:- meta_predicate map_list(?, pred(1)).
 map_list([],_).
-map_list([_-V|Rest],Pred) :- 
+map_list([_-V|Rest],Pred) :-
     Pred(V),
     map_list(Rest,Pred).
 
@@ -537,21 +536,28 @@ map_list([_-V|Rest],Pred) :-
 :- meta_predicate map_assoc(pred(2), ?, ?).
 
 map_assoc(Pred,Assoc,AssocNew) :- 
-    assoc:map(Assoc,(_(_,Old,New) :- Pred(Old,New)),AssocNew).
+    assoc:map(map_assoc_p(Pred),Assoc,AssocNew).
 
-:- pred map(+Assoc1,+Pred,-Assoc2)
+:- meta_predicate map_assoc_p(pred(2), ?, ?, ?).
+map_assoc_p(Pred,_Key,Old,New) :- Pred(Old,New).
+
+:- pred map(+Pred,+Assoc1,-Assoc2)
      # "Applies @var{Pred} with arity 3 to each value of the
        assoc_table @var{Assoc1} obtaining the new assoc_table
        @var{Assoc2} in which only the values can have changed.".
 
-:- meta_predicate map(?, pred(3), ?).
+:- meta_predicate map(pred(3), ?, ?).
 
-map(assoc_table(Assoc,N,Type),Pred,assoc_table(Result,N,Type)) :- 
+map(Pred,assoc_table(Assoc,N,Type),assoc_table(Result,N,Type)) :- 
     ( Type == tree ->
         map_avl(Assoc,Pred,Result)
-    ; hiordlib:maplist((_(K-V,K-R) :- Pred(K,V,R)),Assoc,Result)
+    ; hiordlib:maplist(map_p(Pred),Assoc,Result)
     ).
 
+:- meta_predicate map_p(pred(3), ?, ?).
+map_p(Pred, K-V, K-R) :- Pred(K,V,R).
+
+:- meta_predicate map_avl(?, pred(3), ?).
 map_avl(nil,_,nil).
 map_avl(avl(K,Old_Val,Old_L,Old_R,H),Pred,avl(K,New_Val,New_L,New_R,H)) :- 
     map_avl(Old_L,Pred,New_L),
@@ -559,18 +565,22 @@ map_avl(avl(K,Old_Val,Old_L,Old_R,H),Pred,avl(K,New_Val,New_L,New_R,H)) :-
     map_avl(Old_R,Pred,New_R).
 
 % TODO: allow foldr_tail too?
-:- meta_predicate foldr(?, pred(4), ?, ?).
-:- pred foldr(+Assoc,+Pred,+DS,-NDS) 
+:- meta_predicate foldr(pred(4), ?, ?, ?).
+:- pred foldr(+Pred,+Assoc,+DS,-NDS) 
      # "Applies @var{Pred} with arity 4 to each value of the
        assoc_table @var{Assoc}. If @var{Pred} is satisfied, it updates
        the data-structure DS. Otherwise it fails.".
 
-foldr(assoc_table(Assoc,_,Type),Pred,DS,NDS) :- 
+foldr(Pred,assoc_table(Assoc,_,Type),DS,NDS) :- 
     ( Type == tree ->
         foldr_avl(Assoc,Pred,DS,NDS)
-    ; hiordlib:foldr((_(K-V,DS0,NDS0) :- Pred(K,V,DS0,NDS0)),Assoc,DS,NDS)
+    ; hiordlib:foldr(foldr_p(Pred),Assoc,DS,NDS)
     ).
 
+:- meta_predicate foldr_p(pred(4), ?, ?, ?).
+foldr_p(Pred, K-V, DS0, NDS0) :- Pred(K,V,DS0,NDS0).
+
+:- meta_predicate foldr_avl(?, pred(4), ?, ?).
 foldr_avl(nil,_,DS,DS).
 foldr_avl(avl(K,V,L,R,_),Pred,DS,NDS) :- 
     foldr_avl(L,Pred,DS,DS0),
@@ -591,8 +601,8 @@ ord_pairs([_-_|Rest]) :-
 %% 
 %% ord_pairs_aux(_,[]).
 %% ord_pairs_aux(KPrev,[K-_|Rest]) :-
-%%      KPrev @< K,
-%%      ord_pairs_aux(K,Rest).
+%%     KPrev @< K,
+%%     ord_pairs_aux(K,Rest).
 %% 
 
 :- pred assoc_to_list(+Assoc,-L) : (assoc_table(Assoc), ord_pairs(L))
@@ -689,65 +699,65 @@ select_pairs([_-_|Rest],K,V) :-
 
 %crear_lista(L,1,L).
 %crear_lista(L1,N,L2) :- 
-%       N > 1,
-%       N2 is N - 1,
-%       L_Temp = [N2-N2|L1],
-%       crear_lista(L_Temp,N2,L2).
+%    N > 1,
+%    N2 is N - 1,
+%    L_Temp = [N2-N2|L1],
+%    crear_lista(L_Temp,N2,L2).
 
 %acceder_lista(_,0) :- !.
 %acceder_lista(List,N) :-
-%       get_assoc_list(List,N,N),
-%       N2 is N - 1,
-%       acceder_lista(List,N2).
+%    get_assoc_list(List,N,N),
+%    N2 is N - 1,
+%    acceder_lista(List,N2).
 %
 %acceder_AVL(_,0) :- !.
 %acceder_AVL(AVL,N) :-
-%       get_assoc_avl(AVL,N,N),
-%       N2 is N - 1,
-%       acceder_AVL(AVL,N2).
+%    get_assoc_avl(AVL,N,N),
+%    N2 is N - 1,
+%    acceder_AVL(AVL,N2).
 
 %insertar_nesimo_lista(N,List_Ori) :-
     %le insertamos el elemento n-esimo
-%       put_assoc_list(List_Ori,N,List,N,_),
+%    put_assoc_list(List_Ori,N,List,N,_),
     %accedemos independientemente a los n elementos de la lista
-%       acceder_lista(List,N).
+%    acceder_lista(List,N).
 
 %insertar_nesimo_avl(N,List_Ori) :-
     %ahora insertamos el n-esimo elemento pero trabajando con arboles
-%       ord_list_to_assoc_avl(List_Ori,nil,AVL_Ori),
+%    ord_list_to_assoc_avl(List_Ori,nil,AVL_Ori),
     %le insertamos el elemento n-esimo
-%       put_assoc_avl(AVL_Ori,N,AVL,N,_,_),
+%    put_assoc_avl(AVL_Ori,N,AVL,N,_,_),
     %accedemos independientemente a los n elementos de la lista
-%       acceder_AVL(AVL,N).
+%    acceder_AVL(AVL,N).
 
 %recorrer_N(Tiempo,N,N_Fin,Repeat,Resul,Llevo) :- 
-%       crear_lista([],N,Lista_Ori),
-%       statistics(Tiempo,[_,_]),
+%    crear_lista([],N,Lista_Ori),
+%    statistics(Tiempo,[_,_]),
     %construimos una lista de asociacion de n - 1 elementos
-%       between(1,Repeat,N_Lista),
-%       insertar_nesimo_lista(N,Lista_Ori),
-%       (
-%           N_Lista < Repeat ->
-%           fail
-%       ;
-%           statistics(Tiempo,[_,T_Lista])
-%       ),
-%       between(1,Repeat,N_Avl),
-%       insertar_nesimo_avl(N,Lista_Ori),
-%       (
-%           N_Avl < Repeat ->
-%           fail
-%       ;
-%           statistics(Tiempo,[_,T_Avl])
-%       ),
-%       Llevo2 = [N:T_Lista-T_Avl|Llevo],
-%       (
-%           N == N_Fin ->
-%           Resul = Llevo2
-%       ;
-%           N1 is N + 1,
-%           recorrer_N(Tiempo,N1,N_Fin,Repeat,Resul,Llevo2)
-%       ).      
+%    between(1,Repeat,N_Lista),
+%    insertar_nesimo_lista(N,Lista_Ori),
+%    (
+%        N_Lista < Repeat ->
+%        fail
+%    ;
+%        statistics(Tiempo,[_,T_Lista])
+%    ),
+%    between(1,Repeat,N_Avl),
+%    insertar_nesimo_avl(N,Lista_Ori),
+%    (
+%        N_Avl < Repeat ->
+%        fail
+%    ;
+%        statistics(Tiempo,[_,T_Avl])
+%    ),
+%    Llevo2 = [N:T_Lista-T_Avl|Llevo],
+%    (
+%        N == N_Fin ->
+%        Resul = Llevo2
+%    ;
+%        N1 is N + 1,
+%        recorrer_N(Tiempo,N1,N_Fin,Repeat,Resul,Llevo2)
+%    ).      
     
 %tabla_tiempos(Tiempo,N_Ini,N_Fin,Repeat,Resul) :-
-%       recorrer_N(Tiempo,N_Ini,N_Fin,Repeat,Resul,[]).
+%    recorrer_N(Tiempo,N_Ini,N_Fin,Repeat,Resul,[]).
