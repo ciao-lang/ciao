@@ -1,13 +1,6 @@
-:- module(terms_check,
-    [ ask/2, instance/2, subsumes_term/2, variant/2,
-      most_general_instance/3,
-      most_specific_generalization/3,
-      unifier/1, unifiable/3
-    ],
-    [assertions, regtypes, nortchecks]).
+:- module(terms_check, [], [noprelude, assertions, regtypes, nortchecks]).
 
 :- doc(title,"Term checking utilities").
-
 :- doc(author,"The Ciao Development Team").
 
 :- doc(module,"This module implements a basic set of term checking
@@ -19,8 +12,20 @@
    (although not yet implemented): i.e., for the particular case of
    Herbrand terms, @pred{ask/2} is just @pred{instance/2}.").
 
-%-------------------------------------------------------------------------
+:- use_module(engine(basiccontrol)).
+:- use_module(engine(term_basic)).
+:- use_module(engine(term_typing)).
+:- use_module(engine(term_compare)).
+:- use_module(engine(arithmetic)).
 
+:- if(defined(optim_comp)).
+:- '$native_include_c_source'(engine(terms_check)).
+:- else.
+:- endif.
+
+% ---------------------------------------------------------------------------
+
+:- export(variant/2).
 :- doc(variant(Term1,Term2),"@var{Term1} and @var{Term2} are
    identical up to renaming.").
 
@@ -62,23 +67,36 @@ varpair(X,Y,N,N1):- var(X), !, X=N, X=Y, N1 is N+1.
 varpair(X,Y,N,N1):- var(Y), !, Y=N, X=Y, N1 is N+1.
 varpair(X,X,N,N).
 
-%-------------------------------------------------------------------------
+% ---------------------------------------------------------------------------
+
+:- export(ask/2).
 :- doc(ask(Term1,Term2),"@var{Term1} and @var{Term2} unify without
     producing bindings for the variables of @var{Term1}. I.e.,
     @tt{instance(@var{Term1},@var{Term2})} holds.").
+:- if(defined(optim_comp)).
+:- '$props'(ask/2, [impnat=cbool(cinstance)]).
+:- else.
+ask(A, B) :- '$instance'(A, B).
+:- impl_defined('$instance'/2).
+:- endif.
 
+:- export(instance/2).
 :- trust prop instance(Term1,Term2) + native
     # "@var{Term1} is an instance of @var{Term2}.".
+:- if(defined(optim_comp)).
+:- '$props'(instance/2, [impnat=cbool(cinstance)]).
+:- else.
+instance(A, B) :- '$instance'(A, B).
+:- endif.
 
+:- export(subsumes_term/2).
 :- pred subsumes_term(Term1,Term2) + iso
     # "@var{Term2} is an instance of @var{Term1}.".
-
-ask(A, B) :- '$instance'(A, B).
-
-instance(A, B) :- '$instance'(A, B).
-
+:- if(defined(optim_comp)).
+subsumes_term(A, B) :- instance(B, A).
+:- else.
 subsumes_term(A, B) :- '$instance'(B, A).
-
+:- endif.
 
 /*
 % This is the version implemented in Prolog (10 times slower)
@@ -113,9 +131,9 @@ mynumbervars6(I,A,F1,F2,N,N1) :-
      mynumbervars6(I1,A,F1,F2,N0,N1).
 */
 
-:- impl_defined('$instance'/2).
+% ---------------------------------------------------------------------------
 
-%-------------------------------------------------------------------------
+:- export(most_specific_generalization/3).
 :- doc(most_specific_generalization(Term1,Term2,Term),"@var{Term}
     satisfies @tt{instance(@var{Term1},@var{Term})} and
     @tt{instance(@var{Term2},@var{Term})} and there is no term less
@@ -200,6 +218,7 @@ msg_each_arg(N,T1,T2,T):-
     msg_each_arg(N1,T1,T2,T).
 */
 
+:- export(most_general_instance/3).
 :- doc(most_general_instance(Term1,Term2,Term),"@var{Term}
     satisfies @tt{instance(@var{Term},@var{Term1})} and
     @tt{instance(@var{Term},@var{Term2})} and there is no term more
@@ -232,23 +251,28 @@ mgi_each_arg(N,T1,T2,T):-
     mgi_each_arg(N1,T1,T2,T).
 */
 
+% ---------------------------------------------------------------------------
 
+:- if(defined(optim_comp)).
+% TODO: port unifiable/3
+:- else.
 :- regtype unifier_elem/1.
 :- doc(doinclude, unifier_elem/1).
 
 unifier_elem(X=Term) :- var(X), term(Term).
 
+:- export(unifier/1).
 :- regtype unifier(X) # "@var{X} is a unifier.".
 :- doc(unifier/1, "@includedef{unifier/1}").
 
 unifier(Unifier) :- list(unifier_elem, Unifier).
 
 % (defined in engine/term_support.c)
+:- export(unifiable/3).
 :- trust pred unifiable(X, Y, Unifier) :
-    (term(X), term(Y)) => unifier(Unifier)
-
-    # "Unifies @var{Unifier} with the most general unifier between
-        the terms @var{X} and @var{Y}. Fails if such unifier does
-        not exit.".
-
+   ( term(X), term(Y) ) => unifier(Unifier)
+   # "Unifies @var{Unifier} with the most general unifier between
+   the terms @var{X} and @var{Y}. Fails if such unifier does
+   not exit.".
 :- impl_defined(unifiable/3).
+:- endif.
