@@ -240,13 +240,17 @@ print_conjunction_1(A,S) :-
 
 print_conjunction([],_S).
 print_conjunction([Prop],S):- !,
-    ( Prop = (_:_) ->
+    ( needs_paren(Prop) ->
         format(S,"(~q)",[Prop])
     ; format(S, "~q" ,[Prop])
     ).
 print_conjunction([Prop|Props],S):-
     format(S,"( ~q",[Prop]),
     print_tail_conj(Props,S).
+
+% TODO: incomplete
+needs_paren((_:_)).
+needs_paren((_,_)).
 
 print_tail_conj([],S):-
     format(S," )",[]).
