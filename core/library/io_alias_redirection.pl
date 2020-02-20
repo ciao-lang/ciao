@@ -17,25 +17,36 @@
 
 :- use_module(engine(stream_basic), [stream_alias/1, stream/1]).
 
-:- pred set_stream(+StreamAlias, +NewStream, ?OldStream): 
-   stream_alias * stream * stream 
+:- if(defined(optim_comp)).
+:- '$native_include_c_source'(engine(io_alias_redirection)).
+:- endif.
 
-# "Associate @var{StreamAlias} with an open stream @var{newStream}.
+:- pred set_stream(+StreamAlias, +NewStream, ?OldStream)
+   : stream_alias * stream * stream 
+   # "Associate @var{StreamAlias} with an open stream @var{newStream}.
    Returns in @var{OldStream} the stream previously associated with the
    alias.  The mode of @var{NewStream} must match the intended use of
    @var{StreamAlias}.".
 
-set_stream(StreamAlias, NewStream, OldStream):-
+set_stream(StreamAlias, NewStream, OldStream) :-
     get_stream(StreamAlias, OldStream),
     replace_stream(StreamAlias, NewStream).
 
-:- pred get_stream(+StreamAlias, ?Stream): stream_alias * stream 
-# "Return in @var{Stream} the stream associated with
+:- pred get_stream(+StreamAlias, ?Stream) : stream_alias * stream 
+   # "Return in @var{Stream} the stream associated with
    @var{StreamAlias}.".
+:- if(defined(optim_comp)).
+:- '$props'(get_stream/2, [impnat=cbool(prolog_get_stream)]).
+:- else.
 :- impl_defined(get_stream/2).
+:- endif.
 
-:- pred replace_stream(+StreamAlias, +NewStream): stream_alias * stream 
-# "Replace the stream associated to @var{StreamAlias} by
+:- pred replace_stream(+StreamAlias, +NewStream) : stream_alias * stream 
+   # "Replace the stream associated to @var{StreamAlias} by
    @var{NewStream}.".
+:- if(defined(optim_comp)).
+:- '$props'(replace_stream/2, [impnat=cbool(prolog_replace_stream)]).
+:- else.
 :- impl_defined(replace_stream/2).
+:- endif.
 

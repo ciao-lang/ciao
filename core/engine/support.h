@@ -13,6 +13,10 @@ typedef bignum_size_t (*bn_fun_t)(bignum_t *x, bignum_t *y, bignum_t *z, bignum_
 
 CBOOL__PROTO(cunify, tagged_t x1, tagged_t x2);
 CBOOL__PROTO(cunify_args, int arity, tagged_t *pt1, tagged_t *pt2);
+
+#define CBOOL__UNIFY(X, Y) CBOOL__CALL(cunify, (X), (Y))
+#define CBOOL__LASTUNIFY(X, Y) CBOOL__LASTCALL(cunify, (X), (Y))
+
 flt64_t get_float(tagged_t t);
 intmach_t get_integer(tagged_t t);
 bool_t float_is_finite(tagged_t t);

@@ -615,8 +615,7 @@ CBOOL__PROTO(prolog_set_output)
 
 /* replace_stream(StreamAlias, NewStream) */
 
-CBOOL__PROTO(prolog_replace_stream)
-{
+CBOOL__PROTO(prolog_replace_stream) {
   ERR__FUNCTOR("io_alias_redirection:replace_stream", 2);
   tagged_t which_stream;
   tagged_t which_atom;
@@ -646,14 +645,12 @@ CBOOL__PROTO(prolog_replace_stream)
     stream_user_error = node;
   }
 
-  return TRUE;
+  CBOOL__PROCEED;
 }
-
 
 /* get_stream(StreamAlias, CurrentStream) */
 
-CBOOL__PROTO(prolog_get_stream)
-{
+CBOOL__PROTO(prolog_get_stream) {
   ERR__FUNCTOR("io_alias_redirection:get_stream", 2);
   tagged_t which_atom;
   stream_node_t *node;
@@ -669,7 +666,7 @@ CBOOL__PROTO(prolog_get_stream)
     BUILTIN_ERROR(DOMAIN_ERROR(STREAM_OR_ALIAS),X(0),1);
   }
    
-  return cunify(Arg, X(1), ptr_to_stream_noalias(Arg, node));
+  CBOOL__LASTUNIFY(X(1), CFUN__EVAL(ptr_to_stream_noalias, node));
 }
 
 /* ------------------------------------------------------------------------- */
