@@ -65,10 +65,6 @@
 //#define WTERMSIG(x) SIGTERM
 #endif
 
-#if defined(Solaris)
-int gethostname(char *name, int namelen);
-#endif
-
 #include <ciao/support.h>
 #include <ciao/support_macros.h>
 #include <ciao/term_support.h>
@@ -420,12 +416,11 @@ void compute_cwd(void)
 #endif
 }
 
-CBOOL__PROTO(prolog_unix_cd)
-{
+CBOOL__PROTO(prolog_unix_cd) {
   ERR__FUNCTOR("system:working_directory", 2);
   char pathBuf[MAXPATHLEN+1];
-/*   struct stat statbuf; */
-  Unify_constant(MakeString(cwd), X(0));
+  /* struct stat statbuf; */
+  CBOOL__UnifyCons(GET_ATOM(cwd), X(0));
   DEREF(X(0), X(0));
 
   DEREF(X(1), X(1));
@@ -434,7 +429,7 @@ CBOOL__PROTO(prolog_unix_cd)
   }
 
   /* check type argument*/
-  if (!IsAtom(X(1))) {
+  if (!TaggedIsATM(X(1))) {
     BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(1), 2);
   }
   /* check argument domain error */
@@ -462,7 +457,7 @@ CBOOL__PROTO(prolog_unix_cd)
   }
 
   compute_cwd();
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
 /* --------------------------------------------------------------------------- */
@@ -476,7 +471,7 @@ CBOOL__PROTO(prolog_unix_argv)
 
   ENSURE_HEAP_LST(prolog_argc - 1, 1);
   for (i=prolog_argc; i>1;) {
-    MakeLST(list, MakeString(p1[--i]), list);
+    MakeLST(list, GET_ATOM(p1[--i]), list);
   }
   return cunify(Arg, list, X(0));
 }
@@ -567,8 +562,7 @@ static inline int c_mkstemp(char *template_name) {
 }
 #endif
 
-CBOOL__PROTO(prolog_unix_mktemp)
-{
+CBOOL__PROTO(prolog_unix_mktemp) {
   ERR__FUNCTOR("system:mktemp", 2);
   char template[STATICMAXATOM];
   int fildes;
@@ -576,12 +570,10 @@ CBOOL__PROTO(prolog_unix_mktemp)
   DEREF(X(0), X(0));
 
   /* check argument instantiation error */
-  if (IsVar(X(0)))
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+  if (IsVar(X(0))) BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
 
-  /* check type argument*/
-  if (!TagIsATM(X(0)))
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+  /* check type argument */
+  if (!TaggedIsATM(X(0))) ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
 
   strcpy(template, GetString(X(0)));
 
@@ -591,7 +583,7 @@ CBOOL__PROTO(prolog_unix_mktemp)
   } else {
     close(fildes);   // Do not leave it open, since the stream is not seen
                      // at Prolog level
-    return cunify(Arg, MakeString(template), X(1));
+    return cunify(Arg, GET_ATOM(template), X(1));
   }
 }
 
@@ -607,7 +599,7 @@ CBOOL__PROTO(prolog_unix_access)
   if (IsVar(X(0)))
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   /* check type argument*/
-  if (!TagIsATM(X(0)))
+  if (!TaggedIsATM(X(0)))
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
 
   DEREF(X(1), X(1));
@@ -646,7 +638,7 @@ CBOOL__PROTO(prolog_directory_files)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   }
   /* check type argument*/
-  if (!TagIsATM(X(0))) {
+  if (!TaggedIsATM(X(0))) {
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
   }
   /* check domain argument */
@@ -685,7 +677,7 @@ CBOOL__PROTO(prolog_directory_files)
     X(2) = atom_nil;
     while ((direntry = readdir(dir))) {
       ENSURE_HEAP_LST(16, 3); /* 16 is some arbitrary gap (1 would be OK) */
-      MakeLST(X(2), MakeString(direntry->d_name), X(2));
+      MakeLST(X(2), GET_ATOM(direntry->d_name), X(2));
     }
     closedir(dir);
   }
@@ -711,7 +703,7 @@ CBOOL__PROTO(prolog_file_properties)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   }
   /* check type argument*/
-  if (!TagIsATM(X(0))) {
+  if (!TaggedIsATM(X(0))) {
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
   }
   /* check argument domain error */
@@ -729,7 +721,7 @@ CBOOL__PROTO(prolog_file_properties)
       symlinkName[len] = (char) 0;
     }
 #endif
-    Unify_constant(MakeString(symlinkName), X(2));
+    CBOOL__UnifyCons(GET_ATOM(symlinkName), X(2));
   }
 
   DEREF(X(1), X(1));
@@ -761,7 +753,7 @@ CBOOL__PROTO(prolog_file_properties)
     }
 
     if (X(1)!=atom_nil) {
-      Unify_constant(( S_ISREG(statbuf.st_mode) ? atom_regular
+      CBOOL__UnifyCons(( S_ISREG(statbuf.st_mode) ? atom_regular
                        : S_ISDIR(statbuf.st_mode) ? atom_directory
 #if !(defined(_WIN32) || defined(_WIN64))
                        : S_ISLNK(statbuf.st_mode) ? atom_symlink
@@ -776,16 +768,16 @@ CBOOL__PROTO(prolog_file_properties)
     }
 
     if (X(3)!=atom_nil) {
-      /* Cannot be Unify_constant because it is a large integer */
+      /* Cannot be CBOOL__UnifyCons because it is a large integer */
       if (!cunify(Arg, MakeInteger(Arg, statbuf.st_mtime), X(3))) {
         return FALSE;
       }
     }
     if (X(4)!=atom_nil) {
-      Unify_constant(MakeSmall(statbuf.st_mode&0xfff), X(4));
+      CBOOL__UnifyCons(MakeSmall(statbuf.st_mode&0xfff), X(4));
     }
     if (X(5)!=atom_nil) {
-      Unify_constant(MakeSmall(statbuf.st_size), X(5));
+      CBOOL__UnifyCons(MakeSmall(statbuf.st_size), X(5));
     }
   }
 
@@ -808,7 +800,7 @@ CBOOL__PROTO(prolog_touch)
   if (IsVar(X(0)))
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   /* check type argument */
-  if (!TagIsATM(X(0)))
+  if (!TaggedIsATM(X(0)))
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
 
   if (!expand_file_name(GetString(X(0)), TRUE, file))
@@ -858,7 +850,7 @@ CBOOL__PROTO(prolog_unix_chmod)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   }
   /* check type argument*/
-  if (!TagIsATM(X(0))) {
+  if (!TaggedIsATM(X(0))) {
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
   }
   /* check domain argument */
@@ -933,7 +925,7 @@ CBOOL__PROTO(prolog_unix_delete)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   }
   /* check type argument*/
-  if (!TagIsATM(X(0))) {
+  if (!TaggedIsATM(X(0))) {
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
   }
   /* check argument domain error */
@@ -1007,7 +999,7 @@ CBOOL__PROTO(prolog_unix_rename)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   }
   /* check type argument*/
-  if (!TagIsATM(X(0))) {
+  if (!TaggedIsATM(X(0))) {
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
   }
   DEREF(X(1), X(1));
@@ -1016,7 +1008,7 @@ CBOOL__PROTO(prolog_unix_rename)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(1), 2);
   }
   /* check type the other argument*/
-  if (!TagIsATM(X(1))) {
+  if (!TaggedIsATM(X(1))) {
     ERROR_IN_ARG(X(1), 2, STRICT_ATOM);
   }
   /* check domain of the two arguments */
@@ -1061,7 +1053,7 @@ CBOOL__PROTO(prolog_unix_mkdir)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   }
   /* check type argument*/
-  if (!TagIsATM(X(0))) {
+  if (!TaggedIsATM(X(0))) {
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
   }
   /* check domain argument */
@@ -1122,7 +1114,7 @@ CBOOL__PROTO(prolog_unix_rmdir)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   }
   /* check type argument*/
-  if (!TagIsATM(X(0))) {
+  if (!TaggedIsATM(X(0))) {
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
   }
   /* Check domain error */
@@ -1218,7 +1210,7 @@ CBOOL__PROTO(prolog_current_host)
   }
 
   DEREF(X(0), X(0));
-  return cunify(Arg, MakeString(hostname), X(0));
+  return cunify(Arg, GET_ATOM(hostname), X(0));
 }
 
 /* --------------------------------------------------------------------------- */
@@ -1240,7 +1232,7 @@ CBOOL__PROTO(prolog_current_host)
 /*   *\/ */
 /*   /\* check type argument*\/ */
 /*   /\* */
-/*   if (!TagIsATM(X(0))) */
+/*   if (!TaggedIsATM(X(0))) */
 /*     ERROR_IN_ARG(X(0), 1, STRICT_ATOM); */
 /*   *\/ */
 /*   if ((s = getenv(GetString(X(0)))) == NULL) return FALSE; */
@@ -1320,7 +1312,7 @@ CBOOL__PROTO(prolog_c_winpath) /* EMM */
   DEREF(X(0),X(0));
   posixpath = GetString(X(0));
   cygwin_conv_to_full_win32_path(posixpath, winpath);
-  return cunify(Arg, MakeString(winpath), X(1));
+  return cunify(Arg, GET_ATOM(winpath), X(1));
 #else
   return cunify(Arg, X(0), X(1));
 #endif
@@ -1335,7 +1327,7 @@ CBOOL__PROTO(prolog_c_winfile) /* EMM */
   DEREF(X(0),X(0));
   posixpath = GetString(X(0));
   cygwin_conv_to_win32_path(posixpath, winpath);
-  return cunify(Arg, MakeString(winpath), X(1));
+  return cunify(Arg, GET_ATOM(winpath), X(1));
 #else
   return cunify(Arg, X(0), X(1));
 #endif
@@ -1350,7 +1342,7 @@ CBOOL__PROTO(prolog_c_posixpath) /* EMM */
   DEREF(X(0),X(0));
   winpath = GetString(X(0));
   cygwin_conv_to_full_posix_path(winpath, posixpath);
-  return cunify(Arg, MakeString(posixpath), X(1));
+  return cunify(Arg, GET_ATOM(posixpath), X(1));
 #else
   return cunify(Arg, X(0), X(1));
 #endif
@@ -1365,7 +1357,7 @@ CBOOL__PROTO(prolog_c_posixfile) /* EMM */
   DEREF(X(0), X(0));
   winpath = GetString(X(0));
   cygwin_conv_to_posix_path(winpath, posixpath);
-  return cunify(Arg, MakeString(posixpath), X(1));
+  return cunify(Arg, GET_ATOM(posixpath), X(1));
 #else
   return cunify(Arg, X(0), X(1));
 #endif
@@ -1382,7 +1374,7 @@ CBOOL__PROTO(prolog_c_errno)
 CBOOL__PROTO(prolog_c_strerror)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, MakeString(strerror(errno)), X(0));
+  return cunify(Arg, GET_ATOM(strerror(errno)), X(0));
 }
 
 /* --------------------------------------------------------------------------- */
@@ -1497,7 +1489,7 @@ CBOOL__PROTO(prolog_c_get_env)
   if(value==NULL)
     return FALSE;
   else
-    return cunify(Arg, MakeString(value), X(1));
+    return cunify(Arg, GET_ATOM(value), X(1));
 }
 
 CBOOL__PROTO(prolog_c_set_env)
@@ -1540,12 +1532,12 @@ CBOOL__PROTO(prolog_c_current_env)
   value = strchr(environ[index], '=');
   n = (int)(value-nameval);
   value++;
-  tagged_t value_term = MakeString(value);
+  tagged_t value_term = GET_ATOM(value);
 
   char *name = checkalloc_ARRAY(char, n+1);
   memcpy(name, nameval, (int)(n+1)*sizeof(char));
   name[n] = '\0';
-  tagged_t name_term = MakeString(name);
+  tagged_t name_term = GET_ATOM(name);
   checkdealloc_ARRAY(char, n+1, name);
 
   return (cunify(Arg, name_term, X(1)) &&
@@ -1648,7 +1640,7 @@ CBOOL__PROTO(prolog_getgrnam)
   if (g == NULL) {
     return FALSE; 
   } else { 
-    return cunify(Arg, x0, MakeString(g->gr_name)); 
+    return cunify(Arg, x0, GET_ATOM(g->gr_name)); 
   } 
 #endif
 }
@@ -1672,7 +1664,7 @@ CBOOL__PROTO(prolog_getpwnam)
   name = p->pw_name;
 #endif
   
-  return cunify(Arg, x0, MakeString(name));
+  return cunify(Arg, x0, GET_ATOM(name));
 }
 
 /* --------------------------------------------------------------------------- */
@@ -1792,14 +1784,14 @@ CBOOL__PROTO(prolog_find_file)
   }
 
   if (t_pri > t_opt) { /* path+suffix exists, path+opt+suffix older|absent */
-    Unify_constant(atom_true, X(4));
+    CBOOL__UnifyCons(atom_true, X(4));
     goto giveVals;
   } else if (t_opt > 0) { /* newer path+opt+suffix exists */
     /* recreate opt+suffix */
     strcpy(cp, opt);
     bp = cp + strlen(cp);
     strcpy(bp, suffix);
-    Unify_constant(atom_true, X(4));
+    CBOOL__UnifyCons(atom_true, X(4));
     goto giveVals;
   }
 
@@ -1815,7 +1807,7 @@ CBOOL__PROTO(prolog_find_file)
       *cp = 0;
       goto searchPath;                     /* search inside */
     } else {
-      Unify_constant(atom_true, X(4));      /* found path */
+      CBOOL__UnifyCons(atom_true, X(4));      /* found path */
       if (*suffix && strcmp(bp -= strlen(suffix), suffix))
         /* does not end in suffix */
         bp = cp;
@@ -1824,16 +1816,16 @@ CBOOL__PROTO(prolog_find_file)
   }
 
   /* not found */
-  Unify_constant(atom_fail, X(4));
+  CBOOL__UnifyCons(atom_fail, X(4));
 
  giveVals:
 
   /* absolute path+suffix */
-  Unify_constant(MakeString(pathBuf), X(5));
+  CBOOL__UnifyCons(GET_ATOM(pathBuf), X(5));
 
   /* absolute path (without suffix) */
   *bp = 0;
-  Unify_constant(MakeString(pathBuf), X(6));
+  CBOOL__UnifyCons(GET_ATOM(pathBuf), X(6));
 
   /* dirname */
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
@@ -1846,7 +1838,7 @@ CBOOL__PROTO(prolog_find_file)
 #endif
   *bp = 0;
 
-  Unify_constant(MakeString(pathBuf), X(7));
+  CBOOL__UnifyCons(GET_ATOM(pathBuf), X(7));
 
   checkdealloc_ARRAY(char, relBufSize, relBuf);
   return TRUE;
@@ -1872,7 +1864,7 @@ CBOOL__PROTO(prolog_path_is_absolute)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   }
   /* check type argument*/
-  if (!TagIsATM(X(0))) {
+  if (!TaggedIsATM(X(0))) {
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
   }
   path = GetString(X(0));
@@ -1902,7 +1894,7 @@ CBOOL__PROTO(prolog_expand_file_name)
   fix_path(relBuf);
 #endif
 
-  Unify_constant(MakeString(relBuf), X(2));
+  CBOOL__UnifyCons(GET_ATOM(relBuf), X(2));
   checkdealloc_ARRAY(char, relBufSize, relBuf);
   return TRUE;
 }
@@ -2102,7 +2094,7 @@ CBOOL__PROTO(prolog_extract_paths) {
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   }
   /* check type argument*/
-  if (!TagIsATM(X(0))) {
+  if (!TaggedIsATM(X(0))) {
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
   }
   pathlist = GetString(X(0));
@@ -2115,7 +2107,7 @@ CBOOL__PROTO(prolog_extract_paths) {
     for (i = 0; paths[i] != NULL; i++) { }
     ENSURE_HEAP_LST(i, 2);
     for (; i>0; ) {
-      MakeLST(X(0), MakeString(paths[--i]), X(0));
+      MakeLST(X(0), GET_ATOM(paths[--i]), X(0));
     }
     c_free_paths(paths);
   }
@@ -2132,7 +2124,7 @@ extern char *eng_architecture;
 CBOOL__PROTO(prolog_getarch)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, MakeString(eng_architecture), X(0));
+  return cunify(Arg, GET_ATOM(eng_architecture), X(0));
 }
 
 extern char *eng_os;
@@ -2143,7 +2135,7 @@ extern char *eng_os;
 CBOOL__PROTO(prolog_getos)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, MakeString(eng_os), X(0));
+  return cunify(Arg, GET_ATOM(eng_os), X(0));
 }
 
 extern char *eng_debug_level;
@@ -2154,7 +2146,7 @@ extern char *eng_debug_level;
 CBOOL__PROTO(prolog_eng_debug_level)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, MakeString(eng_debug_level), X(0));
+  return cunify(Arg, GET_ATOM(eng_debug_level), X(0));
 }
 
 extern int eng_is_sharedlib;
@@ -2183,12 +2175,12 @@ CBOOL__PROTO(prolog_version)
   DEREF(X(3), X(3));
   DEREF(X(4), X(4));
   DEREF(X(5), X(5));
-  return (cunify(Arg, MakeString(ciao_version),  X(0)) &&
-          cunify(Arg, MakeString(ciao_patch),    X(1)) &&
-          cunify(Arg, MakeString(ciao_commit_branch), X(2)) &&
-          cunify(Arg, MakeString(ciao_commit_id), X(3)) &&
-          cunify(Arg, MakeString(ciao_commit_date), X(4)) &&
-          cunify(Arg, MakeString(ciao_commit_desc), X(5)));
+  return (cunify(Arg, GET_ATOM(ciao_version),  X(0)) &&
+          cunify(Arg, GET_ATOM(ciao_patch),    X(1)) &&
+          cunify(Arg, GET_ATOM(ciao_commit_branch), X(2)) &&
+          cunify(Arg, GET_ATOM(ciao_commit_id), X(3)) &&
+          cunify(Arg, GET_ATOM(ciao_commit_date), X(4)) &&
+          cunify(Arg, GET_ATOM(ciao_commit_desc), X(5)));
 }
 
 extern char *ciao_suffix;
@@ -2198,19 +2190,19 @@ extern char *so_suffix;
 CBOOL__PROTO(prolog_get_ciao_ext)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, MakeString(ciao_suffix), X(0));
+  return cunify(Arg, GET_ATOM(ciao_suffix), X(0));
 }
 
 CBOOL__PROTO(prolog_get_exec_ext)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, MakeString(exec_suffix), X(0));
+  return cunify(Arg, GET_ATOM(exec_suffix), X(0));
 }
 
 CBOOL__PROTO(prolog_get_so_ext)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, MakeString(so_suffix), X(0));
+  return cunify(Arg, GET_ATOM(so_suffix), X(0));
 }
 
 extern char *foreign_opts_cc;
@@ -2221,7 +2213,7 @@ extern char *foreign_opts_ldshared;
 #define DEF_PROLOG_GET_STR(NAME) \
 CBOOL__PROTO(prolog_get_##NAME) { \
   DEREF(X(0), X(0)); \
-  return cunify(Arg, MakeString(NAME), X(0)); \
+  return cunify(Arg, GET_ATOM(NAME), X(0)); \
 }
 
 DEF_PROLOG_GET_STR(foreign_opts_cc);
@@ -2937,13 +2929,13 @@ CBOOL__PROTO(get_deltaenv,
     DEREF(head, *TagToCar(list));
     if (TagIsSTR(head) && (TagToHeadfunctor(head)==functor_minus)) {
       DerefArg(name,head,1);
-      if (!TagIsATM(name)) goto wrong;
+      if (!TaggedIsATM(name)) goto wrong;
       DerefArg(val,head,2);
-      if (!TagIsATM(val)) goto wrong;
+      if (!TaggedIsATM(val)) goto wrong;
       denv[i][0] = GetString(name);
       denv[i][1] = GetString(val);
     } else {
-      if (!TagIsATM(head)) goto wrong;
+      if (!TaggedIsATM(head)) goto wrong;
       denv[i][0] = GetString(head);
       denv[i][1] = NULL;
     }
@@ -2977,7 +2969,7 @@ CBOOL__PROTO(prolog_exec)
 
   /* Get command */
   DEREF(X(0), X(0));
-  if (!IsAtom(X(0))) {
+  if (!TaggedIsATM(X(0))) {
     BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(0), 1);
   }
   command = GetString(X(0));
@@ -2988,20 +2980,20 @@ CBOOL__PROTO(prolog_exec)
   while(!IsVar(list) && TagIsLST(list)) {
     args_n++;
     DEREF(head, *TagToCar(list));
-    if (!TagIsATM(head)) { /* We only allow atoms */
+    if (!TaggedIsATM(head)) { /* We only allow atoms */
       BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), head, 2);
     }
     list = *TagToCdr(list);
     DEREF(list, list);
   }
   /* Make sure we had a real list */
-  if (!(!IsVar(list) && TagIsATM(list) && (list == atom_nil))) {
+  if (!(!IsVar(list) && TaggedIsATM(list) && (list == atom_nil))) {
     BUILTIN_ERROR(TYPE_ERROR(LIST), X(1), 2);
   }
   
   /* Get (optional) child execution directory */
   DEREF(X(6), X(6));
-  if (IsAtom(X(6))) {
+  if (TaggedIsATM(X(6))) {
     pr.cwd = GetString(X(6));
   } else {
     pr.cwd = NULL;
@@ -3213,7 +3205,7 @@ CBOOL__PROTO(prolog_unix_shell2)
   if (IsVar(X(0)))
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   /* check type argument*/
-  if (!TagIsATM(X(0)))
+  if (!TaggedIsATM(X(0)))
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
 
   int retcode = spawn_shell(GetString(X(0)));

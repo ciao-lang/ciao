@@ -90,7 +90,7 @@ CBOOL__PROTO(prolog_connect_to_socket_type)
   char   socket_name[512];
 
   DEREF(host_deref, X(0));
-  if (!TagIsATM(host_deref))
+  if (!TaggedIsATM(host_deref))
     BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(0), 1);
     // "connect_to_socket_type/[3,4]: 1st argument must be an atom");
 
@@ -104,7 +104,7 @@ CBOOL__PROTO(prolog_connect_to_socket_type)
    BUILTIN_ERROR(SYSTEM_ERROR,X(1),2);
 
   DEREF(socket_atm, X(2));
-  if (!TagIsATM(socket_atm))
+  if (!TaggedIsATM(socket_atm))
     BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(2), 3);
 // USAGE_FAULT("connect_to_socket_type/[3,4]: 3rd argument must be an atom");
 
@@ -157,7 +157,7 @@ CBOOL__PROTO(prolog_connect_to_socket_type)
   
   return
     cunify(Arg, 
-           ptr_to_stream(Arg,new_socket_stream(MakeString(socket_name),sock)),
+           ptr_to_stream(Arg,new_socket_stream(GET_ATOM(socket_name),sock)),
            X(3)
            );
 }
@@ -249,7 +249,7 @@ CBOOL__PROTO(prolog_socket_accept)
 
   return
     cunify(Arg, 
-           ptr_to_stream(Arg, new_socket_stream(MakeString(new_s_name),new_s)),
+           ptr_to_stream(Arg, new_socket_stream(GET_ATOM(new_s_name),new_s)),
            X(1));
 }
 
@@ -358,7 +358,7 @@ CBOOL__PROTO(prolog_select_socket)
     //      MAJOR_FAULT("select_socket/5: accept() call failed");
     
     sprintf(new_s_name, "<socket %d>", newsock);
-    socket_stream = new_socket_stream(MakeString(new_s_name), newsock);
+    socket_stream = new_socket_stream(GET_ATOM(new_s_name), newsock);
     unify_result = cunify(Arg, ptr_to_stream(Arg, socket_stream), X(1));
     FD_CLR(listen_sock,&ready);
   }
@@ -618,7 +618,7 @@ CBOOL__PROTO(prolog_hostname_address)
   struct hostent *host;
 
   DEREF(hostname, X(0));
-  if (!TagIsATM(hostname))
+  if (!TaggedIsATM(hostname))
     USAGE_FAULT("hostname_address/2: 1st argument must be an atom");
 
   if ((host = gethostbyname(GetString(hostname))) == NULL)
@@ -635,7 +635,7 @@ CBOOL__PROTO(prolog_hostname_address)
   }
   address[--address_index] = 0;
 
-  return cunify(Arg, X(1), MakeString(address));
+  return cunify(Arg, X(1), GET_ATOM(address));
 }
 
 
@@ -672,7 +672,7 @@ CBOOL__PROTO(prolog_socket_getpeername)
     inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof(ipstr));
   }
 
-  return cunify(Arg, X(1), MakeString(ipstr));
+  return cunify(Arg, X(1), GET_ATOM(ipstr));
 }
 
 

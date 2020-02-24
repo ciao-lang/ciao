@@ -118,7 +118,7 @@ CBOOL__PROTO(prolog_lock_atom)
 
   DEREF(term, X(0));
 
-  if (TagIsATM(term)) {                                    /* Atom -- lock */
+  if (TaggedIsATM(term)) {                                    /* Atom -- lock */
     atomptr = TagToAtom(term);
     Wait_Acquire_lock(atomptr->atom_lock_l);
     Wait_Acquire_slock(atomptr->counter_lock);
@@ -139,7 +139,7 @@ CBOOL__PROTO(prolog_unlock_atom)
 
   DEREF(term, X(0));
 
-  if (TagIsATM(term)) {
+  if (TaggedIsATM(term)) {
     atomptr = TagToAtom(term);
     Wait_Acquire_slock(atomptr->counter_lock);
     atomptr->atom_lock_counter++;
@@ -160,7 +160,7 @@ CBOOL__PROTO(prolog_lock_atom_state)
 
   DEREF(term, X(0));
 
-  if (TagIsATM(term)) {
+  if (TaggedIsATM(term)) {
     atomptr = TagToAtom(term);
     DEREF(value, X(1));
     if (TagIsSmall(value)) {
@@ -191,7 +191,7 @@ CBOOL__PROTO(prolog_lock_atom_bin)
 
   DEREF(term, X(0));
 
-  if (TagIsATM(term)) {                                    /* Atom -- lock */
+  if (TaggedIsATM(term)) {                                    /* Atom -- lock */
     atomptr = TagToAtom(term);
     Wait_Acquire_lock(atomptr->atom_lock_l);
   } else BUILTIN_ERROR(TYPE_ERROR(ATOM),X(0),1);
@@ -207,7 +207,7 @@ CBOOL__PROTO(prolog_unlock_atom_bin)
 
   DEREF(term, X(0));
 
-  if (TagIsATM(term)) {
+  if (TaggedIsATM(term)) {
     atomptr = TagToAtom(term);
     Release_lock(atomptr->atom_lock_l);
   } else BUILTIN_ERROR(TYPE_ERROR(ATOM),X(0),1);

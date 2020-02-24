@@ -1626,14 +1626,14 @@ CBOOL__PROTO(initial_tabling_c) {
   printf("\nInitial Tabling\n"); fflush(stdout);
 #endif
 
-  functor_comma = SetArity(MakeString(","), 2);
-  functor_copy_term = SetArity(MakeString("term_basic:copy_term"), 2);
+  functor_comma = SetArity(GET_ATOM(","), 2);
+  functor_copy_term = SetArity(GET_ATOM("term_basic:copy_term"), 2);
   functor_forward_trail =
-    SetArity(MakeString("forward_trail:$forward_trail"), 2);
+    SetArity(GET_ATOM("forward_trail:$forward_trail"), 2);
   functor_push_ptcp =
-    SetArity(MakeString("tabling_rt:$push_ptcp"), 1);
-  atom_pop_ptcp = MakeString("tabling_rt:$pop_ptcp");
-  atom_gen_tree_backtracking = MakeString("tabling_rt:$gen_tree_backtracking");
+    SetArity(GET_ATOM("tabling_rt:$push_ptcp"), 1);
+  atom_pop_ptcp = GET_ATOM("tabling_rt:$pop_ptcp");
+  atom_gen_tree_backtracking = GET_ATOM("tabling_rt:$gen_tree_backtracking");
 
   INIT_GLOBAL_TABLE;
   INIT_TABLING_STACK;

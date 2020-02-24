@@ -311,7 +311,7 @@ ciao_term ciao_var(void) {
 ciao_term ciao_structure_a_s(ciao_ctx ctx, const char *name, int arity, ciao_term *args) {
   worker_t *w = ctx->worker_registers;
   if (arity == 0) {
-    return ciao_ref(ctx, MakeString((char *)name));
+    return ciao_ref(ctx, GET_ATOM((char *)name));
   } else if (strcmp(name, ".") == 0 && arity == 2) {
     tagged_t list;
     ciao_ensure_heap(ctx, 3);
@@ -322,7 +322,7 @@ ciao_term ciao_structure_a_s(ciao_ctx ctx, const char *name, int arity, ciao_ter
     tagged_t *pt;
     tagged_t functor;
     ciao_ensure_heap(ctx, 2 + arity);
-    functor = SetArity(MakeString((char *)name), arity);
+    functor = SetArity(GET_ATOM((char *)name), arity);
     pt = w->global_top;
     HeapPush(pt, functor);
     for (i = 0; i < arity; i++) {
@@ -513,7 +513,7 @@ ciao_bool ciao_is_atom_s(ciao_ctx ctx, ciao_term term) {
   tagged_t t;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
-  return IsAtom(t);
+  return TaggedIsATM(t);
 }
 
 ciao_bool ciao_is_atom(ciao_term term) {
@@ -524,7 +524,7 @@ const char *ciao_atom_name_s(ciao_ctx ctx, ciao_term term) {
   tagged_t t;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
-  if (!IsAtom(t)) {
+  if (!TaggedIsATM(t)) {
     return (const char *)NULL;
   } else { 
     atom_t *atomptr;
@@ -602,7 +602,7 @@ ciao_bool ciao_is_empty_list_s(ciao_ctx ctx, ciao_term term) {
   tagged_t t;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
-  return IsAtom(t) && t == MakeString("[]");
+  return TaggedIsATM(t) && t == GET_ATOM("[]");
 }
 
 ciao_bool ciao_is_empty_list(ciao_term term) {
@@ -1132,7 +1132,7 @@ tagged_t create_ref_table(ciao_ctx ctx, int chunks) {
   tagged_t functor;
 
   ciao_ensure_heap(ctx, REF_TABLE_CHUNK_SIZE * chunks + 1);
-  functor = SetArity(MakeString("$reftable"), (REF_TABLE_CHUNK_SIZE - 1));
+  functor = SetArity(GET_ATOM("$reftable"), (REF_TABLE_CHUNK_SIZE - 1));
   pt = w->global_top;
   pt0 = pt;
   for (j = 0; j < chunks - 1; j++) {

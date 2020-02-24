@@ -277,7 +277,7 @@ CBOOL__PROTO(c_setarg, intmach_t, tagged_t, tagged_t, bool_t);
       DerefSwitch((KEY),                                                \
                   tmp,                                                  \
                   BUILTIN_ERROR(INSTANTIATION_ERROR, (KEY), 2););       \
-      if (!TagIsATM((KEY))) {                                           \
+      if (!TaggedIsATM((KEY))) {                                        \
         if ((!TagIsSTR((KEY))) ||                                       \
             (TagToHeadfunctor((KEY)) != SetArity(atom_user, 1)))        \
           { BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), (KEY), 2); }         \

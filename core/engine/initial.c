@@ -528,13 +528,13 @@ static CBOOL__PROTO(prolog_atom_mode)
   DEREF(X(0),X(0));
   atomptr = TagToAtom(X(0));
   if (atomptr->has_special)
-    Unify_constant(MakeSmall(1),X(1))
+    CBOOL__UnifyCons(MakeSmall(1),X(1))
   else if (atomptr->has_dquote)
-    Unify_constant(MakeSmall(2),X(1))
+    CBOOL__UnifyCons(MakeSmall(2),X(1))
   else if (atomptr->has_squote)
-    Unify_constant(MakeSmall(4),X(1))
+    CBOOL__UnifyCons(MakeSmall(4),X(1))
   else
-    Unify_constant(TaggedZero,X(1))
+    CBOOL__UnifyCons(TaggedZero,X(1))
 
   return TRUE;
 }
@@ -558,7 +558,7 @@ static definition_t *define_builtin(char *pname,
   definition_t *func;
   intmach_t current_mem = total_mem_count;
   
-  func = insert_definition(predicates_location,MakeString(pname),arity,TRUE);
+  func = insert_definition(predicates_location,GET_ATOM(pname),arity,TRUE);
   SetEnterInstr(func,instr);
   INC_MEM_PROG(total_mem_count - current_mem);
   return func;
@@ -566,7 +566,7 @@ static definition_t *define_builtin(char *pname,
 
 static tagged_t deffunctor(char *pname, int arity)
 {
-  return SetArity(MakeString(pname),arity);
+  return SetArity(GET_ATOM(pname),arity);
 }
 
 /*
@@ -601,7 +601,7 @@ definition_t *define_c_mod_predicate(char *module,
   strcpy(mod_pname, module);/* No need to check length -- already and atom */
   strcat(mod_pname, ":");
   strcat(mod_pname, pname);
-  mod_tagpname = MakeString(mod_pname);
+  mod_tagpname = GET_ATOM(mod_pname);
   key = SetArity(mod_tagpname, arity);
 
   Wait_Acquire_slock(prolog_predicates_l);
@@ -634,7 +634,7 @@ void undefine_c_mod_predicate(char *module, char *pname, int arity) {
   strcpy(mod_pname, module);/* No need to check length -- already and atom */
   strcat(mod_pname, ":");
   strcat(mod_pname, pname);
-  mod_tagpname = MakeString(mod_pname);
+  mod_tagpname = GET_ATOM(mod_pname);
 
   f = insert_definition(predicates_location, mod_tagpname, arity, FALSE);
 
@@ -653,7 +653,7 @@ module_t *define_c_static_mod(char *module_name)
   tagged_t key;
   intmach_t current_mem = total_mem_count;
 
-  mod_atm = MakeString(module_name);
+  mod_atm = GET_ATOM(module_name);
   key = mod_atm;
 
   Wait_Acquire_slock(prolog_modules_l);

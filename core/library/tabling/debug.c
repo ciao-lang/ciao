@@ -93,9 +93,9 @@ CBOOL__PROTO(current_tabling_flag_c) {
   /* check flag is correct */
 
   DEREF(ARG1,ARG1);
-  if (IsAtom(ARG1))
+  if (TaggedIsATM(ARG1)) {
     flag = (char *)TagToAtom(ARG1)->name;
-  else {
+  } else {
     printf("First argument it is not instanciated\n"); 
     return FALSE;
   }

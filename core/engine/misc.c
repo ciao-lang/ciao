@@ -299,20 +299,20 @@ extern char source_path[];
 CBOOL__PROTO(prolog_current_executable)
 {
   DEREF(X(0),X(0));
-  return cunify(Arg, MakeString(source_path), X(0));
+  return cunify(Arg, GET_ATOM(source_path), X(0));
 }
 
 
 CBOOL__PROTO(prompt)
 {
-  Unify_constant(current_prompt,X(0));
+  CBOOL__UnifyCons(current_prompt,X(0));
   DEREF(current_prompt,X(1)); 
   return TRUE;
 }
 
 CBOOL__PROTO(unknown)
 {
-  Unify_constant(current_unknown,X(0));
+  CBOOL__UnifyCons(current_unknown,X(0));
   DEREF(current_unknown,X(1)); 
   return TRUE;
 }
@@ -320,7 +320,7 @@ CBOOL__PROTO(unknown)
 
 CBOOL__PROTO(metachoice)
 {
-  Unify_constant(ChoiceToInt(w->node),X(0));
+  CBOOL__UnifyCons(ChoiceToInt(w->node),X(0));
   return TRUE;
 }
 
@@ -475,7 +475,7 @@ CBOOL__PROTO(frozen)
     return FALSE;
   else if (VarIsCVA(X(0)))
     return cunify(Arg,Tag(LST,TagToGoal(X(0))),X(1));
-  Unify_constant(atom_nil,X(1));
+  CBOOL__UnifyCons(atom_nil,X(1));
   return TRUE;
 }
 
@@ -571,28 +571,28 @@ void debugger_trap(void)
 /*
 CBOOL__PROTO(leash_mode)
 {
-  Unify_constant(current_leash_mode,X(0));
+  CBOOL__UnifyCons(current_leash_mode,X(0));
   DEREF(current_leash_mode,X(1)); 
   return TRUE;
 }
 
 CBOOL__PROTO(maxdepth)
 {
-  Unify_constant(current_maxdepth,X(0));
+  CBOOL__UnifyCons(current_maxdepth,X(0));
   DEREF(current_maxdepth,X(1)); 
   return TRUE;
 }
 
 CBOOL__PROTO(printdepth)
 {
-  Unify_constant(current_printdepth,X(0));
+  CBOOL__UnifyCons(current_printdepth,X(0));
   DEREF(current_printdepth,X(1)); 
   return TRUE;
 }
 
 CBOOL__PROTO(breaklevel)
 {
-  Unify_constant(current_breaklevel,X(0));
+  CBOOL__UnifyCons(current_breaklevel,X(0));
   DEREF(X(1),X(1));
   current_breaklevel += X(1)-TaggedZero;
   return TRUE;
@@ -601,7 +601,7 @@ CBOOL__PROTO(breaklevel)
 
 CBOOL__PROTO(compiling)
 {
-  Unify_constant(current_compiling,X(0));
+  CBOOL__UnifyCons(current_compiling,X(0));
   DEREF(X(1),X(1));
   if (
       X(1)!=atom_unprofiled 
@@ -617,7 +617,7 @@ CBOOL__PROTO(compiling)
 
 CBOOL__PROTO(ferror_flag)
 {
-  Unify_constant(current_ferror_flag,X(0));
+  CBOOL__UnifyCons(current_ferror_flag,X(0));
   DEREF(current_ferror_flag,X(1)); 
   return TRUE;
 }
@@ -625,21 +625,21 @@ CBOOL__PROTO(ferror_flag)
 /*
 CBOOL__PROTO(single_var_flag)
 {
-  Unify_constant(current_single_var_flag,X(0));
+  CBOOL__UnifyCons(current_single_var_flag,X(0));
   DEREF(current_single_var_flag,X(1)); 
   return TRUE;
 }
 
 CBOOL__PROTO(character_escapes_flag)
 {
-  Unify_constant(current_character_escapes_flag,X(0));
+  CBOOL__UnifyCons(current_character_escapes_flag,X(0));
   DEREF(current_character_escapes_flag,X(1)); 
   return TRUE;
 }
 
 CBOOL__PROTO(redefine_flag)
 {
-  Unify_constant(current_redefine_flag,X(0));
+  CBOOL__UnifyCons(current_redefine_flag,X(0));
   DEREF(current_redefine_flag,X(1)); 
   return TRUE;
 }
@@ -647,7 +647,7 @@ CBOOL__PROTO(redefine_flag)
 
 CBOOL__PROTO(quiet_flag)
 {
-  Unify_constant(current_quiet_flag,X(0));
+  CBOOL__UnifyCons(current_quiet_flag,X(0));
   DEREF(current_quiet_flag,X(1)); 
   return TRUE;
 }
@@ -662,9 +662,9 @@ CBOOL__PROTO(spypoint)
   if (!func  /* || func->properties.public */)
     return FALSE;
   if (func->properties.spy)
-    Unify_constant(atom_on,X(1))
+    CBOOL__UnifyCons(atom_on,X(1))
   else
-    Unify_constant(atom_off,X(1));
+    CBOOL__UnifyCons(atom_off,X(1));
 
   DEREF(X(2),X(2));
   func->properties.spy = (X(2)==atom_on);
@@ -675,7 +675,7 @@ CBOOL__PROTO(spypoint)
 
 CBOOL__PROTO(prolog_radix)
 {
-  Unify_constant(current_radix,X(0));
+  CBOOL__UnifyCons(current_radix,X(0));
   DEREF(current_radix,X(1));
   prolog_init_radix();
   return TRUE;
@@ -740,7 +740,7 @@ CFUN__PROTO(find_constraints, intmach_t, tagged_t *limit)
               tagged_t v = *h++;
               
               if (v&QMask) h += LargeArity(v);
-              else if (TagIsATM(v)) h += Arity(v);
+              else if (TaggedIsATM(v)) h += Arity(v);
               else if (v==Tag(CVA,h-1))
                 {
                   h[-1] = *w->trail_top;

@@ -55,25 +55,21 @@ CBOOL__PROTO(gc_usage) {
 }
 
 CBOOL__PROTO(gc_mode) {
-    Unify_constant(current_gcmode,X(0));
-    DEREF(current_gcmode,X(1));
-    return TRUE;
+  CBOOL__UnifyCons(current_gcmode,X(0));
+  DEREF(current_gcmode,X(1));
+  return TRUE;
 }
 
 CBOOL__PROTO(gc_trace) {
-  /*tagged_t new; */ /* unused */
-
-    Unify_constant(current_gctrace,X(0));
-    DEREF(current_gctrace,X(1));
-    return TRUE;
+  CBOOL__UnifyCons(current_gctrace,X(0));
+  DEREF(current_gctrace,X(1));
+  return TRUE;
 }
 
 CBOOL__PROTO(gc_margin) {
-  /*tagged_t new; */ /*unused*/
-
-    Unify_constant(current_gcmargin,X(0));
-    DEREF(current_gcmargin,X(1));
-    return TRUE;
+  CBOOL__UnifyCons(current_gcmargin,X(0));
+  DEREF(current_gcmargin,X(1));
+  return TRUE;
 }
 
 /* ------------------------------------------------------------------------- */

@@ -191,7 +191,7 @@ CBOOL__PROTO(prolog_ptr_ref)
            n->death != 0xffff)    
         return FALSE;
 
-      Unify_constant(PointerToTerm(n),X(0));
+      CBOOL__UnifyCons(PointerToTerm(n),X(0));
       return TRUE;
     }
 }
@@ -584,7 +584,7 @@ CBOOL__PROTO(make_bytecode_object)
   if (counter_cnt != 2)
     SERIOUS_FAULT("$make_bytecode_object: counter counts don't match");
 #endif
-  Unify_constant(PointerToTerm(object),X(3));
+  CBOOL__UnifyCons(PointerToTerm(object),X(3));
   INC_MEM_PROG(total_mem_count - current_mem);
   return TRUE;
 }

@@ -174,11 +174,11 @@ CBOOL__PROTO(nd_atom_concat)
 
   s1 = s2 + i;
   strcpy(s, s1);
-  Unify_constant(init_atom_check(Atom_Buffer),X(1));
+  CBOOL__UnifyCons(init_atom_check(Atom_Buffer),X(1));
 
   strcpy(s, s2);
   *(s+i) = '\0';
-  Unify_constant(init_atom_check(Atom_Buffer),X(0));
+  CBOOL__UnifyCons(init_atom_check(Atom_Buffer),X(0));
 
   if (i == strlen(s2))
     pop_choicept(Arg);
@@ -202,7 +202,7 @@ CBOOL__PROTO(nd_fake_choicept)
 CBOOL__PROTO(current_atom)
 {
   DEREF(X(0),X(0));
-  if (TagIsATM(X(0)))
+  if (TaggedIsATM(X(0)))
     return TRUE;
   if (! IsVar(X(0)))
     MINOR_FAULT("current_atom/1: incorrect 1st arg");
@@ -243,7 +243,7 @@ CBOOL__PROTO(nd_current_atom)
   intmach_t size = SwitchSize(ciao_atoms) >> 1;
 
   /* Invariant: at entry, the current i points to a nonempty atom */
-  Unify_constant(TagIndex(ATM,i),X(0));
+  CBOOL__UnifyCons(TagIndex(ATM,i),X(0));
   /* Go forward until the next non-empty atom; final stop when the end of
      the table has been reached.  */
   i++;
@@ -256,7 +256,7 @@ CBOOL__PROTO(nd_current_atom)
     pop_choicept(Arg);
 #else
   w->node->term[1] += MakeSmallDiff(1);
-  Unify_constant(TagIndex(ATM,i),X(0));
+  CBOOL__UnifyCons(TagIndex(ATM,i),X(0));
     
   if (i+1 == ciao_atoms->count)
     pop_choicept(Arg);
@@ -323,7 +323,7 @@ CBOOL__PROTO(current_predicate)
 
     if (d==NULL || d->predtyp==ENTER_UNDEFINED /*  || d->properties.public */)
       return FALSE;
-    Unify_constant(d->printname,X(0));
+    CBOOL__UnifyCons(d->printname,X(0));
     return TRUE;
   }
 
@@ -350,7 +350,7 @@ CBOOL__PROTO(nd_current_predicate)
         pop_choicept(Arg);
       else
         w->node->term[2] = MakeSmall(j);
-      Unify_constant(d->printname,X(0));
+      CBOOL__UnifyCons(d->printname,X(0));
       return cunify(Arg,
                     make_structure(Arg,SetArity(d->printname,d->arity)),
                     X(1));
@@ -391,8 +391,8 @@ CBOOL__PROTO(predicate_property)
 
     if (d==NULL || d->predtyp==ENTER_UNDEFINED)
       return FALSE;
-    Unify_constant(MakeSmall(d->predtyp),X(1));
-    Unify_constant(MakeSmall(predicate_property_bits(d)),X(2));
+    CBOOL__UnifyCons(MakeSmall(d->predtyp),X(1));
+    CBOOL__UnifyCons(MakeSmall(predicate_property_bits(d)),X(2));
     return TRUE;
   }
 
@@ -419,8 +419,8 @@ CBOOL__PROTO(nd_predicate_property)
             pop_choicept(Arg);
           else
             w->node->term[3] = MakeSmall(j);
-          Unify_constant(MakeSmall(d->predtyp),X(1));
-          Unify_constant(MakeSmall(predicate_property_bits(d)),X(2));
+          CBOOL__UnifyCons(MakeSmall(d->predtyp),X(1));
+          CBOOL__UnifyCons(MakeSmall(predicate_property_bits(d)),X(2));
           return cunify(Arg,make_structure(Arg,SetArity(d->printname,d->arity)),
                         X(0));
         }
@@ -434,7 +434,7 @@ CBOOL__PROTO(nd_predicate_property)
 CBOOL__PROTO(module_is_static)
 {
   DEREF(X(0),X(0));
-  if (!TagIsATM(X(0)))
+  if (!TaggedIsATM(X(0)))
     return FALSE;
 
   module_t *d = insert_module(modules_location,X(0),FALSE);

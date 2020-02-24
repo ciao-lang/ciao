@@ -175,7 +175,7 @@ CBOOL__PROTO(is_var_or_alias_or_stream, tagged_t Cell)
   if (IsVar(Cell)) {
     /* a variable */
     return TRUE;
-  } else if (TagIsATM(Cell)) {
+  } else if (TaggedIsATM(Cell)) {
     /* a stream alias */
     return (Cell == atom_user_input ||
             Cell == atom_user_output ||
@@ -236,7 +236,7 @@ stream_node_t *stream_to_ptr(tagged_t t,
 
   DerefSwitch(t,x1,;);
 
-  if (TagIsATM(t))
+  if (TaggedIsATM(t))
     {
       if (mode=='y')
         n = NULL;
@@ -277,7 +277,7 @@ stream_node_t *stream_to_ptr_check(tagged_t t,
 
   DerefSwitch(t,x1,{*errcode = INSTANTIATION_ERROR; return NULL;});
 
-  if (TagIsATM(t))
+  if (TaggedIsATM(t))
     {
       if (t==atom_user)
         n = (mode=='r' ? stream_user_input : stream_user_output);
@@ -355,8 +355,8 @@ CBOOL__PROTO(prolog_open)
   modespec[1] = 'b';
   modespec[2] = 0;
 
-  fileptr = (TagIsATM(X(0))   ?  fopen(GetString(X(0)), modespec) :
-             TagIsSmall(X(0)) ? fdopen(GetSmall(X(0)),  modespec) :
+  fileptr = (TaggedIsATM(X(0)) ? fopen(GetString(X(0)), modespec) :
+             TagIsSmall(X(0)) ? fdopen(GetSmall(X(0)), modespec) :
              NULL);
 
   if (fileptr==NULL) {
@@ -704,9 +704,9 @@ CBOOL__PROTO(prolog_stream_code)
       }
 
       if (s->streammode != 's'){                            /* Not a socket */
-        Unify_constant(MakeSmall(fileno(s->streamfile)),X(1));
+        CBOOL__UnifyCons(MakeSmall(fileno(s->streamfile)),X(1));
       } else {                                                  /* DCG, MCL */
-        Unify_constant(s->label,X(1)); /* Can't be this done above as well? */
+        CBOOL__UnifyCons(s->label,X(1)); /* Can't be this done above as well? */
       }
       return TRUE;
     }
@@ -784,20 +784,20 @@ CBOOL__PROTO(line_count)
 
 static CBOOL__PROTO(current_stream_data, stream_node_t *streamptr)
 {
-  Unify_constant(streamptr->streamname,X(0));
+  CBOOL__UnifyCons(streamptr->streamname,X(0));
   switch (streamptr->streammode)
     {
     case 'a':
-      Unify_constant(atom_append,X(1));
+      CBOOL__UnifyCons(atom_append,X(1));
       break;
     case 'r':
-      Unify_constant(atom_read,X(1));
+      CBOOL__UnifyCons(atom_read,X(1));
       break;
     case 'w':
-      Unify_constant(atom_write,X(1));
+      CBOOL__UnifyCons(atom_write,X(1));
       break;
     case 's':
-      Unify_constant(atom_socket,X(1));
+      CBOOL__UnifyCons(atom_socket,X(1));
       break;
     }
   return TRUE;
@@ -865,7 +865,7 @@ CBOOL__PROTO(prolog_sourcepath)
   strcpy(cbuf,source_path);
   strcat(cbuf,"/");
   strcat(cbuf,GetString(X(0)));
-  Unify_constant(MakeString(cbuf),X(1));
+  CBOOL__UnifyCons(GET_ATOM(cbuf),X(1));
   return TRUE;
 }
 */

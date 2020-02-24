@@ -89,14 +89,14 @@ CBOOL__PROTO(run_daemon)
 
   /* Lockfile */
   DEREF(X(0), X(0));
-  if (!IsAtom(X(0))) {
+  if (!TaggedIsATM(X(0))) {
     BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(0), 1);
   }
   lock_file0 = GetString(X(0));
 
   /* Get command */
   DEREF(X(1), X(1));
-  if (!IsAtom(X(1))) {
+  if (!TaggedIsATM(X(1))) {
     BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(1), 2);
   }
   command = GetString(X(1));
@@ -107,14 +107,14 @@ CBOOL__PROTO(run_daemon)
   while(!IsVar(list) && TagIsLST(list)) {
     args_n++;
     DEREF(head, *TagToCar(list));
-    if (!TagIsATM(head)) { /* We only allow atoms */
+    if (!TaggedIsATM(head)) { /* We only allow atoms */
       BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), head, 3);
     }
     list = *TagToCdr(list);
     DEREF(list, list);
   }
   /* Make sure we had a real list */
-  if (!(!IsVar(list) && TagIsATM(list) && (list == atom_nil))) {
+  if (!(!IsVar(list) && TaggedIsATM(list) && (list == atom_nil))) {
     BUILTIN_ERROR(TYPE_ERROR(LIST), X(2), 3);
   }
 

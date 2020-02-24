@@ -1357,7 +1357,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       CHECK_HEAP_SPACE;
       return TRUE;
     case 'A':
-      *out = MakeString(Atom_Buffer);
+      *out = GET_ATOM(Atom_Buffer);
       CHECK_HEAP_SPACE;
       return TRUE;
     case '"':
@@ -1380,7 +1380,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       {
         tagged_t *h = w->global_top;
         /* ENSURE_HEAP(i+1, 1); */
-        *h = SetArity(MakeString(Atom_Buffer),i);
+        *h = SetArity(GET_ATOM(Atom_Buffer),i);
         *out = Tag(STR,h++);
         w->global_top += i+1;
         while(i--) {

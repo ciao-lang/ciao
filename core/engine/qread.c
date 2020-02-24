@@ -1121,7 +1121,7 @@ CBOOL__PROTO(prolog_qread) {
     }
   }
   intmach_t i = -1;
-  Unify_constant(MakeSmall(i),X(1));
+  CBOOL__UnifyCons(MakeSmall(i),X(1));
   return TRUE;
 }
 

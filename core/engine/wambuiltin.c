@@ -417,7 +417,7 @@ CBOOL__PROTO(bu3_functor,
           tagarity = MakeSmall(Arity(f));
         }
 
-      Unify_constant(tagarity,arity);
+      CBOOL__UnifyCons(tagarity,arity);
       return cunify(Arg,term,name);
     }
  construct:
@@ -432,7 +432,7 @@ CBOOL__PROTO(bu3_functor,
           if (arity == TaggedZero) return cunify(Arg,name,term);
           else if (arity > TaggedZero) 
             {
-              if (TagIsATM(name)) 
+              if (TaggedIsATM(name)) 
                 {
                   if (arity < MakeSmall(ARITYLIMIT))
                     return 
@@ -482,7 +482,7 @@ CBOOL__PROTO(bu3_functor,
           tagarity = MakeSmall(Arity(f));
         }
 
-      Unify_constant(tagarity,arity);
+      CBOOL__UnifyCons(tagarity,arity);
       return cunify(Arg,term,name);
     }
  construct:
@@ -491,7 +491,7 @@ CBOOL__PROTO(bu3_functor,
       DerefSwitch(arity,t0,;);
       if (TermIsAtomic(name) && (arity==TaggedZero))
         return cunify(Arg,name,term);
-      else if (TagIsATM(name) &&
+      else if (TaggedIsATM(name) &&
                (arity>TaggedZero) && (arity<MakeSmall(ARITYLIMIT)))
         return cunify(Arg,
                       make_structure(Arg, SetArity(name,GetSmall(arity))),
@@ -568,7 +568,7 @@ CBOOL__PROTO(bu2_univ,
     }
   else if (IsVar(f))
     goto bomb;
-  else if (!TagIsATM(f))
+  else if (!TaggedIsATM(f))
     BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), f, 2); 
 
 
@@ -663,7 +663,7 @@ CBOOL__PROTO(bu2_univ,
     return cunify(Arg,f,term);
   else if (IsVar(f))
     goto bomb;
-  else if (!TagIsATM(f))
+  else if (!TaggedIsATM(f))
     MINOR_FAULT("=../2: incorrect 2nd argument");
   
   argp = w->global_top;
@@ -1553,7 +1553,7 @@ CFUN__PROTO(fu1_atan, tagged_t, tagged_t X0, bcp_t liveinfo)
       else return FALSE;
     }
   // comment next line for full ISO compliance
-  else if (IsAtom(complex)) return FALSE;      
+  else if (TaggedIsATM(complex)) return FALSE;      
   else  BUILTIN_ERROR(TYPE_ERROR(COMPOUND), complex, 2);
  
 

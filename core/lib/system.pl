@@ -1,4 +1,4 @@
-:- module(system, [], [assertions, nortchecks, isomodes, regtypes]).
+:- module(system, [], [noprelude, assertions, nortchecks, isomodes, regtypes]).
 
 :- doc(title, "Operating system utilities").
 
@@ -17,25 +17,44 @@
    atom table. We need atom garbage collection and/or native
    strings.").
 
+:- use_module(engine(basiccontrol)).
+:- use_module(engine(term_basic)).
+:- use_module(engine(term_compare)).
+:- use_module(engine(term_typing)).
+:- use_module(engine(atomic_basic)).
+:- use_module(engine(exceptions)).
+:- use_module(engine(arithmetic)).
+%
 :- use_module(engine(stream_basic)).
+:- use_module(engine(runtime_control), [prolog_flag/3, set_prolog_flag/2]).
+:- if(defined(optim_comp)).
+:- else.
 :- use_module(engine(system_info), [get_exec_ext/1]).
-:- use_module(engine(runtime_control), [set_prolog_flag/2, prolog_flag/3]).
 :- use_module(library(lists), [member/2, append/3]).
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
+:- endif.
+
+:- if(defined(optim_comp)).
+:- '$native_include_c_source'(.(system)). % TODO: rename to engine__system?
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(time/1).
 :- doc(time(Time), "@var{Time} is unified with the number of seconds
      elapsed since January, 1, 1970 (UTC).").
 :- trust pred time(?int).
+:- if(defined(optim_comp)).
+:- '$props'(time/1, [impnat=cbool(prolog_time)]).
+:- else.
 :- impl_defined(time/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
- %% :- doc(walltime(Time),"@var{Time} is unified with the time in
- %%      milliseconds elapsed in the real world since the last call to
- %%      @pred{walltime/1}. The first call returns a meaningless number.").
- %% 
- %% :- pred walltime(?int).
+%% :- doc(walltime(Time),"@var{Time} is unified with the time in
+%%      milliseconds elapsed in the real world since the last call to
+%%      @pred{walltime/1}. The first call returns a meaningless number.").
+%% 
+%% :- pred walltime(?int).
 
 % ---------------------------------------------------------------------------
 :- export(datime/1).
@@ -73,7 +92,11 @@ datime_struct(datime(Year,Month,Day,Hour,Min,Sec)) :-
     # "Bound @var{Time} to current time and the rest of the
     arguments refer to current time.".
 
+:- if(defined(optim_comp)).
+:- '$props'(datime/9, [impnat=cbool(prolog_datime)]).
+:- else.
 :- impl_defined(datime/9).
+:- endif.
 
 % ---------------------------------------------------------------------------
 
@@ -148,7 +171,11 @@ copy_file(Source, Target, CopyOptions) :-
     ).
 
 :- trust pred c_copy_file(+atm,+atm,+int).
+:- if(defined(optim_comp)).
+:- '$props'(c_copy_file/3, [impnat=cbool(prolog_c_copy_file_3)]).
+:- else.
 :- impl_defined(c_copy_file/3).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(getenvstr/2).
@@ -160,10 +187,14 @@ getenvstr(Name, _Value) :- \+ atom(Name), !,
     throw(error(domain_error(atom,Name),getenvstr/2-1)).
 getenvstr(Name, Value) :-
     c_get_env(Name, Value2),
-    atom_codes(Value2,Value).
+    atom_codes(Value2, Value).
 
 :- trust pred c_get_env(+atm,?atm).
+:- if(defined(optim_comp)).
+:- '$props'(c_get_env/2, [impnat=cbool(prolog_c_get_env)]).
+:- else.
 :- impl_defined(c_get_env/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(setenvstr/2).
@@ -176,11 +207,15 @@ setenvstr(Name, _Value) :- \+ atom(Name), !,
 setenvstr(_Name, Value) :- \+ ( Value = [_|_] ; Value = [] ), !,
     throw(error(domain_error(character_code_list,Value),setenvstr/2-2)).
 setenvstr(Name, Value) :-
-    atom_codes(Value2,Value),
+    atom_codes(Value2, Value),
     c_set_env(Name, Value2).
 
 :- trust pred c_set_env(+atm,+atm).
+:- if(defined(optim_comp)).
+:- '$props'(c_set_env/2, [impnat=cbool(prolog_c_set_env)]).
+:- else.
 :- impl_defined(c_set_env/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(set_env/2).
@@ -207,7 +242,11 @@ del_env(Name) :-
     c_del_env(Name).
 
 :- trust pred c_del_env(+atm).
+:- if(defined(optim_comp)).
+:- '$props'(c_del_env/1, [impnat=cbool(prolog_c_del_env)]).
+:- else.
 :- impl_defined(c_del_env/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(current_env/2).
@@ -222,8 +261,10 @@ current_env(Name, _Value) :- \+ ( var(Name) ; atom(Name) ), !,
 current_env(_Name, Value) :- \+ ( var(Value) ; atom(Value) ), !,
     throw(error(domain_error(var_or_atom,Value),current_env/2-2)).
 current_env(Name, Value) :-
-    atom(Name) -> c_get_env(Name,Value);
-    current_env_(0, Name, Value).
+    ( atom(Name) ->
+        c_get_env(Name,Value)
+    ; current_env_(0, Name, Value)
+    ).
 
 current_env_(I, Name, Value) :-
     c_current_env(I, Name2, Value2),
@@ -233,7 +274,11 @@ current_env_(I, Name, Value) :-
     ).
 
 :- trust pred c_current_env(+int,?atm,?atm).
+:- if(defined(optim_comp)).
+:- '$props'(c_current_env/3, [impnat=cbool(prolog_c_current_env)]).
+:- else.
 :- impl_defined(c_current_env/3).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(extract_paths/2).
@@ -244,7 +289,11 @@ current_env_(I, Name, Value) :-
    from @var{Paths}. @var{Paths} is empty if @var{PathList} is the
    empty atom.").
 :- trust pred extract_paths(+atm, ?list(atm)).
+:- if(defined(optim_comp)).
+:- '$props'(extract_paths/2, [impnat=cbool(prolog_extract_paths)]).
+:- else.
 :- impl_defined(extract_paths/2).
+:- endif.
 
 % % (reference implementation which does not ignore empty paths)
 %
@@ -285,7 +334,11 @@ current_env_(I, Name, Value) :-
 :- doc(current_host(Hostname), "@var{Hostname} is unified with the
     fully qualified name of the host.").
 :- trust pred current_host(?atm).
+:- if(defined(optim_comp)).
+:- '$props'(current_host/1, [impnat=cbool(prolog_current_host)]).
+:- else.
 :- impl_defined(current_host/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(current_executable/1).
@@ -294,7 +347,11 @@ current_env_(I, Name, Value) :-
    bytecode executable)").
 % TODO: what happens for ciao-shell scripts?
 :- trust pred current_executable(?atm).
+:- if(defined(optim_comp)).
+:- '$props'(current_executable/1, [impnat=cbool(prolog_current_executable)]).
+:- else.
 :- impl_defined(current_executable/1).
+:- endif.
 
 % TODO: add predicate to obtain base directory from scripts? (using
 % current_executable+path_split). This should be equivalent to the
@@ -313,7 +370,11 @@ current_env_(I, Name, Value) :-
     : (var(OldMask), var(NewMask), OldMask == NewMask)
        => (int(OldMask), int(NewMask))
     # "Gets the process file creation mask without changing it.".
+:- if(defined(optim_comp)).
+:- '$props'(umask/2, [impnat=cbool(prolog_unix_umask)]).
+:- else.
 :- impl_defined(umask/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(working_directory/2).
@@ -324,9 +385,13 @@ current_env_(I, Name, Value) :-
      current working directory without changing anything else.").
 :- trust pred working_directory(?atm, +atm) # "Changes current working directory.".
 :- trust pred working_directory(OldDir, NewDir)
-     : (var(OldDir), var(NewDir), OldDir == NewDir) => atm * atm
-     # "Gets current working directory.".
+    : (var(OldDir), var(NewDir), OldDir == NewDir) => atm * atm
+    # "Gets current working directory.".
+:- if(defined(optim_comp)).
+:- '$props'(working_directory/2, [impnat=cbool(prolog_unix_cd)]).
+:- else.
 :- impl_defined(working_directory/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(cd/1).
@@ -341,7 +406,11 @@ cd(Dir) :- working_directory(_, Dir).
    the unordered list of entries (files, directories, etc.) in
    @var{Directory}.").
 :- trust pred directory_files(+atm,?list(atm)).
+:- if(defined(optim_comp)).
+:- '$props'(directory_files/2, [impnat=cbool(prolog_directory_files)]).
+:- else.
 :- impl_defined(directory_files/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(mktemp/2).
@@ -351,7 +420,11 @@ cd(Dir) :- working_directory(_, Dir).
    create a new file name.  @var{Filename} is created in read/write mode 
    but closed immediately after creation.").
 :- trust pred mktemp(+atm, ?atm).
+:- if(defined(optim_comp)).
+:- '$props'(mktemp/2, [impnat=cbool(prolog_unix_mktemp)]).
+:- else.
 :- impl_defined(mktemp/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(mktemp_in_tmp/2).
@@ -375,7 +448,11 @@ file_exists(Path) :- file_exists(Path, 0).
    @tt{access(2)}. Typically, @var{Mode} is 4 for read permission, 2
    for write permission and 1 for execute permission.").
 :- trust pred file_exists(+atm, +int) => atm * int.
+:- if(defined(optim_comp)).
+:- '$props'(file_exists/2, [impnat=cbool(prolog_unix_access)]).
+:- else.
 :- impl_defined(file_exists/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(file_property/2).
@@ -432,7 +509,7 @@ file_property_(size(Size), Path) :- !,
     file_properties(Path, [], [], [], [], Size).
 file_property_(Other, _) :-
     throw(error(domain_error(file_property_type,Other),
-    file_property/2-2)).
+                file_property/2-2)).
 
 % ---------------------------------------------------------------------------
 :- export(file_properties/6).
@@ -458,7 +535,11 @@ file_property_(Other, _) :-
 @end{itemize}
 ").
 :- trust pred file_properties(+atm, ?atm, ?atm, ?int, ?int, ?int).
+:- if(defined(optim_comp)).
+:- '$props'(file_properties/6, [impnat=cbool(prolog_file_properties)]).
+:- else.
 :- impl_defined(file_properties/6).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(modif_time/2).
@@ -502,7 +583,11 @@ modif_time0(Path, Time) :-
    different. Change of modification time to arbitrary time values is
    not allowed in this case.").
 :- pred touch(+atm).
+:- if(defined(optim_comp)).
+:- '$props'(touch/1, [impnat=cbool(prolog_touch)]).
+:- else.
 :- impl_defined(touch/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(fmode/2).
@@ -518,7 +603,11 @@ fmode(Path, Mode) :-
 :- doc(chmod(File, NewMode), "Change the protection mode of file
     @var{File} to @var{NewMode}.").
 :- trust pred chmod(+atm, +int).
+:- if(defined(optim_comp)).
+:- '$props'(chmod/2, [impnat=cbool(prolog_unix_chmod)]).
+:- else.
 :- impl_defined(chmod/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(chmod/3).
@@ -555,20 +644,32 @@ set_exec_mode(SourceName, ExecName) :-
 :- export(delete_directory/1).
 :- doc(delete_directory(File), "Delete the directory @var{Directory}.").
 :- trust pred delete_directory(+atm).
+:- if(defined(optim_comp)).
+:- '$props'(delete_directory/1, [impnat=cbool(prolog_unix_rmdir)]).
+:- else.
 :- impl_defined(delete_directory/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(delete_file/1).
 :- doc(delete_file(File), "Delete the file @var{File}.").
 :- trust pred delete_file(+atm).
+:- if(defined(optim_comp)).
+:- '$props'(delete_file/1, [impnat=cbool(prolog_unix_delete)]).
+:- else.
 :- impl_defined(delete_file/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(rename_file/2).
 :- doc(rename_file(File1, File2), 
     "Change the name of  @var{File1} to @var{File2}.").
 :- trust pred rename_file(+atm,+atm).
+:- if(defined(optim_comp)).
+:- '$props'(rename_file/2, [impnat=cbool(prolog_unix_rename)]).
+:- else.
 :- impl_defined(rename_file/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(make_directory/2).
@@ -576,7 +677,11 @@ set_exec_mode(SourceName, ExecName) :-
    @var{DirName} with a given @var{Mode}.  This is, as usual, operated
    against the current umask value.").
 :- trust pred make_directory(+atm, +int).
+:- if(defined(optim_comp)).
+:- '$props'(make_directory/2, [impnat=cbool(prolog_unix_mkdir)]).
+:- else.
 :- impl_defined(make_directory/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(make_directory/1).
@@ -597,13 +702,21 @@ system_error_report(X) :-
     c_strerror(X).
 
 :- trust pred c_strerror(-atm).
+:- if(defined(optim_comp)).
+:- '$props'(c_strerror/1, [impnat=cbool(prolog_c_strerror)]).
+:- else.
 :- impl_defined(c_strerror/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 % TODO: deprecate, not used
 % :- export(c_errno/1).
 :- trust pred c_errno(?int).
+:- if(defined(optim_comp)).
+:- '$props'(c_errno/1, [impnat=cbool(prolog_c_errno)]).
+:- else.
 :- impl_defined(c_errno/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(get_tmp_dir/1). % TODO: see TODO in predicate
@@ -665,7 +778,11 @@ dev_null('/dev/null').
 :- export(pause/1).
 :- doc(pause(Seconds), "Make this thread sleep for some @var{Seconds}.").
 :- trust pred pause(+int).
+:- if(defined(optim_comp)).
+:- '$props'(pause/1, [impnat=cbool(prolog_pause)]).
+:- else.
 :- impl_defined(pause/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(wait/2).
@@ -676,7 +793,11 @@ dev_null('/dev/null').
       if the process does not terminate normally or in case of error
       (see C @tt{waitpid()} for details). @var{RetCode} is the process
       return code.".
+:- if(defined(optim_comp)).
+:- '$props'(wait/2, [impnat=cbool(prolog_wait)]).
+:- else.
 :- impl_defined(wait/2).
+:- endif.
 
 % (see internals:$exec/9' for low-level process creation or
 % library(process) for a higher-level interface)
@@ -687,55 +808,87 @@ dev_null('/dev/null').
    # "@pred{kill/2} sends the signal @var{Signal} to the process or
       process group specified by @var{Pid}. See Unix man page for a
       detailed description of signals.".
+:- if(defined(optim_comp)).
+:- '$props'(kill/2, [impnat=cbool(prolog_kill)]).
+:- else.
 :- impl_defined(kill/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(get_pid/1).
 :- doc(get_pid(Pid), "Unifies @var{Pid} with the process
      identificator of the current process or thread.").
 :- trust pred get_pid(?int).
+:- if(defined(optim_comp)).
+:- '$props'(get_pid/1, [impnat=cbool(prolog_getpid)]).
+:- else.
 :- impl_defined(get_pid/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(get_uid/1).
 :- doc(get_uid(Uid), "Unifies @var{Uid} with the user id of the
      current process.").
 :- trust pred get_uid(?int).
+:- if(defined(optim_comp)).
+:- '$props'(get_uid/1, [impnat=cbool(prolog_getuid)]).
+:- else.
 :- impl_defined(get_uid/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(get_gid/1).
 :- doc(get_gid(Uid), "Unifies @var{Gid} with the group id of the
      current process.").
 :- trust pred get_gid(?int).
+:- if(defined(optim_comp)).
+:- '$props'(get_gid/1, [impnat=cbool(prolog_getgid)]).
+:- else.
 :- impl_defined(get_gid/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(get_pwnam/1).
 :- doc(get_pwnam(User), "Unifies @var{User} with the user of the
      current process, as specified in the /etc/passwd file.").
 :- trust pred get_pwnam(?atm).
+:- if(defined(optim_comp)).
+:- '$props'(get_pwnam/1, [impnat=cbool(prolog_getpwnam)]).
+:- else.
 :- impl_defined(get_pwnam/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(get_grnam/1).
 :- doc(get_grnam(Group), "Unifies @var{Group} with the group of
      the current process, as specified in the /etc/group file.").
 :- trust pred get_grnam(?atm).
+:- if(defined(optim_comp)).
+:- '$props'(get_grnam/1, [impnat=cbool(prolog_getgrnam)]).
+:- else.
 :- impl_defined(get_grnam/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(get_numcores/1).
 :- doc(get_numcores(N), "Unifies @var{N} with the number of CPU cores.").
 :- trust pred get_numcores(?int).
+:- if(defined(optim_comp)).
+:- '$props'(get_numcores/1, [impnat=cbool(prolog_get_numcores)]).
+:- else.
 :- impl_defined(get_numcores/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(shell/0).
 :- trust pred shell # "Executes the OS-specific system shell. When the
    shell process terminates, control is returned to Prolog. See
    @pred{shell/2} for details.".
+:- if(defined(optim_comp)).
+:- '$props'(shell/0, [impnat=cbool(prolog_unix_shell0)]).
+:- else.
 :- impl_defined(shell/0).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(shell/1).
@@ -762,7 +915,11 @@ shell(Path) :- shell(Path, 0).
    a more robust way to launch external processes.").
 
 :- trust pred shell(+atm, ?int).
+:- if(defined(optim_comp)).
+:- '$props'(shell/2, [impnat=cbool(prolog_unix_shell2)]).
+:- else.
 :- impl_defined(shell/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(system/1).
@@ -770,6 +927,8 @@ shell(Path) :- shell(Path, 0).
 :- pred system(+atm).
 
 % TODO: make it a synonym for shell/1? (replace all suspicious uses with system(Cmd,_))
+% TODO: In SICStus, fails if return not zero, i.e., should be:
+%% system(Path) :- system(Path, 0).?????
 
 system(Path) :- shell(Path, _RetCode).
 
@@ -777,9 +936,6 @@ system(Path) :- shell(Path, _RetCode).
 :- export(system/2).
 :- doc(system(Command, RetCode), "Synonym for @pred{shell/2}.").
 :- trust pred system(+atm, ?int).
-
-% TODO: In SICStus, fails if return not zero, i.e., should be:
-%% system(Path) :- system(Path, 0).?????
 
 system(Command, RetCode) :- shell(Command, RetCode).
 
@@ -835,13 +991,29 @@ winpath(relative, Path, WinPath) :-
     ).
 
 :- trust pred c_posixpath(+atm,?atm).
+:- if(defined(optim_comp)).
+:- '$props'(c_posixpath/2, [impnat=cbool(prolog_c_posixpath)]).
+:- else.
 :- impl_defined(c_posixpath/2).
+:- endif.
 
 :- trust pred c_winpath(+atm,?atm).
+:- if(defined(optim_comp)).
+:- '$props'(c_winpath/2, [impnat=cbool(prolog_c_winpath)]).
+:- else.
 :- impl_defined(c_winpath/2).
+:- endif.
 
+:- if(defined(optim_comp)).
+:- '$props'(c_winfile/2, [impnat=cbool(prolog_c_winfile)]).
+:- else.
 :- impl_defined(c_winfile/2).
+:- endif.
+:- if(defined(optim_comp)).
+:- '$props'(c_posixfile/2, [impnat=cbool(prolog_c_posixfile)]).
+:- else.
 :- impl_defined(c_posixfile/2).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(winpath_c/3).
@@ -902,7 +1074,11 @@ cyg2win_a(Path, WindifiedPath, Swap) :-
 :- trust pred using_windows # "Using the Windows native API (not
    POSIX)".
 
+:- if(defined(optim_comp)).
+:- '$props'(using_windows/0, [impnat=cbool(prolog_using_windows)]).
+:- else.
 :- impl_defined(using_windows/0).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- export(get_home/1).

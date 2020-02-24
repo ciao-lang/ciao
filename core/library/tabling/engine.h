@@ -72,7 +72,7 @@
 #define MkVarTerm(ARG) (chat_make_var((ARG)->misc->goal_desc_ptr))
 #define MkIntTerm(INT) (chat_make_integer(Arg->misc->goal_desc_ptr,(INT)))
 #define MkFloatTerm(FLOAT) (chat_make_float(Arg->misc->goal_desc_ptr,(FLOAT)))
-#define MkAtomTerm(ATOM) (MakeString(ATOM))
+#define MkAtomTerm(ATOM) (GET_ATOM(ATOM))
 #define MkPairTerm(HEAD,TAIL) (chat_make_list(Arg->misc->goal_desc_ptr,(HEAD),(TAIL)))
 #define MkApplTerm(FUNCTOR,ARITY,ARGS) (chat_make_functor(Arg->misc->goal_desc_ptr,(FUNCTOR),(ARITY),(ARGS))) 
 /* From termdefs.h PointerToTerm */
@@ -98,7 +98,7 @@
 /* -------------------- */
 #define IsIntTerm(TERM) (IsInteger(TERM))
 #define IsFloatTerm(TERM) (IsFloat(TERM))
-#define IsAtomTerm(TERM) (IsAtom(TERM)) 
+#define IsAtomTerm(TERM) (TaggedIsATM(TERM)) 
 #define IsPairTerm(TERM) (TagIsLST(TERM)) 
 #define IsApplTerm(TERM) (TagIsSTR(TERM) && !IsNumber(TERM))
 #define IsVarTerm(TERM) (IsVar(TERM))

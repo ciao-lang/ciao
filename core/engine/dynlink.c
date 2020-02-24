@@ -87,14 +87,14 @@ CBOOL__PROTO(prolog_dynlink)
 
   DEREF(X(1), X(1));
 
-  if (!TagIsATM(X(1)))
+  if (!TaggedIsATM(X(1)))
     USAGE_FAULT("dynlink/2: second argument must be an atom");
   module_name = (char *)GetString(X(1));
 
    /* Extract the string and *check* it is really a string */
 
   DEREF(X(0), X(0));
-  if (!TagIsATM(X(0))) {
+  if (!TaggedIsATM(X(0))) {
     sprintf(errmsg, "dynlink(_, %s): first argument must be an atom",
             module_name);
     USAGE_FAULT(errmsg);
@@ -192,7 +192,7 @@ CBOOL__PROTO(prolog_dynunlink)
    /* Extract the string and *check* it is really a string */
 
   DEREF(X(0), X(0));
-  if (!TagIsATM(X(0)))
+  if (!TaggedIsATM(X(0)))
     USAGE_FAULT("dynunlink/1: first argument must be an atom");
   module_name = (char *)GetString(X(0));
 

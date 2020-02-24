@@ -129,7 +129,7 @@ typedef struct module_ module_t; /* defined in objareas.h */
 #define TagIsSmall(X)   ((stagged_t)(X) < (stagged_t)TaggedHigh)
 #define TagIsLarge(X)   (TagIsSTR(X) && STRIsLarge(X))
 #define TagIsNUM(X)     ((stagged_t)(X) < (stagged_t)(ATM<<TAGOFFSET)) 
-#define TagIsATM(X)     HasTag(X,ATM)
+#define TaggedIsATM(X)  HasTag(X,ATM)
 #define TagIsLST(X)     HasTag(X,LST)
 #define TagIsSTR(X)     ((X) >= (STR<<TAGOFFSET))
 #define TagIsStructure(X) (TagIsSTR(X) && !STRIsLarge(X))
@@ -248,7 +248,7 @@ typedef struct module_ module_t; /* defined in objareas.h */
 #define MakeInteger(ARG, X) (IntIsSmall(X) ? MakeSmall(X) : make_integer(ARG,X))
 #define MakeFloat(ARG,X)        make_float(ARG,X)
 #define MakeAtom(X)     TagIndex(ATM,X)
-#define MakeString(X)   init_atom_check(X)
+#define GET_ATOM(X)   init_atom_check(X)
 
 #define GetInteger(X)   (TagIsSmall(X) ? GetSmall(X) : get_integer(X))
 #define GetFloat(X)     (TagIsSmall(X) ? (flt64_t)GetSmall(X) : get_float(X))
@@ -257,8 +257,8 @@ typedef struct module_ module_t; /* defined in objareas.h */
 #define IsInteger(X)    (TagIsSmall(X) || (TagIsLarge(X) && !LargeIsFloat(X)))
 #define IsFloat(X)      (TagIsLarge(X) && LargeIsFloat(X))
 #define IsNumber(X)     (TagIsSmall(X) || TagIsLarge(X))
-#define IsAtom(X)       TagIsATM(X)
-#define IsString(X)     TagIsATM(X)
+/* TODO:[oc-merge] remove IsString */
+#define IsString(X)     TaggedIsATM(X)
 
 #if BC_SCALE==2
 /* Int is small in BC32 (for BC_SCALE==2) */

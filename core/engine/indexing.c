@@ -579,7 +579,7 @@ CBOOL__PROTO(clause_number)
 
   number = f->code.incoreinfo->clauses_tail->number;
 
-  Unify_constant(MakeSmall(number),X(1));
+  CBOOL__UnifyCons(MakeSmall(number),X(1));
   return TRUE;
 }
 

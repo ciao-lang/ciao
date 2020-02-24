@@ -744,7 +744,7 @@ CFUN__PROTO(make_structure, tagged_t,
   intmach_t ar = Arity(functor);
   tagged_t *h = w->global_top;
 
-  if (ar==0 || !TagIsATM(functor))
+  if (ar==0 || !TaggedIsATM(functor))
     return functor;
   else if (functor==functor_list) {
     ConstrHVA(h);
@@ -866,7 +866,7 @@ static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
       return f;
     }
 
-  if (TagIsATM(tagname)) 
+  if (TaggedIsATM(tagname)) 
     return insert_definition(predicates_location,tagname,arity,TRUE);
   else return NULL;
 }
@@ -1298,7 +1298,7 @@ static CBOOL__PROTO(cground_aux, tagged_t x1)
               { goto non_var; });
 
  non_var:
-  if (TagIsATM(u)) goto win;
+  if (TaggedIsATM(u)) goto win;
   if (TagIsSmall(u)) goto win;
   if (TagIsLST(u)) {
       if (cground_args_aux(Arg,2,TagToCar(u),&x1))
@@ -1400,7 +1400,7 @@ CBOOL__PROTO(prolog_show_all_nodes)
 CBOOL__PROTO(start_node)
 {
   DEREF(X(0),X(0));
-  Unify_constant(ChoiceToInt(InitialNode),X(0));
+  CBOOL__UnifyCons(ChoiceToInt(InitialNode),X(0));
   return TRUE;
 }
 

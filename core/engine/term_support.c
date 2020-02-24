@@ -530,7 +530,7 @@ CBOOL__PROTO(compile_term,
   object = compile_term_aux(Arg, head, body, new_worker);
   Arg = *new_worker == NULL ? Arg : *new_worker;
 
-  Unify_constant(PointerToTerm(object),X(1));
+  CBOOL__UnifyCons(PointerToTerm(object),X(1));
   return TRUE;
 }
 
@@ -1010,7 +1010,7 @@ static CBOOL__PROTO(prolog_constant_codes,
 
   if(!IsVar(X(0))){
     if (!numberp) {
-      if(!TagIsATM(X(0))) {
+      if(!TaggedIsATM(X(0))) {
         BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(0), 1);
       }
     } else if (!atomp) {
@@ -1070,7 +1070,7 @@ static CBOOL__PROTO(prolog_constant_codes,
     }
     number_to_string(Arg,X(0),base);
     s = Atom_Buffer;
-  } else if (atomp && TagIsATM(X(0))) {
+  } else if (atomp && TaggedIsATM(X(0))) {
     s = GetString(X(0));
   } else {
     if (numberp) {
@@ -1102,7 +1102,7 @@ CBOOL__PROTO(prolog_atom_length) {
   DEREF(X(0),X(0));
   DEREF(X(1),X(1));
 
-  if (!TagIsATM(X(0)))
+  if (!TaggedIsATM(X(0)))
     ERROR_IN_ARG(X(0),1,STRICT_ATOM);
 
   if (!IsInteger(X(1)) && !IsVar(X(1))) {
@@ -1128,7 +1128,7 @@ CBOOL__PROTO(prolog_sub_atom)
   DEREF(X(2),X(2));
   DEREF(X(3),X(3));
 
-  if (!TagIsATM(X(0)))
+  if (!TaggedIsATM(X(0)))
     ERROR_IN_ARG(X(0),1,STRICT_ATOM);
   if (!IsInteger(X(1)))
     ERROR_IN_ARG(X(1),2,INTEGER);
@@ -1175,11 +1175,11 @@ CBOOL__PROTO(prolog_atom_concat)
   DEREF(X(1),X(1));
   DEREF(X(2),X(2));
 
-  if (TagIsATM(X(0))) {
+  if (TaggedIsATM(X(0))) {
     s1 = GetString(X(0));
 
-    if (TagIsATM(X(1))) {
-      if (!TagIsATM(X(2)) && !IsVar(X(2))) {
+    if (TaggedIsATM(X(1))) {
+      if (!TaggedIsATM(X(2)) && !IsVar(X(2))) {
         BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(2),3);
       }
 /* atom_concat(+, +, ?) */
@@ -1210,7 +1210,7 @@ CBOOL__PROTO(prolog_atom_concat)
       *s = '\0';
       return cunify(Arg,init_atom_check(Atom_Buffer),X(2));
     } else if (IsVar(X(1))) {
-      if (!TagIsATM(X(2))) { ERROR_IN_ARG(X(2),3,STRICT_ATOM); }
+      if (!TaggedIsATM(X(2))) { ERROR_IN_ARG(X(2),3,STRICT_ATOM); }
       /* atom_concat(+, -, +) */
       s2 = GetString(X(2));
 
@@ -1236,10 +1236,10 @@ CBOOL__PROTO(prolog_atom_concat)
       BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(1),2);
     }
   } else if (IsVar(X(0))) {
-    if (!TagIsATM(X(2)))
+    if (!TaggedIsATM(X(2)))
         { ERROR_IN_ARG(X(2),3,STRICT_ATOM); }
 
-    if (TagIsATM(X(1))) {
+    if (TaggedIsATM(X(1))) {
 /* atom_concat(-, +, +) */
 
       s1 = GetString(X(1));
@@ -1416,7 +1416,7 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
   RefHeap(t1,loc);
   SwitchOnHeapVar(t1,t2,{goto copy_hva;},{goto copy_cva;},{});
 
-  if (IsAtom(t1) || IsNumber(t1)) {                           /* NUM, ATM */
+  if (TaggedIsATM(t1) || IsNumber(t1)) {                           /* NUM, ATM */
     *loc = t1;
     return;
   } else if (t1 & TagBitFunctor) {                                 /* STR */
@@ -1512,7 +1512,7 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
   RefHeap(t1,loc);
   SwitchOnHeapVar(t1,t2,{goto copy_hva;},{goto skip_cva;},{});
 
-  if (IsAtom(t1) || IsNumber(t1)) {                           /* NUM, ATM */
+  if (TaggedIsATM(t1) || IsNumber(t1)) {                           /* NUM, ATM */
     *loc = t1;
     return;
   } else if (t1 & TagBitFunctor) {                                 /* STR */
@@ -1824,7 +1824,7 @@ static CBOOL__PROTO(var_occurs, tagged_t v, tagged_t x1) {
               { goto non_var; });
 
  non_var:
-  if (TagIsATM(u)) goto lose;
+  if (TaggedIsATM(u)) goto lose;
   if (TagIsSmall(u)) goto lose;
   if (TagIsLST(u)) {
     if (!var_occurs_args_aux(Arg,v,2,TagToCar(u),&x1))

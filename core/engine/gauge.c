@@ -85,7 +85,7 @@ CBOOL__PROTO(emulated_clause_counters)
   DEREF(X(1),X(1));
   for (i=GetSmall(X(1)), cl=d->code.incoreinfo->clauses.ptr; i>1; --i)
     cl = cl->next.ptr;
-  Unify_constant(PointerToTerm(cl->counters),X(2));
+  CBOOL__UnifyCons(PointerToTerm(cl->counters),X(2));
   count = NumberOfCounters(cl);
   return cunify(Arg,MakeInteger(count),X(3));
 }
