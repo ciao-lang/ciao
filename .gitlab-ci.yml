@@ -93,23 +93,18 @@ ciaopp_lite:
   dependencies:
     - install
 
-incanal:
+incanal_assrts:
   stage: test
   script:
     - apk add bash gnuplot # add bash for the test scripts
-    - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - cd bndls/ciaopp_tests/tests/incanal
     - ./compile.sh
-    - ./quick_run.sh
     - ./test_incanal_assrts.sh shfr
   tags:
     - ciao
-#  artifacts:
-#    paths:
-#      - bndls/ciaopp_tests/tests/incanal/test_results/
   dependencies:
-    - ciaopp
+    - ciaopp_lite
 
 incanal_lite:
   stage: test
@@ -121,9 +116,6 @@ incanal_lite:
     - ./quick_run.sh
   tags:
     - ciao
-#  artifacts:
-#    paths:
-#      - bndls/ciaopp_tests/tests/incanal/test_results/
   dependencies:
     - ciaopp_lite
 
