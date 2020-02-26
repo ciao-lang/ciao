@@ -444,7 +444,7 @@ CFUN__PROTO(bn_call,
   bignum_t *by = (bignum_t *)0;
   if (TagIsSTR(x)) {
     bx = (bignum_t *)TagToSTR(x);
-  } else if (TagIsSmall(x)) {
+  } else if (TaggedIsSmall(x)) {
     xx[0] = MakeFunctorFix;
     xx[1] = GetSmall(x);
     bx = (bignum_t *)xx;
@@ -452,7 +452,7 @@ CFUN__PROTO(bn_call,
 
   if (TagIsSTR(y)) {
     by = (bignum_t *)TagToSTR(y);
-  } else if (TagIsSmall(y)) {
+  } else if (TaggedIsSmall(y)) {
     yy[0] = MakeFunctorFix;
     yy[1] = GetSmall(y);
     by = (bignum_t *)yy;
@@ -824,7 +824,7 @@ static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
 {
   int arity;
 
-  if (!TagIsSmall(tagarity))
+  if (!TaggedIsSmall(tagarity))
     return NULL;
   arity = GetSmall(tagarity);
   if (TagIsSTR(tagname) && (TagToHeadfunctor(tagname)==functor_minus))
@@ -1299,7 +1299,7 @@ static CBOOL__PROTO(cground_aux, tagged_t x1)
 
  non_var:
   if (TaggedIsATM(u)) goto win;
-  if (TagIsSmall(u)) goto win;
+  if (TaggedIsSmall(u)) goto win;
   if (TagIsLST(u)) {
       if (cground_args_aux(Arg,2,TagToCar(u),&x1))
         goto in;

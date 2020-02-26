@@ -419,7 +419,7 @@ void compute_cwd(void)
 CBOOL__PROTO(prolog_unix_cd) {
   ERR__FUNCTOR("system:working_directory", 2);
   char pathBuf[MAXPATHLEN+1];
-  /* struct stat statbuf; */
+
   CBOOL__UnifyCons(GET_ATOM(cwd), X(0));
   DEREF(X(0), X(0));
 
@@ -461,6 +461,7 @@ CBOOL__PROTO(prolog_unix_cd) {
 }
 
 /* --------------------------------------------------------------------------- */
+/* TODO:[oc-merge] move somewhere else? */
 
 /* Return the arguments with which the current prolog was invoked */
 CBOOL__PROTO(prolog_unix_argv)
@@ -581,14 +582,14 @@ CBOOL__PROTO(prolog_unix_mktemp) {
   if ((fildes = c_mkstemp(template)) <  0) {
     return check_errno(Arg, 0);
   } else {
-    close(fildes);   // Do not leave it open, since the stream is not seen
-                     // at Prolog level
-    return cunify(Arg, GET_ATOM(template), X(1));
+    /* Do not leave it open, since the stream is not seen at Prolog
+       level */
+    close(fildes);
+    CBOOL__LASTUNIFY(GET_ATOM(template), X(1));
   }
 }
 
-CBOOL__PROTO(prolog_unix_access)
-{
+CBOOL__PROTO(prolog_unix_access) {
   ERR__FUNCTOR("system:file_exists", 2);
   char pathBuf[MAXPATHLEN+1];
   int mode;
@@ -596,37 +597,29 @@ CBOOL__PROTO(prolog_unix_access)
   DEREF(X(0), X(0));
 
   /* check argument instantiation error */
-  if (IsVar(X(0)))
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
-  /* check type argument*/
-  if (!TaggedIsATM(X(0)))
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+  if (IsVar(X(0))) BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+  /* check type argument */
+  if (!TaggedIsATM(X(0))) ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
 
   DEREF(X(1), X(1));
 
-  if (!TagIsSmall(X(1)) || (mode = GetSmall(X(1))) & ~255) /* Not a byte */
+  if (!TaggedIsSmall(X(1)) || (mode = GetSmall(X(1))) & ~255) /* Not a byte */
     ERROR_IN_ARG(X(1), 2, TY_BYTE);
 
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf))
     return FALSE;
 
-  if (access(pathBuf, mode))
-    {
-/*       perror("% access in file_exists/2"); /\* --this must be quiet. *\/ */
-      /*  MINOR_FAULT("access() failed");  */
-      /* --MCL: no need to raise any exception */
-      return FALSE;
-    }
-  return TRUE;
+  CBOOL__TEST(access(pathBuf,mode) == 0);
+  CBOOL__PROCEED;
 }
 
 /* directory_files(+Path, FileList) */
 
-CBOOL__PROTO(prolog_directory_files)
-{
+CBOOL__PROTO(prolog_directory_files) {
   ERR__FUNCTOR("system:directory_files", 2);
   char pathBuf[MAXPATHLEN+1];
   DIR *dir;
+  // intmach_t gap;
   struct dirent *direntry;
 
   /* Using X(2) to build the result - DCG */
@@ -675,13 +668,24 @@ CBOOL__PROTO(prolog_directory_files)
     }
   } else {
     X(2) = atom_nil;
+#if 1
     while ((direntry = readdir(dir))) {
       ENSURE_HEAP_LST(16, 3); /* 16 is some arbitrary gap (1 would be OK) */
       MakeLST(X(2), GET_ATOM(direntry->d_name), X(2));
     }
+#else
+    gap = HeapCharAvailable(G->heap_top) - CONTPAD;
+    while ((direntry = readdir(dir))) {
+      if ((gap -= 2*sizeof(tagged_t)) < 0) {
+        CVOID__CALL(explicit_heap_overflow,(CONTPAD+32*sizeof(tagged_t))*2,3);
+        gap += 32*sizeof(tagged_t);
+      }
+      MakeLST(X(2), GET_ATOM(direntry->d_name), X(2));
+    }
+#endif
     closedir(dir);
   }
-  return cunify(Arg, X(2), X(1));
+  CBOOL__LASTUNIFY(X(2),X(1));
 }
 
 /* file_properties(+File, Type, Linkto, ModTime, Protection, Size)
@@ -690,8 +694,7 @@ CBOOL__PROTO(prolog_directory_files)
    (absolute path) was last modified.
 */
 
-CBOOL__PROTO(prolog_file_properties)
-{
+CBOOL__PROTO(prolog_file_properties) {
   ERR__FUNCTOR("system:file_properties", 6);
   struct stat statbuf;
   char pathBuf[MAXPATHLEN+1];
@@ -716,7 +719,7 @@ CBOOL__PROTO(prolog_file_properties)
 #if defined(_WIN32) || defined(_WIN64)
     /* No symlinks in MinGW */
 #else
-    int len;
+    ssize_t len;
     if ((len=readlink(pathBuf, symlinkName, STATICMAXATOM)) > 0) {
       symlinkName[len] = (char) 0;
     }
@@ -728,27 +731,26 @@ CBOOL__PROTO(prolog_file_properties)
   DEREF(X(3), X(3));
   DEREF(X(4), X(4));
   DEREF(X(5), X(5));
-  if (   (X(1)!=atom_nil)
-         || (X(3)!=atom_nil)
-         || (X(4)!=atom_nil)
-         || (X(5)!=atom_nil) ) {
-
+  if ((X(1)!=atom_nil) ||
+      (X(3)!=atom_nil) ||
+      (X(4)!=atom_nil) ||
+      (X(5)!=atom_nil)) {
     if (stat(pathBuf, &statbuf)) {
       if (current_ferror_flag==atom_on) {
         switch (errno) {
-          case ENOENT: /* File does not exists */ 
-            BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1);
-            break ;
-          case EACCES: /* We dont have permissions in the directory */
-            BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
-            break ;
-          default: /* Who knows */
-            BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);                   
-            break ;
-          }
+        case ENOENT: /* File does not exists */ 
+          BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1);
+          break;
+        case EACCES: /* We dont have permissions in the directory */
+          BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+          break;
+        default: /* Who knows */
+          BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);                   
+          break;
+        }
       } else {
         /* Silently fails */
-        return FALSE;
+        CBOOL__FAIL;
       }
     }
 
@@ -768,7 +770,7 @@ CBOOL__PROTO(prolog_file_properties)
     }
 
     if (X(3)!=atom_nil) {
-      /* Cannot be CBOOL__UnifyCons because it is a large integer */
+      /* Cannot be CBOOL__UnifyCons because it may require a bignum */
       if (!cunify(Arg, MakeInteger(Arg, statbuf.st_mtime), X(3))) {
         return FALSE;
       }
@@ -780,14 +782,13 @@ CBOOL__PROTO(prolog_file_properties)
       CBOOL__UnifyCons(MakeSmall(statbuf.st_size), X(5));
     }
   }
-
-  return TRUE;
+  
+  CBOOL__PROCEED;
 }
 
 /* prolog_touch(+Path) */
 
-CBOOL__PROTO(prolog_touch)
-{
+CBOOL__PROTO(prolog_touch) {
   ERR__FUNCTOR("system:touch", 1);
   char file[MAXPATHLEN+1];
   int status;
@@ -839,11 +840,10 @@ CBOOL__PROTO(prolog_touch)
   return TRUE;
 }
 
-CBOOL__PROTO(prolog_unix_chmod)
-{
+CBOOL__PROTO(prolog_unix_chmod) {
   ERR__FUNCTOR("system:chmod", 2);
   char pathBuf[MAXPATHLEN+1];
-/*   struct stat statbuf; */
+
   DEREF(X(0), X(0));
   /* check argument instantiation error */
   if (IsVar(X(0))) {
@@ -863,7 +863,7 @@ CBOOL__PROTO(prolog_unix_chmod)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(1), 2);
   }
   /* and check type argument again */
-  if (!TagIsSmall(X(1))) {
+  if (!TaggedIsSmall(X(1))) {
     BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
   }
 
@@ -889,8 +889,7 @@ CBOOL__PROTO(prolog_unix_chmod)
   return TRUE;
 }
 
-CBOOL__PROTO(prolog_unix_umask)
-{
+CBOOL__PROTO(prolog_unix_umask) {
   ERR__FUNCTOR("system:umask", 2);
   int i;
 
@@ -900,22 +899,19 @@ CBOOL__PROTO(prolog_unix_umask)
     if (X(1)==X(0)) {
       i = umask(0);
       (void)umask(i);
-      return cunify(Arg, MakeSmall(i), X(0));
-    } else
+      CBOOL__LASTUNIFY(MakeSmall(i),X(0));
+    } else {
       BUILTIN_ERROR(INSTANTIATION_ERROR, X(1), 2);
+    }
   } else {
     /* check type argument*/
-    if (!TagIsSmall(X(1)))
+    if (!TaggedIsSmall(X(1)))
       BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
-    return cunify(Arg, MakeSmall(umask(GetSmall(X(1)))), X(0));
+    CBOOL__LASTUNIFY(MakeSmall(umask(GetSmall(X(1)))), X(0));
   }
 }
 
-
-
-
-CBOOL__PROTO(prolog_unix_delete)
-{
+CBOOL__PROTO(prolog_unix_delete) {
   ERR__FUNCTOR("system:delete_file", 1);
   char pathBuf[MAXPATHLEN+1];
 
@@ -948,11 +944,11 @@ CBOOL__PROTO(prolog_unix_delete)
       }
     } else {
       /* Silently fails */
-      return FALSE;
+      CBOOL__FAIL;
     }
   }
     
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
@@ -986,12 +982,10 @@ static int unix_replace(char const *src, char const *dst) {
 #define unix_replace(S,D) rename((S),(D))
 #endif
 
-CBOOL__PROTO(prolog_unix_rename)
-{
+CBOOL__PROTO(prolog_unix_rename) {
   ERR__FUNCTOR("system:rename_file", 2);
-  char
-    orig_name[MAXPATHLEN+1],
-    new_name[MAXPATHLEN+1];
+  char orig_name[MAXPATHLEN+1];
+  char new_name[MAXPATHLEN+1];
 
   DEREF(X(0), X(0));
   /* check instantiation error */
@@ -1002,6 +996,7 @@ CBOOL__PROTO(prolog_unix_rename)
   if (!TaggedIsATM(X(0))) {
     ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
   }
+
   DEREF(X(1), X(1));
   /* check instantiation error to the other argument */
   if (IsVar(X(1))) {
@@ -1034,16 +1029,14 @@ CBOOL__PROTO(prolog_unix_rename)
       }
     } else {
       /* Silently fails */
-      return FALSE;
+      CBOOL__FAIL;
     }
   }
 
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
-
-CBOOL__PROTO(prolog_unix_mkdir)
-{
+CBOOL__PROTO(prolog_unix_mkdir) {
   ERR__FUNCTOR("system:make_directory", 2);
   char dirname[MAXPATHLEN+1];
 
@@ -1066,13 +1059,13 @@ CBOOL__PROTO(prolog_unix_mkdir)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(1), 2);
   }
   /* check type argument*/
-  if (!TagIsSmall(X(1))) {
+  if (!TaggedIsSmall(X(1))) {
     BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
   }
 #if !(defined(_WIN32) || defined(_WIN64))
   int mode = GetSmall(X(1));
 #endif
-  
+
   /* call to mkdir, if there is a problem, raise a system error */
 #if defined(_WIN32) || defined(_WIN64)
 #warning "TODO(MinGW): inspired by others, mkdir mode is ignored (we could use chmod() afterwards but this may be ignored if noacl is used)"
@@ -1099,15 +1092,13 @@ CBOOL__PROTO(prolog_unix_mkdir)
     }
   }
        
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
-
-CBOOL__PROTO(prolog_unix_rmdir)
-{
+CBOOL__PROTO(prolog_unix_rmdir) {
   ERR__FUNCTOR("system:delete_directory", 1);
   char dirname[MAXPATHLEN+1];
-  /*   struct stat statbuf; */
+
   DEREF(X(0), X(0));
   /* check instantiation error */
   if (IsVar(X(0))) {
@@ -1149,8 +1140,7 @@ CBOOL__PROTO(prolog_unix_rmdir)
 /*
  *  current_host(?Hostname).
  */
-CBOOL__PROTO(prolog_current_host)
-{
+CBOOL__PROTO(prolog_current_host) {
   ERR__FUNCTOR("system:current_host", 1);
   char hostname[MAXHOSTNAMELEN*4];
 
@@ -1210,96 +1200,8 @@ CBOOL__PROTO(prolog_current_host)
   }
 
   DEREF(X(0), X(0));
-  return cunify(Arg, GET_ATOM(hostname), X(0));
+  CBOOL__LASTUNIFY(GET_ATOM(hostname), X(0));
 }
-
-/* --------------------------------------------------------------------------- */
-
-/* internal_getenvstr(+Name, -Value) */
-
-/* CBOOL__PROTO(prolog_c_getenvstr) */
-/* { */
-/*   char *s; */
-/*   int i; */
-/*   tagged_t cdr; */
-
-/*   DEREF(X(0), X(0)); */
-/*   DEREF(X(1), X(1)); */
-/*   /\* check instantiation error *\/ */
-/*   /\* */
-/*   if (IsVar(X(0))) */
-/*     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1); */
-/*   *\/ */
-/*   /\* check type argument*\/ */
-/*   /\* */
-/*   if (!TaggedIsATM(X(0))) */
-/*     ERROR_IN_ARG(X(0), 1, STRICT_ATOM); */
-/*   *\/ */
-/*   if ((s = getenv(GetString(X(0)))) == NULL) return FALSE; */
-
-/*   s += (i = strlen(s)); */
-
-/*   ENSURE_HEAP_LST(i, 2); */
-
-/*   cdr = atom_nil; */
-/*   while (i>0) { */
-/*     i--; */
-/*     MakeLST(cdr, MakeSmall(*(--s)), cdr); */
-/*   } */
-/*   return cunify(Arg, cdr, X(1)); */
-/* } */
-
-
-/* setenvstr(+Name, +Value) */
-
-#if defined(Solaris)
-/* emulate setenv in terms of putenv (from rpm 2.0.9) */
-int setenv(const char *name, const char *value, int overwrite)
-{
-  int len;
-  if (!overwrite && getenv(name)) return 0;
-  len = strlen(name) + strlen(value) + 2;
-  if (len < 255) {
-    char buf[256];
-    strcpy(buf, name);
-    strcat(buf, "=");
-    strcat(buf, value);
-    return putenv(buf);
-  } else {
-    char *buf = checkalloc_ARRAY(char, len);
-    int ret;
-    strcpy(buf, name);
-    strcat(buf, "=");
-    strcat(buf, value);
-    ret = putenv(buf);
-    checkdealloc_ARRAY(char, len, buf);
-    return ret;
-  }
-}
-#elif defined(_WIN32) || defined(_WIN64) /* MinGW */
-#warning "TODO(MinGW): windows environment is stored as unicode, please review setenv/getenv implementation"
-int setenv(const char *name, const char *value, int overwrite) {
-  if (!overwrite && getenv(name)) {
-    errno = EEXIST;
-    return -1;
-  }
-  if (SetEnvironmentVariable(name, value)) {
-    errno = ENOMEM;
-    return -1;
-  }
-  return 0;
-}
-int unsetenv(const char *name) {
-  if (!getenv(name)) {
-    return 0;
-  }
-  if (SetEnvironmentVariable(name, NULL)) {
-    errno = ENOMEM;
-    return -1;
-  }
-  return 0;
-}
-#endif
 
 /* --------------------------------------------------------------------------- */
 
@@ -1365,14 +1267,12 @@ CBOOL__PROTO(prolog_c_posixfile) /* EMM */
 
 /* --------------------------------------------------------------------------- */
 
-CBOOL__PROTO(prolog_c_errno)
-{
+CBOOL__PROTO(prolog_c_errno) {
   DEREF(X(0), X(0));
   return cunify(Arg, MakeSmall(errno), X(0));
 }
 
-CBOOL__PROTO(prolog_c_strerror)
-{
+CBOOL__PROTO(prolog_c_strerror) {
   DEREF(X(0), X(0));
   return cunify(Arg, GET_ATOM(strerror(errno)), X(0));
 }
@@ -1381,8 +1281,7 @@ CBOOL__PROTO(prolog_c_strerror)
 
 #define BUF_MAX 65536
 
-CBOOL__PROTO(prolog_c_copy_file)
-{
+CBOOL__PROTO(prolog_c_copy_file) {
   ERR__FUNCTOR("system:copy_file", 2);
   char *source, *destination;
   int fd_source, fd_destination, flags;
@@ -1479,21 +1378,104 @@ CBOOL__PROTO(prolog_c_copy_file)
 
 /* --------------------------------------------------------------------------- */
 
-CBOOL__PROTO(prolog_c_get_env)
+/* internal_getenvstr(+Name, -Value) */
+
+/* CBOOL__PROTO(prolog_c_getenvstr) */
+/* { */
+/*   char *s; */
+/*   int i; */
+/*   tagged_t cdr; */
+
+/*   DEREF(X(0), X(0)); */
+/*   DEREF(X(1), X(1)); */
+/*   /\* check instantiation error *\/ */
+/*   /\* */
+/*   if (IsVar(X(0))) */
+/*     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1); */
+/*   *\/ */
+/*   /\* check type argument*\/ */
+/*   /\* */
+/*   if (!TaggedIsATM(X(0))) */
+/*     ERROR_IN_ARG(X(0), 1, STRICT_ATOM); */
+/*   *\/ */
+/*   if ((s = getenv(GetString(X(0)))) == NULL) return FALSE; */
+
+/*   s += (i = strlen(s)); */
+
+/*   ENSURE_HEAP_LST(i, 2); */
+
+/*   cdr = atom_nil; */
+/*   while (i>0) { */
+/*     i--; */
+/*     MakeLST(cdr, MakeSmall(*(--s)), cdr); */
+/*   } */
+/*   return cunify(Arg, cdr, X(1)); */
+/* } */
+
+#if defined(Solaris)
+/* emulate setenv in terms of putenv (from rpm 2.0.9) */
+int setenv(const char *name, const char *value, int overwrite)
 {
+  int len;
+  if (!overwrite && getenv(name)) return 0;
+  len = strlen(name) + strlen(value) + 2;
+  if (len < 255) {
+    char buf[256];
+    strcpy(buf, name);
+    strcat(buf, "=");
+    strcat(buf, value);
+    return putenv(buf);
+  } else {
+    char *buf = checkalloc_ARRAY(char, len);
+    int ret;
+    strcpy(buf, name);
+    strcat(buf, "=");
+    strcat(buf, value);
+    ret = putenv(buf);
+    checkdealloc_ARRAY(char, len, buf);
+    return ret;
+  }
+}
+#elif defined(_WIN32) || defined(_WIN64) /* MinGW */
+#warning "TODO(MinGW): windows environment is stored as unicode, please review setenv/getenv implementation"
+int setenv(const char *name, const char *value, int overwrite) {
+  if (!overwrite && getenv(name)) {
+    errno = EEXIST;
+    return -1;
+  }
+  if (SetEnvironmentVariable(name, value)) {
+    errno = ENOMEM;
+    return -1;
+  }
+  return 0;
+}
+int unsetenv(const char *name) {
+  if (!getenv(name)) {
+    return 0;
+  }
+  if (SetEnvironmentVariable(name, NULL)) {
+    errno = ENOMEM;
+    return -1;
+  }
+  return 0;
+}
+#endif
+
+/* --------------------------------------------------------------------------- */
+
+CBOOL__PROTO(prolog_c_get_env) {
   char *name, *value;
   DEREF(X(0), X(0));
   DEREF(X(1), X(1));
   name = GetString(X(0));
   value = getenv(name);
-  if(value==NULL)
-    return FALSE;
-  else
-    return cunify(Arg, GET_ATOM(value), X(1));
+  if (value==NULL) {
+    CBOOL__FAIL;
+  }
+  CBOOL__LASTUNIFY(GET_ATOM(value), X(1));
 }
 
-CBOOL__PROTO(prolog_c_set_env)
-{
+CBOOL__PROTO(prolog_c_set_env) {
   ERR__FUNCTOR("system:set_env", 2);
   char *name, *value;
   DEREF(X(0), X(0));
@@ -1502,46 +1484,48 @@ CBOOL__PROTO(prolog_c_set_env)
   value = GetString(X(1));
   if (setenv(name, value, 1) != 0) {
     BUILTIN_ERROR(RESOURCE_ERROR(R_UNDEFINED), X(0), 1);
-  } else {
-    return TRUE;
   }
+  CBOOL__PROCEED;
 }
 
-CBOOL__PROTO(prolog_c_del_env)
-{
+CBOOL__PROTO(prolog_c_del_env) {
   char *name;
   DEREF(X(0), X(0));
   name = GetString(X(0));
+#if defined(Solaris)
+  putenv(name);
+#else
   unsetenv(name);
-  return TRUE;
+#endif
+  CBOOL__PROCEED;
 }
 
 extern char **environ;
 
-CBOOL__PROTO(prolog_c_current_env)
-{
-  int n, index;
+CBOOL__PROTO(prolog_c_current_env) {
+  intmach_t n, index;
   char *nameval, *value;
+
   DEREF(X(0), X(0));
   index = GetInteger(X(0));
   nameval = environ[index];
   if (nameval == NULL) return FALSE; /* end of environment */
-  
+
   DEREF(X(1), X(1));
   DEREF(X(2), X(2));
   value = strchr(environ[index], '=');
-  n = (int)(value-nameval);
+  n = value-nameval;
   value++;
   tagged_t value_term = GET_ATOM(value);
 
   char *name = checkalloc_ARRAY(char, n+1);
-  memcpy(name, nameval, (int)(n+1)*sizeof(char));
+  memcpy(name, nameval, (n+1)*sizeof(char));
   name[n] = '\0';
   tagged_t name_term = GET_ATOM(name);
   checkdealloc_ARRAY(char, n+1, name);
 
-  return (cunify(Arg, name_term, X(1)) &&
-          cunify(Arg, value_term, X(2)));
+  CBOOL__UNIFY(name_term, X(1));
+  CBOOL__LASTUNIFY(value_term, X(2));
 }
 
 /* --------------------------------------------------------------------------- */
@@ -1550,8 +1534,7 @@ CBOOL__PROTO(prolog_c_current_env)
   pause(+Seconds): make this process sleep for Seconds seconds
 */
 
-CBOOL__PROTO(prolog_pause)
-{
+CBOOL__PROTO(prolog_pause) {
   ERR__FUNCTOR("system:pause", 1);
   tagged_t x0;
   int time;
@@ -1561,13 +1544,13 @@ CBOOL__PROTO(prolog_pause)
   if (IsVar(x0))
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   /* check type argument*/
-  if (!TagIsSmall(x0))
+  if (!TaggedIsSmall(x0))
     BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(0), 1);
   time = GetSmall(x0);
 
   sleep(time);
 
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
 /* --------------------------------------------------------------------------- */
@@ -1594,17 +1577,15 @@ CBOOL__PROTO(prolog_pause)
   get_pid(?PID): PID is unified with  the process identificator number
   of this process
 */
-CBOOL__PROTO(prolog_getpid)
-{
+CBOOL__PROTO(prolog_getpid) {
   tagged_t x0;
 
   DEREF(x0, X(0));
-  return cunify(Arg, x0, MakeSmall(getpid()));
+  CBOOL__LASTUNIFY(x0, MakeSmall(getpid()));
 }
 
 /* Get UID (unavailable in non-POSIX systems) */
-CBOOL__PROTO(prolog_getuid)
-{
+CBOOL__PROTO(prolog_getuid) {
 #if defined(_WIN32) || defined(_WIN64)
   SERIOUS_FAULT("TODO(MinGW): getuid is not available in non-POSIX systems");
 #else
@@ -1615,8 +1596,7 @@ CBOOL__PROTO(prolog_getuid)
 }
 
 /* Get GID (unavailable in non-POSIX systems) */
-CBOOL__PROTO(prolog_getgid)
-{
+CBOOL__PROTO(prolog_getgid) {
 #if defined(_WIN32) || defined(_WIN64)
   SERIOUS_FAULT("TODO(MinGW): getgid is not available in non-POSIX systems");
 #else
@@ -1707,12 +1687,11 @@ CBOOL__PROTO(prolog_get_numcores)
  * (See documentation in internals.pl)
  */
 
-CBOOL__PROTO(prolog_find_file)
-{
+CBOOL__PROTO(prolog_find_file) {
   char *libDir, *path, *opt, *suffix;
   char pathBuf[MAXPATHLEN+8];
   /* MAXATOM may change dynamically to make room for longer atoms */
-  int relBufSize =2*MAXATOM+2;
+  int relBufSize = 2*MAXATOM+2;
   char *relBuf = checkalloc_ARRAY(char, relBufSize);
   char *bp;
   char *cp;
@@ -1746,9 +1725,9 @@ CBOOL__PROTO(prolog_find_file)
     strcat(relBuf, path);
   }
 
-  if (!expand_file_name(relBuf, TRUE, pathBuf)){
+  if (!expand_file_name(relBuf, TRUE, pathBuf)) {
     checkdealloc_ARRAY(char, relBufSize, relBuf);
-    return FALSE;
+    CBOOL__FAIL;
   }
 
 #if defined(FIX_PATHS)
@@ -1841,7 +1820,7 @@ CBOOL__PROTO(prolog_find_file)
   CBOOL__UnifyCons(GET_ATOM(pathBuf), X(7));
 
   checkdealloc_ARRAY(char, relBufSize, relBuf);
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
 /* --------------------------------------------------------------------------- */
@@ -1853,8 +1832,7 @@ static bool_t c_path_is_absolute(const char *path) {
   return (path[0] == '/');
 }
 
-CBOOL__PROTO(prolog_path_is_absolute)
-{
+CBOOL__PROTO(prolog_path_is_absolute) {
   ERR__FUNCTOR("internals:$path_is_absolute", 1);
   char *path;
 
@@ -1872,8 +1850,7 @@ CBOOL__PROTO(prolog_path_is_absolute)
   return c_path_is_absolute(path);
 }
 
-CBOOL__PROTO(prolog_expand_file_name)
-{
+CBOOL__PROTO(prolog_expand_file_name) {
   char *path;
   /* MAXATOM may change dinamically to make room for longer atoms */
   int relBufSize =2*MAXATOM+2;
@@ -2115,6 +2092,7 @@ CBOOL__PROTO(prolog_extract_paths) {
 }
 
 /* --------------------------------------------------------------------------- */
+/* TODO:[oc-merge] move to system_info.c */
 
 extern char *eng_architecture;
 
@@ -2254,7 +2232,7 @@ CBOOL__PROTO(prolog_wait)
   int waited_pid, status;
 
   DEREF(X(0), X(0));
-  if (!TagIsSmall(X(0))) {
+  if (!TaggedIsSmall(X(0))) {
     BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(0), 1);
   }
 
@@ -2294,7 +2272,7 @@ CBOOL__PROTO(prolog_kill)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   }
   /* and check type argument again */
-  if (!TagIsSmall(X(0))) {
+  if (!TaggedIsSmall(X(0))) {
     BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(0), 1);
   }
 
@@ -2304,7 +2282,7 @@ CBOOL__PROTO(prolog_kill)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(1), 2);
   }
   /* and check type argument again */
-  if (!TagIsSmall(X(1))) {
+  if (!TaggedIsSmall(X(1))) {
     BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
   }
 
@@ -3001,7 +2979,7 @@ CBOOL__PROTO(prolog_exec)
 
   /* Get flags */
   DEREF(X(7), X(7));
-  if (!TagIsSmall(X(7))) {
+  if (!TaggedIsSmall(X(7))) {
     BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(7), 8);
   }
   flags = GetSmall(X(7));

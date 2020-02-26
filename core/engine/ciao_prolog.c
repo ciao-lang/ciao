@@ -404,7 +404,7 @@ ciao_bool ciao_fits_in_c_long_s(ciao_ctx ctx, ciao_term term) {
   DEREF(t, t);
   /* Pre: bignums is in canonical form (if more than one word is
      needed, it does not fit into an integer) */
-  return TagIsSmall(t) || (IsInteger(t) && (bn_length((bignum_t *)TagToSTR(t)) == 1));
+  return TaggedIsSmall(t) || (IsInteger(t) && (bn_length((bignum_t *)TagToSTR(t)) == 1));
 }
 
 ciao_bool ciao_fits_in_c_long(ciao_term term) {
@@ -417,7 +417,7 @@ ciao_bool ciao_fits_in_c_int_s(ciao_ctx ctx, ciao_term term) {
   intmach_t x;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
-  if (!TagIsSmall(t)) return FALSE;
+  if (!TaggedIsSmall(t)) return FALSE;
   x = GetSmall(t);
   return (x >= INT_MIN && x <= INT_MAX);
 }
@@ -812,7 +812,7 @@ ciao_bool ciao_is_char_code_list(ciao_ctx ctx, ciao_term term) {
     if (!TagIsLST(cdr)) break;
     DerefCar(car,cdr);
     if (IsVar(car)) break;
-    if (!TagIsSmall(car) || (car<TaggedZero) || (car>=MakeSmall(256))) break;
+    if (!TaggedIsSmall(car) || (car<TaggedZero) || (car>=MakeSmall(256))) break;
     DerefCdr(cdr,cdr);
   }
   return cdr == atom_nil;

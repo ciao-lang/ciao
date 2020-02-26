@@ -253,7 +253,7 @@ stream_node_t *stream_to_ptr(tagged_t t,
     {
       DerefArg(x1,t,1);
       DerefArg(x2,t,2);
-      if (!TagIsSmall(x1) || !TagIsSmall(x2) ||
+      if (!TaggedIsSmall(x1) || !TaggedIsSmall(x2) ||
           (n=TagToStream(x1), n->label != x2))
         n = NULL;
     }
@@ -295,7 +295,7 @@ stream_node_t *stream_to_ptr_check(tagged_t t,
   else if (TagIsSTR(t) && (TagToHeadfunctor(t) == functor_Dstream)) {
       DerefArg(x1,t,1);
       DerefArg(x2,t,2);
-      if (!TagIsSmall(x1) || !TagIsSmall(x2) ||
+      if (!TaggedIsSmall(x1) || !TaggedIsSmall(x2) ||
           (n = TagToStream(x1), n->label != x2)) {
             *errcode = EXISTENCE_ERROR(STREAM);
             return NULL;
@@ -356,7 +356,7 @@ CBOOL__PROTO(prolog_open)
   modespec[2] = 0;
 
   fileptr = (TaggedIsATM(X(0)) ? fopen(GetString(X(0)), modespec) :
-             TagIsSmall(X(0)) ? fdopen(GetSmall(X(0)), modespec) :
+             TaggedIsSmall(X(0)) ? fdopen(GetSmall(X(0)), modespec) :
              NULL);
 
   if (fileptr==NULL) {

@@ -104,7 +104,7 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
   DerefSwitch(u,t1,goto var_x;);
   DerefSwitch(v,t1,return 1;);
   if (u==v) return 0;
-  if (TagIsSmall(u) && TagIsSmall(v))
+  if (TaggedIsSmall(u) && TaggedIsSmall(v))
     goto var_var;
   if (u & TagBitComplex)
     {
@@ -169,11 +169,11 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
       }
     case 2:                     /* INT, INT */
       {
-        if (TagIsSmall(u)&&TagIsSmall(v))
+        if (TaggedIsSmall(u)&&TaggedIsSmall(v))
           return (u<v ? -1 : u>v); 
-        else if (TagIsSmall(u))
+        else if (TaggedIsSmall(u))
           return (bn_positive((bignum_t *)TagToSTR(v)) ? -1 : 1);
-        else if (TagIsSmall(v))
+        else if (TaggedIsSmall(v))
           return (bn_positive((bignum_t *)TagToSTR(u)) ? 1 : -1);
         else
           return bn_compare((bignum_t *)TagToSTR(u),(bignum_t *)TagToSTR(v));
@@ -343,7 +343,7 @@ CBOOL__PROTO(retry_cut)
   node_t *nd;
 
   DEREF(X(0),X(0));
-  if (!TagIsSmall(X(0)))
+  if (!TaggedIsSmall(X(0)))
     return FALSE;
   for (nd = w->node;
        ChoiceYounger(nd,Choice_Start);

@@ -27,12 +27,12 @@
 %
 :- use_module(engine(stream_basic)).
 :- use_module(engine(runtime_control), [prolog_flag/3, set_prolog_flag/2]).
+:- use_module(engine(system_info), [get_exec_ext/1]).
 :- if(defined(optim_comp)).
 :- else.
-:- use_module(engine(system_info), [get_exec_ext/1]).
-:- use_module(library(lists), [member/2, append/3]).
-:- use_module(library(pathnames), [path_concat/3, path_split/3]).
+:- use_module(library(lists), [member/2]).
 :- endif.
+:- use_module(library(pathnames), [path_concat/3, path_split/3]).
 
 :- if(defined(optim_comp)).
 :- '$native_include_c_source'(.(system)). % TODO: rename to engine__system?
@@ -172,7 +172,7 @@ copy_file(Source, Target, CopyOptions) :-
 
 :- trust pred c_copy_file(+atm,+atm,+int).
 :- if(defined(optim_comp)).
-:- '$props'(c_copy_file/3, [impnat=cbool(prolog_c_copy_file_3)]).
+:- '$props'(c_copy_file/3, [impnat=cbool(prolog_c_copy_file)]).
 :- else.
 :- impl_defined(c_copy_file/3).
 :- endif.

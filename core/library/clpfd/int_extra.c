@@ -50,7 +50,7 @@
     ERR__FUNCTOR("int_extra:" PlName, 2);                               \
     DEREF(X(0),X(0));                                                   \
                                                                         \
-    if (TagIsSmall(X(0)))                                               \
+    if (TaggedIsSmall(X(0)))                                            \
       return cunify(Arg, X(1), MakeSmall(SmallFun(GetSmall(X(0)))));    \
     else if (TagIsLarge(X(0)) && !LargeIsFloat(X(0)))                   \
       return cunify(Arg, X(1), MakeSmall(BnFun(TagToSTR(X(0)))));       \

@@ -265,7 +265,7 @@ CBOOL__PROTO(set_trace_calls)
 {
   tagged_t x;
   DEREF(x,X(0));
-  if (!TagIsSmall(x))
+  if (!TaggedIsSmall(x))
     return FALSE;
   trace_calls = (bool_t)GetSmall(x);
 #if defined(PROFILE)

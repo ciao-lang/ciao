@@ -981,7 +981,7 @@ static CBOOL__PROTO(prolog_constant_codes,
     if (IsVar(car)) {
       goto construct_list;
     }
-    if (!TagIsSmall(car)) {
+    if (!TaggedIsSmall(car)) {
       if (TagIsLarge(car) && !LargeIsFloat(car)) {
         BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), car ,ci+1);
       }
@@ -1027,7 +1027,7 @@ static CBOOL__PROTO(prolog_constant_codes,
   if (numberp) {
     tagged_t result;
     if (ci==2) {
-      if (TagIsSmall(X(1))) {
+      if (TaggedIsSmall(X(1))) {
         base = GetSmall(X(1));
       } else if ((TagIsLarge(X(1)) && !LargeIsFloat(X(1)))) {
         base = 0;  // forces SOURCE_SINK error
@@ -1054,7 +1054,7 @@ static CBOOL__PROTO(prolog_constant_codes,
 
   if (numberp && IsNumber(X(0))) {
     if (ci==2) {
-      if (TagIsSmall(X(1))) {
+      if (TaggedIsSmall(X(1))) {
         base = GetSmall(X(1));
       } else if (TagIsLarge(X(1)) && !LargeIsFloat(X(1))) {
         base = 0; // forces SOURCE_SINK error
@@ -1292,7 +1292,7 @@ CBOOL__PROTO(prolog_atom_concat)
 
 /* Precond: 2<=abs(base)<=36 for integers, base==10 for floats */
 CVOID__PROTO(number_to_string, tagged_t term, int base) {
-  if (TagIsSmall(term)) {
+  if (TaggedIsSmall(term)) {
     intmach_t l = GetSmall(term);
     char hibase = 'a'-10;
     bool_t sx = (l>=0);
@@ -1825,7 +1825,7 @@ static CBOOL__PROTO(var_occurs, tagged_t v, tagged_t x1) {
 
  non_var:
   if (TaggedIsATM(u)) goto lose;
-  if (TagIsSmall(u)) goto lose;
+  if (TaggedIsSmall(u)) goto lose;
   if (TagIsLST(u)) {
     if (!var_occurs_args_aux(Arg,v,2,TagToCar(u),&x1))
       goto in;

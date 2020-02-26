@@ -137,7 +137,7 @@ CBOOL__PROTO(prolog_eng_wait)
   goal_descriptor_t *this_goal;
 
   DEREF(X(0), X(0));
-  if (!TagIsSmall(X(0)))
+  if (!TaggedIsSmall(X(0)))
     {BUILTIN_ERROR(TYPE_ERROR(NUMBER), X(0), 1);}
   else  {
 #if defined(DEBUG)
@@ -193,7 +193,7 @@ CBOOL__PROTO(prolog_eng_status)
 }
 
 
-#define NOT_CALLABLE(What) IsVar(What) || TagIsSmall(What) || TagIsLarge(What)
+#define NOT_CALLABLE(What) IsVar(What) || TaggedIsSmall(What) || TagIsLarge(What)
 
 #define ENSURE_CALLABLE(What, ArgNum)                   \
   if (NOT_CALLABLE(What)) {                             \

@@ -163,7 +163,7 @@ CBOOL__PROTO(prolog_lock_atom_state)
   if (TaggedIsATM(term)) {
     atomptr = TagToAtom(term);
     DEREF(value, X(1));
-    if (TagIsSmall(value)) {
+    if (TaggedIsSmall(value)) {
       Wait_Acquire_slock(atomptr->counter_lock);
       atomptr->atom_lock_counter = GetSmall(value);
       Release_slock(atomptr->counter_lock);

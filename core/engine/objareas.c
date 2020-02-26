@@ -164,7 +164,7 @@ CBOOL__PROTO(prolog_erase)
 CBOOL__PROTO(prolog_ptr_ref)
 {
   DEREF(X(0),X(0));
-  if (TagIsSmall(X(0)))
+  if (TaggedIsSmall(X(0)))
     {
       tagged_t *pt1 = w->global_top;
 
@@ -185,7 +185,7 @@ CBOOL__PROTO(prolog_ptr_ref)
 
       DerefArg(x1,x2,1);
       DerefArg(x2,x2,2);
-      if (!TagIsSmall(x1) ||
+      if (!TaggedIsSmall(x1) ||
           !(n=TagToInstance(x1)) ||
            n->rank != x2 ||
            n->death != 0xffff)    
@@ -412,7 +412,7 @@ size_t compile_large(tagged_t t, bcp_t p) {
 size_t compile_large_bc32(tagged_t t, bcp_t p) {
   intmach_t sz;
   // fprintf(stderr, "trace: compile_large_bc32\n");
-  if (TagIsSmall(t)) {
+  if (TaggedIsSmall(t)) {
     /* Force into a large, even if it fits in a small */
     // fprintf(stderr, "trace: bc32 large stored as small needs fix\n");
     intmach_t i = GetSmall(t);

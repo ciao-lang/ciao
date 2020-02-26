@@ -92,7 +92,7 @@ int writemb(int fildes, c_rune_t c);
 CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 
 #define CheckGetCharacterCode(X,C,ArgNo) {                              \
-    if (TagIsSmall(X)) {                                                \
+    if (TaggedIsSmall(X)) {                                                \
       if (!isValidRune(C = GetSmall(X))) {                              \
         BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo)); \
       }                                                                 \
@@ -106,7 +106,7 @@ CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
   }
 
 #define CheckGetByte(X,C,ArgNo)                                 \
-  if (!TagIsSmall((X)) || !isValidRune((C) = GetSmall((X)))) {  \
+  if (!TaggedIsSmall((X)) || !isValidRune((C) = GetSmall((X)))) {  \
     ERROR_IN_ARG((X), (ArgNo), (TY_BYTE));                      \
   }
 
@@ -1436,14 +1436,14 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
   case LST:
     DerefCar(term,in);
     DerefCdr(in,in);
-    if (TagIsSmall(term) && (b = GetSmall(term)))
+    if (TaggedIsSmall(term) && (b = GetSmall(term)))
       if ((b > 0) && (b < 256)) {
         for (writebyte(Arg,'"',Output_Stream_Ptr);(b > 0) && (b < 256);) {
           writebyte(Arg,b,Output_Stream_Ptr);
           if (TagOf(in) == LST) {
             DerefCar(term,in);
             DerefCdr(in,in);
-            if (!TagIsSmall(term)) {
+            if (!TaggedIsSmall(term)) {
               break;
             } else {
               b = GetSmall(term);

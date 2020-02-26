@@ -119,7 +119,7 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v)
       if (!IsInteger(Reg))                                              \
         {                                                               \
           Reg = evaluate(Wam, Reg);                                     \
-          if(!TagIsSmall(Reg)) {                                        \
+          if(!TaggedIsSmall(Reg)) {                                        \
             if(!TagIsLarge(Reg))                                        \
               BUILTIN_ERROR(TYPE_ERROR(EVALUABLE), (Reg), (ArgNo));     \
             if(LargeIsFloat(Reg))                                       \
@@ -166,11 +166,11 @@ CBOOL__PROTO(bu2_numeq, tagged_t x0, tagged_t x1)
   Numstack_End = NULL;
   t=x0; NDEREF(Arg, t, 0, t1);
   u=x1; NDEREF(Arg, u, 1, t1);
-  if (TagIsSmall(t)&&TagIsSmall(u))
+  if (TaggedIsSmall(t)&&TaggedIsSmall(u))
     return (t==u);
   else if (IsFloat(t) || IsFloat(u))
     return (GetFloat(t)==GetFloat(u));
-  else if (TagIsSmall(t) || TagIsSmall(u))
+  else if (TaggedIsSmall(t) || TaggedIsSmall(u))
     return FALSE;
   else
     return (bn_compare((bignum_t *)TagToSTR(t),(bignum_t *)TagToSTR(u))==0);
@@ -187,11 +187,11 @@ CBOOL__PROTO(bu2_numne, tagged_t x0, tagged_t x1)
   Numstack_End = NULL;
   t=x0; NDEREF(Arg, t, 0, t1);
   u=x1; NDEREF(Arg, u, 1, t1);
-  if (TagIsSmall(t)&&TagIsSmall(u))
+  if (TaggedIsSmall(t)&&TaggedIsSmall(u))
     return (t!=u);
   else if (IsFloat(t) || IsFloat(u))
     return (GetFloat(t)!=GetFloat(u));
-  else if (TagIsSmall(t) || TagIsSmall(u))
+  else if (TaggedIsSmall(t) || TaggedIsSmall(u))
     return TRUE;
   else
     return (bn_compare((bignum_t *)TagToSTR(t),(bignum_t *)TagToSTR(u))!=0);
@@ -208,13 +208,13 @@ CBOOL__PROTO(bu2_numlt, tagged_t x0, tagged_t x1)
   Numstack_End = NULL;
   t=x0; NDEREF(Arg, t, 0, t1);
   u=x1; NDEREF(Arg, u, 1, t1);
-  if (TagIsSmall(t)&&TagIsSmall(u))
+  if (TaggedIsSmall(t)&&TaggedIsSmall(u))
     return (t<u);
   else if (IsFloat(t) || IsFloat(u))
     return (GetFloat(t)<GetFloat(u));
-  else if (TagIsSmall(t))
+  else if (TaggedIsSmall(t))
     return bn_positive((bignum_t *)TagToSTR(u));
-  else if (TagIsSmall(u))
+  else if (TaggedIsSmall(u))
     return !bn_positive((bignum_t *)TagToSTR(t));
   else
     return (bn_compare((bignum_t *)TagToSTR(t),(bignum_t *)TagToSTR(u))<0);
@@ -231,13 +231,13 @@ CBOOL__PROTO(bu2_numle, tagged_t x0, tagged_t x1)
   Numstack_End = NULL;
   t=x0; NDEREF(Arg, t, 0, t1);
   u=x1; NDEREF(Arg, u, 1, t1);
-  if (TagIsSmall(t)&&TagIsSmall(u))
+  if (TaggedIsSmall(t)&&TaggedIsSmall(u))
     return (t<=u);
   else if (IsFloat(t) || IsFloat(u))
     return (GetFloat(t)<=GetFloat(u));
-  else if (TagIsSmall(t))
+  else if (TaggedIsSmall(t))
     return bn_positive((bignum_t *)TagToSTR(u));
-  else if (TagIsSmall(u))
+  else if (TaggedIsSmall(u))
     return !bn_positive((bignum_t *)TagToSTR(t));
   else
     return (bn_compare((bignum_t *)TagToSTR(t),(bignum_t *)TagToSTR(u))<=0);
@@ -254,13 +254,13 @@ CBOOL__PROTO(bu2_numgt, tagged_t x0, tagged_t x1)
   Numstack_End = NULL;
   t=x0; NDEREF(Arg, t, 0, t1);
   u=x1; NDEREF(Arg, u, 1, t1);
-  if (TagIsSmall(t)&&TagIsSmall(u))
+  if (TaggedIsSmall(t)&&TaggedIsSmall(u))
     return (t>u);
   else if (IsFloat(t) || IsFloat(u))
     return (GetFloat(t)>GetFloat(u));
-  else if (TagIsSmall(t))
+  else if (TaggedIsSmall(t))
     return !bn_positive((bignum_t *)TagToSTR(u));
-  else if (TagIsSmall(u))
+  else if (TaggedIsSmall(u))
     return bn_positive((bignum_t *)TagToSTR(t));
   else
     return (bn_compare((bignum_t *)TagToSTR(t),(bignum_t *)TagToSTR(u))>0);
@@ -277,13 +277,13 @@ CBOOL__PROTO(bu2_numge, tagged_t x0, tagged_t x1)
   Numstack_End = NULL;
   t=x0; NDEREF(Arg, t, 0, t1);
   u=x1; NDEREF(Arg, u, 1, t1);
-  if (TagIsSmall(t)&&TagIsSmall(u))
+  if (TaggedIsSmall(t)&&TaggedIsSmall(u))
     return (t>=u);
   else if (IsFloat(t) || IsFloat(u))
     return (GetFloat(t)>=GetFloat(u));
-  else if (TagIsSmall(t))
+  else if (TaggedIsSmall(t))
     return !bn_positive((bignum_t *)TagToSTR(u));
-  else if (TagIsSmall(u))
+  else if (TaggedIsSmall(u))
     return bn_positive((bignum_t *)TagToSTR(t));
   else
     return (bn_compare((bignum_t *)TagToSTR(t),(bignum_t *)TagToSTR(u))>=0);
@@ -720,7 +720,7 @@ CFUN__PROTO(fu1_minus, tagged_t, tagged_t X0, bcp_t liveinfo)
   
   t=X0; 
   NDEREF(Arg, t, 0, t1);
-  if (TagIsSmall(t)) {
+  if (TaggedIsSmall(t)) {
     if (t==TaggedLow)
       return make_integer_check(Arg, GetSmall(TaggedHigh), liveinfo);
     else
@@ -740,7 +740,7 @@ CFUN__PROTO(fu1_plus, tagged_t, tagged_t X0, bcp_t liveinfo)
 
   t=X0; 
   NDEREF(Arg, t, 0, t1);
-  if (TagIsSmall(t)) return t;
+  if (TaggedIsSmall(t)) return t;
   /* (identity function) */
   return globalize_bn(Arg, t, liveinfo);
 }
@@ -753,7 +753,7 @@ CFUN__PROTO(fu1_integer, tagged_t, tagged_t X0, bcp_t liveinfo)
 
   t=X0; 
   NDEREF(Arg, t, 0, t1);
-  if (TagIsSmall(t)) return t;
+  if (TaggedIsSmall(t)) return t;
   if (IsFloat(t)) {
     if (!float_is_finite(t)) {
       BUILTIN_ERROR(REPRESENTATION_ERROR(NAN_OR_INF_TO_INTEGER), t, 1);
@@ -790,7 +790,7 @@ CFUN__PROTO(fu1_add1, tagged_t, tagged_t X0, bcp_t liveinfo)
 
   t=X0; 
   NDEREF(Arg, t, 0, t1);
-  if (TagIsSmall(t)) {
+  if (TaggedIsSmall(t)) {
     if (t==TaggedHigh-MakeSmallDiff(1)) {
       return make_integer_check(Arg, GetSmall(TaggedHigh), liveinfo);
     } else {
@@ -811,7 +811,7 @@ CFUN__PROTO(fu1_sub1, tagged_t, tagged_t X0, bcp_t liveinfo)
 
   t=X0;
   NDEREF(Arg, t, 0, t1);
-  if (TagIsSmall(t)) {
+  if (TaggedIsSmall(t)) {
     if (t==TaggedLow)
       return make_integer_check(Arg, GetSmall(TaggedLow)-1, liveinfo);
     else
@@ -836,8 +836,8 @@ CFUN__PROTO(fu2_plus, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   NDEREF(Arg, t, 0, t1);
   u=X1; 
   NDEREF(Arg, u, 1, t1);
-  if (TagIsSmall(t) && TagIsSmall(u)) {
-    if (TagIsSmall(t1 = t+(u-TaggedZero)))
+  if (TaggedIsSmall(t) && TaggedIsSmall(u)) {
+    if (TaggedIsSmall(t1 = t+(u-TaggedZero)))
       return t1;
     else
       return make_integer_check(Arg, GetSmall(t1), liveinfo);
@@ -859,8 +859,8 @@ CFUN__PROTO(fu2_minus, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   NDEREF(Arg, t, 0, t1);
   u=X1; 
   NDEREF(Arg, u, 1, t1);
-  if (TagIsSmall(t) && TagIsSmall(u)) {
-    if (TagIsSmall(t1 = t-(u-TaggedZero)))
+  if (TaggedIsSmall(t) && TaggedIsSmall(u)) {
+    if (TaggedIsSmall(t1 = t-(u-TaggedZero)))
       return t1;
     else
       return make_integer_check(Arg, GetSmall(t1), liveinfo);
@@ -882,14 +882,14 @@ CFUN__PROTO(fu2_times, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   NDEREF(Arg, t, 0, t1);
   u=X1; 
   NDEREF(Arg, u, 1, t1);
-  if (TagIsSmall(t) && TagIsSmall(u)) {
+  if (TaggedIsSmall(t) && TaggedIsSmall(u)) {
     intmach_t st = GetSmall(t);
     intmach_t su = (intmach_t)(u-TaggedZero);
     intmach_t stu;
     tagged_t tu;
     SMUL_OVERFLOW(st, su, stu, { goto overflow; });
     tu = ((tagged_t)stu)+TaggedZero;
-    if (TagIsSmall(tu)) return tu;
+    if (TaggedIsSmall(tu)) return tu;
   overflow:
     {}
   }
@@ -928,7 +928,7 @@ CFUN__PROTO(fu2_idivide, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   
   if (u == TaggedZero) BUILTIN_ERROR(EVALUATION_ERROR(ZERO_DIVISOR), u, 1);
   
-  if (TagIsSmall(t) && TagIsSmall(u))
+  if (TaggedIsSmall(t) && TaggedIsSmall(u))
     return make_integer_check(Arg, (intmach_t)(t-TaggedZero)/(intmach_t)(u-TaggedZero), liveinfo);
 
   /*bn_quotient_wanted = TRUE;*/
@@ -949,7 +949,7 @@ CFUN__PROTO(fu2_rem, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
 
   if (u == TaggedZero) BUILTIN_ERROR(EVALUATION_ERROR(ZERO_DIVISOR), u, 1);
 
-  if (TagIsSmall(t) && TagIsSmall(u))
+  if (TaggedIsSmall(t) && TaggedIsSmall(u))
     return (intmach_t)(t-TaggedZero)%(intmach_t)(u-TaggedZero)+TaggedZero;
 
   /*bn_quotient_wanted = FALSE;*/
@@ -973,7 +973,7 @@ CFUN__PROTO(fu2_mod, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
 
   if (u == TaggedZero) BUILTIN_ERROR(EVALUATION_ERROR(ZERO_DIVISOR), u, 1);
 
-  if (TagIsSmall(t) && TagIsSmall(u)) {
+  if (TaggedIsSmall(t) && TaggedIsSmall(u)) {
     denom = (intmach_t)(u-TaggedZero);
     rem = (intmach_t)(t-TaggedZero)%denom;
     return ( (denom > 0 && rem < 0) || (denom < 0 && rem > 0) ?
@@ -996,7 +996,7 @@ CFUN__PROTO(fu1_abs, tagged_t, tagged_t X0, bcp_t liveinfo)
 
   t=X0; 
   NDEREF(Arg, t, 0, t1);
-  if (TagIsSmall(t)) {
+  if (TaggedIsSmall(t)) {
     if (t==TaggedLow)
       return make_integer_check(Arg, GetSmall(TaggedHigh), liveinfo);
     else if (t < TaggedZero)
@@ -1019,7 +1019,7 @@ CFUN__PROTO(fu1_sign, tagged_t, tagged_t X0, bcp_t liveinfo)
 
   t=X0; 
   NDEREF(Arg, t, 0, t1);
-  if (TagIsSmall(t)) {
+  if (TaggedIsSmall(t)) {
     return ((t==TaggedZero) ? TaggedZero :
             (t < TaggedZero) ? TaggedZero-MakeSmallDiff(1) :
             TaggedZero+MakeSmallDiff(1));
@@ -1042,7 +1042,7 @@ CFUN__PROTO(fu1_not, tagged_t, tagged_t X0, bcp_t liveinfo)
 
   t=X0; 
   NDEREF_I(Arg, t, 0, t1);
-  if (TagIsSmall(t)) {
+  if (TaggedIsSmall(t)) {
     return t^(QMask-MakeSmallDiff(1));
   } else {
     return bn_call(Arg,bn_not,t,0, liveinfo);
@@ -1060,7 +1060,7 @@ CFUN__PROTO(fu2_xor, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   NDEREF_I(Arg, t, 0, t1);
   u=X1; 
   NDEREF_I(Arg, u, 1, t1);
-  if (TagIsSmall(t) && TagIsSmall(u)) {
+  if (TaggedIsSmall(t) && TaggedIsSmall(u)) {
     return t^u^TaggedZero;
   } else {
     return bn_call(Arg,bn_xor,t,u, liveinfo);
@@ -1078,7 +1078,7 @@ CFUN__PROTO(fu2_and, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   NDEREF_I(Arg, t, 0, t1);
   u=X1; 
   NDEREF_I(Arg, u, 1, t1);
-  if (TagIsSmall(t) && TagIsSmall(u)) {
+  if (TaggedIsSmall(t) && TaggedIsSmall(u)) {
     return ((t^ZMask)&(u^ZMask))^ZMask;
   } else {
     return bn_call(Arg,bn_and,t,u, liveinfo);
@@ -1096,7 +1096,7 @@ CFUN__PROTO(fu2_or, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   NDEREF_I(Arg, t, 0, t1);
   u=X1; 
   NDEREF_I(Arg, u, 1, t1);
-  if (TagIsSmall(t) && TagIsSmall(u)) {
+  if (TaggedIsSmall(t) && TaggedIsSmall(u)) {
     return ((t^ZMask)|(u^ZMask))^ZMask;
   } else {
     return bn_call(Arg,bn_or,t,u, liveinfo);
@@ -1107,7 +1107,7 @@ static CFUN__PROTO(lsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liv
 {
   tagged_t u;
   
-  if (TagIsSmall(t)) {
+  if (TaggedIsSmall(t)) {
     switch (dist) {
     case 0:
       return t;
@@ -1126,7 +1126,7 @@ static CFUN__PROTO(lsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liv
     default:
       u = 0;
     }
-    if (TagIsSmall(u))
+    if (TaggedIsSmall(u))
       return u;
     /*
       intmach_t value = GetSmall(t);
@@ -1143,7 +1143,7 @@ static CFUN__PROTO(lsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liv
 
 static CFUN__PROTO(rsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liveinfo)
 {
-  if (TagIsSmall(t)) {
+  if (TaggedIsSmall(t)) {
     if (dist>=tagged__num_size) {
       return MakeSmall((t>=TaggedZero)-1);
     } else {
@@ -1156,7 +1156,7 @@ static CFUN__PROTO(rsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liv
 
 /* pre: t is an integer */
 static inline bool_t int_is_nonneg(tagged_t t) {
-  if (TagIsSmall(t)) {
+  if (TaggedIsSmall(t)) {
     return (t >= TaggedZero);
   } else { /* t is bignum */
     return bn_positive((bignum_t *)TagToSTR(t));
@@ -1262,7 +1262,7 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   
   u=X0; 
   NDEREF_I(Arg, u, 0, t1);
-  if (TagIsSmall(u)) {
+  if (TaggedIsSmall(u)) {
     type -= 2;
     if (u<=TaggedZero) {
       u = (u==TaggedLow ? make_integer_check(Arg, GetSmall(TaggedHigh), liveinfo)
@@ -1274,7 +1274,7 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
 
   v=X1; 
   NDEREF_I(Arg, v, 1, t1);
-  if (TagIsSmall(v)) {
+  if (TaggedIsSmall(v)) {
     type -= 1;
     if (v<=TaggedZero) {
       v = (v==TaggedLow ? make_integer_check(Arg, GetSmall(TaggedHigh), liveinfo)
@@ -1309,10 +1309,10 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
       case 3:                           /*   big x big   */
         u = bn_call(Arg,bn_quotient_remainder_quot_not_wanted,u,v, liveinfo); 
         if ( u==TaggedZero ) return v;
-        if ( TagIsSmall(u) ) type -= 2;
+        if ( TaggedIsSmall(u) ) type -= 2;
         v = bn_call(Arg,bn_quotient_remainder_quot_not_wanted,v,u, liveinfo); 
         if ( v==TaggedZero ) return u;
-        if ( TagIsSmall(v) ) type -= 1;
+        if ( TaggedIsSmall(v) ) type -= 1;
     }
   }
 } 
@@ -1363,7 +1363,7 @@ CFUN__PROTO(fu1_floor, tagged_t, tagged_t X0, bcp_t liveinfo)
 
   t=X0; 
   NDEREF(Arg, t, 0, t1);
-  if (TagIsSmall(t)) return t;
+  if (TaggedIsSmall(t)) return t;
 
   if (IsFloat(t)) {
     if (!float_is_finite(t)) {
@@ -1387,7 +1387,7 @@ CFUN__PROTO(fu1_round, tagged_t, tagged_t X0, bcp_t liveinfo)
 
   t=X0; 
   NDEREF(Arg, t, 0, t1);
-  if (TagIsSmall(t)) return t;
+  if (TaggedIsSmall(t)) return t;
 
   if (IsFloat(t)) {
     if (!float_is_finite(t)) {
@@ -1410,7 +1410,7 @@ CFUN__PROTO(fu1_ceil, tagged_t, tagged_t X0, bcp_t liveinfo)
 
   t=X0; 
   NDEREF(Arg, t, 0, t1);
-  if (TagIsSmall(t)) return t;
+  if (TaggedIsSmall(t)) return t;
 
   if (IsFloat(t)) {
     if (!float_is_finite(t)) {
@@ -1522,7 +1522,7 @@ CFUN__PROTO(fu1_atan, tagged_t, tagged_t X0, bcp_t liveinfo)
   DerefSwitch(number,t0, BUILTIN_ERROR(INSTANTIATION_ERROR, number, 1););
   DerefSwitch(complex,t0, BUILTIN_ERROR(INSTANTIATION_ERROR, complex, 2););
 
-  if (TagIsSmall(number)) i = GetSmall(number);
+  if (TaggedIsSmall(number)) i = GetSmall(number);
   else if (TagIsLarge(number) && !LargeIsFloat(number)) return FALSE;
   else BUILTIN_ERROR(TYPE_ERROR(INTEGER), number, 1);
 

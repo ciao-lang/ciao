@@ -126,7 +126,7 @@ typedef struct module_ module_t; /* defined in objareas.h */
 #define TagIsHVA(X)     ((X) < CVA<<TAGOFFSET)
 #define TagIsCVA(X)     HasTag(X,CVA)
 #define TagIsSVA(X)     ((stagged_t)(X) >= (stagged_t)(SVA<<TAGOFFSET))
-#define TagIsSmall(X)   ((stagged_t)(X) < (stagged_t)TaggedHigh)
+#define TaggedIsSmall(X)   ((stagged_t)(X) < (stagged_t)TaggedHigh)
 #define TagIsLarge(X)   (TagIsSTR(X) && STRIsLarge(X))
 #define TagIsNUM(X)     ((stagged_t)(X) < (stagged_t)(ATM<<TAGOFFSET)) 
 #define TaggedIsATM(X)  HasTag(X,ATM)
@@ -250,13 +250,13 @@ typedef struct module_ module_t; /* defined in objareas.h */
 #define MakeAtom(X)     TagIndex(ATM,X)
 #define GET_ATOM(X)   init_atom_check(X)
 
-#define GetInteger(X)   (TagIsSmall(X) ? GetSmall(X) : get_integer(X))
-#define GetFloat(X)     (TagIsSmall(X) ? (flt64_t)GetSmall(X) : get_float(X))
+#define GetInteger(X)   (TaggedIsSmall(X) ? GetSmall(X) : get_integer(X))
+#define GetFloat(X)     (TaggedIsSmall(X) ? (flt64_t)GetSmall(X) : get_float(X))
 
 #define IntIsSmall(X)   ((X) >= -HighInt && (X) < HighInt)
-#define IsInteger(X)    (TagIsSmall(X) || (TagIsLarge(X) && !LargeIsFloat(X)))
+#define IsInteger(X)    (TaggedIsSmall(X) || (TagIsLarge(X) && !LargeIsFloat(X)))
 #define IsFloat(X)      (TagIsLarge(X) && LargeIsFloat(X))
-#define IsNumber(X)     (TagIsSmall(X) || TagIsLarge(X))
+#define IsNumber(X)     (TaggedIsSmall(X) || TagIsLarge(X))
 /* TODO:[oc-merge] remove IsString */
 #define IsString(X)     TaggedIsATM(X)
 
@@ -273,7 +273,7 @@ typedef struct module_ module_t; /* defined in objareas.h */
 /* X is an Integer that fits in an intmach_t.
    This is the postcondition of MakeInteger.
 */ 
-#define IsIntegerFix(X) (TagIsSmall(X) || (TagIsSTR(X) && TagToHeadfunctor(X)==MakeFunctorFix))
+#define IsIntegerFix(X) (TaggedIsSmall(X) || (TagIsSTR(X) && TagToHeadfunctor(X)==MakeFunctorFix))
 
 /* Finish the large integer at `HTop` and move `HTop` forward. If the
  * large integer can be represented as a small int, keep it

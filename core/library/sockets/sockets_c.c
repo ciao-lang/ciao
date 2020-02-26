@@ -95,7 +95,7 @@ CBOOL__PROTO(prolog_connect_to_socket_type)
     // "connect_to_socket_type/[3,4]: 1st argument must be an atom");
 
   DEREF(X(1), X(1));
-  if (!TagIsSmall(X(1)))
+  if (!TaggedIsSmall(X(1)))
     BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
     //    USAGE_FAULT("connect_to_socket_type/[3,4]: 2nd argument must be a port number");
 
@@ -178,7 +178,7 @@ CBOOL__PROTO(prolog_bind_socket)
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(2), 3);
 
   DEREF(X(1), X(1));
-  if (!TagIsSmall(X(1)))
+  if (!TaggedIsSmall(X(1)))
     //    USAGE_FAULT("bind_socket: 2nd argument must be a (small) number");
     BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
 
@@ -190,7 +190,7 @@ CBOOL__PROTO(prolog_bind_socket)
   if (IsVar(X(0)))
     sa.sin_port = 0;                      /* Undocumented in the manuals! */
   else {
-    if (!TagIsSmall(X(0))) return FALSE;
+    if (!TaggedIsSmall(X(0))) return FALSE;
     sa.sin_port = htons(GetSmall(X(0)));
   }
   sa.sin_family = AF_INET;
@@ -237,7 +237,7 @@ CBOOL__PROTO(prolog_socket_accept)
   char new_s_name[16];
   
   DEREF(X(0), X(0));
-  if (!TagIsSmall(X(0)))
+  if (!TaggedIsSmall(X(0)))
     BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(0), 1);
   socket = GetSmall(X(0));
 
@@ -406,7 +406,7 @@ CBOOL__PROTO(prolog_socket_send)
     if (IsVar(car))
       BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,2);
 
-    if (!TagIsSmall(car) || (car<TaggedZero) || (car>=MakeSmall(256)))
+    if (!TaggedIsSmall(car) || (car<TaggedZero) || (car>=MakeSmall(256)))
       BUILTIN_ERROR(TYPE_ERROR(CHARACTER_CODE_LIST),X(1),2);
     
     *buffpt++ = GetSmall(car);
