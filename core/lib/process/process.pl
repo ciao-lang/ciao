@@ -1,4 +1,4 @@
-:- module(_, [], [assertions, regtypes, isomodes, hiord, dcg]).
+:- module(_, [], [assertions, regtypes, isomodes, hiord]).
 
 :- doc(title, "Processes (multitasking)").
 
@@ -273,11 +273,7 @@ process_call__(Cmd0, Args, InChannelB, OutChannelB, ErrChannelB,
             % Parent
             true
         ; % Child (must exit with a halt/1)
-          % TODO: disallow call runtime module expansions here
-          once_port_reify(Goal, GoalP),
-          % TODO: more detailed communication with parent?
-          %   (Prolog bindings, failure, exceptions, etc.)
-          ( GoalP = success -> halt(0) ; halt(-1) )
+          run_child_and_exit(Goal)
         )
     ; % (this predicate never fails or throw exceptions)
       ( Cmd0 = path(Cmd1) -> Flags1 = 0x2 /* EXEC_FLAG_PATHEXEC */
@@ -290,6 +286,22 @@ process_call__(Cmd0, Args, InChannelB, OutChannelB, ErrChannelB,
     close_redirect(InChannelB, InS),
     close_redirect(OutChannelB, OutS),
     close_redirect(ErrChannelB, ErrS).
+
+:- if(defined(optim_comp)).
+run_child_and_exit(Goal) :-
+    '$trust_metatype'(Goal, goal), % (see process_fork/2)
+    once_port_reify(Goal, GoalP),
+    % TODO: more detailed communication with parent?
+    %   (Prolog bindings, failure, exceptions, etc.)
+    ( GoalP = success -> halt(0) ; halt(-1) ).
+:- else.
+run_child_and_exit(Goal) :-
+    % TODO: disallow call runtime module expansions here
+    once_port_reify(Goal, GoalP),
+    % TODO: more detailed communication with parent?
+    %   (Prolog bindings, failure, exceptions, etc.)
+    ( GoalP = success -> halt(0) ; halt(-1) ).
+:- endif.
 
 % Parse environment set/unset options (for internals:'$exec'/9 representation)
 parse_env(Opts, Env) :-
@@ -450,6 +462,7 @@ process_send_signal(Process, Signal) :-
    # "Execute @var{Goal} in a forked process.".
 
 process_fork(Goal, Opts) :-
+    % Note: (this ensures that Goal in '$fork'/1 is always a goal)
     process_call('$fork'(Goal), [], Opts).
 
 % ===========================================================================
