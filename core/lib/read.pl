@@ -45,7 +45,7 @@
     (See @ref{Changing system behaviour and various flags}).
 
     If flag is @tt{on} (it is @tt{off} by default), a variable
-    followed by a parenthesized lists of arguments is read as a
+    followed by a parenthesized list of arguments is read as a
     @pred{call/N} term, except if the variable is anonymous, in
     which case it is read as an anonymous predicate abstraction
     head. For example, @tt{P(X)} is read as @tt{call(P,X)} and
