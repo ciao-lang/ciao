@@ -35,7 +35,7 @@
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 
 :- if(defined(optim_comp)).
-:- '$native_include_c_source'(.(system)). % TODO: rename to engine__system?
+:- '$native_include_c_source'(engine(system)). % TODO: rename to engine__system?
 :- endif.
 
 % ---------------------------------------------------------------------------
