@@ -1,66 +1,67 @@
 :- module(messages, [
-            error_message/1,
-            error_message/2,
-            error_message/3,
-            warning_message/1,
-            warning_message/2,
-            warning_message/3,
-            note_message/1,
-            note_message/2,
-            note_message/3,
-            simple_message/1,
-            simple_message/2,
-            optional_message/2,
-            optional_message/3,
-            debug_message/1,
-            debug_message/2,
-            debug_goal/2,
-            debug_goal/3,
-            show_message/2,
-            show_message/3,
-            show_message/4,
-% internal
-            show_message__/5,
-% types
-            message_t/1
-        ],
-        [
-            assertions, regtypes, isomodes, hiord, datafacts
-        ]).
-
-%% NOTE: if you change the output format of messages you 
-%%       will probably also want to change ciao.el
-
-:- use_module(engine(runtime_control)).
-:- use_module(library(format)).
-
-:- use_module(library(lists)).
-:- use_module(library(streams)).
-:- use_module(library(write)).
-:- use_module(library(pathnames), [path_basename/2]).
-
-:- set_prolog_flag(multi_arity_warnings, off).
-
-%% ---------------------------------------------------------------------------
+    show_message/2,
+    show_message/3,
+    show_message/4,
+    % (internal)
+    show_message__/5,
+    % types
+    message_t/1,
+    %
+    error_message/1,
+    error_message/2,
+    error_message/3,
+    warning_message/1,
+    warning_message/2,
+    warning_message/3,
+    note_message/1,
+    note_message/2,
+    note_message/3,
+    simple_message/1,
+    simple_message/2,
+    optional_message/2,
+    optional_message/3,
+    debug_message/1,
+    debug_message/2
+], [assertions, regtypes, isomodes, datafacts]).
 
 :- doc(title, "Printing status and error messages").
-
 :- doc(author, "The Ciao Development Team").
 
 :- doc(module, "This is a very simple library for printing status
      and error messages to the console.").
 
-:- doc(bug, "Debug message switching should really be done with an
-   expansion, for performance.").
+%% NOTE: if you change the output format of messages you 
+%%       will probably also want to change ciao.el
 
-:- reexport(library(compiler/c_itf), [location_t/1]).
+:- doc(bug, "Debug message switching should really be done with an
+   expansion, for performance (see other debug/trace packages).").
+
 %% ---------------------------------------------------------------------------
 
-:- pred message_type_label(Type, Label) :: message_t * string.
+:- use_module(engine(runtime_control), [prolog_flag/3, set_prolog_flag/2]).
+:- use_module(library(lists)).
+:- use_module(library(streams)).
+:- use_module(library(write), [prettyvars/1]).
+:- use_module(library(format), [format/3, format_control/1]).
+:- use_module(library(pathnames), [path_basename/2]).
 
-message_type_label(error,   "ERROR").
-message_type_label(warning, "WARNING").
-message_type_label(note,    "NOTE").
+%% ---------------------------------------------------------------------------
+
+:- if(defined(optim_comp)).
+:- doc(doinclude,location_t/1).
+:- regtype location_t/1 # "Identifies a program source line.".
+location_t(loc(File,L1,L2)):- atm(File), int(L1), int(L2).
+:- else.
+:- reexport(library(compiler/c_itf), [location_t/1]).
+:- endif.
+
+%% ---------------------------------------------------------------------------
+
+:- pred message_type_label(Type, Label) :: message_t * atm.
+
+message_type_label(error,   'ERROR').
+message_type_label(warning, 'WARNING').
+message_type_label(note,    'NOTE').
 
 :- doc(message_t/1, "This type defines the types of messages supported
    by the message priting predicates. @includedef{message_t/1}").
@@ -78,8 +79,8 @@ message_t(debug).
    (@texttt{user}, @texttt{user_error}, etc.) the message will be
    written. @includedef{message_output_type/2}").
 
-:- pred message_output_type(Type, Output) :: message_t *
-    stream_alias # "Specifies where the message will be written.".
+:- pred message_output_type(Type, Output) :: message_t * stream_alias
+   # "Specifies where the message will be written.".
 
 message_output_type(simple,  user).
 message_output_type(debug,   user_error).
@@ -87,36 +88,51 @@ message_output_type(error,   user_error).
 message_output_type(warning, user_error).
 message_output_type(note,    user_output).
 
-:- pred show_message(Type, Text) : message_t * string # "The text
-   provided in @var{Text} is printed as a message of type
+:- pred show_message(Type, Text) : message_t * string
+   # "The text provided in @var{Text} is printed as a message of type
    @var{Type}.".
 
+:- if(defined(optim_comp)).
+:- '$context'(show_message/2, module).
+show_message(Type, Message) :- '$module'(Module),
+    show_message__(Type, _, Message, [], Module).
+:- else.
 :- meta_predicate show_message(?, addmodule).
-
 show_message(Type, Message, Module) :-
     show_message__(Type, _, Message, [], Module).
+:- endif.
 
-:- pred show_message(Type, Text, ArgList) : message_t * format_control *
-    list # "The text provided in @var{Text} is printed as a message of
-   type @var{Type}, using the arguments in @var{ArgList} to interpret
-   any variable-related formatting commands embedded in @var{Text}.".
+:- pred show_message(Type, Text, ArgList) : message_t * format_control * list
+   # "The text provided in @var{Text} is printed as a message of type
+   @var{Type}, using the arguments in @var{ArgList} to interpret any
+   variable-related formatting commands embedded in @var{Text}.".
 
+:- if(defined(optim_comp)).
+:- '$context'(show_message/3, module).
+show_message(Type, Message, A) :- '$module'(Module),
+    show_message__(Type, _, Message, A, Module).
+:- else.
 :- meta_predicate show_message(?, ?, addmodule).
-
 show_message(Type, Message, A, Module) :-
     show_message__(Type, _, Message, A, Module).
+:- endif.
 
-:- pred show_message(Type, Lc, Text, ArgList) : message_t * location_t *
-    format_control * list # "The text provided in @var{Text} is printed
-   as a message of type @var{Type}, using the arguments in
-   @var{ArgList} to interpret any variable-related formatting commands
-   embedded in @var{Text}, and reporting error location @var{Lc} (file
-   and line numbers).".
+:- pred show_message(Type, Lc, Text, ArgList)
+   : message_t * location_t * format_control * list
+   # "The text provided in @var{Text} is printed as a message of type
+   @var{Type}, using the arguments in @var{ArgList} to interpret any
+   variable-related formatting commands embedded in @var{Text}, and
+   reporting error location @var{Lc} (file and line numbers).".
 
+:- if(defined(optim_comp)).
+:- '$context'(show_message/4, module).
+show_message(Type, Loc, Message, A) :- '$module'(Module),
+    show_message__(Type, Loc, Message, A, Module).
+:- else.
 :- meta_predicate show_message(?, ?, ?, addmodule).
-
 show_message(Type, Loc, Message, A, Module) :-
     show_message__(Type, Loc, Message, A, Module).
+:- endif.
 
 :- doc(hide,show_message__/5).
 
@@ -124,144 +140,183 @@ show_message__(Type, Loc, Message, A, Module) :-
     message_output_type(Type, SO),
     show_message_(Type, SO, Loc, Message, A, Module).
 
-show_message_(optional, SO, _, Message, A, _) :-
-    !,
+show_message_(optional, SO, _, Message, A, _) :- !,
     optional_message(SO, Message, A).
-show_message_(simple, SO, _, Message, A, _) :-
-    !,
-    simple_message(SO, Message, A).
-show_message_(debug, SO, _, Message, A, Module) :-
-    !,
-    debug_message(SO, Message, A, Module).
+show_message_(simple, SO, _, Message, A, _) :- !,
+    simple_message_(SO, Message, A).
+show_message_(debug, SO, _, Message, A, Module) :- !,
+    debug_message_(SO, Message, A, Module).
 show_message_(Type, SO, Loc, Message, A, Module) :-
     message_type_label(Type, Label),
-    (
-        nonvar(Loc),
-        Loc= loc(File, LB, LE) ->
-        compose(Label, SO, Module, File, LB, LE, Message, A)
-    ;
-        compose(Label, SO, Module, Message, A)
-    ).
+    compose(Label, SO, Module, Loc, Message, A).
 
 %% ---------------------------------------------------------------------------
 
-:- pred error_message(Text) : string # "Same as
-   @tt{message(error,Text)}.".
+:- pred error_message(Text) : string
+   # "Same as @tt{message(error,Text)}.".
 
+:- if(defined(optim_comp)).
+:- '$context'(error_message/1, module).
+error_message(Message) :- '$module'(Module),
+    show_message__(error, _, Message, [], Module).
+:- else.
 :- meta_predicate error_message(addmodule).
-
 error_message(Message, Module) :-
     show_message__(error, _, Message, [], Module).
+:- endif.
 
-:- pred error_message(Text, ArgList) : format_control * list # "Same as
-   @tt{message(error,Text,ArgList)}.".
+:- pred error_message(Text, ArgList) : format_control * list
+   # "Same as @tt{message(error,Text,ArgList)}.".
 
+:- if(defined(optim_comp)).
+:- '$context'(error_message/2, module).
+error_message(Message,A) :- '$module'(Module),
+    show_message__(error, _, Message, A, Module).
+:- else.
 :- meta_predicate error_message(?, addmodule).
-
 error_message(Message, A, Module) :-
     show_message__(error, _, Message, A, Module).
+:- endif.
 
-:- pred error_message(Lc, Text, ArgList) : location_t * format_control *
-    list # "Same as @tt{message(error,Lc,Text,ArgList)}.".
+:- pred error_message(Lc, Text, ArgList) 
+   : location_t * format_control * list
+   # "Same as @tt{message(error,Lc,Text,ArgList)}.".
 
+:- if(defined(optim_comp)).
+:- '$context'(error_message/3, module).
+error_message(Loc,Message,A) :- '$module'(Module),
+    show_message__(error, Loc, Message, A, Module).
+:- else.
 :- meta_predicate error_message(?, ?, addmodule).
-
 error_message(Loc, Message, A, Module) :-
     show_message__(error, Loc, Message, A, Module).
+:- endif.
 
 %% ---------------------------------------------------------------------------
 
-:- pred warning_message(Text) : string # "Same as
-   @tt{message(warning,Text)}.".
+:- pred warning_message(Text) : string
+   # "Same as @tt{message(warning,Text)}.".
 
+:- if(defined(optim_comp)).
+:- '$context'(warning_message/1, module).
+warning_message(Message) :- '$module'(Module),
+    show_message__(warning, _, Message, [], Module).
+:- else.
 :- meta_predicate warning_message(addmodule).
-
 warning_message(Message, Module) :-
     show_message__(warning, _, Message, [], Module).
+:- endif.
 
-:- pred warning_message(Text, ArgList) : format_control * list # "Same as
-   @tt{message(warning,Text,ArgList)}.".
+:- pred warning_message(Text, ArgList) : format_control * list
+   # "Same as @tt{message(warning,Text,ArgList)}.".
 
+:- if(defined(optim_comp)).
+:- '$context'(warning_message/2, module).
+warning_message(Message,A) :- '$module'(Module),
+    show_message__(warning, _, Message, A, Module).
+:- else.
 :- meta_predicate warning_message(?, addmodule).
-
 warning_message(Message, A, Module) :-
     show_message__(warning, _, Message, A, Module).
+:- endif.
 
-:- pred warning_message(Lc, Text, ArgList) : location_t * format_control *
-    list # "Same as @tt{message(warning,Lc,Text,ArgList)}.".
+:- pred warning_message(Lc, Text, ArgList)
+   : location_t * format_control * list
+   # "Same as @tt{message(warning,Lc,Text,ArgList)}.".
 
+:- if(defined(optim_comp)).
+:- '$context'(warning_message/3, module).
+warning_message(Loc,Message,A) :- '$module'(Module),
+    show_message__(warning, Loc, Message, A, Module).
+:- else.
 :- meta_predicate warning_message(?, ?, addmodule).
-
 warning_message(Loc, Message, A, Module) :-
     show_message__(warning, Loc, Message, A, Module).
+:- endif.
 
 %% ---------------------------------------------------------------------------
 
-:- pred note_message(Text) : string # "Same as
-   @tt{message(note,Text)}.".
+:- pred note_message(Text) : string
+   # "Same as @tt{message(note,Text)}.".
 
+:- if(defined(optim_comp)).
+:- '$context'(note_message/1, module).
+note_message(Message) :- '$module'(Module),
+    show_message__(note, _, Message, [], Module).
+:- else.
 :- meta_predicate note_message(addmodule).
-
 note_message(Message, Module) :-
     show_message__(note, _, Message, [], Module).
+:- endif.
 
-:- pred note_message(Text, ArgList) : format_control * list # "Same as
-   @tt{message(note,Text,ArgList)}.".
+:- pred note_message(Text, ArgList) : format_control * list
+   # "Same as @tt{message(note,Text,ArgList)}.".
 
+:- if(defined(optim_comp)).
+:- '$context'(note_message/2, module).
+note_message(Message,A) :- '$module'(Module),
+    show_message__(note, _, Message, A, Module).
+:- else.
 :- meta_predicate note_message(?, addmodule).
-
 note_message(Message, A, Module) :-
     show_message__(note, _, Message, A, Module).
+:- endif.
 
-:- pred note_message(Lc, Text, ArgList) : location_t * format_control *
-    list # "Same as @tt{message(note,Lc,Text,ArgList)}.".
+:- pred note_message(Lc, Text, ArgList)
+   : location_t * format_control * list
+   # "Same as @tt{message(note,Lc,Text,ArgList)}.".
 
+:- if(defined(optim_comp)).
+:- '$context'(note_message/3, module).
+note_message(Loc,Message,A) :- '$module'(Module),
+    show_message__(note, Loc, Message, A, Module).
+:- else.
 :- meta_predicate note_message(?, ?, addmodule).
-
 note_message(Loc, Message, A, Module) :-
     show_message__(note, Loc, Message, A, Module).
+:- endif.
 
 %% ---------------------------------------------------------------------------
 
 :- pred simple_message(Text) : string
-# "The text provided in @var{Text} is printed.".
+   # "The text provided in @var{Text} is printed.".
 
 simple_message(Message) :-
     message_output_type(simple, SO),
-    simple_message(SO, Message, []).
+    simple_message_(SO, Message, []).
 
 :- pred simple_message(Text, ArgList) : format_control * list
-# "The text provided in @var{Text} is printed as a message,
-     using the arguments in @var{ArgList}.".
+   # "The text provided in @var{Text} is printed as a message, using
+   the arguments in @var{ArgList}.".
 
 simple_message(Message, A) :-
     message_output_type(simple, SO),
-    simple_message(SO, Message, A).
+    simple_message_(SO, Message, A).
 
-simple_message(SO, Message, A) :-
-    format(SO, "{",     []),
+simple_message_(SO, Message, A) :-
+    format(SO, "{", []),
     format(SO, Message, A),
-    format(SO, "}\n",   []).
+    format(SO, "}\n", []).
 
 %% ---------------------------------------------------------------------------
 
 :- pred optional_message(Text, Opts) : string * list(atm)
-# "The text provided in @var{Text} is printed as a message, but
-     only if the atom @tt{-v} is a member of @var{Opts}. These
-     predicates are meant to be used for optional messages, which are
-     only to be printed when @em{verbose} output is requested
-     explicitly.".
+   # "The text provided in @var{Text} is printed as a message, but
+   only if the atom @tt{-v} is a member of @var{Opts}. These
+   predicates are meant to be used for optional messages, which are
+   only to be printed when @em{verbose} output is requested
+   explicitly.".
 
 optional_message(Message, Opts) :-
     optional_message(Message, [], Opts).
 
 :- pred optional_message(Text, ArgList, Opts)
-    : format_control * list * list(atm)
-# "The text provided in @var{Text} is printed as a message, using
-     the arguments in @var{ArgList}, but only if the atom @tt{-v} is a
-     member of @var{Opts}. These predicates are meant to be used for
-     optional messages, which are only to be printed when @em{verbose}
-     output is requested explicitly.".
+   : format_control * list * list(atm)
+   # "The text provided in @var{Text} is printed as a message, using
+   the arguments in @var{ArgList}, but only if the atom @tt{-v} is a
+   member of @var{Opts}. These predicates are meant to be used for
+   optional messages, which are only to be printed when @em{verbose}
+   output is requested explicitly.".
 
 optional_message(Message, A, Opts) :-
     member('-v', Opts),
@@ -272,110 +327,77 @@ optional_message(_Message, _A, _Opts).
 %% ---------------------------------------------------------------------------
 
 :- pred debug_message(Text) : format_control
+   # "The text provided in @var{Text} is printed as a debugging
+   message.  These messages are turned @tt{on} by defining a fact of
+   @pred{issue_debug_messages/1} with the module name as argument.".
 
-# "The text provided in @var{Text} is printed as a debugging
-      message.  These messages are turned @tt{on} by defining a fact
-      of @pred{issue_debug_messages/1} with the module name as
-      argument.".
-
+:- if(defined(optim_comp)).
+:- '$context'(debug_message/1, module).
+debug_message(Message) :- '$module'(Module),
+    debug_message_(user_error, Message, [], Module).
+:- else.
 :- meta_predicate debug_message(addmodule).
-
 debug_message(Message, Module) :-
-    debug_message(user_error, Message, [], Module).
+    debug_message_(user_error, Message, [], Module).
+:- endif.
 
 :- pred debug_message(Text, ArgList) : format_control * list
+   # "The text provided in @var{Text} is printed as a debugging
+   message, using the arguments in @var{ArgList} to interpret any
+   variable-related formatting commands embedded in @var{Text}. These
+   messages are turned @tt{on} by defining a fact of
+   @pred{issue_debug_messages/1} which the module name as argument.".
 
-# "The text provided in @var{Text} is printed as a debugging
-      message, using the arguments in @var{ArgList} to interpret any
-      variable-related formatting commands embedded in
-      @var{Text}. These messages are turned @tt{on} by defining a fact
-      of @pred{issue_debug_messages/1} which the module name as
-      argument.".
-
+:- if(defined(optim_comp)).
+:- '$context'(debug_message/2, module).
+debug_message(Message,A) :- '$module'(Module),
+    debug_message_(user_error, Message, A, Module).
+:- else.
 :- meta_predicate debug_message(?, addmodule).
-
 debug_message(Message, A, Module) :-
-    debug_message(user_error, Message, A, Module).
+    debug_message_(user_error, Message, A, Module).
+:- endif.
 
-:- meta_predicate debug_message(?, ?, addmodule).
-
-debug_message(SO, Message, A, Module) :-
-    ( issue_debug_messages(Module)
-    -> compose("DEBUG", SO, Module, Message, A)
-    ; true ).
+debug_message_(SO, Message, A, Module) :-
+    ( issue_debug_messages(Module) ->
+        compose('DEBUG', SO, Module, _, Message, A)
+    ; true
+    ).
 
 :- trust pred issue_debug_messages(Module) => atm
-
-# "Printing of debugging messages is enabled for module @var{Module}.".
+   # "Printing of debugging messages is enabled for module @var{Module}.".
 
 :- multifile issue_debug_messages/1.
 :- data issue_debug_messages/1.
 
 %% ---------------------------------------------------------------------------
 
-:- pred debug_goal(Goal, Text)
+:- pred compose(Type, SO, Module, Loc, Mess, Args)
+   : atm * stream * atm * location_t * format_control * list
+   # "Print a generic message of type @var{Type}, to the stream
+   @var{SO}, flagged in module @var{Module} at location @var{Loc}
+   (ignored if unbound), with error message @var{Mess} containing
+   arguments @var{Args}.".
 
-# "@var{Goal} is called.  The text provided in @var{Text} is then
-      printed as a debugging message.  The whole process (including
-      running @var{Goal}) is turned @tt{on} by defining a fact of
-      @pred{issue_debug_messages/1} with the module name as
-      argument.".
-
-:- meta_predicate debug_goal(goal, addmodule).
-
-debug_goal(Goal, Message, Module) :-
-    debug_goal(Goal, Message, [], Module).
-
-:- pred debug_goal(Goal, Text, ArgList)
-
-# "@var{Goal} is called.  The text provided in @var{Text} is then
-      printed as a debugging message, using the arguments in
-      @var{ArgList} to interpret any variable-related formatting
-      commands embedded in @var{Text}. Note that the variables in
-      @var{ArgList} can be computed by @var{Goal}.  The whole process
-      (including running @var{Goal}) is turned @tt{on} by defining a
-      fact of @pred{issue_debug_messages/1} with the module name as
-      argument.".
-
-:- meta_predicate debug_goal(goal, ?, addmodule).
-
-debug_goal(Goal, Message, A, Module) :-
-    ( issue_debug_messages(Module)
-    -> call(Goal),
-        compose("DEBUG", user_error, Module, Message, A)
-    ; true ).
-
-%% ---------------------------------------------------------------------------
-
-:- pred compose(Type, SO, Module, Mess, Args)
-    : string * stream * atm * format_control * list
-
-# "Print a generic message of type @var{Type}, to the stream
-      @var{SO} flagged in module @var{Module}, with error message
-      @var{Mess} containing arguments @var{Args}.".
-
-compose(Type, SO, Module, Mess, Args) :-
-    append("{~s (~q): ", Mess,  T1),
-    append(T1,           "}~n", CMess),
+compose(Type, SO, Module, Loc, Mess, Args) :-
     simplify_module(Module, SimplifiedModule),
-    AllArgs = [Type, SimplifiedModule|Args],
-    compose_common(SO, CMess, AllArgs).
+    ( nonvar(Loc),
+      Loc = loc(File, LB, LE) ->
+        append("{In ~w~n~w (~q): (lns ~w-~w) ", Mess, T1),
+        append(T1, "~n}~n", CMess),
+        AllArgs = [File, Type, SimplifiedModule, LB, LE|Args]
+    ; append("{~w (~q): ", Mess, T1),
+      append(T1, "}~n", CMess),
+      AllArgs = [Type, SimplifiedModule|Args]
+    ),
+    prettyformat(SO, CMess, AllArgs).
 
-:- use_module(engine(runtime_control), [set_prolog_flag/2, prolog_flag/3]).
-
-compose_common(SO, CMess, AllArgs) :-
-    (
-        prettyvars(AllArgs),
-%           OLD METHOD
-        prolog_flag(write_strings, Old, on),
-        format(SO, CMess, AllArgs),
-        set_prolog_flag(write_strings, Old),
-%           NEW METHOD
-%           sformat(S, CMess, AllArgs),
-%           display_long_string(S, SO),
-        fail
-    ;
-        true
+prettyformat(SO, CMess, AllArgs) :-
+    ( \+ \+ ( prettyvars(AllArgs),
+              prolog_flag(write_strings, Old, on),
+              format(SO, CMess, AllArgs),
+              set_prolog_flag(write_strings, Old) ) -> true
+    ; true % TODO: needed?
     ).
 
 simplify_module(user(Path), SimplifiedModule) :-
@@ -385,200 +407,3 @@ simplify_module(Path, SimplifiedModule) :-
     path_basename(Path, SimplifiedModule),
     !.
 simplify_module(Module, Module).
-
-
-:- pred compose(Type, SO, Module, File, LB, LE, Mess, Args)
-    : string * stream * atm * atm * int * int * format_control * list
-
-# "Print a generic message of type @var{Type}, to the stream
-      @var{SO}, flagged in module @var{Module}, while processing file
-      @var{File}, between line numbers @var{LB} and @var{LE}, with
-      error message @var{Mess} containing arguments @var{Args}.".
-
-compose(Type, SO, Module, File, LB, LE, Mess, Args) :-
-    append("{In ~w~n~s (~q): (lns ~w-~w) ", Mess,    T1),
-    append(T1,                              "~n}~n", CMess),
-    simplify_module(Module, SimplifiedModule),
-    AllArgs = [File, Type, SimplifiedModule, LB, LE|Args],
-    compose_common(SO, CMess, AllArgs).
-
-/*
-%% ---------------------------------------------------------------------------
-:- pred space(N, S) : (int(N), stream(S))
-# "prints @var{N} spaces.".
-
-
-%space( 0, S ) :- !.
-space(N, S) :-
-    N > 0,
-    !,
-    N1 is N - 1,
-    display(S, ' '),
-    space(N1, S).
-space(_, _).
-
-display_long_string(X, S) :-
-    line_position(S, NInit),
-    display_long_string_n(X, S, NInit, 79).
-
-display_long_string_n(X, S, I, Max) :-
-    append(WORD_WO_S, [SEP|XE], X),
-    member(SEP, ",[]()"),
-    !,
-    append(WORD_WO_S, [SEP], WORD),
-    nl_if_necessary(WORD, XE, S, I, Max, Current),
-    display__compute_next_space(WORD, Current, I, FI),
-    write_string(S, WORD),
-    display_long_string_n(XE, S, FI, Max).
-
-display_long_string_n(WORD, S, I, Max) :-
-    nl_if_necessary(WORD, "", S, I, Max, Current),
-    display__compute_next_space(WORD, Current, I, _),
-    write_string(S, WORD).
-
-
-
-
-% nil
-display__compute_next_space([], _, I, I) :-
-    !.
-
-% push
-display__compute_next_space([SEP|R], Current, I, FI) :-
-    member(SEP, "[({"),
-    !,
-    NCurrent is Current + 1,
-    NSpace is Current + 1,
-    display__compute_next_space(R, NCurrent, [NSpace|I], FI).
-
-% pop
-display__compute_next_space([SEP|R], Current, [_|NI], FI) :-
-    member(SEP, "])}"),
-    !,
-    NCurrent is Current + 1,
-    display__compute_next_space(R, NCurrent, NI, FI).
-
-% normal char   
-display__compute_next_space([_|R], Current, I, FI) :-
-    NCurrent is Current + 1,
-    display__compute_next_space(R, NCurrent, I, FI),
-    !.
-
-% if it fails (?)
-display__compute_next_space(_, _, I, I).
-
-
-nl_if_necessary(WORD, REST, S, I, Max, C) :-
-    line_position(S, Current),
-    word_length(WORD, REST, Current, Max, WL),
-    (
-        WL + Current + 1 > Max
-    ->
-        nl(S),
-        I = [C|_],
-        space(C, S)
-    ;
-        C = Current
-    ),
-    !.
-
-nl_if_necessary(_, _, S, _, _, C) :-
-    line_position(S, C).
-
-
-
-
-% The lenght of a "word" is:
-% * if it a list -> sumatory of the length of its members
-% * lenght( word )
-%
-% Optimization: We can stop counting if
-%  Current + CurrentComputedLen > Max
-word_length([0'[|WORD], REST, Current, Max, WL2) :-
-    !,
-    word__count(WORD, REST, 1, 0, Current, Max, WL),
-    WL2 is WL - Current + 1.
-
-word_length([0'(|WORD], REST, Current, Max, WL2) :-
-    !,
-    word__count(WORD, REST, 0, 1, Current, Max, WL),
-    WL2 is WL - Current + 1.
-
-word_length(WORD, REST, Current, Max, WL2) :-
-    word__count(WORD, REST, 0, 0, Current, Max, WL),
-    WL2 is WL - Current.
-%word_length( WORD, _, _, _, WL ) :-
-%       length( WORD, WL ).
-
-
-
-
-:- pred word__count(_, _, _, _, Current, Max, Current) ::
-    list * list * num * num * num * num * num.
-
-% Start counting till balanced separator is reached
-% S = number of [ ] (square parentheris) not yet balanced
-% P = number of ( ) (parentheris) not yet balanced
-word__count([], _, 0, 0, WL, _, WL) :-
-    !.
-
-word__count(_, [], 0, 0, WL, _, WL) :-
-    !.
-
-
-word__count(_, _, _, _, Current, Max, WL) :-
-    Current > Max,
-    WL = Current,
-    !.
-
-word__count([0'[|WORD], REST, S, P, Current, Max, WL) :-
-    !,
-    S1 is S + 1,
-    C1 is Current + 1,
-    word__count(WORD, REST, S1, P, C1, Max, WL).
-
-word__count([0'(|WORD], REST, S, P, Current, Max, WL) :-
-    !,
-    P1 is P + 1,
-    C1 is Current + 1,
-    word__count(WORD, REST, S, P1, C1, Max, WL).
-
-word__count([0']|WORD], REST, S, P, Current, Max, WL) :-
-    !,
-    S1 is S - 1,
-    C1 is Current + 1,
-    (
-        S1 >= 0
-    ->
-        word__count(WORD, REST, S1, P, C1, Max, WL)
-    ;
-        C1 = WL
-    ).
-
-word__count([0')|WORD], REST, S, P, Current, Max, WL) :-
-    !,
-    P1 is P - 1,
-    C1 is Current + 1,
-    (
-        P1 >= 0
-    ->
-        word__count(WORD, REST, S, P1, C1, Max, WL)
-    ;
-        C1 = WL
-    ).
-
-word__count([_|WORD], REST, S, P, Current, Max, WL) :-
-    !,
-    C1 is Current + 1,
-    word__count(WORD, REST, S, P, C1, Max, WL).
-
-word__count([], [], _, _, WL, _, WL) :-
-    !.
-
-word__count([], REST, S, P, Current, Max, WL) :-
-    !,
-    word__count(REST, [], S, P, Current, Max, WL).
-
-word__count([], _, 0, 0, WL, _, WL) :-
-    !.
-*/
