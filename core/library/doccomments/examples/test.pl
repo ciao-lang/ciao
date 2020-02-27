@@ -50,7 +50,7 @@ foo(_).
 :- pred delete_non_ground(L1,_E,L2) => (list(L1), list(L2)).
 
 % TODO: We would like it to be:
-% %!   L2 is L1 without the ocurrences of E. E can be a nonground term so
+% %!   L2 is L1 without the occurrences of E. E can be a nonground term so
 % %   that all the elements in L1 it unifies with will be deleted.
 % TODO: In order to do this, we must detect strings followed by : as 
 % commands and other things as strings.

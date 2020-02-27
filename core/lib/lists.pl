@@ -115,7 +115,7 @@ reverse([E|Es],L,R) :- reverse(Es,[E|L],R).
 
 
 :- pred delete(L1,E,L2) => (list(L1), list(L2))
-   # "@var{L2} is @var{L1} without the ocurrences of @var{E}.".
+   # "@var{L2} is @var{L1} without the occurrences of @var{E}.".
 :- trust comp delete/3 + sideff(free).
 :- trust comp delete(L1,E,L2) : (ground(L1), ground(L2)) + eval.
 
@@ -127,7 +127,7 @@ delete([Head|Tail], Element, [Head|Rest]) :-
     delete(Tail, Element, Rest).
 
 :- pred delete_non_ground(L1,E,L2) => (list(L1), list(L2))
-# "@var{L2} is @var{L1} without the ocurrences of @var{E}. @var{E} can
+# "@var{L2} is @var{L1} without the occurrences of @var{E}. @var{E} can
 be a nonground term so that all the elements in @var{L1} it unifies
 with will be deleted".
 :- trust comp delete_non_ground/3 + sideff(true).

@@ -123,8 +123,8 @@ get_alternative([Ch|RestIn],[Ch|Pattern],_,End) :-
 
 :- doc(regexp_posix/1,"Special characters for @var{regexp_posix} are:
   @begin{description}
-  @item{*} Matches zero or more ocurrences of the previous group of characters.
-  @item{+} Matches one or more ocurrences of the previous group of characters.
+  @item{*} Matches zero or more occurrences of the previous group of characters.
+  @item{+} Matches one or more occurrences of the previous group of characters.
   @item{.} Matches any single character.
   @item{[...]} Matches any one of the enclosed characters.  A pair of
    characters separated by a minus sign denotes a range; any character
@@ -144,7 +144,7 @@ get_alternative([Ch|RestIn],[Ch|Pattern],_,End) :-
   @item{|} Specifies an alternative.  Two @var{regexp_posix} A and B with
    | in between form an expression that matches anything that either A or B
    will match.
-  @item{@{n,m@}} Matches between n and m (both inclusive) ocurrences of
+  @item{@{n,m@}} Matches between n and m (both inclusive) occurrences of
    previous group of characteres. {n} is equivalent to {n,n}, {,n} is
    equivalent to {0,n}, and {n,} is equivalent to {n,infinite}.
   @item{\\} Quotes a special character (including itself).
@@ -348,8 +348,8 @@ read_number2(0',,Rest,_,N,RestOut) :-
 
 :- doc(regexp_struct/1,"Special predicates for @var{regexp_struct} are:
   @begin{description}
-  @pred{*(C)} Matches zero or more ocurrences of the @var{C}.
-  @pred{+(C)} Matches one or more ocurrences of the @var{C}.
+  @pred{*(C)} Matches zero or more occurrences of the @var{C}.
+  @pred{+(C)} Matches one or more occurrences of the @var{C}.
   @pred{any/0} Matches any single atom.
   @pred{in(L)} Matches any one of the characters in the list @var{L}. In the
    list @var{L} can be atoms and the predicate @pred{rank/2}, that matches
@@ -357,7 +357,7 @@ read_number2(0',,Rest,_,N,RestOut) :-
   @pred{not_in(L)} Is the opposite of @pred{in/1}.
   @item{L} Matches secuences according to the list @var{L}.
   @item{or(L)} Specifies an alternative. Matches any of the element of the list @var{L}.
-  @item{inter(X,N,M} Matches between @var{N} and @var{M} (both inclusive) ocurrences of
+  @item{inter(X,N,M} Matches between @var{N} and @var{M} (both inclusive) occurrences of
    the atom @var{X}. @var{M} can be inf.
   @op{^} Quotes a special predicate (including itself).
  @end{description}").
@@ -484,7 +484,7 @@ match_term_([A1|A1s], [A2|A2s]):-
     match_term_(A1s, A2s).
 
 :- pred replace_first(IN,Old,New,Resul) : string * posix_regexp * string * string
-   # "Replace the first ocurrence of the @var{Old} by @var{New} in 
+   # "Replace the first occurrence of the @var{Old} by @var{New} in 
    @var{IN} and copy the result in @var{Resul}.".
 
 replace_first(IN,Old,New,Resul) :- 
@@ -492,7 +492,7 @@ replace_first(IN,Old,New,Resul) :-
     replace(IN,first,Pattern,New,Resul).
 
 :- pred replace_all(IN,Old,New,Resul) : string * posix_regexp * string * string
-   # "Replace all ocurrences of the @var{Old} by @var{New} in 
+   # "Replace all occurrences of the @var{Old} by @var{New} in 
    @var{IN} and copy the result in @var{Resul}.".
 
 replace_all(IN,Old,New,Resul) :- 

@@ -268,7 +268,7 @@ find_name([_|MoreV],[_|MoreN],X,Xn):-
 create_pretty_dict(Term,Dict):-
     varsbag(Term,VarsBag,[]),
     varset(Term,Vars),
-    remove_one_ocurrence(Vars,VarsBag,NonSingleton_u),
+    remove_one_occurrence(Vars,VarsBag,NonSingleton_u),
     sort(NonSingleton_u,NonSingleton),
     copy_term(NonSingleton,NVars),
     Dict0 = dic(NonSingleton,NVars),
@@ -276,10 +276,10 @@ create_pretty_dict(Term,Dict):-
     ord_subtract(Vars,NonSingleton,NewVars),
     complete_vars_dict(Dict0,NewVars,Dict).
 
-remove_one_ocurrence([],VarsBag,VarsBag).
-remove_one_ocurrence([V|Vars],VarsBag,NonSingleton_u):-
+remove_one_occurrence([],VarsBag,VarsBag).
+remove_one_occurrence([V|Vars],VarsBag,NonSingleton_u):-
     remove_one(VarsBag,V,Tmp),
-    remove_one_ocurrence(Vars,Tmp,NonSingleton_u).
+    remove_one_occurrence(Vars,Tmp,NonSingleton_u).
 
 remove_one([V1|V1s],V,Tmp):-
     V1 == V,!,

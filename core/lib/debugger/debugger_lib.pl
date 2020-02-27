@@ -503,7 +503,7 @@ nobreakpt(Pred, _, _, _, _, RealLine) :-
 :- pred list_breakpt/0 # "Prints out the location of all
     breakpoints. The location of the breakpoints is showed usual by
     referring to the source file, the lines between which the predicate
-    can be found, the predicate name and the number of ocurrence of the
+    can be found, the predicate name and the number of occurrence of the
     predicate name of the literal.".
 
 list_breakpt:-

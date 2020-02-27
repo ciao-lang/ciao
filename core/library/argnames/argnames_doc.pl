@@ -68,7 +68,7 @@
    a value of ``@tt{_}'' (i.e., they are left unconstrained).
 
    Thus, after the declaration for @tt{house/5} in the example above,
-   any ocurrence in that code of, for example,
+   any occurrence in that code of, for example,
    @tt{house$@{nation=>Owns_zebra,pet=>zebra@}} is exactly equivalent
    to @tt{house(_,Owns_zebra,zebra,_,_)}. Also, @tt{house$@{@}} is
    equivalent to @tt{house(_,_,_,_,_)}. The actual zebra puzzle

@@ -46,7 +46,7 @@ age3(_,_).
 
 %! delete_non_ground(L1,_E,L2) => (list(L1), list(L2)).
 % 
-%  # "L2 is L1 without the ocurrences of E. E can be a nonground term so
+%  # "L2 is L1 without the occurrences of E. E can be a nonground term so
 %    that all the elements in L1 it unifies with will be deleted."
 
 :- test nonsingle(A) : ( A = [a] ) + fails # "nonsingle fails.".
