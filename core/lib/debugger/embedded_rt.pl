@@ -58,8 +58,7 @@ srcdbg_byrd(X, Pred, Src, L0, L1, Dict, Number) :-
     arg(2, State, Debugging),
     ( debuggable(Debugging, X, Pred, Src, L0, L1, Number) ->
         term_to_meta(X1, X),
-        debug_trace2(X1, State, Pred, Src, L0, L1, Dict, Number,
-            get_attributed_vars, debug_call)
+        debug_trace2(X1, State, Pred, Src, L0, L1, Dict, Number, get_attributed_vars, debug_call)
     ; '$nodebug_call'(X)
     ).
 

@@ -1,20 +1,12 @@
 :- module(debugger, [
-% jf: remove these commented lines if everything is ok - 20031122
-%       '$debugger_state'/2,'$debugger_mode'/0,'$spypoint'/3,
-%       srcdbg_spy/7,
-            call_in_module/2,
-            debug_trace/1,
-            do_interrupt_command/1,
-            switch_off_debugger/0,
-            adjust_debugger/0],
-        [dcg, assertions, hiord, define_flag]).
+    call_in_module/2,
+    debug_trace/1,
+    do_interrupt_command/1,
+    switch_off_debugger/0,
+    adjust_debugger/0
+], [dcg, assertions, hiord, define_flag]).
 
 :- doc(title, "Predicates controlling the interactive debugger").
-
-:- doc(module, "This library implements predicates which are
-   normally used in the interactive top-level shell to debug
-   programs. A subset of them are available in the embeddable debugger.").
-
 :- doc(author, "A. Ciepielewski").
 :- doc(author, "Mats Carlsson").
 :- doc(author, "T. Chikayama").
@@ -23,41 +15,44 @@
 :- doc(author, "Manuel C. Rodriguez").
 :- doc(author, "Edison Mera").
 
+:- doc(module, "This library implements predicates which are
+   normally used in the interactive top-level shell to debug
+   programs. A subset of them are available in the embeddable debugger.").
+
 :- use_module(library(datafacts/datafacts_rt)). % TODO: this one or datafacts package?
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(engine(debugger_support)).
 :- use_module(library(debugger/debugger_lib), [
-            adjust_debugger_state/2,
-            in_debug_module/1,
-            debug_trace2/10,
-            do_once_command/3,
-            get_attributed_vars/3,
-            get_debugger_state/1]).
+    adjust_debugger_state/2,
+    in_debug_module/1,
+    debug_trace2/10,
+    do_once_command/3,
+    get_attributed_vars/3,
+    get_debugger_state/1]).
 :- reexport(library(debugger/debugger_lib), [
-            breakpt/6,
-            current_debugged/1,
-            debug/0,
-            debug_module/1,
-            debug_module_source/1,
-            debugging/0,
-            debugrtc/0,
-            get_debugger_state/1,
-            leash/1,
-            list_breakpt/0,
-            maxdepth/1,
-            nobreakall/0,
-            nobreakpt/6,
-            nodebug/0,
-            nodebug_module/1,
-            nodebugrtc/0,
-            nospy/1,
-            nospyall/0,
-            notrace/0,
-            reset_debugger/1,
-            retry_hook/4,
-            spy/1,
-            trace/0,
-            tracertc/0]).
+    breakpt/6,
+    current_debugged/1,
+    debug/0,
+    debug_module/1,
+    debug_module_source/1,
+    debugging/0,
+    debugrtc/0,
+    get_debugger_state/1,
+    leash/1,
+    list_breakpt/0,
+    maxdepth/1,
+    nobreakall/0,
+    nobreakpt/6,
+    nodebug/0,
+    nodebug_module/1,
+    nodebugrtc/0,
+    nospy/1,
+    nospyall/0,
+    notrace/0,
+    reset_debugger/1,
+    spy/1,
+    trace/0,
+    tracertc/0]).
 :- use_module(engine(internals), [term_to_meta/2, '$setarg'/4, module_concat/3]).
 :- use_module(engine(hiord_rt), ['$nodebug_call'/1, '$meta_call'/1]).
 :- use_module(engine(attributes)).
@@ -71,10 +66,8 @@
 :- doc(hide, current_debugged/1).
 :- doc(hide, reset_debugger/1).
 :- doc(hide, set_debugger/1).
-:- doc(hide, retry_hook/4).
 :- doc(hide, debug_trace/1).
 :- doc(hide, do_interrupt_command/1).
-
 
 %------------------ Bug Comments ------------------------------
 
@@ -126,11 +119,9 @@ debug_trace(X) :-
     extract_info(X, Goal, Pred, Src, Ln0, Ln1, Dict, Number),
     ( debuggable(Goal) ->
         get_debugger_state(State),
-        debug_trace2(Goal, State, Pred, Src, Ln0, Ln1, Dict, Number,
-            get_attributed_vars, debug_call)
-    ;
-        term_to_meta(X, G),
-        '$nodebug_call'(G)
+        debug_trace2(Goal, State, Pred, Src, Ln0, Ln1, Dict, Number, get_attributed_vars, debug_call)
+    ; term_to_meta(X, G),
+      '$nodebug_call'(G)
     ).
 
 debuggable(Goal) :-
@@ -141,14 +132,13 @@ debuggable(_) :-
     in_debug_module(Ancestor).
 
 :- meta_predicate debug_call(goal).
-
 debug_call(Goal) :- '$shell_call'(Goal).
 
 %-------------------------facilities-------------------------------------
 
 % extract_info('debugger:srcdbg_spy'(Goal,Pred,Src,Ln0,Ln1,Dict,Number),
-extract_info('debugger_support:srcdbg_spy'(Goal, Pred, Src, Ln0, Ln1, Dict,
-            Number), NewGoal, Pred, Src, Ln0, Ln1, Dict, Number) :-
+extract_info('debugger_support:srcdbg_spy'(Goal, Pred, Src, Ln0, Ln1, Dict, Number),
+             NewGoal, Pred, Src, Ln0, Ln1, Dict, Number) :-
     !,
     term_to_meta(NewGoal, Goal).
 extract_info(Goal, Goal, nil, nil, nil, nil, d([], []), nil).
