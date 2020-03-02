@@ -1,39 +1,29 @@
-:- module(embedded_rt, [srcdbg_byrd/7],
-%               trace/0,
-%               tracertc/0,
-%               debug/0,
-%               debugrtc/0,
-%               notrace/0,
-%               nodebug/0,
-%               nodebugrtc/0],
-        [dcg, assertions, datafacts]).
+:- module(embedded_rt, [srcdbg_byrd/7], [dcg, assertions, datafacts]).
 
 :- use_module(engine(internals), [term_to_meta/2]).
 :- use_module(engine(debugger_support), ['$spypoint'/3]).
 :- use_module(engine(hiord_rt),         ['$nodebug_call'/1]).
 :- use_module(library(debugger/debugger_lib), [
-            debug_trace2/10,
-            breakpoint/5,
-            get_attributed_vars/3,
-            get_debugger_state/1
-        ]).
+    debug_trace2/10,
+    breakpoint/5,
+    get_attributed_vars/3,
+    get_debugger_state/1]).
 
 :- use_module(engine(messages_basic), [message/2]).
 
 :- reexport(library(debugger/debugger_lib), [
-            debug/0,
-            debug_module/1,
-            debug_module_source/1,
-            debugrtc/0,
-            nodebug/0,
-            nodebug_module/1,
-            nodebugrtc/0,
-            nospy/1,
-            notrace/0,
-            spy/1,
-            trace/0,
-            tracertc/0
-        ]).
+    debug/0,
+    debug_module/1,
+    debug_module_source/1,
+    debugrtc/0,
+    nodebug/0,
+    nodebug_module/1,
+    nodebugrtc/0,
+    nospy/1,
+    notrace/0,
+    spy/1,
+    trace/0,
+    tracertc/0]).
 
 % initialize_srcdebugger :-
 %       format(user_error,'Point 1~n',[]),
