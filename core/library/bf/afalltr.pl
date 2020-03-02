@@ -5,6 +5,7 @@
 
 afalltr(end_of_file, end_of_file, M) :- !,
     retractall_fact(bf_pred_all(M,_,_)).
+afalltr(:-(_H), _, _) :- !, fail. % Pass on declarations unchanged.
 afalltr(:-(H,B), TrCls, M) :- !,
     clausetr(H, B, M, TrCls).
 afalltr((H), TrCls, M) :- !,
