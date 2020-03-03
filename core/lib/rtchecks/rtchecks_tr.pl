@@ -818,7 +818,8 @@ success_rtcheck(
     \+(Succ == []),
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
     get_prop_args(Call, Pred, Args),
-    get_checkc(call, Call, Args, Exit, ChkCall),
+    get_prop_impl(Call, calls, Pred, RtcCall),
+    get_checkc(call, RtcCall, Args, Exit, ChkCall),
     check_poscond(success, PosLoc, Pred, PredName, Dict, Succ, SuccNames, Exit, ChkSucc).
 
 compatpos_compat_lit(compatpos(ChkCompat, _, Compat, Exit),
@@ -903,7 +904,8 @@ comp_rtcheck(
     member((Status, Type), StatusTypes),
     \+(Comp == []),
     get_prop_args(Call, Pred, Args),
-    get_checkc(call, Call, Args, Exit, ChkCall),
+    get_prop_impl(Call, calls, Pred, RtcCall),
+    get_checkc(call, RtcCall, Args, Exit, ChkCall),
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
     check_poscond(comp, PosLoc, Pred, PredName, Dict, Comp, CompNames, Exit, ChkComp).
 
