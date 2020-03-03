@@ -154,7 +154,7 @@ default_shell_package(default_for_ciaosh).
 :- use_module(library(errhandle), [error_protect/2, default_error_message/1]).
 
 :- export('$shell_abort'/0). % (not a top-level command)
-'$shell_abort' :-
+'$shell_abort' :- querylevel(_), !, % aborted during a running toplevel
     message(error0, '{ Execution aborted }'),
     % Enter toplevel again
     shell_body,
@@ -162,6 +162,8 @@ default_shell_package(default_for_ciaosh).
     % TODO: This is useful for batched execution, but it may
     %   produce strange behaviour as an interactive toplevel (add
     %   a way to clear the error status?)
+    halt(1).
+'$shell_abort' :- % see internals:abort_hooks/0
     halt(1).
 
 :- if(defined(optim_comp)).
