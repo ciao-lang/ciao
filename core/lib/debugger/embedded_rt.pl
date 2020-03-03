@@ -4,9 +4,8 @@
 :- use_module(engine(debugger_support), ['$spypoint'/3]).
 :- use_module(engine(hiord_rt),         ['$nodebug_call'/1]).
 :- use_module(library(debugger/debugger_lib), [
-    debug_trace2/10,
+    debug_trace2/8,
     breakpoint/5,
-    get_attributed_vars/3,
     get_debugger_state/1]).
 
 :- use_module(engine(messages_basic), [message/2]).
@@ -48,7 +47,7 @@ srcdbg_byrd(X, Pred, Src, L0, L1, Dict, Number) :-
     arg(2, State, Debugging),
     ( debuggable(Debugging, X, Pred, Src, L0, L1, Number) ->
         term_to_meta(X1, X),
-        debug_trace2(X1, State, Pred, Src, L0, L1, Dict, Number, get_attributed_vars, debug_call)
+        debug_trace2(X1, State, Pred, Src, L0, L1, Dict, Number)
     ; '$nodebug_call'(X)
     ).
 
@@ -63,10 +62,3 @@ debuggable(debug, X, Pred, Src, _, Ln1, Number) :-
         current_fact(breakpoint(Pred, Src, _Ln0, Ln1, Number))
     ),
     !.
-
-:- meta_predicate debug_call(goal).
-
-debug_call(Goal) :- catch(Goal, E, message(error, ['Thrown error ', E])).
-
-get_attributed_vars(Term, AtVars) :-
-    get_attributed_vars(Term, AtVars, []).

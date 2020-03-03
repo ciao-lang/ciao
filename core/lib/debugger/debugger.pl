@@ -4,7 +4,7 @@
     do_interrupt_command/1,
     switch_off_debugger/0,
     adjust_debugger/0
-], [dcg, assertions, hiord, define_flag]).
+], [dcg, assertions, hiord]).
 
 :- doc(title, "Predicates controlling the interactive debugger").
 :- doc(author, "A. Ciepielewski").
@@ -25,9 +25,8 @@
 :- use_module(library(debugger/debugger_lib), [
     adjust_debugger_state/2,
     in_debug_module/1,
-    debug_trace2/10,
-    do_once_command/3,
-    get_attributed_vars/3,
+    debug_trace2/8,
+    do_once_command/2,
     get_debugger_state/1]).
 :- reexport(library(debugger/debugger_lib), [
     breakpt/6,
@@ -57,7 +56,6 @@
 :- use_module(engine(hiord_rt), ['$nodebug_call'/1, '$meta_call'/1]).
 :- use_module(engine(attributes)).
 :- use_module(library(format)).
-:- use_module(user, ['$shell_call'/1]).
 
 :- use_module(library(toplevel/toplevel_io)).
 
@@ -88,8 +86,6 @@
 %   - Trap arith errors in debug mode
 %------------- Built-in predicates for debugging------------------------
 
-define_flag(check_cycles, [on, off], off). % TODO: move somewhere else
-
 % define_flag(debug, [on,debug,trace,off], off).
 
 % Debugger_state = s(DebugFlag, OptDebugFlag, int, int, AncestorList)
@@ -119,7 +115,7 @@ debug_trace(X) :-
     extract_info(X, Goal, Pred, Src, Ln0, Ln1, Dict, Number),
     ( debuggable(Goal) ->
         get_debugger_state(State),
-        debug_trace2(Goal, State, Pred, Src, Ln0, Ln1, Dict, Number, get_attributed_vars, debug_call)
+        debug_trace2(Goal, State, Pred, Src, Ln0, Ln1, Dict, Number)
     ; term_to_meta(X, G),
       '$nodebug_call'(G)
     ).
@@ -130,9 +126,6 @@ debuggable(_) :-
     get_debugger_state(S),
     arg(5, S, [a(_, Ancestor, _, _)|_]),
     in_debug_module(Ancestor).
-
-:- meta_predicate debug_call(goal).
-debug_call(Goal) :- '$shell_call'(Goal).
 
 %-------------------------facilities-------------------------------------
 
@@ -148,44 +141,8 @@ adjust_debugger :-
     arg(1, State, G),
     adjust_debugger_state(State, G).
 
-get_attributed_vars(Term, AtVars) :-
-    current_prolog_flag(check_cycles, Flag),
-    ( Flag = on ->
-        get_attributed_vars_cy(Term, [], _, [], AtVars)
-    ;
-        get_attributed_vars(Term, AtVars, [])
-    ).
-
-get_attributed_vars_cy(X, Seen, Seen, At, NewAt) :-
-    var(X), !,
-    ( get_attribute(X, AtX) ->
-        NewAt = [attach_attribute(X, AtX)|At]
-    ;
-        NewAt = At
-    ).
-get_attributed_vars_cy(X, Seen, Seen, At, At) :-
-    atomic(X), !.
-get_attributed_vars_cy(X, Seen, Seen, At, At) :-
-    already_seen(Seen, X), !.
-get_attributed_vars_cy(X, Seen, NewSeen, At, NewAt) :-
-    functor(X, _, Ar),
-    get_attributed_vars_cy_args(Ar, X, [X|Seen], NewSeen, At, NewAt).
-
-get_attributed_vars_cy_args(0, _, Seen,  Seen,  At,  At) :- !.
-get_attributed_vars_cy_args(N, X, Seen0, Seen2, At0, At2) :-
-    N > 0,
-    arg(N, X, A),
-    get_attributed_vars_cy(A, Seen0, Seen1, At0, At1),
-    N1 is N - 1,
-    get_attributed_vars_cy_args(N1, X, Seen1, Seen2, At1, At2).
-
-already_seen([T|_Ts], Term) :-
-    T == Term,
-    !.
-already_seen([_T|Ts], Term) :- already_seen(Ts, Term).
-
 do_interrupt_command(0'@) :- !, % @(command)
-    top_skipeol, do_once_command('| ?- ', debug_call, d([], [], [])),
+    top_skipeol, do_once_command('| ?- ', d([], [], [])),
     do_interrupt_command(0'\n).
 do_interrupt_command(0'a) :- !, % a(bort)
     top_skipeol, abort.

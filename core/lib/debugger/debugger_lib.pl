@@ -1,4 +1,4 @@
-:- module(debugger_lib, [], [assertions, dcg, hiord, datafacts]).
+:- module(debugger_lib, [], [assertions, dcg, hiord, datafacts, define_flag]).
 
 :- use_module(library(aggregates)).
 
@@ -523,9 +523,8 @@ list_spypoints :-
 % ---------------------------------------------------------------------------
 %! # Internal entry from meta-interpreters
 
-:- export(debug_trace2/10).
-:- meta_predicate debug_trace2(?, ?, ?, ?, ?, ?, ?, ?, pred(2), pred(1)).
-debug_trace2(X, State, Pred, Src, L0, L1, d(UDict, CDict), Number, GetAttributedVars, DebugCall) :-
+:- export(debug_trace2/8).
+debug_trace2(X, State, Pred, Src, L0, L1, d(UDict, CDict), Number) :-
     append(UDict, CDict, Dict0),
     set_undefined_names(Dict0, 1, _),
     select_applicable_with_cycles(X, Dict0, ADict),
@@ -535,12 +534,12 @@ debug_trace2(X, State, Pred, Src, L0, L1, d(UDict, CDict), Number, GetAttributed
     '$setarg'(5, State, NA, on),
     ( Port = call,
       '$metachoice'(C0),
-      call_hook(X, B, D, State, Pred, Src, L0, L1, Dict, Number, GetAttributedVars, DebugCall),
+      call_hook(X, B, D, State, Pred, Src, L0, L1, Dict, Number),
       '$metachoice'(C1)
-    ; fail_hook(X, B, D, State, Pred, Src, L0, L1, Dict, Number, GetAttributedVars, DebugCall), !, fail
+    ; fail_hook(X, B, D, State, Pred, Src, L0, L1, Dict, Number), !, fail
     ),
-    ( exit_hook(X, B, D, State, Pred, Src, L0, L1, Dict, Number, GetAttributedVars, DebugCall)
-    ; redo_hook(X, B, D, State, Pred, Src, L0, L1, Dict, Number, GetAttributedVars, DebugCall), fail
+    ( exit_hook(X, B, D, State, Pred, Src, L0, L1, Dict, Number)
+    ; redo_hook(X, B, D, State, Pred, Src, L0, L1, Dict, Number), fail
     ),
     % Remove choicepoints in deterministic goals to speed up debugging -- EMM
     ( C0 == C1 -> ! ; true ),
@@ -571,13 +570,12 @@ retry_hook_(X, B, D, [a(B, X, D, Dict)|A], A, Port, State, Dict) :-
 a_length([],                0).
 a_length([a(_, _, X, _)|_], X).
 
-:- meta_predicate call_hook(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, pred(2), pred(1)).
-call_hook(X, B, _, State, _, _, _, _, _, _, _, _) :-
+call_hook(X, B, _, State, _, _, _, _, _, _) :-
     arg(3, State, Level),
     B>Level, !,
     call_hook1(X).
-call_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
-    debug_port(X, B, D, call, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall),
+call_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number) :-
+    debug_port(X, B, D, call, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number),
     call_hook2(Msg, X).
 
 call_hook2(answer(X), X).
@@ -596,28 +594,24 @@ call_hook1(X) :-
         fail
     ).
 
-:- meta_predicate exit_hook(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, pred(2), pred(1)).
-exit_hook(_, B, _, State, _, _, _, _, _, _, _, _) :-
+exit_hook(_, B, _, State, _, _, _, _, _, _) :-
     arg(3, State, Level), B>Level, !.
-exit_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+exit_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number) :-
     '$setarg'(3, State, 1000000, true),
-    debug_port(X, B, D, exit, State, _, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
+    debug_port(X, B, D, exit, State, _, Pred, Src, Ln0, Ln1, Dict, Number).
 
-:- meta_predicate redo_hook(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, pred(2), pred(1)).
-redo_hook(_, B, _, State, _, _, _, _, _, _, _, _) :-
+redo_hook(_, B, _, State, _, _, _, _, _, _) :-
     arg(3, State, Level), B>Level, !.
-redo_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
-    debug_port(X, B, D, redo, State, _, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
+redo_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number) :-
+    debug_port(X, B, D, redo, State, _, Pred, Src, Ln0, Ln1, Dict, Number).
 
-:- meta_predicate fail_hook(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, pred(2), pred(1)).
-fail_hook(_, B, _, State, _, _, _, _, _, _, _, _) :-
+fail_hook(_, B, _, State, _, _, _, _, _, _) :-
     arg(3, State, Level), B>Level, !.
-fail_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+fail_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number) :-
     '$setarg'(3, State, 1000000, true),
-    debug_port(X, B, D, fail, State, _, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
+    debug_port(X, B, D, fail, State, _, Pred, Src, Ln0, Ln1, Dict, Number).
 
-:- meta_predicate debug_port(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, pred(2), pred(1)).
-debug_port(X, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+debug_port(X, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     ( '$spypoint'(X, on, on)
     ; % % Ln0 is free because there is no way to determine where the 
       % % clause starts, but the end of the clause can be determined exactly.
@@ -630,176 +624,173 @@ debug_port(X, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttr
     ),
     !,
     defaultopt(Op),
-    prompt_command(Op, X, [], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-debug_port(X, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+    prompt_command(Op, X, [], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+debug_port(X, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     arg(2, State, trace),
     current_fact(leashed(Port)), !,
     defaultopt(Op),
-    prompt_command(Op, X, [], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-debug_port(X, B, D, Port, State, no, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, _) :-
+    prompt_command(Op, X, [], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+debug_port(X, B, D, Port, State, no, Pred, Src, Ln0, Ln1, Dict, Number) :-
     arg(2, State, trace), !,
     defaultopt(Op),
-    write_goal(Op, X, [], B, D, Port, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars),
+    write_goal(Op, X, [], B, D, Port, Pred, Src, Ln0, Ln1, Dict, Number),
     top_nl.
-debug_port(_, _, _, _, _, no, _, _, _, _, _, _, _, _).
+debug_port(_, _, _, _, _, no, _, _, _, _, _, _).
 
-:- meta_predicate prompt_command(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, pred(2), pred(1)).
-prompt_command(T, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
-    write_goal(T, X, Xs, B, D, Port, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars),
+prompt_command(T, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
+    write_goal(T, X, Xs, B, D, Port, Pred, Src, Ln0, Ln1, Dict, Number),
     get_command(C),
-    do_trace_command(C, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
+    do_trace_command(C, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
 
-:- meta_predicate do_trace_command(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, pred(2), pred(1)).
-do_trace_command(0'a, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) :- !,
+do_trace_command(0'a, _, _, _, _, _, _, _, _, _, _, _, _, _) :- !,
     % a(bort)
     abort.
-do_trace_command(0'c, _, _, _, _, _, State, no, _, _, _, _, _, _, _, _) :- !,
+do_trace_command(0'c, _, _, _, _, _, State, no, _, _, _, _, _, _) :- !,
     % c(reep)
     '$setarg'(2, State, trace, true),
     '$debugger_mode'.
-do_trace_command(0'\n, _, _, _, _, _, State, no, _, _, _, _, _, _, _, _) :-
+do_trace_command(0'\n, _, _, _, _, _, State, no, _, _, _, _, _, _) :-
     !, % CR (creep)
     '$setarg'(2, State, trace, true),
     '$debugger_mode'.
-do_trace_command(0'd, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :- !, % d(isplay)
+do_trace_command(0'd, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !, % d(isplay)
     set_defaultopt(0'd, false, false),
-    prompt_command(0'd, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command([0'd, AV], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :- % d(isplay)
+    prompt_command(0'd, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command([0'd, AV], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- % d(isplay)
     proc_extraopts(AV, A, V), !,
     set_defaultopt(0'd, A, V),
-    prompt_command(0'd, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command(0'g, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :- !, % g(ancestors)
+    prompt_command(0'd, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command(0'g, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !, % g(ancestors)
     arg(5, State, CA),
-    show_ancestors(CA, -1, GetAttributedVars),
+    show_ancestors(CA, -1),
     defaultopt(Op),
-    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command([0'g, Arg], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :- !,
+    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command([0'g, Arg], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
     % g(ancestors) arg
     arg(5, State, CA),
-    show_ancestors(CA, Arg, GetAttributedVars),
+    show_ancestors(CA, Arg),
     defaultopt(Op),
-    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command(0'l, _, _, _, _, _, State, no, _, _, _, _, _, _, _, _) :- !,
+    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command(0'l, _, _, _, _, _, State, no, _, _, _, _, _, _) :- !,
     % l(eap)
     '$setarg'(2, State, debug, true),
     '$debugger_mode'.
-do_trace_command(0'n, _, _, _, _, _, State, no, _, _, _, _, _, _, _, _) :-
+do_trace_command(0'n, _, _, _, _, _, State, no, _, _, _, _, _, _) :-
     !, % n(odebug)
     % nodebug.
     '$setarg'(3, State, 0, true).
-do_trace_command(0'p, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :- !, % p(rint)
+do_trace_command(0'p, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !, % p(rint)
     set_defaultopt(0'p, false, false),
-    prompt_command(0'p, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command([0'p, AV], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :- % p(rint)
+    prompt_command(0'p, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command([0'p, AV], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- % p(rint)
     proc_extraopts(AV, A, V), !,
     set_defaultopt(0'p, A, V),
-    prompt_command(0'p, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command(0'v, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :- !, % v(ariables)
-    prompt_command(0'v, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command([0'v, Name], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :- !, % v(ariables)
-    prompt_command([0'v, Name], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command(0'r, _, _, _, _, _, State, no, _, _, _, _, _, _, _, _) :-
+    prompt_command(0'p, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command(0'v, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !, % v(ariables)
+    prompt_command(0'v, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command([0'v, Name], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !, % v(ariables)
+    prompt_command([0'v, Name], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command(0'r, _, _, _, _, _, State, no, _, _, _, _, _, _) :-
     !, % r(etry)
     arg(5, State, [a(B, _, _, _)|_]),
     do_retry_fail(B, State, call).
-do_trace_command([0'r, B], _, _, _, _, _, State, no, _, _, _, _, _, _, _, _) :-
+do_trace_command([0'r, B], _, _, _, _, _, State, no, _, _, _, _, _, _) :-
     !, % r(etry) arg
     do_retry_fail(B, State, call).
-do_trace_command(0'f, _, _, _, _, _, State, no, _, _, _, _, _, _, _, _) :-
+do_trace_command(0'f, _, _, _, _, _, State, no, _, _, _, _, _, _) :-
     !, %f(ail)
     arg(5, State, [a(B, _, _, _)|_]),
     do_retry_fail(B, State, fail).
-do_trace_command([0'f, B], _, _, _, _, _, State, no, _, _, _, _, _, _, _, _) :-
+do_trace_command([0'f, B], _, _, _, _, _, State, no, _, _, _, _, _, _) :-
     !, % f(ail) arg
     do_retry_fail(B, State, fail).
-do_trace_command(0's, _, _, B, _, Port, State, no, _, _, _, _, _, _, GetAttributedVars, DebugCall) :- % s(kip)
-    set_skip(Port, B, State, GetAttributedVars, DebugCall), !.
-do_trace_command(0'w, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+do_trace_command(0's, _, _, B, _, Port, State, no, _, _, _, _, _, _) :- % s(kip)
+    set_skip(Port, B, State), !.
+do_trace_command(0'w, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     !, % w(rite)
     set_defaultopt(0'w, false, false),
-    prompt_command(0'w, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command([0'w, AV], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+    prompt_command(0'w, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command([0'w, AV], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     proc_extraopts(AV, A, V), !,
     set_defaultopt(0'w, A, V),
-    prompt_command(0'w, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command(0'+, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+    prompt_command(0'w, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command(0'+, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     !, % +(spy this)
     lastof(Xs, _-X, _-Goal),
     spy1(Goal),
     defaultopt(Op),
-    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command(0'-, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command(0'-, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     !, % -(nospy this)
     lastof(Xs, _-X, _-Goal),
     nospy1(Goal),
     defaultopt(Op),
-    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command(0'=, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command(0'=, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     !, % =(debugging)
     reset_debugger(_),
     debugging,
     set_debugger(State),
     defaultopt(Op),
-    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
+    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
 % do_trace_command(0'b, X, Xs, B, D, Port, State, Msg) :- !, % b(reak)
 %       break,
 %       prompt_command(0'p, X, Xs, B, D, Port, State, Msg).
-do_trace_command(0'@, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+do_trace_command(0'@, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     !, %@ (command)
-    do_once_command('| ?- ', DebugCall, Dict),
+    do_once_command('| ?- ', Dict),
     defaultopt(Op),
-    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command(0'u, _, _, _, _, call, _, answer(X1), _, _, _, _, _, _, _, _) :-
+    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command(0'u, _, _, _, _, call, _, answer(X1), _, _, _, _, _, _) :-
     !, %u (unify)
     '$prompt'(Old, '|: '),
     read(user, X1),
     '$prompt'(_, Old).
-do_trace_command(0'<, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+do_trace_command(0'<, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     !, %< (reset printdepth)
     reset_printdepth,
     defaultopt(Op),
-    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command([0'<, I], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command([0'<, I], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     !, %< arg (set printdepth)
     set_printdepth(I),
     defaultopt(Op),
-    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command(0'^, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command(0'^, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     !, %^ (reset subterm)
     lastof(Xs, _-X, _-Goal),
     defaultopt(Op),
-    prompt_command(Op, Goal, [], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command([0'^, 0], _, [_-X|Xs], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+    prompt_command(Op, Goal, [], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command([0'^, 0], _, [_-X|Xs], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     !, %^ 0 (up subterm)
     defaultopt(Op),
-    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command([0'^, I], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :- %^ arg (set subterm)
+    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command([0'^, I], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- %^ arg (set subterm)
     arg(I, X, Ith), !,
     defaultopt(Op),
-    prompt_command(Op, Ith, [I-X|Xs], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command(0'?, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+    prompt_command(Op, Ith, [I-X|Xs], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command(0'?, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     !, % ?(help)
     debugging_options,
     defaultopt(Op),
-    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command(0'h, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :-
+    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command(0'h, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
     !, % h(elp)
     debugging_options,
     defaultopt(Op),
-    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
-do_trace_command(_, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall) :- % all others
+    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
+do_trace_command(_, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- % all others
     format(user, '{Option not applicable at this port}~n', []),
     defaultopt(Op),
-    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars, DebugCall).
+    prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
 
-:- meta_predicate set_skip(?, ?, ?, pred(2), pred(1)).
-set_skip(call, To, State, _, _) :-
+set_skip(call, To, State) :-
     '$setarg'(3, State, To, true).
-set_skip(redo, To, State, _, _) :-
+set_skip(redo, To, State) :-
     '$setarg'(3, State, To, true).
-set_skip(_, _, State, GetAttributedVars, DebugCall) :-
+set_skip(_, _, State) :-
     format(user, '{Skip not applicable at this port, creeping ...}~n', []),
-    do_trace_command(0'c, _, _, _, _, _, State, no, _, _, _, _, _, _, GetAttributedVars, DebugCall).
+    do_trace_command(0'c, _, _, _, _, _, State, no, _, _, _, _, _, _).
 
 spy_info([],       Goal, ' + ') --> {'$spypoint'(Goal, on, on)}, !.
 spy_info([],       _,    '   ') --> [].
@@ -880,29 +871,28 @@ trd_string(Ch,   [Ch|I0], I) :-
 % ---------------------------------------------------------------------------
 %! ## Show ancestors command (g)
 
-:- meta_predicate show_ancestors(?, ?, pred(2)).
-show_ancestors([_], _, _) :- !,
+show_ancestors([_], _) :- !,
     top_nl, top_display('No ancestors.'), top_nl.
-show_ancestors([_|CA], N, GetAttributedVars) :-
+show_ancestors([_|CA], N) :-
     top_nl, top_display('Ancestors:'), top_nl,
-    list_ancestors(CA, N, GetAttributedVars).
+    list_ancestors(CA, N).
 
-:- meta_predicate list_ancestors(?, ?, pred(2)).
-list_ancestors([],                    _,  _) :- !.
-list_ancestors(_,                     0,  _) :- !.
-list_ancestors([a(B, X, D, Dict)|As], N0, GetAttributedVars) :-
+list_ancestors([], _) :- !.
+list_ancestors(_, 0) :- !.
+list_ancestors([a(B, X, D, Dict)|As], N0) :-
     N is N0-1,
-    list_ancestors(As, N, GetAttributedVars),
+    list_ancestors(As, N),
     defaultopt(Op),
-    write_goal(Op, X, [], B, D, void, _Pred, _Src, nil, nil, Dict, nil, GetAttributedVars),
+    write_goal(Op, X, [], B, D, void, _Pred, _Src, nil, nil, Dict, nil),
     top_nl.
 
 % ---------------------------------------------------------------------------
 %! ## Do once command (@)
 
-:- export(do_once_command/3).
-:- meta_predicate do_once_command(?, pred(1), ?).
-do_once_command(Prompt, DebugCall, d(UDict, CDict, _ADict)) :-
+% Note: called in the context of the toplevel
+
+:- export(do_once_command/2).
+do_once_command(Prompt, d(UDict, CDict, _ADict)) :-
     '$prompt'(OldPrompt, Prompt),
     reset_debugger(State),
     read_term(user, Command, [variable_names(Dict0)]),
@@ -910,7 +900,7 @@ do_once_command(Prompt, DebugCall, d(UDict, CDict, _ADict)) :-
     % Variable Binding between Command and Program:
     union(Dict, Dict0, _),
     '$prompt'(_, '|: '),
-    catch((DebugCall(Command) -> Y=yes ; Y=no), E, Y=ex),
+    catch((debug_call(Command) -> Y=yes ; Y=no), E, Y=ex),
     '$prompt'(_, OldPrompt),
     ( Y=yes ->
         current_fact(printopts(Op, D, A, _)),
@@ -922,6 +912,13 @@ do_once_command(Prompt, DebugCall, d(UDict, CDict, _ADict)) :-
       format(user_error, '{Warning: exception thrown ~w}~n', [E])
     ),
     set_debugger(State).
+
+% (Make sure that toplevel_scope:'$shell_call' exists)
+:- use_module(library(toplevel), []).
+:- use_module(user, ['$shell_call'/1]).
+
+:- meta_predicate debug_call(goal).
+debug_call(Goal) :- '$shell_call'(Goal).
 
 % ---------------------------------------------------------------------------
 %! # Print options
@@ -964,13 +961,12 @@ proc_extraopts("va", true,  true).
 % ---------------------------------------------------------------------------
 %! # Print goal and bindings during debugging
 
-:- meta_predicate write_goal(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, pred(2)).
-write_goal(T, X, Xs, B, D, Port, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars) :-
+write_goal(T, X, Xs, B, D, Port, Pred, Src, Ln0, Ln1, Dict, Number) :-
     reset_debugger(State),
     port_info(Port, Pport),
     current_output(CO),
     set_output(user),
-    do_write_goal(T, X, Xs, B, D, Pport, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars),
+    do_write_goal(T, X, Xs, B, D, Pport, Pred, Src, Ln0, Ln1, Dict, Number),
     set_output(CO),
     set_debugger(State).
 
@@ -982,28 +978,24 @@ port_info(redo,    '  Redo: ').
 port_info(fail,    '  Fail: ').
 port_info(void,    '  ').
 
-:- meta_predicate do_write_goal(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, pred(2)).
-do_write_goal(0'v, X, _, _, _, _, _, _, _, _, Dict, _, GetAttributedVars) :-
-    !,
-    write_goal_v(X, Dict, GetAttributedVars).
-do_write_goal([0'v, SName], _, _, _, _, _, _, _, _, _, Dict, _, GetAttributedVars) :-
-    !,
-    write_goal_v_name(SName, Dict, GetAttributedVars).
-do_write_goal(T, X, Xs, B, D, Pport, Pred, Src, Ln0, Ln1, Dict, Number, GetAttributedVars) :-
+do_write_goal(0'v, X, _, _, _, _, _, _, _, _, Dict, _) :- !,
+    write_goal_v(X, Dict).
+do_write_goal([0'v, SName], _, _, _, _, _, _, _, _, _, Dict, _) :- !,
+    write_goal_v_name(SName, Dict).
+do_write_goal(T, X, Xs, B, D, Pport, Pred, Src, Ln0, Ln1, Dict, Number) :-
     print_srcdbg_info(Pred, Src, Ln0, Ln1, Number),
     spy_info(Xs, X, Mark0, S, []),
     ( Mark0 == '   ' -> break_info(Pred, Src, Ln0, Ln1, Number, Mark)
     ; Mark=Mark0
     ),
     display_list([Mark, B, '  ', D, Pport|S]),
-    GetAttributedVars(X, AtVars),
+    get_attributed_vars(X, AtVars),
     write_goal2(T, X, Dict, AtVars).
 
-:- meta_predicate write_goal_v(?, ?, pred(2)).
-write_goal_v(X0, d(UDict0, CDict0, _), GetAttributedVars) :-
+write_goal_v(X0, d(UDict0, CDict0, _)) :-
     current_fact(printopts(Op, D, A, _)),
     append(UDict0, CDict0, Dict0),
-    GetAttributedVars(X0-Dict0, UnsortedAtVars),
+    get_attributed_vars(X0-Dict0, UnsortedAtVars),
     sort(UnsortedAtVars, AtVars0),
     apply_dict(
         t(AtVars0, UDict0, CDict0),
@@ -1014,13 +1006,12 @@ write_goal_v(X0, d(UDict0, CDict0, _), GetAttributedVars) :-
     show_variable_values(CDict0, CDict, compiler, Op, WriteOpts),
     (A == true -> print_attributes(AtVars, Op, WriteOpts) ; true).
 
-:- meta_predicate write_goal_v_name(?, ?, pred(2)).
-write_goal_v_name(SName, d(UDict, CDict, _), GetAttributedVars) :-
+write_goal_v_name(SName, d(UDict, CDict, _)) :-
     current_fact(printopts(Op, D, A, _)),
     append(UDict, CDict, Dict),
     atom_codes(Name, SName),
     ( member(Name=Value0, Dict) ->
-        GetAttributedVars(Value0, AtVars0),
+        get_attributed_vars(Value0, AtVars0),
         apply_dict(Value0-AtVars0, Dict, Value-AtVars),
         get_write_options(A, AtVars, D, WriteOpts),
         display_var(Name, Value0, Value, Op, WriteOpts),
@@ -1139,18 +1130,57 @@ print_srcdbg_info(Pred, Src, Ln0, Ln1, Number) :-
         Pred, -, Number, '\n']).
 
 % ---------------------------------------------------------------------------
-%! ## Auxiliary for attributed variables
+%! ## Auxiliary for cycles and attributed variables
+% TODO: move to prettysols.pl?
 
-:- export(get_attributed_vars/3).
-get_attributed_vars(X, At,                            At) :- atomic(X), !.
-get_attributed_vars(X, [attach_attribute(X, AtX)|At], At) :-
+define_flag(check_cycles, [on, off], off). % TODO: move somewhere else?
+
+%:- export(get_attributed_vars/2).
+get_attributed_vars(Term, AtVars) :-
+    current_prolog_flag(check_cycles, Flag),
+    ( Flag = on ->
+        get_attributed_vars_cy(Term, [], _, [], AtVars)
+    ;
+        get_attributed_vars_nc(Term, AtVars, [])
+    ).
+
+get_attributed_vars_cy(X, Seen, Seen, At, NewAt) :-
+    var(X), !,
+    ( get_attribute(X, AtX) ->
+        NewAt = [attach_attribute(X, AtX)|At]
+    ;
+        NewAt = At
+    ).
+get_attributed_vars_cy(X, Seen, Seen, At, At) :-
+    atomic(X), !.
+get_attributed_vars_cy(X, Seen, Seen, At, At) :-
+    already_seen(Seen, X), !.
+get_attributed_vars_cy(X, Seen, NewSeen, At, NewAt) :-
+    functor(X, _, Ar),
+    get_attributed_vars_cy_args(Ar, X, [X|Seen], NewSeen, At, NewAt).
+
+get_attributed_vars_cy_args(0, _, Seen,  Seen,  At,  At) :- !.
+get_attributed_vars_cy_args(N, X, Seen0, Seen2, At0, At2) :-
+    N > 0,
+    arg(N, X, A),
+    get_attributed_vars_cy(A, Seen0, Seen1, At0, At1),
+    N1 is N - 1,
+    get_attributed_vars_cy_args(N1, X, Seen1, Seen2, At1, At2).
+
+already_seen([T|_Ts], Term) :-
+    T == Term,
+    !.
+already_seen([_T|Ts], Term) :- already_seen(Ts, Term).
+
+get_attributed_vars_nc(X, At,                            At) :- atomic(X), !.
+get_attributed_vars_nc(X, [attach_attribute(X, AtX)|At], At) :-
     var(X),
     get_attribute(X, AtX), !.
-get_attributed_vars(X,      At,  At) :- var(X), !. % No attributes
-get_attributed_vars([X|Xs], At0, At2) :- !,
-    get_attributed_vars(X,  At0, At1),
-    get_attributed_vars(Xs, At1, At2).
-get_attributed_vars(X, At0, At1) :-
+get_attributed_vars_nc(X,      At,  At) :- var(X), !. % No attributes
+get_attributed_vars_nc([X|Xs], At0, At2) :- !,
+    get_attributed_vars_nc(X,  At0, At1),
+    get_attributed_vars_nc(Xs, At1, At2).
+get_attributed_vars_nc(X, At0, At1) :-
     functor(X, _, Ar),
     get_attributed_vars_args(Ar, X, At0, At1).
 
@@ -1158,7 +1188,7 @@ get_attributed_vars_args(0, _, At,  At) :- !.
 get_attributed_vars_args(N, X, At0, At2) :-
     N > 0,
     arg(N, X, A),
-    get_attributed_vars(A, At0, At1),
+    get_attributed_vars_nc(A, At0, At1),
     N1 is N - 1,
     get_attributed_vars_args(N1, X, At1, At2).
 
