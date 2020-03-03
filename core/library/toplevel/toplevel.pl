@@ -49,6 +49,16 @@
 '$shell_call_in_mod'(Mod, Goal) :-
     current_fact(shell_module(Mod)), !, '$shell_call'(Goal).
 
+:- data shell_module/1. % Module where queries are called
+
+% Get shell module, initialize with '$shell_module'/1 if none
+get_shell_module(Mod) :-
+    ( current_fact(shell_module(Mod0)) -> true
+    ; '$shell_module'(Mod0),
+      set_fact(shell_module(Mod0))
+    ),
+    Mod = Mod0.
+
 % ---------------------------------------------------------------------------
 
 :- multifile exit_hook/0, after_query_hook/0, after_solution_hook/0.
@@ -72,14 +82,9 @@ shell_hook(after_solution) :- ( '$nodebug_call'(after_solution_hook), fail ; tru
 
 define_flag(prompt_alternatives_no_bindings, [on, off], off).
 
-:- data shell_module/1. % Module where queries are called
-
 :- export(toplevel/1). % (not a top-level command)
 toplevel(Args) :-
     get_alias_path,
-    %
-    '$shell_module'(Module),
-    set_fact(shell_module(Module)),
     %
     retractall_fact(quiet_mode),
     interpret_args(Args, true),
@@ -199,7 +204,7 @@ shell_query(Dict, Query) :-
 shell_query(_Dict, end_of_file).
 
 valid_solution(Query, Dict, VarNames) :-
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     query_call(Query, ShMod, VarNames, Result),
     ( Result = yes(MoreSols) ->
         shell_hook(after_solution),
@@ -311,17 +316,17 @@ validate_solution(Dict, Solution) :-
 
 :- export(use_module/1).
 use_module(M) :-
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(use_module(M), ShMod).
 
 :- export(use_module/2).
 use_module(M, Imports) :-
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(use_module(M, Imports), ShMod).
 
 :- export(ensure_loaded/1).
 ensure_loaded(Files) :-
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(ensure_loaded(Files), ShMod).
 
 :- export('.'/2).
@@ -335,7 +340,7 @@ consult([File|Files]) :- !,
     consult(Files).
 consult(File) :-
     set_debug_mode(File),
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(ensure_loaded(File), ShMod).
 
 :- export(compile/1).
@@ -345,12 +350,12 @@ compile([File|Files]) :- !,
     compile(Files).
 compile(File) :-
     set_nodebug_mode(File),
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(ensure_loaded(File), ShMod).
 
 :- export(use_package/1).
 use_package(F) :-
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(use_package(F), ShMod).
 
 :- export(make_exec/2).
@@ -366,37 +371,37 @@ make_exec(Files, ExecName) :-
 
 :- export(include/1).
 include(F) :-
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(include(F), ShMod).
 
 :- export(new_declaration/2).
 new_declaration(S, ITF) :-
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(new_declaration(S, ITF), ShMod).
 
 :- export(new_declaration/1).
 new_declaration(S) :-
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(new_declaration(S), ShMod).
 
 :- export(load_compilation_module/1).
 load_compilation_module(File) :-
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(load_compilation_module(File), ShMod).
 
 :- export(add_sentence_trans/2).
 add_sentence_trans(P, Prior) :-
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(add_sentence_trans(P, Prior), ShMod).
 
 :- export(add_term_trans/2).
 add_term_trans(P, Prior) :-
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(add_term_trans(P, Prior), ShMod).
 
 :- export(add_goal_trans/2).
 add_goal_trans(P, Prior) :-
-    current_fact(shell_module(ShMod)),
+    get_shell_module(ShMod),
     process_decl(add_goal_trans(P, Prior), ShMod).
 
 % ---------------------------------------------------------------------------

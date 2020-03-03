@@ -59,7 +59,7 @@ get_query(Stream, Query, Dict, VarNames) :-
 % ---------------------------------------------------------------------------
 % Including files (source or packages) in shell
 
-% TODO: move to compiler/dynsyntax.pl? (dynamically change syntax); use add_module instead of shell_module?
+% TODO: move to compiler/dynsyntax.pl? (dynamically change syntax); use add_module instead of shell_module (ShMod)?
 
 :- use_module(engine(internals), ['$open'/3]).
 :- use_module(library(lists), [member/2]).
