@@ -43,7 +43,6 @@ reset_debugger(State) :-
 % ---------------------------------------------------------------------------
 %! # Debugger state
 
-:- export(debugger_setting/2).
 debugger_setting(Old, New) :-
     get_debugger_state(State),
     arg(1, State, Old),
@@ -114,15 +113,13 @@ debug_rtc_db. % (initial state)
 debugrtc :-
     ( debug_rtc_db -> true ; assertz_fact(debug_rtc_db) ).
 
-:- pred debugrtc/0 # "Do not start tracing when a run-time check error be raised".
-
 :- export(nodebugrtc/0).
+:- pred nodebugrtc/0 # "Do not start tracing when a run-time check error be raised".
 nodebugrtc :-
     retract_fact(debug_rtc_db).
 
-:- pred tracertc/0 # "Start tracing if the debugger and debug_rtc are activated".
-
 :- export(tracertc/0).
+:- pred tracertc/0 # "Start tracing if the debugger and debug_rtc are activated".
 tracertc :-
     ( get_debugger_state(State),
       \+ arg(1, State, off),
@@ -1115,6 +1112,16 @@ display_nv(Op, WO, NameValue) :-
     display(','), nl,
     display_nv0(NameValue, Op, WO).
 
+print_attributes(As, Op, WriteOpts) :-
+    maplist(print_attribute(Op, WriteOpts), As).
+
+print_attribute(Op, WriteOpts, A) :-
+    nl,
+    tab(10), % 10 blanks
+    display('['),
+    write_op(Op, A, WriteOpts),
+    display(']').
+
 print_srcdbg_info(_,    _,   nil, nil, nil) :- !.
 print_srcdbg_info(Pred, Src, Ln0, Ln1, Number) :-
     ( using_windows -> % running in a Windows non-cygwin shell
@@ -1191,15 +1198,4 @@ get_attributed_vars_args(N, X, At0, At2) :-
     get_attributed_vars_nc(A, At0, At1),
     N1 is N - 1,
     get_attributed_vars_args(N1, X, At1, At2).
-
-:- export(print_attributes/3).
-print_attributes(As, Op, WriteOpts) :-
-    maplist(print_attribute(Op, WriteOpts), As).
-
-print_attribute(Op, WriteOpts, A) :-
-    nl,
-    tab(10), % 10 blanks
-    display('['),
-    write_op(Op, A, WriteOpts),
-    display(']').
 
