@@ -27,21 +27,14 @@
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 
 % :- multifile define_flag/3.
-% 
 % define_flag(debug, [on,debug,trace,off], off).
+
+% ---------------------------------------------------------------------------
+%! # Debugger state
 
 % Debugger_state = s(DebugFlag, OptDebugFlag, int, int, AncestorList)
 % DebugFlag = trace|debug|off
 % OptDebugFlag = trace|debug|off
-
-/*
-reset_debugger(State) :-
-    '$debugger_state'(State, s(off,off,1000000,0,[])),
-    '$debugger_mode'.
-*/
-
-% ---------------------------------------------------------------------------
-%! # Debugger state
 
 debugger_setting(Old, New) :-
     get_debugger_state(State),
@@ -59,14 +52,6 @@ adjust_debugger_state(State, New) :-
     '$setarg'(3, State, 1000000, true),
     '$debugger_mode'.
 
-:- export(debug/0).
-:- pred debug/0 # "Switches the debugger on. The interpreter will
-    stop at all ports of procedure boxes of spied predicates.".
-
-debug :-
-    debugger_setting(_, debug),
-    what_is_on(debug).
-
 :- export(reset_debugger/1).
 reset_debugger(State) :-
     '$debugger_state'(State, s(off, off, 1000000, 0, [])),
@@ -75,6 +60,14 @@ reset_debugger(State) :-
 set_debugger(State) :-
     '$debugger_state'(_, State),
     '$debugger_mode'.
+
+:- export(debug/0).
+:- pred debug/0 # "Switches the debugger on. The interpreter will
+    stop at all ports of procedure boxes of spied predicates.".
+
+debug :-
+    debugger_setting(_, debug),
+    what_is_on(debug).
 
 :- export(nodebug/0).
 :- pred nodebug/0 # "Switches the debugger off.  If there are any

@@ -1,26 +1,33 @@
-:- module(debugger, [
-    call_in_module/2,
-    debug_trace/1,
-    do_interrupt_command/1,
-    switch_off_debugger/0,
-    adjust_debugger/0
-], [dcg, assertions, hiord]).
+:- module(debugger, [], [assertions]).
 
 :- doc(title, "Predicates controlling the interactive debugger").
-:- doc(author, "A. Ciepielewski").
-:- doc(author, "Mats Carlsson").
+:- doc(author, "A. Ciepielewski"). % (original)
+:- doc(author, "Mats Carlsson"). % Minor hacks by MC.
 :- doc(author, "T. Chikayama").
+% Some hacks by Takashi Chikayama (17 Dec 87)
+%   - Making tracer to use "print" rather than "write"
+%   - Temporarily switching debugging flag off while writing trace
+%     message and within "break" level.
 :- doc(author, "K. Shen").
+% Some hacks by Kish Shen (May 88)
+%   - Subterm navigation
+%   - Handle unbound arg in spy/1 and nospy/1
+%   - Trap arith errors in debug mode
+% --
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Manuel C. Rodriguez").
 :- doc(author, "Edison Mera").
+:- doc(author, "Jose F. Morales").
 
-:- doc(module, "This library implements predicates which are
-   normally used in the interactive top-level shell to debug
-   programs. A subset of them are available in the embeddable debugger.").
+:- doc(module, "This library implements predicates which are normally
+   used in the interactive top-level shell to debug programs. A subset
+   of them are available in the embeddable debugger.").
 
-:- use_module(library(datafacts/datafacts_rt)). % TODO: this one or datafacts package?
-:- use_module(engine(runtime_control), [current_prolog_flag/2]).
+:- doc(bug, "Add an option to the emacs menu to automatically select
+   all modules in a project.").
+:- doc(bug, "Consider the possibility to show debugging messages
+   directly in the source code emacs buffer.").
+
 :- use_module(engine(debugger_support)).
 :- use_module(library(debugger/debugger_lib), [
     adjust_debugger_state/2,
@@ -52,45 +59,15 @@
     spy/1,
     trace/0,
     tracertc/0]).
-:- use_module(engine(internals), [term_to_meta/2, '$setarg'/4, module_concat/3]).
-:- use_module(engine(hiord_rt), ['$nodebug_call'/1, '$meta_call'/1]).
-:- use_module(engine(attributes)).
-:- use_module(library(format)).
 
-:- use_module(library(toplevel/toplevel_io)).
-
-:- doc(hide, adjust_debugger/0).
-:- doc(hide, switch_off_debugger/0).
 :- doc(hide, current_debugged/1).
 :- doc(hide, reset_debugger/1).
 :- doc(hide, set_debugger/1).
-:- doc(hide, debug_trace/1).
-:- doc(hide, do_interrupt_command/1).
 
-%------------------ Bug Comments ------------------------------
+% ---------------------------------------------------------------------------
+%! # Enable/disable debugger context (called from toplevel.pl)
 
-:- doc(bug, "Add an option to the emacs menu to automatically select
-    all modules in a project.").
-:- doc(bug, "Consider the possibility to show debugging messages 
-    directly in the source code emacs buffer.").
-
-%------------------Prolog debugger by AC------------------------------
-% Minor hacks by MC.
-% Some hacks by Takashi Chikayama (17 Dec 87)
-%   - Making tracer to use "print" rather than "write"
-%   - Temporarily switching debugging flag off while writing trace
-%     message and within "break" level.
-% Some hacks by Kish Shen (May 88)
-%   - Subterm navigation
-%   - Handle unbound arg in spy/1 and nospy/1
-%   - Trap arith errors in debug mode
-%------------- Built-in predicates for debugging------------------------
-
-% define_flag(debug, [on,debug,trace,off], off).
-
-% Debugger_state = s(DebugFlag, OptDebugFlag, int, int, AncestorList)
-% DebugFlag = trace|debug|off
-% OptDebugFlag = trace|debug|off
+:- use_module(engine(internals), ['$setarg'/4]).
 
 %%:- initialization(initialize_debugger_state).
 %%:- on_abort(initialize_debugger_state).
@@ -102,15 +79,28 @@ initialize_debugger_state :-
     '$debugger_state'(_, s(off, off, 1000000, 0, [])),
     '$debugger_mode'.
 
+:- doc(hide, adjust_debugger/0).
+:- export(adjust_debugger/0).
+adjust_debugger :-
+    get_debugger_state(State),
+    arg(1, State, G),
+    adjust_debugger_state(State, G).
+
+:- doc(hide, switch_off_debugger/0).
+:- export(switch_off_debugger/0).
 switch_off_debugger :-
     '$debugger_state'(State, State),
     '$setarg'(2, State, off, true),
     '$debugger_mode'.
 
-%------------------------ meta-interpreters ------------------------------
+% ---------------------------------------------------------------------------
+%! # Debugger entry (called from interpreter.pl)
 
-% called from interpreter.pl
+:- use_module(engine(internals), [term_to_meta/2]).
+:- use_module(engine(hiord_rt), ['$nodebug_call'/1]).
 
+:- doc(hide, debug_trace/1).
+:- export(debug_trace/1).
 debug_trace(X) :-
     extract_info(X, Goal, Pred, Src, Ln0, Ln1, Dict, Number),
     ( debuggable(Goal) ->
@@ -127,8 +117,6 @@ debuggable(_) :-
     arg(5, S, [a(_, Ancestor, _, _)|_]),
     in_debug_module(Ancestor).
 
-%-------------------------facilities-------------------------------------
-
 % extract_info('debugger:srcdbg_spy'(Goal,Pred,Src,Ln0,Ln1,Dict,Number),
 extract_info('debugger_support:srcdbg_spy'(Goal, Pred, Src, Ln0, Ln1, Dict, Number),
              NewGoal, Pred, Src, Ln0, Ln1, Dict, Number) :-
@@ -136,11 +124,14 @@ extract_info('debugger_support:srcdbg_spy'(Goal, Pred, Src, Ln0, Ln1, Dict, Numb
     term_to_meta(NewGoal, Goal).
 extract_info(Goal, Goal, nil, nil, nil, nil, d([], []), nil).
 
-adjust_debugger :-
-    get_debugger_state(State),
-    arg(1, State, G),
-    adjust_debugger_state(State, G).
+% ---------------------------------------------------------------------------
+%! # Handler code for control_c
 
+:- use_module(library(format)).
+:- use_module(library(toplevel/toplevel_io)).
+
+:- doc(hide, do_interrupt_command/1).
+:- export(do_interrupt_command/1).
 do_interrupt_command(0'@) :- !, % @(command)
     top_skipeol, do_once_command('| ?- ', d([], [], [])),
     do_interrupt_command(0'\n).
@@ -178,8 +169,14 @@ interrupt_options :-
     top_display('    @        command         - execute a command'), top_nl,
     top_display('    h        help            - get this list'), top_nl.
 
-% :- meta_predicate call_in_module(?, fact).
+% ---------------------------------------------------------------------------
+% TODO: hack to call arbitrary non-exported predicates, deprecate?
 
+:- use_module(engine(internals), [module_concat/3]).
+:- use_module(engine(hiord_rt), ['$meta_call'/1]).
+
+:- export(call_in_module/2).
+% :- meta_predicate call_in_module(?, fact).
 :- pred call_in_module(Module, Predicate) : atm * callable
 # "Calls predicate @var{Predicate} belonging to module
     @var{Module}, even if that module does not export the
