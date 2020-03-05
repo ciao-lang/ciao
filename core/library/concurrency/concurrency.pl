@@ -34,7 +34,7 @@
 % ---------------------------------------------------------------------------
 
 :- if(defined(optim_comp)).
-:- '$native_include_c_source'(.(concurrency)).
+:- '$native_include_c_source'(engine(concurrency)).
 :- else.
 :- use_package(foreign_interface).
 :- use_foreign_source(engine(concurrency)).
