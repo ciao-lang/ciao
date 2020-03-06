@@ -242,3 +242,13 @@ oc_tests:
     - ciao
   dependencies:
     - install
+
+rtchecks_testsuite:
+  stage: test
+  script:
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - cd bndls/testsuite/rtchecks
+    - ./test_rtchecks.sh
+  allow_failure: true
+  tags:
+    - ciao
