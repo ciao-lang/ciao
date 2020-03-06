@@ -90,28 +90,29 @@ my_intersect_vars(A,B,C) :- intersect_vars(B,A,C). % TODO: simulate old order, s
 
 % ----------------------------------------------------------------------
 
-:- pred compound_check_props(NonCheck, Props, PropArgs, CheckProps)
-    :  atm * list(struct) * list_of_lists * var
-    => atm * list(struct) * list_of_lists * list(struct)
-    # "Given a list of properties @var{Props}, a list of lists of
-       variables for each property @var{PropArgs} and an atom
-       @var{NonCheck} from {non_compat, non_inst}, produces a list
-       @var{CheckProps} of terms, recognized by the @tt{rtchecks_rt}
-       module, and each list element is of the form
-       functor(@var{Prop}, @var{PropArgs}).".
+:- pred compound_check_props(Check, Props, PropArgs, CheckProps)
+   :  atm * list(struct) * list_of_lists * var
+   => atm * list(struct) * list_of_lists * list(struct)
+   # "Given a list of properties @var{Props}, a list of lists of
+      variables for each property @var{PropArgs} and an atom
+      @var{Check} from {rtc_compat, rtc_inst}, produces a list
+      @var{CheckProps} of terms, recognized by the @tt{rtchecks_rt}
+      module, and each list element is of the form functor(@var{Prop},
+      @var{PropArgs}).".
 
-compound_check_props(NonCheck, Props, PropArgs, CheckProps) :-
-    maplist(compound_check_prop(NonCheck), Props, PropArgs, CheckProps).
+% NonCheck always rtc_inst or not_compat on runtime
+compound_check_props(Check, Props, PropArgs, CheckProps) :-
+    maplist(compound_check_prop(Check), Props, PropArgs, CheckProps).
 
-compound_check_prop(NonCheck, Prop, Args, NonCheckProp) :-
-    compound_check_prop_(Prop, NonCheck, Args, NonCheckProp).
+compound_check_prop(Check, Prop, Args, CheckProp) :-
+    compound_check_prop_(Prop, Check, Args, CheckProp).
 
 % seems to be special treatment for respective properties in native_props --NS
-compound_check_prop_(compat(Prop),   _, Args, non_compat(Prop, Args)) :- !.
-compound_check_prop_(instance(Prop), _, Args, non_inst(Prop, Args)  ) :- !.
-compound_check_prop_(succeeds(Prop), _, _   , \+(Prop)              ) :- !.
-compound_check_prop_(Prop,    NonCheck, Args, NonCheckProp) :-
-       NonCheckProp =.. [NonCheck, Prop, Args].
+compound_check_prop_(compat(Prop),   _, Args, rtc_compat(Prop, Args)) :- !.
+compound_check_prop_(instance(Prop), _, Args, rtc_inst(Prop, Args)  ) :- !.
+compound_check_prop_(succeeds(Prop), _, _   , Prop              ) :- !.
+compound_check_prop_(Prop,    Check, Args, CheckProp) :-
+       CheckProp =.. [Check, Prop, Args].
 
 :- pred get_checkc(ChkCType, Props, PropArgs, Names, Name, Exit, ChkC)
     : atm * list(struct) * list_of_lists * list(struct) * struct * var * var
@@ -127,11 +128,11 @@ compound_check_prop_(Prop,    NonCheck, Args, NonCheckProp) :-
 
 get_checkc(_, [], _, _, _, true, true) :- !.
 get_checkc(compat, Props, PropArgs, Names, Name, Exit,
-        checkc(CheckProps, Names, Name, Exit)) :-
-    compound_check_props(non_compat, Props, PropArgs, CheckProps).
+           checkc(CheckProps, Names, Name, Exit)) :-
+    compound_check_props(rtc_compat, Props, PropArgs, CheckProps).
 get_checkc(call, Props, PropArgs, Names, Name, Exit,
-        checkc(CheckProps, Names, Name, Exit)) :-
-    compound_check_props(non_inst, Props, PropArgs, CheckProps).
+           checkc(CheckProps, Names, Name, Exit)) :-
+    compound_check_props(rtc_inst, Props, PropArgs, CheckProps).
 
 :- pred get_checkc(ChkCType, Props, PropArgs, Exit, ChkC)
     :  atm * list(struct) * list_of_lists * var * var
@@ -141,9 +142,9 @@ get_checkc(call, Props, PropArgs, Names, Name, Exit,
 
 get_checkc(_,      [],    _,        true, true) :- !.
 get_checkc(compat, Props, PropArgs, Exit, checkc(CheckProps, Exit)) :-
-    compound_check_props(non_compat, Props, PropArgs, CheckProps).
+    compound_check_props(rtc_compat, Props, PropArgs, CheckProps).
 get_checkc(call, Props, PropArgs, Exit, checkc(CheckProps, Exit)) :-
-    compound_check_props(non_inst, Props, PropArgs, CheckProps).
+    compound_check_props(rtc_inst, Props, PropArgs, CheckProps).
 
 :- pred get_checkif(ChkCType, Exit, PredName, Dict, Props, PropArgs, Names,
                 AsrLoc, ChkIf)
@@ -154,13 +155,13 @@ get_checkc(call, Props, PropArgs, Exit, checkc(CheckProps, Exit)) :-
 
 get_checkif(_, _, _, _, [], _, _, _, true) :- !.
 get_checkif(success, Exit, PredName, Dict, Props, PropArgs, Names, AsrLoc,
-        checkif(Exit, success, PredName, Dict, CheckProps, Names,
-        AsrLoc)) :-
-    compound_check_props(non_inst, Props, PropArgs, CheckProps).
-get_checkif(compatpos, Exit, PredName, Dict, Props, PropArgs, Names, AsrLoc,
-        checkif(Exit, compatpos, PredName, Dict, CheckProps, Names,
+            checkif(Exit, success, PredName, Dict, CheckProps, Names,
             AsrLoc)) :-
-    compound_check_props(non_compat, Props, PropArgs, CheckProps).
+    compound_check_props(rtc_inst, Props, PropArgs, CheckProps).
+get_checkif(compatpos, Exit, PredName, Dict, Props, PropArgs, Names, AsrLoc,
+	    checkif(Exit, compatpos, PredName, Dict, CheckProps, Names,
+            AsrLoc)) :-
+    compound_check_props(rtc_compat, Props, PropArgs, CheckProps).
 
 checkif_to_lit(Params, CheckPosL, CheckPos) :-
     Params = pos(Pred, PType),

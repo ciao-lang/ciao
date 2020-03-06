@@ -6,25 +6,22 @@
             checkif/7,
             rtcheck/6,
             rtcheck/4,
-            disj_prop/3,
-            disj_prop/1,
             add_info_rtsignal/4,
             call_stack/2,
-            non_inst/2,
-            non_compat/2,
+            rtc_inst/2,
+            rtc_compat/2
             % non_prop_check/3,
             % compat/1,
             % inst/1,
             % succeeds/1,
-            attach_cut_fail/2
         ],
         [assertions, nortchecks, hiord]).
 
 :- use_module(engine(hiord_rt), ['$meta_call'/1]).
 :- use_module(engine(attributes)).
-:- use_module(library(terms_vars)).
-:- use_module(library(freeze)).
-:- use_module(engine(basic_props_rtc)).
+:- use_module(library(terms_vars), [varset/2]).
+:- use_module(library(freeze), [freeze/2]).
+:- use_module(engine(basic_props_rtc)). % [compat_*/1]
 
 :- reexport(library(rtchecks/rtchecks_send)).
 
@@ -89,25 +86,26 @@ selectvars([V|L], VL0) :-
     selectvars(L, VL).
 */
 
+:- meta_predicate rtc_compat(goal, ?).
 
-:- meta_predicate non_compat(goal, ?).
-
-non_compat('$:'(Goal),Args) :- !, non_compat_(Goal,Args).
+rtc_compat('$:'(Goal),Args) :- !, rtc_compat_(Goal,Args).
 
 % These first cases are really a hardwired runtime table for rtc_impl (needed
 % because in some parts of the system non_compat/2 is called programatically)
 % TODO: create automatically
-non_compat_('term_typing:var'(A)    , _   ) :- !, nonvar(A).
-non_compat_('term_typing:nonvar'(A) , _   ) :- !, var(A).
+rtc_compat_('term_typing:var'(A)    , _   ) :- !, var(A).
+rtc_compat_('term_typing:nonvar'(_) , _   ) :- !.
 %
-non_compat_('basic_props:atm'(A) , _   ) :- !, \+ compat_atm(A).
-non_compat_('basic_props:int'(A) , _   ) :- !, \+ compat_int(A).
-non_compat_('basic_props:nnegint'(A) ,_) :- !, \+ compat_nnegint(A).
-non_compat_('basic_props:num'(A) , _   ) :- !, \+ compat_num(A).
-non_compat_('basic_props:flt'(A) , _   ) :- !, \+ compat_flt(A).
-non_compat_('basic_props:struct'(A) , _) :- !, \+ compat_struct(A).
+rtc_compat_('basic_props:atm'(A) , _   ) :- !, compat_atm(A).
+rtc_compat_('basic_props:int'(A) , _   ) :- !, compat_int(A).
+rtc_compat_('basic_props:nnegint'(A) ,_) :- !, compat_nnegint(A).
+rtc_compat_('basic_props:num'(A) , _   ) :- !, compat_num(A).
+rtc_compat_('basic_props:flt'(A) , _   ) :- !, compat_flt(A).
+rtc_compat_('basic_props:struct'(A) , _) :- !, compat_struct(A).
 %
-non_compat_(Goal                    , Args) :-
+rtc_compat_(Goal,Args) :- \+ non_compat(Goal,Args). % TODO: fix non_compat/2
+
+non_compat(Goal                    , Args) :-
 % A generic implementation of non_compat/2
     varset(Args, VS),
     '$metachoice'(C),
@@ -119,7 +117,7 @@ non_compat_(Goal                    , Args) :-
     cond_detach_attribute_list(VS),
     !,
     fail.
-non_compat_(_, _).
+non_compat(_, _).
 
 cond_detach_attribute_list([]).
 cond_detach_attribute_list([V|Vs]) :-
@@ -146,16 +144,19 @@ attach_cut_fail_list([V|Vs], C) :-
 
 attach_cut_fail(V, C) :- attach_attribute(V, '$cut_fail'(V, C)).
 
-:- meta_predicate non_inst(goal, ?).
 
-non_inst('$:'(Goal),Args) :- !, non_inst_(Goal,Args).
+:- meta_predicate rtc_inst(goal, ?).
+
+rtc_inst('$:'(Goal),Args) :- !, rtc_inst_(Goal,Args).
 
 % These first cases are really a hardwired runtime table for rtc_impl (needed
 % because in some parts of the system non_inst/2 is called programatically)
 % TODO: create automatically
-non_inst_('term_typing:var'(A)   , _   ) :- !, nonvar(A).
-non_inst_('term_typing:nonvar'(A), _   ) :- !, var(A).
-non_inst_(Goal                   , Args) :-
+rtc_inst_('term_typing:var'(A)   , _   ) :- !, var(A).
+rtc_inst_('term_typing:nonvar'(A), _   ) :- !, nonvar(A).
+rtc_inst_(Goal,Args) :- \+ non_inst(Goal,Args).
+
+non_inst(Goal                   , Args) :- % TODO: fix
 % A generic implementation of non_inst/2
     varset(Args, VS),
     '$metachoice'(C),
@@ -165,7 +166,7 @@ non_inst_(Goal                   , Args) :-
     detach_attribute_list(VS),
     !,
     fail.
-non_inst_(_, _).
+non_inst(_, _).
 
 :- multifile verify_attribute/2.
 
@@ -182,25 +183,30 @@ combine_attributes('$cut_fail'(V1, C), '$cut_fail'(V2, C)) :-
     '$metacut'(C),
     fail.
 
-:- meta_predicate disj_prop(list(goal), ?, ?).
 
-disj_prop([CheckProp|CheckProps], [PropName0|PropNames], PropName) :-
-    CheckProp,
+:- push_prolog_flag(multi_arity_warnings, off).
+
+:- meta_predicate disj_neg_prop(list(goal), ?, ?).
+
+disj_neg_prop([CheckProp|CheckProps], [PropName0|PropNames], PropName) :-
+    (\+ CheckProp),
     PropName = PropName0
     ;
-    disj_prop(CheckProps, PropNames, PropName).
+    disj_neg_prop(CheckProps, PropNames, PropName).
 
-:- meta_predicate disj_prop(list(goal)).
+:- meta_predicate disj_neg_prop(list(goal)).
 
-disj_prop([CheckProp|CheckProps]) :- CheckProp ; disj_prop(CheckProps).
+disj_neg_prop([CheckProp|CheckProps]) :- (\+ CheckProp) ; disj_neg_prop(CheckProps).
+
+:- pop_prolog_flag(multi_arity_warnings).
 
 :- meta_predicate checkc(list(goal), ?, ?, ?).
 checkc(CheckProps, PropNames, PropName, Exit) :-
-    disj_prop(CheckProps, PropNames, PropName) -> Exit = fail ; Exit = true.
+    disj_neg_prop(CheckProps, PropNames, PropName) -> Exit = fail ; Exit = true.
 
 :- meta_predicate checkc(list(goal), ?).
 checkc(CheckProps, Exit) :-
-    disj_prop(CheckProps) -> Exit = fail ; Exit = true.
+    disj_neg_prop(CheckProps) -> Exit = fail ; Exit = true.
 
 :- meta_predicate checkif(?, ?, ?, ?, list(goal), ?, ?).
 checkif(fail, _,       _,        _,    _,          _,      _).
@@ -209,7 +215,7 @@ checkif(true, ErrType, PredName, Dict, CheckProps, NProps, AsrLocs) :-
 
 :- meta_predicate rtcheck(?, ?, ?, list(goal), ?, ?).
 rtcheck(ErrType, PredName, Dict, CheckProps, NProps, AsrLocs) :-
-    ( disj_prop(CheckProps, NProps, PropName-ActualProp) ->
+    ( disj_neg_prop(CheckProps, NProps, PropName-ActualProp) ->
         send_rtcheck(ErrType, PredName, Dict, PropName, ActualProp, AsrLocs)
     ; true
     ).

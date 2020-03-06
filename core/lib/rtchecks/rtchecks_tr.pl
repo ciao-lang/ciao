@@ -735,7 +735,7 @@ pre_error(pre(_, _, Error, Exit), cui(Exit, _, Error)).
 % OUTPUT:
 % pre(ChkCall, Call, SendRTC, Exit)
 %     ChkCall : checkc(RTCCall, CallNames, PropName-PropDict, Exit)
-%                   RTCCall  : +list of non_compat/2 or non_inst/2
+%                   RTCCall  : +list of rtc_compat/2 or rtc_inst/2
 %                              wrappers on props from Call
 %                   PropName : -var
 %                   PropDict : -var
@@ -1014,7 +1014,7 @@ comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
 % DP part of the (test) assertions is completely ignored
 % during unit test generation, although the rtchecks library
 % has the necessary functionality to test it (see
-% non_compat/2) in library(rtchecks/rtchecks_rt). --NS
+% rtc_compat/2) in library(rtchecks/rtchecks_rt). --NS
 
 test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
     TestEntryBody = '$test_entry_body'(TestInfo, Assertions, PLoc0, TmpDir),
