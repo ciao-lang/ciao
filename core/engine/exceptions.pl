@@ -9,8 +9,8 @@
 
 :- doc(usage, "@include{InPrelude.lpdoc}").
 
-:- doc(module, "This module includes predicates related to
-   exceptions and signals, which alter the normal flow of Prolog.").
+:- doc(module, "This module includes predicates related to exceptions
+   and signals, which alter the normal flow of execution.").
 
 :- use_module(engine(basiccontrol), ['$metachoice'/1, '$metacut'/1]).
 :- use_module(engine(hiord_rt), ['$meta_call'/1]).
