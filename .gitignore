@@ -40,7 +40,7 @@ ACTIVATE
 *_auto.pl
 *_inline.c
 core/lib/compiler/header
-bndls/ciao_emacs/elisp/*
+bndls/ciao_emacs/elisp/*.elc
 bndls/testsuite/rtchecks/rtc_test.out
 bndls/testsuite/rtchecks/rtchecks_sysprops_rtx.regr-out
 bndls/testsuite/rtchecks/rtchecks_sysprops_rtx_queries.pl
