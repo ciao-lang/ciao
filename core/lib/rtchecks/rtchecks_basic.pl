@@ -4,11 +4,6 @@
             get_predname/4,
             get_propnames/2,
             get_pretty_names/5,
-            checkif_to_lit/3,
-            get_checkc/5,
-            get_checkc/7,
-            get_checkif/9,
-            get_prop_args/3,
             insert_posloc/7,
             is_member_prop/2,
             is_same_prop/2,
@@ -16,12 +11,10 @@
             lists_to_lits/2,
             list_to_disj/2, % TODO:T67
             lists_to_disj/2,
-            remove_element/3,
-            compound_check_props/4
+            remove_element/3
         ], [assertions, nortchecks, dcg, hiord]).
 
 :- use_module(library(llists),     [flatten/2]).
-:- use_module(library(terms_vars), [varset/2, intersect_vars/3]).
 :- use_module(library(hiordlib), [maplist/3, maplist/4]).
 :- use_module(library(varnames/apply_dict),    [apply_dict/3,
                                             select_applicable/3]).
@@ -69,106 +62,6 @@ insert_posloc((UsePredLoc, UseAsrLoc), PredName0, PLoc0, ALoc,
     )
     ;
     PosLoc = [].
-
-:- pred get_prop_args(Props, Pred, PropArgs)
-    :  list(struct) * head_pattern * var
-    => list(struct) * head_pattern * list_of_lists
-    # "@var{Props} is a list of properties (coming from DP,CP or AP
-       assertion body part) and @var{Pred} is a predicare head PD.
-       @var{PropArgs} is a list of lists of arguments of each
-       property from @var{Props}. Note: if any assertion body part
-       contains disjunction(s), its @var{Props} will be an
-       one-element list and treated like a single term.".
-
-get_prop_args(Props, Pred, PropArgs) :-
-    varset(Pred, Vars),
-    maplist(varset, Props, PropVars),
-    maplist(my_intersect_vars(Vars), PropVars, PropArgs),
-    !.
-
-my_intersect_vars(A,B,C) :- intersect_vars(B,A,C). % TODO: simulate old order, skip?
-
-% ----------------------------------------------------------------------
-
-:- pred compound_check_props(Check, Props, PropArgs, CheckProps)
-   :  atm * list(struct) * list_of_lists * var
-   => atm * list(struct) * list_of_lists * list(struct)
-   # "Given a list of properties @var{Props}, a list of lists of
-      variables for each property @var{PropArgs} and an atom
-      @var{Check} from {rtc_compat, rtc_inst}, produces a list
-      @var{CheckProps} of terms, recognized by the @tt{rtchecks_rt}
-      module, and each list element is of the form functor(@var{Prop},
-      @var{PropArgs}).".
-
-% NonCheck always rtc_inst or not_compat on runtime
-compound_check_props(Check, Props, PropArgs, CheckProps) :-
-    maplist(compound_check_prop(Check), Props, PropArgs, CheckProps).
-
-compound_check_prop(Check, Prop, Args, CheckProp) :-
-    compound_check_prop_(Prop, Check, Args, CheckProp).
-
-% seems to be special treatment for respective properties in native_props --NS
-compound_check_prop_(compat(Prop),   _, Args, rtc_compat(Prop, Args)) :- !.
-compound_check_prop_(instance(Prop), _, Args, rtc_inst(Prop, Args)  ) :- !.
-compound_check_prop_(succeeds(Prop), _, _   , Prop              ) :- !.
-compound_check_prop_(Prop,    Check, Args, CheckProp) :-
-       CheckProp =.. [Check, Prop, Args].
-
-:- pred get_checkc(ChkCType, Props, PropArgs, Names, Name, Exit, ChkC)
-    : atm * list(struct) * list_of_lists * list(struct) * struct * var * var
-    => (struct(Name), nonground(Name), var(Exit), nonground(ChkC))
-    # "Counstructs precondition checks literal @var{ChkC} and
-      associates the variable @var{Exit} with the result of
-      evaluating @var{ChkC} on run-time. On call @var{Props} is a
-      list of properties (coming from DP,CP or AP assertion body
-      part), @var{PropArgs} is a list of lists of variables of each
-      of the properties, @var{Names} is a list of tuples of the form
-      @tt{prop('$VAR'('V'),...)-['V'=V,...]}. On success @var{Name}
-      is a tuple of free variables.".
-
-get_checkc(_, [], _, _, _, true, true) :- !.
-get_checkc(compat, Props, PropArgs, Names, Name, Exit,
-           checkc(CheckProps, Names, Name, Exit)) :-
-    compound_check_props(rtc_compat, Props, PropArgs, CheckProps).
-get_checkc(call, Props, PropArgs, Names, Name, Exit,
-           checkc(CheckProps, Names, Name, Exit)) :-
-    compound_check_props(rtc_inst, Props, PropArgs, CheckProps).
-
-:- pred get_checkc(ChkCType, Props, PropArgs, Exit, ChkC)
-    :  atm * list(struct) * list_of_lists * var * var
-    => (var(Exit), nonground(ChkC))
-    # "Same as get_checkc/7 but does not use the information on
-       names of variables that appear in properties @var{Props}.".
-
-get_checkc(_,      [],    _,        true, true) :- !.
-get_checkc(compat, Props, PropArgs, Exit, checkc(CheckProps, Exit)) :-
-    compound_check_props(rtc_compat, Props, PropArgs, CheckProps).
-get_checkc(call, Props, PropArgs, Exit, checkc(CheckProps, Exit)) :-
-    compound_check_props(rtc_inst, Props, PropArgs, CheckProps).
-
-:- pred get_checkif(ChkCType, Exit, PredName, Dict, Props, PropArgs, Names,
-                AsrLoc, ChkIf)
-    :  atm * var * term * varnamesl * list(struct) * list_of_lists *
-       list(struct) * struct * var
-    => (struct(ChkIf), nonground(ChkIf))
-    # "Counstructs postcondition checks literal @var{ChkIf}.".
-
-get_checkif(_, _, _, _, [], _, _, _, true) :- !.
-get_checkif(success, Exit, PredName, Dict, Props, PropArgs, Names, AsrLoc,
-            checkif(Exit, success, PredName, Dict, CheckProps, Names,
-            AsrLoc)) :-
-    compound_check_props(rtc_inst, Props, PropArgs, CheckProps).
-get_checkif(compatpos, Exit, PredName, Dict, Props, PropArgs, Names, AsrLoc,
-	    checkif(Exit, compatpos, PredName, Dict, CheckProps, Names,
-            AsrLoc)) :-
-    compound_check_props(rtc_compat, Props, PropArgs, CheckProps).
-
-checkif_to_lit(Params, CheckPosL, CheckPos) :-
-    Params = pos(Pred, PType),
-    CheckPosL = i(AsrLoc, PredName, Dict, Compat, CompatNames, Exit),
-    get_prop_args(Compat, Pred, Args),
-    get_checkif(PType, Exit, PredName, Dict, Compat, Args, CompatNames,
-        AsrLoc, CheckPos).
 
 % ----------------------------------------------------------------------
 
