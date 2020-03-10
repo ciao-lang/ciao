@@ -1040,7 +1040,7 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
     difference(GP, ~valid_texec_comp_props, GPProps),
     get_check_props(GPTexec,comp,Pred,RtcGPTexec),
     get_check_props(GPProps,comp,Pred,RtcGPProps),
-    get_check_props(CP,calls,Pred,RtcCP), % TODO: calls -> gen?
+    % TODO: get_check_props(CP,gen,Pred,RtcCP) ?
     %
     comps_to_goal(RtcGPTexec, TestBodyGoal, TestBodyGoal0),
     comps_to_goal(RtcGPProps, GPPropsGoal, GPPropsGoal0),
@@ -1048,7 +1048,7 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
     texec_warning(AType, GPProps, Pred, AsrLoc),
     %
     current_prolog_flag(rtchecks_namefmt, NameFmt),
-    Term = n(Pred, DP, RtcCP, AP, GP), % here no free variables must appear
+    Term = n(Pred, DP, CP, AP, GP), % here no free variables must appear
     get_pretty_names(NameFmt, Term, ADict, TermName, DictName),
     TermName = n(PredName, _, _, APName, _),
     %
@@ -1075,7 +1075,7 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
       UsePosLoc = (UsePredLoc, UseAsrLoc),
       generate_rtchecks(Assertions, Pred, DictName, PLoc, UsePosLoc, RTCheck, APCheckGoal)
     ),
-    TestBodyGoal0 = testing(TestId, TmpDir, ~list_to_lits(RtcCP), RTCheck).
+    TestBodyGoal0 = testing(TestId, TmpDir, ~list_to_lits(CP), RTCheck).
 
 % ----------------------------------------------------------------------
 % --------------------------- code to enable custom property definitions
