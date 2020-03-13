@@ -2,7 +2,7 @@
 A regular program is defined by a set of clauses, each of the
 form:
 @begin{verbatim}
-p(x, v_1, ..., v_n)  :- body_1, ..., body_k.
+p(v_1, ..., v_n, x)  :- body_1, ..., body_k.
 @end{verbatim}
 where:
 @begin{enumerate}
@@ -31,7 +31,7 @@ where:
       @em{term variables} and @tt{t} is a
       @em{regular type expression}; 
 
-    @item @tt{q(y, t_1, ..., t_m)} where @tt{m} >= 0, @tt{q/m}
+    @item @tt{q(t_1, ..., t_m, y)} where @tt{m} >= 0, @tt{q/m}
       is a @em{parametric type functor}, not in the set of functors
        @tt{=/2}, @tt{^/2}, @tt{./3}.
 
@@ -40,7 +40,7 @@ where:
   @end{enumerate}
 
  @item Each term variable occurs at most once in the clause's body
-   (and should be as the first argument of a literal). 
+   (and should be as the last argument of a literal). 
 @end{enumerate}
 A @index{regular type expression} is either a parametric variable or a
 parametric type functor applied to some of the parametric variables.
