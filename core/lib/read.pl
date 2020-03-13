@@ -5,11 +5,27 @@
 
 :- doc(title,"Term input").  
 
-:- doc(module,"This module provides falicities to read terms in
+:- doc(module,"This module provides facilities for reading terms in
    Prolog syntax.  This is very convenient in many cases (and not only
-   if you are writing a Prolog compiler), because Prolog terms are
-   easy to write and can convey a lot of information in a
-   human-readable fashion.").
+   if you are writing a Prolog compiler) because Prolog terms are easy
+   to write and can encode a large amount of information in a
+   human-readable fashion. Note that, in addition, the use of
+   @concept{operator definitions} makes it possible to enhance the
+   readibility of such terms, or, for example, data files composed of
+   Prolog terms. 
+
+   The behavior of these reading predicates can be modified in two ways: 
+
+   @begin{itemize} 
+
+   @item The operators that are active at run time when the reading
+          predicate is called (see @ref{Defining operators}).
+
+   @item A number of flags (see below) which control how some special
+         terms are read in or activate some syntax extensions.
+
+   @end{itemize}
+").
 
 /*  Adapted from shared code written by D.H.D.Warren + Richard O'Keefe; */
 /*  all changes                                                         */
@@ -20,6 +36,7 @@
 :- doc(author, "Manuel Carro (modifications and documentation)").
 :- doc(author, "Jose F. Morales (modifications for curly blocks,"||
            "postfix blocks, infix dot, string constants, and doccomments)").
+:- doc(author, "Manuel Hermenegildo (minor in documentation)").
 
 % suspension-based read of curly blocks (see library(tokenize))
 :- compilation_fact(suspension_curly_block).
@@ -35,21 +52,41 @@
 %   The reader can do backtracking at some points:
 %     - when an operator can be infix and postfix at the same time
 %       (e.g. op(400, xfy, a). op(400, yf, a). X = a a. )
-%   This problem is inherited by many Prolog.
+%   This problem is inherited by many Prologs.
 % (jfran)
 
 :- set_prolog_flag(multi_arity_warnings, off).
 
-:- doc(define_flag/3,"Defines flags as follows:
+:- doc(define_flag/3,"The folowing flags are defined:
     @includedef{define_flag/3}
     (See @ref{Changing system behaviour and various flags}).
+
+    @begin{description} 
+
+    @item{@tt{read_hiord}}
 
     If flag is @tt{on} (it is @tt{off} by default), a variable
     followed by a parenthesized list of arguments is read as a
     @pred{call/N} term, except if the variable is anonymous, in
     which case it is read as an anonymous predicate abstraction
     head. For example, @tt{P(X)} is read as @tt{call(P,X)} and
-    @tt{_(X,Y)} as @tt{''(X,Y)}.").
+    @tt{_(X,Y)} as @tt{''(X,Y)}.
+
+    @item{@tt{read_curly_blocks}} When enabled, read terms of the form
+    '@tt{@{} @em{<list of sentences>} @tt{@}}'.
+
+    @item{@tt{read_postfix_blocks}} When enabled, allow '@em{<term>
+    <term>}' as valid terms.
+
+    @item{@tt{read_string_data_type}} When enabled, strings are read
+    as '@tt{\\\\6\\\\string}' terms (not as lists). 
+
+    @item{@tt{read_infix_dot}} When enabled, infix dot '@tt{.}' is read as
+    '@tt{\\\\6\\\\dot}' terms (not as a list).
+
+    @end{description}
+    ").
+   
 
 define_flag(read_hiord, [on,off], off).
 
