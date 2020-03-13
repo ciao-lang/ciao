@@ -172,18 +172,18 @@ instantiation degree of their arguments in order to succeed.
 In contrast with properties of execution states,
 @em{properties of computations} refer to the entire
 execution of the call(s) that the assertion relates to.
-One such property is, for example, @tt{not_fail/1}
+One such property is, for example, @tt{not_fails/1}
 (note that although it has been used as in
-@tt{:- comp append(Xs,Ys,Zs) + not_fail}, it is in fact read
-as @tt{not_fail(append(Xs,Ys,Zs))};
+@tt{:- comp append(Xs,Ys,Zs) + not_fails}, it is in fact read
+as @tt{not_fails(append(Xs,Ys,Zs))};
  see @tt{assertions_props:complex_goal_property/1}).
 For this property, which should be
 interpreted as ``execution of the predicate either succeeds at least
 once or loops,'' we can use the following predicate
-@tt{not_fail/1} for run-time checking:
+@tt{not_fails/1} for run-time checking:
 
 @begin{verbatim}
-not_fail(Goal):-
+not_fails(Goal):-
       if( call(Goal),
           true,            %% then
           warning(Goal) ). %% else
@@ -203,9 +203,9 @@ intrincate, but still possible, e.g. (in a simplified version which
 omits some necessary bookkeeping):
 
 @begin{verbatim}
-not_fail(Goal):- call(Goal), assert(succeeded(Goal)).
-not_fail(Goal):- retract(succeeded(Goal)), !, fail.
-not_fail(Goal):- warning(Goal).
+not_fails(Goal):- call(Goal), assert(succeeded(Goal)).
+not_fails(Goal):- retract(succeeded(Goal)), !, fail.
+not_fails(Goal):- warning(Goal).
 @end{verbatim}
 }
 
