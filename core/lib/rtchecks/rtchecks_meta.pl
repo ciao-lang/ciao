@@ -52,18 +52,13 @@ compound_rtchecks_end(CheckToProps, Collapser, CheckProps, CheckedPropsL,
 
 :- meta_predicate body_check_pos(?, pred(2), pred(2), pred(4), ?, ?, ?, ?, ?).
 body_check_pos([], _, _, _, _, CheckedL, CheckedL, Body, Body) :- !.
-body_check_pos(CheckPos, CheckToProps, CheckToPropsPos, Collapser, PType,
+body_check_pos(CheckPos, CheckToProps, CheckToPropsPos, Collapser, Params,
         CheckedL0, CheckedL, Body0, Body) :-
     compound_rtchecks(CheckToProps, Collapser, CheckPos, CheckedL0,
         CheckedL, Pre),
     compound_rtchecks_end(CheckToPropsPos, Collapser, CheckPos, [], PosL),
-    maplist(checkif_to_lit(PType), PosL, Pos),
+    maplist(checkif_to_lit(Params), PosL, Pos),
     Body0 = [Pre, Body, Pos].
-
-checkif_to_lit(PType, CheckPosL, CheckPos) :-
-    CheckPosL = i(AsrLoc, PredName, Dict, Props, CompatNames, Exit),
-    CheckPos = checkif(Exit, PType, PredName, Dict, Props, CompatNames, AsrLoc).
-
 
 :- meta_predicate body_check_pre(?, pred(2), pred(2), pred(2), pred(4), ?, ?,
         ?, ?).

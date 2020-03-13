@@ -44,7 +44,7 @@
     similar to a prop assertion but it flags that the property being
     documented is also a ``@concept{regular type}.''  Regular types
     are properties whose definitions are @em{regular programs} (see
-    lelow).  This allows for example checking whether it is in the
+    below).  This allows for example checking whether it is in the
     class of types supported by the regular type checking and
     inference modules.
 
@@ -53,7 +53,7 @@
     The set of regular types is thus a well defined subset of the set
     of properties. Note that types can be used to describe
     characteristics of arguments in assertions and they can also be
-    executed (called) as any other predicates.  "
+    executed (called) as any other predicates."
 
 ).
 

@@ -19,7 +19,6 @@
 :- use_module(library(llists), [flatten/2]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(sort), [sort/2, keylist/1, keypair/1]).
-:- use_module(library(terms_vars), [varset/2, intersect_vars/3]).
 :- use_module(library(rtchecks/term_list), [push_term/3, collapse_terms/3]).
 :- use_module(library(assertions/assrt_lib), [
     assertion_read/9,
@@ -240,33 +239,19 @@ do_rtchecks_sentence_tr((:- Decl),[],_,_) :-
     Decl = rtc_impl(PropDef, PropImpl), !,
     PropDef  = :(_ModDef ,/(DefF ,DefA)),
     PropImpl = :(_ModImpl,/(ImplF,ImplA)),
-    asserta_fact(rtc_impl(DefF, DefA, inst, ImplF, ImplA)).
+    asserta_fact(rtc_impl(DefF, DefA, ImplF, ImplA)).
 do_rtchecks_sentence_tr((:- _Decl), _, _, _) :-
     !,
     fail.
 do_rtchecks_sentence_tr(Head, Clauses, M, Dict) :-
     process_sentence(Head, true, Clauses, M, Dict).
 
-proc_ppassertion(check(Goal), PredName, Dict, Loc, rtcheck(NewGoal, PredName,
-            Dict, Loc)) :-
-    get_check_props([Goal],calls,p(Goal),[NewGoal]). % TODO: which variables should not be further instantiated?
+proc_ppassertion(check(Goal), PredName, Dict, Loc, rtcheck(Goal, PredName,
+            Dict, Loc)).
 proc_ppassertion(trust(Goal), PredName, Dict, Loc, RTCheck) :-
     ( current_prolog_flag(rtchecks_trust, yes) ->
-        get_check_props([Goal],calls,p(Goal),[NewGoal]), % TODO: which variables should not be further instantiated?
-        RTCheck = rtcheck(NewGoal, PredName, Dict, Loc)
+        RTCheck = rtcheck(Goal, PredName, Dict, Loc)
     ; RTCheck = true ).
-% TODO:
-% Assume property mylistlegth/2, then:
-%
-% Xs=[1,2,3], N=3, check(mylistlength(Xs,N))
-%
-% should use [Xs,N] as vars, while:
-%
-% Xs=[1,2,3], check((mylistlength(Xs,N),int(N))
-%
-% should use [Xs]. We may need some notation to mark that N is
-% existentially quantified inside check/1 (or do it implicitly). This
-% is related to shared vars in hiord terms.
 proc_ppassertion(true(_),  _, _, _, true).
 proc_ppassertion(false(_), _, _, _, true).
 
@@ -771,8 +756,10 @@ compat_rtcheck(
     member((Status, Type), StatusTypes),
     \+(Compat == []),
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
-    get_check_props(Compat,compat,Pred,CheckProps),
-    ChkCompat = checkc(CheckProps, CompatNames, PropName-PropDict, Exit).
+    get_prop_args(Compat, Pred, Args),
+    get_prop_impl(Compat, compat, Pred, RtcCompat),
+    get_checkc(compat, RtcCompat, Args, CompatNames, PropName-PropDict, Exit,
+        ChkCompat).
 
 compat_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs,
         StatusTypes, CheckedL0, CheckedL) -->
@@ -791,8 +778,10 @@ calls_rtcheck(
     member((Status, Type), StatusTypes),
     \+(Call == []),
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
-    get_check_props(Call, calls, Pred, CheckProps),
-    ChkCall = checkc(CheckProps, CallNames, PropName-PropDict, Exit).
+    get_prop_args(Call, Pred, Args),
+    get_prop_impl(Call, calls, Pred, RtcCall),
+    get_checkc(call, RtcCall, Args, CallNames, PropName-PropDict, Exit,
+        ChkCall).
 
 calls_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs, StatusTypes,
         CheckedL0, CheckedL) -->
@@ -813,8 +802,12 @@ success_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs, StatusTypes,
     {collect_checks(Assertions, success_rtcheck(UsePosLoc, Pred,
                 PLoc, PosLocs, StatusTypes), CheckSuccs)},
     body_check_pos(CheckSuccs, success_call_lit, success_succ_lit,
-        collapse_prop, success, CheckedL0,
+        collapse_prop, pos(Pred, success), CheckedL0,
         CheckedL).
+
+check_poscond(Check, PosLoc, Pred, PredName, Dict, Prop, PropNames, Exit,
+        i(PosLoc, PredName, Dict, RtcProp, PropNames, Exit)) :-
+    get_prop_impl(Prop, Check, Pred, RtcProp).
 
 success_rtcheck(
         UsePosLoc, Pred, PLoc, PosLocs, StatusTypes,
@@ -824,15 +817,10 @@ success_rtcheck(
     member((Status, Type), StatusTypes),
     \+(Succ == []),
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
-    (
-        Call=[] -> Exit=true, ChkCall=true
-    ;
-        get_check_props(Call, calls, Pred, CheckProps),
-        ChkCall = checkc(CheckProps, Exit)
-    ),
-    get_check_props(Succ, success, Pred, RtcSucc),
-    ChkSucc = i(PosLoc, PredName, Dict, RtcSucc, SuccNames, Exit).
-
+    get_prop_args(Call, Pred, Args),
+    get_prop_impl(Call, calls, Pred, RtcCall),
+    get_checkc(call, RtcCall, Args, Exit, ChkCall),
+    check_poscond(success, PosLoc, Pred, PredName, Dict, Succ, SuccNames, Exit, ChkSucc).
 
 compatpos_compat_lit(compatpos(ChkCompat, _, Compat, Exit),
         cui(Compat - true, Exit, ChkCompat)).
@@ -845,7 +833,7 @@ compatpos_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs, StatusTypes,
     {collect_checks(Assertions, compatpos_rtcheck(UsePosLoc, Pred,
                 PLoc, PosLocs, StatusTypes), CheckSuccs)},
     body_check_pos(CheckSuccs, compatpos_compat_lit, compatpos_lit,
-        collapse_prop, compatpos, CheckedL0, _).
+        collapse_prop, pos(Pred, compatpos), CheckedL0, _).
 
 compatpos_rtcheck(
         UsePosLoc, Pred, PLoc, PosLocs, StatusTypes,
@@ -855,11 +843,10 @@ compatpos_rtcheck(
     member((Status, Type), StatusTypes),
     \+(Compat == []),
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
-    get_check_props(Compat, compat,Pred, CheckProps),
-    ChkCompat = checkc(CheckProps, Exit),
-    get_check_props(Compat, compatpos, Pred, RtcCompat),
-    ChkCompatPos = i(PosLoc, PredName, Dict, RtcCompat, CompatNames, Exit).
-
+    get_prop_args(Compat, Pred, Args),
+    get_checkc(compat, Compat, Args, Exit, ChkCompat),
+    check_poscond(compatpos, PosLoc, Pred, PredName, Dict, Compat, CompatNames, Exit,
+        ChkCompatPos).
 
 :- pred collapse_dups(+list, ?list) # "Unifies duplicated terms.".
 
@@ -903,8 +890,11 @@ comps_parts_to_comp_lit(Exit, Comp0, Body0, Body) :-
     ).
 
 get_chkcomp(Comp, Exit, PredName, Dict, PosLoc, Body0, Body) :-
-    comps_to_comp_lit(Exit, Comp, Body1, Body),
+    get_prop_impl(Comp, comp, '$none', RtcComp),
+    comps_to_comp_lit(Exit, RtcComp, Body1, Body),
     Body0 = add_info_rtsignal(Body1, PredName, Dict, PosLoc).
+% TODO: The third argument of get_prop_impl/4 is input but it is not
+% needed.
 
 comp_rtcheck(
         UsePosLoc, Pred, PLoc, PosLocs, StatusTypes,
@@ -913,15 +903,11 @@ comp_rtcheck(
         comp(ChkCall, Call, Exit, ChkComp, Comp)) :-
     member((Status, Type), StatusTypes),
     \+(Comp == []),
-    (
-        Call=[] -> Exit=true, ChkCall=true
-    ;
-        get_check_props(Call, calls, Pred, CheckProps),
-        ChkCall = checkc(CheckProps, Exit)
-    ),
+    get_prop_args(Call, Pred, Args),
+    get_prop_impl(Call, calls, Pred, RtcCall),
+    get_checkc(call, RtcCall, Args, Exit, ChkCall),
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
-    get_check_props(Comp, comp, Pred, RtcComp),
-    ChkComp = i(PosLoc, PredName, Dict, RtcComp, CompNames, Exit).    
+    check_poscond(comp, PosLoc, Pred, PredName, Dict, Comp, CompNames, Exit, ChkComp).
 
 comp_call_lit(comp(ChkCall, Call, Exit, _, _),
         cui(Call - true, Exit, ChkCall)).
@@ -1038,9 +1024,10 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
     % split GP into GPTexec and GPProps
     intersection(GP, ~valid_texec_comp_props, GPTexec),
     difference(GP, ~valid_texec_comp_props, GPProps),
-    get_check_props(GPTexec,comp,Pred,RtcGPTexec),
-    get_check_props(GPProps,comp,Pred,RtcGPProps),
-    % TODO: get_check_props(CP,gen,Pred,RtcCP) ?
+    get_prop_impl(GPTexec,_,Pred,RtcGPTexec),
+    get_prop_impl(GPProps,comp,Pred,RtcGPProps),
+    get_prop_impl(AP,success,Pred,RtcAP),
+    get_prop_impl(CP,calls,Pred,RtcCP),
     %
     comps_to_goal(RtcGPTexec, TestBodyGoal, TestBodyGoal0),
     comps_to_goal(RtcGPProps, GPPropsGoal, GPPropsGoal0),
@@ -1048,9 +1035,9 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
     texec_warning(AType, GPProps, Pred, AsrLoc),
     %
     current_prolog_flag(rtchecks_namefmt, NameFmt),
-    Term = n(Pred, DP, CP, AP, GP), % here no free variables must appear
+    Term = n(Pred, DP, RtcCP, RtcAP, GP), % here no free variables must appear
     get_pretty_names(NameFmt, Term, ADict, TermName, DictName),
-    TermName = n(PredName, _, _, APName, _),
+    TermName = n(PredName, _, _, RtcAPName, _),
     %
     current_prolog_flag(rtchecks_predloc, UsePredLoc),
     combine_locators(UsePredLoc,PLoc0,PredName,AsrLoc, PLoc,PosLoc),
@@ -1063,10 +1050,9 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
     % compose check for AP properties
     ( AP == [] ->
         APCheckGoal = GPCheckGoal
-    ;
-        get_check_props(AP, success, Pred, CheckProps),
-        APChkLit = checkif(true, success, PredName, DictName, CheckProps, APName, [AsrLoc]),
-        APCheckGoal = (GPCheckGoal, catch(APChkLit, Ex, throw(postcondition(Ex))))
+    ; get_prop_args(RtcAP, Pred, Args),
+      get_checkif(success, true, PredName, DictName, RtcAP, Args, RtcAPName, [AsrLoc], APChkLit),
+      APCheckGoal = (GPCheckGoal, catch(APChkLit, Ex, throw(postcondition(Ex))))
     ),
     % Generate rtchecks if needed
     ( Assertions == [] ->
@@ -1075,7 +1061,7 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
       UsePosLoc = (UsePredLoc, UseAsrLoc),
       generate_rtchecks(Assertions, Pred, DictName, PLoc, UsePosLoc, RTCheck, APCheckGoal)
     ),
-    TestBodyGoal0 = testing(TestId, TmpDir, ~list_to_lits(CP), RTCheck).
+    TestBodyGoal0 = testing(TestId, TmpDir, ~list_to_lits(RtcCP), RTCheck).
 
 % ----------------------------------------------------------------------
 % --------------------------- code to enable custom property definitions
@@ -1084,15 +1070,15 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
 % filled on the beginning of sentence translation, emptied at the end of
 % goal translation for the module
 %
-%       rtc_impl(CheckType,PropF,PropA,RtcF, RtcA)
-:- data rtc_impl/5.
+%       rtc_impl(PropF,PropA,Spec,RtcF, RtcA,RtcSpec)
+:- data rtc_impl/4.
 
 clean_rtc_impl_db :-
-    retractall_fact(rtc_impl(_,_,_,_,_)).
+    retractall_fact(rtc_impl(_,_,_,_)).
 
 % ----------------------------------------------------------------------
 
-:- pred get_check_props(L1,Chk,Sg,L2) : list * term * term * var => list
+:- pred get_prop_impl(L1,Chk,Sg,L2) : list * term * term * var => list
 * term * term * list # "For every property from a list of property
 terms @var{L1} either add to @var{L2} a custom implementation of this
 property (e.g.  for run-time checks) if one exists or add the property
@@ -1100,52 +1086,26 @@ term with no changes. @var{Chk} denotes which kind of run-time check
 it is coming from. Can be an @tt{atm} or @tt{var}. @var{Sg} is the
 goal of the assertion from where the run-time check comes from.".
 
+get_prop_impl([],_,_,[]).
+get_prop_impl([Prop|Props],Check,Pred,Tail) :-
+    get_prop_impl_(Prop,Check,Pred,RtcProp),
+    Tail = [RtcProp | NewTail],
+    get_prop_impl(Props,Check,Pred,NewTail).
 
-get_check_props(Props,Check,AssrtHead,RtcProps) :-
-    varset(AssrtHead, HeadVars),
-    get_check_props_(Props,Check,HeadVars,RtcProps).
+get_prop_impl_(Prop, Check, _, RtcProp) :-
+     functor(Prop, F, A),
+     % consulting the internal database of props and versions
+     rtc_impl(F, A, RtcF, A), %, Spec)
+     \+(compat_check(Check)), !,
+     Prop     =.. [F | Args],
+     RtcProp0 =.. [RtcF | Args],
+     wrap_rtc_impl(Check,RtcProp0,RtcProp).
+%        add_rtc_impl_mod(Spec)
 
-get_check_props_([],_,_,[]).
-get_check_props_([Prop|Props],Check,HeadVars,[RtcProp|RtcProps]) :-
-    get_check_prop(Prop,Check,HeadVars,RtcProp),
-    get_check_props_(Props,Check,HeadVars,RtcProps).
-
-
-
-get_check_prop(Prop, Type, _, RtcProp) :-
-    (Type = calls ; Type = success),
-    functor(Prop, F, A),
-    % consulting the internal database of props and versions
-    rtc_impl(F, A, inst, RtcF, A), !,
-    Prop     =.. [F | Args],
-    RtcProp =.. [RtcF | Args].
-%
-% TODO: rtc_impl(_,_,compat,_,_) ?
-% TODO: rtc_impl(_,_,comp,_,_) ?
-% TODO: rename to prop_impl if we reuse it for 'gen' version of properties
-%
-get_check_prop(Prop, comp, _, RtcProp) :-
-    functor(Prop, F, A),
-    rtc_impl(F, A, inst, RtcF, A), !,
-    Prop     =.. [F | Args],
-    RtcProp =.. [RtcF | Args].
-
-get_check_prop(mshare(Sh),_,HeadVars,succeeds(rtc_mshare(Vs2,Sh2))) :- !,
-    mshare_tr(HeadVars,Sh,Vs2,Sh2).
-
-get_check_prop(Prop,Check,HeadVars,RtcProp) :-
-    varset(Prop,PropVars),
-    intersect_vars(PropVars, HeadVars, PropArgs),
-    get_check_prop_(Prop,Check,PropArgs,RtcProp).
-
-get_check_prop_(compat(Prop),_,Args,rtc_compat(Prop,Args)) :- !.
-get_check_prop_(instance(Prop),_,Args,rtc_inst(Prop,Args)) :- !.
-get_check_prop_(Prop,compat,Args,rtc_compat(Prop,Args)) :- !.
-get_check_prop_(Prop,calls,Args,rtc_inst(Prop,Args)) :- !.
-get_check_prop_(Prop,success,Args,rtc_inst(Prop,Args)).
-get_check_prop_(Prop,compatpos,Args,rtc_compat(Prop,Args)) :- !.
-get_check_prop_(Prop,comp,_Args,Prop).
-
+get_prop_impl_(mshare(Sh),_,Pred,succeeds(rtc_mshare(Vs2,Sh2))) :- !,
+    varset(Pred,Vs),
+    mshare_tr(Vs,Sh,Vs2,Sh2).
+get_prop_impl_(Prop,_,_,Prop).
 
 % IC: The property mshare/1 needs to be treated as a special case for
 % two reasons:
@@ -1154,7 +1114,11 @@ get_check_prop_(Prop,comp,_Args,Prop).
 %     in the goal of the assertion, whether or not they appear in the
 %     property itself (in the sharing sets), and therefore we need
 %     those possibly missing variables to perform the runtime
-%     check. See T307.
+%     check. See T307. To access the whole set of those variables, we
+%     have introduced a new argument in get_prop_impl/4, the goal of
+%     the assertion (3rd argument), which is only used for this and
+%     has been propagated through other predicates to be available
+%     here.
 %
 %  b) The other reason is that the translation between the property
 %     and its runtime-check version is not as straighforward as with
@@ -1162,6 +1126,10 @@ get_check_prop_(Prop,comp,_Args,Prop).
 %     others we only change the functor of the property, and keep the
 %     arguments as they are. In this case, for correctness and
 %     efficiency, we need to modify the arguments of the property.
+
+% TODO: (a) remove if T307 is fixed, as well as Pred arg in
+% get_prop_impl/4
+:- use_module(library(terms_vars), [varset/2]).
 
 % TODO: (b) rtc_impl declaration do not support syntactic translations
 % beyond predicate renaming, so we do the translation here (this could
@@ -1182,6 +1150,13 @@ number_vars([],_).
 zip([A|As],[B|Bs],[A-B|ABs]) :-
     zip(As,Bs,ABs).
 zip([],[],[]).
+
+compat_check(compat).
+compat_check(compatpos).
+
+wrap_rtc_impl(calls,Prop0,Prop)   :- !, Prop = succeeds(Prop0).
+wrap_rtc_impl(success,Prop0,Prop) :- !, Prop = succeeds(Prop0).
+wrap_rtc_impl(_      ,Prop ,Prop).
 
 %% ----------------------------------------------------------------------
 %% the code below has been desactivated since currently all rtc-modules
