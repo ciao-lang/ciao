@@ -1,21 +1,49 @@
 :- module(runtime_control, [], [noprelude, assertions, isomodes, nortchecks, define_flag, datafacts]).
 
-:- doc(title, "Runtime system control").
+:- doc(title, "Runtime system control and flags").
 :- doc(author, "Manuel Carro").
 :- doc(author, "Daniel Cabeza").
 :- doc(author, "Jos@'{e} F. Morales").
+:- doc(author, "Manuel Hermenegildo (improved documentation)").
 :- doc(author, "Mats Carlsson (original author)").
 
-:- doc(module, "This module implements some predicates which provide
-   internal control and access to the Ciao runtime, like some internal
-   statistics, loaded modules, special properties of the predicates,
-   garbage collection, system flags, etc.
+%% TODO: Documentation of flags needs to be improved. This also
+%% defines the mechanism (multifile) for defining flags, which should
+%% be documented better and/or made more elegant.
 
-   @cindex{prolog flag} Flags define some global parameters of the
-   system and control the behavior of system or library predicates.
-   Each flag has a name and an associated predefined value, and except
-   some system flags which are fixed, in general their associated
-   value is changeable.  Predefined flags in the system are:
+:- doc(module, "This module implements some predicates which provide
+   access to and control of many parameters of the Ciao runtime,
+   including internal statistics, loaded modules, special properties
+   of the predicates, garbage collection, etc.
+
+   Some of these facilities are accessed or controlled via specific
+   predicates (see later) while in other cases such access and control
+   is preformed through the mechanism of @concept{flags}.
+   @cindex{Prolog flag} Such flags contain values for some global
+   parameters of the system and also control the behavior of some
+   system or library predicates.  Each flag has a name and an
+   associated predefined value, and except some system flags which are
+   fixed, in general their associated value is changeable. 
+
+   Flags can be given values at compile time, via @em{declarations},
+   and then the changes affect only the module being
+   processed. Predicates are also available to consult and change flag
+   values at run time, in which case their effect is global from that
+   moment on in the execution (see @pred{prolog_flag/3} and related
+   predicates below). Note that corresponding flag-processing
+   declarations and predicates have the same predicate name; only the
+   run-time version is documented.  
+
+   @comment{TODO: document the declarations???}
+
+   Some flags are pre-defined in the system. In addition, new flags
+   can be also be defined. The mechanism to do this is described in
+   @pred{define_flag/3}.  Through this mechanism, many Ciao modules
+   and language extensions define additional flags.  Flags that are
+   predefined in the system (engine) are documented here and the rest
+   are generally documented in the modules/libraries that define them.
+
+   The @concept{predefined flags} in the system are the following: 
 
 @begin{description}
 
@@ -31,7 +59,8 @@
 @item{@tt{argv}} Its value is a list of atoms representing the program
       arguments supplied when the current executable was invoked.
       This is the value to which the argument of the @pred{main/1}
-      predicate is instantiated at executable startup.  Unchangeable.
+      predicate is instantiated at executable startup (which is the
+      usual way to access the list of arguments).  Unchangeable.
 
 @item{@tt{bounded}} It is @tt{false}, to denote that the range of
       integers can be considered infinite (but see @pred{int/1}).
@@ -45,15 +74,15 @@
 @item{@tt{gc}} Controls whether garbage collection is performed.  May
       be @tt{on} (default) or @tt{off}.
 
-@item{@tt{gc_margin}} An integer @var{Margin}.  If less than
-      @var{Margin} kilobytes are reclaimed in a garbage collection
+@item{@tt{gc_margin}} @var{Margin} is an integer so that, if less than
+      @var{Margin} kilobytes are reclaimed in a garbage collection, 
       then the size of the garbage-collected area should be increased.
       Also, no garbage collection is attempted unless the
       garbage-collected area has at least @var{Margin} kilobytes.
-      Initially 500.
+      Initially set to @tt{500}.
 
 @item{@tt{gc_trace}} Governs garbage collection trace messages.  An
-      element off @tt{[on,off,terse,verbose]}. Initially @tt{off}.
+      element of @tt{[on,off,terse,verbose]}. Initially @tt{off}.
 
 @item{@tt{integer_rounding_function}} It is @tt{toward_zero}, so that
       @tt{-1 =:= -3//2} succeeds.  Unchangeable.  @iso
@@ -61,10 +90,11 @@
 @item{@tt{max_arity}} It is 255, so that no compound term (or predicate)
       can have more than this number of arguments.  Unchangeable.  @iso
 
-@item{@tt{quiet}} Controls which messages issued using @lib{messages_basic}
-      are actually written.  As the system uses that library to emit
-      its messages, this flag controls the @em{verbosity} of the
-      system.  Possible states of the flag are:
+@item{@tt{quiet}} Controls which messages issued using the
+      @lib{messages_basic} library are actually written.  As the
+      system uses that library to emit its messages, this flag
+      controls the @em{verbosity} of the system.  Possible states of
+      the flag are:
 
   @begin{description}
 
@@ -78,12 +108,13 @@
     This is the default state.
 
   @item{@tt{debug}} All messages, including debug messages, are
-    reported.  This is only intended for the system implementators.
+    reported.  This is only intended for the system implementors.
 
   @end{description}
 
-@item{@tt{unknown}} Controls action on calls to undefined predicates.
-      The possible states of the flag are:
+@item{@tt{unknown}} Controls the action to be taken when an
+      @concept{undefined predicate} is called.  The possible states of
+      the flag are:
 
   @begin{description}
 
@@ -122,131 +153,6 @@
 :- endif.
 
 % ---------------------------------------------------------------------------
-% Regtypes for statistics/0, statistics/2
-
-:- doc(doinclude, time_option/1).  
-:- export(time_option/1).
-:- prop time_option(M) + regtype # "Options to get information
-about execution time.  @var{M} must be one of @tt{runtime},
-@tt{usertime}, @tt{systemtime} or @tt{walltime}.".
-
-time_option(runtime).
-time_option(usertime).
-time_option(systemtime).
-time_option(walltime).
-
-:- doc(doinclude, tick_option/1).  
-:- export(tick_option/1).
-:- prop tick_option(M) + regtype # "Options to get information about
-   execution ticks.".
-
-tick_option(runtick).
-tick_option(usertick).
-tick_option(systemtick).
-tick_option(walltick).  
-
-:- doc(doinclude, clockfreq_option/1).  
-:- export(clockfreq_option/1).
-:- prop clockfreq_option(M) + regtype # "Options to get information about
-   the frequency of clocks used to get the ticks.".
-
-clockfreq_option(runclockfreq).
-clockfreq_option(userclockfreq).
-clockfreq_option(systemclockfreq).
-clockfreq_option(wallclockfreq).
-
-:- doc(doinclude, memory_option/1).
-:- export(memory_option/1).
-:- prop memory_option(M) + regtype # "Options to get information about
-memory usage.".
-
-memory_option(memory).
-memory_option(symbols).
-memory_option(program).
-memory_option(global_stack).
-memory_option(local_stack).
-memory_option(trail).
-memory_option(choice).
-
-:- doc(doinclude, garbage_collection_option/1).
-:- export(garbage_collection_option/1).
-:- prop garbage_collection_option(M) + regtype # "Options to get
-   information about garbage collection.".
-
-garbage_collection_option(garbage_collection).
-garbage_collection_option(stack_shifts).
-
-:- doc(doinclude, symbol_option/1).
-:- export(symbol_option/1).
-:- prop symbol_option(M) + regtype # "Option to get information
-   about the number of symbols in the program.".
-
-symbol_option(symbols).
-
-:- doc(doinclude, time_result/1).
-:- export(time_result/1).
-:- prop time_result(Result) + regtype # "@var{Result} is a
-two-element list of numbers.  The first number is the time since the
-start of the execution; the second number is the time since the
-previous consult to time.".
-
-time_result([A, B]):- num(A), num(B).
-
-:- doc(doinclude, tick_result/1).
-:- export(tick_result/1).
-:- prop tick_result(Result) + regtype # "@var{Result} is a
-two-element list of numbers.  The first number is the number of ticks
-since the start of the execution; the second number is the number of
-ticks since the previous consult to tick.".
-
-tick_result([A, B]):- num(A), num(B).
-
-:- doc(doinclude, clockfreq_result/1).
-:- export(clockfreq_result/1).
-:- prop clockfreq_result(Result) + regtype # "@var{Result} is a
-number.  It gives the frequency in hertz used by the clock get the
-ticks.".
-
-clockfreq_result(A):- num(A).
-
-:- doc(doinclude, memory_result/1).
-:- export(memory_result/1).
-:- prop memory_result(Result) + regtype # "Result is a
-two-element list of integers.  The first element is the space taken up
-by the option selected, measured in bytes; the second integer is zero
-for program space (which grows as necessary), and the amount of free
-space otherwise.".
-
-memory_result([A, B]):- int(A), int(B).
-
-:- doc(doinclude, gc_result/1).
-:- export(gc_result/1).
-:- prop gc_result(Result) + regtype # "@var{Result} is a
-tree-element list of integers, related to @concept{garbage collection}
-and @concept{memory management}.  When @tt{stack_shifts} is selected,
-the first one is the number of shifts (reallocations) of the local
-stack; the second is the number of shifts of the trail, and the third
-is the time spent in these shifts.  When @tt{garbage_collection} is
-selected, the numbers are, respectively, the number of garbage
-collections performed, the number of bytes freed, and the time spent
-in garbage collection.".
-
-gc_result([A, B, C]):- int(A), int(B), int(C).
-
-:- doc(doinclude, symbol_result/1).
-:- export(symbol_result/1).
-:- prop symbol_result(Result) + regtype # "@var{Result} is a
-   two-element list of integers.  The first one is the number of atom,
-   functor, and predicate names in the symbol table.  The second is
-   the number of predicates known to be defined (although maybe
-   without clauses).".
-
-symbol_result([A, B]):- int(A), int(B).
-
- %% memory_option(core).
- %% memory_option(heap).
-
-% ---------------------------------------------------------------------------
 
 :- doc(bug, "The space used by the process is not measured here:
    process data, code, and stack also take up memory.  The memory
@@ -260,23 +166,24 @@ symbol_result([A, B]):- int(A), int(B).
 % ---------------------------------------------------------------------------
 :- export(statistics/2).
 :- pred statistics(Tick_option, Tick_result) 
-    : tick_option * term => tick_option * tick_result 
+    : tick_option(Tick_option) => tick_option * tick_result
    # "Gather information about clock ticks (either run, user, system
-     or wall tick) since last consult or since start of program.  A
-     tick is the smallest amount of time that a clock can measure.".
+     or wall tick) since the last consultation or since the start of
+     the program.  A tick is the smallest amount of time that the
+     clock can measure.".
 
 :- pred statistics(Clockfreq_option, Clockfreq_result) 
-    : clockfreq_option * term => clockfreq_option * clockfreq_result 
+    : clockfreq_option(Clockfreq_option) => clockfreq_option * clockfreq_result
    # "Gather information about frequency of the clocks used to measure
      the ticks (either run-user, system or wall clock).  Results are
-     returned in hertz.  This value also can be defined as the amount
+     returned in Hertz.  This value also can be defined as the amount
      of ticks that a clock can measure in one second.".
 
 :- pred statistics(Time_option, Time_result) 
-    : time_option * term => time_option * time_result 
+    : time_option(Time_option) => time_option * time_result
    # "Gather information about time (either process time or wall time)
-     since last consult or since start of program.  Results are
-     returned in milliseconds. Note that internally, time is
+     since the last consultation or since start of program.  Results
+     are returned in milliseconds. Note that internally, time is
      calculated as:
 
 @begin{verbatim}
@@ -285,20 +192,22 @@ symbol_result([A, B]):- int(A), int(B).
 
 ".
 
-:- pred statistics(Memory_option, Memory_result) 
-    : memory_option * term => memory_option * memory_result
+:- pred statistics(Memory_option, Memory_result)
+    : memory_option(Memory_option) => memory_option * memory_result
    # "Gather information about memory consumption.".
 
-:- pred statistics(Garbage_collection_option, Gc_result)
-    : garbage_collection_option * term => garbage_collection_option * gc_result 
+:- pred statistics(GC_option, GC_result)
+    : gc_option(GC_option) => gc_option * gc_result
    # "Gather information about garbage collection.".
 
 :- pred statistics(Symbol_option, Symbol_result) 
-    : symbol_option * term => symbol_option * symbol_result 
+    : symbol_option(Symbol_option) => symbol_option * symbol_result
    # "Gather information about number of symbols and predicates.".
 
-:- pred statistics(Option, ?term) # "If @var{Option} is unbound,
-   it is bound to the values on the other cases.".
+:- pred statistics(Option, ?term)
+   : var(Option)
+   # "If @var{Option} is unbound, it is bound by backtracking to the
+      values of all the other cases.".
 
 statistics(runtime,    L) :- '$runtime'(L).
 statistics(usertime,   L) :- '$usertime'(L).
@@ -329,25 +238,152 @@ statistics(garbage_collection, L) :- '$gc_usage'(L).
 statistics(stack_shifts, L) :- '$stack_shift_usage'(L).
 
 % ---------------------------------------------------------------------------
+% Regtypes for statistics/0, statistics/2
+
+:- doc(doinclude, time_option/1).  
+:- export(time_option/1).
+:- prop time_option(M) + regtype # "@var{M} is an option to get
+   information about execution time. @includedef{time_option/1}".
+
+%% @var{M} must be one of @tt{runtime},
+%% @tt{usertime}, @tt{systemtime} or @tt{walltime}.
+
+time_option(runtime).
+time_option(usertime).
+time_option(systemtime).
+time_option(walltime).
+
+:- doc(doinclude, tick_option/1).  
+:- export(tick_option/1).
+:- prop tick_option(M) + regtype # "@var{M} is an option to get
+   information about execution ticks. @includedef{tick_option/1}".
+
+tick_option(runtick).
+tick_option(usertick).
+tick_option(systemtick).
+tick_option(walltick).  
+
+:- doc(doinclude, clockfreq_option/1).  
+:- export(clockfreq_option/1).
+:- prop clockfreq_option(M) + regtype # "@var{M} is and option to get
+   information about the frequency of clocks used to get the
+   ticks. @includedef{clockfreq_option/1}".
+
+clockfreq_option(runclockfreq).
+clockfreq_option(userclockfreq).
+clockfreq_option(systemclockfreq).
+clockfreq_option(wallclockfreq).
+
+:- doc(doinclude, memory_option/1).
+:- export(memory_option/1).
+:- prop memory_option(M) + regtype # "@var{M} is an option to get
+   information about memory usage. @includedef{memory_option/1}".
+
+memory_option(memory).
+memory_option(symbols).
+memory_option(program).
+memory_option(global_stack).
+memory_option(local_stack).
+memory_option(trail).
+memory_option(choice).
+
+:- doc(doinclude, gc_option/1).
+:- export(gc_option/1).
+:- prop gc_option(M) + regtype # "@var{M} is an option to get
+   information about garbage collection. @includedef{gc_option/1}".
+
+gc_option(garbage_collection).
+gc_option(stack_shifts).
+
+:- doc(doinclude, symbol_option/1).
+:- export(symbol_option/1).
+:- prop symbol_option(M) + regtype # "@var{M} is an option to get
+   information about the number of symbols in the
+   program. @includedef{symbol_option/1}".
+
+symbol_option(symbols).
+
+:- doc(doinclude, time_result/1).
+:- export(time_result/1).
+:- prop time_result(Result) + regtype # "@var{Result} is a two-element
+   list of numbers.  The first number is the time since the start of
+   the execution; the second number is the time since the previous
+   time consultation to time.".
+
+time_result([A, B]):- num(A), num(B).
+
+:- doc(doinclude, tick_result/1).
+:- export(tick_result/1).
+:- prop tick_result(Result) + regtype # "@var{Result} is a two-element
+   list of numbers.  The first number is the number of ticks since the
+   start of the execution; the second number is the number of ticks
+   since the previous consultation to tick.".
+
+tick_result([A, B]):- num(A), num(B).
+
+:- doc(doinclude, clockfreq_result/1).
+:- export(clockfreq_result/1).
+:- prop clockfreq_result(Result) + regtype # "@var{Result} is a number
+   which gives the frequency in Hertz used by the clock get the
+   ticks.".
+
+clockfreq_result(A):- num(A).
+
+:- doc(doinclude, memory_result/1).
+:- export(memory_result/1).
+:- prop memory_result(Result) + regtype # "@var{Result} is a
+   two-element list of integers.  The first element is the space taken
+   up by the option selected, measured in bytes; the second integer is
+   zero for program space (which grows as necessary), and the amount
+   of free space otherwise.".
+
+memory_result([A, B]):- int(A), int(B).
+
+:- doc(doinclude, gc_result/1).
+:- export(gc_result/1).
+:- prop gc_result(Result) + regtype # "@var{Result} is a tree-element
+   list of integers, related to @concept{garbage collection} and
+   @concept{memory management}.  When @tt{stack_shifts} is selected,
+   the first one is the number of shifts (reallocations) of the local
+   stack; the second is the number of shifts of the trail; and the
+   third is the time spent in these shifts.  When
+   @tt{garbage_collection} is selected, the numbers are, respectively,
+   the number of garbage collections performed, the number of bytes
+   freed, and the time spent in garbage collection.".
+
+gc_result([A, B, C]):- int(A), int(B), int(C).
+
+:- doc(doinclude, symbol_result/1).
+:- export(symbol_result/1).
+:- prop symbol_result(Result) + regtype # "@var{Result} is a
+   two-element list of integers.  The first one is the number of atom,
+   functor, and predicate names in the symbol table.  The second is
+   the number of predicates known to be defined (although maybe
+   without clauses).".
+
+symbol_result([A, B]):- int(A), int(B).
+
+ %% memory_option(core).
+ %% memory_option(heap).
+
+% ---------------------------------------------------------------------------
 :- export(current_atom/1).
-:- trust pred current_atom(Atom) => atm
-   # "Enumerates on backtracking all the existing atoms in the system.".
+:- trust pred current_atom(Atom) : var => atm
+   # "Enumerates on backtracking all the existing atoms in the
+      system.".
 :- impl_defined(current_atom/1).
 
 % ---------------------------------------------------------------------------
 :- export(new_atom/1).
-:- trust pred new_atom(Atom) : var => atm # "Returns, on success, a new
-atom, not existing before in the system.  The entry argument must be a
-variable.  The idea behind this atom generation is to provide a fast
-source of identifiers for new objects, concurrent predicates, etc. on
-the fly.".
+:- trust pred new_atom(Atom) : var => atm # "Returns, on success, in
+   @var{Atom} a new atom, not existing before in the system.  The
+   entry argument must be a variable.  The idea behind this atom
+   generation is to provide a fast source of identifiers for new
+   objects, concurrent predicates, etc. on the fly.".
 :- impl_defined(new_atom/1).
 
 % ---------------------------------------------------------------------------
 :- export(current_module/1).
-:- pred current_module(Module) => internal_module_id + native #
-   "Retrieves (on backtracking) all the loaded modules (either
-    statically or dynamically).".
 
 :- doc(current_module/1,
     "This predicate will successively unify its argument with all
@@ -361,6 +397,16 @@ the fly.".
      whether the given module is loaded or not. This is useful
      when called from user programs.
     ").
+
+:- pred current_module(Module) : var => internal_module_id + native
+
+   # "Retrieves (on backtracking) in @var{Module} all the loaded
+      modules (either statically or dynamically).".
+
+:- pred current_module(Module) : var => internal_module_id + native
+
+   # "Checks whether module @var{Module} is loaded or not (either
+      statically or dynamically).".
 
 current_module(Module) :- '$current_module'(Module).
 
@@ -382,11 +428,11 @@ append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs).
 :- export(predicate_property/2).
 :- export(predicate_property/3). % (+1 because of addmodule)
 
-% TODO: This may be safe to include in a intronspection (or reflection
+% TODO: This may be safe to include in an introspection (or reflection
 %   if some form of self-modification is allowed)
 
-% TODO: Define an unsafe version of predicate_property/2 that do not
-%   restricts to visible predicates?
+% TODO: Define an unsafe version of predicate_property/2 that does not
+%   restrict to visible predicates?
 
 :- doc(bug, "
   The predicate @pred{predicate_property/2} needs more work:
@@ -431,11 +477,11 @@ predicate_property(Head, Prop, CallerM) :- nonvar(Head), !,
     ; % TODO: The slow part, reimplement
       functor(Head, MF, N),
       module_split(MF, EM, F),
-      % TODO: bug: the resolved predicate only give us the
+      % TODO: bug: the resolved predicate only gives us the
       %       effective module name, so we cannot distinguish
       %       between querying the properties of a reexported
       %       predicate or a directly exported one. We will give
-      %       the results of only for the more direct one at this
+      %       the results only for the more direct one at this
       %       point. (JFMC) Using 'addterm' could partially solve
       %       this problem.
       %
@@ -524,12 +570,12 @@ predicate_property_mod(_IM, EM, F, N, Prop) :-
 :- doc(hide, set_heap_limit/1). % TODO: why hide?
 :- export(set_heap_limit/1).
 :- pred set_heap_limit(Limit) : integer(Limit) # "Sets the
-@concept{heap limit} to the largest multiple of word size smaller than
-@var{Limit}.  If more than @concept{heap limit} kilobytes of heap are
-used then throw an exception. This behaviour is disabled if the flag
-is set to a null value.  This limit does not directly influence the
-real size of the heap, but just limits the amount of memory used
-within. Initially @concept{heap limit} is set to 0.".
+   @concept{heap limit} to the largest multiple of word size smaller
+   than @var{Limit}.  If more than @concept{heap limit} kilobytes of
+   heap are used then throw an exception. This behaviour is disabled
+   if the flag is set to a null value.  This limit does not directly
+   influence the real size of the heap, but just limits the amount of
+   memory used within. Initially @concept{heap limit} is set to 0.".
 
 set_heap_limit(0) :- !,             % Call without heap consumption 
     '$heap_limit'(0).
@@ -557,7 +603,7 @@ try_to_set_heap_limit(NewLimit):-
 :- doc(hide, current_heap_limit/1). % TODO: why hide?
 :- export(current_heap_limit/1).
 :- pred current_heap_limit(Limit) : true => integer(Limit) # "Unifies 
-@var{Limit} to the current @concept{heap limit}".
+   @var{Limit} to the current @concept{heap limit}".
 
 current_heap_limit(Limit) :-
     '$heap_limit'(CurrentLimit), 
@@ -572,26 +618,26 @@ current_heap_limit(Limit) :-
 
 %doinclude's below commented out because LPdoc does not allow yet a 
 %declaration and a predicate to have the same name.
+%% TODO: MH added comments to the predicates, but need to fix this.
 
-:- doc(doinclude, set_prolog_flag/1).
+%% :- doc(doinclude, set_prolog_flag/2).
 
-:- check decl set_prolog_flag(Flag, Value) : atm * term + iso # "Sets
-    the @concept{prolog flag} of name @var{Flag} to value
-    @var{Value} in the rest of the current text (its scope is
-    local).".
+:- decl set_prolog_flag(Flag, Value) : atm(Flag) + iso # "Sets the
+    @concept{Prolog flag} of name @var{Flag} to value @var{Value}
+    in the rest of the current text (its scope is local).".
 
-%% :- doc(doinclude,push_prolog_flag/1).
+%% :- doc(doinclude,push_prolog_flag/2).
 
-:- decl push_prolog_flag(Flag, Value) : atm * term # "Sets the
-    @concept{prolog flag} of name @var{Flag} to value @var{Value},
-    but storing current value of @var{Flag} to restore it with
-    @decl{pop_prolog_flag/1} (its scope is local).".
+:- decl push_prolog_flag(Flag, Value) : atm(Flag) # "Sets the
+    @concept{Prolog flag} of name @var{Flag} to value
+    @var{Value}, but storing the current value of @var{Flag} to
+    restore it with @decl{pop_prolog_flag/1} (its scope is local).".
 
 %% :- doc(doinclude,pop_prolog_flag/1).
 
-:- decl pop_prolog_flag(Flag) : atm # "Restores the value of
-    @var{Flag} previous to the last non-canceled declaration
-    @decl{push_prolog_flag/2} on it.".
+:- decl pop_prolog_flag(Flag) : atm(Flag) # "Restores the value of
+    @var{Flag} previous to the last non-canceled 
+    @decl{push_prolog_flag/2} declaration for it.".
 
 % ---------------------------------------------------------------------------
 :- doc(define_flag(Flag, Values, Default), "New flags can be defined
@@ -630,7 +676,9 @@ define_flag(debug, [on,debug,trace,off], off).
 % ---------------------------------------------------------------------------
 :- export(set_prolog_flag/2).
 :- doc(set_prolog_flag(FlagName, Value),
-        "Set existing flag @var{FlagName} to @var{Value}.").
+   "Set existing flag @var{FlagName} to @var{Value}.  Can also be a
+    declaration (which is then compile-time and module-local).").
+% TODO: fix lpdoc
 :- pred set_prolog_flag(+atm, +term) => atm * term + iso.
 
 set_prolog_flag(X, Y) :- nonvar(X), prolog_flag(X, _, Y), !. /* ISO */
@@ -638,7 +686,7 @@ set_prolog_flag(X, Y) :- nonvar(X), prolog_flag(X, _, Y), !. /* ISO */
 % ---------------------------------------------------------------------------
 :- export(current_prolog_flag/2).
 :- doc(current_prolog_flag(FlagName, Value),
-"@var{FlagName} is an existing flag and @var{Value} is the
+       "@var{FlagName} is an existing flag and @var{Value} is the
        value currently associated with it.").
 :- pred current_prolog_flag/2 => atm * term.
 
@@ -646,14 +694,20 @@ current_prolog_flag(X, Y) :- prolog_flag(X, Y, Y). /* ISO */
 
 % ---------------------------------------------------------------------------
 :- export(prolog_flag/3).
+
 :- doc(prolog_flag(FlagName, OldValue, NewValue), "@var{FlagName} is
-       an existing flag, unify @var{OldValue} with the value
-       associated with it, and set it to new value @var{NewValue}.").
-:- pred prolog_flag(A, B, C) : (term(C), nonvar(C)) => (atm(A), term(B)).
+       an existing flag. Unify @var{OldValue} with the value
+       associated with it, and set it to new value @var{NewValue}. 
+       Can also be a declaration (which is then compile-time and module-local).").
+% TODO: fix lpdoc
+
+:- pred prolog_flag(FlagName, OldValue, NewValue)
+    : nonvar(NewValue)
+   => (atm(FlagName), nonvar(OldValue),nonvar(NewValue)).
 
 :- pred prolog_flag(FlagName, OldValue, NewValue)
     : (var(OldValue), var(NewValue), atm(FlagName))
-    => (term(OldValue), term(NewValue))
+   => (nonvar(OldValue), nonvar(NewValue))
 # "Same as @tt{current_prolog_flag(@var{FlagName},
       @var{OldValue})}.  @var{OldValue} and @var{NewValue} must be
       strictly identical variables.".
@@ -730,8 +784,11 @@ set_flag(Flag, Default, Old, New) :-
 % ---------------------------------------------------------------------------
 :- export(push_prolog_flag/2).
 :- doc(push_prolog_flag(Flag, NewValue), "Same as
-   @pred{set_prolog_flag/2}, but storing current value of @var{Flag} to
-   restore it with @pred{pop_prolog_flag/1}.").
+   @pred{set_prolog_flag/2}, but storing the current value of @var{Flag} to
+   restore it with @pred{pop_prolog_flag/1}.
+   Can also be a declaration (which is then compile-time and module-local).").
+% TODO: fix lpdoc
+
 :- pred push_prolog_flag(+atm, +term) => atm * term.
 
 push_prolog_flag(Flag, NewValue) :-
@@ -742,7 +799,10 @@ push_prolog_flag(Flag, NewValue) :-
 % ---------------------------------------------------------------------------
 :- export(pop_prolog_flag/1).
 :- doc(pop_prolog_flag(Flag), "Restore the value of @var{Flag}
-   previous to the last non-canceled @pred{push_prolog_flag/2} on it.").
+   previous to the last non-canceled @pred{push_prolog_flag/2} on it.
+   Can also be a declaration (which is then compile-time and module-local).").
+% TODO: fix lpdoc
+
 :- pred pop_prolog_flag(+atm) => atm.
 
 pop_prolog_flag(Flag) :-
@@ -753,15 +813,21 @@ pop_prolog_flag(Flag) :-
 
 % ---------------------------------------------------------------------------
 :- export(prompt/2).
-:- doc(prompt(Old, New), "Unify @var{Old} with the current prompt
-   for reading, change it to @var{New}.").
 
-:- pred prompt(A, B) : atm(B) => atm(A).
+:- doc(prompt(Old, New), "Allows reading or changing the prompt used
+   for reading in terms.").
 
-:- pred prompt(Old, New) : (var(Old), var(New)) => ( atm(Old),
-        atm(New) ) # "Unify @var{Old} with the current prompt for
-    reading without changing it.  On calls, @var{Old} and
-    @var{New} must be strictly identical variables.".
+:- pred prompt(Old,New) : atm(New) => atm(Old)
+
+   # "Unify @var{Old} with the current prompt for reading, change it
+      to @var{New}. To read the current prompt just call
+      @tt{prompt(X,X)}.".
+
+:- pred prompt(Old, New) : var * var => atm * atm 
+
+   # "Unify @var{Old} with the current prompt for reading without
+      changing it.  On calls, @var{Old} and @var{New} must be strictly
+      identical variables.".
 
 prompt(Old, New) :-
     flag_value(Old, New, atom),
@@ -770,30 +836,32 @@ prompt(Old, New) :-
 % ---------------------------------------------------------------------------
 :- export(fileerrors/0).
 :- pred fileerrors/0 + equiv(set_prolog_flag(fileerrors, on))
-# "Enable reporting of file errors.  Equivalent to
-    @tt{set_prolog_flag(fileerrors, on)}".
+   # "Enable reporting of file errors.  Equivalent to
+      @tt{set_prolog_flag(fileerrors, on)}".
 
 fileerrors :- '$ferror_flag'(_, on).
 
 % ---------------------------------------------------------------------------
 :- export(nofileerrors/0).
 :- pred nofileerrors/0 + equiv(set_prolog_flag(fileerrors, off))
-# "Disable reporting of file errors.  Equivalent to
-    @tt{set_prolog_flag(fileerrors, off)}".
+   # "Disable reporting of file errors.  Equivalent to
+      @tt{set_prolog_flag(fileerrors, off)}".
 
 nofileerrors :- '$ferror_flag'(_, off).
 
 % ---------------------------------------------------------------------------
 :- export(gc/0).
-:- pred gc/0 + equiv(set_prolog_flag(gc, on)) # "Enable garbage
-    collection.  Equivalent to @tt{set_prolog_flag(gc, on)}".
+:- pred gc/0 + equiv(set_prolog_flag(gc, on))
+   # "Enable garbage collection.  Equivalent to
+      @tt{set_prolog_flag(gc, on)}".
 
 gc :- '$gc_mode'(_, on).
 
 % ---------------------------------------------------------------------------
 :- export(nogc/0).
-:- pred nogc/0 + equiv(set_prolog_flag(gc, off)) # "Disable garbage
-    collection.  Equivalent to @tt{set_prolog_flag(gc, off)}".
+:- pred nogc/0 + equiv(set_prolog_flag(gc, off))
+   # "Disable garbage collection.  Equivalent to
+      @tt{set_prolog_flag(gc, off)}".
 
 nogc :- '$gc_mode'(_, off).
 
