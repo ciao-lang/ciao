@@ -83,6 +83,7 @@
   Xderef = m_i; \
 }
 
+//TODO:[merge-oc] DerefSw_HVA_CVA_SVA_Other?
 #define SwitchOnVar(Reg,Aux,HVACode,CVACode,SVACode,NVACode) \
 { \
     for (;;) \

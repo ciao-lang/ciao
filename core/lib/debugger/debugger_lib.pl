@@ -1,30 +1,26 @@
 :- module(debugger_lib, [], [assertions, dcg, hiord, datafacts, define_flag]).
 
-:- use_module(library(aggregates)).
-
-:- use_module(engine(internals), [module_concat/3]).
-:- use_module(engine(runtime_control), [module_split/3]).
-:- use_module(engine(messages_basic), [message/2]).
+:- use_module(engine(io_basic)).
+:- use_module(engine(stream_basic)).
 :- use_module(engine(messages_basic), [display_list/1]).
-:- use_module(engine(debugger_support)).
-:- use_module(engine(internals), ['$prompt'/2, '$predicate_property'/3,
-            '$setarg'/4, term_to_meta/2, '$current_predicate'/2]).
-:- use_module(library(lists)).
 :- use_module(library(format)).
-:- use_module(library(streams)).
 :- use_module(library(write)).
-:- use_module(library(hiordlib), [maplist/2, filter/3, foldl/4]).
 :- use_module(library(sort)).
-:- use_module(library(read),   [read_term/3, read/2]).
+:- use_module(library(read), [read_term/3, read/2]).
+%
+:- use_module(engine(runtime_control), [module_split/3]).
+:- use_module(engine(internals), ['$prompt'/2, '$setarg'/4]).
+:- if(defined(optim_comp)).
+:- use_module(engine(rt_exp), ['$current_predicate'/2, '$predicate_property'/3]).
+:- else.
+:- use_module(engine(internals), ['$current_predicate'/2, '$predicate_property'/3]).
+:- endif.
+:- use_module(engine(debugger_support)).
 :- use_module(library(system), [cyg2win_a/3, using_windows/0]).
-:- use_module(library(varnames/apply_dict)).
-:- use_module(library(varnames/complete_dict), [set_undefined_names/3]).
-:- use_module(engine(attributes)).
-:- use_module(library(cyclic_terms), [uncycle_term/2]).
-
+:- use_module(library(lists), [append/3, union/3]).
+:- use_module(library(hiordlib), [maplist/2, filter/3, foldl/4]).
+%
 :- use_module(library(toplevel/toplevel_io)).
-
-:- use_module(engine(runtime_control), [current_prolog_flag/2]).
 
 % :- multifile define_flag/3.
 % define_flag(debug, [on,debug,trace,off], off).
@@ -48,14 +44,18 @@ get_debugger_state(L) :-
 
 :- export(adjust_debugger_state/2).
 adjust_debugger_state(State, New) :-
-    '$setarg'(2, State, New,     true),
+    '$setarg'(2, State, New, true),
     '$setarg'(3, State, 1000000, true),
     '$debugger_mode'.
 
+:- if(defined(optim_comp)).
+:- else.
+% TODO: move to debugger_support.pl?
 :- export(reset_debugger/1).
 reset_debugger(State) :-
     '$debugger_state'(State, s(off, off, 1000000, 0, [])),
     '$debugger_mode'.
+:- endif.
 
 set_debugger(State) :-
     '$debugger_state'(_, State),
@@ -75,6 +75,7 @@ debug :-
 
 nodebug :- notrace.
 
+:- export(trace/0).
 :- pred trace/0 # "Start tracing, switching the debugger on if
     needed.  The interpreter will stop at all leashed ports of
     procedure boxes of predicates either belonging to debugged
@@ -82,7 +83,6 @@ nodebug :- notrace.
     is printed at each stop point, expecting input from the user
     (write @tt{h} to see the available options).".
 
-:- export(trace/0).
 trace :-
     debugger_setting(_, trace),
     what_is_on(trace).
@@ -101,8 +101,8 @@ notrace :-
 :- data debug_rtc_db/0.
 debug_rtc_db. % (initial state)
 
-:- pred debugrtc/0 # "Start tracing when a run-time check error be raised".
 :- export(debugrtc/0).
+:- pred debugrtc/0 # "Start tracing when a run-time check error be raised".
 debugrtc :-
     ( debug_rtc_db -> true ; assertz_fact(debug_rtc_db) ).
 
@@ -124,6 +124,8 @@ tracertc :-
 % ---------------------------------------------------------------------------
 %! ## Per-module debugging state
 
+:- use_module(library(aggregates), [findall/3]).
+
 :- data debug_mod/1.
 
 :- export(current_debugged/1).
@@ -131,13 +133,13 @@ current_debugged(Ms) :- findall(M, current_fact(debug_mod(M)), Ms).
 
 :- export(debug_module/1).
 :- pred debug_module(Module) : atm(Module)
-# "The debugger will take into acount module @var{Module}
-      (assuming it is loaded in interpreted mode).  When issuing this
-      command at the toplevel shell, the compiler is instructed also
-      to set to @em{interpret} the loading mode of files defining that
-      module and also to mark it as 'modified' so that (re)loading 
-      this file or a main file that uses this module will force it 
-      to be reloaded for source-level debugging.".
+   # "The debugger will take into acount module @var{Module} (assuming
+   it is loaded in interpreted mode).  When issuing this command at
+   the toplevel shell, the compiler is instructed also to set to
+   @em{interpret} the loading mode of files defining that module and
+   also to mark it as 'modified' so that (re)loading this file or a
+   main file that uses this module will force it to be reloaded for
+   source-level debugging.".
 
 debug_module(M) :- atom(M), !,
     ( current_fact(debug_mod(M)) ->
@@ -155,25 +157,25 @@ in_debug_module(G) :-
 
 :- export(nodebug_module/1).
 :- pred nodebug_module(Module) : atm(Module)
-# "The debugger will not take into acount module @var{Module}.
-      When issuing this command at the toplevel shell, the compiler is
-      instructed also to set to @em{compile} the loading mode of files
-      defining that module.".
+   # "The debugger will not take into acount module @var{Module}.
+   When issuing this command at the toplevel shell, the compiler is
+   instructed also to set to @em{compile} the loading mode of files
+   defining that module.".
 
 nodebug_module(M) :- % If M is a var, nodebug for all
     retractall_fact(debug_mod(M)).
-%        what_is_debugged.
+%    what_is_debugged.
 
 %% This entry point is only for documentation purposes.
 :- export(debug_module_source/1).
 :- pred debug_module_source(Module) : atm(Module)
-# "The debugger will take into acount module @var{Module}
-      (assuming it is is loaded in source-level debug mode).  When 
-      issuing this command at the toplevel shell, the compiler is 
-      instructed also to set to @em{interpret} the loading mode of 
-      files defining that module and also to mark it as 'modified'
-      so that (re)loading this file or a main file that uses this
-      module will force it to be reloaded for source-level debugging.".
+   # "The debugger will take into acount module @var{Module} (assuming
+   it is is loaded in source-level debug mode).  When issuing this
+   command at the toplevel shell, the compiler is instructed also to
+   set to @em{interpret} the loading mode of files defining that
+   module and also to mark it as 'modified' so that (re)loading this
+   file or a main file that uses this module will force it to be
+   reloaded for source-level debugging.".
 
 debug_module_source(M) :-
     debug_module(M).
@@ -188,9 +190,7 @@ leashed(exit).
 leashed(redo).
 leashed(fail).
 
-:- export(port/1).
 :- prop port(X) + regtype.
-
 port(call).
 port(exit).
 port(redo).
@@ -198,7 +198,7 @@ port(fail).
 
 :- export(leash/1).
 :- pred leash(Ports) : list(port)
-# "Leash on ports @var{Ports}, some of @tt{call}, @tt{exit},
+   # "Leash on ports @var{Ports}, some of @tt{call}, @tt{exit},
    @tt{redo}, @tt{fail}. By default, all ports are on leash.".
 
 leash(L) :-
@@ -230,9 +230,9 @@ debugdepth(100000). % (initial value)
 
 :- export(maxdepth/1).
 :- pred maxdepth(MaxDepth) : int
-# "Set maximum invocation depth in debugging to
-       @var{MaxDepth}. Calls to compiled predicates are not included
-       in the computation of the depth.".
+   # "Set maximum invocation depth in debugging to
+   @var{MaxDepth}. Calls to compiled predicates are not included in
+   the computation of the depth.".
 
 maxdepth(D) :-
     integer(D), !,
@@ -246,9 +246,7 @@ maxdepth(D) :-
 %! ## Spypoints
 
 :- doc(doinclude, multpredspec/1).
-
 :- prop multpredspec/1 + regtype.
-
 multpredspec(Mod:Spec) :- atm(Mod), multpredspec(Spec).
 multpredspec(Name/Low-High) :- atm(Name), int(Low), int(High).
 multpredspec(Name/(Low-High)) :- atm(Name), int(Low), int(High).
@@ -257,21 +255,21 @@ multpredspec(Name) :- atm(Name).
 
 :- export(spy/1).
 :- pred spy(PredSpec) : sequence(multpredspec)
-# "Set spy-points on predicates belonging to debugged modules and
-      which match @var{PredSpec}, switching the debugger on if
-      needed. This predicate is defined as a prefix operator by the
-      toplevel.".
+   # "Set spy-points on predicates belonging to debugged modules and
+   which match @var{PredSpec}, switching the debugger on if
+   needed. This predicate is defined as a prefix operator by the
+   toplevel.".
 
 spy(Preds) :-
     get_debugger_state(State),
-    (arg(1, State, off) -> debug ; true),
+    ( arg(1, State, off) -> debug ; true ),
     parse_functor_spec(Preds, X, spy1(X)).
 
 :- export(nospy/1).
 :- pred nospy(PredSpec) : sequence(multpredspec)
-# "Remove spy-points on predicates belonging to debugged modules
-      which match @var{PredSpec}. This predicate is defined as a prefix
-      operator by the toplevel.".
+   # "Remove spy-points on predicates belonging to debugged modules
+   which match @var{PredSpec}. This predicate is defined as a prefix
+   operator by the toplevel.".
 
 nospy(Preds) :-
     parse_functor_spec(Preds, X, nospy1(X)).
@@ -286,7 +284,11 @@ nospy1(Pred) :-
     warn_if_udp(Pred, N, A),
     remove_spypoint(Pred, N, A).
 
+:- if(defined(optim_comp)).
+warn_if_udp(_, N, A) :- '$predicate_property'(N/A, _, _), !.
+:- else.
 warn_if_udp(F, _, _) :- '$predicate_property'(F, _, _), !.
+:- endif.
 warn_if_udp(_, N, A) :-
     format(user_error, '{Warning: No definition for ~q}~n', [N/A]).
 
@@ -319,7 +321,6 @@ nospyall :-
 nospyall :-
     format(user, '{All spypoints removed}~n', []).
 
-:- export(spypoint/1).
 spypoint(X) :-
     '$current_predicate'(_, X),
     '$spypoint'(X, on, on).
@@ -327,23 +328,30 @@ spypoint(X) :-
 % ---------------------------------------------------------------------------
 % (helper for spy/1 and nospy/1)
 
+:- if(defined(optim_comp)).
+:- use_module(engine(rt_exp), ['$module_concat'/3]).
+module_concat(M,F,MF) :- '$module_concat'(F,M,MF). % TODO: reversed args, merge?
+:- else.
+:- use_module(engine(internals), [module_concat/3]).
+:- endif.
+
 :- meta_predicate parse_functor_spec(?, ?, goal).
 parse_functor_spec(V, _, _) :-
     var(V), !,
     format(user_error, '{A variable is a bad predicate indicator}~n', []).
 parse_functor_spec((S, Ss), GoalArg, Goal) :-
-    parse_functor_spec(S,  GoalArg, Goal),
+    parse_functor_spec(S, GoalArg, Goal),
     parse_functor_spec(Ss, GoalArg, Goal).
 parse_functor_spec(S, GoalArg, Goal) :-
     Flag=f(0),
     ( functor_spec(S, Name, Low, High, M),
         current_fact(debug_mod(M)),
         module_concat(M, Name, PredName),
-        '$current_predicate'(PredName, GoalArg),
+        '$current_predicate'(PredName, GoalArg), % TODO: optim-comp: (old comment) don't work; why?
         functor(GoalArg, _, N),
         N >= Low, N =< High,
         '$setarg'(1, Flag, 1, true),
-        '$nodebug_call'(Goal),
+        parse_functor_spec_call(Goal),
         fail
     ; Flag=f(0),
         format(user_error,
@@ -352,6 +360,13 @@ parse_functor_spec(S, GoalArg, Goal) :-
         fail
     ; true
     ).
+
+:- meta_predicate parse_functor_spec_call(goal).
+:- if(defined(optim_comp)).
+parse_functor_spec_call(Goal) :- call(Goal).
+:- else.
+parse_functor_spec_call(Goal) :- '$nodebug_call'(Goal).
+:- endif.
 
 :- export(functor_spec/5).
 functor_spec(Mod:Spec, Name, Low, High, Mod) :-
@@ -377,18 +392,17 @@ functor_spec(Name, Name, 0, 255, _) :- % 255 is max. arity
 
 :- export(breakpt/6).
 :- pred breakpt(Pred, Src, Ln0, Ln1, Number, RealLine)
-    : atm * sourcename * int * int * int * int
-# "Set a @index{breakpoint} in file @var{Src} between lines
-      @var{Ln0} and @var{Ln1} at the literal corresponding to the
-      @var{Number}'th occurence of (predicate) name @var{Pred}.  The
-      pair @var{Ln0}-@var{Ln1} uniquely identifies a program clause and
-      must correspond to the
-      start and end line numbers for the clause. The rest of the
-      arguments provide enough information to be able to locate the
-      exact literal that the @var{RealLine} line refers to. This is
-      normally not issued by users but rather by the @apl{emacs} mode,
-      which automatically computes the different argument after
-      selecting a point in the source file.".
+   : atm * sourcename * int * int * int * int
+   # "Set a @index{breakpoint} in file @var{Src} between lines
+   @var{Ln0} and @var{Ln1} at the literal corresponding to the
+   @var{Number}'th occurence of (predicate) name @var{Pred}.  The pair
+   @var{Ln0}-@var{Ln1} uniquely identifies a program clause and must
+   correspond to the start and end line numbers for the clause. The
+   rest of the arguments provide enough information to be able to
+   locate the exact literal that the @var{RealLine} line refers
+   to. This is normally not issued by users but rather by the
+   @apl{emacs} mode, which automatically computes the different
+   argument after selecting a point in the source file.".
 
 breakpt(Pred, Src, Ln0, Ln1, Number, RealLine) :-
     current_fact(breakpoint(Pred, Src, Ln0, Ln1, Number)), !,
@@ -398,10 +412,26 @@ breakpt(Pred, Src, Ln0, Ln1, Number, RealLine) :-
 
 breakpt(Pred, Src, Ln0, Ln1, Number, RealLine) :-
     get_debugger_state(State),
-    (arg(1, State, off) -> debug ; true),
+    ( arg(1, State, off) -> debug ; true ),
     assertz_fact(breakpoint(Pred, Src, Ln0, Ln1, Number)),
     format(user, '{Breakpoint placed on literal ~a in line ~d}~n',
-        [Pred, RealLine]).
+           [Pred, RealLine]).
+
+:- export(nobreakpt/6).
+:- pred nobreakpt(Pred, Src, Ln0, Ln1, Number, RealLine)
+   : atm * sourcename * int * int * int * int
+   # "Remove a breakpoint in file @var{Src} between lines @var{Ln0}
+   and @var{Ln1} at the @var{Number}'th occurence of (predicate) name
+   @var{Pred} (see @pred{breakpt/6}). Also normally used from de
+   @apl{emacs} mode.".
+
+nobreakpt(Pred, Src, Ln0, Ln1, Number, RealLine) :-
+    retract_fact(breakpoint(Pred, Src, Ln0, Ln1, Number)), !,
+    format(user, '{Breakpoint removed from literal ~a in line ~d}~n',
+           [Pred, RealLine]).
+nobreakpt(Pred, _, _, _, _, RealLine) :-
+    format(user, '{No breakpoint on literal ~a in line ~d}~n',
+           [Pred, RealLine]).
 
 :- export(nobreakall/0).
 :- pred nobreakall/0 # "Remove all breakpoints.".
@@ -409,22 +439,6 @@ breakpt(Pred, Src, Ln0, Ln1, Number, RealLine) :-
 nobreakall :-
     retractall_fact(breakpoint(_, _, _, _, _)),
     format(user, '{All breakpoints removed}~n', []).
-
-:- export(nobreakpt/6).
-:- pred nobreakpt(Pred, Src, Ln0, Ln1, Number, RealLine)
-    : atm * sourcename * int * int * int * int
-# "Remove a breakpoint in file @var{Src} between lines
-      @var{Ln0} and @var{Ln1} at the @var{Number}'th occurence of
-      (predicate) name @var{Pred} (see @pred{breakpt/6}). Also 
-      normally used from de @apl{emacs} mode.".
-
-nobreakpt(Pred, Src, Ln0, Ln1, Number, RealLine) :-
-    retract_fact(breakpoint(Pred, Src, Ln0, Ln1, Number)), !,
-    format(user, '{Breakpoint removed from literal ~a in line ~d}~n',
-        [Pred, RealLine]).
-nobreakpt(Pred, _, _, _, _, RealLine) :-
-    format(user, '{No breakpoint on literal ~a in line ~d}~n',
-        [Pred, RealLine]).
 
 :- export(list_breakpt/0).
 :- pred list_breakpt/0 # "Prints out the location of all
@@ -436,7 +450,7 @@ nobreakpt(Pred, _, _, _, _, RealLine) :-
 list_breakpt:-
     current_fact(breakpoint(Pred, Src, Ln0, Ln1, Number)),
     format(user, 'Breakpoint in file ~a ~d-~d on literal ~a-~d~n',
-        [Src, Ln0, Ln1, Pred, Number]),
+           [Src, Ln0, Ln1, Pred, Number]),
     fail.
 list_breakpt.
 
@@ -481,7 +495,7 @@ what_is_leashed :-
     is_leashed([call, exit, redo, fail], L),
     show_leash_info(L).
 
-is_leashed([],     []).
+is_leashed([], []).
 is_leashed([X|Xs], [X|Ys]) :- current_fact(leashed(X)), !, is_leashed(Xs, Ys).
 is_leashed([_|Xs], Ys) :- is_leashed(Xs, Ys).
 
@@ -495,10 +509,8 @@ what_maxdepth :-
     format(user, '{Interpreter maxdepth is ~w}~n', [M]).
 
 all_spypoints :-
-    spypoint(_),
-    !,
-    top_display('Spypoints:'),
-    list_spypoints.
+    spypoint(_), !,
+    top_display('Spypoints:'), list_spypoints.
 all_spypoints :-
     top_display('{There are no spypoints}'), top_nl.
 
@@ -513,52 +525,51 @@ list_spypoints :-
 % ---------------------------------------------------------------------------
 %! # Internal entry from meta-interpreters
 
-:- export(debug_trace2/8).
-debug_trace2(X, State, Pred, Src, L0, L1, d(UDict, CDict), Number) :-
-    append(UDict, CDict, Dict0),
-    set_undefined_names(Dict0, 1, _),
-    select_applicable_with_cycles(X, Dict0, ADict),
-    Dict = d(UDict, CDict, ADict),
+:- export(debug_trace2/7).
+debug_trace2(X, Pred, Src, Ln0, Ln1, DDict, Number) :-
+    get_debugger_state(State),
+    debug_dict(X, DDict, Dict),
     retry_hook_(X, B, D, NA, OA, Port, State, Dict),
-    '$setarg'(4, State, B,  on),
+    %
+    '$setarg'(4, State, B, on),
     '$setarg'(5, State, NA, on),
     ( Port = call,
       '$metachoice'(C0),
-      call_hook(X, B, D, State, Pred, Src, L0, L1, Dict, Number),
+      call_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number),
       '$metachoice'(C1)
-    ; fail_hook(X, B, D, State, Pred, Src, L0, L1, Dict, Number), !, fail
+    ; '$stop_trace', % TODO: necessary? <- yes, why?
+      fail_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number), !, fail
     ),
-    ( exit_hook(X, B, D, State, Pred, Src, L0, L1, Dict, Number)
-    ; redo_hook(X, B, D, State, Pred, Src, L0, L1, Dict, Number), fail
+    ( exit_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number)
+    ; '$stop_trace', % TODO: necessary?
+      redo_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number), fail
     ),
     % Remove choicepoints in deterministic goals to speed up debugging -- EMM
     ( C0 == C1 -> ! ; true ),
+    %
     '$setarg'(5, State, OA, on).
 
-select_applicable_with_cycles(X,Dict,ADict) :-
-    current_prolog_flag(check_cycles,off), !,
-    select_applicable(X, Dict, ADict).
-select_applicable_with_cycles(X,Dict,ADict) :-
-    uncycle_term(X,(X1,_)),
-    select_applicable(X1, Dict, ADict).
+:- if(defined(optim_comp)).
+:- else.
+'$stop_trace'. % TODO: dummy; backport this simpler mechanism?
+:- endif.
 
-%:- export(retry_hook/4).
-retry_hook(_,          P,  P, _).
-retry_hook(Invocation, P0, P, A) :- retry_hook(Invocation, P0, P, A).
-
-retry_hook_(X, B, D, [a(B, X, D, Dict)|A], A, Port, State, Dict) :-
-    State = s(_, _, _, B0, A),
+retry_hook_(X, B, D, [a(B,X,D,Dict)|A], A, Port, State, Dict) :-
+    State = s(_,_,_,B0,A),
     a_length(A, D0),
     B is B0+1,
     D is D0+1,
     ( current_fact(debugdepth(M)), D=<M -> true
     ; adjust_debugger_state(State, trace),
-      message(warning, ['Interpreter maxdepth exceeded'])
+      format(user_error, '{Warning: Interpreter maxdepth exceeded}~n', [])
     ),
     retry_hook(B, call, Port, '$$retry_hook').
 
-a_length([],                0).
-a_length([a(_, _, X, _)|_], X).
+retry_hook(_, P, P, _).
+retry_hook(Invocation, P0, P, A) :- retry_hook(Invocation, P0, P, A).
+
+a_length([], 0).
+a_length([a(_,_,X,_)|_], X).
 
 call_hook(X, B, _, State, _, _, _, _, _, _) :-
     arg(3, State, Level),
@@ -569,8 +580,24 @@ call_hook(X, B, D, State, Pred, Src, Ln0, Ln1, Dict, Number) :-
     call_hook2(Msg, X).
 
 call_hook2(answer(X), X).
-call_hook2(no,        X) :- call_hook1(X).
+call_hook2(no, X) :- call_hook1(X).
 
+:- if(defined(optim_comp)).
+call_hook1(X) :-
+    functor(X, Name, Ar),
+    ( '$predicate_property'(Name/Ar, _, _) ->
+        body_trace_call(X)
+    ; get_debugger_state(State),
+      adjust_debugger_state(State, trace),
+      format(user_error, '{Warning: The predicate ~q is undefined}~n',
+                         [Name/Ar]),
+      fail
+    ).
+body_trace_call(X) :-
+    '$notrace_call'(X),
+    '$stop_trace'.
+:- else.
+:- use_module(engine(internals), [term_to_meta/2]).
 call_hook1(X) :-
     ( '$predicate_property'(X, _, _) ->
         term_to_meta(X, G),
@@ -583,6 +610,7 @@ call_hook1(X) :-
             [Name/Ar]),
         fail
     ).
+:- endif.
 
 exit_hook(_, B, _, State, _, _, _, _, _, _) :-
     arg(3, State, Level), B>Level, !.
@@ -639,15 +667,16 @@ do_trace_command(0'c, _, _, _, _, _, State, no, _, _, _, _, _, _) :- !,
     % c(reep)
     '$setarg'(2, State, trace, true),
     '$debugger_mode'.
-do_trace_command(0'\n, _, _, _, _, _, State, no, _, _, _, _, _, _) :-
-    !, % CR (creep)
+do_trace_command(0'\n, _, _, _, _, _, State, no, _, _, _, _, _, _) :- !,
+    % CR (creep)
     '$setarg'(2, State, trace, true),
     '$debugger_mode'.
-do_trace_command(0'd, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !, % d(isplay)
+do_trace_command(0'd, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    % d(isplay)
     set_defaultopt(0'd, false, false),
     prompt_command(0'd, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command([0'd, AV], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- % d(isplay)
-    proc_extraopts(AV, A, V), !,
+do_trace_command([0'd, AV], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- proc_extraopts(AV, A, V), !,
+    % d(isplay)
     set_defaultopt(0'd, A, V),
     prompt_command(0'd, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
 do_trace_command(0'g, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !, % g(ancestors)
@@ -665,130 +694,132 @@ do_trace_command(0'l, _, _, _, _, _, State, no, _, _, _, _, _, _) :- !,
     % l(eap)
     '$setarg'(2, State, debug, true),
     '$debugger_mode'.
-do_trace_command(0'n, _, _, _, _, _, State, no, _, _, _, _, _, _) :-
-    !, % n(odebug)
+do_trace_command(0'n, _, _, _, _, _, State, no, _, _, _, _, _, _) :- !,
+    % n(odebug)
     % nodebug.
     '$setarg'(3, State, 0, true).
-do_trace_command(0'p, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !, % p(rint)
+do_trace_command(0'p, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    % p(rint)
     set_defaultopt(0'p, false, false),
     prompt_command(0'p, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command([0'p, AV], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- % p(rint)
-    proc_extraopts(AV, A, V), !,
+do_trace_command([0'p, AV], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- proc_extraopts(AV, A, V), !,
+    % p(rint)
     set_defaultopt(0'p, A, V),
     prompt_command(0'p, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command(0'v, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !, % v(ariables)
+do_trace_command(0'v, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    % v(ariables)
     prompt_command(0'v, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command([0'v, Name], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !, % v(ariables)
+do_trace_command([0'v, Name], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    % v(ariables)
     prompt_command([0'v, Name], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command(0'r, _, _, _, _, _, State, no, _, _, _, _, _, _) :-
-    !, % r(etry)
-    arg(5, State, [a(B, _, _, _)|_]),
+do_trace_command(0'r, _, _, _, _, _, State, no, _, _, _, _, _, _) :- !,
+    % r(etry)
+    arg(5, State, [a(B,_,_,_)|_]),
     do_retry_fail(B, State, call).
-do_trace_command([0'r, B], _, _, _, _, _, State, no, _, _, _, _, _, _) :-
-    !, % r(etry) arg
+do_trace_command([0'r, B], _, _, _, _, _, State, no, _, _, _, _, _, _) :- !,
+    % r(etry) arg
     do_retry_fail(B, State, call).
-do_trace_command(0'f, _, _, _, _, _, State, no, _, _, _, _, _, _) :-
-    !, %f(ail)
-    arg(5, State, [a(B, _, _, _)|_]),
+do_trace_command(0'f, _, _, _, _, _, State, no, _, _, _, _, _, _) :- !,
+    %f(ail)
+    arg(5, State, [a(B,_,_,_)|_]),
     do_retry_fail(B, State, fail).
-do_trace_command([0'f, B], _, _, _, _, _, State, no, _, _, _, _, _, _) :-
-    !, % f(ail) arg
+do_trace_command([0'f, B], _, _, _, _, _, State, no, _, _, _, _, _, _) :- !,
+    % f(ail) arg
     do_retry_fail(B, State, fail).
 do_trace_command(0's, _, _, B, _, Port, State, no, _, _, _, _, _, _) :- % s(kip)
     set_skip(Port, B, State), !.
-do_trace_command(0'w, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    !, % w(rite)
+do_trace_command(0'w, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    % w(rite)
     set_defaultopt(0'w, false, false),
     prompt_command(0'w, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command([0'w, AV], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    proc_extraopts(AV, A, V), !,
+do_trace_command([0'w, AV], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- proc_extraopts(AV, A, V), !,
+    % w(rite)
     set_defaultopt(0'w, A, V),
     prompt_command(0'w, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command(0'+, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    !, % +(spy this)
+do_trace_command(0'+, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    % +(spy this)
     lastof(Xs, _-X, _-Goal),
     spy1(Goal),
     defaultopt(Op),
     prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command(0'-, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    !, % -(nospy this)
+do_trace_command(0'-, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    % -(nospy this)
     lastof(Xs, _-X, _-Goal),
     nospy1(Goal),
     defaultopt(Op),
     prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command(0'=, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    !, % =(debugging)
+do_trace_command(0'=, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    % =(debugging)
     reset_debugger(_),
     debugging,
     set_debugger(State),
     defaultopt(Op),
     prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
 % do_trace_command(0'b, X, Xs, B, D, Port, State, Msg) :- !, % b(reak)
-%       break,
-%       prompt_command(0'p, X, Xs, B, D, Port, State, Msg).
-do_trace_command(0'@, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    !, %@ (command)
+%     break,
+%     prompt_command(0'p, X, Xs, B, D, Port, State, Msg).
+do_trace_command(0'@, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    %@ (command)
     do_once_command('| ?- ', Dict),
     defaultopt(Op),
     prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command(0'u, _, _, _, _, call, _, answer(X1), _, _, _, _, _, _) :-
-    !, %u (unify)
+do_trace_command(0'u, _, _, _, _, call, _, answer(X1), _, _, _, _, _, _) :- !,
+    %u (unify)
     '$prompt'(Old, '|: '),
     read(user, X1),
     '$prompt'(_, Old).
-do_trace_command(0'<, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    !, %< (reset printdepth)
+do_trace_command(0'<, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    %< (reset printdepth)
     reset_printdepth,
     defaultopt(Op),
     prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command([0'<, I], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    !, %< arg (set printdepth)
+do_trace_command([0'<, I], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    %< arg (set printdepth)
     set_printdepth(I),
     defaultopt(Op),
     prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command(0'^, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    !, %^ (reset subterm)
+do_trace_command(0'^, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    %^ (reset subterm)
     lastof(Xs, _-X, _-Goal),
     defaultopt(Op),
     prompt_command(Op, Goal, [], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command([0'^, 0], _, [_-X|Xs], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    !, %^ 0 (up subterm)
+do_trace_command([0'^, 0], _, [_-X|Xs], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    %^ 0 (up subterm)
     defaultopt(Op),
     prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command([0'^, I], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- %^ arg (set subterm)
-    arg(I, X, Ith), !,
+do_trace_command([0'^, I], X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- arg(I, X, Ith), !,
+    %^ arg (set subterm)
     defaultopt(Op),
     prompt_command(Op, Ith, [I-X|Xs], B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command(0'?, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    !, % ?(help)
+do_trace_command(0'?, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    % ?(help)
     debugging_options,
     defaultopt(Op),
     prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command(0'h, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    !, % h(elp)
+do_trace_command(0'h, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
+    % h(elp)
     debugging_options,
     defaultopt(Op),
     prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
-do_trace_command(_, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :- % all others
+do_trace_command(_, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number) :-
+    % all others
     format(user, '{Option not applicable at this port}~n', []),
     defaultopt(Op),
     prompt_command(Op, X, Xs, B, D, Port, State, Msg, Pred, Src, Ln0, Ln1, Dict, Number).
 
-set_skip(call, To, State) :-
-    '$setarg'(3, State, To, true).
-set_skip(redo, To, State) :-
-    '$setarg'(3, State, To, true).
-set_skip(_, _, State) :-
+set_skip(call, To, State) :- '$setarg'(3, State, To, true).
+set_skip(redo, To, State) :- '$setarg'(3, State, To, true).
+set_skip(_, _To, State) :-
     format(user, '{Skip not applicable at this port, creeping ...}~n', []),
     do_trace_command(0'c, _, _, _, _, _, State, no, _, _, _, _, _, _).
 
-spy_info([],       Goal, ' + ') --> {'$spypoint'(Goal, on, on)}, !.
-spy_info([],       _,    '   ') --> [].
-spy_info([I-X|Xs], _,    Goal) -->
+spy_info([], Goal, ' + ') --> {'$spypoint'(Goal, on, on)}, !.
+spy_info([], _, '   ') --> [].
+spy_info([I-X|Xs], _, Goal) -->
     spy_info(Xs, X, Goal),
     [^, I].
 
-lastof([],      X, X).
+lastof([], X, X).
 lastof([X0|Xs], _, X) :- lastof(Xs, X0, X).
 
 do_retry_fail(B, State, Port) :-
@@ -829,17 +860,17 @@ get_command(Command) :-
     get_rest_command(C1, Command).
 
 get_rest_command(0'\n, 0'\n) :- !.
-get_rest_command(C1,   Command) :-
+get_rest_command(C1, Command) :-
     top_get(C2),
     get_arg(C2, C1, Command).
 
-get_arg(0'\n, C,  C) :- !.
-get_arg(C2,   C1, [C1, Arg]) :-
-    C2 >= 0'0, C2 =< 0'9, !,
-    trd_digits(C2, 0, Arg).
-get_arg(0' , C1, C) :-
+get_arg(0'\n, C, C) :- !.
+get_arg(0' , C1, C) :- !,
     top_get(C2),
     get_arg(C2, C1, C).
+get_arg(C2, C1, [C1, Arg]) :-
+    C2 >= 0'0, C2 =< 0'9, !,
+    trd_digits(C2, 0, Arg).
 get_arg(C2, C1, [C1, Arg]) :-
     trd_string(C2, Arg, "").
 
@@ -849,7 +880,7 @@ trd_digits(Ch, SoFar, I) :-
     top_get(Ch1),
     trd_digits(Ch1, Next, I).
 trd_digits(0'\n, I, I) :- !.
-trd_digits(_,    I, J) :-
+trd_digits(_, I, J) :-
     top_get(Ch),
     trd_digits(Ch, I, J).
 
@@ -869,7 +900,7 @@ show_ancestors([_|CA], N) :-
 
 list_ancestors([], _) :- !.
 list_ancestors(_, 0) :- !.
-list_ancestors([a(B, X, D, Dict)|As], N0) :-
+list_ancestors([a(B,X,D,Dict)|As], N0) :-
     N is N0-1,
     list_ancestors(As, N),
     defaultopt(Op),
@@ -879,7 +910,7 @@ list_ancestors([a(B, X, D, Dict)|As], N0) :-
 % ---------------------------------------------------------------------------
 %! ## Do once command (@)
 
-% Note: called in the context of the toplevel
+% Note: query called in a toplevel_scope context
 
 :- export(do_once_command/2).
 do_once_command(Prompt, d(UDict, CDict, _ADict)) :-
@@ -905,16 +936,18 @@ do_once_command(Prompt, d(UDict, CDict, _ADict)) :-
 
 % (Make sure that toplevel_scope:'$shell_call' exists)
 :- use_module(library(toplevel), []).
-:- use_module(user, ['$shell_call'/1]).
+:- if(defined(optim_comp)).
+:- import(user, ['$shell_call'/1]).
+:- else.
+:- use_module(user, ['$shell_call'/1]). % TODO: use import too?
+:- endif.
 
-:- meta_predicate debug_call(goal).
 debug_call(Goal) :- '$shell_call'(Goal).
 
 % ---------------------------------------------------------------------------
 %! # Print options
 
 :- pred printopts(DefaultOption, Depth, Attribs, Vars).
-
 :- data printopts/4.
 printopts(0'p, 10, true, true). % (initial options)
 
@@ -1020,7 +1053,6 @@ display_var(Name, Value0, Value, Op, WriteOpts) :-
         write_op(Op, Value, WriteOpts)
     ).
 
-
 write_goal2(Op, Goal0, d(_, _, ADict0), AtVars0) :-
     current_fact(printopts(_, D, A, V)),
     sort(AtVars0, AtVars1),
@@ -1036,30 +1068,11 @@ write_goal2(Op, Goal0, d(_, _, ADict0), AtVars0) :-
     ( V == true -> maplist(display_nv(Op, WriteOpts), AInst) ; true ),
     ( A == true -> print_attributes(AtVars, Op, WriteOpts) ; true ).
 
-get_write_options(true, [_|_], D, [max_depth(D), numbervars(true)]) :- !.
-get_write_options(_, _, D, [max_depth(D), numbervars(true), portrayed(true)]).
-
-apply_dict_with_cycles(t(ADict0,Goal0,AtVars0),ADict0,t(ADict,Goal,AtVars)) :-
-    current_prolog_flag(check_cycles,off), !,
-    apply_dict(t(ADict0,Goal0,AtVars0), ADict0, t(ADict, Goal, AtVars)).
-apply_dict_with_cycles(t(ADict0,Goal0,AtVars0),ADict0,t(ADict,Goal,AtVars)) :-
-    uncycle_term(Goal0-ADict0,(Goal1-ADict2,Cycles)),
-    close_list(Cycles),
-    as_dict(Cycles,DictCycles),
-    append(ADict2,DictCycles,ADict1),
-    set_undefined_names(ADict1,1,_),
-    apply_dict(t(ADict1,Goal1,AtVars0), ADict1, t(ADict, Goal, AtVars)).
-
 sel_instantiated(NameValue) --> {instantiated(NameValue)}, !, [NameValue].
 sel_instantiated(_) --> [].
 
-close_list([]) :- !.
-close_list([_|Xs]) :-
-    close_list(Xs).
-
-as_dict([],[]).
-as_dict([X-Y|L1],[Y=X|L2]) :-
-    as_dict(L1,L2).
+get_write_options(true, [_|_], D, [max_depth(D), numbervars(true)]) :- !.
+get_write_options(_, _, D, [max_depth(D), numbervars(true), portrayed(true)]).
 
 write_op(0'p, Goal, WriteOpts) :- write_term(Goal, WriteOpts).
 write_op(0'd, Goal, _) :- display(Goal).
@@ -1115,10 +1128,9 @@ print_attribute(Op, WriteOpts, A) :-
     write_op(Op, A, WriteOpts),
     display(']').
 
-print_srcdbg_info(_,    _,   nil, nil, nil) :- !.
+print_srcdbg_info(_, _, nil, nil, nil) :- !.
 print_srcdbg_info(Pred, Src, Ln0, Ln1, Number) :-
     ( using_windows -> % running in a Windows non-cygwin shell
-        %
         % Emacs understand slashes instead of backslashes, even on
         % Windows, and this saves problems with escaping
         % backslashes
@@ -1130,10 +1142,49 @@ print_srcdbg_info(Pred, Src, Ln0, Ln1, Number) :-
         Pred, -, Number, '\n']).
 
 % ---------------------------------------------------------------------------
-%! ## Auxiliary for cycles and attributed variables
+%! ## Auxiliary for printing bindings (dicts, cycles, and attributed variables)
 % TODO: move to prettysols.pl?
+% TODO: document
+
+:- use_module(library(varnames/apply_dict)).
+:- use_module(library(varnames/complete_dict), [set_undefined_names/3]).
+:- use_module(library(cyclic_terms), [uncycle_term/2]).
+:- use_module(engine(attributes)).
+:- use_module(engine(runtime_control), [current_prolog_flag/2]).
 
 define_flag(check_cycles, [on, off], off). % TODO: move somewhere else?
+
+debug_dict(X, d(UDict, CDict), Dict) :-
+    append(UDict, CDict, Dict0),
+    set_undefined_names(Dict0, 1, _),
+    select_applicable_with_cycles(X, Dict0, ADict),
+    Dict = d(UDict, CDict, ADict).
+
+select_applicable_with_cycles(X,Dict,ADict) :-
+    current_prolog_flag(check_cycles,off), !,
+    select_applicable(X, Dict, ADict).
+select_applicable_with_cycles(X,Dict,ADict) :-
+    uncycle_term(X,(X1,_)),
+    select_applicable(X1, Dict, ADict).
+
+apply_dict_with_cycles(t(ADict0,Goal0,AtVars0),ADict0,t(ADict,Goal,AtVars)) :-
+    current_prolog_flag(check_cycles,off), !,
+    apply_dict(t(ADict0,Goal0,AtVars0), ADict0, t(ADict, Goal, AtVars)).
+apply_dict_with_cycles(t(ADict0,Goal0,AtVars0),ADict0,t(ADict,Goal,AtVars)) :-
+    uncycle_term(Goal0-ADict0,(Goal1-ADict2,Cycles)),
+    close_list(Cycles),
+    as_dict(Cycles,DictCycles),
+    append(ADict2,DictCycles,ADict1),
+    set_undefined_names(ADict1,1,_),
+    apply_dict(t(ADict1,Goal1,AtVars0), ADict1, t(ADict, Goal, AtVars)).
+
+close_list([]) :- !.
+close_list([_|Xs]) :-
+    close_list(Xs).
+
+as_dict([],[]).
+as_dict([X-Y|L1],[Y=X|L2]) :-
+    as_dict(L1,L2).
 
 %:- export(get_attributed_vars/2).
 get_attributed_vars(Term, AtVars) :-
@@ -1172,11 +1223,11 @@ already_seen([T|_Ts], Term) :-
     !.
 already_seen([_T|Ts], Term) :- already_seen(Ts, Term).
 
-get_attributed_vars_nc(X, At,                            At) :- atomic(X), !.
+get_attributed_vars_nc(X, At, At) :- atomic(X), !.
 get_attributed_vars_nc(X, [attach_attribute(X, AtX)|At], At) :-
     var(X),
     get_attribute(X, AtX), !.
-get_attributed_vars_nc(X,      At,  At) :- var(X), !. % No attributes
+get_attributed_vars_nc(X, At,  At) :- var(X), !. % No attributes
 get_attributed_vars_nc([X|Xs], At0, At2) :- !,
     get_attributed_vars_nc(X,  At0, At1),
     get_attributed_vars_nc(Xs, At1, At2).
@@ -1184,7 +1235,7 @@ get_attributed_vars_nc(X, At0, At1) :-
     functor(X, _, Ar),
     get_attributed_vars_args(Ar, X, At0, At1).
 
-get_attributed_vars_args(0, _, At,  At) :- !.
+get_attributed_vars_args(0, _, At, At) :- !.
 get_attributed_vars_args(N, X, At0, At2) :-
     N > 0,
     arg(N, X, A),

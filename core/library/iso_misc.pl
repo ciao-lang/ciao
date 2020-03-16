@@ -1,5 +1,4 @@
-:- module(iso_misc, [once/1, compound/1, sub_atom/5,
-                 unify_with_occurs_check/2],
+:- module(iso_misc, [once/1, compound/1, sub_atom/5],
      [assertions, isomodes]).
 
 :- doc(title, "Miscellaneous ISO Prolog predicates").
@@ -70,17 +69,23 @@ sub_atom(Atom, Before, Lenght, After, Sub_atom) :-
     ; throw(error(type_error(atom,Atom), sub_atom/5-1))
     ).
 
+:- if(defined(optim_comp)).
+% TODO: defined in term_basic.pl 
+:- else.
+:- export(unify_with_occurs_check/2).
 :- doc(unify_with_occurs_check(X, Y), "Attempts to compute and
    apply a most general unifier of the two terms @var{X} and @var{Y}.
    Is true iff @var{X} and @var{Y} are unifiable.").
-
 :- pred unify_with_occurs_check(?term, ?term) + iso.
+:- impl_defined([unify_with_occurs_check/2]). % term_support.c
+:- endif.
 
 % NOTE: This version is faster than the Prolog version (and probably
 % slower than a native implementation)
 % unify_with_occurs_check(X, X) :- \+ cyclic_term(X).
-:- impl_defined([unify_with_occurs_check/2]). % term_support.c
 
+% NOTE: prolog version
+%
 %% unify_with_occurs_check(X,Y) :- var(X), !, uwoc_var(Y, X).
 %% unify_with_occurs_check(X,Y) :- atomic(X), !, X=Y.
 %% unify_with_occurs_check(X,Y) :- uwoc_struct(Y, X).

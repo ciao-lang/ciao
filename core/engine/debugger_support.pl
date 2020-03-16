@@ -53,7 +53,7 @@ t_on_off(off).
 
 :- export(srcdbg_spy/7).
 :- trust pred srcdbg_spy/7 # "Performing source level debugging, all goals
-   are expanded to this. This is currenlty done for all interpreted
+   are expanded to this. This is currently done for all interpreted
    code.".
 :- doc(hide,srcdbg_spy/7).
 :- meta_predicate srcdbg_spy(goal,?,?,?,?,?,?).

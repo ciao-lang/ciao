@@ -4,7 +4,7 @@
 :- use_module(engine(debugger_support), ['$spypoint'/3]).
 :- use_module(engine(hiord_rt),         ['$nodebug_call'/1]).
 :- use_module(library(debugger/debugger_lib), [
-    debug_trace2/8,
+    debug_trace2/7,
     breakpoint/5,
     get_debugger_state/1]).
 
@@ -47,7 +47,7 @@ srcdbg_byrd(X, Pred, Src, L0, L1, Dict, Number) :-
     arg(2, State, Debugging),
     ( debuggable(Debugging, X, Pred, Src, L0, L1, Number) ->
         term_to_meta(X1, X),
-        debug_trace2(X1, State, Pred, Src, L0, L1, Dict, Number)
+        debug_trace2(X1, Pred, Src, L0, L1, Dict, Number)
     ; '$nodebug_call'(X)
     ).
 

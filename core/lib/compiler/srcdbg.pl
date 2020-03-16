@@ -1,7 +1,7 @@
 :- module(srcdbg, [srcdbg_expand/6], [assertions, hiord]).
 
 :- use_module(library(compiler/c_itf), [location/3]).
-:- use_module(library(debugger/debugger_tr)).
+:- use_module(library(debugger/debugger_tr)). % TODO: move to compiler? (see optim-comp)
 
 :- pred srcdbg_expand/6 # "This is the expansion needed to perform
    source-level debugging.".

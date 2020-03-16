@@ -135,9 +135,9 @@
 :- use_module(engine(basiccontrol)).
 :- use_module(engine(term_basic)).
 :- use_module(engine(term_typing)).
+:- use_module(engine(atomic_basic)).
 :- if(defined(optim_comp)).
 :- else.
-:- use_module(engine(atomic_basic)).
 :- use_module(engine(exceptions)).
 :- endif.
 :- use_module(engine(arithmetic)).
@@ -414,7 +414,8 @@ current_module(Module) :- '$current_module'(Module).
 :- export(module_split/3).
 % The reverse of internals:module_concat/3
 % TODO: move together with internals:module_concat/3?
-% TODO: inefficient, write in C or adopt a hash-table approach like in optim_comp
+% TODO: inefficient, write in C
+% TODO: adopt a hash-table approach like in optim_comp
 module_split(MF, M, F) :-
     atom_codes(MF, MFc),
     append(Mc, [0':|Fc], MFc), !,

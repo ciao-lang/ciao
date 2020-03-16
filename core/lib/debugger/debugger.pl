@@ -28,13 +28,6 @@
 :- doc(bug, "Consider the possibility to show debugging messages
    directly in the source code emacs buffer.").
 
-:- use_module(engine(debugger_support)).
-:- use_module(library(debugger/debugger_lib), [
-    adjust_debugger_state/2,
-    in_debug_module/1,
-    debug_trace2/8,
-    do_once_command/2,
-    get_debugger_state/1]).
 :- reexport(library(debugger/debugger_lib), [
     breakpt/6,
     current_debugged/1,
@@ -42,7 +35,6 @@
     debug_module/1,
     debug_module_source/1,
     debugging/0,
-    debugrtc/0,
     get_debugger_state/1,
     leash/1,
     list_breakpt/0,
@@ -51,33 +43,39 @@
     nobreakpt/6,
     nodebug/0,
     nodebug_module/1,
-    nodebugrtc/0,
     nospy/1,
     nospyall/0,
     notrace/0,
-    reset_debugger/1,
     spy/1,
-    trace/0,
+    trace/0]).
+:- reexport(library(debugger/debugger_lib), [
+    debugrtc/0,
+    nodebugrtc/0,
     tracertc/0]).
 
-:- doc(hide, current_debugged/1).
-:- doc(hide, reset_debugger/1).
-:- doc(hide, set_debugger/1).
+:- use_module(engine(debugger_support)).
+:- use_module(library(debugger/debugger_lib), [
+    adjust_debugger_state/2,
+    in_debug_module/1,
+    debug_trace2/7,
+    do_once_command/2,
+    get_debugger_state/1]).
 
 % ---------------------------------------------------------------------------
 %! # Enable/disable debugger context (called from toplevel.pl)
 
 :- use_module(engine(internals), ['$setarg'/4]).
 
-%%:- initialization(initialize_debugger_state).
-%%:- on_abort(initialize_debugger_state).
-
+:- if(defined(optim_comp)).
+:- else.
 % This has to be done before any choicepoint
 % initialize_debugger_state used in internals.pl --EMM
 :- entry initialize_debugger_state/0.
 initialize_debugger_state :-
+    % TODO: call reset_debugger(_) instead?
     '$debugger_state'(_, s(off, off, 1000000, 0, [])),
     '$debugger_mode'.
+:- endif.
 
 :- doc(hide, adjust_debugger/0).
 :- export(adjust_debugger/0).
@@ -96,32 +94,67 @@ switch_off_debugger :-
 % ---------------------------------------------------------------------------
 %! # Debugger entry (called from interpreter.pl)
 
+:- if(defined(optim_comp)).
+:- else.
 :- use_module(engine(internals), [term_to_meta/2]).
 :- use_module(engine(hiord_rt), ['$nodebug_call'/1]).
+:- endif.
 
 :- doc(hide, debug_trace/1).
 :- export(debug_trace/1).
+:- if(defined(optim_comp)).
 debug_trace(X) :-
+    % note: CInt tracing is disabled at this point
     extract_info(X, Goal, Pred, Src, Ln0, Ln1, Dict, Number),
     ( debuggable(Goal) ->
-        get_debugger_state(State),
-        debug_trace2(Goal, State, Pred, Src, Ln0, Ln1, Dict, Number)
+        debug_trace2(Goal, Pred, Src, Ln0, Ln1, Dict, Number),
+        '$start_trace'
+    ; % enter the predicate and start trace of its body
+      % note: this is equivalent to body_trace_call + start_trace, but
+      %   enables tail call recursion
+      '$notrace_call'(X)
+    ).
+:- else.
+debug_trace(X) :-
+    % note: CInt tracing is disabled at this point
+    extract_info(X, Goal, Pred, Src, Ln0, Ln1, Dict, Number),
+    ( debuggable(Goal) ->
+        debug_trace2(Goal, Pred, Src, Ln0, Ln1, Dict, Number)
     ; term_to_meta(X, G),
       '$nodebug_call'(G)
     ).
+:- endif.
 
+:- if(defined(optim_comp)).
+debuggable(Goal) :-
+    no_debug_module(Goal), !, fail.
+:- endif.
 debuggable(Goal) :-
     in_debug_module(Goal).
 debuggable(_) :-
     get_debugger_state(S),
-    arg(5, S, [a(_, Ancestor, _, _)|_]),
+    arg(5, S, [a(_,Ancestor,_,_)|_]),
     in_debug_module(Ancestor).
 
-% extract_info('debugger:srcdbg_spy'(Goal,Pred,Src,Ln0,Ln1,Dict,Number),
-extract_info('debugger_support:srcdbg_spy'(Goal, Pred, Src, Ln0, Ln1, Dict, Number),
-             NewGoal, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    !,
+:- if(defined(optim_comp)).
+no_debug_module(G) :-
+    functor(G, F, _),
+    % TODO: kludge, use predicate prop bits...
+    ( Mc = 'interpreter:'
+    ; Mc = 'hiord_rt:'
+    ; Mc = 'debugger_support:' % TODO: for $stop_trace
+    ; Mc = 'debugger:' ),
+    atom_concat(Mc, _, F).
+:- endif.
+
+:- if(defined(optim_comp)).
+extract_info('debugger_support:srcdbg_spy'(Goal,Pred,Src,Ln0,Ln1,Dict,Number),
+             Goal, Pred, Src, Ln0, Ln1, Dict, Number) :- !.
+:- else.
+extract_info('debugger_support:srcdbg_spy'(Goal,Pred,Src,Ln0,Ln1,Dict,Number),
+             NewGoal, Pred, Src, Ln0, Ln1, Dict, Number) :- !,
     term_to_meta(NewGoal, Goal).
+:- endif.
 extract_info(Goal, Goal, nil, nil, nil, nil, d([], []), nil).
 
 % ---------------------------------------------------------------------------
@@ -161,7 +194,7 @@ interrupt_options :-
     top_nl,
     top_display('Ciao interrupt options:'), top_nl,
     top_display('    a        abort           - cause abort'), top_nl,
-%       top_display('    b        break           - cause break'), top_nl,
+    % top_display('    b        break           - cause break'), top_nl,
     top_display('    c        continue        - do nothing'), top_nl,
     top_display('    d        debug           - start debugging'), top_nl,
     top_display('    t        trace           - start tracing'), top_nl,
@@ -170,19 +203,30 @@ interrupt_options :-
     top_display('    h        help            - get this list'), top_nl.
 
 % ---------------------------------------------------------------------------
-% TODO: hack to call arbitrary non-exported predicates, deprecate?
+% TODO: Hack to call arbitrary non-exported predicates, deprecate?
+%       Note that in optim_comp it only works if the module enables
+%      '$pragma'(allow_runtime_expansions).
 
+:- if(defined(optim_comp)).
+:- use_module(engine(rt_exp), [rt_pgcall/2]). % TODO: put a $ in the name
+:- else.
 :- use_module(engine(internals), [module_concat/3]).
 :- use_module(engine(hiord_rt), ['$meta_call'/1]).
+:- endif.
 
 :- export(call_in_module/2).
-% :- meta_predicate call_in_module(?, fact).
+%:- meta_predicate call_in_module(?, fact).
 :- pred call_in_module(Module, Predicate) : atm * callable
-# "Calls predicate @var{Predicate} belonging to module
-    @var{Module}, even if that module does not export the
-    predicate. This only works for modules which are in debug 
-    (interpreted) mode (i.e., they are not optimized).".
+   # "Calls predicate @var{Predicate} belonging to module
+   @var{Module}, even if that module does not export the
+   predicate. This only works for modules which are in debug
+   (interpreted) mode (i.e., they are not optimized).".
 
+:- if(defined(optim_comp)).
+call_in_module(M, X0) :-
+    rt_pgcall(X0, M).
+:- else.
 call_in_module(Module, Goal) :-
     module_concat(Module, Goal, MGoal),
     '$meta_call'(MGoal).
+:- endif.

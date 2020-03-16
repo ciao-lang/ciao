@@ -22,6 +22,9 @@
 :- endif.
 
 :- use_module(library(debugger)).
+:- if(defined(optim_comp)).
+:- use_module(engine(debugger_support), [reset_debugger/1]).
+:- endif.
 %
 :- use_module(library(toplevel/toplevel_io)).
 :- use_module(library(toplevel/prettysols)).

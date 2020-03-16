@@ -1779,7 +1779,7 @@ CBOOL__PROTO(prolog_unifiable)
 
   /* Ignores possible wakes caused by unification of attributed
      variables */ 
-  if (TestEvent) Heap_Warn_Soft = Heap_Warn;
+  if (TestEvent) Heap_Warn_Soft = Heap_Warn; /* TODO: check */
   
   w->trail_top = limit;
   pop_frame(Arg);

@@ -254,7 +254,7 @@ mgi_each_arg(N,T1,T2,T):-
 % ---------------------------------------------------------------------------
 
 :- if(defined(optim_comp)).
-% TODO: port unifiable/3
+% TODO: defined in term_basic.pl
 :- else.
 :- regtype unifier_elem/1.
 :- doc(doinclude, unifier_elem/1).
