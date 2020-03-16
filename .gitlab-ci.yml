@@ -187,6 +187,9 @@ ciao_gui:
 
 wui:
   stage: basic-bundles
+  retry:
+    max: 2
+    when: script_failure
   script:
     - apk add --update nodejs nodejs-npm
     - npm install -g bower
