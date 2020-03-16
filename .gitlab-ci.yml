@@ -96,7 +96,7 @@ ciaopp_lite:
 incanal_assrts:
   stage: test
   script:
-    - apk add bash gnuplot # add bash for the test scripts
+    - apk add bash # add bash for the test scripts
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - cd bndls/ciaopp_tests/tests/incanal
     - ./compile.sh
@@ -109,7 +109,7 @@ incanal_assrts:
 incanal_lite:
   stage: test
   script:
-    - apk add bash gnuplot # add bash for the test scripts
+    - apk add bash # add bash for the test scripts
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - cd bndls/ciaopp_tests/tests/incanal
     - ./compile.sh
