@@ -7,7 +7,7 @@
 :- doc(author,"Manuel Carro").
 :- doc(author,"Jose F. Morales").
 
-:- doc(module,"This program out in symbolic form the information
+:- doc(module,"This program outputs in symbolic form the information
    contained in a @concept{Ciao object file} produced by the Ciao
    compiler. This information includes:
 
