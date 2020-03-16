@@ -187,6 +187,7 @@ ciao_gui:
 
 wui:
   stage: basic-bundles
+  allow_failure: true
   retry:
     max: 2
     when: script_failure
@@ -214,6 +215,7 @@ wui:
 
 catalog_ui:
   stage: test
+  allow_failure: true
   script:
     - touch bndls/catalog_ui/ACTIVATE
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
