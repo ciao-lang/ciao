@@ -66,14 +66,17 @@
       from @var{Xs}, @var{Ys}, @var{Zs}, @var{Us}, @var{Ws}.".
 
 :- doc(foldl/4, "
-The left fold family @tt{foldl/N} is equivalent to:
+The left fold family @tt{foldl/(n+3)} is equivalent to:
 
 @begin{verbatim}
-foldl(P, [X11,...,X1n], [Xm1,...,Xmn], V0, V) :-
-    P(X11, ..., Xm1, V0, V1),
+foldl(P, [X11, ..., X1m], ..., [Xn1, ..., Xnm], V0, V) :-
+    P(X11, ..., Xn1, V0, V1),
     ...
-    P(Xn,  ..., Xmn, Vn_1, Vn).
+    P(X1m, ..., Xnm, Vm_1, V).
 @end{verbatim}
+
+where @tt{P} is a predicate of arity @tt{n+2}, i.e., of type
+@tt{pred(n+2)}.
 ").
 
 % Note on argument order:
@@ -167,27 +170,32 @@ foldl5([X|Xs], P, [Y|Ys], [Z|Zs], [U|Us], [W|Ws], V0, V) :-
       @var{V0}-@var{V} as accumulator.".
 
 :- doc(foldr/4, "
-The right fold family @tt{foldr/N} is equivalent to:
+The right fold family @tt{foldr/(n+3)} is equivalent to:
 
 @begin{verbatim}
-foldr(P, [X11,...,X1n], [Xm1,...,Xmn], V0, V) :-
-    P(Xn,  ..., Xmn, V0, V1),
+foldr(P, [X11, ..., X1m], ..., [Xn1, ..., Xnm], V0, V) :-
+    P(X1m, ..., Xnm, V0, V1),
     ...
-    P(X11, ..., Xm1, Vn_1, V).
+    P(X11, ..., Xn1, Vm_1, V).
 @end{verbatim}
 
-Note that @tt{foldr/N} is not tail recursive. When @tt{P(...,?,?)} is
-a valid calling mode, it would be possible to reorder the calls as in:
+where @tt{P} is a predicate of arity @tt{n+2}, i.e., of type
+@tt{pred(n+2)}.
+
+Note that @tt{foldr/(n+3)} is not tail recursive. When @tt{P(...,?,?)}
+is a valid calling mode, it would be possible to reorder the calls as
+in:
 
 @begin{verbatim}
-foldr_tail(P, [X11,...,X1n], [Xm1,...,Xmn], V0, V) :-
-    P(X11, ..., Xm1, Vn_1, V),
+foldr_tail(P, [X11, ..., X1m], ..., [Xn1, ..., Xnm], V0, V) :-
+    P(X11, ..., Xn1, Vm_1, V),
     ...
-    P(Xn,  ..., Xmn, V0, V1).
+    P(X1m, ..., Xnm, V0, V1).
 @end{verbatim}
 
-which is exactly like @tt{foldl/N} but with fliped accumulator
-arguments.  See @tt{foldl/N} examples").
+which is exactly like @tt{foldl/(n+3)} but with flipped accumulator
+arguments.  See @tt{foldl/(n+3)} examples.
+").
 
 % E.g.,
 %    foldr: f(1, f(2, f(3, z)))
@@ -319,14 +327,17 @@ partition_([X|Xs], P, Ys, Zs) :-
       from @var{Xs}, @var{Ys}, @var{Zs}, @var{Vs}, @var{Ws}.".
 
 :- doc(maplist/2, "
-The map list family @tt{maplist/N} is equivalent to:
+The map list family @tt{maplist/(n+1)} is equivalent to:
 
 @begin{verbatim}
-maplist(P, [X11,...,X1n], [Xm1,...,Xmn]) :-
-    P(X11, ..., Xm1),
+maplist(P, [X11, ..., X1m], ..., [Xn1, ..., Xnm]) :-
+    P(X11, ..., Xn1),
     ...
-    P(Xn,  ..., Xmn).
+    P(X1m, ..., Xnm).
 @end{verbatim}
+
+where @tt{P} is a predicate of arity @tt{n}, i.e., of type
+@tt{pred(n)}.
 ").
 
 maplist(P, Xs) :-
