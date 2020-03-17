@@ -1092,8 +1092,8 @@ valid_type([Type|Rest]) :-
    # "@var{Var} has its size defined by @var{SizeDescr}.".
 :- impl_defined(rsize/2).
 
-:- prop cardinality(Prop,Lower,Upper) + no_rtcheck
-   # "@var{Prop} has a number of solutions between
+:- prop cardinality(Goal,Lower,Upper) + no_rtcheck
+   # "@var{Goal} has a number of solutions between
       @var{Lower} and @var{Upper}.".
 :- impl_defined(cardinality/3).
 
