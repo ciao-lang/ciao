@@ -883,9 +883,7 @@ comps_to_comp_lit(Exit, Comp, Body0, Body) :-
     comps_parts_to_comp_lit(Exit, Comp, Body1, Body),
     lists_to_lits(Body1, Body0).
 
-% TODO: try_sols should really be "max_sols", since the test assertion
-%       harness tries all solutions by default.
-valid_texec_comp_props([times(_, _), try_sols(_, _)]).
+valid_texec_comp_props([times(_, _), try_sols(_, _), generate_from_calls_n(_,_), timeout(_,_)]).
 
 comps_parts_to_comp_lit(Exit, Comp0, Body0, Body) :-
     valid_texec_comp_props(VC),
@@ -1030,19 +1028,19 @@ comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
 % has the necessary functionality to test it (see
 % rtc_compat/2) in library(rtchecks/rtchecks_rt). --NS
 
+% TODO: do this in unittest.pl, importing relevant predicates from
+% here
 test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
     TestEntryBody = '$test_entry_body'(TestInfo, Assertions, PLoc0, TmpDir),
     TestInfo = testinfo(TestId, AType, Pred, ABody, ADict, ASource, ALB, ALE),
     AsrLoc   = asrloc(loc(ASource, ALB, ALE)),
     assertion_body(Pred, DP, CP, AP, GP, _, ABody),
     % split GP into GPTexec and GPProps
-    intersection(GP, ~valid_texec_comp_props, GPTexec),
+    intersection(GP, ~valid_texec_comp_props, TestOptions), % TODO: do this in unittest.pl
     difference(GP, ~valid_texec_comp_props, GPProps),
-    get_check_props(GPTexec,comp,Pred,RtcGPTexec),
     get_check_props(GPProps,comp,Pred,RtcGPProps),
     % TODO: get_check_props(CP,gen,Pred,RtcCP) ?
     %
-    comps_to_goal(RtcGPTexec, TestBodyGoal, TestBodyGoal0),
     comps_to_goal(RtcGPProps, GPPropsGoal, GPPropsGoal0),
     %
     texec_warning(AType, GPProps, Pred, AsrLoc),
@@ -1075,7 +1073,8 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
       UsePosLoc = (UsePredLoc, UseAsrLoc),
       generate_rtchecks(Assertions, Pred, DictName, PLoc, UsePosLoc, RTCheck, APCheckGoal)
     ),
-    TestBodyGoal0 = testing(TestId, TmpDir, ~list_to_lits(CP), RTCheck).
+    TestBodyGoal = testing(TestId, TmpDir, ~list_to_lits(CP), RTCheck, TestOptions).
+
 
 % ----------------------------------------------------------------------
 % --------------------------- code to enable custom property definitions

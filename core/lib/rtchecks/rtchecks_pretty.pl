@@ -47,6 +47,7 @@ rtcheck_type(calls).
 
 rtcheck_to_messages(E, Messages) :-
     E = rtcheck(Type, Pred0, Dict, Prop0, Valid0, Positions0),
+    (nonvar(Positions0) -> true ; Positions0=[]), % TODO: Kludge: Find out where free variables as Positions are introduced and fix it
     pretty_prop(t(Pred0, Prop0, Valid0, Positions0), Dict,
         t(Pred, Prop, Valid, Positions)),
     maplist(position_to_message, Positions, PosMessages0),
@@ -111,6 +112,7 @@ position_to_message(asrloc(loc(S, Ln0, Ln1)),
         message_lns(S, Ln0, Ln1, error, [])).
 position_to_message(pploc(loc(S, Ln0, Ln1)),
         message_lns(S, Ln0, Ln1, error, [])).
+
 
 actual_props_to_messages(ActualProps,Messages,Tail) :-
     foldl(actual_prop_to_message, ActualProps, Messages, Tail).
