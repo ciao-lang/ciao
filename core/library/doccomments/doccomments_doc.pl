@@ -18,7 +18,7 @@
    simpler lightweight markup syntax is enabled for (@apl{LPdoc})
    documentation.
 
-   The overall objective is a allow speeding up the process of
+   The overall objective is to allow speeding up the process of
    documentation for many cases that do not require the full power of
    the documentation system and assertion language, as well as
    improving the portability (as documentation comments are simply
