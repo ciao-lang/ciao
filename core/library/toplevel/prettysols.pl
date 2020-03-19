@@ -5,8 +5,6 @@
 :- doc(author,"The Ciao Development Team").
 :- doc(author,"Jose F. Morales").
 
-% TODO: optimize, simplify, make check_cycles unnecessary
-
 :- doc(module, "This module provides predicates to pretty print
    solutions (substitutions and constraints).
 
@@ -36,9 +34,13 @@ Y = []
 @end{verbatim}
 ").
 
+:- doc(bug, "Improve performance of this library (see slow_prettysols.pl bug)").
+
 % ---------------------------------------------------------------------------
 
+:- use_module(engine(term_basic), [cyclic_term/1]).
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
+:- use_module(library(assoc), [empty_assoc/1, get_assoc/3, put_assoc/4]).
 :- use_module(library(dict), [dic_lookup/3, dic_get/3, dictionary/1]).
 :- use_module(library(sort), [keysort/2]).
 
@@ -49,8 +51,8 @@ Y = []
       representing a @var{Solution} (sustitution and constraints).".
 
 dump_solution(Dict, Solution) :-
-    current_prolog_flag(check_cycles, CyclesFlag), % TODO: just check if the term is cyclic
-    ( CyclesFlag = on ->
+    ( cyclic_term(Dict) -> CheckCycles = on ; CheckCycles = off ),
+    ( CheckCycles = on ->
         dump_solution_cycles(Dict, Solution0)
     ; dump_solution_nocycles(Dict, Solution0)
     ),
@@ -58,14 +60,12 @@ dump_solution(Dict, Solution) :-
     prettyvars(Solution, Dict).
 
 dump_solution_cycles(Dict, Solution) :-
+    % TODO: this removes hidden vars eagerly, is it OK? (see dump_solution_nocycles/2 and merge)
     del_hidden_vars(Dict, Varqueue, Varqueue_),
     reverse_dict(Varqueue, Varqueue_, RevDict),
-    uncycle_eqs(Varqueue, Varqueue_, 0, NewVarIdx, RevDict,
-        Varq_nc, Varq_nc_),
-    answer_constraints((Varq_nc, Varq_nc_), (Varq_nc2, Varq_nc2_),
-        Constraints),
-    uncycle_constraints(Constraints, NewVarIdx,
-        Constraints_nc_eqs),
+    uncycle_eqs(Varqueue, Varqueue_, 0, NewVarIdx, RevDict, Varq_nc, Varq_nc_),
+    answer_constraints((Varq_nc, Varq_nc_), (Varq_nc2, Varq_nc2_), Constraints),
+    uncycle_constraints(Constraints, NewVarIdx, Constraints_nc_eqs),
     solution_eqs(Varq_nc2, Varq_nc2_, Solution, Constraints_nc_eqs).
 
 dump_solution_nocycles(Dict, Solution) :-
@@ -93,22 +93,25 @@ uncycle_eqs(EqL, EqL_, N, Nlast, _RevDict, EqLnc, EqLnc_) :-
     EqL == EqL_, !,
     Nlast = N,
     EqLnc = EqLnc_.
-uncycle_eqs([(Var=Val)|EqL], EqL_, N, Nlast, RevDict,
-        [(Var=NewVal)|EqLnc], EqLnc_) :-
-    uncycle_val(Val, [], N, N1, RevDict, EqL_, EqL_2, NewVal),
+uncycle_eqs([(Var=Val)|EqL], EqL_, N, Nlast, RevDict, [(Var=NewVal)|EqLnc], EqLnc_) :-
+    uncycle_val(Val, N, N1, RevDict, EqL_, EqL_2, NewVal),
     uncycle_eqs(EqL, EqL_2, N1, Nlast, RevDict, EqLnc, EqLnc_).
 
-uncycle_val(Val, _Seen, N, N1, _RevDict, NewEqs, NewEqs_, NewVal) :-
+uncycle_val(Val, N, N1, RevDict, NewEqs, NewEqs_, NewVal) :-
+    empty_assoc(Seen),
+    uncycle_val_(Val, Seen, N, N1, RevDict, NewEqs, NewEqs_, NewVal).
+
+uncycle_val_(Val, _Seen, N, N1, _RevDict, NewEqs, NewEqs_, NewVal) :-
     var(Val), !,
     N1 = N,
     NewEqs = NewEqs_,
     NewVal = Val.
-uncycle_val(Val, _Seen, N, N1, _RevDict, NewEqs, NewEqs_, NewVal) :-
+uncycle_val_(Val, _Seen, N, N1, _RevDict, NewEqs, NewEqs_, NewVal) :-
     atomic(Val), !,
     N1 = N,
     NewEqs = NewEqs_,
     NewVal = Val.
-uncycle_val(Val, Seen, N, N1, RevDict, NewEqs, NewEqs_, NewVal) :-
+uncycle_val_(Val, Seen, N, N1, RevDict, NewEqs, NewEqs_, NewVal) :-
     already_seen(Seen, Val), !,
     dic_lookup(RevDict, Val, Var),
     ( var(Var) ->
@@ -121,25 +124,23 @@ uncycle_val(Val, Seen, N, N1, RevDict, NewEqs, NewEqs_, NewVal) :-
     ),
     atom_codes(VarName, Var),
     NewVal = '$VAR'(VarName).
-uncycle_val(Val, Seen, N, N1, RevDict, NewEqs, NewEqs_, NewVal) :-
+uncycle_val_(Val, Seen, N, N1, RevDict, NewEqs, NewEqs_, NewVal) :-
     functor(Val,    F, A),
     functor(NewVal, F, A),
-    uncycle_val_args(A, Val, [Val|Seen], N, N1, RevDict,
-        NewEqs, NewEqs_, NewVal).
+    add_seen(Val, Seen, Seen1),
+    uncycle_val_args(A, Val, Seen1, N, N1, RevDict, NewEqs, NewEqs_, NewVal).
 
-uncycle_val_args(0, _,   _,    N, N,  _,       NewEqs, NewEqs,  _) :- !.
+uncycle_val_args(0, _, _, N, N, _, NewEqs, NewEqs, _) :- !.
 uncycle_val_args(A, Val, Seen, N, N_, RevDict, NewEqs, NewEqs_, NVal) :-
     A1 is A-1,
     arg(A, Val,  ValA),
     arg(A, NVal, NValA),
-    uncycle_val(ValA, Seen, N, N1, RevDict, NewEqs, NewEqs1, NValA),
-    uncycle_val_args(A1, Val, Seen, N1, N_, RevDict,
-        NewEqs1, NewEqs_, NVal).
+    uncycle_val_(ValA, Seen, N, N1, RevDict, NewEqs, NewEqs1, NValA),
+    uncycle_val_args(A1, Val, Seen, N1, N_, RevDict, NewEqs1, NewEqs_, NVal).
 
-already_seen([T|_], Term) :-
-    T == Term, !.
-already_seen([_|Ts], Term) :-
-    already_seen(Ts, Term).
+add_seen(Val, Seen, Seen1) :- put_assoc(Val, Seen, yes, Seen1).
+
+already_seen(Seen, Val) :- get_assoc(Val, Seen, _).
 
 new_varname(N, Var) :-
     number_codes(N, NS),
@@ -175,7 +176,7 @@ answer_constraints_nc(Dict, Dict2, Constraints) :-
 % ---------------------------------------------------------------------------
 
 uncycle_constraints(Cs, N, Cs_nc_eqs) :-
-    uncycle_val(Cs, [], N, N1, RevDict, Varq, Varq_, Cs_nc),
+    uncycle_val(Cs, N, N1, RevDict, Varq, Varq_, Cs_nc),
     uncycle_eqs(Varq, Varq_, N1, _, RevDict, Varqn, []),
     Cs_nc_eqs = [Cs_nc|Varqn].
 

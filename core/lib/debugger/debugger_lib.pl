@@ -1143,16 +1143,15 @@ print_srcdbg_info(Pred, Src, Ln0, Ln1, Number) :-
 
 % ---------------------------------------------------------------------------
 %! ## Auxiliary for printing bindings (dicts, cycles, and attributed variables)
-% TODO: move to prettysols.pl?
+% TODO: move/merge with prettysols.pl?
 % TODO: document
 
 :- use_module(library(varnames/apply_dict)).
 :- use_module(library(varnames/complete_dict), [set_undefined_names/3]).
-:- use_module(library(cyclic_terms), [uncycle_term/2]).
+:- use_module(library(cyclic_terms), [uncycle_term/2]). % TODO: slow, see attrdump.pl
+:- use_module(engine(term_basic), [cyclic_term/1]).
 :- use_module(engine(attributes)).
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
-
-define_flag(check_cycles, [on, off], off). % TODO: move somewhere else?
 
 debug_dict(X, d(UDict, CDict), Dict) :-
     append(UDict, CDict, Dict0),
@@ -1161,15 +1160,9 @@ debug_dict(X, d(UDict, CDict), Dict) :-
     Dict = d(UDict, CDict, ADict).
 
 select_applicable_with_cycles(X,Dict,ADict) :-
-    current_prolog_flag(check_cycles,off), !,
-    select_applicable(X, Dict, ADict).
-select_applicable_with_cycles(X,Dict,ADict) :-
     uncycle_term(X,(X1,_)),
     select_applicable(X1, Dict, ADict).
 
-apply_dict_with_cycles(t(ADict0,Goal0,AtVars0),ADict0,t(ADict,Goal,AtVars)) :-
-    current_prolog_flag(check_cycles,off), !,
-    apply_dict(t(ADict0,Goal0,AtVars0), ADict0, t(ADict, Goal, AtVars)).
 apply_dict_with_cycles(t(ADict0,Goal0,AtVars0),ADict0,t(ADict,Goal,AtVars)) :-
     uncycle_term(Goal0-ADict0,(Goal1-ADict2,Cycles)),
     close_list(Cycles),
@@ -1188,11 +1181,9 @@ as_dict([X-Y|L1],[Y=X|L2]) :-
 
 %:- export(get_attributed_vars/2).
 get_attributed_vars(Term, AtVars) :-
-    current_prolog_flag(check_cycles, Flag),
-    ( Flag = on ->
+    ( cyclic_term(Term) ->
         get_attributed_vars_cy(Term, [], _, [], AtVars)
-    ;
-        get_attributed_vars_nc(Term, AtVars, [])
+    ; get_attributed_vars_nc(Term, AtVars, [])
     ).
 
 get_attributed_vars_cy(X, Seen, Seen, At, NewAt) :-

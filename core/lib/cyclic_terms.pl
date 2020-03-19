@@ -27,7 +27,8 @@ acyclic_term(T) :-
    representation can be converted back to @var{T} using
    @pred{recycle_term/2}.".
 
-uncycle_term(T, (U,Pairs)) :-
+uncycle_term(T, (U,_)) :- acyclic_term(T), !, U = T.
+uncycle_term(T, (U,Pairs)) :- % TODO: optimize, like cyclic_term/1
     uncycle_term_(T, [], Pairs, U).
 
 uncycle_term_(T,_Seen,_Pairs, U) :-
