@@ -1,3 +1,7 @@
+:- doc(version(1*19+0,2020/3/20,14:48:45+'CET'), "
+(TO BE WRITTEN)
+").
+
 :- doc(version(1*18+0,2018/12/06,11:25*08+'CEST'), "
    @begin{itemize}
    @item Backward-incompatible changes in this version:
