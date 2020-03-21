@@ -4,7 +4,7 @@
 #
 #  Boot the Ciao builder (with or without sources)
 #
-#  Copyright (C) 2015-2019 Ciao Developer Team
+#  Copyright (C) 2015-2020 Ciao Developer Team
 #
 
 # Boot from existing sources
@@ -22,7 +22,8 @@ fi
 
 set_defaults() {
     default_bundle=ciao
-    default_vers_bin=1.18.0
+    # default_vers_bin=1.18.0 # TODO: add option
+    default_vers_bin=1.19.0
     default_vers_src=master
     default_prebuilt=yes # TODO: make it depend on selected version?
     default_url_src=https://github.com/ciao-lang/ciao/archive
