@@ -52,32 +52,12 @@ matrix:
       compiler: gcc
       osx_image: xcode10.1
       env:
-        - DEVENV="no" ARCHOPTS="--core:m32=yes"
-    - os: osx
-      compiler: clang
-      osx_image: xcode10.1
-      env:
-        - DEVENV="no" ARCHOPTS="--core:m32=yes"
-    - os: osx
-      compiler: gcc
-      osx_image: xcode10.1
-      env:
         - DEVENV="yes" ARCHOPTS=
     - os: osx
       compiler: clang
       osx_image: xcode10.1
       env:
         - DEVENV="yes" ARCHOPTS=
-    - os: osx
-      compiler: gcc
-      osx_image: xcode10.1
-      env:
-        - DEVENV="yes" ARCHOPTS="--core:m32=yes"
-    - os: osx
-      compiler: clang
-      osx_image: xcode10.1
-      env:
-        - DEVENV="yes" ARCHOPTS="--core:m32=yes"
 
 branches:
   only:
