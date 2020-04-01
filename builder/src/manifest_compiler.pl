@@ -135,6 +135,7 @@ ensure_load_manifest(Target) :-
         true
     ; assertz_fact(loaded_with_hooks(Bundle)),
       check_known_bundle(Bundle), % TODO: bundle must have been scanned before
+      ensure_builddir(Bundle, 'cache'), % (for out-of-tree builds) % TODO: create dir from ciaoc?
       BundleDir = ~bundle_path(Bundle, '.'),
       load_manifest(Bundle, BundleDir),
       load_manifest_hooks(Bundle, BundleDir)
@@ -149,7 +150,6 @@ ensure_load_manifest(Target) :-
 load_manifest_hooks(Bundle, BundleDir) :-
     HooksFile = ~hooks_file(Bundle, BundleDir),
     ( file_exists(HooksFile) ->
-        ensure_builddir(Bundle, 'cache'), % (for out-of-tree builds) % TODO: create dir from ciaoc?
         working_directory(PWD, BundleDir), % TODO: Needed here?
         once_port_reify(bundlehooks_holder:do_use_module(HooksFile), Port),
         cd(PWD),
