@@ -45,6 +45,7 @@ assrt_extra((:- pred ABody), (:- pred ABody2)) :-
 norm_args(ABody0, ABody) :-
     assertion_body(PD0,true,CP,AP,GP,CO,ABody0),
 %       display(aa(assertion_body(PD0,true,CP,AP,GP,CO,ABody0))), nl,
+    \+ functor(PD0, /, 2), % TODO: check other assrt processing code!
     PD0 =.. [H|Args0],
     extract_types(Args0, Args, DP1),
     list_to_prod(DP1, DP),
