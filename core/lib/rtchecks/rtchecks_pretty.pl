@@ -148,6 +148,8 @@ actual_prop_to_message(X,['\n\t', ''({X}) | Tail], Tail).
 :- pred compact_list(L, R) : list(L) => list(R)
     # "Delete repeated sequences in a list.".
 
+:- prop compact_list/2.
+:- export(compact_list/2).
 compact_list(L, R) :-
     compact_list_(L, 1, R).
 

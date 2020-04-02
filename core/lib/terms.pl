@@ -10,7 +10,7 @@
 
 %-------------------------------------------------------------------------
 
-:- pred term_size(Term, N) : term * nnegint # "Determines the size of
+:- pred term_size(Term, N) => nnegint(N) # "Determines the size of
     a term.".
 
 :- test term_size(A, B):(A= p(a, b, c(d, e))) => B = 6.
