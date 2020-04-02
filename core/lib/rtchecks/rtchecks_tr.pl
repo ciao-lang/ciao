@@ -1129,7 +1129,7 @@ get_check_prop(Prop, comp, _, RtcProp) :-
     Prop     =.. [F | Args],
     RtcProp =.. [RtcF | Args].
 
-get_check_prop(mshare(Sh),_,HeadVars,succeeds(rtc_mshare(Vs2,Sh2))) :- !,
+get_check_prop(mshare(Sh),_,HeadVars,rtc_mshare(Vs2,Sh2)) :- !,
     mshare_tr(HeadVars,Sh,Vs2,Sh2).
 
 get_check_prop(Prop,Check,HeadVars,RtcProp) :-
