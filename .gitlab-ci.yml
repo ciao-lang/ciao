@@ -113,6 +113,7 @@ incanal_lite:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - cd bndls/ciaopp_tests/tests/incanal
     - ./compile.sh
+    - ./test_incanal_mon.sh
     - ./quick_run.sh
   tags:
     - ciao
