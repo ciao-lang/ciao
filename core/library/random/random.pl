@@ -22,7 +22,7 @@
 :- trust pred random(+int,+flt,-flt).
 
 :- doc(srandom(Seed), "Changes the sequence of pseudo-random
-    numbers according to @var{Seed}.  The stating sequence of
+    numbers according to @var{Seed}.  The starting sequence of
     numbers generated can be duplicated by calling the predicate
     with @var{Seed} unbound (the sequence depends on the OS).").
 
