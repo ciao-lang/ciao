@@ -1861,7 +1861,7 @@ make_po_file_2(PoName, Mode, Base, Module, Source) :-
 
 check_assertions_syntax(M) :-
     current_fact(assertion_read(_P, M, _S, T, B, Dict, S, LB, LE)),
-    ( T \== modedef, T \== test -> % Skip tests assertions, not processed here
+    ( T \== modedef, T \== test, T \== texec -> % Skip tests assertions, not processed here
         asserta_fact(location(S, LB, LE), LRef),
         assrt_module_expansion(M, T, B, Dict, _Def, _H, _Props), % TODO: save? (e.g., for ciaopp/lpdoc)
         erase(LRef)

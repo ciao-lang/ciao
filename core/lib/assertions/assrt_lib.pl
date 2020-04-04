@@ -547,6 +547,7 @@ pass_two_not_required(modedef). %% modedefs already transformed in pass one -- l
 
 % (hook)
 pass_two_check_body(test,_,_,_,_,_,_,_) :- !. %% Unit-Tests will be checked when compiled, not here % TODO: why? due to unit-test only imports? (JF)
+pass_two_check_body(texec,_,_,_,_,_,_,_) :- !.
 pass_two_check_body(_AType,M,AM,F/A,NPropAss,S,LB,LE) :-
     check_body_properties(M,AM,F,A,NPropAss,S,LB,LE).
 
