@@ -247,6 +247,7 @@ assertion_format(success, s).
 %% Entry for unit-test -- EMM
 assertion_format(texec,   g).
 assertion_format(texec,   c).
+assertion_format(texec,   t).
 %% DTM: New assertion type
 assertion_format(exit,    s).
 assertion_format(comp,    g).
@@ -306,7 +307,7 @@ norm_body((PD       =>AP   #CO),s,(PD::true:true=>AP  +true#CO)):-!.%00101
 norm_body((PD       =>AP      ),s,(PD::true:true=>AP  +true#"")):-!.%00100
 norm_body((PD           +GP#CO),g,(PD::true:true=>true+GP  #CO)):-!.%00011
 norm_body((PD           +GP   ),g,(PD::true:true=>true+GP  #"")):-!.%00010
-norm_body((PD              #CO),p,(PD::true:true=>true+true#CO)):-!.%00001
+norm_body((PD              #CO),t,(PD::true:true=>true+true#CO)):-!.%00001
 norm_body((PD                 ),t,(PD::true:true=>true+true#"")):-!.%00000
 % ----------------------------------------------------------------- % ----
 
