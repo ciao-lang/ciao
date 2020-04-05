@@ -258,3 +258,13 @@ rtchecks_testsuite:
   allow_failure: true
   tags:
     - ciao
+
+unittest:
+  stage: test
+  script:
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - cd bndls/testsuite/unittest
+    - ./run_unittest_tests.pl
+  allow_failure: true
+  tags:
+    - ciao
