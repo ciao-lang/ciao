@@ -163,7 +163,7 @@ collapse_term([E|L0], C0, R0, R) :-
        counters of all free variables that appear in @var{Term}.
        @var{Tail} is the tail of @var{VarCounts}. Each element of
        @var{VarCounts} is of the form =(var,nnegint).".
-    % see unittest_base:group_list/3 for a similar functionality
+
 % actual use
 :- pred count_vars(Term, Counts0, Counts)
     :  (ground(Term), list(eq,Counts0), var(Counts))
