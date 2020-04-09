@@ -18,7 +18,8 @@
 :- use_module(library(system), [working_directory/2]).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(pathnames), 
-    [path_concat/3,
+    [path_is_absolute/1,
+     path_concat/3,
      path_relocate/4, 
      path_split_list/2, 
      path_split/3,
@@ -69,19 +70,19 @@ relbuild(build, 'build'). % normal build
 relbuild(bootbuild, 'build-boot'). % bootstrap build
 
 :- export(bundle_workspace/2).
-% Workspace corresponding to Bundle
+% Obtain the workspace path @var{Path} for the bundle @var{Bundle}
 % TODO: store dynamically the wksp and the relative srcdir?
-bundle_workspace(Bundle, R0) :-
+bundle_workspace(Bundle, Path) :-
     '$bundle_srcdir'(Bundle, Dir),
-    ( ciao_path(Path)
-    ; ciao_root(Path)
+    ( ciao_path(Path0)
+    ; ciao_root(Path0)
     ),
-    % Dir is relative to Path
-    ( Path = Dir
-    ; path_get_relative(Path, Dir, _)
+    % Dir is relative to Path0
+    ( Path0 = Dir
+    ; path_get_relative(Path0, Dir, _)
     ),
     !, 
-    R0 = Path.
+    Path = Path0.
 
 % ---------------------------------------------------------------------------
 
@@ -93,12 +94,49 @@ bundle_workspace(Bundle, R0) :-
 reverse_bundle_path(F, Bundle, R) :-
     findmax(P0, match_bndl(F, P0), match_len, t(Bundle, _, R)).
 
+% TODO: speedup by removing workspace first and indexing on first component
 match_bndl(F, t(Bundle, BundleDir, R)) :-
     '$bundle_id'(Bundle),
     '$bundle_srcdir'(Bundle, BundleDir),
     path_relocate(BundleDir, '', F, R).
 
 match_len(t(_, X, _), Len) :- atom_length(X, Len).
+
+% ---------------------------------------------------------------------------
+
+:- export(bundle_shorten_path/2).
+:- pred bundle_shorten_path(+Path, -ShortPath) :: atm * atm
+   # "Given the absolute path @var{Path} try to obtain a
+   @var{ShortPath} of the form @tt{Bundle/RelPath}, such that
+   @tt{reverse_bundle_path(Path, Bundle, RelPath)} holds. If
+   @var{Path} is not under any bundle, @var{ShortPath} is
+   @var{Path}.".
+
+bundle_shorten_path(F, ShortPath) :-
+    reverse_bundle_path(F, Bundle, R), !,
+    path_concat(Bundle, R, ShortPath).
+bundle_shorten_path(F, F).
+
+:- export(bundle_extend_path/2).
+:- pred bundle_extend_path(+ShortPath, -Path) :: atm * atm
+   # "If @var{ShortPath} has the form @tt{Bundle/RelPath}, obtain the
+   absolute path @var{Path} by replacing the bundle name by its base
+   directory. If @var{Bundle} is not a known bundle or @var{ShortPath}
+   is an absolute path, @var{Path} is @var{ShortPath}.".
+
+bundle_extend_path(ShortPath, F) :-
+    \+ path_is_absolute(ShortPath), % not absolute
+    % decompose ShortPath into Bundle/Rel
+    atom_codes(ShortPath, Cs),
+    append(BundleCs, "/"||RelCs, Cs), % TODO: move this operation to pathnames?
+    atom_codes(Bundle, BundleCs),
+    % get srcdir for Bundle
+    '$bundle_srcdir'(Bundle, Dir),
+    !,
+    atom_codes(Rel, RelCs),
+    path_concat(Dir, Rel, F).
+bundle_extend_path(ShortPath, F) :-
+    F = ShortPath.
 
 % ===========================================================================
 :- doc(section, "Bundle-aware absolute file name").
