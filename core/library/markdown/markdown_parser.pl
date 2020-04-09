@@ -46,10 +46,7 @@
 :- export(markdown_parse/2).
 markdown_parse(Cs, Envs) :-
     layout_new(0, Layout),
-    % TODO: Fix Ciao argument order for hiord!
-    %sc_lift(parse_start(Layout, Envs0), Cs, Rest),
-    sc_lift(([Layout, Envs0] -> 
-             ''(A, B) :- parse_start(Layout, Envs0, A, B)), Cs, Rest),
+    sc_lift(parse_start(Layout, Envs0), Cs, Rest),
     ( Rest = [] ->
         true
     ; % Could not parse the whole text
@@ -60,8 +57,7 @@ markdown_parse(Cs, Envs) :-
 % Parse a substring (used in the parser itself)
 % TODO: This should not be necessary with a good grammar
 parse_substring(Layout, Str, Envs) :-
-    sc_lift(([Layout, Envs] ->
-             ''(A, B) :- parse_text(Layout, Envs, A, B)), Str, Rest),
+    sc_lift(parse_text(Layout, Envs), Str, Rest),
     ( Rest = [] ->
         true
     ; % Could not parse the whole text
@@ -243,18 +239,19 @@ parse_indented_docstring(Layout, Envs) -->
 % Parsing text (non-front commands or normal text).
 parse_text(Layout, Envs) -->
     % Initialize the accumulator
-    parse_text_(Layout, StrHead, StrHead, Envs).
+    parse_text_(Layout, 0, StrHead, StrHead, Envs).
 
 % TODO: Join lines together and build paragraphs?
 % TODO: First get the paragraph and then postprocess? or not?
 %       at least define... match_paragraph_until (it works in Org)
 
 % parse_text_(Layout,
+%             PrevC,       % Previous char (0 if none)
 %             StrHead,     % Accumulator (head)
 %             StrTail,     % Accumulator (tail)
 %             Envs, Envs0) % Envs
 
-parse_text_(Layout, StrHead, StrTail, Envs) -->
+parse_text_(Layout, _PrevC, StrHead, StrTail, Envs) -->
     sc_nonblank_loc(0, Col, Row),
     % next non-blank outside the base BaseCol, exit
     { Row >= 1,
@@ -263,7 +260,7 @@ parse_text_(Layout, StrHead, StrTail, Envs) -->
     !,
     % Stop here (do not consume the newlines yet)
     { flush_text(StrHead, StrTail, Envs, []) }.
-parse_text_(Layout0, StrHead, StrTail, Envs) -->
+parse_text_(Layout0, _PrevC, StrHead, StrTail, Envs) -->
     % A new line
     sc_nl,
     !,
@@ -280,7 +277,7 @@ parse_text_(Layout0, StrHead, StrTail, Envs) -->
     ),
     { layout_mark_prevcol(Layout0, Layout) },
     parse_front2(Layout, Envs0).
-parse_text_(Layout, StrHead, StrTail, Envs) -->
+parse_text_(Layout, _PrevC, StrHead, StrTail, Envs) -->
     % Hack to avoid parsing of text between {...}
     % TODO: With integration in the LPdoc parser, this would not be necessary
     % TODO: Text inside {...} is not parsed (it may be, depending on the command).
@@ -289,7 +286,7 @@ parse_text_(Layout, StrHead, StrTail, Envs) -->
     { flush_text(StrHead, StrTail, Envs, Envs1) },
     { Envs1 = [env('text', "{"), env('text', Text), env('text', "}")|Envs0] },
     parse_text(Layout, Envs0).
-parse_text_(Layout, StrHead, StrTail, Envs) -->
+parse_text_(Layout, _PrevC, StrHead, StrTail, Envs) -->
     % Escape markdown
     sc_char(C), { cmdchar(C) },
     sc_char(C2), { reserved_char(C2) },
@@ -297,7 +294,7 @@ parse_text_(Layout, StrHead, StrTail, Envs) -->
     { flush_text(StrHead, StrTail, Envs, Envs1) },
     { Envs1 = [env('text', [C2])|Envs0] },
     parse_text(Layout, Envs0).
-parse_text_(Layout, StrHead, StrTail, Envs) -->
+parse_text_(Layout, _PrevC, StrHead, StrTail, Envs) -->
     % Markup verbatim
     % TODO: better support for codeblock in markup? (not markdown) note that verbatim still allows commands inside!
     sc_char(C), { cmdchar(C) },
@@ -310,32 +307,35 @@ parse_text_(Layout, StrHead, StrTail, Envs) -->
     sc_str("end{verbatim}"),
     { Envs1 = [env(codeblock("text"), CodeBlock)|Envs0] },
     parse_text(Layout, Envs0).
-parse_text_(Layout, StrHead, StrTail, Envs) -->
+parse_text_(Layout, _PrevC, StrHead, StrTail, Envs) -->
     % Some binary text decorator (e.g., [[...][...]])
     % TODO: Precompute to make it more efficient
     { decorator_fxfxf(Begin, Mid, End, Cmd0) },
-    sc_str(Begin), match_until_nonl(Text1, Mid), match_until_nonl(Text2, End),
+    sc_str(Begin),
+    { cmd_type(Cmd0, Type0) },
+    { Cmd1 =.. [Cmd0, EnvsText1] },
+    { cmd_type(Cmd1, Type) },
+    match_substring_arg(Type0, Text1, Mid),
+    match_substring_arg(Type, Text2, End),
     !,
     { flush_text(StrHead, StrTail, Envs, Envs1) },
     %
-    { cmd_type(Cmd0, Type0) },
     { parse_substring_arg(Type0, Layout, Text1, EnvsText1) },
-    { Cmd1 =.. [Cmd0, EnvsText1] },
-    %
-    { cmd_type(Cmd1, Type) },
     { parse_substring_arg(Type, Layout, Text2, EnvsText2) },
     { Env0 = env(Cmd1, EnvsText2) },
     %
     { fix_env(Env0, Env) },
     { Envs1 = [Env|Envs0] },
     parse_text(Layout, Envs0).
-parse_text_(Layout, StrHead, StrTail, Envs) -->
+parse_text_(Layout, PrevC, StrHead, StrTail, Envs) -->
     % Some unary text decorator (e.g., *...*)
     % TODO: Precompute to make it more efficient
-    { decorator_fxf(Begin, End, Cmd) },
+    { decorator_fxf(Begin, End, Cmd, Edge) },
+    { valid_decorated_edge(Edge, PrevC) },
     { cmd_type(Cmd, Type) },
     sc_str(Begin), match_substring_arg(Type, Text, End),
-    { \+ Text = "" }, % not empty
+    sc_peek(NextC), { valid_decorated_edge(Edge, NextC) },
+    { valid_decorated_text(Text) }, % not empty
     !,
     { flush_text(StrHead, StrTail, Envs, Envs1) },
     %
@@ -345,22 +345,44 @@ parse_text_(Layout, StrHead, StrTail, Envs) -->
     { fix_env(Env0, Env) },
     { Envs1 = [Env|Envs0] },
     parse_text(Layout, Envs0).
-parse_text_(Layout, StrHead, [C|StrTail], Envs) -->
-    % A normal character code
+parse_text_(Layout, _PrevC, StrHead, [C|StrTail], Envs) -->
+    % Other character code
     sc_char(C),
     !,
-    parse_text_(Layout, StrHead, StrTail, Envs).
-parse_text_(_Layout, StrHead, StrTail, Envs) -->
+    parse_text_(Layout, C, StrHead, StrTail, Envs).
+parse_text_(_Layout, _PrevC, StrHead, StrTail, Envs) -->
     % Nothing else, stop here
     { flush_text(StrHead, StrTail, Envs, []) }.
 
+% Edges: 'any' for anything, 'noalpha' to avoid alphanum/1
+valid_decorated_edge(any, _).
+valid_decorated_edge(noalpha, C) :- \+ alphanum(C).
+
+% Decorated text cannot be empty or be surrounded by blanks.
+valid_decorated_text(Text) :-
+    Text = [A|_],
+    \+ is_blank_or_nl(A),
+    append(_,[B],Text), !,
+    \+ is_blank_or_nl(B).
+
+% Alphanumeric % TODO: extend with valid unicode for code identifiers?
+alphanum(C) :- C >= 0'a, C >= 0'z, !.
+alphanum(C) :- C >= 0'A, C >= 0'Z, !.
+alphanum(C) :- C >= 0'0, C >= 0'9, !.
+alphanum(0'_).
+
+is_blank_or_nl(0' ).
+is_blank_or_nl(0'\t).
+is_blank_or_nl(0'\n).
+                                                      
 % Match command argument (finishing at End)
 match_substring_arg(multiline, Text, End) -->
     match_multiline(Text, End).
 match_substring_arg(string, Text, End) -->
     match_until_nonl(Text, End).
 match_substring_arg(docstring, Text, End) -->
-    match_until_nonl(Text, End).
+%    match_until_nonl(Text, End).
+    match_multiline(Text, End).
 
 % Parse a command argument that has been already read as raw text.
 parse_substring_arg(multiline, _Layout, Text, Envs) :- !,
@@ -672,7 +694,7 @@ match_multiline(Str, End) --> sc_char(0'\n), !,
       { EmptyLines = yes } -> % Fail if empty line found
         { fail }
     ; % Otherwise continue (including same blanks)
-      match_multiline(Str, End)
+      match_multiline_nl(Str, End)
     ).
 match_multiline(Str, End) --> sc_str(End), !,
     % Found `Str`, stop here
@@ -682,6 +704,14 @@ match_multiline([C|Str], End) --> sc_char(C), !,
 match_multiline(_Str, _End) -->
     % Nothing else, so it has been not found
     { fail }.
+
+% (nl was accumulated)
+match_multiline_nl(Str, End) --> sc_str(End), !,
+    % Found `Str`, stop here
+    { Str = [] }.
+match_multiline_nl(Str, End) -->
+    { Str = [0' |Str0] },
+    match_multiline(Str0, End).
 
 % TODO: almost duplicated from autodoc_parse, but using layout_dcg
 pick_until_endcmd([], CmdStr) -->

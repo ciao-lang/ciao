@@ -52,6 +52,13 @@ sc_next_col(0'\t, Col0, Col) :- !, % tab % TODO: Incorrect
 sc_next_col(_, Col0, Col) :- !, % space or normal char
     Col is Col0 + 1.
 
+:- export(sc_peek/3).
+% Peek next character `C` (without consuming it).
+% Get 0 if no more characters.
+
+sc_peek(C, S0, S) :- S0 = sc([C|_], _), !, S = S0.
+sc_peek(0, S, S).
+
 :- export(sc_nl/2).
 %! sc_nl:
 %    Pick a new line character.

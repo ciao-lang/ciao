@@ -115,14 +115,14 @@ prefix_cmd(item_num(_)). % (internal)
 code_env_indent(4).
 
 % Special syntax for unary LPdoc commands
-:- export(decorator_fxf/3).
-decorator_fxf("**", "**", bf).
-decorator_fxf("__", "__", bf).
-decorator_fxf("*", "*", em).
-decorator_fxf("_", "_", em).
-decorator_fxf("[[", "]]", href).
-decorator_fxf("`", "`", code). % Note: 'code' does not exist in LPdoc
-decorator_fxf("$", "$", math).
+:- export(decorator_fxf/4).
+decorator_fxf("**", "**", bf, any).
+decorator_fxf("__", "__", bf, noalpha).
+decorator_fxf("*", "*", em, any).
+decorator_fxf("_", "_", em, noalpha).
+decorator_fxf("[[", "]]", href, any).
+decorator_fxf("`", "`", code, any). % Note: 'code' does not exist in LPdoc
+decorator_fxf("$", "$", math, any).
 
 % Special syntax for binary LPdoc commands
 :- export(decorator_fxfxf/4).
@@ -133,7 +133,6 @@ decorator_fxfxf("[", "](", ")", link). % Note: 'link' does not exist (reversed h
 :- export(reserved_char/1).
 reserved_char(0'*).
 reserved_char(0'_).
-reserved_char(0'*).
 reserved_char(0'[).
 reserved_char(0']).
 reserved_char(0'`).
