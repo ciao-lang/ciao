@@ -1223,6 +1223,8 @@ void init_once(void)
   define_c_mod_predicate("system","pause", 1, prolog_pause);
   define_c_mod_predicate("system","shell",0,prolog_unix_shell0);
   define_c_mod_predicate("system","shell",2,prolog_unix_shell2);
+  define_c_mod_predicate("system","fd_dup",2,prolog_fd_dup);
+  define_c_mod_predicate("system","fd_close",1,prolog_fd_close);
   define_c_mod_predicate("internals","$exec",9,prolog_exec);
   define_c_mod_predicate("system","wait",2,prolog_wait);
   define_c_mod_predicate("system","kill",2,prolog_kill);

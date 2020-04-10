@@ -36,6 +36,8 @@ CBOOL__PROTO(prolog_kill);
 CBOOL__PROTO(prolog_unix_cd);
 CBOOL__PROTO(prolog_unix_shell0);
 CBOOL__PROTO(prolog_unix_shell2);
+CBOOL__PROTO(prolog_fd_dup);
+CBOOL__PROTO(prolog_fd_close);
 CBOOL__PROTO(prolog_unix_argv);
 CBOOL__PROTO(prolog_unix_exit);
 CBOOL__PROTO(prolog_unix_mktemp);

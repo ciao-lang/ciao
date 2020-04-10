@@ -940,6 +940,32 @@ system(Path) :- shell(Path, _RetCode).
 system(Command, RetCode) :- shell(Command, RetCode).
 
 % ---------------------------------------------------------------------------
+
+:- export(fd_dup/2).
+:- doc(fd_dup(FD, NewFD), "Duplicate the file descriptor @var{FD} into @var{NewFD}").
+:- pred fd_dup(+int, -int) # "Duplicate a file description into a new
+   free file descriptor (C @tt{dup()})".
+:- pred fd_dup(+int, +int) # "Duplicate a file description into a specified
+   file descriptor (C @tt{dup2()})".
+
+:- if(defined(optim_comp)).
+:- '$props'(fd_dup/2, [impnat=cbool(prolog_fd_dup)]).
+:- else.
+:- impl_defined(fd_dup/2).
+:- endif.
+
+% ---------------------------------------------------------------------------
+
+:- export(fd_close/1).
+:- pred fd_close(+int) # "Close the file descriptor (using C close())".
+
+:- if(defined(optim_comp)).
+:- '$props'(fd_close/1, [impnat=cbool(prolog_fd_close)]).
+:- else.
+:- impl_defined(fd_close/1).
+:- endif.
+
+% ---------------------------------------------------------------------------
 :- regtype winpath_option/1.
 
 winpath_option(full).

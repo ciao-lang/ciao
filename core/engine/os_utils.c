@@ -3190,3 +3190,47 @@ CBOOL__PROTO(prolog_unix_shell2)
   /* TODO: retcode == -1 on error, we should throw exception */
   return cunify(Arg, MakeSmall(retcode), X(1));
 }
+
+CBOOL__PROTO(prolog_fd_dup) {
+  ERR__FUNCTOR("system:fd_dup", 2);
+  int i, j, k;
+
+  /* Get source fd */
+  DEREF(X(0), X(0));
+  if (!TaggedIsSmall(X(0))) {
+    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(0), 1);
+  }
+  i = GetSmall(X(0));
+
+  /* Get target fd */
+  DEREF(X(1), X(1));
+  if (TaggedIsSmall(X(1))) { /* target fd specified */
+    j = GetSmall(X(1));
+    k = dup2(i, j);
+    if (k == -1) {
+      /* TODO: throw an exception instead */
+      perror("dup2() in prolog_fd_dup/2: ");
+      SERIOUS_FAULT("Aborting");
+    }
+    CBOOL__PROCEED;
+  } else { /* target fd not specified */
+    j = dup(i);
+    return cunify(Arg, MakeSmall(j), X(1));
+  }
+}
+
+CBOOL__PROTO(prolog_fd_close) {
+  ERR__FUNCTOR("system:fd_close", 1);
+  int i;
+
+  /* Get fd */
+  DEREF(X(0), X(0));
+  if (!TaggedIsSmall(X(0))) {
+    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(0), 1);
+  }
+  i = GetSmall(X(0));
+
+  close(i);
+  CBOOL__PROCEED;
+}
+
