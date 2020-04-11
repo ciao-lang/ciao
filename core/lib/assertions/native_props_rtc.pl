@@ -363,12 +363,16 @@ rtc_exception(Goal,E) :-
     send_comp_rtcheck(Goal, exception(E), no_exception).
 
 handle_rtc_exception(Goal, F, E) :-
-    ( F = rtcheck(_,_,_,_,_,_) -> true % ignore, propagate rtcheck
+    ( ignored_exception(F) -> true % ignore and propagate
     ; E \= F ->
         send_comp_rtcheck(Goal, exception(E), exception(F))
     ; true
     ),
     throw(F).
+
+% Exceptions that are propagated upwards in rtchecks
+ignored_exception(rtcheck(_,_,_,_,_,_)).
+ignored_exception(time_limit_exceeded).
 
 % ----------------------------------------------------------------------
 
@@ -394,7 +398,7 @@ rtc_no_exception(Goal, E) :- no_exception_2(Goal, no_exception(E), E).
 no_exception_2(Goal, Prop, E) :-
     catch(Goal, E, handle_no_exception_2(Goal,Prop,E)).
 handle_no_exception_2(Goal,Prop,E) :-
-    ( E=rtcheck(_,_,_,_,_,_) -> true % ignore, propagate rtcheck
+    ( ignored_exception(E) -> true % ignore and propagate
     ; send_comp_rtcheck(Goal, Prop, exception(E))
     ),
     throw(E).
