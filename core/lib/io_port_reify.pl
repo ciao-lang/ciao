@@ -118,10 +118,21 @@ close_std_redirect_(string_redirect(String, File, Redirect)) :-
     del_file_nofail(File).
 
 % ---------------------------------------------------------------------------
+% Stdout redirection (only for stderr)
+
+open_std_redirect_(stdout, stderr, stdout_redirect(Redirect)) :-
+    stream_code(StdOut, 1),
+    open_std_redirect(stderr, stream(StdOut), Redirect).
+
+close_std_redirect_(stdout_redirect(Redirect)) :-
+    close_std_redirect(Redirect).
+
+% ---------------------------------------------------------------------------
 % Auxiliary FD operations
 
 % Save and redirect FD to NewFD
 push_fd(FD, NewFD, SavedFD) :-
+    fd_flush(FD),
     fd_dup(FD, SavedFD),
     fd_dup(NewFD, FD).
 
@@ -132,4 +143,3 @@ pop_fd(FD, SavedFD) :-
     fd_close(SavedFD).
 
 fd_flush(FD) :- stream_code(S, FD), flush_output(S).
-
