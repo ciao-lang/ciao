@@ -175,7 +175,11 @@ allowed_type(off,     warning) :- !.
 allowed_type(off,     note) :- !.
 allowed_type(off,     user) :- !.
 allowed_type(off,     inform) :- !.
+allowed_type(off,     passed) :- !.
+allowed_type(off,     failed) :- !.
+allowed_type(off,     aborted) :- !.
 allowed_type(debug,   _).
+
 
 add_head(user, Mess, Mess) :- !. % TODO: needed?
 add_head(inform, Mess, Mess) :- !.
@@ -188,6 +192,10 @@ add_head(Type,    Mess, NewMess) :-
 label(error,   'ERROR: ').
 label(warning, 'WARNING: ').
 label(note,    'Note: ').
+label(passed,  'PASSED: ').
+label(failed,  'FAILED: ').
+label(aborted, 'ABORTED: ').
+
 
 :- export(add_lines/4).
 add_lines(L0, L1, Message, ['(lns ', L0, '-', L1, ') '|Message]).
@@ -202,16 +210,28 @@ message_type(note). % to user_output % TODO: really?
 message_type(user). % to user % TODO: user_output? needed?
 message_type(inform). % to user_error, without any prefix
 message_type(debug).
+message_type(passed).
+message_type(failed).
+message_type(aborted).
+% TODO: unify with core/lib/messages. Missing here: simple. Missing
+% there: error0, user, inform, passed, failed, aborted
+
 
 :- pred message_output/2 :: message_type * atm.
 
 message_output(error,   user_error).
-message_output(error0,   user_error).
+message_output(error0,  user_error).
 message_output(warning, user_error).
 message_output(note,    user_output). % TODO: really?
-message_output(user, user). % TODO: needed?
+message_output(user,    user).        % TODO: needed?
 message_output(inform,  user_error).
 message_output(debug,   user_error).
+message_output(passed,  user_error).
+message_output(failed,  user_error).
+message_output(aborted, user_error).
+% TODO: unify with core/lib/messages. Common types have already the
+% same output
+
 
 message_info(message_lns(Source, Ln0, Ln1, Type, Text)) :-
     atm(Source),
@@ -225,6 +245,10 @@ message_info(warning(Text)) :- lformat_text(Text).
 message_info(note(Text)) :- lformat_text(Text).
 message_info(message(Text)) :- lformat_text(Text).
 message_info(debug(Text)) :- lformat_text(Text).
+%% message_info(passed(Text)) :- lformat_text(Text).
+%% message_info(failed(Text)) :- lformat_text(Text).
+%% message_info(aborted(Text)) :- lformat_text(Text).
+
 
 show_close('', _) :- !.
 show_close(_,  Output) :-
