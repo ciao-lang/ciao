@@ -59,7 +59,7 @@ Copyright @copyright{} 2008--2012 R@'{e}my Heammerl@'{e}/The Ciao Development Te
 :- doc(summary, "This module provides predicates to build
 @href{http://www.macports.com}{macports} @tt{Portfile} and Mac @tt{pkg} packages for
 @apl{Ciao}. The system is designed to work on the MacOS (>= 10.4)
-platform and requires Apple\'s Xcode 3.0 Developer Tools to be
+platform and requires Apple's Xcode 3.0 Developer Tools to be
 installed in the machine where the packages are generated.").
 
 :- doc(module, "

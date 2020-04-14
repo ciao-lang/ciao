@@ -11,7 +11,7 @@
    @item Invoke the compiler as a external processes
    @item Batch compilation of collection of modules
    @item Emulator generation and compilation
-   @end{itemize}.
+   @end{itemize}
 ").
 
 % (improvements)
