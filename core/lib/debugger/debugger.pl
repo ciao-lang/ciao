@@ -125,10 +125,8 @@ debug_trace(X) :-
     ).
 :- endif.
 
-:- if(defined(optim_comp)).
 debuggable(Goal) :-
-    no_debug_module(Goal), !, fail.
-:- endif.
+    no_debug_pred(Goal), !, fail.
 debuggable(Goal) :-
     in_debug_module(Goal).
 debuggable(_) :-
@@ -136,16 +134,20 @@ debuggable(_) :-
     arg(5, S, [a(_,Ancestor,_,_)|_]),
     in_debug_module(Ancestor).
 
-:- if(defined(optim_comp)).
-no_debug_module(G) :-
-    functor(G, F, _),
+no_debug_pred(G) :-
     % TODO: kludge, use predicate prop bits...
-    ( Mc = 'interpreter:'
-    ; Mc = 'hiord_rt:'
-    ; Mc = 'debugger_support:' % TODO: for $stop_trace
-    ; Mc = 'debugger:' ),
+    functor(G, F, _),
+    no_debug_mc(Mc),
     atom_concat(Mc, _, F).
+
+:- if(defined(optim_comp)).
+no_debug_mc('interpreter:').
+no_debug_mc('hiord_rt:').
+no_debug_mc('debugger_support:'). % TODO: for $stop_trace
+no_debug_mc('debugger:').
 :- endif.
+no_debug_mc('rtchecks_rt:').
+no_debug_mc('native_props_rtc:').
 
 :- if(defined(optim_comp)).
 extract_info('debugger_support:srcdbg_spy'(Goal,Pred,Src,Ln0,Ln1,Dict,Number),
