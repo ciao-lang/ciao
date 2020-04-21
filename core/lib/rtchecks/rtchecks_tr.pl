@@ -197,6 +197,7 @@ current_assertion_2(Pred0, Status, Type, Pred, Compat, Call, Succ, Comp0,
         fail
     ),
     assertion_body(Pred, Compat, Call, Succ, Comp0, _Comm, ABody),
+    \+ (Compat=[], Call=[], Succ=[], Comp0=[]), % at least one non-empty relevant field
     \+ member(no_rtcheck(_), Comp0),
     \+ black_list_pred(F, A).
 
