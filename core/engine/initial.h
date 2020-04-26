@@ -30,8 +30,6 @@ atom_t *new_atom_check(char *str,
 
 void glb_init_each_time(void);
 CVOID__PROTO(init_each_time);
-void init_kanji(void);
-void init_latin1(void);
 void init_once(void);
 void init_locks(void);
 CVOID__PROTO(init_streams_each_time);

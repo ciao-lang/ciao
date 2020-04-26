@@ -3,8 +3,6 @@
 :- doc(title, "Tokenizer").
 :- doc(author, "The Ciao Development Team").
 
-/*  Copyright (C) 1996-2002 UPM-CLIP */
-
 :- doc(module, "This module defines the tokenizer for Ciao.  In
    addition to optional flags, the main differences w.r.t. the ISO-Prolog
    standard are:
@@ -117,17 +115,21 @@ read_tokens_after_layout(5, 0'(, Dict, Level, Tokens) :- !,
 read_tokens_after_layout(Typ, Ch, Dict, Level, Tokens) :-
     read_tokens(Typ, Ch, Dict, Level, Tokens).
 
+read_tokens(6, Ch, Dict, Level, Tokens) :- % (UTF8 support) % TODO: use getct_mb/2 in C
+    getct_mb(Ch, Ch2, Typ2),
+    read_tokens(Typ2, Ch2, Dict, Level, Tokens).
 read_tokens(-1, _, _, _, []).                      % end of file
 read_tokens(0, _, Dict, Level, Tokens) :-              % layout
     getct1(NextCh, NextTyp),
     read_tokens_after_layout(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(1, Ch0, Dict, Level, [Atom|Tokens]) :-     % small letter: atom
+    put_mb(Ch0, S, S0),
     getct(Ch, Typ),
     read_name(Typ, Ch, S0, NextCh, NextTyp),
-    atom_token([Ch0|S0], Atom),
+    atom_token(S, Atom),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(2, Ch0, Dict, Level, [var(Var,S)|Tokens]) :- % capital letter: variable
-    S = [Ch0|S0],
+    put_mb(Ch0, S, S0),
     getct(Ch, Typ),
     read_name(Typ, Ch, S0, NextCh, NextTyp),
     ( S = "_" ->                            % anonymous variable
@@ -145,12 +147,20 @@ read_tokens(4, 0'., Dict, Level, Tokens) :- !,          % end token or graphic a
     getct(NextCh, NextTyp),         
     read_fullstop(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(4, Ch, Dict, Level, [Atom|Tokens]) :-       % graphic atom
+    put_mb(Ch, S, Chars),
     getct(AnotherCh, Typ),
     read_symbol(Typ, AnotherCh, Chars, NextCh, NextTyp),
-    atom_token([Ch|Chars], Atom),
+    atom_token(S, Atom),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(5, Ch, Dict, Level, Tokens) :-
     read_tokens_solo(Ch, Dict, Level, Tokens).
+read_tokens(7, Ch, Dict, Level, [Atom|Tokens]) :- !,
+    % Other Unicode XID_Continue is treated as 'solo' when it appears
+    % as first character.
+    put_mb(Ch, S, []),
+    atom_token(S, Atom),
+    getct(NextCh, NextTyp),
+    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 
 % read_possible_comment(Typ, Ch, Dict, Level, Tokens)
 % checks to see whether / + Ch is a / + * comment or a symbol.  If the
@@ -227,26 +237,33 @@ read_tokens_solo(0'', Dict, Level, Tokens) :- % 'atom'
 % them as String.  The first character which cannot join this sequence
 % is returned as LastCh.
 
+read_name(6, Char, String, LastCh, LastTyp) :- !, % (UTF8 support) % TODO: use getct_mb/2 in C
+    getct_mb(Char, Char2, Typ2),
+    read_name(Typ2, Char2, String, LastCh, LastTyp).
 read_name(1, Char, String, LastCh, LastTyp) :- !,
-    String = [Char|Chars],
-    getct(NextCh, NextTyp),
-    read_name(NextTyp, NextCh, Chars, LastCh, LastTyp).
+    read_name_(Char, String, LastCh, LastTyp).
 read_name(2, Char, String, LastCh, LastTyp) :- !,
-    String = [Char|Chars],
-    getct(NextCh, NextTyp),
-    read_name(NextTyp, NextCh, Chars, LastCh, LastTyp).
+    read_name_(Char, String, LastCh, LastTyp).
 read_name(3, Char, String, LastCh, LastTyp) :- !,
-    String = [Char|Chars],
+    read_name_(Char, String, LastCh, LastTyp).
+read_name(7, Char, String, LastCh, LastTyp) :- !,
+    read_name_(Char, String, LastCh, LastTyp).
+read_name(LastTyp, LastCh, [], LastCh, LastTyp).
+
+read_name_(Char, String, LastCh, LastTyp) :-
+    put_mb(Char, String, Chars),
     getct(NextCh, NextTyp),
     read_name(NextTyp, NextCh, Chars, LastCh, LastTyp).
-read_name(LastTyp, LastCh, [], LastCh, LastTyp).
 
 % read_symbol(Typ, Ch, String, NextCh, NextTyp)
 % reads the other kind of atom which needs no quoting: one which is
 % a string of "symbol" characters.
 
+read_symbol(6, Char, String, LastCh, LastTyp) :- !, % (UTF8 support) % TODO: use getct_mb/2 in C
+    getct_mb(Char, Char2, Typ2),
+    read_symbol(Typ2, Char2, String, LastCh, LastTyp).
 read_symbol(4, Char, String, LastCh, LastTyp) :- !,
-    String = [Char|Chars],
+    put_mb(Char, String, Chars),
     getct(NextCh, NextTyp),
     read_symbol(NextTyp, NextCh, Chars, LastCh, LastTyp).
 read_symbol(LastTyp, LastCh, [], LastCh, LastTyp).
@@ -256,6 +273,9 @@ read_symbol(LastTyp, LastCh, [], LastCh, LastTyp).
 % an end of file, a layout character or %, this is a clause terminator, else
 % this is just an ordinary symbol and we call read_symbol to process it.
 
+read_fullstop(6, Ch, Dict, Level, Tokens) :- !, % (UTF8 support) % TODO: use getct_mb/2 in C
+    getct_mb(Ch, Ch2, Typ2),
+    read_fullstop(Typ2, Ch2, Dict, Level, Tokens).
 read_fullstop(-1, _, _, _Level, [.]) :- !. % end of file
 :- if(defined(suspension_curly_block)).
 read_fullstop(0, Ch, _Dict, Level, [(.)|Tokens]) :- !, % END OF CLAUSE
@@ -668,6 +688,7 @@ check_singleton(Node, Var) :-
     var(Node), !, Node = [Var|_].
 check_singleton([Var|[]], Var). % The [] marks it is not singleton
 
+% TODO: speedup - use some internal atom_codes/2 that fail
 atom_token(String, atom(Atom)) :-
     % atom_codes/2 may throw an exception if:
     %  - it tries to produce a very long atom and dynamic atom size
@@ -848,3 +869,72 @@ read_doccomment_text__asterisk(_, NextCh0, Chars, Cont) :-
     getct(Ch, Typ),
     Chars = [0'*, NextCh0|Chars0],
     read_doccomment_text(Typ, Ch, Chars0, Cont).
+
+% ---------------------------------------------------------------------------
+% Experimental UTF8 support
+
+% TODO: perform conversion during getct instead?
+
+%   Char. number range  |        UTF-8 octet sequence
+%      (hexadecimal)    |              (binary)
+%   --------------------+---------------------------------------------
+%   0000 0000-0000 007F | 0xxxxxxx
+%   0000 0080-0000 07FF | 110xxxxx 10xxxxxx
+%   0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
+%   0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+
+% getct_mb(B1, R, Typ): Complete read of a UTF8 rune given first byte
+%   B1 (assume B1>=0x80) and obtain its character code class.
+getct_mb(B1, R, Typ) :-
+    ( B1 =< 0xBF -> fail % invalid
+    ; B1 =< 0xDF -> % 2 bytes
+        getct(B2,_), B2/\0xC0 =:= 0x80,
+        R is ((B1/\0x1F)<<6)\/(B2/\0x3F),
+        R >= 0x80
+    ; B1 =< 0xEF -> % 3 bytes
+        getct(B2,_), B2/\0xC0 =:= 0x80,
+        getct(B3,_), B3/\0xC0 =:= 0x80,
+        R is ((B1/\0xF)<<12)\/((B2/\0x3F)<<6)\/(B3/\0x3F),
+        R >= 0x800
+    ; B1 =< 0xF7 -> % 4 bytes
+        getct(B2,_), B2/\0xC0 =:= 0x80,
+        getct(B3,_), B3/\0xC0 =:= 0x80,
+        getct(B4,_), B4/\0xC0 =:= 0x80,
+        R is ((B1/\0x7)<<18)\/((B2/\0x3F)<<12)\/((B3/\0x3F)<<6)\/(B4/\0x3F),
+        R >= 0x10000
+    ; fail % invalid
+    ),
+    % Get equivalence between rune classes (given by '$rune_class'/1) and
+    % ASCII code classes:
+    '$rune_class'(R, RuneTyp),
+    ( RuneTyp=1 -> % whitespace (Z*)
+        Typ=0 % treat as layout
+    ; RuneTyp=2 -> % first char for variables (XID_Start and Lu)
+        Typ=2 % treat as capital letter
+    ; RuneTyp=3 -> % first char for atoms (XID_Start and not Lu)
+        Typ=1 % treat as small letter
+    ; RuneTyp=4 -> % other name continuation (XID_Continue+No-XID_Start)
+        Typ=7 % special, see read_name/6
+    ; RuneTyp=5 -> % symbols (S* or P*)
+        Typ=4 % treat as graphic
+    ; fail % invalid
+    ).
+    
+% Encode rune C into the difference list S-S0
+put_mb(C, S, S0) :- C =< 0x7F, !, S=[C|S0].
+put_mb(C, S, S0) :- C =< 0x7FF, !,
+    B1 is 0xC0\/((C>>6)/\0x1F),
+    B2 is (C/\0x3F)\/0x80,
+    S = [B1,B2|S0].
+put_mb(C, S, S0) :- C =< 0xFFFF, !,
+    B1 is 0xE0\/((C>>12)/\0xF),
+    B2 is ((C>>6)/\0x3F)\/0x80,
+    B3 is (C/\0x3F)\/0x80,
+    S = [B1,B2,B3|S0].
+put_mb(C, S, S0) :- C =< 0x10FFFF, !,
+    B1 is 0xF0\/((C>>18)/\0x7),
+    B2 is ((C>>12)/\0x3F)\/0x80,
+    B3 is ((C>>6)/\0x3F)\/0x80,
+    B4 is (C/\0x3F)\/0x80,
+    S = [B1,B2,B3,B4|S0].
+

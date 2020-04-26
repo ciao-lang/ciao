@@ -14,8 +14,8 @@
 %     (each encoding info for 8 code points) and an ordered range list
 %     (all around 8KB).
 %
-%  A dichotomic search algorithm (see `engine/unicode.c`) is used on
-%  this table to lookup rune Ciao classes with around 11 to 12 memory
+%  A dichotomic search algorithm (see `engine/rune.c`) is used on this
+%  table to lookup rune Ciao classes with around 11 to 12 memory
 %  accesses.
 %
 %  ## Character classification for Ciao source code

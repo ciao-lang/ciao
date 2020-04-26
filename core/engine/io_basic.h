@@ -12,6 +12,7 @@
 CBOOL__PROTO(flush_output);
 CBOOL__PROTO(flush_output1);
 CBOOL__PROTO(code_class);
+CBOOL__PROTO(rune_class);
 CBOOL__PROTO(getct);
 CBOOL__PROTO(getct1);
 CBOOL__PROTO(get);
@@ -72,9 +73,8 @@ CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 
 #define C_MB_LEN_MAX        4
 
-static inline bool_t
-isValidRune(c_rune_t rune){
-  uint32_t r = (uint32_t) rune; 
+static inline bool_t isValidRune(c_rune_t rune) {
+  uint32_t r = (uint32_t)rune; /* force unsigned */
   return (r < RUNE_SURROGATE_MIN || RUNE_SURROGATE_MAX < r || r <= RUNE_MAX);
 }
 
@@ -82,9 +82,8 @@ isValidRune(c_rune_t rune){
 
 #define RUNE_MAX            0xff
 
-static inline bool_t
-isValidRune(c_rune_t rune){
-  uint32_t r = (uint32_t) rune; 
+static inline bool_t isValidRune(c_rune_t rune) {
+  uint32_t r = (uint32_t)rune; /* force unsigned */
   return (r <= RUNE_MAX);
 }
 

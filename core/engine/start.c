@@ -261,15 +261,7 @@ void engine_init(const char *boot_path, const char *exec_path) {
   RESET_COUNTER;
 #endif
 
-  char *lc_ctype;
-  lc_ctype = getenv("LC_CTYPE");
-  if ((lc_ctype!=NULL &&
-       (strcmp(lc_ctype,"ja_JP.EUC")==0 || 
-        strcmp(lc_ctype,"ja_JP.euc")==0))) {
-    init_kanji();
-  } else {
-    init_latin1();
-  }
+  init_runetbl();
 
   compute_cwd();
 

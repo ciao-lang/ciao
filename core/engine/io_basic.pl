@@ -148,6 +148,9 @@
 :- trust pred code_class(+int,?int).
 :- impl_defined(code_class/2).
 
+:- export('$rune_class'/2). % (experimental)
+:- impl_defined('$rune_class'/2).
+
 :- doc(getct(Code, Type), "Reads from the current input stream the
    next character, unifying @var{Code} with its character code, and
    @var{Type} with its lexical class.  At end of stream, unifies both

@@ -35,6 +35,10 @@
 :- '$native_include_c_header'('io_basic.h').
 :- '$native_include_c_source'('io_basic.c').
 
+:- '$native_include_c_header'('rune.h').
+:- '$native_include_c_source'('rune.c').
+:- '$native_include_c_header'('unicode_tbl.h').
+
 :- '$native_include_c_source'('misc.c').
 
 :- '$native_include_c_header'('startgoal.h').

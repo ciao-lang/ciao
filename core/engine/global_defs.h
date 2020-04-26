@@ -100,8 +100,6 @@ extern SLOCK    ops_counter_l;
 
 extern bool_t wam_initialized;/* Non-shared? --- set by each worker to decide whether re-initialize or exit after a failure */
 
-extern char symbolrune[];               /* Shared --- type of each symbol */
-
 extern char *default_ciaoroot;
 extern char *default_c_headers_dir;
 

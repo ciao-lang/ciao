@@ -24,6 +24,7 @@
 #include <ciao/misc.h>
 #include <ciao/interrupt.h>
 
+#include <ciao/rune.h>
 #include <ciao/term_support.h>
 #include <ciao/io_basic.h>
 #include <ciao/stream_basic.h>
@@ -91,31 +92,34 @@ int writemb(int fildes, c_rune_t c);
 
 CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 
-#define CheckGetCharacterCode(X,C,ArgNo) {                              \
-    if (TaggedIsSmall(X)) {                                                \
-      if (!isValidRune(C = GetSmall(X))) {                              \
-        BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo)); \
-      }                                                                 \
-    }                                                                   \
-    else if (TagIsLarge(X) && !LargeIsFloat(X)) { /* bigint */          \
-      BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo)); \
-    }                                                                   \
-    else {                                                              \
-      ERROR_IN_ARG((X), (ArgNo), INTEGER);                              \
-    }                                                                   \
-  }
+#define CheckGetCharacterCode(X,C,ArgNo) ({                             \
+  if (TaggedIsSmall((X))) {                                             \
+    C = GetSmall((X));                                                  \
+  } else if (TagIsLarge((X)) && !LargeIsFloat((X))) { /* bigint */      \
+    BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo));  \
+  } else {                                                              \
+    ERROR_IN_ARG((X), (ArgNo), INTEGER);                                \
+  }                                                                     \
+  if (!isValidRune((C))) {                                              \
+    BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo));  \
+  }                                                                     \
+})
 
-#define CheckGetByte(X,C,ArgNo)                                 \
-  if (!TaggedIsSmall((X)) || !isValidRune((C) = GetSmall((X)))) {  \
-    ERROR_IN_ARG((X), (ArgNo), (TY_BYTE));                      \
-  }
+#define CheckGetByte(X,C,ArgNo) ({               \
+  if (!TaggedIsSmall((X))) {                     \
+    ERROR_IN_ARG((X), (ArgNo), (TY_BYTE));       \
+  }                                              \
+  C = GetSmall((X));                             \
+  if ((C) < 0 || (C) > 255) {                    \
+    ERROR_IN_ARG((X), (ArgNo), (TY_BYTE));       \
+  } \
+})
 
 /* TODO: throw better exception */
-#define IO_ERROR(Message) {                     \
-    perror((Message));                          \
-    UNLOCATED_EXCEPTION(RESOURCE_ERROR(R_UNDEFINED)); \
-}
-
+#define IO_ERROR(Message) ({                    \
+  perror((Message));                          \
+  UNLOCATED_EXCEPTION(RESOURCE_ERROR(R_UNDEFINED)); \
+})
 
 /* UTF8 Support */
 #if defined(USE_MULTIBYTES)
@@ -344,12 +348,22 @@ int writemb(int fildes, c_rune_t c) {
 
 CBOOL__PROTO(code_class) {
   ERR__FUNCTOR("io_basic:code_class", 2);
-  int i;
+  c_rune_t i;
 
   DEREF(X(0), X(0));
   CheckGetCharacterCode(X(0),i,1);
 
-  return cunify(Arg,X(1),MakeSmall(symbolrune[i]));
+  return cunify(Arg,X(1),MakeSmall(runelowtbl[i]));
+}
+
+CBOOL__PROTO(rune_class) {
+  //ERR__FUNCTOR("io_basic:$rune_class", 2);
+  c_rune_t i;
+
+  DEREF(X(0), X(0));
+  if (!TaggedIsSmall(X(0))) return FALSE;
+  i = GetSmall(X(0));                             
+  return cunify(Arg,X(1),MakeSmall(rune_lookup_class(i)));
 }
 
 static inline void inc_counts(int ch, stream_node_t * stream) {
@@ -417,7 +431,7 @@ static CVOID__PROTO(writebyte, int ch, stream_node_t *s) {
 #define SKIPLN -1
 
 #define EXITCOND(Op,R) \
-    ( (Op)<GET1 || (R)==RUNE_EOF || ((Op)==GET1 && symbolrune[(R)]>0) || \
+    ( (Op)<GET1 || (R)==RUNE_EOF || ((Op)==GET1 && runelowtbl[(R)]>0) || \
       ((Op)==SKIPLN && ((R)==0xa || (R)==0xd)) || (Op)==(R) )
 
 #define GIVEBACKCOND(Op,R) \
@@ -613,7 +627,7 @@ CBOOL__PROTO(getct) {
   }
 
   return cunify(Arg,X(0),MakeSmall(r)) 
-    && cunify(Arg,X(1),MakeSmall(r == RUNE_EOF ? -1 : symbolrune[r]));
+    && cunify(Arg,X(1),MakeSmall(r == RUNE_EOF ? -1 : runelowtbl[r]));
 }
 
 
@@ -630,7 +644,7 @@ CBOOL__PROTO(getct1) {
   }
 
   return cunify(Arg,X(0),MakeSmall(r)) 
-         && cunify(Arg,X(1),MakeSmall(r == RUNE_EOF ? -1 : symbolrune[r]));
+         && cunify(Arg,X(1),MakeSmall(r == RUNE_EOF ? -1 : runelowtbl[r]));
 }
 
 
@@ -978,7 +992,8 @@ CBOOL__PROTO(put_byte1) {
 
 CBOOL__PROTO(put_byte2) {
   ERR__FUNCTOR("io_basic:put_byte", 2);
-  int i, errcode;
+  int i;
+  int errcode;
   stream_node_t *s;
 
   s = stream_to_ptr_check(X(0), 'w', &errcode);
@@ -1078,7 +1093,7 @@ CVOID__PROTO(print_atom, stream_node_t *stream, tagged_t term) {
 #if defined(FULL_ESCAPE_QUOTED_ATOMS)
     while ((r = *ch++)) {
       /* See tokenize.pl for table of symbolic control chars */
-      if (symbolrune[r] == 0) {
+      if (runelowtbl[r] == 0) {
         switch (r) {
         case 7: PRINT_CONTROL_RUNE('a'); break;
         case 8: PRINT_CONTROL_RUNE('b'); break;

@@ -4,7 +4,7 @@
  *  System initialization and extern defs for global Prolog terms.
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2002-2015 The Ciao Development Team
+ *  Copyright (C) 2002-2020 The Ciao Development Team
  */
 
 #include <stdio.h>
@@ -33,6 +33,7 @@
 #include <ciao/initial.h>
 
 /* (only for registering) */
+#include <ciao/rune.h>
 #include <ciao/io_basic.h>
 #include <ciao/objareas.h>
 #include <ciao/support.h>
@@ -204,16 +205,7 @@ bool_t gen_event_file = FALSE;
 float time_at_event_start = 0.0;
 #endif
 
-/* support for tokenizer and for writing out atoms */
-
-#define RuneIsLowerCase(X)   (symbolrune[(X)]==1)
-#define RuneIsUpperCase(X)   (symbolrune[(X)]==2)
-#define RuneIsDigit(X)       (symbolrune[(X)]==3)
-#define RuneIsSymbol(X)      (symbolrune[(X)]==4)
-
 /* Shared .... */
-
-char symbolrune[256];
 
 #if defined(MARKERS)
 tagged_t atom_success;
@@ -381,32 +373,42 @@ definition_t *address_pending_unifications;
 definition_t *address_uvc;
 definition_t *address_ucc;
 
-/*-----------------------------------------------------------------
-  INITIALIZATION support functions  
-  -----------------------------------------------------------------*/
+/* --------------------------------------------------------------------------- */
 
-static void classify_atom(atom_t *s)
-{
-
-  unsigned char *cp = (unsigned char *)s->name;
-  c_rune_t r0 = cp[0];
-  c_rune_t r1 = cp[1];
-  c_rune_t r2 = cp[2];
-  c_rune_t r;
+/* (see tokenizer.pl) */
+static void classify_atom(atom_t *s) {
+  const unsigned char *cp;
   bool_t seen_alpha = FALSE;
   bool_t seen_symbol = FALSE;
   
   s->has_dquote = FALSE;        /* TRUE if symbolchars only */
   s->has_squote = FALSE;        /* TRUE if ! ; [] {} OR contains a "'" */
   s->has_special = FALSE;       /* TRUE if needs quoting */
-  while ((r = *cp++)) {
-    if (r=='\'')
+
+  cp = (const unsigned char *)s->name;
+  c_rune_t r;
+  int typ;
+
+  NextRune(cp, r, typ);
+  /* patch 'solo' typ if there is a single code */
+  if (*cp==0 && typ == RUNETY_IDCONT) typ=RUNETY_LOWERCASE;
+  
+  int typ0 = typ; /* save typ for first rune */
+
+  while (r != 0) {
+    if (r=='\'') {
       s->has_squote = s->has_special = TRUE;
-    else if (RuneIsLowerCase(r) || RuneIsUpperCase(r) || RuneIsDigit(r))
+    } else if (typ == RUNETY_LOWERCASE ||
+               typ == RUNETY_UPPERCASE ||
+               typ == RUNETY_DIGIT) {
       seen_alpha = TRUE;
-    else if (RuneIsSymbol(r))
+    } else if (typ == RUNETY_SYMBOL) {
       seen_symbol = TRUE;
-    else s->has_special = TRUE;
+    } else {
+      s->has_special = TRUE;
+    }
+    NextRune(cp, r, typ);
+    if (typ == RUNETY_IDCONT) typ=RUNETY_LOWERCASE; /* not 'solo' now */
   }
 
   s->has_dquote = (!s->has_special & !seen_alpha);
@@ -414,19 +416,26 @@ static void classify_atom(atom_t *s)
 
   /* check cases '!' ';' '[]' '{}' '_...' 'A...' '9...' '.' '/ * ...' */
   /* NB: No point in quoting '... * /' */
-    
+  
+  cp = (unsigned char *)s->name;
+  unsigned char c0 = cp[0];
+  unsigned char c1 = cp[1];
+  unsigned char c2 = cp[2];
   if (s->has_special && !s->has_squote &&
-      ((r0=='!' && r1==0) ||
-       (r0==';' && r1==0) ||
-       (r0=='[' && r1==']' && r2==0) ||
-       (r0=='{' && r1=='}' && r2==0)))
-    s->has_special=FALSE, s->has_squote=TRUE;
-  else if (!s->has_special &&
-           (RuneIsUpperCase(r0) ||
-            RuneIsDigit(r0) ||
-            (r0=='.' && r1==0) ||
-            (r0=='/' && r1=='*')))
+      ((c0=='!' && c1==0) ||
+       (c0==';' && c1==0) ||
+       (c0=='[' && c1==']' && c2==0) ||
+       (c0=='{' && c1=='}' && c2==0))) {
+    s->has_special=FALSE;
+    s->has_squote=TRUE;
+  } else if (!s->has_special &&
+             (typ0 == RUNETY_UPPERCASE ||
+              typ0 == RUNETY_DIGIT ||
+              typ0 == RUNETY_IDCONT || /* first 'solo' requires special */
+              (c0=='.' && c1==0) ||
+              (c0=='/' && c1=='*'))) {
     s->has_special=TRUE;
+  }
 }
 
 
@@ -751,48 +760,6 @@ static void define_functions(void)
   deffunction("ARG FUNCTION",2,(void *)fu2_arg,41);
   deffunction("COMPARE FUNCTION",2,(void *)fu2_compare,42);
 }
-
-
-void init_kanji(void)
-{
-  c_rune_t i;
-  char *cp;
-
-  for (i=0; i<128; i++)         /* default: whitespace */
-      symbolrune[i] = 0;
-  for (i=128; i<256; i++)
-    symbolrune[i] = 1;          /* accept 128..255 as lowercase */
-  
-  for (cp="abcdefghijklmnopqrstuvwxyz"; (i = *cp++); )
-    symbolrune[i]=1;            /* lowercase */
-  for (cp="ABCDEFGHIJKLMNOPQRSTUVWXYZ_"; (i = *cp++); )
-    symbolrune[i]=2;            /* uppercase */
-  for (cp="0123456789"; (i = *cp++); )
-    symbolrune[i]=3;            /* digits */
-  for (cp="#$&*+-./:<=>?@^\\`~"; (i = *cp++); )
-    symbolrune[i]=4;            /* symbolchars */
-  for (cp="!;\"'%(),[]{|}"; (i = *cp++); )
-    symbolrune[i]=5;            /* punctuation */
-}
-
-
-void init_latin1(void)
-{
-  c_rune_t i;
-
-  init_kanji();
-  for (i=128; i<161; i++)       /* 128..160 are whitespace */
-    symbolrune[i]=0;
-  for (i=161; i<192; i++)       /* 161..191 are symbolchars */
-    symbolrune[i]=4;
-  for (i=192; i<223; i++)       /* 192..222 are uppercase */
-    symbolrune[i]=2;
-  for (i=223; i<256; i++)       /* 223..255 are lowercase */
-    symbolrune[i]=1;
-  symbolrune[215]=4;            /* 215 (mult sign) is a symbolchar */
-  symbolrune[247]=4;            /* 247 (div sign) is a symbolchar */
-}
-
 
 /* Initializations that need to be made once only. */
 
@@ -1136,6 +1103,7 @@ void init_once(void)
   /* io_basic.c */
   
   define_c_mod_predicate("io_basic","code_class",2,code_class);
+  define_c_mod_predicate("io_basic","$rune_class",2,rune_class);
   define_c_mod_predicate("stream_basic","flush_output",0,flush_output);
   define_c_mod_predicate("stream_basic","flush_output",1,flush_output1);
   address_getct = define_c_mod_predicate("io_basic","getct",2,getct);
