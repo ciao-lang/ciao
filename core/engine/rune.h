@@ -23,7 +23,7 @@
 
 extern char runelowtbl[]; /* code class for runes 0x00..0x7F */
 
-void init_runetbl(void); /* Initialize rune tables */
+void init_runetbl(void); /* initialize rune tables */
 
 int rune_lookup_class(int c);
 

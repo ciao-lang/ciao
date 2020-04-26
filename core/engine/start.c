@@ -165,6 +165,7 @@ extern char cwd[];
 
 extern char *ciao_suffix;
 
+void init_runetbl(void); /* initialize rune tables */
 void ciao_initcode(void); /* initialize foreign interface definitions */
 
 void eng_stub_set_length(int len) {
