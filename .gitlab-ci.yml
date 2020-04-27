@@ -16,7 +16,7 @@ configure:
   script:
     - ./ciao-boot.sh configure --ciao_ppl:enabled=no
   tags:
-    - ciao
+    - ciao_test_base
   artifacts:
     expire_in: 2h
     untracked: true
@@ -28,7 +28,7 @@ build:
   script:
     - ./ciao-boot.sh build --bin core builder ciaodbg
   tags:
-    - ciao
+    - ciao_test_base
   artifacts:
     expire_in: 2h
     untracked: true
@@ -43,7 +43,7 @@ install:
   script:
     - ./ciao-boot.sh install
   tags:
-    - ciao
+    - ciao_test_base
   artifacts:
     expire_in: 2h
     untracked: true
@@ -64,7 +64,7 @@ ciaopp:
     - ./ciao-boot.sh configure
     - ./ciao-boot.sh build --bin # builds all activated bundles
   tags:
-    - ciao
+    - ciao_test_base
   artifacts:
     expire_in: 2h
     untracked: true
@@ -83,7 +83,7 @@ ciaopp_lite:
     - ciao rescan-bundles
     - ciao build --bin ciaopp
   tags:
-    - ciao
+    - ciao_test_base
   artifacts:
     expire_in: 2h
     untracked: true
@@ -102,7 +102,7 @@ incanal_assrts:
     - ./compile.sh
     - ./test_incanal_assrts.sh shfr
   tags:
-    - ciao
+    - ciao_test_base
   dependencies:
     - ciaopp_lite
 
@@ -116,7 +116,7 @@ incanal_lite:
     - ./test_incanal_mon.sh
     - ./quick_run.sh
   tags:
-    - ciao
+    - ciao_test_base
   dependencies:
     - ciaopp_lite
 
@@ -128,7 +128,7 @@ ciaopp_tests:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao test ciaopp_extra
   tags:
-    - ciao
+    - ciao_test_base
   dependencies:
     - ciaopp
 
@@ -140,7 +140,7 @@ ciaopp_res_tests:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao custom_run ciaopp_extra resources_test
   tags:
-    - ciao
+    - ciao_test_base
   dependencies:
     - ciaopp
 
@@ -149,7 +149,7 @@ lpdoc:
   script:
     - ./ciao-boot.sh build --bin lpdoc
   tags:
-    - ciao
+    - ciao_test_base
   dependencies:
     - install
 
@@ -161,7 +161,7 @@ bibutils:
     - ciao rescan-bundles
     - ciao build --bin bibutils
   tags:
-    - ciao
+    - ciao_test_base
   dependencies:
     - install
 
@@ -170,7 +170,7 @@ jvm_in_ciao:
   script:
     - ./ciao-boot.sh build --bin jvm_in_ciao 
   tags:
-    - ciao
+    - ciao_test_base
   dependencies:
     - install
 
@@ -182,7 +182,7 @@ ciao_gui:
     - ciao rescan-bundles
     - ciao build --bin ciao_gui
   tags:
-    - ciao
+    - ciao_test_base
   dependencies:
     - install
 
@@ -202,7 +202,7 @@ wui:
     - ciao build --bin wui
     - ciao custom_run wui dist
   tags:
-    - ciao
+    - ciao_test_base
   dependencies:
     - install
   artifacts:
@@ -223,7 +223,7 @@ catalog_ui:
     - ciao rescan-bundles
     - ciao build --bin catalog_ui
   tags:
-    - ciao
+    - ciao_test_base
   dependencies:
     - wui
 
@@ -233,7 +233,7 @@ core_tests:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao test core
   tags:
-    - ciao
+    - ciao_test_base
   dependencies:
     - install
 
@@ -245,7 +245,7 @@ oc_tests:
     - ciao rescan-bundles
     - ciao oc:tests full
   tags:
-    - ciao
+    - ciao_test_base
   dependencies:
     - install
 
@@ -257,7 +257,7 @@ rtchecks_testsuite:
     - ./test_rtchecks.sh
   allow_failure: true
   tags:
-    - ciao
+    - ciao_test_base
 
 unittest:
   stage: test
@@ -267,4 +267,4 @@ unittest:
     - ./run_unittest_tests.pl
   allow_failure: true
   tags:
-    - ciao
+    - ciao_test_base
