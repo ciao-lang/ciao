@@ -5,7 +5,7 @@
      operator_specifier/1, list/1, list/2, nlist/2, member/2,
      sequence/2, sequence_or_list/2, character_code/1, string/1,
      % byte/1, in_byte/1,
-     num_code/1, predname/1, atm_or_atm_list/1, compat/2, inst/2,
+     predname/1, atm_or_atm_list/1, compat/2, inst/2,
      iso/1, deprecated/1, not_further_inst/2, sideff/2, regtype/1,
      native/1, native/2, rtcheck/1, rtcheck/2, no_rtcheck/1, eval/1,
      equiv/2, bind_ins/1, error_free/1, memo/1, filter/2, flag_values/1,
@@ -327,6 +327,7 @@ sequence_or_list(T, E) :- sequence(T, E).
 :- trust comp character_code(T) : nonvar(T) + eval.
 :- trust success character_code(I) => character_code(I).
 
+% TODO: fix range, 0-0x10FFFF
 character_code(I) :- int(I).
 
 :- doc(string/1, "A string is a list of character codes.  The usual
@@ -342,29 +343,7 @@ character_code(I) :- int(I).
 :- trust comp string(T) : ground(T) + eval.
 :- trust success string(T) => string(T).
 
-string(T) :- list(character_code, T).
-
-:- doc(num_code/1, "These are the ASCII codes which can appear in
-    decimal representation of floating point and integer numbers,
-    including scientific notation and fractionary part.").
-
-:-  true prop num_code/1 + regtype.
-
-num_code(0'0).
-num_code(0'1).
-num_code(0'2).
-num_code(0'3).
-num_code(0'4).
-num_code(0'5).
-num_code(0'6).
-num_code(0'7).
-num_code(0'8).
-num_code(0'9).
-num_code(0'.).
-num_code(0'e).
-num_code(0'E).
-num_code(0'+).
-num_code(0'-).
+string(T) :- list(character_code, T). % TODO: fix range of character_code
 
 
 % The following is commented out because we do not know the impact on analysis.
