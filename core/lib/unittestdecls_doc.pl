@@ -19,6 +19,7 @@
 :- new_declaration(load_test_module/1).
 :- new_declaration(load_test_module/2).
 :- new_declaration(load_test_package/1).
+:- new_declaration(unittest_default_timeout/1).
 
 :- decl load_test_module(Module) : sourcename
 # "Specifies an auxiliary module that must be loaded in order
@@ -34,3 +35,9 @@
 :- decl load_test_package(Module) : sourcename
 # "Specifies a package that must be used in order to execute 
    the tests.".
+
+:- decl unittest_default_timeout(Timeout)
+   : int(Timeout)
+
+   # "Specifies a default timeout in millseconds for all the tests in
+     the module. The value 0 means not timeout at all ".

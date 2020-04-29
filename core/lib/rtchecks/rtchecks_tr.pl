@@ -14,7 +14,7 @@
 :- use_module(library(assertions/assertions_props), [head_pattern/1]).
 % see formulae, conj_to_list/2, list_to_conj/2
 :- use_module(library(aggregates), [findall/3, findall/4]).
-:- use_module(library(lists), [member/2, intersection/3, difference/3]).
+:- use_module(library(lists), [member/2]).
 :- use_module(library(lists), [append/3, reverse/2, select/3]).
 :- use_module(library(llists), [flatten/2]).
 :- use_module(library(terms), [atom_concat/2]).
@@ -286,8 +286,8 @@ rtchecks_goal_tr('$orig_call'(Goal0), Goal, M) :-
 rtchecks_goal_tr('$meta$rtc'(Goal, MG), MG=RM:Goal, M) :-
     functor(Goal, F, N),
     module_qualifier_i(F, N, M, RM).
-rtchecks_goal_tr('$test_entry_body'(A,B,C,D), Goal1, _M) :- !, % unittest
-    test_entry_body_goal('$test_entry_body'(A,B,C,D), Goal1).
+rtchecks_goal_tr('$check_pred_body'(A,B,C), Goal1, _M) :- !, % unittest
+    test_entry_body_goal('$check_pred_body'(A,B,C), Goal1).
 rtchecks_goal_tr(Goal, Goal1, M) :-
     goal_alias_db(Goal, Goal1, M), !.
 
@@ -884,11 +884,7 @@ comps_to_comp_lit(Exit, Comp, Body0, Body) :-
     comps_parts_to_comp_lit(Exit, Comp, Body1, Body),
     lists_to_lits(Body1, Body0).
 
-valid_texec_comp_props([times(_, _), try_sols(_, _), generate_from_calls_n(_,_), timeout(_,_)]).
-
-comps_parts_to_comp_lit(Exit, Comp0, Body0, Body) :-
-    valid_texec_comp_props(VC),
-    difference(Comp0, VC, Comp),
+comps_parts_to_comp_lit(Exit, Comp, Body0, Body) :-
     comps_to_goal(Comp, Body1, Body2),
     (
         Body1 == Body2 ->
@@ -982,40 +978,6 @@ combine_locators(_,_,_,_,_,_).
 
 % ----------------------------------------------------------------------
 
-:- use_module(engine(messages_basic), [messages/1]).
-
-:- pred texec_warning(AType, GPProps, Pred, AsrLoc)
-    : (atm(AType), list(GPProps), term(Pred), struct(AsrLoc))
-  # "A @tt{texec} assertion cannot contain any computational properties
-    except @pred{times/2} and @pred{try_sols/2}.  So if a @tt{texec}
-    assertion contains any other computational property the correcponding
-    test will be generated as if the assertion was of the type
-    @tt{test}. The user is notified of this fact by a warning message.
-    @var{AType} takes values @tt{texec} and @tt{test}, @var{GPProps}
-    is a list of non-ground comp properties, @var{Pred} is a predicate
-    from the test assertion and @var{AsrLoc} is the locator of the
-    test assertion.".
-
-:- doc(bug, "The warning message is not showh to the user unless the
-    @tt{dump_error} unittest option is provided. Manually set the
-    stream to which the message should be printed?").
-
-texec_warning(texec, GPProps, Pred, asrloc(loc(ASource, ALB, ALE))) :-
-    \+ GPProps == [], !,
-    functor(Pred, F, A),
-    maplist(comp_prop_to_name, GPProps, GPNames),
-    Message = message_lns(ASource, ALB, ALE, warning,
-            ['texec assertion for ', F, '/', A,
-             ' can have only unit test commands, ',
-             'not comp properties: \n', ''(GPNames),
-             '\nProcessing it as a test assertion']),
-    messages([Message]). % TODO: use message/2?
-texec_warning(_, _, _, _).
-
-comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
-
-% ----------------------------------------------------------------------
-
 :- pred test_entry_body_goal(TestEntryBody, TestBodyGoal)
     : struct(TestEntryBody) => struct(TestBodyGoal)
  # "Given a @var{TestEntryBody} structure that contains a test assertion,
@@ -1032,19 +994,13 @@ comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
 % TODO: do this in unittest.pl, importing relevant predicates from
 % here
 test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
-    TestEntryBody = '$test_entry_body'(TestInfo, Assertions, PLoc0, TmpDir),
-    TestInfo = testinfo(TestId, AType, Pred, ABody, ADict, ASource, ALB, ALE),
+    TestEntryBody = '$check_pred_body'(TestInfo, Assertions, PLoc0),
+    TestInfo = testinfo(Pred, ABody, ADict, ASource, ALB, ALE),
     AsrLoc   = asrloc(loc(ASource, ALB, ALE)),
     assertion_body(Pred, DP, CP, AP, GP, _, ABody),
-    % split GP into GPTexec and GPProps
-    intersection(GP, ~valid_texec_comp_props, TestOptions), % TODO: do this in unittest.pl
-    difference(GP, ~valid_texec_comp_props, GPProps),
-    get_check_props(GPProps,comp,Pred,RtcGPProps),
-    % TODO: get_check_props(CP,gen,Pred,RtcCP) ?
+    get_check_props(GP,comp,Pred,RtcGPProps),
     %
     comps_to_goal(RtcGPProps, GPPropsGoal, GPPropsGoal0),
-    %
-    texec_warning(AType, GPProps, Pred, AsrLoc),
     %
     current_prolog_flag(rtchecks_namefmt, NameFmt),
     Term = n(Pred, DP, CP, AP, GP), % here no free variables must appear
@@ -1054,7 +1010,7 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
     current_prolog_flag(rtchecks_predloc, UsePredLoc),
     combine_locators(UsePredLoc,PLoc0,PredName,AsrLoc, PLoc,PosLoc),
     % compose checks for GP properties
-    ( GPProps = [] ->
+    ( GP = [] ->
         GPCheckGoal = GPPropsGoal
     ; GPCheckGoal = add_info_rtsignal(GPPropsGoal, PredName, DictName, PosLoc)
     ),
@@ -1074,7 +1030,7 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
       UsePosLoc = (UsePredLoc, UseAsrLoc),
       generate_rtchecks(Assertions, Pred, DictName, PLoc, UsePosLoc, RTCheck, APCheckGoal)
     ),
-    TestBodyGoal = testing(TestId, TmpDir, ~list_to_lits(CP), RTCheck, TestOptions).
+    TestBodyGoal = RTCheck.
 
 
 % ----------------------------------------------------------------------
