@@ -203,9 +203,9 @@ del_files_nofail([File|Files]) :-
 %       close(I).
 
 % copy_stream(I, O) :-
-%       get_code(I, Code),
+%       get_byte(I, Code),
 %       ( Code = -1 -> true
-%       ; put_code(O, Code), copy_stream(I, O)
+%       ; put_byte(O, Code), copy_stream(I, O)
 %       ).
 
 :- export(file_to_line/2).
