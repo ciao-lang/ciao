@@ -11,7 +11,7 @@ add_goal_trans(M, S, Prior) :-
     term_to_meta(T/A, S),
     atom(T),
     functor(Tr, T, A),
-    ( A = 3 -> arg(3, Tr, M) ; true),
+    ( A = 3 -> arg(3, Tr, M) ; A=2),
     findall(K-V, goal_trans(M, V, K), KVs0),
     retractall_fact(goal_trans(M,_,_)),
     pqueue_insert(KVs0, Prior, Tr, KVs),
