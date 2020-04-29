@@ -3,7 +3,9 @@
      gnd/1, gndstr/1, constant/1,
      callable/1, internal_module_id/1,
      operator_specifier/1, list/1, list/2, nlist/2, member/2,
-     sequence/2, sequence_or_list/2, character_code/1, string/1,
+     sequence/2, sequence_or_list/2,
+     character_code/1, string/1,
+     bytelist/1,
      % byte/1, in_byte/1,
      predname/1, atm_or_atm_list/1, compat/2, inst/2,
      iso/1, deprecated/1, not_further_inst/2, sideff/2, regtype/1,
@@ -345,6 +347,13 @@ character_code(I) :- int(I).
 
 string(T) :- list(character_code, T). % TODO: fix range of character_code
 
+:- prop bytelist(T) + regtype
+   # "@var{T} is list of bytes.".
+:- trust comp bytelist(T) + sideff(free).
+:- trust comp bytelist(T) : ground(T) + eval.
+:- trust success bytelist(T) => bytelist(T).
+
+bytelist(T) :- list(int, T). % TODO: use byte/1 instead of int/1
 
 % The following is commented out because we do not know the impact on analysis.
 % TODO: To be decommented together with assertions about put_code and
