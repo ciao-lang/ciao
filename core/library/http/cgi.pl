@@ -14,7 +14,8 @@
 
 :- use_module(library(strings), [whitespace0/2]).
 :- use_module(engine(io_basic)).
-:- use_module(library(stream_utils), [get_line/1, write_string/1]).
+:- use_module(engine(stream_basic), [current_input/1]).
+:- use_module(library(stream_utils), [get_line/1, write_string/1, read_bytes/3]).
 :- use_module(library(lists), [append/3]).
 :- use_module(library(system), [getenvstr/2]).
 :- use_module(library(http/http_grammar), [http_media_type/5, http_crlf/2, http_lines/3, http_type_params/3]).
@@ -62,7 +63,8 @@ cgi_read_post -->
     { number_codes(Len,Len0) },
     [content_length(Len)],
     %
-    { read_all(Len, Cs) },
+    { current_input(CI) },
+    { read_bytes(CI, Len, Cs) },
     [content(Cs)],
     !.
 cgi_read_post --> [].
@@ -85,14 +87,6 @@ cgi_content_type(Type, Subtype, Params) :-
 getenvatm(Name, Atm) :-
     getenvstr(Name, Str),
     atom_codes(Atm, Str).
-
-% TODO: move to stream_utils.pl
-% read N chars from input (N>=0)
-read_all(0, []) :- !.
-read_all(N, [C|Cs]) :-
-    get_code(C),
-    N1 is N - 1,
-    read_all(N1, Cs).
 
 % ---------------------------------------------------------------------------
 
