@@ -22,11 +22,12 @@
 :- export(fetch_url/3).
 :- doc(fetch_url(URL, Request, Response), "Fetches the document
    pointed to by @var{URL} from Internet, using request parameters
-   @var{Request}, and unifies @var{Response} with the parameters of the
-   response.  Fails on timeout.  Note that redirections are not handled
-   automatically, that is, if @var{Response} contains terms of the form
-   @tt{status(redirection,301,_)} and @tt{location(NewURL)}, the program
-   should in most cases access location @tt{NewURL}.").
+   @var{Request} (@tt{get} method by default), and unifies
+   @var{Response} with the parameters of the response.  Fails on
+   timeout.  Note that redirections are not handled automatically,
+   that is, if @var{Response} contains terms of the form
+   @tt{status(redirection,301,_)} and @tt{location(NewURL)}, the
+   program should in most cases access location @tt{NewURL}.").
 
 :- pred fetch_url(URL, Request, Response)
     : (url_term(URL), list(http_request_param, Request))
@@ -48,11 +49,13 @@ timeout_option(Options, Timeout, RestOptions) :-
     select(timeout(Timeout), Options, RestOptions), !.
 timeout_option(Options, 300, Options).
 
-http_request_content(Options, Options1, Content) :-
-    ( member(method(Method), Options) -> true ; fail ),
+http_request_content(Options, Options2, Content) :-
+    ( member(method(Method), Options) -> Options1=Options
+    ; Options1=[method(Method)|Options], Method = get
+    ),
     ( Method = post ->
-        ( select(content(Content),Options, Options1) -> true ; fail )
-    ; Content = [], Options = Options1
+        ( select(content(Content), Options1, Options2) -> true ; fail )
+    ; Content = [], Options1 = Options2
     ).
 
 % ---------------------------------------------------------------------------
