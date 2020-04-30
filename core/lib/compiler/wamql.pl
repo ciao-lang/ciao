@@ -1009,7 +1009,7 @@ get_qlval(N, Q0, Q0, Q, Stream) :-
 
 
 qdump([], _, _, Stream) :- 
-    put_code(Stream, 0).                            % end of program
+    put_byte(Stream, 0).                            % end of program
 qdump([Tok|Toks], Off, Dic, Stream) :-
     qdump_token(Tok, Off, Off1, Dic, Stream),
     qdump(Toks, Off1, Dic, Stream).
@@ -1019,20 +1019,20 @@ qdump_token(X, O, O1, _, Stream) :-
     qdump_short(X, Stream).
 qdump_token(builtin(Op), O, O4, _, Stream) :- !,
     O4 is O+4,
-    put_code(Stream, 0'C),
+    put_byte(Stream, 0'C),
     qdump_long(Op, Stream).
 qdump_token(long(Op), O, O4, _, Stream) :- !,
     O4 is O+4,
-    put_code(Stream, 0'+),
+    put_byte(Stream, 0'+),
     qdump_long(Op, Stream).
 qdump_token(large(Op,H), O, O1, _, Stream) :- !,
     O1 is O+((H-1)<<2),
-    put_code(Stream, 0'G),
+    put_byte(Stream, 0'G),
     qdump_long(Op, Stream).
 qdump_token(Reloc, O, O4, Dic, Stream) :- 
     O4 is O+4,
     qdump_patch(Reloc, Old, O, Dic),
-    put_code(Stream, 0'+),
+    put_byte(Stream, 0'+),
     qdump_long(Old, Stream).
 
 qdump_patch(Key, Oldval, Newval, Olddic) :-
@@ -1043,108 +1043,108 @@ qdump_prev_last(V, Prev, Prev, Last) :- var(V), !, V=[Last|_].
 qdump_prev_last([I0|V], _, Prev, Last) :- qdump_prev_last(V, I0, Prev, Last).
 
 qdump_load_atom(Li, Str, Stream) :-
-    put_code(Stream, 65),
+    put_byte(Stream, 65),
     qdump_short(Li, Stream),
     qdump_atom(Str, Stream).
 
 qdump_load_functor(Li, L2, A, Stream) :-
-    put_code(Stream, 66),
+    put_byte(Stream, 66),
     qdump_short(Li, Stream),
     qdump_short(L2, Stream),
     qdump_short(A, Stream).
 
 qdump_load_number(Li, Num, Stream) :-
     integer(Num), -32768 =< Num, Num =< 32767, !,
-    put_code(Stream, 67),
+    put_byte(Stream, 67),
     qdump_short(Li, Stream),
     qdump_short(Num, Stream).
 qdump_load_number(Li, Num, Stream) :-
     integer(Num), !,
-    put_code(Stream, 68),
+    put_byte(Stream, 68),
     qdump_short(Li, Stream),
     qdump_long(Num, Stream).
 qdump_load_number(Li, Num, Stream) :-
     float(Num),
-    put_code(Stream, 69),
+    put_byte(Stream, 69),
     qdump_short(Li, Stream),
     qdump_float(Num, Stream).
 
 qdump_load_variable(Li, Stream) :-
-    put_code(Stream, 70),
+    put_byte(Stream, 70),
     qdump_short(Li, Stream).
 
 qdump_load_nil(Li, Stream) :-
-    put_code(Stream, 71),
+    put_byte(Stream, 71),
     qdump_short(Li, Stream).
 
 qdump_load_list(Li, Stream) :-
-    put_code(Stream, 72),
+    put_byte(Stream, 72),
     qdump_short(Li, Stream).
 
 qdump_load_tuple(Li, Stream) :-
-    put_code(Stream, 73),
+    put_byte(Stream, 73),
     qdump_short(Li, Stream).
 
 qdump_load_argument(Li, Stream) :-
-    put_code(Stream, 74),
+    put_byte(Stream, 74),
     qdump_short(Li, Stream).
 
 qdump_load_dbnode(Li, Size, Counters, Stream) :- % Dumps partial insn only.
-    put_code(Stream, 75),
+    put_byte(Stream, 75),
     qdump_short(Li, Stream), 
     qdump_short(Size, Stream), 
     qdump_short(Counters, Stream).
 
 qdump_return(Li, Stream) :-
-    put_code(Stream, 76),
+    put_byte(Stream, 76),
     qdump_short(Li, Stream).
 
 qdump_ensure_space(Size, Stream) :-
     Size>1152, !,
-    put_code(Stream, 64),
+    put_byte(Stream, 64),
     qdump_long(Size, Stream).
 qdump_ensure_space(_, _).
 
 
 /*** B_GAUGE
 qdump_reloc_counter(Label, Stream) :-
-    put_code(Stream, 79),
+    put_byte(Stream, 79),
     qdump_long(Label, Stream).
 E_GAUGE ***/
 qdump_reloc_pointer(Li, Label, Stream) :-
-    put_code(Stream, 77),
+    put_byte(Stream, 77),
     qdump_short(Li, Stream),
     qdump_long(Label, Stream).
 
 qdump_reloc_emul_entry(Li, Label, Stream) :-
-    put_code(Stream, 78),
+    put_byte(Stream, 78),
     qdump_short(Li, Stream),
     qdump_long(Label, Stream).
 
 %% qdump_reloc_native_entry(Li, Label, Stream) :-
-%%      put_code(Stream, RELOC_NATIVE_ENTRY),
+%%      put_byte(Stream, RELOC_NATIVE_ENTRY),
 %%      qdump_short(Li, Stream),
 %%      qdump_long(Label, Stream).
 %% 
 %% qdump_reloc_offset(Target, Label, Stream) :-
-%%      put_code(Stream, RELOC_OFFSET),
+%%      put_byte(Stream, RELOC_OFFSET),
 %%      qdump_long(Target, Stream),
 %%      qdump_long(Label, Stream).
 %% 
 %% qdump_reloc_absolute(X, Y, Label, Stream) :-
-%%      put_code(Stream, RELOC_ABSOLUTE),
+%%      put_byte(Stream, RELOC_ABSOLUTE),
 %%      qdump_short(X, Stream),
 %%      qdump_short(Y, Stream),
 %%      qdump_long(Label, Stream).
 %% 
 %% qdump_reloc_relative(X, Y, Label, Stream) :-
-%%      put_code(Stream, RELOC_RELATIVE),
+%%      put_byte(Stream, RELOC_RELATIVE),
 %%      qdump_short(X, Stream),
 %%      qdump_short(Y, Stream),
 %%      qdump_long(Label, Stream).
 %% 
 %% qdump_reloc_rehash(_Table, Size, Label, Stream) :-
-%%      put_code(Stream, RELOC_REHASH),
+%%      put_byte(Stream, RELOC_REHASH),
 %% %    qdump_long(Table, Stream), same as Label
 %%      qdump_long(Size, Stream),
 %%      qdump_long(Label, Stream).
@@ -1156,16 +1156,16 @@ qdump_args([S|Ss], Stream) :-
 
 % changed '$display' to display (4 clauses) - PBC
 qdump_atom(X, Stream) :-
-    display(Stream, X), put_code(Stream, 0).        % string arg.
+    display(Stream, X), put_byte(Stream, 0).        % string arg.
 
 qdump_short(X, Stream) :-
-    display(Stream, X), put_code(Stream, 0).        % short arg.
+    display(Stream, X), put_byte(Stream, 0).        % short arg.
 
 qdump_long(X, Stream) :-
-    display(Stream, X), put_code(Stream, 0).        % long arg.
+    display(Stream, X), put_byte(Stream, 0).        % long arg.
 
 qdump_float(X, Stream) :-
-    display(Stream, X), put_code(Stream, 0).        % float arg.
+    display(Stream, X), put_byte(Stream, 0).        % float arg.
 
 
 %------------------------------------------------------------------------
