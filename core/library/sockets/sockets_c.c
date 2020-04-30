@@ -48,8 +48,7 @@ tagged_t atom_unbuff;
 
 /* TODO: reuse code from stream_basic.h (e.g., update_stream, new_stream)? */
 
-void update_socket_stream(stream_node_t *s, int socket)
-{
+void update_socket_stream(stream_node_t *s, int socket) {
   s->label = MakeSmall(socket);
   s->streamfile = NULL;
   s->isatty = FALSE;
@@ -59,8 +58,7 @@ void update_socket_stream(stream_node_t *s, int socket)
   s->rune_count = 0; /* less than perfect */
 }
 
-stream_node_t *new_socket_stream(tagged_t streamname, int socket)
-{
+stream_node_t *new_socket_stream(tagged_t streamname, int socket) {
   stream_node_t *s;
 
   s = checkalloc_TYPE(stream_node_t);
@@ -77,8 +75,7 @@ stream_node_t *new_socket_stream(tagged_t streamname, int socket)
 
 #define MAX_SOCK_NUMBER 65535
 
-CBOOL__PROTO(prolog_connect_to_socket_type)
-{
+CBOOL__PROTO(prolog_connect_to_socket_type) {
   ERR__FUNCTOR("sockets:connect_to_socket_type", 4);
   int sock;
   int port_number;
@@ -225,11 +222,8 @@ CBOOL__PROTO(prolog_bind_socket)
   return cunify(Arg,MakeSmall(sock), X(2));
 }
 
-
 /* socket_accept(+Sock, -Stream) */
-
-CBOOL__PROTO(prolog_socket_accept)
-{
+CBOOL__PROTO(prolog_socket_accept) {
   ERR__FUNCTOR("sockets:socket_accept", 2);
   int socket, new_s;
   struct sockaddr isa;
@@ -253,12 +247,9 @@ CBOOL__PROTO(prolog_socket_accept)
            X(1));
 }
 
-
 /* Aux function */
-
 static CFUN__PROTO(stream_list, tagged_t,
-                   int max_fd, fd_set *ready_set)
-{
+                   int max_fd, fd_set *ready_set) {
   int this_fd;
   tagged_t list = atom_nil;
   stream_node_t *temp_stream;
@@ -278,12 +269,8 @@ static CFUN__PROTO(stream_list, tagged_t,
 }
 
 
-/*
- * select_socket(+Socket, -NewStream, +TO_ms, +Streams, -ReadStreams)
- */
-
-CBOOL__PROTO(prolog_select_socket)
-{
+/* select_socket(+Socket, -NewStream, +TO_ms, +Streams, -ReadStreams) */
+CBOOL__PROTO(prolog_select_socket) {
   ERR__FUNCTOR("sockets:select_socket", 5);
   int 
     listen_sock = 0,  /* Avoid compiler complaints */
@@ -367,13 +354,8 @@ CBOOL__PROTO(prolog_select_socket)
 }
 
 
-/* socket_send(+Stream, +String). Needs socket in connected state. String is
-   not supposed to be NULL terminated, since it is a Prolog string.  If a
-   NULL terminated string is needed at the other side, it has to be
-   explicitly created in Prolog. */
-
-CBOOL__PROTO(prolog_socket_send)
-{
+/* socket_send(+Stream, +Bytes) */
+CBOOL__PROTO(prolog_socket_send) {
   ERR__FUNCTOR("sockets:socket_send", 2);
   stream_node_t *s;
   unsigned char *buffpt;
@@ -391,11 +373,11 @@ CBOOL__PROTO(prolog_socket_send)
   buffpt = (unsigned char *)Atom_Buffer;
 
   for (msglen=0; cdr!=atom_nil; msglen++) {
-    if (IsVar(cdr))
+    if (IsVar(cdr)) {
       BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,2);
-    else if (!TagIsLST(cdr))
+    } else if (!TagIsLST(cdr)) {
       BUILTIN_ERROR(TYPE_ERROR(CHARACTER_CODE_LIST),X(1),2);
-    else if (msglen == Atom_Buffer_Length) {                   /* realloc */
+    } else if (msglen == Atom_Buffer_Length) {                   /* realloc */
       Atom_Buffer = checkrealloc_ARRAY(char,
                                        msglen,
                                        Atom_Buffer_Length<<=1,
@@ -403,11 +385,13 @@ CBOOL__PROTO(prolog_socket_send)
       buffpt = (unsigned char *)Atom_Buffer+msglen;
     }
     DerefCar(car,cdr);
-    if (IsVar(car))
+    if (IsVar(car)) {
       BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,2);
+    }
 
-    if (!TaggedIsSmall(car) || (car<TaggedZero) || (car>=MakeSmall(256)))
+    if (!TaggedIsSmall(car) || (car<TaggedZero) || (car>=MakeSmall(256))) {
       BUILTIN_ERROR(TYPE_ERROR(CHARACTER_CODE_LIST),X(1),2);
+    }
     
     *buffpt++ = GetSmall(car);
     DerefCdr(cdr,cdr);
@@ -431,12 +415,11 @@ CBOOL__PROTO(prolog_socket_send)
 
 
 
-/* socket_recv(+Stream, ?String, ?Length).  Needs socket in connected state. */
+/* socket_recv(+Stream, ?Bytes, ?Length).  Needs socket in connected state. */
 
 #define BUFFSIZE 2049
 
-CBOOL__PROTO(prolog_socket_receive)
-{
+CBOOL__PROTO(prolog_socket_receive) {
   ERR__FUNCTOR("sockets:socket_recv", 3);
   stream_node_t *s;
   /* We could use Atom_Buffer, but its size changes during execution; we'd
@@ -492,8 +475,7 @@ CBOOL__PROTO(prolog_socket_receive)
 #define SHUT_RDWR  2
 #endif
 
-CBOOL__PROTO(prolog_socket_shutdown)
-{
+CBOOL__PROTO(prolog_socket_shutdown) {
   ERR__FUNCTOR("sockets:socket_shutdown", 2);
     stream_node_t *s;
     int access_required;
@@ -531,8 +513,7 @@ CBOOL__PROTO(prolog_socket_shutdown)
 
 /* socket_buffering(+Stream, +Direction, -OldBuf, +NewBuffer) */
 /*
-CBOOL__PROTO(prolog_socket_buffering)
-{
+CBOOL__PROTO(prolog_socket_buffering) {
   ERR__FUNCTOR("sockets:socket_buffering", 4);
     stream_node_t *s;
     int access_required;
@@ -607,8 +588,7 @@ CBOOL__PROTO(prolog_socket_buffering)
 
 #define MAX_BYTES_IN_HOST_ADDRESS 8             /* It is 4 at the present */
 
-CBOOL__PROTO(prolog_hostname_address)
-{
+CBOOL__PROTO(prolog_hostname_address) {
   ERR__FUNCTOR("sockets:hostname_address", 2);
   tagged_t hostname;
   /* 3 chars per byte plus dots plus trailing zero */
@@ -641,8 +621,7 @@ CBOOL__PROTO(prolog_hostname_address)
 
 /* socket_getpeername(+Stream, ?Address) */
 
-CBOOL__PROTO(prolog_socket_getpeername)
-{
+CBOOL__PROTO(prolog_socket_getpeername) {
   ERR__FUNCTOR("sockets:socket_getpeername", 2);
   stream_node_t *s;
   int error_code;
@@ -675,9 +654,7 @@ CBOOL__PROTO(prolog_socket_getpeername)
   return cunify(Arg, X(1), GET_ATOM(ipstr));
 }
 
-
-CBOOL__PROTO(sockets_c_init)
-{
+CBOOL__PROTO(sockets_c_init) {
   atom_stream = init_atom_check("stream");
   atom_dgram = init_atom_check("dgram");
   atom_raw = init_atom_check("raw");
@@ -694,17 +671,7 @@ CBOOL__PROTO(sockets_c_init)
   return TRUE;
 }
 
-CBOOL__PROTO(init_from_ciaopp)
-{
-  atom_stream = init_atom_check("stream");
-  atom_dgram = init_atom_check("dgram");
-  atom_raw = init_atom_check("raw");
-  atom_seqpacket = init_atom_check("seqpacket");
-  atom_rdm = init_atom_check("rdm");
-
-  atom_read = init_atom_check("read");
-  atom_write = init_atom_check("write");
-  atom_read_write = init_atom_check("read_write");
-  return TRUE;
+CBOOL__PROTO(init_from_ciaopp) { /* TODO: this should not be needed */
+  CBOOL__LASTCALL(sockets_c_init);
 }
 
