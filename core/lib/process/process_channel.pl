@@ -25,13 +25,14 @@
 
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(library(system),
-    [file_exists/1,
-     mktemp_in_tmp/2,
-     delete_file/1]).
+:- use_module(library(system), [
+    file_exists/1,
+    mktemp_in_tmp/2,
+    delete_file/1]).
 :- use_module(library(read), [read_term/3]).
 :- use_module(library(write), [write/1, write_canonical/2]).
-:- use_module(library(stream_utils), [write_string/2, get_line/2, read_to_end/2]).
+:- use_module(library(stream_utils), [
+    write_string/2, get_line/2, read_string_to_end/2, discard_to_end/1]).
 
 % ===========================================================================
 
@@ -243,9 +244,9 @@ read_channel_(Channel, Stream) :-
 
 % Note: some may throw parsing errors
 read_channel__(string(Term), Stream) :- !,
-    read_to_end(Stream, Term).
+    read_string_to_end(Stream, Term).
 read_channel__(line(Term), Stream) :- !,
-    read_to_end(Stream, String0),
+    read_string_to_end(Stream, String0),
     no_tr_nl(String0, Term).
 read_channel__(atmlist(Term), Stream) :- !,
     read_lines(Stream, Term).
@@ -258,7 +259,7 @@ read_channel__(Channel, _Stream) :-
 % TODO: this can be done more efficiently
 % TODO: why not just close the stream?
 discard_stream_data(Stream) :-
-    \+ \+ read_to_end(Stream, _),
+    discard_to_end(Stream),
     close(Stream).
 
 :- pred read_channel_from_file(File, Channel) 

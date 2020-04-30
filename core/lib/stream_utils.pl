@@ -1,12 +1,13 @@
 :- module(stream_utils, [
-      read_to_end/2,
-      read_to_end/3,
       get_line/2, get_line/1, line/1,
+      read_string_to_end/2,
+      read_bytes_to_end/2,
+      discard_to_end/1,
       write_string/2, write_string/1,
+      write_bytes/2, write_bytes/1,
       %
-      file_to_string/2,
-      file_to_string/3,
-      string_to_file/2,
+      file_to_string/2, string_to_file/2,
+      file_to_bytes/2, bytes_to_file/2,
       %
       output_to_file/2,
       %
@@ -15,57 +16,24 @@
     ],
     [assertions,isomodes,hiord]).
 
-:- use_module(engine(stream_basic)).
-:- use_module(engine(io_basic)).
-
 :- doc(title, "Stream utilities").
-
 :- doc(author,"The Ciao Development Team").
 
 :- doc(module,"This module implements a collection of predicates to
    read/write streams (or files) from/to several sources (lists of
    terms, strings, predicate output, etc.).").
 
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
+
 % ===========================================================================
-:- doc(section, "Reading/writting from/to streams").
+:- doc(section, "Reading/writing from/to streams").
 
-:- pred read_to_end(+Stream, -String) : stream(Stream) => string(String)
-# "Reads in @var{String} all the characters from @var{Stream} until an
-   EOF is found.".
-
-read_to_end(Stream, String) :-
-    read_to_end(Stream, String, []).
-
-:- pred read_to_end(+Stream, -String, ?Tail): stream(Stream)
-# "Reads in the difference list @var{String}-@var{Tail} all the
-   characters from @var{Stream} until an EOF is found.".
-
-read_to_end(Stream, String, Tail) :-
-    current_input(OldIn),
-    set_input(Stream),
-    read_to_end_(String, Tail),
-    set_input(OldIn).
-
-read_to_end_(L, T) :-
-    get_code(C),
-    read_to_end_1(C, L, T).
-
-read_to_end_1(-1, T, T) :- !.
-read_to_end_1(C, [C|L], T) :-
-    get_code(C1),
-    read_to_end_1(C1, L, T).
-
-% ---------------------------------------------------------------------------
-
-:- doc(get_line(Stream, Line), "Reads from @var{Stream} a line of text
-   and unifies @var{Line} with it.  The end of the line can have Unix
-   @tt{[10]} or Windows/DOS @tt{[13, 10]} termination, which is not
-   included in @var{Line}.  At EOF, the term @tt{end_of_file} is
-   returned.").
-
-:- pred get_line(S,L)
-     : stream(S)
-    => line(L).
+:- pred get_line(S,L) : stream(S) => line(L)
+   # "Reads from @var{Stream} a line of text and unifies @var{Line}
+   with it.  The end of the line can have Unix @tt{[10]} or
+   Windows/DOS @tt{[13, 10]} termination, which is not included in
+   @var{Line}.  At EOF, the term @tt{end_of_file} is returned.".
 
 get_line(Stream, Line) :-
     current_input(OldIn),
@@ -73,10 +41,8 @@ get_line(Stream, Line) :-
     get_line(Line),
     set_input(OldIn).
 
-:- doc(get_line(Line), "Behaves like @tt{current_input(S),
-   get_line(S,Line)}.").
-
-:- pred get_line(L) => line(L).
+:- pred get_line(L) => line(L)
+   # "Behaves like @tt{current_input(S), get_line(S,Line)}.".
 
 get_line(Line) :-
     get_code(C),
@@ -100,7 +66,6 @@ get_line_after(C, [C|Cs]) :-
     get_line_after(C1, Cs).
 
 :- doc(doinclude,line/1).
-
 :- prop line/1 + regtype.
 
 line(L) :- string(L).
@@ -108,11 +73,54 @@ line(end_of_file).
 
 % ---------------------------------------------------------------------------
 
-:- doc(write_string(Stream, String), "Writes @var{String} onto
-   @var{Stream}.").
+:- pred read_string_to_end(Stream,String) : stream(Stream) => string(String)
+   # "Reads in @var{String} all the characters from @var{Stream} until
+   an EOF is found.".
 
-:- pred write_string(Stream,String)
-     : ( stream(Stream), string(String) ).
+read_string_to_end(Stream, String) :-
+    current_input(OldIn),
+    set_input(Stream),
+    read_string_to_end_(String),
+    set_input(OldIn).
+
+read_string_to_end_(L) :- get_code(C), read_string_to_end__(C, L).
+
+read_string_to_end__(-1, []) :- !.
+read_string_to_end__(C, [C|L]) :- get_code(C1), read_string_to_end__(C1, L).
+
+:- pred read_bytes_to_end(Stream,Bytes) : stream(Stream) => bytelist(Bytes)
+   # "Reads in @var{Bytes} all the bytes from @var{Stream} until
+   an EOF is found.".
+
+read_bytes_to_end(Stream, Bytes) :-
+    current_input(OldIn),
+    set_input(Stream),
+    read_bytes_to_end_(Bytes),
+    set_input(OldIn).
+
+read_bytes_to_end_(L) :- get_byte(C), read_bytes_to_end__(C, L).
+
+read_bytes_to_end__(-1, []) :- !.
+read_bytes_to_end__(C, [C|L]) :- get_byte(C1), read_bytes_to_end__(C1, L).
+
+:- pred discard_to_end(Stream) : stream(Stream)
+   # "Reads in all the bytes from @var{Stream} until an EOF is found.".
+
+discard_to_end(Stream) :-
+    current_input(OldIn),
+    set_input(Stream),
+    discard_to_end_,
+    set_input(OldIn).
+
+discard_to_end_ :- get_byte(C), discard_to_end__(C).
+
+discard_to_end__(-1) :- !.
+discard_to_end__(_) :- get_byte(C1), discard_to_end__(C1).
+
+% ---------------------------------------------------------------------------
+
+:- pred write_string(Stream,String): (stream(Stream), string(String)) 
+   # "Writes @var{String} onto @var{Stream}.".
 
 write_string(Stream, S) :-
     current_output(OldOut),
@@ -120,49 +128,70 @@ write_string(Stream, S) :-
     write_string(S),
     set_output(OldOut).
 
-:- doc(write_string(String), "Behaves like @tt{current_input(S),
-   write_string(S, String)}.").
+:- pred write_string(String): string(String)
+   # "Behaves like @tt{current_input(S), write_string(S, String)}.".
 
-:- pred write_string(String)
-     : string(String).
-
-write_string(V) :- var(V), !,
-    throw(error(instantiation_error,write_string/1-1)).
+write_string(V) :- var(V), !, throw(error(instantiation_error,write_string/1-1)).
 write_string([]).
 write_string([C|Cs]) :- put_code(C), write_string(Cs).
 
-% ===========================================================================
-:- doc(section, "Reading/writting from/to files").
+:- pred write_bytes(Stream,Bytes): (stream(Stream), bytelist(Bytes)) 
+   # "Writes @var{Bytes} onto @var{Stream}.".
 
-:- pred file_to_string(+FileName, -String) : sourcename(FileName) => string(String)
-   # "Reads all the characters from the file @var{FileName}
-      and returns them in @var{String}.".
+write_bytes(Stream, S) :-
+    current_output(OldOut),
+    set_output(Stream),
+    write_bytes(S),
+    set_output(OldOut).
+
+:- pred write_bytes(Bytes): bytelist(Bytes)
+   # "Behaves like @tt{current_input(S), write_bytes(S, Bytes)}.".
+
+write_bytes(V) :- var(V), !, throw(error(instantiation_error,write_bytes/1-1)).
+write_bytes([]).
+write_bytes([C|Cs]) :- put_byte(C), write_bytes(Cs).
+
+% ===========================================================================
+:- doc(section, "Reading/writing from/to files").
+
+:- pred file_to_string(FileName, String) : sourcename(FileName) => string(String)
+   # "Reads all the characters from the file @var{FileName} and
+   returns them in @var{String}.".
 
 file_to_string(File, String) :-
-    file_to_string(File, String, []).
-
-:- pred file_to_string(+FileName, -String, ?Tail) : sourcename(FileName) =>
-   string(String) # "Reads all the characters from the file
-   @var{FileName} and returns them in @var{String}.  @var{Tail} is the
-   end of @var{String}.".
-
-file_to_string(File, String, Tail) :-
     open(File, read, Stream),
-    read_to_end(Stream, String, Tail),
+    read_string_to_end(Stream, String, []),
     close(Stream).
 
-% ---------------------------------------------------------------------------
-
-:- pred string_to_file(+String, +FileName): (string(String), sourcename(FileName))
+:- pred string_to_file(String, FileName): (string(String), sourcename(FileName))
    # "Reads all the characters from the string @var{String} and writes
-    them to file @var{FileName}.".
+   them to file @var{FileName}.".
 
 string_to_file(String, File) :-
     open(File, write, Stream),
     write_string(Stream, String),
     close(Stream).
 
-% ---------------------------------------------------------------------------
+:- pred file_to_bytes(FileName, Bytes) : sourcename(FileName) => bytelist(Bytes)
+   # "Reads all the bytes from the file @var{FileName} and returns
+   them in @var{Bytes}.".
+
+file_to_bytes(File, Bytes) :-
+    open(File, read, Stream),
+    read_bytes_to_end(Stream, Bytes, []),
+    close(Stream).
+
+:- pred bytes_to_file(Bytes, FileName): (bytelist(Bytes), sourcename(FileName))
+   # "Reads all the bytes from the bytes @var{Bytes} and writes
+   them to file @var{FileName}.".
+
+bytes_to_file(Bytes, File) :-
+    open(File, write, Stream),
+    write_bytes(Stream, Bytes),
+    close(Stream).
+
+% ===========================================================================
+:- doc(section, "Redirect output to files").
 
 :- meta_predicate output_to_file(goal, ?).
 output_to_file(Goal, File) :-
@@ -216,13 +245,13 @@ close_output(X) :-
 
 :- prop input_handler/1 + regtype.
 
-input_handler(i(Old,New)):-
+input_handler(i(Old,New)) :-
     stream(Old),
     stream(New).
 
 :- prop output_handler/1 + regtype.
 
-output_handler(o(Old,New)):-
+output_handler(o(Old,New)) :-
     stream(Old),
     stream(New).
 

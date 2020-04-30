@@ -25,7 +25,7 @@
    the one char atom @var{Char} is @var{Code}.").
 
 char_code(Ch, C) :- 
-        atom_codes(Ch, [C]).
+    atom_codes(Ch, [C]).
 
 % Corrected assertions:
 :- pred atom_chars(+atm,?list(atm)) + iso.

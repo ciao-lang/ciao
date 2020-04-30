@@ -59,7 +59,7 @@ http_request_content(Options, Options1, Content) :-
 
 :- use_module(engine(stream_basic)).
 :- use_module(library(sockets)).
-:- use_module(library(stream_utils), [write_string/2, read_to_end/2]).
+:- use_module(library(stream_utils), [write_string/2, read_string_to_end/2]).
 
 :- pred http_transaction(+Host, +Port, +Request, +Timeout, -Response)
    :: atm * int * string * int * string
@@ -73,5 +73,5 @@ http_transaction(Host, Port, Request, Timeout, Response) :-
     Timeout_ms is Timeout*1000,
     select_socket(_,_,Timeout_ms,[Stream],R),
     R \== [],  % Fail if timeout
-    read_to_end(Stream,Response),
+    read_string_to_end(Stream,Response), % TODO: read_bytes_to_end/2?
     close(Stream).
