@@ -160,7 +160,7 @@ write_bytes([C|Cs]) :- put_byte(C), write_bytes(Cs).
 
 file_to_string(File, String) :-
     open(File, read, Stream),
-    read_string_to_end(Stream, String, []),
+    read_string_to_end(Stream, String),
     close(Stream).
 
 :- pred string_to_file(String, FileName): (string(String), sourcename(FileName))
@@ -178,7 +178,7 @@ string_to_file(String, File) :-
 
 file_to_bytes(File, Bytes) :-
     open(File, read, Stream),
-    read_bytes_to_end(Stream, Bytes, []),
+    read_bytes_to_end(Stream, Bytes),
     close(Stream).
 
 :- pred bytes_to_file(Bytes, FileName): (bytelist(Bytes), sourcename(FileName))
