@@ -1,8 +1,7 @@
 :- module(stream_utils, [
       get_line/2, get_line/1, line/1,
       read_string_to_end/2,
-      read_bytes_to_end/2,
-      discard_to_end/1,
+      read_bytes_to_end/2, discard_to_end/1, read_bytes/3,
       write_string/2, write_string/1,
       write_bytes/2, write_bytes/1,
       %
@@ -86,7 +85,7 @@ read_string_to_end(Stream, String) :-
 read_string_to_end_(L) :- get_code(C), read_string_to_end__(C, L).
 
 read_string_to_end__(-1, []) :- !.
-read_string_to_end__(C, [C|L]) :- get_code(C1), read_string_to_end__(C1, L).
+read_string_to_end__(C, [C|L]) :- read_string_to_end_(L).
 
 :- pred read_bytes_to_end(Stream,Bytes) : stream(Stream) => bytelist(Bytes)
    # "Reads in @var{Bytes} all the bytes from @var{Stream} until
@@ -101,7 +100,7 @@ read_bytes_to_end(Stream, Bytes) :-
 read_bytes_to_end_(L) :- get_byte(C), read_bytes_to_end__(C, L).
 
 read_bytes_to_end__(-1, []) :- !.
-read_bytes_to_end__(C, [C|L]) :- get_byte(C1), read_bytes_to_end__(C1, L).
+read_bytes_to_end__(C, [C|L]) :- read_bytes_to_end_(L).
 
 :- pred discard_to_end(Stream) : stream(Stream)
    # "Reads in all the bytes from @var{Stream} until an EOF is found.".
@@ -115,7 +114,23 @@ discard_to_end(Stream) :-
 discard_to_end_ :- get_byte(C), discard_to_end__(C).
 
 discard_to_end__(-1) :- !.
-discard_to_end__(_) :- get_byte(C1), discard_to_end__(C1).
+discard_to_end__(_) :- discard_to_end_.
+
+:- pred read_bytes(Stream,N,Bytes) : (stream(Stream), int(N)) => bytelist(Bytes)
+   # "Reads in @var{Bytes} at most @var{N} bytes from @var{Stream}, or
+   until an EOF is found.".
+
+read_bytes(Stream, N, Bytes) :-
+    current_input(OldIn),
+    set_input(Stream),
+    read_bytes_(N, Bytes),
+    set_input(OldIn).
+
+read_bytes_(N, []) :- N =< 0, !.
+read_bytes_(N, L) :- get_byte(C), N1 is N-1, read_bytes__(C, N1, L).
+
+read_bytes__(-1, _, []) :- !.
+read_bytes__(C, N, [C|L]) :- read_bytes_(N, L).
 
 % ---------------------------------------------------------------------------
 
