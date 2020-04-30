@@ -26,7 +26,7 @@
 :- use_module(library(lists), [member/2, append/3, select/3, length/2]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(library(stream_utils), [write_string/2]).
+:- use_module(library(stream_utils), [write_bytes/2]).
 :- use_module(library(pathnames), [path_concat/3]).
 
 % Grammar definitions
@@ -39,12 +39,12 @@
 
 % Note: Request = [] if the stream has been orderly closed on the peer
 http_read_request(Stream, Request) :-
-    http_read_header(Stream, RequestChars, Tail), % (Tail are chars that should by in the content)
-    % format("~s~n", RequestChars), nl,
-    ( RequestChars = [] ->
+    http_read_header(Stream, RequestBytes, Tail), % (Tail are chars that should by in the content)
+    % format("~s~n", RequestBytes), nl,
+    ( RequestBytes = [] ->
         % Stream was orderly closed (socket_recv_code/3 returned empty data)
         Request = []
-    ; http_request_str(URIStr,Request1,RequestChars,_) ->
+    ; http_request_str(URIStr,Request1,RequestBytes,_) ->
         ( member(method(post),Request1) ->
             http_read_content(Stream, Request1, Request2, Tail)
         ; Request2 = Request1
@@ -139,8 +139,8 @@ http_write_response(Stream, Response) :-
     http_send_response(Stream, Response2).
 
 http_send_response(Stream, Response) :-
-    http_response(Response,ResponseChars,[]),
-    catch(write_string(Stream,ResponseChars), _Err, true), % TODO: log errors? (e.g., resource_error(undefined) due to broken pipe)
+    http_response_str(Response,ResponseBytes,[]),
+    catch(write_bytes(Stream,ResponseBytes), _Err, true), % TODO: log errors? (e.g., resource_error(undefined) due to broken pipe)
     flush_output(Stream),
     close(Stream). % TODO: could be keep Stream open? (see socket_select leak problem)
     
@@ -474,6 +474,7 @@ err_handler(ErrHandler, Err, Response) :- ErrHandler(Err, Response).
 :- use_module(library(write), [writeq/1]).
 :- use_module(library(format), [format/2]).
 :- use_module(library(http/http_date), [http_date_str/3]).
+:- use_module(library(stream_utils), [write_string/2]).
 
 logging :- fail.
 %logging.

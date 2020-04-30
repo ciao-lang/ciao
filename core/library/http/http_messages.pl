@@ -88,7 +88,7 @@
 %  document content type, @em{Type} and @em{Subtype} are atoms, @em{Params}
 %  a list of parameters (e.g.  @tt{content_type(text,html,[])}). @comment{}
 %
-%  @item @bf{content(}@em{String}@bf{):} @em{String} is the document
+%  @item @bf{content(}@em{Bytes}@bf{):} @em{Bytes} is the document
 %  content (list of bytes).  If @tt{method(head)} of the HTTP
 %  request is used, an empty list is get here.
 %
@@ -115,9 +115,9 @@ http_request_param(_).
 % ---------------------------------------------------------------------------
 
 :- export(http_request_str/4).
-:- pred http_request_str(-RequestURI, -Request, +RequestChars, +RequestCharsTail)
+:- pred http_request_str(-RequestURI, -Request, +RequestBytes, +RequestBytesTail)
    # "Parse a string into an HTTP request".
-:- pred http_request_str(+RequestURI, +Request, -RequestChars, -RequestCharsTail)
+:- pred http_request_str(+RequestURI, +Request, -RequestBytes, -RequestBytesTail)
    # "Generate an HTTP request from a list of parameters".
 
 http_request_str(RequestURI, Options) -->
@@ -131,7 +131,7 @@ http_request_str(RequestURI, Options) -->
 http_request_line(RequestURI, Options, Options1) -->
     http_request_method(Options,Options1),
     " ",
-    string(RequestURI),
+    string(RequestURI), % TODO: UTF8 encode?
     " ",
     !,
     ( 'PRINTING' -> http_http(1,0) % TODO: change version?
@@ -168,11 +168,11 @@ http_response_param(_).
 
 % ---------------------------------------------------------------------------
 
-:- export(http_response/3).
-http_response(Response) -->
+:- export(http_response_str/3).
+http_response_str(Response) -->
     http_full_response(Response), !.
 % TODO: if full_response fails, it try the simple_response; is it OK?
-http_response(Response) -->
+http_response_str(Response) -->
     http_simple_response(Response).
 
 http_full_response(Response) --> 'PRINTING', !,

@@ -8,8 +8,7 @@
 %
 %  This module implements a client the @concept{HTTP} protocol.
 
-:- use_module(library(strings), [string/3]).
-:- use_module(library(lists), [member/2, select/3]).
+:- use_module(library(lists), [member/2, select/3, append/3]).
 :- use_module(library(http/url), [url_term/1]).
 
 % Grammar definitions
@@ -37,10 +36,10 @@ fetch_url(http(Host, Port, URIStr), Request, Response) :-
     timeout_option(Request, Timeout, Request0),
     http_request_content(Request0, Request1, Content),
     http_request_str(URIStr, Request1, Cs, Cs1),
-    string(Content, Cs1, []), % TODO: Do some encoding? Support multipart on client?
+    Cs1 = Content, % TODO: Do some encoding? Support multipart on client?
     !,
-    http_transaction(Host, Port, Cs, Timeout, ResponseChars),
-    http_response(Response, ResponseChars, []).
+    http_transaction(Host, Port, Cs, Timeout, ResponseBytes),
+    http_response_str(Response, ResponseBytes, []).
 
 :- pred timeout_option(+Options, -Timeout, -RestOptions)
    # "Returns timeout option, by default 5 min. (300s).".
@@ -62,19 +61,19 @@ http_request_content(Options, Options2, Content) :-
 
 :- use_module(engine(stream_basic)).
 :- use_module(library(sockets)).
-:- use_module(library(stream_utils), [write_string/2, read_string_to_end/2]).
+:- use_module(library(stream_utils), [write_bytes/2, read_bytes_to_end/2]).
 
 :- pred http_transaction(+Host, +Port, +Request, +Timeout, -Response)
-   :: atm * int * string * int * string
+   :: atm * int * bytelist * int * bytelist
    # "Sends an HTTP Request to an HTTP server and returns the resultant
       message.  Fails on timeout (@var{Timeout} in seconds).".
 
 http_transaction(Host, Port, Request, Timeout, Response) :-
     connect_to_socket(Host, Port, Stream),
-    write_string(Stream, Request),
+    write_bytes(Stream, Request),
     flush_output(Stream),
     Timeout_ms is Timeout*1000,
     select_socket(_,_,Timeout_ms,[Stream],R),
     R \== [],  % Fail if timeout
-    read_string_to_end(Stream,Response), % TODO: read_bytes_to_end/2?
+    read_bytes_to_end(Stream,Response),
     close(Stream).
