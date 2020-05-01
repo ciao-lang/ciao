@@ -123,13 +123,13 @@ read_tokens(0, _, Dict, Level, Tokens) :-              % layout
     getct1(NextCh, NextTyp),
     read_tokens_after_layout(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(1, Ch0, Dict, Level, [Atom|Tokens]) :-     % small letter: atom
-    put_mb(Ch0, S, S0),
+    code_bytes(Ch0, S, S0),
     getct(Ch, Typ),
     read_name(Typ, Ch, S0, NextCh, NextTyp),
     atom_token(S, Atom),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(2, Ch0, Dict, Level, [var(Var,S)|Tokens]) :- % capital letter: variable
-    put_mb(Ch0, S, S0),
+    code_bytes(Ch0, S, S0),
     getct(Ch, Typ),
     read_name(Typ, Ch, S0, NextCh, NextTyp),
     ( S = "_" ->                            % anonymous variable
@@ -147,7 +147,7 @@ read_tokens(4, 0'., Dict, Level, Tokens) :- !,          % end token or graphic a
     getct(NextCh, NextTyp),         
     read_fullstop(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(4, Ch, Dict, Level, [Atom|Tokens]) :-       % graphic atom
-    put_mb(Ch, S, Chars),
+    code_bytes(Ch, S, Chars),
     getct(AnotherCh, Typ),
     read_symbol(Typ, AnotherCh, Chars, NextCh, NextTyp),
     atom_token(S, Atom),
@@ -157,7 +157,7 @@ read_tokens(5, Ch, Dict, Level, Tokens) :-
 read_tokens(7, Ch, Dict, Level, [Atom|Tokens]) :- !,
     % Other Unicode XID_Continue is treated as 'solo' when it appears
     % as first character.
-    put_mb(Ch, S, []),
+    code_bytes(Ch, S, []),
     atom_token(S, Atom),
     getct(NextCh, NextTyp),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
@@ -251,7 +251,7 @@ read_name(7, Char, String, LastCh, LastTyp) :- !,
 read_name(LastTyp, LastCh, [], LastCh, LastTyp).
 
 read_name_(Char, String, LastCh, LastTyp) :-
-    put_mb(Char, String, Chars),
+    code_bytes(Char, String, Chars),
     getct(NextCh, NextTyp),
     read_name(NextTyp, NextCh, Chars, LastCh, LastTyp).
 
@@ -263,7 +263,7 @@ read_symbol(6, Char, String, LastCh, LastTyp) :- !, % (UTF8 support) % TODO: use
     getct_mb(Char, Char2, Typ2),
     read_symbol(Typ2, Char2, String, LastCh, LastTyp).
 read_symbol(4, Char, String, LastCh, LastTyp) :- !,
-    put_mb(Char, String, Chars),
+    code_bytes(Char, String, Chars),
     getct(NextCh, NextTyp),
     read_symbol(NextTyp, NextCh, Chars, LastCh, LastTyp).
 read_symbol(LastTyp, LastCh, [], LastCh, LastTyp).
@@ -919,22 +919,4 @@ getct_mb(B1, R, Typ) :-
         Typ=4 % treat as graphic
     ; fail % invalid
     ).
-    
-% Encode rune C into the difference list S-S0
-put_mb(C, S, S0) :- C =< 0x7F, !, S=[C|S0].
-put_mb(C, S, S0) :- C =< 0x7FF, !,
-    B1 is 0xC0\/((C>>6)/\0x1F),
-    B2 is (C/\0x3F)\/0x80,
-    S = [B1,B2|S0].
-put_mb(C, S, S0) :- C =< 0xFFFF, !,
-    B1 is 0xE0\/((C>>12)/\0xF),
-    B2 is ((C>>6)/\0x3F)\/0x80,
-    B3 is (C/\0x3F)\/0x80,
-    S = [B1,B2,B3|S0].
-put_mb(C, S, S0) :- C =< 0x10FFFF, !,
-    B1 is 0xF0\/((C>>18)/\0x7),
-    B2 is ((C>>12)/\0x3F)\/0x80,
-    B3 is ((C>>6)/\0x3F)\/0x80,
-    B4 is (C/\0x3F)\/0x80,
-    S = [B1,B2,B3,B4|S0].
 

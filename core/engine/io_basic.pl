@@ -3,7 +3,7 @@
     peek_code/2, peek_code/1, skip_code/2, skip_code/1,
     skip_line/1, skip_line/0,
     put_code/2, put_code/1, nl/1, nl/0, tab/2, tab/1,
-    code_class/2, getct/2, getct1/2,
+    code_class/2, code_bytes/3, getct/2, getct1/2,
     get_byte/2, get_byte/1, put_byte/2, put_byte/1, 
     display/2, display/1, displayq/2, displayq/1],
     [assertions, nortchecks, nativeprops, isomodes]).
@@ -150,6 +150,28 @@
 
 :- export('$rune_class'/2). % (experimental)
 :- impl_defined('$rune_class'/2).
+
+:- doc(code_bytes(C, Bs, Bs0), "Converts between the character code
+   @var{C} and the difference list of bytes @var{Bs}-@var{Bs0} using
+   UTF8 encoding.").
+% TODO: fail or error if rune is invalid?
+
+code_bytes(C, S, S0) :- C =< 0x7F, !, S=[C|S0].
+code_bytes(C, S, S0) :- C =< 0x7FF, !,
+    B1 is 0xC0\/((C>>6)/\0x1F),
+    B2 is (C/\0x3F)\/0x80,
+    S = [B1,B2|S0].
+code_bytes(C, S, S0) :- C =< 0xFFFF, !,
+    B1 is 0xE0\/((C>>12)/\0xF),
+    B2 is ((C>>6)/\0x3F)\/0x80,
+    B3 is (C/\0x3F)\/0x80,
+    S = [B1,B2,B3|S0].
+code_bytes(C, S, S0) :- C =< 0x10FFFF, !,
+    B1 is 0xF0\/((C>>18)/\0x7),
+    B2 is ((C>>12)/\0x3F)\/0x80,
+    B3 is ((C>>6)/\0x3F)\/0x80,
+    B4 is (C/\0x3F)\/0x80,
+    S = [B1,B2,B3,B4|S0].
 
 :- doc(getct(Code, Type), "Reads from the current input stream the
    next character, unifying @var{Code} with its character code, and
