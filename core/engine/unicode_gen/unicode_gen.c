@@ -175,11 +175,13 @@ int read_unicode_db() {
 #define RUNETY_IDCONT 6 /* rest of chars identifier char not included above (XID_Continue + "No" category" - XID_Start) */
 #define RUNETY_INVALID 7 /* invalid */
 
+char rune_lowtbl[128]; /* */
 char rune_class[MAX_CODE_POINT];
 int max_rune;
 
 int classify_unicode() {
   int i;
+  char *cp;
 
   for (i=0; i<MAX_CODE_POINT; i++) {
     if (get_tbl_cat(i) == UCAT_Whitespace) { // Whitespace
@@ -217,6 +219,19 @@ int classify_unicode() {
     if (rune_class[i] != RUNETY_INVALID) break;
   }
   max_rune = i+1;
+
+  /* Table for ASCII */
+  for (i=0; i<128; i++) rune_lowtbl[i] = RUNETY_LAYOUT; /* default */
+  for (cp="abcdefghijklmnopqrstuvwxyz"; (i = *cp++); )
+    rune_lowtbl[i]=RUNETY_LOWERCASE;
+  for (cp="ABCDEFGHIJKLMNOPQRSTUVWXYZ_"; (i = *cp++); )
+    rune_lowtbl[i]=RUNETY_UPPERCASE;
+  for (cp="0123456789"; (i = *cp++); )
+    rune_lowtbl[i]=RUNETY_DIGIT;
+  for (cp="#$&*+-./:<=>?@^\\`~"; (i = *cp++); )
+    rune_lowtbl[i]=RUNETY_SYMBOL;
+  for (cp="!;\"'%(),[]{|}"; (i = *cp++); )
+    rune_lowtbl[i]=RUNETY_PUNCT;
 
   return 1;
 }
@@ -309,7 +324,7 @@ int print_tables(char *file) {
     fprintf(f, "0x%llx", (uint64_t)dict[i]);
     if (i!=(dict_n-1)) fprintf(f, ",");
   }
-  if ((i&7)!=0) fprintf(f, "\n");
+  if (((i-1)&7)!=0) fprintf(f, "\n");
   fprintf(f, "};\n");
 
   /* Print ranges[] array */
@@ -320,7 +335,17 @@ int print_tables(char *file) {
     fprintf(f, "0x%x", ranges[i]);
     if (i!=(ranges_n-1)) fprintf(f, ",");
   }
-  if ((i&7)!=0) fprintf(f, "\n");
+  if (((i-1)&7)!=0) fprintf(f, "\n");
+  fprintf(f, "};\n");
+
+  /* Print rune_lowtbl array */
+  fprintf(f, "const char rune_lowtbl[128]={\n  ");
+  for (i=0; i<128;i++) {
+    if (i!=0 && (i&31)==0) fprintf(f, "\n  ");
+    fprintf(f, "%d", rune_lowtbl[i]);
+    if (i!=(128-1)) fprintf(f, ",");
+  }
+  if (((i-1)&31)!=0) fprintf(f, "\n");
   fprintf(f, "};\n");
 
   fclose(f);

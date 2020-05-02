@@ -165,7 +165,6 @@ extern char cwd[];
 
 extern char *ciao_suffix;
 
-void init_runetbl(void); /* initialize rune tables */
 void ciao_initcode(void); /* initialize foreign interface definitions */
 
 void eng_stub_set_length(int len) {
@@ -261,8 +260,6 @@ void engine_init(const char *boot_path, const char *exec_path) {
 #if defined(DEBUG)
   RESET_COUNTER;
 #endif
-
-  init_runetbl();
 
   compute_cwd();
 

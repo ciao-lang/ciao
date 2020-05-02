@@ -16,30 +16,6 @@
 #include <ciao/unicode_tbl.h>
 
 /* --------------------------------------------------------------------------- */
-/* Rune table */
-
-char runelowtbl[256];
-
-void init_runetbl(void) {
-  c_rune_t i;
-  char *cp;
-
-  for (i=0; i<128; i++) runelowtbl[i] = RUNETY_LAYOUT; /* default */
-  for (i=128; i<256; i++) runelowtbl[i] = RUNETY_X80; /* special case for UTF8 */
-  
-  for (cp="abcdefghijklmnopqrstuvwxyz"; (i = *cp++); )
-    runelowtbl[i]=RUNETY_LOWERCASE;
-  for (cp="ABCDEFGHIJKLMNOPQRSTUVWXYZ_"; (i = *cp++); )
-    runelowtbl[i]=RUNETY_UPPERCASE;
-  for (cp="0123456789"; (i = *cp++); )
-    runelowtbl[i]=RUNETY_DIGIT;
-  for (cp="#$&*+-./:<=>?@^\\`~"; (i = *cp++); )
-    runelowtbl[i]=RUNETY_SYMBOL;
-  for (cp="!;\"'%(),[]{|}"; (i = *cp++); )
-    runelowtbl[i]=RUNETY_PUNCT;
-}
-
-/* --------------------------------------------------------------------------- */
 
 static inline int range_left(int i) {
   return ranges[i]&((1<<VAL_SHIFT)-1);

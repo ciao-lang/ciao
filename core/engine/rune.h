@@ -18,13 +18,16 @@
 #define RUNETY_PUNCT 5
 #define RUNETY_IDCONT 6 /* 'solo' if first, name continuation otherwise */
 #define RUNETY_INVALID 7
-#define RUNETY_X80 8 /* >=0x80 and pending to decode as UTF8 */
 
-extern char runelowtbl[]; /* code class for runes 0x00..0x7F */
+/* (private) */
+extern const char rune_lowtbl[]; /* ASCII code class (runes 0x00..0x7F) */
 
-void init_runetbl(void); /* initialize rune tables */
+/* (private) */
+int rune_lookup_class(int c); /* classes for rune >0x7F */
 
-int rune_lookup_class(int c);
+static inline int get_rune_class(c_rune_t c) {
+  return (c <= 0x7F ? rune_lowtbl[c] : rune_lookup_class(c));
+}
 
 /* Get next rune R and code class TYP from char pointer CP.  CP is
    moved to the next rune. Invalid encoding moves the pointer 1 byte
@@ -32,7 +35,7 @@ int rune_lookup_class(int c);
 #define NextRune(CP, R, TYP) ({ \
   R=CP[0]; \
   if (R <= 0x7F) { /* fast case */ \
-    CP++; TYP=runelowtbl[R]; \
+    CP++; TYP=rune_lowtbl[R]; \
   } else { \
     CP=next_rune_((unsigned char)R, CP, &R, &TYP); \
   } \
@@ -50,6 +53,7 @@ int rune_lookup_class(int c);
    0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
 */
 
+/* (private) */
 /* Continue get next rune (assume b0>=0x80) and code class.
    return next cp */
 static inline 

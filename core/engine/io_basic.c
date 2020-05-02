@@ -92,7 +92,7 @@ int writemb(int fildes, c_rune_t c);
 
 CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 
-#define CheckGetCharacterCode(X,C,ArgNo) ({                             \
+#define CheckGetRune(X,C,ArgNo) ({                                      \
   if (TaggedIsSmall((X))) {                                             \
     C = GetSmall((X));                                                  \
   } else if (TagIsLarge((X)) && !LargeIsFloat((X))) { /* bigint */      \
@@ -351,9 +351,9 @@ CBOOL__PROTO(code_class) {
   c_rune_t i;
 
   DEREF(X(0), X(0));
-  CheckGetCharacterCode(X(0),i,1);
+  CheckGetRune(X(0),i,1);
 
-  return cunify(Arg,X(1),MakeSmall(runelowtbl[i]));
+  return cunify(Arg,X(1),MakeSmall(get_rune_class(i)));
 }
 
 CBOOL__PROTO(rune_class) {
@@ -363,7 +363,7 @@ CBOOL__PROTO(rune_class) {
   DEREF(X(0), X(0));
   if (!TaggedIsSmall(X(0))) return FALSE;
   i = GetSmall(X(0));                             
-  return cunify(Arg,X(1),MakeSmall(rune_lookup_class(i)));
+  return cunify(Arg,X(1),MakeSmall(get_rune_class(i)));
 }
 
 static inline void inc_counts(int ch, stream_node_t * stream) {
@@ -430,20 +430,27 @@ static CVOID__PROTO(writebyte, int ch, stream_node_t *s) {
 #define GET1   -2
 #define SKIPLN -1
 
-#define EXITCOND(Op,R) \
-    ( (Op)<GET1 || (R)==RUNE_EOF || ((Op)==GET1 && runelowtbl[(R)]>0) || \
-      ((Op)==SKIPLN && ((R)==0xa || (R)==0xd)) || (Op)==(R) )
+static inline int read_exit_cond(int op_type, c_rune_t r) {
+  return (op_type<GET1 ||
+          r==RUNE_EOF ||
+          (op_type==GET1 && get_rune_class(r)>0) ||
+          (op_type==SKIPLN && (r==0xa || r==0xd)) ||
+          op_type==r);
+}
 
-#define GIVEBACKCOND(Op,R) \
-  ((Op)==PEEK || ((Op)==SKIPLN && (R)==RUNE_EOF) || ((Op)==DELRET && (R)!=0xa))
+static inline int read_give_back_cond(int op_type, c_rune_t r) {
+  return (op_type==PEEK ||
+          (op_type==SKIPLN && r==RUNE_EOF) ||
+          (op_type==DELRET && r!=0xa));
+}
 
 /* Returns RUNE_PAST_EOF when attempting to read past end of file)
 
    op_type: DELRET, PEEK, GET, GET1, SKIPLN, or >= 0 for SKIP
  */
 static CFUN__PROTO(readrune, int, stream_node_t *s,
-                    int op_type,
-                    definition_t *pred_address) {
+                   int op_type,
+                   definition_t *pred_address) {
   FILE *f = s->streamfile;
   c_rune_t r;
 
@@ -463,7 +470,7 @@ static CFUN__PROTO(readrune, int, stream_node_t *s,
         s->pending_rune = RUNE_VOID;
       }
       
-      if (GIVEBACKCOND(op_type,r)) {
+      if (read_give_back_cond(op_type,r)) {
         s->pending_rune = r;
       } else {
         inc_counts(r,root_stream_ptr);
@@ -471,7 +478,7 @@ static CFUN__PROTO(readrune, int, stream_node_t *s,
 
       if (r==RUNE_EOF) clearerr(f);
 
-      if (EXITCOND(op_type,r)) {
+      if (read_exit_cond(op_type,r)) {
         int_address = NULL; 
         return r;
       }
@@ -492,13 +499,13 @@ static CFUN__PROTO(readrune, int, stream_node_t *s,
         }
       }
 
-      if (GIVEBACKCOND(op_type,r)) {
+      if (read_give_back_cond(op_type,r)) {
         s->pending_rune = r;
       } else {
         inc_counts(r,s);
       }
       
-      if (EXITCOND(op_type,r)) return r;
+      if (read_exit_cond(op_type,r)) return r;
     }
   } else { /* a socket */
     int fildes = GetInteger(s->label);
@@ -523,14 +530,14 @@ static CFUN__PROTO(readrune, int, stream_node_t *s,
         s->pending_rune = RUNE_VOID;
       }
       
-      if (GIVEBACKCOND(op_type,r)) {
+      if (read_give_back_cond(op_type,r)) {
         s->pending_rune = r;
       } else {
         inc_counts(r,s);
         if (r==RUNE_EOF) s->socket_eof = TRUE;
       }
 
-      if (EXITCOND(op_type,r)) return r;
+      if (read_exit_cond(op_type,r)) return r;
     }
   }
 }
@@ -613,40 +620,6 @@ CBOOL__PROTO(flush_output1) {
   }
   return TRUE;
 }
-
-/*----------------------------------------------------------------*/
-
-CBOOL__PROTO(getct) {
-  ERR__FUNCTOR("io_basic:getct", 2);
-  c_rune_t r;
-
-  r = readrune(Arg,Input_Stream_Ptr,GET,address_getct);
-
-  if (r == RUNE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
-  }
-
-  return cunify(Arg,X(0),MakeSmall(r)) 
-    && cunify(Arg,X(1),MakeSmall(r == RUNE_EOF ? -1 : runelowtbl[r]));
-}
-
-
-/*----------------------------------------------------------------*/
-
-CBOOL__PROTO(getct1) {
-  ERR__FUNCTOR("io_basic:getct1", 2);
-  c_rune_t r;
-  
-  r = readrune(Arg,Input_Stream_Ptr,GET1,address_getct1); /* skip whitespace */
-
-  if (r == RUNE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
-  }
-
-  return cunify(Arg,X(0),MakeSmall(r)) 
-         && cunify(Arg,X(1),MakeSmall(r == RUNE_EOF ? -1 : runelowtbl[r]));
-}
-
 
 /*----------------------------------------------------------------*/
 
@@ -761,6 +734,42 @@ CBOOL__PROTO(peek2) {
 
 /*----------------------------------------------------------------*/
 
+#define RUNETY_X80 8 /* temporary, >=0x80 and pending to decode as UTF8 */
+
+CBOOL__PROTO(getct) {
+  ERR__FUNCTOR("io_basic:getct", 2);
+  c_rune_t r;
+
+  r = readrune(Arg,Input_Stream_Ptr,GET,address_getct);
+
+  if (r == RUNE_PAST_EOF) {
+    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+  }
+
+  return cunify(Arg,X(0),MakeSmall(r)) 
+    && cunify(Arg,X(1),MakeSmall(r >= 0x80 ? RUNETY_X80 :
+                                 r == RUNE_EOF ? -1 :
+                                 get_rune_class(r)));
+}
+
+CBOOL__PROTO(getct1) {
+  ERR__FUNCTOR("io_basic:getct1", 2);
+  c_rune_t r;
+  
+  r = readrune(Arg,Input_Stream_Ptr,GET1,address_getct1); /* skip whitespace */
+
+  if (r == RUNE_PAST_EOF) {
+    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+  }
+
+  return cunify(Arg,X(0),MakeSmall(r)) 
+    && cunify(Arg,X(1),MakeSmall(r >= 0x80 ? RUNETY_X80 :
+                                 r == RUNE_EOF ? -1 :
+                                 get_rune_class(r)));
+}
+
+/*----------------------------------------------------------------*/
+
 CBOOL__PROTO(nl) {
   writerune(Arg, '\n',Output_Stream_Ptr);
   return TRUE;
@@ -789,7 +798,7 @@ CBOOL__PROTO(put) {
   c_rune_t r;
 
   DEREF(X(0), X(0));
-  CheckGetCharacterCode(X(0),r,1);
+  CheckGetRune(X(0),r,1);
   writerune(Arg, r, Output_Stream_Ptr);
 
   return TRUE;
@@ -809,7 +818,7 @@ CBOOL__PROTO(put2) {
   }
 
   DEREF(X(1), X(1));
-  CheckGetCharacterCode(X(1),r,2);
+  CheckGetRune(X(1),r,2);
   writerune(Arg, r, s);
 
   return TRUE;
@@ -858,7 +867,7 @@ CBOOL__PROTO(skip) {
   c_rune_t r, r1;
 
   DEREF(X(0),X(0));
-  CheckGetCharacterCode(X(0),r,1);
+  CheckGetRune(X(0),r,1);
 
   for (r1=r+1; r1!=r && r1 != RUNE_PAST_EOF;) {
     r1 = readrune(Arg,Input_Stream_Ptr,r,address_skip);
@@ -885,7 +894,7 @@ CBOOL__PROTO(skip2) {
   }
 
   DEREF(X(1),X(1))
-  CheckGetCharacterCode(X(1),r,2);
+  CheckGetRune(X(1),r,2);
 
   for (r1=r+1; r1!=r && r1 != RUNE_PAST_EOF;) {
     r1 = readrune(Arg,s,r,address_skip2);
@@ -1093,7 +1102,7 @@ CVOID__PROTO(print_atom, stream_node_t *stream, tagged_t term) {
 #if defined(FULL_ESCAPE_QUOTED_ATOMS)
     while ((r = *ch++)) {
       /* See tokenize.pl for table of symbolic control chars */
-      if (runelowtbl[r] == 0) {
+      if (r <= 0x7F && get_rune_class(r) == 0) { /* TODO: only for ASCII, is it OK? */
         switch (r) {
         case 7: PRINT_CONTROL_RUNE('a'); break;
         case 8: PRINT_CONTROL_RUNE('b'); break;
