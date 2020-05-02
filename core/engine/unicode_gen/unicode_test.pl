@@ -1,9 +1,10 @@
 :- module(_, [], [foreign_interface, assertions]).
 
+%:- use_module(library(streams)).
 :- use_module(library(between)).
 :- use_module(unicode_gen).
 
-:- use_foreign_source(engine(unicode)).
+:- use_foreign_source(engine(rune)).
 
 % Version using generated table (compressed)
 :- export(rune_lookup_class/2).
@@ -19,4 +20,5 @@ test_lookup_rune :-
 rune_ok(C) :-
     get_rune_class(C,X),
     rune_lookup_class(C,Y),
+%    (X==Y->true;display(mismatch(C,X,Y)),nl,fail).
     X==Y.

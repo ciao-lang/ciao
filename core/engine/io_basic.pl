@@ -139,6 +139,8 @@
     3 - digit
     4 - graphic (includes #$&*+-./:<=>?@@^\\\\`~ )
     5 - punctuation (includes !;""'%(),[]@{|@} )
+    6 - extended identifier continuation
+    7 - invalid
    @end{verbatim}
    Note that in @concept{ISO-Prolog} the back quote @tt{`} is a punctuation
    character, whereas in Ciao it is a graphic character.  Thus, if

@@ -137,7 +137,7 @@ read_tokens_after_layout(5, 0'(, Dict, Level, Tokens) :- !,
 read_tokens_after_layout(Typ, Ch, Dict, Level, Tokens) :-
     read_tokens(Typ, Ch, Dict, Level, Tokens).
 
-read_tokens(6, Ch, Dict, Level, Tokens) :- % (UTF8 support) % TODO: use getct_mb/2 in C
+read_tokens(8, Ch, Dict, Level, Tokens) :- % (UTF8 support) % TODO: use getct_mb/2 in C
     getct_mb(Ch, Ch2, Typ2),
     read_tokens(Typ2, Ch2, Dict, Level, Tokens).
 read_tokens(-1, _, _, _, []).                      % end of file
@@ -176,7 +176,7 @@ read_tokens(4, Ch, Dict, Level, [Atom|Tokens]) :-       % graphic atom
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(5, Ch, Dict, Level, Tokens) :-
     read_tokens_solo(Ch, Dict, Level, Tokens).
-read_tokens(7, Ch, Dict, Level, [Atom|Tokens]) :- !,
+read_tokens(6, Ch, Dict, Level, [Atom|Tokens]) :- !,
     % Other Unicode XID_Continue is treated as 'solo' when it appears
     % as first character.
     code_bytes(Ch, S, []),
@@ -259,7 +259,7 @@ read_tokens_solo(0'', Dict, Level, Tokens) :- % 'atom'
 % them as String.  The first character which cannot join this sequence
 % is returned as LastCh.
 
-read_name(6, Char, String, LastCh, LastTyp) :- !, % (UTF8 support) % TODO: use getct_mb/2 in C
+read_name(8, Char, String, LastCh, LastTyp) :- !, % (UTF8 support) % TODO: use getct_mb/2 in C
     getct_mb(Char, Char2, Typ2),
     read_name(Typ2, Char2, String, LastCh, LastTyp).
 read_name(1, Char, String, LastCh, LastTyp) :- !,
@@ -268,7 +268,7 @@ read_name(2, Char, String, LastCh, LastTyp) :- !,
     read_name_(Char, String, LastCh, LastTyp).
 read_name(3, Char, String, LastCh, LastTyp) :- !,
     read_name_(Char, String, LastCh, LastTyp).
-read_name(7, Char, String, LastCh, LastTyp) :- !,
+read_name(6, Char, String, LastCh, LastTyp) :- !,
     read_name_(Char, String, LastCh, LastTyp).
 read_name(LastTyp, LastCh, [], LastCh, LastTyp).
 
@@ -281,7 +281,7 @@ read_name_(Char, String, LastCh, LastTyp) :-
 % reads the other kind of atom which needs no quoting: one which is
 % a string of "symbol" characters.
 
-read_symbol(6, Char, String, LastCh, LastTyp) :- !, % (UTF8 support) % TODO: use getct_mb/2 in C
+read_symbol(8, Char, String, LastCh, LastTyp) :- !, % (UTF8 support) % TODO: use getct_mb/2 in C
     getct_mb(Char, Char2, Typ2),
     read_symbol(Typ2, Char2, String, LastCh, LastTyp).
 read_symbol(4, Char, String, LastCh, LastTyp) :- !,
@@ -295,7 +295,7 @@ read_symbol(LastTyp, LastCh, [], LastCh, LastTyp).
 % an end of file, a layout character or %, this is a clause terminator, else
 % this is just an ordinary symbol and we call read_symbol to process it.
 
-read_fullstop(6, Ch, Dict, Level, Tokens) :- !, % (UTF8 support) % TODO: use getct_mb/2 in C
+read_fullstop(8, Ch, Dict, Level, Tokens) :- !, % (UTF8 support) % TODO: use getct_mb/2 in C
     getct_mb(Ch, Ch2, Typ2),
     read_fullstop(Typ2, Ch2, Dict, Level, Tokens).
 read_fullstop(-1, _, _, _Level, [.]) :- !. % end of file
@@ -926,19 +926,5 @@ getct_mb(B1, R, Typ) :-
         R >= 0x10000
     ; fail % invalid
     ),
-    % Get equivalence between rune classes (given by '$rune_class'/1) and
-    % ASCII code classes:
-    '$rune_class'(R, RuneTyp),
-    ( RuneTyp=1 -> % whitespace (Z*)
-        Typ=0 % treat as layout
-    ; RuneTyp=2 -> % first char for variables (XID_Start and Lu)
-        Typ=2 % treat as capital letter
-    ; RuneTyp=3 -> % first char for atoms (XID_Start and not Lu)
-        Typ=1 % treat as small letter
-    ; RuneTyp=4 -> % other name continuation (XID_Continue+No-XID_Start)
-        Typ=7 % special, see read_name/6
-    ; RuneTyp=5 -> % symbols (S* or P*)
-        Typ=4 % treat as graphic
-    ; fail % invalid
-    ).
+    '$rune_class'(R, Typ).
 

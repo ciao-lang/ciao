@@ -165,12 +165,15 @@ int read_unicode_db() {
 /* --------------------------------------------------------------------------- */
 /* Classification for Ciao source code */
 
-/* (See also io_basic:code_class/2) */
-#define RUNECLASS_BLK 1 /* whitespace ("Z*" unicode category) */
-#define RUNECLASS_VAR 2 /* first char for variables (XID_Start and "Lu" category) */
-#define RUNECLASS_ATM 3 /* first char for atoms (XID_Start and not "Lu" category) */
-#define RUNECLASS_IDC 4 /* rest of chars identifier char not included above (XID_Continue + "No" category" - XID_Start) */
-#define RUNECLASS_SYM 5 /* symbols (any of "S*" or "P*" unicode category) */
+/* Rune classes, keep synchronized with engine/rune.h! */
+#define RUNETY_LAYOUT 0 /* whitespace ("Z*" unicode category) */
+#define RUNETY_LOWERCASE 1 /* first char for atoms (XID_Start and not "Lu" category) */
+#define RUNETY_UPPERCASE 2 /* first char for variables (XID_Start and "Lu" category) */
+#define RUNETY_DIGIT 3
+#define RUNETY_SYMBOL 4 /* symbols (any of "S*" or "P*" unicode category) */
+#define RUNETY_PUNCT 5
+#define RUNETY_IDCONT 6 /* rest of chars identifier char not included above (XID_Continue + "No" category" - XID_Start) */
+#define RUNETY_INVALID 7 /* invalid */
 
 char rune_class[MAX_CODE_POINT];
 int max_rune;
@@ -180,12 +183,12 @@ int classify_unicode() {
 
   for (i=0; i<MAX_CODE_POINT; i++) {
     if (get_tbl_cat(i) == UCAT_Whitespace) { // Whitespace
-      rune_class[i]=RUNECLASS_BLK;
+      rune_class[i]=RUNETY_LAYOUT;
     } else if (has_tbl_prop(i, UCAT_XID_Start)) { // XID_Start
       if (get_tbl_cat(i) == UCAT_Lu) {
-        rune_class[i]=RUNECLASS_VAR;
+        rune_class[i]=RUNETY_UPPERCASE;
       } else {
-        rune_class[i]=RUNECLASS_ATM;
+        rune_class[i]=RUNETY_LOWERCASE;
       }
       // check that XID_Start is included in XID_Continue
       if (!has_tbl_prop(i, UCAT_XID_Continue)) {
@@ -193,13 +196,13 @@ int classify_unicode() {
         return 0;
       }
     } else if (has_tbl_prop(i, UCAT_XID_Continue)) { // XID_Continue
-      rune_class[i]=RUNECLASS_IDC;
+      rune_class[i]=RUNETY_IDCONT;
     } else if (get_tbl_cat(i) == UCAT_No) { // or 'No'
-      rune_class[i]=RUNECLASS_IDC;
+      rune_class[i]=RUNETY_IDCONT;
     } else if (get_tbl_cat(i) == UCAT_Sx_or_Px) { // S* or P*
-      rune_class[i]=RUNECLASS_SYM;
+      rune_class[i]=RUNETY_SYMBOL;
     } else {
-      rune_class[i]=0; // None
+      rune_class[i]=RUNETY_INVALID; // None
     }
   }
 
@@ -209,9 +212,9 @@ int classify_unicode() {
   }
 #endif
 
-  /* Compute max code (last one that is 0) */
+  /* Compute max code (last one that is RUNETY_INVALID) */
   for (i=MAX_CODE_POINT-1; i>=0; i--) {
-    if (rune_class[i] != 0) break;
+    if (rune_class[i] != RUNETY_INVALID) break;
   }
   max_rune = i+1;
 
@@ -220,7 +223,7 @@ int classify_unicode() {
 
 /* (For testing) */
 int get_rune_class(int c) {
-  if (c >= MAX_CODE_POINT) return 0;
+  if (c >= MAX_CODE_POINT) return RUNETY_INVALID;
   return rune_class[c];
 }
 

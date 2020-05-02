@@ -16,35 +16,15 @@
 #define RUNETY_DIGIT 3
 #define RUNETY_SYMBOL 4
 #define RUNETY_PUNCT 5
-/* auxiliary code classes */
-#define RUNETY_X80 6 /* >=0x80 and pending to decode as UTF8 */
-#define RUNETY_IDCONT 7 /* 'solo' if first, name continuation otherwise */
-#define RUNETY_INVALID 8
+#define RUNETY_IDCONT 6 /* 'solo' if first, name continuation otherwise */
+#define RUNETY_INVALID 7
+#define RUNETY_X80 8 /* >=0x80 and pending to decode as UTF8 */
 
 extern char runelowtbl[]; /* code class for runes 0x00..0x7F */
 
 void init_runetbl(void); /* initialize rune tables */
 
 int rune_lookup_class(int c);
-
-/* Get equivalence between rune classes (given by rune_lookup_class(c))
-   and ASCII code classes */
-static inline int rune_equiv_class(c_rune_t c) {
-  switch(rune_lookup_class(c)) {
-  case 1: /* whitespace (Z*) */
-    return RUNETY_LAYOUT; /* treat as layout */
-  case 2: /* first char for variables (XID_Start and Lu) */
-    return RUNETY_UPPERCASE; /* treat as capital letter */
-  case 3: /* first char for atoms (XID_Start and not Lu) */
-    return RUNETY_LOWERCASE; /* treat as small letter */
-  case 4: /* other name continuation (XID_Continue+No-XID_Start) */
-    return RUNETY_IDCONT; /* special, see read_name/6 */
-  case 5: /* symbols (S* or P*) */
-    return RUNETY_SYMBOL; /* treat as graphic */
-  default:
-    return RUNETY_INVALID; /* invalid */
-  }
-}
 
 /* Get next rune R and code class TYP from char pointer CP.  CP is
    moved to the next rune. Invalid encoding moves the pointer 1 byte
@@ -102,7 +82,7 @@ const unsigned char *next_rune_(unsigned char b0,
     goto invalid;
   }
   *r = r_;
-  *typ = rune_equiv_class(r_);
+  *typ = rune_lookup_class(r_);
   return cp;
  invalid:
   *r = b0; *typ = RUNETY_INVALID; cp++;
