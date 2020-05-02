@@ -2,20 +2,48 @@
 
 :- doc(title, "Tokenizer").
 :- doc(author, "The Ciao Development Team").
+:- doc(author, "Jose F. Morales (curly blocks, Unicode source support)").
 
 :- doc(module, "This module defines the tokenizer for Ciao.  In
    addition to optional flags, the main differences w.r.t. the ISO-Prolog
    standard are:
 
-@begin{itemize}
-@item @tt{`} is a graphic char, there are no @tt{back_quoted_strings}.
-@item @tt{\\\\} followed by any layout char (not only @tt{new_line}) in a string is a @tt{continuation_escape_sequence}.
-@item @tt{\\\\^} starts a @tt{control_escape_char} in a string.
-@item @tt{\\\\c} skips layout in a string.
-@item @tt{\\\\e} = @tt{ESC}, @tt{\\\\d} = @tt{DEL}, @tt{\\\\s} = @tt{SPACE}.
-@item @tt{13'23} is 23 in base 13 (same for other bases).
-@item @tt{0'}@tt{'} is accepted as @tt{0'}@tt{'}@tt{'} (if not followed by @tt{'}).
-@end{itemize}
+   @begin{itemize}
+   @item @tt{`} is a graphic char, there are no @tt{back_quoted_strings}.
+   @item @tt{\\\\} followed by any layout char (not only @tt{new_line}) in a string is a @tt{continuation_escape_sequence}.
+   @item @tt{\\\\^} starts a @tt{control_escape_char} in a string.
+   @item @tt{\\\\c} skips layout in a string.
+   @item @tt{\\\\e} = @tt{ESC}, @tt{\\\\d} = @tt{DEL}, @tt{\\\\s} = @tt{SPACE}.
+   @item @tt{13'23} is 23 in base 13 (same for other bases).
+   @item @tt{0'}@tt{'} is accepted as @tt{0'}@tt{'}@tt{'} (if not followed by @tt{'}).
+   @item Support for Unicode identifiers (see @ref{Unicode source code})
+   @end{itemize}
+
+   @section{Unicode source code}
+
+   @cindex{unicode}
+
+   The tokenizer for Ciao extends ISO-Prolog with
+   support for Unicode source identifiers, based on the the
+   @href{https://unicode.org/reports/tr31/#Case_and_Stability}{Unicode
+   Standard Annex 31}, as follows:
+
+   @begin{itemize}  
+   @item Identifiers can begin with @tt{XID_Start} characters and must
+     be followed with zero or more @tt{XID_Continue} (see the Unicode
+     Derived Core Properties), extended with categorty @tt{No}.
+     Variables are those identifiers that start with characters in the
+     @tt{Lu} category.
+   @item Use @tt{Z*} as layout characters, as well as other control
+     characters (@tt{Cc} categoty) with bidirectional category @tt{WS}
+     (whitespace), @tt{S} (segment separator), or @tt{B} (paragraph
+     separator).
+   @item Use @tt{S*} (@tt{Sm}, @tt{Sc}, @tt{Sk}, @tt{So}) and @tt{P*}
+     (@tt{Pc}, @tt{Pd}, @tt{Ps}, @tt{Pe}, @tt{Pi}, @tt{Pf}, @tt{Po})
+     as symbols.
+   @item Identifiers that begin with @tt{XID_Continue} are treated as
+     @em{solo} tokens.
+   @end{itemize}  
    ").
 
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
@@ -29,15 +57,6 @@
 
 define_flag(character_escapes, [iso, sicstus, off], iso).
 define_flag(doccomments, [on, off], off).
-
-% Character classes
-% -1 - end of file                    
-%  0 - layout                         
-%  1 - small letter                   
-%  2 - capital letter (including '_') 
-%  3 - digit                          
-%  4 - graphic                        
-%  5 - punctuation
 
 % Existing tokens:
 %    atom(atom)
@@ -74,6 +93,9 @@ token('.').
 % Suspension token, for reading curly_blocks incrementally
 token(suspension(S)) :- term(S).
 :- endif.
+
+% See io_basic:code_class/2 documentation for the available character
+% types retured by getct1/2 and getct/2.
 
 :- export(read_tokens/2).
 :- pred read_tokens(TokenList, Dictionary) 
