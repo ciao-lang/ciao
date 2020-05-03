@@ -134,27 +134,24 @@ display_list(M) :-
 
 % Auxiliary IO predicates:
 
-message(Type, Message) :-
-    message_output(Type, Output),
-    message_(Type, Output, Message).
-
-message_(Type, Output, Message) :- message_type_visible(Type), !,
+message(Type, Message) :- message_type_visible(Type), !,
     add_head(Type, Message, MessL),
-    current_output(S),
-    set_output(Output),
-    output_message(MessL), nl,
-    set_output(S).
-message_(_, _, _).
+    message_(Type, MessL).
+message(_,_).
 
 message_lns(Type, L0, L1, Message) :- message_type_visible(Type), !,
     add_lines(L0, L1, Message, Messlns),
     add_head(Type, Messlns, MessL),
-    current_output(S),
+    message_(Type, MessL).
+message_lns(_,_,_,_).
+
+message_(Type, MessL) :-
     message_output(Type, Output),
+    current_output(S),
     set_output(Output),
     output_message(MessL), nl,
     set_output(S).
-message_lns(_, _, _, _).
+
 
 :- pred message_type_visible(Type) : message_type(Type) # "Succeeds if
   message type @var{Type} is visible according to the current value of
@@ -223,7 +220,7 @@ message_output(error,   user_error).
 message_output(error0,  user_error).
 message_output(warning, user_error).
 message_output(note,    user_output). % TODO: really?
-message_output(user,    user).        % TODO: needed?
+message_output(user, user). % TODO: needed?
 message_output(inform,  user_error).
 message_output(debug,   user_error).
 message_output(passed,  user_error).
@@ -249,37 +246,39 @@ message_info(debug(Text)) :- lformat_text(Text).
 %% message_info(failed(Text)) :- lformat_text(Text).
 %% message_info(aborted(Text)) :- lformat_text(Text).
 
+% -------------------------------------------------------------------------------
+% messages/2
+% -------------------------------------------------------------------------------
+
+% messages/2 is used to allow wrapping a set of messages in a source
+% context, with an initial "{In Source" message and a final "}"
+% message.
+
+% TODO: unify with compiler mechanism to handle that source
+% context. Move elsewhere in the meantime.
+
 
 show_close('', _) :- !.
-show_close(_,  Output) :-
-    message_(user, Output, '}\n'). % TODO: possibly at wrong stream!
+show_close(_,  Type) :-
+    message_(Type, '}\n').
 
-show_source(SourceOutput,  SourceOutput) :- !.
-show_source(Source-Output, Source0-Output0) :-
-    show_close(Source0, Output0),
-    message_(user, Output, ['{In ', Source]). % TODO: possibly at wrong stream!
-
-show_message(MessageInfo, SourceOutput, SourceOutput) :-
-    show_message0(MessageInfo),
+show_source(Source-Type,  Source-Type0) :-
+    message_output(Type0,Output),
+    message_output(Type,Output),
     !.
-show_message(MessageInfo0, SourceOutput0, Source-Output) :-
-    MessageInfo0 =.. [FuncName, Source|Args],
-    MessageInfo =.. [FuncName|Args],
-    message_info_type(MessageInfo0, Type),
-    message_output(Type, Output),
-    show_source(Source-Output, SourceOutput0),
+show_source(Source-Type, Source0-Type0) :-
+    show_close(Source0, Type0),
+    message_(Type, ['{In ', Source]).
+
+show_message(message_lns(Source,LB,LE,Type,Msg), SourceType0, Source-Type) :-
+    message_type_visible(Type), !,
+    show_source(Source-Type, SourceType0),
+    show_message0(message_lns(LB,LE,Type,Msg)).
+show_message(message_lns(_,_,_,_,_), SourceType, SourceType) :- !.
+show_message(message(Msg), Source-Type, Source-Type) :- !,
+    message_(Type, Msg).
+show_message(MessageInfo, SourceOutput, SourceOutput) :-
     show_message0(MessageInfo).
-
-:- pred message_info_type/2 : nonvar * term + no_choicepoints.
-:- pred message_info_type/2 : var * term.
-
-message_info_type(message_lns(_, _, _, Type, _), Type).
-message_info_type(message(Type, _),              Type).
-message_info_type(message(_),                    user). % TODO: needed?
-message_info_type(error(_),                      error).
-message_info_type(warning(_),                    warning).
-message_info_type(note(_),                       note).
-message_info_type(debug(_),                      debug).
 
 show_message0(message_lns(Ln0, Ln1, Type, Text)) :-
     message_lns(Type, Ln0, Ln1, Text).
@@ -287,15 +286,15 @@ show_message0(message(Type, Text)) :- !, message(Type, Text).
 show_message0(error(Text)) :- message(error, Text).
 show_message0(warning(Text)) :- message(warning, Text).
 show_message0(note(Text)) :- message(note, Text).
-show_message0(message(Text)) :- message(user, Text). % TODO: needed?
+% show_message0(message(Text)) :- message(user, Text). % Hijacked for showing message without header in latest output
 show_message0(debug(Text)) :- message(debug, Text).
 
 messages([]).
 messages([Message|Messages]) :-
-    show_message(Message, ''-'', SourceOutput),
-    messages2(Messages, SourceOutput).
+    show_message(Message, ''-'', SourceType),
+    messages2(Messages, SourceType).
 
-messages2([],                 Source-Output) :- show_close(Source, Output).
-messages2([Message|Messages], SourceOutput0) :-
-    show_message(Message, SourceOutput0, SourceOutput),
-    messages2(Messages, SourceOutput).
+messages2([],                 Source-Type) :- show_close(Source, Type).
+messages2([Message|Messages], SourceType0) :-
+    show_message(Message, SourceType0, SourceType),
+    messages2(Messages, SourceType).
