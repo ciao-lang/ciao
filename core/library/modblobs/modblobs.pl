@@ -16,7 +16,7 @@
 
    @section{Implementation}
 
-   Run-time creation of modules is currently implemented by writting
+   Run-time creation of modules is currently implemented by writing
    the module code into a unique temporary directory (using the system
    @pred{mktemp_in_tmp/2} predicate).
 
