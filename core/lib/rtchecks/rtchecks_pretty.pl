@@ -1,7 +1,8 @@
 :- module(rtchecks_pretty,
     [
         pretty_prop/3,
-        rtcheck_to_messages/2
+        rtcheck_to_messages/2,
+        rtcheck_to_message/3
     ],
     [assertions, regtypes]).
 
@@ -45,6 +46,7 @@ rtcheck_type(calls).
        one or multiple text messages @var{Messages0}. @var{Messages}
        is the tail.".
 
+
 rtcheck_to_messages(E, Messages) :-
     E = rtcheck(Type, Pred0, Dict, Prop0, Valid0, Positions0),
     (nonvar(Positions0) -> true ; Positions0=[]), % TODO: Kludge: Find out where free variables as Positions are introduced and fix it
@@ -52,6 +54,28 @@ rtcheck_to_messages(E, Messages) :-
         t(Pred, Prop, Valid, Positions)),
     maplist(position_to_message, Positions, PosMessages0),
     reverse(PosMessages0, PosMessages),
+    rtcheck_to_message_(Type, Pred, Prop, Valid, Text, Text1),
+    (
+        select(message_lns(S, Ln0, Ln1, MessageType, Text2),
+            PosMessages, PosMessages1) ->
+        (Text2 == [] -> Text1 = [] ; Text1 = [' '|Text2]), % \n ?
+        Message = message_lns(S, Ln0, Ln1, MessageType, Text)
+    ;
+        Text1 = [],
+        Message = message(error, Text),
+        PosMessages1 = PosMessages
+    ),
+    Messages1 = [Message|PosMessages1],
+    compact_list(Messages1, Messages).
+
+
+rtcheck_to_message(E, Text, TextTail) :-
+    E = rtcheck(Type, Pred0, Dict, Prop0, Valid0, _),
+    pretty_prop(t(Pred0, Prop0, Valid0), Dict,
+        t(Pred, Prop, Valid)),
+    rtcheck_to_message_(Type, Pred, Prop, Valid, Text, TextTail).
+
+rtcheck_to_message_(Type, Pred, Prop, Valid, Text, Text1) :-
     Text = ['Run-time check failure in assertion for:\n\t',
         ''({Pred}),
         '.\nIn *', Type, '*, unsatisfied property: \n\t',
@@ -60,19 +84,7 @@ rtcheck_to_messages(E, Messages) :-
     ;
         actual_props_to_messages(Valid,ActualProps,Text1),
         Text0 = ['\nWhere:'| ActualProps]
-    ),
-    (
-        select(message_lns(S, Ln0, Ln1, MessageType, Text2),
-            PosMessages, PosMessages1) ->
-        (Text2 == [] -> Text1 = [] ; Text1 = [' '|Text2]),
-        Message = message_lns(S, Ln0, Ln1, MessageType, Text)
-    ;
-        Text1 = [],
-        Message = message(error, Text),
-        PosMessages1 = PosMessages
-    ),
-    Messages1 = [Message|PosMessages1],
-    compact_list(Messages1, Messages). % TODO: IC: is this really needed?
+    ).
 
 % TODO: pretty_prop/3 is  used only in the rtchecks and unittest libs,
 %       and it almost duplicates varnames/pretty_names:pretty_names/3
