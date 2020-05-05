@@ -3,7 +3,8 @@
     peek_code/2, peek_code/1, skip_code/2, skip_code/1,
     skip_line/1, skip_line/0,
     put_code/2, put_code/1, nl/1, nl/0, tab/2, tab/1,
-    code_class/2, code_bytes/3, getct/2, getct1/2,
+    code_class/2, '$code_bytes'/3, string_bytes/2,
+    getct/2, getct1/2,
     get_byte/2, get_byte/1, put_byte/2, put_byte/1, 
     display/2, display/1, displayq/2, displayq/1],
     [assertions, nortchecks, nativeprops, isomodes]).
@@ -153,27 +154,71 @@
 :- export('$rune_class'/2). % (experimental)
 :- impl_defined('$rune_class'/2).
 
-:- doc(code_bytes(C, Bs, Bs0), "Converts between the character code
+% TODO: implement in C
+:- doc('$code_bytes'(C, Bs, Bs0), "Converts between the character code
    @var{C} and the difference list of bytes @var{Bs}-@var{Bs0} using
-   UTF8 encoding.").
-% TODO: fail or error if rune is invalid?
+   UTF8 encoding. Incorrect byte sequences are decoded as 0xFFFD (rune
+   error)").
 
-code_bytes(C, S, S0) :- C =< 0x7F, !, S=[C|S0].
-code_bytes(C, S, S0) :- C =< 0x7FF, !,
+'$code_bytes'(C, S, S0) :- var(C), !, rune_decode(S, S0, C).
+'$code_bytes'(C, S, S0) :- rune_encode(C, S, S0).
+
+rune_encode(C, S, S0) :- C =< 0x7F, !, S=[C|S0].
+rune_encode(C, S, S0) :- C =< 0x7FF, !,
     B1 is 0xC0\/((C>>6)/\0x1F),
     B2 is (C/\0x3F)\/0x80,
     S = [B1,B2|S0].
-code_bytes(C, S, S0) :- C =< 0xFFFF, !,
+rune_encode(C, S, S0) :- C =< 0xFFFF, !,
     B1 is 0xE0\/((C>>12)/\0xF),
     B2 is ((C>>6)/\0x3F)\/0x80,
     B3 is (C/\0x3F)\/0x80,
     S = [B1,B2,B3|S0].
-code_bytes(C, S, S0) :- C =< 0x10FFFF, !,
+rune_encode(C, S, S0) :- C =< 0x10FFFF, !,
     B1 is 0xF0\/((C>>18)/\0x7),
     B2 is ((C>>12)/\0x3F)\/0x80,
     B3 is ((C>>6)/\0x3F)\/0x80,
     B4 is (C/\0x3F)\/0x80,
     S = [B1,B2,B3,B4|S0].
+
+rune_decode([B1|Bs], Bs0, C) :-
+    ( rune_decode_(B1, Bs, Bs1, C0) -> C=C0, Bs0=Bs1
+    ; C=0xFFFD, Bs=Bs0 % error rune (Unicode Replacement character)
+    ).
+
+rune_decode_(B1, Bs, Bs0, R) :- B1 =< 0x7F, !, R=B1, Bs=Bs0.
+rune_decode_(B1, _, _, _) :- B1 =< 0xBF, !, fail. % invalid
+rune_decode_(B1, Bs, Bs0, R) :- B1 =< 0xDF, !, % 2 bytes
+    Bs = [B2|Bs0], B2/\0xC0 =:= 0x80,
+    R is ((B1/\0x1F)<<6)\/(B2/\0x3F),
+    R >= 0x80.
+rune_decode_(B1, Bs, Bs0, R) :- B1 =< 0xEF, !, % 3 bytes
+    Bs = [B2,B3|Bs0], B2/\0xC0 =:= 0x80, B3/\0xC0 =:= 0x80,
+    R is ((B1/\0xF)<<12)\/((B2/\0x3F)<<6)\/(B3/\0x3F),
+    R >= 0x800.
+rune_decode_(B1, Bs, Bs0, R) :- B1 =< 0xF7, !, % 4 bytes
+    Bs = [B2,B3,B4|Bs0], B2/\0xC0 =:= 0x80, B3/\0xC0 =:= 0x80, B4/\0xC0 =:= 0x80,
+    R is ((B1/\0x7)<<18)\/((B2/\0x3F)<<12)\/((B3/\0x3F)<<6)\/(B4/\0x3F),
+    R >= 0x10000.
+
+% TODO: implement in C
+:- doc(string_bytes(String,Bytes), "@var{String} is the list of the
+   character codes encoded by the list of bytes @var{Bytes}
+   (equivalent to @tt{String=Bytes} if any of the lists is a list of
+   ASCII codes).").
+
+%:- trust pred string_bytes(+string,?bytelist).
+%:- trust pred string_bytes(?string,+bytelist).
+
+string_bytes(Cs, Bs) :- is_ascii(Cs), !, Bs=Cs. % fast case
+string_bytes(Cs, Bs) :- is_ascii(Bs), !, Bs=Cs. % fast case
+string_bytes(Cs, Bs) :- string_bytes_(Cs, Bs, []).
+
+string_bytes_([C|Cs], Bs, Bs0) :- '$code_bytes'(C, Bs, Bs1), !, string_bytes_(Cs, Bs1, Bs0).
+string_bytes_([], Bs, Bs).
+
+is_ascii(Cs) :- var(Cs), !, fail.
+is_ascii([]).
+is_ascii([C|Cs]) :- integer(C), C>=0, C<0x80, is_ascii(Cs).
 
 :- doc(getct(Code, Type), "Reads from the current input stream the
    next character, unifying @var{Code} with its character code, and
