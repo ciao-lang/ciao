@@ -89,14 +89,13 @@
 %  a list of parameters (e.g.  @tt{content_type(text,html,[])}). @comment{}
 %
 %  @item @bf{content(}@em{Bytes}@bf{):} @em{Bytes} is the document
-%  content (list of bytes).  If @tt{method(head)} of the HTTP
+%  content (bytelist/1).  If @tt{method(head)} of the HTTP
 %  request is used, an empty list is get here.
 %
 %  @end{itemize}
 %
 
 :- use_module(library(lists), [select/3]).
-:- use_module(library(strings), [string/3]).
 :- use_module(library(http/http_grammar)).
 :- use_module(library(http/http_date)).
 
@@ -131,13 +130,16 @@ http_request_str(RequestURI, Options) -->
 http_request_line(RequestURI, Options, Options1) -->
     http_request_method(Options,Options1),
     " ",
-    string(RequestURI), % TODO: UTF8 encode?
+    blist(RequestURI), % TODO: use string_bytes/2?
     " ",
     !,
     ( 'PRINTING' -> http_http(1,0) % TODO: change version?
     ; http_http(_Major,_Minor) % TODO: do something with version?
     ),
     http_crlf.
+
+blist([], Xs, Xs).
+blist([C|Cs], [C|Cs0], Cs1) :- blist(Cs, Cs0, Cs1).
 
 http_request_method(Options, Options1) --> 'PRINTING', !,
     { select(method(Method), Options, Options1) -> true ; fail },

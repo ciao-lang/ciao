@@ -13,6 +13,7 @@
 
 :- export(parse_multipart_form_data/3).
 :- pred parse_multipart_form_data(Cs, B, Dic)
+   : (string(Cs), string(B), term(Dic))
    # "Parse @var{Cs} content string as multipart/form-data with
       @var{B} as boundary delimiter. Store the contents as
       @tt{Name=Value} pairs in @var{Dic}.".

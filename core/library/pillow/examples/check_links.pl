@@ -18,8 +18,9 @@ check_links(URL,BadLinks) :-
     url_info(URL,URLInfo),
     fetch_url(URLInfo,[],Response),
     member(content_type(text,html,_),Response),
-    member(content(Content),Response),
-    html2terms(Content,Terms),
+    member(content(Bytes),Response),
+    String=Bytes, % TODO: use string_bytes(String, Bytes),
+    html2terms(String,Terms),
     check_source_links(Terms,URLInfo,[],BadLinks).
 
 check_source_links([],_,BL,BL).

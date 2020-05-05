@@ -29,9 +29,10 @@ fetch_server_addr(URL, NSAddr) :-
     ( fetch_url(URL,[],Response) -> true
     ; Response = []
     ),
-    ( member(content(String),Response) -> true
-    ; String = Response
+    ( member(content(Bytes),Response) -> true
+    ; Bytes = Response
     ),
+    String=Bytes, % TODO: use string_bytes(String, Bytes),
     ( append(String0,[_],String) -> true
     ; String0 = String
     ),

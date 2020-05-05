@@ -26,7 +26,7 @@
 :- use_module(library(lists), [member/2, append/3, select/3, length/2]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(library(stream_utils), [write_bytes/2]).
+:- use_module(library(stream_utils), [write_bytes/2, file_to_bytes/2]).
 :- use_module(library(pathnames), [path_concat/3]).
 
 % Grammar definitions
@@ -151,6 +151,7 @@ http_send_response(Stream, Response) :-
 %   - file_(S,C,OldModifDate,P): serve file P with specific status S and content type C
 %       (if modified since OldModifDate) -- otherwise send 304 status
 %   - string_(S,C,X): serve string X with specific status S and content type C
+%   - bytelist_(S,C,X): serve bytelist X with specific status S and content type C
 %   - html_string(Str): serve string as HTML (200 status)
 %   - html_string(S,Str): serve string as HTML with status S
 %   - json_string(Str): serve string as JSON (200 status)
@@ -188,12 +189,16 @@ expand_response(file_(Status, ContentType, OldModifDate, Path), Response) :-
     modif_time(Path, ModifTime),
     date_time(ModifTime, ModifDate),
     ( needs_update(OldModifDate, ModifDate) ->
-        file_to_string(Path,Content),
+        file_to_bytes(Path,Content),
         expand_response_(Status, ModifDate, ContentType, Content, Response, [])
     ; not_modified_response(ModifDate, Response, [])
     ).
 % String
 expand_response(string_(Status, ContentType, Content), Response) :-
+    Content=Bytes, % TODO: use string_bytes(Content, Bytes),
+    expand_response(bytelist_(Status, ContentType, Bytes), Response).
+% Bytelist
+expand_response(bytelist_(Status, ContentType, Content), Response) :-
     ModifDate = none,
     expand_response_(Status, ModifDate, ContentType, Content, Response, []).
 
@@ -256,7 +261,6 @@ http_serve_fetch(Stream,Serve):-
     
 :- use_module(library(sockets)).
 :- use_module(library(sockets/sockets_io), [serve_socket/3]).
-:- use_module(library(stream_utils), [file_to_string/2]).
 :- use_module(library(system), [file_exists/1, current_host/1, modif_time/2]).
 :- use_module(library(lists), [length/2, list_concat/2]).
 :- use_module(library(pathnames), [path_splitext/3]).

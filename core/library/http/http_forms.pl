@@ -190,7 +190,7 @@ assign_to_urlencoded(N, V, String, Rest) :-
     form_encode_value(NS,String,[0'=|EVS]),
     form_encode_value(VS,EVS,Rest).
 
-:- export(form_encode_value/3).
+:- export(form_encode_value/3). % TODO: use string_bytes/2 before encoding
 form_encode_value([]) --> "".
 form_encode_value([32|Cs]) --> !, % " " = [32]
     "+",
@@ -247,7 +247,7 @@ chars_to([C|Cs],D) -->
     {C \== D},
     chars_to(Cs,D).
 
-:- export(form_decode_value/3).
+:- export(form_decode_value/3). % TODO: use string_bytes/2 after decoding
 % Decode a string encoded with form_encode_value/3
 % (Expands escape sequences and converts "+" back into " " in a string)
 form_decode_value([]) --> "".
