@@ -24,9 +24,10 @@
 
 
 :- use_module(library(lists), [member/2, append/3, select/3, length/2]).
+:- use_module(library(port_reify), [once_port_reify/2, port_call/1]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(library(stream_utils), [write_bytes/2, file_to_bytes/2]).
+:- use_module(library(stream_utils), [write_bytes/2, file_to_bytes/2, copy_stream/3]).
 :- use_module(library(pathnames), [path_concat/3]).
 
 % Grammar definitions
@@ -135,16 +136,18 @@ trim([X|Xs],N,[X|Ys]):-
 :- doc(bug, "Serve file without reading it as a string"). % TODO: write header and then contents
 
 http_write_response(Stream, Response) :-
-    expand_response(Response, Response2),
-    http_send_response(Stream, Response2).
+    expand_response(Response, Response2, Content),
+    http_send_response(Stream, Response2, Content).
 
-http_send_response(Stream, Response) :-
+% Send Response and Contents
+http_send_response(Stream, Response, Content) :-
     http_response_str(Response,ResponseBytes,[]),
-    catch(write_bytes(Stream,ResponseBytes), _Err, true), % TODO: log errors? (e.g., resource_error(undefined) due to broken pipe)
+    catch(write_bytes(Stream,ResponseBytes), _, true), % TODO: log errors? (e.g., resource_error(undefined) due to broken pipe)
+    catch(send_data(Stream,Content), _, true), % TODO: log errors? (e.g., resource_error(undefined) due to broken pipe)
     flush_output(Stream),
     close(Stream). % TODO: could be keep Stream open? (see socket_select leak problem)
     
-% Expand some common HTTP responses:
+% Expand some common HTTP responses into response fields and contents field:
 %   - not_found(P): P is not found
 %   - file(P): serve file P
 %   - file_if_newer(OldModifDate, P): serve file P if it has been modified since OldModifDate
@@ -156,56 +159,61 @@ http_send_response(Stream, Response) :-
 %   - html_string(S,Str): serve string as HTML with status S
 %   - json_string(Str): serve string as JSON (200 status)
 
-expand_response(Response0, Response) :- Response0 = [_|_], !, % Low-level response
-    Response = Response0.
+expand_response(Response0, Response, Content) :- Response0 = [_|_], !, % Low-level response
+    ( select(content(Bytes), Response0, Response1) ->
+        Content = bytelist(Bytes),
+        Response = Response1
+    ; Content = none, Response = Response0
+    ).
 %
-expand_response(not_found(_Path), Response) :-
+expand_response(not_found(_Path), Response, Content) :-
     Status = status(request_error,404,"Not Found"),
     not_found_html(String),
-    expand_response(html_string(Status, String), Response).
+    expand_response(html_string(Status, String), Response, Content).
 %
-expand_response(file(Path), Response) :-
+expand_response(file(Path), Response, Content) :-
     Status = status(success,200,"OK"),
     file_content_type(Path, ContentType),
-    expand_response(file_(Status, ContentType, none, Path), Response).
-expand_response(file_if_newer(OldModifDate, Path), Response) :-
+    expand_response(file_(Status, ContentType, none, Path), Response, Content).
+expand_response(file_if_newer(OldModifDate, Path), Response, Content) :-
     Status = status(success,200,"OK"),
     file_content_type(Path, ContentType),
-    expand_response(file_(Status, ContentType, OldModifDate, Path), Response).
-expand_response(html_string(Content), Response) :- !,
+    expand_response(file_(Status, ContentType, OldModifDate, Path), Response, Content).
+expand_response(html_string(String), Response, Content) :- !,
     Status = status(success,200,"OK"),
-    expand_response(html_string(Status, Content), Response).
-expand_response(html_string(Status, Content), Response) :- !,
+    expand_response(html_string(Status, String), Response, Content).
+expand_response(html_string(Status, String), Response, Content) :- !,
     ContentType = content_type(text,html,[charset='UTF-8']),
-    expand_response(string_(Status, ContentType, Content), Response).
-expand_response(json_string(Content), Response) :- !,
+    expand_response(string_(Status, ContentType, String), Response, Content).
+expand_response(json_string(String), Response, Content) :- !,
     Status = status(success,200,"OK"),
 %       ContentType = content_type(application,json,[charset='UTF-8']),
     ContentType = content_type(application,json,[]), % TODO: no charset OK?
-    expand_response(string_(Status, ContentType, Content), Response).
+    expand_response(string_(Status, ContentType, String), Response, Content).
 % Contents of file at Path
-expand_response(file_(Status, ContentType, OldModifDate, Path), Response) :-
+expand_response(file_(Status, ContentType, OldModifDate, Path), Response, Content) :-
     % TODO: add special 'contents_from_file' response, serve without going through terms
     modif_time(Path, ModifTime),
     date_time(ModifTime, ModifDate),
     ( needs_update(OldModifDate, ModifDate) ->
-        file_to_bytes(Path,Content),
-        expand_response_(Status, ModifDate, ContentType, Content, Response, [])
-    ; not_modified_response(ModifDate, Response, [])
+        file_properties(Path, _, _, _, _, ContentLength),
+        Content = file(Path),
+        response_header(Status, ModifDate, ContentType, ContentLength, Response, [])
+    ; Content = none,
+      not_modified_response(ModifDate, Response, [])
     ).
 % String
-expand_response(string_(Status, ContentType, Content), Response) :-
-    Content=Bytes, % TODO: use string_bytes(Content, Bytes),
-    expand_response(bytelist_(Status, ContentType, Bytes), Response).
+expand_response(string_(Status, ContentType, String), Response, Content) :-
+    String=Bytes, % TODO: use string_bytes(String, Bytes),
+    expand_response(bytelist_(Status, ContentType, Bytes), Response, Content).
 % Bytelist
-expand_response(bytelist_(Status, ContentType, Content), Response) :-
+expand_response(bytelist_(Status, ContentType, Bytes), Response, Content) :-
     ModifDate = none,
-    expand_response_(Status, ModifDate, ContentType, Content, Response, []).
+    length(Bytes, ContentLength),
+    Content = bytelist(Bytes),
+    response_header(Status, ModifDate, ContentType, ContentLength, Response, []).
 
-expand_response_(Status, ModifDate, ContentType, Content) -->
-    % Contents from a string
-    { length(Content, ContentLength) },
-    %
+response_header(Status, ModifDate, ContentType, ContentLength) -->
     { server_name(ServerName) },
     { current_host(Host) },
     { date_time(_, CurrDate) },
@@ -217,8 +225,7 @@ expand_response_(Status, ModifDate, ContentType, Content) -->
 %       [accept-ranges("bytes")],
     [location(Host)],
     [content_length(ContentLength)],
-    ( { ContentType = none } -> [] ; [ContentType] ),
-    [content(Content)].
+    ( { ContentType = none } -> [] ; [ContentType] ).
 
 not_modified_response(ModifDate) -->
     { Status = status(redirection,304,"OK") },
@@ -233,6 +240,20 @@ needs_update(OldModifDate, ModifDate) :-
     % should not have a cached version more recent than that 
     % we have!)
     \+ OldModifDate = ModifDate.
+
+send_data(Stream, Content) :-
+    send_data_(Content, Stream).
+
+send_data_(none, _Stream) :- !.
+%send_data_(string(Content), Stream) :- !,
+%    write_string(Stream, Content).
+send_data_(bytelist(Bytes), Stream) :- !,
+    write_bytes(Stream, Bytes).
+send_data_(file(Path), Stream) :- !,
+    open(Path, read, InS),
+    once_port_reify(copy_stream(InS, Stream, _), Port), % TODO: deal with errors
+    close(InS),
+    port_call(Port).
 
 % ===========================================================================
 :- doc(section, "Receive and parse one request").
