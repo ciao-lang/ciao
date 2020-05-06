@@ -2,6 +2,7 @@
       get_line/2, get_line/1, line/1,
       read_string_to_end/2,
       read_bytes_to_end/2, discard_to_end/1, read_bytes/3,
+      copy_stream/3,
       write_string/2, write_string/1,
       write_bytes/2, write_bytes/1,
       %
@@ -131,6 +132,24 @@ read_bytes_(N, L) :- get_byte(C), N1 is N-1, read_bytes__(C, N1, L).
 
 read_bytes__(-1, _, []) :- !.
 read_bytes__(C, N, [C|L]) :- read_bytes_(N, L).
+
+% TODO: implement in C
+:- pred copy_stream(InS, OutS, Copied)
+   : (stream(InS), stream(OutS)) => int(Copied)
+   # "Copies all bytes bytes (until EOF or error) from the @var{InS}
+   stream into the @var{OutS} stream. The number of copied bytes is
+   returned in @var{Copied}".
+
+copy_stream(InS, OutS, Copied) :-
+    copy_stream_(InS, OutS, 0, Copied).
+
+copy_stream_(InS, OutS, Copied0, Copied) :-
+    get_byte(InS, C),
+    ( C = -1 -> Copied = Copied0
+    ; Copied1 is Copied0 + 1,
+      put_byte(OutS, C),
+      copy_stream_(InS, OutS, Copied1, Copied)
+    ).
 
 % ---------------------------------------------------------------------------
 
