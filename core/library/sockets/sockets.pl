@@ -5,8 +5,7 @@
     socket_accept/2,
     select_socket/5,
     socket_send/2,
-    socket_recv_code/3,
-    socket_recv/2,
+    socket_recv/3,
     socket_shutdown/2,
     % socket_buffering/4,
     hostname_address/2,
@@ -27,20 +26,6 @@
     on the topic for a proper use of these primitives.").
 
 :- use_module(engine(stream_basic), [stream/1]).
-
-%% Socket types
-
-:- doc(doinclude,connect_to_socket_type/4).
-:- doc(doinclude,connect_to_socket/3).
-:- doc(doinclude,bind_socket/3).
-:- doc(doinclude,socket_accept/2).
-:- doc(doinclude,select_socket/5).
-:- doc(doinclude,socket_send/2).
-:- doc(doinclude,socket_recv_code/3).
-:- doc(doinclude,socket_recv/2).
-:- doc(doinclude,socket_type/1).
-
-%% :- type socket_type/1.
 
 :- doc(socket_type/1,"Defines the atoms which can be used to
    specify the socket type recognized by
@@ -80,7 +65,7 @@ socket_type(rdm).
    # "Returns a @var{Stream} which connects to @var{Hostname}.  The
    @var{Type} of connection can be defined.  A @var{Stream} is
    returned, which can be used to @pred{write/2} to, to @pred{read/2},
-   to @pred{socket_send/2} to, or to @pred{socket_recv/2} from the
+   to @pred{socket_send/2} to, or to @pred{socket_recv/3} from the
    socket.".
 
 :- pred connect_to_socket(+Hostname, +Port, -Stream)
@@ -128,18 +113,12 @@ connect_to_socket(Hostname, Port, Stream):-
    # "Sends @var{Bytes} to the socket associated to @var{Stream}. The
    socket has to be in connected state.".
 
-:- trust pred socket_recv_code(+Stream, ?Bytes, ?Length)
+:- trust pred socket_recv(+Stream, ?Bytes, ?Length)
    :: stream * bytelist * int 
    + foreign_low(prolog_socket_receive)
    # "Receives a byte list @var{Bytes} from the socket associated to
    @var{Stream}, and returns its @var{Length}. For TCP, @var{Length}
    is 0 if the peer has performed an orderly shutdown on the socket.".
-
-:- pred socket_recv(+Stream, ?Bytes) :: stream * bytelist
-   # "As @pred{socket_recv_code/3}, but the return code is ignored.".
-
-socket_recv(Stream, Bytes):- socket_recv_code(Stream, Bytes, _).
-
 
 :- trust pred socket_shutdown(+Stream, +How)
    :: stream * shutdown_type

@@ -27,7 +27,6 @@
 :- use_module(library(port_reify), [once_port_reify/2, port_call/1]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
-:- use_module(library(stream_utils), [write_bytes/2, file_to_bytes/2, copy_stream/3]).
 :- use_module(library(pathnames), [path_concat/3]).
 
 % Grammar definitions
@@ -36,14 +35,14 @@
 % ===========================================================================
 :- doc(section, "Read HTTP requests").
 
-:- use_module(library(sockets), [socket_recv_code/3, socket_getpeername/2]).
+:- use_module(library(sockets), [socket_recv/3, socket_getpeername/2]).
 
 % Note: Request = [] if the stream has been orderly closed on the peer
 http_read_request(Stream, Request) :-
     http_read_header(Stream, RequestBytes, Tail), % (Tail are chars that should by in the content)
     % format("~s~n", RequestBytes), nl,
     ( RequestBytes = [] ->
-        % Stream was orderly closed (socket_recv_code/3 returned empty data)
+        % Stream was orderly closed (socket_recv/3 returned empty data)
         Request = []
     ; http_request_str(URIStr,Request1,RequestBytes,_) ->
         ( member(method(post),Request1) ->
@@ -65,7 +64,7 @@ http_read_header(_,_,_):-
     log(error, failed(http_read_header/3)).
 
 http_read_header_(S,[Chunk|Cont],LastThree,Tail):-
-    socket_recv_code(S,Chunk,ChunkLen),
+    socket_recv(S,Chunk,ChunkLen),
     ( ChunkLen = 0 -> % Peer closed, no more data (for TCP)
         Cont = []
     ; append(LastThree,Chunk,Ch1),
@@ -116,7 +115,7 @@ http_read_content_n(Stream,Length,AlreadyRead,Data):-
 http_read_content_(_,N,[]):-
     N =< 0, !.
 http_read_content_(Stream,Length,Data):-
-    socket_recv_code(Stream,Chunk,ChunkLen),
+    socket_recv(Stream,Chunk,ChunkLen),
     ( ChunkLen = 0 -> % Peer closed, no more data (for TCP)
         Data = []
     ; length(Chunk,N), % TODO: trust ChunkLen?
@@ -132,6 +131,10 @@ trim([X|Xs],N,[X|Ys]):-
 
 % ===========================================================================
 :- doc(section, "Write HTTP responses").
+
+:- use_module(library(sockets), [socket_send/2]).
+:- use_module(library(stream_utils), [write_bytes/2, copy_stream/3]).
+:- use_module(library(stream_utils), [file_to_bytes/2]).
 
 :- doc(bug, "Serve file without reading it as a string"). % TODO: write header and then contents
 
@@ -248,12 +251,15 @@ send_data_(none, _Stream) :- !.
 %send_data_(string(Content), Stream) :- !,
 %    write_string(Stream, Content).
 send_data_(bytelist(Bytes), Stream) :- !,
-    write_bytes(Stream, Bytes).
+    %write_bytes(Stream, Bytes).
+    socket_send(Stream, Bytes). % TODO: merge with write_bytes/2 % TODO: sendall
 send_data_(file(Path), Stream) :- !,
-    open(Path, read, InS),
-    once_port_reify(copy_stream(InS, Stream, _), Port), % TODO: deal with errors
-    close(InS),
-    port_call(Port).
+    file_to_bytes(Path, Bytes),
+    socket_send(Stream, Bytes). % TODO: merge with write_bytes/2 % TODO: sendall
+%    open(Path, read, InS),
+%    once_port_reify(copy_stream(InS, Stream, _), Port), % TODO: deal with errors
+%    close(InS),
+%    port_call(Port).
 
 % ===========================================================================
 :- doc(section, "Receive and parse one request").

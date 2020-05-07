@@ -432,7 +432,7 @@ CBOOL__PROTO(prolog_socket_receive) {
   if (!s) BUILTIN_ERROR(error_code, X(0), 1);
 
   if (s->streammode != 's')
-    USAGE_FAULT("socket_recv/2: first argument must be a socket stream");
+    USAGE_FAULT("socket_recv/3: first argument must be a socket stream");
   
   /* recv is about to disappear (c.f. Linux' manpage), so we'll use
      recvfrom instead */
@@ -443,11 +443,11 @@ CBOOL__PROTO(prolog_socket_receive) {
   total_bytes = bytes_read;
 
   if (bytes_read < 0)
-    MAJOR_FAULT("socket_recv/2: recv() call failed")
+    MAJOR_FAULT("socket_recv/3: recv() call failed")
 
   /*
     else if (bytes_read > BUFFSIZE-1)        
-    MAJOR_FAULT("socket_recv/2: internal buffer overrun")
+    MAJOR_FAULT("socket_recv/3: internal buffer overrun")
   */
 
   if (HeapDifference(w->global_top, Heap_End) < CONTPAD+(bytes_read<<1))
@@ -630,7 +630,7 @@ CBOOL__PROTO(prolog_socket_getpeername) {
   if (!s) BUILTIN_ERROR(error_code, X(0), 1);
 
   if (s->streammode != 's')
-    USAGE_FAULT("socket_recv/2: first argument must be a socket stream");
+    USAGE_FAULT("socket_getpeername/2: first argument must be a socket stream");
   
   socklen_t len;
   struct sockaddr_storage addr;
