@@ -56,12 +56,12 @@ incomplete as the remaining constraints are not showed.
 
 @section{Meta-Constraints}
 
-There are five meta-constraints, namely @pred{#=/2}, the constraint
-equal, @pred{#=/2}, the constraint not equal, @pred{#</2}, the
-constraint less than, the constraint not equal, @pred{#=</2}, the
-constraint less or equal, @pred{#>/2}, the constraint more than, and
-@pred{#>/2}, the constraint more or equals. These meta-constraint are
-defined over arithmetic expression with FD variables (see regular type
+There are five meta-constraints, namely @pred{#=/2} (constraint
+equal), @pred{#\\\\=/2} (constraint not equal), @pred{#</2} 
+(constraint less than), @pred{#=</2} (constraint less or equal), 
+@pred{#>/2} (constraint greater than), and @pred{#>=/2} (constraint 
+greater or equal). These meta-constraints are
+defined over arithmetic expressions with FD variables (see regular type
 @pred{fd_expr/1} in module @lib{clpfd_rt}.).  Such constraints are
 \"meta\" in the sens that their arguments are interpreted at
 compile-time and all variables occurring free in the arguments will be
@@ -76,13 +76,13 @@ is not equivalent to the call:
 @begin{verbatim}A = X + Y, A #> Z.@end{verbatim} 
 
 While the first call succeeds, the second one will throw an exception
-to indicate that @var{A} cannot be unified with the non-integer term.
-It is possible to view meta-constraints as a convenient way to
+to indicate that @var{A} cannot be unified with the non-integer term
+@tt{X + Y}. It is possible to view meta-constraints as a convenient way to
 define an infinite number of FD constraints. For instance
 @tt{A #> Z} and @tt{X + Y #> Z} can be considered respectively as 
 binary and ternary constraints over FD variables. 
 
-It is possible to delay interpretation of meta-constraints at call-time
+It is possible to delay interpretation of meta-constraints at call time
 by explicitly prefixing the call with @lib{clpfd_rt}. For instance, the
 following call will not throw any exception:
 
