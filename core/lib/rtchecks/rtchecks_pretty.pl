@@ -66,7 +66,7 @@ rtcheck_to_messages(E, Messages) :-
         PosMessages1 = PosMessages
     ),
     Messages1 = [Message|PosMessages1],
-    compact_list(Messages1, Messages).
+    compact_list(Messages1, Messages). % needed to handle repeated position messages. % TODO: do it before, with Postitions0 or Positions, or even in rtchecks_send/6
 
 
 rtcheck_to_message(E, Text, TextTail) :-
