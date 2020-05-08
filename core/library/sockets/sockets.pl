@@ -4,7 +4,9 @@
     bind_socket/3,
     socket_accept/2,
     select_socket/5,
-    socket_send/2,
+    socket_send/3,
+    socket_sendall/2,
+    socket_send_stream/2,
     socket_recv/3,
     socket_shutdown/2,
     % socket_buffering/4,
@@ -65,7 +67,7 @@ socket_type(rdm).
    # "Returns a @var{Stream} which connects to @var{Hostname}.  The
    @var{Type} of connection can be defined.  A @var{Stream} is
    returned, which can be used to @pred{write/2} to, to @pred{read/2},
-   to @pred{socket_send/2} to, or to @pred{socket_recv/3} from the
+   to @pred{socket_send/3} to, or to @pred{socket_recv/3} from the
    socket.".
 
 :- pred connect_to_socket(+Hostname, +Port, -Stream)
@@ -108,10 +110,22 @@ connect_to_socket(Hostname, Port, Stream):-
    to a port number and there are connections pending, a connection is
    accepted and connected with the Prolog stream in @var{NewStream}.".
 
-:- trust pred socket_send(+Stream, +Bytes) :: stream * bytelist 
+:- trust pred socket_send(+Stream, +Bytes, ?Sent) :: stream * bytelist * int
    + foreign_low(prolog_socket_send)
-   # "Sends @var{Bytes} to the socket associated to @var{Stream}. The
+   # "Sends @var{Bytes} to the socket associated to @var{Stream},
+   return in @var{Sent} the number of sent bytes. The socket has to be
+   in connected state.".
+
+:- trust pred socket_sendall(+Stream, +Bytes) :: stream * bytelist 
+   + foreign_low(prolog_socket_sendall)
+   # "Sends all @var{Bytes} to the socket associated to @var{Stream}. The
    socket has to be in connected state.".
+
+:- trust pred socket_send_stream(+Stream, +FromStream) :: stream * stream
+   + foreign_low(prolog_socket_send_stream)
+   # "Sends all bytes from stream @var{FromStream} to the socket
+   associated to @var{Stream}. The socket has to be in connected
+   state. @var{FromStream} cannot be a socket stream".
 
 :- trust pred socket_recv(+Stream, ?Bytes, ?Length)
    :: stream * bytelist * int 

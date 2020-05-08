@@ -353,30 +353,22 @@ CBOOL__PROTO(prolog_select_socket) {
   return unify_result && cunify(Arg,X(4), stream_list(Arg, max_fd, &ready));
 }
 
+/* TODO: use another buffer? share with part of prolog_constant_codes */
 
-/* socket_send(+Stream, +Bytes) */
-CBOOL__PROTO(prolog_socket_send) {
-  ERR__FUNCTOR("sockets:socket_send", 2);
-  stream_node_t *s;
-  unsigned char *buffpt;
-  int error_code, msglen;
+/* Copy list X(ci) to the atom buffer, return its length */
+static CFUN__PROTO(bytelist_to_atmbuf, intmach_t, intmach_t ci,
+                   char *err__name, intmach_t err__arity) {
   tagged_t cdr, car;
-
-  s = stream_to_ptr_check(X(0), 'w', &error_code);
-  if (!s)
-    BUILTIN_ERROR(error_code, X(0), 1);
-  if (s->streammode != 's')
-    USAGE_FAULT("socket_send/2: first argument must be a socket stream");
-
-  DEREF(X(1), X(1));
-  cdr = X(1);
+  int msglen;
+  unsigned char *buffpt;
+  DEREF(X(ci), X(ci));
+  cdr = X(ci);
   buffpt = (unsigned char *)Atom_Buffer;
-
   for (msglen=0; cdr!=atom_nil; msglen++) {
     if (IsVar(cdr)) {
-      BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,2);
+      BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,ci+1);
     } else if (!TagIsLST(cdr)) {
-      BUILTIN_ERROR(TYPE_ERROR(CHARACTER_CODE_LIST),X(1),2);
+      BUILTIN_ERROR(TYPE_ERROR(CHARACTER_CODE_LIST),X(ci),ci+1);
     } else if (msglen == Atom_Buffer_Length) {                   /* realloc */
       Atom_Buffer = checkrealloc_ARRAY(char,
                                        msglen,
@@ -386,50 +378,129 @@ CBOOL__PROTO(prolog_socket_send) {
     }
     DerefCar(car,cdr);
     if (IsVar(car)) {
-      BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,2);
+      BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,ci+1);
     }
 
     if (!TaggedIsSmall(car) || (car<TaggedZero) || (car>=MakeSmall(256))) {
-      BUILTIN_ERROR(TYPE_ERROR(CHARACTER_CODE_LIST),X(1),2);
+      BUILTIN_ERROR(TYPE_ERROR(CHARACTER_CODE_LIST),X(ci),ci+1);
     }
     
     *buffpt++ = GetSmall(car);
     DerefCdr(cdr,cdr);
   }
+  return msglen;
+}
 
-  /* Do not realloc here -- no need to add a NULL char at the end */
-  /*
-  if (i == Atom_Buffer_Length){
-    Atom_Buffer = (char *)checkrealloc((tagged_t *)Atom_Buffer,
-                                       i, Atom_Buffer_Length<<=1);
-    buffpt = (unsigned char *)Atom_Buffer+i;
+/* Send all bytes from buffer, returns len on success and -1 on error */
+ssize_t sendall(int sockfd, const unsigned char *buf, size_t len) {
+  ssize_t bytes_sent = 0;
+  ssize_t n = 0;
+  while (len > 0) {
+    n = send(sockfd, buf+bytes_sent, len, 0);
+    if (n == -1) return -1;
+    bytes_sent += n;
+    len -= n;
   }
-  */
+  return bytes_sent;
+}
 
-  if (send(GetSmall(s->label), Atom_Buffer, msglen, 0) < 0)
-    BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
-    // MAJOR_FAULT("socket_send/2: send() call failed")  
+/* socket_send(+Stream, +Bytes, ?Sent) */
+CBOOL__PROTO(prolog_socket_send) {
+  ERR__FUNCTOR("sockets:socket_send", 3);
+  stream_node_t *s;
+  int msglen;
+  int bytes_sent;
+
+  int errcode;
+  s = stream_to_ptr_check(X(0), 'w', &errcode);
+  if (!s) BUILTIN_ERROR(errcode, X(0), 1);
+  if (s->streammode != 's')
+    USAGE_FAULT("socket_send/3: first argument must be a socket stream");
+
+  msglen = CFUN__EVAL(bytelist_to_atmbuf, 1, err__name, err__arity);
+  unsigned char *buffpt = (unsigned char *)Atom_Buffer;
+
+  bytes_sent = send(GetSmall(s->label), buffpt, msglen, 0);
+  if (bytes_sent < 0)
+    MAJOR_FAULT("socket_send/3: send() call failed");
+    //BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+
+  return cunify(Arg, MakeSmall(bytes_sent), X(2));
+}
+
+/* socket_sendall(+Stream, +Bytes) */
+CBOOL__PROTO(prolog_socket_sendall) {
+  ERR__FUNCTOR("sockets:socket_sendall", 2);
+  stream_node_t *s;
+  int msglen;
+  int bytes_sent;
+
+  int errcode;
+  s = stream_to_ptr_check(X(0), 'w', &errcode);
+  if (!s) BUILTIN_ERROR(errcode, X(0), 1);
+  if (s->streammode != 's')
+    USAGE_FAULT("socket_sendall/2: first argument must be a socket stream");
+
+  msglen = CFUN__EVAL(bytelist_to_atmbuf, 1, err__name, err__arity);
+  unsigned char *buffpt = (unsigned char *)Atom_Buffer;
+
+  bytes_sent = sendall(GetSmall(s->label), buffpt, msglen);
+  if (bytes_sent < 0)
+    MAJOR_FAULT("socket_sendall/2: send() call failed");
+    //BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
 
   return TRUE;
 }
 
+#define BUFFSIZE 4096
 
+/* socket_send_stream(+Stream, +FromStream) */
+CBOOL__PROTO(prolog_socket_send_stream) {
+  ERR__FUNCTOR("sockets:socket_send_stream", 2);
+  stream_node_t *s;
+  stream_node_t *from_stream;
+  unsigned char buffer[BUFFSIZE];
+  int msglen;
+  int bytes_sent;
+
+  int errcode;
+  s = stream_to_ptr_check(X(0), 'w', &errcode);
+  if (!s) BUILTIN_ERROR(errcode, X(0), 1);
+  if (s->streammode != 's')
+    USAGE_FAULT("socket_send_stream/2: first argument must be a socket stream");
+
+  from_stream = stream_to_ptr_check(X(1), 'r', &errcode);
+  if (!from_stream) BUILTIN_ERROR(errcode, X(1), 2);
+  if (from_stream->streammode == 's')
+    USAGE_FAULT("socket_send_stream/2: second argument cannot be a socket stream");
+  FILE *from_file = from_stream->streamfile;
+
+  while(1) {
+    msglen = fread(buffer, sizeof(unsigned char), BUFFSIZE, from_file);
+    if (msglen == 0) break; /* EOF and empty */
+    bytes_sent = sendall(GetSmall(s->label), buffer, msglen);
+    if (bytes_sent < 0)
+      MAJOR_FAULT("socket_send_stream/2: send() call failed");
+    if (msglen < BUFFSIZE) break; /* EOF */
+  } 
+  return TRUE;
+}
 
 /* socket_recv(+Stream, ?Bytes, ?Length).  Needs socket in connected state. */
-
-#define BUFFSIZE 2049
 
 CBOOL__PROTO(prolog_socket_receive) {
   ERR__FUNCTOR("sockets:socket_recv", 3);
   stream_node_t *s;
   /* We could use Atom_Buffer, but its size changes during execution; we'd
      better keep everything under control. */
-  unsigned char *buffpt, buffer[BUFFSIZE];
-  int error_code, bytes_read, total_bytes;
+  unsigned char *buffpt;
+  unsigned char buffer[BUFFSIZE];
+  int bytes_read, total_bytes;
   tagged_t cdr;
 
-  s = stream_to_ptr_check(X(0), 'r', &error_code);
-  if (!s) BUILTIN_ERROR(error_code, X(0), 1);
+  int errcode;
+  s = stream_to_ptr_check(X(0), 'r', &errcode);
+  if (!s) BUILTIN_ERROR(errcode, X(0), 1);
 
   if (s->streammode != 's')
     USAGE_FAULT("socket_recv/3: first argument must be a socket stream");
@@ -437,21 +508,21 @@ CBOOL__PROTO(prolog_socket_receive) {
   /* recv is about to disappear (c.f. Linux' manpage), so we'll use
      recvfrom instead */
 
-  /* bytes_read = recv(GetSmall(s->label), buffer, BUFFSIZE-1, 0); */
+  /* bytes_read = recv(GetSmall(s->label), buffer, BUFFSIZE, 0); */
 
-  bytes_read = recvfrom(GetSmall(s->label), buffer, BUFFSIZE-1, 0, NULL, NULL);
+  bytes_read = recvfrom(GetSmall(s->label), buffer, BUFFSIZE, 0, NULL, NULL);
   total_bytes = bytes_read;
 
   if (bytes_read < 0)
     MAJOR_FAULT("socket_recv/3: recv() call failed")
 
   /*
-    else if (bytes_read > BUFFSIZE-1)        
+    else if (bytes_read > BUFFSIZE)        
     MAJOR_FAULT("socket_recv/3: internal buffer overrun")
   */
 
   if (HeapDifference(w->global_top, Heap_End) < CONTPAD+(bytes_read<<1))
-      explicit_heap_overflow(Arg, CONTPAD+(bytes_read<<1),2);
+    explicit_heap_overflow(Arg, CONTPAD+(bytes_read<<1),2);
     
   buffpt = &buffer[bytes_read-1];
   cdr = atom_nil;
@@ -477,37 +548,38 @@ CBOOL__PROTO(prolog_socket_receive) {
 
 CBOOL__PROTO(prolog_socket_shutdown) {
   ERR__FUNCTOR("sockets:socket_shutdown", 2);
-    stream_node_t *s;
-    int access_required;
-    tagged_t shutdown_type;
-    int error_code;
-    int how;
+  stream_node_t *s;
+  int access_required;
+  tagged_t shutdown_type;
+  int how;
     
-    DEREF(X(0), X(0));
-    DEREF(shutdown_type, X(1));
+  DEREF(X(0), X(0));
+  DEREF(shutdown_type, X(1));
 
-    if (shutdown_type == atom_read) {
-      access_required = 'r';
-      how = SHUT_RD;
-    } else if (shutdown_type == atom_write){
-      access_required = 'w';
-      how = SHUT_WR;
-    } else if (shutdown_type == atom_read_write) {
-      access_required = 'w';
-      how = SHUT_RDWR;
-    }      
-    else USAGE_FAULT("socket_shutdown/2: error in second argument");
+  if (shutdown_type == atom_read) {
+    access_required = 'r';
+    how = SHUT_RD;
+  } else if (shutdown_type == atom_write){
+    access_required = 'w';
+    how = SHUT_WR;
+  } else if (shutdown_type == atom_read_write) {
+    access_required = 'w';
+    how = SHUT_RDWR;
+  } else {
+    USAGE_FAULT("socket_shutdown/2: error in second argument");
+  }
 
-    s = stream_to_ptr_check(X(0), access_required, &error_code);
-    if (!s) BUILTIN_ERROR(error_code, X(0), 1);
+  int errcode;
+  s = stream_to_ptr_check(X(0), access_required, &errcode);
+  if (!s) BUILTIN_ERROR(errcode, X(0), 1);
 
-    if (s->streammode != 's')
+  if (s->streammode != 's')
     USAGE_FAULT("socket_shutdown/2: first argument must be a socket stream");
     
-    if ((error_code = shutdown(GetSmall(s->label), how)))
-      MAJOR_FAULT("socket_shutdown/2: error in call to shutdown()");
+  if ((errcode = shutdown(GetSmall(s->label), how)))
+    MAJOR_FAULT("socket_shutdown/2: error in call to shutdown()");
 
-    return TRUE;
+  return TRUE;
 }
 
 
@@ -517,7 +589,7 @@ CBOOL__PROTO(prolog_socket_buffering) {
   ERR__FUNCTOR("sockets:socket_buffering", 4);
     stream_node_t *s;
     int access_required;
-    int error_code;
+    int errcode;
     tagged_t direction;
     tagged_t oldbuf;
     tagged_t newbuf;
@@ -532,8 +604,8 @@ CBOOL__PROTO(prolog_socket_buffering) {
     } else USAGE_FAULT("socket_buffering/4: error in second argument");
 
     DEREF(X(0), X(0));
-    s = stream_to_ptr_check(X(0), access_required, &error_code);
-    if (!s) BUILTIN_ERROR(error_code, X(0), 1);
+    s = stream_to_ptr_check(X(0), access_required, &errcode);
+    if (!s) BUILTIN_ERROR(errcode, X(0), 1);
 
     if (s->streammode != 's')
     USAGE_FAULT("socket_buffering/4: first argument must be a socket stream");
@@ -624,10 +696,10 @@ CBOOL__PROTO(prolog_hostname_address) {
 CBOOL__PROTO(prolog_socket_getpeername) {
   ERR__FUNCTOR("sockets:socket_getpeername", 2);
   stream_node_t *s;
-  int error_code;
+  int errcode;
 
-  s = stream_to_ptr_check(X(0), 'r', &error_code);
-  if (!s) BUILTIN_ERROR(error_code, X(0), 1);
+  s = stream_to_ptr_check(X(0), 'r', &errcode);
+  if (!s) BUILTIN_ERROR(errcode, X(0), 1);
 
   if (s->streammode != 's')
     USAGE_FAULT("socket_getpeername/2: first argument must be a socket stream");
