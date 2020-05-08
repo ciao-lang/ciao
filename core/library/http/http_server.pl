@@ -16,12 +16,6 @@
 %  Clients of this module must use the @lib{http_server_hooks} package
 %  and implement the multifile @pred{httpserv.handle/3} (see
 %  @pred{http_loop/1} for details).
-%
-
-:- doc(bug, "implement file_contents/1 in
-   http_server:http_write_response/2 (so that it can serve files
-   without loading them in memory)").
-
 
 :- use_module(library(lists), [member/2, append/3, select/3, length/2]).
 :- use_module(library(port_reify), [once_port_reify/2, port_call/1]).
@@ -132,11 +126,9 @@ trim([X|Xs],N,[X|Ys]):-
 % ===========================================================================
 :- doc(section, "Write HTTP responses").
 
-:- use_module(library(sockets), [socket_send/2]).
+:- use_module(library(sockets), [socket_sendall/2, socket_send_stream/2]).
 :- use_module(library(stream_utils), [write_bytes/2, copy_stream/3]).
-:- use_module(library(stream_utils), [file_to_bytes/2]).
-
-:- doc(bug, "Serve file without reading it as a string"). % TODO: write header and then contents
+% :- use_module(library(stream_utils), [file_to_bytes/2]).
 
 http_write_response(Stream, Response) :-
     expand_response(Response, Response2, Content),
@@ -252,14 +244,14 @@ send_data_(none, _Stream) :- !.
 %    write_string(Stream, Content).
 send_data_(bytelist(Bytes), Stream) :- !,
     %write_bytes(Stream, Bytes).
-    socket_send(Stream, Bytes). % TODO: merge with write_bytes/2 % TODO: sendall
+    socket_sendall(Stream, Bytes). % TODO: merge with write_bytes/2?
 send_data_(file(Path), Stream) :- !,
-    file_to_bytes(Path, Bytes),
-    socket_send(Stream, Bytes). % TODO: merge with write_bytes/2 % TODO: sendall
-%    open(Path, read, InS),
-%    once_port_reify(copy_stream(InS, Stream, _), Port), % TODO: deal with errors
-%    close(InS),
-%    port_call(Port).
+%    file_to_bytes(Path, Bytes),
+%    socket_sendall(Stream, Bytes). % TODO: merge with write_bytes/2?
+    open(Path, read, InS),
+    once_port_reify(socket_send_stream(Stream, InS), Port), % TODO: deal with errors
+    close(InS),
+    port_call(Port).
 
 % ===========================================================================
 :- doc(section, "Receive and parse one request").
@@ -297,7 +289,7 @@ http_serve_fetch(Stream,Serve):-
 
 :- data curr_socket/1.
 
-server_name('Ciao HTTP Server 0.1').
+server_name('Ciao HTTP Server 0.2').
 
 not_found_html(
     "<html>"||
