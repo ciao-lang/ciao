@@ -273,6 +273,7 @@ emacs_tests:
   stage: test
   script:
     - apk add emacs-nox
+    - ./ciao-boot.sh configure --ciao_ppl:enabled=no
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao build ciao_emacs
     - ciao test ciao_emacs
