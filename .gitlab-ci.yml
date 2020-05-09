@@ -268,3 +268,15 @@ unittest:
   allow_failure: true
   tags:
     - ciao_test_base
+
+emacs_tests:
+  stage: test
+  script:
+    - apk add emacs-nox
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - ciao build ciao_emacs
+    - ciao test ciao_emacs
+  tags:
+    - ciao_test_base
+  dependencies:
+    - install
