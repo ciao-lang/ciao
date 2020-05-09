@@ -145,11 +145,10 @@ actual_prop_to_message(X,['\n\t', ''({X}) | Tail], Tail).
     (A = [1, 2, 2, 2, 2, 3, 3, 4, 3, 4, 3, 4, 3, 4, 1, 5, 7, 1, 5, 7])
     => (B = [1, 2, 3, 4, 1, 5, 7]) + not_fails.
 
+:- export(compact_list/2). % TODO: do not export, only for running tests
 :- pred compact_list(L, R) : list(L) => list(R)
     # "Delete repeated sequences in a list.".
 
-:- prop compact_list/2.
-:- export(compact_list/2).
 compact_list(L, R) :-
     compact_list_(L, 1, R).
 
