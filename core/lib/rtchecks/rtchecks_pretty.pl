@@ -76,16 +76,15 @@ rtcheck_to_message(E, Text, TextTail) :-
     rtcheck_to_message_(Type, Pred, Prop, Valid, Text, TextTail).
 
 rtcheck_to_message_(Type, Pred, Prop, Valid, Text, Text1) :-
-    Text = ['Run-time check failure in assertion for:\n\t',
-        ''({Pred}),
-        '.\nIn *', Type, '*, unsatisfied property: \n\t',
+    type_text(Type, TypeMsg),
+    Text = [''({Pred}), ' run-time check failure.\n',
+        'Requires', TypeMsg, ': \n\t',
         ''({Prop}), '.'|Text0],
     ( Valid = [] -> Text0 = Text1
     ;
         actual_props_to_messages(Valid,ActualProps,Text1),
-        Text0 = ['\nWhere:'| ActualProps]
+        Text0 = ['\nBut instead:'| ActualProps]
     ).
-
 % TODO: pretty_prop/3 is  used only in the rtchecks and unittest libs,
 %       and it almost duplicates varnames/pretty_names:pretty_names/3
 %       predicate. Should pretty_names/4 with an additinal Idemp
@@ -130,11 +129,11 @@ actual_props_to_messages(ActualProps,Messages,Tail) :-
     foldl(actual_prop_to_message, ActualProps, Messages, Tail).
 
 actual_prop_to_message(X=Y,['\n\t', ''({var(X)}) | Tail], Tail) :-
-    X==Y, !.
-% temporary fix to write var(X) instead of X=X
+    X==Y, !. % temporary fix to write var(X) instead of X=X
 actual_prop_to_message(X,['\n\t', ''({X}) | Tail], Tail).
-
-% TODO: Use toplevel to do this right (e.g. X=Y instead of X=_1, Y=_1).
+% TODO: Use toplevel to print bindings right (e.g. X=Y instead of X=_1, Y=_1).
+% TODO: (wishlist) Use natural language descriptions for properties
+% (taken for their definition, as lpdoc does).
 
 % ---------------------------------------------------------------------------
 % TODO: ugly implementation, try to avoid it!
@@ -179,3 +178,12 @@ compact_list_n_(L, L1, R1, N, R) :-
       )
     ).
 
+type_text(comp, '') :- !.
+type_text(success,' in *success*') :- !.
+type_text(calls,' in *calls*') :- !.
+type_text(compat,' in *compat*') :- !. % TODO: better message
+type_text(compatpos,' in *compatpos*') :- !. % TODO: better message
+type_text(pp_check,' in *pp_check*') :- !. % TODO: better message (although there is no literal info, use location?)
+
+
+% TODO: better location messages
