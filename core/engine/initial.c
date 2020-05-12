@@ -1103,7 +1103,6 @@ void init_once(void)
   /* io_basic.c */
   
   define_c_mod_predicate("io_basic","code_class",2,code_class);
-  define_c_mod_predicate("io_basic","$rune_class",2,rune_class);
   define_c_mod_predicate("stream_basic","flush_output",0,flush_output);
   define_c_mod_predicate("stream_basic","flush_output",1,flush_output1);
   address_getct = define_c_mod_predicate("io_basic","getct",2,getct);

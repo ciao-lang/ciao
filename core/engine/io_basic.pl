@@ -3,7 +3,7 @@
     peek_code/2, peek_code/1, skip_code/2, skip_code/1,
     skip_line/1, skip_line/0,
     put_code/2, put_code/1, nl/1, nl/0, tab/2, tab/1,
-    code_class/2, '$code_bytes'/3, string_bytes/2,
+    code_class/2, string_bytes/2,
     getct/2, getct1/2,
     get_byte/2, get_byte/1, put_byte/2, put_byte/1, 
     display/2, display/1, displayq/2, displayq/1],
@@ -150,9 +150,6 @@
 
 :- trust pred code_class(+int,?int).
 :- impl_defined(code_class/2).
-
-:- export('$rune_class'/2). % (experimental)
-:- impl_defined('$rune_class'/2).
 
 % TODO: implement in C
 :- doc('$code_bytes'(C, Bs, Bs0), "Converts between the character code

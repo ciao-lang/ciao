@@ -137,26 +137,24 @@ read_tokens_after_layout(5, 0'(, Dict, Level, Tokens) :- !,
 read_tokens_after_layout(Typ, Ch, Dict, Level, Tokens) :-
     read_tokens(Typ, Ch, Dict, Level, Tokens).
 
-read_tokens(8, Ch, Dict, Level, Tokens) :- % (UTF8 support) % TODO: use getct_mb/2 in C
-    getct_mb(Ch, Ch2, Typ2),
-    read_tokens(Typ2, Ch2, Dict, Level, Tokens).
 read_tokens(-1, _, _, _, []).                      % end of file
 read_tokens(0, _, Dict, Level, Tokens) :-              % layout
     getct1(NextCh, NextTyp),
     read_tokens_after_layout(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(1, Ch0, Dict, Level, [Atom|Tokens]) :-     % small letter: atom
-    '$code_bytes'(Ch0, S, S0),
+    S = [Ch0|S0], %'$code_bytes'(Ch0, S, S0),
     getct(Ch, Typ),
     read_name(Typ, Ch, S0, NextCh, NextTyp),
     atom_token(S, Atom),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens(2, Ch0, Dict, Level, [var(Var,S)|Tokens]) :- % capital letter: variable
-    '$code_bytes'(Ch0, S, S0),
+read_tokens(2, Ch0, Dict, Level, [var(Var,S2)|Tokens]) :- % capital letter: variable
+    S = [Ch0|S0], %'$code_bytes'(Ch0, S, S0),
     getct(Ch, Typ),
     read_name(Typ, Ch, S0, NextCh, NextTyp),
-    ( S = "_" ->                            % anonymous variable
-          true
-    ; dic_lookup(Dict, S, Node),            % lookup/enter in dictionary
+    string_bytes(S, S2),
+    ( S2 = "_" ->                            % anonymous variable
+        true
+    ; dic_lookup(Dict, S2, Node),            % lookup/enter in dictionary
       check_singleton(Node, Var)
     ),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
@@ -169,7 +167,7 @@ read_tokens(4, 0'., Dict, Level, Tokens) :- !,          % end token or graphic a
     getct(NextCh, NextTyp),         
     read_fullstop(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(4, Ch, Dict, Level, [Atom|Tokens]) :-       % graphic atom
-    '$code_bytes'(Ch, S, Chars),
+    S = [Ch|Chars], %'$code_bytes'(Ch, S, Chars),
     getct(AnotherCh, Typ),
     read_symbol(Typ, AnotherCh, Chars, NextCh, NextTyp),
     atom_token(S, Atom),
@@ -179,8 +177,7 @@ read_tokens(5, Ch, Dict, Level, Tokens) :-
 read_tokens(6, Ch, Dict, Level, [Atom|Tokens]) :- !,
     % Other Unicode XID_Continue is treated as 'solo' when it appears
     % as first character.
-    '$code_bytes'(Ch, S, []),
-    atom_token(S, Atom),
+    atom_token([Ch], Atom), %'$code_bytes'(Ch, S, []),
     getct(NextCh, NextTyp),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 
@@ -259,9 +256,6 @@ read_tokens_solo(0'', Dict, Level, Tokens) :- % 'atom'
 % them as String.  The first character which cannot join this sequence
 % is returned as LastCh.
 
-read_name(8, Char, String, LastCh, LastTyp) :- !, % (UTF8 support) % TODO: use getct_mb/2 in C
-    getct_mb(Char, Char2, Typ2),
-    read_name(Typ2, Char2, String, LastCh, LastTyp).
 read_name(1, Char, String, LastCh, LastTyp) :- !,
     read_name_(Char, String, LastCh, LastTyp).
 read_name(2, Char, String, LastCh, LastTyp) :- !,
@@ -273,7 +267,7 @@ read_name(6, Char, String, LastCh, LastTyp) :- !,
 read_name(LastTyp, LastCh, [], LastCh, LastTyp).
 
 read_name_(Char, String, LastCh, LastTyp) :-
-    '$code_bytes'(Char, String, Chars),
+    String = [Char|Chars], %'$code_bytes'(Char, String, Chars),
     getct(NextCh, NextTyp),
     read_name(NextTyp, NextCh, Chars, LastCh, LastTyp).
 
@@ -281,11 +275,8 @@ read_name_(Char, String, LastCh, LastTyp) :-
 % reads the other kind of atom which needs no quoting: one which is
 % a string of "symbol" characters.
 
-read_symbol(8, Char, String, LastCh, LastTyp) :- !, % (UTF8 support) % TODO: use getct_mb/2 in C
-    getct_mb(Char, Char2, Typ2),
-    read_symbol(Typ2, Char2, String, LastCh, LastTyp).
 read_symbol(4, Char, String, LastCh, LastTyp) :- !,
-    '$code_bytes'(Char, String, Chars),
+    String = [Char|Chars], %'$code_bytes'(Char, String, Chars),
     getct(NextCh, NextTyp),
     read_symbol(NextTyp, NextCh, Chars, LastCh, LastTyp).
 read_symbol(LastTyp, LastCh, [], LastCh, LastTyp).
@@ -295,9 +286,6 @@ read_symbol(LastTyp, LastCh, [], LastCh, LastTyp).
 % an end of file, a layout character or %, this is a clause terminator, else
 % this is just an ordinary symbol and we call read_symbol to process it.
 
-read_fullstop(8, Ch, Dict, Level, Tokens) :- !, % (UTF8 support) % TODO: use getct_mb/2 in C
-    getct_mb(Ch, Ch2, Typ2),
-    read_fullstop(Typ2, Ch2, Dict, Level, Tokens).
 read_fullstop(-1, _, _, _Level, [.]) :- !. % end of file
 :- if(defined(suspension_curly_block)).
 read_fullstop(0, Ch, _Dict, Level, [(.)|Tokens]) :- !, % END OF CLAUSE
@@ -363,15 +351,16 @@ read_quoted_end(NextTyp, NextCh, Quote, [], Dict, Level, S, Tokens) :-
 quoted_token(0'', S, Tokens, Tokens0) :-
     atom_token(S, Token), Tokens = [Token|Tokens0].
 quoted_token(0'", S, Tokens, Tokens0) :-
-    Tokens = [string(S)|Tokens0].
+    string_bytes(S, S2),
+    Tokens = [string(S2)|Tokens0].
 
 escape_sequence(0, _, _, Chars, Chars, Typ, Ch) :- !,
     getct(Ch, Typ).                     % continuation escape sequence
 escape_sequence(4, 0'^, _, [Char|Chars], Chars, NextTyp, NextCh) :- !,
     getct(Ch, Typ),                     % starts a control_escape_char
     ( control_character(Typ, Ch, CC) ->
-          Char = CC,
-          getct(NextCh, NextTyp)
+        Char = CC,
+        getct(NextCh, NextTyp)
     ; Char = 0'^,
       NextTyp = Typ,
       NextCh = Ch
@@ -582,10 +571,11 @@ token_start_e(0'e, Typ, Ch, Dict, Level, [Atom|Tokens]) :-
     read_name(Typ, Ch, S0, NextCh, NextTyp),
     atom_token([0'e|S0], Atom),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-token_start_e(0'E, Typ, Ch, Dict, Level, [var(Var,S)|Tokens]) :-
+token_start_e(0'E, Typ, Ch, Dict, Level, [var(Var,S2)|Tokens]) :-
     S = [0'E|S0],
     read_name(Typ, Ch, S0, NextCh, NextTyp),
-    dic_lookup(Dict, S, Node),
+    string_bytes(S, S2),
+    dic_lookup(Dict, S2, Node),
     check_singleton(Node, Var),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 
@@ -604,10 +594,11 @@ token_start_sign(Sign, Typ, Ch, Dict, Level, [Atom|Tokens]) :-
 read_after_dot_N(0'a, 1, Nan, Dict, Level, Tokens) :- !,
     getct(Ch, Typ),
     read_after_dot_Na(Ch, Typ, Nan, Dict, Level, Tokens).
-read_after_dot_N(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S)|Tokens]) :-
+read_after_dot_N(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S2)|Tokens]) :-
     S = [0'N|S0],
     read_name(Typ, Ch, S0, NextCh, NextTyp),
-    dic_lookup(Dict, S, Node),
+    string_bytes(S, S2),
+    dic_lookup(Dict, S2, Node),
     check_singleton(Node, Var),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 
@@ -615,10 +606,11 @@ read_after_dot_Na(0'n, 1, Nan, Dict, Level, Tokens) :- !,
     number_codes(Nan,"0.Nan"), %Nan is 0/0,
     getct(Ch, Typ),
     read_tokens(Typ, Ch, Dict, Level, Tokens).
-read_after_dot_Na(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S)|Tokens]) :-
+read_after_dot_Na(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S2)|Tokens]) :-
     S = [0'N,0'a|S0],
     read_name(Typ, Ch, S0, NextCh, NextTyp),
-    dic_lookup(Dict, S, Node),
+    string_bytes(S, S2),
+    dic_lookup(Dict, S2, Node),
     check_singleton(Node, Var),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 
@@ -626,10 +618,11 @@ read_after_dot_Na(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S)|Tokens]) :-
 read_after_dot_I(0'n, 1, Inf, Dict, Level, Tokens) :- !,
     getct(Ch, Typ),
     read_after_dot_In(Ch, Typ, Inf, Dict, Level, Tokens).
-read_after_dot_I(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S)|Tokens]) :-
+read_after_dot_I(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S2)|Tokens]) :-
     S = [0'I|S0],
     read_name(Typ, Ch, S0, NextCh, NextTyp),
-    dic_lookup(Dict, S, Node),
+    string_bytes(S, S2),
+    dic_lookup(Dict, S2, Node),
     check_singleton(Node, Var),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 
@@ -637,10 +630,11 @@ read_after_dot_In(0'f, 1, Inf, Dict, Level, Tokens) :- !,
     number_codes(Inf, "0.Inf"), %Inf is 1/0,
     getct(Ch, Typ),
     read_tokens(Typ, Ch, Dict, Level, Tokens).
-read_after_dot_In(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S)|Tokens]) :-
+read_after_dot_In(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S2)|Tokens]) :-
     S = [0'I,0'n|S0],
     read_name(Typ, Ch, S0, NextCh, NextTyp),
-    dic_lookup(Dict, S, Node),
+    string_bytes(S, S2),
+    dic_lookup(Dict, S2, Node),
     check_singleton(Node, Var),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 
@@ -717,7 +711,8 @@ atom_token(String, atom(Atom)) :-
     %    is deactivated (the following assumes dynamic atom size is
     %    activated).
     %  - escaped sequence in the atom produces non valid character_code
-    catch(atom_codes(Atom, String),
+    string_bytes(String, Bytes),
+    catch(atom_codes(Atom, Bytes),
           error(representation_error(character_code), _),
           fail), !.
 atom_token(String, badatom(String)).
@@ -892,39 +887,4 @@ read_doccomment_text__asterisk(_, NextCh0, Chars, Cont) :-
     Chars = [0'*, NextCh0|Chars0],
     read_doccomment_text(Typ, Ch, Chars0, Cont).
 
-% ---------------------------------------------------------------------------
-% Experimental UTF8 support
-
-% TODO: perform conversion during getct instead?
-
-%   Char. number range  |        UTF-8 octet sequence
-%      (hexadecimal)    |              (binary)
-%   --------------------+---------------------------------------------
-%   0000 0000-0000 007F | 0xxxxxxx
-%   0000 0080-0000 07FF | 110xxxxx 10xxxxxx
-%   0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
-%   0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-
-% getct_mb(B1, R, Typ): Complete read of a UTF8 rune given first byte
-%   B1 (assume B1>=0x80) and obtain its character code class.
-getct_mb(B1, R, Typ) :-
-    ( B1 =< 0xBF -> fail % invalid
-    ; B1 =< 0xDF -> % 2 bytes
-        getct(B2,_), B2/\0xC0 =:= 0x80,
-        R is ((B1/\0x1F)<<6)\/(B2/\0x3F),
-        R >= 0x80
-    ; B1 =< 0xEF -> % 3 bytes
-        getct(B2,_), B2/\0xC0 =:= 0x80,
-        getct(B3,_), B3/\0xC0 =:= 0x80,
-        R is ((B1/\0xF)<<12)\/((B2/\0x3F)<<6)\/(B3/\0x3F),
-        R >= 0x800
-    ; B1 =< 0xF7 -> % 4 bytes
-        getct(B2,_), B2/\0xC0 =:= 0x80,
-        getct(B3,_), B3/\0xC0 =:= 0x80,
-        getct(B4,_), B4/\0xC0 =:= 0x80,
-        R is ((B1/\0x7)<<18)\/((B2/\0x3F)<<12)\/((B3/\0x3F)<<6)\/(B4/\0x3F),
-        R >= 0x10000
-    ; fail % invalid
-    ),
-    '$rune_class'(R, Typ).
 

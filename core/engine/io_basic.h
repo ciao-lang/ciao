@@ -64,11 +64,12 @@ CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 #define RUNE_PAST_EOF       -2
 #define RUNE_VOID           -100
 
+#define RUNE_ERROR 0xFFFD /* Unicode Replacement character */
+
 #if defined(USE_MULTIBYTES)
 
 #define RUNE_SURROGATE_MIN  0x00d800
 #define RUNE_SURROGATE_MAX  0x00dfff
-#define RUNE_ERROR          0x00fffd
 #define RUNE_MAX            0x10ffff
 
 #define C_MB_LEN_MAX        4

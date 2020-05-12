@@ -352,17 +352,9 @@ CBOOL__PROTO(code_class) {
 
   DEREF(X(0), X(0));
   CheckGetRune(X(0),i,1);
+  //  if (!TaggedIsSmall(X(0))) return FALSE;
+  //  i = GetSmall(X(0));                             
 
-  return cunify(Arg,X(1),MakeSmall(get_rune_class(i)));
-}
-
-CBOOL__PROTO(rune_class) {
-  //ERR__FUNCTOR("io_basic:$rune_class", 2);
-  c_rune_t i;
-
-  DEREF(X(0), X(0));
-  if (!TaggedIsSmall(X(0))) return FALSE;
-  i = GetSmall(X(0));                             
   return cunify(Arg,X(1),MakeSmall(get_rune_class(i)));
 }
 
@@ -628,7 +620,6 @@ CBOOL__PROTO(get) {
   c_rune_t r;
 
   r = readrune(Arg,Input_Stream_Ptr,GET,address_get);
-
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
@@ -650,7 +641,6 @@ CBOOL__PROTO(get2) {
   }
 
   r = readrune(Arg,s,GET,address_get2);
-
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
@@ -665,7 +655,6 @@ CBOOL__PROTO(get1) {
   c_rune_t r;
   
   r = readrune(Arg,Input_Stream_Ptr,GET1,address_get1); /* skip whitespace */
-
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
@@ -687,7 +676,6 @@ CBOOL__PROTO(get12) {
   }
 
   r = readrune(Arg,s,GET1,address_get12); /* skip whitespace */
-
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
@@ -702,7 +690,6 @@ CBOOL__PROTO(peek) {
   c_rune_t r;
 
   r = readrune(Arg,Input_Stream_Ptr,PEEK,address_peek);
-
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
@@ -724,7 +711,6 @@ CBOOL__PROTO(peek2) {
   }
 
   r = readrune(Arg,s,PEEK,address_peek2);
-
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
@@ -734,38 +720,78 @@ CBOOL__PROTO(peek2) {
 
 /*----------------------------------------------------------------*/
 
-#define RUNETY_X80 8 /* temporary, >=0x80 and pending to decode as UTF8 */
+/* Read a UTF8 rune (return value) and assign a rune class to *typ */
+static CFUN__PROTO(readrune_mb, c_rune_t,
+                   stream_node_t *s, int op_type,
+                   definition_t *pred_address, int *typ) {
+  c_rune_t r;
+  int typ_;
+  
+ again:
+  r = CFUN__EVAL(readrune,s,op_type,pred_address);
+  if (r<0) { *typ = -1; return r; }
+  if (r <= 0x7F) { /* 1 byte */
+  } else if (r <= 0xBF) {
+    r = RUNE_ERROR;
+  } else { /* 2 or more bytes */
+    unsigned char b[4];
+    int len;
+    /* get length and read pending bytes */
+    if (r <= 0xDF) { len=2; }
+    else if (r <= 0xEF) { len=3; }
+    else if (r <= 0xF7) { len=4; }
+    else { len=0; }
+    b[0] = (unsigned char)r;
+    for (int i=1; i<len; i++) {
+      r = CFUN__EVAL(readrune,s,GET,pred_address);
+      if (r<0 || (r&0xC0)!=0x80) { len=0; break; } /* force error */
+      b[i] = (unsigned char)r;
+    }
+    /* compose rune */
+    switch(len) {
+    case 2: /* 2 bytes */
+      r = ((b[0]&0x1F)<<6)|(b[1]&0x3F);
+      if (r < 0x80) r = RUNE_ERROR;
+      break;
+    case 3: /* 3 bytes */
+      r = ((b[0]&0xF)<<12)|((b[1]&0x3F)<<6)|(b[2]&0x3F);
+      if (r < 0x800) r = RUNE_ERROR;
+      break;
+    case 4: /* 4 bytes */
+      r = ((b[0]&0x7)<<18)|((b[1]&0x3F)<<12)|((b[2]&0x3F)<<6)|(b[3]&0x3F);
+      if (r < 0x10000) r = RUNE_ERROR;
+      break;
+    default:
+      r = RUNE_ERROR; 
+      break;
+    }
+  }
+  typ_ = get_rune_class(r);
+  if (op_type == GET1 && typ_ == RUNETY_LAYOUT) goto again;
+  *typ = typ_;
+  return r;
+}
 
 CBOOL__PROTO(getct) {
   ERR__FUNCTOR("io_basic:getct", 2);
   c_rune_t r;
-
-  r = readrune(Arg,Input_Stream_Ptr,GET,address_getct);
-
+  int typ;
+  r = CFUN__EVAL(readrune_mb,Input_Stream_Ptr,GET,address_getct,&typ);
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
-
-  return cunify(Arg,X(0),MakeSmall(r)) 
-    && cunify(Arg,X(1),MakeSmall(r >= 0x80 ? RUNETY_X80 :
-                                 r == RUNE_EOF ? -1 :
-                                 get_rune_class(r)));
+  return cunify(Arg,X(0),MakeSmall(r)) && cunify(Arg,X(1),MakeSmall(typ));
 }
 
 CBOOL__PROTO(getct1) {
   ERR__FUNCTOR("io_basic:getct1", 2);
   c_rune_t r;
-  
-  r = readrune(Arg,Input_Stream_Ptr,GET1,address_getct1); /* skip whitespace */
-
+  int typ;
+  r = CFUN__EVAL(readrune_mb,Input_Stream_Ptr,GET1,address_getct1,&typ);
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
-
-  return cunify(Arg,X(0),MakeSmall(r)) 
-    && cunify(Arg,X(1),MakeSmall(r >= 0x80 ? RUNETY_X80 :
-                                 r == RUNE_EOF ? -1 :
-                                 get_rune_class(r)));
+  return cunify(Arg,X(0),MakeSmall(r)) && cunify(Arg,X(1),MakeSmall(typ));
 }
 
 /*----------------------------------------------------------------*/
@@ -869,12 +895,11 @@ CBOOL__PROTO(skip) {
   DEREF(X(0),X(0));
   CheckGetRune(X(0),r,1);
 
-  for (r1=r+1; r1!=r && r1 != RUNE_PAST_EOF;) {
+  for (r1=r+1; r1!=r;) {
     r1 = readrune(Arg,Input_Stream_Ptr,r,address_skip);
-  }
-
-  if (r1 == RUNE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+    if (r1 == RUNE_PAST_EOF) {
+      BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+    }
   }
 
   return TRUE;
@@ -896,12 +921,11 @@ CBOOL__PROTO(skip2) {
   DEREF(X(1),X(1))
   CheckGetRune(X(1),r,2);
 
-  for (r1=r+1; r1!=r && r1 != RUNE_PAST_EOF;) {
+  for (r1=r+1; r1!=r;) {
     r1 = readrune(Arg,s,r,address_skip2);
-  }
-
-  if (r1 == RUNE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
+    if (r1 == RUNE_PAST_EOF) {
+      BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
+    }
   }
 
   return TRUE;
@@ -955,7 +979,6 @@ CBOOL__PROTO(get_byte1) {
   int i;
 
   i = readbyte(Arg,Input_Stream_Ptr,address_get);
-
   if (i == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
@@ -976,7 +999,6 @@ CBOOL__PROTO(get_byte2) {
   }
 
   i = readbyte(Arg,s,address_get2);
-
   if (i == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
