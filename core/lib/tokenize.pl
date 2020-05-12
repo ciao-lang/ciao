@@ -10,13 +10,17 @@
 
    @begin{itemize}
    @item @tt{`} is a graphic char, there are no @tt{back_quoted_strings}.
-   @item @tt{\\\\} followed by any layout char (not only @tt{new_line}) in a string is a @tt{continuation_escape_sequence}.
+   @item @tt{\\\\} followed by any layout char (not only
+     @tt{new_line}) in a string is a @tt{continuation_escape_sequence}.
    @item @tt{\\\\^} starts a @tt{control_escape_char} in a string.
    @item @tt{\\\\c} skips layout in a string.
    @item @tt{\\\\e} = @tt{ESC}, @tt{\\\\d} = @tt{DEL}, @tt{\\\\s} = @tt{SPACE}.
    @item @tt{13'23} is 23 in base 13 (same for other bases).
    @item @tt{0'}@tt{'} is accepted as @tt{0'}@tt{'}@tt{'} (if not followed by @tt{'}).
-   @item Support for Unicode identifiers (see @ref{Unicode source code})
+   @item Quoted atoms and strings support Unicode escape
+     @tt{\\\\uDDDD} (four hexadecimal digits) and @tt{\\\\UDDDDDDDD}
+     (eight hexadecimal digits)
+   @item Support for Unicode identifiers (see @ref{Unicode source code}).
    @end{itemize}
 
    @section{Unicode source code}
@@ -369,7 +373,7 @@ escape_sequence(3, D, CEF, [Char|Chars], Chars, NextTyp, NextCh) :-
     D =< 0'7, !,                         % octal escape sequence
     getct(Ch, Typ),
     ( CEF = sicstus ->
-        read_two_octal(Typ, Ch, Ds, NextTyp, NextCh)
+        read_n_octal(Typ, Ch, 2, Ds, NextTyp, NextCh)
     ; read_octal_iso(Typ, Ch, Ds),
       getct(NextCh, NextTyp)
     ),
@@ -377,10 +381,18 @@ escape_sequence(3, D, CEF, [Char|Chars], Chars, NextTyp, NextCh) :-
 escape_sequence(1, 0'x, CEF, [Char|Chars], Chars, NextTyp, NextCh) :- !,
     getct(Ch, Typ),                     % hexadecimal escape sequence
     ( CEF = sicstus ->
-        read_two_hexa(Typ, Ch, Ds, NextTyp, NextCh)
+        read_n_hexa(Typ, Ch, 2, Ds, NextTyp, NextCh)
     ; read_hexa_iso(Typ, Ch, Ds),
       getct(NextCh, NextTyp)
     ),
+    number_codes(Char, 16, [0'0|Ds]).
+escape_sequence(1, 0'u, _, [Char|Chars], Chars, NextTyp, NextCh) :- !,
+    getct(Ch, Typ),                     % Unicode escape sequence (4 digits)
+    read_n_hexa(Typ, Ch, 4, Ds, NextTyp, NextCh),
+    number_codes(Char, 16, [0'0|Ds]).
+escape_sequence(2, 0'U, _, [Char|Chars], Chars, NextTyp, NextCh) :- !,
+    getct(Ch, Typ),                     % Unicode escape sequence (8 digits)
+    read_n_hexa(Typ, Ch, 8, Ds, NextTyp, NextCh),
     number_codes(Char, 16, [0'0|Ds]).
 escape_sequence(1, 0'c, _, Chars, Chars, NextTyp, NextCh) :- !,
     getct1(NextCh, NextTyp).              % skip layout
@@ -411,43 +423,37 @@ symbolic_control_char(0'e,27).
 symbolic_control_char(0's,32).
 symbolic_control_char(0'd,127).
 
-read_two_octal(3, D, [D|Ds], EndTyp, EndCh) :-
-    D =< 0'7, !,
+% Read at most N octal digits
+read_n_octal(3, D, N, [D|Ds], EndTyp, EndCh) :-
+    N >= 1, D =< 0'7, !,
     getct(Ch, Typ),
-    read_one_octal(Typ, Ch, Ds, EndTyp, EndCh).
-read_two_octal(EndTyp, EndCh, [], EndTyp, EndCh).
+    N1 is N - 1,
+    read_n_octal(Typ, Ch, N1, Ds, EndTyp, EndCh).
+read_n_octal(EndTyp, EndCh, _, [], EndTyp, EndCh).
 
-read_one_octal(3, D, [D], EndTyp, EndCh) :-
-    D =< 0'7, !,
-    getct(EndCh, EndTyp).
-read_one_octal(EndTyp, EndCh, [], EndTyp, EndCh).
+% Read at most N hexadecimal digits
+read_n_hexa(TD, D, N, [D|Ds], EndTyp, EndCh) :-
+    N >= 1, hexa_digit(TD, D), !,
+    getct(Ch, Typ),
+    N1 is N - 1,
+    read_n_hexa(Typ, Ch, N1, Ds, EndTyp, EndCh).
+read_n_hexa(EndTyp, EndCh, _, [], EndTyp, EndCh).
 
 read_octal_iso(4, 92, []) :- !.  % ends in \
 read_octal_iso(3, D, [D|Ds]) :-
     D =< 0'7, !,
     getct(Ch, Typ),
     read_octal_iso(Typ, Ch, Ds).
-read_octal_iso(_, _, Ds) :- % ignore other characters
+read_octal_iso(_, _, Ds) :- % ignore other characters % TODO: error instead?
     getct(Ch, Typ),
     read_octal_iso(Typ, Ch, Ds).
-
-read_two_hexa(TD, D, [D|Ds], EndTyp, EndCh) :-
-    hexa_digit(TD, D), !,
-    getct(Ch, Typ),
-    read_one_hexa(Typ, Ch, Ds, EndTyp, EndCh).
-read_two_hexa(EndTyp, EndCh, [], EndTyp, EndCh).
-
-read_one_hexa(TD, D, [D], EndTyp, EndCh) :-
-    hexa_digit(TD, D), !,
-    getct(EndCh, EndTyp).
-read_one_hexa(EndTyp, EndCh, [], EndTyp, EndCh).
 
 read_hexa_iso(4, 92, []) :- !.  % ends in \
 read_hexa_iso(TD, D, [D|Ds]) :-
     hexa_digit(TD, D), !,
     getct(Ch, Typ),
     read_hexa_iso(Typ, Ch, Ds).
-read_hexa_iso(_, _, Ds) :- % ignore other characters
+read_hexa_iso(_, _, Ds) :- % ignore other characters % TODO: error instead?
     getct(Ch, Typ),
     read_hexa_iso(Typ, Ch, Ds).
 
