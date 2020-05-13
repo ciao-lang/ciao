@@ -146,13 +146,13 @@ read_tokens(0, _, Dict, Level, Tokens) :-              % layout
     getct1(NextCh, NextTyp),
     read_tokens_after_layout(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(1, Ch0, Dict, Level, [Atom|Tokens]) :-     % small letter: atom
-    S = [Ch0|S0], %'$code_bytes'(Ch0, S, S0),
+    S = [Ch0|S0],
     getct(Ch, Typ),
     read_name(Typ, Ch, S0, NextCh, NextTyp),
     atom_token(S, Atom),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(2, Ch0, Dict, Level, [var(Var,S2)|Tokens]) :- % capital letter: variable
-    S = [Ch0|S0], %'$code_bytes'(Ch0, S, S0),
+    S = [Ch0|S0],
     getct(Ch, Typ),
     read_name(Typ, Ch, S0, NextCh, NextTyp),
     string_bytes(S, S2),
@@ -171,7 +171,7 @@ read_tokens(4, 0'., Dict, Level, Tokens) :- !,          % end token or graphic a
     getct(NextCh, NextTyp),         
     read_fullstop(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens(4, Ch, Dict, Level, [Atom|Tokens]) :-       % graphic atom
-    S = [Ch|Chars], %'$code_bytes'(Ch, S, Chars),
+    S = [Ch|Chars],
     getct(AnotherCh, Typ),
     read_symbol(Typ, AnotherCh, Chars, NextCh, NextTyp),
     atom_token(S, Atom),
@@ -181,7 +181,7 @@ read_tokens(5, Ch, Dict, Level, Tokens) :-
 read_tokens(6, Ch, Dict, Level, [Atom|Tokens]) :- !,
     % Other Unicode XID_Continue is treated as 'solo' when it appears
     % as first character.
-    atom_token([Ch], Atom), %'$code_bytes'(Ch, S, []),
+    atom_token([Ch], Atom),
     getct(NextCh, NextTyp),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 
@@ -191,7 +191,7 @@ read_tokens(6, Ch, Dict, Level, [Atom|Tokens]) :- !,
 %
 % ('/' has been read)
 read_possible_comment(4, 0'*, Dict, Level, Tokens) :- !,
-    comment_text_or_doccomment(Dict, Level, Tokens).
+    read_comment(block, Dict, Level, Tokens).
 read_possible_comment(Typ, Ch, Dict, Level, [Atom|Tokens]) :-
     read_symbol(Typ, Ch, Chars, NextCh, NextTyp), % might read 0 chars
     atom_token([0'/|Chars], Atom),
@@ -204,7 +204,7 @@ read_tokens_solo(0';, Dict, Level, [atom(;)|Tokens]) :-
     getct(NextCh, NextTyp),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 read_tokens_solo(0'%, Dict, Level, Tokens) :-          % comment
-    comment_or_doccomment(Dict, Level, Tokens).
+    read_comment(line, Dict, Level, Tokens).
 read_tokens_solo(0'(, Dict, Level, Tokens) :-
     getct1(NextCh, NextTyp),
     ( NextCh = 0') ->
@@ -232,6 +232,7 @@ read_tokens_solo(0'{, Dict, Level0, ['{'|Tokens]) :-
     Level is Level0 + 1,
     getct1(NextCh, NextTyp),
     ( current_prolog_flag(read_curly_blocks, on) ->
+%HERE move getct1 here
         Tokens = [suspension(read_tokens(NextTyp, NextCh, Level))]
     ; read_tokens(NextTyp, NextCh, Dict, Level, Tokens)
     ).
@@ -271,7 +272,7 @@ read_name(6, Char, String, LastCh, LastTyp) :- !,
 read_name(LastTyp, LastCh, [], LastCh, LastTyp).
 
 read_name_(Char, String, LastCh, LastTyp) :-
-    String = [Char|Chars], %'$code_bytes'(Char, String, Chars),
+    String = [Char|Chars],
     getct(NextCh, NextTyp),
     read_name(NextTyp, NextCh, Chars, LastCh, LastTyp).
 
@@ -280,7 +281,7 @@ read_name_(Char, String, LastCh, LastTyp) :-
 % a string of "symbol" characters.
 
 read_symbol(4, Char, String, LastCh, LastTyp) :- !,
-    String = [Char|Chars], %'$code_bytes'(Char, String, Chars),
+    String = [Char|Chars],
     getct(NextCh, NextTyp),
     read_symbol(NextTyp, NextCh, Chars, LastCh, LastTyp).
 read_symbol(LastTyp, LastCh, [], LastCh, LastTyp).
@@ -388,11 +389,11 @@ escape_sequence(1, 0'x, CEF, [Char|Chars], Chars, NextTyp, NextCh) :- !,
     number_codes(Char, 16, [0'0|Ds]).
 escape_sequence(1, 0'u, _, [Char|Chars], Chars, NextTyp, NextCh) :- !,
     getct(Ch, Typ),                     % Unicode escape sequence (4 digits)
-    read_n_hexa(Typ, Ch, 4, Ds, NextTyp, NextCh),
+    read_n_hexa(Typ, Ch, 4, Ds, NextTyp, NextCh), % TODO: deal with errors?
     number_codes(Char, 16, [0'0|Ds]).
 escape_sequence(2, 0'U, _, [Char|Chars], Chars, NextTyp, NextCh) :- !,
     getct(Ch, Typ),                     % Unicode escape sequence (8 digits)
-    read_n_hexa(Typ, Ch, 8, Ds, NextTyp, NextCh),
+    read_n_hexa(Typ, Ch, 8, Ds, NextTyp, NextCh), % TODO: deal with errors?
     number_codes(Char, 16, [0'0|Ds]).
 escape_sequence(1, 0'c, _, Chars, Chars, NextTyp, NextCh) :- !,
     getct1(NextCh, NextTyp).              % skip layout
@@ -726,7 +727,7 @@ atom_token(String, badatom(String)).
 skip_code_prot(C) :- catch(skip_code(C), _, fail).
 
 % ===========================================================================
-% Skiping comments and recognizing doccomments.
+% Parsing comments
 
 valid_doccomment_mark(Ch) :-
     current_prolog_flag(doccomments, Enabled), % doccomments allowed
@@ -738,159 +739,144 @@ valid_doccomment_mark(Ch) :-
 doccomment_mark(0'!).
 doccomment_mark(0'<).
 
-% Execute a read token continuation
-read_tokens_cont(Cont, Dict, Level, Tokens) :-
+% ('%' or '/'+'*' has been read)
+read_comment(Style, Dict, Level, Tokens) :-
+    getct(NextCh, NextTyp),
+    ( valid_doccomment_mark(NextCh) -> % doccomment found
+        Tokens = [DocToken|Tokens0],
+        read_doccomment(Style, NextCh, DocToken, Cont)
+    ; Tokens = Tokens0,
+      skip_comment(Style, NextTyp, NextCh, Cont)
+    ),
+    read_comment_cont(Cont, Dict, Level, Tokens0).
+
+% Continue reading comments
+read_comment_cont(Cont, Dict, Level, Tokens) :-
     ( Cont = cont_after_layout(Typ, Ch) -> % after_layout
         read_tokens_after_layout(Typ, Ch, Dict, Level, Tokens)
-    ; Cont = cont_comment_or_doccomment(Typ, Ch) -> % comment or doccomment
-        comment_or_doccomment_(Typ, Ch, Dict, Level, Tokens)
+    ; Cont = cont_after_layout0 -> % read next and after_layout 
+        getct1(Ch, Typ),
+        read_tokens_after_layout(Typ, Ch, Dict, Level, Tokens)
     ; Cont = cont_eof_comment ->
         Tokens = ['/* ...']
-    ; fail
+    ; Cont = cont_doccomment(MarkCh), % another doccomment
+      Tokens = [DocToken|Tokens0],
+      read_doccomment(line, MarkCh, DocToken, Cont),
+      read_comment_cont(Cont, Dict, Level, Tokens0)
     ).
 
 % ---------------------------------------------------------------------------
-% Skip a non-documenting '%...' comment or recognize a doccomment.
-
-% TODO: We assume that all the '%' lines following %! comments are
-%       aligned.
-
-% ('%' has been read)
-comment_or_doccomment(Dict, Level, Tokens) :-
-    getct(NextCh, NextTyp),
-    comment_or_doccomment_(NextTyp, NextCh, Dict, Level, Tokens).
-
-comment_or_doccomment_(NextTyp, NextCh, Dict, Level, Tokens) :-
-    ( valid_doccomment_mark(NextCh) -> % doccomment found
-        % Note: in '%' comments, a space is added to the first
-        %   line to help in processing of layout-sensitive code.
-        current_input(InStream),
-        line_position(InStream, Col0), Col is Col0 - 1,
-        Tokens = [doccomment(Col, NextCh, " "||Chars)|Tokens0],
-        getct(NextCh1, NextTyp1),
-        read_doccomment(NextTyp1, NextCh1, Chars, Cont)
-    ; Tokens = Tokens0,
-      skip_comment(NextTyp, NextCh, Cont)
-    ),
-    read_tokens_cont(Cont, Dict, Level, Tokens0).
+% Skip a non-documenting comment
 
 % Skip the comment
-skip_comment(NextTyp, NextCh, Cont) :-
+% ('%'+NextCh has just been read)
+skip_comment(line, NextTyp, NextCh, Cont) :-
     ( ( NextCh = 0'\n % no more chars in the line
       ; NextTyp = -1 % no more chars in the file
       ) ->
         Cont = cont_after_layout(NextTyp, NextCh)
-    ; skip_line, getct1(NextCh2, NextTyp2),
-      Cont = cont_after_layout(NextTyp2, NextCh2)
+    ; skip_line,
+      Cont = cont_after_layout0
     ).
-
-% Reads the body of a doccomment string.
-% The result is a list Chars of ASCII codes.
-read_doccomment(-1, _, Chars, Cont) :- !, % end of file
-    Chars = [], Cont = cont_after_layout(-1, -1).
-read_doccomment(_, 0'\n, Chars, Cont) :- !,
-    getct(Ch, Typ),                 % closing or next comment line
-    Chars = [0'\n|Chars0],
-    read_doccomment__nl(Typ, Ch, Chars0, Cont).
-read_doccomment(_, Char, [Char|Chars], Cont) :-
-    getct(Ch, Typ),                     % ordinary character
-    read_doccomment(Typ, Ch, Chars, Cont).
-
-% (a new line inside a doccomment has been read)
-read_doccomment__nl(0, C, Chars, Cont) :-
-    \+ C = 0'\n, % skip blanks, but not newlines
-    !,
-    getct(Ch, Typ),
-    read_doccomment__nl(Typ, Ch, Chars, Cont).
-read_doccomment__nl(_, 0'%, Chars, Cont) :- !,
-    getct(Ch, Typ),
-    ( valid_doccomment_mark(Ch) -> % another doccomment found
-        Chars = [],
-        Cont = cont_comment_or_doccomment(Typ, Ch)
-    ; % continue in the same doccomment
-      read_doccomment(Typ, Ch, Chars, Cont)
-    ).
-read_doccomment__nl(NextTyp, NextCh, Chars, Cont) :-
-    Chars = [],
-    Cont = cont_after_layout(NextTyp, NextCh).
-
-% ---------------------------------------------------------------------------
-% Skip a non-documenting '/*...*/' comment or recognize a doccomment.
-
-% ('/'+'*' has been read)
-comment_text_or_doccomment(Dict, Level, Tokens) :-
-    getct(NextCh, NextTyp),
-    ( valid_doccomment_mark(NextCh) -> % doccomment found
-        % Note: in '/*...*/' comments, we add blanks until we reach
-        %   the column number. That effectively aligns the first
-        %   with the rest of the columns (to help in processing of
-        %   layout-sensitive code).
-        current_input(InStream),
-        line_position(InStream, Col),
-        n_blanks(Col, Chars, Chars0),
-        Tokens = [doccomment(0, NextCh, Chars)|Tokens0],
-        getct(NextCh1, NextTyp1),
-        read_doccomment_text(NextTyp1, NextCh1, Chars0, Cont)
-    ; Tokens = Tokens0,
-      skip_comment_text(NextTyp, NextCh, Cont)
-    ),
-    read_tokens_cont(Cont, Dict, Level, Tokens0).
-
-n_blanks(I, Cs, Cs0) :- I =< 0, !, Cs = Cs0.
-n_blanks(I, [0' |Cs], Cs0) :- I1 is I - 1, n_blanks(I1, Cs, Cs0).
-
-% Skip the comment
-% ('/'+'*' has just been read)
-skip_comment_text(NextTyp, NextCh, Cont) :-
+% ('/'+'*'+NextCh has just been read)
+skip_comment(block, NextTyp, NextCh, Cont) :-
     ( NextTyp = -1 -> % end of file
         Cont = cont_eof_comment
     ; NextTyp = 4, NextCh = 0'* -> % another asterisk
-        skip_comment__asterisk(Cont)
-    ; skip_comment_text_(Cont)
+        skip_comment_asterisk(Cont)
+    ; skip_comment_block(Cont)
     ).
 
 % Skip codes until '*' is found
-% ('/'+'*'+'...' has been read)
-skip_comment_text_(Cont) :-
+% ('/'+'*'+... has been read)
+skip_comment_block(Cont) :-
     ( skip_code_prot(0'*) ->
-        skip_comment__asterisk(Cont)
+        skip_comment_asterisk(Cont)
     ; % end of file during comment
       Cont = cont_eof_comment
     ).
 
-% '*' was found inside a '/'+'*'+'...' comment, continue read
-skip_comment__asterisk(Cont) :-
+% '*' was found inside a '/'+'*'+... comment, continue read
+skip_comment_asterisk(Cont) :-
     getct(Ch, Typ),
-    skip_comment__asterisk_(Typ, Ch, Cont).
+    skip_comment_asterisk_(Typ, Ch, Cont).
 
-skip_comment__asterisk_(4, 0'/, Cont) :- !, % */ found
-    getct1(NextCh, NextTyp),
-    Cont = cont_after_layout(NextTyp, NextCh).
-skip_comment__asterisk_(4, 0'*, Cont) :- !,
-    % '**' found, continue read
-    skip_comment__asterisk(Cont).
-skip_comment__asterisk_(_, _, Cont) :-
-    % neither '**' nor '*/' found
-    skip_comment_text_(Cont).
+skip_comment_asterisk_(4, 0'/, Cont) :- !, % */ found
+    Cont = cont_after_layout0.
+skip_comment_asterisk_(4, 0'*, Cont) :- !, % '**' found, continue read
+    skip_comment_asterisk(Cont).
+skip_comment_asterisk_(_, _, Cont) :- % neither '**' nor '*/' found
+    skip_comment_block(Cont).
 
-% Reads the body of a doccomment string (in a comment_text).
-% The result is a list Chars of ASCII codes.
-read_doccomment_text(-1, _, Chars, Cont) :- !, % end of file
-    Chars = [], Cont = cont_after_layout(-1, -1).
-read_doccomment_text(_, 0'*, Chars, Cont) :- !, % *
+% ---------------------------------------------------------------------------
+
+% Read a documenting comment (doccomment)
+read_doccomment(Style, MarkCh, DocToken, Cont) :-
+    current_input(InStream),
+    line_position(InStream, Col),
+    get_doccomment_token(Style, Col, MarkCh, Chars, DocToken),
+    getct(NextCh1, NextTyp1),
+    read_doccomment_(NextTyp1, NextCh1, Style, Chars, Cont).
+
+% In '%' comments, a space is added to the first line to help in
+% processing of layout-sensitive code.
+% TODO: We assume that all the '%' lines following '%!' comments are
+%       aligned.
+get_doccomment_token(line, Col, MarkCh, Chars, DocToken) :-
+    Col2 is Col - 1,
+    DocToken = doccomment(Col2, MarkCh, " "||Chars).
+% In '/*...*/' comments, we add blanks until we reach the column
+% number. That effectively aligns the first with the rest of the
+% columns (to help in processing of layout-sensitive code).
+get_doccomment_token(block, Col, MarkCh, Chars, DocToken) :-
+    n_blanks(Col, Chars2, Chars),
+    DocToken = doccomment(0, MarkCh, Chars2).
+
+% Reads the contents of a doccomment
+read_doccomment_(-1, _, line, Chars, Cont) :- !, % end of file
+    Chars = [],
+    Cont = cont_after_layout(-1, -1).
+read_doccomment_(-1, _, _, Chars, Cont) :- !, % end of file
+    Chars = [],
+    Cont = cont_eof_comment.
+read_doccomment_(_, 0'*, block, Chars, Cont) :- !, % '*'
     getct(Ch, Typ),
-    read_doccomment_text__asterisk(Typ, Ch, Chars, Cont).
-read_doccomment_text(_, Char, [Char|Chars], Cont) :-
+    read_doccomment_asterisk(Typ, Ch, Chars, Cont).
+read_doccomment_(_, 0'\n, line, Chars, Cont) :- !, % new line
+    getct(Ch, Typ),
+    Chars = [0'\n|Chars0],
+    read_doccomment_nl(Typ, Ch, Chars0, Cont).
+read_doccomment_(_, Char, Style, [Char|Chars], Cont) :-
     getct(Ch, Typ),                     % ordinary character
-    read_doccomment_text(Typ, Ch, Chars, Cont).
+    read_doccomment_(Typ, Ch, Style, Chars, Cont).
 
-% ('*' inside a doccomment has been read)
-read_doccomment_text__asterisk(_, NextCh0, Chars, Cont) :- NextCh0 = 0'/, !,
-    getct1(NextCh, NextTyp),
-    Chars = [], Cont = cont_after_layout(NextTyp, NextCh).
-read_doccomment_text__asterisk(_, NextCh0, Chars, Cont) :-
+% Continue reading the next (maybe) doccomment line after a new line.
+read_doccomment_nl(0, C, Chars, Cont) :-
+    \+ C = 0'\n, % skip blanks except newlines
+    !,
     getct(Ch, Typ),
-    Chars = [0'*, NextCh0|Chars0],
-    read_doccomment_text(Typ, Ch, Chars0, Cont).
+    read_doccomment_nl(Typ, Ch, Chars, Cont).
+read_doccomment_nl(_, 0'%, Chars, Cont) :- !,
+    getct(Ch, Typ),
+    ( valid_doccomment_mark(Ch) -> % another doccomment found
+        Chars = [],
+        Cont = cont_doccomment(Ch)
+    ; % continue in the same doccomment
+      read_doccomment_(Typ, Ch, line, Chars, Cont)
+    ).
+read_doccomment_nl(NextTyp, NextCh, Chars, Cont) :-
+    Chars = [],
+    Cont = cont_after_layout(NextTyp, NextCh).
 
+% '*' inside a doccomment block has been read
+read_doccomment_asterisk(_, NextCh0, Chars, Cont) :- NextCh0 = 0'/, !,
+    Chars = [], 
+    Cont = cont_after_layout0.
+read_doccomment_asterisk(_, NextCh0, Chars, Cont) :-
+    Chars = [0'*, NextCh0|Chars0],
+    getct(Ch, Typ),
+    read_doccomment_(Typ, Ch, block, Chars0, Cont).
+
+n_blanks(I, Cs, Cs0) :- I =< 0, !, Cs = Cs0.
+n_blanks(I, [0' |Cs], Cs0) :- I1 is I - 1, n_blanks(I1, Cs, Cs0).
 
