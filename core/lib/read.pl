@@ -38,9 +38,6 @@
            "postfix blocks, infix dot, string constants, and doccomments)").
 :- doc(author, "Manuel Hermenegildo (minor in documentation)").
 
-% suspension-based read of curly blocks (see library(tokenize))
-:- compilation_fact(suspension_curly_block).
-
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 :- use_module(engine(stream_basic)).
 :- use_module(library(tokenize)).
@@ -234,9 +231,9 @@ read_internal(Answer, Stream, CurIn, Variables, Tokens, Lines) :-
     ; clearerr(Stream), % Just in case we have reached eof
       read(Tokens, Variables, 1200, Term, LeftOver),
       all_read(LeftOver) ->
-        ln1(Stream, Ln1), % get Ln1 after read/5 succeeds (just in case there are suspension(_))
+        ln1(Stream, Ln1), % get Ln1 after read/5 (it may read tokens again)
         the_syntax_error([], 0, _, _) % erase any leftovers
-    ; % TODO: tokens after suspension(_) are not visible to syntax error handling, fetch some of them? (e.g., for syntax error of '{')
+    ; % TODO: when current_prolog_flag(read_curly_blocks, on), tokens after '{' are not read yet, fetch some of them?
       ln1(Stream, Ln1),
       syntax_error_data(Lines, Tokens, ErrorTerm),
       throw(error(ErrorTerm,'while reading'))
@@ -409,7 +406,7 @@ read(Token, S0, _Variables, _, _, _) :-
 % TODO: check again pending optim-comp issues:
 %   - Add a flag called 'ReadingSentences'.  if ReadingSentences is
 %     off, then merge the Variable dictionary used for the tokens and
-%     term reading (for suspension(_))
+%     term reading (when current_prolog_flag(read_curly_blocks, on))
 
 % The token '{' has been read, now parses:
 %   (a) '{' expr(1200) '}' or '{' '}'
@@ -445,35 +442,28 @@ read_curly_rest(S0, ParentVars, Out, S) :-
     ).
 
 % Add item to list (for curly block)
-:- if(defined(suspension_curly_block)).
 add_item(item(Lines, Term, Variables0), Out, Rest) :-
     Lines = lines(Ln0, Ln1),
     extract_names2(Variables0, VarNames, [], Singletons, []),
     Out = [sentence(Term, VarNames, Singletons, Ln0, Ln1)|Rest].
-:- else.
-add_item(item(Term), Out, Rest) :-
-    Out = [Term|Rest].
-:- endif.
 
 % From item to {} or {_} (not a curly block)
 item_term(item(Term0), _ParentVars, Term) :- !,
     Term = {Term0}.
-:- if(defined(suspension_curly_block)).
 item_term(item(_, Term0, Variables0), ParentVars, Term) :- !,
     Term = {Term0},
     dic_insert(Variables0, ParentVars). % Insert Variables0 into parent
-:- endif.
 
 % Read a curly item:
 %  - `end_of_block` if no more items ('}' found)
-%  - `item(Term)` if not reading from a suspension
-%  - `item(Lines,Term,Vars)` if reading from a suspension (lines and 
-%    item variable dictionary added)
-:- if(defined(suspension_curly_block)).
-read_curly_item([suspension(Suspension)], ParentVars, Item, S) :- !,
+%  - `item(Lines,Term,Vars)` if reading from a suspension
+%    (lines and item variable dictionary added)
+%  - `item(Term)` otherwise
+read_curly_item([], ParentVars, Item, S) :- !,
+    % (tokenizer was suspended, continue reading)
     current_input(Stream),
     ln0(Stream, Ln0),
-    resume_read_tokens(Suspension, Variables0, S0),
+    read_tokens(S0, Variables0),
     ( S0 = ['}'|S1] ->
         Item = end_of_block, % no more items
         S = S1,
@@ -482,7 +472,6 @@ read_curly_item([suspension(Suspension)], ParentVars, Item, S) :- !,
       ln1(Stream, Ln1),
       Item = item(lines(Ln0, Ln1), Term, Variables0)
     ).
-:- endif.
 read_curly_item(S0, ParentVars, Item, S) :- !,
     ( S0 = ['}'|S1] ->
         Item = end_of_block, % no more items

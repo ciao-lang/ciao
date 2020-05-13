@@ -72,9 +72,6 @@ define_flag(doccomments, [on, off], off).
 %    ',' | '(' | ' (' | ')' | '[' | ']' | '|' | '{' | '}'
 %    '.' % end of term 
 
-% suspension-based read of curly blocks (see library(read))
-:- compilation_fact(suspension_curly_block).
-
 :- export(token/1).
 :- prop token(T) + regtype.
 token(atom(A)):- atm(A).
@@ -93,10 +90,6 @@ token('|').
 token('{').
 token('}').
 token('.').
-:- if(defined(suspension_curly_block)).
-% Suspension token, for reading curly_blocks incrementally
-token(suspension(S)) :- term(S).
-:- endif.
 
 % See io_basic:code_class/2 documentation for the available character
 % types retured by getct1/2 and getct/2.
@@ -109,18 +102,8 @@ read_tokens(TokenList, Dictionary) :-
     getct1(Ch, Type),
     second_prompt(SP, SP),
     '$prompt'(Old, SP),
-    read_tokens(Type, Ch, Dictionary, 0, TokenList),
+    read_tokens(Type, Ch, Dictionary, TokenList),
     '$prompt'(_, Old).
-
-:- if(defined(suspension_curly_block)).
-:- export(resume_read_tokens/3).
-resume_read_tokens(Suspension, Dictionary, TokenList) :-
-    Suspension = read_tokens(Typ, Ch, Level),
-    second_prompt(SP, SP),
-    '$prompt'(Old, SP),
-    read_tokens(Typ, Ch, Dictionary, Level, TokenList),
-    '$prompt'(_, Old).
-:- endif.
 
 % The only difference between read_tokens_after_layout(Typ, Ch, D, Tokens)
 % and read_tokens/4 is what they do when Ch is "(".  The former finds the
@@ -128,30 +111,30 @@ resume_read_tokens(Suspension, Dictionary, TokenList) :-
 % how the parser can tell whether <atom> <paren> must be an operator
 % application or an ordinary function symbol application.
 
-read_tokens_after_layout(5, 0'(, Dict, Level, Tokens) :- !,
+read_tokens_after_layout(5, 0'(, Dict, Tokens) :- !,
     getct1(NextCh, NextTyp),
     ( NextCh = 0') ->
         Tokens = [atom('()')|Tokens_],
         getct(NextCh2, NextTyp2),
-        read_tokens(NextTyp2, NextCh2, Dict, Level, Tokens_)
+        read_tokens(NextTyp2, NextCh2, Dict, Tokens_)
     ;
         Tokens = [' ('|Tokens_],
-        read_tokens(NextTyp, NextCh, Dict, Level, Tokens_)
+        read_tokens(NextTyp, NextCh, Dict, Tokens_)
     ).
-read_tokens_after_layout(Typ, Ch, Dict, Level, Tokens) :-
-    read_tokens(Typ, Ch, Dict, Level, Tokens).
+read_tokens_after_layout(Typ, Ch, Dict, Tokens) :-
+    read_tokens(Typ, Ch, Dict, Tokens).
 
-read_tokens(-1, _, _, _, []).                      % end of file
-read_tokens(0, _, Dict, Level, Tokens) :-              % layout
+read_tokens(-1, _, _, []).                      % end of file
+read_tokens(0, _, Dict, Tokens) :-              % layout
     getct1(NextCh, NextTyp),
-    read_tokens_after_layout(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens(1, Ch0, Dict, Level, [Atom|Tokens]) :-     % small letter: atom
+    read_tokens_after_layout(NextTyp, NextCh, Dict, Tokens).
+read_tokens(1, Ch0, Dict, [Atom|Tokens]) :-     % small letter: atom
     S = [Ch0|S0],
     getct(Ch, Typ),
     read_name(Typ, Ch, S0, NextCh, NextTyp),
     atom_token(S, Atom),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens(2, Ch0, Dict, Level, [var(Var,S2)|Tokens]) :- % capital letter: variable
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+read_tokens(2, Ch0, Dict, [var(Var,S2)|Tokens]) :- % capital letter: variable
     S = [Ch0|S0],
     getct(Ch, Typ),
     read_name(Typ, Ch, S0, NextCh, NextTyp),
@@ -161,100 +144,92 @@ read_tokens(2, Ch0, Dict, Level, [var(Var,S2)|Tokens]) :- % capital letter: vari
     ; dic_lookup(Dict, S2, Node),            % lookup/enter in dictionary
       check_singleton(Node, Var)
     ),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens(3, Ch, Dict, Level, [number(N)|Tokens]) :-  % number
-    read_number(Ch, N, Dict, Level, Tokens).         % reads continuation too.
-read_tokens(4, 0'/, Dict, Level, Tokens) :- !,          % comment if an '*' follows
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+read_tokens(3, Ch, Dict, [number(N)|Tokens]) :-  % number
+    read_number(Ch, N, Dict, Tokens).         % reads continuation too.
+read_tokens(4, 0'/, Dict, Tokens) :- !,          % comment if an '*' follows
     getct(NextCh, NextTyp),
-    read_possible_comment(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens(4, 0'., Dict, Level, Tokens) :- !,          % end token or graphic atom
+    read_possible_comment(NextTyp, NextCh, Dict, Tokens).
+read_tokens(4, 0'., Dict, Tokens) :- !,          % end token or graphic atom
     getct(NextCh, NextTyp),         
-    read_fullstop(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens(4, Ch, Dict, Level, [Atom|Tokens]) :-       % graphic atom
+    read_fullstop(NextTyp, NextCh, Dict, Tokens).
+read_tokens(4, Ch, Dict, [Atom|Tokens]) :-       % graphic atom
     S = [Ch|Chars],
     getct(AnotherCh, Typ),
     read_symbol(Typ, AnotherCh, Chars, NextCh, NextTyp),
     atom_token(S, Atom),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens(5, Ch, Dict, Level, Tokens) :-
-    read_tokens_solo(Ch, Dict, Level, Tokens).
-read_tokens(6, Ch, Dict, Level, [Atom|Tokens]) :- !,
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+read_tokens(5, Ch, Dict, Tokens) :-
+    read_tokens_solo(Ch, Dict, Tokens).
+read_tokens(6, Ch, Dict, [Atom|Tokens]) :- !,
     % Other Unicode XID_Continue is treated as 'solo' when it appears
     % as first character.
     atom_token([Ch], Atom),
     getct(NextCh, NextTyp),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
 
-% read_possible_comment(Typ, Ch, Dict, Level, Tokens)
+% read_possible_comment(Typ, Ch, Dict, Tokens)
 % checks to see whether / + Ch is a / + * comment or a symbol.  If the
 % former, it skips the comment.  If the latter it just calls read_symbol.
 %
 % ('/' has been read)
-read_possible_comment(4, 0'*, Dict, Level, Tokens) :- !,
-    read_comment(block, Dict, Level, Tokens).
-read_possible_comment(Typ, Ch, Dict, Level, [Atom|Tokens]) :-
+read_possible_comment(4, 0'*, Dict, Tokens) :- !,
+    read_comment(block, Dict, Tokens).
+read_possible_comment(Typ, Ch, Dict, [Atom|Tokens]) :-
     read_symbol(Typ, Ch, Chars, NextCh, NextTyp), % might read 0 chars
     atom_token([0'/|Chars], Atom),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
 
-read_tokens_solo(0'!, Dict, Level, [atom(!)|Tokens]) :-
+read_tokens_solo(0'!, Dict, [atom(!)|Tokens]) :-
     getct(NextCh, NextTyp),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens_solo(0';, Dict, Level, [atom(;)|Tokens]) :-
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+read_tokens_solo(0';, Dict, [atom(;)|Tokens]) :-
     getct(NextCh, NextTyp),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens_solo(0'%, Dict, Level, Tokens) :-          % comment
-    read_comment(line, Dict, Level, Tokens).
-read_tokens_solo(0'(, Dict, Level, Tokens) :-
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+read_tokens_solo(0'%, Dict, Tokens) :-          % comment
+    read_comment(line, Dict, Tokens).
+read_tokens_solo(0'(, Dict, Tokens) :-
     getct1(NextCh, NextTyp),
     ( NextCh = 0') ->
         Tokens = [atom('()')|Tokens_],
         getct(NextCh2, NextTyp2),
-        read_tokens(NextTyp2, NextCh2, Dict, Level, Tokens_)
+        read_tokens(NextTyp2, NextCh2, Dict, Tokens_)
     ;
         Tokens = ['('|Tokens_],
-        read_tokens(NextTyp, NextCh, Dict, Level, Tokens_)
+        read_tokens(NextTyp, NextCh, Dict, Tokens_)
     ).
-read_tokens_solo(0'), Dict, Level, [')'|Tokens]) :-
+read_tokens_solo(0'), Dict, [')'|Tokens]) :-
     getct1(NextCh, NextTyp),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens_solo(0',, Dict, Level, [','|Tokens]) :-
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+read_tokens_solo(0',, Dict, [','|Tokens]) :-
     getct1(NextCh, NextTyp),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens_solo(0'[, Dict, Level, ['['|Tokens]) :-
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+read_tokens_solo(0'[, Dict, ['['|Tokens]) :-
     getct1(NextCh, NextTyp),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens_solo(0'], Dict, Level, [']'|Tokens]) :-
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+read_tokens_solo(0'], Dict, [']'|Tokens]) :-
     getct1(NextCh, NextTyp),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-:- if(defined(suspension_curly_block)).
-read_tokens_solo(0'{, Dict, Level0, ['{'|Tokens]) :-
-    Level is Level0 + 1,
-    getct1(NextCh, NextTyp),
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+read_tokens_solo(0'{, Dict, ['{'|Tokens]) :-
     ( current_prolog_flag(read_curly_blocks, on) ->
-%HERE move getct1 here
-        Tokens = [suspension(read_tokens(NextTyp, NextCh, Level))]
-    ; read_tokens(NextTyp, NextCh, Dict, Level, Tokens)
+        % When reading curly blocks, the tokenizer suspends
+        % when '{' is found (not only after '.').
+        Tokens = []
+    ; getct1(NextCh, NextTyp),
+      read_tokens(NextTyp, NextCh, Dict, Tokens)
     ).
-:- else.
-read_tokens_solo(0'{, Dict, Level0, ['{'|Tokens]) :-
-    Level is Level0 + 1,
+read_tokens_solo(0'|, Dict, ['|'|Tokens]) :-
     getct1(NextCh, NextTyp),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-:- endif.
-read_tokens_solo(0'|, Dict, Level, ['|'|Tokens]) :-
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+read_tokens_solo(0'}, Dict, ['}'|Tokens]) :-
     getct1(NextCh, NextTyp),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens_solo(0'}, Dict, Level0, ['}'|Tokens]) :-
-    getct1(NextCh, NextTyp),
-    Level is Level0 - 1,
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-read_tokens_solo(0'", Dict, Level, Tokens) :-  % "string"
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+read_tokens_solo(0'", Dict, Tokens) :-  % "string"
     getct(Ch, Typ),
-    read_quoted(Typ, Ch, 0'", Dict, Level, Tokens).
-read_tokens_solo(0'', Dict, Level, Tokens) :- % 'atom'
+    read_quoted(Typ, Ch, 0'", Dict, Tokens).
+read_tokens_solo(0'', Dict, Tokens) :- % 'atom'
     getct(Ch, Typ),
-    read_quoted(Typ, Ch, 0'', Dict, Level, Tokens).
+    read_quoted(Typ, Ch, 0'', Dict, Tokens).
 
 % read_name(Typ, Char, String, LastCh, LastTyp)
 % reads a sequence of letters, digits, and underscores, and returns
@@ -286,72 +261,58 @@ read_symbol(4, Char, String, LastCh, LastTyp) :- !,
     read_symbol(NextTyp, NextCh, Chars, LastCh, LastTyp).
 read_symbol(LastTyp, LastCh, [], LastCh, LastTyp).
 
-% read_fullstop(Typ, Char, Dict, Level, Tokens)
+% read_fullstop(Typ, Char, Dict, Tokens)
 % looks at the next character after a full stop.  If the next character is
 % an end of file, a layout character or %, this is a clause terminator, else
 % this is just an ordinary symbol and we call read_symbol to process it.
 
-read_fullstop(-1, _, _, _Level, [.]) :- !. % end of file
-:- if(defined(suspension_curly_block)).
-read_fullstop(0, Ch, _Dict, Level, [(.)|Tokens]) :- !, % END OF CLAUSE
-    ( Level > 0, current_prolog_flag(read_curly_blocks, on) ->
-        % Return a suspension token to continue reading clauses
-        Tokens = [suspension(read_tokens(0, Ch, Level))]
-    ; Tokens = [] % stop clause read
-    ).
-:- else.
-read_fullstop(0, Ch, Dict, Level, [(.)|Tokens]) :- !, % END OF CLAUSE
-    ( Level > 0, current_prolog_flag(read_curly_blocks, on) ->
-        % Continue fetching tokens (we may be inside a '{' '}' block)
-        read_tokens(0, Ch, Dict, Level, Tokens)
-    ; Tokens = [] % stop clause read
-    ).
-:- endif.
-read_fullstop(5, 0'%, _, _Level, [.]) :- !,             % END OF CLAUSE,
+read_fullstop(-1, _, _, [.]) :- !. % end of file
+read_fullstop(0, _, _Dict, [.]) :- !. % END OF CLAUSE
+read_fullstop(5, 0'%, _, [.]) :- !,             % END OF CLAUSE
     % TODO: read doccomment?
     skip_line.                              % skip newline
-read_fullstop(Typ, Ch, Dict, Level, [Atom|Tokens]) :-
+read_fullstop(Typ, Ch, Dict, [Atom|Tokens]) :-
     read_symbol(Typ, Ch, S, NextCh, NextTyp),   % symbol
     atom_token([0'.|S], Atom),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
 
-% read_quoted(Typ, Ch, Quote, Dict, Level, Tokens)
+% read_quoted(Typ, Ch, Quote, Dict, Tokens)
 % reads an atom or string (delimited by Quote characters), then
 % continue reading tokens.
 
-read_quoted(Typ, Ch, Quote, Dict, Level, Tokens) :-
-    read_quoted_(Typ, Ch, S, Quote, Dict, Level, S, Tokens).
+read_quoted(Typ, Ch, Quote, Dict, Tokens) :-
+    read_quoted_(Typ, Ch, S, Quote, Dict, S, Tokens).
 
-read_quoted_(-1, _, [], Quote, _Dict, _Level, S, Tokens) :- !,
+read_quoted_(-1, _, [], Quote, _Dict, S, Tokens) :- !,
     % Not expected end_of_file in quoted atom or string
     quoted_token(Quote, S, Tokens, Tokens1),
     Tokens1 = [unexpected(-1)].
-read_quoted_(5, Quote, Chars, Quote, Dict, Level, S, Tokens) :- !,
+read_quoted_(5, Quote, Chars, Quote, Dict, S, Tokens) :- !,
     getct(Ch, Typ),                     % closing or doubled quote
-    read_quoted_end(Typ, Ch, Quote, Chars, Dict, Level, S, Tokens).
-read_quoted_(4, 92, Chars, Quote, Dict, Level, S, Tokens) :-
+    read_quoted_end(Typ, Ch, Quote, Chars, Dict, S, Tokens).
+read_quoted_(4, 92, Chars, Quote, Dict, S, Tokens) :-
     current_prolog_flag(character_escapes, CEF),     % escaped character
     CEF \== off,
     !,
     getct(Ch, Typ),                
     escape_sequence(Typ, Ch, CEF, Chars, RestChars, OtTyp, OtCh),
-    read_quoted_(OtTyp, OtCh, RestChars, Quote, Dict, Level, S, Tokens).
-read_quoted_(_Typ, Char, Chars, Quote, _Dict, _Level, S, Tokens) :-
+    read_quoted_(OtTyp, OtCh, RestChars, Quote, Dict, S, Tokens).
+read_quoted_(_Typ, Char, Chars, Quote, _Dict, S, Tokens) :-
     % Do not allow newline if quoting an atom
     Char = 0'\n, Quote = 0'', !,
     Chars = [],
     quoted_token(Quote, S, Tokens, Tokens1),
     Tokens1 = [unexpected(Char)].
-read_quoted_(_, Char, [Char|Chars], Quote, Dict, Level, S, Tokens) :-
+read_quoted_(_, Char, [Char|Chars], Quote, Dict, S, Tokens) :-
     getct(Ch, Typ),                     % ordinary character
-    read_quoted_(Typ, Ch, Chars, Quote, Dict, Level, S, Tokens).
+    read_quoted_(Typ, Ch, Chars, Quote, Dict, S, Tokens).
 
-read_quoted_end(5, Quote, Quote, [Quote|Chars], Dict, Level, S, Tokens) :- !,
+read_quoted_end(5, Quote, Quote, [Quote|Chars], Dict, S, Tokens) :- !,
     getct(Ch, Typ),                     % doubled quote
-    read_quoted_(Typ, Ch, Chars, Quote, Dict, Level, S, Tokens).
-read_quoted_end(NextTyp, NextCh, Quote, [], Dict, Level, S, Tokens) :-
+    read_quoted_(Typ, Ch, Chars, Quote, Dict, S, Tokens).
+read_quoted_end(NextTyp, NextCh, Quote, [], Dict, S, Tokens) :-
     quoted_token(Quote, S, Tokens, Tokens0),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens0).
+    read_tokens(NextTyp, NextCh, Dict, Tokens0).
 
 quoted_token(0'', S, Tokens, Tokens0) :-
     atom_token(S, Token), Tokens = [Token|Tokens0].
@@ -476,129 +437,129 @@ hexa_digit(1, D) :- D =< 0'f.
 %   0 x <hex-digits>                            hexadecimal integer
 %
 
-read_number(0'0, N, Dict, Level, Tokens) :- !,
+read_number(0'0, N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_0(Typ, Ch, N, Dict, Level, Tokens).
-read_number(D, N, Dict, Level, Tokens) :-
+    read_after_0(Typ, Ch, N, Dict, Tokens).
+read_number(D, N, Dict, Tokens) :-
     getct(Ch, Typ),
-    read_digits(Typ, Ch, S, [D|S], N, Dict, Level, Tokens).
+    read_digits(Typ, Ch, S, [D|S], N, Dict, Tokens).
 
-read_after_0(3, D, N, Dict, Level, Tokens) :- !,
+read_after_0(3, D, N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_digits(Typ, Ch, S, [D|S], N, Dict, Level, Tokens).
-read_after_0(4, 0'., N, Dict, Level, Tokens) :- !,
+    read_digits(Typ, Ch, S, [D|S], N, Dict, Tokens).
+read_after_0(4, 0'., N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_period(Typ, Ch, S, [0'0|S], N, Dict, Level, Tokens).
-read_after_0(1, 0'b, N, Dict, Level, Tokens) :- !,
+    read_after_period(Typ, Ch, S, [0'0|S], N, Dict, Tokens).
+read_after_0(1, 0'b, N, Dict, Tokens) :- !,
     read_based_int(2, S, EndTyp, EndCh),
-    based_int_or_atom(S, 2, 0'b, N, EndTyp, EndCh, Dict, Level, Tokens).
-read_after_0(1, 0'o, N, Dict, Level, Tokens) :- !,
+    based_int_or_atom(S, 2, 0'b, N, EndTyp, EndCh, Dict, Tokens).
+read_after_0(1, 0'o, N, Dict, Tokens) :- !,
     read_based_int(8, S, EndTyp, EndCh),
-    based_int_or_atom(S, 8, 0'o, N, EndTyp, EndCh, Dict, Level, Tokens).
-read_after_0(1, 0'x, N, Dict, Level, Tokens) :- !,
+    based_int_or_atom(S, 8, 0'o, N, EndTyp, EndCh, Dict, Tokens).
+read_after_0(1, 0'x, N, Dict, Tokens) :- !,
     read_based_int(16, S, EndTyp, EndCh),
-    based_int_or_atom(S, 16, 0'x, N, EndTyp, EndCh, Dict, Level, Tokens).
-read_after_0(5, 0'', N, Dict, Level, Tokens) :- !,
+    based_int_or_atom(S, 16, 0'x, N, EndTyp, EndCh, Dict, Tokens).
+read_after_0(5, 0'', N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_quoted_character(Typ, Ch, N, Dict, Level, Tokens).
-read_after_0(Typ, Ch, 0, Dict, Level, Tokens) :-
-    read_tokens(Typ, Ch, Dict, Level, Tokens).
+    read_quoted_character(Typ, Ch, N, Dict, Tokens).
+read_after_0(Typ, Ch, 0, Dict, Tokens) :-
+    read_tokens(Typ, Ch, Dict, Tokens).
 
-read_digits(3, D, [D|S], S0, N, Dict, Level, Tokens) :- !,
+read_digits(3, D, [D|S], S0, N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_digits(Typ, Ch, S, S0, N, Dict, Level, Tokens).
-read_digits(4, 0'., S, S0, N, Dict, Level, Tokens) :- !,
+    read_digits(Typ, Ch, S, S0, N, Dict, Tokens).
+read_digits(4, 0'., S, S0, N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_period(Typ, Ch, S, S0, N, Dict, Level, Tokens).
-read_digits(5, 0'', [], S0, N, Dict, Level, Tokens) :-
+    read_after_period(Typ, Ch, S, S0, N, Dict, Tokens).
+read_digits(5, 0'', [], S0, N, Dict, Tokens) :-
     number_codes(Base, S0),
     Base >= 2,
     Base =< 36, !,
     read_based_int(Base, S1, EndTyp, EndCh),
-    based_int_or_quoted(S1, Base, N, EndTyp, EndCh, Dict, Level, Tokens).
-read_digits(Typ, Ch, [], S0, N, Dict, Level, Tokens) :-
+    based_int_or_quoted(S1, Base, N, EndTyp, EndCh, Dict, Tokens).
+read_digits(Typ, Ch, [], S0, N, Dict, Tokens) :-
     number_codes(N, S0),
-    read_tokens(Typ, Ch, Dict, Level, Tokens).
+    read_tokens(Typ, Ch, Dict, Tokens).
 
-read_after_period(3, D, [0'.,D|S], S0, N, Dict, Level, Tokens) :- !,
+read_after_period(3, D, [0'.,D|S], S0, N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_float(Typ, Ch, S, S0, N, Dict, Level, Tokens).
-read_after_period(2, 0'N, [], "0", Nan, Dict, Level, Tokens) :- !,
+    read_after_float(Typ, Ch, S, S0, N, Dict, Tokens).
+read_after_period(2, 0'N, [], "0", Nan, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_inf_or_nan(Ch, Typ, 0'N, Nan, Dict, Level, Tokens).
-read_after_period(2, 0'I, [], "0", Inf, Dict, Level, Tokens) :- !,
+    read_inf_or_nan(Ch, Typ, 0'N, Nan, Dict, Tokens).
+read_after_period(2, 0'I, [], "0", Inf, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_inf_or_nan(Ch, Typ, 0'I, Inf, Dict, Level, Tokens).
-read_after_period(Typ, Ch, [], S0, N, Dict, Level, Tokens) :-
+    read_inf_or_nan(Ch, Typ, 0'I, Inf, Dict, Tokens).
+read_after_period(Typ, Ch, [], S0, N, Dict, Tokens) :-
     number_codes(N, S0),
-    read_fullstop(Typ, Ch, Dict, Level, Tokens).
+    read_fullstop(Typ, Ch, Dict, Tokens).
 
-read_after_float(3, D, [D|S], S0, N, Dict, Level, Tokens) :- !,
+read_after_float(3, D, [D|S], S0, N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_float(Typ, Ch, S, S0, N, Dict, Level, Tokens).
-read_after_float(1, 0'e, S, S0, N, Dict, Level, Tokens) :- !,
+    read_after_float(Typ, Ch, S, S0, N, Dict, Tokens).
+read_after_float(1, 0'e, S, S0, N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_float_e(Typ, Ch, 0'e, S, S0, N, Dict, Level, Tokens).
-read_after_float(2, 0'E, S, S0, N, Dict, Level, Tokens) :- !,
+    read_after_float_e(Typ, Ch, 0'e, S, S0, N, Dict, Tokens).
+read_after_float(2, 0'E, S, S0, N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_float_e(Typ, Ch, 0'E, S, S0, N, Dict, Level, Tokens).
-read_after_float(Typ, Ch, [], S0, N, Dict, Level, Tokens) :-
+    read_after_float_e(Typ, Ch, 0'E, S, S0, N, Dict, Tokens).
+read_after_float(Typ, Ch, [], S0, N, Dict, Tokens) :-
     number_codes(N, S0),
-    read_tokens(Typ, Ch, Dict, Level, Tokens).
+    read_tokens(Typ, Ch, Dict, Tokens).
 
-read_after_float_e(3, D, E, [E,D|S], S0, N, Dict, Level, Tokens) :- !,
+read_after_float_e(3, D, E, [E,D|S], S0, N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_exp(Typ, Ch, S, S0, N, Dict, Level, Tokens).
-read_after_float_e(4, 0'+, E, S, S0, N, Dict, Level, Tokens) :- !,
+    read_after_exp(Typ, Ch, S, S0, N, Dict, Tokens).
+read_after_float_e(4, 0'+, E, S, S0, N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_float_e_sign(Typ, Ch, E, 0'+, S, S0, N, Dict, Level, Tokens).
-read_after_float_e(4, 0'-, E, S, S0, N, Dict, Level, Tokens) :- !,
+    read_after_float_e_sign(Typ, Ch, E, 0'+, S, S0, N, Dict, Tokens).
+read_after_float_e(4, 0'-, E, S, S0, N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_float_e_sign(Typ, Ch, E, 0'-, S, S0, N, Dict, Level, Tokens).
-read_after_float_e(Typ, Ch, E, [], S0, N, Dict, Level, Tokens) :-
+    read_after_float_e_sign(Typ, Ch, E, 0'-, S, S0, N, Dict, Tokens).
+read_after_float_e(Typ, Ch, E, [], S0, N, Dict, Tokens) :-
     number_codes(N, S0),
-    token_start_e(E, Typ, Ch, Dict, Level, Tokens).
+    token_start_e(E, Typ, Ch, Dict, Tokens).
 
-read_after_float_e_sign(3, D, E, Sign, [E,Sign,D|S], S0, N, Dict, Level, Tokens):-!,
+read_after_float_e_sign(3, D, E, Sign, [E,Sign,D|S], S0, N, Dict, Tokens):-!,
     getct(Ch, Typ),
-    read_after_exp(Typ, Ch, S, S0, N, Dict, Level, Tokens). 
-read_after_float_e_sign(Typ, Ch, E, Sign, [], S0, N, Dict, Level, Tokens) :-
+    read_after_exp(Typ, Ch, S, S0, N, Dict, Tokens). 
+read_after_float_e_sign(Typ, Ch, E, Sign, [], S0, N, Dict, Tokens) :-
     number_codes(N, S0),
-    token_start_e_sign(E, Sign, Typ, Ch, Dict, Level, Tokens).
+    token_start_e_sign(E, Sign, Typ, Ch, Dict, Tokens).
 
-read_after_exp(3, D, [D|S], S0, N, Dict, Level, Tokens) :- !,
+read_after_exp(3, D, [D|S], S0, N, Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_exp(Typ, Ch, S, S0, N, Dict, Level, Tokens).
-read_after_exp(Typ, Ch, [], S0, N, Dict, Level, Tokens) :-
+    read_after_exp(Typ, Ch, S, S0, N, Dict, Tokens).
+read_after_exp(Typ, Ch, [], S0, N, Dict, Tokens) :-
     number_codes(N, S0),
-    read_tokens(Typ, Ch, Dict, Level, Tokens).
+    read_tokens(Typ, Ch, Dict, Tokens).
 
-token_start_e(0'e, Typ, Ch, Dict, Level, [Atom|Tokens]) :-
+token_start_e(0'e, Typ, Ch, Dict, [Atom|Tokens]) :-
     read_name(Typ, Ch, S0, NextCh, NextTyp),
     atom_token([0'e|S0], Atom),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-token_start_e(0'E, Typ, Ch, Dict, Level, [var(Var,S2)|Tokens]) :-
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+token_start_e(0'E, Typ, Ch, Dict, [var(Var,S2)|Tokens]) :-
     S = [0'E|S0],
     read_name(Typ, Ch, S0, NextCh, NextTyp),
     string_bytes(S, S2),
     dic_lookup(Dict, S2, Node),
     check_singleton(Node, Var),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
 
-token_start_e_sign(0'e, Sign, Typ, Ch, Dict, Level, [atom(e)|Tokens]) :-
-    token_start_sign(Sign, Typ, Ch, Dict, Level, Tokens).
-token_start_e_sign(0'E, Sign, Typ, Ch, Dict, Level, [var(Var,[0'E])|Tokens]) :-
+token_start_e_sign(0'e, Sign, Typ, Ch, Dict, [atom(e)|Tokens]) :-
+    token_start_sign(Sign, Typ, Ch, Dict, Tokens).
+token_start_e_sign(0'E, Sign, Typ, Ch, Dict, [var(Var,[0'E])|Tokens]) :-
     dic_lookup(Dict, [0'E], Node),
     check_singleton(Node, Var),
-    token_start_sign(Sign, Typ, Ch, Dict, Level, Tokens).
+    token_start_sign(Sign, Typ, Ch, Dict, Tokens).
 
-token_start_sign(Sign, Typ, Ch, Dict, Level, [Atom|Tokens]) :- 
+token_start_sign(Sign, Typ, Ch, Dict, [Atom|Tokens]) :- 
     read_symbol(Typ, Ch, Chars, NextCh, NextTyp),
     atom_token([Sign|Chars], Atom),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
 
 % Maybe read 0.Inf or 0.Nan ('0'+'.'+Char0 has been read)
-read_inf_or_nan(Ch, Typ, Char0, Num, Dict, Level, Tokens) :- !,
+read_inf_or_nan(Ch, Typ, Char0, Num, Dict, Tokens) :- !,
     S = [Char0|S0],
     read_name(Typ, Ch, S0, NextCh, NextTyp),
     string_bytes(S, S2),
@@ -614,7 +575,7 @@ read_inf_or_nan(Ch, Typ, Char0, Num, Dict, Level, Tokens) :- !,
       check_singleton(Node, Var),
       Tokens = [atom(.),var(Var,S2)|Tokens0]
     ),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens0).
+    read_tokens(NextTyp, NextCh, Dict, Tokens0).
 
 read_based_int(Base, S, EndTyp, EndCh) :-
     MaxDigit is 0'0+Base-1,
@@ -636,47 +597,47 @@ read_based_int_digits(1, D, MaxDigit, MaxLetter, [D|Ds], EndTyp, EndCh) :-
     read_based_int_digits(Typ, Ch, MaxDigit, MaxLetter, Ds, EndTyp, EndCh).
 read_based_int_digits(Typ, Ch, _, _, [], Typ, Ch).
 
-based_int_or_atom([], _, L, 0, Typ, Ch, Dict, Level, [Atom|Tokens]) :- !,
+based_int_or_atom([], _, L, 0, Typ, Ch, Dict, [Atom|Tokens]) :- !,
     read_name(Typ, Ch, S0, NextCh, NextTyp),    % not based int, start of
     atom_token([L|S0], Atom),                   % atom with letter L      
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-based_int_or_atom(S, Base, _, N, Typ, Ch, Dict, Level, Tokens) :-
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
+based_int_or_atom(S, Base, _, N, Typ, Ch, Dict, Tokens) :-
     number_codes(N, Base, S),
-    read_tokens(Typ, Ch, Dict, Level, Tokens).
+    read_tokens(Typ, Ch, Dict, Tokens).
 
-based_int_or_quoted([], Base, Base, Typ, Ch, Dict, Level, Tokens) :- !,
+based_int_or_quoted([], Base, Base, Typ, Ch, Dict, Tokens) :- !,
     % not based int, start of quoted atom
-    read_quoted(Typ, Ch, 0'', Dict, Level, Tokens).
-based_int_or_quoted(S, Base, N, Typ, Ch, Dict, Level, Tokens) :-
+    read_quoted(Typ, Ch, 0'', Dict, Tokens).
+based_int_or_quoted(S, Base, N, Typ, Ch, Dict, Tokens) :-
     number_codes(N, Base, S),
-    read_tokens(Typ, Ch, Dict, Level, Tokens).
+    read_tokens(Typ, Ch, Dict, Tokens).
 
-read_quoted_character(4, 92, N, Dict, Level, Tokens) :- % backslash
+read_quoted_character(4, 92, N, Dict, Tokens) :- % backslash
     current_prolog_flag(character_escapes, CEF),
     CEF \== off,
     !,
     getct(Ch, Typ),
     escape_sequence(Typ, Ch, CEF, Chars, [], OtTyp, OtCh),
-    continue_quoted_character(Chars, N, OtTyp, OtCh, Dict, Level, Tokens).
-read_quoted_character(5, 0'', 0'', Dict, Level, Tokens) :-
+    continue_quoted_character(Chars, N, OtTyp, OtCh, Dict, Tokens).
+read_quoted_character(5, 0'', 0'', Dict, Tokens) :-
     current_prolog_flag(character_escapes, iso),
     !,
     getct(Ch, Typ),
-    read_another_quote(Typ, Ch, Dict, Level, Tokens).
-read_quoted_character(_, N, N, Dict, Level, Tokens) :-
+    read_another_quote(Typ, Ch, Dict, Tokens).
+read_quoted_character(_, N, N, Dict, Tokens) :-
     getct(NextCh, NextTyp),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
+    read_tokens(NextTyp, NextCh, Dict, Tokens).
 
-continue_quoted_character([], N, Typ, Ch, Dict, Level, Tokens) :- !, % was null
-    read_quoted_character(Typ, Ch, N, Dict, Level, Tokens).
-continue_quoted_character([N], N, Typ, Ch, Dict, Level, Tokens) :-
-    read_tokens(Typ, Ch, Dict, Level, Tokens).
+continue_quoted_character([], N, Typ, Ch, Dict, Tokens) :- !, % was null
+    read_quoted_character(Typ, Ch, N, Dict, Tokens).
+continue_quoted_character([N], N, Typ, Ch, Dict, Tokens) :-
+    read_tokens(Typ, Ch, Dict, Tokens).
 
-read_another_quote(5, 0'', Dict, Level, Tokens) :- !,
+read_another_quote(5, 0'', Dict, Tokens) :- !,
     getct(Ch, Typ),
-    read_tokens(Typ, Ch, Dict, Level, Tokens).
-read_another_quote(Typ, Ch, Dict, Level, Tokens) :- % Accept also only a "'"
-    read_tokens(Typ, Ch, Dict, Level, Tokens).
+    read_tokens(Typ, Ch, Dict, Tokens).
+read_another_quote(Typ, Ch, Dict, Tokens) :- % Accept also only a "'"
+    read_tokens(Typ, Ch, Dict, Tokens).
 
 check_singleton(Node, Var) :-
     var(Node), !, Node = [Var|_].
@@ -711,7 +672,7 @@ doccomment_mark(0'!).
 doccomment_mark(0'<).
 
 % ('%' or '/'+'*' has been read)
-read_comment(Style, Dict, Level, Tokens) :-
+read_comment(Style, Dict, Tokens) :-
     getct(NextCh, NextTyp),
     ( valid_doccomment_mark(NextCh) -> % doccomment found
         Tokens = [DocToken|Tokens0],
@@ -719,21 +680,21 @@ read_comment(Style, Dict, Level, Tokens) :-
     ; Tokens = Tokens0,
       skip_comment(Style, NextTyp, NextCh, Cont)
     ),
-    read_comment_cont(Cont, Dict, Level, Tokens0).
+    read_comment_cont(Cont, Dict, Tokens0).
 
 % Continue reading comments
-read_comment_cont(Cont, Dict, Level, Tokens) :-
+read_comment_cont(Cont, Dict, Tokens) :-
     ( Cont = cont_after_layout(Typ, Ch) -> % after_layout
-        read_tokens_after_layout(Typ, Ch, Dict, Level, Tokens)
+        read_tokens_after_layout(Typ, Ch, Dict, Tokens)
     ; Cont = cont_after_layout0 -> % read next and after_layout 
         getct1(Ch, Typ),
-        read_tokens_after_layout(Typ, Ch, Dict, Level, Tokens)
+        read_tokens_after_layout(Typ, Ch, Dict, Tokens)
     ; Cont = cont_eof_comment ->
         Tokens = ['/* ...']
     ; Cont = cont_doccomment(MarkCh), % another doccomment
       Tokens = [DocToken|Tokens0],
       read_doccomment(line, MarkCh, DocToken, Cont),
-      read_comment_cont(Cont, Dict, Level, Tokens0)
+      read_comment_cont(Cont, Dict, Tokens0)
     ).
 
 % ---------------------------------------------------------------------------
