@@ -525,11 +525,10 @@ read_after_period(3, D, [0'.,D|S], S0, N, Dict, Level, Tokens) :- !,
     read_after_float(Typ, Ch, S, S0, N, Dict, Level, Tokens).
 read_after_period(2, 0'N, [], "0", Nan, Dict, Level, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_dot_N(Ch, Typ, Nan, Dict, Level, Tokens).
-% next lines added by Edison Mera to handle infinite correctly
+    read_inf_or_nan(Ch, Typ, 0'N, Nan, Dict, Level, Tokens).
 read_after_period(2, 0'I, [], "0", Inf, Dict, Level, Tokens) :- !,
     getct(Ch, Typ),
-    read_after_dot_I(Ch, Typ, Inf, Dict, Level, Tokens).
+    read_inf_or_nan(Ch, Typ, 0'I, Inf, Dict, Level, Tokens).
 read_after_period(Typ, Ch, [], S0, N, Dict, Level, Tokens) :-
     number_codes(N, S0),
     read_fullstop(Typ, Ch, Dict, Level, Tokens).
@@ -598,52 +597,24 @@ token_start_sign(Sign, Typ, Ch, Dict, Level, [Atom|Tokens]) :-
     atom_token([Sign|Chars], Atom),
     read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
 
-read_after_dot_N(0'a, 1, Nan, Dict, Level, Tokens) :- !,
-    getct(Ch, Typ),
-    read_after_dot_Na(Ch, Typ, Nan, Dict, Level, Tokens).
-read_after_dot_N(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S2)|Tokens]) :-
-    S = [0'N|S0],
+% Maybe read 0.Inf or 0.Nan ('0'+'.'+Char0 has been read)
+read_inf_or_nan(Ch, Typ, Char0, Num, Dict, Level, Tokens) :- !,
+    S = [Char0|S0],
     read_name(Typ, Ch, S0, NextCh, NextTyp),
     string_bytes(S, S2),
-    dic_lookup(Dict, S2, Node),
-    check_singleton(Node, Var),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-
-read_after_dot_Na(0'n, 1, Nan, Dict, Level, Tokens) :- !,
-    number_codes(Nan,"0.Nan"), %Nan is 0/0,
-    getct(Ch, Typ),
-    read_tokens(Typ, Ch, Dict, Level, Tokens).
-read_after_dot_Na(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S2)|Tokens]) :-
-    S = [0'N,0'a|S0],
-    read_name(Typ, Ch, S0, NextCh, NextTyp),
-    string_bytes(S, S2),
-    dic_lookup(Dict, S2, Node),
-    check_singleton(Node, Var),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-
-% next lines added by Edison Mera to handle infinite correctly
-read_after_dot_I(0'n, 1, Inf, Dict, Level, Tokens) :- !,
-    getct(Ch, Typ),
-    read_after_dot_In(Ch, Typ, Inf, Dict, Level, Tokens).
-read_after_dot_I(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S2)|Tokens]) :-
-    S = [0'I|S0],
-    read_name(Typ, Ch, S0, NextCh, NextTyp),
-    string_bytes(S, S2),
-    dic_lookup(Dict, S2, Node),
-    check_singleton(Node, Var),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
-
-read_after_dot_In(0'f, 1, Inf, Dict, Level, Tokens) :- !,
-    number_codes(Inf, "0.Inf"), %Inf is 1/0,
-    getct(Ch, Typ),
-    read_tokens(Typ, Ch, Dict, Level, Tokens).
-read_after_dot_In(Ch, Typ, 0, Dict, Level, [atom(.),var(Var,S2)|Tokens]) :-
-    S = [0'I,0'n|S0],
-    read_name(Typ, Ch, S0, NextCh, NextTyp),
-    string_bytes(S, S2),
-    dic_lookup(Dict, S2, Node),
-    check_singleton(Node, Var),
-    read_tokens(NextTyp, NextCh, Dict, Level, Tokens).
+    ( S2 = "Nan" ->
+        number_codes(Num,"0.Nan"), % Num is 0/0
+        Tokens = Tokens0
+    ; S2 = "Inf" ->
+        number_codes(Num,"0.Inf"), % Num is 1/0
+        Tokens = Tokens0
+    ; % none, read as a 0+'.'+variable
+      Num = 0,
+      dic_lookup(Dict, S2, Node),
+      check_singleton(Node, Var),
+      Tokens = [atom(.),var(Var,S2)|Tokens0]
+    ),
+    read_tokens(NextTyp, NextCh, Dict, Level, Tokens0).
 
 read_based_int(Base, S, EndTyp, EndCh) :-
     MaxDigit is 0'0+Base-1,
