@@ -402,7 +402,7 @@ write_out(Atom, Options, _, _, _, _, Ci, Co) :-
     write_atom(Quote, Atom, Ci, Co).
 write_out(N, _, _, _, _, _, Ci, 2'000) :-
     number(N), !,
-    ( ( N < 0 ; N == -0.0 ) ->
+    ( ( N < 0 ; N == -0.0 ; N == -0.Nan ) ->
         % We are using -0.0 because such number
         % exists in IEEE 754 specification
         maybe_space(Ci, 2'010)
