@@ -269,6 +269,15 @@ unittest:
   tags:
     - ciao_test_base
 
+iso_tests:
+  stage: test
+  script:
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - ciao test iso_tests
+  allow_failure: true
+  tags:
+    - ciao_test_base
+
 emacs_tests:
   stage: test
   script:
