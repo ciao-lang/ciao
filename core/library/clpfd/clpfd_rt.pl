@@ -42,7 +42,7 @@ This module provides two kinds of contraints: @em{basic constraints}
 FD variables or lists of FD variables, and @em{meta-contraints} (such
 as @pred{#=/2}, @pred{#=</2}, ...) that deal with arithmetic
 expressions over FD variables, called in the following FD expressions.
-Meta-constraints of this module behave as describes in package
+Meta-constraints of this module behave as described in package
 @lib{clpfd}, except that their arguments are interpreted at run time.
 
 ").
