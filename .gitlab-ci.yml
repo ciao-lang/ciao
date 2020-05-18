@@ -62,7 +62,7 @@ ciaopp:
     - echo # ./ciao-boot.sh configure --ciao_ppl:enabled=no
     - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
     - ./ciao-boot.sh configure
-    - ./ciao-boot.sh build --bin # builds all activated bundles
+    - ./ciao-boot.sh build --bin -r ciaopp_extra ciaopp
   tags:
     - ciao_test_base
   artifacts:
