@@ -1,20 +1,17 @@
-:- module(assrt_write,
-    [ write_assertion/6,
-      write_assertion/7,
-      write_assertion_as_comment/6,
-      write_assertion_as_comment/7,
-      write_assertion_as_double_comment/6,
-      write_assertion_as_double_comment/7
-    ],
-    [ assertions, regtypes
-    ]).
+:- module(assrt_write, [
+    write_assertion/6,
+    write_assertion/7,
+    write_assertion_as_comment/6,
+    write_assertion_as_comment/7,
+    write_assertion_as_double_comment/6,
+    write_assertion_as_double_comment/7
+], [assertions, regtypes]).
 
 :- doc(title,"Pretty-printing assertions").
+:- doc(author,"Francisco Bueno").
 
 :- doc(module,"This module defines some predicates which are
    useful for writing assertions in a readable form.").
-
-:- doc(author,"Francisco Bueno").
 
 :- use_module(library(format)).  
 :- use_module(engine(stream_basic)).  
@@ -165,28 +162,10 @@ write_if_not_empty([[true]],_Mod,_AsComm,disj,_):- !.
 write_if_not_empty(List    ,Mod,AsComm,Form,Stream):-
     write_as_comment(AsComm,Mod,Stream),
     ( List = [(C1;C2)] ->
-%           conj_to_list_of_list( (C1;C2) , L1 , [] ),
         conj_to_list_of_list( (C1;C2) , L1 ),
         print_prop_list(Form, L1 ,Stream)
     ; print_prop_list(Form,List,Stream)
     ).
-
-% conj_to_list_of_list( (A,B) ,  Ac  , TAc ) :-
-%       !,
-%       conj_to_list_of_list( A , Ac , T   ),
-%       conj_to_list_of_list( B , T  , TAc ).
-
-% conj_to_list_of_list( (A;B) , [ [ AC , BC ] | T ] , T ) :-
-%       !,
-%       conj_to_list( A , AC ),
-%       conj_to_list( B , BC ).
-
-% conj_to_list_of_list( A , [ A | T ] , T ).
-
-% conj_to_list( (A,B) , [A|Bs] ) :-
-%       !,
-%       conj_to_list( B , Bs ).
-% conj_to_list( A , [A] ).
 
 conj_to_list_of_list((A;B), [A|Bs]) :- list(A), !,
     conj_to_list_of_list(B, Bs).
@@ -200,11 +179,6 @@ conj_to_list_of_list(A, [AL]) :-
 conj_to_list((A,B), [A|Bs]) :- !,
     conj_to_list(B, Bs).
 conj_to_list(A, [A]).
-
-% disj_to_list( (A,B) , [A|Bs] ) :-
-%       !,
-%       disj_to_list( B , Bs ).
-% disj_to_list( A , A ).
 
 write_as_comment(double,Mod,S):-
     format(S,"~n%% %%    ~w ",[Mod]).
@@ -258,12 +232,10 @@ print_tail_conj([Prop|Props],S):-
     format(S,", ~q",[Prop]),
     print_tail_conj(Props,S).
 
-/*
-unify_vars([]).
-unify_vars([N=V|Dict]):-
-    V='$VAR'(N),
-    unify_vars(Dict).
-*/
+% unify_vars([]).
+% unify_vars([N=V|Dict]):-
+%     V='$VAR'(N),
+%     unify_vars(Dict).
 
 % DTM: this case appears in :- calls p(X): (ground(X);var(X)).
 decide_on_call([(_;_)],disj):- !.

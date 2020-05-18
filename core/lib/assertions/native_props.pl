@@ -80,7 +80,7 @@
     % intervals/2 %[LD]
     user_output/2
     % , user_error/2
-    ], [assertions, regtypes]).
+], [assertions, regtypes]).
 
 :- doc(bug, "MH: Some of these properties should be moved to rtchecks
    or testing libs.").

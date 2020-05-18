@@ -1,35 +1,29 @@
-% ----------------------------------------------------------------------------
-
-%%% THIS REALLY NEEDS (not so) SERIOUS UPDATING 
-
 :- module(assertions_props,[
-               assrt_body/1,
-               head_pattern/1,
-               complex_arg_property/1,
-               property_conjunction/1,
-               property_starterm/1,
-               complex_goal_property/1,
-
-               nabody/1,
-               dictionary/1,
-
-               c_assrt_body/1,
-               s_assrt_body/1,
-               g_assrt_body/1,
-
-               assrt_status/1,
-               assrt_type/1,
-               predfunctor/1,
-               propfunctor/1,
-               docstring/1
-               ],
-     [ dcg,assertions,regtypes ]).
-
-% ----------------------------------------------------------------------------
+    assrt_body/1,
+    head_pattern/1,
+    complex_arg_property/1,
+    property_conjunction/1,
+    property_starterm/1,
+    complex_goal_property/1,
+    %
+    nabody/1,
+    dictionary/1,
+    %
+    c_assrt_body/1,
+    s_assrt_body/1,
+    g_assrt_body/1,
+    %
+    assrt_status/1,
+    assrt_type/1,
+    predfunctor/1,
+    propfunctor/1,
+    docstring/1
+], [assertions,regtypes]).
 
 :- doc(title,"Types and properties related to assertions").
-
 :- doc(author,"Manuel Hermenegildo").
+
+% TODO: THIS REALLY NEEDS (not so) SERIOUS UPDATING 
 
 :- doc(module,"This module is part of the @lib{assertions}
    library. It provides the formal definition of the syntax of several
@@ -255,7 +249,7 @@ property_conjunction(P) :-
 property_conjunction((P1,P2)) :-
     property_conjunction(P1),
     property_conjunction(P2).
-% Fixed Using rtchecks -- EMM
+
 :- doc(property_starterm/1,"This type defines a second,
    compact format in which properties can be expressed in the bodies
    of assertions. A @pred{property_starterm/1} is a term whose main
@@ -569,10 +563,12 @@ assrt_type(comp).
 assrt_type(entry).
 % DTM: New Type
 assrt_type(exit).
+:- if(defined(optim_comp)).
+:- else.
 % EMM: used for testing
 assrt_type(test).
 assrt_type(texec).
-
+:- endif.
 %% assrt_type(trust). 
 % As well as this one!
 %% If this is not here then modedefs are not accepted by normalization pass one
