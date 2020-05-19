@@ -1,4 +1,8 @@
-:- module(example_static,[main/0],[persdb,iso]).
+:- module(example_static,[main/0],[persdb]).
+
+:- use_module(library(aggregates)).
+:- use_module(library(write)).
+:- use_module(library(read)).
 
 %% Declare the directory associated to the key "db" where the
 %% persistence sets of the persistent predicates are stored:

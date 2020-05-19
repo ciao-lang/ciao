@@ -1,4 +1,4 @@
-:- module(queue, [main/0],[persdb,iso]).
+:- module(queue, [main/0],[persdb]).
 
 :- use_module(library(streams)).
 :- use_module(library(read)).

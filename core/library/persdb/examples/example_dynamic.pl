@@ -1,4 +1,9 @@
-:- module(example_dynamic,[main/1],[persdb,iso]).
+:- module(example_dynamic, [main/1], [persdb, dynamic]).
+
+:- use_module(library(aggregates)).
+:- use_module(library(write)).
+
+:- impl_defined(bar/1).
 
 main([X]):-
     % Declare the directory associated to the key "db" 

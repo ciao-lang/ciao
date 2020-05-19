@@ -1,4 +1,4 @@
-:- module(queuell, [main/0],['persdb/persdb_ll',iso]).
+:- module(queuell, [main/0],['persdb/persdb_ll']).
 
 :- use_module(library(streams)).
 :- use_module(library(read)).
