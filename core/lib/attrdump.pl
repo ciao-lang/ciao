@@ -38,7 +38,9 @@ copy_extract_attr_nc(Term, Copy, AttrList) :-
 cp_attr(Var, Copy, _Seen, Dict0, Dict) :- var(Var), !,
     ( attvar(Var) ->
         % RH : att_var v2.0 
-        ( get_assoc(Var, Dict0, _) -> Dict = Dict0
+        ( get_assoc(Var, Dict0, Val) ->
+            Val = cva2(Copy, _, _),
+            Dict = Dict0
         ; put_assoc(Var, Dict0, cva2(Copy, L_, T_), Dict1),
           attvars_residuals([Var], L, T), 
           clean_seen(Seen, Seen1),
@@ -47,7 +49,9 @@ cp_attr(Var, Copy, _Seen, Dict0, Dict) :- var(Var), !,
         )
     ; get_attribute(Var, Attrib) ->
         % RH : att_var v1.0
-        ( get_assoc(Var, Dict0, _) -> Dict = Dict0
+        ( get_assoc(Var, Dict0, Val) ->
+            Val = cva(Copy, _),
+            Dict = Dict0
         ; put_assoc(Var, Dict0, cva(Copy,Attcopy), Dict1),
           clean_seen(Seen, Seen1),
           cp_attr(Attrib, Attcopy, Seen1, Dict1, Dict)
