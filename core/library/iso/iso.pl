@@ -4,6 +4,10 @@
 %:- use_package('dcg/dcg_phrase').
 :- use_package(dynamic). % TODO: refine, not all are ISO (and includes datafacts)
 
+%:- use_module(engine(hiord_rt), [call/1]).
+:- use_package(hiord). % TODO: refine, not all are ISO (required for call/N)
+:- use_module(engine(basic_props), [callable/1]).
+
 :- use_module(library(aggregates)).
 :- use_module(library(iso_misc)).
 :- use_module(library(iso_char)).
@@ -18,4 +22,3 @@
 :- use_module(engine(stream_basic)). % TODO: refine, not all are ISO
 :- use_module(engine(io_basic)). % TODO: refine, not all are ISO
 :- use_module(engine(runtime_control)). % TODO: refine, not all are ISO
-:- use_module(engine(hiord_rt), [call/1]).
