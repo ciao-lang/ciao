@@ -1,60 +1,26 @@
-:- module(native_props_rtc,
-    [
-        rtc_succeeds/1,
-        % sharing/aliasing, groundness:
-        rtc_mshare/2,
-        rtc_covered/2,
-        rtc_linear/1,
-        % determinacy:
-        rtc_is_det/1,
-        rtc_non_det/1,
-        % non-failure:
-        rtc_not_fails/1,
-        rtc_fails/1,
-        % more general cardinality, choicepoints, and exact solutions:
-        rtc_num_solutions/2,
-        rtc_relations/2,
-        rtc_solutions/2,
-        rtc_no_choicepoints/1,
-        rtc_leaves_choicepoints/1,
-        % exceptions
-        rtc_exception/2,
-        rtc_exception/1,
-        rtc_no_exception/2,
-        rtc_no_exception/1,
-        % signals
-        rtc_signal/2,
-        rtc_signal/1,
-        rtc_no_signal/2,
-        rtc_no_signal/1,
-        % polyhedral constraints
-        rtc_constraint/1,
-        % other
-        rtc_user_output/2
-    ],[assertions, hiord, datafacts]).
+:- module(native_props_rtc, [],[assertions, hiord, datafacts]).
 
 %! \title rtcheck implementation for native_props
 
 :- use_module(engine(hiord_rt), [call/1]).
-:- use_module(engine(internals),   ['$setarg'/4]).
-
-:- use_module(library(sort),       [sort/2]).
-:- use_module(library(lists),      [member/2, length/2, append/3]).
-:- use_module(library(stream_utils), [open_output/2, close_output/1]).
-:- use_module(library(stream_utils), [file_to_string/2]).
-:- use_module(library(system),     [mktemp_in_tmp/2, delete_file/1]).
-:- use_module(library(terms_vars), [term_variables/2,varsbag/3,varset/2]).
+:- use_module(engine(internals), ['$setarg'/4]).
 :- use_module(library(rtchecks/rtchecks_send), [send_comp_rtcheck/3]).
 
-% ----------------------------------------------------------------------
+% ===========================================================================
+:- doc(section, "Meta-properties: instance and compat").
 
+:- export(rtc_succeeds/1).
 :- meta_predicate rtc_succeeds(goal).
 
 % rtcheck version for native_props:succeeds/1
 rtc_succeeds(Goal) :- \+ \+ call(Goal). % processed in rtchecks_basic
 
-% ----------------------------------------------------------------------
+% ===========================================================================
+:- doc(section, "Sharing/aliasing, groundness").
 
+:- use_module(library(terms_vars), [varset/2]).
+
+:- export(rtc_mshare/2).
 % rtc_mshare(Vs,Sh): list(int-term) * list(list(int)).
 % During intrumentation we have assigned a unique identificator for
 % each variable in Vs, since on runtime they could be
@@ -110,25 +76,33 @@ maplist_varset([V|Vs],[Us|Uss]) :-
 
 % ----------------------------------------------------------------------
 
-rtc_covered(X,Y) :-
-    \+ \+ (numbervars(Y,0,_), ground(X)).
-
 :- use_module(library(write), [numbervars/3]).
 
 % TODO: It can be made more efficient (it is not strictly necessary to
 % fully traverse Y)
 
+:- export(rtc_covered/2).
+rtc_covered(X,Y) :-
+    \+ \+ (numbervars(Y,0,_), ground(X)).
+
 % ----------------------------------------------------------------------
 
+:- use_module(library(lists), [length/2]).
+:- use_module(library(sort), [sort/2]).
+:- use_module(library(terms_vars), [varsbag/3]).
+
 % rtcheck version for native_props:linear/1
+:- export(rtc_linear/1).
 rtc_linear(T) :-
     varsbag(T, VarsBag, []),
     sort(VarsBag, VarsSet),
     length(VarsBag, N),
     length(VarsSet, N).
 
-% ----------------------------------------------------------------------
+% ===========================================================================
+:- doc(section, "Determinacy, failure, choice-points").
 
+:- export(rtc_is_det/1).
 :- meta_predicate rtc_is_det(goal).
 
 % rtcheck version for native_props:is_det/1
@@ -144,6 +118,7 @@ rtc_is_det(Goal) :-
 
 % ----------------------------------------------------------------------
 
+:- export(rtc_non_det/1).
 :- meta_predicate rtc_non_det(goal).
 
 % rtcheck version for native_props:non_det/1
@@ -166,7 +141,7 @@ rtc_non_det(Goal) :-
     ; '$setarg'(1, Solved, yes, true)
     ).
 
-% ----------------------------------------------------------------------
+% ---------------------------------------------------------------------------
 
 % OLD CODE
 % :- meta_predicate not_fails( goal ).
@@ -174,6 +149,7 @@ rtc_non_det(Goal) :-
 % not_fails( X ) :-
 %       if( X , true , throw( rtcheck( nf , fail , X  ) ) ).
 
+:- export(rtc_not_fails/1).
 :- meta_predicate rtc_not_fails(goal).
 
 % rtcheck version for native_props:not_fails/1
@@ -193,6 +169,7 @@ rtc_not_fails(Goal) :-
 
 % ----------------------------------------------------------------------
 
+:- export(rtc_fails/1).
 :- meta_predicate rtc_fails(goal).
 
 % rtcheck version for native_props:fails/1
@@ -207,6 +184,100 @@ rtc_fails(Goal) :-
 
 % ----------------------------------------------------------------------
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% % Collapsed properties, to improve performance of run-time checks. --EMM
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% % These properties are not well implemented:
+%% :- prop not_fails_is_det/1 
+%% # "Collapsed property of @var{not_fails/1} and @var{is_det/1}.".
+%% 
+%% :- meta_predicate not_fails_is_det(goal).
+%% not_fails_is_det(Goal) :-
+%%      Solved = solved(no),
+%%      (
+%%          true
+%%      ;
+%%          arg(1, Solved, no) ->
+%%          send_comp_rtcheck(Goal, not_fails, fails),
+%%          fail
+%%      ),
+%%      Goal,
+%%      (
+%%          arg(1, Solved, no)
+%%      ->
+%%          true
+%%      ;
+%%          send_comp_rtcheck(Goal, is_det, non_det))
+%% % more than one solution!
+%%      ),
+%%      '$setarg'(1, Solved, yes, true).
+%% 
+%% :- prop not_fails_non_det/1 
+%% # "Collapsed property of @var{not_fails/1} and @var{non_det/1}.".
+%% 
+%% :- meta_predicate not_fails_non_det(goal).
+%% not_fails_non_det(Goal) :-
+%%      Solved = solved(no),
+%%      (
+%%          true
+%%      ;
+%%          arg(1, Solved, no) ->
+%%          send_comp_rtcheck(Goal, not_fails, fails),
+%%          fail
+%%      ;
+%%          arg(1, Solved, one) ->
+%%          send_comp_rtcheck(Goal, non_det, is_det),
+%%          fail
+%%      ),
+%%      '$metachoice'(C0),
+%%      Goal,
+%%      '$metachoice'(C1),
+%%      (
+%%          arg(1, Solved, no) ->
+%%          (
+%%              C1 == C0 ->
+%%              !,
+%%              send_comp_rtcheck(Goal, non_det, no_choicepoints))
+%%          ;
+%%              '$setarg'(1, Solved, one, true)
+%%          )
+%%      ;
+%%          '$setarg'(1, Solved, yes, true)
+%%      ).
+
+% ----------------------------------------------------------------------
+
+:- export(rtc_no_choicepoints/1).
+:- meta_predicate rtc_no_choicepoints(goal).
+
+% rtcheck version for native_props:no_choicepoints/1
+rtc_no_choicepoints(Goal) :-
+    '$metachoice'(C0),
+    Goal,
+    '$metachoice'(C1),
+    ( C1 == C0 -> true
+    ; send_comp_rtcheck(Goal, no_choicepoints, leaves_choicepoints)
+    ).
+
+% ----------------------------------------------------------------------
+
+:- export(rtc_leaves_choicepoints/1).
+:- meta_predicate rtc_leaves_choicepoints(goal).
+
+% rtcheck version for native_props:leaves_choicepoints/1
+rtc_leaves_choicepoints(Goal) :-
+    '$metachoice'(C0),
+    Goal,
+    '$metachoice'(C1),
+    ( C1 == C0 ->
+        send_comp_rtcheck(Goal, leaves_choicepoints, no_choicepoints)
+    ; true
+    ).
+
+% ===========================================================================
+:- doc(section, "Cardinality and exact solutions").
+
+:- export(rtc_num_solutions/2).
 :- meta_predicate rtc_num_solutions(goal, addterm(pred(1))).
 
 % rtcheck version for native_props:num_solutions/2
@@ -268,6 +339,7 @@ num_solutions_eq(Goal, N) :-
 
 % ----------------------------------------------------------------------
 
+:- export(rtc_relations/2).
 :- meta_predicate rtc_relations(goal, ?).
 
 % rtcheck version for native_props:relations/2
@@ -276,6 +348,9 @@ rtc_relations(Goal, Term) :- rtc_num_solutions(Goal, Term).
 
 % ----------------------------------------------------------------------
 
+:- use_module(library(lists), [append/3]).
+
+:- export(rtc_solutions/2).
 :- meta_predicate rtc_solutions(addterm(goal), ?).
 
 % rtcheck version for native_props:solutions/2
@@ -314,35 +389,10 @@ rtc_solutions(Goal, Sol, Sols) :-
       )
     ).
 
-% ----------------------------------------------------------------------
+% ===========================================================================
+:- doc(section, "Exceptions").
 
-:- meta_predicate rtc_no_choicepoints(goal).
-
-% rtcheck version for native_props:no_choicepoints/1
-rtc_no_choicepoints(Goal) :-
-    '$metachoice'(C0),
-    Goal,
-    '$metachoice'(C1),
-    ( C1 == C0 -> true
-    ; send_comp_rtcheck(Goal, no_choicepoints, leaves_choicepoints)
-    ).
-
-% ----------------------------------------------------------------------
-
-:- meta_predicate rtc_leaves_choicepoints(goal).
-
-% rtcheck version for native_props:leaves_choicepoints/1
-rtc_leaves_choicepoints(Goal) :-
-    '$metachoice'(C0),
-    Goal,
-    '$metachoice'(C1),
-    ( C1 == C0 ->
-        send_comp_rtcheck(Goal, leaves_choicepoints, no_choicepoints)
-    ; true
-    ).
-
-% ----------------------------------------------------------------------
-
+:- export(rtc_exception/2).
 :- meta_predicate rtc_exception(goal, ?).
 
 % rtcheck version for native_props:exception/2
@@ -376,6 +426,7 @@ ignored_exception(time_limit_exceeded).
 
 % ----------------------------------------------------------------------
 
+:- export(rtc_exception/1).
 :- meta_predicate rtc_exception(goal).
 
 % rtcheck version for native_props:exception/1
@@ -384,11 +435,13 @@ rtc_exception(Goal) :-
 
 % ----------------------------------------------------------------------
 
+:- export(rtc_no_exception/1).
 :- meta_predicate rtc_no_exception(goal).
 
 % rtcheck version for native_props:no_exception/1
 rtc_no_exception(Goal) :- no_exception_2(Goal, no_exception, _).
 
+:- export(rtc_no_exception/2).
 :- meta_predicate rtc_no_exception(goal, ?).
 
 % rtcheck version for native_props:no_exception/2
@@ -403,13 +456,16 @@ handle_no_exception_2(Goal,Prop,E) :-
     ),
     throw(E).
 
-% ----------------------------------------------------------------------
+% ===========================================================================
+:- doc(section, "Signals").
 
+:- export(rtc_signal/1).
 :- meta_predicate rtc_signal(goal).
 
 % rtcheck version for native_props:signal/1
 rtc_signal(Goal) :- rtc_signal(Goal, _).
 
+:- export(rtc_signal/2).
 :- meta_predicate rtc_signal(goal, ?).
 
 % rtcheck version for native_props:signal/2
@@ -424,11 +480,13 @@ rtc_signal(Goal, E) :-
 
 % ----------------------------------------
 
+:- export(rtc_no_signal/1).
 :- meta_predicate rtc_no_signal(goal).
 
 % rtcheck version for native_props:no_signal/1
 rtc_no_signal(Goal) :- rtc_no_signal(Goal, _).
 
+:- export(rtc_no_signal/2).
 :- meta_predicate rtc_no_signal(goal, ?).
 
 % rtcheck version for native_props:no_signal/2
@@ -470,7 +528,10 @@ emit_signal(Choice, E) :-
     retract_fact_nb(signal_db(Choice, _, _)),
     assertz_fact(signal_db(Choice, yes, E)).
 
-% ----------------------------------------------------------------------
+% ===========================================================================
+:- doc(section, "Polyhedral constraints").
+
+:- export(rtc_constraint/1).
 :- meta_predicate rtc_contraint(list(goal)).
 
 rtc_constraint([]).
@@ -528,10 +589,15 @@ coefficient(Coeff) :-
     ground(Coeff),
     int(Coeff). % TODO: shouldn't it be a num/1?
 
-% ----------------------------------------------------------------------
+% ===========================================================================
+:- doc(section, "Other properties").
 
+:- use_module(library(stream_utils), [file_to_string/2]).
 :- use_module(library(stream_utils), [write_string/1]).
+:- use_module(library(stream_utils), [open_output/2, close_output/1]).
+:- use_module(library(system), [mktemp_in_tmp/2, delete_file/1]).
 
+:- export(rtc_user_output/2).
 :- meta_predicate rtc_user_output(goal, ?).
 
 % rtcheck version for native_props:user_output/1
