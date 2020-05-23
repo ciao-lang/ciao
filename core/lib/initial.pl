@@ -3,6 +3,12 @@
 
 :- use_package(condcomp). % (builtin, only needed for some compilation facts)
 
+:- if(defined('SHELL')).
+
+% (Empty)
+
+:- else. % not SHELL
+
 :- if(defined(optim_comp)).
 :- else.
 :- use_module(engine(term_basic), [functor/3]). % TODO: make it optional too?
@@ -11,30 +17,30 @@
 % Module initialization and on_abort hooks
 :- if(defined(optim_comp)).
 :- '$props'('$initialization'/1, [impnat=bytecode]).
-:- multifile '$initialization'/1.
+:- multifile('$initialization'/1).
 :- '$props'('$on_abort'/1, [impnat=bytecode]).
-:- multifile '$on_abort'/1.
+:- multifile('$on_abort'/1).
 :- else.
-:- multifile '$initialization'/1.
-:- multifile '$on_abort'/1.
+:- multifile('$initialization'/1).
+:- multifile('$on_abort'/1).
 :- endif.
 
 % Internal module metadata
 :- if(defined(optim_comp)).
 :- else.
-:- multifile '$primitive_meta_predicate'/2.
-:- discontiguous '$primitive_meta_predicate'/2.
-:- multifile '$current_module'/1.
+:- multifile('$primitive_meta_predicate'/2).
+:- discontiguous('$primitive_meta_predicate'/2).
+:- multifile('$current_module'/1).
 :- dynamic('$current_module'/1).
-:- multifile '$ldlibs'/1.
-:- multifile '$multifile'/3.
-:- multifile '$load_libs'/0.
-:- multifile '$meta_args'/2.
+:- multifile('$ldlibs'/1).
+:- multifile('$multifile'/3).
+:- multifile('$load_libs'/0).
+:- multifile('$meta_args'/2).
 :- dynamic('$meta_args'/2).
-:- multifile '$u'/2.
-:- multifile '$imports'/5.
+:- multifile('$u'/2).
+:- multifile('$imports'/5).
 :- dynamic('$imports'/5).
-:- multifile '$defines'/3.
+:- multifile('$defines'/3).
 :- endif.
 
 % Definitions for ptoc and ptoc__analysis
@@ -65,3 +71,4 @@
 :- else.
 :- endif.
 
+:- endif. % not SHELL

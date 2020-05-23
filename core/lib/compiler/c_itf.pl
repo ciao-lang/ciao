@@ -1149,7 +1149,10 @@ expand_list_tail(Data1, Data) :-
     ; Data = [Data1]
     ).
 
-:- use_module(library(compiler/frontend_condcomp), [condcomp_sentence/3]).
+:- use_module(library(compiler/frontend_condcomp), [
+    condcomp_sentence/3,
+    add_condcomp_fact/2
+]).
 
 do_expand_term((:- primitive_meta_predicate(MP)), M, _, Data1) :- !,
     % TODO: JF temporary: This information should be handled like meta_args (and cannot be a term expansion: it leads to a loop in basiccontrol)
@@ -1220,16 +1223,12 @@ read_sentence(Stream, Base, Sentence) :-
     ).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Default packages").
+:- doc(section, "Default package").
 
 % WARNING: Use only a single package, in the form pathalias(packagefile)
 :- export(default_package/1).
 :- data default_package/1.
 default_package(library(default)).
-
-:- export(default_shell_package/1).
-:- data default_shell_package/1.
-default_shell_package(default_for_ciaosh).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Check module name").

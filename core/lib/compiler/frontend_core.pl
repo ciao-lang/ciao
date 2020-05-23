@@ -267,6 +267,14 @@ real_meta_arg(list(X)) :- real_meta_arg(X).
 real_meta_arg(addterm(X)) :- real_meta_arg(X).
 
 % ---------------------------------------------------------------------------
+:- doc(subsection, "Support for conditional compilation").
+
+decl__treatDom(compilation_fact(_)).
+decl__treat(compilation_fact(Fact), _Base, M,_VNs, _Ln0, _Ln1) :- !,
+    % TODO: use line numbers?
+    add_condcomp_fact(Fact, M).
+
+% ---------------------------------------------------------------------------
 :- doc(subsection, "Definitions for packages and included files").
 
 % ---------------------------------------------------------------------------

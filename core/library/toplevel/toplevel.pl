@@ -90,13 +90,19 @@ toplevel(Args) :-
     get_alias_path,
     %
     retractall_fact(quiet_mode),
-    interpret_args(Args, true),
-    ( quiet_mode -> true ; '$bootversion' ),
-    op(900, fy, [(spy),(nospy)]), % TODO: optional?
+    shell_init(Args),
     shell_body,
     shell_hook(exit).
 
 :- data quiet_mode/0.
+
+shell_init(Args) :-
+    get_shell_module(ShMod),
+    process_decl(compilation_fact('SHELL'), ShMod),
+    %
+    interpret_args(Args, true),
+    ( quiet_mode -> true ; '$bootversion' ),
+    op(900, fy, [(spy),(nospy)]). % TODO: optional?
 
 interpret_args([], DefLoad) :- !,
     ( DefLoad = true ->
@@ -137,19 +143,19 @@ interpret_args(_Args, _) :-
     halt(1).
 
 load_default :-
-    RCFile = '~/.ciaorc',
+    RCFile = '~/.ciaorc', % TODO: deprecate? (it can be dangerous)
     ( file_exists(RCFile) ->
         include(RCFile)
-    ; default_shell_package(Package),
+    ; default_package(Package),
       prolog_flag(quiet, QF, warning),
       use_package(Package),
       prolog_flag(quiet, _, QF) 
     ).
 
 :- if(defined(optim_comp)).
-default_shell_package(default_for_ciaosh).
+:- use_module(compiler(frontend), [default_package/1]).
 :- else.
-:- use_module(library(compiler/c_itf), [default_shell_package/1]).
+:- use_module(library(compiler/c_itf), [default_package/1]).
 :- endif.
 
 % ---------------------------------------------------------------------------

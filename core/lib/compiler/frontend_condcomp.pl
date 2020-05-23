@@ -1,4 +1,4 @@
-:- module(_, [condcomp_sentence/3], [datafacts]).
+:- module(_, [], [datafacts]).
 
 % TODO: merge with process_entences.pl from core_OC
 
@@ -48,6 +48,7 @@ ststack__empty(Mod) :-
 % ---------------------------------------------------------------------------
 % Translation process
 
+:- export(condcomp_sentence/3).
 condcomp_sentence(0, [], _Mod) :- !.
 condcomp_sentence(end_of_file, end_of_file, Mod) :- !,
     % TODO: missing error messages if conditions are left open!
@@ -60,13 +61,8 @@ condcomp_sentence((:- Decl), [], Mod) :- condcomp_directive(Decl), !,
     condcomp_treat(Decl, Mod).
 condcomp_sentence(_, [], Mod) :-
     ststack__top(Mod, St),
-    \+ St = enabled,
+    \+ St = enabled,  % (consume sentence)
     !.
-% If we are here it means that we are processing sentences
-condcomp_sentence((:- compilation_fact(Fact)), [], Mod) :- !,
-    add_condcomp(Fact, Mod).
-% Not processed sentences are left untouched
-%condcomp_sentence(_,_,_) :- fail.
 
 condcomp_directive(if(_)).
 condcomp_directive(elif(_)).
@@ -203,12 +199,13 @@ cond__eval(X, Mod) :-
 
 % ---------------------------------------------------------------------------
 
-add_condcomp(Fact, _Mod) :- var(Fact), !,
+:- export(add_condcomp_fact/2).
+add_condcomp_fact(Fact, _Mod) :- var(Fact), !,
     error_message("Uninstantiated term as clause of compilation_fact/1 directive", []).
-add_condcomp(Fact, _Mod) :- not_definable(Fact), !,
+add_condcomp_fact(Fact, _Mod) :- not_definable(Fact), !,
     functor(Fact, F, A),
     error_message("Redefining `~w' in compilation_fact/1 directive is not allowed", [F/A]).
-add_condcomp(Fact, Mod) :-
+add_condcomp_fact(Fact, Mod) :-
     functor(Fact, F, A),
     ( current_fact(condcomp_def(F, A, Mod)) ->
         true

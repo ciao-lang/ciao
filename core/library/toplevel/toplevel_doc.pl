@@ -40,10 +40,10 @@ one wants to be loaded by default, changing @concept{prolog flag}s, etc.
 actual code; to load some code at startup put it in a separate file and
 load it using e.g. a @decl{use_module/1} declaration.)  If the
 initialization file does not exist, the default package
-@lib{default_for_ciaosh} is included, to provide more or less what other
+@lib{default} is included, to provide more or less what other
 prologs define by default.  Thus, if you want to have available all
 builtins you had before adding the initialization file, you have to
-include @tt{:- use_package(default_for_ciaosh)} in it.  Two command-line
+include @tt{:- use_package(default)} in it.  Two command-line
 options control the loading of the initialization file:
 
 @begin{description}

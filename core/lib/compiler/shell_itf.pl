@@ -63,6 +63,10 @@ get_query(Stream, Query, Dict, VarNames) :-
 
 :- use_module(engine(internals), ['$open'/3]).
 :- use_module(library(lists), [member/2]).
+:- use_module(library(compiler/frontend_condcomp), [
+    condcomp_sentence/3,
+    add_condcomp_fact/2
+]).
 
 :- data new_decl/2.
 :- data package/2.
@@ -108,8 +112,6 @@ expand_list_tail(Data1, Data) :-
         Data = Data1
     ; Data = [Data1]
     ).
-
-:- use_module(library(compiler/frontend_condcomp), [condcomp_sentence/3]).
 
 % (partially duplicated in c_itf.pl)
 do_expand_term(Data0, M, VNs, Data) :-
@@ -226,6 +228,7 @@ is_known_decl(add_sentence_trans(_, _)).
 is_known_decl(add_term_trans(_, _)).
 is_known_decl(add_goal_trans(_, _)).
 is_known_decl(multifile(_)).
+is_known_decl(compilation_fact(_)).
 
 :- export(process_decl/2).
 process_decl(use_module(A), ShMod) :- use_module(A, all, ShMod).
@@ -244,6 +247,7 @@ process_decl(add_sentence_trans(A, B), ShMod) :- do_add_sentence_trans(A, B, ShM
 process_decl(add_term_trans(A, B), ShMod) :- do_add_term_trans(A, B, ShMod).
 process_decl(add_goal_trans(A, B), ShMod) :- do_add_goal_trans(A, B, ShMod).
 process_decl(multifile(A), ShMod) :- '$shell_call_in_mod'(ShMod, multifile(A)).
+process_decl(compilation_fact(A), ShMod) :- add_condcomp_fact(A, ShMod).
 
 % ---------------------------------------------------------------------------
 
