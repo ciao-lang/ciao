@@ -361,7 +361,7 @@ available when invoking @apl{ciaoc}:
 :- use_module(engine(system_info), [get_platform/1]).
 :- use_module(library(libpaths),        [get_alias_path/0]).
 :- use_module(library(compiler),        [make_po/1, make_wam/1, use_module/3]).
-:- use_module(library(compiler/c_itf), [opt_suffix/2]).
+:- use_module(library(compiler/c_itf), [opt_suffix/2, default_package/1]).
 :- use_module(library(read_from_string), [read_from_atom/2]).
 :- use_module(library(compiler/global_module_options)).
 
@@ -405,6 +405,11 @@ main(Args) :-
     use_module(CFile, all, c_itf),
     "<File> Use File for compilation, often used to include LibDir paths, etc.",
     continue, [CFile|Args], Args).
+%
+:- simple_option('--iso',
+    set_fact(default_package(library(default_iso))),
+    "Turn on ISO compatibility for user files and modules declared with module/2.",
+    continue, Args, Args).
 %
 :- simple_option('-op',
     opt_suffix(_, Suff),
