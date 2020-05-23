@@ -83,7 +83,7 @@
    including @lib{indexer} in the package list of the module, or by
    using the @decl{use_package/1} declaration. The facility predicate
    @pred{hash_term/2}, documented here, is defined in library module
-   @lib{indexer(hash)}.").
+   @lib{library(indexer/hash)}.").
 
 :- doc(doinclude,index/1).
 :- decl index(IndexSpecs) => indexspecs
