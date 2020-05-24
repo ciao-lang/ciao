@@ -3,7 +3,6 @@
     write_option/1,
     write/2, write/1,
     writeq/2, writeq/1,
-    write_list1/1,
     write_canonical/2, write_canonical/1,
     print/2, print/1, printq/2, printq/1,
     portray_clause/2, portray_clause/1,
@@ -258,12 +257,6 @@ write(Term) :-
 write(Term) :-
     Options = options(false,false,true,false,1000000),
     write_out(Term, Options, 1200, 0, 0, '(', 2'100, _).
-
-:- pred write_list1(+list)
-    # "Writes a list to current output one element in each line.".
-
-write_list1([]).
-write_list1([H|L]) :- writeq(H), nl, write_list1(L).
 
 :- trust pred writeq(@Stream, ?Term): stream * term + (iso, is_det)
     # "Behaves like @tt{write_term(Stream, Term, [quoted(true),

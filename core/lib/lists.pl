@@ -4,7 +4,6 @@
     select/3, length/2, nth/3, add_after/4, add_before/4,
     % list/1, list/2, 
     list1/2, dlist/3, list_concat/2, list_insert/2, insert_last/3, 
-    %% write_list1/1, Does this belong here? it forces loading write...
     contains_ro/2, contains1/2, nocontainsx/2, last/2, list_lookup/3,
     list_lookup/4,
     intset_insert/3, intset_delete/3, intset_in/2, intset_sequence/3,
