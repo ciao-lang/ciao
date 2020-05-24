@@ -6,7 +6,31 @@
     close_options/1,
     close_option/1,
     stream_property/2,
-    stream_prop/1
+    stream_prop/1,
+    %
+    set_input/1, 
+    set_output/1, 
+    %
+    get_code/2, 
+    peek_code/2, 
+    put_code/2, 
+    nl/1, 
+    tab/2, 
+    get_byte/2, 
+    put_byte/2, 
+    display/2, 
+    displayq/2, 
+    %
+    read/2, 
+    read_term/3,
+    %
+    write_term/3,
+    write/2, 
+    writeq/2, 
+    write_canonical/2, 
+    print/2, 
+    printq/2, 
+    portray_clause/2
 ], [assertions,isomodes,datafacts]).
 
 :- doc(title, "ISO Prolog compatibility layer").
@@ -26,9 +50,10 @@
 :- doc(bug, "char_conversion(_,_) :- not_yet_implemented.").
 :- doc(bug, "current_char_conversion(_,_) :- not_yet_implemented.").
 
+:- use_module(engine(io_basic)).
 :- use_module(engine(stream_basic)).
-
-%:- use_module(library(streams)).% TODO:debug
+:- use_module(library(read)).
+:- use_module(library(write)).
 
 % ---------------------------------------------------------------------------
 
@@ -107,6 +132,8 @@ resolve_stream_alias(Alias, Stream) :- atom(Alias),
     '$alias_stream'(Alias, Stream0), !, Stream = Stream0.
 resolve_stream_alias(Stream, Stream).
 
+% ---------------------------------------------------------------------------
+
 :- pred close(@stream,@close_options). 
 
 :- doc(bug, "close/2 not complete w.r.t. iso standard.").
@@ -133,6 +160,8 @@ close_option(force(false)).
 :- pred close(@stream). 
 close(S) :- close(S, []).
 
+% ---------------------------------------------------------------------------
+
 :- pred stream_property(?stream, ?stream_prop).
 
 :- doc(bug, "stream_property/2 not complete w.r.t. iso standard.").
@@ -155,3 +184,28 @@ stream_prop(file_name(File)) :- atm(File).
 stream_prop(mode(Mode)) :- atm(Mode).
 stream_prop(alias(Alias)) :- atm(Alias).
 
+% ---------------------------------------------------------------------------
+
+set_input(S) :- resolve_stream_alias(S, S2), stream_basic:set_input(S2).
+set_output(S) :- resolve_stream_alias(S, S2), stream_basic:set_output(S2).
+
+get_code(S,A) :- resolve_stream_alias(S, S2), io_basic:get_code(S2,A).
+peek_code(S,A) :- resolve_stream_alias(S, S2), io_basic:peek_code(S2,A).
+put_code(S,A) :- resolve_stream_alias(S, S2), io_basic:put_code(S2,A).
+nl(S) :- resolve_stream_alias(S, S2), io_basic:nl(S2).
+tab(S,A) :- resolve_stream_alias(S, S2), io_basic:tab(S2,A).
+get_byte(S,A) :- resolve_stream_alias(S, S2), io_basic:get_byte(S2,A).
+put_byte(S,A) :- resolve_stream_alias(S, S2), io_basic:put_byte(S2,A).
+display(S,A) :- resolve_stream_alias(S, S2), io_basic:display(S2,A).
+displayq(S,A) :- resolve_stream_alias(S, S2), io_basic:displayq(S2,A).
+
+read(S,A) :- resolve_stream_alias(S, S2), read:read(S2,A).
+read_term(S,A,B) :- resolve_stream_alias(S, S2), read:read_term(S2,A,B).
+
+write_term(S,A,B) :- resolve_stream_alias(S, S2), write:write_term(S2,A,B).
+write(S,A) :- resolve_stream_alias(S, S2), write:write(S2,A).
+writeq(S,A) :- resolve_stream_alias(S, S2), write:writeq(S2,A).
+write_canonical(S,A) :- resolve_stream_alias(S, S2), write:write_canonical(S2,A).
+print(S,A) :- resolve_stream_alias(S, S2), write:print(S2,A).
+printq(S,A) :- resolve_stream_alias(S, S2), write:printq(S2,A).
+portray_clause(S,A) :- resolve_stream_alias(S, S2), write:portray_clause(S2,A).

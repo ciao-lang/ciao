@@ -9,45 +9,60 @@
 :- use_module(engine(basic_props), [callable/1]).
 
 :- use_package(runtime_ops).
+:- use_module(library(operators)).
+
+:- use_module(engine(runtime_control)). % TODO: refine, not all are ISO
 
 :- use_module(library(aggregates)).
 :- use_module(library(sort), [sort/2, keysort/2]).
 :- use_module(library(iso_misc)).
-:- use_module(library(iso_char)).
-:- use_module(library(iso_incomplete)).
-:- use_module(library(operators)).
-:- use_module(library(read)).
-:- use_module(library(write)).
 :- use_module(library(terms_check), [subsumes_term/2]).
 :- use_module(library(terms_vars), [term_variables/2]).
 :- use_module(library(cyclic_terms), [acyclic_term/1]).
+
+:- use_module(library(iso_char)).
 
 :- use_module(library(format)).
 
 :- if(defined(optim_comp)).
 :- else.
-:- use_module(library(compiler)). % TODO: refine
+:- use_module(library(compiler)). % TODO: refine, not all are ISO
 :- endif.
-:- use_module(library(system)). % TODO: refine
+:- use_module(library(system)). % TODO: refine, not all are ISO
 
+% IO predicates
+:- use_module(library(iso_incomplete)).
 :- use_module(engine(stream_basic), [
-    % TODO: refine, not all are ISO
     open/3,
-    %open/4,
-    open_option_list/1,
-    %close/1,
-    set_input/1, current_input/1,
-    set_output/1, current_output/1,
+    current_input/1,
+    current_output/1,
+    % TODO: ISO?
     character_count/2, line_count/2, line_position/2,
     flush_output/1, flush_output/0,
-    %clearerr/1,
-    current_stream/3, stream_code/2,
-    %absolute_file_name/2,
-    absolute_file_name/7,
-    pipe/2,
-    sourcename/1, stream/1, stream_alias/1
-    %io_mode/1, 
-    %atm_or_int/1
+    current_stream/3
 ]).
-:- use_module(engine(io_basic)). % TODO: refine, not all are ISO
-:- use_module(engine(runtime_control)). % TODO: refine, not all are ISO
+:- use_module(engine(io_basic), [
+    % TODO: refine, not all are ISO
+    get_code/1,
+    peek_code/1,
+    put_code/1,
+    nl/0,
+    tab/1,
+    get_byte/1,
+    put_byte/1, 
+    display/1,
+    displayq/1
+]).
+:- use_module(library(read), [
+    read/1,
+    read_term/2
+]).
+:- use_module(library(write), [
+    write_term/2,
+    write/1, writeq/1,
+    write_canonical/1,
+    print/1, printq/1,
+    portray_clause/1,
+    numbervars/3
+]).
+
