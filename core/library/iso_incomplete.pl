@@ -61,42 +61,15 @@ absolute_file_name(Path, ExpandedPath) :-
     fixed_absolute_file_name(Path, '.', ExpandedPath).
 
 % ---------------------------------------------------------------------------
+% (Extended stream properties)
 
 % Stream aliases (one stream per alias)
 :- data '$alias_stream'/2.
 % Inverse index (from stream to aliases)
 :- data '$stream_alias'/2.
 
-% TODO: argument order changed!
-:- pred open(+sourcename, +io_mode, ?stream, +open_option_list).
-
-open(File, Mode, Stream, Opts) :-
-    get_aliases(Opts, OtherOpts, Aliases),
-    stream_basic:open(File, Mode, Stream, OtherOpts),
-    set_aliases(Aliases, Stream).
-
-% Get (and check) aliases options
-get_aliases([], [], []).
-get_aliases([Opt|Opts], OtherOpts, Aliases) :-
-    ( Opt = alias(Alias) ->
-        check_alias(Alias),
-        OtherOpts = OtherOpts0,
-        Aliases = [Alias|Aliases0]
-    ; OtherOpts = [Opt|OtherOpts0],
-      Aliases = Aliases0
-    ),
-    get_aliases(Opts, OtherOpts0, Aliases0).
-
-% Alias must be an atom and it cannot be reused
-check_alias(Alias) :-
-    ( atom(Alias) -> true
-    ; throw(error(type_error(atom, Alias), 'stream_basic:$open'/4-4))
-    ),
-    ( '$alias_stream'(Alias, _) ->
-        throw(error(permission_error(open, source_sink, alias(Alias)),
-                    'stream_basic:$open'/4-4))
-    ; true
-    ).
+% Stream type
+:- data '$stream_type'/2.
 
 set_aliases([], _).
 set_aliases([Alias|Aliases], Stream) :-
@@ -131,6 +104,61 @@ alias_stream(Alias, Stream) :- % (nondet)
 resolve_stream_alias(Alias, Stream) :- atom(Alias),
     '$alias_stream'(Alias, Stream0), !, Stream = Stream0.
 resolve_stream_alias(Stream, Stream).
+
+set_stream_type(Stream, Type) :-
+    ( Type = text -> true ; set_fact('$stream_type'(Stream, Type)) ).
+
+get_stream_type(Stream, Type) :-
+    ( '$stream_type'(Stream, Type0) -> true ; Type0 = text ),
+    Type = Type0.
+
+% ---------------------------------------------------------------------------
+
+% TODO: argument order changed!
+:- pred open(+sourcename, +io_mode, ?stream, +open_option_list).
+
+open(File, Mode, Stream, Opts) :-
+    get_open_opts(Opts, OtherOpts, text, Type, Aliases),
+    stream_basic:open(File, Mode, Stream, OtherOpts),
+    set_stream_type(Stream, Type),
+    set_aliases(Aliases, Stream).
+
+% Get (and check) aliases options
+get_open_opts([], [], Type, Type, []).
+get_open_opts([Opt|Opts], OtherOpts, Type0, Type, Aliases) :-
+    ( Opt = alias(Alias) ->
+        check_alias(Alias),
+        OtherOpts = OtherOpts0,
+        Type1 = Type0,
+        Aliases = [Alias|Aliases0]
+    ; Opt = type(Type1) ->
+        check_stream_type(Type1),
+        OtherOpts = OtherOpts0,
+        Aliases = Aliases0
+    ; OtherOpts = [Opt|OtherOpts0],
+      Type1 = Type0,
+      Aliases = Aliases0
+    ),
+    get_open_opts(Opts, OtherOpts0, Type1, Type, Aliases0).
+
+% Alias must be an atom and it cannot be reused
+check_alias(Alias) :-
+    ( atom(Alias) -> true
+    ; throw(error(type_error(atom, Alias), 'stream_basic:$open'/4-4))
+    ),
+    ( '$alias_stream'(Alias, _) ->
+        throw(error(permission_error(open, source_sink, alias(Alias)),
+                    'stream_basic:$open'/4-4))
+    ; true
+    ).
+
+check_stream_type(Type) :-
+    ( var(Type) ->
+        throw(error(instantiation_error, 'stream_basic:$open'/4-4))
+    ; Type = binary -> true
+    ; Type = text -> true
+    ; throw(error(domain_error(stream_option, type(Type)), 'stream_basic:$open'/4-4))
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -171,6 +199,7 @@ stream_property(S, P) :-
     ( P = file_name(File)
     ; P = mode(Mode)
     ; P = alias(Alias), alias_stream(Alias, S)
+    ; P = type(Type), get_stream_type(S, Type)
     ; % (last case)
       ( Mode = read -> P = input ; P = output )
     ).
