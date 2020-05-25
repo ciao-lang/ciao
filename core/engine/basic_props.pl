@@ -135,8 +135,7 @@ non-zeroary functors. By now there is a limit of 255 arguments.").
 
 % NOTE: instantiation check version, kept for compatibility
 %:- impl_defined(struct/1).  % TODO:T279
-struct([_|_]):- !.
-struct(T) :- functor(T, _, A), A>0. % compound(T).
+struct(T) :- nonvar(T), functor(T, _, A), A>0. % compound(T).
 
 % TODO:[new-resources] needed for etermsvar?
 % :- export(vr/1).
@@ -176,6 +175,7 @@ gndstr(A) :- gnd(A), struct(A).
 :- trust comp constant(T) : nonvar(T) + (eval, is_det).
 :- trust success constant(T) => constant(T).
 
+% TODO: atomic?
 constant(T) :- atm(T).
 constant(T) :- num(T).
 
@@ -186,9 +186,11 @@ constant(T) :- num(T).
 :- trust comp callable(T) : nonvar(T) + (eval, is_det).
 :- trust success callable(T) => nonvar(T).
 
-callable(T) :- atm(T).
-callable(T) :- struct(T).
-
+% TODO: move to other type checks add "+ iso"
+callable(T) :- atom(T). % instantiation check version, kept for compatibility
+callable(T) :- nonvar(T), functor(T, _, A), A>0. % compound(T).
+%callable(T) :- atm(T).
+%callable(T) :- struct(T).
 
 % TODO: rename?
 :- doc(internal_module_id/1, "For a user file it is a term user/1
