@@ -1,5 +1,8 @@
-:- module(iso_misc, [once/1, forall/2, compound/1, sub_atom/5],
-     [assertions, isomodes]).
+:- module(iso_misc, [
+    once/1, forall/2, call_det/2,
+    compound/1,
+    sub_atom/5
+], [assertions, isomodes]).
 
 :- doc(title, "Miscellaneous ISO Prolog predicates").
 
@@ -11,6 +14,8 @@
 
 :- use_module(engine(hiord_rt), [call/1]).
 :- use_module(library(between)).
+
+% ---------------------------------------------------------------------------
 
 % TODO: expand this control structure (see hiord_inline)
 :- meta_predicate(once(goal)).
@@ -28,7 +33,24 @@ once(G) :- call(G), !.
 
 :- pred forall(+callable, +callable). % (not iso)
 forall(Generate, Test) :-
-	\+ (Generate, \+ Test).
+    \+ (Generate, \+ Test).
+
+% TODO: expand this control structure (see hiord_inline)
+:- meta_predicate call_det(goal,?).
+:- doc(call_det(G,Det), "Call goal @var{G} and unify @var{Det} with
+   @tt{true} if no additional choice-points has been created, or
+   @tt{false} otherwise"). % TODO: compatible with gprolog, document?
+
+:- pred call_det(+callable, ?atm). % (not iso)
+call_det(G, Det) :-
+    '$metachoice'(C0),
+    call(G),
+    '$metachoice'(C1),
+    ( C1 == C0 -> Det = true
+    ; Det = false
+    ).
+
+% ---------------------------------------------------------------------------
 
 % TODO: implement as a builtin
 :- doc(compound(T),"@var{T} is currently instantiated to a compound
@@ -41,6 +63,8 @@ forall(Generate, Test) :-
 compound(T) :-
     nonvar(T),
     functor(T, _, A), A > 0.
+
+% ---------------------------------------------------------------------------
 
 :- doc(sub_atom(Atom, Before, Length, After, Sub_atom), "Is true
    iff atom @var{Atom} can be broken into three pieces, @var{AtomL},
@@ -74,6 +98,8 @@ sub_atom(Atom, Before, Lenght, After, Sub_atom) :-
       throw(error(instantiation_error, sub_atom/5-1))
     ; throw(error(type_error(atom,Atom), sub_atom/5-1))
     ).
+
+% ---------------------------------------------------------------------------
 
 :- if(defined(optim_comp)).
 % TODO: defined in term_basic.pl 
