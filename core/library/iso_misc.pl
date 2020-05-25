@@ -1,4 +1,4 @@
-:- module(iso_misc, [once/1, compound/1, sub_atom/5],
+:- module(iso_misc, [once/1, forall/2, compound/1, sub_atom/5],
      [assertions, isomodes]).
 
 :- doc(title, "Miscellaneous ISO Prolog predicates").
@@ -12,19 +12,25 @@
 :- use_module(engine(hiord_rt), [call/1]).
 :- use_module(library(between)).
 
+% TODO: expand this control structure (see hiord_inline)
 :- meta_predicate(once(goal)).
-
 :- doc(once(G),"Finds the first solution of goal @var{G} (if any).
    @pred{once/1} behaves as @pred{call/1}, except that no further
    solutions are explored on backtracking.").
-
 :- pred once(+callable) + iso.
 
 once(G) :- call(G), !.
 
-:- doc(bug, "There is a naive implementation of compound/1,
-    perhaps is better to implement it as a builtin -- EMM.").
+% TODO: expand this control structure (see hiord_inline)
+:- meta_predicate forall(goal,goal).
+:- doc(forall(Generate,Test), "@pred{Test} succeeds for all solutions
+   to @pred{Generate}").
 
+:- pred forall(+callable, +callable). % (not iso)
+forall(Generate, Test) :-
+	\+ (Generate, \+ Test).
+
+% TODO: implement as a builtin
 :- doc(compound(T),"@var{T} is currently instantiated to a compound
     term.").
 
