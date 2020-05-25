@@ -43,6 +43,7 @@
 :- use_module(library(fastrw)).  
 :- use_module(library(format)).  
 :- use_module(library(aggregates)).  
+:- use_module(library(iso_misc), [forall/2]).  
 
 :- use_module(library(compiler/c_itf)).
 :- use_module(library(assertions/assrt_lib), [
@@ -329,11 +330,6 @@ print_code_only(_M,Base) :-
     forall(clause_read(Base,Head,Body,VNs,Source,LB,LE),
        format("~w (~w-~w):~n ~w :- ~w.~nDictionary:~w~n",
               [Source,LB,LE,Head,Body,VNs])).
-
-:- meta_predicate forall(goal, goal).
-% For each G, do Do
-forall(G, Do) :-
-    \+ ( call(G), \+ call(Do) ).
 
 % ---------------------------------------------------------------------------
 
