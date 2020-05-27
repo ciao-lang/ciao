@@ -106,6 +106,25 @@ incanal_assrts:
   dependencies:
     - ciaopp_lite
 
+analyze_ciao:
+  stage: test
+  script:
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - touch bndls/ciaopp_batch/ACTIVATE
+    - ciao rescan-bundles
+    - ciao build --bin ciaopp_batch
+    - ciaopp-batch gr core/lib/
+  tags:
+    - ciao_test_base
+  artifacts:
+    expire_in: 2h
+    untracked: true
+    paths:
+      - build-boot/
+      - build/
+  dependencies:
+    - ciaopp_lite
+
 incanal_lite:
   stage: test
   script:
