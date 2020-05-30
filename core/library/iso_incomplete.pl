@@ -21,6 +21,10 @@
     display/2, 
     displayq/2, 
     %
+    get_char/2, 
+    peek_char/2, 
+    put_char/2, 
+    %
     read/2, 
     read_term/3,
     %
@@ -52,6 +56,7 @@
 
 :- use_module(engine(io_basic)).
 :- use_module(engine(stream_basic)).
+:- use_module(library(iso_char)).
 :- use_module(library(read)).
 :- use_module(library(write)).
 
@@ -227,6 +232,10 @@ get_byte(S,A) :- resolve_stream_alias(S, S2), io_basic:get_byte(S2,A).
 put_byte(S,A) :- resolve_stream_alias(S, S2), io_basic:put_byte(S2,A).
 display(S,A) :- resolve_stream_alias(S, S2), io_basic:display(S2,A).
 displayq(S,A) :- resolve_stream_alias(S, S2), io_basic:displayq(S2,A).
+
+get_char(S,A) :- resolve_stream_alias(S, S2), iso_char:get_char(S2,A).
+peek_char(S,A) :- resolve_stream_alias(S, S2), iso_char:peek_char(S2,A).
+put_char(S,A) :- resolve_stream_alias(S, S2), iso_char:put_char(S2,A).
 
 read(S,A) :- resolve_stream_alias(S, S2), read:read(S2,A).
 read_term(S,A,B) :- resolve_stream_alias(S, S2), read:read_term(S2,A,B).

@@ -20,8 +20,6 @@
 :- use_module(library(terms_vars), [term_variables/2]).
 :- use_module(library(cyclic_terms), [acyclic_term/1]).
 
-:- use_module(library(iso_char)).
-
 :- use_module(library(format)).
 
 :- if(defined(optim_comp)).
@@ -52,6 +50,12 @@
     put_byte/1, 
     display/1,
     displayq/1
+]).
+:- use_module(library(iso_char), [
+    char_code/2, atom_chars/2, number_chars/2,char_codes/2,
+    get_char/1,
+    peek_char/1,
+    put_char/1
 ]).
 :- use_module(library(read), [
     read/1,
