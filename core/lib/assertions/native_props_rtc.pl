@@ -85,6 +85,12 @@ maplist_varset([V|Vs],[Us|Uss]) :-
 rtc_covered(X,Y) :-
     \+ \+ (numbervars(Y,0,_), ground(X)).
 
+% (alternative)
+% rtc_covered(X,Y):-
+%     varsbag(X,VarsX,[]),
+%     varsbag(Y,VarsY,[]),
+%     sublist(VarsX,VarsY).
+
 % ----------------------------------------------------------------------
 
 :- use_module(library(lists), [length/2]).
