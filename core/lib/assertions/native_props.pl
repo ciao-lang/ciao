@@ -296,16 +296,16 @@ possibly_nondet(Goal) :- call(Goal).
 % --------------------------------------------------------------------------
 
 :- export(mut_exclusive/1).
-:- doc(mut_exclusive(X), "For any call of the form @var{X} at most one
-   clause succeeds, i.e., clauses are pairwise exclusive. Note that
-   determinacy is the transitive closure (to all called predicates) of
-   this property. This property is inferred and checked natively by
-   CiaoPP using the domains and techniques of
-   @cite{determ-lopstr04,determinacy-ngc09}.").
+:- doc(mut_exclusive(X), "For any call of the form @var{X} there is at
+   most one clause whose test (guard) succeeds, i.e., clause tests are
+   pairwise exclusive. Note that determinacy is the transitive closure
+   (to all called predicates) of this property. This property is
+   inferred and checked natively by CiaoPP using the domains and
+   techniques of @cite{determ-lopstr04,determinacy-ngc09}.").
 
 :- meta_predicate mut_exclusive(goal).
 :- prop mut_exclusive(X) + rtcheck(unimplemented)
-   # "For any call of the form @var{X} at most one clause succeeds.".
+   # "For any call of the form @var{X} at most one clause test succeeds.".
 
 :- if(defined(optim_comp)).
 :- '$props'(mut_exclusive/1, [impnat=indefinable]).
@@ -316,13 +316,13 @@ mut_exclusive(Goal) :- call(Goal).
 % --------------------------------------------------------------------------
 
 :- export(not_mut_exclusive/1).
-:- doc(not_mut_exclusive(X), "For calls of the form @var{X} more
-   than one clause may succeed. I.e., clauses are not disjoint for
-   some call.").
+:- doc(not_mut_exclusive(X), "For calls of the form @var{X} more than
+   one clause test may succeed. I.e., clause tests are not disjoint
+   for some call.").
 
 :- meta_predicate not_mut_exclusive(goal).
 :- prop not_mut_exclusive(X) + rtcheck(unimplemented)
-   # "For some calls of the form @var{X} more than one clause may
+   # "For some calls of the form @var{X} more than one clause test may
    succeed.".
 
 :- if(defined(optim_comp)).
@@ -334,8 +334,8 @@ not_mut_exclusive(Goal) :- call(Goal).
 % --------------------------------------------------------------------------
 
 :- export(possibly_not_mut_exclusive/1).
-:- doc(possibly_not_mut_exclusive(X), "Mutual exclusion of the clauses
-   for calls of the form @var{X} cannot be ensured. This is the
+:- doc(possibly_not_mut_exclusive(X), "Mutual exclusion of the clause
+   tests for calls of the form @var{X} cannot be ensured. This is the
    default when no information is given for a predicate, so this
    property does not need to be stated explicitly.").
 
