@@ -51,10 +51,10 @@ static inline int c_getc(FILE *f) {
 #define BYTE_EOF       (-1)
 #define BYTE_PAST_EOF  (-2)
 
-static CFUN__PROTO(readrune, c_rune_t, stream_node_t *s, int type, definition_t *pred_address);
+static CFUN__PROTO(readrune, c_rune_t, stream_node_t *s, int op_type, definition_t *pred_address);
 static CVOID__PROTO(writerune, c_rune_t r, stream_node_t *s);
 static CVOID__PROTO(writerunen, c_rune_t r, int i, stream_node_t *s);
-static CFUN__PROTO(readbyte, int, stream_node_t *s, definition_t *pred_address);
+static CFUN__PROTO(readbyte, int, stream_node_t *s, int op_type, definition_t *pred_address);
 static CVOID__PROTO(writebyte, int ch, stream_node_t *s);
 
 #if defined(USE_MULTIBYTES)
@@ -440,8 +440,7 @@ static inline int read_give_back_cond(int op_type, c_rune_t r) {
 
    op_type: DELRET, PEEK, GET, GET1, SKIPLN, or >= 0 for SKIP
  */
-static CFUN__PROTO(readrune, int, stream_node_t *s,
-                   int op_type,
+static CFUN__PROTO(readrune, int, stream_node_t *s, int op_type,
                    definition_t *pred_address) {
   FILE *f = s->streamfile;
   c_rune_t r;
@@ -534,7 +533,8 @@ static CFUN__PROTO(readrune, int, stream_node_t *s,
   }
 }
 
-static CFUN__PROTO(readbyte, int, stream_node_t *s, definition_t *pred_address) {
+static CFUN__PROTO(readbyte, int, stream_node_t *s, int op_type,
+                   definition_t *pred_address) {
   FILE *f = s->streamfile;
   int i;
 
@@ -548,6 +548,9 @@ static CFUN__PROTO(readbyte, int, stream_node_t *s, definition_t *pred_address) 
     /* ignore errors in tty */
     i = c_getc(f);
     if (i==BYTE_EOF) clearerr(f);
+    if (op_type == PEEK && i != BYTE_EOF) {
+      ungetc(i, f);
+    }
     
     int_address = NULL; 
     return i;
@@ -557,8 +560,15 @@ static CFUN__PROTO(readbyte, int, stream_node_t *s, definition_t *pred_address) 
     if (i < 0 && ferror(f)) {
       IO_ERROR("getc() in readbyte()");
     }
+    if (op_type == PEEK && i != BYTE_EOF) {
+      ungetc(i, f);
+    }
     return i;
   } else { /* a socket */
+    if (op_type == PEEK) {
+      IO_ERROR("peek not supported for streams in readbyte()"); /* TODO: better error */
+    }
+
     unsigned char ch;
     int fildes = GetInteger(s->label);
     
@@ -978,7 +988,7 @@ CBOOL__PROTO(get_byte1) {
   ERR__FUNCTOR("io_basic:get_byte", 1);
   int i;
 
-  i = readbyte(Arg,Input_Stream_Ptr,address_get);
+  i = readbyte(Arg,Input_Stream_Ptr,GET,address_get_byte1);
   if (i == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
@@ -998,7 +1008,41 @@ CBOOL__PROTO(get_byte2) {
     BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  i = readbyte(Arg,s,address_get2);
+  i = readbyte(Arg,s,GET,address_get_byte2);
+  if (i == BYTE_PAST_EOF) {
+    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
+  }
+
+  return cunify(Arg,X(1),MakeSmall(i));
+}
+
+/*----------------------------------------------------------------*/
+
+CBOOL__PROTO(peek_byte1) {
+  ERR__FUNCTOR("io_basic:peek_byte", 1);
+  int i;
+
+  i = readbyte(Arg,Input_Stream_Ptr,PEEK,address_peek_byte1);
+  if (i == BYTE_PAST_EOF) {
+    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+  }
+
+  return cunify(Arg,X(0),MakeSmall(i));
+}
+
+/*----------------------------------------------------------------*/
+
+CBOOL__PROTO(peek_byte2) {
+  ERR__FUNCTOR("io_basic:peek_byte", 2);
+  int i, errcode;
+  stream_node_t *s;
+  
+  s = stream_to_ptr_check(X(0), 'r', &errcode);
+  if (!s) {
+    BUILTIN_ERROR(errcode,X(0),1);
+  }
+
+  i = readbyte(Arg,s,PEEK,address_peek_byte2);
   if (i == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
@@ -1314,7 +1358,7 @@ CBOOL__PROTO(prolog_fast_read_in_c) {
 
   /* NULL as predaddress (really did not bother to find out what to put)  */
 
-  i = readbyte(Arg, Input_Stream_Ptr, NULL);
+  i = readbyte(Arg, Input_Stream_Ptr, GET, NULL);
   if (i == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
@@ -1345,7 +1389,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
   unsigned char *s = (unsigned char *) Atom_Buffer;
   int base;
   
-  k = readbyte(Arg, Input_Stream_Ptr, NULL);
+  k = readbyte(Arg, Input_Stream_Ptr, GET, NULL);
   if (k == BYTE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
@@ -1377,7 +1421,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
         EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2);
         s = (unsigned char *)Atom_Buffer+i;
       }
-      j = readbyte(Arg, Input_Stream_Ptr, NULL);
+      j = readbyte(Arg, Input_Stream_Ptr, GET, NULL);
       if (j == BYTE_PAST_EOF) {
         BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
       }
@@ -1419,7 +1463,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       CHECK_HEAP_SPACE;
       return TRUE;
     case 'S':
-      i = readbyte(Arg, Input_Stream_Ptr, NULL);
+      i = readbyte(Arg, Input_Stream_Ptr, GET, NULL);
       if (i == BYTE_PAST_EOF) {
         BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
       }

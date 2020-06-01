@@ -362,6 +362,10 @@ definition_t *address_get1;
 definition_t *address_get12;
 definition_t *address_peek;
 definition_t *address_peek2;
+definition_t *address_get_byte1;
+definition_t *address_get_byte2;
+definition_t *address_peek_byte1;
+definition_t *address_peek_byte2;
 definition_t *address_skip;
 definition_t *address_skip2;
 definition_t *address_skip_line;
@@ -1121,12 +1125,12 @@ void init_once(void)
   define_c_mod_predicate("io_basic","tab",2,tab2);
   address_skip = define_c_mod_predicate("io_basic","skip_code",1,skip);
   address_skip2 = define_c_mod_predicate("io_basic","skip_code",2,skip2);
-  address_skip_line =
-    define_c_mod_predicate("io_basic","skip_line",0,skip_line);
-  address_skip_line1 =
-    define_c_mod_predicate("io_basic","skip_line",1,skip_line1);
-  define_c_mod_predicate("io_basic","get_byte",1,get_byte1);
-  define_c_mod_predicate("io_basic","get_byte",2,get_byte2);
+  address_skip_line = define_c_mod_predicate("io_basic","skip_line",0,skip_line);
+  address_skip_line1 = define_c_mod_predicate("io_basic","skip_line",1,skip_line1);
+  address_get_byte1 = define_c_mod_predicate("io_basic","get_byte",1,get_byte1);
+  address_get_byte2 = define_c_mod_predicate("io_basic","get_byte",2,get_byte2);
+  address_peek_byte1 = define_c_mod_predicate("io_basic","peek_byte",1,peek_byte1);
+  address_peek_byte2 = define_c_mod_predicate("io_basic","peek_byte",2,peek_byte2);
   define_c_mod_predicate("io_basic","put_byte",1,put_byte1);
   define_c_mod_predicate("io_basic","put_byte",2,put_byte2);
   define_c_mod_predicate("io_basic","display",1,prolog_display);

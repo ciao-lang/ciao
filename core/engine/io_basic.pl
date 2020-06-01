@@ -5,7 +5,8 @@
     put_code/2, put_code/1, nl/1, nl/0, tab/2, tab/1,
     code_class/2, string_bytes/2,
     getct/2, getct1/2,
-    get_byte/2, get_byte/1, put_byte/2, put_byte/1, 
+    get_byte/2, get_byte/1, peek_byte/2, peek_byte/1,
+    put_byte/2, put_byte/1, 
     display/2, display/1, displayq/2, displayq/1],
     [assertions, nortchecks, nativeprops, isomodes]).
 
@@ -249,7 +250,7 @@ is_ascii([C|Cs]) :- integer(C), C>=0, C<0x80, is_ascii(Cs).
 
 :- doc(section,"Byte Input/Output").
 
-:- doc(get_byte(Stream, Byte), "Reads from @var{Stream} the next code
+:- doc(get_byte(Stream, Byte), "Reads from @var{Stream} the next byte
    and unifies it with @var{Byte}.  At end of stream, unifies
    @var{Byte} with the integer -1.").
 
@@ -263,6 +264,19 @@ is_ascii([C|Cs]) :- integer(C), C>=0, C<0x80, is_ascii(Cs).
 :- trust pred get_byte(?int) + (iso, native).
 %:- trust pred get_byte(?in_byte) + (iso, native).
 :- impl_defined(get_byte/1).
+
+:- doc(peek_byte(Stream, Byte), "Unifies @var{Byte} with the next byte
+   of @var{Stream}, leaving the stream position unaltered.  At end of
+   stream, unifies @var{Byte} with the integer -1.").
+
+:- trust pred peek_byte(+stream, ?int) + iso.
+:- impl_defined(peek_byte/2).
+
+:- doc(peek_byte(Byte), "Behaves like @tt{current_input(S),
+   peek_byte(S,Byte)}.").
+
+:- trust pred peek_byte(?int) + iso.
+:- impl_defined(peek_byte/1).
 
 :- doc(put_byte(Stream, Byte), "Outputs to @var{Stream} the byte
    @var{Byte}.").

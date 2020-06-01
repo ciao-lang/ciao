@@ -47,6 +47,7 @@
     nl/0,
     tab/1,
     get_byte/1,
+    peek_byte/1,
     put_byte/1, 
     display/1,
     displayq/1

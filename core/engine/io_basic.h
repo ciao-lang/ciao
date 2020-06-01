@@ -33,6 +33,8 @@ CBOOL__PROTO(skip_line);
 CBOOL__PROTO(skip_line1);
 CBOOL__PROTO(get_byte1);
 CBOOL__PROTO(get_byte2);
+CBOOL__PROTO(peek_byte1);
+CBOOL__PROTO(peek_byte2);
 CBOOL__PROTO(put_byte1);
 CBOOL__PROTO(put_byte2);
 CVOID__PROTO(print_string, stream_node_t *stream, char *p);

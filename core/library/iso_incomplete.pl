@@ -17,6 +17,7 @@
     nl/1, 
     tab/2, 
     get_byte/2, 
+    peek_byte/2, 
     put_byte/2, 
     display/2, 
     displayq/2, 
@@ -229,6 +230,7 @@ put_code(S,A) :- resolve_stream_alias(S, S2), io_basic:put_code(S2,A).
 nl(S) :- resolve_stream_alias(S, S2), io_basic:nl(S2).
 tab(S,A) :- resolve_stream_alias(S, S2), io_basic:tab(S2,A).
 get_byte(S,A) :- resolve_stream_alias(S, S2), io_basic:get_byte(S2,A).
+peek_byte(S,A) :- resolve_stream_alias(S, S2), io_basic:peek_byte(S2,A).
 put_byte(S,A) :- resolve_stream_alias(S, S2), io_basic:put_byte(S2,A).
 display(S,A) :- resolve_stream_alias(S, S2), io_basic:display(S2,A).
 displayq(S,A) :- resolve_stream_alias(S, S2), io_basic:displayq(S2,A).
