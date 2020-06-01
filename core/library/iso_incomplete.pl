@@ -11,6 +11,7 @@
     set_input/1, 
     set_output/1, 
     %
+    at_end_of_stream/1,
     get_code/2, 
     peek_code/2, 
     put_code/2, 
@@ -46,9 +47,6 @@
    predicates whose implementation is not yet complete.").
 
 :- doc(bug, "Introduce iso_incomplete/1 property? Or wait until we can merge them?"). 
-
-:- doc(bug, "at_end_of_stream :- not_yet_implemented.").
-:- doc(bug, "at_end_of_stream(_) :- not_yet_implemented.").
 
 :- doc(bug, "set_stream_position(_,_) :- not_yet_implemented.").
  
@@ -223,6 +221,8 @@ stream_prop(alias(Alias)) :- atm(Alias).
 
 set_input(S) :- resolve_stream_alias(S, S2), stream_basic:set_input(S2).
 set_output(S) :- resolve_stream_alias(S, S2), stream_basic:set_output(S2).
+
+at_end_of_stream(S) :- resolve_stream_alias(S, S2), io_basic:at_end_of_stream(S2).
 
 get_code(S,A) :- resolve_stream_alias(S, S2), io_basic:get_code(S2,A).
 peek_code(S,A) :- resolve_stream_alias(S, S2), io_basic:peek_code(S2,A).

@@ -7,6 +7,7 @@
     getct/2, getct1/2,
     get_byte/2, get_byte/1, peek_byte/2, peek_byte/1,
     put_byte/2, put_byte/1, 
+    at_end_of_stream/0, at_end_of_stream/1,
     display/2, display/1, displayq/2, displayq/1],
     [assertions, nortchecks, nativeprops, isomodes]).
 
@@ -291,6 +292,28 @@ is_ascii([C|Cs]) :- integer(C), C>=0, C<0x80, is_ascii(Cs).
 :- trust pred put_byte(+int) + (iso, native, is_det).
 %:- trust pred put_byte(+byte) + (iso, native, is_det).
 :- impl_defined(put_byte/1).
+
+:- doc(section, "Stream properties").
+
+:- export(at_end_of_stream/1).
+:- doc(at_end_of_stream(Stream), "@var{Stream} has a stream position
+   end-of-stream or past-end-of-stream. This predicate is provided for
+   ISO compatibility, but its usage is discouraged, since it cannot
+   reliably detect that no more data is available in the stream (e.g.,
+   without blocking). Use @pred{peek_byte/2} or @pred{peek_code/2}
+   instead.").
+
+% NOTE: Not compatible with other ISO implementations what require
+% implicitly peeking stream data
+:- trust pred at_end_of_stream(+stream) + iso.
+:- impl_defined(at_end_of_stream/1).
+
+:- export(at_end_of_stream/0).
+:- doc(at_end_of_stream, "Behaves like @tt{current_input(S),
+   at_end_of_stream(S)}.").
+
+:- trust pred at_end_of_stream + iso.
+:- impl_defined(at_end_of_stream/0).
 
 :- doc(section, "Terms Input/Output").
 

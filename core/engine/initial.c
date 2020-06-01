@@ -1133,6 +1133,8 @@ void init_once(void)
   address_peek_byte2 = define_c_mod_predicate("io_basic","peek_byte",2,peek_byte2);
   define_c_mod_predicate("io_basic","put_byte",1,put_byte1);
   define_c_mod_predicate("io_basic","put_byte",2,put_byte2);
+  define_c_mod_predicate("io_basic","at_end_of_stream",0,at_end_of_stream0);
+  define_c_mod_predicate("io_basic","at_end_of_stream",1,at_end_of_stream1);
   define_c_mod_predicate("io_basic","display",1,prolog_display);
   define_c_mod_predicate("io_basic","display",2,prolog_display2);
   define_c_mod_predicate("io_basic","displayq",1,prolog_displayq);

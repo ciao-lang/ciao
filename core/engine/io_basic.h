@@ -37,6 +37,8 @@ CBOOL__PROTO(peek_byte1);
 CBOOL__PROTO(peek_byte2);
 CBOOL__PROTO(put_byte1);
 CBOOL__PROTO(put_byte2);
+CBOOL__PROTO(at_end_of_stream0);
+CBOOL__PROTO(at_end_of_stream1);
 CVOID__PROTO(print_string, stream_node_t *stream, char *p);
 CVOID__PROTO(print_variable, stream_node_t *stream, tagged_t term);
 CVOID__PROTO(print_number, stream_node_t *stream, tagged_t term);

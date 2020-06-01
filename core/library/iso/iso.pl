@@ -49,6 +49,7 @@
     get_byte/1,
     peek_byte/1,
     put_byte/1, 
+    at_end_of_stream/0,
     display/1,
     displayq/1
 ]).

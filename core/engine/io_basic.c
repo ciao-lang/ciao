@@ -1084,6 +1084,46 @@ CBOOL__PROTO(put_byte2) {
 }
 
 /*----------------------------------------------------------------*/
+
+/* Return RUNE_EOF if we are 'at'-end-of-stream, RUNE_PAST_EOF if we
+   are 'past'-end-of-stream or 0 otherwise */
+static CFUN__PROTO(stream_end_of_stream, int, stream_node_t *s) {
+  FILE *f = s->streamfile;
+
+  if (s->streammode != 's') { /* not a socket */
+    if (s->pending_rune == RUNE_EOF) {
+      return RUNE_EOF;
+    } else {
+      if (feof(f) && s->pending_rune == RUNE_VOID) {
+        return RUNE_PAST_EOF;
+      }
+    }
+    return 0; /* not EOF */
+  } else {/* a socket */
+    if (s->socket_eof) return RUNE_PAST_EOF;
+    return 0;
+  }
+}
+
+CBOOL__PROTO(at_end_of_stream0) {
+  //ERR__FUNCTOR("io_basic:at_end_of_stream0", 0);
+  return CFUN__EVAL(stream_end_of_stream, Input_Stream_Ptr) < 0;
+}
+
+CBOOL__PROTO(at_end_of_stream1) {
+  ERR__FUNCTOR("io_basic:at_end_of_stream1", 1);
+  int errcode;
+  stream_node_t *s;
+
+  s = stream_to_ptr_check(X(0), 'r', &errcode);
+  if (!s) {
+    BUILTIN_ERROR(errcode,X(0),1);
+  }
+
+  return CFUN__EVAL(stream_end_of_stream, s) < 0;
+}
+
+/*----------------------------------------------------------------*/
 /* NOTE: Moved from stream_basic.c (DCG) */
 /*----------------------------------------------------------------*/
 
