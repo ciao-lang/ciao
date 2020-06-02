@@ -232,7 +232,7 @@ rtchecks_sentence_tr(end_of_file, Clauses, M, _) :-
     cleanup_db_0(M).
 rtchecks_sentence_tr(Sentence, Sentence0, M, Dict) :-
     ( do_rtchecks_sentence_tr(Sentence, Sentence0, M, Dict) -> true
-    ; Sentence = Sentence0 ).
+    ; Sentence = Sentence0 ). % TODO: fail instead?
 
 do_rtchecks_sentence_tr((Head :- Body), Clauses, M, Dict) :-
     !,
@@ -243,6 +243,9 @@ do_rtchecks_sentence_tr((:- Decl),[],_,_) :-
     PropImpl = :(_ModImpl,/(ImplF,ImplA)),
     asserta_fact(rtc_impl(DefF, DefA, inst, ImplF, ImplA)).
 do_rtchecks_sentence_tr((:- _Decl), _, _, _) :-
+    !,
+    fail.
+do_rtchecks_sentence_tr((?- _), _, _, _) :-
     !,
     fail.
 do_rtchecks_sentence_tr(Head, Clauses, M, Dict) :-
