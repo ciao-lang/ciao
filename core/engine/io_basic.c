@@ -1085,21 +1085,36 @@ CBOOL__PROTO(put_byte2) {
 
 /*----------------------------------------------------------------*/
 
+// TODO: set dopeek=FALSE for end_of_stream(_) property
+
 /* Return RUNE_EOF if we are 'at'-end-of-stream, RUNE_PAST_EOF if we
-   are 'past'-end-of-stream or 0 otherwise */
-static CFUN__PROTO(stream_end_of_stream, int, stream_node_t *s) {
+   are 'past'-end-of-stream or 0 otherwise. If 'dopeek' then a byte
+   will be peeked (if possible) to determine if the stream has data. */
+static CFUN__PROTO(stream_end_of_stream, int, stream_node_t *s, bool_t dopeek) {
   FILE *f = s->streamfile;
+  int i;
 
   if (s->streammode != 's') { /* not a socket */
-    if (s->pending_rune == RUNE_EOF) {
-      return RUNE_EOF;
-    } else {
-      if (feof(f) && s->pending_rune == RUNE_VOID) {
-        return RUNE_PAST_EOF;
+    if (s->pending_rune == RUNE_VOID) {
+      if (feof(f)) return RUNE_PAST_EOF;
+      if (dopeek) { /* peek a byte */
+        i = c_getc(f);
+        if (i < 0) { /* EOF */
+          if (s->isatty) { /* ignore errors in tty */ /* TODO: sure? */
+            clearerr(f);
+          } else {
+            if (ferror(f)) IO_ERROR("getc() in stream_end_of_stream()");
+          }
+          return RUNE_EOF;
+        } else { /* not EOF */
+          ungetc(i, f);
+        }
       }
+      return 0;
+    } else { /* There was a char returned by peek */
+      return (s->pending_rune == RUNE_EOF ? RUNE_EOF : 0);
     }
-    return 0; /* not EOF */
-  } else {/* a socket */
+  } else { /* a socket */
     if (s->socket_eof) return RUNE_PAST_EOF;
     return 0;
   }
@@ -1107,7 +1122,7 @@ static CFUN__PROTO(stream_end_of_stream, int, stream_node_t *s) {
 
 CBOOL__PROTO(at_end_of_stream0) {
   //ERR__FUNCTOR("io_basic:at_end_of_stream0", 0);
-  return CFUN__EVAL(stream_end_of_stream, Input_Stream_Ptr) < 0;
+  return CFUN__EVAL(stream_end_of_stream, Input_Stream_Ptr, TRUE) < 0;
 }
 
 CBOOL__PROTO(at_end_of_stream1) {
@@ -1120,7 +1135,7 @@ CBOOL__PROTO(at_end_of_stream1) {
     BUILTIN_ERROR(errcode,X(0),1);
   }
 
-  return CFUN__EVAL(stream_end_of_stream, s) < 0;
+  return CFUN__EVAL(stream_end_of_stream, s, TRUE) < 0;
 }
 
 /*----------------------------------------------------------------*/
