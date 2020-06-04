@@ -475,7 +475,7 @@ static CFUN__PROTO(readrune, int, stream_node_t *s, int op_type,
       }
     }
   } else if (s->streammode != 's') { /* not a socket */
-    if (feof(f) && s->pending_rune == RUNE_VOID) {
+    if (s->pending_rune == RUNE_VOID && feof(f)) {
       return RUNE_PAST_EOF; /* attempt to read past end of stream */
     }
     
@@ -545,47 +545,66 @@ static CFUN__PROTO(readbyte, int, stream_node_t *s, int op_type,
       /* fflush(stdout); into print_string() MCL */
     }
 
-    /* ignore errors in tty */
-    i = c_getc(f);
-    if (i==BYTE_EOF) clearerr(f);
-    if (op_type == PEEK && i != BYTE_EOF) {
-      ungetc(i, f);
+    if (s->pending_rune == RUNE_VOID) { /* There is no char returned by peek */
+      /* ignore errors in tty */
+      i = c_getc(f);
+    } else {
+      i = s->pending_rune;
+      s->pending_rune = RUNE_VOID;
     }
+      
+    if (op_type == PEEK) { /* read_give_back_cond */
+      s->pending_rune = i;
+    }
+
+    if (i==BYTE_EOF) clearerr(f);
     
     int_address = NULL; 
     return i;
   } else if (s->streammode != 's') { /* not a socket */
-    if (feof(f)) return BYTE_PAST_EOF; /* attempt to read past end of stream */
-    i = c_getc(f);
-    if (i < 0 && ferror(f)) {
-      IO_ERROR("getc() in readbyte()");
+    if (s->pending_rune == RUNE_VOID && feof(f)) {
+      return BYTE_PAST_EOF; /* attempt to read past end of stream */
     }
-    if (op_type == PEEK && i != BYTE_EOF) {
-      ungetc(i, f);
+    if (s->pending_rune != RUNE_VOID) { /* There is a char returned by peek */
+      i = s->pending_rune;
+      s->pending_rune = RUNE_VOID;
+    } else {
+      i = c_getc(f);
+      if (i < 0 && ferror(f)) {
+        IO_ERROR("getc() in readbyte()");
+      }
+    }
+    if (op_type == PEEK) { /* read_give_back_cond */
+      s->pending_rune = i;
     }
     return i;
   } else { /* a socket */
-    if (op_type == PEEK) {
-      IO_ERROR("peek not supported for streams in readbyte()"); /* TODO: better error */
-    }
-
     unsigned char ch;
     int fildes = GetInteger(s->label);
     
     if (s->socket_eof) return BYTE_PAST_EOF; /* attempt to read past end of stream */
     
-    switch(read(fildes, (void *)&ch, 1)) {
-    case 0:
-      i = BYTE_EOF;
-      break;
-    case 1: 
-      i = (int)ch;
-      break;
-    default:
-      IO_ERROR("read() in readbyte()");
+    if (s->pending_rune == RUNE_VOID) { /* There is a char returned by peek */
+      switch(read(fildes, (void *)&ch, 1)) {
+      case 0:
+        i = BYTE_EOF;
+        break;
+      case 1: 
+        i = (int)ch;
+        break;
+      default:
+        IO_ERROR("read() in readbyte()");
+      }
+    } else {
+      i = s->pending_rune;
+      s->pending_rune = RUNE_VOID;
     }
 
-    if (i==BYTE_EOF) s->socket_eof = TRUE;
+    if (op_type == PEEK) { /* read_give_back_cond */
+      s->pending_rune = i;
+    } else {
+      if (i==BYTE_EOF) s->socket_eof = TRUE;
+    }
 
     return i;
   }
@@ -1095,8 +1114,13 @@ static CFUN__PROTO(stream_end_of_stream, int, stream_node_t *s, bool_t dopeek) {
   int i;
 
   if (s->streammode != 's') { /* not a socket */
-    if (s->pending_rune == RUNE_VOID) {
-      if (feof(f)) return RUNE_PAST_EOF;
+    if (s->pending_rune == RUNE_VOID && feof(f)) {
+      return RUNE_PAST_EOF; /* attempt to read past end of stream */
+    }
+    if (s->pending_rune != RUNE_VOID) { /* There is a char returned by peek */
+      return (s->pending_rune == RUNE_EOF ? RUNE_EOF : 0);
+    } else {
+      /* TODO: "pending_rune" should be a small byte buffer */
       if (dopeek) { /* peek a byte */
         i = c_getc(f);
         if (i < 0) { /* EOF */
@@ -1105,18 +1129,43 @@ static CFUN__PROTO(stream_end_of_stream, int, stream_node_t *s, bool_t dopeek) {
           } else {
             if (ferror(f)) IO_ERROR("getc() in stream_end_of_stream()");
           }
+          s->pending_rune = i;
           return RUNE_EOF;
         } else { /* not EOF */
-          ungetc(i, f);
+          s->pending_rune = i; /* TODO: pending byte */
         }
       }
       return 0;
-    } else { /* There was a char returned by peek */
-      return (s->pending_rune == RUNE_EOF ? RUNE_EOF : 0);
     }
   } else { /* a socket */
-    if (s->socket_eof) return RUNE_PAST_EOF;
-    return 0;
+    unsigned char ch;
+    int fildes = GetInteger(s->label);
+
+    if (s->socket_eof) return RUNE_PAST_EOF; /* attempt to read past end of stream */
+
+    if (s->pending_rune == RUNE_VOID) { /* There is a char returned by peek */
+      if (dopeek) { /* peek a byte */
+        switch(read(fildes, (void *)&ch, 1)) {
+        case 0:
+          i = BYTE_EOF;
+          break;
+        case 1: 
+          i = (int)ch;
+          break;
+        default:
+          IO_ERROR("read() in readbyte()");
+        }
+        if (i < 0) { /* EOF */
+          s->pending_rune = i;
+          return RUNE_EOF;
+        } else { /* not EOF */
+          s->pending_rune = i; /* TODO: pending byte */
+        }
+      }
+      return 0;
+    } else {
+      return (s->pending_rune == RUNE_EOF ? RUNE_EOF : 0);
+    }
   }
 }
 
