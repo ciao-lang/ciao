@@ -1244,7 +1244,7 @@ void init_once(void)
   define_c_mod_predicate("foreign_compilation","foreign_opts_ld", 1, prolog_get_foreign_opts_ld);
   define_c_mod_predicate("foreign_compilation","foreign_opts_ccshared", 1, prolog_get_foreign_opts_ccshared);
   define_c_mod_predicate("foreign_compilation","foreign_opts_ldshared", 1, prolog_get_foreign_opts_ldshared);
-  define_c_mod_predicate("internals","$ciao_version", 6, prolog_version);
+  define_c_mod_predicate("internals","$ciao_version", 7, prolog_version);
 
   define_c_mod_predicate("internals","$find_file",8,prolog_find_file); 
   define_c_mod_predicate("internals","$path_is_absolute",1,prolog_path_is_absolute); 

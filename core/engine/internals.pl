@@ -36,12 +36,12 @@
 :- export('$bootversion'/0).
 :- impl_defined('$bootversion'/0).
 
-:- export('$ciao_version'/6).
-:- trust pred '$ciao_version'(Version, Patch,
-                          CommitBranch, CommitId, CommitDate, CommitDesc) =>
-    (atm(Version), atm(Patch),
+:- export('$ciao_version'/7).
+:- trust pred '$ciao_version'(Major, Minor, Patch,
+                              CommitBranch, CommitId, CommitDate, CommitDesc) =>
+    (int(Major), int(Minor), int(Patch),
      atm(CommitBranch), atm(CommitId), atm(CommitDate), atm(CommitDesc)).
-:- impl_defined('$ciao_version'/6).
+:- impl_defined('$ciao_version'/7).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Stream support").

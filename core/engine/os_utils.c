@@ -2142,23 +2142,25 @@ extern char *ciao_commit_date;
 extern char *ciao_commit_desc;
 
 /*
- *  $ciao_version(?Version, ?Patch, ?CommitBranch, ?CommitId, ?CommitDate, ?CommitDesc) 
- *    for current_prolog_flag(version, ?V).
+ *  $ciao_version(?Major, ?Minor, ?Patch,
+ *    ?CommitBranch, ?CommitId, ?CommitDate, ?CommitDesc) 
+ *    for current_prolog_flag(version_data, ?V).
  */
-CBOOL__PROTO(prolog_version)
-{
+CBOOL__PROTO(prolog_version) {
   DEREF(X(0), X(0));
   DEREF(X(1), X(1));
   DEREF(X(2), X(2));
   DEREF(X(3), X(3));
   DEREF(X(4), X(4));
   DEREF(X(5), X(5));
-  return (cunify(Arg, GET_ATOM(ciao_version),  X(0)) &&
-          cunify(Arg, GET_ATOM(ciao_patch),    X(1)) &&
-          cunify(Arg, GET_ATOM(ciao_commit_branch), X(2)) &&
-          cunify(Arg, GET_ATOM(ciao_commit_id), X(3)) &&
-          cunify(Arg, GET_ATOM(ciao_commit_date), X(4)) &&
-          cunify(Arg, GET_ATOM(ciao_commit_desc), X(5)));
+  DEREF(X(6), X(6));
+  return (cunify(Arg, MakeSmall(CIAO_MAJOR_VERSION), X(0)) &&
+          cunify(Arg, MakeSmall(CIAO_MINOR_VERSION), X(1)) &&
+          cunify(Arg, MakeSmall(CIAO_PATCH_NUMBER),  X(2)) &&
+          cunify(Arg, GET_ATOM(ciao_commit_branch),  X(3)) &&
+          cunify(Arg, GET_ATOM(ciao_commit_id),      X(4)) &&
+          cunify(Arg, GET_ATOM(ciao_commit_date),    X(5)) &&
+          cunify(Arg, GET_ATOM(ciao_commit_desc),    X(6)));
 }
 
 extern char *ciao_suffix;

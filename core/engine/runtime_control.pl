@@ -615,7 +615,7 @@ current_heap_limit(Limit) :-
 % :- use_module(engine(internals), [
 %       '$unknown'/2, '$ferror_flag'/2, '$prompt'/2, '$unix_argv'/1,
 %       '$quiet_flag'/2, '$gc_trace'/2, '$gc_margin'/2, '$gc_mode'/2,
-%       '$compiling'/2, '$ciao_version'/6]).
+%       '$compiling'/2, '$ciao_version'/7]).
 
 %doinclude's below commented out because LPdoc does not allow yet a 
 %declaration and a predicate to have the same name.
@@ -739,11 +739,11 @@ prolog_flag_2(unknown, Old, New) :-
 prolog_flag_2(quiet, Old, New) :-
     flag_value(Old, New, [on, error, warning, debug, off]),
     '$quiet_flag'(Old, New).
-prolog_flag_2(version, Version_Term, Version_Term) :-
-    '$ciao_version'(Version, Patch,
+prolog_flag_2(version_data, Version, Version) :-
+    '$ciao_version'(Major, Minor, Patch,
                     CommitBranch, CommitId, CommitDate, CommitDesc),
     CommitInfo = commit_info(CommitBranch, CommitId, CommitDate, CommitDesc),
-    Version_Term = ciao(Version, Patch, CommitInfo).
+    Version = ciao(Major, Minor, Patch, CommitInfo).
 prolog_flag_2(dialect, ciao, ciao).
 prolog_flag_2(argv, Args, Args) :-
     '$unix_argv'(Args).

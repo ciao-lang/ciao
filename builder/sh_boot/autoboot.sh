@@ -93,6 +93,9 @@ builddir_version_info_boot() {
     mkdir -p "$bld_hdir/$eng_h_alias"
     cat > "$bld_hdir/$eng_h_alias/version.h" <<EOF
 #define CIAO_VERSION_STRING "Ciao (autoboot)"
+#define CIAO_MAJOR_VERSION 0
+#define CIAO_MINOR_VERSION 0
+#define CIAO_PATCH_NUMBER 0
 EOF
 
     # version.c:

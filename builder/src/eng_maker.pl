@@ -244,6 +244,8 @@ sh_def(Var,Val) -->
 
 atm(X) --> { atom_codes(X, Cs) }, str(Cs).
 
+num(X) --> { number_codes(X, Cs) }, str(Cs).
+
 str([]) --> [].
 str([C|Cs]) --> [C], str(Cs).
 
@@ -258,7 +260,7 @@ separate_with_blanks([A, B|Cs]) := [A, ' '|~separate_with_blanks([B|Cs])] :- !.
 :- doc(section, "Version info for engine").
 
 :- use_module(library(bundle/bundle_info), [bundle_version/2]).
-:- use_module(library(version_strings), [version_split_patch/3]).
+:- use_module(library(version_strings), [version_parse/4, version_split_patch/3]).
 :- use_module(ciaobld(bundle_hash), [bundle_commit_info/3]).
 
 % TODO: see generate_version_auto/2
@@ -294,7 +296,12 @@ gen_eng_version_c(VerBundle, Eng) :-
 version_h(Bundle) -->
     "#define CIAO_VERSION_STRING \"Ciao \" ",
     version_h_(Bundle),
-    "\n".
+    "\n",
+    { Version = ~bundle_version(Bundle) },
+    { version_parse(Version, Major, Minor, Patch) },
+    "#define CIAO_MAJOR_VERSION ", num(Major), "\n",
+    "#define CIAO_MINOR_VERSION ", num(Minor), "\n",
+    "#define CIAO_PATCH_NUMBER ", num(Patch), "\n".
 
 % TODO: Do not include commit info? Make version optional?
 version_h_(Bundle) -->
