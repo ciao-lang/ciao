@@ -33,6 +33,20 @@
 
 :- use_module(library(lists), [append/3]).
 
+:- export(version_parse/4).
+:- pred version_parse(VerAtm, Major, Minor, Patch) # "Parse a version
+   string into numeric values for major, minor, and patch numbers".
+
+version_parse(VerAtm, Major, Minor, Patch) :-
+    atom_codes(VerAtm, Ver0),
+    splitpre(Ver0, Ver, _Pre),
+    splitdots(Ver, Vs),
+    ids_to_terms(Vs, Ns),
+    ( Ns = [A,B,C] -> Major=A,Minor=B,Patch=C
+    ; Ns = [A,B] -> Major=A,Minor=B,Patch=0
+    ; Ns = [A] -> Major=A,Minor=0,Patch=0
+    ).
+
 :- export(version_split_patch/3).
 :- pred version_split_patch(VerAtm, VerNopatchAtm, PatchAtm) # "Split
    version @var{VerAtm} into major and minor @var{VerNopatchAtm}, and
