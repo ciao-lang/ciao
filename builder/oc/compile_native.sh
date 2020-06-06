@@ -26,6 +26,9 @@ eng_cfg=$ENG_CFG
 c_files() {
     echo "engine__configuration.c"
     for m in `cat "$bld_engdir"/native_modules`; do
+        if [ x"${m}" = x"engine__main" ]; then
+            continue
+        fi
         echo "${m}.c"
     done
 }

@@ -70,6 +70,14 @@ ifeq ($(shell uname -s),Darwin)
     LIBTOOL_OPTS := -no_warning_for_no_symbols -c
 endif
 
+# Force including all symbols from static library (needed for linking
+# dynamic libraries)
+ifeq ($(CC),clang)
+    ADD_ENG_A := -Wl,-force_load $(ENG_A)
+else
+    ADD_ENG_A := -Wl,--whole-archive $(ENG_A) -Wl,--no-whole-archive
+endif
+
 .PHONY: engexec engexec_0 engexec_1 englib
 
 # Target for engine as an executable
@@ -85,7 +93,7 @@ $(ENG_EXEC): engexec_$(ENG_STUBMAIN_DYNAMIC)
 engexec_0: $(ENG_STUBMAIN_OBJ) $(ENG_ADDOBJ) $(ENG_A) 
 	$(LD) $(LDFLAGS) \
 	      $(ENG_STUBMAIN_OBJ) $(ENG_ADDOBJ) \
-	      $(ENG_A) \
+	      $(ADD_ENG_A) \
 	      $(ENG_DEPLIBS) \
 	      -o $(ENG_EXEC)
 
