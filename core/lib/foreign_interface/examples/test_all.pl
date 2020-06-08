@@ -2,6 +2,7 @@
 
 :- use_module(library(lists), [member/2]).
 :- use_module(library(format)).
+:- use_module(library(streams)).
 
 file(addresses,'addresses/objects').
 file(any_term,'any_term/any_term').

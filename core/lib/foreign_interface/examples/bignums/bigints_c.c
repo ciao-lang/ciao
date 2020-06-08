@@ -19,7 +19,7 @@ void make_smart_conversion_c(ciao_term  number_in,
       *how_converted = ciao_atom("string");
     } else { /* Must be a float */
       inter_float = ciao_get_c_double(number_in);
-      *number_out = ciao_float(inter_float);
+      *number_out = ciao_mk_c_double(inter_float);
       *how_converted = ciao_atom("float");
     }
 }
