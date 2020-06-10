@@ -48,7 +48,7 @@
 
 :- use_module(library(ctrlcclean), [delete_on_ctrlc/2]).
 :- use_module(engine(internals),   [module_concat/3]).
-:- use_module(library(foreign_interface/build_foreign_interface)). % JFMC
+:- use_module(library(compiler/build_foreign_interface)). % JFMC
 :- use_module(library(compiler/compressed_bytecode)). % OPA
 
 % Extension for ciao executables in Win32

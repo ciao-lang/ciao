@@ -72,7 +72,7 @@
 :- use_module(library(lists)).
 :- use_module(library(read)).
 :- use_module(library(operators)).
-:- use_module(library(foreign_interface/build_foreign_interface)). % JFMC
+:- use_module(library(compiler/build_foreign_interface)). % JFMC
 :- use_module(library(assertions/assrt_lib), [normalize_assertion/9,
     assertion_body/7, assertion_read/9, comps_to_goal/3]).
 

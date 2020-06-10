@@ -1,5 +1,11 @@
 :- module(foreign_interface_tr, [foreign_interface_tr/3], [assertions]).
 
+% Syntax translations for the foreign interface
+
+:- if(defined(optim_comp)).
+foreign_interface_tr((:- use_foreign_source(Spec)), 
+                      [(:- '$native_include_c_source'(Spec))], _).
+:- else.
 % BUG: The assertions are treated before being normalized
 foreign_interface_tr(Assertion, Decls, _Mod) :-
     is_assertion(Assertion),
@@ -29,3 +35,4 @@ foreign_prop(foreign(_)).
 foreign_prop(foreign).
 foreign_prop(foreign_low(_)).
 foreign_prop(foreign_low).
+:- endif.
