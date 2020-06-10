@@ -93,7 +93,7 @@ ciaopp_lite:
   dependencies:
     - install
 
-incanal_assrts:
+ciaopplite.test.incanal_assrts:
   stage: test
   script:
     - apk add bash # add bash for the test scripts
@@ -106,7 +106,7 @@ incanal_assrts:
   dependencies:
     - ciaopp_lite
 
-analyze_ciao:
+ciaopplite.analyze.core:
   stage: test
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
@@ -125,7 +125,28 @@ analyze_ciao:
   dependencies:
     - ciaopp_lite
 
-incanal_lite:
+ciaopplite.test.dd_rtchecks:
+  stage: test
+  script:
+    - apk add bash # add bash for the test scripts
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - sed -i '2i:- use_package(rtchecks).' bndls/ciaopp/src/plai/domains.pl
+    - sed -i '9i:- use_package(rtchecks).' bndls/ciaopp/src/plai/fixpo_dd.pl
+    - ciao clean ciaopp
+    - rm -f bndls/ciaopp_extra/ACTIVATE
+    - ciao rescan-bundles
+    - ciao build --bin ciaopp | builder/etc/ciao-no-errors
+    - cd bndls/ciaopp_tests/tests/incanal
+    - ./compile.sh
+    - ./incanal_intermod_bench_driver qsort del 1 gr --show-lat --steps 5
+    - ./incanal_intermod_bench_driver ann del 1 gr --show-lat --steps 5
+    - ./incanal_intermod_bench_driver rdtok del 1 gr --show-lat --steps 5
+  tags:
+    - ciao_test_base
+  dependencies:
+    - ciaopp_lite
+
+ciaopplite.test.incanal:
   stage: test
   script:
     - apk add bash # add bash for the test scripts
