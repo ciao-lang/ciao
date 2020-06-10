@@ -26,7 +26,7 @@ configure:
 build:
   stage: build
   script:
-    - ./ciao-boot.sh build --bin core builder ciaodbg | builder/etc/ciao-no-errors
+    - ./ciao-boot.sh build --bin core builder ciaodbg | builder/etc/errstatus
   tags:
     - ciao_test_base
   artifacts:
@@ -41,7 +41,7 @@ build:
 install:
   stage: install
   script:
-    - ./ciao-boot.sh install | builder/etc/ciao-no-errors
+    - ./ciao-boot.sh install | builder/etc/errstatus
   tags:
     - ciao_test_base
   artifacts:
@@ -62,7 +62,7 @@ ciaopp:
     - echo # ./ciao-boot.sh configure --ciao_ppl:enabled=no
     - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
     - ./ciao-boot.sh configure
-    - ./ciao-boot.sh build --bin -r ciaopp_extra ciaopp | builder/etc/ciao-no-errors
+    - ./ciao-boot.sh build --bin -r ciaopp_extra ciaopp | builder/etc/errstatus
   tags:
     - ciao_test_base
   artifacts:
@@ -81,7 +81,7 @@ ciaopp_lite:
     - ciao clean ciaopp
     - rm bndls/ciaopp_extra/ACTIVATE
     - ciao rescan-bundles
-    - ciao build --bin ciaopp | builder/etc/ciao-no-errors
+    - ciao build --bin ciaopp | builder/etc/errstatus
   tags:
     - ciao_test_base
   artifacts:
@@ -93,7 +93,7 @@ ciaopp_lite:
   dependencies:
     - install
 
-ciaopplite.test.incanal_assrts:
+ciaopp_lite.test.incanal_assrts:
   stage: test
   script:
     - apk add bash # add bash for the test scripts
@@ -106,13 +106,13 @@ ciaopplite.test.incanal_assrts:
   dependencies:
     - ciaopp_lite
 
-ciaopplite.analyze.core:
+ciaopp_lite.analyze.core:
   stage: test
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - touch bndls/ciaopp_batch/ACTIVATE
     - ciao rescan-bundles
-    - ciao build --bin ciaopp_batch | builder/etc/ciao-no-errors
+    - ciao build --bin ciaopp_batch | builder/etc/errstatus
     - ciaopp-batch gr core/lib/
   tags:
     - ciao_test_base
@@ -125,7 +125,7 @@ ciaopplite.analyze.core:
   dependencies:
     - ciaopp_lite
 
-ciaopplite.test.dd_rtchecks:
+ciaopp_lite.test.dd_rtchecks:
   stage: test
   script:
     - apk add bash # add bash for the test scripts
@@ -135,7 +135,7 @@ ciaopplite.test.dd_rtchecks:
     - ciao clean ciaopp
     - rm -f bndls/ciaopp_extra/ACTIVATE
     - ciao rescan-bundles
-    - ciao build --bin ciaopp | builder/etc/ciao-no-errors
+    - ciao build --bin ciaopp | builder/etc/errstatus
     - cd bndls/ciaopp_tests/tests/incanal
     - ./compile.sh
     - ./incanal_intermod_bench_driver qsort del 1 gr --show-lat --steps 5
@@ -146,7 +146,7 @@ ciaopplite.test.dd_rtchecks:
   dependencies:
     - ciaopp_lite
 
-ciaopplite.test.incanal:
+ciaopp_lite.test.incanal:
   stage: test
   script:
     - apk add bash # add bash for the test scripts
@@ -160,7 +160,7 @@ ciaopplite.test.incanal:
   dependencies:
     - ciaopp_lite
 
-ciaopp_tests:
+ciaopp_extra.test:
   stage: test
   allow_failure: true
   script:
@@ -172,7 +172,7 @@ ciaopp_tests:
   dependencies:
     - ciaopp
 
-ciaopp_res_tests:
+ciaopp_extra.test.resources:
   stage: test
   allow_failure: true
   script:
@@ -187,7 +187,7 @@ ciaopp_res_tests:
 lpdoc:
   stage: basic-bundles
   script:
-    - ./ciao-boot.sh build --bin lpdoc | builder/etc/ciao-no-errors
+    - ./ciao-boot.sh build --bin lpdoc | builder/etc/errstatus
   tags:
     - ciao_test_base
   dependencies:
@@ -199,7 +199,7 @@ bibutils:
     - touch bndls/bibutils/ACTIVATE
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao rescan-bundles
-    - ciao build --bin bibutils | builder/etc/ciao-no-errors
+    - ciao build --bin bibutils | builder/etc/errstatus
   tags:
     - ciao_test_base
   dependencies:
@@ -208,7 +208,7 @@ bibutils:
 jvm_in_ciao:
   stage: basic-bundles
   script:
-    - ./ciao-boot.sh build --bin jvm_in_ciao | builder/etc/ciao-no-errors
+    - ./ciao-boot.sh build --bin jvm_in_ciao | builder/etc/errstatus
   tags:
     - ciao_test_base
   dependencies:
@@ -220,7 +220,7 @@ ciao_gui:
     - touch bndls/ciao_gui/ACTIVATE
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao rescan-bundles
-    - ciao build --bin ciao_gui | builder/etc/ciao-no-errors
+    - ciao build --bin ciao_gui | builder/etc/errstatus
   tags:
     - ciao_test_base
   dependencies:
@@ -239,7 +239,7 @@ wui:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao rescan-bundles
     - ciao custom_run wui fetch_externals
-    - ciao build --bin wui | builder/etc/ciao-no-errors
+    - ciao build --bin wui | builder/etc/errstatus
     - ciao custom_run wui dist
   tags:
     - ciao_test_base
@@ -261,13 +261,13 @@ catalog_ui:
     - touch bndls/catalog_ui/ACTIVATE
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao rescan-bundles
-    - ciao build --bin catalog_ui | builder/etc/ciao-no-errors
+    - ciao build --bin catalog_ui | builder/etc/errstatus
   tags:
     - ciao_test_base
   dependencies:
     - wui
 
-core_tests:
+core.test:
   stage: test
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
@@ -277,7 +277,7 @@ core_tests:
   dependencies:
     - install
 
-oc_tests:
+core_OC.test:
   stage: test
   script:
     - apk add bash # add bash (currently required for optim-comp scripts)
@@ -289,7 +289,7 @@ oc_tests:
   dependencies:
     - install
 
-rtchecks_testsuite:
+core.test.rtchecks:
   stage: test
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
@@ -299,7 +299,7 @@ rtchecks_testsuite:
   tags:
     - ciao_test_base
 
-unittest:
+ciaodbg.test.unittest:
   stage: test
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
@@ -309,7 +309,7 @@ unittest:
   tags:
     - ciao_test_base
 
-iso_tests:
+iso_tests.test:
   stage: test
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
@@ -318,13 +318,13 @@ iso_tests:
   tags:
     - ciao_test_base
 
-emacs_tests:
+ciao_emacs.test:
   stage: test
   script:
     - apk add emacs-nox
     - ./ciao-boot.sh configure --ciao_ppl:enabled=no
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao build ciao_emacs | builder/etc/ciao-no-errors
+    - ciao build ciao_emacs | builder/etc/errstatus
     - ciao test ciao_emacs
   tags:
     - ciao_test_base
