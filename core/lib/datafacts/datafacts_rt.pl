@@ -63,6 +63,7 @@
       predicate. The directive should precede all clauses of the
       affected predicates.  This directive is defined as a prefix
       operator in the compiler.".
+:- impl_defined(data/1).
 
 :- doc(doinclude,concurrent/1).
 :- decl concurrent(Predicates) : sequence_or_list(predname)
@@ -72,6 +73,7 @@
       file containing clauses for that predicate. The directive
       should precede all clauses of the affected predicates.  This
       directive is defined as a prefix operator in the compiler.".
+:- impl_defined(concurrent/1).
 :- endif.
 
 :- doc(asserta_fact(Fact), "@var{Fact} is added to the corresponding
