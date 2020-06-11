@@ -28,6 +28,8 @@
    then the '.c' extension will be automatically added".
 :- if(defined(optim_comp)).
 :- '$props'(use_foreign_source/1, [impnat=indefinable]).
+:- else.
+:- impl_defined(use_foreign_source/1).
 :- endif.
 
 :- doc(doinclude,use_foreign_source/2).
@@ -37,6 +39,8 @@
    O.S. and architecture.".
 :- if(defined(optim_comp)).
 :- '$props'(use_foreign_source/2, [impnat=indefinable]).
+:- else.
+:- impl_defined(use_foreign_source/2).
 :- endif.
 
 :- doc(doinclude,use_foreign_library/1).
@@ -46,6 +50,8 @@
    follow the @tt{-l} in the linker is needed.".
 :- if(defined(optim_comp)).
 :- '$props'(use_foreign_library/1, [impnat=indefinable]).
+:- else.
+:- impl_defined(use_foreign_library/1).
 :- endif.
 
 :- doc(doinclude,use_foreign_library/2).
@@ -53,6 +59,8 @@
    # "@var{Libs} are the OS and architecture dependant libraries.".
 :- if(defined(optim_comp)).
 :- '$props'(use_foreign_library/2, [impnat=indefinable]).
+:- else.
+:- impl_defined(use_foreign_library/2).
 :- endif.
 
 :- doc(doinclude,extra_compiler_opts/1).
@@ -61,6 +69,8 @@
    optimization options) that will be used during the compilation.".
 :- if(defined(optim_comp)).
 :- '$props'(extra_compiler_opts/1, [impnat=indefinable]).
+:- else.
+:- impl_defined(extra_compiler_opts/1).
 :- endif.
 
 :- doc(doinclude,extra_compiler_opts/2).
@@ -69,6 +79,8 @@
    compiler options.".
 :- if(defined(optim_comp)).
 :- '$props'(extra_compiler_opts/2, [impnat=indefinable]).
+:- else.
+:- impl_defined(extra_compiler_opts/2).
 :- endif.
 
 :- doc(doinclude,use_compiler/1).
@@ -79,6 +91,8 @@
    instead.".
 :- if(defined(optim_comp)).
 :- '$props'(use_compiler/1, [impnat=indefinable]).
+:- else.
+:- impl_defined(use_compiler/1).
 :- endif.
 
 :- doc(doinclude,use_compiler/2).
@@ -88,6 +102,8 @@
    is the same as in @pred{use_compiler/2}.".
 :- if(defined(optim_comp)).
 :- '$props'(use_compiler/2, [impnat=indefinable]).
+:- else.
+:- impl_defined(use_compiler/2).
 :- endif.
 
 :- doc(doinclude,extra_linker_opts/1).
@@ -96,6 +112,8 @@
    used during the linkage.".
 :- if(defined(optim_comp)).
 :- '$props'(extra_linker_opts/1, [impnat=indefinable]).
+:- else.
+:- impl_defined(extra_linker_opts/1).
 :- endif.
 
 :- doc(doinclude,extra_linker_opts/2).
@@ -104,6 +122,8 @@
    linker options.".
 :- if(defined(optim_comp)).
 :- '$props'(extra_linker_opts/2, [impnat=indefinable]).
+:- else.
+:- impl_defined(extra_linker_opts/2).
 :- endif.
 
 :- doc(doinclude,use_linker/1).
@@ -114,6 +134,8 @@
    instead.".
 :- if(defined(optim_comp)).
 :- '$props'(use_linker/1, [impnat=indefinable]).
+:- else.
+:- impl_defined(use_linker/1).
 :- endif.
 
 :- doc(doinclude,use_linker/2).
@@ -123,6 +145,8 @@
    same as in @pred{use_compiler/2}.".
 :- if(defined(optim_comp)).
 :- '$props'(use_linker/2, [impnat=indefinable]).
+:- else.
+:- impl_defined(use_linker/2).
 :- endif.
 
 % ---------------------------------------------------------------------------
