@@ -146,6 +146,7 @@
       as a package library to be included, and the arguments of the
       declaration (if present) are interpreted like the arguments of
       @decl{module/3}.".
+:- impl_defined(module/3).
 
 :- doc(doinclude,module/2).
 :- decl module(Name, Exports) : modulename * list(predname)
@@ -155,6 +156,7 @@
       features provided by most Prolog systems so that Prolog
       programs with traditional @decl{module/2} declarations can
       run without any change. See @ref{Classic Prolog}.".
+:- impl_defined(module/2).
 
 % ---------------------------------------------------------------------------
 
@@ -169,6 +171,7 @@
       declaration, in the absence of this directive, uses an
       implicit package @tt{default} (see @ref{Other predicates and
       features defined by default}).").
+:- impl_defined(use_package/1).
 
 :- decl use_package(Package) : sourcename.
 :- decl use_package(Package) : list(sourcename).
@@ -180,6 +183,7 @@
     # "Specifies that this code imports from the module defined in
       @var{Module} the predicates in @var{Imports}.  The imported
       predicates must be exported by the other module.".
+:- impl_defined(use_module/2).
 
 :- doc(doinclude,use_module/1).
 :- decl use_module(Module) : sourcename
@@ -188,6 +192,7 @@
       version with the explicit import list is preferred to this as
       it minimizes the chances to have to recompile this code if the
       other module changes.".
+:- impl_defined(use_module/1).
 
 :- doc(doinclude,import/2).
 :- decl import(Module, Imports) : modulename * list(predname)
@@ -217,6 +222,7 @@ main(X) :-
      b(X).
 @end{verbatim}
 ".
+:- impl_defined(import/2).
 
 :- doc(doinclude,reexport/2).
 :- decl reexport(Module, Preds) : sourcename * list(predname)
@@ -225,6 +231,7 @@ main(X) :-
       this module imports from the module defined in @var{Module}
       the predicates in @var{Preds}, an also that this module
       exports the predicates in @var{Preds} .".
+:- impl_defined(reexport/2).
 
 :- doc(doinclude,reexport/1).
 :- decl reexport(Module) : sourcename
@@ -233,6 +240,7 @@ main(X) :-
       this module imports from the module defined in @var{Module}
       all the predicates exported by it, an also that this module
       exports all such predicates .".
+:- impl_defined(reexport/1).
 
 :- doc(doinclude,ensure_loaded/1).
 :- decl ensure_loaded(File) : sourcename + iso
@@ -245,6 +253,7 @@ main(X) :-
       attractive features of Ciao (such as static debugging and
       global optimization) are only partially available for
       @tt{user} modules.".
+:- impl_defined(ensure_loaded/1).
 
 % ---------------------------------------------------------------------------
 
@@ -253,10 +262,12 @@ main(X) :-
     # "The contents of the file @var{File} are included in the
       current program text exactly as if they had been written in
       place of this directive.".
+:- impl_defined(include/1).
 
 % ---------------------------------------------------------------------------
 
 :- doc(doinclude,export/1).
+:- impl_defined(export/1).
 :- decl export(Pred) : predname
     # "Adds @var{Pred} to the set of exported predicates.".
 :- decl export(Exports) : list(predname)
@@ -271,6 +282,7 @@ main(X) :-
       precede all clauses of the affected predicates, and also
       dynamic/data declarations for the predicate.  This directive
       is defined as a prefix operator in the compiler.".
+:- impl_defined(multifile/1).
 
 :- doc(doinclude,meta_predicate/1).
 :- decl meta_predicate(MetaSpecs) : sequence(metaspec)
@@ -279,6 +291,7 @@ main(X) :-
       goals, etc).  @decl{meta_predicate/1} directives are only
       mandatory for exported predicates (in modules).  This
       directive is defined as a prefix operator in the compiler.".
+:- impl_defined(meta_predicate/1).
 
 :- doc(doinclude,redefining/1).
 :- decl redefining(Predicate) : compat(predname)
@@ -289,6 +302,7 @@ main(X) :-
       @var{Predicate} can be partially (or totally) uninstantiated,
       to allow disabling those warnings for several (or all) predicates at
       once.".
+:- impl_defined(redefining/1).
 
 :- doc(doinclude,discontiguous/1).
 :- decl discontiguous(Predicates) : sequence_or_list(predname) + iso
@@ -300,6 +314,7 @@ main(X) :-
       @em{discontiguous_warnings}).  The directive should
       precede all clauses of the affected predicates.  This
       directive is defined as a prefix operator in the compiler.".
+:- impl_defined(discontiguous/1).
 
 :- doc(doinclude,impl_defined/1).
 :- decl impl_defined(Predicates) : sequence_or_list(predname)
@@ -309,6 +324,7 @@ main(X) :-
       defined in a C file.  Otherwise, a warning is signaled by
       the compiler when an exported predicate is not defined in
       the module or imported from other module.".
+:- impl_defined(impl_defined/1).
 
 % ---------------------------------------------------------------------------
 
@@ -409,8 +425,10 @@ argspec(pred(N)) :-
       module/file never runs before the initializations of the modules
       from which the module/file imports (excluding circular 
       dependences).".
+:- impl_defined(initialization/1).
 
 :- doc(doinclude,on_abort/1).
 :- decl on_abort(Goal) : callable
     # "@var{Goal} will be executed after an abort of the execution of
       any program containing the current code.".
+:- impl_defined(on_abort/1).

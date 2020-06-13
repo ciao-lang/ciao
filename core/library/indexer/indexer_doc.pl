@@ -115,6 +115,7 @@
    can not be used in combination with other specifiers within a particular 
    index specification. It is often the fastest thing to use.
 ".
+:- impl_defined(index/1).
 
 :- doc(bug, "The semantics of cut (!) are not preserved with the
    'general' indexing scheme (see implementation). Translations should

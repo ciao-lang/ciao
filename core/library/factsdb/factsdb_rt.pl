@@ -20,6 +20,7 @@
    for the predicate is kept. The location @var{Keyword} is described in
    the @pred{file_alias} predicate, which must contain a fact in
    which the first argument unifies with @var{Keyword}.".
+:- impl_defined(facts/2).
 
 :- doc(doinclude,keyword/1).
 :- doc(keyword/1,"See @lib{persdb_rt}. The same conventions for location
