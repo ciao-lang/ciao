@@ -333,6 +333,18 @@ eng_build() { # (configure options)
     value_use_threads=yes
     parse_config_opts ${CIAOOPTS} "$@"
 
+    # TODO: hack for compatibility (do it properly)
+    cat > "$bld_hdir/ciao_prolog.h" <<EOF
+#include <engine/engine__ciao_prolog.h>
+EOF
+    mkdir -p "$bld_hdir/ciao"
+    cat > "$bld_hdir/ciao/datadefs.h" <<EOF
+#include <engine/basiccontrol.native.h>
+EOF
+    cat > "$bld_hdir/ciao/support_macros.h" <<EOF
+#include <engine/basiccontrol.native.h>
+EOF
+
     # "$builddir/bundlereg/core.bundlecfg_sh"
     cat > "$bld_cfgdir/core.bundlecfg_sh" <<EOF
 core__USE_THREADS=$value_use_threads
@@ -378,7 +390,7 @@ EOF
     emit_configuration_c > "$bld_cfgdir/engine/engine__configuration.c"
     emit_configuration_h > "$bld_cfgdir/engine/engine__configuration.h"
     rm ${CONFIGURE} # clean configure exec
-    
+
     cp "$bld_cfgdir/engine/engine__configuration.c" "$bld_cdir/engine__configuration.c" # TODO: hardwired
     #
     CFILES=`c_files`

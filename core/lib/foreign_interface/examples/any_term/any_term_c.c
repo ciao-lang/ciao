@@ -44,5 +44,3 @@ void custom_display_term(ciao_term term) {
     printf("<unknown/>");
   }
 }
-
-

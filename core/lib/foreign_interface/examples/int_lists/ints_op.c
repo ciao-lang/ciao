@@ -3,7 +3,6 @@
 
 void obtain_list(size_t n, size_t *l, int **s) {
   int i;
-  int c;
   *l = n;
   *s = (int *)malloc((*l) * sizeof(int));
   for (i = 0; i < *l; i++) {
@@ -23,10 +22,3 @@ void show_list(size_t l, int *s) {
     printf("From C: []\n");
   }
 }
-
-
-
-
-
-
-

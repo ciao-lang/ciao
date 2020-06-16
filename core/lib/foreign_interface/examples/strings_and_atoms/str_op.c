@@ -28,10 +28,3 @@ void put_str(char *s) {
     printf("From C: null\n");
   }
 }
-
-
-
-
-
-
-

@@ -1,8 +1,25 @@
 :- module(test_all, [main/0, test/1], []).
 
 :- use_module(library(lists), [member/2]).
-:- use_module(library(format)).
 :- use_module(library(streams)).
+:- use_module(library(format)).
+
+:- use_module(.(addresses/objects)).
+:- use_module(.(any_term)).
+:- use_module(.(bignums/bigints)).
+:- use_module(.(byte_lists)).
+:- use_module(.(exceptions/exceptions_example)).
+:- use_module(.(foreign_init)).
+:- use_module(.(int_lists)).
+:- use_module(.(math)).
+:- use_module(.(foreign_low/random)).
+:- use_module(.(strings_and_atoms)).
+
+main :-
+    file(X, _),
+    test(X),
+    fail.
+main.
 
 file(addresses,'addresses/objects').
 file(any_term,'any_term/any_term').
@@ -118,33 +135,3 @@ test(foreign_low) :-
     fail.
 test(foreign_low):- nl, nl, nl.
 
-:- use_package(foreign_interface).
-
-:- use_module(library(foreign_interface/examples/addresses/objects)).
-:- use_module(library(foreign_interface/examples/any_term)).
-:- use_module(library(foreign_interface/examples/bignums/bigints)).
-:- use_module(library(foreign_interface/examples/byte_lists)).
-:- use_module(library(foreign_interface/examples/exceptions/exceptions_example)).
-:- use_module(library(foreign_interface/examples/foreign_init)).
-:- use_module(library(foreign_interface/examples/int_lists)).
-:- use_module(library(foreign_interface/examples/math)).
-:- use_module(library(foreign_interface/examples/foreign_low/random)).
-:- use_module(library(foreign_interface/examples/strings_and_atoms)).
-
- %% rebuild_all :-
- %%     member(X,[addresses,byte_lists,math,strings_and_atoms]),
- %%     file(X,F),
- %%     (
- %%         rebuild_foreign_interface(F,_) ->
- %%         true
- %%     ;
- %%         format("failed rebuilding foreign interface for ~w~n",[X])
- %%     ),
- %%     fail.
- %% rebuild_all.
-
-main:-
-    file(X, _),
-    test(X),
-    fail.
-main.

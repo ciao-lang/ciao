@@ -9,4 +9,3 @@
 :- extra_compiler_opts('LINUXx86_64',['-ffast-math']).
 :- use_foreign_library('LINUXi686', m).
 :- use_foreign_library('LINUXx86_64', m).
-

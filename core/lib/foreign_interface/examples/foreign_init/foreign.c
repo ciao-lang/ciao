@@ -11,9 +11,3 @@ void init(void) {
 void print_time(void) {
   printf("This module was loaded at %s\n", ctime(&init_time));
 }
-
-
-
-
-
-

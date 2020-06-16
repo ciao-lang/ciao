@@ -280,14 +280,14 @@
     check       = ciao_is_atom_s,
     exception   = error_in_arg('STRICT_ATOM'),
     to_c        = ciao_atom_name_dup_s,
-    free        = free ]).
+    free        = ciao_free ]).
 :- ttr_def(go_atm, [
     ctype_decl  = pointer(char),
     ctype_res   = pointer(char),
     ctype_call  = pointer(pointer(char)),
     call_cref   = yes,
     from_c      = ciao_atom_s,
-    free        = free ]).
+    free        = ciao_free ]).
 
 :- ttr_match(in_string, (string, ground, ground)).
 :- ttr_match(go_string, (string, term, ground)).
@@ -297,14 +297,14 @@
     check       = ciao_is_char_code_list,
     exception   = error_in_arg('CHARACTER_CODE_LIST'),
     to_c        = ciao_list_to_str,
-    free        = free ]).
+    free        = ciao_free ]).
 :- ttr_def(go_string, [
     ctype_decl  = pointer(char),
     ctype_res   = pointer(char),
     ctype_call  = pointer(pointer(char)),
     call_cref   = yes,
     from_c      = ciao_str_to_list,
-    free        = free ]).
+    free        = ciao_free ]).
 
 :- ttr_match(in_address, (address, ground, ground)).
 :- ttr_match(go_address, (address, term, ground)).

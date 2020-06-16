@@ -359,7 +359,7 @@ check_list_correctness(Loc, PredName, DP, GP, Arguments, VarNames) :-
     one_list_for_each_size_of(Loc, PredName, DP, GP, Arguments),
     one_size_of_for_each(Loc, PredName, DP, GP, VarNames).
 
-is_c_list_prop(c_uint8_list(ListVar), c_int8, ListVar).
+is_c_list_prop(c_uint8_list(ListVar), c_uint8, ListVar).
 is_c_list_prop(c_int_list(ListVar), c_int, ListVar).
 is_c_list_prop(c_double_list(ListVar), c_double, ListVar).
 

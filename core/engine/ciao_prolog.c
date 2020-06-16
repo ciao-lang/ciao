@@ -4,8 +4,7 @@
  *  Ciao/C API for extending or embedding Ciao in C programs (as part
  *  of the foreign function interface).
  *
- *  Copyright (C) 2002 UPM-CLIP
- *  Copyright (C) 2002-2015 Ciao Developer Team
+ *  Copyright (C) 2002-2020 The Ciao Development Team
  */
 
 #include <ciao_prolog.h>
@@ -361,11 +360,11 @@ Def_ciao_mk_X(c_size, size_t, 4, MakeInteger, intmach_t)
 Def_ciao_mk_X(c_int8, int8_t, 4, MakeInteger, intmach_t)
 Def_ciao_mk_X(c_int16, int16_t, 4, MakeInteger, intmach_t)
 Def_ciao_mk_X(c_int32, int32_t, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_int64, int64_t, 4, MakeInteger, intmach_t) // WRONG in 32 bits
+Def_ciao_mk_X(c_int64, int64_t, 4, MakeInteger, intmach_t) // TODO: WRONG in 32 bits
 Def_ciao_mk_X(c_uint8, uint8_t, 4, MakeInteger, intmach_t)
 Def_ciao_mk_X(c_uint16, uint16_t, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_uint32, uint32_t, 4, MakeInteger, intmach_t) // WRONG in 32 bits (sign bit)
-Def_ciao_mk_X(c_uint64, uint64_t, 4, MakeInteger, intmach_t) // WRONG in 32 bits, WRONG in 64 bits (sign bit)
+Def_ciao_mk_X(c_uint32, uint32_t, 4, MakeInteger, intmach_t) // TODO: WRONG in 32 bits (sign bit)
+Def_ciao_mk_X(c_uint64, uint64_t, 4, MakeInteger, intmach_t) // TODO: WRONG in 32 bits, WRONG in 64 bits (sign bit)
 
 #define Def_ciao_get_X(CType, DeclType, Get) \
 DeclType ciao_get_##CType##_s(ciao_ctx ctx, ciao_term term) {   \
@@ -391,11 +390,11 @@ Def_ciao_get_X(c_size, size_t, GetInteger)
 Def_ciao_get_X(c_int8, int8_t, GetInteger)
 Def_ciao_get_X(c_int16, int16_t, GetInteger)
 Def_ciao_get_X(c_int32, int32_t, GetInteger)
-Def_ciao_get_X(c_int64, int64_t, GetInteger) // WRONG in 32 bits
+Def_ciao_get_X(c_int64, int64_t, GetInteger) // TODO: WRONG in 32 bits
 Def_ciao_get_X(c_uint8, uint8_t, GetInteger)
 Def_ciao_get_X(c_uint16, uint16_t, GetInteger)
-Def_ciao_get_X(c_uint32, uint32_t, GetInteger) // WRONG in 32 bits (sign bit)
-Def_ciao_get_X(c_uint64, uint64_t, GetInteger) // WRONG in 32 bits, WRONG in 64 bits (sign bit)
+Def_ciao_get_X(c_uint32, uint32_t, GetInteger) // TODO: WRONG in 32 bits (sign bit)
+Def_ciao_get_X(c_uint64, uint64_t, GetInteger) // TODO: WRONG in 32 bits, WRONG in 64 bits (sign bit)
 
 /* TODO: Assumes LP64 data model (sizeof(long) == sizeof(int *) == sizeof(tagged_t)) */
 ciao_bool ciao_fits_in_c_long_s(ciao_ctx ctx, ciao_term term) {
@@ -602,7 +601,7 @@ ciao_bool ciao_is_empty_list_s(ciao_ctx ctx, ciao_term term) {
   tagged_t t;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
-  return TaggedIsATM(t) && t == GET_ATOM("[]");
+  return TaggedIsATM(t) && t == GET_ATOM("[]"); // TODO: use predefined atom
 }
 
 ciao_bool ciao_is_empty_list(ciao_term term) {
@@ -671,7 +670,7 @@ ciao_term ciao_atom(const char *name) {
 }
 
 ciao_term ciao_empty_list_s(ciao_ctx ctx) {
-  return ciao_atom_s(ctx, "[]");
+  return ciao_atom_s(ctx, "[]"); // TODO: use predefined atom
 }
 
 ciao_term ciao_empty_list(void) {
@@ -679,7 +678,7 @@ ciao_term ciao_empty_list(void) {
 }
 
 ciao_term ciao_list_s(ciao_ctx ctx, ciao_term head, ciao_term tail) {
-  return ciao_structure_s(ctx, ".", 2, head, tail);
+  return ciao_structure_s(ctx, ".", 2, head, tail); // TODO: use predefined functor
 }
 
 ciao_term ciao_list(ciao_term head, ciao_term tail) {
@@ -778,7 +777,7 @@ ciao_bool ciao_equal_s(ciao_ctx ctx, ciao_term x, ciao_term y) {
   b = ciao_unref(ctx, y);
   DEREF(a, a);
   DEREF(b, b);
-  return a == b;
+  return a == b; // TODO: not exactly ==/2 builtin!
 }
 
 ciao_bool ciao_equal(ciao_term x, ciao_term y) {
@@ -818,7 +817,7 @@ ciao_bool ciao_is_char_code_list(ciao_ctx ctx, ciao_term term) {
   return cdr == atom_nil;
 }
 
-int ciao_is_int_list(ciao_ctx ctx, ciao_term term) {
+ciao_bool ciao_is_int_list(ciao_ctx ctx, ciao_term term) {
   tagged_t cdr, car;
 
   cdr = ciao_unref(ctx, term);
@@ -832,10 +831,10 @@ int ciao_is_int_list(ciao_ctx ctx, ciao_term term) {
     if (!IsInteger(car)) break;
     DerefCdr(cdr,cdr);
   }
-  return (cdr==atom_nil) ? 1 : 0;
+  return cdr == atom_nil;
 }
 
-int ciao_is_num_list(ciao_ctx ctx, ciao_term term) {
+ciao_bool ciao_is_num_list(ciao_ctx ctx, ciao_term term) {
   tagged_t cdr, car;
 
   cdr = ciao_unref(ctx, term);
@@ -849,7 +848,7 @@ int ciao_is_num_list(ciao_ctx ctx, ciao_term term) {
     if (!IsNumber(car)) break;
     DerefCdr(cdr,cdr);
   }
-  return (cdr==atom_nil) ? 1 : 0;
+  return cdr == atom_nil;
 }
 
 int ciao_list_length(ciao_ctx ctx, ciao_term term) {
@@ -1117,10 +1116,6 @@ void ciao_raise_exception(ciao_term exception) {
 
 /* ------------------------------------------------------------------------- */
 
-#define GARBAGE_PROTECTION
-
-#ifdef GARBAGE_PROTECTION 
-
 #define REF_TABLE_PAD 4
 #define REF_TABLE_CHUNK_SIZE 32
 #define REF_TABLE_CHUNKS 1
@@ -1220,10 +1215,6 @@ ciao_term ciao_ref(ciao_ctx ctx, tagged_t x) {
   return term;
 }
 
-ciao_term ciao_refer(tagged_t x) {
-  return ciao_ref(ciao_implicit_ctx,x);
-}
-
 tagged_t ciao_unref(ciao_ctx ctx, ciao_term term) {
   worker_t *w = ctx->worker_registers;
   tagged_t *pt1;
@@ -1235,6 +1226,10 @@ tagged_t ciao_unref(ciao_ctx ctx, ciao_term term) {
   return x;
 }
 
+// TODO: deprecate?
+ciao_term ciao_refer(tagged_t x) {
+  return ciao_ref(ciao_implicit_ctx,x);
+}
 tagged_t ciao_unrefer(ciao_term term) {
   return ciao_unref(ciao_implicit_ctx,term);
 }
@@ -1289,29 +1284,3 @@ void ciao_frame_re_end(void)
   ciao_frame_end();
 //  ciao_implicit_ctx = ciao_aux_ctx;
 }
-
-#else
-
-ciao_term ciao_ref(ciao_ctx ctx, tagged_t x) {
-  return (ciao_term)x;
-}
-
-tagged_t ciao_unref(ciao_ctx ctx, ciao_term term) {
-  return (tagged_t)term;
-}
-
-void ciao_frame_begin_s(ciao_ctx ctx) {
-}
-  
-void ciao_frame_end_s(ciao_ctx ctx) {
-}
-
-void ciao_frame_begin(void) {
-}
-  
-void ciao_frame_end(void) {
-}
-
-#endif
-
-

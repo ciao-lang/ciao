@@ -3,7 +3,6 @@
 
 void obtain_list(int n, size_t *l, unsigned char **s) {
   int i;
-  int c;
   if (n < 0) n = 0;
   *l = n;
   *s = (unsigned char *)malloc(*l);
@@ -24,10 +23,3 @@ void show_list(size_t l, unsigned char *s) {
     printf("From C: []\n");
   }
 }
-
-
-
-
-
-
-

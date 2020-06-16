@@ -1,10 +1,9 @@
 /*
  *  ciao_gluecode.h
  *
- *  Auxiliary definitions for Ciao gluecode files (foreign interface).
+ *  Extended Ciao/C API for gluecode generation (foreign interface).
  *
- *  Copyright (C) 2016 Jose F. Morales
- *  Copyright (C) 2002 UPM-CLIP
+ *  Copyright (C) 2002-2020 The Ciao Development Team
  */
 
 #ifndef _CIAO_GLUECODE_H
@@ -37,7 +36,5 @@ extern jmp_buf ciao_gluecode_jmpbuf;
     }
 
 ciao_term ciao_ref(ciao_ctx ctx, tagged_t x);
-/* TODO: ugly, better modify the gluecode generation */
-#define free ciao_free
 
 #endif /* _CIAO_GLUECODE_H */

@@ -3,8 +3,26 @@
 % Syntax translations for the foreign interface
 
 :- if(defined(optim_comp)).
+:- use_module(library(streams)).
+:- use_module(compiler(frontend), [callback__loc/3]).
+:- use_module(library(pathnames), [path_split/3]).
+:- use_module(compiler(store), [find_source/3]).
+:- endif.
+
+:- if(defined(optim_comp)).
 foreign_interface_tr((:- use_foreign_source(Spec)), 
-                      [(:- '$native_include_c_source'(Spec))], _).
+                      [(:- '$native_include_c_source'(Spec2))], M) :-
+    % TODO: fix file location in optim_comp
+    ( atom(Spec) ->
+        ( callback__loc(Src,_,_),
+          path_split(Src,Dir,_),
+          path_split(Dir,_,LastM),
+          LastM = M ->
+            Spec2 = '+'(Spec)
+        ; Spec2 = '.'(Spec)
+        )
+    ; Spec2 = Spec
+    ).
 :- else.
 % BUG: The assertions are treated before being normalized
 foreign_interface_tr(Assertion, Decls, _Mod) :-

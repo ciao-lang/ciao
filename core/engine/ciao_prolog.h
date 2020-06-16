@@ -4,8 +4,7 @@
  *  Ciao/C API for extending or embedding Ciao in C programs (as part
  *  of the foreign function interface).
  *
- *  Copyright (C) 2016 Jose F. Morales
- *  Copyright (C) 2002 UPM-CLIP
+ *  Copyright (C) 2002-2020 The Ciao Development Team
  */
 
 #ifndef _CIAO_PROLOG_H
@@ -19,6 +18,7 @@ extern "C" {
 #define ciao_true 1
 #define ciao_false 0
 
+/* TODO: do not include them here (use ciao_gluecode.h if needed) */
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
 
@@ -35,6 +35,8 @@ struct _ciao_query_ {
   ciao_ctx ctx;
   ciao_choice base_choice;
 };
+
+typedef _ciao_query_t ciao_query;
 
 /* Initialization */
 
@@ -156,7 +158,7 @@ ciao_term ciao_empty_list_s(ciao_ctx ctx);
 ciao_term ciao_empty_list(void);
 
 ciao_term ciao_dlist_a_s(ciao_ctx ctx, int len, ciao_term *args, ciao_term base);
-ciao_term ciao_dlist_a(int len, ciao_term *args, ciao_term  base);
+ciao_term ciao_dlist_a(int len, ciao_term *args, ciao_term base);
 
 ciao_term ciao_listn_a_s(ciao_ctx ctx, int len, ciao_term *args);
 ciao_term ciao_listn_a(int len, ciao_term *args);
@@ -239,8 +241,6 @@ void ciao_frame_re_end(void);
 
 /* Queries and calls */
 
-typedef _ciao_query_t ciao_query;
-
 ciao_query *ciao_query_begin_s(ciao_ctx ctx, const char *name, int arity, ...);
 ciao_query *ciao_query_begin(const char *name, int arity, ...);
 
@@ -254,7 +254,7 @@ void ciao_query_end(ciao_query *query);
 ciao_bool ciao_commit_call_s(ciao_ctx ctx, const char *name, int arity, ...);
 ciao_bool ciao_commit_call(const char *name, int arity, ...);
 
-ciao_bool ciao_commit_call_term_s(ciao_ctx ctx, ciao_term  goal);
+ciao_bool ciao_commit_call_term_s(ciao_ctx ctx, ciao_term goal);
 ciao_bool ciao_commit_call_term(ciao_term goal);
 
 /* Helper functions */
@@ -265,20 +265,20 @@ ciao_term ciao_copy_term(ciao_term src_term);
 /* =/2 */
 ciao_bool ciao_unify_s(ciao_ctx ctx, ciao_term x, ciao_term y);
 ciao_bool ciao_unify(ciao_term x, ciao_term y);
-/* ==/2 */
+/* ==/2 */ // TODO: not exactly ==/2 builtin!
 ciao_bool ciao_equal_s(ciao_ctx ctx, ciao_term x, ciao_term y);
 ciao_bool ciao_equal(ciao_term x, ciao_term y);
 
 /* Exceptions */
 
-void ciao_raise_exception_s(ciao_ctx ctx, ciao_term  exception);
+void ciao_raise_exception_s(ciao_ctx ctx, ciao_term exception);
 void ciao_raise_exception(ciao_term exception);
 
 /* Other data checks and conversions */
 
 ciao_bool ciao_is_char_code_list(ciao_ctx ctx, ciao_term term);
-int ciao_is_int_list(ciao_ctx ctx, ciao_term term);
-int ciao_is_num_list(ciao_ctx ctx, ciao_term term);
+ciao_bool ciao_is_int_list(ciao_ctx ctx, ciao_term term);
+ciao_bool ciao_is_num_list(ciao_ctx ctx, ciao_term term);
 int ciao_list_length(ciao_ctx ctx, ciao_term term);
 
 char *ciao_list_to_str(ciao_ctx ctx, ciao_term list);
