@@ -10,7 +10,7 @@
 
 :- if(defined(optim_comp)).
 :- use_package(hiord).
-:- use_package(compiler(complang_mini)).
+:- use_package(extmod).
 :- use_package(compiler(compiler_object)).
 :- else.
 :- use_module(engine(hiord_rt), [call/1]).
