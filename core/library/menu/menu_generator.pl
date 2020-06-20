@@ -380,13 +380,7 @@ ask_menu([CC|PR], NoPos, CurrentMenu, Result, Out) :-
     ask_menu(PR, NoPos, CurrentMenu, Result, Out).
 %
 ask_menu([CC|PR], NoPos, CurrentMenu, Result, Out) :-
-%    CC = cc${flag => O, message => Label, pre => PreG, post => PG},
-    CC = cc${flag => O, message => Label0, pre => PreG, post => PG},
-    % Add flag name to message
-    atom_concat(' (', O, O2),
-    atom_concat(O2, ')', O3),
-    atom_concat(Label0, O3, Label),
-    %
+    CC = cc${flag => O, message => Label, pre => PreG, post => PG},
     get_menu_options(CurrentMenu, O, OptsListArg),
     get_menu_flag(CurrentMenu, O, Default),
     %
