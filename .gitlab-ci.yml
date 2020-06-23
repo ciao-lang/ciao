@@ -110,9 +110,6 @@ ciaopp_lite.analyze.core:
   stage: test
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - touch bndls/ciaopp_batch/ACTIVATE
-    - ciao rescan-bundles
-    - ciao build --bin ciaopp_batch | builder/etc/errstatus
     - ciaopp-batch gr core/lib/
   tags:
     - ciao_test_base
