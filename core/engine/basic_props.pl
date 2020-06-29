@@ -260,7 +260,7 @@ operator_specifier(xf).
 list([]).
 list([_|L]) :- list(L).
 
-:- doc(list(L,T), "@var{L} is a list, and for all its elements,
+:- doc(list(T,L), "@var{L} is a list, and for all its elements,
    @var{T} holds.").
 
 :- prop list(T,L) + regtype # "@var{L} is a list of @var{T}s.".
