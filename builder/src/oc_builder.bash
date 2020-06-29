@@ -517,7 +517,7 @@ build_cmd() { # bundle cmd
     # TODO: use a directory per cmd and a PROPS file (like it is done for tests)?
     if [ -r ${cmdmain}.pl ]; then
         case "$bundle" in
-            core_OCjs) CIAOALIASPATH="compiler=$ciaoroot/core_OCjs/compiler" comp_testing --use-alias-path --dynexec ${cmdexec}${versuf} ${cmdmain} ;;
+            core_OCjs) CIAOALIASPATH="compiler=$ciaoroot/bndls/core_OCjs/compiler" comp_testing --use-alias-path --dynexec ${cmdexec}${versuf} ${cmdmain} ;;
             *) comp_testing --dynexec ${cmdexec}${versuf} ${cmdmain}
         esac
     elif [ -r ${cmdmain}.c ]; then # TODO: port to Prolog
