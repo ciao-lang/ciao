@@ -512,7 +512,10 @@ build_cmd() { # bundle cmd
     cmd=$1
     
     cmd_message "$bundle" "building ${cmd}""${vermsg}"" (command)"
-    cmdmain=$ciaoroot/$bundle/cmds/${cmd}
+    case "$bundle" in
+        core_OCjs) cmdmain=$ciaoroot/bndls/$bundle/cmds/${cmd} ;;
+        *) cmdmain=$ciaoroot/$bundle/cmds/${cmd}
+    esac
     cmdexec="$cache_bin_dir"/${cmd}
     # TODO: use a directory per cmd and a PROPS file (like it is done for tests)?
     if [ -r ${cmdmain}.pl ]; then
