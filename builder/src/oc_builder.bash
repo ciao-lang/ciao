@@ -402,7 +402,7 @@ setup() {
     comp_module=$ciaoroot/core_OC/cmds/comp
 
     # Set backup dir
-    backup_dir=$ciaoroot/core_OC/bootstrap/backup
+    backup_dir=$ciaoroot/core/bootstrap_oc/backup
 
     # Ensure that the temporary compiler directory exists
     mkdir -p ${tmpcomp_dir}
@@ -413,7 +413,7 @@ setup() {
     ok_step_file=${tmpcomp_dir}/ok_step
 
     # Compiler steps
-    bootstrap=$ciaoroot/core_OC/bootstrap/comp.tar
+    bootstrap=$ciaoroot/core/bootstrap_oc/comp.tar
     bootstrap_modif=${tmpcomp_dir}/bootstrap_modif
     comp[1]=${tmpcomp_dir}/comp1
     compb[1]=${tmpcomp_dir}/compb1

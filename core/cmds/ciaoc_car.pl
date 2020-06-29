@@ -46,7 +46,7 @@ $ ciaoc_car SRC DST
 :- doc(bug, "Merge with OptimComp's bootstrappable executables (static
    bytecode + autocompilable C code) -- this feature is not provided
    as a dynamic plug-in in OptimComp").
-:- doc(bug, "Merge $sh_boot_dir/car_exec_stub.sh with core_OC/compiler/scripts/run.sh").
+:- doc(bug, "Merge $sh_boot_dir/car_exec_stub.sh with builder/oc/run.sh").
 
 % (improvements)
 :- doc(bug, "Modify $sh_boot_dir/car_exec_stub.sh to auto-build if needed").

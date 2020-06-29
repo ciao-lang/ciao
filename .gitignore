@@ -30,7 +30,7 @@
 /build-boot/
 /build/
 /third-party/
-/core_OC/bootstrap/backup/
+/core/bootstrap_oc/backup/
 /tmp/
 ACTIVATE
 # Other automatically generated files which Ciao should eventually write under
