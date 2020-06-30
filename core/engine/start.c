@@ -309,6 +309,7 @@ int engine_start(int argc, char *argv[]) {
   const char **optv = NULL;
   prolog_argc = argc;
   prolog_argv = argv;
+  /* TODO: rewrite, user programs cannot use -C (JF) */
   for (i=1; i < argc; i++) { /* Detect the first "-C" */
     if (strcmp(argv[i], "-C") == 0) {
       /* set the number of program arguments */
