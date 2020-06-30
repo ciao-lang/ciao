@@ -76,8 +76,8 @@
 % Interactive toplevel (ciaosh) and ciao-script runtime (ciao-shell)
 
 '$builder_hook'(item_nested(shell)).
-'$builder_hook'(shell:cmd('ciaosh', [main='shell/ciaosh'])).
-'$builder_hook'(shell:cmd('ciao-shell', [main='shell/ciao-shell', static])).
+'$builder_hook'(shell:cmd('ciaosh', [main='cmds/ciaosh'])).
+'$builder_hook'(shell:cmd('ciao-shell', [main='cmds/ciao-shell', static])).
 
 % ---------------------------------------------------------------------------
 % Header for executables

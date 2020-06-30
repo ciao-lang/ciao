@@ -65,4 +65,4 @@
 % ---------------------------------------------------------------------------
 % The command
 
-'$builder_hook'(ciaoc:cmd('ciaoc', [main='ciaoc/ciaoc', bootstrap_ciaoc, static])).
+'$builder_hook'(ciaoc:cmd('ciaoc', [main='cmds/ciaoc', bootstrap_ciaoc, static])).
