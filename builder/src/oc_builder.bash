@@ -399,7 +399,7 @@ setup() {
     [ -z "$cache_dir" ] && exit -1 
 
     # Set the compiler module name
-    comp_module=$ciaoroot/core_OC/cmds/comp
+    comp_module=$ciaoroot/core/cmds/comp
 
     # Set backup dir
     backup_dir=$ciaoroot/core/bootstrap_oc/backup
@@ -465,7 +465,7 @@ set_cache_dir() {
 
 setup_install() {
     # Set loader module name
-    loader_module=$ciaoroot/core_OC/cmds/loader
+    loader_module=$ciaoroot/core/cmds/loader
     # Set loader executable
     loader="$cache_bin_dir"/ciaoloader
 }
@@ -537,15 +537,15 @@ build_cmds() {
 
     ensure_cache_bin_dir
     # TODO: identify available commands automatically
-    cmds="ciaodump ciaosh ciao-shell funcsize"
+    cmds="ciaodump-oc ciaosh ciao-shell funcsize"
     for cmd in ${cmds}; do
-        build_cmd "core_OC" ${cmd}
+        build_cmd "core" ${cmd}
     done
 
     # Post update cmds operations
     pushd "$cache_bin_dir" > /dev/null
     rm -f "$bin_dir"/ciaodump-oc${versuf}
-    ln -s "$cache_bin_dir"/ciaodump${versuf} "$bin_dir"/ciaodump-oc${versuf}
+    ln -s "$cache_bin_dir"/ciaodump-oc${versuf} "$bin_dir"/ciaodump-oc${versuf}
     rm -f "$bin_dir"/ciao-shell-oc${versuf}
     ln -s "$cache_bin_dir"/ciao-shell${versuf} "$bin_dir"/ciao-shell-oc${versuf}
     rm -f "$bin_dir"/ciaosh-oc${versuf}

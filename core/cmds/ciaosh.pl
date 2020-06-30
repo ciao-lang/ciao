@@ -1,4 +1,4 @@
-:- module(ciaosh, [main/1], []).
+:- module(_, [main/1], []).
 
 :- use_module(library(toplevel)).
 

@@ -271,7 +271,7 @@ EOF
     # Regenerate the compiler and tools
     ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$bin_dir"/ciao oc:clean-cache
     ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$bin_dir"/ciao oc:build-comp-testing
-    # Compile ciaodump for testing
+    # Compile ciaodump-oc for testing
     # Compile ciaoloader for testing
     ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$bin_dir"/ciao --stats oc:build-loader-testing && \
     ABSMACH_OPTGRP=${OPTGRP} ABSMACH_OPTS=${OPTS} "$bin_dir"/ciao oc:build-cmds-testing
