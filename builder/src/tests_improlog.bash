@@ -65,8 +65,9 @@ has_pl_ext() {
 }
 
 warn_nonempty_log() {
-    if [ -s ${1} ]; then
+    if [ -s "${1}" ]; then
         echo "Warning: log file ${1} is not empty!"
+        cat "${1}" # show log
     fi
 }
 
@@ -137,6 +138,7 @@ compile_one() {
             else
                 delete_exe ${execname}
                 echo " [Failed] (see log in ${logname})"
+                cat "${logname}" # show log
                 continue
             fi
         else
@@ -151,6 +153,7 @@ compile_one() {
                 warn_nonempty_log ${logname}
             else
                 echo " [Failed] (see log in ${logname})"
+                cat "${logname}" # show log
                 continue
             fi
         fi
