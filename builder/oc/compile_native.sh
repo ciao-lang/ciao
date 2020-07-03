@@ -306,8 +306,11 @@ eng_build() { # (configure options)
     mkdir -p "$bld_objdir"
 
     # TODO: see scan_bootstrap_opts.sh
-    boot__EXTRA_CFLAGS="-Werror -DWITH_COMPILER_VERSION=$COMPILER_VERSION $H_PATH"
-    boot__EXTRA_LDFLAGS=
+#    boot__EXTRA_CFLAGS="-Werror -DWITH_COMPILER_VERSION=$COMPILER_VERSION $H_PATH"
+#    boot__EXTRA_LDFLAGS=
+    # TODO: CIAOCCOPTS and CIAOLDOPTS for extra options for ImProlog (better way?)
+    boot__EXTRA_CFLAGS="-Werror -DWITH_COMPILER_VERSION=$COMPILER_VERSION $H_PATH $CIAOCCOPTS"
+    boot__EXTRA_LDFLAGS="$CIAOLDOPTS"
     boot__OS=`"$sh_src_dir"/config-sysdep/ciao_sysconf --os`
     boot__ARCH=`"$sh_src_dir"/config-sysdep/ciao_sysconf --arch`
     if test x"${REQUIRE64}" = x"yes"; then
