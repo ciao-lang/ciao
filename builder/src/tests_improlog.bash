@@ -30,8 +30,10 @@ out_dir=${regression_dir}/shootout-c/out
 # TODO: read input parameter in common.pl
 # TODO: improve syntax in ImProlog: merge lowpred and foreign props
 
-#gccopts0="-pipe -Wall -O3 -fomit-frame-pointer -march=pentium4 -mfpmath=sse -msse2"
-gccopts0="-pipe -Wall -O3 -fomit-frame-pointer -march=pentium4 -m32 -mfpmath=sse -msse2"
+#archopts="-march=pentium4 -mfpmath=sse -msse2"
+#archopts="-m32 -march=pentium4 -mfpmath=sse -msse2"
+archopts=""
+gccopts0="-pipe -Wall -O3 -fomit-frame-pointer $archopts"
 
 total_c=0
 total_improlog=0
@@ -47,12 +49,18 @@ catinput() {
     rm -f /tmp/buf
 }
 
+if which gtime > /dev/null; then
+    gtime=`which gtime`
+else
+    gtime=/usr/bin/time
+fi
+
 testexec() { # execname inputarg outputname timename
     if [ x"${inputfile}" == x ]; then
-        /usr/bin/time -a -o ${4} ${1} ${2} > ${3}
+        "$gtime" -a -o ${4} ${1} ${2} > ${3}
     else
-#       echo "catinput ${inputfile} ${inputrepeat} | /usr/bin/time -a -o ${4} ${1} ${2} > ${3}"
-        catinput ${inputfile} ${inputrepeat} | /usr/bin/time -a -o ${4} ${1} ${2} > ${3}
+#       echo "catinput ${inputfile} ${inputrepeat} | "$gtime" -a -o ${4} ${1} ${2} > ${3}"
+        catinput ${inputfile} ${inputrepeat} | "$gtime" -a -o ${4} ${1} ${2} > ${3}
     fi
 }
 
@@ -129,11 +137,14 @@ compile_one() {
             echo -n "Compiling ImProlog version: ${i}"
             total_improlog=$((${total_improlog} + 1))
             touch ${srcname} # TODO: a kludge..
+            echo
+            echo "$bin_dir"/ciao oc:comp --bootstrap ${execname} ${srcname}
+            echo
             if "$bin_dir"/ciao oc:comp --bootstrap ${execname} ${srcname} > ${logname} 2>&1; then
                 echo " [OK]"
                 warn_nonempty_log ${logname}
                 "$bin_dir"/ciao oc:car-clean "$execname".car
-                CIAOCCOPTS="${ciaoccopts}" CIAOLDOPTS="${ciaoldopts}" "$bin_dir"/ciao oc:car-build "$execname"
+                CIAOCCOPTS="${ciaoccopts}" CIAOLDOPTS="${ciaoldopts}" "$bin_dir"/ciao oc:car-build "$execname".car
                 ok_improlog=$((${ok_improlog} + 1))
             else
                 delete_exe ${execname}
@@ -257,24 +268,24 @@ test_opts() {
     ciaoldopts=
     case ${1} in
         binarytrees) 
-            ciaoccopts="-O3 -march=pentium4 -mfpmath=sse -msse2"
+            ciaoccopts="-O3 $archopts"
             gccopts="-lm"
             #range="12 14 16"
             range="16"
             ;;
         chameneos)
-            ciaoccopts="-O3 -march=pentium4 -mfpmath=sse -msse2"
+            ciaoccopts="-O3 $archopts"
             gccopts="-lpthread"
             #range="10000 100000 1000000"
             range="1000000"
             ;;
         fannkuch)
-            ciaoccopts="-O3 -march=pentium4 -mfpmath=sse -msse2"
+            ciaoccopts="-O3 $archopts"
             #range="9 10 11"
             range="10"
             ;;
         fasta)
-            ciaoccopts="-O3 -march=pentium4 -mfpmath=sse -msse2"
+            ciaoccopts="-O3 $archopts"
             #range="250000"
             range="250000"
             ;;
@@ -283,14 +294,14 @@ test_opts() {
             range="200"
             ;;
         knucleotide)
-            ciaoccopts="-O3 -march=pentium4 -mfpmath=sse -msse2"
+            ciaoccopts="-O3 $archopts"
             #range="10000 100000 1000000"
             range="1000000"
             inputfile="input/knucleotide-input.txt"
             ;;
         mandelbrot)
             gccopts="-D_ISOC9X_SOURCE -lm"
-            ciaoccopts="-O3 -march=pentium4 -mfpmath=sse -msse2"
+            ciaoccopts="-O3 $archopts"
             #range="400 600 3000"
             range="3000"
             ;;
@@ -310,24 +321,24 @@ test_opts() {
             ;;
         partialsums)
             gccopts="-lm"
-            ciaoccopts="-march=pentium4 -mfpmath=sse -msse2"
+            ciaoccopts="$archopts"
             #range="25000 250000 2500000"
             range="2500000"
             ;;
         pidigits)
             gccopts="-lgmp"
-            ciaoccopts="-march=pentium4 -mfpmath=sse -msse2"
+            ciaoccopts="$archopts"
             ciaoldopts="-lgmp"
             #range="1500 2500 5000"
             range="5000"
             ;;
         recursive)
-            ciaoccopts="-O3 -march=pentium4 -mfpmath=sse -msse2"
+            ciaoccopts="-O3 $archopts"
             #range="3 7 11"
             range="11"
             ;;
         regexdna)
-            ciaoccopts="-march=pentium4 -mfpmath=sse -msse2"
+            ciaoccopts="$archopts"
             ciaoldopts="-lpcre"
             gccopts="-lpcre"
             #range="100000 300000 500000"
@@ -341,13 +352,13 @@ test_opts() {
             inputfile="input/revcomp-input.txt"
             ;;
         spectralnorm)
-            ciaoccopts="-O3 -march=pentium4 -mfpmath=sse -msse2"
+            ciaoccopts="-O3 $archopts"
             gccopts="-lm"
             #range="500 3000 5500"
             range="2000"
             ;;
         sumcol)
-            ciaoccopts="-O3 -march=pentium4 -mfpmath=sse -msse2"
+            ciaoccopts="-O3 $archopts"
             gccopts="-lm"
             #range="1000 11000 21000"
             range="21000"
