@@ -1282,7 +1282,7 @@ CBOOL__PROTO(prolog_c_strerror) {
 #define BUF_MAX 65536
 
 CBOOL__PROTO(prolog_c_copy_file) {
-  ERR__FUNCTOR("system:copy_file", 2);
+  ERR__FUNCTOR("system:c_copy_file", 3);
   char *source, *destination;
   int fd_source, fd_destination, flags;
   int copy_flag;
