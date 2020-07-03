@@ -392,6 +392,9 @@ EOF
     rm ${CONFIGURE} # clean configure exec
 
     cp "$bld_cfgdir/engine/engine__configuration.c" "$bld_cdir/engine__configuration.c" # TODO: hardwired
+    if [ ! -f "$bld_cdir/engine__main.c" ]; then
+        touch "$bld_cdir/engine__main.c" # TODO: fake hardwired stub for standalone executables (e.g., ImProlog)
+    fi
     #
     CFILES=`c_files`
     cat > "$bld_cdir/eng_info_mk" <<EOF
