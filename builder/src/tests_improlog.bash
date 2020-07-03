@@ -137,9 +137,6 @@ compile_one() {
             echo -n "Compiling ImProlog version: ${i}"
             total_improlog=$((${total_improlog} + 1))
             touch ${srcname} # TODO: a kludge..
-            echo
-            echo "$bin_dir"/ciao oc:comp --bootstrap ${execname} ${srcname}
-            echo
             if "$bin_dir"/ciao oc:comp --bootstrap ${execname} ${srcname} > ${logname} 2>&1; then
                 echo " [OK]"
                 warn_nonempty_log ${logname}
