@@ -152,7 +152,7 @@ bringemu() {
     mkdir -p curr
     mkdir -p prev
     #
-    "$bin_dir"/ciao oc:comp --recursive-deps "$ciaoroot"/core_OC/cmds/comp > curr/all_modules
+    "$bin_dir"/ciao oc:comp --recursive-deps "$ciaoroot"/core/cmds/comp > curr/all_modules
     for i in ${compc_exe}.car/c/engine/*.native.c; do basename "$i"; done > curr/all_cfiles
     for i in ${compc_exe}.car/c/engine/*.native.h; do basename "$i"; done > curr/all_hfiles
     for i in ${compc_exe}.car/objs/DEFAULT/*.o; do basename "$i" .o; done > curr/all_ofiles
