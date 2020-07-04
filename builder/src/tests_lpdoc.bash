@@ -41,6 +41,29 @@ set -u # Error on parameter expansion of unset variables
 
 # ===========================================================================
 
+# ---------------------------------------------------------------------------
+# Test data
+
+# TESTDATA provides:
+#  - alltests (all test names)
+#  - test_opts TEST: function which defines 
+#      manual_infile
+#      manual_outfile
+#      manual_outdir
+#      manual_dir
+#      manual_cmd
+#
+if [ ! -r ./TESTDATA ]; then
+    echo "error: TESTDATA file not found in the current directory"
+    exit 1
+fi
+source ./TESTDATA
+if [ x"$regr_name" = x"" ]; then
+    echo "error: regr_name is undefined"
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
 # TODO: share these defs
 # TODO: Find a method to extract this directory from Prolog code (or
 #   share the same value)
@@ -51,78 +74,7 @@ builddir_doc=$ciao_builddir/doc
 
 ensure_dirs() {
     ensure_regression_dir
-    resdir=$regression_dir/lpdoc
-}
-
-# ---------------------------------------------------------------------------
-
-function get_manual_infile() {
-    echo "SETTINGS.pl"
-}
-
-# This is a hack... it has the version number hardwired.
-function get_manual_outfile() {
-    case $1 in
-        ciao) echo "ciao-1.15.0" ;;
-        ciaopp_ref_man) echo "ciaopp-1.2.0" ;;
-        ciaopp_doc) echo "ciaopp_internals-1.2.0" ;;
-        lpdoc) echo "lpdoc-3.0.0" ;;
-        # for testing
-        ciaotest) echo "ciaotest" ;;
-        singlelpdoc) echo "singlelpdoc" ;;
-        *) echo ""
-    esac
-}
-
-function get_manual_dir() {
-    case $1 in
-        ciao) echo "$ciaoroot/core" ;;
-        ciaopp_ref_man) echo "$ciaoroot/ciaopp" ;;
-        ciaopp_doc) echo "$ciaoroot/ciaopp" ;;
-        lpdoc) echo "$ciaoroot/lpdoc" ;;
-        # for testing
-        ciaotest) echo "$ciaoroot/bndls/testsuite/lpdoc/ciaotest" ;;
-        singlelpdoc) echo "$ciaoroot/bndls/testsuite/lpdoc/singlelpdoc" ;;
-        *) echo ""
-    esac
-}
-
-function get_manual_outdir() {
-    case $1 in
-        ciao) echo "$builddir_doc" ;;
-        ciaopp_ref_man) echo "$builddir_doc" ;;
-        ciaopp_doc) echo "$builddir_doc" ;;
-        lpdoc) echo "$builddir_doc" ;;
-        # for testing
-        ciaotest) echo "$ciaoroot/bndls/testsuite/lpdoc/ciaotest" ;;
-        singlelpdoc) echo "$ciaoroot/bndls/testsuite/lpdoc/singlelpdoc" ;;
-        *) echo ""
-    esac
-}
-
-function get_manual_cmd() {
-    case $1 in
-        ciao) echo "ciao build --docs alldocs" ;;
-        ciaopp_ref_man) echo "ciao build --docs ciaopp" ;;
-        ciaopp_doc) echo "ciao build --docs ciaopp" ;;
-        lpdoc) echo "ciao build --docs lpdoc" ;;
-        # for testing
-        ciaotest) cat <<EOF
-lpdoc --output_dir=$manual_outdir -t all $manual_infile
-EOF
-            ;;
-        singlelpdoc) cat <<EOF
-lpdoc --output_dir=$manual_outdir -t texi $manual_infile && \
-lpdoc --output_dir=$manual_outdir -t html $manual_infile && \
-echo > singlelpdoc.infoindex && \
-echo > singlelpdoc.info && \
-echo > singlelpdoc.pdf && \
-echo > singlelpdoc.dvi && \
-echo > singlelpdoc.manl
-EOF
-            ;;
-        *) echo ""
-    esac
+    resdir=$regression_dir/$regr_name
 }
 
 # ---------------------------------------------------------------------------
@@ -235,22 +187,21 @@ where ACTION is one of:
   open-info     Open the generated info documentation
 
   help          Show this message
+
+Where MANUAL is one of:
+${alltests}
 EOF
 }
 
 # -----------------------------------------------------------------
 
 function pick_manual() {
-    manual_infile=`get_manual_infile "$manual"`
-    manual_outfile=`get_manual_outfile "$manual"`
+    test_opts "$manual"
     if [ x"$manual_outfile" == x"" ]; then
         echo "Unrecognized manual \`$manual'"
         do_help
         exit -1
     fi
-    manual_outdir=`get_manual_outdir "$manual"`
-    manual_dir=`get_manual_dir "$manual"`
-    manual_cmd=`get_manual_cmd "$manual"`
 }
 
 # -----------------------------------------------------------------
