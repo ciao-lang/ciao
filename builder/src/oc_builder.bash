@@ -22,7 +22,7 @@ source "$builder_src"/config.bash
 source "$builder_src"/messages.bash
 source "$builder_src"/car.bash
 
-oc_scripts=$ciaoroot/builder/oc
+sh_src_dir="$ciaoroot/builder/sh_src"
 
 # ---------------------------------------------------------------------------
 # Global info
@@ -194,7 +194,7 @@ fast_build_comp() {
         i=`cat ${ok_step_file}`
 #       clean_cache
 #       delete_exe ${compc}
-        if run_exe ${comp[${i}]} ${compopts} --bootstrap ${compc} ${comp_module} && "$oc_scripts"/compile_native.sh "${compc}".car; then
+        if run_exe ${comp[${i}]} ${compopts} --bootstrap ${compc} ${comp_module} && "$sh_src_dir"/build_car.sh build "${compc}".car; then
             true
         else
             fail_message "Compilation failed"
@@ -314,7 +314,7 @@ debug_comp() {
     # TODO: recompile with debug info?
     ensure_comp
     rm -f ${ok_file}
-    "$oc_scripts"/debug.sh "${compc}".car "$@" || { fail_message "failed"; exit -1; }
+    debug_exe "${compc}".car "$@" || { fail_message "failed"; exit -1; }
 }
 
 # Execute the compiler compiled with analysis
@@ -371,11 +371,11 @@ run_exe() {
     local prg
     prg=$1
     shift
-    if [ ! -x ${prg}.car ]; then
+    if [ ! -x "${prg}.car" ]; then
         fail_message "Cannot find ${prg} executable"
         exit -1
     fi
-    "$oc_scripts"/compile_native.sh "${prg}".car # TODO: do it when code is generated, but make sure that bootstrap does not contain 'arch', etc.
+    "$sh_src_dir"/build_car.sh build "${prg}".car # TODO: do it when code is generated, but make sure that bootstrap does not contain 'arch', etc.
     if [ x"${stats}" = x"yes" ]; then
         "${prg}".car/run "$@" && ( test -r "$cache_dir"/tmp/ciao__trace.txt && cat "$cache_dir"/tmp/ciao__trace.txt || true )
     else
@@ -388,6 +388,30 @@ run_testing() {
     set_vervars
     setup_install
     "${loader}${versuf}".car/run "$@"
+}
+
+# Run an executable using gdb/lldb
+debug_exe() {
+    # Get .car path from first argument
+    local prg
+    prg=$1
+    shift
+    if [ ! -x "${prg}.car" ]; then
+        fail_message "Cannot find ${prg} executable"
+        exit -1
+    fi
+
+    "$sh_src_dir"/build_car.sh build "${prg}".car --debuglevel=debug # TODO: do it when code is generated, but make sure that bootstrap does not contain 'arch', etc.
+
+    echo "{Type 'run' to start the program}"
+    if command -v gdb > /dev/null 2>&1; then
+        CIAOCCONFIG=${prg}.car/cfg/DEFAULT gdb --silent -d ${prg}.car/c/engine --args ${prg}.car/arch "$@" -C ${prg}.car/noarch ${CIAORTOPTS}
+    elif command -v lldb > /dev/null 2>&1; then
+        CIAOCCONFIG=${prg}.car/cfg/DEFAULT lldb -- ${prg}.car/arch "$@" -C ${prg}.car/noarch ${CIAORTOPTS}
+    else
+        echo "ERROR: no 'gdb' nor 'lldb' found" 1>&2
+        exit -1
+    fi
 }
 
 # ---------------------------------------------------------------------------
@@ -500,7 +524,7 @@ build_loader() {
     setup_install
     delete_exe ${loader}${versuf}
     comp_testing --bootstrap ${loader}${versuf} ${loader_module}
-    "$oc_scripts"/compile_native.sh "${loader}${versuf}".car
+    "$sh_src_dir"/build_car.sh build "${loader}${versuf}".car
 }
 
 build_cmd() { # bundle cmd
@@ -713,10 +737,8 @@ case $action in
     debug_comp)    shift; debug_comp "$@" ;;
     comp_ana)      shift; comp_ana "$@" ;;
     # Building .car native code
-    car_build)     shift; "$oc_scripts"/compile_native.sh "$@" ;;
-    car_clean)     shift; "$oc_scripts"/clean.sh "$@" ;;
-    car_run)       shift; "$oc_scripts"/run.sh "$@" ;; # TODO: improve
-    car_debug)     shift; "$oc_scripts"/debug.sh "$@" ;; # TODO: improve
+    car_build)     shift; "$sh_src_dir"/build_car.sh build "$@" ;;
+    car_clean)     shift; "$sh_src_dir"/build_car.sh clean "$@" ;;
     # Calling the compiler with js_backend
     build_comp_js) shift; build_cmd "core_OCjs" comp_js ;;
     comp_js)       shift; comp_js "$@" ;;

@@ -8,18 +8,8 @@ set -e
 _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
         cd "$d";done;cd "$(dirname "$e")";pwd -P)
 
-# ===========================================================================
-
-# Get BLD_ENGDIR from from first argument
-
-BLD_ENGDIR=$1; shift; [ -x ""${BLD_ENGDIR}"" ] || exit 1
-# Make bld_engdir absolute
-BLD_ENGDIR=$(e=${BLD_ENGDIR}/native_modules;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
-        cd "$d";done;cd "$(dirname "$e")";pwd -P)
-ENG_CFG=DEFAULT
-
-bld_engdir=$BLD_ENGDIR
-eng_cfg=$ENG_CFG
+old_dir=`pwd`; cd "$_base/../.."; ciaoroot=`pwd`; cd "$old_dir"; old_dir=
+sh_src_dir="$ciaoroot/builder/sh_src"
 
 # ===========================================================================
 
@@ -281,27 +271,22 @@ EOF
 
 # ===========================================================================
 
-eng_name=arch # TODO: see ensure_eng_config_loaded
-
-# bld_hdir="$bld_engdir/include"
-# bld_cdir="$bld_engdir/src"
-bld_hdir="$bld_engdir/c"
-bld_cdir="$bld_engdir/c/engine"
-# bld_objdir="$bld_engdir/o"
-bld_cfgdir="$bld_engdir/cfg/$eng_cfg"
-bld_objdir="$bld_engdir/objs/$eng_cfg"
-
-H_PATH="-I$bld_hdir -I$bld_cfgdir"
-COMPILER_VERSION=`cat "$bld_engdir"/compiler_version`
-REQUIRE64=`cat "$bld_engdir"/require64`
-
-old_dir=`pwd`; cd "$_base/../.."; ciaoroot=`pwd`; cd "$old_dir"; old_dir=
-sh_src_dir="$ciaoroot/builder/sh_src"
-
-# TODO: add H_PATH
-# TODO: use CIAOOPTS (for experiments)
-
 eng_build() { # (configure options)
+    # bld_hdir="$bld_engdir/include"
+    # bld_cdir="$bld_engdir/src"
+    bld_hdir="$bld_engdir/c"
+    bld_cdir="$bld_engdir/c/engine"
+    # bld_objdir="$bld_engdir/o"
+    bld_cfgdir="$bld_engdir/cfg/$eng_cfg"
+    bld_objdir="$bld_engdir/objs/$eng_cfg"
+    
+    H_PATH="-I$bld_hdir -I$bld_cfgdir"
+    COMPILER_VERSION=`cat "$bld_engdir"/compiler_version`
+    REQUIRE64=`cat "$bld_engdir"/require64`
+    
+    # TODO: add H_PATH
+    # TODO: use CIAOOPTS (for experiments)
+
     mkdir -p "$bld_cfgdir"
     mkdir -p "$bld_objdir"
 
@@ -380,7 +365,7 @@ EOF
     # (generate 'config_mk' and 'config_sh')
     "$sh_src_dir"/config-sysdep/config-sysdep.sh "$bld_engdir" "$eng_cfg"
     #
-    CONFIGURE_DIR="${_base}"/configure
+    CONFIGURE_DIR="$ciaoroot/builder/oc/configure"
 
     . "$bld_cfgdir"/config_sh
     # Compile configure exec
@@ -412,6 +397,15 @@ EOF
     ( cd "$bld_engdir" ; ln -s objs/"$eng_cfg"/"$eng_name" "$eng_name" )
     #
     eng_header
+
+    [ -x "$bld_engdir/$eng_name" ] || { \
+        echo "{Compilation of $bld_engdir failed}" 1>&2; \
+        exit 1; \
+    }
+}
+
+eng_clean() {
+    rm -f "$bld_engdir"/$eng_name "$bld_engdir"/objs/$eng_cfg/*.o
 }
 
 # ---------------------------------------------------------------------------
@@ -435,8 +429,26 @@ EOF
 
 # ---------------------------------------------------------------------------
 
-eng_build "$@"
-[ -x "$bld_engdir/$eng_name" ] || { \
-  echo "{Compilation of $bld_engdir failed}" 1>&2; \
-  exit 1; \
+# Get BLD_ENGDIR from from first argument
+car_info() {
+    BLD_ENGDIR=$1; [ -x ""${BLD_ENGDIR}"" ] || exit 1
+    # Make bld_engdir absolute
+    BLD_ENGDIR=$(e=${BLD_ENGDIR}/native_modules;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
+        cd "$d";done;cd "$(dirname "$e")";pwd -P)
+    ENG_CFG=DEFAULT
+
+    bld_engdir=$BLD_ENGDIR
+    eng_cfg=$ENG_CFG
+
+    eng_name=arch # TODO: see ensure_eng_config_loaded
 }
+
+case "$1" in
+    build) shift; car_info "$1"; shift; eng_build "$@" ;;
+    clean) shift; car_info "$1"; shift; eng_clean ;;
+    *)
+        echo "Unknown target '$1' in build_car.sh" >&2
+        exit 1
+        ;;
+esac
+
