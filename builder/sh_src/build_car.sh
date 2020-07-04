@@ -365,7 +365,7 @@ EOF
     # (generate 'config_mk' and 'config_sh')
     "$sh_src_dir"/config-sysdep/config-sysdep.sh "$bld_engdir" "$eng_cfg"
     #
-    CONFIGURE_DIR="$ciaoroot/builder/oc/configure"
+    CONFIGURE_DIR="$ciaoroot/core/engine_oc"
 
     . "$bld_cfgdir"/config_sh
     # Compile configure exec
