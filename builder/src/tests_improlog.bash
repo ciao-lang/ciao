@@ -17,23 +17,33 @@ source "$builder_src"/car.bash
 source "$builder_src"/archdump.bash
 
 # ---------------------------------------------------------------------------
+# Test data
+
+# TESTDATA provides:
+#  - alltests (all test names)
+#  - test_opts TEST: function which defines range, gccopts,
+#    inputrepeat, inputfile, ciaoccopts, ciaoldopts
+#
+if [ ! -r ./TESTDATA ]; then
+    echo "error: TESTDATA file not found in the current directory"
+    exit 1
+fi
+source ./TESTDATA
+if [ x"$regr_name" = x"" ]; then
+    echo "error: regr_name is undefined"
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
 # Output directories
 
 ensure_regression_dir
-curr_dir=${regression_dir}/shootout-c/curr
-prev_dir=${regression_dir}/shootout-c/prev
-out_dir=${regression_dir}/shootout-c/out
+curr_dir=${regression_dir}/$regr_name/curr
+prev_dir=${regression_dir}/$regr_name/prev
+out_dir=${regression_dir}/$regr_name/out
 
 # ---------------------------------------------------------------------------
-
-# TODO: benchmarks that takes an input file runs too fast (e.g. sumcol, called sum-file?), and it should not!
-# TODO: read input parameter in common.pl
-# TODO: improve syntax in ImProlog: merge lowpred and foreign props
-
-#archopts="-march=pentium4 -mfpmath=sse -msse2"
-#archopts="-m32 -march=pentium4 -mfpmath=sse -msse2"
-archopts=""
-gccopts0="-pipe -Wall -O3 -fomit-frame-pointer $archopts"
+# Options and benchmarks
 
 total_c=0
 total_improlog=0
@@ -152,10 +162,10 @@ compile_one() {
         else
             echo -n "Compiling C version: ${i}"
             total_c=$((${total_c} + 1))
-#           gcc -S -x c ${gccopts0} ${gccopts} ${srcname}
-            if gcc -x c ${gccopts0} ${gccopts} -o ${execname} ${srcname} > ${logname} 2>&1; then
+#           gcc -S -x c ${gccopts} ${srcname}
+            if gcc -x c ${gccopts} -o ${execname} ${srcname} > ${logname} 2>&1; then
 #           echo "using clang and llvm"
-#           if ccc -x c ${gccopts0} ${gccopts} -o ${execname} ${srcname} > ${logname} 2>&1; then
+#           if ccc -x c ${gccopts} -o ${execname} ${srcname} > ${logname} 2>&1; then
                 ok_c=$((${ok_c} + 1))
                 echo " [OK]"
                 warn_nonempty_log ${logname}
@@ -217,8 +227,6 @@ compare_one() {
     done
 }
 
-alltests="binarytrees chameneos fannkuch fasta hello knucleotide mandelbrot nbody nsievebits nsieve partialsums pidigits recursive regexdna revcomp spectralnorm sumcol threadring"
-
 input=${1}
 
 print_summary() {
@@ -254,123 +262,6 @@ run_all() {
     for i in ${alltests}; do
         run_one ${i}
     done
-}
-
-test_opts() {
-    range=
-    gccopts=
-    inputrepeat=1
-    inputfile=
-    ciaoccopts=
-    ciaoldopts=
-    case ${1} in
-        binarytrees) 
-            ciaoccopts="-O3 $archopts"
-            gccopts="-lm"
-            #range="12 14 16"
-            range="16"
-            ;;
-        chameneos)
-            ciaoccopts="-O3 $archopts"
-            gccopts="-lpthread"
-            #range="10000 100000 1000000"
-            range="1000000"
-            ;;
-        fannkuch)
-            ciaoccopts="-O3 $archopts"
-            #range="9 10 11"
-            range="10"
-            ;;
-        fasta)
-            ciaoccopts="-O3 $archopts"
-            #range="250000"
-            range="250000"
-            ;;
-        hello)
-            #range="1 50 100 150 200 "
-            range="200"
-            ;;
-        knucleotide)
-            ciaoccopts="-O3 $archopts"
-            #range="10000 100000 1000000"
-            range="1000000"
-            inputfile="input/knucleotide-input.txt"
-            ;;
-        mandelbrot)
-            gccopts="-D_ISOC9X_SOURCE -lm"
-            ciaoccopts="-O3 $archopts"
-            #range="400 600 3000"
-            range="3000"
-            ;;
-        nbody)
-            gccopts="-lm"
-            #range="200000 2000000 20000000"
-            range="2000000"
-            ;;
-        nsievebits)
-            #range="9 10 11"
-            range="11"
-            ;;
-        nsieve)
-            gccopts="-std=c99"
-            #range="8 9 10"
-            range="10"
-            ;;
-        partialsums)
-            gccopts="-lm"
-            ciaoccopts="$archopts"
-            #range="25000 250000 2500000"
-            range="2500000"
-            ;;
-        pidigits)
-            gccopts="-lgmp"
-            ciaoccopts="$archopts"
-            ciaoldopts="-lgmp"
-            #range="1500 2500 5000"
-            range="5000"
-            ;;
-        recursive)
-            ciaoccopts="-O3 $archopts"
-            #range="3 7 11"
-            range="11"
-            ;;
-        regexdna)
-            ciaoccopts="$archopts"
-            ciaoldopts="-lpcre"
-            gccopts="-lpcre"
-            #range="100000 300000 500000"
-            range="500000"
-            inputfile="input/regexdna-input.txt"
-            ;;
-        revcomp)
-            #range="25000 250000 2500000"
-            range="2500000"
-            inputrepeat=2000
-            inputfile="input/revcomp-input.txt"
-            ;;
-        spectralnorm)
-            ciaoccopts="-O3 $archopts"
-            gccopts="-lm"
-            #range="500 3000 5500"
-            range="2000"
-            ;;
-        sumcol)
-            ciaoccopts="-O3 $archopts"
-            gccopts="-lm"
-            #range="1000 11000 21000"
-            range="21000"
-            inputrepeat=2000
-            inputfile="input/sumcol-input.txt"
-            ;;
-        threadring)
-            range="500000"
-            gccopts="-lpthread"
-            ;;
-        *)
-            echo "Bad tests name '${1}'"
-            return
-            ;;
-    esac
 }
 
 help() {
