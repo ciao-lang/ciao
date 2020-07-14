@@ -27,7 +27,7 @@
 :- meta_predicate error_protect(goal, goal).
 :- pred error_protect(Goal, OnError) # "Execute @var{Goal} with a
    default exception handler (which shows the exception and executes
-   @var{OnError}.".
+   @var{OnError}).".
 
 error_protect(Goal, OnError) :-
     % TODO: catch all errors?
