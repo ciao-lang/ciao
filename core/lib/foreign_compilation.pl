@@ -22,7 +22,7 @@
 
 :- use_module(library(parse_shell_args), [parse_shell_args/2]).
 
-% NOTE: Automatically generated in build_engine.sh (eng_build_info.c)
+% NOTE: Automatically generated in build_car.sh (eng_build_info.c)
 :- impl_defined(foreign_opts_cc/1).
 :- impl_defined(foreign_opts_ld/1).
 :- impl_defined(foreign_opts_ccshared/1).

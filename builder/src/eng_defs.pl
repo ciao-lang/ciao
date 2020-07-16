@@ -40,7 +40,7 @@ Sections at the engine build directory layout:
 @end{verbatim}
 
 NOTE: This hierarchy is assumed by other tools and code like
-  @tt{build_engine.sh}. Please be careful if introducing any change.
+  @tt{build_car.sh}. Please be careful if introducing any change.
 
 Example: directory hierarchy at @tt{build/eng/ciaoengine/}:
 @begin{verbatim}
@@ -68,7 +68,7 @@ src/*.c
 % TODO: section 'lib_so' is missing in installation
 % TODO: section 'lib_a' is missing in installation
 
-% NOTE: Synchronize with build_engine.sh definitions for bootstrap
+% NOTE: Synchronize with build_car.sh definitions for bootstrap
 
 :- use_module(library(lists), [member/2]).
 :- use_module(library(aggregates), [findall/3]).

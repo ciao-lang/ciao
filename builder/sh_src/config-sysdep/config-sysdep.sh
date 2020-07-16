@@ -10,13 +10,13 @@
 # ---------------------------------------------------------------------------
 #
 # Input (arguments):
-#   build_engdir: directory of engine build
-#   eng_cfg:      engine configuration name
+#   cardir:  path of .car file
+#   eng_cfg: configuration name
 # Input (other):
-#   $build_engdir/cfg/$eng_cfg/meta_sh
+#   $cardir/cfg/$eng_cfg/meta_sh
 #
-# Output: $build_engdir/cfg/$eng_cfg/config_sh
-#         $build_engdir/cfg/$eng_cfg/config_mk
+# Output: $cardir/cfg/$eng_cfg/config_sh
+#         $cardir/cfg/$eng_cfg/config_mk
 
 # TODO: Merge with core_OC/engine/internals.cfg/
 
@@ -29,16 +29,16 @@ _base=$(e=$0;while test -L "$e";do d=$(dirname "$e");e=$(readlink "$e");\
 # ----------------------------------------------------------------------------
 
 if [ $# -ne 2 ]; then
-    echo "ERROR: Specify $build_engdir and $eng_cfg as arguments" >& 2
+    echo "ERROR: Specify cardir and eng_cfg as arguments" >& 2
     exit 1
 fi
-build_engdir=$1
+cardir=$1
 eng_cfg=$2
 
-bld_cfgdir="$build_engdir/cfg/$eng_cfg"
-bld_srcdir="$build_engdir/src"
-bld_hdir="$build_engdir/include"
-bld_objdir="$build_engdir/objs/$eng_cfg"
+bld_cfgdir="$cardir/cfg/$eng_cfg"
+bld_srcdir="$cardir/src"
+bld_hdir="$cardir/include"
+bld_objdir="$cardir/objs/$eng_cfg"
 
 # Load meta_sh (defines variables: eng_name, eng_core_config, etc.)
 . "$bld_cfgdir/meta_sh"
@@ -508,7 +508,7 @@ ENG_STUBMAIN_DYNAMIC=$q$ENG_STUBMAIN_DYNAMIC$q
 EOF
 }
 
-# All platform settings (used in build_engine.sh)
+# All platform settings (used in build_car.sh)
 dump_config_platform() { # $1 is the quotation char
     local q=$1
     cat <<EOF

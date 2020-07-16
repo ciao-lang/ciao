@@ -27,34 +27,6 @@ scan_bootstrap_opts() {
             done
         done
     fi
-    # Set defaults
-    if [ x"$boot__DEBUG_LEVEL" = x"" ]; then
-        boot__DEBUG_LEVEL=nodebug
-    fi
-    if [ x"$boot__OS" = x"" ]; then
-        boot__OS=`"$sh_src_dir"/config-sysdep/ciao_sysconf --os`
-    fi
-    if [ x"$boot__ARCH" = x"" ]; then
-        boot__ARCH=`"$sh_src_dir"/config-sysdep/ciao_sysconf --arch`
-        # Force 32-bit architecture
-        if [ x"$boot__M32" = x"yes" ] ; then
-            case $boot__ARCH in
-                Sparc64) boot__ARCH=Sparc ;;
-                x86_64)  boot__ARCH=i686 ;;
-                ppc64)   boot__ARCH=ppc ;;
-                *) true ;; # assume 32-bit
-            esac
-        fi
-        # Force 64-bit architecture
-        if [ x"$boot__M64" = x"yes" ] ; then
-            case $boot__ARCH in
-                Sparc64) true ;;
-                x86_64)  true ;;
-                ppc64)   true ;;
-                *) boot__ARCH=empty ;; # force error # TODO: emit error instead?
-            esac
-        fi
-    fi
     # Options for ciaoc
     if [ x"$boot__UNUSED_PRED_WARNINGS" = x"yes" ]; then
         boot__CIAOC_OPTS="$boot__CIAOC_OPTS --unused-pred-warnings"
@@ -67,11 +39,12 @@ cleanup_bootstrap_opts() {
     boot__EXTRA_CFLAGS=""
     boot__EXTRA_LDFLAGS=""
     boot__DEBUG_LEVEL=""
-    boot__UNUSED_PRED_WARNINGS=""
     boot__M32=""
     boot__M64=""
     boot__OS=""
     boot__ARCH=""
+    #
+    boot__UNUSED_PRED_WARNINGS=""
     boot__CIAOC_OPTS=""
 }
 

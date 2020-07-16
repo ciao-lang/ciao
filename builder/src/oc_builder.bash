@@ -133,13 +133,9 @@ okmessage[3]="Fixpoint found (the compiler seems to be correct)"
 
 maxsteps=3
 
+# NOTE: make sure that we do not include build date in the binaries,
+#       which makes comparing compilers impossible
 build_comp() {
-    # note: do not enable build-info, it includes the build date, which
-    #       makes comparing compilers binaries impossible
-    CIAOOPTS="--build-info=no ${CIAOOPTS}" build_comp__2
-}
-
-build_comp__2() {
     local i
     local i2
 
@@ -401,13 +397,13 @@ debug_exe() {
         exit -1
     fi
 
-    "$sh_src_dir"/build_car.sh build "${prg}".car --debuglevel=debug # TODO: do it when code is generated, but make sure that bootstrap does not contain 'arch', etc.
+    "$sh_src_dir"/build_car.sh build "${prg}".car --debug-level=debug # TODO: do it when code is generated, but make sure that bootstrap does not contain 'arch', etc.
 
     echo "{Type 'run' to start the program}"
     if command -v gdb > /dev/null 2>&1; then
-        CIAOCCONFIG=${prg}.car/cfg/DEFAULT gdb --silent -d ${prg}.car/c/engine --args ${prg}.car/arch "$@" -C ${prg}.car/noarch ${CIAORTOPTS}
+        CIAOCCONFIG=${prg}.car/cfg/DEFAULT gdb --silent -d ${prg}.car/c/engine --args ${prg}.car/objs/arch "$@" -C ${prg}.car/noarch ${CIAORTOPTS}
     elif command -v lldb > /dev/null 2>&1; then
-        CIAOCCONFIG=${prg}.car/cfg/DEFAULT lldb -- ${prg}.car/arch "$@" -C ${prg}.car/noarch ${CIAORTOPTS}
+        CIAOCCONFIG=${prg}.car/cfg/DEFAULT lldb -- ${prg}.car/objs/arch "$@" -C ${prg}.car/noarch ${CIAORTOPTS}
     else
         echo "ERROR: no 'gdb' nor 'lldb' found" 1>&2
         exit -1

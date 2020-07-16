@@ -126,7 +126,7 @@
 :- '$native_include_c_header'('version.h').
 :- '$native_include_c_source'('version.c').
 
-% Automatically generated in build_engine.sh:create_eng_build_info
+% Automatically generated in build_car.sh:create_eng_build_info
 :- '$native_include_c_source'('eng_build_info.c').
 
 % ---------------------------------------------------------------------------

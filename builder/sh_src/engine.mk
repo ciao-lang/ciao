@@ -1,6 +1,6 @@
 # -*- mode: Makefile; -*-
 # ---------------------------------------------------------------------------
-# A generic Makefile for engine builds (called from build_engine.sh)
+# A generic Makefile for build_car.sh
 #
 # External parameters:
 #   BLD_CDIR

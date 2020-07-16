@@ -43,17 +43,6 @@ boot_builddir="$ciaoroot/build-boot"
 # The ciao_builder command-line module
 builder_mod="$ciaoroot/builder/cmds/ciao_builder"
 
-# Select paths for ciao_builder compilation and execution
-# ('crossp' added from "$sh_boot_dir/autoboot.sh")
-#
-cross_ciaoroot=`crossp "$ciaoroot"`
-# Alias path for ciaobld(_) since bundles are not scanned yet
-default_ciaoaliaspath="ciaobld=$cross_ciaoroot/builder/src"
-# Default CIAOPATH for bootstrap (restricts bundle scan and bundle get
-# to <ciaoroot> -- otherwise 'get devenv' will not work)
-# TODO: document
-default_ciaopath="$cross_ciaoroot"
-
 # ---------------------------------------------------------------------------
 # Error message when there is no bootstrap (needed for autoboot.sh)
 

@@ -48,9 +48,9 @@ if [ x"$saved_ciaoroot" != x"$ciaoroot" ]; then
     # TODO: customize? (e.g., for debug or profile builds, multiarchitecture?)
     eng_name="ciaoengine"
     eng_cfg=`. "$ciaoroot/build/bundlereg/core.bundlecfg_sh"; echo $core__OS$core__ARCH`
-    setup_eng_vars "$builddir"
+    mainengdir=`get_mainengdir "$builddir"`
     cat > "$f_saved_env" <<EOF
-export CIAOENGINE="$bld_objdir/$eng_name"
+export CIAOENGINE="$mainengdir/objs/$eng_cfg/$eng_name"
 export CIAOROOT="$ciaoroot"
 EOF
 fi

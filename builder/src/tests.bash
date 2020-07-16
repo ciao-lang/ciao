@@ -71,13 +71,13 @@ versuf="_${VERNAME}"
 loader_testing="${cache_dir}/bin/ciaoloader${versuf}"
 
 emusize() {
-    objdump -d ${loader_testing}.car/arch | funcsize${versuf} | grep wam__2
+    objdump -d ${loader_testing}.car/objs/arch | funcsize${versuf} | grep wam__2
 }
 
 # Dump native code and emulator loop size for a given executable
 exe_info() {
-    echo all native code size: `stat ${1}.car/arch -c "%s"` bytes
-    echo emulator loop size: `objdump -d ${1}.car/arch | funcsize${versuf} | grep wam__2`
+    echo all native code size: `stat ${1}.car/objs/arch -c "%s"` bytes
+    echo emulator loop size: `objdump -d ${1}.car/objs/arch | funcsize${versuf} | grep wam__2`
 }
 
 # Rewrite input using Prolog comments 

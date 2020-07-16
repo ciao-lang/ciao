@@ -10,7 +10,7 @@
    some of them automatically generated from @lib{emugen}. The output
    can be both native executables, dynamic, and/or static libraries.
 
-   See @lib{eng_defs} and @tt{build_engine.sh} for more details.").
+   See @lib{eng_defs} and @tt{build_car.sh} for more details.").
 
 :- use_module(library(lists), [member/2]).
 :- use_module(library(terms), [atom_concat/2]).
@@ -51,7 +51,7 @@ eng_build(Eng0) :-
     % Version info
     eng_prebuild_version_info(Eng),
     % Build native
-    eng_build_native(Eng).
+    build_car(Eng, build, []).
 
 % Add objects for static modules
 eng_add_static_objs(Eng0, Eng) :-
@@ -72,7 +72,7 @@ eng_clean(Eng) :-
     Base = ~eng_mainbase(Eng),
     clean_boot_mod(Base),
     % Clean the engine build area
-    eng_clean_native(Eng).
+    build_car(Eng, clean, []).
 
 :- use_module(engine(internals), [po_filename/2, itf_filename/2]).
 
@@ -184,7 +184,7 @@ create_eng_meta_sh(Eng, CfgInput, EngMetaSh) :-
     eng_meta_sh(Eng, CfgInput, Text, []),
     mkpath_and_write(Text, EngMetaSh).
 
-% TODO: Document: many dirs with .c and .h are "materalized" into a single code view during build_engine.sh
+% TODO: Document: many dirs with .c and .h are "materalized" into a single code view during build_car.sh
 eng_meta_sh(Eng, CfgInput) -->
     { EngMainMod = ~eng_mainmod(Eng) },
     { EngSrcDirs = ~eng_srcdirs(Eng) },
@@ -331,31 +331,22 @@ version_c(Bundle) -->
     "char *ciao_commit_desc = \"", atm(CommitDesc), "\";\n".
 
 % ===========================================================================
-:- doc(section, "Interface to SH implementation").
+:- doc(section, "Interface to build_car.sh").
 
-% Commands for building engines
-% (creates the engine build area implicitly)
-eng_build_native(Eng) :-
-    build_engine_(Eng, build, []).
+% Target = build|clean|... (see build_car.sh for details)
 
-% Clean the engine build area
-eng_clean_native(Eng) :-
-    build_engine_(Eng, clean, []).
-
-build_engine_(Eng, Target, Env0) :-
+build_car(Eng, Target, Env0) :-
     EngDir = ~eng_path(engdir, Eng),
     EngCfg = ~eng_cfg(Eng),
-    % (input: look at build_engine.sh)
-    Env = ['BLD_ENGDIR' = EngDir,
-           'ENG_CFG' = EngCfg|Env0],
-    sh_process_call(~build_engine_sh, [Target], [env(Env)]).
+    Env = ['ENG_CFG' = EngCfg|Env0],
+    sh_process_call(~build_car_sh, [Target, EngDir], [env(Env)]).
 
 :- use_module(engine(internals), [ciao_root/1]).
 
-% TODO: could I use bundle_path(builder, 'sh_src/build_engine.sh')? (it should be registered)
-build_engine_sh := Path :-
+% TODO: could I use bundle_path(builder, 'sh_src/build_car.sh')? (it should be registered)
+build_car_sh := Path :-
     ciao_root(CiaoRoot),
-    Path = ~path_concat(CiaoRoot, 'builder/sh_src/build_engine.sh').
+    Path = ~path_concat(CiaoRoot, 'builder/sh_src/build_car.sh').
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Detect OS and architecture").
