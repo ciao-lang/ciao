@@ -525,6 +525,25 @@ list_spypoints :-
 % ---------------------------------------------------------------------------
 %! # Internal entry from meta-interpreters
 
+:- export(no_debug_pred/1).
+% Internal predicates that cannot be debugged
+no_debug_pred('basiccontrol:$metachoice'(_)) :- !. % wrong results otherwise!
+no_debug_pred('basiccontrol:$metacut'(_)) :- !. % bad cuts otherwise!
+no_debug_pred(G) :-
+    % TODO: kludge, use predicate prop bits...
+    functor(G, F, _),
+    no_debug_mc(Mc),
+    atom_concat(Mc, _, F).
+
+:- if(defined(optim_comp)).
+no_debug_mc('interpreter:').
+no_debug_mc('hiord_rt:').
+no_debug_mc('debugger_support:'). % TODO: for $stop_trace
+no_debug_mc('debugger:').
+:- endif.
+no_debug_mc('rtchecks_rt:').
+no_debug_mc('native_props_rtc:').
+
 :- export(debug_trace2/7).
 debug_trace2(X, Pred, Src, Ln0, Ln1, DDict, Number) :-
     get_debugger_state(State),

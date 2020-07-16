@@ -57,6 +57,7 @@
 :- use_module(library(debugger/debugger_lib), [
     adjust_debugger_state/2,
     in_debug_module/1,
+    no_debug_pred/1,
     debug_trace2/7,
     do_once_command/2,
     get_debugger_state/1]).
@@ -133,21 +134,6 @@ debuggable(_) :-
     get_debugger_state(S),
     arg(5, S, [a(_,Ancestor,_,_)|_]),
     in_debug_module(Ancestor).
-
-no_debug_pred(G) :-
-    % TODO: kludge, use predicate prop bits...
-    functor(G, F, _),
-    no_debug_mc(Mc),
-    atom_concat(Mc, _, F).
-
-:- if(defined(optim_comp)).
-no_debug_mc('interpreter:').
-no_debug_mc('hiord_rt:').
-no_debug_mc('debugger_support:'). % TODO: for $stop_trace
-no_debug_mc('debugger:').
-:- endif.
-no_debug_mc('rtchecks_rt:').
-no_debug_mc('native_props_rtc:').
 
 :- if(defined(optim_comp)).
 extract_info('debugger_support:srcdbg_spy'(Goal,Pred,Src,Ln0,Ln1,Dict,Number),
