@@ -45,6 +45,7 @@ fix_symlinks() {
     # TODO: meta_sh, etc. are not patched
     . "$ciaoroot/build/eng/ciaoengine/cfg/$cfg/meta_sh" # (for eng_srcpath)
     local old=$eng_srcpath # old srcpath at build host
+    # TODO:[optim_comp] fix path
     local new="$ciaoroot/core/engine" # new srcpath at this host
     local i f g
     for i in $(find "$ciaoroot/build" -type l); do
