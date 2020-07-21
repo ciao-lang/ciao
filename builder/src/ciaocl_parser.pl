@@ -125,6 +125,7 @@ cmd_fmt(register, [target_args]).
 cmd_fmt(unregister, [target_args]).
 cmd_fmt(bench, [target_args]).
 cmd_fmt(test, [target_args]).
+cmd_fmt(analyze, [target_args]).
 
 cmd_fmt(list, []). % (list bundles)
 cmd_fmt(info, [target_args]). % (info on bundle)

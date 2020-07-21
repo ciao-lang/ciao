@@ -17,6 +17,7 @@
 % :- pred unregister/0 # "Unregister (in bash,csh,emacs,etc.)".
 % :- pred test/0 # "Run tests".
 % :- pred bench/0 # "Run benchmarks".
+% :- pred analyze/0 # "Analyze".
 % :- pred custom_run/2 # "Run custom command".
 
 % % Hooks for item_nested

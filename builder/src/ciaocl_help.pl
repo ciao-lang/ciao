@@ -328,6 +328,15 @@ cmd_usage(bench, "[<targets>]", [
     "Execute all benchmarks"
 ]) :- advanced.
 
+grp_def(analyze_grp, "Analysis").
+%
+cmd_grp(analyze, analyze_grp).
+% TODO: Options for analysis, reporting, etc.
+cmd_usage(analyze, "[<targets>]", [
+    %1_______________________________________________
+    "Analyze"
+]).
+
 grp_def(packaging, "Packaging for distribution") :- advanced.
 %
 cmd_grp(gen_pbundle, packaging). % TODO: trick, does not exist

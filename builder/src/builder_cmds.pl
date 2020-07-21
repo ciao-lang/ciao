@@ -536,6 +536,7 @@ enabled_grade(custom) :- !. % TODO: better way?
 enabled_grade(custom_bin) :- !. % TODO: better way?
 enabled_grade(custom_docs) :- !. % TODO: better way?
 enabled_grade(test) :- !. % TODO: implement
+enabled_grade(analyze) :- !. % TODO: implement
 enabled_grade(bench) :- !. % TODO: implement
 %
 enabled_grade(docs) :-
@@ -912,6 +913,13 @@ ask_promote_bootstrap(Eng) :-
 'cmd.comment'(test, ["testing"]).
 'cmd.grade'(test, test). % TODO: implement grade
 'cmd.recursive'(test, forward).
+
+% ---------------------------------------------------------------------------
+% analyze
+
+'cmd.comment'(analyze, ["analyzing"]).
+'cmd.grade'(analyze, analyze). % TODO: implement grade
+'cmd.recursive'(analyze, forward).
 
 % ---------------------------------------------------------------------------
 % custom_run
