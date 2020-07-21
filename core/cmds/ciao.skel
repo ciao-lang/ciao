@@ -114,7 +114,7 @@ needs_oc_builder() {
     while [ $# -gt 0 ]; do
 	case $1 in
 	    --cache-dir) shift ;;
-	    --rtchecks|--stats|--verbose|--profile) true ;;
+	    --lowrtchecks|--stats|--verbose|--profile) true ;;
 	    oc:*) return 0 ;; # An oc:* action 
 	    *)    break
 	esac

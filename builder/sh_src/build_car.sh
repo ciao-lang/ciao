@@ -270,7 +270,7 @@ config_opts="\
 OPTIM_LEVEL \
 DEBUG_LEVEL \
 DEBUG_TRACE \
-RTCHECKS \
+LOWRTCHECKS \
 PROFILE_INSFREQ \
 PROFILE_INS2FREQ \
 PROFILE_BLOCKFREQ \
@@ -312,15 +312,15 @@ defval__DEBUG_TRACE=no
 #    Enable debug trace (controled with runtime options)
 
 # TODO:[optim-comp] port to core
-defval__RTCHECKS=no
-#  --rtchecks=[no]
+defval__LOWRTCHECKS=no
+#  --lowrtchecks=[no]
 #
 #    yes
 #    no
 #
-#    Enable superfluous runtime checks (preconditions, postconditions,
-#    etc.) in the C code. A bug-free emulator should not violate any of
-#    these checks.
+#    Enable low-level runtime checks (preconditions, postconditions,
+#    etc.) for the engine, emulator and runtime. A bug-free emulator
+#    should not violate any of these checks.
 
 # TODO:[optim-comp] port to core
 defval__PROFILE_INSFREQ=no
@@ -700,7 +700,7 @@ car_emit_osarch_info_oc() {
     update_file "$bld_cfgdir/engine/engine__configuration.h" <<EOF
 #if !defined(__CONFIGURATION_H__)
 #define __CONFIGURATION_H__
-`emit_define "${opt__RTCHECKS}" "USE_RTCHECKS"`
+`emit_define "${opt__LOWRTCHECKS}" "USE_LOWRTCHECKS"`
 `emit_define "${opt__USE_THREADS}" "USE_THREADS"`
 `emit_define "${opt__DEBUG_TRACE}" "DEBUG_TRACE"`
 `emit_define "${opt__PROFILE_INSFREQ}" "PROFILE_INSFREQ"`

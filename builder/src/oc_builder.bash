@@ -460,8 +460,8 @@ enable_stats() {
     export CIAOOPTS="--profile-stats=yes ${CIAOOPTS}"
 }
 
-enable_rtchecks() {
-    export CIAOOPTS="--rtchecks=yes $CIAOOPTS"
+enable_lowrtchecks() {
+    export CIAOOPTS="--lowrtchecks=yes $CIAOOPTS"
 }
 
 # TODO: add option to enable --profile-insfreq=yes
@@ -606,7 +606,7 @@ compiler
 
 code generation
   --profile                Enable profiler
-  --rtchecks               Enable (low level) runtime checks
+  --lowrtchecks            Enable low-level runtime checks at the engine level
 
 The available commands are:
 
@@ -616,7 +616,7 @@ Bootstrapping the compiler:
 
   oc:build-comp            Build the compiler (reaching a fixpoint in at most 
                            three steps)
-  oc:build-comp-rt         Build the compiler with (engine) runtime checks
+  oc:build-comp-lowrt      Build the compiler with low-level runtime checks
   oc:status                Show the compilation status
   oc:promote               Backup the old compiler and promote the new compiler
                            (only if step 3 succeeded)
@@ -698,7 +698,7 @@ EOF
 while [ -t ]; do
     case $1 in
         --cache-dir)   shift; set_cache_dir $1 ;;
-        --rtchecks)    enable_rtchecks ;;
+        --lowrtchecks) enable_lowrtchecks ;;
         --stats)       enable_stats ;;
         --verbose)     enable_verbose ;;
         --profile)     enable_profile ;;
@@ -722,7 +722,7 @@ esac
 case $action in
     # Compile the compiler
     build_comp)   build_comp ;;
-    build_comp_rt) enable_rtchecks && build_comp ;;
+    build_comp_lowrt) enable_lowrtchecks && build_comp ;;
     status)        status ;;
     promote)       promote ;;
     fast_build_comp) fast_build_comp ;;
