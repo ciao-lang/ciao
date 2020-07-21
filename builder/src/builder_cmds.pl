@@ -517,6 +517,7 @@ maybe_enable_default_grades :-
 % TODO: remove some?
 :- use_module(ciaobld(grade_bin), []). % bin grade commands
 :- use_module(ciaobld(grade_docs), []). % docs grade commands
+:- use_module(ciaobld(grade_analyze), []). % analyze grade commands
 
 % NOTE: it assumes that GRADE is implemented in module grade_<GRADE>.pl
 ensure_grade_loaded(Grade) :-
