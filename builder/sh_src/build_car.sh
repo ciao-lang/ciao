@@ -249,7 +249,7 @@ update_file() { # FILE
 
 c_files_oc() {
     local has_stub=no
-    echo "engine__configuration.c"
+    echo "eng_build_info.c"
     for m in `cat "$cardir"/native_modules`; do
         if [ x"${m}" = x"engine__main" ]; then
             has_stub=yes
@@ -387,7 +387,7 @@ parse_config_opts() {
                     exit 1
                 fi
                 name="`echo "$name" | sed -e 's/-/_/g'`" # replace - by _
-                value="`echo \"$option\" | sed 's/[^=]*=//'`"
+                value="`echo "$option" | sed 's/[^=]*=//'`"
                 Name=`printf "%s" "$name" | tr '[:lower:]' '[:upper:]'` # name in uppercase
                 eval "opt__$Name='$value'" ;;
             *)
@@ -509,21 +509,36 @@ EOF
 
 # ---------------------------------------------------------------------------
 
-car_prebuild_boot_version_info() { # (configure options)
+car_prebuild_boot_version_info() {
     set_car_vars "$1"; shift
-    
+    car_emit_version_info
+}
+
+car_emit_version_info() {
+    local version
+    local major=0
+    local minor=0
+    local patch=0
+    if [ -r "$ciaoroot/core/Manifest/GlobalVersion" ] &&
+           [ -r "$ciaoroot/core/Manifest/GlobalPatch" ]; then
+        version=`cat "$ciaoroot/core/Manifest/GlobalVersion"`
+        major="`echo "$version" | sed -e 's/\..*//'`" 
+        minor="`echo "$version" | sed -e 's/[^\.]*\.//'`"
+        patch=`cat "$ciaoroot/core/Manifest/GlobalPatch"`
+    fi
+
     # Create version.h and version.c
     mkdir -p "$bld_hdir/ciao"
     update_file "$bld_hdir/ciao/version.h" <<EOF
-#define CIAO_VERSION_STRING "Ciao (autoboot)"
-#define CIAO_MAJOR_VERSION 0
-#define CIAO_MINOR_VERSION 0
-#define CIAO_PATCH_NUMBER 0
+#define CIAO_VERSION_STRING "Ciao $major.$minor.$patch"
+#define CIAO_MAJOR_VERSION $major
+#define CIAO_MINOR_VERSION $minor
+#define CIAO_PATCH_NUMBER $patch
 EOF
     mkdir -p "$bld_cdir"
     update_file "$bld_cdir/version.c" <<EOF
-char *ciao_version = "0";
-char *ciao_patch = "0";
+char *ciao_version = "$major.$minor";
+char *ciao_patch = "$patch";
 char *ciao_commit_branch = "unknown";
 char *ciao_commit_id = "unknown";
 char *ciao_commit_date = "unknown";
@@ -549,8 +564,10 @@ car_build() { # cardir
     fi
     #
     mkdir -p "$bld_objdir"
+    # Generate version info # TODO: see eng_maker.pl
+    if [ x"$oc_car" = x"yes" ]; then car_emit_version_info; fi
     # Generate build info
-    if [ x"$oc_car" = x"yes" ]; then car_emit_build_info_oc; else car_emit_build_info; fi
+    car_emit_build_info
     # Generate engine configuration
     if [ x"$oc_car" = x"yes" ]; then car_emit_osarch_info_oc; else car_emit_osarch_info; fi
     # Build exec and lib
@@ -605,9 +622,8 @@ car_emit_build_info() {
     # Load configuration flags (e.g., core__DEBUG_LEVEL, etc.)
     . "$eng_core_config"
 
-    local showdbg=
-    if [ x"$core__DEBUG_LEVEL" != x"nodebug" ]; then
-        showdbg=" [$core__DEBUG_LEVEL]"
+    if [ x"$oc_car" = x"yes" ]; then # TODO:[optim_comp] check
+        CCSHARED="${CFLAGS} ${CCSHARED}"
     fi
 
     # eng_build_info.c: (in $bld_objdir since it depends on $eng_cfg)
@@ -616,15 +632,12 @@ car_emit_build_info() {
         Win32) ciaosuffix=".cpx" ;;
     esac
     update_file "$bld_objdir/eng_build_info.c" <<EOF
-#include <ciao/version.h>
-
 char *eng_architecture = "$CIAOARCH";
 char *eng_os = "$CIAOOS";
 char *exec_suffix = "$EXECSUFFIX";
 char *so_suffix = "$SOSUFFIX";
 
 char *eng_debug_level = "$core__DEBUG_LEVEL";
-char *eng_version = CIAO_VERSION_STRING " [$CIAOOS$CIAOARCH]$showdbg";
 
 int eng_is_sharedlib = $ENG_STUBMAIN_DYNAMIC;
 char *ciao_suffix = "$ciaosuffix";
@@ -637,29 +650,6 @@ char *foreign_opts_ld = "$LD";
 char *foreign_opts_ccshared = "$CCSHARED";
 char *foreign_opts_ldshared = "$LDSHARED";
 EOF
-}
-
-# TODO:[optim_comp] merge
-car_emit_build_info_oc() {
-    DEFAULT_LIBDIR="" # TODO: use eng_default_ciaoroot, etc.
-    # Build info
-    VERSION_DIR="$cardir"/version
-    VERSIONTAG="`cat ${VERSION_DIR}/GlobalVersion` [optim_comp]"
-    BUILD_INFO="Ciao ${VERSIONTAG}\n"
-    mkdir -p "$bld_cfgdir"/engine
-    update_file "$bld_cfgdir/engine/engine__configuration.c" <<EOF
-char *emulator_version = "${BUILD_INFO}";
-char *emulator_architecture = "${CIAOARCH}";
-char *emulator_os = "${CIAOOS}";
-char *emulator__so_cc = "${CC}";
-char *emulator__so_ld = "${LD}";
-char *emulator__so_cc_opts = "${CFLAGS} ${CCSHARED}";
-char *emulator__so_ld_opts = "${LDSHARED}";
-char *emulator__so_libs = "";
-char *ciao_versiontag = "${VERSIONTAG}";
-char *installibdir = "${DEFAULT_LIBDIR}";
-EOF
-    cp "$bld_cfgdir/engine/engine__configuration.c" "$bld_cdir/engine__configuration.c" # TODO: hardwired
 }
 
 # Use an existing preconfiguration or run configure

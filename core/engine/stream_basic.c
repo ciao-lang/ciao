@@ -847,11 +847,21 @@ CBOOL__PROTO(nd_current_stream)
 
 /* ------------------------------------------------------------------------- */
 
-extern char *eng_version;
+extern char *eng_architecture;
+extern char *eng_os;
+extern char *eng_debug_level;
 
-CBOOL__PROTO(prolog_bootversion)
-{
-  print_string(Arg, Output_Stream_Ptr, eng_version);
+CBOOL__PROTO(prolog_bootversion) {
+  print_string(Arg, Output_Stream_Ptr, CIAO_VERSION_STRING);
+  print_string(Arg, Output_Stream_Ptr, " [");
+  print_string(Arg, Output_Stream_Ptr, eng_os);
+  print_string(Arg, Output_Stream_Ptr, eng_architecture);
+  print_string(Arg, Output_Stream_Ptr, "]");
+  if (strcmp(eng_debug_level, "nodebug") != 0) {
+    print_string(Arg, Output_Stream_Ptr, " [");
+    print_string(Arg, Output_Stream_Ptr, eng_debug_level);
+    print_string(Arg, Output_Stream_Ptr, "]");
+  }
   print_string(Arg, Output_Stream_Ptr, "\n");
   return TRUE;
 }
