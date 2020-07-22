@@ -475,7 +475,7 @@ car_config() { # (configure options)
     ## test -d "$1/bundlereg" || mkdir -p "$1/bundlereg"
     mkdir -p "$bld_cfgdir"
     update_file "$bld_cfgdir/core.bundlecfg_sh" <<EOF
-core__USE_THREADS=$opt__USE_THREADS
+core__USE_THREADS="$opt__USE_THREADS"
 core__AND_PARALLEL_EXECUTION=no
 core__PAR_BACK=no
 core__TABLED_EXECUTION=no
@@ -488,6 +488,13 @@ core__CUSTOM_CC="$opt__CUSTOM_CC"
 core__CUSTOM_LD="$opt__CUSTOM_LD"
 core__EXTRA_CFLAGS="$opt__EXTRA_CFLAGS"
 core__EXTRA_LDFLAGS="$opt__EXTRA_LDFLAGS"
+# (optim-comp)
+core__LOWRTCHECKS="$opt__LOWRTCHECKS"
+core__DEBUG_TRACE="$opt__DEBUG_TRACE"
+core__PROFILE_INSFREQ="$opt__PROFILE_INSFREQ"
+core__PROFILE_INS2FREQ="$opt__PROFILE_INS2FREQ"
+core__PROFILE_BLOCKFREQ="$opt__PROFILE_BLOCKFREQ"
+core__PROFILE_STATS="$opt__PROFILE_STATS"
 EOF
 
     # Create a predefined 'meta_sh'
@@ -569,7 +576,7 @@ car_build() { # cardir
     # Generate build info
     car_emit_build_info
     # Generate engine configuration
-    if [ x"$oc_car" = x"yes" ]; then car_emit_osarch_info_oc; else car_emit_osarch_info; fi
+    car_emit_osarch_info
     # Build exec and lib
     eng_deplibs="$LIBS"
     if [ x"$eng_use_stat_libs" = x"yes" ]; then
@@ -666,57 +673,33 @@ car_emit_osarch_info() {
     # TODO: keep in $bld_objdir or $bld_cfgdir (since it depends on $eng_cfg)
     if [ x"$preconf" = x"" ]; then car_make configexec; fi
     if [ x"$preconf" != x"" ]; then
-        dump_cflags; cat "$preconf"
+        dump_cdefs; cat "$preconf"
     else
-        dump_cflags; "$bld_objdir/configure""$EXECSUFFIX"
+        dump_cdefs; "$bld_objdir/configure""$EXECSUFFIX"
     fi | update_file "$bld_hdir/$eng_h_alias/configure.h"
 }
-# TODO: create together with config_sh instead
+# TODO: create together with config_sh from CDEFS (not CFLAGS)
 # TODO: goes to platform-independent directories! add osach as suffix and do conditional include?
-dump_cflags() {
+dump_cdefs() {
     local flag name
     for flag in $CFLAGS; do
+        if expr x$flag : x'-D\(.*=.*\)' >/dev/null; then # skip -DNAME=VAL
+            continue
+        fi
         if ! expr x$flag : x'-D\(..*\)' >/dev/null; then
             continue
         fi
         name=`expr x$flag : x'-D\(..*\)'`
-        cat <<EOF
-#if !defined($name)
-#define $name
-#endif
-EOF
+        emit_define "$name"
     done
 }
 
-# TODO:[optim_comp] merge
-car_emit_osarch_info_oc() {
-    CONFIGURE_DIR="$ciaoroot/core/engine_oc"
-    # Compile configure exec
-    CONFIGURE="$bld_cfgdir/configure"
-    ${CC} ${CFLAGS} ${LDFLAGS} -o ${CONFIGURE} \
-          ${CONFIGURE_DIR}/configure.c \
-          ${CONFIGURE_DIR}/engine__own_mmap.c
-    mkdir -p "$bld_cfgdir"/engine
-    update_file "$bld_cfgdir/engine/engine__configuration.h" <<EOF
-#if !defined(__CONFIGURATION_H__)
-#define __CONFIGURATION_H__
-`emit_define "${opt__LOWRTCHECKS}" "USE_LOWRTCHECKS"`
-`emit_define "${opt__USE_THREADS}" "USE_THREADS"`
-`emit_define "${opt__DEBUG_TRACE}" "DEBUG_TRACE"`
-`emit_define "${opt__PROFILE_INSFREQ}" "PROFILE_INSFREQ"`
-`emit_define "${opt__PROFILE_INS2FREQ}" "PROFILE_INS2FREQ"`
-`emit_define "${opt__PROFILE_BLOCKFREQ}" "PROFILE_BLOCKFREQ"`
-`emit_define "${opt__PROFILE_STATS}" "PROFILE_STATS"`
-`${CONFIGURE}`
-#endif /* __CONFIGURATION_H__ */
-EOF
-    rm "${CONFIGURE}" # clean configure exec
-}
-
 emit_define() {
-    if test x"$1" = x"yes"; then
-        echo "#define $2 1"
-    fi
+    cat <<EOF
+#if !defined($1)
+#define $1
+#endif
+EOF
 }
 
 # ---------------------------------------------------------------------------
@@ -751,8 +734,6 @@ car_clean() { # cardir
         [ -d "$f" ] || rm -f "$f"
     done
     if [ -x "$bld_cfgdir" ]; then
-        rm -f "$bld_cfgdir"/engine/* # TODO: store somewere else (engine__configuration.[ch])
-        if [ -x "$bld_cfgdir"/engine ] ; then rmdir "$bld_cfgdir"/engine; fi
         rm -f "$bld_cfgdir"/*
         rmdir "$bld_cfgdir"
     fi

@@ -58,6 +58,10 @@ case "$eng_cross_os$eng_cross_arch" in
         ;;
 esac
 
+# Number of processors (for compilation): use the real number for the
+# current OS and ARCH
+PROCESSORS=`"$_base"/available_processors $core__OS$core__ARCH`
+
 # Override core__OPTIM_LEVEL if needed
 # TODO: If really needed, move to the Prolog part?
 case "$core__DEBUG_LEVEL" in
@@ -113,36 +117,33 @@ if ! command -v "$LD" > /dev/null 2>&1; then
     exit 1
 fi
 
-# Does this machine has dynamic linking abilities?
+# TODO: _REENTRANT is obsolete, remove?
+
+# Override core__USE_THREADS if needed
 case "$CIAOOS$CIAOARCH" in
-    LINUXx86_JS) FOREIGN_FILES_FLAG="" ;;
-    *) FOREIGN_FILES_FLAG="-DFOREIGN_FILES" ;;
+    LINUXx86_JS) core__USE_THREADS=no ;;
 esac
 
 # Libraries and flags to use threads
 LD_THREAD_LIB=
-THREAD_FLAG=
+THREAD_FLAGS=
 if test x"$core__USE_THREADS" = x"yes"; then
+    THREAD_FLAGS="-D_REENTRANT"
     case "$CIAOOS$CIAOARCH" in
         SolarisSparc*)
             case "`/bin/uname -r`" in
                 5.[123456]* ) SOLARIS_VERSION=pre_7 ;;
                 5.* )         SOLARIS_VERSION=equal_post_7 ;;
             esac
-            THREAD_FLAG="-D_REENTRANT -DTHREADS"
             if test x"$SOLARIS_VERSION" = x"pre_7"; then
                 LD_THREAD_LIB="-lpthread"
             else
                 LD_THREAD_LIB="-lpthread -lrt"
             fi
             ;;
-        Solaris*) LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
-        BSD*)     LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
-        DARWIN*)  THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
-        LINUXx86_JS) THREAD_FLAG="-D_REENTRANT" ;;
-        LINUX*)   LD_THREAD_LIB="-lpthread"; THREAD_FLAG="-D_REENTRANT -DTHREADS" ;;
-        # Threads and locks in Win32: no threads, no locks so far.
-        Win32*) THREAD_FLAG="-DTHREADS" ;;
+        Solaris*) LD_THREAD_LIB="-lpthread" ;;
+        BSD*)     LD_THREAD_LIB="-lpthread" ;;
+        LINUX*)   LD_THREAD_LIB="-lpthread" ;;
     esac
 fi
 
@@ -172,6 +173,13 @@ case "$CIAOOS$CIAOARCH" in
     Solaris*)  CCSHARED= ; LDSHARED="-G" ;;
     # note: -fPIC and -rdynamic are unused in Windows
     Win32*)    CCSHARED= ; LDSHARED="-shared" ;;
+esac
+
+# Extension of executables
+EXECSUFFIX=
+case "$CIAOOS$CIAOARCH" in
+    LINUXx86_JS) EXECSUFFIX=".js" ;;
+    Win32*) EXECSUFFIX=".exe" ;;
 esac
 
 # Extension of shared libraries
@@ -210,20 +218,6 @@ case "$core__DEBUG_LEVEL" in
     profile|profile-debug)
         DEBUG_FLAGS="$DEBUG_FLAGS -pg"
         PROFILE_LD_FLAGS="-pg"
-        ;;
-    *) ;;
-esac
-# WAM level debugging
-case "$core__DEBUG_LEVEL" in
-    paranoid-debug|debug|profile-debug)
-        DEBUG_FLAGS="$DEBUG_FLAGS -DDEBUG"
-        ;;
-    *) ;;
-esac
-# WAM level profiling
-case "$core__DEBUG_LEVEL" in
-    profile|profile-debug)
-        DEBUG_FLAGS="$DEBUG_FLAGS -DPROFILE"
         ;;
     *) ;;
 esac
@@ -271,23 +265,6 @@ esac
 OPTIM_FLAGS="-fno-stack-check $OPTIM_FLAGS"
 # Select C standard
 OPTIM_FLAGS="-Wall -Wstrict-prototypes -std=gnu11 $OPTIM_FLAGS"
-
-# Memory management primitives (own_malloc)
-# See engine/configure.c: USE_MMAP includes USE_OWN_MALLOC
-MEM_MNG_FLAGS=""
-case "$CIAOOS$CIAOARCH" in
-    # TODO: why?
-    LINUXSparc)      MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
-    LINUXSparc64)    MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
-    # Do not use USE_MMAP for own_malloc in 64-bit architectures
-    *Sparc64)        MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
-    *x86_64)         MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
-    *x86_JS)         MEM_MNG_FLAG="" ;;
-    *ppc64)          MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
-    *aarch64)        MEM_MNG_FLAG="-DUSE_OWN_MALLOC" ;;
-    # (assume 32-bit)
-    *) MEM_MNG_FLAG="-DUSE_MMAP -DANONYMOUS_MMAP" ;;
-esac
 
 # Linker specific options
 # Note: LINUX linker specific options
@@ -358,28 +335,72 @@ esac
 #       cd $bld_objdir &&       do_gmake clean
 # endif
 
+# ===========================================================================
+# Custom engine configuration flags (-D preprocessor and configure.h)
+
+emit_cdef() {
+    printf " -D%s" "$1"
+}
+
+emit_cdefs() {
+    emit_cdef "$CIAOOS"
+    emit_cdef "$CIAOARCH"
+    # Threads
+    if test x"$core__USE_THREADS" = x"yes"; then emit_cdef "USE_THREADS"; fi
+    # (optim-comp)
+    if test x"$core__LOWRTCHECKS" = x"yes"; then emit_cdef "USE_LOWRTCHECKS"; fi
+    if test x"$core__DEBUG_TRACE" = x"yes"; then emit_cdef "DEBUG_TRACE"; fi
+    if test x"$core__PROFILE_INSFREQ" = x"yes"; then emit_cdef "PROFILE_INSFREQ"; fi
+    if test x"$core__PROFILE_INS2FREQ" = x"yes"; then emit_cdef "PROFILE_INS2FREQ"; fi
+    if test x"$core__PROFILE_BLOCKFREQ" = x"yes"; then emit_cdef "PROFILE_BLOCKFREQ"; fi
+    if test x"$core__PROFILE_STATS" = x"yes"; then emit_cdef "PROFILE_STATS"; fi
+    # Enable dynamic linking
+    case "$CIAOOS$CIAOARCH" in
+        LINUXx86_JS) true ;;
+        *) emit_cdef "FOREIGN_FILES" ;;
+    esac
+    # WAM level debugging
+    case "$core__DEBUG_LEVEL" in
+        paranoid-debug|debug|profile-debug) emit_cdef "DEBUG" ;;
+    esac
+    # WAM level profiling
+    case "$core__DEBUG_LEVEL" in
+        profile|profile-debug) emit_cdef "PROFILE" ;;
+    esac
+    # Memory management primitives (own_malloc)
+    # See engine/configure.c: USE_MMAP includes USE_OWN_MALLOC
+    case "$CIAOOS$CIAOARCH" in
+        # TODO: why?
+        LINUXSparc)      emit_cdef "USE_OWN_MALLOC" ;;
+        LINUXSparc64)    emit_cdef "USE_OWN_MALLOC" ;;
+        # Do not use USE_MMAP for own_malloc in 64-bit architectures
+        *Sparc64)        emit_cdef "USE_OWN_MALLOC" ;;
+        *x86_64)         emit_cdef "USE_OWN_MALLOC" ;;
+        *x86_JS)         true ;;
+        *ppc64)          emit_cdef "USE_OWN_MALLOC" ;;
+        *aarch64)        emit_cdef "USE_OWN_MALLOC" ;;
+        # (assume 32-bit)
+        *) emit_cdef "USE_MMAP"; emit_cdef "ANONYMOUS_MMAP" ;;
+    esac
+    #
+    case "$core__AND_PARALLEL_EXECUTION" in
+        yes) emit_cdef "ANDPARALLEL" ;;
+        visandor) emit_cdef "ANDPARALLEL"; emit_cdef "VISANDOR" ;;
+    esac
+    #
+    if test x"$core__PAR_BACK" = x"yes"; then emit_cdef "PARBACK"; fi
+    if test x"$core__TABLED_EXECUTION" = x"yes"; then emit_cdef "TABLING"; fi
+}    
+CDEFS=`emit_cdefs`
+
 # ---------------------------------------------------------------------------
 
-EXECSUFFIX=
-case "$CIAOOS$CIAOARCH" in
-    LINUXx86_JS) EXECSUFFIX=".js" ;;
-    Win32*) EXECSUFFIX=".exe" ;;
-esac
-
-# ---------------------------------------------------------------------------
-
-CFLAGS="$OPTIM_FLAGS $DEBUG_FLAGS $THREAD_FLAG $FOREIGN_FILES_FLAG $SOCKETS_FLAG -D$CIAOOS -D$CIAOARCH $ARCHFLAGS $MEM_MNG_FLAG"
+CFLAGS="$OPTIM_FLAGS $DEBUG_FLAGS $THREAD_FLAGS $SOCKETS_FLAG $ARCHFLAGS $CDEFS"
 LDFLAGS="$LDARCHFLAGS $LDFLAGS0 $LDRPATH $PROFILE_LD_FLAGS"
 CCSHARED="$ARCHFLAGS $CCSHARED" # TODO: misses OPTIM_FLAGS, etc.?
 LDSHARED="$LDARCHFLAGS $LDSHARED"
 LIBS="$LIBS0 $LD_THREAD_LIB $LD_SOCKETS_LIB $DEBUG_LIBS"
 STAT_LIBS="$STAT_SOCKETS_LIB"
-
-# Number of processors (for compilation): use the real number for the
-# current OS and ARCH
-PROCESSORS=`"$_base"/available_processors $core__OS$core__ARCH`
-
-# ===========================================================================
 
 # Add extra CFLAGS and LDFLAGS
 CFLAGS="$CFLAGS $core__EXTRA_CFLAGS"
@@ -398,29 +419,6 @@ for f in $eng_addcfg; do
         STAT_LIBS="$STAT_LIBS $ADD_STAT_LIBS"
     fi
 done
-
-# ===========================================================================
-# [Export some config flags to C preprocessor defs]
-# TODO: Do it automatically?
-
-if test x"$core__AND_PARALLEL_EXECUTION" = x"yes"; then
-    ANDPARALLEL="-DANDPARALLEL"
-elif test x"$core__AND_PARALLEL_EXECUTION" = x"visandor"; then
-    ANDPARALLEL="-DANDPARALLEL -DVISANDOR"
-elif test x"$core__AND_PARALLEL_EXECUTION" = x"no"; then
-    ANDPARALLEL=""
-fi
-
-if test x"$core__PAR_BACK" = x"yes"; then
-    PARBACK="-DPARBACK"
-fi
-
-if test x"$core__TABLED_EXECUTION" = x"yes"; then
-    TABLING="-DTABLING"
-fi
-
-# Add CFLAGS for bundle subtargets
-CFLAGS="$CFLAGS $ANDPARALLEL $PARBACK $TABLING"
 
 # ===========================================================================
 

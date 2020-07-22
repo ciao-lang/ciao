@@ -68,7 +68,7 @@
 #endif
 
 /* TODO: can we reuse this to implement actions on cuts? (JFMC) */
-#if defined(THREADS)
+#if defined(USE_THREADS)
 #define ConcChptCleanUp(TopCChpt, TopNode) \
     if (ChoiceYounger(TopCChpt, TopNode)) { \
        TRACE_CHPT_CLEANUP(TopCChpt, TopNode); \

@@ -23,7 +23,7 @@
 #define NULL (void *)0
 #endif
 
-#if !defined(THREADS)                                   /* Empty macros */
+#if !defined(USE_THREADS)                                   /* Empty macros */
 /* Spin locks: fast, but make a busy-wait */
 #define Init_slock(p)          
 #define Wait_Acquire_slock(p)  
@@ -58,7 +58,7 @@ typedef char condition_t;                          /* Avoid compiler errors */
 typedef char SLOCK;
 typedef char LOCK;
 
-#else  /* We have THREADS!!!!! */
+#else /* defined(USE_THREADS) */
 
 #define USE_LOCKS
 
@@ -413,7 +413,7 @@ typedef struct conditionstruct {
 
 /* ------------------------------------------------------------------------- */
 
-#endif                                                       /* THREADS */
+#endif /* USE_THREADS */
 
 #if defined(DEBUG)
 #define GET_INC_COUNTER get_inc_counter()

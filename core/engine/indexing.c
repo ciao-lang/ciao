@@ -353,7 +353,7 @@ static CVOID__PROTO(make_undefined, definition_t *f)
   f->properties.wait = 0;
   f->properties.multifile = 0;
   f->properties.dynamic = 0;
-#if defined(THREADS)
+#if defined(USE_THREADS)
   f->properties.concurrent = 0;
 #endif
   SetEnterInstr(f,ENTER_UNDEFINED);
@@ -712,7 +712,7 @@ CBOOL__PROTO(set_property)
 
     /* In any case, set the runtime behavior */
     f->code.intinfo->behavior_on_failure =
-#if defined(THREADS)
+#if defined(USE_THREADS)
       f->properties.concurrent ? CONC_OPEN : DYNAMIC;
 #else
       DYNAMIC;

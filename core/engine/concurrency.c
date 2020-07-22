@@ -22,7 +22,7 @@
 
 /* --------------------------------------------------------------------------- */
 
-#if defined(THREADS) && defined(USE_POSIX_THREADS)
+#if defined(USE_THREADS) && defined(USE_POSIX_THREADS)
 extern pthread_attr_t detached_thread;
 extern pthread_attr_t joinable_thread;
 #endif
@@ -283,7 +283,7 @@ CBOOL__PROTO(prolog_eng_call)
 
     worker_t *w = gd->worker_registers;
     DEREF(X(0), cross_copy_term(Arg, gd->goal));
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_threads) 
     printf("Cross-copied starting goal from %x to %x\n", 
             (int)gd->goal, (int)X(0));
@@ -301,7 +301,7 @@ CBOOL__PROTO(prolog_eng_call)
     exec_result = (bool_t)((intmach_t)startgoal((THREAD_ARG)(gd)));
   }
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_threads) printf("Goal %x created, continuing\n", (int)gd);
 #endif
 

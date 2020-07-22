@@ -151,7 +151,7 @@ sw_on_key_t **predicates_location = &prolog_predicates;    /* Shared */
 sw_on_key_t  *prolog_modules = NULL;                    /* Shared */
 sw_on_key_t **modules_location = &prolog_modules;    /* Shared */
 
-#if defined(THREADS) && defined(USE_POSIX_THREADS)
+#if defined(USE_THREADS) && defined(USE_POSIX_THREADS)
 pthread_attr_t detached_thread;
 pthread_attr_t joinable_thread;
 #endif
@@ -500,7 +500,7 @@ atom_t *new_atom_check(char *str,
 #endif
   classify_atom(s);
 
-#if defined(THREADS)
+#if defined(USE_THREADS)
   /*s->atom_lock_l = create_dynamic_lock(); */            /* Already inited */
   /*  Quite amazingly, the latter seems to be faster than just
 
@@ -768,7 +768,7 @@ static void define_functions(void)
 /* Initializations that need to be made once only. */
 
 void init_locks(void){
-#if defined(THREADS)
+#if defined(USE_THREADS)
   Init_slock(prolog_predicates_l);
   Init_slock(prolog_modules_l);
 #if defined(DEBUG)
@@ -838,7 +838,7 @@ void init_once(void)
   /* Init time variables */
   reset_statistics();
 
-#if defined(THREADS) && defined(USE_POSIX_THREADS)
+#if defined(USE_THREADS) && defined(USE_POSIX_THREADS)
   pthread_attr_init(&detached_thread);
   pthread_attr_setdetachstate(&detached_thread, PTHREAD_CREATE_DETACHED);
   pthread_attr_setscope(&detached_thread, PTHREAD_SCOPE_SYSTEM);

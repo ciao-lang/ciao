@@ -1,7 +1,7 @@
 #ifndef _CIAO_CONCURRENCY_H
 #define _CIAO_CONCURRENCY_H
 
-#if defined(THREADS) && defined(USE_POSIX_THREADS)
+#if defined(USE_THREADS) && defined(USE_POSIX_THREADS)
 extern pthread_attr_t detached_thread;
 extern pthread_attr_t joinable_thread;
 #endif

@@ -9,7 +9,7 @@
 #ifndef _CIAO_THREADS_H
 #define _CIAO_THREADS_H
 
-#if defined(THREADS)
+#if defined(USE_THREADS)
 
 /* 
    These macros allows the same macros to be use with the POSIX and Solaris
@@ -136,9 +136,9 @@ CreateThread(security, stack_size, (LPTHREAD_START_ROUTINE) start_proc, \
 #define Thread_Equal(thrid1, thrid2) (thrid1 == thrid2) /* needs Ids */
 
 #endif /* USE_WIN32_THREADS */
-#endif /* THREADS */
+#endif /* USE_THREADS */
 
-#if !defined(THREADS) || (!defined(USE_WIN32_THREADS) && !defined(USE_POSIX_THREADS))
+#if !defined(USE_THREADS) || (!defined(USE_WIN32_THREADS) && !defined(USE_POSIX_THREADS))
 
 #include <unistd.h>
 #include <signal.h>
@@ -166,6 +166,6 @@ typedef void *(*THREAD_START)(void *);
 #define Thread_Cancel(Id) kill(Thread_Id, SIGTERM)
 #define Thread_Equal(thr1, thr2) (thr1 == thr2)
 
-#endif /* defined(THREADS) */
+#endif /* defined(USE_THREADS) */
 
 #endif /* _CIAO_THREADS_H */

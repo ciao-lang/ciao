@@ -62,7 +62,7 @@ CBOOL__PROTO(prolog_erase)
   int_info_t *root;
   intmach_t current_mem;
 
-#if defined(THREADS)
+#if defined(USE_THREADS)
   instance_handle_t *x2_ins_h, *x5_ins_h;
   instance_t *ipp, *x2_insp, *x5_insp;
 #endif
@@ -71,7 +71,7 @@ CBOOL__PROTO(prolog_erase)
   node = TagToInstance(X(0));
   root = node->root;
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc) {
     fprintf(stderr, "*** %d(%d) entering prolog_erase()!\n",
             (int)Thread_Id, (int)GET_INC_COUNTER);
@@ -81,7 +81,7 @@ CBOOL__PROTO(prolog_erase)
   }
 #endif
 
-#if defined(THREADS)                                               /* MCL */
+#if defined(USE_THREADS)                                               /* MCL */
 
  /* An instance is about to be deleted.  If the predicate is
     concurrent, and there are calls pointing at that instance, move
@@ -92,7 +92,7 @@ CBOOL__PROTO(prolog_erase)
     '$current_instance'/1 . */
 
   if (root->behavior_on_failure != DYNAMIC) {
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
     if (debug_conc && Cond_Lock_is_unset(root->clause_insertion_cond))
      fprintf(stderr, "prolog_erase: entering for conc. pred. without lock!\n");
 #endif
@@ -103,7 +103,7 @@ CBOOL__PROTO(prolog_erase)
                             InstOrNull(x5_ins_h), 
                             &ipp, &x2_insp, &x5_insp);
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
       if (debug_conc)
         fprintf(stderr,
                 "*** %d(%d) moving handles hanging from %x\n",
@@ -146,7 +146,7 @@ CBOOL__PROTO(prolog_erase)
 
   INC_MEM_PROG(total_mem_count - current_mem);
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc) 
     fprintf(stderr, "*** %d(%d) exiting prolog_erase()!\n",
             (int)Thread_Id, (int)GET_INC_COUNTER);
@@ -208,7 +208,7 @@ CBOOL__PROTO(inserta)
     instance_t *n, **loc;
     int_info_t *root = TagToRoot(X(0));
     intmach_t current_mem = total_mem_count;
-#if defined(THREADS)                                               /* MCL */
+#if defined(USE_THREADS)                                               /* MCL */
     bool_t move_insts_to_new_clause = FALSE;
 #endif
 
@@ -221,7 +221,7 @@ CBOOL__PROTO(inserta)
               (unsigned int)root->first, (unsigned int)&(root->first));
 #endif
 
-#if defined(THREADS)
+#if defined(USE_THREADS)
     if (root->behavior_on_failure == CONC_CLOSED){                 /* MCL */
       Broadcast_Cond(root->clause_insertion_cond);
       USAGE_FAULT("$inserta in an already closed concurrent predicate");
@@ -237,7 +237,7 @@ CBOOL__PROTO(inserta)
       n->rank = TaggedZero;
       n->forward = NULL;
       n->backward = n;
-#if defined(THREADS)
+#if defined(USE_THREADS)
       if (root->behavior_on_failure == CONC_OPEN)
         move_insts_to_new_clause = TRUE;    /* 'n' will be the new clause */
 #endif
@@ -255,7 +255,7 @@ CBOOL__PROTO(inserta)
     n->birth = use_clock = def_clock;
     n->death = 0xffff;
 
-#if defined(THREADS)                                               /* MCL */
+#if defined(USE_THREADS)                                               /* MCL */
     n->pending_x5 = n->pending_x2 = NULL;
 #endif
     
@@ -271,7 +271,7 @@ CBOOL__PROTO(inserta)
         (*loc)->next_backward = n;
     (*loc) = n;
     
-#if defined(THREADS)
+#if defined(USE_THREADS)
     if (move_insts_to_new_clause) {
       if (root->x2_pending_on_instance)
         move_queue(&root->x2_pending_on_instance, &n->pending_x2, n);
@@ -344,7 +344,7 @@ CBOOL__PROTO(insertz)
     n->forward = NULL;
     n->next_forward = NULL;
 
-#if defined(THREADS)                                               /* MCL */
+#if defined(USE_THREADS)                                               /* MCL */
     n->pending_x5 = n->pending_x2 = NULL;
 #endif
 
@@ -361,13 +361,13 @@ CBOOL__PROTO(insertz)
       (*loc)->next_backward = n;
     }
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
     if (debug_conc && root->behavior_on_failure != DYNAMIC)
       fprintf(stderr, "*** %d(%d) insertz'ed clause %x\n",
               (int)Thread_Id, (int)GET_INC_COUNTER, (int)n);
 #endif
     
-#if defined(THREADS)
+#if defined(USE_THREADS)
     if (root->behavior_on_failure == CONC_OPEN){
       if (root->x2_pending_on_instance)
         move_queue(&root->x2_pending_on_instance, &n->pending_x2, n);
@@ -731,7 +731,7 @@ CVOID__PROTO(clock_overflow)
   int count = 1;
   node_t *b;
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc)
     fprintf(stderr, "*** in clock_overflow()\n");
 #endif
@@ -817,7 +817,7 @@ void expunge_instance(instance_t *i)
     instance_t **loc;
     int_info_t *root = i->root;
 
-#if defined(DEBUG)  && defined(THREADS)
+#if defined(DEBUG)  && defined(USE_THREADS)
     if (root->behavior_on_failure != DYNAMIC && debug_conc) 
         fprintf(stderr, "*** %d(%d) expunge_instance: deleting instance %x!\n",
                 (int)Thread_Id, (int)GET_INC_COUNTER, (int)i);

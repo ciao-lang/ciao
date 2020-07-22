@@ -6,7 +6,7 @@
  *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
  */
 
-#if defined(DEBUG) || defined(THREADS)
+#if defined(DEBUG) || defined(USE_THREADS)
 #include <ciao/threads.h>
 #endif
 
@@ -275,7 +275,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
       {
         tagged_t *x;
         /* We have to relocate the concurrent topmost choicepoint */
-#if defined(THREADS)
+#if defined(USE_THREADS)
         node_t *concchpt;
 #endif
         
@@ -284,7 +284,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
           ChoicePush(x,ChoiceNext(tr));
         w->node = b = (node_t *)(x-w->value_trail);
 
-#if defined(THREADS)
+#if defined(USE_THREADS)
         /* The chain of concurrent dynamic choicepoints has to be
            relocated as well.  The initial TopConcChpt was set to be
            the initial choice node.  MCL. */

@@ -278,7 +278,7 @@ void unlink_wam(goal_descriptor_t *goal)
 
   w = goal->worker_registers;
   if (w != NULL) {
-#if defined(THREADS)            /* Clean the possible conc. chpt. */
+#if defined(USE_THREADS)            /* Clean the possible conc. chpt. */
     remove_link_chains(&TopConcChpt, InitialNode);
 #endif
     dissociate_wam_goal(w, goal);

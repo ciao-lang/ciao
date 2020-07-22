@@ -196,7 +196,7 @@ struct atom_ {
   unsigned int has_special:1;
   unsigned int index:29;
                                /* support for locking on atom names. MCL. */
-#if defined(THREADS)                    /* Do not waste space otherwise */
+#if defined(USE_THREADS)                    /* Do not waste space otherwise */
   LOCK atom_lock_l;                      /* May be held for a long time */
 #if defined(GENERAL_LOCKS)
   volatile intmach_t atom_lock_counter;         /* For general semaphores */

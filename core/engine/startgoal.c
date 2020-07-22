@@ -73,7 +73,7 @@ int firstgoal(goal_descriptor_t *goal_desc, tagged_t goal_term) {
       SETUP_PENDING_CALL(address_true);
       continue;
     }
-#if defined(THREADS)
+#if defined(USE_THREADS)
     eng_killothers_startgoal(Arg);
 #endif
 
@@ -112,7 +112,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
   Arg->next_alt = NULL;  /* Force backtracking after alts. exahusted */
   Arg->node->term[0] = X(0);    /* Will be the arg. of a call/1 */
  
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_threads)
     printf("%d (%d) Goal %x (with starting point %x) entering wam()\n",
            (int)Thread_Id, (int)GET_INC_COUNTER, 
@@ -121,7 +121,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
 
   wam_result = wam(Arg, goal_desc);    /* segfault patch -- jf */
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_threads)
     printf("%d (%d) Goal %x (with starting point %x) exiting wam()\n",
            (int)Thread_Id, (int)GET_INC_COUNTER, 
@@ -133,7 +133,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
   }
   Arg = goal_desc->worker_registers;
   
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
       if (debug_threads)
         printf("%d (%d) Goal %x exited wam()\n", 
                (int)Thread_Id, (int)GET_INC_COUNTER, (int)goal_desc);
@@ -155,7 +155,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
    thread will go to sleep instead of dying. */
 
   if (goal_desc->action & NEEDS_FREEING){ /* Implies thread created */
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
     if (debug_threads) printf("Goal %x enqueuing itself\n", (int)goal_desc);
 #endif
     enqueue_thread(goal_desc->thread_handle); /* Free, enqueue myself */
@@ -175,7 +175,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
 
   Release_slock(goal_desc->goal_lock_l);
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_threads || debug_conc)  printf("*** %d(%d) Goal %x is EXITING\n", 
            (int)Thread_Id, (int)GET_INC_COUNTER, (int)goal_desc);
 #endif

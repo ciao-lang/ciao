@@ -750,7 +750,7 @@ CBOOL__PROTO(current_key)
 }
 #endif
 
-#if defined(THREADS)
+#if defined(USE_THREADS)
 CBOOL__PROTO(close_predicate)
 {
   int_info_t *root = TagToRoot(X(0));
@@ -775,7 +775,7 @@ CBOOL__PROTO(open_predicate)
 
   return TRUE;
 }
-#else                                                          /* !THREADS */
+#else /* !defined(USE_THREADS) */
 CBOOL__PROTO(close_predicate)
 {
   return TRUE;
@@ -866,7 +866,7 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
     return NULL;
   }
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_concchoicepoints && 
       Cond_Lock_is_unset(root->clause_insertion_cond))
       fprintf(stderr, 
@@ -883,7 +883,7 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
     fails, the lock is anyway unset from wam(), right before
     failure. */
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_concchoicepoints)
     fprintf(stderr,
             "*** %" PRIdm "(%" PRIdm ") in c_i making chpt (now: node = 0x%p)., inst. is 0x%p\n",
@@ -1062,7 +1062,7 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp)
    x5_insp are NULL pointer, they are automatically enqueued in root by
    change_handle_to_instance */
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc && !root->first)
     fprintf(stderr, 
             "*** %" PRIdm "(%" PRIdm ") in next_instance_conc without first instance.\n",
@@ -1104,7 +1104,7 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp)
     change_handle_to_instance(x2_ins_h, x2_insp, root, X2);
     change_handle_to_instance(x5_ins_h, x5_insp, root, X5);
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
     if (debug_conc && !root->first)
       fprintf(stderr, 
               "*** %" PRIdm "(%" PRIdm ") after jumping without first instance.\n",
@@ -1115,7 +1115,7 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp)
       Wait_For_Cond_End(root->clause_insertion_cond);
   } while (!*ipp);
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc && !root->first)
     fprintf(stderr, 
             "*** %" PRIdm "(%" PRIdm ") exiting n_i without first instance.\n",
@@ -1198,7 +1198,7 @@ instance_handle_t *make_handle_to(instance_t *inst,
 
   this_handle->head = head;                        /* Allow re-indexation */
   link_handle(this_handle, inst, root, chain);
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc)
     fprintf(stderr, 
             "*** %" PRIdm "(%" PRIdm ") made handle 0x%p to instance 0x%p\n", 
@@ -1219,7 +1219,7 @@ void remove_handle(instance_handle_t *xi,
   unlink_handle(xi, root, chain);
   checkdealloc_TYPE(instance_handle_t, xi);
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc)
     fprintf(stderr, "*** %" PRIdm "(%" PRIdm ") removed handle 0x%p (to instance 0x%p)\n", 
             (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, xi, xi->inst_ptr);
@@ -1335,7 +1335,7 @@ void move_queue(instance_handle_t **srcq,
 {
   instance_handle_t *last, *running = *srcq;
 
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   int_info_t *root =
     *srcq && (*srcq)->inst_ptr ? (*srcq)->inst_ptr->root : NULL;
   int counter = 0;
@@ -1352,7 +1352,7 @@ void move_queue(instance_handle_t **srcq,
 
   if (running){
     while(running) {
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
       counter++;
 #endif
       running->inst_ptr = destinst;
@@ -1365,7 +1365,7 @@ void move_queue(instance_handle_t **srcq,
     *destq = *srcq;
     *srcq = NULL;
   }
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc)
     fprintf(stderr,
             "*** %" PRIdm "(%" PRIdm ") after moving queue made %d steps\n",
@@ -1385,7 +1385,7 @@ void remove_link_chains(node_t **topdynamic,
                         node_t *chpttoclear)
 {
   node_t *movingtop = *topdynamic;
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc)
     fprintf(stderr, "*** %" PRIdm "(%" PRIdm ") removing from 0x%p until 0x%p\n", 
             (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
@@ -1394,7 +1394,7 @@ void remove_link_chains(node_t **topdynamic,
 #endif
   
   while (ChoiceYounger(movingtop, chpttoclear)){
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
     if (debug_conc)
       fprintf(stderr, "*** %" PRIdm "(%" PRIdm ") removing handle at (dynamic) node 0x%p\n", 
               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
@@ -1421,7 +1421,7 @@ void remove_link_chains(node_t **topdynamic,
 
     movingtop=(node_t *)TermToPointerOrNull(movingtop->term[PrevDynChpt]);
   }
-#if defined(DEBUG) && defined(THREADS)
+#if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc)
     fprintf(stderr, "*** %" PRIdm "(%" PRIdm ") remove_link_chains: done at 0x%p\n", 
             (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
