@@ -50,7 +50,7 @@ menu_term_expansion(A,  MP, M) :-
 %% menu, title # flag - option : pre_action :: post_action <- guard.
 
 get_menu_pattern(Pattern) :-
-    get_pattern((menu, title# flag-option :true ::true <-true), Pattern).
+    get_pattern((menu, title# flag-option :true ::true <-true1), Pattern).
 
 %% convert_to_menu_opt(','(lt,#('Perform Type Eval',:(type_eval,-(::(option,'<-'(true,ana_g1)),true)))), A).
 
