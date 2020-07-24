@@ -201,9 +201,9 @@ sabsmach_min_test() {
 
 sabsmach_min_clean() {
     [ -r ${1}-dyn ] && rm -f ${1}-dyn
-    delete_exe ${1}-stat
-    delete_exe ${1}-small
-    delete_exe ${1}-tiny
+    car_delete ${1}-stat
+    car_delete ${1}-small
+    car_delete ${1}-tiny
     rm -f ${1}-stat.dead
     rm -f ${1}-dyn.dead
 }

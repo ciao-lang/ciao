@@ -87,7 +87,7 @@ clean_bootstrap() {
     rm -f ${ok_file}
     rm -f ${ok_step_file}
     rm -f ${bootstrap_modif}
-    delete_exe ${compb[1]}
+    car_delete ${compb[1]}
 }
 
 # ---------------------------------------------------------------------------
@@ -98,12 +98,12 @@ clean_bootstrap() {
 update_bootstrap() {
     message "Updating bootstrap compiler"
     # TODO: could we skip this step if the .car is cleaned before?
-    bootstrap_modif_orig=`modif_time ${bootstrap}`
     if [ -r ${bootstrap_modif} ]; then
         bootstrap_modif_current=`cat ${bootstrap_modif}`
     else
         bootstrap_modif_current=""
     fi
+    bootstrap_modif_orig=`modif_time ${bootstrap}.car/native_modules`
     if [ x"${bootstrap_modif_orig}" == x"${bootstrap_modif_current}" ]; then
         submessage "Preserving bootstrap compiler"
         return 0
@@ -112,15 +112,13 @@ update_bootstrap() {
         rm -f ${ok_file}
         rm -f ${ok_step_file}
         rm -f ${bootstrap_modif}
-        delete_exe ${compb[1]}
-        if unpack_exe ${bootstrap} ${compb[1]}; then
-            modif_time ${bootstrap} > ${bootstrap_modif}
-        else
-            fail_message "Unpacking failed"
-            return 1
-        fi
-        delete_exe ${comp[1]}
-        copy_exe ${compb[1]} ${comp[1]}
+        #
+        car_delete ${compb[1]}
+        car_copy ${bootstrap} ${compb[1]}
+        modif_time ${bootstrap}.car/native_modules > ${bootstrap_modif}
+        #
+        car_delete ${comp[1]}
+        car_copy ${compb[1]} ${comp[1]}
     fi
 }
 
@@ -149,28 +147,28 @@ build_comp() {
         i2=`expr ${i} + 1`
         submessage ${compmessage[${i}]}
         clean_cache
-        delete_exe ${compb[${i2}]}
-        if run_exe ${comp[${i}]} ${compopts} --bootstrap ${compb[${i2}]} ${comp_module}; then
+        car_delete ${compb[${i2}]}
+        if car_run ${comp[${i}]} ${compopts} --bootstrap ${compb[${i2}]} ${comp_module}; then
             true
         else
             fail_message "Compilation failed"
             return 1
         fi
 
-        if compare_exe ${compb[${i}]} ${compb[${i2}]}; then
+        if car_compare ${compb[${i}]} ${compb[${i2}]}; then
             echo > ${ok_file}
             echo ${i} > ${ok_step_file}
-            delete_exe ${compcb}
-            copy_exe ${compb[${i}]} ${compcb}
-            delete_exe ${compc}
-            copy_exe ${comp[${i}]} ${compc}
+            car_delete ${compcb}
+            car_copy ${compb[${i}]} ${compcb}
+            car_delete ${compc}
+            car_copy ${comp[${i}]} ${compc}
             ok_message ${okmessage[${i}]}
             return 0
         else
             if [ ${i} -lt ${maxsteps} ]; then
                 i=${i2}
-                delete_exe ${comp[${i}]}
-                copy_exe ${compb[${i}]} ${comp[${i}]}
+                car_delete ${comp[${i}]}
+                car_copy ${compb[${i}]} ${comp[${i}]}
             else
                 fail_message "The compiler is incorrect! (no fixpoint found)"
                 return 1
@@ -189,8 +187,8 @@ fast_build_comp() {
     if [ -r ${ok_step_file} ]; then
         i=`cat ${ok_step_file}`
 #       clean_cache
-#       delete_exe ${compc}
-        if run_exe ${comp[${i}]} ${compopts} --bootstrap ${compc} ${comp_module} && "$sh_src_dir"/build_car.sh build "${compc}".car; then
+#       car_delete ${compc}
+        if car_run ${comp[${i}]} ${compopts} --bootstrap ${compc} ${comp_module} && "$sh_src_dir"/build_car.sh build "${compc}".car; then
             true
         else
             fail_message "Compilation failed"
@@ -225,15 +223,15 @@ stepinc() {
 }
 
 stepinc_aux() {
-    delete_exe ${compincb}
-    if run_exe ${compc} ${compopts} --bootstrap ${compincb} ${comp_module}; then
+    car_delete ${compincb}
+    if car_run ${compc} ${compopts} --bootstrap ${compincb} ${comp_module}; then
         true
     else
         fail_message "Compilation failed"
         return 1
     fi
 
-    if compare_exe ${compincb} ${compcb}; then
+    if car_compare ${compincb} ${compcb}; then
         ok_message "Fixpoint found (incremental compilation seems to work)"
         return 0
     else
@@ -247,9 +245,9 @@ stepinc_aux() {
 stepana() {
     message "Compile the compiler using analysis"
 
-    delete_exe ${compana}
+    car_delete ${compana}
     clean_cache
-    if run_exe ${compc} ${compopts} --analyze-all --bootstrap ${compana} ${comp_module}; then
+    if car_run ${compc} ${compopts} --analyze-all --bootstrap ${compana} ${comp_module}; then
         true
     else
         fail_message "compilation failed"
@@ -260,23 +258,23 @@ stepana() {
 promote() {
     message "Promote"
     if [ -r ${ok_file} ]; then
-        bootstrap_backup="${backup_dir}/comp-`date +%Y%m%d%H%M%S`.tar"
+        bootstrap_backup="${backup_dir}/comp-`date +%Y%m%d%H%M%S`"
         submessage "Backing up to ${bootstrap_backup}"
         mkdir -p "${backup_dir}" \
         || { fail_message "cannot create directory"; exit -1; } 
-        mv ${bootstrap} ${bootstrap_backup} \
+        car_move ${bootstrap} ${bootstrap_backup} \
         || { fail_message "cannot move"; exit -1; } 
-        pack_exe ${compcb} ${bootstrap} \
-        || { fail_message "packing failed"; exit -1; } 
-        delete_exe ${comp[1]}
-        delete_exe ${compb[1]}
-        delete_exe ${comp[2]}
-        delete_exe ${compb[2]}
-        delete_exe ${comp[3]}
-        delete_exe ${compb[3]}
-        delete_exe ${compc}
-        delete_exe ${compcb}
-        delete_exe ${compincb}
+        car_copy ${compcb} ${bootstrap} \
+        || { fail_message "copying failed"; exit -1; } 
+        car_delete ${comp[1]}
+        car_delete ${compb[1]}
+        car_delete ${comp[2]}
+        car_delete ${compb[2]}
+        car_delete ${comp[3]}
+        car_delete ${compb[3]}
+        car_delete ${compc}
+        car_delete ${compcb}
+        car_delete ${compincb}
         ok_message "Promoted"
         rm -f ${ok_file}
         rm -f ${ok_step_file}
@@ -310,7 +308,7 @@ debug_comp() {
     # TODO: recompile with debug info?
     ensure_comp
     rm -f ${ok_file}
-    debug_exe "${compc}".car "$@" || { fail_message "failed"; exit -1; }
+    car_debug "${compc}".car "$@" || { fail_message "failed"; exit -1; }
 }
 
 # Execute the compiler compiled with analysis
@@ -360,10 +358,10 @@ comp_js() {
 }
 
 # ---------------------------------------------------------------------------
-# Run an executable (optionally showing execution statistics)
+# Run an .car executable (optionally showing execution statistics)
 
 # For static executables
-run_exe() {
+car_run() {
     local prg
     prg=$1
     shift
@@ -379,15 +377,8 @@ run_exe() {
     fi
 }
 
-# For dynamic executables
-run_testing() {
-    set_vervars
-    setup_install
-    "${loader}${versuf}".car/run "$@"
-}
-
 # Run an executable using gdb/lldb
-debug_exe() {
+car_debug() {
     # Get .car path from first argument
     local prg
     prg=$1
@@ -408,6 +399,13 @@ debug_exe() {
         echo "ERROR: no 'gdb' nor 'lldb' found" 1>&2
         exit -1
     fi
+}
+
+# For dynamic executables
+run_testing() {
+    set_vervars
+    setup_install
+    "${loader}${versuf}".car/run "$@"
 }
 
 # ---------------------------------------------------------------------------
@@ -433,7 +431,7 @@ setup() {
     ok_step_file=${tmpcomp_dir}/ok_step
 
     # Compiler steps
-    bootstrap=$ciaoroot/core/bootstrap_oc/comp.tar
+    bootstrap=$ciaoroot/core/bootstrap_oc/comp
     bootstrap_modif=${tmpcomp_dir}/bootstrap_modif
     comp[1]=${tmpcomp_dir}/comp1
     compb[1]=${tmpcomp_dir}/compb1
@@ -504,7 +502,7 @@ build_comp_testing() {
     # note: do only one compilation step in testing mode
     set_vervars
     message "Building the compiler""${vermsg}"
-    delete_exe ${compc}${versuf}
+    car_delete ${compc}${versuf}
     if comp ${compopts} --bootstrap ${compc}${versuf} ${comp_module}; then
         true
     else
@@ -518,7 +516,7 @@ build_loader() {
     message "Building the dynamic executable loader""${vermsg}"
     ensure_cache_bin_dir
     setup_install
-    delete_exe ${loader}${versuf}
+    car_delete ${loader}${versuf}
     comp_testing --bootstrap ${loader}${versuf} ${loader_module}
     "$sh_src_dir"/build_car.sh build "${loader}${versuf}".car
 }

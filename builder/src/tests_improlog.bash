@@ -154,7 +154,7 @@ compile_one() {
                 CIAOCCOPTS="${ciaoccopts}" CIAOLDOPTS="${ciaoldopts}" "$bin_dir"/ciao oc:car-build "$execname".car
                 ok_improlog=$((${ok_improlog} + 1))
             else
-                delete_exe ${execname}
+                car_delete ${execname}
                 echo " [Failed] (see log in ${logname})"
                 cat "${logname}" # show log
                 continue
