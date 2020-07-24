@@ -215,7 +215,7 @@ write_sents(Stub, Sents) :-
 collect_dylibs(F) :-
     retractall_fact(dylib(_, _)),
     error_protect(ctrlc_clean(
-         process_files_from(F, asr, any, treat, false, false, true)
+         process_files_from(F, asr, any, treat, c_itf:false, c_itf:false, ciaoc_sdyn:true)
                   ),fail). % TODO: fail or abort?
 
 treat(Base) :-
@@ -226,6 +226,3 @@ treat(Base) :-
 treat(_Base).
 
 true(_).
-
-
-

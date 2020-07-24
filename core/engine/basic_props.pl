@@ -615,3 +615,14 @@ flag_values(L):- list(atm,L).
 
 :- meta_predicate pe_type(goal).
 pe_type(Goal) :- call(Goal).
+
+% Program-point assertions
+:- export(check/1).
+check(_).
+:- export(trust/1).
+trust(_).
+:- export(true/1).
+true(_).
+:- export(false/1).
+false(_).
+% TODO: Decide a better place for this.

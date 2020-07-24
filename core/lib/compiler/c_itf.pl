@@ -1789,13 +1789,13 @@ compiler_error_data(module_redefined(OtherFile, _SourceFile, M),
 false(_) :- fail.
 
 make_po1(File) :-
-    process_file(File, po, any, make_po_file, false, false,
+    process_file(File, po, any, make_po_file, c_itf:false, c_itf:false,
                  po_older_than_itf),
     base_name(File, Base),       
     make_gluecode(Base).
 
 make_wam1(File) :-
-    process_file(File, wam, any, make_wam_file, false, false,
+    process_file(File, wam, any, make_wam_file, c_itf:false, c_itf:false,
                  wam_older_than_itf).
 
 :- export(make_object1/2).
@@ -2562,7 +2562,7 @@ use_mod_common(File, Type, Imports, ByThisModule) :-
     store_imports(Imports, File, Fake_Base, 0, 0),
     new_in_mode(In),
     process_files_from_(File, In, Type,
-                        load_compile, static_base, false, needs_reload),
+                        load_compile, static_base, c_itf:false, needs_reload),
     del_in_mode(In),
     gen_imports(Fake_Base),
     retractall_fact(imports_all(Fake_Base, _)),

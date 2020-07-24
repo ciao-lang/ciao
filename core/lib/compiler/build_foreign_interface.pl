@@ -129,7 +129,7 @@ get_decls(File, Decls) :-
     find_pl_filename(File, PlName, Base, _),
     error_protect(ctrlc_clean(
             process_files_from(PlName, in, module, get_decls_2(Decls),  
-                               false, false, '='(Base))
+                               c_itf:false, c_itf:false, '='(Base))
         ), fail). % TODO: fail or abort?
 
 get_decls_2(Decls, Base) :-
