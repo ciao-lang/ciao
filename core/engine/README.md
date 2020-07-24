@@ -1,8 +1,8 @@
 # Ciao Engine
 
-This directory contains both C (.h, .c) and Ciao (.pl) sources that
-corresponds to the Ciao engine and runtime. See `ciaoengine.pl` for the
-main module that defines the Ciao engine.
+This directory contains both C (`.h`, `.c`) and Ciao (`.pl`) sources
+that corresponds to the Ciao engine and runtime. See `ciaoengine.pl`
+for the main module that defines the Ciao engine.
 
 The following source files are not intended to be used as Ciao
 modules:

@@ -107,4 +107,3 @@ own_fixed_munmap(void *addr, size_t len){
 int own_mmap__dummy[0]; /* prevent "no symbols" warnings in .a creation */
 
 #endif /* defined(USE_MMAP) */
-
