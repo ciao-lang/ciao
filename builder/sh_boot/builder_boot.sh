@@ -34,7 +34,7 @@ boot_eng_cfg() { printf "BOOT"; }
 target_name="builder"
 
 # The pre-compiled bootstrap ciaoc
-boot_ciaoc="$ciaoroot/core/bootstrap/ciaoc.sta"
+boot_ciaoc="$ciaoroot/core/bootstrap/ciaoc.car/ciaoc.sta"
 # Default engine
 eng_name="ciaoengine" # TODO: allow a different one for bootstrap?
 

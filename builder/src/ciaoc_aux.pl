@@ -48,7 +48,7 @@
 :- doc(section, "Interface to Compilers").
 
 ciaoc := ~cmd_path(core, plexe, 'ciaoc').
-bootstrap_ciaoc := ~bundle_path(core, 'bootstrap/ciaoc.sta').
+bootstrap_ciaoc := ~bundle_path(core, 'bootstrap/ciaoc.car/ciaoc.sta'). % TODO: simplify, just copy like in optim_comp .car
 ciaosh_exec := ~cmd_path(core, plexe, 'ciaosh').
 
 :- use_module(ciaobld(config_common), [cmd_path/4, libcmd_path/4]).
