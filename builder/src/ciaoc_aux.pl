@@ -29,6 +29,7 @@
 :- use_module(library(aggregates), [findall/3]).
 %
 :- use_module(library(system_extra), [
+    mkpath/1,
     ignore_nosuccess/1,
     del_file_nofail/1,
     create_rel_link/2]).
@@ -183,30 +184,31 @@ bootstrap_code_file('absmachdef.h').
 
 promote_bootstrap(Eng) :-
     date_token(Token), % date token for backups 
-    Target = ~bundle_path(core, 'bootstrap'), % TODO: bootstrap dir is hardwired
-    promote_bootstrap_(Eng, Token, Target).
+    % Path for saved bootstrap
+    Target = ~bundle_path(core, 'bootstrap/ciaoc.car'),
+    % Ensure that backup directory exists
+    BackupDir = ~bundle_path(core, 'bootstrap/backup'),
+    mkpath(BackupDir),
+    % Path for ciaoc.car backup
+    path_concat(BackupDir, ~atom_concat('ciaoc.car-', Token), Backup),
+    mkpath(Backup),
+    % Backup bootstrap and update
+    promote_bootstrap_(Eng, Target, Backup).
 
-promote_bootstrap_(Eng, Token, Target) :-
+promote_bootstrap_(Eng, Target, Backup) :-
     ( % (failure-driven loop)
       ( bootstrap_noarch(Orig, Dest0)
       ; bootstrap_code_file(Orig0), Dest0 = Orig0,
         emugen_code_dir(Eng, Orig0, Dir),
         path_concat(Dir, Orig0, Orig)
       ),
+      path_concat(Backup, Dest0, DestBak),
       path_concat(Target, Dest0, Dest),
-      backup_and_copy(Token, Orig, Dest),
+      copy_file(Dest, DestBak, [overwrite]),
+      copy_file(Orig, Dest, [overwrite]),
       fail
     ; true
     ).
-
-backup_and_copy(Token, Orig, Dest) :-
-    backup_name(Dest, Token, DestBak),
-    copy_file(Dest, DestBak, [overwrite]),
-    copy_file(Orig, Dest, [overwrite]).
-
-% Obtain a backup name by appending a date Token
-backup_name(File, Token, FileBak) :-
-    atom_concat([File, '-', Token], FileBak).
 
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(system), [datime/9]).
