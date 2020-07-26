@@ -46,7 +46,7 @@
 % Definitions for ptoc and ptoc__analysis
 :- if(defined(optim_comp)).
 % TODO: include in every module?
-:- '$native_weak_inline'(include('engine/basiccontrol.native.h')).
+:- '$native_weak_inline'(include('ciao/basiccontrol.native.h')).
 :- include(engine(ptoc__prelude_types)).
 :- include(engine(ptoc__prelude)).
 %:- '$pragma'(analyze_all).
