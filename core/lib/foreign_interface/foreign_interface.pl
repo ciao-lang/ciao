@@ -4,7 +4,7 @@
 :- if(defined(optim_comp)).
 :- '$pragma'(treat_assertions).
 :- '$pragma'(gluecode_options).
-:- '$native_weak_inline'(include('engine/engine__ciao_gluecode.h')).
+:- '$native_weak_inline'(include('ciao/engine__ciao_gluecode.h')).
 :- endif.
 
 :- use_module(library(foreign_interface/foreign_interface_properties)).
