@@ -337,9 +337,12 @@ normalize_properties(Ass,NAss,M,F/A,Opts,AType,S,LB,LE) :-
     norm_goal_props(GP,NGP,NPD),
     % Add head arg props to the other props found
     append(ADP,NDP,CNDP),
-    append(ACP,NCP,CNCP),
-    append(AAP,NAP,CNAP),
+    append(ACP,NCP,CNCP0),
+    append(AAP,NAP,CNAP0),
     append(AGP,NGP,CNGP),
+    % Normalize special properties (e.g., mshare/1)
+    norm_addhv_props(CNCP0,NPD,CNCP),
+    norm_addhv_props(CNAP0,NPD,CNAP),
     !.
 normalize_properties(Ass,_,M,_FA,_Opts,_AT,S,LB,LE):-
     assertion_body(PD,  _DP, _CP, _AP, _GP,_CO,Ass),
@@ -658,3 +661,17 @@ norm_goal_prop(GP,NGP,NPD) :-
 
 denorm_goal_prop(NGP,GP,NPD) :-
     norm_goal_prop(GP,NGP,NPD).
+
+
+norm_addhv_props([],_,[]).
+norm_addhv_props([P0|Ps0],PD,[P|Ps]) :-
+    norm_addhv_prop(P0,PD,P),
+    norm_addhv_props(Ps0,PD,Ps).
+
+% TODO: (JF) keep as meta-predicate or context annotation for 'native_props:mshare'/1
+
+:- use_module(library(terms_vars), [varset/2]).
+norm_addhv_prop(mshare(Sh),PD,mshare(Vs,Sh)) :- !,
+    varset(PD,Vs). % TODO: or maybe varset(Sh,Vs)?
+% TODO: ensure Sh sorted w.r.t Vs?
+norm_addhv_prop(P,_,P).

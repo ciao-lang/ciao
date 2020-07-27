@@ -112,6 +112,22 @@ instance(_). % processed in rtchecks_basic
 :- impl_defined(mshare/1).
 :- endif.
 
+% Note: obsolete property, assertion normalizer expands to mshare/2
+% internally. Kept only for backwards compatibility. % TODO: expand to
+% mshare/2 also in program-point assertions
+
+
+:- export(mshare/2).
+
+:- prop mshare(Xs,Xss) + (native(sharing(Xs,Xss)), no_rtcheck)
+# "The sharing pattern for the variables @tt{@var{Xs}} is @tt{@var{Xss}}.".
+
+:- if(defined(optim_comp)).
+:- '$props'(mshare/2, [impnat=indefinable]).
+:- else.
+:- impl_defined(mshare/2).
+:- endif.
+
 % --------------------------------------------------------------------------
 % Amadeo
 :- export(indep/2).

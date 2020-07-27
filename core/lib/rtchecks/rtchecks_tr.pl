@@ -864,7 +864,6 @@ compatpos_rtcheck(
     get_check_props(Compat, compatpos, Pred, RtcCompat),
     ChkCompatPos = i(PosLoc, PredName, Dict, RtcCompat, CompatNames, Exit).
 
-
 :- pred collapse_dups(+list, ?list) # "Unifies duplicated terms.".
 
 collapse_dups([],            []).
@@ -1056,8 +1055,7 @@ clean_rtc_impl_db :-
 terms @var{L1} either add to @var{L2} a custom implementation of this
 property (e.g.  for run-time checks) if one exists or add the property
 term with no changes. @var{Chk} denotes which kind of run-time check
-it is coming from. Can be an @tt{atm} or @tt{var}. @var{Sg} is the
-goal of the assertion from where the run-time check comes from.".
+it is coming from. Can be an @tt{atm} or @tt{var}.".
 
 
 get_check_props(Props,Check,AssrtHead,RtcProps) :-
@@ -1089,8 +1087,8 @@ get_check_prop(Prop, comp, _, RtcProp) :-
     Prop     =.. [F | Args],
     RtcProp =.. [RtcF | Args].
 
-get_check_prop(mshare(Sh),_,HeadVars,rtc_mshare(Vs2,Sh2)) :- !,
-    mshare_tr(HeadVars,Sh,Vs2,Sh2).
+get_check_prop(mshare(Vs,Sh),_,_,rtc_mshare(Vs2,Sh2)) :- !,
+    mshare_tr(Vs,Sh,Vs2,Sh2).
 
 get_check_prop(Prop,Check,HeadVars,RtcProp) :-
     varset(Prop,PropVars),
@@ -1107,22 +1105,16 @@ get_check_prop_(Prop,comp,_Args,Prop).
 
 
 % IC: The property mshare/1 needs to be treated as a special case for
-% two reasons:
+% the following reason:
 %
-%  a) The first one is that it is a property about all the variables
-%     in the goal of the assertion, whether or not they appear in the
-%     property itself (in the sharing sets), and therefore we need
-%     those possibly missing variables to perform the runtime
-%     check. See T307.
-%
-%  b) The other reason is that the translation between the property
-%     and its runtime-check version is not as straighforward as with
-%     other properties with runtime-check versions declared. In those
-%     others we only change the functor of the property, and keep the
-%     arguments as they are. In this case, for correctness and
-%     efficiency, we need to modify the arguments of the property.
+%     The translation between the property and its runtime-check
+%     version is not as straighforward as with other properties with
+%     runtime-check versions declared. In those others we only change
+%     the functor of the property, and keep the arguments as they
+%     are. In this case, for correctness and efficiency, we need to
+%     modify the arguments of the property.
 
-% TODO: (b) rtc_impl declaration do not support syntactic translations
+% TODO: rtc_impl declaration do not support syntactic translations
 % beyond predicate renaming, so we do the translation here (this could
 % be generalized as special compilation patterns, meta-predicates,
 % custom translation rules, etc).

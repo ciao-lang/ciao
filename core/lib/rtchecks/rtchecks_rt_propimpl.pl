@@ -12,7 +12,7 @@
 :- rtc_impl(native_props:succeeds/1, native_props_rtc:rtc_succeeds/1).
 
 % ----------------------------------------------------------------------
-% :- rtc_impl(native_props:mshare/1, native_props_rtc:rtc_mshare/1).
+% :- rtc_impl(native_props:mshare/2, native_props_rtc:rtc_mshare/2).
 % This property is treated as a special case in rtchecks_tr.pl (see reasons there).
 
 :- rtc_impl(native_props:covered/2, native_props_rtc:rtc_covered/2).
