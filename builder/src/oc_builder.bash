@@ -392,7 +392,7 @@ car_debug() {
 
     echo "{Type 'run' to start the program}"
     if command -v gdb > /dev/null 2>&1; then
-        CIAOCCONFIG=${prg}.car/cfg/DEFAULT gdb --silent -d ${prg}.car/c/engine --args ${prg}.car/objs/arch "$@" -C ${prg}.car/noarch ${CIAORTOPTS}
+        CIAOCCONFIG=${prg}.car/cfg/DEFAULT gdb --silent -d ${prg}.car/src --args ${prg}.car/objs/arch "$@" -C ${prg}.car/noarch ${CIAORTOPTS}
     elif command -v lldb > /dev/null 2>&1; then
         CIAOCCONFIG=${prg}.car/cfg/DEFAULT lldb -- ${prg}.car/objs/arch "$@" -C ${prg}.car/noarch ${CIAORTOPTS}
     else

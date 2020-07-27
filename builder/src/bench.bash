@@ -153,8 +153,9 @@ bringemu() {
     mkdir -p prev
     #
     "$bin_dir"/ciao oc:comp --recursive-deps "$ciaoroot"/core/cmds/comp > curr/all_modules
-    for i in ${compc_exe}.car/c/engine/*.native.c; do basename "$i"; done > curr/all_cfiles
-    for i in ${compc_exe}.car/c/engine/*.native.h; do basename "$i"; done > curr/all_hfiles
+    for i in ${compc_exe}.car/src/*.native.c; do basename "$i"; done > curr/all_cfiles
+    # TODO: customize eng_h_alias
+    for i in ${compc_exe}.car/include/ciao/*.native.h; do basename "$i"; done > curr/all_hfiles
     for i in ${compc_exe}.car/objs/DEFAULT/*.o; do basename "$i" .o; done > curr/all_ofiles
     EMU_BCFILES=`cat curr/all_modules`
     EMU_CFILES=`cat curr/all_cfiles`
@@ -165,10 +166,10 @@ bringemu() {
         "$bin_dir"/ciaodump-oc --disasm ${i} > curr/${j}.emu
     done
     for i in $EMU_CFILES; do
-        cp ${compc_exe}.car/c/engine/${i} curr/${i}
+        cp ${compc_exe}.car/src/${i} curr/${i}
     done
     for i in $EMU_HFILES; do
-        cp ${compc_exe}.car/c/engine/${i} curr/${i}
+        cp ${compc_exe}.car/include/ciao/${i} curr/${i}
     done
     for i in $EMU_OFILES; do
         archdump ${compc_exe}.car/objs/DEFAULT/${i}.o > curr/${i}.o.s

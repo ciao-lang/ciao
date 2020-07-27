@@ -90,14 +90,14 @@ warn_nonempty_log() {
 }
 
 function bring_files() {
-#    echo $out_dir/${1}.pl.code.car/c/engine/
-#    ls -la $out_dir/${1}.pl.code.car/c/engine/
+#    echo $out_dir/${1}.pl.code.car/src
+#    ls -la $out_dir/${1}.pl.code.car/src
     mkdir -p ${curr_dir}
     if [ -r $out_dir/${1}.pl.code.car/native_modules ]; then
-        cp $out_dir/${1}.pl.code.car/c/engine/${1}.native.c ${curr_dir}/
-        cp $out_dir/${1}.pl.code.car/c/engine/${1}.native.h ${curr_dir}/
-        cp $out_dir/${1}.pl.code.car/o/${1}.native.s ${curr_dir}/
-        archdump $out_dir/${1}.pl.code.car/o/${1}.native.o > ${curr_dir}/${1}.native.o.s
+        cp $out_dir/${1}.pl.code.car/src/${1}.native.c ${curr_dir}/
+        cp $out_dir/${1}.pl.code.car/include/ciao/${1}.native.h ${curr_dir}/
+        cp $out_dir/${1}.pl.code.car/objs/DEFAULT/${1}.native.s ${curr_dir}/
+        archdump $out_dir/${1}.pl.code.car/objs/DEFAULT/${1}.native.o > ${curr_dir}/${1}.native.o.s
         return 0
     else
         rm -f ${curr_dir}/${1}.native.c
