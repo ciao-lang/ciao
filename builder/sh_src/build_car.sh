@@ -177,12 +177,6 @@ EOF
         linkhere "$src"/*.h
     done
 
-    if [ x"$oc_car" = x"yes" ] && [ -d "$cardir"/c ]; then
-        cd "$bld_hdir/$eng_h_alias"
-        # TODO: hack, store directly; see linker__bootstrap.pl copy__native_h
-        echo "oc eng_h_alias:" "$bld_cdir"/*.h
-        linkhere "$bld_cdir"/*.h
-    fi
     # Link .h files without eng_h_alias
     cd "$bld_hdir"
     for f in $ENG_HFILES_NOALIAS; do
@@ -781,13 +775,8 @@ EOF
         oc_car=no
     fi
 
-    if [ x"$oc_car" = x"yes" ] && [ -d "$cardir"/c ]; then
-        bld_hdir="$cardir/c"
-        bld_cdir="$cardir/c/engine"
-    else
-        bld_hdir="$cardir/include"
-        bld_cdir="$cardir/src"
-    fi
+    bld_hdir="$cardir/include"
+    bld_cdir="$cardir/src"
 
     if [ x"$ENG_CFG" = x"" ]; then
         eng_cfg=DEFAULT # TODO: used in optim_comp, avoid it?
