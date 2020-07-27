@@ -177,56 +177,11 @@ EOF
         linkhere "$src"/*.h
     done
 
-    if [ x"$oc_car" = x"no" ]; then
-        true
-    else
+    if [ x"$oc_car" = x"yes" ] && [ -d "$cardir"/c ]; then
         cd "$bld_hdir/$eng_h_alias"
-        # TODO: hack, store directly
+        # TODO: hack, store directly; see linker__bootstrap.pl copy__native_h
+        echo "oc eng_h_alias:" "$bld_cdir"/*.h
         linkhere "$bld_cdir"/*.h
-
-#        cd "$bld_cdir"
-#        for src in $eng_srcpath; do
-#            linkhere "$src"/*.h
-#        done
-        # TODO:[optim_comp] hack for compatibility (do it properly)
-        update_file "$bld_hdir/$eng_h_alias/datadefs.h" <<EOF
-#include <ciao/basiccontrol.native.h>
-EOF
-        update_file "$bld_hdir/$eng_h_alias/support_macros.h" <<EOF
-#include <ciao/basiccontrol.native.h>
-EOF
-        # TODO: remove on promotion
-        cd "$bld_cdir"
-        for f in absmach_arith_small.h \
-absmach_predef.h \
-absmach_streams.h \
-absmach_terms.h \
-absmach_trace.h \
-atomic_basic.h \
-attributes.h \
-basiccontrol.h \
-basiccontrol.native.h \
-basiccontrol_common.h \
-dtoa_ryu.h \
-dynamic_rt.h \
-dynlink.h \
-engine__alloc.h \
-engine__bignum.h \
-engine__debug.h \
-engine__errhandle.h \
-engine__gc.h \
-engine__interrupt.h \
-engine__registers.h \
-engine__start.h \
-ftype.h \
-hashtab.h \
-internals.h \
-rt_exp.h \
-runtime_control.h \
-stream_basic.h \
-timing.h; do
-            linkhere "$bld_hdir/$eng_h_alias"/$f
-        done
     fi
     # Link .h files without eng_h_alias
     cd "$bld_hdir"
@@ -477,10 +432,10 @@ car_config() { # (configure options)
     if [ x"$CIAOLDOPTS" != x"" ]; then opt__EXTRA_LDFLAGS="$CIAOLDOPTS $opt__EXTRA_LDFLAGS"; fi
     eng_h_alias="ciao"
 
-    if [ x"$oc_car" = x"no" ]; then
-        eng_srcpath="$ciaoroot/core/engine"
-    else
+    if [ x"$oc_car" = x"yes" ]; then
         eng_srcpath="$ciaoroot/core/engine_oc" # TODO: merge
+    else
+        eng_srcpath="$ciaoroot/core/engine"
     fi
 
     if [ x"$opt__OS" = x"" ]; then
@@ -826,7 +781,7 @@ EOF
         oc_car=no
     fi
 
-    if [ x"$oc_car" = x"yes" ]; then
+    if [ x"$oc_car" = x"yes" ] && [ -d "$cardir"/c ]; then
         bld_hdir="$cardir/c"
         bld_cdir="$cardir/c/engine"
     else
