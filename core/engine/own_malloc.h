@@ -16,7 +16,6 @@
 tagged_t *own_malloc(intmach_t size);
 tagged_t *own_realloc(tagged_t *ptr, intmach_t size_in_chars);
 void own_free(tagged_t *ptr);
-void init_mm(void);
 void init_own_malloc(void);
 #endif
 

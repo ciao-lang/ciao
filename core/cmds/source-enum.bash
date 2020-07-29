@@ -30,6 +30,7 @@ function find_source__() { # PATH
          -path "$1"'/'"$boot_rel_builddir" -prune -o \
          -path "$1"'/'"$rel_builddir" -prune -o \
          -path "$1"'/regr-db' -prune -o \
+         -path "$1"'/bndls/testsuite/multisystem/out' -prune -o \
          -path "$1"'/third-party' -prune -o \
          \( '!' -type d \
          '!' -name 'NOCOMPILE' -a \
