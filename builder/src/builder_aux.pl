@@ -207,7 +207,7 @@ update_file_from_string(String, Path, NewOrOld) :-
     move_if_diff(File, Path, NewOrOld).
 
 % ===========================================================================
-% TODO: move to eng_maker.pl?
+% TODO: move to car_maker.pl?
 
 :- use_module(ciaobld(third_party_install), [third_party_path/2]).
 :- use_module(library(pathnames), [path_relocate/4]).

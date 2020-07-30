@@ -1,7 +1,7 @@
 /*
  *  own_malloc.c
  *
- *  New memory manager.
+ *  Own memory manager.
  *
  *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
  *  Copyright (C) 2020 Ciao Development Team
@@ -11,20 +11,24 @@
  *    Jose F. Morales (minor changes)
  */
 
+// #if !defined(OPTIM_COMP)
+// #define OPTIM_COMP 1
+// #endif
+
+#if defined(OPTIM_COMP)
+#include <ciao/basiccontrol.native.h>
+#else
 #include <ciao/configure.h>
 #include <ciao/termdefs.h>
 #include <ciao/eng_dbg.h>
+#define OWNMALLOC_ALIGN sizeof(tagged_t) /* blocks suitably aligned for any use */ 
+#endif
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #if !defined(Win32)
 # include <strings.h>
-#endif
-
-#if defined(DEBUG)
-#include <stdio.h>
 #endif
 
 #if defined(USE_OWN_MALLOC)
@@ -33,66 +37,84 @@
 #endif
 #endif
 
+#if defined(DEBUG)
+#include <stdio.h>
+#endif
+
 /* TODO: share more definitions of both LINEAR and BINARY versions */
 
 #if defined(USE_OWN_MALLOC)
-//#define USE_OWN_MALLOC_LINEAR 1
-#define USE_OWN_MALLOC_BINARY 1
 
-#define ALIGN sizeof(tagged_t)       /* blocks suitably aligned for any use */
+/* First-fit linear search-based allocator (simpler but not optimal) */
+//#define USE_OWN_MALLOC_LINEAR 1
+/* Unbalanced binary tree search-based allocator */
+#define USE_OWN_MALLOC_BINARY 1
+#define OWN_MALLOC_UPPER 1 /* TODO: it was enabled with LINEAR, why? */
+
+#define ALIGN OWNMALLOC_ALIGN
 #define TW_TO_CHARS(Tw) (Tw)*ALIGN
 #define CHARS_TO_TW(Chars) ((Chars)%ALIGN==0 ? (Chars)/ALIGN : (Chars)/ALIGN+1)
 
 #define ADJUST_BLOCK(SIZE) ((SIZE) < CHARS_TO_TW(OWNMALLOC_BLOCKSIZE) ? CHARS_TO_TW(OWNMALLOC_BLOCKSIZE) : (SIZE))
 
-#endif /* USE_OWN_MALLOC */
-
 #define HEADER_SIZE ((CHARS_TO_TW(sizeof(mem_block_t))) - 1)
+#define MEM_BLOCK_SIZE(Units) (HEADER_SIZE+(Units))
 
+#define MEM_BLOCK_PTR(BLOCK) (&((BLOCK)->mem_ptr))
 #define PTR_TO_MEM_BLOCK(Ptr) ((mem_block_t *)((Ptr) - HEADER_SIZE))
+
+#endif /* USE_OWN_MALLOC */
 
 /* --------------------------------------------------------------------------- */
 
-#if defined(USE_OWN_MALLOC_LINEAR)
-
-/* List of free and asigned blocks. Kept in memory order, to allow
-   recompaction upon block freeing.  Use forward and backwards link for
-   this.  Compaction is not always possible: blocks of memory can come from
-   sparse addresses. */
+#if defined(USE_OWN_MALLOC)
+/* List of free and assigned blocks. Kept in memory order, to allow
+   recompaction upon block freeing.  Use forward and backwards link
+   for this.  Compaction is not always possible: blocks of memory can
+   come from sparse addresses. */
 
 typedef struct mem_block mem_block_t;
+#if defined(USE_OWN_MALLOC_BINARY)
+typedef struct block_tree block_tree_t;
+#endif
+
 struct mem_block {
   bool_t block_is_free; /* Might be only one bit */
   mem_block_t *fwd, *bck;
   mem_block_t *next_free, *prev_free;
+#if defined(USE_OWN_MALLOC_BINARY)
+  block_tree_t *which_node;
+#endif
   intmach_t size; /* Measured in tagged_t words */
   tagged_t mem_ptr; /* 1st word of the allocated memory */
 };
 
-static mem_block_t *block_list = NULL;
-static mem_block_t *free_block_list = NULL;
+#if defined(USE_OWN_MALLOC_BINARY)
+struct block_tree {
+  intmach_t size_this_node;
+  mem_block_t *block_list;
+  block_tree_t *left, *right, *parent;
+  intmach_t max_left, max;
+};
+#endif
 
-static mem_block_t *locate_block(intmach_t tagged_w);
 static void insert_block(mem_block_t *block, 
                          mem_block_t *previous,
                          mem_block_t *next);
 static void insert_free_block(mem_block_t *block);
 static void remove_free_block(mem_block_t *block);
 
-#if defined(DEBUG)
-void print_mem_map(void)
-{
-  mem_block_t *moving = block_list;
+static mem_block_t *block_list = NULL;  /* Shared, locked */
 
-  while (moving) {
-    fprintf(stderr, "addr: \t %x \t len: \t %8d \t free: %d\n", 
-           (unsigned int)moving, 
-           moving->size,
-           moving->block_is_free);
-    moving = moving->fwd;
-  }
-}
-#endif
+#endif /* USE_OWN_MALLOC */
+
+/* --------------------------------------------------------------------------- */
+
+#if defined(USE_OWN_MALLOC_LINEAR)
+
+static mem_block_t *free_block_list = NULL;
+
+static mem_block_t *locate_block(intmach_t tagged_w);
 
 /* Search for a block with memory enough. Requested size comes in tagged_t
    words.  If no block found, return NULL. */
@@ -129,7 +151,9 @@ static mem_block_t *locate_block(intmach_t requested_tagged_w) {
 /* Link a block into the list.  previous == NULL if first block, next ==
    NULL if last block . */
 
-static void insert_block(mem_block_t *block, mem_block_t *previous, mem_block_t *next)
+static void insert_block(mem_block_t *block,
+                         mem_block_t *previous,
+                         mem_block_t *next)
 {
   block->bck = previous;
   block->fwd = next;
@@ -173,45 +197,16 @@ static void remove_free_block(mem_block_t *block)
 
 #endif /* USE_OWN_MALLOC_LINEAR */
 
+/* --------------------------------------------------------------------------- */
+
 #if defined(USE_OWN_MALLOC_BINARY)
-/* List blocks. Kept in (ascending?) memory order, to allow recompaction
-   upon block freeing.  Use forward and backwards link for this.  Compaction
-   is not always possible: blocks of memory can come from sparse
-   addresses. */
-
-typedef struct mem_block mem_block_t;
-typedef struct block_tree block_tree_t;
-
-struct mem_block {
-  bool_t block_is_free;                            /* Might be only one bit */
-  mem_block_t *fwd, *bck;
-  mem_block_t *next_free, *prev_free;
-  block_tree_t *which_node;
-  intmach_t size;                                   /* Measured in tagged_t words */
-  tagged_t mem_ptr;                     /* 1st word of the allocated memory */
-};
-
-static mem_block_t *block_list = NULL;  /* Shared, locked */
-
-struct block_tree {
-  intmach_t size_this_node;
-  mem_block_t *block_list;
-  block_tree_t *left, *right, *parent;
-  intmach_t max_left, max;
-};
 
 /* All of them locked */
 
 static block_tree_t *free_blocks_tree = NULL;
 static block_tree_t *disposed_tree_nodes = NULL;
 
-static void insert_block(mem_block_t *block, 
-                         mem_block_t *previous,
-                         mem_block_t *next);
 static block_tree_t *search_free_block(intmach_t tagged_w);
-static void insert_free_block(mem_block_t *block);
-static void remove_free_block(mem_block_t *block);
-static void change_free_block(mem_block_t *block, intmach_t increment);
 static block_tree_t *create_new_node(mem_block_t *block, block_tree_t *parent);
 static void remove_block_from_node(block_tree_t *node, mem_block_t  *block);
 static void add_block_to_node(block_tree_t *node, mem_block_t  *block);
@@ -278,27 +273,29 @@ static void insert_free_block(mem_block_t *block)
   intmach_t size = block->size;
   block_tree_t *parent, *running, *new_node;
 
-  if (!free_blocks_tree)                                    /* Empty tree */
+  if (!free_blocks_tree) { /* Empty tree */
     free_blocks_tree = create_new_node(block, NULL);
-  else {
+  } else {
     running = free_blocks_tree;
     parent = NULL;
     while (running){
       parent = running; 
       if (size < running->size_this_node){
-        if (size > running->max_left)       /* Update sizes as we go down */
+        if (size > running->max_left) { /* Update sizes as we go down */
           running->max_left = size;
+        }
         running = running->left;
       } else if (size > running->size_this_node) {
-        if (size > running->max) 
+        if (size > running->max) {
           running->max = size;
+        }
         running = running->right;
       } else break;
     }
     
-    if (running == parent)                          /* Do not create node */
+    if (running == parent) { /* Do not create node */
       add_block_to_node(running, block);
-    else {                                                 /* Change parent */
+    } else { /* Change parent */
       new_node = create_new_node(block, parent);
       if (size < parent->size_this_node){
         parent->left = new_node;
@@ -421,19 +418,11 @@ static void remove_free_block(mem_block_t *block)
   }
 }
 
-void change_free_block(mem_block_t *block,
-                       intmach_t increment)
-{
-  remove_free_block(block);
-  block->size += increment;
-  insert_free_block(block);
-}
-
 #if defined(DEBUG)
-static void test_tree(void)
-{
-  if (free_blocks_tree)
+static void test_tree(void) {
+  if (free_blocks_tree) {
     test(free_blocks_tree);
+  }    
 }
 
 /* 
@@ -441,8 +430,7 @@ static void test_tree(void)
    Each node has left and right sizes correctly set.
 */
 
-static void test(block_tree_t *t)
-{
+static void test(block_tree_t *t) {
   if (!t) return;
   if (t->right){
     if (t->right->parent != t)
@@ -465,18 +453,6 @@ static void test(block_tree_t *t)
   }
 }
 
-void print_mem_map(void)
-{
-  mem_block_t *moving = block_list;
-
-  while (moving) {
-    fprintf(stderr, "addr: \t %x \t len: \t %8d \t free: %d\n", 
-           (unsigned int)moving, 
-           moving->size,
-           moving->block_is_free);
-    moving = moving->fwd;
-  }
-}
 #endif
 
 /* Creates a new tree node and initializes all of its fields. */
@@ -555,8 +531,8 @@ void dump_blocks(void)
     printf("%d tags (%s) from %x to %x\n",
            (int)running->size, 
            running->block_is_free ? "free" : "used",
-           (int)&(running->mem_ptr),
-           (int)(&(running->mem_ptr) + running->size));
+           (int)MEM_BLOCK_PTR(running),
+           (int)(MEM_BLOCK_PTR(running) + running->size));
     running = running->fwd;
   }
   printf("\n");
@@ -572,8 +548,19 @@ void dump_blocks(void)
 
 #if defined(USE_MMAP) && OWNMALLOC_MmapAllowed
 tagged_t *mmap_base = NULL;
+#endif
+
+static mem_block_t *new_block_at(tagged_t *mem, intmach_t size_in_tagged_w) {
+  mem_block_t *new_block = (mem_block_t *)mem;
+  new_block->size = size_in_tagged_w;
+  insert_block(new_block, NULL, block_list);  
+  new_block->block_is_free = TRUE;
+  insert_free_block(new_block);
+  return new_block;
+}
 
 void init_own_malloc(void) {
+#if defined(USE_MMAP) && OWNMALLOC_MmapAllowed
   intmach_t mmap_size = OWNMALLOC_MmapSize; // In bytes
   mem_block_t *new_block;
 
@@ -586,16 +573,9 @@ void init_own_malloc(void) {
 
   // What follows is basically a create_new_block which allocates 
   // all memory we can address
-  new_block = (mem_block_t *)mmap_base;
-  new_block->block_is_free = TRUE;
-  new_block->size = CHARS_TO_TW(mmap_size - TW_TO_CHARS(2*HEADER_SIZE));
-  insert_block(new_block, NULL, block_list);
-  insert_free_block(new_block);
-  // print_mem_map();
-}
-#else
-void init_own_malloc(void) {}
+  new_block = new_block_at(mmap_base, CHARS_TO_TW(mmap_size - TW_TO_CHARS(2*HEADER_SIZE)));
 #endif
+}
 
 /* Create a new block with a given size, rounded upwards to be a multiple of
    an ALIGNed word.  If the creation was sucessful, insert them into the
@@ -603,23 +583,17 @@ void init_own_malloc(void) {}
 
 #if !(defined(USE_MMAP) && OWNMALLOC_MmapAllowed)
 static mem_block_t *create_new_block(intmach_t size_in_tagged_w) {
-  mem_block_t *new_block;
+  tagged_t *mem;
 
-  new_block = (mem_block_t *)malloc(TW_TO_CHARS(size_in_tagged_w + HEADER_SIZE));
-  
-  if (!new_block) {
+  mem = (tagged_t *)malloc(TW_TO_CHARS(MEM_BLOCK_SIZE(size_in_tagged_w)));
+  if (!mem) {
 #if defined(DEBUG)
     printf("malloc: could not allocate %d words of memory\n", 
-           size_in_tagged_w + HEADER_SIZE);
+           MEM_BLOCK_SIZE(size_in_tagged_w));
 #endif
     return NULL;
   }
-
-  new_block->size = size_in_tagged_w;
-  new_block->block_is_free = TRUE;
-  insert_block(new_block, NULL, block_list);
-  insert_free_block(new_block);
-  return new_block;
+  return new_block_at(mem, size_in_tagged_w);
 }
 #endif
 
@@ -635,49 +609,39 @@ static tagged_t *reserve_block(intmach_t req_tagged, mem_block_t *block) {
   }
 #endif
 
-#if defined(USE_OWN_MALLOC_LINEAR)
-  if (block->size > req_tagged + HEADER_SIZE) {
+  if (block->size >= MEM_BLOCK_SIZE(req_tagged)) {
+    /* Note: >= and not >, since blocks of size==0 can be merged to
+       contiguous free blocks */
     mem_block_t *new_block;
     /* Split the block */
-    /* Block is still free -- do not remove from free blocks list  */
-    /*
-    block->size -= (req_tagged + HEADER_SIZE);
-    new_block = (mem_block_t *)((tagged_t *)block + HEADER_SIZE + block->size);
-    new_block->block_is_free = FALSE;
-    new_block->size = req_tagged;
-    insert_block(new_block, block, block->fwd);
-    return &(new_block->mem_ptr);
-    */
-    new_block = (mem_block_t *)((tagged_t *)block + HEADER_SIZE + req_tagged);
-    new_block->size = block->size - HEADER_SIZE - req_tagged;
-    new_block->block_is_free = TRUE;
-
-    block->size = req_tagged;
-    block->block_is_free = FALSE;
-    insert_block(new_block, block, block->fwd);
     remove_free_block(block);
-    insert_free_block(new_block);
-    return &(block->mem_ptr);
-  }
-#elif defined(USE_OWN_MALLOC_BINARY)
-  if (block->size >= req_tagged + HEADER_SIZE) { /* TODO: should it be '>' (JF) */
-    //fprintf(stderr, "bls %lld %lld\n", (long long)block->size, (long long)req_tagged+(long long)HEADER_SIZE);
-    mem_block_t *new_block;
-    /* Split the block */
-    change_free_block(block, -(req_tagged + HEADER_SIZE));
-    new_block = (mem_block_t *)((tagged_t *)block + HEADER_SIZE + block->size);
-    new_block->block_is_free = FALSE;
+#if defined(OWN_MALLOC_UPPER)
+    block->size -= MEM_BLOCK_SIZE(req_tagged);
+    insert_free_block(block);
+    //
+    new_block = (mem_block_t *)((tagged_t *)block + MEM_BLOCK_SIZE(block->size));
     new_block->size = req_tagged;
     insert_block(new_block, block, block->fwd);
-    return &(new_block->mem_ptr);
-  }
+    new_block->block_is_free = FALSE;
+#else
+    /* Allocate in the lower parts of the reserved memory first */
+    mem_block_t *block0;
+    block0 = (mem_block_t *)((tagged_t *)block + MEM_BLOCK_SIZE(req_tagged));
+    block0->size = block->size - MEM_BLOCK_SIZE(req_tagged);
+    insert_block(block0, block, block->fwd);
+    block0->block_is_free = TRUE;
+    //
+    new_block = block;
+    new_block->block_is_free = FALSE;
+    new_block->size = req_tagged;
+    insert_free_block(block0);
 #endif
-  else {
-    /* Exactly the size we want */
+    return MEM_BLOCK_PTR(new_block);
+  } else {
     /* Remaning part too small */
     block->block_is_free = FALSE;
     remove_free_block(block);
-    return &(block->mem_ptr);
+    return MEM_BLOCK_PTR(block);
   }
 }
 
@@ -732,24 +696,26 @@ static void dealloc_block(mem_block_t *block)
 
   if (((next = block->fwd) != NULL) &&        /* Check if next block free */
       (next->block_is_free == TRUE) &&
-      ((tagged_t *)block + block->size + HEADER_SIZE == (tagged_t *)next)){
-    block->size += next->size + HEADER_SIZE;
-    if ((block->fwd = next->fwd) != NULL)
+      ((tagged_t *)block + MEM_BLOCK_SIZE(block->size) == (tagged_t *)next)){
+    block->size += MEM_BLOCK_SIZE(next->size);
+    if ((block->fwd = next->fwd) != NULL) {
       block->fwd->bck = block;
+    }
     remove_free_block(next);
   }
   
   if (((prev = block->bck) != NULL) &&
       (prev->block_is_free == TRUE) &&
-      ((tagged_t *)prev + prev->size + HEADER_SIZE == (tagged_t *)block)){
-#if defined(USE_OWN_MALLOC_LINEAR)
-    prev->size += block->size + HEADER_SIZE;
-#elif defined(USE_OWN_MALLOC_BINARY)
-    change_free_block(prev, block->size + HEADER_SIZE);
-#endif
-    if ((prev->fwd = block->fwd) != NULL)
+      ((tagged_t *)prev + MEM_BLOCK_SIZE(prev->size) == (tagged_t *)block)){
+    remove_free_block(prev);
+    prev->size += MEM_BLOCK_SIZE(block->size);
+    insert_free_block(prev);
+    if ((prev->fwd = block->fwd) != NULL) {
       prev->fwd->bck = prev;
-  } else insert_free_block(block);
+    }
+  } else {
+    insert_free_block(block);
+  }
 }
 
 void own_free(tagged_t *ptr)
@@ -770,10 +736,9 @@ void own_free(tagged_t *ptr)
    and ptr is not a null pointer, the object pointed to is freed.
 */
 /* size: size in chars */
-tagged_t *own_realloc(tagged_t *ptr, intmach_t size)
-{
+tagged_t *own_realloc(tagged_t *ptr, intmach_t size) {
   mem_block_t *old_block;
-  intmach_t        size_to_copy;
+  intmach_t size_to_copy;
 
   if (ptr == NULL) {
     return own_malloc(size);
@@ -811,7 +776,7 @@ tagged_t *own_realloc(tagged_t *ptr, intmach_t size)
     size_to_copy = old_block->size > size_in_tagged_w ?
                    size_in_tagged_w : old_block->size;
     (void)memcpy(new_mem_area, 
-                 &(old_block->mem_ptr),
+                 MEM_BLOCK_PTR(old_block),
                  TW_TO_CHARS(size_to_copy));
     own_free(ptr);
 #if defined(DEBUG)

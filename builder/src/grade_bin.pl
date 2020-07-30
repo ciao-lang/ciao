@@ -131,7 +131,7 @@ do_clean_bundle(Bundle) :-
     build_libs/2,
     cmd_build/1
 ]).
-:- use_module(ciaobld(eng_maker), [
+:- use_module(ciaobld(car_maker), [
     eng_build/1,
     eng_clean/1
 ]).

@@ -122,7 +122,7 @@
 :- '$native_include_c_header'('start.h').
 :- '$native_include_c_source'('start.c').
 
-% Automatically generated in eng_maker:eng_prebuild_version_info/3
+% Automatically generated in car_maker:eng_prebuild_version_info/3
 :- '$native_include_c_header'('version.h').
 :- '$native_include_c_source'('version.c').
 

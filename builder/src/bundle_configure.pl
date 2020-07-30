@@ -180,18 +180,18 @@ bundle_has_config(Bundle) :-
 %
 %   - Bundle.bundlecfg: internal format (saved, no sysdep)
 %   - Bundle.bundlecfg_sh: version in sh format for config-sysdep.sh
-%     and eng_maker:eng_config_sysdep/2
+%     and car_maker:eng_config_sysdep/2
 %
 % (only for bundles listed in bundle_export_sh/1)
 %
-% See eng_maker:eng_config_sysdep/2 for the sysdep configuration
+% See car_maker:eng_config_sysdep/2 for the sysdep configuration
 % output for engine and C code compilation.
 
 :- use_module(library(bundle/bundle_flags),
     [restore_all_bundle_flags/0,
      reset_bundle_flags/1]).
 
-:- use_module(ciaobld(eng_maker), [bundle_flags_sh_file/1]).
+:- use_module(ciaobld(car_maker), [bundle_flags_sh_file/1]).
 % TODO: ensure_load_manifest/1: not unloaded! (do refcount or gc of modules)
 :- use_module(ciaobld(manifest_compiler),
     [ensure_load_manifest/1, manifest_call/2]).

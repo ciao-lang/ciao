@@ -560,7 +560,7 @@ car_build() { # cardir
     fi
     #
     mkdir -p "$bld_objdir"
-    # Generate version info # TODO: see eng_maker.pl
+    # Generate version info # TODO: see car_maker.pl
     if [ x"$oc_car" = x"yes" ]; then car_emit_version_info; fi
     # Generate build info
     car_emit_build_info

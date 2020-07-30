@@ -25,7 +25,7 @@
 :- doc(bug, "Windows engines are dynamic (needs libciaoengine.dll)
    while Unix are not!").
 
-:- doc(bug, "Connect with eng_maker.pl (so that we can build fully
+:- doc(bug, "Connect with car_maker.pl (so that we can build fully
    static engines including foreign libraries)").
 
 :- export(get_engine_file/2).

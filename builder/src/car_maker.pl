@@ -1,6 +1,6 @@
 :- module(_, [], [assertions, fsyntax, hiord, dcg]).
 
-:- doc(title,  "Engine maker").
+:- doc(title,  ".car file maker").
 
 :- doc(author, "Jose F. Morales").
 :- doc(author, "The Ciao Development Team").

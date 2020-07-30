@@ -62,7 +62,7 @@
     interactive([advanced])
 ]).
 
-:- use_module(ciaobld(eng_maker), [sysconf_os/1, sysconf_arch/3]).
+:- use_module(ciaobld(car_maker), [sysconf_os/1, sysconf_arch/3]).
 
 % ---------------------------------------------------------------------------
 
@@ -202,7 +202,7 @@
 % NOTE: experimental (see options)
 % DO NOT BUILD BY DEFAULT!
 '$builder_hook'(static_engine:eng('engine/ciaoengine', [
-  % TODO: Uses bootstrap ciaoc (see eng_maker.pl) -- allow configuration here
+  % TODO: Uses bootstrap ciaoc (see car_maker.pl) -- allow configuration here
   add_stat_libs, % link statically against C system libraries
   static_mods([library(random),
            library(sockets),

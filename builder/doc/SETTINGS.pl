@@ -34,7 +34,7 @@ doc_structure :=
         'third_party_custom',
         'ciaoc_aux',
         'lpdoc_aux',
-        'eng_maker',
+        'car_maker',
         'eng_defs',
         'builder_aux',
         'install_aux',
