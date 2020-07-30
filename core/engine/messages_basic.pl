@@ -40,7 +40,7 @@
 @item{@tt{$$(String)}} @tt{String} is a string, which is output with
    @pred{write_string/1}.
 
-@item{@tt{''(Term)}} @tt{Term} is output quoted.  If the module
+@item{@tt{'}@tt{'}@tt{(Term)}} @tt{Term} is output quoted.  If the module
    @lib{write} is loaded, the term is output with @pred{writeq/1}, else
    with @pred{displayq/1}.
 
@@ -48,7 +48,7 @@
    @lib{write} is loaded, the term is output with @pred{write/1}, else
    with @pred{display/1}.
 
-@item{@tt{''(@{Term@})}} @tt{Term} is output quoted.  If the module
+@item{@tt{'}@tt{'}@tt{(@{Term@})}} @tt{Term} is output quoted.  If the module
    @lib{write} is loaded, the term is output with @pred{printq/1}, else
    with @pred{displayq/1}.
 @item{@tt{@{Term@}}} @tt{Term} is output unquoted.  If the module
