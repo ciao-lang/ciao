@@ -135,19 +135,19 @@ car_link_imports() {
 
     if [ x"$oc_car" = x"yes" ]; then
         # TODO:[optim_comp] generate directly
-        # TODO:[optim_comp] pregenerate and avoid engine__main hack
+        # TODO:[optim_comp] pregenerate and avoid eng_main hack
         CFILES=`c_files_oc`
         if [ -r "$eng_srcpath"/ciao_prolog.h ]; then
             eng_hfiles_noalias=ciao_prolog.h
         fi
         update_file "$bld_cdir/eng_info_mk" <<EOF
-ENG_STUBMAIN = engine__main.c
+ENG_STUBMAIN = eng_main.c
 ENG_CFILES = $(echo $CFILES)
 ENG_HFILES=
 ENG_HFILES_NOALIAS= $eng_hfiles_noalias
 EOF
         update_file "$bld_cdir/eng_info_sh" <<EOF
-ENG_STUBMAIN="engine__main.c"
+ENG_STUBMAIN="eng_main.c"
 ENG_CFILES="$CFILES"
 ENG_HFILES=""
 ENG_HFILES_NOALIAS="$eng_hfiles_noalias"
@@ -239,14 +239,14 @@ c_files_oc() {
     local has_stub=no
     echo "eng_build_info.c"
     for m in `cat "$cardir"/native_modules`; do
-        if [ x"${m}" = x"engine__main" ]; then
+        if [ x"${m}" = x"eng_main" ]; then
             has_stub=yes
             continue
         fi
         echo "${m}.c"
     done
     if [ x"$has_stub" = x"no" ]; then
-        touch "$bld_cdir/engine__main.c" # TODO: fake hardwired stub for standalone executables (e.g., ImProlog)
+        touch "$bld_cdir/eng_main.c" # TODO: fake hardwired stub for standalone executables (e.g., ImProlog)
     fi
 }
 
