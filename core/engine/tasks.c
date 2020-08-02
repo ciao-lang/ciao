@@ -9,15 +9,15 @@
 #include <stdio.h>
 
 #include <ciao/configure.h>
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
 #include <ciao/task_areas.h>
 #include <ciao/tasks.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/nondet.h>
-#include <ciao/start.h>
+#include <ciao/eng_start.h>
 #include <ciao/initial.h>
 
 /* --------------------------------------------------------------------------- */

@@ -14,5 +14,5 @@
    files. Do not compile this module directly.").
 
 :- include(engine(ciaoengine_common)).
-:- engine_stubmain('main.c').
+:- engine_stubmain('eng_main.c').
 

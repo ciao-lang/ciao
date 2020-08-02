@@ -12,95 +12,95 @@
 #include <ciao/datadefs.h>
 #include <ciao/support.h>
 #include <ciao/support_macros.h>
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 #include <ciao/locks.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_alloc.h>
 
-/* '$lock'(<address>,type) <-- LOCK */
-CFUN__PROTO(lock_to_term, tagged_t, LOCK *l)
-{
-  tagged_t *pt1 = w->global_top;
-
-  HeapPush(pt1,functor_Dlock);
-  HeapPush(pt1,PointerToTerm(l));
-  HeapPush(pt1,MakeInteger(Arg, POSIX));
-
-  w->global_top = pt1;
-
-  return Tag(STR,HeapOffset(pt1,-3));
-}
-
-/* '$lock'(<address>,type) <-- SLOCK */
-CFUN__PROTO(slock_to_term, tagged_t, SLOCK *s)
-{
-  tagged_t *pt1 = w->global_top;
-
-  HeapPush(pt1,functor_Dlock);
-  HeapPush(pt1,PointerToTerm(s));
-  HeapPush(pt1,MakeInteger(Arg, SPIN));
-
-  w->global_top = pt1;
-
-  return Tag(STR,HeapOffset(pt1,-3));
-}
-
-/* '$lock'(<address>,type) --> LOCK */
-void term_to_lock(tagged_t t, LOCK **l)
-{
-  tagged_t x1 = (tagged_t)NULL;
-
-  DerefSwitch(t,x1,;);
-
-  if (TagIsSTR(t) && (TagToHeadfunctor(t) == functor_Dlock)) {
-    DerefArg(x1,t,1);
-    *l = TagToLock(x1);
-#if defined(DEBUG)
-    tagged_t x2 = (tagged_t)NULL;
-    DerefArg(x2,t,2);
-    if (GetInteger(x2) != POSIX)
-      printf("ERROR in term_to_lock. The lock is not a POSIX-lock");
-#endif
-  }
-}
-
-
-/* '$lock'(<address>,type) --> SLOCK */
-void term_to_slock(tagged_t t, SLOCK **s)
-{
-  tagged_t x1 = (tagged_t)NULL;
-
-  DerefSwitch(t,x1,;);
-
-  if (TagIsSTR(t) && (TagToHeadfunctor(t) == functor_Dlock)) {
-    DerefArg(x1,t,1);
-    *s = TagToSLock(x1);
-#if defined(DEBUG)
-    tagged_t x2 = (tagged_t)NULL;
-    DerefArg(x2,t,2);
-    if (GetInteger(x2) != SPIN)
-      printf("ERROR in term_to_slock. The lock is not a SPIN-lock");
-#endif
-  }
-}
+// /* In order to define whether a lock is a SPIN-lock or a POSIX-lock */
+// #define SPIN     0
+// #define POSIX    1
+// 
+// /* '$lock'(<address>,type) <-- LOCK */
+// CFUN__PROTO(lock_to_term, tagged_t, LOCK *l)
+// {
+//   tagged_t *pt1 = w->global_top;
+// 
+//   HeapPush(pt1,functor_Dlock);
+//   HeapPush(pt1,PointerToTerm(l));
+//   HeapPush(pt1,MakeInteger(Arg, POSIX));
+// 
+//   w->global_top = pt1;
+// 
+//   return Tag(STR,HeapOffset(pt1,-3));
+// }
+//
+// /* '$lock'(<address>,type) <-- SLOCK */
+// CFUN__PROTO(slock_to_term, tagged_t, SLOCK *s)
+// {
+//   tagged_t *pt1 = w->global_top;
+// 
+//   HeapPush(pt1,functor_Dlock);
+//   HeapPush(pt1,PointerToTerm(s));
+//   HeapPush(pt1,MakeInteger(Arg, SPIN));
+// 
+//   w->global_top = pt1;
+// 
+//   return Tag(STR,HeapOffset(pt1,-3));
+// }
+//
+// /* '$lock'(<address>,type) --> LOCK */
+// void term_to_lock(tagged_t t, LOCK **l)
+// {
+//   tagged_t x1 = (tagged_t)NULL;
+// 
+//   DerefSwitch(t,x1,;);
+// 
+//   if (TagIsSTR(t) && (TagToHeadfunctor(t) == functor_Dlock)) {
+//     DerefArg(x1,t,1);
+//     *l = TagToLock(x1);
+// #if defined(DEBUG)
+//     tagged_t x2 = (tagged_t)NULL;
+//     DerefArg(x2,t,2);
+//     if (GetInteger(x2) != POSIX)
+//       printf("ERROR in term_to_lock. The lock is not a POSIX-lock");
+// #endif
+//   }
+// }
+//
+// /* '$lock'(<address>,type) --> SLOCK */
+// void term_to_slock(tagged_t t, SLOCK **s)
+// {
+//   tagged_t x1 = (tagged_t)NULL;
+// 
+//   DerefSwitch(t,x1,;);
+// 
+//   if (TagIsSTR(t) && (TagToHeadfunctor(t) == functor_Dlock)) {
+//     DerefArg(x1,t,1);
+//     *s = TagToSLock(x1);
+// #if defined(DEBUG)
+//     tagged_t x2 = (tagged_t)NULL;
+//     DerefArg(x2,t,2);
+//     if (GetInteger(x2) != SPIN)
+//       printf("ERROR in term_to_slock. The lock is not a SPIN-lock");
+// #endif
+//   }
+// }
 
 
 #if defined(HAVE_LIB_LOCKS) && defined(DEBUG)
-#if defined(Win32)
-bool_t lock_is_unset_win32(LOCK *p)
+bool_t lock_is_unset(LOCK *p)
 {
+#if defined(Win32)
   fprintf(stderr,
           "testing lock unset in Win32: TryEnterCriticalSection may not be supported!\n");
   return FALSE;
-}
 #else
-bool_t lock_is_unset(LOCK *p)
-{
   int value;
   if ((value = pthread_mutex_trylock(p)) != EBUSY)
     pthread_mutex_unlock(p);
   return (value != EBUSY);
-}
 #endif
+}
 #endif
 
 #if defined(USE_LOCKS)
@@ -265,10 +265,6 @@ CBOOL__PROTO(prolog_unlock_atom)
 {
   return TRUE;
 }
-/*
-void init_dynamic_locks(void) {}
-LOCK create_dynamic_lock(void){return NULL;}
-*/
 CBOOL__PROTO(prolog_unlock_predicate)
 {
 #if defined(DEBUG)

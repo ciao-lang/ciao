@@ -1,5 +1,5 @@
 /*
- *  start.c
+ *  eng_start.c
  *
  *  Load and execute a bytecode executable.
  *
@@ -19,7 +19,7 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 
 #if defined(__svr4__) || defined(DARWIN) || defined(BSD)
@@ -49,10 +49,10 @@
 #include <ciao/tasks.h>
 #include <ciao/os_utils.h>
 #include <ciao/initial.h>
-#include <ciao/start.h>
+#include <ciao/eng_start.h>
 #include <ciao/qread.h>
-#include <ciao/eng_dbg.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_debug.h>
+#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/support.h>
 #include <ciao/locks.h>

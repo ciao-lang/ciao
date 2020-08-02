@@ -42,11 +42,11 @@
 #include <ciao/task_areas.h>
 #include <ciao/wam.h>
 #include <ciao/tasks.h>
-#include <ciao/start.h>
+#include <ciao/eng_start.h>
 #include <ciao/startgoal.h>
 #include <ciao/profile_hooks.h>
 #include <ciao/term_support.h>
-#include <ciao/bignum.h>
+#include <ciao/eng_bignum.h>
 #include <ciao/stacks.h>
 #include <ciao/wam_macros.h>
 
@@ -285,7 +285,7 @@ FILE *ciao_open_embedded_qfile(const char *program_name) {
 }
 
 void ciao_open_exec_skip_stub(const char *file, FILE **stream) {
-  /* TODO: see open_exec_skip_stub() in start.c */
+  /* TODO: see open_exec_skip_stub() in eng_start.c */
   fprintf(stderr,"{ERROR: ciao_open_exec_skip_stub() is not implemented yet}\n");
 }
 

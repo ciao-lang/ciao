@@ -1,5 +1,5 @@
 /*
- *  eng_dbg.c
+ *  eng_debug.c
  *
  *  Support for debugging and tracing the engine code
  *
@@ -11,7 +11,7 @@
 #include <ciao/support_macros.h>
 #include <ciao/io_basic.h>
 #include <ciao/stream_basic.h>
-#include <ciao/eng_dbg.h>
+#include <ciao/eng_debug.h>
 
 #if defined(DEF_WR_DEBUG)
 
@@ -209,6 +209,6 @@ CVOID__PROTO(wr_functor_spec, tagged_t t) {
 
 #else
 
-int eng_dbg__dummy[0]; /* prevent "no symbols" warnings in .a creation */
+int eng_debug__dummy[0]; /* prevent "no symbols" warnings in .a creation */
 
 #endif

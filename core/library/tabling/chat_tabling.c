@@ -18,9 +18,9 @@
 #include <ciao/wam.h>
 #include <ciao/term_support.h>
 #include <ciao/nondet.h>
-#include <ciao/start.h>
+#include <ciao/eng_start.h>
 #include <ciao/wamsupport.h>
-#include <ciao/bignum.h>
+#include <ciao/eng_bignum.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/io_basic.h>
 

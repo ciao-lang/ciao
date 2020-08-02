@@ -1,5 +1,5 @@
 /*
- *  main.c
+ *  eng_main.c
  *
  *  Main file for an executable. It just calls the entry point, which
  *  can as well be called by any other executable to load and start a

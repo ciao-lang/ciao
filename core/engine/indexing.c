@@ -14,7 +14,7 @@
 #include <ciao/indexing.h>
 #include <ciao/wamsupport.h>
 #include <ciao/support.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/objareas.h>
 
@@ -486,7 +486,6 @@ static void init_interpreted(definition_t *f)
 
   f->code.intinfo->behavior_on_failure = DYNAMIC;
 
-  /*f->code.intinfo->clause_insertion_cond = create_dynamic_lock();*/
   Init_Cond(f->code.intinfo->clause_insertion_cond);
 
   /*  MCL added on 26 Nov 98 */

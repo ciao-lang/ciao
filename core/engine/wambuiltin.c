@@ -17,7 +17,7 @@
 #include <ciao/wambuiltin.h>
 #include <ciao/wamsupport.h>
 #include <ciao/misc.h>
-#include <ciao/bignum.h>
+#include <ciao/eng_bignum.h>
 
 /* Compatibility with non-clang compilers */
 #ifndef __has_builtin

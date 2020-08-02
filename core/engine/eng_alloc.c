@@ -1,5 +1,5 @@
 /*
- *  alloc.c
+ *  eng_alloc.c
  *
  *  Checked memory allocation.
  *
@@ -16,7 +16,7 @@
 
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_alloc.h>
 
 #if defined(USE_OWN_MALLOC)
 #include <ciao/own_malloc.h>

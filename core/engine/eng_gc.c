@@ -1,5 +1,5 @@
 /*
- *  heapgc.c
+ *  eng_gc.c
  *
  *  Term heap garbage collector.
  *
@@ -13,7 +13,7 @@
 #define EARLY_RESET 1
 
 #if defined(DEBUG)
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 /*#include <time.h>*/
 #endif
 
@@ -23,7 +23,7 @@
 #include <ciao/support_macros.h>
 #include <ciao/wamsupport.h>
 #include <ciao/io_basic.h>
-#include <ciao/heapgc.h>
+#include <ciao/eng_gc.h>
 #include <ciao/stacks.h>
 #include <ciao/timing.h>
 

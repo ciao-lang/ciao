@@ -1,5 +1,5 @@
 /*
- *  bignum.c
+ *  eng_bignum.c
  *
  *  Bignum arithmetics (support for arbitrary size integers)
  *
@@ -10,11 +10,11 @@
  *    Ref: Knuth vol. 2 sec. 4.3.1
  */
 
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
-#include <ciao/alloc.h>
-#include <ciao/bignum.h>
+#include <ciao/eng_alloc.h>
+#include <ciao/eng_bignum.h>
 #include <math.h>
 
 static void bn_negate(bignum_t *x);

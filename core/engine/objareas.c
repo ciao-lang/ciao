@@ -8,7 +8,7 @@
 
 #include <unistd.h>
 #include <stddef.h> /* ptrdiff_t */
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/support.h>
 #include <ciao/support_macros.h>
@@ -17,12 +17,12 @@
 
 #include <ciao/nondet.h>
 #include <ciao/objareas.h>
-#include <ciao/bignum.h>
+#include <ciao/eng_bignum.h>
 #include <ciao/stacks.h>
 #include <ciao/indexing.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_alloc.h>
 #include <ciao/locks.h>
-#include <ciao/start.h>
+#include <ciao/eng_start.h>
 
 static void relocate_table_clocks(sw_on_key_t *sw, instance_clock_t *clocks);
 

@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/support.h>
 #include <ciao/support_macros.h>
@@ -23,7 +23,7 @@
 
 #include <ciao/wam_alloc.h>
 #include <ciao/io_basic.h>
-#include <ciao/start.h>
+#include <ciao/eng_start.h>
 #include <ciao/startgoal.h>
 #include <ciao/tasks.h>
 #include <ciao/term_support.h>
@@ -32,7 +32,7 @@
 #include <ciao/locks.h>
 #endif
 #include <ciao/wamsupport.h>
-#include <ciao/interrupt.h>
+#include <ciao/eng_interrupt.h>
 #include <ciao/indexing.h> /* empty_gcdef_bin() */
 
 /* Here with w->next_insn set up -- see local_init_each_time(). (MCL) */

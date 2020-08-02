@@ -61,7 +61,7 @@ This is a list of common issues and their solutions:
       of thread-related primitives as well).
 
       If you have any alternative threads library available, you can
-      tinker with @tt{engine/threads.h} and the @tt{config-sysdep.sh}
+      tinker with @tt{engine/os_threads.h} and the @tt{config-sysdep.sh}
       file in order to get the task managing macros right for your
       system.  Be sure to link the right library.  If you succeed, we
       (@email{ciao@@clip.dia.fi.upm.es}) will be happy of knowing

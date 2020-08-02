@@ -6,8 +6,7 @@
 #include <ciao/support_macros.h>
 #include <ciao/support.h>
 #include <ciao/term_support.h>
-#include <ciao/threads.h>
-#include <ciao/locks_prim.h>
+#include <ciao/os_threads.h>
 #include <ciao/global_defs.h>
 #include <ciao/task_areas.h>
 #include <ciao/wam_macros.h>
@@ -15,8 +14,8 @@
 #include <ciao/tasks.h>
 #include <ciao/startgoal.h>
 #include <ciao/nondet.h>
-#include <ciao/start.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_start.h>
+#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/stream_basic.h>
 

@@ -17,10 +17,10 @@
 #include <stdio.h> // stream_node_t requires FILE
 
 #include <ciao/absmach_predef.h>
-#include <ciao/locks_prim.h>
+#include <ciao/os_threads.h>
 #include <ciao/os_signal.h> // SIGJMP_BUF in misc_info_t
 
-#include <ciao/alloc.h> // for declaration of flexible structures
+#include <ciao/eng_alloc.h> // for declaration of flexible structures
 
 /* SIMPLE TYPES  & various CONSTANTS    -------------------------------   */
 
@@ -606,7 +606,7 @@ struct misc_info_ {
 
   worker_t *expanded_worker;
 
-  /* From heapgc: need to have per-worker garbage collection */
+  /* From eng_gc: need to have per-worker garbage collection */
 
   intmach_t gc_total_grey/* = 0 */; /* accumulated upper bound of garbage left */
                                          /* Must be explicitly inited !!! */

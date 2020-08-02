@@ -10,9 +10,8 @@
 #define _CIAO_SUPPORT_MACROS_H
 
 #include <ciao/absmach_predef.h>
-#include <ciao/eng_dbg.h>
-#include <ciao/threads.h>
-#include <ciao/locks_prim.h>
+#include <ciao/eng_debug.h>
+#include <ciao/os_threads.h>
 
 #define NULL_TRAIL_ENTRY MakeSmall(0)
 #define IsCanceled(T) (T == NULL_TRAIL_ENTRY)

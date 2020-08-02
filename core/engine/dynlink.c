@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include <ciao/dynlink.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_alloc.h>
 
 #if !defined(MAXPATHLEN)
 # define MAXPATHLEN 1024

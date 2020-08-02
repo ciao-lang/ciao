@@ -1,5 +1,5 @@
 /*
- *  attr.h
+ *  attributes.h
  *
  *  Copyright (C) 1992 Department of Medical Cybernetics & Artificial
  *    Intelligence.  University of Vienna.  Freyung 6.  A-1010 Vienna,
@@ -11,8 +11,8 @@
  *    the USER AGREEMENT between the DMCAI and the User.
  */
 
-#ifndef _CIAO_ATTR_H
-#define _CIAO_ATTR_H
+#ifndef _CIAO_ATTRIBUTES_H
+#define _CIAO_ATTRIBUTES_H
 
 CBOOL__PROTO(bu1_detach_attribute, tagged_t x);
 CBOOL__PROTO(bu2_attach_attribute, tagged_t var, tagged_t constr);
@@ -31,4 +31,4 @@ CBOOL__PROTO(put_attr__3);
 CBOOL__PROTO(del_attr__2);
 #endif
 
-#endif /* _CIAO_ATTR_H */
+#endif /* _CIAO_ATTRIBUTES_H */

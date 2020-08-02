@@ -1,5 +1,5 @@
 /*
- *  eng_dbg.h
+ *  eng_debug.h
  *
  *  Support for debugging and tracing the engine code
  *
@@ -7,8 +7,8 @@
  *  Copyright (C) 2002-2015 The Ciao Development Team
  */
 
-#ifndef _CIAO_ENG_DBG_H
-#define _CIAO_ENG_DBG_H
+#ifndef _CIAO_ENG_DEBUG_H
+#define _CIAO_ENG_DEBUG_H
 
 // #define DEF_WR_DEBUG 1
 
@@ -38,4 +38,4 @@ extern bool_t debug_conc;
 
 extern bool_t stop_on_pred_calls;
 
-#endif /* _CIAO_ENG_DBG_H */
+#endif /* _CIAO_ENG_DEBUG_H */

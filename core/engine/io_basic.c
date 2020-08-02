@@ -16,22 +16,22 @@
 #include <strings.h>
 
 #include <ciao/os_signal.h>
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/support.h>
 #include <ciao/support_macros.h>
 #include <ciao/task_areas.h>
 #include <ciao/misc.h>
-#include <ciao/interrupt.h>
+#include <ciao/eng_interrupt.h>
 
 #include <ciao/rune.h>
 #include <ciao/term_support.h>
 #include <ciao/io_basic.h>
 #include <ciao/stream_basic.h>
 #include <ciao/tasks.h>
-#include <ciao/start.h>
-#include <ciao/alloc.h>
-#include <ciao/bignum.h>
+#include <ciao/eng_start.h>
+#include <ciao/eng_alloc.h>
+#include <ciao/eng_bignum.h>
 #include <ciao/stacks.h>
 
 /* local declarations */

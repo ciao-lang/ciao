@@ -11,7 +11,7 @@
 #include <string.h>
 #include <math.h> /* NAN, INFINITY */
 
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/gcdatadefs.h>
 #include <ciao/support.h>
@@ -23,13 +23,13 @@
 #include <ciao/objareas.h>
 #include <ciao/dtoa_ryu.h>
 #include <ciao/term_support.h>
-#include <ciao/start.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_start.h>
+#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/stacks.h>
 #include <ciao/nondet.h>
 #include <ciao/io_basic.h>
-#include <ciao/bignum.h>
+#include <ciao/eng_bignum.h>
 
 /* Unify with occurs-check, using inline checks (var-nonvar cases) */
 #define UNIFY_OC_INLINE 1

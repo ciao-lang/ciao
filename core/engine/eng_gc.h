@@ -1,13 +1,13 @@
 /*
- *  heapgc.h
+ *  eng_gc.h
  *
  *  Term heap garbage collector.
  *
  *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
  */
 
-#ifndef _CIAO_HEAPGC_H
-#define _CIAO_HEAPGC_H
+#ifndef _CIAO_ENG_GC_H
+#define _CIAO_ENG_GC_H
 
 /*
   static CVOID__PROTO(shuntVariables);
@@ -29,4 +29,4 @@ CBOOL__PROTO(gc_margin);
 CVOID__PROTO(compressTrail, bool_t from_gc);
 CVOID__PROTO(GarbageCollect);
 
-#endif /* _CIAO_HEAPGC_H */
+#endif /* _CIAO_ENG_GC_H */

@@ -12,8 +12,7 @@
 #include <unistd.h>
 
 #include <ciao/os_signal.h>
-#include <ciao/threads.h>
-#include <ciao/locks_prim.h>
+#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/configure.h>
 #include <ciao/support_macros.h>
@@ -22,12 +21,12 @@
 #include <ciao/task_areas.h>
 #include <ciao/wamsupport.h>
 
-#include <ciao/attr.h>
-#include <ciao/eng_dbg.h>
+#include <ciao/attributes.h>
+#include <ciao/eng_debug.h>
 #include <ciao/initial.h>
 #include <ciao/io_basic.h>
-#include <ciao/interrupt.h>
-#include <ciao/start.h>
+#include <ciao/eng_interrupt.h>
+#include <ciao/eng_start.h>
 #include <ciao/misc.h>
 #include <ciao/nondet.h>
 #include <ciao/objareas.h>

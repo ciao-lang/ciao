@@ -11,15 +11,14 @@
 :- '$native_include_c_header'('alloc_init.h').
 :- '$native_include_c_header'('termdefs.h').
 :- '$native_include_c_header'('access.h').
-:- '$native_include_c_header'('locks_prim.h').
 :- '$native_include_c_header'('objdefs.h').
 :- '$native_include_c_header'('absmach_predef.h').
 :- '$native_include_c_header'('support_macros.h').
-:- '$native_include_c_header'('eng_dbg.h').
+:- '$native_include_c_header'('eng_debug.h'). % TODO: can it be moved later?
 :- '$native_include_c_header'('global_defs.h').
 :- '$native_include_c_header'('os_signal.h').
 :- '$native_include_c_header'('ciao_gluecode.h').
-:- '$native_include_c_header'('threads.h').
+:- '$native_include_c_header'('os_threads.h').
 :- '$native_include_c_header'('task_areas.h').
 :- '$native_include_c_header'('profile_hooks.h').
 :- '$native_include_c_header'('tabling.h').
@@ -59,8 +58,8 @@
 
 :- '$native_include_c_source'('os_utils.c').
 
-:- '$native_include_c_header'('attr.h').
-:- '$native_include_c_source'('attr.c').
+:- '$native_include_c_header'('attributes.h').
+:- '$native_include_c_source'('attributes.c').
 
 :- '$native_include_c_source'('dynlink.c').
 
@@ -74,13 +73,13 @@
 :- '$native_include_c_source'('own_mmap.c').
 :- '$native_include_c_source'('win32_mman.c').
 
-:- '$native_include_c_header'('alloc.h').
-:- '$native_include_c_source'('alloc.c').
+:- '$native_include_c_header'('eng_alloc.h').
+:- '$native_include_c_source'('eng_alloc.c').
 
 :- '$native_include_c_header'('wam_alloc.h').
 :- '$native_include_c_source'('wam_alloc.c').
 
-:- '$native_include_c_source'('heapgc.c').
+:- '$native_include_c_source'('eng_gc.c').
 
 :- '$native_include_c_source'('indexing.c').
 
@@ -103,14 +102,14 @@
 
 :- '$native_include_c_source'('qread.c').
 
-:- '$native_include_c_header'('eng_dbg.h').
-:- '$native_include_c_source'('eng_dbg.c').
+%:- '$native_include_c_header'('eng_debug.h').
+:- '$native_include_c_source'('eng_debug.c').
 
-:- '$native_include_c_source'('interrupt.c').
+:- '$native_include_c_source'('eng_interrupt.c').
 
 :- '$native_include_c_source'('gauge.c').
 
-:- '$native_include_c_source'('bignum.c').
+:- '$native_include_c_source'('eng_bignum.c').
 
 :- '$native_include_c_header'('dtoa_ryu.h').
 :- '$native_include_c_source'('dtoa_ryu.c').
@@ -119,8 +118,8 @@
 :- '$native_include_c_header'('ciao_prolog.h', noalias).
 :- '$native_include_c_source'('ciao_prolog.c').
 
-:- '$native_include_c_header'('start.h').
-:- '$native_include_c_source'('start.c').
+:- '$native_include_c_header'('eng_start.h').
+:- '$native_include_c_source'('eng_start.c').
 
 % Automatically generated in car_maker:eng_prebuild_version_info/3
 :- '$native_include_c_header'('version.h').

@@ -10,7 +10,7 @@
 
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_alloc.h>
 #include <ciao/format.h>
 #include <ciao/wambuiltin.h> /* fu1_integer() */
 #include <ciao/term_support.h>

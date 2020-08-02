@@ -7,18 +7,18 @@
  */
 
 #if defined(DEBUG) || defined(USE_THREADS)
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 #endif
 
 #include <ciao/datadefs.h>
 #include <ciao/support.h>
 #include <ciao/support_macros.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_alloc.h>
 #include <ciao/wamsupport.h>
 
 #include <ciao/stacks.h>
-#include <ciao/heapgc.h>
-#include <ciao/start.h>
+#include <ciao/eng_gc.h>
+#include <ciao/eng_start.h>
 #include <ciao/timing.h>
 #if defined(DEBUG)
 #include <ciao/locks.h>

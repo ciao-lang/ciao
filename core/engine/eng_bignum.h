@@ -1,5 +1,5 @@
 /*
- *  bignum.h
+ *  eng_bignum.h
  *
  *  Bignum arithmetics (support for arbitrary size integers)
  *
@@ -13,7 +13,7 @@
 #ifndef _CIAO_BIGNUM_H
 #define _CIAO_BIGNUM_H
 
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
 

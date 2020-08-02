@@ -1,5 +1,5 @@
 /*
- *  alloc.h
+ *  eng_alloc.h
  *
  *  Checked memory allocation.
  *
@@ -7,10 +7,10 @@
  *  Copyright (C) 2002-2015 The Ciao Development Team
  */
 
-#ifndef _CIAO_ALLOC_H
-#define _CIAO_ALLOC_H
+#ifndef _CIAO_ENG_ALLOC_H
+#define _CIAO_ENG_ALLOC_H
 
-/* TODO: alloc.h should be type agnostic (do not use tagged_t) */
+/* TODO: eng_alloc.h should be type agnostic (do not use tagged_t) */
 
 extern char *tryalloc_errstring;
 
@@ -96,4 +96,4 @@ void checkdealloc(tagged_t *ptr, intmach_t decr);
   checkdealloc((tagged_t *)(Ptr), \
                (ArrayLen) * sizeof(ArrayType))
 
-#endif /* _CIAO_ALLOC_H */
+#endif /* _CIAO_ENG_ALLOC_H */

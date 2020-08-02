@@ -23,7 +23,7 @@
 --------------------------------------------------------------------------- */
 
 #include <ciao_prolog.h>
-#include <ciao/bignum.h>
+#include <ciao/eng_bignum.h>
 #include <ciao/termdefs.h>
 
 #define BIGNUM_SIZE (sizeof(bignum_t)*8)
@@ -40,7 +40,7 @@
 #define BITS_SET(x)  (__builtin_popcountll(x))
 #endif
 
-/* The 2 next lines are form bignum.c */
+/* The 2 next lines are form eng_bignum.c */
 #define BignumRawLength(b) (b)[0]
 #define BignumLength(B) GetBignumLength(BignumRawLength(B))
 

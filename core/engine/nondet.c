@@ -14,7 +14,7 @@
 
 #include <string.h>
 
-#include <ciao/threads.h>                                     /* For debugging */
+#include <ciao/os_threads.h> /* For debugging */
 #include <ciao/datadefs.h>
 #include <ciao/support.h>
 #include <ciao/support_macros.h>
@@ -23,7 +23,7 @@
 
 #include <ciao/locks.h>
 #include <ciao/objareas.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_alloc.h>
 #include <ciao/nondet.h>
 #include <ciao/stacks.h>
 #include <ciao/profile_hooks.h>

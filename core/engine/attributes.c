@@ -1,5 +1,5 @@
 /*
- *  attr.c
+ *  attributes.c
  *
  *  Copyright (C) 1992 Department of Medical Cybernetics & Artificial
  *    Intelligence.  University of Vienna.  Freyung 6.  A-1010 Vienna,
@@ -13,8 +13,8 @@
 
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
-#include <ciao/start.h>
-#include <ciao/attr.h>
+#include <ciao/eng_start.h>
+#include <ciao/attributes.h>
 #include <ciao/stacks.h>
     
 extern definition_t *address_true;                         /* Shared */

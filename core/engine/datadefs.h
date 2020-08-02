@@ -14,7 +14,7 @@
 #include <ciao/configure.h>
 
 #include <ciao/absmach_predef.h>
-#include <ciao/locks_prim.h>
+#include <ciao/os_threads.h>
 #include <ciao/alloc_init.h>
 #include <ciao/registers.h>
 #include <ciao/termdefs.h>

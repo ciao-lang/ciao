@@ -11,9 +11,9 @@
 
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
-#include <ciao/eng_dbg.h>
+#include <ciao/eng_debug.h>
 #include <ciao/global_defs.h>
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 #include <ciao/task_areas.h>
 
 #include <ciao_prolog.h>

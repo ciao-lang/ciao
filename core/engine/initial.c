@@ -12,18 +12,18 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/wambuiltin.h>
-#include <ciao/attr.h>
+#include <ciao/attributes.h>
 #include <ciao/indexing.h>
 #include <ciao/wamsupport.h>
 #include <ciao/term_support.h>
 
-#include <ciao/interrupt.h>
+#include <ciao/eng_interrupt.h>
 
 #include <ciao/timing.h>
 #include <ciao/stream_basic.h>
@@ -38,7 +38,7 @@
 #include <ciao/objareas.h>
 #include <ciao/support.h>
 #include <ciao/stacks.h>
-#include <ciao/heapgc.h>
+#include <ciao/eng_gc.h>
 #include <ciao/nondet.h>
 #include <ciao/locks.h>
 #include <ciao/misc.h>
@@ -501,7 +501,6 @@ atom_t *new_atom_check(char *str,
   classify_atom(s);
 
 #if defined(USE_THREADS)
-  /*s->atom_lock_l = create_dynamic_lock(); */            /* Already inited */
   /*  Quite amazingly, the latter seems to be faster than just
 
     s->atom_lock_l = &s->atom_lock_st;
@@ -1292,14 +1291,14 @@ void init_once(void)
   define_c_mod_predicate("internals","$choice_usage",1,choice_usage);
   define_c_mod_predicate("internals","$stack_shift_usage",1,stack_shift_usage);
 
-                                /* alloc.c */
+                                /* eng_alloc.c */
 
   define_c_mod_predicate("runtime_control","statistics",0,statistics);
   define_c_mod_predicate("internals","$program_usage",1,program_usage);
   define_c_mod_predicate("internals","$internal_symbol_usage",1,internal_symbol_usage);
   define_c_mod_predicate("internals","$total_usage",1,total_usage);
 
-                                 /* heapgc.c */
+                                 /* eng_gc.c */
 
   define_c_mod_predicate("internals","$gc_mode",2,gc_mode);
   define_c_mod_predicate("internals","$gc_trace",2,gc_trace);
@@ -1330,7 +1329,7 @@ void init_once(void)
 #endif
 
 #if defined(USE__FAST_MULTIATTR)
-                                /* attr.c */
+                                /* attributes.c */
 
   define_c_mod_predicate("attr_rt","get_attr",3,get_attr__3);
   define_c_mod_predicate("attr_rt","put_attr",3,put_attr__3);

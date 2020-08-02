@@ -1,5 +1,5 @@
 /*
- *  interrupt.c
+ *  eng_interrupt.c
  *
  *  Interrupt handlers.
  *
@@ -9,13 +9,13 @@
 #include <sys/types.h>
 
 #include <ciao/os_signal.h>
-#include <ciao/threads.h>
+#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/support_macros.h>
 #include <ciao/task_areas.h>
-#include <ciao/interrupt.h>
+#include <ciao/eng_interrupt.h>
 #include <ciao/tasks.h>
-#include <ciao/start.h>
+#include <ciao/eng_start.h>
 
 static void abortmsg(int rc);
 
