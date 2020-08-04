@@ -15,7 +15,6 @@
 #include <ciao/os_threads.h>
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/wambuiltin.h>
 #include <ciao/attributes.h>
@@ -36,7 +35,6 @@
 #include <ciao/rune.h>
 #include <ciao/io_basic.h>
 #include <ciao/objareas.h>
-#include <ciao/support.h>
 #include <ciao/stacks.h>
 #include <ciao/eng_gc.h>
 #include <ciao/nondet.h>

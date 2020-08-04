@@ -8,8 +8,6 @@
 
 #include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
-#include <ciao/support.h>
-#include <ciao/support_macros.h>
 #include <ciao/initial.h>
 #include <ciao/wam_macros.h>
 #include <ciao/task_areas.h>

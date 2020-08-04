@@ -15,8 +15,6 @@
 
 #include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
-#include <ciao/support.h>
-#include <ciao/support_macros.h>
 #include <ciao/wam_macros.h>
 #include <ciao/os_signal.h>
 #include <ciao/task_areas.h>
@@ -185,7 +183,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
 
 /* If we hit the initial ghost choicepoint, then it means that no
    solution was returned by this call.  If we call the
-   make_backtracking() pirmitive, then KEEP_STACKS is true. */
+   make_backtracking() primitive, then KEEP_STACKS is true. */
 
 THREAD_RES_T make_backtracking(THREAD_ARG wo)
 {

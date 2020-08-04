@@ -1,8 +1,6 @@
 /* Copyright (C) 1996,1997,1998,1999,2000,2001,2002 UPM-CLIP */
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
-#include <ciao/support.h>
 #include <ciao/io_basic.h> /* RUNE_VOID */
 #include <ciao/stream_basic.h>
 #include <ciao/stacks.h>

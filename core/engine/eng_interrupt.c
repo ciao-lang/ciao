@@ -11,7 +11,6 @@
 #include <ciao/os_signal.h>
 #include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 #include <ciao/task_areas.h>
 #include <ciao/eng_interrupt.h>
 #include <ciao/tasks.h>

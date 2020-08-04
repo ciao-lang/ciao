@@ -12,7 +12,6 @@
  */
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 #include <ciao/eng_start.h>
 #include <ciao/attributes.h>
 #include <ciao/stacks.h>

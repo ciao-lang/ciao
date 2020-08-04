@@ -9,7 +9,6 @@
 #if defined(GAUGE)
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 #include <ciao/wamsupport.h>
 
 /* declarations for global functions accessed here */

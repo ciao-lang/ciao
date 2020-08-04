@@ -7,13 +7,11 @@
  */
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 #include <ciao/initial.h>
 
 #include <ciao/locks.h>
 #include <ciao/indexing.h>
 #include <ciao/wamsupport.h>
-#include <ciao/support.h>
 #include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/objareas.h>

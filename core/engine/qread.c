@@ -11,8 +11,6 @@
 #include <stddef.h>
 
 #include <ciao/datadefs.h>
-#include <ciao/support.h>
-#include <ciao/support_macros.h>
 #include <ciao/term_support.h>
 
 #include <ciao/qread.h>

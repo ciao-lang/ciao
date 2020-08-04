@@ -12,8 +12,6 @@
 #include <time.h>
 
 #include <ciao/datadefs.h>
-#include <ciao/support.h>
-#include <ciao/support_macros.h>
 #include <ciao/timing.h>
 
 #if (defined(Solaris) || defined(LINUX) || defined(DARWIN) || defined(Win32) || defined(BSD)) \

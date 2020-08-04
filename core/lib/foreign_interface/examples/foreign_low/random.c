@@ -1,7 +1,6 @@
 #include <stdlib.h>
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 
 /* NOTE: This example is using the internal Ciao APIs are subject to
    change without notice. */

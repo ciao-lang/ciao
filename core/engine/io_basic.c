@@ -18,8 +18,6 @@
 #include <ciao/os_signal.h>
 #include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
-#include <ciao/support.h>
-#include <ciao/support_macros.h>
 #include <ciao/task_areas.h>
 #include <ciao/misc.h>
 #include <ciao/eng_interrupt.h>

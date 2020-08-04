@@ -11,7 +11,6 @@
  */
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 #include <ciao/io_basic.h>
 
 #if defined(FOREIGN_FILES)

@@ -49,6 +49,7 @@
 #endif
 
 #include <ciao/datadefs.h>
+
 /* (use Win32 only after datadefs.h) */
 #if defined(Win32) && !defined(_WIN32) && !defined(_WIN64) /* Cygwin||MSYS2 */
 #include <sys/cygwin.h>
@@ -65,8 +66,6 @@
 //#define WTERMSIG(x) SIGTERM
 #endif
 
-#include <ciao/support.h>
-#include <ciao/support_macros.h>
 #include <ciao/term_support.h>
 #include <ciao/os_signal.h>
 #include <ciao/io_basic.h>

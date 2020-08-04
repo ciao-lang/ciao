@@ -10,8 +10,6 @@
 #include <stddef.h> /* ptrdiff_t */
 #include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
-#include <ciao/support.h>
-#include <ciao/support_macros.h>
 #include <ciao/initial.h>
 #include <ciao/wam_alloc.h>
 

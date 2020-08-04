@@ -33,8 +33,8 @@ struct wam_private_ {
 /* Possible actions requested from the toplevel. */
 
 #define NO_ACTION         0
-#define SHARES_STRUCTURE  1
-#define HAS_CONTINUATION  2
+#define SHARES_STRUCTURE  1 /* unused? */
+#define HAS_CONTINUATION  2 /* unused? */
 #define KEEP_STACKS       4
 #define BACKTRACKING      8
 #define CREATE_THREAD    16
@@ -66,8 +66,5 @@ struct goal_descriptor_ {
   SLOCK goal_lock_l;
   goal_descriptor_t *forward, *backward;
 };
-
-#define TermToGoalDesc(term) (goal_descriptor_t *)TermToPointer(term)
-#define GoalDescToTerm(goal) PointerToTerm(goal)
 
 #endif /* _CIAO_TASK_AREAS_H */

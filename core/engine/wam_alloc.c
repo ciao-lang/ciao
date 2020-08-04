@@ -14,9 +14,7 @@
 #include <unistd.h>
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 #include <ciao/wam_alloc.h>
-#include <ciao/support.h>
 #include <ciao/wamsupport.h>
 #include <ciao/timing.h>
 #include <ciao/initial.h>

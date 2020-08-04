@@ -9,7 +9,6 @@
 #include <unistd.h>
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 
 #define DAEMON_RUNNING_DIR "/tmp"
 

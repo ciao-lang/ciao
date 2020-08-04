@@ -10,8 +10,6 @@
  */
 
 #include <ciao/datadefs.h>
-#include <ciao/support.h>
-#include <ciao/support_macros.h>
 #include <ciao/os_threads.h>
 #include <ciao/locks.h>
 #include <ciao/eng_alloc.h>

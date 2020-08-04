@@ -10,11 +10,9 @@
 #include <string.h>
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 #include <ciao/wamsupport.h>
 #include <ciao/stream_basic.h>
 #include <ciao/eng_bignum.h>
-#include <ciao/support.h>
 #include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/stacks.h>

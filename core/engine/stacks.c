@@ -11,8 +11,6 @@
 #endif
 
 #include <ciao/datadefs.h>
-#include <ciao/support.h>
-#include <ciao/support_macros.h>
 #include <ciao/eng_alloc.h>
 #include <ciao/wamsupport.h>
 
@@ -557,14 +555,14 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
   calculate_segment_node(Arg);
   if (gc ||
       (current_gcmode != atom_off &&
-       HeapCharDifference(Heap_Start,oldh) >= GetSmall(current_gcmargin)*kB)) {
+       HeapCharDifference(Heap_Start,oldh) >= GetSmall(current_gcmargin)*1024)) {
     GarbageCollect(Arg);
     newh = w->global_top;
     lowboundh = newh-Gc_Total_Grey;
     if (!gc &&
-        (HeapCharDifference(newh,oldh) < GetSmall(current_gcmargin)*kB ||
+        (HeapCharDifference(newh,oldh) < GetSmall(current_gcmargin)*1024 ||
          HeapYounger(HeapOffset(newh,2*pad),Heap_End)) &&
-        !(HeapCharDifference(lowboundh,oldh) < GetSmall(current_gcmargin)*kB ||
+        !(HeapCharDifference(lowboundh,oldh) < GetSmall(current_gcmargin)*1024 ||
           HeapYounger(HeapOffset(lowboundh,2*pad),Heap_End))) {
       /* garbage collect the entire heap */
       w->segment_node = InitialNode;
@@ -573,7 +571,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     }
   }
   if ((!gc &&
-       HeapCharDifference(newh,oldh) < GetSmall(current_gcmargin)*kB) ||
+       HeapCharDifference(newh,oldh) < GetSmall(current_gcmargin)*1024) ||
       HeapYounger(HeapOffset(newh,2*pad),Heap_End)) {
     flt64_t tick0 = BASE_RUNTICK;
     /* increase heapsize */

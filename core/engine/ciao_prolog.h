@@ -20,7 +20,6 @@ extern "C" {
 
 /* TODO: do not include them here (use ciao_gluecode.h if needed) */
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 
 typedef goal_descriptor_t *ciao_ctx;
 

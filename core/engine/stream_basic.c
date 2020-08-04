@@ -11,7 +11,6 @@
    sockets, etc.) */
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 #include <ciao/io_basic.h>
 #include <ciao/stream_basic.h>
 
@@ -28,7 +27,6 @@
 #define ENG_NOFILES 20
 
 #include <ciao/eng_alloc.h>
-#include <ciao/support.h>
 #include <ciao/initial.h>
 #include <ciao/nondet.h>
 

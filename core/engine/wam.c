@@ -15,7 +15,6 @@
 #include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/configure.h>
-#include <ciao/support_macros.h>
 #include <ciao/instrdefs.h>
 #include <ciao/wam_macros.h>
 #include <ciao/task_areas.h>
@@ -31,7 +30,6 @@
 #include <ciao/nondet.h>
 #include <ciao/objareas.h>
 #include <ciao/stacks.h>
-#include <ciao/support.h>
 #include <ciao/term_support.h>
 #include <ciao/wam.h>
 #include <ciao/locks.h>

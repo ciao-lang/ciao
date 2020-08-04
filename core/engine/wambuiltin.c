@@ -10,8 +10,6 @@
 #include <limits.h>
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
-#include <ciao/support.h>
 #include <ciao/indexing.h>
 #include <ciao/initial.h> /* switch_on_function */
 #include <ciao/wambuiltin.h>

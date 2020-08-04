@@ -10,9 +10,7 @@
 #define _CIAO_GLUECODE_H
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 #include <ciao/eng_debug.h>
-#include <ciao/global_defs.h>
 #include <ciao/os_threads.h>
 #include <ciao/task_areas.h>
 

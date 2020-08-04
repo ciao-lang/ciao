@@ -869,10 +869,24 @@ struct marker_ {
 #define ChoiceptTestNoCVA(b) ((tagged_t)(b)->trail_top & NoCVA_MARK)
 #endif
 
-/*  Misc   ---------------------------------------------  */
+/* ------------------------------------------------------------------------- */
+/* Extra tagged word bits for heap GC (and in term_support.c) */
 
 /* Deposit Source into Mask:ed portion of Dest */
 #define Deposit(Source,Mask,Dest) (((Source)&(Mask))|((Dest)& ~(Mask)))
+
+#define GC_MARKMASK  ((tagged_t)2)
+#define GC_FIRSTMASK ((tagged_t)1)
+
+#define gc_IsMarked(x)  ((x)&GC_MARKMASK)
+#define gc_IsFirst(x)   ((x)&GC_FIRSTMASK)
+#define gc_IsForM(x)   ((x)&(GC_FIRSTMASK|GC_MARKMASK))
+#define gc_MarkM(x)  ((x)|= GC_MARKMASK)
+#define gc_MarkF(x)  ((x)|= GC_FIRSTMASK)
+#define gc_UnmarkM(x)  ((x)&=(~GC_MARKMASK))
+#define gc_UnmarkF(x)  ((x)&=(~GC_FIRSTMASK))
+#define gc_PutValue(p,x) Deposit(p,POINTERMASK,x)
+#define gc_PutValueFirst(p,x) Deposit(p,POINTERMASK|GC_FIRSTMASK,x)
 
 /* ------------------------------------------------------------------------- */
 /* Alignment operations */

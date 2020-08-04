@@ -1,6 +1,4 @@
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
-#include <ciao/support.h>
 #include <ciao/io_basic.h> /* RUNE defs */
 #include <ciao_prolog.h>
 

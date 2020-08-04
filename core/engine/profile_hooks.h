@@ -21,7 +21,7 @@ extern bool_t profile, profile_eng, profile_rcc;
 CVOID__PROTO(profile__hook_noop);
 CVOID__PROTO(profile__hook_call_noop, definition_t *f);
 
-/* TODO: add typedefs */
+/* TODO: create a struct of function pointers (JF) */
 extern void (*profile__hook_redo)(worker_t *w);
 extern void (*profile__hook_cut)(worker_t *w);
 extern void (*profile__hook_call)(worker_t *w, definition_t *functor);

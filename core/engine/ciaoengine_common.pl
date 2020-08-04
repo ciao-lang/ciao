@@ -8,14 +8,9 @@
 % Source C files
 :- '$native_include_c_header'('datadefs.h').
 :- '$native_include_c_header'('configure.h').
-:- '$native_include_c_header'('alloc_init.h').
 :- '$native_include_c_header'('termdefs.h').
-:- '$native_include_c_header'('access.h').
-:- '$native_include_c_header'('objdefs.h').
 :- '$native_include_c_header'('absmach_predef.h').
-:- '$native_include_c_header'('support_macros.h').
 :- '$native_include_c_header'('eng_debug.h'). % TODO: can it be moved later?
-:- '$native_include_c_header'('global_defs.h').
 :- '$native_include_c_header'('os_signal.h').
 :- '$native_include_c_header'('ciao_gluecode.h').
 :- '$native_include_c_header'('os_threads.h').
@@ -86,12 +81,9 @@
 :- '$native_include_c_header'('initial.h').
 :- '$native_include_c_source'('initial.c').
 
-:- '$native_include_c_header'('registers.h').
-
 :- '$native_include_c_header'('stacks.h').
 :- '$native_include_c_source'('stacks.c').
 
-:- '$native_include_c_header'('support.h').
 :- '$native_include_c_source'('support.c').
 
 :- '$native_include_c_header'('term_support.h').

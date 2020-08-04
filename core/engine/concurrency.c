@@ -3,11 +3,8 @@
 /* Copyright (C) 1996,1997,1998,1999,2000,2001,2002 UPM-CLIP */
 
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
-#include <ciao/support.h>
 #include <ciao/term_support.h>
 #include <ciao/os_threads.h>
-#include <ciao/global_defs.h>
 #include <ciao/task_areas.h>
 #include <ciao/wam_macros.h>
 #include <ciao/wam.h>
@@ -43,6 +40,9 @@ intmach_t goal_from_thread_id(THREAD_ID id);
 
 int killing_threads = FALSE;  /* Set to TRUE when killing other threads to
                                  disable fast spawning of new threads. */
+
+#define TermToGoalDesc(term) (goal_descriptor_t *)TermToPointer(term)
+#define GoalDescToTerm(goal) PointerToTerm(goal)
 
  /* POSIX defines a maximum (_PTHREAD_THREADS_MAX) on the number of threads
     per process --- 64, I think .  Implementations can go beyond this

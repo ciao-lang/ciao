@@ -13,9 +13,6 @@
 
 #include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
-#include <ciao/gcdatadefs.h>
-#include <ciao/support.h>
-#include <ciao/support_macros.h>
 #include <ciao/wamsupport.h>
 #include <ciao/wam_macros.h>
 #include <ciao/instrdefs.h>

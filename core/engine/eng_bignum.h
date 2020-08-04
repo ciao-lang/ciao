@@ -15,7 +15,6 @@
 
 #include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
-#include <ciao/support_macros.h>
 
 bool_t bn_positive(bignum_t *x);
 bignum_size_t bn_add(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);

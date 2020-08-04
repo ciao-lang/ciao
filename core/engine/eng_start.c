@@ -41,7 +41,6 @@
 #include <sys/cygwin.h>
 #endif
 
-#include <ciao/global_defs.h>
 #include <ciao/task_areas.h>
 
 #include <ciao/wamsupport.h>
@@ -54,7 +53,6 @@
 #include <ciao/eng_debug.h>
 #include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
-#include <ciao/support.h>
 #include <ciao/locks.h>
 #include <ciao/profile_hooks.h>
 #include <ciao/startgoal.h>
