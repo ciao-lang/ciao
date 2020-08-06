@@ -1,7 +1,7 @@
 /*
- *  profile_hooks.h
+ *  eng_profile.h
  *
- *  Hooks for profiling of user programs.
+ *  Profiler support
  *
  *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
  */
@@ -9,7 +9,9 @@
 #ifndef _CIAO_PROFILE_HOOKS_H
 #define _CIAO_PROFILE_HOOKS_H
 
-extern bool_t profile, profile_eng, profile_rcc;
+extern bool_t profile;
+extern bool_t profile_eng;
+extern bool_t profile_rcc;
 
 #if defined(PROFILE)
 

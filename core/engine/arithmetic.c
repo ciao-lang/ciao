@@ -1,7 +1,7 @@
 /*
- *  wambuiltin.c
+ *  arithmetic.c
  *
- *  Routines for 'call_builtin' procedures.
+ *  Arithmetic builtins ('call_builtin' procedures)
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
  *  Copyright (C) 2002-2015 Ciao Development Team
@@ -11,8 +11,8 @@
 
 #include <ciao/datadefs.h>
 #include <ciao/indexing.h>
-#include <ciao/initial.h> /* switch_on_function */
-#include <ciao/wambuiltin.h>
+#include <ciao/eng_registry.h> /* switch_on_function */
+#include <ciao/arithmetic.h>
 #include <ciao/wamsupport.h>
 #include <ciao/misc.h>
 #include <ciao/eng_bignum.h>

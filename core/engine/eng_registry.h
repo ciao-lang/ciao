@@ -1,13 +1,7 @@
-/*
- *  initial.h
- *
- *  System initialization and extern defs for global Prolog terms.
- *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
- */
+#ifndef _CIAO_REGISTRY_H
+#define _CIAO_REGISTRY_H
 
-#ifndef _CIAO_INITIAL_H
-#define _CIAO_INITIAL_H
+/* TODO: refine */
 
 extern bool_t trace_calls;
 #if defined(DEBUG)
@@ -35,4 +29,4 @@ void init_locks(void);
 CVOID__PROTO(init_streams_each_time);
 CVOID__PROTO(local_init_each_time);
 
-#endif /* _CIAO_INITIAL_H */
+#endif /* _CIAO_REGISTRY_H */

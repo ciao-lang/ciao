@@ -36,8 +36,8 @@ inttime_t internal_systemtick_std(void)
 
 static void init_frequency_info(void)
 {
-  ciao_statistics.userclockfreq = 1000000;
-  ciao_statistics.systemclockfreq = 1000000;
+  ciao_stats.userclockfreq = 1000000;
+  ciao_stats.systemclockfreq = 1000000;
 }
 
 #elif defined(_WIN32) || defined(_WIN64)
@@ -98,8 +98,8 @@ inttime_t internal_systemtick_std(void)
 
 static void init_frequency_info(void)
 {
-  ciao_statistics.userclockfreq = HZ;
-  ciao_statistics.systemclockfreq = HZ;
+  ciao_stats.userclockfreq = HZ;
+  ciao_stats.systemclockfreq = HZ;
 }
 
 #else
@@ -125,8 +125,8 @@ inttime_t internal_systemtick_std(void)
 
 static void init_frequency_info(void)
 {
-  ciao_statistics.userclockfreq = HZ;
-  ciao_statistics.systemclockfreq = HZ;
+  ciao_stats.userclockfreq = HZ;
+  ciao_stats.systemclockfreq = HZ;
 }
 #endif
 
@@ -138,7 +138,7 @@ inttime_t (*systemtick)(void) = internal_systemtick_std;
 
 flt64_t usertime(void)
 {
-  return ((flt64_t)usertick()) / ciao_statistics.userclockfreq;
+  return ((flt64_t)usertick()) / ciao_stats.userclockfreq;
 }
 
 CBOOL__PROTO(prolog_time)
@@ -196,7 +196,7 @@ inttime_t (*walltick)(void) = internal_walltick_std;
 
 void init_statistics(void) {
   init_frequency_info();
-  ciao_statistics.wallclockfreq = 1000000;
+  ciao_stats.wallclockfreq = 1000000;
 }
 
 /*
@@ -205,7 +205,7 @@ void init_statistics(void) {
 
 flt64_t walltime(void)
 {
-  return ((flt64_t)walltick() * 1000) / ciao_statistics.wallclockfreq;
+  return ((flt64_t)walltick() * 1000) / ciao_stats.wallclockfreq;
 }
 
 /*
@@ -242,36 +242,36 @@ CBOOL__PROTO(prolog_runtime)
 {
   return generic_time(Arg, 
                       TICK_FUNCTION,
-                      ciao_statistics.starttick, 
-                      &ciao_statistics.lasttick,
-                      GET_CLOCKFREQ(ciao_statistics));
+                      ciao_stats.starttick, 
+                      &ciao_stats.lasttick,
+                      GET_CLOCKFREQ(ciao_stats));
 }
 
 CBOOL__PROTO(prolog_usertime)
 {
   return generic_time(Arg, 
                       usertick,
-                      ciao_statistics.startusertick,
-                      &ciao_statistics.lastusertick,
-                      ciao_statistics.userclockfreq);
+                      ciao_stats.startusertick,
+                      &ciao_stats.lastusertick,
+                      ciao_stats.userclockfreq);
 }
 
 CBOOL__PROTO(prolog_systemtime)
 {
   return generic_time(Arg, 
                       systemtick, 
-                      ciao_statistics.startsystemtick,
-                      &ciao_statistics.lastsystemtick,
-                      ciao_statistics.systemclockfreq);
+                      ciao_stats.startsystemtick,
+                      &ciao_stats.lastsystemtick,
+                      ciao_stats.systemclockfreq);
 }
 
 CBOOL__PROTO(prolog_walltime)
 {
   return generic_time(Arg, 
                       walltick, 
-                      ciao_statistics.startwalltick, 
-                      &ciao_statistics.lastwalltick,
-                      ciao_statistics.wallclockfreq);
+                      ciao_stats.startwalltick, 
+                      &ciao_stats.lastwalltick,
+                      ciao_stats.wallclockfreq);
 }
 
 /* New time medition functions */
@@ -300,32 +300,32 @@ CBOOL__PROTO(prolog_walltick)
 {
   return generic_tick(Arg, 
                        walltick, 
-                       ciao_statistics.startwalltick,
-                       &ciao_statistics.lastwalltick);
+                       ciao_stats.startwalltick,
+                       &ciao_stats.lastwalltick);
 }
 
 CBOOL__PROTO(prolog_usertick)
 {
   return generic_tick(Arg, 
                        usertick, 
-                       ciao_statistics.startusertick,
-                       &ciao_statistics.lastusertick);
+                       ciao_stats.startusertick,
+                       &ciao_stats.lastusertick);
 }
 
 CBOOL__PROTO(prolog_systemtick)
 {
   return generic_tick(Arg, 
                        systemtick, 
-                       ciao_statistics.startsystemtick,
-                       &ciao_statistics.lastsystemtick);
+                       ciao_stats.startsystemtick,
+                       &ciao_stats.lastsystemtick);
 }
 
 CBOOL__PROTO(prolog_runtick)
 {
   return generic_tick(Arg, 
                        TICK_FUNCTION,
-                       ciao_statistics.starttick,
-                       &ciao_statistics.lasttick);
+                       ciao_stats.starttick,
+                       &ciao_stats.lasttick);
 }
 
 /* New time medition functions */
@@ -338,35 +338,35 @@ static inline CBOOL__PROTO(generic_clockfreq, inttime_t clockfreq)
 
 CBOOL__PROTO(prolog_runclockfreq)
 {
-  return generic_clockfreq(Arg, GET_CLOCKFREQ(ciao_statistics));
+  return generic_clockfreq(Arg, GET_CLOCKFREQ(ciao_stats));
 }
 
 CBOOL__PROTO(prolog_userclockfreq)
 {
-  return generic_clockfreq(Arg, ciao_statistics.userclockfreq);
+  return generic_clockfreq(Arg, ciao_stats.userclockfreq);
 }
 
 CBOOL__PROTO(prolog_systemclockfreq)
 {
-  return generic_clockfreq(Arg, ciao_statistics.systemclockfreq);
+  return generic_clockfreq(Arg, ciao_stats.systemclockfreq);
 }
 
 CBOOL__PROTO(prolog_wallclockfreq)
 {
-  return generic_clockfreq(Arg, ciao_statistics.wallclockfreq);
+  return generic_clockfreq(Arg, ciao_stats.wallclockfreq);
 }
 
 void reset_statistics(void)
 {
-  ciao_statistics.startusertick = usertick();
-  ciao_statistics.lastusertick = ciao_statistics.startusertick;
-  ciao_statistics.startwalltick = walltick();
-  ciao_statistics.lastwalltick = ciao_statistics.startwalltick;
-  ciao_statistics.startsystemtick = systemtick();
-  ciao_statistics.lastsystemtick = ciao_statistics.startsystemtick;
-  ciao_statistics.lasttick = 
-    ciao_statistics.starttick = 
-    ciao_statistics.startusertick;
+  ciao_stats.startusertick = usertick();
+  ciao_stats.lastusertick = ciao_stats.startusertick;
+  ciao_stats.startwalltick = walltick();
+  ciao_stats.lastwalltick = ciao_stats.startwalltick;
+  ciao_stats.startsystemtick = systemtick();
+  ciao_stats.lastsystemtick = ciao_stats.startsystemtick;
+  ciao_stats.lasttick = 
+    ciao_stats.starttick = 
+    ciao_stats.startusertick;
 }
 
 /* datime(+Time,-Year,-Month,-Day,-Hour,-Min,-Sec,-WeekDay,-YearDay) */

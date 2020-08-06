@@ -26,7 +26,7 @@
 
 #define ENG_NOFILES 20
 
-#include <ciao/initial.h>
+#include <ciao/eng_registry.h>
 #include <ciao/nondet.h>
 
 /* ------------------------------------------------------------------------- */

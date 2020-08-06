@@ -13,12 +13,11 @@
 
 #include <ciao/os_signal.h>
 #include <ciao/datadefs.h>
-#include <ciao/configure.h>
 #include <ciao/instrdefs.h>
 #include <ciao/wam_macros.h>
 
 #include <ciao/attributes.h>
-#include <ciao/initial.h>
+#include <ciao/eng_registry.h>
 #include <ciao/io_basic.h>
 #include <ciao/eng_interrupt.h>
 #include <ciao/eng_start.h>
@@ -30,7 +29,7 @@
 #include <ciao/wam.h>
 #include <ciao/locks.h>
 #include <ciao/timing.h>
-#include <ciao/profile_hooks.h>
+#include <ciao/eng_profile.h>
 #include <ciao/tabling.h>
 
 /* private function declarations */

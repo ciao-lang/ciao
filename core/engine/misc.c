@@ -7,7 +7,7 @@
  */
 
 #include <ciao/datadefs.h>
-#include <ciao/initial.h>
+#include <ciao/eng_registry.h>
 #include <ciao/wam_macros.h>
 #include <ciao/indexing.h>
 
@@ -20,7 +20,7 @@
 #include <ciao/nondet.h>
 #include <ciao/term_support.h>
 #include <ciao/timing.h>
-#include <ciao/profile_hooks.h>
+#include <ciao/eng_profile.h>
 
 // #if defined(INTERNAL_CALLING)
 // #include <ciao/wam.h>

@@ -41,12 +41,12 @@
 #include <ciao/wam.h>
 #include <ciao/tasks.h>
 #include <ciao/os_utils.h>
-#include <ciao/initial.h>
+#include <ciao/eng_registry.h>
 #include <ciao/eng_start.h>
 #include <ciao/qread.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/locks.h>
-#include <ciao/profile_hooks.h>
+#include <ciao/eng_profile.h>
 #include <ciao/startgoal.h>
 #include <ciao/timing.h>
 
@@ -407,7 +407,7 @@ void set_ciaoroot_directory(const char *boot_path, const char *exec_path) {
       /* (for Windows executables) and
          set a couple more of variables */
       
-      /* These are for the registry */
+      /* These are for the Windows registry */
       HKEY SOFTWAREKey, CiaoPrologKey;
       DWORD buffer_size = MAXPATHLEN;
       char aux[MAXPATHLEN+1];
@@ -504,7 +504,7 @@ static void guess_win32_env(const char *boot_path,
     /* Construct the <builddir>/eng/<eng_name>/objs/<eng_cfg> directory */
 
     /* We need the library directory here.  It either points to an
-       installation directory, and it is stored in the registry, or
+       installation directory, and it is stored in the Windows registry, or
        exists because we got it from an environment variable, or we
        reverted to the "current directory", for "packed"
        distributions.  The last one not yet implemented. */

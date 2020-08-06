@@ -1,5 +1,5 @@
 /*
- *  wambuiltin.h
+ *  arithmetic.h
  *
  *  Routines for 'builtintab' predicates
  *

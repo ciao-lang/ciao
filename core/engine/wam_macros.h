@@ -10,7 +10,7 @@
 #define _CIAO_WAM_MACROS_H
 
 #include <ciao/wamsupport.h>
-#include <ciao/initial.h>
+#include <ciao/eng_registry.h>
 
 /* ------------------------------------------------------------------------- */
 

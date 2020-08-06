@@ -15,14 +15,14 @@
 #include <string.h>
 
 #include <ciao/datadefs.h>
-#include <ciao/initial.h>
+#include <ciao/eng_registry.h>
 #include <ciao/indexing.h>
 
 #include <ciao/locks.h>
 #include <ciao/dynamic_rt.h>
 #include <ciao/nondet.h>
 #include <ciao/stacks.h>
-#include <ciao/profile_hooks.h>
+#include <ciao/eng_profile.h>
 #include <ciao/wam_macros.h>
 
 typedef enum {BLOCK, NO_BLOCK} BlockingType;

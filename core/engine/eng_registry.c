@@ -1,7 +1,7 @@
 /*
- *  initial.c
+ *  eng_registry.c
  *
- *  System initialization and extern defs for global Prolog terms.
+ *  Global registry for atoms, functors, and predicates.
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
  *  Copyright (C) 2002-2020 The Ciao Development Team
@@ -14,7 +14,7 @@
 
 #include <ciao/datadefs.h>
 #include <ciao/wam_alloc.h>
-#include <ciao/wambuiltin.h>
+#include <ciao/arithmetic.h>
 #include <ciao/attributes.h>
 #include <ciao/indexing.h>
 #include <ciao/wamsupport.h>
@@ -27,7 +27,7 @@
 
 #include <ciao/os_utils.h>
 
-#include <ciao/initial.h>
+#include <ciao/eng_registry.h>
 
 /* (only for registering) */
 #include <ciao/rune.h>
@@ -41,7 +41,6 @@
 #include <ciao/qread.h>
 #include <ciao/os_utils.h>
 #include <ciao/dynlink.h>
-#include <ciao/format.h>
 
 #if defined(PROFILE)
 #define __USE_GNU
@@ -57,7 +56,7 @@ static CBOOL__PROTO(prolog_ciao_c_headers_dir);
 static void deffunction(char *atom, int arity, void *proc, int funcno);
 static void define_functions(void);
 
-statistics_t ciao_statistics = {
+statistics_t ciao_stats = {
   0, /*flt64_t ss_tick*/
   0, /*intmach_t ss_global*/
   0, /*intmach_t ss_local*/
@@ -1139,6 +1138,9 @@ void init_once(void)
   define_c_mod_predicate("fastrw","fast_write",1,prolog_fast_write_in_c);
   define_c_mod_predicate("compressed_bytecode","compressLZ",1,compressLZ);
   define_c_mod_predicate("compressed_bytecode","copyLZ",1,copyLZ);
+  
+  define_c_mod_predicate("internals","$format_print_float",3,prolog_format_print_float);
+  define_c_mod_predicate("internals","$format_print_integer",3,prolog_format_print_integer);
 
                                 /* wamsupport.c */
   
@@ -1249,11 +1251,6 @@ void init_once(void)
 
   define_c_mod_predicate("internals","dynlink", 2, prolog_dynlink);
   define_c_mod_predicate("internals","dynunlink", 1, prolog_dynunlink); 
-
-                                /* format.c */
-  
-  define_c_mod_predicate("internals","$format_print_float",3,prolog_format_print_float);
-  define_c_mod_predicate("internals","$format_print_integer",3,prolog_format_print_integer);
 
                                 /* timing.c */
 
@@ -1400,7 +1397,7 @@ CVOID__PROTO(local_init_each_time)
 
   Expanded_Worker = NULL;
 
-  /* Initialize garbage collection ciao_statistics */
+  /* Initialize garbage collection ciao_stats */
 
   Gc_Total_Grey = 0;
 

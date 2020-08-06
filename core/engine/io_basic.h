@@ -51,6 +51,9 @@ CBOOL__PROTO(prolog_clearerr);
 CBOOL__PROTO(prolog_fast_read_in_c);
 CBOOL__PROTO(prolog_fast_write_in_c);
 
+CBOOL__PROTO(prolog_format_print_float);
+CBOOL__PROTO(prolog_format_print_integer);
+
 CBOOL__PROTO(compressLZ); /* OPA */
 CBOOL__PROTO(copyLZ); /* OPA */
 

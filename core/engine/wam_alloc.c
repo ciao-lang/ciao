@@ -17,7 +17,7 @@
 #include <ciao/wam_alloc.h>
 #include <ciao/wamsupport.h>
 #include <ciao/timing.h>
-#include <ciao/initial.h>
+#include <ciao/eng_registry.h>
 #include <ciao/io_basic.h>
 #include <ciao/os_utils.h>
 
@@ -395,36 +395,36 @@ CBOOL__PROTO(statistics)
 
   ENG_PRINTF(s,
              " %10.6f sec. for %" PRIdm " global, %" PRIdm " local, and %" PRIdm " control space overflows\n",
-             ((flt64_t)ciao_statistics.ss_tick)/GET_CLOCKFREQ(ciao_statistics),
-             ciao_statistics.ss_global,
-             ciao_statistics.ss_local, ciao_statistics.ss_control);
+             ((flt64_t)ciao_stats.ss_tick)/GET_CLOCKFREQ(ciao_stats),
+             ciao_stats.ss_global,
+             ciao_stats.ss_local, ciao_stats.ss_control);
   ENG_PRINTF(s,
              " %10.6f sec. for %" PRIdm " garbage collections which collected %" PRIdm " bytes\n\n",
-             ((flt64_t)ciao_statistics.gc_tick)/GET_CLOCKFREQ(ciao_statistics),
-             ciao_statistics.gc_count,
-             (intmach_t)(ciao_statistics.gc_acc*sizeof(tagged_t)));
+             ((flt64_t)ciao_stats.gc_tick)/GET_CLOCKFREQ(ciao_stats),
+             ciao_stats.gc_count,
+             (intmach_t)(ciao_stats.gc_acc*sizeof(tagged_t)));
 
   ENG_PRINTF(s,
              " runtime:    %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
-             (flt64_t)(runtick0-ciao_statistics.starttick)/GET_CLOCKFREQ(ciao_statistics),
-             runtick0-ciao_statistics.starttick,
-             GET_CLOCKFREQ(ciao_statistics));
+             (flt64_t)(runtick0-ciao_stats.starttick)/GET_CLOCKFREQ(ciao_stats),
+             runtick0-ciao_stats.starttick,
+             GET_CLOCKFREQ(ciao_stats));
   ENG_PRINTF(s,
              " usertime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
-             (flt64_t)(usertick0-ciao_statistics.startusertick)/ciao_statistics.userclockfreq,
-             usertick0-ciao_statistics.startusertick,
-             ciao_statistics.userclockfreq);
+             (flt64_t)(usertick0-ciao_stats.startusertick)/ciao_stats.userclockfreq,
+             usertick0-ciao_stats.startusertick,
+             ciao_stats.userclockfreq);
   ENG_PRINTF(s,
              " systemtime: %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
-             (flt64_t)(systemtick0-ciao_statistics.startsystemtick)/ciao_statistics.systemclockfreq,
-             systemtick0-ciao_statistics.startsystemtick,
-             ciao_statistics.systemclockfreq);
+             (flt64_t)(systemtick0-ciao_stats.startsystemtick)/ciao_stats.systemclockfreq,
+             systemtick0-ciao_stats.startsystemtick,
+             ciao_stats.systemclockfreq);
 
   ENG_PRINTF(s,
              " walltime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n\n",
-             (flt64_t)(walltick0-ciao_statistics.startwalltick)/ciao_statistics.wallclockfreq,
-             walltick0-ciao_statistics.startwalltick,
-             ciao_statistics.wallclockfreq);
+             (flt64_t)(walltick0-ciao_stats.startwalltick)/ciao_stats.wallclockfreq,
+             walltick0-ciao_stats.startwalltick,
+             ciao_stats.wallclockfreq);
 
   return TRUE;
 }

@@ -25,13 +25,13 @@ static CVOID__PROTO(calculate_segment_node);
 CBOOL__PROTO(stack_shift_usage)
 {
   tagged_t x;
-  inttime_t time = (ciao_statistics.ss_tick*1000)/
-                   GET_CLOCKFREQ(ciao_statistics);
+  inttime_t time = (ciao_stats.ss_tick*1000)/
+                   GET_CLOCKFREQ(ciao_stats);
   
   MakeLST(x,MakeInteger(Arg,time),atom_nil);
-  time = ciao_statistics.ss_local+ciao_statistics.ss_control;
+  time = ciao_stats.ss_local+ciao_stats.ss_control;
   MakeLST(x,MakeInteger(Arg,time),x);
-  time = ciao_statistics.ss_global;
+  time = ciao_stats.ss_global;
   MakeLST(x,MakeInteger(Arg,time),x);
   return cunify(Arg,X(0),x);
 }
@@ -331,11 +331,11 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
 
   w->node->next_alt = next_alt;
 
-  ciao_statistics.ss_control++;
+  ciao_stats.ss_control++;
   tick0 = BASE_RUNTICK-tick0;
-  ciao_statistics.starttick += tick0;
-  ciao_statistics.lasttick += tick0;
-  ciao_statistics.ss_tick += tick0;
+  ciao_stats.starttick += tick0;
+  ciao_stats.lasttick += tick0;
+  ciao_stats.ss_tick += tick0;
 
 #if defined(ANDPARALLEL)
   /* Wake up the rest of the agents! */
@@ -413,11 +413,11 @@ CVOID__PROTO(stack_overflow)
   Stack_Start = newh;           /* new low bound */
   Stack_End = newh+count;       /* new high bound */
   Stack_Warn = StackOffset(Stack_End,-STACKPAD);
-  ciao_statistics.ss_local++;
+  ciao_stats.ss_local++;
   tick0 = BASE_RUNTICK-tick0;
-  ciao_statistics.starttick += tick0;
-  ciao_statistics.lasttick += tick0;
-  ciao_statistics.ss_tick += tick0;
+  ciao_stats.starttick += tick0;
+  ciao_stats.lasttick += tick0;
+  ciao_stats.ss_tick += tick0;
 
 #if defined(ANDPARALLEL)
   /* Wake up the rest of the agents! */
@@ -656,11 +656,11 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
       Heap_Warn_Soft = HeapCharOffset(Heap_Start,-wake_count);
     else
       Heap_Warn_Soft = Int_Heap_Warn;
-    ciao_statistics.ss_global++;
+    ciao_stats.ss_global++;
     tick0 = BASE_RUNTICK-tick0;
-    ciao_statistics.starttick += tick0;
-    ciao_statistics.lasttick += tick0;
-    ciao_statistics.ss_tick += tick0;
+    ciao_stats.starttick += tick0;
+    ciao_stats.lasttick += tick0;
+    ciao_stats.ss_tick += tick0;
   }
 
 #if defined(ANDPARALLEL)

@@ -85,11 +85,11 @@ CBOOL__PROTO(gc_usage) {
   flt64_t t;
   tagged_t x;
 
-  t= (flt64_t)ciao_statistics.gc_tick*1000/GET_CLOCKFREQ(ciao_statistics);
+  t= (flt64_t)ciao_stats.gc_tick*1000/GET_CLOCKFREQ(ciao_stats);
   MakeLST(x,MakeFloat(Arg,t),atom_nil);
-  t= ciao_statistics.gc_acc*sizeof(tagged_t);
+  t= ciao_stats.gc_acc*sizeof(tagged_t);
   MakeLST(x,MakeInteger(Arg,t),x);
-  t= ciao_statistics.gc_count;
+  t= ciao_stats.gc_count;
   MakeLST(x,MakeInteger(Arg,t),x);
   return cunify(Arg,x,X(0));
 }
@@ -825,11 +825,11 @@ CVOID__PROTO(GarbageCollect) {
     SetShadowregs(w->node);     /* shadow regs may have changed */
                                 /* statistics */
     t2= BASE_RUNTICK-t2;
-    ciao_statistics.gc_tick   += t1+t2;
-    ciao_statistics.starttick += t1+t2;
-    ciao_statistics.lasttick  += t1+t2;
-    ciao_statistics.gc_count++;
-    ciao_statistics.gc_acc+= hz-HeapDifference(Heap_Start,w->global_top);
+    ciao_stats.gc_tick   += t1+t2;
+    ciao_stats.starttick += t1+t2;
+    ciao_stats.lasttick  += t1+t2;
+    ciao_stats.gc_count++;
+    ciao_stats.gc_acc+= hz-HeapDifference(Heap_Start,w->global_top);
     if( current_gctrace==atom_verbose ) {
         ENG_TTYPRINTF("        Heap: %" PRIdm " cells reclaimed in %.3f sec\n",
                       (intmach_t)(hz-HeapDifference(Heap_Start,w->global_top)),
@@ -846,9 +846,9 @@ CVOID__PROTO(GarbageCollect) {
                       gc_HeapStart);
 
         ENG_TTYPRINTF("        Total: %" PRIdm " cells reclaimed in %" PRIdm " gc's\n",
-                      ciao_statistics.gc_acc,ciao_statistics.gc_count);
+                      ciao_stats.gc_acc,ciao_stats.gc_count);
         ENG_TTYPRINTF("        GC time = %.6f  Total= %.6f\n\n",
-                      ((flt64_t)(t1+t2))/GET_CLOCKFREQ(ciao_statistics),
-                      ((flt64_t)ciao_statistics.gc_tick)/GET_CLOCKFREQ(ciao_statistics));
+                      ((flt64_t)(t1+t2))/GET_CLOCKFREQ(ciao_stats),
+                      ((flt64_t)ciao_stats.gc_tick)/GET_CLOCKFREQ(ciao_stats));
       }
 }

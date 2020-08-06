@@ -13,11 +13,21 @@
 #define _CIAO_ABSMACH_PREDEF_H
 
 /* ------------------------------------------------------------------------- */
-/* Function attributes */
+/* Run-time configuration options */
+
+/* Automatically generated configuration and basic definitions */
+#include <ciao/configure.h>
+
+/* ------------------------------------------------------------------------- */
+/* Function and variable attributes */
 
 #define C_NORET    __attribute__((noreturn))
 #define C_AINLINE  inline __attribute__((always_inline))
 #define C_NOINLINE __attribute__((noinline))
+
+/* Mark variables that may be assigned and not used, but that are legitimate
+   code (e.g., in macros). */
+#define MAYBE_UNUSED __attribute__((unused))
 
 /* ------------------------------------------------------------------------- */
 /* System type definitions */

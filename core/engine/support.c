@@ -18,8 +18,8 @@
 #include <ciao/eng_bignum.h>
 #include <ciao/locks.h>
 #include <ciao/eng_start.h>
-#include <ciao/initial.h>
-#include <ciao/profile_hooks.h>
+#include <ciao/eng_registry.h>
+#include <ciao/eng_profile.h>
 #include <ciao/tasks.h>
 #include <ciao/indexing.h>
 #include <ciao/io_basic.h>

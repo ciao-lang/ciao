@@ -8,13 +8,12 @@
 
 #include <stdio.h>
 
-#include <ciao/configure.h>
 #include <ciao/datadefs.h>
 #include <ciao/tasks.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/nondet.h>
 #include <ciao/eng_start.h>
-#include <ciao/initial.h>
+#include <ciao/eng_registry.h>
 
 /* --------------------------------------------------------------------------- */
 

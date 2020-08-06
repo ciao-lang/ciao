@@ -7,7 +7,7 @@
  */
 
 #include <ciao/datadefs.h>
-#include <ciao/initial.h>
+#include <ciao/eng_registry.h>
 #include <ciao/instrdefs.h>
 #include <ciao/wamsupport.h>
 #include <ciao/wam.h>

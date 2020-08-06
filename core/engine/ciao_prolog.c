@@ -43,7 +43,7 @@
 #include <ciao/tasks.h>
 #include <ciao/eng_start.h>
 #include <ciao/startgoal.h>
-#include <ciao/profile_hooks.h>
+#include <ciao/eng_profile.h>
 #include <ciao/term_support.h>
 #include <ciao/eng_bignum.h>
 #include <ciao/stacks.h>

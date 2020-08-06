@@ -11,7 +11,6 @@
 
 /* (Automatically generated during engine build) */
 #include <ciao/version.h>
-#include <ciao/configure.h>
 
 #include <ciao/absmach_predef.h>
 #include <ciao/os_threads.h>
@@ -1983,7 +1982,7 @@ struct statistics_ {
   inttime_t systemclockfreq;
 };
 
-extern statistics_t ciao_statistics; /* Shared, I guess */
+extern statistics_t ciao_stats; /* Shared, I guess */
 
 #if defined(GAUGE)
 #define INCR_COUNTER(c)   ((*(c))++)

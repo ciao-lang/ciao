@@ -13,7 +13,7 @@
 :- '$native_include_c_header'('os_signal.h').
 :- '$native_include_c_header'('ciao_gluecode.h').
 :- '$native_include_c_header'('os_threads.h').
-:- '$native_include_c_header'('profile_hooks.h').
+:- '$native_include_c_header'('eng_profile.h').
 :- '$native_include_c_header'('tabling.h').
 :- '$native_include_c_header'('wam_macros.h').
 
@@ -21,8 +21,6 @@
 
 :- '$native_include_c_header'('wam.h').
 :- '$native_include_c_source'('wam.c').
-
-:- '$native_include_c_source'('format.c').
 
 :- '$native_include_c_header'('io_basic.h').
 :- '$native_include_c_source'('io_basic.c').
@@ -48,7 +46,7 @@
 :- '$native_include_c_header'('timing.h').
 :- '$native_include_c_source'('timing.c').
 
-:- '$native_include_c_source'('wambuiltin.c').
+:- '$native_include_c_source'('arithmetic.c').
 
 :- '$native_include_c_source'('os_utils.c').
 
@@ -77,8 +75,8 @@
 
 :- '$native_include_c_source'('indexing.c').
 
-:- '$native_include_c_header'('initial.h').
-:- '$native_include_c_source'('initial.c').
+:- '$native_include_c_header'('eng_registry.h').
+:- '$native_include_c_source'('eng_registry.c').
 
 :- '$native_include_c_header'('stacks.h').
 :- '$native_include_c_source'('stacks.c').
