@@ -12,8 +12,6 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include <ciao/os_threads.h>
-
 #include <ciao/datadefs.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/wambuiltin.h>
@@ -34,7 +32,7 @@
 /* (only for registering) */
 #include <ciao/rune.h>
 #include <ciao/io_basic.h>
-#include <ciao/objareas.h>
+#include <ciao/dynamic_rt.h>
 #include <ciao/stacks.h>
 #include <ciao/eng_gc.h>
 #include <ciao/nondet.h>
@@ -1064,7 +1062,7 @@ void init_once(void)
   define_c_mod_predicate("io_alias_redirection", "replace_stream",2, prolog_replace_stream);
   define_c_mod_predicate("io_alias_redirection", "get_stream",2, prolog_get_stream);
 
-                              /* objareas.c */
+                              /* dynamic_rt.c */
 
   define_c_mod_predicate("internals","$purge",1,prolog_purge);
   define_c_mod_predicate("internals","$erase",1,prolog_erase);

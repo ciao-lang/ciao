@@ -15,10 +15,7 @@
 #include <string.h>
 #include <strings.h>
 
-#include <ciao/os_signal.h>
-#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
-#include <ciao/task_areas.h>
 #include <ciao/misc.h>
 #include <ciao/eng_interrupt.h>
 
@@ -28,7 +25,6 @@
 #include <ciao/stream_basic.h>
 #include <ciao/tasks.h>
 #include <ciao/eng_start.h>
-#include <ciao/eng_alloc.h>
 #include <ciao/eng_bignum.h>
 #include <ciao/stacks.h>
 

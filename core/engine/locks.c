@@ -10,9 +10,7 @@
  */
 
 #include <ciao/datadefs.h>
-#include <ciao/os_threads.h>
 #include <ciao/locks.h>
-#include <ciao/eng_alloc.h>
 
 // /* In order to define whether a lock is a SPIN-lock or a POSIX-lock */
 // #define SPIN     0

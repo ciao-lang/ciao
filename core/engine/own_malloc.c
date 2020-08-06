@@ -18,9 +18,7 @@
 #if defined(OPTIM_COMP)
 #include <ciao/basiccontrol.native.h>
 #else
-#include <ciao/configure.h>
-#include <ciao/termdefs.h>
-#include <ciao/eng_debug.h>
+#include <ciao/datadefs.h>
 #define OWNMALLOC_ALIGN sizeof(tagged_t) /* blocks suitably aligned for any use */ 
 #endif
 

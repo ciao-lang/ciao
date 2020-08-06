@@ -10,7 +10,7 @@
 #include <ciao/datadefs.h>
 #include <ciao/io_basic.h>
 #include <ciao/stream_basic.h>
-#include <ciao/eng_debug.h>
+#include <ciao/eng_debug.h> /* already in datadefs.h */
 
 #if defined(DEF_WR_DEBUG)
 

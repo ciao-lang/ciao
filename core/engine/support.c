@@ -13,7 +13,6 @@
 #include <ciao/wamsupport.h>
 #include <ciao/stream_basic.h>
 #include <ciao/eng_bignum.h>
-#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/stacks.h>
 #include <ciao/eng_bignum.h>
@@ -21,7 +20,6 @@
 #include <ciao/eng_start.h>
 #include <ciao/initial.h>
 #include <ciao/profile_hooks.h>
-#include <ciao/task_areas.h>
 #include <ciao/tasks.h>
 #include <ciao/indexing.h>
 #include <ciao/io_basic.h>

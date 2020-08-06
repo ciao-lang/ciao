@@ -12,9 +12,8 @@
 #include <ciao/locks.h>
 #include <ciao/indexing.h>
 #include <ciao/wamsupport.h>
-#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
-#include <ciao/objareas.h>
+#include <ciao/dynamic_rt.h>
 
 static void set_nondet(try_node_t *t,
                        incore_info_t *def,

@@ -39,7 +39,6 @@
 #endif
 
 #include <ciao/datadefs.h>
-#include <ciao/task_areas.h>
 #include <ciao/wam.h>
 #include <ciao/tasks.h>
 #include <ciao/eng_start.h>

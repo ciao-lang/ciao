@@ -11,7 +11,6 @@
 #include <ciao/instrdefs.h>
 #include <ciao/wamsupport.h>
 #include <ciao/wam.h>
-#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/indexing.h>
 #include <ciao/io_basic.h>

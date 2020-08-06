@@ -13,11 +13,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/wam_macros.h>
 #include <ciao/os_signal.h>
-#include <ciao/task_areas.h>
 
 #include <ciao/wam_alloc.h>
 #include <ciao/io_basic.h>

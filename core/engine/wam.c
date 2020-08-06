@@ -12,23 +12,19 @@
 #include <unistd.h>
 
 #include <ciao/os_signal.h>
-#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/configure.h>
 #include <ciao/instrdefs.h>
 #include <ciao/wam_macros.h>
-#include <ciao/task_areas.h>
-#include <ciao/wamsupport.h>
 
 #include <ciao/attributes.h>
-#include <ciao/eng_debug.h>
 #include <ciao/initial.h>
 #include <ciao/io_basic.h>
 #include <ciao/eng_interrupt.h>
 #include <ciao/eng_start.h>
 #include <ciao/misc.h>
 #include <ciao/nondet.h>
-#include <ciao/objareas.h>
+#include <ciao/dynamic_rt.h>
 #include <ciao/stacks.h>
 #include <ciao/term_support.h>
 #include <ciao/wam.h>

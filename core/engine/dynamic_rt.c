@@ -1,5 +1,5 @@
 /*
- *  objareas.c
+ *  dynamic_rt.c
  *
  *  Database management support code.
  *
@@ -8,17 +8,15 @@
 
 #include <unistd.h>
 #include <stddef.h> /* ptrdiff_t */
-#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/initial.h>
 #include <ciao/wam_alloc.h>
 
 #include <ciao/nondet.h>
-#include <ciao/objareas.h>
+#include <ciao/dynamic_rt.h>
 #include <ciao/eng_bignum.h>
 #include <ciao/stacks.h>
 #include <ciao/indexing.h>
-#include <ciao/eng_alloc.h>
 #include <ciao/locks.h>
 #include <ciao/eng_start.h>
 

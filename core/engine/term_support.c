@@ -11,17 +11,13 @@
 #include <string.h>
 #include <math.h> /* NAN, INFINITY */
 
-#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
-#include <ciao/wamsupport.h>
 #include <ciao/wam_macros.h>
 #include <ciao/instrdefs.h>
-#include <ciao/task_areas.h> /* For register bank reallocation */
-#include <ciao/objareas.h>
+#include <ciao/dynamic_rt.h>
 #include <ciao/dtoa_ryu.h>
 #include <ciao/term_support.h>
 #include <ciao/eng_start.h>
-#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/stacks.h>
 #include <ciao/nondet.h>

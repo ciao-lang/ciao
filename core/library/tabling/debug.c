@@ -10,7 +10,6 @@
 #include <string.h> 
 
 #include <ciao/ciao_prolog.h>
-#include <ciao/termdefs.h>
 #include <ciao/tabling.h> 
 
 #include "debug.h"

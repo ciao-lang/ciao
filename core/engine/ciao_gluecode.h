@@ -9,12 +9,8 @@
 #ifndef _CIAO_GLUECODE_H
 #define _CIAO_GLUECODE_H
 
-#include <ciao/datadefs.h>
-#include <ciao/eng_debug.h>
-#include <ciao/os_threads.h>
-#include <ciao/task_areas.h>
-
 #include <ciao_prolog.h>
+#include <ciao/datadefs.h>
 
 #define CiaoDeclCtx(CTX) ciao_ctx CTX;
 #define CiaoInitCtx(CTX) CTX = w->misc->goal_desc_ptr;

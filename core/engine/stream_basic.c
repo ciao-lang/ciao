@@ -26,7 +26,6 @@
 
 #define ENG_NOFILES 20
 
-#include <ciao/eng_alloc.h>
 #include <ciao/initial.h>
 #include <ciao/nondet.h>
 

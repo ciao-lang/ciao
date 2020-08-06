@@ -6,12 +6,7 @@
  *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
  */
 
-#if defined(DEBUG) || defined(USE_THREADS)
-#include <ciao/os_threads.h>
-#endif
-
 #include <ciao/datadefs.h>
-#include <ciao/eng_alloc.h>
 #include <ciao/wamsupport.h>
 
 #include <ciao/stacks.h>

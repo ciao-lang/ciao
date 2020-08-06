@@ -13,7 +13,6 @@
 #ifndef _CIAO_BIGNUM_H
 #define _CIAO_BIGNUM_H
 
-#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 
 bool_t bn_positive(bignum_t *x);

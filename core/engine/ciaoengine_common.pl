@@ -8,13 +8,11 @@
 % Source C files
 :- '$native_include_c_header'('datadefs.h').
 :- '$native_include_c_header'('configure.h').
-:- '$native_include_c_header'('termdefs.h').
 :- '$native_include_c_header'('absmach_predef.h').
 :- '$native_include_c_header'('eng_debug.h'). % TODO: can it be moved later?
 :- '$native_include_c_header'('os_signal.h').
 :- '$native_include_c_header'('ciao_gluecode.h').
 :- '$native_include_c_header'('os_threads.h').
-:- '$native_include_c_header'('task_areas.h').
 :- '$native_include_c_header'('profile_hooks.h').
 :- '$native_include_c_header'('tabling.h').
 :- '$native_include_c_header'('wam_macros.h').
@@ -41,7 +39,8 @@
 :- '$native_include_c_header'('nondet.h').
 :- '$native_include_c_source'('nondet.c').
 
-:- '$native_include_c_source'('objareas.c').
+:- '$native_include_c_header'('dynamic_rt.h').
+:- '$native_include_c_source'('dynamic_rt.c').
 
 :- '$native_include_c_header'('stream_basic.h').
 :- '$native_include_c_source'('stream_basic.c').

@@ -24,7 +24,6 @@
 
 #include <ciao_prolog.h>
 #include <ciao/eng_bignum.h>
-#include <ciao/termdefs.h>
 
 #define BIGNUM_SIZE (sizeof(bignum_t)*8)
 #define BIGNUM_EMPTY ((bignum_t)0)

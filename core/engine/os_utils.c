@@ -73,7 +73,6 @@
 #include <ciao/stream_basic.h>
 #include <ciao/stacks.h>
 #include <ciao/eng_start.h>
-#include <ciao/eng_alloc.h>
 
 #if !defined(MAXPATHLEN)
 #define MAXPATHLEN 1024

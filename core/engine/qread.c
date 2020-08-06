@@ -14,10 +14,9 @@
 #include <ciao/term_support.h>
 
 #include <ciao/qread.h>
-#include <ciao/eng_alloc.h>
 #include <ciao/stacks.h>
 
-#include <ciao/objareas.h>
+#include <ciao/dynamic_rt.h>
 #include <ciao/eng_bignum.h>
 
 #if defined(ALLOW_COMPRESSED_CODE)

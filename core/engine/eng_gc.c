@@ -12,12 +12,12 @@
 #define SEGMENTED_GC 1
 #define EARLY_RESET 1
 
-#if defined(DEBUG)
-#include <ciao/os_threads.h>
-/*#include <time.h>*/
-#endif
-
 #include <ciao/datadefs.h>
+#include <ciao/wamsupport.h>
+#include <ciao/io_basic.h>
+#include <ciao/eng_gc.h>
+#include <ciao/stacks.h>
+#include <ciao/timing.h>
 
 #define PreHeapRead(X)          (*++(X))
 #define HeapPop(X)              (*--(X))
@@ -66,12 +66,6 @@
 }
 
 /* =========================================================================== */
-
-#include <ciao/wamsupport.h>
-#include <ciao/io_basic.h>
-#include <ciao/eng_gc.h>
-#include <ciao/stacks.h>
-#include <ciao/timing.h>
 
 static CVOID__PROTO(shuntVariables);
 static CVOID__PROTO(markTrail);

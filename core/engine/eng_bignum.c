@@ -10,9 +10,7 @@
  *    Ref: Knuth vol. 2 sec. 4.3.1
  */
 
-#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
-#include <ciao/eng_alloc.h>
 #include <ciao/eng_bignum.h>
 #include <math.h>
 

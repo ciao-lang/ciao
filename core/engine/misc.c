@@ -6,15 +6,11 @@
  *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
  */
 
-#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 #include <ciao/initial.h>
 #include <ciao/wam_macros.h>
-#include <ciao/task_areas.h>
-#include <ciao/wamsupport.h>
 #include <ciao/indexing.h>
 
-#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/tasks.h>
 #include <ciao/eng_start.h>

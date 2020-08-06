@@ -9,6 +9,8 @@
 #ifndef _CIAO_RUNE_H
 #define _CIAO_RUNE_H
 
+typedef int32_t c_rune_t;
+
 #define RUNETY_EOF -1
 #define RUNETY_LAYOUT 0
 #define RUNETY_LOWERCASE 1

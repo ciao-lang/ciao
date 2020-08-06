@@ -19,13 +19,9 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 
-#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
 
-#if defined(__svr4__) || defined(DARWIN) || defined(BSD)
-#include <unistd.h>                                            /* sbrk () */
-#include <stdlib.h>                                           /* malloc() */
-#else                                                            /* SunOS */
+#if !(defined(__svr4__) || defined(DARWIN) || defined(BSD))
 #include <sys/types.h>
 #include <malloc.h>
 #endif
@@ -41,8 +37,6 @@
 #include <sys/cygwin.h>
 #endif
 
-#include <ciao/task_areas.h>
-
 #include <ciao/wamsupport.h>
 #include <ciao/wam.h>
 #include <ciao/tasks.h>
@@ -50,8 +44,6 @@
 #include <ciao/initial.h>
 #include <ciao/eng_start.h>
 #include <ciao/qread.h>
-#include <ciao/eng_debug.h>
-#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/locks.h>
 #include <ciao/profile_hooks.h>

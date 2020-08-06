@@ -1,15 +1,13 @@
 /*
- *  objareas.h
+ *  dynamic_rt.h
  *
  *  Database management support code.
  *
  *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
  */
 
-#ifndef _CIAO_OBJAREAS_H
-#define _CIAO_OBJAREAS_H
-
-#include <ciao/absmach_predef.h>
+#ifndef _CIAO_DYNAMIC_RT_H
+#define _CIAO_DYNAMIC_RT_H
 
 /* static void relocate_table_clocks(sw_on_key_t *sw, instance_clock_t *clocks) */
 
@@ -29,4 +27,4 @@ void relocate_clocks(instance_t *inst,  instance_clock_t *clocks);
 void expunge_instance(instance_t *i);
 CFUN__PROTO(active_instance_conc, instance_t *, instance_t *i, int_info_t *pred_root);
 
-#endif /* _CIAO_OBJAREAS_H */
+#endif /* _CIAO_DYNAMIC_RT_H */

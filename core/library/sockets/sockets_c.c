@@ -4,7 +4,6 @@
 #include <ciao/io_basic.h> /* RUNE_VOID */
 #include <ciao/stream_basic.h>
 #include <ciao/stacks.h>
-#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 
 #if defined(LINUX) || defined(DARWIN) || defined(BSD)

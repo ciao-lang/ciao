@@ -217,7 +217,7 @@ typedef tagged_t (*ctagged2l_t)(worker_t *, tagged_t, tagged_t, bcp_t);
 
 /* Scale factor for offsets in 64-bit mode (when loading 32-bit
    bytecode from a .po file in qread.c or from a list in
-   objareas.c) */
+   dynamic_rt.c) */
 #if defined(BC64)
 #define BC_SCALE 2
 #else

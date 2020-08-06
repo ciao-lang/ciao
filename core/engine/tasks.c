@@ -9,11 +9,8 @@
 #include <stdio.h>
 
 #include <ciao/configure.h>
-#include <ciao/os_threads.h>
 #include <ciao/datadefs.h>
-#include <ciao/task_areas.h>
 #include <ciao/tasks.h>
-#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/nondet.h>
 #include <ciao/eng_start.h>

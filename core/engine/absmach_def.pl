@@ -3225,9 +3225,10 @@ autogen_warning_comment :-
 
 % KERNEL OF EMULATOR
 
-% If the wam() local variables are changed, those on task_areas.h should
-% be changed as well to reflect the current state! They should as well be
-% saved and recovered in SAVE_WAM_STATE and RECOVER_WAM_STATE
+% If the wam() local variables are changed, those on wam_private_t
+% should be changed as well to reflect the current state! They should
+% as well be saved and recovered in SAVE_WAM_STATE and
+% RECOVER_WAM_STATE
 
 /* --------------------------------------------------------------------------- */
 
