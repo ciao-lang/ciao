@@ -12,7 +12,7 @@
 /* (Automatically generated during engine build) */
 #include <ciao/version.h>
 
-#include <ciao/absmach_predef.h>
+#include <ciao/eng_predef.h>
 #include <ciao/os_threads.h>
 
 /* =========================================================================== */

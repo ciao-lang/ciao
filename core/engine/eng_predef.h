@@ -1,5 +1,5 @@
 /*
- *  absmach_predef.h
+ *  eng_predef.h
  *
  *  Preliminary definitions for the Ciao abstract machine
  *

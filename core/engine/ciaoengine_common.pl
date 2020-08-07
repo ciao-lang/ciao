@@ -8,7 +8,7 @@
 % Source C files
 :- '$native_include_c_header'('datadefs.h').
 :- '$native_include_c_header'('configure.h').
-:- '$native_include_c_header'('absmach_predef.h').
+:- '$native_include_c_header'('eng_predef.h').
 :- '$native_include_c_header'('eng_debug.h'). % TODO: can it be moved later?
 :- '$native_include_c_header'('os_signal.h').
 :- '$native_include_c_header'('ciao_gluecode.h').
