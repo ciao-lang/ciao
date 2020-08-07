@@ -2873,6 +2873,4 @@ void failc(char *mesg);
 
 /* =========================================================================== */
 
-extern intmach_t (*eng_goal_from_thread_id)(THREAD_ID id);
-
 #endif /* _DATADEFS_H */

@@ -409,8 +409,14 @@ typedef struct conditionstruct {
 #endif /* USE_THREADS */
 
 #if defined(DEBUG)
+bool_t lock_is_unset(LOCK *p);
+#endif
+
+#if defined(DEBUG)
 #define GET_INC_COUNTER get_inc_counter()
 #define RESET_COUNTER reset_counter()
+uintmach_t get_inc_counter(void);
+void reset_counter(void);
 #else
 #define GET_INC_COUNTER 0
 #define RESET_COUNTER 
@@ -444,6 +450,9 @@ typedef struct conditionstruct {
 
 #if defined(USE_POSIX_THREADS)
 #include <pthread.h>
+
+extern pthread_attr_t detached_thread;
+extern pthread_attr_t joinable_thread;
 
 typedef pthread_t THREAD_T;     /* The type of a thread */
 typedef pthread_t THREAD_ID;    /* The unique identifier of a thread */

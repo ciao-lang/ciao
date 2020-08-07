@@ -17,7 +17,6 @@
 #include <ciao/eng_bignum.h>
 #include <ciao/stacks.h>
 #include <ciao/indexing.h>
-#include <ciao/locks.h>
 #include <ciao/eng_start.h>
 
 static void relocate_table_clocks(sw_on_key_t *sw, instance_clock_t *clocks);

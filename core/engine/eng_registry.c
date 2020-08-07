@@ -36,11 +36,11 @@
 #include <ciao/stacks.h>
 #include <ciao/eng_gc.h>
 #include <ciao/nondet.h>
-#include <ciao/locks.h>
 #include <ciao/misc.h>
 #include <ciao/qread.h>
 #include <ciao/os_utils.h>
 #include <ciao/dynlink.h>
+#include <ciao/concurrency.h>
 
 #if defined(PROFILE)
 #define __USE_GNU
@@ -1329,6 +1329,18 @@ void init_once(void)
   define_c_mod_predicate("attr_rt","del_attr",2,del_attr__2);
 #endif
 
+  define_c_mod_predicate("concurrency","$eng_call",6,prolog_eng_call);
+  define_c_mod_predicate("concurrency","$eng_backtrack",2,prolog_eng_backtrack);
+  define_c_mod_predicate("concurrency","$eng_cut",1,prolog_eng_cut);
+  define_c_mod_predicate("concurrency","$eng_release",1,prolog_eng_release);
+  define_c_mod_predicate("concurrency","$eng_wait",1,prolog_eng_wait);
+  define_c_mod_predicate("concurrency","$eng_kill",1,prolog_eng_kill);
+  define_c_mod_predicate("concurrency","$eng_killothers",0,prolog_eng_killothers);
+  define_c_mod_predicate("concurrency","$eng_status",0,prolog_eng_status);
+  define_c_mod_predicate("concurrency","$eng_self",2,prolog_eng_self);
+  define_c_mod_predicate("concurrency","lock_atom",1,prolog_lock_atom);
+  define_c_mod_predicate("concurrency","unlock_atom",1,prolog_unlock_atom);
+  define_c_mod_predicate("concurrency","atom_lock_state",2,prolog_lock_atom_state);
 
 #if defined(USE_OVERFLOW_EXCEPTIONS)
   define_c_mod_predicate("internals","$undo_heap_overflow_excep",0,undo_heap_overflow_excep);

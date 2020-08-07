@@ -36,16 +36,8 @@
 :- if(defined(optim_comp)).
 :- '$native_include_c_source'(engine(concurrency)).
 :- else.
-:- use_package(foreign_interface).
-:- use_foreign_source(engine(concurrency)).
-:- endif.
-
-% ---------------------------------------------------------------------------
-
-:- if(defined(optim_comp)).
-:- else.
-:- initialization('$concurrency_init').
-:- trust pred '$concurrency_init' + foreign_low(prolog_concurrency_init).
+% :- use_package(foreign_interface).
+% :- use_foreign_source(engine(concurrency)). % (already included)
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -87,8 +79,8 @@ eng_call(Goal, Eng, Thr, Id):-
 % :- meta_predicate('$eng_call'(primitive(goal), ?, ?, ?, ?, ?)).
 :- '$props'('$eng_call'/6, [impnat=cbool(prolog_eng_call)]).
 :- else.
-:- trust pred '$eng_call'(+int,+int,+int,-int,-int,+int)
-   + foreign_low(prolog_eng_call).
+:- trust pred '$eng_call'(+int,+int,+int,-int,-int,+int). % + foreign_low(prolog_eng_call).
+:- impl_defined('$eng_call'/6).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -131,8 +123,8 @@ eng_backtrack(GoalId, ThreadCreation):-
 :- if(defined(optim_comp)).
 :- '$props'('$eng_backtrack'/2, [impnat=cbool(prolog_eng_backtrack)]).
 :- else.
-:- trust pred '$eng_backtrack'(+int,+int)
-   + foreign_low(prolog_eng_backtrack).
+:- trust pred '$eng_backtrack'(+int,+int). % + foreign_low(prolog_eng_backtrack).
+:- impl_defined('$eng_backtrack'/2).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -151,8 +143,8 @@ eng_cut(GoalId):-
 :- if(defined(optim_comp)).
 :- '$props'('$eng_cut'/1, [impnat=cbool(prolog_eng_cut)]).
 :- else.
-:- trust pred '$eng_cut'(+int)
-   + foreign_low(prolog_eng_cut).
+:- trust pred '$eng_cut'(+int). % + foreign_low(prolog_eng_cut).
+:- impl_defined('$eng_cut'/1).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -172,8 +164,8 @@ eng_release(GoalId):-
 :- if(defined(optim_comp)).
 :- '$props'('$eng_release'/1, [impnat=cbool(prolog_eng_release)]).
 :- else.
-:- trust pred '$eng_release'(+int)
-   + foreign_low(prolog_eng_release).
+:- trust pred '$eng_release'(+int). % + foreign_low(prolog_eng_release).
+:- impl_defined('$eng_release'/1).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -192,8 +184,8 @@ eng_wait(GoalId):-
 :- if(defined(optim_comp)).
 :- '$props'('$eng_wait'/1, [impnat=cbool(prolog_eng_wait)]).
 :- else.
-:- trust pred '$eng_wait'(+int)
-   + foreign_low(prolog_eng_wait).
+:- trust pred '$eng_wait'(+int). % + foreign_low(prolog_eng_wait).
+:- impl_defined('$eng_wait'/1).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -220,8 +212,8 @@ eng_kill(GoalId):-
 :- if(defined(optim_comp)).
 :- '$props'('$eng_kill'/1, [impnat=cbool(prolog_eng_kill)]).
 :- else.
-:- trust pred '$eng_kill'(+int)
-   + foreign_low(prolog_eng_kill).
+:- trust pred '$eng_kill'(+int). % + foreign_low(prolog_eng_kill).
+:- impl_defined('$eng_kill'/1).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -236,8 +228,8 @@ eng_killothers:- '$eng_killothers'.
 :- if(defined(optim_comp)).
 :- '$props'('$eng_killothers'/0, [impnat=cbool(prolog_eng_killothers)]).
 :- else.
-:- trust pred '$eng_killothers'
-   + foreign_low(prolog_eng_killothers).
+:- trust pred '$eng_killothers'. % + foreign_low(prolog_eng_killothers).
+:- impl_defined('$eng_killothers'/0).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -250,8 +242,8 @@ eng_status :- '$eng_status'.
 :- if(defined(optim_comp)).
 :- '$props'('$eng_status'/0, [impnat=cbool(prolog_eng_status)]).
 :- else.
-:- trust pred '$eng_status'
-   + foreign_low(prolog_eng_status).
+:- trust pred '$eng_status'. % + foreign_low(prolog_eng_status).
+:- impl_defined('$eng_status'/0).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -269,8 +261,8 @@ eng_goal_id(GoalId):-
 :- if(defined(optim_comp)).
 :- '$props'('$eng_self'/2, [impnat=cbool(prolog_eng_self)]).
 :- else.
-:- trust pred '$eng_self'(-int,-int)
-   + foreign_low(prolog_eng_self).
+:- trust pred '$eng_self'(-int,-int). % + foreign_low(prolog_eng_self).
+:- impl_defined('$eng_self'/2).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -286,8 +278,8 @@ eng_goal_id(GoalId):-
 :- if(defined(optim_comp)).
 :- '$props'(lock_atom/1, [impnat=cbool(prolog_lock_atom)]).
 :- else.
-:- trust pred lock_atom(+int)
-   + foreign_low(prolog_lock_atom).
+:- trust pred lock_atom(+int). % + foreign_low(prolog_lock_atom).
+:- impl_defined(lock_atom/1).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -300,8 +292,8 @@ eng_goal_id(GoalId):-
 :- if(defined(optim_comp)).
 :- '$props'(unlock_atom/1, [impnat=cbool(prolog_unlock_atom)]).
 :- else.
-:- trust pred unlock_atom(+int)
-   + foreign_low(prolog_unlock_atom).
+:- trust pred unlock_atom(+int). % + foreign_low(prolog_unlock_atom).
+:- impl_defined(unlock_atom/1).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -327,8 +319,8 @@ eng_goal_id(GoalId):-
 :- if(defined(optim_comp)).
 :- '$props'(atom_lock_state/2, [impnat=cbool(prolog_lock_atom_state)]).
 :- else.
-:- trust pred atom_lock_state(+int,+int)
-   + foreign_low(prolog_lock_atom_state).
+:- trust pred atom_lock_state(+int,+int). % + foreign_low(prolog_lock_atom_state).
+:- impl_defined(atom_lock_state/2).
 :- endif.
 
 % ---------------------------------------------------------------------------

@@ -18,7 +18,6 @@
 #include <ciao/eng_registry.h>
 #include <ciao/indexing.h>
 
-#include <ciao/locks.h>
 #include <ciao/dynamic_rt.h>
 #include <ciao/nondet.h>
 #include <ciao/stacks.h>

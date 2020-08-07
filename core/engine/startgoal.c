@@ -24,9 +24,6 @@
 #include <ciao/tasks.h>
 #include <ciao/term_support.h>
 #include <ciao/wam.h>
-#if defined(DEBUG)
-#include <ciao/locks.h>
-#endif
 #include <ciao/wamsupport.h>
 #include <ciao/eng_interrupt.h>
 #include <ciao/indexing.h> /* empty_gcdef_bin() */
@@ -35,12 +32,7 @@
 
 SIGJMP_BUF abort_env; /* Shared */
 
-CBOOL__PROTO(eng_killothers_hook_)
-{
-  return TRUE;
-}
-
-cbool0_t eng_killothers_startgoal = eng_killothers_hook_;
+CBOOL__PROTO(prolog_eng_killothers);
 
 int firstgoal(goal_descriptor_t *goal_desc, tagged_t goal_term) {
   int i, exit_code;
@@ -70,7 +62,7 @@ int firstgoal(goal_descriptor_t *goal_desc, tagged_t goal_term) {
       continue;
     }
 #if defined(USE_THREADS)
-    eng_killothers_startgoal(Arg);
+    prolog_eng_killothers(Arg);
 #endif
 
     {

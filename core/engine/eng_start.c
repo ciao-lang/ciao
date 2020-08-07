@@ -45,7 +45,6 @@
 #include <ciao/eng_start.h>
 #include <ciao/qread.h>
 #include <ciao/wam_alloc.h>
-#include <ciao/locks.h>
 #include <ciao/eng_profile.h>
 #include <ciao/startgoal.h>
 #include <ciao/timing.h>

@@ -16,13 +16,13 @@
 #include <ciao/wam_alloc.h>
 #include <ciao/stacks.h>
 #include <ciao/eng_bignum.h>
-#include <ciao/locks.h>
 #include <ciao/eng_start.h>
 #include <ciao/eng_registry.h>
 #include <ciao/eng_profile.h>
 #include <ciao/tasks.h>
 #include <ciao/indexing.h>
 #include <ciao/io_basic.h>
+#include <ciao/concurrency.h> /* goal_from_thread_id */
 
 /* local declarations */
 
@@ -50,13 +50,6 @@ static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw,
 
 /*-----------------------------------------------------------*/
 
-intmach_t goal_from_thread_id_hook_(THREAD_ID id)
-{
-  return TRUE;
-}
-
-intmach_t (*eng_goal_from_thread_id)(THREAD_ID id)=goal_from_thread_id_hook_;
-
 void failc(char *mesg)
 {
   extern char source_path[];
@@ -78,7 +71,7 @@ void failc(char *mesg)
     if (num_tasks_created() > 1) {
       THREAD_ID thrid = Thread_Id;   // Local Id
 
-      intmach_t goal_id = eng_goal_from_thread_id(thrid);
+      intmach_t goal_id = goal_from_thread_id(thrid);
       if (goal_id != 0) {
         fprintf(stderr,
                 "{ERROR (%s, goal 0x%" PRIxm ", thread 0x%" PRIxm "): %s}\n",

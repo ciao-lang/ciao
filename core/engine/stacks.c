@@ -13,9 +13,6 @@
 #include <ciao/eng_gc.h>
 #include <ciao/eng_start.h>
 #include <ciao/timing.h>
-#if defined(DEBUG)
-#include <ciao/locks.h>
-#endif
 #include <ciao/io_basic.h>
 
 static CVOID__PROTO(calculate_segment_node);

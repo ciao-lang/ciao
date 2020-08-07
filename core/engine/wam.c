@@ -27,7 +27,6 @@
 #include <ciao/stacks.h>
 #include <ciao/term_support.h>
 #include <ciao/wam.h>
-#include <ciao/locks.h>
 #include <ciao/timing.h>
 #include <ciao/eng_profile.h>
 #include <ciao/tabling.h>

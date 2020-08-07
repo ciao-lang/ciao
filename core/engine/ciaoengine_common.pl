@@ -58,7 +58,7 @@
 :- '$native_include_c_header'('tasks.h').
 :- '$native_include_c_source'('tasks.c').
 
-:- '$native_include_c_source'('locks.c').
+:- '$native_include_c_source'('concurrency.c').
 
 :- '$native_include_c_source'('own_malloc.c').
 
