@@ -543,7 +543,7 @@ blocking_mode(no_block).
 % ---------------------------------------------------------------------------
 :- doc(section, "Startgoal support code").
 
-% Call with continuations (for startgoal.c)
+% Call with continuations (for tasks.c)
 
 % Called from within the emulator, as possible boot goal for a wam
 :- entry call_with_cont/1.

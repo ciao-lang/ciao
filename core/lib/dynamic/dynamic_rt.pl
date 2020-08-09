@@ -482,7 +482,7 @@ dynamic1(F, Goal) :-
 dynamic1(F, _) :-
     functor(F, Name, Ar),
     '$define_predicate'(Name/Ar, consult),
-    '$set_property'(F, (dynamic)).          % xref indexing.c
+    '$set_property'(F, (dynamic)).          % xref internals.c
 %
 :- endif.
 
@@ -517,5 +517,5 @@ dynamic1(F, _) :-
 %% concurrent1(F, _) :-
 %%     functor(F, Name, Ar),
 %%     '$define_predicate'(Name/Ar, consult),
-%%     '$set_property'(F, (concurrent)).               % xref indexing.c
+%%     '$set_property'(F, (concurrent)).               % xref internals.c
 

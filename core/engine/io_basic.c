@@ -26,7 +26,7 @@
 #include <ciao/tasks.h>
 #include <ciao/eng_start.h>
 #include <ciao/eng_bignum.h>
-#include <ciao/stacks.h>
+#include <ciao/eng_gc.h>
 
 #include <string.h>
 

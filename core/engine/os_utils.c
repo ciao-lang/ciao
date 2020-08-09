@@ -71,7 +71,7 @@
 #include <ciao/io_basic.h>
 #include <ciao/os_utils.h>
 #include <ciao/stream_basic.h>
-#include <ciao/stacks.h>
+#include <ciao/eng_gc.h>
 #include <ciao/eng_start.h>
 
 #if !defined(MAXPATHLEN)

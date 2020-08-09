@@ -25,4 +25,9 @@ void enqueue_thread(THREAD_T thread);
 void unlink_wam(goal_descriptor_t *goal);
 uintmach_t num_tasks_created(void);
 
+/* Support code for starting goal execution. */
+int call_firstgoal(goal_descriptor_t *firstworker, tagged_t goal_term);
+THREAD_RES_T startgoal(THREAD_ARG wo);
+THREAD_RES_T make_backtracking(THREAD_ARG wo);
+
 #endif /* _CIAO_TASKS_H */

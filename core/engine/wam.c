@@ -24,7 +24,7 @@
 #include <ciao/misc.h>
 #include <ciao/nondet.h>
 #include <ciao/dynamic_rt.h>
-#include <ciao/stacks.h>
+#include <ciao/eng_gc.h>
 #include <ciao/term_support.h>
 #include <ciao/wam.h>
 #include <ciao/timing.h>

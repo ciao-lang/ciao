@@ -1,13 +1,15 @@
 /*
- *  indexing.h
+ *  internals.h
  *
  *  Support for the incremental clause compiler.
  *
  *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
  */
 
-#ifndef _CIAO_INDEXING_H
-#define _CIAO_INDEXING_H
+#ifndef _CIAO_INTERNALS_H
+#define _CIAO_INTERNALS_H
+
+extern intmach_t num_of_predicates;
 
 sw_on_key_node_t *incore_gethash(sw_on_key_t *sw, tagged_t key);
 sw_on_key_t *new_switch_on_key(intmach_t size, try_node_t *otherwise);
@@ -23,4 +25,4 @@ CBOOL__PROTO(compiled_clause);
 sw_on_key_node_t *dyn_puthash(sw_on_key_t **swp, tagged_t k);
 CBOOL__PROTO(set_property);
 
-#endif /* _CIAO_INDEXING_H */
+#endif /* _CIAO_INTERNALS_H */

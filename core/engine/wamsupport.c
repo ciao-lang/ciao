@@ -11,8 +11,7 @@
 #include <ciao/instrdefs.h>
 #include <ciao/wamsupport.h>
 #include <ciao/wam.h>
-#include <ciao/wam_alloc.h>
-#include <ciao/indexing.h>
+#include <ciao/internals.h>
 #include <ciao/io_basic.h>
 
 static try_node_t *get_null_alt(int arity);

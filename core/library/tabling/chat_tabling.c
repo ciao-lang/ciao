@@ -10,7 +10,7 @@
 
 #include <ciao/datadefs.h>
 #include <ciao/tasks.h>
-#include <ciao/stacks.h>
+#include <ciao/eng_gc.h>
 #include <ciao/instrdefs.h>
 #include <ciao/wam.h>
 #include <ciao/term_support.h>
@@ -18,7 +18,7 @@
 #include <ciao/eng_start.h>
 #include <ciao/wamsupport.h>
 #include <ciao/eng_bignum.h>
-#include <ciao/wam_alloc.h>
+#include <ciao/eng_registry.h>
 #include <ciao/io_basic.h>
 
 

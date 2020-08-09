@@ -3,8 +3,8 @@
 #include <ciao/datadefs.h>
 #include <ciao/io_basic.h> /* RUNE_VOID */
 #include <ciao/stream_basic.h>
-#include <ciao/stacks.h>
-#include <ciao/wam_alloc.h>
+#include <ciao/eng_gc.h>
+#include <ciao/eng_registry.h>
 
 #if defined(LINUX) || defined(DARWIN) || defined(BSD)
 #include <string.h>

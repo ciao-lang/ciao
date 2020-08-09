@@ -16,11 +16,11 @@
 
 #include <ciao/datadefs.h>
 #include <ciao/eng_registry.h>
-#include <ciao/indexing.h>
+#include <ciao/internals.h>
 
 #include <ciao/dynamic_rt.h>
 #include <ciao/nondet.h>
-#include <ciao/stacks.h>
+#include <ciao/eng_gc.h>
 #include <ciao/eng_profile.h>
 #include <ciao/wam_macros.h>
 

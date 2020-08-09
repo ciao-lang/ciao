@@ -10,7 +10,7 @@
 #include <limits.h>
 
 #include <ciao/datadefs.h>
-#include <ciao/indexing.h>
+#include <ciao/internals.h>
 #include <ciao/eng_registry.h> /* switch_on_function */
 #include <ciao/arithmetic.h>
 #include <ciao/wamsupport.h>

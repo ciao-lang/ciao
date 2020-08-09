@@ -44,9 +44,7 @@
 #include <ciao/eng_registry.h>
 #include <ciao/eng_start.h>
 #include <ciao/qread.h>
-#include <ciao/wam_alloc.h>
 #include <ciao/eng_profile.h>
-#include <ciao/startgoal.h>
 #include <ciao/timing.h>
 
 #if !defined(MAXPATHLEN)
@@ -383,7 +381,7 @@ int engine_start(int argc, char *argv[]) {
   /* wam->next_insn set to boot code in local_init_each_time */
   /*w->node->global_top = w->global_top;*/     /* Isn't this unnecessary? */
   /*  Fills in worker_entry */
-  return firstgoal(first_goal, init_atom_check("internals:boot"));
+  return call_firstgoal(first_goal, init_atom_check("internals:boot"));
 }
 
 // #define USE_WINDOWS_REGISTRY 1

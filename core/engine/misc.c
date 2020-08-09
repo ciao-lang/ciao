@@ -9,14 +9,13 @@
 #include <ciao/datadefs.h>
 #include <ciao/eng_registry.h>
 #include <ciao/wam_macros.h>
-#include <ciao/indexing.h>
+#include <ciao/internals.h>
 
-#include <ciao/wam_alloc.h>
 #include <ciao/tasks.h>
 #include <ciao/eng_start.h>
 #include <ciao/misc.h>
 #include <ciao/eng_bignum.h>
-#include <ciao/stacks.h>
+#include <ciao/eng_gc.h>
 #include <ciao/nondet.h>
 #include <ciao/term_support.h>
 #include <ciao/timing.h>

@@ -14,7 +14,7 @@
 #include <ciao/term_support.h>
 
 #include <ciao/qread.h>
-#include <ciao/stacks.h>
+#include <ciao/eng_gc.h>
 
 #include <ciao/dynamic_rt.h>
 #include <ciao/eng_bignum.h>

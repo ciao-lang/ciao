@@ -9,6 +9,8 @@
 #ifndef _CIAO_WAMSUPPORT_H
 #define _CIAO_WAMSUPPORT_H
 
+/* Support bytecode */
+
 extern bcp_t bootcode;
 // #if defined(INTERNAL_CALLING)
 // extern bcp_t internal_calling;

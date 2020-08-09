@@ -18,8 +18,8 @@
 #include <ciao/dtoa_ryu.h>
 #include <ciao/term_support.h>
 #include <ciao/eng_start.h>
-#include <ciao/wam_alloc.h>
-#include <ciao/stacks.h>
+#include <ciao/eng_registry.h>
+#include <ciao/eng_gc.h>
 #include <ciao/nondet.h>
 #include <ciao/io_basic.h>
 #include <ciao/eng_bignum.h>

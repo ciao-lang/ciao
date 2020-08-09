@@ -42,11 +42,10 @@
 #include <ciao/wam.h>
 #include <ciao/tasks.h>
 #include <ciao/eng_start.h>
-#include <ciao/startgoal.h>
 #include <ciao/eng_profile.h>
 #include <ciao/term_support.h>
 #include <ciao/eng_bignum.h>
-#include <ciao/stacks.h>
+#include <ciao/eng_gc.h>
 #include <ciao/wam_macros.h>
 
 #include <ciao/instrdefs.h> /* for ciao_initcode() */
@@ -790,7 +789,7 @@ void ciao_exit(int result) {
 int ciao_firstgoal(ciao_ctx ctx, ciao_term goal) {
   goal_descriptor_t *goal_desc = ctx;
   tagged_t goal_term = ciao_unref(ctx, goal);
-  return firstgoal(goal_desc, goal_term);
+  return call_firstgoal(goal_desc, goal_term);
 }
 
 int ciao_boot(ciao_ctx ctx) {

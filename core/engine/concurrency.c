@@ -7,10 +7,9 @@
 #include <ciao/wam_macros.h>
 #include <ciao/wam.h>
 #include <ciao/tasks.h>
-#include <ciao/startgoal.h>
 #include <ciao/nondet.h>
 #include <ciao/eng_start.h>
-#include <ciao/wam_alloc.h>
+#include <ciao/eng_registry.h>
 #include <ciao/stream_basic.h>
 #include <ciao/concurrency.h>
 

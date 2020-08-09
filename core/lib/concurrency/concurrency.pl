@@ -377,6 +377,6 @@ concurrent1(F, Goal) :-
 concurrent1(F, _) :-
     functor(F, Name, Ar),
     '$define_predicate'(Name/Ar, consult),
-    '$set_property'(F, (concurrent)).               % xref indexing.c
+    '$set_property'(F, (concurrent)).               % xref internals.c
 %
 :- endif.

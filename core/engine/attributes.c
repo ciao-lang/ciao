@@ -14,7 +14,7 @@
 #include <ciao/datadefs.h>
 #include <ciao/eng_start.h>
 #include <ciao/attributes.h>
-#include <ciao/stacks.h>
+#include <ciao/eng_gc.h>
     
 extern definition_t *address_true;                         /* Shared */
 

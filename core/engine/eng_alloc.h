@@ -14,8 +14,6 @@
 
 extern char *tryalloc_errstring;
 
-extern intmach_t total_mem_count;
-
 void init_alloc(void);
 
 tagged_t *tryalloc(intmach_t size);
@@ -95,5 +93,31 @@ void checkdealloc(tagged_t *ptr, intmach_t decr);
 #define checkdealloc_ARRAY(ArrayType, ArrayLen, Ptr) \
   checkdealloc((tagged_t *)(Ptr), \
                (ArrayLen) * sizeof(ArrayType))
+
+/* --------------------------------------------------------------------------- */
+/* TODO: move somewhere else? */
+
+extern intmach_t total_mem_count;
+extern intmach_t mem_prog_count;
+
+#if defined(DEBUG)
+#define INC_MEM_PROG(SIZE) {                                     \
+  if (debug_mem) {                                               \
+    fprintf(stderr, "Program memory increased by %" PRIdm " bytes\n",    \
+            (intmach_t)(SIZE));                                  \
+  }                                                              \
+  mem_prog_count = mem_prog_count + (SIZE);                      \
+  }
+#define DEC_MEM_PROG(SIZE) {                                     \
+  if (debug_mem) {                                               \
+    fprintf(stderr, "Program memory decreased by %" PRIdm " bytes\n",    \
+            (intmach_t)(SIZE));                                  \
+  }                                                              \
+  mem_prog_count = mem_prog_count - (SIZE);                      \
+  }
+#else
+#define INC_MEM_PROG(SIZE) { mem_prog_count = mem_prog_count + (SIZE); }
+#define DEC_MEM_PROG(SIZE) { mem_prog_count = mem_prog_count - (SIZE); }
+#endif
 
 #endif /* _CIAO_ENG_ALLOC_H */

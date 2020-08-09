@@ -1,5 +1,5 @@
 /*
- *  indexing.c
+ *  internals.c
  *
  *  Support for the incremental clause compiler.
  *
@@ -9,9 +9,8 @@
 #include <ciao/datadefs.h>
 #include <ciao/eng_registry.h>
 
-#include <ciao/indexing.h>
+#include <ciao/internals.h>
 #include <ciao/wamsupport.h>
-#include <ciao/wam_alloc.h>
 #include <ciao/dynamic_rt.h>
 
 static void set_nondet(try_node_t *t,

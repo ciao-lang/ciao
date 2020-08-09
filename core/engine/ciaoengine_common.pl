@@ -31,9 +31,6 @@
 
 :- '$native_include_c_source'('misc.c').
 
-:- '$native_include_c_header'('startgoal.h').
-:- '$native_include_c_source'('startgoal.c').
-
 :- '$native_include_c_header'('nondet.h').
 :- '$native_include_c_source'('nondet.c').
 
@@ -68,18 +65,13 @@
 :- '$native_include_c_header'('eng_alloc.h').
 :- '$native_include_c_source'('eng_alloc.c').
 
-:- '$native_include_c_header'('wam_alloc.h').
-:- '$native_include_c_source'('wam_alloc.c').
-
+:- '$native_include_c_header'('eng_gc.h').
 :- '$native_include_c_source'('eng_gc.c').
 
-:- '$native_include_c_source'('indexing.c').
+:- '$native_include_c_source'('internals.c').
 
 :- '$native_include_c_header'('eng_registry.h').
 :- '$native_include_c_source'('eng_registry.c').
-
-:- '$native_include_c_header'('stacks.h').
-:- '$native_include_c_source'('stacks.c').
 
 :- '$native_include_c_source'('support.c').
 
