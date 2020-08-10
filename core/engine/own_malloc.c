@@ -11,14 +11,9 @@
  *    Jose F. Morales (minor changes)
  */
 
-// #if !defined(OPTIM_COMP)
-// #define OPTIM_COMP 1
-// #endif
+#include <ciao/eng.h>
 
-#if defined(OPTIM_COMP)
-#include <ciao/eng.h>
-#else
-#include <ciao/eng.h>
+#if !defined(OPTIM_COMP)
 #define OWNMALLOC_ALIGN sizeof(tagged_t) /* blocks suitably aligned for any use */ 
 #endif
 

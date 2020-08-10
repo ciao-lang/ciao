@@ -10,9 +10,6 @@
 #ifndef _CIAO_ENG_H
 #define _CIAO_ENG_H
 
-/* (Automatically generated during engine build) */
-#include <ciao/version.h>
-
 #include <ciao/eng_predef.h>
 #include <ciao/os_threads.h>
 

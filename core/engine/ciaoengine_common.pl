@@ -103,7 +103,7 @@
 :- '$native_include_c_source'('eng_start.c').
 
 % Automatically generated in car_maker:eng_prebuild_version_info/3
-:- '$native_include_c_header'('version.h').
+:- '$native_include_c_header'('version.h'). % (included from eng_predef.h)
 :- '$native_include_c_source'('version.c').
 
 % Automatically generated in build_car.sh:create_eng_build_info

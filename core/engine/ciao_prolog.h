@@ -14,12 +14,20 @@
 extern "C" {
 #endif
 
+/* Automatically generated during engine build */
+#include <ciao/version.h>
+
+#if defined(OPTIM_COMP)
+#include <stdint.h>
+#include <stddef.h> /* size_t */
+#else
+/* TODO: do not include all (use ciao_gluecode.h if needed) */
+#include <ciao/eng.h>
+#endif
+
 #define CIAO_ERROR 0
 #define ciao_true 1
 #define ciao_false 0
-
-/* TODO: do not include them here (use ciao_gluecode.h if needed) */
-#include <ciao/eng.h>
 
 typedef goal_descriptor_t *ciao_ctx;
 

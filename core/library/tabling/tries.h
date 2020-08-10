@@ -3,15 +3,6 @@
 
 #if defined(TABLING)
 /* --------------------------- */
-/*           Defines           */
-/* --------------------------- */
-
-#if !defined(_CIAO_ABSMACH_PREDEF_H)
-// TODO: Why not a typedef or Ciao definition? (JFMC)
-// #define tagged_t unsigned long int
-#endif
-
-/* --------------------------- */
 /*           Structs           */
 /* --------------------------- */
 

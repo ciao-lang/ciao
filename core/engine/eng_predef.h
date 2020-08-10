@@ -9,12 +9,14 @@
  *  Copyright (C) 2013-2015 The Ciao Development Team
  */
 
-#ifndef _CIAO_ABSMACH_PREDEF_H
-#define _CIAO_ABSMACH_PREDEF_H
+#ifndef _CIAO_ENG_PREDEF_H
+#define _CIAO_ENG_PREDEF_H
 
 /* ------------------------------------------------------------------------- */
-/* Run-time configuration options */
+/* Version and run-time configuration options */
 
+/* Automatically generated during engine build */
+#include <ciao/version.h>
 /* Automatically generated configuration and basic definitions */
 #include <ciao/configure.h>
 
@@ -578,4 +580,4 @@ typedef char liveinfo_t[LIVEINFO__SIZE];
 }
 */
 
-#endif /* _CIAO_ABSMACH_PREDEF_H */
+#endif /* _CIAO_ENG_PREDEF_H */
