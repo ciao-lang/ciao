@@ -10,7 +10,7 @@
  *    Ref: Knuth vol. 2 sec. 4.3.1
  */
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/eng_bignum.h>
 #include <math.h>
 

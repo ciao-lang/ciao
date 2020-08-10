@@ -11,7 +11,7 @@
  *    the USER AGREEMENT between the DMCAI and the User.
  */
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/eng_start.h>
 #include <ciao/attributes.h>
 #include <ciao/eng_gc.h>

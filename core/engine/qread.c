@@ -10,7 +10,7 @@
 #include <stdlib.h> /* atoi(), atol(), atof() */
 #include <stddef.h>
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/term_support.h>
 
 #include <ciao/qread.h>

@@ -10,7 +10,7 @@
  *    Jose F. Morales
  */
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/io_basic.h>
 
 #if defined(FOREIGN_FILES)

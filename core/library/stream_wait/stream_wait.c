@@ -1,4 +1,4 @@
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/io_basic.h> /* RUNE defs */
 #include <ciao_prolog.h>
 

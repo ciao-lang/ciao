@@ -14,7 +14,7 @@
 
 #include <string.h>
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/eng_registry.h>
 #include <ciao/internals.h>
 

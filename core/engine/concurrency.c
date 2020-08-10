@@ -1,8 +1,8 @@
 #include <unistd.h>
 
-/* Copyright (C) 1996,1997,1998,1999,2000,2001,2002 UPM-CLIP */
+/* Copyright (C) 1996-2002 UPM-CLIP */
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/term_support.h>
 #include <ciao/wam_macros.h>
 #include <ciao/wam.h>

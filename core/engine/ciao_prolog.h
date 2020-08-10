@@ -19,7 +19,7 @@ extern "C" {
 #define ciao_false 0
 
 /* TODO: do not include them here (use ciao_gluecode.h if needed) */
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 
 typedef goal_descriptor_t *ciao_ctx;
 

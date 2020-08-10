@@ -13,7 +13,7 @@
 #ifndef _CIAO_BIGNUM_H
 #define _CIAO_BIGNUM_H
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 
 bool_t bn_positive(bignum_t *x);
 bignum_size_t bn_add(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);

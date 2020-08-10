@@ -6,7 +6,7 @@
 % TODO: collect most of those dependencies from engine/ modules (backport from optim_comp)
 
 % Source C files
-:- '$native_include_c_header'('datadefs.h').
+:- '$native_include_c_header'('eng.h').
 :- '$native_include_c_header'('configure.h').
 :- '$native_include_c_header'('eng_predef.h').
 :- '$native_include_c_header'('eng_debug.h'). % TODO: can it be moved later?

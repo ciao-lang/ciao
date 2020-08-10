@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 #include <ciao/os_signal.h>
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/instrdefs.h>
 #include <ciao/wam_macros.h>
 

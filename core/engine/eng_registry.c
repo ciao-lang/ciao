@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/arithmetic.h>
 #include <ciao/attributes.h>
 #include <ciao/internals.h>

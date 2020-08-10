@@ -11,7 +11,7 @@
 #include <string.h>
 #include <math.h> /* NAN, INFINITY */
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/wam_macros.h>
 #include <ciao/instrdefs.h>
 #include <ciao/dynamic_rt.h>

@@ -10,7 +10,7 @@
 /* TODO: This code should implement particular kind of streams (file,
    sockets, etc.) */
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/io_basic.h>
 #include <ciao/stream_basic.h>
 

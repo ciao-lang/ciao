@@ -9,7 +9,7 @@
 
 #include <limits.h>
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/internals.h>
 #include <ciao/eng_registry.h> /* switch_on_function */
 #include <ciao/arithmetic.h>

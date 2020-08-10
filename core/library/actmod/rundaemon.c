@@ -8,7 +8,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 
 #define DAEMON_RUNNING_DIR "/tmp"
 

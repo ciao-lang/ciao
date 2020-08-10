@@ -10,7 +10,7 @@
 #define _CIAO_GLUECODE_H
 
 #include <ciao_prolog.h>
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 
 #define CiaoDeclCtx(CTX) ciao_ctx CTX;
 #define CiaoInitCtx(CTX) CTX = w->misc->goal_desc_ptr;

@@ -12,7 +12,7 @@
 #define SEGMENTED_GC 1
 #define EARLY_RESET 1
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/wamsupport.h>
 #include <ciao/io_basic.h>
 #include <ciao/eng_gc.h>

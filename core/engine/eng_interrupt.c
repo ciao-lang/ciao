@@ -9,7 +9,7 @@
 #include <sys/types.h>
 
 #include <ciao/os_signal.h>
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/eng_interrupt.h>
 #include <ciao/tasks.h>
 #include <ciao/eng_start.h>

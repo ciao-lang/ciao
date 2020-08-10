@@ -1,13 +1,14 @@
 /*
- *  datadefs.h
+ *  eng.h
  *
- *  Common header files for the Ciao engine
+ *  Common definitions for writing Ciao engine code
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2020 The Ciao Development Team
  */
 
-#ifndef _DATADEFS_H
-#define _DATADEFS_H
+#ifndef _CIAO_ENG_H
+#define _CIAO_ENG_H
 
 /* (Automatically generated during engine build) */
 #include <ciao/version.h>
@@ -2873,4 +2874,4 @@ void failc(char *mesg);
 
 /* =========================================================================== */
 
-#endif /* _DATADEFS_H */
+#endif /* _CIAO_ENG_H */

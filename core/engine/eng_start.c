@@ -19,7 +19,7 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 
 #if !(defined(__svr4__) || defined(DARWIN) || defined(BSD))
 #include <sys/types.h>

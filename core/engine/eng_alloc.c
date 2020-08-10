@@ -14,7 +14,7 @@
 #endif
 #include <unistd.h>
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 
 #if defined(USE_OWN_MALLOC)
 #include <ciao/own_malloc.h>

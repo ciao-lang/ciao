@@ -8,7 +8,7 @@
 
 #if defined(GAUGE)
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/wamsupport.h>
 
 /* declarations for global functions accessed here */

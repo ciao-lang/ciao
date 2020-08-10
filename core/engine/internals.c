@@ -6,7 +6,7 @@
  *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
  */
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/eng_registry.h>
 
 #include <ciao/internals.h>

@@ -48,9 +48,9 @@
 #include <pwd.h>
 #endif
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 
-/* (use Win32 only after datadefs.h) */
+/* (use Win32 only after eng.h) */
 #if defined(Win32) && !defined(_WIN32) && !defined(_WIN64) /* Cygwin||MSYS2 */
 #include <sys/cygwin.h>
 #endif

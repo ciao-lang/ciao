@@ -75,7 +75,7 @@
 #define MkAtomTerm(ATOM) (GET_ATOM(ATOM))
 #define MkPairTerm(HEAD,TAIL) (chat_make_list(Arg->misc->goal_desc_ptr,(HEAD),(TAIL)))
 #define MkApplTerm(FUNCTOR,ARITY,ARGS) (chat_make_functor(Arg->misc->goal_desc_ptr,(FUNCTOR),(ARITY),(ARGS))) 
-/* From datadefs.h PointerToTerm */
+/* From eng.h PointerToTerm */
 #define MkPtrTerm(INT) ((tagged_t)(INT) ^ (TaggedZero^MallocBase))
           
 
@@ -90,7 +90,7 @@
 #define ArgOfTerm(A,TERM) (*TagToArg(TERM,A))
 #define NameOfFunctor(FUNCTOR) (((atom_t *)TagToAtom(SetArity(TagToHeadfunctor(FUNCTOR),0)))->name)
 #define ArityOfFunctor(FUNCTOR)(Arity(TagToHeadfunctor(FUNCTOR)))
-/* From datadefs.h TermToPointer */
+/* From eng.h TermToPointer */
 #define PtrOfTerm(TERM) ((tagged_t *)((TERM) ^ (TaggedZero^MallocBase)))
 
 /* -------------------- */

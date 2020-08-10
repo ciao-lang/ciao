@@ -15,7 +15,7 @@
 #include <string.h>
 #include <strings.h>
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/misc.h>
 #include <ciao/eng_interrupt.h>
 

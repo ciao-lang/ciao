@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <time.h>
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/timing.h>
 
 #if (defined(Solaris) || defined(LINUX) || defined(DARWIN) || defined(Win32) || defined(BSD)) \

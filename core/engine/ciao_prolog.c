@@ -38,7 +38,7 @@
 # define X_OK 1
 #endif
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/wam.h>
 #include <ciao/tasks.h>
 #include <ciao/eng_start.h>

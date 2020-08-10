@@ -7,10 +7,10 @@
  *  Copyright (C) 2002-2015 The Ciao Development Team
  */
 
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/io_basic.h>
 #include <ciao/stream_basic.h>
-#include <ciao/eng_debug.h> /* already in datadefs.h */
+#include <ciao/eng_debug.h> /* already in eng.h */
 
 #if defined(DEF_WR_DEBUG)
 

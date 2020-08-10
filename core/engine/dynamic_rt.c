@@ -8,7 +8,7 @@
 
 #include <unistd.h>
 #include <stddef.h> /* ptrdiff_t */
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/eng_registry.h>
 
 #include <ciao/nondet.h>
