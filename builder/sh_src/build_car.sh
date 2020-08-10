@@ -514,6 +514,7 @@ car_emit_version_info() {
     local major=0
     local minor=0
     local patch=0
+    local OCVERSION=""
     if [ -r "$ciaoroot/core/Manifest/GlobalVersion" ] &&
            [ -r "$ciaoroot/core/Manifest/GlobalPatch" ]; then
         version=`cat "$ciaoroot/core/Manifest/GlobalVersion"`
@@ -522,14 +523,22 @@ car_emit_version_info() {
         patch=`cat "$ciaoroot/core/Manifest/GlobalPatch"`
     fi
 
+    if [ x"$oc_car" = x"yes" ]; then
+        OCVERSION="#define OPTIM_COMP 1"
+    fi
+
     # Create version.h and version.c
     # TODO: use $eng_h_alias?
     mkdir -p "$bld_hdir/ciao"
     update_file "$bld_hdir/ciao/version.h" <<EOF
+#ifndef _CIAO_VERSION_H
+#define _CIAO_VERSION_H
 #define CIAO_VERSION_STRING "Ciao $major.$minor.$patch"
 #define CIAO_MAJOR_VERSION $major
 #define CIAO_MINOR_VERSION $minor
 #define CIAO_PATCH_NUMBER $patch
+$OCVERSION
+#endif /* _CIAO_VERSION_H */
 EOF
     mkdir -p "$bld_cdir"
     update_file "$bld_cdir/version.c" <<EOF

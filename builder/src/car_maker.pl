@@ -294,6 +294,8 @@ gen_eng_version_c(VerBundle, Eng) :-
     ).
 
 version_h(Bundle) -->
+    "#ifndef _CIAO_VERSION_H\n",
+    "#define _CIAO_VERSION_H\n",
     "#define CIAO_VERSION_STRING \"Ciao \" ",
     version_h_(Bundle),
     "\n",
@@ -301,7 +303,8 @@ version_h(Bundle) -->
     { version_parse(Version, Major, Minor, Patch) },
     "#define CIAO_MAJOR_VERSION ", num(Major), "\n",
     "#define CIAO_MINOR_VERSION ", num(Minor), "\n",
-    "#define CIAO_PATCH_NUMBER ", num(Patch), "\n".
+    "#define CIAO_PATCH_NUMBER ", num(Patch), "\n",
+    "#endif /* _CIAO_VERSION_H */\n".
 
 % TODO: Do not include commit info? Make version optional?
 version_h_(Bundle) -->
