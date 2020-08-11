@@ -50,7 +50,7 @@
 
 #include <ciao/instrdefs.h> /* for ciao_initcode() */
 
-#include <ciao/os_utils.h>
+#include <ciao/system.h>
 
 #if !defined(MAXPATHLEN)
 # define MAXPATHLEN 1024

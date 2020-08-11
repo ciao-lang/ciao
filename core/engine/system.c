@@ -1,5 +1,5 @@
 /*
- *  os_utils.c
+ *  system.c
  *
  *  Platform-independent interface to operating system calls
  *  (filesystem, environment, processes).
@@ -69,7 +69,7 @@
 #include <ciao/term_support.h>
 #include <ciao/os_signal.h>
 #include <ciao/io_basic.h>
-#include <ciao/os_utils.h>
+#include <ciao/system.h>
 #include <ciao/stream_basic.h>
 #include <ciao/eng_gc.h>
 #include <ciao/eng_start.h>

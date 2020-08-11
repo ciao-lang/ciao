@@ -288,7 +288,7 @@ quiet_mode(off).
 :- impl_defined('$unix_popen'/3).
 
 :- export('$exec'/9).
-:- trust pred '$exec'/9. % (see os_utils.c for details)
+:- trust pred '$exec'/9. % (see system.c for details)
 :- impl_defined('$exec'/9).
 
 :- export('$unix_argv'/1).

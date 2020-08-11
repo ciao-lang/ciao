@@ -1115,7 +1115,7 @@ get_home(H) :-
     fixed_absolute_file_name('~', '.', H).
 
 % ---------------------------------------------------------------------------
-:- export(find_executable/2). % TODO: use c_find_exec() from os_utils.c (take Prolog as reference)
+:- export(find_executable/2). % TODO: use c_find_exec() from system.c (take Prolog as reference)
 :- pred find_executable(+Name, -Path) # "@var{Path} is the absolute
    path of the command @var{Name}, reachable from the @tt{PATH}
    (environment variable) directories if @var{Name} is not an absolute

@@ -352,7 +352,7 @@ stream('$stream'(X,Y)) :-
     int(X), int(Y).
 
 % TODO: We need to distinguish sourcename from plain pathnames. Most
-%   of those expansions are applied to all pathnames in os_utils.c
+%   of those expansions are applied to all pathnames in system.c
 
 :- doc(sourcename/1, "A source name is a flexible way of referring
    to a concrete file. A source name is either a relative or absolute

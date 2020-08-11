@@ -24,7 +24,7 @@
 #include <ciao/timing.h>
 #include <ciao/stream_basic.h>
 
-#include <ciao/os_utils.h>
+#include <ciao/system.h>
 
 #include <ciao/eng_registry.h>
 
@@ -36,7 +36,7 @@
 #include <ciao/nondet.h>
 #include <ciao/misc.h>
 #include <ciao/qread.h>
-#include <ciao/os_utils.h>
+#include <ciao/system.h>
 #include <ciao/dynlink.h>
 #include <ciao/concurrency.h>
 
@@ -1185,7 +1185,7 @@ void init_once(void)
   define_c_mod_predicate("internals","$interpreted_clause",2,prolog_interpreted_clause);
   define_c_mod_predicate("internals","$unlock_predicate",1,prolog_unlock_predicate);
 
-  /* os_utils.c */
+  /* system.c */
   define_c_mod_predicate("system","using_windows",0,prolog_using_windows);
   define_c_mod_predicate("system","working_directory",2,prolog_unix_cd);
   define_c_mod_predicate("system","pause", 1, prolog_pause);

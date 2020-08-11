@@ -40,7 +40,7 @@
 #include <ciao/wamsupport.h>
 #include <ciao/wam.h>
 #include <ciao/tasks.h>
-#include <ciao/os_utils.h>
+#include <ciao/system.h>
 #include <ciao/eng_registry.h>
 #include <ciao/eng_start.h>
 #include <ciao/qread.h>

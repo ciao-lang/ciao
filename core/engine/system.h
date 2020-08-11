@@ -1,15 +1,15 @@
 /*
- *  os_utils.h
+ *  system.h
  *
  *  Platform-independent interface to operating system calls
  *  (filesystem, environment, processes).
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
- *  Copyright (C) 2015 Jose F. Morales, The Ciao Development Team
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2015-2020 The Ciao Development Team
  */
 
-#ifndef _CIAO_OS_UTILS_H
-#define _CIAO_OS_UTILS_H
+#ifndef _CIAO_SYSTEM_H
+#define _CIAO_SYSTEM_H
 
 #include <stdlib.h> /* getenv */
 
@@ -88,4 +88,4 @@ CBOOL__PROTO(prolog_get_foreign_opts_ld);
 CBOOL__PROTO(prolog_get_foreign_opts_ccshared);
 CBOOL__PROTO(prolog_get_foreign_opts_ldshared);
 
-#endif /* _CIAO_OS_UTILS_H */
+#endif /* _CIAO_SYSTEM_H */

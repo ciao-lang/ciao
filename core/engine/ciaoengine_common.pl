@@ -45,7 +45,7 @@
 
 :- '$native_include_c_source'('arithmetic.c').
 
-:- '$native_include_c_source'('os_utils.c').
+:- '$native_include_c_source'('system.c').
 
 :- '$native_include_c_header'('attributes.h').
 :- '$native_include_c_source'('attributes.c').

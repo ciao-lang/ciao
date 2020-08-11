@@ -423,7 +423,7 @@ path_concat_list_(Ns, Path0, Path) :-
 % ---------------------------------------------------------------------------
 
 :- doc(bug, "@pred{path_norm/2} and @tt{expand_file_name} in
-   @tt{os_utils.c} should be equivalent (disabling expansion of home
+   @tt{system.c} should be equivalent (disabling expansion of home
    and env vars)").
 
 :- doc(bug, "Windows paths (drive letters) are not supported (see

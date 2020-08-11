@@ -344,7 +344,7 @@ write_terms(Stream, [X|Xs0]) :-
    # "Open stream file redirections (for internals:'$exec'/9).".
 %   - @var{Mode} is the open mode
 %   - @var{S} is the redirection for internals:'$exec'/9 (see
-%     os_utils.c for details)
+%     system.c for details)
 
 open_redirect('$binding'(_Channel, Channel2, _Tmp, _TrMode, _Res), Mode, S) :-
     open_redirect_(Channel2, Mode, S).
