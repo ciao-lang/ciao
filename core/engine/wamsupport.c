@@ -21,7 +21,6 @@ bcp_t bootcode;                /* WAM bootstrap to run bootgoal -- Shared */
 // #if defined(INTERNAL_CALLING)
 // bcp_t internal_calling;                     /* WAM bootstrap to run bootgoal -- Shared */
 // #endif
-bcp_t startgoalcode_cont;    /* Specify cont. on success and failure -- Shared */
 bcp_t contcode;/* continuations of FrameSize N after exceptions -- Shared */
 bcp_t failcode;       /* continuation of FrameSize 0 that fails -- Shared */
 bcp_t exitcode;   /* continuation of FrameSize 0 that exits wam -- Shared */
@@ -189,28 +188,6 @@ void init_some_bytecode(void) {
     EMIT_o(EXIT_TOPLEVEL);
   }
 
-  /*
-    |CALLQ|0|address_call_with_cont/2|...padding...|Init. Frame Size|EXIT_TOPLEVEL|
-    ^                                                            ^
-    bootcode                                                     termcode?
-  */
-  {
-    bcp_t P = (bcp_t)
-      checkalloc_ARRAY(char,
-                       (FTYPE_size(f_o)+
-                        FTYPE_size(f_Q)+
-                        FTYPE_size(f_E)+
-                        FTYPE_size(f_e)+
-                        FTYPE_size(f_o)+
-                        2*FTYPE_size(f_i))); /* TODO: needed? */
-    startgoalcode_cont = P;
-    EMIT_o(CALLQ);
-    EMIT_Q(0);
-    EMIT_E(address_call_with_cont);
-    EMIT_e(EToY0*sizeof(tagged_t)); /* initial FrameSize */
-    EMIT_o(EXIT_TOPLEVEL);
-  }
-
   /* must be initialized before get_null_alt() is used! */
   {
     bcp_t P = (bcp_t)
@@ -279,7 +256,6 @@ CBOOL__PROTO(set_trace_calls)
    */
 
 extern bcp_t startgoalcode;                                          /* Shared */
-extern bcp_t startgoalcode_cont;                                     /* Shared */
 
 /* CALLQ|call/1|goal=X(0)|exit_toplevel */
 CBOOL__PROTO(run_determ_c, tagged_t goal)

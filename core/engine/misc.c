@@ -8,10 +8,8 @@
 
 #include <ciao/eng.h>
 #include <ciao/eng_registry.h>
-#include <ciao/wam_macros.h>
+#include <ciao/basiccontrol.h>
 #include <ciao/internals.h>
-
-#include <ciao/tasks.h>
 #include <ciao/eng_start.h>
 #include <ciao/misc.h>
 #include <ciao/eng_bignum.h>

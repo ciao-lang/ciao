@@ -2227,7 +2227,6 @@ extern definition_t *address_call;
 // extern definition_t *address_internal_call;
 // #endif
 extern definition_t *address_interpret_goal;
-extern definition_t *address_call_with_cont;
 extern definition_t *address_interpret_compiled_goal;
 extern definition_t *address_interpret_c_goal;
 extern definition_t *address_undefined_goal;

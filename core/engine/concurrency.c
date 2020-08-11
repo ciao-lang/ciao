@@ -4,9 +4,10 @@
 
 #include <ciao/eng.h>
 #include <ciao/term_support.h>
-#include <ciao/wam_macros.h>
+#include <ciao/dynamic_rt.h>
+#include <ciao/basiccontrol.h>
 #include <ciao/wam.h>
-#include <ciao/tasks.h>
+#include <ciao/internals.h>
 #include <ciao/nondet.h>
 #include <ciao/eng_start.h>
 #include <ciao/eng_registry.h>

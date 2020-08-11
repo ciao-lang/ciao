@@ -39,7 +39,7 @@
 
 #include <ciao/wamsupport.h>
 #include <ciao/wam.h>
-#include <ciao/tasks.h>
+#include <ciao/internals.h>
 #include <ciao/system.h>
 #include <ciao/eng_registry.h>
 #include <ciao/eng_start.h>

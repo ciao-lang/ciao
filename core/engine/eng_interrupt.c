@@ -11,7 +11,7 @@
 #include <ciao/os_signal.h>
 #include <ciao/eng.h>
 #include <ciao/eng_interrupt.h>
-#include <ciao/tasks.h>
+#include <ciao/internals.h>
 #include <ciao/eng_start.h>
 
 static void abortmsg(int rc);

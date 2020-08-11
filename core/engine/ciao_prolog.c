@@ -40,13 +40,13 @@
 
 #include <ciao/eng.h>
 #include <ciao/wam.h>
-#include <ciao/tasks.h>
+#include <ciao/internals.h>
 #include <ciao/eng_start.h>
 #include <ciao/eng_profile.h>
 #include <ciao/term_support.h>
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_gc.h>
-#include <ciao/wam_macros.h>
+#include <ciao/basiccontrol.h>
 
 #include <ciao/instrdefs.h> /* for ciao_initcode() */
 

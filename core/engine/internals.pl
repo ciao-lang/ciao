@@ -540,19 +540,6 @@ blocking_mode(no_block).
 :- trust pred '$atom_mode'(Atom, Context) : atm(Atom) => int(Context).
 :- impl_defined('$atom_mode'/2). 
 
-% ---------------------------------------------------------------------------
-:- doc(section, "Startgoal support code").
-
-% Call with continuations (for tasks.c)
-
-% Called from within the emulator, as possible boot goal for a wam
-:- entry call_with_cont/1.
-call_with_cont([](Goal, OnSuccess, _OnFailure)):-
-    'SYSCALL'(Goal),
-    'SYSCALL'(OnSuccess).
-call_with_cont([](_Goal_, _OnSuccess, OnFailure)):-
-    'SYSCALL'(OnFailure).
-
 % --------------------------------------------------------------------------
 :- doc(section, "Boot the machine").
 % (Initialization, module loading, and call to main/0 or main/1)

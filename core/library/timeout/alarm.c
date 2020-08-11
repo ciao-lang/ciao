@@ -6,7 +6,7 @@
    
 
 #include <ciao_prolog.h>
-#include <ciao/tasks.h>
+#include <ciao/internals.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>

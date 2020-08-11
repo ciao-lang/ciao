@@ -340,7 +340,6 @@ definition_t *address_call;
 //  definition_t *address_internal_call = NULL;
 // #endif
 definition_t *address_interpret_goal;
-definition_t *address_call_with_cont;                     /* call/3 */
 definition_t *address_interpret_compiled_goal;
 definition_t *address_interpret_c_goal;
 definition_t *address_undefined_goal;
@@ -1009,7 +1008,6 @@ void init_once(void)
 // #endif
 
   address_interpret_goal = define_builtin("basiccontrol:interpret_goal",ENTER_UNDEFINED,2);
-  address_call_with_cont = define_builtin("internals:call_with_cont",ENTER_UNDEFINED,1);
   address_interpret_compiled_goal = define_builtin("basiccontrol:interpret_compiled_goal",ENTER_UNDEFINED,2);
   address_undefined_goal = define_builtin("basiccontrol:undefined_goal",ENTER_UNDEFINED,1);
   address_trace = define_builtin("basiccontrol:debug_goal",ENTER_UNDEFINED,1);

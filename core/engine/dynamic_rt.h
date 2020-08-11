@@ -3,11 +3,28 @@
  *
  *  Database management support code.
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2020 The Ciao Development Team
  */
 
 #ifndef _CIAO_DYNAMIC_RT_H
 #define _CIAO_DYNAMIC_RT_H
+
+// TODO: move to dynamic_rt.c
+CFUN__PROTO(current_instance, instance_t *);
+CBOOL__PROTO(first_instance);
+CBOOL__PROTO(close_predicate);
+CBOOL__PROTO(open_predicate);
+CBOOL__PROTO(next_instance, instance_t **ipp);
+CBOOL__PROTO(next_instance_conc, instance_t **ipp);
+void move_queue(instance_handle_t **srcq, 
+                instance_handle_t **destq,
+                instance_t *destinst);
+void jump_to_next_instance(instance_t *x2_p_insp,
+                           instance_t *x5_p_insp,
+                           instance_t **ipp,
+                           instance_t **x2,
+                           instance_t **x5);
 
 /* static void relocate_table_clocks(sw_on_key_t *sw, instance_clock_t *clocks) */
 
@@ -28,5 +45,8 @@ void expunge_instance(instance_t *i);
 CFUN__PROTO(active_instance_conc, instance_t *, instance_t *i, int_info_t *pred_root);
 
 CBOOL__PROTO(prolog_unlock_predicate);
+
+void remove_link_chains(node_t **topdynamic,
+                        node_t  *chpttoclear);
 
 #endif /* _CIAO_DYNAMIC_RT_H */

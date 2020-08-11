@@ -23,7 +23,7 @@
 #include <ciao/term_support.h>
 #include <ciao/io_basic.h>
 #include <ciao/stream_basic.h>
-#include <ciao/tasks.h>
+#include <ciao/internals.h>
 #include <ciao/eng_start.h>
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_gc.h>

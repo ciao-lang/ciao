@@ -18,7 +18,6 @@
 #include <ciao/eng_start.h>
 #include <ciao/eng_registry.h>
 #include <ciao/eng_profile.h>
-#include <ciao/tasks.h>
 #include <ciao/internals.h>
 #include <ciao/io_basic.h>
 #include <ciao/concurrency.h> /* goal_from_thread_id */

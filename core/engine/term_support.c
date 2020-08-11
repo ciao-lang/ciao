@@ -12,7 +12,7 @@
 #include <math.h> /* NAN, INFINITY */
 
 #include <ciao/eng.h>
-#include <ciao/wam_macros.h>
+#include <ciao/basiccontrol.h>
 #include <ciao/instrdefs.h>
 #include <ciao/dynamic_rt.h>
 #include <ciao/dtoa_ryu.h>
@@ -1335,6 +1335,46 @@ CVOID__PROTO(number_to_string, tagged_t term, int base) {
   } else {
     bn_to_string(Arg,(bignum_t *)TagToSTR(term),base);
   }
+}
+
+/* -------------------------------------------------------------------
+   FRAME MANIPULATIONS
+   ----------------------------------------------------------------------*/
+
+CVOID__PROTO(pop_frame)
+{
+  tagged_t *pt1;
+
+  SetE(w->frame);
+  {
+    int arity;
+
+    arity = FrameSizeToCount(FrameSize(w->next_insn));
+    {
+      int i;
+
+      for(i=0; i<arity; i++) X(i) = Y(i);
+    }
+  }
+  w->local_top = E;
+  w->frame = E->frame;
+  w->next_insn = E->next_insn;
+}
+
+/* this assumes w->local_top has been computed! */
+CVOID__PROTO(push_frame, int arity)
+{
+  tagged_t *pt1;
+  int i;
+
+  SetE(w->local_top);
+  E->next_insn = w->next_insn;
+  E->frame = w->frame;
+  w->frame = E;
+  w->next_insn = CONTCODE(arity);
+  w->local_top = (frame_t *)Offset(E,EToY0+arity);
+  for(i=0; i<arity; i++)
+    Y(i) = X(i);
 }
 
 /* --------------------------------------------------------------------------- */

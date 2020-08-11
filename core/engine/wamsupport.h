@@ -16,7 +16,6 @@ extern bcp_t bootcode;
 // extern bcp_t internal_calling;
 // #endif
 extern bcp_t startgoalcode;
-extern bcp_t startgoalcode_cont;
 
 #define CONTCODE(Arity) BCoff(contcode, (Arity) * (FTYPE_size(f_e) + FTYPE_size(f_o)))
 extern bcp_t contcode;

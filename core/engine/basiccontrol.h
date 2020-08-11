@@ -1,13 +1,14 @@
 /*
- *  wam_macros.h
+ *  basiccontrol.h
  *
- *  Emulator macros.
+ *  Basic definitions for the bytecode emulator.
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2020 The Ciao Development Team
  */
 
-#ifndef _CIAO_WAM_MACROS_H
-#define _CIAO_WAM_MACROS_H
+#ifndef _CIAO_BASICCONTROL_H
+#define _CIAO_BASICCONTROL_H
 
 #include <ciao/wamsupport.h>
 #include <ciao/eng_registry.h>
@@ -148,4 +149,4 @@ CVOID__PROTO(dump_instr, bcp_t p);
 #define BcFetchOPCODE() BcFetchOPCODE_()
 #endif
 
-#endif /* _CIAO_WAM_MACROS_H */
+#endif /* _CIAO_BASICCONTROL_H */
