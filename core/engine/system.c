@@ -4,8 +4,8 @@
  *  Platform-independent interface to operating system calls
  *  (filesystem, environment, processes).
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
- *  Copyright (C) 2015 Jose F. Morales, The Ciao Development Team
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2015-2020 The Ciao Development Team
  */
 
 // #define USE_ADDRINFO 0

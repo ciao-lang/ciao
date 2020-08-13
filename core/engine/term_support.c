@@ -3,7 +3,8 @@
  *
  *  Term compiler for assert/record.
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2020 The Ciao Development Team
  */
 
 #include <stdio.h>
@@ -20,7 +21,8 @@
 #include <ciao/eng_start.h>
 #include <ciao/eng_registry.h>
 #include <ciao/eng_gc.h>
-#include <ciao/nondet.h>
+#include <ciao/rt_exp.h>
+#include <ciao/runtime_control.h>
 #include <ciao/io_basic.h>
 #include <ciao/eng_bignum.h>
 

@@ -1,18 +1,84 @@
 /*
- *  wamsupport.c
+ *  bc_aux.h (NOTE: included from wam.c)
  *
- *  Basic emulator support.
+ *  Auxiliary definitions for the Ciao bytecode interpreter.
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2020 The Ciao Development Team
  */
 
 #include <ciao/eng.h>
 #include <ciao/eng_registry.h>
 #include <ciao/instrdefs.h>
-#include <ciao/wamsupport.h>
-#include <ciao/wam.h>
 #include <ciao/internals.h>
 #include <ciao/io_basic.h>
+
+/* ------------------------------------------------------------------------- */
+
+/* Attributed variables support */
+extern definition_t *address_pending_unifications;
+extern definition_t *address_uvc;
+extern definition_t *address_ucc;
+
+/* ------------------------------------------------------------------------- */
+
+#define SAVE_FIELD(Name) desc->wam_private_state.Name = Name
+
+#define SAVE_WAM_STATE \
+  SAVE_FIELD(p); \
+  SAVE_FIELD(i);\
+  SAVE_FIELD(pt1);\
+  SAVE_FIELD(pt2);\
+  SAVE_FIELD(t0);\
+  SAVE_FIELD(t1);\
+  SAVE_FIELD(t2);\
+  SAVE_FIELD(t3);\
+  SAVE_FIELD(ptemp);\
+  SAVE_FIELD(wam_exit_code);\
+  SAVE_FIELD(ins)
+
+#define RECOVER_FIELD(Name) Name = desc->wam_private_state.Name
+
+#define RECOVER_WAM_STATE \
+  RECOVER_FIELD(p);\
+  RECOVER_FIELD(i);\
+  RECOVER_FIELD(pt1);\
+  RECOVER_FIELD(pt2);\
+  RECOVER_FIELD(t0);\
+  RECOVER_FIELD(t1);\
+  RECOVER_FIELD(t2);\
+  RECOVER_FIELD(t3);\
+  RECOVER_FIELD(ptemp);\
+  RECOVER_FIELD(wam_exit_code);\
+  RECOVER_FIELD(ins)
+
+/* Macros for conditional code inside other macros */
+
+#if defined(TABLING)
+#define ON_TABLING(X) X
+#else
+#define ON_TABLING(X)
+#endif
+
+#if defined(ANDPARALLEL)
+#define ON_ANDPARALLEL(X) X
+#else
+#define ON_ANDPARALLEL(X)
+#endif
+
+#if defined(DEBUG)
+#define ON_DEBUG(X) X
+#else
+#define ON_DEBUG(X)
+#endif
+
+#if defined(DEBUG_NODE)
+#define ON_DEBUG_NODE(X) X
+#else
+#define ON_DEBUG_NODE(X)
+#endif
+
+/* ------------------------------------------------------------------------- */
 
 static try_node_t *get_null_alt(int arity);
 

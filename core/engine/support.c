@@ -3,14 +3,15 @@
  *
  *  General runtime support routines.
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2020 The Ciao Development Team
  */
 
 #include <unistd.h>
 #include <string.h>
 
 #include <ciao/eng.h>
-#include <ciao/wamsupport.h>
+#include <ciao/basiccontrol.h>
 #include <ciao/stream_basic.h>
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_gc.h>

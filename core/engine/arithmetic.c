@@ -13,7 +13,7 @@
 #include <ciao/internals.h>
 #include <ciao/eng_registry.h> /* switch_on_function */
 #include <ciao/arithmetic.h>
-#include <ciao/wamsupport.h>
+#include <ciao/basiccontrol.h>
 #include <ciao/misc.h>
 #include <ciao/eng_bignum.h>
 
@@ -1242,11 +1242,10 @@ CFUN__PROTO(fu2_rsh, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
     This works through the following mechanism:
                 
     - The arithm. functions (via is/2,</2,...) apply NDEREF to their
-      args which calls evaluate [wamsupport.c] which, when it sees
-      terms, calls the corresponding function ( max arity = 2). Eval
-      calls this functions with liveinfo==NULL which means that
-      numstack_end must not be NULL (make_float_check,
-      make_integer_check)
+      args which calls evaluate which, when it sees terms, calls the
+      corresponding function ( max arity = 2). Eval calls this
+      functions with liveinfo==NULL which means that numstack_end must
+      not be NULL (make_float_check, make_integer_check)
 */
 
 CFUN__PROTO(fu2_gcd, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)

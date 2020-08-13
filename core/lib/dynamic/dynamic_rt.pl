@@ -475,7 +475,7 @@ data(F/A, Mod) :-
 
 dynamic1(F, Goal) :-
     '$predicate_property'(F, _, Prop), !,
-    (   Prop/\2 =:= 2 -> true               % dynamic, xref nondet.c
+    (   Prop/\2 =:= 2 -> true               % dynamic, xref rt_exp.c
     ;   functor(F, N, A),
         throw(error(permission_error(modify, static_procedure, N/A), Goal))
     ).
@@ -510,7 +510,7 @@ dynamic1(F, _) :-
 %% 
 %% concurrent1(F, Goal) :-
 %%     '$predicate_property'(F, _, Prop), !,
-%%     (   Prop/\2 =:= 2 -> true               % dynamic, xref nondet.c
+%%     (   Prop/\2 =:= 2 -> true               % dynamic, xref rt_exp.c
 %%         ;   functor(F, N, A),
 %%             throw(error(permission_error(modify, static_procedure, N/A), Goal))
 %%     ).

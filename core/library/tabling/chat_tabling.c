@@ -12,11 +12,11 @@
 #include <ciao/internals.h>
 #include <ciao/eng_gc.h>
 #include <ciao/instrdefs.h>
-#include <ciao/wam.h>
 #include <ciao/term_support.h>
-#include <ciao/nondet.h>
+#include <ciao/rt_exp.h>
+#include <ciao/runtime_control.h>
 #include <ciao/eng_start.h>
-#include <ciao/wamsupport.h>
+#include <ciao/basiccontrol.h>
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_registry.h>
 #include <ciao/io_basic.h>

@@ -27,7 +27,8 @@
 #define ENG_NOFILES 20
 
 #include <ciao/eng_registry.h>
-#include <ciao/nondet.h>
+#include <ciao/rt_exp.h>
+#include <ciao/runtime_control.h>
 
 /* ------------------------------------------------------------------------- */
 /* The root stream pointer (all streams are liked) */

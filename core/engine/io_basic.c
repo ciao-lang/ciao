@@ -3,7 +3,8 @@
  *
  *  Input/output predicates (see engine(io_basic)).
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2020 The Ciao Development Team
  */
 
 /* TODO: This code should be generic for any stream */

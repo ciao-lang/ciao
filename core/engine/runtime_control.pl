@@ -473,7 +473,7 @@ append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs).
 
 % (CallerM added by 'addmodule')
 predicate_property(Head, Prop, CallerM) :- nonvar(Head), !,
-    '$predicate_property'(Head, Entry, Bits), % xref nondet.c
+    '$predicate_property'(Head, Entry, Bits), % xref rt_exp.c
     ( predicate_property_bits(Entry, Bits, Prop)
     ; % TODO: The slow part, reimplement
       functor(Head, MF, N),
@@ -522,7 +522,7 @@ predicate_property(Head, Prop, CallerM) :-
     %
     module_concat(EM, F, MF),
     functor(Head, MF, N),
-    '$predicate_property'(Head, Entry, Bits), % xref nondet.c
+    '$predicate_property'(Head, Entry, Bits), % xref rt_exp.c
     %
     ( predicate_property_bits(Entry, Bits, Prop)
     ; % TODO: The slow part, reimplement

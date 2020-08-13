@@ -1,14 +1,11 @@
 /*
  *  attributes.c
  *
- *  Copyright (C) 1992 Department of Medical Cybernetics & Artificial
- *    Intelligence.  University of Vienna.  Freyung 6.  A-1010 Vienna,
- *    Austria.
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2020 The Ciao Development Team
  *
- *  Author: Christian Holzbaur [christian@ai.univie.ac.at]
- *    Permission to use this software for any purpose is subject to
- *    the USER AGREEMENT between the DMCAI and the User.
+ *  Portions of this code based on code by Christian Holzbaur
+ *  [christian@ai.univie.ac.at], Copyright (C) 1992 DMCAI
  */
 
 #include <ciao/eng.h>
@@ -145,11 +142,11 @@ CBOOL__PROTO(bu2_update_attribute,
 }  
 
 /*  
-   Called from wam.c
+   Called from bc_aux.h
    Collect all constraints that have been woken "recently" by
    scanning the newest trail segment.  Also, excise such entries
    belonging to the newest heap segment.  
-   Each pending unification pushes 4 heap elems - cf enter_predicate: wam.c
+   Each pending unification pushes 4 heap elems - cf enter_predicate
 */
 
 CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {

@@ -6,9 +6,9 @@
 #include <ciao/term_support.h>
 #include <ciao/dynamic_rt.h>
 #include <ciao/basiccontrol.h>
-#include <ciao/wam.h>
 #include <ciao/internals.h>
-#include <ciao/nondet.h>
+#include <ciao/rt_exp.h>
+#include <ciao/runtime_control.h>
 #include <ciao/eng_start.h>
 #include <ciao/eng_registry.h>
 #include <ciao/stream_basic.h>

@@ -3,10 +3,10 @@
  *
  *  Own memory manager.
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
- *  Copyright (C) 2020 Ciao Development Team
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2020 The Ciao Development Team
  *
- *  Author:
+ *  Authors:
  *    Manuel Carro
  *    Jose F. Morales (minor changes)
  */

@@ -3,7 +3,8 @@
  *
  *  Load and execute a bytecode executable.
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2020 The Ciao Development Team
  */
 
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
@@ -37,8 +38,7 @@
 #include <sys/cygwin.h>
 #endif
 
-#include <ciao/wamsupport.h>
-#include <ciao/wam.h>
+#include <ciao/basiccontrol.h>
 #include <ciao/internals.h>
 #include <ciao/system.h>
 #include <ciao/eng_registry.h>

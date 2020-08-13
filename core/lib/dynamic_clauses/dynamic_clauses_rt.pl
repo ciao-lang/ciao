@@ -172,7 +172,7 @@ check_head(N, _, Spec, _) :- number(N), !,
     fail.
 check_head(H, _, Spec, _) :-
     '$predicate_property'(H, _, Prop),
-    Prop/\2 =:= 0, !,  % not dynamic, xref nondet.c
+    Prop/\2 =:= 0, !,  % not dynamic, xref rt_exp.c
     functor(H, F, A),
     throw(error(permision_error(modify, static_procedure, F/A), Spec)),
     fail.
@@ -268,7 +268,7 @@ data(F/A, Mod) :-
 
 dynamic1(F, Goal) :-
     '$predicate_property'(F, _, Prop), !,
-    (   Prop/\2 =:= 2 -> true               % dynamic, xref nondet.c
+    (   Prop/\2 =:= 2 -> true               % dynamic, xref rt_exp.c
     ;   functor(F, N, A),
         throw(error(permission_error(modify,static_procedure,N/A), Goal)),
         fail

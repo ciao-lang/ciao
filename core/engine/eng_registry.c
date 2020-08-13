@@ -16,7 +16,7 @@
 #include <ciao/arithmetic.h>
 #include <ciao/attributes.h>
 #include <ciao/internals.h>
-#include <ciao/wamsupport.h>
+#include <ciao/basiccontrol.h>
 #include <ciao/term_support.h>
 
 #include <ciao/eng_interrupt.h>
@@ -33,7 +33,8 @@
 #include <ciao/io_basic.h>
 #include <ciao/dynamic_rt.h>
 #include <ciao/eng_gc.h>
-#include <ciao/nondet.h>
+#include <ciao/rt_exp.h>
+#include <ciao/runtime_control.h>
 #include <ciao/misc.h>
 #include <ciao/qread.h>
 #include <ciao/system.h>
@@ -1138,7 +1139,7 @@ void init_once(void)
   define_c_mod_predicate("internals","$format_print_float",3,prolog_format_print_float);
   define_c_mod_predicate("internals","$format_print_integer",3,prolog_format_print_integer);
 
-                                /* wamsupport.c */
+                                /* bc_aux.h */
   
   define_c_mod_predicate("internals","$ddt",1,set_trace_calls);
 
@@ -1293,7 +1294,8 @@ void init_once(void)
   define_c_mod_predicate("internals","$gc_usage",1,gc_usage);
   define_c_mod_predicate("runtime_control","garbage_collect",0,gc_start);
 
-                                /* nondet.c */
+                                /* rt_exp.c */
+                                /* runtime_control.c */
 
   define_c_mod_predicate("basiccontrol","repeat",0,prolog_repeat);
   define_c_mod_predicate("runtime_control","current_atom",1,current_atom);

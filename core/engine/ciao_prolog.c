@@ -39,7 +39,6 @@
 #endif
 
 #include <ciao/eng.h>
-#include <ciao/wam.h>
 #include <ciao/internals.h>
 #include <ciao/eng_start.h>
 #include <ciao/eng_profile.h>

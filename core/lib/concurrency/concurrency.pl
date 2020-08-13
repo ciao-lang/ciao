@@ -370,7 +370,7 @@ concurrent(F/A, Mod) :-
 
 concurrent1(F, Goal) :-
     '$predicate_property'(F, _, Prop), !,
-    ( Prop/\1 =:= 1 -> true               % concurrent, xref nondet.c
+    ( Prop/\1 =:= 1 -> true               % concurrent, xref rt_exp.c
     ; functor(F, N, A),
       throw(error(permission_error(modify, static_procedure, N/A), Goal))
     ).

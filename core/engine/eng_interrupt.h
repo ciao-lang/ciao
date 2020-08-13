@@ -3,7 +3,8 @@
  *
  *  Interrupt handlers.
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2020 The Ciao Development Team
  */
 
 #ifndef _CIAO_ENG_INTERRUPT_H

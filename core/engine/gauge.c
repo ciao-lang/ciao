@@ -3,13 +3,14 @@
  *
  *  Support for profiling predicates.
  *
- *  Copyright (C) 1996,1997,1998, 1999, 2000, 2001, 2002 UPM-CLIP
+ *  Copyright (C) 1996-2002 UPM-CLIP
+ *  Copyright (C) 2020 The Ciao Development Team
  */
 
 #if defined(GAUGE)
 
 #include <ciao/eng.h>
-#include <ciao/wamsupport.h>
+#include <ciao/basiccontrol.h>
 
 /* declarations for global functions accessed here */
 

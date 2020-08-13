@@ -11,7 +11,8 @@
 
 #include <ciao/eng.h>
 #include <ciao/eng_registry.h>
-#include <ciao/nondet.h>
+#include <ciao/rt_exp.h>
+#include <ciao/runtime_control.h>
 #include <ciao/dynamic_rt.h>
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_gc.h>

@@ -10,8 +10,34 @@
 #ifndef _CIAO_BASICCONTROL_H
 #define _CIAO_BASICCONTROL_H
 
-#include <ciao/wamsupport.h>
 #include <ciao/eng_registry.h>
+
+CFUN__PROTO(wam, int, goal_descriptor_t *);
+
+/* ------------------------------------------------------------------------- */
+/* Support bytecode */
+
+extern bcp_t bootcode;
+// #if defined(INTERNAL_CALLING)
+// extern bcp_t internal_calling;
+// #endif
+extern bcp_t startgoalcode;
+
+#define CONTCODE(Arity) BCoff(contcode, (Arity) * (FTYPE_size(f_e) + FTYPE_size(f_o)))
+extern bcp_t contcode;
+
+extern bcp_t failcode;
+extern bcp_t exitcode;
+extern try_node_t *termcode;
+extern try_node_t *fail_alt;
+
+void init_some_bytecode(void);
+
+int p2_offset(uintmach_t insn);
+try_node_t *def_retry_c(cbool0_t proc, int arity);
+
+CBOOL__PROTO(set_trace_calls);
+CBOOL__PROTO(run_determ_c, tagged_t goal);
 
 /* ------------------------------------------------------------------------- */
 

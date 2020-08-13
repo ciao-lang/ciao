@@ -18,12 +18,10 @@
 #include <ciao/io_basic.h>
 #include <ciao/eng_start.h>
 #include <ciao/internals.h>
-#include <ciao/wamsupport.h>
 #include <ciao/dynamic_rt.h>
-#include <ciao/nondet.h>
+#include <ciao/rt_exp.h>
+#include <ciao/runtime_control.h>
 #include <ciao/term_support.h>
-#include <ciao/wam.h>
-#include <ciao/wamsupport.h>
 #include <ciao/eng_interrupt.h>
 
 /* --------------------------------------------------------------------------- */
