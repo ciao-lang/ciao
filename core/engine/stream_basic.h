@@ -33,6 +33,10 @@ void update_stream(stream_node_t *s, FILE *file);
 CFUN__PROTO(ptr_to_stream_noalias, tagged_t, stream_node_t *n);
 CFUN__PROTO(ptr_to_stream, tagged_t, stream_node_t *n);
 
+stream_node_t *new_stream(tagged_t streamname, char *streammode, FILE *streamfile);
+stream_node_t *stream_to_ptr(tagged_t t, int mode);
+stream_node_t *stream_to_ptr_check(tagged_t t, int mode, int *errcode);
+
 /* stream predicates */
 
 CBOOL__PROTO(prolog_bootversion);

@@ -88,4 +88,6 @@ CBOOL__PROTO(prolog_get_foreign_opts_ld);
 CBOOL__PROTO(prolog_get_foreign_opts_ccshared);
 CBOOL__PROTO(prolog_get_foreign_opts_ldshared);
 
+CBOOL__PROTO(prolog_current_executable);
+
 #endif /* _CIAO_SYSTEM_H */

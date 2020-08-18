@@ -15,37 +15,6 @@
     
 extern definition_t *address_true;                         /* Shared */
 
-extern tagged_t atm_var; /* Shared */
-extern tagged_t atm_attv; /* Shared */
-extern tagged_t atm_float; /* Shared */
-extern tagged_t atm_int; /* Shared */
-extern tagged_t atm_str; /* Shared */
-extern tagged_t atm_atm; /* Shared */
-extern tagged_t atm_lst; /* Shared */
-
-CFUN__PROTO(fu1_type, tagged_t, tagged_t t0) {
-  DEREF(t0,t0);
-  switch (TagOf(t0)) {
-    case UBV:
-    case SVA:
-    case HVA:
-      return atm_var;
-    case CVA:
-      return atm_attv;
-    case STR:
-      if (STRIsLarge(t0)) 
-        return LargeIsFloat(t0) ? atm_float : atm_int;
-      return atm_str;
-    case ATM:
-      return atm_atm;
-    case LST:
-      return atm_lst;
-    case NUM:
-      return atm_int;
-  }
-  return (tagged_t)NULL;                                  /* avoid warnings */
-} 
-
 /* ------------------------------------------------------------------------- */
  
 CFUN__PROTO(fu1_get_attribute, tagged_t, tagged_t x) {

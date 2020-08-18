@@ -46,4 +46,33 @@ int bn_canonized_length(bignum_t *x);
 
 intmach_t bn_length(bignum_t *x);
 
+/* `Out` is the large or small int from `Str` in base `Base`.
+ * `Arity` is the number of live X registers (in case of heap GC).
+ * (assumes `Str` represents a number)
+ */
+#define StringToInt(Str, Base, Out, Arity) ({                           \
+  int req = bn_from_string((Str),                                       \
+                           (bignum_t *)w->global_top,                   \
+                           (bignum_t *)(Heap_End-CONTPAD), (Base));     \
+  if (req != 0) {                                                       \
+    explicit_heap_overflow(Arg, req+CONTPAD, (Arity));                  \
+    if (bn_from_string((Str),                                           \
+                       (bignum_t *)w->global_top,                       \
+                       (bignum_t *)(Heap_End-CONTPAD), (Base))) {       \
+      SERIOUS_FAULT("miscalculated size of bignum");                    \
+    }                                                                   \
+  }                                                                     \
+  FinishInt(w->global_top, Out);                                        \
+})
+
+/* Like StringToInt, assuming enough heap (no GC) */
+#define StringToInt_nogc(Str, Base, Out) ({             \
+  if (bn_from_string((Str),                             \
+                     (bignum_t *)w->global_top,         \
+                     (bignum_t *)Heap_End, (Base))) {   \
+    SERIOUS_FAULT("miscalculated heap usage");          \
+  }                                                     \
+  FinishInt(w->global_top, Out);                        \
+})
+
 #endif /* _CIAO_BIGNUM_H */

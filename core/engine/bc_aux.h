@@ -355,3 +355,1120 @@ CBOOL__PROTO(run_determ_c, tagged_t goal)
   return FALSE;
 }
 
+/* --------------------------------------------------------------------------- */
+/* Term compiler for assert/record. */
+
+static CBOOL__PROTO(c_term, 
+                    tagged_t t,
+                    int Xreg,
+                    int FreeReg,
+                    int x_variables,
+                    tagged_t **trail_origo,
+                    bcp_t *current_insn);
+static CFUN__PROTO(emit_unify_void, bcp_t, bcp_t P);
+static CVOID__PROTO(c_term_mark,
+                    tagged_t t,
+                    intmach_t temps,
+                    intmach_t *cells,
+                    intmach_t *maxtemps,
+                    intmach_t *bsize,
+                    tagged_t **trail_origo);
+static CVOID__PROTO(c_term_trail_push,
+                    tagged_t t,
+                    tagged_t **trail_origo);
+
+/* NOTE: Aligned to the size of the pointers! */
+#define ODDOP(Insn)        \
+  if (((uintptr_t)P)&(sizeof(uintptr_t)-1))     \
+    { EMIT(Insn-0); }   \
+  else \
+    { EMIT(Insn-1); EMIT_Q(0); }
+#define EVENOP(Insn) \
+  if (!(((uintptr_t)P)&(sizeof(uintptr_t)-1)))  \
+    { EMIT(Insn-0); }                           \
+  else \
+    { EMIT(Insn-1); EMIT_Q(0); }
+#define EMIT(I) { Last_Insn=P; EMIT_o((I)); }
+
+/* TODO: Move as a compiler context structure -- JFMC */
+
+/* I believe the following must be shared and locked, because they are
+   related to code compilation */
+
+/*static bcp_t */
+ /* current_insn, */        /* Inside compile_term_aux and passed around */
+ /* last_insn;    */                          /* Inside compile_term_aux */
+
+
+/*static int*/
+ /* x_variables, */       /* Now inside compile_term_aux and pased around */
+ /* cells,       */                         /* Inited in compile_term_aux */
+ /* bsize,       */                         /* Inited in compile_term_aux */
+ /* maxtemps;    */                         /* Inited in compile_term_aux */
+
+/*static tagged_t*/
+ /* *trail_origo;*/                         /* Inited in compile_term_aux */
+
+
+static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo);
+static CVOID__PROTO(c_term_mark,
+                    tagged_t t, intmach_t temps,
+                    intmach_t *cells, intmach_t *maxtemps, intmach_t *bsize, tagged_t **trail_origo);
+static CFUN__PROTO(emit_unify_void, bcp_t, bcp_t P);
+static CBOOL__PROTO(c_term, tagged_t t, int Xreg, int FreeReg,
+                    int x_variables, tagged_t **trail_origo,
+                    bcp_t *current_insn);
+CBOOL__PROTO(compile_term, worker_t **new_worker);
+CFUN__PROTO(compile_term_aux, instance_t *,
+            tagged_t head, tagged_t body, worker_t **new_worker);
+
+static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo) {
+  if (!ChoiceDifference(w->node,w->trail_top)) {
+    tagged_t *tr = w->trail_top;
+    int reloc;
+
+    choice_overflow(Arg,-CHOICEPAD);
+    reloc = (char *)w->trail_top - (char *)tr;
+    *trail_origo = (tagged_t *)((char *)*trail_origo + reloc);
+    tr = w->trail_top;
+    while (tr[-1] & QMask)
+      TrailPop(tr) += reloc;
+    while (TrailYounger(tr,*trail_origo+DynamicPreserved))
+      *TagToPointer(TrailPop(tr)) += reloc;
+  }
+  TrailPush(w->trail_top,t);
+}
+
+//#define Tr(Str) fprintf(stderr, "%s\n", (Str));
+#define Tr(Str)
+
+static CVOID__PROTO(c_term_mark,
+                    tagged_t t,
+                    intmach_t temps,
+                    intmach_t *cells, intmach_t *maxtemps, intmach_t *bsize,
+                    tagged_t **trail_origo) {
+  CIAO_REG_2(tagged_t, t1);
+  int i, arity;
+
+ start:
+  DerefHeapSwitch(t,t1,{goto var_size;});
+  /* nonvar */
+  if (!(t & TagBitComplex)) { /* NUM or ATM */
+    if (t&QMask && t&TagBitFunctor) { /* ATM with QMask mark */
+      if (!(t&3)) {
+        /* unify_variable */
+        Tr("m:x");
+        *bsize += FTYPE_size(f_x);
+        (*TagToPointer(*TagToPointer(t)))++;
+      } else {
+        /* unify_value */
+        Tr("m:x");
+        *bsize += FTYPE_size(f_x);
+      }
+    } else if (t!=atom_nil) {
+      /* unify_ + pad + constant */
+      Tr("m:(Q)+t");
+      *bsize += FTYPE_size(f_Q)+FTYPE_size(f_t);
+    }
+    return;
+  } else if (!(t & TagBitFunctor)) { /* LST */
+    /* unify_ + xi + get_list + xj + 2*u */
+    Tr("m:x+o (?)");
+    Tr("m:x");
+    *bsize += (FTYPE_size(f_x)+
+               FTYPE_size(f_o)+
+               FTYPE_size(f_x)+
+               2*FTYPE_size(f_o));
+    *cells += 2;
+    if (*maxtemps < temps) {
+      *maxtemps = temps;
+    }
+    RefCar(t1,t);
+    Tr("m:o"); /* (from *bsize+=) */
+    c_term_mark(Arg, t1, temps+1, cells, maxtemps, bsize, trail_origo);
+    RefCdr(t,t);
+    Tr("m:o"); /* (from *bsize+=) */
+    goto start;
+  } else { /* STR or large NUM */
+    if (STRIsLarge(t)) {
+      arity = LargeSize(TagToHeadfunctor(t)); /* TODO: not 'arity'! */
+      /* unify_ + xi + get_large + pad + xj + (functor + largeNum) */
+      Tr("m:x+o (?)");
+      Tr("m:(Q)+x+o(?)+bnlen");
+      *bsize += (FTYPE_size(f_x)+
+                 FTYPE_size(f_o)+
+                 FTYPE_size(f_Q)+
+                 FTYPE_size(f_x)+
+                 FTYPE_size(f_o)+
+                 arity);
+      *cells += 1+(arity / sizeof(tagged_t));
+      return;
+    } else {
+      arity = Arity(TagToHeadfunctor(t));
+      /* unify_ + xi + get_structure + pad + functor + xj + arity*u */
+      Tr("m:x+o (?)");
+      Tr("m:(Q)+x+f");
+      *bsize += (FTYPE_size(f_x)+
+                 FTYPE_size(f_o)+
+                 FTYPE_size(f_Q)+
+                 FTYPE_size(f_x)+
+                 FTYPE_size(f_f)+
+                 arity*FTYPE_size(f_o));
+      *cells += 1+arity;
+      if (*maxtemps < temps) {
+        *maxtemps = temps;
+      }
+      for (i=1; i<arity; i++) {
+        Tr("m:o"); /* (from *bsize+=) */
+        RefArg(t1,t,i);
+        c_term_mark(Arg, t1, temps+arity-i, cells, maxtemps, bsize, trail_origo);
+      }
+      Tr("m:o"); /* (from *bsize+=) */
+      RefArg(t,t,arity);
+      goto start;
+    }
+  }
+ var_size:
+  if (t & TagBitCVA) { /* CVA */
+    *TagToPointer(t) = Tag(ATM,w->trail_top)|QMask|2;
+    c_term_trail_push(Arg,t,trail_origo);
+    /* unify_variable + xi + get_constraint + xj + 2*u */
+    Tr("m:x");
+    Tr("m:o+x");
+    Tr("m:o");
+    Tr("m:o");
+    *bsize += (FTYPE_size(f_x)+
+               FTYPE_size(f_o)+
+               FTYPE_size(f_x)+
+               FTYPE_size(f_o)+
+               FTYPE_size(f_o));
+    if (*maxtemps < temps) {
+      *maxtemps = temps;
+    }
+    t = Tag(LST,TagToGoal(t));
+    goto start;
+  } else { /* HVA */
+    *TagToPointer(t) = Tag(ATM,w->trail_top)|QMask;
+    c_term_trail_push(Arg,t,trail_origo);
+    /* unify_variable + xi */
+    Tr("m:x");
+    *bsize += FTYPE_size(f_x);
+  }
+  return;
+}
+
+static CFUN__PROTO(emit_unify_void, bcp_t, bcp_t P) {
+  switch (BCOp(Last_Insn, FTYPE_ctype(f_o), 0)) {
+  case UNIFY_VOID_1:
+  case UNIFY_VOID_2:
+  case UNIFY_VOID_3:
+    BCOp(Last_Insn, FTYPE_ctype(f_o), 0)++;
+    break;
+  case UNIFY_VOID_4:
+    BCOp(Last_Insn, FTYPE_ctype(f_o), 0) = UNIFY_VOID;
+    Tr("e:i");
+    EMIT_i(5);
+    break;
+  case UNIFY_VOID:
+    BCOp(P, FTYPE_ctype(f_i), -FTYPE_size(f_i))++;
+    break;
+  default:
+    Tr("e:o");
+    EMIT(UNIFY_VOID_1);
+  }
+  return P;
+}
+
+static CBOOL__PROTO(c_term, 
+                    tagged_t t,
+                    int Xreg, int FreeReg,
+                    int x_variables,
+                    tagged_t **trail_origo,
+                    bcp_t *current_insn) {
+  bcp_t psave;
+  tagged_t *ssave;
+  int i, ar = ~0, decr, Treg;
+  bcp_t P = *current_insn;
+  tagged_t *s = NULL;
+  tagged_t t1;
+
+  /* Step 1: Emit GET instruction for term's principal functor. */
+  switch (TagOf(t)) { /* t is already dereferenced */
+  case LST:
+    ar = 2;
+    s = TagToLST(t);
+    Tr("e:o+x");
+    EMIT(GET_LIST);
+    EMITtok(f_x, Xop(Xreg));
+    break;
+  case STR:
+    if (STRIsLarge(t)) {
+      Tr("e:o(Q)+x+bnlen");
+      EVENOP(GET_LARGE);
+      EMITtok(f_x, Xop(Xreg));
+      P = BCoff(P, compile_large(t, P));
+      *current_insn = P;
+      return TRUE;
+    } else {
+      Tr("e:o(Q)+x+f");
+      ar = Arity(TagToHeadfunctor(t));
+      s = TagToArg(t,1);
+      EVENOP(GET_STRUCTURE);
+      EMITtok(f_x, Xop(Xreg));
+      EMIT_f(TagToHeadfunctor(t));
+      break;
+    }
+  case ATM:
+    if (t & QMask) {
+      goto term_is_var;
+    } else if (t==atom_nil) {
+      Tr("e:o+x");
+      EMIT(GET_NIL);
+      EMITtok(f_x, Xop(Xreg));
+      *current_insn = P;
+      return TRUE;
+    }
+  case NUM:
+    Tr("e:o(Q)+x+t");
+    EVENOP(GET_CONSTANT);
+    EMITtok(f_x, Xop(Xreg));
+    EMIT_t(t);
+    *current_insn = P;
+    return TRUE;
+
+  term_is_var:
+    {
+      if ((t&3)!=3) { /* get_variable */
+        Tr("e:o+x+x");
+        EMIT(GET_X_VARIABLE);
+        EMITtok(f_x, Xop(Xreg));
+        EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
+        if (t&2) { /* enqueue constraint */
+          c_term_trail_push(Arg,t,trail_origo);
+        }
+        *TagToPointer(*TagToPointer(t)) |= 3;
+      } else { /* get_value */
+        Tr("e:o+x+x");
+        EMIT(GET_X_VALUE);
+        EMITtok(f_x, Xop(Xreg));
+        EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
+      }
+      *current_insn = P;
+      return TRUE;
+    }
+  }
+
+  /* Step 2: Emit tail-recursive UNIFY sequence for all subargs. */
+  psave = P;
+  ssave = s;
+  Treg = reg_bank_size;
+
+  for (i=1; i<=ar; i++) {
+    RefHeapNext(t,s);
+    DerefHeapSwitch(t,t1,{ goto arg_is_void; });
+    switch (TagOf(t)) {
+    case LST:
+      if ((i==ar) && (Treg==reg_bank_size)) {
+        Tr("e:o");
+        EMIT(UNIFY_LIST);
+        s = TagToLST(t);
+        i=0, ar=2;
+      } else {
+        Tr("e:o+x");
+        EMIT(UNIFY_X_VARIABLE);
+        EMITtok(f_x, Xop(Treg++));
+      }
+      break;
+    case STR:
+      if (STRIsLarge(t)) {
+        if ((i==ar) && (Treg==reg_bank_size)) {
+          Tr("e:o(Q)+bnlen");
+          ODDOP(UNIFY_LARGE);
+          P = BCoff(P, compile_large(t, P));
+        } else {
+          Tr("e:o+x");
+          EMIT(UNIFY_X_VARIABLE);
+          EMITtok(f_x, Xop(Treg++));
+        }
+      } else if ((i==ar) && (Treg==reg_bank_size)) {
+        Tr("e:o(Q)+f");
+        ODDOP(UNIFY_STRUCTURE);
+        EMIT_f(TagToHeadfunctor(t));
+        s = TagToArg(t,1);
+        i=0, ar=Arity(TagToHeadfunctor(t));
+      } else {
+        Tr("e:o+x");
+        EMIT(UNIFY_X_VARIABLE);
+        EMITtok(f_x, Xop(Treg++));
+      }
+      break;
+    case ATM:
+      if (t & QMask) {
+        goto arg_is_var;
+      } else if (t==atom_nil) {
+        Tr("e:o");
+        EMIT(UNIFY_NIL);
+        break;
+      }
+    case NUM:
+      Tr("e:o(Q)+t");
+      ODDOP(UNIFY_CONSTANT);
+      EMIT_t(t);
+      break;
+
+    arg_is_var:
+      {
+        if ((t&3)!=3) { /* unify_variable */
+          Tr("e:o+x");
+          EMIT(UNIFY_X_VARIABLE);
+          EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
+          if (t&2)      /* enqueue constraint */
+            c_term_trail_push(Arg,t,trail_origo);
+          *TagToPointer(*TagToPointer(t)) |= 3;
+        } else { /* unify_value */
+          Tr("e:o+x");
+          EMIT(UNIFY_X_VALUE);
+          EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
+        }
+        break;
+      }
+
+    arg_is_void:
+      P = emit_unify_void(Arg, P);
+      break;
+    }
+  }
+
+  /* Step 3: Scan emitted code and recursively emit code for nested args. */
+  *current_insn = P;
+  if (FreeReg < x_variables)
+    return FALSE;
+  if (Treg==reg_bank_size)
+    return TRUE;
+  decr = Treg-1-FreeReg;
+  s = ssave;
+  P = psave;
+  psave = *current_insn;
+
+  while (P < psave) {
+    switch (BcFetchOPCODE()) {
+    case UNIFY_LIST:
+      DerefHeap(t,s);
+      s = TagToLST(t);
+      break;
+    case UNIFY_STRUCTUREQ:
+      P = BCoff(P, FTYPE_size(f_Q));
+    case UNIFY_STRUCTURE:
+      P = BCoff(P, FTYPE_size(f_f));
+      DerefHeap(t,s);
+      s = TagToArg(t,1);
+      break;
+    case UNIFY_LARGEQ:
+      P = BCoff(P, FTYPE_size(f_Q));
+    case UNIFY_LARGE:
+      P = BCoff(P, LargeSize(*(tagged_t *)P));
+      (void)HeapNext(s);
+      break;
+    case UNIFY_CONSTANTQ:
+      P = BCoff(P, FTYPE_size(f_Q));
+    case UNIFY_CONSTANT:
+      P = BCoff(P, FTYPE_size(f_t));
+    case UNIFY_NIL:
+      (void)HeapNext(s);
+      break;
+    case UNIFY_X_VARIABLE:
+      i = Xinv(BCOp(P, FTYPE_ctype(f_x), 0));
+      if (i>=reg_bank_size) {
+        EMITtok(f_x, Xop(i-decr)); /* TODO: patch? */
+        DerefHeapNext(t,s);
+        if (!c_term(Arg,t,i-decr,i-decr,x_variables,
+                    trail_origo,current_insn))
+          return FALSE;
+        break;
+      }
+    case UNIFY_X_VALUE:
+      P = BCoff(P, FTYPE_size(f_x));
+      (void)HeapNext(s);
+      break;
+    case UNIFY_VOID:
+      s += BCOp(P, FTYPE_ctype(f_i), 0);
+      P = BCoff(P, FTYPE_size(f_i));
+      break;
+    case UNIFY_VOID_4:
+      (void)HeapNext(s);
+    case UNIFY_VOID_3:
+      (void)HeapNext(s);
+    case UNIFY_VOID_2:
+      (void)HeapNext(s);
+    case UNIFY_VOID_1:
+      (void)HeapNext(s);
+      break;
+    default:
+      SERIOUS_FAULT("compile_term: internal error");
+    }
+  }
+  return TRUE;
+}
+
+/* (used from absmach_def.pl) */
+
+/* ASSERT: X(0) is always a dereferenced list. */
+/* Also, returns in the second argument a pointer to a non-null worker
+   pointer if the worker has changed, or to null if it has. */
+
+CBOOL__PROTO(compile_term, 
+             worker_t **new_worker) {
+  tagged_t head, body;
+  instance_t *object;
+
+  RefCar(head,X(0));
+  RefCdr(body,X(0));
+
+  /*
+#if defined(DEBUG)
+  display_term(Arg, head, Output_Stream_Ptr, FALSE);
+  putchar('\n');
+#endif
+  */
+
+  *new_worker = NULL;                             /* may be changed after */
+
+  object = compile_term_aux(Arg, head, body, new_worker);
+  Arg = *new_worker == NULL ? Arg : *new_worker;
+
+  CBOOL__UnifyCons(PointerToTerm(object),X(1));
+  return TRUE;
+}
+
+/* Note on memory consumption: compile_term_aux may increase the size of the
+   stacks and the size of the X register bank, so the simple approach "see
+   how much the total memory has increased" does not work.  Instead, we try
+   to find out exactly where we allocate and deallocate memory for program
+   storage.  c_term_mark does not allocate program memory (instead, it may
+   call choice_overflow, which expands stacks). */
+
+CFUN__PROTO(compile_term_aux, instance_t *,
+            tagged_t head, tagged_t body,
+            worker_t **new_worker) {
+  int truesize;
+  //  tagged_t t0, *pt1, *pt2;
+  CIAO_REG_1(tagged_t, t0);
+  CIAO_REG_2(tagged_t *, pt1);
+  CIAO_REG_3(tagged_t *, pt2);
+  instance_t *object = NULL;
+  
+  intmach_t x_variables, cells, bsize, maxtemps;
+  tagged_t *trail_origo;
+  bcp_t current_insn /*, *last_insn */ ;
+
+  bsize = FTYPE_size(f_o); /* TODO: for DYNAMIC_NECK_PROCEED? */
+  cells=CONTPAD;
+  maxtemps=0;
+  trail_origo = Arg->trail_top-DynamicPreserved;
+
+  Tr("c_term_mark1");
+  DerefHeapSwitch(head,t0,{goto car_done;});
+  Tr("m:o+x");
+  bsize += FTYPE_size(f_o)+FTYPE_size(f_x); /* for "Step 1" of c_term (get + arg + ...) */
+  c_term_mark(Arg, head, 0, &cells, &maxtemps, &bsize, &trail_origo);
+ car_done:
+  Tr("c_term_mark2");
+  DerefHeapSwitch(body,t0,{goto cdr_done;});
+  Tr("m:o+x");
+  bsize += FTYPE_size(f_o)+FTYPE_size(f_x); /* for "Step 1" of c_term (get + arg + ...) */
+  c_term_mark(Arg, body, 0, &cells, &maxtemps, &bsize, &trail_origo);
+ cdr_done:
+
+  /* allow for heapmargin_call insn */
+  if (cells>=STATIC_CALLPAD) { /* (was SOFT_HEAPPAD) */
+    Tr("m:o(Q)+l+i");
+    bsize += (FTYPE_size(f_o)+
+              FTYPE_size(f_Q)+
+              FTYPE_size(f_l)+
+              FTYPE_size(f_i));
+  }
+
+  /* tidy out void vars */
+  pt1 = pt2 = trail_origo+DynamicPreserved;
+  while (pt1 < Arg->trail_top) {
+    t0 = TrailNext(pt1);
+    if (*TagToPointer(t0) & 3) {
+      *TagToPointer(t0) -= (char *)(pt1-1)-(char *)pt2, TrailPush(pt2,t0);
+    } else {
+      *TagToPointer(t0) = t0;
+    }
+  }
+  Arg->trail_top = pt2;
+  x_variables = pt2-trail_origo;
+
+                                /* ensure enough X registers */
+  if (x_variables+maxtemps > reg_bank_size) {
+    int size0 = reg_bank_size;
+      
+    if (x_variables+maxtemps > (1<<14) - WToX0 - maxtemps) /* TODO: ad-hoc size */
+      goto sizebomb;
+
+    reg_bank_size=x_variables+maxtemps;
+
+    *new_worker = /* For local use */
+      checkrealloc_FLEXIBLE(worker_t,
+                            tagged_t,
+                            size0,
+                            reg_bank_size,
+                            Arg);
+#if defined(DEBUG)
+    fprintf(stderr, "Reallocing WRB from %p to %p\n", Arg, *new_worker);
+#endif
+    Arg = *new_worker;
+  }
+
+  checkalloc_FLEXIBLE_S(instance_t,
+                        objsize,
+                        char,
+                        bsize,
+                        object);
+  INC_MEM_PROG(object->objsize);
+  current_insn = (bcp_t)object->emulcode;
+  object->pending_x2 = NULL;
+  object->pending_x5 = NULL;
+
+  if (cells>=STATIC_CALLPAD) { /* (was SOFT_HEAPPAD) */
+    bcp_t P = current_insn;
+
+    Tr("e:o(Q)+l+i");
+    ODDOP(HEAPMARGIN_CALL);
+    EMIT_l(cells);
+    EMIT_i(DynamicPreserved);
+    current_insn = P;
+  }
+
+  if (!IsVar(head) &&
+      !c_term(Arg,head,0,reg_bank_size-1,x_variables,
+              &trail_origo,&current_insn))
+    goto sizebomb;
+  if (!IsVar(body) &&
+      !c_term(Arg,body,1,reg_bank_size-1,x_variables,
+              &trail_origo,&current_insn))
+    goto sizebomb;
+
+  while (Arg->trail_top[-1] & QMask) {
+    bcp_t P = current_insn;
+
+    if (!TrailYounger(Arg->trail_top,Trail_Start))
+      break;
+    t0 = TrailPop(Arg->trail_top);
+    if (!c_term(Arg,
+                Tag(LST,TagToGoal(*TagToPointer(t0))),
+                TagToPointer(t0)-trail_origo,
+                  reg_bank_size-1,
+                x_variables,
+                &trail_origo,
+                &current_insn))
+      goto sizebomb;
+    BCOp(P, FTYPE_ctype(f_o), 0) = GET_CONSTRAINT;
+  }
+
+  {
+    bcp_t P = current_insn;
+    Tr("e:o");
+    EMIT_o(DYNAMIC_NECK_PROCEED);
+    current_insn = P;
+  }
+  truesize = SIZEOF_FLEXIBLE_STRUCT(instance_t, char, (char *)current_insn - (char *)object->emulcode);
+  if (truesize > object->objsize) {
+    DEC_MEM_PROG(object->objsize);
+    checkdealloc_FLEXIBLE_S(instance_t, objsize, object);
+    SERIOUS_FAULT("bug: memory overrun in assert or record");
+  }
+
+  if (IsVar(head)) {
+    /* findall record---make it fast */
+  } else {
+    INC_MEM_PROG(truesize - object->objsize);
+    //fprintf(stderr, "resize %x-%x\n", object->objsize, truesize);
+    object=(instance_t *)checkrealloc((tagged_t *)object, object->objsize, truesize);
+    object->objsize = truesize;
+  }
+
+  pt2 = Arg->trail_top;
+  Arg->trail_top = trail_origo+DynamicPreserved;
+  while (TrailYounger(pt2,Arg->trail_top)) {
+    PlainUntrail(pt2,t0,{});
+  }
+
+  if (TagIsSTR(head))  {
+    DerefArg(t0,head,1);
+    if (TagIsSTR(t0)) {
+      object->key = TagToHeadfunctor(t0);
+    } else if (TagIsLST(t0)) {
+      object->key = functor_list;
+    } else if (!IsVar(t0)) {
+      object->key = t0;
+    } else {
+      object->key = ERRORTAG;
+    }
+  } else {
+    object->key = ERRORTAG;
+  }
+
+  Tr("c_term_end");
+  return object;
+
+ sizebomb:
+  DEC_MEM_PROG(object->objsize);
+  checkdealloc_FLEXIBLE_S(instance_t, objsize, object);
+  SERIOUS_FAULT("term too large in assert or record");
+}
+
+
+#if defined(OLD_DATABASE)
+/* Support for current_key/2: given a '$current instance'/2 instance,
+   the key of which is a large number, decode the key. */
+tagged_t decode_instance_key(instance_t *inst) {
+  bcp_t P = inst->emulcode;
+  int xreg = -1;
+
+  for (;;) {
+    switch (BcFetchOPCODE()) {
+    case HEAPMARGIN_CALLQ:
+      P = BCoff(P, FTYPE_size(f_Q));
+    case HEAPMARGIN_CALL:
+      P = BCoff(P, FTYPE_size(f_l)+FTYPE_size(f_i));
+      break;
+    case GET_CONSTANTQ:
+      P = BCoff(P, FTYPE_size(f_Q));
+    case GET_CONSTANT:
+      P = BCoff(P, FTYPE_size(f_x)+FTYPE_size(f_t));
+      break;
+    case GET_STRUCTUREQ:
+      P = BCoff(P, FTYPE_size(f_Q));
+    case GET_STRUCTURE:
+      P = BCoff(P, FTYPE_size(f_x)+FTYPE_size(f_f));
+      break;
+    case GET_LARGEQ:
+      P = BCoff(P, FTYPE_size(f_Q));
+    case GET_LARGE:
+      if (xreg == Xinv(BCOp(P, FTYPE_ctype(f_x), 0)))
+        return MakeLarge(BCoff(P, FTYPE_size(f_x)));
+      P = BCoff(P, 
+                FTYPE_size(f_x)+
+                LargeSize((*(tagged_t *)(BCoff(P, FTYPE_size(f_x))))));
+      break;
+    case UNIFY_CONSTANTQ:
+      P = BCoff(P, FTYPE_size(f_Q));
+    case UNIFY_CONSTANT:
+      P = BCoff(P, FTYPE_size(f_t));
+      break;
+    case UNIFY_STRUCTUREQ:
+      P = BCoff(P, FTYPE_size(f_Q));
+    case UNIFY_STRUCTURE:
+      P = BCoff(P, FTYPE_size(f_f));
+      break;
+    case UNIFY_LARGEQ:
+      P = BCoff(P, FTYPE_size(f_Q));
+    case UNIFY_LARGE:
+      P = BCoff(P, LargeSize(*(tagged_t *)P));
+      break;
+    case UNIFY_X_VARIABLE:
+      if (xreg == -1)
+        xreg = Xinv(BCOp(P, FTYPE_ctype(f_x), 0));
+    case UNIFY_X_VALUE:
+    case UNIFY_VOID:
+    case GET_LIST:
+    case GET_CONSTRAINT:
+    case GET_NIL:
+      P = BCoff(P, FTYPE_size(f_x));
+      break;
+    case GET_X_VARIABLE:
+    case GET_X_VALUE:
+      P = BCoff(P, FTYPE_size(f_x)+FTYPE_size(f_x));
+    default:
+      break;
+    }
+  }
+}
+#endif
+
+/* --------------------------------------------------------------------------- */
+
+/* Support for if/3 */
+CBOOL__PROTO(bu1_if, tagged_t x0)
+{
+  DEREF(x0,x0);
+  *TagToCar(x0) = atom_true;
+  return TRUE;
+}
+
+CBOOL__PROTO(metachoice)
+{
+  CBOOL__UnifyCons(ChoiceToInt(w->node),X(0));
+  return TRUE;
+}
+
+CBOOL__PROTO(metacut)
+{
+  DEREF(X(0),X(0));
+  w->node = ChoiceFromInt(X(0));
+  SetShadowregs(w->node);
+  /*  ConcChptCleanUp(TopConcChpt, w->node);*/
+  PROFILE__HOOK_METACUT;
+  return TRUE;
+
+}
+
+/*------------------------------------------------------------*/
+
+static CBOOL__PROTO(cunify_args_aux,
+                    int arity, tagged_t *pt1, tagged_t *pt2,
+                    tagged_t *x1, tagged_t *x2);
+static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2);
+
+/* Unify the argument lists of two compund terms.
+ * pt1 - first argument list.
+ * pt2 - second argument list.
+ * arity - number of arguments.
+ */
+CBOOL__PROTO(cunify_args, 
+             int arity,
+             tagged_t *pt1,
+             tagged_t *pt2)
+{
+  tagged_t x1, x2;
+  bool_t result =
+    (cunify_args_aux(Arg,arity,pt1,pt2,&x1,&x2) && cunify_aux(Arg,x1,x2));
+  intmach_t i = w->value_trail;
+
+  if (i<InitialValueTrail) {
+    pt2 = (tagged_t *)w->node;
+    do {
+      pt1 = (tagged_t *)pt2[i++];
+      *pt1 = pt2[i++];
+    } while (i<InitialValueTrail);
+    w->value_trail = (intmach_t)InitialValueTrail;
+  }
+
+  return result;
+}
+
+static CBOOL__PROTO(cunify_args_aux, 
+                    int arity,
+                    tagged_t *pt1,
+                    tagged_t *pt2,
+                    tagged_t *x1,
+                    tagged_t *x2)
+{
+  tagged_t t1 = ~0;
+  tagged_t t2 = ~0;
+  tagged_t t3;
+
+  /* Terminating unification of complex structures: Forward args of pt2 to
+     args of pt1 using choice stack as value cell.  When done, reinstall
+     values. */
+
+  if (ChoiceYounger(ChoiceOffset(w->node,2*CHOICEPAD-w->value_trail),w->trail_top))
+                                /* really: < 2*arity */
+    choice_overflow(Arg,2*CHOICEPAD);
+  for (; arity>0; --arity) {
+    t1 = *pt1, t2 = *pt2;
+    if (t1 != t2) {
+      DerefHeapSwitch(t1,t3,goto noforward;);
+      DerefHeapSwitch(t2,t3,goto noforward;);
+      if (t1!=t2 && IsComplex(t1&t2)) {
+        /* replace smaller value by larger value,
+           using choice stack as value trail */
+        tagged_t *b = (tagged_t *)w->node;
+        intmach_t i = w->value_trail;
+
+        if (t1>t2)
+          b[--i] = *pt1,
+            b[--i] = (tagged_t)pt1,
+            *pt1 = t2;
+        else
+          b[--i] = *pt2,
+            b[--i] = (tagged_t)pt2,
+            *pt2 = t1;
+        w->value_trail = i;
+      noforward:
+        if (arity>1 && !cunify_aux(Arg,t1,t2))
+          return FALSE;
+      } else if (t1 != t2)
+        return FALSE;
+    }
+    (void)HeapNext(pt1);
+    (void)HeapNext(pt2);
+  }
+
+  *x1 = t1, *x2 = t2;
+
+  if (ChoiceYounger(ChoiceOffset(w->node,CHOICEPAD-w->value_trail),w->trail_top))
+    choice_overflow(Arg,CHOICEPAD);
+  return TRUE;
+}
+
+/* Unify two terms.
+ * x1 - first term
+ * x2 - second term
+ */
+
+/* NOTE: This is a recursive version of Robinson's 1965 unification
+   algorithm without occurs check */
+
+CBOOL__PROTO(cunify, tagged_t x1, tagged_t x2)
+{
+  bool_t result = cunify_aux(Arg,x1,x2);
+  intmach_t i = w->value_trail;
+
+  if (i<InitialValueTrail) {
+    tagged_t *pt1, *pt2;
+
+    pt2 = (tagged_t *)w->node;
+    do {
+      pt1 = (tagged_t *)pt2[i++];
+      *pt1 = pt2[i++];
+    } while (i<InitialValueTrail);
+    w->value_trail = (intmach_t)InitialValueTrail;
+  }
+
+  return result;
+}
+
+static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
+{
+  tagged_t u, v, t1;
+
+ in:
+  u=x1, v=x2;
+
+  SwitchOnVar(u,t1,
+              {goto u_is_hva;},
+              {goto u_is_cva;},
+              {goto u_is_sva;},
+              ;);
+
+                                /* one non variable */
+  SwitchOnVar(v,t1,
+              { BindHVA(v,u); goto win; },
+              { BindCVA(v,u); goto win; },
+              { BindSVA(v,u); goto win; },
+              ;);
+
+                                /* two non variables */
+  if (!(v ^= u))                /* are they equal? */
+    goto win;
+  else if (v>=QMask)            /* not the same type? */
+    goto lose;
+  else if (!(u & TagBitComplex)) /* atomic? (& not LNUM)*/
+    goto lose;
+  else if (!(u & TagBitFunctor)) /* list? */
+    {
+      v ^= u;                   /* restore v */
+      if (cunify_args_aux(Arg,2,TagToCar(u),TagToCar(v),&x1,&x2))
+        goto in;
+      else
+        goto lose;
+    }
+  else                          /* structure. */
+    {
+      v ^= u;                   /* restore v */
+      if (TagToHeadfunctor(u) != (t1=TagToHeadfunctor(v)))
+        goto lose;
+      else if (t1&QMask)        /* large number */
+        {
+          intmach_t i;
+        
+          for (i = LargeArity(t1)-1; i>0; i--)
+            if (*TagToArg(u,i) != *TagToArg(v,i)) goto lose;
+          goto win;
+        }
+      if (cunify_args_aux(Arg,Arity(t1),TagToArg(u,1),TagToArg(v,1),&x1,&x2))
+        goto in;
+      else
+        goto lose;
+    }
+
+ u_is_hva:
+  SwitchOnVar(v,t1,
+              { if (u==v)
+                  ;
+                else if (YoungerHeapVar(TagToHVA(v),TagToHVA(u)))
+                  BindHVA(v,u)
+                else
+                  BindHVA(u,v); },
+              { BindHVA(u,v); },
+              { BindSVA(v,u); },
+              { BindHVA(u,v); });
+  goto win;
+
+ u_is_cva:
+  SwitchOnVar(v,t1,
+              { BindHVA(v,u); },
+              { if (u==v)
+                  ;
+                else if (YoungerHeapVar(TagToCVA(v),TagToCVA(u)))
+                  { BindCVA(v,u); }
+                else
+                  { BindCVA(u,v); } },
+              { BindSVA(v,u); },
+              { BindCVA(u,v); });
+  goto win;
+
+ u_is_sva:
+  for (; TagIsSVA(v); v = t1)
+    {
+      RefSVA(t1,v);
+      if (v == t1)
+        {
+          if (u==v)
+            ;
+          else if (YoungerStackVar(TagToSVA(v),TagToSVA(u)))
+            BindSVA(v,u)
+          else
+            BindSVA(u,v);
+          goto win;
+        }
+    }
+  BindSVA(u,v);
+
+ win:
+  return TRUE;
+
+ lose:
+  return FALSE;
+}
+
+/* --------------------------------------------------------------------------- */
+
+/* TODO: currently unused */
+
+/* Support function for dif/2.
+   Fast cases have already been tested in wam().
+   X(0) and X(1) are dereferenced.
+   w->structure-1  points at an existing goal if non-NULL.
+*/
+CBOOL__PROTO(prolog_dif, definition_t *address_dif)
+{
+  node_t *b;
+  tagged_t t0, t1, t2, *pt1, *pt2;
+  intmach_t i;
+  tagged_t item, other;
+                                /* avoid stack variables */
+  if (!w->structure)
+    {
+      if (TagIsSVA(t0=X(0)))
+        {
+          LoadHVA(X(0),w->global_top);
+          BindSVA(t0,X(0));
+        }
+      if (TagIsSVA(t0=X(1)))
+        {
+          LoadHVA(X(1),w->global_top);
+          BindSVA(t0,X(1));
+        }
+    }
+                                /* establish skeletal choicepoint */
+  b = w->node;
+  w->next_alt = address_nd_repeat; /* arity=0 */
+  ComputeA(w->local_top,b);
+  w->node = b = ChoiceCharOffset(b,ArityToOffset(0));
+  b->next_alt = NULL;
+  b->trail_top = w->trail_top;
+  SaveGtop(b,w->global_top);
+  NewShadowregs(w->global_top);
+  
+  if (cunify(Arg,X(0),X(1))) /* this could use AB, HB, TR, B. */
+    item = atom_equal,
+    other = TagHVA(w->global_top);
+  else
+    item = other = atom_lessthan;
+  
+  /* quasi failure */
+  
+  Heap_Warn_Soft = Int_Heap_Warn;
+  b = w->node;
+  t2 = (tagged_t)TagToPointer(b->trail_top);
+  if (TrailYounger(pt1=w->trail_top, t2))
+    {
+      do
+        {
+          if (IsVar(other))
+            {
+              item = pt1[-1];   /* variable */
+              other = *TagToPointer(item);
+            }
+          PlainUntrail(pt1,t0,{});
+        }
+      while (TrailYounger(pt1, t2));
+      w->trail_top = pt1;
+    }
+  
+  RestoreGtop(b);
+  w->node = b = ChoiceCharOffset(b,-ArityToOffset(0));
+  w->next_alt = NULL;
+  SetShadowregs(b);
+
+                                /* succeed, fail, or suspend */
+  if (item==atom_lessthan)
+    return TRUE;
+  else if (item==atom_equal)
+    return FALSE;
+  
+
+                                /* construct goal on the heap */
+  pt2 = w->global_top;
+  if (w->structure)
+    X(2) = Tag(STR,w->structure-1);
+  else
+    {
+      X(2) = Tag(STR,pt2);
+      HeapPush(pt2,SetArity(address_dif->printname,2));
+      HeapPush(pt2,X(0));
+      HeapPush(pt2,X(1));
+    }
+
+
+                                /* constrain pivot variable(s) */
+  for (i=0, t1=item; i<2; i++, t1=other)
+    {
+      if (IsVar(t1))
+          {
+            if (TagIsHVA(t1))
+              {
+                LoadCVA(t0,pt2);
+                if (CondHVA(t1)) {
+                    TrailPush(pt1,t1);
+                    *TagToHVA(t1) = t0;
+                } else {
+                  *TagToHVA(t1) = t0;
+                }
+                goto check_trail;
+              }
+            else if (!CondCVA(t1))
+              {
+                HeapPush(pt2,*TagToGoal(t1));
+                HeapPush(pt2,*TagToDef(t1));
+                *TagToGoal(t1) = Tag(LST,HeapOffset(pt2,-2));
+                *TagToDef(t1) = Tag(LST,pt2);
+              }
+            else
+              {
+                LoadCVA(t0,pt2);
+                HeapPush(pt2,Tag(LST,TagToGoal(t1)));
+                HeapPush(pt2,Tag(LST,HeapOffset(pt2,1)));
+                TrailPush(pt1,t1);
+                *TagToCVA(t1) = t0;
+              check_trail:
+                if (ChoiceYounger(w->node,TrailOffset(pt1,CHOICEPAD)))
+                  w->trail_top = pt1,
+                  choice_overflow(Arg,CHOICEPAD),
+                  pt1 = w->trail_top;
+              }
+            HeapPush(pt2,X(2));
+            HeapPush(pt2,PointerToTerm(address_dif));
+          }
+    }
+  w->global_top = pt2;
+  w->trail_top = pt1;
+  
+  return TRUE;
+}
+

@@ -1,40 +1,19 @@
 /*
  *  arithmetic.h
  *
- *  Routines for 'builtintab' predicates
- *
  *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2002-2015 The Ciao Development Team
+ *  Copyright (C) 2002-2020 The Ciao Development Team
  */
 
-#ifndef _CIAO_WAMBUILTIN_H
-#define _CIAO_WAMBUILTIN_H
+#ifndef _CIAO_ARITHMETIC_H
+#define _CIAO_ARITHMETIC_H
 
-CBOOL__PROTO(bu1_atom, tagged_t x0);
-CBOOL__PROTO(bu1_atomic, tagged_t x0);
-CBOOL__PROTO(bu1_float, tagged_t x0);
-CBOOL__PROTO(bu1_if, tagged_t x0);
-CBOOL__PROTO(bu1_integer, tagged_t x0);
-CBOOL__PROTO(bu1_nonvar, tagged_t x0);
-CBOOL__PROTO(bu1_number, tagged_t x0);
-CBOOL__PROTO(bu1_var, tagged_t x0);
-CBOOL__PROTO(bu2_lexeq, tagged_t x0, tagged_t x1);
-CBOOL__PROTO(bu2_lexge, tagged_t x0, tagged_t x1);
-CBOOL__PROTO(bu2_lexgt, tagged_t x0, tagged_t x1);
-CBOOL__PROTO(bu2_lexle, tagged_t x0, tagged_t x1);
-CBOOL__PROTO(bu2_lexlt, tagged_t x0, tagged_t x1);
-CBOOL__PROTO(bu2_lexne, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_numeq, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_numge, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_numgt, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_numle, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_numlt, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_numne, tagged_t x0, tagged_t x1);
-CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list);
-CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity);
-
-CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex, bcp_t liveinfo);
-CFUN__PROTO(fu2_compare, tagged_t, tagged_t x1, tagged_t x2, bcp_t liveinfo);
 
 CFUN__PROTO(fu1_add1, tagged_t, tagged_t X0, bcp_t liveinfo);
 CFUN__PROTO(fu1_float, tagged_t, tagged_t X0, bcp_t liveinfo);
@@ -72,4 +51,4 @@ CFUN__PROTO(fu1_sin, tagged_t, tagged_t X0, bcp_t liveinfo);
 CFUN__PROTO(fu1_cos, tagged_t, tagged_t X0, bcp_t liveinfo);
 CFUN__PROTO(fu1_atan, tagged_t, tagged_t X0, bcp_t liveinfo);
 
-#endif /* _CIAO_WAMBUILTIN_H */
+#endif /* _CIAO_ARITHMETIC_H */

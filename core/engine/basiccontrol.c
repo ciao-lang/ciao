@@ -22,12 +22,10 @@
 #include <ciao/io_basic.h>
 #include <ciao/eng_interrupt.h>
 #include <ciao/eng_start.h>
-#include <ciao/misc.h>
 #include <ciao/rt_exp.h>
 #include <ciao/runtime_control.h>
 #include <ciao/dynamic_rt.h>
 #include <ciao/eng_gc.h>
-#include <ciao/term_support.h>
 #include <ciao/timing.h>
 #include <ciao/eng_profile.h>
 #include <ciao/tabling.h>

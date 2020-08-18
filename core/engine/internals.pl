@@ -269,12 +269,6 @@ quiet_mode(off).
 
 % ---------------------------------------------------------------------------
 
-:- export('$large_data'/3).
-:- trust pred '$large_data'/3. %jcf% Not used in Prolog code.
-:- impl_defined('$large_data'/3).
-
-% ---------------------------------------------------------------------------
-
 :- export('$interpreted_clause'/2).
 :- trust pred '$interpreted_clause'(Pred,LClause) 
     : (predname(Pred), list_clause(LClause)). %jcf% Check that these are the right types!

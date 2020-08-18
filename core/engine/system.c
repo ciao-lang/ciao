@@ -66,13 +66,30 @@
 //#define WTERMSIG(x) SIGTERM
 #endif
 
-#include <ciao/term_support.h>
 #include <ciao/os_signal.h>
 #include <ciao/io_basic.h>
 #include <ciao/system.h>
 #include <ciao/stream_basic.h>
 #include <ciao/eng_gc.h>
 #include <ciao/eng_start.h>
+#include <ciao/eng_registry.h>
+
+/* --------------------------------------------------------------------------- */
+
+/* TODO: move somewhere else */
+/* Return length of list, or -1 if not a list */
+CFUN__PROTO(c_list_length, int, tagged_t list) {
+  int len;
+  DEREF(list, list);
+  for (len=0; list!=atom_nil; len++) {
+    if (IsVar(list)) break;
+    if (!TagIsLST(list)) break;
+    DerefCdr(list,list);
+  }
+  return (list==atom_nil) ? len : (-1);
+}
+
+/* --------------------------------------------------------------------------- */
 
 #if !defined(MAXPATHLEN)
 #define MAXPATHLEN 1024
@@ -459,7 +476,6 @@ CBOOL__PROTO(prolog_unix_cd) {
 }
 
 /* --------------------------------------------------------------------------- */
-/* TODO:[oc-merge] move somewhere else? */
 
 /* Return the arguments with which the current prolog was invoked */
 CBOOL__PROTO(prolog_unix_argv)
@@ -3233,4 +3249,15 @@ CBOOL__PROTO(prolog_fd_close) {
   close(i);
   CBOOL__PROCEED;
 }
+
+/* --------------------------------------------------------------------------- */
+
+extern char source_path[];
+
+CBOOL__PROTO(prolog_current_executable)
+{
+  DEREF(X(0),X(0));
+  return cunify(Arg, GET_ATOM(source_path), X(0));
+}
+
 

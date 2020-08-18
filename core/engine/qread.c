@@ -11,13 +11,16 @@
 #include <stddef.h>
 
 #include <ciao/eng.h>
-#include <ciao/term_support.h>
+#include <ciao/atomic_basic.h>
+#include <ciao/internals.h>
 
 #include <ciao/qread.h>
 #include <ciao/eng_gc.h>
+#include <ciao/eng_registry.h>
 
 #include <ciao/dynamic_rt.h>
 #include <ciao/eng_bignum.h>
+#include <ciao/stream_basic.h>
 
 #if defined(ALLOW_COMPRESSED_CODE)
 #if defined(LINUX) || defined(Win32) || defined(BSD)

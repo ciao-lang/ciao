@@ -13,11 +13,12 @@
 #include <sys/time.h>
 
 #include <ciao/eng.h>
+#include <ciao/eng_start.h>
 #include <ciao/arithmetic.h>
 #include <ciao/attributes.h>
 #include <ciao/internals.h>
 #include <ciao/basiccontrol.h>
-#include <ciao/term_support.h>
+#include <ciao/atomic_basic.h> /* prolog_init_radix(), nd_atom_concat() */
 
 #include <ciao/eng_interrupt.h>
 
@@ -35,7 +36,6 @@
 #include <ciao/eng_gc.h>
 #include <ciao/rt_exp.h>
 #include <ciao/runtime_control.h>
-#include <ciao/misc.h>
 #include <ciao/qread.h>
 #include <ciao/system.h>
 #include <ciao/dynlink.h>
@@ -53,7 +53,6 @@ static definition_t *define_builtin(char *pname, int instr, int arity);
 static void classify_atom(atom_t *s);
 static CBOOL__PROTO(prolog_ciao_c_headers_dir);
 static void deffunction(char *atom, int arity, void *proc, int funcno);
-static void define_functions(void);
 
 statistics_t ciao_stats = {
   0, /*flt64_t ss_tick*/
@@ -298,9 +297,6 @@ tagged_t current_unknown;
 /* tagged_t current_breaklevel; */
 tagged_t current_compiling;
 tagged_t current_ferror_flag;
-/* tagged_t current_single_var_flag; */
-/* tagged_t current_character_escapes_flag; */
-/* tagged_t current_redefine_flag; */
 tagged_t current_quiet_flag;
 tagged_t current_gcmode;
 tagged_t current_gctrace;
@@ -369,6 +365,240 @@ definition_t *address_error;        /* Handle errors in Prolog (DCG)*/
 definition_t *address_pending_unifications;
 definition_t *address_uvc;
 definition_t *address_ucc;
+
+/*------------------------------------------------------------*/
+
+/* insert atom in global table */
+/*  MCL: there is an implicit assumption that the table is not full */
+
+#if defined(USE_ATOM_LEN)
+static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw,
+                                      tagged_t key,
+                                      char *str,
+                                      uintmach_t str_len)
+#else
+static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw,
+                                      tagged_t key,
+                                      char *str)
+#endif
+{
+  sw_on_key_node_t *hnode;
+#if defined(ATOMGC)
+  sw_on_key_node_t *first_erased = NULL;
+#endif
+  intmach_t i;
+  tagged_t t0;
+
+  for (i=0, t0=key & sw->mask;
+       ;
+       i+=sizeof(sw_on_key_node_t), t0=(t0+i) & sw->mask) {
+    hnode = SW_ON_KEY_NODE_FROM_OFFSET(sw, t0);
+#if !defined(ATOMGC)
+    if ((hnode->key==key 
+#if defined(USE_ATOM_LEN)
+         && hnode->value.atomp->atom_len == str_len
+#endif
+         && strcmp(hnode->value.atomp->name, str)==0) ||
+        !hnode->key)
+      return hnode;
+#else
+    if ((hnode->key == key) 
+#if defined(USE_ATOM_LEN)
+        && hnode->value.atomp->atom_len == str_len
+#endif
+        && (strcmp(hnode->value.atomp->name, str) == 0))
+      return hnode;
+    else if (!hnode->key)
+      return first_erased ? first_erased : hnode;
+    else if (hnode->key == 1 && !first_erased)
+      first_erased = hnode;
+#endif
+  }
+}
+
+tagged_t init_atom_check(char *str)
+{
+  sw_on_key_node_t *hnode;
+  unsigned int hashcode = 0;
+  intmach_t count, size;
+  intmach_t current_mem = total_mem_count;
+  char *c = str;
+
+#if defined(USE_ATOM_LEN)
+  uintmach_t atom_len = 0;
+#endif
+  
+  while (*c) {
+    hashcode = (hashcode<<1) + *((unsigned char *)c++);
+#if defined(USE_ATOM_LEN)
+    atom_len++;
+#endif
+  }
+
+  hashcode = (hashcode<<3)+4;   /* low bits are masked away; ensure it is
+                                   not 0 --- it cannot be 1, either, which is
+                                   very important for atom GC */
+/*
+  while ((hnode=incore_gethash(ciao_atoms, (tagged_t)hashcode)) &&
+         hnode->key==(tagged_t)hashcode &&
+         strcmp(hnode->value.atomp->name, str)!=0)
+    hashcode += 233509<<3;         233509 is prime, and so is
+                                   233509&0x1ffff, 233509&0x0ffff, ...,
+                                   233509&0x00007
+*/
+
+#if defined(USE_ATOM_LEN)
+  hnode = atom_gethash(ciao_atoms, (tagged_t)hashcode, str, atom_len);
+#else
+  hnode = atom_gethash(ciao_atoms, (tagged_t)hashcode, str);
+#endif
+
+#if defined(ATOMGC)
+  if (hnode->key && hnode->key != 1) /* if ATOMGC, '1' marks freed position */
+#else
+  if (hnode->key)
+#endif
+    return MakeAtom(hnode->value.atomp->index);
+
+  if ((count=ciao_atoms->count) > MaxAtomCount) {
+    SERIOUS_FAULT("the atom table is full");
+  }
+
+  /* Check for a full table, and expand if needed */
+
+  if ((count+1)<<1 > (size=SwitchSize(ciao_atoms))) {
+    sw_on_key_t *new_table = new_switch_on_key(size<<1, NULL);
+    intmach_t i;
+    sw_on_key_node_t *h1, *h2;
+
+#if defined(ATOMGC) && defined(DEBUG)
+    /*printf("Reallocing atom table (count = %d)\n", count);*/
+#endif
+
+    for (i=0; i<count; i++){
+#if defined(ATOMGC)   /* Actually, if the table is full, no entry should be
+                         null... */
+       /* size *= 2; */
+      if ((h1 = atmtab[i]) != NULL) { /* There may be holes when doing GC */
+#if defined(USE_ATOM_LEN)
+        atmtab[i] = h2 = atom_gethash(new_table, 
+                                      h1->key, 
+                                      str,
+                                      h1->value.atomp->atom_len);
+#else
+        atmtab[i] = h2 = atom_gethash(new_table, h1->key, str);
+#endif
+        h2->key = h1->key;
+        h2->value.atomp = h1->value.atomp;
+      }
+#else
+      h1 = atmtab[i];
+#if defined(USE_ATOM_LEN)
+      atmtab[i] = h2 = atom_gethash(new_table, 
+                                    h1->key, 
+                                    str,
+                                    h1->value.atomp->atom_len);
+#else
+      atmtab[i] = h2 = atom_gethash(new_table, h1->key, str);
+#endif
+      h2->key = h1->key;
+      h2->value.atomp = h1->value.atomp;
+#endif
+    }
+
+    atmtab = checkrealloc_ARRAY(sw_on_key_node_t *,
+                                count,
+                                2*count,
+                                (tagged_t *)atmtab);
+
+#if defined(ATOMGC)      /* Clean up the upper part of the new atom table */
+    for (i = count; i < 2*count; i++)
+      atmtab[i] = NULL;
+    new_table->next_index = count;
+#endif
+
+    checkdealloc_FLEXIBLE(sw_on_key_t,
+                          sw_on_key_node_t,
+                          size,
+                          ciao_atoms);
+    new_table->count = count;
+#if defined(USE_ATOM_LEN)
+    hnode = atom_gethash(new_table, (tagged_t)hashcode, str, atom_len);
+#else
+    hnode = atom_gethash(new_table, (tagged_t)hashcode, str);
+#endif
+    ciao_atoms = new_table;
+    size = size << 1;
+  }
+  hnode->key = (tagged_t)hashcode;
+
+#if defined(ATOMGC)
+    size = size >> 1;     /* atmtab size is one half of ciao_atoms size */
+    count = ciao_atoms->next_index;
+    while(atmtab[count])                  /* There must be one free entry */
+      count =  (count + 1) % size;
+    /*ciao_atoms->next_index+1 == size ? 0 : ciao_atoms->next_index+1;*/
+    /* next_index should point to a free entry in the table */
+    ciao_atoms->next_index = count;
+#endif
+
+#if defined(USE_ATOM_LEN)
+  hnode->value.atomp = new_atom_check(str, atom_len, count);
+#else
+  hnode->value.atomp = new_atom_check(str, count);
+#endif
+  atmtab[count] = hnode;
+
+  ciao_atoms->count++;
+
+  INC_MEM_PROG(total_mem_count - current_mem);
+
+  return MakeAtom(count);
+}
+
+/*-----------------------------------------------------------*/
+
+void failc(char *mesg) {
+  extern char source_path[];
+
+  // Give an error.  We check if we were able to allocate memory at all for
+  // the user_eror stream (since we are using the same routines to allocate
+  // all memory, either tagged or not, we may have failed to allocate
+  // memory for streams).  This should not be necessary once we separate
+  // the memory management 
+
+  if (!stream_user_error) {
+    fprintf(stderr, "{ERROR (%s): %s}\n", source_path, mesg);
+    fprintf(stderr, 
+"{Ciao was probably compiled in a machine with a different memory model.}\n");
+    fprintf(stderr, 
+"{Please recompile Ciao in this machine and try again.}\n");
+  } else {
+    // Issue a simple message if a single thread is running.
+    if (num_tasks_created() > 1) {
+      THREAD_ID thrid = Thread_Id;   // Local Id
+
+      intmach_t goal_id = goal_from_thread_id(thrid);
+      if (goal_id != 0) {
+        fprintf(stderr,
+                "{ERROR (%s, goal 0x%" PRIxm ", thread 0x%" PRIxm "): %s}\n",
+                source_path, (uintmach_t)goal_id,
+                (uintmach_t)thrid, mesg);
+      } else {
+        fprintf(stderr,
+                "{ERROR (%s, thread 0x%" PRIxm "): %s}\n",
+                source_path,
+                (uintmach_t)thrid, mesg);
+      }
+    } else {
+      fprintf(stderr, "{ERROR: %s}\n", mesg);
+    }
+  }
+  if (!wam_initialized){
+    fprintf(stderr, "Wam not initialized, exiting!!!\n");
+    engine_exit(-1);
+  }
+}
 
 /* --------------------------------------------------------------------------- */
 
@@ -707,56 +937,6 @@ static void deffunction_nobtin(char *atom,
   node->value.proc = proc;
 }
 
-
-static void define_functions(void)
-{
-   /* Note: the size of the hash table (64) needs to be expanded when
-      new functions are added */
-  switch_on_function = new_switch_on_key(64,NULL);
-
-  deffunction("-",1,(void *)fu1_minus,0);
-  deffunction("+",1,(void *)fu1_plus,1);
-  deffunction("--",1,(void *)fu1_sub1,2); /* shorthand for 'SUB1 FUNCTION' */
-  deffunction("++",1,(void *)fu1_add1,3); /* shorthand for 'ADD1 FUNCTION' */
-  deffunction("integer",1,(void *)fu1_integer,4);
-  deffunction("truncate",1,(void *)fu1_integer,4); /* alias of integer/1 (ISO)*/
-  deffunction("float",1,(void *)fu1_float,5);
-  deffunction("\\",1,(void *)fu1_not,6);
-  deffunction("+",2,(void *)fu2_plus,7);
-  deffunction("-",2,(void *)fu2_minus,8);
-  deffunction("*",2,(void *)fu2_times,9);
-  deffunction("/",2,(void *)fu2_fdivide,10);
-  deffunction("//",2,(void *)fu2_idivide,11);
-  deffunction("rem",2,(void *)fu2_rem,12); /* was "mod" (ISO) */
-  deffunction("#",2,(void *)fu2_xor,13); /* was "^" */
-  deffunction("/\\",2,(void *)fu2_and,14);
-  deffunction("\\/",2,(void *)fu2_or,15);
-  deffunction("<<",2,(void *)fu2_lsh,16);
-  deffunction(">>",2,(void *)fu2_rsh,17);
-  deffunction("mod",2,(void *)fu2_mod,18); /* (ISO) */
-  deffunction("abs",1,(void *)fu1_abs,19); /* (ISO) */
-  deffunction("sign",1,(void *)fu1_sign,49); /* (ISO) */
-  deffunction_nobtin("gcd",2,(void *)fu2_gcd);
-
-  /* all of these ISO */
-  deffunction("float_integer_part",1,(void *)fu1_intpart,50);
-  deffunction("float_fractional_part",1,(void *)fu1_fractpart,51);
-  deffunction("floor",1,(void *)fu1_floor,52);
-  deffunction("round",1,(void *)fu1_round,53);
-  deffunction("ceiling",1,(void *)fu1_ceil,54);
-  deffunction("**",2,(void *)fu2_pow,55);
-  deffunction_nobtin("exp",1,(void *)fu1_exp);
-  deffunction_nobtin("log",1,(void *)fu1_log);
-  deffunction_nobtin("sqrt",1,(void *)fu1_sqrt);
-  deffunction_nobtin("sin",1,(void *)fu1_sin);
-  deffunction_nobtin("cos",1,(void *)fu1_cos);
-  deffunction_nobtin("atan",1,(void *)fu1_atan);
-
-  /* 41 & 42 are 68 & 79 in SICStus 2.1 */
-  deffunction("ARG FUNCTION",2,(void *)fu2_arg,41);
-  deffunction("COMPARE FUNCTION",2,(void *)fu2_compare,42);
-}
-
 /* Initializations that need to be made once only. */
 
 void init_locks(void){
@@ -818,6 +998,116 @@ extern char *ciaoroot_directory;
 extern char *c_headers_directory;
 
 tagged_t atm_var, atm_attv, atm_float, atm_int, atm_str, atm_atm, atm_lst;
+
+/* (prototypes for registering) */
+/* bc_aux.h */
+CBOOL__PROTO(metachoice);
+CBOOL__PROTO(metacut);
+/* term_basic.c */
+CBOOL__PROTO(prolog_copy_term);
+CBOOL__PROTO(prolog_copy_term_nat);
+CBOOL__PROTO(prolog_cyclic_term);
+CBOOL__PROTO(prolog_unifiable);
+CBOOL__PROTO(prolog_unifyOC);
+/* internals.c */
+CBOOL__PROTO(prolog_global_vars_set_root);
+CBOOL__PROTO(prolog_global_vars_get_root);
+CBOOL__PROTO(prompt);
+CBOOL__PROTO(unknown);
+CBOOL__PROTO(setarg);
+CBOOL__PROTO(undo);
+CBOOL__PROTO(frozen);
+CBOOL__PROTO(defrost);
+CBOOL__PROTO(compiling);
+CBOOL__PROTO(ferror_flag);
+CBOOL__PROTO(quiet_flag);
+CBOOL__PROTO(prolog_radix);
+CBOOL__PROTO(constraint_list);
+CBOOL__PROTO(prolog_eq);
+CBOOL__PROTO(prolog_interpreted_clause);
+CBOOL__PROTO(prolog_erase_atom);
+CBOOL__PROTO(prolog_show_nodes);
+CBOOL__PROTO(prolog_show_all_nodes);
+CBOOL__PROTO(start_node);
+/* term_compare.c */
+CBOOL__PROTO(bu2_lexeq, tagged_t x0, tagged_t x1);
+CBOOL__PROTO(bu2_lexge, tagged_t x0, tagged_t x1);
+CBOOL__PROTO(bu2_lexgt, tagged_t x0, tagged_t x1);
+CBOOL__PROTO(bu2_lexle, tagged_t x0, tagged_t x1);
+CBOOL__PROTO(bu2_lexlt, tagged_t x0, tagged_t x1);
+CBOOL__PROTO(bu2_lexne, tagged_t x0, tagged_t x1);
+CFUN__PROTO(fu2_compare, tagged_t, tagged_t x1, tagged_t x2, bcp_t liveinfo);
+/* term_typing.c */
+CBOOL__PROTO(bu1_atom, tagged_t x0);
+CBOOL__PROTO(bu1_atomic, tagged_t x0);
+CBOOL__PROTO(bu1_float, tagged_t x0);
+CBOOL__PROTO(bu1_if, tagged_t x0);
+CBOOL__PROTO(bu1_integer, tagged_t x0);
+CBOOL__PROTO(bu1_nonvar, tagged_t x0);
+CBOOL__PROTO(bu1_number, tagged_t x0);
+CBOOL__PROTO(bu1_var, tagged_t x0);
+CFUN__PROTO(fu1_type, tagged_t, tagged_t t0);
+CBOOL__PROTO(cground);
+/* term_basic.c */
+CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex, bcp_t liveinfo);
+CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity);
+CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list);
+/* debugger_support.c */
+CBOOL__PROTO(retry_cut);
+CBOOL__PROTO(debugger_state);
+CBOOL__PROTO(debugger_mode);
+CBOOL__PROTO(spypoint);
+/* terms_check.c */
+CBOOL__PROTO(cinstance);
+
+static void define_functions(void)
+{
+   /* Note: the size of the hash table (64) needs to be expanded when
+      new functions are added */
+  switch_on_function = new_switch_on_key(64,NULL);
+
+  deffunction("-",1,(void *)fu1_minus,0);
+  deffunction("+",1,(void *)fu1_plus,1);
+  deffunction("--",1,(void *)fu1_sub1,2); /* shorthand for 'SUB1 FUNCTION' */
+  deffunction("++",1,(void *)fu1_add1,3); /* shorthand for 'ADD1 FUNCTION' */
+  deffunction("integer",1,(void *)fu1_integer,4);
+  deffunction("truncate",1,(void *)fu1_integer,4); /* alias of integer/1 (ISO)*/
+  deffunction("float",1,(void *)fu1_float,5);
+  deffunction("\\",1,(void *)fu1_not,6);
+  deffunction("+",2,(void *)fu2_plus,7);
+  deffunction("-",2,(void *)fu2_minus,8);
+  deffunction("*",2,(void *)fu2_times,9);
+  deffunction("/",2,(void *)fu2_fdivide,10);
+  deffunction("//",2,(void *)fu2_idivide,11);
+  deffunction("rem",2,(void *)fu2_rem,12); /* was "mod" (ISO) */
+  deffunction("#",2,(void *)fu2_xor,13); /* was "^" */
+  deffunction("/\\",2,(void *)fu2_and,14);
+  deffunction("\\/",2,(void *)fu2_or,15);
+  deffunction("<<",2,(void *)fu2_lsh,16);
+  deffunction(">>",2,(void *)fu2_rsh,17);
+  deffunction("mod",2,(void *)fu2_mod,18); /* (ISO) */
+  deffunction("abs",1,(void *)fu1_abs,19); /* (ISO) */
+  deffunction("sign",1,(void *)fu1_sign,49); /* (ISO) */
+  deffunction_nobtin("gcd",2,(void *)fu2_gcd);
+
+  /* all of these ISO */
+  deffunction("float_integer_part",1,(void *)fu1_intpart,50);
+  deffunction("float_fractional_part",1,(void *)fu1_fractpart,51);
+  deffunction("floor",1,(void *)fu1_floor,52);
+  deffunction("round",1,(void *)fu1_round,53);
+  deffunction("ceiling",1,(void *)fu1_ceil,54);
+  deffunction("**",2,(void *)fu2_pow,55);
+  deffunction_nobtin("exp",1,(void *)fu1_exp);
+  deffunction_nobtin("log",1,(void *)fu1_log);
+  deffunction_nobtin("sqrt",1,(void *)fu1_sqrt);
+  deffunction_nobtin("sin",1,(void *)fu1_sin);
+  deffunction_nobtin("cos",1,(void *)fu1_cos);
+  deffunction_nobtin("atan",1,(void *)fu1_atan);
+
+  /* 41 & 42 are 68 & 79 in SICStus 2.1 */
+  deffunction("ARG FUNCTION",2,(void *)fu2_arg,41);
+  deffunction("COMPARE FUNCTION",2,(void *)fu2_compare,42);
+}
 
 void init_once(void)
 {
@@ -973,9 +1263,6 @@ void init_once(void)
 /*   current_printdepth = MakeSmall(10); */
   current_compiling = atom_unprofiled;
   current_ferror_flag = atom_on;
-/*   current_single_var_flag = atom_on; */
-/*   current_character_escapes_flag = atom_off; */
-/*   current_redefine_flag = atom_on; */
   current_quiet_flag = atom_off;
   
   init_streams();
@@ -1041,6 +1328,7 @@ void init_once(void)
 
   /* stream_basic.c */
   
+  define_c_mod_predicate("internals","$force_interactive",0,prolog_force_interactive);
   define_c_mod_predicate("stream_basic","stream_code",2,prolog_stream_code);
   define_c_mod_predicate("internals","$bootversion",0,prolog_bootversion);
   define_c_mod_predicate("internals","$open",3,prolog_open);
@@ -1067,11 +1355,15 @@ void init_once(void)
   define_c_mod_predicate("internals","$insertz",2,insertz);
   define_c_mod_predicate("internals","$make_bytecode_object",4,make_bytecode_object);
 
-                                /* support.c */
-  define_c_mod_predicate("terms_check","$instance",2,cinstance);
+                                /* term_typing.c */
+
   define_c_mod_predicate("term_typing","ground",1,cground);
 
-                                /* term_support.c */
+                                /* terms_check.c */
+
+  define_c_mod_predicate("terms_check","$instance",2,cinstance);
+
+                                /* atomic_basic.c */
 
   define_c_mod_predicate("atomic_basic","name",2,prolog_name);
   define_c_mod_predicate("atomic_basic","atom_codes",2,prolog_atom_codes);
@@ -1080,6 +1372,9 @@ void init_once(void)
   define_c_mod_predicate("atomic_basic","atom_length",2,prolog_atom_length);
   define_c_mod_predicate("atomic_basic","sub_atom",4,prolog_sub_atom);
   define_c_mod_predicate("atomic_basic","atom_concat",3,prolog_atom_concat);
+
+                                /* term_basic.c */
+
   define_c_mod_predicate("term_basic","copy_term",2,prolog_copy_term);
   define_c_mod_predicate("term_basic","copy_term_nat",2,prolog_copy_term_nat);
   define_c_mod_predicate("term_basic","cyclic_term",1,prolog_cyclic_term);
@@ -1094,6 +1389,29 @@ void init_once(void)
   define_c_mod_predicate("internals","$compiled_clause",4,compiled_clause);
   define_c_mod_predicate("internals","$empty_gcdef_bin",0,empty_gcdef_bin);
   define_c_mod_predicate("internals","$set_property",2,set_property);
+  define_c_mod_predicate("internals","$global_vars_get_root", 1, prolog_global_vars_get_root);
+  define_c_mod_predicate("internals","$global_vars_set_root", 1, prolog_global_vars_set_root);
+#if defined(ATOMGC)
+  define_c_mod_predicate("internals","$erase_atom", 1, prolog_erase_atom);
+#endif
+  define_c_mod_predicate("internals","$prompt",2,prompt);
+  define_c_mod_predicate("internals","$frozen",2,frozen);
+  define_c_mod_predicate("internals","$defrost",2,defrost);
+  define_c_mod_predicate("internals","$setarg",4,setarg);
+  define_c_mod_predicate("internals","$undo_goal",1,undo);
+  define_c_mod_predicate("internals","$unknown",2,unknown);
+  define_c_mod_predicate("internals","$compiling",2,compiling);
+  define_c_mod_predicate("internals","$ferror_flag",2,ferror_flag);
+  define_c_mod_predicate("internals","$quiet_flag",2,quiet_flag);
+
+  define_c_mod_predicate("internals","$prolog_radix",2,prolog_radix);
+  define_c_mod_predicate("internals","$constraint_list",2,constraint_list);
+  define_c_mod_predicate("internals","$eq",2,prolog_eq);
+  define_c_mod_predicate("internals","$interpreted_clause",2,prolog_interpreted_clause);
+  define_c_mod_predicate("internals","$show_nodes",2,prolog_show_nodes);
+  define_c_mod_predicate("internals","$show_all_nodes",0,prolog_show_all_nodes);
+  define_c_mod_predicate("internals","$start_node",1,start_node);
+
 
   /* io_basic.c */
   
@@ -1141,6 +1459,8 @@ void init_once(void)
 
                                 /* bc_aux.h */
   
+  define_c_mod_predicate("basiccontrol","$metachoice",1,metachoice);
+  define_c_mod_predicate("basiccontrol","$metacut",1,metacut);
   define_c_mod_predicate("internals","$ddt",1,set_trace_calls);
 
                                 /* qread.c */
@@ -1149,40 +1469,12 @@ void init_once(void)
   define_c_mod_predicate("internals","$push_qlinfo",0,push_qlinfo);
   define_c_mod_predicate("internals","$pop_qlinfo",0,pop_qlinfo);
 
-                                /* misc.c */
-  
-  define_c_mod_predicate("runtime_control", "new_atom", 1, prolog_new_atom);
-  define_c_mod_predicate("internals","$global_vars_get_root", 1, prolog_global_vars_get_root);
-  define_c_mod_predicate("internals","$global_vars_set_root", 1, prolog_global_vars_set_root);
-#if defined(ATOMGC)
-  define_c_mod_predicate("internals","$erase_atom", 1, prolog_erase_atom);
-#endif
-  define_c_mod_predicate("system","current_executable",1, prolog_current_executable);
-  define_c_mod_predicate("internals","$force_interactive",0,prolog_force_interactive);
-  define_c_mod_predicate("internals","$prompt",2,prompt);
-  define_c_mod_predicate("internals","$frozen",2,frozen);
-  define_c_mod_predicate("internals","$defrost",2,defrost);
-  define_c_mod_predicate("internals","$setarg",4,setarg);
-  define_c_mod_predicate("internals","$undo_goal",1,undo);
-  define_c_mod_predicate("basiccontrol","$metachoice",1,metachoice);
-  define_c_mod_predicate("basiccontrol","$metacut",1,metacut);
-  define_c_mod_predicate("internals","$unknown",2,unknown);
-  define_c_mod_predicate("internals","$compiling",2,compiling);
-  define_c_mod_predicate("internals","$ferror_flag",2,ferror_flag);
-  define_c_mod_predicate("internals","$quiet_flag",2,quiet_flag);
+                                /* debugger_support.c */
+
   define_c_mod_predicate("debugger_support","$retry_cut",2,retry_cut);
   define_c_mod_predicate("debugger_support","$spypoint",3,spypoint);
   define_c_mod_predicate("debugger_support","$debugger_state",2,debugger_state);
   define_c_mod_predicate("debugger_support","$debugger_mode",0,debugger_mode);
-  define_c_mod_predicate("internals","$show_nodes",2,prolog_show_nodes);
-  define_c_mod_predicate("internals","$show_all_nodes",0,prolog_show_all_nodes);
-  define_c_mod_predicate("internals","$start_node",1,start_node);
-  define_c_mod_predicate("internals","$prolog_radix",2,prolog_radix);
-  define_c_mod_predicate("internals","$constraint_list",2,constraint_list);
-  define_c_mod_predicate("internals","$eq",2,prolog_eq);
-  define_c_mod_predicate("internals","$large_data",3,large_data);
-  define_c_mod_predicate("internals","$interpreted_clause",2,prolog_interpreted_clause);
-  define_c_mod_predicate("internals","$unlock_predicate",1,prolog_unlock_predicate);
 
   /* system.c */
   define_c_mod_predicate("system","using_windows",0,prolog_using_windows);
@@ -1243,6 +1535,8 @@ void init_once(void)
   define_c_mod_predicate("internals","$find_file",8,prolog_find_file); 
   define_c_mod_predicate("internals","$path_is_absolute",1,prolog_path_is_absolute); 
   define_c_mod_predicate("internals","$expand_file_name",3,prolog_expand_file_name); 
+
+  define_c_mod_predicate("system","current_executable",1, prolog_current_executable);
 
                             /* dynlink.c */
 
@@ -1309,6 +1603,8 @@ void init_once(void)
   define_c_mod_predicate("internals","$close_predicate",1,close_predicate);
   define_c_mod_predicate("internals","$open_predicate",1,open_predicate);
 
+  define_c_mod_predicate("runtime_control", "new_atom", 1, prolog_new_atom);
+
 #if defined(GAUGE)
                                 /* gauge.c */
 
@@ -1325,6 +1621,7 @@ void init_once(void)
   define_c_mod_predicate("attr_rt","del_attr",2,del_attr__2);
 #endif
 
+  /* concurrency.c */
   define_c_mod_predicate("concurrency","$eng_call",6,prolog_eng_call);
   define_c_mod_predicate("concurrency","$eng_backtrack",2,prolog_eng_backtrack);
   define_c_mod_predicate("concurrency","$eng_cut",1,prolog_eng_cut);
@@ -1337,6 +1634,7 @@ void init_once(void)
   define_c_mod_predicate("concurrency","lock_atom",1,prolog_lock_atom);
   define_c_mod_predicate("concurrency","unlock_atom",1,prolog_unlock_atom);
   define_c_mod_predicate("concurrency","atom_lock_state",2,prolog_lock_atom_state);
+  define_c_mod_predicate("internals","$unlock_predicate",1,prolog_unlock_predicate);
 
 #if defined(USE_OVERFLOW_EXCEPTIONS)
   define_c_mod_predicate("internals","$undo_heap_overflow_excep",0,undo_heap_overflow_excep);

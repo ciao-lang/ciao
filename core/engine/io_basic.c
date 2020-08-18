@@ -17,11 +17,11 @@
 #include <strings.h>
 
 #include <ciao/eng.h>
-#include <ciao/misc.h>
+#include <ciao/eng_registry.h>
 #include <ciao/eng_interrupt.h>
 
 #include <ciao/rune.h>
-#include <ciao/term_support.h>
+#include <ciao/atomic_basic.h>
 #include <ciao/io_basic.h>
 #include <ciao/stream_basic.h>
 #include <ciao/internals.h>
@@ -1226,6 +1226,13 @@ CVOID__PROTO(print_string, stream_node_t *stream, char *p) {
     }
   }
   fflush(fileptr);
+}
+
+CFUN__PROTO(var_address, intmach_t, tagged_t term)
+{
+  if (IsStackVar(term))
+    term = TagHVA(Heap_End+(TagToSVA(term)-Stack_Start));
+  return MakeInteger(Arg,TagToPointer(term)-Heap_Start);
 }
 
 CVOID__PROTO(print_variable, stream_node_t *stream, tagged_t term) {

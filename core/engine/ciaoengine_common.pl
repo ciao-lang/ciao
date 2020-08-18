@@ -28,7 +28,9 @@
 :- '$native_include_c_source'('rune.c').
 :- '$native_include_c_header'('unicode_tbl.h').
 
-:- '$native_include_c_source'('misc.c').
+:- '$native_include_c_source'('term_compare.c').
+
+:- '$native_include_c_source'('debugger_support.c').
 
 :- '$native_include_c_header'('rt_exp.h').
 :- '$native_include_c_source'('rt_exp.c').
@@ -73,10 +75,14 @@
 :- '$native_include_c_header'('eng_registry.h').
 :- '$native_include_c_source'('eng_registry.c').
 
-:- '$native_include_c_source'('support.c').
+:- '$native_include_c_source'('terms_check.c').
 
-:- '$native_include_c_header'('term_support.h').
-:- '$native_include_c_source'('term_support.c').
+:- '$native_include_c_header'('atomic_basic.h').
+:- '$native_include_c_source'('atomic_basic.c').
+
+:- '$native_include_c_source'('term_typing.c').
+
+:- '$native_include_c_source'('term_basic.c').
 
 :- '$native_include_c_source'('qread.c').
 

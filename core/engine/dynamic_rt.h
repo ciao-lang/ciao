@@ -44,8 +44,6 @@ void relocate_clocks(instance_t *inst,  instance_clock_t *clocks);
 void expunge_instance(instance_t *i);
 CFUN__PROTO(active_instance_conc, instance_t *, instance_t *i, int_info_t *pred_root);
 
-CBOOL__PROTO(prolog_unlock_predicate);
-
 void remove_link_chains(node_t **topdynamic,
                         node_t  *chpttoclear);
 

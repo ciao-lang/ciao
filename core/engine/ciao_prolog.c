@@ -42,7 +42,7 @@
 #include <ciao/internals.h>
 #include <ciao/eng_start.h>
 #include <ciao/eng_profile.h>
-#include <ciao/term_support.h>
+#include <ciao/atomic_basic.h>
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_gc.h>
 #include <ciao/basiccontrol.h>
@@ -847,6 +847,8 @@ ciao_bool ciao_is_num_list(ciao_ctx ctx, ciao_term term) {
   }
   return cdr == atom_nil;
 }
+
+CFUN__PROTO(c_list_length, int, tagged_t list);
 
 int ciao_list_length(ciao_ctx ctx, ciao_term term) {
   worker_t *w = ctx->worker_registers;

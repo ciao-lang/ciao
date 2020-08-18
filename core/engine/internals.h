@@ -10,8 +10,20 @@
 
 extern intmach_t num_of_predicates;
 
+module_t *insert_module(sw_on_key_t **swp, tagged_t mod_atm, bool_t insertp);
+module_t *new_module(tagged_t mod_atm);
+void add_module(sw_on_key_t **swp, sw_on_key_node_t *node, tagged_t key, module_t *mod);
+
+definition_t *find_definition(sw_on_key_t **swp, tagged_t term, tagged_t **argl, bool_t insertp);
+definition_t *insert_definition(sw_on_key_t **swp, tagged_t tagpname, int arity, bool_t insertp);
+void add_definition(sw_on_key_t **swp, sw_on_key_node_t *node, tagged_t key, definition_t *def);
+definition_t *parse_definition(tagged_t complex);
+
+definition_t *new_functor(tagged_t tagpname, int arity);
+
 sw_on_key_node_t *incore_gethash(sw_on_key_t *sw, tagged_t key);
 sw_on_key_t *new_switch_on_key(intmach_t size, try_node_t *otherwise);
+void expand_sw_on_key(sw_on_key_t **psw, try_node_t *otherwise, bool_t deletep);
 void leave_to_gc(enter_instr_t type, char *info);
 CBOOL__PROTO(empty_gcdef_bin);
 void relocate_gcdef_clocks(instance_clock_t *clocks);
@@ -23,6 +35,12 @@ CBOOL__PROTO(clause_number);
 CBOOL__PROTO(compiled_clause);
 sw_on_key_node_t *dyn_puthash(sw_on_key_t **swp, tagged_t k);
 CBOOL__PROTO(set_property);
+
+CVOID__PROTO(numstack_init);
+
+typedef bignum_size_t (*bn_fun_t)(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);
+
+CFUN__PROTO(bn_call, tagged_t, bn_fun_t f, tagged_t x, tagged_t y, bcp_t liveinfo);
 
 void reinit_list(goal_descriptor_t *goal);
 void init_goal_desc_list(void);
@@ -39,6 +57,8 @@ worker_t *get_my_worker(void);
 void enqueue_thread(THREAD_T thread);
 void unlink_wam(goal_descriptor_t *goal);
 uintmach_t num_tasks_created(void);
+
+CFUN__PROTO(cross_copy_term, tagged_t, tagged_t remote_term);
 
 /* Support code for starting goal execution. */
 int call_firstgoal(goal_descriptor_t *firstworker, tagged_t goal_term);

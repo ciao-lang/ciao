@@ -3,7 +3,6 @@
 /* Copyright (C) 1996-2002 UPM-CLIP */
 
 #include <ciao/eng.h>
-#include <ciao/term_support.h>
 #include <ciao/dynamic_rt.h>
 #include <ciao/basiccontrol.h>
 #include <ciao/internals.h>

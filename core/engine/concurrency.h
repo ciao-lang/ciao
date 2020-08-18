@@ -13,6 +13,7 @@ CBOOL__PROTO(prolog_eng_self);
 CBOOL__PROTO(prolog_lock_atom);
 CBOOL__PROTO(prolog_unlock_atom);
 CBOOL__PROTO(prolog_lock_atom_state);
+CBOOL__PROTO(prolog_unlock_predicate);
 
 intmach_t goal_from_thread_id(THREAD_ID id);
 

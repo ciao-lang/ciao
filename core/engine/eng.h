@@ -824,6 +824,17 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define IntIsSmall_BC32(X) ((X) >= -HighInt_BC32 && (X) < HighInt_BC32)
 #endif
 
+/* internals.c */
+flt64_t get_float(tagged_t t);
+intmach_t get_integer(tagged_t t);
+CFUN__PROTO(make_float, tagged_t, flt64_t i);
+CFUN__PROTO(make_float_check, tagged_t, flt64_t i, bcp_t liveinfo);
+/* TODO: rename to IntmachToTagged, etc. */
+CFUN__PROTO(make_integer, tagged_t, intmach_t i);
+CFUN__PROTO(make_integer_check, tagged_t, intmach_t i, bcp_t liveinfo);
+CFUN__PROTO(make_large, tagged_t, tagged_t *ptr);
+CFUN__PROTO(make_structure, tagged_t, tagged_t functor);
+
 /* X is an Integer that fits in an intmach_t.
    This is the postcondition of MakeInteger.
 */ 
@@ -1994,7 +2005,13 @@ struct other_stuff_ {     /* Usable type for passing data areas to gc etc */
 
 /* =========================================================================== */
 
-#include <ciao/support.h>
+CBOOL__PROTO(cunify, tagged_t x1, tagged_t x2);
+CBOOL__PROTO(cunify_args, int arity, tagged_t *pt1, tagged_t *pt2);
+
+#define CBOOL__UNIFY(X, Y) CBOOL__CALL(cunify, (X), (Y))
+#define CBOOL__LASTUNIFY(X, Y) CBOOL__LASTCALL(cunify, (X), (Y))
+
+/* =========================================================================== */
 
 #include <ciao/eng_debug.h>
 
@@ -2191,11 +2208,8 @@ extern tagged_t current_unknown;
 /* extern tagged_t current_printdepth; */
 /* extern tagged_t current_breaklevel; */
 extern tagged_t current_compiling;
-/* extern tagged_t current_character_escapes_flag; */
 extern tagged_t current_ferror_flag;
-/* extern tagged_t current_single_var_flag; */
 /* extern tagged_t current_discontiguous_flag; */
-/* extern tagged_t current_redefine_flag; */
 extern tagged_t current_quiet_flag;
 extern tagged_t current_gcmode;
 extern tagged_t current_gctrace;
@@ -2257,7 +2271,6 @@ CBOOL__PROTO(nd_current_clauses);
 CBOOL__PROTO(nd_current_predicate);
 CBOOL__PROTO(nd_predicate_property);
 CBOOL__PROTO(nd_current_stream);
-CBOOL__PROTO(nd_atom_concat);
 #if defined(TABLING)
 CBOOL__PROTO(nd_fake_choicept);
 #endif
@@ -2470,6 +2483,29 @@ CVOID__PROTO(trail_push_check, tagged_t x);
                   written somewhere, but the builtin predicate just
                   fails and is not aborted
 */
+
+/* --------------------------------------------------------------------------- */
+/* support for copy term */
+
+#define TopOfOldHeap TagToHVA(w->global_uncond)
+
+/* Enable copying of terms between different heaps in copy_term */
+/* (it does not have any significant impact on performance) */
+#define SAFE_CROSS_COPY 1
+
+/* assert(HVA==0) */
+/* Detect if a variable is old during copy_term */
+#if defined(SAFE_CROSS_COPY)
+/* Use TopOfOldHeap as a memory barrier and OnHeap (for safe cross
+   copy_term, since we cannot not assume anything about the order of
+   different heaps */
+#define OldHVA(X) (!OffHeaptop(X,w->global_uncond) || !OnHeap(TagToPointer(X)))
+#define OldCVA(X) (!OffHeaptop(TagHVA(TagToCVA(X)),w->global_uncond) || !OnHeap(TagToPointer(X)))
+#else
+/* Use TopOfOldHeap as a memory barrier */
+#define OldHVA(X) (!OffHeaptop(X,w->global_uncond))
+#define OldCVA(X) (!OffHeaptop(TagHVA(TagToCVA(X)),w->global_uncond))
+#endif
 
 /* =========================================================================== */
 /* Faults and errors */

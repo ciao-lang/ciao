@@ -12,7 +12,6 @@ CBOOL__PROTO(bu1_detach_attribute, tagged_t x);
 CBOOL__PROTO(bu2_attach_attribute, tagged_t var, tagged_t constr);
 CBOOL__PROTO(bu2_update_attribute, tagged_t x, tagged_t constr);
 CFUN__PROTO(fu1_get_attribute, tagged_t, tagged_t x);
-CFUN__PROTO(fu1_type, tagged_t, tagged_t t0);
 CVOID__PROTO(collect_one_pending_unification);
 CVOID__PROTO(collect_pending_unifications, intmach_t wake_count);
 

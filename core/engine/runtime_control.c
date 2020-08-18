@@ -74,7 +74,7 @@ CBOOL__PROTO(nd_suspension_point)
 #endif
 
 /*
-   Support for the builtin C-predicate atom_concat/3 (see term_support.c)
+   Support for the builtin C-predicate atom_concat/3 (see atomic_basic.c)
 */
 
 CBOOL__PROTO(nd_atom_concat)
@@ -181,6 +181,55 @@ CBOOL__PROTO(nd_current_atom)
   return TRUE;
 }
 
+/* --------------------------------------------------------------------------- */
+
+/* TODO: alternatively: use the mem address, if it is stable (JF) */
+
+/* 
+   Support for generating new atoms with "funny names", always different.
+   Make sure that the generation works OK with concurrency.  */
+
+/* This seems to be the right size: one character less, and time (at large)
+   doubles; one character more, and comparison in the symbol table takes
+   longer. */
+#define NEW_ATOM_LEN 13
+#define NUM_OF_CHARS 62
+static char allowed_char_table[NUM_OF_CHARS + 1] =
+"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static char new_atom_str[] = "!!!!!!!!!!!!!";
+#define FIRST_CHAR 0
+#define LAST_CHAR  (NUM_OF_CHARS-1)
+
+unsigned int x = 13*17;
+
+CBOOL__PROTO(prolog_new_atom)
+{
+  ERR__FUNCTOR("runtime_control:new_atom", 1);
+  int i;
+  int previous_atoms_count;
+  tagged_t new_atom;
+
+  DEREF(X(0), X(0));
+  if (!IsVar(X(0))) {
+    BUILTIN_ERROR(UNINSTANTIATION_ERROR,X(0),1);
+  }
+
+  Wait_Acquire_slock(atom_id_l);
+
+  previous_atoms_count = ciao_atoms->count;
+  do {
+    for (i = 0; i < NEW_ATOM_LEN; i++) {
+      x = (((new_atom_str[i] + x - FIRST_CHAR) * 13) + 300031);
+      new_atom_str[i] = allowed_char_table[(x % NUM_OF_CHARS) + FIRST_CHAR];
+      x = x / NUM_OF_CHARS;
+    }
+    new_atom = init_atom_check(new_atom_str);
+    /* Make sure no smart guy already inserted the atom we have in mind */
+  } while(ciao_atoms->count == previous_atoms_count);
+
+  Release_slock(atom_id_l);
+  return cunify(Arg, X(0), new_atom);
+}
 
 /* ------------------------------------------------------------------
    THE BUILTIN C-PREDICATE       $CURRENT_CLAUSES/2
@@ -206,7 +255,6 @@ CBOOL__PROTO(current_clauses)
     MINOR_FAULT("$current_clauses/2: incorrect 1st arg");
   }
 }
-
 
 /* ------------------------------------------------------------------
    THE BUILTIN C-PREDICATE       REPEAT/0
