@@ -645,7 +645,7 @@ initialization(M) :- '$initialization'(M).
 %   11 - global_vars module
 %
 % TODO: move to a different file and share
-%       (core/engine/internals.pl and core_OC/engine/internals.pl)
+%       (core/engine/internals.pl and core/engine_oc/internals.pl)
 
 :- include(.(global_variables)).
 

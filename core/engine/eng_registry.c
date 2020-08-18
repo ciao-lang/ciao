@@ -18,7 +18,6 @@
 #include <ciao/attributes.h>
 #include <ciao/internals.h>
 #include <ciao/basiccontrol.h>
-#include <ciao/atomic_basic.h> /* prolog_init_radix(), nd_atom_concat() */
 
 #include <ciao/eng_interrupt.h>
 
@@ -1059,6 +1058,15 @@ CBOOL__PROTO(debugger_mode);
 CBOOL__PROTO(spypoint);
 /* terms_check.c */
 CBOOL__PROTO(cinstance);
+/* atomic_basic.c */ 
+CBOOL__PROTO(prolog_atom_codes);
+CBOOL__PROTO(prolog_atom_length);
+CBOOL__PROTO(prolog_sub_atom);
+CBOOL__PROTO(prolog_atom_concat);
+CBOOL__PROTO(nd_atom_concat); /* TODO: .pl decl should have a pair */
+CBOOL__PROTO(prolog_name);
+CBOOL__PROTO(prolog_number_codes_2);
+CBOOL__PROTO(prolog_number_codes_3);
 
 static void define_functions(void)
 {
@@ -1678,7 +1686,6 @@ void glb_init_each_time(void)
   address_interpret_c_goal = address_interpret_goal;
 
   current_radix = MakeSmall(10);
-  prolog_init_radix();
   /*current_breaklevel = TaggedZero;*/
   current_prompt = init_atom_check("|: ");
   enable_conditions();

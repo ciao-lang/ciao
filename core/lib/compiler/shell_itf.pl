@@ -10,7 +10,7 @@
 % TODO: reuse more code from c_itf.pl
 
 % ---------------------------------------------------------------------------
-% TODO: merge with core_OC/compiler/read_source.pl
+% TODO: merge with core/compiler_oc/read_source.pl
 
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
@@ -116,7 +116,7 @@ expand_list_tail(Data1, Data) :-
 % (partially duplicated in c_itf.pl)
 do_expand_term(Data0, M, VNs, Data) :-
     % Update conditional compilation state and filter sentence
-    % TODO: merge with core_OC
+    % TODO: merge with compiler_oc
     ( condcomp_sentence(Data0, Data1, M), Data1 = [] -> Data = []
     ; expand_term(Data0, M, VNs, Data)
     ).

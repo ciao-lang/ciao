@@ -2,6 +2,8 @@
 
 :- doc(title, "The Ciao Engine").
 :- doc(author, "Ciao developers").
+%  Copyright (C) 1996-2002 CLIP group
+%  Copyright (C) 2003-2020 The Ciao Development Team
 
 :- doc(module, "An efficient, high-performance, bytecode-based engine,
    with garbage collection, unbound precision integer arithmetic,

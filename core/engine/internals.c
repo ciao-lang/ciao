@@ -26,7 +26,6 @@
 
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_gc.h>
-#include <ciao/atomic_basic.h> /* prolog_init_radix() */
 #include <ciao/timing.h>
 #include <ciao/eng_profile.h>
 
@@ -2144,7 +2143,6 @@ CBOOL__PROTO(prolog_radix)
 {
   CBOOL__UnifyCons(current_radix,X(0));
   DEREF(current_radix,X(1));
-  prolog_init_radix();
   return TRUE;
 }
 

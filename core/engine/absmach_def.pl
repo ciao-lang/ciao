@@ -2,7 +2,7 @@
 
 % ---------------------------------------------------------------------------
 % Abstract machine definition (emugen version)
-% NOTE: See core_OC/engine/absmach_def.pl for ImProlog version
+% NOTE: See core/engine_oc/absmach_def.pl for ImProlog version
 
 % Author: Jose F. Morales (based on the original code in C)
 

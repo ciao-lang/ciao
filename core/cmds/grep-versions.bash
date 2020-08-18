@@ -32,7 +32,7 @@ function find_others() { # [paths]
     local f
     for d in "$@"; do
         for f in \
-            core_OC/compiler/frontend_common.pl \
+            core/compiler_oc/frontend_common.pl \
             core/engine/internals.pl \
             core/lib/compiler/c_itf.pl;
         do

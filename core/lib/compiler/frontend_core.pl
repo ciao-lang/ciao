@@ -4,7 +4,7 @@
 
 % ---------------------------------------------------------------------------
 :- doc(subsection, "Definition of Module Handlers").
-% TODO: merge with core_OC
+% TODO: merge with compiler_oc
 
 decl__treatDom(module(_,_)).
 decl__treat(module(_,_),_Base,_M,_VNs, Ln0, Ln1) :- !,

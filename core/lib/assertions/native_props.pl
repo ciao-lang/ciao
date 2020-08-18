@@ -1,4 +1,4 @@
-:- module(native_props, [], [assertions, regtypes]).
+:- module(native_props, [], [noprelude, assertions, regtypes]).
 
 :- doc(title, "Properties which are native to analyzers").
 :- doc(author, "Francisco Bueno").
@@ -6,6 +6,7 @@
 :- doc(author, "Pedro L@'{o}pez").
 :- doc(author, "Edison Mera").
 :- doc(author, "Amadeo Casas").
+:- doc(author, "Jose F. Morales").
 
 :- doc(module, "@cindex{properties, native} This library contains
    a set of properties which are natively understood by the different
@@ -29,6 +30,11 @@
    or testing libs.").
 
 :- doc(bug, "MH: Missing test cases and examples.").
+
+:- use_module(engine(basiccontrol)).
+:- use_module(engine(term_typing)).
+:- use_module(engine(term_basic)).
+:- use_module(engine(arithmetic)).
 
 :- if(defined(optim_comp)).
 :- else.

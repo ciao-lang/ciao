@@ -17,7 +17,6 @@
 #include <ciao/eng_registry.h>
 #include <ciao/eng_gc.h>
 #include <ciao/rt_exp.h>
-#include <ciao/atomic_basic.h> /* nd_atom_concat() */
 #include <ciao/runtime_control.h>
 #include <ciao/io_basic.h>
 #include <ciao/eng_bignum.h>

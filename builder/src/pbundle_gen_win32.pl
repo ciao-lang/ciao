@@ -150,8 +150,6 @@ current_file(Source, DestDir) :-
 % exclude_win_subdir('./lpdoc/doc').
 % exclude_win_subdir('./ciaopp/doc').
 % exclude_win_subdir('./alldocs').
-% exclude_win_subdir('./core_OC').
-% exclude_win_subdir('./core_OCjs').
 
 rel_extra_system_file(Source, DestDir) :-
     Eng = ~default_eng_def,

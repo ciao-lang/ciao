@@ -1,64 +1,47 @@
 /*
  *  atomic_basic.c
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #include <ciao/eng.h>
+#if !defined(OPTIM_COMP)
 #include <ciao/eng_bignum.h> /* for StringToInt,StringToInt_nogc */
 #include <ciao/eng_gc.h> /* for StringToInt,StringToInt_nogc */
 #include <ciao/eng_registry.h>
 #include <ciao/dtoa_ryu.h>
 #include <ciao/runtime_control.h> /* push_choicept,pop_choicept */
-#include <ciao/io_basic.h>
+#include <ciao/io_basic.h> /* isValidRune */
 #include <ciao/atomic_basic.h>
+#endif
 
-#include <stdlib.h> /* atoi(), atol(), atof() */
+#include <stdlib.h> /* atof() */
 #include <string.h>
 #include <math.h> /* NAN, INFINITY */
 
-/* Shared, no locked --- but it should be private! */
-static int radixlim1;
-static int radixlim2;
-static int radixlim3;
-
-void prolog_init_radix(void) {
-  int radix = GetSmall(current_radix);
-  if (radix<10) {
-    radixlim1 = '0'+radix;
-    radixlim2 = 'a';
-    radixlim3 = 'A';
-  } else {
-    radixlim1 = '0'+10;
-    radixlim2 = 'a'+radix-10;
-    radixlim3 = 'A'+radix-10;
-  }
-}
-
-static CBOOL__PROTO(prolog_constant_codes, 
+static CBOOL__PROTO(prolog_constant_codes,
                     bool_t atomp,
                     bool_t numberp,
                     int ci);
 
 CBOOL__PROTO(prolog_name) {
   // ERR__FUNCTOR("atomic_basic:name", 2);
-  return prolog_constant_codes(Arg,TRUE,TRUE,1);
+  CBOOL__LASTCALL(prolog_constant_codes,TRUE,TRUE,1);
 }
 
 CBOOL__PROTO(prolog_atom_codes) {
   // ERR__FUNCTOR("atomic_basic:atom_codes", 2);
-  return prolog_constant_codes(Arg,TRUE,FALSE,1);
+  CBOOL__LASTCALL(prolog_constant_codes,TRUE,FALSE,1);
 }
 
 CBOOL__PROTO(prolog_number_codes_2) {
   // ERR__FUNCTOR("atomic_basic:number_codes", 2);
-  return prolog_constant_codes(Arg,FALSE,TRUE,1);
+  CBOOL__LASTCALL(prolog_constant_codes,FALSE,TRUE,1);
 }
 
 CBOOL__PROTO(prolog_number_codes_3) {
   // ERR__FUNCTOR("atomic_basic:number_codes", 3);
-  return prolog_constant_codes(Arg,FALSE,TRUE,2);
+  CBOOL__LASTCALL(prolog_constant_codes,FALSE,TRUE,2);
 }
 
 static inline bool_t is_digit10(char c) {
@@ -107,7 +90,7 @@ static inline bool_t str_to_flt64(char *AtBuf, int base, flt64_t *rnum) {
    (e.g., AtBuf does not correspond syntactically to a number), FALSE is
    returned.  Otherwise, TRUE is returned and the conversion is done */
 
-CBOOL__PROTO(string_to_number, 
+CBOOL__PROTO(string_to_number,
              char *AtBuf,
              int base,
              tagged_t *strnum,
@@ -144,11 +127,11 @@ CBOOL__PROTO(string_to_number,
     if (strcmp(s, ".Nan")==0) {
       double num = sign ? -NAN : NAN;
       *strnum = MakeFloat(Arg, num);
-      return TRUE;
+      CBOOL__PROCEED;
     } else if (strcmp(s, ".Inf")==0) {
       double num = sign ? -INFINITY : INFINITY;
       *strnum = MakeFloat(Arg, num);
-      return TRUE;
+      CBOOL__PROCEED;
     }
   }
   /* integers or float */
@@ -174,6 +157,60 @@ CBOOL__PROTO(string_to_number,
   }
   /* maybe a non-numeric atom */
   return FALSE;
+}
+
+/* Precond: 2<=abs(base)<=36 for integers, base==10 for floats */
+CVOID__PROTO(number_to_string, tagged_t term, int base) {
+  if (TaggedIsSmall(term)) {
+    intmach_t l = GetSmall(term);
+    char hibase = 'a'-10;
+    bool_t sx = (l>=0);
+    intmach_t digit;
+    char *c0, *c, d;
+
+    if (base<0) {
+      hibase = 'A'-10;
+      base = -base;
+    }
+    c = Atom_Buffer;
+    if (!sx) {
+      *c++ = '-';
+      l = -l;
+    }
+
+    do {
+      digit = l % base;
+      l /= base;
+      *c++ = (digit<10 ? '0'+digit : hibase+digit);
+    } while (l>0);
+
+    *c++ = 0;
+    for (c0=Atom_Buffer+1-sx, c-=2; c0<c; c0++, c--) {
+      d = *c0;
+      *c0 = *c;
+      *c = d;
+    }
+  } else if (IsFloat(term)) {
+    union {
+      flt64_t i;
+      tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
+    } u;
+    char *cbuf;
+
+    /* f = GetFloat(term); */
+#if LOG2_bignum_size == 5
+    u.p[0] = *TagToArg(term,1);
+    u.p[1] = *TagToArg(term,2);
+#elif LOG2_bignum_size == 6
+    u.p[0] = *TagToArg(term,1);
+#endif
+
+    /* if (1024 > Atom_Buffer_Length) EXPAND_ATOM_BUFFER(102400); */
+    cbuf = Atom_Buffer;
+    dtoa_ryu(u.i, cbuf); /* assume base==10 */
+  } else {
+    bn_to_string(Arg,(bignum_t *)TagToSTR(term),base);
+  }
 }
 
 /*
@@ -403,6 +440,8 @@ CBOOL__PROTO(prolog_sub_atom)
 
 }
 
+CBOOL__PROTO(nd_atom_concat);
+
 CBOOL__PROTO(prolog_atom_concat)
 {
   ERR__FUNCTOR("atomic_basic:atom_concat", 3);
@@ -528,57 +567,28 @@ CBOOL__PROTO(prolog_atom_concat)
   }
 }
 
-/* Precond: 2<=abs(base)<=36 for integers, base==10 for floats */
-CVOID__PROTO(number_to_string, tagged_t term, int base) {
-  if (TaggedIsSmall(term)) {
-    intmach_t l = GetSmall(term);
-    char hibase = 'a'-10;
-    bool_t sx = (l>=0);
-    intmach_t digit;
-    char *c0, *c, d;
+/* Nondet support for atom_concat/3 */
+CBOOL__PROTO(nd_atom_concat) {
+  intmach_t i = GetSmall(X(3));
+  char *s, *s1, *s2;
 
-    if (base<0) {
-      hibase = 'A'-10;
-      base = -base;
-    }
-    c = Atom_Buffer;
-    if (!sx) {
-      *c++ = '-';
-      l = -l;
-    }
+  w->node->term[3] += MakeSmallDiff(1);
 
-    do {
-      digit = l % base;
-      l /= base;
-      *c++ = (digit<10 ? '0'+digit : hibase+digit);
-    } while (l>0);
+  s2 = GetString(X(2));
 
-    *c++ = 0;
-    for (c0=Atom_Buffer+1-sx, c-=2; c0<c; c0++, c--) {
-      d = *c0;
-      *c0 = *c;
-      *c = d;
-    }
-  } else if (IsFloat(term)) {
-    union {
-      flt64_t i;
-      tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
-    } u;
-    char *cbuf;
+  s = Atom_Buffer;
 
-    /* f = GetFloat(term); */
-#if LOG2_bignum_size == 5
-    u.p[0] = *TagToArg(term,1);
-    u.p[1] = *TagToArg(term,2);
-#elif LOG2_bignum_size == 6
-    u.p[0] = *TagToArg(term,1);
-#endif
+  s1 = s2 + i;
+  strcpy(s, s1);
+  CBOOL__UnifyCons(init_atom_check(Atom_Buffer),X(1));
 
-    /* if (1024 > Atom_Buffer_Length) EXPAND_ATOM_BUFFER(102400); */
-    cbuf = Atom_Buffer;
-    dtoa_ryu(u.i, cbuf); /* assume base==10 */
-  } else {
-    bn_to_string(Arg,(bignum_t *)TagToSTR(term),base);
-  }
+  strcpy(s, s2);
+  *(s+i) = '\0';
+  CBOOL__UnifyCons(init_atom_check(Atom_Buffer),X(0));
+
+  if (i == strlen(s2))
+    pop_choicept(Arg);
+  
+  return TRUE;
 }
 

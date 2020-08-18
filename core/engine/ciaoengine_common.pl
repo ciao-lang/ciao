@@ -1,7 +1,7 @@
 % (included file)
 
 % ---------------------------------------------------------------------------
-% TODO: backport core_OC/cmds/loader.pl (extracts some code from internals)
+% TODO: backport core/cmds/loader.pl (extracts some code from internals)
 
 % TODO: collect most of those dependencies from engine/ modules (backport from optim_comp)
 

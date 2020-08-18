@@ -492,11 +492,11 @@ char *ciao_get_number_chars(ciao_term term) {
 /* TO DO: raise a proper exception */
 ciao_term ciao_put_number_chars_s(ciao_ctx ctx, char *number_string) {
   tagged_t result;
-  (void)string_to_number( ctx->worker_registers, 
-                          number_string,
-                          GetSmall(current_radix),
-                          &result,
-                          0);
+  (void)string_to_number(ctx->worker_registers, 
+                         number_string,
+                         GetSmall(current_radix),
+                         &result,
+                         0);
   return ciao_ref(ctx, result);
 }
 

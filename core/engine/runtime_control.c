@@ -73,35 +73,6 @@ CBOOL__PROTO(nd_suspension_point)
 }
 #endif
 
-/*
-   Support for the builtin C-predicate atom_concat/3 (see atomic_basic.c)
-*/
-
-CBOOL__PROTO(nd_atom_concat)
-{
-  intmach_t i = GetSmall(X(3));
-  char *s, *s1, *s2;
-
-  w->node->term[3] += MakeSmallDiff(1);
-
-  s2 = GetString(X(2));
-
-  s = Atom_Buffer;
-
-  s1 = s2 + i;
-  strcpy(s, s1);
-  CBOOL__UnifyCons(init_atom_check(Atom_Buffer),X(1));
-
-  strcpy(s, s2);
-  *(s+i) = '\0';
-  CBOOL__UnifyCons(init_atom_check(Atom_Buffer),X(0));
-
-  if (i == strlen(s2))
-    pop_choicept(Arg);
-  
-  return TRUE;
-}
-
 #if defined(TABLING)
 CBOOL__PROTO(nd_fake_choicept)
 {
@@ -109,7 +80,6 @@ CBOOL__PROTO(nd_fake_choicept)
   return FALSE;
 }
 #endif
-
 
 /* ------------------------------------------------------------------
    THE BUILTIN C-PREDICATE       CURRENT_ATOM/1

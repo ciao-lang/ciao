@@ -1,6 +1,6 @@
 :- module(_, [], [datafacts]).
 
-% TODO: merge with process_entences.pl from core_OC
+% TODO: merge with process_entences.pl from compiler_oc
 
 :- use_module(engine(runtime_control)).
 :- use_module(library(messages), 

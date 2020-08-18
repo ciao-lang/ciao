@@ -18,7 +18,7 @@ assertions and experimetal syntactic extensions:
 %   (try to unify them before):
 %        core/lib/assertions/assrt_lib.pl
 %        ciaopp/p_unit/assrt_norm.pl
-%        core_OC/compiler/assertions__syntactic.pl
+%        core/compiler_oc/assertions__syntactic.pl
 
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 

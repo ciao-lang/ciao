@@ -18,8 +18,6 @@
 # Output: $cardir/cfg/$eng_cfg/config_sh
 #         $cardir/cfg/$eng_cfg/config_mk
 
-# TODO: Merge with core_OC/engine/internals.cfg/
-
 # ----------------------------------------------------------------------------
 
 # Physical directory where the script is located

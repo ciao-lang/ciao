@@ -1162,7 +1162,7 @@ do_expand_term((:- primitive_meta_predicate(MP)), M, _, Data1) :- !,
              ('$primitive_meta_predicate'(Pat, M))].
 do_expand_term(Data0, M, VNs, Data) :-
     % Update conditional compilation state and filter sentence
-    % TODO: merge with core_OC
+    % TODO: merge with compiler_oc
     ( condcomp_sentence(Data0, Data1, M), Data1 = [] -> Data = []
     ; expand_term(Data0, M, VNs, Data)
     ).

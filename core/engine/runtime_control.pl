@@ -3,7 +3,7 @@
 :- doc(title, "Runtime system control and flags").
 :- doc(author, "Manuel Carro").
 :- doc(author, "Daniel Cabeza").
-:- doc(author, "Jos@'{e} F. Morales").
+:- doc(author, "Jose F. Morales").
 :- doc(author, "Manuel Hermenegildo (improved documentation)").
 :- doc(author, "Mats Carlsson (original author)").
 
