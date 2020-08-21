@@ -804,8 +804,8 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define IntvalToTaggedCheck(X) make_integer_check(Arg,(X),liveinfo) // TODO: benchmark (IntIsSmall(X) ? MakeSmall(X) : make_integer_check(ARG,X,liveinfo))
 #define BoxFloat(X) make_float(Arg,(X))
 #define BoxFloatCheck(X) make_float_check(Arg,(X),liveinfo)
-#define MakeAtom(X)     TagIndex(ATM,X)
-#define GET_ATOM(X)   init_atom_check(X)
+#define MakeAtom(X) TagIndex(ATM,X)
+#define GET_ATOM(X) MakeAtom(lookup_atom_idx(X))
 
 #define GetInteger(X)   (TaggedIsSmall(X) ? GetSmall(X) : get_integer(X))
 #define GetFloat(X)     (TaggedIsSmall(X) ? (flt64_t)GetSmall(X) : get_float(X))

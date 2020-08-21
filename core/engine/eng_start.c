@@ -382,7 +382,7 @@ int engine_start(int argc, char *argv[]) {
   /* wam->next_insn set to boot code in local_init_each_time */
   /*w->node->global_top = w->global_top;*/     /* Isn't this unnecessary? */
   /*  Fills in worker_entry */
-  return call_firstgoal(first_goal, init_atom_check("internals:boot"));
+  return call_firstgoal(first_goal, GET_ATOM("internals:boot"));
 }
 
 // #define USE_WINDOWS_REGISTRY 1

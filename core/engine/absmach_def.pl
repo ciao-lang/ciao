@@ -3280,7 +3280,7 @@ wam_def :-
     "tagged_t *pt1; int i;", fmt:nl,
     code_neck, % Force neck if not done
     "X(0) = MakeSmall(ErrCode);", fmt:nl, % Error code
-    "X(1) = init_atom_check(ErrFuncName);", fmt:nl, % Builtin name
+    "X(1) = GET_ATOM(ErrFuncName);", fmt:nl, % Builtin name
     "X(2) = MakeSmall(ErrFuncArity);", fmt:nl, % Builtin arity
     "X(4) = Culprit;", fmt:nl, % Culprit arg.
     "X(3) = MakeSmall(ErrArgNo);", fmt:nl, % w. number

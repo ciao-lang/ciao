@@ -13,7 +13,7 @@ extern instance_clock_t use_clock;
 
 extern sw_on_key_t *switch_on_function;
 
-tagged_t init_atom_check(char *str);
+intmach_t lookup_atom_idx(char *str);
 
 #if defined(USE_ATOM_LEN)
 atom_t *new_atom_check(char *str, 

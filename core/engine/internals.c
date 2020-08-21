@@ -2355,7 +2355,7 @@ CBOOL__PROTO(prolog_erase_atom)
 /* atmtab[i] point to parts of other data structure, so we fix the values
    there and then set a null pointer in atmtab[] */
 
-/* 1 cannot be the key of any entry (see init_atom_check()), and is used to
+/* 1 cannot be the key of any entry (see lookup_atom_idx()), and is used to
    mark a deleted entry (see atom_gethash()) */
 
   atmtab[index]->key = 1;

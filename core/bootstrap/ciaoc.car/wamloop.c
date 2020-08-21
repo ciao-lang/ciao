@@ -54,7 +54,7 @@ w->next_alt = NULL;
 SetE(w->local_top);
   }
 X(0) = MakeSmall(ErrCode);
-X(1) = init_atom_check(ErrFuncName);
+X(1) = GET_ATOM(ErrFuncName);
 X(2) = MakeSmall(ErrFuncArity);
 X(4) = Culprit;
 X(3) = MakeSmall(ErrArgNo);

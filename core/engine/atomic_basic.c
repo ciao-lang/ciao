@@ -317,7 +317,7 @@ static CBOOL__PROTO(prolog_constant_codes,
       return cunify(Arg, result, X(0));
     }
   }
-  return atomp && cunify(Arg,init_atom_check(Atom_Buffer),X(0));
+  return atomp && cunify(Arg,GET_ATOM(Atom_Buffer),X(0));
 
  construct_list:
   if (IsVar(X(0))) {
@@ -433,7 +433,7 @@ CBOOL__PROTO(prolog_sub_atom)
 
   *(s1+atom_length) = '\0';
 
-  return cunify(Arg,init_atom_check(Atom_Buffer),X(3));
+  return cunify(Arg,GET_ATOM(Atom_Buffer),X(3));
 }
 
 CBOOL__PROTO(nd_atom_concat);
@@ -481,7 +481,7 @@ CBOOL__PROTO(prolog_atom_concat)
       while (*s2)
         *s++ = *s2++;
       *s = '\0';
-      return cunify(Arg,init_atom_check(Atom_Buffer),X(2));
+      return cunify(Arg,GET_ATOM(Atom_Buffer),X(2));
     } else if (IsVar(X(1))) {
       if (!TaggedIsATM(X(2))) { ERROR_IN_ARG(X(2),3,STRICT_ATOM); }
       /* atom_concat(+, -, +) */
@@ -504,7 +504,7 @@ CBOOL__PROTO(prolog_atom_concat)
 
       strcpy(s, s2);
 
-      return cunify(Arg,init_atom_check(Atom_Buffer),X(1));
+      return cunify(Arg,GET_ATOM(Atom_Buffer),X(1));
     } else {
       BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(1),2);
     }
@@ -540,7 +540,7 @@ CBOOL__PROTO(prolog_atom_concat)
 
       *(s+new_atom_length) = '\0';
 
-      return cunify(Arg,init_atom_check(Atom_Buffer),X(0));
+      return cunify(Arg,GET_ATOM(Atom_Buffer),X(0));
     } else if (IsVar(X(1))) {
 /* atom_concat(-, -, +) */
 
@@ -568,7 +568,11 @@ CBOOL__PROTO(nd_atom_concat) {
   intmach_t i = GetSmall(X(3));
   char *s, *s1, *s2;
 
+#if defined(OPTIM_COMP)
+  w->choice->x[3] = SmallAdd(w->choice->x[3], 1);
+#else
   w->node->term[3] += MakeSmallDiff(1);
+#endif
 
   s2 = GetString(X(2));
 
@@ -576,14 +580,15 @@ CBOOL__PROTO(nd_atom_concat) {
 
   s1 = s2 + i;
   strcpy(s, s1);
-  CBOOL__UnifyCons(init_atom_check(Atom_Buffer),X(1));
+  CBOOL__UnifyCons(GET_ATOM(Atom_Buffer),X(1));
 
   strcpy(s, s2);
   *(s+i) = '\0';
-  CBOOL__UnifyCons(init_atom_check(Atom_Buffer),X(0));
+  CBOOL__UnifyCons(GET_ATOM(Atom_Buffer),X(0));
 
-  if (i == strlen(s2))
-    pop_choicept(Arg);
+  if (i == strlen(s2)) {
+    CVOID__CALL(pop_choicept);
+  }
   
   CBOOL__PROCEED;
 }

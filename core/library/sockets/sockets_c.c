@@ -149,11 +149,9 @@ CBOOL__PROTO(prolog_connect_to_socket_type) {
   
   sprintf(socket_name, "<%s:%d>", GetString(host_deref), port_number);
   
-  return
-    cunify(Arg, 
-           ptr_to_stream(Arg,new_socket_stream(GET_ATOM(socket_name),sock)),
-           X(3)
-           );
+  return cunify(Arg, 
+                ptr_to_stream(Arg,new_socket_stream(GET_ATOM(socket_name),sock)),
+                X(3));
 }
 
 
@@ -724,18 +722,18 @@ CBOOL__PROTO(prolog_socket_getpeername) {
 }
 
 CBOOL__PROTO(sockets_c_init) {
-  atom_stream = init_atom_check("stream");
-  atom_dgram = init_atom_check("dgram");
-  atom_raw = init_atom_check("raw");
-  atom_seqpacket = init_atom_check("seqpacket");
-  atom_rdm = init_atom_check("rdm");
+  atom_stream = GET_ATOM("stream");
+  atom_dgram = GET_ATOM("dgram");
+  atom_raw = GET_ATOM("raw");
+  atom_seqpacket = GET_ATOM("seqpacket");
+  atom_rdm = GET_ATOM("rdm");
 
-  atom_read = init_atom_check("read");
-  atom_write = init_atom_check("write");
-  atom_read_write = init_atom_check("read_write");
+  atom_read = GET_ATOM("read");
+  atom_write = GET_ATOM("write");
+  atom_read_write = GET_ATOM("read_write");
   /*
-  atom_buff = init_atom_check("fullbuf");
-  atom_unbuff = init_atom_check("unbuf");
+  atom_buff = GET_ATOM("fullbuf");
+  atom_unbuff = GET_ATOM("unbuf");
   */
   return TRUE;
 }

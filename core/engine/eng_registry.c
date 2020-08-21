@@ -415,8 +415,7 @@ static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw,
   }
 }
 
-tagged_t init_atom_check(char *str)
-{
+intmach_t lookup_atom_idx(char *str) {
   sw_on_key_node_t *hnode;
   unsigned int hashcode = 0;
   intmach_t count, size;
@@ -457,7 +456,7 @@ tagged_t init_atom_check(char *str)
 #else
   if (hnode->key)
 #endif
-    return MakeAtom(hnode->value.atomp->index);
+    return hnode->value.atomp->index;
 
   if ((count=ciao_atoms->count) > MaxAtomCount) {
     SERIOUS_FAULT("the atom table is full");
@@ -552,7 +551,7 @@ tagged_t init_atom_check(char *str)
 
   INC_MEM_PROG(total_mem_count - current_mem);
 
-  return MakeAtom(count);
+  return count;
 }
 
 /*-----------------------------------------------------------*/
@@ -1179,13 +1178,13 @@ void init_once(void)
   /* builtintab[42] = (void *)bu3_compare; */
   builtintab[43] = (void *)bu3_functor;
 
-  atm_var   = init_atom_check("var");
-  atm_attv  = init_atom_check("attv");
-  atm_float = init_atom_check("float");
-  atm_int   = init_atom_check("integer");
-  atm_str   = init_atom_check("structure");
-  atm_atm   = init_atom_check("atom");
-  atm_lst   = init_atom_check("list"); 
+  atm_var   = GET_ATOM("var");
+  atm_attv  = GET_ATOM("attv");
+  atm_float = GET_ATOM("float");
+  atm_int   = GET_ATOM("integer");
+  atm_str   = GET_ATOM("structure");
+  atm_atm   = GET_ATOM("atom");
+  atm_lst   = GET_ATOM("list"); 
     
   builtintab[44] = (void *)fu1_type;                         
   builtintab[45] = (void *)fu1_get_attribute;
@@ -1194,73 +1193,73 @@ void init_once(void)
   builtintab[48] = (void *)bu1_detach_attribute;
   
 #if defined(MARKERS)
-  atom_success=init_atom_check("success");
-  atom_failure=init_atom_check("failure");
+  atom_success=GET_ATOM("success");
+  atom_failure=GET_ATOM("failure");
 #endif
 
-  atom_share=init_atom_check("share");
-  atom_noshare=init_atom_check("noshare");
-  atom_read=init_atom_check("read");
-  atom_write=init_atom_check("write");
-  atom_append=init_atom_check("append");
-  atom_socket=init_atom_check("socket");
-  atom_symlink=init_atom_check("symlink");
-  atom_regular=init_atom_check("regular");
-  atom_directory=init_atom_check("directory");
-  atom_fifo=init_atom_check("fifo");
-  atom_stdout=init_atom_check("stdout");
-  atom_unknown=init_atom_check("unknown");
-  atom_prolog=init_atom_check("prolog");
-  atom_lessthan=init_atom_check("<");
-  atom_greaterthan=init_atom_check(">");
-  atom_equal=init_atom_check("=");
-  atom_list = init_atom_check(".");
-  atom_nil = init_atom_check("[]");
-  atom_on = init_atom_check("on");
-  atom_off = init_atom_check("off");
-  atom_error = init_atom_check("error");
-  atom_trace = init_atom_check("trace");
-  atom_debug = init_atom_check("debug");
-  atom_fail = init_atom_check("fail");
-  atom_all = init_atom_check("all");
-  atom_terse = init_atom_check("terse");
-  atom_verbose = init_atom_check("verbose");
-  atom_compiled = init_atom_check("compiled");
-  atom_interpreted = init_atom_check("interpreted");
-  atom_builtin = init_atom_check("built_in");
-  atom_true = init_atom_check("true");
-  atom_false = init_atom_check("false");
-  atom_retry_hook = init_atom_check("$$retry_hook");
+  atom_share=GET_ATOM("share");
+  atom_noshare=GET_ATOM("noshare");
+  atom_read=GET_ATOM("read");
+  atom_write=GET_ATOM("write");
+  atom_append=GET_ATOM("append");
+  atom_socket=GET_ATOM("socket");
+  atom_symlink=GET_ATOM("symlink");
+  atom_regular=GET_ATOM("regular");
+  atom_directory=GET_ATOM("directory");
+  atom_fifo=GET_ATOM("fifo");
+  atom_stdout=GET_ATOM("stdout");
+  atom_unknown=GET_ATOM("unknown");
+  atom_prolog=GET_ATOM("prolog");
+  atom_lessthan=GET_ATOM("<");
+  atom_greaterthan=GET_ATOM(">");
+  atom_equal=GET_ATOM("=");
+  atom_list = GET_ATOM(".");
+  atom_nil = GET_ATOM("[]");
+  atom_on = GET_ATOM("on");
+  atom_off = GET_ATOM("off");
+  atom_error = GET_ATOM("error");
+  atom_trace = GET_ATOM("trace");
+  atom_debug = GET_ATOM("debug");
+  atom_fail = GET_ATOM("fail");
+  atom_all = GET_ATOM("all");
+  atom_terse = GET_ATOM("terse");
+  atom_verbose = GET_ATOM("verbose");
+  atom_compiled = GET_ATOM("compiled");
+  atom_interpreted = GET_ATOM("interpreted");
+  atom_builtin = GET_ATOM("built_in");
+  atom_true = GET_ATOM("true");
+  atom_false = GET_ATOM("false");
+  atom_retry_hook = GET_ATOM("$$retry_hook");
 
-  atom_unprofiled = init_atom_check("unprofiled");
-  atom_profiled = init_atom_check("profiled");
+  atom_unprofiled = GET_ATOM("unprofiled");
+  atom_profiled = GET_ATOM("profiled");
 
-  /* atom_public = init_atom_check("public"); */
-  atom_concurrent = init_atom_check("concurrent");
-  atom_wait = init_atom_check("wait");
-  atom_dynamic = init_atom_check("dynamic");
-  atom_multifile = init_atom_check("multifile");
-  atom_user = init_atom_check("user");
-  atom_att = init_atom_check("att");
+  /* atom_public = GET_ATOM("public"); */
+  atom_concurrent = GET_ATOM("concurrent");
+  atom_wait = GET_ATOM("wait");
+  atom_dynamic = GET_ATOM("dynamic");
+  atom_multifile = GET_ATOM("multifile");
+  atom_user = GET_ATOM("user");
+  atom_att = GET_ATOM("att");
 
-  atom_block = init_atom_check("block");
-  atom_no_block = init_atom_check("no_block");
+  atom_block = GET_ATOM("block");
+  atom_no_block = GET_ATOM("no_block");
 
 
-  atom_self = init_atom_check("self");
-  atom_create = init_atom_check("create");
+  atom_self = GET_ATOM("self");
+  atom_create = GET_ATOM("create");
 
 #if defined(GAUGE)
-  atom_counter = init_atom_check("counter");
+  atom_counter = GET_ATOM("counter");
 #endif
 
-  atom_default_ciaoroot = init_atom_check(ciaoroot_directory);
-  atom_default_c_headers_dir = init_atom_check(c_headers_directory);
+  atom_default_ciaoroot = GET_ATOM(ciaoroot_directory);
+  atom_default_c_headers_dir = GET_ATOM(c_headers_directory);
 
 #if defined(USE_OVERFLOW_EXCEPTIONS)
-  atom_undo_heap_overflow_excep = init_atom_check("internals:$undo_heap_overflow_excep");
+  atom_undo_heap_overflow_excep = GET_ATOM("internals:$undo_heap_overflow_excep");
 #endif
-  atom_heap_limit = init_atom_check("internals:$heap_limit");
+  atom_heap_limit = GET_ATOM("internals:$heap_limit");
 
   current_gcmode = atom_on;
   current_gctrace = atom_off;
@@ -1687,7 +1686,7 @@ void glb_init_each_time(void)
 
   current_radix = MakeSmall(10);
   /*current_breaklevel = TaggedZero;*/
-  current_prompt = init_atom_check("|: ");
+  current_prompt = GET_ATOM("|: ");
   enable_conditions();
   compute_cwd();
 }

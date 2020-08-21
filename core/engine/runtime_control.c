@@ -193,7 +193,7 @@ CBOOL__PROTO(prolog_new_atom)
       new_atom_str[i] = allowed_char_table[(x % NUM_OF_CHARS) + FIRST_CHAR];
       x = x / NUM_OF_CHARS;
     }
-    new_atom = init_atom_check(new_atom_str);
+    new_atom = GET_ATOM(new_atom_str);
     /* Make sure no smart guy already inserted the atom we have in mind */
   } while(ciao_atoms->count == previous_atoms_count);
 

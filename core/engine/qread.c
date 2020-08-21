@@ -1029,7 +1029,7 @@ CBOOL__PROTO(qread1,
     case LOAD_ATOM:
       Li = qr_int16(qfile);
       QLCHECK(Li);
-      QLARRAY(Li) = init_atom_check(qr_string(Arg, qfile));
+      QLARRAY(Li) = GET_ATOM(qr_string(Arg, qfile));
       break;
     case LOAD_FUNCTOR:
       Li = qr_int16(qfile);

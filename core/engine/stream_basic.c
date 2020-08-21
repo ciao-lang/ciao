@@ -65,9 +65,9 @@ void init_streams(void)
   stream_user_error = new_stream(ERRORTAG, "a", stderr);
 
   /* initialize the table of streams aliases */
-  atom_user_input=init_atom_check("user_input");
-  atom_user_output=init_atom_check("user_output");
-  atom_user_error=init_atom_check("user_error");
+  atom_user_input=GET_ATOM("user_input");
+  atom_user_output=GET_ATOM("user_output");
+  atom_user_error=GET_ATOM("user_error");
 }
 
 
