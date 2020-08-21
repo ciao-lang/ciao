@@ -87,11 +87,11 @@ CBOOL__PROTO(gc_usage) {
   tagged_t x;
 
   t= (flt64_t)ciao_stats.gc_tick*1000/GET_CLOCKFREQ(ciao_stats);
-  MakeLST(x,MakeFloat(Arg,t),atom_nil);
+  MakeLST(x,BoxFloat(t),atom_nil);
   t= ciao_stats.gc_acc*sizeof(tagged_t);
-  MakeLST(x,MakeInteger(Arg,t),x);
+  MakeLST(x,IntmachToTagged((intmach_t)t),x);
   t= ciao_stats.gc_count;
-  MakeLST(x,MakeInteger(Arg,t),x);
+  MakeLST(x,IntmachToTagged((intmach_t)t),x);
   return cunify(Arg,x,X(0));
 }
 
@@ -867,11 +867,11 @@ CBOOL__PROTO(stack_shift_usage)
   inttime_t time = (ciao_stats.ss_tick*1000)/
                    GET_CLOCKFREQ(ciao_stats);
   
-  MakeLST(x,MakeInteger(Arg,time),atom_nil);
+  MakeLST(x,IntmachToTagged(time),atom_nil);
   time = ciao_stats.ss_local+ciao_stats.ss_control;
-  MakeLST(x,MakeInteger(Arg,time),x);
+  MakeLST(x,IntmachToTagged(time),x);
   time = ciao_stats.ss_global;
-  MakeLST(x,MakeInteger(Arg,time),x);
+  MakeLST(x,IntmachToTagged(time),x);
   return cunify(Arg,X(0),x);
 }
 
@@ -883,8 +883,8 @@ CBOOL__PROTO(termheap_usage)
   
   used = HeapCharDifference(Heap_Start,w->global_top);
   free = HeapCharDifference(w->global_top,Heap_End);
-  MakeLST(x,MakeInteger(Arg,free),atom_nil);
-  MakeLST(x,MakeInteger(Arg,used),x);
+  MakeLST(x,IntmachToTagged(free),atom_nil);
+  MakeLST(x,IntmachToTagged(used),x);
   return cunify(Arg,X(0),x);
 }
 
@@ -898,8 +898,8 @@ CBOOL__PROTO(envstack_usage)
   ComputeA(newa,w->node);
   used = StackCharDifference(Stack_Start,newa);
   free = StackCharDifference(newa,Stack_End);
-  MakeLST(x,MakeInteger(Arg,free),atom_nil);
-  MakeLST(x,MakeInteger(Arg,used),x);
+  MakeLST(x,IntmachToTagged(free),atom_nil);
+  MakeLST(x,IntmachToTagged(used),x);
   return cunify(Arg,X(0),x);
 }
 
@@ -911,8 +911,8 @@ CBOOL__PROTO(choice_usage)
   
   used = ChoiceCharDifference(Choice_Start,w->node);
   free = ChoiceCharDifference(w->node,w->trail_top)/2;
-  MakeLST(x,MakeInteger(Arg,free),atom_nil);
-  MakeLST(x,MakeInteger(Arg,used),x);
+  MakeLST(x,IntmachToTagged(free),atom_nil);
+  MakeLST(x,IntmachToTagged(used),x);
   return cunify(Arg,X(0),x);
 }
 
@@ -924,8 +924,8 @@ CBOOL__PROTO(trail_usage)
   
   used = TrailCharDifference(Trail_Start,w->trail_top);
   free = TrailCharDifference(w->trail_top,w->node)/2;
-  MakeLST(x,MakeInteger(Arg,free),atom_nil);
-  MakeLST(x,MakeInteger(Arg,used),x);
+  MakeLST(x,IntmachToTagged(free),atom_nil);
+  MakeLST(x,IntmachToTagged(used),x);
   return cunify(Arg,X(0),x);
 }
 

@@ -1054,7 +1054,7 @@ CBOOL__PROTO(qread1,
       Li = qr_int16(qfile);
       QLCHECK(Li);
       w->global_top = h;
-      QLARRAY(Li) = MakeFloat(Arg,qr_flt64(qfile));
+      QLARRAY(Li) = BoxFloat(qr_flt64(qfile));
       h = w->global_top;
       break;
     case LOAD_VARIABLE:

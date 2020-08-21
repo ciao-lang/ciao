@@ -2100,7 +2100,7 @@ CBOOL__PROTO(program_usage)
   tagged_t x;
 
   MakeLST(x,TaggedZero,atom_nil);
-  MakeLST(x,MakeInteger(Arg,mem_prog_count),x);
+  MakeLST(x,IntvalToTagged(mem_prog_count),x);
   return cunify(Arg,X(0),x);
 }
 
@@ -2109,8 +2109,8 @@ CBOOL__PROTO(internal_symbol_usage)
 {
   tagged_t x;
 
-  MakeLST(x,MakeInteger(Arg,num_of_predicates),atom_nil);
-  MakeLST(x,MakeInteger(Arg,ciao_atoms->count),x);
+  MakeLST(x,IntvalToTagged(num_of_predicates),atom_nil);
+  MakeLST(x,IntvalToTagged(ciao_atoms->count),x);
   return cunify(Arg,X(0),x);
 }
 
@@ -2123,7 +2123,7 @@ CBOOL__PROTO(total_usage)
 
   n = total_mem_count;
   MakeLST(x,TaggedZero,atom_nil);
-  MakeLST(x,MakeInteger(Arg,n),x);
+  MakeLST(x,IntvalToTagged(n),x);
   return cunify(Arg,X(0),x);
 }
 

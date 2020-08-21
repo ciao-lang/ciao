@@ -50,7 +50,7 @@ CBOOL__PROTO(prolog_random)
 #if defined(OPTIM_COMP)
   CBOOL__LASTUNIFY(BoxFloat(RANDOM),X(0));
 #else
-  return cunify(Arg,MakeFloat(Arg,RANDOM),X(0));
+  return cunify(Arg,BoxFloat(RANDOM),X(0));
 #endif
 }
 
@@ -77,22 +77,18 @@ CBOOL__PROTO(prolog_random3)
     intmach_t low = TaggedToIntmach(X(0));
     intmach_t up  = TaggedToIntmach(X(1));
     /* former (uses low order bits, which very often are not that random):
-    return(cunify(Arg, IntmachToTagged(low+(random() % (up-low+1))), X(2)));
+    return cunify(Arg, IntmachToTagged(low+(random() % (up-low+1))), X(2));
     */
     CBOOL__LASTUNIFY(IntmachToTagged(low + (intmach_t)(RANDOM*(up-low+1))), X(2));
 #else
     intmach_t low = GetInteger(X(0));
     intmach_t up  = GetInteger(X(1));
     /* former (uses low order bits, which very often are not that random):
-    return(cunify(Arg, MakeInteger(Arg, low+(random() % (up-low+1))), X(2)));
+    return cunify(Arg, IntvalToTagged(low+(random() % (up-low+1))), X(2));
     */
-    return(cunify(
-                  Arg, 
-                  MakeInteger(
-                              Arg, 
-                              low + (intmach_t)(RANDOM*(up-low+1))
-                              ), 
-                  X(2)));
+    return cunify(Arg, 
+                  IntvalToTagged(low + (intmach_t)(RANDOM*(up-low+1))), 
+                  X(2));
 #endif
   } else{
 #if defined(OPTIM_COMP)
@@ -102,7 +98,7 @@ CBOOL__PROTO(prolog_random3)
 #else
     flt64_t low = GetFloat(X(0));
     flt64_t up  = GetFloat(X(1));
-    return(cunify(Arg, MakeFloat(Arg, low+RANDOM*(up-low)), X(2)));
+    return cunify(Arg, BoxFloat(low+RANDOM*(up-low)), X(2));
 #endif
   }
 }
@@ -124,5 +120,5 @@ CBOOL__PROTO(prolog_srandom)
     ERROR_IN_ARG(X(1),1,INTEGER);
   }
 
-  return(TRUE);
+  return TRUE;
 }

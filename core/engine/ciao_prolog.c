@@ -337,31 +337,31 @@ ciao_term ciao_structure_a(const char *name, int arity, ciao_term *args) {
 ciao_term ciao_mk_##CType##_s(ciao_ctx ctx, DeclType x) {       \
   worker_t *w = ctx->worker_registers;                          \
   ciao_ensure_heap(ctx, Cells);                                 \
-  return ciao_ref(ctx, Make(w, (CastType)x));                   \
+  return ciao_ref(ctx, Make((CastType)x));                      \
 }                                                               \
 ciao_term ciao_mk_##CType(DeclType x) {                 \
   return ciao_mk_##CType##_s(ciao_implicit_ctx, x); \
 }
 
 /* TODO: Cells is probably wrong */
-Def_ciao_mk_X(c_short, short, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_int, int, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_long, long, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_ushort, unsigned short, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_uint, unsigned int, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_ulong, unsigned long, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_float, float, 4, MakeFloat, double)
-Def_ciao_mk_X(c_double, double, 4, MakeFloat, double)
-Def_ciao_mk_X(c_uintptr, uintptr_t, 4, MakeInteger, uintptr_t)
-Def_ciao_mk_X(c_size, size_t, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_int8, int8_t, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_int16, int16_t, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_int32, int32_t, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_int64, int64_t, 4, MakeInteger, intmach_t) // TODO: WRONG in 32 bits
-Def_ciao_mk_X(c_uint8, uint8_t, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_uint16, uint16_t, 4, MakeInteger, intmach_t)
-Def_ciao_mk_X(c_uint32, uint32_t, 4, MakeInteger, intmach_t) // TODO: WRONG in 32 bits (sign bit)
-Def_ciao_mk_X(c_uint64, uint64_t, 4, MakeInteger, intmach_t) // TODO: WRONG in 32 bits, WRONG in 64 bits (sign bit)
+Def_ciao_mk_X(c_short, short, 4, IntmachToTagged, intmach_t)
+Def_ciao_mk_X(c_int, int, 4, IntmachToTagged, intmach_t)
+Def_ciao_mk_X(c_long, long, 4, IntmachToTagged, intmach_t)
+Def_ciao_mk_X(c_ushort, unsigned short, 4, IntmachToTagged, intmach_t)
+Def_ciao_mk_X(c_uint, unsigned int, 4, IntmachToTagged, intmach_t)
+Def_ciao_mk_X(c_ulong, unsigned long, 4, IntmachToTagged, intmach_t)
+Def_ciao_mk_X(c_float, float, 4, BoxFloat, double)
+Def_ciao_mk_X(c_double, double, 4, BoxFloat, double)
+Def_ciao_mk_X(c_uintptr, uintptr_t, 4, IntmachToTagged, uintptr_t)
+Def_ciao_mk_X(c_size, size_t, 4, IntmachToTagged, intmach_t)
+Def_ciao_mk_X(c_int8, int8_t, 4, IntmachToTagged, intmach_t)
+Def_ciao_mk_X(c_int16, int16_t, 4, IntmachToTagged, intmach_t)
+Def_ciao_mk_X(c_int32, int32_t, 4, IntmachToTagged, intmach_t)
+Def_ciao_mk_X(c_int64, int64_t, 4, IntmachToTagged, intmach_t) // TODO: WRONG in 32 bits
+Def_ciao_mk_X(c_uint8, uint8_t, 4, IntmachToTagged, intmach_t)
+Def_ciao_mk_X(c_uint16, uint16_t, 4, IntmachToTagged, intmach_t)
+Def_ciao_mk_X(c_uint32, uint32_t, 4, IntmachToTagged, intmach_t) // TODO: WRONG in 32 bits (sign bit)
+Def_ciao_mk_X(c_uint64, uint64_t, 4, IntmachToTagged, intmach_t) // TODO: WRONG in 32 bits, WRONG in 64 bits (sign bit)
 
 #define Def_ciao_get_X(CType, DeclType, Get) \
 DeclType ciao_get_##CType##_s(ciao_ctx ctx, ciao_term term) {   \
@@ -903,8 +903,8 @@ ciao_term Name(ciao_ctx ctx, X *s, size_t length) { \
   return ciao_ref(ctx, cdr); \
 }
 TEMPLATE(ciao_mk_c_uint8_list, const unsigned char, MakeSmall(*s), 2)
-TEMPLATE(ciao_mk_c_int_list, int, MakeInteger(w, (intmach_t)(*s)), 4)
-TEMPLATE(ciao_mk_c_double_list, double, MakeFloat(w, *s), 8)
+TEMPLATE(ciao_mk_c_int_list, int, IntmachToTagged((intmach_t)(*s)), 4)
+TEMPLATE(ciao_mk_c_double_list, double, BoxFloat(*s), 8)
 #undef TEMPLATE
 
 /* ------------------------------------------------------------------------- */

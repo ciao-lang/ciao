@@ -24,7 +24,7 @@
 // 
 //   HeapPush(pt1,functor_Dlock);
 //   HeapPush(pt1,PointerToTerm(l));
-//   HeapPush(pt1,MakeInteger(Arg, POSIX));
+//   HeapPush(pt1,IntmachToTagged(POSIX));
 // 
 //   w->global_top = pt1;
 // 
@@ -38,7 +38,7 @@
 // 
 //   HeapPush(pt1,functor_Dlock);
 //   HeapPush(pt1,PointerToTerm(s));
-//   HeapPush(pt1,MakeInteger(Arg, SPIN));
+//   HeapPush(pt1,IntmachToTagged(SPIN));
 // 
 //   w->global_top = pt1;
 // 
@@ -461,7 +461,7 @@ CBOOL__PROTO(prolog_eng_self)
     cunify(Arg, X(0), GoalDescToTerm(Arg->misc->goal_desc_ptr)) &&
     cunify(Arg,
            X(1),
-           MakeInteger(Arg, Arg->misc->goal_desc_ptr->goal_number)
+           IntmachToTagged(Arg->misc->goal_desc_ptr->goal_number)
            );
 }
 
@@ -574,7 +574,7 @@ CBOOL__PROTO(prolog_eng_call)
 
   return
     cunify(Arg, X(3), GoalDescToTerm(gd)) &&
-    cunify(Arg, X(4), MakeInteger(Arg, gd->goal_number)) &&
+    cunify(Arg, X(4), IntmachToTagged(gd->goal_number)) &&
     exec_result;
 }
 

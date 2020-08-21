@@ -739,7 +739,7 @@ CBOOL__PROTO(character_count)
 
   if (stream->isatty)
     stream = root_stream_ptr;
-  return cunify(Arg,MakeInteger(Arg,stream->rune_count),X(1));
+  return cunify(Arg,IntmachToTagged(stream->rune_count),X(1));
 }
 
 
@@ -756,7 +756,7 @@ CBOOL__PROTO(line_position)
 
   if (stream->isatty)
     stream = root_stream_ptr;
-  return cunify(Arg,MakeInteger(Arg,stream->rune_count-stream->last_nl_pos),X(1));
+  return cunify(Arg,IntmachToTagged(stream->rune_count-stream->last_nl_pos),X(1));
 }
 
 
@@ -773,7 +773,7 @@ CBOOL__PROTO(line_count)
 
   if (stream->isatty)
     stream = root_stream_ptr;
-  return cunify(Arg,MakeInteger(Arg,stream->nl_count),X(1));
+  return cunify(Arg,IntmachToTagged(stream->nl_count),X(1));
 }
 
 /* ------------------------------------------------------------------

@@ -1049,7 +1049,7 @@ tagged_t decode_instance_key(instance_t *inst) {
       P = BCoff(P, FTYPE_size(f_Q));
     case GET_LARGE:
       if (xreg == Xinv(BCOp(P, FTYPE_ctype(f_x), 0)))
-        return MakeLarge(BCoff(P, FTYPE_size(f_x)));
+        return MakeBlob((tagged_t *)BCoff(P, FTYPE_size(f_x)));
       P = BCoff(P, 
                 FTYPE_size(f_x)+
                 LargeSize((*(tagged_t *)(BCoff(P, FTYPE_size(f_x))))));

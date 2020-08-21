@@ -50,7 +50,7 @@ CBOOL__PROTO(prolog_random) {
     BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,1);
   }
 
-  return cunify(Arg,MakeFloat(Arg,RANDOM),X(0));
+  return cunify(Arg,BoxFloat(RANDOM),X(0));
 }
 
 CBOOL__PROTO(prolog_random3)
@@ -78,12 +78,12 @@ CBOOL__PROTO(prolog_random3)
     intmach_t r = low+(random() % (up-low+1));
     */
     intmach_t r = low + (intmach_t)(RANDOM*(up-low+1));
-    return cunify(Arg, MakeInteger(Arg, r), X(2));
+    return cunify(Arg, IntvalToTagged(r), X(2));
   } else{
     flt64_t low = GetFloat(X(0));
     flt64_t up  = GetFloat(X(1));
     flt64_t r = low+RANDOM*(up-low);
-    return cunify(Arg, MakeFloat(Arg, r), X(2));
+    return cunify(Arg, BoxFloat(r), X(2));
   }
 }
 

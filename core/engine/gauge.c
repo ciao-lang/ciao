@@ -87,7 +87,7 @@ CBOOL__PROTO(emulated_clause_counters)
     cl = cl->next.ptr;
   CBOOL__UnifyCons(PointerToTerm(cl->counters),X(2));
   count = NumberOfCounters(cl);
-  return cunify(Arg,MakeInteger(count),X(3));
+  return cunify(Arg,IntvalToTagged(count),X(3));
 }
 
 #else

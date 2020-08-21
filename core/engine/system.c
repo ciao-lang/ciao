@@ -785,7 +785,7 @@ CBOOL__PROTO(prolog_file_properties) {
 
     if (X(3)!=atom_nil) {
       /* Cannot be CBOOL__UnifyCons because it may require a bignum */
-      if (!cunify(Arg, MakeInteger(Arg, statbuf.st_mtime), X(3))) {
+      if (!cunify(Arg, IntvalToTagged(statbuf.st_mtime), X(3))) {
         return FALSE;
       }
     }

@@ -7,7 +7,7 @@
 #include <ciao/eng.h>
 #if !defined(OPTIM_COMP)
 #include <ciao/eng_bignum.h> /* for StringToInt,StringToInt_nogc */
-#include <ciao/eng_gc.h> /* for StringToInt,StringToInt_nogc */
+#include <ciao/eng_gc.h>
 #include <ciao/eng_registry.h>
 #include <ciao/dtoa_ryu.h>
 #include <ciao/runtime_control.h> /* push_choicept,pop_choicept */
@@ -126,11 +126,11 @@ CBOOL__PROTO(string_to_number,
   if (i=='0') {
     if (strcmp(s, ".Nan")==0) {
       double num = sign ? -NAN : NAN;
-      *strnum = MakeFloat(Arg, num);
+      *strnum = BoxFloat(num);
       CBOOL__PROCEED;
     } else if (strcmp(s, ".Inf")==0) {
       double num = sign ? -INFINITY : INFINITY;
-      *strnum = MakeFloat(Arg, num);
+      *strnum = BoxFloat(num);
       CBOOL__PROCEED;
     }
   }
@@ -141,28 +141,28 @@ CBOOL__PROTO(string_to_number,
     d = char_digit[i];
   }
   if ((s - AtBuf) - sign <= 1) {    
-    return FALSE; /* No digit found! */
+    CBOOL__FAIL; /* No digit found! */
   }
   if (i=='\0') { /* ended in \0, integer (small or bignum) */
     StringToInt(AtBuf, base, *strnum, arity);
-    return TRUE;
+    CBOOL__PROCEED;
   } else if (i=='.') { /* maybe a float */ /* TODO: allow 1e0 syntax (see tokenize.pl too) */
     flt64_t num;
     if (str_to_flt64(AtBuf, base, &num)) {
-      *strnum = MakeFloat(Arg, num);
-      return TRUE;
+      *strnum = BoxFloat(num);
+      CBOOL__PROCEED;
     } else {
-      return FALSE;
+      CBOOL__FAIL;
     }
   }
   /* maybe a non-numeric atom */
-  return FALSE;
+  CBOOL__FAIL;
 }
 
 /* Precond: 2<=abs(base)<=36 for integers, base==10 for floats */
 CVOID__PROTO(number_to_string, tagged_t term, int base) {
   if (TaggedIsSmall(term)) {
-    intmach_t l = GetSmall(term);
+    intval_t l = GetSmall(term);
     char hibase = 'a'-10;
     bool_t sx = (l>=0);
     intmach_t digit;
@@ -208,8 +208,8 @@ CVOID__PROTO(number_to_string, tagged_t term, int base) {
     /* if (1024 > Atom_Buffer_Length) EXPAND_ATOM_BUFFER(102400); */
     cbuf = Atom_Buffer;
     dtoa_ryu(u.i, cbuf); /* assume base==10 */
-  } else {
-    bn_to_string(Arg,(bignum_t *)TagToSTR(term),base);
+  } else { /* if (IsBignum(term)) */
+    CVOID__CALL(bn_to_string,(bignum_t *)TagToSTR(term),base);
   }
 }
 
@@ -220,11 +220,8 @@ CVOID__PROTO(number_to_string, tagged_t term, int base) {
   parameter could be the numeric base.
 
  */
-static CBOOL__PROTO(prolog_constant_codes, 
-                    bool_t atomp,
-                    bool_t numberp,
-                    int ci)
-{
+static CBOOL__PROTO(prolog_constant_codes,
+                    bool_t atomp, bool_t numberp, int ci) {
   /* Note: This ERR__FUNCTOR is not related to an exported predicate,
      since prolog_constant_codes is called from other places. I have
      some ideas of refining error reporting without hindering
@@ -419,11 +416,11 @@ CBOOL__PROTO(prolog_sub_atom)
 
   b = GetInteger(X(1));
   if (b < 0 || b > l)
-    return FALSE;
+    CBOOL__FAIL;
 
   atom_length = GetInteger(X(2));
   if (atom_length < 0 || atom_length+b > l)
-    return FALSE;
+    CBOOL__FAIL;
 
   s += b;
 
@@ -437,7 +434,6 @@ CBOOL__PROTO(prolog_sub_atom)
   *(s1+atom_length) = '\0';
 
   return cunify(Arg,init_atom_check(Atom_Buffer),X(3));
-
 }
 
 CBOOL__PROTO(nd_atom_concat);
@@ -500,9 +496,9 @@ CBOOL__PROTO(prolog_atom_concat)
           EXPAND_ATOM_BUFFER(new_atom_length);
 
       for ( ; *s1 && *s2 ; s1++, s2++)
-        if (*s1 != *s2) return FALSE;
+        if (*s1 != *s2) CBOOL__FAIL;
 
-      if (*s1) return FALSE;
+      if (*s1) CBOOL__FAIL;
 
       s = Atom_Buffer;
 
@@ -524,10 +520,10 @@ CBOOL__PROTO(prolog_atom_concat)
 
 #if defined(USE_ATOM_LEN)
       if ((new_atom_length = (GetAtomLen(X(2)) - GetAtomLen(X(1)))) < 0)
-        return FALSE;
+        CBOOL__FAIL;
 #else
       if ((new_atom_length = strlen(s2)-strlen(s1)) < 0)
-        return FALSE;
+        CBOOL__FAIL;
 #endif
 
       if (new_atom_length >= Atom_Buffer_Length) 
@@ -536,7 +532,7 @@ CBOOL__PROTO(prolog_atom_concat)
       s = s2+new_atom_length;
 
       if (strcmp(s1, s)) /* different */
-        return FALSE;
+        CBOOL__FAIL;
 
       s = Atom_Buffer;
 
@@ -589,6 +585,6 @@ CBOOL__PROTO(nd_atom_concat) {
   if (i == strlen(s2))
     pop_choicept(Arg);
   
-  return TRUE;
+  CBOOL__PROCEED;
 }
 

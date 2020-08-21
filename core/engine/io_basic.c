@@ -1232,7 +1232,7 @@ CFUN__PROTO(var_address, intmach_t, tagged_t term)
 {
   if (IsStackVar(term))
     term = TagHVA(Heap_End+(TagToSVA(term)-Stack_Start));
-  return MakeInteger(Arg,TagToPointer(term)-Heap_Start);
+  return IntmachToTagged(TagToPointer(term)-Heap_Start);
 }
 
 CVOID__PROTO(print_variable, stream_node_t *stream, tagged_t term) {

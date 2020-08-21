@@ -29,7 +29,11 @@ extern "C" {
 #define ciao_true 1
 #define ciao_false 0
 
+#if defined(OPTIM_COMP)
+typedef struct goal_descriptor *ciao_ctx;
+#else
 typedef goal_descriptor_t *ciao_ctx;
+#endif
 
 extern ciao_ctx ciao_implicit_ctx;
 
@@ -37,16 +41,29 @@ typedef unsigned long ciao_choice;
 typedef unsigned long ciao_term;
 typedef unsigned int ciao_bool;
 
+#if defined(OPTIM_COMP)
+typedef struct _ciao_query ciao_query;
+#else
 typedef struct _ciao_query_ _ciao_query_t;
 struct _ciao_query_ {
   ciao_ctx ctx;
   ciao_choice base_choice;
 };
-
 typedef _ciao_query_t ciao_query;
+#endif
 
 /* Initialization */
 
+#if defined(OPTIM_COMP)
+int ciao_opts(const char *program_name, 
+              int programc, 
+              const char **programv, 
+              int optc,
+              const char **optv);
+void ciao_init(void);
+void ciao_reinit(void);
+void ciao_finish(ciao_ctx ctx);
+#else
 int ciao_opts(const char *program_name, 
               int programc, 
               const char **programv, 
@@ -55,6 +72,7 @@ int ciao_opts(const char *program_name,
               const char **boot_path);
 void ciao_init(const char *boot_path);
 void ciao_reinit(void);
+#endif
 
 /* Creation of a ciao_ctx context */
 
@@ -67,10 +85,12 @@ int ciao_boot(ciao_ctx ctx);
 
 /* PO load operations */
 
+#if !defined(OPTIM_COMP)
 void ciao_load_embedded_qfile_s(ciao_ctx ctx, const char *program_name);
 void ciao_load_embedded_qfile(const char *program_name);
 void ciao_load_qfile_s(ciao_ctx ctx, const char *boot_path);
 void ciao_load_qfile(const char *boot_path);
+#endif
 
 /* Memory management */
 
@@ -294,10 +314,12 @@ ciao_term ciao_pointer_to_address(ciao_ctx ctx, void *pointer);
 void *ciao_address_to_pointer(ciao_ctx ctx, ciao_term term);
 ciao_bool ciao_is_address(ciao_ctx ctx, ciao_term term);
 
+#if !defined(OPTIM_COMP)
+/* TODO: deprecate? */
 /* tagged_t <-> ciao_term */
-
 ciao_term ciao_refer(tagged_t x);
 tagged_t ciao_unrefer(ciao_term term);
+#endif
 
 void ciao_ensure_heap(ciao_ctx ctx, size_t cells);
 

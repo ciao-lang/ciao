@@ -798,9 +798,12 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define LargeIsFloat(X)  FunctorIsFloat(TagToHeadfunctor(X))
 #define FunctorIsFloat(X) (!((X)&TagBitFunctor))
 
-#define MakeLarge(ARG,Ptr) make_large(ARG,(tagged_t *)(Ptr))
-#define MakeInteger(ARG, X) (IntIsSmall(X) ? MakeSmall(X) : make_integer(ARG,X))
-#define MakeFloat(ARG,X)        make_float(ARG,X)
+#define MakeBlob(Ptr) make_large(Arg,(tagged_t *)(Ptr))
+#define IntmachToTagged(X) (IntIsSmall(X) ? MakeSmall(X) : make_integer(Arg,X))
+#define IntvalToTagged(X) (IntIsSmall(X) ? MakeSmall(X) : make_integer(Arg,X))
+#define IntvalToTaggedCheck(X) make_integer_check(Arg,(X),liveinfo) // TODO: benchmark (IntIsSmall(X) ? MakeSmall(X) : make_integer_check(ARG,X,liveinfo))
+#define BoxFloat(X) make_float(Arg,(X))
+#define BoxFloatCheck(X) make_float_check(Arg,(X),liveinfo)
 #define MakeAtom(X)     TagIndex(ATM,X)
 #define GET_ATOM(X)   init_atom_check(X)
 
@@ -836,7 +839,7 @@ CFUN__PROTO(make_large, tagged_t, tagged_t *ptr);
 CFUN__PROTO(make_structure, tagged_t, tagged_t functor);
 
 /* X is an Integer that fits in an intmach_t.
-   This is the postcondition of MakeInteger.
+   This is the postcondition of IntmachToTagged.
 */ 
 #define IsIntegerFix(X) (TaggedIsSmall(X) || (TagIsSTR(X) && TagToHeadfunctor(X)==MakeFunctorFix))
 
@@ -876,9 +879,6 @@ CFUN__PROTO(make_structure, tagged_t, tagged_t functor);
 
 /* TODO: hack */
 #define BlobFunctorSize(X) (LargeArity(*((tagged_t *)(X))) * sizeof(tagged_t))
-
-/* TODO: hack */
-#define MakeBlob(Ptr) MakeLarge(w, Ptr)
 
 /* Create and compare large numbers from bytecode.
 

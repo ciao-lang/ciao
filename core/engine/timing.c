@@ -147,7 +147,7 @@ CBOOL__PROTO(prolog_time)
   
   time_t timeofday = time(NULL);
 
-  return cunify(Arg,MakeInteger(Arg,timeofday),X(0));
+  return cunify(Arg,IntmachToTagged(timeofday),X(0));
 }
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -231,8 +231,8 @@ static CBOOL__PROTO(generic_time,
   *lasttick = t;
   /* while ciao not support inttime_t, lt and st must be cast to
     flt64_t */
-  MakeLST(x,MakeFloat(Arg,(((flt64_t)lt)*1000)/clockfreq),atom_nil);
-  MakeLST(x,MakeFloat(Arg,(((flt64_t)st)*1000)/clockfreq),x);
+  MakeLST(x,BoxFloat((((flt64_t)lt)*1000)/clockfreq),atom_nil);
+  MakeLST(x,BoxFloat((((flt64_t)st)*1000)/clockfreq),x);
   return cunify(Arg,x,X(0));
 }
 
@@ -292,8 +292,8 @@ static CBOOL__PROTO(generic_tick,
   *lasttick = t;
   /* while ciao does not support inttime_t, lt and st must be cast to
     flt64_t */
-  MakeLST(x,MakeFloat(Arg,(flt64_t)lt),atom_nil);
-  MakeLST(x,MakeFloat(Arg,(flt64_t)st),x);
+  MakeLST(x,BoxFloat((flt64_t)lt),atom_nil);
+  MakeLST(x,BoxFloat((flt64_t)st),x);
   return cunify(Arg,x,X(0));  
 }
 
@@ -334,7 +334,7 @@ static inline CBOOL__PROTO(generic_clockfreq, inttime_t clockfreq)
 {
   /* while ciao not support inttime_t, return value must be cast to
     flt64_t */
-  return cunify(Arg,MakeFloat(Arg,(flt64_t)clockfreq),X(0));
+  return cunify(Arg,BoxFloat((flt64_t)clockfreq),X(0));
 }
 
 CBOOL__PROTO(prolog_runclockfreq)
@@ -400,7 +400,7 @@ CBOOL__PROTO(prolog_datime)
     datime->tm_min =GetInteger(X(5));
     datime->tm_sec =GetInteger(X(6));
     inputtime = mktime(datime);
-    return(cunify(Arg,MakeInteger(Arg,inputtime),X(0))
+    return(cunify(Arg,IntmachToTagged(inputtime),X(0))
            && cunify(Arg,MakeSmall(datime->tm_wday),X(7))
            && cunify(Arg,MakeSmall(datime->tm_yday),X(8)));
   } else {
@@ -408,7 +408,7 @@ CBOOL__PROTO(prolog_datime)
     time_t inputtime;
     if (IsVar(X(0))) {
       inputtime = time(NULL);
-      cunify(Arg,MakeInteger(Arg,inputtime),X(0));
+      cunify(Arg,IntmachToTagged(inputtime),X(0));
     } else if (IsInteger(X(0))) {
       inputtime = GetInteger(X(0));
     } else {
