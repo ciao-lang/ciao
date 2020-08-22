@@ -33,7 +33,7 @@ CBOOL__PROTO(counter_values)
   current_counter = (intmach_t *)TermToPointer(X(0));
 
   DEREF(X(1),X(1));
-  count = GetInteger(X(1));
+  count = TaggedToIntmach(X(1));
   if (count > 255) {
     USAGE_FAULT("$clause_counters/2: Too many counters per clause");
   }
@@ -54,7 +54,7 @@ CBOOL__PROTO(counter_values)
   }
   w->global_top = h;
   
-  return cunify(Arg,values,X(2));
+  CBOOL__LASTUNIFY(values,X(2));
 }
 
 CBOOL__PROTO(reset_counters)
@@ -64,7 +64,7 @@ CBOOL__PROTO(reset_counters)
   DEREF(X(0),X(0));
   current_counter = (intmach_t *)TermToPointer(X(0));
   DEREF(X(1),X(1));
-  max_counter = current_counter + GetInteger(X(1));
+  max_counter = current_counter + TaggedToIntmach(X(1));
 
   while (current_counter < max_counter)
     *current_counter++ = 0;
@@ -87,7 +87,7 @@ CBOOL__PROTO(emulated_clause_counters)
     cl = cl->next.ptr;
   CBOOL__UnifyCons(PointerToTerm(cl->counters),X(2));
   count = NumberOfCounters(cl);
-  return cunify(Arg,IntvalToTagged(count),X(3));
+  CBOOL__LASTUNIFY(IntvalToTagged(count),X(3));
 }
 
 #else

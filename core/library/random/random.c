@@ -50,7 +50,7 @@ CBOOL__PROTO(prolog_random) {
     BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,1);
   }
 
-  return cunify(Arg,BoxFloat(RANDOM),X(0));
+  CBOOL__LASTUNIFY(BoxFloat(RANDOM),X(0));
 }
 
 CBOOL__PROTO(prolog_random3)
@@ -72,18 +72,18 @@ CBOOL__PROTO(prolog_random3)
   }
 
   if (IsInteger(X(0)) && IsInteger(X(1))) {
-    intmach_t low = GetInteger(X(0));
-    intmach_t up  = GetInteger(X(1));
+    intmach_t low = TaggedToIntmach(X(0));
+    intmach_t up  = TaggedToIntmach(X(1));
     /* former (uses low order bits, which very often are not that random):
     intmach_t r = low+(random() % (up-low+1));
     */
     intmach_t r = low + (intmach_t)(RANDOM*(up-low+1));
-    return cunify(Arg, IntvalToTagged(r), X(2));
+    CBOOL__LASTUNIFY(IntvalToTagged(r), X(2));
   } else{
-    flt64_t low = GetFloat(X(0));
-    flt64_t up  = GetFloat(X(1));
+    flt64_t low = TaggedToFloat(X(0));
+    flt64_t up  = TaggedToFloat(X(1));
     flt64_t r = low+RANDOM*(up-low);
-    return cunify(Arg, BoxFloat(r), X(2));
+    CBOOL__LASTUNIFY(BoxFloat(r), X(2));
   }
 }
 

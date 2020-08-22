@@ -775,13 +775,13 @@ static CBOOL__PROTO(prolog_atom_mode)
 static CBOOL__PROTO(prolog_ciao_root)
 {
   DEREF(X(0),X(0));
-  return cunify(Arg, X(0), atom_default_ciaoroot);
+  CBOOL__LASTUNIFY(X(0), atom_default_ciaoroot);
 }
 
 static CBOOL__PROTO(prolog_ciao_c_headers_dir)
 {
   DEREF(X(0),X(0));
-  return cunify(Arg, X(0), atom_default_c_headers_dir);
+  CBOOL__LASTUNIFY(X(0), atom_default_c_headers_dir);
 }
 
 static definition_t *define_builtin(char *pname,
@@ -2100,7 +2100,7 @@ CBOOL__PROTO(program_usage)
 
   MakeLST(x,TaggedZero,atom_nil);
   MakeLST(x,IntvalToTagged(mem_prog_count),x);
-  return cunify(Arg,X(0),x);
+  CBOOL__LASTUNIFY(X(0),x);
 }
 
 /* internal_symbol_usage: [number_atoms_funcs_preds, number_pred_defs] */
@@ -2110,7 +2110,7 @@ CBOOL__PROTO(internal_symbol_usage)
 
   MakeLST(x,IntvalToTagged(num_of_predicates),atom_nil);
   MakeLST(x,IntvalToTagged(ciao_atoms->count),x);
-  return cunify(Arg,X(0),x);
+  CBOOL__LASTUNIFY(X(0),x);
 }
 
 
@@ -2123,7 +2123,7 @@ CBOOL__PROTO(total_usage)
   n = total_mem_count;
   MakeLST(x,TaggedZero,atom_nil);
   MakeLST(x,IntvalToTagged(n),x);
-  return cunify(Arg,X(0),x);
+  CBOOL__LASTUNIFY(X(0),x);
 }
 
 

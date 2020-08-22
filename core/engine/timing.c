@@ -147,7 +147,7 @@ CBOOL__PROTO(prolog_time)
   
   time_t timeofday = time(NULL);
 
-  return cunify(Arg,IntmachToTagged(timeofday),X(0));
+  CBOOL__LASTUNIFY(IntmachToTagged(timeofday),X(0));
 }
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -233,7 +233,7 @@ static CBOOL__PROTO(generic_time,
     flt64_t */
   MakeLST(x,BoxFloat((((flt64_t)lt)*1000)/clockfreq),atom_nil);
   MakeLST(x,BoxFloat((((flt64_t)st)*1000)/clockfreq),x);
-  return cunify(Arg,x,X(0));
+  CBOOL__LASTUNIFY(x,X(0));
 }
 
 /* runtime returns a list of two floats
@@ -294,7 +294,7 @@ static CBOOL__PROTO(generic_tick,
     flt64_t */
   MakeLST(x,BoxFloat((flt64_t)lt),atom_nil);
   MakeLST(x,BoxFloat((flt64_t)st),x);
-  return cunify(Arg,x,X(0));  
+  CBOOL__LASTUNIFY(x,X(0));  
 }
 
 CBOOL__PROTO(prolog_walltick)
@@ -334,7 +334,7 @@ static inline CBOOL__PROTO(generic_clockfreq, inttime_t clockfreq)
 {
   /* while ciao not support inttime_t, return value must be cast to
     flt64_t */
-  return cunify(Arg,BoxFloat((flt64_t)clockfreq),X(0));
+  CBOOL__LASTUNIFY(BoxFloat((flt64_t)clockfreq),X(0));
 }
 
 CBOOL__PROTO(prolog_runclockfreq)
@@ -393,12 +393,12 @@ CBOOL__PROTO(prolog_datime)
       && IsInteger(X(6))) {
     struct tm datime[1];
     time_t inputtime;
-    datime->tm_year=GetInteger(X(1))-1900;
-    datime->tm_mon =GetInteger(X(2))-1;
-    datime->tm_mday=GetInteger(X(3));
-    datime->tm_hour=GetInteger(X(4));
-    datime->tm_min =GetInteger(X(5));
-    datime->tm_sec =GetInteger(X(6));
+    datime->tm_year=TaggedToIntmach(X(1))-1900;
+    datime->tm_mon =TaggedToIntmach(X(2))-1;
+    datime->tm_mday=TaggedToIntmach(X(3));
+    datime->tm_hour=TaggedToIntmach(X(4));
+    datime->tm_min =TaggedToIntmach(X(5));
+    datime->tm_sec =TaggedToIntmach(X(6));
     inputtime = mktime(datime);
     return(cunify(Arg,IntmachToTagged(inputtime),X(0))
            && cunify(Arg,MakeSmall(datime->tm_wday),X(7))
@@ -410,7 +410,7 @@ CBOOL__PROTO(prolog_datime)
       inputtime = time(NULL);
       cunify(Arg,IntmachToTagged(inputtime),X(0));
     } else if (IsInteger(X(0))) {
-      inputtime = GetInteger(X(0));
+      inputtime = TaggedToIntmach(X(0));
     } else {
       BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(0),1);
     }

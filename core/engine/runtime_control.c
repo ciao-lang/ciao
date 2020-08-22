@@ -198,7 +198,7 @@ CBOOL__PROTO(prolog_new_atom)
   } while(ciao_atoms->count == previous_atoms_count);
 
   Release_slock(atom_id_l);
-  return cunify(Arg, X(0), new_atom);
+  CBOOL__LASTUNIFY(X(0), new_atom);
 }
 
 /* ------------------------------------------------------------------

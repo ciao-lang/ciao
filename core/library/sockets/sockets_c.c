@@ -93,7 +93,7 @@ CBOOL__PROTO(prolog_connect_to_socket_type) {
     BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
     //    USAGE_FAULT("connect_to_socket_type/[3,4]: 2nd argument must be a port number");
 
- if ((port_number = GetInteger(X(1))) > MAX_SOCK_NUMBER)
+ if ((port_number = TaggedToIntmach(X(1))) > MAX_SOCK_NUMBER)
 // USAGE_FAULT("connect_to_socket/[3,4]: port number greater than 65535");
    BUILTIN_ERROR(SYSTEM_ERROR,X(1),2);
 
@@ -149,9 +149,7 @@ CBOOL__PROTO(prolog_connect_to_socket_type) {
   
   sprintf(socket_name, "<%s:%d>", GetString(host_deref), port_number);
   
-  return cunify(Arg, 
-                ptr_to_stream(Arg,new_socket_stream(GET_ATOM(socket_name),sock)),
-                X(3));
+  CBOOL__LASTUNIFY(ptr_to_stream(Arg,new_socket_stream(GET_ATOM(socket_name),sock)), X(3));
 }
 
 
@@ -208,13 +206,14 @@ CBOOL__PROTO(prolog_bind_socket)
     BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
 
     port = ntohs(sa.sin_port);
-    if (!cunify(Arg, MakeSmall(port), X(0))) return FALSE;
+    CBOOL__UNIFY(MakeSmall(port), X(0));
   }
 
-  if (listen(sock, GetSmall(X(1)))) // Error
+  if (listen(sock, GetSmall(X(1)))) { // Error
     BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+  }
 
-  return cunify(Arg,MakeSmall(sock), X(2));
+  CBOOL__LASTUNIFY(MakeSmall(sock), X(2));
 }
 
 /* socket_accept(+Sock, -Stream) */
@@ -286,7 +285,7 @@ CBOOL__PROTO(prolog_select_socket) {
 
   FD_ZERO(&ready);
   if (watch_connections) {
-    max_fd = listen_sock = GetInteger(X(0));
+    max_fd = listen_sock = TaggedToIntmach(X(0));
     FD_SET(max_fd, &ready);
   }
 
@@ -294,12 +293,12 @@ CBOOL__PROTO(prolog_select_socket) {
   if (X(2) == atom_off)
     timeoutptr = NULL;
   else if (IsInteger(X(2))){
-    intmach_t miliseconds_i = GetInteger(X(2));
+    intmach_t miliseconds_i = TaggedToIntmach(X(2));
     timeout.tv_sec = miliseconds_i / 1000;
     timeout.tv_usec = (miliseconds_i - timeout.tv_sec * 1000) * 1000;
     timeoutptr = &timeout;
   } else if (IsFloat(X(2))){
-    flt64_t miliseconds_f = GetFloat(X(2));
+    flt64_t miliseconds_f = TaggedToFloat(X(2));
     timeout.tv_sec = (int)(miliseconds_f / 1000);
     timeout.tv_usec = (int)(miliseconds_f - timeout.tv_sec * 1000) * 1000;
     timeoutptr = &timeout;
@@ -420,7 +419,7 @@ CBOOL__PROTO(prolog_socket_send) {
     MAJOR_FAULT("socket_send/3: send() call failed");
     //BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
 
-  return cunify(Arg, MakeSmall(bytes_sent), X(2));
+  CBOOL__LASTUNIFY(MakeSmall(bytes_sent), X(2));
 }
 
 /* socket_sendall(+Stream, +Bytes) */
@@ -526,7 +525,8 @@ CBOOL__PROTO(prolog_socket_receive) {
     MakeLST(cdr,MakeSmall(*(buffpt--)), cdr);/* No need to cast *(buffpt--) */
   }
 
-  return cunify(Arg,cdr,X(1)) && cunify(Arg, MakeSmall(total_bytes), X(2));
+  CBOOL__UNIFY(cdr,X(1));
+  CBOOL__LASTUNIFY(MakeSmall(total_bytes), X(2));
 }
 
 
@@ -623,7 +623,7 @@ CBOOL__PROTO(prolog_socket_buffering) {
                    sizeof(int)))
       MAJOR_FAULT("socket_buffering/4: error setting option");
 
-    return cunify(Arg, X(2), oldbuf);
+    CBOOL__LASTUNIFY(X(2), oldbuf);
 }
 */
 
@@ -682,7 +682,7 @@ CBOOL__PROTO(prolog_hostname_address) {
   }
   address[--address_index] = 0;
 
-  return cunify(Arg, X(1), GET_ATOM(address));
+  CBOOL__LASTUNIFY(X(1), GET_ATOM(address));
 }
 
 
@@ -718,7 +718,7 @@ CBOOL__PROTO(prolog_socket_getpeername) {
     inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof(ipstr));
   }
 
-  return cunify(Arg, X(1), GET_ATOM(ipstr));
+  CBOOL__LASTUNIFY(X(1), GET_ATOM(ipstr));
 }
 
 CBOOL__PROTO(sockets_c_init) {

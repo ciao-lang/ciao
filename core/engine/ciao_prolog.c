@@ -374,24 +374,24 @@ DeclType ciao_get_##CType(ciao_term term) {                     \
   return ciao_get_##CType##_s(ciao_implicit_ctx, term); \
 }
 
-Def_ciao_get_X(c_short, short, GetInteger)
-Def_ciao_get_X(c_int, int, GetInteger)
-Def_ciao_get_X(c_long, long, GetInteger)
-Def_ciao_get_X(c_ushort, unsigned short, GetInteger)
-Def_ciao_get_X(c_uint, unsigned int, GetInteger)
-Def_ciao_get_X(c_ulong, unsigned long, GetInteger)
-Def_ciao_get_X(c_float, float, GetFloat)
-Def_ciao_get_X(c_double, double, GetFloat)
-Def_ciao_get_X(c_uintptr, uintptr_t, GetInteger)
-Def_ciao_get_X(c_size, size_t, GetInteger)
-Def_ciao_get_X(c_int8, int8_t, GetInteger)
-Def_ciao_get_X(c_int16, int16_t, GetInteger)
-Def_ciao_get_X(c_int32, int32_t, GetInteger)
-Def_ciao_get_X(c_int64, int64_t, GetInteger) // TODO: WRONG in 32 bits
-Def_ciao_get_X(c_uint8, uint8_t, GetInteger)
-Def_ciao_get_X(c_uint16, uint16_t, GetInteger)
-Def_ciao_get_X(c_uint32, uint32_t, GetInteger) // TODO: WRONG in 32 bits (sign bit)
-Def_ciao_get_X(c_uint64, uint64_t, GetInteger) // TODO: WRONG in 32 bits, WRONG in 64 bits (sign bit)
+Def_ciao_get_X(c_short, short, TaggedToIntmach)
+Def_ciao_get_X(c_int, int, TaggedToIntmach)
+Def_ciao_get_X(c_long, long, TaggedToIntmach)
+Def_ciao_get_X(c_ushort, unsigned short, TaggedToIntmach)
+Def_ciao_get_X(c_uint, unsigned int, TaggedToIntmach)
+Def_ciao_get_X(c_ulong, unsigned long, TaggedToIntmach)
+Def_ciao_get_X(c_float, float, TaggedToFloat)
+Def_ciao_get_X(c_double, double, TaggedToFloat)
+Def_ciao_get_X(c_uintptr, uintptr_t, TaggedToIntmach)
+Def_ciao_get_X(c_size, size_t, TaggedToIntmach)
+Def_ciao_get_X(c_int8, int8_t, TaggedToIntmach)
+Def_ciao_get_X(c_int16, int16_t, TaggedToIntmach)
+Def_ciao_get_X(c_int32, int32_t, TaggedToIntmach)
+Def_ciao_get_X(c_int64, int64_t, TaggedToIntmach) // TODO: WRONG in 32 bits
+Def_ciao_get_X(c_uint8, uint8_t, TaggedToIntmach)
+Def_ciao_get_X(c_uint16, uint16_t, TaggedToIntmach)
+Def_ciao_get_X(c_uint32, uint32_t, TaggedToIntmach) // TODO: WRONG in 32 bits (sign bit)
+Def_ciao_get_X(c_uint64, uint64_t, TaggedToIntmach) // TODO: WRONG in 32 bits, WRONG in 64 bits (sign bit)
 
 /* TODO: Assumes LP64 data model (sizeof(long) == sizeof(int *) == sizeof(tagged_t)) */
 ciao_bool ciao_fits_in_c_long_s(ciao_ctx ctx, ciao_term term) {
@@ -400,7 +400,7 @@ ciao_bool ciao_fits_in_c_long_s(ciao_ctx ctx, ciao_term term) {
   DEREF(t, t);
   /* Pre: bignums is in canonical form (if more than one word is
      needed, it does not fit into an integer) */
-  return TaggedIsSmall(t) || (IsInteger(t) && (bn_length((bignum_t *)TagToSTR(t)) == 1));
+  return TaggedIsSmall(t) || (IsInteger(t) && (bn_length(TaggedToBignum(t)) == 1));
 }
 
 ciao_bool ciao_fits_in_c_long(ciao_term term) {
@@ -869,8 +869,8 @@ void Name(ciao_ctx ctx, ciao_term list, size_t length, X *array) { \
   } \
 }
 TEMPLATE(ciao_get_c_uint8_array_l, unsigned char, GetSmall)
-TEMPLATE(ciao_get_c_int_array_l, int, GetInteger)
-TEMPLATE(ciao_get_c_double_array_l, double, GetFloat)
+TEMPLATE(ciao_get_c_int_array_l, int, TaggedToIntmach)
+TEMPLATE(ciao_get_c_double_array_l, double, TaggedToFloat)
 #undef TEMPLATE
 
 #define TEMPLATE(Name, X, NameL) \
@@ -1160,7 +1160,7 @@ ciao_term ciao_ref(ciao_ctx ctx, tagged_t x) {
     ta = *TagToArg(Y(2), next);
 
     if (ta!=x) {
-      if (!cunify(Arg,ta,x)) goto fail;
+      if (!CBOOL__SUCCEED(cunify,ta,x)) goto fail;
     }
     goto ok;
   }

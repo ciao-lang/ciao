@@ -50,9 +50,9 @@
     DEREF(X(0),X(0));                                                   \
                                                                         \
     if (TaggedIsSmall(X(0)))                                            \
-      return cunify(Arg, X(1), MakeSmall(SmallFun(GetSmall(X(0)))));    \
+      CBOOL__LASTUNIFY(X(1), MakeSmall(SmallFun(GetSmall(X(0)))));      \
     else if (TagIsLarge(X(0)) && !LargeIsFloat(X(0)))                   \
-      return cunify(Arg, X(1), MakeSmall(BnFun(TagToSTR(X(0)))));       \
+      CBOOL__LASTUNIFY(X(1), MakeSmall(BnFun(TagToSTR(X(0)))));         \
     else                                                                \
       ERROR_IN_ARG(X(0),1,INTEGER);                                     \
   }

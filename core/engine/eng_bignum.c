@@ -975,10 +975,10 @@ bignum_size_t bn_from_float(bignum_t *x,
 #endif
 
 #if LOG2_bignum_size == 5
-  fp[0] = x[1];                 /* GetFloat(x) */
+  fp[0] = x[1];                 /* TaggedToFloat(x) */
   fp[1] = x[2];
 #elif LOG2_bignum_size == 6
-  f = *((flt64_t *)&x[1]); /* GetFloat(x) */
+  f = *((flt64_t *)&x[1]); /* TaggedToFloat(x) */
 #endif
   if (signbit(f)) {
     sx = FALSE;

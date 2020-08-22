@@ -191,35 +191,24 @@ CVOID__PROTO(number_to_string, tagged_t term, int base) {
       *c = d;
     }
   } else if (IsFloat(term)) {
-    union {
-      flt64_t i;
-      tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
-    } u;
+    flt64_t f;
     char *cbuf;
 
-    /* f = GetFloat(term); */
-#if LOG2_bignum_size == 5
-    u.p[0] = *TagToArg(term,1);
-    u.p[1] = *TagToArg(term,2);
-#elif LOG2_bignum_size == 6
-    u.p[0] = *TagToArg(term,1);
-#endif
+    /* TODO: use a specialized version (TaggedToFloat assuming float) */
+    f = TaggedToFloat(term);
 
     /* if (1024 > Atom_Buffer_Length) EXPAND_ATOM_BUFFER(102400); */
     cbuf = Atom_Buffer;
-    dtoa_ryu(u.i, cbuf); /* assume base==10 */
+    dtoa_ryu(f, cbuf); /* assume base==10 */
   } else { /* if (IsBignum(term)) */
-    CVOID__CALL(bn_to_string,(bignum_t *)TagToSTR(term),base);
+    CVOID__CALL(bn_to_string,TaggedToBignum(term),base);
   }
 }
 
-/*
-
-  Note: The ci parameter indicates where are the String argument.  If
-  ci = 2, then there are 3 parameters, indicating that the second
-  parameter could be the numeric base.
-
- */
+/* Note: The ci parameter indicates where are the String argument.  If
+   ci = 2, then there are 3 parameters, indicating that the second
+   parameter could be the numeric base.
+*/
 static CBOOL__PROTO(prolog_constant_codes,
                     bool_t atomp, bool_t numberp, int ci) {
   /* Note: This ERR__FUNCTOR is not related to an exported predicate,
@@ -235,7 +224,9 @@ static CBOOL__PROTO(prolog_constant_codes,
 
   DEREF(X(0),X(0));
   DEREF(X(1),X(1));
-  if (ci==2) DEREF(X(2),X(2));
+  if (ci==2) {
+    DEREF(X(2),X(2));
+  }
 
   /* Construct a character string from the input list */
   cdr = X(ci);
@@ -314,7 +305,7 @@ static CBOOL__PROTO(prolog_constant_codes,
       BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK),X(1),2);
     }
     if (string_to_number(Arg, Atom_Buffer, base, &result, ci+1)) {
-      return cunify(Arg, result, X(0));
+      CBOOL__LASTUNIFY(result, X(0));
     }
   }
   return atomp && cunify(Arg,GET_ATOM(Atom_Buffer),X(0));
@@ -366,46 +357,47 @@ static CBOOL__PROTO(prolog_constant_codes,
     s--;
     MakeLST(cdr,MakeSmall(*((unsigned char *)s)),cdr);
   }
-  return cunify(Arg,cdr,X(ci));
+  CBOOL__LASTUNIFY(cdr,X(ci));
 }
 
 CBOOL__PROTO(prolog_atom_length) {
   ERR__FUNCTOR("atomic_basic:atom_length", 2);
+
   DEREF(X(0),X(0));
-  DEREF(X(1),X(1));
-
-  if (!TaggedIsATM(X(0)))
+  if (!TaggedIsATM(X(0))) {
     ERROR_IN_ARG(X(0),1,STRICT_ATOM);
+  }
 
+  DEREF(X(1),X(1));
   if (!IsInteger(X(1)) && !IsVar(X(1))) {
     BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(1),2);
   }
 
 #if defined(USE_ATOM_LEN)
-  return cunify(Arg,MakeSmall(GetAtomLen(X(0))),X(1));
+  CBOOL__LASTUNIFY(MakeSmall(GetAtomLen(X(0))),X(1));
 #else
-  return cunify(Arg,MakeSmall(strlen(GetString(X(0)))),X(1));
+  CBOOL__LASTUNIFY(MakeSmall(strlen(GetString(X(0)))),X(1));
 #endif
 }
 
 /* sub_atom(Atom, Before, Lenght, Sub_atom) */
-CBOOL__PROTO(prolog_sub_atom)
-{
+CBOOL__PROTO(prolog_sub_atom) {
   ERR__FUNCTOR("atomic_basic:sub_atom", 4);
   char *s, *s1;
   int l, b, atom_length;
 
   DEREF(X(0),X(0));
-  DEREF(X(1),X(1));
-  DEREF(X(2),X(2));
-  DEREF(X(3),X(3));
-
-  if (!TaggedIsATM(X(0)))
+  if (!TaggedIsATM(X(0))) {
     ERROR_IN_ARG(X(0),1,STRICT_ATOM);
-  if (!IsInteger(X(1)))
+  }
+  DEREF(X(1),X(1));
+  if (!IsInteger(X(1))) {
     ERROR_IN_ARG(X(1),2,INTEGER);
-  if (!IsInteger(X(2)))
+  }
+  DEREF(X(2),X(2));
+  if (!IsInteger(X(2))) {
     ERROR_IN_ARG(X(2),3,INTEGER);
+  }
 
   s = GetString(X(0));
 #if defined(USE_ATOM_LEN)
@@ -414,32 +406,28 @@ CBOOL__PROTO(prolog_sub_atom)
   l = strlen(s);
 #endif
 
-  b = GetInteger(X(1));
-  if (b < 0 || b > l)
-    CBOOL__FAIL;
+  b = TaggedToIntmach(X(1));
+  if (b < 0 || b > l) CBOOL__FAIL;
 
-  atom_length = GetInteger(X(2));
-  if (atom_length < 0 || atom_length+b > l)
-    CBOOL__FAIL;
+  atom_length = TaggedToIntmach(X(2));
+  if (atom_length < 0 || atom_length+b > l) CBOOL__FAIL;
 
   s += b;
 
-  if (Atom_Buffer_Length <= atom_length)
-    EXPAND_ATOM_BUFFER(atom_length+1);
-
+  if (Atom_Buffer_Length <= atom_length) EXPAND_ATOM_BUFFER(atom_length+1);
   s1 = Atom_Buffer;
 
   strncpy(s1, s, atom_length);
 
   *(s1+atom_length) = '\0';
 
-  return cunify(Arg,GET_ATOM(Atom_Buffer),X(3));
+  CBOOL__LASTUNIFY(GET_ATOM(Atom_Buffer),X(3));
 }
 
+extern try_node_t *address_nd_atom_concat;
 CBOOL__PROTO(nd_atom_concat);
 
-CBOOL__PROTO(prolog_atom_concat)
-{
+CBOOL__PROTO(prolog_atom_concat) {
   ERR__FUNCTOR("atomic_basic:atom_concat", 3);
   int new_atom_length;
   char *s, *s1, *s2;
@@ -455,7 +443,7 @@ CBOOL__PROTO(prolog_atom_concat)
       if (!TaggedIsATM(X(2)) && !IsVar(X(2))) {
         BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(2),3);
       }
-/* atom_concat(+, +, ?) */
+      /* atom_concat(+, +, ?) */
       s2 = GetString(X(1));
 
 #if defined(USE_ATOM_LEN)
@@ -473,15 +461,15 @@ CBOOL__PROTO(prolog_atom_concat)
         BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ATOM_LENGTH), X(2), 3);
       }
 #endif
+      s = Atom_Buffer;
 
       /* Append the two strings in atom_buffer */
-      s = Atom_Buffer;
       while (*s1)
         *s++ = *s1++;
       while (*s2)
         *s++ = *s2++;
       *s = '\0';
-      return cunify(Arg,GET_ATOM(Atom_Buffer),X(2));
+      CBOOL__LASTUNIFY(GET_ATOM(Atom_Buffer),X(2));
     } else if (IsVar(X(1))) {
       if (!TaggedIsATM(X(2))) { ERROR_IN_ARG(X(2),3,STRICT_ATOM); }
       /* atom_concat(+, -, +) */
@@ -492,58 +480,52 @@ CBOOL__PROTO(prolog_atom_concat)
 #else
       new_atom_length = strlen(s2) + 1;
 #endif
-      if (new_atom_length >= Atom_Buffer_Length)
-          EXPAND_ATOM_BUFFER(new_atom_length);
 
       for ( ; *s1 && *s2 ; s1++, s2++)
         if (*s1 != *s2) CBOOL__FAIL;
 
       if (*s1) CBOOL__FAIL;
 
+      if (new_atom_length >= Atom_Buffer_Length)
+        EXPAND_ATOM_BUFFER(new_atom_length);
       s = Atom_Buffer;
 
       strcpy(s, s2);
 
-      return cunify(Arg,GET_ATOM(Atom_Buffer),X(1));
+      CBOOL__LASTUNIFY(GET_ATOM(Atom_Buffer),X(1));
     } else {
       BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(1),2);
     }
   } else if (IsVar(X(0))) {
-    if (!TaggedIsATM(X(2)))
-        { ERROR_IN_ARG(X(2),3,STRICT_ATOM); }
+    if (!TaggedIsATM(X(2))) { ERROR_IN_ARG(X(2),3,STRICT_ATOM); }
 
     if (TaggedIsATM(X(1))) {
-/* atom_concat(-, +, +) */
-
+      /* atom_concat(-, +, +) */
       s1 = GetString(X(1));
       s2 = GetString(X(2));
 
 #if defined(USE_ATOM_LEN)
-      if ((new_atom_length = (GetAtomLen(X(2)) - GetAtomLen(X(1)))) < 0)
-        CBOOL__FAIL;
+      new_atom_length = GetAtomLen(X(2)) - GetAtomLen(X(1));
 #else
-      if ((new_atom_length = strlen(s2)-strlen(s1)) < 0)
-        CBOOL__FAIL;
+      new_atom_length = strlen(s2)-strlen(s1);
 #endif
-
-      if (new_atom_length >= Atom_Buffer_Length) 
-        EXPAND_ATOM_BUFFER(new_atom_length+1);
+      if (new_atom_length < 0) CBOOL__FAIL;
 
       s = s2+new_atom_length;
 
-      if (strcmp(s1, s)) /* different */
-        CBOOL__FAIL;
+      if (strcmp(s1, s) != 0) CBOOL__FAIL; /* fail if different */
 
+      if (new_atom_length >= Atom_Buffer_Length) 
+        EXPAND_ATOM_BUFFER(new_atom_length+1);
       s = Atom_Buffer;
 
       strncpy(s, s2, new_atom_length);
 
       *(s+new_atom_length) = '\0';
 
-      return cunify(Arg,GET_ATOM(Atom_Buffer),X(0));
+      CBOOL__LASTUNIFY(GET_ATOM(Atom_Buffer),X(0));
     } else if (IsVar(X(1))) {
-/* atom_concat(-, -, +) */
-
+      /* atom_concat(-, -, +) */
       s2 = GetString(X(2));
 #if defined(USE_ATOM_LEN)
       new_atom_length = GetAtomLen(X(2))+1;
@@ -553,8 +535,8 @@ CBOOL__PROTO(prolog_atom_concat)
       if (new_atom_length >= Atom_Buffer_Length)
         EXPAND_ATOM_BUFFER(new_atom_length);
       X(3) = TaggedZero;
-      push_choicept(Arg,address_nd_atom_concat);
-      return nd_atom_concat(Arg);
+      CVOID__CALL(push_choicept,address_nd_atom_concat);
+      CBOOL__LASTCALL(nd_atom_concat);
     } else {
       BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(1),2);
     }

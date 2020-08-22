@@ -415,7 +415,7 @@ CFUN__PROTO(bn_call,
   bignum_t *bx = (bignum_t *)0;
   bignum_t *by = (bignum_t *)0;
   if (TagIsSTR(x)) {
-    bx = (bignum_t *)TagToSTR(x);
+    bx = TaggedToBignum(x);
   } else if (TaggedIsSmall(x)) {
     xx[0] = MakeFunctorFix;
     xx[1] = GetSmall(x);
@@ -423,7 +423,7 @@ CFUN__PROTO(bn_call,
   }
 
   if (TagIsSTR(y)) {
-    by = (bignum_t *)TagToSTR(y);
+    by = TaggedToBignum(y);
   } else if (TaggedIsSmall(y)) {
     yy[0] = MakeFunctorFix;
     yy[1] = GetSmall(y);
@@ -556,7 +556,7 @@ CFUN__PROTO(make_float, tagged_t, flt64_t i) {
   return Tag(STR, h-4);
 }
 
-/* Pre: !IsSmall(t) (small int's taken care of by GetInteger()) */
+/* Pre: !IsSmall(t) (small int's taken care of by TaggedToIntmach()) */
 intmach_t get_integer(tagged_t t) {
   if (LargeIsFloat(t)) {
     return get_float(t);
@@ -565,7 +565,7 @@ intmach_t get_integer(tagged_t t) {
   }
 }
 
-/* Pre: !IsSmall(t) (small int's taken care of by GetFloat()) */
+/* Pre: !IsSmall(t) (small int's taken care of by TaggedToFloat()) */
 flt64_t get_float(tagged_t t) {
   if (!LargeIsFloat(t)) {
     intmach_t ar = LargeArity(TagToHeadfunctor(t))-1;
@@ -1611,7 +1611,7 @@ CFUN__PROTO(list_of_goals, tagged_t)
 CBOOL__PROTO(prolog_eng_status1)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, list_of_goals(Arg), X(0));
+  CBOOL__LASTUNIFY(list_of_goals(Arg), X(0));
 }
 #endif
 
@@ -1925,7 +1925,7 @@ CBOOL__PROTO(prolog_global_vars_set_root) {
 }
 CBOOL__PROTO(prolog_global_vars_get_root) {
   DEREF(X(0),X(0));
-  return cunify(Arg, GLOBAL_VARS_ROOT, X(0));
+  CBOOL__LASTUNIFY(GLOBAL_VARS_ROOT, X(0));
 }
 #else
 CBOOL__PROTO(prolog_global_vars_set_root) {
@@ -2080,7 +2080,7 @@ CBOOL__PROTO(frozen)
   if (!IsVar(X(0)))
     return FALSE;
   else if (VarIsCVA(X(0)))
-    return cunify(Arg,Tag(LST,TagToGoal(X(0))),X(1));
+    CBOOL__LASTUNIFY(Tag(LST,TagToGoal(X(0))),X(1));
   CBOOL__UnifyCons(atom_nil,X(1));
   return TRUE;
 }
@@ -2180,7 +2180,7 @@ CBOOL__PROTO(constraint_list)
     clist = Tag(LST,HeapOffset(h,-2));
   }
   w->global_top = h;
-  return cunify(Arg,clist,X(1));
+  CBOOL__LASTUNIFY(clist,X(1));
 }
 
 CFUN__PROTO(find_constraints, intmach_t, tagged_t *limit)

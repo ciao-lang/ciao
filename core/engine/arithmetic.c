@@ -151,7 +151,7 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v)
 static inline CFUN__PROTO(globalize_bn, tagged_t, tagged_t t, bcp_t liveinfo) {
   if (liveinfo==NULL) return t;
   if (IsFloat(t)) {
-    return BoxFloatCheck(GetFloat(t));
+    return BoxFloatCheck(TaggedToFloat(t));
   } else {
     return bn_call(Arg,bn_plus,t,0, liveinfo);
   }
@@ -173,11 +173,11 @@ CBOOL__PROTO(bu2_numeq, tagged_t x0, tagged_t x1)
   if (TaggedIsSmall(t)&&TaggedIsSmall(u))
     return (t==u);
   else if (IsFloat(t) || IsFloat(u))
-    return (GetFloat(t)==GetFloat(u));
+    return (TaggedToFloat(t)==TaggedToFloat(u));
   else if (TaggedIsSmall(t) || TaggedIsSmall(u))
     return FALSE;
   else
-    return (bn_compare((bignum_t *)TagToSTR(t),(bignum_t *)TagToSTR(u))==0);
+    return (bn_compare(TaggedToBignum(t),TaggedToBignum(u))==0);
 }
 
 CBOOL__PROTO(bu2_numne, tagged_t x0, tagged_t x1)
@@ -194,11 +194,11 @@ CBOOL__PROTO(bu2_numne, tagged_t x0, tagged_t x1)
   if (TaggedIsSmall(t)&&TaggedIsSmall(u))
     return (t!=u);
   else if (IsFloat(t) || IsFloat(u))
-    return (GetFloat(t)!=GetFloat(u));
+    return (TaggedToFloat(t)!=TaggedToFloat(u));
   else if (TaggedIsSmall(t) || TaggedIsSmall(u))
     return TRUE;
   else
-    return (bn_compare((bignum_t *)TagToSTR(t),(bignum_t *)TagToSTR(u))!=0);
+    return (bn_compare(TaggedToBignum(t),TaggedToBignum(u))!=0);
 }
 
 CBOOL__PROTO(bu2_numlt, tagged_t x0, tagged_t x1)
@@ -215,13 +215,13 @@ CBOOL__PROTO(bu2_numlt, tagged_t x0, tagged_t x1)
   if (TaggedIsSmall(t)&&TaggedIsSmall(u))
     return (t<u);
   else if (IsFloat(t) || IsFloat(u))
-    return (GetFloat(t)<GetFloat(u));
+    return (TaggedToFloat(t)<TaggedToFloat(u));
   else if (TaggedIsSmall(t))
-    return bn_positive((bignum_t *)TagToSTR(u));
+    return bn_positive(TaggedToBignum(u));
   else if (TaggedIsSmall(u))
-    return !bn_positive((bignum_t *)TagToSTR(t));
+    return !bn_positive(TaggedToBignum(t));
   else
-    return (bn_compare((bignum_t *)TagToSTR(t),(bignum_t *)TagToSTR(u))<0);
+    return (bn_compare(TaggedToBignum(t),TaggedToBignum(u))<0);
 }
 
 CBOOL__PROTO(bu2_numle, tagged_t x0, tagged_t x1)
@@ -238,13 +238,13 @@ CBOOL__PROTO(bu2_numle, tagged_t x0, tagged_t x1)
   if (TaggedIsSmall(t)&&TaggedIsSmall(u))
     return (t<=u);
   else if (IsFloat(t) || IsFloat(u))
-    return (GetFloat(t)<=GetFloat(u));
+    return (TaggedToFloat(t)<=TaggedToFloat(u));
   else if (TaggedIsSmall(t))
-    return bn_positive((bignum_t *)TagToSTR(u));
+    return bn_positive(TaggedToBignum(u));
   else if (TaggedIsSmall(u))
-    return !bn_positive((bignum_t *)TagToSTR(t));
+    return !bn_positive(TaggedToBignum(t));
   else
-    return (bn_compare((bignum_t *)TagToSTR(t),(bignum_t *)TagToSTR(u))<=0);
+    return (bn_compare(TaggedToBignum(t),TaggedToBignum(u))<=0);
 }
 
 CBOOL__PROTO(bu2_numgt, tagged_t x0, tagged_t x1)
@@ -261,13 +261,13 @@ CBOOL__PROTO(bu2_numgt, tagged_t x0, tagged_t x1)
   if (TaggedIsSmall(t)&&TaggedIsSmall(u))
     return (t>u);
   else if (IsFloat(t) || IsFloat(u))
-    return (GetFloat(t)>GetFloat(u));
+    return (TaggedToFloat(t)>TaggedToFloat(u));
   else if (TaggedIsSmall(t))
-    return !bn_positive((bignum_t *)TagToSTR(u));
+    return !bn_positive(TaggedToBignum(u));
   else if (TaggedIsSmall(u))
-    return bn_positive((bignum_t *)TagToSTR(t));
+    return bn_positive(TaggedToBignum(t));
   else
-    return (bn_compare((bignum_t *)TagToSTR(t),(bignum_t *)TagToSTR(u))>0);
+    return (bn_compare(TaggedToBignum(t),TaggedToBignum(u))>0);
 }
 
 CBOOL__PROTO(bu2_numge, tagged_t x0, tagged_t x1)
@@ -284,13 +284,13 @@ CBOOL__PROTO(bu2_numge, tagged_t x0, tagged_t x1)
   if (TaggedIsSmall(t)&&TaggedIsSmall(u))
     return (t>=u);
   else if (IsFloat(t) || IsFloat(u))
-    return (GetFloat(t)>=GetFloat(u));
+    return (TaggedToFloat(t)>=TaggedToFloat(u));
   else if (TaggedIsSmall(t))
-    return !bn_positive((bignum_t *)TagToSTR(u));
+    return !bn_positive(TaggedToBignum(u));
   else if (TaggedIsSmall(u))
-    return bn_positive((bignum_t *)TagToSTR(t));
+    return bn_positive(TaggedToBignum(t));
   else
-    return (bn_compare((bignum_t *)TagToSTR(t),(bignum_t *)TagToSTR(u))>=0);
+    return (bn_compare(TaggedToBignum(t),TaggedToBignum(u))>=0);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -309,7 +309,7 @@ CFUN__PROTO(fu1_minus, tagged_t, tagged_t X0, bcp_t liveinfo)
     else
       return TaggedZero-(t-TaggedZero);
   } else if (IsFloat(t)) {
-    return BoxFloatCheck(-GetFloat(t));
+    return BoxFloatCheck(-TaggedToFloat(t));
   } else {
     return bn_call(Arg,bn_minus,t,0, liveinfo);
   }
@@ -361,7 +361,7 @@ CFUN__PROTO(fu1_float, tagged_t, tagged_t X0, bcp_t liveinfo)
     /* (identity function) */
     return globalize_bn(Arg, t, liveinfo);
   } else {
-    return BoxFloatCheck(GetFloat(t));
+    return BoxFloatCheck(TaggedToFloat(t));
   }
 }
 
@@ -380,7 +380,7 @@ CFUN__PROTO(fu1_add1, tagged_t, tagged_t X0, bcp_t liveinfo)
       return t+MakeSmallDiff(1);
     }
   } else if (IsFloat(t)) {
-    return BoxFloatCheck(GetFloat(t) + 1.0);
+    return BoxFloatCheck(TaggedToFloat(t) + 1.0);
   } else {
     return bn_call(Arg,bn_incr,t,0, liveinfo);
   }
@@ -400,7 +400,7 @@ CFUN__PROTO(fu1_sub1, tagged_t, tagged_t X0, bcp_t liveinfo)
     else
       return t-MakeSmallDiff(1);
   } else if (IsFloat(t)) {
-    return BoxFloatCheck(GetFloat(t) - 1.0);
+    return BoxFloatCheck(TaggedToFloat(t) - 1.0);
   } else {
     return bn_call(Arg,bn_decr,t,0, liveinfo);
   }
@@ -425,7 +425,7 @@ CFUN__PROTO(fu2_plus, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
     else
       return IntvalToTaggedCheck(GetSmall(t1));
   } else if (IsFloat(t) || IsFloat(u)) {
-    return BoxFloatCheck(GetFloat(t) + GetFloat(u));
+    return BoxFloatCheck(TaggedToFloat(t) + TaggedToFloat(u));
   } else {
     return bn_call(Arg,bn_add,t,u, liveinfo);
   }
@@ -448,7 +448,7 @@ CFUN__PROTO(fu2_minus, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
     else
       return IntvalToTaggedCheck(GetSmall(t1));
   } else if (IsFloat(t) || IsFloat(u)) {
-    return BoxFloatCheck(GetFloat(t) - GetFloat(u));
+    return BoxFloatCheck(TaggedToFloat(t) - TaggedToFloat(u));
   } else {
     return bn_call(Arg,bn_subtract,t,u, liveinfo);
   }
@@ -477,7 +477,7 @@ CFUN__PROTO(fu2_times, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
     {}
   }
   if (IsFloat(t) || IsFloat(u)) {
-    return BoxFloatCheck(GetFloat(t) * GetFloat(u));
+    return BoxFloatCheck(TaggedToFloat(t) * TaggedToFloat(u));
   } else {
     return bn_call(Arg,bn_multiply,t,u, liveinfo);
   }
@@ -494,7 +494,7 @@ CFUN__PROTO(fu2_fdivide, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   NDEREF(Arg, t, 0, t1);
   u=X1; 
   NDEREF(Arg, u, 1, t1);
-  return BoxFloatCheck(GetFloat(t)/GetFloat(u));
+  return BoxFloatCheck(TaggedToFloat(t)/TaggedToFloat(u));
 }
 
 CFUN__PROTO(fu2_idivide, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
@@ -587,9 +587,9 @@ CFUN__PROTO(fu1_abs, tagged_t, tagged_t X0, bcp_t liveinfo)
     else
       return t;
   } else if (IsFloat(t)) {
-    return (((f = GetFloat(t)) < 0.0) ? BoxFloatCheck(-f) : t);
+    return (((f = TaggedToFloat(t)) < 0.0) ? BoxFloatCheck(-f) : t);
   } else {
-    return ((!bn_positive((bignum_t *)TagToSTR(t))) ? bn_call(Arg,bn_minus,t,0, liveinfo) : t);
+    return ((!bn_positive(TaggedToBignum(t))) ? bn_call(Arg,bn_minus,t,0, liveinfo) : t);
   }
 }
 
@@ -607,12 +607,12 @@ CFUN__PROTO(fu1_sign, tagged_t, tagged_t X0, bcp_t liveinfo)
             (t < TaggedZero) ? TaggedZero-MakeSmallDiff(1) :
             TaggedZero+MakeSmallDiff(1));
   } else if (IsFloat(t)) {
-    f = GetFloat(t);
+    f = TaggedToFloat(t);
     return ((f == 0.0) ? t :
             (f < 0.0) ? BoxFloatCheck(-1.0) :
             BoxFloatCheck(1.0));
   } else  {
-    return ((!bn_positive((bignum_t *)TagToSTR(t))) ? TaggedZero-MakeSmallDiff(1) :
+    return ((!bn_positive(TaggedToBignum(t))) ? TaggedZero-MakeSmallDiff(1) :
             TaggedZero+MakeSmallDiff(1));
   }
 }
@@ -742,7 +742,7 @@ static inline bool_t int_is_nonneg(tagged_t t) {
   if (TaggedIsSmall(t)) {
     return (t >= TaggedZero);
   } else { /* t is bignum */
-    return bn_positive((bignum_t *)TagToSTR(t));
+    return bn_positive(TaggedToBignum(t));
   }
 }
 
@@ -769,7 +769,7 @@ CFUN__PROTO(fu2_lsh, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
  
   if (IsIntegerFix(u)) {
     /* 2^INTMACH_MIN =< u =< 2^INTMACH_MAX */
-    dist = GetInteger(u);
+    dist = TaggedToIntmach(u);
     
     if ((intmach_t)dist == INTMACH_MIN) {
       /* u = 2^INTMACH_MIN, i.e. -u > 2^INTMACH_MAX */
@@ -778,7 +778,7 @@ CFUN__PROTO(fu2_lsh, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
       /* abs(u) =< 2^INTMACH_MIN */
       return (dist<0 ? rsh_internal(Arg,t,-dist, liveinfo) : lsh_internal(Arg,t,dist, liveinfo));
     }
-  } else if (bn_positive((bignum_t *)TagToSTR(u)) && t != TaggedZero) {
+  } else if (bn_positive(TaggedToBignum(u)) && t != TaggedZero) {
     /* u > 2^INTMACH_MAX */
     BUILTIN_ERROR(RESOURCE_ERROR(R_STACK), u, 2); 
   } else {
@@ -803,7 +803,7 @@ CFUN__PROTO(fu2_rsh, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   
   if (IsIntegerFix(u)) { 
     /* 2^INTMACH_MIN =< u =< 2^INTMACH_MAX */
-    dist = GetInteger(u);
+    dist = TaggedToIntmach(u);
     
     if ((intmach_t)dist == INTMACH_MIN) {
       /* u = 2^INTMACH_MIN, i.e. -u > 2^INTMACH_MAX */
@@ -812,7 +812,7 @@ CFUN__PROTO(fu2_rsh, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
       /* abs(u) =< 2^INTMACH_MIN */
       return (dist<0 ? lsh_internal(Arg,t,-dist, liveinfo) : rsh_internal(Arg,t,dist, liveinfo));
     }
-  } else if (bn_positive((bignum_t *)TagToSTR(u)) || t == TaggedZero) {
+  } else if (bn_positive(TaggedToBignum(u)) || t == TaggedZero) {
     /* u > 2^INTMACH_MAX */
     /* was: return TaggedZero; */
     return (int_is_nonneg(t) ? TaggedZero : TaggedZero-MakeSmallDiff(1));
@@ -850,7 +850,7 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
       u = (u==TaggedLow ? IntvalToTaggedCheck(GetSmall(TaggedHigh))
                         : TaggedZero-(u-TaggedZero));
     }
-  } else if (!bn_positive((bignum_t *)TagToSTR(u))) {
+  } else if (!bn_positive(TaggedToBignum(u))) {
     u = bn_call(Arg,bn_minus,u,0, liveinfo);
   }
 
@@ -862,7 +862,7 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
       v = (v==TaggedLow ? IntvalToTaggedCheck(GetSmall(TaggedHigh))
                         : TaggedZero-(v-TaggedZero));
     }
-  } else if (!bn_positive((bignum_t *)TagToSTR(v))) {
+  } else if (!bn_positive(TaggedToBignum(v))) {
     v = bn_call(Arg,bn_minus,v,0, liveinfo);
   }
                                 
@@ -916,7 +916,7 @@ CFUN__PROTO(fu1_intpart, tagged_t, tagged_t X0, bcp_t liveinfo)
   t=X0; 
   NDEREF(Arg, t, 0, t1);
 
-  f = GetFloat(t);
+  f = TaggedToFloat(t);
   return BoxFloatCheck(aint(f));
 }
 
@@ -931,7 +931,7 @@ CFUN__PROTO(fu1_fractpart, tagged_t, tagged_t X0, bcp_t liveinfo)
   t=X0; 
   NDEREF(Arg, t, 0, t1);
 
-  f = GetFloat(t);
+  f = TaggedToFloat(t);
   return BoxFloatCheck(f-aint(f));
 }
 
@@ -951,7 +951,7 @@ CFUN__PROTO(fu1_floor, tagged_t, tagged_t X0, bcp_t liveinfo)
     if (!float_is_finite(t)) {
       BUILTIN_ERROR(REPRESENTATION_ERROR(NAN_OR_INF_TO_INTEGER), t, 1);
     }
-    f = BoxFloatCheck(floor(GetFloat(t)));
+    f = BoxFloatCheck(floor(TaggedToFloat(t)));
     return bn_call(Arg,bn_from_float,f,0, liveinfo);
   } else {
     /* (identity function) */
@@ -975,7 +975,7 @@ CFUN__PROTO(fu1_round, tagged_t, tagged_t X0, bcp_t liveinfo)
     if (!float_is_finite(t)) {
       BUILTIN_ERROR(REPRESENTATION_ERROR(NAN_OR_INF_TO_INTEGER), t, 1);
     }
-    f = BoxFloatCheck(round(GetFloat(t)));
+    f = BoxFloatCheck(round(TaggedToFloat(t)));
     return bn_call(Arg,bn_from_float,f,0, liveinfo);
   } else {
     /* (identity function) */
@@ -998,7 +998,7 @@ CFUN__PROTO(fu1_ceil, tagged_t, tagged_t X0, bcp_t liveinfo)
     if (!float_is_finite(t)) {
       BUILTIN_ERROR(REPRESENTATION_ERROR(NAN_OR_INF_TO_INTEGER), t, 1);
     }
-    f = BoxFloatCheck(ceil(GetFloat(t)));
+    f = BoxFloatCheck(ceil(TaggedToFloat(t)));
     return bn_call(Arg,bn_from_float,f,0, liveinfo);
   } else {
     /* (identity function) */
@@ -1017,7 +1017,7 @@ CFUN__PROTO(fu2_pow, tagged_t, tagged_t X0, tagged_t X1, bcp_t liveinfo)
   NDEREF(Arg, t, 0, t1);
   u=X1; 
   NDEREF(Arg, u, 1, t1);
-  return BoxFloatCheck(pow(GetFloat(t),GetFloat(u)));
+  return BoxFloatCheck(pow(TaggedToFloat(t),TaggedToFloat(u)));
 }
 
 CFUN__PROTO(fu1_exp, tagged_t, tagged_t X0, bcp_t liveinfo)
@@ -1029,7 +1029,7 @@ CFUN__PROTO(fu1_exp, tagged_t, tagged_t X0, bcp_t liveinfo)
   t=X0; 
   NDEREF(Arg, t, 0, t1);
 
-  return BoxFloatCheck(exp(GetFloat(t)));
+  return BoxFloatCheck(exp(TaggedToFloat(t)));
 }
 
 CFUN__PROTO(fu1_log, tagged_t, tagged_t X0, bcp_t liveinfo)
@@ -1041,7 +1041,7 @@ CFUN__PROTO(fu1_log, tagged_t, tagged_t X0, bcp_t liveinfo)
   t=X0; 
   NDEREF(Arg, t, 0, t1);
 
-  return BoxFloatCheck(log(GetFloat(t)));
+  return BoxFloatCheck(log(TaggedToFloat(t)));
 }
 
 CFUN__PROTO(fu1_sqrt, tagged_t, tagged_t X0, bcp_t liveinfo)
@@ -1053,7 +1053,7 @@ CFUN__PROTO(fu1_sqrt, tagged_t, tagged_t X0, bcp_t liveinfo)
   t=X0; 
   NDEREF(Arg, t, 0, t1);
 
-  return BoxFloatCheck(sqrt(GetFloat(t)));
+  return BoxFloatCheck(sqrt(TaggedToFloat(t)));
 }
 
 CFUN__PROTO(fu1_sin, tagged_t, tagged_t X0, bcp_t liveinfo)
@@ -1065,7 +1065,7 @@ CFUN__PROTO(fu1_sin, tagged_t, tagged_t X0, bcp_t liveinfo)
   t=X0; 
   NDEREF(Arg, t, 0, t1);
 
-  return BoxFloatCheck(sin(GetFloat(t)));
+  return BoxFloatCheck(sin(TaggedToFloat(t)));
 }
 
 CFUN__PROTO(fu1_cos, tagged_t, tagged_t X0, bcp_t liveinfo)
@@ -1077,7 +1077,7 @@ CFUN__PROTO(fu1_cos, tagged_t, tagged_t X0, bcp_t liveinfo)
   t=X0; 
   NDEREF(Arg, t, 0, t1);
 
-  return BoxFloatCheck(cos(GetFloat(t)));
+  return BoxFloatCheck(cos(TaggedToFloat(t)));
 }
 
 CFUN__PROTO(fu1_atan, tagged_t, tagged_t X0, bcp_t liveinfo)
@@ -1089,6 +1089,6 @@ CFUN__PROTO(fu1_atan, tagged_t, tagged_t X0, bcp_t liveinfo)
   t=X0; 
   NDEREF(Arg, t, 0, t1);
 
-  return BoxFloatCheck(atan(GetFloat(t)));
+  return BoxFloatCheck(atan(TaggedToFloat(t)));
 }
 

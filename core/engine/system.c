@@ -488,7 +488,7 @@ CBOOL__PROTO(prolog_unix_argv)
   for (i=prolog_argc; i>1;) {
     MakeLST(list, GET_ATOM(p1[--i]), list);
   }
-  return cunify(Arg, list, X(0));
+  CBOOL__LASTUNIFY(list, X(0));
 }
 
 /* --------------------------------------------------------------------------- */
@@ -785,9 +785,7 @@ CBOOL__PROTO(prolog_file_properties) {
 
     if (X(3)!=atom_nil) {
       /* Cannot be CBOOL__UnifyCons because it may require a bignum */
-      if (!cunify(Arg, IntvalToTagged(statbuf.st_mtime), X(3))) {
-        return FALSE;
-      }
+      CBOOL__UNIFY(IntvalToTagged(statbuf.st_mtime), X(3));
     }
     if (X(4)!=atom_nil) {
       CBOOL__UnifyCons(MakeSmall(statbuf.st_mode&0xfff), X(4));
@@ -1228,9 +1226,9 @@ CBOOL__PROTO(prolog_c_winpath) /* EMM */
   DEREF(X(0),X(0));
   posixpath = GetString(X(0));
   cygwin_conv_to_full_win32_path(posixpath, winpath);
-  return cunify(Arg, GET_ATOM(winpath), X(1));
+  CBOOL__LASTUNIFY(GET_ATOM(winpath), X(1));
 #else
-  return cunify(Arg, X(0), X(1));
+  CBOOL__LASTUNIFY(X(0), X(1));
 #endif
 }
 
@@ -1243,9 +1241,9 @@ CBOOL__PROTO(prolog_c_winfile) /* EMM */
   DEREF(X(0),X(0));
   posixpath = GetString(X(0));
   cygwin_conv_to_win32_path(posixpath, winpath);
-  return cunify(Arg, GET_ATOM(winpath), X(1));
+  CBOOL__LASTUNIFY(GET_ATOM(winpath), X(1));
 #else
-  return cunify(Arg, X(0), X(1));
+  CBOOL__LASTUNIFY(X(0), X(1));
 #endif
 }
 
@@ -1258,9 +1256,9 @@ CBOOL__PROTO(prolog_c_posixpath) /* EMM */
   DEREF(X(0),X(0));
   winpath = GetString(X(0));
   cygwin_conv_to_full_posix_path(winpath, posixpath);
-  return cunify(Arg, GET_ATOM(posixpath), X(1));
+  CBOOL__LASTUNIFY(GET_ATOM(posixpath), X(1));
 #else
-  return cunify(Arg, X(0), X(1));
+  CBOOL__LASTUNIFY(X(0), X(1));
 #endif
 }
 
@@ -1273,9 +1271,9 @@ CBOOL__PROTO(prolog_c_posixfile) /* EMM */
   DEREF(X(0), X(0));
   winpath = GetString(X(0));
   cygwin_conv_to_posix_path(winpath, posixpath);
-  return cunify(Arg, GET_ATOM(posixpath), X(1));
+  CBOOL__LASTUNIFY(GET_ATOM(posixpath), X(1));
 #else
-  return cunify(Arg, X(0), X(1));
+  CBOOL__LASTUNIFY(X(0), X(1));
 #endif
 }
 
@@ -1283,12 +1281,12 @@ CBOOL__PROTO(prolog_c_posixfile) /* EMM */
 
 CBOOL__PROTO(prolog_c_errno) {
   DEREF(X(0), X(0));
-  return cunify(Arg, MakeSmall(errno), X(0));
+  CBOOL__LASTUNIFY(MakeSmall(errno), X(0));
 }
 
 CBOOL__PROTO(prolog_c_strerror) {
   DEREF(X(0), X(0));
-  return cunify(Arg, GET_ATOM(strerror(errno)), X(0));
+  CBOOL__LASTUNIFY(GET_ATOM(strerror(errno)), X(0));
 }
 
 /* --------------------------------------------------------------------------- */
@@ -1309,7 +1307,7 @@ CBOOL__PROTO(prolog_c_copy_file) {
   DEREF(X(1), X(1));
   destination = GetString(X(1));
   DEREF(X(2), X(2));
-  copy_flag = GetInteger(X(2));
+  copy_flag = TaggedToIntmach(X(2));
   if (copy_flag & COPY_FLAG_SYMLINK) {
 #if defined(_WIN32) || defined(_WIN64)
 #warning "TODO(MinGW): silent copy or error?"
@@ -1423,7 +1421,7 @@ CBOOL__PROTO(prolog_c_copy_file) {
 /*     i--; */
 /*     MakeLST(cdr, MakeSmall(*(--s)), cdr); */
 /*   } */
-/*   return cunify(Arg, cdr, X(1)); */
+/*   CBOOL__LASTUNIFY(cdr, X(1)); */
 /* } */
 
 #if defined(Solaris)
@@ -1521,7 +1519,7 @@ CBOOL__PROTO(prolog_c_current_env) {
   char *nameval, *value;
 
   DEREF(X(0), X(0));
-  index = GetInteger(X(0));
+  index = TaggedToIntmach(X(0));
   nameval = environ[index];
   if (nameval == NULL) return FALSE; /* end of environment */
 
@@ -1605,7 +1603,7 @@ CBOOL__PROTO(prolog_getuid) {
 #else
   tagged_t x0;
   DEREF(x0, X(0));
-  return cunify(Arg, x0, MakeSmall(getuid()));
+  CBOOL__LASTUNIFY(x0, MakeSmall(getuid()));
 #endif
 }
 
@@ -1616,7 +1614,7 @@ CBOOL__PROTO(prolog_getgid) {
 #else
   tagged_t x0;
   DEREF(x0, X(0));
-  return cunify(Arg, x0, MakeSmall(getgid()));  
+  CBOOL__LASTUNIFY(x0, MakeSmall(getgid()));  
 #endif
 }
 
@@ -1634,7 +1632,7 @@ CBOOL__PROTO(prolog_getgrnam)
   if (g == NULL) {
     return FALSE; 
   } else { 
-    return cunify(Arg, x0, GET_ATOM(g->gr_name)); 
+    CBOOL__LASTUNIFY(x0, GET_ATOM(g->gr_name)); 
   } 
 #endif
 }
@@ -1658,7 +1656,7 @@ CBOOL__PROTO(prolog_getpwnam)
   name = p->pw_name;
 #endif
   
-  return cunify(Arg, x0, GET_ATOM(name));
+  CBOOL__LASTUNIFY(x0, GET_ATOM(name));
 }
 
 /* --------------------------------------------------------------------------- */
@@ -1692,7 +1690,7 @@ CBOOL__PROTO(prolog_get_numcores)
   unsigned physical_cores = (hyperthreading ? logical_cores/2 : logical_cores);
 
   DEREF(x0, X(0));
-  return cunify(Arg, x0, MakeSmall((intmach_t)physical_cores));
+  CBOOL__LASTUNIFY(x0, MakeSmall((intmach_t)physical_cores));
 }
 
 /* --------------------------------------------------------------------------- */
@@ -2102,7 +2100,7 @@ CBOOL__PROTO(prolog_extract_paths) {
     }
     c_free_paths(paths);
   }
-  return cunify(Arg, X(0), X(1));
+  CBOOL__LASTUNIFY(X(0), X(1));
 }
 
 /* --------------------------------------------------------------------------- */
@@ -2116,7 +2114,7 @@ extern char *eng_architecture;
 CBOOL__PROTO(prolog_getarch)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, GET_ATOM(eng_architecture), X(0));
+  CBOOL__LASTUNIFY(GET_ATOM(eng_architecture), X(0));
 }
 
 extern char *eng_os;
@@ -2127,7 +2125,7 @@ extern char *eng_os;
 CBOOL__PROTO(prolog_getos)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, GET_ATOM(eng_os), X(0));
+  CBOOL__LASTUNIFY(GET_ATOM(eng_os), X(0));
 }
 
 extern char *eng_debug_level;
@@ -2138,7 +2136,7 @@ extern char *eng_debug_level;
 CBOOL__PROTO(prolog_eng_debug_level)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, GET_ATOM(eng_debug_level), X(0));
+  CBOOL__LASTUNIFY(GET_ATOM(eng_debug_level), X(0));
 }
 
 extern int eng_is_sharedlib;
@@ -2184,19 +2182,19 @@ extern char *so_suffix;
 CBOOL__PROTO(prolog_get_ciao_ext)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, GET_ATOM(ciao_suffix), X(0));
+  CBOOL__LASTUNIFY(GET_ATOM(ciao_suffix), X(0));
 }
 
 CBOOL__PROTO(prolog_get_exec_ext)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, GET_ATOM(exec_suffix), X(0));
+  CBOOL__LASTUNIFY(GET_ATOM(exec_suffix), X(0));
 }
 
 CBOOL__PROTO(prolog_get_so_ext)
 {
   DEREF(X(0), X(0));
-  return cunify(Arg, GET_ATOM(so_suffix), X(0));
+  CBOOL__LASTUNIFY(GET_ATOM(so_suffix), X(0));
 }
 
 extern char *foreign_opts_cc;
@@ -2207,7 +2205,7 @@ extern char *foreign_opts_ldshared;
 #define DEF_PROLOG_GET_STR(NAME) \
 CBOOL__PROTO(prolog_get_##NAME) { \
   DEREF(X(0), X(0)); \
-  return cunify(Arg, GET_ATOM(NAME), X(0)); \
+  CBOOL__LASTUNIFY(GET_ATOM(NAME), X(0)); \
 }
 
 DEF_PROLOG_GET_STR(foreign_opts_cc);
@@ -2262,7 +2260,7 @@ CBOOL__PROTO(prolog_wait)
 
   int retcode = WEXITSTATUS(status);
   
-  return cunify(Arg, X(1), MakeSmall(retcode));
+  CBOOL__LASTUNIFY(X(1), MakeSmall(retcode));
 }
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -2896,7 +2894,7 @@ CBOOL__PROTO(unify_fd_pair,
     char *mode_str = (mode == Read ? "r" : "w");
     str = new_stream(streamname, mode_str, fdopen(pair_fd[mode], mode_str));
     /* (It should never fail) */
-    return cunify(Arg, ptr_to_stream(Arg, str),  std);
+    CBOOL__LASTUNIFY(ptr_to_stream(Arg, str),  std);
   } else {
     return TRUE;
   }
@@ -3204,7 +3202,7 @@ CBOOL__PROTO(prolog_unix_shell2)
 
   int retcode = spawn_shell(GetString(X(0)));
   /* TODO: retcode == -1 on error, we should throw exception */
-  return cunify(Arg, MakeSmall(retcode), X(1));
+  CBOOL__LASTUNIFY(MakeSmall(retcode), X(1));
 }
 
 CBOOL__PROTO(prolog_fd_dup) {
@@ -3231,7 +3229,7 @@ CBOOL__PROTO(prolog_fd_dup) {
     CBOOL__PROCEED;
   } else { /* target fd not specified */
     j = dup(i);
-    return cunify(Arg, MakeSmall(j), X(1));
+    CBOOL__LASTUNIFY(MakeSmall(j), X(1));
   }
 }
 
@@ -3257,7 +3255,7 @@ extern char source_path[];
 CBOOL__PROTO(prolog_current_executable)
 {
   DEREF(X(0),X(0));
-  return cunify(Arg, GET_ATOM(source_path), X(0));
+  CBOOL__LASTUNIFY(GET_ATOM(source_path), X(0));
 }
 
 

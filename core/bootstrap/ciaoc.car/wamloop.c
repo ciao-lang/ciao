@@ -1974,7 +1974,7 @@ case U2_XLVAL_YVAR:
 RefHeapNext(t1,S);
 t0 = Xb(BcP(f_x, 1));
 if (t0!=t1) {
-if (!cunify(Arg,t0,t1)) {
+if (!CBOOL__SUCCEED(cunify,t0,t1)) {
 goto fail;
                   }
                 }
@@ -1994,7 +1994,7 @@ case U2_XLVAL_XLVAL:
 RefHeapNext(t1,S);
 t0 = Xb(BcP(f_x, 1));
 if (t0!=t1) {
-if (!cunify(Arg,t0,t1)) {
+if (!CBOOL__SUCCEED(cunify,t0,t1)) {
 goto fail;
                   }
                 }
@@ -2009,7 +2009,7 @@ case U2_XLVAL_YFVAL:
 RefHeapNext(t1,S);
 t0 = Xb(BcP(f_x, 1));
 if (t0!=t1) {
-if (!cunify(Arg,t0,t1)) {
+if (!CBOOL__SUCCEED(cunify,t0,t1)) {
 goto fail;
                   }
                 }
@@ -2035,7 +2035,7 @@ case U2_XLVAL_YLVAL:
 RefHeapNext(t1,S);
 t0 = Xb(BcP(f_x, 1));
 if (t0!=t1) {
-if (!cunify(Arg,t0,t1)) {
+if (!CBOOL__SUCCEED(cunify,t0,t1)) {
 goto fail;
                   }
                 }
@@ -2069,7 +2069,7 @@ case U2_YLVAL_YVAR:
 RefHeapNext(t1,S);
 RefStack(t0,&Yb(BcP(f_y, 1)));
 if (t0!=t1) {
-if (!cunify(Arg,t0,t1)) {
+if (!CBOOL__SUCCEED(cunify,t0,t1)) {
 goto fail;
                   }
                 }
@@ -2083,7 +2083,7 @@ case U2_YLVAL_YFVAL:
 RefHeapNext(t1,S);
 RefStack(t0,&Yb(BcP(f_y, 1)));
 if (t0!=t1) {
-if (!cunify(Arg,t0,t1)) {
+if (!CBOOL__SUCCEED(cunify,t0,t1)) {
 goto fail;
                   }
                 }
@@ -2109,7 +2109,7 @@ case U2_YLVAL_XLVAL:
 RefHeapNext(t1,S);
 RefStack(t0,&Yb(BcP(f_y, 1)));
 if (t0!=t1) {
-if (!cunify(Arg,t0,t1)) {
+if (!CBOOL__SUCCEED(cunify,t0,t1)) {
 goto fail;
                   }
                 }
@@ -2130,7 +2130,7 @@ case U2_YLVAL_YLVAL:
 RefHeapNext(t1,S);
 RefStack(t0,&Yb(BcP(f_y, 1)));
 if (t0!=t1) {
-if (!cunify(Arg,t0,t1)) {
+if (!CBOOL__SUCCEED(cunify,t0,t1)) {
 goto fail;
                   }
                 }

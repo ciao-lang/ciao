@@ -354,7 +354,7 @@ CBOOL__PROTO(code_class) {
   //  if (!TaggedIsSmall(X(0))) return FALSE;
   //  i = GetSmall(X(0));                             
 
-  return cunify(Arg,X(1),MakeSmall(get_rune_class(i)));
+  CBOOL__LASTUNIFY(X(1),MakeSmall(get_rune_class(i)));
 }
 
 static inline void inc_counts(int ch, stream_node_t * stream) {
@@ -383,7 +383,7 @@ static CVOID__PROTO(writerune, int ch, stream_node_t *s) {
   } else { /* a socket */
     char p;
     p = (char)ch;
-    if (write(GetInteger(s->label), &p, (size_t)1) < 0) {
+    if (write(TaggedToIntmach(s->label), &p, (size_t)1) < 0) {
       IO_ERROR("write() in writerune()");
     }
   }
@@ -409,7 +409,7 @@ static CVOID__PROTO(writebyte, int ch, stream_node_t *s) {
   } else { /* a socket */
     char p;
     p = (char)ch;
-    if (write(GetInteger(s->label), &p, (size_t)1) < 0) {
+    if (write(TaggedToIntmach(s->label), &p, (size_t)1) < 0) {
       IO_ERROR("write() in writebyte()");
     }
   }
@@ -498,7 +498,7 @@ static CFUN__PROTO(readrune, int, stream_node_t *s, int op_type,
       if (read_exit_cond(op_type,r)) return r;
     }
   } else { /* a socket */
-    int fildes = GetInteger(s->label);
+    int fildes = TaggedToIntmach(s->label);
     
     if (s->socket_eof) return RUNE_PAST_EOF; /* attempt to read past end of stream */
     
@@ -579,7 +579,7 @@ static CFUN__PROTO(readbyte, int, stream_node_t *s, int op_type,
     return i;
   } else { /* a socket */
     unsigned char ch;
-    int fildes = GetInteger(s->label);
+    int fildes = TaggedToIntmach(s->label);
     
     if (s->socket_eof) return BYTE_PAST_EOF; /* attempt to read past end of stream */
     
@@ -652,7 +652,7 @@ CBOOL__PROTO(get) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
-  return cunify(Arg,X(0),MakeSmall(r));
+  CBOOL__LASTUNIFY(X(0),MakeSmall(r));
 }
 
 /*----------------------------------------------------------------*/
@@ -673,7 +673,7 @@ CBOOL__PROTO(get2) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
 
-  return cunify(Arg,X(1),MakeSmall(r));
+  CBOOL__LASTUNIFY(X(1),MakeSmall(r));
 }
 
 /*----------------------------------------------------------------*/
@@ -687,7 +687,7 @@ CBOOL__PROTO(get1) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
-  return cunify(Arg,X(0),MakeSmall(r));
+  CBOOL__LASTUNIFY(X(0),MakeSmall(r));
 }
 
 /*----------------------------------------------------------------*/
@@ -708,7 +708,7 @@ CBOOL__PROTO(get12) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
 
-  return cunify(Arg,X(1),MakeSmall(r));
+  CBOOL__LASTUNIFY(X(1),MakeSmall(r));
 }
 
 /*----------------------------------------------------------------*/
@@ -722,7 +722,7 @@ CBOOL__PROTO(peek) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
-  return cunify(Arg,X(0),MakeSmall(r));
+  CBOOL__LASTUNIFY(X(0),MakeSmall(r));
 }
 
 /*----------------------------------------------------------------*/
@@ -743,7 +743,7 @@ CBOOL__PROTO(peek2) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
 
-  return cunify(Arg,X(1),MakeSmall(r));
+  CBOOL__LASTUNIFY(X(1),MakeSmall(r));
 }
 
 /*----------------------------------------------------------------*/
@@ -808,7 +808,8 @@ CBOOL__PROTO(getct) {
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
-  return cunify(Arg,X(0),MakeSmall(r)) && cunify(Arg,X(1),MakeSmall(typ));
+  CBOOL__UNIFY(X(0),MakeSmall(r));
+  CBOOL__LASTUNIFY(X(1),MakeSmall(typ));
 }
 
 CBOOL__PROTO(getct1) {
@@ -819,7 +820,8 @@ CBOOL__PROTO(getct1) {
   if (r == RUNE_PAST_EOF) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
-  return cunify(Arg,X(0),MakeSmall(r)) && cunify(Arg,X(1),MakeSmall(typ));
+  CBOOL__UNIFY(X(0),MakeSmall(r));
+  CBOOL__LASTUNIFY(X(1),MakeSmall(typ));
 }
 
 /*----------------------------------------------------------------*/
@@ -888,7 +890,7 @@ CBOOL__PROTO(tab) {
     ERROR_IN_ARG(X(0),1,INTEGER);
   }
 
-  writerunen(Arg, ' ', GetInteger(X(0)), Output_Stream_Ptr);
+  writerunen(Arg, ' ', TaggedToIntmach(X(0)), Output_Stream_Ptr);
   return TRUE;
 }
 
@@ -910,7 +912,7 @@ CBOOL__PROTO(tab2) {
     ERROR_IN_ARG(X(1),2,INTEGER);
   }
 
-  writerunen(Arg, ' ', GetInteger(X(1)), s);
+  writerunen(Arg, ' ', TaggedToIntmach(X(1)), s);
   return TRUE;
 }
 
@@ -1011,7 +1013,7 @@ CBOOL__PROTO(get_byte1) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
-  return cunify(Arg,X(0),MakeSmall(i));
+  CBOOL__LASTUNIFY(X(0),MakeSmall(i));
 }
 
 /*----------------------------------------------------------------*/
@@ -1031,7 +1033,7 @@ CBOOL__PROTO(get_byte2) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
 
-  return cunify(Arg,X(1),MakeSmall(i));
+  CBOOL__LASTUNIFY(X(1),MakeSmall(i));
 }
 
 /*----------------------------------------------------------------*/
@@ -1045,7 +1047,7 @@ CBOOL__PROTO(peek_byte1) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
   }
 
-  return cunify(Arg,X(0),MakeSmall(i));
+  CBOOL__LASTUNIFY(X(0),MakeSmall(i));
 }
 
 /*----------------------------------------------------------------*/
@@ -1065,7 +1067,7 @@ CBOOL__PROTO(peek_byte2) {
     BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
   }
 
-  return cunify(Arg,X(1),MakeSmall(i));
+  CBOOL__LASTUNIFY(X(1),MakeSmall(i));
 }
 
 /*----------------------------------------------------------------*/
@@ -1138,7 +1140,7 @@ static CFUN__PROTO(stream_end_of_stream, int, stream_node_t *s, bool_t dopeek) {
     }
   } else { /* a socket */
     unsigned char ch;
-    int fildes = GetInteger(s->label);
+    int fildes = TaggedToIntmach(s->label);
 
     if (s->socket_eof) return RUNE_PAST_EOF; /* attempt to read past end of stream */
 
@@ -1221,7 +1223,7 @@ CVOID__PROTO(print_string, stream_node_t *stream, char *p) {
       inc_counts(r,stream);
       size++;
     }
-    if (write(GetInteger(stream->label), p, size) < 0) {
+    if (write(TaggedToIntmach(stream->label), p, size) < 0) {
       IO_ERROR("write() in print_string()");
     }
   }
@@ -1478,7 +1480,7 @@ CBOOL__PROTO(prolog_fast_read_in_c) {
 
   if (!prolog_fast_read_in_c_aux(Arg,&term,vars,&lastvar)) return FALSE;
 
-  return cunify(Arg,X(0),term);
+  CBOOL__LASTUNIFY(X(0),term);
 }
 
 #if defined(DEBUG)
@@ -1905,12 +1907,12 @@ CBOOL__PROTO(prolog_format_print_float) {
   flt64_t f;
 
   DEREF(X(0),X(0));
-  format_ch = GetInteger(X(0));
+  format_ch = TaggedToIntmach(X(0));
   DEREF(X(1),X(1));
   DEREF(X(2),X(2));
-  precision = GetInteger(X(2));
+  precision = TaggedToIntmach(X(2));
   
-  f = GetFloat(X(1));
+  f = TaggedToFloat(X(1));
 
   /* Limit precision */
   if (precision > 1023) {
@@ -1948,7 +1950,7 @@ CBOOL__PROTO(prolog_format_print_integer)
   formatChar = GetSmall(X(0));
   DEREF(X(1),X(1));
   DEREF(X(2),X(2));
-  precision = GetInteger(X(2));
+  precision = TaggedToIntmach(X(2));
 
   if (formatChar=='r')
     base = ((precision<2 || precision>36) ? 8 : precision);

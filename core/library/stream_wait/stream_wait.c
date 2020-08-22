@@ -27,10 +27,10 @@ CBOOL__PROTO(input_wait__c)
     int rv;
         
     DEREF(X(0), X(0));
-    timeout.tv_sec  = GetInteger(X(0));
+    timeout.tv_sec  = TaggedToIntmach(X(0));
     
     DEREF(X(1), X(1));
-    timeout.tv_usec = GetInteger(X(1));
+    timeout.tv_usec = TaggedToIntmach(X(1));
     
     FD_ZERO(&set); 
     FD_SET(fd, &set); 

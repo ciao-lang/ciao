@@ -86,8 +86,7 @@ CBOOL__PROTO(debugger_state)
   */
 #endif
 
-  if (!cunify(Arg,Current_Debugger_State,X(0)))
-    return FALSE;
+  CBOOL__UNIFY(Current_Debugger_State,X(0));
   DEREF(Current_Debugger_State,X(1));
   return TRUE;
 }

@@ -1117,7 +1117,7 @@ CBOOL__PROTO(prolog_qread) {
 
   if ((s = stream_to_ptr(X(0), 'r')) != NULL) {
     if (qread1(Arg,s->streamfile, &goal)) {
-      return cunify(Arg,goal,X(1));
+      CBOOL__LASTUNIFY(goal,X(1));
     }
   }
   intmach_t i = -1;

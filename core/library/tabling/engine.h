@@ -82,8 +82,8 @@
 /* ------------------------ */
 /*      Destruct Terms      */
 /* ------------------------ */
-#define IntOfTerm(TERM) (GetInteger(TERM)) 
-#define FloatOfTerm(TERM) (GetFloat(TERM)) 
+#define IntOfTerm(TERM) (TaggedToIntmach(TERM)) 
+#define FloatOfTerm(TERM) (TaggedToFloat(TERM)) 
 #define AtomName(ATOM) (((atom_t *)TagToAtom(ATOM))->name)
 #define HeadOfTerm(TERM) (*TagToPointer(TERM))
 #define TailOfTerm(TERM) (*(TagToPointer(TERM) + 1))

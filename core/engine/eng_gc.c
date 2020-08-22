@@ -92,7 +92,7 @@ CBOOL__PROTO(gc_usage) {
   MakeLST(x,IntmachToTagged((intmach_t)t),x);
   t= ciao_stats.gc_count;
   MakeLST(x,IntmachToTagged((intmach_t)t),x);
-  return cunify(Arg,x,X(0));
+  CBOOL__LASTUNIFY(x,X(0));
 }
 
 CBOOL__PROTO(gc_mode) {
@@ -872,7 +872,7 @@ CBOOL__PROTO(stack_shift_usage)
   MakeLST(x,IntmachToTagged(time),x);
   time = ciao_stats.ss_global;
   MakeLST(x,IntmachToTagged(time),x);
-  return cunify(Arg,X(0),x);
+  CBOOL__LASTUNIFY(X(0),x);
 }
 
 /* termheap_usage: [sizeof_used_space, sizeof_free_space] */
@@ -885,7 +885,7 @@ CBOOL__PROTO(termheap_usage)
   free = HeapCharDifference(w->global_top,Heap_End);
   MakeLST(x,IntmachToTagged(free),atom_nil);
   MakeLST(x,IntmachToTagged(used),x);
-  return cunify(Arg,X(0),x);
+  CBOOL__LASTUNIFY(X(0),x);
 }
 
 /* envstack_usage: [sizeof_used_space, sizeof_free_space] */
@@ -900,7 +900,7 @@ CBOOL__PROTO(envstack_usage)
   free = StackCharDifference(newa,Stack_End);
   MakeLST(x,IntmachToTagged(free),atom_nil);
   MakeLST(x,IntmachToTagged(used),x);
-  return cunify(Arg,X(0),x);
+  CBOOL__LASTUNIFY(X(0),x);
 }
 
 /* choice_usage: [sizeof_used_space, sizeof_free_space] */
@@ -913,7 +913,7 @@ CBOOL__PROTO(choice_usage)
   free = ChoiceCharDifference(w->node,w->trail_top)/2;
   MakeLST(x,IntmachToTagged(free),atom_nil);
   MakeLST(x,IntmachToTagged(used),x);
-  return cunify(Arg,X(0),x);
+  CBOOL__LASTUNIFY(X(0),x);
 }
 
 /* trail_usage: [sizeof_used_space, sizeof_free_space] */
@@ -926,7 +926,7 @@ CBOOL__PROTO(trail_usage)
   free = TrailCharDifference(w->trail_top,w->node)/2;
   MakeLST(x,IntmachToTagged(free),atom_nil);
   MakeLST(x,IntmachToTagged(used),x);
-  return cunify(Arg,X(0),x);
+  CBOOL__LASTUNIFY(X(0),x);
 }
 
 
@@ -1843,7 +1843,7 @@ CBOOL__PROTO(heap_limit)
   intmach_t wake_count;
 
   DEREF(x,X(0)); 
-  if (IsVar(x)) return cunify(Arg, x, MakeSmall(Heap_Limit));
+  if (IsVar(x)) CBOOL__LASTUNIFY(x, MakeSmall(Heap_Limit));
 
   Heap_Limit = GetSmall(x);
   wake_count = WakeCount;
@@ -1868,8 +1868,7 @@ CBOOL__PROTO(heap_limit)
 
 }
 #else 
-CBOOL__PROTO(heap_limit)
-{
-  return cunify(Arg, TaggedZero, X(0));
+CBOOL__PROTO(heap_limit) {
+  CBOOL__LASTUNIFY(TaggedZero, X(0));
 }
 #endif

@@ -454,7 +454,7 @@ CBOOL__PROTO(prolog_close)
       if (stream->streammode != 's')        /* Not a socket -- has FILE * */
         fclose(stream->streamfile);  /* Releases file locks automatically */
       else
-        close(GetInteger(stream->label));            /* Needs a lock here */
+        close(TaggedToIntmach(stream->label));            /* Needs a lock here */
 
 
  /* We are twiggling with a shared structure: lock the access to it */
@@ -500,7 +500,7 @@ CBOOL__PROTO(prolog_unix_popen)
   if (!(f = popen(GetString(X(0)),streammode)))
         return FALSE;
 
-  return cunify(Arg,ptr_to_stream(Arg,
+  CBOOL__LASTUNIFY(ptr_to_stream(Arg,
                                   new_stream((tagged_t)0, streammode, f)), X(2));
 
 }
@@ -552,7 +552,7 @@ CBOOL__PROTO(prolog_current_input)
   DEREF(X(0), X(0));
 
   if (is_var_or_alias_or_stream(Arg, X(0))) {
-    return cunify(Arg, ptr_to_stream(Arg,Input_Stream_Ptr), X(0));
+    CBOOL__LASTUNIFY(ptr_to_stream(Arg,Input_Stream_Ptr), X(0));
   } else {
     BUILTIN_ERROR(DOMAIN_ERROR(STREAM_OR_ALIAS), X(0), 1);
   }
@@ -584,7 +584,7 @@ CBOOL__PROTO(prolog_current_output)
   DEREF(X(0), X(0));
 
   if (is_var_or_alias_or_stream(Arg, X(0))) {
-    return cunify(Arg, ptr_to_stream(Arg,Output_Stream_Ptr), X(0));
+    CBOOL__LASTUNIFY(ptr_to_stream(Arg,Output_Stream_Ptr), X(0));
   } else {
     BUILTIN_ERROR(DOMAIN_ERROR(STREAM_OR_ALIAS), X(0), 1);
   }
@@ -671,7 +671,7 @@ CBOOL__PROTO(prolog_get_stream) {
 
 CBOOL__PROTO(prolog_current_error)
 {
-  return cunify(Arg,ptr_to_stream(Arg,Error_Stream_Ptr),X(0));
+  CBOOL__LASTUNIFY(ptr_to_stream(Arg,Error_Stream_Ptr),X(0));
 }
 
 /* ------------------------------------------------------------------------- */
@@ -715,7 +715,7 @@ CBOOL__PROTO(prolog_stream_code)
            s = s->backward)
         ;
       if (s != root_stream_ptr && s->label == X(1))
-        return cunify(Arg,ptr_to_stream(Arg,s),X(0));
+        CBOOL__LASTUNIFY(ptr_to_stream(Arg,s),X(0));
       else
         return FALSE;
     }
@@ -739,7 +739,7 @@ CBOOL__PROTO(character_count)
 
   if (stream->isatty)
     stream = root_stream_ptr;
-  return cunify(Arg,IntmachToTagged(stream->rune_count),X(1));
+  CBOOL__LASTUNIFY(IntmachToTagged(stream->rune_count),X(1));
 }
 
 
@@ -756,7 +756,7 @@ CBOOL__PROTO(line_position)
 
   if (stream->isatty)
     stream = root_stream_ptr;
-  return cunify(Arg,IntmachToTagged(stream->rune_count-stream->last_nl_pos),X(1));
+  CBOOL__LASTUNIFY(IntmachToTagged(stream->rune_count-stream->last_nl_pos),X(1));
 }
 
 
@@ -773,7 +773,7 @@ CBOOL__PROTO(line_count)
 
   if (stream->isatty)
     stream = root_stream_ptr;
-  return cunify(Arg,IntmachToTagged(stream->nl_count),X(1));
+  CBOOL__LASTUNIFY(IntmachToTagged(stream->nl_count),X(1));
 }
 
 /* ------------------------------------------------------------------

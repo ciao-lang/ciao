@@ -38,8 +38,7 @@
 /* This is for RANDOM in [0 1] */
 #define RANDOM ((flt64_t) random()/RANDOM_MAX)
 
-CBOOL__PROTO(prolog_random)
-{
+CBOOL__PROTO(prolog_random) {
   ERR__FUNCTOR("random:random", 1);
   DEREF(X(0),X(0));
 
@@ -47,15 +46,10 @@ CBOOL__PROTO(prolog_random)
     BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,1);
   }
   
-#if defined(OPTIM_COMP)
   CBOOL__LASTUNIFY(BoxFloat(RANDOM),X(0));
-#else
-  return cunify(Arg,BoxFloat(RANDOM),X(0));
-#endif
 }
 
-CBOOL__PROTO(prolog_random3)
-{
+CBOOL__PROTO(prolog_random3) {
   ERR__FUNCTOR("random:random", 3);
   DEREF(X(0),X(0));
   if (!IsNumber(X(0))) {
@@ -73,33 +67,23 @@ CBOOL__PROTO(prolog_random3)
   }
 
   if (IsInteger(X(0)) && IsInteger(X(1))) {
-#if defined(OPTIM_COMP)
     intmach_t low = TaggedToIntmach(X(0));
     intmach_t up  = TaggedToIntmach(X(1));
+#if defined(OPTIM_COMP)
     /* former (uses low order bits, which very often are not that random):
-    return cunify(Arg, IntmachToTagged(low+(random() % (up-low+1))), X(2));
+    CBOOL__LASTUNIFY(IntmachToTagged(low+(random() % (up-low+1))), X(2));
     */
     CBOOL__LASTUNIFY(IntmachToTagged(low + (intmach_t)(RANDOM*(up-low+1))), X(2));
 #else
-    intmach_t low = GetInteger(X(0));
-    intmach_t up  = GetInteger(X(1));
     /* former (uses low order bits, which very often are not that random):
-    return cunify(Arg, IntvalToTagged(low+(random() % (up-low+1))), X(2));
+    CBOOL__LASTUNIFY(IntvalToTagged(low+(random() % (up-low+1))), X(2));
     */
-    return cunify(Arg, 
-                  IntvalToTagged(low + (intmach_t)(RANDOM*(up-low+1))), 
-                  X(2));
+    CBOOL__LASTUNIFY(IntvalToTagged(low + (intmach_t)(RANDOM*(up-low+1))), X(2));
 #endif
   } else{
-#if defined(OPTIM_COMP)
     flt64_t low = TaggedToFloat(X(0));
     flt64_t up  = TaggedToFloat(X(1));
     CBOOL__LASTUNIFY(BoxFloat(low+RANDOM*(up-low)), X(2));
-#else
-    flt64_t low = GetFloat(X(0));
-    flt64_t up  = GetFloat(X(1));
-    return cunify(Arg, BoxFloat(low+RANDOM*(up-low)), X(2));
-#endif
   }
 }
 
@@ -111,11 +95,7 @@ CBOOL__PROTO(prolog_srandom)
   if (IsVar(X(0))) {
     srandom(1);
   } else if (IsInteger(X(0))) {
-#if defined(OPTIM_COMP)
     srandom((int)TaggedToIntmach(X(0)));
-#else
-    srandom((int)GetInteger(X(0)));
-#endif
   } else {
     ERROR_IN_ARG(X(1),1,INTEGER);
   }

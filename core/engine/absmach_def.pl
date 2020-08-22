@@ -440,7 +440,7 @@ cunify(U,V) :-
     assign_noself(T0, U),
     assign_noself(T1, V),
     if((T0, "!=", T1), 
-      if("!cunify(Arg,t0,t1)", goto('fail'))).
+      if("!CBOOL__SUCCEED(cunify,t0,t1)", goto('fail'))).
 
 % This must not clobber  t2, X[*].  Build goal, store in t3.
 :- pred(emul_to_goal/0, [unfold]).

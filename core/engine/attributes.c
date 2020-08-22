@@ -277,8 +277,7 @@ CBOOL__PROTO(get_attr__3) {
 
   var=X(0); DEREF(var, var);
   
-  if ( IsVar(var) && VarIsCVA(var) ) { 
-
+  if (IsVar(var) && VarIsCVA(var)) { 
     key=X(1); DEREF_AND_ENSURE_ATOM_MODKEY(key); 
     ACCESS_ATTR_STR(var, complex);
 
@@ -286,7 +285,7 @@ CBOOL__PROTO(get_attr__3) {
         
     if (key == k) { 
       tmp = CELL_VAL(complex);
-      return cunify(Arg, X(2), tmp);
+      CBOOL__LASTUNIFY(X(2), tmp);
     }
   }
   

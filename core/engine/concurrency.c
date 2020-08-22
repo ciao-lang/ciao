@@ -58,7 +58,7 @@
 // #if defined(DEBUG)
 //     tagged_t x2 = (tagged_t)NULL;
 //     DerefArg(x2,t,2);
-//     if (GetInteger(x2) != POSIX)
+//     if (TaggedToIntmach(x2) != POSIX)
 //       printf("ERROR in term_to_lock. The lock is not a POSIX-lock");
 // #endif
 //   }
@@ -77,7 +77,7 @@
 // #if defined(DEBUG)
 //     tagged_t x2 = (tagged_t)NULL;
 //     DerefArg(x2,t,2);
-//     if (GetInteger(x2) != SPIN)
+//     if (TaggedToIntmach(x2) != SPIN)
 //       printf("ERROR in term_to_slock. The lock is not a SPIN-lock");
 // #endif
 //   }
@@ -152,7 +152,7 @@ CBOOL__PROTO(prolog_lock_atom_state)
   ERR__FUNCTOR("concurrency:atom_lock_state", 2);
   tagged_t term, value;
   atom_t *atomptr;
-  int          lock_value;
+  int lock_value;
 
   DEREF(term, X(0));
 
@@ -164,15 +164,17 @@ CBOOL__PROTO(prolog_lock_atom_state)
       atomptr->atom_lock_counter = GetSmall(value);
       Release_slock(atomptr->counter_lock);
       return TRUE;
-    }
-    else if (IsVar(value)) {
+    } else if (IsVar(value)) {
       Wait_Acquire_slock(atomptr->counter_lock);
       lock_value = atomptr->atom_lock_counter;
       Release_slock(atomptr->counter_lock);
-      return cunify(Arg, X(1), MakeSmall(lock_value));
+      CBOOL__LASTUNIFY(X(1), MakeSmall(lock_value));
+    } else {
+      BUILTIN_ERROR(UNINSTANTIATION_ERROR,X(1),2);
     }
-    else BUILTIN_ERROR(UNINSTANTIATION_ERROR,X(1),2);
-  } else BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(0),1);
+  } else {
+    BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(0),1);
+  }
 }
 
 #else                                                    /* GENERAL_LOCKS */

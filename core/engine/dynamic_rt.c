@@ -1196,7 +1196,7 @@ CBOOL__PROTO(prolog_ptr_ref)
       HeapPush(pt1,X(0));
       HeapPush(pt1,TagToInstance(X(0))->rank);
       w->global_top=pt1;
-      return cunify(Arg,Tag(STR,HeapOffset(pt1,-3)),X(1));
+      CBOOL__LASTUNIFY(Tag(STR,HeapOffset(pt1,-3)),X(1));
     }
   else
     {
@@ -1479,10 +1479,10 @@ CBOOL__PROTO(make_bytecode_object)
 #endif
   DEREF(list,X(2));
 
-  bsize = GetInteger(num) * BC_SCALE;
+  bsize = TaggedToIntmach(num) * BC_SCALE;
 
 #if defined(GAUGE)
-  counter_cnt = GetInteger(num1);
+  counter_cnt = TaggedToIntmach(num1);
   checkalloc_FLEXIBLE_S(emul_info_t,
                         objsize,
                         char,
@@ -1582,7 +1582,7 @@ CBOOL__PROTO(make_bytecode_object)
           /* long(Num) */
           tagged_t t1;
           DerefArg(t1,car,1);
-          EMIT_l(GetInteger(t1));
+          EMIT_l(TaggedToIntmach(t1));
           break;
         }
         USAGE_FAULT("make_bytecode_object: bad spec");

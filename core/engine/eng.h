@@ -807,8 +807,8 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define MakeAtom(X) TagIndex(ATM,X)
 #define GET_ATOM(X) MakeAtom(lookup_atom_idx(X))
 
-#define GetInteger(X)   (TaggedIsSmall(X) ? GetSmall(X) : get_integer(X))
-#define GetFloat(X)     (TaggedIsSmall(X) ? (flt64_t)GetSmall(X) : get_float(X))
+#define TaggedToIntmach(X)   (TaggedIsSmall(X) ? GetSmall(X) : get_integer(X))
+#define TaggedToFloat(X) (TaggedIsSmall(X) ? (flt64_t)GetSmall(X) : get_float(X))
 
 #define IntIsSmall(X)   ((X) >= -HighInt && (X) < HighInt)
 #define IsInteger(X)    (TaggedIsSmall(X) || (TagIsLarge(X) && !LargeIsFloat(X)))
@@ -950,6 +950,8 @@ typedef struct sw_on_key_ sw_on_key_t;
 #define TagToRoot(X)    ((int_info_t *)TermToPointer(X))
 #define TagToEmul(X)    ((emul_info_t *)TermToPointer(X))
 #define TagToFunctor(X) ((definition_t *)TermToPointer(X))
+
+#define TaggedToBignum(X) ((bignum_t *)TagToSTR((X)))
 
 #if defined(TABLING)
 typedef struct node_tr_ node_tr_t;
@@ -2224,7 +2226,6 @@ extern try_node_t *address_nd_current_atom;
 extern try_node_t *address_nd_current_predicate;
 extern try_node_t *address_nd_predicate_property;
 extern try_node_t *address_nd_current_stream;
-extern try_node_t *address_nd_atom_concat;
 #if defined(TABLING)
 extern try_node_t *address_nd_fake_choicept;
 #endif

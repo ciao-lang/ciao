@@ -66,9 +66,7 @@ CBOOL__PROTO(nd_current_predicate)
       else
         w->node->term[2] = MakeSmall(j);
       CBOOL__UnifyCons(d->printname,X(0));
-      return cunify(Arg,
-                    make_structure(Arg,SetArity(d->printname,d->arity)),
-                    X(1));
+      CBOOL__LASTUNIFY(make_structure(Arg,SetArity(d->printname,d->arity)), X(1));
     }
   }
   pop_choicept(Arg);
@@ -133,8 +131,7 @@ CBOOL__PROTO(nd_predicate_property)
             w->node->term[3] = MakeSmall(j);
           CBOOL__UnifyCons(MakeSmall(d->predtyp),X(1));
           CBOOL__UnifyCons(MakeSmall(predicate_property_bits(d)),X(2));
-          return cunify(Arg,make_structure(Arg,SetArity(d->printname,d->arity)),
-                        X(0));
+          CBOOL__LASTUNIFY(make_structure(Arg,SetArity(d->printname,d->arity)), X(0));
         }
     }
   pop_choicept(Arg);

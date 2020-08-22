@@ -118,7 +118,7 @@ CBOOL__PROTO(prolog_copy_term) {
 
   pop_frame(Arg);
   pop_choicept(Arg);            /* trust */
-  return cunify(Arg,X(0),X(1));
+  CBOOL__LASTUNIFY(X(0),X(1));
 }
 
 static CVOID__PROTO(copy_it, tagged_t *loc) {
@@ -212,7 +212,7 @@ CBOOL__PROTO(prolog_copy_term_nat)
 
   pop_frame(Arg);
   pop_choicept(Arg);            /* trust */
-  return cunify(Arg,X(0),X(1));
+  CBOOL__LASTUNIFY(X(0),X(1));
 }
 
 
@@ -472,7 +472,7 @@ CBOOL__PROTO(prolog_unifiable)
   /* Saves the arguments in case of GC. */
   push_frame(Arg,3);
 
-  if (!cunify(Arg, X(0), X(1))) return FALSE;  
+  CBOOL__UNIFY(X(0), X(1));
 
   /* Makes sure there is enough place in the heap to construct the
      unfiers list. */
@@ -503,7 +503,7 @@ CBOOL__PROTO(prolog_unifiable)
   pop_frame(Arg);
   pop_choicept(Arg);    
 
-  return cunify(Arg, X(2), t);
+  CBOOL__LASTUNIFY(X(2), t);
 }  
 
 /* ------------------------------------------------------------------------- */
@@ -643,12 +643,14 @@ CBOOL__PROTO(cunifyOC, tagged_t x1, tagged_t x2) {
 #if defined(UNIFY_OC_INLINE)
   /* Use a recursive version of Robinson's 1965 unification algorithm
      with inline occurs-check */
-  return cunifyOC_aux(Arg,x1,x2);
+  CBOOL__LASTCALL(cunifyOC_aux,x1,x2);
 #else
   /* Otherwise, check cyclic later. This may be less efficient than
      the first algorithm depending on cost of cyclic term checks,
      e.g., f(X,X,X)=f(...,...,...) redoes work for each arg */
-  return cunify(Arg,x1,x2) && !c_cyclic_term(Arg, x1);
+  CBOOL__UNIFY(x1,x2);
+  if (CBOOL__SUCCEED(c_cyclic_term, x1)) return FALSE;
+  CBOOL__PROCEED;
 #endif
 }
 
@@ -884,7 +886,7 @@ CBOOL__PROTO(bu3_functor,
         }
 
       CBOOL__UnifyCons(tagarity,arity);
-      return cunify(Arg,term,name);
+      CBOOL__LASTUNIFY(term,name);
     }
  construct:
     {
@@ -895,7 +897,7 @@ CBOOL__PROTO(bu3_functor,
 
       if (TermIsAtomic(name)) 
         {
-          if (arity == TaggedZero) return cunify(Arg,name,term);
+          if (arity == TaggedZero) CBOOL__LASTUNIFY(name,term);
           else if (arity > TaggedZero) 
             {
               if (TaggedIsATM(name)) 
@@ -949,19 +951,17 @@ CBOOL__PROTO(bu3_functor,
         }
 
       CBOOL__UnifyCons(tagarity,arity);
-      return cunify(Arg,term,name);
+      CBOOL__LASTUNIFY(term,name);
     }
  construct:
     {
       DerefSwitch(name,t0,;);
       DerefSwitch(arity,t0,;);
       if (TermIsAtomic(name) && (arity==TaggedZero))
-        return cunify(Arg,name,term);
+        CBOOL__LASTUNIFY(name,term);
       else if (TaggedIsATM(name) &&
                (arity>TaggedZero) && (arity<MakeSmall(ARITYLIMIT)))
-        return cunify(Arg,
-                      make_structure(Arg, SetArity(name,GetSmall(arity))),
-                      term);
+        CBOOL__LASTUNIFY(make_structure(Arg, SetArity(name,GetSmall(arity))), term);
       else
         return FALSE;
     }
@@ -986,7 +986,7 @@ CBOOL__PROTO(bu2_univ,
   if (TermIsAtomic(term))
     {
       MakeLST(cdr,term,cdr);
-      return cunify(Arg,cdr,list);
+      CBOOL__LASTUNIFY(cdr,list);
     }
   
   if (term & TagBitFunctor)
@@ -1005,7 +1005,7 @@ CBOOL__PROTO(bu2_univ,
       MakeLST(cdr,car,cdr);
     }
   MakeLST(cdr,SetArity(f,0),cdr);
-  return cunify(Arg,cdr,list);
+  CBOOL__LASTUNIFY(cdr,list);
 
  construct:
   cdr = list;
@@ -1027,7 +1027,7 @@ CBOOL__PROTO(bu2_univ,
   if (cdr==atom_nil)
     {
       if (TermIsAtomic(f))
-        return cunify(Arg,f,term);
+        CBOOL__LASTUNIFY(f,term);
       else 
         BUILTIN_ERROR(TYPE_ERROR(ATOMIC), f, 2); 
     }
@@ -1062,12 +1062,12 @@ CBOOL__PROTO(bu2_univ,
       RefHeapNext(cdr,argq);
       HeapPush(w->global_top,car);
       HeapPush(w->global_top,cdr);
-      return cunify(Arg,Tag(LST,argp),term);
+      CBOOL__LASTUNIFY(Tag(LST,argp),term);
     }
   else
     {
       *argp = f;
-      return cunify(Arg,Tag(STR,argp),term);
+      CBOOL__LASTUNIFY(Tag(STR,argp),term);
     }
 
  bomb:
@@ -1092,7 +1092,7 @@ CBOOL__PROTO(bu2_univ,
   if (TermIsAtomic(term))
     {
       MakeLST(cdr,term,cdr);
-      return cunify(Arg,cdr,list);
+      CBOOL__LASTUNIFY(cdr,list);
     }
   
   if (term & TagBitFunctor)
@@ -1111,7 +1111,7 @@ CBOOL__PROTO(bu2_univ,
       MakeLST(cdr,car,cdr);
     }
   MakeLST(cdr,SetArity(f,0),cdr);
-  return cunify(Arg,cdr,list);
+  CBOOL__LASTUNIFY(cdr,list);
 
  construct:
   cdr = list;
@@ -1125,7 +1125,7 @@ CBOOL__PROTO(bu2_univ,
   DerefCar(f,cdr);
   DerefCdr(cdr,cdr);
   if (TermIsAtomic(f) && (cdr==atom_nil))
-    return cunify(Arg,f,term);
+    CBOOL__LASTUNIFY(f,term);
   else if (IsVar(f))
     goto bomb;
   else if (!TaggedIsATM(f))
@@ -1154,12 +1154,12 @@ CBOOL__PROTO(bu2_univ,
       RefHeapNext(cdr,argq);
       HeapPush(w->global_top,car);
       HeapPush(w->global_top,cdr);
-      return cunify(Arg,Tag(LST,argp),term);
+      CBOOL__LASTUNIFY(Tag(LST,argp),term);
     }
   else
     {
       *argp = f;
-      return cunify(Arg,Tag(STR,argp),term);
+      CBOOL__LASTUNIFY(Tag(STR,argp),term);
     }
 
  bomb:

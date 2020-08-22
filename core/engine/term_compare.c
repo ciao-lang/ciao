@@ -154,8 +154,8 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
           flt64_t i;
           tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
         } u2;
-        u1.i = GetFloat(u);
-        u2.i = GetFloat(v);
+        u1.i = TaggedToFloat(u);
+        u2.i = TaggedToFloat(v);
 
         if (u1.i<u2.i) {
           return -1;
@@ -181,11 +181,11 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
         if (TaggedIsSmall(u)&&TaggedIsSmall(v))
           return (u<v ? -1 : u>v); 
         else if (TaggedIsSmall(u))
-          return (bn_positive((bignum_t *)TagToSTR(v)) ? -1 : 1);
+          return (bn_positive(TaggedToBignum(v)) ? -1 : 1);
         else if (TaggedIsSmall(v))
-          return (bn_positive((bignum_t *)TagToSTR(u)) ? 1 : -1);
+          return (bn_positive(TaggedToBignum(u)) ? 1 : -1);
         else
-          return bn_compare((bignum_t *)TagToSTR(u),(bignum_t *)TagToSTR(v));
+          return bn_compare(TaggedToBignum(u),TaggedToBignum(v));
       }
     case 3:                     /* ATM, ATM */
       break;
