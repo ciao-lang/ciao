@@ -40,7 +40,7 @@ CBOOL__PROTO(bu2_attach_attribute,
         
   DerefSwitch(constr,t0,{USAGE_FAULT("attach_attribute/2: type error");}); 
   DEREF(var,var);
-  if (TagIsHVA(var)) {
+  if (TaggedIsHVA(var)) {
     LoadCVA(t0,h);
     if (CondHVA(var))   {
       TrailPush(w->trail_top,var);
@@ -49,7 +49,7 @@ CBOOL__PROTO(bu2_attach_attribute,
       *TagToHVA(var) = t0;
     }
   } else {
-    if (TagIsSVA(var)) {                                  /* unsafe value */
+    if (TaggedIsSVA(var)) {                                  /* unsafe value */
       tagged_t *ptr = h;
       LoadHVA(t0,ptr);
       h = ptr;
@@ -130,7 +130,7 @@ CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
     tagged_t ref, value;
     
     ref = TrailPop(tr);
-    if (!TagIsCVA(ref))
+    if (!TaggedIsCVA(ref))
       continue;
     RefCVA(value,ref); 
     if (value==ref) { 
@@ -180,7 +180,7 @@ CVOID__PROTO(collect_one_pending_unification) {
     tagged_t ref, value;
     
     ref = TrailPop(tr);
-    if (!TagIsCVA(ref))
+    if (!TaggedIsCVA(ref))
       continue;
     RefCVA(value,ref); 
     if (value==ref) { 
@@ -243,7 +243,7 @@ CBOOL__PROTO(c_setarg, intmach_t, tagged_t, tagged_t, bool_t);
                   tmp,                                                  \
                   BUILTIN_ERROR(INSTANTIATION_ERROR, (KEY), 2););       \
       if (!TaggedIsATM((KEY))) {                                        \
-        if ((!TagIsSTR((KEY))) ||                                       \
+        if ((!TaggedIsSTR((KEY))) ||                                    \
             (TagToHeadfunctor((KEY)) != SetArity(atom_user, 1)))        \
           { BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), (KEY), 2); }         \
         (KEY) = atom_user;                                              \
@@ -265,7 +265,7 @@ CBOOL__PROTO(c_setarg, intmach_t, tagged_t, tagged_t, bool_t);
 */
 #define ACCESS_ATTR_STR(ATTRVAR, COMPLEX) ({            \
       (COMPLEX) = *TagToGoal((ATTRVAR));                \
-      if (!TagIsSTR((COMPLEX)) ||                       \
+      if (!TaggedIsSTR((COMPLEX)) ||                    \
           TagToHeadfunctor((COMPLEX)) != MULTI_ATTR_F)  \
         { return FALSE; }                               \
 })

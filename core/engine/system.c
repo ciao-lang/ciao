@@ -83,7 +83,7 @@ CFUN__PROTO(c_list_length, int, tagged_t list) {
   DEREF(list, list);
   for (len=0; list!=atom_nil; len++) {
     if (IsVar(list)) break;
-    if (!TagIsLST(list)) break;
+    if (!TaggedIsLST(list)) break;
     DerefCdr(list,list);
   }
   return (list==atom_nil) ? len : (-1);
@@ -2917,9 +2917,9 @@ CBOOL__PROTO(get_deltaenv,
   
   DEREF(list, list);
   int i = 0;
-  while(!IsVar(list) && TagIsLST(list)) {
+  while(!IsVar(list) && TaggedIsLST(list)) {
     DEREF(head, *TagToCar(list));
-    if (TagIsSTR(head) && (TagToHeadfunctor(head)==functor_minus)) {
+    if (TaggedIsSTR(head) && (TagToHeadfunctor(head)==functor_minus)) {
       DerefArg(name,head,1);
       if (!TaggedIsATM(name)) goto wrong;
       DerefArg(val,head,2);
@@ -2969,7 +2969,7 @@ CBOOL__PROTO(prolog_exec)
   /* Compute number of arguments and check types */
   args_n = 0;
   DEREF(list, X(1));
-  while(!IsVar(list) && TagIsLST(list)) {
+  while(!IsVar(list) && TaggedIsLST(list)) {
     args_n++;
     DEREF(head, *TagToCar(list));
     if (!TaggedIsATM(head)) { /* We only allow atoms */
@@ -3021,7 +3021,7 @@ CBOOL__PROTO(prolog_exec)
   args[args_i++] = command;
 
   DEREF(list, X(1));
-  while(!IsVar(list) && TagIsLST(list)) {
+  while(!IsVar(list) && TaggedIsLST(list)) {
     DEREF(head, *TagToCar(list));
     args[args_i++] = GetString(head);
     list = *TagToCdr(list);

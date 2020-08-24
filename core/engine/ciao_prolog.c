@@ -550,7 +550,7 @@ const char *ciao_structure_name_s(ciao_ctx ctx, ciao_term term) {
   tagged_t t;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
-  if (!TagIsSTR(t)) {
+  if (!TaggedIsSTR(t)) {
     return (const char *)NULL;
   } else {
     tagged_t f;
@@ -570,7 +570,7 @@ int ciao_structure_arity_s(ciao_ctx ctx, ciao_term term) {
   tagged_t t;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
-  if (!TagIsSTR(t)) {
+  if (!TaggedIsSTR(t)) {
     return 0;
   } else { 
     tagged_t f;
@@ -587,7 +587,7 @@ ciao_bool ciao_is_list_s(ciao_ctx ctx, ciao_term term) {
   tagged_t t;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
-  return TagIsLST(t);
+  return TaggedIsLST(t);
 }
 
 ciao_bool ciao_is_list(ciao_term term) {
@@ -609,7 +609,7 @@ ciao_bool ciao_is_structure_s(ciao_ctx ctx, ciao_term term) {
   tagged_t t;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
-  return TagIsSTR(t);
+  return TaggedIsSTR(t);
 }
 
 ciao_bool ciao_is_structure(ciao_term term) {
@@ -621,7 +621,7 @@ ciao_term ciao_structure_arg_s(ciao_ctx ctx, ciao_term term, int i) {
   tagged_t a;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
-  if (!TagIsSTR(t)) return CIAO_ERROR;
+  if (!TaggedIsSTR(t)) return CIAO_ERROR;
   RefArg(a, t, i);
   return ciao_ref(ctx, a);
 }
@@ -805,7 +805,7 @@ ciao_bool ciao_is_char_code_list(ciao_ctx ctx, ciao_term term) {
 
   while (cdr != atom_nil) {
     if (IsVar(cdr)) break;
-    if (!TagIsLST(cdr)) break;
+    if (!TaggedIsLST(cdr)) break;
     DerefCar(car,cdr);
     if (IsVar(car)) break;
     if (!TaggedIsSmall(car) || (car<TaggedZero) || (car>=MakeSmall(256))) break;
@@ -822,7 +822,7 @@ ciao_bool ciao_is_int_list(ciao_ctx ctx, ciao_term term) {
 
   while (cdr != atom_nil) {
     if (IsVar(cdr)) break;
-    if (!TagIsLST(cdr)) break;
+    if (!TaggedIsLST(cdr)) break;
     DerefCar(car,cdr);
     if (IsVar(car)) break;
     if (!IsInteger(car)) break;
@@ -839,7 +839,7 @@ ciao_bool ciao_is_num_list(ciao_ctx ctx, ciao_term term) {
 
   while (cdr != atom_nil) {
     if (IsVar(cdr)) break;
-    if (!TagIsLST(cdr)) break;
+    if (!TaggedIsLST(cdr)) break;
     DerefCar(car,cdr);
     if (IsVar(car)) break;
     if (!IsNumber(car)) break;

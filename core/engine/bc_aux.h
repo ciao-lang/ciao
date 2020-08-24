@@ -996,11 +996,11 @@ CFUN__PROTO(compile_term_aux, instance_t *,
     PlainUntrail(pt2,t0,{});
   }
 
-  if (TagIsSTR(head))  {
+  if (TaggedIsSTR(head))  {
     DerefArg(t0,head,1);
-    if (TagIsSTR(t0)) {
+    if (TaggedIsSTR(t0)) {
       object->key = TagToHeadfunctor(t0);
-    } else if (TagIsLST(t0)) {
+    } else if (TaggedIsLST(t0)) {
       object->key = functor_list;
     } else if (!IsVar(t0)) {
       object->key = t0;
@@ -1313,7 +1313,7 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
   goto win;
 
  u_is_sva:
-  for (; TagIsSVA(v); v = t1)
+  for (; TaggedIsSVA(v); v = t1)
     {
       RefSVA(t1,v);
       if (v == t1)
@@ -1354,12 +1354,12 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
                                 /* avoid stack variables */
   if (!w->structure)
     {
-      if (TagIsSVA(t0=X(0)))
+      if (TaggedIsSVA(t0=X(0)))
         {
           LoadHVA(X(0),w->global_top);
           BindSVA(t0,X(0));
         }
-      if (TagIsSVA(t0=X(1)))
+      if (TaggedIsSVA(t0=X(1)))
         {
           LoadHVA(X(1),w->global_top);
           BindSVA(t0,X(1));
@@ -1431,7 +1431,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
     {
       if (IsVar(t1))
           {
-            if (TagIsHVA(t1))
+            if (TaggedIsHVA(t1))
               {
                 LoadCVA(t0,pt2);
                 if (CondHVA(t1)) {

@@ -24,7 +24,7 @@ CBOOL__PROTO(bu1_atomic, tagged_t x0)
   CIAO_REG_2(tagged_t, t0);
 
   DerefSwitch(x0,t0,{return FALSE;})
-  return (!(x0 & TagBitComplex) || TagIsLarge(x0));
+  return (!(x0 & TagBitComplex) || TaggedIsLarge(x0));
 }
 
 //TOTY
@@ -148,7 +148,7 @@ static CBOOL__PROTO(cground_aux, tagged_t x1)
  non_var:
   if (TaggedIsATM(u)) goto win;
   if (TaggedIsSmall(u)) goto win;
-  if (TagIsLST(u)) {
+  if (TaggedIsLST(u)) {
       if (cground_args_aux(Arg,2,TagToCar(u),&x1))
         goto in;
       else

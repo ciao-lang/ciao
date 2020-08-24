@@ -94,7 +94,7 @@ CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 #define CheckGetRune(X,C,ArgNo) ({                                      \
   if (TaggedIsSmall((X))) {                                             \
     C = GetSmall((X));                                                  \
-  } else if (TagIsLarge((X)) && !LargeIsFloat((X))) { /* bigint */      \
+  } else if (TaggedIsLarge((X)) && !LargeIsFloat((X))) { /* bigint */      \
     BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo));  \
   } else {                                                              \
     ERROR_IN_ARG((X), (ArgNo), INTEGER);                                \
@@ -1341,7 +1341,7 @@ CVOID__PROTO(display_term,
     DerefCar(aux,term);
     display_term(Arg,aux, stream, quoted);
     DerefCdr(term,term);
-    while(TagIsLST(term)) {
+    while(TaggedIsLST(term)) {
       writerune(Arg,',',stream);
       DerefCar(aux,term);
       display_term(Arg,aux, stream, quoted);

@@ -280,12 +280,12 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
             {
               for (; !TrailYounger(inode->trail_top,itrail); itrail--)
                 {
-                  if (TagIsHVA(*TagToPointer(itrail)))
+                  if (TaggedIsHVA(*TagToPointer(itrail)))
                     {
                       if (!HeapYounger(inode->global_top,*TagToPointer(itrail)))
                         NullifyTrailEntry(itrail);
                     }
-                  else if (TagIsSVA(*TagToPointer(itrail)))
+                  else if (TaggedIsSVA(*TagToPointer(itrail)))
                     {
                       if (!StackYounger(inode->local_top,*TagToPointer(itrail)))
                         NullifyTrailEntry(itrail);

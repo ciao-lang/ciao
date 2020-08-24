@@ -260,7 +260,7 @@ TrNode put_trie_entry(TrNode node, tagged_t entry, struct sf* sf)
 //    {
 //      POP_DOWN(stack_vars);
 //      *TagToPointer(*stack_vars) = *stack_vars;
-//      if (TagIsCVA(*stack_vars))
+//      if (TaggedIsCVA(*stack_vars))
 //      {
 //        tagged_t attr = fu1_get_attribute(NULL,*stack_vars);
 //        DEREF(attr,ArgOfTerm(1, attr));
@@ -469,7 +469,7 @@ CVOID__PROTO(get_trie_answer, TrNode node, struct sf *sf) {
 
 //  for (i = answerG->not_new_size - 1; i <= max_index; i++)
 //    {
-//      if ((stack_vars_base[i]) && TagIsCVA(*TagToPointer(stack_vars_base[i])))
+//      if ((stack_vars_base[i]) && TaggedIsCVA(*TagToPointer(stack_vars_base[i])))
 //      {       
 //        *TagToPointer(stack_vars_base[i]) = stack_vars_base[i];
 //        tagged_t id[2];

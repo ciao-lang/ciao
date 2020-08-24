@@ -117,7 +117,7 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
   Wait_Acquire_Cond_lock(root->clause_insertion_cond);
   head=X(0); 
   DerefSwitch(head,X(0),goto var_case_switch;);
-  if (TagIsSTR(head)) {
+  if (TaggedIsSTR(head)) {
     DerefArg(head,head,1);
     if (IsVar(head)) {
     var_case_switch:
@@ -130,7 +130,7 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
         return NULL;
       }
     }
-    else if (TagIsLST(head)){
+    else if (TaggedIsLST(head)){
       x5_chain = ACTIVE_INSTANCE(Arg,root->lstcase,use_clock,FALSE);
     xn_switch:
       x2_chain = ACTIVE_INSTANCE(Arg,root->varcase,use_clock,FALSE);
@@ -158,7 +158,7 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
     } else {
       sw_on_key_node_t *hnode;
 
-      if (TagIsSTR(head))
+      if (TaggedIsSTR(head))
         hnode = incore_gethash(root->indexer,TagToHeadfunctor(head));
       else
         hnode = incore_gethash(root->indexer,head);
@@ -296,10 +296,10 @@ CBOOL__PROTO(current_key)
   X(4) = atom_nil;
 
   if (!IsVar(X(3))){
-    if (TagIsLST(X(3))) {
+    if (TaggedIsLST(X(3))) {
       if (ACTIVE_INSTANCE(Arg,root->lstcase,use_clock,FALSE))
         MakeLST(X(4),make_structure(Arg,functor_list),X(4));
-    } else if (TagIsSTR(X(3))) {
+    } else if (TaggedIsSTR(X(3))) {
       sw_on_key_node_t *hnode =
         incore_gethash(swp,TagToHeadfunctor(X(3)));
       instance_t *inst =
@@ -348,7 +348,7 @@ CBOOL__PROTO(current_key)
       }
     } else {
       if (IsVar(X(2)) ||
-          (TagIsSTR(X(2)) && hnode->key==TagToHeadfunctor(X(2))))
+          (TaggedIsSTR(X(2)) && hnode->key==TagToHeadfunctor(X(2))))
         while (inst){
           intmach_t ar = LargeArity(hnode->key);
 
@@ -595,7 +595,7 @@ static instance_t *first_possible_instance(tagged_t x0,
   DerefSwitch(head,x0,goto var_case_switch;);
 
   x2_next = x5_next = NULL;
-  if (TagIsSTR(head)) {
+  if (TaggedIsSTR(head)) {
     DerefArg(head,head,1);
     if (IsVar(head)) {
     var_case_switch:
@@ -604,7 +604,7 @@ static instance_t *first_possible_instance(tagged_t x0,
         x5_next = x2_next = x2_chain->forward;           /* normal = TRUE */
       else return NULL;
     }
-    else if (TagIsLST(head)){
+    else if (TaggedIsLST(head)){
       x5_chain = root->lstcase;                         /* normal = FALSE */
     xn_switch:
       x2_chain = root->varcase;                         /* normal = FALSE */
@@ -624,7 +624,7 @@ static instance_t *first_possible_instance(tagged_t x0,
         x5_next = x5_chain->next_forward;               /* normal = FALSE */
       else return NULL;                                    /* No solution */
     } else {
-      hnode = TagIsSTR(head) ?
+      hnode = TaggedIsSTR(head) ?
               incore_gethash(root->indexer,TagToHeadfunctor(head)) :
               incore_gethash(root->indexer,head);
       x5_chain = hnode->value.instp;                    /* normal = FALSE */
@@ -1204,7 +1204,7 @@ CBOOL__PROTO(prolog_ptr_ref)
       instance_t *n;
 
       x2=X(1); DerefSwitch(x2,x1,;);
-      if (!TagIsSTR(x2) || (TagToHeadfunctor(x2) != functor_Dref))
+      if (!TaggedIsSTR(x2) || (TagToHeadfunctor(x2) != functor_Dref))
         return FALSE;
 
       DerefArg(x1,x2,1);
@@ -1538,7 +1538,7 @@ CBOOL__PROTO(make_bytecode_object)
         if(func==functor_functor) {
           /* functor(Name/Arity) */
           DerefArg(car,car,1);
-          if (TagIsSTR(car) && (TagToHeadfunctor(car)==functor_slash)) {
+          if (TaggedIsSTR(car) && (TagToHeadfunctor(car)==functor_slash)) {
             tagged_t t1, t2;
             DerefArg(t1,car,1);
             DerefArg(t2,car,2);

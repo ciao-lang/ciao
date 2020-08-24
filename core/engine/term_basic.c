@@ -544,7 +544,7 @@ static CBOOL__PROTO(var_occurs, tagged_t v, tagged_t x1) {
  non_var:
   if (TaggedIsATM(u)) goto lose;
   if (TaggedIsSmall(u)) goto lose;
-  if (TagIsLST(u)) {
+  if (TaggedIsLST(u)) {
     if (!var_occurs_args_aux(Arg,v,2,TagToCar(u),&x1))
       goto in;
     else
@@ -743,7 +743,7 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
   goto win;
 
  u_is_sva:
-  for (; TagIsSVA(v); v = t1) {
+  for (; TaggedIsSVA(v); v = t1) {
     RefSVA(t1,v);
     if (v == t1) {
       if (u==v) {
@@ -782,13 +782,13 @@ CBOOL__PROTO(prolog_unifyOC) {
   DerefSwitch(complex,t0, BUILTIN_ERROR(INSTANTIATION_ERROR, complex, 2););
 
   if (TaggedIsSmall(number)) i = GetSmall(number);
-  else if (TagIsLarge(number) && !LargeIsFloat(number)) return FALSE;
+  else if (TaggedIsLarge(number) && !LargeIsFloat(number)) return FALSE;
   else BUILTIN_ERROR(TYPE_ERROR(INTEGER), number, 1);
 
   if (i < 0)
     BUILTIN_ERROR(DOMAIN_ERROR(NOT_LESS_THAN_ZERO), number, 1);
 
-  if (TagIsSTR(complex))
+  if (TaggedIsSTR(complex))
     {
       tagged_t f = TagToHeadfunctor(complex);
 
@@ -827,7 +827,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex, bcp_t liveinfo
   DerefSwitch(number,t0,{goto barf1;});
   DerefSwitch(complex,t0,{goto barf2;});
 
-  if (TagIsSTR(complex)) {
+  if (TaggedIsSTR(complex)) {
     intmach_t i = GetSmall(number);
     tagged_t f = TagToHeadfunctor(complex);
 
@@ -1014,7 +1014,7 @@ CBOOL__PROTO(bu2_univ,
 
   if (IsVar(cdr))
     goto bomb;
-  if (!TagIsLST(cdr))
+  if (!TaggedIsLST(cdr))
     {
       if (cdr == atom_nil)
         BUILTIN_ERROR(DOMAIN_ERROR(NON_EMPTY_LIST), list, 2); 
@@ -1039,7 +1039,7 @@ CBOOL__PROTO(bu2_univ,
 
   argp = w->global_top;
   HeapPush(w->global_top,f);
-  while (TagIsLST(cdr) && arity<ARITYLIMIT)
+  while (TaggedIsLST(cdr) && arity<ARITYLIMIT)
     {
       DerefCar(car,cdr);
       DerefCdr(cdr,cdr);
@@ -1120,7 +1120,7 @@ CBOOL__PROTO(bu2_univ,
 
   if (IsVar(cdr))
     goto bomb;
-  if (!TagIsLST(cdr))
+  if (!TaggedIsLST(cdr))
     MINOR_FAULT("=../2: incorrect 2nd argument");
   DerefCar(f,cdr);
   DerefCdr(cdr,cdr);
@@ -1133,7 +1133,7 @@ CBOOL__PROTO(bu2_univ,
   
   argp = w->global_top;
   HeapPush(w->global_top,f);
-  while (TagIsLST(cdr) && arity<ARITYLIMIT)
+  while (TaggedIsLST(cdr) && arity<ARITYLIMIT)
     {
       DerefCar(car,cdr);
       DerefCdr(cdr,cdr);

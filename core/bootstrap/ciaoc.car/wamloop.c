@@ -178,7 +178,7 @@ BindCVA(t0,t1);
 });
 goto unify_t0t1_done;
 t0_is_sva:
-for (; TagIsSVA(t1); t1 = i) {
+for (; TaggedIsSVA(t1); t1 = i) {
 RefSVA(i,t1);if (t1 == i) {
 if (t0==t1) {
 goto unify_t0t1_done;
@@ -202,7 +202,7 @@ t3 = Tag(STR,H);
 HeapPush(H,SetArity(Func->printname,Func->arity));
 for (i=0; i<Func->arity; i++) {
 t1 = X(i);
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -210,15 +210,15 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
           }
-} while (TagIsSVA(t1=t0));        }
+} while (TaggedIsSVA(t1=t0));        }
 HeapPush(H,t1);
 }
     }
-if (TagIsSVA(t1=X(0))) {
+if (TaggedIsSVA(t1=X(0))) {
 RefSVA(t1,X(0));
     }
 suspend_t3_on_t1:
-if (TagIsHVA(t1)) {
+if (TaggedIsHVA(t1)) {
 LoadCVA(t0,H);
 pt1 = w->trail_top;
 if (CondHVA(t1)) {
@@ -261,7 +261,7 @@ t3 = Tag(STR,H);
 HeapPush(H,SetArity(Func->printname,Func->arity));
 for (i=0; i<Func->arity; i++) {
 t1 = X(i);
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -269,7 +269,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
             }
-} while (TagIsSVA(t1=t0));          }
+} while (TaggedIsSVA(t1=t0));          }
 HeapPush(H,t1);
 }
       }
@@ -370,7 +370,7 @@ heap_overflow(Arg,SOFT_HEAPPAD+4*wake_count);LoadH;
           }
 if (wake_count>0) {
 if (wake_count==1) {
-SETUP_PENDING_CALL(address_uvc);collect_one_pending_unification(Arg);DEREF(t0,X(1));if (TagIsCVA(t0)) {
+SETUP_PENDING_CALL(address_uvc);collect_one_pending_unification(Arg);DEREF(t0,X(1));if (TaggedIsCVA(t0)) {
 X(1) = t0;
 Setfunc(address_ucc);
               }
@@ -1082,7 +1082,7 @@ HeapPush(H,BcP(f_f, 2));
 P += FTYPE_size(f_x)+FTYPE_size(f_f);
 goto WriteMode;
 },{
-if(!TagIsSTR(t1) || (TagToHeadfunctor(t1)!=BcP(f_f, 2))) goto fail;S = TagToArg(t1,1);
+if(!TaggedIsSTR(t1) || (TagToHeadfunctor(t1)!=BcP(f_f, 2))) goto fail;S = TagToArg(t1,1);
 P += FTYPE_size(f_x)+FTYPE_size(f_f);
 goto ReadMode;
 });
@@ -1650,7 +1650,7 @@ HeapPush(H,BcP(f_f, 1));
 P += FTYPE_size(f_f);
 goto WriteMode;
 },{
-if(!TagIsSTR(t1) || (TagToHeadfunctor(t1)!=BcP(f_f, 1))) goto fail;S = TagToArg(t1,1);
+if(!TaggedIsSTR(t1) || (TagToHeadfunctor(t1)!=BcP(f_f, 1))) goto fail;S = TagToArg(t1,1);
 P += FTYPE_size(f_f);
 goto ReadMode;
 });
@@ -2477,7 +2477,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2487,7 +2487,7 @@ BindSVA(t1,t0);
                             }
 break;
                           }
-} while (TagIsSVA(t0=t1));                        }
+} while (TaggedIsSVA(t0=t1));                        }
 X(i-1) = t0;
                       } else {
 RefStack(X(i-1),&Yb(t1));
@@ -2500,7 +2500,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2510,7 +2510,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(7) = t0;
                     } else {
 RefStack(X(7),&Yb(t1));
@@ -2522,7 +2522,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2532,7 +2532,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(6) = t0;
                     } else {
 RefStack(X(6),&Yb(t1));
@@ -2544,7 +2544,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2554,7 +2554,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(5) = t0;
                     } else {
 RefStack(X(5),&Yb(t1));
@@ -2566,7 +2566,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2576,7 +2576,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(4) = t0;
                     } else {
 RefStack(X(4),&Yb(t1));
@@ -2588,7 +2588,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2598,7 +2598,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(3) = t0;
                     } else {
 RefStack(X(3),&Yb(t1));
@@ -2610,7 +2610,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2620,7 +2620,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(2) = t0;
                     } else {
 RefStack(X(2),&Yb(t1));
@@ -2632,7 +2632,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2642,7 +2642,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(1) = t0;
                     } else {
 RefStack(X(1),&Yb(t1));
@@ -2654,7 +2654,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2664,7 +2664,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(0) = t0;
                     } else {
 RefStack(X(0),&Yb(t1));
@@ -2684,7 +2684,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2694,7 +2694,7 @@ BindSVA(t1,t0);
                             }
 break;
                           }
-} while (TagIsSVA(t0=t1));                        }
+} while (TaggedIsSVA(t0=t1));                        }
 X(i-1) = t0;
                       } else {
 RefStack(X(i-1),&Yb(t1));
@@ -2707,7 +2707,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2717,7 +2717,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(7) = t0;
                     } else {
 RefStack(X(7),&Yb(t1));
@@ -2729,7 +2729,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2739,7 +2739,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(6) = t0;
                     } else {
 RefStack(X(6),&Yb(t1));
@@ -2751,7 +2751,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2761,7 +2761,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(5) = t0;
                     } else {
 RefStack(X(5),&Yb(t1));
@@ -2773,7 +2773,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2783,7 +2783,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(4) = t0;
                     } else {
 RefStack(X(4),&Yb(t1));
@@ -2795,7 +2795,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2805,7 +2805,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(3) = t0;
                     } else {
 RefStack(X(3),&Yb(t1));
@@ -2817,7 +2817,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2827,7 +2827,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(2) = t0;
                     } else {
 RefStack(X(2),&Yb(t1));
@@ -2839,7 +2839,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2849,7 +2849,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(1) = t0;
                     } else {
 RefStack(X(1),&Yb(t1));
@@ -2861,7 +2861,7 @@ t1 = BcP(f_z, 1);
 P += FTYPE_size(f_z);
 if (t1&1) {
 RefStack(t0,&Yb(t1+1));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2871,7 +2871,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 X(0) = t0;
                     } else {
 RefStack(X(0),&Yb(t1));
@@ -2911,7 +2911,7 @@ goto WriteMode;
 w_put_x_unsafe_value:
 case PUT_X_UNSAFE_VALUE:
 RefStack(t0,&Xb(BcP(f_x, 2)));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -2921,7 +2921,7 @@ BindSVA(t1,t0);
                         }
 break;
                       }
-} while (TagIsSVA(t0=t1));                    }
+} while (TaggedIsSVA(t0=t1));                    }
 Xb(BcP(f_x, 1)) = t0;
 Xb(BcP(f_x, 2)) = t0;
 P += (FTYPE_size(f_x)+FTYPE_size(f_x));
@@ -2998,7 +2998,7 @@ goto WriteMode;
 w_put_y_unsafe_value:
 case PUT_Y_UNSAFE_VALUE:
 RefStack(t0,&Yb(BcP(f_y, 2)));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -3008,7 +3008,7 @@ BindSVA(t1,t0);
                         }
 break;
                       }
-} while (TagIsSVA(t0=t1));                    }
+} while (TaggedIsSVA(t0=t1));                    }
 Xb(BcP(f_x, 1)) = t0;
 P += (FTYPE_size(f_x)+FTYPE_size(f_y));
 goto WriteMode;
@@ -3021,7 +3021,7 @@ w_put_yval_yuval:
 case PUT_YVAL_YUVAL:
 RefStack(Xb(BcP(f_x, 1)),&Yb(BcP(f_y, 2)));
 RefStack(t0,&Yb(BcP(f_y, 4)));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -3031,14 +3031,14 @@ BindSVA(t1,t0);
                         }
 break;
                       }
-} while (TagIsSVA(t0=t1));                    }
+} while (TaggedIsSVA(t0=t1));                    }
 Xb(BcP(f_x, 3)) = t0;
 P += (FTYPE_size(f_x)+FTYPE_size(f_y)+FTYPE_size(f_x)+FTYPE_size(f_y));
 goto WriteMode;
 w_put_yuval_yval:
 case PUT_YUVAL_YVAL:
 RefStack(t0,&Yb(BcP(f_y, 2)));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -3048,7 +3048,7 @@ BindSVA(t1,t0);
                         }
 break;
                       }
-} while (TagIsSVA(t0=t1));                    }
+} while (TaggedIsSVA(t0=t1));                    }
 Xb(BcP(f_x, 1)) = t0;
 RefStack(Xb(BcP(f_x, 3)),&Yb(BcP(f_y, 4)));
 P += (FTYPE_size(f_x)+FTYPE_size(f_y)+FTYPE_size(f_x)+FTYPE_size(f_y));
@@ -3056,7 +3056,7 @@ goto WriteMode;
 w_put_yuval_yuval:
 case PUT_YUVAL_YUVAL:
 RefStack(t0,&Yb(BcP(f_y, 2)));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -3066,10 +3066,10 @@ BindSVA(t1,t0);
                         }
 break;
                       }
-} while (TagIsSVA(t0=t1));                    }
+} while (TaggedIsSVA(t0=t1));                    }
 Xb(BcP(f_x, 1)) = t0;
 RefStack(t0,&Yb(BcP(f_y, 4)));
-if (TagIsSVA(t0)) {
+if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
@@ -3079,7 +3079,7 @@ BindSVA(t1,t0);
                           }
 break;
                         }
-} while (TagIsSVA(t0=t1));                      }
+} while (TaggedIsSVA(t0=t1));                      }
 Xb(BcP(f_x, 3)) = t0;
 P += (FTYPE_size(f_x)+FTYPE_size(f_y)+FTYPE_size(f_x)+FTYPE_size(f_y));
 goto WriteMode;
@@ -3201,7 +3201,7 @@ goto w_get_structure_x0;
 w_get_structure_x0:
 case GET_STRUCTURE_X0:
 t1 = Tag(STR,H);
-if (TagIsHVA(t0)) {
+if (TaggedIsHVA(t0)) {
 BindHVA(t0,t1);
                   } else if (t0 & TagBitSVA) {
 BindSVA(t0,t1);
@@ -3219,7 +3219,7 @@ case GET_LARGE_X0:
 StoreH;
 t1 = BC_MakeLarge(Arg,&BcP(f_p, 1));
 LoadH;
-if (TagIsHVA(t0)) {
+if (TaggedIsHVA(t0)) {
 BindHVA(t0,t1);
                   } else if (t0 & TagBitSVA) {
 BindSVA(t0,t1);
@@ -3233,7 +3233,7 @@ P += FTYPE_size(f_Q);
 goto w_get_constant_x0;
 w_get_constant_x0:
 case GET_CONSTANT_X0:
-if (TagIsHVA(t0)) {
+if (TaggedIsHVA(t0)) {
 BindHVA(t0,BcP(f_t, 1));
                   } else if (t0 & TagBitSVA) {
 BindSVA(t0,BcP(f_t, 1));
@@ -3243,7 +3243,7 @@ BindCVA(t0,BcP(f_t, 1));
 P += FTYPE_size(f_t);
 goto WriteMode;
 case GET_NIL_X0:
-if (TagIsHVA(t0)) {
+if (TaggedIsHVA(t0)) {
 BindHVA(t0,atom_nil);
                   } else if (t0 & TagBitSVA) {
 BindSVA(t0,atom_nil);
@@ -3254,7 +3254,7 @@ P += 0;
 goto WriteMode;
 case GET_LIST_X0:
 t1 = Tag(LST,H);
-if (TagIsHVA(t0)) {
+if (TaggedIsHVA(t0)) {
 BindHVA(t0,t1);
                   } else if (t0 & TagBitSVA) {
 BindSVA(t0,t1);
@@ -3377,7 +3377,7 @@ P += FTYPE_size(f_x);
 goto WriteMode;
 case UNIFY_X_LOCAL_VALUE:
 t1 = Xb(BcP(f_x, 1));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3385,7 +3385,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 P += FTYPE_size(f_x);
 goto WriteMode;
@@ -3413,7 +3413,7 @@ P += FTYPE_size(f_y);
 goto WriteMode;
 case UNIFY_Y_LOCAL_VALUE:
 RefStack(t1,&Yb(BcP(f_y, 1)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3421,7 +3421,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 P += FTYPE_size(f_y);
 goto WriteMode;
@@ -3495,7 +3495,7 @@ case U2_VOID_XLVAL:
 i = (FTYPE_ctype(f_i_signed))BcP(f_i, 1);
 do {
 ConstrHVA(H);} while (--i);t1 = Xb(BcP(f_x, 2));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3503,7 +3503,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                         }
-} while (TagIsSVA(t1=t0));                      }
+} while (TaggedIsSVA(t1=t0));                      }
 HeapPush(H,t1);
 P += (FTYPE_size(f_i)+FTYPE_size(f_x));
 goto WriteMode;
@@ -3529,7 +3529,7 @@ case U2_VOID_YLVAL:
 i = (FTYPE_ctype(f_i_signed))BcP(f_i, 1);
 do {
 ConstrHVA(H);} while (--i);RefStack(t1,&Yb(BcP(f_y, 2)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3537,7 +3537,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                         }
-} while (TagIsSVA(t1=t0));                      }
+} while (TaggedIsSVA(t1=t0));                      }
 HeapPush(H,t1);
 P += (FTYPE_size(f_i)+FTYPE_size(f_y));
 goto WriteMode;
@@ -3569,7 +3569,7 @@ goto WriteMode;
 case U2_XVAR_XLVAL:
 LoadHVA(Xb(BcP(f_x, 1)),H);
 t1 = Xb(BcP(f_x, 2));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3577,7 +3577,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 P += (FTYPE_size(f_x)+FTYPE_size(f_x));
 goto WriteMode;
@@ -3600,7 +3600,7 @@ goto WriteMode;
 case U2_XVAR_YLVAL:
 LoadHVA(Xb(BcP(f_x, 1)),H);
 RefStack(t1,&Yb(BcP(f_y, 2)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3608,7 +3608,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 P += (FTYPE_size(f_x)+FTYPE_size(f_y));
 goto WriteMode;
@@ -3656,7 +3656,7 @@ w_u2_yvar_xlval:
 case U2_YVAR_XLVAL:
 LoadHVA(Yb(BcP(f_y, 1)),H);
 t1 = Xb(BcP(f_x, 2));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3664,7 +3664,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 P += (FTYPE_size(f_y)+FTYPE_size(f_x));
 goto WriteMode;
@@ -3684,7 +3684,7 @@ w_u2_yvar_ylval:
 case U2_YVAR_YLVAL:
 LoadHVA(Yb(BcP(f_y, 1)),H);
 RefStack(t1,&Yb(BcP(f_y, 2)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3692,7 +3692,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 P += (FTYPE_size(f_y)+FTYPE_size(f_y));
 goto WriteMode;
@@ -3756,7 +3756,7 @@ Yb(BcP(f_y, 1)) = t0;
 Yb(BcP(f_y, 1)) = t0;
                   }
 t1 = Xb(BcP(f_x, 2));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3764,7 +3764,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 P += (FTYPE_size(f_y)+FTYPE_size(f_x));
 goto WriteMode;
@@ -3788,7 +3788,7 @@ Yb(BcP(f_y, 1)) = t0;
 Yb(BcP(f_y, 1)) = t0;
                   }
 RefStack(t1,&Yb(BcP(f_y, 2)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3796,7 +3796,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 P += (FTYPE_size(f_y)+FTYPE_size(f_y));
 goto WriteMode;
@@ -3808,7 +3808,7 @@ ConstrHVA(H);} while (--i);P += (FTYPE_size(f_x)+FTYPE_size(f_i));
 goto WriteMode;
 case U2_XLVAL_VOID:
 t1 = Xb(BcP(f_x, 1));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3816,7 +3816,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 i = (FTYPE_ctype(f_i_signed))BcP(f_i, 2);
 do {
@@ -3829,7 +3829,7 @@ P += (FTYPE_size(f_x)+FTYPE_size(f_x));
 goto WriteMode;
 case U2_XLVAL_XVAR:
 t1 = Xb(BcP(f_x, 1));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3837,7 +3837,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 LoadHVA(Xb(BcP(f_x, 2)),H);
 P += (FTYPE_size(f_x)+FTYPE_size(f_x));
@@ -3857,7 +3857,7 @@ goto w_u2_xlval_yvar;
 w_u2_xlval_yvar:
 case U2_XLVAL_YVAR:
 t1 = Xb(BcP(f_x, 1));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3865,7 +3865,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 LoadHVA(Yb(BcP(f_y, 2)),H);
 P += (FTYPE_size(f_x)+FTYPE_size(f_y));
@@ -3878,7 +3878,7 @@ goto WriteMode;
 case U2_XVAL_XLVAL:
 HeapPush(H,Xb(BcP(f_x, 1)));
 t1 = Xb(BcP(f_x, 2));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3886,13 +3886,13 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 P += (FTYPE_size(f_x)+FTYPE_size(f_x));
 goto WriteMode;
 case U2_XLVAL_XVAL:
 t1 = Xb(BcP(f_x, 1));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3900,14 +3900,14 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 HeapPush(H,Xb(BcP(f_x, 2)));
 P += (FTYPE_size(f_x)+FTYPE_size(f_x));
 goto WriteMode;
 case U2_XLVAL_XLVAL:
 t1 = Xb(BcP(f_x, 1));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3915,10 +3915,10 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 t1 = Xb(BcP(f_x, 2));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3926,7 +3926,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                         }
-} while (TagIsSVA(t1=t0));                      }
+} while (TaggedIsSVA(t1=t0));                      }
 HeapPush(H,t1);
 P += (FTYPE_size(f_x)+FTYPE_size(f_x));
 goto WriteMode;
@@ -3943,7 +3943,7 @@ P += (FTYPE_size(f_x)+FTYPE_size(f_y));
 goto WriteMode;
 case U2_XLVAL_YFVAL:
 t1 = Xb(BcP(f_x, 1));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3951,7 +3951,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
@@ -3970,7 +3970,7 @@ goto WriteMode;
 case U2_XVAL_YLVAL:
 HeapPush(H,Xb(BcP(f_x, 1)));
 RefStack(t1,&Yb(BcP(f_y, 2)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3978,13 +3978,13 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 P += (FTYPE_size(f_x)+FTYPE_size(f_y));
 goto WriteMode;
 case U2_XLVAL_YVAL:
 t1 = Xb(BcP(f_x, 1));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -3992,14 +3992,14 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 HeapPushRefStack(H,&Yb(BcP(f_y, 2)));
 P += (FTYPE_size(f_x)+FTYPE_size(f_y));
 goto WriteMode;
 case U2_XLVAL_YLVAL:
 t1 = Xb(BcP(f_x, 1));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4007,10 +4007,10 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 RefStack(t1,&Yb(BcP(f_y, 2)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4018,7 +4018,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                         }
-} while (TagIsSVA(t1=t0));                      }
+} while (TaggedIsSVA(t1=t0));                      }
 HeapPush(H,t1);
 P += (FTYPE_size(f_x)+FTYPE_size(f_y));
 goto WriteMode;
@@ -4030,7 +4030,7 @@ ConstrHVA(H);} while (--i);P += (FTYPE_size(f_y)+FTYPE_size(f_i));
 goto WriteMode;
 case U2_YLVAL_VOID:
 RefStack(t1,&Yb(BcP(f_y, 1)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4038,7 +4038,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 i = (FTYPE_ctype(f_i_signed))BcP(f_i, 2);
 do {
@@ -4051,7 +4051,7 @@ P += (FTYPE_size(f_y)+FTYPE_size(f_x));
 goto WriteMode;
 case U2_YLVAL_XVAR:
 RefStack(t1,&Yb(BcP(f_y, 1)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4059,7 +4059,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 LoadHVA(Xb(BcP(f_x, 2)),H);
 P += (FTYPE_size(f_y)+FTYPE_size(f_x));
@@ -4071,7 +4071,7 @@ P += (FTYPE_size(f_y)+FTYPE_size(f_y));
 goto WriteMode;
 case U2_YLVAL_YVAR:
 RefStack(t1,&Yb(BcP(f_y, 1)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4079,7 +4079,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 LoadHVA(Yb(BcP(f_y, 2)),H);
 P += (FTYPE_size(f_y)+FTYPE_size(f_y));
@@ -4097,7 +4097,7 @@ P += (FTYPE_size(f_y)+FTYPE_size(f_y));
 goto WriteMode;
 case U2_YLVAL_YFVAL:
 RefStack(t1,&Yb(BcP(f_y, 1)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4105,7 +4105,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
@@ -4124,7 +4124,7 @@ goto WriteMode;
 case U2_YVAL_XLVAL:
 HeapPushRefStack(H,&Yb(BcP(f_y, 1)));
 t1 = Xb(BcP(f_x, 2));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4132,13 +4132,13 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 P += (FTYPE_size(f_y)+FTYPE_size(f_x));
 goto WriteMode;
 case U2_YLVAL_XVAL:
 RefStack(t1,&Yb(BcP(f_y, 1)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4146,14 +4146,14 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 HeapPush(H,Xb(BcP(f_x, 2)));
 P += (FTYPE_size(f_y)+FTYPE_size(f_x));
 goto WriteMode;
 case U2_YLVAL_XLVAL:
 RefStack(t1,&Yb(BcP(f_y, 1)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4161,10 +4161,10 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 t1 = Xb(BcP(f_x, 2));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4172,7 +4172,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                         }
-} while (TagIsSVA(t1=t0));                      }
+} while (TaggedIsSVA(t1=t0));                      }
 HeapPush(H,t1);
 P += (FTYPE_size(f_y)+FTYPE_size(f_x));
 goto WriteMode;
@@ -4184,7 +4184,7 @@ goto WriteMode;
 case U2_YVAL_YLVAL:
 HeapPushRefStack(H,&Yb(BcP(f_y, 1)));
 RefStack(t1,&Yb(BcP(f_y, 2)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4192,13 +4192,13 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 P += (FTYPE_size(f_y)+FTYPE_size(f_y));
 goto WriteMode;
 case U2_YLVAL_YVAL:
 RefStack(t1,&Yb(BcP(f_y, 1)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4206,14 +4206,14 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 HeapPushRefStack(H,&Yb(BcP(f_y, 2)));
 P += (FTYPE_size(f_y)+FTYPE_size(f_y));
 goto WriteMode;
 case U2_YLVAL_YLVAL:
 RefStack(t1,&Yb(BcP(f_y, 1)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4221,10 +4221,10 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                       }
-} while (TagIsSVA(t1=t0));                    }
+} while (TaggedIsSVA(t1=t0));                    }
 HeapPush(H,t1);
 RefStack(t1,&Yb(BcP(f_y, 2)));
-if (TagIsSVA(t1)) {
+if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
@@ -4232,7 +4232,7 @@ BindSVA(t1,TagHVA(H));
 PreLoadHVA(t1,H);
 break;
                         }
-} while (TagIsSVA(t1=t0));                      }
+} while (TaggedIsSVA(t1=t0));                      }
 HeapPush(H,t1);
 P += (FTYPE_size(f_y)+FTYPE_size(f_y));
 goto WriteMode;

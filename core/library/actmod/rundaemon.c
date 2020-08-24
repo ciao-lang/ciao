@@ -103,7 +103,7 @@ CBOOL__PROTO(run_daemon)
   /* Compute number of arguments and check types */
   args_n = 0;
   DEREF(list, X(2));
-  while(!IsVar(list) && TagIsLST(list)) {
+  while(!IsVar(list) && TaggedIsLST(list)) {
     args_n++;
     DEREF(head, *TagToCar(list));
     if (!TaggedIsATM(head)) { /* We only allow atoms */
@@ -125,7 +125,7 @@ CBOOL__PROTO(run_daemon)
   args[args_i++] = command;
 
   DEREF(list, X(2));
-  while(!IsVar(list) && TagIsLST(list)) {
+  while(!IsVar(list) && TaggedIsLST(list)) {
     DEREF(head, *TagToCar(list));
     // printf("[%d]=%s\n", args_i, GetString(head));
     args[args_i++] = GetString(head);

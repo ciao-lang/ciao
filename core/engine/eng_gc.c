@@ -258,7 +258,7 @@ static CVOID__PROTO(markTrail) {
        tagged_t l = *tr;
        tagged_t v;
 
-       while (TagIsCVA(l))
+       while (TaggedIsCVA(l))
          v = l,
          l = *TagToPointer(v),
          *TagToPointer(v) = v;
@@ -268,7 +268,7 @@ static CVOID__PROTO(markTrail) {
   while (wake_count>0){
     tagged_t v= TrailPop(tr);
 
-    if (TagIsCVA(v))
+    if (TaggedIsCVA(v))
       --wake_count,
         markVariable(Arg, tr);
   }
@@ -358,7 +358,7 @@ static CVOID__PROTO(markChoicepoints) {
           else if (!IsVar(v))
             markVariable(Arg, tr);
 #ifdef EARLY_RESET
-          else if (TagIsCVA(v))
+          else if (TaggedIsCVA(v))
             {
               if (!gc_IsMarked(*TagToCVA(v)))
                 *TagToCVA(v)= v, markVariable(Arg, tr), *tr= 0;
@@ -369,7 +369,7 @@ static CVOID__PROTO(markChoicepoints) {
                 *TagToPointer(v)= v, *tr= 0;
             }
 #else
-          else if (TagIsCVA(v))
+          else if (TaggedIsCVA(v))
             markVariable(Arg, tr);
 #endif
         }
@@ -1292,7 +1292,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor)
     pt1 = Trail_Start;
     while (TrailYounger(w->trail_top,pt1)) {
       t1 = TrailNext(pt1);
-      if (TagIsSVA(t1))
+      if (TaggedIsSVA(t1))
         *(pt1-1) += reloc_factor;
     }
 
@@ -1304,7 +1304,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor)
       *(tagged_t *)(&n2->frame) += reloc_factor;
       for (pt1=n->term; pt1!=(tagged_t *)n2;) {
         t1 = ChoicePrev(pt1);
-        if (TagIsSVA(t1))
+        if (TaggedIsSVA(t1))
           *(pt1-1) += reloc_factor;
       }
       
@@ -1314,7 +1314,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor)
         pt1 = (tagged_t *)StackCharOffset(frame,i);
         while (pt1!=frame->term){
           t1 = *(--pt1);
-          if (TagIsSVA(t1))
+          if (TaggedIsSVA(t1))
             *pt1 += reloc_factor;
         }
         if (frame->frame)
@@ -1700,7 +1700,7 @@ CVOID__PROTO(collect_goals_from_trail, intmach_t wake_count)
       tagged_t ref, value;
 
       ref = TrailPop(tr);
-      if (!TagIsCVA(ref))
+      if (!TaggedIsCVA(ref))
         continue;
       RefCVA(value,ref);
       if (value==ref)
@@ -1774,7 +1774,7 @@ CVOID__PROTO(trail_gc)
     tagged_t t1;
       
     for (x=TagToPointer(b->trail_top); !OffTrailtop(x,tr); (void)TrailNext(x))
-      if (TagIsHVA(t1 = *x)) {
+      if (TaggedIsHVA(t1 = *x)) {
         if (*TagToHVA(t1) & 1)
           *TrailOffset(x,-1) = *x = heap_last;
         else
@@ -1792,7 +1792,7 @@ CVOID__PROTO(trail_gc)
       t1 = TrailPop(tr);
       if (!IsVar(t1)) {
         /* kill unconditional 'undo setarg' */
-        if (TagIsSTR(t1) &&
+        if (TaggedIsSTR(t1) &&
             TagToHeadfunctor(t1)==functor_Dsetarg &&
             !CondHVA(TagHVA(TagToPointer(*TagToArg(t1,2)))))
           *tr = 0;

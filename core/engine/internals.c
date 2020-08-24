@@ -77,14 +77,14 @@ definition_t *find_definition(sw_on_key_t **swp,
 {
   int arity;
 
-  if (TagIsStructure(term)) {
+  if (TaggedIsStructure(term)) {
     tagged_t f = TagToHeadfunctor(term);
 
     *argl = TagToArg(term,1);
     term = SetArity(f,0);
     arity = Arity(f);
   } else
-    if (TagIsLST(term)) {
+    if (TaggedIsLST(term)) {
       *argl = TagToLST(term);
       term = atom_list;
       arity = 2;
@@ -104,7 +104,7 @@ definition_t *parse_definition(tagged_t complex)
 {
   tagged_t a,b;
 
-  if (TagIsSTR(complex) && (TagToHeadfunctor(complex)==functor_slash)) {
+  if (TaggedIsSTR(complex) && (TagToHeadfunctor(complex)==functor_slash)) {
     DerefArg(a,complex,1);
     DerefArg(b,complex,2);
     return parse_1_definition(a,b);
@@ -140,7 +140,7 @@ static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
   if (!TaggedIsSmall(tagarity))
     return NULL;
   arity = GetSmall(tagarity);
-  if (TagIsSTR(tagname) && (TagToHeadfunctor(tagname)==functor_minus))
+  if (TaggedIsSTR(tagname) && (TagToHeadfunctor(tagname)==functor_minus))
     /* "internal" predicate */
     {
       definition_t *f, *f1, **pf;
@@ -350,7 +350,7 @@ CBOOL__PROTO(bc_eq_large, tagged_t t, tagged_t *ptr) {
   }
 
   /* Compare large from the heap */
-  if (!TagIsSTR(t)) return FALSE;
+  if (!TaggedIsSTR(t)) return FALSE;
   for (intmach_t i=ar; i>0; i--) {
     if (ptr[i-1] != *TagToArg(t,i-1)) return FALSE;
   }
@@ -414,7 +414,7 @@ CFUN__PROTO(bn_call,
 
   bignum_t *bx = (bignum_t *)0;
   bignum_t *by = (bignum_t *)0;
-  if (TagIsSTR(x)) {
+  if (TaggedIsSTR(x)) {
     bx = TaggedToBignum(x);
   } else if (TaggedIsSmall(x)) {
     xx[0] = MakeFunctorFix;
@@ -422,7 +422,7 @@ CFUN__PROTO(bn_call,
     bx = (bignum_t *)xx;
   }
 
-  if (TagIsSTR(y)) {
+  if (TaggedIsSTR(y)) {
     by = TaggedToBignum(y);
   } else if (TaggedIsSmall(y)) {
     yy[0] = MakeFunctorFix;
@@ -1251,7 +1251,7 @@ CBOOL__PROTO(compiled_clause)
   DerefArg(key,X(3),2);
   if (IsVar(key))
     key = ERRORTAG;
-  else if (TagIsSTR(key))
+  else if (TaggedIsSTR(key))
     key = TagToHeadfunctor(key);
 
                                 /* add a new clause. */
@@ -1993,7 +1993,7 @@ CBOOL__PROTO(setarg)
     DerefSwitch(newarg,t1,{goto unsafe_value;});
   } else {
   unsafe_value:
-    if (TagIsSVA(newarg)){
+    if (TaggedIsSVA(newarg)){
       ptr = w->global_top;
       LoadHVA(t1,ptr);
       w->global_top = ptr;
@@ -2002,7 +2002,7 @@ CBOOL__PROTO(setarg)
     }
   }
   
-  if (TagIsSTR(complex)) {
+  if (TaggedIsSTR(complex)) {
     intmach_t i = GetSmall(number);
     tagged_t f = TagToHeadfunctor(complex);
     
@@ -2265,7 +2265,7 @@ CBOOL__PROTO(prolog_interpreted_clause)
 
   DEREF(t, X(1));
 
-  if (TagIsSTR(t) && (TagToHeadfunctor(t) == functor_neck)) {
+  if (TaggedIsSTR(t) && (TagToHeadfunctor(t) == functor_neck)) {
     DerefArg(Head,t,1);
     DerefArg(Body,t,2);    
     

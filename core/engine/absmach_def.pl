@@ -288,7 +288,7 @@ unify_heap_structure(U,V,Cont) :-
        bind(cva, T1, callexp('Tag', ["STR", H])), heap_push(U),
        Cont),
       ([[update(mode(M))]],
-       "if(!TagIsSTR(", T1, ") || (TagToHeadfunctor(", T1, ")!=", U, ")) goto fail;",
+       "if(!TaggedIsSTR(", T1, ") || (TagToHeadfunctor(", T1, ")!=", U, ")) goto fail;",
        "S" <- callexp('TagToArg', [T1, 1]),
        Cont)),
     % Make sure that no mode dependant code appears next
@@ -318,7 +318,7 @@ unify_structure(U,V,Cont) :-
        bind(sva, T1, callexp('Tag', ["STR", H])), heap_push(U),
        Cont),
       ([[update(mode(M))]],
-       "if(!TagIsSTR(", T1, ") || (TagToHeadfunctor(", T1, ")!=", U, ")) goto fail;",
+       "if(!TaggedIsSTR(", T1, ") || (TagToHeadfunctor(", T1, ")!=", U, ")) goto fail;",
        "S" <- callexp('TagToArg', [T1, 1]),
        Cont)),
     % Make sure that no mode dependant code appears next
@@ -407,7 +407,7 @@ unify_list(V,Cont) :-
 
 :- pred(unify_local_value/1, [unfold]).
 unify_local_value(T1) :-
-    if(callexp('TagIsSVA', [T1]),
+    if(callexp('TaggedIsSVA', [T1]),
       do_while(
         (call('RefSVA', ["t0",T1]),
          if(("t0"," == ",T1), 
@@ -415,7 +415,7 @@ unify_local_value(T1) :-
             bind(sva, T1, callexp('TagHVA', [H])),
             preload(hva, T1),
             break))),
-        callexp('TagIsSVA', [(T1,"=","t0")]))),
+        callexp('TaggedIsSVA', [(T1,"=","t0")]))),
     heap_push(T1).
 
 % Concurrency: if we cut (therefore discarding intermediate
@@ -639,7 +639,7 @@ unsafe_var_expr(X) :-
 :- pred(ref_stack_unsafe/2, [unfold]).
 ref_stack_unsafe(To,From) :-
     call('RefStack', ["t0", From]),
-    if(callexp('TagIsSVA', ["t0"]),
+    if(callexp('TaggedIsSVA', ["t0"]),
       do_while(
         ("RefSVA(t1,t0);", fmt:nl,
          if("t1 == t0",
@@ -647,7 +647,7 @@ ref_stack_unsafe(To,From) :-
               (load(hva,"t0"),
                bind(sva, "t1", "t0"))),
            break))),
-        callexp('TagIsSVA', ["t0=t1"]))),
+        callexp('TaggedIsSVA', ["t0=t1"]))),
     To <- "t0".
 
 :- pred(ref_heap_next/1, [unfold]).
@@ -1709,7 +1709,7 @@ get_structure_x0 :-
     cachedreg('H', H),
     T1 <- callexp('Tag', ["STR",H]),
     t0(T0),
-    if(callexp('TagIsHVA', [T0]),
+    if(callexp('TaggedIsHVA', [T0]),
       bind(hva,T0,T1),
       if((T0," & ", "TagBitSVA"),
         bind(sva,T0,T1),
@@ -1743,7 +1743,7 @@ get_large_x0 :-
     T1 <- callexp('BC_MakeLarge', ["Arg",["&","BcP(f_p, 1)"]]),
     setmode(w),
     t0(T0),
-    if(callexp('TagIsHVA', [T0]),
+    if(callexp('TaggedIsHVA', [T0]),
       bind(hva,T0,T1),
       if((T0," & ", "TagBitSVA"),
         bind(sva,T0,T1),
@@ -1766,7 +1766,7 @@ get_constant_x0 :-
     [[mode(w)]],
     t0(T0),
     dec(op(f_t,"BcP(f_t, 1)"), A),
-    if(callexp('TagIsHVA', [T0]),
+    if(callexp('TaggedIsHVA', [T0]),
       bind(hva,T0,A),
       if((T0," & ", "TagBitSVA"),
         bind(sva,T0,A),
@@ -1781,7 +1781,7 @@ get_nil_x0 :-
     [[mode(w)]],
     t0(T0),
     get_atom([], Nil),
-    if(callexp('TagIsHVA', [T0]),
+    if(callexp('TaggedIsHVA', [T0]),
       bind(hva,T0,Nil),
       if((T0," & ", "TagBitSVA"),
         bind(sva,T0,Nil),
@@ -1800,7 +1800,7 @@ get_list_x0 :-
     cachedreg('H', H),
     T1 <- callexp('Tag', ["LST",H]),
     t0(T0),
-    if(callexp('TagIsHVA', [T0]),
+    if(callexp('TaggedIsHVA', [T0]),
       bind(hva,T0,T1),
       if((T0," & ", "TagBitSVA"),
         bind(sva,T0,T1),
@@ -3461,7 +3461,7 @@ code_unify_t0t1 :-
     goto('unify_t0t1_done'),
     %
     label('t0_is_sva'),
-    for("; TagIsSVA(t1); t1 = i",
+    for("; TaggedIsSVA(t1); t1 = i",
       ("RefSVA(i,t1);",
        if("t1 == i", 
          (if("t0==t1", 
@@ -3479,14 +3479,14 @@ code_unify_t0t1 :-
 code_suspend_on_t1 :-
     [[update(mode(w))]],
     emul_to_goal,
-    if(callexp('TagIsSVA', ["t1=X(0)"]), % t1 may have been globalised
+    if(callexp('TaggedIsSVA', ["t1=X(0)"]), % t1 may have been globalised
       call('RefSVA', ["t1","X(0)"])). % TODO: continue on code_suspend_t3_on_t1?
 
 :- pred(code_suspend_t3_on_t1/0, [unfold]).
 code_suspend_t3_on_t1 :-
     [[update(mode(w))]],
     % suspend the goal  t3  on  t1.  Func, H must be live.
-    if(callexp('TagIsHVA', ["t1"]),
+    if(callexp('TaggedIsHVA', ["t1"]),
       (load(cva, "t0"),
        "pt1" <- "w->trail_top",
        if(callexp('CondHVA', ["t1"]),
@@ -3715,7 +3715,7 @@ code_enter_pred :-
           ("SETUP_PENDING_CALL(address_uvc);",
           "collect_one_pending_unification(Arg);", % does not touch H
           "DEREF(t0,X(1));",
-          if(callexp('TagIsCVA', ["t0"]),
+          if(callexp('TaggedIsCVA', ["t0"]),
             (% X(1)=*TagToGoal(t0);
              "X(1)" <- "t0",
              % patch prev. SETUP_PENDING_CALL

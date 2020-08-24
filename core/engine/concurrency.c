@@ -52,7 +52,7 @@
 // 
 //   DerefSwitch(t,x1,;);
 // 
-//   if (TagIsSTR(t) && (TagToHeadfunctor(t) == functor_Dlock)) {
+//   if (TaggedIsSTR(t) && (TagToHeadfunctor(t) == functor_Dlock)) {
 //     DerefArg(x1,t,1);
 //     *l = TagToLock(x1);
 // #if defined(DEBUG)
@@ -71,7 +71,7 @@
 // 
 //   DerefSwitch(t,x1,;);
 // 
-//   if (TagIsSTR(t) && (TagToHeadfunctor(t) == functor_Dlock)) {
+//   if (TaggedIsSTR(t) && (TagToHeadfunctor(t) == functor_Dlock)) {
 //     DerefArg(x1,t,1);
 //     *s = TagToSLock(x1);
 // #if defined(DEBUG)
@@ -478,7 +478,7 @@ CBOOL__PROTO(prolog_eng_status)
 }
 
 
-#define NOT_CALLABLE(What) IsVar(What) || TaggedIsSmall(What) || TagIsLarge(What)
+#define NOT_CALLABLE(What) IsVar(What) || TaggedIsSmall(What) || TaggedIsLarge(What)
 
 #define ENSURE_CALLABLE(What, ArgNum)                   \
   if (NOT_CALLABLE(What)) {                             \

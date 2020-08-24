@@ -678,16 +678,17 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 
 #define IsVar(A)        ((stagged_t)(A)>=0)        /* variable tags begin with 0 */
 
-#define TagIsHVA(X)     ((X) < CVA<<TAGOFFSET)
-#define TagIsCVA(X)     HasTag(X,CVA)
-#define TagIsSVA(X)     ((stagged_t)(X) >= (stagged_t)(SVA<<TAGOFFSET))
+#define TaggedIsHVA(X)     ((X) < CVA<<TAGOFFSET)
+#define TaggedIsCVA(X)     HasTag(X,CVA)
+#define TaggedIsSVA(X)     ((stagged_t)(X) >= (stagged_t)(SVA<<TAGOFFSET))
 #define TaggedIsSmall(X)   ((stagged_t)(X) < (stagged_t)TaggedHigh)
-#define TagIsLarge(X)   (TagIsSTR(X) && STRIsLarge(X))
-#define TagIsNUM(X)     ((stagged_t)(X) < (stagged_t)(ATM<<TAGOFFSET)) 
+#define TaggedIsLarge(X)   (TaggedIsSTR(X) && STRIsLarge(X))
+#define TaggedIsNUM(X)     ((stagged_t)(X) < (stagged_t)(ATM<<TAGOFFSET)) 
 #define TaggedIsATM(X)  HasTag(X,ATM)
-#define TagIsLST(X)     HasTag(X,LST)
-#define TagIsSTR(X)     ((X) >= (STR<<TAGOFFSET))
-#define TagIsStructure(X) (TagIsSTR(X) && !STRIsLarge(X))
+#define TaggedIsLST(X)     HasTag(X,LST)
+#define TaggedIsSTR(X)     ((X) >= (STR<<TAGOFFSET))
+
+#define TaggedIsStructure(X) (TaggedIsSTR(X) && !STRIsLarge(X))
 #define STRIsLarge(X)   (TagToHeadfunctor(X) & QMask)
 
 /* Term<->pointer conversion */
@@ -725,8 +726,8 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define IsAtomic(X)     ((stagged_t)(X) < (stagged_t)(LST<<TAGOFFSET))
 #define IsComplex(X)    ((X) >= (LST<<TAGOFFSET))
 
-#define TermIsAtomic(X) (IsAtomic(X) || TagIsLarge(X))
-#define TermIsComplex(X) (IsComplex(X) && !TagIsLarge(X))
+#define TermIsAtomic(X) (IsAtomic(X) || TaggedIsLarge(X))
+#define TermIsComplex(X) (IsComplex(X) && !TaggedIsLarge(X))
 
 #define TagBitFunctor  ((tagged_t)1<<TAGOFFSET)       /* ATM or STR or large NUM */
 #define TagBitComplex  ((tagged_t)2<<TAGOFFSET)       /* LST or STR or large NUM */
@@ -814,9 +815,9 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define TaggedToFloat(X) (TaggedIsSmall(X) ? (flt64_t)GetSmall(X) : get_float(X))
 
 #define IntIsSmall(X)   ((X) >= -HighInt && (X) < HighInt)
-#define IsInteger(X)    (TaggedIsSmall(X) || (TagIsLarge(X) && !LargeIsFloat(X)))
-#define IsFloat(X)      (TagIsLarge(X) && LargeIsFloat(X))
-#define IsNumber(X)     (TaggedIsSmall(X) || TagIsLarge(X))
+#define IsInteger(X)    (TaggedIsSmall(X) || (TaggedIsLarge(X) && !LargeIsFloat(X)))
+#define IsFloat(X)      (TaggedIsLarge(X) && LargeIsFloat(X))
+#define IsNumber(X)     (TaggedIsSmall(X) || TaggedIsLarge(X))
 /* TODO:[oc-merge] remove IsString */
 #define IsString(X)     TaggedIsATM(X)
 
@@ -844,7 +845,7 @@ CFUN__PROTO(make_structure, tagged_t, tagged_t functor);
 /* X is an Integer that fits in an intmach_t.
    This is the postcondition of IntmachToTagged.
 */ 
-#define IsIntegerFix(X) (TaggedIsSmall(X) || (TagIsSTR(X) && TagToHeadfunctor(X)==MakeFunctorFix))
+#define IsIntegerFix(X) (TaggedIsSmall(X) || (TaggedIsSTR(X) && TagToHeadfunctor(X)==MakeFunctorFix))
 
 /* Finish the large integer at `HTop` and move `HTop` forward. If the
  * large integer can be represented as a small int, keep it
@@ -897,7 +898,7 @@ CBOOL__PROTO(bc_eq_large, tagged_t t, tagged_t *ptr);
 #else
 #define BC_MakeLarge(ARG, Ptr) make_large(ARG,(tagged_t *)(Ptr))
 #define BC_EqLarge(T, Ptr, FailCode) {                                  \
-    if (!TagIsSTR((T))) FailCode;                                       \
+    if (!TaggedIsSTR((T))) FailCode;                                    \
     for (i=LargeArity(*(tagged_t *)(Ptr)); i>0; i--) {                  \
       if (((tagged_t *)(Ptr))[i-1] != *TagToArg((T),i-1)) FailCode;     \
     }                                                                   \

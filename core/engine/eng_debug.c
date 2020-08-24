@@ -66,7 +66,7 @@ CVOID__PROTO(wr_tagged_rec, tagged_t t) {
     wr_tagged_rec(Arg,temp);
     RefCdr(temp,t);
     t = safe_deref(temp);
-    while(TagIsLST(t))  {
+    while(TaggedIsLST(t))  {
       putchar(',');
       RefCar(temp,t);
       wr_tagged_rec(Arg,temp);

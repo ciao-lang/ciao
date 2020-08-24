@@ -309,7 +309,7 @@ CBOOL__PROTO(prolog_select_socket) {
     USAGE_FAULT("select_socket/5: timeout must be non-negative");
 
   DEREF(X(3), X(3));                      /* Get list of streams to watch */
-  if (!TagIsLST(X(3)) && !(atom_nil == X(3)))
+  if (!TaggedIsLST(X(3)) && !(atom_nil == X(3)))
     BUILTIN_ERROR(TYPE_ERROR(LIST), X(3), 4);
   
   DEREF(cdr,X(3));
@@ -361,7 +361,7 @@ static CFUN__PROTO(bytelist_to_atmbuf, intmach_t, intmach_t ci,
   for (msglen=0; cdr!=atom_nil; msglen++) {
     if (IsVar(cdr)) {
       BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,ci+1);
-    } else if (!TagIsLST(cdr)) {
+    } else if (!TaggedIsLST(cdr)) {
       BUILTIN_ERROR(TYPE_ERROR(CHARACTER_CODE_LIST),X(ci),ci+1);
     } else if (msglen == Atom_Buffer_Length) {                   /* realloc */
       Atom_Buffer = checkrealloc_ARRAY(char,

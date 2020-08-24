@@ -242,7 +242,7 @@ static CBOOL__PROTO(prolog_constant_codes,
   s = Atom_Buffer;
   for (i=0; cdr!=atom_nil; i++) {
     if (IsVar(cdr)) goto construct_list;
-    if (!TagIsLST(cdr)) {
+    if (!TaggedIsLST(cdr)) {
       BUILTIN_ERROR(TYPE_ERROR(LIST),X(ci),ci+1);
     }
     ENSURE_ATOM_BUFFER(i, { s = Atom_Buffer+i; });

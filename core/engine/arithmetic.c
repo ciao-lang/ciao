@@ -123,8 +123,8 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v)
       if (!IsInteger(Reg))                                              \
         {                                                               \
           Reg = evaluate(Wam, Reg);                                     \
-          if(!TaggedIsSmall(Reg)) {                                        \
-            if(!TagIsLarge(Reg))                                        \
+          if(!TaggedIsSmall(Reg)) {                                     \
+            if(!TaggedIsLarge(Reg))                                     \
               BUILTIN_ERROR(TYPE_ERROR(EVALUABLE), (Reg), (ArgNo));     \
             if(LargeIsFloat(Reg))                                       \
               BUILTIN_ERROR(TYPE_ERROR(INTEGER), (Reg), (ArgNo));       \

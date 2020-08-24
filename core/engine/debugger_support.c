@@ -98,7 +98,7 @@ CBOOL__PROTO(debugger_mode)
     fprintf(stderr, "Thread %d is changing debbuger mode\n", (int)Thread_Id);
 #endif
 
-  if (TagIsSTR(Current_Debugger_State)) {
+  if (TaggedIsSTR(Current_Debugger_State)) {
 #if defined(DEBUG)
   if (debug_gc)  fprintf(stderr, "Current_Debugger_State is structure\n");
 #endif
@@ -117,7 +117,7 @@ CBOOL__PROTO(debugger_mode)
 /****
 void debugger_trap(void)
 {
-  if (TagIsSTR(current_debugger_state))
+  if (TaggedIsSTR(current_debugger_state))
   {
       *TagToArg(current_debugger_state,2) = atom_trace;
       *TagToArg(current_debugger_state,3) = MakeSmall(1000000);
