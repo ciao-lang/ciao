@@ -1090,7 +1090,7 @@ bignum_size_t bn_from_string(char *x,
 
 CVOID__PROTO(bn_to_string, bignum_t *x, int base) {
   int j, k;
-  int xlen, slen, alen, dlen;
+  int xlen, slen, dlen;
   bignum_t r, digit, divisor;
   bool_t sx = BignumPositive(x);
   char hibase = 'a'-10;
@@ -1111,14 +1111,7 @@ CVOID__PROTO(bn_to_string, bignum_t *x, int base) {
 
   /* string length <= (words+1)*ceiling(digits/word) */
   slen = ALIGN_TO(sizeof(bignum_t), (xlen+1)*(dlen+1)+1) + (xlen<<1);
-  for (alen=Atom_Buffer_Length; slen>alen;) {
-    alen <<= 1;
-  }
-
-  if (alen > Atom_Buffer_Length) {
-    EXPAND_ATOM_BUFFER(alen);
-  }
-  c = Atom_Buffer;
+  GET_ATOM_BUFFER2(c, slen);
   work = (bignum_half_t *)(c+slen-(xlen<<1));
   if (!sx) {
     *c++ = '-';

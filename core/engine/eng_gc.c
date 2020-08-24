@@ -1482,7 +1482,6 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     if ((Heap_Limit != 0)  &&                             /* Heap limit is on */
         (Heap_Limit < newcount - DEFAULT_SOFT_HEAPPAD))   /* Heap bigger than Heap limit */
       SOFT_HEAPPAD = newcount - Heap_Limit;
-
 #endif
 
     Heap_Start = newh; /* new low bound */

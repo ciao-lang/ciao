@@ -1529,10 +1529,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
   case 'S':
     j = 1;
     for (i=0; j; i++) {
-      if (i == Atom_Buffer_Length) {
-        EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2);
-        s = (unsigned char *)Atom_Buffer+i;
-      }
+      ENSURE_ATOM_BUFFER(i, { s = (unsigned char *)Atom_Buffer+i; });
       j = readbyte(Arg, Input_Stream_Ptr, GET, NULL);
       if (j == BYTE_PAST_EOF) {
         BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);

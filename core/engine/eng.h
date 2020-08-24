@@ -23,6 +23,7 @@
 #define STATICMAXATOM 1024     /* Avoid very long atoms inside the engine */
 
 #if defined(USE_OVERFLOW_EXCEPTIONS)
+/* TODO: why? */
 #undef  USE_DYNAMIC_ATOM_SIZE   /* overflow excp. requires static atom size */      
 #else     
 #define USE_DYNAMIC_ATOM_SIZE   /* By default */
@@ -45,16 +46,12 @@
 #define HARD_HEAPPAD CALLPAD 
 
 #if defined(USE_OVERFLOW_EXCEPTIONS)
-
 #define DEFAULT_SOFT_HEAPPAD  EXCEPAD
 #define SOFT_HEAPPAD          w->misc->soft_heappad 
 #define Heap_Limit            w->misc->heap_limit
-
 #else 
-
 #define DEFAULT_SOFT_HEAPPAD  HARD_HEAPPAD
 #define SOFT_HEAPPAD          HARD_HEAPPAD
-
 #endif
 
 /* min. amount of stack at allocate */
@@ -547,6 +544,10 @@
 
 /* MARGINS   ------------------------------------- */
 
+/* TODO: called when Atom_Buffer_Length is updated due to dependency
+   in CALLPAD. This is not optimal! Make sure that we have enough heap
+   in atom manipulation builtins instead. */
+
 /* Update heap margins (which depends on dynamic CALLPAD) */
 #if defined(USE_DYNAMIC_ATOM_SIZE)
 #define UpdateHeapMargins() { \
@@ -779,10 +780,12 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 /* Get string of an atom */
 #define GetString(X)    (TagToAtom(X)->name)
 
-#define USE_ATOM_LEN
+#define ABSMACH_OPT__atom_len 1
 
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
 #define GetAtomLen(X)   (TagToAtom(X)->atom_len)
+#else
+#define GetAtomLen(X)   (strlen(GetString((X))))
 #endif
 
 /* 1 + no. untyped words */
@@ -2893,17 +2896,41 @@ void failc(char *mesg);
 }
 
 /* =========================================================================== */
+/* Atom buffer - per worker temporary buffer to manipulate strings */
 
-#define EXPAND_ATOM_BUFFER(new_max_atom_length) \
-{ \
-     Atom_Buffer = \
-       checkrealloc_ARRAY(char, \
-                          Atom_Buffer_Length,          \
-                          new_max_atom_length,         \
-                          Atom_Buffer);                \
-    Atom_Buffer_Length = new_max_atom_length; \
-    UpdateHeapMargins(); \
-}
+#define EXPAND_ATOM_BUFFER(new_max_atom_length) ({ \
+  Atom_Buffer = checkrealloc_ARRAY(char, Atom_Buffer_Length, new_max_atom_length, Atom_Buffer); \
+  Atom_Buffer_Length = new_max_atom_length; \
+  UpdateHeapMargins(); \
+})
+
+/* Get a pointer to the atom buffer of at least LEN size, expand it
+   before if required  */
+#define GET_ATOM_BUFFER(S, LEN) ({ \
+  if ((LEN) > Atom_Buffer_Length) { \
+    EXPAND_ATOM_BUFFER((LEN)); \
+  } \
+  (S) = Atom_Buffer; \
+})
+
+/* Like GET_ATOM_BUFFER but extend Atom_Buffer a power of two */
+#define GET_ATOM_BUFFER2(S, LEN) ({ \
+  intmach_t alen=Atom_Buffer_Length; \
+  while((LEN)>alen) { alen <<= 1; } \
+  if (alen > Atom_Buffer_Length) { \
+    EXPAND_ATOM_BUFFER(alen); \
+  } \
+  (S) = Atom_Buffer; \
+})
+
+/* Double atom buffer size if required, execute CODE if expanded */
+/* Pre: LEN < Atom_Buffer_Length*2 */
+#define ENSURE_ATOM_BUFFER(LEN, CODE) ({ \
+  if ((LEN) >= Atom_Buffer_Length) { \
+    EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2); \
+    CODE \
+  } \
+})
 
 /* =========================================================================== */
 

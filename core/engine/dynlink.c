@@ -104,14 +104,8 @@ CBOOL__PROTO(prolog_dynlink)
   if (debug_dynlink) fprintf(stderr, "Linking %s\n", lib_name);
 #endif
 
-
-#if defined(USE_ATOM_LEN)
   if ((strindx = GetAtomLen(X(0))) > MAXPATHLEN)
     USAGE_FAULT("dynlink/2: full filename too long");
-#else
-  if ((strindx = strlen(lib_name)) > MAXPATHLEN)
-    USAGE_FAULT("dynlink/2: full filename too long");
-#endif
 
  /* If already loaded, unload it before. */
 

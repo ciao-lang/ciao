@@ -13,6 +13,15 @@
 #include <ciao/runtime_control.h> /* push_choicept,pop_choicept */
 #include <ciao/io_basic.h> /* isValidRune */
 #include <ciao/atomic_basic.h>
+#else
+/* TODO: merge */
+#include <ciao/rune.h>
+#define USE_DYNAMIC_ATOM_SIZE 1
+#define RUNE_MAX            0xff
+static inline bool_t isValidRune(c_rune_t rune) {
+  uint32_t r = (uint32_t)rune; /* force unsigned */
+  return (r <= RUNE_MAX);
+}
 #endif
 
 #include <stdlib.h> /* atof() */
@@ -197,7 +206,7 @@ CVOID__PROTO(number_to_string, tagged_t term, int base) {
     /* TODO: use a specialized version (TaggedToFloat assuming float) */
     f = TaggedToFloat(term);
 
-    /* if (1024 > Atom_Buffer_Length) EXPAND_ATOM_BUFFER(102400); */
+    /* assume (Atom_Buffer_Length >= 1024) */
     cbuf = Atom_Buffer;
     dtoa_ryu(f, cbuf); /* assume base==10 */
   } else { /* if (IsBignum(term)) */
@@ -232,21 +241,16 @@ static CBOOL__PROTO(prolog_constant_codes,
   cdr = X(ci);
   s = Atom_Buffer;
   for (i=0; cdr!=atom_nil; i++) {
-    if (IsVar(cdr)) {
-      goto construct_list;
-    } else if (!TagIsLST(cdr)) {
+    if (IsVar(cdr)) goto construct_list;
+    if (!TagIsLST(cdr)) {
       BUILTIN_ERROR(TYPE_ERROR(LIST),X(ci),ci+1);
-    } else if (i == Atom_Buffer_Length){
-      EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2);
-      s = Atom_Buffer+i;
     }
+    ENSURE_ATOM_BUFFER(i, { s = Atom_Buffer+i; });
     DerefCar(car,cdr);
-    if (IsVar(car)) {
-      goto construct_list;
-    }
+    if (IsVar(car)) goto construct_list;
     if (!TaggedIsSmall(car)) {
-      if (TagIsLarge(car) && !LargeIsFloat(car)) {
-        BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), car ,ci+1);
+      if (IsInteger(car)) { /* bigint */
+        BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), car, ci+1);
       }
       BUILTIN_ERROR(TYPE_ERROR(INTEGER), car, ci+1);
     }
@@ -254,13 +258,10 @@ static CBOOL__PROTO(prolog_constant_codes,
     if (!isValidRune(rune)) {
       BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), car, ci+1);
     }
-    *(s++) = rune;
+    *s++ = rune;
     DerefCdr(cdr,cdr);
   }
-  if (i == Atom_Buffer_Length) {
-    EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2);
-    s = Atom_Buffer+i;
-  }
+  ENSURE_ATOM_BUFFER(i, { s = Atom_Buffer+i; });
   *s++ = '\0';
 
   /* s contains now the string of character codes, and i its size */
@@ -286,13 +287,13 @@ static CBOOL__PROTO(prolog_constant_codes,
       }
     }
   }
-  
+
   if (numberp) {
     tagged_t result;
     if (ci==2) {
       if (TaggedIsSmall(X(1))) {
         base = GetSmall(X(1));
-      } else if ((TagIsLarge(X(1)) && !LargeIsFloat(X(1)))) {
+      } else if (IsInteger(X(1))) { /* bigint */
         base = 0;  // forces SOURCE_SINK error
       } else {
         BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(1),2);
@@ -304,22 +305,22 @@ static CBOOL__PROTO(prolog_constant_codes,
       //printf("--9--\n");
       BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK),X(1),2);
     }
-    if (string_to_number(Arg, Atom_Buffer, base, &result, ci+1)) {
+    if (CBOOL__SUCCEED(string_to_number, Atom_Buffer, base, &result, ci+1)) {
       CBOOL__LASTUNIFY(result, X(0));
     }
   }
-  return atomp && cunify(Arg,GET_ATOM(Atom_Buffer),X(0));
+  CBOOL__TEST(atomp);
+  CBOOL__LASTUNIFY(GET_ATOM(Atom_Buffer), X(0));
 
  construct_list:
   if (IsVar(X(0))) {
     BUILTIN_ERROR(INSTANTIATION_ERROR,X(0),2);
   }
-
   if (numberp && IsNumber(X(0))) {
     if (ci==2) {
       if (TaggedIsSmall(X(1))) {
         base = GetSmall(X(1));
-      } else if (TagIsLarge(X(1)) && !LargeIsFloat(X(1))) {
+      } else if (IsInteger(X(1))) { /* bigint */
         base = 0; // forces SOURCE_SINK error
       } else {
         BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(1),2);
@@ -331,7 +332,7 @@ static CBOOL__PROTO(prolog_constant_codes,
         (base != 10 && IsFloat(X(0)))) {
       BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK),X(1),2);
     }
-    number_to_string(Arg,X(0),base);
+    CVOID__CALL(number_to_string,X(0),base);
     s = Atom_Buffer;
   } else if (atomp && TaggedIsATM(X(0))) {
     s = GetString(X(0));
@@ -373,11 +374,7 @@ CBOOL__PROTO(prolog_atom_length) {
     BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(1),2);
   }
 
-#if defined(USE_ATOM_LEN)
   CBOOL__LASTUNIFY(MakeSmall(GetAtomLen(X(0))),X(1));
-#else
-  CBOOL__LASTUNIFY(MakeSmall(strlen(GetString(X(0)))),X(1));
-#endif
 }
 
 /* sub_atom(Atom, Before, Lenght, Sub_atom) */
@@ -400,22 +397,17 @@ CBOOL__PROTO(prolog_sub_atom) {
   }
 
   s = GetString(X(0));
-#if defined(USE_ATOM_LEN)
   l = GetAtomLen(X(0));
-#else
-  l = strlen(s);
-#endif
 
   b = TaggedToIntmach(X(1));
-  if (b < 0 || b > l) CBOOL__FAIL;
+  CBOOL__TEST(b >= 0 && b <= l);
 
   atom_length = TaggedToIntmach(X(2));
-  if (atom_length < 0 || atom_length+b > l) CBOOL__FAIL;
+  CBOOL__TEST(atom_length >= 0 && atom_length+b <= l);
 
   s += b;
 
-  if (Atom_Buffer_Length <= atom_length) EXPAND_ATOM_BUFFER(atom_length+1);
-  s1 = Atom_Buffer;
+  GET_ATOM_BUFFER(s1, atom_length+1);
 
   strncpy(s1, s, atom_length);
 
@@ -446,22 +438,14 @@ CBOOL__PROTO(prolog_atom_concat) {
       /* atom_concat(+, +, ?) */
       s2 = GetString(X(1));
 
-#if defined(USE_ATOM_LEN)
       new_atom_length = GetAtomLen(X(0)) + GetAtomLen(X(1)) + 1;
-#else
-      new_atom_length = strlen(s1) + strlen(s2) + 1;
-#endif
 
-#if defined(USE_DYNAMIC_ATOM_SIZE)
-      if (new_atom_length >= Atom_Buffer_Length) {
-        EXPAND_ATOM_BUFFER(new_atom_length);
-      }
-#else
+#if !defined(USE_DYNAMIC_ATOM_SIZE)
       if (new_atom_length > MAXATOM) {
         BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ATOM_LENGTH), X(2), 3);
       }
 #endif
-      s = Atom_Buffer;
+      GET_ATOM_BUFFER(s, new_atom_length);
 
       /* Append the two strings in atom_buffer */
       while (*s1)
@@ -475,20 +459,14 @@ CBOOL__PROTO(prolog_atom_concat) {
       /* atom_concat(+, -, +) */
       s2 = GetString(X(2));
 
-#if defined(USE_ATOM_LEN)
       new_atom_length = GetAtomLen(X(2))+1;
-#else
-      new_atom_length = strlen(s2) + 1;
-#endif
 
-      for ( ; *s1 && *s2 ; s1++, s2++)
-        if (*s1 != *s2) CBOOL__FAIL;
+      for ( ; *s1 != 0 && *s2 != 0; s1++, s2++) {
+        CBOOL__TEST(*s1 == *s2);
+      }
+      CBOOL__TEST(*s1 == 0);
 
-      if (*s1) CBOOL__FAIL;
-
-      if (new_atom_length >= Atom_Buffer_Length)
-        EXPAND_ATOM_BUFFER(new_atom_length);
-      s = Atom_Buffer;
+      GET_ATOM_BUFFER(s, new_atom_length);
 
       strcpy(s, s2);
 
@@ -504,20 +482,14 @@ CBOOL__PROTO(prolog_atom_concat) {
       s1 = GetString(X(1));
       s2 = GetString(X(2));
 
-#if defined(USE_ATOM_LEN)
       new_atom_length = GetAtomLen(X(2)) - GetAtomLen(X(1));
-#else
-      new_atom_length = strlen(s2)-strlen(s1);
-#endif
-      if (new_atom_length < 0) CBOOL__FAIL;
+      CBOOL__TEST(new_atom_length >= 0);
 
       s = s2+new_atom_length;
 
-      if (strcmp(s1, s) != 0) CBOOL__FAIL; /* fail if different */
+      CBOOL__TEST(strcmp(s1, s) == 0); /* fail if different */
 
-      if (new_atom_length >= Atom_Buffer_Length) 
-        EXPAND_ATOM_BUFFER(new_atom_length+1);
-      s = Atom_Buffer;
+      GET_ATOM_BUFFER(s, new_atom_length+1);
 
       strncpy(s, s2, new_atom_length);
 
@@ -527,13 +499,8 @@ CBOOL__PROTO(prolog_atom_concat) {
     } else if (IsVar(X(1))) {
       /* atom_concat(-, -, +) */
       s2 = GetString(X(2));
-#if defined(USE_ATOM_LEN)
       new_atom_length = GetAtomLen(X(2))+1;
-#else
-      new_atom_length = strlen(s2)+1;
-#endif
-      if (new_atom_length >= Atom_Buffer_Length)
-        EXPAND_ATOM_BUFFER(new_atom_length);
+      GET_ATOM_BUFFER(s, new_atom_length); // 's' is unused
       X(3) = TaggedZero;
       CVOID__CALL(push_choicept,address_nd_atom_concat);
       CBOOL__LASTCALL(nd_atom_concat);

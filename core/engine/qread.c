@@ -73,10 +73,7 @@ static CFUN__PROTO(qr_large, tagged_t, FILE *f) {
   char *ws = Atom_Buffer;
 
   while ((ws[used_length++] = GETC(f))) {
-    if (used_length == Atom_Buffer_Length) {
-      EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2);
-      ws = Atom_Buffer; /* New buffer */
-    }
+    ENSURE_ATOM_BUFFER(used_length, { ws = Atom_Buffer; });
   }
 
   int base = GetSmall(current_radix);
@@ -103,10 +100,7 @@ static CFUN__PROTO(qr_string, char *, FILE *f) {
   char *ws = Atom_Buffer;   /* Try to avoid indirection through WAM */
 
   while ((ws[used_length++] = GETC(f))) {
-    if (used_length == Atom_Buffer_Length) {
-      EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2);
-      ws = Atom_Buffer;
-    }
+    ENSURE_ATOM_BUFFER(used_length, { ws = Atom_Buffer; });
   }
   return ws;
 }
@@ -617,10 +611,7 @@ CVOID__PROTO(getbytecode32, FILE *f,
       tagged_t t, *h;
       
       while ((c = ws[i++] = GETC(f))) {
-        if (i == Atom_Buffer_Length) {
-          EXPAND_ATOM_BUFFER(Atom_Buffer_Length*2);
-          ws = Atom_Buffer;
-        }
+        ENSURE_ATOM_BUFFER(i, { ws = Atom_Buffer; });
       }
 
       /* TODO: This is can be improved. 

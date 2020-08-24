@@ -15,7 +15,7 @@ extern sw_on_key_t *switch_on_function;
 
 intmach_t lookup_atom_idx(char *str);
 
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
 atom_t *new_atom_check(char *str, 
                        unsigned int str_len,
                        unsigned int index);

@@ -370,7 +370,7 @@ definition_t *address_ucc;
 /* insert atom in global table */
 /*  MCL: there is an implicit assumption that the table is not full */
 
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
 static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw,
                                       tagged_t key,
                                       char *str,
@@ -394,7 +394,7 @@ static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw,
     hnode = SW_ON_KEY_NODE_FROM_OFFSET(sw, t0);
 #if !defined(ATOMGC)
     if ((hnode->key==key 
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
          && hnode->value.atomp->atom_len == str_len
 #endif
          && strcmp(hnode->value.atomp->name, str)==0) ||
@@ -402,7 +402,7 @@ static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw,
       return hnode;
 #else
     if ((hnode->key == key) 
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
         && hnode->value.atomp->atom_len == str_len
 #endif
         && (strcmp(hnode->value.atomp->name, str) == 0))
@@ -422,13 +422,13 @@ intmach_t lookup_atom_idx(char *str) {
   intmach_t current_mem = total_mem_count;
   char *c = str;
 
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
   uintmach_t atom_len = 0;
 #endif
   
   while (*c) {
     hashcode = (hashcode<<1) + *((unsigned char *)c++);
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
     atom_len++;
 #endif
   }
@@ -445,7 +445,7 @@ intmach_t lookup_atom_idx(char *str) {
                                    233509&0x00007
 */
 
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
   hnode = atom_gethash(ciao_atoms, (tagged_t)hashcode, str, atom_len);
 #else
   hnode = atom_gethash(ciao_atoms, (tagged_t)hashcode, str);
@@ -478,7 +478,7 @@ intmach_t lookup_atom_idx(char *str) {
                          null... */
        /* size *= 2; */
       if ((h1 = atmtab[i]) != NULL) { /* There may be holes when doing GC */
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
         atmtab[i] = h2 = atom_gethash(new_table, 
                                       h1->key, 
                                       str,
@@ -491,7 +491,7 @@ intmach_t lookup_atom_idx(char *str) {
       }
 #else
       h1 = atmtab[i];
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
       atmtab[i] = h2 = atom_gethash(new_table, 
                                     h1->key, 
                                     str,
@@ -520,7 +520,7 @@ intmach_t lookup_atom_idx(char *str) {
                           size,
                           ciao_atoms);
     new_table->count = count;
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
     hnode = atom_gethash(new_table, (tagged_t)hashcode, str, atom_len);
 #else
     hnode = atom_gethash(new_table, (tagged_t)hashcode, str);
@@ -540,7 +540,7 @@ intmach_t lookup_atom_idx(char *str) {
     ciao_atoms->next_index = count;
 #endif
 
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
   hnode->value.atomp = new_atom_check(str, atom_len, count);
 #else
   hnode->value.atomp = new_atom_check(str, count);
@@ -688,7 +688,7 @@ static void classify_atom(atom_t *s) {
 #define MIN_MEM_CHUNK_SIZE 4096
 #define MAX(a, b) (a > b ? a : b)
 
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
 atom_t *new_atom_check(char *str,
                        unsigned int str_len,
                        unsigned int index)
@@ -699,7 +699,7 @@ atom_t *new_atom_check(char *str,
 {
   atom_t *s;
 
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
   int len = SIZEOF_FLEXIBLE_STRUCT(atom_t, char, str_len + 1);
 #else
   int len = SIZEOF_FLEXIBLE_STRUCT(atom_t, char, strlen(str) + 1);
@@ -716,7 +716,7 @@ atom_t *new_atom_check(char *str,
   prolog_chars += len;
   s->index = index;
   (void) strcpy(s->name, str);
-#if defined(USE_ATOM_LEN)
+#if defined(ABSMACH_OPT__atom_len)
   s->atom_len = str_len;
 #endif
   classify_atom(s);
