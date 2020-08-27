@@ -11,6 +11,21 @@ modules:
   - `ciaoengine.pl`: The main engine
   - `ciaoengine_doc.pl`: Documentation for `ciaoengine.pl`
 
+# Benchmarking
+
+Some engine performance benchmarks can be run (use the pipe for a
+short report) with:
+
+```
+ciao oc:tests mtsys ciao 2>&1 | grep -e "\(time\|name\)"
+```
+
+To see the performance of the `optim-comp` branch in bytecode
+mode use the following:
+```
+ciao oc:tests mtsys ciao2 2>&1 | grep -e "\(time\|name\)"
+```
+
 # TODO/Bugs/Issues
 
  - No initialization directive is executed in engine modules. Show
