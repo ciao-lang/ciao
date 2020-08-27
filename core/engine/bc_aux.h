@@ -1101,14 +1101,14 @@ CBOOL__PROTO(bu1_if, tagged_t x0)
 
 CBOOL__PROTO(metachoice)
 {
-  CBOOL__UnifyCons(ChoiceToInt(w->node),X(0));
+  CBOOL__UnifyCons(ChoiceToTagged(w->node),X(0));
   return TRUE;
 }
 
 CBOOL__PROTO(metacut)
 {
   DEREF(X(0),X(0));
-  w->node = ChoiceFromInt(X(0));
+  w->node = ChoiceFromTagged(X(0));
   SetShadowregs(w->node);
   /*  ConcChptCleanUp(TopConcChpt, w->node);*/
   PROFILE__HOOK_METACUT;

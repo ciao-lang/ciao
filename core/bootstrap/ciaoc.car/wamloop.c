@@ -1166,7 +1166,7 @@ goto w_neck_proceed;
 r_cutb_x:
 case CUTB_X:
 w->local_top = 0;
-w->next_node = ChoiceFromInt(Xb(BcP(f_x, 1)));
+w->next_node = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 PROFILE__HOOK_CUT;
 SetB(w->next_node);
@@ -1179,7 +1179,7 @@ goto ReadMode;
 r_cutb_x_neck:
 case CUTB_X_NECK:
 w->local_top = 0;
-w->next_node = ChoiceFromInt(Xb(BcP(f_x, 1)));
+w->next_node = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 P += FTYPE_size(f_x);
 goto r_cutb_neck;
@@ -1201,7 +1201,7 @@ P += 0;
 goto ReadMode;
 r_cutb_x_neck_proceed:
 case CUTB_X_NECK_PROCEED:
-w->next_node = ChoiceFromInt(Xb(BcP(f_x, 1)));
+w->next_node = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 goto r_cutb_neck_proceed;
 r_cutb_neck_proceed:
@@ -1221,7 +1221,7 @@ choice_overflow(Arg,CHOICEPAD);
 goto r_proceed;
 r_cute_x:
 case CUTE_X:
-w->next_node = ChoiceFromInt(Xb(BcP(f_x, 1)));
+w->next_node = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 w->local_top = E;
 PROFILE__HOOK_CUT;
@@ -1235,7 +1235,7 @@ P += FTYPE_size(f_x);
 goto ReadMode;
 r_cute_x_neck:
 case CUTE_X_NECK:
-w->next_node = ChoiceFromInt(Xb(BcP(f_x, 1)));
+w->next_node = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 P += FTYPE_size(f_x);
 goto r_cute_neck;
@@ -1257,7 +1257,7 @@ P += 0;
 goto ReadMode;
 r_cutf_x:
 case CUTF_X:
-w->next_node = ChoiceFromInt(Xb(BcP(f_x, 1)));
+w->next_node = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 P += FTYPE_size(f_x);
 goto r_cutf;
@@ -1275,7 +1275,7 @@ goto ReadMode;
 r_cut_y:
 case CUT_Y:
 RefStack(t1,&Yb(BcP(f_y, 1)));
-w->next_node = ChoiceFromInt(t1);
+w->next_node = ChoiceFromTagged(t1);
 PROFILE__HOOK_CUT;
 SetB(w->next_node);
 w->node = B;
@@ -1286,7 +1286,7 @@ SetE(w->frame);
 P += FTYPE_size(f_y);
 goto ReadMode;
 case CHOICE_X:
-Xb(BcP(f_x, 1)) = ChoiceToInt(w->next_node);
+Xb(BcP(f_x, 1)) = ChoiceToTagged(w->next_node);
 P += FTYPE_size(f_x);
 goto ReadMode;
 case CHOICE_YF:
@@ -1294,7 +1294,7 @@ ComputeE;
 goto r_choice_y;
 r_choice_y:
 case CHOICE_Y:
-Yb(BcP(f_y, 1)) = ChoiceToInt(w->next_node);
+Yb(BcP(f_y, 1)) = ChoiceToTagged(w->next_node);
 P += FTYPE_size(f_y);
 goto ReadMode;
 case KONTINUE:
@@ -3163,7 +3163,7 @@ case CUT_Y:
 StoreH;
 goto r_cut_y;
 case CHOICE_X:
-Xb(BcP(f_x, 1)) = ChoiceToInt(w->next_node);
+Xb(BcP(f_x, 1)) = ChoiceToTagged(w->next_node);
 P += FTYPE_size(f_x);
 goto WriteMode;
 case CHOICE_YF:
@@ -3171,7 +3171,7 @@ ComputeE;
 goto w_choice_y;
 w_choice_y:
 case CHOICE_Y:
-Yb(BcP(f_y, 1)) = ChoiceToInt(w->next_node);
+Yb(BcP(f_y, 1)) = ChoiceToTagged(w->next_node);
 P += FTYPE_size(f_y);
 goto WriteMode;
 w_kontinue:

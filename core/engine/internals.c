@@ -2374,7 +2374,7 @@ CBOOL__PROTO(prolog_show_nodes)
 {
   DEREF(X(0),X(0));
   DEREF(X(1),X(1));
-  show_nodes(w, ChoiceFromInt(X(0)), ChoiceFromInt(X(1)));
+  show_nodes(w, ChoiceFromTagged(X(0)), ChoiceFromTagged(X(1)));
   return TRUE;
 }
 
@@ -2388,7 +2388,7 @@ CBOOL__PROTO(prolog_show_all_nodes)
 CBOOL__PROTO(start_node)
 {
   DEREF(X(0),X(0));
-  CBOOL__UnifyCons(ChoiceToInt(InitialNode),X(0));
+  CBOOL__UnifyCons(ChoiceToTagged(InitialNode),X(0));
   return TRUE;
 }
 

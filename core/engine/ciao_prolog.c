@@ -943,7 +943,7 @@ ciao_bool ciao_is_address(ciao_ctx ctx, ciao_term term) {
 
 ciao_choice ciao_get_choice(ciao_ctx ctx) {
   worker_t *w = ctx->worker_registers;
-  return ChoiceToInt(w->node);
+  return ChoiceToTagged(w->node);
 }
 
 ciao_bool ciao_more_solutions(ciao_ctx ctx, ciao_choice choice) {
@@ -953,8 +953,8 @@ ciao_bool ciao_more_solutions(ciao_ctx ctx, ciao_choice choice) {
 void ciao_cut(ciao_ctx ctx, ciao_choice choice) {
   worker_t *w = ctx->worker_registers;
   if (!ciao_more_solutions(ctx, choice)) return;
-  w->next_node = ChoiceFromInt(choice); /* needed? */
-  w->node = ChoiceFromInt(choice);
+  w->next_node = ChoiceFromTagged(choice); /* needed? */
+  w->node = ChoiceFromTagged(choice);
   SetShadowregs(w->node);
   PROFILE__HOOK_CIAOCUT;
 }

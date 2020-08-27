@@ -2022,13 +2022,6 @@ CVOID__PROTO(create_wam_areas)
   i += j;
   Choice_End = Trail_Start = checkalloc_ARRAY(tagged_t, i);
   Choice_Start =  Trail_End = TrailOffset(Trail_Start, i);
-
-
- /*  Do not touch the (tagged_t) type casting! Or the emulator will break! */
-
-#if defined(USE_TAGGED_CHOICE_START)
-  Tagged_Choice_Start = (tagged_t *)((tagged_t)Choice_Start + TaggedZero);
-#endif
 }
 
 /* Cleanup after abort: shrink stacks to initial sizes. */
@@ -2053,10 +2046,6 @@ CVOID__PROTO(reinitialize_wam_areas)
   if ((j=TrailDifference(Trail_Start,Trail_End)) != i) {
     Choice_End = Trail_Start = checkrealloc_ARRAY(tagged_t, j, i, Trail_Start);
     Choice_Start = Trail_End = TrailOffset(Trail_Start,i);
-
-#if defined(USE_TAGGED_CHOICE_START)
-    Tagged_Choice_Start = (tagged_t *)((tagged_t)Choice_Start + TaggedZero);
-#endif
   }
 
   /* Create an expandable char array for loading po files */ 

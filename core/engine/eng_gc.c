@@ -1101,9 +1101,6 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
       Choice_Start = Trail_End = newtr+newcount;      /* new high bound */
       /* Do not take out (tagged_t) casting, or the engine will break!! */
 
-#if defined(USE_TAGGED_CHOICE_START)
-      Tagged_Choice_Start = (tagged_t *)((tagged_t)Choice_Start + TaggedZero);
-#endif
       {
         tagged_t *x;
         /* We have to relocate the concurrent topmost choicepoint */

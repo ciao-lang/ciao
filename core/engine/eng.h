@@ -369,12 +369,6 @@
 #define Choice_Start        w->choice_start
 
 
-#define USE_TAGGED_CHOICE_START
-
-#if defined(USE_TAGGED_CHOICE_START)
-#define Tagged_Choice_Start w->tagged_choice_start
-#endif
-
 #define Trail_Start         w->trail_start
 #define Trail_End           w->trail_end
 
@@ -1408,15 +1402,7 @@ struct worker_ {
   tagged_t *choice_end;
   tagged_t *choice_start;
 
-
-#if defined(USE_TAGGED_CHOICE_START)
-  tagged_t *tagged_choice_start;   /* Not used any more, but I can't just
-                                    remove it: the size of the WRB is
-                                    critical for the compiler and changing
-                                    it is a real hassle */
-#else
-  tagged_t *dummy;                           /* Use up the space, therefore */
-#endif    
+  tagged_t *dummy; /* TODO: size of WRB is hardwired, do not remove */
 
   tagged_t *trail_start;
   tagged_t *trail_end;
@@ -1589,13 +1575,8 @@ struct marker_ {
 #define ChoiceNext(P)           (*--(P))
 #define ChoicePush(P,X)         (*--(P) = (X))
 
-#if defined(USE_TAGGED_CHOICE_START)
-#define ChoiceFromInt(Y) (ChoiceCharOffset(Tagged_Choice_Start,Y))
-#define ChoiceToInt(Y)   (ChoiceCharDifference(Tagged_Choice_Start,Y))
-#else
-#define ChoiceFromInt(Y) ((node_t *)ChoiceOffset(Choice_Start,(GetSmall(Y))))
-#define ChoiceToInt(Y)   (MakeSmall(ChoiceDifference(Choice_Start,Y)))
-#endif
+#define ChoiceFromTagged(Y) ((node_t *)ChoiceOffset(Choice_Start,(GetSmall(Y))))
+#define ChoiceToTagged(Y)   (MakeSmall(ChoiceDifference(Choice_Start,Y)))
 
 #define RefHeap(To,From) \
 { To = *(From); }

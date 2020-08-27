@@ -1529,7 +1529,7 @@ get_nil_neck_proceed :-
 cutb_x :-
     "w->local_top" <- "0", % may get hole at top of local stack
     dec(op(f_x,"BcP(f_x, 1)"), A),
-    "w->next_node" <- call('ChoiceFromInt', [A]),
+    "w->next_node" <- call('ChoiceFromTagged', [A]),
     do_cut,
     dispatch("FTYPE_size(f_x)").
 
@@ -1538,7 +1538,7 @@ cutb_x :-
 cutb_x_neck :-
     "w->local_top" <- "0", % may get hole at top of local stack
     dec(op(f_x,"BcP(f_x, 1)"),A),
-    "w->next_node" <- call('ChoiceFromInt', [A]),
+    "w->next_node" <- call('ChoiceFromTagged', [A]),
     shift(f_x),
     goto_ins(cutb_neck).
 
@@ -1552,7 +1552,7 @@ cutb_neck :-
 :- ins_in_mode(cutb_x_neck_proceed, r).
 cutb_x_neck_proceed :-
     dec(op(f_x,"BcP(f_x, 1)"), A),
-    "w->next_node" <- call('ChoiceFromInt', [A]),
+    "w->next_node" <- call('ChoiceFromTagged', [A]),
     % shift(f_x)
     % w->local_top <- 0 % done by CODE_PROCEED
     goto_ins(cutb_neck_proceed).
@@ -1575,7 +1575,7 @@ do_cutb_neck :-
 :- ins_in_mode(cute_x, r).
 cute_x :-
     dec(op(f_x,"BcP(f_x, 1)"), A),
-    "w->next_node" <- call('ChoiceFromInt', [A]),
+    "w->next_node" <- call('ChoiceFromTagged', [A]),
     "w->local_top" <- "E", % w->local_top may be 0 here
     do_cut,
     call('SetE', ["w->local_top"]),
@@ -1585,7 +1585,7 @@ cute_x :-
 :- ins_in_mode(cute_x_neck, r).
 cute_x_neck :-
     dec(op(f_x,"BcP(f_x, 1)"),A),
-    "w->next_node" <- call('ChoiceFromInt', [A]),
+    "w->next_node" <- call('ChoiceFromTagged', [A]),
     shift(f_x),
     goto_ins(cute_neck).
 
@@ -1605,7 +1605,7 @@ cute_neck :-
 :- ins_in_mode(cutf_x, r).
 cutf_x :-
     dec(op(f_x,"BcP(f_x, 1)"),A),
-    "w->next_node" <- call('ChoiceFromInt', [A]),
+    "w->next_node" <- call('ChoiceFromTagged', [A]),
     shift(f_x),
     goto_ins(cutf).
 
@@ -1622,7 +1622,7 @@ cut_y :-
     dec(op(f_y,"BcP(f_y, 1)"), A),
     t1(T1),
     ref_stack(safe,T1,A),
-    "w->next_node" <- callexp('ChoiceFromInt', [T1]),
+    "w->next_node" <- callexp('ChoiceFromTagged', [T1]),
     do_cut,
     call('SetE', ["w->frame"]),
     dispatch("FTYPE_size(f_y)").
@@ -1630,7 +1630,7 @@ cut_y :-
 :- ins_op_format(choice_x, 219, [f_x]).
 choice_x :-
     dec(op(f_x,"BcP(f_x, 1)"), X),
-    X <- callexp('ChoiceToInt', ["w->next_node"]),
+    X <- callexp('ChoiceToTagged', ["w->next_node"]),
     dispatch("FTYPE_size(f_x)").
 
 :- ins_op_format(choice_yf, 220, [f_y]).
@@ -1641,7 +1641,7 @@ choice_yf :-
 :- ins_op_format(choice_y, 221, [f_y], [label(_)]).
 choice_y :-
     dec(op(f_y,"BcP(f_y, 1)"), Y),
-    Y <- callexp('ChoiceToInt', ["w->next_node"]),
+    Y <- callexp('ChoiceToTagged', ["w->next_node"]),
     dispatch("FTYPE_size(f_y)").
 
 :- ins_op_format(kontinue, 233, [], [label(w)]).
