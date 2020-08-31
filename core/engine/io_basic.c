@@ -1938,6 +1938,8 @@ CBOOL__PROTO(prolog_format_print_float) {
  * radix for some formats.
  */
 
+extern liveinfo_t prolog_format_print_integer__liveinfo;
+
 CBOOL__PROTO(prolog_format_print_integer)
 {
   char formatChar;
@@ -1956,10 +1958,12 @@ CBOOL__PROTO(prolog_format_print_integer)
   else
     base = 10;
 
-  if (IsFloat(X(1)))
-    Numstack_End = NULL,
-    X(1) = fu1_integer(Arg,X(1), NULL);
-  number_to_string(Arg, X(1), base);
+  if (IsFloat(X(1))) { /* TODO: fail? format.pl ensures that this never happens */
+    Numstack_End = NULL;
+    w->liveinfo = prolog_format_print_integer__liveinfo;
+    X(1) = CFUN__EVAL(fu1_integer, X(1));
+  }
+  CVOID__CALL(number_to_string, X(1), base);
   
   if ((formatChar=='d' || formatChar=='D') && precision > 0)
     {

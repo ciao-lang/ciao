@@ -772,8 +772,7 @@ CBOOL__PROTO(prolog_unifyOC) {
 /* ------------------------------------------------------------------------- */
 
 /*
-  CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex, bcp_t liveinfo)
-{  
+CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {  
   ERR__FUNCTOR("term_basic:arg", 3);
   CIAO_REG_1(tagged_t, t0);
   intmach_t i;
@@ -820,8 +819,7 @@ CBOOL__PROTO(prolog_unifyOC) {
 */
 
 // Old code without exception 
-CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex, bcp_t liveinfo)
-{
+CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
   CIAO_REG_1(tagged_t, t0);
   
   DerefSwitch(number,t0,{goto barf1;});
@@ -863,8 +861,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex, bcp_t liveinfo
 CBOOL__PROTO(bu3_functor, 
              tagged_t term,
              tagged_t name,
-             tagged_t arity)
-{
+             tagged_t arity) {
   ERR__FUNCTOR("term_basic:functor", 3);
   tagged_t t0;
 
@@ -929,8 +926,7 @@ CBOOL__PROTO(bu3_functor,
 CBOOL__PROTO(bu3_functor, 
              tagged_t term,
              tagged_t name,
-             tagged_t arity)
-{
+             tagged_t arity) {
   tagged_t t0;
   
   DerefSwitch(term,t0,{goto construct;});

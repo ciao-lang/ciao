@@ -212,7 +212,6 @@ bignum_size_t bn_add(bignum_t *x,
 }
 
 bignum_size_t bn_incr(bignum_t *x,
-                      bignum_t *ignore,
                       bignum_t *z,
                       bignum_t *zmax) {
   int i, k;
@@ -234,7 +233,6 @@ bignum_size_t bn_incr(bignum_t *x,
 }
 
 bignum_size_t bn_plus(bignum_t *x,
-                      bignum_t *ignore,
                       bignum_t *z,
                       bignum_t *zmax) {
   int xlen = BignumLength(x);
@@ -326,7 +324,6 @@ bignum_size_t bn_subtract(bignum_t *x,
 }
 
 bignum_size_t bn_decr(bignum_t *x,
-                      bignum_t *ignore,
                       bignum_t *z,
                       bignum_t *zmax) {
   int i, k;
@@ -348,7 +345,6 @@ bignum_size_t bn_decr(bignum_t *x,
 }
 
 bignum_size_t bn_minus(bignum_t *x,
-                       bignum_t *ignore,
                        bignum_t *z,
                        bignum_t *zmax) {
   int xlen = BignumLength(x);
@@ -483,7 +479,6 @@ bignum_size_t bn_xor(bignum_t *x,
 }
 
 bignum_size_t bn_not(bignum_t *x,
-                     bignum_t *y,
                      bignum_t *z,
                      bignum_t *zmax) {
   int i;
@@ -957,7 +952,6 @@ bignum_size_t bn_quotient_remainder_quot_not_wanted(bignum_t *x,
 #define FLTBITS 64
 
 bignum_size_t bn_from_float(bignum_t *x,
-                            bignum_t *ignore,
                             bignum_t *z,
                             bignum_t *zmax) {
   flt64_t f;

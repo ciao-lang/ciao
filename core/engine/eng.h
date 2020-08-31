@@ -799,9 +799,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define MakeBlob(Ptr) make_large(Arg,(tagged_t *)(Ptr))
 #define IntmachToTagged(X) (IntIsSmall(X) ? MakeSmall(X) : make_integer(Arg,X))
 #define IntvalToTagged(X) (IntIsSmall(X) ? MakeSmall(X) : make_integer(Arg,X))
-#define IntvalToTaggedCheck(X) make_integer_check(Arg,(X),liveinfo) // TODO: benchmark (IntIsSmall(X) ? MakeSmall(X) : make_integer_check(ARG,X,liveinfo))
 #define BoxFloat(X) make_float(Arg,(X))
-#define BoxFloatCheck(X) make_float_check(Arg,(X),liveinfo)
 #define MakeAtom(X) TagIndex(ATM,X)
 #define GET_ATOM(X) MakeAtom(lookup_atom_idx(X))
 
@@ -829,10 +827,8 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 flt64_t get_float(tagged_t t);
 intmach_t get_integer(tagged_t t);
 CFUN__PROTO(make_float, tagged_t, flt64_t i);
-CFUN__PROTO(make_float_check, tagged_t, flt64_t i, bcp_t liveinfo);
 /* TODO: rename to IntmachToTagged, etc. */
 CFUN__PROTO(make_integer, tagged_t, intmach_t i);
-CFUN__PROTO(make_integer_check, tagged_t, intmach_t i, bcp_t liveinfo);
 CFUN__PROTO(make_large, tagged_t, tagged_t *ptr);
 CFUN__PROTO(make_structure, tagged_t, tagged_t functor);
 
@@ -1402,7 +1398,8 @@ struct worker_ {
   tagged_t *choice_end;
   tagged_t *choice_start;
 
-  tagged_t *dummy; /* TODO: size of WRB is hardwired, do not remove */
+  //tagged_t *dummy; /* TODO: size of WRB is hardwired, do not remove */
+  bcp_t liveinfo;
 
   tagged_t *trail_start;
   tagged_t *trail_end;

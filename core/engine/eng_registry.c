@@ -1034,7 +1034,7 @@ CBOOL__PROTO(bu2_lexgt, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_lexle, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_lexlt, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_lexne, tagged_t x0, tagged_t x1);
-CFUN__PROTO(fu2_compare, tagged_t, tagged_t x1, tagged_t x2, bcp_t liveinfo);
+CFUN__PROTO(fu2_compare, tagged_t, tagged_t x1, tagged_t x2);
 /* term_typing.c */
 CBOOL__PROTO(bu1_atom, tagged_t x0);
 CBOOL__PROTO(bu1_atomic, tagged_t x0);
@@ -1047,7 +1047,7 @@ CBOOL__PROTO(bu1_var, tagged_t x0);
 CFUN__PROTO(fu1_type, tagged_t, tagged_t t0);
 CBOOL__PROTO(cground);
 /* term_basic.c */
-CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex, bcp_t liveinfo);
+CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex);
 CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity);
 CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list);
 /* debugger_support.c */
@@ -1769,6 +1769,8 @@ CVOID__PROTO(local_init_each_time)
   Arg->next_insn = bootcode;
   Stop_This_Goal(Arg) = FALSE;
   Heap_Warn_Soft = Heap_Warn;
+
+  w->liveinfo = NULL;
 
 #if defined(DEBUG)
   if (debug_threads)

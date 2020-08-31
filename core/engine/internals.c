@@ -395,21 +395,15 @@ static CVOID__PROTO(numstack_overflow)
   Numstack_End = Numstack_Last->end;
 }
 
-CFUN__PROTO(bn_call,
-            tagged_t,
-            bn_fun_t f,
-            tagged_t x, tagged_t y,
-            bcp_t liveinfo)
-{
+#define ENSURE_LIVEINFO \
+  ({if (w->liveinfo == NULL) { fprintf(stderr, "PANIC: null liveinfo\n"); _EXIT(-1);  }})
+
+CFUN__PROTO(bn_call2, tagged_t, bn_fun2_t f, tagged_t x, tagged_t y) {
   bignum_size_t req;
   tagged_t xx[2], yy[2];
 
-  if (f != bn_from_float) {
-    /* bn_from_float is the unique call that accepts floats,
-       everything else must be converted to bignums */
-    if (IsFloat(x) || IsFloat(y)) {
-      SERIOUS_FAULT("bn_call: called with floats");
-    }
+  if (IsFloat(x) || IsFloat(y)) {
+    SERIOUS_FAULT("bn_call2: called with floats");
   }
 
   bignum_t *bx = (bignum_t *)0;
@@ -431,6 +425,8 @@ CFUN__PROTO(bn_call,
   }
 
   tagged_t r;
+  bcp_t liveinfo = w->liveinfo;
+  ENSURE_LIVEINFO;
   if (liveinfo) {
     req = (*f)(bx, by, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo)));
     if (req != 0) {
@@ -441,7 +437,7 @@ CFUN__PROTO(bn_call,
       if ((*f)(bx, by, (bignum_t *)Numstack_Top, (bignum_t *)Numstack_End))
         SERIOUS_FAULT("miscalculated size of bignum");
       explicit_heap_overflow(Arg,req+LIVEINFO__HEAP(liveinfo), (short)LIVEINFO__ARITY(liveinfo));
-      if (bn_plus((bignum_t *)Numstack_Top, (bignum_t *)0, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo))))
+      if (bn_plus((bignum_t *)Numstack_Top, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo))))
         SERIOUS_FAULT("miscalculated size of bignum");
     }
     FinishInt(w->global_top, r);
@@ -454,15 +450,66 @@ CFUN__PROTO(bn_call,
   return r;
 }
 
+CFUN__PROTO(bn_call1,
+            tagged_t,
+            bn_fun1_t f,
+            tagged_t x) {
+  bignum_size_t req;
+  tagged_t xx[2];
+
+  if (f != bn_from_float) {
+    /* bn_from_float is the unique call that accepts floats,
+       everything else must be converted to bignums */
+    if (IsFloat(x)) {
+      SERIOUS_FAULT("bn_call1: called with floats");
+    }
+  }
+
+  bignum_t *bx = (bignum_t *)0;
+  if (TaggedIsSTR(x)) {
+    bx = TaggedToBignum(x);
+  } else if (TaggedIsSmall(x)) {
+    xx[0] = MakeFunctorFix;
+    xx[1] = GetSmall(x);
+    bx = (bignum_t *)xx;
+  }
+
+  tagged_t r;
+  bcp_t liveinfo = w->liveinfo;
+  ENSURE_LIVEINFO;
+  if (liveinfo) {
+    req = (*f)(bx, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo)));
+    if (req != 0) {
+      /* TODO: why is the Numstack used here? */
+      while (Numstack_Top+req > Numstack_End) {
+        numstack_overflow(Arg);
+      }
+      if ((*f)(bx, (bignum_t *)Numstack_Top, (bignum_t *)Numstack_End))
+        SERIOUS_FAULT("miscalculated size of bignum");
+      explicit_heap_overflow(Arg,req+LIVEINFO__HEAP(liveinfo), (short)LIVEINFO__ARITY(liveinfo));
+      if (bn_plus((bignum_t *)Numstack_Top, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo))))
+        SERIOUS_FAULT("miscalculated size of bignum");
+    }
+    FinishInt(w->global_top, r);
+  } else {
+    while (!Numstack_End || (*f)(bx, (bignum_t *)Numstack_Top, (bignum_t *)Numstack_End)) {
+      numstack_overflow(Arg);
+    }
+    FinishInt(Numstack_Top, r);
+  }
+  return r;
+}
+
 CFUN__PROTO(make_integer_check,
             tagged_t,
-            intmach_t i,
-            bcp_t liveinfo)
+            intmach_t i)
 {
   tagged_t *h;
 
   if (IntIsSmall(i)) return MakeSmall(i);
 
+  bcp_t liveinfo = w->liveinfo;
+  ENSURE_LIVEINFO;
   if (liveinfo) { /* compute final value */
     h = w->global_top;
     if (HeapDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(liveinfo)+3) {
@@ -485,16 +532,15 @@ CFUN__PROTO(make_integer_check,
   return Tag(STR, h-3);
 }
 
-CFUN__PROTO(make_float_check, tagged_t,
-            flt64_t i,
-            bcp_t liveinfo)
-{
+CFUN__PROTO(make_float_check, tagged_t, flt64_t i) {
   tagged_t *h;
   union {
     flt64_t i;
     tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
   } u;
 
+  bcp_t liveinfo = w->liveinfo;
+  ENSURE_LIVEINFO;
   if (liveinfo) { /* compute final value */
     h = w->global_top;
     if (HeapDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(liveinfo)+4) {

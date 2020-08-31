@@ -1410,7 +1410,8 @@ goto ReadMode;
 r_function_1q:
 case FUNCTION_1Q:
 Numstack_End = NULL;
-if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)((ctagged1l_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 3)),&BcP(f_l, 6)))) {
+w->liveinfo = &BcP(f_l, 6);
+if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)((ctagged1l_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 3))))) {
 goto fail;
                 }
 P += (FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
@@ -1418,7 +1419,8 @@ goto ReadMode;
 r_function_1:
 case FUNCTION_1:
 Numstack_End = NULL;
-if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)((ctagged1l_t)BcP(f_C, 3))(Arg,Xb(BcP(f_x, 2)),&BcP(f_l, 5)))) {
+w->liveinfo = &BcP(f_l, 5);
+if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)((ctagged1l_t)BcP(f_C, 3))(Arg,Xb(BcP(f_x, 2))))) {
 goto fail;
                 }
 P += (FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
@@ -1426,7 +1428,8 @@ goto ReadMode;
 r_function_2q:
 case FUNCTION_2Q:
 Numstack_End = NULL;
-if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)((ctagged2l_t)BcP(f_C, 5))(Arg,Xb(BcP(f_x, 3)),Xb(BcP(f_x, 4)),&BcP(f_l, 7)))) {
+w->liveinfo = &BcP(f_l, 7);
+if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)((ctagged2l_t)BcP(f_C, 5))(Arg,Xb(BcP(f_x, 3)),Xb(BcP(f_x, 4))))) {
 goto fail;
                 }
 P += (FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
@@ -1434,7 +1437,8 @@ goto ReadMode;
 r_function_2:
 case FUNCTION_2:
 Numstack_End = NULL;
-if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)((ctagged2l_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3)),&BcP(f_l, 6)))) {
+w->liveinfo = &BcP(f_l, 6);
+if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)((ctagged2l_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3))))) {
 goto fail;
                 }
 P += (FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);

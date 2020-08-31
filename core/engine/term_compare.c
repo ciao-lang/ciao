@@ -49,8 +49,7 @@ CBOOL__PROTO(bu2_lexge, tagged_t x0, tagged_t x1)
   return (x0==x1 || compare__1(Arg,x0,x1)>=0);
 }
 
-CFUN__PROTO(fu2_compare, tagged_t, tagged_t x1, tagged_t x2, bcp_t liveinfo)
-{
+CFUN__PROTO(fu2_compare, tagged_t, tagged_t x1, tagged_t x2) {
   int i;
   
   if (x1==x2)

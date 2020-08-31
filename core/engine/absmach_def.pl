@@ -1871,7 +1871,8 @@ function_1q :-
     "Numstack_End" <- "NULL",
     dec(op(f_x,"BcP(f_x, 2)"), A),
     dec(op(f_x,"BcP(f_x, 3)"), B),
-    cfun_semidet(A, callexp('((ctagged1l_t)BcP(f_C, 4))', ["Arg",B,["&","BcP(f_l, 6)"]])),
+    "w->liveinfo" <- ["&","BcP(f_l, 6)"],
+    cfun_semidet(A, callexp('((ctagged1l_t)BcP(f_C, 4))', ["Arg",B])),
     dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
 
 :- ins_op_format(function_1, 223, [f_x,f_x,f_C,f_l,f_i], [label(r)]).
@@ -1880,7 +1881,8 @@ function_1 :-
     "Numstack_End" <- "NULL",
     dec(op(f_x,"BcP(f_x, 1)"), A),
     dec(op(f_x,"BcP(f_x, 2)"), B),
-    cfun_semidet(A, callexp('((ctagged1l_t)BcP(f_C, 3))', ["Arg",B,["&","BcP(f_l, 5)"]])),
+    "w->liveinfo" <- ["&","BcP(f_l, 5)"],
+    cfun_semidet(A, callexp('((ctagged1l_t)BcP(f_C, 3))', ["Arg",B])),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
 
 :- ins_op_format(function_2q, 224, [f_Q,f_x,f_x,f_x,f_C,f_l,f_i], [label(r)]).
@@ -1890,7 +1892,8 @@ function_2q :-
     dec(op(f_x,"BcP(f_x, 2)"), A),
     dec(op(f_x,"BcP(f_x, 3)"), B),
     dec(op(f_x,"BcP(f_x, 4)"), C),
-    cfun_semidet(A, callexp('((ctagged2l_t)BcP(f_C, 5))', ["Arg",B,C,["&","BcP(f_l, 7)"]])),
+    "w->liveinfo" <- ["&","BcP(f_l, 7)"],
+    cfun_semidet(A, callexp('((ctagged2l_t)BcP(f_C, 5))', ["Arg",B,C])),
     dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
 
 :- ins_op_format(function_2, 225, [f_x,f_x,f_x,f_C,f_l,f_i], [label(r)]).
@@ -1900,7 +1903,8 @@ function_2 :-
     dec(op(f_x,"BcP(f_x, 1)"), A),
     dec(op(f_x,"BcP(f_x, 2)"), B),
     dec(op(f_x,"BcP(f_x, 3)"), C),
-    cfun_semidet(A, callexp('((ctagged2l_t)BcP(f_C, 4))', ["Arg",B,C,["&","BcP(f_l, 6)"]])),
+    "w->liveinfo" <- ["&","BcP(f_l, 6)"],
+    cfun_semidet(A, callexp('((ctagged2l_t)BcP(f_C, 4))', ["Arg",B,C])),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
 
 :- ins_op_format(builtin_1q, 226, [f_Q,f_x,f_C], [label(r)]).

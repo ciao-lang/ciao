@@ -66,6 +66,7 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
   tagged_t t, u;
   void *proc;
 
+  /* TODO: this do not store temporaries in Numstack now! */
  restart:
   switch (TagOf(v))
     {
@@ -92,11 +93,11 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
         switch (Arity(t)) {
         case 1:
           RefArg(t,v,1);
-          CFUN__LASTCALL(((ctagged1l_t)proc),t,NULL);
+          CFUN__LASTCALL(((ctagged1l_t)proc),t);
         case 2:
           RefArg(t,v,1);
           RefArg(u,v,2);
-          CFUN__LASTCALL(((ctagged2l_t)proc),t,u,NULL);
+          CFUN__LASTCALL(((ctagged2l_t)proc),t,u);
         }
       }
 
@@ -140,26 +141,36 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
 
 /* --------------------------------------------------------------------------- */
 
+#define ENSURE_LIVEINFO \
+  ({if (w->liveinfo == NULL) { fprintf(stderr, "PANIC: null liveinfo\n"); _EXIT(-1);  }})
+
+CFUN__PROTO(make_integer_check, tagged_t, intmach_t i);
+CFUN__PROTO(make_float_check, tagged_t, flt64_t i);
+#define IntvalToTaggedCheck(X) make_integer_check(Arg,(X)) // TODO: benchmark (IntIsSmall(X) ? MakeSmall(X) : make_integer_check(ARG,X))
+#define BoxFloatCheck(X) make_float_check(Arg,(X))
+
 /* NOTE about fu?_* functios:
 
     - Resetting Numstack_End = NULL must be done from outside
       (otherwise temporaries for 'evaluate' are lost)
 
-    - If liveinfo==NULL, then we use the Numstack temporary area.
-    - If liveinfo!=NULL some functions call
-      CFUN__EVAL(bn_call,bn_plus,t,0,liveinfo) to make sure that the
+    - If w->liveinfo==NULL, then we use the Numstack temporary area.
+    - If w->liveinfo!=NULL some functions call
+      CFUN__EVAL(bn_call1,bn_plus,t) to make sure that the
       large number is copied to the heap from the temporary area.
 */ 
 
 /* TODO: Do a more direct blob copy */
 
 /* Copy bignum to heap if needed */
-static inline CFUN__PROTO(globalize_bn, tagged_t, tagged_t t, bcp_t liveinfo) {
+static inline CFUN__PROTO(globalize_bn, tagged_t, tagged_t t) {
+  bcp_t liveinfo = w->liveinfo;
+  ENSURE_LIVEINFO;
   if (liveinfo==NULL) CFUN__PROCEED(t);
   if (IsFloat(t)) {
     CFUN__PROCEED(BoxFloatCheck(TaggedToFloat(t)));
   } else {
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_plus,t,0, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call1,bn_plus,t));
   }
 }
 
@@ -302,7 +313,7 @@ CBOOL__PROTO(bu2_numge, tagged_t x0, tagged_t x1) {
 
 /* --------------------------------------------------------------------------- */
 
-CFUN__PROTO(fu1_minus, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_minus, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$-", 2);
   tagged_t t;
   
@@ -317,21 +328,21 @@ CFUN__PROTO(fu1_minus, tagged_t, tagged_t x0, bcp_t liveinfo) {
   if (IsFloat(t)) {
     CFUN__PROCEED(BoxFloatCheck(-TaggedToFloat(t)));
   } else {
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_minus,t,0, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call1,bn_minus,t));
   }
 }
 
-CFUN__PROTO(fu1_plus, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_plus, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$+", 2);
   tagged_t t;
 
   t=x0; NDEREF(t, 0);
   if (TaggedIsSmall(t)) CFUN__PROCEED(t);
   /* (identity function) */
-  CFUN__PROCEED(CFUN__EVAL(globalize_bn, t, liveinfo));
+  CFUN__PROCEED(CFUN__EVAL(globalize_bn, t));
 }
 
-CFUN__PROTO(fu1_integer, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_integer, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$integer", 2);
   tagged_t t;
 
@@ -341,14 +352,14 @@ CFUN__PROTO(fu1_integer, tagged_t, tagged_t x0, bcp_t liveinfo) {
     if (!float_is_finite(get_float(t))) {
       BUILTIN_ERROR(REPRESENTATION_ERROR(NAN_OR_INF_TO_INTEGER), t, 1);
     }
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_from_float,t,0, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call1,bn_from_float,t));
   } else {
     /* (identity function) */
-    CFUN__PROCEED(CFUN__EVAL(globalize_bn, t, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(globalize_bn, t));
   }
 }
 
-CFUN__PROTO(fu1_float, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_float, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$float", 2);
   tagged_t t;
 
@@ -356,13 +367,13 @@ CFUN__PROTO(fu1_float, tagged_t, tagged_t x0, bcp_t liveinfo) {
 
   if (IsFloat(t)) {
     /* (identity function) */
-    CFUN__PROCEED(CFUN__EVAL(globalize_bn, t, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(globalize_bn, t));
   } else {
     CFUN__PROCEED(BoxFloatCheck(TaggedToFloat(t)));
   }
 }
 
-CFUN__PROTO(fu1_add1, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_add1, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$++", 2);
   tagged_t t;
 
@@ -376,11 +387,11 @@ CFUN__PROTO(fu1_add1, tagged_t, tagged_t x0, bcp_t liveinfo) {
   } else if (IsFloat(t)) {
     CFUN__PROCEED(BoxFloatCheck(TaggedToFloat(t) + 1.0));
   } else {
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_incr,t,0, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call1,bn_incr,t));
   }
 }
 
-CFUN__PROTO(fu1_sub1, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_sub1, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$--", 2);
   tagged_t t;
 
@@ -394,13 +405,13 @@ CFUN__PROTO(fu1_sub1, tagged_t, tagged_t x0, bcp_t liveinfo) {
   } else if (IsFloat(t)) {
     CFUN__PROCEED(BoxFloatCheck(TaggedToFloat(t) - 1.0));
   } else {
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_decr,t,0, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call1,bn_decr,t));
   }
 }
 
                                 /* binary functions */
 
-CFUN__PROTO(fu2_plus, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_plus, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$+", 3);
   tagged_t t,u;
 
@@ -416,11 +427,11 @@ CFUN__PROTO(fu2_plus, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
   } else if (IsFloat(t) || IsFloat(u)) {
     CFUN__PROCEED(BoxFloatCheck(TaggedToFloat(t) + TaggedToFloat(u)));
   } else {
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_add,t,u, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call2,bn_add,t,u));
   }
 }
 
-CFUN__PROTO(fu2_minus, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_minus, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$-", 3);
   tagged_t t,u;
 
@@ -436,11 +447,11 @@ CFUN__PROTO(fu2_minus, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
   } else if (IsFloat(t) || IsFloat(u)) {
     CFUN__PROCEED(BoxFloatCheck(TaggedToFloat(t) - TaggedToFloat(u)));
   } else {
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_subtract,t,u, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call2,bn_subtract,t,u));
   }
 }
 
-CFUN__PROTO(fu2_times, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_times, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$*", 3);
   tagged_t t,u;
 
@@ -462,11 +473,11 @@ CFUN__PROTO(fu2_times, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
   if (IsFloat(t) || IsFloat(u)) {
     CFUN__PROCEED(BoxFloatCheck(TaggedToFloat(t) * TaggedToFloat(u)));
   } else {
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_multiply,t,u, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call2,bn_multiply,t,u));
   }
 }
 
-CFUN__PROTO(fu2_fdivide, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_fdivide, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$/", 3);
   tagged_t t,u;
 
@@ -475,7 +486,7 @@ CFUN__PROTO(fu2_fdivide, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
   CFUN__PROCEED(BoxFloatCheck(TaggedToFloat(t)/TaggedToFloat(u)));
 }
 
-CFUN__PROTO(fu2_idivide, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_idivide, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$//", 3);
   tagged_t t,u;
 
@@ -489,10 +500,10 @@ CFUN__PROTO(fu2_idivide, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
   }
 
   /*bn_quotient_wanted = TRUE;*/
-  CFUN__PROCEED(CFUN__EVAL(bn_call,bn_quotient_remainder_quot_wanted,t,u, liveinfo));
+  CFUN__PROCEED(CFUN__EVAL(bn_call2,bn_quotient_remainder_quot_wanted,t,u));
 }
 
-CFUN__PROTO(fu2_rem, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_rem, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$rem", 3);
   tagged_t t,u;
 
@@ -506,10 +517,10 @@ CFUN__PROTO(fu2_rem, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
   }
 
   /*bn_quotient_wanted = FALSE;*/
-  CFUN__PROCEED(CFUN__EVAL(bn_call,bn_quotient_remainder_quot_not_wanted,t,u, liveinfo));
+  CFUN__PROCEED(CFUN__EVAL(bn_call2,bn_quotient_remainder_quot_not_wanted,t,u));
 }
 
-CFUN__PROTO(fu2_mod, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_mod, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$mod", 3);
   intmach_t rem, denom;
   tagged_t T_rem;
@@ -528,14 +539,14 @@ CFUN__PROTO(fu2_mod, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
                   rem+denom : rem ) + TaggedZero);
   } else {
     /*bn_quotient_wanted = FALSE;*/
-    T_rem = CFUN__EVAL(bn_call,bn_quotient_remainder_quot_not_wanted,t,u, liveinfo);
+    T_rem = CFUN__EVAL(bn_call2,bn_quotient_remainder_quot_not_wanted,t,u);
     CFUN__PROCEED(T_rem != TaggedZero &&
-                  CFUN__EVAL(fu1_sign,u, liveinfo) != CFUN__EVAL(fu1_sign,T_rem, liveinfo)
-                  ? CFUN__EVAL(bn_call,bn_add,T_rem,u, liveinfo) : T_rem);
+                  CFUN__EVAL(fu1_sign,u) != CFUN__EVAL(fu1_sign,T_rem)
+                  ? CFUN__EVAL(bn_call2,bn_add,T_rem,u) : T_rem);
   }
 }
 
-CFUN__PROTO(fu1_abs, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_abs, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$abs", 2);
   flt64_t f;
   tagged_t t;
@@ -553,11 +564,11 @@ CFUN__PROTO(fu1_abs, tagged_t, tagged_t x0, bcp_t liveinfo) {
     f = TaggedToFloat(t);
     CFUN__PROCEED(f < 0.0 ? BoxFloatCheck(-f) : t);
   } else {
-    CFUN__PROCEED(!bn_positive(TaggedToBignum(t)) ? CFUN__EVAL(bn_call,bn_minus,t,0, liveinfo) : t);
+    CFUN__PROCEED(!bn_positive(TaggedToBignum(t)) ? CFUN__EVAL(bn_call1,bn_minus,t) : t);
   }
 }
 
-CFUN__PROTO(fu1_sign, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_sign, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$sign", 2);
   flt64_t f;
   tagged_t t;
@@ -578,7 +589,7 @@ CFUN__PROTO(fu1_sign, tagged_t, tagged_t x0, bcp_t liveinfo) {
   }
 }
 
-CFUN__PROTO(fu1_not, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_not, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$\\", 2);
   tagged_t t;
 
@@ -586,11 +597,11 @@ CFUN__PROTO(fu1_not, tagged_t, tagged_t x0, bcp_t liveinfo) {
   if (TaggedIsSmall(t)) {
     CFUN__PROCEED(t^(QMask-MakeSmallDiff(1)));
   } else {
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_not,t,0, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call1,bn_not,t));
   }
 }
 
-CFUN__PROTO(fu2_xor, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_xor, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$#", 3);
   tagged_t t,u;
 
@@ -599,11 +610,11 @@ CFUN__PROTO(fu2_xor, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
   if (TaggedIsSmall(t) && TaggedIsSmall(u)) {
     CFUN__PROCEED(t^u^TaggedZero);
   } else {
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_xor,t,u, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call2,bn_xor,t,u));
   }
 }
 
-CFUN__PROTO(fu2_and, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_and, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$/\\", 3);
   tagged_t t,u;
 
@@ -612,11 +623,11 @@ CFUN__PROTO(fu2_and, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
   if (TaggedIsSmall(t) && TaggedIsSmall(u)) {
     CFUN__PROCEED((t^ZMask)&(u^ZMask))^ZMask;
   } else {
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_and,t,u, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call2,bn_and,t,u));
   }
 }
 
-CFUN__PROTO(fu2_or, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_or, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$\\/", 3);
   tagged_t t,u;
 
@@ -625,11 +636,11 @@ CFUN__PROTO(fu2_or, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
   if (TaggedIsSmall(t) && TaggedIsSmall(u)) {
     CFUN__PROCEED((t^ZMask)|(u^ZMask))^ZMask;
   } else {
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_or,t,u, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call2,bn_or,t,u));
   }
 }
 
-static CFUN__PROTO(lsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liveinfo) {
+static CFUN__PROTO(lsh_internal, tagged_t, tagged_t t, intmach_t dist) {
   tagged_t u;
   
   if (TaggedIsSmall(t)) {
@@ -664,10 +675,10 @@ static CFUN__PROTO(lsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liv
     */
   }
 
-  CFUN__PROCEED(CFUN__EVAL(bn_call, bn_lshift, t, IntvalToTagged(dist), liveinfo));
+  CFUN__PROCEED(CFUN__EVAL(bn_call2, bn_lshift, t, IntvalToTagged(dist)));
 }
 
-static CFUN__PROTO(rsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liveinfo) {
+static CFUN__PROTO(rsh_internal, tagged_t, tagged_t t, intmach_t dist) {
   if (TaggedIsSmall(t)) {
     if (dist>=tagged__num_size) {
       CFUN__PROCEED(MakeSmall((t>=TaggedZero)-1));
@@ -676,7 +687,7 @@ static CFUN__PROTO(rsh_internal, tagged_t, tagged_t t, intmach_t dist, bcp_t liv
     }
   }
 
-  CFUN__PROCEED(CFUN__EVAL(bn_call, bn_rshift, t, IntvalToTagged(dist), liveinfo));
+  CFUN__PROCEED(CFUN__EVAL(bn_call2, bn_rshift, t, IntvalToTagged(dist)));
 }
 
 /* pre: t is an integer */
@@ -696,7 +707,7 @@ static inline bool_t int_is_nonneg(tagged_t t) {
    shifting to the right any number by more than 2^INTMACH_MAX returns
    0.
 */
-CFUN__PROTO(fu2_lsh, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_lsh, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$<<", 3);
   intmach_t dist;
   tagged_t t,u;
@@ -713,7 +724,7 @@ CFUN__PROTO(fu2_lsh, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
       CFUN__PROCEED(TaggedZero);
     } else {
       /* abs(u) =< 2^INTMACH_MIN */
-      CFUN__PROCEED(dist<0 ? CFUN__EVAL(rsh_internal,t,-dist, liveinfo) : CFUN__EVAL(lsh_internal,t,dist, liveinfo));
+      CFUN__PROCEED(dist<0 ? CFUN__EVAL(rsh_internal,t,-dist) : CFUN__EVAL(lsh_internal,t,dist));
     }
   } else if (bn_positive(TaggedToBignum(u)) && t != TaggedZero) {
     /* u > 2^INTMACH_MAX */
@@ -725,7 +736,7 @@ CFUN__PROTO(fu2_lsh, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
   }  
 }
 
-CFUN__PROTO(fu2_rsh, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_rsh, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$>>", 3);
   intmach_t dist;
   tagged_t t,u;
@@ -742,7 +753,7 @@ CFUN__PROTO(fu2_rsh, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
       BUILTIN_ERROR(RESOURCE_ERROR(R_STACK), u, 2); 
     } else {
       /* abs(u) =< 2^INTMACH_MIN */
-      CFUN__PROCEED(dist<0 ? CFUN__EVAL(lsh_internal,t,-dist, liveinfo) : CFUN__EVAL(rsh_internal,t,dist, liveinfo));
+      CFUN__PROCEED(dist<0 ? CFUN__EVAL(lsh_internal,t,-dist) : CFUN__EVAL(rsh_internal,t,dist));
     }
   } else if (bn_positive(TaggedToBignum(u)) || t == TaggedZero) {
     /* u > 2^INTMACH_MAX */
@@ -761,11 +772,11 @@ CFUN__PROTO(fu2_rsh, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
     - The arithm. functions (via is/2,</2,...) apply NDEREF to their
       args which calls evaluate which, when it sees terms, calls the
       corresponding function ( max arity = 2). Eval calls this
-      functions with liveinfo==NULL which means that numstack_end must
+      functions with w->liveinfo==NULL which means that numstack_end must
       not be NULL (BoxFloatCheck, IntvalToTaggedCheck)
 */
 
-CFUN__PROTO(fu2_gcd, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_gcd, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$gcd", 3);
   tagged_t u,v;
 
@@ -779,7 +790,7 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
                         : TaggedZero-(u-TaggedZero));
     }
   } else if (!bn_positive(TaggedToBignum(u))) {
-    u = CFUN__EVAL(bn_call,bn_minus,u,0, liveinfo);
+    u = CFUN__EVAL(bn_call1,bn_minus,u);
   }
 
   v=x1; NDEREF_I(v, 1);
@@ -790,7 +801,7 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
                         : TaggedZero-(v-TaggedZero));
     }
   } else if (!bn_positive(TaggedToBignum(v))) {
-    v = CFUN__EVAL(bn_call,bn_minus,v,0, liveinfo);
+    v = CFUN__EVAL(bn_call1,bn_minus,v);
   }
                                 
   if (u==TaggedZero) CFUN__PROCEED(v);
@@ -809,28 +820,27 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
       }
     }
   case 1: /* small x big */
-    v = CFUN__EVAL(bn_call,bn_quotient_remainder_quot_not_wanted,v,u, liveinfo);
+    v = CFUN__EVAL(bn_call2,bn_quotient_remainder_quot_not_wanted,v,u);
     if (v==TaggedZero) CFUN__PROCEED(u);
     goto small_x_small;
   case 2: /* big x small */
-    u = CFUN__EVAL(bn_call,bn_quotient_remainder_quot_not_wanted,u,v, liveinfo);
+    u = CFUN__EVAL(bn_call2,bn_quotient_remainder_quot_not_wanted,u,v);
     if (u==TaggedZero) CFUN__PROCEED(v);
     goto small_x_small;
   default: /* big x big */
-    u = CFUN__EVAL(bn_call,bn_quotient_remainder_quot_not_wanted,u,v, liveinfo); 
+    u = CFUN__EVAL(bn_call2,bn_quotient_remainder_quot_not_wanted,u,v); 
     if (u==TaggedZero) CFUN__PROCEED(v);
     if (TaggedIsSmall(u)) type -= 2; /* now u is small */
-    v = CFUN__EVAL(bn_call,bn_quotient_remainder_quot_not_wanted,v,u, liveinfo); 
+    v = CFUN__EVAL(bn_call2,bn_quotient_remainder_quot_not_wanted,v,u); 
     if (v==TaggedZero) CFUN__PROCEED(u);
     if (TaggedIsSmall(v)) type -= 1; /* now v is small */
     goto again;
   }
 } 
 
-CFUN__PROTO(fu1_intpart, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_intpart, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$float_integer_part", 2);
   tagged_t t;
-
   flt64_t f;
 
   t=x0; NDEREF(t, 0);
@@ -839,7 +849,7 @@ CFUN__PROTO(fu1_intpart, tagged_t, tagged_t x0, bcp_t liveinfo) {
   CFUN__PROCEED(BoxFloatCheck(aint(f)));
 }
 
-CFUN__PROTO(fu1_fractpart, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_fractpart, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$float_fractional_part", 2);
   tagged_t t;
   flt64_t f;
@@ -850,7 +860,7 @@ CFUN__PROTO(fu1_fractpart, tagged_t, tagged_t x0, bcp_t liveinfo) {
   CFUN__PROCEED(BoxFloatCheck(f-aint(f)));
 }
 
-CFUN__PROTO(fu1_floor, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_floor, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$floor", 2);
   tagged_t t;
   tagged_t f;
@@ -863,14 +873,14 @@ CFUN__PROTO(fu1_floor, tagged_t, tagged_t x0, bcp_t liveinfo) {
       BUILTIN_ERROR(REPRESENTATION_ERROR(NAN_OR_INF_TO_INTEGER), t, 1);
     }
     f = BoxFloatCheck(floor(TaggedToFloat(t)));
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_from_float,f,0, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call1,bn_from_float,f));
   } else {
     /* (identity function) */
-    CFUN__PROCEED(CFUN__EVAL(globalize_bn, t, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(globalize_bn, t));
   }
 }
 
-CFUN__PROTO(fu1_round, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_round, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$round", 2);
   tagged_t t;
   tagged_t f;
@@ -883,14 +893,14 @@ CFUN__PROTO(fu1_round, tagged_t, tagged_t x0, bcp_t liveinfo) {
       BUILTIN_ERROR(REPRESENTATION_ERROR(NAN_OR_INF_TO_INTEGER), t, 1);
     }
     f = BoxFloatCheck(round(TaggedToFloat(t)));
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_from_float,f,0, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call1,bn_from_float,f));
   } else {
     /* (identity function) */
-    CFUN__PROCEED(CFUN__EVAL(globalize_bn, t, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(globalize_bn, t));
   }
 }
 
-CFUN__PROTO(fu1_ceil, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_ceil, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$ceiling", 2);
   tagged_t t;
   tagged_t f;
@@ -903,14 +913,14 @@ CFUN__PROTO(fu1_ceil, tagged_t, tagged_t x0, bcp_t liveinfo) {
       BUILTIN_ERROR(REPRESENTATION_ERROR(NAN_OR_INF_TO_INTEGER), t, 1);
     }
     f = BoxFloatCheck(ceil(TaggedToFloat(t)));
-    CFUN__PROCEED(CFUN__EVAL(bn_call,bn_from_float,f,0, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(bn_call1,bn_from_float,f));
   } else {
     /* (identity function) */
-    CFUN__PROCEED(CFUN__EVAL(globalize_bn, t, liveinfo));
+    CFUN__PROCEED(CFUN__EVAL(globalize_bn, t));
   }
 }
 
-CFUN__PROTO(fu2_pow, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
+CFUN__PROTO(fu2_pow, tagged_t, tagged_t x0, tagged_t x1) {
   ERR__FUNCTOR("arithmetic:$**", 3);
   tagged_t t,u;
 
@@ -919,7 +929,7 @@ CFUN__PROTO(fu2_pow, tagged_t, tagged_t x0, tagged_t x1, bcp_t liveinfo) {
   CFUN__PROCEED(BoxFloatCheck(pow(TaggedToFloat(t),TaggedToFloat(u))));
 }
 
-CFUN__PROTO(fu1_exp, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_exp, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$exp", 2);
   tagged_t t;
 
@@ -928,7 +938,7 @@ CFUN__PROTO(fu1_exp, tagged_t, tagged_t x0, bcp_t liveinfo) {
   CFUN__PROCEED(BoxFloatCheck(exp(TaggedToFloat(t))));
 }
 
-CFUN__PROTO(fu1_log, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_log, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$log", 2);
   tagged_t t;
 
@@ -937,7 +947,7 @@ CFUN__PROTO(fu1_log, tagged_t, tagged_t x0, bcp_t liveinfo) {
   CFUN__PROCEED(BoxFloatCheck(log(TaggedToFloat(t))));
 }
 
-CFUN__PROTO(fu1_sqrt, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_sqrt, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$sqrt", 2);
   tagged_t t;
 
@@ -946,7 +956,7 @@ CFUN__PROTO(fu1_sqrt, tagged_t, tagged_t x0, bcp_t liveinfo) {
   CFUN__PROCEED(BoxFloatCheck(sqrt(TaggedToFloat(t))));
 }
 
-CFUN__PROTO(fu1_sin, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_sin, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$sin", 2);
   tagged_t t;
 
@@ -955,7 +965,7 @@ CFUN__PROTO(fu1_sin, tagged_t, tagged_t x0, bcp_t liveinfo) {
   CFUN__PROCEED(BoxFloatCheck(sin(TaggedToFloat(t))));
 }
 
-CFUN__PROTO(fu1_cos, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_cos, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$cos", 2);
   tagged_t t;
 
@@ -964,7 +974,7 @@ CFUN__PROTO(fu1_cos, tagged_t, tagged_t x0, bcp_t liveinfo) {
   CFUN__PROCEED(BoxFloatCheck(cos(TaggedToFloat(t))));
 }
 
-CFUN__PROTO(fu1_atan, tagged_t, tagged_t x0, bcp_t liveinfo) {
+CFUN__PROTO(fu1_atan, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$atan", 2);
   tagged_t t;
 

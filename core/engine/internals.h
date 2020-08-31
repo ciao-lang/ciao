@@ -38,9 +38,11 @@ CBOOL__PROTO(set_property);
 
 CVOID__PROTO(numstack_init);
 
-typedef bignum_size_t (*bn_fun_t)(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);
+typedef bignum_size_t (*bn_fun2_t)(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);
+typedef bignum_size_t (*bn_fun1_t)(bignum_t *x, bignum_t *z, bignum_t *zmax);
 
-CFUN__PROTO(bn_call, tagged_t, bn_fun_t f, tagged_t x, tagged_t y, bcp_t liveinfo);
+CFUN__PROTO(bn_call2, tagged_t, bn_fun2_t f, tagged_t x, tagged_t y);
+CFUN__PROTO(bn_call1, tagged_t, bn_fun1_t f, tagged_t x);
 
 void reinit_list(goal_descriptor_t *goal);
 void init_goal_desc_list(void);

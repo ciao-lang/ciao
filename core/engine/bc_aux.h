@@ -187,6 +187,8 @@ try_node_t *def_retry_c(cbool0_t proc, int arity)
 
 /* --------------------------------------------------------------------------- */
 
+liveinfo_t prolog_format_print_integer__liveinfo;
+
 void init_some_bytecode(void) {
   /*
     |CALLQ|0|address_call/1|...padding...|Initial Frame Size|EXIT_TOPLEVEL|
@@ -294,6 +296,8 @@ void init_some_bytecode(void) {
       EMIT_o(KONTINUE);
     }
   }
+
+  LIVEINFO__INIT(prolog_format_print_integer__liveinfo, CONTPAD, 3);
 }
 
 /* --------------------------------------------------------------------------- */
