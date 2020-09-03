@@ -129,7 +129,7 @@ pass_one([File|Files],Flag):-
     error_protect(ctrlc_clean(
             process_file(File, xrefs, any, 
                          recorda(Flag),
-                         false, false, always)
+                         c_itf:false, c_itf:false, always)
         ), fail), % TODO: fail or abort?
     pass_one(Files,Flag).
 pass_one([],_Flag).
