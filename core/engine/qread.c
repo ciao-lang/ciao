@@ -621,7 +621,6 @@ CVOID__PROTO(getbytecode32, FILE *f,
          heap, copy it to the bytecode, and then move the heap pointer
          back.
       */
-      /* TODO: Use Numstack for temporaries? */
       {
         int arity = 2;
         int cells = (length / sizeof(tagged_t)) + 4 + arity;

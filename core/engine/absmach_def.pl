@@ -1868,7 +1868,6 @@ cblt_semidet(Expr) :-
 :- ins_op_format(function_1q, 222, [f_Q,f_x,f_x,f_C,f_l,f_i], [label(r)]).
 :- ins_in_mode(function_1q, r).
 function_1q :-
-    "Numstack_End" <- "NULL",
     dec(op(f_x,"BcP(f_x, 2)"), A),
     dec(op(f_x,"BcP(f_x, 3)"), B),
     "w->liveinfo" <- ["&","BcP(f_l, 6)"],
@@ -1878,7 +1877,6 @@ function_1q :-
 :- ins_op_format(function_1, 223, [f_x,f_x,f_C,f_l,f_i], [label(r)]).
 :- ins_in_mode(function_1, r).
 function_1 :-
-    "Numstack_End" <- "NULL",
     dec(op(f_x,"BcP(f_x, 1)"), A),
     dec(op(f_x,"BcP(f_x, 2)"), B),
     "w->liveinfo" <- ["&","BcP(f_l, 5)"],
@@ -1888,7 +1886,6 @@ function_1 :-
 :- ins_op_format(function_2q, 224, [f_Q,f_x,f_x,f_x,f_C,f_l,f_i], [label(r)]).
 :- ins_in_mode(function_2q, r).
 function_2q :-
-    "Numstack_End" <- "NULL",
     dec(op(f_x,"BcP(f_x, 2)"), A),
     dec(op(f_x,"BcP(f_x, 3)"), B),
     dec(op(f_x,"BcP(f_x, 4)"), C),
@@ -1899,7 +1896,6 @@ function_2q :-
 :- ins_op_format(function_2, 225, [f_x,f_x,f_x,f_C,f_l,f_i], [label(r)]).
 :- ins_in_mode(function_2, r).
 function_2 :-
-    "Numstack_End" <- "NULL",
     dec(op(f_x,"BcP(f_x, 1)"), A),
     dec(op(f_x,"BcP(f_x, 2)"), B),
     dec(op(f_x,"BcP(f_x, 3)"), C),

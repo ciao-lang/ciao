@@ -951,10 +951,7 @@ bignum_size_t bn_quotient_remainder_quot_not_wanted(bignum_t *x,
 
 #define FLTBITS 64
 
-bignum_size_t bn_from_float(bignum_t *x,
-                            bignum_t *z,
-                            bignum_t *zmax) {
-  flt64_t f;
+bignum_size_t bn_from_float(flt64_t f, bignum_t *z, bignum_t *zmax) {
   flt64_t norm = 4294967296.0;  /* 2**(FLTBITS/2) */
   flt64_t norm2 = norm*norm; /* 2**FLTBITS */
 #if LOG2_bignum_size == 5
@@ -968,12 +965,6 @@ bignum_size_t bn_from_float(bignum_t *x,
   bignum_t u;
 #endif
 
-#if LOG2_bignum_size == 5
-  fp[0] = x[1];                 /* TaggedToFloat(x) */
-  fp[1] = x[2];
-#elif LOG2_bignum_size == 6
-  f = *((flt64_t *)&x[1]); /* TaggedToFloat(x) */
-#endif
   if (signbit(f)) {
     sx = FALSE;
     f = -f;

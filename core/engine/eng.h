@@ -368,6 +368,12 @@
 #define Choice_End          w->choice_end
 #define Choice_Start        w->choice_start
 
+/* (for some reason this makes the engine around 6% faster) */
+#define USE_TAGGED_CHOICE_START
+
+#if defined(USE_TAGGED_CHOICE_START)
+#define Tagged_Choice_Start w->tagged_choice_start
+#endif
 
 #define Trail_Start         w->trail_start
 #define Trail_End           w->trail_end
@@ -378,15 +384,6 @@
 #define Input_Stream_Ptr    w->streams->input_stream_ptr
 #define Output_Stream_Ptr   w->streams->output_stream_ptr
 #define Error_Stream_Ptr    w->streams->error_stream_ptr
-
-
-/* These access the private stack for bignum operations */
-
-#define Numstack_Top        w->numstack_top
-#define Numstack_End        w->numstack_end
-#define Numstack_First      w->numstack_first
-#define Numstack_Last       w->numstack_last
-
 
 /* These keep the current state of the debugger. */
 
@@ -837,25 +834,6 @@ CFUN__PROTO(make_structure, tagged_t, tagged_t functor);
 */ 
 #define IsIntegerFix(X) (TaggedIsSmall(X) || (TaggedIsSTR(X) && TagToHeadfunctor(X)==MakeFunctorFix))
 
-/* Finish the large integer at `HTop` and move `HTop` forward. If the
- * large integer can be represented as a small int, keep it
- * unchanged. `Out` is assigned the a STR tagged (large) or small int.
- */
-// TODO: ar==2 assumes that sizeof(bignum_t) == sizeof(intmach_t) == sizeof(tagged_t)
-#define FinishInt(HTop, Out) ({                 \
-  tagged_t *h_ = (HTop);                        \
-  int ar_ = LargeArity(h_[0]);                  \
-  tagged_t r_;                                  \
-  if (ar_ == 2 && IntIsSmall((intmach_t)h_[1])) { \
-    r_ = MakeSmall(h_[1]);                      \
-  } else {                                      \
-    (HTop) += ar_+1;                            \
-    h_[ar_] = h_[0];                            \
-    r_ = Tag(STR,h_);                           \
-  }                                             \
-  (Out) = r_;                                   \
-})
-
 /* TODO: backport from optim_comp */
 /* size of blob, aligned to ensure correct alignment of tagged words
    in memory */
@@ -1096,12 +1074,6 @@ struct par_goal {
 };
 
 #endif
-
-typedef struct numstack_ numstack_t;
-struct numstack_ {
-  tagged_t *end;
-  numstack_t *next;
-};
 
 /* TODO: this is commonly known as 'intrusive map container based on
    doubly linked circular lists' of streams */
@@ -1378,11 +1350,19 @@ struct worker_ {
   char *atom_buffer;
   intmach_t atom_buffer_length;
 
-  /* Private stack for operations with big numbers.  Better have fast maths. */
-  tagged_t *numstack_top;
-  tagged_t *numstack_end;
-  numstack_t *numstack_first;
-  numstack_t *numstack_last;
+  /* dummy */
+  void *dummy0;
+  void *dummy1;
+  void *dummy2;
+
+#if defined(USE_TAGGED_CHOICE_START)
+  tagged_t *tagged_choice_start;   /* Not used any more, but I can't just
+                                    remove it: the size of the WRB is
+                                    critical for the compiler and changing
+                                    it is a real hassle */
+#else
+  tagged_t *dummy3;                      /* Use up the space, therefore */
+#endif    
 
   /* Boundaries of different areas */
   tagged_t *heap_start;
@@ -1398,11 +1378,10 @@ struct worker_ {
   tagged_t *choice_end;
   tagged_t *choice_start;
 
-  //tagged_t *dummy; /* TODO: size of WRB is hardwired, do not remove */
-  bcp_t liveinfo;
-
   tagged_t *trail_start;
   tagged_t *trail_end;
+
+  bcp_t liveinfo;
 
   node_t *node;         /* choice pointer */
   node_t *next_node;    /* -""- at predicate entry */
@@ -1572,8 +1551,13 @@ struct marker_ {
 #define ChoiceNext(P)           (*--(P))
 #define ChoicePush(P,X)         (*--(P) = (X))
 
+#if defined(USE_TAGGED_CHOICE_START)
+#define ChoiceFromTagged(Y) (ChoiceCharOffset(Tagged_Choice_Start,Y))
+#define ChoiceToTagged(Y)   (ChoiceCharDifference(Tagged_Choice_Start,Y))
+#else
 #define ChoiceFromTagged(Y) ((node_t *)ChoiceOffset(Choice_Start,(GetSmall(Y))))
 #define ChoiceToTagged(Y)   (MakeSmall(ChoiceDifference(Choice_Start,Y)))
+#endif
 
 #define RefHeap(To,From) \
 { To = *(From); }

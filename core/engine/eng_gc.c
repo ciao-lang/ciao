@@ -3,8 +3,7 @@
  *
  *  Garbage collector and code for growing areas when full.
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #include <stddef.h> /* ptrdiff_t */
@@ -944,7 +943,6 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity)
   if (debug_gc)
     printf("Thread %" PRIdm " calling explicit_heap_overflow\n", (intmach_t)Thread_Id);
 #endif
-
   
   /* ensure that w->node is fleshed out fully i.e. do a "neck" */
   /* arity of choicept could be greater than arity of clause */
@@ -955,31 +953,35 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity)
     b->next_insn = w->next_insn;
     SaveLtop(b);
     i=OffsetToArity(b->next_alt->node_offset);
-    if (i>0){
+    if (i>0) {
       tagged_t *t = (tagged_t *)w->next_node;
-      
-      do
+      do {
         ChoicePush(t,X(--i));
-      while (i>0);
+      } while (i>0);
     }
-    if (ChoiceYounger(ChoiceOffset(b,CHOICEPAD),w->trail_top))
-      choice_overflow(Arg,CHOICEPAD),
-        b = w->node;
+    if (ChoiceYounger(ChoiceOffset(b,CHOICEPAD),w->trail_top)) {
+      choice_overflow(Arg,CHOICEPAD);
+      b = w->node;
+    }
   }
   
   /* ensure that X regs are seen by heap_overflow(): make a frame */
   ComputeA(a,b);
   a->term[0] = TaggedZero;
-  for (i=0; i<arity; i++)
+  for (i=0; i<arity; i++) {
     a->term[i+1] = X(i);
+  }
   a->frame = w->frame;
   a->next_insn = w->next_insn;
   w->frame = a;
   w->next_insn = CONTCODE(i+1);
   w->local_top = (frame_t *)Offset(a,EToY0+i+1);
+
   heap_overflow(Arg,pad);
-  for (i=0; i<arity; i++)
+
+  for (i=0; i<arity; i++) {
     X(i) = a->term[i+1];
+  }
   w->local_top = a;
   w->frame = a->frame;
   w->next_insn = a->next_insn;
@@ -1099,7 +1101,11 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
       trb = (tagged_t *)((char *)choice_top+reloc_factor);
       Trail_Start = Choice_End = newtr;                /* new low bound */
       Choice_Start = Trail_End = newtr+newcount;      /* new high bound */
+
+#if defined(USE_TAGGED_CHOICE_START)
       /* Do not take out (tagged_t) casting, or the engine will break!! */
+      Tagged_Choice_Start = (tagged_t *)((tagged_t)Choice_Start + TaggedZero);
+#endif
 
       {
         tagged_t *x;

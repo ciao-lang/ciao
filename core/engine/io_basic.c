@@ -1447,7 +1447,12 @@ CBOOL__PROTO(prolog_clearerr) {
   return TRUE;
 }
 
-/*----------------------------------------------------*/
+/* --------------------------------------------------------------------------- */
+/* TODO: this code needs serious changes (JF)          */
+/*  - see arithmetic.c for code that keep roots for GC */
+/*  - do not limit number of variables */
+/*  - recode to do better tail recursion */
+/*  - single calls to readbyte() can be very slow (specially for sockets) */
 
 #define FASTRW_VERSION  'C'
 #define FASTRW_MAX_VARS 1024
@@ -1483,14 +1488,10 @@ CBOOL__PROTO(prolog_fast_read_in_c) {
   CBOOL__LASTUNIFY(X(0),term);
 }
 
-#if defined(DEBUG)
 #define CHECK_HEAP_SPACE                                        \
   if (HeapDifference(w->global_top,Heap_End) < CONTPAD) {       \
     fprintf(stderr, "Out of heap space in fast_read()\n");      \
   }
-#else
-#define CHECK_HEAP_SPACE
-#endif
 
 CBOOL__PROTO(prolog_fast_read_in_c_aux, 
              tagged_t *out,
@@ -1509,7 +1510,6 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
   switch(k) {
   case ']':
     *out = atom_nil;
-    CHECK_HEAP_SPACE;
     return TRUE;
   case '[':
     {
@@ -1557,7 +1557,6 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       return TRUE;
     case 'A':
       *out = GET_ATOM(Atom_Buffer);
-      CHECK_HEAP_SPACE;
       return TRUE;
     case '"':
       {
@@ -1959,7 +1958,6 @@ CBOOL__PROTO(prolog_format_print_integer)
     base = 10;
 
   if (IsFloat(X(1))) { /* TODO: fail? format.pl ensures that this never happens */
-    Numstack_End = NULL;
     w->liveinfo = prolog_format_print_integer__liveinfo;
     X(1) = CFUN__EVAL(fu1_integer, X(1));
   }

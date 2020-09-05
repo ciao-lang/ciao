@@ -36,13 +36,12 @@ CBOOL__PROTO(compiled_clause);
 sw_on_key_node_t *dyn_puthash(sw_on_key_t **swp, tagged_t k);
 CBOOL__PROTO(set_property);
 
-CVOID__PROTO(numstack_init);
-
 typedef bignum_size_t (*bn_fun2_t)(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);
 typedef bignum_size_t (*bn_fun1_t)(bignum_t *x, bignum_t *z, bignum_t *zmax);
 
 CFUN__PROTO(bn_call2, tagged_t, bn_fun2_t f, tagged_t x, tagged_t y);
 CFUN__PROTO(bn_call1, tagged_t, bn_fun1_t f, tagged_t x);
+CFUN__PROTO(bn_from_float_check, tagged_t, flt64_t f);
 
 void reinit_list(goal_descriptor_t *goal);
 void init_goal_desc_list(void);
