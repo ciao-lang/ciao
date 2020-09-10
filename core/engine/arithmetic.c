@@ -59,49 +59,51 @@ static inline bool_t float_is_finite(flt64_t f) {
 /* --------------------------------------------------------------------------- */
 
 /* Evaluate an arithmetic expression 
-   Note: evaluate return v in case of error;
-*/
-
+   Note: evaluate return v in case of error; */
 static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
-  tagged_t t, u;
-  void *proc;
-
+  tagged_t t_head_functor;
  restart:
-  switch (TagOf(v))
+  switch (TagOf(v)) {
+  case NUM:
+    CFUN__PROCEED(v);
+  case LST:
     {
-    case NUM:
-      CFUN__PROCEED(v);
-
-    case LST:
+      tagged_t t;
       DerefCdr(t,v);
-      if (t==atom_nil) {
-        DerefCar(v,v);
-        goto restart;
-      } else {
-        CFUN__PROCEED(v);
-      }
-
-    case STR:
-      if (STRIsLarge(v)) {
-        CFUN__PROCEED(v);
-      }
-      t = TagToHeadfunctor(v);
-      proc = incore_gethash(switch_on_function,t)->value.proc;
-      if (proc!=NULL) {
-        switch (Arity(t)) {
-        case 1:
-          RefArg(t,v,1);
-          CFUN__LASTCALL(((ctagged1l_t)proc),t);
-        case 2:
-          RefArg(t,v,1);
-          RefArg(u,v,2);
-          CFUN__LASTCALL(((ctagged2l_t)proc),t,u);
-        }
-      }
-
-    default:
+      if (t!=atom_nil) goto err;
+      DerefCar(v,v);
+      goto restart;
+    }
+  case STR:
+    if (STRIsLarge(v)) {
       CFUN__PROCEED(v);
     }
+    t_head_functor = TagToHeadfunctor(v);
+    {
+      void *proc = incore_gethash(switch_on_function,t_head_functor)->value.proc;
+      if (proc!=NULL) {
+        switch (Arity(t_head_functor)) {
+        case 1:
+          {
+            tagged_t t;
+            RefArg(t,v,1);
+            CFUN__LASTCALL(((ctagged1l_t)proc),t);
+          }
+        case 2:
+          {
+            tagged_t t, u;
+            RefArg(t,v,1);
+            RefArg(u,v,2);
+            CFUN__LASTCALL(((ctagged2l_t)proc),t,u);
+          }
+        }
+      }
+    }
+  default:
+    goto err;
+  }
+ err:
+  CFUN__PROCEED(v);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -136,11 +138,18 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
 
 /* --------------------------------------------------------------------------- */
 
-#define ENSURE_LIVEINFO \
-  ({if (w->liveinfo == NULL) { fprintf(stderr, "PANIC: null liveinfo\n"); _EXIT(-1);  }})
+#if defined(DEBUG)
+#define ENSURE_LIVEINFO ({ \
+  if (w->liveinfo == NULL) { \
+    fprintf(stderr, "PANIC: null liveinfo\n"); _EXIT(-1); \
+  } \
+})
+#else
+#define ENSURE_LIVEINFO
+#endif
 
 CFUN__PROTO(make_integer_check, tagged_t, intmach_t i);
-CFUN__PROTO(make_float_check, tagged_t, flt64_t i);
+CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i);
 
 #define DECL_BIGNUM_FOR_INTVAL(XB) tagged_t XB[2]
 
@@ -169,14 +178,13 @@ CFUN__PROTO(bn_call2, tagged_t, bn_fun2_t f, tagged_t x0, tagged_t y0) {
   ENSURE_BIGNUM(x0, xb, x);
   ENSURE_BIGNUM(y0, yb, y);
 
-  bcp_t liveinfo = w->liveinfo;
   ENSURE_LIVEINFO;
-  req = (*f)(x, y, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo)));
+  req = (*f)(x, y, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(w->liveinfo)));
   if (req != 0) {
     HeapOverflow_GC(req, x0, y0);
     ENSURE_BIGNUM(x0, xb, x);
     ENSURE_BIGNUM(y0, yb, y);
-    if ((*f)(x, y, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo)))) {
+    if ((*f)(x, y, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(w->liveinfo)))) {
       SERIOUS_FAULT("miscalculated size of bignum");
     }
   }
@@ -194,13 +202,12 @@ CFUN__PROTO(bn_call1, tagged_t, bn_fun1_t f, tagged_t x0) {
 
   ENSURE_BIGNUM(x0, xb, x);
 
-  bcp_t liveinfo = w->liveinfo;
   ENSURE_LIVEINFO;
-  req = (*f)(x, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo)));
+  req = (*f)(x, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(w->liveinfo)));
   if (req != 0) {
     HeapOverflow_GC(req, x0);
     ENSURE_BIGNUM(x0, xb, x);
-    if ((*f)(x, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo)))) {
+    if ((*f)(x, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(w->liveinfo)))) {
       SERIOUS_FAULT("miscalculated size of bignum");
     }
   }
@@ -210,12 +217,11 @@ CFUN__PROTO(bn_call1, tagged_t, bn_fun1_t f, tagged_t x0) {
 CFUN__PROTO(bn_from_float_check, tagged_t, flt64_t f) {
   bignum_size_t req;
 
-  bcp_t liveinfo = w->liveinfo;
   ENSURE_LIVEINFO;
-  req = bn_from_float(f, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo)));
+  req = bn_from_float(f, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(w->liveinfo)));
   if (req != 0) { /* expand heap and try again */
     HeapOverflow_GC(req);
-    if (bn_from_float(f, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(liveinfo)))) {
+    if (bn_from_float(f, (bignum_t *)w->global_top, (bignum_t *)(Heap_End-LIVEINFO__HEAP(w->liveinfo)))) {
       SERIOUS_FAULT("miscalculated size of bignum");
     }
   }
@@ -223,18 +229,15 @@ CFUN__PROTO(bn_from_float_check, tagged_t, flt64_t f) {
 }
 
 /* NOTE: possible heap overflow (make sure that all GC roots are visible) */
-CFUN__PROTO(make_integer_check,
-            tagged_t,
-            intmach_t i) {
+CFUN__PROTO(make_integer_check, tagged_t, intmach_t i) {
   tagged_t *h;
 
-  if (IntIsSmall(i)) return MakeSmall(i);
+  if (IsInSmiValRange(i)) return MakeSmall(i);
 
-  bcp_t liveinfo = w->liveinfo;
   ENSURE_LIVEINFO;
   h = w->global_top;
-  if (HeapDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(liveinfo)+3) {
-    explicit_heap_overflow(Arg, LIVEINFO__HEAP(liveinfo)+3, (short)LIVEINFO__ARITY(liveinfo));
+  if (HeapDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(w->liveinfo)+3) {
+    explicit_heap_overflow(Arg, LIVEINFO__HEAP(w->liveinfo)+3, (short)LIVEINFO__ARITY(w->liveinfo));
     h = w->global_top;
   }
   w->global_top = h+3;
@@ -245,18 +248,17 @@ CFUN__PROTO(make_integer_check,
 }
 
 /* NOTE: possible heap overflow (make sure that all GC roots are visible) */
-CFUN__PROTO(make_float_check, tagged_t, flt64_t i) {
+CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i) {
   tagged_t *h;
   union {
     flt64_t i;
     tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
   } u;
 
-  bcp_t liveinfo = w->liveinfo;
   ENSURE_LIVEINFO;
   h = w->global_top;
-  if (HeapDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(liveinfo)+4) {
-    explicit_heap_overflow(Arg,LIVEINFO__HEAP(liveinfo)+4, (short)LIVEINFO__ARITY(liveinfo));
+  if (HeapDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(w->liveinfo)+4) {
+    explicit_heap_overflow(Arg,LIVEINFO__HEAP(w->liveinfo)+4, (short)LIVEINFO__ARITY(w->liveinfo));
     h = w->global_top;
   }
   w->global_top = h+4;
@@ -410,6 +412,20 @@ CBOOL__PROTO(bu2_numge, tagged_t x0, tagged_t x1) {
 CFUN__PROTO(fu1_minus, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$-", 2);
   tagged_t t=x0;
+
+//  fprintf(stderr, "th = %llx\n", GetSmall(TaggedHigh));
+//  fprintf(stderr, "tl = %llx\n", GetSmall(TaggedLow));
+//  fprintf(stderr, "th2 = %llx\n", MakeSmall(0x1234));
+//  fprintf(stderr, "th2 = %llx\n", MakeSmall(GetSmall(TaggedHigh)));
+//  fprintf(stderr, "th2tl = %llx\n", TagOf(TaggedLow));
+//  fprintf(stderr, "th2tz = %llx\n", TagOf(TaggedZero));
+//  fprintf(stderr, "th2th = %llx\n", TagOf(TaggedHigh));
+//  fprintf(stderr, "highint = %llx\n", SmiValMaxPlus1); // ==GetSmall(TaggedHigh)
+//  fprintf(stderr, "smivalmin = %llx\n", SmiValMin); // ==GetSmall(TaggedLow)
+//
+//// GetSmall(TaggedHigh) SmiValMaxPlus1 is not an integer? check it!
+//  fprintf(stderr, "IsInSmiValRange(th) = %d\n", IsInSmiValRange(GetSmall(TaggedHigh))); // FALSE
+//  fprintf(stderr, "IsInSmiValRange(tl) = %d\n", IsInSmiValRange(GetSmall(TaggedLow)));
   
   NDEREF_GC(Number, t, 0);
   if (TaggedIsSmall(t)) {
@@ -420,7 +436,7 @@ CFUN__PROTO(fu1_minus, tagged_t, tagged_t x0) {
     }
   }
   if (IsFloat(t)) {
-    CFUN__LASTCALL(make_float_check, -TaggedToFloat(t));
+    CFUN__LASTCALL(flt64_to_blob_GC, -TaggedToFloat(t));
   } else {
     CFUN__LASTCALL(bn_call1,bn_minus,t);
   }
@@ -431,7 +447,6 @@ CFUN__PROTO(fu1_plus, tagged_t, tagged_t x0) {
   tagged_t t=x0;
 
   NDEREF_GC(Number, t, 0);
-  if (TaggedIsSmall(t)) CFUN__PROCEED(t);
   CFUN__PROCEED(t);
 }
 
@@ -460,7 +475,7 @@ CFUN__PROTO(fu1_float, tagged_t, tagged_t x0) {
   if (IsFloat(t)) {
     CFUN__PROCEED(t);
   } else {
-    CFUN__LASTCALL(make_float_check, TaggedToFloat(t));
+    CFUN__LASTCALL(flt64_to_blob_GC, TaggedToFloat(t));
   }
 }
 
@@ -476,7 +491,7 @@ CFUN__PROTO(fu1_add1, tagged_t, tagged_t x0) {
       CFUN__PROCEED(t+MakeSmallDiff(1));
     }
   } else if (IsFloat(t)) {
-    CFUN__LASTCALL(make_float_check, TaggedToFloat(t) + 1.0);
+    CFUN__LASTCALL(flt64_to_blob_GC, TaggedToFloat(t) + 1.0);
   } else {
     CFUN__LASTCALL(bn_call1,bn_incr,t);
   }
@@ -494,7 +509,7 @@ CFUN__PROTO(fu1_sub1, tagged_t, tagged_t x0) {
       CFUN__PROCEED(t-MakeSmallDiff(1));
     }
   } else if (IsFloat(t)) {
-    CFUN__LASTCALL(make_float_check, TaggedToFloat(t) - 1.0);
+    CFUN__LASTCALL(flt64_to_blob_GC, TaggedToFloat(t) - 1.0);
   } else {
     CFUN__LASTCALL(bn_call1,bn_decr,t);
   }
@@ -516,7 +531,7 @@ CFUN__PROTO(fu2_plus, tagged_t, tagged_t x0, tagged_t x1) {
       CFUN__LASTCALL(make_integer_check, GetSmall(t1));
     }
   } else if (IsFloat(t) || IsFloat(u)) {
-    CFUN__LASTCALL(make_float_check, TaggedToFloat(t) + TaggedToFloat(u));
+    CFUN__LASTCALL(flt64_to_blob_GC, TaggedToFloat(t) + TaggedToFloat(u));
   } else {
     CFUN__LASTCALL(bn_call2,bn_add,t,u);
   }
@@ -536,7 +551,7 @@ CFUN__PROTO(fu2_minus, tagged_t, tagged_t x0, tagged_t x1) {
       CFUN__LASTCALL(make_integer_check, GetSmall(t1));
     }
   } else if (IsFloat(t) || IsFloat(u)) {
-    CFUN__LASTCALL(make_float_check, TaggedToFloat(t) - TaggedToFloat(u));
+    CFUN__LASTCALL(flt64_to_blob_GC, TaggedToFloat(t) - TaggedToFloat(u));
   } else {
     CFUN__LASTCALL(bn_call2,bn_subtract,t,u);
   }
@@ -562,7 +577,7 @@ CFUN__PROTO(fu2_times, tagged_t, tagged_t x0, tagged_t x1) {
     {}
   }
   if (IsFloat(t) || IsFloat(u)) {
-    CFUN__LASTCALL(make_float_check, TaggedToFloat(t) * TaggedToFloat(u));
+    CFUN__LASTCALL(flt64_to_blob_GC, TaggedToFloat(t) * TaggedToFloat(u));
   } else {
     CFUN__LASTCALL(bn_call2,bn_multiply,t,u);
   }
@@ -574,7 +589,7 @@ CFUN__PROTO(fu2_fdivide, tagged_t, tagged_t x0, tagged_t x1) {
 
   NDEREF_GC(Number, t, 0, u);
   NDEREF_GC(Number, u, 1, t);
-  CFUN__LASTCALL(make_float_check, TaggedToFloat(t)/TaggedToFloat(u));
+  CFUN__LASTCALL(flt64_to_blob_GC, TaggedToFloat(t)/TaggedToFloat(u));
 }
 
 CFUN__PROTO(fu2_idivide, tagged_t, tagged_t x0, tagged_t x1) {
@@ -624,15 +639,21 @@ CFUN__PROTO(fu2_mod, tagged_t, tagged_t x0, tagged_t x1) {
     intmach_t rem, denom;
     denom = (intmach_t)(u-TaggedZero);
     rem = (intmach_t)(t-TaggedZero)%denom;
-    CFUN__PROCEED(((denom > 0 && rem < 0) || (denom < 0 && rem > 0) ?
-                  rem+denom : rem ) + TaggedZero);
+    if ((denom > 0 && rem < 0) || (denom < 0 && rem > 0)) {
+      CFUN__PROCEED(rem+denom+TaggedZero);
+    } else {
+      CFUN__PROCEED(rem+TaggedZero);
+    }
   } else {
     tagged_t T_rem;
     /*bn_quotient_wanted = FALSE;*/
     PROT_GC(T_rem = CFUN__EVAL(bn_call2,bn_quotient_remainder_quot_not_wanted,t,u), u);
-    CFUN__PROCEED(T_rem != TaggedZero &&
-                  CFUN__EVAL(fu1_sign,u) != CFUN__EVAL(fu1_sign,T_rem)
-                  ? CFUN__EVAL(bn_call2,bn_add,T_rem,u) : T_rem);
+    if (T_rem != TaggedZero && CFUN__EVAL(fu1_sign,u) != CFUN__EVAL(fu1_sign,T_rem)) {
+      /* Note: fu1_sign above always return small ints! */
+      CFUN__LASTCALL(bn_call2,bn_add,T_rem,u);
+    } else {
+      CFUN__PROCEED(T_rem);
+    }
   }
 }
 
@@ -652,9 +673,17 @@ CFUN__PROTO(fu1_abs, tagged_t, tagged_t x0) {
   } else if (IsFloat(t)) {
     flt64_t f;
     f = TaggedToFloat(t);
-    CFUN__PROCEED(f < 0.0 ? CFUN__EVAL(make_float_check, -f) : t);
+    if (f < 0.0) {
+      CFUN__LASTCALL(flt64_to_blob_GC, -f);
+    } else {
+      CFUN__PROCEED(t);
+    }
   } else {
-    CFUN__PROCEED(!bn_positive(TaggedToBignum(t)) ? CFUN__EVAL(bn_call1,bn_minus,t) : t);
+    if (!bn_positive(TaggedToBignum(t))) { 
+      CFUN__LASTCALL(bn_call1,bn_minus,t);
+    } else {
+      CFUN__PROCEED(t);
+    }
   }
 }
 
@@ -664,18 +693,29 @@ CFUN__PROTO(fu1_sign, tagged_t, tagged_t x0) {
 
   NDEREF_GC(Number, t, 0);
   if (TaggedIsSmall(t)) {
-    CFUN__PROCEED((t==TaggedZero) ? TaggedZero :
-                  (t < TaggedZero) ? TaggedZero-MakeSmallDiff(1) :
-                  TaggedZero+MakeSmallDiff(1));
+    if (t==TaggedZero) {
+      CFUN__PROCEED(TaggedZero);
+    } else if (t < TaggedZero) {
+      CFUN__PROCEED(TaggedZero-MakeSmallDiff(1));
+    } else {
+      CFUN__PROCEED(TaggedZero+MakeSmallDiff(1));
+    }
   } else if (IsFloat(t)) {
     flt64_t f;
     f = TaggedToFloat(t);
-    CFUN__PROCEED((f == 0.0) ? t :
-                  (f < 0.0) ? CFUN__EVAL(make_float_check, -1.0) :
-                  CFUN__EVAL(make_float_check, 1.0));
+    if (f == 0.0) {
+      CFUN__PROCEED(t);
+    } else if (f < 0.0) {
+      CFUN__LASTCALL(flt64_to_blob_GC, -1.0);
+    } else {
+      CFUN__LASTCALL(flt64_to_blob_GC, 1.0);
+    }
   } else {
-    CFUN__PROCEED((!bn_positive(TaggedToBignum(t))) ? TaggedZero-MakeSmallDiff(1) :
-                  TaggedZero+MakeSmallDiff(1));
+    if (!bn_positive(TaggedToBignum(t))) {
+      CFUN__PROCEED(TaggedZero-MakeSmallDiff(1));
+    } else {
+      CFUN__PROCEED(TaggedZero+MakeSmallDiff(1));
+    }
   }
 }
 
@@ -814,7 +854,11 @@ CFUN__PROTO(fu2_lsh, tagged_t, tagged_t x0, tagged_t x1) {
       CFUN__PROCEED(TaggedZero);
     } else {
       /* abs(u) =< 2^INTMACH_MIN */
-      CFUN__PROCEED(dist<0 ? CFUN__EVAL(rsh_internal,t,-dist) : CFUN__EVAL(lsh_internal,t,dist));
+      if (dist<0) {
+        CFUN__LASTCALL(rsh_internal,t,-dist);
+      } else {
+        CFUN__LASTCALL(lsh_internal,t,dist);
+      }
     }
   } else if (bn_positive(TaggedToBignum(u)) && t != TaggedZero) {
     /* u > 2^INTMACH_MAX */
@@ -822,7 +866,11 @@ CFUN__PROTO(fu2_lsh, tagged_t, tagged_t x0, tagged_t x1) {
   } else {
     /* -u > 2^INTMACH_MAX */
     /* was: CFUN__PROCEED(TaggedZero); */
-    CFUN__PROCEED(int_is_nonneg(t) ? TaggedZero : TaggedZero-MakeSmallDiff(1));
+    if (int_is_nonneg(t)) {
+      CFUN__PROCEED(TaggedZero);
+    } else {
+      CFUN__PROCEED(TaggedZero-MakeSmallDiff(1));
+    }
   }  
 }
 
@@ -843,12 +891,20 @@ CFUN__PROTO(fu2_rsh, tagged_t, tagged_t x0, tagged_t x1) {
       BUILTIN_ERROR(RESOURCE_ERROR(R_STACK), u, 2); 
     } else {
       /* abs(u) =< 2^INTMACH_MIN */
-      CFUN__PROCEED(dist<0 ? CFUN__EVAL(lsh_internal,t,-dist) : CFUN__EVAL(rsh_internal,t,dist));
+      if (dist<0) {
+        CFUN__LASTCALL(lsh_internal,t,-dist);
+      } else {
+        CFUN__LASTCALL(rsh_internal,t,dist);
+      }
     }
   } else if (bn_positive(TaggedToBignum(u)) || t == TaggedZero) {
     /* u > 2^INTMACH_MAX */
     /* was: CFUN__PROCEED(TaggedZero); */
-    CFUN__PROCEED(int_is_nonneg(t) ? TaggedZero : TaggedZero-MakeSmallDiff(1));
+    if (int_is_nonneg(t)) {
+      CFUN__PROCEED(TaggedZero);
+    } else {
+      CFUN__PROCEED(TaggedZero-MakeSmallDiff(1));
+    }
   } else {
     /* -u > 2^INTMACH_MAX */
     BUILTIN_ERROR(RESOURCE_ERROR(R_STACK), u, 2); 
@@ -874,8 +930,10 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t x0, tagged_t x1) {
         u = TaggedZero-(u-TaggedZero);
       }
     }
-  } else if (!bn_positive(TaggedToBignum(u))) {
-    PROT_GC(u = CFUN__EVAL(bn_call1,bn_minus,u), v);
+  } else {
+    if (!bn_positive(TaggedToBignum(u))) {
+      PROT_GC(u = CFUN__EVAL(bn_call1,bn_minus,u), v);
+    }
   }
 
   if (TaggedIsSmall(v)) {
@@ -887,8 +945,10 @@ CFUN__PROTO(fu2_gcd, tagged_t, tagged_t x0, tagged_t x1) {
         v = TaggedZero-(v-TaggedZero);
       }
     }
-  } else if (!bn_positive(TaggedToBignum(v))) {
-    PROT_GC(v = CFUN__EVAL(bn_call1,bn_minus,v), u);
+  } else {
+    if (!bn_positive(TaggedToBignum(v))) {
+      PROT_GC(v = CFUN__EVAL(bn_call1,bn_minus,v), u);
+    }
   }
                                 
   if (u==TaggedZero) CFUN__PROCEED(v);
@@ -933,7 +993,7 @@ CFUN__PROTO(fu1_intpart, tagged_t, tagged_t x0) {
 
   flt64_t f;
   f = TaggedToFloat(t);
-  CFUN__LASTCALL(make_float_check, aint(f));
+  CFUN__LASTCALL(flt64_to_blob_GC, aint(f));
 }
 
 CFUN__PROTO(fu1_fractpart, tagged_t, tagged_t x0) {
@@ -944,7 +1004,7 @@ CFUN__PROTO(fu1_fractpart, tagged_t, tagged_t x0) {
 
   flt64_t f;
   f = TaggedToFloat(t);
-  CFUN__LASTCALL(make_float_check, f-aint(f));
+  CFUN__LASTCALL(flt64_to_blob_GC, f-aint(f));
 }
 
 CFUN__PROTO(fu1_floor, tagged_t, tagged_t x0) {
@@ -1007,7 +1067,7 @@ CFUN__PROTO(fu2_pow, tagged_t, tagged_t x0, tagged_t x1) {
 
   NDEREF_GC(Number, t, 0, u);
   NDEREF_GC(Number, u, 1, t);
-  CFUN__LASTCALL(make_float_check, pow(TaggedToFloat(t),TaggedToFloat(u)));
+  CFUN__LASTCALL(flt64_to_blob_GC, pow(TaggedToFloat(t),TaggedToFloat(u)));
 }
 
 CFUN__PROTO(fu1_exp, tagged_t, tagged_t x0) {
@@ -1016,7 +1076,7 @@ CFUN__PROTO(fu1_exp, tagged_t, tagged_t x0) {
 
   NDEREF_GC(Number, t, 0);
 
-  CFUN__LASTCALL(make_float_check, exp(TaggedToFloat(t)));
+  CFUN__LASTCALL(flt64_to_blob_GC, exp(TaggedToFloat(t)));
 }
 
 CFUN__PROTO(fu1_log, tagged_t, tagged_t x0) {
@@ -1025,7 +1085,7 @@ CFUN__PROTO(fu1_log, tagged_t, tagged_t x0) {
 
   NDEREF_GC(Number, t, 0);
 
-  CFUN__LASTCALL(make_float_check, log(TaggedToFloat(t)));
+  CFUN__LASTCALL(flt64_to_blob_GC, log(TaggedToFloat(t)));
 }
 
 CFUN__PROTO(fu1_sqrt, tagged_t, tagged_t x0) {
@@ -1034,7 +1094,7 @@ CFUN__PROTO(fu1_sqrt, tagged_t, tagged_t x0) {
 
   NDEREF_GC(Number, t, 0);
 
-  CFUN__LASTCALL(make_float_check, sqrt(TaggedToFloat(t)));
+  CFUN__LASTCALL(flt64_to_blob_GC, sqrt(TaggedToFloat(t)));
 }
 
 CFUN__PROTO(fu1_sin, tagged_t, tagged_t x0) {
@@ -1043,7 +1103,7 @@ CFUN__PROTO(fu1_sin, tagged_t, tagged_t x0) {
 
   NDEREF_GC(Number, t, 0);
 
-  CFUN__LASTCALL(make_float_check, sin(TaggedToFloat(t)));
+  CFUN__LASTCALL(flt64_to_blob_GC, sin(TaggedToFloat(t)));
 }
 
 CFUN__PROTO(fu1_cos, tagged_t, tagged_t x0) {
@@ -1052,7 +1112,7 @@ CFUN__PROTO(fu1_cos, tagged_t, tagged_t x0) {
 
   NDEREF_GC(Number, t, 0);
 
-  CFUN__LASTCALL(make_float_check, cos(TaggedToFloat(t)));
+  CFUN__LASTCALL(flt64_to_blob_GC, cos(TaggedToFloat(t)));
 }
 
 CFUN__PROTO(fu1_atan, tagged_t, tagged_t x0) {
@@ -1061,6 +1121,6 @@ CFUN__PROTO(fu1_atan, tagged_t, tagged_t x0) {
 
   NDEREF_GC(Number, t, 0);
 
-  CFUN__LASTCALL(make_float_check, atan(TaggedToFloat(t)));
+  CFUN__LASTCALL(flt64_to_blob_GC, atan(TaggedToFloat(t)));
 }
 

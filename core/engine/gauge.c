@@ -46,7 +46,7 @@ CBOOL__PROTO(counter_values)
   
   while (current_counter < max_counter) {
     counter = *current_counter++;
-    if (!IntIsSmall(counter)) {
+    if (!IsInSmiValRange(counter)) {
       USAGE_FAULT("$clause_counters/2: Counter value exceeds smallint");
     } else {
       HeapPush(h,MakeSmall(counter));

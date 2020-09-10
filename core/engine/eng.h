@@ -744,6 +744,13 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define ERRORTAG   ((tagged_t)0)        /* ERRORTAG is a tagged_t pointer guaranteed 
                                    to be different from all tagged_t objects */
 
+/* SMall Integer Values */
+
+/* Ranges for SMall Integer Value */
+#define SmiValMax ((intval_t)(((uintval_t)1<<(tagged__num_size-1))-1))
+#define SmiValMin ((intval_t)((uintval_t)(-1)<<(tagged__num_size-1)))
+#define IsInSmiValRange(X) ((X) >= SmiValMin && (X) <= SmiValMax)
+
 /* Tags + one more bit: 
    Funny objects are represented as small ints.
 
@@ -758,9 +765,6 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define TaggedZero      (TaggedLow+ZMask)
 #define TaggedHigh      (TaggedLow+QMask)
 #define tagged__num_size (tagged__size - TAGSIZE - 1 - tagged__num_offset)
-#define SmallIntMax ((intval_t)(((uintval_t)1<<(tagged__num_size-1))-1))
-#define SmallIntMin (((intval_t)(-1)<<(tagged__num_size-1)))
-#define HighInt (SmallIntMax+1)
 
 /* A small integer */
 #define MakeSmall(X)    (((tagged_t)((intmach_t)(X)<<tagged__num_offset))+TaggedZero)
@@ -794,16 +798,15 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define FunctorIsFloat(X) (!((X)&TagBitFunctor))
 
 #define MakeBlob(Ptr) make_large(Arg,(tagged_t *)(Ptr))
-#define IntmachToTagged(X) (IntIsSmall(X) ? MakeSmall(X) : make_integer(Arg,X))
-#define IntvalToTagged(X) (IntIsSmall(X) ? MakeSmall(X) : make_integer(Arg,X))
+#define IntmachToTagged(X) (IsInSmiValRange(X) ? MakeSmall(X) : make_integer(Arg,X))
+#define IntvalToTagged(X) (IsInSmiValRange(X) ? MakeSmall(X) : make_integer(Arg,X))
 #define BoxFloat(X) make_float(Arg,(X))
 #define MakeAtom(X) TagIndex(ATM,X)
 #define GET_ATOM(X) MakeAtom(lookup_atom_idx(X))
 
-#define TaggedToIntmach(X)   (TaggedIsSmall(X) ? GetSmall(X) : get_integer(X))
+#define TaggedToIntmach(X) (TaggedIsSmall(X) ? GetSmall(X) : get_integer(X))
 #define TaggedToFloat(X) (TaggedIsSmall(X) ? (flt64_t)GetSmall(X) : get_float(X))
 
-#define IntIsSmall(X)   ((X) >= -HighInt && (X) < HighInt)
 #define IsInteger(X)    (TaggedIsSmall(X) || (TaggedIsLarge(X) && !LargeIsFloat(X)))
 #define IsFloat(X)      (TaggedIsLarge(X) && LargeIsFloat(X))
 #define IsNumber(X)     (TaggedIsSmall(X) || TaggedIsLarge(X))
@@ -811,13 +814,13 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define IsString(X)     TaggedIsATM(X)
 
 #if BC_SCALE==2
-/* Int is small in BC32 (for BC_SCALE==2) */
+/* SmiVal for BC32 (for BC_SCALE==2) */
 #define tagged__size_BC32 32
 #define tagged__num_offset_BC32 2
 #define tagged__num_size_BC32 (tagged__size_BC32 - TAGSIZE - 1 - tagged__num_offset_BC32)
-#define SmallIntMax_BC32 ((intval_t)(((uintval_t)1<<(tagged__num_size_BC32-1))-1))
-#define HighInt_BC32 (SmallIntMax_BC32+1)
-#define IntIsSmall_BC32(X) ((X) >= -HighInt_BC32 && (X) < HighInt_BC32)
+#define SmiValMax_BC32 ((intval_t)(((uintval_t)1<<(tagged__num_size_BC32-1))-1))
+#define SmiValMin_BC32 ((intval_t)((uintval_t)(-1)<<(tagged__num_size_BC32-1)))
+#define IsInSmiValRange_BC32(X) ((X) >= SmiValMin_BC32 && (X) <= SmiValMax_BC32)
 #endif
 
 /* internals.c */
@@ -1568,8 +1571,7 @@ struct marker_ {
 #define RefCdr(To,From) \
 { To = *TagToCdr(From); }
 
-#define RefArg(To,From,I) \
-{ To = *TagToArg(From,I); }
+#define RefArg(To,From,I) { To = *TagToArg(From,I); }
 
 #define RefHeapNext(To,From) \
 { To = *(From)++; }

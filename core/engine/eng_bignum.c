@@ -232,19 +232,18 @@ bignum_size_t bn_incr(bignum_t *x,
   return 0;
 }
 
-bignum_size_t bn_plus(bignum_t *x,
-                      bignum_t *z,
-                      bignum_t *zmax) {
-  int xlen = BignumLength(x);
-  int i;
-
-  BignumCheck(z,xlen);
-  for (i=1; i<=xlen; i++) {
-    z[i] = x[i];
-  }
-
-  return 0;
-}
+// // TODO: just copy, not needed now (JF)
+// bignum_size_t bn_plus(bignum_t *x, bignum_t *z, bignum_t *zmax) {
+//   int xlen = BignumLength(x);
+//   int i;
+// 
+//   BignumCheck(z,xlen);
+//   for (i=1; i<=xlen; i++) {
+//     z[i] = x[i];
+//   }
+// 
+//   return 0;
+// }
 
 bignum_size_t bn_subtract(bignum_t *x,
                           bignum_t *y,

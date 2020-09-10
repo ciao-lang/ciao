@@ -313,7 +313,7 @@ CFUN__PROTO(bc_make_large, tagged_t, tagged_t *ptr) {
     intmach_t len = bn_canonized_length((bignum_t *)ptr);
     ar = len + 1;
     /* TODO: factorize */
-    if (ar==2 && IntIsSmall((intmach_t)ptr[1])) {
+    if (ar==2 && IsInSmiValRange((intmach_t)ptr[1])) {
       // fprintf(stderr, "BC_MakeLarge->small\n");
       return MakeSmall(ptr[1]);
     }
@@ -342,7 +342,7 @@ CBOOL__PROTO(bc_eq_large, tagged_t t, tagged_t *ptr) {
     intmach_t len = bn_canonized_length((bignum_t *)ptr);
     ar = len + 1;
     /* TODO: factorize */
-    if (ar==2 && IntIsSmall((intmach_t)ptr[1])) {
+    if (ar==2 && IsInSmiValRange((intmach_t)ptr[1])) {
       // fprintf(stderr, "eq_large->small\n");
       return t == MakeSmall(ptr[1]);
     }

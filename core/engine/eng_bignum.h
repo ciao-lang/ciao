@@ -19,7 +19,6 @@
 bool_t bn_positive(bignum_t *x);
 bignum_size_t bn_add(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);
 bignum_size_t bn_incr(bignum_t *x, bignum_t *z, bignum_t *zmax);
-bignum_size_t bn_plus(bignum_t *x, bignum_t *z, bignum_t *zmax);
 bignum_size_t bn_subtract(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);
 bignum_size_t bn_decr(bignum_t *x, bignum_t *z, bignum_t *zmax);
 bignum_size_t bn_minus(bignum_t *x, bignum_t *z, bignum_t *zmax);
@@ -55,7 +54,7 @@ static inline CFUN__PROTO(FinishInt, tagged_t) {
   tagged_t *h_ = w->global_top;
   int ar_ = LargeArity(h_[0]);
   tagged_t r_;
-  if (ar_ == 2 && IntIsSmall((intmach_t)h_[1])) {
+  if (ar_ == 2 && IsInSmiValRange((intmach_t)h_[1])) {
     r_ = MakeSmall(h_[1]);
   } else {
     w->global_top += ar_+1;

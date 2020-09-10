@@ -1440,7 +1440,7 @@ size_t compile_large_bc32(tagged_t t, bcp_t p) {
     /* Force into a large, even if it fits in a small */
     // fprintf(stderr, "trace: bc32 large stored as small needs fix\n");
     intmach_t i = GetSmall(t);
-    if (IntIsSmall_BC32(i)) {
+    if (IsInSmiValRange_BC32(i)) {
       SERIOUS_FAULT("compile_large_bc32: int32 found in large!");
     }
     tagged_t xx[2];
