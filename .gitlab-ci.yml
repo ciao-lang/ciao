@@ -175,7 +175,7 @@ ciaopp_extra.test.resources:
   script:
     - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao custom_run ciaopp_extra resources_test
+    - ciao custom_run ciaopp_extra resources_test | builder/etc/errstatus
   tags:
     - ciao_test_base
   dependencies:
