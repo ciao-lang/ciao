@@ -157,6 +157,19 @@ ciaopp_lite.test.incanal:
   dependencies:
     - ciaopp_lite
 
+ciaopp_lite.test.mod:
+  stage: test
+  script:
+    - apk add bash # add bash for the test scripts
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - cd bndls/ciaopp_tests/tests/incanal
+    - ./compile.sh
+    - ./test_terms_mod.sh
+  tags:
+    - ciao_test_base
+  dependencies:
+    - ciaopp_lite
+
 ciaopp_extra.test:
   stage: test
   allow_failure: true
