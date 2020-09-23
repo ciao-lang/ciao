@@ -369,11 +369,11 @@ CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i) {
 //
 // #if defined(OPTIM_COMP)
 //
-// #define BLOB_CHECK_HEAP(AMOUNT) ({ \
-//   ENSURE_LIVEINFO; \
-//   TEST_HEAP_OVERFLOW(h, \
-//                      LIVEINFO__HEAP(w->liveinfo)+(AMOUNT), \
-//                      LIVEINFO__ARITY(w->liveinfo)); \
+// #define BLOB_CHECK_HEAP(AMOUNT) ({ \\
+//   ENSURE_LIVEINFO; \\
+//   TEST_HEAP_OVERFLOW(h, \\
+//                      LIVEINFO__HEAP(w->liveinfo)+(AMOUNT), \\
+//                      LIVEINFO__ARITY(w->liveinfo)); \\
 // })
 // 
 // /* Create a blob from an integer type that can contain at least 1 bit
