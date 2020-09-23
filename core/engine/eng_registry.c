@@ -1733,7 +1733,7 @@ CVOID__PROTO(local_init_each_time)
       HeapPush(ptr, MakeSmall(0));
     }
     w->global_top = ptr;
-    GLOBAL_VARS_ROOT = Tag(STR,ptr2);
+    GLOBAL_VARS_ROOT = Tagp(STR,ptr2);
   }
 #endif
 

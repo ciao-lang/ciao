@@ -203,7 +203,7 @@ static CVOID__PROTO(shuntVariables) {
 
         if (v&QMask) pt += LargeArity(v);
         else if (!gc_IsMarked(v)) {
-          if (v==Tag(CVA,pt-1))
+          if (v==Tagp(CVA,pt-1))
             gc_MarkM(Cvas_Found),
               pt[-1] = Cvas_Found,
               Cvas_Found = v,
@@ -246,9 +246,9 @@ static CVOID__PROTO(markTrail) {
 
   while (Cvas_Found!=atom_nil)  /* mark unbound CVAs */
     *tr = v = Cvas_Found,
-    Cvas_Found = *TagToCVA(v),
+    Cvas_Found = *TagpPtr(CVA,v),
     gc_UnmarkM(Cvas_Found),
-    *TagToCVA(v) = v,
+    *TagpPtr(CVA,v) = v,
     markVariable(Arg, tr);
 
   /* find_constraints(Arg,Gc_Choice_Start);
@@ -359,8 +359,8 @@ static CVOID__PROTO(markChoicepoints) {
 #ifdef EARLY_RESET
           else if (TaggedIsCVA(v))
             {
-              if (!gc_IsMarked(*TagToCVA(v)))
-                *TagToCVA(v)= v, markVariable(Arg, tr), *tr= 0;
+              if (!gc_IsMarked(*TagpPtr(CVA,v)))
+                *TagpPtr(CVA,v)= v, markVariable(Arg, tr), *tr= 0;
             }
           else
             {
@@ -1712,12 +1712,12 @@ CVOID__PROTO(collect_goals_from_trail, intmach_t wake_count)
         {
           HeapPush(h,X(0));
           HeapPush(h,X(1));
-          X(1) = Tag(LST,HeapOffset(h,-2));
+          X(1) = Tagp(LST,HeapOffset(h,-2));
         }
       else if (sofar > 1)
         X(1) = X(0);
 
-      X(0) = Tag(LST,TagToGoal(ref));
+      X(0) = Tagp(LST,TagToGoal(ref));
       if (!CondCVA(ref))
         {
           tr0=tr, *tr=0;
@@ -1755,7 +1755,7 @@ CVOID__PROTO(trail_gc)
   tagged_t *tr = w->trail_top;
   node_t *b = w->node;
   intmach_t wake_count = WakeCount;
-  tagged_t heap_last = TagHVA(HeapOffset(Heap_End,-1));
+  tagged_t heap_last = Tagp(HVA,HeapOffset(Heap_End,-1));
   /*extern node_t *gc_aux_node;*/ /* Now in a register */
   /*extern node_t *gc_choice_start;*/ /* No in a register */
   /*extern tagged_t *gc_trail_start;*/ /* now in a register */
@@ -1778,10 +1778,10 @@ CVOID__PROTO(trail_gc)
       
     for (x=TagToPointer(b->trail_top); !OffTrailtop(x,tr); (void)TrailNext(x))
       if (TaggedIsHVA(t1 = *x)) {
-        if (*TagToHVA(t1) & 1)
+        if (*TagpPtr(HVA,t1) & 1)
           *TrailOffset(x,-1) = *x = heap_last;
         else
-          *TagToHVA(t1) ^= 1; /* turn mark bit on */
+          *TagpPtr(HVA,t1) ^= 1; /* turn mark bit on */
       }
 
     /* sweep trail segment to get rid of unconditional entries.
@@ -1797,7 +1797,7 @@ CVOID__PROTO(trail_gc)
         /* kill unconditional 'undo setarg' */
         if (TaggedIsSTR(t1) &&
             TagToHeadfunctor(t1)==functor_Dsetarg &&
-            !CondHVA(TagHVA(TagToPointer(*TagToArg(t1,2)))))
+            !CondHVA(Tagp(HVA,TagToPointer(*TaggedToArg(t1,2)))))
           *tr = 0;
       } else
         if (t1 & TagBitSVA) {
@@ -1805,7 +1805,7 @@ CVOID__PROTO(trail_gc)
             *tr = 0;
         }
         else if (!(t1 & TagBitCVA)) {
-          *TagToHVA(t1) ^= 1; /* turn mark bit off */
+          *TagpPtr(HVA,t1) ^= 1; /* turn mark bit off */
           if (!CondHVA(t1))
             *tr = 0;
         } else if (wake_count>0) --wake_count;

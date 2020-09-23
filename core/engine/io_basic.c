@@ -1233,7 +1233,7 @@ CVOID__PROTO(print_string, stream_node_t *stream, char *p) {
 CFUN__PROTO(var_address, intmach_t, tagged_t term)
 {
   if (IsStackVar(term))
-    term = TagHVA(Heap_End+(TagToSVA(term)-Stack_Start));
+    term = Tagp(HVA,Heap_End+(TagpPtr(SVA,term)-Stack_Start));
   return IntmachToTagged(TagToPointer(term)-Heap_Start);
 }
 
@@ -1517,7 +1517,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       w->global_top += 2;
       if (!prolog_fast_read_in_c_aux(Arg,h,vars,lastvar)) return FALSE;
       if (!prolog_fast_read_in_c_aux(Arg,h+1,vars,lastvar)) return FALSE;
-      *out = Tag(LST,h);
+      *out = Tagp(LST,h);
     }
     CHECK_HEAP_SPACE;
     return TRUE;
@@ -1541,7 +1541,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       {
         tagged_t *h = w->global_top;
         if ((i = atoi(Atom_Buffer)) == *lastvar)
-          *h = vars[(*lastvar)++] = TagHVA(w->global_top++);
+          *h = vars[(*lastvar)++] = Tagp(HVA,w->global_top++);
         *out = vars[i];
       }
       CHECK_HEAP_SPACE;
@@ -1579,7 +1579,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
         tagged_t *h = w->global_top;
         /* ENSURE_HEAP(i+1, 1); */
         *h = SetArity(GET_ATOM(Atom_Buffer),i);
-        *out = Tag(STR,h++);
+        *out = Tagp(STR,h++);
         w->global_top += i+1;
         while(i--) {
           if (!prolog_fast_read_in_c_aux(Arg,h++,vars,lastvar)) return FALSE;

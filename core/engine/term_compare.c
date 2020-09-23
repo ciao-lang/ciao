@@ -190,13 +190,13 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
       break;
     case 4:                     /* COMPLEX, COMPLEX */
       if (u & TagBitFunctor)
-        pt1 = TagToSTR(u), u = *pt1++, i = Arity(u);
+        pt1 = TagpPtr(STR,u), u = *pt1++, i = Arity(u);
       else
-        pt1 = TagToLST(u), u = functor_list, i = 2;
+        pt1 = TagpPtr(LST,u), u = functor_list, i = 2;
       if (v & TagBitFunctor)
-        pt2 = TagToSTR(v), v = *pt2++, j = Arity(v);
+        pt2 = TagpPtr(STR,v), v = *pt2++, j = Arity(v);
       else
-        pt2 = TagToLST(v), v = functor_list, j = 2;
+        pt2 = TagpPtr(LST,v), v = functor_list, j = 2;
       
       if (u==v)
         {

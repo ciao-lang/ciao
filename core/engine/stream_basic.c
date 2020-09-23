@@ -200,7 +200,7 @@ CFUN__PROTO(ptr_to_stream_noalias, tagged_t, stream_node_t *n)
   HeapPush(pt1,functor_Dstream);
   HeapPush(pt1,PointerToTerm(n));
   HeapPush(pt1,n->label);
-  return (w->global_top=pt1, Tag(STR,HeapOffset(pt1,-3)));
+  return (w->global_top=pt1, Tagp(STR,HeapOffset(pt1,-3)));
 }
 
 /* ------------------------------------------------------------------------- */

@@ -87,7 +87,7 @@
 #define AtomName(ATOM) (((atom_t *)TagToAtom(ATOM))->name)
 #define HeadOfTerm(TERM) (*TagToPointer(TERM))
 #define TailOfTerm(TERM) (*(TagToPointer(TERM) + 1))
-#define ArgOfTerm(A,TERM) (*TagToArg(TERM,A))
+#define ArgOfTerm(A,TERM) (*TaggedToArg(TERM,A))
 #define NameOfFunctor(FUNCTOR) (((atom_t *)TagToAtom(SetArity(TagToHeadfunctor(FUNCTOR),0)))->name)
 #define ArityOfFunctor(FUNCTOR)(Arity(TagToHeadfunctor(FUNCTOR)))
 /* From eng.h TermToPointer */

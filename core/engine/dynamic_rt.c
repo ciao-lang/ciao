@@ -1196,7 +1196,7 @@ CBOOL__PROTO(prolog_ptr_ref)
       HeapPush(pt1,X(0));
       HeapPush(pt1,TagToInstance(X(0))->rank);
       w->global_top=pt1;
-      CBOOL__LASTUNIFY(Tag(STR,HeapOffset(pt1,-3)),X(1));
+      CBOOL__LASTUNIFY(Tagp(STR,HeapOffset(pt1,-3)),X(1));
     }
   else
     {
@@ -1353,7 +1353,7 @@ CBOOL__PROTO(insertz)
       n->backward = n;
       root->first = n;
     }
-    else if (root->first->backward->rank == TaggedHigh)
+    else if (root->first->backward->rank == TaggedIntMax)
       SERIOUS_FAULT("database node full in assert or record")
     else {
       n->rank = root->first->backward->rank+MakeSmallDiff(1);
@@ -1422,7 +1422,7 @@ CBOOL__PROTO(insertz)
 size_t compile_large(tagged_t t, bcp_t p) {
   intmach_t i;
   intmach_t ar = LargeArity(TagToHeadfunctor(t));
-  tagged_t *tp = TagToSTR(t);
+  tagged_t *tp = TagpPtr(STR,t);
   tagged_t *pp = (tagged_t *)p;
 
   for (i = 0; i < ar; i++)
@@ -1446,7 +1446,7 @@ size_t compile_large_bc32(tagged_t t, bcp_t p) {
     tagged_t xx[2];
     xx[0] = MakeFunctorFix;
     xx[1] = i;
-    tagged_t t1 = Tag(STR, xx);
+    tagged_t t1 = Tagp(STR, xx);
     (void)compile_large(t1, p);
     sz = bn_scale_bc32((bignum_t *)p);
   } else if (LargeIsFloat(t)) {
@@ -1672,7 +1672,7 @@ CFUN__PROTO(active_instance,
   node_t *latest_static = w->node;
   instance_clock_t time = itime;
   instance_clock_t lotime = time;
-  tagged_t lorank = TaggedHigh;
+  tagged_t lorank = TaggedIntMax;
 
   if (!latest_static->next_alt)                   /* if called from wam() */
     latest_static = w->next_node;

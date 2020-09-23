@@ -295,7 +295,7 @@ ciao_term ciao_var_s(ciao_ctx ctx) {
   worker_t *w = ctx->worker_registers;
   ciao_ensure_heap(ctx, 1);
   pt = w->global_top;
-  HeapPush(pt, to = TagHVA(pt));
+  HeapPush(pt, to = Tagp(HVA,pt));
   w->global_top = pt;  
   return ciao_ref(ctx, to);
 }
@@ -325,7 +325,7 @@ ciao_term ciao_structure_a_s(ciao_ctx ctx, const char *name, int arity, ciao_ter
       HeapPush(pt, ciao_unref(ctx, args[i]));
     }
     w->global_top = pt;  
-    return ciao_ref(ctx, Tag(STR, HeapOffset(pt, -(arity+1))));
+    return ciao_ref(ctx, Tagp(STR, HeapOffset(pt, -(arity+1))));
   }
 }
 
@@ -622,7 +622,7 @@ ciao_term ciao_structure_arg_s(ciao_ctx ctx, ciao_term term, int i) {
   t = ciao_unref(ctx, term);
   DEREF(t, t);
   if (!TaggedIsSTR(t)) return CIAO_ERROR;
-  RefArg(a, t, i);
+  a = *TaggedToArg(t, i);
   return ciao_ref(ctx, a);
 }
 
@@ -1132,18 +1132,18 @@ tagged_t create_ref_table(ciao_ctx ctx, int chunks) {
   for (j = 0; j < chunks - 1; j++) {
     HeapPush(pt, functor);
     for (i = 0; i < REF_TABLE_CHUNK_SIZE - 2; i++) {
-      HeapPush(pt, TagHVA(pt));
+      HeapPush(pt, Tagp(HVA,pt));
     }
-    HeapPush(pt, Tag(STR, pt + 1));
+    HeapPush(pt, Tagp(STR, pt + 1));
   }
   if (chunks > 0) {
     HeapPush(pt, functor);
     for (i = 0; i < REF_TABLE_CHUNK_SIZE - 1; i++) {
-      HeapPush(pt, TagHVA(pt));
+      HeapPush(pt, Tagp(HVA,pt));
     }
   }
   w->global_top = pt;  
-  return Tag(STR, pt0);
+  return Tagp(STR, pt0);
 }
 
 ciao_term ciao_ref(ciao_ctx ctx, tagged_t x) {
@@ -1157,7 +1157,7 @@ ciao_term ciao_ref(ciao_ctx ctx, tagged_t x) {
   next = GetSmall(Y(0));
   {
     tagged_t ta;
-    ta = *TagToArg(Y(2), next);
+    ta = *TaggedToArg(Y(2), next);
 
     if (ta!=x) {
       if (!CBOOL__SUCCEED(cunify,ta,x)) goto fail;
@@ -1186,8 +1186,8 @@ ciao_term ciao_ref(ciao_ctx ctx, tagged_t x) {
     /* old table is in Y(2) so don't care about gc here */  
     new_table = create_ref_table(ctx, new_chunks); 
 
-    x = TagToArg(Y(2), 0);
-    y = TagToArg(new_table, 0);
+    x = TaggedToArg(Y(2), 0);
+    y = TaggedToArg(new_table, 0);
     k = 0;
     for (j = 0; j < chunks - 1; j++) {
       k++;
@@ -1221,7 +1221,7 @@ tagged_t ciao_unref(ciao_ctx ctx, ciao_term term) {
 
   SetE(w->frame);
 
-  x = *TagToArg(Y(2), term);
+  x = *TaggedToArg(Y(2), term);
   return x;
 }
 

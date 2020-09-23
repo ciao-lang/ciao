@@ -214,9 +214,8 @@ typedef bool_t (*cbool0_t)(worker_t *);
 typedef bool_t (*cbool1_t)(worker_t *, tagged_t);
 typedef bool_t (*cbool2_t)(worker_t *, tagged_t, tagged_t);
 typedef bool_t (*cbool3_t)(worker_t *, tagged_t, tagged_t, tagged_t);
-/* TODO: optim_comp passes liveness separately */
-typedef tagged_t (*ctagged1l_t)(worker_t *, tagged_t);
-typedef tagged_t (*ctagged2l_t)(worker_t *, tagged_t, tagged_t);
+typedef tagged_t (*ctagged1_t)(worker_t *, tagged_t);
+typedef tagged_t (*ctagged2_t)(worker_t *, tagged_t, tagged_t);
 
 /* ------------------------------------------------------------------------- */
 /* Runtime definitions for the current instruction set */

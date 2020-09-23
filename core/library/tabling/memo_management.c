@@ -42,7 +42,7 @@ CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
             }
           else if (TaggedIsSVA(*TagToPointer(itrail)))
             {
-              if (!StackYounger(TagSVA(ind->local_top),*TagToPointer(itrail))) {
+              if (!StackYounger(Tagp(SVA,ind->local_top),*TagToPointer(itrail))) {
                 //              printf("\nNullifyTrailEntry !StackYounger\n");
                 //              NullifyTrailEntry(itrail);
               }

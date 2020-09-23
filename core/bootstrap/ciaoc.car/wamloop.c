@@ -134,12 +134,12 @@ t1 ^= t0;if (TagToHeadfunctor(t0) != (i=TagToHeadfunctor(t1))) {
 goto fail;
     } else if (i&QMask) {
 for (i = LargeArity(i)-1; i>0; i--) {
-if (*TagToArg(t0,i) != *TagToArg(t1,i)) {
+if (*TaggedToArg(t0,i) != *TaggedToArg(t1,i)) {
 goto fail;
         }
 }
 goto unify_t0t1_done;
-    } else if (cunify_args(Arg,Arity(i),TagToArg(t0,1),TagToArg(t1,1))) {
+    } else if (cunify_args(Arg,Arity(i),TaggedToArg(t0,1),TaggedToArg(t1,1))) {
 goto unify_t0t1_done;
     } else {
 goto fail;
@@ -148,7 +148,7 @@ goto fail;
 t0_is_hva:
 SwitchOnVar(t1,i,{
 if (t0==t1) {
-;  } else if (YoungerHeapVar(TagToHVA(t1),TagToHVA(t0))) {
+;  } else if (YoungerHeapVar(TagpPtr(HVA,t1),TagpPtr(HVA,t0))) {
 BindHVA(t1,t0);
   } else {
 BindHVA(t0,t1);
@@ -166,7 +166,7 @@ SwitchOnVar(t1,i,{
 BindHVA(t1,t0);
 },{
 if (t0==t1) {
-;  } else if (YoungerHeapVar(TagToCVA(t1),TagToCVA(t0))) {
+;  } else if (YoungerHeapVar(TagpPtr(CVA,t1),TagpPtr(CVA,t0))) {
 BindCVA(t1,t0);
   } else {
 BindCVA(t0,t1);
@@ -182,7 +182,7 @@ for (; TaggedIsSVA(t1); t1 = i) {
 RefSVA(i,t1);if (t1 == i) {
 if (t0==t1) {
 goto unify_t0t1_done;
-      } else if (YoungerStackVar(TagToSVA(t1),TagToSVA(t0))) {
+      } else if (YoungerStackVar(TagpPtr(SVA,t1),TagpPtr(SVA,t0))) {
 BindSVA(t1,t0);
       } else {
 BindSVA(t0,t1);
@@ -198,7 +198,7 @@ suspend_on_t1:
 if (Func->arity==0) {
 t3 = Func->printname;
   } else {
-t3 = Tag(STR,H);
+t3 = Tagp(STR,H);
 HeapPush(H,SetArity(Func->printname,Func->arity));
 for (i=0; i<Func->arity; i++) {
 t1 = X(i);
@@ -206,7 +206,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
           }
@@ -222,23 +222,23 @@ if (TaggedIsHVA(t1)) {
 LoadCVA(t0,H);
 pt1 = w->trail_top;
 if (CondHVA(t1)) {
-TrailPush(pt1,t1);*TagToHVA(t1) = t0;
+TrailPush(pt1,t1);*TagpPtr(HVA,t1) = t0;
       } else {
-*TagToHVA(t1) = t0;
+*TagpPtr(HVA,t1) = t0;
       }
 goto check_trail;
     } else if (!CondCVA(t1)) {
 HeapPush(H,*TagToGoal(t1));
 HeapPush(H,*TagToDef(t1));
-*TagToGoal(t1) = Tag(LST,HeapOffset(H,-2));
-*TagToDef(t1) = Tag(LST,H);
+*TagToGoal(t1) = Tagp(LST,HeapOffset(H,-2));
+*TagToDef(t1) = Tagp(LST,H);
 goto no_check_trail;
     } else {
 LoadCVA(t0,H);
-HeapPush(H,Tag(LST,TagToGoal(t1)));
-HeapPush(H,Tag(LST,HeapOffset(H,1)));
+HeapPush(H,Tagp(LST,TagToGoal(t1)));
+HeapPush(H,Tagp(LST,HeapOffset(H,1)));
 pt1 = w->trail_top;
-TrailPush(pt1,t1);*TagToCVA(t1) = t0;
+TrailPush(pt1,t1);*TagpPtr(CVA,t1) = t0;
 goto check_trail;
     }
 check_trail:
@@ -257,7 +257,7 @@ escape_to_p:
 if (Func->arity==0) {
 t3 = Func->printname;
     } else {
-t3 = Tag(STR,H);
+t3 = Tagp(STR,H);
 HeapPush(H,SetArity(Func->printname,Func->arity));
 for (i=0; i<Func->arity; i++) {
 t1 = X(i);
@@ -265,7 +265,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
             }
@@ -631,10 +631,10 @@ goto tryeach_w;
 StoreH;
 if (t0 & TagBitComplex) {
 if (t0 & TagBitFunctor) {
-S = TagToArg(t0,0);
+S = TaggedToArg(t0,0);
 t1 = HeapNext(S);
                 } else {
-S = TagToLST(t0);
+S = TagpPtr(LST,t0);
 {SetAlts(Func->code.incoreinfo->lstcase);
 goto tryeach_r;
 }                }
@@ -1006,7 +1006,7 @@ goto unify_t0_t1;
 r_get_y_first_value:
 case GET_Y_FIRST_VALUE:
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = Xb(BcP(f_x, 1));
                 } else {
 Yb(BcP(f_y, 2)) = Xb(BcP(f_x, 1));
@@ -1045,13 +1045,13 @@ r_get_large:
 case GET_LARGE:
 t1 = Xb(BcP(f_x, 1));
 SwitchOnVar(t1,t0,{
-BindHVA(t1,BC_MakeLarge(Arg,&BcP(f_t, 2)));
+BindHVA(t1,BC_MakeBlob(Arg,&BcP(f_t, 2)));
 },{
-BindCVA(t1,BC_MakeLarge(Arg,&BcP(f_t, 2)));
+BindCVA(t1,BC_MakeBlob(Arg,&BcP(f_t, 2)));
 },{
-BindSVA(t1,BC_MakeLarge(Arg,&BcP(f_t, 2)));
+BindSVA(t1,BC_MakeBlob(Arg,&BcP(f_t, 2)));
 },{
-BC_EqLarge(t1,&BcP(f_t, 2), {
+BC_EqBlob(t1,&BcP(f_t, 2), {
 goto fail;
 });
 });
@@ -1065,24 +1065,24 @@ case GET_STRUCTURE:
 t1 = Xb(BcP(f_x, 1));
 SwitchOnVar(t1,t0,{
 LoadH;
-BindHVA(t1,Tag(STR,H));
+BindHVA(t1,Tagp(STR,H));
 HeapPush(H,BcP(f_f, 2));
 P += FTYPE_size(f_x)+FTYPE_size(f_f);
 goto WriteMode;
 },{
 LoadH;
-BindCVA(t1,Tag(STR,H));
+BindCVA(t1,Tagp(STR,H));
 HeapPush(H,BcP(f_f, 2));
 P += FTYPE_size(f_x)+FTYPE_size(f_f);
 goto WriteMode;
 },{
 LoadH;
-BindSVA(t1,Tag(STR,H));
+BindSVA(t1,Tagp(STR,H));
 HeapPush(H,BcP(f_f, 2));
 P += FTYPE_size(f_x)+FTYPE_size(f_f);
 goto WriteMode;
 },{
-if(!TaggedIsSTR(t1) || (TagToHeadfunctor(t1)!=BcP(f_f, 2))) goto fail;S = TagToArg(t1,1);
+if(!TaggedIsSTR(t1) || (TagToHeadfunctor(t1)!=BcP(f_f, 2))) goto fail;S = TaggedToArg(t1,1);
 P += FTYPE_size(f_x)+FTYPE_size(f_f);
 goto ReadMode;
 });
@@ -1107,24 +1107,24 @@ case GET_LIST:
 t1 = Xb(BcP(f_x, 1));
 SwitchOnVar(t1,t0,{
 LoadH;
-BindHVA(t1,Tag(LST,H));
+BindHVA(t1,Tagp(LST,H));
 P += FTYPE_size(f_x);
 goto WriteMode;
 },{
 LoadH;
-BindCVA(t1,Tag(LST,H));
+BindCVA(t1,Tagp(LST,H));
 P += FTYPE_size(f_x);
 goto WriteMode;
 },{
 LoadH;
-BindSVA(t1,Tag(LST,H));
+BindSVA(t1,Tagp(LST,H));
 P += FTYPE_size(f_x);
 goto WriteMode;
 },{
 if (!TermIsLST(t1)) {
 goto fail;
                 }
-S = TagToLST(t1);
+S = TagpPtr(LST,t1);
 P += FTYPE_size(f_x);
 goto ReadMode;
 });
@@ -1327,23 +1327,23 @@ goto fail;
                 }
 goto r_proceed;
 case GET_STRUCTURE_X0Q:
-S = TagToArg(t0,1);
+S = TaggedToArg(t0,1);
 P += FTYPE_size(f_Q)+FTYPE_size(f_f);
 goto ReadMode;
 case GET_STRUCTURE_X0:
-S = TagToArg(t0,1);
+S = TaggedToArg(t0,1);
 P += FTYPE_size(f_f);
 goto ReadMode;
 case GET_LARGE_X0Q:
 t1 = t0;
 SwitchOnVar(t1,t0,{
-BindHVA(t1,BC_MakeLarge(Arg,&BcP(f_t, 2)));
+BindHVA(t1,BC_MakeBlob(Arg,&BcP(f_t, 2)));
 },{
-BindCVA(t1,BC_MakeLarge(Arg,&BcP(f_t, 2)));
+BindCVA(t1,BC_MakeBlob(Arg,&BcP(f_t, 2)));
 },{
-BindSVA(t1,BC_MakeLarge(Arg,&BcP(f_t, 2)));
+BindSVA(t1,BC_MakeBlob(Arg,&BcP(f_t, 2)));
 },{
-BC_EqLarge(t1,&BcP(f_t, 2), {
+BC_EqBlob(t1,&BcP(f_t, 2), {
 goto fail;
 });
 });
@@ -1352,13 +1352,13 @@ goto ReadMode;
 case GET_LARGE_X0:
 t1 = t0;
 SwitchOnVar(t1,t0,{
-BindHVA(t1,BC_MakeLarge(Arg,&BcP(f_t, 1)));
+BindHVA(t1,BC_MakeBlob(Arg,&BcP(f_t, 1)));
 },{
-BindCVA(t1,BC_MakeLarge(Arg,&BcP(f_t, 1)));
+BindCVA(t1,BC_MakeBlob(Arg,&BcP(f_t, 1)));
 },{
-BindSVA(t1,BC_MakeLarge(Arg,&BcP(f_t, 1)));
+BindSVA(t1,BC_MakeBlob(Arg,&BcP(f_t, 1)));
 },{
-BC_EqLarge(t1,&BcP(f_t, 1), {
+BC_EqBlob(t1,&BcP(f_t, 1), {
 goto fail;
 });
 });
@@ -1374,7 +1374,7 @@ case GET_NIL_X0:
 P += 0;
 goto ReadMode;
 case GET_LIST_X0:
-S = TagToLST(t0);
+S = TagpPtr(LST,t0);
 P += 0;
 goto ReadMode;
 case GET_XVAR_XVAR:
@@ -1410,7 +1410,7 @@ goto ReadMode;
 r_function_1q:
 case FUNCTION_1Q:
 w->liveinfo = &BcP(f_l, 6);
-if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)((ctagged1l_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 3))))) {
+if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)((ctagged1_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 3))))) {
 goto fail;
                 }
 P += (FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
@@ -1418,7 +1418,7 @@ goto ReadMode;
 r_function_1:
 case FUNCTION_1:
 w->liveinfo = &BcP(f_l, 5);
-if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)((ctagged1l_t)BcP(f_C, 3))(Arg,Xb(BcP(f_x, 2))))) {
+if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)((ctagged1_t)BcP(f_C, 3))(Arg,Xb(BcP(f_x, 2))))) {
 goto fail;
                 }
 P += (FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
@@ -1426,7 +1426,7 @@ goto ReadMode;
 r_function_2q:
 case FUNCTION_2Q:
 w->liveinfo = &BcP(f_l, 7);
-if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)((ctagged2l_t)BcP(f_C, 5))(Arg,Xb(BcP(f_x, 3)),Xb(BcP(f_x, 4))))) {
+if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)((ctagged2_t)BcP(f_C, 5))(Arg,Xb(BcP(f_x, 3)),Xb(BcP(f_x, 4))))) {
 goto fail;
                 }
 P += (FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
@@ -1434,7 +1434,7 @@ goto ReadMode;
 r_function_2:
 case FUNCTION_2:
 w->liveinfo = &BcP(f_l, 6);
-if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)((ctagged2l_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3))))) {
+if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)((ctagged2_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3))))) {
 goto fail;
                 }
 P += (FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
@@ -1582,7 +1582,7 @@ goto ReadMode;
 case UNIFY_Y_FIRST_VALUE:
 RefHeapNext(t0,S);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                 } else {
 Yb(BcP(f_y, 1)) = t0;
@@ -1621,11 +1621,11 @@ r_unify_large:
 case UNIFY_LARGE:
 RefHeapNext(t1,S);
 SwitchOnHeapVar(t1,t0,{
-BindHVA(t1,BC_MakeLarge(Arg,&BcP(f_t, 1)));
+BindHVA(t1,BC_MakeBlob(Arg,&BcP(f_t, 1)));
 },{
-BindCVA(t1,BC_MakeLarge(Arg,&BcP(f_t, 1)));
+BindCVA(t1,BC_MakeBlob(Arg,&BcP(f_t, 1)));
 },{
-BC_EqLarge(t1,&BcP(f_t, 1), {
+BC_EqBlob(t1,&BcP(f_t, 1), {
 goto fail;
 });
 });
@@ -1639,18 +1639,18 @@ case UNIFY_STRUCTURE:
 RefHeapNext(t1,S);
 SwitchOnHeapVar(t1,t0,{
 LoadH;
-BindHVA(t1,Tag(STR,H));
+BindHVA(t1,Tagp(STR,H));
 HeapPush(H,BcP(f_f, 1));
 P += FTYPE_size(f_f);
 goto WriteMode;
 },{
 LoadH;
-BindCVA(t1,Tag(STR,H));
+BindCVA(t1,Tagp(STR,H));
 HeapPush(H,BcP(f_f, 1));
 P += FTYPE_size(f_f);
 goto WriteMode;
 },{
-if(!TaggedIsSTR(t1) || (TagToHeadfunctor(t1)!=BcP(f_f, 1))) goto fail;S = TagToArg(t1,1);
+if(!TaggedIsSTR(t1) || (TagToHeadfunctor(t1)!=BcP(f_f, 1))) goto fail;S = TaggedToArg(t1,1);
 P += FTYPE_size(f_f);
 goto ReadMode;
 });
@@ -1671,19 +1671,19 @@ case UNIFY_LIST:
 RefHeapNext(t1,S);
 SwitchOnHeapVar(t1,t0,{
 LoadH;
-BindHVA(t1,Tag(LST,H));
+BindHVA(t1,Tagp(LST,H));
 P += 0;
 goto WriteMode;
 },{
 LoadH;
-BindCVA(t1,Tag(LST,H));
+BindCVA(t1,Tagp(LST,H));
 P += 0;
 goto WriteMode;
 },{
 if (!TermIsLST(t1)) {
 goto fail;
                 }
-S = TagToLST(t1);
+S = TagpPtr(LST,t1);
 P += 0;
 goto ReadMode;
 });
@@ -1748,7 +1748,7 @@ S = HeapOffset(S,BcP(f_i, 1));
 ;
 RefHeapNext(t0,S);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = t0;
                 } else {
 Yb(BcP(f_y, 2)) = t0;
@@ -1798,7 +1798,7 @@ case U2_XVAR_YFVAL:
 RefHeapNext(Xb(BcP(f_x, 1)),S);
 RefHeapNext(t0,S);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = t0;
                 } else {
 Yb(BcP(f_y, 2)) = t0;
@@ -1875,7 +1875,7 @@ goto unify_t0_t1;
 case U2_YFVAL_VOID:
 RefHeapNext(t0,S);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                 } else {
 Yb(BcP(f_y, 1)) = t0;
@@ -1887,7 +1887,7 @@ goto ReadMode;
 case U2_YFVAL_XVAR:
 RefHeapNext(t0,S);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                 } else {
 Yb(BcP(f_y, 1)) = t0;
@@ -1898,14 +1898,14 @@ goto ReadMode;
 case U2_YFVAL_YFVAL:
 RefHeapNext(t0,S);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                 } else {
 Yb(BcP(f_y, 1)) = t0;
                 }
 RefHeapNext(t0,S);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = t0;
                 } else {
 Yb(BcP(f_y, 2)) = t0;
@@ -1918,7 +1918,7 @@ r_u2_yfval_xlval:
 case U2_YFVAL_XLVAL:
 RefHeapNext(t0,S);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                 } else {
 Yb(BcP(f_y, 1)) = t0;
@@ -1933,7 +1933,7 @@ r_u2_yfval_ylval:
 case U2_YFVAL_YLVAL:
 RefHeapNext(t0,S);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                 } else {
 Yb(BcP(f_y, 1)) = t0;
@@ -2015,7 +2015,7 @@ goto fail;
                 }
 RefHeapNext(t0,S);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = t0;
                 } else {
 Yb(BcP(f_y, 2)) = t0;
@@ -2089,7 +2089,7 @@ goto fail;
                 }
 RefHeapNext(t0,S);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = t0;
                 } else {
 Yb(BcP(f_y, 2)) = t0;
@@ -2481,7 +2481,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                             }
@@ -2504,7 +2504,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2526,7 +2526,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2548,7 +2548,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2570,7 +2570,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2592,7 +2592,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2614,7 +2614,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2636,7 +2636,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2658,7 +2658,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2688,7 +2688,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                             }
@@ -2711,7 +2711,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2733,7 +2733,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2755,7 +2755,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2777,7 +2777,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2799,7 +2799,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2821,7 +2821,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2843,7 +2843,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2865,7 +2865,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -2915,7 +2915,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                         }
@@ -2963,32 +2963,32 @@ goto WriteMode;
 w_put_largeq:
 case PUT_LARGEQ:
 StoreH;
-Xb(BcP(f_x, 2)) = BC_MakeLarge(Arg,&BcP(f_t, 3));
+Xb(BcP(f_x, 2)) = BC_MakeBlob(Arg,&BcP(f_t, 3));
 LoadH;
 P += (FTYPE_size(f_Q)+FTYPE_size(f_x))+LargeSize(BcP(f_t, 3));
 goto WriteMode;
 w_put_large:
 case PUT_LARGE:
 StoreH;
-Xb(BcP(f_x, 1)) = BC_MakeLarge(Arg,&BcP(f_t, 2));
+Xb(BcP(f_x, 1)) = BC_MakeBlob(Arg,&BcP(f_t, 2));
 LoadH;
 P += FTYPE_size(f_x)+LargeSize(BcP(f_t, 2));
 goto WriteMode;
 w_put_structureq:
 case PUT_STRUCTUREQ:
-Xb(BcP(f_x, 2)) = Tag(STR,H);
+Xb(BcP(f_x, 2)) = Tagp(STR,H);
 HeapPush(H,BcP(f_f, 3));
 P += (FTYPE_size(f_Q)+FTYPE_size(f_x))+FTYPE_size(f_f);
 goto WriteMode;
 w_put_structure:
 case PUT_STRUCTURE:
-Xb(BcP(f_x, 1)) = Tag(STR,H);
+Xb(BcP(f_x, 1)) = Tagp(STR,H);
 HeapPush(H,BcP(f_f, 2));
 P += FTYPE_size(f_x)+FTYPE_size(f_f);
 goto WriteMode;
 w_put_list:
 case PUT_LIST:
-Xb(BcP(f_x, 1)) = Tag(LST,H);
+Xb(BcP(f_x, 1)) = Tagp(LST,H);
 P += FTYPE_size(f_x);
 goto WriteMode;
 case PUT_Y_VALUE:
@@ -3002,7 +3002,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                         }
@@ -3025,7 +3025,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                         }
@@ -3042,7 +3042,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                         }
@@ -3060,7 +3060,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                         }
@@ -3073,7 +3073,7 @@ if (TaggedIsSVA(t0)) {
 do {
 RefSVA(t1,t0);
 if (t1 == t0) {
-if ((!YoungerStackVar(TagSVA(Offset(E,EToY0)),t0))) {
+if ((!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),t0))) {
 LoadHVA(t0,H);
 BindSVA(t1,t0);
                           }
@@ -3200,7 +3200,7 @@ P += FTYPE_size(f_Q);
 goto w_get_structure_x0;
 w_get_structure_x0:
 case GET_STRUCTURE_X0:
-t1 = Tag(STR,H);
+t1 = Tagp(STR,H);
 if (TaggedIsHVA(t0)) {
 BindHVA(t0,t1);
                   } else if (t0 & TagBitSVA) {
@@ -3217,7 +3217,7 @@ goto w_get_large_x0;
 w_get_large_x0:
 case GET_LARGE_X0:
 StoreH;
-t1 = BC_MakeLarge(Arg,&BcP(f_p, 1));
+t1 = BC_MakeBlob(Arg,&BcP(f_p, 1));
 LoadH;
 if (TaggedIsHVA(t0)) {
 BindHVA(t0,t1);
@@ -3253,7 +3253,7 @@ BindCVA(t0,atom_nil);
 P += 0;
 goto WriteMode;
 case GET_LIST_X0:
-t1 = Tag(LST,H);
+t1 = Tagp(LST,H);
 if (TaggedIsHVA(t0)) {
 BindHVA(t0,t1);
                   } else if (t0 & TagBitSVA) {
@@ -3381,7 +3381,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3400,7 +3400,7 @@ goto WriteMode;
 case UNIFY_Y_FIRST_VALUE:
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                   } else {
 Yb(BcP(f_y, 1)) = t0;
@@ -3417,7 +3417,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3439,16 +3439,16 @@ goto w_unify_large;
 w_unify_large:
 case UNIFY_LARGE:
 w->global_top = HeapOffset(H,1);
-*H = BC_MakeLarge(Arg,&BcP(f_t, 1));
+*H = BC_MakeBlob(Arg,&BcP(f_t, 1));
 P += LargeSize(BcP(f_t, 1));
 goto ReadMode;
 case UNIFY_STRUCTUREQ:
-HeapPush(H,Tag(STR,HeapOffset(H,1)));
+HeapPush(H,Tagp(STR,HeapOffset(H,1)));
 HeapPush(H,BcP(f_f, 2));
 P += FTYPE_size(f_Q)+FTYPE_size(f_f);
 goto WriteMode;
 case UNIFY_STRUCTURE:
-HeapPush(H,Tag(STR,HeapOffset(H,1)));
+HeapPush(H,Tagp(STR,HeapOffset(H,1)));
 HeapPush(H,BcP(f_f, 1));
 P += FTYPE_size(f_f);
 goto WriteMode;
@@ -3457,7 +3457,7 @@ HeapPush(H,atom_nil);
 P += 0;
 goto WriteMode;
 case UNIFY_LIST:
-HeapPush(H,Tag(LST,HeapOffset(H,1)));
+HeapPush(H,Tagp(LST,HeapOffset(H,1)));
 P += 0;
 goto WriteMode;
 case UNIFY_CONSTANT_NECK_PROCEEDQ:
@@ -3499,7 +3499,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                         }
@@ -3512,7 +3512,7 @@ i = (FTYPE_ctype(f_i_signed))BcP(f_i, 1);
 do {
 ConstrHVA(H);} while (--i);LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = t0;
                     } else {
 Yb(BcP(f_y, 2)) = t0;
@@ -3533,7 +3533,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                         }
@@ -3573,7 +3573,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3585,7 +3585,7 @@ case U2_XVAR_YFVAL:
 LoadHVA(Xb(BcP(f_x, 1)),H);
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = t0;
                   } else {
 Yb(BcP(f_y, 2)) = t0;
@@ -3604,7 +3604,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3660,7 +3660,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3688,7 +3688,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3699,7 +3699,7 @@ goto WriteMode;
 case U2_YFVAL_VOID:
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                   } else {
 Yb(BcP(f_y, 1)) = t0;
@@ -3711,7 +3711,7 @@ goto WriteMode;
 case U2_YFVAL_XVAR:
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                   } else {
 Yb(BcP(f_y, 1)) = t0;
@@ -3722,14 +3722,14 @@ goto WriteMode;
 case U2_YFVAL_YFVAL:
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                   } else {
 Yb(BcP(f_y, 1)) = t0;
                   }
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = t0;
                   } else {
 Yb(BcP(f_y, 2)) = t0;
@@ -3739,7 +3739,7 @@ goto WriteMode;
 case U2_YFVAL_XVAL:
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                   } else {
 Yb(BcP(f_y, 1)) = t0;
@@ -3750,7 +3750,7 @@ goto WriteMode;
 case U2_YFVAL_XLVAL:
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                   } else {
 Yb(BcP(f_y, 1)) = t0;
@@ -3760,7 +3760,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3771,7 +3771,7 @@ goto WriteMode;
 case U2_YFVAL_YVAL:
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                   } else {
 Yb(BcP(f_y, 1)) = t0;
@@ -3782,7 +3782,7 @@ goto WriteMode;
 case U2_YFVAL_YLVAL:
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 1)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 1))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 1))));
 Yb(BcP(f_y, 1)) = t0;
                   } else {
 Yb(BcP(f_y, 1)) = t0;
@@ -3792,7 +3792,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3812,7 +3812,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3833,7 +3833,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3861,7 +3861,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3882,7 +3882,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3896,7 +3896,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3911,7 +3911,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3922,7 +3922,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                         }
@@ -3934,7 +3934,7 @@ case U2_XVAL_YFVAL:
 HeapPush(H,Xb(BcP(f_x, 1)));
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = t0;
                   } else {
 Yb(BcP(f_y, 2)) = t0;
@@ -3947,7 +3947,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3955,7 +3955,7 @@ break;
 HeapPush(H,t1);
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = t0;
                     } else {
 Yb(BcP(f_y, 2)) = t0;
@@ -3974,7 +3974,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -3988,7 +3988,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -4003,7 +4003,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -4014,7 +4014,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                         }
@@ -4034,7 +4034,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -4055,7 +4055,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -4075,7 +4075,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -4088,7 +4088,7 @@ case U2_YVAL_YFVAL:
 HeapPushRefStack(H,&Yb(BcP(f_y, 1)));
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = t0;
                   } else {
 Yb(BcP(f_y, 2)) = t0;
@@ -4101,7 +4101,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -4109,7 +4109,7 @@ break;
 HeapPush(H,t1);
 LoadHVA(t0,H);
 if (CondStackvar(Yb(BcP(f_y, 2)))) {
-TrailPushCheck(w->trail_top,TagSVA(&Yb(BcP(f_y, 2))));
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y, 2))));
 Yb(BcP(f_y, 2)) = t0;
                     } else {
 Yb(BcP(f_y, 2)) = t0;
@@ -4128,7 +4128,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -4142,7 +4142,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -4157,7 +4157,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -4168,7 +4168,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                         }
@@ -4188,7 +4188,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -4202,7 +4202,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -4217,7 +4217,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                       }
@@ -4228,7 +4228,7 @@ if (TaggedIsSVA(t1)) {
 do {
 RefSVA(t0,t1);
 if (t0 == t1) {
-BindSVA(t1,TagHVA(H));
+BindSVA(t1,Tagp(HVA,H));
 PreLoadHVA(t1,H);
 break;
                         }

@@ -87,7 +87,7 @@ CVOID__PROTO(wr_tagged_rec, tagged_t t) {
     arity = Arity(TagToHeadfunctor(t));
     for(i=1; i<=arity; i++){
       if(i>1) putchar(',');
-      RefArg(temp,t,i);
+      temp = *TaggedToArg(t,i);
       wr_tagged_rec(Arg,temp);
     }
     putchar(')');

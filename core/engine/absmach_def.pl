@@ -280,16 +280,16 @@ unify_heap_structure(U,V,Cont) :-
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(hva, T1, callexp('Tag', ["STR", H])), heap_push(U),
+       bind(hva, T1, callexp('Tagp', ["STR", H])), heap_push(U),
        Cont),
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(cva, T1, callexp('Tag', ["STR", H])), heap_push(U),
+       bind(cva, T1, callexp('Tagp', ["STR", H])), heap_push(U),
        Cont),
       ([[update(mode(M))]],
        "if(!TaggedIsSTR(", T1, ") || (TagToHeadfunctor(", T1, ")!=", U, ")) goto fail;",
-       "S" <- callexp('TagToArg', [T1, 1]),
+       "S" <- callexp('TaggedToArg', [T1, 1]),
        Cont)),
     % Make sure that no mode dependant code appears next
     % TODO: better way?
@@ -305,21 +305,21 @@ unify_structure(U,V,Cont) :-
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(hva, T1, callexp('Tag', ["STR", H])), heap_push(U),
+       bind(hva, T1, callexp('Tagp', ["STR", H])), heap_push(U),
        Cont),
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(cva, T1, callexp('Tag', ["STR", H])), heap_push(U),
+       bind(cva, T1, callexp('Tagp', ["STR", H])), heap_push(U),
        Cont),
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(sva, T1, callexp('Tag', ["STR", H])), heap_push(U),
+       bind(sva, T1, callexp('Tagp', ["STR", H])), heap_push(U),
        Cont),
       ([[update(mode(M))]],
        "if(!TaggedIsSTR(", T1, ") || (TagToHeadfunctor(", T1, ")!=", U, ")) goto fail;",
-       "S" <- callexp('TagToArg', [T1, 1]),
+       "S" <- callexp('TaggedToArg', [T1, 1]),
        Cont)),
     % Make sure that no mode dependant code appears next
     % TODO: better way?
@@ -331,9 +331,9 @@ unify_heap_large(ARG,P, T) :-
     t1(T1),
     assign_noself(T1, T),
     sw_on_heap_var(T1, T0,
-      bind(hva, T1, callexp('BC_MakeLarge', [ARG, P])),
-      bind(cva, T1, callexp('BC_MakeLarge', [ARG, P])),
-      ("BC_EqLarge(", T1, ",", P, ", {", fmt:nl,
+      bind(hva, T1, callexp('BC_MakeBlob', [ARG, P])),
+      bind(cva, T1, callexp('BC_MakeBlob', [ARG, P])),
+      ("BC_EqBlob(", T1, ",", P, ", {", fmt:nl,
        goto('fail'),
        "});", fmt:nl)).
 
@@ -343,10 +343,10 @@ unify_large(ARG,P, T) :-
     t1(T1),
     assign_noself(T1, T),
     sw_on_var(T1, T0,
-      bind(hva, T1, callexp('BC_MakeLarge', [ARG, P])),
-      bind(cva, T1, callexp('BC_MakeLarge', [ARG, P])),
-      bind(sva, T1, callexp('BC_MakeLarge', [ARG, P])),
-      ("BC_EqLarge(", T1, ",", P, ", {", fmt:nl,
+      bind(hva, T1, callexp('BC_MakeBlob', [ARG, P])),
+      bind(cva, T1, callexp('BC_MakeBlob', [ARG, P])),
+      bind(sva, T1, callexp('BC_MakeBlob', [ARG, P])),
+      ("BC_EqBlob(", T1, ",", P, ", {", fmt:nl,
        goto('fail'),
        "});", fmt:nl)).
 
@@ -360,16 +360,16 @@ unify_heap_list(V,Cont) :-
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(hva, T1, callexp('Tag', ["LST", H])),
+       bind(hva, T1, callexp('Tagp', ["LST", H])),
        Cont),
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(cva, T1, callexp('Tag', ["LST", H])),
+       bind(cva, T1, callexp('Tagp', ["LST", H])),
        Cont),
       ([[update(mode(M))]],
        if(("!TermIsLST(", T1, ")"), goto('fail')),
-       "S" <- callexp('TagToLST', [T1]),
+       "S" <- callexp('TagpPtr', ["LST", T1]),
        Cont)),
     % Make sure that no mode dependant code appears next
     % TODO: better way?
@@ -385,21 +385,21 @@ unify_list(V,Cont) :-
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(hva, T1, callexp('Tag', ["LST", H])),
+       bind(hva, T1, callexp('Tagp', ["LST", H])),
        Cont),
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(cva, T1, callexp('Tag', ["LST", H])),
+       bind(cva, T1, callexp('Tagp', ["LST", H])),
        Cont),
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(sva, T1, callexp('Tag', ["LST", H])),
+       bind(sva, T1, callexp('Tagp', ["LST", H])),
        Cont),
       ([[update(mode(M))]],
        if(("!TermIsLST(", T1, ")"), goto('fail')),
-       "S" <- callexp('TagToLST', [T1]),
+       "S" <- callexp('TagpPtr', ["LST", T1]),
        Cont)),
     % Make sure that no mode dependant code appears next
     % TODO: better way?
@@ -412,7 +412,7 @@ unify_local_value(T1) :-
         (call('RefSVA', ["t0",T1]),
          if(("t0"," == ",T1), 
            (cachedreg('H', H),
-            bind(sva, T1, callexp('TagHVA', [H])),
+            bind(sva, T1, callexp('Tagp', ["HVA", H])),
             preload(hva, T1),
             break))),
         callexp('TaggedIsSVA', [(T1,"=","t0")]))),
@@ -448,7 +448,7 @@ emul_to_goal :-
     if("Func->arity==0", 
       "t3" <- "Func->printname",
       (cachedreg('H', H),
-       "t3" <- callexp('Tag', ["STR", H]),
+       "t3" <- callexp('Tagp', ["STR", H]),
        heap_push("SetArity(Func->printname,Func->arity)"),
        for("i=0; i<Func->arity; i++",
          ("t1" <- "X(i)",
@@ -633,7 +633,7 @@ ref_stack(unsafe, A, B) :-
 % NOTE: this is an expression!
 :- pred(unsafe_var_expr/1, [unfold]).
 unsafe_var_expr(X) :-
-    "(!YoungerStackVar(TagSVA(Offset(E,EToY0)),", X, "))".
+    "(!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),", X, "))".
 
 % Must return value in t0.  Second arg must not involve t0.
 :- pred(ref_stack_unsafe/2, [unfold]).
@@ -689,7 +689,7 @@ bind(sva, T0, T1) :-
 :- pred(get_first_value/2, [unfold]).
 get_first_value(U, V) :-
     if(callexp('CondStackvar', [U]), (
-      call('TrailPushCheck', ["w->trail_top",callexp('TagSVA', [("&",U)])]),
+      call('TrailPushCheck', ["w->trail_top",callexp('Tagp', ["SVA", ("&",U)])]),
       U <- V
     ), (
       U <- V
@@ -1357,7 +1357,7 @@ put_largeq :-
     dec(op(f_b,"BcP(f_t, 3)"), B),
     [[mode(M)]],
     setmode(r),
-    A <- callexp('BC_MakeLarge', ["Arg",B]),
+    A <- callexp('BC_MakeBlob', ["Arg",B]),
     setmode(M),
     dispatch(("(FTYPE_size(f_Q)+FTYPE_size(f_x))","+",callexp('LargeSize',["BcP(f_t, 3)"]),"")).
 
@@ -1368,7 +1368,7 @@ put_large :-
     dec(op(f_b,"BcP(f_t, 2)"), B),
     [[mode(M)]],
     setmode(r),
-    A <- callexp('BC_MakeLarge', ["Arg",B]),
+    A <- callexp('BC_MakeBlob', ["Arg",B]),
     setmode(M),
     dispatch(("FTYPE_size(f_x)","+",callexp('LargeSize',["BcP(f_t, 2)"]),"")).
 
@@ -1378,7 +1378,7 @@ put_structureq :-
     dec(op(f_x,"BcP(f_x, 2)"), A),
     dec(op(f_f,"BcP(f_f, 3)"), B),
     cachedreg('H', H),
-    A <- callexp('Tag', ["STR",H]),
+    A <- callexp('Tagp', ["STR",H]),
     heap_push(B),
     dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x))+FTYPE_size(f_f)").
 
@@ -1387,7 +1387,7 @@ put_structureq :-
 put_structure :-
     dec(op(f_x,"BcP(f_x, 1)"), A),
     cachedreg('H', H),
-    A <- callexp('Tag', ["STR",H]),
+    A <- callexp('Tagp', ["STR",H]),
     dec(op(f_f,"BcP(f_f, 2)"), B),
     heap_push(B),
     dispatch("FTYPE_size(f_x)+FTYPE_size(f_f)").
@@ -1397,7 +1397,7 @@ put_structure :-
 put_list :-
     dec(op(f_x,"BcP(f_x, 1)"), A),
     cachedreg('H', H),
-    A <- callexp('Tag', ["LST",H]),
+    A <- callexp('Tagp', ["LST",H]),
     dispatch("FTYPE_size(f_x)").
 
 :- ins_op_format(put_yval_yuval, 87, [f_x,f_y,f_x,f_y], [label(w)]).
@@ -1691,7 +1691,7 @@ retry_c :-
 get_structure_x0q :-
     [[mode(r)]],
     t0(T0),
-    "S" <- callexp('TagToArg', [T0, "1"]),
+    "S" <- callexp('TaggedToArg', [T0, "1"]),
     dispatch("FTYPE_size(f_Q)+FTYPE_size(f_f)").
 get_structure_x0q :-
     [[mode(w)]], 
@@ -1701,13 +1701,13 @@ get_structure_x0q :-
 get_structure_x0 :-
     [[mode(r)]],
     t0(T0),
-    "S" <- callexp('TagToArg', [T0, "1"]),
+    "S" <- callexp('TaggedToArg', [T0, "1"]),
     dispatch("FTYPE_size(f_f)").
 get_structure_x0 :-
     [[mode(w)]],
     t1(T1),
     cachedreg('H', H),
-    T1 <- callexp('Tag', ["STR",H]),
+    T1 <- callexp('Tagp', ["STR",H]),
     t0(T0),
     if(callexp('TaggedIsHVA', [T0]),
       bind(hva,T0,T1),
@@ -1740,7 +1740,7 @@ get_large_x0 :-
     [[mode(w)]],
     setmode(r),
     t1(T1),
-    T1 <- callexp('BC_MakeLarge', ["Arg",["&","BcP(f_p, 1)"]]),
+    T1 <- callexp('BC_MakeBlob', ["Arg",["&","BcP(f_p, 1)"]]),
     setmode(w),
     t0(T0),
     if(callexp('TaggedIsHVA', [T0]),
@@ -1792,13 +1792,13 @@ get_nil_x0 :-
 get_list_x0 :-
     [[mode(r)]],
     t0(T0),
-    "S" <- callexp('TagToLST', [T0]),
+    "S" <- callexp('TagpPtr', ["LST", T0]),
     dispatch("0").
 get_list_x0 :-
     [[mode(w)]],
     t1(T1),
     cachedreg('H', H),
-    T1 <- callexp('Tag', ["LST",H]),
+    T1 <- callexp('Tagp', ["LST",H]),
     t0(T0),
     if(callexp('TaggedIsHVA', [T0]),
       bind(hva,T0,T1),
@@ -1871,7 +1871,7 @@ function_1q :-
     dec(op(f_x,"BcP(f_x, 2)"), A),
     dec(op(f_x,"BcP(f_x, 3)"), B),
     "w->liveinfo" <- ["&","BcP(f_l, 6)"],
-    cfun_semidet(A, callexp('((ctagged1l_t)BcP(f_C, 4))', ["Arg",B])),
+    cfun_semidet(A, callexp('((ctagged1_t)BcP(f_C, 4))', ["Arg",B])),
     dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
 
 :- ins_op_format(function_1, 223, [f_x,f_x,f_C,f_l,f_i], [label(r)]).
@@ -1880,7 +1880,7 @@ function_1 :-
     dec(op(f_x,"BcP(f_x, 1)"), A),
     dec(op(f_x,"BcP(f_x, 2)"), B),
     "w->liveinfo" <- ["&","BcP(f_l, 5)"],
-    cfun_semidet(A, callexp('((ctagged1l_t)BcP(f_C, 3))', ["Arg",B])),
+    cfun_semidet(A, callexp('((ctagged1_t)BcP(f_C, 3))', ["Arg",B])),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
 
 :- ins_op_format(function_2q, 224, [f_Q,f_x,f_x,f_x,f_C,f_l,f_i], [label(r)]).
@@ -1890,7 +1890,7 @@ function_2q :-
     dec(op(f_x,"BcP(f_x, 3)"), B),
     dec(op(f_x,"BcP(f_x, 4)"), C),
     "w->liveinfo" <- ["&","BcP(f_l, 7)"],
-    cfun_semidet(A, callexp('((ctagged2l_t)BcP(f_C, 5))', ["Arg",B,C])),
+    cfun_semidet(A, callexp('((ctagged2_t)BcP(f_C, 5))', ["Arg",B,C])),
     dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
 
 :- ins_op_format(function_2, 225, [f_x,f_x,f_x,f_C,f_l,f_i], [label(r)]).
@@ -1900,7 +1900,7 @@ function_2 :-
     dec(op(f_x,"BcP(f_x, 2)"), B),
     dec(op(f_x,"BcP(f_x, 3)"), C),
     "w->liveinfo" <- ["&","BcP(f_l, 6)"],
-    cfun_semidet(A, callexp('((ctagged2l_t)BcP(f_C, 4))', ["Arg",B,C])),
+    cfun_semidet(A, callexp('((ctagged2_t)BcP(f_C, 4))', ["Arg",B,C])),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
 
 :- ins_op_format(builtin_1q, 226, [f_Q,f_x,f_C], [label(r)]).
@@ -2147,7 +2147,7 @@ unify_large :-
     cachedreg('H', H),
     "w->global_top" <- callexp('HeapOffset', [H,"1"]),
     dec(op(f_b,"BcP(f_t, 1)"), A),
-    "*H" <- callexp('BC_MakeLarge', ["Arg",A]),
+    "*H" <- callexp('BC_MakeBlob', ["Arg",A]),
     [[update(mode(r))]],
     dispatch((callexp('LargeSize',["BcP(f_t, 1)"]),"")).
 
@@ -2158,7 +2158,7 @@ unify_structureq :-
 unify_structureq :-
     [[mode(w)]],
     cachedreg('H', H),
-    heap_push(callexp('Tag', ["STR",callexp('HeapOffset', [H,"1"])])),
+    heap_push(callexp('Tagp', ["STR",callexp('HeapOffset', [H,"1"])])),
     dec(op(f_f,"BcP(f_f, 2)"),A),
     heap_push(A),
     dispatch("FTYPE_size(f_Q)+FTYPE_size(f_f)").
@@ -2173,7 +2173,7 @@ unify_structure :-
 unify_structure :-
     [[mode(w)]],
     cachedreg('H', H),
-    heap_push(callexp('Tag', ["STR",callexp('HeapOffset', [H,"1"])])),
+    heap_push(callexp('Tagp', ["STR",callexp('HeapOffset', [H,"1"])])),
     dec(op(f_f,"BcP(f_f, 1)"),A),
     heap_push(A),
     dispatch("FTYPE_size(f_f)").
@@ -2201,7 +2201,7 @@ unify_list :-
 unify_list :-
     [[mode(w)]],
     cachedreg('H', H),
-    heap_push(callexp('Tag', ["LST",callexp('HeapOffset', [H,"1"])])),
+    heap_push(callexp('Tagp', ["LST",callexp('HeapOffset', [H,"1"])])),
     dispatch("0").
 
 :- ins_op_format(unify_constant_neck_proceedq, 133, [f_Q,f_t]).
@@ -3431,16 +3431,16 @@ code_unify_t0t1 :-
                goto('fail'),
                if("i&QMask", % large number
                  (for("i = LargeArity(i)-1; i>0; i--", 
-                    if("*TagToArg(t0,i) != *TagToArg(t1,i)", goto('fail'))),
+                    if("*TaggedToArg(t0,i) != *TaggedToArg(t1,i)", goto('fail'))),
                   goto('unify_t0t1_done')),
-                    if("cunify_args(Arg,Arity(i),TagToArg(t0,1),TagToArg(t1,1))",
+                    if("cunify_args(Arg,Arity(i),TaggedToArg(t0,1),TaggedToArg(t1,1))",
                        goto('unify_t0t1_done'),
                      goto('fail'))))))))),
     label('t0_is_hva'),
     sw_on_var("t1","i",
       if("t0==t1",
          ";",
-         if("YoungerHeapVar(TagToHVA(t1),TagToHVA(t0))",
+         if("YoungerHeapVar(TagpPtr(HVA,t1),TagpPtr(HVA,t0))",
             bind(hva,"t1","t0"),
             bind(hva,"t0","t1"))),
       bind(hva,"t0","t1"),
@@ -3453,7 +3453,7 @@ code_unify_t0t1 :-
       bind(hva,"t1","t0"),
       if("t0==t1",
          ";",
-         if("YoungerHeapVar(TagToCVA(t1),TagToCVA(t0))",
+         if("YoungerHeapVar(TagpPtr(CVA,t1),TagpPtr(CVA,t0))",
            bind(cva,"t1","t0"),
            bind(cva,"t0","t1"))),
       bind(sva,"t1","t0"),
@@ -3466,7 +3466,7 @@ code_unify_t0t1 :-
        if("t1 == i", 
          (if("t0==t1", 
            goto('unify_t0t1_done'),
-           if("YoungerStackVar(TagToSVA(t1),TagToSVA(t0))",
+           if("YoungerStackVar(TagpPtr(SVA,t1),TagpPtr(SVA,t0))",
              bind(sva,"t1","t0"),
              bind(sva,"t0","t1"))),
           goto('unify_t0t1_done'))))),
@@ -3491,23 +3491,23 @@ code_suspend_t3_on_t1 :-
        "pt1" <- "w->trail_top",
        if(callexp('CondHVA', ["t1"]),
          ("TrailPush(pt1,t1);",
-          "*TagToHVA(t1)" <- "t0"),
-         "*TagToHVA(t1)" <- "t0"),
+          "*TagpPtr(HVA,t1)" <- "t0"),
+         "*TagpPtr(HVA,t1)" <- "t0"),
        goto('check_trail')),
       if(("!", callexp('CondCVA', ["t1"])),
         (heap_push("*TagToGoal(t1)"),
          heap_push("*TagToDef(t1)"),
          cachedreg('H', H),
-         "*TagToGoal(t1)" <- callexp('Tag', ["LST", callexp('HeapOffset', [H,-2])]),
-         "*TagToDef(t1)" <- callexp('Tag', ["LST", H]),
+         "*TagToGoal(t1)" <- callexp('Tagp', ["LST", callexp('HeapOffset', [H,-2])]),
+         "*TagToDef(t1)" <- callexp('Tagp', ["LST", H]),
          goto('no_check_trail')),
         (load(cva, "t0"),
-         heap_push(callexp('Tag', ["LST", callexp('TagToGoal', ["t1"])])),
+         heap_push(callexp('Tagp', ["LST", callexp('TagToGoal', ["t1"])])),
          cachedreg('H', H),
-         heap_push(callexp('Tag', ["LST", callexp('HeapOffset', [H,1])])),
+         heap_push(callexp('Tagp', ["LST", callexp('HeapOffset', [H,1])])),
          "pt1" <- "w->trail_top",
          "TrailPush(pt1,t1);",
-         "*TagToCVA(t1)" <- "t0",
+         "*TagpPtr(CVA,t1)" <- "t0",
          goto('check_trail')))),
     label('check_trail'),
     "w->trail_top" <- "pt1",
@@ -3684,7 +3684,7 @@ code_enter_pred :-
     %     for (i = 0; i < Func->arity; i++) HeapPush(H,X(i));
     %     w->global_top = H;
     %     push_choicept(Arg,address_nd_suspension_point);
-    %     w->node->term[0] = TagHVA(Htmp);
+    %     w->node->term[0] = Tagp(HVA, Htmp);
     %     //w->node->next_insn = w->misc->backInsn;
     % 
     %     //No nore suspensions
@@ -4052,9 +4052,9 @@ pred_enter_compactcode_indexed :-
     % non variable
     if("t0 & TagBitComplex",
       if("t0 & TagBitFunctor",
-        ("S" <- "TagToArg(t0,0)",
+        ("S" <- "TaggedToArg(t0,0)",
          "t1" <- "HeapNext(S)"),
-        ("S" <- "TagToLST(t0)",
+        ("S" <- "TagpPtr(LST,t0)",
          tryeach("Func->code.incoreinfo->lstcase"))),
        "t1" <- "t0"),
     %

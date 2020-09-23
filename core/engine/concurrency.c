@@ -28,7 +28,7 @@
 // 
 //   w->global_top = pt1;
 // 
-//   return Tag(STR,HeapOffset(pt1,-3));
+//   return Tagp(STR,HeapOffset(pt1,-3));
 // }
 //
 // /* '$lock'(<address>,type) <-- SLOCK */
@@ -42,7 +42,7 @@
 // 
 //   w->global_top = pt1;
 // 
-//   return Tag(STR,HeapOffset(pt1,-3));
+//   return Tagp(STR,HeapOffset(pt1,-3));
 // }
 //
 // /* '$lock'(<address>,type) --> LOCK */

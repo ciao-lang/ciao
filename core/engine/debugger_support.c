@@ -102,7 +102,7 @@ CBOOL__PROTO(debugger_mode)
 #if defined(DEBUG)
   if (debug_gc)  fprintf(stderr, "Current_Debugger_State is structure\n");
 #endif
-    RefArg(Current_Debugger_Mode,Current_Debugger_State,2);
+    Current_Debugger_Mode = *TaggedToArg(Current_Debugger_State,2);
     if (Current_Debugger_Mode != atom_off)
       address_interpret_c_goal = address_interpret_compiled_goal;
     else
@@ -119,8 +119,8 @@ void debugger_trap(void)
 {
   if (TaggedIsSTR(current_debugger_state))
   {
-      *TagToArg(current_debugger_state,2) = atom_trace;
-      *TagToArg(current_debugger_state,3) = MakeSmall(1000000);
+      *TaggedToArg(current_debugger_state,2) = atom_trace;
+      *TaggedToArg(current_debugger_state,3) = MakeSmall(1000000);
       current_debugger_mode = atom_trace;
       address_apply = address_slow_apply;
       address_interpret_c_goal = address_interpret_compiled_goal;

@@ -45,12 +45,12 @@ int bn_canonized_length(bignum_t *x);
 
 intmach_t bn_length(bignum_t *x);
 
-/* Finish the large integer at `HTop` and move `HTop` forward. If the
- * large integer can be represented as a small int, keep it
- * unchanged. `Out` is assigned the a STR tagged (large) or small int.
+/* Finish a bignum stored on top of the heap:
+ *  - close the bignum and return a tagged word referencing it
+ *  - or return a small integer tagged word (if it fits)
  */
 // TODO: ar==2 assumes that sizeof(bignum_t) == sizeof(intmach_t) == sizeof(tagged_t)
-static inline CFUN__PROTO(FinishInt, tagged_t) {
+static inline CFUN__PROTO(bn_finish, tagged_t) {
   tagged_t *h_ = w->global_top;
   int ar_ = LargeArity(h_[0]);
   tagged_t r_;
@@ -59,7 +59,7 @@ static inline CFUN__PROTO(FinishInt, tagged_t) {
   } else {
     w->global_top += ar_+1;
     h_[ar_] = h_[0];
-    r_ = Tag(STR,h_);
+    r_ = Tagp(STR,h_);
   }
   //CFUN__PROCEED(r_);
   return r_;
@@ -81,7 +81,7 @@ static inline CFUN__PROTO(FinishInt, tagged_t) {
       SERIOUS_FAULT("miscalculated size of bignum");                    \
     }                                                                   \
   }                                                                     \
-  Out = CFUN__EVAL(FinishInt);                                          \
+  Out = CFUN__EVAL(bn_finish);                                          \
 })
 
 /* Like StringToInt, assuming enough heap (no GC) */
@@ -91,7 +91,7 @@ static inline CFUN__PROTO(FinishInt, tagged_t) {
                      (bignum_t *)Heap_End, (Base))) {   \
     SERIOUS_FAULT("miscalculated heap usage");          \
   }                                                     \
-  Out = CFUN__EVAL(FinishInt);                          \
+  Out = CFUN__EVAL(bn_finish);                          \
 })
 
 #endif /* _CIAO_BIGNUM_H */

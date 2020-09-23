@@ -134,9 +134,9 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
     *loc = t1;
     return;
   } else if (t1 & TagBitFunctor) {                                 /* STR */
-    pt1 = TagToSTR(t1);
+    pt1 = TagpPtr(STR,t1);
     pt2 = w->global_top;
-    *loc = Tag(STR,pt2);
+    *loc = Tagp(STR,pt2);
     t2 = HeapNext(pt1), HeapPush(pt2,t2);
     for (i=Arity(t2); i>0; --i) {
       RefHeapNext(t1,pt1);
@@ -148,9 +148,9 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
     for (i=Arity(t2); i>1; --i)
       copy_it(Arg,HeapOffset(TopOfOldHeap,term_so_far-i));
   } else {                                                         /* LST */
-    pt1 = TagToLST(t1);
+    pt1 = TagpPtr(LST,t1);
     pt2 = w->global_top;
-    *loc = Tag(LST,pt2);
+    *loc = Tagp(LST,pt2);
   copy_2_cells:
     RefHeapNext(t1,pt1);
     HeapPush(pt2,t1);
@@ -168,7 +168,7 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
  copy_hva:
   if (OldHVA(t1)) { /* HVA */
     PreLoadHVA(*loc,loc);
-    t2 = TagHVA(loc);
+    t2 = Tagp(HVA,loc);
     BindHVA(t1,t2);
   } else *loc = t1;
   return;
@@ -230,9 +230,9 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
     *loc = t1;
     return;
   } else if (t1 & TagBitFunctor) {                                 /* STR */
-    pt1 = TagToSTR(t1);
+    pt1 = TagpPtr(STR,t1);
     pt2 = w->global_top;
-    *loc = Tag(STR,pt2);
+    *loc = Tagp(STR,pt2);
     t2 = HeapNext(pt1), HeapPush(pt2,t2);
     for (i=Arity(t2); i>0; --i) {
       RefHeapNext(t1,pt1);
@@ -244,9 +244,9 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
     for (i=Arity(t2); i>1; --i)
       copy_it_nat(Arg,HeapOffset(TopOfOldHeap,term_so_far-i));
   } else {                                                         /* LST */
-    pt1 = TagToLST(t1);
+    pt1 = TagpPtr(LST,t1);
     pt2 = w->global_top;
-    *loc = Tag(LST,pt2);
+    *loc = Tagp(LST,pt2);
     RefHeapNext(t1,pt1);
     HeapPush(pt2,t1);
     RefHeapNext(t1,pt1);
@@ -263,7 +263,7 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
  copy_hva:
   if (OldHVA(t1)) { /* HVA */
     PreLoadHVA(*loc,loc);
-    t2 = TagHVA(loc);
+    t2 = Tagp(HVA,loc);
     BindHVA(t1,t2);
   } else *loc = t1;
   return;
@@ -273,7 +273,7 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
     /* This code is equivalent to taking out the attribute;
        xref bu1_detach_attribute() */
     PreLoadHVA(*loc,loc);
-    t2 = TagHVA(loc);
+    t2 = Tagp(HVA,loc);
     BindCVA_NoWake(t1,t2);
   } else  *loc = t1;
   return;
@@ -339,11 +339,11 @@ static CBOOL__PROTO(c_cyclic_term, tagged_t t) {
   case CVA:
     return c_cyclic_ptr(Arg, TagToPointer(t));
   case LST: 
-    ptr = TagToLST(t);
+    ptr = TagpPtr(LST,t);
     i = 2;
     goto args;
   case STR:
-    ptr = TagToSTR(t);
+    ptr = TagpPtr(STR,t);
     t = *ptr;
     if (t&QMask) return FALSE; /* large number */
     i = Arity(t);
@@ -376,12 +376,12 @@ CBOOL__PROTO(c_cyclic_ptr, tagged_t *pt) {
     goto start;
   case LST: 
     if (gc_IsMarked(t)) goto cyclic;
-    ptr1 = TagToLST(t);
+    ptr1 = TagpPtr(LST,t);
     i = 2;
     goto args;
   case STR:
     if (gc_IsMarked(t)) goto cyclic;
-    ptr1 = TagToSTR(t);
+    ptr1 = TagpPtr(STR,t);
     t = *ptr1;
     if (t&QMask) goto acyclic;  /* large number */
     i = Arity(t);
@@ -435,13 +435,13 @@ CVOID__PROTO(unmark_rightmost_branch, tagged_t *ptr) {
   case LST: 
     if (!gc_IsMarked(t)) return;
     gc_UnmarkM(*ptr);
-    ptr = TagToLST(*ptr);
+    ptr = TagpPtr(LST,*ptr);
     ptr++;
     goto start;
   case STR:
     if (!gc_IsMarked(t)) return;
     gc_UnmarkM(*ptr);
-    ptr = TagToSTR(*ptr);
+    ptr = TagpPtr(STR,*ptr);
     ptr += Arity(*ptr);
     goto start;
   default:
@@ -488,9 +488,9 @@ CBOOL__PROTO(prolog_unifiable)
     HeapPush(w->global_top, SetArity(atom_equal, 2));
     HeapPush(w->global_top, t1);
     HeapPush(w->global_top, *TagToPointer(t1));
-    HeapPush(w->global_top, Tag(STR, HeapOffset(w->global_top, -3)));
+    HeapPush(w->global_top, Tagp(STR, HeapOffset(w->global_top, -3)));
     HeapPush(w->global_top, t);
-    t = Tag(LST, HeapOffset(w->global_top, -2));
+    t = Tagp(LST, HeapOffset(w->global_top, -2));
 
     *TagToPointer(t1) = t1;
   }
@@ -553,7 +553,7 @@ static CBOOL__PROTO(var_occurs, tagged_t v, tagged_t x1) {
     t1=TagToHeadfunctor(u);
     if (t1&QMask) { /* large number */
           goto lose;
-    } if (!var_occurs_args_aux(Arg,v,Arity(t1),TagToArg(u,1),&x1)) {
+    } if (!var_occurs_args_aux(Arg,v,Arity(t1),TaggedToArg(u,1),&x1)) {
       goto in;
     } else {
       goto win;
@@ -699,10 +699,10 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
       int i;
         
       for (i = LargeArity(t1)-1; i>0; i--)
-        if (*TagToArg(u,i) != *TagToArg(v,i)) goto lose;
+        if (*TaggedToArg(u,i) != *TaggedToArg(v,i)) goto lose;
       goto win;
     }
-    if (cunifyOC_args_aux(Arg,Arity(t1),TagToArg(u,1),TagToArg(v,1),&x1,&x2)) {
+    if (cunifyOC_args_aux(Arg,Arity(t1),TaggedToArg(u,1),TaggedToArg(v,1),&x1,&x2)) {
       goto in;
     } else {
       goto lose;
@@ -712,7 +712,7 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
  u_is_hva:
   SwitchOnVar(v,t1, {
       if (u==v) {
-      } else if (YoungerHeapVar(TagToHVA(v),TagToHVA(u))) {
+      } else if (YoungerHeapVar(TagpPtr(HVA,v),TagpPtr(HVA,u))) {
         BindHVA(v,u);
       } else {
         BindHVA(u,v); 
@@ -730,7 +730,7 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
   SwitchOnVar(v,t1, {
       BindHVA(v,u);
     }, { if (u==v) {
-      } else if (YoungerHeapVar(TagToCVA(v),TagToCVA(u))) {
+      } else if (YoungerHeapVar(TagpPtr(CVA,v),TagpPtr(CVA,u))) {
         BindCVA(v,u);
       } else {
         BindCVA(u,v); 
@@ -747,7 +747,7 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
     RefSVA(t1,v);
     if (v == t1) {
       if (u==v) {
-      } else if (YoungerStackVar(TagToSVA(v),TagToSVA(u))) {
+      } else if (YoungerStackVar(TagpPtr(SVA,v),TagpPtr(SVA,u))) {
         BindSVA(v,u);
       } else {
         BindSVA(u,v);
@@ -793,7 +793,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
 
       if (i == 0 || i > Arity(f) || f&QMask) return FALSE;
 
-      RefArg(t0,complex,i);
+      t0 = *TaggedToArg(complex,i);
       return t0;
     }
   else if (IsComplex(complex))  /\* i.e. list *\/
@@ -833,7 +833,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
       goto barf1;
     }
       
-    RefArg(t0,complex,i);
+    t0 = *TaggedToArg(complex,i);
     return t0;
   } else if (IsComplex(complex)) { // i.e. list 
     if (number==MakeSmall(1))   {
@@ -987,7 +987,7 @@ CBOOL__PROTO(bu2_univ,
   
   if (term & TagBitFunctor)
     f = TagToHeadfunctor(term),
-    argp = TagToArg(term,1),
+    argp = TaggedToArg(term,1),
     argq = HeapOffset(argp,Arity(f));
   else
     f = functor_list,
@@ -1058,12 +1058,12 @@ CBOOL__PROTO(bu2_univ,
       RefHeapNext(cdr,argq);
       HeapPush(w->global_top,car);
       HeapPush(w->global_top,cdr);
-      CBOOL__LASTUNIFY(Tag(LST,argp),term);
+      CBOOL__LASTUNIFY(Tagp(LST,argp),term);
     }
   else
     {
       *argp = f;
-      CBOOL__LASTUNIFY(Tag(STR,argp),term);
+      CBOOL__LASTUNIFY(Tagp(STR,argp),term);
     }
 
  bomb:
@@ -1093,7 +1093,7 @@ CBOOL__PROTO(bu2_univ,
   
   if (term & TagBitFunctor)
     f = TagToHeadfunctor(term),
-    argp = TagToArg(term,1),
+    argp = TaggedToArg(term,1),
     argq = HeapOffset(argp,Arity(f));
   else
     f = functor_list,
@@ -1150,12 +1150,12 @@ CBOOL__PROTO(bu2_univ,
       RefHeapNext(cdr,argq);
       HeapPush(w->global_top,car);
       HeapPush(w->global_top,cdr);
-      CBOOL__LASTUNIFY(Tag(LST,argp),term);
+      CBOOL__LASTUNIFY(Tagp(LST,argp),term);
     }
   else
     {
       *argp = f;
-      CBOOL__LASTUNIFY(Tag(STR,argp),term);
+      CBOOL__LASTUNIFY(Tagp(STR,argp),term);
     }
 
  bomb:

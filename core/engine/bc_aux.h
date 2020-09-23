@@ -524,17 +524,17 @@ static CVOID__PROTO(c_term_mark,
       }
       for (i=1; i<arity; i++) {
         Tr("m:o"); /* (from *bsize+=) */
-        RefArg(t1,t,i);
+        t1 = *TaggedToArg(t,i);
         c_term_mark(Arg, t1, temps+arity-i, cells, maxtemps, bsize, trail_origo);
       }
       Tr("m:o"); /* (from *bsize+=) */
-      RefArg(t,t,arity);
+      t = *TaggedToArg(t,arity);
       goto start;
     }
   }
  var_size:
   if (t & TagBitCVA) { /* CVA */
-    *TagToPointer(t) = Tag(ATM,w->trail_top)|QMask|2;
+    *TagToPointer(t) = Tagp(ATM,w->trail_top)|QMask|2;
     c_term_trail_push(Arg,t,trail_origo);
     /* unify_variable + xi + get_constraint + xj + 2*u */
     Tr("m:x");
@@ -549,10 +549,10 @@ static CVOID__PROTO(c_term_mark,
     if (*maxtemps < temps) {
       *maxtemps = temps;
     }
-    t = Tag(LST,TagToGoal(t));
+    t = Tagp(LST,TagToGoal(t));
     goto start;
   } else { /* HVA */
-    *TagToPointer(t) = Tag(ATM,w->trail_top)|QMask;
+    *TagToPointer(t) = Tagp(ATM,w->trail_top)|QMask;
     c_term_trail_push(Arg,t,trail_origo);
     /* unify_variable + xi */
     Tr("m:x");
@@ -600,7 +600,7 @@ static CBOOL__PROTO(c_term,
   switch (TagOf(t)) { /* t is already dereferenced */
   case LST:
     ar = 2;
-    s = TagToLST(t);
+    s = TagpPtr(LST,t);
     Tr("e:o+x");
     EMIT(GET_LIST);
     EMITtok(f_x, Xop(Xreg));
@@ -616,7 +616,7 @@ static CBOOL__PROTO(c_term,
     } else {
       Tr("e:o(Q)+x+f");
       ar = Arity(TagToHeadfunctor(t));
-      s = TagToArg(t,1);
+      s = TaggedToArg(t,1);
       EVENOP(GET_STRUCTURE);
       EMITtok(f_x, Xop(Xreg));
       EMIT_f(TagToHeadfunctor(t));
@@ -675,7 +675,7 @@ static CBOOL__PROTO(c_term,
       if ((i==ar) && (Treg==reg_bank_size)) {
         Tr("e:o");
         EMIT(UNIFY_LIST);
-        s = TagToLST(t);
+        s = TagpPtr(LST,t);
         i=0, ar=2;
       } else {
         Tr("e:o+x");
@@ -698,7 +698,7 @@ static CBOOL__PROTO(c_term,
         Tr("e:o(Q)+f");
         ODDOP(UNIFY_STRUCTURE);
         EMIT_f(TagToHeadfunctor(t));
-        s = TagToArg(t,1);
+        s = TaggedToArg(t,1);
         i=0, ar=Arity(TagToHeadfunctor(t));
       } else {
         Tr("e:o+x");
@@ -758,14 +758,14 @@ static CBOOL__PROTO(c_term,
     switch (BcFetchOPCODE()) {
     case UNIFY_LIST:
       DerefHeap(t,s);
-      s = TagToLST(t);
+      s = TagpPtr(LST,t);
       break;
     case UNIFY_STRUCTUREQ:
       P = BCoff(P, FTYPE_size(f_Q));
     case UNIFY_STRUCTURE:
       P = BCoff(P, FTYPE_size(f_f));
       DerefHeap(t,s);
-      s = TagToArg(t,1);
+      s = TaggedToArg(t,1);
       break;
     case UNIFY_LARGEQ:
       P = BCoff(P, FTYPE_size(f_Q));
@@ -962,7 +962,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
       break;
     t0 = TrailPop(Arg->trail_top);
     if (!c_term(Arg,
-                Tag(LST,TagToGoal(*TagToPointer(t0))),
+                Tagp(LST,TagToGoal(*TagToPointer(t0))),
                 TagToPointer(t0)-trail_origo,
                   reg_bank_size-1,
                 x_variables,
@@ -1281,10 +1281,10 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
           intmach_t i;
         
           for (i = LargeArity(t1)-1; i>0; i--)
-            if (*TagToArg(u,i) != *TagToArg(v,i)) goto lose;
+            if (*TaggedToArg(u,i) != *TaggedToArg(v,i)) goto lose;
           goto win;
         }
-      if (cunify_args_aux(Arg,Arity(t1),TagToArg(u,1),TagToArg(v,1),&x1,&x2))
+      if (cunify_args_aux(Arg,Arity(t1),TaggedToArg(u,1),TaggedToArg(v,1),&x1,&x2))
         goto in;
       else
         goto lose;
@@ -1294,7 +1294,7 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
   SwitchOnVar(v,t1,
               { if (u==v)
                   ;
-                else if (YoungerHeapVar(TagToHVA(v),TagToHVA(u)))
+                else if (YoungerHeapVar(TagpPtr(HVA,v),TagpPtr(HVA,u)))
                   BindHVA(v,u)
                 else
                   BindHVA(u,v); },
@@ -1308,7 +1308,7 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
               { BindHVA(v,u); },
               { if (u==v)
                   ;
-                else if (YoungerHeapVar(TagToCVA(v),TagToCVA(u)))
+                else if (YoungerHeapVar(TagpPtr(CVA,v),TagpPtr(CVA,u)))
                   { BindCVA(v,u); }
                 else
                   { BindCVA(u,v); } },
@@ -1324,7 +1324,7 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
         {
           if (u==v)
             ;
-          else if (YoungerStackVar(TagToSVA(v),TagToSVA(u)))
+          else if (YoungerStackVar(TagpPtr(SVA,v),TagpPtr(SVA,u)))
             BindSVA(v,u)
           else
             BindSVA(u,v);
@@ -1381,7 +1381,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   
   if (cunify(Arg,X(0),X(1))) /* this could use AB, HB, TR, B. */
     item = atom_equal,
-    other = TagHVA(w->global_top);
+    other = Tagp(HVA,w->global_top);
   else
     item = other = atom_lessthan;
   
@@ -1420,10 +1420,10 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
                                 /* construct goal on the heap */
   pt2 = w->global_top;
   if (w->structure)
-    X(2) = Tag(STR,w->structure-1);
+    X(2) = Tagp(STR,w->structure-1);
   else
     {
-      X(2) = Tag(STR,pt2);
+      X(2) = Tagp(STR,pt2);
       HeapPush(pt2,SetArity(address_dif->printname,2));
       HeapPush(pt2,X(0));
       HeapPush(pt2,X(1));
@@ -1440,9 +1440,9 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
                 LoadCVA(t0,pt2);
                 if (CondHVA(t1)) {
                     TrailPush(pt1,t1);
-                    *TagToHVA(t1) = t0;
+                    *TagpPtr(HVA,t1) = t0;
                 } else {
-                  *TagToHVA(t1) = t0;
+                  *TagpPtr(HVA,t1) = t0;
                 }
                 goto check_trail;
               }
@@ -1450,16 +1450,16 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
               {
                 HeapPush(pt2,*TagToGoal(t1));
                 HeapPush(pt2,*TagToDef(t1));
-                *TagToGoal(t1) = Tag(LST,HeapOffset(pt2,-2));
-                *TagToDef(t1) = Tag(LST,pt2);
+                *TagToGoal(t1) = Tagp(LST,HeapOffset(pt2,-2));
+                *TagToDef(t1) = Tagp(LST,pt2);
               }
             else
               {
                 LoadCVA(t0,pt2);
-                HeapPush(pt2,Tag(LST,TagToGoal(t1)));
-                HeapPush(pt2,Tag(LST,HeapOffset(pt2,1)));
+                HeapPush(pt2,Tagp(LST,TagToGoal(t1)));
+                HeapPush(pt2,Tagp(LST,HeapOffset(pt2,1)));
                 TrailPush(pt1,t1);
-                *TagToCVA(t1) = t0;
+                *TagpPtr(CVA,t1) = t0;
               check_trail:
                 if (ChoiceYounger(w->node,TrailOffset(pt1,CHOICEPAD)))
                   w->trail_top = pt1,

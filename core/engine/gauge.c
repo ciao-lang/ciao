@@ -41,7 +41,7 @@ CBOOL__PROTO(counter_values)
   max_counter = current_counter + count;
   
   h = w->global_top;
-  values = Tag(STR,h);
+  values = Tagp(STR,h);
   HeapPush(h,SetArity(atom_counter,count));
   
   while (current_counter < max_counter) {

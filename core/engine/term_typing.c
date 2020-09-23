@@ -161,7 +161,7 @@ static CBOOL__PROTO(cground_aux, tagged_t x1)
         {
           goto win;
         }
-      if (cground_args_aux(Arg,Arity(t1),TagToArg(u,1),&x1))
+      if (cground_args_aux(Arg,Arity(t1),TaggedToArg(u,1),&x1))
         goto in;
       else
         goto lose;

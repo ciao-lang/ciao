@@ -166,10 +166,10 @@ static CBOOL__PROTO(cinstance_aux,
           intmach_t i;
         
           for (i = LargeArity(t1)-1; i>0; i--)
-            if (*TagToArg(u,i) != *TagToArg(v,i)) goto lose;
+            if (*TaggedToArg(u,i) != *TaggedToArg(v,i)) goto lose;
           goto win;
         }
-      if (cinstance_args_aux(Arg,Arity(t1),TagToArg(u,1),TagToArg(v,1),&x1,&x2,n))
+      if (cinstance_args_aux(Arg,Arity(t1),TaggedToArg(u,1),TaggedToArg(v,1),&x1,&x2,n))
         goto in;
       else
         goto lose;

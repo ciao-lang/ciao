@@ -468,14 +468,14 @@
 
 #define NewShadowregs(Gtop) \
 { \
-  w->global_uncond = TagHVA(Gtop); \
-  w->local_uncond = TagSVA(w->local_top); \
+  w->global_uncond = Tagp(HVA,Gtop); \
+  w->local_uncond = Tagp(SVA,w->local_top); \
 }
 
 #define SetShadowregs(Chpt) \
 { \
-  w->global_uncond = TagHVA(NodeGlobalTop(Chpt));     \
-  w->local_uncond = TagSVA(NodeLocalTop(Chpt));      \
+  w->global_uncond = Tagp(HVA,NodeGlobalTop(Chpt));     \
+  w->local_uncond = Tagp(SVA,NodeLocalTop(Chpt));      \
 }
 
 #define SaveGtop(Chpt,Gtop) \
@@ -653,11 +653,11 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define TagToPointer(T) ((tagged_t *)((tagged_t)(T)&POINTERMASK))
 #endif
 
-/* Tag(T,P) creates tagged_t from tag T and pointer P */
+/* Tagp(T,P) creates tagged_t from tag T and pointer P */
 #if SMALLPTR_BASE
-#define Tag(T,P)        (((T)<<TAGOFFSET)+((tagged_t)(P) & POINTERMASK))
+#define Tagp(T,P)        (((T)<<TAGOFFSET)+((tagged_t)(P) & POINTERMASK))
 #else
-#define Tag(T,P)        (((T)<<TAGOFFSET)+((tagged_t)(P)))
+#define Tagp(T,P)        (((T)<<TAGOFFSET)+((tagged_t)(P)))
 #endif
 
 // #define MaxAtomCount (INDEXMASK>>tagged__atm_offset)
@@ -672,7 +672,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define TaggedIsHVA(X)     ((X) < CVA<<TAGOFFSET)
 #define TaggedIsCVA(X)     HasTag(X,CVA)
 #define TaggedIsSVA(X)     ((stagged_t)(X) >= (stagged_t)(SVA<<TAGOFFSET))
-#define TaggedIsSmall(X)   ((stagged_t)(X) < (stagged_t)TaggedHigh)
+#define TaggedIsSmall(X)   ((stagged_t)(X) < (stagged_t)(TaggedLow+QMask))
 #define TaggedIsLarge(X)   (TaggedIsSTR(X) && STRIsLarge(X))
 #define TaggedIsNUM(X)     ((stagged_t)(X) < (stagged_t)(ATM<<TAGOFFSET)) 
 #define TaggedIsATM(X)  HasTag(X,ATM)
@@ -726,7 +726,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define TagBitCVA ((tagged_t)1<<TAGOFFSET) /* CVA (or UBV) */
 #define TagBitSVA ((tagged_t)2<<TAGOFFSET) /* SVA (or UBV) */
 
-/* If this ordering ever changes, must update TagToHVA etc. too! */
+/* If this ordering ever changes, must update other macros */
 
 #define HVA ((tagged_t)0)               /* heap variable */
 #define CVA ((tagged_t)1)               /* constrained variable */
@@ -750,6 +750,16 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define SmiValMax ((intval_t)(((uintval_t)1<<(tagged__num_size-1))-1))
 #define SmiValMin ((intval_t)((uintval_t)(-1)<<(tagged__num_size-1)))
 #define IsInSmiValRange(X) ((X) >= SmiValMin && (X) <= SmiValMax)
+#if tagged__num_size == 32 /* TODO: assumes intval_t == int32_t in this case */
+/* casting to int64_t because intval_t is not large enough */
+#define SmiValMaxPlus1 ((int64_t)SmiValMax+1)
+#define SmiValMinMinus1 ((int64_t)SmiValMin-1)
+#else
+#define SmiValMaxPlus1 (SmiValMax+1)
+#define SmiValMinMinus1 (SmiValMin-1)
+#endif
+
+#define IntvalIsInSmiValRange(X) IsInSmiValRange(X)
 
 /* Tags + one more bit: 
    Funny objects are represented as small ints.
@@ -761,10 +771,11 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
    ATM = atom as index in atmtab.
 */
 
-#define TaggedLow       Tag(NUM,0)
+#define TaggedLow       Tagp(NUM,0)
 #define TaggedZero      (TaggedLow+ZMask)
-#define TaggedHigh      (TaggedLow+QMask)
 #define tagged__num_size (tagged__size - TAGSIZE - 1 - tagged__num_offset)
+
+#define TaggedIntMax (TaggedLow+QMask-MakeSmallDiff(1))
 
 /* A small integer */
 #define MakeSmall(X)    (((tagged_t)((intmach_t)(X)<<tagged__num_offset))+TaggedZero)
@@ -772,6 +783,9 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define GetSmall(X)     ((intmach_t)(((X)>>tagged__num_offset)-(TaggedZero>>tagged__num_offset)))
 /* Difference between integer and TaggedZero */  
 #define MakeSmallDiff(X) ((intmach_t)(X)<<tagged__num_offset)
+
+#define SmallAdd(U,I) ((U)+MakeSmallDiff((I)))
+#define SmallSub(U,I) ((U)-MakeSmallDiff((I)))
 
 /* Get string of an atom */
 #define GetString(X)    (TagToAtom(X)->name)
@@ -797,7 +811,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define LargeIsFloat(X)  FunctorIsFloat(TagToHeadfunctor(X))
 #define FunctorIsFloat(X) (!((X)&TagBitFunctor))
 
-#define MakeBlob(Ptr) make_large(Arg,(tagged_t *)(Ptr))
+#define MakeBlob(Ptr) make_blob(Arg,(tagged_t *)(Ptr))
 #define IntmachToTagged(X) (IsInSmiValRange(X) ? MakeSmall(X) : make_integer(Arg,X))
 #define IntvalToTagged(X) (IsInSmiValRange(X) ? MakeSmall(X) : make_integer(Arg,X))
 #define BoxFloat(X) make_float(Arg,(X))
@@ -805,7 +819,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define GET_ATOM(X) MakeAtom(lookup_atom_idx(X))
 
 #define TaggedToIntmach(X) (TaggedIsSmall(X) ? GetSmall(X) : get_integer(X))
-#define TaggedToFloat(X) (TaggedIsSmall(X) ? (flt64_t)GetSmall(X) : get_float(X))
+#define TaggedToFloat(X) (TaggedIsSmall(X) ? (flt64_t)GetSmall(X) : blob_to_flt64(X))
 
 #define IsInteger(X)    (TaggedIsSmall(X) || (TaggedIsLarge(X) && !LargeIsFloat(X)))
 #define IsFloat(X)      (TaggedIsLarge(X) && LargeIsFloat(X))
@@ -824,12 +838,12 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #endif
 
 /* internals.c */
-flt64_t get_float(tagged_t t);
+flt64_t blob_to_flt64(tagged_t t);
 intmach_t get_integer(tagged_t t);
 CFUN__PROTO(make_float, tagged_t, flt64_t i);
 /* TODO: rename to IntmachToTagged, etc. */
 CFUN__PROTO(make_integer, tagged_t, intmach_t i);
-CFUN__PROTO(make_large, tagged_t, tagged_t *ptr);
+CFUN__PROTO(make_blob, tagged_t, tagged_t *ptr);
 CFUN__PROTO(make_structure, tagged_t, tagged_t functor);
 
 /* X is an Integer that fits in an intmach_t.
@@ -860,18 +874,18 @@ CFUN__PROTO(make_structure, tagged_t, tagged_t functor);
    In BC_SCALE==2, bignums may not be normalized, which make things a
    bit more complex. */
 #if BC_SCALE == 2
-CFUN__PROTO(bc_make_large, tagged_t, tagged_t *ptr);
-CBOOL__PROTO(bc_eq_large, tagged_t t, tagged_t *ptr);
-#define BC_MakeLarge(ARG, Ptr) bc_make_large(ARG,(tagged_t *)(Ptr))
-#define BC_EqLarge(T, Ptr, FailCode) {                                  \
-    if (!bc_eq_large(Arg, (T), (tagged_t *)(Ptr))) FailCode;            \
+CFUN__PROTO(bc_make_blob, tagged_t, tagged_t *ptr);
+CBOOL__PROTO(bc_eq_blob, tagged_t t, tagged_t *ptr);
+#define BC_MakeBlob(ARG, Ptr) bc_make_blob(ARG,(tagged_t *)(Ptr))
+#define BC_EqBlob(T, Ptr, FailCode) {                                  \
+    if (!bc_eq_blob(Arg, (T), (tagged_t *)(Ptr))) FailCode;             \
   }
 #else
-#define BC_MakeLarge(ARG, Ptr) make_large(ARG,(tagged_t *)(Ptr))
-#define BC_EqLarge(T, Ptr, FailCode) {                                  \
+#define BC_MakeBlob(ARG, Ptr) make_blob(ARG,(tagged_t *)(Ptr))
+#define BC_EqBlob(T, Ptr, FailCode) {                                  \
     if (!TaggedIsSTR((T))) FailCode;                                    \
     for (i=LargeArity(*(tagged_t *)(Ptr)); i>0; i--) {                  \
-      if (((tagged_t *)(Ptr))[i-1] != *TagToArg((T),i-1)) FailCode;     \
+      if (((tagged_t *)(Ptr))[i-1] != *TaggedToArg((T),i-1)) FailCode;  \
     }                                                                   \
   }
 #endif
@@ -880,16 +894,7 @@ CBOOL__PROTO(bc_eq_large, tagged_t t, tagged_t *ptr);
 /* manipulating tagged_t objects removing tag and getting correct type of
    pointer  */
 
-#define TagToHVA(x)     ((tagged_t*)((x)+SMALLPTR_BASE)) /* tag = 0 */
-#define TagToCVA(x)     ((tagged_t*)((x)-(CVA<<TAGOFFSET)+SMALLPTR_BASE))
-#define TagToSVA(x)     ((tagged_t*)((x)-(SVA<<TAGOFFSET)+SMALLPTR_BASE))
-#define TagToUBV(x)     ((tagged_t*)((x)-(UBV<<TAGOFFSET)+SMALLPTR_BASE))
-#define TagToLST(x)     ((tagged_t*)((x)-(LST<<TAGOFFSET)+SMALLPTR_BASE))
-#define TagToSTR(x)     ((tagged_t*)((x)-(STR<<TAGOFFSET)+SMALLPTR_BASE))
-
-#define TagHVA(x)       Tag(HVA,x)
-#define TagSVA(x)       Tag(SVA,x)
-#define TagCVA(x)       Tag(CVA,x)
+#define TagpPtr(T,X) ((tagged_t*)((X)-(T<<TAGOFFSET)+SMALLPTR_BASE))
 
 /* Functor hackery. --MC */
 /*-----------------------*/
@@ -903,12 +908,12 @@ CBOOL__PROTO(bc_eq_large, tagged_t t, tagged_t *ptr);
     /* finding the arguments of a structure, first argument is 1 */
     /* finding the car & cdr of a list. */
     /* finding the constraints of a CVA. */
-#define TagToHeadfunctor(X) (*TagToSTR(X))
-#define TagToArg(X,N)   HeapOffset(TagToSTR(X),N)
-#define TagToCar(X)     TagToLST(X)
-#define TagToCdr(X)     HeapOffset(TagToLST(X),1)
-#define TagToGoal(X)    HeapOffset(TagToCVA(X),1)
-#define TagToDef(X)     HeapOffset(TagToCVA(X),2)
+#define TagToHeadfunctor(X) (*TagpPtr(STR,X))
+#define TaggedToArg(X,N)   HeapOffset(TagpPtr(STR,X),N)
+#define TagToCar(X)     TagpPtr(LST,X)
+#define TagToCdr(X)     HeapOffset(TagpPtr(LST,X),1)
+#define TagToGoal(X)    HeapOffset(TagpPtr(CVA,X),1)
+#define TagToDef(X)     HeapOffset(TagpPtr(CVA,X),2)
 
 typedef struct instance_handle_ instance_handle_t;
 typedef struct instance_ instance_t;
@@ -926,7 +931,7 @@ typedef struct sw_on_key_ sw_on_key_t;
 #define TagToEmul(X)    ((emul_info_t *)TermToPointer(X))
 #define TagToFunctor(X) ((definition_t *)TermToPointer(X))
 
-#define TaggedToBignum(X) ((bignum_t *)TagToSTR((X)))
+#define TaggedToBignum(X) ((bignum_t *)TagpPtr(STR,(X)))
 
 #if defined(TABLING)
 typedef struct node_tr_ node_tr_t;
@@ -1562,45 +1567,33 @@ struct marker_ {
 #define ChoiceToTagged(Y)   (MakeSmall(ChoiceDifference(Choice_Start,Y)))
 #endif
 
-#define RefHeap(To,From) \
-{ To = *(From); }
+#define RefHeap(To,From) { To = *(From); }
 
-#define RefCar(To,From) \
-{ To = *TagToCar(From); }
+#define RefCar(To,From) { To = *TagToCar(From); }
 
-#define RefCdr(To,From) \
-{ To = *TagToCdr(From); }
+#define RefCdr(To,From) { To = *TagToCdr(From); }
 
-#define RefArg(To,From,I) { To = *TagToArg(From,I); }
+#define RefHeapNext(To,From) { To = *(From)++; }
 
-#define RefHeapNext(To,From) \
-{ To = *(From)++; }
+#define PushRefHeapNext(To,From) { *(To)++ = *(From)++; }
 
-#define PushRefHeapNext(To,From) \
-{ *(To)++ = *(From)++; }
+#define RefStack(To,From) { To = *(From); }
 
-#define RefStack(To,From) \
-{ To = *(From); }
+#define HeapPushRefStack(To,From) { *(To)++ = *(From); }
 
-#define HeapPushRefStack(To,From) \
-{ *(To)++ = *(From); }
+#define RefHVA(To,From) { To = *TagpPtr(HVA,From); }
 
-#define RefHVA(To,From) \
-{ To = *TagToHVA(From); }
+#define RefCVA(To,From) { To = *TagpPtr(CVA,From); }
 
-#define RefCVA(To,From) \
-{ To = *TagToCVA(From); }
+#define RefSVA(To,From) { To = *TagpPtr(SVA,From); }
 
-#define RefSVA(To,From) \
-{ To = *TagToSVA(From); }
-
-#define LoadSVA(Y)              {Y = TagSVA(&Y); }
-#define Load2SVA(X,Y)           {X = Y = TagSVA(&Y); }
-#define PreLoadHVA(X,H)         {X = TagHVA(H); }
-#define ConstrHVA(H)            {HeapPush(H,TagHVA(H)); }
-#define LoadHVA(To,H)           {HeapPush(H,To = TagHVA(H)); }
-#define Load2HVA(To1,To2,H)     {HeapPush(H,To1 = To2 = TagHVA(H)); }
-#define LoadCVA(To,H)           {HeapPush(H,To = TagCVA(H)); }
+#define LoadSVA(Y)              {Y = Tagp(SVA,&Y); }
+#define Load2SVA(X,Y)           {X = Y = Tagp(SVA,&Y); }
+#define PreLoadHVA(X,H)         {X = Tagp(HVA,H); }
+#define ConstrHVA(H)            {HeapPush(H,Tagp(HVA,H)); }
+#define LoadHVA(To,H)           {HeapPush(H,To = Tagp(HVA,H)); }
+#define Load2HVA(To1,To2,H)     {HeapPush(H,To1 = To2 = Tagp(HVA,H)); }
+#define LoadCVA(To,H)           {HeapPush(H,To = Tagp(CVA,H)); }
 
 /* =========================================================================== */
 /* Definitions for symbol tables, databases, predicates. */
@@ -2290,7 +2283,7 @@ module_t *define_c_static_mod(char *module_name);
   tagged_t m_i; \
   tagged_t m_j; \
  \
-  RefArg(m_i,Ptr,I); \
+  m_i = *TaggedToArg(Ptr,I); \
   DerefHeapSwitch(m_i,m_j,{break;}) \
   Xderef = m_i; \
 }
@@ -2315,6 +2308,24 @@ module_t *define_c_static_mod(char *module_name);
   DerefSwitch(m_i,m_j,;) \
   Xderef = m_i; \
 }
+
+#define DerefSw_HVAorCVAorSVA_Other(Reg,CODE_HVAorCVAorSVA,CODE_Other) ({ \
+  __label__ labelend; \
+  if (IsVar(Reg)) { \
+    for(;;) { \
+      tagged_t Aux; \
+      Aux = *TagToPointer(Reg); \
+      if (Reg == Aux) { \
+        CODE_HVAorCVAorSVA; \
+        goto labelend; \
+      } \
+      Reg = Aux; \
+      if (!IsVar(Reg)) break; \
+    } \
+  } \
+  CODE_Other; \
+labelend: {} \
+})
 
 //TODO:[merge-oc] DerefSw_HVA_CVA_SVA_Other?
 #define SwitchOnVar(Reg,Aux,HVACode,CVACode,SVACode,NVACode) \
@@ -2375,17 +2386,33 @@ module_t *define_c_static_mod(char *module_name);
 
 #define DerefHeapSwitch(Reg,Aux,VarCode) DerefSwitch(Reg,Aux,VarCode)
 
+#define SwEval(V, HeadFunctor, NUMCode, LSTCode, BlobCode, STRCode, OtherCode) ({ \
+  switch (TagOf((V))) { \
+  case NUM: NUMCode; break; \
+  case LST: LSTCode; break; \
+  case STR: \
+    if (STRIsLarge((V))) { \
+      BlobCode; \
+    } else { \
+      tagged_t HeadFunctor = TagToHeadfunctor((V)); \
+      STRCode; \
+    } \
+    break; \
+  default: \
+    OtherCode; break; \
+  } \
+})
 
 #define YoungerHeapVar(Q,R)     HeapYounger(Q,R)
 #define YoungerStackVar(Q,R)    StackYounger(Q,R)
 
 #if defined(PARBACK) || defined(ANDPARALLEL)
 #define CondHVA(X)              (!OffHeaptop(X,w->global_uncond) || !OnHeap(TagToPointer(X)))
-#define CondCVA(X)              (!OffHeaptop(TagHVA(TagToCVA(X)),w->global_uncond) || !OnHeap(TagToPointer(X)))
+#define CondCVA(X)              (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond) || !OnHeap(TagToPointer(X)))
 #define CondSVA(X)              (!OffStacktop(X,w->local_uncond) || !OnStack(TagToPointer(X)))
 #else
 #define CondHVA(X)              (!OffHeaptop(X,w->global_uncond))
-#define CondCVA(X)              (!OffHeaptop(TagHVA(TagToCVA(X)),w->global_uncond))
+#define CondCVA(X)              (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond))
 #define CondSVA(X)              (!OffStacktop(X,w->local_uncond))
 #endif
 #define CondStackvar(X)         CondSVA(X)
@@ -2397,28 +2424,28 @@ CVOID__PROTO(trail_push_check, tagged_t x);
 #define BindCVA_NoWake(U,V) \
 { \
   TrailPushCheck(w->trail_top,U); \
-  *TagToCVA(U) = V; \
+  *TagpPtr(CVA,U) = V; \
 }
 
 #define BindCVA(U,V)                            \
   {                                             \
     Wake;                                       \
     TrailPushCheck(w->trail_top,U);             \
-    *TagToCVA(U) = V;                           \
+    *TagpPtr(CVA,U) = V;                           \
   }
 
 #define BindSVA(U,V)                            \
   {                                             \
     if (CondSVA(U))                             \
       TrailPushCheck(w->trail_top,U);           \
-    *TagToSVA(U) = V;                           \
+    *TagpPtr(SVA,U) = V;                           \
   }
 
 #define BindHVA(U,V)                            \
   {                                             \
     if (CondHVA(U))                             \
       TrailPushCheck(w->trail_top,U);           \
-    *TagToHVA(U) = V;                           \
+    *TagpPtr(HVA,U) = V;                           \
   }
 
 #define Wake \
@@ -2456,7 +2483,7 @@ CVOID__PROTO(trail_push_check, tagged_t x);
 /* --------------------------------------------------------------------------- */
 /* support for copy term */
 
-#define TopOfOldHeap TagToHVA(w->global_uncond)
+#define TopOfOldHeap TagpPtr(HVA,w->global_uncond)
 
 /* Enable copying of terms between different heaps in copy_term */
 /* (it does not have any significant impact on performance) */
@@ -2469,11 +2496,11 @@ CVOID__PROTO(trail_push_check, tagged_t x);
    copy_term, since we cannot not assume anything about the order of
    different heaps */
 #define OldHVA(X) (!OffHeaptop(X,w->global_uncond) || !OnHeap(TagToPointer(X)))
-#define OldCVA(X) (!OffHeaptop(TagHVA(TagToCVA(X)),w->global_uncond) || !OnHeap(TagToPointer(X)))
+#define OldCVA(X) (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond) || !OnHeap(TagToPointer(X)))
 #else
 /* Use TopOfOldHeap as a memory barrier */
 #define OldHVA(X) (!OffHeaptop(X,w->global_uncond))
-#define OldCVA(X) (!OffHeaptop(TagHVA(TagToCVA(X)),w->global_uncond))
+#define OldCVA(X) (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond))
 #endif
 
 /* =========================================================================== */
@@ -2834,7 +2861,7 @@ void failc(char *mesg);
 { tagged_t makelst_car = (Car); \
   HeapPush(w->global_top,makelst_car); \
   HeapPush(w->global_top,Cdr); \
-  To = Tag(LST,HeapOffset(w->global_top,-2)); \
+  To = Tagp(LST,HeapOffset(w->global_top,-2)); \
 }
 
 #define LSTCELLS 2 /* Cells allocated in MakeLST */
@@ -2848,7 +2875,7 @@ void failc(char *mesg);
 #define MakeSTR(To,Functor) \
 { \
   HeapPush(w->global_top,Functor); \
-  To = Tag(STR,HeapOffset(w->global_top,-1)); \
+  To = Tagp(STR,HeapOffset(w->global_top,-1)); \
   w->global_top = HeapOffset(w->global_top,Arity(Functor)); \
 }
 

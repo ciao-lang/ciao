@@ -1060,12 +1060,12 @@ CBOOL__PROTO(qread1,
     case LOAD_LIST:
       Li = qr_int16(qfile);
       QLCHECK(Li);
-      QLARRAY(Li) = Tag(LST,h);
+      QLARRAY(Li) = Tagp(LST,h);
       break;
     case LOAD_TUPLE:
       Li = qr_int16(qfile);
       QLCHECK(Li);
-      QLARRAY(Li) = Tag(STR,h);
+      QLARRAY(Li) = Tagp(STR,h);
       break;
     case LOAD_ARGUMENT:
       Li = qr_int16(qfile);

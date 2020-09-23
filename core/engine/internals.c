@@ -80,12 +80,12 @@ definition_t *find_definition(sw_on_key_t **swp,
   if (TaggedIsStructure(term)) {
     tagged_t f = TagToHeadfunctor(term);
 
-    *argl = TagToArg(term,1);
+    *argl = TaggedToArg(term,1);
     term = SetArity(f,0);
     arity = Arity(f);
   } else
     if (TaggedIsLST(term)) {
-      *argl = TagToLST(term);
+      *argl = TagpPtr(LST,term);
       term = atom_list;
       arity = 2;
     }
@@ -279,80 +279,79 @@ CVOID__PROTO(trail_push_check, tagged_t x) {
 
 /* --------------------------------------------------------------------------- */
 
-/* make large object on the heap */
-CFUN__PROTO(make_large, tagged_t,
-            tagged_t *ptr)
-{
+/* Create a new copy on the heap of the blob pointed by ptr */
+CFUN__PROTO(make_blob, tagged_t, tagged_t *ptr) {
   tagged_t *h = w->global_top;
   tagged_t f = *ptr;
   intmach_t ar = LargeArity(f);
   intmach_t i;
 
-  for (i=0; i<ar; i++)
+  for (i=0; i<ar; i++) {
     *h++ = *ptr++;
+  }
   *h++ = f;
 
   w->global_top = h;
-  return Tag(STR, h-ar-1);
+  return Tagp(STR, h-ar-1);
 }
 
 #if BC_SCALE == 2
-/* Make large object on the heap from bytecode.
+/* Create a blob on the heap from bytecode.
 
    If the object is a bignum, we use the canonized length and convert
    it to a NUM if possible (this may happend with BC_SCALE == 2).
  */
-CFUN__PROTO(bc_make_large, tagged_t, tagged_t *ptr) {
+CFUN__PROTO(bc_make_blob, tagged_t, tagged_t *ptr) {
   intmach_t ar;
   tagged_t f = ptr[0];
 
   if (FunctorIsFloat(f)) { /* float */
-    // fprintf(stderr, "BC_MakeLarge->float\n");
+    // fprintf(stderr, "BC_MakeBlob->float\n");
     ar = LargeArity(f);
   } else { /* bignum */
     intmach_t len = bn_canonized_length((bignum_t *)ptr);
     ar = len + 1;
     /* TODO: factorize */
     if (ar==2 && IsInSmiValRange((intmach_t)ptr[1])) {
-      // fprintf(stderr, "BC_MakeLarge->small\n");
+      // fprintf(stderr, "BC_MakeBlob->small\n");
       return MakeSmall(ptr[1]);
     }
-    // fprintf(stderr, "BC_MakeLarge->bignum\n");
+    // fprintf(stderr, "BC_MakeBlob->bignum\n");
     f = MakeLength(len);
   }
 
-  /* Copy large into the heap */
+  /* Copy blob into the heap */
   tagged_t *h = w->global_top;
   *h++ = f; ptr++;
   for (intmach_t i=1; i<ar; i++) *h++ = *ptr++;
   *h++ = f;
   w->global_top = h;
-  return Tag(STR, h-ar-1);
+  return Tagp(STR, h-ar-1);
 }
 
 /* (assume t deref) */
-CBOOL__PROTO(bc_eq_large, tagged_t t, tagged_t *ptr) {
+CBOOL__PROTO(bc_eq_blob, tagged_t t, tagged_t *ptr) {
   intmach_t ar;
   tagged_t f = ptr[0];
 
   if (FunctorIsFloat(f)) { /* float */
-    // fprintf(stderr, "eq_large->float\n");
+    // fprintf(stderr, "eq_blob->float\n");
     ar = LargeArity(f);
   } else { /* bignum */
     intmach_t len = bn_canonized_length((bignum_t *)ptr);
     ar = len + 1;
     /* TODO: factorize */
     if (ar==2 && IsInSmiValRange((intmach_t)ptr[1])) {
-      // fprintf(stderr, "eq_large->small\n");
+      // fprintf(stderr, "eq_blob->small\n");
       return t == MakeSmall(ptr[1]);
     }
-    // fprintf(stderr, "eq_large->bignum\n");
+    // fprintf(stderr, "eq_blob->bignum\n");
   }
 
-  /* Compare large from the heap */
+  /* Compare blob from the heap */
   if (!TaggedIsSTR(t)) return FALSE;
   for (intmach_t i=ar; i>0; i--) {
-    if (ptr[i-1] != *TagToArg(t,i-1)) return FALSE;
+    if (ptr[i-1] != *TaggedToArg(t,i-1)) return FALSE;
   }
   return TRUE;
 }
@@ -365,7 +364,7 @@ CFUN__PROTO(make_integer, tagged_t, intmach_t i) {
   HeapPush(h, (tagged_t)i);
   HeapPush(h, MakeFunctorFix);
   w->global_top = h;
-  return Tag(STR, h-3);
+  return Tagp(STR, h-3);
 }
 
 CFUN__PROTO(make_float, tagged_t, flt64_t i) {
@@ -387,23 +386,23 @@ CFUN__PROTO(make_float, tagged_t, flt64_t i) {
 #endif
   HeapPush(h, MakeFunctorFloat);
   w->global_top = h;
-  return Tag(STR, h-4);
+  return Tagp(STR, h-4);
 }
 
 /* Pre: !IsSmall(t) (small int's taken care of by TaggedToIntmach()) */
 intmach_t get_integer(tagged_t t) {
   if (LargeIsFloat(t)) {
-    return get_float(t);
+    return blob_to_flt64(t);
   } else {
-    return (intmach_t)*TagToArg(t,1);
+    return (intmach_t)*TaggedToArg(t,1);
   }
 }
 
 /* Pre: !IsSmall(t) (small int's taken care of by TaggedToFloat()) */
-flt64_t get_float(tagged_t t) {
+flt64_t blob_to_flt64(tagged_t t) {
   if (!LargeIsFloat(t)) {
     intmach_t ar = LargeArity(TagToHeadfunctor(t))-1;
-    flt64_t f = (intmach_t)*TagToArg(t,ar);
+    flt64_t f = (intmach_t)*TaggedToArg(t,ar);
 
     while (ar>1) {
       const bignum_t sbit = (bignum_t)1<<(8*sizeof(bignum_t)-1);
@@ -415,7 +414,7 @@ flt64_t get_float(tagged_t t) {
       const flt64_t norm2 = p32*p32; /* 2**64 */
       const flt64_t norm2m1 = p32*2147483648.0; /* 2**63 */
 #endif
-      bignum_t u = *TagToArg(t,--ar);
+      bignum_t u = *TaggedToArg(t,--ar);
       if (u & sbit) { /* trouble on some machines */
         f = f*norm2 + norm2m1 + (u - sbit);
       } else {
@@ -429,10 +428,10 @@ flt64_t get_float(tagged_t t) {
       tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
     } u;
 #if LOG2_bignum_size == 5
-    u.p[0] = *TagToArg(t,1);
-    u.p[1] = *TagToArg(t,2);
+    u.p[0] = *TaggedToArg(t,1);
+    u.p[1] = *TaggedToArg(t,2);
 #elif LOG2_bignum_size == 6
-    u.p[0] = *TagToArg(t,1);
+    u.p[0] = *TaggedToArg(t,1);
 #endif
     return u.i;
   }
@@ -453,7 +452,7 @@ CFUN__PROTO(make_structure, tagged_t,
     ConstrHVA(h);
     ConstrHVA(h);
     w->global_top = h;
-    return Tag(LST,HeapOffset(h,-2));
+    return Tagp(LST,HeapOffset(h,-2));
   } else {
     HeapPush(h,functor);
     do {
@@ -461,7 +460,7 @@ CFUN__PROTO(make_structure, tagged_t,
     } while (--ar);
     w->global_top = h;
 
-    return Tag(STR,h-Arity(functor)-1);
+    return Tagp(STR,h-Arity(functor)-1);
   }
 }
 
@@ -1439,7 +1438,7 @@ CFUN__PROTO(list_of_goals, tagged_t)
   } while (current_goal != goal_desc_list);
 
   w->global_top=pt1;
-  return Tag(STR,HeapOffset(pt1,-3));
+  return Tagp(STR,HeapOffset(pt1,-3));
 }
 
 CBOOL__PROTO(prolog_eng_status1)
@@ -1843,7 +1842,7 @@ CBOOL__PROTO(setarg)
     if (i<=0 || i>Arity(f) || f&QMask)
       goto barf1;
     
-    ptr = TagToArg(complex,i);
+    ptr = TaggedToArg(complex,i);
   } else if (IsComplex(complex)){       /* i.e. list */
     if (number==MakeSmall(1))
       ptr = TagToCar(complex);
@@ -1856,12 +1855,12 @@ CBOOL__PROTO(setarg)
   RefHeap(oldarg,ptr);
   *ptr = newarg;
   
-  if ((X(3)==atom_on) && CondHVA(TagHVA(ptr))) {
+  if ((X(3)==atom_on) && CondHVA(Tagp(HVA,ptr))) {
     /* undo setarg upon backtracking */
     tagged_t *limit = TagToPointer(w->node->trail_top);
     
     /* check first if location already trailed is same segment */
-    t1 = TagHVA(ptr);
+    t1 = Tagp(HVA,ptr);
     
     for (x=w->trail_top; TrailYounger(x,limit);) {
       t2 = TrailPop(x);
@@ -1870,7 +1869,7 @@ CBOOL__PROTO(setarg)
     }
     
     ptr = w->global_top;
-    t2 = Tag(STR,ptr);
+    t2 = Tagp(STR,ptr);
     HeapPush(ptr,functor_Dsetarg);
     HeapPush(ptr,number);
     HeapPush(ptr,complex);
@@ -1914,7 +1913,7 @@ CBOOL__PROTO(frozen)
   if (!IsVar(X(0)))
     return FALSE;
   else if (VarIsCVA(X(0)))
-    CBOOL__LASTUNIFY(Tag(LST,TagToGoal(X(0))),X(1));
+    CBOOL__LASTUNIFY(Tagp(LST,TagToGoal(X(0))),X(1));
   CBOOL__UnifyCons(atom_nil,X(1));
   return TRUE;
 }
@@ -1996,8 +1995,8 @@ CBOOL__PROTO(constraint_list)
     l = *w->trail_top;
     while (l!=atom_nil) {
       v = l;
-      l = *TagToCVA(v);
-      *TagToCVA(v) = v;
+      l = *TagpPtr(CVA,v);
+      *TagpPtr(CVA,v) = v;
     }
     /* TODO: use pad<<=1 here or recompute available? */
     explicit_heap_overflow(Arg,pad<<=1,2);
@@ -2007,11 +2006,11 @@ CBOOL__PROTO(constraint_list)
   clist = atom_nil;
   while (l!=atom_nil) {
     v = l;
-    l = *TagToCVA(v);
-    *TagToCVA(v) = v;
+    l = *TagpPtr(CVA,v);
+    *TagpPtr(CVA,v) = v;
     HeapPush(h,v);
     HeapPush(h,clist);
-    clist = Tag(LST,HeapOffset(h,-2));
+    clist = Tagp(LST,HeapOffset(h,-2));
   }
   w->global_top = h;
   CBOOL__LASTUNIFY(clist,X(1));
@@ -2044,7 +2043,7 @@ CFUN__PROTO(find_constraints, intmach_t, tagged_t *limit)
               
               if (v&QMask) h += LargeArity(v);
               else if (TaggedIsATM(v)) h += Arity(v);
-              else if (v==Tag(CVA,h-1))
+              else if (v==Tagp(CVA,h-1))
                 {
                   h[-1] = *w->trail_top;
                   *w->trail_top = v;
@@ -2140,7 +2139,7 @@ bool_t insertz_aux(int_info_t *root, instance_t *n)
       n->backward = n;
       root->first = n;
     }
-    else if (root->first->backward->rank == TaggedHigh)
+    else if (root->first->backward->rank == TaggedIntMax)
       SERIOUS_FAULT("database node full in assert or record")
     else {
       n->rank = root->first->backward->rank+MakeSmallDiff(1);

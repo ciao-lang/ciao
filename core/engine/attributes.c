@@ -44,9 +44,9 @@ CBOOL__PROTO(bu2_attach_attribute,
     LoadCVA(t0,h);
     if (CondHVA(var))   {
       TrailPush(w->trail_top,var);
-      *TagToHVA(var) = t0;
+      *TagpPtr(HVA,var) = t0;
     } else {
-      *TagToHVA(var) = t0;
+      *TagpPtr(HVA,var) = t0;
     }
   } else {
     if (TaggedIsSVA(var)) {                                  /* unsafe value */
@@ -56,7 +56,7 @@ CBOOL__PROTO(bu2_attach_attribute,
       BindSVA(var,t0);
       var = t0;
       LoadCVA(t0,h);
-      *TagToHVA(var) = t0;
+      *TagpPtr(HVA,var) = t0;
     } else {
       USAGE_FAULT("attach_attribute/2: type error");
     }
@@ -142,9 +142,9 @@ CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
     
     HeapPush( h, ref); 
     HeapPush( h, value);  
-    HeapPush( h, Tag(LST,h-2));
+    HeapPush( h, Tagp(LST,h-2));
     HeapPush( h, X(0));
-    X(0) = Tag(LST,h-2);
+    X(0) = Tagp(LST,h-2);
     
     if ( !CondCVA(ref)) 
       tr0=tr, *tr=0; 
@@ -233,9 +233,9 @@ CBOOL__PROTO(c_setarg, intmach_t, tagged_t, tagged_t, bool_t);
 
 #define MULTI_ATTR_F SetArity(atom_att, 3)
 
-#define CELL_KEY(CELL)  *TagToArg((CELL),1)
-#define CELL_VAL(CELL)  *TagToArg((CELL),2)
-#define CELL_NEXT(CELL) *TagToArg((CELL),3)
+#define CELL_KEY(CELL)  *TaggedToArg((CELL),1)
+#define CELL_VAL(CELL)  *TaggedToArg((CELL),2)
+#define CELL_NEXT(CELL) *TaggedToArg((CELL),3)
 
 #define DEREF_AND_ENSURE_ATOM_MODKEY(KEY) ({                            \
       tagged_t  tmp;                                                    \
@@ -328,7 +328,7 @@ CBOOL__PROTO(put_attr__3) {
   insert_cell:
      
     ptr = w->global_top;
-    complex = Tag(STR, ptr);
+    complex = Tagp(STR, ptr);
     HeapPush(ptr, SetArity(atom_att, 3));
     HeapPush(ptr, key);
     HeapPush(ptr, val);
@@ -340,11 +340,11 @@ CBOOL__PROTO(put_attr__3) {
   } else {
     
     ptr = w->global_top;
-    complex = Tag(STR, ptr);
+    complex = Tagp(STR, ptr);
     HeapPush(ptr, SetArity(atom_att, 3));
     HeapPush(ptr, TaggedZero);
     HeapPush(ptr, TaggedZero);
-    HeapPush(ptr, Tag(STR, HeapOffset(ptr,1)));
+    HeapPush(ptr, Tagp(STR, HeapOffset(ptr,1)));
     HeapPush(ptr, SetArity(atom_att, 3));
     HeapPush(ptr, key);
     HeapPush(ptr, val);

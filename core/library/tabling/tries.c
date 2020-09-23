@@ -517,7 +517,7 @@ CFUN__PROTO(get_trie, tagged_t,
 //        else 
 //          {
 //            t = MkVarTerm();
-//            *TagToPointer(t) = Tag(CVA,TagToPointer(MkVarTerm()));          
+//            *TagToPointer(t) = Tagp(CVA,TagToPointer(MkVarTerm()));          
 //            stack_vars_base[index] = t;
 //          }
 //        PUSH_UP(stack_args, t, stack_vars);
@@ -588,7 +588,7 @@ CFUN__PROTO(get_trie, tagged_t,
                 node = TrNode_parent(node);
                 *p++ = TrNode_entry(node);
               }
-              PUSH_UP(stack_args, Tag(STR, w->global_top), stack_vars);
+              PUSH_UP(stack_args, Tagp(STR, w->global_top), stack_vars);
               w->global_top = p;   // move the heap pointer to the end of the big number
               break;
             case FloatEndTag:
