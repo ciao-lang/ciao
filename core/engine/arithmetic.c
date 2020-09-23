@@ -575,7 +575,7 @@ CBOOL__PROTO(bu2_numge, tagged_t x0, tagged_t x1) {
 /* --------------------------------------------------------------------------- */
 
 /* Code blocks to negate the number U (CFUN__LASTCALL version) */
-#define CFUN__LASTCALL_NumberNegate(LabSmall, LabNonsmall, U) ({ \
+#define CFUN__LASTCALL_NumberNegate(LabSmall, LabNonsmall, U) { \
  __label__ big_;  \
  LabSmall: \
   if (U==TaggedLow) goto big_;/*CFUN__LASTCALL(SmiVal1ToTagged_GC, SmiValMaxPlus1);*/ \
@@ -588,10 +588,10 @@ CBOOL__PROTO(bu2_numge, tagged_t x0, tagged_t x1) {
   } else { \
     goto big_; \
   } \
-})
+}
 
 /* Code blocks to negate the integer U */
-#define IntegerNegate_GC(LabSmall, LabNonsmall, U, ...) ({ \
+#define IntegerNegate_GC(LabSmall, LabNonsmall, U, ...) { \
   __label__ big_; \
   __label__ end_; \
 LabSmall: \
@@ -603,7 +603,7 @@ big_: \
   PROT_GC(U = CFUN__EVAL(bn_call1,bn_minus,U), __VA_ARGS__); \
   goto end_; \
 end_: {} \
-})
+}
 
 CFUN__PROTO(fu1_minus, tagged_t, tagged_t x0) {
   ERR__FUNCTOR("arithmetic:$-", 2);
