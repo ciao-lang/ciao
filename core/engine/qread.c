@@ -413,11 +413,11 @@ CFUN__PROTO(rewrite_instr, bcp_t, bcp_t p, bcp_t begin) {
       /* todo[ts]: change if more blob types are added */
       check_align(p, FTYPE_size(f_i));
       TRACE_REWRITE({
-        tagged_t *h = w->global_top;
+        tagged_t *h = w->heap_top;
         tagged_t t;
         t = MakeBlob((tagged_t *)p);
         CVOID__CALL(display_term, t, Output_Stream_Ptr, TRUE);
-        w->global_top = h;
+        w->heap_top = h;
       });
       //      p = BCoff(p, BlobFunctorSizeAligned(*(tagged_t *)p)+sizeof(functor_t));
       p = BCoff(p, BlobFunctorSizeAligned((tagged_t *)p));
@@ -575,11 +575,11 @@ CVOID__PROTO(dump_instr, bcp_t p) {
       /* todo[ts]: change if more blob types are added */
       check_align(p, FTYPE_size(f_i));
       {
-        tagged_t *h = w->global_top;
+        tagged_t *h = w->heap_top;
         tagged_t t;
         t = MakeBlob((tagged_t *)p);
         CVOID__CALL(display_term, t, Output_Stream_Ptr, TRUE);
-        w->global_top = h;
+        w->heap_top = h;
       }
       fprintf(stderr, "%llx\n", *(tagged_t *)p);
       p = BCoff(p, BlobFunctorSizeAligned((tagged_t *)p));
@@ -624,11 +624,11 @@ CVOID__PROTO(getbytecode32, FILE *f,
       {
         int arity = 2;
         int cells = (length / sizeof(tagged_t)) + 4 + arity;
-        if (HeapDifference(w->global_top,Heap_End)<cells) {
+        if (HeapDifference(w->heap_top,Heap_End)<cells) {
           explicit_heap_overflow(Arg,cells,5);
         }
       }
-      h = w->global_top;
+      h = w->heap_top;
 //#if BC_SCALE==2
 //      fprintf(stderr, "trace: reading number %s\n", Atom_Buffer);
 //#endif
@@ -645,7 +645,7 @@ CVOID__PROTO(getbytecode32, FILE *f,
 //#if BC_SCALE==2
 //      fprintf(stderr, "trace: sz=%d\n", sz);
 //#endif
-      w->global_top = h; /* TODO: does not move! */
+      w->heap_top = h; /* TODO: does not move! */
       break;
     }
       
@@ -983,7 +983,7 @@ CBOOL__PROTO(qread1,
              FILE *qfile,
              tagged_t *rungoal) {
   int Li = 0, Lj = 0;
-  tagged_t *h = w->global_top;
+  tagged_t *h = w->heap_top;
   int pad;
   int c = GETC(qfile);
   
@@ -1011,9 +1011,9 @@ CBOOL__PROTO(qread1,
     case ENSURE_SPACE:
       pad = qr_int32(qfile);
       if (HeapDifference(h,Heap_End) < pad) {
-        w->global_top = h;
+        w->heap_top = h;
         explicit_heap_overflow(Arg,pad,2);
-        h = w->global_top;
+        h = w->heap_top;
       }
       break;
     case LOAD_ATOM:
@@ -1036,16 +1036,16 @@ CBOOL__PROTO(qread1,
     case LOAD_NUMBER_L:
       Li = qr_int16(qfile);
       QLCHECK(Li);
-      w->global_top = h;
+      w->heap_top = h;
       QLARRAY(Li) = qr_large(Arg,qfile);
-      h = w->global_top;
+      h = w->heap_top;
       break;
     case LOAD_NUMBER_F:
       Li = qr_int16(qfile);
       QLCHECK(Li);
-      w->global_top = h;
+      w->heap_top = h;
       QLARRAY(Li) = BoxFloat(qr_flt64(qfile));
-      h = w->global_top;
+      h = w->heap_top;
       break;
     case LOAD_VARIABLE:
       Li = qr_int16(qfile);
@@ -1081,7 +1081,7 @@ CBOOL__PROTO(qread1,
     case RETURN:
       Li = qr_int16(qfile);
       *rungoal = QLARRAY(Li);
-      w->global_top = h;
+      w->heap_top = h;
       return TRUE;
     case RELOC_POINTER:
       Li = qr_int16(qfile);
@@ -1097,7 +1097,7 @@ CBOOL__PROTO(qread1,
     }
     c=GETC(qfile);
   }
-  w->global_top = h;
+  w->heap_top = h;
   return FALSE;
 }
 

@@ -294,9 +294,9 @@ ciao_term ciao_var_s(ciao_ctx ctx) {
   tagged_t to;
   worker_t *w = ctx->worker_registers;
   ciao_ensure_heap(ctx, 1);
-  pt = w->global_top;
+  pt = w->heap_top;
   HeapPush(pt, to = Tagp(HVA,pt));
-  w->global_top = pt;  
+  w->heap_top = pt;  
   return ciao_ref(ctx, to);
 }
 
@@ -319,12 +319,12 @@ ciao_term ciao_structure_a_s(ciao_ctx ctx, const char *name, int arity, ciao_ter
     tagged_t functor;
     ciao_ensure_heap(ctx, 2 + arity);
     functor = SetArity(GET_ATOM((char *)name), arity);
-    pt = w->global_top;
+    pt = w->heap_top;
     HeapPush(pt, functor);
     for (i = 0; i < arity; i++) {
       HeapPush(pt, ciao_unref(ctx, args[i]));
     }
-    w->global_top = pt;  
+    w->heap_top = pt;  
     return ciao_ref(ctx, Tagp(STR, HeapOffset(pt, -(arity+1))));
   }
 }
@@ -1020,10 +1020,10 @@ ciao_query *ciao_query_begin_term_s(ciao_ctx ctx, ciao_term goal) {
   b = ChoiceCharOffset(b0, ArityToOffset(0));
   ComputeA(w->local_top,w->node);
   w->node = b;
-  NewShadowregs(w->global_top);
+  NewShadowregs(w->heap_top);
 
   b->trail_top = w->trail_top;
-  SaveGtop(b,w->global_top);
+  SaveGtop(b,w->heap_top);
   b->next_alt = &defaultgoal_alt;
   b->frame = w->frame;
   b->next_insn = w->next_insn;
@@ -1042,10 +1042,10 @@ ciao_query *ciao_query_begin_term_s(ciao_ctx ctx, ciao_term goal) {
   b = ChoiceCharOffset(b0, ArityToOffset(1));
   ComputeA(w->local_top,w->node);
   w->node = b;
-  NewShadowregs(w->global_top);
+  NewShadowregs(w->heap_top);
 
   b->trail_top = w->trail_top;
-  SaveGtop(b,w->global_top);
+  SaveGtop(b,w->heap_top);
   b->next_alt = &startgoal_alt;
   b->frame = w->frame;
   b->next_insn = w->next_insn;
@@ -1127,7 +1127,7 @@ tagged_t create_ref_table(ciao_ctx ctx, int chunks) {
 
   ciao_ensure_heap(ctx, REF_TABLE_CHUNK_SIZE * chunks + 1);
   functor = SetArity(GET_ATOM("$reftable"), (REF_TABLE_CHUNK_SIZE - 1));
-  pt = w->global_top;
+  pt = w->heap_top;
   pt0 = pt;
   for (j = 0; j < chunks - 1; j++) {
     HeapPush(pt, functor);
@@ -1142,7 +1142,7 @@ tagged_t create_ref_table(ciao_ctx ctx, int chunks) {
       HeapPush(pt, Tagp(HVA,pt));
     }
   }
-  w->global_top = pt;  
+  w->heap_top = pt;  
   return Tagp(STR, pt0);
 }
 

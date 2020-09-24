@@ -1714,7 +1714,7 @@ CVOID__PROTO(local_init_each_time)
   Gc_Total_Grey = 0;
 
   /* Initialize some top registers */
-  Arg->global_top = Heap_Start;
+  Arg->heap_top = Heap_Start;
   Arg->trail_top = Trail_Start;
 
 #if defined(USE_GLOBAL_VARS)
@@ -1727,12 +1727,12 @@ CVOID__PROTO(local_init_each_time)
     int i;
     tagged_t functor_Dglb = deffunctor("$glb",MAX_GLOBALS);
     
-    ptr2 = ptr = w->global_top;
+    ptr2 = ptr = w->heap_top;
     HeapPush(ptr,functor_Dglb);
     for (i = 0; i < MAX_GLOBALS; i++) {
       HeapPush(ptr, MakeSmall(0));
     }
-    w->global_top = ptr;
+    w->heap_top = ptr;
     GLOBAL_VARS_ROOT = Tagp(STR,ptr2);
   }
 #endif
@@ -1751,7 +1751,7 @@ CVOID__PROTO(local_init_each_time)
   b->next_alt = termcode;
 
   b->local_top = Arg->local_top;
-  b->global_top = Arg->global_top;
+  b->heap_top = Arg->heap_top;
   b->trail_top = Arg->trail_top;
   b->next_insn = exitcode;
   b->term[0] = atom_nil;
@@ -1760,7 +1760,7 @@ CVOID__PROTO(local_init_each_time)
   ChoiceptMarkStatic(b);
   ChoiceptMarkNoCVA(b);
                                 
-  NewShadowregs(Arg->global_top);
+  NewShadowregs(Arg->heap_top);
   Arg->next_alt = NULL;
 
   Arg->value_trail = (int)InitialValueTrail;
@@ -2151,8 +2151,8 @@ CBOOL__PROTO(statistics)
              "   number of predicate definitions: %" PRIdm "\n", 
              num_of_predicates);
 
-  used = HeapCharDifference(Heap_Start,w->global_top);
-  free = HeapCharDifference(w->global_top,Heap_End);
+  used = HeapCharDifference(Heap_Start,w->heap_top);
+  free = HeapCharDifference(w->heap_top,Heap_End);
   ENG_PRINTF(s, 
              "   global stack   %10" PRIdm " bytes:%" PRIdm " in use,%10" PRIdm " free\n",
              used+free, used, free);

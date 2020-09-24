@@ -51,13 +51,13 @@ intmach_t bn_length(bignum_t *x);
  */
 // TODO: ar==2 assumes that sizeof(bignum_t) == sizeof(intmach_t) == sizeof(tagged_t)
 static inline CFUN__PROTO(bn_finish, tagged_t) {
-  tagged_t *h_ = w->global_top;
+  tagged_t *h_ = w->heap_top;
   int ar_ = LargeArity(h_[0]);
   tagged_t r_;
   if (ar_ == 2 && IsInSmiValRange((intmach_t)h_[1])) {
     r_ = MakeSmall(h_[1]);
   } else {
-    w->global_top += ar_+1;
+    w->heap_top += ar_+1;
     h_[ar_] = h_[0];
     r_ = Tagp(STR,h_);
   }
@@ -71,12 +71,12 @@ static inline CFUN__PROTO(bn_finish, tagged_t) {
  */
 #define StringToInt(Str, Base, Out, Arity) ({                           \
   int req = bn_from_string((Str),                                       \
-                           (bignum_t *)w->global_top,                   \
+                           (bignum_t *)w->heap_top,                     \
                            (bignum_t *)(Heap_End-CONTPAD), (Base));     \
   if (req != 0) {                                                       \
     explicit_heap_overflow(Arg, req+CONTPAD, (Arity));                  \
     if (bn_from_string((Str),                                           \
-                       (bignum_t *)w->global_top,                       \
+                       (bignum_t *)w->heap_top,                         \
                        (bignum_t *)(Heap_End-CONTPAD), (Base))) {       \
       SERIOUS_FAULT("miscalculated size of bignum");                    \
     }                                                                   \
@@ -87,7 +87,7 @@ static inline CFUN__PROTO(bn_finish, tagged_t) {
 /* Like StringToInt, assuming enough heap (no GC) */
 #define StringToInt_nogc(Str, Base, Out) ({             \
   if (bn_from_string((Str),                             \
-                     (bignum_t *)w->global_top,         \
+                     (bignum_t *)w->heap_top,           \
                      (bignum_t *)Heap_End, (Base))) {   \
     SERIOUS_FAULT("miscalculated heap usage");          \
   }                                                     \

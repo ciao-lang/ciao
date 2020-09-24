@@ -515,7 +515,7 @@ CBOOL__PROTO(prolog_socket_receive) {
     MAJOR_FAULT("socket_recv/3: internal buffer overrun")
   */
 
-  if (HeapDifference(w->global_top, Heap_End) < CONTPAD+(bytes_read<<1))
+  if (HeapDifference(w->heap_top, Heap_End) < CONTPAD+(bytes_read<<1))
     explicit_heap_overflow(Arg, CONTPAD+(bytes_read<<1),2);
     
   buffpt = &buffer[bytes_read-1];

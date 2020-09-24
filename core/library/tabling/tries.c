@@ -583,13 +583,13 @@ CFUN__PROTO(get_trie, tagged_t,
             case LargeInitTag:
               break;
             case LargeEndTag:
-              p = w->global_top;   // make the big number on the heap
+              p = w->heap_top;   // make the big number on the heap
               while (TrNode_entry(node) != LargeInitTag) {
                 node = TrNode_parent(node);
                 *p++ = TrNode_entry(node);
               }
-              PUSH_UP(stack_args, Tagp(STR, w->global_top), stack_vars);
-              w->global_top = p;   // move the heap pointer to the end of the big number
+              PUSH_UP(stack_args, Tagp(STR, w->heap_top), stack_vars);
+              w->heap_top = p;   // move the heap pointer to the end of the big number
               break;
             case FloatEndTag:
               p = (tagged_t *)((void *) &f); // to avoid gcc warning 

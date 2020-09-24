@@ -40,7 +40,7 @@ CBOOL__PROTO(counter_values)
 
   max_counter = current_counter + count;
   
-  h = w->global_top;
+  h = w->heap_top;
   values = Tagp(STR,h);
   HeapPush(h,SetArity(atom_counter,count));
   
@@ -52,7 +52,7 @@ CBOOL__PROTO(counter_values)
       HeapPush(h,MakeSmall(counter));
     }
   }
-  w->global_top = h;
+  w->heap_top = h;
   
   CBOOL__LASTUNIFY(values,X(2));
 }

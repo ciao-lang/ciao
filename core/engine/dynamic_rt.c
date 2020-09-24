@@ -187,8 +187,8 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
     w->node = ChoiceCharOffset(w->node,ArityToOffset(DynamicPreserved));
     w->node->next_alt = NULL;
     w->node->trail_top = w->trail_top;
-    SaveGtop(w->node,w->global_top);
-    NewShadowregs(w->global_top);
+    SaveGtop(w->node,w->heap_top);
+    NewShadowregs(w->heap_top);
   } else {
     /* Cleanup unused registers */
     X(X5_CHN) = MakeSmall(0);
@@ -311,7 +311,7 @@ CBOOL__PROTO(current_key)
         while (inst){
           intmach_t ar = LargeArity(hnode->key);
 
-          if (HeapDifference(w->global_top,Heap_End)<CONTPAD+ar+3) {
+          if (HeapDifference(w->heap_top,Heap_End)<CONTPAD+ar+3) {
             explicit_heap_overflow(Arg,SOFT_HEAPPAD+ar,5);
           }
 
@@ -340,7 +340,7 @@ CBOOL__PROTO(current_key)
 
     if (!(hnode->key & QMask)){
       if (inst && (hnode->key & mask) == (X(2) & mask)) {
-        if (HeapDifference(w->global_top,Heap_End)<CONTPAD+ARITYLIMIT+3) {
+        if (HeapDifference(w->heap_top,Heap_End)<CONTPAD+ARITYLIMIT+3) {
           explicit_heap_overflow(Arg,SOFT_HEAPPAD,5);
         }
 
@@ -352,7 +352,7 @@ CBOOL__PROTO(current_key)
         while (inst){
           intmach_t ar = LargeArity(hnode->key);
 
-          if (HeapDifference(w->global_top,Heap_End)<CONTPAD+ar+3) {
+          if (HeapDifference(w->heap_top,Heap_End)<CONTPAD+ar+3) {
             explicit_heap_overflow(Arg,SOFT_HEAPPAD+ar,5);
           }
 
@@ -531,8 +531,8 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
     TopConcChpt = (node_t *)w->node;  /* Update dynamic top */
     w->node->next_alt = NULL;
     w->node->trail_top = w->trail_top;
-    SaveGtop(w->node,w->global_top);
-    NewShadowregs(w->global_top);
+    SaveGtop(w->node,w->heap_top);
+    NewShadowregs(w->heap_top);
 
 #if defined(DEBUG)
     if (debug_concchoicepoints)
@@ -1190,12 +1190,12 @@ CBOOL__PROTO(prolog_ptr_ref)
   DEREF(X(0),X(0));
   if (TaggedIsSmall(X(0)))
     {
-      tagged_t *pt1 = w->global_top;
+      tagged_t *pt1 = w->heap_top;
 
       HeapPush(pt1,functor_Dref);
       HeapPush(pt1,X(0));
       HeapPush(pt1,TagToInstance(X(0))->rank);
-      w->global_top=pt1;
+      w->heap_top=pt1;
       CBOOL__LASTUNIFY(Tagp(STR,HeapOffset(pt1,-3)),X(1));
     }
   else
@@ -1775,7 +1775,7 @@ CVOID__PROTO(clock_overflow)
 
   /* grab space for array of clock values */
   ENSURE_HEAP_BYTES(count*sizeof(instance_clock_t), DynamicPreserved);
-  clocks = (instance_clock_t *)w->global_top;
+  clocks = (instance_clock_t *)w->heap_top;
 
   /* fill in distinct chpt clock values, relocating them as we go */
   clockp = clocks+count;

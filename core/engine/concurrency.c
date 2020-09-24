@@ -20,13 +20,13 @@
 // /* '$lock'(<address>,type) <-- LOCK */
 // CFUN__PROTO(lock_to_term, tagged_t, LOCK *l)
 // {
-//   tagged_t *pt1 = w->global_top;
+//   tagged_t *pt1 = w->heap_top;
 // 
 //   HeapPush(pt1,functor_Dlock);
 //   HeapPush(pt1,PointerToTerm(l));
 //   HeapPush(pt1,IntmachToTagged(POSIX));
 // 
-//   w->global_top = pt1;
+//   w->heap_top = pt1;
 // 
 //   return Tagp(STR,HeapOffset(pt1,-3));
 // }
@@ -34,13 +34,13 @@
 // /* '$lock'(<address>,type) <-- SLOCK */
 // CFUN__PROTO(slock_to_term, tagged_t, SLOCK *s)
 // {
-//   tagged_t *pt1 = w->global_top;
+//   tagged_t *pt1 = w->heap_top;
 // 
 //   HeapPush(pt1,functor_Dlock);
 //   HeapPush(pt1,PointerToTerm(s));
 //   HeapPush(pt1,IntmachToTagged(SPIN));
 // 
-//   w->global_top = pt1;
+//   w->heap_top = pt1;
 // 
 //   return Tagp(STR,HeapOffset(pt1,-3));
 // }

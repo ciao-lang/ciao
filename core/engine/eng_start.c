@@ -95,11 +95,11 @@ CVOID__PROTO(load_ql_files, FILE *qfile)
   push_qlinfo(NULL);
 
   more_ql = qread1(w,qfile,&X(0));                  /* ignore version no. */
-  w->global_top = NodeGlobalTop(w->node);           /* Reset heap pointer */
+  w->heap_top = NodeGlobalTop(w->node);           /* Reset heap pointer */
   
   while (more_ql) {
     while ((more_ql = qread1(w,qfile,&X(0))) && run_determ_c(w,X(0))) {
-      w->global_top = NodeGlobalTop(w->node);
+      w->heap_top = NodeGlobalTop(w->node);
     }
   }
   
@@ -380,7 +380,7 @@ int engine_start(int argc, char *argv[]) {
   load_ql_files(first_goal->worker_registers, qfile);
   fclose(qfile);
   /* wam->next_insn set to boot code in local_init_each_time */
-  /*w->node->global_top = w->global_top;*/     /* Isn't this unnecessary? */
+  /*w->node->heap_top = w->heap_top;*/     /* Isn't this unnecessary? */
   /*  Fills in worker_entry */
   return call_firstgoal(first_goal, GET_ATOM("internals:boot"));
 }

@@ -69,7 +69,7 @@ extern tagged_t atom_gen_tree_backtracking;
     (*(CALLID))->last_cons = NULL;                                      \
     ComputeA(Arg->local_top,Arg->node);                                 \
     (*(CALLID))->local_top = Arg->local_top;                            \
-    (*(CALLID))->global_top = Arg->global_top;                          \
+    (*(CALLID))->heap_top = Arg->heap_top;                              \
     (*(CALLID))->stack_freg = StackFReg;                                \
     (*(CALLID))->heap_freg = HeapFReg;                                  \
     (*(CALLID))->tabl_stk_top = TABLING_STK_TOP;                        \

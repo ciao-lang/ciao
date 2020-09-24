@@ -276,13 +276,13 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
            inode = PREV_CP(inode))
         {
           //nullifying fake trail cells
-          if (inode->global_top != (tagged_t*)(&(HeapFReg)))
+          if (inode->heap_top != (tagged_t*)(&(HeapFReg)))
             {
               for (; !TrailYounger(inode->trail_top,itrail); itrail--)
                 {
                   if (TaggedIsHVA(*TagToPointer(itrail)))
                     {
-                      if (!HeapYounger(inode->global_top,*TagToPointer(itrail)))
+                      if (!HeapYounger(inode->heap_top,*TagToPointer(itrail)))
                         NullifyTrailEntry(itrail);
                     }
                   else if (TaggedIsSVA(*TagToPointer(itrail)))
@@ -292,7 +292,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
                     }
                 }       
               //Protect current memory if node is not frozen
-              inode->global_top = Arg->global_top;
+              inode->heap_top = Arg->heap_top;
               inode->local_top = Arg->local_top;
             }
           //Update trail pointer
@@ -398,9 +398,9 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
       //do I have to freeze oldGen->newCons - check if previous cp is frozen
       //next cp is back_answer -> arity = 1
       inode = ChoiceCharOffset(oldGen->node,ArityToOffset(1));
-      if (inode->global_top == (tagged_t*)(&(HeapFReg)))
+      if (inode->heap_top == (tagged_t*)(&(HeapFReg)))
         {
-          oldGen->node->global_top = (tagged_t*)(&(HeapFReg));
+          oldGen->node->heap_top = (tagged_t*)(&(HeapFReg));
           oldGen->node->local_top = inode->local_top;
         }
     }
@@ -437,7 +437,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
   oldGen->heap_freg = HeapFReg;
   oldGen->stack_freg = StackFReg;
   //Protect memory (there could be frozen choice_pts)
-  HeapFReg = Arg->global_top;
+  HeapFReg = Arg->heap_top;
   StackFReg = Arg->local_top;
   //Update tricky frame
   oldGen->first_frame->frame = inode->frame;
@@ -485,7 +485,7 @@ CFUN__PROTO(complete, int,
     {
       HeapFReg = call->heap_freg;
       StackFReg = call->stack_freg;
-      Arg->global_top = call->global_top;
+      Arg->heap_top = call->heap_top;
       Arg->local_top = call->local_top;
       DEALLOC_TABLING_STK(call->tabl_stk_top);
       LastNodeTR = call->last_node_tr;
@@ -551,7 +551,7 @@ CBOOL__PROTO(abolish_all_tables_c) {
 //  printf("\nTOTAL MEMORY %g\n",(total_memory-24816)/(double)1024);
 //  ComputeA(Arg->local_top,Arg->node);
 //  printf("\nINIT %d %d %d %d %d\n",
-//       HeapCharDifference(Arg->heap_start,Arg->global_top),
+//       HeapCharDifference(Arg->heap_start,Arg->heap_top),
 //       StackCharDifference(Arg->stack_start,Arg->local_top),
 //       TrailCharDifference(Arg->trail_start,Arg->trail_top),
 //       ChoiceCharDifference(Arg->choice_start,Arg->node),
@@ -1322,7 +1322,7 @@ CBOOL__PROTO(new_answer_c) {
 #endif
 
 //  ComputeA(Arg->local_top,Arg->node);
-//  int current_memory = HeapCharDifference(Arg->heap_start,Arg->global_top);
+//  int current_memory = HeapCharDifference(Arg->heap_start,Arg->heap_top);
 //  current_memory += StackCharDifference(Arg->stack_start,Arg->local_top);
 //  current_memory += TrailCharDifference(Arg->trail_start,Arg->trail_top);
 //  current_memory += ChoiceCharDifference(Arg->choice_start,Arg->node);
@@ -1331,7 +1331,7 @@ CBOOL__PROTO(new_answer_c) {
 //  if (current_memory > total_memory)
 //    {
 ////      printf("\nNew TOTAL %d %d %d %d %d\n",
-////         HeapCharDifference(Arg->heap_start,Arg->global_top),
+////         HeapCharDifference(Arg->heap_start,Arg->heap_top),
 ////         StackCharDifference(Arg->stack_start,Arg->local_top),
 ////         TrailCharDifference(Arg->trail_start,Arg->trail_top),
 ////         ChoiceCharDifference(Arg->choice_start,Arg->node),
@@ -1659,7 +1659,7 @@ CBOOL__PROTO(initial_tabling_c) {
   if (Heap_End != HeapOffset(Heap_Start, TABLING_GLOBALSTKSIZE))
     {
       intmach_t size = (TABLING_GLOBALSTKSIZE -
-                  HeapDifference(Heap_Start, w->global_top))/2;
+                  HeapDifference(Heap_Start, w->heap_top))/2;
       heap_overflow(Arg,size);
     }
 

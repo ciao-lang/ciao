@@ -1360,12 +1360,12 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
     {
       if (TaggedIsSVA(t0=X(0)))
         {
-          LoadHVA(X(0),w->global_top);
+          LoadHVA(X(0),w->heap_top);
           BindSVA(t0,X(0));
         }
       if (TaggedIsSVA(t0=X(1)))
         {
-          LoadHVA(X(1),w->global_top);
+          LoadHVA(X(1),w->heap_top);
           BindSVA(t0,X(1));
         }
     }
@@ -1376,12 +1376,12 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   w->node = b = ChoiceCharOffset(b,ArityToOffset(0));
   b->next_alt = NULL;
   b->trail_top = w->trail_top;
-  SaveGtop(b,w->global_top);
-  NewShadowregs(w->global_top);
+  SaveGtop(b,w->heap_top);
+  NewShadowregs(w->heap_top);
   
   if (cunify(Arg,X(0),X(1))) /* this could use AB, HB, TR, B. */
     item = atom_equal,
-    other = Tagp(HVA,w->global_top);
+    other = Tagp(HVA,w->heap_top);
   else
     item = other = atom_lessthan;
   
@@ -1418,7 +1418,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   
 
                                 /* construct goal on the heap */
-  pt2 = w->global_top;
+  pt2 = w->heap_top;
   if (w->structure)
     X(2) = Tagp(STR,w->structure-1);
   else
@@ -1470,7 +1470,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
             HeapPush(pt2,PointerToTerm(address_dif));
           }
     }
-  w->global_top = pt2;
+  w->heap_top = pt2;
   w->trail_top = pt1;
   
   return TRUE;

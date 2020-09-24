@@ -281,7 +281,7 @@ CVOID__PROTO(trail_push_check, tagged_t x) {
 
 /* Create a new copy on the heap of the blob pointed by ptr */
 CFUN__PROTO(make_blob, tagged_t, tagged_t *ptr) {
-  tagged_t *h = w->global_top;
+  tagged_t *h = w->heap_top;
   tagged_t f = *ptr;
   intmach_t ar = LargeArity(f);
   intmach_t i;
@@ -291,7 +291,7 @@ CFUN__PROTO(make_blob, tagged_t, tagged_t *ptr) {
   }
   *h++ = f;
 
-  w->global_top = h;
+  w->heap_top = h;
   return Tagp(STR, h-ar-1);
 }
 
@@ -321,11 +321,11 @@ CFUN__PROTO(bc_make_blob, tagged_t, tagged_t *ptr) {
   }
 
   /* Copy blob into the heap */
-  tagged_t *h = w->global_top;
+  tagged_t *h = w->heap_top;
   *h++ = f; ptr++;
   for (intmach_t i=1; i<ar; i++) *h++ = *ptr++;
   *h++ = f;
-  w->global_top = h;
+  w->heap_top = h;
   return Tagp(STR, h-ar-1);
 }
 
@@ -358,12 +358,12 @@ CBOOL__PROTO(bc_eq_blob, tagged_t t, tagged_t *ptr) {
 #endif
 
 CFUN__PROTO(make_integer, tagged_t, intmach_t i) {
-  tagged_t *h = w->global_top;
+  tagged_t *h = w->heap_top;
 
   HeapPush(h, MakeFunctorFix);
   HeapPush(h, (tagged_t)i);
   HeapPush(h, MakeFunctorFix);
-  w->global_top = h;
+  w->heap_top = h;
   return Tagp(STR, h-3);
 }
 
@@ -374,7 +374,7 @@ CFUN__PROTO(make_float, tagged_t, flt64_t i) {
   } u;
   tagged_t *h;
 
-  h = w->global_top;
+  h = w->heap_top;
   HeapPush(h, MakeFunctorFloat);
   u.i = i;
 #if LOG2_bignum_size == 5
@@ -385,7 +385,7 @@ CFUN__PROTO(make_float, tagged_t, flt64_t i) {
   HeapPush(h, 0); /* dummy, for BC_SCALE==2 */
 #endif
   HeapPush(h, MakeFunctorFloat);
-  w->global_top = h;
+  w->heap_top = h;
   return Tagp(STR, h-4);
 }
 
@@ -444,21 +444,21 @@ CFUN__PROTO(make_structure, tagged_t,
             tagged_t functor)
 {
   intmach_t ar = Arity(functor);
-  tagged_t *h = w->global_top;
+  tagged_t *h = w->heap_top;
 
   if (ar==0 || !TaggedIsATM(functor))
     return functor;
   else if (functor==functor_list) {
     ConstrHVA(h);
     ConstrHVA(h);
-    w->global_top = h;
+    w->heap_top = h;
     return Tagp(LST,HeapOffset(h,-2));
   } else {
     HeapPush(h,functor);
     do {
       ConstrHVA(h);
     } while (--ar);
-    w->global_top = h;
+    w->heap_top = h;
 
     return Tagp(STR,h-Arity(functor)-1);
   }
@@ -1398,7 +1398,7 @@ CVOID__PROTO(print_task_status)
 
 CFUN__PROTO(list_of_goals, tagged_t)
 {
-  tagged_t *pt1 = w->global_top;
+  tagged_t *pt1 = w->heap_top;
   goal_descriptor_t *current_goal = goal_desc_list;
   int arity;
   
@@ -1437,7 +1437,7 @@ CFUN__PROTO(list_of_goals, tagged_t)
     current_goal = current_goal->forward;
   } while (current_goal != goal_desc_list);
 
-  w->global_top=pt1;
+  w->heap_top=pt1;
   return Tagp(STR,HeapOffset(pt1,-3));
 }
 
@@ -1827,9 +1827,9 @@ CBOOL__PROTO(setarg)
   } else {
   unsafe_value:
     if (TaggedIsSVA(newarg)){
-      ptr = w->global_top;
+      ptr = w->heap_top;
       LoadHVA(t1,ptr);
-      w->global_top = ptr;
+      w->heap_top = ptr;
       BindSVA(newarg,t1);
       newarg = t1;
     }
@@ -1868,7 +1868,7 @@ CBOOL__PROTO(setarg)
         return TRUE;
     }
     
-    ptr = w->global_top;
+    ptr = w->heap_top;
     t2 = Tagp(STR,ptr);
     HeapPush(ptr,functor_Dsetarg);
     HeapPush(ptr,number);
@@ -1876,7 +1876,7 @@ CBOOL__PROTO(setarg)
     HeapPush(ptr,oldarg);
     HeapPush(ptr,atom_off);
     TrailPush(w->trail_top,t2);
-    w->global_top = ptr;
+    w->heap_top = ptr;
     
     /* trail smashed location for segmented GC */
     TrailPush(w->trail_top,t1);
@@ -1921,7 +1921,7 @@ CBOOL__PROTO(frozen)
 CBOOL__PROTO(defrost)
 {
   tagged_t t;
-  tagged_t *h = w->global_top;
+  tagged_t *h = w->heap_top;
   
   DEREF(X(0),X(0));
   DEREF(X(1),X(1));
@@ -1936,7 +1936,7 @@ CBOOL__PROTO(defrost)
       HeapPush(h,*TagToCdr(X(1)));
     }
   BindCVA_NoWake(X(0),t);
-  w->global_top = h;
+  w->heap_top = h;
   return TRUE;
 }
 
@@ -1989,7 +1989,7 @@ CBOOL__PROTO(constraint_list)
   tagged_t *h;
   tagged_t l, v, clist;
   
-  pad = HeapDifference(w->global_top,Heap_End);
+  pad = HeapDifference(w->heap_top,Heap_End);
   DEREF(X(0),X(0));
   while ((find_constraints(Arg, TagToPointer(X(0)))*LSTCELLS)+CONTPAD > pad) {
     l = *w->trail_top;
@@ -2001,7 +2001,7 @@ CBOOL__PROTO(constraint_list)
     /* TODO: use pad<<=1 here or recompute available? */
     explicit_heap_overflow(Arg,pad<<=1,2);
   }
-  h = w->global_top;
+  h = w->heap_top;
   l = *w->trail_top;
   clist = atom_nil;
   while (l!=atom_nil) {
@@ -2012,7 +2012,7 @@ CBOOL__PROTO(constraint_list)
     HeapPush(h,clist);
     clist = Tagp(LST,HeapOffset(h,-2));
   }
-  w->global_top = h;
+  w->heap_top = h;
   CBOOL__LASTUNIFY(clist,X(1));
 }
 
@@ -2025,7 +2025,7 @@ CFUN__PROTO(find_constraints, intmach_t, tagged_t *limit)
   cp = purecp = ChoiceCharOffset(w->node,ArityToOffset(0));
   cp->next_alt = fail_alt;
   cp->trail_top = w->trail_top;
-  cp->global_top = w->global_top;
+  cp->heap_top = w->heap_top;
   *w->trail_top = atom_nil;
   while (limit < (tagged_t *)NodeGlobalTop(cp))
     {

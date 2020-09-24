@@ -155,7 +155,7 @@ extern tagged_t *tabling_stack_end;
 //=================================
 //
 //A - On consumer suspension, all the choices are marked as frozen 
-//    (using global_top - HeapFReg) and the Last_Node_tr is saved 
+//    (using heap_top - HeapFReg) and the Last_Node_tr is saved 
 //    (using local_top).
 //
 //B - On backtracking, from initial node_tr (local_top) until

@@ -92,7 +92,7 @@ struct gen
   struct l_ans *last_ans;        //last answer.
 
   frame_t *local_top;             //original stack freg.
-  tagged_t *global_top;            //original heap freg.
+  tagged_t *heap_top;            //original heap freg.
   frame_t *stack_freg;            //original stack freg.
   tagged_t *heap_freg;            //original heap freg.
   tagged_t *tabl_stk_top;         //original tabling_stack_top

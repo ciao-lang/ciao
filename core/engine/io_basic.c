@@ -1489,7 +1489,7 @@ CBOOL__PROTO(prolog_fast_read_in_c) {
 }
 
 #define CHECK_HEAP_SPACE                                        \
-  if (HeapDifference(w->global_top,Heap_End) < CONTPAD) {       \
+  if (HeapDifference(w->heap_top,Heap_End) < CONTPAD) {         \
     fprintf(stderr, "Out of heap space in fast_read()\n");      \
   }
 
@@ -1513,8 +1513,8 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
     return TRUE;
   case '[':
     {
-      tagged_t *h = w->global_top;
-      w->global_top += 2;
+      tagged_t *h = w->heap_top;
+      w->heap_top += 2;
       if (!prolog_fast_read_in_c_aux(Arg,h,vars,lastvar)) return FALSE;
       if (!prolog_fast_read_in_c_aux(Arg,h+1,vars,lastvar)) return FALSE;
       *out = Tagp(LST,h);
@@ -1539,9 +1539,9 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
     switch (k) {
     case '_':
       {
-        tagged_t *h = w->global_top;
+        tagged_t *h = w->heap_top;
         if ((i = atoi(Atom_Buffer)) == *lastvar)
-          *h = vars[(*lastvar)++] = Tagp(HVA,w->global_top++);
+          *h = vars[(*lastvar)++] = Tagp(HVA,w->heap_top++);
         *out = vars[i];
       }
       CHECK_HEAP_SPACE;
@@ -1560,7 +1560,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       return TRUE;
     case '"':
       {
-        tagged_t *h = w->global_top;
+        tagged_t *h = w->heap_top;
         i--;
         /* ENSURE_HEAP_LST(i, 1); */
         while (i--) {
@@ -1576,11 +1576,11 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
         BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
       }
       {
-        tagged_t *h = w->global_top;
+        tagged_t *h = w->heap_top;
         /* ENSURE_HEAP(i+1, 1); */
         *h = SetArity(GET_ATOM(Atom_Buffer),i);
         *out = Tagp(STR,h++);
-        w->global_top += i+1;
+        w->heap_top += i+1;
         while(i--) {
           if (!prolog_fast_read_in_c_aux(Arg,h++,vars,lastvar)) return FALSE;
         }

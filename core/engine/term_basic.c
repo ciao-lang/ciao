@@ -29,7 +29,7 @@
 /* local declarations */
 
 #define GCTEST(Pad) { \
-    if (HeapDifference(w->global_top,Heap_End) < (Pad)) \
+    if (HeapDifference(w->heap_top,Heap_End) < (Pad)) \
       heap_overflow(Arg,Pad); \
     if (ChoiceDifference(w->node,w->trail_top) < (Pad)) \
       choice_overflow(Arg,Pad); \
@@ -135,31 +135,31 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
     return;
   } else if (t1 & TagBitFunctor) {                                 /* STR */
     pt1 = TagpPtr(STR,t1);
-    pt2 = w->global_top;
+    pt2 = w->heap_top;
     *loc = Tagp(STR,pt2);
     t2 = HeapNext(pt1), HeapPush(pt2,t2);
     for (i=Arity(t2); i>0; --i) {
       RefHeapNext(t1,pt1);
       HeapPush(pt2,t1);
     }
-    w->global_top = pt2;
+    w->heap_top = pt2;
     term_so_far = HeapDifference(TopOfOldHeap,pt2);
     GCTEST(CHOICEPAD);
     for (i=Arity(t2); i>1; --i)
       copy_it(Arg,HeapOffset(TopOfOldHeap,term_so_far-i));
   } else {                                                         /* LST */
     pt1 = TagpPtr(LST,t1);
-    pt2 = w->global_top;
+    pt2 = w->heap_top;
     *loc = Tagp(LST,pt2);
   copy_2_cells:
     RefHeapNext(t1,pt1);
     HeapPush(pt2,t1);
     RefHeapNext(t1,pt1);
     HeapPush(pt2,t1);
-    w->global_top = pt2;
+    w->heap_top = pt2;
     term_so_far = HeapDifference(TopOfOldHeap,pt2);
     GCTEST(CHOICEPAD);
-    copy_it(Arg,HeapOffset(w->global_top,-2));
+    copy_it(Arg,HeapOffset(w->heap_top,-2));
   }
   GCTEST(CHOICEPAD);
   loc = HeapOffset(TopOfOldHeap,term_so_far-1);
@@ -176,7 +176,7 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
  copy_cva:
   if (OldCVA(t1)) { /* new 3-field CVA */
     pt1 = TagToGoal(t1);
-    pt2 = w->global_top;
+    pt2 = w->heap_top;
     LoadCVA(t2,pt2);
     BindCVA_NoWake(t1,t2);
     *loc = t2;
@@ -231,30 +231,30 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
     return;
   } else if (t1 & TagBitFunctor) {                                 /* STR */
     pt1 = TagpPtr(STR,t1);
-    pt2 = w->global_top;
+    pt2 = w->heap_top;
     *loc = Tagp(STR,pt2);
     t2 = HeapNext(pt1), HeapPush(pt2,t2);
     for (i=Arity(t2); i>0; --i) {
       RefHeapNext(t1,pt1);
       HeapPush(pt2,t1);
     }
-    w->global_top = pt2;
+    w->heap_top = pt2;
     term_so_far = HeapDifference(TopOfOldHeap,pt2);
     GCTEST(CHOICEPAD);
     for (i=Arity(t2); i>1; --i)
       copy_it_nat(Arg,HeapOffset(TopOfOldHeap,term_so_far-i));
   } else {                                                         /* LST */
     pt1 = TagpPtr(LST,t1);
-    pt2 = w->global_top;
+    pt2 = w->heap_top;
     *loc = Tagp(LST,pt2);
     RefHeapNext(t1,pt1);
     HeapPush(pt2,t1);
     RefHeapNext(t1,pt1);
     HeapPush(pt2,t1);
-    w->global_top = pt2;
+    w->heap_top = pt2;
     term_so_far = HeapDifference(TopOfOldHeap,pt2);
     GCTEST(CHOICEPAD);
-    copy_it_nat(Arg,HeapOffset(w->global_top,-2));
+    copy_it_nat(Arg,HeapOffset(w->heap_top,-2));
   }
   GCTEST(CHOICEPAD);
   loc = HeapOffset(TopOfOldHeap,term_so_far-1);
@@ -290,7 +290,7 @@ CBOOL__PROTO(prolog_copy_term); /* term_basic.c */
 CFUN__PROTO(cross_copy_term, tagged_t, tagged_t remote_term)
 {
   X(0) = remote_term;
-  LoadHVA(X(1), w->global_top);
+  LoadHVA(X(1), w->heap_top);
 #if defined(DEBUG)
   if (!prolog_copy_term(Arg))
     fprintf(stderr, "Could not copy term in cross_copy_term!!!!\n");
@@ -485,12 +485,12 @@ CBOOL__PROTO(prolog_unifiable)
   while (TrailYounger(tr, limit)) {
     t1 = TrailPop(tr);
 
-    HeapPush(w->global_top, SetArity(atom_equal, 2));
-    HeapPush(w->global_top, t1);
-    HeapPush(w->global_top, *TagToPointer(t1));
-    HeapPush(w->global_top, Tagp(STR, HeapOffset(w->global_top, -3)));
-    HeapPush(w->global_top, t);
-    t = Tagp(LST, HeapOffset(w->global_top, -2));
+    HeapPush(w->heap_top, SetArity(atom_equal, 2));
+    HeapPush(w->heap_top, t1);
+    HeapPush(w->heap_top, *TagToPointer(t1));
+    HeapPush(w->heap_top, Tagp(STR, HeapOffset(w->heap_top, -3)));
+    HeapPush(w->heap_top, t);
+    t = Tagp(LST, HeapOffset(w->heap_top, -2));
 
     *TagToPointer(t1) = t1;
   }
@@ -1033,13 +1033,13 @@ CBOOL__PROTO(bu2_univ,
     BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), f, 2); 
 
 
-  argp = w->global_top;
-  HeapPush(w->global_top,f);
+  argp = w->heap_top;
+  HeapPush(w->heap_top,f);
   while (TaggedIsLST(cdr) && arity<ARITYLIMIT)
     {
       DerefCar(car,cdr);
       DerefCdr(cdr,cdr);
-      HeapPush(w->global_top,car);
+      HeapPush(w->heap_top,car);
       arity++;
     }
   if (IsVar(cdr))
@@ -1052,12 +1052,12 @@ CBOOL__PROTO(bu2_univ,
   f = SetArity(f,arity);
   if (f==functor_list)
     {
-      w->global_top = argp;
-      argq = HeapOffset(w->global_top,1);
+      w->heap_top = argp;
+      argq = HeapOffset(w->heap_top,1);
       RefHeapNext(car,argq);
       RefHeapNext(cdr,argq);
-      HeapPush(w->global_top,car);
-      HeapPush(w->global_top,cdr);
+      HeapPush(w->heap_top,car);
+      HeapPush(w->heap_top,cdr);
       CBOOL__LASTUNIFY(Tagp(LST,argp),term);
     }
   else
@@ -1127,13 +1127,13 @@ CBOOL__PROTO(bu2_univ,
   else if (!TaggedIsATM(f))
     MINOR_FAULT("=../2: incorrect 2nd argument");
   
-  argp = w->global_top;
-  HeapPush(w->global_top,f);
+  argp = w->heap_top;
+  HeapPush(w->heap_top,f);
   while (TaggedIsLST(cdr) && arity<ARITYLIMIT)
     {
       DerefCar(car,cdr);
       DerefCdr(cdr,cdr);
-      HeapPush(w->global_top,car);
+      HeapPush(w->heap_top,car);
       arity++;
     }
   if (IsVar(cdr))
@@ -1144,12 +1144,12 @@ CBOOL__PROTO(bu2_univ,
   f = SetArity(f,arity);
   if (f==functor_list)
     {
-      w->global_top = argp;
-      argq = HeapOffset(w->global_top,1);
+      w->heap_top = argp;
+      argq = HeapOffset(w->heap_top,1);
       RefHeapNext(car,argq);
       RefHeapNext(cdr,argq);
-      HeapPush(w->global_top,car);
-      HeapPush(w->global_top,cdr);
+      HeapPush(w->heap_top,car);
+      HeapPush(w->heap_top,cdr);
       CBOOL__LASTUNIFY(Tagp(LST,argp),term);
     }
   else

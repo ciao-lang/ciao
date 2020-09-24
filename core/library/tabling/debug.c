@@ -121,8 +121,8 @@ CBOOL__PROTO(tabling_stats_c){
 
   frame_t *newa;
 
-  /* printf("Heap   (%p-%p)  global_top  = (%p) %d \n", */
-  /*     Heap_Start, Heap_End, w->global_top, (int)HeapDifference(Heap_Start, w->global_top)); */
+  /* printf("Heap   (%p-%p)  heap_top  = (%p) %d \n", */
+  /*     Heap_Start, Heap_End, w->heap_top, (int)HeapDifference(Heap_Start, w->heap_top)); */
   /* ComputeA(newa,w->node); */
   /* printf("Stack  (%p-%p)  local_top   = (%p) %d \n", */
   /*     Stack_Start, Stack_End, newa, (int)StackDifference(Stack_Start, newa)); */

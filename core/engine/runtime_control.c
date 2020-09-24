@@ -42,10 +42,10 @@ CVOID__PROTO(push_choicept, try_node_t *alt)
 
   ComputeA(w->local_top,w->node);
   w->node = b;
-  NewShadowregs(w->global_top);
+  NewShadowregs(w->heap_top);
 
   b->trail_top = w->trail_top;
-  SaveGtop(b,w->global_top);
+  SaveGtop(b,w->heap_top);
   b->next_alt = alt;
   b->frame = w->frame;
   b->next_insn = w->next_insn;

@@ -1,7 +1,7 @@
 #if defined(TABLING)
 CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
   //Updating new values
-  HeapFReg = Arg->global_top;
+  HeapFReg = Arg->heap_top;
   if (StackYounger(NodeLocalTop(Arg->node), 
                    StackCharOffset(Arg->frame,FrameSize(Arg->next_insn)))) 
     {
@@ -16,9 +16,9 @@ CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
     }
 
   //Updating pointers for generator.
-  if (PTCP->node->global_top != (tagged_t*)&(HeapFReg))
+  if (PTCP->node->heap_top != (tagged_t*)&(HeapFReg))
     {
-      PTCP->node->global_top = (tagged_t*)&(HeapFReg); 
+      PTCP->node->heap_top = (tagged_t*)&(HeapFReg); 
       PTCP->node->local_top = (frame_t*)orig_node_tr;
     }
   if (PTCP->node->local_top == NULL) 
@@ -28,14 +28,14 @@ CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
   node_t *ind;
   tagged_t *itrail = Arg->trail_top;
   for (ind = Arg->node; 
-       ind->global_top != (tagged_t *)&(HeapFReg);
+       ind->heap_top != (tagged_t *)&(HeapFReg);
        ind = ChoiceCharOffset(ind,-ind->next_alt->node_offset))
     {
       for (; !TrailYounger(ind->trail_top,itrail); itrail--)
         {
           if (TaggedIsHVA(*TagToPointer(itrail)))
             {
-              if (!HeapYounger(ind->global_top,*TagToPointer(itrail))) {
+              if (!HeapYounger(ind->heap_top,*TagToPointer(itrail))) {
                 //              printf("\nNullifyTrailEntry !HeapYounger\n");
                 //              NullifyTrailEntry(itrail);
               }
@@ -48,7 +48,7 @@ CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
               }
             }
         }       
-      ind->global_top = (tagged_t *)&(HeapFReg);
+      ind->heap_top = (tagged_t *)&(HeapFReg);
       ind->local_top = (frame_t *)orig_node_tr;
       
 #if defined(SWAPPING)

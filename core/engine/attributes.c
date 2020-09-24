@@ -36,7 +36,7 @@ CBOOL__PROTO(bu2_attach_attribute,
              tagged_t var,
              tagged_t constr) {
   tagged_t t0;
-  tagged_t *h = w->global_top;
+  tagged_t *h = w->heap_top;
         
   DerefSwitch(constr,t0,{USAGE_FAULT("attach_attribute/2: type error");}); 
   DEREF(var,var);
@@ -65,7 +65,7 @@ CBOOL__PROTO(bu2_attach_attribute,
   HeapPush(h,constr);
   HeapPush(h,PointerToTerm(address_true));                        /* func */
   
-  w->global_top = h;
+  w->heap_top = h;
   if (ChoiceYounger(w->node,TrailOffset(w->trail_top,CHOICEPAD)))
     choice_overflow(Arg,CHOICEPAD); 
   return TRUE;
@@ -75,13 +75,13 @@ CBOOL__PROTO(bu2_attach_attribute,
 
 CBOOL__PROTO(bu1_detach_attribute, tagged_t x) {
   tagged_t t; 
-  tagged_t *h = w->global_top;
+  tagged_t *h = w->heap_top;
   
   DerefSwitch(x,t,{
     if ( VarIsCVA(x) ) {
       LoadHVA(t,h);
       BindCVA_NoWake(x,t);                                     /* trailed */
-      w->global_top = h;
+      w->heap_top = h;
       return TRUE;
     }
   });
@@ -94,7 +94,7 @@ CBOOL__PROTO(bu2_update_attribute,
              tagged_t x,
              tagged_t constr) {
   tagged_t t;
-  tagged_t *h = w->global_top;
+  tagged_t *h = w->heap_top;
               
   DerefSwitch(constr,t,{USAGE_FAULT("update_attribute/2: type error");}); 
   DerefSwitch(x,t,{
@@ -103,7 +103,7 @@ CBOOL__PROTO(bu2_update_attribute,
       HeapPush(h,constr);
       HeapPush(h,PointerToTerm(address_true));                    /* func */
       BindCVA_NoWake(x,t);                                     /* trailed */
-      w->global_top = h;
+      w->heap_top = h;
       return TRUE;
     }
   }); 
@@ -121,7 +121,7 @@ CBOOL__PROTO(bu2_update_attribute,
 CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
   intmach_t sofar=0;
   tagged_t *tr = w->trail_top;
-  tagged_t *h = w->global_top;
+  tagged_t *h = w->heap_top;
   tagged_t *tr0 = NULL;
   tagged_t *limit = TagToPointer(w->node->trail_top);  
    
@@ -149,7 +149,7 @@ CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
     if ( !CondCVA(ref)) 
       tr0=tr, *tr=0; 
   }
-  w->global_top = h;
+  w->heap_top = h;
   Heap_Warn_Soft = Heap_Start;                       /* make WakeCount==0 */
   
   if (sofar<wake_count) {
@@ -327,19 +327,19 @@ CBOOL__PROTO(put_attr__3) {
 
   insert_cell:
      
-    ptr = w->global_top;
+    ptr = w->heap_top;
     complex = Tagp(STR, ptr);
     HeapPush(ptr, SetArity(atom_att, 3));
     HeapPush(ptr, key);
     HeapPush(ptr, val);
     HeapPush(ptr, next);
-    w->global_top = ptr;
+    w->heap_top = ptr;
 
     return c_setarg(Arg, 3, prev, complex, TRUE);
     
   } else {
     
-    ptr = w->global_top;
+    ptr = w->heap_top;
     complex = Tagp(STR, ptr);
     HeapPush(ptr, SetArity(atom_att, 3));
     HeapPush(ptr, TaggedZero);
@@ -349,7 +349,7 @@ CBOOL__PROTO(put_attr__3) {
     HeapPush(ptr, key);
     HeapPush(ptr, val);
     HeapPush(ptr, atom_nil);
-    w->global_top = ptr;
+    w->heap_top = ptr;
      
     return bu2_attach_attribute(Arg, var, complex);
   }

@@ -5,8 +5,8 @@
 /***************************************************************************/
 
 #define SetB(X) (pt1 = (tagged_t *)(X))
-#define LoadH (H = w->global_top)
-#define StoreH (w->global_top = H)
+#define LoadH (H = w->heap_top)
+#define StoreH (w->heap_top = H)
 #define Htab ((sw_on_key_t *)pt1)
 #define SetHtab(X) (pt1 = (tagged_t *)(X))
 #define HtabNode ((sw_on_key_node_t *)P)
@@ -674,8 +674,8 @@ ON_DEBUG_NODE({B->functor = NULL;
 });
 B->next_alt = NULL;
 B->trail_top = w->trail_top;
-SaveGtop(B,w->global_top);
-NewShadowregs(w->global_top);
+SaveGtop(B,w->heap_top);
+NewShadowregs(w->heap_top);
 ON_DEBUG({
 if (debug_choicepoints) {
 fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->node);
@@ -2176,7 +2176,7 @@ P += FTYPE_size(f_Q);
 goto r_heapmargin_call;
 r_heapmargin_call:
 case HEAPMARGIN_CALL:
-if (HeapDifference(w->global_top,Heap_End) < (intmach_t)BcP(f_l, 1)) {
+if (HeapDifference(w->heap_top,Heap_End) < (intmach_t)BcP(f_l, 1)) {
 explicit_heap_overflow(Arg,(intmach_t)BcP(f_l, 1),(FTYPE_ctype(f_i_signed))BcP(f_i, 3));
 t0 = X(0);
                 }
@@ -2229,7 +2229,7 @@ P += 0;
 goto ReadMode;
 #if defined(PARBACK)
 case RESTART_POINT:
-w->global_top = TagToPointer(w->node->term[0]);
+w->heap_top = TagToPointer(w->node->term[0]);
 LoadH;
 P = (bcp_t)*TagToPointer(w->node->term[0]);
 w->next_insn = w->node->next_insn;
@@ -3438,7 +3438,7 @@ P += FTYPE_size(f_Q);
 goto w_unify_large;
 w_unify_large:
 case UNIFY_LARGE:
-w->global_top = HeapOffset(H,1);
+w->heap_top = HeapOffset(H,1);
 *H = BC_MakeBlob(Arg,&BcP(f_t, 1));
 P += LargeSize(BcP(f_t, 1));
 goto ReadMode;
@@ -4375,7 +4375,7 @@ P += 0;
 goto WriteMode;
 #if defined(PARBACK)
 case RESTART_POINT:
-w->global_top = TagToPointer(w->node->term[0]);
+w->heap_top = TagToPointer(w->node->term[0]);
 LoadH;
 P = (bcp_t)*TagToPointer(w->node->term[0]);
 w->next_insn = w->node->next_insn;

@@ -585,7 +585,7 @@ regstore('H') :- call0('StoreH').
 :- pred(cachedreg/2, [unfold]).
 :- pred(cachedreg(Reg,_), [in_moded('cachedreg/2'(Reg))]).
 cachedreg('H',H) :-
-    ( [[mode(r)]], [[H = "w->global_top"]]
+    ( [[mode(r)]], [[H = "w->heap_top"]]
     ; [[mode(w)]], [[H = "H"]]
     ).
 
@@ -607,11 +607,11 @@ setmode(M) :-
 :- pred(setmode_setH/2, [unfold]).
 setmode_setH(r, NewH) :-
     [[mode(r)]],
-    "w->global_top" <- NewH.
+    "w->heap_top" <- NewH.
 setmode_setH(r, NewH) :-
     [[mode(w)]],
     [[update(mode(r))]],
-    "w->global_top" <- NewH.
+    "w->heap_top" <- NewH.
 
 :- pred(put_yvoid/0, [unfold]).
 put_yvoid :-
@@ -2145,7 +2145,7 @@ unify_large :-
     % TODO: try to switch to r mode properly (this code is tricky)
     % (this is 'heap_push and switch to read')
     cachedreg('H', H),
-    "w->global_top" <- callexp('HeapOffset', [H,"1"]),
+    "w->heap_top" <- callexp('HeapOffset', [H,"1"]),
     dec(op(f_b,"BcP(f_t, 1)"), A),
     "*H" <- callexp('BC_MakeBlob', ["Arg",A]),
     [[update(mode(r))]],
@@ -3235,8 +3235,8 @@ autogen_warning_comment :-
 :- pred(op_macros/0, [unfold]).
 op_macros :-
     cpp_define('SetB(X)', "(pt1 = (tagged_t *)(X))"),
-    cpp_define('LoadH',"(H = w->global_top)"),
-    cpp_define('StoreH',"(w->global_top = H)"),
+    cpp_define('LoadH',"(H = w->heap_top)"),
+    cpp_define('StoreH',"(w->heap_top = H)"),
     cpp_define('Htab',"((sw_on_key_t *)pt1)"),
     cpp_define('SetHtab(X)',"(pt1 = (tagged_t *)(X))"),
     cpp_define('HtabNode',"((sw_on_key_node_t *)P)"),
@@ -3676,13 +3676,13 @@ code_enter_pred :-
     % #if defined(PARBACK)
     %   if (Suspend == CHECK_SUSP) {
     %     //Save argument registers
-    %     tagged_t *Htmp = H = w->global_top;
-    %     if (HeapDifference(w->global_top,Heap_End) < CONTPAD + 1 + Func->arity)
+    %     tagged_t *Htmp = H = w->heap_top;
+    %     if (HeapDifference(w->heap_top,Heap_End) < CONTPAD + 1 + Func->arity)
     %       explicit_heap_overflow(w, CONTPAD + 1 + Func->arity, 0);
     %     HeapPush(H,(tagged_t)P);
     %     int i;
     %     for (i = 0; i < Func->arity; i++) HeapPush(H,X(i));
-    %     w->global_top = H;
+    %     w->heap_top = H;
     %     push_choicept(Arg,address_nd_suspension_point);
     %     w->node->term[0] = Tagp(HVA, Htmp);
     %     //w->node->next_insn = w->misc->backInsn;

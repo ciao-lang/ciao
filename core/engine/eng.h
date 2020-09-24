@@ -225,7 +225,7 @@
 #define FirstNodeTR(Node)               ((node_tr_t*)(Node)->local_top)
 #define SetFirstNodeTR(Node,Value)      ((Node)->local_top = (frame_t*)(Value))
 #define LastNodeTR                      (w->misc->last_node_tr)
-#define FrozenChpt(Node)   ((Node)->global_top == (tagged_t*)&(HeapFReg))
+#define FrozenChpt(Node)   ((Node)->heap_top == (tagged_t*)&(HeapFReg))
 #define NODE_TR_SIZE(NodeTR)            (((node_tr_t*)(NodeTR))->size)
 #define NODE_TR_TRAIL_SG(NodeTR)        (((node_tr_t*)(NodeTR))->trail_sg)
 #define NODE_TR_NEXT(NodeTR)            (((node_tr_t*)(NodeTR))->next)
@@ -444,17 +444,17 @@
 
 #if defined(TABLING)
 #define NodeLocalTop(Node)                                      \
-  (((Node)->global_top != (tagged_t*)(&(HeapFReg))) ?           \
+  (((Node)->heap_top != (tagged_t*)(&(HeapFReg))) ?           \
    (Node)->local_top : StackFReg)
 
 #define NodeGlobalTop(Node)                                     \
-  (((Node)->global_top != (tagged_t*)(&(HeapFReg))) ?           \
-   (Node)->global_top : HeapFReg)
+  (((Node)->heap_top != (tagged_t*)(&(HeapFReg))) ?           \
+   (Node)->heap_top : HeapFReg)
 
 #else
 #define NodeLocalTop(Node)  (Node)->local_top
 
-#define NodeGlobalTop(Node) (Node)->global_top
+#define NodeGlobalTop(Node) (Node)->heap_top
 #endif
 
 /* If you edit this defn you must update ComputeE as well. */
@@ -479,11 +479,11 @@
 }
 
 #define SaveGtop(Chpt,Gtop) \
-  (Chpt)->global_top = (Gtop);
+  (Chpt)->heap_top = (Gtop);
 
 #define RestoreGtop(Chpt) \
 { \
-  w->global_top = NodeGlobalTop(Chpt); \
+  w->heap_top = NodeGlobalTop(Chpt); \
 }
 
 #define SaveLtop(Chpt) \
@@ -1402,7 +1402,7 @@ struct worker_ {
 
   /* incidentally, the rest is similar to a node_t */
   tagged_t *trail_top;          /* trail pointer */
-  tagged_t *global_top;         /* heap pointer */
+  tagged_t *heap_top;         /* heap pointer */
   try_node_t *next_alt; /* next clause at predicate entry */
   frame_t *frame;               /* environment pointer */
   bcp_t next_insn;              /* continuation */
@@ -1424,7 +1424,7 @@ struct node_ {                  /* a.k.a. marker. Collapsed with a Chpt? */
   /*  node_type type_of_node;*/
 /* #endif */
   tagged_t *trail_top;
-  tagged_t *global_top;
+  tagged_t *heap_top;
   try_node_t *next_alt;
   frame_t *frame;
   bcp_t next_insn;
@@ -2859,9 +2859,9 @@ void failc(char *mesg);
 */
 #define MakeLST(To,Car,Cdr) \
 { tagged_t makelst_car = (Car); \
-  HeapPush(w->global_top,makelst_car); \
-  HeapPush(w->global_top,Cdr); \
-  To = Tagp(LST,HeapOffset(w->global_top,-2)); \
+  HeapPush(w->heap_top,makelst_car); \
+  HeapPush(w->heap_top,Cdr); \
+  To = Tagp(LST,HeapOffset(w->heap_top,-2)); \
 }
 
 #define LSTCELLS 2 /* Cells allocated in MakeLST */
@@ -2874,9 +2874,9 @@ void failc(char *mesg);
 */
 #define MakeSTR(To,Functor) \
 { \
-  HeapPush(w->global_top,Functor); \
-  To = Tagp(STR,HeapOffset(w->global_top,-1)); \
-  w->global_top = HeapOffset(w->global_top,Arity(Functor)); \
+  HeapPush(w->heap_top,Functor); \
+  To = Tagp(STR,HeapOffset(w->heap_top,-1)); \
+  w->heap_top = HeapOffset(w->heap_top,Arity(Functor)); \
 }
 
 #define CBOOL__UnifyCons(U,V) \

@@ -61,8 +61,8 @@
 
 //---------------------------//
 
-#define GTOP state->worker_registers->global_top
-#define P_GTOP  w->global_top
+#define GTOP state->worker_registers->heap_top
+#define P_GTOP  w->heap_top
 #define REGISTERS state->worker_registers
 //---------------------------//
 

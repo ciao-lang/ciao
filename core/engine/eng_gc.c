@@ -614,14 +614,14 @@ static CVOID__PROTO(sweepChoicepoints) { /* sweep choicepoints and corresponding
 static CVOID__PROTO(compressHeap) {
     tagged_t cv;
     node_t *cp = Gc_Aux_Node;
-    tagged_t *curr= w->global_top;
+    tagged_t *curr= w->heap_top;
     tagged_t *dest= HeapOffset(Gc_Heap_Start,Total_Found);
     intmach_t garbage_words = 0;
     intmach_t extra;
 
     /* the upward phase */
     while (ChoiceYounger(cp,Gc_Choice_Start)) {
-        cp->global_top = dest;
+        cp->heap_top = dest;
         cp=ChoiceCharOffset(cp,-cp->next_alt->node_offset);
         
         while (HeapYounger(curr,NodeGlobalTop(cp))) {
@@ -669,7 +669,7 @@ static CVOID__PROTO(compressHeap) {
     /* The downward phase */
     /* curr and dest both point to the beginning of the heap */
     curr += garbage_words;
-    while (HeapYounger(w->global_top,curr)) {
+    while (HeapYounger(w->heap_top,curr)) {
         cv= *curr;
         if (gc_IsMarked(cv)) {
             if (gc_IsFirst(cv)) {
@@ -699,7 +699,7 @@ static CVOID__PROTO(compressHeap) {
           curr += LargeArity(cv);
         (void)HeapNext(curr);
       }
-    w->global_top = dest;
+    w->heap_top = dest;
 }
 
 
@@ -720,11 +720,11 @@ CVOID__PROTO(GarbageCollect) {
 #endif
 
     ComputeA(newa, w->node);
-    hz = HeapDifference(Heap_Start,w->global_top); /* current heap size */
+    hz = HeapDifference(Heap_Start,w->heap_top); /* current heap size */
 #if 0
-    sz = StackDifference(Stack_Start,w->global_top); /* current stack size */
-    cz = ChoiceDifference(Choice_Start,w->global_top); /*  choicep size */
-    tz = TrailDifference(Trail_Start,w->global_top); /* current trail size */
+    sz = StackDifference(Stack_Start,w->heap_top); /* current stack size */
+    cz = ChoiceDifference(Choice_Start,w->heap_top); /*  choicep size */
+    tz = TrailDifference(Trail_Start,w->heap_top); /* current trail size */
 #endif
     if (current_gctrace != atom_off) {
       if (current_gctrace == atom_terse) {
@@ -736,9 +736,9 @@ CVOID__PROTO(GarbageCollect) {
                       Heap_End,
                       (intmach_t)HeapDifference(Heap_Start, Heap_End));
         ENG_TTYPRINTF("        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
-                      w->global_top,  
-                      (intmach_t)HeapDifference(Heap_Start, w->global_top),
-                      (intmach_t)HeapDifference(w->global_top, Heap_End));
+                      w->heap_top,  
+                      (intmach_t)HeapDifference(Heap_Start, w->heap_top),
+                      (intmach_t)HeapDifference(w->heap_top, Heap_End));
         ENG_TTYPRINTF("        GC start at 0x%p\n", 
                       gc_HeapStart);
 
@@ -783,7 +783,7 @@ CVOID__PROTO(GarbageCollect) {
       Gc_Total_Grey = 0;
     trail_gc(Arg); /* sets Gc_Aux_Node, gc_Choice_Start, Gc_Trail_Start */
     Gc_Aux_Node->local_top = newa;
-    Gc_Aux_Node->global_top = w->global_top;
+    Gc_Aux_Node->heap_top = w->heap_top;
     Gc_Aux_Node->frame = w->frame;
     Gc_Aux_Node->next_insn = w->next_insn;
     Gc_Heap_Start = gc_HeapStart;
@@ -829,19 +829,19 @@ CVOID__PROTO(GarbageCollect) {
     ciao_stats.starttick += t1+t2;
     ciao_stats.lasttick  += t1+t2;
     ciao_stats.gc_count++;
-    ciao_stats.gc_acc+= hz-HeapDifference(Heap_Start,w->global_top);
+    ciao_stats.gc_acc+= hz-HeapDifference(Heap_Start,w->heap_top);
     if( current_gctrace==atom_verbose ) {
         ENG_TTYPRINTF("        Heap: %" PRIdm " cells reclaimed in %.3f sec\n",
-                      (intmach_t)(hz-HeapDifference(Heap_Start,w->global_top)),
+                      (intmach_t)(hz-HeapDifference(Heap_Start,w->heap_top)),
                       t2);
         ENG_TTYPRINTF("Heap:   from 0x%p to 0x%p (total size = %" PRIdm ")\n",
                       Heap_Start, 
                       Heap_End,
                       (intmach_t)HeapDifference(Heap_Start, Heap_End));
         ENG_TTYPRINTF("        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
-                      w->global_top,  
-                      (intmach_t)HeapDifference(Heap_Start, w->global_top),
-                      (intmach_t)HeapDifference(w->global_top, Heap_End));
+                      w->heap_top,  
+                      (intmach_t)HeapDifference(Heap_Start, w->heap_top),
+                      (intmach_t)HeapDifference(w->heap_top, Heap_End));
         ENG_TTYPRINTF("        GC start at 0x%p\n", 
                       gc_HeapStart);
 
@@ -880,8 +880,8 @@ CBOOL__PROTO(termheap_usage)
   intmach_t used, free;
   tagged_t x;
   
-  used = HeapCharDifference(Heap_Start,w->global_top);
-  free = HeapCharDifference(w->global_top,Heap_End);
+  used = HeapCharDifference(Heap_Start,w->heap_top);
+  free = HeapCharDifference(w->heap_top,Heap_End);
   MakeLST(x,IntmachToTagged(free),atom_nil);
   MakeLST(x,IntmachToTagged(used),x);
   CBOOL__LASTUNIFY(X(0),x);
@@ -1348,11 +1348,11 @@ CBOOL__PROTO(gc_start)
 }
 
 
-/* Here when w->global_top and Heap_End are within SOFT_HEAPPAD from each other. */
+/* Here when w->heap_top and Heap_End are within SOFT_HEAPPAD from each other. */
 CVOID__PROTO(heap_overflow, intmach_t pad)
 {
-  tagged_t *oldh = w->global_top;
-  tagged_t *newh = w->global_top;
+  tagged_t *oldh = w->heap_top;
+  tagged_t *newh = w->heap_top;
   tagged_t *lowboundh;
   bool_t gc = gcexplicit;
 
@@ -1370,7 +1370,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
 #if defined(DEBUG)
   if (debug_threads) {
     printf("\nWAM %x is in heap_overflow!\n",(unsigned int)w);
-    printf("w->global_top and Heap_End are within SOFT_HEAPPAD from each other.\n");
+    printf("w->heap_top and Heap_End are within SOFT_HEAPPAD from each other.\n");
     fflush(stdout);
   }
 #endif
@@ -1394,7 +1394,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
       (current_gcmode != atom_off &&
        HeapCharDifference(Heap_Start,oldh) >= GetSmall(current_gcmargin)*1024)) {
     GarbageCollect(Arg);
-    newh = w->global_top;
+    newh = w->heap_top;
     lowboundh = newh-Gc_Total_Grey;
     if (!gc &&
         (HeapCharDifference(newh,oldh) < GetSmall(current_gcmargin)*1024 ||
@@ -1404,7 +1404,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
       /* garbage collect the entire heap */
       w->segment_node = InitialNode;
       GarbageCollect(Arg);
-      newh = w->global_top;
+      newh = w->heap_top;
     }
   }
   if ((!gc &&
@@ -1419,7 +1419,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     
     ComputeA(w->local_top,w->node);
     
-    mincount = 2*pad - HeapDifference(w->global_top,Heap_End);
+    mincount = 2*pad - HeapDifference(w->heap_top,Heap_End);
     oldcount = HeapDifference(Heap_Start,Heap_End);
     newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
 
@@ -1543,22 +1543,22 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     aux_node->next_alt = fail_alt;
     aux_node->frame = w->frame;
     aux_node->next_insn = w->next_insn;
-    aux_node->global_top = w->global_top;
+    aux_node->heap_top = w->heap_top;
     aux_node->local_top = w->local_top; /* segfault patch -- jf */
 
     /* relocate pointers in global stk */
 #if defined(ANDPARALLEL)
     if (rem_reloc == LOCAL) {
       pt1 = newh;
-      w->global_top = (tagged_t *)((char *)w->global_top + reloc_factor);
+      w->heap_top = (tagged_t *)((char *)w->heap_top + reloc_factor);
     }
     else
       pt1 = Heap_Start;
 #else
     pt1 = newh;
-    w->global_top = (tagged_t *)((char *)w->global_top + reloc_factor);
+    w->heap_top = (tagged_t *)((char *)w->heap_top + reloc_factor);
 #endif
-    while (HeapYounger(w->global_top,pt1)) {
+    while (HeapYounger(w->heap_top,pt1)) {
       t1 = HeapNext(pt1);
       if (t1&QMask) pt1 += LargeArity(t1);
       else if (IsHeapTerm(t1)) {
@@ -1668,9 +1668,9 @@ CVOID__PROTO(heap_overflow_adjust_wam,
           //TABLING ->> How to translate???
 #if defined(ANDPARALLEL)
           if (rem_reloc == LOCAL)
-            *(tagged_t *)(&n->global_top) += reloc_factor;
+            *(tagged_t *)(&n->heap_top) += reloc_factor;
 #else
-          *(tagged_t *)(&n->global_top) += reloc_factor;
+          *(tagged_t *)(&n->heap_top) += reloc_factor;
 #endif
         }
       }
@@ -1678,9 +1678,9 @@ CVOID__PROTO(heap_overflow_adjust_wam,
           //TABLING ->> How to translate???
 #if defined(ANDPARALLEL)
     if (rem_reloc == LOCAL)
-      *(tagged_t *)(&n->global_top) += reloc_factor;
+      *(tagged_t *)(&n->heap_top) += reloc_factor;
 #else
-    *(tagged_t *)(&n->global_top) += reloc_factor;
+    *(tagged_t *)(&n->heap_top) += reloc_factor;
 #endif    
     SetShadowregs(w->node);
   }
@@ -1694,7 +1694,7 @@ CVOID__PROTO(collect_goals_from_trail, intmach_t wake_count)
 {
   intmach_t sofar=0;
   tagged_t *tr = w->trail_top;
-  tagged_t *h = w->global_top;
+  tagged_t *h = w->heap_top;
   tagged_t *tr0 = NULL;
   tagged_t *limit = TagToPointer(w->node->trail_top);
   
@@ -1723,7 +1723,7 @@ CVOID__PROTO(collect_goals_from_trail, intmach_t wake_count)
           tr0=tr, *tr=0;
         }
     }
-  w->global_top = h;
+  w->heap_top = h;
   Heap_Warn_Soft = Heap_Start;  /* make WakeCount==0 */
 
   if (sofar<wake_count)
