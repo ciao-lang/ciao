@@ -152,6 +152,11 @@
 #endif
 
 #define Arg w
+#if defined(OPTIM_COMP)
+#define G (&w->g)
+#else
+#define G w
+#endif
 
 #define WToX0           (SIZEOF_FLEXIBLE_STRUCT(worker_t, tagged_t, 0)/sizeof(tagged_t))
 #define Xb(I)           (*CharOffset(w,I)) /* I as bytecode operand */

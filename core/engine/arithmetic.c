@@ -1,7 +1,7 @@
 /*
  *  arithmetic.c
  *
- *  Arithmetic builtins ('call_builtin' procedures)
+ *  Arithmetic builtins
  *
  *  See Copyright Notice in ciaoengine.pl
  */
@@ -284,13 +284,13 @@ CFUN__PROTO(bn_call2, tagged_t, bn_fun2_t f, tagged_t x0, tagged_t y0) {
   ENSURE_BIGNUM(y0, yb, y);
 
   ENSURE_LIVEINFO;
-  req = (*f)(x, y, (bignum_t *)w->heap_top, (bignum_t *)Heap_Warn_GC);
+  req = (*f)(x, y, (bignum_t *)G->heap_top, (bignum_t *)Heap_Warn_GC);
   if (req != 0) {
     // if (req == -1) PANIC_FAULT("infinite bignum!"); /* TODO: not needed now (captured elsewhere) */
     HeapOverflow_GC(req, x0, y0);
     ENSURE_BIGNUM(x0, xb, x);
     ENSURE_BIGNUM(y0, yb, y);
-    if ((*f)(x, y, (bignum_t *)w->heap_top, (bignum_t *)Heap_Warn_GC)) {
+    if ((*f)(x, y, (bignum_t *)G->heap_top, (bignum_t *)Heap_Warn_GC)) {
       SERIOUS_FAULT("miscalculated size of bignum");
     }
   }
@@ -309,12 +309,12 @@ CFUN__PROTO(bn_call1, tagged_t, bn_fun1_t f, tagged_t x0) {
   ENSURE_BIGNUM(x0, xb, x);
 
   ENSURE_LIVEINFO;
-  req = (*f)(x, (bignum_t *)w->heap_top, (bignum_t *)Heap_Warn_GC);
+  req = (*f)(x, (bignum_t *)G->heap_top, (bignum_t *)Heap_Warn_GC);
   if (req != 0) {
     // if (req == -1) PANIC_FAULT("infinite bignum!"); /* TODO: not needed now (captured elsewhere) */
     HeapOverflow_GC(req, x0);
     ENSURE_BIGNUM(x0, xb, x);
-    if ((*f)(x, (bignum_t *)w->heap_top, (bignum_t *)Heap_Warn_GC)) {
+    if ((*f)(x, (bignum_t *)G->heap_top, (bignum_t *)Heap_Warn_GC)) {
       SERIOUS_FAULT("miscalculated size of bignum");
     }
   }
@@ -325,11 +325,11 @@ CFUN__PROTO(bn_from_float_GC, tagged_t, flt64_t f) {
   bignum_size_t req;
 
   ENSURE_LIVEINFO;
-  req = bn_from_float(f, (bignum_t *)w->heap_top, (bignum_t *)Heap_Warn_GC);
+  req = bn_from_float(f, (bignum_t *)G->heap_top, (bignum_t *)Heap_Warn_GC);
   if (req != 0) { /* expand heap and try again */
     // if (req == -1) PANIC_FAULT("infinite bignum!"); /* TODO: not needed now (captured elsewhere) */
     HeapOverflow_GC(req);
-    if (bn_from_float(f, (bignum_t *)w->heap_top, (bignum_t *)Heap_Warn_GC)) {
+    if (bn_from_float(f, (bignum_t *)G->heap_top, (bignum_t *)Heap_Warn_GC)) {
       SERIOUS_FAULT("miscalculated size of bignum");
     }
   }
@@ -341,10 +341,10 @@ CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i) {
   tagged_t *h;
 
   ENSURE_LIVEINFO;
-  h = w->heap_top;
+  h = G->heap_top;
   if (HeapDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(w->liveinfo)+4) {
-    explicit_heap_overflow(Arg,LIVEINFO__HEAP(w->liveinfo)+4, (short)LIVEINFO__ARITY(w->liveinfo));
-    h = w->heap_top;
+    CVOID__CALL(explicit_heap_overflow,LIVEINFO__HEAP(w->liveinfo)+4, (short)LIVEINFO__ARITY(w->liveinfo));
+    h = G->heap_top;
   }
 
   HeapPush(h, MakeFunctorFloat);
@@ -361,7 +361,7 @@ CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i) {
   HeapPush(h, 0); /* dummy, for BC_SCALE==2 */
 #endif
   HeapPush(h, MakeFunctorFloat);
-  w->heap_top = h;
+  G->heap_top = h;
   CFUN__PROCEED(Tagp(STR, h-4));
 }
 
@@ -441,12 +441,12 @@ CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i) {
 //   if (IsInSmiValRange(i)) return MakeSmall(i);
 // 
 //   ENSURE_LIVEINFO;
-//   h = w->heap_top;
+//   h = G->heap_top;
 //   if (HeapDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(w->liveinfo)+3) {
 //     explicit_heap_overflow(Arg, LIVEINFO__HEAP(w->liveinfo)+3, (short)LIVEINFO__ARITY(w->liveinfo));
-//     h = w->heap_top;
+//     h = G->heap_top;
 //   }
-//   w->heap_top = h+3;
+//   G->heap_top = h+3;
 //   HeapPush(h, MakeFunctorFix);
 //   HeapPush(h, (tagged_t)i);
 //   HeapPush(h, MakeFunctorFix);
