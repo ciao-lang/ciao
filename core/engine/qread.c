@@ -625,7 +625,7 @@ CVOID__PROTO(getbytecode32, FILE *f,
         int arity = 2;
         int cells = (length / sizeof(tagged_t)) + 4 + arity;
         if (HeapDifference(w->heap_top,Heap_End)<cells) {
-          explicit_heap_overflow(Arg,cells,5);
+          explicit_heap_overflow(Arg,cells*sizeof(tagged_t),5);
         }
       }
       h = w->heap_top;
@@ -1012,7 +1012,7 @@ CBOOL__PROTO(qread1,
       pad = qr_int32(qfile);
       if (HeapDifference(h,Heap_End) < pad) {
         w->heap_top = h;
-        explicit_heap_overflow(Arg,pad,2);
+        explicit_heap_overflow(Arg,pad*sizeof(tagged_t),2);
         h = w->heap_top;
       }
       break;

@@ -366,7 +366,7 @@ goto exit_toplevel;
 wake_count = WakeCount;
 if (OffHeaptop(H+4*wake_count,Heap_Warn)) {
 SETUP_PENDING_CALL(address_true);StoreH;
-heap_overflow(Arg,SOFT_HEAPPAD+4*wake_count);LoadH;
+heap_overflow(Arg,SOFT_HEAPPAD+4*wake_count*sizeof(tagged_t));LoadH;
           }
 if (wake_count>0) {
 if (wake_count==1) {
@@ -2177,7 +2177,7 @@ goto r_heapmargin_call;
 r_heapmargin_call:
 case HEAPMARGIN_CALL:
 if (HeapDifference(w->heap_top,Heap_End) < (intmach_t)BcP(f_l, 1)) {
-explicit_heap_overflow(Arg,(intmach_t)BcP(f_l, 1),(FTYPE_ctype(f_i_signed))BcP(f_i, 3));
+explicit_heap_overflow(Arg,(intmach_t)BcP(f_l, 1)*sizeof(tagged_t),(FTYPE_ctype(f_i_signed))BcP(f_i, 3));
 t0 = X(0);
                 }
 P += FTYPE_size(f_l)+FTYPE_size(f_i);
@@ -4276,7 +4276,7 @@ w_heapmargin_call:
 case HEAPMARGIN_CALL:
 if (HeapDifference(H,Heap_End) < (intmach_t)BcP(f_l, 1)) {
 StoreH;
-explicit_heap_overflow(Arg,(intmach_t)BcP(f_l, 1),(FTYPE_ctype(f_i_signed))BcP(f_i, 3));
+explicit_heap_overflow(Arg,(intmach_t)BcP(f_l, 1)*sizeof(tagged_t),(FTYPE_ctype(f_i_signed))BcP(f_i, 3));
 LoadH;
 t0 = X(0);
                   }

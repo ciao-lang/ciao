@@ -568,7 +568,8 @@ predicate_property_mod(_IM, EM, F, N, Prop) :-
 :- impl_defined(garbage_collect/0).
 
 % ---------------------------------------------------------------------------
-:- doc(hide, set_heap_limit/1). % TODO: why hide?
+% TODO: not ready, disable?
+:- doc(hide, set_heap_limit/1).
 :- export(set_heap_limit/1).
 :- pred set_heap_limit(Limit) : integer(Limit) # "Sets the
    @concept{heap limit} to the largest multiple of word size smaller
@@ -601,7 +602,8 @@ try_to_set_heap_limit(NewLimit):-
     '$heap_limit'(NewLimit).
 
 % ---------------------------------------------------------------------------
-:- doc(hide, current_heap_limit/1). % TODO: why hide?
+% TODO: not ready, disable?
+:- doc(hide, current_heap_limit/1).
 :- export(current_heap_limit/1).
 :- pred current_heap_limit(Limit) : true => integer(Limit) # "Unifies 
    @var{Limit} to the current @concept{heap limit}".

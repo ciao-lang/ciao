@@ -1489,7 +1489,7 @@ CBOOL__PROTO(prolog_fast_read_in_c) {
 }
 
 #define CHECK_HEAP_SPACE                                        \
-  if (HeapDifference(w->heap_top,Heap_End) < CONTPAD) {         \
+  if (HeapCharDifference(w->heap_top,Heap_End) < CONTPAD*sizeof(tagged_t)) { \
     fprintf(stderr, "Out of heap space in fast_read()\n");      \
   }
 

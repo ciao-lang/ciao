@@ -1999,7 +1999,8 @@ CBOOL__PROTO(constraint_list)
       *TagpPtr(CVA,v) = v;
     }
     /* TODO: use pad<<=1 here or recompute available? */
-    explicit_heap_overflow(Arg,pad<<=1,2);
+    pad <<= 1;
+    explicit_heap_overflow(Arg,pad*sizeof(tagged_t),2);
   }
   h = w->heap_top;
   l = *w->trail_top;

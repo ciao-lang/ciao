@@ -933,8 +933,7 @@ CBOOL__PROTO(trail_usage)
  * pad - required amount of heap space.
  * arity - number of live X regs at this point.
  */
-CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity)
-{
+CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
   node_t *b = w->node;
   intmach_t i;
   frame_t *a;
@@ -1398,9 +1397,9 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     lowboundh = newh-Gc_Total_Grey;
     if (!gc &&
         (HeapCharDifference(newh,oldh) < GetSmall(current_gcmargin)*1024 ||
-         HeapYounger(HeapOffset(newh,2*pad),Heap_End)) &&
+         HeapYounger(HeapCharOffset(newh,2*pad),Heap_End)) &&
         !(HeapCharDifference(lowboundh,oldh) < GetSmall(current_gcmargin)*1024 ||
-          HeapYounger(HeapOffset(lowboundh,2*pad),Heap_End))) {
+          HeapYounger(HeapCharOffset(lowboundh,2*pad),Heap_End))) {
       /* garbage collect the entire heap */
       w->segment_node = InitialNode;
       GarbageCollect(Arg);
@@ -1409,7 +1408,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
   }
   if ((!gc &&
        HeapCharDifference(newh,oldh) < GetSmall(current_gcmargin)*1024) ||
-      HeapYounger(HeapOffset(newh,2*pad),Heap_End)) {
+      HeapYounger(HeapCharOffset(newh,2*pad),Heap_End)) {
     flt64_t tick0 = BASE_RUNTICK;
     /* increase heapsize */
     intmach_t mincount, newcount, oldcount, reloc_factor;
@@ -1419,10 +1418,9 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     
     ComputeA(w->local_top,w->node);
     
-    mincount = 2*pad - HeapDifference(w->heap_top,Heap_End);
-    oldcount = HeapDifference(Heap_Start,Heap_End);
+    mincount = 2*pad - HeapCharDifference(w->heap_top,Heap_End);
+    oldcount = HeapCharDifference(Heap_Start,Heap_End);
     newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
-
 
 #if defined(USE_OVERFLOW_EXCEPTIONS)
     if ( Heap_Warn == HeapOffset(Heap_End,-HARD_HEAPPAD) ){
@@ -1430,9 +1428,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
       SERIOUS_FAULT(tryalloc_errstring);
     } else if (SOFT_HEAPPAD == DEFAULT_SOFT_HEAPPAD) {
       /* Heap limit not reached */
-      newh = tryrealloc(Heap_Start,
-                        oldcount*sizeof(tagged_t),
-                        newcount*sizeof(tagged_t));
+      newh = tryrealloc(Heap_Start, oldcount, newcount);
     } else { 
       /* Heap limit reached */
       newh = NULL;
@@ -1453,10 +1449,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
       UNLOCATED_EXCEPTION(RESOURCE_ERROR(R_STACK));
     }
 #else 
-    newh = checkrealloc_ARRAY(tagged_t,
-                              oldcount,
-                              newcount,
-                              Heap_Start);
+    newh = (tagged_t *)checkrealloc_ARRAY(char, oldcount, newcount, Heap_Start);
 #endif
 
 #if defined(DEBUG)
@@ -1488,11 +1481,11 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
 #endif
 
     Heap_Start = newh; /* new low bound */
-    Heap_End = newh+newcount; /* new high bound */
+    Heap_End = HeapCharOffset(newh, newcount); /* new high bound */
     Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn
-                     ? HeapOffset(Heap_End,-SOFT_HEAPPAD)
+                     ? HeapCharOffset(Heap_End,-SOFT_HEAPPAD)
                      : Heap_Start);
-    Heap_Warn = HeapOffset(Heap_End,-SOFT_HEAPPAD);
+    Heap_Warn = HeapCharOffset(Heap_End,-SOFT_HEAPPAD);
     if (wake_count>=0)
       Heap_Warn_Soft = HeapCharOffset(Heap_Start,-wake_count);
     else
@@ -1827,9 +1820,9 @@ CBOOL__PROTO(undo_heap_overflow_excep)
   intmach_t wake_count = WakeCount;
 
   Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn
-                   ? HeapOffset(Heap_End,-SOFT_HEAPPAD)
+                   ? HeapCharOffset(Heap_End,-SOFT_HEAPPAD)
                    : Heap_Start);
-  Heap_Warn = HeapOffset(Heap_End,-SOFT_HEAPPAD);
+  Heap_Warn = HeapCharOffset(Heap_End,-SOFT_HEAPPAD);
   if (wake_count<0){
     Heap_Warn_Soft = Int_Heap_Warn;
   }
@@ -1845,21 +1838,21 @@ CBOOL__PROTO(heap_limit)
   intmach_t wake_count;
 
   DEREF(x,X(0)); 
-  if (IsVar(x)) CBOOL__LASTUNIFY(x, MakeSmall(Heap_Limit));
+  if (IsVar(x)) CBOOL__LASTUNIFY(x, MakeSmall(Heap_Limit/sizeof(tagged_t)));
 
-  Heap_Limit = GetSmall(x);
+  Heap_Limit = GetSmall(x)*sizeof(tagged_t);
   wake_count = WakeCount;
    
   if ((Heap_Limit == 0)  ||                                             /* Heap limit is off */
-      (Heap_Limit >= HeapDifference(Heap_Start,Heap_End) - DEFAULT_SOFT_HEAPPAD))   /* Heap smaller than Heap limit */
+      (Heap_Limit >= HeapCharDifference(Heap_Start,Heap_End) - DEFAULT_SOFT_HEAPPAD))   /* Heap smaller than Heap limit */
     SOFT_HEAPPAD = DEFAULT_SOFT_HEAPPAD;
   else 
-    SOFT_HEAPPAD = HeapDifference(Heap_Start,Heap_End) - Heap_Limit;
+    SOFT_HEAPPAD = HeapCharDifference(Heap_Start,Heap_End) - Heap_Limit;
   
   Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn
-                   ? HeapOffset(Heap_End,-SOFT_HEAPPAD)
+                   ? HeapCharOffset(Heap_End,-SOFT_HEAPPAD)
                    : Heap_Start);
-  Heap_Warn = HeapOffset(Heap_End,-SOFT_HEAPPAD);
+  Heap_Warn = HeapCharOffset(Heap_End,-SOFT_HEAPPAD);
   
   if (wake_count>=0)
     Heap_Warn_Soft = HeapCharOffset(Heap_Start,-wake_count);

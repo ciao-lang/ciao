@@ -2003,7 +2003,7 @@ CVOID__PROTO(create_wam_areas)
   GETENV(i,cp,"GLOBALSTKSIZE",GLOBALSTKSIZE);
   Heap_Start = checkalloc_ARRAY(tagged_t, i);
   Heap_End =  HeapOffset(Heap_Start,i);
-  Heap_Warn_Soft =  Heap_Warn =  HeapOffset(Heap_End,-DEFAULT_SOFT_HEAPPAD);
+  Heap_Warn_Soft = Heap_Warn = HeapCharOffset(Heap_End,-DEFAULT_SOFT_HEAPPAD);
 
 #if defined(USE_OVERFLOW_EXCEPTIONS)
   SOFT_HEAPPAD = DEFAULT_SOFT_HEAPPAD;
@@ -2067,7 +2067,7 @@ CVOID__PROTO(reinitialize_wam_areas)
     Atom_Buffer_Length = STATICMAXATOM;
   }
 
-  Heap_Warn_Soft = Heap_Warn = HeapOffset(Heap_End,-DEFAULT_SOFT_HEAPPAD);
+  Heap_Warn_Soft = Heap_Warn = HeapCharOffset(Heap_End,-DEFAULT_SOFT_HEAPPAD);
 #if defined(USE_OVERFLOW_EXCEPTIONS)
   SOFT_HEAPPAD = DEFAULT_SOFT_HEAPPAD;
   Heap_Limit = 0;

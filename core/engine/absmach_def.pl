@@ -2962,7 +2962,7 @@ heapmargin_call :-
     if((callexp('HeapDifference', [H, "Heap_End"]), " < ", ["(intmach_t)","BcP(f_l, 1)"]),
       ([[mode(M)]],
        setmode(r),
-       call('explicit_heap_overflow', ["Arg",["(intmach_t)","BcP(f_l, 1)"],["(FTYPE_ctype(f_i_signed))","BcP(f_i, 3)"]]),
+       call('explicit_heap_overflow', ["Arg",["(intmach_t)","BcP(f_l, 1)*sizeof(tagged_t)"],["(FTYPE_ctype(f_i_signed))","BcP(f_i, 3)"]]),
        setmode(M),
        t0(T0),
        T0 <- "X(0)" % if followed by get_*_x0
@@ -3677,8 +3677,8 @@ code_enter_pred :-
     %   if (Suspend == CHECK_SUSP) {
     %     //Save argument registers
     %     tagged_t *Htmp = H = w->heap_top;
-    %     if (HeapDifference(w->heap_top,Heap_End) < CONTPAD + 1 + Func->arity)
-    %       explicit_heap_overflow(w, CONTPAD + 1 + Func->arity, 0);
+    %     if (HeapCharDifference(w->heap_top,Heap_End) < CONTPAD*sizeof(tagged_t) + (1 + Func->arity)*sizeof(tagged_t))
+    %       explicit_heap_overflow(w, CONTPAD*sizeof(tagged_t) + (1 + Func->arity)*sizeof(tagged_t), 0);
     %     HeapPush(H,(tagged_t)P);
     %     int i;
     %     for (i = 0; i < Func->arity; i++) HeapPush(H,X(i));
@@ -3708,7 +3708,7 @@ code_enter_pred :-
       if("OffHeaptop(H+4*wake_count,Heap_Warn)",
         ("SETUP_PENDING_CALL(address_true);",
          setmode(r),
-         "heap_overflow(Arg,SOFT_HEAPPAD+4*wake_count);",
+         "heap_overflow(Arg,SOFT_HEAPPAD+4*wake_count*sizeof(tagged_t));",
          setmode(w))),
       if("wake_count>0",
         if("wake_count==1",

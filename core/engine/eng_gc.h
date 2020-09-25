@@ -50,15 +50,15 @@ CBOOL__PROTO(undo_heap_overflow_excep);
  * Arity - number of live X regs
  */
 #define ENSURE_HEAP(N, Arity) { \
-  if (HeapDifference(w->heap_top,Heap_End)<CONTPAD+(N)) { \
-    CVOID__CALL(explicit_heap_overflow,CONTPAD+(N),(Arity)); \
+  if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD*sizeof(tagged_t)+(N)*sizeof(tagged_t)) { \
+    CVOID__CALL(explicit_heap_overflow,CONTPAD*sizeof(tagged_t)+(N)*sizeof(tagged_t),(Arity)); \
   } \
 } 
 
 /* Make sure that there is enough heap to allocate N bytes */
 #define ENSURE_HEAP_BYTES(N, Arity) { \
   if (HeapCharDifference(w->heap_top,Heap_End)<(N)) { \
-    CVOID__CALL(explicit_heap_overflow,((N)+sizeof(tagged_t)-1)/sizeof(tagged_t),(Arity)); \
+    CVOID__CALL(explicit_heap_overflow,(N),(Arity)); \
   } \
 }
 
@@ -101,7 +101,7 @@ CBOOL__PROTO(undo_heap_overflow_excep);
 #define HeapOverflow_GC_(REQ, GCLen, GCRegs) ({ \
   intmach_t idx_ MAYBE_UNUSED = LIVEINFO__ARITY(w->liveinfo); \
   CONCAT(SAVE_XS,GCLen) GCRegs; \
-  CVOID__CALL(explicit_heap_overflow, ((REQ)+LIVEINFO__HEAP(w->liveinfo))*GCREQMUL, LIVEINFO__ARITY(w->liveinfo) + GCLen); \
+  CVOID__CALL(explicit_heap_overflow, ((REQ)+LIVEINFO__HEAP(w->liveinfo))*sizeof(tagged_t)*GCREQMUL, LIVEINFO__ARITY(w->liveinfo) + GCLen); \
   CONCAT(RESTORE_XS,GCLen) GCRegs; \
 })
 

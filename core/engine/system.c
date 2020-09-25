@@ -687,7 +687,7 @@ CBOOL__PROTO(prolog_directory_files) {
       ENSURE_HEAP_LST(16, 3); /* 16 is some arbitrary gap (1 would be OK) */
       MakeLST(X(2), GET_ATOM(direntry->d_name), X(2));
     }
-#else
+#else /* OPTIM_COMP? */
     gap = HeapCharAvailable(G->heap_top) - CONTPAD;
     while ((direntry = readdir(dir))) {
       if ((gap -= 2*sizeof(tagged_t)) < 0) {
