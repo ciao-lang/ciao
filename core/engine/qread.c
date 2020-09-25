@@ -22,13 +22,41 @@
 #include <ciao/eng_bignum.h>
 #include <ciao/stream_basic.h>
 
-#if defined(ALLOW_COMPRESSED_CODE)
-#if defined(LINUX) || defined(Win32) || defined(BSD)
-#include <string.h>
-#else
-#include <strings.h>
-#endif
-#endif
+/* --------------------------------------------------------------------------- */
+
+//#define QLBFSIZE 1024
+#define QLBFSIZE 4096
+int qlbuffidx, qlbuffend;
+unsigned char qlbuff[QLBFSIZE];
+
+/*
+  Use an internal buffer of QLBFSIZE chars to store the contents of the .po
+  files being read in.  When the buffer is full, we fill it again at once;
+  the previous method was calling getc() once and again.  Preliminary tests
+  show this method to be between 3 times (for dynamic executables, as
+  ciaosh) to 5 times (for static stuff, as ciaoc) faster.  
+*/
+
+static int buffered_input(FILE *stream) {
+  if (qlbuffidx == qlbuffend) {
+    if (qlbuffend < QLBFSIZE) return EOF;
+    if (!(qlbuffend = 
+          fread(qlbuff, sizeof(unsigned char), QLBFSIZE, stream)))
+        return EOF;                /* Could not read after buffer emptied */
+    qlbuffidx = 0;
+  } 
+  return (int)qlbuff[qlbuffidx++];
+}
+
+#define GETC(f) (qlbuffidx != qlbuffend ? (int)qlbuff[qlbuffidx++] : buffered_input(f))
+
+/* --------------------------------------------------------------------------- */
+
+void expand_qload(void);
+void reloc_counter(intmach_t Label);
+void reloc_emul_entry(int Li, intmach_t Label);
+void reloc_pointer(int Li, intmach_t Label);
+void skip_to_ctrl_l(FILE *file);
 
 /* --------------------------------------------------------------------------- */
 
@@ -40,69 +68,54 @@
 #define WORKSTRINGLEN (STATICMAXATOM)
 static char workstring[WORKSTRINGLEN]; 
 
-/* Read a int16_t integer */
-static int qr_int16(FILE *f) {
-  char *ws = workstring;
+/* read into ws (assume enough space) */
+static inline void getstring_ws(FILE *f, char *ws) {
   while ((*ws++ = GETC(f))) {
 #if defined(DEBUG)
     if ((ws - workstring) > WORKSTRINGLEN) {
-      SERIOUS_FAULT("workstring length exceeded in qr_int16()");
+      SERIOUS_FAULT("workstring length exceeded");
     }
 #endif
   }
+}
+
+/* read into Atom_Buffer (expand if needed) */
+static inline CVOID__PROTO(getstring_ab, FILE *f) {
+  int used_length = 0;
+  char *ws = Atom_Buffer; /* TODO: use a custom buffer instead? */
+  while ((ws[used_length++] = GETC(f))) {
+    ENSURE_ATOM_BUFFER(used_length, { ws = Atom_Buffer; });
+  }
+}
+
+/* Read a int16_t integer */
+static int qr_int16(FILE *f) { 
+  getstring_ws(f, workstring);
   return atoi(workstring);
 }
 
 /* Read a int32_t integer */
-static int32_t qr_int32(FILE *f)
-{
-  char *ws = workstring;
-  while ((*ws++ = GETC(f))) {
-#if defined(DEBUG)
-    if ((ws - workstring) > WORKSTRINGLEN) {
-      SERIOUS_FAULT("workstring length exceeded in qr_int32()");
-    }
-#endif
-  }
-    
+static int32_t qr_int32(FILE *f) {
+  getstring_ws(f, workstring);
   return atol(workstring);
 }
 
-static CFUN__PROTO(qr_large, tagged_t, FILE *f) {
-  int used_length = 0;
-  char *ws = Atom_Buffer;
-
-  while ((ws[used_length++] = GETC(f))) {
-    ENSURE_ATOM_BUFFER(used_length, { ws = Atom_Buffer; });
-  }
-
-  int base = GetSmall(current_radix);
-  tagged_t r;
-  StringToInt_nogc(ws, base, r);
-  return r;
-}
-
 static flt64_t qr_flt64(FILE *f) {
-  char *ws = workstring;
-
-  while((*ws++ = GETC(f))) {
-#if defined(DEBUG)
-    if ((ws - workstring) > WORKSTRINGLEN) {
-      SERIOUS_FAULT("workstring length exceeded in qr_flt64()");
-    }
-#endif
-  }
+  getstring_ws(f, workstring);
   return atof(workstring);
 }
 
-static CFUN__PROTO(qr_string, char *, FILE *f) {
-  int used_length = 0;
-  char *ws = Atom_Buffer;   /* Try to avoid indirection through WAM */
+static CFUN__PROTO(qr_large, tagged_t, FILE *f) {
+  CVOID__CALL(getstring_ab, f);
+  int base = GetSmall(current_radix);
+  tagged_t r;
+  StringToInt_nogc(Atom_Buffer, base, r);
+  return r;
+}
 
-  while ((ws[used_length++] = GETC(f))) {
-    ENSURE_ATOM_BUFFER(used_length, { ws = Atom_Buffer; });
-  }
-  return ws;
+static CFUN__PROTO(qr_string, char *, FILE *f) {
+  CVOID__CALL(getstring_ab, f);
+  return Atom_Buffer;
 }
 
 /* --------------------------------------------------------------------------- */
@@ -132,11 +145,14 @@ static CFUN__PROTO(qr_string, char *, FILE *f) {
 #define TRACE_REWRITE(_)
 //#define TRACE_REWRITE(X) X
 
+#define USE_REWRITE_BYTECODE 1
+
 #if defined(BC64)
 /* Rewrite bytecode and patch operands */
 #define PATCH_BC32 1
-#define USE_REWRITE_BYTECODE 1
 #endif
+//#define PATCH_LIVEINFO 1
+#define PATCH_LIVEINFO 0
 
 #if defined(USE_REWRITE_BYTECODE) || defined(DUMP_INSTR)
 #include <ciao/absmachdef.h>
@@ -283,6 +299,14 @@ CFUN__PROTO(rewrite_instr, bcp_t, bcp_t p, bcp_t begin) {
       /* TODO: expand in two sub-formats! use compound definitions! */
       TRACE_REWRITE({ fprintf(stderr, "h:"); });
       check_align(p, FTYPE_size(f_l)); 
+#if PATCH_LIVEINFO
+      { /* multiply liveinfo heap by tagged_t size */ /* TODO: OPTIM_COMP? */
+        uintmach_t v;
+        v = BCOp(p, FTYPE_ctype(f_l), 0);
+        //fprintf(stderr, "patching liveinfo %ld\n", (long)BCOp(p, FTYPE_ctype(f_l), 0));
+        BCOp(p, FTYPE_ctype(f_l), 0) = v*sizeof(tagged_t);
+      }
+#endif
       TRACE_REWRITE({ fprintf(stderr, "%ld", (long)BCOp(p, FTYPE_ctype(f_l), 0)); });
       p = BCoff(p, FTYPE_size(f_l));
       TRACE_REWRITE({ fprintf(stderr, ",a:"); });
@@ -606,14 +630,9 @@ CVOID__PROTO(getbytecode32, FILE *f,
   while ((c=GETC(f))) {
     switch (c) {
     case 'G': {
-      int i = 0;
-      char *ws = Atom_Buffer;
       tagged_t t, *h;
       
-      while ((c = ws[i++] = GETC(f))) {
-        ENSURE_ATOM_BUFFER(i, { ws = Atom_Buffer; });
-      }
-
+      CVOID__CALL(getstring_ab, f);
       /* TODO: This is can be improved. 
 
          We ensure that there is at least (length/sizeof(tagged_t)+4)
@@ -649,47 +668,21 @@ CVOID__PROTO(getbytecode32, FILE *f,
       break;
     }
       
-    case '+': {
-      char *ws = workstring;
-      
-      while ((*ws++ = GETC(f)))
-#if defined(DEBUG)
-        if ((ws - workstring) > WORKSTRINGLEN)
-          SERIOUS_FAULT("workstring length exceeded in getbytecode32() [+]")
-#endif
-        ;
-
+    case '+':
+      getstring_ws(f, workstring);
       EMIT_l(atol(workstring));
       break;
-    }
       
-    case 'C': {
-      char *ws = workstring;
-      
-      while ((*ws++ = GETC(f)))
-#if defined(DEBUG)
-        if ((ws - workstring) > WORKSTRINGLEN)
-          SERIOUS_FAULT("workstring length exceeded in getbytecode32() [C]")
-#endif
-        ;
-
+    case 'C':
+      getstring_ws(f, workstring);
       EMIT_C(builtintab[atoi(workstring)]);
       break;
-    }
       
-    default: {
-      char *ws = workstring;
-      
-      *ws++ = c;
-      while ((*ws++ = GETC(f)))
-#if defined(DEBUG)
-        if ((ws - workstring) > WORKSTRINGLEN)
-         SERIOUS_FAULT("workstring length exceeded in getbytecode32() [default]")
-#endif
-        ;
+    default:
+      workstring[0] = c;
+      getstring_ws(f, workstring+1);
       /* TODO: assumes that f_o,f_x,f_y,etc. have the same size */
       EMIT_o(atoi(workstring));
-    }
     }
   }
 
@@ -749,86 +742,6 @@ struct qlinfo_ {
   int qllimit;
 };
 
-#if defined(BUFFERED_PO)
-
-#define QLBFSIZE 1024
-int qlbuffidx, qlbuffend;
-unsigned char qlbuff[QLBFSIZE];
-
-/*
-  Use an internal buffer of QLBFSIZE chars to store the contents of the .po
-  files being read in.  When the buffer is full, we fill it again at once;
-  the previous method was calling getc() once and again.  Preliminary tests
-  show this method to be between 3 times (for dynamic executables, as
-  ciaosh) to 5 times (for static stuff, as ciaoc) faster.  
-*/
-
-int buffered_input(FILE *stream) {
-  if (qlbuffidx == qlbuffend) {
-    if (qlbuffend < QLBFSIZE) return EOF;
-    if (!(qlbuffend = 
-          fread(qlbuff, sizeof(unsigned char), QLBFSIZE, stream)))
-        return EOF;                /* Could not read after buffer emptied */
-    qlbuffidx = 0;
-  } 
-  return (int)qlbuff[qlbuffidx++];
-}
-
-#endif
-
-#if defined(ALLOW_COMPRESSED_CODE)
-
-int  Last, PrefixSize, Size[4096], Buffer[3840], BufferP;
-char *Dict[4096], *First, Vault[200000], compressed, remaining;
-
-/* Allows the load of compressed bytecode. The compression algorithm used is
-   based on Lempel-Ziv, reducing bytecode size to about 1/3 and varying load
-   time to about 125% when using buffered input and to less than 60% when using
-   unbuffered one (note: even thorough this, the load of compressed bytecode
-   is faster when buffered input is enabled). Files containing compressed
-   bytecode are recognized because they begin by ^L the bytecode sequence. */
-
-#define InLZ(n,n2) { for (; size < n; size += 8) \
-                          i += GETC_LZ(stream)*(1<<size); \
-                     Buffer[--BufferP] = i % n2; \
-                     i /= n2; \
-                     size -= n; }    
-      
-int readLZ(FILE *stream) {
-  int  i = 0;
-  char size = 0;
-
-  if (compressed) {
-    if (remaining)
-      return (int)First[PrefixSize-remaining--];  
-    if (!BufferP) { 
-      BufferP = 3840;
-      while (BufferP > 3584)
-        InLZ(9,512);
-      while (BufferP > 3072)
-        InLZ(10,1024);    
-      while (BufferP > 2048)
-        InLZ(11,2048);
-      while (BufferP) 
-        InLZ(12,4096);
-      BufferP = 3840; 
-    }
-    if ((i=Buffer[--BufferP]) == 256) 
-      return EOF;
-    if (Last == 4095) 
-      (First = &Vault[Last = 256])[0] = i;
-    else { 
-      Size[++Last] = PrefixSize+1;            
-      (Dict[Last] = First)[PrefixSize] = Dict[i][0];
-      (void)memmove(First += Size[Last],Dict[i],Size[i]);
-    }
-    remaining = (PrefixSize=Size[i])-1;
-    return (int)First[0];
-  }
-  else return GETC_LZ(stream);
-}
-#endif
-
 tagged_t *qlarray=NULL;                   /* Shared, but with locked access */
 int qloffset=0, qllimit=0;                /* Shared, locked access */
 qlinfo_t *qlstack=NULL;                   /* Shared, locked access */
@@ -836,13 +749,8 @@ qlinfo_t *qlstack=NULL;                   /* Shared, locked access */
 CBOOL__PROTO(push_qlinfo) {
   qlinfo_t *p = checkalloc_TYPE(qlinfo_t);
   
-#if defined(BUFFERED_PO)
   qlbuffidx = QLBFSIZE; /* Empty */
   qlbuffend = QLBFSIZE; 
-#endif  
-#if defined(ALLOW_COMPRESSED_CODE)
-  compressed = 0;
-#endif
 
   p->next = qlstack;
   qlstack = p;
@@ -990,22 +898,15 @@ CBOOL__PROTO(qread1,
   while (c!=EOF) {
     // fprintf(stderr, "qr:%d\n", c);
     switch (c) {
-#if defined(ALLOW_COMPRESSED_CODE)
     case ISCOMPRESSED:
-      compressed = 1;
-      Last = 4095;
-      remaining = BufferP = 0;
-      { 
-        int i = 0;
-        for(;i < 257; Size[i++] = 1) (Dict[i]=&Vault[i])[0]= i%256;
-      }
+      SERIOUS_FAULT("qread1: compressed code is unsupported");
       break;
-#endif
     case ISSCRIPT:
       {
         int chr;            
-        do chr = GETC(qfile);
-        while ((chr != EOF) && (chr != 12));
+        do {
+          chr = GETC(qfile);
+        } while ((chr != EOF) && (chr != 12));
       }
       break;
     case ENSURE_SPACE:

@@ -44,7 +44,7 @@
 :- ftype_def(f_i, 10, basic("FTYPE_size(f_i)"/*2*/, 8, 8)).
 % f_l long
 :- ftype_def(f_l, 11, basic("FTYPE_size(f_l)"/*4*/, 2, 6)).
-% f_g lifeinfo
+% f_g liveinfo % TODO: be careful! 
 :- ftype_def(f_g, 12, str([f_l, f_i])).
 % f_p bytecode pointer
 :- ftype_def(f_p, 13, basic("FTYPE_size(f_p)"/*4*/, 3, 3)).
@@ -1865,43 +1865,43 @@ cfun_semidet(Target, Expr) :-
 cblt_semidet(Expr) :-
     if(("!", Expr), goto('fail')).
 
-:- ins_op_format(function_1q, 222, [f_Q,f_x,f_x,f_C,f_l,f_i], [label(r)]).
+:- ins_op_format(function_1q, 222, [f_Q,f_x,f_x,f_C,f_g], [label(r)]).
 :- ins_in_mode(function_1q, r).
 function_1q :-
     dec(op(f_x,"BcP(f_x, 2)"), A),
     dec(op(f_x,"BcP(f_x, 3)"), B),
-    "w->liveinfo" <- ["&","BcP(f_l, 6)"],
+    "w->liveinfo" <- ["&","BcP(f_l, 6)"], % TODO: use f_g
     cfun_semidet(A, callexp('((ctagged1_t)BcP(f_C, 4))', ["Arg",B])),
-    dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
+    dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_g)").
 
-:- ins_op_format(function_1, 223, [f_x,f_x,f_C,f_l,f_i], [label(r)]).
+:- ins_op_format(function_1, 223, [f_x,f_x,f_C,f_g], [label(r)]).
 :- ins_in_mode(function_1, r).
 function_1 :-
     dec(op(f_x,"BcP(f_x, 1)"), A),
     dec(op(f_x,"BcP(f_x, 2)"), B),
-    "w->liveinfo" <- ["&","BcP(f_l, 5)"],
+    "w->liveinfo" <- ["&","BcP(f_l, 5)"], % TODO: use f_g
     cfun_semidet(A, callexp('((ctagged1_t)BcP(f_C, 3))', ["Arg",B])),
-    dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
+    dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_g)").
 
-:- ins_op_format(function_2q, 224, [f_Q,f_x,f_x,f_x,f_C,f_l,f_i], [label(r)]).
+:- ins_op_format(function_2q, 224, [f_Q,f_x,f_x,f_x,f_C,f_g], [label(r)]).
 :- ins_in_mode(function_2q, r).
 function_2q :-
     dec(op(f_x,"BcP(f_x, 2)"), A),
     dec(op(f_x,"BcP(f_x, 3)"), B),
     dec(op(f_x,"BcP(f_x, 4)"), C),
-    "w->liveinfo" <- ["&","BcP(f_l, 7)"],
+    "w->liveinfo" <- ["&","BcP(f_l, 7)"], % TODO: use f_g
     cfun_semidet(A, callexp('((ctagged2_t)BcP(f_C, 5))', ["Arg",B,C])),
-    dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
+    dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_g)").
 
-:- ins_op_format(function_2, 225, [f_x,f_x,f_x,f_C,f_l,f_i], [label(r)]).
+:- ins_op_format(function_2, 225, [f_x,f_x,f_x,f_C,f_g], [label(r)]).
 :- ins_in_mode(function_2, r).
 function_2 :-
     dec(op(f_x,"BcP(f_x, 1)"), A),
     dec(op(f_x,"BcP(f_x, 2)"), B),
     dec(op(f_x,"BcP(f_x, 3)"), C),
-    "w->liveinfo" <- ["&","BcP(f_l, 6)"],
+    "w->liveinfo" <- ["&","BcP(f_l, 6)"], % TODO: use f_g
     cfun_semidet(A, callexp('((ctagged2_t)BcP(f_C, 4))', ["Arg",B,C])),
-    dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i)").
+    dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_g)").
 
 :- ins_op_format(builtin_1q, 226, [f_Q,f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_1q, r).
@@ -2953,13 +2953,13 @@ counted_neck :-
 fail :-
     goto('fail').
 
-:- ins_op_format(heapmargin_callq, 245, [f_Q,f_l,f_i]).
+:- ins_op_format(heapmargin_callq, 245, [f_Q,f_g]).
 heapmargin_callq :- shift(f_Q), goto_ins(heapmargin_call).
 
-:- ins_op_format(heapmargin_call, 246, [f_l,f_i], [label(_)]).
+:- ins_op_format(heapmargin_call, 246, [f_g], [label(_)]).
 heapmargin_call :-
     cachedreg('H',H),
-    if((callexp('HeapDifference', [H, "Heap_End"]), " < ", ["(intmach_t)","BcP(f_l, 1)"]),
+    if((callexp('HeapDifference', [H, "Heap_End"]), " < ", ["(intmach_t)","BcP(f_l, 1)"]), % TODO: abstract code to use f_g
       ([[mode(M)]],
        setmode(r),
        call('explicit_heap_overflow', ["Arg",["(intmach_t)","BcP(f_l, 1)*sizeof(tagged_t)"],["(FTYPE_ctype(f_i_signed))","BcP(f_i, 3)"]]),
@@ -2967,7 +2967,7 @@ heapmargin_call :-
        t0(T0),
        T0 <- "X(0)" % if followed by get_*_x0
        )),
-    dispatch("FTYPE_size(f_l)+FTYPE_size(f_i)").
+    dispatch("FTYPE_size(f_g)").
 
 :- ins_op_format(neck, 65, [], [label(_)]).
 neck :-
