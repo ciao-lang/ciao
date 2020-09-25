@@ -137,7 +137,7 @@ EOF
     elif [ -x "$dir" -a '(' ! -r "$dir/bundlereg/core.bundlecfg_sh" ')' ]; then
         for i in "$dir/*"; do
             cat >&2 <<EOF
-INTERNAL ERROR: suspicuous directory in clean_builddir:
+INTERNAL ERROR: suspicious directory in clean_builddir:
 
 The directory "$dir" is not empty and does not look like a valid build
 directory. For safety, this script is aborted.
