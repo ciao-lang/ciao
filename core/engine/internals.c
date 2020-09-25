@@ -1989,9 +1989,9 @@ CBOOL__PROTO(constraint_list)
   tagged_t *h;
   tagged_t l, v, clist;
   
-  pad = HeapDifference(w->heap_top,Heap_End);
+  pad = HeapCharDifference(w->heap_top,Heap_End);
   DEREF(X(0),X(0));
-  while ((find_constraints(Arg, TagToPointer(X(0)))*LSTCELLS)+CONTPAD > pad) {
+  while ((find_constraints(Arg, TagToPointer(X(0)))*LSTCELLS)*sizeof(tagged_t)+CONTPAD*sizeof(tagged_t) > pad) {
     l = *w->trail_top;
     while (l!=atom_nil) {
       v = l;
@@ -2000,7 +2000,7 @@ CBOOL__PROTO(constraint_list)
     }
     /* TODO: use pad<<=1 here or recompute available? */
     pad <<= 1;
-    explicit_heap_overflow(Arg,pad*sizeof(tagged_t),2);
+    explicit_heap_overflow(Arg,pad,2);
   }
   h = w->heap_top;
   l = *w->trail_top;

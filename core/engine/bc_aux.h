@@ -297,7 +297,7 @@ void init_some_bytecode(void) {
     }
   }
 
-  LIVEINFO__INIT(prolog_format_print_integer__liveinfo, CONTPAD, 3);
+  LIVEINFO__INIT(prolog_format_print_integer__liveinfo, CONTPAD*sizeof(tagged_t), 3);
 }
 
 /* --------------------------------------------------------------------------- */

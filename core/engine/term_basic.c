@@ -29,8 +29,8 @@
 /* local declarations */
 
 #define GCTEST(Pad) { \
-    if (HeapDifference(w->heap_top,Heap_End) < (Pad)) \
-      heap_overflow(Arg,Pad*sizeof(tagged_t)); \
+    if (HeapCharDifference(w->heap_top,Heap_End) < (Pad)*sizeof(tagged_t)) \
+      heap_overflow(Arg,(Pad)*sizeof(tagged_t)); \
     if (ChoiceDifference(w->node,w->trail_top) < (Pad)) \
       choice_overflow(Arg,Pad); \
   }

@@ -219,7 +219,7 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
 /* Heap_Warn that considers LIVEINFO__HEAP */
 #define Heap_Warn_GC Heap_Warn_Pad(LIVEINFO__HEAP(w->liveinfo))
 #else
-#define Heap_Warn_GC HeapOffset(Heap_End,-LIVEINFO__HEAP(w->liveinfo))
+#define Heap_Warn_GC HeapCharOffset(Heap_End,-LIVEINFO__HEAP(w->liveinfo))
 #endif
 
 #if defined(OPTIM_COMP)
@@ -342,8 +342,8 @@ CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i) {
 
   ENSURE_LIVEINFO;
   h = G->heap_top;
-  if (HeapDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(w->liveinfo)+4) {
-    CVOID__CALL(explicit_heap_overflow,LIVEINFO__HEAP(w->liveinfo)*sizeof(tagged_t)+4*sizeof(tagged_t), (short)LIVEINFO__ARITY(w->liveinfo));
+  if (HeapCharDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(w->liveinfo)+4*sizeof(tagged_t)) {
+    CVOID__CALL(explicit_heap_overflow,LIVEINFO__HEAP(w->liveinfo)+4*sizeof(tagged_t), (short)LIVEINFO__ARITY(w->liveinfo));
     h = G->heap_top;
   }
 
@@ -442,8 +442,8 @@ CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i) {
 // 
 //   ENSURE_LIVEINFO;
 //   h = G->heap_top;
-//   if (HeapDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(w->liveinfo)+3) {
-//     explicit_heap_overflow(Arg, LIVEINFO__HEAP(w->liveinfo)*sizeof(tagged_t)+3*sizeof(tagged_t), (short)LIVEINFO__ARITY(w->liveinfo));
+//   if (HeapCharDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(w->liveinfo)+3*sizeof(tagged_t)) {
+//     explicit_heap_overflow(Arg, LIVEINFO__HEAP(w->liveinfo)+3*sizeof(tagged_t), (short)LIVEINFO__ARITY(w->liveinfo));
 //     h = G->heap_top;
 //   }
 //   G->heap_top = h+3;

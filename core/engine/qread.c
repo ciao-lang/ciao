@@ -146,13 +146,12 @@ static CFUN__PROTO(qr_string, char *, FILE *f) {
 //#define TRACE_REWRITE(X) X
 
 #define USE_REWRITE_BYTECODE 1
+#define PATCH_LIVEINFO 1 /* (from cells to bytes) */
 
 #if defined(BC64)
 /* Rewrite bytecode and patch operands */
 #define PATCH_BC32 1
 #endif
-//#define PATCH_LIVEINFO 1
-#define PATCH_LIVEINFO 0
 
 #if defined(USE_REWRITE_BYTECODE) || defined(DUMP_INSTR)
 #include <ciao/absmachdef.h>
@@ -642,9 +641,9 @@ CVOID__PROTO(getbytecode32, FILE *f,
       */
       {
         int arity = 2;
-        int cells = (length / sizeof(tagged_t)) + 4 + arity;
-        if (HeapDifference(w->heap_top,Heap_End)<cells) {
-          explicit_heap_overflow(Arg,cells*sizeof(tagged_t),5);
+        int amount = length + (4+arity)*sizeof(tagged_t);
+        if (HeapCharDifference(w->heap_top,Heap_End)<amount) {
+          explicit_heap_overflow(Arg,amount,5);
         }
       }
       h = w->heap_top;
@@ -911,7 +910,7 @@ CBOOL__PROTO(qread1,
       break;
     case ENSURE_SPACE:
       pad = qr_int32(qfile);
-      if (HeapDifference(h,Heap_End) < pad) {
+      if (HeapCharDifference(h,Heap_End) < pad*sizeof(tagged_t)) {
         w->heap_top = h;
         explicit_heap_overflow(Arg,pad*sizeof(tagged_t),2);
         h = w->heap_top;

@@ -101,7 +101,7 @@ CBOOL__PROTO(undo_heap_overflow_excep);
 #define HeapOverflow_GC_(REQ, GCLen, GCRegs) ({ \
   intmach_t idx_ MAYBE_UNUSED = LIVEINFO__ARITY(w->liveinfo); \
   CONCAT(SAVE_XS,GCLen) GCRegs; \
-  CVOID__CALL(explicit_heap_overflow, ((REQ)+LIVEINFO__HEAP(w->liveinfo))*sizeof(tagged_t)*GCREQMUL, LIVEINFO__ARITY(w->liveinfo) + GCLen); \
+  CVOID__CALL(explicit_heap_overflow, ((REQ)*sizeof(tagged_t)+LIVEINFO__HEAP(w->liveinfo))*GCREQMUL, LIVEINFO__ARITY(w->liveinfo) + GCLen); \
   CONCAT(RESTORE_XS,GCLen) GCRegs; \
 })
 

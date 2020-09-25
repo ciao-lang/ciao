@@ -1656,11 +1656,11 @@ CBOOL__PROTO(initial_tabling_c) {
   INIT_NODE_TR(initial_node_tr);
   INIT_NODE_TR(LastNodeTR);
 
-  if (Heap_End != HeapOffset(Heap_Start, TABLING_GLOBALSTKSIZE))
+  if (Heap_End != HeapCharOffset(Heap_Start, TABLING_GLOBALSTKSIZE*sizeof(tagged_t)))
     {
-      intmach_t size = (TABLING_GLOBALSTKSIZE -
-                  HeapDifference(Heap_Start, w->heap_top))/2;
-      heap_overflow(Arg,size*sizeof(tagged_t));
+      intmach_t size = (TABLING_GLOBALSTKSIZE*sizeof(tagged_t) -
+                  HeapCharDifference(Heap_Start, w->heap_top))/2;
+      heap_overflow(Arg,size);
     }
 
   if (Stack_End != StackOffset(Stack_Start, TABLING_LOCALSTKSIZE))

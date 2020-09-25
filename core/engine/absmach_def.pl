@@ -2959,10 +2959,10 @@ heapmargin_callq :- shift(f_Q), goto_ins(heapmargin_call).
 :- ins_op_format(heapmargin_call, 246, [f_g], [label(_)]).
 heapmargin_call :-
     cachedreg('H',H),
-    if((callexp('HeapDifference', [H, "Heap_End"]), " < ", ["(intmach_t)","BcP(f_l, 1)"]), % TODO: abstract code to use f_g
+    if((callexp('HeapCharDifference', [H, "Heap_End"]), " < ", ["(intmach_t)","BcP(f_l, 1)"]), % TODO: abstract code to use f_g
       ([[mode(M)]],
        setmode(r),
-       call('explicit_heap_overflow', ["Arg",["(intmach_t)","BcP(f_l, 1)*sizeof(tagged_t)"],["(FTYPE_ctype(f_i_signed))","BcP(f_i, 3)"]]),
+       call('explicit_heap_overflow', ["Arg",["(intmach_t)","BcP(f_l, 1)"],["(FTYPE_ctype(f_i_signed))","BcP(f_i, 3)"]]),
        setmode(M),
        t0(T0),
        T0 <- "X(0)" % if followed by get_*_x0

@@ -2176,8 +2176,8 @@ P += FTYPE_size(f_Q);
 goto r_heapmargin_call;
 r_heapmargin_call:
 case HEAPMARGIN_CALL:
-if (HeapDifference(w->heap_top,Heap_End) < (intmach_t)BcP(f_l, 1)) {
-explicit_heap_overflow(Arg,(intmach_t)BcP(f_l, 1)*sizeof(tagged_t),(FTYPE_ctype(f_i_signed))BcP(f_i, 3));
+if (HeapCharDifference(w->heap_top,Heap_End) < (intmach_t)BcP(f_l, 1)) {
+explicit_heap_overflow(Arg,(intmach_t)BcP(f_l, 1),(FTYPE_ctype(f_i_signed))BcP(f_i, 3));
 t0 = X(0);
                 }
 P += FTYPE_size(f_l)+FTYPE_size(f_i);
@@ -4274,9 +4274,9 @@ P += FTYPE_size(f_Q);
 goto w_heapmargin_call;
 w_heapmargin_call:
 case HEAPMARGIN_CALL:
-if (HeapDifference(H,Heap_End) < (intmach_t)BcP(f_l, 1)) {
+if (HeapCharDifference(H,Heap_End) < (intmach_t)BcP(f_l, 1)) {
 StoreH;
-explicit_heap_overflow(Arg,(intmach_t)BcP(f_l, 1)*sizeof(tagged_t),(FTYPE_ctype(f_i_signed))BcP(f_i, 3));
+explicit_heap_overflow(Arg,(intmach_t)BcP(f_l, 1),(FTYPE_ctype(f_i_signed))BcP(f_i, 3));
 LoadH;
 t0 = X(0);
                   }
