@@ -373,7 +373,7 @@ static CFUN__PROTO(emit_unify_void, bcp_t, bcp_t P);
 static CVOID__PROTO(c_term_mark,
                     tagged_t t,
                     intmach_t temps,
-                    intmach_t *cells,
+                    intmach_t *hsize,
                     intmach_t *maxtemps,
                     intmach_t *bsize,
                     tagged_t **trail_origo);
@@ -406,7 +406,7 @@ static CVOID__PROTO(c_term_trail_push,
 
 /*static int*/
  /* x_variables, */       /* Now inside compile_term_aux and pased around */
- /* cells,       */                         /* Inited in compile_term_aux */
+ /* hsize,       */                         /* Inited in compile_term_aux */
  /* bsize,       */                         /* Inited in compile_term_aux */
  /* maxtemps;    */                         /* Inited in compile_term_aux */
 
@@ -417,7 +417,7 @@ static CVOID__PROTO(c_term_trail_push,
 static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo);
 static CVOID__PROTO(c_term_mark,
                     tagged_t t, intmach_t temps,
-                    intmach_t *cells, intmach_t *maxtemps, intmach_t *bsize, tagged_t **trail_origo);
+                    intmach_t *hsize, intmach_t *maxtemps, intmach_t *bsize, tagged_t **trail_origo);
 static CFUN__PROTO(emit_unify_void, bcp_t, bcp_t P);
 static CBOOL__PROTO(c_term, tagged_t t, int Xreg, int FreeReg,
                     int x_variables, tagged_t **trail_origo,
@@ -449,7 +449,7 @@ static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo) {
 static CVOID__PROTO(c_term_mark,
                     tagged_t t,
                     intmach_t temps,
-                    intmach_t *cells, intmach_t *maxtemps, intmach_t *bsize,
+                    intmach_t *hsize, intmach_t *maxtemps, intmach_t *bsize,
                     tagged_t **trail_origo) {
   CIAO_REG_2(tagged_t, t1);
   int i, arity;
@@ -483,13 +483,13 @@ static CVOID__PROTO(c_term_mark,
                FTYPE_size(f_o)+
                FTYPE_size(f_x)+
                2*FTYPE_size(f_o));
-    *cells += 2;
+    *hsize += 2*sizeof(tagged_t);
     if (*maxtemps < temps) {
       *maxtemps = temps;
     }
     RefCar(t1,t);
     Tr("m:o"); /* (from *bsize+=) */
-    c_term_mark(Arg, t1, temps+1, cells, maxtemps, bsize, trail_origo);
+    c_term_mark(Arg, t1, temps+1, hsize, maxtemps, bsize, trail_origo);
     RefCdr(t,t);
     Tr("m:o"); /* (from *bsize+=) */
     goto start;
@@ -505,7 +505,7 @@ static CVOID__PROTO(c_term_mark,
                  FTYPE_size(f_x)+
                  FTYPE_size(f_o)+
                  arity);
-      *cells += 1+(arity / sizeof(tagged_t));
+      *hsize += sizeof(tagged_t)+arity;
       return;
     } else {
       arity = Arity(TagToHeadfunctor(t));
@@ -518,14 +518,14 @@ static CVOID__PROTO(c_term_mark,
                  FTYPE_size(f_x)+
                  FTYPE_size(f_f)+
                  arity*FTYPE_size(f_o));
-      *cells += 1+arity;
+      *hsize += (1+arity)*sizeof(tagged_t);
       if (*maxtemps < temps) {
         *maxtemps = temps;
       }
       for (i=1; i<arity; i++) {
         Tr("m:o"); /* (from *bsize+=) */
         t1 = *TaggedToArg(t,i);
-        c_term_mark(Arg, t1, temps+arity-i, cells, maxtemps, bsize, trail_origo);
+        c_term_mark(Arg, t1, temps+arity-i, hsize, maxtemps, bsize, trail_origo);
       }
       Tr("m:o"); /* (from *bsize+=) */
       t = *TaggedToArg(t,arity);
@@ -861,12 +861,12 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   CIAO_REG_3(tagged_t *, pt2);
   instance_t *object = NULL;
   
-  intmach_t x_variables, cells, bsize, maxtemps;
+  intmach_t x_variables, hsize, bsize, maxtemps;
   tagged_t *trail_origo;
   bcp_t current_insn /*, *last_insn */ ;
 
   bsize = FTYPE_size(f_o); /* TODO: for DYNAMIC_NECK_PROCEED? */
-  cells=CONTPAD;
+  hsize=CONTPAD*sizeof(tagged_t);
   maxtemps=0;
   trail_origo = Arg->trail_top-DynamicPreserved;
 
@@ -874,17 +874,17 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   DerefHeapSwitch(head,t0,{goto car_done;});
   Tr("m:o+x");
   bsize += FTYPE_size(f_o)+FTYPE_size(f_x); /* for "Step 1" of c_term (get + arg + ...) */
-  c_term_mark(Arg, head, 0, &cells, &maxtemps, &bsize, &trail_origo);
+  c_term_mark(Arg, head, 0, &hsize, &maxtemps, &bsize, &trail_origo);
  car_done:
   Tr("c_term_mark2");
   DerefHeapSwitch(body,t0,{goto cdr_done;});
   Tr("m:o+x");
   bsize += FTYPE_size(f_o)+FTYPE_size(f_x); /* for "Step 1" of c_term (get + arg + ...) */
-  c_term_mark(Arg, body, 0, &cells, &maxtemps, &bsize, &trail_origo);
+  c_term_mark(Arg, body, 0, &hsize, &maxtemps, &bsize, &trail_origo);
  cdr_done:
 
   /* allow for heapmargin_call insn */
-  if (cells>=STATIC_CALLPAD) { /* (was SOFT_HEAPPAD) */
+  if (hsize>=STATIC_CALLPAD*sizeof(tagged_t)) { /* (was SOFT_HEAPPAD) */
     Tr("m:o(Q)+l+i");
     bsize += (FTYPE_size(f_o)+
               FTYPE_size(f_Q)+
@@ -936,12 +936,12 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   object->pending_x2 = NULL;
   object->pending_x5 = NULL;
 
-  if (cells>=STATIC_CALLPAD) { /* (was SOFT_HEAPPAD) */
+  if (hsize>=STATIC_CALLPAD*sizeof(tagged_t)) { /* (was SOFT_HEAPPAD) */
     bcp_t P = current_insn;
 
     Tr("e:o(Q)+l+i");
     ODDOP(HEAPMARGIN_CALL);
-    EMIT_l(cells);
+    EMIT_l(hsize);
     EMIT_i(DynamicPreserved);
     current_insn = P;
   }
