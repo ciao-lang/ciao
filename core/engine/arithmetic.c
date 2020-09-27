@@ -336,33 +336,35 @@ CFUN__PROTO(bn_from_float_GC, tagged_t, flt64_t f) {
   CFUN__LASTCALL(bn_finish);
 }
 
+#define FLT64_ALIGNED_BLOB_SIZE (4*sizeof(tagged_t))
+
 /* NOTE: possible heap overflow (make sure that all GC roots are visible) */
 CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i) {
   tagged_t *h;
 
   ENSURE_LIVEINFO;
   h = G->heap_top;
-  if (HeapCharDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(w->liveinfo)+4*sizeof(tagged_t)) {
-    CVOID__CALL(explicit_heap_overflow,LIVEINFO__HEAP(w->liveinfo)+4*sizeof(tagged_t), (short)LIVEINFO__ARITY(w->liveinfo));
-    h = G->heap_top;
-  }
-
+  TEST_HEAP_OVERFLOW(h,
+                     LIVEINFO__HEAP(w->liveinfo)+FLT64_ALIGNED_BLOB_SIZE,
+                     LIVEINFO__ARITY(w->liveinfo));
   HeapPush(h, MakeFunctorFloat);
-  union {
-    flt64_t i;
-    tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
-  } u;
-  u.i = i;
+  {
+    union {
+      flt64_t i;
+      tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
+    } u;
+    u.i = i;
 #if LOG2_bignum_size == 5
-  HeapPush(h, u.p[0]);
-  HeapPush(h, u.p[1]);
+    HeapPush(h, u.p[0]);
+    HeapPush(h, u.p[1]);
 #elif LOG2_bignum_size == 6
-  HeapPush(h, u.p[0]);
-  HeapPush(h, 0); /* dummy, for BC_SCALE==2 */
+    HeapPush(h, u.p[0]);
+    HeapPush(h, 0); /* dummy, for BC_SCALE==2 */
 #endif
+  }
   HeapPush(h, MakeFunctorFloat);
   G->heap_top = h;
-  CFUN__PROCEED(Tagp(STR, h-4));
+  CFUN__PROCEED(Tagp(STR, HeapCharOffset(h, -FLT64_ALIGNED_BLOB_SIZE)));
 }
 
 // // GC protected versions of int32/int64 to blob, not needed now

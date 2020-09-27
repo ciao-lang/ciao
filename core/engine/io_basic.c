@@ -1481,7 +1481,7 @@ CBOOL__PROTO(prolog_fast_read_in_c) {
   }
   if (i != FASTRW_VERSION) return FALSE;
 
-  ENSURE_HEAP(SPACE_FACTOR*kCells, 1);
+  TEST_HEAP_OVERFLOW(G->heap_top, SPACE_FACTOR*kCells*sizeof(tagged_t)+CONTPAD, 1);
 
   if (!prolog_fast_read_in_c_aux(Arg,&term,vars,&lastvar)) return FALSE;
 
@@ -1577,7 +1577,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       }
       {
         tagged_t *h = w->heap_top;
-        /* ENSURE_HEAP(i+1, 1); */
+        /* TEST_HEAP_OVERFLOW(h, (i+1)*sizeof(tagged_t)+CONTPAD, 1); */
         *h = SetArity(GET_ATOM(Atom_Buffer),i);
         *out = Tagp(STR,h++);
         w->heap_top += i+1;

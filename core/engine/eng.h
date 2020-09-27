@@ -1518,6 +1518,9 @@ struct marker_ {
 #define HeapPush(H,X)           (*(H) = (X), (H)++) /* X often contains H */
 #define HeapDecr(H)             (--(H))
 
+/* H: heap top */
+#define HeapCharAvailable(H) HeapCharDifference((H),Heap_End)
+
 /* THE FRAME STACK */
 
 /* assuming stack growth in positive direction */

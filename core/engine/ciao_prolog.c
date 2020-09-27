@@ -90,7 +90,7 @@ tagged_t ciao_unref(ciao_ctx ctx, ciao_term term);
 
 void ciao_ensure_heap(ciao_ctx ctx, size_t cells) {
   worker_t *w = ctx->worker_registers;
-  ENSURE_HEAP(cells, 0);
+  TEST_HEAP_OVERFLOW(G->heap_top, cells*sizeof(tagged_t)+CONTPAD, 0);
 }
 
 /* ------------------------------------------------------------------------- */

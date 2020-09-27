@@ -45,28 +45,22 @@ CBOOL__PROTO(undo_heap_overflow_excep);
 
 /* --------------------------------------------------------------------------- */
 
-/* Make sure that there is enough heap to allocate N cells (plus CONTPAD)
- * N - number of cells
+/* Make sure that there is enough heap to allocate AMOUNT bytes
  * Arity - number of live X regs
  */
-#define ENSURE_HEAP(N, Arity) { \
-  if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD+(N)*sizeof(tagged_t)) { \
-    CVOID__CALL(explicit_heap_overflow,CONTPAD+(N)*sizeof(tagged_t),(Arity)); \
+#define TEST_HEAP_OVERFLOW(H, AMOUNT, ARITY) ({ \
+  if (HeapCharAvailable((H)) < (AMOUNT)) { \
+    G->heap_top = (H); \
+    CVOID__CALL(explicit_heap_overflow, (AMOUNT), (ARITY)); \
+    (H) = G->heap_top; \
   } \
-} 
-
-/* Make sure that there is enough heap to allocate N bytes */
-#define ENSURE_HEAP_BYTES(N, Arity) { \
-  if (HeapCharDifference(w->heap_top,Heap_End)<(N)) { \
-    CVOID__CALL(explicit_heap_overflow,(N),(Arity)); \
-  } \
-}
+})
 
 /* Make sure that there is enough heap to construct a list spine.
  * N - length of the list
  * Arity - number of live X regs
  */
-#define ENSURE_HEAP_LST(N, Arity) ENSURE_HEAP((N)*LSTCELLS, (Arity))
+#define ENSURE_HEAP_LST(N, Arity) TEST_HEAP_OVERFLOW(G->heap_top, (N)*LSTCELLS*sizeof(tagged_t)+CONTPAD, (Arity))
 
 /* --------------------------------------------------------------------------- */
 /* Some handy C preprocessor macros */

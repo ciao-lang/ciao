@@ -1773,8 +1773,8 @@ CVOID__PROTO(clock_overflow)
     }
   }
 
-  /* grab space for array of clock values */
-  ENSURE_HEAP_BYTES(count*sizeof(instance_clock_t), DynamicPreserved);
+  /* grab space for temporary array of clock values */
+  TEST_HEAP_OVERFLOW(G->heap_top, count*sizeof(instance_clock_t), DynamicPreserved);
   clocks = (instance_clock_t *)w->heap_top;
 
   /* fill in distinct chpt clock values, relocating them as we go */
