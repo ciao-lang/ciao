@@ -286,8 +286,8 @@ CFUN__PROTO(bn_call2, tagged_t, bn_fun2_t f, tagged_t x0, tagged_t y0) {
   ENSURE_LIVEINFO;
   req = (*f)(x, y, (bignum_t *)G->heap_top, (bignum_t *)Heap_Warn_GC);
   if (req != 0) {
-    // if (req == -1) PANIC_FAULT("infinite bignum!"); /* TODO: not needed now (captured elsewhere) */
-    HeapOverflow_GC(req, x0, y0);
+    // if (req < 0) PANIC_FAULT("infinite bignum!"); /* TODO: not needed now (captured elsewhere) */
+    HeapOverflow_GC(req*sizeof(bignum_t), x0, y0);
     ENSURE_BIGNUM(x0, xb, x);
     ENSURE_BIGNUM(y0, yb, y);
     if ((*f)(x, y, (bignum_t *)G->heap_top, (bignum_t *)Heap_Warn_GC)) {
@@ -311,8 +311,8 @@ CFUN__PROTO(bn_call1, tagged_t, bn_fun1_t f, tagged_t x0) {
   ENSURE_LIVEINFO;
   req = (*f)(x, (bignum_t *)G->heap_top, (bignum_t *)Heap_Warn_GC);
   if (req != 0) {
-    // if (req == -1) PANIC_FAULT("infinite bignum!"); /* TODO: not needed now (captured elsewhere) */
-    HeapOverflow_GC(req, x0);
+    // if (req < 0) PANIC_FAULT("infinite bignum!"); /* TODO: not needed now (captured elsewhere) */
+    HeapOverflow_GC(req*sizeof(bignum_t), x0);
     ENSURE_BIGNUM(x0, xb, x);
     if ((*f)(x, (bignum_t *)G->heap_top, (bignum_t *)Heap_Warn_GC)) {
       SERIOUS_FAULT("miscalculated size of bignum");
@@ -327,8 +327,8 @@ CFUN__PROTO(bn_from_float_GC, tagged_t, flt64_t f) {
   ENSURE_LIVEINFO;
   req = bn_from_float(f, (bignum_t *)G->heap_top, (bignum_t *)Heap_Warn_GC);
   if (req != 0) { /* expand heap and try again */
-    // if (req == -1) PANIC_FAULT("infinite bignum!"); /* TODO: not needed now (captured elsewhere) */
-    HeapOverflow_GC(req);
+    // if (req < 0) PANIC_FAULT("infinite bignum!"); /* TODO: not needed now (captured elsewhere) */
+    HeapOverflow_GC(req*sizeof(bignum_t));
     if (bn_from_float(f, (bignum_t *)G->heap_top, (bignum_t *)Heap_Warn_GC)) {
       SERIOUS_FAULT("miscalculated size of bignum");
     }

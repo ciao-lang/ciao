@@ -90,18 +90,12 @@ CBOOL__PROTO(undo_heap_overflow_excep);
   CONCAT(POP_GC,GCLen) GCRegs; \
 })
 
-#if defined(OPTIM_COMP)
-#define GCREQMUL 2 /* TODO: check if this is really needed (residue from oc merge) */
-#else
-#define GCREQMUL 1
-#endif
-
 /* Call explicit_heap_overflow, where additional arguments are GC roots. */
 #define HeapOverflow_GC(REQ, ...) HeapOverflow_GC_(REQ, VA_NARGS(__VA_ARGS__), (__VA_ARGS__)) 
 #define HeapOverflow_GC_(REQ, GCLen, GCRegs) ({ \
   intmach_t idx_ MAYBE_UNUSED = LIVEINFO__ARITY(w->liveinfo); \
   CONCAT(SAVE_XS,GCLen) GCRegs; \
-  CVOID__CALL(explicit_heap_overflow, ((REQ)*sizeof(tagged_t)+LIVEINFO__HEAP(w->liveinfo))*GCREQMUL, LIVEINFO__ARITY(w->liveinfo) + GCLen); \
+  CVOID__CALL(explicit_heap_overflow, (REQ)+LIVEINFO__HEAP(w->liveinfo), LIVEINFO__ARITY(w->liveinfo) + GCLen); \
   CONCAT(RESTORE_XS,GCLen) GCRegs; \
 })
 
