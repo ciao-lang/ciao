@@ -50,8 +50,8 @@ CBOOL__PROTO(undo_heap_overflow_excep);
  * Arity - number of live X regs
  */
 #define ENSURE_HEAP(N, Arity) { \
-  if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD*sizeof(tagged_t)+(N)*sizeof(tagged_t)) { \
-    CVOID__CALL(explicit_heap_overflow,CONTPAD*sizeof(tagged_t)+(N)*sizeof(tagged_t),(Arity)); \
+  if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD+(N)*sizeof(tagged_t)) { \
+    CVOID__CALL(explicit_heap_overflow,CONTPAD+(N)*sizeof(tagged_t),(Arity)); \
   } \
 } 
 

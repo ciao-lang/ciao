@@ -35,22 +35,22 @@
 # define MAXATOM  STATICMAXATOM
 #endif
 
-#define CONTPAD 128             /* min. amount of heap at proceed */
-#define CALLPAD (2*(MAXATOM) + CONTPAD) /* min. amount of heap at call */
+#define CONTPAD 128*sizeof(tagged_t) /* min. amount of heap at proceed */
+#define CALLPAD (2*(MAXATOM)*sizeof(tagged_t) + CONTPAD) /* min. amount of heap at call */
 
 /* TODO: When does CALLPAD really need dynamic MAXATOM? Avoid it if possible */
 /* Static version of CALLPAD (should be the same value used in plwam) */
-#define STATIC_CALLPAD (2*(STATICMAXATOM) + CONTPAD)
+#define STATIC_CALLPAD (2*(STATICMAXATOM)*sizeof(tagged_t) + CONTPAD)
 
 #define HARD_HEAPPAD CALLPAD 
 
 #if defined(USE_OVERFLOW_EXCEPTIONS)
-#define DEFAULT_SOFT_HEAPPAD  (CALLPAD*2*sizeof(tagged_t)) /* min. amount of heap at low-level throw */
+#define DEFAULT_SOFT_HEAPPAD  (CALLPAD*2) /* min. amount of heap at low-level throw */
 #define SOFT_HEAPPAD          w->misc->soft_heappad 
 #define Heap_Limit            w->misc->heap_limit
 #else 
-#define DEFAULT_SOFT_HEAPPAD  HARD_HEAPPAD*sizeof(tagged_t)
-#define SOFT_HEAPPAD          HARD_HEAPPAD*sizeof(tagged_t)
+#define DEFAULT_SOFT_HEAPPAD  HARD_HEAPPAD
+#define SOFT_HEAPPAD          HARD_HEAPPAD
 #endif
 
 /* min. amount of stack at allocate */

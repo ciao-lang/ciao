@@ -1423,7 +1423,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
 
 #if defined(USE_OVERFLOW_EXCEPTIONS)
-    if ( Heap_Warn == HeapOffset(Heap_End,-HARD_HEAPPAD) ){
+    if ( Heap_Warn == HeapCharOffset(Heap_End,-HARD_HEAPPAD) ){
       /* Heap overflow exception already raised */
       SERIOUS_FAULT(tryalloc_errstring);
     } else if (SOFT_HEAPPAD == DEFAULT_SOFT_HEAPPAD) {
@@ -1437,9 +1437,9 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     if (!newh) {
       /* Raise a heap overflow exception */
       Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn
-                       ? HeapOffset(Heap_End,-HARD_HEAPPAD)
+                       ? HeapCharOffset(Heap_End,-HARD_HEAPPAD)
                        : Heap_Start);
-      Heap_Warn = HeapOffset(Heap_End,-HARD_HEAPPAD);
+      Heap_Warn = HeapCharOffset(Heap_End,-HARD_HEAPPAD);
       if ( wake_count < 0)
         Heap_Warn_Soft = Int_Heap_Warn;
       else 

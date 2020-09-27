@@ -297,7 +297,7 @@ void init_some_bytecode(void) {
     }
   }
 
-  LIVEINFO__INIT(prolog_format_print_integer__liveinfo, CONTPAD*sizeof(tagged_t), 3);
+  LIVEINFO__INIT(prolog_format_print_integer__liveinfo, CONTPAD, 3);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -866,7 +866,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   bcp_t current_insn /*, *last_insn */ ;
 
   bsize = FTYPE_size(f_o); /* TODO: for DYNAMIC_NECK_PROCEED? */
-  hsize=CONTPAD*sizeof(tagged_t);
+  hsize=CONTPAD;
   maxtemps=0;
   trail_origo = Arg->trail_top-DynamicPreserved;
 
@@ -884,7 +884,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
  cdr_done:
 
   /* allow for heapmargin_call insn */
-  if (hsize>=STATIC_CALLPAD*sizeof(tagged_t)) { /* (was SOFT_HEAPPAD) */
+  if (hsize>=STATIC_CALLPAD) { /* (was SOFT_HEAPPAD) */
     Tr("m:o(Q)+l+i");
     bsize += (FTYPE_size(f_o)+
               FTYPE_size(f_Q)+
@@ -936,7 +936,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   object->pending_x2 = NULL;
   object->pending_x5 = NULL;
 
-  if (hsize>=STATIC_CALLPAD*sizeof(tagged_t)) { /* (was SOFT_HEAPPAD) */
+  if (hsize>=STATIC_CALLPAD) { /* (was SOFT_HEAPPAD) */
     bcp_t P = current_insn;
 
     Tr("e:o(Q)+l+i");

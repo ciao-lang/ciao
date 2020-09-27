@@ -3677,8 +3677,8 @@ code_enter_pred :-
     %   if (Suspend == CHECK_SUSP) {
     %     //Save argument registers
     %     tagged_t *Htmp = H = w->heap_top;
-    %     if (HeapCharDifference(w->heap_top,Heap_End) < CONTPAD*sizeof(tagged_t) + (1 + Func->arity)*sizeof(tagged_t))
-    %       explicit_heap_overflow(w, CONTPAD*sizeof(tagged_t) + (1 + Func->arity)*sizeof(tagged_t), 0);
+    %     if (HeapCharDifference(w->heap_top,Heap_End) < CONTPAD + (1 + Func->arity)*sizeof(tagged_t))
+    %       explicit_heap_overflow(w, CONTPAD + (1 + Func->arity)*sizeof(tagged_t), 0);
     %     HeapPush(H,(tagged_t)P);
     %     int i;
     %     for (i = 0; i < Func->arity; i++) HeapPush(H,X(i));

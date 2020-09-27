@@ -1991,7 +1991,7 @@ CBOOL__PROTO(constraint_list)
   
   pad = HeapCharDifference(w->heap_top,Heap_End);
   DEREF(X(0),X(0));
-  while ((find_constraints(Arg, TagToPointer(X(0)))*LSTCELLS)*sizeof(tagged_t)+CONTPAD*sizeof(tagged_t) > pad) {
+  while ((find_constraints(Arg, TagToPointer(X(0)))*LSTCELLS)*sizeof(tagged_t)+CONTPAD > pad) {
     l = *w->trail_top;
     while (l!=atom_nil) {
       v = l;

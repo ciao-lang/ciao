@@ -311,7 +311,7 @@ CBOOL__PROTO(current_key)
         while (inst){
           intmach_t ar = LargeArity(hnode->key);
 
-          if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD*sizeof(tagged_t)+ar*sizeof(tagged_t)+3*sizeof(tagged_t)) {
+          if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD+ar*sizeof(tagged_t)+3*sizeof(tagged_t)) {
             explicit_heap_overflow(Arg,SOFT_HEAPPAD+ar*sizeof(tagged_t),5);
           }
 
@@ -340,7 +340,7 @@ CBOOL__PROTO(current_key)
 
     if (!(hnode->key & QMask)){
       if (inst && (hnode->key & mask) == (X(2) & mask)) {
-        if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD*sizeof(tagged_t)+ARITYLIMIT*sizeof(tagged_t)+3*sizeof(tagged_t)) {
+        if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD+ARITYLIMIT*sizeof(tagged_t)+3*sizeof(tagged_t)) {
           explicit_heap_overflow(Arg,SOFT_HEAPPAD,5);
         }
 
@@ -352,7 +352,7 @@ CBOOL__PROTO(current_key)
         while (inst){
           intmach_t ar = LargeArity(hnode->key);
 
-          if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD*sizeof(tagged_t)+ar*sizeof(tagged_t)+3*sizeof(tagged_t)) {
+          if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD+ar*sizeof(tagged_t)+3*sizeof(tagged_t)) {
             explicit_heap_overflow(Arg,SOFT_HEAPPAD+ar*sizeof(tagged_t),5);
           }
 

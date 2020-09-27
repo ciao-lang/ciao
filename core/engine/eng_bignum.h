@@ -72,12 +72,12 @@ static inline CFUN__PROTO(bn_finish, tagged_t) {
 #define StringToInt(Str, Base, Out, Arity) ({                           \
   int req = bn_from_string((Str),                                       \
                            (bignum_t *)w->heap_top,                     \
-                           (bignum_t *)HeapCharOffset(Heap_End,-CONTPAD*sizeof(tagged_t)), (Base)); \
+                           (bignum_t *)HeapCharOffset(Heap_End,-CONTPAD), (Base)); \
   if (req != 0) {                                                       \
-    explicit_heap_overflow(Arg, req*sizeof(tagged_t)+CONTPAD*sizeof(tagged_t), (Arity));                  \
+    explicit_heap_overflow(Arg, req*sizeof(tagged_t)+CONTPAD, (Arity));                  \
     if (bn_from_string((Str),                                           \
                        (bignum_t *)w->heap_top,                         \
-                       (bignum_t *)HeapCharOffset(Heap_End,-CONTPAD*sizeof(tagged_t)), (Base))) { \
+                       (bignum_t *)HeapCharOffset(Heap_End,-CONTPAD), (Base))) { \
       SERIOUS_FAULT("miscalculated size of bignum");                    \
     }                                                                   \
   }                                                                     \
