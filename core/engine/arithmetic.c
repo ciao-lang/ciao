@@ -1308,4 +1308,3 @@ CFUN__PROTO(fu1_atan, tagged_t, tagged_t x0) {
   EvalArith1(Number, t);
   CFUN__LASTCALL(flt64_to_blob_GC, atan(TaggedToFloat(t)));
 }
-
