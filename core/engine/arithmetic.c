@@ -10,7 +10,6 @@
 #if !defined(OPTIM_COMP)
 #include <ciao/internals.h>
 #include <ciao/eng_registry.h> /* switch_on_function */
-#include <ciao/arithmetic.h>
 #include <ciao/basiccontrol.h>
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_gc.h>

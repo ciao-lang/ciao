@@ -31,8 +31,6 @@
 
 #include <string.h>
 
-#include <ciao/arithmetic.h> /* fu1_integer() */
-
 /* --------------------------------------------------------------------------- */
 
 /* Own version of getc() that normalizes EOF (<0) to -1 */
@@ -1936,6 +1934,8 @@ CBOOL__PROTO(prolog_format_print_float) {
  * Precision is number of digits after decimal point for some formats and
  * radix for some formats.
  */
+
+CFUN__PROTO(fu1_integer, tagged_t, tagged_t X0);
 
 extern liveinfo_t prolog_format_print_integer__liveinfo;
 
