@@ -36,6 +36,8 @@ CBOOL__PROTO(compiled_clause);
 sw_on_key_node_t *dyn_puthash(sw_on_key_t **swp, tagged_t k);
 CBOOL__PROTO(set_property);
 
+#define FLT64_ALIGNED_BLOB_SIZE (4*sizeof(tagged_t))
+
 typedef bignum_size_t (*bn_fun2_t)(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);
 typedef bignum_size_t (*bn_fun1_t)(bignum_t *x, bignum_t *z, bignum_t *zmax);
 

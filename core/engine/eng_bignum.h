@@ -16,6 +16,27 @@
 
 #include <ciao/eng.h>
 
+#if LOG2_bignum_size == 5
+#define HeapPushFlt64(H, I) ({ \
+  union { \
+    flt64_t f; \
+    int32_t i[2]; \
+  } flt_as_int; \
+  flt_as_int.f = I; \
+  HeapPush(h, flt_as_int.i[0]); \
+  HeapPush(h, flt_as_int.i[1]); \
+  })
+#elif LOG2_bignum_size == 6
+#define HeapPushFlt64(H, I) ({ \
+  union { \
+    flt64_t f; \
+    tagged_t i; \
+  } flt_as_int; \
+  flt_as_int.f = I; \
+  HeapPush(h, flt_as_int.i); \
+})
+#endif
+
 bool_t bn_positive(bignum_t *x);
 bignum_size_t bn_add(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);
 bignum_size_t bn_incr(bignum_t *x, bignum_t *z, bignum_t *zmax);

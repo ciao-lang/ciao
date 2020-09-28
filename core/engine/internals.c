@@ -368,23 +368,14 @@ CFUN__PROTO(make_integer, tagged_t, intmach_t i) {
 }
 
 CFUN__PROTO(make_float, tagged_t, flt64_t i) {
-  union {
-    flt64_t i;
-    tagged_t p[sizeof(flt64_t)/sizeof(tagged_t)];
-  } u;
   tagged_t *h;
-
   h = w->heap_top;
-  HeapPush(h, MakeFunctorFloat);
-  u.i = i;
-#if LOG2_bignum_size == 5
-  HeapPush(h, u.p[0]);
-  HeapPush(h, u.p[1]);
-#elif LOG2_bignum_size == 6
-  HeapPush(h, u.p[0]);
-  HeapPush(h, 0); /* dummy, for BC_SCALE==2 */
+  HeapPush(h, BlobFunctorFlt64);
+  HeapPushFlt64(h, i);
+#if (!defined(OPTIM_COMP)) && LOG2_bignum_size==6 && BC_SCALE==2
+  HeapPush(h, 0); /* TODO: avoid dummy word for BC_SCALE==2? (fix length?) */
 #endif
-  HeapPush(h, MakeFunctorFloat);
+  HeapPush(h, BlobFunctorFlt64);
   w->heap_top = h;
   return Tagp(STR, h-4);
 }

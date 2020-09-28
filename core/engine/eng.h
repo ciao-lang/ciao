@@ -811,7 +811,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define GetBignumLength(T) (((T) - MakeLength(0))>>tagged__atm_offset)
 
 #define MakeFunctorFix   MakeLength(1)
-#define MakeFunctorFloat (TagIndex(NUM,3) + QMask)
+#define BlobFunctorFlt64 (TagIndex(NUM,3) + QMask)
 #define LargeIsFloat(X)  FunctorIsFloat(TagToHeadfunctor(X))
 #define FunctorIsFloat(X) (!((X)&TagBitFunctor))
 
