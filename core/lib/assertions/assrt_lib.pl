@@ -376,7 +376,7 @@ generate_asr_file(Base,Verb,Component) :-
     verb_message(Verb,['{Generating ',AsrName]),
     file_data(Base, PlName, _Dir),
     fmode(PlName, Mode),
-    file_buffer_begin(AsrName, no, Buffer, Stream),
+    file_buffer_begin(AsrName, Buffer, Stream),
     current_output(CO),
     set_output(Stream),
     asr_version(V),

@@ -113,7 +113,6 @@ itf_version(5).
 
 define_flag(verbose_compilation,    [on,  off], off).
 define_flag(itf_format,             [f,   r],   f). % f=fast{read,write}, r=prolog terms.
-define_flag(compress_lib,           [yes, no],  no).
 define_flag(read_assertions,        [yes, no],  yes).
 
 % runtime checks related flags:
@@ -1506,7 +1505,7 @@ do_expansion_checks(_).
 % TODO: move to a separate file (not dealing with incremental compilation)
 
 generate_itf(ItfName, Mode, Base) :-
-    file_buffer_begin(ItfName, no, Buffer, Stream),
+    file_buffer_begin(ItfName, Buffer, Stream),
     current_output(CO),
     set_output(Stream),
     itf_version(V),
@@ -1836,8 +1835,7 @@ make_po_file_1(Base, FilePred, Mode, Message) :-
     end_doing.
 
 make_po_file_2(PoName, Mode, Base, Module, Source) :-
-    current_prolog_flag(compress_lib, Compress),
-    file_buffer_begin(PoName, Compress, Buffer, Stream),
+    file_buffer_begin(PoName, Buffer, Stream),
     reset_counter(Module),
     set_compiler_mode_out(Mode, Stream),
     compiler_pass(Source, Base, Module, Mode, OK),
@@ -2923,7 +2921,7 @@ load_interpreted(Source, Base, Module) :-
 
 load_make_po(Base, Source, PoName, Profiling, Module) :-
     now_doing(['Compiling ',Source]),
-    file_buffer_begin(PoName, no, Buffer, Stream),
+    file_buffer_begin(PoName, Buffer, Stream),
     Mode = incoreql(Profiling),
     reset_counter(Module),
     set_compiler_mode_out(Mode, Stream),

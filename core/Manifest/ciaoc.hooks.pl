@@ -7,22 +7,8 @@
 
 % (also available as reconfigurable prolog_flags)
 % TODO: declaration in modules should be extracted from this configuration
-:- bundle_flag(compress_exec, [
-    config_prolog_flag(compress_exec,[yes,no],no)
-]).
 :- bundle_flag(itf_format, [
     config_prolog_flag(itf_format,[f,r],f)
-]).
-:- bundle_flag(compress_lib, [
-    comment("Enable compressed bytecode"),
-    details(
-      % .....................................................................
-      "If you wish to compile the Ciao libraries with their bytecode\n"||
-      "compressed then set the following variable to \"yes\". Libraries\n"||
-      "generated this way will be smaller at the cost of a slightly slower\n"||
-      "usage, both in their load as when used to create an executable."),
-    config_prolog_flag(compress_lib,[yes,no],no),
-    interactive([advanced])
 ]).
 :- bundle_flag(runtime_checks, [
     comment("Enable (optional) runtime checks"),

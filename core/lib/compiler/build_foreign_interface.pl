@@ -165,7 +165,7 @@ gluecode_2(_, CFile) :-
 %debug_display_assertions([X|Xs]) :- format(user_error, "[assertion] ~w~n", [X]), debug_display_assertions(Xs).
 
 write_c_to_file(CFile, Program, Module) :-
-    file_buffer_begin(CFile, no, Buffer, Stream),
+    file_buffer_begin(CFile, Buffer, Stream),
     current_output(CO),
     set_output(Stream),
     ( write_c(Program, Module, 0, _) -> OK = yes ; OK = no ),

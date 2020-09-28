@@ -1488,8 +1488,8 @@ void init_once(void)
   define_c_mod_predicate("stream_basic","clearerr",1,prolog_clearerr);
   define_c_mod_predicate("fastrw","fast_read",1,prolog_fast_read_in_c);
   define_c_mod_predicate("fastrw","fast_write",1,prolog_fast_write_in_c);
-  define_c_mod_predicate("compressed_bytecode","compressLZ",1,compressLZ);
-  define_c_mod_predicate("compressed_bytecode","copyLZ",1,copyLZ);
+  define_c_mod_predicate("compressed_bytecode","copyLZ",1,raw_copy_stdout); /* TODO: remove on next bootstrap promotion */
+  define_c_mod_predicate("io_basic","$raw_copy_stdout",1,raw_copy_stdout);
   
   define_c_mod_predicate("internals","$format_print_float",3,prolog_format_print_float);
   define_c_mod_predicate("internals","$format_print_integer",3,prolog_format_print_integer);

@@ -160,8 +160,6 @@ link(Specs, ExecName) :-
     memo :: memoize <- ~memoize.new(Errs),
 %define_flag(executables, [static, eagerload, lazyload], eagerload).
 %define_flag(self_contained,atom,none).
-%define_flag(compress_exec,[yes,no],no).
-%   set_prolog_flag(compress_exec, yes),
     set_prolog_flag(executables, eagerload),
     memo.enter,
     Ok = ( linker__bytecode:link(Specs, ExecName, _NativeInfo) ? yes | no ),
@@ -177,8 +175,6 @@ dynexec(Specs, ExecName) :-
     memo :: memoize <- ~memoize.new(Errs),
 %define_flag(executables, [static, eagerload, lazyload], eagerload).
 %define_flag(self_contained,atom,none).
-%define_flag(compress_exec,[yes,no],no).
-%   set_prolog_flag(compress_exec, yes),
     set_prolog_flag(executables, eagerload),
     memo.enter,
     Ok = ( recursive_archbin_update__2(Specs),

@@ -55,8 +55,7 @@ CBOOL__PROTO(prolog_fast_write_in_c);
 CBOOL__PROTO(prolog_format_print_float);
 CBOOL__PROTO(prolog_format_print_integer);
 
-CBOOL__PROTO(compressLZ); /* OPA */
-CBOOL__PROTO(copyLZ); /* OPA */
+CBOOL__PROTO(raw_copy_stdout);
 
 CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 

@@ -49,7 +49,6 @@
 :- use_module(library(ctrlcclean), [delete_on_ctrlc/2]).
 :- use_module(engine(internals),   [module_concat/3]).
 :- use_module(library(compiler/build_foreign_interface)). % JFMC
-:- use_module(library(compiler/compressed_bytecode)). % OPA
 
 % Extension for ciao executables in Win32
 :- include(win_exec_ext).
@@ -58,7 +57,6 @@ define_flag(executables, [static, eagerload, lazyload], eagerload).
 define_flag(check_libraries, [on, off], off).
 % (See eng_defs:eng_cfg/2 for possible values for self_contained)
 define_flag(self_contained, atom, none).
-define_flag(compress_exec, [yes, no], no).
 
 :- data ok_lazy/1.
 
@@ -434,26 +432,26 @@ create_exec(ExecName, Base, InitPo, PoFiles) :-
     resolve_execname(ExecName, Base, PlName, OS),
     % Regenerate ExecName if needed
     % TODO: this is not correct if InitPo changes, make it optional? or save config for incremental builds?
-%       modif_time0(ExecName, ExecTime),
-%       ( member(PoFile, PoFiles),
-%         modif_time0(PoFile, PoTime),
-%         ExecTime < PoTime -> % (InitPo is not checked)
+%   modif_time0(ExecName, ExecTime),
+%   ( member(PoFile, PoFiles),
+%     modif_time0(PoFile, PoTime),
+%     ExecTime < PoTime -> % (InitPo is not checked)
         % Recompile, some Po is more recent
         create_exec_(ExecName, [InitPo|PoFiles]),
         set_exec_mode(PlName, ExecName),
         % Generate batch file if needed
         generate_batch(OS, ExecName).
-%       ; true
-%       ).
+%   ; true
+%   ).
 
 create_exec_(ExecName, PoFiles) :-
-    file_buffer_begin(ExecName, no, Buffer, Stream),
+    file_buffer_begin(ExecName, Buffer, Stream),
     current_prolog_flag(self_contained, EngCfg),
     current_input(Si),
     current_output(So),
     set_output(Stream),
     copy_header(EngCfg),
-    copy_pos(PoFiles, Stream),
+    dump_pos(PoFiles),
     set_input(Si),
     set_output(So),
     ( file_buffer_commit(Buffer) -> true
@@ -520,22 +518,6 @@ generate_batch_Win32(ExecName) :-
 generate_batch_Win32(_) :-
     message(warning, ['Unable to create batch file']).
 
-copy_pos(PoFiles, _) :- % OPA
-    current_prolog_flag(compress_exec, no), !,
-    dump_pos(PoFiles).
-copy_pos(PoFiles, Stream) :-
-    temp_filename(TmpFile, Ref),
-    open(TmpFile, write, TmpStreamw),
-    set_output(TmpStreamw),
-    dump_pos(PoFiles),
-    close(TmpStreamw),
-    erase(Ref),
-    %
-    set_output(Stream),
-    open(TmpFile, read, TmpStreamr),
-    compressLZ(TmpStreamr),
-    close(TmpStreamr).
-
 resolve_execname(ExecName, _, _,  _) :- nonvar(ExecName), !.
 resolve_execname(ExecName, B, Pl, OS) :-
     % Pl file has no .pl extension or we are compiling for Win32
@@ -549,10 +531,12 @@ resolve_execname(ExecName, B, Pl, OS) :-
     atom_concat(B, Ext, ExecName).
 resolve_execname(ExecName, B, _, _) :- ExecName = B.
 
+:- import(io_basic, ['$raw_copy_stdout'/1]).
+
 dump_pos([File|Files]) :-
     verbose_message(['{Adding ', File, '}']),
     open(File, read, Stream),
-    copyLZ(Stream),
+    '$raw_copy_stdout'(Stream),
     close(Stream),
     nl,
     dump_pos(Files).

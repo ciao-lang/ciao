@@ -291,16 +291,6 @@ startup time @cite{ciaoc-entcs}:
   (this requires compiling the engine in that OS/architecture and
   installing it, so that it is available in the library). 
 
-@item{Compressed executables:} @cindex{executables, compressed}
-
-  In @em{compressed} executables the bytecode is compressed. This
-  allows producing smaller executables, at the cost of a slightly
-  slower startup time. This is selected with the @tt{-z} option. You
-  can also produce compressed libraries if you use @tt{-zl} along with
-  the @tt{-c} option.  If you select @tt{-zl} while generating an
-  executable, any library which is compiled to accomplish this will be
-  also compressed.
-
 @end{description}
 
 @section{Intermediate files in the compilation process}
@@ -492,13 +482,6 @@ main(Args) :-
 %
 :- flag_based_option(executables, static, '-s',
     "Make a static executable (otherwise dynamic files are not included).").
-%
-:- flag_based_option(compress_exec, yes, '-z',
-    "Generate executables with compressed bytecode.").
-%
-:- flag_based_option(compress_lib, yes, '-zl',
-    "Generate libraries with compressed bytecode - any library (re)compiled as \n\t"||
-    "consequence of normal executable compilation will also be affected.").
 %
 % NOTE: -e is redundant since it is already the default value -- EMM
 % :- flag_based_option(executables, eagerload, '-e',

@@ -1706,171 +1706,39 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
 
 /*----------------------------------------------------*/
 
-/* Routines for the compression and uncompression of bytecode, used on 
-   the CIAO compiler (OPA) */ 
+#define COPYBUFSIZE 4096
 
-unsigned char sizeLZ(int n) {
-  if (n > 2047) return 12;
-  else if (n > 1023) return 11;
-  else if (n > 511) return 10;
-  else return 9;
-}
-
-CVOID__PROTO(outLZ,
-             int *Buffer,
-             char *BufferSize,
-             int Code,
-             unsigned char size) {
-  Buffer[0] += Code*(1<<(BufferSize[0]));
-  for (BufferSize[0] += size; BufferSize[0] >= 8; BufferSize[0] -= 8) {
-    writebyte(Arg,Buffer[0] % 256,Output_Stream_Ptr);
-    Buffer[0] /= 256;
-  }
-}
-
-CBOOL__PROTO(compressLZ) {
-  ERR__FUNCTOR("compressed_bytecode:compressLZ", 1);
-  char *Dict[4096];
-  char *First;
-  char Vault[200000];
-  char CarrySize = 0;
-  int  i;
-  int  Carry = 0;  
-  int  Last = 256;
-  int  PrefixSize = 0;
-  int  Entry = 0;
-  int  Size[4096];
-  stream_node_t *s;
-  FILE *f;
-  
-  s = stream_to_ptr_check(X(0), 'r', &i);
-  if (!s) {
-    BUILTIN_ERROR(i,X(0),1);
-  }
-
-  f = s->streamfile;
-  
-  writebyte(Arg,12,Output_Stream_Ptr);
-
-  for (i = 0; i < 257; Size[i++] = 1) 
-      { Dict[i] = &Vault[i];
-        Vault[i] = i % 256; }
-  First = &Vault[256];
-  
-  while((i = getc(f)) >= 0) {
-    First[PrefixSize++] = i;
-    for (i = Entry; Entry <= Last; Entry++) {
-      if ((Size[Entry] == PrefixSize) && (Dict[Entry][0] == First[0])
-          && !(memcmp(&Dict[Entry][1],&First[1],PrefixSize-1))) {
-        break;
-      }
-    }
-    if (Entry > Last) {
-      Entry = First[PrefixSize-1];
-      outLZ(Arg,&Carry,&CarrySize,i,sizeLZ(Last));
-      if (Last == 4095) {
-        First = &Vault[Last = 256];
-      } else {
-        Dict[++Last] = First;
-        Size[Last] = PrefixSize;
-        First += PrefixSize;
-      }
-      First[0] = Entry;
-      PrefixSize = 1;
-    }
-  }
-
-  if (ferror(f)) {
-    IO_ERROR("getc() in compressLZ");
-  }
-
-  if (PrefixSize) {
-    outLZ(Arg,&Carry,&CarrySize,Entry,sizeLZ(Last));
-  }
-  outLZ(Arg,&Carry,&CarrySize,256,sizeLZ(Last));
-  outLZ(Arg,&Carry,&CarrySize,0,7);
-  return TRUE;
-}
-
-static CVOID__PROTO(inLZ, FILE *f,
-                    int *Buffer, char *BufferSize,
-                    int *Code, char size) {
-  //  ERR__FUNCTOR("compressed_bytecode:copyLZ", 1);
+/* Copy a stream to Output_Stream_Ptr (low level access to FILE)  */
+CBOOL__PROTO(raw_copy_stdout) {
+  ERR__FUNCTOR("io_basic:$raw_copy_stdout", 1);
+  char buffer[COPYBUFSIZE];
   int i;
-
-  for (; BufferSize[0] < size; BufferSize[0] += 8) {
-    i = getc(f);
-    if (i < 0) {
-      if (ferror(f)) {
-        IO_ERROR("getc() in inLZ()");
-      }
-    } 
-    Buffer[0] += ((unsigned char) i)*(1<<BufferSize[0]);
-  }
-  Code[0] = Buffer[0] % (1<<size);
-  Buffer[0] /= (1<<size);
-  BufferSize[0] -= size;
-}
-
-CBOOL__PROTO(copyLZ) {
-  ERR__FUNCTOR("compressed_bytecode:copyLZ", 1);
-  int  i;
-  int  Last = 256;
-  int  PrefixSize = 1;
-  int  Carry = 0;
-  char CarrySize = 0;
-  char *Dict[4096];
-  int  Size[4096];
-  char *First;
-  char Vault[200000];
   stream_node_t *s;
-  FILE *f;
   
   s = stream_to_ptr_check(X(0), 'r', &i);
   if (!s) {
     BUILTIN_ERROR(i,X(0),1);
   }
+  if (Output_Stream_Ptr->streammode == 's') { /* a socket */
+    IO_ERROR("socket not supported in '$raw_copy_stdout'/1");
+  }
 
-  f = s->streamfile;
-  
-  i = getc(f);
-  
-  if (i != 12) {
-    while (i >= 0) {
-      writebyte(Arg,i,Output_Stream_Ptr);
-      i = getc(f);
-    }
-    if (ferror(f)) {
-      IO_ERROR("getc() in copyLZ()");
-    }
-    return TRUE;
-  } else {
-    for (i = 0; i < 257; Size[i++] = 1) {
-      Dict[i] = &Vault[i];
-      Vault[i] = i % 256;
-    }
-    First = &Vault[256];
- 
-    inLZ(Arg,f,&Carry,&CarrySize,&i,9);
-    First[0] = i;
-    while(1) {
-      for (i = 0; i < PrefixSize;) {
-        writebyte(Arg,First[i++],Output_Stream_Ptr);
+  FILE *f = s->streamfile;
+  FILE *out_f = Output_Stream_Ptr->streamfile; /* (assume this is not a socket) */
+
+  for(;;) {
+    int r = fread(buffer, 1, COPYBUFSIZE, f);
+    if (r < 1) {
+      if (ferror(f) != 0 && feof(f) == 0) {
+        IO_ERROR("fread() in '$raw_copy_stdout'/1");
       }
-      inLZ(Arg,f,&Carry,&CarrySize,&i,sizeLZ(++Last % 4096));
-      return FALSE;
-      if (i == 256) return TRUE;
-      if (Last == 4096) {
-        (First = &Vault[Last = 256])[0] = i;
-        PrefixSize = 1;
-      } else {
-        Size[Last] = PrefixSize+1;
-        (Dict[Last] = First)[PrefixSize] = Dict[i][0];
-        (void)memmove(First += Size[Last],Dict[i],PrefixSize = Size[i]);
-      }
+      break;
+    }
+    if (fwrite(buffer, r, 1, out_f) != 1) {
+      IO_ERROR("fwrite() in '$raw_copy_stdout'/1");
     }
   }
-  return FALSE;
+  return TRUE;
 }
 
 /* --------------------------------------------------------------------------- */
