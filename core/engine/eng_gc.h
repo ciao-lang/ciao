@@ -28,7 +28,6 @@ CBOOL__PROTO(envstack_usage);
 CBOOL__PROTO(choice_usage);
 CBOOL__PROTO(trail_usage);
 CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity);
-CBOOL__PROTO(heap_limit);
 
 #if defined(ANDPARALLEL)
 //bool_t is_rem_Hterm(tagged_t term, worker_t *w, worker_t *remote_w);
@@ -38,10 +37,6 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 CVOID__PROTO(heap_overflow_adjust_wam, intmach_t reloc_factor, tagged_t *newh);
 #endif
 CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);
-
-#if defined(USE_OVERFLOW_EXCEPTION)
-CBOOL__PROTO(undo_heap_overflow_excep);
-#endif
 
 /* --------------------------------------------------------------------------- */
 

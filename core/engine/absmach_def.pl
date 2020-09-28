@@ -3708,7 +3708,7 @@ code_enter_pred :-
       if("OffHeaptop(H+4*wake_count,Heap_Warn)",
         ("SETUP_PENDING_CALL(address_true);",
          setmode(r),
-         "heap_overflow(Arg,SOFT_HEAPPAD+4*wake_count*sizeof(tagged_t));",
+         "heap_overflow(Arg,CALLPAD+4*wake_count*sizeof(tagged_t));",
          setmode(w))),
       if("wake_count>0",
         if("wake_count==1",

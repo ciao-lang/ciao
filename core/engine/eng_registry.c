@@ -259,11 +259,6 @@ tagged_t atom_create;                 /* "create" */
 tagged_t atom_counter;           /* "counter" */
 #endif
 
-#if defined(USE_OVERFLOW_EXCEPTIONS)
-tagged_t atom_undo_heap_overflow_excep;
-#endif
-tagged_t atom_heap_limit;
-
 tagged_t functor_neck;
 tagged_t functor_list;
 tagged_t functor_cut;
@@ -1296,11 +1291,6 @@ void init_once(void)
   atom_default_ciaoroot = GET_ATOM(ciaoroot_directory);
   atom_default_c_headers_dir = GET_ATOM(c_headers_directory);
 
-#if defined(USE_OVERFLOW_EXCEPTIONS)
-  atom_undo_heap_overflow_excep = GET_ATOM("internals:$undo_heap_overflow_excep");
-#endif
-  atom_heap_limit = GET_ATOM("internals:$heap_limit");
-
   current_gcmode = atom_on;
   current_gctrace = atom_off;
   current_gcmargin = MakeSmall(500); /* Quintus has 1024 */
@@ -1683,11 +1673,6 @@ void init_once(void)
   define_c_mod_predicate("concurrency","atom_lock_state",2,prolog_lock_atom_state);
   define_c_mod_predicate("internals","$unlock_predicate",1,prolog_unlock_predicate);
 
-#if defined(USE_OVERFLOW_EXCEPTIONS)
-  define_c_mod_predicate("internals","$undo_heap_overflow_excep",0,undo_heap_overflow_excep);
-#endif
-  define_c_mod_predicate("internals","$heap_limit",1,heap_limit);
-
   address_nd_repeat = def_retry_c(nd_repeat,0);
   address_nd_current_atom = def_retry_c(nd_current_atom,2);
   address_nd_current_stream = def_retry_c(nd_current_stream,4);
@@ -2043,12 +2028,7 @@ CVOID__PROTO(create_wam_areas)
   GETENV(i,cp,"GLOBALSTKSIZE",GLOBALSTKSIZE);
   Heap_Start = checkalloc_ARRAY(tagged_t, i);
   Heap_End =  HeapOffset(Heap_Start,i);
-  Heap_Warn_Soft = Heap_Warn = HeapCharOffset(Heap_End,-DEFAULT_SOFT_HEAPPAD);
-
-#if defined(USE_OVERFLOW_EXCEPTIONS)
-  SOFT_HEAPPAD = DEFAULT_SOFT_HEAPPAD;
-  Heap_Limit = 0;
-#endif 
+  Heap_Warn_Soft = Heap_Warn = HeapCharOffset(Heap_End,-CALLPAD);
 
   /* stack pointer is first free cell, grows ++ */
   GETENV(i,cp,"LOCALSTKSIZE",LOCALSTKSIZE);
@@ -2107,11 +2087,7 @@ CVOID__PROTO(reinitialize_wam_areas)
     Atom_Buffer_Length = STATICMAXATOM;
   }
 
-  Heap_Warn_Soft = Heap_Warn = HeapCharOffset(Heap_End,-DEFAULT_SOFT_HEAPPAD);
-#if defined(USE_OVERFLOW_EXCEPTIONS)
-  SOFT_HEAPPAD = DEFAULT_SOFT_HEAPPAD;
-  Heap_Limit = 0;
-#endif 
+  Heap_Warn_Soft = Heap_Warn = HeapCharOffset(Heap_End,-CALLPAD);
 
   Stack_Warn = StackOffset(Stack_End,-STACKPAD);
 }

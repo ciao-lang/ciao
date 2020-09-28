@@ -884,7 +884,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
  cdr_done:
 
   /* allow for heapmargin_call insn */
-  if (hsize>=STATIC_CALLPAD) { /* (was SOFT_HEAPPAD) */
+  if (hsize>=STATIC_CALLPAD) { /* (was CALLPAD) */
     Tr("m:o(Q)+l+i");
     bsize += (FTYPE_size(f_o)+
               FTYPE_size(f_Q)+
@@ -936,7 +936,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   object->pending_x2 = NULL;
   object->pending_x5 = NULL;
 
-  if (hsize>=STATIC_CALLPAD) { /* (was SOFT_HEAPPAD) */
+  if (hsize>=STATIC_CALLPAD) { /* (was CALLPAD) */
     bcp_t P = current_insn;
 
     Tr("e:o(Q)+l+i");

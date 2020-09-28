@@ -1351,15 +1351,3 @@ where_term(PredName, PredArity, Arg, WhereError):-
 where_term(PredName, PredArity, 0, PredName/PredArity) :- !.
 where_term(PredName, PredArity, Arg, PredName/PredArity-Arg).
 
-% ---------------------------------------------------------------------------
-
-:- export('$undo_heap_overflow_excep'/0).
-:- trust pred '$undo_heap_overflow_excep'/0.
-:- impl_defined('$undo_heap_overflow_excep'/0). 
-
-:- export('$heap_limit'/1).
-:- trust pred '$heap_limit'/1.
-:- impl_defined('$heap_limit'/1). 
-
-% ---------------------------------------------------------------------------
-

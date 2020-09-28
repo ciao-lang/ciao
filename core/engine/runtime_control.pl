@@ -568,51 +568,6 @@ predicate_property_mod(_IM, EM, F, N, Prop) :-
 :- impl_defined(garbage_collect/0).
 
 % ---------------------------------------------------------------------------
-% TODO: not ready, disable?
-:- doc(hide, set_heap_limit/1).
-:- export(set_heap_limit/1).
-:- pred set_heap_limit(Limit) : integer(Limit) # "Sets the
-   @concept{heap limit} to the largest multiple of word size smaller
-   than @var{Limit}.  If more than @concept{heap limit} kilobytes of
-   heap are used then throw an exception. This behaviour is disabled
-   if the flag is set to a null value.  This limit does not directly
-   influence the real size of the heap, but just limits the amount of
-   memory used within. Initially @concept{heap limit} is set to 0.".
-
-set_heap_limit(0) :- !,             % Call without heap consumption 
-    '$heap_limit'(0).
-set_heap_limit(Limit):- 
-    integer(Limit), 
-    NewLimit is Limit // 4,     % 4 stands for sizeof(tagged_t)
-    (
-        try_to_set_heap_limit(NewLimit) ->
-        true
-    ;
-        garbage_collect, 
-        try_to_set_heap_limit(NewLimit) ->
-        true
-    ;
-        throw(error(resource_error(heap), set_heap_limit/1))
-    ).
-
-try_to_set_heap_limit(NewLimit):-
-    statistics(global_stack, [GlobalStack, _]), 
-    GlobalStackSize is (GlobalStack + 1) // 4, 
-    GlobalStackSize < NewLimit, 
-    '$heap_limit'(NewLimit).
-
-% ---------------------------------------------------------------------------
-% TODO: not ready, disable?
-:- doc(hide, current_heap_limit/1).
-:- export(current_heap_limit/1).
-:- pred current_heap_limit(Limit) : true => integer(Limit) # "Unifies 
-   @var{Limit} to the current @concept{heap limit}".
-
-current_heap_limit(Limit) :-
-    '$heap_limit'(CurrentLimit), 
-    Limit is CurrentLimit * 4.
-
-% ---------------------------------------------------------------------------
 
 % :- use_module(engine(internals), [
 %       '$unknown'/2, '$ferror_flag'/2, '$prompt'/2, '$unix_argv'/1,

@@ -1337,17 +1337,13 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor)
 
 static bool_t gcexplicit = FALSE;       /* Shared, no locked --- global flag */
 
-
-CBOOL__PROTO(gc_start)
-{
-    gcexplicit = TRUE;
-    heap_overflow(Arg,SOFT_HEAPPAD);
-
-    return TRUE;
+CBOOL__PROTO(gc_start) {
+  gcexplicit = TRUE;
+  heap_overflow(Arg,CALLPAD);
+  return TRUE;
 }
 
-
-/* Here when w->heap_top and Heap_End are within SOFT_HEAPPAD from each other. */
+/* Here when w->heap_top and Heap_End are within CALLPAD from each other. */
 CVOID__PROTO(heap_overflow, intmach_t pad)
 {
   tagged_t *oldh = w->heap_top;
@@ -1369,7 +1365,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
 #if defined(DEBUG)
   if (debug_threads) {
     printf("\nWAM %x is in heap_overflow!\n",(unsigned int)w);
-    printf("w->heap_top and Heap_End are within SOFT_HEAPPAD from each other.\n");
+    printf("w->heap_top and Heap_End are within CALLPAD from each other.\n");
     fflush(stdout);
   }
 #endif
@@ -1422,35 +1418,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     oldcount = HeapCharDifference(Heap_Start,Heap_End);
     newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
 
-#if defined(USE_OVERFLOW_EXCEPTIONS)
-    if ( Heap_Warn == HeapCharOffset(Heap_End,-HARD_HEAPPAD) ){
-      /* Heap overflow exception already raised */
-      SERIOUS_FAULT(tryalloc_errstring);
-    } else if (SOFT_HEAPPAD == DEFAULT_SOFT_HEAPPAD) {
-      /* Heap limit not reached */
-      newh = tryrealloc(Heap_Start, oldcount, newcount);
-    } else { 
-      /* Heap limit reached */
-      newh = NULL;
-    }
-
-    if (!newh) {
-      /* Raise a heap overflow exception */
-      Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn
-                       ? HeapCharOffset(Heap_End,-HARD_HEAPPAD)
-                       : Heap_Start);
-      Heap_Warn = HeapCharOffset(Heap_End,-HARD_HEAPPAD);
-      if ( wake_count < 0)
-        Heap_Warn_Soft = Int_Heap_Warn;
-      else 
-        Heap_Warn_Soft = Heap_Start;
-
-      TrailPush(w->trail_top,atom_undo_heap_overflow_excep);
-      UNLOCATED_EXCEPTION(RESOURCE_ERROR(R_STACK));
-    }
-#else 
     newh = (tagged_t *)checkrealloc_ARRAY(char, oldcount, newcount, Heap_Start);
-#endif
 
 #if defined(DEBUG)
     if (debug_gc)
@@ -1474,18 +1442,12 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
 
    /* Final adjustments */
 
-#if defined(USE_OVERFLOW_EXCEPTIONS)
-    if ((Heap_Limit != 0)  &&                             /* Heap limit is on */
-        (Heap_Limit < newcount - DEFAULT_SOFT_HEAPPAD))   /* Heap bigger than Heap limit */
-      SOFT_HEAPPAD = newcount - Heap_Limit;
-#endif
-
     Heap_Start = newh; /* new low bound */
     Heap_End = HeapCharOffset(newh, newcount); /* new high bound */
     Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn
-                     ? HeapCharOffset(Heap_End,-SOFT_HEAPPAD)
+                     ? HeapCharOffset(Heap_End,-CALLPAD)
                      : Heap_Start);
-    Heap_Warn = HeapCharOffset(Heap_End,-SOFT_HEAPPAD);
+    Heap_Warn = HeapCharOffset(Heap_End,-CALLPAD);
     if (wake_count>=0)
       Heap_Warn_Soft = HeapCharOffset(Heap_Start,-wake_count);
     else
@@ -1812,58 +1774,3 @@ CVOID__PROTO(trail_gc)
   b = w->node;
   SetShadowregs(b);
 }
-
-
-#if defined(USE_OVERFLOW_EXCEPTIONS)
-CBOOL__PROTO(undo_heap_overflow_excep)
-{
-  intmach_t wake_count = WakeCount;
-
-  Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn
-                   ? HeapCharOffset(Heap_End,-SOFT_HEAPPAD)
-                   : Heap_Start);
-  Heap_Warn = HeapCharOffset(Heap_End,-SOFT_HEAPPAD);
-  if (wake_count<0){
-    Heap_Warn_Soft = Int_Heap_Warn;
-  }
-
-  return TRUE;
-}
-
-
-// heap_limit assumes X(0) is either variable or small integer
-CBOOL__PROTO(heap_limit)
-{
-  tagged_t x;
-  intmach_t wake_count;
-
-  DEREF(x,X(0)); 
-  if (IsVar(x)) CBOOL__LASTUNIFY(x, MakeSmall(Heap_Limit/sizeof(tagged_t)));
-
-  Heap_Limit = GetSmall(x)*sizeof(tagged_t);
-  wake_count = WakeCount;
-   
-  if ((Heap_Limit == 0)  ||                                             /* Heap limit is off */
-      (Heap_Limit >= HeapCharDifference(Heap_Start,Heap_End) - DEFAULT_SOFT_HEAPPAD))   /* Heap smaller than Heap limit */
-    SOFT_HEAPPAD = DEFAULT_SOFT_HEAPPAD;
-  else 
-    SOFT_HEAPPAD = HeapCharDifference(Heap_Start,Heap_End) - Heap_Limit;
-  
-  Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn
-                   ? HeapCharOffset(Heap_End,-SOFT_HEAPPAD)
-                   : Heap_Start);
-  Heap_Warn = HeapCharOffset(Heap_End,-SOFT_HEAPPAD);
-  
-  if (wake_count>=0)
-    Heap_Warn_Soft = HeapCharOffset(Heap_Start,-wake_count);
-  else
-    Heap_Warn_Soft = Int_Heap_Warn;
-  
-  return TRUE;
-
-}
-#else 
-CBOOL__PROTO(heap_limit) {
-  CBOOL__LASTUNIFY(TaggedZero, X(0));
-}
-#endif

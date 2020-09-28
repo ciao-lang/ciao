@@ -16,18 +16,9 @@
 /* =========================================================================== */
 /* Margins and initial allocation parameters. */
 
-// #define USE_OVERFLOW_EXCEPTIONS 1  /* Deactivated by default */
-
 #define kCells   1024
 
 #define STATICMAXATOM 1024     /* Avoid very long atoms inside the engine */
-
-#if defined(USE_OVERFLOW_EXCEPTIONS)
-/* TODO: why? */
-#undef  USE_DYNAMIC_ATOM_SIZE   /* overflow excp. requires static atom size */      
-#else     
-#define USE_DYNAMIC_ATOM_SIZE   /* By default */
-#endif
 
 #if defined(USE_DYNAMIC_ATOM_SIZE) 
 # define MAXATOM  Atom_Buffer_Length
@@ -41,17 +32,6 @@
 /* TODO: When does CALLPAD really need dynamic MAXATOM? Avoid it if possible */
 /* Static version of CALLPAD (should be the same value used in plwam) */
 #define STATIC_CALLPAD (2*(STATICMAXATOM)*sizeof(tagged_t) + CONTPAD)
-
-#define HARD_HEAPPAD CALLPAD 
-
-#if defined(USE_OVERFLOW_EXCEPTIONS)
-#define DEFAULT_SOFT_HEAPPAD  (CALLPAD*2) /* min. amount of heap at low-level throw */
-#define SOFT_HEAPPAD          w->misc->soft_heappad 
-#define Heap_Limit            w->misc->heap_limit
-#else 
-#define DEFAULT_SOFT_HEAPPAD  HARD_HEAPPAD
-#define SOFT_HEAPPAD          HARD_HEAPPAD
-#endif
 
 /* min. amount of stack at allocate */
 #define STACKPAD (2*ARITYLIMIT + 16)
@@ -548,9 +528,9 @@
 #define UpdateHeapMargins() { \
     int wake_count = WakeCount; \
     Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn \
-                     ? HeapCharOffset(Heap_End,-SOFT_HEAPPAD) \
+                     ? HeapCharOffset(Heap_End,-CALLPAD) \
                      : Heap_Start); \
-    Heap_Warn = HeapCharOffset(Heap_End,-SOFT_HEAPPAD); \
+    Heap_Warn = HeapCharOffset(Heap_End,-CALLPAD); \
     if (wake_count>=0) \
       Heap_Warn_Soft = HeapCharOffset(Heap_Start,-wake_count); \
     else \
@@ -1177,11 +1157,6 @@ struct misc_info_ {
   tagged_t culprit;
 
   SIGJMP_BUF *errhandler;
-
-#if defined(USE_OVERFLOW_EXCEPTIONS)
-  intmach_t soft_heappad;
-  intmach_t heap_limit;
-#endif 
 
   /* Access the goal descriptor for this thread */
   goal_descriptor_t *goal_desc_ptr;
@@ -2142,11 +2117,6 @@ extern tagged_t atom_no_block;
 #if defined(GAUGE)
 extern tagged_t atom_counter;
 #endif
-
-#if defined(USE_OVERFLOW_EXCEPTIONS)
-extern tagged_t atom_undo_heap_overflow_excep;
-#endif
-extern tagged_t atom_heap_limit;
 
 extern tagged_t functor_neck;
 extern tagged_t functor_list;
