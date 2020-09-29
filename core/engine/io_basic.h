@@ -122,8 +122,7 @@ int c_runetomb(char * s, c_rune_t r);
  * looks at the first byte of s only. If the first byte of s is not in
  * a proper UTF8 format, the function return -1.
  */
-inline int c_mblen(const char *s);
-
+int c_mblen(const char *s);
 
 /* c_mbstrlen(const char *s) computes the number of bytes used by a
  * multibyte character string s. The function returns the number of

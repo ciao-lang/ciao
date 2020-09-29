@@ -23,8 +23,6 @@
 #include <ciao/timing.h>
 #include <ciao/stream_basic.h>
 
-#include <ciao/system.h>
-
 #include <ciao/eng_registry.h>
 
 /* (only for registering) */
@@ -35,9 +33,7 @@
 #include <ciao/rt_exp.h>
 #include <ciao/runtime_control.h>
 #include <ciao/qread.h>
-#include <ciao/system.h>
 #include <ciao/dynlink.h>
-#include <ciao/concurrency.h>
 
 #if defined(PROFILE)
 #define __USE_GNU
@@ -550,6 +546,8 @@ intmach_t lookup_atom_idx(char *str) {
 
 /*-----------------------------------------------------------*/
 
+intmach_t goal_from_thread_id(THREAD_ID id); /* concurrency.c */
+
 void failc(char *mesg) {
   extern char source_path[];
 
@@ -991,6 +989,7 @@ extern char *c_headers_directory;
 
 tagged_t atm_var, atm_attv, atm_float, atm_int, atm_str, atm_atm, atm_lst;
 
+/* --------------------------------------------------------------------------- */
 /* (prototypes for registering) */
 /* bc_aux.h */
 CBOOL__PROTO(metachoice);
@@ -1101,6 +1100,82 @@ CBOOL__PROTO(nd_atom_concat); /* TODO: .pl decl should have a pair */
 CBOOL__PROTO(prolog_name);
 CBOOL__PROTO(prolog_number_codes_2);
 CBOOL__PROTO(prolog_number_codes_3);
+/* concurrency.c */
+CBOOL__PROTO(prolog_eng_call);
+CBOOL__PROTO(prolog_eng_backtrack);
+CBOOL__PROTO(prolog_eng_cut);
+CBOOL__PROTO(prolog_eng_release);
+CBOOL__PROTO(prolog_eng_wait);
+CBOOL__PROTO(prolog_eng_kill);
+CBOOL__PROTO(prolog_eng_killothers);
+CBOOL__PROTO(prolog_eng_status);
+CBOOL__PROTO(prolog_eng_self);
+CBOOL__PROTO(prolog_lock_atom);
+CBOOL__PROTO(prolog_unlock_atom);
+CBOOL__PROTO(prolog_lock_atom_state);
+CBOOL__PROTO(prolog_unlock_predicate);
+/* system.c */
+CBOOL__PROTO(prolog_using_windows);
+CBOOL__PROTO(prolog_exec);
+CBOOL__PROTO(prolog_wait);
+CBOOL__PROTO(prolog_kill);
+CBOOL__PROTO(prolog_unix_cd);
+CBOOL__PROTO(prolog_unix_shell0);
+CBOOL__PROTO(prolog_unix_shell2);
+CBOOL__PROTO(prolog_fd_dup);
+CBOOL__PROTO(prolog_fd_close);
+CBOOL__PROTO(prolog_unix_argv);
+CBOOL__PROTO(prolog_unix_exit);
+CBOOL__PROTO(prolog_unix_mktemp);
+CBOOL__PROTO(prolog_unix_access);
+CBOOL__PROTO(prolog_directory_files);
+CBOOL__PROTO(prolog_file_properties);
+CBOOL__PROTO(prolog_touch);
+CBOOL__PROTO(prolog_unix_chmod);
+CBOOL__PROTO(prolog_unix_umask);
+CBOOL__PROTO(prolog_unix_delete);
+CBOOL__PROTO(prolog_unix_rename);
+CBOOL__PROTO(prolog_unix_mkdir);
+CBOOL__PROTO(prolog_unix_rmdir);
+CBOOL__PROTO(prolog_current_host);
+CBOOL__PROTO(prolog_c_environs);
+CBOOL__PROTO(prolog_c_get_env);
+CBOOL__PROTO(prolog_c_set_env);
+CBOOL__PROTO(prolog_c_del_env);
+CBOOL__PROTO(prolog_c_current_env);
+CBOOL__PROTO(prolog_c_errno);
+CBOOL__PROTO(prolog_c_strerror);
+CBOOL__PROTO(prolog_c_copy_file);
+CBOOL__PROTO(prolog_c_winpath);
+CBOOL__PROTO(prolog_c_posixpath);
+CBOOL__PROTO(prolog_c_winfile);
+CBOOL__PROTO(prolog_c_posixfile);
+CBOOL__PROTO(prolog_pause);
+CBOOL__PROTO(prolog_getpid);
+CBOOL__PROTO(prolog_getuid);
+CBOOL__PROTO(prolog_getgid);
+CBOOL__PROTO(prolog_getpwnam);
+CBOOL__PROTO(prolog_getgrnam);
+CBOOL__PROTO(prolog_get_numcores);
+CBOOL__PROTO(prolog_find_file);
+CBOOL__PROTO(prolog_path_is_absolute);
+CBOOL__PROTO(prolog_expand_file_name);
+CBOOL__PROTO(prolog_extract_paths);
+CBOOL__PROTO(prolog_getarch);
+CBOOL__PROTO(prolog_getos);
+CBOOL__PROTO(prolog_eng_debug_level);
+CBOOL__PROTO(prolog_eng_is_sharedlib);
+CBOOL__PROTO(prolog_get_ciao_ext);
+CBOOL__PROTO(prolog_get_exec_ext);
+CBOOL__PROTO(prolog_get_so_ext);
+CBOOL__PROTO(prolog_version);
+CBOOL__PROTO(prolog_get_foreign_opts_cc);
+CBOOL__PROTO(prolog_get_foreign_opts_ld);
+CBOOL__PROTO(prolog_get_foreign_opts_ccshared);
+CBOOL__PROTO(prolog_get_foreign_opts_ldshared);
+CBOOL__PROTO(prolog_current_executable);
+
+/* --------------------------------------------------------------------------- */
 
 static void define_functions(void)
 {
@@ -1150,6 +1225,14 @@ static void define_functions(void)
   deffunction("ARG FUNCTION",2,(void *)fu2_arg,41);
   deffunction("COMPARE FUNCTION",2,(void *)fu2_compare,42);
 }
+
+/* The ...STKSIZE constants may be overridden by env. variables.
+   This macro first looks for one, and if not found, uses the default. */
+#define GETENV(VALUE,WORK,STRING,VAR) \
+  if ((WORK = getenv(STRING))) \
+    VALUE = atoi(WORK); \
+  else \
+    VALUE = VAR;
 
 void init_once(void)
 {
@@ -1704,6 +1787,8 @@ void init_once(void)
 
   /*init_worker_entry_table();*/
 }
+
+void compute_cwd(void);
 
 void glb_init_each_time(void)
 {

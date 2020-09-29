@@ -20,6 +20,8 @@
 
 #define STATICMAXATOM 1024     /* Avoid very long atoms inside the engine */
 
+#define USE_DYNAMIC_ATOM_SIZE 1
+
 #if defined(USE_DYNAMIC_ATOM_SIZE) 
 # define MAXATOM  Atom_Buffer_Length
 #else

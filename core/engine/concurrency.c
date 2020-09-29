@@ -1,6 +1,10 @@
-#include <unistd.h>
+/*
+ *  concurrency.c
+ *
+ *  See Copyright Notice in ciaoengine.pl
+ */
 
-/* Copyright (C) 1996-2002 UPM-CLIP */
+#include <unistd.h>
 
 #include <ciao/eng.h>
 #include <ciao/dynamic_rt.h>
@@ -11,7 +15,6 @@
 #include <ciao/eng_start.h>
 #include <ciao/eng_registry.h>
 #include <ciao/stream_basic.h>
-#include <ciao/concurrency.h>
 
 // /* In order to define whether a lock is a SPIN-lock or a POSIX-lock */
 // #define SPIN     0

@@ -3,8 +3,7 @@
  *
  *  Checked memory allocation.
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2002-2015 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #if defined(Solaris) || defined(LINUX) || defined(DARWIN) || defined(BSD)
@@ -16,10 +15,15 @@
 
 #include <ciao/eng.h>
 
-#if defined(USE_OWN_MALLOC)
-#include <ciao/own_malloc.h>
-#else
+#if !defined(USE_OWN_MALLOC)
 #include <stdlib.h>
+#endif
+
+#if defined(USE_OWN_MALLOC)
+tagged_t *own_malloc(intmach_t size);
+tagged_t *own_realloc(tagged_t *ptr, intmach_t size_in_chars);
+void own_free(tagged_t *ptr);
+void init_own_malloc(void);
 #endif
 
 #if defined(USE_OWN_MALLOC)

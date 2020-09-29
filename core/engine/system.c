@@ -68,7 +68,6 @@
 
 #include <ciao/os_signal.h>
 #include <ciao/io_basic.h>
-#include <ciao/system.h>
 #include <ciao/stream_basic.h>
 #include <ciao/eng_gc.h>
 #include <ciao/eng_start.h>

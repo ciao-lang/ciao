@@ -49,12 +49,9 @@
 
 #include <ciao/instrdefs.h> /* for ciao_initcode() */
 
-#include <ciao/system.h>
-
 #if !defined(MAXPATHLEN)
 # define MAXPATHLEN 1024
 #endif
-
 
 void ciao_exit(int result);
 
@@ -211,6 +208,8 @@ void ciao_load_ql_files(ciao_ctx ctx, FILE *qfile) {
 }
 
 /* Load a qfile */
+
+bool_t expand_file_name(const char *name, bool_t abs, char *target);
 
 FILE *ciao_open_qfile(const char *boot_path);
 

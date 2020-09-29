@@ -40,7 +40,6 @@
 
 #include <ciao/basiccontrol.h>
 #include <ciao/internals.h>
-#include <ciao/system.h>
 #include <ciao/eng_registry.h>
 #include <ciao/eng_start.h>
 #include <ciao/qread.h>
@@ -164,6 +163,8 @@ static void guess_win32_env(const char *boot_path,
                             const char *emulator);
 #endif
 
+bool_t expand_file_name(const char *name, bool_t abs, char *target);
+
 /* Process engine options after "-C" argument */
 void engine_set_opts(const char **optv, int optc, const char **boot_path) {
   int i;
@@ -229,6 +230,9 @@ void engine_set_opts(const char **optv, int optc, const char **boot_path) {
 }
 
 void set_ciaoroot_directory(const char *boot_path, const char *exec_path);
+
+void compute_cwd(void);
+char *c_find_exec(const char *cmd);
 
 void engine_init(const char *boot_path, const char *exec_path) {
   checkctypes();
@@ -387,6 +391,8 @@ int engine_start(int argc, char *argv[]) {
 
 // #define USE_WINDOWS_REGISTRY 1
 
+bool_t using_windows(void); /* system.c */
+
 /* Find out CIAOROOT directory */
 void set_ciaoroot_directory(const char *boot_path, const char *exec_path) {
   /* Use CIAOROOT variable from the environment */
@@ -469,6 +475,8 @@ void set_ciaoroot_directory(const char *boot_path, const char *exec_path) {
     c_headers_directory = default_c_headers_dir;
   }
 }
+
+char *c_paths_insert_new(const char *envpath, const char *path);
 
 #if defined(Win32)
 
