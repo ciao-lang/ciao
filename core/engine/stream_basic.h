@@ -16,7 +16,6 @@ extern stream_node_t *stream_user_input;                   /* Shared */
 extern stream_node_t *stream_user_output;                  /* Shared */
 extern stream_node_t *stream_user_error;                   /* Shared */
 
-
 /* root of the stream pointers -- shared */
 
 extern stream_node_t *root_stream_ptr;            /* Shared & locked */

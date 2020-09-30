@@ -51,6 +51,8 @@
 
 :- '$native_include_c_source'('system.c').
 
+:- '$native_include_c_source'('system_info.c').
+
 :- '$native_include_c_header'('attributes.h').
 :- '$native_include_c_source'('attributes.c').
 
