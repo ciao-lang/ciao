@@ -1453,7 +1453,6 @@ void init_once(void)
   define_c_mod_predicate("internals","$bootversion",0,prolog_bootversion);
   define_c_mod_predicate("internals","$open",3,prolog_open);
   define_c_mod_predicate("stream_basic","close",1,prolog_close); 
-  define_c_mod_predicate("internals","$unix_popen",3,prolog_unix_popen);
   define_c_mod_predicate("stream_basic","character_count",2,character_count);
   define_c_mod_predicate("stream_basic","line_position",2,line_position);
   define_c_mod_predicate("stream_basic","line_count",2,line_count);

@@ -486,25 +486,6 @@ CBOOL__PROTO(prolog_close)
   return TRUE;
 }
 
-/* '$unix_popen'(+Command, +Mode, -Stream) */
-CBOOL__PROTO(prolog_unix_popen)
-{
-  FILE *f;
-  char *streammode;
-
-  DEREF(X(0),X(0));
-  DEREF(X(1),X(1));
-
-  streammode = (X(1) == atom_read ? "r" : "w");
-
-  if (!(f = popen(GetString(X(0)),streammode)))
-        return FALSE;
-
-  CBOOL__LASTUNIFY(ptr_to_stream(Arg,
-                                  new_stream((tagged_t)0, streammode, f)), X(2));
-
-}
-
 /* ------------------------------------------------------------------------- */
 
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */

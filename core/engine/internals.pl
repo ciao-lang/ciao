@@ -277,10 +277,6 @@ quiet_mode(off).
 % ---------------------------------------------------------------------------
 /* system.pl */
     
-:- export('$unix_popen'/3).
-:- trust pred '$unix_popen'/3. %jcf% Not used in Prolog code.
-:- impl_defined('$unix_popen'/3).
-
 :- export('$exec'/9).
 :- trust pred '$exec'/9. % (see system.c for details)
 :- impl_defined('$exec'/9).

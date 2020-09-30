@@ -44,7 +44,6 @@ CBOOL__PROTO(prolog_force_interactive);
 CBOOL__PROTO(prolog_sourcepath);
 CBOOL__PROTO(prolog_open);
 CBOOL__PROTO(prolog_close);
-CBOOL__PROTO(prolog_unix_popen);
 CBOOL__PROTO(prolog_pipe);
 void ENG_perror(char *s);
 CBOOL__PROTO(prolog_current_input);
