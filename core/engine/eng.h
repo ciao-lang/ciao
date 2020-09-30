@@ -2496,9 +2496,6 @@ extern SIGJMP_BUF abort_env;
 
 void failc(char *mesg);
 
-/* Exit for child processes (avoid flushing and closign standard I/O from parent) */
-#define _EXIT(Code) { fflush(NULL); _exit((Code)); }
-
 #define SERIOUS_FAULT(Y) { \
     failc(Y); \
     SIGLONGJMP(abort_env, WAM_ABORT); \

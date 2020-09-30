@@ -205,9 +205,7 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
 #else
 #if defined(DEBUG)
 #define ENSURE_LIVEINFO ({ \
-  if (w->liveinfo == NULL) { \
-    fprintf(stderr, "PANIC: null liveinfo\n"); _EXIT(-1); \
-  } \
+  if (w->liveinfo == NULL) { PANIC_FAULT("null liveinfo"); } \
 })
 #else
 #define ENSURE_LIVEINFO

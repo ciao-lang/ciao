@@ -4,8 +4,7 @@
  *  Platform-independent interface to operating system calls
  *  (filesystem, environment, processes).
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2015-2020 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 // #define USE_ADDRINFO 0
@@ -55,23 +54,24 @@
 #include <sys/cygwin.h>
 #endif
 
-#if !defined(S_ISDIR) /* Notably, Solaris */
-#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
-#endif
-
-#if defined(_WIN32) || defined(_WIN64) /* MinGW */
-#define WIFEXITED(x) 1
-//#define WIFSIGNALED(x) 0
-#define WEXITSTATUS(x) ((x) & 0xFF)
-//#define WTERMSIG(x) SIGTERM
-#endif
-
 #include <ciao/os_signal.h>
-#include <ciao/io_basic.h>
+#if !defined(OPTIM_COMP)
 #include <ciao/stream_basic.h>
 #include <ciao/eng_gc.h>
 #include <ciao/eng_start.h>
 #include <ciao/eng_registry.h>
+#endif
+
+#if defined(OPTIM_COMP)
+/* TODO:[oc-merge] merge, swap order? */
+#define checkdealloc_ARRAY(T,Size,Ptr) CHECKDEALLOC0_ARRAY(T,(Ptr),(Size))
+/* TODO:[oc-merge] merge */
+#define checkalloc_ARRAY CHECKALLOC_ARRAY
+#else
+#define TaggedToCar TagToCar
+#define TaggedToCdr TagToCdr
+#define TaggedToHeadfunctor TagToHeadfunctor
+#endif
 
 /* --------------------------------------------------------------------------- */
 
@@ -89,6 +89,17 @@ CFUN__PROTO(c_list_length, int, tagged_t list) {
 }
 
 /* --------------------------------------------------------------------------- */
+
+#if !defined(S_ISDIR) /* Notably, Solaris */
+#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#endif
+
+#if defined(_WIN32) || defined(_WIN64) /* MinGW */
+#define WIFEXITED(x) 1
+//#define WIFSIGNALED(x) 0
+#define WEXITSTATUS(x) ((x) & 0xFF)
+//#define WTERMSIG(x) SIGTERM
+#endif
 
 #if !defined(MAXPATHLEN)
 #define MAXPATHLEN 1024
@@ -477,8 +488,7 @@ CBOOL__PROTO(prolog_unix_cd) {
 /* --------------------------------------------------------------------------- */
 
 /* Return the arguments with which the current prolog was invoked */
-CBOOL__PROTO(prolog_unix_argv)
-{
+CBOOL__PROTO(prolog_unix_argv) {
   tagged_t list = atom_nil;
   char **p1 = prolog_argv;
   int i;
@@ -488,6 +498,15 @@ CBOOL__PROTO(prolog_unix_argv)
     MakeLST(list, GET_ATOM(p1[--i]), list);
   }
   CBOOL__LASTUNIFY(list, X(0));
+}
+
+/* Shift one argument form argv (for loader.pl) */
+CBOOL__PROTO(prolog_unix_shift_arg) {
+  if (prolog_argc > 1) {
+    prolog_argv++;
+    prolog_argc--;
+  }
+  CBOOL__PROCEED;
 }
 
 /* --------------------------------------------------------------------------- */
@@ -593,7 +612,7 @@ CBOOL__PROTO(prolog_unix_mktemp) {
 
   /* if c_mkstemp fails, give a system error */
   if ((fildes = c_mkstemp(template)) <  0) {
-    return check_errno(Arg, 0);
+    CBOOL__LASTCALL(check_errno, 0);
   } else {
     /* Do not leave it open, since the stream is not seen at Prolog
        level */
@@ -651,7 +670,7 @@ CBOOL__PROTO(prolog_directory_files) {
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
     BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(0), 1);
   }
-  
+
   /* Check for system errors */
   if (! (dir = opendir(pathBuf))) {
     if (current_ferror_flag==atom_on) {
@@ -686,7 +705,8 @@ CBOOL__PROTO(prolog_directory_files) {
       ENSURE_HEAP_LST(16, 3); /* 16 is some arbitrary gap (1 would be OK) */
       MakeLST(X(2), GET_ATOM(direntry->d_name), X(2));
     }
-#else /* OPTIM_COMP? */
+#else
+    /* TODO:[oc-merge] merge or remove? */
     gap = HeapCharAvailable(G->heap_top) - CONTPAD;
     while ((direntry = readdir(dir))) {
       if ((gap -= 2*sizeof(tagged_t)) < 0) {
@@ -784,7 +804,7 @@ CBOOL__PROTO(prolog_file_properties) {
 
     if (X(3)!=atom_nil) {
       /* Cannot be CBOOL__UnifyCons because it may require a bignum */
-      CBOOL__UNIFY(IntvalToTagged(statbuf.st_mtime), X(3));
+      CBOOL__UNIFY(IntmachToTagged(statbuf.st_mtime), X(3));
     }
     if (X(4)!=atom_nil) {
       CBOOL__UnifyCons(MakeSmall(statbuf.st_mode&0xfff), X(4));
@@ -1202,7 +1222,7 @@ CBOOL__PROTO(prolog_current_host) {
       char domain[MAXHOSTNAMELEN*3];
 
       if (getdomainname(domain, sizeof(domain)) < 0)
-        BUILTIN_ERROR(SYSTEM_ERROR, Arg, 1);
+        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
       strcat(hostname, ".");
       strcat(hostname, domain);
     }
@@ -1315,19 +1335,19 @@ CBOOL__PROTO(prolog_c_copy_file) {
     if (copy_flag & COPY_FLAG_OVERWRITE) {
       if(unlink(destination)==-1) {
         if (errno != ENOENT)
-          return check_errno(Arg, 1);
+          CBOOL__LASTCALL(check_errno, 1);
       }
 #if defined(__CYGWIN32__) || defined(__CYGWIN__)
       if(access(destination, 0)) {
         if(unlink(destination)==-1) {
           if (errno != ENOENT)
-            return check_errno(Arg, 1);
+            CBOOL__LASTCALL(check_errno, 1);
         }
       }
 #endif
     }
     if (symlink(source, destination)==-1) {
-      return check_errno(Arg, 1);
+      CBOOL__LASTCALL(check_errno, 1);
     }
 #endif
   }
@@ -1335,7 +1355,7 @@ CBOOL__PROTO(prolog_c_copy_file) {
     fd_source = open(source, O_RDONLY);
     if(fd_source==-1) {
       /* First, identifying the error type: */
-      return check_errno(Arg, 0);
+      CBOOL__LASTCALL(check_errno, 0);
     }
 
     if(copy_flag & COPY_FLAG_OVERWRITE) {
@@ -1358,7 +1378,7 @@ CBOOL__PROTO(prolog_c_copy_file) {
       /* Now we must close source */
       close(fd_source);
       /* Identifying the error type: */
-      return check_errno(Arg, 1);
+      CBOOL__LASTCALL(check_errno, 1);
     }
     while((s=read(fd_source, buffer, BUF_MAX))!=0){
       if(s==-1){
@@ -2239,8 +2259,7 @@ static inline pid_t c_waitpid(pid_t pid, int *status) {
 }
 #endif
 
-CBOOL__PROTO(prolog_wait)
-{
+CBOOL__PROTO(prolog_wait) {
   ERR__FUNCTOR("system:wait", 2);
   int waited_pid, status;
 
@@ -2275,8 +2294,7 @@ int kill(pid_t pid, int sig) {
 }
 #endif
 
-CBOOL__PROTO(prolog_kill)
-{
+CBOOL__PROTO(prolog_kill) {
   ERR__FUNCTOR("system:kill", 2);
 
   DEREF(X(0), X(0));
@@ -2659,6 +2677,9 @@ static void update_env(string_pair_t *deltaenv) {
 }
 #endif
 
+/* Exit for child processes (avoid flushing and closing standard I/O from parent) */
+#define _EXIT(Code) { fflush(NULL); _exit((Code)); }
+
 #if defined(_WIN32) || defined(_WIN64)
 /* Is the process associated to a console? */
 static bool_t has_console(void) {
@@ -2893,7 +2914,7 @@ CBOOL__PROTO(unify_fd_pair,
     char *mode_str = (mode == Read ? "r" : "w");
     str = new_stream(streamname, mode_str, fdopen(pair_fd[mode], mode_str));
     /* (It should never fail) */
-    CBOOL__LASTUNIFY(ptr_to_stream(Arg, str),  std);
+    CBOOL__LASTUNIFY(CFUN__EVAL(ptr_to_stream, str), std);
   } else {
     return TRUE;
   }
@@ -2913,12 +2934,12 @@ CBOOL__PROTO(get_deltaenv,
   int len = CFUN__EVAL(c_list_length, list) + 1; /* +1 for NULL end */
 
   denv = checkalloc_ARRAY(string_pair_t, len);
-  
+
   DEREF(list, list);
   int i = 0;
   while(!IsVar(list) && TaggedIsLST(list)) {
-    DEREF(head, *TagToCar(list));
-    if (TaggedIsSTR(head) && (TagToHeadfunctor(head)==functor_minus)) {
+    DEREF(head, *TaggedToCar(list));
+    if (TaggedIsSTR(head) && (TaggedToHeadfunctor(head)==functor_minus)) {
       DerefArg(name,head,1);
       if (!TaggedIsATM(name)) goto wrong;
       DerefArg(val,head,2);
@@ -2931,7 +2952,7 @@ CBOOL__PROTO(get_deltaenv,
       denv[i][1] = NULL;
     }
     i++;
-    list = *TagToCdr(list);
+    list = *TaggedToCdr(list);
     DEREF(list, list);
   }
   denv[i][0] = NULL;
@@ -2945,8 +2966,7 @@ CBOOL__PROTO(get_deltaenv,
   return FALSE;
 }
 
-CBOOL__PROTO(prolog_exec)
-{
+CBOOL__PROTO(prolog_exec) {
   ERR__FUNCTOR("internals:$exec", 9);
   tagged_t head, list;
   int flags;
@@ -2970,11 +2990,11 @@ CBOOL__PROTO(prolog_exec)
   DEREF(list, X(1));
   while(!IsVar(list) && TaggedIsLST(list)) {
     args_n++;
-    DEREF(head, *TagToCar(list));
+    DEREF(head, *TaggedToCar(list));
     if (!TaggedIsATM(head)) { /* We only allow atoms */
       BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), head, 2);
     }
-    list = *TagToCdr(list);
+    list = *TaggedToCdr(list);
     DEREF(list, list);
   }
   /* Make sure we had a real list */
@@ -3021,9 +3041,9 @@ CBOOL__PROTO(prolog_exec)
 
   DEREF(list, X(1));
   while(!IsVar(list) && TaggedIsLST(list)) {
-    DEREF(head, *TagToCar(list));
+    DEREF(head, *TaggedToCar(list));
     args[args_i++] = GetString(head);
-    list = *TagToCdr(list);
+    list = *TaggedToCdr(list);
     DEREF(list, list);
   }
   args[args_i] = NULL;
@@ -3043,16 +3063,16 @@ CBOOL__PROTO(prolog_exec)
   /* Get fd pairs for stdin, stdout, stderr (creating pipes if
    * needed) */
   DEREF(X(2), X(2));
-  get_fd_pair(Arg, X(2), pr.pair_in, Read);
+  CVOID__CALL(get_fd_pair, X(2), pr.pair_in, Read);
   DEREF(X(3), X(3));
-  get_fd_pair(Arg, X(3), pr.pair_out, Write);
+  CVOID__CALL(get_fd_pair, X(3), pr.pair_out, Write);
   DEREF(X(4), X(4));
   if (X(4) == atom_stdout) {
     /* redirect stderr to stdout */
     pr.pair_err[Read] = -1;
     pr.pair_err[Write] = pr.pair_out[Write];
   } else {
-    get_fd_pair(Arg, X(4), pr.pair_err, Write);
+    CVOID__CALL(get_fd_pair, X(4), pr.pair_err, Write);
   }
 
   /* Create the process */
@@ -3092,12 +3112,12 @@ CBOOL__PROTO(prolog_exec)
 
     /* Unify the parent end of the pipe (if needed) */
     bool_t unif_stdin, unif_stdout, unif_stderr;
-    unif_stdin = unify_fd_pair(Arg, X(0), X(2), pr.pair_in, Write);
-    unif_stdout = unify_fd_pair(Arg, X(0), X(3), pr.pair_out, Read);
-    unif_stderr = unify_fd_pair(Arg, X(0), X(4), pr.pair_err, Read);
+    unif_stdin = CFUN__EVAL(unify_fd_pair, X(0), X(2), pr.pair_in, Write);
+    unif_stdout = CFUN__EVAL(unify_fd_pair, X(0), X(3), pr.pair_out, Read);
+    unif_stderr = CFUN__EVAL(unify_fd_pair, X(0), X(4), pr.pair_err, Read);
 
-    return (unif_stdin && unif_stdout && unif_stderr &&
-            cunify(Arg, MakeSmall(pr.pid), X(8)));
+    CBOOL__TEST(unif_stdin && unif_stdout && unif_stderr);
+    CBOOL__LASTUNIFY(MakeSmall(pr.pid), X(8));
   }
 }
 
@@ -3248,6 +3268,7 @@ CBOOL__PROTO(prolog_fd_close) {
 }
 
 /* --------------------------------------------------------------------------- */
+/* Current executable */
 
 extern char source_path[];
 

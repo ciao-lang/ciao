@@ -3,8 +3,7 @@
  *
  *  OS signal handling (compatibility)
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2015 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #ifndef _CIAO_OS_SIGNAL_H
