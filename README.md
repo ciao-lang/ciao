@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/ciao-lang/ciao.svg)](https://travis-ci.org/ciao-lang/ciao)
 [![Build Status](https://ci.appveyor.com/api/projects/status/fu2eb23je22xc228?svg=true)](https://ci.appveyor.com/project/jfmc/ciao)
 
-# The Ciao Programming Language
+# Ciao Programming Language
 
 [Ciao](https://ciao-lang.org) is a programming language that builds up
 from a logic-based simple kernel, and is designed to be extensible and
