@@ -1174,6 +1174,8 @@ CBOOL__PROTO(prolog_get_foreign_opts_ld);
 CBOOL__PROTO(prolog_get_foreign_opts_ccshared);
 CBOOL__PROTO(prolog_get_foreign_opts_ldshared);
 CBOOL__PROTO(prolog_current_executable);
+CBOOL__PROTO(prolog_time);
+CBOOL__PROTO(prolog_datime);
 
 /* --------------------------------------------------------------------------- */
 
@@ -1657,6 +1659,9 @@ void init_once(void)
 
   define_c_mod_predicate("system","current_executable",1, prolog_current_executable);
 
+  define_c_mod_predicate("system","time",1,prolog_time);
+  define_c_mod_predicate("system","datime",9,prolog_datime);  
+
                             /* dynlink.c */
 
   define_c_mod_predicate("internals","dynlink", 2, prolog_dynlink);
@@ -1669,9 +1674,6 @@ void init_once(void)
   define_c_mod_predicate("internals","$systemtime",1,prolog_systemtime);  
   define_c_mod_predicate("internals","$walltime",1,prolog_walltime);
 
-  define_c_mod_predicate("system","time",1,prolog_time);
-  define_c_mod_predicate("system","datime",9,prolog_datime);
-  
                                 /* clock/cpu ticks */  
 
   define_c_mod_predicate("internals","$runtick",1,prolog_runtick);

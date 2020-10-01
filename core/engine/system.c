@@ -21,6 +21,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <utime.h>
+#include <time.h> /* see "date and time" */
 
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
 #include <windows.h> /* MoveFileEx() */
@@ -3160,12 +3161,82 @@ CBOOL__PROTO(prolog_fd_close) {
 /* --------------------------------------------------------------------------- */
 /* Current executable */
 
-extern char source_path[];
+#if !defined(OPTIM_COMP)
+extern char source_path[]; /* filled in engine_start() */
+#endif
 
-CBOOL__PROTO(prolog_current_executable)
-{
-  DEREF(X(0),X(0));
+CBOOL__PROTO(prolog_current_executable) {
+#if defined(OPTIM_COMP)
+  char source_path[MAXPATHLEN] = "";
+  expand_file_name(prolog_argv[0], TRUE, source_path);
+#endif
+  /* TODO:[oc-merge] update after prolog_unix_shift_arg is called? */
   CBOOL__LASTUNIFY(GET_ATOM(source_path), X(0));
 }
 
+/* --------------------------------------------------------------------------- */
+/* Date and time */
 
+CBOOL__PROTO(prolog_time) {
+  time_t timeofday = time(NULL);
+  CBOOL__LASTUNIFY(IntmachToTagged(timeofday),X(0));
+}
+
+/* datime(+Time,-Year,-Month,-Day,-Hour,-Min,-Sec,-WeekDay,-YearDay) */
+/* datime(-Time,-Year,-Month,-Day,-Hour,-Min,-Sec,-WeekDay,-YearDay) */
+/* datime(-Time,+Year,+Month,+Day,+Hour,+Min,+Sec,-WeekDay,-YearDay) */
+
+CBOOL__PROTO(prolog_datime) {
+  ERR__FUNCTOR("system:datime", 9);
+
+  DEREF(X(0),X(0));
+  DEREF(X(1),X(1));
+  DEREF(X(2),X(2));
+  DEREF(X(3),X(3));
+  DEREF(X(4),X(4));
+  DEREF(X(5),X(5));
+  DEREF(X(6),X(6));
+  if (IsInteger(X(1))
+      && IsInteger(X(2))
+      && IsInteger(X(3))
+      && IsInteger(X(4))
+      && IsInteger(X(5))
+      && IsInteger(X(6))) {
+    struct tm datime[1];
+    time_t inputtime;
+    datime->tm_year=TaggedToIntmach(X(1))-1900;
+    datime->tm_mon =TaggedToIntmach(X(2))-1;
+    datime->tm_mday=TaggedToIntmach(X(3));
+    datime->tm_hour=TaggedToIntmach(X(4));
+    datime->tm_min =TaggedToIntmach(X(5));
+    datime->tm_sec =TaggedToIntmach(X(6));
+    inputtime = mktime(datime);
+    CBOOL__UNIFY(IntmachToTagged(inputtime),X(0));
+    CBOOL__UNIFY(MakeSmall(datime->tm_wday),X(7));
+    CBOOL__UNIFY(MakeSmall(datime->tm_yday),X(8));
+    CBOOL__PROCEED;
+  } else {
+    struct tm *datime;
+    time_t inputtime;
+    if (IsVar(X(0))) {
+      inputtime = time(NULL);
+      CBOOL__UNIFY(IntmachToTagged(inputtime),X(0));
+    } else if (IsInteger(X(0))) {
+      inputtime = TaggedToIntmach(X(0));
+    } else {
+      BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(0),1);
+    }
+    
+    datime = localtime(&inputtime);
+    
+    CBOOL__UNIFY(MakeSmall((datime->tm_year)+1900),X(1));
+    CBOOL__UNIFY(MakeSmall((datime->tm_mon)+1), X(2));
+    CBOOL__UNIFY(MakeSmall(datime->tm_mday),X(3));
+    CBOOL__UNIFY(MakeSmall(datime->tm_hour),X(4));
+    CBOOL__UNIFY(MakeSmall(datime->tm_min), X(5));
+    CBOOL__UNIFY(MakeSmall(datime->tm_sec), X(6));
+    CBOOL__UNIFY(MakeSmall(datime->tm_wday),X(7));
+    CBOOL__UNIFY(MakeSmall(datime->tm_yday),X(8));
+    CBOOL__PROCEED;
+  }
+}

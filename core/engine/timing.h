@@ -30,9 +30,6 @@ CBOOL__PROTO(prolog_usertime);
 CBOOL__PROTO(prolog_systemtime);
 CBOOL__PROTO(prolog_walltime);
 
-CBOOL__PROTO(prolog_time);
-CBOOL__PROTO(prolog_datime);
-
 CBOOL__PROTO(prolog_walltick);
 CBOOL__PROTO(prolog_usertick);
 CBOOL__PROTO(prolog_systemtick);

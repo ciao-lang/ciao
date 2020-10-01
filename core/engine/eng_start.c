@@ -1,10 +1,9 @@
 /*
  *  eng_start.c
  *
- *  Load and execute a bytecode executable.
+ *  Engine initialization and boot
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
