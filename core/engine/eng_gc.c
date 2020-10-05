@@ -628,7 +628,7 @@ static CVOID__PROTO(compressHeap) {
     /* the upward phase */
     while (ChoiceYounger(cp,Gc_Choice_Start)) {
         cp->heap_top = dest;
-        cp=ChoiceCharOffset(cp,-cp->next_alt->choice_offset);
+        cp=ChoiceCont(cp);
         
         while (HeapYounger(curr,NodeGlobalTop(cp))) {
             cv= HeapPop(curr);
@@ -1004,7 +1004,7 @@ static CVOID__PROTO(calculate_segment_choice)
   w->segment_choice = NULL;
   for (n=w->choice;
        w->segment_choice==NULL;
-       n=ChoiceCharOffset(n,-n->next_alt->choice_offset))
+       n=ChoiceCont(n))
     if (ChoiceptTestPure(n))
       w->segment_choice = n;
 }
@@ -1175,7 +1175,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
 
     while (OffChoicetop(b,Choice_Start)){
       b->trail_top = (tagged_t *)((char *)b->trail_top+reloc_factor);
-      b = ChoiceCharOffset(b,-b->next_alt->choice_offset);
+      b = ChoiceCont(b);
     }
   }
 
@@ -1309,7 +1309,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor)
 
     /* relocate pointers in choice&env stks */
     for (n=aux_node; n!=InitialNode; n=n2){
-      n2=ChoiceCharOffset(n,-n->next_alt->choice_offset);
+      n2=ChoiceCont(n);
       //Tabling --> How to translate?
       *(tagged_t *)(&n2->local_top) += reloc_factor;
       *(tagged_t *)(&n2->frame) += reloc_factor;
@@ -1598,7 +1598,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     for (n=aux_node; n!=InitialNode && n->next_alt!=NULL; n=n2)
       {
         if (n->next_alt != NULL) {
-          n2=ChoiceCharOffset(n,-n->next_alt->choice_offset);
+          n2=ChoiceCont(n);
           for (pt1=n->term; pt1!=(tagged_t *)n2;)
             {
               t1 = ChoicePrev(pt1);
@@ -1714,7 +1714,7 @@ CVOID__PROTO(trail_gc)
         } else if (wake_count>0) --wake_count;
           else if (!CondCVA(t1)) *tr = 0;
     }
-    b = ChoiceCharOffset(b,-b->next_alt->choice_offset);
+    b = ChoiceCont(b);
   }
   
   /* restore misc. registers used above */

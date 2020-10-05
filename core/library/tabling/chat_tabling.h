@@ -45,7 +45,7 @@ extern tagged_t atom_gen_tree_backtracking;
 #define LAST_PTCP (ptcp_stk[iptcp_stk])
 #define PUSH_PTCP(GEN) (ptcp_stk[iptcp_stk++] = GEN)
 #define POP_PTCP (iptcp_stk--)
-#define PREV_CP(NODE) ChoiceCharOffset(NODE,-(NODE)->next_alt->choice_offset)
+#define PREV_CP(NODE) ChoiceCont((NODE))
 
 #define SETMIN(x, y) if (y < x) x = y;
 

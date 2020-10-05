@@ -29,7 +29,7 @@ CBOOL__PROTO(retry_cut)
     return FALSE;
   for (nd = w->choice;
        ChoiceYounger(nd,Choice_Start);
-       nd = ChoiceCharOffset(nd,-nd->next_alt->choice_offset))
+       nd = ChoiceCont(nd))
     {
       DEREF(number,nd->term[0]);
       if (nd->term[3]==atom_retry_hook && number<=X(0))

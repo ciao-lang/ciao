@@ -475,7 +475,7 @@ CBOOL__PROTO(prolog_close)
         
         for (B = w->choice;
              ChoiceYounger(B,Choice_Start);
-             B = ChoiceCharOffset(B,-B->next_alt->choice_offset))
+             B = ChoiceCont(B))
           if (B->next_alt==address_nd_current_stream && B->term[3]==t1)
             B->term[3] = t2;
       }

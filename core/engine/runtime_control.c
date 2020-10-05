@@ -26,11 +26,9 @@
    CHOICEPT MANIPULATIONS
    ----------------------------------------------------------------------*/
 
-CVOID__PROTO(pop_choicept)
-{
+CVOID__PROTO(pop_choicept) {
   choice_t *b = w->choice;
-
-  w->choice = b = ChoiceCharOffset(b,-b->next_alt->choice_offset);
+  w->choice = b = ChoiceCont(b);
   SetShadowregs(b);
 }
 

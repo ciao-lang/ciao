@@ -29,7 +29,7 @@ CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
   tagged_t *itrail = Arg->trail_top;
   for (ind = Arg->choice; 
        ind->heap_top != (tagged_t *)&(HeapFReg);
-       ind = ChoiceCharOffset(ind,-ind->next_alt->choice_offset))
+       ind = ChoiceCont(ind))
     {
       for (; !TrailYounger(ind->trail_top,itrail); itrail--)
         {

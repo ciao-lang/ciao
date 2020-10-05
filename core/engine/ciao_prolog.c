@@ -995,7 +995,7 @@ void ciao_query_end(ciao_query *query) {
   }
 
   b = w->choice;
-  w->choice = b = ChoiceCharOffset(b,-b->next_alt->choice_offset);
+  w->choice = b = ChoiceCont(b);
   SetShadowregs(b);
   w->next_alt = NULL;
 

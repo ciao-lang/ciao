@@ -1678,7 +1678,7 @@ CFUN__PROTO(active_instance,
     latest_static = w->previous_choice;
 
   for (b=latest_static; !ChoiceptTestStatic(b); b=b2)  {
-    b2=ChoiceCharOffset(b,-b->next_alt->choice_offset);
+    b2=ChoiceCont(b);
     if (b->next_alt==address_nd_current_instance) {
       latest_static = b2;
       j = TagToInstance(b->term[2]);
@@ -1698,7 +1698,7 @@ CFUN__PROTO(active_instance,
 
   for (b=latest_static;
        !ChoiceptTestStatic(b);
-       b=ChoiceCharOffset(b,-b->next_alt->choice_offset))
+       b=ChoiceCont(b))
     ChoiceptMarkStatic(b);
   
   if (normal) {                                 /* Follow forward-chain ? */
@@ -1763,7 +1763,7 @@ CVOID__PROTO(clock_overflow)
   /* count # distinct clock values existing in choicepoints */
   for (b=w->previous_choice;
        !ChoiceptTestStatic(b);
-       b=ChoiceCharOffset(b,-b->next_alt->choice_offset)) {
+       b=ChoiceCont(b)) {
     if (b->next_alt==address_nd_current_instance) {
       t = GetSmall(b->term[4]);
       if (current!=t) {
@@ -1786,7 +1786,7 @@ CVOID__PROTO(clock_overflow)
   
   for (b=w->previous_choice;
        !ChoiceptTestStatic(b);
-       b=ChoiceCharOffset(b,-b->next_alt->choice_offset))
+       b=ChoiceCont(b))
     if (b->next_alt==address_nd_current_instance) {
       t = GetSmall(b->term[4]);
       if ((*clockp)!=t) *(--clockp)=t;

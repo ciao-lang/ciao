@@ -2022,8 +2022,7 @@ CFUN__PROTO(find_constraints, intmach_t, tagged_t *limit)
   *w->trail_top = atom_nil;
   while (limit < (tagged_t *)NodeGlobalTop(cp))
     {
-      choice_t *prevcp =
-        ChoiceCharOffset(cp,-cp->next_alt->choice_offset);
+      choice_t *prevcp = ChoiceCont(cp);
       
       if (1 /* !ChoiceptTestNoCVA(cp)*/)
         {

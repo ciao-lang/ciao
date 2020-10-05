@@ -1557,6 +1557,13 @@ struct marker_ {
 #define ChoiceNext(P)           (*--(P))
 #define ChoicePush(P,X)         (*--(P) = (X))
 
+#define ChoiceCont(B) ChoiceCharOffset((B), -(B)->next_alt->choice_offset)
+
+#define ArityToOffset(A)  \
+  (((A)+(SIZEOF_FLEXIBLE_STRUCT(choice_t, tagged_t, 0)/sizeof(tagged_t))) * sizeof(tagged_t))
+#define OffsetToArity(O)                                                \
+  (((O)/sizeof(tagged_t))-(SIZEOF_FLEXIBLE_STRUCT(choice_t, tagged_t, 0)/sizeof(tagged_t)))
+
 #if defined(USE_TAGGED_CHOICE_START)
 #define ChoiceFromTagged(Y) (ChoiceCharOffset(Tagged_Choice_Start,Y))
 #define ChoiceToTagged(Y)   (ChoiceCharDifference(Tagged_Choice_Start,Y))
@@ -1801,14 +1808,7 @@ struct try_node_ {
 #if defined(GAUGE)
   intmach_t *entry_counter;        /* Offset of counter for clause entry */
 #endif
-  };
-
-
-
-#define ArityToOffset(A)  \
-  (((A)+(SIZEOF_FLEXIBLE_STRUCT(choice_t, tagged_t, 0)/sizeof(tagged_t))) * sizeof(tagged_t))
-#define OffsetToArity(O)                                                \
-  (((O)/sizeof(tagged_t))-(SIZEOF_FLEXIBLE_STRUCT(choice_t, tagged_t, 0)/sizeof(tagged_t)))
+};
 
 #define SwitchSize(X) (((X)->mask / sizeof(sw_on_key_node_t))+1) 
 #define SizeToMask(X) (((X)-1) * sizeof(sw_on_key_node_t))
