@@ -1100,6 +1100,16 @@ CBOOL__PROTO(nd_atom_concat); /* TODO: .pl decl should have a pair */
 CBOOL__PROTO(prolog_name);
 CBOOL__PROTO(prolog_number_codes_2);
 CBOOL__PROTO(prolog_number_codes_3);
+/* attributes.c */
+CBOOL__PROTO(bu1_detach_attribute, tagged_t x);
+CBOOL__PROTO(bu2_attach_attribute, tagged_t var, tagged_t constr);
+CBOOL__PROTO(bu2_update_attribute, tagged_t x, tagged_t constr);
+CFUN__PROTO(fu1_get_attribute, tagged_t, tagged_t x);
+#if defined(USE_FAST_MULTIATTR)
+CBOOL__PROTO(get_attr__3);
+CBOOL__PROTO(put_attr__3);
+CBOOL__PROTO(del_attr__2);
+#endif
 /* concurrency.c */
 CBOOL__PROTO(prolog_eng_call);
 CBOOL__PROTO(prolog_eng_backtrack);
@@ -1734,7 +1744,7 @@ void init_once(void)
   define_c_mod_predicate("internals","$reset_counters",2,reset_counters);
 #endif
 
-#if defined(USE__FAST_MULTIATTR)
+#if defined(USE_FAST_MULTIATTR)
                                 /* attributes.c */
 
   define_c_mod_predicate("attr_rt","get_attr",3,get_attr__3);

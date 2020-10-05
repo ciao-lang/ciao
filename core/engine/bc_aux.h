@@ -435,10 +435,14 @@ static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo) {
     reloc = (char *)w->trail_top - (char *)tr;
     *trail_origo = (tagged_t *)((char *)*trail_origo + reloc);
     tr = w->trail_top;
-    while (tr[-1] & QMask)
-      TrailPop(tr) += reloc;
-    while (TrailYounger(tr,*trail_origo+DynamicPreserved))
-      *TagToPointer(TrailPop(tr)) += reloc;
+    while (TrailGetTop(tr) & QMask) {
+      TrailDec(tr);
+      *tr += reloc; // (tr points to the popped element)
+    }
+    while (TrailYounger(tr,*trail_origo+DynamicPreserved)) {
+      TrailDec(tr);
+      *TagToPointer(*tr) += reloc; // (tr points to the popped element)
+    }
   }
   TrailPush(w->trail_top,t);
 }
@@ -549,7 +553,7 @@ static CVOID__PROTO(c_term_mark,
     if (*maxtemps < temps) {
       *maxtemps = temps;
     }
-    t = Tagp(LST,TagToGoal(t));
+    t = Tagp(LST,TaggedToGoal(t));
     goto start;
   } else { /* HVA */
     *TagToPointer(t) = Tagp(ATM,w->trail_top)|QMask;
@@ -955,14 +959,15 @@ CFUN__PROTO(compile_term_aux, instance_t *,
               &trail_origo,&current_insn))
     goto sizebomb;
 
-  while (Arg->trail_top[-1] & QMask) {
+  while (TrailGetTop(Arg->trail_top) & QMask) {
     bcp_t P = current_insn;
 
     if (!TrailYounger(Arg->trail_top,Trail_Start))
       break;
-    t0 = TrailPop(Arg->trail_top);
+    TrailDec(Arg->trail_top);
+    t0 = *(Arg->trail_top); // (Arg->trail_top points to the popped element)
     if (!c_term(Arg,
-                Tagp(LST,TagToGoal(*TagToPointer(t0))),
+                Tagp(LST,TaggedToGoal(*TagToPointer(t0))),
                 TagToPointer(t0)-trail_origo,
                   reg_bank_size-1,
                 x_variables,
@@ -1390,20 +1395,17 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   Heap_Warn_Soft = Int_Heap_Warn;
   b = w->node;
   t2 = (tagged_t)TagToPointer(b->trail_top);
-  if (TrailYounger(pt1=w->trail_top, t2))
-    {
-      do
-        {
-          if (IsVar(other))
-            {
-              item = pt1[-1];   /* variable */
-              other = *TagToPointer(item);
-            }
-          PlainUntrail(pt1,t0,{});
-        }
-      while (TrailYounger(pt1, t2));
-      w->trail_top = pt1;
-    }
+  pt1 = w->trail_top;
+  if (TrailYounger(pt1, t2)) {
+    do {
+      if (IsVar(other)) {
+        item = TrailGetTop(pt1);   /* variable */
+        other = *TagToPointer(item);
+      }
+      PlainUntrail(pt1,t0,{});
+    } while (TrailYounger(pt1, t2));
+    w->trail_top = pt1;
+  }
   
   RestoreGtop(b);
   w->node = b = ChoiceCharOffset(b,-ArityToOffset(0));
@@ -1448,15 +1450,15 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
               }
             else if (!CondCVA(t1))
               {
-                HeapPush(pt2,*TagToGoal(t1));
-                HeapPush(pt2,*TagToDef(t1));
-                *TagToGoal(t1) = Tagp(LST,HeapOffset(pt2,-2));
-                *TagToDef(t1) = Tagp(LST,pt2);
+                HeapPush(pt2,*TaggedToGoal(t1));
+                HeapPush(pt2,*TaggedToDef(t1));
+                *TaggedToGoal(t1) = Tagp(LST,HeapOffset(pt2,-2));
+                *TaggedToDef(t1) = Tagp(LST,pt2);
               }
             else
               {
                 LoadCVA(t0,pt2);
-                HeapPush(pt2,Tagp(LST,TagToGoal(t1)));
+                HeapPush(pt2,Tagp(LST,TaggedToGoal(t1)));
                 HeapPush(pt2,Tagp(LST,HeapOffset(pt2,1)));
                 TrailPush(pt1,t1);
                 *TagpPtr(CVA,t1) = t0;

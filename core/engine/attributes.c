@@ -1,231 +1,222 @@
 /*
  *  attributes.c
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  *
  *  Portions of this code based on code by Christian Holzbaur
  *  [christian@ai.univie.ac.at], Copyright (C) 1992 DMCAI
  */
 
 #include <ciao/eng.h>
+#if !defined(OPTIM_COMP)
 #include <ciao/eng_start.h>
 #include <ciao/attributes.h>
 #include <ciao/eng_gc.h>
-    
-extern definition_t *address_true;                         /* Shared */
+#endif
 
-/* ------------------------------------------------------------------------- */
- 
+extern definition_t *address_true;
+
 CFUN__PROTO(fu1_get_attribute, tagged_t, tagged_t x) {
-  tagged_t t;
-
-  DerefSwitch(x,t,{
-    if ( VarIsCVA(x) ) { 
-      return *TagToGoal(x);
-    }
-  }); 
-  return ERRORTAG;                                                /* fail */
+  DerefSw_CVA_Other(x, {}, { CFUN__PROCEED(ERRORTAG); } ); /* fail */
+  CFUN__PROCEED(*TaggedToGoal(x));
 }
 
-/* 
-   suspend a goal on a variable. Stolen from suspend_goal in misc.c .
-*/
-
-CBOOL__PROTO(bu2_attach_attribute,
-             tagged_t var,
-             tagged_t constr) {
-  tagged_t t0;
-  tagged_t *h = w->heap_top;
-        
-  DerefSwitch(constr,t0,{USAGE_FAULT("attach_attribute/2: type error");}); 
+/* Suspend a goal on a variable. Stolen from suspend_goal in misc.c */
+static inline CBOOL__PROTO(bu2_attach_attribute_, tagged_t var, tagged_t constr, tagged_t susp) {
+  DerefSw_HVAorCVAorSVA_Other(constr, { USAGE_FAULT("attach_attribute/2: type error"); }, {});
+  tagged_t *h = G->heap_top;
   DEREF(var,var);
   if (TaggedIsHVA(var)) {
+    tagged_t t0;
     LoadCVA(t0,h);
-    if (CondHVA(var))   {
-      TrailPush(w->trail_top,var);
-      *TagpPtr(HVA,var) = t0;
-    } else {
-      *TagpPtr(HVA,var) = t0;
-    }
+    if (CondHVA(var)) TrailPush(G->trail_top,var);
+    *TagpPtr(HVA,var) = t0;
+  } else if (TaggedIsSVA(var)) { /* unsafe value */
+    tagged_t t0;
+    tagged_t *ptr = h;
+    LoadHVA(t0,ptr);
+    h = ptr;
+    BindSVA(var,t0);
+    var = t0;
+    LoadCVA(t0,h);
+    *TagpPtr(HVA,var) = t0;
   } else {
-    if (TaggedIsSVA(var)) {                                  /* unsafe value */
-      tagged_t *ptr = h;
-      LoadHVA(t0,ptr);
-      h = ptr;
-      BindSVA(var,t0);
-      var = t0;
-      LoadCVA(t0,h);
-      *TagpPtr(HVA,var) = t0;
-    } else {
-      USAGE_FAULT("attach_attribute/2: type error");
-    }
+    USAGE_FAULT("attach_attribute/2: type error");
   }
-  
+
   HeapPush(h,constr);
-  HeapPush(h,PointerToTerm(address_true));                        /* func */
-  
-  w->heap_top = h;
-  if (ChoiceYounger(w->node,TrailOffset(w->trail_top,CHOICEPAD)))
-    choice_overflow(Arg,CHOICEPAD); 
-  return TRUE;
+  HeapPush(h,susp); /* func */
+  G->heap_top = h;
+
+  TEST_CHOICE_OVERFLOW(w->node, CHOICEPAD);
+  CBOOL__PROCEED;
+}
+
+/* Suspend a goal on a variable (similar to suspend_goal) */
+CBOOL__PROTO(bu2_attach_attribute, tagged_t var, tagged_t constr) {
+  CBOOL__LASTCALL(bu2_attach_attribute_, var, constr, PointerToTerm(address_true));
 }  
 
-/* a la defrost */
+/* (special version for mutables) */
+CBOOL__PROTO(bu2_attach_attribute_weak, tagged_t var, tagged_t constr) {  
+  CBOOL__LASTCALL(bu2_attach_attribute_, var, constr, MakeSmall(0));
+}  
 
+/* (similar to defrost) */
 CBOOL__PROTO(bu1_detach_attribute, tagged_t x) {
+  DerefSw_CVA_Other(x,{},{ USAGE_FAULT("detach_attribute/2: type error"); });
   tagged_t t; 
-  tagged_t *h = w->heap_top;
-  
-  DerefSwitch(x,t,{
-    if ( VarIsCVA(x) ) {
-      LoadHVA(t,h);
-      BindCVA_NoWake(x,t);                                     /* trailed */
-      w->heap_top = h;
-      return TRUE;
-    }
-  });
-  USAGE_FAULT("detach_attribute/2: type error");
+  tagged_t *h = G->heap_top;
+  LoadHVA(t,h);
+  BindCVANoWake(x,t); /* trailed */
+  G->heap_top = h;
+  CBOOL__PROCEED;
 }  
  
-/* think about optimizations a la setarg */
+/* TODO: think about optimizations a-la setarg */
 
-CBOOL__PROTO(bu2_update_attribute,
-             tagged_t x,
-             tagged_t constr) {
+CBOOL__PROTO(bu2_update_attribute, tagged_t x, tagged_t constr) {
+  DerefSw_HVAorCVAorSVA_Other(constr,{ USAGE_FAULT("update_attribute/2: type error"); }, {});
+  DerefSw_CVA_Other(x,{},{ USAGE_FAULT("update_attribute/2: type error"); });
   tagged_t t;
-  tagged_t *h = w->heap_top;
-              
-  DerefSwitch(constr,t,{USAGE_FAULT("update_attribute/2: type error");}); 
-  DerefSwitch(x,t,{
-    if ( VarIsCVA(x) ) { 
-      LoadCVA(t,h); 
-      HeapPush(h,constr);
-      HeapPush(h,PointerToTerm(address_true));                    /* func */
-      BindCVA_NoWake(x,t);                                     /* trailed */
-      w->heap_top = h;
-      return TRUE;
-    }
-  }); 
-  USAGE_FAULT("update_attribute/2: type error"); 
-}  
+  tagged_t *h = G->heap_top;
+  LoadCVA(t,h); 
+  HeapPush(h,constr);
+  HeapPush(h,PointerToTerm(address_true)); /* func */
+  BindCVANoWake(x,t); /* trailed */
+  G->heap_top = h;
+  CBOOL__PROCEED;
+}
 
+/* ------------------------------------------------------------------------- */
 /*  
-   Called from bc_aux.h
+   (Called from bc_aux.h)
    Collect all constraints that have been woken "recently" by
    scanning the newest trail segment.  Also, excise such entries
    belonging to the newest heap segment.  
    Each pending unification pushes 4 heap elems - cf enter_predicate
 */
 
+/* TODO: share code with collect_one_pending_unification */
+
 CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
   intmach_t sofar=0;
-  tagged_t *tr = w->trail_top;
-  tagged_t *h = w->heap_top;
+  tagged_t *tr = G->trail_top;
+  tagged_t *h;
   tagged_t *tr0 = NULL;
+#if defined(OPTIM_COMP)
+  tagged_t *limit = w->choice->trail_top;
+#else
   tagged_t *limit = TagToPointer(w->node->trail_top);  
+#endif
    
+  h = G->heap_top;
   X(0) = atom_nil;
   while (sofar<wake_count && TrailYounger(tr,limit))  {
     tagged_t ref, value;
     
-    ref = TrailPop(tr);
-    if (!TaggedIsCVA(ref))
-      continue;
-    RefCVA(value,ref); 
+    TrailDec(tr);
+    ref = *tr; // (tr points to the popped element)
+    if (!TaggedIsCVA(ref)) continue;
+    value = *TagpPtr(CVA,ref);
     if (value==ref) { 
-      SERIOUS_FAULT("wake - unable to find all goals");  
+      PANIC_FAULT("wake - unable to find all goals");  
     }
     
     sofar++; 
-    *TagToPointer(ref) = ref;                                  /* untrail */
+    *TagToPointer(ref) = ref; /* untrail */
     
-    HeapPush( h, ref); 
-    HeapPush( h, value);  
-    HeapPush( h, Tagp(LST,h-2));
-    HeapPush( h, X(0));
+    HeapPush(h, ref); 
+    HeapPush(h, value);  
+    HeapPush(h, Tagp(LST,h-2));
+    HeapPush(h, X(0));
     X(0) = Tagp(LST,h-2);
     
-    if ( !CondCVA(ref)) 
-      tr0=tr, *tr=0; 
+    if (!CondCVA(ref)) {
+      tr0=tr;
+      *tr=0;
+    }
   }
-  w->heap_top = h;
-  Heap_Warn_Soft = Heap_Start;                       /* make WakeCount==0 */
+  G->heap_top = h;
+  Heap_Warn_Soft = Heap_Start; /* make WakeCount==0 */
   
   if (sofar<wake_count) {
-    SERIOUS_FAULT("wake - unable to find all goals");
+    PANIC_FAULT("wake - unable to find all goals");
   }
-  
-                                                /* now compress the trail */
-  
+
+  /* now compress the trail */
   if (tr0) {
     h = tr = tr0;
-    while (TrailYounger(w->trail_top,tr)){
+    while (TrailYounger(G->trail_top,tr)){
       tagged_t ref;
-      
-      if ((ref = TrailNext(tr)))
-        TrailPush(h,ref);
+      if ((ref = TrailNext(tr))) TrailPush(h,ref);
     }
-    w->trail_top = h;
+    G->trail_top = h;
   }
 }                  
 
+/* TODO: share code with collect_pending_unifications */
+
 CVOID__PROTO(collect_one_pending_unification) {
   intmach_t sofar=0;
-  tagged_t *tr = w->trail_top;
+  tagged_t *tr = G->trail_top;
   tagged_t *tr0 = NULL;
+#if defined(OPTIM_COMP)
+  tagged_t *limit = w->choice->trail_top;
+#else
   tagged_t *limit = TagToPointer(w->node->trail_top);  
+#endif
   
   while ( !sofar && TrailYounger(tr,limit)) {
     tagged_t ref, value;
     
-    ref = TrailPop(tr);
-    if (!TaggedIsCVA(ref))
-      continue;
-    RefCVA(value,ref); 
+    TrailDec(tr);
+    ref = *tr; // (tr points to the popped element)
+    if (!TaggedIsCVA(ref)) continue;
+    value = *TagpPtr(CVA,ref);
     if (value==ref) { 
-      SERIOUS_FAULT("wake - unable to find all goals");  
+      PANIC_FAULT("wake - unable to find all goals");  
     }
     
-    sofar++; 
-    *TagToPointer(ref) = ref;                                  /* untrail */
+    sofar++;
+    *TagToPointer(ref) = ref; /* untrail */
     
-    /*   X(0) = *TagToGoal(ref);*/
-    X(0) = ref ;
+#if 0 /* old attributes */
+    X(0) = *TaggedToGoal(ref);
+#else /* new attributes */
+    X(0) = ref;
+#endif
     X(1) = value;
     
-    if ( !CondCVA(ref)) 
-      tr0=tr, *tr=0; 
+    if (!CondCVA(ref)) {
+      tr0=tr;
+      *tr=0;
+    }
   }
-  Heap_Warn_Soft = Heap_Start;                       /* make WakeCount==0 */
+  Heap_Warn_Soft = Heap_Start; /* make WakeCount==0 */
   
-  if ( !sofar ) {
-    SERIOUS_FAULT("wake - unable to find all goals");
+  if (!sofar) {
+    PANIC_FAULT("wake - unable to find all goals");
   }
   
-                                                /* now compress the trail */
-  
+  /* now compress the trail */
   if (tr0) {
     tagged_t *h = tr = tr0;
-    while (TrailYounger(w->trail_top,tr))
-      {
-        tagged_t ref;
-        
-        if ((ref = TrailNext(tr)))
-          TrailPush(h,ref);
-      }
-    w->trail_top = h;
+    while (TrailYounger(G->trail_top,tr)) {
+      tagged_t ref;
+      if ((ref = TrailNext(tr))) TrailPush(h,ref);
+    }
+    G->trail_top = h;
   }
 }
 
-#if defined(USE__FAST_MULTIATTR)
+/* --------------------------------------------------------------------------- */
+/* TODO: benchmark, fix, and enable this code */
 
-/************************************************ 
- * C versions of the Multi-attributes Accessors *
- *                                              *
- * Author: Remy Haemmerle                       *
- * Copyright: CLIP group, 2013                  *
- ************************************************/
+#if defined(USE_FAST_MULTIATTR)
+
+/* C versions of the Multi-attributes Accessors */
+/* Author: Remy Haemmerle */
 
 CBOOL__PROTO(setarg);
 
@@ -237,37 +228,36 @@ CBOOL__PROTO(c_setarg, intmach_t, tagged_t, tagged_t, bool_t);
 #define CELL_VAL(CELL)  *TaggedToArg((CELL),2)
 #define CELL_NEXT(CELL) *TaggedToArg((CELL),3)
 
-#define DEREF_AND_ENSURE_ATOM_MODKEY(KEY) ({                            \
-      tagged_t  tmp;                                                    \
-      DerefSwitch((KEY),                                                \
-                  tmp,                                                  \
-                  BUILTIN_ERROR(INSTANTIATION_ERROR, (KEY), 2););       \
-      if (!TaggedIsATM((KEY))) {                                        \
-        if ((!TaggedIsSTR((KEY))) ||                                    \
-            (TagToHeadfunctor((KEY)) != SetArity(atom_user, 1)))        \
-          { BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), (KEY), 2); }         \
-        (KEY) = atom_user;                                              \
-      }                                                                 \
-    })
+#define DEREF_AND_ENSURE_ATOM_MODKEY(KEY) ({                        \
+  tagged_t  tmp;                                                    \
+  DerefSwitch((KEY),                                                \
+              tmp,                                                  \
+              BUILTIN_ERROR(INSTANTIATION_ERROR, (KEY), 2););       \
+  if (!TaggedIsATM((KEY))) {                                        \
+    if ((!TaggedIsSTR((KEY))) ||                                    \
+        (TagToHeadfunctor((KEY)) != SetArity(atom_user, 1)))        \
+      { BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), (KEY), 2); }         \
+    (KEY) = atom_user;                                              \
+  }                                                                 \
+})
 
-#define LOOK_FOR_CELL(CELL, KEY, K, BEFORE_CODE, NIL_CODE) ({   \
-      do {                                                      \
-        BEFORE_CODE;                                            \
-        (CELL) = CELL_NEXT(CELL);                               \
-        if ((CELL) == atom_nil) { NIL_CODE; }                   \
-        (K) = CELL_KEY(CELL);                                   \
-      } while( (KEY) < (K) );                                   \
-    })
+#define LOOK_FOR_CELL(CELL, KEY, K, BEFORE_CODE, NIL_CODE) ({ \
+  do {                                                      \
+    BEFORE_CODE;                                            \
+    (CELL) = CELL_NEXT(CELL);                               \
+    if ((CELL) == atom_nil) { NIL_CODE; }                   \
+    (K) = CELL_KEY(CELL);                                   \
+  } while((KEY) < (K));                                     \
+})
 
-/* 
-   The following code checks the variable uses multi-attributes. 
-   Otherwise it silently fails.
-*/
-#define ACCESS_ATTR_STR(ATTRVAR, COMPLEX) ({            \
-      (COMPLEX) = *TagToGoal((ATTRVAR));                \
-      if (!TaggedIsSTR((COMPLEX)) ||                    \
-          TagToHeadfunctor((COMPLEX)) != MULTI_ATTR_F)  \
-        { return FALSE; }                               \
+/* The following code checks the variable uses multi-attributes. 
+   Otherwise it silently fails. */
+#define ACCESS_ATTR_STR(ATTRVAR, COMPLEX) ({ \
+  (COMPLEX) = *TaggedToGoal((ATTRVAR)); \
+  if (!TaggedIsSTR((COMPLEX)) || \
+      TagToHeadfunctor((COMPLEX)) != MULTI_ATTR_F) { \
+    return FALSE; \
+  } \
 })
 
 CBOOL__PROTO(get_attr__3) {
@@ -307,7 +297,7 @@ CBOOL__PROTO(put_attr__3) {
   key = X(1); DEREF_AND_ENSURE_ATOM_MODKEY(key);
   val = X(2); DEREF(val, val);
 
-  if ( VarIsCVA(var) ) { 
+  if (VarIsCVA(var)) { 
     ACCESS_ATTR_STR(var, complex);
     
     LOOK_FOR_CELL(complex, key, k, 
@@ -326,20 +316,17 @@ CBOOL__PROTO(put_attr__3) {
     }
 
   insert_cell:
-     
-    ptr = w->heap_top;
+    ptr = G->heap_top;
     complex = Tagp(STR, ptr);
     HeapPush(ptr, SetArity(atom_att, 3));
     HeapPush(ptr, key);
     HeapPush(ptr, val);
     HeapPush(ptr, next);
-    w->heap_top = ptr;
+    G->heap_top = ptr;
 
     return c_setarg(Arg, 3, prev, complex, TRUE);
-    
   } else {
-    
-    ptr = w->heap_top;
+    ptr = G->heap_top;
     complex = Tagp(STR, ptr);
     HeapPush(ptr, SetArity(atom_att, 3));
     HeapPush(ptr, TaggedZero);
@@ -349,13 +336,12 @@ CBOOL__PROTO(put_attr__3) {
     HeapPush(ptr, key);
     HeapPush(ptr, val);
     HeapPush(ptr, atom_nil);
-    w->heap_top = ptr;
+    G->heap_top = ptr;
      
     return bu2_attach_attribute(Arg, var, complex);
   }
 
 }
-
 
 CBOOL__PROTO(del_attr__2) {
   ERR__FUNCTOR("attr_rt:del_attr", 2);
@@ -364,7 +350,7 @@ CBOOL__PROTO(del_attr__2) {
 
   var=X(0); DEREF(var, var);
 
-  if ( !IsVar(var) || !VarIsCVA(var) ) { return TRUE; }
+  if (!IsVar(var) || !VarIsCVA(var)) { return TRUE; }
   
   ACCESS_ATTR_STR(var, complex);
     
@@ -417,10 +403,7 @@ CBOOL__PROTO(type_attr__3) {
 }  
 */
 
-/*
-  wrapper for setarg
-*/ 
-
+/* wrapper for setarg */ 
 CBOOL__PROTO(c_setarg,
              intmach_t number,
              tagged_t complex,

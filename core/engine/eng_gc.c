@@ -168,7 +168,8 @@ static CVOID__PROTO(shuntVariables) {
     while (ChoiceYounger(cp,Gc_Choice_Start)) {
       limit = TagToPointer(prevcp->trail_top);
       while (TrailYounger(pt,limit)) {
-        tagged_t v = TrailPop(pt);
+        TrailDec(pt);
+        tagged_t v = *pt; // (pt points to the popped element)
 
         if (v!=0 && IsVar(v) && !gc_IsMarked(*TagToPointer(v)))
           gc_MarkM(*TagToPointer(v));
@@ -265,18 +266,21 @@ static CVOID__PROTO(markTrail) {
      */
                                 /* mark newly bound CVAs */
   while (wake_count>0){
-    tagged_t v= TrailPop(tr);
+    TrailDec(tr);
+    tagged_t v = *tr; // (tr points to the popped element)
 
-    if (TaggedIsCVA(v))
-      --wake_count,
-        markVariable(Arg, tr);
+    if (TaggedIsCVA(v)) {
+      --wake_count;
+      markVariable(Arg, tr);
+    }
   }
 
 #if defined(SEGMENTED_GC)
     /* First mark all trailed old variables */
     tr = w->trail_top;
     while (TrailYounger(tr,Gc_Trail_Start)) {
-      tagged_t v = TrailPop(tr);
+      TrailDec(tr);
+      tagged_t v = *tr; // (tr points to the popped element)
       tagged_t *p = TagToPointer(v);
 
       if (v!=0 && !gc_IsMarked(v) &&
@@ -350,7 +354,8 @@ static CVOID__PROTO(markChoicepoints) {
       limit = TagToPointer(cp->trail_top);
       while (TrailYounger(tr,limit))
         {
-          tagged_t v = TrailPop(tr);
+          TrailDec(tr);
+          tagged_t v = *tr; // (tr points to the popped element)
         
           if (v==(tagged_t)NULL || gc_IsMarked(v))
             ;
@@ -531,7 +536,8 @@ static CVOID__PROTO(sweepTrail) {
   tr= w->trail_top;
   while (TrailYounger(tr,Gc_Trail_Start))
     {
-      v= TrailPop(tr); /* tr now points to the popped element */
+      TrailDec(tr);
+      v = *tr; // (tr points to the popped element)
       if (v==0) continue;
       gc_UnmarkM(*tr);
       p= TagToPointer(v);
@@ -816,10 +822,13 @@ CVOID__PROTO(GarbageCollect) {
     sweepTrail(Arg);
     sweepChoicepoints(Arg);
     compressHeap(Arg);
-                                /* pop special regs from the trail stack */
-    Current_Debugger_State = TrailPop(w->trail_top);
+
+    /* pop special regs from the trail stack */
+    TrailDec(w->trail_top);
+    Current_Debugger_State = *(w->trail_top); // (w->trail_top points to the popped element)
 #if defined(USE_GLOBAL_VARS)
-    GLOBAL_VARS_ROOT = TrailPop(w->trail_top);
+    TrailDec(w->trail_top);
+    GLOBAL_VARS_ROOT = *(w->trail_top); // (w->trail_top points to the popped element)
 #endif
     
     SetShadowregs(w->node);     /* shadow regs may have changed */
@@ -1545,7 +1554,8 @@ CVOID__PROTO(heap_overflow_adjust_wam,
           *(pt1-1) += reloc_factor;
       }
     }
-    Current_Debugger_State = TrailPop(w->trail_top);
+    TrailDec(w->trail_top);
+    Current_Debugger_State = *(w->trail_top); // (w->trail_top points to the popped element)
 
 #if defined(ANDPARALLEL)
     /* relocate pointers in goal list */
@@ -1641,69 +1651,6 @@ CVOID__PROTO(heap_overflow_adjust_wam,
   }
 }
 
-
-/* Collect all constraints that have been woken "recently" by
-   scanning the newest trail segment.  Also, excise such entries
-   belonging to the newest heap segment. */
-CVOID__PROTO(collect_goals_from_trail, intmach_t wake_count)
-{
-  intmach_t sofar=0;
-  tagged_t *tr = w->trail_top;
-  tagged_t *h = w->heap_top;
-  tagged_t *tr0 = NULL;
-  tagged_t *limit = TagToPointer(w->node->trail_top);
-  
-  while (sofar<wake_count && TrailYounger(tr,limit))
-    {
-      tagged_t ref, value;
-
-      ref = TrailPop(tr);
-      if (!TaggedIsCVA(ref))
-        continue;
-      RefCVA(value,ref);
-      if (value==ref)
-        SERIOUS_FAULT("wake - unable to find all goals");
-      if (sofar++ > 1)
-        {
-          HeapPush(h,X(0));
-          HeapPush(h,X(1));
-          X(1) = Tagp(LST,HeapOffset(h,-2));
-        }
-      else if (sofar > 1)
-        X(1) = X(0);
-
-      X(0) = Tagp(LST,TagToGoal(ref));
-      if (!CondCVA(ref))
-        {
-          tr0=tr, *tr=0;
-        }
-    }
-  w->heap_top = h;
-  Heap_Warn_Soft = Heap_Start;  /* make WakeCount==0 */
-
-  if (sofar<wake_count)
-    SERIOUS_FAULT("wake - unable to find all goals")
-  else if (sofar==1)
-    X(1) = *TagToCdr(X(0)),
-    X(0) = *TagToCar(X(0));
-
-  /* now compress the trail */
-
-  if (tr0)
-    {
-      h = tr = tr0;
-      while (TrailYounger(w->trail_top,tr))
-        {
-          tagged_t ref;
-          
-          if ((ref = TrailNext(tr)))
-            TrailPush(h,ref);
-        }
-      w->trail_top = h;
-    }
-}
-
-
 /* Tidy new half of trail exhaustively. */
 CVOID__PROTO(trail_gc)
 {
@@ -1747,7 +1694,8 @@ CVOID__PROTO(trail_gc)
     while (!OffTrailtop(x,tr)){
       tagged_t t1 /*, *pt */ ; /* unused */
 
-      t1 = TrailPop(tr);
+      TrailDec(tr);
+      t1 = *tr; // (tr points to the popped element)
       if (!IsVar(t1)) {
         /* kill unconditional 'undo setarg' */
         if (TaggedIsSTR(t1) &&

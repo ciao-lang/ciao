@@ -13,14 +13,23 @@
 #include <ciao/eng_predef.h>
 #include <ciao/os_threads.h>
 
+/* --------------------------------------------------------------------------- */
+/* (default options) */
+
+#define USE_DYNAMIC_ATOM_SIZE 1
+
+/* (for some reason this makes the engine around 6% faster) */
+#define USE_TAGGED_CHOICE_START
+
+// uncomment to enable C version of the multi-attributes accessors.
+// #define USE_FAST_MULTIATTR 1
+
 /* =========================================================================== */
 /* Margins and initial allocation parameters. */
 
 #define kCells   1024
 
 #define STATICMAXATOM 1024     /* Avoid very long atoms inside the engine */
-
-#define USE_DYNAMIC_ATOM_SIZE 1
 
 #if defined(USE_DYNAMIC_ATOM_SIZE) 
 # define MAXATOM  Atom_Buffer_Length
@@ -354,9 +363,6 @@
 #define Choice_End          w->choice_end
 #define Choice_Start        w->choice_start
 
-/* (for some reason this makes the engine around 6% faster) */
-#define USE_TAGGED_CHOICE_START
-
 #if defined(USE_TAGGED_CHOICE_START)
 #define Tagged_Choice_Start w->tagged_choice_start
 #endif
@@ -513,6 +519,12 @@
    } \
  }
 #endif
+
+#define TEST_CHOICE_OVERFLOW(B, AMOUNT) ({ \
+  if (ChoiceYounger((B),TrailOffset(w->trail_top,(AMOUNT)))) { \
+    CVOID__CALL(choice_overflow, (AMOUNT)); \
+  } \
+})
 
 /* EVENTS    ------------------------------------- */
 
@@ -895,11 +907,11 @@ CBOOL__PROTO(bc_eq_blob, tagged_t t, tagged_t *ptr);
     /* finding the car & cdr of a list. */
     /* finding the constraints of a CVA. */
 #define TagToHeadfunctor(X) (*TagpPtr(STR,X))
-#define TaggedToArg(X,N)   HeapOffset(TagpPtr(STR,X),N)
-#define TagToCar(X)     TagpPtr(LST,X)
-#define TagToCdr(X)     HeapOffset(TagpPtr(LST,X),1)
-#define TagToGoal(X)    HeapOffset(TagpPtr(CVA,X),1)
-#define TagToDef(X)     HeapOffset(TagpPtr(CVA,X),2)
+#define TaggedToArg(X,N) HeapOffset(TagpPtr(STR,X),N)
+#define TagToCar(X) TagpPtr(LST,X)
+#define TagToCdr(X) HeapOffset(TagpPtr(LST,X),1)
+#define TaggedToGoal(X) HeapOffset(TagpPtr(CVA,X),1)
+#define TaggedToDef(X) HeapOffset(TagpPtr(CVA,X),2)
 
 typedef struct instance_handle_ instance_handle_t;
 typedef struct instance_ instance_t;
@@ -1523,7 +1535,9 @@ struct marker_ {
 #define TrailCharDifference(X,Y)        ((char *)(Y) - (char *)(X))
 #define TrailOffset(X,O)        ((tagged_t *)(X) + (O))
 #define TrailCharOffset(X,O)    ((tagged_t *)((char *)(X) + (O)))
-#define TrailPop(P)             (*--(P))
+#define TrailGetTop(P)          ((P)[-1])
+#define TrailDec(P)             (--(P)) /* P points to the popped element */
+//#define TrailPop(P)             (*--(P))
 #define TrailNext(P)            (*(P)++)
 #define TrailPush(P,X)          (*(P)++ = (X))
 #define TrailPushCheck(P,X)     trail_push_check(Arg,X)
@@ -1566,8 +1580,6 @@ struct marker_ {
 #define HeapPushRefStack(To,From) { *(To)++ = *(From); }
 
 #define RefHVA(To,From) { To = *TagpPtr(HVA,From); }
-
-#define RefCVA(To,From) { To = *TagpPtr(CVA,From); }
 
 #define RefSVA(To,From) { To = *TagpPtr(SVA,From); }
 
@@ -2306,6 +2318,22 @@ module_t *define_c_static_mod(char *module_name);
 labelend: {} \
 })
 
+#define DerefSw_CVA_Other(X, CODE_CVA, CODE_Other) { \
+  __label__ derefsw_cva; \
+  __label__ derefsw_other; \
+  __label__ derefsw_end; \
+  tagged_t t_; \
+  DerefSwitch((X),t_,{ if (VarIsCVA((X))) goto derefsw_cva; }); \
+  goto derefsw_other; \
+ derefsw_cva: \
+  CODE_CVA; \
+  goto derefsw_end; \
+ derefsw_other: \
+  CODE_Other; \
+  goto derefsw_end; \
+ derefsw_end: {} \
+}
+
 //TODO:[merge-oc] DerefSw_HVA_CVA_SVA_Other?
 #define SwitchOnVar(Reg,Aux,HVACode,CVACode,SVACode,NVACode) \
 { \
@@ -2324,7 +2352,7 @@ labelend: {} \
               else HVACode \
             } \
           else \
-            { RefCVA(Aux,Reg); \
+            { Aux = *TagpPtr(CVA,(Reg)); \
               if (Reg!=Aux) { Reg=Aux; continue; } \
               else CVACode \
             } \
@@ -2344,7 +2372,7 @@ labelend: {} \
               else HVACode \
             } \
           else \
-            { RefCVA(Aux,Reg); \
+            { Aux = *TagpPtr(CVA,(Reg)); \
               if (Reg!=Aux) { Reg=Aux; continue; } \
               else CVACode \
             } \
@@ -2400,7 +2428,7 @@ labelend: {} \
 CVOID__PROTO(trail_push_check, tagged_t x);
 
 /* segfault patch -- jf */
-#define BindCVA_NoWake(U,V) \
+#define BindCVANoWake(U,V) \
 { \
   TrailPushCheck(w->trail_top,U); \
   *TagpPtr(CVA,U) = V; \
@@ -2441,7 +2469,8 @@ CVOID__PROTO(trail_push_check, tagged_t x);
 //TODO: nullify fake trail entries with a predicate which makes nothing.
 #define PlainUntrail(TR,Ref,CONT)                                       \
   {                                                                     \
-    Ref = TrailPop(TR);                                                 \
+    TrailDec(TR);                                                       \
+    Ref = *(TR); /* (tr points to the popped element) */                \
     if (!IsVar(Ref))                                                    \
       {if (!IsCanceled(Ref)) CONT}                                      \
     else                                                                \
@@ -2495,6 +2524,8 @@ CVOID__PROTO(trail_push_check, tagged_t x);
 extern SIGJMP_BUF abort_env;
 
 void failc(char *mesg);
+
+#define PANIC_FAULT SERIOUS_FAULT /* TODO: use oc panic fault? */
 
 #define SERIOUS_FAULT(Y) { \
     failc(Y); \

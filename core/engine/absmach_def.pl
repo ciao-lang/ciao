@@ -3495,14 +3495,14 @@ code_suspend_t3_on_t1 :-
          "*TagpPtr(HVA,t1)" <- "t0"),
        goto('check_trail')),
       if(("!", callexp('CondCVA', ["t1"])),
-        (heap_push("*TagToGoal(t1)"),
-         heap_push("*TagToDef(t1)"),
+        (heap_push("*TaggedToGoal(t1)"),
+         heap_push("*TaggedToDef(t1)"),
          cachedreg('H', H),
-         "*TagToGoal(t1)" <- callexp('Tagp', ["LST", callexp('HeapOffset', [H,-2])]),
-         "*TagToDef(t1)" <- callexp('Tagp', ["LST", H]),
+         "*TaggedToGoal(t1)" <- callexp('Tagp', ["LST", callexp('HeapOffset', [H,-2])]),
+         "*TaggedToDef(t1)" <- callexp('Tagp', ["LST", H]),
          goto('no_check_trail')),
         (load(cva, "t0"),
-         heap_push(callexp('Tagp', ["LST", callexp('TagToGoal', ["t1"])])),
+         heap_push(callexp('Tagp', ["LST", callexp('TaggedToGoal', ["t1"])])),
          cachedreg('H', H),
          heap_push(callexp('Tagp', ["LST", callexp('HeapOffset', [H,1])])),
          "pt1" <- "w->trail_top",
@@ -3716,7 +3716,7 @@ code_enter_pred :-
           "collect_one_pending_unification(Arg);", % does not touch H
           "DEREF(t0,X(1));",
           if(callexp('TaggedIsCVA', ["t0"]),
-            (% X(1)=*TagToGoal(t0);
+            (% X(1)=*TaggedToGoal(t0);
              "X(1)" <- "t0",
              % patch prev. SETUP_PENDING_CALL
              call('Setfunc', ["address_ucc"])))),

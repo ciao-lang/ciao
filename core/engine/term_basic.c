@@ -175,10 +175,10 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
 
  copy_cva:
   if (OldCVA(t1)) { /* new 3-field CVA */
-    pt1 = TagToGoal(t1);
+    pt1 = TaggedToGoal(t1);
     pt2 = w->heap_top;
     LoadCVA(t2,pt2);
-    BindCVA_NoWake(t1,t2);
+    BindCVANoWake(t1,t2);
     *loc = t2;
     goto copy_2_cells;
   } else *loc = t1;
@@ -274,7 +274,7 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
        xref bu1_detach_attribute() */
     PreLoadHVA(*loc,loc);
     t2 = Tagp(HVA,loc);
-    BindCVA_NoWake(t1,t2);
+    BindCVANoWake(t1,t2);
   } else  *loc = t1;
   return;
 }
@@ -483,7 +483,8 @@ CBOOL__PROTO(prolog_unifiable)
   limit = TagToPointer(w->node->trail_top);
    
   while (TrailYounger(tr, limit)) {
-    t1 = TrailPop(tr);
+    TrailDec(tr);
+    t1 = *tr; // (tr points to the popped element)
 
     HeapPush(w->heap_top, SetArity(atom_equal, 2));
     HeapPush(w->heap_top, t1);

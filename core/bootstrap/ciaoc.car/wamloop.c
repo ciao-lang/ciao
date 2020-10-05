@@ -228,14 +228,14 @@ TrailPush(pt1,t1);*TagpPtr(HVA,t1) = t0;
       }
 goto check_trail;
     } else if (!CondCVA(t1)) {
-HeapPush(H,*TagToGoal(t1));
-HeapPush(H,*TagToDef(t1));
-*TagToGoal(t1) = Tagp(LST,HeapOffset(H,-2));
-*TagToDef(t1) = Tagp(LST,H);
+HeapPush(H,*TaggedToGoal(t1));
+HeapPush(H,*TaggedToDef(t1));
+*TaggedToGoal(t1) = Tagp(LST,HeapOffset(H,-2));
+*TaggedToDef(t1) = Tagp(LST,H);
 goto no_check_trail;
     } else {
 LoadCVA(t0,H);
-HeapPush(H,Tagp(LST,TagToGoal(t1)));
+HeapPush(H,Tagp(LST,TaggedToGoal(t1)));
 HeapPush(H,Tagp(LST,HeapOffset(H,1)));
 pt1 = w->trail_top;
 TrailPush(pt1,t1);*TagpPtr(CVA,t1) = t0;

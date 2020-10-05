@@ -1854,7 +1854,8 @@ CBOOL__PROTO(setarg)
     t1 = Tagp(HVA,ptr);
     
     for (x=w->trail_top; TrailYounger(x,limit);) {
-      t2 = TrailPop(x);
+      TrailDec(x);
+      t2 = *x; // (x points to the popped element)
       if (t1 == t2)
         return TRUE;
     }
@@ -1904,7 +1905,7 @@ CBOOL__PROTO(frozen)
   if (!IsVar(X(0)))
     return FALSE;
   else if (VarIsCVA(X(0)))
-    CBOOL__LASTUNIFY(Tagp(LST,TagToGoal(X(0))),X(1));
+    CBOOL__LASTUNIFY(Tagp(LST,TaggedToGoal(X(0))),X(1));
   CBOOL__UnifyCons(atom_nil,X(1));
   return TRUE;
 }
@@ -1926,7 +1927,7 @@ CBOOL__PROTO(defrost)
       HeapPush(h,*TagToCar(X(1)));
       HeapPush(h,*TagToCdr(X(1)));
     }
-  BindCVA_NoWake(X(0),t);
+  BindCVANoWake(X(0),t);
   w->heap_top = h;
   return TRUE;
 }
