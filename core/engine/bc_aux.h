@@ -104,7 +104,7 @@ static try_node_t *get_null_alt(int arity)
   intmach_t current_mem = total_mem_count;
 
   for (a = null_alt; a; a = (a+1)->next)
-    if (a->node_offset == ArityToOffset(arity)) return a;
+    if (a->choice_offset == ArityToOffset(arity)) return a;
 
   a = (try_node_t *)checkalloc(sizeof(try_node_t)
                                + sizeof(try_node_t *)
@@ -115,7 +115,7 @@ static try_node_t *get_null_alt(int arity)
 
   INC_MEM_PROG(total_mem_count - current_mem);
 
-  a->node_offset = ArityToOffset(arity);
+  a->choice_offset = ArityToOffset(arity);
   a->number = 0;
   a->emul_p = insnfail;
   a->emul_p2 = insnfail;
@@ -169,7 +169,7 @@ try_node_t *def_retry_c(cbool0_t proc, int arity)
                         +2*sizeof(intmach_t)
 #endif
                         );
-  item->node_offset = ArityToOffset(arity);
+  item->choice_offset = ArityToOffset(arity);
   item->number = 0;
   P = item->emul_p = (bcp_t )(((char *)item)+sizeof(try_node_t));
   item->emul_p2 = P;
@@ -427,7 +427,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
             tagged_t head, tagged_t body, worker_t **new_worker);
 
 static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo) {
-  if (!ChoiceDifference(w->node,w->trail_top)) {
+  if (!ChoiceDifference(w->choice,w->trail_top)) {
     tagged_t *tr = w->trail_top;
     int reloc;
 
@@ -1110,16 +1110,16 @@ CBOOL__PROTO(bu1_if, tagged_t x0)
 
 CBOOL__PROTO(metachoice)
 {
-  CBOOL__UnifyCons(ChoiceToTagged(w->node),X(0));
+  CBOOL__UnifyCons(ChoiceToTagged(w->choice),X(0));
   return TRUE;
 }
 
 CBOOL__PROTO(metacut)
 {
   DEREF(X(0),X(0));
-  w->node = ChoiceFromTagged(X(0));
-  SetShadowregs(w->node);
-  /*  ConcChptCleanUp(TopConcChpt, w->node);*/
+  w->choice = ChoiceFromTagged(X(0));
+  SetShadowregs(w->choice);
+  /*  ConcChptCleanUp(TopConcChpt, w->choice);*/
   PROFILE__HOOK_METACUT;
   return TRUE;
 
@@ -1148,7 +1148,7 @@ CBOOL__PROTO(cunify_args,
   intmach_t i = w->value_trail;
 
   if (i<InitialValueTrail) {
-    pt2 = (tagged_t *)w->node;
+    pt2 = (tagged_t *)w->choice;
     do {
       pt1 = (tagged_t *)pt2[i++];
       *pt1 = pt2[i++];
@@ -1174,7 +1174,7 @@ static CBOOL__PROTO(cunify_args_aux,
      args of pt1 using choice stack as value cell.  When done, reinstall
      values. */
 
-  if (ChoiceYounger(ChoiceOffset(w->node,2*CHOICEPAD-w->value_trail),w->trail_top))
+  if (ChoiceYounger(ChoiceOffset(w->choice,2*CHOICEPAD-w->value_trail),w->trail_top))
                                 /* really: < 2*arity */
     choice_overflow(Arg,2*CHOICEPAD);
   for (; arity>0; --arity) {
@@ -1185,7 +1185,7 @@ static CBOOL__PROTO(cunify_args_aux,
       if (t1!=t2 && IsComplex(t1&t2)) {
         /* replace smaller value by larger value,
            using choice stack as value trail */
-        tagged_t *b = (tagged_t *)w->node;
+        tagged_t *b = (tagged_t *)w->choice;
         intmach_t i = w->value_trail;
 
         if (t1>t2)
@@ -1209,7 +1209,7 @@ static CBOOL__PROTO(cunify_args_aux,
 
   *x1 = t1, *x2 = t2;
 
-  if (ChoiceYounger(ChoiceOffset(w->node,CHOICEPAD-w->value_trail),w->trail_top))
+  if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD-w->value_trail),w->trail_top))
     choice_overflow(Arg,CHOICEPAD);
   return TRUE;
 }
@@ -1230,7 +1230,7 @@ CBOOL__PROTO(cunify, tagged_t x1, tagged_t x2)
   if (i<InitialValueTrail) {
     tagged_t *pt1, *pt2;
 
-    pt2 = (tagged_t *)w->node;
+    pt2 = (tagged_t *)w->choice;
     do {
       pt1 = (tagged_t *)pt2[i++];
       *pt1 = pt2[i++];
@@ -1356,7 +1356,7 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
 */
 CBOOL__PROTO(prolog_dif, definition_t *address_dif)
 {
-  node_t *b;
+  choice_t *b;
   tagged_t t0, t1, t2, *pt1, *pt2;
   intmach_t i;
   tagged_t item, other;
@@ -1375,10 +1375,10 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
         }
     }
                                 /* establish skeletal choicepoint */
-  b = w->node;
+  b = w->choice;
   w->next_alt = address_nd_repeat; /* arity=0 */
   ComputeA(w->local_top,b);
-  w->node = b = ChoiceCharOffset(b,ArityToOffset(0));
+  w->choice = b = ChoiceCharOffset(b,ArityToOffset(0));
   b->next_alt = NULL;
   b->trail_top = w->trail_top;
   SaveGtop(b,w->heap_top);
@@ -1393,7 +1393,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   /* quasi failure */
   
   Heap_Warn_Soft = Int_Heap_Warn;
-  b = w->node;
+  b = w->choice;
   t2 = (tagged_t)TagToPointer(b->trail_top);
   pt1 = w->trail_top;
   if (TrailYounger(pt1, t2)) {
@@ -1408,7 +1408,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   }
   
   RestoreGtop(b);
-  w->node = b = ChoiceCharOffset(b,-ArityToOffset(0));
+  w->choice = b = ChoiceCharOffset(b,-ArityToOffset(0));
   w->next_alt = NULL;
   SetShadowregs(b);
 
@@ -1463,7 +1463,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
                 TrailPush(pt1,t1);
                 *TagpPtr(CVA,t1) = t0;
               check_trail:
-                if (ChoiceYounger(w->node,TrailOffset(pt1,CHOICEPAD)))
+                if (ChoiceYounger(w->choice,TrailOffset(pt1,CHOICEPAD)))
                   w->trail_top = pt1,
                   choice_overflow(Arg,CHOICEPAD),
                   pt1 = w->trail_top;

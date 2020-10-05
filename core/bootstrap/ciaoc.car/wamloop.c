@@ -27,7 +27,7 @@ return wam__2(Arg, desc, func);
 }, {
 tagged_t *pt1; int i;
 if (w->next_alt) {
-SetB(w->node);
+SetB(w->choice);
 if (B->next_alt) {
 B->next_alt = w->next_alt;
   } else {
@@ -35,13 +35,13 @@ B->next_alt = w->next_alt; /* 4 contiguous moves */
 B->frame = w->frame;
 B->next_insn = w->next_insn;
 SaveLtop(B);
-i=B->next_alt->node_offset;
+i=B->next_alt->choice_offset;
 if (i>ArityToOffset(0)) {
 i = OffsetToArity(i);
-SetB(w->next_node);
+SetB(w->previous_choice);
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->next_node);
+fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_choice);
       }
 });
 do {
@@ -88,7 +88,7 @@ printf("Worker state address is %p\n", desc);  }
 });
 if (start_func != NULL) {
 P = (bcp_t)start_func;
-SetB(w->node);
+SetB(w->choice);
 LoadH;
 goto switch_on_pred;
   }
@@ -243,7 +243,7 @@ goto check_trail;
     }
 check_trail:
 w->trail_top = pt1;
-if (ChoiceYounger(w->node,TrailOffset(pt1,CHOICEPAD))) {
+if (ChoiceYounger(w->choice,TrailOffset(pt1,CHOICEPAD))) {
 choice_overflow(Arg,CHOICEPAD);    }
 goto no_check_trail;
 no_check_trail:
@@ -294,14 +294,14 @@ fail:
 PROFILE__HOOK_FAIL;
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr, "Failing: node = %x, next_node = %x, conc. node = %x\n", (int)w->node, (int)w->next_node, (int)TopConcChpt);
+fprintf(stderr, "Failing: node = %x, previous_choice = %x, conc. node = %x\n", (int)w->choice, (int)w->previous_choice, (int)TopConcChpt);
       }
-if ((w->misc->top_conc_chpt < w->node) &&         (w->misc->top_conc_chpt < w->next_node)) {
+if ((w->misc->top_conc_chpt < w->choice) &&         (w->misc->top_conc_chpt < w->previous_choice)) {
 fprintf(stderr, "********** what happened here?\n");
       }
 });
 Heap_Warn_Soft = Int_Heap_Warn;
-SetB(w->node);
+SetB(w->choice);
 ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );
 if (TrailYounger(pt2=w->trail_top,t1=(tagged_t)TagToPointer(B->trail_top))) {
 do {
@@ -314,22 +314,22 @@ RestoreGtop(B);
 if ((P = (bcp_t)w->next_alt) == NULL) {
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr, "deep backtracking, node = %x\n", (int)w->node);
+fprintf(stderr, "deep backtracking, node = %x\n", (int)w->choice);
           }
 });
 P = (bcp_t)B->next_alt;
 w->frame = B->frame;
 w->next_insn = B->next_insn;
 RestoreLtop(B);
-i = ((try_node_t *)P)->node_offset;
-w->next_node = ChoiceCharOffset(B,-i);
+i = ((try_node_t *)P)->choice_offset;
+w->previous_choice = ChoiceCharOffset(B,-i);
 if (i>ArityToOffset(0)) {
 tagged_t *wt = w->term;
-S = (tagged_t *)w->next_node;
+S = (tagged_t *)w->previous_choice;
 i = OffsetToArity(i) - 1;
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr, "Reloading %d words from node %x\n", i, (int)w->node);
+fprintf(stderr, "Reloading %d words from node %x\n", i, (int)w->choice);
             }
 });
 while(i >= 0) wt[i--] = ChoiceNext(S);
@@ -337,8 +337,8 @@ while(i >= 0) wt[i--] = ChoiceNext(S);
         }
 PROFILE__HOOK_REDO;
 if ((w->next_alt = ((try_node_t *)P)->next)==NULL) {
-SetB(w->next_node);
-w->node = B;
+SetB(w->previous_choice);
+w->choice = B;
 ON_TABLING({
 if (FrozenChpt(B)) {
 push_choicept(w,address_nd_fake_choicept);
@@ -588,13 +588,13 @@ t0 = X(0);
 DerefSwitch(t0,t1, {
 ;});
 wam_exit_code = GetSmall(t0);
-w->next_node = InitialNode;
+w->previous_choice = InitialNode;
 PROFILE__HOOK_CUT;
-SetB(w->next_node);
-w->node = B;
+SetB(w->previous_choice);
+w->choice = B;
 SetShadowregs(B);
-TRACE_CHPT_CUT(w->node);
-ConcChptCleanUp(TopConcChpt, w->node);
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt, w->choice);
 goto fail;
 case SPYPOINT:
 if (Current_Debugger_Mode != atom_off) {
@@ -661,15 +661,15 @@ goto tryeach_w;
 INCR_COUNTER(Alts->entry_counter+1);
 #endif
 P = Alts->emul_p2;
-w->next_node = w->node;
+w->previous_choice = w->choice;
 if ((w->next_alt=Alts->next)!=NULL) {
-SetB(w->node);
+SetB(w->choice);
 if (w->local_top) {
 ;                } else if (!StackYounger(w->local_top = NodeLocalTop(B),w->frame)) {
 w->local_top = StackCharOffset(w->frame,FrameSize(w->next_insn));
                 }
-SetB(ChoiceCharOffset(B,w->next_alt->node_offset));
-w->node = B;
+SetB(ChoiceCharOffset(B,w->next_alt->choice_offset));
+w->choice = B;
 ON_DEBUG_NODE({B->functor = NULL;
 });
 B->next_alt = NULL;
@@ -678,7 +678,7 @@ SaveGtop(B,w->heap_top);
 NewShadowregs(w->heap_top);
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->node);
+fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->choice);
                 }
 });
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
@@ -1166,31 +1166,31 @@ goto w_neck_proceed;
 r_cutb_x:
 case CUTB_X:
 w->local_top = 0;
-w->next_node = ChoiceFromTagged(Xb(BcP(f_x, 1)));
+w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 PROFILE__HOOK_CUT;
-SetB(w->next_node);
-w->node = B;
+SetB(w->previous_choice);
+w->choice = B;
 SetShadowregs(B);
-TRACE_CHPT_CUT(w->node);
-ConcChptCleanUp(TopConcChpt, w->node);
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt, w->choice);
 P += FTYPE_size(f_x);
 goto ReadMode;
 r_cutb_x_neck:
 case CUTB_X_NECK:
 w->local_top = 0;
-w->next_node = ChoiceFromTagged(Xb(BcP(f_x, 1)));
+w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 P += FTYPE_size(f_x);
 goto r_cutb_neck;
 r_cutb_neck:
 case CUTB_NECK:
 PROFILE__HOOK_CUT;
-SetB(w->next_node);
-w->node = B;
+SetB(w->previous_choice);
+w->choice = B;
 SetShadowregs(B);
-TRACE_CHPT_CUT(w->node);
-ConcChptCleanUp(TopConcChpt, w->node);
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt, w->choice);
 if (w->next_alt) {
 w->next_alt = NULL;
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
@@ -1201,17 +1201,17 @@ P += 0;
 goto ReadMode;
 r_cutb_x_neck_proceed:
 case CUTB_X_NECK_PROCEED:
-w->next_node = ChoiceFromTagged(Xb(BcP(f_x, 1)));
+w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 goto r_cutb_neck_proceed;
 r_cutb_neck_proceed:
 case CUTB_NECK_PROCEED:
 PROFILE__HOOK_CUT;
-SetB(w->next_node);
-w->node = B;
+SetB(w->previous_choice);
+w->choice = B;
 SetShadowregs(B);
-TRACE_CHPT_CUT(w->node);
-ConcChptCleanUp(TopConcChpt, w->node);
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt, w->choice);
 if (w->next_alt) {
 w->next_alt = NULL;
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
@@ -1221,21 +1221,21 @@ choice_overflow(Arg,CHOICEPAD);
 goto r_proceed;
 r_cute_x:
 case CUTE_X:
-w->next_node = ChoiceFromTagged(Xb(BcP(f_x, 1)));
+w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 w->local_top = E;
 PROFILE__HOOK_CUT;
-SetB(w->next_node);
-w->node = B;
+SetB(w->previous_choice);
+w->choice = B;
 SetShadowregs(B);
-TRACE_CHPT_CUT(w->node);
-ConcChptCleanUp(TopConcChpt, w->node);
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt, w->choice);
 SetE(w->local_top);
 P += FTYPE_size(f_x);
 goto ReadMode;
 r_cute_x_neck:
 case CUTE_X_NECK:
-w->next_node = ChoiceFromTagged(Xb(BcP(f_x, 1)));
+w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 P += FTYPE_size(f_x);
 goto r_cute_neck;
@@ -1243,11 +1243,11 @@ r_cute_neck:
 case CUTE_NECK:
 w->local_top = E;
 PROFILE__HOOK_CUT;
-SetB(w->next_node);
-w->node = B;
+SetB(w->previous_choice);
+w->choice = B;
 SetShadowregs(B);
-TRACE_CHPT_CUT(w->node);
-ConcChptCleanUp(TopConcChpt, w->node);
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt, w->choice);
 w->next_alt = NULL;
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD);
@@ -1257,36 +1257,36 @@ P += 0;
 goto ReadMode;
 r_cutf_x:
 case CUTF_X:
-w->next_node = ChoiceFromTagged(Xb(BcP(f_x, 1)));
+w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 P += FTYPE_size(f_x);
 goto r_cutf;
 r_cutf:
 case CUTF:
 PROFILE__HOOK_CUT;
-SetB(w->next_node);
-w->node = B;
+SetB(w->previous_choice);
+w->choice = B;
 SetShadowregs(B);
-TRACE_CHPT_CUT(w->node);
-ConcChptCleanUp(TopConcChpt, w->node);
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt, w->choice);
 SetE(w->frame);
 P += 0;
 goto ReadMode;
 r_cut_y:
 case CUT_Y:
 RefStack(t1,&Yb(BcP(f_y, 1)));
-w->next_node = ChoiceFromTagged(t1);
+w->previous_choice = ChoiceFromTagged(t1);
 PROFILE__HOOK_CUT;
-SetB(w->next_node);
-w->node = B;
+SetB(w->previous_choice);
+w->choice = B;
 SetShadowregs(B);
-TRACE_CHPT_CUT(w->node);
-ConcChptCleanUp(TopConcChpt, w->node);
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt, w->choice);
 SetE(w->frame);
 P += FTYPE_size(f_y);
 goto ReadMode;
 case CHOICE_X:
-Xb(BcP(f_x, 1)) = ChoiceToTagged(w->next_node);
+Xb(BcP(f_x, 1)) = ChoiceToTagged(w->previous_choice);
 P += FTYPE_size(f_x);
 goto ReadMode;
 case CHOICE_YF:
@@ -1294,7 +1294,7 @@ ComputeE;
 goto r_choice_y;
 r_choice_y:
 case CHOICE_Y:
-Yb(BcP(f_y, 1)) = ChoiceToTagged(w->next_node);
+Yb(BcP(f_y, 1)) = ChoiceToTagged(w->previous_choice);
 P += FTYPE_size(f_y);
 goto ReadMode;
 case KONTINUE:
@@ -1490,8 +1490,8 @@ if ((TagToRoot(X(RootArg))->behavior_on_failure != DYNAMIC &&
 !next_instance(Arg, &ins))
 ) {
 w->next_alt = NULL;
-SetB(w->next_node);
-w->node = B;
+SetB(w->previous_choice);
+w->choice = B;
 SetShadowregs(B);
                 }
 if (!ins) {
@@ -1500,7 +1500,7 @@ if (debug_concchoicepoints) {
 if ((TagToRoot(X(RootArg))->behavior_on_failure != CONC_CLOSED) && (IS_BLOCKING(X(InvocationAttr)))) {
 fprintf(stderr,
 "**wam(): failing on a concurrent closed pred, chpt=%x, failing chpt=%x .\n",
-(int)w->node,(int)TopConcChpt);
+(int)w->choice,(int)TopConcChpt);
                     }
                   }
 if (debug_conc) {
@@ -1510,7 +1510,7 @@ fprintf(stderr,
         (TagToRoot(X(RootArg))->behavior_on_failure));                    }
                   }
 });
-TopConcChpt = (node_t *)TermToPointerOrNull(X(PrevDynChpt));
+TopConcChpt = (choice_t *)TermToPointerOrNull(X(PrevDynChpt));
 ON_DEBUG({
 if (debug_concchoicepoints) {
   fprintf(stderr,"New topmost concurrent chpt = %x\n", (int)TopConcChpt);
@@ -1526,7 +1526,7 @@ if (debug_conc && TagToRoot(X(RootArg))->behavior_on_failure != DYNAMIC) {
                 }
 if (debug_concchoicepoints && TagToRoot(X(RootArg))->behavior_on_failure != DYNAMIC) {
 fprintf(stderr, 
-         "backtracking to chpt. = %x\n", (int)w->node);
+         "backtracking to chpt. = %x\n", (int)w->choice);
                 }
 });
 P = (bcp_t)ins->emulcode;
@@ -2155,7 +2155,7 @@ r_counted_neck:
 case COUNTED_NECK:
 #if defined(GAUGE)
 if (w->next_alt) {
-SetB(w->node);
+SetB(w->choice);
 if (B->next_alt) {
 #if defined(GAUGE)
 INCR_COUNTER(BcP(f_l, 1));
@@ -2185,7 +2185,7 @@ goto ReadMode;
 r_neck:
 case NECK:
 if (w->next_alt) {
-SetB(w->node);
+SetB(w->choice);
 if (B->next_alt) {
 B->next_alt = w->next_alt;
                   } else {
@@ -2193,13 +2193,13 @@ B->next_alt = w->next_alt; /* 4 contiguous moves */
 B->frame = w->frame;
 B->next_insn = w->next_insn;
 SaveLtop(B);
-i=B->next_alt->node_offset;
+i=B->next_alt->choice_offset;
 if (i>ArityToOffset(0)) {
 i = OffsetToArity(i);
-SetB(w->next_node);
+SetB(w->previous_choice);
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->next_node);
+fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_choice);
                       }
 });
 do {
@@ -2229,10 +2229,10 @@ P += 0;
 goto ReadMode;
 #if defined(PARBACK)
 case RESTART_POINT:
-w->heap_top = TagToPointer(w->node->term[0]);
+w->heap_top = TagToPointer(w->choice->term[0]);
 LoadH;
-P = (bcp_t)*TagToPointer(w->node->term[0]);
-w->next_insn = w->node->next_insn;
+P = (bcp_t)*TagToPointer(w->choice->term[0]);
+w->next_insn = w->choice->next_insn;
 pop_choicept(Arg);
 goto enter_predicate;
 #endif
@@ -2243,15 +2243,15 @@ goto illop;
 INCR_COUNTER(Alts->entry_counter);
 #endif
 P = Alts->emul_p;
-w->next_node = w->node;
+w->previous_choice = w->choice;
 if ((w->next_alt=Alts->next)!=NULL) {
-SetB(w->node);
+SetB(w->choice);
 if (w->local_top) {
 ;                  } else if (!StackYounger(w->local_top = NodeLocalTop(B),w->frame)) {
 w->local_top = StackCharOffset(w->frame,FrameSize(w->next_insn));
                   }
-SetB(ChoiceCharOffset(B,w->next_alt->node_offset));
-w->node = B;
+SetB(ChoiceCharOffset(B,w->next_alt->choice_offset));
+w->choice = B;
 ON_DEBUG_NODE({B->functor = NULL;
 });
 B->next_alt = NULL;
@@ -2260,7 +2260,7 @@ SaveGtop(B,H);
 NewShadowregs(H);
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->node);
+fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->choice);
                   }
 });
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
@@ -3163,7 +3163,7 @@ case CUT_Y:
 StoreH;
 goto r_cut_y;
 case CHOICE_X:
-Xb(BcP(f_x, 1)) = ChoiceToTagged(w->next_node);
+Xb(BcP(f_x, 1)) = ChoiceToTagged(w->previous_choice);
 P += FTYPE_size(f_x);
 goto WriteMode;
 case CHOICE_YF:
@@ -3171,7 +3171,7 @@ ComputeE;
 goto w_choice_y;
 w_choice_y:
 case CHOICE_Y:
-Yb(BcP(f_y, 1)) = ChoiceToTagged(w->next_node);
+Yb(BcP(f_y, 1)) = ChoiceToTagged(w->previous_choice);
 P += FTYPE_size(f_y);
 goto WriteMode;
 w_kontinue:
@@ -4253,7 +4253,7 @@ w_counted_neck:
 case COUNTED_NECK:
 #if defined(GAUGE)
 if (w->next_alt) {
-SetB(w->node);
+SetB(w->choice);
 if (B->next_alt) {
 #if defined(GAUGE)
 INCR_COUNTER(BcP(f_l, 1));
@@ -4285,7 +4285,7 @@ goto WriteMode;
 w_neck:
 case NECK:
 if (w->next_alt) {
-SetB(w->node);
+SetB(w->choice);
 if (B->next_alt) {
 B->next_alt = w->next_alt;
                     } else {
@@ -4293,13 +4293,13 @@ B->next_alt = w->next_alt; /* 4 contiguous moves */
 B->frame = w->frame;
 B->next_insn = w->next_insn;
 SaveLtop(B);
-i=B->next_alt->node_offset;
+i=B->next_alt->choice_offset;
 if (i>ArityToOffset(0)) {
 i = OffsetToArity(i);
-SetB(w->next_node);
+SetB(w->previous_choice);
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->next_node);
+fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_choice);
                         }
 });
 do {
@@ -4324,7 +4324,7 @@ BindHVA(t1,PointerToTerm(ins));
 if (!w->next_alt) {
 goto w_proceed;
                   }
-SetB(w->node);
+SetB(w->choice);
 if (!B->next_alt && (def_clock = use_clock+1)==0xffff) {
 StoreH;
 clock_overflow(Arg);
@@ -4334,7 +4334,7 @@ goto w_neck_proceed;
 w_neck_proceed:
 case NECK_PROCEED:
 if (w->next_alt) {
-SetB(w->node);
+SetB(w->choice);
 if (B->next_alt) {
 B->next_alt = w->next_alt;
                     } else {
@@ -4342,13 +4342,13 @@ B->next_alt = w->next_alt; /* 4 contiguous moves */
 B->frame = w->frame;
 B->next_insn = w->next_insn;
 SaveLtop(B);
-i=B->next_alt->node_offset;
+i=B->next_alt->choice_offset;
 if (i>ArityToOffset(0)) {
 i = OffsetToArity(i);
-SetB(w->next_node);
+SetB(w->previous_choice);
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->next_node);
+fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_choice);
                         }
 });
 do {
@@ -4375,10 +4375,10 @@ P += 0;
 goto WriteMode;
 #if defined(PARBACK)
 case RESTART_POINT:
-w->heap_top = TagToPointer(w->node->term[0]);
+w->heap_top = TagToPointer(w->choice->term[0]);
 LoadH;
-P = (bcp_t)*TagToPointer(w->node->term[0]);
-w->next_insn = w->node->next_insn;
+P = (bcp_t)*TagToPointer(w->choice->term[0]);
+w->next_insn = w->choice->next_insn;
 pop_choicept(Arg);
 goto enter_predicate;
 #endif

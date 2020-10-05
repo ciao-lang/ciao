@@ -2,11 +2,11 @@
 CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
   //Updating new values
   HeapFReg = Arg->heap_top;
-  if (StackYounger(NodeLocalTop(Arg->node), 
+  if (StackYounger(NodeLocalTop(Arg->choice), 
                    StackCharOffset(Arg->frame,FrameSize(Arg->next_insn)))) 
     {
-      if (!StackYounger(StackFReg,NodeLocalTop(Arg->node))) 
-        StackFReg = NodeLocalTop(Arg->node); 
+      if (!StackYounger(StackFReg,NodeLocalTop(Arg->choice))) 
+        StackFReg = NodeLocalTop(Arg->choice); 
     }
   else 
     {
@@ -16,20 +16,20 @@ CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
     }
 
   //Updating pointers for generator.
-  if (PTCP->node->heap_top != (tagged_t*)&(HeapFReg))
+  if (PTCP->choice->heap_top != (tagged_t*)&(HeapFReg))
     {
-      PTCP->node->heap_top = (tagged_t*)&(HeapFReg); 
-      PTCP->node->local_top = (frame_t*)orig_node_tr;
+      PTCP->choice->heap_top = (tagged_t*)&(HeapFReg); 
+      PTCP->choice->local_top = (frame_t*)orig_node_tr;
     }
-  if (PTCP->node->local_top == NULL) 
-      PTCP->node->local_top = (frame_t*)orig_node_tr;
+  if (PTCP->choice->local_top == NULL) 
+      PTCP->choice->local_top = (frame_t*)orig_node_tr;
 
   //Updating pointers from not frozen choice points.
-  node_t *ind;
+  choice_t *ind;
   tagged_t *itrail = Arg->trail_top;
-  for (ind = Arg->node; 
+  for (ind = Arg->choice; 
        ind->heap_top != (tagged_t *)&(HeapFReg);
-       ind = ChoiceCharOffset(ind,-ind->next_alt->node_offset))
+       ind = ChoiceCharOffset(ind,-ind->next_alt->choice_offset))
     {
       for (; !TrailYounger(ind->trail_top,itrail); itrail--)
         {
@@ -60,7 +60,7 @@ CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
           if (((struct gen*)ind->term[0])->answer_cp == PREV_CP(ind))
             {
               ((struct gen*)ind->term[0])->last_node_tr = orig_node_tr;
-              ind = ((struct gen*)ind->term[0])->node;
+              ind = ((struct gen*)ind->term[0])->choice;
             }
         }
 #endif

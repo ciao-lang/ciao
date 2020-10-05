@@ -1865,8 +1865,8 @@ CVOID__PROTO(local_init_each_time)
   Arg->frame->frame = NULL;
 
   /* Setup initial choicepoint */
-  node_t *b = InitialNode;
-  Arg->node = b;                            
+  choice_t *b = InitialNode;
+  Arg->choice = b;                            
   b->frame = Arg->frame;
 
   b->next_alt = termcode;
@@ -2269,7 +2269,7 @@ CBOOL__PROTO(statistics)
              "   global stack   %10" PRIdm " bytes:%" PRIdm " in use,%10" PRIdm " free\n",
              used+free, used, free);
 
-  ComputeA(newa,w->node);
+  ComputeA(newa,w->choice);
   used = StackCharDifference(Stack_Start,newa);
   free = StackCharDifference(newa,Stack_End);
   ENG_PRINTF(s,
@@ -2277,13 +2277,13 @@ CBOOL__PROTO(statistics)
              used+free, used, free);
 
   used = TrailCharDifference(Trail_Start,w->trail_top);
-  free = TrailCharDifference(w->trail_top,w->node)/2;
+  free = TrailCharDifference(w->trail_top,w->choice)/2;
   ENG_PRINTF(s,
              "   trail stack    %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n",
              used+free, used, free);
 
-  used = ChoiceCharDifference(Choice_Start,w->node);
-  free = ChoiceCharDifference(w->node,w->trail_top)/2;
+  used = ChoiceCharDifference(Choice_Start,w->choice);
+  free = ChoiceCharDifference(w->choice,w->trail_top)/2;
   ENG_PRINTF(s,
              "   control stack  %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n\n",
              used+free, used, free);

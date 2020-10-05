@@ -273,7 +273,7 @@ CVOID__PROTO(trail_push_check, tagged_t x) {
 
   TrailPush(tr,x);
   w->trail_top = tr;
-  if (ChoiceYounger(w->node,TrailOffset(tr,CHOICEPAD)))
+  if (ChoiceYounger(w->choice,TrailOffset(tr,CHOICEPAD)))
     choice_overflow(Arg,CHOICEPAD);
 }
 
@@ -545,7 +545,7 @@ static void incore_insert(try_node_t **t0,
 
   /* Init the try_node to insert. */
   t = checkalloc_TYPE(try_node_t);
-  t->node_offset = ArityToOffset(effar);
+  t->choice_offset = ArityToOffset(effar);
   /* Last "next" is num. of clauses: we are inserting at the end of the chain */
   t->number = ref->next.number;
   t->emul_p = BCoff(ref->emulcode, BCOp(ref->emulcode, FTYPE_ctype(f_i), 0)); /* initial p: det case */
@@ -573,7 +573,7 @@ static try_node_t *incore_copy(try_node_t *from)
 
   for (; !ISNOTRY(from); from=from->next) {
     (*to) = checkalloc_TYPE(try_node_t);
-    (*to)->node_offset = from->node_offset;
+    (*to)->choice_offset = from->choice_offset;
     (*to)->number = from->number;
     (*to)->emul_p = from->emul_p;
     (*to)->emul_p2 = from->emul_p2;
@@ -1563,13 +1563,13 @@ int call_firstgoal(goal_descriptor_t *goal_desc, tagged_t goal_term) {
   worker_t *w;
 
   Arg = goal_desc->worker_registers;
-  Arg->node->term[0] = X(0) = goal_term;
+  Arg->choice->term[0] = X(0) = goal_term;
   Arg->next_insn = bootcode;
 
   while(TRUE) {
     i = SIGSETJMP(abort_env);
     if (i == 0){                /* Just made longjmp */
-      Arg->term[0] = Arg->node->term[0];
+      Arg->term[0] = Arg->choice->term[0];
       wam_initialized = TRUE;
       exit_code = wam(Arg, goal_desc);
       Arg = goal_desc->worker_registers; /* segfault patch -- jf */
@@ -1622,7 +1622,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
   Arg = goal_desc->worker_registers;
   Arg->next_insn = startgoalcode;
   Arg->next_alt = NULL;  /* Force backtracking after alts. exahusted */
-  Arg->node->term[0] = X(0);    /* Will be the arg. of a call/1 */
+  Arg->choice->term[0] = X(0);    /* Will be the arg. of a call/1 */
  
 #if defined(DEBUG) && defined(USE_THREADS)
   if (debug_threads)
@@ -1848,7 +1848,7 @@ CBOOL__PROTO(setarg)
   
   if ((X(3)==atom_on) && CondHVA(Tagp(HVA,ptr))) {
     /* undo setarg upon backtracking */
-    tagged_t *limit = TagToPointer(w->node->trail_top);
+    tagged_t *limit = TagToPointer(w->choice->trail_top);
     
     /* check first if location already trailed is same segment */
     t1 = Tagp(HVA,ptr);
@@ -1873,7 +1873,7 @@ CBOOL__PROTO(setarg)
     /* trail smashed location for segmented GC */
     TrailPush(w->trail_top,t1);
     
-    if (ChoiceYounger(ChoiceOffset(w->node,CHOICEPAD),w->trail_top))
+    if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
       choice_overflow(Arg,CHOICEPAD);
   }
   
@@ -1893,7 +1893,7 @@ CBOOL__PROTO(undo)
   goal = X(0);
   DerefSwitch(goal,t1,{MINOR_FAULT("$undo/1: invalid argument");});
   TrailPush(w->trail_top,goal);
-  if (ChoiceYounger(ChoiceOffset(w->node,CHOICEPAD),w->trail_top))
+  if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
     choice_overflow(Arg,CHOICEPAD);
   return TRUE;
 }
@@ -2011,19 +2011,19 @@ CBOOL__PROTO(constraint_list)
 
 CFUN__PROTO(find_constraints, intmach_t, tagged_t *limit)
 {
-  node_t *purecp; /* oldest CVA-free cp */
-  node_t *cp;
+  choice_t *purecp; /* oldest CVA-free cp */
+  choice_t *cp;
   intmach_t found = 0;
   
-  cp = purecp = ChoiceCharOffset(w->node,ArityToOffset(0));
+  cp = purecp = ChoiceCharOffset(w->choice,ArityToOffset(0));
   cp->next_alt = fail_alt;
   cp->trail_top = w->trail_top;
   cp->heap_top = w->heap_top;
   *w->trail_top = atom_nil;
   while (limit < (tagged_t *)NodeGlobalTop(cp))
     {
-      node_t *prevcp =
-        ChoiceCharOffset(cp,-cp->next_alt->node_offset);
+      choice_t *prevcp =
+        ChoiceCharOffset(cp,-cp->next_alt->choice_offset);
       
       if (1 /* !ChoiceptTestNoCVA(cp)*/)
         {
@@ -2225,7 +2225,7 @@ CBOOL__PROTO(prolog_version) {
 
 /* --------------------------------------------------------------------------- */
 
-CVOID__PROTO(show_nodes, node_t *cp, node_t *end);
+CVOID__PROTO(show_nodes, choice_t *cp, choice_t *end);
 
 CBOOL__PROTO(prolog_show_nodes)
 {
@@ -2237,7 +2237,7 @@ CBOOL__PROTO(prolog_show_nodes)
 
 CBOOL__PROTO(prolog_show_all_nodes)
 {
-  show_nodes(w, w->node, InitialNode);
+  show_nodes(w, w->choice, InitialNode);
   return TRUE;
 }
 
@@ -2268,7 +2268,7 @@ void display_functor(definition_t *functor)
 # define DisplayCPFunctor(cp) fprintf(stderr, "_N")
 #endif
 
-CVOID__PROTO(show_nodes, node_t *cp_younger, node_t *cp_older)
+CVOID__PROTO(show_nodes, choice_t *cp_younger, choice_t *cp_older)
 {
   intmach_t number;
   try_node_t *next_alt;
@@ -2285,7 +2285,7 @@ CVOID__PROTO(show_nodes, node_t *cp_younger, node_t *cp_older)
   else
     next_alt = w->next_alt;
   number = next_alt->number;
-  cp_younger = ChoiceCharOffset(cp_younger, -next_alt->node_offset);
+  cp_younger = ChoiceCharOffset(cp_younger, -next_alt->choice_offset);
   while(ChoiceYounger(cp_younger, cp_older)) {
     fprintf(stderr,"\n  ");
     fprintf(stderr,"0x%p:",cp_younger);
@@ -2293,7 +2293,7 @@ CVOID__PROTO(show_nodes, node_t *cp_younger, node_t *cp_older)
     fprintf(stderr, "/%" PRIdm ",", number);
     number = cp_younger->next_alt->number;
     cp_younger = ChoiceCharOffset(cp_younger,
-                                  -cp_younger->next_alt->node_offset);
+                                  -cp_younger->next_alt->choice_offset);
   }
   if (!ChoiceYounger(cp_older, cp_younger)) {
     fprintf(stderr,"\n  ");

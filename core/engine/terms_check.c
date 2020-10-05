@@ -46,7 +46,7 @@ static CBOOL__PROTO(cinstance_args_aux,
      args of pt1 using choice stack as value cell.  When done, reinstall
      values. */
 
-  if (ChoiceYounger(ChoiceOffset(w->node,2*CHOICEPAD),w->trail_top))
+  if (ChoiceYounger(ChoiceOffset(w->choice,2*CHOICEPAD),w->trail_top))
                                 /* really: < 2*arity */
     choice_overflow(Arg,2*CHOICEPAD);
   for (; arity>0; --arity) {
@@ -59,7 +59,7 @@ static CBOOL__PROTO(cinstance_args_aux,
 
   *x1 = t1, *x2 = t2;
 
-  if (ChoiceYounger(ChoiceOffset(w->node,CHOICEPAD),w->trail_top))
+  if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
     choice_overflow(Arg,CHOICEPAD);
   return TRUE;
 }
@@ -82,7 +82,7 @@ CBOOL__PROTO(cinstance)
 
   result = cinstance_aux(Arg,X(0),X(1),&n);
 
-  pt1 = pt2 = TagToPointer(w->node->trail_top); /* untrail */
+  pt1 = pt2 = TagToPointer(w->choice->trail_top); /* untrail */
   while (!OffTrailtop(pt2,w->trail_top)) {
     t1 = TrailNext(pt2);        /* old var */
     *TagToPointer(t1) = t1;

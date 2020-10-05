@@ -45,7 +45,7 @@ extern tagged_t atom_gen_tree_backtracking;
 #define LAST_PTCP (ptcp_stk[iptcp_stk])
 #define PUSH_PTCP(GEN) (ptcp_stk[iptcp_stk++] = GEN)
 #define POP_PTCP (iptcp_stk--)
-#define PREV_CP(NODE) ChoiceCharOffset(NODE,-(NODE)->next_alt->node_offset)
+#define PREV_CP(NODE) ChoiceCharOffset(NODE,-(NODE)->next_alt->choice_offset)
 
 #define SETMIN(x, y) if (y < x) x = y;
 
@@ -67,14 +67,14 @@ extern tagged_t atom_gen_tree_backtracking;
     (*(CALLID))->last_ans = NULL;                                       \
     (*(CALLID))->first_cons = NULL;                                     \
     (*(CALLID))->last_cons = NULL;                                      \
-    ComputeA(Arg->local_top,Arg->node);                                 \
+    ComputeA(Arg->local_top,Arg->choice);                                 \
     (*(CALLID))->local_top = Arg->local_top;                            \
     (*(CALLID))->heap_top = Arg->heap_top;                              \
     (*(CALLID))->stack_freg = StackFReg;                                \
     (*(CALLID))->heap_freg = HeapFReg;                                  \
     (*(CALLID))->tabl_stk_top = TABLING_STK_TOP;                        \
     (*(CALLID))->last_node_tr = LastNodeTR;                             \
-    (*(CALLID))->node = Arg->node;                                      \
+    (*(CALLID))->choice = Arg->choice;                                      \
     (*(CALLID))->cons = NULL;                                           \
     (*(CALLID))->answer_cp = NULL;                                      \
     (*(CALLID))->answer_tr = NULL;                                      \
@@ -121,18 +121,18 @@ extern tagged_t atom_gen_tree_backtracking;
             if (TYPE)                                                   \
               {                                                         \
                 push_choicept((ARG),address_nd_consume_answer_attr_c);  \
-                (ARG)->node->term[3] = ARG3;                            \
-                (ARG)->node->term[4] = ARG4;                            \
+                (ARG)->choice->term[3] = ARG3;                            \
+                (ARG)->choice->term[4] = ARG4;                            \
               }                                                         \
             else                                                        \
               push_choicept((ARG),address_nd_consume_answer_c);         \
-            (ARG)->node->term[0] = (tagged_t)(SF);                      \
-            (ARG)->node->term[1] = (tagged_t)(CALLID)->first_ans;       \
-            (ARG)->node->term[2] = (tagged_t)(CALLID);                  \
-            /*(ARG)->node->term[2] = (tagged_t)clone_space(space);*/    \
+            (ARG)->choice->term[0] = (tagged_t)(SF);                      \
+            (ARG)->choice->term[1] = (tagged_t)(CALLID)->first_ans;       \
+            (ARG)->choice->term[2] = (tagged_t)(CALLID);                  \
+            /*(ARG)->choice->term[2] = (tagged_t)clone_space(space);*/    \
             /*struct subs_factor *answer = get_trie_answer((ARG),*/     \
             /*(CALLID)->first_answer->answer,(SF)->attr_vars); */       \
-            get_trie_answer((ARG),(CALLID)->first_ans->node, (SF));     \
+            get_trie_answer((ARG),(CALLID)->first_ans->choice, (SF));     \
                                                                         \
             if (TYPE)                                                   \
               {                                                         \

@@ -79,9 +79,9 @@ CFUN__PROTO(current_instance, instance_t *)
   BlockingType block;
 #if defined(PROFILE)
   tagged_t *junk;
-  w->node->functor=find_definition(predicates_location,X(0),&junk,FALSE);
+  w->choice->functor=find_definition(predicates_location,X(0),&junk,FALSE);
 #endif
-  PredTrace("I",w->node->functor);
+  PredTrace("I",w->choice->functor);
   root = TagToRoot(X(2));
   if (root->behavior_on_failure == DYNAMIC)
     return current_instance_noconc(Arg);
@@ -173,7 +173,7 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
      that HEAPMARGIN_CALL does not break during GC */
 
   if (x2_next || x5_next) {
-    ComputeA(w->local_top,w->node);
+    ComputeA(w->local_top,w->choice);
     X(X2_CHN) = PointerToTermOrZero(x2_next);
     X(ClockSlot) = MakeSmall(use_clock);
     X(X5_CHN) = PointerToTermOrZero(x5_next);
@@ -183,11 +183,11 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
     X(PrevDynChpt) = MakeSmall(0); 
 
     w->next_alt = address_nd_current_instance; /* establish skeletal node */
-    w->next_node = w->node;
-    w->node = ChoiceCharOffset(w->node,ArityToOffset(DynamicPreserved));
-    w->node->next_alt = NULL;
-    w->node->trail_top = w->trail_top;
-    SaveGtop(w->node,w->heap_top);
+    w->previous_choice = w->choice;
+    w->choice = ChoiceCharOffset(w->choice,ArityToOffset(DynamicPreserved));
+    w->choice->next_alt = NULL;
+    w->choice->trail_top = w->trail_top;
+    SaveGtop(w->choice,w->heap_top);
     NewShadowregs(w->heap_top);
   } else {
     /* Cleanup unused registers */
@@ -269,8 +269,8 @@ CBOOL__PROTO(next_instance, instance_t **ipp)
     if (!x2_insp && !x5_insp)
         return FALSE;
     else {
-      w->node->term[X2_CHN] = X(X2_CHN) = PointerToTermOrZero(x2_insp);
-      w->node->term[X5_CHN] = X(X5_CHN) = PointerToTermOrZero(x5_insp);
+      w->choice->term[X2_CHN] = X(X2_CHN) = PointerToTermOrZero(x2_insp);
+      w->choice->term[X5_CHN] = X(X5_CHN) = PointerToTermOrZero(x5_insp);
       return  TRUE;
     }
 }
@@ -437,8 +437,8 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
 
 #if defined(DEBUG)
   if (debug_concchoicepoints) 
-    fprintf(stderr, "** Entering current_instance_conc, node = 0x%p, next_node = 0x%p, conc. = 0x%p\n",
-            w->node, w->next_node, TopConcChpt);
+    fprintf(stderr, "** Entering current_instance_conc, node = 0x%p, previous_choice = 0x%p, conc. = 0x%p\n",
+            w->choice, w->previous_choice, TopConcChpt);
 #endif
 
   do {
@@ -451,9 +451,9 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
 #if defined(DEBUG)
     if (debug_concchoicepoints)
       fprintf(stderr,
-"***(%" PRIdm "d)(%" PRIdm ") Exiting current_instance_conc with failure, node = 0x%p, next_node = 0x%p, conc. node = 0x%p\n",
+"***(%" PRIdm "d)(%" PRIdm ") Exiting current_instance_conc with failure, node = 0x%p, previous_choice = 0x%p, conc. node = 0x%p\n",
               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-              w->node, w->next_node, TopConcChpt);
+              w->choice, w->previous_choice, TopConcChpt);
 #endif
       return NULL;
     }
@@ -475,9 +475,9 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
 #if defined(DEBUG)
     if (debug_concchoicepoints)
       fprintf(stderr,
-"***(%" PRIdm ")(%" PRIdm ") Exiting current_instance_conc with failure, node = 0x%p, next_node = 0x%p, conc. node = 0x%p\n",
+"***(%" PRIdm ")(%" PRIdm ") Exiting current_instance_conc with failure, node = 0x%p, previous_choice = 0x%p, conc. node = 0x%p\n",
               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-              w->node, w->next_node, TopConcChpt);
+              w->choice, w->previous_choice, TopConcChpt);
 #endif
     return NULL;
   }
@@ -504,12 +504,12 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
     fprintf(stderr,
             "*** %" PRIdm "(%" PRIdm ") in c_i making chpt (now: node = 0x%p)., inst. is 0x%p\n",
             (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
-            w->node, current_one);
+            w->choice, current_one);
 #endif
 
     x2_next = make_handle_to(x2_n, root, X(0), X2);
     x5_next = make_handle_to(x5_n, root, X(0), X5);
-    ComputeA(w->local_top,w->node);
+    ComputeA(w->local_top,w->choice);
     X(X2_CHN) = PointerToTermOrZero(x2_next);
     X(ClockSlot) = MakeSmall(use_clock);
     X(X5_CHN) = PointerToTermOrZero(x5_next);
@@ -526,20 +526,20 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
     /* Save last dynamic top */
     X(PrevDynChpt) = PointerToTermOrZero(TopConcChpt); 
     w->next_alt = address_nd_current_instance; /* establish skeletal node */
-    w->next_node = w->node;
-    w->node = ChoiceCharOffset(w->node,ArityToOffset(DynamicPreserved));
-    TopConcChpt = (node_t *)w->node;  /* Update dynamic top */
-    w->node->next_alt = NULL;
-    w->node->trail_top = w->trail_top;
-    SaveGtop(w->node,w->heap_top);
+    w->previous_choice = w->choice;
+    w->choice = ChoiceCharOffset(w->choice,ArityToOffset(DynamicPreserved));
+    TopConcChpt = (choice_t *)w->choice;  /* Update dynamic top */
+    w->choice->next_alt = NULL;
+    w->choice->trail_top = w->trail_top;
+    SaveGtop(w->choice,w->heap_top);
     NewShadowregs(w->heap_top);
 
 #if defined(DEBUG)
     if (debug_concchoicepoints)
       fprintf(stderr,
-"***(%" PRIdm ")(%" PRIdm ") Exiting current_instance_conc, node = 0x%p, next_node = 0x%p, conc. node = 0x%p\n",
+"***(%" PRIdm ")(%" PRIdm ") Exiting current_instance_conc, node = 0x%p, previous_choice = 0x%p, conc. node = 0x%p\n",
               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-              w->node, w->next_node, TopConcChpt);
+              w->choice, w->previous_choice, TopConcChpt);
 #endif
 
   return current_one;
@@ -650,8 +650,8 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp)
 #if defined(DEBUG)
     if (debug_concchoicepoints)
       fprintf(stderr,
-"*** Entering next_instance_conc, node = 0x%p, next_node = 0x%p, conc. node = 0x%p\n",
-              w->node, w->next_node, TopConcChpt
+"*** Entering next_instance_conc, node = 0x%p, previous_choice = 0x%p, conc. node = 0x%p\n",
+              w->choice, w->previous_choice, TopConcChpt
 );
 #endif
 
@@ -705,9 +705,9 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp)
 #if defined(DEBUG)
     if (debug_concchoicepoints)
       fprintf(stderr,
-"***(%" PRIdm ")(%" PRIdm ") Exiting current_instance_conc with failure, node = 0x%p, next_node = 0x%p, conc. node = 0x%p\n",
+"***(%" PRIdm ")(%" PRIdm ") Exiting current_instance_conc with failure, node = 0x%p, previous_choice = 0x%p, conc. node = 0x%p\n",
               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-              w->node, w->next_node, TopConcChpt);
+              w->choice, w->previous_choice, TopConcChpt);
 #endif
       return FALSE;                                 /* Remove choicepoint */
     }
@@ -746,15 +746,15 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp)
      a possibly empty next instance,
      and the lock on the instance. */
 
-  w->node->term[X2_CHN] = X(X2_CHN) = PointerToTermOrZero(x2_ins_h);
-  w->node->term[X5_CHN] = X(X5_CHN) = PointerToTermOrZero(x5_ins_h);
+  w->choice->term[X2_CHN] = X(X2_CHN) = PointerToTermOrZero(x2_ins_h);
+  w->choice->term[X5_CHN] = X(X5_CHN) = PointerToTermOrZero(x5_ins_h);
   SET_EXECUTING(X(InvocationAttr));
 #if defined(DEBUG)
     if (debug_concchoicepoints)
       fprintf(stderr,
-"***(%" PRIdm ")(%" PRIdm ") Exiting current_instance_conc, node = 0x%p, next_node = 0x%p, conc. node = 0x%p\n",
+"***(%" PRIdm ")(%" PRIdm ") Exiting current_instance_conc, node = 0x%p, previous_choice = 0x%p, conc. node = 0x%p\n",
               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-              w->node, w->next_node, TopConcChpt);
+              w->choice, w->previous_choice, TopConcChpt);
 #endif
 
   return TRUE;
@@ -997,10 +997,10 @@ void move_queue(instance_handle_t **srcq,
    value of that dynamic choicepoint in the variable topdynamic (it is the
    topmost dynamic choicepoint after the call!). */
 
-void remove_link_chains(node_t **topdynamic,
-                        node_t *chpttoclear)
+void remove_link_chains(choice_t **topdynamic,
+                        choice_t *chpttoclear)
 {
-  node_t *movingtop = *topdynamic;
+  choice_t *movingtop = *topdynamic;
 #if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc)
     fprintf(stderr, "*** %" PRIdm "(%" PRIdm ") removing from 0x%p until 0x%p\n", 
@@ -1035,7 +1035,7 @@ void remove_link_chains(node_t **topdynamic,
 
     Broadcast_Cond(TagToRoot(movingtop->term[RootArg])->clause_insertion_cond);
 
-    movingtop=(node_t *)TermToPointerOrNull(movingtop->term[PrevDynChpt]);
+    movingtop=(choice_t *)TermToPointerOrNull(movingtop->term[PrevDynChpt]);
   }
 #if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc)
@@ -1666,19 +1666,19 @@ CFUN__PROTO(active_instance,
             int itime,
             bool_t normal)
 {
-  CIAO_REG_2(node_t *, b);
+  CIAO_REG_2(choice_t *, b);
   CIAO_REG_3(instance_t *, j);
-  node_t *b2;
-  node_t *latest_static = w->node;
+  choice_t *b2;
+  choice_t *latest_static = w->choice;
   instance_clock_t time = itime;
   instance_clock_t lotime = time;
   tagged_t lorank = TaggedIntMax;
 
   if (!latest_static->next_alt)                   /* if called from wam() */
-    latest_static = w->next_node;
+    latest_static = w->previous_choice;
 
   for (b=latest_static; !ChoiceptTestStatic(b); b=b2)  {
-    b2=ChoiceCharOffset(b,-b->next_alt->node_offset);
+    b2=ChoiceCharOffset(b,-b->next_alt->choice_offset);
     if (b->next_alt==address_nd_current_instance) {
       latest_static = b2;
       j = TagToInstance(b->term[2]);
@@ -1698,7 +1698,7 @@ CFUN__PROTO(active_instance,
 
   for (b=latest_static;
        !ChoiceptTestStatic(b);
-       b=ChoiceCharOffset(b,-b->next_alt->node_offset))
+       b=ChoiceCharOffset(b,-b->next_alt->choice_offset))
     ChoiceptMarkStatic(b);
   
   if (normal) {                                 /* Follow forward-chain ? */
@@ -1753,7 +1753,7 @@ CVOID__PROTO(clock_overflow)
   instance_clock_t *clocks, *clockp;
   instance_clock_t t, current = 0xfffe;
   int count = 1;
-  node_t *b;
+  choice_t *b;
 
 #if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc)
@@ -1761,9 +1761,9 @@ CVOID__PROTO(clock_overflow)
 #endif
 
   /* count # distinct clock values existing in choicepoints */
-  for (b=w->next_node;
+  for (b=w->previous_choice;
        !ChoiceptTestStatic(b);
-       b=ChoiceCharOffset(b,-b->next_alt->node_offset)) {
+       b=ChoiceCharOffset(b,-b->next_alt->choice_offset)) {
     if (b->next_alt==address_nd_current_instance) {
       t = GetSmall(b->term[4]);
       if (current!=t) {
@@ -1784,9 +1784,9 @@ CVOID__PROTO(clock_overflow)
   use_clock = count-1;
   X(4) = MakeSmall(count-1);
   
-  for (b=w->next_node;
+  for (b=w->previous_choice;
        !ChoiceptTestStatic(b);
-       b=ChoiceCharOffset(b,-b->next_alt->node_offset))
+       b=ChoiceCharOffset(b,-b->next_alt->choice_offset))
     if (b->next_alt==address_nd_current_instance) {
       t = GetSmall(b->term[4]);
       if ((*clockp)!=t) *(--clockp)=t;

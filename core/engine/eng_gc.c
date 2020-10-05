@@ -42,10 +42,10 @@
    next= TagToPointer(*curr); \
    *curr= gc_PutValue((tagged_t)temp,*curr); }
 
-#define gc_TrailStart           TagToPointer(w->segment_node->trail_top)
-#define gc_HeapStart            (NodeGlobalTop(w->segment_node))
-#define gc_StackStart           (NodeLocalTop(w->segment_node))
-#define gc_ChoiceStart          (w->segment_node)
+#define gc_TrailStart           TagToPointer(w->segment_choice->trail_top)
+#define gc_HeapStart            (NodeGlobalTop(w->segment_choice))
+#define gc_StackStart           (NodeLocalTop(w->segment_choice))
+#define gc_ChoiceStart          (w->segment_choice)
 
 #define gc_ReverseChoice(cp,prevcp,alt) \
 { \
@@ -53,7 +53,7 @@
   cp = prevcp; \
   alt = cp->next_alt; \
   cp->next_alt = m_alt; \
-  prevcp = ChoiceCharOffset(cp,-alt->node_offset); \
+  prevcp = ChoiceCharOffset(cp,-alt->choice_offset); \
 }
 
 #define gc_UndoChoice(cp,prevcp,alt) \
@@ -62,7 +62,7 @@
   prevcp = cp; \
   alt = cp->next_alt; \
   cp->next_alt = m_alt; \
-  cp = ChoiceCharOffset(cp,alt->node_offset); \
+  cp = ChoiceCharOffset(cp,alt->choice_offset); \
 }
 
 /* =========================================================================== */
@@ -130,8 +130,8 @@ CBOOL__PROTO(gc_margin) {
 /*  These were shared, and a lot of havoc when concurrent GC was taking place.
 
 ptrdiff_t gc_total_grey=0;
-node_t *gc_aux_node;
-node_t *gc_choice_start;
+choice_t *gc_aux_node;
+choice_t *gc_choice_start;
 tagged_t *gc_trail_start;
 
 static tagged_t *gc_heap_start;
@@ -158,8 +158,8 @@ static tagged_t cvas_found;
 
 static CVOID__PROTO(shuntVariables) {
     tagged_t *pt = w->trail_top;
-    node_t *cp = Gc_Aux_Node;
-    node_t *prevcp = w->node;
+    choice_t *cp = Gc_Aux_Node;
+    choice_t *prevcp = w->choice;
     try_node_t *alt = fail_alt;
     intmach_t i;
     tagged_t *limit;
@@ -225,7 +225,7 @@ static CVOID__PROTO(shuntVariables) {
         frame = frame->frame;
       }
         
-      pt = cp->term+OffsetToArity(alt->node_offset);
+      pt = cp->term+OffsetToArity(alt->choice_offset);
       while (pt!=cp->term) {
         --pt;
         gc_shuntVariable(*pt);
@@ -330,13 +330,13 @@ static CVOID__PROTO(markFrames, frame_t *frame, bcp_t l) {
 static CVOID__PROTO(markChoicepoints) {
   /* Mark choicepoints and corresponding chains of frames */
   /* and mark remaining trail entries */
-  node_t *cp = Gc_Aux_Node;
+  choice_t *cp = Gc_Aux_Node;
   tagged_t *tr = w->trail_top;
   tagged_t *limit;
 
   while (ChoiceYounger(cp,Gc_Choice_Start))
     {
-      intmach_t n = cp->next_alt->node_offset;
+      intmach_t n = cp->next_alt->choice_offset;
       intmach_t i = OffsetToArity(n);
 
       markFrames(Arg, cp->frame, cp->next_insn);
@@ -384,8 +384,8 @@ static CVOID__PROTO(markChoicepoints) {
 CVOID__PROTO(compressTrail, bool_t from_gc) {
     tagged_t cv, *curr, *dest;
     tagged_t *limit;
-    node_t *cp = Gc_Aux_Node;
-    node_t *prevcp = w->node;
+    choice_t *cp = Gc_Aux_Node;
+    choice_t *prevcp = w->choice;
     try_node_t *alt = fail_alt;
 
     while (ChoiceYounger(cp,Gc_Choice_Start)) {
@@ -592,11 +592,11 @@ static CVOID__PROTO(sweepFrames, frame_t *frame, bcp_t l) {
 }
 
 static CVOID__PROTO(sweepChoicepoints) { /* sweep choicepoints and corresponding chains of frames */
-  node_t *cp = Gc_Aux_Node;
+  choice_t *cp = Gc_Aux_Node;
 
     while (ChoiceYounger(cp,Gc_Choice_Start))
       {
-        intmach_t n = cp->next_alt->node_offset;
+        intmach_t n = cp->next_alt->choice_offset;
         intmach_t i = OffsetToArity(n);
 
         sweepFrames(Arg, cp->frame, cp->next_insn);
@@ -619,7 +619,7 @@ static CVOID__PROTO(sweepChoicepoints) { /* sweep choicepoints and corresponding
 
 static CVOID__PROTO(compressHeap) {
     tagged_t cv;
-    node_t *cp = Gc_Aux_Node;
+    choice_t *cp = Gc_Aux_Node;
     tagged_t *curr= w->heap_top;
     tagged_t *dest= HeapOffset(Gc_Heap_Start,Total_Found);
     intmach_t garbage_words = 0;
@@ -628,7 +628,7 @@ static CVOID__PROTO(compressHeap) {
     /* the upward phase */
     while (ChoiceYounger(cp,Gc_Choice_Start)) {
         cp->heap_top = dest;
-        cp=ChoiceCharOffset(cp,-cp->next_alt->node_offset);
+        cp=ChoiceCharOffset(cp,-cp->next_alt->choice_offset);
         
         while (HeapYounger(curr,NodeGlobalTop(cp))) {
             cv= HeapPop(curr);
@@ -725,7 +725,7 @@ CVOID__PROTO(GarbageCollect) {
       printf("Thread %" PRIdm " enters GarbageCollect\n", (intmach_t)Thread_Id);
 #endif
 
-    ComputeA(newa, w->node);
+    ComputeA(newa, w->choice);
     hz = HeapDifference(Heap_Start,w->heap_top); /* current heap size */
 #if 0
     sz = StackDifference(Stack_Start,w->heap_top); /* current stack size */
@@ -764,13 +764,13 @@ CVOID__PROTO(GarbageCollect) {
                       Choice_End,
                       (intmach_t)ChoiceDifference(Choice_Start,Choice_End));
         ENG_TTYPRINTF("        Ch. top at 0x%p (used = %" PRIdm ")\n", 
-                      w->node, 
-                      (intmach_t)ChoiceDifference(Choice_Start, w->node));
+                      w->choice, 
+                      (intmach_t)ChoiceDifference(Choice_Start, w->choice));
         ENG_TTYPRINTF("        Tr. top at 0x%p (used = %" PRIdm ")\n", 
                       w->trail_top, 
                       (intmach_t)TrailDifference(Trail_Start,w->trail_top));
         ENG_TTYPRINTF("        Ch./Tr. free %" PRIdm "\n",
-                      (intmach_t)ChoiceDifference(w->node, w->trail_top));
+                      (intmach_t)ChoiceDifference(w->choice, w->trail_top));
       }
     }
 
@@ -785,7 +785,7 @@ CVOID__PROTO(GarbageCollect) {
 
     Total_Found= 0;
     Gcgrey= 0;
-    if (w->segment_node == InitialNode) 
+    if (w->segment_choice == InitialNode) 
       Gc_Total_Grey = 0;
     trail_gc(Arg); /* sets Gc_Aux_Node, gc_Choice_Start, Gc_Trail_Start */
     Gc_Aux_Node->local_top = newa;
@@ -831,7 +831,7 @@ CVOID__PROTO(GarbageCollect) {
     GLOBAL_VARS_ROOT = *(w->trail_top); // (w->trail_top points to the popped element)
 #endif
     
-    SetShadowregs(w->node);     /* shadow regs may have changed */
+    SetShadowregs(w->choice);     /* shadow regs may have changed */
                                 /* statistics */
     t2= BASE_RUNTICK-t2;
     ciao_stats.gc_tick   += t1+t2;
@@ -865,7 +865,7 @@ CVOID__PROTO(GarbageCollect) {
 /* =========================================================================== */
 /* Code for growing areas when full. */
 
-static CVOID__PROTO(calculate_segment_node);
+static CVOID__PROTO(calculate_segment_choice);
 
 /* stack_shift_usage: [global shifts,local+control/trail shifts,time spent] */
 
@@ -903,7 +903,7 @@ CBOOL__PROTO(envstack_usage)
   tagged_t x;
   frame_t *newa;
 
-  ComputeA(newa,w->node);
+  ComputeA(newa,w->choice);
   used = StackCharDifference(Stack_Start,newa);
   free = StackCharDifference(newa,Stack_End);
   MakeLST(x,IntmachToTagged(free),atom_nil);
@@ -917,8 +917,8 @@ CBOOL__PROTO(choice_usage)
   intmach_t used, free;
   tagged_t x;
   
-  used = ChoiceCharDifference(Choice_Start,w->node);
-  free = ChoiceCharDifference(w->node,w->trail_top)/2;
+  used = ChoiceCharDifference(Choice_Start,w->choice);
+  free = ChoiceCharDifference(w->choice,w->trail_top)/2;
   MakeLST(x,IntmachToTagged(free),atom_nil);
   MakeLST(x,IntmachToTagged(used),x);
   CBOOL__LASTUNIFY(X(0),x);
@@ -931,7 +931,7 @@ CBOOL__PROTO(trail_usage)
   tagged_t x;
   
   used = TrailCharDifference(Trail_Start,w->trail_top);
-  free = TrailCharDifference(w->trail_top,w->node)/2;
+  free = TrailCharDifference(w->trail_top,w->choice)/2;
   MakeLST(x,IntmachToTagged(free),atom_nil);
   MakeLST(x,IntmachToTagged(used),x);
   CBOOL__LASTUNIFY(X(0),x);
@@ -943,7 +943,7 @@ CBOOL__PROTO(trail_usage)
  * arity - number of live X regs at this point.
  */
 CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
-  node_t *b = w->node;
+  choice_t *b = w->choice;
   intmach_t i;
   frame_t *a;
 
@@ -952,7 +952,7 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
     printf("Thread %" PRIdm " calling explicit_heap_overflow\n", (intmach_t)Thread_Id);
 #endif
   
-  /* ensure that w->node is fleshed out fully i.e. do a "neck" */
+  /* ensure that w->choice is fleshed out fully i.e. do a "neck" */
   /* arity of choicept could be greater than arity of clause */
   /* DO NOT clear w->next_alt -- we are still in "shallow mode" */
   if (!b->next_alt) {                   /* try */
@@ -960,16 +960,16 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
     b->frame = w->frame;
     b->next_insn = w->next_insn;
     SaveLtop(b);
-    i=OffsetToArity(b->next_alt->node_offset);
+    i=OffsetToArity(b->next_alt->choice_offset);
     if (i>0) {
-      tagged_t *t = (tagged_t *)w->next_node;
+      tagged_t *t = (tagged_t *)w->previous_choice;
       do {
         ChoicePush(t,X(--i));
       } while (i>0);
     }
     if (ChoiceYounger(ChoiceOffset(b,CHOICEPAD),w->trail_top)) {
       choice_overflow(Arg,CHOICEPAD);
-      b = w->node;
+      b = w->choice;
     }
   }
   
@@ -996,17 +996,17 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
 }
 
 
-/* Set w->segment_node to most recent choicept which is marked as pure. */
-static CVOID__PROTO(calculate_segment_node)
+/* Set w->segment_choice to most recent choicept which is marked as pure. */
+static CVOID__PROTO(calculate_segment_choice)
 {
-  node_t *n;
+  choice_t *n;
 
-  w->segment_node = NULL;
-  for (n=w->node;
-       w->segment_node==NULL;
-       n=ChoiceCharOffset(n,-n->next_alt->node_offset))
+  w->segment_choice = NULL;
+  for (n=w->choice;
+       w->segment_choice==NULL;
+       n=ChoiceCharOffset(n,-n->next_alt->choice_offset))
     if (ChoiceptTestPure(n))
-      w->segment_node = n;
+      w->segment_choice = n;
 }
 
 
@@ -1025,7 +1025,7 @@ bool_t is_rem_Hterm(tagged_t term,
 #endif
 
 
-/* Here when w->node and w->trail_top are within CHOICEPAD from each other. */
+/* Here when w->choice and w->trail_top are within CHOICEPAD from each other. */
 CVOID__PROTO(choice_overflow, intmach_t pad)
 {
   inttime_t tick0;
@@ -1047,7 +1047,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
 #if defined(DEBUG)
   if (debug_threads) {
     printf("\nWAM %x is in choice_overflow!\n",(unsigned int)w);
-    printf("w->node and w->trail_top are within CHOICEPAD from each other.\n");
+    printf("w->choice and w->trail_top are within CHOICEPAD from each other.\n");
     fflush(stdout);
   }
 #endif
@@ -1067,22 +1067,22 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
 
   tick0 = BASE_RUNTICK;
 
-  if (!(next_alt = w->node->next_alt)) /* ensure A', P' exist */
-    w->node->next_alt = w->next_alt,
-    SaveLtop(w->node);
+  if (!(next_alt = w->choice->next_alt)) /* ensure A', P' exist */
+    w->choice->next_alt = w->next_alt,
+    SaveLtop(w->choice);
 
   if (pad<0)
     pad = -pad;                 /* in compile_term: disable trail_gc */
   else {
-    calculate_segment_node(Arg);
+    calculate_segment_choice(Arg);
     trail_gc(Arg);
     compressTrail(Arg,FALSE);
   }
                                 /* ASSUMED: --CHOICE, TRAIL++ */
 
-  choice_top = (tagged_t *)w->node+w->value_trail;
+  choice_top = (tagged_t *)w->choice+w->value_trail;
   if (ChoiceYounger(ChoiceOffset(choice_top,2*pad),w->trail_top)) {
-    node_t *b;
+    choice_t *b;
     tagged_t *newtr;
     intmach_t mincount, newcount, oldcount, reloc_factor;
     
@@ -1119,20 +1119,20 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
         tagged_t *x;
         /* We have to relocate the concurrent topmost choicepoint */
 #if defined(USE_THREADS)
-        node_t *concchpt;
+        choice_t *concchpt;
 #endif
         
         x = Choice_Start;                  /* Copy the new choicepoint stack */
         while (OffChoicetop(trb,tr))
           ChoicePush(x,ChoiceNext(tr));
-        w->node = b = (node_t *)(x-w->value_trail);
+        w->choice = b = (choice_t *)(x-w->value_trail);
 
 #if defined(USE_THREADS)
         /* The chain of concurrent dynamic choicepoints has to be
            relocated as well.  The initial TopConcChpt was set to be
            the initial choice node.  MCL. */
         concchpt = TopConcChpt =
-          (node_t *)((char *)TopConcChpt + reloc_factor +
+          (choice_t *)((char *)TopConcChpt + reloc_factor +
                           (newcount-oldcount)*sizeof(tagged_t));
 
         while(concchpt != InitialNode) {
@@ -1144,17 +1144,17 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
 #endif
           concchpt->term[PrevDynChpt] =
             PointerToTermOrZero(
-                (node_t *)((char *)TermToPointerOrNull(concchpt->term[PrevDynChpt])
+                (choice_t *)((char *)TermToPointerOrNull(concchpt->term[PrevDynChpt])
                                 + reloc_factor
                                 + (newcount-oldcount)*sizeof(tagged_t))
                 );
-          concchpt = (node_t *)TermToPointerOrNull(concchpt->term[PrevDynChpt]);
+          concchpt = (choice_t *)TermToPointerOrNull(concchpt->term[PrevDynChpt]);
         }
 #endif
       }
     }
-    w->next_node =
-      (node_t *)((char *)w->next_node + reloc_factor +
+    w->previous_choice =
+      (choice_t *)((char *)w->previous_choice + reloc_factor +
                       (newcount-oldcount)*sizeof(tagged_t));
     w->trail_top = (tagged_t *)((char *)w->trail_top+reloc_factor);
 
@@ -1163,10 +1163,10 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
     parallel_exec_entry_t *lpe = Last_Parallel_Exec;
     while (lpe != NULL) {
       if (lpe->init != NULL)
-        lpe->init = (node_t *)((char *)lpe->init+reloc_factor+
+        lpe->init = (choice_t *)((char *)lpe->init+reloc_factor+
                     (newcount-oldcount)*sizeof(tagged_t));
       if (lpe->end != NULL)
-        lpe->end = (node_t *)((char *)lpe->end+reloc_factor+
+        lpe->end = (choice_t *)((char *)lpe->end+reloc_factor+
                    (newcount-oldcount)*sizeof(tagged_t));
       lpe = lpe->prev;
     }
@@ -1175,11 +1175,11 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
 
     while (OffChoicetop(b,Choice_Start)){
       b->trail_top = (tagged_t *)((char *)b->trail_top+reloc_factor);
-      b = ChoiceCharOffset(b,-b->next_alt->node_offset);
+      b = ChoiceCharOffset(b,-b->next_alt->choice_offset);
     }
   }
 
-  w->node->next_alt = next_alt;
+  w->choice->next_alt = next_alt;
 
   ciao_stats.ss_control++;
   tick0 = BASE_RUNTICK-tick0;
@@ -1240,7 +1240,7 @@ CVOID__PROTO(stack_overflow)
     }
 #endif
 
-  ComputeA(w->local_top,w->node);
+  ComputeA(w->local_top,w->choice);
 
   count = 2*StackDifference(Stack_Start,Stack_End);
   newh = checkrealloc_ARRAY(tagged_t,
@@ -1284,16 +1284,16 @@ CVOID__PROTO(stack_overflow)
 
 CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor)
 {
-  node_t *n, *n2;
+  choice_t *n, *n2;
   tagged_t t1;
   tagged_t *pt1;
 
   if (reloc_factor!=0) {
-    node_t *aux_node;
+    choice_t *aux_node;
     frame_t *frame;
     intmach_t i;
     
-    aux_node = ChoiceCharOffset(w->node,ArityToOffset(0));
+    aux_node = ChoiceCharOffset(w->choice,ArityToOffset(0));
     aux_node->next_alt = fail_alt;
     aux_node->frame = (frame_t *)((char *)w->frame+reloc_factor);
     aux_node->next_insn = w->next_insn;
@@ -1309,7 +1309,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor)
 
     /* relocate pointers in choice&env stks */
     for (n=aux_node; n!=InitialNode; n=n2){
-      n2=ChoiceCharOffset(n,-n->next_alt->node_offset);
+      n2=ChoiceCharOffset(n,-n->next_alt->choice_offset);
       //Tabling --> How to translate?
       *(tagged_t *)(&n2->local_top) += reloc_factor;
       *(tagged_t *)(&n2->frame) += reloc_factor;
@@ -1339,7 +1339,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor)
 
     w->frame = aux_node->frame;
     w->local_top = NodeLocalTop(aux_node);
-    SetShadowregs(w->node);
+    SetShadowregs(w->choice);
   }
 }
 
@@ -1393,7 +1393,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
 #endif
 
   gcexplicit = FALSE;
-  calculate_segment_node(Arg);
+  calculate_segment_choice(Arg);
   if (gc ||
       (current_gcmode != atom_off &&
        HeapCharDifference(Heap_Start,oldh) >= GetSmall(current_gcmargin)*1024)) {
@@ -1406,7 +1406,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
         !(HeapCharDifference(lowboundh,oldh) < GetSmall(current_gcmargin)*1024 ||
           HeapYounger(HeapCharOffset(lowboundh,2*pad),Heap_End))) {
       /* garbage collect the entire heap */
-      w->segment_node = InitialNode;
+      w->segment_choice = InitialNode;
       GarbageCollect(Arg);
       newh = w->heap_top;
     }
@@ -1421,7 +1421,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     
     intmach_t wake_count = HeapCharDifference(Heap_Warn_Soft,Heap_Start);
     
-    ComputeA(w->local_top,w->node);
+    ComputeA(w->local_top,w->choice);
     
     mincount = 2*pad - HeapCharDifference(w->heap_top,Heap_End);
     oldcount = HeapCharDifference(Heap_Start,Heap_End);
@@ -1494,16 +1494,16 @@ CVOID__PROTO(heap_overflow_adjust_wam,
              tagged_t *newh)
 #endif
 {
-  node_t *n, *n2 = NULL;
+  choice_t *n, *n2 = NULL;
   tagged_t t1;
   tagged_t *pt1;
 
   if (reloc_factor!=0) {
-    node_t *aux_node;
+    choice_t *aux_node;
     frame_t *frame;
     intmach_t i;
 
-    aux_node = ChoiceCharOffset(w->node,ArityToOffset(0));
+    aux_node = ChoiceCharOffset(w->choice,ArityToOffset(0));
     aux_node->next_alt = fail_alt;
     aux_node->frame = w->frame;
     aux_node->next_insn = w->next_insn;
@@ -1598,7 +1598,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     for (n=aux_node; n!=InitialNode && n->next_alt!=NULL; n=n2)
       {
         if (n->next_alt != NULL) {
-          n2=ChoiceCharOffset(n,-n->next_alt->node_offset);
+          n2=ChoiceCharOffset(n,-n->next_alt->choice_offset);
           for (pt1=n->term; pt1!=(tagged_t *)n2;)
             {
               t1 = ChoicePrev(pt1);
@@ -1647,7 +1647,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 #else
     *(tagged_t *)(&n->heap_top) += reloc_factor;
 #endif    
-    SetShadowregs(w->node);
+    SetShadowregs(w->choice);
   }
 }
 
@@ -1655,18 +1655,18 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 CVOID__PROTO(trail_gc)
 {
   tagged_t *tr = w->trail_top;
-  node_t *b = w->node;
+  choice_t *b = w->choice;
   intmach_t wake_count = WakeCount;
   tagged_t heap_last = Tagp(HVA,HeapOffset(Heap_End,-1));
-  /*extern node_t *gc_aux_node;*/ /* Now in a register */
-  /*extern node_t *gc_choice_start;*/ /* No in a register */
+  /*extern choice_t *gc_aux_node;*/ /* Now in a register */
+  /*extern choice_t *gc_choice_start;*/ /* No in a register */
   /*extern tagged_t *gc_trail_start;*/ /* now in a register */
 
   Gc_Aux_Node = ChoiceCharOffset(b,ArityToOffset(0));
   Gc_Aux_Node->next_alt = fail_alt;
   Gc_Aux_Node->trail_top = tr;
-  Gc_Choice_Start = w->segment_node;
-  Gc_Trail_Start = TagToPointer(w->segment_node->trail_top);
+  Gc_Choice_Start = w->segment_choice;
+  Gc_Trail_Start = TagToPointer(w->segment_choice->trail_top);
   
   if (current_gctrace == atom_verbose) {
     ENG_TTYPRINTF("{GC}  Trail GC started\n");
@@ -1714,11 +1714,11 @@ CVOID__PROTO(trail_gc)
         } else if (wake_count>0) --wake_count;
           else if (!CondCVA(t1)) *tr = 0;
     }
-    b = ChoiceCharOffset(b,-b->next_alt->node_offset);
+    b = ChoiceCharOffset(b,-b->next_alt->choice_offset);
   }
   
   /* restore misc. registers used above */
 
-  b = w->node;
+  b = w->choice;
   SetShadowregs(b);
 }

@@ -123,13 +123,13 @@ CBOOL__PROTO(tabling_stats_c){
 
   /* printf("Heap   (%p-%p)  heap_top  = (%p) %d \n", */
   /*     Heap_Start, Heap_End, w->heap_top, (int)HeapDifference(Heap_Start, w->heap_top)); */
-  /* ComputeA(newa,w->node); */
+  /* ComputeA(newa,w->choice); */
   /* printf("Stack  (%p-%p)  local_top   = (%p) %d \n", */
   /*     Stack_Start, Stack_End, newa, (int)StackDifference(Stack_Start, newa)); */
   /* printf("Trail  (%p-%p)  trail_top   = (%p) %d \n", */
   /*     Trail_Start, Trail_End, w->trail_top, (int)TrailDifference(Trail_Start, w->trail_top)); */
   /* printf("Choice (%p-%p)  choice_top  = (%p) %d \n", */
-  /*     Choice_Start, Choice_End, w->node+w->value_trail, (int)ChoiceDifference(Choice_Start, w->node+w->value_trail)); */
+  /*     Choice_Start, Choice_End, w->choice+w->value_trail, (int)ChoiceDifference(Choice_Start, w->choice+w->value_trail)); */
 
   printf("TABLING_GLOBAL_TABLE (%p-%p) size = %lu\n\n",
          global_table, global_table_end, (global_table_free-global_table));

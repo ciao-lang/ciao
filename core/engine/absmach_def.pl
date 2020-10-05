@@ -423,16 +423,16 @@ unify_local_value(T1) :-
 % point to the pending calls to concurrent predicates. (MCL)
 
 % TODO: Bug: the PROFILE__HOOK_CUT should be implemented like show_nodes
-%     show_nodes(w->node, w->next_node);
+%     show_nodes(w->choice, w->previous_choice);
 
 :- pred(do_cut/0, [unfold]).
 do_cut :-
     profile_hook(cut),
-    call('SetB', ["w->next_node"]),
-    "w->node" <- "B",
+    call('SetB', ["w->previous_choice"]),
+    "w->choice" <- "B",
     "SetShadowregs(B);", fmt:nl,
-    "TRACE_CHPT_CUT(w->node);", fmt:nl,
-    "ConcChptCleanUp(TopConcChpt, w->node);", fmt:nl.
+    "TRACE_CHPT_CUT(w->choice);", fmt:nl,
+    "ConcChptCleanUp(TopConcChpt, w->choice);", fmt:nl.
 
 :- pred(cunify/2, [unfold]).
 cunify(U,V) :-
@@ -486,7 +486,7 @@ code_neck_proceed :-
 
 :- pred(do_neck/0, [unfold]).
 do_neck :-
-    call('SetB', ["w->node"]),
+    call('SetB', ["w->choice"]),
     if("B->next_alt",
       % retry
       ("B->next_alt = w->next_alt;", fmt:nl),
@@ -495,10 +495,10 @@ do_neck :-
       "B->frame = w->frame;", fmt:nl,
       "B->next_insn = w->next_insn;", fmt:nl,
       "SaveLtop(B);", fmt:nl,
-      "i=B->next_alt->node_offset;", fmt:nl,
+      "i=B->next_alt->choice_offset;", fmt:nl,
       if("i>ArityToOffset(0)",
         ("i = OffsetToArity(i);", fmt:nl,
-         call('SetB', ["w->next_node"]),
+         call('SetB', ["w->previous_choice"]),
          trace(neck("i")),
          do_while(
            "ChoicePush(pt1,(w->term-1)[i]);",
@@ -1529,7 +1529,7 @@ get_nil_neck_proceed :-
 cutb_x :-
     "w->local_top" <- "0", % may get hole at top of local stack
     dec(op(f_x,"BcP(f_x, 1)"), A),
-    "w->next_node" <- call('ChoiceFromTagged', [A]),
+    "w->previous_choice" <- call('ChoiceFromTagged', [A]),
     do_cut,
     dispatch("FTYPE_size(f_x)").
 
@@ -1538,7 +1538,7 @@ cutb_x :-
 cutb_x_neck :-
     "w->local_top" <- "0", % may get hole at top of local stack
     dec(op(f_x,"BcP(f_x, 1)"),A),
-    "w->next_node" <- call('ChoiceFromTagged', [A]),
+    "w->previous_choice" <- call('ChoiceFromTagged', [A]),
     shift(f_x),
     goto_ins(cutb_neck).
 
@@ -1552,7 +1552,7 @@ cutb_neck :-
 :- ins_in_mode(cutb_x_neck_proceed, r).
 cutb_x_neck_proceed :-
     dec(op(f_x,"BcP(f_x, 1)"), A),
-    "w->next_node" <- call('ChoiceFromTagged', [A]),
+    "w->previous_choice" <- call('ChoiceFromTagged', [A]),
     % shift(f_x)
     % w->local_top <- 0 % done by CODE_PROCEED
     goto_ins(cutb_neck_proceed).
@@ -1575,7 +1575,7 @@ do_cutb_neck :-
 :- ins_in_mode(cute_x, r).
 cute_x :-
     dec(op(f_x,"BcP(f_x, 1)"), A),
-    "w->next_node" <- call('ChoiceFromTagged', [A]),
+    "w->previous_choice" <- call('ChoiceFromTagged', [A]),
     "w->local_top" <- "E", % w->local_top may be 0 here
     do_cut,
     call('SetE', ["w->local_top"]),
@@ -1585,7 +1585,7 @@ cute_x :-
 :- ins_in_mode(cute_x_neck, r).
 cute_x_neck :-
     dec(op(f_x,"BcP(f_x, 1)"),A),
-    "w->next_node" <- call('ChoiceFromTagged', [A]),
+    "w->previous_choice" <- call('ChoiceFromTagged', [A]),
     shift(f_x),
     goto_ins(cute_neck).
 
@@ -1605,7 +1605,7 @@ cute_neck :-
 :- ins_in_mode(cutf_x, r).
 cutf_x :-
     dec(op(f_x,"BcP(f_x, 1)"),A),
-    "w->next_node" <- call('ChoiceFromTagged', [A]),
+    "w->previous_choice" <- call('ChoiceFromTagged', [A]),
     shift(f_x),
     goto_ins(cutf).
 
@@ -1622,7 +1622,7 @@ cut_y :-
     dec(op(f_y,"BcP(f_y, 1)"), A),
     t1(T1),
     ref_stack(safe,T1,A),
-    "w->next_node" <- callexp('ChoiceFromTagged', [T1]),
+    "w->previous_choice" <- callexp('ChoiceFromTagged', [T1]),
     do_cut,
     call('SetE', ["w->frame"]),
     dispatch("FTYPE_size(f_y)").
@@ -1630,7 +1630,7 @@ cut_y :-
 :- ins_op_format(choice_x, 219, [f_x]).
 choice_x :-
     dec(op(f_x,"BcP(f_x, 1)"), X),
-    X <- callexp('ChoiceToTagged', ["w->next_node"]),
+    X <- callexp('ChoiceToTagged', ["w->previous_choice"]),
     dispatch("FTYPE_size(f_x)").
 
 :- ins_op_format(choice_yf, 220, [f_y]).
@@ -1641,7 +1641,7 @@ choice_yf :-
 :- ins_op_format(choice_y, 221, [f_y], [label(_)]).
 choice_y :-
     dec(op(f_y,"BcP(f_y, 1)"), Y),
-    Y <- callexp('ChoiceToTagged', ["w->next_node"]),
+    Y <- callexp('ChoiceToTagged', ["w->previous_choice"]),
     dispatch("FTYPE_size(f_y)").
 
 :- ins_op_format(kontinue, 233, [], [label(w)]).
@@ -1964,13 +1964,13 @@ retry_instance :-
         "(TagToRoot(X(RootArg))->behavior_on_failure == DYNAMIC &&", fmt:nl,
         "!next_instance(Arg, &ins))", fmt:nl),
       ("w->next_alt = NULL;", fmt:nl,
-       call('SetB', ["w->next_node"]),
-       "w->node" <- "B",
+       call('SetB', ["w->previous_choice"]),
+       "w->choice" <- "B",
        "SetShadowregs(B);", fmt:nl)),
     if("!ins",
       % A conc. predicate has been closed, or a non-blocking call was made (MCL)
       (trace(retry_instance_debug_1),
-       "TopConcChpt = (node_t *)TermToPointerOrNull(X(PrevDynChpt));", fmt:nl,
+       "TopConcChpt = (choice_t *)TermToPointerOrNull(X(PrevDynChpt));", fmt:nl,
        trace(retry_instance_debug_2),
        % But fail anyway
        goto('fail'))),
@@ -2936,7 +2936,7 @@ counted_neckq :- shift(f_Q), goto_ins(counted_neck).
 counted_neck :-
     cpp_if_defined('GAUGE'),
     if("w->next_alt", (
-      call('SetB', ["w->node"]),
+      call('SetB', ["w->choice"]),
       if("B->next_alt", (
         % retry counter
         gauge_incr_counter(t1)
@@ -2979,7 +2979,7 @@ neck :-
 dynamic_neck_proceed :-
     unify_atom_internal(callexp('PointerToTerm',["ins"]),"X(3)"),
     if("!w->next_alt", goto_ins(proceed)),
-    call('SetB', ["w->node"]),
+    call('SetB', ["w->choice"]),
     if("!B->next_alt && (def_clock = use_clock+1)==0xffff",(
       setmode(r),
       call('clock_overflow', ["Arg"]),
@@ -3003,10 +3003,10 @@ proceed :-
 % TODO: this a new instruction really needed here? consider special builtin functions
 :- ins_op_format(restart_point, 262, [], [optional('PARBACK')]).
 restart_point :-
-    setmode_setH(r, "TagToPointer(w->node->term[0])"),
+    setmode_setH(r, "TagToPointer(w->choice->term[0])"),
     setmode(w),
-    "P" <- "(bcp_t)*TagToPointer(w->node->term[0])",
-    "w->next_insn" <- "w->node->next_insn",
+    "P" <- "(bcp_t)*TagToPointer(w->choice->term[0])",
+    "w->next_insn" <- "w->choice->next_insn",
     call('pop_choicept', ["Arg"]),
     goto('enter_predicate').
 
@@ -3037,26 +3037,26 @@ trace_(wam_loop_exit) :-
     true.
 trace_(create_choicepoint) :-
     if("debug_choicepoints",
-      ("fprintf(stderr, \"WAM created choicepoint (r), node = %x\\n\", (int)w->node);", fmt:nl)).
+      ("fprintf(stderr, \"WAM created choicepoint (r), node = %x\\n\", (int)w->choice);", fmt:nl)).
 trace_(failing_choicepoint) :-
     if("debug_choicepoints",
-      ("fprintf(stderr, \"Failing: node = %x, next_node = %x, conc. node = %x\\n\", (int)w->node, (int)w->next_node, (int)TopConcChpt);", fmt:nl)),
-    if("(w->misc->top_conc_chpt < w->node) && \
-        (w->misc->top_conc_chpt < w->next_node)", 
+      ("fprintf(stderr, \"Failing: node = %x, previous_choice = %x, conc. node = %x\\n\", (int)w->choice, (int)w->previous_choice, (int)TopConcChpt);", fmt:nl)),
+    if("(w->misc->top_conc_chpt < w->choice) && \
+        (w->misc->top_conc_chpt < w->previous_choice)", 
        ("fprintf(stderr, \"********** what happened here?\\n\");", fmt:nl)).
 trace_(deep_backtracking) :-
     if("debug_choicepoints",
-      ("fprintf(stderr, \"deep backtracking, node = %x\\n\", (int)w->node);", fmt:nl)).
+      ("fprintf(stderr, \"deep backtracking, node = %x\\n\", (int)w->choice);", fmt:nl)).
 trace_(restore_xregs_choicepoint(I)) :-
     if("debug_choicepoints",
-       ("fprintf(stderr, \"Reloading %d words from node %x\\n\", ", I, ", (int)w->node);", fmt:nl)).
+       ("fprintf(stderr, \"Reloading %d words from node %x\\n\", ", I, ", (int)w->choice);", fmt:nl)).
 trace_(worker_expansion_blt) :-
     "printf(\"wam() detected worker expanded by C predicate\\n\");", fmt:nl.
 trace_(worker_expansion_cterm) :-
     "fprintf(stderr, \"Reallocation of wrb detected in wam()\\n\");", fmt:nl.
 trace_(neck(I)) :-
     if("debug_choicepoints",
-      ("fprintf(stderr, \"Storing %d registers (r) in node %x\\n\", ", I, ", (int)w->next_node);", fmt:nl)).
+      ("fprintf(stderr, \"Storing %d registers (r) in node %x\\n\", ", I, ", (int)w->previous_choice);", fmt:nl)).
 trace_(retry_instance_debug_1) :-
     % Extended check
     if("debug_concchoicepoints",
@@ -3064,7 +3064,7 @@ trace_(retry_instance_debug_1) :-
           "(IS_BLOCKING(X(InvocationAttr)))"),
           ("fprintf(stderr,", fmt:nl,
           "\"**wam(): failing on a concurrent closed pred, chpt=%x, failing chpt=%x .\\n\",", fmt:nl,
-          "(int)w->node,(int)TopConcChpt);", fmt:nl))),
+          "(int)w->choice,(int)TopConcChpt);", fmt:nl))),
     if("debug_conc",
       if(("TagToRoot(X(RootArg))->x2_pending_on_instance || ",
           "TagToRoot(X(RootArg))->x5_pending_on_instance"),
@@ -3082,7 +3082,7 @@ trace_(retry_instance_debug_3) :-
     if(("debug_concchoicepoints && ",
         "TagToRoot(X(RootArg))->behavior_on_failure != DYNAMIC"),
       ("fprintf(stderr, ", fmt:nl,
-       "         \"backtracking to chpt. = %x\\n\", (int)w->node);", fmt:nl)).
+       "         \"backtracking to chpt. = %x\\n\", (int)w->choice);", fmt:nl)).
 
 
 % ---------------------------------------------------------------------------
@@ -3386,7 +3386,7 @@ code_loop_begin :-
       % Directly execute a predicate (used to call from an exception 
       % throwed from C)
       "P" <- "(bcp_t)start_func",
-      call('SetB', ["w->node"]),
+      call('SetB', ["w->choice"]),
       % TODO: this should not be necessary, right?
       % compute_Ltop("B"),
       setmode(w), % switch_on_pred expects we are in write mode, load H
@@ -3511,7 +3511,7 @@ code_suspend_t3_on_t1 :-
          goto('check_trail')))),
     label('check_trail'),
     "w->trail_top" <- "pt1",
-    if("ChoiceYounger(w->node,TrailOffset(pt1,CHOICEPAD))",
+    if("ChoiceYounger(w->choice,TrailOffset(pt1,CHOICEPAD))",
       "choice_overflow(Arg,CHOICEPAD);"),
     goto('no_check_trail'),
     label('no_check_trail'),
@@ -3555,10 +3555,10 @@ code_fail :-
     [[update(mode(r))]],
     % The profiling code must be here
     profile_hook(fail),
-    % (w->node->next_alt!=NULL);
+    % (w->choice->next_alt!=NULL);
     trace(failing_choicepoint),
     "Heap_Warn_Soft" <- "Int_Heap_Warn",
-    call('SetB', ["w->node"]),
+    call('SetB', ["w->choice"]),
     %
     "ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );", fmt:nl,
     %
@@ -3578,8 +3578,8 @@ code_fail :-
     profile_hook(redo),
     %
     if("(w->next_alt = ((try_node_t *)P)->next)==NULL",
-      (call('SetB', ["w->next_node"]),
-       "w->node" <- "B",
+      (call('SetB', ["w->previous_choice"]),
+       "w->choice" <- "B",
       "ON_TABLING({", fmt:nl,
       % To avoid sharing wrong trail - it might be associated to the
       % previous frozen choice point
@@ -3626,22 +3626,22 @@ deep_backtrack :-
     % % X(1) = B->term[1];
     % % X(2) = B->term[2];
     % % X(3) = B->term[3];
-    % % i = ((try_node_t *)P)->node_offset;
-    % % w->next_node = ChoiceCharOffset(B,-i);
+    % % i = ((try_node_t *)P)->choice_offset;
+    % % w->previous_choice = ChoiceCharOffset(B,-i);
     % % if (i>ArityToOffset(3)) {
-    % %   S = (tagged_t *)w->next_node;
+    % %   S = (tagged_t *)w->previous_choice;
     % %   i = OffsetToArity(i)-3;
     % %   do
     % %     (w->term+2)[i] = ChoiceNext(S);
     % %   while (--i);
     % % }
     %
-    "i" <- "((try_node_t *)P)->node_offset",
-    "w->next_node" <- "ChoiceCharOffset(B,-i)",
+    "i" <- "((try_node_t *)P)->choice_offset",
+    "w->previous_choice" <- "ChoiceCharOffset(B,-i)",
     if("i>ArityToOffset(0)", (
       "tagged_t *wt = w->term;", fmt:nl,
       %
-      "S" <- "(tagged_t *)w->next_node",
+      "S" <- "(tagged_t *)w->previous_choice",
       "i" <- "OffsetToArity(i) - 1",
       trace(restore_xregs_choicepoint("i")),
       "while(i >= 0) ", "wt[i--]" <- "ChoiceNext(S)")).
@@ -3659,7 +3659,7 @@ code_enter_pred :-
     % if (Cancel_Goal_Exec && Safe_To_Cancel) {
     %   Cancel_Goal_Exec = FALSE;
     %   Safe_To_Cancel = FALSE;
-    %   SetShadowregs(w->node);
+    %   SetShadowregs(w->choice);
     %   goto fail;
     % }
     % 
@@ -3667,9 +3667,9 @@ code_enter_pred :-
     %   Cancel_Goal_Exec_Handler = NULL;
     %   Safe_To_Cancel = FALSE;
     %   // Metacut
-    %   w->node = Current_Init_ChP;
+    %   w->choice = Current_Init_ChP;
     %   w->trail_top = Current_Trail_Top;
-    %   SetShadowregs(w->node);
+    %   SetShadowregs(w->choice);
     %   goto fail;
     % }
     "});",
@@ -3684,8 +3684,8 @@ code_enter_pred :-
     %     for (i = 0; i < Func->arity; i++) HeapPush(H,X(i));
     %     w->heap_top = H;
     %     push_choicept(Arg,address_nd_suspension_point);
-    %     w->node->term[0] = Tagp(HVA, Htmp);
-    %     //w->node->next_insn = w->misc->backInsn;
+    %     w->choice->term[0] = Tagp(HVA, Htmp);
+    %     //w->choice->next_insn = w->misc->backInsn;
     % 
     %     //No nore suspensions
     %     Suspend = RELEASED;
@@ -4005,7 +4005,7 @@ pred_enter_builtin_abort :-
     "t0" <- "X(0)",
     deref_sw("t0","t1",";"),
     "wam_exit_code" <- "GetSmall(t0)",
-    "w->next_node" <- "InitialNode",
+    "w->previous_choice" <- "InitialNode",
     do_cut,
     goto('fail').
 
@@ -4115,7 +4115,7 @@ code_switch_on_pred_sub :-
 code_exit_toplevel :-
     "w->insn" <- "P",
     % What should we save here? MCL
-    % w->node = B;
+    % w->choice = B;
     % w->frame = E->frame;
     if("desc && (desc->action & KEEP_STACKS)",
       (% We may backtrack
@@ -4158,12 +4158,12 @@ alt_dispatcher :-
     ),
     "P" <- EmulP,
     %
-    "w->next_node" <- "w->node",
+    "w->previous_choice" <- "w->choice",
     if(("(w->next_alt","=",Alts,"->next)!=NULL"),
-      (call('SetB', ["w->node"]),
+      (call('SetB', ["w->choice"]),
       compute_Ltop("B"),
-      call('SetB', ["ChoiceCharOffset(B,w->next_alt->node_offset)"]),
-      "w->node" <- "B",
+      call('SetB', ["ChoiceCharOffset(B,w->next_alt->choice_offset)"]),
+      "w->choice" <- "B",
       "ON_DEBUG_NODE({",
       "B->functor" <- "NULL",
       "});", fmt:nl,

@@ -48,7 +48,7 @@ static inline CBOOL__PROTO(bu2_attach_attribute_, tagged_t var, tagged_t constr,
   HeapPush(h,susp); /* func */
   G->heap_top = h;
 
-  TEST_CHOICE_OVERFLOW(w->node, CHOICEPAD);
+  TEST_CHOICE_OVERFLOW(w->choice, CHOICEPAD);
   CBOOL__PROCEED;
 }
 
@@ -107,7 +107,7 @@ CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
 #if defined(OPTIM_COMP)
   tagged_t *limit = w->choice->trail_top;
 #else
-  tagged_t *limit = TagToPointer(w->node->trail_top);  
+  tagged_t *limit = TagToPointer(w->choice->trail_top);  
 #endif
    
   h = G->heap_top;
@@ -164,7 +164,7 @@ CVOID__PROTO(collect_one_pending_unification) {
 #if defined(OPTIM_COMP)
   tagged_t *limit = w->choice->trail_top;
 #else
-  tagged_t *limit = TagToPointer(w->node->trail_top);  
+  tagged_t *limit = TagToPointer(w->choice->trail_top);  
 #endif
   
   while ( !sofar && TrailYounger(tr,limit)) {

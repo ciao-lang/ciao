@@ -28,20 +28,20 @@
 
 CVOID__PROTO(pop_choicept)
 {
-  node_t *b = w->node;
+  choice_t *b = w->choice;
 
-  w->node = b = ChoiceCharOffset(b,-b->next_alt->node_offset);
+  w->choice = b = ChoiceCharOffset(b,-b->next_alt->choice_offset);
   SetShadowregs(b);
 }
 
 CVOID__PROTO(push_choicept, try_node_t *alt)
 {
-  intmach_t n = alt->node_offset;
-  tagged_t *b0 = (tagged_t *)w->node;
-  node_t *b = ChoiceCharOffset(b0,n);
+  intmach_t n = alt->choice_offset;
+  tagged_t *b0 = (tagged_t *)w->choice;
+  choice_t *b = ChoiceCharOffset(b0,n);
 
-  ComputeA(w->local_top,w->node);
-  w->node = b;
+  ComputeA(w->local_top,w->choice);
+  w->choice = b;
   NewShadowregs(w->heap_top);
 
   b->trail_top = w->trail_top;
@@ -53,7 +53,7 @@ CVOID__PROTO(push_choicept, try_node_t *alt)
   n = OffsetToArity(n);
   while (n>0)
     ChoicePush(b0,X(--n));
-  if (ChoiceYounger(ChoiceOffset(w->node,CHOICEPAD),w->trail_top))
+  if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
     choice_overflow(Arg,CHOICEPAD);
 }
 
@@ -62,7 +62,7 @@ CBOOL__PROTO(nd_suspension_point)
 {
   //Reinstall next_insn and Frame (Done by fail).
   //Reinstal argument register
-  tagged_t t = w->node->term[0];
+  tagged_t t = w->choice->term[0];
   definition_t * func = (definition_t *) *TagToPointer(t);
   int i;
   for (i = 0; i < func->arity; i++) DEREF(X(i),*TagToPointer(TagToPointer(t)+i+1));
@@ -137,11 +137,11 @@ CBOOL__PROTO(nd_current_atom)
     i++;
   
   if (i < size)                                  /* We got the next index */
-    w->node->term[1] = MakeSmall(i);
+    w->choice->term[1] = MakeSmall(i);
   else 
     pop_choicept(Arg);
 #else
-  w->node->term[1] += MakeSmallDiff(1);
+  w->choice->term[1] += MakeSmallDiff(1);
   CBOOL__UnifyCons(TagIndex(ATM,i),X(0));
     
   if (i+1 == ciao_atoms->count)

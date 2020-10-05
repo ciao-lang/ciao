@@ -201,7 +201,7 @@
 #define InitialNode ChoiceCharOffset(Choice_Start,ArityToOffset(1))
 
 /* initial value_trail size: leave room for an extra choicept */
-#define InitialValueTrail (-(SIZEOF_FLEXIBLE_STRUCT(node_t, tagged_t, 0)/sizeof(tagged_t)))
+#define InitialValueTrail (-(SIZEOF_FLEXIBLE_STRUCT(choice_t, tagged_t, 0)/sizeof(tagged_t)))
 
 #define EToY0           (SIZEOF_FLEXIBLE_STRUCT(frame_t, tagged_t, 0)/sizeof(tagged_t))
 #define Yb(I)           (*CharOffset(E,I)) /* I as bytecode operand */
@@ -591,7 +591,7 @@ typedef intmach_t bignum_size_t; /* size of bignums */
 
 //typedef struct worker_ worker_t;
 typedef struct frame_ frame_t;
-typedef struct node_ node_t;
+typedef struct choice_ choice_t;
 typedef struct stream_node_ stream_node_t;
 typedef struct goal_descriptor_ goal_descriptor_t;
 typedef struct try_node_ try_node_t; /* defined in dynamic_rt.h */
@@ -967,8 +967,8 @@ struct par_handler_ {
 
 /* PARALLEL EXECUTIONS LIST */
 struct parallel_exec_entry_ {
-  node_t *init;                 /* Pointer to beginning of goal exec */
-  node_t *end;                  /* Pointer to end of goal exec */
+  choice_t *init;               /* Pointer to beginning of goal exec */
+  choice_t *end;                /* Pointer to end of goal exec */
   parallel_exec_entry_t *prev;  /* Pointer to previous one */
 };
 
@@ -1067,8 +1067,8 @@ struct par_goal {
   AL_t *nowComb;                /* Actual joined answer */
   AL_t *lastComb;               /* Last joined answer */
   AL_t *lastAns;                /* Last produced answer */
-  node_t *ch_init;              /* Initial choice point */
-  node_t *ch_end;               /* Final choice point */
+  choice_t *ch_init;            /* Initial choice point */
+  choice_t *ch_end;             /* Final choice point */
   tagged_t *trail_init;         /* Initial trail pointer */
   tagged_t *trail_end;          /* Final trail pointer */
   bool_t combining;             /* is it combining its last answer? */
@@ -1153,12 +1153,12 @@ struct misc_info_ {
   intmach_t gcgrey;          /* upper bound(?) of garbage left in old segments */
   intmach_t total_found;        /* the number of non-garbage words in the heap */
   tagged_t cvas_found;                 /* the last CVA found while shunting */
-  node_t *gc_aux_node;     /* aux. choicepoint for the WAM registers */
-  node_t *gc_choice_start;
+  choice_t *gc_aux_node;     /* aux. choicepoint for the WAM registers */
+  choice_t *gc_choice_start;
   tagged_t *gc_trail_start;
   tagged_t *gc_heap_start;
   frame_t *gc_stack_start;
-  node_t *top_conc_chpt;  /* Topmost chicepoint for concurrent facts */
+  choice_t *top_conc_chpt;  /* Topmost chicepoint for concurrent facts */
 #if defined(USE_GLOBAL_VARS)
   tagged_t global_vars_root;
 #endif
@@ -1384,16 +1384,16 @@ struct worker_ {
 
   bcp_t liveinfo;
 
-  node_t *node;         /* choice pointer */
-  node_t *next_node;    /* -""- at predicate entry */
-  node_t *segment_node; /* gc's segment choice point */
+  choice_t *choice; /* choice pointer */
+  choice_t *previous_choice; /* -""- at predicate entry */
+  choice_t *segment_choice; /* gc's segment choice point */
   bcp_t insn;                   /* program counter */
   tagged_t *structure;          /* structure pointer */
   tagged_t global_uncond;               /* first uncond. global variable */
   tagged_t local_uncond;                /* first uncond. local variable no. */
-  intmach_t value_trail;                /* size of value_trail extension of w->node */
+  intmach_t value_trail;                /* size of value_trail extension of w->choice */
 
-  /* incidentally, the rest is similar to a node_t */
+  /* incidentally, the rest is similar to a choice_t */
   tagged_t *trail_top;          /* trail pointer */
   tagged_t *heap_top;         /* heap pointer */
   try_node_t *next_alt; /* next clause at predicate entry */
@@ -1412,7 +1412,7 @@ struct frame_ {                 /* a.k.a. environment */
 
 typedef enum {CHOICE,MARKER} node_type;
 
-struct node_ {                  /* a.k.a. marker. Collapsed with a Chpt? */
+struct choice_ {                  /* a.k.a. marker. Collapsed with a Chpt? */
 /* #if defined(MARKERS) */
   /*  node_type type_of_node;*/
 /* #endif */
@@ -1550,7 +1550,7 @@ struct marker_ {
 #define OffChoicetop(t,B)       ChoiceYounger(t,B)
 #define ChoiceYounger(X,Y)      ((tagged_t *)(X)<(tagged_t *)(Y))
 #define ChoiceOffset(X,O)       ((tagged_t *)(X) - (O))
-#define ChoiceCharOffset(X,O)   ((node_t *)((char *)(X) - (O)))
+#define ChoiceCharOffset(X,O)   ((choice_t *)((char *)(X) - (O)))
 #define ChoiceDifference(X,Y)   ((tagged_t *)(X) - (tagged_t *)(Y))
 #define ChoiceCharDifference(X,Y)       ((char *)(X) - (char *)(Y))
 #define ChoicePrev(P)           (*(P)++)
@@ -1561,7 +1561,7 @@ struct marker_ {
 #define ChoiceFromTagged(Y) (ChoiceCharOffset(Tagged_Choice_Start,Y))
 #define ChoiceToTagged(Y)   (ChoiceCharDifference(Tagged_Choice_Start,Y))
 #else
-#define ChoiceFromTagged(Y) ((node_t *)ChoiceOffset(Choice_Start,(GetSmall(Y))))
+#define ChoiceFromTagged(Y) ((choice_t *)ChoiceOffset(Choice_Start,(GetSmall(Y))))
 #define ChoiceToTagged(Y)   (MakeSmall(ChoiceDifference(Choice_Start,Y)))
 #endif
 
@@ -1794,7 +1794,7 @@ struct try_node_ {
   try_node_t *next;                      /* Next alternative or NULL */
   bcp_t emul_p;                    /* write mode or not first alternative */
   bcp_t emul_p2;                          /* read mode, first alternative */
-  short node_offset;                   /* offset from choicepoint to next */
+  short choice_offset;                   /* offset from choicepoint to next */
   /*short number;*/
   uintmach_t number;                /* clause number for this alternative */
                              /* Gauge specific fields MUST come after this*/
@@ -1806,9 +1806,9 @@ struct try_node_ {
 
 
 #define ArityToOffset(A)  \
-  (((A)+(SIZEOF_FLEXIBLE_STRUCT(node_t, tagged_t, 0)/sizeof(tagged_t))) * sizeof(tagged_t))
+  (((A)+(SIZEOF_FLEXIBLE_STRUCT(choice_t, tagged_t, 0)/sizeof(tagged_t))) * sizeof(tagged_t))
 #define OffsetToArity(O)                                                \
-  (((O)/sizeof(tagged_t))-(SIZEOF_FLEXIBLE_STRUCT(node_t, tagged_t, 0)/sizeof(tagged_t)))
+  (((O)/sizeof(tagged_t))-(SIZEOF_FLEXIBLE_STRUCT(choice_t, tagged_t, 0)/sizeof(tagged_t)))
 
 #define SwitchSize(X) (((X)->mask / sizeof(sw_on_key_node_t))+1) 
 #define SizeToMask(X) (((X)-1) * sizeof(sw_on_key_node_t))

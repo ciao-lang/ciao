@@ -22,20 +22,20 @@
 CBOOL__PROTO(retry_cut)
 {
   tagged_t number;
-  node_t *nd;
+  choice_t *nd;
 
   DEREF(X(0),X(0));
   if (!TaggedIsSmall(X(0)))
     return FALSE;
-  for (nd = w->node;
+  for (nd = w->choice;
        ChoiceYounger(nd,Choice_Start);
-       nd = ChoiceCharOffset(nd,-nd->next_alt->node_offset))
+       nd = ChoiceCharOffset(nd,-nd->next_alt->choice_offset))
     {
       DEREF(number,nd->term[0]);
       if (nd->term[3]==atom_retry_hook && number<=X(0))
         {
           nd->term[1] = X(1);   /* always dereferenced */
-          w->node = nd;
+          w->choice = nd;
           SetShadowregs(nd);
           break;
         }

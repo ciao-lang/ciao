@@ -31,7 +31,7 @@
 #define GCTEST(Pad) { \
     if (HeapCharDifference(w->heap_top,Heap_End) < (Pad)*sizeof(tagged_t)) \
       heap_overflow(Arg,(Pad)*sizeof(tagged_t)); \
-    if (ChoiceDifference(w->node,w->trail_top) < (Pad)) \
+    if (ChoiceDifference(w->choice,w->trail_top) < (Pad)) \
       choice_overflow(Arg,Pad); \
   }
 
@@ -109,7 +109,7 @@ CBOOL__PROTO(prolog_copy_term) {
 
   copy_it(Arg,&w->frame->term[0]); /* do the copying */
 
-  pt1 = pt2 = TagToPointer(w->node->trail_top); /* untrail */
+  pt1 = pt2 = TagToPointer(w->choice->trail_top); /* untrail */
   while (!OffTrailtop(pt2,w->trail_top)) {
     t1 = TrailNext(pt2);        /* old var */
     *TagToPointer(t1) = t1;
@@ -203,7 +203,7 @@ CBOOL__PROTO(prolog_copy_term_nat)
 
   copy_it_nat(Arg,&w->frame->term[0]); /* do the copying */
 
-  pt1 = pt2 = TagToPointer(w->node->trail_top); /* untrail */
+  pt1 = pt2 = TagToPointer(w->choice->trail_top); /* untrail */
   while (!OffTrailtop(pt2,w->trail_top)) {
     t1 = TrailNext(pt2);        /* old var */
     *TagToPointer(t1) = t1;
@@ -476,11 +476,11 @@ CBOOL__PROTO(prolog_unifiable)
 
   /* Makes sure there is enough place in the heap to construct the
      unfiers list. */
-  GCTEST((w->trail_top - TagToPointer(w->node->trail_top)) * 5);
+  GCTEST((w->trail_top - TagToPointer(w->choice->trail_top)) * 5);
 
   t = atom_nil;
   tr = w->trail_top;
-  limit = TagToPointer(w->node->trail_top);
+  limit = TagToPointer(w->choice->trail_top);
    
   while (TrailYounger(tr, limit)) {
     TrailDec(tr);
@@ -603,7 +603,7 @@ static CBOOL__PROTO(cunifyOC_args_aux,
   tagged_t t2 = ~0;
   tagged_t t3;
 
-  if (ChoiceYounger(ChoiceOffset(w->node,2*CHOICEPAD-w->value_trail),w->trail_top)) {
+  if (ChoiceYounger(ChoiceOffset(w->choice,2*CHOICEPAD-w->value_trail),w->trail_top)) {
     /* really: < 2*arity */
     choice_overflow(Arg,2*CHOICEPAD);
   }
@@ -629,7 +629,7 @@ static CBOOL__PROTO(cunifyOC_args_aux,
   *x1 = t1;
   *x2 = t2;
 
-  if (ChoiceYounger(ChoiceOffset(w->node,CHOICEPAD-w->value_trail),w->trail_top))
+  if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD-w->value_trail),w->trail_top))
     choice_overflow(Arg,CHOICEPAD);
   return TRUE;
 }

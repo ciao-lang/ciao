@@ -467,15 +467,15 @@ CBOOL__PROTO(prolog_close)
 
       /* now ensure that no choicepoints point at the stream */
       {
-        node_t *B;
+        choice_t *B;
         tagged_t t1, t2;
 
         t1 = PointerToTerm(stream);
         t2 = PointerToTerm(stream->forward);
         
-        for (B = w->node;
+        for (B = w->choice;
              ChoiceYounger(B,Choice_Start);
-             B = ChoiceCharOffset(B,-B->next_alt->node_offset))
+             B = ChoiceCharOffset(B,-B->next_alt->choice_offset))
           if (B->next_alt==address_nd_current_stream && B->term[3]==t1)
             B->term[3] = t2;
       }
@@ -819,7 +819,7 @@ CBOOL__PROTO(nd_current_stream)
   else if (streamptr->forward==root_stream_ptr) /* last alt */
     pop_choicept(Arg);
   else
-    w->node->term[3]=PointerToTerm(streamptr->forward);
+    w->choice->term[3]=PointerToTerm(streamptr->forward);
   return (cunify(Arg,ptr_to_stream(Arg,streamptr),X(2)) &&
           current_stream_data(Arg,streamptr));
 }

@@ -155,7 +155,7 @@ CFUN__PROTO(get_cons,
 #if defined(SWAPPING)
 CVOID__PROTO(swapping, struct gen *oldGen) {
   //index variables for looping
-  node_t *inode;
+  choice_t *inode;
   tagged_t *itrail;
   struct gen *igen;
   //pointers for auxiliary memory
@@ -165,23 +165,23 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
   int oldgen_cp_tam, younger_cp_tam, oldgen_tr_tam, younger_tr_tam;
   //frontier pointers (last of choice/trail moved down)
   tagged_t *frontier_tr;
-  node_t *frontier_cp;
+  choice_t *frontier_cp;
   //temporary information
   struct sf *newGenSF;
   
 #if defined(DEBUG_SWAPPING)
   printf("\nSWAPPING OPERATION\n");
   printf("\nGENERATOR %p: choice %p trail %p\n",
-         oldGen, oldGen->node, oldGen->node->trail_top);
+         oldGen, oldGen->choice, oldGen->choice->trail_top);
   printf("\nANSWER: choice %p trail %p\n", oldGen->answer_cp, oldGen->answer_tr);
 #endif
   
-  newGenSF = (struct sf*) Arg->node->term[0];
+  newGenSF = (struct sf*) Arg->choice->term[0];
   //Remove choice_pt of consumer (I will generate a generator cp on stack top
-  Arg->node = PREV_CP(Arg->node);
+  Arg->choice = PREV_CP(Arg->choice);
 
   //Computing local_top
-  ComputeA(Arg->local_top,Arg->node);
+  ComputeA(Arg->local_top,Arg->choice);
   
   //Check if last execution path has to be swapped.
   if (oldGen->answer_cp != NULL) 
@@ -189,11 +189,11 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
 #if defined(DEBUG_SWAPPING)
       printf("\nSWAPPING OPERATION\n");
       printf("\nGENERATOR %p: choice %p trail %p\n",
-             oldGen, oldGen->node, oldGen->node->trail_top);
+             oldGen, oldGen->choice, oldGen->choice->trail_top);
       printf("\nANSWER: choice %p trail %p\n", 
              oldGen->answer_cp, oldGen->answer_tr);
 
-      for(inode = Arg->node; !ChoiceYounger(oldGen->node,inode); 
+      for(inode = Arg->choice; !ChoiceYounger(oldGen->choice,inode); 
           inode = PREV_CP(inode))
         {
           printf("\nNode %p=%p trail value %p=%p\n",
@@ -201,15 +201,15 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
                  (void*)*TagToPointer(inode->trail_top));
         }
       for (itrail = Arg->trail_top; 
-           !TrailYounger(oldGen->node->trail_top,itrail); itrail--)
+           !TrailYounger(oldGen->choice->trail_top,itrail); itrail--)
         printf("\nitrail %p=%x\n",itrail,*TagToPointer(itrail));
 #endif
 
       // STEP ZERO: Calculate sizes of auxiliary data structures.
       // Stack and trail grow in different directions
       oldgen_cp_tam = ChoiceCharDifference(oldGen, oldGen->answer_cp);
-      younger_cp_tam = ChoiceCharDifference(oldGen->answer_cp,Arg->node);
-      oldgen_tr_tam = TrailCharDifference(oldGen->node->trail_top,
+      younger_cp_tam = ChoiceCharDifference(oldGen->answer_cp,Arg->choice);
+      oldgen_tr_tam = TrailCharDifference(oldGen->choice->trail_top,
                                           oldGen->answer_tr);
       younger_tr_tam = TrailCharDifference(oldGen->answer_tr,Arg->trail_top);
           
@@ -231,48 +231,48 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
         {
           // STEP ONE: Copy trail cells of oldgen execution to
           // auxiliary data structures
-          memcpy(aux_stack, oldGen->node->trail_top, oldgen_tr_tam);
+          memcpy(aux_stack, oldGen->choice->trail_top, oldgen_tr_tam);
           // STEP TWO: Move younger trail cells down
-          memcpy(oldGen->node->trail_top, oldGen->answer_tr, younger_tr_tam);
+          memcpy(oldGen->choice->trail_top, oldGen->answer_tr, younger_tr_tam);
           // STEP THREE: Move oldgen trail cells to top of stack
           memcpy(frontier_tr, aux_stack, oldgen_tr_tam);
         }
       else
         {
           memcpy(aux_stack, oldGen->answer_tr, younger_tr_tam);
-          memcpy(frontier_tr, oldGen->node->trail_top, oldgen_tr_tam);
-          memcpy(oldGen->node->trail_top, aux_stack, younger_tr_tam);
+          memcpy(frontier_tr, oldGen->choice->trail_top, oldgen_tr_tam);
+          memcpy(oldGen->choice->trail_top, aux_stack, younger_tr_tam);
         }
 
-      frontier_cp = ChoiceCharOffset(Arg->node, -oldgen_cp_tam);
+      frontier_cp = ChoiceCharOffset(Arg->choice, -oldgen_cp_tam);
       if (oldgen_cp_tam > younger_cp_tam)
         {
           // STEP ONE: Copy choice points of goal execution to
           // auxiliary data structures
           memcpy(aux_stack, oldGen->answer_cp, oldgen_cp_tam);
           // STEP TWO: Move younger choice points down
-          memcpy(frontier_cp, Arg->node, younger_cp_tam);
+          memcpy(frontier_cp, Arg->choice, younger_cp_tam);
           // STEP THREE: Move pargoal_node to top of stack
-          memcpy(Arg->node, aux_stack, oldgen_cp_tam);
+          memcpy(Arg->choice, aux_stack, oldgen_cp_tam);
         }
       else
         {
-          memcpy(aux_stack, Arg->node, younger_cp_tam);
-          memcpy(Arg->node, oldGen->answer_cp, oldgen_cp_tam);
+          memcpy(aux_stack, Arg->choice, younger_cp_tam);
+          memcpy(Arg->choice, oldGen->answer_cp, oldgen_cp_tam);
           memcpy(frontier_cp, aux_stack, younger_cp_tam);
         }
       DEALLOC_TABLING_STK(aux_stack);
 
       // STEP SIX: Update trail pointers of choice points that are
       // moved down the stack
-      for (inode = frontier_cp; ChoiceYounger(inode,oldGen->node);
+      for (inode = frontier_cp; ChoiceYounger(inode,oldGen->choice);
            inode = PREV_CP(inode))
         inode->trail_top = TrailCharOffset(inode->trail_top, -oldgen_tr_tam);
 
       // STEP SEVEN: Update trail pointers of choice points that are
       // moved on top of the stack (and nullify fake trails)
       itrail = Arg->trail_top;
-      for (inode = Arg->node; ChoiceYounger(inode, frontier_cp); 
+      for (inode = Arg->choice; ChoiceYounger(inode, frontier_cp); 
            inode = PREV_CP(inode))
         {
           //nullifying fake trail cells
@@ -302,7 +302,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
       // STEP EIGHT: answer_cp and answer_tr pointers of generators
       for (igen = last_gen_list; igen != NULL; igen = igen->prev)
         {
-          if (ChoiceYounger(igen->node,oldGen->node))
+          if (ChoiceYounger(igen->choice,oldGen->choice))
             {
               if (ChoiceYounger(igen->answer_cp,oldGen->answer_cp))
                 igen->answer_cp = 
@@ -314,7 +314,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
 
           if (igen->answer_cp == NULL) continue;
 
-          if (ChoiceYounger(igen->answer_cp,oldGen->node))
+          if (ChoiceYounger(igen->answer_cp,oldGen->choice))
             {
               if (ChoiceYounger(igen->answer_cp,oldGen->answer_cp))
                 igen->answer_cp = 
@@ -324,7 +324,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
                   ChoiceCharOffset(igen->answer_cp, younger_cp_tam);
             }
 
-          if (TrailYounger(igen->answer_tr,oldGen->node->trail_top))
+          if (TrailYounger(igen->answer_tr,oldGen->choice->trail_top))
             {
               if (TrailYounger(igen->answer_tr,oldGen->answer_tr))
                 igen->answer_tr = 
@@ -373,7 +373,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
       
 #if defined(DEBUG_SWAPPING)
       printf("\nPOST SWAPPING\n");
-      for(inode = Arg->node; !ChoiceYounger(oldGen->node,inode); 
+      for(inode = Arg->choice; !ChoiceYounger(oldGen->choice,inode); 
           inode = PREV_CP(inode))
         {
           printf("\nNode %p=%p trail value %p=%p\n",
@@ -381,7 +381,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
                  (void*)*TagToPointer(inode->trail_top));
         }
       for (itrail = Arg->trail_top; 
-           !TrailYounger(oldGen->node->trail_top,itrail); itrail--)
+           !TrailYounger(oldGen->choice->trail_top,itrail); itrail--)
         printf("\nitrail %p=%p\n",itrail,(void*)*TagToPointer(itrail));
 #endif
     }
@@ -397,40 +397,40 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
     {
       //do I have to freeze oldGen->newCons - check if previous cp is frozen
       //next cp is back_answer -> arity = 1
-      inode = ChoiceCharOffset(oldGen->node,ArityToOffset(1));
+      inode = ChoiceCharOffset(oldGen->choice,ArityToOffset(1));
       if (inode->heap_top == (tagged_t*)(&(HeapFReg)))
         {
-          oldGen->node->heap_top = (tagged_t*)(&(HeapFReg));
-          oldGen->node->local_top = inode->local_top;
+          oldGen->choice->heap_top = (tagged_t*)(&(HeapFReg));
+          oldGen->choice->local_top = inode->local_top;
         }
     }
 
-  SetShadowregs(Arg->node);
+  SetShadowregs(Arg->choice);
   //Push new gen!
   push_choicept(Arg, address_nd_resume_cons_c);
-  inode = Arg->node;
+  inode = Arg->choice;
   //take arguments from oldGen
   if (oldGen->answer_cp != NULL) 
     {
-      inode->term[0] = oldGen->node->term[0];
-      inode->term[1] = oldGen->node->term[1];
+      inode->term[0] = oldGen->choice->term[0];
+      inode->term[1] = oldGen->choice->term[1];
     }
   else
     {
       inode->term[0] = (tagged_t) NULL;
-      inode->term[1] = oldGen->node->term[1];
+      inode->term[1] = oldGen->choice->term[1];
     }
   //update arguments of oldGen
   if (oldGen->cons == NULL)
     {
       //SF for consuming answers
-      oldGen->node->term[0] = (tagged_t) oldGen->sf;
+      oldGen->choice->term[0] = (tagged_t) oldGen->sf;
       //last consumed answer
-      oldGen->node->term[1] = (tagged_t) oldGen->last_ans;
+      oldGen->choice->term[1] = (tagged_t) oldGen->last_ans;
       //generator of the consumer
-      oldGen->node->term[2] = (tagged_t) oldGen;
+      oldGen->choice->term[2] = (tagged_t) oldGen;
       //update next_alt of oldGen -> it is now a consumer
-      oldGen->node->next_alt = address_nd_consume_answer_c;
+      oldGen->choice->next_alt = address_nd_consume_answer_c;
       //TODO - update FReg of first not moved generator with the ones of oldGen
     }
   //New initial FRegs
@@ -549,12 +549,12 @@ CBOOL__PROTO(abolish_all_tables_c) {
   DEALLOC_GLOBAL_TABLE;
 
 //  printf("\nTOTAL MEMORY %g\n",(total_memory-24816)/(double)1024);
-//  ComputeA(Arg->local_top,Arg->node);
+//  ComputeA(Arg->local_top,Arg->choice);
 //  printf("\nINIT %d %d %d %d %d\n",
 //       HeapCharDifference(Arg->heap_start,Arg->heap_top),
 //       StackCharDifference(Arg->stack_start,Arg->local_top),
 //       TrailCharDifference(Arg->trail_start,Arg->trail_top),
-//       ChoiceCharDifference(Arg->choice_start,Arg->node),
+//       ChoiceCharDifference(Arg->choice_start,Arg->choice),
 //       (tabling_stack_free - tabling_stack) * sizeof(tagged_t));
 //  total_memory = 0;
   init_tries_module();
@@ -621,13 +621,13 @@ CBOOL__PROTO(tabled_call_c) {
 
       push_choicept(Arg, address_nd_resume_cons_c);
       //TODO: store this information in subgoal frame!! 
-      Arg->node->term[0] = (tagged_t)NULL;
-      Arg->node->term[1] = (tagged_t)NO_ATTR;
+      Arg->choice->term[0] = (tagged_t)NULL;
+      Arg->choice->term[1] = (tagged_t)NO_ATTR;
 
       //TODO - replicate for constraints
 #if defined(SWAPPING)
       //tricky frame for swapping
-      ComputeA(Arg->local_top,Arg->node);
+      ComputeA(Arg->local_top,Arg->choice);
       Arg->local_top->next_insn = &dummy_frame_op;
       Arg->local_top->frame = Arg->frame;
       Arg->frame = Arg->local_top;
@@ -732,9 +732,9 @@ CBOOL__PROTO(nd_consume_answer_c)
 
   l_ans = l_ans->next;
   //TODO: storing this info in data structures
-  Arg->node->term[1] = (tagged_t)l_ans;
+  Arg->choice->term[1] = (tagged_t)l_ans;
 
-  get_trie_answer(Arg, l_ans->node, sf);
+  get_trie_answer(Arg, l_ans->choice, sf);
 
 #if defined(DEBUG_ALL)
   printf("\nnd_consume_answer END\n"); fflush(stdout);
@@ -810,7 +810,7 @@ CBOOL__PROTO(lookup_attr_call_c)
       if (l_gen == NULL)
         {         
           ALLOC_GLOBAL_TABLE(l_gen, struct l_gen*, sizeof(struct l_gen));
-          l_gen->node = NULL;
+          l_gen->choice = NULL;
           l_gen->next = NULL;
           node->child = (TrNode) l_gen;
 
@@ -835,7 +835,7 @@ CBOOL__PROTO(lookup_attr_call_c)
       if (l_gen == NULL)
         {
           ALLOC_GLOBAL_TABLE(l_gen, struct l_gen*, sizeof(struct l_gen));
-          l_gen->node = NULL;
+          l_gen->choice = NULL;
           l_gen->next = (struct l_gen*) node->child;
           node->child = (TrNode) l_gen;
 
@@ -853,7 +853,7 @@ CBOOL__PROTO(lookup_attr_call_c)
 
   //  PRINT_TERM(Arg, "CallSpace in lookup_trie ", MkIntTerm((int)l_gen));
   
-  int check = Unify(X(2),MkIntTerm((intmach_t)(&(l_gen->node)))) &&
+  int check = Unify(X(2),MkIntTerm((intmach_t)(&(l_gen->choice)))) &&
     Unify(X(3),MkIntTerm((intmach_t)l_gen)) &&
     Unify(X(4),MkIntTerm((intmach_t)l_prune));
   return check;
@@ -889,12 +889,12 @@ CBOOL__PROTO(execute_call_c)
 
       push_choicept(Arg, address_nd_resume_cons_c);
       //TODO: storing this info in subgoal frame!
-      Arg->node->term[0] = (tagged_t)NULL;
-      Arg->node->term[1] = (tagged_t)ATTR;
+      Arg->choice->term[0] = (tagged_t)NULL;
+      Arg->choice->term[1] = (tagged_t)ATTR;
 
 #if defined(SWAPPING)
       //tricky frame for swapping
-      ComputeA(Arg->local_top,Arg->node);
+      ComputeA(Arg->local_top,Arg->choice);
       Arg->local_top->next_insn = &dummy_frame_op;
       Arg->local_top->frame = Arg->frame;
       Arg->frame = Arg->local_top;
@@ -1106,9 +1106,9 @@ CBOOL__PROTO(nd_consume_answer_attr_c) {
   // there is always an active answer at the end.
   //  while (!l_ans->answer->active) l_ans = l_ans->sig; 
   //TODO: storing this info in data structures
-  Arg->node->term[1] = (tagged_t)l_ans;
+  Arg->choice->term[1] = (tagged_t)l_ans;
 
-  get_trie_answer(Arg, l_ans->node, sf);
+  get_trie_answer(Arg, l_ans->choice, sf);
 
   struct attrs *attrs;
   GET_ATTRS_ANSW(X(3),l_ans->space,attrs,X(4));
@@ -1195,10 +1195,10 @@ CBOOL__PROTO(nd_resume_cons_c) {
     {
       LAST_PTCP->cons_node_tr = LastNodeTR;
 #if defined(SWAPPING)
-      //Updating gen->node pointers
+      //Updating gen->choice pointers
       struct gen *gen = last_gen_list;
       while (gen != LAST_PTCP)
-        gen->node = Arg->node;
+        gen->choice = Arg->choice;
 #endif
     }
   
@@ -1224,7 +1224,7 @@ CBOOL__PROTO(nd_resume_cons_c) {
       //To force freezing with the original LastNodeTR
       MAKE_CONSUMER(Arg, cons, LAST_PTCP, LAST_PTCP->sf, LAST_PTCP);
 #if defined(SWAPPING)
-      LAST_PTCP->node = PTCP->node;
+      LAST_PTCP->choice = PTCP->choice;
 #endif
       LAST_PTCP->cons = cons;
 
@@ -1256,7 +1256,7 @@ CBOOL__PROTO(nd_resume_cons_c) {
 #if defined(DEBUG_ALL)
       printf("\nForward trail\n");
 #endif
-      Arg->node->term[0] = (tagged_t)icons_l;
+      Arg->choice->term[0] = (tagged_t)icons_l;
       //Reinstalling the trail
 //      struct timeval t_ini, t_fin;
 //      gettimeofday(&t_ini,NULL);
@@ -1268,7 +1268,7 @@ CBOOL__PROTO(nd_resume_cons_c) {
 
   LastNodeTR = icons_l->cons->node_tr;
   //Reinstalling subtitution factor from answer
-  get_trie_answer(Arg, l_ans->node, icons_l->cons->sf);
+  get_trie_answer(Arg, l_ans->choice, icons_l->cons->sf);
   
   Arg->next_insn = icons_l->cons->next_insn;
   Arg->frame = icons_l->cons->frame;
@@ -1321,11 +1321,11 @@ CBOOL__PROTO(new_answer_c) {
   printf("\nnew_answer START\n"); fflush(stdout);
 #endif
 
-//  ComputeA(Arg->local_top,Arg->node);
+//  ComputeA(Arg->local_top,Arg->choice);
 //  int current_memory = HeapCharDifference(Arg->heap_start,Arg->heap_top);
 //  current_memory += StackCharDifference(Arg->stack_start,Arg->local_top);
 //  current_memory += TrailCharDifference(Arg->trail_start,Arg->trail_top);
-//  current_memory += ChoiceCharDifference(Arg->choice_start,Arg->node);
+//  current_memory += ChoiceCharDifference(Arg->choice_start,Arg->choice);
 //  current_memory += (tabling_stack_free - tabling_stack) * sizeof(tagged_t);
 //  
 //  if (current_memory > total_memory)
@@ -1334,7 +1334,7 @@ CBOOL__PROTO(new_answer_c) {
 ////         HeapCharDifference(Arg->heap_start,Arg->heap_top),
 ////         StackCharDifference(Arg->stack_start,Arg->local_top),
 ////         TrailCharDifference(Arg->trail_start,Arg->trail_top),
-////         ChoiceCharDifference(Arg->choice_start,Arg->node),
+////         ChoiceCharDifference(Arg->choice_start,Arg->choice),
 ////         (tabling_stack_free - tabling_stack) * sizeof(tagged_t));
 //      total_memory = current_memory;
 //    }
@@ -1351,7 +1351,7 @@ CBOOL__PROTO(new_answer_c) {
 
       struct l_ans *answ;
       ALLOC_GLOBAL_TABLE(answ, struct l_ans*, sizeof(struct l_ans));
-      answ->node = node;
+      answ->choice = node;
       answ->space = (TrNode)NULL;
       answ->ans_attrs = (TrNode)NULL;
       answ->valid = TRUE;
@@ -1369,11 +1369,11 @@ CBOOL__PROTO(new_answer_c) {
       MAKE_UNDO_GEN_TREE_BACKTRACKING(Arg); 
       //insert UNDO POP_PTCP (undo before POP -> PTCP is the right value)
       MAKE_UNDO_POP_PTCP(Arg,PTCP);
-      PTCP->answer_cp = Arg->node;
+      PTCP->answer_cp = Arg->choice;
       PTCP->answer_tr = Arg->trail_top;
       PTCP->answer_node_tr = LastNodeTR;
       push_choicept(Arg, address_nd_back_answer_c);
-      Arg->node->term[0] = (tagged_t)PTCP;
+      Arg->choice->term[0] = (tagged_t)PTCP;
       //TODO - Consume current answer
       get_trie_answer(Arg, node, PTCP->sf);
       POP_PTCP;
@@ -1531,7 +1531,7 @@ CBOOL__PROTO(new_answer_attr_c)
 
   struct l_ans *answ;
   ALLOC_GLOBAL_TABLE(answ, struct l_ans*, sizeof(struct l_ans));
-  answ->node = node;                   //(TrNode) IntOfTerm(X(0));
+  answ->choice = node;                   //(TrNode) IntOfTerm(X(0));
   answ->space = (TrNode)l_ans;       // IntOfTerm(X(1));
   answ->next = NULL;
 
@@ -1683,7 +1683,7 @@ CBOOL__PROTO(initial_tabling_c) {
   if (Trail_End != TrailOffset(Trail_Start, TABLING_CHOICESTKSIZE +
                                TABLING_TRAILSTKSIZE))
     {
-      tagged_t *choice_top = (tagged_t *)w->node+w->value_trail;
+      tagged_t *choice_top = (tagged_t *)w->choice+w->value_trail;
 
       intmach_t size = (TABLING_CHOICESTKSIZE + TABLING_TRAILSTKSIZE -
                   ChoiceDifference(Choice_Start, choice_top) -

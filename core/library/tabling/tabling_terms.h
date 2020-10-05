@@ -92,20 +92,20 @@ struct gen
   struct l_ans *last_ans;        //last answer.
 
   frame_t *local_top;             //original stack freg.
-  tagged_t *heap_top;            //original heap freg.
+  tagged_t *heap_top;             //original heap freg.
   frame_t *stack_freg;            //original stack freg.
   tagged_t *heap_freg;            //original heap freg.
   tagged_t *tabl_stk_top;         //original tabling_stack_top
   node_tr_t *last_node_tr;        //original value of LastNodeTR.
   node_tr_t *cons_node_tr;        //NodeTR if gen -> cons
   
-  node_t *node;                   //generator choice point
+  choice_t *node;                 //generator choice point
   struct cons_list *cons;         //pointer to consumer (non-leader generator)
 
   //SWAPPING structures
-  intmach_t extern_cons;                //Do i have to update orig_fregs?
+  intmach_t extern_cons;          //Do i have to update orig_fregs?
   struct sf* sf_priv;             //private sf of the generator.
-  node_t *answer_cp;              //choice point of last found answer
+  choice_t *answer_cp;            //choice point of last found answer
   tagged_t *answer_tr;            //trail of last found answer       
   node_tr_t *answer_node_tr;      //LastNodeTR when last answer was found.
   struct sf* swap_sf;             //copy of substitution factor for swapping execution.

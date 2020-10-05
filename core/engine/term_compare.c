@@ -84,7 +84,7 @@ CFUN__PROTO(compare__1, int, tagged_t x1, tagged_t x2)
       CIAO_REG_2(tagged_t *, pt1);
       CIAO_REG_3(tagged_t *, pt2);
       
-      pt2 = (tagged_t *)w->node;
+      pt2 = (tagged_t *)w->choice;
       do
         {
           pt1 = (tagged_t *)pt2[i++];
@@ -243,7 +243,7 @@ static CFUN__PROTO(compare_args_aux, int,
   /* Adapted from terminating unification of complex structures:
      See cunify_args(). */
   
-  if (ChoiceYounger(ChoiceOffset(w->node,2*CHOICEPAD-w->value_trail),w->trail_top))
+  if (ChoiceYounger(ChoiceOffset(w->choice,2*CHOICEPAD-w->value_trail),w->trail_top))
                                 /* really: < 2*arity */
     choice_overflow(Arg,2*CHOICEPAD);
   for (result=0; !result && arity>0; --arity) {
@@ -255,7 +255,7 @@ static CFUN__PROTO(compare_args_aux, int,
       if (t1!=t2 && IsComplex(t1&t2)) {
         /* replace smaller value by larger value,
            using choice stack as value trail */
-        tagged_t *b = (tagged_t *)w->node;
+        tagged_t *b = (tagged_t *)w->choice;
         intmach_t i = w->value_trail;
         
         if (t1>t2)
@@ -278,7 +278,7 @@ static CFUN__PROTO(compare_args_aux, int,
   
   if (!result) *x1 = t1, *x2 = t2;
   
-  if (ChoiceYounger(ChoiceOffset(w->node,CHOICEPAD-w->value_trail),w->trail_top))
+  if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD-w->value_trail),w->trail_top))
     choice_overflow(Arg,CHOICEPAD);
   
   return result;

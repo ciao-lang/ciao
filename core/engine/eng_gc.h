@@ -106,7 +106,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);
 
 #if defined(CONTCODE) /* TODO: always? */
 static inline CVOID__PROTO(push_gc_frame, intmach_t i) {
-  node_t *b = w->node;
+  choice_t *b = w->choice;
   frame_t *a;
   ComputeA(a,b);
   a->frame = w->frame;

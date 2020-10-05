@@ -655,7 +655,7 @@ CBOOL__PROTO(prolog_eng_cut)
   goal_descriptor_t *goal_desc;
 
   /*
-    set w->node  (that is what DOCUT does), call fail...
+    set w->choice  (that is what DOCUT does), call fail...
     look at metacut, remember to delete the conc. data structures...
   */
 
@@ -682,9 +682,9 @@ CBOOL__PROTO(prolog_eng_cut)
 
   {
     worker_t *w = goal_desc->worker_registers;
-    w->node = InitialNode;            /* DOCUT to the initial choicepoint */
+    w->choice = InitialNode;            /* DOCUT to the initial choicepoint */
             /* For concurrent goals, erase the concurrent data structures */
-    ConcChptCleanUp(TopConcChpt, w->next_node);
+    ConcChptCleanUp(TopConcChpt, w->previous_choice);
   }
 
   if (wam(goal_desc->worker_registers, goal_desc) == WAM_ABORT)

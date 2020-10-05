@@ -129,7 +129,7 @@ void ciao_initcode(void)
     EMIT_e((EToY0+frame_size)*sizeof(tagged_t));                    /* initial FrameSize */
     EMIT_o(EXIT_TOPLEVEL);
 
-    startgoal_alt.node_offset = ArityToOffset(1);
+    startgoal_alt.choice_offset = ArityToOffset(1);
     startgoal_alt.number = 0;
     startgoal_alt.emul_p = call_code;
     startgoal_alt.emul_p2 = call_code;
@@ -142,7 +142,7 @@ void ciao_initcode(void)
     P = null_code;
     EMIT_o(EXIT_TOPLEVEL);
 
-    nullgoal_alt.node_offset = ArityToOffset(0);
+    nullgoal_alt.choice_offset = ArityToOffset(0);
     nullgoal_alt.number = 0;
     nullgoal_alt.emul_p = null_code;
     nullgoal_alt.emul_p2 = null_code;
@@ -158,7 +158,7 @@ void ciao_initcode(void)
     default_code = P;
     EMIT_o(EXIT_TOPLEVEL);
 
-    defaultgoal_alt.node_offset = ArityToOffset(0);
+    defaultgoal_alt.choice_offset = ArityToOffset(0);
     defaultgoal_alt.number = 0;
     defaultgoal_alt.emul_p = default_code;
     defaultgoal_alt.emul_p2 = default_code;
@@ -942,7 +942,7 @@ ciao_bool ciao_is_address(ciao_ctx ctx, ciao_term term) {
 
 ciao_choice ciao_get_choice(ciao_ctx ctx) {
   worker_t *w = ctx->worker_registers;
-  return ChoiceToTagged(w->node);
+  return ChoiceToTagged(w->choice);
 }
 
 ciao_bool ciao_more_solutions(ciao_ctx ctx, ciao_choice choice) {
@@ -952,9 +952,9 @@ ciao_bool ciao_more_solutions(ciao_ctx ctx, ciao_choice choice) {
 void ciao_cut(ciao_ctx ctx, ciao_choice choice) {
   worker_t *w = ctx->worker_registers;
   if (!ciao_more_solutions(ctx, choice)) return;
-  w->next_node = ChoiceFromTagged(choice); /* needed? */
-  w->node = ChoiceFromTagged(choice);
-  SetShadowregs(w->node);
+  w->previous_choice = ChoiceFromTagged(choice); /* needed? */
+  w->choice = ChoiceFromTagged(choice);
+  SetShadowregs(w->choice);
   PROFILE__HOOK_CIAOCUT;
 }
 
@@ -978,7 +978,7 @@ ciao_bool ciao_query_ok(ciao_query *query) {
   next_alt = query->ctx->worker_registers->next_alt;
   
   if (next_alt == &nullgoal_alt ||
-      (next_alt == NULL && query->ctx->worker_registers->node->next_alt == &nullgoal_alt)) {
+      (next_alt == NULL && query->ctx->worker_registers->choice->next_alt == &nullgoal_alt)) {
     return FALSE;
   } else {
     return TRUE;
@@ -986,7 +986,7 @@ ciao_bool ciao_query_ok(ciao_query *query) {
 }
 
 void ciao_query_end(ciao_query *query) {
-  node_t *b;
+  choice_t *b;
   ciao_ctx ctx = query->ctx;
   worker_t *w = ctx->worker_registers;
 
@@ -994,8 +994,8 @@ void ciao_query_end(ciao_query *query) {
     ciao_cut(ctx, query->base_choice);
   }
 
-  b = w->node;
-  w->node = b = ChoiceCharOffset(b,-b->next_alt->node_offset);
+  b = w->choice;
+  w->choice = b = ChoiceCharOffset(b,-b->next_alt->choice_offset);
   SetShadowregs(b);
   w->next_alt = NULL;
 
@@ -1005,7 +1005,7 @@ void ciao_query_end(ciao_query *query) {
 ciao_query *ciao_query_begin_term_s(ciao_ctx ctx, ciao_term goal) {
   worker_t *w = ctx->worker_registers;
   tagged_t *b0;
-  node_t *b;
+  choice_t *b;
   ciao_query *query;
 
   goal = ciao_structure_s(ctx, "hiord_rt:call", 1, goal);
@@ -1015,10 +1015,10 @@ ciao_query *ciao_query_begin_term_s(ciao_ctx ctx, ciao_term goal) {
   /* push null choice */
 
   w->next_insn = default_code;
-  b0 = (tagged_t *)w->node;
+  b0 = (tagged_t *)w->choice;
   b = ChoiceCharOffset(b0, ArityToOffset(0));
-  ComputeA(w->local_top,w->node);
-  w->node = b;
+  ComputeA(w->local_top,w->choice);
+  w->choice = b;
   NewShadowregs(w->heap_top);
 
   b->trail_top = w->trail_top;
@@ -1037,10 +1037,10 @@ ciao_query *ciao_query_begin_term_s(ciao_ctx ctx, ciao_term goal) {
   /* push choice for starting goal */
   
   w->next_insn = call_code;
-  b0 = (tagged_t *)w->node;
+  b0 = (tagged_t *)w->choice;
   b = ChoiceCharOffset(b0, ArityToOffset(1));
-  ComputeA(w->local_top,w->node);
-  w->node = b;
+  ComputeA(w->local_top,w->choice);
+  w->choice = b;
   NewShadowregs(w->heap_top);
 
   b->trail_top = w->trail_top;

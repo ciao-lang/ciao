@@ -53,7 +53,7 @@ CBOOL__PROTO(run_determ_c, tagged_t goal);
 # if defined(PROFILE)
 #  define PredTrace(X,Y) \
 { \
-  AssignNodeFunctor(w->node->functor, Y); \
+  AssignNodeFunctor(w->choice->functor, Y); \
   if (stop_on_pred_calls) \
   { \
     if (trace_calls) wr_functor(X,Y); \
@@ -66,7 +66,7 @@ CBOOL__PROTO(run_determ_c, tagged_t goal);
 # else /* DEBUG & !PROFILE */
 #  define PredTrace(X,Y) \
 { \
-  AssignNodeFunctor(w->node->functor, Y); \
+  AssignNodeFunctor(w->choice->functor, Y); \
   if (trace_calls) \
     wr_call(Arg,X,Y); \
 }
@@ -74,7 +74,7 @@ CBOOL__PROTO(run_determ_c, tagged_t goal);
 #else
 # if defined(DEBUG_NODE)
 #  define PredTrace(X,Y) \
-  AssignNodeFunctor(w->node->functor, Y)
+  AssignNodeFunctor(w->choice->functor, Y)
 # else
 #  define PredTrace(X,Y)
 # endif
@@ -108,7 +108,7 @@ CBOOL__PROTO(run_determ_c, tagged_t goal);
 /* ------------------------------------------------------------------------- */
 
 #define P               p
-#define B               ((node_t *)pt1)
+#define B               ((choice_t *)pt1)
 #define E               ((frame_t *)pt1)
 #define SetE(X)         (pt1 = (tagged_t *)(X))
 #define H               pt2
@@ -139,7 +139,7 @@ CBOOL__PROTO(run_determ_c, tagged_t goal);
   if (w->local_top) {                                        \
     SetE(w->local_top);                                     \
   } else {                                                   \
-    SetE(NodeLocalTop(w->node));                              \
+    SetE(NodeLocalTop(w->choice));                              \
     if (!StackYounger(E,w->frame))                              \
       SetE(StackCharOffset(w->frame,FrameSize(w->next_insn))); \
   }                                                     \
