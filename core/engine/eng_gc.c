@@ -382,30 +382,31 @@ static CVOID__PROTO(markChoicepoints) {
 
 /* delete 0's from the trail */
 CVOID__PROTO(compressTrail, bool_t from_gc) {
-    tagged_t cv, *curr, *dest;
-    tagged_t *limit;
-    choice_t *cp = Gc_Aux_Node;
-    choice_t *prevcp = w->choice;
-    try_node_t *alt = fail_alt;
+  tagged_t cv, *curr, *dest;
+  tagged_t *limit;
+  choice_t *cp = Gc_Aux_Node;
+  choice_t *prevcp = w->choice;
+  try_node_t *alt = fail_alt;
 
-    while (ChoiceYounger(cp,Gc_Choice_Start)) {
-      gc_ReverseChoice(cp,prevcp,alt);
-    }
-    curr = dest = Gc_Trail_Start;
-    while (ChoiceYounger(Gc_Aux_Node,cp))
-      {
-        gc_UndoChoice(cp,prevcp,alt);
-        limit = TagToPointer(cp->trail_top);
-        while (TrailYounger(limit,curr))
-          {
-            if ((cv = TrailNext(curr)))
-              TrailPush(dest,cv);
-          }
-        cp->trail_top -= limit-dest;
-        if (from_gc) ChoiceptMarkPure(cp);
+  while (ChoiceYounger(cp,Gc_Choice_Start)) {
+    gc_ReverseChoice(cp,prevcp,alt);
+  }
+  curr = dest = Gc_Trail_Start;
+  while (ChoiceYounger(Gc_Aux_Node,cp)) {
+    gc_UndoChoice(cp,prevcp,alt);
+    limit = TagToPointer(cp->trail_top);
+    while (TrailYounger(limit,curr)) {
+      cv = *curr;
+      curr++;
+      if (cv != (tagged_t)0) {
+        TrailPush(dest,cv);
       }
+    }
+    cp->trail_top -= limit-dest;
+    if (from_gc) ChoiceptMarkPure(cp);
+  }
 
-    w->trail_top = dest;
+  w->trail_top = dest;
 }
 
 static CVOID__PROTO(markVariable, tagged_t *start) {
@@ -1302,7 +1303,8 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor)
     /* relocate pointers in trail */
     pt1 = Trail_Start;
     while (TrailYounger(w->trail_top,pt1)) {
-      t1 = TrailNext(pt1);
+      t1 = *pt1;
+      pt1++;
       if (TaggedIsSVA(t1))
         *(pt1-1) += reloc_factor;
     }
@@ -1545,7 +1547,8 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     pt1 = Trail_Start;
     TrailPush(w->trail_top,Current_Debugger_State);
     while (TrailYounger(w->trail_top,pt1)) {
-      t1 = TrailNext(pt1);
+      t1 = *pt1;
+      pt1++;
       if (IsHeapTerm(t1)) {
 #if defined(ANDPARALLEL)
         if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
@@ -1678,13 +1681,15 @@ CVOID__PROTO(trail_gc)
     tagged_t *x;
     tagged_t t1;
       
-    for (x=TagToPointer(b->trail_top); !OffTrailtop(x,tr); (void)TrailNext(x))
+    for (x=TagToPointer(b->trail_top); !OffTrailtop(x,tr); x++) {
       if (TaggedIsHVA(t1 = *x)) {
-        if (*TagpPtr(HVA,t1) & 1)
+        if (*TagpPtr(HVA,t1) & 1) {
           *TrailOffset(x,-1) = *x = heap_last;
-        else
+        } else {
           *TagpPtr(HVA,t1) ^= 1; /* turn mark bit on */
+        }
       }
+    }
 
     /* sweep trail segment to get rid of unconditional entries.
        Keep count of relevant entries.  Turn mark bits off.

@@ -899,7 +899,8 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   /* tidy out void vars */
   pt1 = pt2 = trail_origo+DynamicPreserved;
   while (pt1 < Arg->trail_top) {
-    t0 = TrailNext(pt1);
+    t0 = *pt1;
+    pt1++;
     if (*TagToPointer(t0) & 3) {
       *TagToPointer(t0) -= (char *)(pt1-1)-(char *)pt2, TrailPush(pt2,t0);
     } else {

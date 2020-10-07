@@ -1538,7 +1538,6 @@ struct marker_ {
 #define TrailGetTop(P)          ((P)[-1])
 #define TrailDec(P)             (--(P)) /* P points to the popped element */
 //#define TrailPop(P)             (*--(P))
-#define TrailNext(P)            (*(P)++)
 #define TrailPush(P,X)          (*(P)++ = (X))
 #define TrailPushCheck(P,X)     trail_push_check(Arg,X)
 
@@ -2476,6 +2475,25 @@ CVOID__PROTO(trail_push_check, tagged_t x);
     else                                                                \
       *TagToPointer(Ref) = Ref;                                         \
   } 
+
+#define CompressTrailNoGC(tr0) ({ \
+  tagged_t *h; \
+  tagged_t *tr; \
+  tr = tr0; \
+  h = tr; \
+  COMPRESS_TRAIL_NOGC(G, tr, h); \
+})
+#define COMPRESS_TRAIL_NOGC(CP, SRC, DEST) ({ \
+  tagged_t *limit = (CP)->trail_top; \
+  while (TrailYounger(limit, (SRC))) { \
+    tagged_t ref = *(SRC); \
+    (SRC)++; \
+    if (ref != (tagged_t)0) { \
+      TrailPush(DEST,ref); \
+    } \
+  } \
+  (CP)->trail_top = (DEST); \
+})
 
 /* SERIOUS_FAULT - a fault that should not occur- indicating a corruption
                   such as following the STR tag not coming to a FNT tag

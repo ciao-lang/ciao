@@ -146,12 +146,7 @@ CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
 
   /* now compress the trail */
   if (tr0) {
-    h = tr = tr0;
-    while (TrailYounger(G->trail_top,tr)){
-      tagged_t ref;
-      if ((ref = TrailNext(tr))) TrailPush(h,ref);
-    }
-    G->trail_top = h;
+    CompressTrailNoGC(tr0);
   }
 }                  
 
@@ -201,12 +196,7 @@ CVOID__PROTO(collect_one_pending_unification) {
   
   /* now compress the trail */
   if (tr0) {
-    tagged_t *h = tr = tr0;
-    while (TrailYounger(G->trail_top,tr)) {
-      tagged_t ref;
-      if ((ref = TrailNext(tr))) TrailPush(h,ref);
-    }
-    G->trail_top = h;
+    CompressTrailNoGC(tr0);
   }
 }
 
