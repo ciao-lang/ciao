@@ -132,7 +132,7 @@ extern tagged_t atom_gen_tree_backtracking;
             /*(ARG)->choice->term[2] = (tagged_t)clone_space(space);*/    \
             /*struct subs_factor *answer = get_trie_answer((ARG),*/     \
             /*(CALLID)->first_answer->answer,(SF)->attr_vars); */       \
-            get_trie_answer((ARG),(CALLID)->first_ans->choice, (SF));     \
+            get_trie_answer((ARG),(CALLID)->first_ans->node, (SF));     \
                                                                         \
             if (TYPE)                                                   \
               {                                                         \

@@ -99,7 +99,7 @@ struct gen
   node_tr_t *last_node_tr;        //original value of LastNodeTR.
   node_tr_t *cons_node_tr;        //NodeTR if gen -> cons
   
-  choice_t *node;                 //generator choice point
+  choice_t *choice;               //generator choice point
   struct cons_list *cons;         //pointer to consumer (non-leader generator)
 
   //SWAPPING structures

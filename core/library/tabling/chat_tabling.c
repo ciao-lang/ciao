@@ -734,7 +734,7 @@ CBOOL__PROTO(nd_consume_answer_c)
   //TODO: storing this info in data structures
   Arg->choice->term[1] = (tagged_t)l_ans;
 
-  get_trie_answer(Arg, l_ans->choice, sf);
+  get_trie_answer(Arg, l_ans->node, sf);
 
 #if defined(DEBUG_ALL)
   printf("\nnd_consume_answer END\n"); fflush(stdout);
@@ -810,7 +810,7 @@ CBOOL__PROTO(lookup_attr_call_c)
       if (l_gen == NULL)
         {         
           ALLOC_GLOBAL_TABLE(l_gen, struct l_gen*, sizeof(struct l_gen));
-          l_gen->choice = NULL;
+          l_gen->node = NULL;
           l_gen->next = NULL;
           node->child = (TrNode) l_gen;
 
@@ -835,7 +835,7 @@ CBOOL__PROTO(lookup_attr_call_c)
       if (l_gen == NULL)
         {
           ALLOC_GLOBAL_TABLE(l_gen, struct l_gen*, sizeof(struct l_gen));
-          l_gen->choice = NULL;
+          l_gen->node = NULL;
           l_gen->next = (struct l_gen*) node->child;
           node->child = (TrNode) l_gen;
 
@@ -853,7 +853,7 @@ CBOOL__PROTO(lookup_attr_call_c)
 
   //  PRINT_TERM(Arg, "CallSpace in lookup_trie ", MkIntTerm((int)l_gen));
   
-  int check = Unify(X(2),MkIntTerm((intmach_t)(&(l_gen->choice)))) &&
+  int check = Unify(X(2),MkIntTerm((intmach_t)(&(l_gen->node)))) &&
     Unify(X(3),MkIntTerm((intmach_t)l_gen)) &&
     Unify(X(4),MkIntTerm((intmach_t)l_prune));
   return check;
@@ -1108,7 +1108,7 @@ CBOOL__PROTO(nd_consume_answer_attr_c) {
   //TODO: storing this info in data structures
   Arg->choice->term[1] = (tagged_t)l_ans;
 
-  get_trie_answer(Arg, l_ans->choice, sf);
+  get_trie_answer(Arg, l_ans->node, sf);
 
   struct attrs *attrs;
   GET_ATTRS_ANSW(X(3),l_ans->space,attrs,X(4));
@@ -1268,7 +1268,7 @@ CBOOL__PROTO(nd_resume_cons_c) {
 
   LastNodeTR = icons_l->cons->node_tr;
   //Reinstalling subtitution factor from answer
-  get_trie_answer(Arg, l_ans->choice, icons_l->cons->sf);
+  get_trie_answer(Arg, l_ans->node, icons_l->cons->sf);
   
   Arg->next_insn = icons_l->cons->next_insn;
   Arg->frame = icons_l->cons->frame;
@@ -1351,7 +1351,7 @@ CBOOL__PROTO(new_answer_c) {
 
       struct l_ans *answ;
       ALLOC_GLOBAL_TABLE(answ, struct l_ans*, sizeof(struct l_ans));
-      answ->choice = node;
+      answ->node = node;
       answ->space = (TrNode)NULL;
       answ->ans_attrs = (TrNode)NULL;
       answ->valid = TRUE;
@@ -1531,7 +1531,7 @@ CBOOL__PROTO(new_answer_attr_c)
 
   struct l_ans *answ;
   ALLOC_GLOBAL_TABLE(answ, struct l_ans*, sizeof(struct l_ans));
-  answ->choice = node;                   //(TrNode) IntOfTerm(X(0));
+  answ->node = node;                   //(TrNode) IntOfTerm(X(0));
   answ->space = (TrNode)l_ans;       // IntOfTerm(X(1));
   answ->next = NULL;
 
