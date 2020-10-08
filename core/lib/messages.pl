@@ -82,11 +82,13 @@ message_t(debug).
 :- pred message_output_type(Type, Output) :: message_t * stream_alias
    # "Specifies where the message will be written.".
 
-message_output_type(simple,  user).
+%message_output_type(simple,  user).
+message_output_type(simple,  user_error).
 message_output_type(debug,   user_error).
 message_output_type(error,   user_error).
 message_output_type(warning, user_error).
-message_output_type(note,    user_output).
+message_output_type(note,    user_error).
+%message_output_type(note,    user_output).
 
 :- pred show_message(Type, Text) : message_t * string
    # "The text provided in @var{Text} is printed as a message of type
@@ -139,6 +141,7 @@ show_message(Type, Loc, Message, A, Module) :-
 show_message__(Type, Loc, Message, A, Module) :-
     message_output_type(Type, SO),
     show_message_(Type, SO, Loc, Message, A, Module).
+    % flush_output(SO). % TODO: decide if we want this.
 
 show_message_(optional, SO, _, Message, A, _) :- !,
     optional_message(SO, Message, A).

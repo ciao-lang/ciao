@@ -88,7 +88,7 @@ write_sentence(S, M, Dict) :-
 expand_clause(clause(0, 0), clause(0, 0), Module, _) :- % TODO: missing cut
     defines_module(Base, Module),
     atom_concat(Base, '_co.pl', F),
-    display('{'), message(note, [Module, ' expanded in ', F, '}']),
+    display(user_error, '{'), message(note, [Module, ' expanded in ', F, '}']),
     ( output_s(Module, OutS0) ->
         OutS = OutS0
     ; open(F, append, OutS),

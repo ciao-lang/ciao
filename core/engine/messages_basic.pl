@@ -219,8 +219,8 @@ message_type(aborted).
 message_output(error,   user_error).
 message_output(error0,  user_error).
 message_output(warning, user_error).
-message_output(note,    user_output). % TODO: really?
-message_output(user, user). % TODO: needed?
+message_output(note,    user_error). % TODO: was user_output, simplify code now?
+message_output(user,    user). % TODO: needed?
 message_output(inform,  user_error).
 message_output(debug,   user_error).
 message_output(passed,  user_error).
