@@ -300,7 +300,7 @@ if ((w->misc->top_conc_chpt < w->choice) &&         (w->misc->top_conc_chpt < w-
 fprintf(stderr, "********** what happened here?\n");
       }
 });
-Heap_Warn_Soft = Int_Heap_Warn;
+ResetWakeCount();
 SetB(w->choice);
 ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );
 if (TrailYounger(pt2=w->trail_top,t1=(tagged_t)TagToPointer(B->trail_top))) {
@@ -359,12 +359,12 @@ if (Suspend == TOSUSPEND) {
 Suspend = SUSPENDED;
 Wait_Acquire_lock(Waiting_For_Work_Lock);Cond_Var_Wait(Waiting_For_Work_Cond_Var,Waiting_For_Work_Lock);Suspend = RELEASED;
 Release_lock(Waiting_For_Work_Lock);        }
-});if (OffHeaptop(H,Heap_Warn_Soft)) {
+});if (TestEventOrHeapWarnOverflow(H)) {
 int wake_count;if (Stop_This_Goal(Arg)) {
 goto exit_toplevel;
           }
-wake_count = WakeCount;
-if (OffHeaptop(H+4*wake_count,Heap_Warn)) {
+wake_count = WakeCount();
+if (HeapCharAvailable(H) <= CALLPAD+4*wake_count*sizeof(tagged_t)) {
 SETUP_PENDING_CALL(address_true);StoreH;
 heap_overflow(Arg,CALLPAD+4*wake_count*sizeof(tagged_t));LoadH;
           }
@@ -381,7 +381,8 @@ collect_pending_unifications(Arg,wake_count);LoadH;
           }
 if (OffStacktop(w->frame,Stack_Warn)) {
 SETUP_PENDING_CALL(address_true);stack_overflow(Arg);          }
-if (Int_Heap_Warn != (Heap_Warn_Soft = Heap_Warn)) {
+UnsetEvent();
+if (TestCIntEvent()) {
 SETUP_PENDING_CALL(address_help);control_c_normal(Arg);          }
         }
 goto switch_on_pred;
@@ -2294,7 +2295,7 @@ w->frame = E;
 w->next_insn = PoffR(2);
 w->local_top = StackCharOffset(E,BcP(f_e, 1));
 if (OffStacktop(E,Stack_Warn)) {
-SetEvent;
+SetEvent();
                   }
 P += FTYPE_size(f_i);
 goto WriteMode;
@@ -2465,7 +2466,7 @@ w->next_insn = BCoff(P, FTYPE_size(f_E)+FTYPE_size(f_e));
 w->local_top = StackCharOffset(E,BcP(f_e,3));
 P = BcP(f_p, 1);
 if (OffStacktop(E,Stack_Warn)) {
-SetEvent;
+SetEvent();
                   }
 goto enter_predicate;
 w_call_n:

@@ -1393,7 +1393,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   
   /* quasi failure */
   
-  Heap_Warn_Soft = Int_Heap_Warn;
+  ResetWakeCount();
   b = w->choice;
   t2 = (tagged_t)TagToPointer(b->trail_top);
   pt1 = w->trail_top;

@@ -110,8 +110,8 @@ CBOOL__PROTO(prolog_copy_term) {
   copy_it(Arg,&w->frame->term[0]); /* do the copying */
 
   pt1 = pt2 = TagToPointer(w->choice->trail_top); /* untrail */
-  while (!OffTrailtop(pt2,w->trail_top)) {
-    t1 = *pt2;        /* old var */
+  while (TrailYounger(w->trail_top,pt2)) {
+    t1 = *pt2; /* old var */
     pt2++;
     *TagToPointer(t1) = t1;
   }
@@ -205,8 +205,8 @@ CBOOL__PROTO(prolog_copy_term_nat)
   copy_it_nat(Arg,&w->frame->term[0]); /* do the copying */
 
   pt1 = pt2 = TagToPointer(w->choice->trail_top); /* untrail */
-  while (!OffTrailtop(pt2,w->trail_top)) {
-    t1 = *pt2;        /* old var */
+  while (TrailYounger(w->trail_top,pt2)) {
+    t1 = *pt2; /* old var */
     pt2++;
     *TagToPointer(t1) = t1;
   }
@@ -472,7 +472,7 @@ CBOOL__PROTO(prolog_unifiable)
   /* Forces trailing of bindings and saves the top of the trail. */
   push_choicept(Arg,fail_alt);  
   /* Saves the arguments in case of GC. */
-  push_frame(Arg,3);
+  push_frame(Arg,3); /* TODO: frame args used? */
 
   CBOOL__UNIFY(X(0), X(1));
 
@@ -500,7 +500,7 @@ CBOOL__PROTO(prolog_unifiable)
 
   /* Ignores possible wakes caused by unification of attributed
      variables */ 
-  if (TestEvent) Heap_Warn_Soft = Heap_Warn; /* TODO: check */
+  if (TestEvent()) UnsetEvent(); /* TODO: check */
   
   w->trail_top = limit;
   pop_frame(Arg);

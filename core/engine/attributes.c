@@ -138,7 +138,7 @@ CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
     }
   }
   G->heap_top = h;
-  Heap_Warn_Soft = Heap_Start; /* make WakeCount==0 */
+  SetWakeCount(0);
   
   if (sofar<wake_count) {
     PANIC_FAULT("wake - unable to find all goals");
@@ -188,7 +188,7 @@ CVOID__PROTO(collect_one_pending_unification) {
       *tr=0;
     }
   }
-  Heap_Warn_Soft = Heap_Start; /* make WakeCount==0 */
+  SetWakeCount(0);
   
   if (!sofar) {
     PANIC_FAULT("wake - unable to find all goals");

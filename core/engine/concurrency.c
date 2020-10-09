@@ -350,7 +350,7 @@ CBOOL__PROTO(prolog_eng_kill)
     if (goal_to_kill->state == WORKING) {
       Arg = goal_to_kill->worker_registers;
       Stop_This_Goal(Arg) = TRUE;
-      Heap_Warn_Soft = HeapCharOffset(Heap_Start, -1);
+      SetWakeCount(1); /* TODO: correct? why not a CInt? */
     }
     return TRUE;
   }
@@ -376,7 +376,7 @@ CBOOL__PROTO(prolog_eng_killothers)
     if ((goal_ref != myself) && (goal_ref->state == WORKING)){
       Arg = goal_ref->worker_registers;
       Stop_This_Goal(Arg) = TRUE;
-      Heap_Warn_Soft = HeapCharOffset(Heap_Start, -1);
+      SetWakeCount(1); /* TODO: correct? why not a CInt? */
       thread_cancelled = TRUE;
     }
     goal_ref = goal_ref->forward;

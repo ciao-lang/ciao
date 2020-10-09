@@ -38,7 +38,9 @@
 #endif
 
 #define CONTPAD 128*sizeof(tagged_t) /* min. amount of heap at proceed */
-#define CALLPAD (2*(MAXATOM)*sizeof(tagged_t) + CONTPAD) /* min. amount of heap at call */
+// TODO: MAXATOM is dynamic??!! why MAXATOM here??
+//#define CALLPAD (2*(MAXATOM)*sizeof(tagged_t) + CONTPAD)
+#define CALLPAD (2*(STATICMAXATOM)*sizeof(tagged_t) + CONTPAD)  /* min. amount of heap at call */
 
 /* TODO: When does CALLPAD really need dynamic MAXATOM? Avoid it if possible */
 /* Static version of CALLPAD (should be the same value used in plwam) */
@@ -354,9 +356,6 @@
 
 #define Heap_Start          w->heap_start
 #define Heap_End            w->heap_end
-#define Heap_Warn_Soft      w->heap_warn_soft
-#define Heap_Warn           w->heap_warn
-#define Int_Heap_Warn       w->int_heap_warn
 #define Stack_Start         w->stack_start
 #define Stack_End           w->stack_end
 #define Stack_Warn          w->stack_warn
@@ -526,10 +525,44 @@
   } \
 })
 
-/* EVENTS    ------------------------------------- */
+/* ------------------------------------------------------------------------- */
+/* Events (WakeCount and interrupts) based on heap limit checks */
 
-#define SetEvent        (TestEvent ? 0 : (Heap_Warn_Soft = Heap_Start))
-#define TestEvent       (Heap_Warn!=Heap_Warn_Soft)
+/* (public) */
+#define TestEventOrHeapWarnOverflow(H) OffHeaptop((H),Heap_Warn_Soft)
+#if defined(OPTIM_COMP)
+#define TestEvent() (Heap_Warn_Soft <= Heap_Start) // TODO: Heap_Warn_Pad(CALLPAD)!=Heap_Warn_Soft instead? (unsigned integer underflow?)
+#else
+#define TestEvent() (Heap_Warn_Soft != Heap_Warn_Pad(CALLPAD))
+#endif
+#define UnsetEvent() ({ Heap_Warn_Soft = Heap_Warn_Pad(CALLPAD); })
+#define TestCIntEvent() (Int_Heap_Warn == Heap_Start)
+#define SetCIntEvent() ({ \
+  SetEvent(); \
+  Int_Heap_Warn = Heap_Start; \
+})
+#define UnsetCIntEvent() { Int_Heap_Warn = Heap_Warn_Pad(CALLPAD); }
+/* Equivalent to: if (TestCIntEvent()) SetWakeCount(0); else UnsetEvent(); */ 
+#define ResetWakeCount() ({ \
+  Heap_Warn_Soft = Int_Heap_Warn; \
+})
+#define IncWakeCount() ({ \
+  SetEvent(); \
+  Heap_Warn_Soft = HeapCharOffset(Heap_Warn_Soft,-1); \
+})
+#define WakeCount() (TestEvent() ? HeapCharDifference(Heap_Warn_Soft,Heap_Start) : 0)
+/* make WakeCount()==X (pre: TestEvent()) */
+#define SetWakeCount(X) ({ \
+  Heap_Warn_Soft = HeapCharOffset(Heap_Start,-(X)); \
+})
+/* (private) */
+#define SetEvent() ({ \
+  if (!TestEvent()) { \
+    SetWakeCount(0); \
+  } \
+})
+#define Int_Heap_Warn (w->int_heap_warn)
+#define Heap_Warn_Soft (w->heap_warn_soft)
 
 /* MARGINS   ------------------------------------- */
 
@@ -538,17 +571,21 @@
    in atom manipulation builtins instead. */
 
 /* Update heap margins (which depends on dynamic CALLPAD) */
+/* TODO: changes in Int_Heap_Warn (CIntEvent) not needed now? */
 #if defined(USE_DYNAMIC_ATOM_SIZE)
 #define UpdateHeapMargins() { \
-    int wake_count = WakeCount; \
-    Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn \
-                     ? HeapCharOffset(Heap_End,-CALLPAD) \
-                     : Heap_Start); \
-    Heap_Warn = HeapCharOffset(Heap_End,-CALLPAD); \
-    if (wake_count>=0) \
-      Heap_Warn_Soft = HeapCharOffset(Heap_Start,-wake_count); \
-    else \
-      Heap_Warn_Soft = Int_Heap_Warn; \
+  int wake_count = WakeCount(); \
+  if (TestCIntEvent()) { \
+    Int_Heap_Warn = Heap_Start; \
+  } else { \
+    UnsetCIntEvent(); \
+  } \
+  /*Heap_Warn = Heap_Warn_Pad(CALLPAD);*/ \
+  if (wake_count>=0) { \
+    SetWakeCount(wake_count); \
+  } else { \
+    ResetWakeCount(); \
+  } \
 }
 #else
 #define UpdateHeapMargins() {}
@@ -1369,8 +1406,8 @@ struct worker_ {
   tagged_t *heap_start;
   tagged_t *heap_end;
   tagged_t *heap_warn_soft;
-  tagged_t *heap_warn;
-  tagged_t *int_heap_warn;      /* Heap_Start if ^C was hit, else Heap_Warn */
+  tagged_t *dummy4; // TODO: was heap_warn
+  tagged_t *int_heap_warn; /* Heap_Start if ^C was hit, else Heap_Warn */ // TODO: it could be a bit!
     
   tagged_t *stack_start;
   tagged_t *stack_end;
@@ -1510,6 +1547,8 @@ struct marker_ {
 /* H: heap top */
 #define HeapCharAvailable(H) HeapCharDifference((H),Heap_End)
 
+#define Heap_Warn_Pad(PAD) HeapCharOffset(Heap_End,-(PAD))
+
 /* THE FRAME STACK */
 
 /* assuming stack growth in positive direction */
@@ -1529,7 +1568,6 @@ struct marker_ {
 /* assuming trail growth in positive direction */
 
 #define OnTrail(t)  (TrailYounger(Trail_End,t) && !TrailYounger(Trail_Start,t))
-#define OffTrailtop(t,P)        (!TrailYounger(P,t))
 #define TrailYounger(X,Y)       ((tagged_t *)(X)>(tagged_t *)(Y))
 #define TrailDifference(X,Y)    ((tagged_t *)(Y) - (tagged_t *)(X))
 #define TrailCharDifference(X,Y)        ((char *)(Y) - (char *)(X))
@@ -2435,7 +2473,7 @@ CVOID__PROTO(trail_push_check, tagged_t x);
 
 #define BindCVA(U,V)                            \
   {                                             \
-    Wake;                                       \
+    IncWakeCount();                             \
     TrailPushCheck(w->trail_top,U);             \
     *TagpPtr(CVA,U) = V;                           \
   }
@@ -2453,13 +2491,6 @@ CVOID__PROTO(trail_push_check, tagged_t x);
       TrailPushCheck(w->trail_top,U);           \
     *TagpPtr(HVA,U) = V;                           \
   }
-
-#define Wake \
-{ \
-  SetEvent, Heap_Warn_Soft = HeapCharOffset(Heap_Warn_Soft,-1); \
-}
-
-#define WakeCount (TestEvent ? HeapCharDifference(Heap_Warn_Soft,Heap_Start) : 0)
 
 #define NULL_TRAIL_ENTRY MakeSmall(0)
 #define IsCanceled(T) (T == NULL_TRAIL_ENTRY)

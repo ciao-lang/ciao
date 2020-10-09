@@ -83,8 +83,8 @@ CBOOL__PROTO(cinstance)
   result = cinstance_aux(Arg,X(0),X(1),&n);
 
   pt1 = pt2 = TagToPointer(w->choice->trail_top); /* untrail */
-  while (!OffTrailtop(pt2,w->trail_top)) {
-    t1 = *pt2;        /* old var */
+  while (TrailYounger(w->trail_top,pt2)) {
+    t1 = *pt2; /* old var */
     pt2++;
     *TagToPointer(t1) = t1;
   }

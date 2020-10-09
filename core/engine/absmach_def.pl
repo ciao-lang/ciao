@@ -876,7 +876,7 @@ firsttrue_n :-
     "w->next_insn" <- "PoffR(2)",
     "w->local_top" <- callexp('StackCharOffset', ["E","BcP(f_e, 1)"]),
     if(callexp('OffStacktop',["E","Stack_Warn"]),
-      call0('SetEvent')),
+      "SetEvent();"),
     dispatch("FTYPE_size(f_i)").
 
 :- ins_op_format(initcallq, 0, [f_Q,f_E,f_e]).
@@ -969,7 +969,7 @@ firstcall :-
     "w->local_top" <- "StackCharOffset(E,BcP(f_e,3))",
     "P" <- "BcP(f_p, 1)",
     if(callexp('OffStacktop',["E","Stack_Warn"]),
-      call0('SetEvent')),
+      "SetEvent();"),
     goto('enter_predicate').
 
 :- ins_op_format(call_nq, 40, [f_Q,f_Z,f_E,f_e]).
@@ -3557,7 +3557,7 @@ code_fail :-
     profile_hook(fail),
     % (w->choice->next_alt!=NULL);
     trace(failing_choicepoint),
-    "Heap_Warn_Soft" <- "Int_Heap_Warn",
+    "ResetWakeCount();",
     call('SetB', ["w->choice"]),
     %
     "ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );", fmt:nl,
@@ -3698,14 +3698,14 @@ code_enter_pred :-
     %     DISPATCH_R(0);
     %   }
     % #endif
-    if("OffHeaptop(H,Heap_Warn_Soft)",
+    if("TestEventOrHeapWarnOverflow(H)",
       ("int wake_count;",
       %
       if("Stop_This_Goal(Arg)", goto('exit_toplevel')),
       %
-      "wake_count" <- "WakeCount",
+      "wake_count" <- "WakeCount()",
       %
-      if("OffHeaptop(H+4*wake_count,Heap_Warn)",
+      if("HeapCharAvailable(H) <= CALLPAD+4*wake_count*sizeof(tagged_t)", % TODO: It was OffHeaptop(H+4*wake_count,Heap_Warn), equivalent to '<='; but '<' should work?! (also in TestEventOrHeapWarnOverflow?)
         ("SETUP_PENDING_CALL(address_true);",
          setmode(r),
          "heap_overflow(Arg,CALLPAD+4*wake_count*sizeof(tagged_t));",
@@ -3729,7 +3729,8 @@ code_enter_pred :-
       if("OffStacktop(w->frame,Stack_Warn)",
         ("SETUP_PENDING_CALL(address_true);",
          "stack_overflow(Arg);")),
-      if("Int_Heap_Warn != (Heap_Warn_Soft = Heap_Warn)",
+      "UnsetEvent();", fmt:nl,
+      if("TestCIntEvent()",
         ("SETUP_PENDING_CALL(address_help);",
          "control_c_normal(Arg);")))),
     goto('switch_on_pred').

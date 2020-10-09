@@ -1889,7 +1889,7 @@ CVOID__PROTO(local_init_each_time)
 
   Arg->next_insn = bootcode;
   Stop_This_Goal(Arg) = FALSE;
-  Heap_Warn_Soft = Heap_Warn;
+  UnsetEvent();
 
   w->liveinfo = NULL;
 
@@ -2124,7 +2124,7 @@ CVOID__PROTO(create_wam_areas)
   GETENV(i,cp,"GLOBALSTKSIZE",GLOBALSTKSIZE);
   Heap_Start = checkalloc_ARRAY(tagged_t, i);
   Heap_End =  HeapOffset(Heap_Start,i);
-  Heap_Warn_Soft = Heap_Warn = HeapCharOffset(Heap_End,-CALLPAD);
+  UnsetEvent();
 
   /* stack pointer is first free cell, grows ++ */
   GETENV(i,cp,"LOCALSTKSIZE",LOCALSTKSIZE);
@@ -2183,7 +2183,7 @@ CVOID__PROTO(reinitialize_wam_areas)
     Atom_Buffer_Length = STATICMAXATOM;
   }
 
-  Heap_Warn_Soft = Heap_Warn = HeapCharOffset(Heap_End,-CALLPAD);
+  UnsetEvent();
 
   Stack_Warn = StackOffset(Stack_End,-STACKPAD);
 }

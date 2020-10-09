@@ -243,7 +243,7 @@ static CVOID__PROTO(shuntVariables) {
 static CVOID__PROTO(markTrail) {
   tagged_t *tr = w->trail_top;
   tagged_t v;
-  intmach_t wake_count = WakeCount;
+  intmach_t wake_count = WakeCount();
 
   while (Cvas_Found!=atom_nil)  /* mark unbound CVAs */
     *tr = v = Cvas_Found,
@@ -798,7 +798,7 @@ CVOID__PROTO(GarbageCollect) {
 
     Cvas_Found = atom_nil;
 
-  if (WakeCount) {
+  if (WakeCount()) {
     if (current_gctrace == atom_verbose) {
       ENG_TTYPRINTF("{GC}  Shunting disabled due to pending unifications\n");
     }
@@ -1360,7 +1360,12 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
   tagged_t *oldh = w->heap_top;
   tagged_t *newh = w->heap_top;
   tagged_t *lowboundh;
+  bool_t cint_event;
+  bool_t event;
   bool_t gc = gcexplicit;
+
+  event = TestEvent();
+  cint_event = TestCIntEvent();
 
 #if defined(ANDPARALLEL)
   Suspend = WAITING;
@@ -1421,7 +1426,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     intmach_t mincount, newcount, oldcount, reloc_factor;
     tagged_t *newh;
     
-    intmach_t wake_count = HeapCharDifference(Heap_Warn_Soft,Heap_Start);
+    intmach_t wake_count = WakeCount();
     
     ComputeA(w->local_top,w->choice);
     
@@ -1451,18 +1456,18 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     heap_overflow_adjust_wam(w,reloc_factor,newh);
 #endif
 
-   /* Final adjustments */
-
     Heap_Start = newh; /* new low bound */
     Heap_End = HeapCharOffset(newh, newcount); /* new high bound */
-    Int_Heap_Warn = (Int_Heap_Warn==Heap_Warn
-                     ? HeapCharOffset(Heap_End,-CALLPAD)
-                     : Heap_Start);
-    Heap_Warn = HeapCharOffset(Heap_End,-CALLPAD);
-    if (wake_count>=0)
-      Heap_Warn_Soft = HeapCharOffset(Heap_Start,-wake_count);
-    else
-      Heap_Warn_Soft = Int_Heap_Warn;
+
+    UnsetEvent();
+    UnsetCIntEvent();
+    if (event) {
+      SetWakeCount(wake_count);
+    }
+    if (cint_event) {
+      SetCIntEvent();
+    }
+
     ciao_stats.ss_global++;
     tick0 = BASE_RUNTICK-tick0;
     ciao_stats.starttick += tick0;
@@ -1659,7 +1664,7 @@ CVOID__PROTO(trail_gc)
 {
   tagged_t *tr = w->trail_top;
   choice_t *b = w->choice;
-  intmach_t wake_count = WakeCount;
+  intmach_t wake_count = WakeCount();
   tagged_t heap_last = Tagp(HVA,HeapOffset(Heap_End,-1));
   /*extern choice_t *gc_aux_node;*/ /* Now in a register */
   /*extern choice_t *gc_choice_start;*/ /* No in a register */
@@ -1681,7 +1686,7 @@ CVOID__PROTO(trail_gc)
     tagged_t *x;
     tagged_t t1;
       
-    for (x=TagToPointer(b->trail_top); !OffTrailtop(x,tr); x++) {
+    for (x=TagToPointer(b->trail_top); TrailYounger(tr,x); x++) {
       if (TaggedIsHVA(t1 = *x)) {
         if (*TagpPtr(HVA,t1) & 1) {
           *TrailOffset(x,-1) = *x = heap_last;
@@ -1696,7 +1701,7 @@ CVOID__PROTO(trail_gc)
        Go from new to old. */
     SetShadowregs(b);
     x=TagToPointer(b->trail_top);
-    while (!OffTrailtop(x,tr)){
+    while (TrailYounger(tr,x)){
       tagged_t t1 /*, *pt */ ; /* unused */
 
       TrailDec(tr);
@@ -1705,19 +1710,25 @@ CVOID__PROTO(trail_gc)
         /* kill unconditional 'undo setarg' */
         if (TaggedIsSTR(t1) &&
             TagToHeadfunctor(t1)==functor_Dsetarg &&
-            !CondHVA(Tagp(HVA,TagToPointer(*TaggedToArg(t1,2)))))
+            !CondHVA(Tagp(HVA,TagToPointer(*TaggedToArg(t1,2))))) {
           *tr = 0;
-      } else
-        if (t1 & TagBitSVA) {
-          if (!CondSVA(t1))
-            *tr = 0;
         }
-        else if (!(t1 & TagBitCVA)) {
-          *TagpPtr(HVA,t1) ^= 1; /* turn mark bit off */
-          if (!CondHVA(t1))
+      } else {
+        if (t1 & TagBitSVA) {
+          if (!CondSVA(t1)) {
             *tr = 0;
-        } else if (wake_count>0) --wake_count;
-          else if (!CondCVA(t1)) *tr = 0;
+          }
+        } else if (!(t1 & TagBitCVA)) {
+          *TagpPtr(HVA,t1) ^= 1; /* turn mark bit off */
+          if (!CondHVA(t1)) {
+            *tr = 0;
+          }
+        } else if (wake_count>0) {
+          --wake_count;
+        } else if (!CondCVA(t1)) {
+          *tr = 0;
+        }
+      }
     }
     b = ChoiceCont(b);
   }

@@ -25,8 +25,7 @@ static void abortmsg(int rc);
 
 /* Interrupt an specific worker */
 CVOID__PROTO(interrupt_worker, int signal_number) {
-  Int_Heap_Warn = Heap_Start;
-  SetEvent;
+  SetCIntEvent();
 #if defined(LINUX)
 /* From the manpage: Unlike on BSD systems, signals under Linux are reset to
   their default behavior when raised.  Therefore we have to SIGNAL()
@@ -51,7 +50,7 @@ void interrupt_h(int signal_number)
 
 CVOID__PROTO(control_c_normal)
 {
-  Int_Heap_Warn = Heap_Warn;
+  UnsetCIntEvent();
   if (Input_Stream_Ptr->isatty)
     SIGNAL(SIGINT,interrupt_h);
 }
