@@ -288,7 +288,7 @@ unify_heap_structure(U,V,Cont) :-
        bind(cva, T1, callexp('Tagp', ["STR", H])), heap_push(U),
        Cont),
       ([[update(mode(M))]],
-       "if(!TaggedIsSTR(", T1, ") || (TagToHeadfunctor(", T1, ")!=", U, ")) goto fail;",
+       "if(!TaggedIsSTR(", T1, ") || (TaggedToHeadfunctor(", T1, ")!=", U, ")) goto fail;",
        "S" <- callexp('TaggedToArg', [T1, 1]),
        Cont)),
     % Make sure that no mode dependant code appears next
@@ -318,7 +318,7 @@ unify_structure(U,V,Cont) :-
        bind(sva, T1, callexp('Tagp', ["STR", H])), heap_push(U),
        Cont),
       ([[update(mode(M))]],
-       "if(!TaggedIsSTR(", T1, ") || (TagToHeadfunctor(", T1, ")!=", U, ")) goto fail;",
+       "if(!TaggedIsSTR(", T1, ") || (TaggedToHeadfunctor(", T1, ")!=", U, ")) goto fail;",
        "S" <- callexp('TaggedToArg', [T1, 1]),
        Cont)),
     % Make sure that no mode dependant code appears next
@@ -1649,7 +1649,7 @@ choice_y :-
 kontinue :-
     % after wakeup, write mode!
     y("0",Y0),
-    call('Setfunc', [callexp('TagToFunctor', [Y0])]),
+    call('Setfunc', [callexp('TaggedToFunctor', [Y0])]),
     for("i=0; i<Func->arity; i++", (
       x("i",Xi),
       y("i+1",Yi1),
@@ -1957,11 +1957,11 @@ builtin_3 :-
 retry_instance :-
     % Take into account 'open' predicates.  (MCL)
     % If there is *definitely* no next instance, remove choicepoint
-    if(("(TagToRoot(X(RootArg))->behavior_on_failure != DYNAMIC &&", fmt:nl,
+    if(("(TaggedToRoot(X(RootArg))->behavior_on_failure != DYNAMIC &&", fmt:nl,
         % Wait and removes handle if needed
         "!next_instance_conc(Arg, &ins))", fmt:nl,
         "||", fmt:nl,
-        "(TagToRoot(X(RootArg))->behavior_on_failure == DYNAMIC &&", fmt:nl,
+        "(TaggedToRoot(X(RootArg))->behavior_on_failure == DYNAMIC &&", fmt:nl,
         "!next_instance(Arg, &ins))", fmt:nl),
       ("w->next_alt = NULL;", fmt:nl,
        call('SetB', ["w->previous_choice"]),
@@ -3003,9 +3003,9 @@ proceed :-
 % TODO: this a new instruction really needed here? consider special builtin functions
 :- ins_op_format(restart_point, 262, [], [optional('PARBACK')]).
 restart_point :-
-    setmode_setH(r, "TagToPointer(w->choice->term[0])"),
+    setmode_setH(r, "TaggedToPointer(w->choice->term[0])"),
     setmode(w),
-    "P" <- "(bcp_t)*TagToPointer(w->choice->term[0])",
+    "P" <- "(bcp_t)*TaggedToPointer(w->choice->term[0])",
     "w->next_insn" <- "w->choice->next_insn",
     call('pop_choicept', ["Arg"]),
     goto('enter_predicate').
@@ -3060,27 +3060,27 @@ trace_(neck(I)) :-
 trace_(retry_instance_debug_1) :-
     % Extended check
     if("debug_concchoicepoints",
-      if(("(TagToRoot(X(RootArg))->behavior_on_failure != CONC_CLOSED) && ",
+      if(("(TaggedToRoot(X(RootArg))->behavior_on_failure != CONC_CLOSED) && ",
           "(IS_BLOCKING(X(InvocationAttr)))"),
           ("fprintf(stderr,", fmt:nl,
           "\"**wam(): failing on a concurrent closed pred, chpt=%x, failing chpt=%x .\\n\",", fmt:nl,
           "(int)w->choice,(int)TopConcChpt);", fmt:nl))),
     if("debug_conc",
-      if(("TagToRoot(X(RootArg))->x2_pending_on_instance || ",
-          "TagToRoot(X(RootArg))->x5_pending_on_instance"),
+      if(("TaggedToRoot(X(RootArg))->x2_pending_on_instance || ",
+          "TaggedToRoot(X(RootArg))->x5_pending_on_instance"),
         ("fprintf(stderr, ", fmt:nl,
         "        \"**wam(): failing with invokations pending from root, type = %d.\\n\",", fmt:nl,
-        "        (TagToRoot(X(RootArg))->behavior_on_failure));"))).
+        "        (TaggedToRoot(X(RootArg))->behavior_on_failure));"))).
 trace_(retry_instance_debug_2) :-
     if("debug_concchoicepoints",
     ("  fprintf(stderr,\"New topmost concurrent chpt = %x\\n\", (int)TopConcChpt);", fmt:nl)).
 trace_(retry_instance_debug_3) :-
-    if("debug_conc && TagToRoot(X(RootArg))->behavior_on_failure != DYNAMIC",
+    if("debug_conc && TaggedToRoot(X(RootArg))->behavior_on_failure != DYNAMIC",
     ("  fprintf(stderr, ", fmt:nl,
     "         \"*** %d(%d)  backtracking on a concurrent predicate.\\n\",", fmt:nl,
     "          (int)Thread_Id, (int)GET_INC_COUNTER);", fmt:nl)),
     if(("debug_concchoicepoints && ",
-        "TagToRoot(X(RootArg))->behavior_on_failure != DYNAMIC"),
+        "TaggedToRoot(X(RootArg))->behavior_on_failure != DYNAMIC"),
       ("fprintf(stderr, ", fmt:nl,
        "         \"backtracking to chpt. = %x\\n\", (int)w->choice);", fmt:nl)).
 
@@ -3422,12 +3422,12 @@ code_unify_t0t1 :-
           goto('fail'),
           if("!(t0 & TagBitFunctor)", % lists?
             ("t1 ^= t0;", % restore t1
-            if("cunify_args(Arg,2,TagToCar(t0),TagToCar(t1))",
+            if("cunify_args(Arg,2,TaggedToCar(t0),TaggedToCar(t1))",
               goto('unify_t0t1_done'),
               goto('fail'))),
             % structures
             ("t1 ^= t0;", % restore t1
-             if("TagToHeadfunctor(t0) != (i=TagToHeadfunctor(t1))",
+             if("TaggedToHeadfunctor(t0) != (i=TaggedToHeadfunctor(t1))",
                goto('fail'),
                if("i&QMask", % large number
                  (for("i = LargeArity(i)-1; i>0; i--", 
@@ -3562,7 +3562,7 @@ code_fail :-
     %
     "ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );", fmt:nl,
     %
-    if("TrailYounger(pt2=w->trail_top,t1=(tagged_t)TagToPointer(B->trail_top))",
+    if("TrailYounger(pt2=w->trail_top,t1=(tagged_t)TaggedToPointer(B->trail_top))",
       (do_while(
         ("PlainUntrail(", "pt2", ",", "t0", ",", "{", fmt:nl,
          goto('undo'),
@@ -3827,7 +3827,7 @@ pred_enter_builtin_instance :-
     % ASSERT: X(2) is a dereferenced integer
     pred_trace("\"B\""),
     load(hva, "X(3)"),
-    "ins" <- "TagToInstance(X(2))",
+    "ins" <- "TaggedToInstance(X(2))",
     "P" <- "(bcp_t)ins->emulcode",
     goto_ins_dispatch.
 

@@ -55,9 +55,9 @@
 // 
 //   DerefSwitch(t,x1,;);
 // 
-//   if (TaggedIsSTR(t) && (TagToHeadfunctor(t) == functor_Dlock)) {
+//   if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_Dlock)) {
 //     DerefArg(x1,t,1);
-//     *l = TagToLock(x1);
+//     *l = TaggedToLock(x1);
 // #if defined(DEBUG)
 //     tagged_t x2 = (tagged_t)NULL;
 //     DerefArg(x2,t,2);
@@ -74,9 +74,9 @@
 // 
 //   DerefSwitch(t,x1,;);
 // 
-//   if (TaggedIsSTR(t) && (TagToHeadfunctor(t) == functor_Dlock)) {
+//   if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_Dlock)) {
 //     DerefArg(x1,t,1);
-//     *s = TagToSLock(x1);
+//     *s = TaggedToSLock(x1);
 // #if defined(DEBUG)
 //     tagged_t x2 = (tagged_t)NULL;
 //     DerefArg(x2,t,2);
@@ -118,7 +118,7 @@ CBOOL__PROTO(prolog_lock_atom)
   DEREF(term, X(0));
 
   if (TaggedIsATM(term)) {                                    /* Atom -- lock */
-    atomptr = TagToAtom(term);
+    atomptr = TaggedToAtom(term);
     Wait_Acquire_lock(atomptr->atom_lock_l);
     Wait_Acquire_slock(atomptr->counter_lock);
     atomptr->atom_lock_counter--;
@@ -139,7 +139,7 @@ CBOOL__PROTO(prolog_unlock_atom)
   DEREF(term, X(0));
 
   if (TaggedIsATM(term)) {
-    atomptr = TagToAtom(term);
+    atomptr = TaggedToAtom(term);
     Wait_Acquire_slock(atomptr->counter_lock);
     atomptr->atom_lock_counter++;
     if (atomptr->atom_lock_counter == 1)
@@ -160,7 +160,7 @@ CBOOL__PROTO(prolog_lock_atom_state)
   DEREF(term, X(0));
 
   if (TaggedIsATM(term)) {
-    atomptr = TagToAtom(term);
+    atomptr = TaggedToAtom(term);
     DEREF(value, X(1));
     if (TaggedIsSmall(value)) {
       Wait_Acquire_slock(atomptr->counter_lock);
@@ -193,7 +193,7 @@ CBOOL__PROTO(prolog_lock_atom_bin)
   DEREF(term, X(0));
 
   if (TaggedIsATM(term)) {                                    /* Atom -- lock */
-    atomptr = TagToAtom(term);
+    atomptr = TaggedToAtom(term);
     Wait_Acquire_lock(atomptr->atom_lock_l);
   } else BUILTIN_ERROR(TYPE_ERROR(ATOM),X(0),1);
 
@@ -209,7 +209,7 @@ CBOOL__PROTO(prolog_unlock_atom_bin)
   DEREF(term, X(0));
 
   if (TaggedIsATM(term)) {
-    atomptr = TagToAtom(term);
+    atomptr = TaggedToAtom(term);
     Release_lock(atomptr->atom_lock_l);
   } else BUILTIN_ERROR(TYPE_ERROR(ATOM),X(0),1);
 
@@ -223,7 +223,7 @@ CBOOL__PROTO(prolog_unlock_atom_bin)
 
 CBOOL__PROTO(prolog_unlock_predicate)
 {
-  int_info_t *root = TagToRoot(X(0));
+  int_info_t *root = TaggedToRoot(X(0));
 
 #if defined(DEBUG)
   if (debug_conc) {

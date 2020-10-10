@@ -117,7 +117,7 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
   if (u & TagBitComplex)
     {
       if (u & TagBitFunctor)
-        t1 = TagToHeadfunctor(u),
+        t1 = TaggedToHeadfunctor(u),
         /*      urank = (!(t1&TagBitFunctor) ? 2 : t1&QMask ? 1 : 4);*/
         urank = (!(t1&TagBitFunctor) ? 1 : t1&QMask ? 2 : 4);
       else
@@ -129,7 +129,7 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
   if (v & TagBitComplex)
     {
       if (v & TagBitFunctor)
-        t1 = TagToHeadfunctor(v),
+        t1 = TaggedToHeadfunctor(v),
         /*      vrank = (!(t1&TagBitFunctor) ? 2 : t1&QMask ? 1 : 4);*/
         vrank = (!(t1&TagBitFunctor) ? 1 : t1&QMask ? 2 : 4);
       else

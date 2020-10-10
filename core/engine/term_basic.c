@@ -109,11 +109,11 @@ CBOOL__PROTO(prolog_copy_term) {
 
   copy_it(Arg,&w->frame->term[0]); /* do the copying */
 
-  pt1 = pt2 = TagToPointer(w->choice->trail_top); /* untrail */
+  pt1 = pt2 = TaggedToPointer(w->choice->trail_top); /* untrail */
   while (TrailYounger(w->trail_top,pt2)) {
     t1 = *pt2; /* old var */
     pt2++;
-    *TagToPointer(t1) = t1;
+    *TaggedToPointer(t1) = t1;
   }
   w->trail_top = pt1;
 
@@ -204,11 +204,11 @@ CBOOL__PROTO(prolog_copy_term_nat)
 
   copy_it_nat(Arg,&w->frame->term[0]); /* do the copying */
 
-  pt1 = pt2 = TagToPointer(w->choice->trail_top); /* untrail */
+  pt1 = pt2 = TaggedToPointer(w->choice->trail_top); /* untrail */
   while (TrailYounger(w->trail_top,pt2)) {
     t1 = *pt2; /* old var */
     pt2++;
-    *TagToPointer(t1) = t1;
+    *TaggedToPointer(t1) = t1;
   }
   w->trail_top = pt1;
 
@@ -339,7 +339,7 @@ static CBOOL__PROTO(c_cyclic_term, tagged_t t) {
   case SVA:
   case HVA:
   case CVA:
-    return c_cyclic_ptr(Arg, TagToPointer(t));
+    return c_cyclic_ptr(Arg, TaggedToPointer(t));
   case LST: 
     ptr = TagpPtr(LST,t);
     i = 2;
@@ -373,7 +373,7 @@ CBOOL__PROTO(c_cyclic_ptr, tagged_t *pt) {
   case SVA:
   case HVA:
   case CVA:
-    ptr = TagToPointer(t);
+    ptr = TaggedToPointer(t);
     if (*ptr == t) goto acyclic; /* free variable */
     goto start;
   case LST: 
@@ -431,7 +431,7 @@ CVOID__PROTO(unmark_rightmost_branch, tagged_t *ptr) {
   case SVA:
   case HVA:
   case CVA:
-    ptr = TagToPointer(t);
+    ptr = TaggedToPointer(t);
     if (*ptr == t) return;
     goto start;
   case LST: 
@@ -478,11 +478,11 @@ CBOOL__PROTO(prolog_unifiable)
 
   /* Makes sure there is enough place in the heap to construct the
      unfiers list. */
-  GCTEST((w->trail_top - TagToPointer(w->choice->trail_top)) * 5);
+  GCTEST((w->trail_top - TaggedToPointer(w->choice->trail_top)) * 5);
 
   t = atom_nil;
   tr = w->trail_top;
-  limit = TagToPointer(w->choice->trail_top);
+  limit = TaggedToPointer(w->choice->trail_top);
    
   while (TrailYounger(tr, limit)) {
     TrailDec(tr);
@@ -490,12 +490,12 @@ CBOOL__PROTO(prolog_unifiable)
 
     HeapPush(w->heap_top, SetArity(atom_equal, 2));
     HeapPush(w->heap_top, t1);
-    HeapPush(w->heap_top, *TagToPointer(t1));
+    HeapPush(w->heap_top, *TaggedToPointer(t1));
     HeapPush(w->heap_top, Tagp(STR, HeapOffset(w->heap_top, -3)));
     HeapPush(w->heap_top, t);
     t = Tagp(LST, HeapOffset(w->heap_top, -2));
 
-    *TagToPointer(t1) = t1;
+    *TaggedToPointer(t1) = t1;
   }
 
   /* Ignores possible wakes caused by unification of attributed
@@ -548,12 +548,12 @@ static CBOOL__PROTO(var_occurs, tagged_t v, tagged_t x1) {
   if (TaggedIsATM(u)) goto lose;
   if (TaggedIsSmall(u)) goto lose;
   if (TaggedIsLST(u)) {
-    if (!var_occurs_args_aux(Arg,v,2,TagToCar(u),&x1))
+    if (!var_occurs_args_aux(Arg,v,2,TaggedToCar(u),&x1))
       goto in;
     else
       goto win;
   } else { /* structure. */
-    t1=TagToHeadfunctor(u);
+    t1=TaggedToHeadfunctor(u);
     if (t1&QMask) { /* large number */
           goto lose;
     } if (!var_occurs_args_aux(Arg,v,Arity(t1),TaggedToArg(u,1),&x1)) {
@@ -689,14 +689,14 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
     goto lose;
   } else if (!(u & TagBitFunctor)) { /* list? */
     v ^= u;                     /* restore v */
-    if (cunifyOC_args_aux(Arg,2,TagToCar(u),TagToCar(v),&x1,&x2)) {
+    if (cunifyOC_args_aux(Arg,2,TaggedToCar(u),TaggedToCar(v),&x1,&x2)) {
       goto in;
     } else {
       goto lose;
     }
   } else {                              /* structure. */
     v ^= u;                     /* restore v */
-    if (TagToHeadfunctor(u) != (t1=TagToHeadfunctor(v))) {
+    if (TaggedToHeadfunctor(u) != (t1=TaggedToHeadfunctor(v))) {
       goto lose;
     } else if (t1&QMask) {      /* large number */
       int i;
@@ -792,7 +792,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
 
   if (TaggedIsSTR(complex))
     {
-      tagged_t f = TagToHeadfunctor(complex);
+      tagged_t f = TaggedToHeadfunctor(complex);
 
       if (i == 0 || i > Arity(f) || f&QMask) return FALSE;
 
@@ -830,7 +830,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
 
   if (TaggedIsSTR(complex)) {
     intmach_t i = GetSmall(number);
-    tagged_t f = TagToHeadfunctor(complex);
+    tagged_t f = TaggedToHeadfunctor(complex);
 
     if (i<=0 || i>Arity(f) || f&QMask) {
       goto barf1;
@@ -879,7 +879,7 @@ CBOOL__PROTO(bu3_functor,
         tagarity = MakeSmall(2);
       else
         {
-          tagged_t f = TagToHeadfunctor(term);
+          tagged_t f = TaggedToHeadfunctor(term);
           
           term = SetArity(f,0),
           tagarity = MakeSmall(Arity(f));
@@ -943,7 +943,7 @@ CBOOL__PROTO(bu3_functor,
         tagarity = MakeSmall(2);
       else
         {
-          tagged_t f = TagToHeadfunctor(term);
+          tagged_t f = TaggedToHeadfunctor(term);
           
           term = SetArity(f,0),
           tagarity = MakeSmall(Arity(f));
@@ -989,12 +989,12 @@ CBOOL__PROTO(bu2_univ,
     }
   
   if (term & TagBitFunctor)
-    f = TagToHeadfunctor(term),
+    f = TaggedToHeadfunctor(term),
     argp = TaggedToArg(term,1),
     argq = HeapOffset(argp,Arity(f));
   else
     f = functor_list,
-    argp = TagToCar(term),
+    argp = TaggedToCar(term),
     argq = HeapOffset(argp,2);
 
   while HeapYounger(argq,argp)
@@ -1095,12 +1095,12 @@ CBOOL__PROTO(bu2_univ,
     }
   
   if (term & TagBitFunctor)
-    f = TagToHeadfunctor(term),
+    f = TaggedToHeadfunctor(term),
     argp = TaggedToArg(term,1),
     argq = HeapOffset(argp,Arity(f));
   else
     f = functor_list,
-    argp = TagToCar(term),
+    argp = TaggedToCar(term),
     argq = HeapOffset(argp,2);
   
   while HeapYounger(argq,argp)

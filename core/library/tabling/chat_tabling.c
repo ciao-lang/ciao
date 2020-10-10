@@ -198,11 +198,11 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
         {
           printf("\nNode %p=%p trail value %p=%p\n",
                  inode,inode->next_alt,inode->trail_top,
-                 (void*)*TagToPointer(inode->trail_top));
+                 (void*)*TaggedToPointer(inode->trail_top));
         }
       for (itrail = Arg->trail_top; 
            !TrailYounger(oldGen->choice->trail_top,itrail); itrail--)
-        printf("\nitrail %p=%x\n",itrail,*TagToPointer(itrail));
+        printf("\nitrail %p=%x\n",itrail,*TaggedToPointer(itrail));
 #endif
 
       // STEP ZERO: Calculate sizes of auxiliary data structures.
@@ -280,14 +280,14 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
             {
               for (; !TrailYounger(inode->trail_top,itrail); itrail--)
                 {
-                  if (TaggedIsHVA(*TagToPointer(itrail)))
+                  if (TaggedIsHVA(*TaggedToPointer(itrail)))
                     {
-                      if (!HeapYounger(inode->heap_top,*TagToPointer(itrail)))
+                      if (!HeapYounger(inode->heap_top,*TaggedToPointer(itrail)))
                         NullifyTrailEntry(itrail);
                     }
-                  else if (TaggedIsSVA(*TagToPointer(itrail)))
+                  else if (TaggedIsSVA(*TaggedToPointer(itrail)))
                     {
-                      if (!StackYounger(inode->local_top,*TagToPointer(itrail)))
+                      if (!StackYounger(inode->local_top,*TaggedToPointer(itrail)))
                         NullifyTrailEntry(itrail);
                     }
                 }       
@@ -378,11 +378,11 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
         {
           printf("\nNode %p=%p trail value %p=%p\n",
                  inode,inode->next_alt,inode->trail_top,
-                 (void*)*TagToPointer(inode->trail_top));
+                 (void*)*TaggedToPointer(inode->trail_top));
         }
       for (itrail = Arg->trail_top; 
            !TrailYounger(oldGen->choice->trail_top,itrail); itrail--)
-        printf("\nitrail %p=%p\n",itrail,(void*)*TagToPointer(itrail));
+        printf("\nitrail %p=%p\n",itrail,(void*)*TaggedToPointer(itrail));
 #endif
     }
 

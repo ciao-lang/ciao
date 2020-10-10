@@ -213,7 +213,7 @@ TrNode put_trie_entry(TrNode node, tagged_t entry, struct sf* sf)
   while (STACK_NOT_EMPTY(stack_vars++, stack_vars_base)) 
     {
       POP_DOWN(stack_vars);
-      *TagToPointer(*stack_vars) = *stack_vars;
+      *TaggedToPointer(*stack_vars) = *stack_vars;
       sf->vars[index--] = *stack_vars;
     }
 
@@ -221,7 +221,7 @@ TrNode put_trie_entry(TrNode node, tagged_t entry, struct sf* sf)
   while (STACK_NOT_EMPTY(stack_attrs++, stack_attrs_base)) 
     {
       POP_DOWN(stack_attrs);
-      *TagToPointer(*stack_attrs) = *stack_attrs;
+      *TaggedToPointer(*stack_attrs) = *stack_attrs;
 #if defined(DEBUG_ALL)
       tagged_t term;
       DEREF(term,*stack_attrs);
@@ -246,7 +246,7 @@ TrNode put_trie_entry(TrNode node, tagged_t entry, struct sf* sf)
 //  for (index = 1; index < attr_size; index++)
 //    {
 //      tagged_t t = answer->attr_vars[index];
-//      *TagToPointer(t) = AttrTrie | ((stack_vars_base - stack_vars) << 2);
+//      *TaggedToPointer(t) = AttrTrie | ((stack_vars_base - stack_vars) << 2);
 //      PUSH_UP(stack_vars, t, stack_args);
 //      PUSH_UP(stack_vars, stack_vars, stack_args);
 //    }
@@ -259,7 +259,7 @@ TrNode put_trie_entry(TrNode node, tagged_t entry, struct sf* sf)
 //  while (STACK_NOT_EMPTY(stack_vars++, stack_vars_base)) 
 //    {
 //      POP_DOWN(stack_vars);
-//      *TagToPointer(*stack_vars) = *stack_vars;
+//      *TaggedToPointer(*stack_vars) = *stack_vars;
 //      if (TaggedIsCVA(*stack_vars))
 //      {
 //        tagged_t attr = fu1_get_attribute(NULL,*stack_vars);
@@ -299,13 +299,13 @@ TrNode put_trie_answer(TrNode node, struct sf* ans, struct attrs* new_attrs)
       t = ans->attrs[index];
       DEREF(t,t);
 #if defined(DEBUG_ALL)
-      /* printf("\nT = %lx value %lx\n",t,*TagToPointer(t)); */
+      /* printf("\nT = %lx value %lx\n",t,*TaggedToPointer(t)); */
       /* attr = fu1_get_attribute(NULL,t); */
       /* DEREF(attr,ArgOfTerm(1, attr)); */
       /* printf("\nIN put_trie_answer %lx = %li\n",t,IntOfTerm(attr)); */
 #endif
       if (TagOf(t) == CVA)
-        *TagToPointer(t) = AttrTrie | ((stack_attrs_base - stack_attrs) << 2);
+        *TaggedToPointer(t) = AttrTrie | ((stack_attrs_base - stack_attrs) << 2);
       PUSH_UP(stack_attrs, t, ATTR_STACK);
       PUSH_UP(stack_attrs, stack_attrs, ATTR_STACK);
     }
@@ -319,7 +319,7 @@ TrNode put_trie_answer(TrNode node, struct sf* ans, struct attrs* new_attrs)
   while (STACK_NOT_EMPTY(stack_vars++, stack_vars_base)) 
     {
       POP_DOWN(stack_vars);
-      *TagToPointer(*stack_vars) = *stack_vars;
+      *TaggedToPointer(*stack_vars) = *stack_vars;
     }
 
   if (new_attrs != NULL)
@@ -333,9 +333,9 @@ TrNode put_trie_answer(TrNode node, struct sf* ans, struct attrs* new_attrs)
   while (STACK_NOT_EMPTY(stack_attrs++, stack_attrs_base)) 
     {
       POP_DOWN(stack_attrs);
-      if (IsVar(*stack_attrs) && IsTrieAttr(*TagToPointer(*stack_attrs)))
+      if (IsVar(*stack_attrs) && IsTrieAttr(*TaggedToPointer(*stack_attrs)))
         {
-          *TagToPointer(*stack_attrs) = *stack_attrs;
+          *TaggedToPointer(*stack_attrs) = *stack_attrs;
         }
       new_attrs->attrs[index--] = *stack_attrs;
 #if defined(DEBUG_ALL)
@@ -381,15 +381,15 @@ TrNode put_trie(TrNode node, tagged_t entry)
       if (IsIntTerm(t))    // BIG NUMBERs
         {
           node = trie_node_check_insert(node, LargeInitTag);
-          for (i =  bn_length(TagToPointer(t)) + 1; i >= 0; i--)
-            node = trie_node_check_insert(node, *(TagToPointer(t) + i));
+          for (i =  bn_length(TaggedToPointer(t)) + 1; i >= 0; i--)
+            node = trie_node_check_insert(node, *(TaggedToPointer(t) + i));
           return trie_node_check_insert(node, LargeEndTag);
         }
       if (IsFloatTerm(t)) 
         {
           node = trie_node_check_insert(node, FloatInitTag);
-          node = trie_node_check_insert(node, *(TagToPointer(t) + 1));
-          node = trie_node_check_insert(node, *(TagToPointer(t) + 2));
+          node = trie_node_check_insert(node, *(TaggedToPointer(t) + 1));
+          node = trie_node_check_insert(node, *(TaggedToPointer(t) + 2));
           return trie_node_check_insert(node, FloatEndTag);
         }
       if (!strcmp(NameOfFunctor(t),",") && ArityOfFunctor(t)  == 2) 
@@ -408,7 +408,7 @@ TrNode put_trie(TrNode node, tagged_t entry)
         }
 
       intmach_t i;
-      node = trie_node_check_insert(node, *TagToPointer(t));
+      node = trie_node_check_insert(node, *TaggedToPointer(t));
       for (i = 1; i <= ArityOfFunctor(t); i++)
         {
           node = put_trie(node, ArgOfTerm(i, t));
@@ -420,7 +420,7 @@ TrNode put_trie(TrNode node, tagged_t entry)
     case CVA:
       node = trie_node_check_insert
         (node, AttrTrie | ((stack_attrs_base - stack_attrs) << 2));
-      *TagToPointer(t) = AttrTrie | ((stack_attrs_base - stack_attrs) << 2);
+      *TaggedToPointer(t) = AttrTrie | ((stack_attrs_base - stack_attrs) << 2);
       PUSH_UP(stack_attrs, t, ATTR_STACK);
       PUSH_UP(stack_attrs, stack_attrs, ATTR_STACK);
       return node;
@@ -429,7 +429,7 @@ TrNode put_trie(TrNode node, tagged_t entry)
     case UBV:
       node = trie_node_check_insert
         (node, VarTrie | ((stack_vars_base - stack_vars) << 2));
-      *TagToPointer(t) = VarTrie | ((stack_vars_base - stack_vars) << 2);
+      *TaggedToPointer(t) = VarTrie | ((stack_vars_base - stack_vars) << 2);
       PUSH_UP(stack_vars, t, stack_args);
       PUSH_UP(stack_vars, stack_vars, stack_args);
       return node;
@@ -469,9 +469,9 @@ CVOID__PROTO(get_trie_answer, TrNode node, struct sf *sf) {
 
 //  for (i = answerG->not_new_size - 1; i <= max_index; i++)
 //    {
-//      if ((stack_vars_base[i]) && TaggedIsCVA(*TagToPointer(stack_vars_base[i])))
+//      if ((stack_vars_base[i]) && TaggedIsCVA(*TaggedToPointer(stack_vars_base[i])))
 //      {       
-//        *TagToPointer(stack_vars_base[i]) = stack_vars_base[i];
+//        *TaggedToPointer(stack_vars_base[i]) = stack_vars_base[i];
 //        tagged_t id[2];
 //        id[0] = MkIntTerm(new_diff_var_space(space));
 //        id[1] = stack_vars_base[i];
@@ -517,7 +517,7 @@ CFUN__PROTO(get_trie, tagged_t,
 //        else 
 //          {
 //            t = MkVarTerm();
-//            *TagToPointer(t) = Tagp(CVA,TagToPointer(MkVarTerm()));          
+//            *TaggedToPointer(t) = Tagp(CVA,TaggedToPointer(MkVarTerm()));          
 //            stack_vars_base[index] = t;
 //          }
 //        PUSH_UP(stack_args, t, stack_vars);
@@ -683,13 +683,13 @@ TrNode put_trie_term(TrNode node, tagged_t term)
   while (STACK_NOT_EMPTY(stack_vars++, stack_vars_base)) 
     {
       POP_DOWN(stack_vars);
-      *TagToPointer(*stack_vars) = *stack_vars;
+      *TaggedToPointer(*stack_vars) = *stack_vars;
     }
 
   while (STACK_NOT_EMPTY(stack_attrs++, stack_attrs_base)) 
     {
       POP_DOWN(stack_attrs);
-      *TagToPointer(*stack_attrs) = *stack_attrs;
+      *TaggedToPointer(*stack_attrs) = *stack_attrs;
     }
 
   return node;

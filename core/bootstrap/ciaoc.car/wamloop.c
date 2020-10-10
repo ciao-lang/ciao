@@ -124,13 +124,13 @@ goto fail;
   } else if (!(t0 & TagBitComplex)) {
 goto fail;
   } else if (!(t0 & TagBitFunctor)) {
-t1 ^= t0;if (cunify_args(Arg,2,TagToCar(t0),TagToCar(t1))) {
+t1 ^= t0;if (cunify_args(Arg,2,TaggedToCar(t0),TaggedToCar(t1))) {
 goto unify_t0t1_done;
     } else {
 goto fail;
     }
   } else {
-t1 ^= t0;if (TagToHeadfunctor(t0) != (i=TagToHeadfunctor(t1))) {
+t1 ^= t0;if (TaggedToHeadfunctor(t0) != (i=TaggedToHeadfunctor(t1))) {
 goto fail;
     } else if (i&QMask) {
 for (i = LargeArity(i)-1; i>0; i--) {
@@ -303,7 +303,7 @@ fprintf(stderr, "********** what happened here?\n");
 ResetWakeCount();
 SetB(w->choice);
 ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );
-if (TrailYounger(pt2=w->trail_top,t1=(tagged_t)TagToPointer(B->trail_top))) {
+if (TrailYounger(pt2=w->trail_top,t1=(tagged_t)TaggedToPointer(B->trail_top))) {
 do {
 PlainUntrail(pt2,t0,{
 goto undo;
@@ -463,7 +463,7 @@ goto r_proceed;
 case BUILTIN_INSTANCE:
 PredTrace("B",Func);
 LoadHVA(X(3),H);
-ins = TagToInstance(X(2));
+ins = TaggedToInstance(X(2));
 P = (bcp_t)ins->emulcode;
 goto WriteMode;
 case BUILTIN_GELER:
@@ -1083,7 +1083,7 @@ HeapPush(H,BcP(f_f, 2));
 P += FTYPE_size(f_x)+FTYPE_size(f_f);
 goto WriteMode;
 },{
-if(!TaggedIsSTR(t1) || (TagToHeadfunctor(t1)!=BcP(f_f, 2))) goto fail;S = TaggedToArg(t1,1);
+if(!TaggedIsSTR(t1) || (TaggedToHeadfunctor(t1)!=BcP(f_f, 2))) goto fail;S = TaggedToArg(t1,1);
 P += FTYPE_size(f_x)+FTYPE_size(f_f);
 goto ReadMode;
 });
@@ -1484,10 +1484,10 @@ P += (FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C);
 goto ReadMode;
 r_retry_instance:
 case RETRY_INSTANCE:
-if ((TagToRoot(X(RootArg))->behavior_on_failure != DYNAMIC &&
+if ((TaggedToRoot(X(RootArg))->behavior_on_failure != DYNAMIC &&
 !next_instance_conc(Arg, &ins))
 ||
-(TagToRoot(X(RootArg))->behavior_on_failure == DYNAMIC &&
+(TaggedToRoot(X(RootArg))->behavior_on_failure == DYNAMIC &&
 !next_instance(Arg, &ins))
 ) {
 w->next_alt = NULL;
@@ -1498,17 +1498,17 @@ SetShadowregs(B);
 if (!ins) {
 ON_DEBUG({
 if (debug_concchoicepoints) {
-if ((TagToRoot(X(RootArg))->behavior_on_failure != CONC_CLOSED) && (IS_BLOCKING(X(InvocationAttr)))) {
+if ((TaggedToRoot(X(RootArg))->behavior_on_failure != CONC_CLOSED) && (IS_BLOCKING(X(InvocationAttr)))) {
 fprintf(stderr,
 "**wam(): failing on a concurrent closed pred, chpt=%x, failing chpt=%x .\n",
 (int)w->choice,(int)TopConcChpt);
                     }
                   }
 if (debug_conc) {
-if (TagToRoot(X(RootArg))->x2_pending_on_instance || TagToRoot(X(RootArg))->x5_pending_on_instance) {
+if (TaggedToRoot(X(RootArg))->x2_pending_on_instance || TaggedToRoot(X(RootArg))->x5_pending_on_instance) {
 fprintf(stderr, 
         "**wam(): failing with invokations pending from root, type = %d.\n",
-        (TagToRoot(X(RootArg))->behavior_on_failure));                    }
+        (TaggedToRoot(X(RootArg))->behavior_on_failure));                    }
                   }
 });
 TopConcChpt = (choice_t *)TermToPointerOrNull(X(PrevDynChpt));
@@ -1520,12 +1520,12 @@ if (debug_concchoicepoints) {
 goto fail;
                 }
 ON_DEBUG({
-if (debug_conc && TagToRoot(X(RootArg))->behavior_on_failure != DYNAMIC) {
+if (debug_conc && TaggedToRoot(X(RootArg))->behavior_on_failure != DYNAMIC) {
   fprintf(stderr, 
          "*** %d(%d)  backtracking on a concurrent predicate.\n",
           (int)Thread_Id, (int)GET_INC_COUNTER);
                 }
-if (debug_concchoicepoints && TagToRoot(X(RootArg))->behavior_on_failure != DYNAMIC) {
+if (debug_concchoicepoints && TaggedToRoot(X(RootArg))->behavior_on_failure != DYNAMIC) {
 fprintf(stderr, 
          "backtracking to chpt. = %x\n", (int)w->choice);
                 }
@@ -1651,7 +1651,7 @@ HeapPush(H,BcP(f_f, 1));
 P += FTYPE_size(f_f);
 goto WriteMode;
 },{
-if(!TaggedIsSTR(t1) || (TagToHeadfunctor(t1)!=BcP(f_f, 1))) goto fail;S = TaggedToArg(t1,1);
+if(!TaggedIsSTR(t1) || (TaggedToHeadfunctor(t1)!=BcP(f_f, 1))) goto fail;S = TaggedToArg(t1,1);
 P += FTYPE_size(f_f);
 goto ReadMode;
 });
@@ -2230,9 +2230,9 @@ P += 0;
 goto ReadMode;
 #if defined(PARBACK)
 case RESTART_POINT:
-w->heap_top = TagToPointer(w->choice->term[0]);
+w->heap_top = TaggedToPointer(w->choice->term[0]);
 LoadH;
-P = (bcp_t)*TagToPointer(w->choice->term[0]);
+P = (bcp_t)*TaggedToPointer(w->choice->term[0]);
 w->next_insn = w->choice->next_insn;
 pop_choicept(Arg);
 goto enter_predicate;
@@ -3177,7 +3177,7 @@ P += FTYPE_size(f_y);
 goto WriteMode;
 w_kontinue:
 case KONTINUE:
-Setfunc(TagToFunctor(Y(0)));
+Setfunc(TaggedToFunctor(Y(0)));
 for (i=0; i<Func->arity; i++) {
 X(i) = Y(i+1);
 }
@@ -4376,9 +4376,9 @@ P += 0;
 goto WriteMode;
 #if defined(PARBACK)
 case RESTART_POINT:
-w->heap_top = TagToPointer(w->choice->term[0]);
+w->heap_top = TaggedToPointer(w->choice->term[0]);
 LoadH;
-P = (bcp_t)*TagToPointer(w->choice->term[0]);
+P = (bcp_t)*TaggedToPointer(w->choice->term[0]);
 w->next_insn = w->choice->next_insn;
 pop_choicept(Arg);
 goto enter_predicate;

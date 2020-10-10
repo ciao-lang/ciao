@@ -1232,7 +1232,7 @@ CFUN__PROTO(var_address, intmach_t, tagged_t term)
 {
   if (IsStackVar(term))
     term = Tagp(HVA,Heap_End+(TagpPtr(SVA,term)-Stack_Start));
-  return IntmachToTagged(TagToPointer(term)-Heap_Start);
+  return IntmachToTagged(TaggedToPointer(term)-Heap_Start);
 }
 
 CVOID__PROTO(print_variable, stream_node_t *stream, tagged_t term) {
@@ -1260,7 +1260,7 @@ CVOID__PROTO(print_number, stream_node_t *stream, tagged_t term) {
 #define PRINT_CONTROL_RUNE(X) { *bp++ = '\\'; *bp++ = (X); }
 
 CVOID__PROTO(print_atom, stream_node_t *stream, tagged_t term) {
-  atom_t *atomptr = TagToAtom(term);
+  atom_t *atomptr = TaggedToAtom(term);
 
   if (!atomptr->has_special) {
     print_string(Arg, stream, atomptr->name);
@@ -1353,9 +1353,9 @@ CVOID__PROTO(display_term,
     break;
   case STR:
     if (STRIsLarge(term)) goto number;
-    display_term(Arg,TagToHeadfunctor(term),stream, quoted);
+    display_term(Arg,TaggedToHeadfunctor(term),stream, quoted);
     writerune(Arg,'(',stream);
-    arity = Arity(TagToHeadfunctor(term));
+    arity = Arity(TaggedToHeadfunctor(term));
     for (i=1; i<=arity; i++) {
       if (i>1) writerune(Arg,',',stream);
       DerefArg(aux,term,i);
@@ -1375,7 +1375,7 @@ CVOID__PROTO(display_term,
     if (quoted) {
       print_atom(Arg,stream,term);
     } else {
-      print_string(Arg, stream,TagToAtom(term)->name);
+      print_string(Arg, stream,TaggedToAtom(term)->name);
     }
     break;
   case NUM:
@@ -1675,9 +1675,9 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
   case STR:
     if (!STRIsLarge(in)) {
       writebyte(Arg,'S',Output_Stream_Ptr);
-      fast_write_string(Arg,Output_Stream_Ptr,TagToAtom(TagToHeadfunctor(in))->name);
+      fast_write_string(Arg,Output_Stream_Ptr,TaggedToAtom(TaggedToHeadfunctor(in))->name);
       writebyte(Arg,0,Output_Stream_Ptr);
-      writebyte(Arg,j = Arity(TagToHeadfunctor(in)),Output_Stream_Ptr);
+      writebyte(Arg,j = Arity(TaggedToHeadfunctor(in)),Output_Stream_Ptr);
       for (i = 1; i <= j; prolog_fast_write_in_c_aux(Arg,term,vars,lastvar)) {
         DerefArg(term,in,i++);
       }
@@ -1695,7 +1695,7 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
   case ATM:
     if (in != atom_nil) {
       writebyte(Arg,'A',Output_Stream_Ptr);
-      fast_write_string(Arg,Output_Stream_Ptr,TagToAtom(in)->name);
+      fast_write_string(Arg,Output_Stream_Ptr,TaggedToAtom(in)->name);
       writebyte(Arg,0,Output_Stream_Ptr);
     } else {
       writebyte(Arg,']',Output_Stream_Ptr);

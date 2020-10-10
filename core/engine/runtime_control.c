@@ -61,9 +61,9 @@ CBOOL__PROTO(nd_suspension_point)
   //Reinstall next_insn and Frame (Done by fail).
   //Reinstal argument register
   tagged_t t = w->choice->term[0];
-  definition_t * func = (definition_t *) *TagToPointer(t);
+  definition_t * func = (definition_t *) *TaggedToPointer(t);
   int i;
-  for (i = 0; i < func->arity; i++) DEREF(X(i),*TagToPointer(TagToPointer(t)+i+1));
+  for (i = 0; i < func->arity; i++) DEREF(X(i),*TaggedToPointer(TaggedToPointer(t)+i+1));
   //Take choice point out
   Arg->next_insn = restart_point_insn;
 
@@ -214,7 +214,7 @@ CBOOL__PROTO(current_clauses)
   if (! IsVar(X(0))) {
     d = find_definition(predicates_location,X(0),&junk,FALSE);
     if ((d!=NULL) && (d->predtyp==ENTER_INTERPRETED)) {
-      return (*TagToPointer(X(1))=PointerToTerm(d->code.intinfo), TRUE);
+      return (*TaggedToPointer(X(1))=PointerToTerm(d->code.intinfo), TRUE);
     } else {
       return FALSE;
     }

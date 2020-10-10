@@ -86,7 +86,7 @@ extern tagged_t *tabling_stack_end;
     ALLOC_TABLING_STK((NodeTR), tagged_t, sizeof(node_tr_t));           \
     NODE_TR_NEXT(NodeTR) = NULL;                                        \
     NODE_TR_CHAIN(NodeTR) = NULL;                                       \
-    NODE_TR_SIZE(NodeTR) = (w->trail_top - TagToPointer(B->trail_top)) * 2; \
+    NODE_TR_SIZE(NodeTR) = (w->trail_top - TaggedToPointer(B->trail_top)) * 2; \
     ALLOC_TABLING_STK                                                   \
       (NODE_TR_TRAIL_SG(NodeTR), tagged_t*,                             \
        NODE_TR_SIZE(NodeTR) * sizeof(tagged_t));                        \
@@ -104,18 +104,18 @@ extern tagged_t *tabling_stack_end;
           {                                                             \
             tagged_t *pt3 = NODE_TR_TRAIL_SG(t0);               \
             for (pt2 = w->trail_top-1,                                  \
-                   t2=(tagged_t)TagToPointer(B->trail_top);             \
+                   t2=(tagged_t)TaggedToPointer(B->trail_top);             \
                  !TrailYounger(t2,pt2); pt2--)                          \
               {                                                         \
                 t3 = *pt2;                                              \
                 if (IsVar(t3))                                          \
                   {                                                     \
                     *pt3 = t3; pt3++;                                   \
-                    *pt3 = *TagToPointer(t3); pt3++;                    \
+                    *pt3 = *TaggedToPointer(t3); pt3++;                    \
                   }                                                     \
                 else                                                    \
                   {                                                     \
-                    if (*TagToPointer(t3) == functor_forward_trail)     \
+                    if (*TaggedToPointer(t3) == functor_forward_trail)     \
                       {                                                 \
                         *pt3 = t3; pt3++;                               \
                         *pt3 = t3; pt3++;                               \

@@ -107,7 +107,7 @@ CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
 #if defined(OPTIM_COMP)
   tagged_t *limit = w->choice->trail_top;
 #else
-  tagged_t *limit = TagToPointer(w->choice->trail_top);  
+  tagged_t *limit = TaggedToPointer(w->choice->trail_top);  
 #endif
    
   h = G->heap_top;
@@ -124,7 +124,7 @@ CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
     }
     
     sofar++; 
-    *TagToPointer(ref) = ref; /* untrail */
+    *TaggedToPointer(ref) = ref; /* untrail */
     
     HeapPush(h, ref); 
     HeapPush(h, value);  
@@ -159,7 +159,7 @@ CVOID__PROTO(collect_one_pending_unification) {
 #if defined(OPTIM_COMP)
   tagged_t *limit = w->choice->trail_top;
 #else
-  tagged_t *limit = TagToPointer(w->choice->trail_top);  
+  tagged_t *limit = TaggedToPointer(w->choice->trail_top);  
 #endif
   
   while ( !sofar && TrailYounger(tr,limit)) {
@@ -174,7 +174,7 @@ CVOID__PROTO(collect_one_pending_unification) {
     }
     
     sofar++;
-    *TagToPointer(ref) = ref; /* untrail */
+    *TaggedToPointer(ref) = ref; /* untrail */
     
 #if 0 /* old attributes */
     X(0) = *TaggedToGoal(ref);
@@ -225,7 +225,7 @@ CBOOL__PROTO(c_setarg, intmach_t, tagged_t, tagged_t, bool_t);
               BUILTIN_ERROR(INSTANTIATION_ERROR, (KEY), 2););       \
   if (!TaggedIsATM((KEY))) {                                        \
     if ((!TaggedIsSTR((KEY))) ||                                    \
-        (TagToHeadfunctor((KEY)) != SetArity(atom_user, 1)))        \
+        (TaggedToHeadfunctor((KEY)) != SetArity(atom_user, 1)))        \
       { BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), (KEY), 2); }         \
     (KEY) = atom_user;                                              \
   }                                                                 \
@@ -245,7 +245,7 @@ CBOOL__PROTO(c_setarg, intmach_t, tagged_t, tagged_t, bool_t);
 #define ACCESS_ATTR_STR(ATTRVAR, COMPLEX) ({ \
   (COMPLEX) = *TaggedToGoal((ATTRVAR)); \
   if (!TaggedIsSTR((COMPLEX)) || \
-      TagToHeadfunctor((COMPLEX)) != MULTI_ATTR_F) { \
+      TaggedToHeadfunctor((COMPLEX)) != MULTI_ATTR_F) { \
     return FALSE; \
   } \
 })

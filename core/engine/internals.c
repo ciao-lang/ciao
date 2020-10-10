@@ -78,7 +78,7 @@ definition_t *find_definition(sw_on_key_t **swp,
   int arity;
 
   if (TaggedIsStructure(term)) {
-    tagged_t f = TagToHeadfunctor(term);
+    tagged_t f = TaggedToHeadfunctor(term);
 
     *argl = TaggedToArg(term,1);
     term = SetArity(f,0);
@@ -104,7 +104,7 @@ definition_t *parse_definition(tagged_t complex)
 {
   tagged_t a,b;
 
-  if (TaggedIsSTR(complex) && (TagToHeadfunctor(complex)==functor_slash)) {
+  if (TaggedIsSTR(complex) && (TaggedToHeadfunctor(complex)==functor_slash)) {
     DerefArg(a,complex,1);
     DerefArg(b,complex,2);
     return parse_1_definition(a,b);
@@ -140,7 +140,7 @@ static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
   if (!TaggedIsSmall(tagarity))
     return NULL;
   arity = GetSmall(tagarity);
-  if (TaggedIsSTR(tagname) && (TagToHeadfunctor(tagname)==functor_minus))
+  if (TaggedIsSTR(tagname) && (TaggedToHeadfunctor(tagname)==functor_minus))
     /* "internal" predicate */
     {
       definition_t *f, *f1, **pf;
@@ -170,7 +170,7 @@ static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
         {
           for (i=1, f1 = *pf;
                !(f1->printname&2);
-               i++, f1 = (definition_t *)TagToPointer(f1->printname))
+               i++, f1 = (definition_t *)TaggedToPointer(f1->printname))
             if (i==subdef_no) break;
         
           if (i==subdef_no) return f1;
@@ -392,7 +392,7 @@ intmach_t get_integer(tagged_t t) {
 /* Pre: !IsSmall(t) (small int's taken care of by TaggedToFloat()) */
 flt64_t blob_to_flt64(tagged_t t) {
   if (!LargeIsFloat(t)) {
-    intmach_t ar = LargeArity(TagToHeadfunctor(t))-1;
+    intmach_t ar = LargeArity(TaggedToHeadfunctor(t))-1;
     flt64_t f = (intmach_t)*TaggedToArg(t,ar);
 
     while (ar>1) {
@@ -1031,7 +1031,7 @@ CBOOL__PROTO(erase_clause)
   intmach_t current_mem = total_mem_count;
 
   DEREF(X(0),X(0));
-  free_emulinfo(TagToEmul(X(0)));
+  free_emulinfo(TaggedToEmul(X(0)));
   INC_MEM_PROG(total_mem_count - current_mem);
 
   return TRUE;
@@ -1067,7 +1067,7 @@ CBOOL__PROTO(compiled_clause)
   if ((f=parse_definition(X(0)))==NULL)
     USAGE_FAULT("$emulated_clause: bad 1st arg");
   DEREF(X(1),X(1));             /* Bytecode object */
-  ref = TagToEmul(X(1));
+  ref = TaggedToEmul(X(1));
   DEREF(X(2),X(2));             /* Mode */
   DEREF(X(3),X(3));             /* f(Type,Key[,Base,Woff,Roff]) */
   DerefArg(t1,X(3),1);
@@ -1076,7 +1076,7 @@ CBOOL__PROTO(compiled_clause)
   if (IsVar(key))
     key = ERRORTAG;
   else if (TaggedIsSTR(key))
-    key = TagToHeadfunctor(key);
+    key = TaggedToHeadfunctor(key);
 
                                 /* add a new clause. */
   d = f->code.incoreinfo;
@@ -1828,7 +1828,7 @@ CBOOL__PROTO(setarg)
   
   if (TaggedIsSTR(complex)) {
     intmach_t i = GetSmall(number);
-    tagged_t f = TagToHeadfunctor(complex);
+    tagged_t f = TaggedToHeadfunctor(complex);
     
     if (i<=0 || i>Arity(f) || f&QMask)
       goto barf1;
@@ -1836,9 +1836,9 @@ CBOOL__PROTO(setarg)
     ptr = TaggedToArg(complex,i);
   } else if (IsComplex(complex)){       /* i.e. list */
     if (number==MakeSmall(1))
-      ptr = TagToCar(complex);
+      ptr = TaggedToCar(complex);
     else if (number==MakeSmall(2))
-      ptr = TagToCdr(complex);
+      ptr = TaggedToCdr(complex);
     else
       goto barf1;
   } else goto barf2;
@@ -1848,7 +1848,7 @@ CBOOL__PROTO(setarg)
   
   if ((X(3)==atom_on) && CondHVA(Tagp(HVA,ptr))) {
     /* undo setarg upon backtracking */
-    tagged_t *limit = TagToPointer(w->choice->trail_top);
+    tagged_t *limit = TaggedToPointer(w->choice->trail_top);
     
     /* check first if location already trailed is same segment */
     t1 = Tagp(HVA,ptr);
@@ -1924,8 +1924,8 @@ CBOOL__PROTO(defrost)
   else
     {
       LoadCVA(t,h);
-      HeapPush(h,*TagToCar(X(1)));
-      HeapPush(h,*TagToCdr(X(1)));
+      HeapPush(h,*TaggedToCar(X(1)));
+      HeapPush(h,*TaggedToCdr(X(1)));
     }
   BindCVANoWake(X(0),t);
   w->heap_top = h;
@@ -1983,7 +1983,7 @@ CBOOL__PROTO(constraint_list)
   
   pad = HeapCharDifference(w->heap_top,Heap_End);
   DEREF(X(0),X(0));
-  while ((find_constraints(Arg, TagToPointer(X(0)))*LSTCELLS)*sizeof(tagged_t)+CONTPAD > pad) {
+  while ((find_constraints(Arg, TaggedToPointer(X(0)))*LSTCELLS)*sizeof(tagged_t)+CONTPAD > pad) {
     l = *w->trail_top;
     while (l!=atom_nil) {
       v = l;
@@ -2090,7 +2090,7 @@ CBOOL__PROTO(prolog_interpreted_clause)
 
   DEREF(t, X(1));
 
-  if (TaggedIsSTR(t) && (TagToHeadfunctor(t) == functor_neck)) {
+  if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_neck)) {
     DerefArg(Head,t,1);
     DerefArg(Body,t,2);    
     

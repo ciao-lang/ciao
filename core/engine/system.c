@@ -68,10 +68,6 @@
 #define checkdealloc_ARRAY(T,Size,Ptr) CHECKDEALLOC0_ARRAY(T,(Ptr),(Size))
 /* TODO:[oc-merge] merge */
 #define checkalloc_ARRAY CHECKALLOC_ARRAY
-#else
-#define TaggedToCar TagToCar
-#define TaggedToCdr TagToCdr
-#define TaggedToHeadfunctor TagToHeadfunctor
 #endif
 
 /* --------------------------------------------------------------------------- */

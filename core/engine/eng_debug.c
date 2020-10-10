@@ -82,9 +82,9 @@ CVOID__PROTO(wr_tagged_rec, tagged_t t) {
   case STR:
     if (STRIsLarge(t))
       goto number;
-    wr_tagged_rec(Arg,TagToHeadfunctor(t));
+    wr_tagged_rec(Arg,TaggedToHeadfunctor(t));
     putchar('(');
-    arity = Arity(TagToHeadfunctor(t));
+    arity = Arity(TaggedToHeadfunctor(t));
     for(i=1; i<=arity; i++){
       if(i>1) putchar(',');
       temp = *TaggedToArg(t,i);
@@ -125,7 +125,7 @@ static definition_t *which_parent(definition_t *func)
 
   do
     func1 = func,
-    func = (definition_t *)TagToPointer(func1->printname);
+    func = (definition_t *)TaggedToPointer(func1->printname);
   while (!(func1->printname & 2));
   return func;
 }
@@ -140,7 +140,7 @@ static which_child(definition_t *func)
 
   for (i=1, f1 = which_parent(func)->code.incoreinfo->subdefs;
        f1 != func;
-       i++, f1 = (definition_t *)TagToPointer(f1->printname))
+       i++, f1 = (definition_t *)TaggedToPointer(f1->printname))
     ;
 
   return i;

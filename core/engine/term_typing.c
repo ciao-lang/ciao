@@ -149,14 +149,14 @@ static CBOOL__PROTO(cground_aux, tagged_t x1)
   if (TaggedIsATM(u)) goto win;
   if (TaggedIsSmall(u)) goto win;
   if (TaggedIsLST(u)) {
-      if (cground_args_aux(Arg,2,TagToCar(u),&x1))
+      if (cground_args_aux(Arg,2,TaggedToCar(u),&x1))
         goto in;
       else
         goto lose;
     }
   else                          /* structure. */
     {
-      t1=TagToHeadfunctor(u);
+      t1=TaggedToHeadfunctor(u);
       if (t1&QMask)     /* large number */
         {
           goto win;

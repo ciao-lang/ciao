@@ -50,7 +50,7 @@ CBOOL__PROTO(set_tabling_flag_c) {
   /* check value is on or off */
 
   DEREF(ARG2,ARG2);
-  value = (char *)TagToAtom(ARG2)->name;
+  value = (char *)TaggedToAtom(ARG2)->name;
   
   if (strcmp(value, "off")==0) newvalue = atom_off;
   else if (strcmp(value, "on")==0) newvalue = atom_on;
@@ -59,7 +59,7 @@ CBOOL__PROTO(set_tabling_flag_c) {
   /* check flag is correct */
 
   DEREF(ARG1,ARG1);
-  flag = (char *)TagToAtom(ARG1)->name;
+  flag = (char *)TaggedToAtom(ARG1)->name;
 
   //#if defined(DEBUG_ALL)
   if (strcmp(flag, "debug")==0) tabling_debug = newvalue;
@@ -93,7 +93,7 @@ CBOOL__PROTO(current_tabling_flag_c) {
 
   DEREF(ARG1,ARG1);
   if (TaggedIsATM(ARG1)) {
-    flag = (char *)TagToAtom(ARG1)->name;
+    flag = (char *)TaggedToAtom(ARG1)->name;
   } else {
     printf("First argument it is not instanciated\n"); 
     return FALSE;

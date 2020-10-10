@@ -180,7 +180,7 @@ CBOOL__PROTO(is_var_or_alias_or_stream, tagged_t Cell)
             Cell == atom_user_error);
   } else {
     /* a Dstream functor */
-    return (TaggedIsSTR(Cell) && TagToHeadfunctor(Cell) == functor_Dstream);
+    return (TaggedIsSTR(Cell) && TaggedToHeadfunctor(Cell) == functor_Dstream);
   }
 
 }
@@ -247,12 +247,12 @@ stream_node_t *stream_to_ptr(tagged_t t,
       else if (t==atom_user_error)
         n = stream_user_error;
     }
-  else if (TaggedIsSTR(t) && (TagToHeadfunctor(t) == functor_Dstream))
+  else if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_Dstream))
     {
       DerefArg(x1,t,1);
       DerefArg(x2,t,2);
       if (!TaggedIsSmall(x1) || !TaggedIsSmall(x2) ||
-          (n=TagToStream(x1), n->label != x2))
+          (n=TaggedToStream(x1), n->label != x2))
         n = NULL;
     }
 
@@ -290,11 +290,11 @@ stream_node_t *stream_to_ptr_check(tagged_t t,
             return NULL;
       }
     }
-  else if (TaggedIsSTR(t) && (TagToHeadfunctor(t) == functor_Dstream)) {
+  else if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_Dstream)) {
       DerefArg(x1,t,1);
       DerefArg(x2,t,2);
       if (!TaggedIsSmall(x1) || !TaggedIsSmall(x2) ||
-          (n = TagToStream(x1), n->label != x2)) {
+          (n = TaggedToStream(x1), n->label != x2)) {
             *errcode = EXISTENCE_ERROR(STREAM);
             return NULL;
       }
@@ -809,7 +809,7 @@ CBOOL__PROTO(current_stream)
 
 CBOOL__PROTO(nd_current_stream)
 {
-  stream_node_t *streamptr = TagToStream(X(3));
+  stream_node_t *streamptr = TaggedToStream(X(3));
 
   if (streamptr==root_stream_ptr)
     {                           /* zero alts due to close */

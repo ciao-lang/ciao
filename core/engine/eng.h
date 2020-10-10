@@ -683,9 +683,9 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define POINTERMASK     (QMask-(1<<tagged__ptr_offset)) /* 0FFF...FFFC */
 #define PointerPart(T)  ((intmach_t)((T)&POINTERMASK))  
 #if SMALLPTR_BASE
-#define TagToPointer(T) ((tagged_t *)(((tagged_t)(T)&POINTERMASK)+SMALLPTR_BASE))
+#define TaggedToPointer(T) ((tagged_t *)(((tagged_t)(T)&POINTERMASK)+SMALLPTR_BASE))
 #else
-#define TagToPointer(T) ((tagged_t *)((tagged_t)(T)&POINTERMASK))
+#define TaggedToPointer(T) ((tagged_t *)((tagged_t)(T)&POINTERMASK))
 #endif
 
 /* Tagp(T,P) creates tagged_t from tag T and pointer P */
@@ -715,7 +715,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define TaggedIsSTR(X)     ((X) >= (STR<<TAGOFFSET))
 
 #define TaggedIsStructure(X) (TaggedIsSTR(X) && !STRIsLarge(X))
-#define STRIsLarge(X)   (TagToHeadfunctor(X) & QMask)
+#define STRIsLarge(X)   (TaggedToHeadfunctor(X) & QMask)
 
 /* Term<->pointer conversion */
 /* NOTE: pointers must be in the SMALLPTR_BASE range and they must be
@@ -823,12 +823,12 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define SmallSub(U,I) ((U)-MakeSmallDiff((I)))
 
 /* Get string of an atom */
-#define GetString(X)    (TagToAtom(X)->name)
+#define GetString(X)    (TaggedToAtom(X)->name)
 
 #define ABSMACH_OPT__atom_len 1
 
 #if defined(ABSMACH_OPT__atom_len)
-#define GetAtomLen(X)   (TagToAtom(X)->atom_len)
+#define GetAtomLen(X)   (TaggedToAtom(X)->atom_len)
 #else
 #define GetAtomLen(X)   (strlen(GetString((X))))
 #endif
@@ -843,7 +843,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 
 #define MakeFunctorFix   MakeLength(1)
 #define BlobFunctorFlt64 (TagIndex(NUM,3) + QMask)
-#define LargeIsFloat(X)  FunctorIsFloat(TagToHeadfunctor(X))
+#define LargeIsFloat(X)  FunctorIsFloat(TaggedToHeadfunctor(X))
 #define FunctorIsFloat(X) (!((X)&TagBitFunctor))
 
 #define MakeBlob(Ptr) make_blob(Arg,(tagged_t *)(Ptr))
@@ -884,7 +884,7 @@ CFUN__PROTO(make_structure, tagged_t, tagged_t functor);
 /* X is an Integer that fits in an intmach_t.
    This is the postcondition of IntmachToTagged.
 */ 
-#define IsIntegerFix(X) (TaggedIsSmall(X) || (TaggedIsSTR(X) && TagToHeadfunctor(X)==MakeFunctorFix))
+#define IsIntegerFix(X) (TaggedIsSmall(X) || (TaggedIsSTR(X) && TaggedToHeadfunctor(X)==MakeFunctorFix))
 
 /* TODO: backport from optim_comp */
 /* size of blob, aligned to ensure correct alignment of tagged words
@@ -937,16 +937,16 @@ CBOOL__PROTO(bc_eq_blob, tagged_t t, tagged_t *ptr);
 #define Arity(X)        (PointerPart(X)>>ARITYOFFSET)
 #define SetArity(X,A)   ((tagged_t)(((X) & (TAGMASK | INDEXMASK)) | ((tagged_t)A<<ARITYOFFSET)))
 
-#define TagToAtom(X)    (atmtab[IndexPart(X)]->value.atomp)
+#define TaggedToAtom(X)    (atmtab[IndexPart(X)]->value.atomp)
 
     /* finding the principal functor of a structure */
     /* finding the arguments of a structure, first argument is 1 */
     /* finding the car & cdr of a list. */
     /* finding the constraints of a CVA. */
-#define TagToHeadfunctor(X) (*TagpPtr(STR,X))
+#define TaggedToHeadfunctor(X) (*TagpPtr(STR,X))
 #define TaggedToArg(X,N) HeapOffset(TagpPtr(STR,X),N)
-#define TagToCar(X) TagpPtr(LST,X)
-#define TagToCdr(X) HeapOffset(TagpPtr(LST,X),1)
+#define TaggedToCar(X) TagpPtr(LST,X)
+#define TaggedToCdr(X) HeapOffset(TagpPtr(LST,X),1)
 #define TaggedToGoal(X) HeapOffset(TagpPtr(CVA,X),1)
 #define TaggedToDef(X) HeapOffset(TagpPtr(CVA,X),2)
 
@@ -955,16 +955,16 @@ typedef struct instance_ instance_t;
 typedef struct int_info_ int_info_t;
 typedef struct sw_on_key_ sw_on_key_t;
 
-#define TagToInstance(X)        ((instance_t *)TermToPointerOrNull(X))
-#define TagToInstHandle(X)      ((instance_handle_t *) TermToPointerOrNull(X))
-#define TagToInstancePtr(X)     ((instance_t **)TermToPointerOrNull(X))
-#define TagToStream(X)  ((stream_node_t *)TermToPointer(X))
-#define TagToLock(X)    ((LOCK *)TermToPointer(X))
-#define TagToSLock(X)   ((SLOCK *)TermToPointer(X))
-#define TagToBool(X)    ((bool_t *)TermToPointer(X))
-#define TagToRoot(X)    ((int_info_t *)TermToPointer(X))
-#define TagToEmul(X)    ((emul_info_t *)TermToPointer(X))
-#define TagToFunctor(X) ((definition_t *)TermToPointer(X))
+#define TaggedToInstance(X)        ((instance_t *)TermToPointerOrNull(X))
+#define TaggedToInstHandle(X)      ((instance_handle_t *) TermToPointerOrNull(X))
+#define TaggedToInstancePtr(X)     ((instance_t **)TermToPointerOrNull(X))
+#define TaggedToStream(X)  ((stream_node_t *)TermToPointer(X))
+#define TaggedToLock(X)    ((LOCK *)TermToPointer(X))
+#define TaggedToSLock(X)   ((SLOCK *)TermToPointer(X))
+#define TaggedToBool(X)    ((bool_t *)TermToPointer(X))
+#define TaggedToRoot(X)    ((int_info_t *)TermToPointer(X))
+#define TaggedToEmul(X)    ((emul_info_t *)TermToPointer(X))
+#define TaggedToFunctor(X) ((definition_t *)TermToPointer(X))
 
 #define TaggedToBignum(X) ((bignum_t *)TagpPtr(STR,(X)))
 
@@ -1611,9 +1611,9 @@ struct marker_ {
 
 #define RefHeap(To,From) { To = *(From); }
 
-#define RefCar(To,From) { To = *TagToCar(From); }
+#define RefCar(To,From) { To = *TaggedToCar(From); }
 
-#define RefCdr(To,From) { To = *TagToCdr(From); }
+#define RefCdr(To,From) { To = *TaggedToCdr(From); }
 
 #define RefHeapNext(To,From) { To = *(From)++; }
 
@@ -1947,7 +1947,7 @@ struct definition_ {
 };
 
 #define DEF_SIBLING(F) \
-  ((F)->printname&2 ? NULL : (definition_t *)TagToPointer((F)->printname))
+  ((F)->printname&2 ? NULL : (definition_t *)TaggedToPointer((F)->printname))
 
 struct module_ {
   tagged_t printname;
@@ -2342,7 +2342,7 @@ module_t *define_c_static_mod(char *module_name);
   if (IsVar(Reg)) { \
     for(;;) { \
       tagged_t Aux; \
-      Aux = *TagToPointer(Reg); \
+      Aux = *TaggedToPointer(Reg); \
       if (Reg == Aux) { \
         CODE_HVAorCVAorSVA; \
         goto labelend; \
@@ -2423,7 +2423,7 @@ labelend: {} \
 { \
   if (IsVar(Reg)) \
     do \
-      if (Reg == (Aux = *TagToPointer(Reg))) \
+      if (Reg == (Aux = *TaggedToPointer(Reg))) \
         {VarCode;break;} \
     while (IsVar(Reg=Aux)); \
 }
@@ -2438,7 +2438,7 @@ labelend: {} \
     if (STRIsLarge((V))) { \
       BlobCode; \
     } else { \
-      tagged_t HeadFunctor = TagToHeadfunctor((V)); \
+      tagged_t HeadFunctor = TaggedToHeadfunctor((V)); \
       STRCode; \
     } \
     break; \
@@ -2451,9 +2451,9 @@ labelend: {} \
 #define YoungerStackVar(Q,R)    StackYounger(Q,R)
 
 #if defined(PARBACK) || defined(ANDPARALLEL)
-#define CondHVA(X)              (!OffHeaptop(X,w->global_uncond) || !OnHeap(TagToPointer(X)))
-#define CondCVA(X)              (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond) || !OnHeap(TagToPointer(X)))
-#define CondSVA(X)              (!OffStacktop(X,w->local_uncond) || !OnStack(TagToPointer(X)))
+#define CondHVA(X)              (!OffHeaptop(X,w->global_uncond) || !OnHeap(TaggedToPointer(X)))
+#define CondCVA(X)              (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond) || !OnHeap(TaggedToPointer(X)))
+#define CondSVA(X)              (!OffStacktop(X,w->local_uncond) || !OnStack(TaggedToPointer(X)))
 #else
 #define CondHVA(X)              (!OffHeaptop(X,w->global_uncond))
 #define CondCVA(X)              (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond))
@@ -2504,7 +2504,7 @@ CVOID__PROTO(trail_push_check, tagged_t x);
     if (!IsVar(Ref))                                                    \
       {if (!IsCanceled(Ref)) CONT}                                      \
     else                                                                \
-      *TagToPointer(Ref) = Ref;                                         \
+      *TaggedToPointer(Ref) = Ref;                                         \
   } 
 
 #define CompressTrailNoGC(tr0) ({ \
@@ -2552,8 +2552,8 @@ CVOID__PROTO(trail_push_check, tagged_t x);
 /* Use TopOfOldHeap as a memory barrier and OnHeap (for safe cross
    copy_term, since we cannot not assume anything about the order of
    different heaps */
-#define OldHVA(X) (!OffHeaptop(X,w->global_uncond) || !OnHeap(TagToPointer(X)))
-#define OldCVA(X) (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond) || !OnHeap(TagToPointer(X)))
+#define OldHVA(X) (!OffHeaptop(X,w->global_uncond) || !OnHeap(TaggedToPointer(X)))
+#define OldCVA(X) (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond) || !OnHeap(TaggedToPointer(X)))
 #else
 /* Use TopOfOldHeap as a memory barrier */
 #define OldHVA(X) (!OffHeaptop(X,w->global_uncond))

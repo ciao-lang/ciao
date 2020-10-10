@@ -105,11 +105,11 @@ CBOOL__PROTO(run_daemon)
   DEREF(list, X(2));
   while(!IsVar(list) && TaggedIsLST(list)) {
     args_n++;
-    DEREF(head, *TagToCar(list));
+    DEREF(head, *TaggedToCar(list));
     if (!TaggedIsATM(head)) { /* We only allow atoms */
       BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), head, 3);
     }
-    list = *TagToCdr(list);
+    list = *TaggedToCdr(list);
     DEREF(list, list);
   }
   /* Make sure we had a real list */
@@ -126,10 +126,10 @@ CBOOL__PROTO(run_daemon)
 
   DEREF(list, X(2));
   while(!IsVar(list) && TaggedIsLST(list)) {
-    DEREF(head, *TagToCar(list));
+    DEREF(head, *TaggedToCar(list));
     // printf("[%d]=%s\n", args_i, GetString(head));
     args[args_i++] = GetString(head);
-    list = *TagToCdr(list);
+    list = *TaggedToCdr(list);
     DEREF(list, list);
   }
   args[args_i] = NULL;

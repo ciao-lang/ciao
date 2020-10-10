@@ -82,11 +82,11 @@ CBOOL__PROTO(cinstance)
 
   result = cinstance_aux(Arg,X(0),X(1),&n);
 
-  pt1 = pt2 = TagToPointer(w->choice->trail_top); /* untrail */
+  pt1 = pt2 = TaggedToPointer(w->choice->trail_top); /* untrail */
   while (TrailYounger(w->trail_top,pt2)) {
     t1 = *pt2; /* old var */
     pt2++;
-    *TagToPointer(t1) = t1;
+    *TaggedToPointer(t1) = t1;
   }
   w->trail_top = pt1;
 
@@ -152,7 +152,7 @@ static CBOOL__PROTO(cinstance_aux,
   else if (!(u & TagBitFunctor)) /* list? */
     {
       v ^= u;                   /* restore v */
-      if (cinstance_args_aux(Arg,2,TagToCar(u),TagToCar(v),&x1,&x2,n))
+      if (cinstance_args_aux(Arg,2,TaggedToCar(u),TaggedToCar(v),&x1,&x2,n))
         goto in;
       else
         goto lose;
@@ -160,7 +160,7 @@ static CBOOL__PROTO(cinstance_aux,
   else                          /* structure. */
     {
       v ^= u;                   /* restore v */
-      if (TagToHeadfunctor(u) != (t1=TagToHeadfunctor(v)))
+      if (TaggedToHeadfunctor(u) != (t1=TaggedToHeadfunctor(v)))
         goto lose;
       else if (t1&QMask)        /* large number */
         {

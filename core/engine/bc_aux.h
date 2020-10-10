@@ -441,7 +441,7 @@ static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo) {
     }
     while (TrailYounger(tr,*trail_origo+DynamicPreserved)) {
       TrailDec(tr);
-      *TagToPointer(*tr) += reloc; // (tr points to the popped element)
+      *TaggedToPointer(*tr) += reloc; // (tr points to the popped element)
     }
   }
   TrailPush(w->trail_top,t);
@@ -467,7 +467,7 @@ static CVOID__PROTO(c_term_mark,
         /* unify_variable */
         Tr("m:x");
         *bsize += FTYPE_size(f_x);
-        (*TagToPointer(*TagToPointer(t)))++;
+        (*TaggedToPointer(*TaggedToPointer(t)))++;
       } else {
         /* unify_value */
         Tr("m:x");
@@ -499,7 +499,7 @@ static CVOID__PROTO(c_term_mark,
     goto start;
   } else { /* STR or large NUM */
     if (STRIsLarge(t)) {
-      arity = LargeSize(TagToHeadfunctor(t)); /* TODO: not 'arity'! */
+      arity = LargeSize(TaggedToHeadfunctor(t)); /* TODO: not 'arity'! */
       /* unify_ + xi + get_large + pad + xj + (functor + largeNum) */
       Tr("m:x+o (?)");
       Tr("m:(Q)+x+o(?)+bnlen");
@@ -512,7 +512,7 @@ static CVOID__PROTO(c_term_mark,
       *hsize += sizeof(tagged_t)+arity;
       return;
     } else {
-      arity = Arity(TagToHeadfunctor(t));
+      arity = Arity(TaggedToHeadfunctor(t));
       /* unify_ + xi + get_structure + pad + functor + xj + arity*u */
       Tr("m:x+o (?)");
       Tr("m:(Q)+x+f");
@@ -538,7 +538,7 @@ static CVOID__PROTO(c_term_mark,
   }
  var_size:
   if (t & TagBitCVA) { /* CVA */
-    *TagToPointer(t) = Tagp(ATM,w->trail_top)|QMask|2;
+    *TaggedToPointer(t) = Tagp(ATM,w->trail_top)|QMask|2;
     c_term_trail_push(Arg,t,trail_origo);
     /* unify_variable + xi + get_constraint + xj + 2*u */
     Tr("m:x");
@@ -556,7 +556,7 @@ static CVOID__PROTO(c_term_mark,
     t = Tagp(LST,TaggedToGoal(t));
     goto start;
   } else { /* HVA */
-    *TagToPointer(t) = Tagp(ATM,w->trail_top)|QMask;
+    *TaggedToPointer(t) = Tagp(ATM,w->trail_top)|QMask;
     c_term_trail_push(Arg,t,trail_origo);
     /* unify_variable + xi */
     Tr("m:x");
@@ -619,11 +619,11 @@ static CBOOL__PROTO(c_term,
       return TRUE;
     } else {
       Tr("e:o(Q)+x+f");
-      ar = Arity(TagToHeadfunctor(t));
+      ar = Arity(TaggedToHeadfunctor(t));
       s = TaggedToArg(t,1);
       EVENOP(GET_STRUCTURE);
       EMITtok(f_x, Xop(Xreg));
-      EMIT_f(TagToHeadfunctor(t));
+      EMIT_f(TaggedToHeadfunctor(t));
       break;
     }
   case ATM:
@@ -650,16 +650,16 @@ static CBOOL__PROTO(c_term,
         Tr("e:o+x+x");
         EMIT(GET_X_VARIABLE);
         EMITtok(f_x, Xop(Xreg));
-        EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
+        EMITtok(f_x, Xop(TaggedToPointer(t) - *trail_origo));
         if (t&2) { /* enqueue constraint */
           c_term_trail_push(Arg,t,trail_origo);
         }
-        *TagToPointer(*TagToPointer(t)) |= 3;
+        *TaggedToPointer(*TaggedToPointer(t)) |= 3;
       } else { /* get_value */
         Tr("e:o+x+x");
         EMIT(GET_X_VALUE);
         EMITtok(f_x, Xop(Xreg));
-        EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
+        EMITtok(f_x, Xop(TaggedToPointer(t) - *trail_origo));
       }
       *current_insn = P;
       return TRUE;
@@ -701,9 +701,9 @@ static CBOOL__PROTO(c_term,
       } else if ((i==ar) && (Treg==reg_bank_size)) {
         Tr("e:o(Q)+f");
         ODDOP(UNIFY_STRUCTURE);
-        EMIT_f(TagToHeadfunctor(t));
+        EMIT_f(TaggedToHeadfunctor(t));
         s = TaggedToArg(t,1);
-        i=0, ar=Arity(TagToHeadfunctor(t));
+        i=0, ar=Arity(TaggedToHeadfunctor(t));
       } else {
         Tr("e:o+x");
         EMIT(UNIFY_X_VARIABLE);
@@ -729,14 +729,14 @@ static CBOOL__PROTO(c_term,
         if ((t&3)!=3) { /* unify_variable */
           Tr("e:o+x");
           EMIT(UNIFY_X_VARIABLE);
-          EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
+          EMITtok(f_x, Xop(TaggedToPointer(t) - *trail_origo));
           if (t&2)      /* enqueue constraint */
             c_term_trail_push(Arg,t,trail_origo);
-          *TagToPointer(*TagToPointer(t)) |= 3;
+          *TaggedToPointer(*TaggedToPointer(t)) |= 3;
         } else { /* unify_value */
           Tr("e:o+x");
           EMIT(UNIFY_X_VALUE);
-          EMITtok(f_x, Xop(TagToPointer(t) - *trail_origo));
+          EMITtok(f_x, Xop(TaggedToPointer(t) - *trail_origo));
         }
         break;
       }
@@ -901,10 +901,10 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   while (pt1 < Arg->trail_top) {
     t0 = *pt1;
     pt1++;
-    if (*TagToPointer(t0) & 3) {
-      *TagToPointer(t0) -= (char *)(pt1-1)-(char *)pt2, TrailPush(pt2,t0);
+    if (*TaggedToPointer(t0) & 3) {
+      *TaggedToPointer(t0) -= (char *)(pt1-1)-(char *)pt2, TrailPush(pt2,t0);
     } else {
-      *TagToPointer(t0) = t0;
+      *TaggedToPointer(t0) = t0;
     }
   }
   Arg->trail_top = pt2;
@@ -968,8 +968,8 @@ CFUN__PROTO(compile_term_aux, instance_t *,
     TrailDec(Arg->trail_top);
     t0 = *(Arg->trail_top); // (Arg->trail_top points to the popped element)
     if (!c_term(Arg,
-                Tagp(LST,TaggedToGoal(*TagToPointer(t0))),
-                TagToPointer(t0)-trail_origo,
+                Tagp(LST,TaggedToGoal(*TaggedToPointer(t0))),
+                TaggedToPointer(t0)-trail_origo,
                   reg_bank_size-1,
                 x_variables,
                 &trail_origo,
@@ -1009,7 +1009,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   if (TaggedIsSTR(head))  {
     DerefArg(t0,head,1);
     if (TaggedIsSTR(t0)) {
-      object->key = TagToHeadfunctor(t0);
+      object->key = TaggedToHeadfunctor(t0);
     } else if (TaggedIsLST(t0)) {
       object->key = functor_list;
     } else if (!IsVar(t0)) {
@@ -1105,7 +1105,7 @@ tagged_t decode_instance_key(instance_t *inst) {
 CBOOL__PROTO(bu1_if, tagged_t x0)
 {
   DEREF(x0,x0);
-  *TagToCar(x0) = atom_true;
+  *TaggedToCar(x0) = atom_true;
   return TRUE;
 }
 
@@ -1272,7 +1272,7 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
   else if (!(u & TagBitFunctor)) /* list? */
     {
       v ^= u;                   /* restore v */
-      if (cunify_args_aux(Arg,2,TagToCar(u),TagToCar(v),&x1,&x2))
+      if (cunify_args_aux(Arg,2,TaggedToCar(u),TaggedToCar(v),&x1,&x2))
         goto in;
       else
         goto lose;
@@ -1280,7 +1280,7 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
   else                          /* structure. */
     {
       v ^= u;                   /* restore v */
-      if (TagToHeadfunctor(u) != (t1=TagToHeadfunctor(v)))
+      if (TaggedToHeadfunctor(u) != (t1=TaggedToHeadfunctor(v)))
         goto lose;
       else if (t1&QMask)        /* large number */
         {
@@ -1395,13 +1395,13 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   
   ResetWakeCount();
   b = w->choice;
-  t2 = (tagged_t)TagToPointer(b->trail_top);
+  t2 = (tagged_t)TaggedToPointer(b->trail_top);
   pt1 = w->trail_top;
   if (TrailYounger(pt1, t2)) {
     do {
       if (IsVar(other)) {
         item = TrailGetTop(pt1);   /* variable */
-        other = *TagToPointer(item);
+        other = *TaggedToPointer(item);
       }
       PlainUntrail(pt1,t0,{});
     } while (TrailYounger(pt1, t2));

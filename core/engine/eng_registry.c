@@ -751,7 +751,7 @@ static CBOOL__PROTO(prolog_atom_mode)
   atom_t *atomptr;
 
   DEREF(X(0),X(0));
-  atomptr = TagToAtom(X(0));
+  atomptr = TaggedToAtom(X(0));
   if (atomptr->has_special)
     CBOOL__UnifyCons(MakeSmall(1),X(1))
   else if (atomptr->has_dquote)

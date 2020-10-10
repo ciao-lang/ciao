@@ -27,7 +27,7 @@
 
 #define gc_Reverse(curr,next) \
 {  tagged_t *temp; \
-   temp= TagToPointer(*next); \
+   temp= TaggedToPointer(*next); \
    *next= gc_PutValue((tagged_t)curr,*next); \
    curr= next; \
    next= temp; }
@@ -36,13 +36,13 @@
 
 #define gc_Advance(curr,next) \
 {  tagged_t *temp; \
-   temp= TagToPointer(*curr); \
+   temp= TaggedToPointer(*curr); \
    *curr= gc_PutValue((tagged_t)next,*curr); \
    HeapDecr(curr); \
-   next= TagToPointer(*curr); \
+   next= TaggedToPointer(*curr); \
    *curr= gc_PutValue((tagged_t)temp,*curr); }
 
-#define gc_TrailStart           TagToPointer(w->segment_choice->trail_top)
+#define gc_TrailStart           TaggedToPointer(w->segment_choice->trail_top)
 #define gc_HeapStart            (NodeGlobalTop(w->segment_choice))
 #define gc_StackStart           (NodeLocalTop(w->segment_choice))
 #define gc_ChoiceStart          (w->segment_choice)
@@ -151,7 +151,7 @@ static tagged_t cvas_found;
 { \
   tagged_t shunt_src; \
   while (IsVar(shunt_dest) && \
-         !gc_IsMarked(shunt_src = *TagToPointer(shunt_dest)) && \
+         !gc_IsMarked(shunt_src = *TaggedToPointer(shunt_dest)) && \
          shunt_src!=shunt_dest) \
     shunt_dest = shunt_src; \
 }
@@ -166,13 +166,13 @@ static CVOID__PROTO(shuntVariables) {
     frame_t *frame;
 
     while (ChoiceYounger(cp,Gc_Choice_Start)) {
-      limit = TagToPointer(prevcp->trail_top);
+      limit = TaggedToPointer(prevcp->trail_top);
       while (TrailYounger(pt,limit)) {
         TrailDec(pt);
         tagged_t v = *pt; // (pt points to the popped element)
 
-        if (v!=0 && IsVar(v) && !gc_IsMarked(*TagToPointer(v)))
-          gc_MarkM(*TagToPointer(v));
+        if (v!=0 && IsVar(v) && !gc_IsMarked(*TaggedToPointer(v)))
+          gc_MarkM(*TaggedToPointer(v));
         else
           gc_MarkM(pt[0]);
       }
@@ -181,22 +181,22 @@ static CVOID__PROTO(shuntVariables) {
 
     while (ChoiceYounger(Gc_Aux_Node,cp)) {
       gc_UndoChoice(cp,prevcp,alt);
-      limit = TagToPointer(cp->trail_top);
-      pt = TagToPointer(prevcp->trail_top);
+      limit = TaggedToPointer(cp->trail_top);
+      pt = TaggedToPointer(prevcp->trail_top);
       while (TrailYounger(limit,pt)) {
         tagged_t v = *pt++;
 
         if (!gc_IsMarked(v))
-          gc_UnmarkM(*TagToPointer(v));
+          gc_UnmarkM(*TaggedToPointer(v));
       }
-      pt = TagToPointer(prevcp->trail_top);
+      pt = TaggedToPointer(prevcp->trail_top);
       while (TrailYounger(limit,pt)) {
         tagged_t v = *pt++;
 
         if (gc_IsMarked(v))
           gc_UnmarkM(pt[-1]);
         else
-          gc_shuntVariable(*TagToPointer(v));
+          gc_shuntVariable(*TaggedToPointer(v));
       }
       pt = NodeGlobalTop(prevcp);
       while (HeapYounger(NodeGlobalTop(cp),pt)) {
@@ -260,8 +260,8 @@ static CVOID__PROTO(markTrail) {
 
        while (TaggedIsCVA(l))
          v = l,
-         l = *TagToPointer(v),
-         *TagToPointer(v) = v;
+         l = *TaggedToPointer(v),
+         *TaggedToPointer(v) = v;
      }
      */
                                 /* mark newly bound CVAs */
@@ -281,14 +281,14 @@ static CVOID__PROTO(markTrail) {
     while (TrailYounger(tr,Gc_Trail_Start)) {
       TrailDec(tr);
       tagged_t v = *tr; // (tr points to the popped element)
-      tagged_t *p = TagToPointer(v);
+      tagged_t *p = TaggedToPointer(v);
 
       if (v!=0 && !gc_IsMarked(v) &&
           ((IsHeapVar(v) && !OffHeaptop(p,Gc_Heap_Start)) ||
            (IsStackVar(v) && !OffStacktop(p,Gc_Stack_Start)))) {
         gc_MarkM(*tr);                       /* so won't look at it again */
         if (IsHeapTerm(*p) && !gc_IsMarked(*p) &&
-            OffHeaptop(TagToPointer(*p),Gc_Heap_Start)) {
+            OffHeaptop(TaggedToPointer(*p),Gc_Heap_Start)) {
           Gcgrey-= Total_Found;
           markVariable(Arg, p);
           Gcgrey+= Total_Found;
@@ -351,7 +351,7 @@ static CVOID__PROTO(markChoicepoints) {
          reset unmarked bound variables
          between cp->trail_top and tr */
 
-      limit = TagToPointer(cp->trail_top);
+      limit = TaggedToPointer(cp->trail_top);
       while (TrailYounger(tr,limit))
         {
           TrailDec(tr);
@@ -369,8 +369,8 @@ static CVOID__PROTO(markChoicepoints) {
             }
           else
             {
-              if (!gc_IsMarked(*TagToPointer(v)))
-                *TagToPointer(v)= v, *tr= 0;
+              if (!gc_IsMarked(*TaggedToPointer(v)))
+                *TaggedToPointer(v)= v, *tr= 0;
             }
 #else
           else if (TaggedIsCVA(v))
@@ -394,7 +394,7 @@ CVOID__PROTO(compressTrail, bool_t from_gc) {
   curr = dest = Gc_Trail_Start;
   while (ChoiceYounger(Gc_Aux_Node,cp)) {
     gc_UndoChoice(cp,prevcp,alt);
-    limit = TagToPointer(cp->trail_top);
+    limit = TaggedToPointer(cp->trail_top);
     while (TrailYounger(limit,curr)) {
       cv = *curr;
       curr++;
@@ -417,7 +417,7 @@ static CVOID__PROTO(markVariable, tagged_t *start) {
   tagged_t *current, *next;
 
   current= start;
-  next= TagToPointer(*current);
+  next= TaggedToPointer(*current);
   gc_MarkF(*current);
   goto first_forward;
  forward:
@@ -520,7 +520,7 @@ static void updateRelocationChain(tagged_t *curr, tagged_t *dest)
     /* F-bit is set in *curr */
     c1= *curr;
     do {
-        j= TagToPointer(c1);
+        j= TaggedToPointer(c1);
         j1= *j;
         c1= gc_PutValueFirst(j1,c1);
         *(j)= gc_PutValueFirst((tagged_t)dest,j1);
@@ -541,12 +541,12 @@ static CVOID__PROTO(sweepTrail) {
       v = *tr; // (tr points to the popped element)
       if (v==0) continue;
       gc_UnmarkM(*tr);
-      p= TagToPointer(v);
+      p= TaggedToPointer(v);
 #if defined(SEGMENTED_GC)
       if ((IsHeapVar(v) && !OffHeaptop(p,Gc_Heap_Start)) ||
           (IsStackVar(v) && !OffStacktop(p,Gc_Stack_Start)))
         {
-          tagged_t *p1= TagToPointer(*p);
+          tagged_t *p1= TaggedToPointer(*p);
         
           if (IsHeapTerm(*p) &&
               gc_IsMarked(*p) &&
@@ -579,7 +579,7 @@ static CVOID__PROTO(sweepFrames, frame_t *frame, bcp_t l) {
             StackDecr(ev);
             if( !gc_IsMarked(v= *ev) ) return;
             gc_UnmarkM(*ev);
-            p= TagToPointer(v);
+            p= TaggedToPointer(v);
             if( IsHeapTerm(v)
 #if defined(SEGMENTED_GC)
                && OffHeaptop(p,Gc_Heap_Start)
@@ -604,7 +604,7 @@ static CVOID__PROTO(sweepChoicepoints) { /* sweep choicepoints and corresponding
         while ((i--)>0)
           {
             tagged_t v= cp->term[i];
-            tagged_t *p= TagToPointer(v);
+            tagged_t *p= TaggedToPointer(v);
         
             gc_UnmarkM(cp->term[i]);
             if (IsHeapTerm(v)
@@ -655,7 +655,7 @@ static CVOID__PROTO(compressHeap) {
                 cv= *curr;
               }
               if (IsHeapTerm(cv)) {
-                tagged_t *p= TagToPointer(cv);
+                tagged_t *p= TaggedToPointer(cv);
                 
                 if (HeapYounger(curr,p)
 #if defined(SEGMENTED_GC)
@@ -685,7 +685,7 @@ static CVOID__PROTO(compressHeap) {
               }
             gc_UnmarkM(cv);  /* M and F-flags off */
             {
-              tagged_t *p= TagToPointer(cv);
+              tagged_t *p= TaggedToPointer(cv);
         
               if (IsHeapTerm(cv) && HeapYounger(p,curr)) {              
                   /* move the current cell and insert into the reloc.chain */
@@ -1017,11 +1017,11 @@ bool_t is_rem_Hterm(tagged_t term,
                     worker_t *remote_w)
 {
   if (remote_w == NULL)  // local case
-    return !(((TagToPointer(term) >= w->heap_start) &&
-             (TagToPointer(term) <= w->heap_end)));
+    return !(((TaggedToPointer(term) >= w->heap_start) &&
+             (TaggedToPointer(term) <= w->heap_end)));
   else  // remote case
-    return ((TagToPointer(term) >= remote_w->heap_start) &&
-            (TagToPointer(term) <= remote_w->heap_end));
+    return ((TaggedToPointer(term) >= remote_w->heap_start) &&
+            (TaggedToPointer(term) <= remote_w->heap_end));
 }
 #endif
 
@@ -1674,7 +1674,7 @@ CVOID__PROTO(trail_gc)
   Gc_Aux_Node->next_alt = fail_alt;
   Gc_Aux_Node->trail_top = tr;
   Gc_Choice_Start = w->segment_choice;
-  Gc_Trail_Start = TagToPointer(w->segment_choice->trail_top);
+  Gc_Trail_Start = TaggedToPointer(w->segment_choice->trail_top);
   
   if (current_gctrace == atom_verbose) {
     ENG_TTYPRINTF("{GC}  Trail GC started\n");
@@ -1686,7 +1686,7 @@ CVOID__PROTO(trail_gc)
     tagged_t *x;
     tagged_t t1;
       
-    for (x=TagToPointer(b->trail_top); TrailYounger(tr,x); x++) {
+    for (x=TaggedToPointer(b->trail_top); TrailYounger(tr,x); x++) {
       if (TaggedIsHVA(t1 = *x)) {
         if (*TagpPtr(HVA,t1) & 1) {
           *TrailOffset(x,-1) = *x = heap_last;
@@ -1700,7 +1700,7 @@ CVOID__PROTO(trail_gc)
        Keep count of relevant entries.  Turn mark bits off.
        Go from new to old. */
     SetShadowregs(b);
-    x=TagToPointer(b->trail_top);
+    x=TaggedToPointer(b->trail_top);
     while (TrailYounger(tr,x)){
       tagged_t t1 /*, *pt */ ; /* unused */
 
@@ -1709,8 +1709,8 @@ CVOID__PROTO(trail_gc)
       if (!IsVar(t1)) {
         /* kill unconditional 'undo setarg' */
         if (TaggedIsSTR(t1) &&
-            TagToHeadfunctor(t1)==functor_Dsetarg &&
-            !CondHVA(Tagp(HVA,TagToPointer(*TaggedToArg(t1,2))))) {
+            TaggedToHeadfunctor(t1)==functor_Dsetarg &&
+            !CondHVA(Tagp(HVA,TaggedToPointer(*TaggedToArg(t1,2))))) {
           *tr = 0;
         }
       } else {

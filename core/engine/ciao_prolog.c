@@ -523,7 +523,7 @@ const char *ciao_atom_name_s(ciao_ctx ctx, ciao_term term) {
     return (const char *)NULL;
   } else { 
     atom_t *atomptr;
-    atomptr = TagToAtom(t);
+    atomptr = TaggedToAtom(t);
     return atomptr->name;
   }
 }
@@ -554,9 +554,9 @@ const char *ciao_structure_name_s(ciao_ctx ctx, ciao_term term) {
   } else {
     tagged_t f;
     atom_t *atomptr;
-    f = TagToHeadfunctor(t);
+    f = TaggedToHeadfunctor(t);
     t = SetArity(f,0);
-    atomptr = TagToAtom(t);
+    atomptr = TaggedToAtom(t);
     return atomptr->name;
   }
 }
@@ -573,7 +573,7 @@ int ciao_structure_arity_s(ciao_ctx ctx, ciao_term term) {
     return 0;
   } else { 
     tagged_t f;
-    f = TagToHeadfunctor(t);
+    f = TaggedToHeadfunctor(t);
     return Arity(f);
   }
 }

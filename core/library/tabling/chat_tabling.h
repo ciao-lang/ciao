@@ -199,7 +199,7 @@ extern tagged_t atom_gen_tree_backtracking;
              (iTrail) = (iTrail) + 2)                                   \
           {                                                             \
             printf("\nState %lx\n",                                     \
-                   *TagToPointer((NodeTR)->trail_sg[(iTrail)]));        \
+                   *TaggedToPointer((NodeTR)->trail_sg[(iTrail)]));        \
           }                                                             \
       }                                                                 \
   }
@@ -244,7 +244,7 @@ extern tagged_t atom_gen_tree_backtracking;
           {                                                             \
             if (IsVar((NodeTR)->trail_sg[(iTrail)]))                    \
               {                                                         \
-                *TagToPointer((NodeTR)->trail_sg[(iTrail)]) =           \
+                *TaggedToPointer((NodeTR)->trail_sg[(iTrail)]) =           \
                   (NodeTR)->trail_sg[(iTrail) + 1];                     \
               }                                                         \
             else                                                        \
@@ -273,7 +273,7 @@ extern tagged_t atom_gen_tree_backtracking;
           {                                                             \
             if (IsVar((NodeTR)->trail_sg[(iTrail)]))                    \
               {                                                         \
-                *TagToPointer((NodeTR)->trail_sg[(iTrail)]) =           \
+                *TaggedToPointer((NodeTR)->trail_sg[(iTrail)]) =           \
                   (NodeTR)->trail_sg[(iTrail)];                         \
               }                                                         \
             else                                                        \
@@ -392,9 +392,9 @@ extern tagged_t atom_gen_tree_backtracking;
   {                                                                     \
     PRINT_DEREF(Arg, " SPACE ", SPACE);                                 \
     printf(" Unify with ANSW_SPACE = %d\n", (intmach_t)ANSW_SPACE);             \
-    if (TagOf(*(TagToPointer(SPACE))) != NUM && *(TagToPointer(SPACE)) != SPACE) \
+    if (TagOf(*(TaggedToPointer(SPACE))) != NUM && *(TaggedToPointer(SPACE)) != SPACE) \
       { printf("ERROR\n");                                              \
-        *(TagToPointer(SPACE)) = (SPACE);       }                       \
+        *(TaggedToPointer(SPACE)) = (SPACE);       }                       \
     PRINT_DEREF(Arg, " SPACE ", SPACE);                                 \
     Unify((SPACE),MkIntTerm((intmach_t)(ANSW_SPACE)));                  \
     PRINT_DEREF(Arg, " SPACE ", SPACE);                                 \
@@ -490,8 +490,8 @@ extern tagged_t atom_gen_tree_backtracking;
           {                                                     \
             printf("\t");                                       \
             display_term(ARG,m_i,Output_Stream_Ptr, TRUE);      \
-            printf(" (%p)", TagToPointer(m_i));                 \
-            if (m_i == (m_j = *TagToPointer(m_i)))              \
+            printf(" (%p)", TaggedToPointer(m_i));                 \
+            if (m_i == (m_j = *TaggedToPointer(m_i)))              \
               {                                                 \
                 printf(" <var> ");                              \
                 break;                                          \

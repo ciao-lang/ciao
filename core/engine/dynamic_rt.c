@@ -82,7 +82,7 @@ CFUN__PROTO(current_instance, instance_t *)
   w->choice->functor=find_definition(predicates_location,X(0),&junk,FALSE);
 #endif
   PredTrace("I",w->choice->functor);
-  root = TagToRoot(X(2));
+  root = TaggedToRoot(X(2));
   if (root->behavior_on_failure == DYNAMIC)
     return current_instance_noconc(Arg);
   else {
@@ -110,7 +110,7 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
 {
   instance_t *x2_chain, *x5_chain;
   instance_t *x2_next=NULL, *x5_next=NULL;
-  int_info_t *root = TagToRoot(X(2));
+  int_info_t *root = TaggedToRoot(X(2));
   tagged_t head;
 
 
@@ -159,7 +159,7 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
       sw_on_key_node_t *hnode;
 
       if (TaggedIsSTR(head))
-        hnode = incore_gethash(root->indexer,TagToHeadfunctor(head));
+        hnode = incore_gethash(root->indexer,TaggedToHeadfunctor(head));
       else
         hnode = incore_gethash(root->indexer,head);
         
@@ -212,7 +212,7 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
 /* Adapted to concurrent predicates (MCL) */
 CBOOL__PROTO(first_instance)
 {
-  int_info_t *root = TagToRoot(X(0));
+  int_info_t *root = TaggedToRoot(X(0));
   instance_t *inst;
 
   if (root->behavior_on_failure == DYNAMIC) 
@@ -225,7 +225,7 @@ CBOOL__PROTO(first_instance)
 
   if (!inst)
     return FALSE;                                         /* no solutions */
-  *TagToPointer(X(1)) = PointerToTerm(inst);
+  *TaggedToPointer(X(1)) = PointerToTerm(inst);
 
   return TRUE;
 }
@@ -241,9 +241,9 @@ CBOOL__PROTO(next_instance, instance_t **ipp)
     CIAO_REG_3(int_info_t *, root);
     instance_clock_t clock = GetSmall(X(4));
 
-    x2_insp = *ipp = TagToInstance(X(2));
-    x5_insp = TagToInstance(X(5));
-    root = TagToRoot(X(6));
+    x2_insp = *ipp = TaggedToInstance(X(2));
+    x5_insp = TaggedToInstance(X(5));
+    root = TaggedToRoot(X(6));
 
     Wait_Acquire_Cond_lock(root->clause_insertion_cond);
 
@@ -285,7 +285,7 @@ tagged_t decode_instance_key(instance_t *);
 
 CBOOL__PROTO(current_key)
 {
-  int_info_t *root = TagToRoot(X(0));
+  int_info_t *root = TaggedToRoot(X(0));
   sw_on_key_t *swp = root->indexer;
   intmach_t j = SwitchSize(swp);
   tagged_t mask;
@@ -301,7 +301,7 @@ CBOOL__PROTO(current_key)
         MakeLST(X(4),make_structure(Arg,functor_list),X(4));
     } else if (TaggedIsSTR(X(3))) {
       sw_on_key_node_t *hnode =
-        incore_gethash(swp,TagToHeadfunctor(X(3)));
+        incore_gethash(swp,TaggedToHeadfunctor(X(3)));
       instance_t *inst =
         ACTIVE_INSTANCE(Arg,hnode->value.instp,use_clock,FALSE);
 
@@ -326,7 +326,7 @@ CBOOL__PROTO(current_key)
       if (inst)
         MakeLST(X(4),make_structure(Arg,hnode->key),X(4));
     }
-    *TagToPointer(X(1)) = X(4);
+    *TaggedToPointer(X(1)) = X(4);
     return TRUE;
   }
 
@@ -348,7 +348,7 @@ CBOOL__PROTO(current_key)
       }
     } else {
       if (IsVar(X(2)) ||
-          (TaggedIsSTR(X(2)) && hnode->key==TagToHeadfunctor(X(2))))
+          (TaggedIsSTR(X(2)) && hnode->key==TaggedToHeadfunctor(X(2))))
         while (inst){
           intmach_t ar = LargeArity(hnode->key);
 
@@ -361,7 +361,7 @@ CBOOL__PROTO(current_key)
         }
     }
   }
-  *TagToPointer(X(1)) = X(4);
+  *TaggedToPointer(X(1)) = X(4);
   return TRUE;
 }
 #endif
@@ -369,7 +369,7 @@ CBOOL__PROTO(current_key)
 #if defined(USE_THREADS)
 CBOOL__PROTO(close_predicate)
 {
-  int_info_t *root = TagToRoot(X(0));
+  int_info_t *root = TaggedToRoot(X(0));
 
   Cond_Begin(root->clause_insertion_cond);
   if (root->behavior_on_failure == CONC_OPEN) 
@@ -381,7 +381,7 @@ CBOOL__PROTO(close_predicate)
 
 CBOOL__PROTO(open_predicate)
 {
-  int_info_t *root = TagToRoot(X(0));
+  int_info_t *root = TaggedToRoot(X(0));
 
 
   Cond_Begin(root->clause_insertion_cond);
@@ -433,7 +433,7 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
   instance_t *current_one;
   bool_t try_instance;
   instance_handle_t *x2_next, *x5_next;
-  int_info_t *root = TagToRoot(X(2));
+  int_info_t *root = TaggedToRoot(X(2));
 
 #if defined(DEBUG)
   if (debug_concchoicepoints) 
@@ -625,7 +625,7 @@ static instance_t *first_possible_instance(tagged_t x0,
       else return NULL;                                    /* No solution */
     } else {
       hnode = TaggedIsSTR(head) ?
-              incore_gethash(root->indexer,TagToHeadfunctor(head)) :
+              incore_gethash(root->indexer,TaggedToHeadfunctor(head)) :
               incore_gethash(root->indexer,head);
       x5_chain = hnode->value.instp;                    /* normal = FALSE */
       goto xn_switch;
@@ -641,7 +641,7 @@ static instance_t *first_possible_instance(tagged_t x0,
 
 CBOOL__PROTO(next_instance_conc, instance_t **ipp)
 {
-  int_info_t *root = TagToRoot(X(RootArg));
+  int_info_t *root = TaggedToRoot(X(RootArg));
   BlockingType block;      
   instance_handle_t *x2_ins_h, *x5_ins_h;
   bool_t next_instance_pointer;
@@ -670,8 +670,8 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp)
     Wait_For_Cond_End(root->clause_insertion_cond);
   }
   
-  x2_ins_h = TagToInstHandle(X(X2_CHN));
-  x5_ins_h = TagToInstHandle(X(X5_CHN));
+  x2_ins_h = TaggedToInstHandle(X(X2_CHN));
+  x5_ins_h = TaggedToInstHandle(X(X5_CHN));
 
 /* x2_ins_h->inst_ptr and x5_ins_h->inst_ptr may be both NULL; that means no
    current instance is available.  Just wait for one.  If any of x2_insp or
@@ -1017,23 +1017,23 @@ void remove_link_chains(choice_t **topdynamic,
               movingtop);
 #endif
 
-    Cond_Begin(TagToRoot(movingtop->term[RootArg])->clause_insertion_cond);
+    Cond_Begin(TaggedToRoot(movingtop->term[RootArg])->clause_insertion_cond);
 
 #if defined(DEBUG)
-    if (TagToInstHandle(movingtop->term[X2_CHN]) == NULL)
+    if (TaggedToInstHandle(movingtop->term[X2_CHN]) == NULL)
       fprintf(stderr, "*** %" PRIdm "(%" PRIdm ") remove_link_chains: X2 handle is NULL!!\n",
               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
-    if (TagToInstHandle(movingtop->term[X5_CHN]) == NULL)
+    if (TaggedToInstHandle(movingtop->term[X5_CHN]) == NULL)
       fprintf(stderr, "*** %" PRIdm "(%" PRIdm ") remove_link_chains: X5 handle is NULL!!\n", (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
 #endif
-    remove_handle(TagToInstHandle(movingtop->term[X2_CHN]), 
-                  TagToRoot(movingtop->term[RootArg]),
+    remove_handle(TaggedToInstHandle(movingtop->term[X2_CHN]), 
+                  TaggedToRoot(movingtop->term[RootArg]),
                   X2);
-    remove_handle(TagToInstHandle(movingtop->term[X5_CHN]), 
-                  TagToRoot(movingtop->term[RootArg]),
+    remove_handle(TaggedToInstHandle(movingtop->term[X5_CHN]), 
+                  TaggedToRoot(movingtop->term[RootArg]),
                   X5);
 
-    Broadcast_Cond(TagToRoot(movingtop->term[RootArg])->clause_insertion_cond);
+    Broadcast_Cond(TaggedToRoot(movingtop->term[RootArg])->clause_insertion_cond);
 
     movingtop=(choice_t *)TermToPointerOrNull(movingtop->term[PrevDynChpt]);
   }
@@ -1059,7 +1059,7 @@ CBOOL__PROTO(prolog_purge)
   intmach_t current_mem = total_mem_count;
   
   DEREF(X(0),X(0));
-  inst = TagToInstance(X(0));
+  inst = TaggedToInstance(X(0));
 
 
   Cond_Begin(inst->root->clause_insertion_cond);
@@ -1092,7 +1092,7 @@ CBOOL__PROTO(prolog_erase)
 #endif
 
   DEREF(X(0),X(0));
-  node = TagToInstance(X(0));
+  node = TaggedToInstance(X(0));
   root = node->root;
 
 #if defined(DEBUG) && defined(USE_THREADS)
@@ -1194,7 +1194,7 @@ CBOOL__PROTO(prolog_ptr_ref)
 
       HeapPush(pt1,functor_Dref);
       HeapPush(pt1,X(0));
-      HeapPush(pt1,TagToInstance(X(0))->rank);
+      HeapPush(pt1,TaggedToInstance(X(0))->rank);
       w->heap_top=pt1;
       CBOOL__LASTUNIFY(Tagp(STR,HeapOffset(pt1,-3)),X(1));
     }
@@ -1204,13 +1204,13 @@ CBOOL__PROTO(prolog_ptr_ref)
       instance_t *n;
 
       x2=X(1); DerefSwitch(x2,x1,;);
-      if (!TaggedIsSTR(x2) || (TagToHeadfunctor(x2) != functor_Dref))
+      if (!TaggedIsSTR(x2) || (TaggedToHeadfunctor(x2) != functor_Dref))
         return FALSE;
 
       DerefArg(x1,x2,1);
       DerefArg(x2,x2,2);
       if (!TaggedIsSmall(x1) ||
-          !(n=TagToInstance(x1)) ||
+          !(n=TaggedToInstance(x1)) ||
            n->rank != x2 ||
            n->death != 0xffff)    
         return FALSE;
@@ -1230,7 +1230,7 @@ CBOOL__PROTO(prolog_ptr_ref)
 CBOOL__PROTO(inserta)
 {
     instance_t *n, **loc;
-    int_info_t *root = TagToRoot(X(0));
+    int_info_t *root = TaggedToRoot(X(0));
     intmach_t current_mem = total_mem_count;
 #if defined(USE_THREADS)                                               /* MCL */
     bool_t move_insts_to_new_clause = FALSE;
@@ -1253,7 +1253,7 @@ CBOOL__PROTO(inserta)
 #endif
 
     DEREF(X(1),X(1));
-    n = TagToInstance(X(1));
+    n = TaggedToInstance(X(1));
     
     /* (void)ACTIVE_INSTANCE(root->first,use_clock,TRUE); optional */
     
@@ -1323,7 +1323,7 @@ CBOOL__PROTO(inserta)
 CBOOL__PROTO(insertz)
 {
     instance_t *n, **loc;
-    int_info_t *root = TagToRoot(X(0));
+    int_info_t *root = TaggedToRoot(X(0));
     intmach_t current_mem = total_mem_count;
 
     Cond_Begin(root->clause_insertion_cond);
@@ -1344,7 +1344,7 @@ CBOOL__PROTO(insertz)
     }
 
     DEREF(X(1),X(1));
-    n = TagToInstance(X(1));
+    n = TaggedToInstance(X(1));
     
     /* (void)ACTIVE_INSTANCE(root->first,use_clock,TRUE); optional */
     
@@ -1421,7 +1421,7 @@ CBOOL__PROTO(insertz)
 /* TODO: reuse for copying Large (see globalize_bn) */
 size_t compile_large(tagged_t t, bcp_t p) {
   intmach_t i;
-  intmach_t ar = LargeArity(TagToHeadfunctor(t));
+  intmach_t ar = LargeArity(TaggedToHeadfunctor(t));
   tagged_t *tp = TagpPtr(STR,t);
   tagged_t *pp = (tagged_t *)p;
 
@@ -1534,11 +1534,11 @@ CBOOL__PROTO(make_bytecode_object)
       {
         tagged_t func;
         
-        func=TagToHeadfunctor(car);
+        func=TaggedToHeadfunctor(car);
         if(func==functor_functor) {
           /* functor(Name/Arity) */
           DerefArg(car,car,1);
-          if (TaggedIsSTR(car) && (TagToHeadfunctor(car)==functor_slash)) {
+          if (TaggedIsSTR(car) && (TaggedToHeadfunctor(car)==functor_slash)) {
             tagged_t t1, t2;
             DerefArg(t1,car,1);
             DerefArg(t2,car,2);
@@ -1681,12 +1681,12 @@ CFUN__PROTO(active_instance,
     b2=ChoiceCont(b);
     if (b->next_alt==address_nd_current_instance) {
       latest_static = b2;
-      j = TagToInstance(b->term[2]);
+      j = TaggedToInstance(b->term[2]);
       if (j && (j->root==i->root)) {
         lotime = GetSmall(b->term[4]);
         if (lorank>j->rank) lorank=j->rank;
       }
-      j = TagToInstance(b->term[5]);
+      j = TaggedToInstance(b->term[5]);
       if (j && (j->root==i->root)) {
         lotime = GetSmall(b->term[4]);
         if (lorank>j->rank) lorank=j->rank;
