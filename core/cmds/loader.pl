@@ -9,7 +9,7 @@
 :- use_module(engine(basic_props)).
 
 :- use_module(engine(rt_exp), [do_initialization/1]).
-:- use_module(engine(dynlink), [link_pack/1]).
+:- use_module(engine(modload), [link_pack/1]).
 :- use_module(engine(internals), ['$unix_shift_arg'/0]).
 :- use_module(engine(debugger_support), []). % TODO: can this be made optional? (otherwise toplevel breaks)
 
@@ -21,7 +21,7 @@
 
 main([File|Args]) :-
     '$unix_shift_arg', % TODO: shift arguments, better solution? 
-    dynlink:link_pack(File),
+    modload:link_pack(File),
     Errs = ~errlog.new,
     Verbose = off,
     % TODO: use runtime memoize?

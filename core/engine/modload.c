@@ -1,14 +1,9 @@
 /*
- *  dynlink.c
+ *  modload.c
  *
- *  Load dynamic object code onto a running process
+ *  Low-level module DB and dynamic code loading
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
- *
- *  Authors:
- *    Manuel Carro
- *    Jose F. Morales
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #include <ciao/eng.h>
@@ -23,7 +18,7 @@
 
 #include <string.h>
 
-#include <ciao/dynlink.h>
+#include <ciao/modload.h>
 
 #if !defined(MAXPATHLEN)
 # define MAXPATHLEN 1024

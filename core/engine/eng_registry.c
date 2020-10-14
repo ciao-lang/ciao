@@ -33,7 +33,7 @@
 #include <ciao/rt_exp.h>
 #include <ciao/runtime_control.h>
 #include <ciao/qread.h>
-#include <ciao/dynlink.h>
+#include <ciao/modload.h>
 
 #if defined(PROFILE)
 #define __USE_GNU
@@ -1200,6 +1200,9 @@ CBOOL__PROTO(prolog_wallclockfreq);
 CBOOL__PROTO(prolog_userclockfreq);
 CBOOL__PROTO(prolog_systemclockfreq);
 CBOOL__PROTO(prolog_runclockfreq);
+/* modload.c */
+CBOOL__PROTO(prolog_dynlink);
+CBOOL__PROTO(prolog_dynunlink);
 
 /* --------------------------------------------------------------------------- */
 
@@ -1680,56 +1683,48 @@ void init_once(void)
   define_c_mod_predicate("system","time",1,prolog_time);
   define_c_mod_predicate("system","datime",9,prolog_datime);  
 
-                            /* dynlink.c */
-
+  /* modload.c */
   define_c_mod_predicate("internals","dynlink", 2, prolog_dynlink);
   define_c_mod_predicate("internals","dynunlink", 1, prolog_dynunlink); 
 
-                                /* timing.c */
-
+  /* timing.c */
   define_c_mod_predicate("internals","$runtime",1,prolog_runtime);
   define_c_mod_predicate("internals","$usertime",1,prolog_usertime);
   define_c_mod_predicate("internals","$systemtime",1,prolog_systemtime);  
   define_c_mod_predicate("internals","$walltime",1,prolog_walltime);
 
-                                /* clock/cpu ticks */  
-
+  /* clock/cpu ticks */  
   define_c_mod_predicate("internals","$runtick",1,prolog_runtick);
   define_c_mod_predicate("internals","$usertick",1,prolog_usertick);
   define_c_mod_predicate("internals","$systemtick",1,prolog_systemtick);
   define_c_mod_predicate("internals","$walltick",1,prolog_walltick);
 
-                                /* clock frequency */  
-
+  /* clock frequency */  
   define_c_mod_predicate("internals","$runclockfreq",1,prolog_runclockfreq);
   define_c_mod_predicate("internals","$userclockfreq",1,prolog_userclockfreq);
   define_c_mod_predicate("internals","$systemclockfreq",1,prolog_systemclockfreq);
   define_c_mod_predicate("internals","$wallclockfreq",1,prolog_wallclockfreq);
 
-                                /* eng_alloc.c */
-
+  /* eng_alloc.c */
   define_c_mod_predicate("runtime_control","statistics",0,statistics);
   define_c_mod_predicate("internals","$program_usage",1,program_usage);
   define_c_mod_predicate("internals","$internal_symbol_usage",1,internal_symbol_usage);
   define_c_mod_predicate("internals","$total_usage",1,total_usage);
 
-                                 /* eng_gc.c */
-
+  /* eng_gc.c */
   define_c_mod_predicate("internals","$termheap_usage",1,termheap_usage);
   define_c_mod_predicate("internals","$envstack_usage",1,envstack_usage);
   define_c_mod_predicate("internals","$trail_usage",1,trail_usage);
   define_c_mod_predicate("internals","$choice_usage",1,choice_usage);
   define_c_mod_predicate("internals","$stack_shift_usage",1,stack_shift_usage);
-
   define_c_mod_predicate("internals","$gc_mode",2,gc_mode);
   define_c_mod_predicate("internals","$gc_trace",2,gc_trace);
   define_c_mod_predicate("internals","$gc_margin",2,gc_margin);
   define_c_mod_predicate("internals","$gc_usage",1,gc_usage);
   define_c_mod_predicate("runtime_control","garbage_collect",0,gc_start);
 
-                                /* rt_exp.c */
-                                /* runtime_control.c */
-
+  /* rt_exp.c */
+  /* runtime_control.c */
   define_c_mod_predicate("basiccontrol","repeat",0,prolog_repeat);
   define_c_mod_predicate("runtime_control","current_atom",1,current_atom);
   define_c_mod_predicate("stream_basic","current_stream",3,current_stream);
@@ -1737,24 +1732,20 @@ void init_once(void)
   define_c_mod_predicate("internals","$predicate_property",3,predicate_property);
   define_c_mod_predicate("internals","$current_clauses",2,current_clauses);
   define_c_mod_predicate("internals","$module_is_static",1,module_is_static);
-
   define_c_mod_predicate("internals","$first_instance",2,first_instance);
   define_c_mod_predicate("internals","$close_predicate",1,close_predicate);
   define_c_mod_predicate("internals","$open_predicate",1,open_predicate);
-
   define_c_mod_predicate("runtime_control", "new_atom", 1, prolog_new_atom);
 
 #if defined(GAUGE)
-                                /* gauge.c */
-
+  /* gauge.c */
   define_c_mod_predicate("internals","$emulated_clause_counters",4,emulated_clause_counters);
   define_c_mod_predicate("internals","$counter_values",3,counter_values);
   define_c_mod_predicate("internals","$reset_counters",2,reset_counters);
 #endif
 
 #if defined(USE_FAST_MULTIATTR)
-                                /* attributes.c */
-
+  /* attributes.c */
   define_c_mod_predicate("attr_rt","get_attr",3,get_attr__3);
   define_c_mod_predicate("attr_rt","put_attr",3,put_attr__3);
   define_c_mod_predicate("attr_rt","del_attr",2,del_attr__2);

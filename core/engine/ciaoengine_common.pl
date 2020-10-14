@@ -56,7 +56,7 @@
 :- '$native_include_c_header'('attributes.h').
 :- '$native_include_c_source'('attributes.c').
 
-:- '$native_include_c_source'('dynlink.c').
+:- '$native_include_c_source'('modload.c').
 
 :- '$native_include_c_header'('internals.h').
 :- '$native_include_c_source'('internals.c').
