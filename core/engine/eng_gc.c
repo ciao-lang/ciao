@@ -85,7 +85,7 @@ CBOOL__PROTO(gc_usage) {
   flt64_t t;
   tagged_t x;
 
-  t= (flt64_t)ciao_stats.gc_tick*1000/GET_CLOCKFREQ(ciao_stats);
+  t= (flt64_t)ciao_stats.gc_tick*1000/RunClockFreq(ciao_stats);
   MakeLST(x,BoxFloat(t),atom_nil);
   t= ciao_stats.gc_acc*sizeof(tagged_t);
   MakeLST(x,IntmachToTagged((intmach_t)t),x);
@@ -775,7 +775,7 @@ CVOID__PROTO(GarbageCollect) {
       }
     }
 
-    t1 = BASE_RUNTICK;
+    t1 = RunTickFunc();
 
 #if defined(USE_GLOBAL_VARS)
     TrailPush(w->trail_top,GLOBAL_VARS_ROOT);
@@ -810,7 +810,7 @@ CVOID__PROTO(GarbageCollect) {
     compressTrail(Arg,TRUE);
 
     Gc_Total_Grey += Gcgrey;
-    t1 = (t2= BASE_RUNTICK)-t1;
+    t1 = (t2= RunTickFunc())-t1;
     if (current_gctrace == atom_verbose) {
         ENG_TTYPRINTF("        mark: %" PRIdm " cells marked in %.3f sec\n",
                       Total_Found,t1);
@@ -834,7 +834,7 @@ CVOID__PROTO(GarbageCollect) {
     
     SetShadowregs(w->choice);     /* shadow regs may have changed */
                                 /* statistics */
-    t2= BASE_RUNTICK-t2;
+    t2= RunTickFunc()-t2;
     ciao_stats.gc_tick   += t1+t2;
     ciao_stats.starttick += t1+t2;
     ciao_stats.lasttick  += t1+t2;
@@ -858,8 +858,8 @@ CVOID__PROTO(GarbageCollect) {
         ENG_TTYPRINTF("        Total: %" PRIdm " cells reclaimed in %" PRIdm " gc's\n",
                       ciao_stats.gc_acc,ciao_stats.gc_count);
         ENG_TTYPRINTF("        GC time = %.6f  Total= %.6f\n\n",
-                      ((flt64_t)(t1+t2))/GET_CLOCKFREQ(ciao_stats),
-                      ((flt64_t)ciao_stats.gc_tick)/GET_CLOCKFREQ(ciao_stats));
+                      ((flt64_t)(t1+t2))/RunClockFreq(ciao_stats),
+                      ((flt64_t)ciao_stats.gc_tick)/RunClockFreq(ciao_stats));
       }
 }
 
@@ -873,8 +873,7 @@ static CVOID__PROTO(calculate_segment_choice);
 CBOOL__PROTO(stack_shift_usage)
 {
   tagged_t x;
-  inttime_t time = (ciao_stats.ss_tick*1000)/
-                   GET_CLOCKFREQ(ciao_stats);
+  inttime_t time = (ciao_stats.ss_tick*1000)/RunClockFreq(ciao_stats);
   
   MakeLST(x,IntmachToTagged(time),atom_nil);
   time = ciao_stats.ss_local+ciao_stats.ss_control;
@@ -1066,7 +1065,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
     }
 #endif
 
-  tick0 = BASE_RUNTICK;
+  tick0 = RunTickFunc();
 
   if (!(next_alt = w->choice->next_alt)) /* ensure A', P' exist */
     w->choice->next_alt = w->next_alt,
@@ -1183,7 +1182,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad)
   w->choice->next_alt = next_alt;
 
   ciao_stats.ss_control++;
-  tick0 = BASE_RUNTICK-tick0;
+  tick0 = RunTickFunc()-tick0;
   ciao_stats.starttick += tick0;
   ciao_stats.lasttick += tick0;
   ciao_stats.ss_tick += tick0;
@@ -1207,7 +1206,7 @@ CVOID__PROTO(stack_overflow)
 {
   intmach_t count, reloc_factor;
   tagged_t *newh;
-  flt64_t tick0 = BASE_RUNTICK;
+  flt64_t tick0 = RunTickFunc();
   
 #if defined(ANDPARALLEL)
   Suspend = WAITING;
@@ -1265,7 +1264,7 @@ CVOID__PROTO(stack_overflow)
   Stack_End = newh+count;       /* new high bound */
   Stack_Warn = StackOffset(Stack_End,-STACKPAD);
   ciao_stats.ss_local++;
-  tick0 = BASE_RUNTICK-tick0;
+  tick0 = RunTickFunc()-tick0;
   ciao_stats.starttick += tick0;
   ciao_stats.lasttick += tick0;
   ciao_stats.ss_tick += tick0;
@@ -1421,7 +1420,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
   if ((!gc &&
        HeapCharDifference(newh,oldh) < GetSmall(current_gcmargin)*1024) ||
       HeapYounger(HeapCharOffset(newh,2*pad),Heap_End)) {
-    flt64_t tick0 = BASE_RUNTICK;
+    flt64_t tick0 = RunTickFunc();
     /* increase heapsize */
     intmach_t mincount, newcount, oldcount, reloc_factor;
     tagged_t *newh;
@@ -1469,7 +1468,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     }
 
     ciao_stats.ss_global++;
-    tick0 = BASE_RUNTICK-tick0;
+    tick0 = RunTickFunc()-tick0;
     ciao_stats.starttick += tick0;
     ciao_stats.lasttick += tick0;
     ciao_stats.ss_tick += tick0;

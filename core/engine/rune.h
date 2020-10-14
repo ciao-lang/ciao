@@ -3,7 +3,7 @@
  *
  *  Runes (Unicode code points) support for Ciao
  *
- *  Copyright (C) 2020 Jose F. Morales, The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #ifndef _CIAO_RUNE_H

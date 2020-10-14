@@ -106,19 +106,20 @@ bool_t profile_eng            = FALSE;
 bool_t profile_rcc            = FALSE;
 
 #if defined(PROFILE)
-CVOID__PROTO(profile__hook_noop) {};
-CVOID__PROTO(profile__hook_call_noop, definition_t *f) {};
+CVOID__PROTO(profile__hook_nop) {};
+CVOID__PROTO(profile__hook_call_nop, definition_t *f) {};
+#endif
 
+#if defined(PROFILE)
 /* TODO: add macro to define typedefs from prototypes, use ## */
-void (*profile__hook_fail)(worker_t *w)                  = profile__hook_noop;
-void (*profile__hook_redo)(worker_t *w)                  = profile__hook_noop;
-void (*profile__hook_cut)(worker_t *w)                   = profile__hook_noop;
-void (*profile__hook_call)(worker_t *w, definition_t *f) = profile__hook_call_noop;
-
-# if defined(PROFILE__TRACER)
-void (*profile__hook_proceed)(worker_t *w)               = profile__hook_noop;
-void (*profile__hook_neck_proceed)(worker_t *w)          = profile__hook_noop;
-# endif
+CVOID__PROTO((*profile__hook_fail)) = profile__hook_nop;
+CVOID__PROTO((*profile__hook_redo)) = profile__hook_nop;
+CVOID__PROTO((*profile__hook_cut)) = profile__hook_nop;
+CVOID__PROTO((*profile__hook_call), definition_t *f) = profile__hook_call_nop;
+#if defined(PROFILE__TRACER)
+CVOID__PROTO((*profile__hook_proceed)) = profile__hook_nop;
+CVOID__PROTO((*profile__hook_neck_proceed)) = profile__hook_nop;
+#endif
 #endif
 
 /* Shared? Not easy: they have to do with the lifetime of dyn. predicates  */
@@ -1186,6 +1187,19 @@ CBOOL__PROTO(prolog_get_foreign_opts_ldshared);
 CBOOL__PROTO(prolog_current_executable);
 CBOOL__PROTO(prolog_time);
 CBOOL__PROTO(prolog_datime);
+/* timing.c */
+CBOOL__PROTO(prolog_runtime);
+CBOOL__PROTO(prolog_usertime);
+CBOOL__PROTO(prolog_systemtime);
+CBOOL__PROTO(prolog_walltime);
+CBOOL__PROTO(prolog_walltick);
+CBOOL__PROTO(prolog_usertick);
+CBOOL__PROTO(prolog_systemtick);
+CBOOL__PROTO(prolog_runtick);
+CBOOL__PROTO(prolog_wallclockfreq);
+CBOOL__PROTO(prolog_userclockfreq);
+CBOOL__PROTO(prolog_systemclockfreq);
+CBOOL__PROTO(prolog_runclockfreq);
 
 /* --------------------------------------------------------------------------- */
 
@@ -1255,16 +1269,10 @@ void init_once(void)
   char *cp;
 
   /* Init time variables */
-  reset_statistics();
+  reset_timing();
 
-#if defined(USE_THREADS) && defined(USE_POSIX_THREADS)
-  pthread_attr_init(&detached_thread);
-  pthread_attr_setdetachstate(&detached_thread, PTHREAD_CREATE_DETACHED);
-  pthread_attr_setscope(&detached_thread, PTHREAD_SCOPE_SYSTEM);
-
-  pthread_attr_init(&joinable_thread);
-  pthread_attr_setdetachstate(&joinable_thread, PTHREAD_CREATE_JOINABLE);
-  pthread_attr_setscope(&joinable_thread, PTHREAD_SCOPE_SYSTEM);
+#if defined(USE_THREADS)
+  INIT_THREADS;
 #endif
 
   GETENV(i,cp,"ATMTABSIZE",ATMTABSIZE);
@@ -2290,20 +2298,20 @@ CBOOL__PROTO(statistics)
 
   ENG_PRINTF(s,
              " %10.6f sec. for %" PRIdm " global, %" PRIdm " local, and %" PRIdm " control space overflows\n",
-             ((flt64_t)ciao_stats.ss_tick)/GET_CLOCKFREQ(ciao_stats),
+             ((flt64_t)ciao_stats.ss_tick)/RunClockFreq(ciao_stats),
              ciao_stats.ss_global,
              ciao_stats.ss_local, ciao_stats.ss_control);
   ENG_PRINTF(s,
              " %10.6f sec. for %" PRIdm " garbage collections which collected %" PRIdm " bytes\n\n",
-             ((flt64_t)ciao_stats.gc_tick)/GET_CLOCKFREQ(ciao_stats),
+             ((flt64_t)ciao_stats.gc_tick)/RunClockFreq(ciao_stats),
              ciao_stats.gc_count,
              (intmach_t)(ciao_stats.gc_acc*sizeof(tagged_t)));
 
   ENG_PRINTF(s,
              " runtime:    %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
-             (flt64_t)(runtick0-ciao_stats.starttick)/GET_CLOCKFREQ(ciao_stats),
+             (flt64_t)(runtick0-ciao_stats.starttick)/RunClockFreq(ciao_stats),
              runtick0-ciao_stats.starttick,
-             GET_CLOCKFREQ(ciao_stats));
+             RunClockFreq(ciao_stats));
   ENG_PRINTF(s,
              " usertime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
              (flt64_t)(usertick0-ciao_stats.startusertick)/ciao_stats.userclockfreq,

@@ -3,8 +3,7 @@
  *
  *  Checked memory allocation.
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2002-2015 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #ifndef _CIAO_ENG_ALLOC_H

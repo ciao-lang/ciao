@@ -3,8 +3,7 @@
  *
  *  Auxiliary definitions for the Ciao bytecode interpreter.
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #include <ciao/eng.h>
@@ -1121,9 +1120,8 @@ CBOOL__PROTO(metacut)
   w->choice = ChoiceFromTagged(X(0));
   SetShadowregs(w->choice);
   /*  ConcChptCleanUp(TopConcChpt, w->choice);*/
-  PROFILE__HOOK_METACUT;
+  PROFILE__HOOK_CUT;
   return TRUE;
-
 }
 
 /*------------------------------------------------------------*/

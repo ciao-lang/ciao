@@ -246,7 +246,7 @@ void engine_init(const char *boot_path, const char *exec_path) {
   tzset();                                       /* Initialize time zone information */
   init_locks();                                  /* global, first of all! */
 
-  init_statistics();                             /* init the statistics related info */
+  init_timing();
 
 #if defined(DEBUG)
   RESET_COUNTER;
@@ -291,7 +291,7 @@ char *get_execpath(void) {
   return strdup(buffer);
 }
 
-int engine_start(int argc, char *argv[]) {
+int engine_start(int argc, char **argv) {
   int i;
   const char *boot_path = NULL;
   

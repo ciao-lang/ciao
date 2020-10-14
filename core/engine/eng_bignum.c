@@ -3,12 +3,10 @@
  *
  *  Bignum arithmetics (support for arbitrary size integers)
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  *
- *  Authors:
- *    Torbjorn Granlund, Johan Andersson, and Mats Carlsson
- *    Ref: Knuth vol. 2 sec. 4.3.1
+ *  Mostly based on code from Torbjorn Granlund, Johan Andersson, and
+ *  Mats Carlsson (Ref: Knuth vol. 2 sec. 4.3.1)
  */
 
 #include <ciao/eng.h>

@@ -69,21 +69,7 @@ CBOOL__PROTO(debugger_state)
 #if defined(DEBUG)
   if (debug_gc)
     fprintf(stderr,
-            "Thread %d is in debbuger_state\n", (int)Thread_Id);
-
-  /*
-  DEREF(X(0), X(0));
-  if (IsVar(X(0)))
-    fprintf(stderr, "First Arg. is Var\n");
-  else 
-    wr_functor("First Arg. is ", X(0));
-
-  DEREF(X(1), X(1));
-  if (IsVar(X(1)))
-    fprintf(stderr, "Second Arg. is Var\n");
-  else 
-    wr_functor("Second Arg. is ", X(1));
-  */
+            "Thread %d is in debugger_state\n", (int)Thread_Id);
 #endif
 
   CBOOL__UNIFY(Current_Debugger_State,X(0));
@@ -95,7 +81,7 @@ CBOOL__PROTO(debugger_mode)
 {
 #if defined(DEBUG)
   if (debug_gc)
-    fprintf(stderr, "Thread %d is changing debbuger mode\n", (int)Thread_Id);
+    fprintf(stderr, "Thread %d is changing debugger mode\n", (int)Thread_Id);
 #endif
 
   if (TaggedIsSTR(Current_Debugger_State)) {

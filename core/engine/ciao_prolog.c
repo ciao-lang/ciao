@@ -955,7 +955,7 @@ void ciao_cut(ciao_ctx ctx, ciao_choice choice) {
   w->previous_choice = ChoiceFromTagged(choice); /* needed? */
   w->choice = ChoiceFromTagged(choice);
   SetShadowregs(w->choice);
-  PROFILE__HOOK_CIAOCUT;
+  PROFILE__HOOK_CUT;
 }
 
 void ciao_fail(ciao_ctx ctx) {

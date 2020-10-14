@@ -3,63 +3,70 @@
  *
  *  Profiler support
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
-#ifndef _CIAO_PROFILE_HOOKS_H
-#define _CIAO_PROFILE_HOOKS_H
+#ifndef _CIAO_ENG_PROFILE_H
+#define _CIAO_ENG_PROFILE_H
+
+#if defined(OPTIM_COMP) && defined(ABSMACH_OPT__profile_calls)
+extern bool_t profile;
+extern bool_t prof_include_time;
+
+void dump_profile(void);
+void add_to_profiling(definition_t *functor);
+
+bool_t profile__get_opt(const char *arg);
+#endif
+
+#if !defined(OPTIM_COMP)
 
 extern bool_t profile;
 extern bool_t profile_eng;
 extern bool_t profile_rcc;
 
+/* Uncomment this line to use the profiler as a tracer */
+/* #define PROFILE__TRACER 1 */
+
 #if defined(PROFILE)
 
-/* Uncomment this line to use the profiler as a tracer */
-/* #define PROFILE__TRACER */
-
-#define CALL_STACK_INITIAL_SIZE 16384
-
-CVOID__PROTO(profile__hook_noop);
-CVOID__PROTO(profile__hook_call_noop, definition_t *f);
+CVOID__PROTO(profile__hook_nop);
+CVOID__PROTO(profile__hook_call_nop, definition_t *f);
 
 /* TODO: create a struct of function pointers (JF) */
-extern void (*profile__hook_redo)(worker_t *w);
-extern void (*profile__hook_cut)(worker_t *w);
-extern void (*profile__hook_call)(worker_t *w, definition_t *functor);
+extern CVOID__PROTO((*profile__hook_redo));
+extern CVOID__PROTO((*profile__hook_cut));
+extern CVOID__PROTO((*profile__hook_call), definition_t *functor);
+#if defined(PROFILE__TRACER)
+extern CVOID__PROTO((*profile__hook_fail));
+extern CVOID__PROTO((*profile__hook_proceed));
+extern CVOID__PROTO((*profile__hook_neck_proceed));
+#endif
 
-#define PROFILE__HOOK_REDO                 {profile__hook_redo(w);}
-#define PROFILE__HOOK_CUT                  {profile__hook_cut(w);}
-#define PROFILE__HOOK_CALL(w,functor)      {profile__hook_call(w, functor);}
-#define PROFILE__HOOK_METACUT              PROFILE__HOOK_CUT
-#define PROFILE__HOOK_CIAOCUT              PROFILE__HOOK_CUT
-
-# if defined(PROFILE__TRACER)
-/* TODO: add typedefs */
-extern void (*profile__hook_fail)(worker_t *w);
-extern void (*profile__hook_proceed)(worker_t *w);
-extern void (*profile__hook_neck_proceed)(worker_t *w);
-#define PROFILE__HOOK_FAIL                 {profile__hook_fail(w);}
-#define PROFILE__HOOK_PROCEED              {profile__hook_proceed(w);}
-#define PROFILE__HOOK_NECK_PROCEED         {profile__hook_neck_proceed(w);}
-# else
+#define PROFILE__HOOK_REDO          CVOID__CALL(profile__hook_redo)
+#define PROFILE__HOOK_CUT           CVOID__CALL(profile__hook_cut)
+#define PROFILE__HOOK_CALL(FUNCTOR) CVOID__CALL(profile__hook_call, (FUNCTOR))
+#if defined(PROFILE__TRACER)
+#define PROFILE__HOOK_FAIL          CVOID__CALL(profile__hook_fail)
+#define PROFILE__HOOK_PROCEED       CVOID__CALL(profile__hook_proceed)
+#define PROFILE__HOOK_NECK_PROCEED  CVOID__CALL(profile__hook_neck_proceed)
+#else
 #define PROFILE__HOOK_FAIL
 #define PROFILE__HOOK_PROCEED
 #define PROFILE__HOOK_NECK_PROCEED
-# endif
+#endif
 
 #else
 
-#define PROFILE__HOOK_FAIL
 #define PROFILE__HOOK_REDO
-#define PROFILE__HOOK_CALL(w,functor)
 #define PROFILE__HOOK_CUT
-#define PROFILE__HOOK_METACUT
-#define PROFILE__HOOK_CIAOCUT
+#define PROFILE__HOOK_CALL(FUNCTOR)
+#define PROFILE__HOOK_FAIL
 #define PROFILE__HOOK_PROCEED
 #define PROFILE__HOOK_NECK_PROCEED
 
 #endif /* PROFILE */
 
-#endif /* _CIAO_PROFILE_HOOKS_H */
+#endif /* !defined(OPTIM_COMP) */
+
+#endif /* _CIAO_ENG_PROFILE_H */

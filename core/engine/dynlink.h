@@ -3,12 +3,7 @@
  *
  *  Load dynamic object code onto a running process
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
- *
- *  Authors:
- *    Manuel Carro
- *    Jose F. Morales
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #ifndef _CIAO_DYNLINK_H

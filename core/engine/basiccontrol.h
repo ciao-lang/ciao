@@ -49,6 +49,11 @@ CBOOL__PROTO(run_determ_c, tagged_t goal);
 #endif
 
 #if defined(DEBUG)
+void wr_functor(char *s, definition_t *func);
+CVOID__PROTO(wr_call, char *s, definition_t *func);
+#endif
+
+#if defined(DEBUG)
    /* stop_on_pred_calls = trace_calls | profile */
 # if defined(PROFILE)
 #  define PredTrace(X,Y) \
@@ -58,7 +63,7 @@ CBOOL__PROTO(run_determ_c, tagged_t goal);
   { \
     if (trace_calls) wr_functor(X,Y); \
     else { \
-      PROFILE__HOOK_CALL(w,Y); \
+      PROFILE__HOOK_CALL(Y); \
     } \
   } \
 }

@@ -3,20 +3,29 @@
  *
  *  Thread abstraction layer.
  *
- *  Copyright (C) 1996-2020 Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #ifndef _CIAO_OS_THREADS_H
 #define _CIAO_OS_THREADS_H
 
+#if (!defined(OPTIM_COMP))&&(!defined(USE_LOWRTCHECKS))&&defined(DEBUG)
+#define USE_LOWRTCHECKS
+#endif
+
+/* ------------------------------------------------------------------------- */
+/* Locks and conditional variables */
+
+#if !defined(OPTIM_COMP)
 /* If we undefine this, only binary semaphores will be available */
 #define GENERAL_LOCKS
+#endif
 
 #if !defined(NULL)
 #define NULL (void *)0
 #endif
 
-#if !defined(USE_THREADS)                                   /* Empty macros */
+#if !defined(USE_THREADS) /* Empty macros */
 /* Spin locks: fast, but make a busy-wait */
 #define Init_slock(p)          
 #define Wait_Acquire_slock(p)  
@@ -43,7 +52,7 @@
 #define Wait_For_Cond_End(Cond)
 #define Wait_For_Cond_Begin(Predicate, Cond)
 
-#if defined(DEBUG)
+#if defined(USE_LOWRTCHECKS)
 #define Cond_Lock_is_unset(Cond) FALSE
 #endif
 
@@ -53,7 +62,7 @@ typedef char LOCK;
 
 #else /* defined(USE_THREADS) */
 
-#define USE_LOCKS
+#define USE_LOCKS 1
 
 /* TODO: x86_64 missing */
 
@@ -62,11 +71,8 @@ typedef char LOCK;
    try it, actually.  This is heavily influenced by Kish Shen and Roland
    Karlsson (thanks to both). */
 
-#if (defined(i686) || \
-     defined(Sparc) || \
-     defined(Sequent)) && \
-    defined(__GNUC__)
-#define HAVE_NATIVE_SLOCKS
+#if (defined(i686) || defined(Sparc) || defined(Sequent)) && defined(__GNUC__)
+#define HAVE_NATIVE_SLOCKS 1
 
 /*
 #if defined(Sparc) || defined(Sequent) 
@@ -74,7 +80,7 @@ typedef char LOCK;
 #endif
 */
 
-typedef volatile unsigned long int SLOCK_ST;
+typedef volatile unsigned long SLOCK_ST;
 typedef volatile struct {
   SLOCK_ST  lock_st;
   SLOCK_ST *lock_pt;
@@ -89,9 +95,7 @@ typedef volatile struct {
 #endif                                                     /* DESTRUCTIVE */
 
 
-/* ------------------------------------------------------------------------- */
-
-# if defined(Sparc)     /* Macro definition for sparc */
+# if defined(Sparc) /* Macro definition for sparc */
 #   define aswap(addr,reg)                                      \
 ({ int _ret;                                                    \
    asm volatile ("swap %1,%0"                                   \
@@ -101,13 +105,11 @@ typedef volatile struct {
 })
 # endif                                                          /* Sparc */
 
-/* ------------------------------------------------------------------------- */
-
 /* Was      asm volatile ("xchgw %0,%1"                                */
 
-# if defined(i686) || defined(Sequent)         /* Now, Intel 80x86 stuff */
+# if defined(i686) || defined(Sequent) /* Now, Intel 80x86 stuff */
 #   define aswap(adr,reg)                                       \
-  ({ long int _ret;                                             \
+  ({ long _ret;                                             \
      asm volatile ("xchgl %0,%1"                                \
         : "=q" (_ret), "=m" (*(adr))    /* Output %0,%1 */      \
         : "m"  (*(adr)), "0"  (reg));   /* Input (%2),%0 */     \
@@ -115,8 +117,8 @@ typedef volatile struct {
   })
 #  endif
 
-/* ------------------------------------------------------------------------- */
 /* Untested for MIPS! */
+
 # if defined(mips)
 #   define asm_ll(adr)                                          \
   ({ int _ret;                                                  \
@@ -142,16 +144,14 @@ typedef volatile struct {
 
 #define mips_try_lock(p) (*(LockOffset(p))=1)
 
-# define mips_lock(p)                                           \
+#define mips_lock(p)                                            \
 do { if (mips_try_lock(p)) break;                               \
      {{ t_lock_wait(); }}                                       \
      {{ t_debug(__FILE__,__LINE__); }}                          \
-     while(*(LockOffset*p))==1) continue;                       \
+     while(*(LockOffset*p)==1) continue;                        \
      {{ t_lock_ready(); }}                                      \
-   } while(1)
-# endif
-
-/* ------------------------------------------------------------------------- */
+   } while(1);
+#endif
 
 /* Initialize a spin lock */
 #define Init_slock(p)  { \
@@ -195,8 +195,8 @@ do { if (mips_try_lock(p)) break;                               \
 
 /* ------------------------------------------------------------------------- */
 
-#if defined(LINUX) || defined (Solaris) || defined (DARWIN) || defined(BSD)
-#define HAVE_LIB_LOCKS
+#if defined(LINUX) || defined(Solaris) || defined(DARWIN) || defined(BSD)
+#define HAVE_LIB_LOCKS 1
 
 #include <pthread.h>
 #include <unistd.h>
@@ -223,7 +223,7 @@ typedef pthread_mutex_t LOCK;
 #define Destroy_lock(p)      pthread_mutex_destroy(&p)
 #define Lock_is_unset(p)     lock_is_unset(&p)
 
-#define CONDITIONAL_VARS
+#define CONDITIONAL_VARS 1
 
 typedef pthread_cond_t COND_VAR;
 
@@ -236,7 +236,7 @@ typedef pthread_cond_t COND_VAR;
 /* ------------------------------------------------------------------------- */
 
 #if defined(Win32)
-#define HAVE_LIB_LOCKS
+#define HAVE_LIB_LOCKS 1
 
 #include <windows.h>
 
@@ -252,8 +252,8 @@ typedef CRITICAL_SECTION LOCK;
 #define Destroy_lock(p)      DeleteCriticalSection(&p)
 #define Lock_is_unset(p)     lock_is_unset(&p)
 
-#define CONDITIONAL_VARS
-#define RELINQUISH_PROCESSOR
+#define CONDITIONAL_VARS 1
+#define RELINQUISH_PROCESSOR 1
 
 typedef HANDLE COND_VAR;
 
@@ -323,8 +323,6 @@ typedef LOCK  int;
 /* The two below should not be used in user code, only here. */
 #define Wait_Acquire_Cond_lock(Cond) Wait_Acquire_lock(Cond.cond_lock)
 #define Release_Cond_lock(Cond) Release_lock(Cond.cond_lock)
-
-
 
 /* Use of the conditional vars: 
 
@@ -408,11 +406,11 @@ typedef struct conditionstruct {
 
 #endif /* USE_THREADS */
 
-#if defined(DEBUG)
+#if defined(USE_LOWRTCHECKS) || defined(DEBUG_TRACE)
 bool_t lock_is_unset(LOCK *p);
 #endif
 
-#if defined(DEBUG)
+#if defined(USE_LOWRTCHECKS) || defined(DEBUG_TRACE)
 #define GET_INC_COUNTER get_inc_counter()
 #define RESET_COUNTER reset_counter()
 uintmach_t get_inc_counter(void);
@@ -435,7 +433,7 @@ void reset_counter(void);
 /* ------------------------------------------------------------------------- */
 
 #if defined(DARWIN) || defined(LINUX) || defined(Solaris) || defined(Win32) || defined(BSD)
-#define USE_POSIX_THREADS
+#define USE_POSIX_THREADS 1
 #endif
 
 /* Previous case: use home-made Windows wrapper to approximate what we need */
@@ -454,6 +452,14 @@ void reset_counter(void);
 extern pthread_attr_t detached_thread;
 extern pthread_attr_t joinable_thread;
 
+#define INIT_THREADS \
+  pthread_attr_init(&detached_thread); \
+  pthread_attr_setdetachstate(&detached_thread, PTHREAD_CREATE_DETACHED); \
+  pthread_attr_setscope(&detached_thread, PTHREAD_SCOPE_SYSTEM); \
+  pthread_attr_init(&joinable_thread); \
+  pthread_attr_setdetachstate(&joinable_thread, PTHREAD_CREATE_JOINABLE); \
+  pthread_attr_setscope(&joinable_thread, PTHREAD_SCOPE_SYSTEM);
+
 typedef pthread_t THREAD_T;     /* The type of a thread */
 typedef pthread_t THREAD_ID;    /* The unique identifier of a thread */
 typedef void *    THREAD_ARG;
@@ -467,12 +473,21 @@ typedef void *(*THREAD_START)(void *);
 }
 */
 
+#if defined(OPTIM_COMP)
 #define Thread_Create_GoalId(Process, Arg, Id, Handle) { \
-    if (pthread_create(&(Id), &joinable_thread, Process, Arg)){ \
-      ENG_perror("eng_call/{3,4}"); \
- } \
-    Handle = Id; \
+  if (pthread_create(&(Id), &joinable_thread, Process, Arg)) { \
+    print_syserror("Thread_Create_GoalId"); \
+  } \
+  Handle = Id; \
 }
+#else
+#define Thread_Create_GoalId(Process, Arg, Id, Handle) { \
+  if (pthread_create(&(Id), &joinable_thread, Process, Arg)) { \
+    ENG_perror("Thread_Create_GoalId"); \
+  } \
+  Handle = Id; \
+}
+#endif
 
 #define Thread_Join(Id)     pthread_join(Id, NULL)
 #define Thread_Exit(Status) pthread_exit(Status)
@@ -496,12 +511,17 @@ typedef void *(*THREAD_START)(void *);
 #endif
 #define Thread_Equal(thr1, thr2) pthread_equal(thr1, thr2)
 #define Thread_Dispose(ThrH) pthread_join(ThrH)
+
+#else /* !defined(USE_POSIX_THREADS) */
+
+#define INIT_THREADS
+
 #endif  
 
 /* ------------------------------------------------------------------------- */
 
 #if defined(USE_WIN32_THREADS)
-#include <ciao/windows.h>
+#include <windows.h>
 
 typedef HANDLE THREAD_T;        /* The thread object */
 typedef DWORD  THREAD_ID;       /* The unique thread identifier */
@@ -525,10 +545,9 @@ typedef LPTHREAD_START_ROUTINE  THREAD_START; /* The type of the routine */
  /* Macro uses args so we can cast start_proc to LPTHREAD_START_ROUTINE
     in order to avoid warnings because of return type */
 #define _beginthreadex(security, stack_size, start_proc, arg, flags, pid) \
-CreateThread(security, stack_size, (LPTHREAD_START_ROUTINE) start_proc, \
-             arg, flags, pid)      
- #define _endthreadex ExitThread      
- #endif 
+  CreateThread(security, stack_size, (LPTHREAD_START_ROUTINE) start_proc, arg, flags, pid)      
+#define _endthreadex ExitThread      
+#endif 
 
 /*
 #define Thread_Create_GoalId(Process, Arg, Id, Handle) \
@@ -587,4 +606,5 @@ typedef void *(*THREAD_START)(void *);
 
 #endif /* defined(USE_THREADS) */
 
-#endif /* _CIAO_THREADS_H */
+#endif /* _CIAO_OS_THREADS_H */
+

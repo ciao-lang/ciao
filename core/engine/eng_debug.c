@@ -12,157 +12,23 @@
 #include <ciao/stream_basic.h>
 #include <ciao/eng_debug.h> /* already in eng.h */
 
-#if defined(DEF_WR_DEBUG)
+/* ------------------------------------------------------------------------- */
+/* safe print routines (works even with gc bits on) */
 
-/* local declarations */
-/*
-myDEREF(Xderef,X) 
-     tagged_t Xderef, X;
-{ 
-  tagged_t m_i, m_j; 
-  tagged_t aux1, aux2, aux3;
-  tagged_t *aux4;
-  m_i = X; 
+#if defined(DEBUG)
 
-  if (IsVar(m_i)) 
-    do {
-      aux1 = (tagged_t)(m_i) & POINTERMASK;
-      aux2 = aux1 + SMALLPTR_BASE;
-      aux4 = (tagged_t *)aux2;
-      aux3 = *aux4;
-      m_i = aux3;
-      if (m_i == m_j)
-        break;
-    }
-    while (IsVar(m_i=m_j)); 
+static void wr_functor_1(definition_t *func) {
+  if (!(func->printname & 1))
+    printf("%s/%d", GetString(func->printname), func->arity);
+  else
+    printf("(?)"); // TODO: deprecate subdef?
+} 
 
-  Xderef = m_i; 
-}
-*/
-
-static tagged_t safe_deref(tagged_t t)
-{
-   tagged_t aux;
-   
-   DerefSwitch(t,aux,;);
- 
-   return (t & ~3);
-}
-
-CVOID__PROTO(wr_tagged, tagged_t t) {
-  wr_tagged_rec(Arg,t);
-  putchar('\n');
-}
-
-CVOID__PROTO(wr_tagged_rec, tagged_t t) {
-  tagged_t temp;
-  int arity,i;
-
-  t = safe_deref(t);
-  switch(TagOf(t)) {
-  case LST:
-    putchar('[');
-    RefCar(temp,t);
-    wr_tagged_rec(Arg,temp);
-    RefCdr(temp,t);
-    t = safe_deref(temp);
-    while(TaggedIsLST(t))  {
-      putchar(',');
-      RefCar(temp,t);
-      wr_tagged_rec(Arg,temp);
-      RefCdr(temp,t);
-      t = safe_deref(temp);
-    }
-    if(t!=atom_nil) {
-      putchar('|');
-      wr_tagged_rec(Arg,t);
-    }
-    putchar(']');
-    break;
-  case STR:
-    if (STRIsLarge(t))
-      goto number;
-    wr_tagged_rec(Arg,TaggedToHeadfunctor(t));
-    putchar('(');
-    arity = Arity(TaggedToHeadfunctor(t));
-    for(i=1; i<=arity; i++){
-      if(i>1) putchar(',');
-      temp = *TaggedToArg(t,i);
-      wr_tagged_rec(Arg,temp);
-    }
-    putchar(')');
-    break;
-  case UBV:
-  case SVA:
-  case HVA:
-  case CVA:
-    print_variable(Arg,stream_user_output,t);
-    break;
-  case ATM:
-    print_atom(Arg,stream_user_output,t);
-    break;
-  case NUM:
-  number:
-  print_number(Arg, stream_user_output,t);
-  break;
-  }
-}
-
-void wr_functor_1(definition_t *func);
-
-void wr_functor(char *s, definition_t *func)
-{
+void wr_functor(char *s, definition_t *func) {
   printf("%s: ",s);
   wr_functor_1(func);
   putchar('\n');
 }
-
-/* unused */
-/*
-static definition_t *which_parent(definition_t *func)
-{
-  definition_t *func1;
-
-  do
-    func1 = func,
-    func = (definition_t *)TaggedToPointer(func1->printname);
-  while (!(func1->printname & 2));
-  return func;
-}
-*/
-
-/* unused */
-/*
-static which_child(definition_t *func)
-{
-   int i; 
-  definition_t *f1;  
-
-  for (i=1, f1 = which_parent(func)->code.incoreinfo->subdefs;
-       f1 != func;
-       i++, f1 = (definition_t *)TaggedToPointer(f1->printname))
-    ;
-
-  return i;
-
-  printf("Out of order!!\n");
-}
-*/
-
-void wr_functor_1(definition_t *func)
-{
-  if (!(func->printname & 1))
-    printf("%s/%d", GetString(func->printname), func->arity);
-  else
-    printf("(?)");
-/*
-    {
-      putchar('(');
-      wr_functor_1(which_parent(func));
-      printf("-%d)/%d", which_child(func), func->arity);
-    }
-*/
-} 
 
 CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
 
@@ -195,15 +61,10 @@ CVOID__PROTO(wr_call, char *s, definition_t *func) {
     printf("%s/%d", GetString(func->printname), func->arity);
 #endif
   } else {
-    printf("(?)");
+    printf("(?)"); // TODO: deprecate subdef?
   }
 
   putchar('\n');
-}
-
-CVOID__PROTO(wr_functor_spec, tagged_t t) {
-  wr_tagged(Arg,t);
-  printf("/%" PRIdm "\n", Arity(t));
 }
 
 #else

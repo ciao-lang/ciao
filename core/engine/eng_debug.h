@@ -3,28 +3,89 @@
  *
  *  Support for debugging and tracing the engine code
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2002-2015 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #ifndef _CIAO_ENG_DEBUG_H
 #define _CIAO_ENG_DEBUG_H
 
-// #define DEF_WR_DEBUG 1
-
-#if defined(DEBUG)
-#if !defined(DEF_WR_DEBUG)
-#define DEF_WR_DEBUG 1
-#endif
+#if !defined(OPTIM_COMP)
+extern bool_t stop_on_pred_calls;
 #endif
 
-#if defined(DEF_WR_DEBUG)
-CVOID__PROTO(wr_tagged, tagged_t t);
-CVOID__PROTO(wr_tagged_rec, tagged_t t);
-void wr_functor(char *s, definition_t *func);
-CVOID__PROTO(wr_call, char *s, definition_t *func);
-CVOID__PROTO(wr_functor_spec, tagged_t t);
+/* ------------------------------------------------------------------------- */
+/* INSCOUNT (instruction-level profiler) */
+
+#if defined(OPTIM_COMP)
+
+#if defined(USE_LOWRTCHECKS)||defined(DEBUG_TRACE)
+#define USE_DEBUG_INSCOUNT 1
 #endif
+
+#if defined(USE_DEBUG_INSCOUNT)
+extern intmach_t debug_inscount;
+bool_t dump_cond(void);
+void init_debug_inscount(void);
+#define INSCOUNT_NEXT() debug_inscount++
+#endif
+
+#endif /* defined(OPTIM_COMP) */
+
+/* ------------------------------------------------------------------------- */
+/* Low-level runtime checks (debugging) */
+
+#if defined(OPTIM_COMP)
+
+#if defined(USE_LOWRTCHECKS)
+CBOOL__PROTO(proofread, char *text, intmach_t arity, bool_t force);
+void dump_tagged(tagged_t t);
+CVOID__PROTO(dump_call, char *s, definition_t *func);
+
+#define RTCHECK(X) X
+#else
+#define RTCHECK(X) {}
+#endif 
+
+/* TODO: give good definitions */
+#define RTERROR() {}
+#define RTERRORBOOL() FALSE
+
+/* TODO: fix name */
+#define TYPE_RTCHECK(Type, X) \
+  RTCHECK({if (!Type((X))) TRACE_PRINTF("{violated type assertion at %s:%d}", __FILE__, __LINE__);})
+
+#endif /* defined(OPTIM_COMP) */
+
+/* ------------------------------------------------------------------------- */
+/* Debug trace */
+
+#if defined(OPTIM_COMP)
+
+#if defined(DEBUG_TRACE)
+
+/* TODO: move tracing outside the debug code? add tracing levels? */
+#define DEBUG__TRACE(COND, ...) ({ \
+  if ((COND)) { TRACE_PRINTF(__VA_ARGS__); } \
+})
+/* debug_trace options */
+extern bool_t debug_predtrace;
+extern bool_t debug_dynlink;
+extern bool_t debug_gc;
+extern bool_t debug_threads;
+extern bool_t debug_choicepoints;
+extern bool_t debug_concchoicepoints;
+extern bool_t debug_mem;
+extern bool_t debug_conc;
+extern bool_t debug_setarg;
+extern bool_t debug_atomgc;
+
+bool_t debug_trace__get_opt(const char *arg);
+
+#else
+#define DEBUG__TRACE(COND, ...)
+#endif
+
+#else /* !defined(OPTIM_COMP) */
 
 #if defined(DEBUG)
 extern bool_t debug_dynlink;
@@ -36,6 +97,6 @@ extern bool_t debug_mem;
 extern bool_t debug_conc;
 #endif
 
-extern bool_t stop_on_pred_calls;
+#endif /* !defined(OPTIM_COMP) */
 
 #endif /* _CIAO_ENG_DEBUG_H */

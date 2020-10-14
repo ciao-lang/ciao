@@ -3,8 +3,7 @@
  *
  *  Metering primitives.
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #include <string.h>
@@ -21,22 +20,19 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
-inttime_t internal_usertick_std(void)
-{
+inttime_t usertick(void) {
   struct rusage rusage;
   getrusage(RUSAGE_SELF,&rusage);
   return ((inttime_t)rusage.ru_utime.tv_sec) * 1000000 + rusage.ru_utime.tv_usec;
 }
 
-inttime_t internal_systemtick_std(void)
-{
+inttime_t systemtick(void) {
   struct rusage rusage;
   getrusage(RUSAGE_SELF,&rusage);
   return ((inttime_t)rusage.ru_stime.tv_sec) * 1000000 + rusage.ru_stime.tv_usec;
 }
 
-static void init_frequency_info(void)
-{
+static void init_frequency_info(void) {
   ciao_stats.userclockfreq = 1000000;
   ciao_stats.systemclockfreq = 1000000;
 }
@@ -48,57 +44,51 @@ static void init_frequency_info(void)
 #endif
 
 struct tms {
-    u_int tms_utime;
-    u_int tms_stime;
-    u_int tms_cutime;
-    u_int tms_cstime;
+  u_int tms_utime;
+  u_int tms_stime;
+  u_int tms_cutime;
+  u_int tms_cstime;
 };
 
 /* Own definition for times() */
-clock_t times(struct tms *info)
-{
-    HANDLE process = GetCurrentProcess();
-    FILETIME ctime, xtime, utime, stime;
-    int64_t val;
-    const int factor = 10000000/CLK_TCK;
-    const int bias   = factor/2;
+clock_t times(struct tms *info) {
+  HANDLE process = GetCurrentProcess();
+  FILETIME ctime, xtime, utime, stime;
+  int64_t val;
+  const int factor = 10000000/CLK_TCK;
+  const int bias   = factor/2;
 
-    if (!GetProcessTimes(process, &ctime, &xtime, &stime, &utime)) {
-      /* TODO: handle error? */
-      info->tms_stime = 0;
-      info->tms_utime = 0;
-      info->tms_cstime = 0;
-      info->tms_cutime = 0;
-      return 0;
-    }
-    val = ((int64_t)stime.dwHighDateTime << 32) + stime.dwLowDateTime;
-    info->tms_stime = (u_int)((val+bias) / factor);
-    val = ((int64_t)utime.dwHighDateTime << 32) + utime.dwLowDateTime;
-    info->tms_utime = (u_int)((val+bias) / factor);
-
+  if (!GetProcessTimes(process, &ctime, &xtime, &stime, &utime)) {
+    /* TODO: handle error? */
+    info->tms_stime = 0;
+    info->tms_utime = 0;
     info->tms_cstime = 0;
     info->tms_cutime = 0;
     return 0;
+  }
+  val = ((int64_t)stime.dwHighDateTime << 32) + stime.dwLowDateTime;
+  info->tms_stime = (u_int)((val+bias) / factor);
+  val = ((int64_t)utime.dwHighDateTime << 32) + utime.dwLowDateTime;
+  info->tms_utime = (u_int)((val+bias) / factor);
+
+  info->tms_cstime = 0;
+  info->tms_cutime = 0;
+  return 0;
 }
 
-inttime_t internal_usertick_std(void)
-{
+inttime_t usertick(void) {
   struct tms buffer;
-  
   times(&buffer);
   return buffer.tms_utime;
 }
 
-inttime_t internal_systemtick_std(void)
-{
+inttime_t systemtick(void) {
   struct tms buffer;
-  
   times(&buffer);
   return buffer.tms_stime;
 }
 
-static void init_frequency_info(void)
-{
+static void init_frequency_info(void) {
   ciao_stats.userclockfreq = HZ;
   ciao_stats.systemclockfreq = HZ;
 }
@@ -108,37 +98,25 @@ static void init_frequency_info(void)
 #include <sys/times.h>
 #include <sys/param.h>
 
-inttime_t internal_usertick_std(void)
-{
+inttime_t usertick(void) {
   struct tms buffer;
-  
   times(&buffer);
   return buffer.tms_utime;
 }
 
-inttime_t internal_systemtick_std(void)
-{
+inttime_t systemtick(void) {
   struct tms buffer;
-  
   times(&buffer);
   return buffer.tms_stime;
 }
 
-static void init_frequency_info(void)
-{
+static void init_frequency_info(void) {
   ciao_stats.userclockfreq = HZ;
   ciao_stats.systemclockfreq = HZ;
 }
 #endif
 
-/* usertick is defined as a pointer to a function to let the
-   redefinition on the fly for a better timing measurement function */
-
-inttime_t (*usertick)(void) = internal_usertick_std;
-inttime_t (*systemtick)(void) = internal_systemtick_std;
-
-flt64_t usertime(void)
-{
+flt64_t usertime(void) {
   return ((flt64_t)usertick()) / ciao_stats.userclockfreq;
 }
 
@@ -178,26 +156,19 @@ int gettimeofday(struct timeval *tv, void *tz)
 
 /* Shared but locked?  Initialized in init_once() */
 
-inttime_t internal_walltick_std(void)
-{
+inttime_t walltick(void) {
   struct timeval tp;
   gettimeofday(&tp, 0L);
   return (inttime_t)tp.tv_sec*1000000 + ((inttime_t)tp.tv_usec);
 }
 
-inttime_t (*walltick)(void) = internal_walltick_std;
-
-void init_statistics(void) {
+void init_timing(void) {
   init_frequency_info();
   ciao_stats.wallclockfreq = 1000000;
 }
 
-/*
-  This function returns the walltime in milliseconds
-*/
-
-flt64_t walltime(void)
-{
+/* Walltime in milliseconds */
+flt64_t walltime(void) {
   return ((flt64_t)walltick() * 1000) / ciao_stats.wallclockfreq;
 }
 
@@ -234,10 +205,10 @@ static CBOOL__PROTO(generic_time,
 CBOOL__PROTO(prolog_runtime)
 {
   return generic_time(Arg, 
-                      TICK_FUNCTION,
+                      RunTickFunc,
                       ciao_stats.starttick, 
                       &ciao_stats.lasttick,
-                      GET_CLOCKFREQ(ciao_stats));
+                      RunClockFreq(ciao_stats));
 }
 
 CBOOL__PROTO(prolog_usertime)
@@ -292,33 +263,33 @@ static CBOOL__PROTO(generic_tick,
 CBOOL__PROTO(prolog_walltick)
 {
   return generic_tick(Arg, 
-                       walltick, 
-                       ciao_stats.startwalltick,
-                       &ciao_stats.lastwalltick);
+                      walltick, 
+                      ciao_stats.startwalltick,
+                      &ciao_stats.lastwalltick);
 }
 
 CBOOL__PROTO(prolog_usertick)
 {
   return generic_tick(Arg, 
-                       usertick, 
-                       ciao_stats.startusertick,
-                       &ciao_stats.lastusertick);
+                      usertick, 
+                      ciao_stats.startusertick,
+                      &ciao_stats.lastusertick);
 }
 
 CBOOL__PROTO(prolog_systemtick)
 {
   return generic_tick(Arg, 
-                       systemtick, 
-                       ciao_stats.startsystemtick,
-                       &ciao_stats.lastsystemtick);
+                      systemtick, 
+                      ciao_stats.startsystemtick,
+                      &ciao_stats.lastsystemtick);
 }
 
 CBOOL__PROTO(prolog_runtick)
 {
   return generic_tick(Arg, 
-                       TICK_FUNCTION,
-                       ciao_stats.starttick,
-                       &ciao_stats.lasttick);
+                      RunTickFunc,
+                      ciao_stats.starttick,
+                      &ciao_stats.lasttick);
 }
 
 /* New time medition functions */
@@ -331,7 +302,7 @@ static inline CBOOL__PROTO(generic_clockfreq, inttime_t clockfreq)
 
 CBOOL__PROTO(prolog_runclockfreq)
 {
-  return generic_clockfreq(Arg, GET_CLOCKFREQ(ciao_stats));
+  return generic_clockfreq(Arg, RunClockFreq(ciao_stats));
 }
 
 CBOOL__PROTO(prolog_userclockfreq)
@@ -349,8 +320,7 @@ CBOOL__PROTO(prolog_wallclockfreq)
   return generic_clockfreq(Arg, ciao_stats.wallclockfreq);
 }
 
-void reset_statistics(void)
-{
+void reset_timing(void) {
   ciao_stats.startusertick = usertick();
   ciao_stats.lastusertick = ciao_stats.startusertick;
   ciao_stats.startwalltick = walltick();

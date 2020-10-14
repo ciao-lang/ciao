@@ -3,12 +3,7 @@
  *
  *  Bignum arithmetics (support for arbitrary size integers)
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
- *
- *  Authors:
- *    Torbjorn Granlund, Johan Andersson, and Mats Carlsson
- *    Ref: Knuth vol. 2 sec. 4.3.1
+ *  See Copyright Notice in ciaoengine.pl
  */
  
 #ifndef _CIAO_BIGNUM_H

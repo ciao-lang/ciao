@@ -1,14 +1,17 @@
 /*
  *  rt_exp.h
  *
- *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
+ *  See Copyright Notice in ciaoengine.pl
  */
 
 #ifndef _CIAO_RT_EXP_H
 #define _CIAO_RT_EXP_H
 
-/* static unsigned int predicate_property_bits(definition_t *d); */
+#if defined(OPTIM_COMP)
+CBOOL__PROTO(predicate_def, definition_t *f, intmach_t bits);
+CBOOL__PROTO(define_predicate);
+#endif
+
 CBOOL__PROTO(current_predicate);
 CBOOL__PROTO(nd_current_predicate);
 CBOOL__PROTO(predicate_property);
