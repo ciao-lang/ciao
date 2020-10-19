@@ -88,17 +88,12 @@ CFUN__PROTO(current_instance, instance_t *)
   else {
     DEREF(X(4), X(4));                                   /* Blocking? (MCL) */
 #if defined(DEBUG)
-    if (X(4) == atom_block)
-      block = BLOCK;
-    else if (X(4) == atom_no_block)
-      block = NO_BLOCK;
-    else {
+    if (X(4) != atom_block && X(4) != atom_no_block) {
       failc("$current_instance called with unknown 5th argument");
       return NULL;                         
     }
-#else
-    block = X(4) == atom_block ? BLOCK : NO_BLOCK;
 #endif
+    block = X(4) == atom_block ? BLOCK : NO_BLOCK;
     return current_instance_conc(Arg, block);
   }
 }

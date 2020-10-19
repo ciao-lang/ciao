@@ -33,18 +33,20 @@
 /* ------------------------------------------------------------------------- */
 /* The root stream pointer (all streams are liked) */
 
-stream_node_t *root_stream_ptr;               /* Shared and _locked_ */
+stream_node_t *root_stream_ptr; /* Shared and _locked_ */
 
 /* ------------------------------------------------------------------------- */
 /* The table of stream aliases */
 
-stream_node_t *stream_user_input  = NULL;                  /* Shared */
-stream_node_t *stream_user_output = NULL;                  /* Shared */
-stream_node_t *stream_user_error  = NULL;                  /* Shared */
+stream_node_t *stream_user_input  = NULL; /* Shared */
+stream_node_t *stream_user_output = NULL; /* Shared */
+stream_node_t *stream_user_error  = NULL; /* Shared */
 
-tagged_t atom_user_input;       /* "user_input" */ 
-tagged_t atom_user_output;      /* "user_output" */
-tagged_t atom_user_error;       /* "user_error" */
+/* ------------------------------------------------------------------------- */
+
+tagged_t atom_user_input; /* "user_input" */ 
+tagged_t atom_user_output; /* "user_output" */
+tagged_t atom_user_error; /* "user_error" */
 
 /* ------------------------------------------------------------------------- */
 /* Initialize the streams library (only once) */
@@ -76,8 +78,6 @@ void init_streams(void)
 /* Protect the creation of streams: several threads might want to create
    streams at once. */
 
-extern LOCK stream_list_l;
-
 stream_node_t *insert_new_stream(stream_node_t *new_stream){
 
   Wait_Acquire_lock(stream_list_l);
@@ -106,19 +106,12 @@ stream_node_t *new_stream(tagged_t streamname,
   return insert_new_stream(s);
 }
 
-
-static int file_is_tty(FILE *file)
-{
-  extern bool_t interactive_flag_bool;
-
+static int file_is_tty(FILE *file) {
   return (isatty(fileno(file)) ||
           (interactive_flag_bool && fileno(file)<3));
 }
 
-
-void update_stream(stream_node_t *s,
-                   FILE *file)
-{
+void update_stream(stream_node_t *s, FILE *file) {
   s->label = MakeSmall(fileno(file));
   s->streamfile = file;
   if ((s->isatty = file_is_tty(file)))
@@ -127,39 +120,6 @@ void update_stream(stream_node_t *s,
   s->nl_count = 0;
   s->rune_count = 0; /* less than perfect */
 }
-
-#if 0 /* Not used */
-#if defined(CREATE_NEW_STREAMS)
-void update_std_streams(void)           /* called by restore/1 */
-{
-  struct
-    stream_node *streamptr = root_stream_ptr, *next_ptr;
-
-  do {
-    next_ptr = streamptr->forward;
-    if (streamptr->streamname!=ERRORTAG)
-      fclose(streamptr->streamfile);
-    checkdealloc(streamptr);
-    streamptr = next_ptr;
-  } while (streamptr!=root_stream_ptr);
-  init_streams();
-  init_streams_each_time(Arg);
-}
-#else
-void update_std_streams(void)           /* called by restore/1 */
-{
-  stream_node_t *streamptr = root_stream_ptr->forward;
-
-  while (streamptr!=root_stream_ptr) {         /* close any ghost streams */
-    if (streamptr->streamname!=ERRORTAG)
-      fclose(streamptr->streamfile);
-    else                              /* check if std stream is a tty now */
-      update_stream(streamptr,streamptr->streamfile);
-    streamptr = streamptr->forward;
-  }
-}
-#endif
-#endif
 
 /* ------------------------------------------------------------------------- */
 /* Functions to check types */
@@ -429,8 +389,6 @@ CBOOL__PROTO(prolog_open)
 /* as Quintus closing a stream object referring to user_input,user_output */
 /*   or user_error will succeed but cause no changes */
 
-extern LOCK stream_list_l;
-
 CBOOL__PROTO(prolog_close)
 {
   ERR__FUNCTOR("stream_basic:close", 1);
@@ -508,16 +466,6 @@ CBOOL__PROTO(prolog_pipe)
 
  bombit:
   BUILTIN_ERROR(RESOURCE_ERROR(R_UNDEFINED),X(0),1) ;
-}
-
-/* ------------------------------------------------------------------------- */
-
-/* TODO: pass Arg? */
-void ENG_perror(char *s)
-{
-  /* ENG_PRINTF(stream_user_error, "%s: %s\n", s, sys_errlist[errno]); */
-  /* ENG_PRINTF(stream_user_error, "ERROR: %s: %s\n", s, strerror(errno)); */
-  fprintf(stderr, "ERROR: %s: %s\n", s, strerror(errno));
 }
 
 /* ------------------------------------------------------------------------- */
@@ -831,17 +779,17 @@ extern char *eng_os;
 extern char *eng_debug_level;
 
 CBOOL__PROTO(prolog_bootversion) {
-  print_string(Arg, Output_Stream_Ptr, CIAO_VERSION_STRING);
-  print_string(Arg, Output_Stream_Ptr, " [");
-  print_string(Arg, Output_Stream_Ptr, eng_os);
-  print_string(Arg, Output_Stream_Ptr, eng_architecture);
-  print_string(Arg, Output_Stream_Ptr, "]");
+  CVOID__CALL(print_string, Output_Stream_Ptr, CIAO_VERSION_STRING);
+  CVOID__CALL(print_string, Output_Stream_Ptr, " [");
+  CVOID__CALL(print_string, Output_Stream_Ptr, eng_os);
+  CVOID__CALL(print_string, Output_Stream_Ptr, eng_architecture);
+  CVOID__CALL(print_string, Output_Stream_Ptr, "]");
   if (strcmp(eng_debug_level, "nodebug") != 0) {
-    print_string(Arg, Output_Stream_Ptr, " [");
-    print_string(Arg, Output_Stream_Ptr, eng_debug_level);
-    print_string(Arg, Output_Stream_Ptr, "]");
+    CVOID__CALL(print_string, Output_Stream_Ptr, " [");
+    CVOID__CALL(print_string, Output_Stream_Ptr, eng_debug_level);
+    CVOID__CALL(print_string, Output_Stream_Ptr, "]");
   }
-  print_string(Arg, Output_Stream_Ptr, "\n");
+  CVOID__CALL(print_string, Output_Stream_Ptr, "\n");
   return TRUE;
 }
 
@@ -860,8 +808,6 @@ CBOOL__PROTO(prolog_sourcepath)
 */
 
 /* ------------------------------------------------------------------------- */
-
-extern bool_t interactive_flag_bool;
 
 /* Force interactive mode (used by toplevel -i option) */
 CBOOL__PROTO(prolog_force_interactive)

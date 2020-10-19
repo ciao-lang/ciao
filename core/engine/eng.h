@@ -15,8 +15,6 @@
 /* --------------------------------------------------------------------------- */
 /* (default options) */
 
-#define USE_DYNAMIC_ATOM_SIZE 1
-
 /* (for some reason this makes the engine around 6% faster) */
 #define USE_TAGGED_CHOICE_START
 
@@ -30,11 +28,7 @@
 
 #define STATICMAXATOM 1024     /* Avoid very long atoms inside the engine */
 
-#if defined(USE_DYNAMIC_ATOM_SIZE) 
-# define MAXATOM  Atom_Buffer_Length
-#else
-# define MAXATOM  STATICMAXATOM
-#endif
+#define MAXATOM Atom_Buffer_Length /* TODO: used? */
 
 #define CONTPAD 128*sizeof(tagged_t) /* min. amount of heap at proceed */
 // TODO: MAXATOM is dynamic??!! why MAXATOM here??
@@ -569,9 +563,11 @@
    in CALLPAD. This is not optimal! Make sure that we have enough heap
    in atom manipulation builtins instead. */
 
+/* TODO: not needed now? (JFMC) */
+
 /* Update heap margins (which depends on dynamic CALLPAD) */
 /* TODO: changes in Int_Heap_Warn (CIntEvent) not needed now? */
-#if defined(USE_DYNAMIC_ATOM_SIZE)
+#if 1 /*defined(USE_DYNAMIC_ATOM_SIZE)*/
 #define UpdateHeapMargins() { \
   int wake_count = WakeCount(); \
   if (TestCIntEvent()) { \

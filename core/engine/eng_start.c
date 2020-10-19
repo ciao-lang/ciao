@@ -78,7 +78,7 @@ int prolog_argc;                                                /* Shared */
 /* see prolog_current_executable() */
 char source_path[MAXPATHLEN] = "";                             /* Shared */
 
-bool_t interactive_flag_bool = FALSE;      /* Shared --- not really relevant? */
+bool_t interactive_flag_bool = FALSE; /* Shared --- not really relevant? */
 
 char *ciaoroot_directory = NULL;
 char *c_headers_directory = NULL;

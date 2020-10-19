@@ -335,7 +335,7 @@ CBOOL__PROTO(run_determ_c, tagged_t goal)
 
 #if 0
   printf("run_determ_c: ");
-  prolog_display(Arg); /* argument is in X(0) */
+  DerefDisplayTerm(X(0),Output_Stream_Ptr,FALSE);
   printf("\n");
 #endif
 

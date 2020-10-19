@@ -1573,7 +1573,9 @@ int call_firstgoal(goal_descriptor_t *goal_desc, tagged_t goal_term) {
       wam_initialized = TRUE;
       exit_code = wam(Arg, goal_desc);
       Arg = goal_desc->worker_registers; /* segfault patch -- jf */
+#if 0
       flush_output(Arg);
+#endif
       if (exit_code != WAM_ABORT) /* halting... */
         break;
     }
@@ -1650,7 +1652,9 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
         printf("%d (%d) Goal %x exited wam()\n", 
                (int)Thread_Id, (int)GET_INC_COUNTER, (int)goal_desc);
 #endif
+#if 0
   flush_output(Arg);
+#endif
 
   /* eng_wait() may change NEEDS_FREEING and consults the state of the
      thread; therefore we lock until it is settled down */
@@ -1713,7 +1717,9 @@ THREAD_RES_T make_backtracking(THREAD_ARG wo)
   }
   Arg = goal_desc->worker_registers;
 
+#if 0
   flush_output(Arg);
+#endif
 
   Wait_Acquire_slock(goal_desc->goal_lock_l);
   if (Arg->next_alt == termcode) {

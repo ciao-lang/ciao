@@ -11,18 +11,9 @@
 #include <ciao/eng_registry.h>
 #include <ciao/dtoa_ryu.h>
 #include <ciao/runtime_control.h> /* push_choicept,pop_choicept */
-#include <ciao/io_basic.h> /* isValidRune */
 #include <ciao/atomic_basic.h>
-#else
-/* TODO: merge */
-#include <ciao/rune.h>
-#define USE_DYNAMIC_ATOM_SIZE 1
-#define RUNE_MAX            0xff
-static inline bool_t isValidRune(c_rune_t rune) {
-  uint32_t r = (uint32_t)rune; /* force unsigned */
-  return (r <= RUNE_MAX);
-}
 #endif
+#include <ciao/io_basic.h> /* isValidRune */
 
 #include <stdlib.h> /* atof() */
 #include <string.h>
@@ -266,11 +257,12 @@ static CBOOL__PROTO(prolog_constant_codes,
 
   /* s contains now the string of character codes, and i its size */
 
-#if !defined(USE_DYNAMIC_ATOM_SIZE)
-  if (i>=MAXATOM) {
-    BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ATOM_LENGTH), X(0), 1);
-  }
-#endif
+  // TODO: add some limit? (JFMC)
+  // #if !defined(USE_DYNAMIC_ATOM_SIZE)
+  // if (i>=MAXATOM) {
+  //   BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ATOM_LENGTH), X(0), 1);
+  // }
+  // #endif
 
   if(!IsVar(X(0))){
     if (!numberp) {
@@ -440,11 +432,12 @@ CBOOL__PROTO(prolog_atom_concat) {
 
       new_atom_length = GetAtomLen(X(0)) + GetAtomLen(X(1)) + 1;
 
-#if !defined(USE_DYNAMIC_ATOM_SIZE)
-      if (new_atom_length > MAXATOM) {
-        BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ATOM_LENGTH), X(2), 3);
-      }
-#endif
+      // TODO: add some limit? (JFMC)
+      // #if !defined(USE_DYNAMIC_ATOM_SIZE)
+      // if (new_atom_length > MAXATOM) {
+      //   BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ATOM_LENGTH), X(2), 3);
+      // }
+      // #endif
       GET_ATOM_BUFFER(s, new_atom_length);
 
       /* Append the two strings in atom_buffer */

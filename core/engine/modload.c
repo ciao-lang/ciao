@@ -270,14 +270,14 @@ void add_to_loaded_objects(char *module_name,
 }
 #else 
 CBOOL__PROTO(prolog_dynlink) {
-  ENG_TTYPRINTF("{ERROR: dynlink: emulator not created with foreign files interface}\n");
-  ENG_TTYPRINTF("{Please recompile with foreing files option turned on}\n");
+  StreamPrintf(Error_Stream_Ptr, "{ERROR: dynlink: emulator not created with foreign files interface}\n");
+  StreamPrintf(Error_Stream_Ptr, "{Please recompile with foreing files option turned on}\n");
   return FALSE;
 }
 
 CBOOL__PROTO(prolog_dynunlink) {
-  ENG_TTYPRINTF("{ERROR: dynunlink: emulator not created with foreign files interface}\n");
-  ENG_TTYPRINTF("{Please recompile with foreing files option turned on}\n");
+  StreamPrintf(Error_Stream_Ptr, "{ERROR: dynunlink: emulator not created with foreign files interface}\n");
+  StreamPrintf(Error_Stream_Ptr, "{Please recompile with foreing files option turned on}\n");
   return FALSE;
 }
 #endif

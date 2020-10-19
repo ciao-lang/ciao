@@ -59,6 +59,13 @@ CVOID__PROTO(dump_call, char *s, definition_t *func);
 /* ------------------------------------------------------------------------- */
 /* Debug trace */
 
+#if !defined(OPTIM_COMP)
+#define TRACE_PRINTF(...) ({ \
+  fprintf(stderr, __VA_ARGS__); \
+  fflush(stderr); \
+})
+#endif
+
 #if defined(OPTIM_COMP)
 
 #if defined(DEBUG_TRACE)

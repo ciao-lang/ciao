@@ -1021,6 +1021,65 @@ CBOOL__PROTO(prolog_erase_atom);
 CBOOL__PROTO(prolog_show_nodes);
 CBOOL__PROTO(prolog_show_all_nodes);
 CBOOL__PROTO(start_node);
+/* stream_basic.c */
+CBOOL__PROTO(prolog_bootversion);
+CBOOL__PROTO(prolog_force_interactive);
+CBOOL__PROTO(prolog_sourcepath);
+CBOOL__PROTO(prolog_open);
+CBOOL__PROTO(prolog_close);
+CBOOL__PROTO(prolog_pipe);
+CBOOL__PROTO(prolog_current_input);
+CBOOL__PROTO(prolog_set_input);
+CBOOL__PROTO(prolog_current_output);
+CBOOL__PROTO(prolog_set_output);
+CBOOL__PROTO(prolog_get_stream);
+CBOOL__PROTO(prolog_replace_stream);
+CBOOL__PROTO(prolog_stream_code);
+CBOOL__PROTO(character_count);
+CBOOL__PROTO(line_position);
+CBOOL__PROTO(line_count);
+CBOOL__PROTO(current_stream);
+/* io_basic.c */
+CBOOL__PROTO(flush_output);
+CBOOL__PROTO(flush_output1);
+CBOOL__PROTO(code_class);
+CBOOL__PROTO(rune_class);
+CBOOL__PROTO(getct);
+CBOOL__PROTO(getct1);
+CBOOL__PROTO(get);
+CBOOL__PROTO(get2);
+CBOOL__PROTO(get1);
+CBOOL__PROTO(get12);
+CBOOL__PROTO(peek);
+CBOOL__PROTO(peek2);
+CBOOL__PROTO(nl);
+CBOOL__PROTO(nl1);
+CBOOL__PROTO(put);
+CBOOL__PROTO(put2);
+CBOOL__PROTO(tab);
+CBOOL__PROTO(tab2);
+CBOOL__PROTO(skip);
+CBOOL__PROTO(skip2);
+CBOOL__PROTO(skip_line);
+CBOOL__PROTO(skip_line1);
+CBOOL__PROTO(get_byte1);
+CBOOL__PROTO(get_byte2);
+CBOOL__PROTO(peek_byte1);
+CBOOL__PROTO(peek_byte2);
+CBOOL__PROTO(put_byte1);
+CBOOL__PROTO(put_byte2);
+CBOOL__PROTO(at_end_of_stream0);
+CBOOL__PROTO(at_end_of_stream1);
+CBOOL__PROTO(prolog_display);
+CBOOL__PROTO(prolog_display2);
+CBOOL__PROTO(prolog_displayq);
+CBOOL__PROTO(prolog_displayq2);
+CBOOL__PROTO(prolog_clearerr);
+CBOOL__PROTO(prolog_fast_read_in_c);
+CBOOL__PROTO(prolog_fast_write_in_c);
+CBOOL__PROTO(prolog_format_print_float);
+CBOOL__PROTO(prolog_format_print_integer);
+CBOOL__PROTO(raw_copy_stdout);
 /* arithmetic.c */
 CBOOL__PROTO(bu2_numeq, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_numge, tagged_t x0, tagged_t x1);
@@ -1553,7 +1612,6 @@ void init_once(void)
   define_c_mod_predicate("internals","$show_nodes",2,prolog_show_nodes);
   define_c_mod_predicate("internals","$show_all_nodes",0,prolog_show_all_nodes);
   define_c_mod_predicate("internals","$start_node",1,start_node);
-
 
   /* io_basic.c */
   
@@ -2248,73 +2306,73 @@ CBOOL__PROTO(statistics)
 
   runtick0=usertick0;
 
-  ENG_PRINTF(s,
+  StreamPrintf(s,
              "memory used (total)    %10" PRIdm " bytes\n",
              total_mem_count);
-  ENG_PRINTF(s, 
+  StreamPrintf(s, 
              "   program space (including reserved for atoms): %" PRIdm " bytes\n", 
              mem_prog_count);
 
-  ENG_PRINTF(s,
+  StreamPrintf(s,
              "   number of atoms and functor/predicate names: %" PRIdm "\n", 
              ciao_atoms->count);
-  ENG_PRINTF(s,
+  StreamPrintf(s,
              "   number of predicate definitions: %" PRIdm "\n", 
              num_of_predicates);
 
   used = HeapCharDifference(Heap_Start,w->heap_top);
   free = HeapCharDifference(w->heap_top,Heap_End);
-  ENG_PRINTF(s, 
+  StreamPrintf(s, 
              "   global stack   %10" PRIdm " bytes:%" PRIdm " in use,%10" PRIdm " free\n",
              used+free, used, free);
 
   ComputeA(newa,w->choice);
   used = StackCharDifference(Stack_Start,newa);
   free = StackCharDifference(newa,Stack_End);
-  ENG_PRINTF(s,
+  StreamPrintf(s,
              "   local stack    %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n",
              used+free, used, free);
 
   used = TrailCharDifference(Trail_Start,w->trail_top);
   free = TrailCharDifference(w->trail_top,w->choice)/2;
-  ENG_PRINTF(s,
+  StreamPrintf(s,
              "   trail stack    %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n",
              used+free, used, free);
 
   used = ChoiceCharDifference(Choice_Start,w->choice);
   free = ChoiceCharDifference(w->choice,w->trail_top)/2;
-  ENG_PRINTF(s,
+  StreamPrintf(s,
              "   control stack  %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n\n",
              used+free, used, free);
 
-  ENG_PRINTF(s,
+  StreamPrintf(s,
              " %10.6f sec. for %" PRIdm " global, %" PRIdm " local, and %" PRIdm " control space overflows\n",
              ((flt64_t)ciao_stats.ss_tick)/RunClockFreq(ciao_stats),
              ciao_stats.ss_global,
              ciao_stats.ss_local, ciao_stats.ss_control);
-  ENG_PRINTF(s,
+  StreamPrintf(s,
              " %10.6f sec. for %" PRIdm " garbage collections which collected %" PRIdm " bytes\n\n",
              ((flt64_t)ciao_stats.gc_tick)/RunClockFreq(ciao_stats),
              ciao_stats.gc_count,
              (intmach_t)(ciao_stats.gc_acc*sizeof(tagged_t)));
 
-  ENG_PRINTF(s,
+  StreamPrintf(s,
              " runtime:    %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
              (flt64_t)(runtick0-ciao_stats.starttick)/RunClockFreq(ciao_stats),
              runtick0-ciao_stats.starttick,
              RunClockFreq(ciao_stats));
-  ENG_PRINTF(s,
+  StreamPrintf(s,
              " usertime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
              (flt64_t)(usertick0-ciao_stats.startusertick)/ciao_stats.userclockfreq,
              usertick0-ciao_stats.startusertick,
              ciao_stats.userclockfreq);
-  ENG_PRINTF(s,
+  StreamPrintf(s,
              " systemtime: %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
              (flt64_t)(systemtick0-ciao_stats.startsystemtick)/ciao_stats.systemclockfreq,
              systemtick0-ciao_stats.startsystemtick,
              ciao_stats.systemclockfreq);
 
-  ENG_PRINTF(s,
+  StreamPrintf(s,
              " walltime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n\n",
              (flt64_t)(walltick0-ciao_stats.startwalltick)/ciao_stats.wallclockfreq,
              walltick0-ciao_stats.startwalltick,

@@ -30,8 +30,6 @@ void wr_functor(char *s, definition_t *func) {
   putchar('\n');
 }
 
-CVOID__PROTO(display_term, tagged_t term, stream_node_t *stream, bool_t quoted);
-
 #define TRACE_CALLS_SHOW_ARG1  1
 //#define TRACE_CALLS_SHOW_ARGS  1
 
@@ -45,12 +43,11 @@ CVOID__PROTO(wr_call, char *s, definition_t *func) {
     printf("%s", GetString(func->printname));
     if (func->arity > 0) {
       putchar('(');
-      DEREF(X(0),X(0));
-      display_term(Arg,X(0),Output_Stream_Ptr, TRUE);
+      DerefDisplayTerm(X(0), Output_Stream_Ptr, TRUE);
 #if defined(TRACE_CALLS_SHOW_ARGS) /* display all args */
       for (i = 1; i < func->arity; i++) {
         printf(",");
-        display_term(Arg,X(i),Output_Stream_Ptr, TRUE);
+        DerefDisplayTerm(X(i), Output_Stream_Ptr, TRUE);
       }
 #else
       for (i = 1; i < func->arity; i++) printf(",_");

@@ -735,42 +735,42 @@ CVOID__PROTO(GarbageCollect) {
 #endif
     if (current_gctrace != atom_off) {
       if (current_gctrace == atom_terse) {
-        print_string(Arg, Error_Stream_Ptr, "{GC}");
+        CVOID__CALL(print_string, Error_Stream_Ptr, "{GC}");
       } else {
-        ENG_TTYPRINTF("\n{GC}  Heap GC started\n");
-        ENG_TTYPRINTF("Heap:   from 0x%p to 0x%p (total size = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "\n{GC}  Heap GC started\n");
+        StreamPrintf(Error_Stream_Ptr, "Heap:   from 0x%p to 0x%p (total size = %" PRIdm ")\n",
                       Heap_Start, 
                       Heap_End,
                       (intmach_t)HeapDifference(Heap_Start, Heap_End));
-        ENG_TTYPRINTF("        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
                       w->heap_top,  
                       (intmach_t)HeapDifference(Heap_Start, w->heap_top),
                       (intmach_t)HeapDifference(w->heap_top, Heap_End));
-        ENG_TTYPRINTF("        GC start at 0x%p\n", 
+        StreamPrintf(Error_Stream_Ptr, "        GC start at 0x%p\n", 
                       gc_HeapStart);
 
-        ENG_TTYPRINTF("Stack:  from 0x%p to 0x%p (total size = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "Stack:  from 0x%p to 0x%p (total size = %" PRIdm ")\n",
                       Stack_Start, 
                       Stack_End,
                       (intmach_t)StackDifference(Stack_Start, Stack_End));
-        ENG_TTYPRINTF("        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
                       w->local_top, 
                       (intmach_t)StackDifference(Stack_Start,w->local_top),
                       (intmach_t)StackDifference(w->local_top, Stack_End));
-        ENG_TTYPRINTF("        GC start at 0x%p\n", 
+        StreamPrintf(Error_Stream_Ptr, "        GC start at 0x%p\n", 
                       gc_StackStart);
 
-        ENG_TTYPRINTF("Choice/Trail: from 0x%p to 0x%p (total size = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "Choice/Trail: from 0x%p to 0x%p (total size = %" PRIdm ")\n",
                       Choice_Start, 
                       Choice_End,
                       (intmach_t)ChoiceDifference(Choice_Start,Choice_End));
-        ENG_TTYPRINTF("        Ch. top at 0x%p (used = %" PRIdm ")\n", 
+        StreamPrintf(Error_Stream_Ptr, "        Ch. top at 0x%p (used = %" PRIdm ")\n", 
                       w->choice, 
                       (intmach_t)ChoiceDifference(Choice_Start, w->choice));
-        ENG_TTYPRINTF("        Tr. top at 0x%p (used = %" PRIdm ")\n", 
+        StreamPrintf(Error_Stream_Ptr, "        Tr. top at 0x%p (used = %" PRIdm ")\n", 
                       w->trail_top, 
                       (intmach_t)TrailDifference(Trail_Start,w->trail_top));
-        ENG_TTYPRINTF("        Ch./Tr. free %" PRIdm "\n",
+        StreamPrintf(Error_Stream_Ptr, "        Ch./Tr. free %" PRIdm "\n",
                       (intmach_t)ChoiceDifference(w->choice, w->trail_top));
       }
     }
@@ -800,7 +800,7 @@ CVOID__PROTO(GarbageCollect) {
 
   if (WakeCount()) {
     if (current_gctrace == atom_verbose) {
-      ENG_TTYPRINTF("{GC}  Shunting disabled due to pending unifications\n");
+      StreamPrintf(Error_Stream_Ptr, "{GC}  Shunting disabled due to pending unifications\n");
     }
   }
   else shuntVariables(Arg);
@@ -812,10 +812,10 @@ CVOID__PROTO(GarbageCollect) {
     Gc_Total_Grey += Gcgrey;
     t1 = (t2= RunTickFunc())-t1;
     if (current_gctrace == atom_verbose) {
-        ENG_TTYPRINTF("        mark: %" PRIdm " cells marked in %.3f sec\n",
+        StreamPrintf(Error_Stream_Ptr, "        mark: %" PRIdm " cells marked in %.3f sec\n",
                       Total_Found,t1);
 #if defined(SEGMENTED_GC)
-        ENG_TTYPRINTF("        no more than %" PRIdm " garbage cells left\n",
+        StreamPrintf(Error_Stream_Ptr, "        no more than %" PRIdm " garbage cells left\n",
                       Gcgrey);
 #endif
       }
@@ -841,23 +841,23 @@ CVOID__PROTO(GarbageCollect) {
     ciao_stats.gc_count++;
     ciao_stats.gc_acc+= hz-HeapDifference(Heap_Start,w->heap_top);
     if( current_gctrace==atom_verbose ) {
-        ENG_TTYPRINTF("        Heap: %" PRIdm " cells reclaimed in %.3f sec\n",
+        StreamPrintf(Error_Stream_Ptr, "        Heap: %" PRIdm " cells reclaimed in %.3f sec\n",
                       (intmach_t)(hz-HeapDifference(Heap_Start,w->heap_top)),
                       t2);
-        ENG_TTYPRINTF("Heap:   from 0x%p to 0x%p (total size = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "Heap:   from 0x%p to 0x%p (total size = %" PRIdm ")\n",
                       Heap_Start, 
                       Heap_End,
                       (intmach_t)HeapDifference(Heap_Start, Heap_End));
-        ENG_TTYPRINTF("        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
                       w->heap_top,  
                       (intmach_t)HeapDifference(Heap_Start, w->heap_top),
                       (intmach_t)HeapDifference(w->heap_top, Heap_End));
-        ENG_TTYPRINTF("        GC start at 0x%p\n", 
+        StreamPrintf(Error_Stream_Ptr, "        GC start at 0x%p\n", 
                       gc_HeapStart);
 
-        ENG_TTYPRINTF("        Total: %" PRIdm " cells reclaimed in %" PRIdm " gc's\n",
+        StreamPrintf(Error_Stream_Ptr, "        Total: %" PRIdm " cells reclaimed in %" PRIdm " gc's\n",
                       ciao_stats.gc_acc,ciao_stats.gc_count);
-        ENG_TTYPRINTF("        GC time = %.6f  Total= %.6f\n\n",
+        StreamPrintf(Error_Stream_Ptr, "        GC time = %.6f  Total= %.6f\n\n",
                       ((flt64_t)(t1+t2))/RunClockFreq(ciao_stats),
                       ((flt64_t)ciao_stats.gc_tick)/RunClockFreq(ciao_stats));
       }
@@ -1676,7 +1676,7 @@ CVOID__PROTO(trail_gc)
   Gc_Trail_Start = TaggedToPointer(w->segment_choice->trail_top);
   
   if (current_gctrace == atom_verbose) {
-    ENG_TTYPRINTF("{GC}  Trail GC started\n");
+    StreamPrintf(Error_Stream_Ptr, "{GC}  Trail GC started\n");
   }
 
   while (!OffChoicetop(Gc_Choice_Start,b)) {

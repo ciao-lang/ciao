@@ -1719,7 +1719,7 @@ CBOOL__PROTO(prolog_find_file) {
   char *libDir, *path, *opt, *suffix;
   char pathBuf[MAXPATHLEN+8];
   /* MAXATOM may change dynamically to make room for longer atoms */
-  int relBufSize = 2*MAXATOM+2;
+  int relBufSize = 2*MAXATOM+2; // TODO: compute size instead (JFMC)
   char *relBuf = checkalloc_ARRAY(char, relBufSize);
   char *bp;
   char *cp;
@@ -1881,7 +1881,7 @@ CBOOL__PROTO(prolog_path_is_absolute) {
 CBOOL__PROTO(prolog_expand_file_name) {
   char *path;
   /* MAXATOM may change dinamically to make room for longer atoms */
-  int relBufSize =2*MAXATOM+2;
+  int relBufSize =2*MAXATOM+2; // TODO: compute size instead (JFMC)
   char *relBuf = checkalloc_ARRAY(char, relBufSize);
 
   DEREF(X(0), X(0));

@@ -474,20 +474,17 @@ typedef void *(*THREAD_START)(void *);
 */
 
 #if defined(OPTIM_COMP)
+void print_syserror(char *s); /* stream_basic.c */
+#else
+void print_syserror(char *s); /* io_basic.c */ 
+#endif
+
 #define Thread_Create_GoalId(Process, Arg, Id, Handle) { \
   if (pthread_create(&(Id), &joinable_thread, Process, Arg)) { \
     print_syserror("Thread_Create_GoalId"); \
   } \
   Handle = Id; \
 }
-#else
-#define Thread_Create_GoalId(Process, Arg, Id, Handle) { \
-  if (pthread_create(&(Id), &joinable_thread, Process, Arg)) { \
-    ENG_perror("Thread_Create_GoalId"); \
-  } \
-  Handle = Id; \
-}
-#endif
 
 #define Thread_Join(Id)     pthread_join(Id, NULL)
 #define Thread_Exit(Status) pthread_exit(Status)
