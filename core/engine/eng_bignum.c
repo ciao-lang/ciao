@@ -55,7 +55,7 @@ static bignum_size_t bn_div_mod_quot_not_wanted(bignum_t *x, bignum_t *y, bignum
 /* Only intended to be used outside this file -- e.g., by routines located
    at ciao_prolog.c */
 
-intmach_t bn_length(bignum_t *x) {
+bignum_size_t bn_length(bignum_t *x) {
   return BignumLength(x);
 }
 

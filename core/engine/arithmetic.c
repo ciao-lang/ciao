@@ -383,7 +383,7 @@ CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i) {
 //   h = G->heap_top;
 //   BLOB_CHECK_HEAP(INT32_ALIGNED_BLOB_SIZE);
 //   HeapPush(h, BlobFunctorFix32);
-//   BignumPushInt32(h, i);
+//   BlobPushInt32(h, i);
 //   HeapPush(h, BlobFunctorFix32);
 //   G->heap_top = h;
 //   CFUN__PROCEED(Tagp(STR, HeapCharOffset(h, -INT32_ALIGNED_BLOB_SIZE)));
@@ -396,7 +396,7 @@ CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i) {
 //     h = G->heap_top;
 //     BLOB_CHECK_HEAP(INT32_ALIGNED_BLOB_SIZE);
 //     HeapPush(h, BlobFunctorFix32);
-//     BignumPushInt32(h, (int32_t)i);
+//     BlobPushInt32(h, (int32_t)i);
 //     HeapPush(h, BlobFunctorFix32);
 //     G->heap_top = h;
 //     CFUN__PROCEED(Tagp(STR, HeapCharOffset(h, -INT32_ALIGNED_BLOB_SIZE)));
@@ -405,7 +405,7 @@ CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i) {
 //     h = G->heap_top;
 //     BLOB_CHECK_HEAP(INT64_ALIGNED_BLOB_SIZE);
 //     HeapPush(h, BlobFunctorFix64);
-//     BignumPushInt64(h, i);
+//     BlobPushInt64(h, i);
 //     HeapPush(h, BlobFunctorFix64);
 //     G->heap_top = h;
 //     CFUN__PROCEED(Tagp(STR, HeapCharOffset(h, -INT64_ALIGNED_BLOB_SIZE)));
