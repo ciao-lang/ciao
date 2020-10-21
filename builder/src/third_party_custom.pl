@@ -28,9 +28,7 @@
 third_party_custom_install(Bundle) :-
     check_foreign_cmd(Bundle),
     findall(X, m_bundle_foreign_dep(Bundle, npm, X, _), As),
-    findall(X, m_bundle_foreign_dep(Bundle, bower, X, _), Bs),
-    install_npm_deps(As),
-    install_bower_deps(Bs).
+    install_npm_deps(As).
 
 % Check that foreign commands are available (where no automatic
 % installation is available)
@@ -63,22 +61,7 @@ install_npm_deps_(Deps) :-
     ),
     process_call(path(npm), [install, '--save'|Deps], []).
 
-install_bower_deps([]) :- !. % (skip)
-install_bower_deps(Deps) :-
-    normal_message("installing third-party dependencies via bower", []),
-    third_party_path(prefix, ThirdParty), % TODO: add bundle to third_party_path/2
-    ExtDir = ~path_concat(ThirdParty, '3rd-bower'),
-    mkpath(ExtDir),
-    process_call(path(bower),
-                 ['--allow-root',
-                  '--config.interactive=false',
-                  ~atom_concat('--config.directory=', ExtDir),
-                  install|Deps], []).
-
 :- export(third_party_custom_path/2).
 third_party_custom_path(node_modules, Path) :-
     third_party_path(prefix, ThirdParty), % TODO: add bundle to third_party_path/2?
     Path = ~path_concat(ThirdParty, '3rd-npm/node_modules').
-third_party_custom_path(bower_components, Path) :-
-    third_party_path(prefix, ThirdParty), % TODO: add bundle to third_party_path/2?
-    Path = ~path_concat(ThirdParty, '3rd-bower').

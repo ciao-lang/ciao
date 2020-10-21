@@ -244,7 +244,6 @@ wui:
     when: script_failure
   script:
     - apk add --update nodejs nodejs-npm
-    - npm install -g bower
     - touch bndls/wui/ACTIVATE
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao rescan-bundles

@@ -51,11 +51,11 @@ bundle_site_url(Bundle, URL0, URL) :-
       path_concat(BaseURL, URL0, URL)
     ).
 
-:- export(site_link_bower_components/0).
-% Symbolic link from 3rd party bower_components to build/site
-site_link_bower_components :-
-    Path = ~third_party_custom_path(bower_components),
-    site_link_dir_(core, Path, '/bower_components').
+:- export(site_link_npm_node_modules/0).
+% Symbolic link from 3rd party npm to build/site
+site_link_npm_node_modules :-
+    Path = ~third_party_custom_path(node_modules),
+    site_link_dir_(core, Path, '/node_modules').
  
 :- export(site_link_builddoc/0).
 % Symbolic link from build/doc to build/site
