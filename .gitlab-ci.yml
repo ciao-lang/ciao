@@ -98,9 +98,8 @@ ciaopp_lite.test.incanal_assrts:
   script:
     - apk add bash # add bash for the test scripts
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - cd bndls/ciaopp_tests/tests/incanal
-    - ./compile.sh
-    - ./test_incanal_assrts.sh shfr
+    - ciao build --bin ciaopp_tests
+    - echo 'TEST DISABLED, SEE ISSUE 229' # ./bndls/ciaopp_tests/tests/incanal/test_incanal_assrts.sh shfr
   tags:
     - ciao_test_base
   dependencies:
@@ -129,15 +128,13 @@ ciaopp_lite.test.dd_rtchecks:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - sed -i '2i:- use_package(rtchecks).' bndls/ciaopp/src/plai/domains.pl
     - sed -i '9i:- use_package(rtchecks).' bndls/ciaopp/src/plai/fixpo_dd.pl
-    - ciao clean ciaopp
+    - ciao clean ciaopp ciaopp_tests
     - rm -f bndls/ciaopp_extra/ACTIVATE
     - ciao rescan-bundles
-    - ciao build --bin ciaopp 2>&1 | builder/etc/errstatus
-    - cd bndls/ciaopp_tests/tests/incanal
-    - ./compile.sh
-    - ./incanal_intermod_bench_driver qsort del 1 gr --show-lat --steps 5
-    - ./incanal_intermod_bench_driver ann del 1 gr --show-lat --steps 5
-    - ./incanal_intermod_bench_driver rdtok del 1 gr --show-lat --steps 5
+    - ciao build --bin ciaopp ciaopp_tests 2>&1 | builder/etc/errstatus
+    - ciaopp-test incanal qsort gr --edit_type del --show-lat --steps 5
+    - ciaopp-test incanal ann gr --edit_type del --show-lat --steps 5
+    - ciaopp-test incanal rdtok gr --edit_type del --show-lat --steps 5
   tags:
     - ciao_test_base
   dependencies:
@@ -148,9 +145,9 @@ ciaopp_lite.test.incanal:
   script:
     - apk add bash # add bash for the test scripts
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - ciao build --bin ciaopp_tests
     - cd bndls/ciaopp_tests/tests/incanal
-    - ./compile.sh
-    - ./test_incanal_mon.sh
+    - ./test_incanal_mon.sh pdb
     - ./quick_run.sh
   tags:
     - ciao_test_base
