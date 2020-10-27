@@ -429,7 +429,7 @@ get_arg_props(PDA,PDA,D-D,C-C,A-A,G-G,_NPD,_F,_A,_M,_Opts,_AType,_S,_LB,_LE) :-
     var(PDA),
     !.
 %% Argument is a defined (possibly parametric) mode, 
-get_arg_props(PDA,NPDA,NDP,NCP,NAP,NGP,NPD,_F,_A,M,Opts,AType,S,LB,LE) :- 
+get_arg_props(PDA,NPDA,NDP,NCP,NAP,NGP,NPD,_F,_A,M,Opts,AType,S,LB,LE) :-
     with_or_without_arg(PDA,NNPDA,Prop),
     %% This M below forces modedefs to be in the file
     %% i.e., they must be in the file or in includes...
@@ -438,6 +438,7 @@ get_arg_props(PDA,NPDA,NDP,NCP,NAP,NGP,NPD,_F,_A,M,Opts,AType,S,LB,LE) :-
     (  member('-modes',Opts), 
        \+ propfunctor(AType)
     -> %% Keep modes (and their properties!): do nothing.
+       !,
        NPDA = PDA, NDP=DL-DL, NCP=CL-CL, NAP=AL-AL, NGP=GL-GL
     ;  %% Assumed that the Props have already been put in list form!
        NPDA = NNPDA,
@@ -474,19 +475,23 @@ get_arg_props(PDA,NPDA,NDP,NCP,NAP,NGP,NPD,_F,_A,M,Opts,AType,S,LB,LE) :-
 %% Else, argument is assumed to be simply a term
 get_arg_props(PDA,PDA,D-D,C-C,A-A,G-G,_NPD,_F,_A,_M,_Opts,_AType,_S,_LB,_LE).
 
+% We assume that numbers cannot be modes.
+with_or_without_arg(N,_NPDA,_Prop) :-
+    number(N), !,
+    fail.
 %% with no argument variable, e.g., p(+), p(in(foo))
 with_or_without_arg(PDA,NPDA,Prop) :-
-      ground(PDA),
-      !,
-      PDA =.. [F|Rest],
-      Prop =.. [F,NPDA|Rest].
+    ground(PDA),
+    !,
+    PDA =.. [F|Rest],
+    Prop =.. [F,NPDA|Rest].
 %% with argument variable, e.g., p(+(X)), p(in(X,foo))
 with_or_without_arg(PDA,NPDA,Prop) :-
-      PDA =.. [_,NPDA|Rest],
-      var(NPDA),
-      ground(Rest),
-      !,
-      Prop = PDA.
+    PDA =.. [_,NPDA|Rest],
+    var(NPDA),
+    ground(Rest),
+    !,
+    Prop = PDA.
 
 resolve_applications([],[],_S,_LB,_LE) :- 
     !.
