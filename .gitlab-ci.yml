@@ -100,7 +100,7 @@ ciaopp_lite.test.incanal_assrts:
     - apk add bash # add bash for the test scripts
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao build --bin ciaopp_tests
-    - echo 'TEST DISABLED, SEE ISSUE 229' # ./bndls/ciaopp_tests/tests/incanal/test_incanal_assrts.sh shfr
+    - ./bndls/ciaopp_tests/tests/incanal/test_incanal_assrts.sh shfr
   tags:
     - ciao_test_base
   dependencies:
