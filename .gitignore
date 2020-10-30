@@ -1,11 +1,14 @@
+# ***** SHOULD BE IN BUILD OR ELSEWHERE
+*.dump
+*.testout
+*.testin
+
 *~
 *.po
 *.itf
 *.wam
 *.asr
 *.ast
-*.testout
-*.testin
 *.elc
 *_DARWINi686.o
 *_DARWINi686.a
