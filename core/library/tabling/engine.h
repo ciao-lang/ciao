@@ -29,7 +29,8 @@
 #define AttrTrie     0xE000000000000002  //ID of trie attrs
 #define TrieVarIndex(TERM)  (((TERM) & 0x0FFFFFFFFFFFFFFF) >> 3)
 
-#define EMPTY_LIST   0xA0000000000000E0
+#define EMPTY_LIST atom_list
+//#define EMPTY_LIST   0xA0000000000000E0
 #define INTEGER_MARK 0xB000000000000008
 #define FLOAT_MARK   0x900000000000000C
 
@@ -51,7 +52,8 @@
 #define AttrTrie     0xE0000002  //ID of trie attrs
 #define TrieVarIndex(TERM)  (((TERM) & 0x0FFFFFFF) >> 3)
 
-#define EMPTY_LIST   0xA00000E0
+#define EMPTY_LIST atom_list
+//#define EMPTY_LIST   0xA00000E0
 #define INTEGER_MARK 0xB0000008
 #define FLOAT_MARK   0x9000000C
 # endif /* end if 64-bit else 32-bits*/

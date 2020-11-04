@@ -25,7 +25,7 @@ reset(M):-
 add_hook(M, T):-
     current_fact(found_hook(M, T)), !.
 add_hook(M, T):-
-    assertz_fact(found_hook(M, T)), !.
+    asserta_fact(found_hook(M, T)), !.
 
 
 
@@ -193,7 +193,7 @@ expand_command(active_tclp, _) :-
         tclp_actived ->
         display('ERROR: several tclp activations.'), nl
     ;
-        assertz(tclp_actived)
+        assert(tclp_actived)
     ).
 
 
@@ -224,7 +224,7 @@ expand_command_table((Pred, Preds), Clauses0, Clauses) :-
     expand_command_table(Preds, Clauses1, Clauses).
 expand_command_table(Pred, Clauses0, Clauses) :- 
     struct(Pred), !,
-    assertz(tclp_actived),
+    assert(tclp_actived),
     Pred =.. [Name| Arg],
     length(Arg, Arity),
     assert(tclp_aggregates(Name/Arity:Arg)),

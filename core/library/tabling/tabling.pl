@@ -11,9 +11,11 @@
 :- op(1150, fx, [ table, table_aggregate, table_subsumption ]).
  %% :- op(1150, fx, [ const_table_module ]).
 
+:- if(defined('SHELL')).
+:- else.
 :- load_compilation_module(library(tabling/tabling_tr)).
 :- add_sentence_trans(tabling_tr:do_term_expansion/3, 750). % TODO: Probably not right priority
-
+:- endif.
 
 :- use_module(library(tabling/tabling_rt)).
 
