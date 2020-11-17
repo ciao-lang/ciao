@@ -666,6 +666,8 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define ARITYOFFSET (tagged__size-TAGSIZE-1-ARITYSIZE)
 #define ARITYLIMIT (1<<ARITYSIZE) /* 256 */
 
+#define tagged__num_size (tagged__size - TAGSIZE - 1 - tagged__num_offset)
+
 #define TAGMASK         ((((tagged_t)1<<TAGSIZE)-1)<<TAGOFFSET) /* E000...0000 */
 #define QMask           ((tagged_t)1<<TAGOFFSET>>1) /* 1000...0000 */
 #define ZMask           ((tagged_t)1<<TAGOFFSET>>2) /* 0800...0000 */
@@ -803,7 +805,6 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 
 #define TaggedLow       Tagp(NUM,0)
 #define TaggedZero      (TaggedLow+ZMask)
-#define tagged__num_size (tagged__size - TAGSIZE - 1 - tagged__num_offset)
 
 #define TaggedIntMax (TaggedLow+QMask-MakeSmallDiff(1))
 
