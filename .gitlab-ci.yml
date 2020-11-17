@@ -185,13 +185,13 @@ ciaopp_extra.test:
   dependencies:
     - ciaopp
 
-ciaopp_extra.test.resources:
+ciaopp_cost.test:
   stage: test
   allow_failure: true
   script:
     - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao custom_run ciaopp_cost resources_test 2>&1 | builder/etc/errstatus
+    - ciao test ciaopp_cost 2>&1 | builder/etc/errstatus
   tags:
     - ciao_test_base
   dependencies:
