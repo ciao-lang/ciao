@@ -56,5 +56,5 @@ bndls/ciao_java/lib/javall/javadoc/CiaoJava/*
 bndls/ciao_java/lib/javall/CiaoJava/*.class
 bndls/ciao_java/lib/javall/javadoc/package-list
 bndls/ciao_java/lib/javall/plserver
-ciaopp/ilciao/classes/*
-ciaopp/resources/predefres/res_exectime_hlm/auto/*
+ciaopp_java/ilciao/classes/*
+ciaopp_cost/resources/predefres/res_exectime_hlm/auto/*
