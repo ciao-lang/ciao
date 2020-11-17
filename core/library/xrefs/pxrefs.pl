@@ -1,22 +1,8 @@
-:- module(pxrefs,
-    [ pxrefs/1
-    ],
-    [ assertions, regtypes
-    ]).
-
-:- use_module(library(stream_utils), [open_output/2, close_output/1]).
-:- use_module(library(terms), [atom_concat/2]).  
-:- use_module(library(xrefs/xrefsbuild), [xrefs/2, xref/1]).
-:- reexport(library(xrefs/xrefsbuild),[ set_flag/1 ]).
-:- reexport(library(xrefs/xrefsread),[ set_files/1 ]).
-
-:- use_module(engine(io_basic)).
-:- use_module(library(write), [write/1]).  
+:- module(pxrefs, [], [assertions, regtypes]).
 
 :- doc(title,"Lists of crossed-references between files").
-:- doc(subtitle_extra,"@bf{The CIAO System Documentation Series}").
-:- doc(subtitle_extra,"@em{Draft printed on:} @today{}").
 :- doc(author, "Francisco Bueno").
+
 :- doc(module,
     "This library provides support for identifying crossed-references
     between the source code in different files, i.e., calls from clauses
@@ -53,9 +39,19 @@
     The files which are taken into account and the classes of predicates
     which are considered can be selected with flags. See below.").
 
+:- use_module(library(stream_utils), [open_output/2, close_output/1]).
+:- use_module(library(terms), [atom_concat/2]).  
+:- use_module(library(xrefs/xrefsbuild), [xrefs/2, xref/1]).
+:- reexport(library(xrefs/xrefsbuild),[ set_flag/1 ]).
+:- reexport(library(xrefs/xrefsread),[ set_files/1 ]).
+
+:- use_module(engine(io_basic)).
+:- use_module(library(write), [write/1]).  
+
 %-----------------------------------------------------------------------------
 % entry points
 
+:- export(pxrefs/1).
 :- pred pxrefs(Xrefs) : xref
     # "Outputs a list of crossed-references of type
        @var{Xrefs} for the current files.".

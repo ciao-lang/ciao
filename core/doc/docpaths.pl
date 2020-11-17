@@ -1,5 +1,5 @@
 % (included file)
-% Common paths and options
+% Documentation paths
 
 ciaofilepath_common := at_bundle(core, 'doc/common').
 ciaofilepath_common := at_bundle(alldocs, 'bibtex').

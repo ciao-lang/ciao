@@ -1,6 +1,6 @@
 :- module(_, [], [doccfg]).
 
-:- include(core_docsrc(common/'LPDOCCOMMON')).
+:- include(core_docsrc(docpaths)).
 
 output_name := 'ciao_builder'.
 

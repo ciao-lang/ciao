@@ -1,22 +1,8 @@
-
-:- module(mrefs,
-    [ mrefs_lgraph/1,
-      mrefs_ugraph/1
-    ],
-    [ assertions, regtypes
-    ]).
-
-:- use_module(library(graphs), [edges_to_lgraph/2, edges_to_ugraph/2]).
-:- use_module(library(graphs/ugraphs), [ugraph/1]). % for documenting
-:- use_module(library(graphs/lgraphs), [lgraph/2]). % for documenting
-:- use_module(library(xrefs/xrefsread), [xrefs_modules/2]).
-:- reexport(library(xrefs/xrefsread),[ set_files/1, set_flag/1 ]).
-:- use_module(library(xrefs/xrefs2graph), [xrefs2graph/2]).
+:- module(mrefs, [], [assertions, regtypes]).
 
 :- doc(title,"Graphs of crossed-references between modules").
-:- doc(subtitle_extra,"@bf{The CIAO System Documentation Series}").
-:- doc(subtitle_extra,"@em{Draft printed on:} @today{}").
 :- doc(author,"Francisco Bueno").
+
 :- doc(module,"This library provides support for obtaining a graph of
     crossed-references between modules. The graph has directed edges
     which go in the direction of the imports between the modules:
@@ -33,9 +19,17 @@
 :- doc(bug,"The modules @tt{multifile} and @tt{user} are not
     taken into account.").
 
+:- use_module(library(graphs), [edges_to_lgraph/2, edges_to_ugraph/2]).
+:- use_module(library(graphs/ugraphs), [ugraph/1]). % for documenting
+:- use_module(library(graphs/lgraphs), [lgraph/2]). % for documenting
+:- use_module(library(xrefs/xrefsread), [xrefs_modules/2]).
+:- reexport(library(xrefs/xrefsread),[ set_files/1, set_flag/1 ]).
+:- use_module(library(xrefs/xrefs2graph), [xrefs2graph/2]).
+
 %-----------------------------------------------------------------------------
 % entry points
 
+:- export(mrefs_lgraph/1).
 :- pred mrefs_lgraph(Graph) : var => lgraph(gnd)
     # "Binds @var{Graph} to a graph 
       of crossed-references for the current files.".
@@ -45,6 +39,7 @@ mrefs_lgraph(LGraph):-
     xrefs2graph(HGraph,Graph),
     edges_to_lgraph(Graph,LGraph).
 
+:- export(mrefs_ugraph/1).
 :- pred mrefs_ugraph/1 : var => ugraph
     # "Like @tt{mrefs_lgraph/1} but edges have no labels.".
 
