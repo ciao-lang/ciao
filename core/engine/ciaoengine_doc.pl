@@ -12,5 +12,5 @@
 
    NOTE: After Ciao v0.8 and before switching to SVN and Git, changes
    to the engine C files where documented in the
-   @tt{Manifet/GlobalChangeLog} file.
+   @tt{Manifest/GlobalChangeLog} file.
 ").
