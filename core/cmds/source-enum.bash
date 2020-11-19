@@ -47,6 +47,7 @@ function find_source__() { # PATH
          '!' -name '*.itf' -a \
          '!' -name '*.asr' -a \
          '!' -name '*.ast' -a \
+         '!' -name '*.testin' -a \
          '!' -name '*.testout' -a \
          '!' -name '*.o' -a \
          '!' -name '*.a' -a \
