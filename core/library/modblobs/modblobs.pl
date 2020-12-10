@@ -41,7 +41,7 @@
 Path = '/tmp/tmp_modsfbMY9Y/my_tmp_mod.pl' ?
 @end{verbatim}
 
-   where the contets of @tt{/tmp/tmp_modsfbMY9Y/my_tmp_mod.pl} are:
+   where the contents of @tt{/tmp/tmp_modsfbMY9Y/my_tmp_mod.pl} are:
 
 @begin{verbatim}
 :-module(_,[p/1],[]).
@@ -150,6 +150,3 @@ check_modblob(ModBlob) :-
     true.
 check_modblob(ModBlob) :-
     throw(error(not_a_modblob(ModBlob), check_modblob/1)).
-    
-    
-
