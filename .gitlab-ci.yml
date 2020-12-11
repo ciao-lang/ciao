@@ -342,3 +342,16 @@ ciao_emacs.test:
     - ciao_test_base
   dependencies:
     - install
+
+deepfind.test:
+  stage: test
+  script:
+    - touch bndls/deepfind/ACTIVATE
+    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+    - ciao rescan-bundles
+    - ciao build --bin deepfind 2>&1 | builder/etc/errstatus
+    - ciao test deepfind
+  tags:
+    - ciao_test_base
+  dependencies:
+    - ciaopp_lite
