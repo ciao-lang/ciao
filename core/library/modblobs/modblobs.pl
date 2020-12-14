@@ -1,4 +1,4 @@
-:- module(modblobs, [], [assertions, regtypes, datafacts]).
+:- module(modblobs, [], [assertions, regtypes, nativeprops, datafacts]).
 
 :- doc(title, "Modules as blobs").
 :- doc(author, "Isabel Garcia-Contreras").
@@ -68,11 +68,12 @@ q(b).
 get_tmp_subdir(X) :-
     ( modblob_tmp_dir(X) ->
         true
-    ; mktemp_in_tmp('modblob_XXXXXX', FileBase),
-      del_file_nofail(FileBase),
-      make_directory(FileBase),
-      X = FileBase,
-      set_fact(modblob_tmp_dir(X))
+    ;
+        mktemp_in_tmp('modblob_XXXXXX', FileBase),
+        del_file_nofail(FileBase),
+        make_directory(FileBase),
+        X = FileBase,
+        set_fact(modblob_tmp_dir(X))
     ).
 
 :- regtype modblob(X) # "@var{X} is a is a temporary module object".
@@ -80,7 +81,7 @@ modblob(X) :- atm(X).
 
 :- export(new_modblob/4).
 :- pred new_modblob(Clauses, ExportedPreds, ModName, ModBlob)
-    : list * list * atm * var => list * list * atm * modblob
+   : list * list * atm * var => list * list * atm * modblob
    # "Write clauses @var{Clauses} in a temporary module identified by @var{ModBlob}.".
 new_modblob([FirstClause|Clauses], ExportedPreds, ModName, ModBlob) :-
     create_tmp_file_name(ModName, ModPath),
@@ -96,9 +97,9 @@ new_modblob([FirstClause|Clauses], ExportedPreds, ModName, ModBlob) :-
     open(Filename, write, S),
     %
     ( module_clause(FirstClause) ->
-      portray_clause(S, FirstClause),
-      RestClauses = Clauses
-      ;
+        portray_clause(S, FirstClause),
+        RestClauses = Clauses
+    ;
         portray_clause(S, (:- module(_,ExportedPreds,[]))),
         RestClauses = [FirstClause|Clauses]
     ),
@@ -111,20 +112,20 @@ module_clause(Clause) :-
     functor(X, module, _).
 
 :- pred create_tmp_file_name(+ModName, -FilePath)
-    #"A file @var{ModName}, will be created, if there already
-     exists one, it will overwrite its content".
+   #"A file @var{ModName}, will be created, if there already exists one, it will
+   overwrite its content".
 create_tmp_file_name(FileName, FilePath) :-
     get_tmp_subdir(Dir),
     path_concat(Dir, FileName, FilePath).
 
-:- pred write_clauses(Stream, Clauses) : atm * list.
+:- pred write_clauses(Stream, Clauses) : stream * list.
 write_clauses(Stream, [C|Cs]) :-
     portray_clause(Stream, C),
     write_clauses(Stream, Cs).
 write_clauses(_, []).
 
 :- export(delete_modblob/1).
-:- pred delete_modblob(ModBlob) : modblob(ModBlob)
+:- pred delete_modblob(ModBlob) : modblob(ModBlob) + (is_det)
    # "Removes the data associated to @var{ModBlob}".
 % NOTE: It cleans only itf file because when performing search no more
 %   auxiliary files are created.
@@ -143,10 +144,9 @@ delete_modblob(ModBlob) :-
 modblob_path(ModBlob, ModPath) :-
     check_modblob(ModBlob),
     ModPath = ModBlob.
-    
+
 check_modblob(ModBlob) :-
     nonvar(ModBlob),
-    modblob_def(ModBlob, _), !,
-    true.
+    modblob_def(ModBlob, _), !.
 check_modblob(ModBlob) :-
     throw(error(not_a_modblob(ModBlob), check_modblob/1)).
