@@ -8,6 +8,10 @@ stages:
   - basic-bundles
   - test
 
+default:
+  tags:
+    - ciao_test_base
+
 before_script:
   - apk --update add git make tar curl
 
@@ -15,43 +19,37 @@ configure:
   stage: config
   script:
     - ./ciao-boot.sh configure --ciao_ppl:enabled=no
-  tags:
-    - ciao_test_base
   artifacts:
     expire_in: 2h
     untracked: true
     paths:
       - build-boot/
+  needs: []
 
 build:
   stage: build
   script:
     - ./ciao-boot.sh build --bin core builder ciaodbg 2>&1 | builder/etc/errstatus
-  tags:
-    - ciao_test_base
   artifacts:
     expire_in: 2h
     untracked: true
     paths:
       - build-boot/
       - build/
-  dependencies:
-    - configure
+  needs: [configure]
+
 
 install:
   stage: install
   script:
     - ./ciao-boot.sh install 2>&1 | builder/etc/errstatus
-  tags:
-    - ciao_test_base
   artifacts:
     expire_in: 2h
     untracked: true
     paths:
       - build-boot/
       - build/
-  dependencies:
-    - build
+  needs: [build]
 
 ciaopp:
   stage: basic-bundles
@@ -63,16 +61,13 @@ ciaopp:
     - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
     - ./ciao-boot.sh configure
     - ./ciao-boot.sh build --bin -r ciaopp_extra ciaopp 2>&1 | builder/etc/errstatus
-  tags:
-    - ciao_test_base
   artifacts:
     expire_in: 2h
     untracked: true
     paths:
       - build-boot/
       - build/
-  dependencies:
-    - install
+  needs: [install]
 
 ciaopp_lite:
   stage: basic-bundles
@@ -85,16 +80,13 @@ ciaopp_lite:
     - rm -f bndls/ciaopp_llvm/ACTIVATE
     - ciao rescan-bundles
     - ciao build --bin ciaopp 2>&1 | builder/etc/errstatus
-  tags:
-    - ciao_test_base
   artifacts:
     expire_in: 2h
     untracked: true
     paths:
       - build-boot/
       - build/
-  dependencies:
-    - install
+  needs: [install]
 
 ciaopp_lite.test.incanal_assrts:
   stage: test
@@ -103,26 +95,14 @@ ciaopp_lite.test.incanal_assrts:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao build --bin ciaopp_tests
     - ./bndls/ciaopp_tests/tests/incanal/test_incanal_assrts.sh shfr
-  tags:
-    - ciao_test_base
-  dependencies:
-    - ciaopp_lite
+  needs: [ciaopp_lite]
 
 ciaopp_lite.analyze.core:
   stage: test
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciaopp-batch gr core/lib/
-  tags:
-    - ciao_test_base
-  artifacts:
-    expire_in: 2h
-    untracked: true
-    paths:
-      - build-boot/
-      - build/
-  dependencies:
-    - ciaopp_lite
+  needs: [ciaopp_lite]
 
 ciaopp_lite.test.dd_rtchecks:
   stage: test
@@ -141,10 +121,7 @@ ciaopp_lite.test.dd_rtchecks:
     - ciaopp-test incanal qsort gr --edit_type del --show-lat --steps 5
     - ciaopp-test incanal ann gr --edit_type del --show-lat --steps 5
     - ciaopp-test incanal rdtok gr --edit_type del --show-lat --steps 5
-  tags:
-    - ciao_test_base
-  dependencies:
-    - ciaopp_lite
+  needs: [ciaopp_lite]
 
 ciaopp_lite.test.incanal:
   stage: test
@@ -155,10 +132,7 @@ ciaopp_lite.test.incanal:
     - cd bndls/ciaopp_tests/tests/incanal
     - ./test_incanal_mon.sh pdb
     - ./quick_run.sh
-  tags:
-    - ciao_test_base
-  dependencies:
-    - ciaopp_lite
+  needs: [ciaopp_lite]
 
 ciaopp_lite.test.mod:
   stage: test
@@ -168,10 +142,7 @@ ciaopp_lite.test.mod:
     - cd bndls/ciaopp_tests/tests/incanal
     - ./compile.sh
     - ./test_terms_mod.sh
-  tags:
-    - ciao_test_base
-  dependencies:
-    - ciaopp_lite
+  needs: [ciaopp_lite]
 
 ciaopp_extra.test:
   stage: test
@@ -180,10 +151,7 @@ ciaopp_extra.test:
     - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao test ciaopp_extra
-  tags:
-    - ciao_test_base
-  dependencies:
-    - ciaopp
+  needs: [ciaopp]
 
 ciaopp_cost.test:
   stage: test
@@ -192,19 +160,13 @@ ciaopp_cost.test:
     - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao test ciaopp_cost 2>&1 | builder/etc/errstatus
-  tags:
-    - ciao_test_base
-  dependencies:
-    - ciaopp
+  needs: [ciaopp]
 
 lpdoc:
   stage: basic-bundles
   script:
     - ./ciao-boot.sh build --bin lpdoc 2>&1 | builder/etc/errstatus
-  tags:
-    - ciao_test_base
-  dependencies:
-    - install
+  needs: [install]
 
 bibutils:
   stage: basic-bundles
@@ -213,19 +175,13 @@ bibutils:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao rescan-bundles
     - ciao build --bin bibutils 2>&1 | builder/etc/errstatus
-  tags:
-    - ciao_test_base
-  dependencies:
-    - install
+  needs: [install]
 
 jvm_in_ciao:
   stage: basic-bundles
   script:
     - ./ciao-boot.sh build --bin jvm_in_ciao 2>&1 | builder/etc/errstatus
-  tags:
-    - ciao_test_base
-  dependencies:
-    - install
+  needs: [install]
 
 ciao_gui:
   stage: basic-bundles
@@ -234,10 +190,7 @@ ciao_gui:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao rescan-bundles
     - ciao build --bin ciao_gui 2>&1 | builder/etc/errstatus
-  tags:
-    - ciao_test_base
-  dependencies:
-    - install
+  needs: [install]
 
 wui:
   stage: basic-bundles
@@ -253,10 +206,6 @@ wui:
     - ciao custom_run wui fetch_externals
     - ciao build --bin wui 2>&1 | builder/etc/errstatus
     - ciao custom_run wui dist
-  tags:
-    - ciao_test_base
-  dependencies:
-    - install
   artifacts:
     expire_in: 2h
     untracked: true
@@ -265,6 +214,7 @@ wui:
   cache:
     paths:
       - third-party/
+  needs: [install]
 
 catalog_ui:
   stage: test
@@ -274,20 +224,14 @@ catalog_ui:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao rescan-bundles
     - ciao build --bin catalog_ui 2>&1 | builder/etc/errstatus
-  tags:
-    - ciao_test_base
-  dependencies:
-    - wui
+  needs: [wui]
 
 core.test:
   stage: test
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao test core
-  tags:
-    - ciao_test_base
-  dependencies:
-    - install
+  needs: [install]
 
 core_OC.test:
   stage: test
@@ -296,10 +240,7 @@ core_OC.test:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao rescan-bundles
     - ciao oc:tests full
-  tags:
-    - ciao_test_base
-  dependencies:
-    - install
+  needs: [install]
 
 core.test.rtchecks:
   stage: test
@@ -308,8 +249,7 @@ core.test.rtchecks:
     - cd bndls/testsuite/rtchecks
     - ./test_rtchecks.sh
   allow_failure: true
-  tags:
-    - ciao_test_base
+  needs: [install]
 
 ciaodbg.test.unittest:
   stage: test
@@ -318,8 +258,7 @@ ciaodbg.test.unittest:
     - cd bndls/testsuite/unittest
     - ./run_unittest_tests.pl
   allow_failure: true
-  tags:
-    - ciao_test_base
+  needs: [install]
 
 iso_tests.test:
   stage: test
@@ -327,8 +266,7 @@ iso_tests.test:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao test iso_tests
   allow_failure: true
-  tags:
-    - ciao_test_base
+  needs: [install]
 
 ciao_emacs.test:
   stage: test
@@ -338,10 +276,7 @@ ciao_emacs.test:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao build ciao_emacs 2>&1 | builder/etc/errstatus
     - ciao test ciao_emacs
-  tags:
-    - ciao_test_base
-  dependencies:
-    - install
+  needs: [install]
 
 deepfind.test:
   stage: test
@@ -351,7 +286,4 @@ deepfind.test:
     - ciao rescan-bundles
     - ciao build --bin deepfind 2>&1 | builder/etc/errstatus
     - ciao test deepfind
-  tags:
-    - ciao_test_base
-  dependencies:
-    - ciaopp_lite
+  needs: [ciaopp_lite]
