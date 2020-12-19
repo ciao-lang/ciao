@@ -48,7 +48,7 @@ bndls/ciao_emacs/elisp/*.elc
 bndls/testsuite/rtchecks/rtc_test.out
 bndls/testsuite/rtchecks/rtchecks_sysprops_rtx.regr-out
 bndls/testsuite/rtchecks/rtchecks_sysprops_rtx_queries.pl
-bndls/timingmodel/src/estimate
+bndls/costmodel_wam/src/estimate
 bndls/ciao_java/lib/javall/javadoc/*.html
 bndls/ciao_java/lib/javall/javadoc/*.css
 bndls/ciao_java/lib/javall/javadoc/*.js
