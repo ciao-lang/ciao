@@ -566,6 +566,7 @@ match_front_cmd(Cmd) --> sc_str("### "), !,
 match_docpred(Head, VarNames) -->
     sc_col(Col), { Col = 0 }, % no left margin allowed at all
     match_docpred_(Head0),
+    { valid_docpred_string(Head0) },
     { read_from_string_opts(Head0, Head, [], variable_names(VarNames)) },
     { nonvar(Head), \+ number(Head) }.
 
@@ -579,6 +580,12 @@ match_docpred_(_) -->
 match_docpred_([C|Head]) -->
     sc_char(C),
     match_docpred_(Head).
+
+valid_docpred_string([0'-|_]) :-
+    % forbid strings that begin with '-' (reserved for items, use
+    % parenthesis if you wish to document the predicate "-/1")
+    !, fail.
+valid_docpred_string(_).
     
 % Parse an indented block `Block`. The whole block indentation must be
 % greater than `BaseCol`. Blank characters on the left of `BaseCol`
