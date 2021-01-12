@@ -1,5 +1,12 @@
 :- module(native_props, [], [noprelude, assertions, regtypes]).
 
+% TODO: Split this module:
+% 1. Separate into include files.
+% 2. Work separately on documentation.
+% 3. Work in parallel on splitting into modules.
+% 4. Now, nativeprops is just a bunch of use_modules. Move nativeprops.pl to lib.
+% 5. Put everything together.
+
 :- doc(title, "Properties which are native to analyzers").
 :- doc(author, "Francisco Bueno").
 :- doc(author, "Manuel Hermenegildo").
@@ -76,25 +83,8 @@ compat(_). % processed in rtchecks_basic
 instance(_). % processed in rtchecks_basic
 :- endif.
 
-% --------------------------------------------------------------------------
-
-:- doc(bug, "succeeds/1 is only used in 2 modules, its name conflicts
-   with other notions in assertions, it should be renamed (e.g. to
-   test_succeeds/1 or something along that line)").
-
-:- doc(bug, "We probably need a succeeds/1 comp property. It actually
-   appears in the CiaoPP tutorial at ciaopp/doc/tutorial.tex").
-
-:- if(defined(optim_comp)).
-:- else.
-:- export(succeeds/1). % TODO: very crazy. % TODO: rename!
-:- meta_predicate succeeds(goal).
-:- prop succeeds(Goal) + no_rtcheck # "A call to @var{Goal} succeeds.".
-
-:- impl_defined(succeeds/1).
-:- endif.
-
 % ===========================================================================
+% TODO: Move to native_props_shfrg.pl
 :- doc(section, "Sharing/aliasing, groundness").
 
 :- export(mshare/1). % TODO: Read as possibly_share
@@ -181,6 +171,7 @@ indep([]).
 indep([[X, Y]|L]) :- indep(X, Y), indep(L).
 
 % --------------------------------------------------------------------------
+% TODO: Duplicated name w.r.t. covered/1 in nonfailure.
 :- export(covered/2).
 :- doc(covered(X, Y), "All variables occuring in @var{X} occur also
    in @var{Y}. Used by the non-strict independence-based annotators.").
@@ -258,6 +249,7 @@ nonground(X) :- \+ ground(X).
 :- endif.
 
 % ===========================================================================
+% TODO: Move to native_props_nfdet.pl
 :- doc(section, "Determinacy, failure, choice-points").
 
 :- export(is_det/1).
@@ -479,18 +471,6 @@ possibly_not_covered(Goal) :- call(Goal).
 % --------------------------------------------------------------------------
 
 :- if(defined(optim_comp)).
-:- else.
-:- export(test_type/2). % TODO: internal?
-:- meta_predicate test_type(goal, ?).
-:- prop test_type(X, T) # "Indicates the type of test that a predicate
-   performs.  Required by the nonfailure analyisis.".
-
-test_type(Goal, _) :- call(Goal). 
-:- endif.
-
-% --------------------------------------------------------------------------
-
-:- if(defined(optim_comp)).
 % TODO: merge with optim_comp's version
 :- else.
 :- export(no_choicepoints/1).
@@ -515,6 +495,7 @@ test_type(Goal, _) :- call(Goal).
 :- endif.
 
 % ===========================================================================
+% TODO: Move to native_props_cardinality.pl
 :- doc(section, "Cardinality and exact solutions").
 
 :- if(defined(optim_comp)).
@@ -593,6 +574,7 @@ finite_solutions(Goal) :- call(Goal).
 :- endif.
 
 % ===========================================================================
+% TODO: Move to native_props_cost.pl
 :- doc(section, "Data sizes, cost, termination").
 
 :- doc(bug, "Should probably find a better name...").
@@ -892,6 +874,7 @@ possible_exceptions(Goal, _E) :- call(Goal).
 :- endif.
 
 % ===========================================================================
+% TODO: Move to native_props_signals.pl
 :- doc(section, "Signals").
 
 :- if(defined(optim_comp)).
@@ -947,6 +930,7 @@ possible_signals(Goal, _E) :- call(Goal).
 :- endif.
 
 % ===========================================================================
+% TODO: Move to native_props_sideff.pl
 :- doc(section, "Other side effects").
 
 :- doc(bug,"Still missing other side effects such as dynamic
@@ -990,6 +974,7 @@ sideff_hard(Goal) :- call(Goal).
 :- endif.
 
 % ===========================================================================
+% TODO: Move to native_props_polyhedral.pl
 :- doc(section, "Polyhedral constraints").
 
 :- if(defined(optim_comp)).
@@ -1119,4 +1104,34 @@ valid_type([Type|Rest]) :-
 :- '$props'(entry_point_name/2, [impnat=indefinable]).
 :- else.
 :- impl_defined(entry_point_name/2).
+:- endif.
+
+% --------------------------------------------------------------------------
+
+:- doc(bug, "succeeds/1 is only used in 2 modules, its name conflicts
+   with other notions in assertions, it should be renamed (e.g. to
+   test_succeeds/1 or something along that line)").
+
+:- doc(bug, "We probably need a succeeds/1 comp property. It actually
+   appears in the CiaoPP tutorial at ciaopp/doc/tutorial.tex").
+
+:- if(defined(optim_comp)).
+:- else.
+:- export(succeeds/1). % TODO: very crazy. % TODO: rename!
+:- meta_predicate succeeds(goal).
+:- prop succeeds(Goal) + no_rtcheck # "A call to @var{Goal} succeeds.".
+
+:- impl_defined(succeeds/1).
+:- endif.
+
+% --------------------------------------------------------------------------
+
+:- if(defined(optim_comp)).
+:- else.
+:- export(test_type/2).  % TODO: Move to nfdet code.
+:- meta_predicate test_type(goal, ?).
+:- prop test_type(X, T) # "Indicates the type of test that a predicate
+   performs.  Required by the nonfailure analyisis.".
+
+test_type(Goal, _) :- call(Goal).
 :- endif.
