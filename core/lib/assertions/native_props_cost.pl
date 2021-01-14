@@ -198,8 +198,8 @@ steps(Goal, _) :- call(Goal).
 :- export(steps_o/2).
 :- meta_predicate steps_o(goal, ?).
 :- prop steps_o(X, Y) + no_rtcheck
-   # "@var{Y} is the complexity order of the cost of any call of the form
-   @var{X}.".
+   # "@var{Y} is the complexity order (Big O) of the cost, given in
+     resolution steps, of any call of the form @var{X}.".
 
 steps_o(Goal, _) :- call(Goal).
 :- endif.
