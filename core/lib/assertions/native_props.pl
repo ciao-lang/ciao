@@ -7,6 +7,8 @@
 % 4. Now, nativeprops is just a bunch of use_modules. Move nativeprops.pl to lib.
 % 5. Put everything together.
 
+:- doc(filetype, part).
+
 :- doc(title, "Properties which are native to analyzers").
 :- doc(author, "Francisco Bueno").
 :- doc(author, "Manuel Hermenegildo").
