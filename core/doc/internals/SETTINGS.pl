@@ -28,7 +28,7 @@ doc_structure :=
 doc_mainopts := no_patches.
 % TODO: Added no_propuses because texindex breaks with very large
 %       indices (due to internal, maybe arbitrary, limitations) --JF.
-doc_compopts := no_isoline|no_engmods|no_propmods|no_changelog|no_propuses.
+doc_compopts := no_isoline|no_engmods|no_propmods|no_changelog|no_propuses|no_bugs.
 
 bibfile := ~ciao_bibfile.
 
