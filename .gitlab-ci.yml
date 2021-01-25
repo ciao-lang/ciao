@@ -104,7 +104,7 @@ ciaopp_lite.analyze.core:
     - ciaopp-batch gr core/lib/
   needs: [ciaopp_lite]
 
-ciaopp_lite.test.dd_rtchecks:
+ciaopp_lite.test.rtchecks:
   stage: test
   script:
     - apk add bash # add bash for the test scripts
@@ -121,6 +121,11 @@ ciaopp_lite.test.dd_rtchecks:
     - ciaopp-test incanal qsort gr --edit_type del --show-lat --steps 5
     - ciaopp-test incanal ann gr --edit_type del --show-lat --steps 5
     - ciaopp-test incanal rdtok gr --edit_type del --show-lat --steps 5
+    - ciaopp-test incanal hanoi det --edit_type del --show-lat --steps 5 plai
+    - ciaopp-test incanal bid det --edit_type del --show-lat --steps 5 plai
+    - ciaopp-test incanal hanoi nf --edit_type del --show-lat --steps 5 plai
+    - ciaopp-test incanal bid nf --edit_type del --show-lat --steps 5 plai
+    - ./bndls/ciaopp_tests/tests/incanal/test_terms_mod.sh
   needs: [ciaopp_lite]
 
 ciaopp_lite.test.incanal:
@@ -132,16 +137,6 @@ ciaopp_lite.test.incanal:
     - cd bndls/ciaopp_tests/tests/incanal
     - ./test_incanal_mon.sh pdb
     - ./quick_run.sh
-  needs: [ciaopp_lite]
-
-ciaopp_lite.test.mod:
-  stage: test
-  script:
-    - apk add bash # add bash for the test scripts
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - cd bndls/ciaopp_tests/tests/incanal
-    - ./compile.sh
-    - ./test_terms_mod.sh
   needs: [ciaopp_lite]
 
 ciaopp_extra.test:
