@@ -97,12 +97,21 @@ ciaopp_lite.test.incanal_assrts:
     - ./bndls/ciaopp_tests/tests/incanal/test_incanal_assrts.sh shfr
   needs: [ciaopp_lite]
 
-ciaopp_lite.analyze.core:
+ciaopp_lite-analyze-core:
   stage: test
   script:
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciaopp-batch gr core/lib/
+    - ciaopp_batch_report core/lib/
   needs: [ciaopp_lite]
+  artifacts:
+    when: always
+    paths:
+      - build/xmlreport/*.xml
+    reports:
+      junit:
+        - build/xmlreport/module.xml
+        - build/xmlreport/gr.xml
 
 ciaopp_lite.test.rtchecks:
   stage: test
