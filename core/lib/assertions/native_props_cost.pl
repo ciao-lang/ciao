@@ -199,6 +199,12 @@ agg_expression(exp(X,Y)) :- agg_expression(X), agg_expression(Y).
 :- export(numeric_constant/1).
 :- doc(numeric_constant/1,"A numeric constant is a fixed, well-defined
    real number.
+
+   Currently supported constants:
+
+   @begin{itemize}
+   @item @tt{e}: Euler's number.
+   @end{itemize}
 ").
 :- regtype numeric_constant(X) # "@var{X} represents a numeric constant.".
 numeric_constant(e).
@@ -242,7 +248,7 @@ indexvar($(X)) :- gnd(X).
 :- regtype number_lattice(X) # "@var{X} is a number, @tt{inf} or @tt{bot}.".
 number_lattice(inf).
 number_lattice(bot).
-number_lattice(X) :- number(X).
+number_lattice(X) :- num(X).
 :- endif.
 
 % --------------------------------------------------------------------------
