@@ -40,9 +40,9 @@ approx(exact).
    code. Resources can be predefined (i.e., in a library) or
    user-defined.  Examples are computational steps, time spent, memory
    usage, bytes sent over a wire, database operations, energy
-   consumed, etc.").
+   consumed, etc. See also @lib{resources_decl}.").
 :- regtype resource_id(X)
-   # "@var{X} is the name of a resource (see @lib{resources_decl}).".
+   # "@var{X} is the name of a resource (an atom).".
 resource_id(T) :- atm(T).
 :- endif.
 
