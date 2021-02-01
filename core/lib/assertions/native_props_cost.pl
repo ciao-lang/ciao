@@ -326,10 +326,11 @@ size(_, _, _).
 :- if(defined(optim_comp)).
 :- else.
 :- export(size_o/2).
+
 :- prop size_o(X, Y)
    : ( term(X), cost_expression(Y) )
    + no_rtcheck
-   # "The size of argument @var{X} is in the order of the expression
+   # "The size of argument @var{X} is in the order of expression
    @var{Y}.".
 
 :- impl_defined(size_o/2).
