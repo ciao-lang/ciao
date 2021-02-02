@@ -3,35 +3,38 @@
 INSTALLATION_CIAO
 *****************
 
-This describes the installation procedure for the Ciao system, including
-libraries and manuals, from a source distribution.  For more specific
-details, please read also the 'INSTALLATION' file that comes with each
-component of Ciao.  However, in most cases following this summary
-suffices.
+This describes the installation procedure for the Ciao system,
+including libraries and manuals, from a source distribution. For more
+specific details, please read also the `INSTALLATION' file that comes
+with each component of Ciao. However, in most cases following this
+summary suffices.
 
 Requirements
-************
+============
 
 A minimal build requires:
    * A computing device running a supported operating system (Linux,
      BSD, macOS, Windows, Android).
-   * A supported architecture ('amd64', 'x86', 'arm').
+
+   * A supported architecture (`amd64', `x86', `arm').
+
    * A relatively modern C compiler (GCC or clang).
+
    * A POSIX-like environment.
 
-Although Ciao implements its own build system, the GNU implementation of
-the make command is (still) used internally.  If any of the installation
-steps stop right away with 'make' error messages, you probably need to
-install 'gmake'.
+Although Ciao implements its own build system, the GNU implementation
+of the make command is (still) used internally. If any of the
+installation steps stop right away with `make' error messages, you
+probably need to install `gmake'.
 
 Installing Emacs (https://www.gnu.org/software/emacs/) is highly
-recommended: the Ciao distribution includes a very powerful application
-development environment which is based on 'emacs' and which enables,
-e.g., syntax coloring, source code formatting, embedded top-level,
-source-level debugging, context-sensitive on-line help, etc.
+recommended: the Ciao distribution includes a very powerful
+application development environment which is based on `emacs' and which
+enables, e.g., syntax coloring, source code formatting, embedded
+top-level, source-level debugging, context-sensitive on-line help, etc.
 
 In any case, it is easy to use Ciao from a terminal and edit code with
-any editor of your choice.  The top level includes some minimal editing
+any editor of your choice. The top level includes some minimal editing
 facilities when rlwrap (https://github.com/hanslub42/rlwrap) is
 available.
 
@@ -39,11 +42,11 @@ Finally, documentation generation in PDF format requires TeX and
 ImageMagick.
 
 Installing dependencies
-=======================
+-----------------------
 
 Depending on the operating system and package management tool, you may
-need to install the following dependencies (using 'sudo' or as
-administrator or 'root' user):
+need to install the following dependencies (using `sudo' or as
+administrator or `root' user):
 
    * Debian/Ubuntu:
           $ apt-get install build-essential
@@ -55,7 +58,7 @@ administrator or 'root' user):
           $ apt-get install rlwrap
           # (optional) for generating documentation in PDF format
           $ apt-get install texlive texinfo imagemagick
-     (valid for both 'x86' and 'arm' architectures)
+     (valid for both `x86' and `arm' architectures)
 
    * Fedora:
           $ dnf install gcc make which kernel-headers kernel-devel emacs
@@ -67,7 +70,7 @@ administrator or 'root' user):
           $ dnf install rlwrap
           # (optional) for generating documentation in PDF format
           $ dnf install texlive texinfo texinfo-tex ImageMagick
-     (use 'yum' instead of 'dnf' above in older versions of Fedora)
+     (use `yum' instead of `dnf' above in older versions of Fedora)
 
    * Arch Linux:
           # Optional, upgrade if needed
@@ -87,14 +90,17 @@ administrator or 'root' user):
 
    * macOS:
         * Install command line tools for Xcode (from the App store)
+
         * Install emacs and ImageMagick (and texinfo if needed, but
-          recent versions of macOS include it).  A software management
-          tool like homebrew or macports is recommended, e.g.  (as
+          recent versions of macOS include it). A software management
+          tool like homebrew or macports is recommended, e.g. (as
           root/sudo):
                $ brew install emacs-mac imagemagick
-        * Install TexLive.  If using homebrew we recommend installing
+
+        * Install TexLive. If using homebrew we recommend installing
           the MacTeX distribution, available from:
-          'https://www.tug.org/mactex'.
+          `https://www.tug.org/mactex'.
+
         * Install the following packages:
                # (optional) for line edition from the terminal
                $ brew install rlwrap
@@ -123,19 +129,23 @@ administrator or 'root' user):
    * Windows (using Windows Subsystem or Linux):
         * Install WSL
           (https://docs.microsoft.com/en-us/windows/wsl/install-win10)
+
         * Install some Linux distribution (e.g., Ubuntu) from the
           Windows Store.
-        * Open a 'bash' terminal and install the dependencies for the
+
+        * Open a `bash' terminal and install the dependencies for the
           selected distribution (see points above), e.g., Debian/Ubuntu.
 
    * Android (using the Termux Linux environment):
         * Install Termux (https://termux.com/)
+
         * Install the following packages:
                $ pkg install clang make
                # (optional) for emacs-based IDE
                $ pkg install emacs
                # (optional) for line edition from the terminal
                $ pkg install rlwrap
+
 
 Additional dependencies:
 
@@ -150,21 +160,21 @@ software packages:
      $ yum install gsl gsl-devel ant gcc-c++
 
 To install the Java JDK on Fedora, please visit Sun Java website
-('http://java.sun.com/javase/downloads/index.jsp') and follow the
+(`http://java.sun.com/javase/downloads/index.jsp') and follow the
 installation instructions there.
 
 Network-based installation
 ==========================
 
-Ciao can be installed from the network using a 'curl' pipe from
-'https://ciao-lang.org/boot' to 'sh' in a terminal.  This is probably
+Ciao can be installed from the network using a `curl' pipe from
+`https://ciao-lang.org/boot' to `sh' in a terminal. This is probably
 the fastest/easiest way to install Ciao from sources.
 
 The network installater is delivered as an HTTPs redirection to
-'https://raw.githubusercontent.com/ciao-lang/ciao/master/ciao-boot.sh'
-(which contains the latest version of the 'ciao-boot.sh' script).  The
+`https://raw.githubusercontent.com/ciao-lang/ciao/master/ciao-boot.sh'
+(which contains the latest version of the `ciao-boot.sh' script). The
 bootstrap script recognizes that it is being called without sources
-automatically.  Examples:
+automatically. Examples:
 
      curl https://ciao-lang.org/boot -sSfL | sh
      curl https://ciao-lang.org/boot -sSfL | sh -s -- --prebuilt local-install
@@ -174,44 +184,44 @@ Quick installation from source
 ==============================
 
 The source code for the latest stable and development versions of Ciao
-is available from <https://ciao-lang.org>.
+is available from `https://ciao-lang.org'.
 
-Installation of Ciao from source is driven by the 'ciao-boot.sh' script
-('ciao-boot.bat' in Windows), which bootstraps and invokes the Ciao
+Installation of Ciao from source is driven by the `ciao-boot.sh' script
+(`ciao-boot.bat' in Windows), which bootstraps and invokes the Ciao
 build system.
 
 Note: It is recommended that you read the full installation
-instructions.  However, in most cases following this summary suffices:
+instructions. However, in most cases following this summary suffices:
 
-  1. Type './ciao-boot.sh configure'.  This command will attempt to
+  1. Type `./ciao-boot.sh configure'. This command will attempt to
      detect the configuration options for your system automatically and
      select reasonable defaults.
 
-     Options can be configured interactively using './ciao-boot.sh
-     configure --interactive' or passed explicitly as arguments from the
-     command-line (see './ciao-boot.sh help' for more information).  In
-     particular, make sure the location of the 'emacs' executable is set
-     correctly.
+     Options can be configured interactively using `./ciao-boot.sh
+     configure --interactive' or passed explicitly as arguments from
+     the command-line (see `./ciao-boot.sh help' for more information).
+     In particular, make sure the location of the `emacs' executable is
+     set correctly.
 
-  2. Type './ciao-boot.sh build'.  This will build executables, compile
+  2. Type `./ciao-boot.sh build'. This will build executables, compile
      libraries, and generate the documentation.
 
-  3. Type './ciao-boot.sh install'.  This will install everything in the
+  3. Type `./ciao-boot.sh install'. This will install everything in the
      specified directories.
 
-Alternatively, 'ciao-boot.sh' provides shorthands to perform configure,
+Alternatively, `ciao-boot.sh' provides shorthands to perform configure,
 build, and install in a single command:
 
-  1. Type './ciao-boot.sh local-install'.  This will do a user-local
+  1. Type `./ciao-boot.sh local-install'. This will do a user-local
      installation (that will be accessible just for your user).
 
-  2. Type './ciao-boot.sh global-install'.  This will do a system-wide
-     installation (e.g., as administrator or 'root' user).
+  2. Type `./ciao-boot.sh global-install'. This will do a system-wide
+     installation (e.g., as administrator or `root' user).
 
 The system will include appropriate code at the end of your startup
-scripts.  This will make the documentation and executables accessible,
+scripts. This will make the documentation and executables accessible,
 make sure the correct mode is set when opening Ciao source files in
-'emacs', etc.
+`emacs', etc.
 
 If you need more advanced control of the configuration please read the
 following sections.
@@ -229,240 +239,248 @@ Full installation instructions
      user's home directory (recommended for Ciao developers or users
      without admin rights).
 
-     The option '--instype=global' will prepare Ciao to be installed as
-     the system administrator ('root') in a standard directory available
-     for all users in the machine (e.g., '/usr/local').
+     The option `--instype=global' will prepare Ciao to be installed as
+     the system administrator (`root') in a standard directory
+     available for all users in the machine (e.g., `/usr/local').
 
-     For 32-bit builds in 64-bit architectures use the '--core:m32=yes'
+     For 32-bit builds in 64-bit architectures use the `--core:m32=yes'
      configuration flag.
 
      In case you want to install elsewhere, or change any of the
      installation options, you can use a customized configuration
-     procedure (see './ciao-boot.sh help' for more information).  The
+     procedure (see `./ciao-boot.sh help' for more information). The
      meaning of some important options is as follows:
 
-        * '--prefix': prefix for the default values of installation
-          directories ('<prefix>/bin', '<prefix>/lib', etc).
+        * `--prefix': prefix for the default values of installation
+          directories (`<prefix>/bin', `<prefix>/lib', etc).
 
-        * '--bindir': directory where the Ciao commands will be
-          installed.  For example, if '--bindir' is set to
-          '/usr/local/bin', then the Ciao compiler ('ciaoc') will be
-          stored at '/usr/local/bin/ciaoc'.  Actually, it will be a link
-          to 'ciaoc-'VersionNumber.  This applies also to other
-          executables below and is done so that several versions of Ciao
-          can coexist on the same machine.  Note that the version
+        * `--bindir': directory where the Ciao commands will be
+          installed. For example, if `--bindir' is set to
+          `/usr/local/bin', then the Ciao compiler (`ciaoc') will be
+          stored at `/usr/local/bin/ciaoc'. Actually, it will be a link
+          to `ciaoc-'VersionNumber. This applies also to other
+          executables below and is done so that several versions of
+          Ciao can coexist on the same machine. Note that the version
           installed latest will be the one started by default when
-          typing 'ciao', 'ciaoc', etc.
+          typing `ciao', `ciaoc', etc.
 
-        * The Ciao installation procedure will create a new subdirectory
-          'ciao/<vers>' denoted 'INSTALL_CIAOROOT' below '--prefix'.
-          The '<vers>' directory indicate the Ciao system version.  It
-          allows having several Ciao versions installed simultaneously.
+        * The Ciao installation procedure will create a new
+          subdirectory `ciao/<vers>' denoted `INSTALL_CIAOROOT' below
+          `--prefix'. The `<vers>' directory indicate the Ciao system
+          version. It allows having several Ciao versions installed
+          simultaneously.
 
-        * '--mandir': directory where the manuals in 'man' format will
+        * `--mandir': directory where the manuals in `man' format will
           be installed.
 
-        * '--infodir': directory where the manuals in 'info' format will
-          be installed.
+        * `--infodir': directory where the manuals in `info' format
+          will be installed.
 
-  2. Build Ciao: At the ciao top level directory type './ciao-boot.sh
+
+  2. Build Ciao: At the ciao top level directory type `./ciao-boot.sh
      build'.
 
   3. Install Ciao: To install Ciao in the directories selected in the
-     configuration script during step 2 above, type './ciao-boot.sh
-     install'.  This will:
+     configuration script during step 2 above, type `./ciao-boot.sh
+     install'. This will:
 
         * Install the executables of the Ciao program development tools
-          (i.e., the general driver/top-level 'ciao', the standalone
-          compiler 'ciaoc', the script interpreter 'ciao-shell',
-          miscellaneous utilities, etc.)  in the selected binary
-          directory.  In order to use these tools, make sure that the
-          'PATH' environment variable contains such path.
+          (i.e., the general driver/top-level `ciao', the standalone
+          compiler `ciaoc', the script interpreter `ciao-shell',
+          miscellaneous utilities, etc.) in the selected binary
+          directory. In order to use these tools, make sure that the
+          `PATH'  environment variable contains such path.
 
-        * Install the Ciao libraries under 'INSTALL_CIAOROOT' (these
+        * Install the Ciao libraries under `INSTALL_CIAOROOT' (these
           will be automatically found).
 
         * Install the Ciao manuals in several formats (such as GNU
-          'info', 'html', 'pdf', etc.)  under 'INSTALL_CIAOROOT' and
-          other documentation-specific paths.  In order for these
-          manuals to be found when typing 'M-x info' within 'emacs', or
-          by the standalone 'info' and 'man' commands, the 'MANPATH' and
-          'INFOPATH' environment variables of users both need to contain
-          the path specified at '--mandir' and '--infodir'.
-          Documentation in other formats can be accesed with the 'ciao
+          `info', `html', `pdf', etc.) under `INSTALL_CIAOROOT' and
+          other documentation-specific paths. In order for these
+          manuals to be found when typing `M-x info' within `emacs', or
+          by the standalone `info' and `man' commands, the `MANPATH'
+          and `INFOPATH'  environment variables of users both need to
+          contain the path specified at `--mandir' and `--infodir'.
+          Documentation in other formats can be accesed with the `ciao
           doc' command.
 
-        * Install under 'INSTALL_CIAOROOT' the Ciao interface with GNU
-          'emacs' (which provides an interactive interface to the Ciao
+        * Install under `INSTALL_CIAOROOT' the Ciao interface with GNU
+          `emacs' (which provides an interactive interface to the Ciao
           program development tools, as well as some other auxiliary
           files).
 
+
   4. Set up user environments: The installation process will modify the
-     startup files automatically by default.  If you disable this option
+     startup files automatically by default. If you disable this option
      in the configuration or you wish to switch between different
      installations, it would be necessary to modify the startup files
      manually.
 
-     The installation process generates a 'ciao-env' command to update
-     the environments for 'sh'-like and 'csh'like shells.  It also
-     generates a 'INSTALL_CIAOROOT/ciao-mode-init' (for emacs) with
+     The installation process generates a `ciao-env' command to update
+     the environments for `sh'-like and `csh'like shells. It also
+     generates a `INSTALL_CIAOROOT/ciao-mode-init' (for emacs) with
      appropriate definitions which will take care of all needed
      environment variable definitions and emacs mode setup.
 
-        * For users a csh-compatible shell ('csh', 'tcsh', ...), add to
-          '~/.cshrc':
+        * For users a csh-compatible shell (`csh', `tcsh', ...), add to
+          `~/.cshrc':
 
                        if ( -x <prefix>/bin/ciao-env ) then
                           eval `<prefix>/bin/ciao-env --csh`
                        endif
 
-        * For users of an sh-compatible shell ('sh', 'bash', ...), the
-          installer will add to '~/.bashrc' the next lines:
+        * For users of an sh-compatible shell (`sh', `bash', ...), the
+          installer will add to `~/.bashrc' the next lines:
 
                        if [ -x <prefix>/bin/ciao-env ]; then
                           eval "$(<prefix>/bin/ciao-env --sh)"
                        fi
 
-        * For users of an 'zsh' shell, the same lines will be added to
-          '~/.zshrc'.
+        * For users of an `zsh' shell, the same lines will be added to
+          `~/.zshrc'.
 
-          This will set up things so that the Ciao executables are found
-          and you can access the Ciao system manuals using the 'info'
-          command.  Note that, depending on your shell, you may have to
-          log out and back in for the changes to take effect.
+          This will set up things so that the Ciao executables are
+          found and you can access the Ciao system manuals using the
+          `info' command. Note that, depending on your shell, you may
+          have to log out and back in for the changes to take effect.
 
-        * Also, if you use 'emacs' (highly recommended) the install will
-          add the next line to your '~/.emacs' file:
+        * Also, if you use `emacs' (highly recommended) the install
+          will add the next line to your `~/.emacs' file:
 
                        (load-file "INSTALL_CIAOROOT/ciao-site-file.el")
                        (if (file-exists-p "INSTALL_CIAOROOT/ciao-site-file.el")
                          (load-file "INSTALL_CIAOROOT/ciao-site-file.el")
                        )
 
+
      If you are installing Ciao globally in a multi-user machine, make
-     sure that you instruct all users that to do the same.  If you are
+     sure that you instruct all users that to do the same. If you are
      the system administrator, the previous steps can be done once and
-     for all, and globally for all users by including the lines above in
-     the central startup scripts (e.g., in Linux '/etc/bashrc',
-     '/etc/csh.login', '/etc/csh.cshrc', '/etc/skel',
-     '/usr/share/emacs/.../lisp/site-init.pl', etc.).
+     for all, and globally for all users by including the lines above
+     in the central startup scripts (e.g., in Linux `/etc/bashrc',
+     `/etc/csh.login', `/etc/csh.cshrc', `/etc/skel',
+     `/usr/share/emacs/.../lisp/site-init.pl', etc.).
 
   5. Check installation / read documentation: You may now want to check
-     your installation (see *note Checking for correct installation::)
-     and read the documentation.  There are special "getting started"
+     your installation (see *Note Checking for correct installation::)
+     and read the documentation. There are special "getting started"
      sections at the beginning of the manual.
 
-If you have any problems you may want to check *note Troubleshooting::.
+
+If you have any problems you may want to check *Note Troubleshooting::.
 
 Uninstalling
 ============
 
-The system can be uninstalled by typing './ciao-boot.sh uninstall' in
-the top directory.  To ensure that this process works, configuration
-should have not changed since installation, so that the same directories
-are cleaned.
+The system can be uninstalled by typing `./ciao-boot.sh uninstall' in
+the top directory. To ensure that this process works, configuration
+should have not changed since installation, so that the same
+directories are cleaned.
 
 Checking for correct installation
 =================================
 
 If everything has gone well, several applications and tools should be
-available to a normal user.  Try the following while logged in as a
+available to a normal user. Try the following while logged in as a
 normal user (important in order to check that permissions are set up
 correctly):
 
-   * Typing 'ciao' (or 'ciaosh') should start the typical Prolog-style
+   * Typing `ciao' (or `ciaosh') should start the typical Prolog-style
      top-level shell.
 
-   * In the top-level shell, Ciao library modules should load correctly.
-     Type for example 'use_module(library(dec10_io))' -you should get
-     back a prompt with no errors reported.
+   * In the top-level shell, Ciao library modules should load
+     correctly. Type for example `use_module(library(dec10_io))' -you
+     should get back a prompt with no errors reported.
 
-   * To exit the top level shell, type 'halt.' as usual, or <^D>.
+   * To exit the top level shell, type `halt.' as usual, or <^D>.
 
-   * Typing 'ciaoc' should produce the help message from the Ciao
+   * Typing `ciaoc' should produce the help message from the Ciao
      standalone compiler.
 
-   * Typing 'ciao-shell' should produce a message saying that no code
-     was found.  This is a Ciao application which can be used to write
-     scripts written in Ciao, i.e., files which do not need any explicit
-     compilation to be run.
+   * Typing `ciao-shell' should produce a message saying that no code
+     was found. This is a Ciao application which can be used to write
+     scripts written in Ciao, i.e., files which do not need any
+     explicit compilation to be run.
+
 
 Also, the following documentation-related actions should work:
 
-   * If the 'info' program is installed, typing 'info' should produce a
+   * If the `info' program is installed, typing `info' should produce a
      list of manuals which should include Ciao manual(s) in a separate
      area (you may need to log out and back in so that your shell
      variables are reinitialized for this to work).
 
-   * Typing 'ciao doc alldocs' should open a series of Ciao-related
+   * Typing `ciao doc alldocs' should open a series of Ciao-related
      manuals in a WWW browser.
 
-   * Typing 'man ciao' should produce a man page with some very basic
+   * Typing `man ciao' should produce a man page with some very basic
      general information on Ciao (and pointing to the on-line manuals).
 
    * The documentation directory should contain the manual also in the
-     other formats such as 'pdf'.
+     other formats such as `pdf'.
 
-Finally, if 'emacs' is installed, after starting it (typing 'emacs') the
-following should work:
 
-   * Typing <^H> <i> (or in the menus 'Help->Manuals->Browse Manuals
+Finally, if `emacs' is installed, after starting it (typing `emacs')
+the following should work:
+
+   * Typing <^H> <i> (or in the menus `Help->Manuals->Browse Manuals
      with Info') should open a list of manuals in info format in which
      the Ciao manual(s) should appear.
 
-   * When opening a Ciao file, i.e., a file with '.pl' or '.pls' ending,
-     using <^X><^F>'filename' (or using the menus) the code should
-     appear highlighted according to syntax (e.g., comments in red), and
-     'Ciao/Prolog' menus should appear in the menu bar on top of the
-     'emacs' window.
+   * When opening a Ciao file, i.e., a file with `.pl' or `.pls'
+     ending, using <^X><^F>`filename' (or using the menus) the code
+     should appear highlighted according to syntax (e.g., comments in
+     red), and `Ciao/Prolog' menus should appear in the menu bar on top
+     of the `emacs' window.
 
-   * Loading the file using the 'Ciao/Prolog' menu (or typing <^C> <l>)
+   * Loading the file using the `Ciao/Prolog' menu (or typing <^C> <l>)
      should start in another emacs buffer the Ciao toplevel shell and
-     load the file.  You should now be able to switch the the toplevel
-     shell and make queries from within 'emacs'.
+     load the file. You should now be able to switch the the toplevel
+     shell and make queries from within `emacs'.
 
-Note: when using 'emacs' it is very convenient to swap the locations of
+
+Note: when using `emacs' it is very convenient to swap the locations of
 the (normally not very useful) <Caps Lock> key and the (very useful in
-'emacs') <Ctrl> key on the keyboard.  How to do this is explained in the
-'emacs' frequently asked questions FAQs (see the 'emacs' download
+`emacs') <Ctrl> key on the keyboard. How to do this is explained in the
+`emacs' frequently asked questions FAQs (see the `emacs' download
 instructions for their location).
 
 Cleaning up the source directory
 ================================
 
 After (global) installation, the source directory can be cleaned up
-using './ciao-boot.sh realclean', leaves the distribution is its
+using `./ciao-boot.sh realclean', leaves the distribution is its
 original form, throwing away any intermediate files (as well as any
-unneeded files left behind by the Ciao developers), while still allowing
-recompilation.
+unneeded files left behind by the Ciao developers), while still
+allowing recompilation.
 
 Environment variables used by Ciao executables
 ==============================================
 
 The executables generated by the Ciao compiler (including the ciao
-development tools themselves) locate automatically where the Ciao engine
-and libraries have been installed, since those paths are stored as
-defaults in the engine and compiler at installation time.  Thus, there
-is no need for setting any environment variables in order to run Ciao
-executables (on a single architecture - see *note Multiarchitecture
-installation:: for running on multiple architectures).
+development tools themselves) locate automatically where the Ciao
+engine and libraries have been installed, since those paths are stored
+as defaults in the engine and compiler at installation time. Thus,
+there is no need for setting any environment variables in order to run
+Ciao executables (on a single architecture - see *Note
+Multiarchitecture installation:: for running on multiple architectures).
 
 However, the default paths can be overridden by using the environment
-variable 'CIAOROOT', which tell the Ciao executables where to look for
+variable `CIAOROOT', which tell the Ciao executables where to look for
 engines and system libraries.
 
 Multiarchitecture installation
 ==============================
 
-In order to perform a multi-architecture installation, it is possible to
-repeat successively the build and installation process for several
+In order to perform a multi-architecture installation, it is possible
+to repeat successively the build and installation process for several
 architectures from different machines sharing part of their filesystem.
 
 The Ciao build and installation process maintains separate name spaces
 for platform- and architecture-dependant binaries (like the engine
-binary, or '.so' or '.dll' gluecode files for the foreign interface).
+binary, or `.so' or `.dll' gluecode files for the foreign interface).
 Portable Ciao applications (i.e., except self-contained standalone
 executables) can run on several machines with different architectures
-without any need for recompiling, provided the Ciao engine and libraries
-are correctly installed.
+without any need for recompiling, provided the Ciao engine and
+libraries are correctly installed.
 
