@@ -36,14 +36,18 @@ approx(exact).
 :- export(resource_id/1).
 
 :- doc(resource_id/1,"A resource is a numerical property that varies
-   (is consumed) throughout the execution of a piece of
-   code. Resources can be predefined (i.e., in a library) or
-   user-defined.  Examples are computational steps, time spent, memory
-   usage, bytes sent over a wire, database operations, energy
-   consumed, etc. See also @lib{resources_decl}.").
-:- regtype resource_id(X)
-   # "@var{X} is the name of a resource (an atom).".
-resource_id(T) :- atm(T).
+   (is used) throughout the execution of a piece of code. Resources
+   can be predefined (i.e., in a library) or user-defined. Examples
+   are computational (resolution) steps, time spent, energy consumed,
+   memory usage, bytes sent over a wire, procedure calls, database
+   operations, files left open, monetary units spent, disk space used,
+   etc. See also @lib{resources_decl}.").
+
+:- prop resource_id(X) # "@var{X} is the name/identifier of a
+resource, either an atom or a compound term.".
+
+resource_id(X) :- atm(X).
+resource_id(X) :- struct(X).
 :- endif.
 
 % --------------------------------------------------------------------------
@@ -54,7 +58,7 @@ resource_id(T) :- atm(T).
 
 :- doc(cost_expression/1,"A cost expression is a symbolic function
    representing the cost of executing a piece of code in terms of the
-   size of its input arguments and possibly other parameters. It is a
+   sizes of its input arguments and possibly other parameters. It is a
    term built from elements of the lattice of real numbers (see
    @pred{number_lattice}), numerical constants (see
    @pred{numeric_constant/1}), size metrics (see @pred{size_metric})
@@ -100,13 +104,13 @@ resource_id(T) :- atm(T).
 
    @item @pred{min/2}: minimum.
 
-   @item @pred{sum(Index,LowerBound,UpperBound,Exp)}: summation of
-   @var{Exp} from @var{LowerBound} to @var{UpperBound} given the index
-   variable @var{Index}.
+   @item @pred{sum(Index,LowerBound,UpperBound,Exp)}: summation of all
+   @var{Exp}s obtained by instantiating index variable @var{Index}
+   from @var{LowerBound} to @var{UpperBound}.
 
-   @item @pred{prod(Index,LowerBound,UpperBound,Exp)}: product of
-   @var{Exp} from @var{LowerBound} to @var{UpperBound} given the index
-   variable @var{Index}.
+   @item @pred{prod(Index,LowerBound,UpperBound,Exp)}: product of all
+   @var{Exp}s obtained by instantiating index variable @var{Index}
+   from @var{LowerBound} to @var{UpperBound}.
 
    @end{itemize}
 ").
