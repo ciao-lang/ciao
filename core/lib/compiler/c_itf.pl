@@ -1084,20 +1084,6 @@ process_expanded_data_list(Data0, Base, M, VNs, Sings, Pl, Ln0, Ln1) :-
     ).
 
 :- export(expand_module_decl/5).
-expand_module_decl(Sentence, Base, Type, Decl2, Rest) :-
-    % TODO: This code use required by CiaoPP (not used by Ciao)
-    %       in p_asr:process_main_files_ when treating
-    %       packages instead of modules. I am not sure that
-    %       this should be the way to implement it. (JFMC)
-    Type = package, !,
-    check_include_decl(package, Base, Sentence, Sentences),
-    ( Sentences = [Sentence2] ->
-        expand_module_decl(Sentence2, Base, any, Decl2, Rest)
-    ; % TODO: duplicated in the next clause
-      default_package(DefaultPackage),
-      user_module_decl(Base, DefaultPackage, Decl2),
-      Rest = Sentences
-    ).
 expand_module_decl(Sentence, Base, _Type, Decl2, Rest) :-
     ( Sentence = sentence((:- Decl), _, _, _, _),
       normalize_module_decl(Decl, Base, Decl2) ->
