@@ -55,9 +55,9 @@ json_list([X|Xs]) :- json_val(X), json_list(Xs).
 % ===========================================================================
 
 :- export(json_to_string/2).
-:- pred json_to_string(+Term, ?String) :: json * string # "Encode
-   a JSON @var{Term} as a character list.".
-json_to_string(X, String) :- obj_to_str(X, String, []).
+:- pred json_to_string(+Term, ?String) :: json_val * string # "Encode
+   a JSON value @var{Term} as a character list.".
+json_to_string(X, String) :- val_to_str(X, String, []).
 
 obj_to_str(json(Attrs)) --> "{", attrs_to_str(Attrs), "}".
 
@@ -90,16 +90,21 @@ stringq([C|Cs]) --> { needs_quote(C, C2) }, !, "\\", [C2], stringq(Cs).
 stringq([C|Cs]) --> [C], stringq(Cs).
 
 :- export(string_to_json/2).
-:- pred string_to_json(+String, ?Term) :: string * json # "Decode
-   a character list as a JSON @var{Term}.".
+:- pred string_to_json(+String, ?Term) :: string * json_val # "Decode
+   a character list as a JSON value @var{Term}.".
 string_to_json(String, X) :-
-    str_to_obj(X, String, Rest),
-    blanks(Rest, []).
+    string_to_json_(X, String, []).
 
-% (accept leading blanks)
-str_to_obj(json(Attrs)) -->
-    blanks, "{",
-    blanks, str_to_attrs_(Attrs).
+string_to_json_(X) --> blanks, str_to_val(X), blanks.
+
+% (no leading blanks)
+str_to_val(string(Xs)) --> "\"", !, quoted_string_(Xs).
+str_to_val(json(Attrs)) --> "{", !, blanks, str_to_attrs_(Attrs).
+str_to_val(X) --> "[", !, blanks, str_to_list_(X).
+str_to_val(true) --> "true", !.
+str_to_val(false) --> "false", !.
+str_to_val(null) --> "null", !.
+str_to_val(X) --> number_string(Cs), !, { number_codes(X, Cs) }.
 
 % (no leading blanks)
 str_to_attrs_([]) --> "}", !.
@@ -133,15 +138,6 @@ quoted_string_([C|Cs]) --> "\\", [C0], { quoted_as(C0, C1) }, !, { C = C1 }, quo
 % quoted_string_("\r"||Cs) --> "\\r", !, quoted_string_(Cs).
 % quoted_string_("\t"||Cs) --> "\\t", !, quoted_string_(Cs).
 quoted_string_([C|Cs]) --> [C], quoted_string_(Cs).
-
-% (no leading blanks)
-str_to_val(string(Xs)) --> "\"", !, quoted_string_(Xs).
-str_to_val(json(Attrs)) --> "{", !, blanks, str_to_attrs_(Attrs).
-str_to_val(X) --> "[", !, blanks, str_to_list_(X).
-str_to_val(true) --> "true", !.
-str_to_val(false) --> "false", !.
-str_to_val(null) --> "null", !.
-str_to_val(X) --> number_string(Cs), !, { number_codes(X, Cs) }.
 
 % (no leading blanks)
 str_to_list_([]) --> "]", !.
