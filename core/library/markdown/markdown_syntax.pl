@@ -16,6 +16,12 @@
 :- export(section_like_env/1).
 section_like_env(module).
 section_like_env(summary).
+section_like_env(usage).
+section_like_env(appendix).
+section_like_env(copyright).
+section_like_env(ack).
+section_like_env(bug).
+section_like_env(address).
 % Note: this means that all text after a predicate comment
 %   is really part of its documentation.
 section_like_env(docpred(_, _)). % (internal) 
@@ -40,6 +46,13 @@ cmd_type(filetype, term). % filetype/1: module|user|include|package|part
 cmd_type(nodoc, term). % nodoc atom 
 cmd_type(title, docstring).
 cmd_type(subtitle, docstring).
+cmd_type(subtitle_extra, docstring).
+cmd_type(ack, docstring).
+cmd_type(usage, docstring).
+cmd_type(appendix, docstring).
+cmd_type(copyright, docstring).
+cmd_type(credits, docstring).
+cmd_type(address, docstring).
 cmd_type(author, docstring).
 cmd_type(summary, docstring).
 cmd_type(module, docstring).
@@ -76,6 +89,13 @@ front_cmd(filetype).
 front_cmd(nodoc).
 front_cmd(title).
 front_cmd(subtitle).
+front_cmd(subtitle_extra).
+front_cmd(ack).
+front_cmd(usage).
+front_cmd(appendix).
+front_cmd(copyright).
+front_cmd(credits).
+front_cmd(address).
 front_cmd(author).
 front_cmd(summary).
 front_cmd(module).
@@ -91,6 +111,13 @@ decl_cmd(filetype).
 decl_cmd(nodoc).
 decl_cmd(title).
 decl_cmd(subtitle).
+decl_cmd(subtitle_extra).
+decl_cmd(ack).
+decl_cmd(usage).
+decl_cmd(appendix).
+decl_cmd(copyright).
+decl_cmd(credits).
+decl_cmd(address).
 decl_cmd(author).
 decl_cmd(summary).
 decl_cmd(module).
