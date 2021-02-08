@@ -424,7 +424,7 @@ argspec(pred(N)) :-
       any program containing the current code. The initialization of a
       module/file never runs before the initializations of the modules
       from which the module/file imports (excluding circular 
-      dependences).".
+      dependencies).".
 :- impl_defined(initialization/1).
 
 :- doc(doinclude,on_abort/1).
