@@ -291,6 +291,23 @@ size(_, _, _).
 % :- impl_defined(size/3).
 :- endif.
 
+:- if(defined(optim_comp)).
+:- else.
+:- export(size/4).
+:- doc(size(A,M,X,Y),"The size of term @var{X}, measured in metric
+   @var{M}, for the approximation @var{A} is given by expression
+   @var{Y}, which may depend on the size of other terms.
+").
+:- prop size(A, M, X, Y)
+   : ( approx(A), measure_t(M), term(X), cost_expression(Y) )
+   + no_rtcheck
+   # "@var{Y} is the size of argument @var{X} measured in @var{M}, for
+     the approximation @var{A}.".
+
+size(_, _, _, _).
+% :- impl_defined(size/4).
+:- endif.
+
 :- export(size_lb/2).
 :- doc(size_lb(X, Y), "The minimum size of the terms to which the
    argument @var{Y} is bound is given by the expression
