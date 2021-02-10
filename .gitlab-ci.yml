@@ -127,13 +127,13 @@ ciaopp_lite.test.rtchecks:
     - rm -f bndls/ciaopp_llvm/ACTIVATE
     - ciao rescan-bundles
     - ciao build --bin ciaopp ciaopp_tests 2>&1 | builder/etc/errstatus
-    - ciaopp-test incanal qsort gr --edit_type del --show-lat --steps 5
-    - ciaopp-test incanal ann gr --edit_type del --show-lat --steps 5
-    - ciaopp-test incanal rdtok gr --edit_type del --show-lat --steps 5
-    - ciaopp-test incanal hanoi det --edit_type del --show-lat --steps 5 plai
-    - ciaopp-test incanal bid det --edit_type del --show-lat --steps 5 plai
-    - ciaopp-test incanal hanoi nf --edit_type del --show-lat --steps 5 plai
-    - ciaopp-test incanal bid nf --edit_type del --show-lat --steps 5 plai
+    - ciaopp-test incanal qsort gr --edit_type del --show-lat --steps 5 | builder/etc/errstatus
+    - ciaopp-test incanal ann gr --edit_type del --show-lat --steps 5 | builder/etc/errstatus
+    - ciaopp-test incanal rdtok gr --edit_type del --show-lat --steps 5 | builder/etc/errstatus
+    - ciaopp-test incanal hanoi det --edit_type del --show-lat --steps 5 plai | builder/etc/errstatus
+    - ciaopp-test incanal bid det --edit_type del --show-lat --steps 5 plai | builder/etc/errstatus
+    - ciaopp-test incanal hanoi nf --edit_type del --show-lat --steps 5 plai | builder/etc/errstatus
+    - ciaopp-test incanal bid nf --edit_type del --show-lat --steps 5 plai | builder/etc/errstatus
     - ./bndls/ciaopp_tests/tests/incanal/test_terms_mod.sh
   needs: [ciaopp_lite]
 
