@@ -15,6 +15,7 @@
 
 :- use_module(library(format)).  
 :- use_module(engine(stream_basic)).  
+:- use_module(engine(io_basic)).
 
 % Other libraries
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
@@ -35,7 +36,7 @@ status_flag(nostatus).
          status_flag(Flag) )
     # "Writes the (normalized) assertion to current output.".
 
-write_assertion(Goal,Status,Type,Body,Dict,Flag):-
+write_assertion(Goal,Status,Type,Body,Dict,Flag) :-
     current_output(CO),
     \+ \+ write_assertion_(Goal,Status,Type,Body,Dict,Flag,no,CO).
 
@@ -45,7 +46,7 @@ write_assertion(Goal,Status,Type,Body,Dict,Flag):-
          status_flag(Flag) )
     # "Writes the (normalized) assertion to stream @var{Stream}.".
 
-write_assertion(S,Goal,Status,Type,Body,Dict,Flag):-
+write_assertion(S,Goal,Status,Type,Body,Dict,Flag) :-
     \+ \+ write_assertion_(Goal,Status,Type,Body,Dict,Flag,no,S).
 
 :- pred write_assertion_as_comment(Goal,Status,Type,Body,Dict,Flag)
@@ -55,7 +56,7 @@ write_assertion(S,Goal,Status,Type,Body,Dict,Flag):-
     # "Writes the (normalized) assertion to current output as
        a Prolog comment.".
 
-write_assertion_as_comment(Goal,Status,Type,Body,Dict,Flag):-
+write_assertion_as_comment(Goal,Status,Type,Body,Dict,Flag) :-
     current_output(CO),
     \+ \+ write_assertion_(Goal,Status,Type,Body,Dict,Flag,yes,CO).
 
@@ -66,7 +67,7 @@ write_assertion_as_comment(Goal,Status,Type,Body,Dict,Flag):-
     # "Writes the (normalized) assertion to stream @var{Stream} as
        a Prolog comment.".
 
-write_assertion_as_comment(Stream,Goal,Status,Type,Body,Dict,Flag):-
+write_assertion_as_comment(Stream,Goal,Status,Type,Body,Dict,Flag) :-
     \+ \+ write_assertion_(Goal,Status,Type,Body,Dict,Flag,yes,Stream).
 
 
@@ -77,7 +78,7 @@ write_assertion_as_comment(Stream,Goal,Status,Type,Body,Dict,Flag):-
     # "Writes the (normalized) assertion to current output as
        a Prolog double comment.".
 
-write_assertion_as_double_comment(Goal,Status,Type,Body,Dict,Flag):-
+write_assertion_as_double_comment(Goal,Status,Type,Body,Dict,Flag) :-
     current_output(CO),
     \+ \+ write_assertion_(Goal,Status,Type,Body,Dict,Flag,double,CO).
 
@@ -89,83 +90,74 @@ write_assertion_as_double_comment(Goal,Status,Type,Body,Dict,Flag):-
     # "Writes the (normalized) assertion to stream @var{Stream} as
        a Prolog double comment.".
 
-write_assertion_as_double_comment(Stream,Goal,Status,Type,Body,Dict,Flag):-
+write_assertion_as_double_comment(Stream,Goal,Status,Type,Body,Dict,Flag) :-
     \+ \+ write_assertion_(Goal,Status,Type,Body,Dict,Flag,double,Stream).
 
-write_assertion_(Goal,Status,Type,Body,Dict,Flag,AsComm,Stream):-       
+write_assertion_(Goal,Status,Type,Body,Dict,Flag,AsComm,Stream) :-       
     % unify_vars(Dict),
     varnamesl2dict(Dict, VnDict),
     complete_dict_alpha(VnDict, Goal, D2),
     % DTM: Maybe someone instantiated our variables when doing a write!!!
     ( rename(Goal, D2) -> true ; true ),
+    comm_prefix(AsComm,Stream),
     ( Flag=nostatus ->
-        write_nostatus_assertion(AsComm,Type,Goal,Stream)
-    ; write_status_assertion(AsComm,Status,Type,Goal,Stream)
+        format(Stream,":- ~w ~q",[Type,Goal])
+    ; format(Stream,":- ~w ~w ~q",[Status,Type,Goal])
     ),
     complete_dict_alpha(D2, Body, D3),
     ( rename(Body, D3) -> true ; true ),
     assertion_body(Goal,Compat,Call,Succ,Comp,Comm,Body),
-    write_if_not_empty(Compat,'::',AsComm,conj,Stream),
-    decide_on_call(Call,FormC),
-    write_if_not_empty(Call,':',AsComm,FormC,Stream), % ' :'
-    decide_on_call(Succ,FormS),
-    write_if_not_empty(Succ,'=>',AsComm,FormS,Stream),
-    decide_on_call(Comp,FormP),
-    write_if_not_empty(Comp,'+',AsComm,FormP,Stream), % ' +'
-    write_comment(Comm,AsComm,Stream),
-    format(Stream,".~n",[]),
+    Tab = 3,
+    write_props(Compat,'::',AsComm,Tab,Stream),
+    write_props(Call,':',AsComm,Tab,Stream), % ' :'
+    write_props(Succ,'=>',AsComm,Tab,Stream),
+    write_props(Comp,'+',AsComm,Tab,Stream), % ' +'
+    write_comment(Comm,AsComm,Tab,Stream),
+    display(Stream, '.'), nl(Stream),
     !.
-write_assertion_(_Goal,Status,Type,Body,_Dict,_Flag,_AsComm,_Stream):-
+write_assertion_(_Goal,Status,Type,Body,_Dict,_Flag,_AsComm,_Stream) :-
     error_message("Error printing assertion:~n:- ~w ~w ~w~n",
            [Status,Type,Body]),
     fail.
 
-write_nostatus_assertion(double,Type,Goal,S):-
-    format(S,"%% %% :- ~w ~q",[Type,Goal]).
-write_nostatus_assertion(yes,Type,Goal,S):-
-    format(S,"%% :- ~w ~q",[Type,Goal]).
-write_nostatus_assertion(no,Type,Goal,S):-
-    format(S,":- ~w ~q",[Type,Goal]).
+write_comment([],_AsComm,_Tab,_) :- !.
+write_comment(Comm,AsComm,Tab,S) :-
+    escape_string(Comm,Comm2),
+    print_sep(nl,AsComm,Tab,S),
+    format(S,'# "~s"',[Comm2]).
 
-write_status_assertion(double,Status,Type,Goal,S):-
-    format(S,"%% %% :- ~w ~w ~q",[Status,Type,Goal]).
-write_status_assertion(yes,Status,Type,Goal,S):-
-    format(S,"%% :- ~w ~w ~q",[Status,Type,Goal]).
-write_status_assertion(no,Status,Type,Goal,S):-
-    format(S,":- ~w ~w ~q",[Status,Type,Goal]).
+% TODO: reuse other code?
+escape_string([], []).
+escape_string([A|Ar], [A|Br]) :- A \== 0'", !,
+    escape_string(Ar,Br).
+escape_string([A|Ar], [0'\\,A|Br]) :-
+    escape_string(Ar,Br).
 
-write_comment([],_AsComm,_):- !.
-write_comment(Comm,AsComm,S):-
-    check_comas_in_comment(Comm,CC ),
-    write_comment_as_comment(AsComm,CC,S).
+write_props(Props,Modif,AsComm,Tab,Stream) :-
+    ( Modif = '::' -> FormS = conj % TODO: why?
+    ; props_form(Props,FormS)
+    ),
+    write_props_(Props,Modif,AsComm,Tab,FormS,Stream).
 
-write_comment_as_comment(double,Comm,S):-
-    format(S,'~n%% %%    # "~s"',[Comm]).
-write_comment_as_comment(yes,Comm,S):-
-    format(S,'~n%%    # "~s"',[Comm]).
-write_comment_as_comment(no,Comm,S):-
-    format(S,'~n   # "~s"',[Comm]).
-
-
-check_comas_in_comment( [] , [] ).
-check_comas_in_comment( [A|Ar] , [A|Br] ) :-
-    A \== 0'",
-    check_comas_in_comment(Ar,Br).
-check_comas_in_comment( [A|Ar] , [0'\\,A|Br] ) :-
-    check_comas_in_comment(Ar,Br).
-
-
-write_if_not_empty([]      ,_Mod,_AsComm,_Always,_):- !.
-write_if_not_empty([true]  ,_Mod,_AsComm,conj,_):- !.
-write_if_not_empty([[]]    ,_Mod,_AsComm,disj,_):- !.
-write_if_not_empty([[true]],_Mod,_AsComm,disj,_):- !.
-write_if_not_empty(List    ,Mod,AsComm,Form,Stream):-
-    write_as_comment(AsComm,Mod,Stream),
+write_props_([]      ,_Modif,_AsComm,_Tab,_Form,_) :- !.
+write_props_([true]  ,_Modif,_AsComm,_Tab,conj,_) :- !.
+write_props_([[]]    ,_Modif,_AsComm,_Tab,disj,_) :- !.
+write_props_([[true]],_Modif,_AsComm,_Tab,disj,_) :- !.
+write_props_(List    ,Modif,AsComm,Tab,Form,Stream) :-
+    print_sep(nl,AsComm,Tab,Stream),
+    atom_length(Modif,ModifL),
+    Tab2 is Tab + ModifL + 3, % size of ' ( '
+    display(Stream,Modif), display(Stream,' '),
     ( List = [(C1;C2)] ->
-        conj_to_list_of_list( (C1;C2) , L1 ),
-        print_prop_list(Form, L1 ,Stream)
-    ; print_prop_list(Form,List,Stream)
-    ).
+        conj_to_list_of_list((C1;C2), List2)
+    ; List2 = List
+    ),
+    print_prop_list(Form,List2,AsComm,Tab2,Stream).
+
+% TODO: old comment: DTM: this case appears in :- calls p(X): (ground(X);var(X)).
+props_form([(_;_)],disj) :- !.
+props_form(Call,disj) :- llist(Call), !.
+props_form(_Call,conj).
 
 conj_to_list_of_list((A;B), [A|Bs]) :- list(A), !,
     conj_to_list_of_list(B, Bs).
@@ -180,67 +172,80 @@ conj_to_list((A,B), [A|Bs]) :- !,
     conj_to_list(B, Bs).
 conj_to_list(A, [A]).
 
-write_as_comment(double,Mod,S):-
-    format(S,"~n%% %%    ~w ",[Mod]).
-write_as_comment(yes,Mod,S):-
-    format(S,"~n%%    ~w ",[Mod]).
-write_as_comment(no,Mod,S):-
-    format(S,"~n   ~w ",[Mod]).
+print_prop_list(conj,List,AsComm,Tab,S) :-
+    print_conjunction(List,AsComm,Tab,S).
+print_prop_list(disj,List,AsComm,Tab,S) :-
+    print_disjunction(List,AsComm,Tab,S).
 
-print_prop_list(conj,List,S):-
-    print_conjunction(List,S).
-print_prop_list(disj,List,S):-
-    print_disjunction(List,S).
+print_disjunction([],_AsComm,_Tab,_).
+print_disjunction([Prop],AsComm,Tab,S) :- !,
+    print_conjunction_0(Prop,AsComm,Tab,S).
+print_disjunction([Prop|Props],AsComm,Tab,S) :-
+    display(S,'( '),
+    print_conjunction_0(Prop,AsComm,Tab,S),
+    print_disjunction_2(Props,AsComm,Tab,S).
 
-print_disjunction([],_).
-print_disjunction([Prop],S):- !,
-    print_conjunction_1(Prop,S).
-print_disjunction([Prop|Props],S):-
-    format(S,"( ",[]),
-    print_conjunction_1(Prop,S),
-    print_tail_disj(Props,S).
+print_disjunction_2([],_AsComm,_Tab,S) :-
+    display(S,' )').
+print_disjunction_2([Prop|Props],AsComm,Tab,S) :-
+    display(S,'; '),
+    print_conjunction_0(Prop,AsComm,Tab,S),
+    print_disjunction_2(Props,AsComm,Tab,S).
 
-print_tail_disj([],S):-
-    format(S," )",[]).
-print_tail_disj([Prop|Props],S):-
-    format(S,"; ",[]),
-    print_conjunction_1(Prop,S),
-    print_tail_disj(Props,S).
+print_conjunction_0([],_AsComm,_Tab,S) :- !,
+    display(S,'true').
+print_conjunction_0(A,AsComm,Tab,S) :-
+    print_conjunction(A,AsComm,Tab,S).
 
-print_conjunction_1([],S) :- !,
-    format(S,"true",[]).
-print_conjunction_1(A,S) :-
-    print_conjunction(A,S).
+print_conjunction([],_AsComm,_Tab,_S).
+print_conjunction([Prop],_AsComm,_Tab,S) :- !,
+    print_prop(Prop,S).
+print_conjunction([Prop|Props],AsComm,Tab,S) :-
+    display(S, '( '),
+    ownline_prop(Prop,OwnLine),
+    print_prop(Prop,S),
+    print_conjunction_2(Props,OwnLine,AsComm,Tab,S).
 
-print_conjunction([],_S).
-print_conjunction([Prop],S):- !,
+print_conjunction_2([],_PrevOwnLine,_AsComm,_Tab,S) :-
+    display(S, ' )').
+print_conjunction_2([Prop|Props],PrevOwnLine,AsComm,Tab,S) :-
+    display(S, ','),
+    ownline_prop(Prop,OwnLine),
+    % use nl separator when either this or the previous properties
+    % require their own line
+    ( ( PrevOwnLine = yes ; OwnLine = yes ) -> Sep = nl
+    ; Sep = nonl
+    ),
+    print_sep(Sep,AsComm,Tab,S),
+    print_prop(Prop,S),
+    print_conjunction_2(Props,OwnLine,AsComm,Tab,S).
+
+print_sep(nonl,_AsComm,_Tab,S) :- display(S, ' ').
+print_sep(nl,AsComm,Tab,S) :- nl(S), comm_prefix(AsComm,S), tab(S,Tab).
+
+comm_prefix(double,S) :- display(S,'%% %% ').
+comm_prefix(yes,S) :- display(S,'%% ').
+comm_prefix(no,_S).
+
+% print in its own line (heuristics)
+ownline_prop(mshare(_),yes) :- !. % TODO: customize with a multifile?
+ownline_prop(P,yes) :- functor(P,_,A), A>=3, !.
+ownline_prop(_,no).
+
+print_prop(Prop,S) :-
     ( needs_paren(Prop) ->
         format(S,"(~q)",[Prop])
     ; format(S, "~q" ,[Prop])
     ).
-print_conjunction([Prop|Props],S):-
-    format(S,"( ~q",[Prop]),
-    print_tail_conj(Props,S).
 
 % TODO: incomplete
 needs_paren((_:_)).
 needs_paren((_,_)).
 
-print_tail_conj([],S):-
-    format(S," )",[]).
-print_tail_conj([Prop|Props],S):-
-    format(S,", ~q",[Prop]),
-    print_tail_conj(Props,S).
-
 % unify_vars([]).
-% unify_vars([N=V|Dict]):-
+% unify_vars([N=V|Dict]) :-
 %     V='$VAR'(N),
 %     unify_vars(Dict).
-
-% DTM: this case appears in :- calls p(X): (ground(X);var(X)).
-decide_on_call([(_;_)],disj):- !.
-decide_on_call(Call,disj):- llist(Call), !.
-decide_on_call(_Call,conj).
 
 llist([]).
 llist([X|Xs]) :- list(X), llist(Xs).
