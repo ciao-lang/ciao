@@ -590,12 +590,15 @@ car_build() { # cardir
         # Patch exec with engine size
         car_make fix_size_exec
         if [ x"$core__OS$core__ARCH" = x"DARWINaarch64" ]; then
-            # First codesign so that we have the final executable size
-            codesign --verbose=0 --force -s - -f -vvvvvv "$e" > /dev/null 2>&1
-            # Patch size
+            # codesign is mandatory or Apple M1
+            #
+            # Note that we sign twice: first to fix the binary length,
+            # second after we have patched the executable size with
+            # fix_size.
+            #
+            codesign --verbose=0 --force -s - -f -vvvvvv "$eng" > /dev/null 2>&1
             "$bld_objdir/fix_size""$EXECSUFFIX" "$eng"
-            # Sign again
-            codesign --verbose=0 --force -s - -f -vvvvvv "$e" > /dev/null 2>&1
+            codesign --verbose=0 --force -s - -f -vvvvvv "$eng" > /dev/null 2>&1
         else
             "$bld_objdir/fix_size""$EXECSUFFIX" "$eng"
         fi
