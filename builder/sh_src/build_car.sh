@@ -559,6 +559,7 @@ EOF
 #  - patch binaries (if needed)
 
 car_build() { # cardir
+    local eng
     local eng_deplibs eng_addobj # TODO: eng_addobj is not local!
     set_car_vars "$1"
     ensure_config_loaded
@@ -584,13 +585,23 @@ car_build() { # cardir
     if [ x"$ENG_DYNLIB" = x"1" ]; then
         car_make englib ENG_DEPLIBS="$eng_deplibs" ENG_ADDOBJ="$eng_addobj"
     fi
-    # Patch exec
+    eng="$bld_objdir/$eng_name""$EXECSUFFIX"
     if [ x"$ENG_FIXSIZE" = x"1" ]; then
+        # Patch exec with engine size
         car_make fix_size_exec
-        "$bld_objdir/fix_size""$EXECSUFFIX" "$bld_objdir/$eng_name""$EXECSUFFIX"
+        if [ x"$core__OS$core__ARCH" = x"DARWINaarch64" ]; then
+            # First codesign so that we have the final executable size
+            codesign --verbose=0 --force -s - -f -vvvvvv "$e" > /dev/null 2>&1
+            # Patch size
+            "$bld_objdir/fix_size""$EXECSUFFIX" "$eng"
+            # Sign again
+            codesign --verbose=0 --force -s - -f -vvvvvv "$e" > /dev/null 2>&1
+        else
+            "$bld_objdir/fix_size""$EXECSUFFIX" "$eng"
+        fi
     fi
     if [ x"$oc_car" = x"yes" ]; then
-        [ -x "$bld_objdir/$eng_name""$EXECSUFFIX" ] || { \
+        [ -x "$eng" ] || { \
             echo "{Compilation of $cardir failed}" 1>&2; \
             exit 1; \
             }

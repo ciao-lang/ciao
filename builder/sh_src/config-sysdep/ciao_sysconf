@@ -44,6 +44,8 @@ case "$arch" in
     armv4l)    arch=armv4l ;;
     armv5tel)  arch=armv5tel ;;
     armv6l)    arch=arm ;;
+    aarch64)   arch=aarch64 ;;
+    arm64)     arch=aarch64 ;; # Apple M1
 esac
 
 case "$1" in
