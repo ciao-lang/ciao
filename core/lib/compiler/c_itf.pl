@@ -792,7 +792,7 @@ get_treat_action(Base, Status, Mode, StopP, SkipP, RedoP, Action) :-
             Action = action_treat_file(noread, gen_itf, ItfName)
         ; ( Status = file_noclauses(ItfName)
           ; Status = itf_read(ItfName,ItfTime),
-            changed_dependences(Base, ItfTime)
+            changed_dependencies(Base, ItfTime)
           ) ->
             Action = action_treat_file(read_record, gen_itf, ItfName)
         ; RedoP(Base) -> % Do not regenerate .itf
@@ -1628,23 +1628,23 @@ generate_module_data(_, _).
 :- doc(section, "Detect changes in dependencies").
 
 % Deftype not checked because is not exact in builtin modules
-changed_dependences(Base, _) :-
+changed_dependencies(Base, _) :-
     imports_pred(Base, File, F, A,_DefType, Meta, EndFile),
     base_name(File, BFile),
     \+ exports_thru(BFile, F, A,_DefType2, Meta, EndFile).
-changed_dependences(Base, _) :-
+changed_dependencies(Base, _) :-
     ( imports_all(Base, File); reexports_all(Base, File) ),
     base_name(File, BFile),
     ( direct_export(BFile, F, A, _, _)
     ; indirect_export(BFile, F, A, _, _, _) ),
     \+ imports_pred(Base, File, F, A, _, _, _).
-changed_dependences(Base, ItfTime) :-
+changed_dependencies(Base, ItfTime) :-
     includes(Base, File),
     base_name(File, BFile),
     file_data(BFile, PlName, _),
     modif_time(PlName, PlTime),
     PlTime > ItfTime.
-changed_dependences(Base, ItfTime) :-
+changed_dependencies(Base, ItfTime) :-
     loads(Base, File),
     base_name(File, Base2),
     ( file_data(Base2, PlName2, _),
