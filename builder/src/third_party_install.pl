@@ -355,7 +355,7 @@ install(Lib) :- Operation = "install",
     ),
     message_end(Lib, Operation),!.
 
-:- export(activate/1).
+:- export(activated/1).
 activated(Lib) :-
     ( DirId = bindir ; DirId = libdir ; DirId = includedir ),
     third_party_path(DirId, Dir), third_party_path(private(Lib, DirId), PrivDir),
