@@ -928,16 +928,32 @@ ask_promote_bootstrap(Eng) :-
 'cmd.grade'(custom_run(_,_), custom).
 
 % ---------------------------------------------------------------------------
-% third_party_install
+% third_party commands
 
-:- use_module(ciaobld(third_party_install), [auto_install/2]).
+:- use_module(ciaobld(third_party_install), [
+    auto_install/2, uninstall/1, activate/1, deactivate/1]).
 % TODO: reuse 'build' command for this?
+% TODO: check that Bundle is a bundle and Part a 3rd party
 
 'cmd.do.decl'(third_party_install(_)).
 'cmd.do'(third_party_install(_Args), Target) :- !,
     split_target(Target, Bundle, Part),
-    % TODO: check that Bundle is a bundle and Part a 3rd party
     third_party_install:auto_install(Bundle, Part).
+
+'cmd.do.decl'(third_party_uninstall(_)).
+'cmd.do'(third_party_uninstall(_Args), Target) :- !,
+    split_target(Target, _Bundle, Part), % TODO: use _Bundle?
+    third_party_install:uninstall(Part).
+
+'cmd.do.decl'(third_party_activate(_)).
+'cmd.do'(third_party_activate(_Args), Target) :- !,
+    split_target(Target, _Bundle, Part), % TODO: use _Bundle?
+    third_party_install:activate(Part).
+
+'cmd.do.decl'(third_party_deactivate(_)).
+'cmd.do'(third_party_deactivate(_Args), Target) :- !,
+    split_target(Target, _Bundle, Part), % TODO: use _Bundle?
+    third_party_install:deactivate(Part).
 
 % ---------------------------------------------------------------------------
 % gen_pbundle

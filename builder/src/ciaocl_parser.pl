@@ -155,6 +155,7 @@ cmd_rw(clean_tree, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
 
 cmd_fmt(doc, [target_args]). % (info on bundle)
 
+% TODO: document
 cmd_fmt(custom_run, [raw_args]). % TODO: use def_bundle?
 cmd_rw(custom_run, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
     ( Args = [Target, CustomCmd|CustomArgs] -> true
@@ -164,12 +165,30 @@ cmd_rw(custom_run, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
     Opts2 = Opts, Args2 = [Target],
     CmdFmt2 = [target_arg].
 
-cmd_fmt(third_party_install, [raw_args]). % TODO: allow others?
+% TODO: expose more third_party commands
+% TODO: document
+
+cmd_fmt(third_party_install, [raw_args]).
 cmd_rw(third_party_install, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
+    third_party_cmd_rw(third_party_install, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2).
+
+cmd_fmt(third_party_uninstall, [raw_args]).
+cmd_rw(third_party_uninstall, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
+    third_party_cmd_rw(third_party_uninstall, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2).
+
+cmd_fmt(third_party_activate, [raw_args]).
+cmd_rw(third_party_activate, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
+    third_party_cmd_rw(third_party_activate, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2).
+
+cmd_fmt(third_party_deactivate, [raw_args]).
+cmd_rw(third_party_deactivate, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :- !,
+    third_party_cmd_rw(third_party_deactivate, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2).
+
+third_party_cmd_rw(Cmd, Cmd2, Opts, Opts2, Args, Args2, CmdFmt2) :-
     ( Args = [Target|CustomArgs] -> true
-    ; throw(error_msg("'third_party_install' needs a target", []))
+    ; throw(error_msg("'~w' needs a target", [Cmd]))
     ),
-    Cmd2 = third_party_install(CustomArgs),
+    Cmd2 =.. [Cmd,CustomArgs],
     Opts2 = Opts, Args2 = [Target],
     CmdFmt2 = [target_arg].
 

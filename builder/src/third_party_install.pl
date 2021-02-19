@@ -36,7 +36,7 @@
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(terms), [atom_concat/2]).
-:- use_module(library(lists), [member/2, append/3, difference/3]).
+:- use_module(library(lists), [member/2, append/3]).
 
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(http_get), [http_get/2]).
@@ -154,7 +154,9 @@ third_party_path(real_sourcedir(Lib), Path) :- !,
     ( member(TypedURL, [tar(_), tar(_,_)]) ->
         third_party_path(private(Lib, srcdir), PrivateSrcDir),
         directory_files(PrivateSrcDir, List),
-        difference(List, ['..', '.'], [SourceDir]),
+        ( member(SourceDir, List), \+ dotdir(SourceDir) -> true
+        ; throw(error(empty_source(Lib), third_party_install:third_party_path/2))
+        ),
         path_concat(PrivateSrcDir, SourceDir, Path)
     ; member(TypedURL, [git(_, _)]) ->
         third_party_path(private(Lib, srcdir), Path)
@@ -192,35 +194,54 @@ make(Lib, List) :-
 mkdir(Dir) :-
     process_call(path(mkdir), ['-p', Dir], [status(0)]).
 
+% Link all files from DirDest to DirSrc using RelativePath.
+% Subdirectories from rec_link_dir/1 are created and treated recursively.
 link_all_files(DirDest, DirSrc, RelativePath) :-
     file_exists(DirSrc),
     mkdir(DirDest),
     directory_files(DirSrc, Files),
-    member(File, Files), \+ member(File, ['.', '..']),
-    path_concat(RelativePath, File, FileSrc),
-    ( ln(FileSrc, DirDest) -> true ; ! ),
+    member(File, Files), \+ dotdir(File),
+    path_concat(RelativePath, File, RelFileSrc),
+    path_concat(DirSrc, File, FileSrc),
+    ( rec_link_dir(File),
+      \+ file_property(FileSrc, linkto(_)),
+      file_property(FileSrc, type(directory)) ->
+        path_concat(DirDest, File, FileDest),
+        path_concat('..', RelFileSrc, RelFileSrc2),
+        link_all_files(FileDest, FileSrc, RelFileSrc2)
+    ; ln(RelFileSrc, DirDest) -> true 
+    ; ! 
+    ),
     fail.
 link_all_files(_, _, _).
 
 ln(FileSrc, DirDest) :-
     process_call(path(ln), ['-s', FileSrc], [cwd(DirDest), status(0)]).
 
+% Undo link_all_files/3
 unlink_all_files(DirDest, DirSrc, RelativePath) :-
     file_exists(DirSrc),
     directory_files(DirSrc, Files),
-    member(File, Files), \+ member(File, ['.', '..']),
+    member(File, Files), \+ dotdir(File),
     path_concat(DirDest, File, FileDest),
-    path_concat(RelativePath, File, FileSrc),
-    (
-        file_exists(FileDest),
-        file_property(FileDest, linkto(FileSrc_)),
-        FileSrc_ = FileSrc,
-        delete_file(FileDest) -> true
-    ;
-        !
+    path_concat(RelativePath, File, RelFileSrc),
+    file_exists(FileDest),
+    ( rec_link_dir(File),
+      file_property(FileDest, type(directory)) ->
+        path_concat(DirSrc, File, FileSrc),
+        path_concat('..', RelFileSrc, RelFileSrc2),
+        unlink_all_files(FileDest, FileSrc, RelFileSrc2)
+    ; file_property(FileDest, linkto(FileSrc_)),
+      FileSrc_ = RelFileSrc,
+      delete_file(FileDest) ->
+        true
+    ; !
     ),
     fail.
 unlink_all_files(_, _, _).
+
+% TODO: customize per DirId; treat specially more directories? 
+rec_link_dir('pkgconfig').
 
 :- export(clean/1).
 clean(Lib) :-
@@ -356,14 +377,21 @@ install(Lib) :- Operation = "install",
     message_end(Lib, Operation),!.
 
 :- export(activated/1).
+% Lib is activated if there is at least one linked file (see activate/1)
+% (NOTE: assume that activation links at least one file at base directory)
 activated(Lib) :-
     ( DirId = bindir ; DirId = libdir ; DirId = includedir ),
     third_party_path(DirId, Dir), third_party_path(private(Lib, DirId), PrivDir),
     file_exists(Dir), file_exists(PrivDir),
+    % 
     directory_files(PrivDir, PrivFiles),
-    member(PrivFile, PrivFiles), \+ member(PrivFile, ['.', '..']),
+    member(PrivFile, PrivFiles), \+ dotdir(PrivFile),
+    \+ file_property(PrivFile, linkto(_)),
+    \+ file_property(PrivFile, type(directory)),
+    %
     path_concat(Dir, PrivFile, File),
-    file_exists(File), !.
+    file_exists(File),
+    !.
 
 :- export(activate/1).
 activate(Lib) :- Operation = "activate",
@@ -464,4 +492,7 @@ message_start(Lib, Msg) :- message_status(Lib, Msg, fail), fail.
 
 message_end(Lib, Msg) :- message_status(Lib, Msg, completed).
     
+dotdir('.').
+dotdir('..').
+
 

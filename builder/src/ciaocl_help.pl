@@ -337,6 +337,32 @@ cmd_usage(analyze, "[<targets>]", [
     "Analyze"
 ]).
 
+grp_def(third_party_grp, "Third-party installation").
+%
+cmd_grp(third_party_install, third_party_grp).
+cmd_usage(third_party_install, "[<targets>]", [
+    %1_______________________________________________
+    "Install third-party component"
+]).
+%
+cmd_grp(third_party_uninstall, third_party_grp).
+cmd_usage(third_party_uninstall, "[<targets>]", [
+    %1_______________________________________________
+    "Uninstall third-party component"
+]).
+%
+cmd_grp(third_party_activate, third_party_grp).
+cmd_usage(third_party_activate, "[<targets>]", [
+    %1_______________________________________________
+    "Activate third-party component"
+]).
+%
+cmd_grp(third_party_deactivate, third_party_grp).
+cmd_usage(third_party_deactivate, "[<targets>]", [
+    %1_______________________________________________
+    "Deactivate third-party component"
+]).
+
 grp_def(packaging, "Packaging for distribution") :- advanced.
 %
 cmd_grp(gen_pbundle, packaging). % TODO: trick, does not exist
