@@ -13,7 +13,7 @@
 :- use_module(engine(runtime_control), [current_prolog_flag/2, prolog_flag/3, set_prolog_flag/2]).
 :- use_module(engine(system_info), [get_os/1, get_arch/1, get_a_ext/1, get_so_ext/1]).
 
-:- use_module(user, [main/0, main/1, aborting/0]).
+:- use_module(user, [main/0, main/1, '$main'/1, aborting/0]).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Internal Debugging").
@@ -592,7 +592,11 @@ run_main_entry :-
     current_prolog_flag(argv, Args),
     ( '$nodebug_call'(main(Args)) -> true ; global_failure ).
 run_main_entry :-
-    message(error,'Predicates user:main/0 and user:main/1 undefined, exiting...'),
+    '$predicate_property'('user:$main'(_),_,_), !, % TODO: use multifile instead?
+    current_prolog_flag(argv, Args),
+    ( '$nodebug_call'('$main'(Args)) -> true ; global_failure ).
+run_main_entry :-
+    message(error,'Predicates user:main/0 and user:main/1 undefined, exiting...'), % TODO: only for user modules! (it is a bug otherwise)
     halt(1).
 
 global_failure :-

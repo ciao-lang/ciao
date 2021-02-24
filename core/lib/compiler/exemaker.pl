@@ -179,17 +179,18 @@ treat_so_lib(Base) :-
       )
     ).
 
-compute_main_def(user(_), _,    void) :- !.
-compute_main_def(Module,  Base, clause(UserMain, MainGoal)) :-
-    (Arity = 0 ; Arity = 1),
-    exports(Base, main, Arity, _, _), !,
-    functor(Main, main, Arity),
-    module_concat(user,   Main, UserMain),
-    module_concat(Module, Main, ModMain),
-    MainGoal = ModMain.
+compute_main_def(user(_), _, Def) :- !, Def = void.
+compute_main_def(Module, Base, Def) :- maingoal(Module, Base, Args, MainGoal), !,
+    Def = clause(UserMain, MainGoal),
+    module_concat(user, '$main'(Args), UserMain). % TODO: use other entry point?
 compute_main_def(Module, _, _) :-
-    message(error, ['module ', Module,
-            ' should export main/0 or main/1']), fail.
+    message(error, ['module ', Module, ' should export main/0 or main/1']),
+    fail.
+
+maingoal(Module, Base, _Args, MainGoal) :- exports(Base, main, 0, _, _), !,
+    module_concat(Module, main, MainGoal).
+maingoal(Module, Base, Args, MainGoal) :- exports(Base, main, 1, _, _), !,
+    module_concat(Module, main(Args), MainGoal).
 
 %%% --- Creating foreign interfaces - JFMC --- %%%
 
