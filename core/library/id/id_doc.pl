@@ -12,11 +12,11 @@
 :- doc(module,"This package applies a @em{compiling control} technique
 to implement @index{depth first iterative deepening} execution
 @cite{iterative-deepening}. It changes the usual @em{depth-first}
-computation rule by @index{iterative-deepening} on those predicates
+search rule by @index{iterative-deepening} on those predicates
 specifically marked. This is very useful in search problems when a
 @concept{complete proof procedure} is needed.
 
-When this computation rule is used, first all goals are expanded only up to
+When this search rule is used, first all goals are expanded only up to
 a given depth.  If no solution is found or more solutions are needed by
 backtracking, the depth limit is incremented and the whole goal is
 repeated.  Although it might seem that this approach is very inefficient
