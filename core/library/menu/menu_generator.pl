@@ -50,7 +50,7 @@ opt_to_menu(analyze,          ana). % all_menu_branch
 opt_to_menu(check_assertions, check). % all_menu_branch
 opt_to_menu(parallelize,      para). % opt_menu_branch
 opt_to_menu(poly_spec,        sp_poly). % opt_menu_branch
-opt_to_menu(analyze,          javanal). % javall_menu_branch
+opt_to_menu(analyze,          java_ana). % java_all_menu_branch
 opt_to_menu(A,                A).
 
 % NOTE: (For offline menu generation)
