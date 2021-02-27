@@ -386,8 +386,9 @@ activated(Lib) :-
     % 
     directory_files(PrivDir, PrivFiles),
     member(PrivFile, PrivFiles), \+ dotdir(PrivFile),
-    \+ file_property(PrivFile, linkto(_)),
-    \+ file_property(PrivFile, type(directory)),
+    path_concat(PrivDir, PrivFile, PrivFileAbs),
+    \+ file_property(PrivFileAbs, linkto(_)),
+    \+ file_property(PrivFileAbs, type(directory)),
     %
     path_concat(Dir, PrivFile, File),
     file_exists(File),
