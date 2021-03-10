@@ -31,39 +31,37 @@ particular implementation is completely based on the one used in the
 
 :- concurrent '$$temp_sol_conc_findall'/2.
 
-:- pred setof(@Template, +Goal, ?Set) => (term(Template),
-callable(Goal), list(Set)) + iso # "Finds the @var{Set} of instances
-of the @var{Template} satisfying the @var{Generator}.  The set is in
-ascending order (see @pred{compare/3} for a definition of this order)
-without duplicates, and is non-empty.  If there are no solutions,
-@pred{setof/3} fails.  @pred{setof/3} may succeed in more than one
-way, binding free variables in the @var{Generator} to different
-values. This can be avoided by using existential quantifiers on the
-free variables in front of the @var{Generator}, using
-@pred{^/2}. E.g., in @tt{A^p(A,B)}, @tt{A} is existentially
-quantified.  Safe in concurrent apllications.".
+:- pred setof(@Template, +Goal, ?Set)
+   => (term(Template), callable(Goal), list(Set)) + iso
+   # "Finds the @var{Set} of instances of the @var{Template} satisfying the
+   @var{Generator}. The set is in ascending order (see @pred{compare/3} for a
+   definition of this order) without duplicates, and is non-empty. If there are
+   no solutions, @pred{setof/3} fails. @pred{setof/3} may succeed in more than
+   one way, binding free variables in the @var{Generator} to different values.
+   This can be avoided by using existential quantifiers on the free variables in
+   front of the @var{Generator}, using @pred{^/2}. E.g., in @tt{A^p(A,B)},
+   @tt{A} is existentially quantified. Safe in concurrent apllications.".
 :- doc(bug, "Thread-safe @pred{setof/3} is not yet implemented.").
 :- export(setof/3).
 :- impl_defined(setof/3).
 
-:- pred bagof(@Template, +Generator, ?Bag) => (term(Template),
-callable(Goal), list(Set)) + iso # "Finds all the
-instances of the @var{Template} produced by the @var{Generator}, and
-returns them in the @var{Bag} in the order in which they were found.
-If the @var{Generator} contains free variables which are not bound in
-the @var{Template}, it assumes that this is like any other Prolog
-question and that you want bindings for those variables.  This can be
-avoided by using existential quantifiers on the free variables in
-front of the @var{Generator}, using @pred{^/2}.  Safe in concurrent
-applications.".
+:- pred bagof(@Template, +Generator, ?Bag)
+   => (term(Template), callable(Goal), list(Set)) + iso
+   # "Finds all the instances of the @var{Template} produced by the
+   @var{Generator}, and returns them in the @var{Bag} in the order in which they
+   were found. If the @var{Generator} contains free variables which are not
+   bound in the @var{Template}, it assumes that this is like any other Prolog
+   question and that you want bindings for those variables. This can be avoided
+   by using existential quantifiers on the free variables in front of the
+   @var{Generator}, using @pred{^/2}. Safe in concurrent applications.".
 :- doc(bug, "Thread-safe @pred{bagof/3} is not yet implemented.").
 :- export(bagof/3).
 :- impl_defined(bagof/3).
 
-:- pred findall(?Template, +Generator, ?List) => (term(Template),
-callable(Goal), list(Set)) + (iso, is_det) # "A special case
-of bagof, where all free variables in the @var{Generator} are taken to
-be existentially quantified. Safe in concurrent applications.".
+:- pred findall(?Template, +Generator, ?List)
+   => (term(Template),callable(Goal), list(Set)) + (iso, is_det)
+   # "A special case of bagof, where all free variables in the @var{Generator}
+   are taken to be existentially quantified. Safe in concurrent applications.".
 
 findall(Template, Goal, Solutions):-
     new_atom(Id),
