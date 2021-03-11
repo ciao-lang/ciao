@@ -1,4 +1,6 @@
 :- module(chain_bfall, _, ['bf/bfall']).
+%:- module(chain_bfall, _, ['bf/afall']).
+%:- module(chain_bfall, _, [bf]).
 
 test :- chain(a,d).
 

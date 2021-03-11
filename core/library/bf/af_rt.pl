@@ -4,6 +4,8 @@
 %  - define af_rt as a module and add meta declaration for '$bf' and '$expand_resolvent'
 %  - merge with bf_rt.pl
 
+'$af_call'(P) :- '$bf'([u([P|T],T,P)|L],L,P).
+
 '$bf'(X, Y, _):- X == Y, !, fail. % No (more) solutions.
 '$bf'([u(Resolvent, ResTail, Goal)|_], _, Goal) :- ResTail == Resolvent.
 '$bf'([u(Resolvent, ResTail, U_Goal)|Us], Urest, Goal):-
