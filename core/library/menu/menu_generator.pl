@@ -57,6 +57,8 @@ opt_to_menu(A,                A).
 excluded_flag(menu_config_name).
 excluded_flag(menu_last_config).
 
+do_not_ask_flag(main_module).
+
 is_menu_level0(menu_level=naive).
 is_menu_level0(menu_java_level=naive).
 
@@ -377,6 +379,11 @@ ask_menu([CC|PR], NoPos, CurrentMenu, Result, Out) :-
     nonvar(V),
     !,
     note_message("~w: [~w] Selected.", [Label, V]),
+    ask_menu(PR, NoPos, CurrentMenu, Result, Out).
+ask_menu([CC|PR], NoPos, CurrentMenu, Result, Out) :-
+    CC = cc${flag => F},
+    do_not_ask_flag(F),
+    !,
     ask_menu(PR, NoPos, CurrentMenu, Result, Out).
 %
 ask_menu([CC|PR], NoPos, CurrentMenu, Result, Out) :-
