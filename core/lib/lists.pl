@@ -57,7 +57,7 @@ nonsingle(_).
 
 :- success append(Xs,Ys,Zs): (list(Xs), list(Ys)) => list(Zs).
 :- success append(Xs,Ys,Zs): list(Zs) => (list(Xs), list(Ys)).
-:- success append(Xs,Ys,Zs) => mshare([[X,Y,Z],[X,Z],[Y,Z]]).
+:- success append(Xs,Ys,Zs) => mshare([[Xs,Ys,Zs],[Xs,Zs],[Ys,Zs]]).
 :- success append(Xs,Ys,Zs) : (ground(Xs), ground(Ys)) => ground(Zs).
 :- success append(Xs,Ys,Zs) : ground(Zs) => (ground(Xs), ground(Ys)).
 

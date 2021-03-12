@@ -310,7 +310,7 @@ size(_, _, _, _).
 
 :- export(size_lb/2).
 :- doc(size_lb(X, Y), "The minimum size of the terms to which the
-   argument @var{Y} is bound is given by the expression
+   argument @var{X} is bound is given by the expression
    @var{Y}. Various measures can be used to determine the size of an
    argument, e.g., list-length, term-size, term-depth, integer-value,
    etc. @cite{caslog,granularity-jsc}. See @pred{measure_t/1}.").
@@ -328,7 +328,7 @@ size(_, _, _, _).
 
 :- export(size_ub/2).
 :- doc(size_ub(X, Y), "The maximum size of the terms to which the
-   argument @var{Y} is bound is given by the expression
+   argument @var{X} is bound is given by the expression
    @var{Y}. Various measures can be used to determine the size of an
    argument, e.g., list-length, term-size, term-depth, integer-value,
    etc. @cite{caslog,granularity-jsc}. See @pred{measure_t/1}.").

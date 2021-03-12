@@ -46,7 +46,7 @@
    is given for a predicate, so this property does not need to be
    stated explicitly. ").
 
-:- meta_predicate possible_nondet(goal).
+:- meta_predicate possibly_nondet(goal).
 :- prop possibly_nondet(X) + no_rtcheck
    # "Non-determinism is not ensured for calls of the form @var{X}.".
 
