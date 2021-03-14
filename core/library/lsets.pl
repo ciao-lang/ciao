@@ -188,7 +188,7 @@ add_to_star([Ys|Yss],Xs,[Ys,Zs|Arg_share_star]) :-
     add_to_star(Yss,Xs,Arg_share_star).
 
 %-------------------------------------------------------------------------
-% ord_split_lists(+,+,-,-)                                               |
+% ord_split_lists(+,+,?,-)                                               |
 % ord_split_lists(OrdXss,X,Intersect,Disjunct)                           |
 % Split the ordered list of lists Xss into two lists: Intersect contains |
 % the elements in Xss containing X, Disjunct those not containing X      |
