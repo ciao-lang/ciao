@@ -1,3 +1,177 @@
+:- doc(version(1*20+0,2021/3/18,19:33*30+'CET'), "
+   @begin{itemize}
+   @item Build system:
+     @begin{itemize}
+     @item ADDED: Experimental @tt{analyze} build grade for analyzing whole
+       bundles (depends on CiaoPP)
+     @item FIXED: Fix activation links for @tt{pkgconfig} files in
+       3rd-party installation.
+     @item DEPRECATED: Removed support for 3rd-party @tt{bower} package
+       system (all existing uses ported to @tt{npm}).
+     @end{itemize}
+   @item Language, compiler, and toplevel:
+     @begin{itemize}
+     @item FIXED: Fix a bug that redirected @tt{main/1} calls from the
+      toplevel to the @tt{ciaosh} @tt{main/1} predicate (accidentally via
+      the @tt{user} module).
+     @item FIXED: Detect wrong arity in @tt{add_goal_trans} directives.
+     @item IMPROVED: Towards a more modular @tt{native_props.pl},
+       documentation improvements.
+     @item IMPROVED: Progress towards merging optim-comp branch for native
+       compilation.
+     @item IMPROVED: Refactored default language packages (they can be used
+       from modules and toplevels)
+     @item CHANGED: @tt{note} messages go to user error (like other
+       compiler messages).
+     @end{itemize}
+   @item Engine:
+     @begin{itemize}
+     @item ADDED: Support new Apple M1. This port is based on existing
+       support for the aarch64 (ARM64) architecture. NOTE: some
+       executable formats depend on redoing 'codesign' after the
+       executable is linked (this may have cause issues when distributing
+       binaries).
+     @end{itemize}
+   @item Runtime checks, testing, and debugging:
+     @begin{itemize}
+     @item IMPROVED: @tt{mshare/1} internally represented as
+       @tt{mshare/2}, with explicit relevant arguments (for
+       @tt{rtchecks}).
+     @item IMPROVED: Refactor pieces of embedded debugger.
+     @item IMPROVED: Note message for modules compiled with the trace
+       or debug packages.
+     @item FIXED: Do not ignore assertions with empty compats, calls,
+       success, and comps fields (also for @tt{texec})
+     @item FIXED: Improve debugging of modules with rtcheck instrumentation.
+     @item FIXED: Expansion for runtime checks preserve @tt{?- ...}
+       directives.
+     @end{itemize}
+   @item Libraries:
+     @begin{itemize}
+     @item ADDED: Support for Unicode (UTF8) in source code:
+       @begin{itemize}
+       @item Pre-generated character code classes for 0..127
+       @item Documented code class types and identifier syntax for Unicode
+         source code (see @tt{tokenize.pl})
+       @item Very efficient and compact (8KB) code class table (see
+          @tt{unicode_gen.pl} for details).
+       @end{itemize}
+     @item ADDED: Unicode escape \\\\uDDDD and \\\\UDDDDDDDD in strings and atoms
+     @item ADDED: Added byte-oriented predicates (see @tt{stream_utils.pl}) and
+       types (@tt{basic_props:bytelist/1}), using them when needed.
+     @item ADDED: Added string_bytes/2 predicate. This predicate bidirectionally
+       transforms between lists of character codes and lists of bytes
+       (using UTF8 encoding/decoding). It is equivalent to =/2 when at
+       least one of the lists is already a list of ASCII codes (0..127).
+     @item ADDED: Stronger redirection predicates (@tt{open_std_redirect/3} and
+       @tt{close_std_redirect/1}), which allows the redirection of the standard
+       output/error file descriptors together with the default output
+       stream, user_output, and user_error. Added @tt{system:fd_dup/2} and
+       @tt{system:fd_close/1} predicates to manipulate POSIX file
+       descriptors.
+     @item ADDED: Added stream_utils:copy_stream/3 predicate (copies bytes from one
+       stream to the other)
+     @item ADDED: Extended @tt{io_once_port_reify/\\{3,4\\}} with better redirections
+       (subset of process channels available for @tt{process_call/3})
+     @item ADDED: Parsing of version strings (@tt{version_strings:version_parse/4})
+     @item IMPROVED: Heuristics in @tt{write_assertion/\\{6,7\\}}, more
+       readable output.
+     @item IMPROVED: Allow JSON values (not only lists) as top argument for
+       JSON write and parse.
+     @item IMPROVED: Faster and more reliable sockets predicates. New
+       @tt{socket_sendall/2}, @tt{socket_send_stream/2}, changed
+       @tt{socket_send/3}. @tt{socket_recv_code/3} is replaced by
+       @tt{socket_recv/3} (treating the returned length is encouraged, do
+       not use @tt{socket_recv/2}).
+     @item IMPROVED: Faster and more robust HTTP libraries (sockets improvements,
+       faster IO). Several bug fixes. 
+     @item FIXED: Fixed bug in markdown parser which confused some
+       predicate heads with items.
+     @item FIXED: Allow numbers (as constants) in assertion head arguments.
+     @item FIXED: Fixed bug in @tt{attrdump.pl} introduced when @tt{assoc} replaced
+       @tt{dict}
+     @item FIXED: Write blanks before -0.Nan if needed. Fixed some corner cases in
+       parser for 0.Inf, 0.Nan .
+     @item FIXED: Cleanups in messages_basic:messages/1
+     @item FIXED: Allow @tt{use_package(tabling)} in a toplevel
+     @end{itemize}
+   @item ISO and Portability:
+     @begin{itemize}
+     @item ADDED: @tt{--iso} flag in @tt{ciaoc} and @tt{ciaosh} to enable
+       compatibility ISO mode by default. Use with care, switching the flag
+       will not enforce the recompilation of already compiled user files
+       and modules (i.e., .po files).
+     @item ADDED: Implemented @tt{at_end_of_stream/0},
+       @tt{at_end_of_stream/1}. Peek byte in @tt{at_end_of_stream/\\{0,1\\}} for
+       improved ISO compatibility.
+     @item ADDED: Implemented @tt{peek_byte/1}, @tt{peek_byte/2}.
+     @item ADDED: Added call_det/2 predicate (compatible with @tt{gprolog})
+     @item ADDED: Added forall/2 predicate (compatible with @tt{gprolog})
+     @item IMPROVED: Additions to the @tt{iso.pl} package (only for code
+       using this package):
+       @begin{itemize}
+       @item More compatible version of @tt{absolute_file_name/2} (do not
+         repeat last path component when resolving library paths).
+       @item Allow stream aliases in most IO operations.
+       @item Import @tt{keysort/2} and @tt{format/?} predicates by default.
+       @item Enable @tt{call/N} by default.
+       @item Enable @tt{runtime_ops} package by default.
+       @end{itemize}
+     @item IMPROVED: Added version_data flag as
+       @tt{ciao(Major,Minor,Patch,Extra)}
+     @item IMPROVED: Added stream property @tt{type(_)} in @tt{open/4}
+       predicate (for compatibility).
+     @item FIXED: callable/1 is an instantiation check
+     @end{itemize}
+   @item Ciao emacs mode:
+     @begin{itemize}
+     @item ADDED: Initial support for @tt{flycheck}.
+     @item ADDED: Support for company mode (text completion). Manuals
+       are located dynamically. Completion list obtained using
+       @lib{librowser}.
+     @item ADDED: Extended Ciao mode (@tt{ciao-emacs-plus.el}) using
+       @tt{flycheck} and @tt{company} extensions.
+     @item ADDED: @tt{M-x ciao-server-start}, @tt{M-x ciao-server-stop}
+       to start/stop the @tt{ciao-serve} process (serving local HTML
+       documentation and hub for HTTP based interface to active
+       modules).
+     @item ADDED: Mark and colour new @tt{passed}, @tt{failed},
+       @tt{aborted} message types (for unit tests).
+     @item IMPROVED: Replace outdated @tt{word-help} by
+       @tt{info-look}.
+     @item IMPROVED: Better binding for next error, better code
+       highlight, narrow error location.
+     @item IMPROVED: Allow short location paths (resolved from the
+       elisp side). See @tt{bundle_paths:bundle_extend_path/2} for
+       details on path extension.
+     @item IMPROVED: Faster font-lock in @tt{ciao-inferior-mode}, only
+       treat keywords.
+     @item FIXED: Fixed indentation and coloring of @tt{=:=}.
+     @item FIXED: Fix build errors when compiling using emacs 27.1
+     @end{itemize}
+   @item Unit Tests:
+     @begin{itemize}
+     @item ADDED: Allow @tt{opt_suff/1} in unit tests (for alternative
+       source files, e.g., for flycheck).
+     @item ADDED: New options for handling tests stdout and stderr in
+       unittest.
+     @item ADDED: Added support for tests filters (see options in
+       @tt{run_tests/4}).
+     @item ADDED: Using 'passed', 'failed', and 'aborted' message types.
+     @item ADDED: Test timeout.
+     @item ADDED: Initial support for regression testing (see @tt{save},
+       @tt{compare}, etc. actions in @tt{run_tests/3}).
+     @item IMPROVED: More flexible quering of results and statistics
+       (@tt{get_statistical_summary/2}, @tt{print_statistical_summary/1},
+       @tt{status(S)} option).
+     @item IMPROVED: Simpler one-line output per test.
+     @item IMPROVED: Warnings when predicate fails/throws and there were no
+       failure/exception properties in test assertion.
+     @item FIXED: Unittest regression does not depend on Ciao root path.
+     @end{itemize}
+   @end{itemize}
+").
+
 :- doc(version(1*19+0,2020/3/20,14:48*45+'CET'), "
    Highlights of this release:
    @begin{itemize}   
