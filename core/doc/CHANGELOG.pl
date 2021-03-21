@@ -108,11 +108,11 @@
        @tt{ciao(Major,Minor,Patch,Extra)}.
      @item IMPROVED: Added stream property @tt{type(_)} in @tt{open/4}
        predicate (for compatibility).
-     @item ADDED: @tt{--stricter-iso} flag in @tt{ciaoc} and @tt{ciaosh} to enable
+     @item ADDED: @tt{--iso-strict} flag in @tt{ciaoc} and @tt{ciaosh} to enable
        stricter compatibility ISO mode by default. Use with care, switching the flag
        will not enforce the recompilation of already compiled user files
        and modules (i.e., .po files).
-     @item IMPROVED: Additions to the @tt{stricter_iso.pl} package (only for code
+     @item IMPROVED: Additions to the @tt{iso_strict.pl} package (only for code
        using this package):
        @begin{itemize}
        @item More compatible version of @tt{absolute_file_name/2} (do not
@@ -126,7 +126,7 @@
    @item Ciao emacs mode:
      @begin{itemize}
      @item ADDED: Initial support for @tt{flycheck}, integrating ciaoc, 
-       ciaopp, and testing. 
+       ciaopp, lpdoc, and testing. 
      @item ADDED: Support for company mode (text completion). Manuals
        are located dynamically. Completion list obtained using
        @lib{librowser}.
