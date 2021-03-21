@@ -18,6 +18,7 @@ function find_vers_() { # PATH
     find "$1" \
          \( -name 'Manifest.pl' -o \
          -name '*.hooks.pl' -o \
+         -name 'ciao-boot.sh' -o \
          -name 'GlobalVersion' \) \
          -print0
     # other interesting files

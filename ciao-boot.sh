@@ -22,8 +22,8 @@ fi
 
 set_defaults() {
     default_bundle=ciao
-    # default_vers_bin=1.18.0 # TODO: add option
-    default_vers_bin=1.19.0
+    # default_vers_bin=1.19.0 # TODO: add option
+    default_vers_bin=1.20.0
     default_vers_src=master
     default_prebuilt=yes # TODO: make it depend on selected version?
     default_url_src=https://github.com/ciao-lang/ciao/archive
