@@ -396,9 +396,9 @@ main(Args) :-
     "<File> Use File for compilation, often used to include LibDir paths, etc.",
     continue, [CFile|Args], Args).
 %
-:- simple_option('--iso',
-    set_fact(default_package(library(default_iso))),
-    "Turn on ISO compatibility for user files and modules declared with module/2.",
+:- simple_option('--iso-strict',
+    set_fact(default_package(library(default_iso_strict))),
+    "Turn on stricter ISO compatibility for user files and modules declared with module/2.",
     continue, Args, Args).
 %
 :- simple_option('-op',

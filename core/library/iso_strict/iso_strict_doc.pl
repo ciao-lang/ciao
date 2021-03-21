@@ -15,7 +15,7 @@
    loading the @ref{Classic Prolog} package (either explicitly or
    implicity by using a @decl{module/2} declaration).  On the other
    hand, using this package by itself, i.e.: @tt{:- module(..., ...,
-   [iso]).}  @em{approximates} a strictly conforming mode, i.e., a
+   [iso_strict]).}  @em{approximates} a strictly conforming mode, i.e., a
    mode which rejects uses of non-ISO features (except for those that
    are built-in in Ciao, such as the module system).
 
@@ -39,7 +39,7 @@
 
 ").
 
-:- use_package(iso).
+:- use_package(iso_strict).
 
 % TODO: 
 

@@ -114,8 +114,8 @@ interpret_args(['-f'|R], _) :- !, % fast start
 interpret_args(['-q'|R], DefLoad) :- !, % quiet mode
     set_fact(quiet_mode),
     interpret_args(R, DefLoad).
-interpret_args(['--iso'|R], DefLoad) :- !, % ISO compatibility
-    set_fact(default_package(library(default_iso))),
+interpret_args(['--iso-strict'|R], DefLoad) :- !, % Stricter ISO compatibility
+    set_fact(default_package(library(default_iso_strict))),
     interpret_args(R, DefLoad).
 interpret_args(['-i'|R], DefLoad) :- !,
     '$force_interactive',
@@ -141,7 +141,7 @@ interpret_args(['-p',Prompt|R], DefLoad) :- !,
     interpret_args(R, DefLoad).
 interpret_args(_Args, _) :-
     display(
-'Usage: ciaosh [-f] [-q] [--iso] [-i] [-l <File>] [-u <File>] [-p <Prompt>] [-e <Query>]'),
+'Usage: ciaosh [-f] [-q] [--iso-strict] [-i] [-l <File>] [-u <File>] [-p <Prompt>] [-e <Query>]'),
     nl,
     halt(1).
 

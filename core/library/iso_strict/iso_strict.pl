@@ -1,4 +1,4 @@
-:- package(iso).
+:- package(iso_strict).
 
 :- use_package(dcg).
 %:- use_package('dcg/dcg_phrase').

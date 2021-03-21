@@ -16,7 +16,7 @@ Version/Change Log
 Version 1.20 (2021/3/18, 19:33:30 CET)
         * Build system:
              * ADDED: Experimental `analyze' build grade for analyzing
-               whole bundles (depends on CiaoPP)
+               whole bundles (depends on CiaoPP).
 
              * FIXED: Fix activation links for `pkgconfig' files in
                3rd-party installation.
@@ -38,16 +38,16 @@ Version 1.20 (2021/3/18, 19:33:30 CET)
                native compilation.
 
              * IMPROVED: Refactored default language packages (they can
-               be used from modules and toplevels)
+               be used from modules and toplevels).
 
              * CHANGED: `note' messages go to user error (like other
                compiler messages).
 
         * Engine:
-             * ADDED: Support new Apple M1. This port is based on
+             * ADDED: Support for new Apple M1. This port is based on
                existing support for the aarch64 (ARM64) architecture.
                NOTE: some executable formats depend on redoing
-               'codesign' after the executable is linked (this may have
+               'codesign' after the executable is linked (this may
                cause issues when distributing binaries).
 
         * Runtime checks, testing, and debugging:
@@ -61,7 +61,7 @@ Version 1.20 (2021/3/18, 19:33:30 CET)
                trace or debug packages.
 
              * FIXED: Do not ignore assertions with empty compats,
-               calls, success, and comps fields (also for `texec')
+               calls, success, and comps fields (also for `texec').
 
              * FIXED: Improve debugging of modules with rtcheck
                instrumentation.
@@ -74,13 +74,13 @@ Version 1.20 (2021/3/18, 19:33:30 CET)
                   * Pre-generated character code classes for 0..127
 
                   * Documented code class types and identifier syntax
-                    for Unicode source code (see `tokenize.pl')
+                    for Unicode source code (see `tokenize.pl').
 
                   * Very efficient and compact (8KB) code class table
                     (see `unicode_gen.pl' for details).
 
              * ADDED: Unicode escape \uDDDD and \UDDDDDDDD in strings
-               and atoms
+               and atoms.
 
              * ADDED: Added byte-oriented predicates (see
                `stream_utils.pl') and types (`basic_props:bytelist/1'),
@@ -94,21 +94,21 @@ Version 1.20 (2021/3/18, 19:33:30 CET)
 
              * ADDED: Stronger redirection predicates
                (`open_std_redirect/3' and `close_std_redirect/1'),
-               which allows the redirection of the standard
-               output/error file descriptors together with the default
-               output stream, user_output, and user_error. Added
+               which allow the redirection of the standard output/error
+               file descriptors together with the default output
+               stream, user_output, and user_error. Added
                `system:fd_dup/2' and `system:fd_close/1' predicates to
                manipulate POSIX file descriptors.
 
              * ADDED: Added stream_utils:copy_stream/3 predicate
-               (copies bytes from one stream to the other)
+               (copies bytes from one stream to the other).
 
              * ADDED: Extended `io_once_port_reify/{3,4}' with better
                redirections (subset of process channels available for
-               `process_call/3')
+               `process_call/3').
 
              * ADDED: Parsing of version strings
-               (`version_strings:version_parse/4')
+               (`version_strings:version_parse/4').
 
              * IMPROVED: Heuristics in `write_assertion/{6,7}', more
                readable output.
@@ -132,22 +132,16 @@ Version 1.20 (2021/3/18, 19:33:30 CET)
                arguments.
 
              * FIXED: Fixed bug in `attrdump.pl' introduced when
-               `assoc' replaced `dict'
+               `assoc' replaced `dict'.
 
              * FIXED: Write blanks before -0.Nan if needed. Fixed some
                corner cases in parser for 0.Inf, 0.Nan .
 
-             * FIXED: Cleanups in messages_basic:messages/1
+             * FIXED: Cleanups in messages_basic:messages/1.
 
-             * FIXED: Allow `use_package(tabling)' in a toplevel
+             * FIXED: Allow `use_package(tabling)' in a toplevel.
 
         * ISO and Portability:
-             * ADDED: `--iso' flag in `ciaoc' and `ciaosh' to enable
-               compatibility ISO mode by default. Use with care,
-               switching the flag will not enforce the recompilation of
-               already compiled user files and modules (i.e., .po
-               files).
-
              * ADDED: Implemented `at_end_of_stream/0',
                `at_end_of_stream/1'. Peek byte in
                `at_end_of_stream/{0,1}' for improved ISO compatibility.
@@ -155,13 +149,27 @@ Version 1.20 (2021/3/18, 19:33:30 CET)
              * ADDED: Implemented `peek_byte/1', `peek_byte/2'.
 
              * ADDED: Added call_det/2 predicate (compatible with
-               `gprolog')
+               `gprolog').
 
              * ADDED: Added forall/2 predicate (compatible with
-               `gprolog')
+               `gprolog').
 
-             * IMPROVED: Additions to the `iso.pl' package (only for
-               code using this package):
+             * FIXED: callable/1 is an instantiation check.
+
+             * IMPROVED: Added version_data flag as
+               `ciao(Major,Minor,Patch,Extra)'.
+
+             * IMPROVED: Added stream property `type(_)' in `open/4'
+               predicate (for compatibility).
+
+             * ADDED: `--iso-strict' flag in `ciaoc' and `ciaosh' to
+               enable stricter compatibility ISO mode by default. Use
+               with care, switching the flag will not enforce the
+               recompilation of already compiled user files and modules
+               (i.e., .po files).
+
+             * IMPROVED: Additions to the `iso_strict.pl' package (only
+               for code using this package):
                   * More compatible version of `absolute_file_name/2'
                     (do not repeat last path component when resolving
                     library paths).
@@ -175,16 +183,9 @@ Version 1.20 (2021/3/18, 19:33:30 CET)
 
                   * Enable `runtime_ops' package by default.
 
-             * IMPROVED: Added version_data flag as
-               `ciao(Major,Minor,Patch,Extra)'
-
-             * IMPROVED: Added stream property `type(_)' in `open/4'
-               predicate (for compatibility).
-
-             * FIXED: callable/1 is an instantiation check
-
         * Ciao emacs mode:
-             * ADDED: Initial support for `flycheck'.
+             * ADDED: Initial support for `flycheck', integrating
+               ciaoc, ciaopp, lpdoc, and testing.
 
              * ADDED: Support for company mode (text completion).
                Manuals are located dynamically. Completion list
@@ -198,7 +199,7 @@ Version 1.20 (2021/3/18, 19:33:30 CET)
                HTML documentation and hub for HTTP based interface to
                active modules).
 
-             * ADDED: Mark and colour new `passed', `failed', `aborted'
+             * ADDED: Mark and color new `passed', `failed', `aborted'
                message types (for unit tests).
 
              * IMPROVED: Replace outdated `word-help' by `info-look'.
@@ -215,16 +216,16 @@ Version 1.20 (2021/3/18, 19:33:30 CET)
 
              * FIXED: Fixed indentation and coloring of `=:='.
 
-             * FIXED: Fix build errors when compiling using emacs 27.1
+             * FIXED: Fix build errors when compiling using emacs 27.1.
 
         * Unit Tests:
              * ADDED: Allow `opt_suff/1' in unit tests (for alternative
                source files, e.g., for flycheck).
 
-             * ADDED: New options for handling tests stdout and stderr
-               in unittest.
+             * ADDED: New options for handling tests for stdout and
+               stderr in unittest.
 
-             * ADDED: Added support for tests filters (see options in
+             * ADDED: Added support for test filters (see options in
                `run_tests/4').
 
              * ADDED: Using 'passed', 'failed', and 'aborted' message
@@ -232,8 +233,8 @@ Version 1.20 (2021/3/18, 19:33:30 CET)
 
              * ADDED: Test timeout.
 
-             * ADDED: Initial support for regression testing (see
-               `save', `compare', etc. actions in `run_tests/3').
+             * ADDED: Initial support for integrated regression testing
+               (see `save', `compare', etc. actions in `run_tests/3').
 
              * IMPROVED: More flexible quering of results and
                statistics (`get_statistical_summary/2',
