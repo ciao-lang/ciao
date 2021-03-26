@@ -568,7 +568,7 @@ match_docpred(Head, VarNames) -->
     match_docpred_(Head0),
     { valid_docpred_string(Head0) },
     { read_from_string_opts(Head0, Head, [], variable_names(VarNames)) },
-    { nonvar(Head), \+ number(Head) }.
+    { nonvar(Head), \+ number(Head), \+ atom(Head) }.
 
 match_docpred_([]) --> sc_char(0':), !.
 % match_docpred_([]) --> sc_char(0'.), !. % TODO: disabled by now
@@ -581,9 +581,10 @@ match_docpred_([C|Head]) -->
     sc_char(C),
     match_docpred_(Head).
 
-valid_docpred_string([0'-|_]) :-
-    % forbid strings that begin with '-' (reserved for items, use
-    % parenthesis if you wish to document the predicate "-/1")
+valid_docpred_string([X|_]) :-
+    ( X = 0'- ; X = 0'` ),
+    % forbid strings that begin with '`' or '-' (reserved for items,
+    % use parenthesis if you wish to document the predicate "-/1")
     !, fail.
 valid_docpred_string(_).
     
