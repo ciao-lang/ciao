@@ -7,6 +7,7 @@ output_name := 'ciao_builder'.
 % TODO: use parent_bundle to share those defs
 filepath := '../src'.
 filepath := '../cmds'.
+filepath := '../distro'.
 filepath := ~ciaofilepath_common.
 
 doc_structure := 
