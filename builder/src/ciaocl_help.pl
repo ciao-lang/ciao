@@ -337,7 +337,7 @@ cmd_usage(analyze, "[<targets>]", [
     "Analyze"
 ]).
 
-grp_def(third_party_grp, "Third-party installation").
+grp_def(third_party_grp, "Third-party installation") :- advanced.
 %
 cmd_grp(third_party_install, third_party_grp).
 cmd_usage(third_party_install, "[<targets>]", [
