@@ -283,11 +283,13 @@ show_gitprefix(Out) :-
 % TODO: copied from builder messages_aux.pl
 
 % Add @var{Prefix} to each line in @var{String0}, put result in @var{String}
+:- export(prefix_lines/3).
 prefix_lines(String0, Prefix, String) :-
     append(Prefix, String1, String),
     prefix_lines_(String0, Prefix, String1).
 
-prefix_lines_([],       _,      []).
+prefix_lines_([], _, []).
+prefix_lines_([0'\n], _, NR) :- !, NR = [0'\n]. % TODO: fixed! (see builder messages_aux.pl)
 prefix_lines_([0'\n|R], Prefix, NR) :- !,
     NR = [0'\n|NR1],
     append(Prefix, NR0, NR1),
