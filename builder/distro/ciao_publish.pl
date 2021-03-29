@@ -433,7 +433,7 @@ keep_treedir :-
         '\n']).
 
 prepare_tree(Id, Fs) :-
-    % lformat(['Getting pristine view for commit: ', Id]), % TODO: debug
+    % lformat(['Getting pristine view for commit: ', Id, '\n']), % TODO: debug
     checkout_tree(Id, Fs),
     patch_tree.
 
@@ -594,7 +594,7 @@ update_tree(Id, Info) :-
     with_cwd(~treedir, update_tree_(Id, Info)).
 
 update_tree_(Id, Info) :-
-    % lformat(['Adding commit ', Id]),
+    % lformat(['Adding commit ', Id, '\n']),
     % First try a dry run
     ( \+ git_add_tree_has_changes(~dstgit) ->
         lformat(['Commit ', Id, ' does not contain public changes\n']),
@@ -650,7 +650,7 @@ patch_ci_scripts :-
     cpfile(~path_concat(Dir, 'appveyor.yml'), '.appveyor.yml').
 
 patch_license :-
-    bundle_path('ciao-distro-tools', 'distro/licenses', Dir),
+    bundle_path('builder', 'distro/licenses', Dir),
     License = ~srclicense,
     ( License = 'LGLP' -> cpfile(~path_concat(Dir, 'LGPL'), 'LGPL')
     ; License = 'GLP' ->  cpfile(~path_concat(Dir, 'GPL'), 'GPL')
