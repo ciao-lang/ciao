@@ -652,8 +652,8 @@ patch_ci_scripts :-
 patch_license :-
     bundle_path('builder', 'distro/licenses', Dir),
     License = ~srclicense,
-    ( License = 'LGLP' -> cpfile(~path_concat(Dir, 'LGPL'), 'LGPL')
-    ; License = 'GLP' ->  cpfile(~path_concat(Dir, 'GPL'), 'GPL')
+    ( License = 'LGPL' -> cpfile(~path_concat(Dir, 'LGPL'), 'LGPL')
+    ; License = 'GPL' ->  cpfile(~path_concat(Dir, 'GPL'), 'GPL')
     ; true % none
     ).
 
