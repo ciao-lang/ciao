@@ -386,6 +386,9 @@ check_unpublished_commits := UIds :-
 %! # Update dst repo
 
 :- data did_commit/0.
+:- data commit_n/1.
+:- data delay_nl/0.
+maybe_nl :- ( retract_fact(delay_nl) -> lformat(['\n']) ; true ).
 
 %! ## Update commits
 cmd_allow_all(commit).
@@ -396,17 +399,30 @@ cmd_run(commit, Opts) :- !, run_commit(Opts, nosquash).
 cmd_needs_check_repos(squash).
 cmd_run(squash, Opts) :- !, run_commit(Opts, squash).
 
-run_commit(Opts, nosquash) :- !,
+run_commit(Opts, Squash) :- !,
     retractall_fact(did_commit),
     ( member(srcid(Id0), Opts) -> TargetId = Id0
     ; TargetId = ~git_latest_commit(~srcgit)
     ),
+    run_commit_(Squash, TargetId),
+    ( did_commit -> after_commit_help ; true ).
+
+run_commit_(nosquash, TargetId) :- % Add all commits
     UIds = ~check_unpublished_commits,
+    length(UIds, UIdsN),
+    set_fact(commit_n(0)),
     ( % (failure-driven loop)
       member(UId, UIds),
         Fs = ~git_public_files(~srcgit, ~srcsubdir, UId),
         Info = ~git_commit_info(~srcgit, UId),
         prepare_tree(UId, Fs),
+        %
+        ( commit_n(UIdN0) -> true ; fail ),
+        UIdN is UIdN0+1,
+        set_fact(commit_n(UIdN)),
+        lformat(['\rChecking commit ', UId, ' (', UIdN, '/', UIdsN, ')']),
+        set_fact(delay_nl),
+        %
         update_tree(UId, Info),
         ( UId = TargetId ->
             ! % (break)
@@ -414,23 +430,19 @@ run_commit(Opts, nosquash) :- !,
         )
     ; true
     ),
-    ( did_commit -> after_commit_help ; true ).
-run_commit(Opts, squash) :- !,
-    retractall_fact(did_commit),
-    ( member(srcid(Id0), Opts) -> TargetId = Id0
-    ; TargetId = ~git_latest_commit(~srcgit)
-    ),
-    Fs = ~git_public_files(~srcgit, ~srcsubdir, UId),
-    squash_commit_info(UId, Info),
-    prepare_tree(UId, Fs),
+    maybe_nl.
+run_commit_(squash, TargetId) :- % Squash single commit
+    Fs = ~git_public_files(~srcgit, ~srcsubdir, TargetId),
+    Info = ~squash_commit_info(TargetId),
+    prepare_tree(TargetId, Fs),
+    lformat(['Squasing commit ', TargetId, '\n']),
     ( opt(dryrun) ->
         keep_treedir
-    ; update_tree(UId, Info)
-    ),
-    ( did_commit -> after_commit_help ; true ).
+    ; update_tree(TargetId, Info)
+    ).
 
 % Commit info for squash % TODO: this can be improved
-squash_commit_info(UId, Info) :-
+squash_commit_info(UId) := Info :-
     Info0 = ~git_commit_info(~srcgit, UId),
     ( DstId = ~dst_id, \+ DstId = '' ->
         Info = Info0
@@ -453,6 +465,32 @@ prepare_tree(Id, Fs) :-
     % lformat(['Getting pristine view for commit: ', Id, '\n']), % TODO: debug
     checkout_tree(Id, Fs),
     patch_tree.
+
+% Do a checkout of the public files
+checkout_tree(Id, Fs) :-
+    cleanup_tmp_subdir(~treedir),
+    mkdir_p(~treedir),
+    with_cwd(~treedir, checkout_tree_(Id, Fs)).
+
+checkout_tree_(Id, Fs) :-
+    git_checkout_tree(~srcgit, Id, Fs, ~srcsubdir).
+
+% Update index (add new files, update modified files, remove missing
+% files) to match the working tree.
+update_tree(Id, Info) :-
+    with_cwd(~treedir, update_tree_(Id, Info)).
+
+update_tree_(Id, Info) :-
+    % First try a dry run
+    ( \+ git_add_tree_has_changes(~dstgit) ->
+        % Cache Id as the latest commit without public changes
+        string_to_file(~atom_codes(Id), ~dstgit_last_nopub_id)
+    ; maybe_nl,
+      git_add_tree(~dstgit),
+      git_commit_annot_src_id(~dstgit, Id, Info),
+      % Mark that we did a commit
+      ( did_commit -> true ; assertz_fact(did_commit) )
+    ).
 
 % ---------------------------------------------------------------------------
 %! # Initialization of dst repo
@@ -595,37 +633,6 @@ after_push_help :- ~srcbundle = ciao, !,
         '  - Remember to change default_vers_bin=MAJOR.MINOR.PATCH in ciao-boot.sh\n',
         '\n']).
 after_push_help.
-
-% ---------------------------------------------------------------------------
-%! # Checkout a tree
-
-% Do a checkout of the public files
-checkout_tree(Id, Fs) :-
-    cleanup_tmp_subdir(~treedir),
-    mkdir_p(~treedir),
-    with_cwd(~treedir, checkout_tree_(Id, Fs)).
-
-checkout_tree_(Id, Fs) :-
-    git_checkout_tree(~srcgit, Id, Fs, ~srcsubdir).
-
-% Update index (add new files, update modified files, remove missing
-% files) to match the working tree.
-update_tree(Id, Info) :-
-    with_cwd(~treedir, update_tree_(Id, Info)).
-
-update_tree_(Id, Info) :-
-    % lformat(['Adding commit ', Id, '\n']),
-    % First try a dry run
-    ( \+ git_add_tree_has_changes(~dstgit) ->
-        lformat(['Commit ', Id, ' does not contain public changes\n']),
-        % Cache Id as the latest commit without public changes
-        string_to_file(~atom_codes(Id), ~dstgit_last_nopub_id)
-    ; lformat(['Commit ', Id, ' contains public changes\n']),
-      git_add_tree(~dstgit),
-      git_commit_annot_src_id(~dstgit, Id, Info),
-      % Mark that we did a commit
-      ( did_commit -> true ; assertz_fact(did_commit) )
-    ).
 
 % ---------------------------------------------------------------------------
 %! # Patch a tree before publishing

@@ -275,15 +275,16 @@ git_cmd_atwd_q(Gitdir, Args) :-
 
 % ---------------------------------------------------------------------------
 
-% Show output prefixing each line with "[git] "
+% Show output prefixing each line with "| "
 show_gitprefix(Out) :-
-    Out2 = ~prefix_lines(Out, "[git] "),
+    Out2 = ~prefix_lines(Out, "| "),
     lformat([$$(Out2)]).
 
 % TODO: copied from builder messages_aux.pl
 
 % Add @var{Prefix} to each line in @var{String0}, put result in @var{String}
-:- export(prefix_lines/3).
+%:- export(prefix_lines/3).
+prefix_lines([], _, String) :- !, String = []. % TODO: fixed! (see builder messages_aux.pl)
 prefix_lines(String0, Prefix, String) :-
     append(Prefix, String1, String),
     prefix_lines_(String0, Prefix, String1).
