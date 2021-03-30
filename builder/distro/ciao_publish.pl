@@ -175,13 +175,13 @@ Publish the current git repository through another (public) repository.
 
 Options:
 
-  --bundle Bundle
-               Select bundle Bundle. Use 'ciao' as the special root
-               bundle (containing core, builder, etc.)
+  --bundle Bundle  Select bundle Bundle. Use 'ciao' as the special root
+                   bundle (containing core, builder, etc.)
   --all            Select all bundles
+  --verbose        Verbose mode
   --pubrepos DIR   Select directory containing the publishing repository
-               clones (~/REPOS-ciao-publish by default)
-  --dry        Do not commit (only for 'squash')
+                   clones (~/REPOS-ciao-publish by default)
+  --dry            Do not commit (only for 'squash')
 
 Available commands:
 
@@ -246,6 +246,8 @@ parse_opts(['--bundle', Bundle|Args], Args2, [srcbundle(Bundle)|Opts]) :- !,
     parse_opts(Args, Args2, Opts).
 parse_opts(['--all'|Args], Args2, [allbundles|Opts]) :- !,
     parse_opts(Args, Args2, Opts).
+parse_opts(['--verbose'|Args], Args2, [verbose|Opts]) :- !,
+    parse_opts(Args, Args2, Opts).
 parse_opts(['--dry'|Args], Args2, [dryrun|Opts]) :- !,
     parse_opts(Args, Args2, Opts).
 parse_opts(['--pubrepos', Dir|Args], Args2, [pubrepos(Dir)|Opts]) :- !,
@@ -255,7 +257,7 @@ parse_opts(Args, Args, []).
 % ---------------------------------------------------------------------------
 %! # Run command
 
-:- data dryrun/0.
+:- data opt/1.
 
 run_cmd(list, _, _) :- !, % show publishable bundles
     ( % (failure-driven loop)
@@ -270,8 +272,9 @@ run_cmd(Cmd, Opts, Args2) :-
     ; AllBundles = no
     ),
     % Run command
-    retractall_fact(dryrun),
-    ( member(dryrun, Opts) -> set_fact(dryrun) ; true ),
+    retractall_fact(opt(_)),
+    ( member(dryrun, Opts) -> assertz_fact(opt(dryrun)) ; true ),
+    ( member(verbose, Opts) -> assertz_fact(opt(verbose)) ; true ),
     ( AllBundles = yes ->
         run_cmd_all(Cmd, Opts, Args2)
     ; ( member(srcbundle(Bundle), Opts) ->
@@ -345,22 +348,42 @@ cmd_needs_check_repos(status).
 cmd_run(status, _Args) :- !, run_status.
 
 run_status :-
-    Id = ~git_latest_commit(~srcgit),
-    DstId = ~dst_id,
-    lformat([
-        '  Latest commit: ', Id, '\n',
-        '  Commit at dstgit: ', DstId, '\n'
-    ]),
-    ( NoPubId = ~get_dstgit_last_nopub_id ->
-        lformat(['  Last known commit without public changes: ', NoPubId, '\n'])
+    UIds = ~check_unpublished_commits, % (report some summary)
+    ( opt(verbose) ->
+        % More details
+        Id = ~git_latest_commit(~srcgit),
+        lformat([
+            '  Latest source commit: ', Id, '\n',
+            '  Latest published commit: ', ~dst_id, '\n'
+        ]),
+        ( NoPubId = ~get_dstgit_last_nopub_id ->
+            lformat(['  Last commit without public changes for this bundle: ', NoPubId, '\n'])
+        ; true
+        ),
+        ( UIds = [FirstId|_] ->
+            lformat(['  First unpublished commit: ', FirstId, '\n'])
+        ; true
+        )
     ; true
+    ).
+
+check_unpublished_commits := UIds :-
+    lformat(['=> ', ~srcbundle, ':']),
+    ( DstId = ~dst_id, \+ DstId = '' ->
+        true
+    ; lformat([' unknown publishing status!\n']),
+      lformat([
+          % ___________________________________________________________________________
+          'ERROR: Could not find any \'Src-commit\' mark in the publishing repository.\n',
+          'Please specify the first commit Id in \'publish\' or \'squash\'.\n'
+      ]),
+      halt(1)
     ),
-    check_dst_id, % (needed for unpublished commits)
     UIds = ~unpublished_commits,
-    ( UIds = [FirstId|_] ->
-        length(UIds, UIdsN),
-        lformat(['  ', UIdsN, ' unpublished commits since: ', FirstId, '\n'])
-    ; lformat(['  No unpublished commits\n'])
+    length(UIds, UIdsN),
+    ( UIdsN = 0 ->
+        lformat([' no unpublished commits\n'])
+    ; lformat([' ', UIdsN, ' unseen publishable commits\n'])
     ).
 
 % ---------------------------------------------------------------------------
@@ -378,9 +401,8 @@ run_publish_commits(Args) :-
     ( Args = [Id0] -> TargetId = Id0
     ; TargetId = ~git_latest_commit(~srcgit)
     ),
-    check_dst_id, % (needed for unpublished commits)
+    UIds = ~check_unpublished_commits,
     ( % (failure-driven loop)
-      UIds = ~unpublished_commits,
       member(UId, UIds),
         Fs = ~git_public_files(~srcgit, ~srcsubdir, UId),
         Info = ~git_commit_info(~srcgit, UId),
@@ -406,7 +428,7 @@ run_squash_commit(Args) :-
     Fs = ~git_public_files(~srcgit, ~srcsubdir, UId),
     squash_commit_info(UId, Info),
     prepare_tree(UId, Fs),
-    ( dryrun ->
+    ( opt(dryrun) ->
         keep_treedir
     ; update_tree(UId, Info)
     ),
@@ -764,7 +786,7 @@ config_short_summary :-
 check_repos :-
     check_srcgit,
     check_dstgit,
-    config_short_summary.
+    ( opt(verbose) -> config_short_summary ; true ).
 
 check_srcgit :-
     ( git_check_remote(~srcgit, ~srcremote) ->
@@ -800,17 +822,6 @@ check_dstgit :-
           '\'init\' command of this script to create a new empty repository.\n',
           '\n'
       ])
-    ).
-
-check_dst_id :-
-    ( DstId = ~dst_id, \+ DstId = '' ->
-        true
-    ; lformat([
-          % ___________________________________________________________________________
-          'ERROR: Could not find any \'Src-commit\' mark in the publishing repository.\n',
-          'Please specify the first commit Id in \'publish\' or \'squash\'.\n'
-      ]),
-      halt(1)
     ).
 
 % ---------------------------------------------------------------------------
