@@ -405,4 +405,9 @@ cmd_usage(run, "", [
     %1_______________________________________________
     "Runs a Ciao script (ciao-shell)"
 ]).
-
+%
+cmd_grp(publish, tools).
+cmd_usage(publish, "[help|...]", [
+    %1_______________________________________________
+    "Publishing code"
+]).

@@ -4,7 +4,7 @@
 #
 #  The ciao super-command.
 #
-#  Copyright (C) 2015-2017 Ciao Developer Team
+#  Copyright (C) 2015-2021 Ciao Developer Team
 #
 
 # Physical directory where the script is located
@@ -22,6 +22,7 @@ boot_ciaohdir={{boot_ciaohdir}}
 boot_ciaoengine={{boot_ciaoengine}}
 
 ciao_builder_bin="$_base"/ciao_builder
+ciao_publish_bin="$_base"/ciao_publish
 ciaosh_bin="$_base"/ciaosh
 ciao_shell_bin="$_base"/ciao-shell
 ciaoc_bin="$_base"/ciaoc
@@ -138,6 +139,7 @@ case $action in
     toplevel) rlexec "$ciaosh_bin" "$@" {{ExtraCommands}} ;;
     run)      exec "$ciao_shell_bin" "$@" ;;
     comp)     exec "$ciaoc_bin" "$@" ;;
+    publish)  exec "$ciao_publish_bin" "$@" ;;
     help|-h|--help) do_help "$@" ;;
     *)        rlexec_builder "$action" "$@"
 esac

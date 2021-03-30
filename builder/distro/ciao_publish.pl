@@ -19,38 +19,37 @@
 %  
 %  ## Publishing code at Github
 %  
-%  Use `ciao-publish list` to enumerate publishable bundles from the
+%  Use `ciao publish list` to list publishable bundles from the
 %  Ciao devel repository (either the main `ciao` or some bundles at
 %  `bndls/`). E.g.:
 %  ```
-%  $ ciao-publish list
+%  $ ciao publish list
 %  ```
 %  
-%  Publishing code is performed by the `publish` and `push`
-%  operations. Use the `help` option to view other possible
-%  commmands. Use the `--bundle BNDL` option to select the bundle to
-%  publish (`ciao` by default).
+%  Publishing code is performed by the `commit` and `push`
+%  operations. Use the `help` option to view other possible commmands.
 %  
-%  Example for publishing `ciao` (the special root bundle that
-%  contains containing `core`, `builder`, etc.):
+%  Example for publishing the bundle at the current directory (when
+%  run at the Ciao root directory the special `ciao` bundle is
+%  selected, which contains containing `core` and `builder`):
 %  ```
-%  $ ciao-publish pull
-%  $ ciao-publish publish
+%  $ ciao publish pull
+%  $ ciao publish commit
 %  << (please review commits) >>
-%  $ ciao-publish push
+%  $ ciao publish push
 %  ```
 %  
-%  Example for publishing `ciao_emacs`:
+%  Command may be followed by a target bundle name to specify a
+%  different bundle. Example for publishing `ciao_emacs`:
 %  ```
-%  $ ciao-publish --bundle ciao_emacs pull
-%  $ ciao-publish --bundle ciao_emacs publish
+%  $ ciao publish pull ciao_emacs
+%  $ ciao publish commit ciao_emacs
 %  << (please review commits) >>
-%  $ ciao-publish --bundle ciao_emacs push
+%  $ ciao publish push ciao_emacs
 %  ```
 %  
-%  The first time that `publish` is performed, it may complain with a `sed:
-%  first RE may not be empty` error. Fix it by specifying a first commit
-%  number, or do `squash` instead of `publish`.
+%  The first time that `commit` is performed, it will require a first
+%  commit number. This is not needed for `squash`.
 %  
 %  ## Working on multiple bundles
 %  
@@ -60,31 +59,16 @@
 %  Examples on all bundles:
 %  ```
 %  << Consult the status of all publishable bundles >>
-%  $ ciao-publish --all status
+%  $ ciao publish status --all
 %  
 %  << Pull all public repositories (previous to publishing) >>
-%  $ ciao-publish --all pull
+%  $ ciao publish pull --all
 %  
-%  << Publish all publishable bundles >>
-%  $ ciao-publish --all publish
-%  
-%  << Push to the public repository >>
-%  $ ciao-publish --all push
-%  ```
-%  
-%  Examples of scripts:
-%  ```
-%  << Consult the status of all publishable bundles >>
-%  $ for i in `ciao-publish list`; do ciao-publish --bundle $i status; echo; done
-%  
-%  << Pull all public repositories (previous to publishing) >>
-%  $ for i in `ciao-publish list`; do ciao-publish --bundle $i pull; done
-%  
-%  << Publish all publishable bundles >>
-%  $ for i in `ciao-publish list`; do echo "PUBLISH $i? (C-c to abort)"; read; ciao-publish --bundle $i publish; done
+%  << Commit all publishable changes >>
+%  $ ciao publish commit --all
 %  
 %  << Push to the public repository >>
-%  $ for i in `ciao-publish list`; do ciao-publish --bundle $i push; done
+%  $ ciao publish push --all
 %  ```
 %  
 %  ## Additional files for publishing
@@ -129,8 +113,8 @@
 %  ```
 %  
 %    - Bob: check with `git log` that the code is pushed correctly
-%    - Bob: do `ciao-publish pull`, `ciao-publish publish`,
-%      and `ciao-publish push`
+%    - Bob: do `ciao publish pull`, `ciao publish commit`,
+%      and `ciao publish push`
 %  
 %    - Alice: do `git pull` and `git rebase -i`. The first command will
 %      create a merge commit. The second command will break. After some
@@ -169,42 +153,50 @@
 % ===========================================================================
 
 show_help :-
-    write_string("Usage: ciao-publish [OPTS] CMD
+    write_string("Usage: ciao publish CMD [OPTS] [Bundle]
 
-Publish the current git repository through another (public) repository.
+This command perform bundle publishing operations.
 
 Options:
 
-  --bundle Bundle  Select bundle Bundle. Use 'ciao' as the special root
-                   bundle (containing core, builder, etc.)
+  --id Id          Select source commit Id
   --all            Select all bundles
   --verbose        Verbose mode
   --pubrepos DIR   Select directory containing the publishing repository
                    clones (~/REPOS-ciao-publish by default)
   --dry            Do not commit (only for 'squash')
 
-Available commands:
+Help:
 
   help             Show this message
+
+Commands for querying information:
+
   list             Show publishable bundles
-  init             Create the remote repository for publishing
   info             Show publishing info about a bundle
-  pull             Pull (public repo)
-  publish [Id]     Update (git add -A) from the latest or given commit
-                   (for each unpublished commit)
-  squash [Id]      Like publish, but squash into a single commit
+
+Commands for adding commits:
+
+  status           Show status (unpublished commits)
+  commit           Create commits from publishable changes
+  squash           Like commit, but squash into a single commit
                    (more efficient than rebase but loses history)
                    If '--dry', the tree is left in a temporary dir
                    (no commit is done) 
-  status           Show status (unpublished commits)
-  push             Push (public repo)
-  rebase [args]    Rebase (public repo)
 
-Use the --bundle option to select a bundle. If not specified, the
-bundle is automatically detected from the working directory (this
-assumes that we have an updated checkout).
+Commands on the publishing repo:
 
-Use --all to work on all publishable bundles (only for pull, publish,
+  init             Initialize
+  pull             Pull
+  push             Push
+  rebase -- [args] Rebase (with of rest args)
+
+If no Bundle is specified, it is automatically detected from the
+working directory (this assumes that we have an updated checkout).
+The root directory corresponds to the special 'ciao' bundle identifier
+(containing core, builder, etc.)
+
+Use --all to work on all publishable bundles (only for pull, commit,
 push, status).
 
 ").
@@ -232,8 +224,8 @@ main([H]) :-
     !,
     show_help.
 main(Args) :-
-    parse_opts(Args, Args1, Opts),
-    Args1 = [Cmd|Args2],
+    Args = [Cmd|Args1],
+    parse_opts(Args1, Args2, Opts),
     !,
     %
     run_cmd(Cmd, Opts, Args2).
@@ -242,7 +234,7 @@ main(_) :-
         'Invalid usage, see help message']),
     halt(1).
 
-parse_opts(['--bundle', Bundle|Args], Args2, [srcbundle(Bundle)|Opts]) :- !,
+parse_opts(['--id', Id|Args], Args2, [srcid(Id)|Opts]) :- !,
     parse_opts(Args, Args2, Opts).
 parse_opts(['--all'|Args], Args2, [allbundles|Opts]) :- !,
     parse_opts(Args, Args2, Opts).
@@ -252,7 +244,11 @@ parse_opts(['--dry'|Args], Args2, [dryrun|Opts]) :- !,
     parse_opts(Args, Args2, Opts).
 parse_opts(['--pubrepos', Dir|Args], Args2, [pubrepos(Dir)|Opts]) :- !,
     parse_opts(Args, Args2, Opts).
-parse_opts(Args, Args, []).
+parse_opts(['--'|Args], Args2, [restargs(Args)]) :- !,
+    Args2 = []. % consume rest of args unchanged
+parse_opts([Arg|Args], [Arg|Args2], Opts) :- !, % (argument)
+    parse_opts(Args, Args2, Opts).
+parse_opts([], [], []).
 
 % ---------------------------------------------------------------------------
 %! # Run command
@@ -266,7 +262,7 @@ run_cmd(list, _, _) :- !, % show publishable bundles
         fail
     ; true
     ).
-run_cmd(Cmd, Opts, Args2) :-
+run_cmd(Cmd, Opts, Args) :-
     ( member(allbundles, Opts) ->
         AllBundles = yes
     ; AllBundles = no
@@ -275,26 +271,27 @@ run_cmd(Cmd, Opts, Args2) :-
     retractall_fact(opt(_)),
     ( member(dryrun, Opts) -> assertz_fact(opt(dryrun)) ; true ),
     ( member(verbose, Opts) -> assertz_fact(opt(verbose)) ; true ),
-    ( AllBundles = yes ->
-        run_cmd_all(Cmd, Opts, Args2)
-    ; ( member(srcbundle(Bundle), Opts) ->
-          SrcBundle = Bundle
-      ; SrcBundle = ~detect_bundle
+    ( AllBundles = yes, Args = [] ->
+        run_cmd_all(Cmd, Opts)
+    ; ( Args = [SrcBundle] -> true
+      ; Args = [] -> SrcBundle = ~detect_bundle
+      ; message(error, ['Incorrect input']),
+        halt(1)
       ),
-      run_cmd_one(Cmd, SrcBundle, Opts, Args2)
+      run_cmd_one(Cmd, SrcBundle, Opts)
     ).
 
 % Run on all bundles
-run_cmd_all(Cmd, Opts, Args) :-
+run_cmd_all(Cmd, Opts) :-
     ( cmd_allow_all(Cmd) -> true
     ; message(error, ['Invalid command \'', Cmd, '\' with \'--all\', see help message']),
       halt(1)
     ),
     \+ (list_bundles(B),
-        \+ run_cmd_one(Cmd, B, Opts, Args)).
+        \+ run_cmd_one(Cmd, B, Opts)).
 
 % Run on a single bundle
-run_cmd_one(Cmd, SrcBundle, Opts, Args) :-
+run_cmd_one(Cmd, SrcBundle, Opts) :-
     ( member(pubrepos(Dir), Opts) ->
         PubRepos = Dir
     ; PubRepos = ~path_concat(~get_home, 'REPOS-ciao-publish')
@@ -311,7 +308,7 @@ run_cmd_one(Cmd, SrcBundle, Opts, Args) :-
     %
     ( cmd_needs_check_repos(Cmd) -> check_repos ; true ),
     init_tmpdir,
-    cmd_run(Cmd, Args),
+    cmd_run(Cmd, Opts),
     cleanup_tmpdir.
 
 :- discontiguous(cmd_allow_all/1).
@@ -321,7 +318,7 @@ run_cmd_one(Cmd, SrcBundle, Opts, Args) :-
 % ---------------------------------------------------------------------------
 %! # Info for publishing
 
-cmd_run(info, _Args) :- !, config_summary.
+cmd_run(info, _Opts) :- !, config_summary.
 
 % ---------------------------------------------------------------------------
 %! # Temporary file storage
@@ -345,7 +342,7 @@ cleanup_tmpdir :-
 
 cmd_allow_all(status).
 cmd_needs_check_repos(status).
-cmd_run(status, _Args) :- !, run_status.
+cmd_run(status, _Opts) :- !, run_status.
 
 run_status :-
     UIds = ~check_unpublished_commits, % (report some summary)
@@ -375,7 +372,7 @@ check_unpublished_commits := UIds :-
       lformat([
           % ___________________________________________________________________________
           'ERROR: Could not find any \'Src-commit\' mark in the publishing repository.\n',
-          'Please specify the first commit Id in \'publish\' or \'squash\'.\n'
+          'Please specify the first commit Id in \'commit\' or \'squash\'.\n'
       ]),
       halt(1)
     ),
@@ -391,14 +388,18 @@ check_unpublished_commits := UIds :-
 
 :- data did_commit/0.
 
-%! ## Publish
-cmd_allow_all(publish).
-cmd_needs_check_repos(publish).
-cmd_run(publish, Args) :- !, run_publish_commits(Args).
+%! ## Update commits
+cmd_allow_all(commit).
+cmd_needs_check_repos(commit).
+cmd_run(commit, Opts) :- !, run_commit(Opts, nosquash).
 
-run_publish_commits(Args) :-
+%! ## Squash
+cmd_needs_check_repos(squash).
+cmd_run(squash, Opts) :- !, run_commit(Opts, squash).
+
+run_commit(Opts, nosquash) :- !,
     retractall_fact(did_commit),
-    ( Args = [Id0] -> TargetId = Id0
+    ( member(srcid(Id0), Opts) -> TargetId = Id0
     ; TargetId = ~git_latest_commit(~srcgit)
     ),
     UIds = ~check_unpublished_commits,
@@ -415,15 +416,10 @@ run_publish_commits(Args) :-
     ; true
     ),
     ( did_commit -> after_commit_help ; true ).
-
-%! ## Squash
-cmd_needs_check_repos(squash).
-cmd_run(squash, Args) :- !, run_squash_commit(Args).
-
-run_squash_commit(Args) :-
+run_commit(Opts, squash) :- !,
     retractall_fact(did_commit),
-    ( Args = [Id0] -> UId = Id0
-    ; UId = ~git_latest_commit(~srcgit)
+    ( member(srcid(Id0), Opts) -> TargetId = Id0
+    ; TargetId = ~git_latest_commit(~srcgit)
     ),
     Fs = ~git_public_files(~srcgit, ~srcsubdir, UId),
     squash_commit_info(UId, Info),
@@ -462,7 +458,7 @@ prepare_tree(Id, Fs) :-
 % ---------------------------------------------------------------------------
 %! # Initialization of dst repo
 
-cmd_run(init, _Args) :- !, run_init_dstgit.
+cmd_run(init, _Opts) :- !, run_init_dstgit.
 
 % Create dstgit repository (if it does not exists)
 run_init_dstgit :-
@@ -488,7 +484,7 @@ run_init_dstgit :-
             'Please login to https://github.com and create a new empty\n',
             'repository for ', ~dstremote, '.\n',
             '\n',
-            'Then try again the \'init\' command.\n',
+            'Then try again \'ciao publish init\'.\n',
             '\n']),
         halt(1)
     ; true
@@ -518,7 +514,7 @@ run_init_dstgit_ :-
 %! ## Pull
 cmd_allow_all(pull).
 cmd_needs_check_repos(pull).
-cmd_run(pull, _Args) :- !, run_pull_dstgit.
+cmd_run(pull, _Opts) :- !, run_pull_dstgit.
 
 % Pull to make sure that dstgit contains latest commits
 run_pull_dstgit :-
@@ -527,7 +523,7 @@ run_pull_dstgit :-
 %! ## Push
 cmd_allow_all(push).
 cmd_needs_check_repos(push).
-cmd_run(push, _Args) :- !, run_push_dstgit.
+cmd_run(push, _Opts) :- !, run_push_dstgit.
 
 run_push_dstgit :-
     % TODO: make check for pending commits optional? (it is faster
@@ -541,9 +537,12 @@ run_push_dstgit :-
 
 %! ## Rebase
 cmd_needs_check_repos(rebase).
-cmd_run(rebase, Args) :- !, run_rebase_dstgit(Args).
+cmd_run(rebase, Opts) :- !, run_rebase_dstgit(Opts).
 
-run_rebase_dstgit(Args) :-
+run_rebase_dstgit(Opts) :-
+    ( member(restargs(Args), Opts) -> true
+    ; Args = []
+    ),
     git_cmd_atwd(~dstgit, ['rebase'|Args], []).
 
 % ---------------------------------------------------------------------------
@@ -556,18 +555,18 @@ after_init_help :-
         '\n',
         'Destination repository created, you can publish your commits.\n',
         '\n',
-        'Use the \'squash\' command to publish the current version, or select the\n',
-        'first commit with \'squash Id\'. Amending the commit message is\n',
-        'recommended.\n',
+        'Use \'ciao publish squash\' to publish the current version, or\n',
+        '    \'ciao publish squash Id\' to select the first commit.\n',
+        'Amending the commit message is recommended.\n',
         '\n']).
 
-% Help after publish
+% Help after commit
 after_commit_help :-
     lformat([
         % ___________________________________________________________________________
         '\n',
-        'Use \'rebase -i\' rebase commits if needed.\n',
-        'Use \'push\' to send commits to remote.\n']).
+        'Use \'ciao publish rebase -- -i\' to rebase commits if needed.\n',
+        'Use \'ciao publish push\' to send commits to remote.\n']).
 
 % Help after push
 % TODO: configure per bundle
