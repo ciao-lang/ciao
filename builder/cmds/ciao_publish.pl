@@ -4,7 +4,7 @@
 :- doc(author, "Jose F. Morales").
 
 :- doc(module, "
-   This tool allows publish pristine views of an @em{annotated} git
+   This tool allows publishing pristine views of an @em{annotated} git
    mono-repository. An annotated git repository contains
    @tt{NODISTRIBUTE} empty files that mark directories that must not
    be visible in a pristine copy.
@@ -28,7 +28,7 @@ $ ciao publish list
    
    Example for publishing the bundle at the current directory (when
    run at the Ciao root directory the special @tt{ciao} bundle is
-   selected, which contains containing @tt{core} and @tt{builder}):
+   selected, which contains @tt{core} and @tt{builder}):
 @begin{verbatim}
 $ ciao publish pull
 $ ciao publish commit
@@ -36,7 +36,7 @@ $ ciao publish commit
 $ ciao publish push
 @end{verbatim}
    
-   Command may be followed by a target bundle name to specify a
+   A command may be followed by a target bundle name to specify a
    different bundle. Example for publishing @tt{ciao_emacs}:
 @begin{verbatim}
 $ ciao publish pull ciao_emacs
