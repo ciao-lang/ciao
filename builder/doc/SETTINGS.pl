@@ -7,7 +7,6 @@ output_name := 'ciao_builder'.
 % TODO: use parent_bundle to share those defs
 filepath := '../src'.
 filepath := '../cmds'.
-filepath := '../distro'.
 filepath := ~ciaofilepath_common.
 
 doc_structure := 
@@ -54,15 +53,18 @@ doc_structure :=
       'bundle_configure',
       % Fetching
       'bundle_fetch',
-      % Packaging
-      'pbundle_generator'-[
-        'pbundle_meta',
-        'pbundle_gen_bin',
-        'pbundle_gen_mac',
-        'pbundle_gen_rpm',
-        'pbundle_gen_src',
-        'pbundle_gen_win32'
-      ]
+      % TODO: review this documentation, internal?
+%      % Packaging
+%      'pbundle_generator'-[
+%        'pbundle_meta',
+%        'pbundle_gen_bin',
+%        'pbundle_gen_mac',
+%        'pbundle_gen_rpm',
+%        'pbundle_gen_src',
+%        'pbundle_gen_win32'
+%      ],
+      % Publishing
+      'ciao_publish'
     ].
 
 %doc_mainopts := no_patches.

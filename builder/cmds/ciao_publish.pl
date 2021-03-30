@@ -1,128 +1,127 @@
-:- module(_, [], [assertions, doccomments, fsyntax, datafacts]).
+:- module(_, [], [assertions, fsyntax, datafacts]).
 
-%! \title Ciao publish from mono-repository tool
-%  \author Jose F. Morales
+:- doc(title, "Publish from a mono-repository").
+:- doc(author, "Jose F. Morales").
+
+:- doc(module, "
+   This tool allows publish pristine views of an @em{annotated} git
+   mono-repository. An annotated git repository contains
+   @tt{NODISTRIBUTE} empty files that mark directories that must not
+   be visible in a pristine copy.
+
+   @begin{alert}
+   This tool is tailored for the @tt{ciao-devel} mono-repository but
+   it could be easily generalized for other repositories.
+   @end{alert}
+   
+   @section{Usage}
+   
+   Use @tt{ciao publish list} to list publishable bundles from the
+   Ciao devel repository (either the main @tt{ciao} or some bundles at
+   @tt{bndls/}). E.g.:
+@begin{verbatim}
+$ ciao publish list
+@end{verbatim}
+   
+   Publishing code is performed by the @tt{commit} and @tt{push}
+   operations. Use the @tt{help} option to view other possible commmands.
+   
+   Example for publishing the bundle at the current directory (when
+   run at the Ciao root directory the special @tt{ciao} bundle is
+   selected, which contains containing @tt{core} and @tt{builder}):
+@begin{verbatim}
+$ ciao publish pull
+$ ciao publish commit
+<< (please review commits) >>
+$ ciao publish push
+@end{verbatim}
+   
+   Command may be followed by a target bundle name to specify a
+   different bundle. Example for publishing @tt{ciao_emacs}:
+@begin{verbatim}
+$ ciao publish pull ciao_emacs
+$ ciao publish commit ciao_emacs
+<< (please review commits) >>
+$ ciao publish push ciao_emacs
+@end{verbatim}
+   
+   The first time that @tt{commit} is performed, it will require a first
+   commit number. This is not needed for @tt{squash}.
+
+   You can use the @tt{--all} option to perform a command on all
+   publishable bundles (see @tt{--help} for more info), or use shell
+   scripts.
+   
+   Examples on all bundles:
+@begin{verbatim}
+<< Consult the status of all publishable bundles >>
+$ ciao publish status --all
+
+<< Pull all public repositories (previous to publishing) >>
+$ ciao publish pull --all
+
+<< Commit all publishable changes >>
+$ ciao publish commit --all
+
+<< Push to the public repository >>
+$ ciao publish push --all
+@end{verbatim}
+   
+   @begin{itemize}
+   @item The source is fetched from the repository (not from the
+     checkout).
+   @item Clones of publishing repos are kept at
+     @tt{$HOME/REPOS-ciao-publish} (with some metadata to speedup
+     detection of unpublished commits).
+   @end{itemize}
+   
+   @section{Additional files for publishing}
+
+   Other directories:   
+@begin{verbatim}
+ci-scripts/      Scripts for CI
+ci-status/       Scripts for checking the status of CI
+etc/ciao-download-stats.sh
+                 Download statistics
+@end{verbatim}
+   
+   @secion{Contribution from public repositories}
+   
+   Assume that Bob maintains the private Ciao repository and Alice wants
+   to contribute to it. This is the typical workflow for contributing to
+   the project preserving authorship:
+   @begin{itemize}
+   @item Alice: clone public Git repository (@tt{github.com/ciao-lang/ciao})
+   @item Alice: make some changes and commit them
+   @item Alice: format patches using @tt{git format-patch} (never push them!)
+@begin{verbatim}
+$ git format-patch HEAD^n # where n is the number of commits not in master
+@end{verbatim}
+   
+   @item Alice: send the @tt{????-*.patch} files via email to Bob
+   @item Bob: apply back the changes in the private repository with
+   
+@begin{verbatim}
+$ git am < 0001-*.patch
+$ git am < 0002-*.patch
+$ ...
+@end{verbatim}
+   
+   @item Bob: check with @tt{git log} that the code is pushed correctly
+   @item Bob: do @tt{ciao publish pull}, @tt{ciao publish commit},
+     and @tt{ciao publish push}
+
+   @item Alice: do @tt{git pull} and @tt{git rebase -i}. The first command
+     will create a merge commit. The second command will break. After
+     some @tt{git rebase --continue} it will end. If everything is fine
+     there will be no unpushed changes to master and all new commits
+     will be authored as Alice.
+   @end{itemize}
+").
+
+% TODO: move somewhere
 %
-%  \module
-%  This is a tool to publish pristine views of an "annotated" git
-%  mono-repository.
-%  
-%  An annotated git repository contains NODISTRIBUTE empty files that mark
-%  directories that must not be visible in a pristine copy.
-%  
-%  This script does not need a checkout (it works directly on the git
-%  repository).
-%  
-%  This script is tailored for Ciao but it could be easily generalized:
-%   - assumes the `ciao-devel` structure
-%   - keeps clones of publishing repos at `$HOME/REPOS-ciao-publish`
-%  
-%  ## Publishing code at Github
-%  
-%  Use `ciao publish list` to list publishable bundles from the
-%  Ciao devel repository (either the main `ciao` or some bundles at
-%  `bndls/`). E.g.:
-%  ```
-%  $ ciao publish list
-%  ```
-%  
-%  Publishing code is performed by the `commit` and `push`
-%  operations. Use the `help` option to view other possible commmands.
-%  
-%  Example for publishing the bundle at the current directory (when
-%  run at the Ciao root directory the special `ciao` bundle is
-%  selected, which contains containing `core` and `builder`):
-%  ```
-%  $ ciao publish pull
-%  $ ciao publish commit
-%  << (please review commits) >>
-%  $ ciao publish push
-%  ```
-%  
-%  Command may be followed by a target bundle name to specify a
-%  different bundle. Example for publishing `ciao_emacs`:
-%  ```
-%  $ ciao publish pull ciao_emacs
-%  $ ciao publish commit ciao_emacs
-%  << (please review commits) >>
-%  $ ciao publish push ciao_emacs
-%  ```
-%  
-%  The first time that `commit` is performed, it will require a first
-%  commit number. This is not needed for `squash`.
-%  
-%  ## Working on multiple bundles
-%  
-%  You can use the `--all` option to perform a command on all publishable
-%  bundles (see `--help` for more info), or use shell scripts.
-%  
-%  Examples on all bundles:
-%  ```
-%  << Consult the status of all publishable bundles >>
-%  $ ciao publish status --all
-%  
-%  << Pull all public repositories (previous to publishing) >>
-%  $ ciao publish pull --all
-%  
-%  << Commit all publishable changes >>
-%  $ ciao publish commit --all
-%  
-%  << Push to the public repository >>
-%  $ ciao publish push --all
-%  ```
-%  
-%  ## Additional files for publishing
-%  
-%  Scripts for CI are located at:
-%  ```
-%  ci-scripts/
-%  ```
-%  
-%  Scripts for checking the status of CI are located at:
-%  ```
-%  ci-status/
-%  ```
-%  
-%  ## Consulting statistics
-%  
-%  For download statistics:
-%  ```
-%  $ ./ciao-download-stats.sh
-%  ```
-%  
-%  ## Contribution from public repositories
-%  
-%  Assume that Bob maintains the private Ciao repository and Alice wants
-%  to contribute to it. This is the typical workflow for contributing to
-%  the project preserving authorship:
-%  
-%    - Alice: clone public Git repository (`github.com/ciao-lang/ciao`)
-%    - Alice: make some changes and commit them
-%    - Alice: format patches using `git format-patch` (never push them!)
-%  ```
-%  $ git format-patch HEAD^n # where n is the number of commits not in master
-%  ```
-%  
-%    - Alice: send the `????-*.patch` files via email to Bob
-%    - Bob: apply back the changes in the private repository with
-%  
-%  ```
-%  $ git am < 0001-*.patch
-%  $ git am < 0002-*.patch
-%  $ ...
-%  ```
-%  
-%    - Bob: check with `git log` that the code is pushed correctly
-%    - Bob: do `ciao publish pull`, `ciao publish commit`,
-%      and `ciao publish push`
-%  
-%    - Alice: do `git pull` and `git rebase -i`. The first command will
-%      create a merge commit. The second command will break. After some
-%      `git rebase --continue` it will end. If everything is fine there
-%      will be no unpushed changes to master and all new commits will be
-%      authored as Alice.
-%  
-%  ## Pointers to code and distribution files
+%  # Pointers to code and distribution files
 %  
 %  Source repositories:
 %  
@@ -216,7 +215,7 @@ push, status).
 :- use_module(library(system)).
 :- use_module(library(pathnames)).
 
-:- use_module(.(git_extra)).
+:- use_module(ciaobld(git_extra)).
 
 :- export(main/1).
 main([H]) :-
@@ -666,12 +665,12 @@ patch_readme :-
     string_to_file(Text, 'README.md').
 
 patch_ci_scripts :-
-    bundle_path('builder', 'distro/ci-scripts', Dir),
+    bundle_path('builder', 'dist/ci-scripts', Dir),
     cpfile(~path_concat(Dir, 'travis.yml'), '.travis.yml'),
     cpfile(~path_concat(Dir, 'appveyor.yml'), '.appveyor.yml').
 
 patch_license :-
-    bundle_path('builder', 'distro/licenses', Dir),
+    bundle_path('builder', 'dist/licenses', Dir),
     License = ~srclicense,
     ( License = 'LGPL' -> cpfile(~path_concat(Dir, 'LGPL'), 'LGPL')
     ; License = 'GPL' ->  cpfile(~path_concat(Dir, 'GPL'), 'GPL')
