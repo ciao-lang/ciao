@@ -1136,6 +1136,7 @@ expand_list_tail(Data1, Data) :-
 
 :- use_module(library(compiler/frontend_condcomp), [
     condcomp_sentence/3,
+    condcomp_split_doccomment/3,
     add_condcomp_fact/2
 ]).
 
@@ -1148,6 +1149,14 @@ do_expand_term((:- primitive_meta_predicate(MP)), M, _, Data1) :- !,
 do_expand_term(Data0, M, VNs, Data) :-
     % Update conditional compilation state and filter sentence
     % TODO: merge with compiler_oc
+    ( condcomp_split_doccomment(Data0, Data0c, Data0d) ->
+        % treat the doccomment, then directive (see condcomp_split_doccomment/3)
+        maybe_expand_term(Data0c, M, VNs, Data),
+        maybe_expand_term(Data0d, M, VNs, _) % (output must be [] in this case)
+    ; maybe_expand_term(Data0, M, VNs, Data)
+    ).
+
+maybe_expand_term(Data0, M, VNs, Data) :-
     ( condcomp_sentence(Data0, Data1, M), Data1 = [] -> Data = []
     ; expand_term(Data0, M, VNs, Data)
     ).

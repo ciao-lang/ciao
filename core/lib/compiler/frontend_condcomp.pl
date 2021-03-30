@@ -82,6 +82,14 @@ condcomp_treat(Decl, Mod) :-
 alternative(elif(Cond), Cond).
 alternative(else, true).
 
+:- export(condcomp_split_doccomment/3).
+% Split doccomment with (:- _), it must be handled separately (avoid condcomp cond)
+% TODO: a bit ugly, better solution?
+condcomp_split_doccomment(Data0, Data0c, Data0d) :-
+    Data0 = '\6\doccomment'(Col, Mark, prefix, DocString, Data0d), Data0d = (:- Decl),
+    nonvar(Decl), condcomp_directive(Decl),
+    Data0c = '\6\doccomment'(Col, Mark, DocString).
+
 % ---------------------------------------------------------------------------
 % Open and close blocks
 
