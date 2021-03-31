@@ -662,9 +662,9 @@ patch_tree :-
 patch_tree_ :-
     % Patch github specific (depends on bundle)
     ( ~srcbundle = 'ciao' ->
-        rmfiles(['COPYRIGHT', 'LGPL', 'GPL']), % Outdated...
-        patch_readme,
-        patch_ci_scripts
+        rmfiles(['COPYRIGHT', 'LGPL', 'GPL']) % TODO: move?
+        % patch_readme,
+        % patch_ci_scripts
     ; % Remove ACTIVATE mark
       ( file_exists('ACTIVATE') ->
           rmfiles(['ACTIVATE'])
@@ -673,27 +673,26 @@ patch_tree_ :-
     ),
     patch_license.
 
-patch_readme :-
-    ( file_exists('README.md') ->
-        file_to_string('README.md', PrevText)
-    ; PrevText = ""
-    ),
-    append(
-        "[![Build Status](https://travis-ci.org/ciao-lang/ciao.svg)](https://travis-ci.org/ciao-lang/ciao)\n"||
-        "[![Build Status](https://ci.appveyor.com/api/projects/status/fu2eb23je22xc228?svg=true)](https://ci.appveyor.com/project/jfmc/ciao)\n"||
-        "\n",
-        Text0, Text),
-    append(PrevText, Text1, Text0),
-    % Text1 = ("\n"||
-    %   "---\n"||
-    %   "**NOTE**: Repository automatically projected from the Ciao monorepo.\n"),
-    Text1 = "",
-    string_to_file(Text, 'README.md').
+% patch_readme :-
+%     ( file_exists('README.md') ->
+%         file_to_string('README.md', PrevText)
+%     ; PrevText = ""
+%     ),
+%     append(
+%         "[![Build Status](https://travis-ci.org/ciao-lang/ciao.svg)](https://travis-ci.org/ciao-lang/ciao)\n"||
+%         "[![Build Status](https://ci.appveyor.com/api/projects/status/fu2eb23je22xc228?svg=true)](https://ci.appveyor.com/project/jfmc/ciao)\n"||
+%         "\n",
+%         Text0, Text),
+%     append(PrevText, Text1, Text0),
+%     Text1 = ("\n"||
+%       "---\n"||
+%       "**NOTE**: Repository automatically projected from the Ciao monorepo.\n"),
+%     string_to_file(Text, 'README.md').
 
-patch_ci_scripts :-
-    bundle_path('builder', 'dist/ci-scripts', Dir),
-    cpfile(~path_concat(Dir, 'travis.yml'), '.travis.yml'),
-    cpfile(~path_concat(Dir, 'appveyor.yml'), '.appveyor.yml').
+% patch_ci_scripts :-
+%     bundle_path('builder', 'dist/ci-scripts', Dir),
+%     cpfile(~path_concat(Dir, 'travis.yml'), '.travis.yml'),
+%     cpfile(~path_concat(Dir, 'appveyor.yml'), '.appveyor.yml').
 
 patch_license :-
     bundle_path('builder', 'dist/licenses', Dir),
@@ -706,7 +705,6 @@ patch_license :-
 % ---------------------------------------------------------------------------
 %! # Bundles
 
-%:- use_module(engine(runtime_control), [statistics/0]).
 :- use_module(engine(internals), [ciao_root/1]).
 
 root_bundle(ciao). % Minimum system (not really a bundle!)
