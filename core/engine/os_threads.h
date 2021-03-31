@@ -253,7 +253,7 @@ typedef CRITICAL_SECTION LOCK;
 #define Lock_is_unset(p)     lock_is_unset(&p)
 
 #define CONDITIONAL_VARS 1
-#define RELINQUISH_PROCESSOR 1
+#define RELINQUISH_PROCESSOR
 
 typedef HANDLE COND_VAR;
 
