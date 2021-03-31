@@ -1,4 +1,4 @@
-[<img src="core/doc/common/ciao-logo.png" align="center" height="64">](https://ciao-lang.org)
+[<img src="core/doc/common/ciao-logo.png" height="48">](https://ciao-lang.org)
 [![Build Status](https://travis-ci.org/ciao-lang/ciao.svg)](https://travis-ci.org/ciao-lang/ciao)
 [![Build Status](https://ci.appveyor.com/api/projects/status/fu2eb23je22xc228?svg=true)](https://ci.appveyor.com/project/jfmc/ciao)
 
