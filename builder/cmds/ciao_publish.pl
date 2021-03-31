@@ -555,6 +555,7 @@ cmd_run(pull, _Opts) :- !, run_pull_dstgit.
 
 % Pull to make sure that dstgit contains latest commits
 run_pull_dstgit :-
+    lformat(['=> ', ~srcbundle, ': pulling remote\n']),
     git_cmd_atwd_q(~dstgit, ['pull']).
 
 %! ## Push
@@ -563,6 +564,7 @@ cmd_needs_check_repos(push).
 cmd_run(push, _Opts) :- !, run_push_dstgit.
 
 run_push_dstgit :-
+    lformat(['=> ', ~srcbundle, ': pushing remote\n']),
     % TODO: make check for pending commits optional? (it is faster
     % than simply 'git push' but assumes remote is OK)
     git_cmd_atwd(~dstgit, ['log', 'origin/master..master'], [stdout(string(Out))]),
@@ -577,6 +579,7 @@ cmd_needs_check_repos(rebase).
 cmd_run(rebase, Opts) :- !, run_rebase_dstgit(Opts).
 
 run_rebase_dstgit(Opts) :-
+    lformat(['=> ', ~srcbundle, ': rebasing remote\n']),
     ( member(restargs(Args), Opts) -> true
     ; Args = []
     ),
