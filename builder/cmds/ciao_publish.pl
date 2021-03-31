@@ -225,12 +225,13 @@ main([H]) :-
 main(Args) :-
     Args = [Cmd|Args1],
     parse_opts(Args1, Args2, Opts),
+    cmd_decl(Cmd),
     !,
     %
     run_cmd(Cmd, Opts, Args2).
 main(_) :-
     message(error, [
-        'Invalid usage, see help message']),
+        'Invalid usage. See \'ciao publish help\'.']),
     halt(1).
 
 parse_opts(['--id', Id|Args], Args2, [srcid(Id)|Opts]) :- !,
@@ -310,13 +311,21 @@ run_cmd_one(Cmd, SrcBundle, Opts) :-
     cmd_run(Cmd, Opts),
     cleanup_tmpdir.
 
+:- discontiguous(cmd_decl/1).
 :- discontiguous(cmd_allow_all/1).
 :- discontiguous(cmd_needs_check_repos/1).
 :- discontiguous(cmd_run/2).
 
 % ---------------------------------------------------------------------------
+%! # List of bundles
+
+% (handled separatedly)
+cmd_decl(list).
+
+% ---------------------------------------------------------------------------
 %! # Info for publishing
 
+cmd_decl(info).
 cmd_run(info, _Opts) :- !, config_summary.
 
 % ---------------------------------------------------------------------------
@@ -339,6 +348,7 @@ cleanup_tmpdir :-
 % ---------------------------------------------------------------------------
 %! # Status of dst repo
 
+cmd_decl(status).
 cmd_allow_all(status).
 cmd_needs_check_repos(status).
 cmd_run(status, _Opts) :- !, run_status.
@@ -391,11 +401,13 @@ check_unpublished_commits := UIds :-
 maybe_nl :- ( retract_fact(delay_nl) -> lformat(['\n']) ; true ).
 
 %! ## Update commits
+cmd_decl(commit).
 cmd_allow_all(commit).
 cmd_needs_check_repos(commit).
 cmd_run(commit, Opts) :- !, run_commit(Opts, nosquash).
 
 %! ## Squash
+cmd_decl(squash).
 cmd_needs_check_repos(squash).
 cmd_run(squash, Opts) :- !, run_commit(Opts, squash).
 
@@ -495,6 +507,7 @@ update_tree_(Id, Info) :-
 % ---------------------------------------------------------------------------
 %! # Initialization of dst repo
 
+cmd_decl(init).
 cmd_run(init, _Opts) :- !, run_init_dstgit.
 
 % Create dstgit repository (if it does not exists)
@@ -549,6 +562,7 @@ run_init_dstgit_ :-
 %! # Pull and push on published repo
 
 %! ## Pull
+cmd_decl(pull).
 cmd_allow_all(pull).
 cmd_needs_check_repos(pull).
 cmd_run(pull, _Opts) :- !, run_pull_dstgit.
@@ -559,6 +573,7 @@ run_pull_dstgit :-
     git_cmd_atwd_q(~dstgit, ['pull']).
 
 %! ## Push
+cmd_decl(push).
 cmd_allow_all(push).
 cmd_needs_check_repos(push).
 cmd_run(push, _Opts) :- !, run_push_dstgit.
@@ -575,6 +590,7 @@ run_push_dstgit :-
     ).
 
 %! ## Rebase
+cmd_decl(rebase).
 cmd_needs_check_repos(rebase).
 cmd_run(rebase, Opts) :- !, run_rebase_dstgit(Opts).
 
