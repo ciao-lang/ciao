@@ -8,7 +8,8 @@
      bytelist/1,
      % byte/1, in_byte/1,
      predname/1, atm_or_atm_list/1, compat/2, inst/2,
-     iso/1, deprecated/1, not_further_inst/2, sideff/2, regtype/1,
+     iso/1, deprecated/1, example/1,
+     not_further_inst/2, sideff/2, regtype/1,
      native/1, native/2, rtcheck/1, rtcheck/2, no_rtcheck/1, eval/1,
      equiv/2, bind_ins/1, error_free/1, memo/1, filter/2, flag_values/1,
      pe_type/1 ],
@@ -442,6 +443,9 @@ inst( X , Prop ) :-
     instance( A , AC ).
 
 
+:- doc(iso/1, "Specifies that the predicate and usage marked with this
+   global property complies with the ISO-Prolog standard.").
+
 :- prop iso(G) # "@em{Complies with the ISO-Prolog standard.}".
 :- trust comp iso(G) + sideff(free).
 
@@ -461,6 +465,21 @@ iso(Goal) :- call(Goal).
 :- meta_predicate deprecated(goal).
 
 deprecated(Goal) :- call(Goal).
+
+
+% TODO: Maybe should go in unittest_props.pl (but some problems in LPdoc)
+:- doc(example/1, "This pseudo-property can be used as a qualifier for
+   test assertions. Specifies that the test assertion in which it
+   appears is actually an @concept{example} and should be included as
+   such in the manual by the auto-documeter.").
+
+:- prop example(G) # "@bf{EXAMPLE.}".
+:- trust comp example(G) + sideff(free).
+
+:- meta_predicate example(goal).
+
+example(Goal) :- call(Goal).
+
 
 :- prop rtc_status(S) + regtype # "@var{S} is the status of the
     runtime-check implementation for a given property. Valid
