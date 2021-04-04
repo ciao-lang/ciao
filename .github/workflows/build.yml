@@ -1,0 +1,120 @@
+# ---------------------------------------------------------------------------
+# GitHub Action workflow for compiling and packaging Ciao.
+#
+# Authors: The Ciao Development Team
+# ---------------------------------------------------------------------------
+
+name: Build
+
+on:
+  push:
+    branches:
+    - master
+    tags:
+    - 'v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.sys.os }}
+    strategy:
+      matrix:
+        sys:
+          # Note: enable only one 'devenv' build (for docs release)
+          - { os: ubuntu-latest,  arch: x86_64, inskind: minciao }
+          - { os: ubuntu-latest,  arch: x86_64, inskind: devenv }
+          - { os: ubuntu-latest,  arch: i686,   inskind: minciao }
+          - { os: macos-latest,   arch: x86_64, inskind: minciao }
+          - { os: macos-latest,   arch: x86_64, inskind: devenv-nodocs }
+          - { os: windows-latest, arch: x86_64, inskind: minciao }
+          - { os: windows-latest, arch: i686,   inskind: minciao }
+#       compiler:
+#         - { cc: gcc,   cxx: g++ }
+#         - { cc: clang, cxx: clang++ }
+#   env:
+#     CC: ${{ matrix.compiler.cc }}
+#     CXX: ${{ matrix.compiler.cxx }}
+    defaults:
+      run:
+        # Select msys2 shell only in windows (weird implementation due to github action limitations )
+        shell: ${{ fromJSON('["msys2 {0}", "bash"]')[matrix.sys.os != 'windows-latest'] }}
+    steps:
+      # Additional setup for windows
+      - uses: msys2/setup-msys2@v2
+        if: (matrix.sys.os == 'windows-latest')
+        with:
+          msystem: ${{ fromJSON('["MINGW32", "MINGW64"]')[matrix.sys.arch != 'i686'] }}
+          update: true
+          install: git base-devel
+      - run: |
+          if [ "${{ matrix.sys.arch }}" == "x86_64" ]; then
+              pacman --noconfirm -S mingw-w64-x86_64-gcc
+          else
+              pacman --noconfirm -S mingw-w64-i686-gcc
+          fi
+        if: (matrix.sys.os == 'windows-latest')
+      # Additional setup for ubuntu
+      - run: |
+          sudo apt-get install gcc-multilib g++-multilib libc6-i386 libc6-dev-i386
+        if: (matrix.sys.os == 'ubuntu-latest' && matrix.sys.arch == 'i686')
+      # Checks-out repo under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v2
+      # Build
+      - name: Build
+        run: |
+          case "${{ matrix.sys.inskind }}" in
+              minciao)       EXTRAOPTS=""; DEVENV=no; ;;
+              devenv)        EXTRAOPTS=""; DEVENV=yes; ;;
+              devenv-nodocs) EXTRAOPTS="--with-docs=no"; DEVENV=yes; ;;
+          esac
+          if [ "${{ matrix.sys.arch }}" == "i686" ]; then
+              ARCHOPTS="--core:m32=yes"
+          else
+              ARCHOPTS=""
+          fi
+          # ARCHOPTS="${{ matrix.sys.archopts }} --core:custom_cc=$CC"
+          ./ciao-boot.sh boot-build $ARCHOPTS
+          if [ $DEVENV == yes ]; then ./ciao-boot.sh fetch devenv; fi
+          ./ciao-boot.sh configure --instype=local $ARCHOPTS $EXTRAOPTS
+          ./ciao-boot.sh build
+          ./ciao-boot.sh install
+      # Release
+      - name: Prepare release assets (bin)
+        if: (startsWith(github.ref, 'refs/tags/v') && matrix.sys.inskind == 'minciao')
+        id: prepare_release_bin
+        run: |
+          ./ciao-boot.sh gen_pbundle --kind=bin_tgz
+          VERS=$(cat core/Manifest/GlobalVersion).$(cat core/Manifest/GlobalPatch)
+          cd build/pbundle
+          PBUNDLE=$(echo Ciao-*.tar.gz | sed 's/Ciao-.*-bin/ciao-'$VERS'/')
+          mv Ciao-*.tar.gz $PBUNDLE
+          # (keep pbundle name output)
+          echo "::set-output name=pbundle::$PBUNDLE"
+      - name: Prepare release assets (docs)
+        if: (startsWith(github.ref, 'refs/tags/v') && matrix.sys.inskind == 'devenv')
+        id: prepare_release_docs
+        run: |
+          VERS=$(cat core/Manifest/GlobalVersion).$(cat core/Manifest/GlobalPatch)
+          PBUNDLEDOCS=ciao-"$VERS"-docs.tar.gz
+          cd build
+          rm -rf doc/*.cachedoc
+          mkdir -p pbundle
+          tar -czf pbundle/$PBUNDLEDOCS doc
+          # (keep pbundledocs name output)
+          echo "::set-output name=pbundledocs::$PBUNDLEDOCS"
+      - name: Release (bin)
+        uses: softprops/action-gh-release@v1
+        if: (startsWith(github.ref, 'refs/tags/v') && matrix.sys.inskind == 'minciao')
+        with:
+          files: |         
+            ./build/pbundle/${{ steps.prepare_release_bin.outputs.pbundle }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release (docs)
+        uses: softprops/action-gh-release@v1
+        if: (startsWith(github.ref, 'refs/tags/v') && matrix.sys.inskind == 'devenv')
+        with:
+          files: |         
+            ./build/pbundle/${{ steps.prepare_release_docs.outputs.pbundledocs }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
