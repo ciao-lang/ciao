@@ -207,8 +207,8 @@ debugger. The most important is that the ``retry'' option is not
 available. But it is possible to add, and remove, @concept{spy-points}
 and @concept{breakpoins} using the predicates @pred{spy/1},
 @pred{nospy/1}, @pred{breakpt/6} and @pred{nobreakpt/6}, etc. These
-can be used in a clause declaration or as declarations. Also it is
-possible to add in the code predicates for issuing the debugger (i.e.,
+can be used within clauses or as declarations. Also it is possible to
+add in the code predicates for switching the debugger on or off (i.e.,
 use debug mode, and in a clause add the predicate @pred{trace/0}).
 Finally, if a spy declaration is placed on the entry point of an
 executable (@tt{:- spy(main/1)}) the debugger will not start the
@@ -216,7 +216,7 @@ first time @pred{main/1} predicate is called, i.e., at the beginning
 of program execution (however, it will if there are any subsequent
 calls to @pred{main/1}). Starting the embedded debugger at the
 beginning of the execution of a program can be done easily however by
-simply adding the in trace mode.
+simply using the @tt{trace} package.
 
 Note that there is a particularly interesting way of using the
 @concept{embedded debugger}: if an @em{application} is run in a shell
