@@ -119,36 +119,6 @@ $ ...
    @end{itemize}
 ").
 
-% TODO: move somewhere
-%
-%  # Pointers to code and distribution files
-%  
-%  Source repositories:
-%  
-%    - **Local repositories** at gitlab: @href{https://gitlab.software.imdea.org/ciao-lang}
-%    - **Public repositories** at github: @href{https://github.com/ciao-lang}
-%  
-%  Binaries:
-%  
-%    - **Continuous integration** on Travis-CI and AppVeyor:
-%       - @href{https://github.com/ciao-lang/ciao}
-%       - @href{https://github.com/ciao-lang/ciao.CD}
-%       - @href{https://ci.appveyor.com/project/jfmc/ciao}
-%       - @href{https://ci.appveyor.com/project/jfmc/ciao.CD}
-%  
-%    - **Binaries** at Bintray: [log in with your Github account]:
-%       - @href{https://bintray.com/ciao-lang/builds/ciao}
-%       - @href{https://dl.bintray.com/ciao-lang/builds}
-%  
-%    - **Homebrew** formula (macOS): @href{https://github.com/ciao-lang/homebrew-ciao}
-%  
-%    - **Docker** image (with pointers to docker hub account): @href{https://github.com/ciao-lang/docker-ciao}
-%  
-%  Other binaries (not ready):
-%        
-%    - **Launchpad (Ubuntu)** account for Ciao team: @href{https://launchpad.net/~ciao-lang}
-%      [Created with `jfmc` user, ask for membership]
-
 % ===========================================================================
 
 show_help :-
@@ -630,22 +600,17 @@ after_push_help :- ~srcbundle = ciao, !,
     lformat([
         % ___________________________________________________________________________
         '\n',
-        'NOTES:\n',
+        'REMINDERS:\n',
         '\n',
-        '  - Make sure that Travis-CI and AppVeyor builds the source correctly\n',
-        '    (go to https://github.com/ciao-lang/ciao)\n',
-        '\n',
-        '  - Remember to trigger build at https://github.com/ciao-lang/docker-ciao\n',
-        '\n',
-        '    Output: https://hub.docker.com/r/ciaolang/ciao/\n',
-        '\n',
-        '  - Remember to trigger build at https://github.com/ciao-lang/ciao.CD\n',
-        '\n',
-        '    Output: https://bintray.com/ciao-lang/builds/ciao/latest/view\n',
-        '\n',
-        '  - Remember to tag and push tags (if needed):\n',
+        '  - Check the status of github actions\n',
+        '  - Trigger build at https://github.com/ciao-lang/docker-ciao\n',
+        '    (Output: https://hub.docker.com/r/ciaolang/ciao/)\n',
+        '  - For new releases, remember to create and push tags:\n',
         '    E.g.,\n',
         '      cd ', ~path_dirname(~dstgit), '\n',
+        % TODO: instructions to delete local and remote tag
+        %   git tag -d vMAJOR.MINOR.PATCH
+        %   git push --delete origin vMAJOR.MINOR.PATCH
         '      git tag vMAJOR.MINOR.PATCH\n',
         '      git push origin vMAJOR.MINOR.PATCH\n',
         '\n',
