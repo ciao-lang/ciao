@@ -27,7 +27,7 @@ set_defaults() {
     default_vers_src=master
     default_prebuilt=yes # TODO: make it depend on selected version?
     default_url_src=https://github.com/ciao-lang/ciao/archive
-    default_url_bin=https://dl.bintray.com/ciao-lang/builds
+    default_url_bin=https://github.com/ciao-lang/ciao/releases/download
 }
 
 # ---------------------------------------------------------------------------
@@ -63,7 +63,7 @@ select_url() { # requires: prebuilt, vers
     if [ $prebuilt = yes ]; then
         get_os_arch
         cfg=$os$arch
-        url=$default_url_bin/ciao-$vers-$cfg.tar.gz
+        url=$default_url_bin/v$vers/ciao-$vers-$cfg.tar.gz
     else
         url=$default_url_src/$vers.tar.gz
     fi
