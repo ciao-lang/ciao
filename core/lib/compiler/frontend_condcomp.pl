@@ -83,12 +83,21 @@ alternative(elif(Cond), Cond).
 alternative(else, true).
 
 :- export(condcomp_split_doccomment/3).
-% Split doccomment with (:- _), it must be handled separately (avoid condcomp cond)
+% Split doccomment-annotated condcomp directive Data into (or fail otherwise)
+% 
+% Needed since such directives must be handled separately.
 % TODO: a bit ugly, better solution?
-condcomp_split_doccomment(Data0, Data0c, Data0d) :-
-    Data0 = '\6\doccomment'(Col, Mark, prefix, DocString, Data0d), Data0d = (:- Decl),
-    nonvar(Decl), condcomp_directive(Decl),
-    Data0c = '\6\doccomment'(Col, Mark, DocString).
+condcomp_split_doccomment(Data, Comment, Direc) :-
+    Data = '\6\doccomment'(Col, Mark, prefix, DocString, Data0),
+    nonvar(Data0),
+    ( Data0 = (:- Decl) ->
+        nonvar(Decl), condcomp_directive(Decl),
+        Comment = '\6\doccomment'(Col, Mark, DocString),
+        Direc = Data0
+    ; % nested? (i.e., several %! ... blocks)
+      Comment = '\6\doccomment'(Col, Mark, prefix, DocString, Comment0),
+      condcomp_split_doccomment(Data0, Comment0, Direc)
+    ).
 
 % ---------------------------------------------------------------------------
 % Open and close blocks
