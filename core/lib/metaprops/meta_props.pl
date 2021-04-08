@@ -1,6 +1,6 @@
 :- module(meta_props,[call/2, prop/2, regtype/2],[assertions, hiord]).
 
-%:- use_module(engine(basic_props),[callable/1]).
+%:- use_module(engine(basic_props),[cgoal/1]).
 
 :- doc(title,"Meta-properties").
 :- doc(author,"Francisco Bueno").
@@ -39,7 +39,7 @@
 :- doc(call(P,A),
     "@var{A} has property @var{P} (provided that @var{P} is a property).
      Equivalent to @tt{P(A)}.").
-:- prop call(P,A) : callable(P)
+:- prop call(P,A) : cgoal(P)
    # "@var{A} has property @var{P}.".
 
 %:- impl_defined(call/2).
@@ -47,7 +47,7 @@
 
 call(P,A):- hiord_rt:call(P,A).
 
-:- prop prop(A,P) : prop(P,^((callable ; prop_abs)))
+:- prop prop(A,P) : prop(P,^((cgoal ; prop_abs)))
    # "@var{A} has property @var{P}.".
 
 prop(X,^(T)):- !,
@@ -103,7 +103,7 @@ regtype(A,P):- prop(A,P).
 
 :- impl_defined(prop_abs/1).
 
-:- trust pred callme(A,B) : callable(A).
+:- trust pred callme(A,B) : cgoal(A).
 :- multifile callme/2.
 
 :- doc(callme/2,"(User defined.) A hook predicate you have to define

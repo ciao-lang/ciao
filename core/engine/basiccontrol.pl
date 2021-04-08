@@ -36,7 +36,7 @@
 
 :- doc(','(P,Q), "Conjunction (@var{P} @em{and} @var{Q}).").
 
-:- trust pred ','(+callable,+callable) + iso.
+:- trust pred ','(+cgoal,+cgoal) + iso.
 
 :- primitive_meta_predicate(','(goal, goal)).
 (X, Y) :- undefined_goal((X, Y)).
@@ -46,7 +46,7 @@
    in Ciao @pred{|/2} is not equivalent to @tt{;/2}.").
 
 
-:- trust pred ';'(+callable,+callable) + iso.
+:- trust pred ';'(+cgoal,+cgoal) + iso.
 
 :- primitive_meta_predicate(';'(goal, goal)).
 (X;Y) :- undefined_goal((X;Y)).
@@ -59,7 +59,7 @@
    first solution of @var{P} only.  No cuts are allowed in @var{P}.").
 
 
-:- trust pred '->'(+callable,+callable) + iso.
+:- trust pred '->'(+cgoal,+cgoal) + iso.
 
 :- primitive_meta_predicate('->'(goal, goal)).
 (X->Y) :- undefined_goal((X->Y)).
@@ -77,7 +77,7 @@
    allowed in @var{P}.").
 
 
-:- trust pred \+(+callable) + ( iso, native(not(X)), is_det ).
+:- trust pred \+(+cgoal) + ( iso, native(not(X)), is_det ).
 
 :- primitive_meta_predicate(\+(goal)).
 \+X :- undefined_goal(\+X).
@@ -87,8 +87,8 @@
 
 
 :- trust pred if(+A,+B,+C) 
-    : (callable(A), callable(B), callable(C))
-    => (callable(A), callable(B), callable(C)).
+    : (cgoal(A), cgoal(B), cgoal(C))
+    => (cgoal(A), cgoal(B), cgoal(C)).
 
 :- primitive_meta_predicate(if(goal, goal, goal)).
 if(P, Q, R) :- undefined_goal(if(P,Q,R)).

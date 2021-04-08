@@ -20,7 +20,7 @@
    the cuts to the execution of @var{G}.  Equivalent to writing a
    variable @var{G} in a goal position.").
 
-:- trust pred call(+callable) + (iso, native). 
+:- trust pred call(+cgoal) + (iso, native). 
 :- primitive_meta_predicate(call(goal)).
 :- impl_defined(call/1).
 
@@ -33,7 +33,7 @@
 
 
 % Won't get checked due to throw/1 in the first clause of calln/2.
-:- pred call(+callable,?term) + native. 
+:- pred call(+cgoal,?term) + native. 
 
 % :- primitive_meta_predicate(call(pred(1),?)).
 
@@ -67,15 +67,15 @@ calln(Pred, Args) :-
     throw(error(type_error(pred(N),Pred), call/n-1)).
 
 
-:- trust pred 'SYSCALL'(+callable).
+:- trust pred 'SYSCALL'(+cgoal).
 :- impl_defined('SYSCALL'/1).
 
 
-:- trust pred '$nodebug_call'(+callable).
+:- trust pred '$nodebug_call'(+cgoal).
 :- primitive_meta_predicate('$nodebug_call'(goal)).
 :- impl_defined('$nodebug_call'/1).
 
-:- trust pred '$meta_call'(+A) : callable(A) + native(call(A)).
+:- trust pred '$meta_call'(+A) : cgoal(A) + native(call(A)).
 :- impl_defined('$meta_call'/1).
 
 

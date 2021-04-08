@@ -56,7 +56,7 @@
 
 %% :- ensure_loaded(library(attrdecl)).
 
-:- pred freeze(X, Goal) : callable(Goal) 
+:- pred freeze(X, Goal) : cgoal(Goal) 
 
 # "If @var{X} is free delay @var{Goal} until @var{X} is
    non-variable.".
@@ -82,7 +82,7 @@ my_combine_attributes('$frozen_goals'(V1, G1), '$frozen_goals'(_V2, G2)):-
     term_to_meta((T1,T2), G),
     my_update_attribute(V1, '$frozen_goals'(V1, G)).
 
-:- pred frozen(X, Goal) => callable(Goal) # "@var{Goal} is currently delayed
+:- pred frozen(X, Goal) => cgoal(Goal) # "@var{Goal} is currently delayed
    until variable @var{X} becomes bound.".
 
 frozen(Var, Goal):-

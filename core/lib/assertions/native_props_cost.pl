@@ -364,7 +364,7 @@ size(_, _, _, _).
 :- export(size_metric/3).
 :- meta_predicate size_metric(goal, ?, ?).
 :- prop size_metric(Head, Var, Metric)
-   : ( callable(Head), term(Var), measure_t(Metric) )
+   : ( cgoal(Head), term(Var), measure_t(Metric) )
    + no_rtcheck
    # "@var{Metric} is the measure used to determine the size of the
    terms that @var{Var} is bound to, for any type of approximation.".
@@ -377,7 +377,7 @@ size_metric(Goal, _, _) :- call(Goal).
 :- export(size_metric/4).
 :- meta_predicate size_metric(goal, ?, ?, ?).
 :- prop size_metric(Head, Approx, Var, Metric)
-   : ( callable(Head), approx(Approx), term(Var), measure_t(Metric) )
+   : ( cgoal(Head), approx(Approx), term(Var), measure_t(Metric) )
    + no_rtcheck
    # "@var{Metric} is the measure used to determine the size of the
    terms that variable @var{Var} bound to, for the approximation
@@ -428,7 +428,7 @@ measure_t(depth([_|_])).
 
 :- meta_predicate steps_lb(goal, ?).
 :- prop steps_lb(X, Y)
-   : ( callable(X), cost_expression(Y) )
+   : ( cgoal(X), cost_expression(Y) )
    + no_rtcheck
    # "@var{Y} is a lower bound on the cost of any call of the form @var{X}.".
 
@@ -445,7 +445,7 @@ steps_lb(Goal, _) :- call(Goal).
 
 :- meta_predicate steps_ub(goal, ?).
 :- prop steps_ub(X, Y)
-   : ( callable(X), cost_expression(Y) )
+   : ( cgoal(X), cost_expression(Y) )
    + no_rtcheck
    # "@var{Y} is a upper bound on the cost of any call of the form @var{X}.".
 
@@ -461,7 +461,7 @@ steps_ub(Goal, _) :- call(Goal).
 
 :- meta_predicate steps(goal, ?).
 :- prop steps(X, Y)
-   : ( callable(X), cost_expression(Y) )
+   : ( cgoal(X), cost_expression(Y) )
    + no_rtcheck
    # "@var{Y} is the cost (number of resolution steps) of any call of the
    form @var{X}.".
@@ -481,7 +481,7 @@ steps(Goal, _) :- call(Goal).
 
 :- meta_predicate steps_o(goal, ?).
 :- prop steps_o(X, Y)
-   : ( callable(X), cost_expression(Y) )
+   : ( cgoal(X), cost_expression(Y) )
    + no_rtcheck
    # "@var{Y} is the complexity order of the cost of any call of the form
    @var{X}.".
@@ -511,7 +511,7 @@ steps_o(Goal, _) :- call(Goal).
 ").
 :- meta_predicate costb(goal, ?, ?, ?).
 :- prop costb(Goal,Resource,Lower,Upper)
-   : ( callable(Goal), resource_id(Resource), cost_expression(Lower),
+   : ( cgoal(Goal), resource_id(Resource), cost_expression(Lower),
        cost_expression(Upper) )
    + no_rtcheck
    # "@var{Lower} (resp. @var{Upper}) is a (safe) lower (resp. upper)
@@ -532,7 +532,7 @@ steps_o(Goal, _) :- call(Goal).
 ").
 :- meta_predicate cost(goal, ?, ?, ?).
 :- prop cost(Goal,Approx,Resource,Expr)
-   : ( callable(Goal), approx(Approx), resource_id(Resource),
+   : ( cgoal(Goal), approx(Approx), resource_id(Resource),
        cost_expression(Expr) )
    + no_rtcheck
    # "@var{Expr} is a safe upper or lower bounds (depending on
@@ -548,7 +548,7 @@ steps_o(Goal, _) :- call(Goal).
 
 :- meta_predicate terminates(goal).
 :- prop terminates(X)
-   : callable(X)
+   : cgoal(X)
    + no_rtcheck
    # "All calls of the form @var{X} terminate.".
 

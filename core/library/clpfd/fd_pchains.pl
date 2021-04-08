@@ -48,7 +48,7 @@
 % TODO: The problem here is with the ~g hack.
 fd_pchains_t(_).
 
-% A goal is a callable
+% A goal is a cgoal
 % fd_propags_t(Chain) :-
 %       list(Chain).
 
@@ -74,7 +74,7 @@ fd_pchain_type_t := val | dom | min | max.
 :- pred empty(-fd_pchains_t) # "Empty propagation chain".
 empty(propagator([],[],[],[])).
 
-:- pred add(+fd_pchains_type_t, +fd_pchains_t, +callable) # "Add a constraint to a chain".
+:- pred add(+fd_pchains_type_t, +fd_pchains_t, +cgoal) # "Add a constraint to a chain".
 add(min, Chains, Goal) :- Chains = propagator(C,_,_,_), odd:setarg(1, Chains, [Goal|C]).
 add(max, Chains, Goal) :- Chains = propagator(_,C,_,_), odd:setarg(2, Chains, [Goal|C]).
 add(dom, Chains, Goal) :- Chains = propagator(_,_,C,_), odd:setarg(3, Chains, [Goal|C]).

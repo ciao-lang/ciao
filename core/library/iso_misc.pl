@@ -22,7 +22,7 @@
 :- doc(once(G),"Finds the first solution of goal @var{G} (if any).
    @pred{once/1} behaves as @pred{call/1}, except that no further
    solutions are explored on backtracking.").
-:- pred once(+callable) + iso.
+:- pred once(+cgoal) + iso.
 
 once(G) :- call(G), !.
 
@@ -31,7 +31,7 @@ once(G) :- call(G), !.
 :- doc(forall(Generate,Test), "@pred{Test} succeeds for all solutions
    to @pred{Generate}").
 
-:- pred forall(+callable, +callable). % (not iso)
+:- pred forall(+cgoal, +cgoal). % (not iso)
 forall(Generate, Test) :-
     \+ (Generate, \+ Test).
 
@@ -41,7 +41,7 @@ forall(Generate, Test) :-
    @tt{true} if no additional choice-points has been created, or
    @tt{false} otherwise"). % TODO: compatible with gprolog, document?
 
-:- pred call_det(+callable, ?atm). % (not iso)
+:- pred call_det(+cgoal, ?atm). % (not iso)
 call_det(G, Det) :-
     '$metachoice'(C0),
     call(G),

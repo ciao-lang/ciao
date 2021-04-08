@@ -7,13 +7,15 @@
     rtc_atm/1,
     rtc_struct/1,
     rtc_gnd/1,
+    rtc_cgoal/1,
     % compatibility checks
     compat_int/1,
     compat_nnegint/1,
     compat_flt/1,
     compat_num/1,
     compat_atm/1,
-    compat_struct/1
+    compat_struct/1,
+    compat_cgoal/1
 ], [nativeprops]).
 
 % ---------------------------------------------------------------------------
@@ -121,3 +123,16 @@ grnd_args(N, T) :-
     rtc_gnd(A),
     N1 is N-1,
     grnd_args(N1, T).
+
+% ----------------------------------------------------------------------
+
+% instantiation
+rtc_cgoal(T) :- atom(T).
+rtc_cgoal(T) :- nonvar(T), functor(T, _, A), A > 0. % compound(T).
+
+% compatibility
+compat_cgoal(T) :- var(T), !.
+compat_cgoal(T) :- rtc_cgoal(T).
+
+% generation
+

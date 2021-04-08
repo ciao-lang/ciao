@@ -458,7 +458,7 @@ process_send_signal(Process, Signal) :-
 
 :- meta_predicate process_fork(goal, ?).
 :- pred process_fork(Goal, Opts) :
-    ( callable(Goal), list(process_option, Opts) )
+    ( cgoal(Goal), list(process_option, Opts) )
    # "Execute @var{Goal} in a forked process.".
 
 process_fork(Goal, Opts) :-

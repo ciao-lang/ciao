@@ -67,8 +67,8 @@ cycle_([H|T], Y) := [H | cycle_(T, Y)].
 take(0, _)     := [].
 take(X, [H|T]) := [H | take(X-1, T)] :- X > 0.
 
-:- pred takeWhile(+P,+ListA,-ListR): callable * list(term) * term =>
-   callable * list(term) * list(term) # "@var{ListR} is unified with the
+:- pred takeWhile(+P,+ListA,-ListR): cgoal * list(term) * term =>
+   cgoal * list(term) * list(term) # "@var{ListR} is unified with the
    first elements of the infinite list @var{ListA} while the condition
    @var{P} is true".
 
@@ -84,8 +84,8 @@ takeWhile(P, [H|T]) := P(H) ? [H | takeWhile(P, T)]
 drop(0, List)  := List.
 drop(X, [_|T]) := drop(X-1, T).
 
-:- pred dropWhile(+P,+ListA,-ListR): callable * list(term) * term =>
-   callable * list(term) * list(term) # "@var{ListR} is unified with the
+:- pred dropWhile(+P,+ListA,-ListR): cgoal * list(term) * term =>
+   cgoal * list(term) * list(term) # "@var{ListR} is unified with the
    infinite list @var{ListA} dropping the first elements while the
    condition @var{P} is true".
 
@@ -111,7 +111,7 @@ splitAt(0, List)  := ([], List).
 splitAt(_, [])    := ([], []).
 splitAt(X, [H|T]) := ([H|T1], T2) :- X > 0, (T1, T2) = splitAt(X-1, T).
 
-:- pred span(+P,+ListA,-Res): callable * list(term) * term => callable *
+:- pred span(+P,+ListA,-Res): cgoal * list(term) * term => cgoal *
    list(term) * tuple_of_lists # "@var{Res} is unified with a
    tuple of lists where the first list is composed by the elements of
    @var{ListA} which verify the condition @var{P} and the second list is
@@ -128,8 +128,8 @@ span(P, [H|T]) := (T1, [H|T2]) :- (T1, T2) = span(P, T).
 :- lazy fun_eval tail/1.
 tail([_|T]) := T.
 
-:- pred lazy_map(+ListA,+P,-ListR): list(term) * callable * term =>
-   list(term) * callable * list(term) # "Version of the map/3 predicate to
+:- pred lazy_map(+ListA,+P,-ListR): list(term) * cgoal * term =>
+   list(term) * cgoal * list(term) # "Version of the map/3 predicate to
    be executed lazily".
 
 :- meta_predicate lazy_map(_,pred(2),_).
@@ -158,7 +158,7 @@ lazy_map([X|Xs], P) := [~P(X) | lazy_map(Xs, P)].
 
 :- meta_predicate lazy_foldr(pred(3),?,?,?).
 :- pred lazy_foldr(+P,+Xs,+V0,-V) 
-   :: callable * list(term) * term * term
+   :: cgoal * list(term) * term * term
    # "Lazy version of @pred{foldr/4}".
 
 %:- lazy fun_eval lazy_foldr/3.
@@ -171,7 +171,7 @@ lazy_foldr_([X|Xs], P, V0) := ~P(X, ~lazy_foldr_(Xs, P, V0)).
 
 :- meta_predicate lazy_foldl(pred(3),?,?,?).
 :- pred lazy_foldl(+P,+Xs,+V0,-V) 
-   :: callable * list(term) * term * term
+   :: cgoal * list(term) * term * term
    # "Lazy version of @pred{foldl/4}".
 
 %:- lazy fun_eval lazy_foldl/3.
@@ -182,8 +182,8 @@ lazy_foldl(P, Xs, V0) := ~lazy_foldl_(Xs, P, V0).
 lazy_foldl_([], _P, V0)    := V0.
 lazy_foldl_([X|Xs], P, V0) := ~lazy_foldl_(Xs, P, ~P(X, V0)).
 
-:- pred zipWith(+P,+ListA,+ListB,-ListR): callable * list(term) *
-   list(term) * term => callable * list(term) * list(term) * list(term) #
+:- pred zipWith(+P,+ListA,+ListB,-ListR): cgoal * list(term) *
+   list(term) * term => cgoal * list(term) * list(term) * list(term) #
    "@var{ListR} is a list whose elements are calculated from the function
    @var{P} and the elements of input lists @var{ListA} and @var{ListB}
    occuring at the same position in both lists".

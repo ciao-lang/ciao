@@ -316,7 +316,7 @@ retract_internal(Head, Body) :-
     '$unlock_predicate'(Root).
 
 
-:- pred retractall(+Head): callable + native
+:- pred retractall(+Head): cgoal + native
 # "Erase all clauses whose head matches @var{Head}, where @var{Head} must
    be instantiated to an atom or a compound term.  The predicate concerned
    must be dynamic.  The predicate definition is retained.".
@@ -367,7 +367,7 @@ abolish_data_of(F, A) :-
     ),
     ( retract_internal(ClData, _True), fail ; true ).
     
-:- trust pred do_on_abolish(G) : callable(G).
+:- trust pred do_on_abolish(G) : cgoal(G).
 :- multifile do_on_abolish/1.
 
 :- doc(do_on_abolish(Head),"A hook predicate which will be called
@@ -379,13 +379,13 @@ abolish_hooks(Head) :-
 abolish_hooks(_).
 
 
-:- pred clause(+Head,?Body): callable(Head) => body(Body) + (iso, native)
+:- pred clause(+Head,?Body): cgoal(Head) => body(Body) + (iso, native)
 # "The clause '@var{Head} @tt{:-} @var{Body}' exists in the current
    module. The predicate concerned must be dynamic.".
 
 :- impl_defined(clause/2).
 
-:- pred mfclause(+Head,?Body): callable(Head) => body(Body) + (iso, native)
+:- pred mfclause(+Head,?Body): cgoal(Head) => body(Body) + (iso, native)
 # "There is a clause '@var{Head} @tt{:-} @var{Body}' of a dynamic multifile
    predicate accessible from this module.".
 
@@ -414,9 +414,9 @@ current_predicate(F/A,M) :-
 :- regtype clause(C) # "@var{C} is a well-formed clause".
 
 clause(X) :- 
-    callable(X).
+    cgoal(X).
 clause((H :- B)) :- 
-    callable(H),
+    cgoal(H),
     body(B).
 
 
@@ -441,6 +441,6 @@ body(if(A,B,C)):-
 body(_^A) :- 
     body(A).
 body(Goal) :-
-    callable(Goal).
+    cgoal(Goal).
 
 :- doc(bug, "Package dynamic_clauses cannot be loaded into the shell.").

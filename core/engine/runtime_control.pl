@@ -467,7 +467,7 @@ append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs).
     # "Predicate property of @pred{true/0} is compiled".
 
 :- pred predicate_property(Head, Property)
-   => callable * atm
+   => cgoal * atm
    # "The predicate @var{Head}, visible from the current module, (a
      goal) has the property @var{Property}.".
 

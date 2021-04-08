@@ -276,7 +276,7 @@ persistent_dir(dbdir, '/home/clip/public_html/db').
 
 % passerta_fact(P, D) asserts a predicate in both the dynamic and the
 % persistent databases.  
-:- pred passerta_fact(Fact) : callable
+:- pred passerta_fact(Fact) : cgoal
 # "Persistent version of @pred{asserta_fact/1}: the current instance of
    @var{Fact} is interpreted as a fact (i.e., a relation tuple) and is
    added at the beginning of the definition of the corresponding
@@ -298,7 +298,7 @@ passerta_fact(MPred):-
 
 :- meta_predicate asserta_fact(fact).
 
-:- pred asserta_fact(Fact) : callable
+:- pred asserta_fact(Fact) : cgoal
 # "Same as @pred{passerta_fact/1}, but if the predicate concerned is not
    persistent then behaves as the builtin of the same name.  Defined in the
    @lib{persdb} package.".
@@ -316,7 +316,7 @@ asserta_fact(MPred):-
 
 % passertz_fact(P, D) asserts a predicate in both the dynamic and the
 % persistent databases.  
-:- pred passertz_fact(Fact) : callable
+:- pred passertz_fact(Fact) : cgoal
 # "Persistent version of @pred{assertz_fact/1}: the current instance of
    @var{Fact} is interpreted as a fact (i.e., a relation tuple) and is
    added at the end of the definition of the corresponding predicate.
@@ -337,7 +337,7 @@ passertz_fact(MPred):-
 
 :- meta_predicate assertz_fact(fact).
 
-:- pred assertz_fact(Fact) : callable
+:- pred assertz_fact(Fact) : cgoal
 # "Same as @pred{passertz_fact/1}, but if the predicate concerned is not
    persistent then behaves as the builtin of the same name.  Defined in the
    @lib{persdb} package.".
@@ -351,7 +351,7 @@ assertz_fact(MPred):-
     ; true),
     datafacts_rt:assertz_fact(MPred).
 
-:- pred pretract_fact(Fact) : callable
+:- pred pretract_fact(Fact) : cgoal
 # "Persistent version of @pred{retract_fact/1}: deletes on backtracking
    all the facts which unify with @var{Fact}.  The predicate concerned
    must be declared @decl{persistent}.  Defined in the @lib{'persdb/ll'}
@@ -373,7 +373,7 @@ pretract_fact(MPred):-
     term_to_meta(Pred, MPred),
     throw(error(type_error(persistent_data,Pred), pretract_fact/2-1)).
 
-:- pred retract_fact(Fact) : callable
+:- pred retract_fact(Fact) : cgoal
 # "Same as @pred{pretract_fact/1}, but if the predicate concerned is not
    persistent then behaves as the builtin of the same name.  Defined in the
    @lib{persdb} package.".
@@ -400,7 +400,7 @@ pretractall_fact(MPred):-
     fail.
 pretractall_fact(_).
 
-:- pred retractall_fact(Fact) : callable
+:- pred retractall_fact(Fact) : cgoal
 # "Same as @pred{pretractall_fact/1}, but if the predicate concerned is not
    persistent then behaves as the builtin of the same name.  Defined in the
    @lib{persdb} package.".

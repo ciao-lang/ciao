@@ -93,7 +93,7 @@ ref('$ref'(A,B)):- int(A), int(B).
 :- impl_defined('$make_bytecode_object'/4).
 
 :- export('$abolish'/1).
-:- trust pred '$abolish'(Head) : callable(Head).
+:- trust pred '$abolish'(Head) : cgoal(Head).
 :- impl_defined('$abolish'/1).
 
 :- export('$compile_term'/2).
@@ -101,17 +101,17 @@ ref('$ref'(A,B)):- int(A), int(B).
 :- impl_defined('$compile_term'/2).
 
 :- regtype list_clause/1.
-list_clause([Head|Body]):- callable(Head), body(Body).
+list_clause([Head|Body]):- cgoal(Head), body(Body).
 
 :- regtype body/1.
 body(X) :- 
-    callable(X).
+    cgoal(X).
 body((X,Xs)) :-
-    callable(X),
+    cgoal(X),
     body(Xs).
 
 :- export('$instance'/3).
-:- trust pred '$instance'(Head,Body,Ptr) : int(Ptr) => (callable(Head), body(Body)).
+:- trust pred '$instance'(Head,Body,Ptr) : int(Ptr) => (cgoal(Head), body(Body)).
 :- impl_defined('$instance'/3).
 
 :- export('$define_predicate'/2).
@@ -141,7 +141,7 @@ pred_mode(unprofiled).
 :- impl_defined('$empty_gcdef_bin'/0).
 
 :- export('$set_property'/2).
-:- trust pred '$set_property'(Head,Prop) : (callable(Head), pred_property(Prop)).
+:- trust pred '$set_property'(Head,Prop) : (cgoal(Head), pred_property(Prop)).
 :- impl_defined('$set_property'/2).
 
 :- regtype pred_property/1.
@@ -193,7 +193,7 @@ setarg_mode(true).
 % ---------------------------------------------------------------------------
 
 :- export('$undo_goal'/1). 
-:- trust pred '$undo_goal'(Goal) : callable(Goal).
+:- trust pred '$undo_goal'(Goal) : cgoal(Goal).
 :- impl_defined('$undo_goal'/1). 
 
 % ---------------------------------------------------------------------------
@@ -458,11 +458,11 @@ gc_trace_modes(verbose).
 gc_list3([F1,I2,I3]) :- flt(F1), int(I2), int(I3).
 
 :- export('$current_predicate'/2).
-:- trust pred '$current_predicate'(V,Pred) : callable(Pred). %jcf% No info about V.
+:- trust pred '$current_predicate'(V,Pred) : cgoal(Pred). %jcf% No info about V.
 :- impl_defined('$current_predicate'/2).
 
 :- export('$predicate_property'/3).
-:- trust pred '$predicate_property'(Head,Entry,Bits) => callable * int * int.
+:- trust pred '$predicate_property'(Head,Entry,Bits) => cgoal * int * int.
 :- impl_defined('$predicate_property'/3).
 
 :- export('$module_is_static'/1).
@@ -470,7 +470,7 @@ gc_list3([F1,I2,I3]) :- flt(F1), int(I2), int(I3).
 :- impl_defined('$module_is_static'/1).
 
 :- export('$current_clauses'/2).
-:- trust pred '$current_clauses'(Head,Root) : callable(Head) => int(Root).
+:- trust pred '$current_clauses'(Head,Root) : cgoal(Head) => int(Root).
 :- impl_defined('$current_clauses'/2).
 
 :- export('$first_instance'/2).
@@ -479,7 +479,7 @@ gc_list3([F1,I2,I3]) :- flt(F1), int(I2), int(I3).
 
 :- export('$current_instance'/5).
 :- trust pred '$current_instance'(Head, Body, Root, Ptr, Blocking) 
-    : (callable(Head), body(Body), int(Root), blocking_mode(Blocking)) => int(Ptr).
+    : (cgoal(Head), body(Body), int(Root), blocking_mode(Blocking)) => int(Ptr).
 :- impl_defined('$current_instance'/5).
 
 :- regtype blocking_mode/1.
@@ -831,7 +831,7 @@ check_module_loaded(_Module,File) :-
     message(error,['library ',File,' not found, exiting...']),
     halt(1).
 
-:- trust pred stump(A,B) => (atm(A), callable(B)).
+:- trust pred stump(A,B) => (atm(A), cgoal(B)).
 :- multifile stump/2.
 :- data stump/2.
 

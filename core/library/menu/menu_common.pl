@@ -45,7 +45,7 @@
 %   @var{Flag} in the menu @var{menu}".
 
 % :- pred menu_opt( Menu , Flag , Text , Guard , BeforePrinting , SelectedHook ) :
-%       term * atm * atm * callable * callable * callable
+%       term * atm * atm * cgoal * cgoal * cgoal
 % # "@var{Menu} is a term that specifies the menu name. It can be an
 %   atom or just a predicate of arity 1, where the 1st argument
 %   indicates the menu level (i.e., ana(1) is the level 1 of 'ana'

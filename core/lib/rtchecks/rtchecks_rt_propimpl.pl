@@ -92,3 +92,5 @@
 :- rtc_impl(basic_props:struct/1, basic_props_rtc:rtc_struct/1).
 
 :- rtc_impl(basic_props:gnd/1, basic_props_rtc:rtc_gnd/1).
+
+:- rtc_impl(basic_props:cgoal/1, basic_props_rtc:rtc_cgoal/1).

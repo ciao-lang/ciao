@@ -14,7 +14,7 @@
 :- if(defined(optim_comp)).
 :- else.
 :- export(num_solutions/2).
-:- prop num_solutions(X, N) : callable * int # "Calls of the form
+:- prop num_solutions(X, N) : cgoal * int # "Calls of the form
    @var{X} have @var{N} solutions, i.e., @var{N} is the cardinality of
    the solution set of @var{X}.".
 :- endif.
@@ -23,7 +23,7 @@
 :- else.
 % TODO: change name (this is not correct)
 :- meta_predicate num_solutions(goal, addterm(pred(1))).
-:- prop num_solutions(Goal, Check) : callable * callable
+:- prop num_solutions(Goal, Check) : cgoal * cgoal
    # "For a call to @var{Goal}, @pred{Check(X)} succeeds, where
    @var{X} is the number of solutions.".
 
@@ -41,7 +41,7 @@
    i.e., @var{N} is the cardinality of the solution set of @var{X}.").
 
 :- meta_predicate relations(goal, ?).
-:- prop relations(X, N) : callable * int + rtcheck(unimplemented)
+:- prop relations(X, N) : cgoal * int + rtcheck(unimplemented)
    # "Goal @var{X} produces @var{N} solutions.".
 
 :- impl_defined(relations/2).
@@ -70,7 +70,7 @@ finite_solutions(Goal) :- call(Goal).
 :- else.
 :- export(solutions/2).
 :- meta_predicate solutions(addterm(goal), ?).
-:- prop solutions(Goal, Sols) : callable * list
+:- prop solutions(Goal, Sols) : cgoal * list
    # "Goal @var{Goal} produces the solutions listed in @var{Sols}.".
 
 :- impl_defined(solutions/3).

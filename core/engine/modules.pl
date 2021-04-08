@@ -419,7 +419,7 @@ argspec(pred(N)) :-
 % ---------------------------------------------------------------------------
 
 :- doc(doinclude,initialization/1).
-:- decl initialization(Goal) : callable + iso
+:- decl initialization(Goal) : cgoal + iso
     # "@var{Goal} will be executed at the start of the execution of
       any program containing the current code. The initialization of a
       module/file never runs before the initializations of the modules
@@ -428,7 +428,7 @@ argspec(pred(N)) :-
 :- impl_defined(initialization/1).
 
 :- doc(doinclude,on_abort/1).
-:- decl on_abort(Goal) : callable
+:- decl on_abort(Goal) : cgoal
     # "@var{Goal} will be executed after an abort of the execution of
       any program containing the current code.".
 :- impl_defined(on_abort/1).

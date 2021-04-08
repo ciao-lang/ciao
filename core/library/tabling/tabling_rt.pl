@@ -96,7 +96,7 @@ abolishing a large volume of tables.".
 
 
 %% tabled_call/1 and new_answer/0 standard predicate (without attributes)
-:- trust pred tabled_call(+Call) :: callable +
+:- trust pred tabled_call(+Call) :: cgoal +
     foreign_low(tabled_call_c) # "@pred{tabled_call/1} instruments calls
 to the tabled predicate @var{Call}. It checks if the call is a
 generator or a consumer using a trie structure.".
@@ -116,14 +116,14 @@ tabled_call_attr(PredInit) :-
     consume_attr_answer(AnsSpace, AttrVars).
 
 
-:- trust pred lookup_trie(+Call, -SF, -Root) :: callable * int * int +
+:- trust pred lookup_trie(+Call, -SF, -Root) :: cgoal * int * int +
     foreign_low(lookup_trie_c) # "@pred{look_up_trie/3} instruments calls
 to the tabled predicate @var{Call}. It checks if the call is a
 generator or a consumer using a trie structure. @var{SF} is unified
 with the substitution factor of @var{Call} and @var{Root} is unified
 with the trie node of @var{Call}.".
 
-:- trust pred execute_call(+Call, +SF, +Node, -LNodePrune) :: callable *
+:- trust pred execute_call(+Call, +SF, +Node, -LNodePrune) :: cgoal *
     int * int * list + foreign_low(execute_call_c) #
 "@pred{execute_call/4} executes a tabled call and prunes
 @var{LNodePrune} generators.  @var{SF} is the substitution factor of

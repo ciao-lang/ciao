@@ -204,7 +204,7 @@ interrupt_options :-
 
 :- export(call_in_module/2).
 %:- meta_predicate call_in_module(?, fact).
-:- pred call_in_module(Module, Predicate) : atm * callable
+:- pred call_in_module(Module, Predicate) : atm * cgoal
    # "Calls predicate @var{Predicate} belonging to module
    @var{Module}, even if that module does not export the
    predicate. This only works for modules which are in debug

@@ -102,4 +102,4 @@ add_final_slash(Dir, DIR) :-
 :- prop keyword(X) + regtype 
 # "@var{X} is an atom corresponding to a directory identifier.".
 
-keyword(X) :- callable(X).
+keyword(X) :- cgoal(X).

@@ -63,7 +63,7 @@ not_fails(is_det(partition(_1,_2,_3,_4))) is called. Else, just
 partiton(_1,_2,_3,_4) is called.".
 
 % :- trust pred checkif_comp(Condition, CompGoal, CompGoalArg, Head)
-%       :: condition * callable * term * callable.
+%       :: condition * cgoal * term * cgoal.
 
 :- doc(bug, "checkif_comp/4 generates a unnecessary run-time
     module expansion").

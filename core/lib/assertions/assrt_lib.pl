@@ -202,7 +202,7 @@ substract_pl(F,F,'').
 %% ---------------------------------------------------------------------------
 
 :- pred clause_read(Base, Head, Body, VarNames, Source, Line0, Line1)
-   => (atm(Base), callable(Head), filename(Source), int(Line0), int(Line1))
+   => (atm(Base), cgoal(Head), filename(Source), int(Line0), int(Line1))
    # "After calling @pred{get_assertions_and_code/5} this predicate
       contains the clauses in the file. The format is the same as that
       of @pred{clause_of/7} in @lib{c_itf}".

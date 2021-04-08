@@ -90,7 +90,7 @@
 
 :- meta_predicate when(?, goal).
 
-:- pred when(WakeupCond, Goal) : wakeup_exp * callable 
+:- pred when(WakeupCond, Goal) : wakeup_exp * cgoal 
 # 
 "Delays / executes @var{Goal} according to @var{WakeupCond}
 given.  The @var{WakeupCond}s now acceptable are @tt{ground(T)}

@@ -32,7 +32,7 @@ assignment in Ciao Prolog.".
 setarg(I, F, X):-
     '$setarg'(I, F, X, on).
 
-:- pred undo(Goal) : callable => callable
+:- pred undo(Goal) : cgoal => cgoal
  # "@tt{call(@var{Goal})} is executed on backtracking.  This is a
     major change to the normal @concept{control} of Ciao Prolog
     execution.".

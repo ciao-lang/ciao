@@ -6,7 +6,7 @@
 
 %:- use_module(engine(hiord_rt), [call/1]).
 :- use_package(hiord). % TODO: refine, not all are ISO (required for call/N)
-:- use_module(engine(basic_props), [callable/1]).
+:- use_module(engine(basic_props), [callable/1]). % TODO: move to engine(term_typing)
 
 :- use_package(runtime_ops).
 :- use_module(library(operators)).

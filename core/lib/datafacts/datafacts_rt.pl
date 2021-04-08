@@ -79,7 +79,7 @@
 :- doc(asserta_fact(Fact), "@var{Fact} is added to the corresponding
    @concept{data predicate}.  The fact becomes the first clause of the
    predicate concerned.").
-:- pred asserta_fact(+callable).
+:- pred asserta_fact(+cgoal).
 
 :- if(defined(optim_comp)).
 :- meta_predicate asserta_fact(primitive(fact)).
@@ -102,7 +102,7 @@ meta_asserta_fact(Fact) :-
 :- doc(asserta_fact(Fact,Ref), "Same as @pred{asserta_fact/1},
    instantiating @var{Ref} to a unique identifier of the asserted
    fact.").
-:- pred asserta_fact(+callable,-reference).
+:- pred asserta_fact(+cgoal,-reference).
 
 :- if(defined(optim_comp)).
 :- meta_predicate asserta_fact(primitive(fact),-).
@@ -123,7 +123,7 @@ asserta_fact(Fact, Ref) :-
 :- doc(assertz_fact(Fact), "@var{Fact} is added to the corresponding
    @concept{data predicate}.  The fact becomes the last clause of the
    predicate concerned.").
-:- pred assertz_fact(+callable) => callable.
+:- pred assertz_fact(+cgoal) => cgoal.
 
 :- if(defined(optim_comp)).
 :- meta_predicate assertz_fact(primitive(fact)).
@@ -143,7 +143,7 @@ assertz_fact(Fact) :-
 :- doc(assertz_fact(Fact,Ref), "Same as @pred{assertz_fact/1},
    instantiating @var{Ref} to a unique identifier of the asserted
    fact.").
-:- pred assertz_fact(+callable,-reference).
+:- pred assertz_fact(+cgoal,-reference).
 
 :- if(defined(optim_comp)).
 :- meta_predicate assertz_fact(primitive(fact),-).
@@ -172,7 +172,7 @@ assertz_fact(Fact, Ref) :-
 %% determine that no matching exists, , $current_instance leaves
 %% the predicate unlocked.  If the predicate is called, then it is left 
 %% locked while the clause is being executed.
-:- pred current_fact(+callable) => callable.
+:- pred current_fact(+cgoal) => cgoal.
 
 :- if(defined(optim_comp)).
 :- meta_predicate current_fact(primitive(fact)).
@@ -192,7 +192,7 @@ current_fact(Fact) :-
 :- doc(current_fact_nb(Fact), "Behaves as @pred{current_fact/1} but
    a fact is never waited on even if it is @concept{concurrent} and
    non-closed.").
-:- pred current_fact_nb(+callable) => callable.
+:- pred current_fact_nb(+cgoal) => cgoal.
 
 :- if(defined(optim_comp)).
 :- meta_predicate current_fact_nb(primitive(fact)).
@@ -212,10 +212,10 @@ current_fact_nb(Fact) :-
 :- doc(current_fact(Fact,Ref), "@var{Fact} is a fact of a
    @concept{data predicate} and @var{Ref} is its reference identifying
    it uniquely.").
-:- pred current_fact(+callable,-reference) # "Gives on backtracking all
+:- pred current_fact(+cgoal,-reference) # "Gives on backtracking all
    the facts defined as data which unify with @var{Fact}, instantiating
    @var{Ref} to a unique identifier for each fact.".
-:- pred current_fact(?callable,+reference) # "Given @var{Ref}, unifies
+:- pred current_fact(?cgoal,+reference) # "Given @var{Ref}, unifies
    @var{Fact} with the fact identified by it.".
 
 :- if(defined(optim_comp)).
@@ -250,7 +250,7 @@ this_is_true(ThisIsTrue) :- ( ThisIsTrue = true -> true ; ThisIsTrue = 'basiccon
    non-@concept{closed}, @pred{retract_fact/1} will wait for more
    clauses or for the closing of the predicate after the last matching
    clause has been removed.").
-:- pred retract_fact(+callable) => callable. 
+:- pred retract_fact(+cgoal) => cgoal. 
 
 :- if(defined(optim_comp)).
 :- meta_predicate retract_fact(primitive(fact)).
@@ -271,7 +271,7 @@ retract_fact(Fact) :-
 :- doc(retract_fact_nb(Fact), "Behaves as @pred{retract_fact/1}, but
    never waits on a fact, even if it has been declared as
    @concept{concurrent} and is non-@concept{closed}.").
-:- pred retract_fact_nb(+callable) => callable.
+:- pred retract_fact_nb(+cgoal) => cgoal.
 
 :- if(defined(optim_comp)).
 :- meta_predicate retract_fact_nb(primitive(fact)).
@@ -292,7 +292,7 @@ retract_fact_nb(Fact) :-
 :- doc(retractall_fact(Fact), "Erase all the facts of a
    @concept{data predicate} unifying with @var{Fact}.  Even if all facts
    are removed, the predicate continues to exist.").
-:- pred retractall_fact(+callable) => callable. 
+:- pred retractall_fact(+cgoal) => cgoal. 
 
 :- if(defined(optim_comp)).
 :- meta_predicate retractall_fact(primitive(fact)).
@@ -321,7 +321,7 @@ meta_retractall_fact(_).
    of the predicate @var{Pred} if it has been declared as a
    @concept{concurrent predicate}: calls to this predicate will fail
    (instead of wait) if no more clauses of @var{Pred} are available.").
-:- pred close_predicate(+callable) => callable.
+:- pred close_predicate(+cgoal) => cgoal.
 
 :- if(defined(optim_comp)).
 :- meta_predicate close_predicate(primitive(fact)).
@@ -340,7 +340,7 @@ close_predicate(Fact):-
 :- doc(open_predicate(Pred), "Reverts the behavior of
    @concept{concurrent predicate} @var{Pred} to waiting instead of
    failing if no more clauses of @var{Pred} are available.").
-:- pred open_predicate(+callable) => callable.
+:- pred open_predicate(+cgoal) => cgoal.
 
 :- if(defined(optim_comp)).
 :- meta_predicate open_predicate(primitive(fact)).
@@ -358,7 +358,7 @@ open_predicate(Fact):-
 
 :- doc(set_fact(Fact), "Sets @var{Fact} as the unique fact of the
    corresponding @concept{data predicate}.").
-:- pred set_fact(+callable) => callable.
+:- pred set_fact(+cgoal) => cgoal.
 
 :- if(defined(optim_comp)).
 :- meta_predicate set_fact(primitive(fact)).
@@ -397,7 +397,7 @@ erase(Ref) :-
 % :- prop fact(F) + regtype
 %    # "@var{F} is a fact (an atom or a structure).".
 % 
-% fact(F) :- callable(F).
+% fact(F) :- cgoal(F).
 
 :- doc(doinclude, reference/1).
 :- export(reference/1).

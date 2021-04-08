@@ -78,7 +78,7 @@ eng_id(EngId) :-
 
 :- primitive_meta_predicate(catch(goal, ?, goal)).
 
-:- trust pred catch(+callable, ?term, ?callable) + (iso, native).
+:- trust pred catch(+cgoal, ?term, ?cgoal) + (iso, native).
 
 :- doc(catch(Goal, Error, Handler), "Executes @var{Goal}.  If an
    exception is raised during its execution, @var{Error} is unified with
@@ -159,7 +159,7 @@ no_handler(Error) :-
 
 :- primitive_meta_predicate(intercept(goal, ?, goal)).
 
-:- pred intercept(+callable, ?term, +callable).
+:- pred intercept(+cgoal, ?term, +cgoal).
 
 :- doc(intercept(Goal, Signal, Handler), "Executes @var{Goal}.  If
    a signal is sent during its execution, @var{Signal} is unified with

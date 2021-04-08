@@ -39,7 +39,7 @@ t_anc(a(_,_,_)).
 
 :- export('$spypoint'/3).
 :- impl_defined('$spypoint'/3).
-:- trust pred '$spypoint'/3: callable * t_on_off * t_on_off.
+:- trust pred '$spypoint'/3: cgoal * t_on_off * t_on_off.
 
 :- export(t_on_off/1).
 :- prop t_on_off/1 + regtype.

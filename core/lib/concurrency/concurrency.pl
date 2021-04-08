@@ -43,7 +43,7 @@
 % ---------------------------------------------------------------------------
 :- export(eng_call/4).
 :- pred eng_call(+Goal, +EngineCreation, +ThreadCreation, -GoalId)
-   : callable * atm * atm * int
+   : cgoal * atm * atm * int
    # "Calls @var{Goal} in a new engine (stack set), possibly using a
    new thread, and returns a @var{GoalId} to designate this new goal
    henceforth.  @var{EngineCreation} can be either @tt{wait} or
@@ -86,7 +86,7 @@ eng_call(Goal, Eng, Thr, Id):-
 % ---------------------------------------------------------------------------
 :- export(eng_call/3).
 :- pred eng_call(+Goal, +EngineCreation, +ThreadCreation)
-   : callable * atm * atm
+   : cgoal * atm * atm
    # "Similar to @pred{eng_call/4}, but the thread (if created) and
    stack areas are automatically released upon success or failure of
    the goal.  No @var{GoalId} is provided for further interaction with

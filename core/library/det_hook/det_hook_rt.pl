@@ -15,7 +15,7 @@ alternatives.").
 :- data cut_goal/2.
 
 :- pred det_try(Goal, OnCut, OnFail)
-   : callable * callable * callable
+   : cgoal * cgoal * cgoal
    # "@var{Action} is called, and @var{OnCut} and @var{OnFail} are goals to be
    executed when @var{Goal} is cut or when it finitely fails, respectively. In
    order for this to work, cutting must be performed in a special way, by using

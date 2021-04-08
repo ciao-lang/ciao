@@ -25,7 +25,7 @@
    @pred{once_with_timeout}.").
 
 :- pred call_with_time_limit(+Goal, +Time, +Handler)
-   :: callable * int * callable 
+   :: cgoal * int * cgoal 
    # "Succeed if @var{Goal} completes within @var{Time}
       milliseconds. @var{Goal} is executed as in @pred{once/1}. If
       @var{Goal} does not complete within @var{Time} milliseconds
@@ -71,7 +71,7 @@ on_exception(E, Id, Handler) :-
     ).
 
 :- set_prolog_flag(multi_arity_warnings,off).
-:- pred call_with_time_limit(Call, Time) :: callable * int # "Equivalent to 
+:- pred call_with_time_limit(Call, Time) :: cgoal * int # "Equivalent to 
     @pred(call_with_time_limit(Call, Time, throw(time_limit_exceeded))).".
    
 :- meta_predicate(call_with_time_limit(+, :)).

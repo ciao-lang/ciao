@@ -1,7 +1,7 @@
 :- module(basic_props,
     [term/1, int/1, nnegint/1, flt/1, num/1, atm/1, struct/1,
      gnd/1, gndstr/1, constant/1,
-     callable/1, internal_module_id/1,
+     cgoal/1, callable/1, internal_module_id/1,
      operator_specifier/1, list/1, list/2, nlist/2, member/2,
      sequence/2, sequence_or_list/2,
      character_code/1, string/1,
@@ -180,18 +180,26 @@ gndstr(A) :- gnd(A), struct(A).
 constant(T) :- atm(T).
 constant(T) :- num(T).
 
-:- prop callable(T) + regtype
-   # "@var{T} is a term which represents a goal, i.e.,
-    an atom or a structure.".
+:- prop cgoal(T) + regtype
+   # "@var{T} is a term which represents a goal, i.e., an atom or a structure.".
+:- trust comp cgoal(T) + sideff(free).
+:- trust comp cgoal(T) : nonvar(T) + (eval, is_det).
+:- trust success cgoal(T) => nonvar(T).
+
+:- impl_defined(cgoal/1). % TODO: make sure that struct/1 is properly recognized!
+%cgoal(T) :- atm(T).
+%cgoal(T) :- struct(T).
+
+% TODO: move to term_typing module (next to atom/1, etc.)
+:- prop callable(T) % + native
+   # "@var{T} is instantiated with an atom or a structure (also known as callable).".
 :- trust comp callable(T) + sideff(free).
 :- trust comp callable(T) : nonvar(T) + (eval, is_det).
 :- trust success callable(T) => nonvar(T).
 
-% TODO: move to other type checks add "+ iso"
-callable(T) :- atom(T). % instantiation check version, kept for compatibility
+% (instantiation check version)
+callable(T) :- atom(T).
 callable(T) :- nonvar(T), functor(T, _, A), A>0. % compound(T).
-%callable(T) :- atm(T).
-%callable(T) :- struct(T).
 
 % TODO: rename?
 :- doc(internal_module_id/1, "For a user file it is a term user/1
@@ -513,7 +521,7 @@ rtc_status(unimplemented).
 rtc_status(unknown).
 rtc_status(impossible).
 
-:- prop rtcheck(G, Status) : callable * rtc_status # "The runtime
+:- prop rtcheck(G, Status) : cgoal * rtc_status # "The runtime
     check of this property is @var{Status}.".
 :- trust comp rtcheck(G, Status) + sideff(free).
 
@@ -521,7 +529,7 @@ rtc_status(impossible).
 
 rtcheck(Goal, _) :- call(Goal).
 
-:- prop rtcheck(G) : callable # "Equivalent to rtcheck(G, 
+:- prop rtcheck(G) : cgoal # "Equivalent to rtcheck(G, 
     complete).".
 :- trust comp rtcheck(G) + sideff(free).
 
@@ -534,7 +542,7 @@ rtcheck(Goal) :- rtcheck(Goal, complete).
     run-time.  Equivalent to @tt{rtcheck(G, S)} with @tt{S}
     unimplemented, impossible, etc.").
 
-:- prop no_rtcheck(G) : callable # "@var{G} is not checked during
+:- prop no_rtcheck(G) : cgoal # "@var{G} is not checked during
    run-time checking.".
 :- trust comp no_rtcheck(G) + sideff(free).
 
@@ -556,7 +564,7 @@ not_further_inst(Goal, _) :- call(Goal).
    observable results which, however, do not affect subsequent execution,
    e.g., input/output), or hard (e.g., assert/retract).").
 
-:- prop sideff(G,X) : (callable(G), member(X,[free,soft,hard]))
+:- prop sideff(G,X) : (cgoal(G), member(X,[free,soft,hard]))
 # "@var{G} is side-effect @var{X}.".
 :- trust comp sideff(G,X) + (native, sideff(free), no_rtcheck).
 

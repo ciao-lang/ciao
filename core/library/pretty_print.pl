@@ -60,10 +60,10 @@ clause := ^((~clterm,~term)).
 %%                  ; ^((goal:-body)) ; goal .
 :- regtype clterm/1.
 
-clterm := clause(~callable,~body).
+clterm := clause(~cgoal,~body).
 clterm := directive(~body).
-clterm := (~callable :- ~body).
-clterm := ~callable.
+clterm := (~cgoal :- ~body).
+clterm := ~cgoal.
 
 :- doc(doinclude,body/1).
 :- doc(body/1,"A well formed body, including cge expressions and

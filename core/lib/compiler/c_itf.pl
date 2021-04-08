@@ -2838,7 +2838,7 @@ load_so(Base) :- % JFMC
 % ---------------------------------------------------------------------------
 :- doc(section, "Module unload").
 
-:- trust pred do_on_abolish(G) : callable(G).
+:- trust pred do_on_abolish(G) : cgoal(G).
 :- multifile do_on_abolish/1.
 
 do_on_abolish(Head) :- retract_fact(pred_module(Head, _M)).

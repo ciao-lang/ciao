@@ -23,7 +23,7 @@ socket(S):- int(S).
 
 % ---------------------------------------------------------------------------
 
-:- pred serve_socket(Socket,Serve,Handler) :: socket * callable * callable
+:- pred serve_socket(Socket,Serve,Handler) :: socket * cgoal * cgoal
    # "Handles the streams associated to @var{Socket} calling
       @var{Serve} on one request of each stream (as
       @var{Serve(Stream,Unwatch)}), and @var{Handler(Stream)} if the

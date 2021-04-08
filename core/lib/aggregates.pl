@@ -101,7 +101,7 @@ no
 @end{verbatim}").
 
 :- trust comp setof(X, Y, Z) + native(findall(X,Y,Z)).
-:- pred setof(@term, +callable, ?list) + iso.
+:- pred setof(@term, +cgoal, ?list) + iso.
 :- meta_predicate setof(?,goal,?).
 
 %% This predicate is defined on p51 of the Dec-10 Prolog manual.
@@ -120,7 +120,7 @@ setof(Template, Filter, Set) :-
    front of the @var{Generator}, using @pred{^/2}.").
 
 :- trust comp bagof(X, Y, Z) + native(findall(X,Y,Z)).
-:- pred bagof(@term, +callable, ?list) + iso.
+:- pred bagof(@term, +cgoal, ?list) + iso.
 :- meta_predicate bagof(?,goal,?).
 
 %   bagof records three things under the key '.':
@@ -157,7 +157,7 @@ bagof(Template, Generator, Bag) :-
      existentially quantified. Faster than the other aggregation
      predicates.").
 
-:- trust pred findall(@term, +callable, ?list) + (iso, native, not_fails, is_det).
+:- trust pred findall(@term, +cgoal, ?list) + (iso, native, not_fails, is_det).
 :- meta_predicate findall(?,goal,?).
 
 %%  It is described in Clocksin & Mellish on p152.  The code they give has
@@ -168,7 +168,7 @@ findall(Template, Generator, List) :-
     save_solutions(-Template, Generator),
     list_solutions(List, []).
 
-:- pred findall(@term, +callable, ?term, ?term)
+:- pred findall(@term, +cgoal, ?term, ?term)
    # "As @pred{findall/3}, but returning in @var{Tail} the tail of
      @var{List} (findall(@var{Template}, @var{Generator}, @var{List}, @var{Tail})).".
 :- meta_predicate findall(?,goal,?,?).
@@ -184,7 +184,7 @@ findall(Template, Generator, List, Tail) :-
      list.  This predicate is especially useful if @var{Generator} may
      have an infinite number of solutions.").
 
-:- pred findnsols(+int,@term,+callable,?list).
+:- pred findnsols(+int,@term,+cgoal,?list).
 :- meta_predicate findnsols(?,?,goal,?).
 
 findnsols(N,E,P,L) :-
@@ -198,7 +198,7 @@ findnsols(_,_,_,[]).
      "As @pred{findnsols/4}, but returning in @var{Tail} the tail of
      @var{List}.").
 
-:- pred findnsols(+int,@term,+callable,?,?).
+:- pred findnsols(+int,@term,+cgoal,?,?).
 :- meta_predicate findnsols(?,?,goal,?,?).
 
 findnsols(N,E,P,L,T) :-
@@ -397,7 +397,7 @@ list_is_free_of([Head|Tail], Var) :-
     Head \== Var,
     list_is_free_of(Tail, Var).
 
-:- pred '^'(X,P) : (var(X), callable(P)) 
+:- pred '^'(X,P) : (var(X), cgoal(P)) 
 # "Existential quantification: @var{X} is existentially quantified in
    @var{P}. E.g., in @tt{A^p(A,B)}, @tt{A} is existentially
    quantified.  Used only within @concept{aggregation predicates}. In

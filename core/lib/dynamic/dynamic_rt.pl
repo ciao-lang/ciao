@@ -43,18 +43,18 @@
 
 % ---------------------------------------------------------------------------
 
-:- regtype cl/1. % clause -> in fact reduces to callable
+:- regtype cl/1. % clause -> in fact reduces to cgoal
 cl(X) :- 
-    callable(X).
+    cgoal(X).
 cl((H :- B)) :- 
-    callable(H),
+    cgoal(H),
     body(B).
 
 :- regtype body/1.
 body(X) :- 
-    callable(X).
+    cgoal(X).
 body((X,Xs)) :-
-    callable(X),
+    cgoal(X),
     body(Xs).
 
 % ---------------------------------------------------------------------------
@@ -272,7 +272,7 @@ retract(Clause) :-
 :- else.
 :- meta_predicate retractall(fact).
 :- endif.
-:- pred retractall(+Head) : callable + native
+:- pred retractall(+Head) : cgoal + native
    # "Erase all clauses whose head matches @var{Head}, where
    @var{Head} must be instantiated to an atom or a compound term.  The
    predicate concerned must be dynamic.  The predicate definition is
@@ -328,7 +328,7 @@ abolish(Spec) :-
     '$abolish'(Head).
 :- endif.
 
-:- pred do_on_abolish(G) : callable(G).
+:- pred do_on_abolish(G) : cgoal(G).
 :- multifile do_on_abolish/1.
 
 :- doc(do_on_abolish(Head),"A hook predicate which will be called when
@@ -344,7 +344,7 @@ abolish_data_of(_).
 :- else.
 :- meta_predicate clause(fact,?).
 :- endif.
-:- pred clause(+Head,?Body) : callable(Head) => body(Body) + (iso, native)
+:- pred clause(+Head,?Body) : cgoal(Head) => body(Body) + (iso, native)
    # "The clause '@var{Head} @tt{:-} @var{Body}' exists in the current
    program. The predicate concerned must be dynamic.".
 
@@ -370,9 +370,9 @@ clause(HEAD, Body) :-
 :- endif.
 :- doc(clause(Head,Body,Ref),"Like @tt{clause(Head,Body)}, plus the
    clause is uniquely identified by @var{Ref}.").
-:- pred clause(+Head,?Body,?Ref) : callable(Head) => (body(Body), nonvar(Ref))
+:- pred clause(+Head,?Body,?Ref) : cgoal(Head) => (body(Body), nonvar(Ref))
    # "@var{Head} must be instantiated to an atom or a compound term.".
-:- pred clause(?Head,?Body,+Ref) => (callable(Head), body(Body))
+:- pred clause(?Head,?Body,+Ref) => (cgoal(Head), body(Body))
    # "@var{Ref} must be instantiated to a valid identifier.".
 
 :- if(defined(optim_comp)).

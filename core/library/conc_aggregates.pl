@@ -32,7 +32,7 @@ particular implementation is completely based on the one used in the
 :- concurrent '$$temp_sol_conc_findall'/2.
 
 :- pred setof(@Template, +Goal, ?Set)
-   => (term(Template), callable(Goal), list(Set)) + iso
+   => (term(Template), cgoal(Goal), list(Set)) + iso
    # "Finds the @var{Set} of instances of the @var{Template} satisfying the
    @var{Generator}. The set is in ascending order (see @pred{compare/3} for a
    definition of this order) without duplicates, and is non-empty. If there are
@@ -46,7 +46,7 @@ particular implementation is completely based on the one used in the
 :- impl_defined(setof/3).
 
 :- pred bagof(@Template, +Generator, ?Bag)
-   => (term(Template), callable(Goal), list(Set)) + iso
+   => (term(Template), cgoal(Goal), list(Set)) + iso
    # "Finds all the instances of the @var{Template} produced by the
    @var{Generator}, and returns them in the @var{Bag} in the order in which they
    were found. If the @var{Generator} contains free variables which are not
@@ -59,7 +59,7 @@ particular implementation is completely based on the one used in the
 :- impl_defined(bagof/3).
 
 :- pred findall(?Template, +Generator, ?List)
-   => (term(Template),callable(Goal), list(Set)) + (iso, is_det)
+   => (term(Template),cgoal(Goal), list(Set)) + (iso, is_det)
    # "A special case of bagof, where all free variables in the @var{Generator}
    are taken to be existentially quantified. Safe in concurrent applications.".
 

@@ -29,7 +29,7 @@
 % ------------------------------------------------------------------------
 
 :- meta_predicate current_fact(fact).
-:- pred current_fact(Fact) : callable
+:- pred current_fact(Fact) : cgoal
 # "Version of @pred{datafacts_rt:current_fact/1} for filed predicates.
    The current instance of @var{Fact} is interpreted as a fact and is
    unified with an actual fact in the current definition of the corresponding
@@ -78,7 +78,7 @@ cached_call(H,File,T,D):-
     datafacts_rt:asserta_fact(cached(Meta,Term,Data,File)).
 
 :- meta_predicate call(fact).
-:- pred call(Fact) : callable
+:- pred call(Fact) : cgoal
 # "Same as @pred{current_fact/1} if the predicate concerned is declared as
    @decl{facts}. If it is not, an exception is raised.".
 
@@ -136,7 +136,7 @@ count(H,1):-
 :- data asserta_ed/1, assertz_ed/1, retract_on_file/1.
 
 :- meta_predicate asserta_fact(fact).
-:- pred asserta_fact(Fact) : callable
+:- pred asserta_fact(Fact) : cgoal
 # "Version of @pred{datafacts_rt:asserta_fact/1} for filed predicates.
    The current instance of @var{Fact} is interpreted as a fact and is
    added at the beginning of the definition of the corresponding
@@ -153,7 +153,7 @@ asserta_fact(H):-
     datafacts_rt:asserta_fact(H).
 
 :- meta_predicate assertz_fact(fact).
-:- pred assertz_fact(Fact) : callable
+:- pred assertz_fact(Fact) : cgoal
 # "Version of @pred{datafacts_rt:assertz_fact/1} for filed predicates.
    The current instance of @var{Fact} is interpreted as a fact and is
    added at the end of the definition of the corresponding
@@ -170,7 +170,7 @@ assertz_fact(H):-
     datafacts_rt:assertz_fact(H).
 
 :- meta_predicate retract_fact(fact).
-:- pred retract_fact(Fact) : callable
+:- pred retract_fact(Fact) : cgoal
 # "Version of @pred{datafacts_rt:retract_fact/1} for filed predicates.
    The current instance of @var{Fact} is interpreted as a fact and is
    unified with an actual fact in the current definition of the corresponding

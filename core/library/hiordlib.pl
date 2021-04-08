@@ -41,27 +41,27 @@
 :- meta_predicate foldl(pred(7), ?, ?, ?, ?, ?, ?, ?).
 
 :- pred foldl(+P, ?Xs, ?V0, ?V)
-   :: callable * list(term) * term * term
+   :: cgoal * list(term) * term * term
    # "Reduces (fold) @var{Xs} from the left applying @var{P} and using
       @var{V0}-@var{V} as accumulator.".
 %
 :- pred foldl(+P, ?Xs, ?Ys, ?V0, ?V)
-   :: callable * list(term) * list(term) * term * term
+   :: cgoal * list(term) * list(term) * term * term
    # "Like @pred{foldl/4} but applied to successive tuples
       from @var{Xs}, @var{Ys}.".
 %
 :- pred foldl(+P, ?Xs, ?Ys, ?Zs, ?V0, ?V)
-   :: callable * list(term) * list(term) * list(term) * term * term
+   :: cgoal * list(term) * list(term) * list(term) * term * term
    # "Like @pred{foldl/4} but applied to successive tuples
       from @var{Xs}, @var{Ys}, @var{Zs}.".
 %
 :- pred foldl(+P, ?Xs, ?Ys, ?Zs, ?Us, ?V0, ?V)
-   :: callable * list(term) * list(term) * list(term) * list(term) * term * term
+   :: cgoal * list(term) * list(term) * list(term) * list(term) * term * term
    # "Like @pred{foldl/4} but applied to successive tuples
       from @var{Xs}, @var{Ys}, @var{Zs}, @var{Us}.".
 %
 :- pred foldl(+P, ?Xs, ?Ys, ?Zs, ?Us, ?Ws, ?V0, ?V)
-   :: callable * list(term) * list(term) * list(term) * list(term) * list(term) * term * term
+   :: cgoal * list(term) * list(term) * list(term) * list(term) * list(term) * term * term
    # "Like @pred{foldl/4} but applied to successive tuples
       from @var{Xs}, @var{Ys}, @var{Zs}, @var{Us}, @var{Ws}.".
 
@@ -165,7 +165,7 @@ foldl5([X|Xs], P, [Y|Ys], [Z|Zs], [U|Us], [W|Ws], V0, V) :-
 
 :- meta_predicate foldr(pred(3), ?, ?, ?).
 :- pred foldr(+F, ?Xs, +V0, ?V)
-   :: callable * list(term) * term * term
+   :: cgoal * list(term) * term * term
    # "Reduces (fold) @var{Xs} from the right applying @var{P} and using
       @var{V0}-@var{V} as accumulator.".
 
@@ -229,7 +229,7 @@ foldr_([X|Xs], P, Z, R) :-
 % ---------------------------------------------------------------------------
 
 :- meta_predicate minimum(_, pred(2), _).
-:- pred minimum(?List, +SmallerThan, ?Minimum) : list * callable *
+:- pred minimum(?List, +SmallerThan, ?Minimum) : list * cgoal *
     term # "@var{Minimum} is the smaller in the nonempty list
     @var{List} according to the relation @var{SmallerThan}:
     @pred{SmallerThan(X, Y)} succeeds iff X is smaller than Y.".
@@ -250,7 +250,7 @@ minimum_carry([X|Xs], Pred,  MinSoFar, Min) :-
 
 :- meta_predicate filter(pred(1), +, ?).
 :- pred filter(+P, +Xs, ?Ys)
-    :: (callable(P), list(Xs), list(Ys)) + is_det
+    :: (cgoal(P), list(Xs), list(Ys)) + is_det
    # "@var{Ys} contains all elements @var{X} of @var{Xs} such that
      @tt{P(X)} holds (preserving the order)".
 
@@ -270,7 +270,7 @@ filter_([X|Xs], P, Ys) :-
 
 :- meta_predicate partition(pred(1), ?, ?, ?).
 :- pred partition(+P, +Xs, ?Ys, ?Zs) ::
-   callable * list * list * list
+   cgoal * list * list * list
    # "@var{Ys} contains all elements @var{X} of @var{Xs} such that
       @tt{P(X)} holds, and @var{Zs} all that does not (preserving the
       order)".
@@ -303,26 +303,26 @@ partition_([X|Xs], P, Ys, Zs) :-
 :- meta_predicate maplist(pred(5), ?, ?, ?, ?, ?).
 
 :- pred maplist(+P, +Xs) ::
-    (callable(P), list(Xs))
+    (cgoal(P), list(Xs))
    # "@tt{P(X)} succeeds for each element @var{X} of @var{Xs}".
 %
 :- pred maplist(+P, +Xs, ?Ys) ::
-    (callable(P), list(Xs), list(Ys))
+    (cgoal(P), list(Xs), list(Ys))
    # "Like @pred{maplist/2} but applied to successive tuples
       from @var{Xs}, @var{Ys}.".
 %
 :- pred maplist(+P, +Xs, ?Ys, ?Zs) ::
-    (callable(P), list(Xs), list(Ys), list(Zs))
+    (cgoal(P), list(Xs), list(Ys), list(Zs))
    # "Like @pred{maplist/2} but applied to successive tuples
       from @var{Xs}, @var{Ys}, @var{Zs}.".
 %
 :- pred maplist(+P, +Xs, ?Ys, ?Zs, ?Vs) ::
-    (callable(P), list(Xs), list(Ys), list(Zs), list(Vs))
+    (cgoal(P), list(Xs), list(Ys), list(Zs), list(Vs))
    # "Like @pred{maplist/2} but applied to successive tuples
       from @var{Xs}, @var{Ys}, @var{Zs}, @var{Vs}.".
 %
 :- pred maplist(+P, +Xs, ?Ys, ?Zs, ?Vs, ?Ws) ::
-    (callable(P), list(Xs), list(Ys), list(Zs), list(Vs), list(Ws))
+    (cgoal(P), list(Xs), list(Ys), list(Zs), list(Vs), list(Ws))
    # "Like @pred{maplist/2} but applied to successive tuples
       from @var{Xs}, @var{Ys}, @var{Zs}, @var{Vs}, @var{Ws}.".
 
