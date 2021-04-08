@@ -693,8 +693,8 @@ read_comment_cont(Cont, Dict, Tokens) :-
         Tokens = ['/* ...']
     ; Cont = cont_doccomment(MarkCh), % another doccomment
       Tokens = [DocToken|Tokens0],
-      read_doccomment(line, MarkCh, DocToken, Cont),
-      read_comment_cont(Cont, Dict, Tokens0)
+      read_doccomment(line, MarkCh, DocToken, Cont0),
+      read_comment_cont(Cont0, Dict, Tokens0)
     ).
 
 % ---------------------------------------------------------------------------
