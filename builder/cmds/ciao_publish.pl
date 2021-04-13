@@ -85,7 +85,7 @@ etc/ciao-download-stats.sh
                  Download statistics
 @end{verbatim}
    
-   @secion{Contribution from public repositories}
+   @section{Contribution from public repositories}
    
    Assume that Bob maintains the private Ciao repository and Alice wants
    to contribute to it. This is the typical workflow for contributing to
