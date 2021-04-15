@@ -47,11 +47,11 @@ needed to understand and use the build system. See @ref{Bootstrapping
 the build system} for more details on @em{phase 0}.
 
 NOTE: Out-of-tree builds (where all the intermediate compiler output,
-including @tt{.po/.itf} files are stored in the @tt{build/cache} directory)
+including @tt{.po}/@tt{.itf} files are stored in the @tt{build/cache} directory)
 are enabled by default for bundles. This can be disabled setting the
 environment variable @tt{CIAOCCACHE=0}. Note that bootstrapping the
 system with @tt{CIAOCCACHE=0} is not recommended, as it will merge
-@tt{.po/.itf} files of (potentially) incompatible compiler iterations.
+@tt{.po}/@tt{.itf} files of (potentially) incompatible compiler iterations.
 
 @section{Configuration and build}
 
