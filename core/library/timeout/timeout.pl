@@ -6,11 +6,13 @@
 :- doc(title, "Call with timeout").
 :- doc(author, "R@'{e}my Haemmerl@'{e}").
 :- doc(author, "Jos@'{e} F. Morales (minor fixes)").
+:- doc(author, "Manuel Hermenegildo (minor fixes in doc)").
 
 :- doc(stability, devel).
 
 :- doc(bug, "Implement without threads").
-:- doc(bug, "See limitations of @pred{call_with_time_limit/3}.").
+:- doc(bug, "See limitations of @pred{call_with_time_limit/3}").
+:- doc(bug, "Currently it does not appear in the manual: include").
 
 :- use_module(engine(hiord_rt), [call/1]).
 
@@ -18,26 +20,25 @@
    @pred{once_with_time_limit}, since it is not backtrackable. The
    name was chosen for compatibility with other systems but is not
    consistent, since, e.g., @pred{call/1} is backtrackable.  A
-   possible solution in order to preserving compaitbility could be to
+   possible solution in order to preserve compatibility could be to
    rename this one @pred{once_with_timeout}, call the backtrackable
    one @pred{call_with_timeout}, and keep for compatibility
    @pred{call_with_time_limit} as an alias for
    @pred{once_with_timeout}.").
 
-:- pred call_with_time_limit(+Goal, +Time, +Handler)
-   :: cgoal * int * cgoal 
+:- pred call_with_time_limit(+Time, +Goal, +Handler)
+   :: int * cgoal * cgoal 
    # "Succeed if @var{Goal} completes within @var{Time}
       milliseconds. @var{Goal} is executed as in @pred{once/1}. If
       @var{Goal} does not complete within @var{Time} milliseconds
       (wall time), exit and call @var{Handler}.".
 
-:- doc(call_with_time_limit/3, "Please note that this predicate uses
-   the @pred{control_c} exception and therefore is not capable of
-   breaking out of long-running goals such as @pred{sleep/1}, blocking
-   I/O, or other long-running (foreign) predicates. Blocking I/O can
-   be handled using the timeout option of
-   @pred{read_term/3}. Moreover, it can accidently catch a
-   @pred{control_c}.").
+:- doc(call_with_time_limit/3, "@bf{Note:} This predicate uses the
+   @pred{control_c} exception and is therefore not capable of directly
+   breaking out of goals such as @pred{sleep/1}, blocking I/O, or
+   other (foreign) predicates. Blocking I/O can be handled using the
+   timeout option of @pred{read_term/3}. Moreover, it can accidently
+   catch a @pred{control_c}.").
 
 :- meta_predicate(call_with_time_limit(+, :, :)).
 call_with_time_limit(Time, Call, Handler) :- 
@@ -71,8 +72,8 @@ on_exception(E, Id, Handler) :-
     ).
 
 :- set_prolog_flag(multi_arity_warnings,off).
-:- pred call_with_time_limit(Call, Time) :: cgoal * int # "Equivalent to 
-    @pred(call_with_time_limit(Call, Time, throw(time_limit_exceeded))).".
+:- pred call_with_time_limit(Time, Call) :: int * cgoal # "Equivalent to 
+    @tt{call_with_time_limit(Time, Call, throw(time_limit_exceeded))}.".
    
 :- meta_predicate(call_with_time_limit(+, :)).
 call_with_time_limit(Time, Call) :-
