@@ -63,7 +63,7 @@
     modif_time0/2, modif_time/2, time/1, fmode/2, chmod/2,
     working_directory/2, file_exists/1]).
 :- use_module(library(dynamic/dynamic_rt),    [wellformed_body/3]).
-:- use_module(library(pathnames),  [path_basename/2, path_concat/3]).
+:- use_module(library(pathnames), [path_basename/2, path_split/3, path_concat/3, path_is_relative/1]).
 :- use_module(library(strings),    [whitespace0/2]).
 :- use_module(library(stream_utils),    [get_line/1]).
 :- use_module(library(ctrlcclean), [ctrlcclean/0]).
@@ -1420,7 +1420,8 @@ gen_imports(Base) :-
     base_name(File, BFile),
     ( direct_export(BFile, F, A, DefType, Meta),
       EndFile = '.'
-    ; indirect_export(BFile, F, A, DefType, Meta, EndFile)
+    ; indirect_export(BFile, F, A, DefType, Meta, EndFile0),
+      relocate_endfile(BFile, File, EndFile0, EndFile)
     ),
     asserta_fact(imports_pred(Base, File, F, A, DefType, Meta, EndFile)),
     fail.
@@ -1430,9 +1431,8 @@ gen_imports(Base) :-
     ),
     base_name_or_user(File, BFile),
     ( exports_thru(BFile, F, A, DefType, Meta, EndFile) ->
-        asserta_fact(
-          imports_pred(Base, File, F, A, DefType, Meta, EndFile)
-        )
+        relocate_endfile(BFile, File, EndFile, EndFile2),
+        asserta_fact(imports_pred(Base, File, F, A, DefType, Meta, EndFile2))
     ; defines_module(BFile, IM),
       interface_error(not_exported(IM,F/A))
     ),
@@ -1455,7 +1455,8 @@ indirect_export(BFile, F, A, DefType, Meta, EndFile) :-
     reexports_pred(BFile, MFile, F, A),
     base_name(MFile, BMFile),
     ( direct_export(BMFile, F, A, DefType, Meta), EndFile = MFile
-    ; indirect_export(BMFile, F, A, DefType, Meta, EndFile)
+    ; indirect_export(BMFile, F, A, DefType, Meta, EndFile0),
+      relocate_endfile(BMFile, MFile, EndFile0, EndFile)
     ),
     \+ direct_export(BFile, F, A, _, _).
 
@@ -1494,6 +1495,45 @@ do_expansion_checks(Base) :-
       Pred(Base),
     fail.
 do_expansion_checks(_).
+
+:- doc(subsection, "Relocate for reexports").
+
+% TODO: EndFile relocation do not support alias paths in File, fix?
+
+% Relocate EndFile0 (relative to File) as EndFile (relative to the
+% current context). Also update base name database for EndFile
+% (do_get_base_name/1).
+%
+% This assumes base_name(File, BFile) (a file and its absolute path
+% name without extension). Example:
+%
+%  File:      dir1/a.pl (relative to the current context)
+%  EndFile0:  dir2/c.pl (relative to File)
+%  EndFile:   dir1/dir2/c.pl (now relative to the current context)
+
+relocate_endfile(_BFile, _File, EndFile0, EndFile) :- EndFile0 = '.', !,
+    EndFile = EndFile0.
+relocate_endfile(BFile, File, EndFile0, EndFile) :-
+    atom(File), atom(EndFile0), path_is_relative(EndFile0),
+    !,
+    path_split(File, Dir, _),
+    path_concat(Dir, EndFile0, EndFile),
+    ( ( path_is_relative(EndFile) -> % (change dir if needed)
+          get_base_dir(File, BFile, BFileDir),
+          working_directory(OldDir, BFileDir),
+          ( true ; working_directory(_, OldDir), fail ) % (restore dir on backtracking)
+      ; true
+      ),
+      do_get_base_name(EndFile),
+      fail
+    ; true
+    ).
+relocate_endfile(_, _, EndFile, EndFile).
+
+% Get BFileDir such that BFileDir+File=BFile
+get_base_dir(File, BFile, BFileDir) :-
+    atom_concat(BFileDir0, File, BFile), % must be relative to File so that we find EndFile
+    atom_concat(BFileDir, '/', BFileDir0).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Generate itf file").
