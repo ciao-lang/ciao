@@ -266,12 +266,10 @@ startup time @cite{ciaoc-entcs}:
   execution, the first time a predicate defined in that file is
   called. This is advantageous if a large application is composed of
   many parts but is such that typically only some of the parts are
-  used in each invocation. The Ciao preprocessor, @apl{ciaopp}, is a
-  good example of this: it has many capabilitites but typically only
-  some of them are used in a given session. An executable with lazy
-  load has the advantage that it starts fast, loading a minimal
-  functionality on startup, and then loads the different modules
-  automatically as needed.
+  used in each invocation. An executable with lazy load has the
+  advantage that it starts fast, loading a minimal functionality on
+  startup, and then loads the different modules automatically as
+  needed.
 
 @item{Self-contained executables:} @cindex{executables, self-contained} 
 
@@ -332,6 +330,11 @@ available when invoking @apl{ciaoc}:
 %   into an @index{active module} (see
 %   @ref{Active modules (high-level distributed execution)}
 %   for a description of this).  
+
+% (currently not used)
+%  The Ciao preprocessor, @apl{ciaopp}, is a good example of this: it
+%  has many capabilitites but typically only some of them are used in a
+%  given session.
 
 % (superseded by bundles)
 % @section{Paths used by the compiler during compilation}

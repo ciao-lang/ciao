@@ -225,13 +225,12 @@ pair(A,B) := ^(A-B).
 
    The combination of this @tt{hiord} package with the @tt{fsyntax}
    and @tt{lazy} packages (and, optionally, the type inference and
-   checking provided by the Ciao preprocessor
-   @cite{ciaopp-sas03-journal-scp}) basically provide the
-   functionality present in modern functional languages (currying is
-   not @em{syntactically} implemented, but its results can be obtained
-   by deriving higher-order data from any other higher-order data (see
-   @cite{daniel-phd}), as well as some of the functionality of full 
-   higher-order logic programming.
+   checking provided by CiaoPP @cite{ciaopp-sas03-journal-scp})
+   basically provide the functionality present in modern functional
+   languages (currying is not @em{syntactically} implemented, but its
+   results can be obtained by deriving higher-order data from any
+   other higher-order data (see @cite{daniel-phd}), as well as some of
+   the functionality of full higher-order logic programming.
 
    At this moment, it is necessary to specify the @tt{:- fun_eval
    hiord(true)} option to enable correct handling of function

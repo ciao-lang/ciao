@@ -1,35 +1,21 @@
-[<img src="core/doc/common/ciao-logo.png" height="48">](https://ciao-lang.org)
-[![Build](https://github.com/ciao-lang/ciao/actions/workflows/build.yml/badge.svg)](https://github.com/ciao-lang/ciao/actions)
+<p align="center"><a href="https://ciao-lang.org"><img src="core/doc/common/ciao-logo.svg" height="128" alt="The Ciao Programming Language"></a></p>
 
-# The Ciao Programming Language
+[**Ciao**](https://ciao-lang.org) **is a general-purpose programming language** 
+in the Prolog family that builds up from a **logic**-based simple
+kernel, and is designed to be extensible and modular. Please check the
+[**documentation**](https://ciao-lang.org/ciao/build/doc/ciao.html/)
+for a complete feature list.
 
-[Ciao](https://ciao-lang.org) is a programming language that builds up
-from a logic-based simple kernel, and is designed to be extensible and
-modular. It supports:
-
- - **constraint** logic programming (and, in particular, **Prolog**)
- - different levels of modularity (from small to large scale)
-   - **modules** as (analysis-friendly) compilation units
-   - **bundles** as collections of modules
- - **packages** as modules implementing language extensions
-   (syntactic definitions, compilation options, compiler plugins)
- - **assertions** (as a homogeneous framework that allows static and
-   dynamic verification to work cooperatively in a unified way)
- - **multiparadigm** constructs (meta-programming, higher-order,
-   mutables, concurrency, functions, etc.) and interfacing with
-   **foreign** code
-
-This repository contains the compiler and Ciao standard libraries.
-Together with the `builder` bundle it can be used as a *minimal* Ciao
-installation.
-
-Other advanced features (such as global program analysis and
-transformations, static debugging,
+This repository contains the Ciao compiler, standard libraries, and build system. Other advanced features
+([static analysis](https://github.com/ciao-lang/ciaopp),
 [documentation generation](https://github.com/ciao-lang/lpdoc),
 [Emacs-based development environment](https://github.com/ciao-lang/devenv),
 etc.) are provided in [separate bundles](https://github.com/ciao-lang).
 
 ## Installation
-
+[![Build](https://github.com/ciao-lang/ciao/actions/workflows/build.yml/badge.svg)](https://github.com/ciao-lang/ciao/actions)
+```
+curl https://ciao-lang.org/boot -sSfL | sh
+```
 Please consult the [quick installation](https://ciao-lang.org/install.html)
 instructions or refer to the [INSTALLATION](core/INSTALLATION) file.

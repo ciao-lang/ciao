@@ -31,7 +31,7 @@ The Ciao language is intended to support several kinds of uses:
   types and modes, but also determinacy, non-failure, cost,
   etc.)}, automatic static inference and static/dynamic checking of
   such assertions, testing, documentation, etc. (some tasks 
-  performed by the @bf{Ciao preprocessor} (@apl{ciaopp})). 
+  performed by the @bf{CiaoPP Program Processor} (@apl{ciaopp})). 
 @comment{(distributed separately)}
 
 @item @bf{Ciao} supports @em{programming in the large} with

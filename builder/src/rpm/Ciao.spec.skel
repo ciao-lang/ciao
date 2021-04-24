@@ -140,7 +140,7 @@ environment with a unique set of features:
  * The novel modular design of Ciao enables, in addition to modular
    program development, effective global program analysis and static
    debugging and optimization via source to source program
-   transformation. These tasks are performed by the Ciao preprocessor
+   transformation. These tasks are performed by the CiaoPP Program Processor
    (ciaopp).
 
  * An automatic documentation generator for LP/CLP programs (lpdoc). It
