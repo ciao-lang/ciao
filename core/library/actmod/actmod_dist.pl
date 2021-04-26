@@ -239,7 +239,10 @@ dist_bind(Hostname, Port) :-
     ( nonvar(Hostname) -> true
     ; getenvstr('ACTMOD_HOSTNAME', Hostname0) ->
         atom_codes(Hostname, Hostname0)
-    ; current_host(Hostname)
+    ; % TODO: default connection problems on some OS, use localhost
+      %   instead by default.
+      % current_host(Hostname)
+      Hostname = localhost
     ),
     bind_socket(Port, 5, Socket),
     set_addr_and_socket(Hostname, Port, Socket),
