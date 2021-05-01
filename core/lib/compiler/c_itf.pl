@@ -911,7 +911,7 @@ cleanup_c_itf_data :-
 
 % (FS mapping)
 delete_base_data :-
-    retractall_fact(base_name(_,_)),
+    retractall_fact(base_name_(_,_,_)),
     retractall_fact(file_data(_,_,_)).
 
 :- export(cleanup_itf_cache/0).
@@ -923,7 +923,20 @@ cleanup_itf_cache :-
 :- doc(section, "Mapping between files and module names").
 
 :- export(base_name/2).
-:- data base_name/2.
+base_name(File, Base) :- var(File), !, base_name_(_, File, Base).
+base_name(File, Base) :-
+    file_key(File, Key),
+    base_name_(Key, File, Base).
+
+% (possibly non-unique key to speedup lookups)
+% recursively visit last argument until we reach an atom (e.g., library(a/b/c)) -> c)
+file_key(File, K) :- atom(File), !, K = File.
+file_key(File, K) :-
+    functor(File, _, A),
+    arg(A, File, File0),
+    file_key(File0, K).
+
+:- data base_name_/3.
 
 :- export(file_data/3).
 :- data file_data/3.
@@ -933,7 +946,8 @@ get_base_name(File, Base, PlName, Dir) :-
     file_data(Base, PlName, Dir).
 get_base_name(File, Base, PlName, Dir) :-
     compute_base_name(File, Base, PlName, Dir),
-    asserta_fact(base_name(File, Base)),
+    file_key(File, Key),
+    asserta_fact(base_name_(Key, File, Base)),
     ( current_fact(file_data(Base, _, _)) ->
         true
     ;
