@@ -17,6 +17,8 @@
    as back-end) and basic support for dynamic module loading
    (@pred{use_mod/3}).").
 
+% :- compilation_fact(itf_sections). % (Experimental)
+
 % ---------------------------------------------------------------------------
 
 :- use_module(library(aggregates), [findall/3]).
@@ -625,23 +627,23 @@ define_ops :-
 :- pred status(Base, Status).
 :- data status/2.
 
-:- pred already_have_itf(Base)
+:- pred already_have_itf(Base, ItfLevel)
     # "The itf file of source @var{Base}.pl was already read or generated
        in this compilation.".
-:- data already_have_itf/1.
+:- data already_have_itf/2.
 
-:- pred time_of_itf_data(Base, Time)
+:- pred time_of_itf_data(Base, Time, ItfLevel)
     # "The itf file of source @var{Base}.pl was read at time @var{Time}.".
-:- data time_of_itf_data/2.
+:- data time_of_itf_data/3.
 
 delete_time_of_itf_data(Base) :-
-    retractall_fact(time_of_itf_data(Base, _)).
+    retractall_fact(time_of_itf_data(Base, _, _)).
 
 delete_process_file_data :-
     retractall_fact(status(_,_)),
     retractall_fact(process_too(_,_)),
     retractall_fact(processed(_,_)),
-    retractall_fact(already_have_itf(_)).
+    retractall_fact(already_have_itf(_,_)).
 
 % TODO: generalize for compilation contexts? rename Mode to something else
 :- data in_mode/1.
@@ -712,7 +714,7 @@ process_file_(Base, PlName, Dir, Mode, Type, TreatP, StopP, SkipP, RedoP) :-
     ; Check = static -> 
         % TODO: this may not work for all TreatP
         Status = static_mod
-    ; new_file_status(Base, PlName, Dir, Type, Status)
+    ; new_file_status(1, Base, PlName, Dir, Type, Status)
     ),
     get_treat_action(Base, Status, Mode, StopP, SkipP, RedoP, Action),
     do_treat_action(Action, Base, PlName, Dir, Type, TreatP, NewStatus),
@@ -739,18 +741,17 @@ check_loop(Base, Check) :-
     ).
 check_loop(_, ok).
 
-new_file_status(Base, PlName, Dir, Type, Status) :-
+new_file_status(ItfLevel, Base, PlName, Dir, Type, Status) :-
     itf_filename(Base, ItfName),
     modif_time0(ItfName, ItfTime),
     modif_time0(PlName, PlTime),
     ( ItfTime >= PlTime,
-      read_itf(ItfName, ItfTime, Base, Dir, Type) ->
-          Status = itf_read(ItfName,ItfTime)
-    ; delete_time_of_itf_data(Base),
-      read_record_file(PlName, Base, Dir, Type),
+      read_itf(ItfLevel, ItfName, ItfTime, Base, Dir, Type) ->
+        Status = itf_read(ItfName,ItfTime)
+    ; read_record_file(PlName, Base, Dir, Type),
+      assertz_fact(already_have_itf(Base,1)),
       Status = file_read(ItfName)
-    ),
-    assertz_fact(already_have_itf(Base)).
+    ).
 
 :- export(old_file_extension/2).
 % TODO: JF: extension is not enough... 
@@ -765,19 +766,22 @@ old_file_extension(Base, Ext) :-
     modif_time0(ItfName, ItfTime),
     ExtTime < ItfTime.
 
-read_itf(ItfName, ItfTime, Base, Dir, Type) :-
-    ( current_fact(time_of_itf_data(Base, ItfDataTime)),
+read_itf(ItfLevel, ItfName, ItfTime, Base, Dir, Type) :-
+    ( current_fact(time_of_itf_data(Base, ItfDataTime, ItfLevel0)),
       ItfDataTime >= ItfTime ->
-        base_names_in_itf(ItfName, Base, Dir)
-    ; delete_time_of_itf_data(Base),
-      do_read_itf(ItfName, Base, Dir),
-      time(Now),
-      assertz_fact(time_of_itf_data(Base,Now))
+        ( ItfLevel0 < ItfLevel -> % needs reload
+            do_read_itf(ItfLevel, ItfName, Base, Dir, prev)
+        ; % (no reload, just refresh base names)
+          base_names_in_itf(ItfName, Base, Dir)
+        )
+    ; do_read_itf(ItfLevel, ItfName, Base, Dir, now)
     ),
+    assertz_fact(already_have_itf(Base,ItfLevel)),
     defines_module(Base, M),
     ( M = user(_), Type == module ->
         warning_module_missing(_, _)
-    ; true),
+    ; true
+    ),
     end_doing.
 
 % Obtain treat action for process file
@@ -812,7 +816,7 @@ handle_related_files(Base, Mode):-
     uses_file(Base, File),
       base_name(File, BFile),
       \+ current_fact(processed(BFile, Mode)),
-        get_file_itf(BFile, module),
+        get_file_deps(BFile, module),
         asserta_fact(process_too(Mode, BFile)),
         follow_reexports(BFile,[BFile]),
     fail.
@@ -820,34 +824,72 @@ handle_related_files(Base, Mode):-
     adds(Base, File),
       base_name(File, BFile),
       \+ current_fact(processed(BFile, Mode)),
-        get_file_itf(BFile, any), % NOTE: needed for compile_ldlibs/3
+        get_file_deps(BFile, any), % NOTE: needed for compile_ldlibs/3
         asserta_fact(process_too(Mode, BFile)),
     fail.
 handle_related_files(_, _).
 
-get_file_itf(Base, _Type) :-
-    already_have_itf(Base), !.
-get_file_itf(Base, Type) :-
-    file_data(Base, PlName, Dir),
-    new_file_status(Base, PlName, Dir, Type, Status),
-    asserta_fact(status(Base, Status)).
-
 follow_reexports(Base,Covered) :-
     reexports_from(Base, File), base_name(File, BFile),
       check_reexportation_loop(BFile, Covered),
-      get_file_itf(BFile, module),
+      get_file_deps(BFile, module),
       follow_reexports(BFile,[BFile|Covered]),
     fail.
 follow_reexports(_, _).
 
 check_reexportation_loop(BFile, Covered) :-
-      ( member(BFile, Covered) ->
-          reverse([BFile|Covered], Loop),
-          message(error,  ['Reexportation loop: ',
-                           Loop,' -- aborting']),
-          throw(compiler_loop)
-      ; true
-      ).
+    ( member(BFile, Covered) ->
+        reverse([BFile|Covered], Loop),
+        message(error,  ['Reexportation loop: ',
+                         Loop,' -- aborting']),
+        throw(compiler_loop)
+    ; true
+    ).
+
+% (ensure that ItfLevel=1 info is loaded)
+itf_handle_related_files(Base):-
+    uses_file(Base, File),
+      base_name(File, BFile),
+        get_file_itf(1, BFile, module),
+        itf_follow_reexports(BFile),
+    fail.
+itf_handle_related_files(Base):-
+    adds(Base, File),
+      base_name(File, BFile),
+        get_file_itf(1, BFile, any),
+    fail.
+itf_handle_related_files(_).
+
+% (assumes no loops)
+itf_follow_reexports(Base) :-
+    reexports_from(Base, File), base_name(File, BFile),
+      get_file_itf(1, BFile, module),
+      itf_follow_reexports(BFile),
+    fail.
+itf_follow_reexports(_).
+
+:- if(defined(itf_sections)).
+get_file_deps(Base, Type) :-
+    get_file_itf(0, Base, Type).
+:- else.
+get_file_deps(Base, Type) :-
+    get_file_itf(1, Base, Type). % load full itf
+:- endif.
+
+get_file_itf(ItfLevel, Base, _Type) :-
+    already_have_itf(Base, ItfLevel0), !,
+    ( ItfLevel0 < ItfLevel -> % needs reload
+        file_data(Base, _PlName, Dir),
+        itf_filename(Base, ItfName),
+        retractall_fact(already_have_itf(Base,_)),
+        do_read_itf(ItfLevel, ItfName, Base, Dir, prev),
+        assertz_fact(already_have_itf(Base,ItfLevel))
+    ; true
+    ).
+get_file_itf(ItfLevel, Base, Type) :-
+    file_data(Base, PlName, Dir),
+    new_file_status(ItfLevel, Base, PlName, Dir, Type, Status),
+    asserta_fact(status(Base, Status)).
 
 :- meta_predicate do_treat_action(+, +, +, +, +, pred(1), ?).
 do_treat_action(Action, Base, PlName, Dir, Type, TreatP, NewStatus) :-
@@ -860,11 +902,11 @@ do_treat_action(Action, Base, PlName, Dir, Type, TreatP, NewStatus) :-
         delete_file_data(Base),
         NewStatus = file_noclauses(ItfName)
     ; Action = action_treat_file(ReadRecord, GenerateItf, ItfName) ->
-        ( ReadRecord = noread ->
+        itf_handle_related_files(Base),
+        ( ReadRecord = noread -> % read_record_file/4 was already done
             true
-        ; delete_time_of_itf_data(Base),
-          read_record_file(PlName, Base, Dir, Type), % TODO: Type was 'any'
-          assertz_fact(already_have_itf(Base))
+        ; read_record_file(PlName, Base, Dir, Type), % TODO: Type was 'any'
+          assertz_fact(already_have_itf(Base,1))
         ),
         ( check_itf_data(Base, PlName), % fails if incorrect imports/exports
           gen_itf(GenerateItf, Base, PlName, ItfName) ->
@@ -880,8 +922,7 @@ gen_itf(nogen, _Base, _PlName, _ItfName).
 gen_itf(gen_itf, Base, PlName, ItfName) :-
     ( fmode(PlName, Mode), % TODO: rename Mode in process_file (this is a file mode!)
       generate_itf(ItfName, Mode, Base) ->
-        time(Now),
-        assertz_fact(time_of_itf_data(Base,Now))
+        true
     ; fail
     ).
 
@@ -1011,6 +1052,7 @@ delete_read_record_data :-
     retractall_fact(syntax_error_in(_)).
 
 read_record_file(PlName, Base, Dir, Type) :-
+    delete_time_of_itf_data(Base),
     delete_itf_data(Base),
     working_directory(OldDir, Dir),
     now_doing(['Reading ',PlName]),
@@ -1567,10 +1609,12 @@ generate_itf(ItfName, Mode, Base) :-
     ; ( current_prolog_flag(verbose_compilation,off) -> true
       ; message(warning, ['cannot create ',ItfName])
       )
-    ).
+    ),
+    time(Now),
+    assertz_fact(time_of_itf_data(Base,Now,1)).
 
 write_itf_data_of(Format, Base) :-
-    itf_data(ITF, Base, _, Fact),
+    itf_data(ITF, Base, _, _, Fact),
       current_fact(Fact),
         do_write(Format, ITF),
     fail.
@@ -1592,19 +1636,29 @@ base_names_in_itf(ItfName, Base, Dir) :-
     ; adds(Base,File)
     ; includes(Base,File)
     ; loads(Base,File)
-    ; imports_pred(Base, _, _, _, _, _, File)
+    ; imports_pred(Base, _, _, _, _, _, File) % TODO: check if needed with ItfLevel=0
     ),
     do_get_base_name(File),
     fail.
 base_names_in_itf(_,_,_).
 
-do_read_itf(ItfName, Base, Dir) :-
+% ItfLevel=0 read only dependencies
+% ItfLevel=1 full itf read 
+
+do_read_itf(ItfLevel, ItfName, Base, Dir, UpdTime) :-
     working_directory(OldDir, Dir),
     ( true ; working_directory(_, OldDir), fail ),
-    do_read_itf_(ItfName, Base), !,
-    working_directory(_, OldDir).
+    do_read_itf_(ItfLevel, ItfName, Base), !,
+    working_directory(_, OldDir),
+    % Set or update time
+    ( current_fact(time_of_itf_data(Base, PrevTime, _)) -> true ; true ),
+    retractall_fact(time_of_itf_data(Base, _, _)),
+    ( nonvar(PrevTime), UpdTime = prev -> Time = PrevTime
+    ; time(Time)
+    ),
+    assertz_fact(time_of_itf_data(Base,Time,ItfLevel)).
     
-do_read_itf_(ItfName, Base) :-
+do_read_itf_(ItfLevel, ItfName, Base) :-
     delete_itf_data(Base),
     '$open'(ItfName, r, Stream),
     current_input(CI),
@@ -1616,18 +1670,21 @@ do_read_itf_(ItfName, Base) :-
       fail
     ),
     now_doing(['Reading ',ItfName]),
-    read_itf_data_of(Format,Base),
+    read_itf_data_of(ItfLevel,Format,Base),
     set_input(CI),
     close(Stream).
 
-read_itf_data_of(Format,Base) :-
+read_itf_data_of(ItfLevel,Format,Base) :-
     repeat,
-      do_read(Format,ITF),
+    do_read(Format,ITF),
     ( ITF = end_of_file, !
-    ; itf_data(ITF, Base, File, Fact),
-      do_get_base_name(File),
-      assertz_fact(Fact),
-      fail
+    ; itf_data(ITF, Base, File, DataLevel, Fact),
+      ( DataLevel > ItfLevel ->
+          ! % (stop here)
+      ; do_get_base_name(File),
+        assertz_fact(Fact),
+        fail
+      )
     ).
 
 do_read(f,Term) :- fast_read(Term), ! ; Term = end_of_file.
@@ -1641,22 +1698,29 @@ do_get_base_name(File) :- get_base_name(File, _, _, _).
 % ---------------------------------------------------------------------------
 :- doc(section, "Format of itf files").
 
-:- meta_predicate itf_data(?, ?, ?, fact).
+% We keep itf data split in two sections to speedup dependency
+% checking operations.
 
-itf_data(m(M),             Base, user, defines_module(Base,M)).
-itf_data(e(F,A,Def,Meta),  Base, user, direct_export(Base,F,A,Def,Meta)).
-itf_data(m(F,A,Def),       Base, user, def_multifile(Base,F,A,Def)).
-itf_data(u(File),          Base, File, uses(Base,File)).
-itf_data(e(File),          Base, File, adds(Base,File)).
-itf_data(n(File),          Base, File, includes(Base,File)).
-itf_data(l(File),          Base, File, loads(Base,File)).
+:- meta_predicate itf_data(?, ?, ?, ?, fact).
+
+% (dependencies section)
+itf_data(m(M),             Base, user, 0, defines_module(Base,M)).
+itf_data(u(File),          Base, File, 0, uses(Base,File)).
+itf_data(e(File),          Base, File, 0, adds(Base,File)).
+itf_data(n(File),          Base, File, 0, includes(Base,File)).
+itf_data(l(File),          Base, File, 0, loads(Base,File)).
+%itf_data(h(File),          Base, user, 0, reexports_from(Base,File)). % TODO: OLD
+itf_data(h(File),          Base, File, 0, reexports_from(Base,File)).
+itf_data(m(F,A,Def),       Base, user, 0, def_multifile(Base,F,A,Def)). % TODO: this should not be in deps but generate_multifile_data/2 from compute_load_action/4 needs it
+% (interface section)
+itf_data(e(F,A,Def,Meta),  Base, user, 1, direct_export(Base,F,A,Def,Meta)).
+%itf_data(m(F,A,Def),       Base, user, 1, def_multifile(Base,F,A,Def)).
 % The following five has File in uses/2
-itf_data(h(File),          Base, user, reexports_from(Base,File)).
-itf_data(i(File,F,A,Df,Mt,EF),Base, EF,imports_pred(Base,File,F,A,Df,Mt,EF)).
-itf_data(i(File),          Base, user, imports_all(Base,File)).
-itf_data(r(File,F,A),      Base, user, reexports(Base,File,F,A)).
-itf_data(r(File),          Base, user, reexports_all(Base,File)).
-itf_data(d(Decl),          Base, user, decl(Base,Decl)).
+itf_data(i(File,F,A,Df,Mt,EF),Base, EF, 1, imports_pred(Base,File,F,A,Df,Mt,EF)). % TODO: check if EF appears in reexports_from
+itf_data(i(File),          Base, user, 1, imports_all(Base,File)).
+itf_data(r(File,F,A),      Base, user, 1, reexports(Base,File,F,A)).
+itf_data(r(File),          Base, user, 1, reexports_all(Base,File)).
+itf_data(d(Decl),          Base, user, 1, decl(Base,Decl)).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Fill data for mexpand (and treat_file/2)").
@@ -1690,6 +1754,9 @@ generate_module_data(_, _).
 % ---------------------------------------------------------------------------
 :- doc(section, "Detect changes in dependencies").
 
+:- if(\+ defined(itf_sections)).
+% Fine-grained dependency changes
+%
 % Deftype not checked because is not exact in builtin modules
 changed_dependencies(Base, _) :-
     imports_pred(Base, File, F, A,_DefType, Meta, EndFile),
@@ -1701,6 +1768,19 @@ changed_dependencies(Base, _) :-
     ( direct_export(BFile, F, A, _, _)
     ; indirect_export(BFile, F, A, _, _, _) ),
     \+ imports_pred(Base, File, F, A, _, _, _).
+:- else.
+changed_dependencies(Base, ItfTime) :-
+    % Assume that if any of the imported files have changed our
+    % dependencies have potentially changed too (which is faster than
+    % the fine-grained method although it may raise some false
+    % positives)
+    ( uses(Base, File)
+    ; adds(Base, File)
+    ),
+    file_data(File, PlName, _),
+    modif_time(PlName, PlTime),
+    PlTime > ItfTime.
+:- endif.
 changed_dependencies(Base, ItfTime) :-
     includes(Base, File),
     base_name(File, BFile),
@@ -2611,6 +2691,11 @@ use_mod_common(File, Type, Imports, ByThisModule) :-
     process_files_from_(File, In, Type,
                         load_compile, static_base, c_itf:false, needs_reload),
     del_in_mode(In),
+    % (make sure that ItfLevel=1 data is available for gen_imports/1)
+    base_name(File, Base),
+    get_file_itf(1, Base, Type),
+    itf_follow_reexports(Base),
+    %
     gen_imports(Fake_Base),
     retractall_fact(imports_all(Fake_Base, _)),
     ( current_fact(module_error) ->
@@ -2706,18 +2791,19 @@ compute_load_action(Base, Module, Mode, Load_Action) :-
         ( modif_time0(PlName, PlTime),
           ( PlTime >= ItfTime -> FTime = PlTime ; FTime = ItfTime),
           not_changed(Module, Base, Mode, FTime) -> fail
-        ; Load_Action =
-              load_interpreted(PlName, Base, Module)
+        ; Load_Action = load_interpreted(PlName, Base, Module)
         )
     ; po_filename(Base, PoName),
       modif_time0(PoName, PoTime),
       ( ( ItfTime = 0, PoTime = 0 % (for read-only file systems)
         ; PoTime < ItfTime ) ->
           \+ not_changed(Module, Base, fail, _), % to give message
-          Load_Action =
-              load_make_po(Base, PlName, PoName, Mode, Module)
+          Load_Action = load_make_po(Base, PlName, PoName, Mode, Module)
       ; not_changed(Module, Base, Mode, PoTime) -> fail
       ; abolish_module(Module),
+        % TODO: debug, get ItfLevel=1 data (it should not be needed)
+        %   get_file_itf(1, Base, Mode),
+        %   itf_follow_reexports(Base),
         generate_multifile_data(Base, Module),
         qload_dyn(PoName, Module),
         retractall_fact(multifile(_,_,_,_)),
@@ -2936,8 +3022,9 @@ unload_mod(File) :-
     find_pl_filename(File, _, Base, _),
     retract_fact(module_loaded(Module, Base, _, _)),
     abolish_module(Module),
-    delete_time_of_itf_data(Base), % TODO: needed here?
-    delete_itf_data(Base). % TODO: why?
+    % (delete cached itf)
+    delete_time_of_itf_data(Base),
+    delete_itf_data(Base).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Compilation mode (interpreted, bytecode, etc.)").
