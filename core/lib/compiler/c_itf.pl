@@ -251,6 +251,20 @@ uses_file(Base, File) :- uses(Base, File).
        @var{File}.  Stored in itf file for dependency check.".
 :- data loads/2.
 
+% Delete itf data for Base, considering opt_suff
+% TODO: nicer way?
+delete_itf_data_opt(Base) :-
+    opt_suff(Opt),
+    ( Opt = '' -> % No opt
+        true
+    ; atom_concat(BaseNoOpt,Opt,Base) -> % Base contains Opt
+        delete_itf_data(BaseNoOpt)
+    ; atom_concat(Base,Opt,BaseOpt), % Try base with Opt
+      delete_itf_data(BaseOpt)
+    ),
+    delete_itf_data(Base).
+
+% Delete itf data for Base
 delete_itf_data(Base) :-
     retractall_fact(defines_module(Base,_)),
     retractall_fact(direct_export(Base,_,_,_,_)),
@@ -1053,7 +1067,7 @@ delete_read_record_data :-
 
 read_record_file(PlName, Base, Dir, Type) :-
     delete_time_of_itf_data(Base),
-    delete_itf_data(Base),
+    delete_itf_data_opt(Base),
     working_directory(OldDir, Dir),
     now_doing(['Reading ',PlName]),
     asserta_fact(reading_from(Base)),
@@ -1659,7 +1673,7 @@ do_read_itf(ItfLevel, ItfName, Base, Dir, UpdTime) :-
     assertz_fact(time_of_itf_data(Base,Time,ItfLevel)).
     
 do_read_itf_(ItfLevel, ItfName, Base) :-
-    delete_itf_data(Base),
+    delete_itf_data_opt(Base),
     '$open'(ItfName, r, Stream),
     current_input(CI),
     set_input(Stream),
@@ -3024,7 +3038,7 @@ unload_mod(File) :-
     abolish_module(Module),
     % (delete cached itf)
     delete_time_of_itf_data(Base),
-    delete_itf_data(Base).
+    delete_itf_data_opt(Base).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Compilation mode (interpreted, bytecode, etc.)").
