@@ -26,7 +26,7 @@ Execute @tt{ciao help} to obtain a detailed list of commands.
 
 @section{Setting up workspaces}
 
-Ciao locate bundles by looking at one or more workspaces, given by the
+Ciao locates bundles by looking at one or more workspaces, given by the
 following (optional) environment variables:
 
 @begin{itemize}
