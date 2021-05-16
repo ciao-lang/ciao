@@ -308,6 +308,8 @@ size(_, _, _, _).
 % :- impl_defined(size/4).
 :- endif.
 
+:- if(defined(optim_comp)).
+:- else.
 :- export(size_lb/2).
 :- doc(size_lb(X, Y), "The minimum size of the terms to which the
    argument @var{X} is bound is given by the expression
@@ -320,12 +322,11 @@ size(_, _, _, _).
    + no_rtcheck
    # "@var{Y} is a lower bound on the size of argument @var{X}.".
 
-:- if(defined(optim_comp)).
-:- '$props'(size_lb/2, [impnat=indefinable]).
-:- else.
 :- impl_defined(size_lb/2).
 :- endif.
 
+:- if(defined(optim_comp)).
+:- else.
 :- export(size_ub/2).
 :- doc(size_ub(X, Y), "The maximum size of the terms to which the
    argument @var{X} is bound is given by the expression
@@ -338,9 +339,6 @@ size(_, _, _, _).
    + no_rtcheck
    # "@var{Y} is a upper bound on the size of argument @var{X}.".
 
-:- if(defined(optim_comp)).
-:- '$props'(size_ub/2, [impnat=indefinable]).
-:- else.
 :- impl_defined(size_ub/2).
 :- endif.
 
@@ -421,6 +419,8 @@ measure_t(depth([_|_])).
 
 % --------------------------------------------------------------------------
 
+:- if(defined(optim_comp)).
+:- else.
 :- export(steps_lb/2).
 :- doc(steps_lb(X, Y), "The minimum computation (in resolution steps)
    spent by any call of the form @var{X} is given by the expression
@@ -432,12 +432,11 @@ measure_t(depth([_|_])).
    + no_rtcheck
    # "@var{Y} is a lower bound on the cost of any call of the form @var{X}.".
 
-:- if(defined(optim_comp)).
-:- '$props'(steps_lb/2, [impnat=indefinable]).
-:- else.
 steps_lb(Goal, _) :- call(Goal).
 :- endif.
 
+:- if(defined(optim_comp)).
+:- else.
 :- export(steps_ub/2).
 :- doc(steps_ub(X, Y), "The maximum computation (in resolution steps)
    spent by any call of the form @var{X} is given by the expression
@@ -449,12 +448,11 @@ steps_lb(Goal, _) :- call(Goal).
    + no_rtcheck
    # "@var{Y} is a upper bound on the cost of any call of the form @var{X}.".
 
-:- if(defined(optim_comp)).
-:- '$props'(steps_ub/2, [impnat=indefinable]).
-:- else.
 steps_ub(Goal, _) :- call(Goal).
 :- endif.
 
+:- if(defined(optim_comp)).
+:- else.
 :- export(steps/2).
 :- doc(steps(X, Y), "The computation (in resolution steps) spent by
    any call of the form @var{X} is given by the expression @var{Y}").
@@ -466,9 +464,6 @@ steps_ub(Goal, _) :- call(Goal).
    # "@var{Y} is the cost (number of resolution steps) of any call of the
    form @var{X}.".
 
-:- if(defined(optim_comp)).
-:- '$props'(steps/2, [impnat=indefinable]).
-:- else.
 steps(Goal, _) :- call(Goal).
 :- endif.
 
