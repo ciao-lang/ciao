@@ -452,6 +452,7 @@ car_config() { # (configure options)
                 Sparc64) true ;;
                 x86_64)  true ;;
                 ppc64)   true ;;
+                aarch64) true ;;
                 *) opt__ARCH=empty ;; # force error # TODO: emit error instead?
                 # *) echo "{configuration error: This executable requires a 64 bit architecture}" 1>&2 && exit 1 ;;
             esac
