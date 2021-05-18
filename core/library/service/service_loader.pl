@@ -41,9 +41,9 @@ service_load(ServName) :-
         loader_message("Spawning actmod `~w`... (same process)~n", [ServName]),
         % TODO: assumes static_named_actRef and "same process"
         actI_init_named(ServName, ServName)
-    ; Mode = child(ExecPath) ->
+    ; Mode = child(ExecPath, ExecArgs) ->
         loader_message("Spawning actmod `~w`... (child)~n", [ServName]),
-        actmod_spawn(ServName, [exec(ExecPath), child], _ActRef)
+        actmod_spawn(ServName, [exec(ExecPath,ExecArgs), child], _ActRef)
     ; % Redirect, daemon, etc. do nothing
       true
     ),
@@ -54,9 +54,9 @@ service_load(ServName) :-
    @var{ServName} if it was loaded as a daemon".
 service_restart(ServName) :-
     service_load_mode(ServName, Mode),
-    ( Mode = daemon(ExecPath) ->
+    ( Mode = daemon(ExecPath, ExecArgs) ->
         loader_message("Spawning actmod `~w`... (daemon)~n", [ServName]),
-        catch(actmod_spawn(ServName, [exec(ExecPath), daemon], _ActRef),
+        catch(actmod_spawn(ServName, [exec(ExecPath,ExecArgs), daemon], _ActRef),
               _, true) % ignore errors (it may need some time to start)
     ; true % nothing
     ).
@@ -72,7 +72,7 @@ service_stop_all :-
 
 service_stop(ServName) :-
     service_load_mode(ServName, Mode),
-    ( Mode = daemon(_ExecPath) ->
+    ( Mode = daemon(_ExecPath,_ExecArgs) ->
         ActRef = ServName, % TODO:T253 see [new-actref]
         catch(actmod_kill(ActRef, Msg), _E, fail), % ignore if we could not kill it
         loader_message("Killing ~w [~s]~n", [ActRef, Msg])

@@ -101,9 +101,10 @@ decl_use_active_module(ModSpec, Imports, Opts, Cs, M) :-
         Cs0 = ['$dmod_reg_protocol'(DMod, RegProtocol)|Cs1]
     ; Cs0 = Cs1
     ),
-    % Libexec prop if needed
-    ( member(libexec, Opts) ->
+    ( member(libexec, Opts) -> % libexec prop if needed
         Cs1 = ['$dmod_prop'(DMod, libexec)|Cs2]
+    ; member(binexec(Name), Opts) -> % binexec prop if needed
+        Cs1 = ['$dmod_prop'(DMod, binexec(Name))|Cs2]
     ; Cs1 = Cs2
     ),
     % ModSpec for this DMod (for binary generation and dynamic load)

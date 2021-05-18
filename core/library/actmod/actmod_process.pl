@@ -82,19 +82,23 @@ actref(X) :- atm(X).
 
    Options to specify the active module implementation:
    @begin{itemize}
-   @item @tt{exec(ExecPath)}: path for executable
+   @item @tt{exec(ExecPath,ExecArgs)}: path for executable and arguments
      (containing the distributed runtime)
    @item @tt{dynmod(Mod)}: module spec (for spawning using a generic
      @tt{ciaosh} runtime)
    @item @tt{libexec}: like @tt{exec/1}, using binary created by
      @pred{actmod_compile/1} at @tt{build/libexec}
+   @item @tt{binexec(Name)}: use the binary @tt{Name} created at
+     @tt{build/bin} (passing @tt{--actmod} argument at process
+     startup)
    @end{itemize}").
 
 spawn_opt(child).
 spawn_opt(daemon).
-spawn_opt(exec(X)) :- atm(X).
+spawn_opt(exec(X,As)) :- atm(X), list(atm,As).
 spawn_opt(dynmod(X)) :- atm(X).
 spawn_opt(libexec).
+spawn_opt(binexec(Name)) :- atm(Name).
 
 :- export(actmod_spawn/3).
 :- pred actmod_spawn(+DMod, +Opts, -ActRef) :
@@ -168,9 +172,9 @@ check_named(DMod, Opts, ActRef) :-
 process_args(DMod, Opts, ExecPath, ExecArgs) :-
     get_code_opt(DMod, Opts, Code),
     % TODO: allow initial query
-    ( Code = exec(ExecPath0) ->
+    ( Code = exec(ExecPath0, ExecArgs0) ->
         ExecPath = ExecPath0,
-        ExecArgs = [] % TODO: pass ActRef (and RegProtocol?) as arguments to actmod_dist:dist_start/3
+        ExecArgs = ExecArgs0 % TODO: add ActRef (and RegProtocol?) as arguments to actmod_dist:dist_start/3
     ; Code = dynmod(ModSpec) ->
         ExecPath = ~ciaosh_exec,
         absolute_file_name(ModSpec, ModPath),
@@ -181,10 +185,12 @@ process_args(DMod, Opts, ExecPath, ExecArgs) :-
 
 % get_code_opt(+DMod, +Opts, -Code): Obtain code location
 get_code_opt(DMod, Opts, Code) :-
-    ( X = exec(_), member(X, Opts) -> Code = X
+    ( X = exec(_,_), member(X, Opts) -> Code = X
     ; X = dynmod(_), member(X, Opts) -> Code = X
     ; '$dmod_prop'(DMod, libexec) -> % binary from libexec
-        Code = exec(~actmod_binpath(DMod))
+        Code = exec(~actmod_binpath(DMod), [])
+    ; '$dmod_prop'(DMod, binexec(Name)) -> % binary at build/bin
+        Code = exec(~cmd_path(core, exec, Name), ['--actmod']) % TODO: bundle name is hardwired
     ; '$dmod_src'(DMod, Src) -> % source from ModSpec
         Code = dynmod(Src)
     ; throw(error(unknown_code, actmod_spawn/3))
@@ -280,9 +286,8 @@ actmod_join(ActRef) :-
 :- use_module(library(system_extra), [del_file_nofail/1]).
 
 % Path to executable for the given actmod
-% TODO: bundle name is hardwired
 actmod_binpath(DMod, BinPath) :-
-    BinPath = ~libcmd_path(core, exec, DMod).
+    BinPath = ~libcmd_path(core, exec, DMod). % TODO: bundle name is hardwired
 
 :- export(actmod_compile_all/0).
 :- pred actmod_compile_all # "Compile all imported active modules

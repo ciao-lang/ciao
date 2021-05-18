@@ -186,11 +186,13 @@ with the server if it is running).
      @pred{actmod_spawn/3} and static named instances).
    @item @tt{reg_protocol(RegProtocol)}: specify default name server protocol.
    @item @tt{libexec}: use @tt{libexec} as spawning option by default.
+   @item @tt{binexec(Name)}: use @tt{binexec(Name)} as spawning option by default.
    @end{itemize}").
 
 import_opt(active).
 import_opt(reg_protocol(_)).
 import_opt(libexec).
+import_opt(binexec(_)).
 
 % ---------------------------------------------------------------------------
 

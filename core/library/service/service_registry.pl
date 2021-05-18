@@ -52,6 +52,7 @@ bundle_http_entry(Bundle, Name, URL) :-
 %   daemon: service is an actmod as a daemon process
 %   child: service is an actmod as a child process
 %   dynmod: service is a dynamically loaded module (default)
+%   binexec(Name): loads from Name at build/bin (libexec otherwise)
 %   redirect(_): redirect to some other URI (relative to build site)
 %   hide: do not list this entry in documentation, etc.
 :- data service_entry_srvname/2.
@@ -79,13 +80,13 @@ add_service_entry(Bundle, Name, Props) :-
     assertz_fact(service_entry_srvname(Name, Protocol)).
 
 :- use_module(ciaobld(manifest_compiler), [main_file_path/3]).
-:- use_module(ciaobld(config_common), [libcmd_path/4]).
+:- use_module(ciaobld(config_common), [libcmd_path/4, cmd_path/4]).
 
 :- export(service_load_mode/2).
 % Obtain load mode of the given service Name.
 % Mode is one of:
-%  - child(ExecPath): child process with executable at ExecPath
-%  - daemon(ExecPath): daemon process with executable at ExecPath
+%  - child(ExecPath,ExecArgs): child process with executable at ExecPath
+%  - daemon(ExecPath,ExecArgs): daemon process with executable at ExecPath
 %  - dynmod(AbsPath): module with code at AbsPath
 service_load_mode(Name, Mode) :-
     ( service_entry(Bundle, Name, Props0) -> % TODO: only first bundle; add bundle as param? follow workspaces instead?
@@ -93,14 +94,22 @@ service_load_mode(Name, Mode) :-
     ; throw(service_not_found(Name))
     ),
     ( member(child, Props) ->
-        ExecPath = ~libcmd_path(Bundle, plexe, Name),
-        Mode = child(ExecPath)
+        service_exec_path(Bundle, Props, Name, ExecPath, ExecArgs),
+        Mode = child(ExecPath, ExecArgs)
     ; member(daemon, Props) ->
-        ExecPath = ~libcmd_path(Bundle, plexe, Name),
-        Mode = daemon(ExecPath)
+        service_exec_path(Bundle, Props, Name, ExecPath, ExecArgs),
+        Mode = daemon(ExecPath, ExecArgs)
     ; AbsPath = ~main_file_path(Bundle, Props) ->
         Mode = dynmod(AbsPath)
     ; Mode = unknown
+    ).
+
+service_exec_path(Bundle, Props, Name, ExecPath, ExecArgs) :-
+    ( member(binexec(Name2), Props) ->
+        ExecPath = ~cmd_path(Bundle, plexe, Name2),
+        ExecArgs = ['--actmod'] % (user must start manually)
+    ; ExecPath = ~libcmd_path(Bundle, plexe, Name),
+      ExecArgs = []
     ).
 
 % ---------------------------------------------------------------------------
