@@ -31,7 +31,7 @@
    @cite{pillow-ws-dist,pillow-tplp}), which can be downloaded from
    @href{http://clip.dia.fi.upm.es/Software/pillow/pillow.html}. There
    is also a @index{PiLLoW on-line tutorial} (slides) at
-   @href{http://clip.dia.fi.upm.es/logalg/slides/C_pillow/C_pillow.html}
+   @href{http://clip.dia.fi.upm.es/logalg/slides/C_pillow/C_pillow.pdf}
    which illustrates the basic features and provides a number of
    examples of PiLLoW use.
 ").
