@@ -108,6 +108,62 @@ rtc_linear(T) :-
 % ===========================================================================
 :- doc(section, "Determinacy, failure, choice-points").
 
+:- export(rtc_det/1). % rtc_impl for native_props:det/1
+:- meta_predicate rtc_det(goal).
+rtc_det(Goal) :-
+    Sols = sols(no),
+    ( true ; err_if_nosol(Sols, Goal, det), fail ), % (hook on failure)
+    '$metachoice'(C0),
+    call(Goal), % no_exception_(Goal, det, _), % TODO: exceptions treated separately
+    '$metachoice'(C1),
+    err_if_anysol(Sols, Goal, det),
+    ( C0 == C1 -> ! % (remove hook on failure, no need to anot_sol)
+    ; anot_sol(Sols) % annotate solution
+    ).
+
+:- export(rtc_fails/1). % rtc_impl for native_props:fails/1
+:- meta_predicate rtc_fails(goal).
+rtc_fails(Goal) :-
+    call(Goal), % no_exception_(Goal, fails, _), % TODO: exceptions treated separately
+    send_comp_rtcheck(Goal, fails, nondet).
+
+:- export(rtc_semidet/1). % rtc_impl for native_props:semidet/1
+:- meta_predicate rtc_semidet(goal).
+rtc_semidet(Goal) :-
+    Sols = sols(no),
+    call(Goal), % no_exception_(Goal, semidet, _), % TODO: exceptions treated separately
+    err_if_anysol(Sols, Goal, semidet),
+    anot_sol(Sols). % annotate solution
+
+:- export(rtc_multi/1). % rtc_impl for native_props:multi/1
+:- meta_predicate rtc_multi(goal).
+rtc_multi(Goal) :-
+    Sols = sols(no),
+    ( true ; err_if_nosol(Sols, Goal, multi), fail ), % (hook on failure)
+    '$metachoice'(C0),
+    call(Goal), % no_exception_(Goal, multi, _), % TODO: exceptions treated separately
+    '$metachoice'(C1),
+    ( C0 == C1 -> ! % (remove hook on failure, no need to anot_sol)
+    ; anot_sol(Sols) % annotate solution
+    ).
+
+% Annotate that a solution was found (destructively)
+anot_sol(Sols) :- Sols = sols(no), !, '$setarg'(1, Sols, yes, true).
+anot_sol(_).
+
+% Error if no solution has been found
+err_if_nosol(sols(no), Goal, Prop) :- !, send_comp_rtcheck(Goal, Prop, fails).
+err_if_nosol(_,_,_).
+
+% Error if any solution has been found
+err_if_anysol(sols(yes), Goal, Prop) :- !, send_comp_rtcheck(Goal, Prop, nondet).
+err_if_anysol(_,_,_).
+
+% ----------------------------------------------------------------------
+
+:- compilation_fact(old_nfdet). % comment this to disable old properties
+
+:- if(defined(old_nfdet)).
 :- export(rtc_is_det/1).
 :- meta_predicate rtc_is_det(goal).
 
@@ -121,9 +177,11 @@ rtc_is_det(Goal) :-
       % more than one solution!
     ),
     '$setarg'(1, Solved, yes, true).
+:- endif.
 
 % ----------------------------------------------------------------------
 
+:- if(defined(old_nfdet)).
 :- export(rtc_non_det/1).
 :- meta_predicate rtc_non_det(goal).
 
@@ -146,6 +204,7 @@ rtc_non_det(Goal) :-
         )
     ; '$setarg'(1, Solved, yes, true)
     ).
+:- endif.
 
 % ---------------------------------------------------------------------------
 
@@ -155,6 +214,7 @@ rtc_non_det(Goal) :-
 % not_fails( X ) :-
 %       if( X , true , throw( rtcheck( nf , fail , X  ) ) ).
 
+:- if(defined(old_nfdet)).
 :- export(rtc_not_fails/1).
 :- meta_predicate rtc_not_fails(goal).
 
@@ -167,26 +227,28 @@ rtc_not_fails(Goal) :-
         fail
     ),
     '$metachoice'(C0),
-    no_exception_2(Goal, not_fails, _),
+    no_exception_(Goal, not_fails, _),
     '$metachoice'(C1),
     ( C0 == C1 -> !
     ; '$setarg'(1, Solved, yes, true)
     ).
+:- endif.
 
 % ----------------------------------------------------------------------
 
-:- export(rtc_fails/1).
-:- meta_predicate rtc_fails(goal).
-
-% rtcheck version for native_props:fails/1
-rtc_fails(Goal) :-
-    Solved = solved(no),
-    no_exception_2(Goal, fails, _),
-    ( arg(1, Solved, no) ->
-        send_comp_rtcheck(Goal, fails, not_fails),
-        '$setarg'(1, Solved, yes, true)
-    ; true
-    ).
+% (coincides with new version)
+% :- export(rtc_fails/1).
+% :- meta_predicate rtc_fails(goal).
+% 
+% % rtcheck version for native_props:fails/1
+% rtc_fails(Goal) :-
+%     Solved = solved(no),
+%     no_exception_(Goal, fails, _),
+%     ( arg(1, Solved, no) ->
+%         send_comp_rtcheck(Goal, fails, not_fails),
+%         '$setarg'(1, Solved, yes, true)
+%     ; true
+%     ).
 
 % ----------------------------------------------------------------------
 
@@ -445,18 +507,19 @@ rtc_exception(Goal) :-
 :- meta_predicate rtc_no_exception(goal).
 
 % rtcheck version for native_props:no_exception/1
-rtc_no_exception(Goal) :- no_exception_2(Goal, no_exception, _).
+rtc_no_exception(Goal) :- no_exception_(Goal, no_exception, _).
 
 :- export(rtc_no_exception/2).
 :- meta_predicate rtc_no_exception(goal, ?).
 
 % rtcheck version for native_props:no_exception/2
-rtc_no_exception(Goal, E) :- no_exception_2(Goal, no_exception(E), E).
+rtc_no_exception(Goal, E) :- no_exception_(Goal, no_exception(E), E).
 
-:- meta_predicate no_exception_2(goal, ?, ?).
-no_exception_2(Goal, Prop, E) :-
-    catch(Goal, E, handle_no_exception_2(Goal,Prop,E)).
-handle_no_exception_2(Goal,Prop,E) :-
+:- meta_predicate no_exception_(goal, ?, ?).
+no_exception_(Goal, Prop, E) :-
+    catch(Goal, E, handle_no_exception_(Goal,Prop,E)).
+
+handle_no_exception_(Goal,Prop,E) :-
     ( ignored_exception(E) -> true % ignore and propagate
     ; send_comp_rtcheck(Goal, Prop, exception(E))
     ),
