@@ -56,6 +56,10 @@ jobs:
       - run: |
           sudo apt-get install gcc-multilib g++-multilib libc6-i386 libc6-dev-i386
         if: (matrix.sys.os == 'ubuntu-latest' && matrix.sys.arch == 'i686')
+      # Additional setup for devenv (specially documentation generation)
+      - run: |
+          sudo apt-get install emacs-nox texlive-latex-base texlive-binaries
+        if: (matrix.sys.os == 'ubuntu-latest' && matrix.sys.inskind == 'devenv')
       # Checks-out repo under $GITHUB_WORKSPACE
       - uses: actions/checkout@v2
       # Build
