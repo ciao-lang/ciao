@@ -59,6 +59,7 @@ jobs:
       # Additional setup for devenv (specially documentation generation)
       - run: |
           sudo apt-get install emacs-nox texlive-latex-base texlive-binaries
+          sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
         if: (matrix.sys.os == 'ubuntu-latest' && matrix.sys.inskind == 'devenv')
       # Checks-out repo under $GITHUB_WORKSPACE
       - uses: actions/checkout@v2
