@@ -135,6 +135,7 @@ ciaopp_lite.test.rtchecks:
     - ciaopp-test incanal hanoi nf --edit_type del --show-lat --steps 5 plai | builder/etc/errstatus
     - ciaopp-test incanal bid nf --edit_type del --show-lat --steps 5 plai | builder/etc/errstatus
     - ./bndls/ciaopp_tests/tests/incanal/test_terms_mod.sh
+    - ./bndls/ciaopp_tests/tests/ciaoppcl/ciaoppcl.sh
   needs: [ciaopp_lite]
 
 ciaopp_lite.test.incanal:
