@@ -3,6 +3,7 @@
     menu/2,
     menu/3,
     menu/4,
+    exists_menu_flag/2,
     get_menu_flag/3,
     set_menu_flag/3,
     space/1,
@@ -660,6 +661,16 @@ show_config_list([(A1, A2, A3)|As]) :-
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Save/Restore Menu Flags (to/from terms)").
+
+:- multifile menu_default/3.
+% TODO: make sure that menu_default/3 exists for all flags, add another
+% multifile otherwise just to declare the flag
+:- pred exists_menu_flag(M, F) : (atm(M), atm(F))
+   # "The flag @var{F} in the menu (-branch)
+      @var{M} has a default value.".
+exists_menu_flag(Menu, F) :-
+    functor(Menu, NMenu, _),
+    menu_default(NMenu, F, _), !.
 
 :- pred set_menu_flag(M, F, V) : (atm(M), atm(F), var(V))
    # "Set the value @var{V} of the flag @var{F} in the menu (-branch)
