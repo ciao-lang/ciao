@@ -525,7 +525,7 @@ check_for_exact_match(A,   Opt, Opt) :-
 :- push_prolog_flag(multi_arity_warnings, off).
 
 :- pred get_menu_options(Menu, Flag, V)
-    : (atom(F))
+    : (atom(Flag))
 # "All possible value sets for Menu and Flag.".
 
 get_menu_options(Menu, Flag, V) :-
@@ -785,7 +785,7 @@ restore_menu_flags(_, []).
 % all, 'Select Menu Level'   # menu_level - naive.
 % all, 'Select Action Group' # inter_all  - analyze :: all_menu_branch.
 % 
-% check(1), 'Perform Compile-Time Checks' # assert_ctcheck - on.
+% check(1), 'Perform Compile-Time Checks' # ctcheck - on.
 % ...
 % 
 % ana     , 'Select Aliasing-Mode Analysis' # modes - shfr <- true. 
@@ -862,7 +862,7 @@ restore_menu_flags(_, []).
 % @tt{inter_all} flag has to have the value ""check_assertions"" (note
 % that menu_level and inter_all defines two menu branches). If we
 % would execute only the precondition we would get:
-% [assert_ctcheck=on].
+% [ctcheck=on].
 
 % TODO: avoid this!!!
 is_true_pa('$:'('PAEnv'(true,'PA'(true, _, _)))) :- !.

@@ -78,7 +78,7 @@ analyze_cmd(Path) :-
     path_split(Path, Dir, Base),
     working_directory(ThisDir, ThisDir),
     working_directory(_, Dir), % TODO: this should not be required
-    invoke_ciaopp(['-A', Base, '-ftypes=none', '-fmodes=pdb', '-fintermod=on', '-fmenu_dump=incremental', '-fmenu_output=off']),
+    invoke_ciaopp(['-A', Base, '-ftypes=none', '-fmodes=pdb', '-fintermod=on', '-fdump=incremental', '-foutput=off']),
     invoke_ciaopp_dump([report, reach, Dump]),
     working_directory(_, ThisDir).
 
