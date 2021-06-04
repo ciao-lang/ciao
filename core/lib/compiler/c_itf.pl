@@ -103,7 +103,7 @@ compiler_name(c_itf).
 % compilation cannot deal with deep changes in the libraries (e.g.,
 % default imports) or the compiler (format, runtime information, etc.)
 
-itf_version(5).
+itf_version(6).
 
 % ---------------------------------------------------------------------------
 % (Register static compilation modules that are part of bootstrap ciaoc)
