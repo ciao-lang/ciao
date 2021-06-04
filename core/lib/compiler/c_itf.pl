@@ -17,7 +17,8 @@
    as back-end) and basic support for dynamic module loading
    (@pred{use_mod/3}).").
 
-% :- compilation_fact(itf_sections). % (Experimental)
+% itf sections: allow much faster dependecy checkings
+:- compilation_fact(itf_sections). % (comment out to disable)
 
 % ---------------------------------------------------------------------------
 
