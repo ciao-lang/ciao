@@ -1,11 +1,10 @@
-:- module(rtchecks_pretty,
-    [
-        pretty_prop/3,
-        rtcheck_to_messages/2,
-        rtcheck_to_message/3
-    ],
-    [assertions, regtypes]).
+:- module(rtchecks_pretty, [
+    pretty_prop/3,
+    rtcheck_to_messages/2,
+    rtcheck_to_message/3
+], [assertions, regtypes]).
 
+:- doc(title, "Pretty printer of rtcheck errors").
 :- doc(author, "Edison Mera").      % code
 :- doc(author, "Nataliia Stulova"). % documentation
 
@@ -78,7 +77,7 @@ rtcheck_to_message(E, Text, TextTail) :-
 rtcheck_to_message_(Type, Pred, Prop, Valid, Text, Text1) :-
     type_text(Type, TypeMsg),
     Text = [''({Pred}), ' run-time check failure.\n',
-        'Requires', TypeMsg, ': \n\t',
+        'Requires', TypeMsg, ': \n    ',
         ''({Prop}), '.'|Text0],
     ( Valid = [] -> Text0 = Text1
     ;
@@ -128,9 +127,9 @@ position_to_message(pploc(loc(S, Ln0, Ln1)),
 actual_props_to_messages(ActualProps,Messages,Tail) :-
     foldl(actual_prop_to_message, ActualProps, Messages, Tail).
 
-actual_prop_to_message(X=Y,['\n\t', ''({var(X)}) | Tail], Tail) :-
+actual_prop_to_message(X=Y,['\n    ', ''({var(X)}) | Tail], Tail) :-
     X==Y, !. % temporary fix to write var(X) instead of X=X
-actual_prop_to_message(X,['\n\t', ''({X}) | Tail], Tail).
+actual_prop_to_message(X,['\n    ', ''({X}) | Tail], Tail).
 % TODO: Use toplevel to print bindings right (e.g. X=Y instead of X=_1, Y=_1).
 % TODO: (wishlist) Use natural language descriptions for properties
 % (taken for their definition, as lpdoc does).
