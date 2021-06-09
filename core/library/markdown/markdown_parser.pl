@@ -272,6 +272,8 @@ parse_text_(Layout0, _PrevC, StrHead, StrTail, Envs) -->
       { Row >= 1 } ->
         % Flush and parse the next line front.
         { Envs1 = [env('text', "\n")|Envs0] }
+    ; skip_blanks(_), sc_empty -> % No more characters
+        { Envs1 = Envs0 }
     ; % Flush and parse the next line front.
       { Envs1 = [env('text', " ")|Envs0] } % just a blank
     ),
