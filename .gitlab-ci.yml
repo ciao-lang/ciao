@@ -221,14 +221,16 @@ wui:
       - third-party/
   needs: [install]
 
-catalog_ui:
+website:
   stage: test
   allow_failure: true
   script:
-    - touch bndls/catalog_ui/ACTIVATE
+    - touch bndls/website/ACTIVATE
     - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
     - ciao rescan-bundles
-    - ciao build --bin catalog_ui 2>&1 | builder/etc/errstatus
+    - ciao custom_run website fetch_externals
+    - ciao build --bin website 2>&1 | builder/etc/errstatus
+    - ciao custom_run website dist
   needs: [wui]
 
 core.test:
