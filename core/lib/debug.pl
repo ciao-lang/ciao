@@ -5,5 +5,5 @@
 
 :- use_package(library(debugger/embedded)).
 % TODO: Not very nice, avoid this use of initialization!
-:- initialization((this_module(M), debug_module(M), debug)).
+:- initialization((this_module(M), (M=user(_) -> debug_module(user) ; debug_module(M)), debug)).
 
