@@ -47,8 +47,9 @@
 % NOTE: (For offline menu generation)
 % TODO: as multifile?
 opt_to_menu(optimize,         opt). % all_menu_branch
-opt_to_menu(analyze,          ana). % all_menu_branch
-opt_to_menu(check_assertions, check). % all_menu_branch
+%opt_to_menu(analyze,          ana). % all_menu_branch % TODO: old menu
+opt_to_menu(analyze_check,    ana). % all_menu_branch
+%opt_to_menu(check_assertions, check). % all_menu_branch % TODO: old menu
 opt_to_menu(parallelize,      para). % opt_menu_branch
 opt_to_menu(poly_spec,        sp_poly). % opt_menu_branch
 opt_to_menu(analyze,          java_ana). % java_all_menu_branch
