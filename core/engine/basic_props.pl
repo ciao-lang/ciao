@@ -186,9 +186,12 @@ constant(T) :- num(T).
 :- trust comp cgoal(T) : nonvar(T) + (eval, is_det).
 :- trust success cgoal(T) => nonvar(T).
 
-:- impl_defined(cgoal/1). % TODO: make sure that struct/1 is properly recognized!
+% :- impl_defined(cgoal/1). % TODO:T279
 %cgoal(T) :- atm(T).
-%cgoal(T) :- struct(T).
+%cgoal(T) :- struct(T). % TODO: make sure that struct/1 is properly recognized!
+% (instantiation check version)
+cgoal(T) :- atom(T).
+cgoal(T) :- nonvar(T), functor(T, _, A), A>0. % compound(T).
 
 % TODO: move to term_typing module (next to atom/1, etc.)
 :- prop callable(T) % + native
