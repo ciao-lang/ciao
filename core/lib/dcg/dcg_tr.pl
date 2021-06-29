@@ -12,7 +12,7 @@
 :- doc(title,"Definite Clause Grammars (expansion module)").
 
 :- doc(author, "Daniel Cabeza").
-:- doc(author, "Jose F. Morales (support for phrase/{2,3})").
+:- doc(author, "Jose F. Morales (support for phrase/@{2,3@})").
 
 :- doc(module, "This module implements the translation for Definite
    Clause Grammars (DCGs).").

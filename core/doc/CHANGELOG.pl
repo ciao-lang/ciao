@@ -71,10 +71,10 @@
        descriptors.
      @item ADDED: Added stream_utils:copy_stream/3 predicate (copies bytes from one
        stream to the other).
-     @item ADDED: Extended @tt{io_once_port_reify/\\{3,4\\}} with better redirections
+     @item ADDED: Extended @tt{io_once_port_reify/@{3,4@}} with better redirections
        (subset of process channels available for @tt{process_call/3}).
      @item ADDED: Parsing of version strings (@tt{version_strings:version_parse/4}).
-     @item IMPROVED: Heuristics in @tt{write_assertion/\\{6,7\\}}, more
+     @item IMPROVED: Heuristics in @tt{write_assertion/@{6,7@}}, more
        readable output.
      @item IMPROVED: Allow JSON values (not only lists) as top argument for
        JSON write and parse.
@@ -98,7 +98,7 @@
    @item ISO and Portability:
      @begin{itemize}
      @item ADDED: Implemented @tt{at_end_of_stream/0},
-       @tt{at_end_of_stream/1}. Peek byte in @tt{at_end_of_stream/\\{0,1\\}} for
+       @tt{at_end_of_stream/1}. Peek byte in @tt{at_end_of_stream/@{0,1@}} for
        improved ISO compatibility.
      @item ADDED: Implemented @tt{peek_byte/1}, @tt{peek_byte/2}.
      @item ADDED: Added call_det/2 predicate (compatible with @tt{gprolog}).
@@ -1919,6 +1919,6 @@
    evolution of the &-Prolog engine/libraries/preprocessor
    @cite{Hampaper,ngc-and-prolog} many functionalities from several
    previous independent development versions of Ciao
-   @cite{ciao-prolog-compulog,ciao-ppcp,att-var-iclp,ciao-manual-tr," ||
-   "ciao-comp-dist-tr-deliv,ciao-ilps95,ciao-jicslp96-ws-update,pillow-ws-dist," ||
-   "ciao-novascience}.").
+   @cite{ciao-prolog-compulog,ciao-ppcp,att-var-iclp,ciao-manual-tr,
+   ciao-comp-dist-tr-deliv,ciao-ilps95,ciao-jicslp96-ws-update,pillow-ws-dist,
+   ciao-novascience}.").
