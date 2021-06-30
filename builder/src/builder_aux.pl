@@ -165,6 +165,28 @@ generate_version_auto(Bundle, File) :-
     update_file_from_clauses([version(VersionAtm)], File, _).
 
 % ---------------------------------------------------------------------------
+
+:- use_module(library(bundle/bundle_flags), [current_bundle_flag/2]).
+:- use_module(engine(internals), ['$bundle_id'/1]).
+:- use_module(library(aggregates), [findall/3]).
+
+:- export(generate_config_auto/2).
+% Create a file (ConfigFile) with configuration conditional compilation facts
+% TODO: currently only for available bundles
+
+generate_config_auto(ConfigFile, HasBundles) :-
+    update_file_from_clauses(~findall(C, emit_config_has_bundle(HasBundles, C)), ConfigFile, _).
+
+emit_config_has_bundle(HasBundles, C) :-
+    member(B, HasBundles),
+    '$bundle_id'(B),
+    ( Enabled = ~current_bundle_flag(B:enabled) -> Enabled = yes % flag is 'yes'
+    ; true % enabled by default (no 'enabled' flag)
+    ),
+    atom_concat('has_', B, Fact),
+    C = (:- compilation_fact(Fact)).
+
+% ---------------------------------------------------------------------------
 % TODO: move somewhere else?
 
 :- use_module(library(write), [portray_clause/2]).
