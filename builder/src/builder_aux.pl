@@ -171,7 +171,16 @@ generate_version_auto(Bundle, File) :-
 :- use_module(library(aggregates), [findall/3]).
 
 :- export(generate_config_auto/2).
-% Create a file (ConfigFile) with configuration conditional compilation facts
+% Create a file (ConfigFile) with configuration conditional
+% compilation facts as follows:
+%
+%  - Every bundle `Bundle` in the `HasBundles` list is translated into
+%    a sentence when the bundle is available (and if it defines the
+%    `enabled` flag, when its value is `yes`):
+%    ```
+%    :- compilation_fact(has_<<Bundle>>)`.
+%    ```
+
 % TODO: currently only for available bundles
 
 generate_config_auto(ConfigFile, HasBundles) :-
