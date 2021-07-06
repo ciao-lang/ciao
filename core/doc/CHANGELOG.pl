@@ -306,11 +306,11 @@
      @item FIXED: Fix evaluation of right shift with large numbers.
      @item FIXED: Fixed round-trip property in float to string and
        string to float conversions. The new code is based on the
-       extremelly fast Ryu algorithm (see 2018 paper).
+       extremely fast Ryu algorithm (see 2018 paper).
      @item FIXED: Added @tt{lib(engine)} to @tt{core/Manifest} (this
        ensures that @tt{engine/} files are copied in global
        installations).
-     @item FIXED: Thread-safe and more efficient reimplemenation of
+     @item FIXED: Thread-safe and more efficient reimplementation of
        exceptions.
      @item FIXED: Handler for signals that are not intercepted.
      @item FIXED: Fix right shift of negative @tt{smallint}. For

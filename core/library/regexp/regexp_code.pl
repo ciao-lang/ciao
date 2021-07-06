@@ -145,9 +145,9 @@ get_alternative([Ch|RestIn],[Ch|Pattern],_,End) :-
    | in between form an expression that matches anything that either A or B
    will match.
   @item{@{n,m@}} Matches between n and m (both inclusive) occurrences of
-   previous group of characteres. {n} is equivalent to {n,n}, {,n} is
-   equivalent to {0,n}, and {n,} is equivalent to {n,infinite}.
-  @item{\\} Quotes a special character (including itself).
+   previous group of characteres. @{n@} is equivalent to @{n,n@}, @{,n@} is
+   equivalent to @{0,n@}, and @{n,@} is equivalent to @{n,infinite@}.
+  @item{\\\\} Quotes a special character (including itself).
  @end{description}").
 
 :- export(posix_regexp/1).

@@ -36,7 +36,7 @@ yes
 %:- trust pred is(X,Y) : arithexpression(Y) => num(X) + iso.
 
 :- doc(bug, "We could improve the precision if we had
-    (arithexpression,\+intexpression) but we need a relational
+    (arithexpression,\\\\+intexpression) but we need a relational
     domain. -- EMM, JFMC").
 
 :- test (X is Y) : (Y = sqrt(4)) => (X = 2.0) # "is/2, sqrt

@@ -86,7 +86,7 @@ is equivalent to
 
   @item{@{...@}} Groups alternatives inside larger @em{regexp_shell}s.
 
-  @item{@tt{\\}} Quotes a special character (including itself).
+  @item{@tt{\\\\}} Quotes a special character (including itself).
 
   @end{description}").
 
