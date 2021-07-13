@@ -264,8 +264,8 @@
        framework).
      @item CHANGED: Made the semantics of shared variables in
        predicate abstractions more strict. Now only the variables
-       specified in @tt{ShVs} for @tt{call((ShVs -> ''(...) :- ...),
-       ...)}  will share with the caller's body variables. No other
+       specified in @tt{ShVs} for @tt{call((ShVs -> ''(...) :- ...), ...)}
+       will share with the caller's body variables. No other
        variables will be implicitly shared.
      @item CHANGED: Conditional compilation is built-in in the
        compiler now.  This improves the portability of some
