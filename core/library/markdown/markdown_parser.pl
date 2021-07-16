@@ -288,6 +288,13 @@ parse_text_(Layout, _PrevC, StrHead, StrTail, Envs) -->
     { flush_text(StrHead, StrTail, Envs, Envs1) },
     { Envs1 = [env('text', "{"), env('text', Text), env('text', "}")|Envs0] },
     parse_text(Layout, Envs0).
+parse_text_(Layout, _PrevC, StrHead, [C,C2,C3|StrTail], Envs) -->
+    % Keep @`{ as a command
+    sc_char(C), { cmdchar(C) },
+    sc_char(C2), { C2 = 0'` },
+    sc_char(C3), { C3 = 0'{ },
+    !,
+    parse_text_(Layout, C3, StrHead, StrTail, Envs).
 parse_text_(Layout, _PrevC, StrHead, StrTail, Envs) -->
     % Escape markdown
     sc_char(C), { cmdchar(C) },
@@ -296,6 +303,12 @@ parse_text_(Layout, _PrevC, StrHead, StrTail, Envs) -->
     { flush_text(StrHead, StrTail, Envs, Envs1) },
     { Envs1 = [env('text', [C2])|Envs0] },
     parse_text(Layout, Envs0).
+parse_text_(Layout, _PrevC, StrHead, [C,C|StrTail], Envs) -->
+    % Two cmdchar, keep them
+    sc_char(C), { cmdchar(C) },
+    sc_char(C),
+    !,
+    parse_text_(Layout, C, StrHead, StrTail, Envs).
 parse_text_(Layout, _PrevC, StrHead, StrTail, Envs) -->
     % Markup verbatim
     % TODO: better support for codeblock in markup? (not markdown) note that verbatim still allows commands inside!
