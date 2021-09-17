@@ -857,7 +857,7 @@ restore_menu_flags(_, []).
 % it looks up to find out the guard composed by flags that will activate
 % the flag. 
 %
-% For example, for the given flag @tt{ass_not_stat_eval}, the path is:
+% For example, for the given flag @tt{asr_not_stat_eval}, the path is:
 % [menu_level=expert, inter_all=check_assertions], that means that
 % @tt{menu_level} flag has to have the value ""expert"" and the
 % @tt{inter_all} flag has to have the value ""check_assertions"" (note
