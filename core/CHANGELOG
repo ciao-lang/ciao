@@ -420,14 +420,14 @@ Version 1.19 (2020/3/20, 14:48:45 CET)
 
              * FIXED: Fixed round-trip property in float to string and
                string to float conversions. The new code is based on
-               the extremelly fast Ryu algorithm (see 2018 paper).
+               the extremely fast Ryu algorithm (see 2018 paper).
 
              * FIXED: Added `lib(engine)' to `core/Manifest' (this
                ensures that `engine/' files are copied in global
                installations).
 
-             * FIXED: Thread-safe and more efficient reimplemenation of
-               exceptions.
+             * FIXED: Thread-safe and more efficient reimplementation
+               of exceptions.
 
              * FIXED: Handler for signals that are not intercepted.
 
