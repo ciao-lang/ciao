@@ -115,7 +115,7 @@ $(ENG_SO): $(OBJFILES)
 # TODO: how deal with ENG_DEPLIBS?
 $(ENG_A): $(OBJFILES)
 ifeq ($(CC),emcc) # Mimick libtool for emcc
-	@llvm-ar cr $(ENG_A) $(OBJFILES) && llvm-ranlib $(ENG_A)
+	@emar cr $(ENG_A) $(OBJFILES) && emranlib $(ENG_A)
 else ifeq ($(shell uname -s),Darwin)
 	@$(LIBTOOL) -static $(LIBTOOL_OPTS) -o $(ENG_A) $(OBJFILES)
 else
