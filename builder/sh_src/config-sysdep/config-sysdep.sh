@@ -458,8 +458,20 @@ case "$CIAOOS$CIAOARCH" in
         # files)
         CFLAGS="-I$bld_srcdir $CFLAGS"
         # Optimization flags must be included during link
-        # TODO: extra flags are passed with EMMAKEN_CFLAGS
         LDFLAGS="$LDFLAGS $OPTIM_FLAGS"
+        # Other hardwired options (see ciaojs)
+        # TODO: customize
+        LDFLAGS="$LDFLAGS \
+-s MAIN_MODULE=2 \
+-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['\$Browser'] \
+-s LZ4=1 \
+-s FORCE_FILESYSTEM=1 \
+-s EXPORTED_RUNTIME_METHODS='[\
+  \"FS_createPath\",\
+  \"addRunDependency\",\
+  \"removeRunDependency\",\
+  \"ccall\",\
+  \"cwrap\"]'"
         ;;
 esac
 
@@ -484,6 +496,19 @@ fi
 # several words are correctly assigned (i.e., V="foo bar" or V=foo
 # bar).
 
+# (more complete quoting, used only for some flags)
+qflag() { # q str
+    if [ "$1" == "" ]; then # (Make)
+        # escape $ as $$
+        printf "%s" "$2" | sed -e "s/\\\$/\$\$/g"
+    else # (sh)
+        # escape ' as '"'"', $ as \$
+        printf "$1"
+        printf "%s" "$2" | sed -e "s/'/'\"'\"'/g;s/\\\$/\\\\\$/g"
+        printf "$1"
+    fi
+}
+
 # Settings for C compiler (used in engine/Makefile)
 dump_config_ccomp() { # $1 is the quotation char
     local q=$1
@@ -497,9 +522,9 @@ LD=$q$LD$q
 CCSHARED=$q$CCSHARED$q
 LDSHARED=$q$LDSHARED$q
 CFLAGS=$q$CFLAGS$q
-LDFLAGS=$q$LDFLAGS$q
+LDFLAGS=$(qflag "$q" "$LDFLAGS")
 LIBENG_CFLAGS=$q$LIBENG_CFLAGS$q
-LIBENG_LDFLAGS=$q$LIBENG_LDFLAGS$q
+LIBENG_LDFLAGS=$(qflag "$q" "$LIBENG_LDFLAGS")
 ENG_STUBMAIN_DYNAMIC=$q$ENG_STUBMAIN_DYNAMIC$q
 EOF
 }
@@ -527,4 +552,5 @@ EOF
 mkdir -p "$bld_cfgdir"
 dump_config_platform "'" > "$bld_cfgdir/config_sh"
 dump_config_ccomp "" > "$bld_cfgdir/config_mk"
+
 
