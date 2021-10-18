@@ -29,7 +29,7 @@
 :- use_module(library(assertions/assertions_props)).
 :- use_module(library(assertions/c_itf_props)).
 
-:- use_module(library(lists), [member/2, append/3]).
+:- use_module(library(lists), [member/2, append/3, cross_product/2, delete/3]).
 :- use_module(library(messages)).
 
 %% ---------------------------------------------------------------------------
@@ -343,6 +343,7 @@ normalize_properties(Ass,NAss,M,F/A,Opts,AType,S,LB,LE) :-
     % Normalize special properties (e.g., mshare/1)
     norm_addhv_props(CNCP0,NPD,CNCP),
     norm_addhv_props(CNAP0,NPD,CNAP),
+    % TODO: Possibly sort to prettify and avoid duplicate properties.
     !.
 normalize_properties(Ass,_,M,_FA,_Opts,_AT,S,LB,LE):-
     assertion_body(PD,  _DP, _CP, _AP, _GP,_CO,Ass),
@@ -669,14 +670,18 @@ denorm_goal_prop(NGP,GP,NPD) :-
 
 
 norm_addhv_props([],_,[]).
-norm_addhv_props([P0|Ps0],PD,[P|Ps]) :-
-    norm_addhv_prop(P0,PD,P),
-    norm_addhv_props(Ps0,PD,Ps).
+norm_addhv_props([P0|Ps0],PD,Ps) :-
+    norm_addhv_prop(P0,PD,Ps,PsT),
+    norm_addhv_props(Ps0,PD,PsT).
 
 % TODO: (JF) keep as meta-predicate or context annotation for 'native_props:mshare'/1
 
 :- use_module(library(terms_vars), [varset/2]).
-norm_addhv_prop(mshare(Sh),PD,mshare(Vs,Sh)) :- !,
+norm_addhv_prop(mshare(Sh),PD,[mshare(Vs,Sh)|T],T) :- !,
     varset(PD,Vs). % TODO: or maybe varset(Sh,Vs)?
 % TODO: ensure Sh sorted w.r.t Vs?
-norm_addhv_prop(P,_,P).
+norm_addhv_prop(ivar(X),PD,[var(X),indep(CP)|T],T) :- !,
+    varset(PD,Vs0),
+    delete(Vs0,X,Vs),
+    cross_product([[X],Vs],CP).
+norm_addhv_prop(P,_,[P|T],T).

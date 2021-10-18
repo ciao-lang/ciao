@@ -115,6 +115,24 @@ indep([[X, Y]|L]) :- indep(X, Y), indep(L).
 :- endif.
 
 % --------------------------------------------------------------------------
+:- export(ivar/1).
+:- doc(ivar(X), "@var{X} is a free variable independent of the rest of
+   the variables appearing in the head of the predicate.
+
+   For a predicate @tt{p(X0, ..., Xn)}, @tt{ivar(X0)} conceptually
+   expands to @tt{(var(X0), indep([[X0,X1], ..., [X0,Xn]]))}.
+").
+
+:- prop ivar(X)
+   # "@var{X} is a free independent variable.".
+
+:- if(defined(optim_comp)).
+:- '$props'(ivar/1, [impnat=indefinable]).
+:- else.
+:- impl_defined(ivar/1).
+:- endif.
+
+% --------------------------------------------------------------------------
 :- export(nonground/1).
 :- prop nonground(X) + native(not_ground(X))
    # "@tt{@var{X}} is not ground.".
