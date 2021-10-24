@@ -1,17 +1,17 @@
-## Bug Summary
+## Bug description
 
-(Summarize the bug encountered concisely)
+Describe the bug concisely.
 
 ## Steps to reproduce
 
-(How to reproduce the issue)
+How to reproduce it.
 
-## What is the current bug behavior?
+## Current vs expected behavior
 
-(What actually happens)
+What actually happens and what should happen instead.
 
-## What is the expected correct behavior?
+## Hints for a fix
 
-(What should happen instead)
+If known, add here any hints to fix it.
 
 /label ~Bug

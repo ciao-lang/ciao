@@ -1,9 +1,9 @@
-## Feature Summary
+## Feature description
 
-(Summarize the new feature concisely)
+Describe the new feature concisely (if possible with examples).
 
-## Why do we want it?
+## Benefits
 
-(How is this feature useful?)
+For whom and why.
 
 /label ~NewFeature

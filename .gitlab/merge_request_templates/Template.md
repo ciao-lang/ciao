@@ -1,15 +1,24 @@
-(_Relevant module name_) _Commit message_
-
-**Copy issue description without labels**
+(_component_) _One-line description_
 
 ## Summary
 
-_Explain your solution, changes w.r.t. previous code and mention any
-noteworthy aspect of this MR_
+Description and motivation of this MR here. If there exist, you may
+reuse text from the issue overview here.
 
-## Why is it the best solution now?
+For **bug fixes**, this text this should answer (directly or indirectly):
+ - What was broken? (use examples)
+ - Wht is the expected behavior? (use examples)
+ - How is it fixed? (overview of the fix)
+ - (if applicable) Are there alternative (better) fixes? (which for
+   some reason we do not implement here)
 
-_(Only if not explained above) Explain why your solution is
-implemented this way._
+For **new features**, this text should answer:
+ - What this new feature adds?
+ - What are the benefits (for whom and why)?
+
+## Detailed description
+
+If it not trivial, describe which files, modules, predicates, etc. has
+been added/changed.
 
 Closes #_Issue number_
