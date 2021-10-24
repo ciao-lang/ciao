@@ -89,7 +89,7 @@ sub_atom(Atom, Before, Lenght, After, Sub_atom) :-
         atom_length(Sub_atom, SL),
         Lenght = SL,
         R is L-Lenght,
-        R > 0,
+        R >= 0,
         between(0, R, Before),
         After is R-Before,
         sub_atom(Atom, Before, Lenght, Sub_atom)
