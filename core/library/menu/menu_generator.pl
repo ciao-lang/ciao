@@ -159,6 +159,22 @@ mul_display(L) :-
     nmul_display(L, 0, 79).
 
 nmul_display([A|R], Init, Max) :-
+    number(A),
+    !,
+    line_position(user_output, Current),
+    %atom_length(A, AL),
+    AL = 2,
+    (
+        AL + Current > Max
+    ->
+        nl,
+        space(Init)
+    ;
+        true
+    ),
+    display(user, A),
+    nmul_display(R, Init, Max).
+nmul_display([A|R], Init, Max) :-
     atom(A),
     !,
     line_position(user_output, Current),
@@ -187,9 +203,11 @@ nmul_display([], _, _).
 
 list_display([],  _,    _) :- !.
 list_display([A], Init, Max) :- !,
-    atom(A),
+    ( atom(A) ->
+        atom_length(A, AL)
+    ; AL = 1
+    ),
     line_position(user_output, Current),
-    atom_length(A, AL),
     ( AL + Current + 1 > Max ->
         nl,
         space(Init)
@@ -198,9 +216,11 @@ list_display([A], Init, Max) :- !,
     display(user, A),
     display(user, ']').
 list_display([A|R], Init, Max) :- !,
-    atom(A),
+    ( atom(A) ->
+        atom_length(A, AL)
+    ; AL = 1
+    ),
     line_position(user_output, Current),
-    atom_length(A, AL),
     ( AL + Current + 2 > Max ->
         nl,
         space(Init)
@@ -508,6 +528,11 @@ closest_option(List, Opt, OptOut) :-
 %
 atom_sub_member([],     _,   []).
 atom_sub_member([A|As], Opt, [A|Os]) :-
+    Opt = A,
+    !,
+    atom_sub_member(As, Opt, Os).
+atom_sub_member([A|As], Opt, [A|Os]) :-
+    atom(Opt),
     atom_concat(Opt, _, A),
     !,
     atom_sub_member(As, Opt, Os).
