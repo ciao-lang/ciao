@@ -4,7 +4,7 @@
 #
 #  Boot the Ciao builder (with or without sources)
 #
-#  Copyright (C) 2015-2020 Ciao Developer Team
+#  Copyright (C) 2015-2022 Ciao Developer Team
 #
 
 # Boot from existing sources
@@ -22,8 +22,10 @@ fi
 
 set_defaults() {
     default_bundle=ciao
-    # default_vers_bin=1.19.0 # TODO: add option
-    default_vers_bin=1.20.0
+    default_channel=stable # TODO: add option for custom versions
+    #default_channel=alpha
+    default_vers_stable=1.20.0
+    default_vers_alpha=1.21.0-alpha.4
     default_vers_src=master
     default_prebuilt=yes # TODO: make it depend on selected version?
     default_url_src=https://github.com/ciao-lang/ciao/archive
@@ -53,7 +55,11 @@ get_os_arch() { # (simpler version of ciao_sysconf)
 
 select_vers() { # requires: prebuilt
     if [ $prebuilt = yes ]; then
-        vers=$default_vers_bin
+        if [ $channel = alpha ]; then
+            vers=$default_vers_alpha
+        else
+            vers=$default_vers_stable
+        fi
     else
         vers=$default_vers_src
     fi
@@ -94,8 +100,8 @@ interactive() {
     # the '--interactive' flag in the builder.
     get_os_arch
     cat <<EOF
-   ▄▄▄                    Default source version: $default_vers_src
- ▄▀   ▀ ▀   ▄▄▄   ▄▄▄     Default binary version: $default_vers_bin
+   ▄▄▄
+ ▄▀   ▀ ▀   ▄▄▄   ▄▄▄     Default stable version: $default_vers_stable
  █      █  █   █ █   █    Detected OS: $os
   ▀▄▄▄▀ ▀▄▄▀▄▄▀█▄▀▄▄▄▀    Detected architecture: $arch
 
@@ -118,6 +124,7 @@ EOF
     printf "Install the development environment? (yes/no) "
     read use_devenv < /dev/tty
 
+    channel=stable # TODO: fixed in interactive
     if [ x"$use_devenv" = x"no" ]; then
         printf "Install a prebuilt distribution? (yes/no) "
         read prebuilt < /dev/tty
@@ -197,7 +204,7 @@ EOF
 Installation is completed!
 EOF
     if [ x"$update_shell" = x"no" ]; then
-        select_vers # set 'vers' based on 'prebuilt'
+        select_vers # set 'vers' based on 'channel' and 'prebuilt'
         cat <<EOF
 
 Now you can enable this installation manually with (bash, zsh):
@@ -218,8 +225,10 @@ fetch_and_boot() { # args
     fi
 
     bundle=$default_bundle
+    channel=$default_channel
     prebuilt=$default_prebuilt
     case $1 in
+        --prebuilt-alpha) shift; prebuilt=yes; channel=alpha ;; # TODO: improve channel selection
         --prebuilt) shift; prebuilt=yes ;;
         --no-prebuilt) shift; prebuilt=no ;;
     esac
