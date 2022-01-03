@@ -24,8 +24,11 @@ set_defaults() {
     default_bundle=ciao
     default_channel=stable # TODO: add option for custom versions
     #default_channel=alpha
+    default_tag_stable=1.20.0
     default_vers_stable=1.20.0
-    default_vers_alpha=1.21.0-alpha.4
+    default_tag_alpha=1.21.0-alpha.4
+    default_vers_alpha=1.21.0
+    default_tag_src=master
     default_vers_src=master
     default_prebuilt=yes # TODO: make it depend on selected version?
     default_url_src=https://github.com/ciao-lang/ciao/archive
@@ -56,8 +59,10 @@ get_os_arch() { # (simpler version of ciao_sysconf)
 select_vers() { # requires: prebuilt
     if [ $prebuilt = yes ]; then
         if [ $channel = alpha ]; then
+            tag=$default_tag_alpha
             vers=$default_vers_alpha
         else
+            tag=$default_tag_stable
             vers=$default_vers_stable
         fi
     else
@@ -65,13 +70,13 @@ select_vers() { # requires: prebuilt
     fi
 }
 
-select_url() { # requires: prebuilt, vers
+select_url() { # requires: prebuilt, tag, vers
     if [ $prebuilt = yes ]; then
         get_os_arch
         cfg=$os$arch
-        url=$default_url_bin/v$vers/ciao-$vers-$cfg.tar.gz
+        url=$default_url_bin/v$tag/ciao-$vers-$cfg.tar.gz
     else
-        url=$default_url_src/$vers.tar.gz
+        url=$default_url_src/$tag.tar.gz
     fi
 }
 
@@ -204,13 +209,13 @@ EOF
 Installation is completed!
 EOF
     if [ x"$update_shell" = x"no" ]; then
-        select_vers # set 'vers' based on 'channel' and 'prebuilt'
+        select_vers # set 'vers' and 'tag' based on 'channel' and 'prebuilt'
         cat <<EOF
 
 Now you can enable this installation manually with (bash, zsh):
-  eval \$(~/.ciaoroot/$vers/build/bin/ciao-env --sh)
+  eval \$(~/.ciaoroot/$tag/build/bin/ciao-env --sh)
 or (csh):
-  eval \`~/.ciaoroot/$vers/build/bin/ciao-env --csh\`
+  eval \`~/.ciaoroot/$tag/build/bin/ciao-env --csh\`
 EOF
     fi
     echo
@@ -233,14 +238,14 @@ fetch_and_boot() { # args
         --no-prebuilt) shift; prebuilt=no ;;
     esac
     select_vers
-    ciaoroot=$HOME/.ciaoroot/$vers
+    ciaoroot=$HOME/.ciaoroot/$tag
 
     # Prepare for download
     # TODO: split tar.gz into source, bin-$os$arch, etc. so that there is
     #   no overlapping and we can do multi-architecture installs
     if [ -x "$ciaoroot" ]; then
         cat <<EOF
-ERROR: '$vers' seems to be already installed at:
+ERROR: '$tag' seems to be already installed at:
 
   $ciaoroot
 
@@ -252,7 +257,7 @@ EOF
     mkdir -p "$ciaoroot"
     # Download
     select_url
-    normal_message "fetching $bundle ($vers) from $url"
+    normal_message "fetching $bundle ($tag) from $url"
     fetch_url
     # Boot
     cd "$ciaoroot" # TODO: really needed now?
