@@ -498,7 +498,7 @@ fi
 
 # (more complete quoting, used only for some flags)
 qflag() { # q str
-    if [ "$1" == "" ]; then # (Make)
+    if [ "$1" = "" ]; then # (Make)
         # escape $ as $$
         printf "%s" "$2" | sed -e "s/\\\$/\$\$/g"
     else # (sh)
