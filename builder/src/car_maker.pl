@@ -115,7 +115,7 @@ eng_create_init(Eng) :-
     F = ~path_concat(~eng_path(cdir, Eng), 'eng_static_mod.c'),
     EngOpts = ~eng_opts(Eng),
     eng_static_mod_c(EngOpts, Text, []),
-    mkpath_and_write(Text, F).
+    mkpath_and_update(Text, F).
 
 eng_static_mod_c(EngOpts) --> { member(static_bases(Bases), EngOpts) }, !,
     stat_mod_inits(Bases).
@@ -182,7 +182,7 @@ config_sysdep_sh := ~bundle_path(builder, 'sh_src/config-sysdep/config-sysdep.sh
 
 create_eng_meta_sh(Eng, CfgInput, EngMetaSh) :-
     eng_meta_sh(Eng, CfgInput, Text, []),
-    mkpath_and_write(Text, EngMetaSh).
+    mkpath_and_update(Text, EngMetaSh).
 
 % TODO: Document: many dirs with .c and .h are "materalized" into a single code view during build_car.sh
 eng_meta_sh(Eng, CfgInput) -->
@@ -279,19 +279,13 @@ eng_prebuild_version_info(Eng) :-
 gen_eng_version_h(VerBundle, Eng) :-
     H = ~path_concat(~eng_path(hdir, Eng), ~eng_h_alias(Eng)),
     VerH = ~path_concat(H, 'version.h'),
-    ( file_exists(VerH) -> % TODO: update file if contents change
-        true
-    ; version_h(VerBundle, TextH, []),
-      mkpath_and_write(TextH, VerH)
-    ).
+    version_h(VerBundle, TextH, []),
+    mkpath_and_update(TextH, VerH).
 
 gen_eng_version_c(VerBundle, Eng) :-
     VerC = ~path_concat(~eng_path(cdir, Eng), 'version.c'),
-    ( file_exists(VerC) -> % TODO: update file if contents change
-        true
-    ; version_c(VerBundle, TextC, []),
-      mkpath_and_write(TextC, VerC)
-    ).
+    version_c(VerBundle, TextC, []),
+    mkpath_and_update(TextC, VerC).
 
 version_h(Bundle) -->
     "#ifndef _CIAO_VERSION_H\n",
@@ -393,11 +387,12 @@ get_sysconf(Args, Val) :-
 
 :- use_module(library(pathnames), [path_dirname/2]).
 :- use_module(library(system_extra), [mkpath/1]).
-:- use_module(library(stream_utils), [string_to_file/2]).
+:- use_module(ciaobld(builder_aux), [update_file_from_string/3]).
 
-% Write Text to F, make sure that the path exists
-mkpath_and_write(Text, F) :-
+% Make sure that the path to F exists and write Text to F, preserving
+% the timestamp if the contents did not change.
+mkpath_and_update(Text, F) :-
     path_dirname(F, D),
     mkpath(D),
-    string_to_file(Text, F).
+    update_file_from_string(Text, F, _).
 

@@ -233,7 +233,7 @@ update_file_from_clauses(Clauses, Path, NewOrOld) :-
 % Like @pred{string_to_file/2} but preserves timestamp if file
 % contents have not changed.
 update_file_from_string(String, Path, NewOrOld) :-
-    mktemp_in_tmp('clauses-XXXXXX', File),
+    mktemp_in_tmp('string-XXXXXX', File),
     string_to_file(String, File),
     move_if_diff(File, Path, NewOrOld).
 

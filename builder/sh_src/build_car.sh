@@ -224,6 +224,7 @@ linkhere() {
 }
 
 # Writes the input to FILE, only if contents are different (preserves timestamps)
+# (equivalento to builder_aux:update_file_from_string/3)
 # TODO: Use 'update_file' in other parts of the build process (for some _auto.pl files and configuration options)
 update_file() { # FILE
     local t="$1""-tmp-$$"
