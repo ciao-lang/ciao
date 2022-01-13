@@ -50,7 +50,7 @@ $ ciaoc hello
 @noindent This produces an executable called @tt{hello} in Unix
 systems and @tt{hello.cpx} under Win32 systems.  This executable can
 then be run in Win32 by double-clicking on it and on Unix systems by
-simply typing its name (see for @ref{Running executables from the
+simply typing its name (see @ref{Running executables from the
 command line} for how to run executables from the command line in
 Win32):
 
