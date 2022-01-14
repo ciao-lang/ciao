@@ -99,9 +99,9 @@ __inline__ uint64 hrtime(void) {
 
 #define hrtime()                                        \
   ({                                                    \
-    register uint64 x;                                  \
+    register uint64 t;                                  \
     __asm__ __volatile__ ("mftb %0"  : "=r"(t));        \
-    x;                                                  \
+    t;                                                  \
   })
 
 #define hrfreq() ((uint64)1<<20)

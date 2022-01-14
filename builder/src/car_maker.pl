@@ -369,11 +369,13 @@ sysconf_arch(M32, M64, Arch) :-
 arch32('Sparc64', 'Sparc') :- !.
 arch32('x86_64', 'i686') :- !.
 arch32('ppc64', 'ppc') :- !.
+arch32('ppc64le', 'ppc') :- !.
 arch32(Arch, Arch). % assume 32-bit
 
 arch64('Sparc64', 'Sparc64') :- !.
 arch64('x86_64', 'x86_64') :- !.
 arch64('ppc64', 'ppc64') :- !.
+arch64('ppc64le', 'ppc64le') :- !.
 arch64(_, empty). % force error % TODO: emit error instead?
 
 ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
