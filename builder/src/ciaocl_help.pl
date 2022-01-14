@@ -313,7 +313,7 @@ grp_details(install_grp, [
     ~common_opts_details
 ]).
 
-grp_def(test_grp, "Test automation and benchmarking").
+grp_def(test_grp, "Test automation and benchmarking (requires devenv)").
 %
 cmd_grp(test, test_grp).
 % TODO: Split into unit tests and the more advanced testing/benchmarking driver
