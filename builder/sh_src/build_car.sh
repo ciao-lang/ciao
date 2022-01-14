@@ -443,6 +443,7 @@ car_config() { # (configure options)
                 Sparc64) opt__ARCH=Sparc ;;
                 x86_64)  opt__ARCH=i686 ;;
                 ppc64)   opt__ARCH=ppc ;;
+                ppc64le) opt__ARCH=ppc ;; # 32-bit PowerPC is only big-endian
                 *) true ;; # assume 32-bit
             esac
         fi
@@ -452,6 +453,7 @@ car_config() { # (configure options)
                 Sparc64) true ;;
                 x86_64)  true ;;
                 ppc64)   true ;;
+                ppc64le) true ;;
                 aarch64) true ;;
                 *) opt__ARCH=empty ;; # force error # TODO: emit error instead?
                 # *) echo "{configuration error: This executable requires a 64 bit architecture}" 1>&2 && exit 1 ;;

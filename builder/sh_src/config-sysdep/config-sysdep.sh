@@ -376,6 +376,7 @@ emit_cdefs() {
         *x86_64)         emit_cdef "USE_OWN_MALLOC" ;;
         *x86_JS)         true ;;
         *ppc64)          emit_cdef "USE_OWN_MALLOC" ;;
+        *ppc64le)        emit_cdef "USE_OWN_MALLOC" ;;
         *aarch64)        emit_cdef "USE_OWN_MALLOC" ;;
         # (assume 32-bit)
         *) emit_cdef "USE_MMAP"; emit_cdef "ANONYMOUS_MMAP" ;;

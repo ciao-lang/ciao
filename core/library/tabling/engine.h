@@ -12,7 +12,7 @@
 /* -------------- */
 /* WARNING: these macros need Ciao tag scheme */
 
-#if defined(x86_64) || defined(Sparc64) || defined(ppc64) /* 64-bit */
+#if defined(x86_64) || defined(Sparc64) || defined(ppc64) || defined(ppc64le) /* 64-bit */
 #define PairInitTag  0xC000000000000001  //to mark the begining of a list in trie.c
 #define PairEndTag   0xD000000000000001  //to mark the end of a list in trie.c
 
@@ -107,7 +107,7 @@
 #define IsNonVarTerm(TERM) (!IsVar(TERM))
 #define IsFreeVar(X) (IsVar(X) && ((X) == *TaggedToPointer(X)))
 
-#if defined(x86_64) || defined(Sparc64) || defined(ppc64) /* 64-bit */
+#if defined(x86_64) || defined(Sparc64) || defined(ppc64) || defined(ppc64le) /* 64-bit */
 #define IsTrieVar(TERM)   (((TERM) & 0xF000000000000003) == VarTrie)
 #define IsTrieAttr(TERM)  (((TERM) & 0xF000000000000003) == AttrTrie)
 #else /* 32-bit */
