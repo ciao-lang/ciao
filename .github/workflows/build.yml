@@ -54,11 +54,11 @@ jobs:
         if: (matrix.sys.os == 'windows-latest')
       # Additional setup for ubuntu
       - run: |
-          sudo apt-get install gcc-multilib g++-multilib libc6-i386 libc6-dev-i386
+          sudo apt-get update && sudo apt-get install gcc-multilib g++-multilib libc6-i386 libc6-dev-i386
         if: (matrix.sys.os == 'ubuntu-latest' && matrix.sys.arch == 'i686')
       # Additional setup for devenv (specially documentation generation)
       - run: |
-          sudo apt-get install emacs-nox texlive-latex-base texlive-binaries ghostscript
+          sudo apt-get update && sudo apt-get install emacs-nox texlive-latex-base texlive-binaries ghostscript
           sudo sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
         if: (matrix.sys.os == 'ubuntu-latest' && matrix.sys.inskind == 'devenv')
       # Checks-out repo under $GITHUB_WORKSPACE
