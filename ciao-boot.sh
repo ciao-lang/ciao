@@ -29,7 +29,6 @@ set_defaults() {
     default_tag_alpha=1.21.0-alpha.4
     default_vers_alpha=1.21.0
     default_tag_src=master
-    default_vers_src=master
     default_prebuilt=yes # TODO: make it depend on selected version?
     default_url_src=https://github.com/ciao-lang/ciao/archive
     default_url_bin=https://github.com/ciao-lang/ciao/releases/download
@@ -56,7 +55,7 @@ get_os_arch() { # (simpler version of ciao_sysconf)
     esac
 }
 
-select_vers() { # requires: prebuilt
+select_tag() { # requires: prebuilt
     if [ $prebuilt = yes ]; then
         if [ $channel = alpha ]; then
             tag=$default_tag_alpha
@@ -66,7 +65,7 @@ select_vers() { # requires: prebuilt
             vers=$default_vers_stable
         fi
     else
-        vers=$default_vers_src
+        tag=$default_tag_src
     fi
 }
 
@@ -209,7 +208,7 @@ EOF
 Installation is completed!
 EOF
     if [ x"$update_shell" = x"no" ]; then
-        select_vers # set 'vers' and 'tag' based on 'channel' and 'prebuilt'
+        select_tag # set 'vers' and 'tag' based on 'channel' and 'prebuilt'
         cat <<EOF
 
 Now you can enable this installation manually with (bash, zsh):
@@ -237,7 +236,7 @@ fetch_and_boot() { # args
         --prebuilt) shift; prebuilt=yes ;;
         --no-prebuilt) shift; prebuilt=no ;;
     esac
-    select_vers
+    select_tag
     ciaoroot=$HOME/.ciaoroot/$tag
 
     # Prepare for download
