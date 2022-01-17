@@ -97,7 +97,6 @@ etc/ciao-download-stats.sh
 @begin{verbatim}
 $ git format-patch HEAD^n # where n is the number of commits not in master
 @end{verbatim}
-   
    @item Alice: send the @tt{????-*.patch} files via email to Bob
    @item Bob: apply back the changes in the private repository with
    
@@ -117,6 +116,13 @@ $ ...
      there will be no unpushed changes to master and all new commits
      will be authored as Alice.
    @end{itemize}
+
+   @section{Merging github pull requests}
+
+   You can follow the same steps as in the previous section, just
+   obtaining the patches from this custom URL
+   @tt{https://github.com/ciao-lang/ciao/pull/NUMBER.patch}.
+
 ").
 
 % ===========================================================================
