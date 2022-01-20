@@ -78,7 +78,29 @@ esac
 # Basic platform-dependent configuration options (architecture, OS,
 # compiler, C flags for threads, sockets, etc.)
 
-. "$_base"/cc_test_option
+# Check if CC admits the given option (compiling a dummy file)
+cc_test_option() { # Option
+    local temp_base temp_c temp_exec temp_err ret
+    if [ ! -z $CC ] && type $CC > /dev/null ; then 
+	temp_base=${TMPDIR:-/tmp}/cc_option_test_$$
+	temp_c=$temp_base.c
+	temp_exec=$temp_base.exe
+	temp_err=$temp_base.err
+	echo 'int main() { return 0; }' > $temp_c
+	"$CC" "$1" $temp_c -o $temp_exec 2> $temp_err
+        cat $temp_err 1>&2
+	if test -s $temp_err ; then
+	    ret=1 # false
+	else
+	    ret=0 # true
+	fi
+        # Get rid of the now unneeded intermediate files
+	rm -f $temp_c $temp_exec $temp_err
+    else
+	ret=1
+    fi
+    return $ret
+}
 
 # Set CC (C compiler) and LD (linker)
 if [ x"$core__CUSTOM_CC" != x"" ]; then
@@ -222,24 +244,11 @@ esac
 
 # C optimization flags
 
-if cc_test_option -falign-functions=2; then
-    ALIGN_FLAGS="-falign-loops=2 -falign-jumps=2 -falign-functions=2"
-elif cc_test_option -malign-functions=2; then
-    # Version =< 3.1 of gcc only admits the -m form
-    ALIGN_FLAGS="-malign-loops=2 -malign-jumps=2 -malign-functions=2"
-else
-    # Other compilers like clang does not admit this flag
-    ALIGN_FLAGS=""
-fi
-# TODO: Review ALIGN_FLAGS in those OS and architectures
-case "$CIAOOS$CIAOARCH" in
-    Solarisi686) ALIGN_FLAGS="" ;;
-    *alpha)      ALIGN_FLAGS="" ;;
-    *Sparc)      ALIGN_FLAGS="" ;;
-    *Sparc64)    ALIGN_FLAGS="" ;;
-    *armv4l)     ALIGN_FLAGS="" ;;
-    *armv5tel)   ALIGN_FLAGS="" ;;
-esac
+# TODO: review if this is needed now and what are the best options
+ALIGN_FLAGS=""
+# if cc_test_option "-falign-functions=2"; then # TODO: needed now? (only GCC)
+#     ALIGN_FLAGS="-falign-functions=2 -falign-loops=2 -falign-jumps=2 $ALIGN_FLAGS"
+# fi
 
 # Code generation options
 OPTIM_FLAGS0="-fomit-frame-pointer $ALIGN_FLAGS"
@@ -261,6 +270,10 @@ case "$CIAOOS$CIAOARCH" in
 esac
 # Workaround bug in Darwin19/Xcode 11 (Catalina) # TODO: remove when they fix it
 OPTIM_FLAGS="-fno-stack-check $OPTIM_FLAGS"
+# Disable -Wcompound-token-split-by-macro flag (clang 12) -- see optim-comp
+if cc_test_option "-Wno-compound-token-split-by-macro"; then # TODO: needed now? (only GCC)
+    OPTIM_FLAGS="-Wno-compound-token-split-by-macro $OPTIM_FLAGS"
+fi
 # Select C standard
 OPTIM_FLAGS="-Wall -Wstrict-prototypes -std=gnu11 $OPTIM_FLAGS"
 
