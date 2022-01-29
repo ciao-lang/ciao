@@ -106,7 +106,7 @@ display_list(M) :-
 :- pred message(Type, Message) : ( message_type(Type),
         lformat_text(Message) ) # "Output to standard error @var{Message},
    which is of type @var{Type}. The @tt{quiet} @index{prolog flag}
-   (see @ref{Changing system behaviour and various flags}) controls
+   (see @ref{Runtime system control and flags}) controls
    which messages are actually output, depending on its type. Also,
    for @tt{error}, @tt{warning}, and @tt{note} messages, a prefix is
    output which denotes the severity of the message.".

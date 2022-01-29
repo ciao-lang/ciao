@@ -46,7 +46,7 @@
 %! define_flag/3: 
 %
 %          Defines flags as follows: @includedef{define_flag/3} (See
-%          @ref{Changing system behaviour and various flags}).  If
+%          @ref{Runtime system control and flags}).  If
 %          flag is @tt{on}, lists which may be written as strings
 %          are.
 %--------------------------------------------------------------------

@@ -56,7 +56,7 @@
 
 :- doc(define_flag/3,"The folowing flags are defined:
     @includedef{define_flag/3}
-    (See @ref{Changing system behaviour and various flags}).
+    (See @ref{Runtime system control and flags}).
 
     @begin{description} 
 

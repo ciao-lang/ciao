@@ -63,7 +63,7 @@ value_assignment(A=V) :-
 
 :- doc(define_flag/3,"Defines a flag as follows:
     @includedef{define_flag/3}
-    (See @ref{Changing system behaviour and various flags}).
+    (See @ref{Runtime system control and flags}).
 
     If flag is @tt{on}, values returned by @pred{http_parse_form/2}
     are always atoms, unchanged from its original value.").
