@@ -634,7 +634,7 @@ patch_tree :-
 patch_tree_ :-
     % Patch github specific (depends on bundle)
     ( ~srcbundle = 'ciao' ->
-        rmfiles(['COPYRIGHT', 'LGPL', 'GPL']) % TODO: move?
+        rmfiles(['COPYRIGHT', 'LGPL', 'GPL']) % (added somewhere else) TODO: move?
         % patch_readme,
         % patch_ci_scripts
     ; % Remove ACTIVATE mark
@@ -669,8 +669,11 @@ patch_tree_ :-
 patch_license :-
     bundle_path('builder', 'dist/licenses', Dir),
     License = ~srclicense,
-    ( License = 'LGPL' -> cpfile(~path_concat(Dir, 'LGPL'), 'LGPL')
-    ; License = 'GPL' ->  cpfile(~path_concat(Dir, 'GPL'), 'GPL')
+    ( License = 'LGPL' ->
+        cpfile(~path_concat(Dir, 'lgpl-3.0.txt'), 'COPYING.LESSER'),
+        cpfile(~path_concat(Dir, 'gpl-3.0.txt'), 'COPYING')
+    ; License = 'GPL' ->
+        cpfile(~path_concat(Dir, 'gpl-3.0.txt'), 'COPYING')
     ; true % none
     ).
 

@@ -197,7 +197,7 @@ relciaodir(S) := Dir :-
 display_file_entry(Source, DestDir) :-
     display_list(['Source: ', Source, '; DestDir:{app}\\', DestDir, '\n']).
 
-license_file := ~atom_codes(~winpath(relative, ~path_concat(~ciao_root, 'LGPL'))).
+license_file := ~atom_codes(~winpath(relative, ~path_concat(~ciao_root, 'COPYING'))).
 
 fullwinname(File, WinName) :-
     winpath(relative, File, WinName).

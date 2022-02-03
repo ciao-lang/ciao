@@ -81,7 +81,7 @@ Summary: The Ciao Prolog development environment
 Name: Ciao
 Version: {{Version}}
 Release: {{Release}}
-License: LGPL (Ciao) / GPL (CiaoPP, lpdoc)
+License: GPL/LGPL
 Vendor: CLIP Lab
 Group: Development/Languages
 URL: https://ciao-lang.org
