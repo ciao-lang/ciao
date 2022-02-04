@@ -634,7 +634,7 @@ patch_tree :-
 patch_tree_ :-
     % Patch github specific (depends on bundle)
     ( ~srcbundle = 'ciao' ->
-        rmfiles(['COPYRIGHT', 'LGPL', 'GPL']) % (added somewhere else) TODO: move?
+        rmfiles(['COPYRIGHT', 'LGPL', 'GPL', 'COPYING', 'COPYING.LESSER']) % (added somewhere else) TODO: move?
         % patch_readme,
         % patch_ci_scripts
     ; % Remove ACTIVATE mark
