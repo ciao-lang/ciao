@@ -10,6 +10,10 @@
 
 #include <ciao/eng.h>
 
+#if defined(__ANDROID__)
+#define getdtablesize() sysconf(_SC_OPEN_MAX)
+#endif
+
 #define DAEMON_RUNNING_DIR "/tmp"
 
 char *lock_file; /* path for lock file */
