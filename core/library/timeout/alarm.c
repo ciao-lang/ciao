@@ -13,7 +13,13 @@
 #include <unistd.h>
 #include <signal.h>
 
-
+#if defined(__ANDROID__)
+/* TODO: Android NDK (bionic) lacks pthread_cancel(). We replace it by
+   pthread_kill() by now but we'd additionally need proper use of
+   signals.  See https://github.com/tux-mind/libbthread for
+   details. */
+#define pthread_cancel(Id) pthread_kill((Id),SIGKILL)
+#endif
 
 #define INITIALIZED  0
 #define SCHEDULED    1

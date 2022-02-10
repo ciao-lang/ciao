@@ -496,7 +496,7 @@ void print_syserror(char *s); /* io_basic.c */
    details. */
 #define Allow_Thread_Cancel {}
 #define Disallow_Thread_Cancel {}
-#define Thread_Cancel(Id) pthread_kill(Id)
+#define Thread_Cancel(Id) pthread_kill(Id,SIGKILL)
 #else
 #define Allow_Thread_Cancel \
      pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL); \
