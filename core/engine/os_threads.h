@@ -493,10 +493,10 @@ void print_syserror(char *s); /* io_basic.c */
 /* TODO: Android NDK (bionic) lacks pthread_cancel(). We replace it by
    pthread_kill() by now but we'd additionally need proper use of
    signals.  See https://github.com/tux-mind/libbthread for
-   details. */
+   details. The use of SIGTERM is probably wrong or incomplete here. */
 #define Allow_Thread_Cancel {}
 #define Disallow_Thread_Cancel {}
-#define Thread_Cancel(Id) pthread_kill(Id,SIGKILL)
+#define Thread_Cancel(Id) pthread_kill(Id,SIGTERM)
 #else
 #define Allow_Thread_Cancel \
      pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL); \

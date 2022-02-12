@@ -17,8 +17,8 @@
 /* TODO: Android NDK (bionic) lacks pthread_cancel(). We replace it by
    pthread_kill() by now but we'd additionally need proper use of
    signals.  See https://github.com/tux-mind/libbthread for
-   details. */
-#define pthread_cancel(Id) pthread_kill((Id),SIGKILL)
+   details. The use of SIGTERM is probably wrong or incomplete here. */
+#define pthread_cancel(Id) pthread_kill((Id),SIGTERM)
 #endif
 
 #define INITIALIZED  0
