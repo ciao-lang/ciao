@@ -1,6 +1,8 @@
 #ifndef _CIAO_REGISTRY_H
 #define _CIAO_REGISTRY_H
 
+#include <ciao/eng.h>
+
 /* TODO: refine */
 
 extern bool_t trace_calls;
