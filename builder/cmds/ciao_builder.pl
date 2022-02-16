@@ -105,9 +105,9 @@ The @tt{install} command is undone with the @tt{uninstall} command.
 
 @section{Bootstrapping the build system}
 
-The @tt{ciao-boot.sh} (or @tt{ciao-boot.bat} in Windows) automatically
-bootstraps and invokes the Ciao build system. The process is described
-below.
+The @tt{ciao-boot.sh} (or @tt{ciao-boot.bat} in Windows) command
+automatically bootstraps and invokes the Ciao build system. The
+process is described below.
 
 Bootstrapping is the process that compiles the Ciao compiler and
 builder in an environment where no existing Ciao binary exists. We
