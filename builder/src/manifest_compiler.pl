@@ -31,7 +31,7 @@ NOTE: Configuration flags and nested definitions must be defined in a
    specification.
 
    @begin{note}
-   NOTE: Users should never call a custom build command definitions
+   NOTE: Users should never call custom build command definitions
    directly with @pred{manifest_call/2}. Use @lib{builder_cmds}
    instead.
    @end{note}
