@@ -178,11 +178,11 @@ help_mode('help_all_boot', all, boot).
 % ---------------------------------------------------------------------------
 
 :- use_module(ciaobld(messages_aux), [normal_message/2]).
-:- use_module(library(system_extra), [using_tty/0]).
+:- use_module(library(system_extra), [istty/1]).
 
 % Show a help message after the command (only when run from a TTY)
 post_message(Cmd) :-
-    ( using_tty ->
+    ( istty(0) ->
         show_post_message(Cmd)
     ; true
     ).

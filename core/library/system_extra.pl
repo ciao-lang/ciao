@@ -765,12 +765,13 @@ relpath__([], Bs, Bs). % Finish with rest
 
 :- doc(section, "Terminal Tools").
 
-:- export(using_tty/0).
-:- pred using_tty # "The standard input is an interactive terminal.".
-% TODO: this implementation is not portable
-% TODO: probably, this should live in other module
-using_tty :-
-    process_call(path(stty), [], [stdout(null), stderr(null), status(0)]).
+% TODO: write in C
+:- export(istty/1).
+:- pred istty(FD) # "Check if the file descriptor is associated with a terminal.".
+istty(FD) :-
+    number_codes(FD, Cs),
+    atom_codes(FDa, Cs),
+    process_call(path(test), ['-t', FDa], [status(0)]).
 
 % ===========================================================================
 

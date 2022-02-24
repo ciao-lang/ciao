@@ -309,7 +309,7 @@ create_windows_bat(Eng, BatCmd, Opts, EngExecOpts, OrigBundle, OrigCmd) :-
 :- doc(section, "Batch compilation of sets of modules").
 
 :- use_module(library(source_tree), [current_file_find/3]).
-:- use_module(library(system_extra), [using_tty/0]).
+:- use_module(library(system_extra), [istty/1]).
 
 % TODO: cmd_build/1 can only build Prolog applications. Add plug-ins?
 %   Or rewrite the special applications in some that that
@@ -469,7 +469,7 @@ report_mode(Workers, repmode(Count,EraseLine)) :-
     ; MayCount = no
     ),
     % Erase lines when output is attached to a TTY
-    ( using_tty -> Count = MayCount, EraseLine = yes
+    ( istty(1) -> Count = MayCount, EraseLine = yes
     ; Count = no, EraseLine = no
     ).
 
