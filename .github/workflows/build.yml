@@ -25,8 +25,8 @@ jobs:
           - { os: ubuntu-latest,  arch: i686,   inskind: minciao }
           - { os: macos-latest,   arch: x86_64, inskind: minciao }
           - { os: macos-latest,   arch: x86_64, inskind: devenv-nodocs }
-          - { os: windows-latest, arch: x86_64, inskind: minciao }
-          - { os: windows-latest, arch: i686,   inskind: minciao }
+          - { os: windows-2019,   arch: x86_64, inskind: minciao }
+#          - { os: windows-2019,   arch: i686,   inskind: minciao }
 #       compiler:
 #         - { cc: gcc,   cxx: g++ }
 #         - { cc: clang, cxx: clang++ }
@@ -36,11 +36,11 @@ jobs:
     defaults:
       run:
         # Select msys2 shell only in windows (weird implementation due to github action limitations )
-        shell: ${{ fromJSON('["msys2 {0}", "bash"]')[matrix.sys.os != 'windows-latest'] }}
+        shell: ${{ fromJSON('["msys2 {0}", "bash"]')[matrix.sys.os != 'windows-2019'] }}
     steps:
       # Additional setup for windows
       - uses: msys2/setup-msys2@v2
-        if: (matrix.sys.os == 'windows-latest')
+        if: (matrix.sys.os == 'windows-2019')
         with:
           msystem: ${{ fromJSON('["MINGW32", "MINGW64"]')[matrix.sys.arch != 'i686'] }}
           update: true
@@ -51,7 +51,7 @@ jobs:
           else
               pacman --noconfirm -S mingw-w64-i686-gcc
           fi
-        if: (matrix.sys.os == 'windows-latest')
+        if: (matrix.sys.os == 'windows-2019')
       # Additional setup for ubuntu
       - run: |
           sudo apt-get update && sudo apt-get install gcc-multilib g++-multilib libc6-i386 libc6-dev-i386
