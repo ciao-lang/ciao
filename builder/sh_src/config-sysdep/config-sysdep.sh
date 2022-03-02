@@ -79,23 +79,26 @@ esac
 # compiler, C flags for threads, sockets, etc.)
 
 # Check if CC admits the given option (compiling a dummy file)
-cc_test_option() { # Option
+cc_test_option() { # Options
     local temp_base temp_c temp_exec temp_err ret
     if [ ! -z $CC ] && type $CC > /dev/null ; then 
 	temp_base=${TMPDIR:-/tmp}/cc_option_test_$$
 	temp_c=$temp_base.c
 	temp_exec=$temp_base.exe
 	temp_err=$temp_base.err
-	echo 'int main() { return 0; }' > $temp_c
-	"$CC" "$1" $temp_c -o $temp_exec 2> $temp_err
-        cat $temp_err 1>&2
-	if test -s $temp_err ; then
+	echo 'int main() { return 0; }' > "$temp_c"
+	"$CC" "$@" "$temp_c" -o "$temp_exec" 2> "$temp_err"
+        echo BEGINERRORS 1>&2
+        cat "$temp_err" 1>&2
+        echo ENDERRORS 1>&2
+        ls -la "$temp_err"
+	if test -s "$temp_err" ; then
 	    ret=1 # false
 	else
 	    ret=0 # true
 	fi
         # Get rid of the now unneeded intermediate files
-	rm -f $temp_c $temp_exec $temp_err
+	rm -f "$temp_c" "$temp_exec" "$temp_err"
     else
 	ret=1
     fi
