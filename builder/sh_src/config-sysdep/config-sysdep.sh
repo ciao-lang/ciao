@@ -88,10 +88,6 @@ cc_test_option() { # Options
 	temp_err=$temp_base.err
 	echo 'int main() { return 0; }' > "$temp_c"
 	"$CC" "$@" "$temp_c" -o "$temp_exec" 2> "$temp_err"
-        echo BEGINERRORS 1>&2
-        cat "$temp_err" 1>&2
-        echo ENDERRORS 1>&2
-        ls -la "$temp_err"
 	if test -s "$temp_err" ; then
 	    ret=1 # false
 	else
