@@ -119,8 +119,6 @@ do_interface(Decls) :-
     contains1(Decls, use_foreign_library(_, _)), !.
 do_interface(Decls) :-
     contains1(Decls, use_foreign_source(_)), !.
-do_interface(Decls) :-
-    contains1(Decls, use_foreign_source(_, _)).
 
 % -----------------------------------------------------------------------------
 

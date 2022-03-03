@@ -32,17 +32,6 @@
 :- impl_defined(use_foreign_source/1).
 :- endif.
 
-:- doc(doinclude,use_foreign_source/2).
-:- decl use_foreign_source(OsArch, Files) : atm * atm_or_atm_list
-   # "@var{Files} are the OS and architecture dependant foreign files.
-   This allows compiling and linking different files depending on the
-   O.S. and architecture.".
-:- if(defined(optim_comp)).
-:- '$props'(use_foreign_source/2, [impnat=indefinable]).
-:- else.
-:- impl_defined(use_foreign_source/2).
-:- endif.
-
 :- doc(doinclude,use_foreign_library/1).
 :- decl use_foreign_library(Libs) : atm_or_atm_list
    # "@var{Libs} is the (list of) external library(es) needed to link

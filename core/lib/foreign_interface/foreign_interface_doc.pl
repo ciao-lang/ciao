@@ -50,6 +50,9 @@ source file(s).
 @item @prop{use_foreign_library/1} specifies the external library(ies)
 to be linked with the foreign sources.
 
+@item @prop{use_foreign_gluecode_header/1} specifies custom header for
+the C gluecode file.
+
 @item @prop{use_compiler/1} specifies the compiler to use.
 
 @item @prop{extra_compiler_opts/1} specifies the additional compiler options. 
