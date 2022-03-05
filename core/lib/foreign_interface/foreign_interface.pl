@@ -12,7 +12,8 @@
 % TODO: optim_comp does not require 'on' here, fix core?
 
 :- new_declaration(use_foreign_source/1, on).
-:- new_declaration(use_foreign_source/2, on).
+
+:- new_declaration(use_foreign_gluecode_header/1, on).
 
 :- new_declaration(use_foreign_library/1, on).
 :- new_declaration(use_foreign_library/2, on).

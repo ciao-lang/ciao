@@ -101,7 +101,7 @@ build_foreign_interface_explicit_decls_2(Rebuild, File, Decls) :-
     ( do_interface(Decls) ->
         find_pl_filename(File, PlName, Base, Dir),
         load_all_ttr(Decls),
-        gluecode(Rebuild, Base, PlName), 
+        gluecode(Decls, Rebuild, Base, PlName), 
         compile_and_link(Rebuild, Dir, Base, Decls),
         clean_all_ttr
     ; true
@@ -119,6 +119,8 @@ do_interface(Decls) :-
     contains1(Decls, use_foreign_library(_, _)), !.
 do_interface(Decls) :-
     contains1(Decls, use_foreign_source(_)), !.
+%do_interface(Decls) :- % (secondary)
+%    contains1(Decls, use_foreign_gluecode_header(_)), !.
 
 % -----------------------------------------------------------------------------
 
@@ -135,14 +137,14 @@ get_decls_2(Decls, Base) :-
 
 % -----------------------------------------------------------------------------
 
-gluecode(Rebuild, Base, PrologFile) :-
+gluecode(Decls, Rebuild, Base, PrologFile) :-
     CFile = ~product_filename(gluecode_c, Base),
     ( Rebuild = no -> has_changed(PrologFile, CFile) ; true ), !,
     ( Rebuild = yes -> del_files_nofail([CFile]) ; true ), 
-    gluecode_2(PrologFile, CFile).
-gluecode(_, _, _).
+    gluecode_2(Decls, PrologFile, CFile).
+gluecode(_, _, _, _).
 
-gluecode_2(PrologFile, CFile) :-
+gluecode_2(Decls, PrologFile, CFile) :-
     (Module, Assertions) = ~read_assertions(PrologFile),
 %       debug_display_assertions(Assertions), 
     Predicates = ~get_foreign_predicates(Assertions), 
@@ -150,12 +152,15 @@ gluecode_2(PrologFile, CFile) :-
         warning_message("no foreign predicate found in '~w'", [PrologFile])
     ; true
     ), 
-    ( gluecode_program(Module, Predicates, Program, []), write_c_to_file(CFile, Program, Module) ->
+    get_options(Decls, use_foreign_gluecode_header, GlueHs0), 
+    GlueHs = ['ciao/ciao_gluecode.h'|GlueHs0], % TODO: rename ciao_gluecode.h to gluecode.h?
+    ( gluecode_program(Module, GlueHs, Predicates, Program, []),
+      write_c_to_file(CFile, Program, Module) ->
         true
     ; error_message("generation of the interface gluecode for Prolog file '~w' failed", [PrologFile]),
       fail
     ), !.
-gluecode_2(_, CFile) :-
+gluecode_2(_, _, CFile) :-
     del_files_nofail([CFile]), 
     fail.
 
@@ -422,8 +427,9 @@ check_status(Loc, PredName, _) :-
 
 % -----------------------------------------------------------------------------
 
-gluecode_program(Module, Predicates) -->
-    imports, 
+gluecode_program(Module, GlueHs, Predicates) -->
+    includes(GlueHs), 
+    [format(new_line)],
     foreign_predicates_interface(Predicates, Module), 
     init(Predicates, Module), 
     end(Predicates, Module).
@@ -431,8 +437,9 @@ gluecode_program(Module, Predicates) -->
 % -----------------------------------------------------------------------------
 
 % TODO: use eng_h_alias?
-% TODO: rename ciao_gluecode.h to gluecode.h?
-imports --> [include('ciao/ciao_gluecode.h'), format(new_line)].
+includes([]) --> [].
+includes([local(H)|Hs]) --> !, [local_include(H)], includes(Hs).
+includes([H|Hs]) --> !, [include(H)], includes(Hs).
 
 % -----------------------------------------------------------------------------
 
@@ -545,7 +552,7 @@ get_foreign_files(Dir, Base, Decls, CFiles, OFiles, SOFile, AFile) :-
 
 get_foreign_files__2(Dir, Base, Decls, FFiles, OFiles, SOFile, AFile) :-
     get_options(Decls, use_foreign_source, Files),
-    absolute_base_names(Dir, Files, AbsFiles, AbsBases),
+    absolute_base_names(Dir, Files, '.c', AbsFiles, AbsBases),
     GlueFile = ~product_filename(gluecode_c, Base),
     FFiles = [GlueFile|AbsFiles],
     OFile = ~product_filename(gluecode_o, Base),
@@ -556,14 +563,14 @@ get_foreign_files__2(Dir, Base, Decls, FFiles, OFiles, SOFile, AFile) :-
 
 % -----------------------------------------------------------------------------
 
-absolute_base_names(_, [], [], []) :- !.
-absolute_base_names(Dir, [File|Files], [AbsFile|AbsFiles], [AbsBase|AbsBases]) :-
-    absolute_file_name(File, [], '.c', Dir,  AbsFile, AbsBase1, _),
+absolute_base_names(_, [], _Suff, [], []) :- !.
+absolute_base_names(Dir, [File|Files], Suff, [AbsFile|AbsFiles], [AbsBase|AbsBases]) :-
+    absolute_file_name(File, [], Suff, Dir,  AbsFile, AbsBase1, _),
     ( AbsBase1 = AbsFile ->
         pathnames:path_splitext(AbsFile, AbsBase, _)
     ; AbsBase = AbsBase1
     ),
-    absolute_base_names(Dir, Files, AbsFiles, AbsBases).
+    absolute_base_names(Dir, Files, Suff, AbsFiles, AbsBases).
 
 % -----------------------------------------------------------------------------
 
@@ -576,15 +583,22 @@ append_osuffix([Base|Bases], [OFile|OFiles]) :-
 % -----------------------------------------------------------------------------
 
 compile_foreign(Dir, Decls, ExtraOpts, CFiles, OFiles) :-
-    compiler_to_use(Decls, Compiler, Opts), 
-    TotalOpts = ~append(Opts, ExtraOpts), 
-    compile_foreign_2(Dir, Compiler, TotalOpts, CFiles, OFiles).
+    compiler_to_use(Decls, Compiler, CompOpts), 
+    Opts = ~append(CompOpts, Opts1), 
+    ciao_c_headers_dir(CiaoHDir),
+    Opts1 = [~atom_concat('-I', CiaoHDir)|Opts2],
+    ( member(use_foreign_gluecode_header(_), Decls) ->
+        % TODO: Needed to locate header when .c is auto-generated (e.g., gluecode)
+        Opts2 = [~atom_concat('-I', Dir)|Opts3]
+    ; Opts2 = Opts3
+    ),
+    Opts3 = ExtraOpts,
+    compile_foreign_2(Dir, Compiler, Opts, CFiles, OFiles).
 
 compile_foreign_2(_, _, _, [], []) :- !.
 compile_foreign_2(Dir, Compiler, Opts, [CFile|CFiles], [OFile|OFiles]) :-
     ( has_changed(CFile, OFile) ->
-        include_base_dir(BaseDir), Inc = ~atom_concat('-I', BaseDir),
-        flatten(['-c', Opts, Inc, '-o', OFile, CFile], Args), !,
+        flatten(['-c', Opts, '-o', OFile, CFile], Args), !,
         % format(user_error, "[trace-cf] ~w ~w~n", [Compiler, Args]),
         process_call(path(Compiler), Args, [cwd(Dir), status(0)])
     ; true
@@ -644,21 +658,17 @@ append_prefix([A|As], Prefix) := [~atom_concat(Prefix, A)|~append_prefix(As, Pre
 
 compiler_to_use(Decls, Compiler, Opts):-
     get_options(Decls, use_compiler, NewCompiler),
-    (
-        NewCompiler = [] ->
+    ( NewCompiler = [] ->
         compiler_and_opts(Compiler, Opts)
-    ;
-        NewCompiler = [Compiler],
-        Opts = []
+    ; NewCompiler = [Compiler],
+      Opts = []
     ).
 
 linker_to_use(Decls, Linker, Opts):-
     get_options(Decls, use_linker, NewLinker),
-    (
-        NewLinker = [] ->
+    ( NewLinker = [] ->
         linker_and_opts(Linker, Opts)
-    ;
-        NewLinker = [Linker],
-        Opts = []
+    ; NewLinker = [Linker],
+      Opts = []
     ).
 

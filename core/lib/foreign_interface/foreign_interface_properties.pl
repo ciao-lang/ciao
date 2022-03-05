@@ -32,6 +32,17 @@
 :- impl_defined(use_foreign_source/1).
 :- endif.
 
+:- doc(doinclude,use_foreign_gluecode_header/1).
+:- decl use_foreign_gluecode_header(Files) : atm_or_atm_list
+   # "@var{Files} is the (list of) alterantive headers that will be
+   included in the glue-code file (instead of the default
+   @tt{ciao_gluecode.h}).".
+:- if(defined(optim_comp)).
+:- '$props'(use_foreign_gluecode_header/1, [impnat=indefinable]).
+:- else.
+:- impl_defined(use_foreign_gluecode_header/1).
+:- endif.
+
 :- doc(doinclude,use_foreign_library/1).
 :- decl use_foreign_library(Libs) : atm_or_atm_list
    # "@var{Libs} is the (list of) external library(es) needed to link
