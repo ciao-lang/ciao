@@ -40,8 +40,8 @@ fi
 
 release_query_info() {
     case "$v__release" in
-        stable) tag=v1.20.0 ;;
-        alpha)  tag=v1.21.0-alpha.4 ;;
+        stable) tag=v1.21.0-m1 ;;
+        beta)   tag=v1.21.0-m1 ;;
         latest) tag=master ;;
     esac
     # Set other defaults based on release
@@ -285,8 +285,8 @@ EOF
 }
 
 opts_def() {
-    q__release="Which release would you like to install [stable,alpha,latest] (stable)? "
-    o__release="stable alpha latest"
+    q__release="Which release would you like to install [stable,beta,latest] (stable)? "
+    o__release="stable beta latest"
     a__release="stable" # (default)
     #
     m__devenv="Full development environment"
