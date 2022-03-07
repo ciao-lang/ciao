@@ -1,5 +1,70 @@
 :- doc(version(1*21+0,2022/3/2,20:34*30+'CET'), "
-TO BE WRITTEN
+   @begin{itemize}
+   @item Build system:
+     @begin{itemize}
+     @item IMPROVED: Partial rewrite of network-based installation
+        (better selection of releases, allow prebuilt docs and
+        binaries).
+     @item IMPROVED: Tighter integration of @tt{ciao publish} into the
+        builder.
+     @item IMPROVED: Third-party commands moved to \"advanced\" help.
+     @end{itemize}
+   @item Core (compiler/engine, toplevel, libraries):
+     @begin{itemize}
+     @item ADDED: Support PowerPC 64-bit in little-endian mode.
+     @item ADDED: Replaced using_tty/0 with system_extra:istty/1
+        (specify fd).
+     @item ADDED: cgoal/1 property (to distinguish from callable/1 ISO
+        pred).
+     @item ADDED: @tt{binexec} option for automatic spawning of active
+        modules. This produces multi-purpose binaries that can start
+        as either normal processes or active modules.
+     @item ADDED: Added @tt{ivar/1} meta-property in assertions
+        (expands to @tt{var/1} plus independence from all other vars).
+     @item ADDED: New rtchecks (run-time assertion checking) code for
+        @tt{det/1}, @tt{semidet/1}, @tt{multidet/1}, @tt{nondet/1}
+        properties.
+     @item ADDED: Option to run unit tests in the same process.
+     @item ADDED: Custom headers in foreign interface gluecode (useful
+        for custom type translations).
+     @item IMPROVED: Faster dependency checks in the compiler (see
+        @tt{itf_sections}). Improves x2 loading time of large
+        executables.
+     @item IMPROVED: @tt{iso} package renamed @tt{iso_strict}, code
+        adapted.
+     @item IMPROVED: merged @tt{bf} and @tt{af} search rule
+        translation modules.
+     @item IMPROVED: Document need for @tt{devenv} for running tests.
+     @item IMPROVED: Preserve timestamps when engine metadata does not
+        change. 
+     @item IMPROVED: More resilient unit test runner.
+     @item FIXED: Fixes to termux compilation (Android).
+     @item FIXED: Cleanup of itf when @tt{opt_suff/1} used.
+     @item FIXED: Default hostname to @tt{localhost} in active modules.
+     @item FIXED: Location of relative paths in @tt{reexport}.
+     @item FIXED: Documentation of timeout library.
+     @item FIXED: Allow multiple doccomments before condcomp directives.
+     @item FIXED: Markdown parser issues.
+     @item FIXED: Fix @tt{|} operator priority to 1105 (ISO DCG draft).
+     @item FIXED: Bug in @tt{sub_atom/5}.
+     @item FIXED: Removed bashism in @tt{config-sysdep.sh}.
+     @item FIXED: Use stderr consistently in unit test output.
+     @end{itemize}
+   @item Ciao emacs mode:
+     @begin{itemize}
+     @item ADDED: Distribute flycheck and company support for
+        ciao-mode.
+     @item ADDED: New @tt{ciao-emacs} command (start emacs with
+        \"batteries included\"). It preinstalls markdown mode and
+        contrib packages.
+     @item IMPROVED: library for navigating options menus (used in,
+        e.g., CiaoPP): allow cursor navigation, eliminated need for
+        OK/cancel buttons, allow integer values in responses.
+     @item CHANGED: Change check assertions binding to @tt{C-c V}.
+     @item FIXED: @tt{=>} is no longer a prompt recognised my ciao-emacs.
+     @item FIXED: Issue in passing of system-args to ciao process.
+     @end{itemize}
+   @end{itemize}
 ").
 
 :- doc(version(1*20+0,2021/3/18,19:33*30+'CET'), "
