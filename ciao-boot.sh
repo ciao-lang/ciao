@@ -48,17 +48,15 @@ release_query_info() {
     if [ "$v__devenv" = "yes" ]; then
         a__prebuilt_bin=no # TODO: no prebuilt bin for devenv yet
         case "$tag" in
-            master) a__prebuilt_docs=no ;;
-            *) a__prebuilt_docs=yes ;;
+            master) a__prebuilt_docs=no; a__with_docs=yes ;;
+            *) a__prebuilt_docs=yes; a__with_docs=no ;;
         esac
-        a__with_docs=yes
     else
         case "$os$arch" in
             DARWINaarch64) a__prebuilt_bin=no ;; # TODO: not yet
-            *) a__prebuilt_bin=yes
+            *) a__prebuilt_bin=yes ;;
         esac
-        a__prebuilt_docs=no
-        a__with_docs=no
+        a__prebuilt_docs=no; a__with_docs=no
     fi
 }
 
