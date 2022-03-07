@@ -69,5 +69,6 @@
 
 % ---------------------------------------------------------------------------
 
-:- include('CHANGELOG').
+% (changelog is synchronized with 'core')
+% :- include('CHANGELOG').
 
