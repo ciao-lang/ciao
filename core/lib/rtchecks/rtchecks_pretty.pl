@@ -69,10 +69,12 @@ rtcheck_to_messages(E, Messages) :-
 
 
 rtcheck_to_message(E, Text, TextTail) :-
-    E = rtcheck(Type, Pred0, Dict, Prop0, Valid0, _),
+    E = rtcheck(Type, Pred0, Dict, Prop0, Valid0, Pos),
     pretty_prop(t(Pred0, Prop0, Valid0), Dict,
         t(Pred, Prop, Valid)),
-    rtcheck_to_message_(Type, Pred, Prop, Valid, Text, TextTail).
+    rtcheck_to_message_(Type, Pred, Prop, Valid, Text0, TextTail),
+    Pos = [_,asrloc(loc(_,LB,LE))],
+    Text = ['(lns ', ''({LB}), '-', ''({LE}), ') ' | Text0].
 
 rtcheck_to_message_(Type, Pred, Prop, Valid, Text, Text1) :-
     type_text(Type, TypeMsg),
