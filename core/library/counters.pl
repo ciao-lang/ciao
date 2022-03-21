@@ -1,4 +1,4 @@
-:- module(counters, [setcounter/2, getcounter/2, inccounter/2], [assertions, datafacts]).
+:- module(counters, [setcounter/2, getcounter/2, inccounter/2, deccounter/2], [assertions, datafacts]).
 
 :- data counter/2.
 
@@ -12,4 +12,9 @@ getcounter(Name, Val) :-
 inccounter(Name, Val) :-
     retract_fact(counter(Name, Val)),
     Val1 is Val+1,
+    asserta_fact(counter(Name, Val1)).
+
+deccounter(Name, Val) :-
+    retract_fact(counter(Name, Val)),
+    Val1 is Val-1,
     asserta_fact(counter(Name, Val1)).
