@@ -73,8 +73,10 @@ rtcheck_to_message(E, Text, TextTail) :-
     pretty_prop(t(Pred0, Prop0, Valid0), Dict,
         t(Pred, Prop, Valid)),
     rtcheck_to_message_(Type, Pred, Prop, Valid, Text0, TextTail),
-    Pos = [_,asrloc(loc(_,LB,LE))],
-    Text = ['(lns ', ''({LB}), '-', ''({LE}), ') ' | Text0].
+    ( member(asrloc(loc(_,LB,LE)), Pos) -> % show asrloc if available % TODO: review
+        Text = ['(lns ', ''({LB}), '-', ''({LE}), ') ' | Text0]
+    ; Text = Text0
+    ).
 
 rtcheck_to_message_(Type, Pred, Prop, Valid, Text, Text1) :-
     type_text(Type, TypeMsg),
