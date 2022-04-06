@@ -1,4 +1,4 @@
-/* Ciao syntax */
+/* Ciao syntax (light mode) */
 span.ciao-face-sectioning-5-face   { color: #000080; font-weight: 700; font-family: "Trebuchet MS", Helvetica, sans-serif; text-decoration: none; }
 span.ciao-face-sectioning-5-face a { color: #000080; font-weight: 700; font-family: "Trebuchet MS", Helvetica, sans-serif; text-decoration: underline; }
 span.ciao-face-sectioning-4-face   { color: #000080; font-weight: 700; font-family: "Trebuchet MS", Helvetica, sans-serif; font-size: 15pt; text-decoration: none; }
@@ -61,6 +61,68 @@ span.ciao-face-comment   { color: #b22222; font-weight: 500; text-decoration: no
 span.ciao-face-comment a { color: #b22222; font-weight: 500; text-decoration: underline; }
 span.ciao-face-cut   { color: #4169e1; font-weight: 500; text-decoration: none; }
 span.ciao-face-cut a { color: #4169e1; font-weight: 500; text-decoration: underline; }
+/* Ciao syntax (dark mode) */
+@media (prefers-color-scheme: dark) {
+    span.ciao-face-sectioning-5-face   { color: #ffec8b; }
+    span.ciao-face-sectioning-5-face a { color: #ffec8b; }
+    span.ciao-face-sectioning-4-face   { color: #ffec8b; }
+    span.ciao-face-sectioning-4-face a { color: #ffec8b; }
+    span.ciao-face-sectioning-3-face   { color: #ffec8b; }
+    span.ciao-face-sectioning-3-face a { color: #ffec8b; }
+    span.ciao-face-sectioning-2-face   { color: #ffec8b; }
+    span.ciao-face-sectioning-2-face a { color: #ffec8b; }
+    span.ciao-face-funexp-atom   { color: #b3ee3a; }
+    span.ciao-face-funexp-atom a { color: #b3ee3a; }
+    span.ciao-face-type-assrt   { color: #1e90ff; }
+    span.ciao-face-type-assrt a { color: #1e90ff; }
+    span.ciao-face-prop-assrt   { color: #1e90ff; }
+    span.ciao-face-prop-assrt a { color: #1e90ff; }
+    span.ciao-face-trust-assrt   { color: #ff7f50; }
+    span.ciao-face-trust-assrt a { color: #ff7f50; }
+    span.ciao-face-false-assrt   { color: #ff0000; }
+    span.ciao-face-false-assrt a { color: #ff0000; }
+    span.ciao-face-true-assrt   { color: #32cd32; }
+    span.ciao-face-true-assrt a { color: #32cd32; }
+    span.ciao-face-checked-assrt   { color: #90ee90; }
+    span.ciao-face-checked-assrt a { color: #90ee90; }
+    span.ciao-face-check-assrt   { color: #1e90ff; }
+    span.ciao-face-check-assrt a { color: #1e90ff; }
+    span.ciao-face-cut   { color: #6495ed; }
+    span.ciao-face-cut a { color: #6495ed; }
+    span.ciao-face-concurrency-op   { color: #ff7f50; }
+    span.ciao-face-concurrency-op a { color: #ff7f50; }
+    span.ciao-face-prompt   { color: #ff7f50; }
+    span.ciao-face-prompt a { color: #ff7f50; }
+    span.ciao-face-variable   { color: #eedd82; }
+    span.ciao-face-variable a { color: #eedd82; }
+    span.ciao-face-string   { color: #ffa07a; }
+    span.ciao-face-string a { color: #ffa07a; }
+    span.ciao-face-lpdoc-command   { color: #c6e2ff; }
+    span.ciao-face-lpdoc-command a { color: #c6e2ff; }
+    span.ciao-face-lpdoc-bug-comment   { color: #ff0000; }
+    span.ciao-face-lpdoc-bug-comment a { color: #ff0000; }
+    span.ciao-face-lpdoc-comment   { color: #9fb6cd; }
+    span.ciao-face-lpdoc-comment a { color: #9fb6cd; }
+    span.ciao-face-clauseheadname   { color: #87cefa; }
+    span.ciao-face-clauseheadname a { color: #87cefa; }
+    span.ciao-face-user-directive   { color: #1e90ff; }
+    span.ciao-face-user-directive a { color: #1e90ff; }
+    span.ciao-face-library-directive   { color: #1e90ff; }
+    span.ciao-face-library-directive a { color: #1e90ff; }
+    span.ciao-face-predicate-directive   { color: #1e90ff; }
+    span.ciao-face-predicate-directive a { color: #1e90ff; }
+    span.ciao-face-builtin-directive   { color: #87cefa; }
+    span.ciao-face-builtin-directive a { color: #87cefa; }
+    span.ciao-face-quoted-atom   { color: #e5e5e5; }
+    span.ciao-face-quoted-atom a { color: #e5e5e5; }
+    span.ciao-face-module-directive   { color: #9f79ee; }
+    span.ciao-face-module-directive a { color: #9f79ee; }
+    span.ciao-face-comment   { color: #6c7b8b; }
+    span.ciao-face-comment a { color: #6c7b8b; }
+    span.ciao-face-script-header   { color: #32cd32; }
+    span.ciao-face-script-header a { color: #32cd32; }
+}
+
 /* Other languages */
 span.constant   { color: #008b8b; font-weight: 500; text-decoration: none; }
 span.constant a { color: #008b8b; font-weight: 500; text-decoration: underline; }
