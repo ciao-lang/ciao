@@ -35,7 +35,7 @@ workspace(X) :- atm(X).
     ['$bundle_id'/1,
      '$bundle_srcdir'/2]).
 :- use_module(ciaobld(builder_aux),
-    [lookup_workspace/2,
+    [lookup_workspace/3,
      dir_to_bundle/2]).
 :- use_module(ciaobld(manifest_compiler),
     [lookup_bundle_root/2,
@@ -79,7 +79,7 @@ target_to_workspace(Target, Path) :-
       '$bundle_id'(Bundle),
       '$bundle_srcdir'(Bundle, Path0)
     ),
-    lookup_workspace(Path0, Path).
+    lookup_workspace(Path0, Path, _).
 
 :- export(resolve_targets/3).
 :- pred resolve_targets(+Targets0, OnUnknown, -Targets) :: list(atm) * term * list(target)
@@ -96,7 +96,7 @@ resolve_target(OnUnknown, Target0, Target) :-
       dir_to_bundle(BundleDir, Bundle) ->
         Target = Bundle
     ; is_dir(Target0),
-      lookup_workspace(Target0, Target1) -> % Target1 is absolute file name at this point
+      lookup_workspace(Target0, Target1, _) -> % Target1 is absolute file name at this point
         Target = Target1 % (absolute paths are workspace targets)
     ; check_bundle_alias(Target0, Origin, Bundle) ->
         add_bundle_origin(Bundle, Origin),

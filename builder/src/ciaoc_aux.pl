@@ -542,7 +542,7 @@ exists_and_compilable(Dir) :-
 % NOTE: Most of these are "safe" implementations that are ensured to
 % work even if ciaosh or the engine are not working properly.
 
-:- use_module(ciaobld(builder_aux), [lookup_workspace/2]).
+:- use_module(ciaobld(builder_aux), [lookup_workspace/3]).
 :- use_module(engine(internals), [ciao_root/1]).
 :- use_module(library(sh_process), [sh_process_call/3]).
 :- use_module(engine(stream_basic), [fixed_absolute_file_name/3]).
@@ -575,8 +575,7 @@ clean_aux(Command, Args) :-
 % Ask prefix for out-of-tree builds (safe version). Dir must be an
 % absolute path name.
 cachedir_prefix(Dir, Prefix) :-
-    lookup_workspace(Dir, Wksp),
-    path_get_relative(Wksp, Dir, Rel), % Dir is relative to Wksp
+    lookup_workspace(Dir, Wksp, Rel),
     path_concat(Wksp, 'build/cache', CacheDir),
     atom_codes(Rel, RelCs),
     translate_base_2(RelCs, RelCs2),

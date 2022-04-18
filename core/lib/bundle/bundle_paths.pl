@@ -74,15 +74,19 @@ relbuild(bootbuild, 'build-boot'). % bootstrap build
 % TODO: store dynamically the wksp and the relative srcdir?
 bundle_workspace(Bundle, Path) :-
     '$bundle_srcdir'(Bundle, Dir),
-    ( ciao_path(Path0)
-    ; ciao_root(Path0)
+    % (see builder_aux:lookup_workspace_/3)
+    ( ciao_path(Wksp)
+    ; ciao_root(Wksp)
     ),
-    % Dir is relative to Path0
-    ( Path0 = Dir
-    ; path_get_relative(Path0, Dir, _)
+    ( atom_concat(WkspBase_, '/.wksp', Wksp) -> % (support implicit workspaces)
+        WkspBase = WkspBase_
+    ; WkspBase = Wksp
+    ),
+    ( WkspBase = Dir
+    ; path_get_relative(WkspBase, Dir, _)
     ),
     !, 
-    Path = Path0.
+    Path = Wksp.
 
 % ---------------------------------------------------------------------------
 

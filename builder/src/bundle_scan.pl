@@ -100,7 +100,9 @@ ensure_bundlereg_dir(Wksp) :-
 find_bundles(Path) :-
     cleanup_find_bundles,
     ( % (failure-driven loop)
-      bundledirs_at_dir(Path, no, Dir),
+      ( atom_concat(Dir, '/.wksp', Path), is_bundledir(Dir) % (support for implicit workspaces)
+      ; bundledirs_at_dir(Path, no, Dir)
+      ),
         bundledir_to_name(Dir, Bundle),
         assertz_fact(found_bundle(Bundle, Dir)),
         fail

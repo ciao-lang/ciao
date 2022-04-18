@@ -32,22 +32,28 @@ dir_to_bundle(BundleDir, Bundle) :-
 :- use_module(engine(internals), [ciao_root/1, ciao_path/1]).
 :- use_module(library(pathnames), [path_get_relative/3]).
 
-:- export(lookup_workspace/2).
-% Detect the workspace for the given File (a directory or normal
-% file), using ciao_root/1 and ciao_path/1.
-lookup_workspace(File, Path) :-
+:- export(lookup_workspace/3).
+% @var{Wksp} is the workspace for the given @var{File} (a directory or
+% normal file), using ciao_root/1 and ciao_path/1. @var{Rel} is the
+% relative path within the workspace.
+lookup_workspace(File, Wksp, Rel) :-
     fixed_absolute_file_name(File, '.', Path0),
-    ( lookup_workspace_(Path0, Path1) ->
-        Path1 = Path
+    ( lookup_workspace_(Path0, Wksp1, Rel1) ->
+        Wksp = Wksp1, Rel = Rel1
     ; fail
     ).
 
-lookup_workspace_(Path0, Path) :-
-    ( ciao_path(Path)
-    ; ciao_root(Path)
+% (see bundle_paths:bundle_workspace/2)
+lookup_workspace_(Path0, Wksp, Rel) :-
+    ( ciao_path(Wksp)
+    ; ciao_root(Wksp)
     ),
-    ( Path0 = Path -> true
-    ; path_get_relative(Path, Path0, _) % Path0 is relative to Path
+    ( atom_concat(WkspBase_, '/.wksp', Wksp) -> % (support implicit workspaces)
+        WkspBase = WkspBase_
+    ; WkspBase = Wksp
+    ),
+    ( Path0 = WkspBase -> Rel = ''
+    ; path_get_relative(WkspBase, Path0, Rel) % Path0 is relative to Path
     ).
 
 % ===========================================================================
