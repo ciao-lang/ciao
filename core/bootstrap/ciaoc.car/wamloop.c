@@ -300,8 +300,7 @@ if ((w->misc->top_conc_chpt < w->choice) &&         (w->misc->top_conc_chpt < w-
 fprintf(stderr, "********** what happened here?\n");
       }
 });
-ResetWakeCount();
-SetB(w->choice);
+ResetWakeCount();SetB(w->choice);
 ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );
 if (TrailYounger(pt2=w->trail_top,t1=(tagged_t)TaggedToPointer(B->trail_top))) {
 do {
@@ -1414,7 +1413,7 @@ w->liveinfo = &BcP(f_l, 6);
 if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)((ctagged1_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 3))))) {
 goto fail;
                 }
-P += (FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
+P += (FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_g);
 goto ReadMode;
 r_function_1:
 case FUNCTION_1:
@@ -1422,7 +1421,7 @@ w->liveinfo = &BcP(f_l, 5);
 if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)((ctagged1_t)BcP(f_C, 3))(Arg,Xb(BcP(f_x, 2))))) {
 goto fail;
                 }
-P += (FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
+P += (FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_g);
 goto ReadMode;
 r_function_2q:
 case FUNCTION_2Q:
@@ -1430,7 +1429,7 @@ w->liveinfo = &BcP(f_l, 7);
 if (ERRORTAG==(Xb(BcP(f_x, 2)) = (tagged_t)((ctagged2_t)BcP(f_C, 5))(Arg,Xb(BcP(f_x, 3)),Xb(BcP(f_x, 4))))) {
 goto fail;
                 }
-P += (FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
+P += (FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_g);
 goto ReadMode;
 r_function_2:
 case FUNCTION_2:
@@ -1438,7 +1437,7 @@ w->liveinfo = &BcP(f_l, 6);
 if (ERRORTAG==(Xb(BcP(f_x, 1)) = (tagged_t)((ctagged2_t)BcP(f_C, 4))(Arg,Xb(BcP(f_x, 2)),Xb(BcP(f_x, 3))))) {
 goto fail;
                 }
-P += (FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_l)+FTYPE_size(f_i);
+P += (FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_g);
 goto ReadMode;
 r_builtin_1q:
 case BUILTIN_1Q:
@@ -2181,7 +2180,7 @@ if (HeapCharDifference(w->heap_top,Heap_End) < (intmach_t)BcP(f_l, 1)) {
 explicit_heap_overflow(Arg,(intmach_t)BcP(f_l, 1),(FTYPE_ctype(f_i_signed))BcP(f_i, 3));
 t0 = X(0);
                 }
-P += FTYPE_size(f_l)+FTYPE_size(f_i);
+P += FTYPE_size(f_g);
 goto ReadMode;
 r_neck:
 case NECK:
@@ -2295,8 +2294,7 @@ w->frame = E;
 w->next_insn = PoffR(2);
 w->local_top = StackCharOffset(E,BcP(f_e, 1));
 if (OffStacktop(E,Stack_Warn)) {
-SetEvent();
-                  }
+SetEvent();                  }
 P += FTYPE_size(f_i);
 goto WriteMode;
 case INITCALLQ:
@@ -2466,8 +2464,7 @@ w->next_insn = BCoff(P, FTYPE_size(f_E)+FTYPE_size(f_e));
 w->local_top = StackCharOffset(E,BcP(f_e,3));
 P = BcP(f_p, 1);
 if (OffStacktop(E,Stack_Warn)) {
-SetEvent();
-                  }
+SetEvent();                  }
 goto enter_predicate;
 w_call_n:
 case CALL_N:
@@ -4281,7 +4278,7 @@ explicit_heap_overflow(Arg,(intmach_t)BcP(f_l, 1),(FTYPE_ctype(f_i_signed))BcP(f
 LoadH;
 t0 = X(0);
                   }
-P += FTYPE_size(f_l)+FTYPE_size(f_i);
+P += FTYPE_size(f_g);
 goto WriteMode;
 w_neck:
 case NECK:
