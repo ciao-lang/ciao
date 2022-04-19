@@ -938,11 +938,9 @@ fill_cache_dir :- % cachedir relative to the workspace
     ; RelCacheDir = 'build/cache'
     ),
     ( % (failure-driven loop)
-      ( ciao_path(Path)
-      ; ciao_root(Path)
-      ),
-        atom_concat(Path, '/', Prefix),
-        path_concat(Path, RelCacheDir, CacheDir),
+      ciao_wksp(Wksp, WkspBase),
+        atom_concat(WkspBase, '/', Prefix),
+        path_concat(Wksp, RelCacheDir, CacheDir),
         assertz_fact(use_cache_dir(CacheDir, Prefix)),
         fail
     ; true

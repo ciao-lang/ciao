@@ -12,7 +12,7 @@
     [sourcename/1, absolute_file_name/7, fixed_absolute_file_name/3]).
 :- use_module(engine(internals),
     [ciao_root/1,
-     ciao_path/1,
+     ciao_wksp/2,
      '$bundle_id'/1,
      '$bundle_srcdir'/2]).
 :- use_module(library(system), [working_directory/2]).
@@ -75,13 +75,7 @@ relbuild(bootbuild, 'build-boot'). % bootstrap build
 bundle_workspace(Bundle, Path) :-
     '$bundle_srcdir'(Bundle, Dir),
     % (see builder_aux:lookup_workspace_/3)
-    ( ciao_path(Wksp)
-    ; ciao_root(Wksp)
-    ),
-    ( atom_concat(WkspBase_, '/.wksp', Wksp) -> % (support implicit workspaces)
-        WkspBase = WkspBase_
-    ; WkspBase = Wksp
-    ),
+    ciao_wksp(Wksp, WkspBase),
     ( WkspBase = Dir
     ; path_get_relative(WkspBase, Dir, _)
     ),

@@ -29,12 +29,12 @@ dir_to_bundle(BundleDir, Bundle) :-
 % ---------------------------------------------------------------------------
 
 :- use_module(engine(stream_basic)).
-:- use_module(engine(internals), [ciao_root/1, ciao_path/1]).
+:- use_module(engine(internals), [ciao_wksp/2]).
 :- use_module(library(pathnames), [path_get_relative/3]).
 
 :- export(lookup_workspace/3).
 % @var{Wksp} is the workspace for the given @var{File} (a directory or
-% normal file), using ciao_root/1 and ciao_path/1. @var{Rel} is the
+% normal file), using ciao_wksp/2. @var{Rel} is the
 % relative path within the workspace.
 lookup_workspace(File, Wksp, Rel) :-
     fixed_absolute_file_name(File, '.', Path0),
@@ -45,13 +45,7 @@ lookup_workspace(File, Wksp, Rel) :-
 
 % (see bundle_paths:bundle_workspace/2)
 lookup_workspace_(Path0, Wksp, Rel) :-
-    ( ciao_path(Wksp)
-    ; ciao_root(Wksp)
-    ),
-    ( atom_concat(WkspBase_, '/.wksp', Wksp) -> % (support implicit workspaces)
-        WkspBase = WkspBase_
-    ; WkspBase = Wksp
-    ),
+    ciao_wksp(Wksp, WkspBase),
     ( Path0 = WkspBase -> Rel = ''
     ; path_get_relative(WkspBase, Path0, Rel) % Path0 is relative to Path
     ).

@@ -65,6 +65,18 @@ top_ciao_path(Dir) :-
     !,
     Dir = Dir0.
 
+:- export(ciao_wksp/2).
+% Wksp is a workspace path corresponding to prefix WkspBase
+% (uses both ciao_path/1 and ciao_root/1, supports implicit workspaces)
+ciao_wksp(Wksp, WkspBase) :-
+    ( ciao_path(Wksp)
+    ; ciao_root(Wksp)
+    ),
+    ( atom_concat(WkspBase_, '/.wksp', Wksp) -> % (support implicit workspaces)
+        WkspBase = WkspBase_
+    ; WkspBase = Wksp
+    ).
+
 % :- use_module(library(system), [file_exists/2, directory_files/2]).
 :- import(system, [file_exists/2, directory_files/2]).
 
@@ -74,9 +86,7 @@ reload_bundleregs :-
     clean_bundlereg_db,
     % Load bundle regs in ciao_path/1 and local (or installed) path
     ( % (failure-driven loop)
-      ( ciao_path(Wksp)
-      ; ciao_root(Wksp)
-      ),
+      ciao_wksp(Wksp, _),
         get_bundlereg_dir(Wksp, BundleRegDir),
         reload_bundleregs_(BundleRegDir),
         fail
