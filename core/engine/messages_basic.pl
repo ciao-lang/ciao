@@ -175,6 +175,7 @@ allowed_type(off,     inform) :- !.
 allowed_type(off,     passed) :- !.
 allowed_type(off,     failed) :- !.
 allowed_type(off,     aborted) :- !.
+allowed_type(off,     testing) :- !.
 allowed_type(debug,   _).
 
 
@@ -192,6 +193,7 @@ label(note,    'Note: ').
 label(passed,  'PASSED: ').
 label(failed,  'FAILED: ').
 label(aborted, 'ABORTED: ').
+label(testing, 'TESTING: ').
 
 
 :- export(add_lines/4).
@@ -210,6 +212,7 @@ message_type(debug).
 message_type(passed).
 message_type(failed).
 message_type(aborted).
+message_type(testing).
 % TODO: unify with core/lib/messages. Missing here: simple. Missing
 % there: error0, user, inform, passed, failed, aborted
 
@@ -226,6 +229,7 @@ message_output(debug,   user_error).
 message_output(passed,  user_error).
 message_output(failed,  user_error).
 message_output(aborted, user_error).
+message_output(testing, user_error).
 % TODO: unify with core/lib/messages. Common types have already the
 % same output
 

@@ -294,10 +294,12 @@ norm_body((PD::DP       +GP   ),p,(PD::DP  :true=>true+GP  #"")):-!.%10010
 norm_body((PD::DP          #CO),d,(PD::DP  :true=>true+true#CO)):-!.%10001
 norm_body((PD::DP             ),d,(PD::DP  :true=>true+true#"")):-!.%10000
 norm_body((PD    :CP=>AP+GP#CO),p,(PD::true:CP  =>AP  +GP  #CO)):-!.%01111
+norm_body((PD    :CP=>AP+GP   ),s,(PD::true:CP  =>AP  +GP  #"")):- GP = srcloc(_Src,_LB,_LE), !.%01110
 norm_body((PD    :CP=>AP+GP   ),p,(PD::true:CP  =>AP  +GP  #"")):-!.%01110
 norm_body((PD    :CP=>AP   #CO),s,(PD::true:CP  =>AP  +true#CO)):-!.%01101
 norm_body((PD    :CP=>AP      ),s,(PD::true:CP  =>AP  +true#"")):-!.%01100
 norm_body((PD    :CP    +GP#CO),g,(PD::true:CP  =>true+GP  #CO)):-!.%01011
+norm_body((PD    :CP    +GP   ),c,(PD::true:CP  =>true+GP  #"")):- GP = srcloc(_Src,_LB,_LE), !.%01010
 norm_body((PD    :CP    +GP   ),g,(PD::true:CP  =>true+GP  #"")):-!.%01010
 norm_body((PD    :CP       #CO),c,(PD::true:CP  =>true+true#CO)):-!.%01001
 norm_body((PD    :CP          ),c,(PD::true:CP  =>true+true#"")):-!.%01000

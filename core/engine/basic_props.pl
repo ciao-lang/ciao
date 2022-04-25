@@ -8,7 +8,7 @@
      bytelist/1,
      % byte/1, in_byte/1,
      predname/1, atm_or_atm_list/1, compat/2, inst/2,
-     iso/1, deprecated/1, example/1,
+     iso/1, deprecated/1, srcloc/4, example/1,
      not_further_inst/2, sideff/2, regtype/1,
      native/1, native/2, rtcheck/1, rtcheck/2, no_rtcheck/1, eval/1,
      equiv/2, bind_ins/1, error_free/1, memo/1, filter/2, flag_values/1,
@@ -476,6 +476,16 @@ iso(Goal) :- call(Goal).
 :- meta_predicate deprecated(goal).
 
 deprecated(Goal) :- call(Goal).
+
+:- doc(srcloc/4, "This annotation (pseudo-property) is used to mark
+   that the element (normally assertion) in which it appears was
+   originally between lines @var{LB}-@var{LE} of source file
+   @var{Src}.").
+:- prop srcloc(Goal,Src,LB,LE) + sideff(free).
+
+:- meta_predicate srcloc(Goal,Src,LB,LE).
+
+srcloc(Goal,Src,LB,LE) :- call(Goal), atm(Src), int(LB), int(LE).
 
 
 % TODO: Maybe should go in unittest_props.pl (but some problems in LPdoc)

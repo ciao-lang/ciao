@@ -241,6 +241,7 @@ print_prop(Prop,S) :-
 % TODO: incomplete
 needs_paren((_:_)).
 needs_paren((_,_)).
+needs_paren((_=_)).
 
 % unify_vars([]).
 % unify_vars([N=V|Dict]) :-
