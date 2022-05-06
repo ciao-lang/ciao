@@ -212,9 +212,11 @@ builder_error_message(unknown_target(Target)) :- !,
 "It does not correspond to a known bundle name, a path to a bundle, or a path~n"||
 "to a workspace containing bundles.~n"||
 "~n"||
-"Some possible reasons: the target is not reachable from CIAOROOT or CIAOPATH,~n"||
-"or it does not contain the ACTIVATE mark (for catalogues), or the bundle~n"||
-"sources are incomplete (no valid Manifest.pl?).", [Target]).
+"Some possible reasons:~n"||
+" - target unreachable from CIAOROOT or CIAOPATH~n"||
+" - (only for bundles in catalogues) the ACTIVATE mark is missing~n"||
+" - Manifest.pl file is invalid~n"||
+" - the bundle has not been configured or built~n", [Target]).
 builder_error_message(unknown_bundle(Bundle)) :- !,
     error_message("'~w' is not a known bundle.~n", [Bundle]).
 builder_error_message(unknown_cmd(Cmd)) :- !,
