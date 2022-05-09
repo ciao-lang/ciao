@@ -479,6 +479,8 @@ case "$CIAOOS$CIAOARCH" in
 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['\$Browser'] \
 -s LZ4=1 \
 -s FORCE_FILESYSTEM=1 \
+-s TOTAL_MEMORY=20971520 \
+-s ALLOW_MEMORY_GROWTH=1 \
 -s EXPORTED_RUNTIME_METHODS='[\
   \"FS_createPath\",\
   \"addRunDependency\",\
