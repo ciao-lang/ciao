@@ -41,7 +41,6 @@ function find_source__() { # PATH
          '!' -name '*~' -a \
          '!' -name '*.old' -a \
          '!' -name '*.bak' -a \
-         '!' -name '*.html*' -a \
          '!' -name '*.ps' -a \
          '!' -name '*.po' -a \
          '!' -name '*.itf' -a \
