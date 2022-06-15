@@ -6,7 +6,7 @@
 #include <ciao/eng_gc.h>
 #include <ciao/eng_registry.h>
 
-#if defined(LINUX) || defined(DARWIN) || defined(BSD)
+#if defined(LINUX)||defined(EMSCRIPTEN)||defined(DARWIN)||defined(BSD)
 #include <string.h>
 #endif
 #include <sys/types.h>

@@ -195,7 +195,7 @@ do { if (mips_try_lock(p)) break;                               \
 
 /* ------------------------------------------------------------------------- */
 
-#if defined(LINUX) || defined(Solaris) || defined(DARWIN) || defined(BSD)
+#if defined(LINUX)||defined(EMSCRIPTEN)||defined(Solaris)||defined(DARWIN)||defined(BSD)
 #define HAVE_LIB_LOCKS 1
 
 #include <pthread.h>
@@ -204,7 +204,7 @@ do { if (mips_try_lock(p)) break;                               \
 
 /* Some Solaris machines define _POSIX_PRIORITY_SCHEDULING */
 
-#if defined(_POSIX_PRIORITY_SCHEDULING) && defined(LINUX) || defined(DARWIN) || defined(BSD)
+#if (defined(_POSIX_PRIORITY_SCHEDULING)&&(defined(LINUX)||defined(EMSCRIPTEN)))||defined(DARWIN)||defined(BSD)
 /* 
    Unlike other implementation of threads, pthreads for Linux implements
    threads as user-space processes.
@@ -432,7 +432,7 @@ void reset_counter(void);
 
 /* ------------------------------------------------------------------------- */
 
-#if defined(DARWIN) || defined(LINUX) || defined(Solaris) || defined(Win32) || defined(BSD)
+#if defined(DARWIN)||defined(LINUX)||defined(EMSCRIPTEN)||defined(Solaris)||defined(Win32)||defined(BSD)
 #define USE_POSIX_THREADS 1
 #endif
 
@@ -578,7 +578,7 @@ typedef LPTHREAD_START_ROUTINE  THREAD_START; /* The type of the routine */
 #include <unistd.h>
 #include <signal.h>
 
-#if defined(Solaris) || defined(LINUX) || defined(Win32) || defined(BSD)
+#if defined(Solaris)||defined(LINUX)||defined(EMSCRIPTEN)||defined(Win32)||defined(BSD)
 #include <sys/types.h>
 #include <sys/wait.h>
 #endif

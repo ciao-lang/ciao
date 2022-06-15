@@ -26,7 +26,7 @@ static void abortmsg(int rc);
 /* Interrupt an specific worker */
 CVOID__PROTO(interrupt_worker, int signal_number) {
   SetCIntEvent();
-#if defined(LINUX)
+#if defined(LINUX)||defined(EMSCRIPTEN)
 /* From the manpage: Unlike on BSD systems, signals under Linux are reset to
   their default behavior when raised.  Therefore we have to SIGNAL()
   interrupt_h here again.  Be careful of restating which signals should
@@ -65,7 +65,7 @@ void enable_conditions(void) {
   SIGNAL(SIGILL,  abortmsg);
 #if defined(_WIN32) || defined(_WIN64)
   /* No SIGSYS and SYGBUS in MinGW */
-#elif defined(LINUX)
+#elif defined(LINUX)||defined(EMSCRIPTEN)
   /* Signal handlers in LINUX must reinstall the handler for the signal */
   SIGNAL(SIGBUS,  abortmsg);
   /* No SIGSYS ("bad systema call") signal in Linux */
@@ -102,7 +102,7 @@ static void abortmsg(int rc)
     case SIGBUS:
       SERIOUS_FAULT("bus error");
       break;
-#if defined(LINUX)
+#if defined(LINUX)||defined(EMSCRIPTEN)
 #else
     case SIGSYS:
       SERIOUS_FAULT("bad system call arg");

@@ -58,7 +58,7 @@
 })
 #endif
 
-#if defined(Solaris) || defined(LINUX) || defined(DARWIN) || defined(Win32) || defined(BSD)
+#if defined(Solaris)||defined(LINUX)||defined(EMSCRIPTEN)||defined(DARWIN)||defined(Win32)||defined(BSD)
 # define aint(f) (f>=0.0 ? floor(f) : ceil(f))
 #endif
 

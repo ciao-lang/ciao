@@ -14,7 +14,7 @@
 #include <ciao/eng.h>
 #include <ciao/timing.h>
 
-#if (defined(Solaris) || defined(LINUX) || defined(DARWIN) || defined(Win32) || defined(BSD)) \
+#if (defined(Solaris)||defined(LINUX)||defined(EMSCRIPTEN)||defined(DARWIN)||defined(Win32)||defined(BSD)) \
     && !defined(_WIN32) && !defined(_WIN64)
 
 #include <sys/time.h>

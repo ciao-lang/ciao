@@ -272,7 +272,7 @@ void engine_init(const char *boot_path, const char *exec_path) {
 char *get_execpath(void) {
   char buffer[MAXPATHLEN+1];
   size_t size = MAXPATHLEN+1;
-#if defined(LINUX)
+#if defined(LINUX)/*||defined(EMSCRIPTEN)*/
   ssize_t len;
   if ((len = readlink("/proc/self/exe", buffer, size)) == -1) return NULL;
 #elif defined(DARWIN)

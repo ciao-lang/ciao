@@ -1683,7 +1683,7 @@ CBOOL__PROTO(prolog_getpwnam)
 CBOOL__PROTO(prolog_get_numcores)
 {
   /* Guess number of physical cores from the logical core count */
-#if (defined(LINUX) || defined(DARWIN))
+#if (defined(LINUX)||defined(EMSCRIPTEN)||defined(DARWIN))
   unsigned logical_cores = sysconf(_SC_NPROCESSORS_ONLN);
 #else
   unsigned logical_cores = 1; /* TODO: implement */

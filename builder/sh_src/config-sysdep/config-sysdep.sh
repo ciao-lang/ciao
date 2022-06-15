@@ -46,9 +46,9 @@ bld_objdir="$cardir/objs/$eng_cfg"
 
 # Select target architecture
 case "$eng_cross_os$eng_cross_arch" in
-    LINUXx86_JS)
-        CIAOOS=LINUX
-        CIAOARCH=x86_JS # uname() in Emscripten is x86-JS
+    EMSCRIPTENwasm32)
+        CIAOOS=EMSCRIPTEN
+        CIAOARCH=wasm32 # uname() in Emscripten
         ;;
     *)
         CIAOOS=$core__OS
@@ -116,11 +116,11 @@ elif [ x"$core__CUSTOM_LD" != x"" ]; then
 else
     # Detect based on OS and architecture
     case "$CIAOOS$CIAOARCH" in
-        Solaris*)    CC=gcc; LD=ld ;;
-        LINUXarmv5tel)  CC=arm-linux-gcc; LD=arm-linux-gcc ;; # TODO: Recover cross compilation
-#       crossWin32i686)  CC=i386-mingw32-gcc; LD=i386-mingw32-gcc ;; # TODO: Recover cross compilation
-        DARWIN*)        CC=clang; LD=clang ;;
-        LINUXx86_JS)    CC=emcc; LD=emcc ;; # Emscripten
+        Solaris*)         CC=gcc; LD=ld ;;
+        LINUXarmv5tel)    CC=arm-linux-gcc; LD=arm-linux-gcc ;; # TODO: Recover cross compilation
+#       crossWin32i686)   CC=i386-mingw32-gcc; LD=i386-mingw32-gcc ;; # TODO: Recover cross compilation
+        DARWIN*)          CC=clang; LD=clang ;;
+        EMSCRIPTENwasm32) CC=emcc; LD=emcc ;; # Emscripten
         *)
             # The rest of the systems just use plain 'gcc'
             CC=gcc; LD=gcc ;;
@@ -140,7 +140,7 @@ fi
 
 # Override core__USE_THREADS if needed
 case "$CIAOOS$CIAOARCH" in
-    LINUXx86_JS) core__USE_THREADS=no ;;
+    EMSCRIPTENwasm32) core__USE_THREADS=no ;;
 esac
 
 # Libraries and flags to use threads
@@ -163,6 +163,7 @@ if test x"$core__USE_THREADS" = x"yes"; then
         Solaris*) LD_THREAD_LIB="-lpthread" ;;
         BSD*)     LD_THREAD_LIB="-lpthread" ;;
         LINUX*)   LD_THREAD_LIB="-lpthread" ;;
+        EMSCRIPTEN*) LD_THREAD_LIB="-lpthread" ;;
     esac
 fi
 
@@ -171,10 +172,10 @@ fi
 ARCHFLAGS=
 LDARCHFLAGS=
 case "$CIAOARCH" in
-    i686)  ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
-    ppc)   ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
-    Sparc) ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
-    x86_JS) ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;; # Only 32-bits
+    i686)   ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
+    ppc)    ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
+    Sparc)  ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
+    wasm32) ARCHFLAGS="-m32" ; LDARCHFLAGS="-m32" ;;
 esac
 case "$CIAOOS$CIAOARCH" in
     # TODO: WHY??
@@ -189,6 +190,7 @@ case "$CIAOOS$CIAOARCH" in
     DARWINppc) CCSHARED="-fPIC" ; LDSHARED="-flat_namespace -dynamiclib -undefined suppress" ;;
     DARWIN*)   CCSHARED="-fPIC" ; LDSHARED="-dynamiclib -undefined dynamic_lookup" ;;
     LINUX*)    CCSHARED="-fPIC" ; LDSHARED="-shared" ;;
+    EMSCRIPTEN*) CCSHARED="-fPIC" ; LDSHARED="-shared" ;;
     Solaris*)  CCSHARED= ; LDSHARED="-G" ;;
     # note: -fPIC and -rdynamic are unused in Windows
     Win32*)    CCSHARED= ; LDSHARED="-shared" ;;
@@ -197,7 +199,7 @@ esac
 # Extension of executables
 EXECSUFFIX=
 case "$CIAOOS$CIAOARCH" in
-    LINUXx86_JS) EXECSUFFIX=".js" ;;
+    EMSCRIPTEN*) EXECSUFFIX=".js" ;;
     Win32*) EXECSUFFIX=".exe" ;;
 esac
 
@@ -225,7 +227,7 @@ case "$core__DEBUG_LEVEL" in
     *) ;;
 esac
 # C level debugging information
-# TODO: LINUXx86_JS: add ASSERTIONS=2 for debugging
+# TODO: EMSCRIPTENwasm32: add ASSERTIONS=2 for debugging
 case "$core__DEBUG_LEVEL" in
     paranoid-debug|debug|profile-debug)
         DEBUG_FLAGS="$DEBUG_FLAGS -g"
@@ -253,7 +255,7 @@ ALIGN_FLAGS=""
 OPTIM_FLAGS0="-fomit-frame-pointer $ALIGN_FLAGS"
 if test x"$core__OPTIM_LEVEL" = x"optimized"; then
     case "$CIAOOS$CIAOARCH" in
-        LINUXx86_JS) OPTIM_FLAGS="-fno-strict-aliasing -Oz -O3 $OPTIM_FLAGS0" ;;
+        EMSCRIPTENwasm32) OPTIM_FLAGS="-fno-strict-aliasing -Oz -O3 $OPTIM_FLAGS0" ;;
         *) OPTIM_FLAGS="-fno-strict-aliasing -O2 $OPTIM_FLAGS0"
     esac
 else
@@ -263,9 +265,9 @@ fi
 # Special cases where -fPIC is needed to allow compilation as shared library
 case "$CIAOOS$CIAOARCH" in
     LINUXx86_64)  OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
-    LINUXx86_JS)  OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
     LINUXaarch64) OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
     BSDx86_64)    OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
+    EMSCRIPTENwasm32)  OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
 esac
 # Workaround bug in Darwin19/Xcode 11 (Catalina) # TODO: remove when they fix it
 OPTIM_FLAGS="-fno-stack-check $OPTIM_FLAGS"
@@ -282,8 +284,9 @@ OPTIM_FLAGS="-Wall -Wstrict-prototypes -std=gnu11 $OPTIM_FLAGS"
 #   against
 LDFLAGS0=
 case "$CIAOOS$CIAOARCH" in
-    BSD*)          LDFLAGS0="-rdynamic" ;;
-    LINUX*)        LDFLAGS0="-rdynamic" ;;
+    BSD*)        LDFLAGS0="-rdynamic" ;;
+    LINUX*)      LDFLAGS0="-rdynamic" ;;
+    EMSCRIPTEN*) LDFLAGS0="-rdynamic" ;;
     *) ;;
 esac
 # 
@@ -319,7 +322,7 @@ case "$CIAOOS$CIAOARCH" in
     # LIBS=-ldl
     DARWIN*)      LIBS0= ;;
     Solaris*)     LIBS0="-ldl -lm -lnsl" ;;
-    LINUXx86_JS)  LIBS0="" ;;
+    EMSCRIPTENwasm32)  LIBS0="" ;;
     *) LIBS0="-ldl -lm" ;;
 esac
 
@@ -366,7 +369,7 @@ emit_cdefs() {
     if test x"$core__PROFILE_STATS" = x"yes"; then emit_cdef "PROFILE_STATS"; fi
     # Enable dynamic linking
     case "$CIAOOS$CIAOARCH" in
-        LINUXx86_JS) true ;;
+        EMSCRIPTENwasm32) true ;;
         *) emit_cdef "FOREIGN_FILES" ;;
     esac
     # WAM level debugging
@@ -386,7 +389,7 @@ emit_cdefs() {
         # Do not use USE_MMAP for own_malloc in 64-bit architectures
         *Sparc64)        emit_cdef "USE_OWN_MALLOC" ;;
         *x86_64)         emit_cdef "USE_OWN_MALLOC" ;;
-        *x86_JS)         true ;;
+        *wasm32)         true ;;
         *ppc64)          emit_cdef "USE_OWN_MALLOC" ;;
         *ppc64le)        emit_cdef "USE_OWN_MALLOC" ;;
         *aarch64)        emit_cdef "USE_OWN_MALLOC" ;;
@@ -445,13 +448,13 @@ esac
 
 # Compile as dynamic library
 case "$CIAOOS$CIAOARCH" in
-    LINUXx86_JS) ENG_DYNLIB=0 ;;
+    EMSCRIPTENwasm32) ENG_DYNLIB=0 ;;
     *)           ENG_DYNLIB=1 ;;
 esac
 
 # Fix computed size in executable
 case "$CIAOOS$CIAOARCH" in
-    LINUXx86_JS) ENG_FIXSIZE=0 ;;
+    EMSCRIPTENwasm32) ENG_FIXSIZE=0 ;;
     *)           ENG_FIXSIZE=1 ;;
 esac
 
@@ -462,10 +465,10 @@ CFLAGS="-I$bld_hdir $CFLAGS"
 
 # ===========================================================================
 
-# Patch configuration for Emscripten (LINUXx86_JS)
+# Patch configuration for Emscripten (EMSCRIPTENwasm32)
 
 case "$CIAOOS$CIAOARCH" in
-    LINUXx86_JS)
+    EMSCRIPTENwasm32)
         # It needs source dir in the include path (probably a bug:
         # emcc does not locate included files from some symlinked .c
         # files)

@@ -1,5 +1,5 @@
 /* *** DO NOT EDIT *** */
-/* Output of configure.c for LINUXx86_JS (Emscripten) platform */
+/* Output of configure.c for EMSCRIPTENwasm32 platform */
 /* NOTE: Update if configure.c changes */
 
 #define IS_BIG_ENDIAN 0

@@ -1979,7 +1979,7 @@ CVOID__PROTO(init_streams_each_time)
 /* --------------------------------------------------------------------------- */
 /*  Allocation of principal WAM areas. */
 
-#if defined(Solaris) || defined(LINUX) || defined(DARWIN) || defined(BSD)
+#if defined(Solaris)||defined(LINUX)||defined(EMSCRIPTEN)||defined(DARWIN)||defined(BSD)
 #include <string.h>
 #else
 #include <memory.h>

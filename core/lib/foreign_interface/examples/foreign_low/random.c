@@ -25,7 +25,7 @@
 
 */
 
-#if defined(LINUX) || defined(BSD)
+#if defined(LINUX)||defined(EMSCRIPTEN)||defined(BSD)
 #  define RANDOM_MAX RAND_MAX
 #else
 #  define RANDOM_MAX 2147483647

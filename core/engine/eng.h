@@ -487,7 +487,7 @@
 #endif
 
 /* #if defined(Solaris) */
-#if defined(DARWIN) || defined(LINUX) || defined(Solaris) || defined(Win32) || defined(BSD)
+#if defined(DARWIN)||defined(LINUX)||defined(EMSCRIPTEN)||defined(Solaris)||defined(Win32)||defined(BSD)
 #undef  USCLK_EXISTS
 #define NSCLK_EXISTS
 #define TIME_INIT   

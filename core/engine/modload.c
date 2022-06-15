@@ -39,7 +39,7 @@ static void add_to_loaded_objects(char *module_name,
 # else
 #  define LIB_LOADING_TYPE RTLD_LAZY | RTLD_LOCAL
 # endif
-#elif defined(LINUX) || defined(WIN32) || defined(DARWIN)  || defined(BSD) 
+#elif defined(LINUX)||defined(EMSCRIPTEN)||defined(WIN32)||defined(DARWIN)||defined(BSD) 
 # define LIB_LOADING_TYPE RTLD_LAZY | RTLD_LOCAL     
 #else /* Default options for new architecture */ 
 # define LIB_LOADING_TYPE RTLD_LAZY | RTLD_LOCAL

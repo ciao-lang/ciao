@@ -6,7 +6,7 @@
  *  See Copyright Notice in ciaoengine.pl
  */
 
-#if defined(Solaris) || defined(LINUX) || defined(DARWIN) || defined(BSD)
+#if defined(Solaris)||defined(LINUX)||defined(EMSCRIPTEN)||defined(DARWIN)||defined(BSD)
 #include <string.h>
 #else
 #include <memory.h>
