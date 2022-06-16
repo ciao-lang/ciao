@@ -475,7 +475,7 @@ case "$CIAOOS$CIAOARCH" in
         CFLAGS="-I$bld_srcdir $CFLAGS"
         # Optimization flags must be included during link
         LDFLAGS="$LDFLAGS $OPTIM_FLAGS"
-        # Other hardwired options (see ciaojs)
+        # Other hardwired options (see ciaowasm)
         # TODO: customize
         LDFLAGS="$LDFLAGS \
 -s MAIN_MODULE=2 \
