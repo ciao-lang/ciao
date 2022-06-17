@@ -1365,12 +1365,7 @@ CBOOL__PROTO(prolog_c_copy_file) {
       flags = O_WRONLY|O_CREAT|O_EXCL;
     }
     fstat(fd_source, &stat_buf);
-#if defined(EMSCRIPTEN) 
-    /* Emscripten has problems with some modes (ignore at the moment) */
-    fd_destination = open(destination, flags);
-#else
     fd_destination = open(destination, flags, stat_buf.st_mode);
-#endif
     if (fd_destination==-1) {
       /* Now we must close source */
       close(fd_source);
