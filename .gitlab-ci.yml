@@ -18,7 +18,7 @@ before_script:
 configure:
   stage: config
   script:
-    - ./ciao-boot.sh configure --ciao_ppl:enabled=no
+    - builder/etc/gitlab-ci.sh configure
   artifacts:
     expire_in: 2h
     untracked: true
@@ -29,7 +29,7 @@ configure:
 build:
   stage: build
   script:
-    - ./ciao-boot.sh build --bin core builder ciaodbg 2>&1 | builder/etc/errstatus
+    - builder/etc/gitlab-ci.sh build
   artifacts:
     expire_in: 2h
     untracked: true
@@ -42,7 +42,7 @@ build:
 install:
   stage: install
   script:
-    - ./ciao-boot.sh install 2>&1 | builder/etc/errstatus
+    - builder/etc/gitlab-ci.sh install
   artifacts:
     expire_in: 2h
     untracked: true
@@ -54,13 +54,7 @@ install:
 ciaopp:
   stage: basic-bundles
   script:
-    - echo # TODO: artifact too large; prebuilt 3rd party in docker base?
-    - echo # apk add m4 autoconf automake libtool # required for PPL build
-    - echo # ./ciao-boot.sh configure # --ciao_ppl:enabled=no
-    - echo # ./ciao-boot.sh configure --ciao_ppl:enabled=no
-    - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
-    - ./ciao-boot.sh configure
-    - ./ciao-boot.sh build --bin -r ciaopp_extra ciaopp 2>&1 | builder/etc/errstatus
+    - builder/etc/gitlab-ci.sh ciaopp
   artifacts:
     expire_in: 2h
     untracked: true
@@ -72,16 +66,7 @@ ciaopp:
 ciaopp_lite:
   stage: basic-bundles
   script:
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao clean ciaopp
-    - rm -f bndls/ciaopp_extra/ACTIVATE
-    - rm -f bndls/ciaopp_cost/ACTIVATE
-    - rm -f bndls/ciaopp_fpnum/ACTIVATE
-    - rm -f bndls/ciaopp_bshare/ACTIVATE
-    - rm -f bndls/ciaopp_java/ACTIVATE
-    - rm -f bndls/ciaopp_llvm/ACTIVATE
-    - ciao rescan-bundles
-    - ciao build --bin ciaopp 2>&1 | builder/etc/errstatus
+    - builder/etc/gitlab-ci.sh ciaopp_lite
   artifacts:
     expire_in: 2h
     untracked: true
@@ -94,17 +79,13 @@ ciaopp_lite.test.incanal_assrts:
   stage: test
   script:
     - apk add bash # add bash for the test scripts
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao build --bin ciaopp_tests
-    - ./bndls/ciaopp_tests/tests/incanal/test_incanal_assrts.sh shfr
+    - builder/etc/gitlab-ci.sh ciaopp_lite.test.incanal_assrts
   needs: [ciaopp_lite]
 
-ciaopp_lite-analyze-core:
+ciaopp_lite.analyze.core:
   stage: test
   script:
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciaopp-batch gr core/lib/
-    - ciaopp_batch_report core/lib/
+    - builder/etc/gitlab-ci.sh ciaopp_lite.analyze.core
   needs: [ciaopp_lite]
   artifacts:
     when: always
@@ -119,86 +100,52 @@ ciaopp_lite.test.rtchecks:
   stage: test
   script:
     - apk add bash # add bash for the test scripts
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - sed -i '2i:- use_package(rtchecks).' bndls/ciaopp/src/plai/domains.pl
-    - sed -i '9i:- use_package(rtchecks).' bndls/ciaopp/src/plai/fixpo_dd.pl
-    - ciao clean ciaopp ciaopp_tests
-    - rm -f bndls/ciaopp_extra/ACTIVATE
-    - rm -f bndls/ciaopp_cost/ACTIVATE
-    - rm -f bndls/ciaopp_fpnum/ACTIVATE
-    - rm -f bndls/ciaopp_bshare/ACTIVATE
-    - rm -f bndls/ciaopp_java/ACTIVATE
-    - rm -f bndls/ciaopp_llvm/ACTIVATE
-    - ciao rescan-bundles
-    - ciao build --bin ciaopp ciaopp_tests 2>&1 | builder/etc/errstatus
-    - ciaopp-test incanal qsort gr --edit_type del --show-lat --steps 5 | builder/etc/errstatus
-    - ciaopp-test incanal ann gr --edit_type del --show-lat --steps 5 | builder/etc/errstatus
-    - ciaopp-test incanal rdtok gr --edit_type del --show-lat --steps 5 | builder/etc/errstatus
-    - ciaopp-test incanal hanoi det --edit_type del --show-lat --steps 5 plai | builder/etc/errstatus
-    - ciaopp-test incanal bid det --edit_type del --show-lat --steps 5 plai | builder/etc/errstatus
-    - ciaopp-test incanal hanoi nf --edit_type del --show-lat --steps 5 plai | builder/etc/errstatus
-    - ciaopp-test incanal bid nf --edit_type del --show-lat --steps 5 plai | builder/etc/errstatus
-    - ./bndls/ciaopp_tests/tests/incanal/test_terms_mod.sh
-    - ./bndls/ciaopp_tests/tests/ciaoppcl/ciaoppcl.sh
+    - builder/etc/gitlab-ci.sh ciaopp_lite.test.rtchecks
   needs: [ciaopp_lite]
 
 ciaopp_lite.test.incanal:
   stage: test
   script:
     - apk add bash # add bash for the test scripts
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao build --bin ciaopp_tests
-    - cd bndls/ciaopp_tests/tests/incanal
-    - ./test_incanal_mon.sh pdb
-    - ./quick_run.sh
+    - builder/etc/gitlab-ci.sh ciaopp_lite.test.incanal
   needs: [ciaopp_lite]
 
 ciaopp_extra.test:
   stage: test
   allow_failure: true
   script:
-    - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao test ciaopp_extra
+    - builder/etc/gitlab-ci.sh ciaopp_extra.test
   needs: [ciaopp]
 
 ciaopp_cost.test:
   stage: test
   allow_failure: true
   script:
-    - if [ -x /prebuilt-third-party ]; then mv /prebuilt-third-party third-party; fi # Recover prebuilt third-party from image
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao test ciaopp_cost 2>&1 | builder/etc/errstatus
+    - builder/etc/gitlab-ci.sh ciaopp_cost.test
   needs: [ciaopp]
 
 lpdoc:
   stage: basic-bundles
   script:
-    - ./ciao-boot.sh build --bin lpdoc 2>&1 | builder/etc/errstatus
+    - builder/etc/gitlab-ci.sh lpdoc
   needs: [install]
 
 bibutils:
   stage: basic-bundles
   script:
-    - touch bndls/bibutils/ACTIVATE
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao rescan-bundles
-    - ciao build --bin bibutils 2>&1 | builder/etc/errstatus
+    - builder/etc/gitlab-ci.sh bibutils
   needs: [install]
 
 jvm_in_ciao:
   stage: basic-bundles
   script:
-    - ./ciao-boot.sh build --bin jvm_in_ciao 2>&1 | builder/etc/errstatus
+    - builder/etc/gitlab-ci.sh jvm_in_ciao
   needs: [install]
 
 ciao_gui:
   stage: basic-bundles
   script:
-    - touch bndls/ciao_gui/ACTIVATE
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao rescan-bundles
-    - ciao build --bin ciao_gui 2>&1 | builder/etc/errstatus
+    - builder/etc/gitlab-ci.sh ciao_gui
   needs: [install]
 
 wui:
@@ -209,12 +156,7 @@ wui:
     when: script_failure
   script:
     - apk add --update nodejs nodejs-npm
-    - touch bndls/wui/ACTIVATE
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao rescan-bundles
-    - ciao custom_run wui fetch_externals
-    - ciao build --bin wui 2>&1 | builder/etc/errstatus
-    - ciao custom_run wui dist
+    - builder/etc/gitlab-ci.sh wui
   artifacts:
     expire_in: 2h
     untracked: true
@@ -229,54 +171,40 @@ website:
   stage: test
   allow_failure: true
   script:
-    - touch bndls/website/ACTIVATE
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao rescan-bundles
-    - ciao build --bin lpdoc 2>&1 | builder/etc/errstatus
-    - ciao custom_run website fetch_externals
-    - ciao build --bin website 2>&1 | builder/etc/errstatus
-    - ciao custom_run website dist
+    - builder/etc/gitlab-ci.sh website
   needs: [wui]
 
 core.test:
   stage: test
   script:
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao test core
+    - builder/etc/gitlab-ci.sh core
   needs: [install]
 
 core_OC.test:
   stage: test
   script:
     - apk add bash # add bash (currently required for optim-comp scripts)
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao rescan-bundles
-    - ciao oc:tests full
+    - builder/etc/gitlab-ci.sh core_OC.test
   needs: [install]
 
 core.test.rtchecks:
   stage: test
   script:
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - cd bndls/testsuite/rtchecks
-    - ./test_rtchecks.sh
+    - builder/etc/gitlab-ci.sh core.test.rtchecks
   allow_failure: true
   needs: [install]
 
 ciaodbg.test.unittest:
   stage: test
   script:
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - cd bndls/testsuite/unittest
-    - ./run_unittest_tests.pl
+    - builder/etc/gitlab-ci.sh ciaodbg.test.unittest
   allow_failure: true
   needs: [install]
 
 iso_tests.test:
   stage: test
   script:
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao test iso_tests
+    - builder/etc/gitlab-ci.sh iso_tests.test
   allow_failure: true
   needs: [install]
 
@@ -284,18 +212,11 @@ ciao_emacs.test:
   stage: test
   script:
     - apk add emacs-nox
-    - ./ciao-boot.sh configure --ciao_ppl:enabled=no
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao build ciao_emacs 2>&1 | builder/etc/errstatus
-    - ciao test ciao_emacs
+    - builder/etc/gitlab-ci.sh ciao_emacs.test
   needs: [install]
 
 deepfind.test:
   stage: test
   script:
-    - touch bndls/deepfind/ACTIVATE
-    - eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
-    - ciao rescan-bundles
-    - ciao build --bin deepfind 2>&1 | builder/etc/errstatus
-    - ciao test deepfind
+    - builder/etc/gitlab-ci.sh deepfind.test
   needs: [ciaopp_lite]
