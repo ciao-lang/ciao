@@ -2,9 +2,7 @@ variables:
   GIT_SUBMODULE_STRATEGY: normal
 
 stages:
-  - config
-  - build
-  - install
+  - min-bundles
   - basic-bundles
   - test
 
@@ -15,41 +13,17 @@ default:
 before_script:
   - apk --update add git make tar curl
 
-configure:
-  stage: config
+core:
+  stage: min-bundles
   script:
-    - builder/etc/gitlab-ci.sh configure
+    - builder/etc/gitlab-ci.sh core
   artifacts:
     expire_in: 2h
     untracked: true
     paths:
       - build-boot/
+      - build/
   needs: []
-
-build:
-  stage: build
-  script:
-    - builder/etc/gitlab-ci.sh build
-  artifacts:
-    expire_in: 2h
-    untracked: true
-    paths:
-      - build-boot/
-      - build/
-  needs: [configure]
-
-
-install:
-  stage: install
-  script:
-    - builder/etc/gitlab-ci.sh install
-  artifacts:
-    expire_in: 2h
-    untracked: true
-    paths:
-      - build-boot/
-      - build/
-  needs: [build]
 
 ciaopp:
   stage: basic-bundles
@@ -61,7 +35,7 @@ ciaopp:
     paths:
       - build-boot/
       - build/
-  needs: [install]
+  needs: [core]
 
 ciaopp_lite:
   stage: basic-bundles
@@ -73,7 +47,7 @@ ciaopp_lite:
     paths:
       - build-boot/
       - build/
-  needs: [install]
+  needs: [core]
 
 ciaopp_lite.test.incanal_assrts:
   stage: test
@@ -128,25 +102,25 @@ lpdoc:
   stage: basic-bundles
   script:
     - builder/etc/gitlab-ci.sh lpdoc
-  needs: [install]
+  needs: [core]
 
 bibutils:
   stage: basic-bundles
   script:
     - builder/etc/gitlab-ci.sh bibutils
-  needs: [install]
+  needs: [core]
 
 jvm_in_ciao:
   stage: basic-bundles
   script:
     - builder/etc/gitlab-ci.sh jvm_in_ciao
-  needs: [install]
+  needs: [core]
 
 ciao_gui:
   stage: basic-bundles
   script:
     - builder/etc/gitlab-ci.sh ciao_gui
-  needs: [install]
+  needs: [core]
 
 wui:
   stage: basic-bundles
@@ -165,7 +139,7 @@ wui:
   cache:
     paths:
       - third-party/
-  needs: [install]
+  needs: [core]
 
 website:
   stage: test
@@ -177,43 +151,43 @@ website:
 core.test:
   stage: test
   script:
-    - builder/etc/gitlab-ci.sh core
-  needs: [install]
+    - builder/etc/gitlab-ci.sh core.test
+  needs: [core]
 
 core_OC.test:
   stage: test
   script:
     - apk add bash # add bash (currently required for optim-comp scripts)
     - builder/etc/gitlab-ci.sh core_OC.test
-  needs: [install]
+  needs: [core]
 
 core.test.rtchecks:
   stage: test
   script:
     - builder/etc/gitlab-ci.sh core.test.rtchecks
   allow_failure: true
-  needs: [install]
+  needs: [core]
 
 ciaodbg.test.unittest:
   stage: test
   script:
     - builder/etc/gitlab-ci.sh ciaodbg.test.unittest
   allow_failure: true
-  needs: [install]
+  needs: [core]
 
 iso_tests.test:
   stage: test
   script:
     - builder/etc/gitlab-ci.sh iso_tests.test
   allow_failure: true
-  needs: [install]
+  needs: [core]
 
 ciao_emacs.test:
   stage: test
   script:
     - apk add emacs-nox
     - builder/etc/gitlab-ci.sh ciao_emacs.test
-  needs: [install]
+  needs: [core]
 
 deepfind.test:
   stage: test
