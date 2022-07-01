@@ -10,9 +10,6 @@ default:
   tags:
     - ciao_test_base
 
-before_script:
-  - apk --update add git make tar curl bash
-
 core:
   stage: min-bundles
   script:
@@ -126,7 +123,6 @@ wui:
     max: 2
     when: script_failure
   script:
-    - apk add --update nodejs nodejs-npm
     - builder/etc/gitlab-ci.sh wui
   artifacts:
     expire_in: 2h
