@@ -11,7 +11,7 @@ default:
     - ciao_test_base
 
 before_script:
-  - apk --update add git make tar curl
+  - apk --update add git make tar curl bash
 
 core:
   stage: min-bundles
@@ -52,7 +52,6 @@ ciaopp_lite:
 ciaopp_lite.test.incanal_assrts:
   stage: test
   script:
-    - apk add bash # add bash for the test scripts
     - builder/etc/gitlab-ci.sh ciaopp_lite.test.incanal_assrts
   needs: [ciaopp_lite]
 
@@ -73,14 +72,12 @@ ciaopp_lite.analyze.core:
 ciaopp_lite.test.rtchecks:
   stage: test
   script:
-    - apk add bash # add bash for the test scripts
     - builder/etc/gitlab-ci.sh ciaopp_lite.test.rtchecks
   needs: [ciaopp_lite]
 
 ciaopp_lite.test.incanal:
   stage: test
   script:
-    - apk add bash # add bash for the test scripts
     - builder/etc/gitlab-ci.sh ciaopp_lite.test.incanal
   needs: [ciaopp_lite]
 
@@ -157,7 +154,6 @@ core.test:
 core_OC.test:
   stage: test
   script:
-    - apk add bash # add bash (currently required for optim-comp scripts)
     - builder/etc/gitlab-ci.sh core_OC.test
   needs: [core]
 
