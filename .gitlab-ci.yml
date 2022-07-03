@@ -8,7 +8,7 @@ stages:
 
 default:
   tags:
-    - ciaoemsdk
+    - ciao_test_base
 
 core:
   stage: min-bundles
