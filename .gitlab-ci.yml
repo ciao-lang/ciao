@@ -177,7 +177,7 @@ iso_tests.test:
 ciao_emacs.test:
   stage: test
   script:
-    - apk add emacs-nox
+    - apt-get install emacs-nox
     - builder/etc/gitlab-ci.sh ciao_emacs.test
   needs: [core]
 
