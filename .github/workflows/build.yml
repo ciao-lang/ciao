@@ -56,20 +56,22 @@ jobs:
       - run: |
           sudo apt-get update && sudo apt-get install gcc-multilib g++-multilib libc6-i386 libc6-dev-i386
         if: (matrix.sys.os == 'ubuntu-latest' && matrix.sys.arch == 'i686')
-      # Additional setup for devenv (specially documentation generation)
+      # Additional setup for devenv: emacs and documentation generation
       - run: |
           sudo apt-get update && sudo apt-get install emacs-nox texlive-latex-base texlive-binaries ghostscript
           sudo sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
         if: (matrix.sys.os == 'ubuntu-latest' && matrix.sys.inskind == 'devenv')
+      # Additional setup for devenv: Emscripten
+      - uses: mymindstorm/setup-emsdk@v11
       # Checks-out repo under $GITHUB_WORKSPACE
       - uses: actions/checkout@v2
       # Build
       - name: Build
         run: |
           case "${{ matrix.sys.inskind }}" in
-              minciao)       EXTRAOPTS=""; DEVENV=no; ;;
-              devenv)        EXTRAOPTS=""; DEVENV=yes; ;;
-              devenv-nodocs) EXTRAOPTS="--with-docs=no"; DEVENV=yes; ;;
+              minciao)       EXTRAOPTS=""; DEVENV=no; WASM=no; ;;
+              devenv)        EXTRAOPTS="--ciaopp:lite=yes"; DEVENV=yes; WASM=yes; ;;
+              devenv-nodocs) EXTRAOPTS="--with-docs=no --ciaopp:lite=yes"; DEVENV=yes; WASM=no; ;;
           esac
           if [ "${{ matrix.sys.arch }}" == "i686" ]; then
               ARCHOPTS="--core:m32=yes"
@@ -79,9 +81,16 @@ jobs:
           # ARCHOPTS="${{ matrix.sys.archopts }} --core:custom_cc=$CC"
           ./ciao-boot.sh boot-build $ARCHOPTS
           if [ $DEVENV == yes ]; then ./ciao-boot.sh fetch devenv; fi
+          if [ $WASM == yes ]; then ./ciao-boot.sh fetch ciaowasm ciao_playground website; fi
           ./ciao-boot.sh configure --instype=local $ARCHOPTS $EXTRAOPTS
           ./ciao-boot.sh build
           ./ciao-boot.sh install
+          if [ $WASM == yes ]; then
+              eval "$(build/bin/ciao-env --sh)" # update PATH, etc.
+              ciao_playground/build.sh
+              ciao custom_run website fetch_externals
+              ciao custom_run website dist
+          fi
       # Release
       - name: Prepare release assets (bin)
         if: (startsWith(github.ref, 'refs/tags/v') && matrix.sys.inskind == 'minciao')
@@ -94,18 +103,30 @@ jobs:
           mv Ciao-*.tar.gz $PBUNDLE
           # (keep pbundle name output)
           echo "::set-output name=pbundle::$PBUNDLE"
-      - name: Prepare release assets (docs)
+      - name: Prepare release assets (docs and site)
         if: (startsWith(github.ref, 'refs/tags/v') && matrix.sys.inskind == 'devenv')
-        id: prepare_release_docs
+        id: prepare_release_others
         run: |
           VERS=$(cat core/Manifest/GlobalVersion).$(cat core/Manifest/GlobalPatch)
-          PBUNDLEDOCS=ciao-"$VERS"-docs.tar.gz
           cd build
-          rm -rf doc/*.cachedoc
           mkdir -p pbundle
+          # cleanup doc and pack
+          PBUNDLEDOCS=ciao-"$VERS"-docs.tar.gz
+          mkdir -p doc site
+          rm -rf doc/*.cachedoc
           tar -czf pbundle/$PBUNDLEDOCS doc
-          # (keep pbundledocs name output)
+          # cleanup site and pack
+          PBUNDLESITE=ciao-"$VERS"-site.tar.gz
+          rm -rf site/*.cachedoc
+          rm -f site/ciao/build/doc site/node_modules
+          mkdir -p site/ciao/build/doc site/node_modules site/node_modules/monaco-editor
+          for m in doc/*.html; do [ -e "$m" ] || continue; cp -R "$m" site/ciao/build/doc; done
+          cp -R ../third-party/3rd-npm/node_modules/mathjax site/node_modules
+          cp -R ../third-party/3rd-npm/node_modules/monaco-editor/min site/node_modules/monaco-editor
+          tar -czf pbundle/$PBUNDLESITE site
+          # (keep pbundledocs, pbundlesite name output)
           echo "::set-output name=pbundledocs::$PBUNDLEDOCS"
+          echo "::set-output name=pbundlesite::$PBUNDLESITE"
       - name: Release (bin)
         uses: softprops/action-gh-release@v1
         if: (startsWith(github.ref, 'refs/tags/v') && matrix.sys.inskind == 'minciao')
@@ -114,12 +135,12 @@ jobs:
             ./build/pbundle/${{ steps.prepare_release_bin.outputs.pbundle }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Release (docs)
+      - name: Release (docs and site)
         uses: softprops/action-gh-release@v1
         if: (startsWith(github.ref, 'refs/tags/v') && matrix.sys.inskind == 'devenv')
         with:
           files: |         
-            ./build/pbundle/${{ steps.prepare_release_docs.outputs.pbundledocs }}
+            ./build/pbundle/${{ steps.prepare_release_others.outputs.pbundledocs }}
+            ./build/pbundle/${{ steps.prepare_release_others.outputs.pbundlesite }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
