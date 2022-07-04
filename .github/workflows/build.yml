@@ -63,6 +63,7 @@ jobs:
         if: (matrix.sys.os == 'ubuntu-latest' && matrix.sys.inskind == 'devenv')
       # Additional setup for devenv: Emscripten
       - uses: mymindstorm/setup-emsdk@v11
+        if: (matrix.sys.os == 'ubuntu-latest' && matrix.sys.inskind == 'devenv')
       # Checks-out repo under $GITHUB_WORKSPACE
       - uses: actions/checkout@v2
       # Build
