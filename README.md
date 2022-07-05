@@ -14,8 +14,9 @@ etc.) are provided in [separate bundles](https://github.com/ciao-lang).
 
 ## Installation
 [![Build](https://github.com/ciao-lang/ciao/actions/workflows/build.yml/badge.svg)](https://github.com/ciao-lang/ciao/actions)
+[![Try](https://img.shields.io/badge/-Try%20online%20%E2%96%BA-blue)](https://ciao-lang.org/playground)
 ```
 curl https://ciao-lang.org/boot -sSfL | sh
 ```
-Please consult the [quick installation](https://ciao-lang.org/install.html)
-instructions or refer to the [INSTALLATION](core/INSTALLATION) file.
+Please consult the [**installation**](https://ciao-lang.org/install.html)
+instructions for details.
