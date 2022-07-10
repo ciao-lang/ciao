@@ -170,15 +170,20 @@ Ciao can be installed from the network using a `curl' pipe from
 `https://ciao-lang.org/boot' to `sh' in a terminal. This is probably
 the fastest/easiest way to install Ciao from sources.
 
-The network installater is delivered as an HTTPs redirection to
+The network installer is delivered as an HTTPs redirection to
 `https://raw.githubusercontent.com/ciao-lang/ciao/master/ciao-boot.sh'
 (which contains the latest version of the `ciao-boot.sh' script). The
 bootstrap script recognizes that it is being called without sources
 automatically. Examples:
 
+     # Interactive installation
      curl https://ciao-lang.org/boot -sSfL | sh
-     curl https://ciao-lang.org/boot -sSfL | sh -s -- --prebuilt local-install
-     curl https://ciao-lang.org/boot -sSfL | sh -s -- --no-prebuilt get devenv
+     # Minimal local installation with prebuilt binaries
+     curl https://ciao-lang.org/boot -sSfL | sh -s -- --prebuilt-bin local-install
+     # Full environment
+     curl https://ciao-lang.org/boot -sSfL | sh -s -- get devenv
+     # Show network installer help
+     curl https://ciao-lang.org/boot -sSfL | sh -s -- --help
 
 Quick installation from source
 ==============================
