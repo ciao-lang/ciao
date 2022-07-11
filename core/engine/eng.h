@@ -393,6 +393,10 @@
 
 #define Stop_This_Goal(w) (w->misc->stop_this_goal)
 
+// TODO: better place to store this bit?
+#define IsSuspendedGoal(w) ((bool_t)((intptr_t)(w->dummy0)))
+#define SetSuspendedGoal(w,S) (w->dummy0 = (void *)(S))
+
 /* Global variables */
 
 #define GLOBVAR(i) w->misc->globalvar[i]
@@ -1385,7 +1389,7 @@ struct worker_ {
   intmach_t atom_buffer_length;
 
   /* dummy */
-  void *dummy0;
+  void *dummy0; /* TODO: experimental, used for suspended goals */
   void *dummy1;
   void *dummy2;
 
@@ -2218,6 +2222,7 @@ extern try_node_t *address_nd_fake_choicept;
 extern try_node_t *address_nd_suspension_point;
 extern bcp_t restart_point_insn;
 #endif
+extern try_node_t *address_nd_yield;
 
 extern definition_t *address_true;
 extern definition_t *address_fail;

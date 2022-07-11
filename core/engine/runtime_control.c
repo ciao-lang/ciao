@@ -79,6 +79,23 @@ CBOOL__PROTO(nd_fake_choicept)
 }
 #endif
 
+/* internals:'$yield'/0: force exit of the wam function (continue with ciao_query_resume()) */
+CBOOL__PROTO(prolog_yield) {
+  // TODO: try a more direct way, do not create choice points */
+  push_choicept(w,address_nd_yield);
+  Stop_This_Goal(w) = TRUE;
+  SetEvent(); // TODO: see concurrency.c using "SetWakeCount(1);" instead
+  goal_descriptor_t *ctx = w->misc->goal_desc_ptr;
+  SetSuspendedGoal(w, TRUE);
+  ctx->action = BACKTRACKING | KEEP_STACKS; // continue on alternative
+  CBOOL__PROCEED;
+}
+
+CBOOL__PROTO(nd_yield) {
+  pop_choicept(w);
+  CBOOL__PROCEED;
+}
+
 /* ------------------------------------------------------------------
    THE BUILTIN C-PREDICATE       CURRENT_ATOM/1
    -----------------------------------------------------------------------*/

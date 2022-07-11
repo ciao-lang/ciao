@@ -320,6 +320,8 @@ try_node_t *address_nd_suspension_point;
 bcp_t restart_point_insn;
 #endif
 
+try_node_t *address_nd_yield;
+
 definition_t *address_true;
 definition_t *address_fail;
 definition_t *address_call;
@@ -1794,6 +1796,8 @@ void init_once(void)
   define_c_mod_predicate("internals","$close_predicate",1,close_predicate);
   define_c_mod_predicate("internals","$open_predicate",1,open_predicate);
   define_c_mod_predicate("runtime_control", "new_atom", 1, prolog_new_atom);
+  // (experimental)
+  define_c_mod_predicate("internals", "$yield", 0, prolog_yield);
 
 #if defined(GAUGE)
   /* gauge.c */
@@ -1842,6 +1846,7 @@ void init_once(void)
     EMIT_o(RESTART_POINT);
   }
 #endif
+  address_nd_yield = def_retry_c(nd_yield,0);
 
 #include "eng_static_mod.c"
 

@@ -284,6 +284,10 @@ ciao_bool ciao_commit_call(const char *name, int arity, ...);
 ciao_bool ciao_commit_call_term_s(ciao_ctx ctx, ciao_term goal);
 ciao_bool ciao_commit_call_term(ciao_term goal);
 
+/* (experimental for '$yield'/0) */
+bool_t ciao_query_suspended(ciao_query *query);
+void ciao_query_resume(ciao_query *query);
+
 /* Helper functions */
 
 ciao_term ciao_copy_term_s(ciao_ctx src_desc, ciao_term src_term, ciao_ctx dst_desc);

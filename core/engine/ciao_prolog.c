@@ -973,11 +973,13 @@ ciao_bool ciao_query_next(ciao_query *query) {
 
 ciao_bool ciao_query_ok(ciao_query *query) {
   try_node_t *next_alt;
+  ciao_ctx ctx = query->ctx;
+  worker_t *w = ctx->worker_registers;
 
-  next_alt = query->ctx->worker_registers->next_alt;
-  
-  if (next_alt == &nullgoal_alt ||
-      (next_alt == NULL && query->ctx->worker_registers->choice->next_alt == &nullgoal_alt)) {
+  next_alt = w->next_alt;
+  if (next_alt == NULL) next_alt = w->choice->next_alt;
+
+  if (next_alt == &nullgoal_alt) {
     return FALSE;
   } else {
     return TRUE;
@@ -1094,6 +1096,25 @@ ciao_bool ciao_commit_call_s(ciao_ctx ctx, const char *name, int arity, ...) {
 ciao_bool ciao_commit_call(const char *name, int arity, ...) {
   GETARGS(arity)
   return ciao_commit_call_term(ciao_structure_a(name, arity, args));
+}
+
+/* ------------------------------------------------------------------------- */
+
+/* True if this query has been suspended with internals:'$yield'/0 [EXPERIMENTAL] */
+bool_t ciao_query_suspended(ciao_query *query) {
+  goal_descriptor_t *ctx = query->ctx;
+  worker_t *w = ctx->worker_registers;
+  return IsSuspendedGoal(w);
+}
+
+/* Resume the execution of query suspended with internals:'$yield'/0 [EXPERIMENTAL] */
+void ciao_query_resume(ciao_query *query) {
+  goal_descriptor_t *ctx = query->ctx;
+  worker_t *w = ctx->worker_registers;
+  Stop_This_Goal(w) = FALSE;
+  SetSuspendedGoal(w, FALSE);
+  UnsetEvent(); // TODO: SetEvent() usage
+  wam(w, ctx); // (continue with '$yield' alternative, resume execution)
 }
 
 /* ------------------------------------------------------------------------- */
