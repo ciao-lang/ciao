@@ -738,36 +738,36 @@ CVOID__PROTO(GarbageCollect) {
         CVOID__CALL(print_string, Error_Stream_Ptr, "{GC}");
       } else {
         StreamPrintf(Error_Stream_Ptr, "\n{GC}  Heap GC started\n");
-        StreamPrintf(Error_Stream_Ptr, "Heap:   from 0x%p to 0x%p (total size = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "Heap:   from %p to %p (total size = %" PRIdm ")\n",
                       Heap_Start, 
                       Heap_End,
                       (intmach_t)HeapDifference(Heap_Start, Heap_End));
-        StreamPrintf(Error_Stream_Ptr, "        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
                       w->heap_top,  
                       (intmach_t)HeapDifference(Heap_Start, w->heap_top),
                       (intmach_t)HeapDifference(w->heap_top, Heap_End));
-        StreamPrintf(Error_Stream_Ptr, "        GC start at 0x%p\n", 
+        StreamPrintf(Error_Stream_Ptr, "        GC start at %p\n", 
                       gc_HeapStart);
 
-        StreamPrintf(Error_Stream_Ptr, "Stack:  from 0x%p to 0x%p (total size = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "Stack:  from %p to %p (total size = %" PRIdm ")\n",
                       Stack_Start, 
                       Stack_End,
                       (intmach_t)StackDifference(Stack_Start, Stack_End));
-        StreamPrintf(Error_Stream_Ptr, "        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
                       w->local_top, 
                       (intmach_t)StackDifference(Stack_Start,w->local_top),
                       (intmach_t)StackDifference(w->local_top, Stack_End));
-        StreamPrintf(Error_Stream_Ptr, "        GC start at 0x%p\n", 
+        StreamPrintf(Error_Stream_Ptr, "        GC start at %p\n", 
                       gc_StackStart);
 
-        StreamPrintf(Error_Stream_Ptr, "Choice/Trail: from 0x%p to 0x%p (total size = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "Choice/Trail: from %p to %p (total size = %" PRIdm ")\n",
                       Choice_Start, 
                       Choice_End,
                       (intmach_t)ChoiceDifference(Choice_Start,Choice_End));
-        StreamPrintf(Error_Stream_Ptr, "        Ch. top at 0x%p (used = %" PRIdm ")\n", 
+        StreamPrintf(Error_Stream_Ptr, "        Ch. top at %p (used = %" PRIdm ")\n", 
                       w->choice, 
                       (intmach_t)ChoiceDifference(Choice_Start, w->choice));
-        StreamPrintf(Error_Stream_Ptr, "        Tr. top at 0x%p (used = %" PRIdm ")\n", 
+        StreamPrintf(Error_Stream_Ptr, "        Tr. top at %p (used = %" PRIdm ")\n", 
                       w->trail_top, 
                       (intmach_t)TrailDifference(Trail_Start,w->trail_top));
         StreamPrintf(Error_Stream_Ptr, "        Ch./Tr. free %" PRIdm "\n",
@@ -813,7 +813,7 @@ CVOID__PROTO(GarbageCollect) {
     t1 = (t2= RunTickFunc())-t1;
     if (current_gctrace == atom_verbose) {
         StreamPrintf(Error_Stream_Ptr, "        mark: %" PRIdm " cells marked in %.3f sec\n",
-                      Total_Found,t1);
+                      Total_Found,((flt64_t)(t1))/RunClockFreq(ciao_stats));
 #if defined(SEGMENTED_GC)
         StreamPrintf(Error_Stream_Ptr, "        no more than %" PRIdm " garbage cells left\n",
                       Gcgrey);
@@ -843,16 +843,16 @@ CVOID__PROTO(GarbageCollect) {
     if( current_gctrace==atom_verbose ) {
         StreamPrintf(Error_Stream_Ptr, "        Heap: %" PRIdm " cells reclaimed in %.3f sec\n",
                       (intmach_t)(hz-HeapDifference(Heap_Start,w->heap_top)),
-                      t2);
-        StreamPrintf(Error_Stream_Ptr, "Heap:   from 0x%p to 0x%p (total size = %" PRIdm ")\n",
+                      ((flt64_t)(t2))/RunClockFreq(ciao_stats));
+        StreamPrintf(Error_Stream_Ptr, "Heap:   from %p to %p (total size = %" PRIdm ")\n",
                       Heap_Start, 
                       Heap_End,
                       (intmach_t)HeapDifference(Heap_Start, Heap_End));
-        StreamPrintf(Error_Stream_Ptr, "        top at 0x%p (used = %" PRIdm ", free = %" PRIdm ")\n",
+        StreamPrintf(Error_Stream_Ptr, "        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
                       w->heap_top,  
                       (intmach_t)HeapDifference(Heap_Start, w->heap_top),
                       (intmach_t)HeapDifference(w->heap_top, Heap_End));
-        StreamPrintf(Error_Stream_Ptr, "        GC start at 0x%p\n", 
+        StreamPrintf(Error_Stream_Ptr, "        GC start at %p\n", 
                       gc_HeapStart);
 
         StreamPrintf(Error_Stream_Ptr, "        Total: %" PRIdm " cells reclaimed in %" PRIdm " gc's\n",
