@@ -19,6 +19,17 @@
 #include <ciao/eng_start.h>
 #include <ciao/timing.h>
 
+// TODO: in eng_debug.h
+#if !defined(OPTIM_COMP)
+#if defined(DEBUG)
+#define DEBUG__TRACE(COND, ...) ({ \
+  if ((COND)) { TRACE_PRINTF(__VA_ARGS__); } \
+})
+#else
+#define DEBUG__TRACE(COND, ...)
+#endif
+#endif
+
 #define PreHeapRead(X) (*++(X))
 #define HeapPop(X) (*--(X))
 
@@ -716,9 +727,7 @@ CVOID__PROTO(GarbageCollect) {
   flt64_t t1,t2;
   frame_t *newa;
 
-#if defined(DEBUG)
-  if (debug_gc) printf("Thread %" PRIdm " enters GarbageCollect\n", (intmach_t)Thread_Id);
-#endif
+  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " enters GarbageCollect\n", (intmach_t)Thread_Id);
 
   ComputeA(newa, w->choice);
   hz = HeapDifference(Heap_Start,w->heap_top); /* current heap size */
@@ -937,9 +946,7 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
   intmach_t i;
   frame_t *a;
 
-#if defined(DEBUG)
-  if (debug_gc) printf("Thread %" PRIdm " calling explicit_heap_overflow\n", (intmach_t)Thread_Id);
-#endif
+  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling explicit_heap_overflow\n", (intmach_t)Thread_Id);
   
   /* ensure that w->choice is fleshed out fully i.e. do a "neck" */
   /* arity of choicept could be greater than arity of clause */
@@ -1025,18 +1032,12 @@ CVOID__PROTO(choice_overflow, intmach_t pad) {
   Suspend = RELEASED;
 #endif
 
-#if defined(DEBUG)
-  if (debug_gc) printf("Thread %" PRIdm " calling choice overflow\n", (intmach_t)Thread_Id);
-#endif
+  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling choice overflow\n", (intmach_t)Thread_Id);
 
 #if defined(ANDPARALLEL)
-#if defined(DEBUG)
-  if (debug_threads) {
-    printf("\nWAM %x is in choice_overflow!\n",(unsigned int)w);
-    printf("w->choice and w->trail_top are within CHOICEPAD from each other.\n");
-    fflush(stdout);
-  }
-#endif
+  DEBUG__TRACE(debug_threads, 
+               "WAM %p is in choice_overflow! "
+               "w->choice and w->trail_top are within CHOICEPAD from each other.\n", w);
 
   /* Suspend the rest of the agents and wait until that happens completely */
   worker_t *aux = NULL;
@@ -1085,9 +1086,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad) {
                                  oldcount,
                                  newcount,
                                  Trail_Start);
-#if defined(DEBUG)
-      if (debug_gc) printf("Thread %" PRIdm " is reallocing TRAIL from %p to %p\n", (intmach_t)Thread_Id, Trail_Start, newtr);
-#endif
+      DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing TRAIL from %p to %p\n", (intmach_t)Thread_Id, Trail_Start, newtr);
     }
     reloc_factor = (char *)newtr - (char *)Trail_Start;
     {
@@ -1126,13 +1125,10 @@ CVOID__PROTO(choice_overflow, intmach_t pad) {
                           (newcount-oldcount)*sizeof(tagged_t));
 
         while(concchpt != InitialNode) {
-#if defined(DEBUG)
-          if (debug_concchoicepoints || debug_gc) {
-            printf("*** %" PRIdm "(%" PRIdm ") Changing dynamic chpt@%x\n",
-                   (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-                   (unsigned int)concchpt);
-          }
-#endif
+          DEBUG__TRACE(debug_concchoicepoints || debug_gc,
+                       "*** %" PRIdm "(%" PRIdm ") Changing dynamic chpt@%x\n",
+                       (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
+                       (unsigned int)concchpt);
           concchpt->term[PrevDynChpt] =
             PointerToTermOrZero((choice_t *)((char *)TermToPointerOrNull(concchpt->term[PrevDynChpt])
                                              + reloc_factor
@@ -1203,9 +1199,7 @@ CVOID__PROTO(stack_overflow) {
   Suspend = RELEASED;
 #endif
 
-#if defined(DEBUG)
-  if (debug_gc) printf("Thread %" PRIdm " calling stack overflow\n", (intmach_t)Thread_Id);
-#endif
+  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling stack overflow\n", (intmach_t)Thread_Id);
 
 #if defined(ANDPARALLEL)
 #if defined(DEBUG)
@@ -1239,12 +1233,7 @@ CVOID__PROTO(stack_overflow) {
                             count/2,
                             count,
                             Stack_Start);
-#if defined(DEBUG)
-  if (debug_gc) {
-    printf("Thread %" PRIdm " is reallocing STACK from %p to %p\n", 
-           (intmach_t)Thread_Id, Stack_Start, newh);
-  }
-#endif
+  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing STACK from %p to %p\n", (intmach_t)Thread_Id, Stack_Start, newh);
 
   reloc_factor = (char *)newh - (char *)Stack_Start;
 
@@ -1368,9 +1357,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
   Suspend = RELEASED;
 #endif
 
-#if defined(DEBUG)
-  if (debug_gc) printf("Thread %" PRIdm " calling heap_overflow\n", (intmach_t)Thread_Id);
-#endif
+  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling heap_overflow\n", (intmach_t)Thread_Id);
 
 #if defined(ANDPARALLEL)
 #if defined(DEBUG)
@@ -1434,12 +1421,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
 
     newh = (tagged_t *)checkrealloc_ARRAY(char, oldcount, newcount, Heap_Start);
 
-#if defined(DEBUG)
-    if (debug_gc) {
-      printf("Thread %" PRIdm " is reallocing HEAP from %p to %p\n", 
-             (intmach_t)Thread_Id, Heap_Start, newh);
-    }
-#endif
+    DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing HEAP from %p to %p\n", (intmach_t)Thread_Id, Heap_Start, newh);
 
     reloc_factor = (char *)newh - (char *)Heap_Start;
     // fprintf(stderr, "reloc_factor=%x\n", reloc_factor);
