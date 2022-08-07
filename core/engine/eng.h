@@ -163,12 +163,6 @@
    X(8) - pointer to previous dynamic concurrent choicepoint.
 */
 
-
-#if defined(ANDPARALLEL) || defined(PARBACK)
-#define LOCAL     FALSE
-#define REMOTE    TRUE
-#endif
-
 #define X2_CHN 2
 #define ClockSlot 4
 #define X5_CHN 5

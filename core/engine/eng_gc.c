@@ -1005,11 +1005,28 @@ static CVOID__PROTO(calculate_segment_choice) {
   }
 }
 
+#if defined(ANDPARALLEL)
+CVOID__PROTO(heap_overflow_adjust_wam,
+             intmach_t reloc_factor, tagged_t *newh, bool_t remote_reloc, worker_t *remote_worker);
+#else
+CVOID__PROTO(heap_overflow_adjust_wam, intmach_t reloc_factor, tagged_t *newh);
+#endif
 
 #if defined(ANDPARALLEL)
-bool_t is_rem_Hterm(tagged_t term,
-                    worker_t *w,
-                    worker_t *remote_w) {
+#define IsHeapTermAndNeedsReloc(T) (IsHeapTerm((T)) && HeapTermNeedsReloc((T)))
+#else
+#define IsHeapTermAndNeedsReloc(T) IsHeapTerm((T))
+#endif
+
+#if defined(ANDPARALLEL)
+/* Needs reloc if `remote_reloc` coincides with `is_remote_HeapTerm` for `T` */
+#define HeapTermNeedsReloc(T) (remote_reloc == is_remote_HeapTerm((T),w,rem_w))
+#endif
+
+#if defined(ANDPARALLEL)
+/* If remote_w==NULL, check if term is outside w heap; otherwise check if term is in remote_w heap */
+// TODO: two cases really needed?
+bool_t is_remote_HeapTerm(tagged_t term, worker_t *w, worker_t *remote_w) {
   if (remote_w == NULL) { // local case
     return !(((TaggedToPointer(term) >= w->heap_start) &&
               (TaggedToPointer(term) <= w->heap_end)));
@@ -1053,6 +1070,15 @@ CVOID__PROTO(resume_all) {
 }
 #endif
 
+#define RelocPtr(P,Offset) ((typeof(P))((char *)(P)+(Offset)))
+#define AssignRelocPtr(P,Offset) (P) = RelocPtr((P), (Offset))
+
+#if defined(ANDPARALLEL)
+#define AssignRelocPtrNotRemote(P,Offset) if (!remote_reloc) AssignRelocPtr((P),(Offset)) 
+#else
+#define AssignRelocPtrNotRemote(P,Offset) AssignRelocPtr((P),(Offset)) 
+#endif
+
 /* Here when w->choice and w->trail_top are within CHOICEPAD from each other. */
 CVOID__PROTO(choice_overflow, intmach_t pad) {
   inttime_t tick0;
@@ -1093,7 +1119,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad) {
   if (ChoiceYounger(ChoiceOffset(choice_top,2*pad),w->trail_top)) {
     choice_t *b;
     tagged_t *newtr;
-    intmach_t mincount, newcount, oldcount, reloc_factor;
+    intmach_t mincount, newcount, oldcount, reloc_factor, chpt_reloc_factor;
     
     {
       mincount = 2*pad - ChoiceDifference(choice_top,w->trail_top);
@@ -1106,12 +1132,13 @@ CVOID__PROTO(choice_overflow, intmach_t pad) {
       DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing TRAIL from %p to %p\n", (intmach_t)Thread_Id, Trail_Start, newtr);
     }
     reloc_factor = (char *)newtr - (char *)Trail_Start;
+    chpt_reloc_factor = reloc_factor + (newcount-oldcount)*sizeof(tagged_t);
     {
       tagged_t *tr;
       tagged_t *trb;
       
-      tr = (tagged_t *)((char *)Choice_Start+reloc_factor);
-      trb = (tagged_t *)((char *)choice_top+reloc_factor);
+      tr = RelocPtr(Choice_Start, reloc_factor);
+      trb = RelocPtr(choice_top, reloc_factor);
       Trail_Start = Choice_End = newtr;                /* new low bound */
       Choice_Start = Trail_End = newtr+newcount;      /* new high bound */
 
@@ -1137,40 +1164,34 @@ CVOID__PROTO(choice_overflow, intmach_t pad) {
         /* The chain of concurrent dynamic choicepoints has to be
            relocated as well.  The initial TopConcChpt was set to be
            the initial choice node.  MCL. */
-        concchpt = TopConcChpt =
-          (choice_t *)((char *)TopConcChpt + reloc_factor +
-                          (newcount-oldcount)*sizeof(tagged_t));
+        concchpt = TopConcChpt = RelocPtr(TopConcChpt, chpt_reloc_factor);
 
         while(concchpt != InitialNode) {
           DEBUG__TRACE(debug_concchoicepoints || debug_gc,
                        "*** %" PRIdm "(%" PRIdm ") Changing dynamic chpt@%x\n",
                        (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
                        (unsigned int)concchpt);
-          concchpt->term[PrevDynChpt] =
-            PointerToTermOrZero((choice_t *)((char *)TermToPointerOrNull(concchpt->term[PrevDynChpt])
-                                             + reloc_factor
-                                             + (newcount-oldcount)*sizeof(tagged_t)));
-          concchpt = (choice_t *)TermToPointerOrNull(concchpt->term[PrevDynChpt]);
+          // TODO: wrong if it is Zero (null)? (JFMC)
+          choice_t *prev = (choice_t *)TermToPointerOrNull(concchpt->term[PrevDynChpt]);
+          AssignRelocPtr(prev, chpt_reloc_factor);
+          concchpt->term[PrevDynChpt] = PointerToTermOrZero(prev);
+          concchpt = prev;
         }
 #endif
       }
     }
-    w->previous_choice =
-      (choice_t *)((char *)w->previous_choice + reloc_factor +
-                   (newcount-oldcount)*sizeof(tagged_t));
-    w->trail_top = (tagged_t *)((char *)w->trail_top+reloc_factor);
+    AssignRelocPtr(w->previous_choice, chpt_reloc_factor);
+    AssignRelocPtr(w->trail_top, reloc_factor);
 
 #if defined(ANDPARALLEL)
     /* relocate pointer in handlers */
     parallel_exec_entry_t *lpe = Last_Parallel_Exec;
     while (lpe != NULL) {
       if (lpe->init != NULL) {
-        lpe->init = (choice_t *)((char *)lpe->init+reloc_factor+
-                    (newcount-oldcount)*sizeof(tagged_t));
+        AssignRelocPtr(lpe->init, chpt_reloc_factor);
       }
       if (lpe->end != NULL) {
-        lpe->end = (choice_t *)((char *)lpe->end+reloc_factor+
-                   (newcount-oldcount)*sizeof(tagged_t));
+        AssignRelocPtr(lpe->end, chpt_reloc_factor);
       }
       lpe = lpe->prev;
     }
@@ -1178,7 +1199,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad) {
 #endif
 
     while (OffChoicetop(b,Choice_Start)) {
-      b->trail_top = (tagged_t *)((char *)b->trail_top+reloc_factor);
+      AssignRelocPtr(b->trail_top, reloc_factor);
       b = ChoiceCont(b);
     }
   }
@@ -1259,9 +1280,9 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
     
     aux_node = ChoiceCharOffset(w->choice,ArityToOffset(0));
     aux_node->next_alt = fail_alt;
-    aux_node->frame = (frame_t *)((char *)w->frame+reloc_factor);
+    aux_node->frame = RelocPtr(w->frame, reloc_factor);
     aux_node->next_insn = w->next_insn;
-    aux_node->local_top = (frame_t *)((char *)w->local_top+reloc_factor);
+    aux_node->local_top = RelocPtr(w->local_top, reloc_factor);
 
     /* relocate pointers in trail */
     pt1 = Trail_Start;
@@ -1277,8 +1298,9 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
     for (n=aux_node; n!=InitialNode; n=n2){
       n2 = ChoiceCont(n);
       //Tabling --> How to translate?
-      *(tagged_t *)(&n2->local_top) += reloc_factor;
-      *(tagged_t *)(&n2->frame) += reloc_factor;
+      AssignRelocPtr(n2->local_top, reloc_factor);
+      AssignRelocPtr(n2->frame, reloc_factor);
+
       for (pt1=n->term; pt1!=(tagged_t *)n2;) {
         t1 = ChoicePrev(pt1);
         if (TaggedIsSVA(t1)) {
@@ -1297,7 +1319,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
           }
         }
         if (frame->frame) {
-          *(tagged_t *)(&frame->frame) += reloc_factor;
+          AssignRelocPtr(frame->frame, reloc_factor);
           i = FrameSize(frame->next_insn);
           frame = frame->frame;
         } else {
@@ -1393,9 +1415,9 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
 
 #if defined(ANDPARALLEL)
     /* Adjust remote pointers in other agents */
-    heap_overflow_adjust_wam(w,reloc_factor,newh,LOCAL,NULL);
+    heap_overflow_adjust_wam(w,reloc_factor,newh,FALSE,NULL);
     for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-      heap_overflow_adjust_wam(aux,reloc_factor,newh,REMOTE,w);
+      heap_overflow_adjust_wam(aux,reloc_factor,newh,TRUE,w);
     }
 #else
     heap_overflow_adjust_wam(w,reloc_factor,newh);
@@ -1426,12 +1448,11 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
 #endif
 }
 
-
 #if defined(ANDPARALLEL)
 CVOID__PROTO(heap_overflow_adjust_wam,
              intmach_t reloc_factor,
              tagged_t *newh,
-             bool_t rem_reloc,
+             bool_t remote_reloc,
              worker_t *rem_w)
 #else
 CVOID__PROTO(heap_overflow_adjust_wam,
@@ -1457,29 +1478,18 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 
     /* relocate pointers in global stk */
 #if defined(ANDPARALLEL)
-    if (rem_reloc == LOCAL) {
-      pt1 = newh;
-      w->heap_top = (tagged_t *)((char *)w->heap_top + reloc_factor);
-    } else {
-      pt1 = Heap_Start;
-    }
+    pt1 = remote_reloc ? Heap_Start : newh;
 #else
     pt1 = newh;
-    w->heap_top = (tagged_t *)((char *)w->heap_top + reloc_factor);
 #endif
+
+    AssignRelocPtrNotRemote(w->heap_top, reloc_factor);
     while (HeapYounger(w->heap_top,pt1)) {
       t1 = HeapNext(pt1);
       if (t1&QMask) {
         pt1 += LargeArity(t1);
-      } else if (IsHeapTerm(t1)) {
-#if defined(ANDPARALLEL)
-        if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
-            ((rem_reloc == REMOTE) && is_rem_Hterm(t1,w,rem_w))) {
-#endif
-          *(pt1-1) += reloc_factor;
-#if defined(ANDPARALLEL)
-        }
-#endif
+      } else if (IsHeapTermAndNeedsReloc(t1)) {
+        *(pt1-1) += reloc_factor;
       }
     }
 
@@ -1496,15 +1506,8 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     while (TrailYounger(w->trail_top,pt1)) {
       t1 = *pt1;
       pt1++;
-      if (IsHeapTerm(t1)) {
-#if defined(ANDPARALLEL)
-        if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
-            ((rem_reloc == REMOTE) && is_rem_Hterm(t1,w,rem_w))) {
-#endif
-          *(pt1-1) += reloc_factor;
-#if defined(ANDPARALLEL)
-        }
-#endif
+      if (IsHeapTermAndNeedsReloc(t1)) {
+        *(pt1-1) += reloc_factor;
       }
     }
     TrailDec(w->trail_top);
@@ -1515,16 +1518,14 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     handler_entry_t *gle = Goal_List_Start;
     tagged_t x1 = (tagged_t)NULL;
     if (gle != NULL) {
-      if (((rem_reloc == LOCAL) && !is_rem_Hterm(gle->handler,w,rem_w)) ||
-          ((rem_reloc == REMOTE) && is_rem_Hterm(gle->handler,w,rem_w))) {
+      if (HeapTermNeedsReloc(gle->handler)) {
         DerefArg(x1,gle->handler,1);
         ((par_handler_t *) TermToPointer(x1))->goal += reloc_factor;
         gle->handler += reloc_factor;
       }
       while (gle != Goal_List_Top) {
         gle = gle->next;
-        if (((rem_reloc == LOCAL) && !is_rem_Hterm(gle->handler,w,rem_w)) ||
-            ((rem_reloc == REMOTE) && is_rem_Hterm(gle->handler,w,rem_w))) {
+        if (HeapTermNeedsReloc(gle->handler)) {
           DerefArg(x1,gle->handler,1);
           ((par_handler_t *) TermToPointer(x1))->goal += reloc_factor;
           gle->handler += reloc_factor;
@@ -1535,14 +1536,12 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     /* relocate pointers in event queue */
     event_entry_t *eqe = Event_Queue_Start;
     if (eqe != NULL) {
-      if (((rem_reloc == LOCAL) && !is_rem_Hterm(eqe->handler,w,rem_w)) ||
-          ((rem_reloc == REMOTE) && is_rem_Hterm(eqe->handler,w,rem_w))) {
+      if (HeapTermNeedsReloc(eqe->handler)) {
         eqe->handler += reloc_factor;
       }
       while (eqe != Event_Queue_Top) {
         eqe = eqe->next;
-        if (((rem_reloc == LOCAL) && !is_rem_Hterm(eqe->handler,w,rem_w)) ||
-            ((rem_reloc == REMOTE) && is_rem_Hterm(eqe->handler,w,rem_w))) {
+        if (HeapTermNeedsReloc(eqe->handler)) {
           eqe->handler += reloc_factor;
         }
       }
@@ -1555,15 +1554,8 @@ CVOID__PROTO(heap_overflow_adjust_wam,
         n2 = ChoiceCont(n);
         for (pt1=n->term; pt1!=(tagged_t *)n2;) {
           t1 = ChoicePrev(pt1);
-          if (IsHeapTerm(t1)) {
-#if defined(ANDPARALLEL)
-            if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
-                ((rem_reloc == REMOTE) && is_rem_Hterm(t1,w,rem_w))) {
-#endif
-              *(pt1-1) += reloc_factor;
-#if defined(ANDPARALLEL)
-            }
-#endif
+          if (IsHeapTermAndNeedsReloc(t1)) {
+            *(pt1-1) += reloc_factor;
           }
         }
         i = FrameSize(n->next_insn);
@@ -1572,15 +1564,8 @@ CVOID__PROTO(heap_overflow_adjust_wam,
           pt1 = (tagged_t *)StackCharOffset(frame,i);
           while (pt1!=frame->term) {
             t1 = *(--pt1);
-            if (IsHeapTerm(t1)) {
-#if defined(ANDPARALLEL)
-              if (((rem_reloc == LOCAL) && !is_rem_Hterm(t1,w,rem_w)) ||
-                  ((rem_reloc == REMOTE) && is_rem_Hterm(t1,w,rem_w))) {
-#endif
-                *pt1 += reloc_factor;
-#if defined(ANDPARALLEL)
-              }
-#endif
+            if (IsHeapTermAndNeedsReloc(t1)) {
+              *pt1 += reloc_factor;
             }
           }
           i = FrameSize(frame->next_insn);
@@ -1588,24 +1573,12 @@ CVOID__PROTO(heap_overflow_adjust_wam,
         } 
 
         // TODO: TABLING ->> How to translate???
-#if defined(ANDPARALLEL)
-        if (rem_reloc == LOCAL) {
-          *(tagged_t *)(&n->heap_top) += reloc_factor;
-        }
-#else
-        *(tagged_t *)(&n->heap_top) += reloc_factor;
-#endif
+        AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
       }
     }
 
-          // TODO: TABLING ->> How to translate???
-#if defined(ANDPARALLEL)
-    if (rem_reloc == LOCAL) {
-      *(tagged_t *)(&n->heap_top) += reloc_factor;
-    }
-#else
-    *(tagged_t *)(&n->heap_top) += reloc_factor;
-#endif    
+    // TODO: TABLING ->> How to translate???
+    AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
     SetShadowregs(w->choice);
   }
 }
