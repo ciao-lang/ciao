@@ -1020,6 +1020,39 @@ bool_t is_rem_Hterm(tagged_t term,
 }
 #endif
 
+#if defined(ANDPARALLEL)
+/* Suspend the rest of the agents and wait until that happens completely */
+CVOID__PROTO(suspend_all) {
+  worker_t *aux;
+  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
+    if (Suspend_Of(aux) == RELEASED) {
+      Suspend_Of(aux) = TOSUSPEND;
+    }
+  }
+  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
+    while (Suspend_Of(aux) == RELEASED) {
+      if (Suspend_Of(aux) == RELEASED) {
+        Suspend_Of(aux) = TOSUSPEND;
+      }
+    }
+  }
+}
+#endif
+
+#if defined(ANDPARALLEL)
+/* Wake up the rest of the agents! */
+CVOID__PROTO(resume_all) {
+  worker_t *aux;
+  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
+    if (Suspend_Of(aux) == SUSPENDED) {
+      Wait_Acquire_lock(Waiting_For_Work_Lock_Of(aux));
+      Cond_Var_Broadcast(Waiting_For_Work_Cond_Var_Of(aux));
+      Release_lock(Waiting_For_Work_Lock_Of(aux));
+    }
+  }
+}
+#endif
+
 /* Here when w->choice and w->trail_top are within CHOICEPAD from each other. */
 CVOID__PROTO(choice_overflow, intmach_t pad) {
   inttime_t tick0;
@@ -1035,24 +1068,8 @@ CVOID__PROTO(choice_overflow, intmach_t pad) {
   DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling choice overflow\n", (intmach_t)Thread_Id);
 
 #if defined(ANDPARALLEL)
-  DEBUG__TRACE(debug_threads, 
-               "WAM %p is in choice_overflow! "
-               "w->choice and w->trail_top are within CHOICEPAD from each other.\n", w);
-
-  /* Suspend the rest of the agents and wait until that happens completely */
-  worker_t *aux = NULL;
-  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-    if (Suspend_Of(aux) == RELEASED) {
-      Suspend_Of(aux) = TOSUSPEND;
-    }
-  }
-  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-    while (Suspend_Of(aux) == RELEASED) {
-      if (Suspend_Of(aux) == RELEASED) {
-        Suspend_Of(aux) = TOSUSPEND;
-      }
-    }
-  }
+  DEBUG__TRACE(debug_threads, "WAM %p is in choice_overflow!\n", w);
+  CVOID__CALL(suspend_all);
 #endif
 
   tick0 = RunTickFunc();
@@ -1175,14 +1192,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad) {
   ciao_stats.ss_tick += tick0;
 
 #if defined(ANDPARALLEL)
-  /* Wake up the rest of the agents! */
-  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-    if (Suspend_Of(aux) == SUSPENDED) {
-      Wait_Acquire_lock(Waiting_For_Work_Lock_Of(aux));
-      Cond_Var_Broadcast(Waiting_For_Work_Cond_Var_Of(aux));
-      Release_lock(Waiting_For_Work_Lock_Of(aux));
-    }
-  }
+  CVOID__CALL(resume_all);
   Release_slock(stackset_expansion_l);
 #endif
 }
@@ -1202,28 +1212,8 @@ CVOID__PROTO(stack_overflow) {
   DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling stack overflow\n", (intmach_t)Thread_Id);
 
 #if defined(ANDPARALLEL)
-#if defined(DEBUG)
-  if (debug_threads) {
-    printf("\nWAM %x is in stack_overflow!\n",(unsigned int)w);
-    printf("w->local_top and Stack_End are within STACKAD from each other.\n");
-    fflush(stdout);
-  }
-#endif
-
-  /* Suspend the rest of the agents and wait until they really suspended */
-  worker_t *aux;
-  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-    if (Suspend_Of(aux) == RELEASED) {
-      Suspend_Of(aux) = TOSUSPEND;
-    }
-  }
-  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-    while (Suspend_Of(aux) == RELEASED) {
-      if (Suspend_Of(aux) == RELEASED) {
-        Suspend_Of(aux) = TOSUSPEND;
-      }
-    }
-  }
+  DEBUG__TRACE(debug_threads, "WAM %p is in stack_overflow!\n", w);
+  CVOID__CALL(suspend_all);
 #endif
 
   ComputeA(w->local_top,w->choice);
@@ -1252,14 +1242,7 @@ CVOID__PROTO(stack_overflow) {
   ciao_stats.ss_tick += tick0;
 
 #if defined(ANDPARALLEL)
-  /* Wake up the rest of the agents! */
-  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-    if (Suspend_Of(aux) == SUSPENDED) {
-      Wait_Acquire_lock(Waiting_For_Work_Lock_Of(aux));
-      Cond_Var_Broadcast(Waiting_For_Work_Cond_Var_Of(aux));
-      Release_lock(Waiting_For_Work_Lock_Of(aux));
-    }
-  }
+  CVOID__CALL(resume_all);
   Release_slock(stackset_expansion_l);
 #endif
 }
@@ -1360,28 +1343,8 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
   DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling heap_overflow\n", (intmach_t)Thread_Id);
 
 #if defined(ANDPARALLEL)
-#if defined(DEBUG)
-  if (debug_threads) {
-    printf("\nWAM %x is in heap_overflow!\n",(unsigned int)w);
-    printf("w->heap_top and Heap_End are within CALLPAD from each other.\n");
-    fflush(stdout);
-  }
-#endif
-
-  /* Suspend the rest of the agents and wait until that happens completely */
-  worker_t *aux;
-  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-    if (Suspend_Of(aux) == RELEASED) {
-      Suspend_Of(aux) = TOSUSPEND;
-    }
-  }
-  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-    while (Suspend_Of(aux) == RELEASED) {
-      if (Suspend_Of(aux) == RELEASED) {
-        Suspend_Of(aux) = TOSUSPEND;
-      }
-    }
-  }
+  DEBUG__TRACE(debug_threads, "WAM %x is in heap_overflow!\n", w);
+  CVOID__CALL(suspend_all);
 #endif
 
   gcexplicit = FALSE;
@@ -1458,14 +1421,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
   }
 
 #if defined(ANDPARALLEL)
-  /* Wake up the rest of the agents! */
-  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-    if (Suspend_Of(aux) == SUSPENDED) {
-      Wait_Acquire_lock(Waiting_For_Work_Lock_Of(aux));
-      Cond_Var_Broadcast(Waiting_For_Work_Cond_Var_Of(aux));
-      Release_lock(Waiting_For_Work_Lock_Of(aux));
-    }
-  }
+  CVOID__CALL(resume_all);
   Release_slock(stackset_expansion_l);
 #endif
 }
