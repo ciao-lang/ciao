@@ -202,41 +202,26 @@ static CBOOL__PROTO(generic_time,
 /* runtime returns a list of two floats
  * giving time in milliseconds. The first number gives time from the system 
  * start_up and the second since the last call to runtime */
-CBOOL__PROTO(prolog_runtime)
-{
-  return generic_time(Arg, 
-                      RunTickFunc,
-                      ciao_stats.starttick, 
-                      &ciao_stats.lasttick,
-                      RunClockFreq(ciao_stats));
-}
 
-CBOOL__PROTO(prolog_usertime)
-{
-  return generic_time(Arg, 
-                      usertick,
-                      ciao_stats.startusertick,
-                      &ciao_stats.lastusertick,
-                      ciao_stats.userclockfreq);
+CBOOL__PROTO(prolog_walltime) {
+  return generic_time(Arg, walltick, ciao_stats.startwalltick, &ciao_stats.lastwalltick, ciao_stats.wallclockfreq);
 }
-
-CBOOL__PROTO(prolog_systemtime)
-{
-  return generic_time(Arg, 
-                      systemtick, 
-                      ciao_stats.startsystemtick,
-                      &ciao_stats.lastsystemtick,
-                      ciao_stats.systemclockfreq);
+#if defined(EMSCRIPTEN)
+/* getrusage not implemented, rely on gettimeofday */
+CBOOL__PROTO(prolog_runtime) { CBOOL__LASTCALL(prolog_walltime); }
+CBOOL__PROTO(prolog_usertime) { CBOOL__LASTCALL(prolog_walltime); }
+CBOOL__PROTO(prolog_systemtime) { CBOOL__LASTCALL(prolog_walltime); }
+#else 
+CBOOL__PROTO(prolog_runtime) {
+  return generic_time(Arg, RunTickFunc, ciao_stats.starttick, &ciao_stats.lasttick, RunClockFreq(ciao_stats));
 }
-
-CBOOL__PROTO(prolog_walltime)
-{
-  return generic_time(Arg, 
-                      walltick, 
-                      ciao_stats.startwalltick, 
-                      &ciao_stats.lastwalltick,
-                      ciao_stats.wallclockfreq);
+CBOOL__PROTO(prolog_usertime) {
+  return generic_time(Arg, usertick, ciao_stats.startusertick, &ciao_stats.lastusertick, ciao_stats.userclockfreq);
 }
+CBOOL__PROTO(prolog_systemtime) {
+  return generic_time(Arg, systemtick, ciao_stats.startsystemtick, &ciao_stats.lastsystemtick, ciao_stats.systemclockfreq);
+}
+#endif
 
 /* New time medition functions */
 static CBOOL__PROTO(generic_tick,
@@ -260,63 +245,42 @@ static CBOOL__PROTO(generic_tick,
   CBOOL__LASTUNIFY(x,X(0));  
 }
 
-CBOOL__PROTO(prolog_walltick)
-{
-  return generic_tick(Arg, 
-                      walltick, 
-                      ciao_stats.startwalltick,
-                      &ciao_stats.lastwalltick);
+CBOOL__PROTO(prolog_walltick) {
+  return generic_tick(Arg, walltick, ciao_stats.startwalltick, &ciao_stats.lastwalltick);
 }
 
-CBOOL__PROTO(prolog_usertick)
-{
-  return generic_tick(Arg, 
-                      usertick, 
-                      ciao_stats.startusertick,
-                      &ciao_stats.lastusertick);
+CBOOL__PROTO(prolog_usertick) {
+  return generic_tick(Arg, usertick, ciao_stats.startusertick, &ciao_stats.lastusertick);
 }
 
-CBOOL__PROTO(prolog_systemtick)
-{
-  return generic_tick(Arg, 
-                      systemtick, 
-                      ciao_stats.startsystemtick,
-                      &ciao_stats.lastsystemtick);
+CBOOL__PROTO(prolog_systemtick) {
+  return generic_tick(Arg, systemtick, ciao_stats.startsystemtick, &ciao_stats.lastsystemtick);
 }
 
-CBOOL__PROTO(prolog_runtick)
-{
-  return generic_tick(Arg, 
-                      RunTickFunc,
-                      ciao_stats.starttick,
-                      &ciao_stats.lasttick);
+CBOOL__PROTO(prolog_runtick) {
+  return generic_tick(Arg, RunTickFunc, ciao_stats.starttick, &ciao_stats.lasttick);
 }
 
 /* New time medition functions */
-static inline CBOOL__PROTO(generic_clockfreq, inttime_t clockfreq)
-{
-  /* while ciao not support inttime_t, return value must be cast to
-    flt64_t */
+/* while ciao not support inttime_t, return value must be cast to
+   flt64_t */
+static inline CBOOL__PROTO(generic_clockfreq, inttime_t clockfreq) {
   CBOOL__LASTUNIFY(BoxFloat((flt64_t)clockfreq),X(0));
 }
 
-CBOOL__PROTO(prolog_runclockfreq)
-{
+CBOOL__PROTO(prolog_runclockfreq) {
   return generic_clockfreq(Arg, RunClockFreq(ciao_stats));
 }
 
-CBOOL__PROTO(prolog_userclockfreq)
-{
+CBOOL__PROTO(prolog_userclockfreq) {
   return generic_clockfreq(Arg, ciao_stats.userclockfreq);
 }
 
-CBOOL__PROTO(prolog_systemclockfreq)
-{
+CBOOL__PROTO(prolog_systemclockfreq) {
   return generic_clockfreq(Arg, ciao_stats.systemclockfreq);
 }
 
-CBOOL__PROTO(prolog_wallclockfreq)
-{
+CBOOL__PROTO(prolog_wallclockfreq) {
   return generic_clockfreq(Arg, ciao_stats.wallclockfreq);
 }
 
