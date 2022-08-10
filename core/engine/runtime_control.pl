@@ -367,6 +367,27 @@ symbol_result([A, B]):- int(A), int(B).
  %% memory_option(heap).
 
 % ---------------------------------------------------------------------------
+
+:- use_module(engine(io_basic), [display/1]).
+
+:- export(time/1).
+:- meta_predicate time(goal).
+:- pred time(G) # "Execute @var{G} and print runtime statistics to the
+   user, for each solution.".
+
+time(G) :-
+    time_(G, T),
+    Ts is T/1000.0,
+    display('% '), display(Ts), display(' seconds\n').
+
+:- meta_predicate time_(goal,?).
+time_(G, T) :-
+    statistics(runtime, [T0|_]),
+    call(G),
+    statistics(runtime, [T1|_]),
+    T is T1-T0.
+
+% ---------------------------------------------------------------------------
 :- export(current_atom/1).
 :- trust pred current_atom(Atom) : var => atm
    # "Enumerates on backtracking all the existing atoms in the
