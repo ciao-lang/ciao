@@ -63,7 +63,7 @@
     module_concat/3, term_to_meta/2]).
 :- use_module(engine(internals), [ciao_root/1]).
 :- use_module(library(system), [
-    modif_time0/2, modif_time/2, time/1, fmode/2, chmod/2,
+    modif_time0/2, modif_time/2, now/1, fmode/2, chmod/2,
     working_directory/2, file_exists/1]).
 :- use_module(library(dynamic/dynamic_rt),    [wellformed_body/3]).
 :- use_module(library(pathnames), [path_basename/2, path_split/3, path_concat/3, path_is_relative/1]).
@@ -1625,7 +1625,7 @@ generate_itf(ItfName, Mode, Base) :-
       ; message(warning, ['cannot create ',ItfName])
       )
     ),
-    time(Now),
+    now(Now),
     assertz_fact(time_of_itf_data(Base,Now,1)).
 
 write_itf_data_of(Format, Base) :-
@@ -1669,7 +1669,7 @@ do_read_itf(ItfLevel, ItfName, Base, Dir, UpdTime) :-
     ( current_fact(time_of_itf_data(Base, PrevTime, _)) -> true ; true ),
     retractall_fact(time_of_itf_data(Base, _, _)),
     ( nonvar(PrevTime), UpdTime = prev -> Time = PrevTime
-    ; time(Time)
+    ; now(Time)
     ),
     assertz_fact(time_of_itf_data(Base,Time,ItfLevel)).
     
@@ -2854,7 +2854,7 @@ not_changed(Module, Base, Mode, Time) :-
 
 module_loaded_now(Module, Base, Mode) :-
     retractall_fact(module_loaded(Module, _, _, _)),
-    time(Now),
+    now(Now),
     assertz_fact(module_loaded(Module, Base, Now, Mode)).
 
 % ---------------------------------------------------------------------------

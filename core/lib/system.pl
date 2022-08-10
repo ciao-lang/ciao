@@ -39,14 +39,14 @@
 :- endif.
 
 % ---------------------------------------------------------------------------
-:- export(time/1).
-:- doc(time(Time), "@var{Time} is unified with the number of seconds
+:- export(now/1).
+:- doc(now(Time), "@var{Time} is unified with the number of seconds
      elapsed since January, 1, 1970 (UTC).").
-:- trust pred time(?int).
+:- trust pred now(?int).
 :- if(defined(optim_comp)).
-:- '$props'(time/1, [impnat=cbool(prolog_time)]).
+:- '$props'(now/1, [impnat=cbool(prolog_now)]).
 :- else.
-:- impl_defined(time/1).
+:- impl_defined(now/1).
 :- endif.
 
 % ---------------------------------------------------------------------------
@@ -76,7 +76,7 @@ datime_struct(datime(Year,Month,Day,Hour,Min,Sec)) :-
 % ---------------------------------------------------------------------------
 :- export(datime/9).
 :- doc(datime(Time,Year,Month,Day,Hour,Min,Sec,WeekDay,YearDay),
-    "@var{Time} is as in @pred{time/1}. @var{WeekDay} is the number
+    "@var{Time} is as in @pred{now/1}. @var{WeekDay} is the number
     of days since Sunday, in the range 0 to 6.  @var{YearDay} is the
     number of days since January 1, in the range 0 to 365.").
 

@@ -3168,7 +3168,7 @@ CBOOL__PROTO(prolog_current_executable) {
 /* --------------------------------------------------------------------------- */
 /* Date and time */
 
-CBOOL__PROTO(prolog_time) {
+CBOOL__PROTO(prolog_now) {
   time_t timeofday = time(NULL);
   CBOOL__LASTUNIFY(IntmachToTagged(timeofday),X(0));
 }

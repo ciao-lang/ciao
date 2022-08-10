@@ -1246,7 +1246,7 @@ CBOOL__PROTO(prolog_get_foreign_opts_ld);
 CBOOL__PROTO(prolog_get_foreign_opts_ccshared);
 CBOOL__PROTO(prolog_get_foreign_opts_ldshared);
 CBOOL__PROTO(prolog_current_executable);
-CBOOL__PROTO(prolog_time);
+CBOOL__PROTO(prolog_now);
 CBOOL__PROTO(prolog_datime);
 /* timing.c */
 CBOOL__PROTO(prolog_runtime);
@@ -1740,7 +1740,7 @@ void init_once(void)
 
   define_c_mod_predicate("system","current_executable",1, prolog_current_executable);
 
-  define_c_mod_predicate("system","time",1,prolog_time);
+  define_c_mod_predicate("system","now",1,prolog_now);
   define_c_mod_predicate("system","datime",9,prolog_datime);  
 
   /* modload.c */
