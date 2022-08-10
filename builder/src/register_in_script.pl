@@ -1,6 +1,6 @@
 :- module(register_in_script, [], [assertions, regtypes, dcg, fsyntax, basicmodes]).
 
-:- use_module(library(system), [file_exists/1, time/1]).
+:- use_module(library(system), [file_exists/1, now/1]).
 :- use_module(library(system_extra), [backup_file/1]).
 :- use_module(library(stream_utils), [file_to_string/2, string_to_file/2]).
 :- use_module(library(lists), [length/2, append/3, reverse/2]).
@@ -38,7 +38,7 @@ register_in_script(File, CommentMark, Code) :-
 unique_key_string := Value :-
     Min = 10000000,
     Max = 99999999,
-    time(Time),
+    now(Time),
     Value0 is Min + (Time mod (Max - Min + 1)),
     Value = ~number_codes(Value0).
 
