@@ -15,13 +15,11 @@ void reset_timing(void);
 flt64_t usertime(void);
 flt64_t walltime(void);
 
-#if !defined(OPTIM_COMP)
 inttime_t usertick(void);
 inttime_t systemtick(void);
 inttime_t walltick(void);
 /* By default, use usertick() */
 #define RunTickFunc usertick
 #define RunClockFreq(STATS) (STATS.userclockfreq)
-#endif
 
 #endif /* _CIAO_TIMING_H */
