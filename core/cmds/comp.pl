@@ -80,6 +80,8 @@ get_opts(do(Action, Spec0)) :-
     a('--do'), a(Action), a(Spec0), !.
 get_opts(dynexec(ExecName, Specs0)) :- 
     a('--dynexec'), a(ExecName), !, tail(Specs0).
+get_opts(staexec(ExecName, Specs0)) :- 
+    a('--staexec'), a(ExecName), !, tail(Specs0).
 get_opts(link(ExecName, Specs0)) :- 
     a('--link'), a(ExecName), !, tail(Specs0).
 get_opts(bootstrap(ExecName, Specs0)) :-
@@ -109,6 +111,9 @@ cmd(link(ExecName, Specs0)) :-
 cmd(dynexec(ExecName, Specs0)) :-
     store:find_sources(Specs0, relpath('.'), Specs),
     dynexec(Specs, ExecName).
+cmd(staexec(ExecName, Specs0)) :-
+    store:find_sources(Specs0, relpath('.'), Specs),
+    staexec(Specs, ExecName).
 cmd(bootstrap(ExecName, Specs0)) :-
     store:find_sources(Specs0, relpath('.'), Specs),
     bootstrap(Specs, ExecName).
@@ -176,6 +181,24 @@ dynexec(Specs, ExecName) :-
 %define_flag(executables, [static, eagerload, lazyload], eagerload).
 %define_flag(self_contained,atom,none).
     set_prolog_flag(executables, eagerload),
+    memo.enter,
+    Ok = ( recursive_archbin_update__2(Specs),
+           linker__bytecode:link(Specs, ExecName, _NativeInfo) ? yes
+         | no
+         ),
+    memo.leave,
+    memo.delete,
+    Errs.delete,
+    Ok = yes.
+
+staexec(Specs, ExecName) :-
+    Errs = ~errlog.new,
+    option__verbose(Verbose),
+    Errs.add(verbose(Verbose)),
+    memo :: memoize <- ~memoize.new(Errs),
+%define_flag(executables, [static, eagerload, lazyload], eagerload).
+%define_flag(self_contained,atom,none).
+    set_prolog_flag(executables, static),
     memo.enter,
     Ok = ( recursive_archbin_update__2(Specs),
            linker__bytecode:link(Specs, ExecName, _NativeInfo) ? yes
