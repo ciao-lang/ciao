@@ -148,5 +148,5 @@ alarm_stat(Id, State, Send, IsOldest) :-
 % :- trust pred garbage_c(in(Last)) :: address 
 %       + (foreign(force_garbage)).
 
-:- use_foreign_source('alarm.c').
+:- use_foreign_source(alarm).
 
