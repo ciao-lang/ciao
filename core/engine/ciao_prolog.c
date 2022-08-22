@@ -38,6 +38,7 @@
 # define X_OK 1
 #endif
 
+#if !defined(OPTIM_COMP)
 #include <ciao/eng.h>
 #include <ciao/internals.h>
 #include <ciao/eng_start.h>
@@ -46,25 +47,27 @@
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_gc.h>
 #include <ciao/basiccontrol.h>
-
-#include <ciao/instrdefs.h> /* for ciao_initcode() */
-
 #if !defined(MAXPATHLEN)
 # define MAXPATHLEN 1024
+#endif
 #endif
 
 void ciao_exit(int result);
 
-/*---------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------- */
 
 ciao_ctx ciao_implicit_ctx;
 
-/*---------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------- */
 
 extern char source_path[];
 
+#if defined(OPTIM_COMP)
+extern char *library_directory;
+#else
 extern char *ciaoroot_directory;
 extern char *c_headers_directory;
+#endif
 
 /* Memory management routines --- now only interfaces to library, but they
    might evolve in access to a custom memory management library */
@@ -73,7 +76,7 @@ void *ciao_malloc(size_t size) {
   return malloc(size);
 }
 
-void ciao_free(void *pointer){
+void ciao_free(void *pointer) {
   free(pointer);
 }
 
@@ -82,17 +85,23 @@ void ciao_free(void *pointer){
 ciao_term ciao_ref(ciao_ctx ctx, tagged_t x);
 tagged_t ciao_unref(ciao_ctx ctx, ciao_term term);
 
+#if defined(OPTIM_COMP)
+struct _ciao_query {
+  ciao_ctx ctx;
+  ciao_choice base_choice;
+};
+#endif
+
 /* ------------------------------------------------------------------------- */
 
 void ciao_ensure_heap(ciao_ctx ctx, size_t cells) {
-  worker_t *w = ctx->worker_registers;
-  TEST_HEAP_OVERFLOW(G->heap_top, cells*sizeof(tagged_t)+CONTPAD, 0);
+  WITH_WORKER(ctx->worker_registers, {
+    TEST_HEAP_OVERFLOW(G->heap_top, cells*sizeof(tagged_t)+CONTPAD, 0);
+  });
 }
 
 /* ------------------------------------------------------------------------- */
 /* Initialization */
-
-extern bool_t quiet_flag_bool;
 
 /* Parse options */
 int ciao_opts(const char *program_name, int programc, const char **programv, int optc, const char **optv, const char **p_boot_path) {
@@ -104,77 +113,21 @@ int ciao_opts(const char *program_name, int programc, const char **programv, int
 
 /* Initialization */
 
-bcp_t call_code;
-bcp_t default_code;
-bcp_t null_code;
-try_node_t nullgoal_alt;
-try_node_t defaultgoal_alt;
-try_node_t startgoal_alt;
-
-void ciao_initcode(void)
-{
-  int frame_size = 3;
-
-  {
-    bcp_t P;
-    call_code = (bcp_t)checkalloc_ARRAY(char, 8*sizeof(tagged_t)); /* TODO: size overapprox. */
-    P = call_code;
-    EMIT_Q(0);
-    EMIT_e((EToY0+frame_size)*sizeof(tagged_t));
-    call_code = P;
-    EMIT_o(CALLQ);
-    EMIT_Q(0);
-    EMIT_E(address_call);
-    EMIT_e((EToY0+frame_size)*sizeof(tagged_t));                    /* initial FrameSize */
-    EMIT_o(EXIT_TOPLEVEL);
-
-    startgoal_alt.choice_offset = ArityToOffset(1);
-    startgoal_alt.number = 0;
-    startgoal_alt.emul_p = call_code;
-    startgoal_alt.emul_p2 = call_code;
-    startgoal_alt.next = NULL;
-  }
-
-  {
-    bcp_t P;
-    null_code = (bcp_t)checkalloc_ARRAY(char, 8*sizeof(tagged_t)); /* TODO: size overapprox. */
-    P = null_code;
-    EMIT_o(EXIT_TOPLEVEL);
-
-    nullgoal_alt.choice_offset = ArityToOffset(0);
-    nullgoal_alt.number = 0;
-    nullgoal_alt.emul_p = null_code;
-    nullgoal_alt.emul_p2 = null_code;
-    nullgoal_alt.next = &nullgoal_alt; /* loop forever */
-  }
-
-  {
-    bcp_t P;
-    default_code = (bcp_t)checkalloc_ARRAY(char, 8*sizeof(tagged_t)); /* TODO: size overapprox. */
-    P = default_code;
-    EMIT_Q(0);
-    EMIT_e((EToY0+frame_size)*sizeof(tagged_t));
-    default_code = P;
-    EMIT_o(EXIT_TOPLEVEL);
-
-    defaultgoal_alt.choice_offset = ArityToOffset(0);
-    defaultgoal_alt.number = 0;
-    defaultgoal_alt.emul_p = default_code;
-    defaultgoal_alt.emul_p2 = default_code;
-    defaultgoal_alt.next = &nullgoal_alt; 
-  }
-}
+extern bcp_t call_code;
+extern bcp_t default_code;
+extern bcp_t null_code;
+extern try_node_t nullgoal_alt;
+extern try_node_t defaultgoal_alt;
+extern try_node_t startgoal_alt;
 
 /* (must be called after ciao_opts) */
-void ciao_init(const char *boot_path) 
-{
+void ciao_init(const char *boot_path) {
   engine_init(boot_path, NULL);
 }
 
 /* Reinitialization */
 
-void ciao_reinit(void) 
-{
+void ciao_reinit(void) {
   glb_init_each_time();
 }
 
@@ -1291,14 +1244,12 @@ void ciao_frame_end(void) {
 
 //static ciao_ctx ciao_aux_ctx;
 
-void ciao_frame_re_begin(ciao_ctx ctx)
-{
+void ciao_frame_re_begin(ciao_ctx ctx) {
 //  ciao_aux_ctx = ciao_implicit_ctx; //re-entry
   ciao_implicit_ctx = ctx;
   ciao_frame_begin();
 }
-void ciao_frame_re_end(void)
-{
+void ciao_frame_re_end(void) {
   ciao_frame_end();
 //  ciao_implicit_ctx = ciao_aux_ctx;
 }

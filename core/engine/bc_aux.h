@@ -79,6 +79,68 @@ extern definition_t *address_ucc;
 
 /* ------------------------------------------------------------------------- */
 
+bcp_t call_code;
+bcp_t default_code;
+bcp_t null_code;
+try_node_t nullgoal_alt;
+try_node_t defaultgoal_alt;
+try_node_t startgoal_alt;
+
+void ciao_initcode(void) {
+  int frame_size = 3;
+
+  {
+    bcp_t P;
+    call_code = (bcp_t)checkalloc_ARRAY(char, 8*sizeof(tagged_t)); /* TODO: size overapprox. */
+    P = call_code;
+    EMIT_Q(0);
+    EMIT_e((EToY0+frame_size)*sizeof(tagged_t));
+    call_code = P;
+    EMIT_o(CALLQ);
+    EMIT_Q(0);
+    EMIT_E(address_call);
+    EMIT_e((EToY0+frame_size)*sizeof(tagged_t));                    /* initial FrameSize */
+    EMIT_o(EXIT_TOPLEVEL);
+
+    startgoal_alt.choice_offset = ArityToOffset(1);
+    startgoal_alt.number = 0;
+    startgoal_alt.emul_p = call_code;
+    startgoal_alt.emul_p2 = call_code;
+    startgoal_alt.next = NULL;
+  }
+
+  {
+    bcp_t P;
+    null_code = (bcp_t)checkalloc_ARRAY(char, 8*sizeof(tagged_t)); /* TODO: size overapprox. */
+    P = null_code;
+    EMIT_o(EXIT_TOPLEVEL);
+
+    nullgoal_alt.choice_offset = ArityToOffset(0);
+    nullgoal_alt.number = 0;
+    nullgoal_alt.emul_p = null_code;
+    nullgoal_alt.emul_p2 = null_code;
+    nullgoal_alt.next = &nullgoal_alt; /* loop forever */
+  }
+
+  {
+    bcp_t P;
+    default_code = (bcp_t)checkalloc_ARRAY(char, 8*sizeof(tagged_t)); /* TODO: size overapprox. */
+    P = default_code;
+    EMIT_Q(0);
+    EMIT_e((EToY0+frame_size)*sizeof(tagged_t));
+    default_code = P;
+    EMIT_o(EXIT_TOPLEVEL);
+
+    defaultgoal_alt.choice_offset = ArityToOffset(0);
+    defaultgoal_alt.number = 0;
+    defaultgoal_alt.emul_p = default_code;
+    defaultgoal_alt.emul_p2 = default_code;
+    defaultgoal_alt.next = &nullgoal_alt; 
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+
 static try_node_t *get_null_alt(int arity);
 
 bcp_t startgoalcode;                   /* WAM code to start a goal -- Shared */

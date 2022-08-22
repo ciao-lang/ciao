@@ -17,13 +17,8 @@ extern "C" {
 /* Automatically generated during engine build */
 #include <ciao/version.h>
 
-#if defined(OPTIM_COMP)
-#include <stdint.h>
-#include <stddef.h> /* size_t */
-#else
 /* TODO: do not include all (use ciao_gluecode.h if needed) */
 #include <ciao/eng.h>
-#endif
 
 #define CIAO_ERROR 0
 #define ciao_true 1
@@ -54,16 +49,6 @@ typedef _ciao_query_t ciao_query;
 
 /* Initialization */
 
-#if defined(OPTIM_COMP)
-int ciao_opts(const char *program_name, 
-              int programc, 
-              const char **programv, 
-              int optc,
-              const char **optv);
-void ciao_init(void);
-void ciao_reinit(void);
-void ciao_finish(ciao_ctx ctx);
-#else
 int ciao_opts(const char *program_name, 
               int programc, 
               const char **programv, 
@@ -72,6 +57,8 @@ int ciao_opts(const char *program_name,
               const char **boot_path);
 void ciao_init(const char *boot_path);
 void ciao_reinit(void);
+#if defined(OPTIM_COMP)
+void ciao_finish(ciao_ctx ctx);
 #endif
 
 /* Creation of a ciao_ctx context */
@@ -88,9 +75,9 @@ int ciao_boot(ciao_ctx ctx);
 #if !defined(OPTIM_COMP)
 void ciao_load_embedded_qfile_s(ciao_ctx ctx, const char *program_name);
 void ciao_load_embedded_qfile(const char *program_name);
+#endif
 void ciao_load_qfile_s(ciao_ctx ctx, const char *boot_path);
 void ciao_load_qfile(const char *boot_path);
-#endif
 
 /* Memory management */
 
