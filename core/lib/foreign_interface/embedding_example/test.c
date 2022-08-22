@@ -36,8 +36,7 @@ void mydisplay(ciao_term term) {
   }
 }
 
-int main(void)
-{
+int main(void) {
   ciao_term var, list, complex_term;
   ciao_query *query;
 
@@ -50,9 +49,7 @@ int main(void)
 
   ciao_implicit_ctx = ciao_ctx_new();
 
-  printf("Loading test.po...\n");
-
-  // ciao_load_qfile("test.po");
+  printf("Loading test.cpx...\n");
   ciao_load_qfile("test.cpx");
 
   printf("Testing...\n");
@@ -60,6 +57,10 @@ int main(void)
   ciao_frame_begin();
 
   complex_term = ciao_var();
+
+  // TODO: some predicates will require engine boot
+  //   printf("boot:\n");
+  //   ciao_commit_call("internals:boot", 0);
 
   printf("t1:\n");
   ciao_commit_call("test:mydisplay", 1, complex_term);
