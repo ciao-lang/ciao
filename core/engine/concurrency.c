@@ -87,8 +87,7 @@
 // }
 
 #if defined(HAVE_LIB_LOCKS) && defined(DEBUG)
-bool_t lock_is_unset(LOCK *p)
-{
+int lock_is_unset(LOCK *p) {
 #if defined(Win32)
   fprintf(stderr,
           "testing lock unset in Win32: TryEnterCriticalSection may not be supported!\n");
@@ -281,11 +280,11 @@ CBOOL__PROTO(prolog_unlock_predicate)
 #if defined(DEBUG)
 
 /* Counts mutually exclusive operations */
-uintmach_t ops_counter = 0;
+size_t ops_counter = 0;
 SLOCK ops_counter_l;
 
-uintmach_t get_inc_counter(void) {
-  uintmach_t local_counter;
+size_t get_inc_counter(void) {
+  size_t local_counter;
   Wait_Acquire_slock(ops_counter_l);
   local_counter = ops_counter++;
   Release_slock(ops_counter_l);

@@ -380,7 +380,7 @@ execution continues when pred() is false.
 
 #define Init_Cond(Cond) Init_lock(Cond.cond_lock)
 #define Wait_For_Cond_Begin(Predicate, Cond) {                     \
-                       bool_t pred_is_signaled;                      \
+                       int pred_is_signaled;                      \
                        Wait_Acquire_Cond_lock(Cond);      \
                        pred_is_signaled = (Predicate);             \
                        while(pred_is_signaled) {                   \
@@ -407,13 +407,13 @@ typedef struct conditionstruct {
 #endif /* USE_THREADS */
 
 #if defined(USE_LOWRTCHECKS) || defined(DEBUG_TRACE)
-bool_t lock_is_unset(LOCK *p);
+int lock_is_unset(LOCK *p);
 #endif
 
 #if defined(USE_LOWRTCHECKS) || defined(DEBUG_TRACE)
 #define GET_INC_COUNTER get_inc_counter()
 #define RESET_COUNTER reset_counter()
-uintmach_t get_inc_counter(void);
+size_t get_inc_counter(void);
 void reset_counter(void);
 #else
 #define GET_INC_COUNTER 0
