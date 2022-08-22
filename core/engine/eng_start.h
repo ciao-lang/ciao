@@ -17,13 +17,10 @@ worker_t *create_and_init_wam(void);
 void create_source_path(char *pathname);
 #endif
 
-#if defined(OPTIM_COMP)
-void engine_set_opts(char **optv, int optc);
-void engine_init(void);
-CVOID__PROTO(engine_finish);
-#else
 void engine_set_opts(const char **optv, int optc, const char **boot_path);
 void engine_init(const char *boot_path, const char *emulator);
+#if defined(OPTIM_COMP)
+CVOID__PROTO(engine_finish);
 #endif
 
 int engine_start(int argc, char **argv);
