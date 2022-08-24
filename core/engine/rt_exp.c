@@ -64,7 +64,7 @@ CBOOL__PROTO(nd_current_predicate)
       if (j==0)
         pop_choicept(Arg);
       else
-        w->choice->term[2] = MakeSmall(j);
+        w->choice->x[2] = MakeSmall(j);
       CBOOL__UnifyCons(d->printname,X(0));
       CBOOL__LASTUNIFY(make_structure(Arg,SetArity(d->printname,d->arity)), X(1));
     }
@@ -128,7 +128,7 @@ CBOOL__PROTO(nd_predicate_property)
           if (j==0)
             pop_choicept(Arg);
           else
-            w->choice->term[3] = MakeSmall(j);
+            w->choice->x[3] = MakeSmall(j);
           CBOOL__UnifyCons(MakeSmall(d->predtyp),X(1));
           CBOOL__UnifyCons(MakeSmall(predicate_property_bits(d)),X(2));
           CBOOL__LASTUNIFY(make_structure(Arg,SetArity(d->printname,d->arity)), X(0));

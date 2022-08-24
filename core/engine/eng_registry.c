@@ -1933,7 +1933,7 @@ CVOID__PROTO(local_init_each_time)
   b->heap_top = Arg->heap_top;
   b->trail_top = Arg->trail_top;
   b->next_insn = exitcode;
-  b->term[0] = atom_nil;
+  b->x[0] = atom_nil;
 
   ChoiceptMarkPure(b);
   ChoiceptMarkStatic(b);

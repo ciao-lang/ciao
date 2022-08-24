@@ -176,7 +176,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
   printf("\nANSWER: choice %p trail %p\n", oldGen->answer_cp, oldGen->answer_tr);
 #endif
   
-  newGenSF = (struct sf*) Arg->choice->term[0];
+  newGenSF = (struct sf*) Arg->choice->x[0];
   //Remove choice_pt of consumer (I will generate a generator cp on stack top
   Arg->choice = PREV_CP(Arg->choice);
 
@@ -412,23 +412,23 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
   //take arguments from oldGen
   if (oldGen->answer_cp != NULL) 
     {
-      inode->term[0] = oldGen->choice->term[0];
-      inode->term[1] = oldGen->choice->term[1];
+      inode->x[0] = oldGen->choice->x[0];
+      inode->x[1] = oldGen->choice->x[1];
     }
   else
     {
-      inode->term[0] = (tagged_t) NULL;
-      inode->term[1] = oldGen->choice->term[1];
+      inode->x[0] = (tagged_t) NULL;
+      inode->x[1] = oldGen->choice->x[1];
     }
   //update arguments of oldGen
   if (oldGen->cons == NULL)
     {
       //SF for consuming answers
-      oldGen->choice->term[0] = (tagged_t) oldGen->sf;
+      oldGen->choice->x[0] = (tagged_t) oldGen->sf;
       //last consumed answer
-      oldGen->choice->term[1] = (tagged_t) oldGen->last_ans;
+      oldGen->choice->x[1] = (tagged_t) oldGen->last_ans;
       //generator of the consumer
-      oldGen->choice->term[2] = (tagged_t) oldGen;
+      oldGen->choice->x[2] = (tagged_t) oldGen;
       //update next_alt of oldGen -> it is now a consumer
       oldGen->choice->next_alt = address_nd_consume_answer_c;
       //TODO - update FReg of first not moved generator with the ones of oldGen
@@ -621,8 +621,8 @@ CBOOL__PROTO(tabled_call_c) {
 
       push_choicept(Arg, address_nd_resume_cons_c);
       //TODO: store this information in subgoal frame!! 
-      Arg->choice->term[0] = (tagged_t)NULL;
-      Arg->choice->term[1] = (tagged_t)NO_ATTR;
+      Arg->choice->x[0] = (tagged_t)NULL;
+      Arg->choice->x[1] = (tagged_t)NO_ATTR;
 
       //TODO - replicate for constraints
 #if defined(SWAPPING)
@@ -732,7 +732,7 @@ CBOOL__PROTO(nd_consume_answer_c)
 
   l_ans = l_ans->next;
   //TODO: storing this info in data structures
-  Arg->choice->term[1] = (tagged_t)l_ans;
+  Arg->choice->x[1] = (tagged_t)l_ans;
 
   get_trie_answer(Arg, l_ans->node, sf);
 
@@ -889,8 +889,8 @@ CBOOL__PROTO(execute_call_c)
 
       push_choicept(Arg, address_nd_resume_cons_c);
       //TODO: storing this info in subgoal frame!
-      Arg->choice->term[0] = (tagged_t)NULL;
-      Arg->choice->term[1] = (tagged_t)ATTR;
+      Arg->choice->x[0] = (tagged_t)NULL;
+      Arg->choice->x[1] = (tagged_t)ATTR;
 
 #if defined(SWAPPING)
       //tricky frame for swapping
@@ -1106,7 +1106,7 @@ CBOOL__PROTO(nd_consume_answer_attr_c) {
   // there is always an active answer at the end.
   //  while (!l_ans->answer->active) l_ans = l_ans->sig; 
   //TODO: storing this info in data structures
-  Arg->choice->term[1] = (tagged_t)l_ans;
+  Arg->choice->x[1] = (tagged_t)l_ans;
 
   get_trie_answer(Arg, l_ans->node, sf);
 
@@ -1256,7 +1256,7 @@ CBOOL__PROTO(nd_resume_cons_c) {
 #if defined(DEBUG_ALL)
       printf("\nForward trail\n");
 #endif
-      Arg->choice->term[0] = (tagged_t)icons_l;
+      Arg->choice->x[0] = (tagged_t)icons_l;
       //Reinstalling the trail
 //      struct timeval t_ini, t_fin;
 //      gettimeofday(&t_ini,NULL);
@@ -1373,7 +1373,7 @@ CBOOL__PROTO(new_answer_c) {
       PTCP->answer_tr = Arg->trail_top;
       PTCP->answer_node_tr = LastNodeTR;
       push_choicept(Arg, address_nd_back_answer_c);
-      Arg->choice->term[0] = (tagged_t)PTCP;
+      Arg->choice->x[0] = (tagged_t)PTCP;
       //TODO - Consume current answer
       get_trie_answer(Arg, node, PTCP->sf);
       POP_PTCP;

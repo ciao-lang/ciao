@@ -145,7 +145,7 @@
 
 #define WToX0           (SIZEOF_FLEXIBLE_STRUCT(worker_t, tagged_t, 0)/sizeof(tagged_t))
 #define Xb(I)           (*CharOffset(w,I)) /* I as bytecode operand */
-#define X(I)            (w->term[I]) /* I as zero-based */
+#define X(I)            (w->x[I]) /* I as zero-based */
 #define Xop(X)  (((X)+WToX0)*sizeof(tagged_t))
 #define Xinv(X) (((X)/sizeof(tagged_t))-WToX0)
 
@@ -194,7 +194,7 @@
 
 #define EToY0           (SIZEOF_FLEXIBLE_STRUCT(frame_t, tagged_t, 0)/sizeof(tagged_t))
 #define Yb(I)           (*CharOffset(E,I)) /* I as bytecode operand */
-#define Y(I)            (E->term[I]) /* I as zero-based */
+#define Y(I)            (E->x[I]) /* I as zero-based */
 #define Yop(X)  (((X)+EToY0)*sizeof(tagged_t))
 #define Yinv(X) (((X)/sizeof(tagged_t))-EToY0)
 
@@ -1431,14 +1431,14 @@ struct worker_ {
   frame_t *frame;               /* environment pointer */
   bcp_t next_insn;              /* continuation */
   frame_t *local_top;   /* local stack pointer, or NULL if invalid */
-  tagged_t term[FLEXIBLE_SIZE];         /* temporary variables */
+  tagged_t x[FLEXIBLE_SIZE];         /* temporary variables */
 };
 
 
 struct frame_ {                 /* a.k.a. environment */
   frame_t *frame;               /* continuation frame pointer */
   bcp_t next_insn;              /* continuation program pointer */
-  tagged_t term[FLEXIBLE_SIZE]; /* permanent variables */
+  tagged_t x[FLEXIBLE_SIZE]; /* permanent variables */
 };
 
 typedef enum {CHOICE,MARKER} node_type;
@@ -1457,7 +1457,7 @@ struct choice_ {                  /* a.k.a. marker. Collapsed with a Chpt? */
   definition_t *functor;
 #endif
 
-  tagged_t term[FLEXIBLE_SIZE];            /* Offset between nodes in try_node struct */
+  tagged_t x[FLEXIBLE_SIZE];            /* Offset between nodes in try_node struct */
 };
 
 #if defined(MARKERS)

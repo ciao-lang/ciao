@@ -1563,13 +1563,13 @@ int call_firstgoal(goal_descriptor_t *goal_desc, tagged_t goal_term) {
   worker_t *w;
 
   Arg = goal_desc->worker_registers;
-  Arg->choice->term[0] = X(0) = goal_term;
+  Arg->choice->x[0] = X(0) = goal_term;
   Arg->next_insn = bootcode;
 
   while(TRUE) {
     i = SIGSETJMP(abort_env);
     if (i == 0){                /* Just made longjmp */
-      Arg->term[0] = Arg->choice->term[0];
+      Arg->x[0] = Arg->choice->x[0];
       wam_initialized = TRUE;
       exit_code = wam(Arg, goal_desc);
       Arg = goal_desc->worker_registers; /* segfault patch -- jf */
@@ -1624,7 +1624,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
   Arg = goal_desc->worker_registers;
   Arg->next_insn = startgoalcode;
   Arg->next_alt = NULL;  /* Force backtracking after alts. exahusted */
-  Arg->choice->term[0] = X(0);    /* Will be the arg. of a call/1 */
+  Arg->choice->x[0] = X(0);    /* Will be the arg. of a call/1 */
  
 #if defined(DEBUG) && defined(USE_THREADS)
   if (debug_threads)

@@ -107,7 +107,7 @@ CBOOL__PROTO(prolog_copy_term) {
   push_choicept(Arg,fail_alt);  /* try, arity=0 */
   push_frame(Arg,2);            /* allocate, size=2 */
 
-  copy_it(Arg,&w->frame->term[0]); /* do the copying */
+  copy_it(Arg,&w->frame->x[0]); /* do the copying */
 
   pt1 = pt2 = TaggedToPointer(w->choice->trail_top); /* untrail */
   while (TrailYounger(w->trail_top,pt2)) {
@@ -202,7 +202,7 @@ CBOOL__PROTO(prolog_copy_term_nat)
   push_choicept(Arg,fail_alt);  /* try, arity=0 */
   push_frame(Arg,2);            /* allocate, size=2 */
 
-  copy_it_nat(Arg,&w->frame->term[0]); /* do the copying */
+  copy_it_nat(Arg,&w->frame->x[0]); /* do the copying */
 
   pt1 = pt2 = TaggedToPointer(w->choice->trail_top); /* untrail */
   while (TrailYounger(w->trail_top,pt2)) {

@@ -60,7 +60,7 @@ CBOOL__PROTO(nd_suspension_point)
 {
   //Reinstall next_insn and Frame (Done by fail).
   //Reinstal argument register
-  tagged_t t = w->choice->term[0];
+  tagged_t t = w->choice->x[0];
   definition_t * func = (definition_t *) *TaggedToPointer(t);
   int i;
   for (i = 0; i < func->arity; i++) DEREF(X(i),*TaggedToPointer(TaggedToPointer(t)+i+1));
@@ -152,11 +152,11 @@ CBOOL__PROTO(nd_current_atom)
     i++;
   
   if (i < size)                                  /* We got the next index */
-    w->choice->term[1] = MakeSmall(i);
+    w->choice->x[1] = MakeSmall(i);
   else 
     pop_choicept(Arg);
 #else
-  w->choice->term[1] += MakeSmallDiff(1);
+  w->choice->x[1] += MakeSmallDiff(1);
   CBOOL__UnifyCons(TagIndex(ATM,i),X(0));
     
   if (i+1 == ciao_atoms->count)

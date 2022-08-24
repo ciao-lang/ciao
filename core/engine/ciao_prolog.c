@@ -1058,7 +1058,7 @@ ciao_query *ciao_query_begin_term_s(ciao_ctx ctx, ciao_term goal) {
     b->frame = w->frame;
     b->next_insn = w->next_insn;
     SaveLtop(b);
-    b->term[0] = X(0);    /* Will be the arg. of a call/1 */
+    b->x[0] = X(0);    /* Will be the arg. of a call/1 */
 
     w->next_alt = NULL; 
 
@@ -1186,10 +1186,10 @@ CFUN__PROTO(ciao_ref_w, ciao_term, ciao_ctx ctx, tagged_t x) {
 
   frame = G->frame;
 
-  next = GetSmall(frame->term[0]);
+  next = GetSmall(frame->x[0]);
   {
     tagged_t ta;
-    ta = *TaggedToArg(frame->term[2], next);
+    ta = *TaggedToArg(frame->x[2], next);
     if (ta!=x) {
       if (!CBOOL__SUCCEED(cunify,ta,x)) { goto fail; }
     }
@@ -1205,9 +1205,9 @@ CFUN__PROTO(ciao_ref_w, ciao_term, ciao_ctx ctx, tagged_t x) {
     next++; /* skip functor */
   if ((next & (REF_TABLE_CHUNK_SIZE - 1)) == 0) 
     next++; /* skip str tag */
-  frame->term[0] = MakeSmall(next);
+  frame->x[0] = MakeSmall(next);
 
-  chunks = GetSmall(frame->term[1]);
+  chunks = GetSmall(frame->x[1]);
   if (chunks * REF_TABLE_CHUNK_SIZE - next < REF_TABLE_PAD) {
     /* chunk overflow! */
     tagged_t *x, *y;
@@ -1215,10 +1215,10 @@ CFUN__PROTO(ciao_ref_w, ciao_term, ciao_ctx ctx, tagged_t x) {
     int i, j, new_chunks, k;
 
     new_chunks = chunks * 2;
-    /* old table is in frame->term[2] so don't care about gc here */  
+    /* old table is in frame->x[2] so don't care about gc here */  
     new_table = create_ref_table(ctx, new_chunks); 
 
-    x = TaggedToArg(frame->term[2], 0);
+    x = TaggedToArg(frame->x[2], 0);
     y = TaggedToArg(new_table, 0);
     k = 0;
     for (j = 0; j < chunks - 1; j++) {
@@ -1239,8 +1239,8 @@ CFUN__PROTO(ciao_ref_w, ciao_term, ciao_ctx ctx, tagged_t x) {
       }
     }
   end:
-    frame->term[2] = new_table;
-    frame->term[1] = MakeSmall(new_chunks);
+    frame->x[2] = new_table;
+    frame->x[1] = MakeSmall(new_chunks);
   }
   CFUN__PROCEED(term);
 }
@@ -1257,7 +1257,7 @@ tagged_t ciao_unref(ciao_ctx ctx, ciao_term term) {
   tagged_t x;
   WITH_WORKER(ctx->worker_registers, {
     frame_t *frame = G->frame;
-    x = *TaggedToArg(frame->term[2], term);
+    x = *TaggedToArg(frame->x[2], term);
   });
   return x;
 }
@@ -1281,9 +1281,9 @@ void ciao_frame_begin_s(ciao_ctx ctx) {
     w->frame = frame;
     w->next_insn = CONTCODE(arity);
     w->local_top = (frame_t *)Offset(frame,EToY0+arity);
-    frame->term[0] = MakeSmall(1); /* next free ref */
-    frame->term[1] = MakeSmall(REF_TABLE_CHUNKS); /* chunks */
-    frame->term[2] = create_ref_table(ctx, REF_TABLE_CHUNKS);
+    frame->x[0] = MakeSmall(1); /* next free ref */
+    frame->x[1] = MakeSmall(REF_TABLE_CHUNKS); /* chunks */
+    frame->x[2] = create_ref_table(ctx, REF_TABLE_CHUNKS);
   });
 }
 

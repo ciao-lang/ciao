@@ -31,10 +31,10 @@ CBOOL__PROTO(retry_cut)
        ChoiceYounger(nd,Choice_Start);
        nd = ChoiceCont(nd))
     {
-      DEREF(number,nd->term[0]);
-      if (nd->term[3]==atom_retry_hook && number<=X(0))
+      DEREF(number,nd->x[0]);
+      if (nd->x[3]==atom_retry_hook && number<=X(0))
         {
-          nd->term[1] = X(1);   /* always dereferenced */
+          nd->x[1] = X(1);   /* always dereferenced */
           w->choice = nd;
           SetShadowregs(nd);
           break;

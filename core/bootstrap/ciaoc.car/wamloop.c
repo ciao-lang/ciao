@@ -45,7 +45,7 @@ fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_cho
       }
 });
 do {
-ChoicePush(pt1,(w->term-1)[i]);} while (--i);      }
+ChoicePush(pt1,(w->x-1)[i]);} while (--i);      }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD);
       }
@@ -323,7 +323,7 @@ RestoreLtop(B);
 i = ((try_node_t *)P)->choice_offset;
 w->previous_choice = ChoiceCharOffset(B,-i);
 if (i>ArityToOffset(0)) {
-tagged_t *wt = w->term;
+tagged_t *wt = w->x;
 S = (tagged_t *)w->previous_choice;
 i = OffsetToArity(i) - 1;
 ON_DEBUG({
@@ -549,7 +549,7 @@ goto call4;
 default:
 if ((t0 = Func->arity)) {
 StoreH;
-pt1 = w->term;
+pt1 = w->x;
 pt2 = w->structure;
 do {
 PushRefHeapNext(pt1,pt2);
@@ -2203,7 +2203,7 @@ fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_cho
                       }
 });
 do {
-ChoicePush(pt1,(w->term-1)[i]);} while (--i);                      }
+ChoicePush(pt1,(w->x-1)[i]);} while (--i);                      }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD);
                       }
@@ -2229,9 +2229,9 @@ P += 0;
 goto ReadMode;
 #if defined(PARBACK)
 case RESTART_POINT:
-w->heap_top = TaggedToPointer(w->choice->term[0]);
+w->heap_top = TaggedToPointer(w->choice->x[0]);
 LoadH;
-P = (bcp_t)*TaggedToPointer(w->choice->term[0]);
+P = (bcp_t)*TaggedToPointer(w->choice->x[0]);
 w->next_insn = w->choice->next_insn;
 pop_choicept(Arg);
 goto enter_predicate;
@@ -4301,7 +4301,7 @@ fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_cho
                         }
 });
 do {
-ChoicePush(pt1,(w->term-1)[i]);} while (--i);                        }
+ChoicePush(pt1,(w->x-1)[i]);} while (--i);                        }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD);
                         }
@@ -4350,7 +4350,7 @@ fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_cho
                         }
 });
 do {
-ChoicePush(pt1,(w->term-1)[i]);} while (--i);                        }
+ChoicePush(pt1,(w->x-1)[i]);} while (--i);                        }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD);
                         }
@@ -4373,9 +4373,9 @@ P += 0;
 goto WriteMode;
 #if defined(PARBACK)
 case RESTART_POINT:
-w->heap_top = TaggedToPointer(w->choice->term[0]);
+w->heap_top = TaggedToPointer(w->choice->x[0]);
 LoadH;
-P = (bcp_t)*TaggedToPointer(w->choice->term[0]);
+P = (bcp_t)*TaggedToPointer(w->choice->x[0]);
 w->next_insn = w->choice->next_insn;
 pop_choicept(Arg);
 goto enter_predicate;

@@ -434,8 +434,8 @@ CBOOL__PROTO(prolog_close)
         for (B = w->choice;
              ChoiceYounger(B,Choice_Start);
              B = ChoiceCont(B))
-          if (B->next_alt==address_nd_current_stream && B->term[3]==t1)
-            B->term[3] = t2;
+          if (B->next_alt==address_nd_current_stream && B->x[3]==t1)
+            B->x[3] = t2;
       }
 
       checkdealloc_TYPE(stream_node_t, stream);
@@ -767,7 +767,7 @@ CBOOL__PROTO(nd_current_stream)
   else if (streamptr->forward==root_stream_ptr) /* last alt */
     pop_choicept(Arg);
   else
-    w->choice->term[3]=PointerToTerm(streamptr->forward);
+    w->choice->x[3]=PointerToTerm(streamptr->forward);
   return (cunify(Arg,ptr_to_stream(Arg,streamptr),X(2)) &&
           current_stream_data(Arg,streamptr));
 }

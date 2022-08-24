@@ -242,7 +242,7 @@ CBOOL__PROTO(prolog_unlock_predicate)
      executing. */
 
   if (root->behavior_on_failure != DYNAMIC){
-    SET_NONEXECUTING((TopConcChpt->term[InvocationAttr])); 
+    SET_NONEXECUTING((TopConcChpt->x[InvocationAttr])); 
     Wait_For_Cond_End(root->clause_insertion_cond);
   }
 

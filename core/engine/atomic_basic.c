@@ -513,7 +513,7 @@ CBOOL__PROTO(nd_atom_concat) {
 #if defined(OPTIM_COMP)
   w->choice->x[3] = SmallAdd(w->choice->x[3], 1);
 #else
-  w->choice->term[3] += MakeSmallDiff(1);
+  w->choice->x[3] += MakeSmallDiff(1);
 #endif
 
   s2 = GetString(X(2));

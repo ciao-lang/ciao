@@ -121,15 +121,15 @@ extern tagged_t atom_gen_tree_backtracking;
             if (TYPE)                                                   \
               {                                                         \
                 push_choicept((ARG),address_nd_consume_answer_attr_c);  \
-                (ARG)->choice->term[3] = ARG3;                            \
-                (ARG)->choice->term[4] = ARG4;                            \
+                (ARG)->choice->x[3] = ARG3;                            \
+                (ARG)->choice->x[4] = ARG4;                            \
               }                                                         \
             else                                                        \
               push_choicept((ARG),address_nd_consume_answer_c);         \
-            (ARG)->choice->term[0] = (tagged_t)(SF);                      \
-            (ARG)->choice->term[1] = (tagged_t)(CALLID)->first_ans;       \
-            (ARG)->choice->term[2] = (tagged_t)(CALLID);                  \
-            /*(ARG)->choice->term[2] = (tagged_t)clone_space(space);*/    \
+            (ARG)->choice->x[0] = (tagged_t)(SF);                      \
+            (ARG)->choice->x[1] = (tagged_t)(CALLID)->first_ans;       \
+            (ARG)->choice->x[2] = (tagged_t)(CALLID);                  \
+            /*(ARG)->choice->x[2] = (tagged_t)clone_space(space);*/    \
             /*struct subs_factor *answer = get_trie_answer((ARG),*/     \
             /*(CALLID)->first_answer->answer,(SF)->attr_vars); */       \
             get_trie_answer((ARG),(CALLID)->first_ans->node, (SF));     \

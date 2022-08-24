@@ -264,8 +264,8 @@ CBOOL__PROTO(next_instance, instance_t **ipp)
     if (!x2_insp && !x5_insp)
         return FALSE;
     else {
-      w->choice->term[X2_CHN] = X(X2_CHN) = PointerToTermOrZero(x2_insp);
-      w->choice->term[X5_CHN] = X(X5_CHN) = PointerToTermOrZero(x5_insp);
+      w->choice->x[X2_CHN] = X(X2_CHN) = PointerToTermOrZero(x2_insp);
+      w->choice->x[X5_CHN] = X(X5_CHN) = PointerToTermOrZero(x5_insp);
       return  TRUE;
     }
 }
@@ -741,8 +741,8 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp)
      a possibly empty next instance,
      and the lock on the instance. */
 
-  w->choice->term[X2_CHN] = X(X2_CHN) = PointerToTermOrZero(x2_ins_h);
-  w->choice->term[X5_CHN] = X(X5_CHN) = PointerToTermOrZero(x5_ins_h);
+  w->choice->x[X2_CHN] = X(X2_CHN) = PointerToTermOrZero(x2_ins_h);
+  w->choice->x[X5_CHN] = X(X5_CHN) = PointerToTermOrZero(x5_ins_h);
   SET_EXECUTING(X(InvocationAttr));
 #if defined(DEBUG)
     if (debug_concchoicepoints)
@@ -1012,25 +1012,25 @@ void remove_link_chains(choice_t **topdynamic,
               movingtop);
 #endif
 
-    Cond_Begin(TaggedToRoot(movingtop->term[RootArg])->clause_insertion_cond);
+    Cond_Begin(TaggedToRoot(movingtop->x[RootArg])->clause_insertion_cond);
 
 #if defined(DEBUG)
-    if (TaggedToInstHandle(movingtop->term[X2_CHN]) == NULL)
+    if (TaggedToInstHandle(movingtop->x[X2_CHN]) == NULL)
       fprintf(stderr, "*** %" PRIdm "(%" PRIdm ") remove_link_chains: X2 handle is NULL!!\n",
               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
-    if (TaggedToInstHandle(movingtop->term[X5_CHN]) == NULL)
+    if (TaggedToInstHandle(movingtop->x[X5_CHN]) == NULL)
       fprintf(stderr, "*** %" PRIdm "(%" PRIdm ") remove_link_chains: X5 handle is NULL!!\n", (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
 #endif
-    remove_handle(TaggedToInstHandle(movingtop->term[X2_CHN]), 
-                  TaggedToRoot(movingtop->term[RootArg]),
+    remove_handle(TaggedToInstHandle(movingtop->x[X2_CHN]), 
+                  TaggedToRoot(movingtop->x[RootArg]),
                   X2);
-    remove_handle(TaggedToInstHandle(movingtop->term[X5_CHN]), 
-                  TaggedToRoot(movingtop->term[RootArg]),
+    remove_handle(TaggedToInstHandle(movingtop->x[X5_CHN]), 
+                  TaggedToRoot(movingtop->x[RootArg]),
                   X5);
 
-    Broadcast_Cond(TaggedToRoot(movingtop->term[RootArg])->clause_insertion_cond);
+    Broadcast_Cond(TaggedToRoot(movingtop->x[RootArg])->clause_insertion_cond);
 
-    movingtop=(choice_t *)TermToPointerOrNull(movingtop->term[PrevDynChpt]);
+    movingtop=(choice_t *)TermToPointerOrNull(movingtop->x[PrevDynChpt]);
   }
 #if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc)
@@ -1676,14 +1676,14 @@ CFUN__PROTO(active_instance,
     b2=ChoiceCont(b);
     if (b->next_alt==address_nd_current_instance) {
       latest_static = b2;
-      j = TaggedToInstance(b->term[2]);
+      j = TaggedToInstance(b->x[2]);
       if (j && (j->root==i->root)) {
-        lotime = GetSmall(b->term[4]);
+        lotime = GetSmall(b->x[4]);
         if (lorank>j->rank) lorank=j->rank;
       }
-      j = TaggedToInstance(b->term[5]);
+      j = TaggedToInstance(b->x[5]);
       if (j && (j->root==i->root)) {
-        lotime = GetSmall(b->term[4]);
+        lotime = GetSmall(b->x[4]);
         if (lorank>j->rank) lorank=j->rank;
       }   
     }
@@ -1760,7 +1760,7 @@ CVOID__PROTO(clock_overflow)
        !ChoiceptTestStatic(b);
        b=ChoiceCont(b)) {
     if (b->next_alt==address_nd_current_instance) {
-      t = GetSmall(b->term[4]);
+      t = GetSmall(b->x[4]);
       if (current!=t) {
         current=t;
         count++;
@@ -1783,9 +1783,9 @@ CVOID__PROTO(clock_overflow)
        !ChoiceptTestStatic(b);
        b=ChoiceCont(b))
     if (b->next_alt==address_nd_current_instance) {
-      t = GetSmall(b->term[4]);
+      t = GetSmall(b->x[4]);
       if ((*clockp)!=t) *(--clockp)=t;
-      b->term[4] = MakeSmall(clockp-clocks);
+      b->x[4] = MakeSmall(clockp-clocks);
     }
   /* relocate all instance clocks */
   relocate_table_clocks(prolog_predicates,clocks);

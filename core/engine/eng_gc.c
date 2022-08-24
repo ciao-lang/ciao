@@ -229,7 +229,7 @@ static CVOID__PROTO(shuntVariables) {
     frame = cp->frame;
     while (OffStacktop(frame,NodeLocalTop(prevcp))) {
       pt = (tagged_t *)StackCharOffset(frame,i);
-      while (pt!=frame->term) {
+      while (pt!=frame->x) {
         if (!gc_IsMarked(*(--pt))) {
           gc_shuntVariable(*pt);
         }
@@ -238,8 +238,8 @@ static CVOID__PROTO(shuntVariables) {
       frame = frame->frame;
     }
         
-    pt = cp->term+OffsetToArity(alt->choice_offset);
-    while (pt!=cp->term) {
+    pt = cp->x+OffsetToArity(alt->choice_offset);
+    while (pt!=cp->x) {
       --pt;
       gc_shuntVariable(*pt);
     }
@@ -322,7 +322,7 @@ static CVOID__PROTO(markFrames, frame_t *frame, bcp_t l) {
 
   while (OffStacktop(frame,Gc_Stack_Start)) {
     ev = (tagged_t *)StackCharOffset(frame,FrameSize(l));
-    while (ev!=frame->term) {
+    while (ev!=frame->x) {
       tagged_t v;
         
       StackDecr(ev);
@@ -355,8 +355,8 @@ static CVOID__PROTO(markChoicepoints) {
 
     markFrames(Arg, cp->frame, cp->next_insn);
     while ((i--)>0) {
-      if (IsHeapTerm(cp->term[i])) {
-        markVariable(Arg, &cp->term[i]);
+      if (IsHeapTerm(cp->x[i])) {
+        markVariable(Arg, &cp->x[i]);
       }
     }
     cp = ChoiceCharOffset(cp, -n);
@@ -576,7 +576,7 @@ static CVOID__PROTO(sweepFrames, frame_t *frame, bcp_t l) {
 
   while (OffStacktop(frame,Gc_Stack_Start)) {
     ev = (tagged_t *)StackCharOffset(frame,FrameSize(l));
-    while (ev!=frame->term) {
+    while (ev!=frame->x) {
       tagged_t v, *p;
         
       StackDecr(ev);
@@ -605,16 +605,16 @@ static CVOID__PROTO(sweepChoicepoints) { /* sweep choicepoints and corresponding
 
     sweepFrames(Arg, cp->frame, cp->next_insn);
     while ((i--)>0) {
-      tagged_t v = cp->term[i];
+      tagged_t v = cp->x[i];
       tagged_t *p = TaggedToPointer(v);
         
-      gc_UnmarkM(cp->term[i]);
+      gc_UnmarkM(cp->x[i]);
       if (IsHeapTerm(v)
 #if defined(SEGMENTED_GC)
           && OffHeaptop(p,Gc_Heap_Start)
 #endif
           ) {
-        intoRelocationChain(p, &cp->term[i]);
+        intoRelocationChain(p, &cp->x[i]);
       }
     }
     cp = ChoiceCharOffset(cp, -n);
@@ -971,9 +971,9 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
   
   /* ensure that X regs are seen by heap_overflow(): make a frame */
   ComputeA(a,b);
-  a->term[0] = TaggedZero;
+  a->x[0] = TaggedZero;
   for (i=0; i<arity; i++) {
-    a->term[i+1] = X(i);
+    a->x[i+1] = X(i);
   }
   a->frame = w->frame;
   a->next_insn = w->next_insn;
@@ -984,7 +984,7 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
   heap_overflow(Arg,pad);
 
   for (i=0; i<arity; i++) {
-    X(i) = a->term[i+1];
+    X(i) = a->x[i+1];
   }
   w->local_top = a;
   w->frame = a->frame;
@@ -1172,9 +1172,9 @@ CVOID__PROTO(choice_overflow, intmach_t pad) {
                        (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
                        (unsigned int)concchpt);
           // TODO: wrong if it is Zero (null)? (JFMC)
-          choice_t *prev = (choice_t *)TermToPointerOrNull(concchpt->term[PrevDynChpt]);
+          choice_t *prev = (choice_t *)TermToPointerOrNull(concchpt->x[PrevDynChpt]);
           AssignRelocPtr(prev, chpt_reloc_factor);
-          concchpt->term[PrevDynChpt] = PointerToTermOrZero(prev);
+          concchpt->x[PrevDynChpt] = PointerToTermOrZero(prev);
           concchpt = prev;
         }
 #endif
@@ -1301,7 +1301,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
       AssignRelocPtr(n2->local_top, reloc_factor);
       AssignRelocPtr(n2->frame, reloc_factor);
 
-      for (pt1=n->term; pt1!=(tagged_t *)n2;) {
+      for (pt1=n->x; pt1!=(tagged_t *)n2;) {
         t1 = ChoicePrev(pt1);
         if (TaggedIsSVA(t1)) {
           *(pt1-1) += reloc_factor;
@@ -1312,7 +1312,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
       frame = n->frame;
       while (frame >= (frame_t*) NodeLocalTop(n2)) {
         pt1 = (tagged_t *)StackCharOffset(frame,i);
-        while (pt1!=frame->term){
+        while (pt1!=frame->x){
           t1 = *(--pt1);
           if (TaggedIsSVA(t1)) {
             *pt1 += reloc_factor;
@@ -1552,7 +1552,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     for (n=aux_node; n!=InitialNode && n->next_alt!=NULL; n=n2) {
       if (n->next_alt != NULL) {
         n2 = ChoiceCont(n);
-        for (pt1=n->term; pt1!=(tagged_t *)n2;) {
+        for (pt1=n->x; pt1!=(tagged_t *)n2;) {
           t1 = ChoicePrev(pt1);
           if (IsHeapTermAndNeedsReloc(t1)) {
             *(pt1-1) += reloc_factor;
@@ -1562,7 +1562,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
         frame = n->frame;
         while ((frame >= (frame_t*) NodeLocalTop(n2)) && frame->next_insn != NULL) {
           pt1 = (tagged_t *)StackCharOffset(frame,i);
-          while (pt1!=frame->term) {
+          while (pt1!=frame->x) {
             t1 = *(--pt1);
             if (IsHeapTermAndNeedsReloc(t1)) {
               *pt1 += reloc_factor;

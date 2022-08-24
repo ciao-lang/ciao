@@ -501,7 +501,7 @@ do_neck :-
          call('SetB', ["w->previous_choice"]),
          trace(neck("i")),
          do_while(
-           "ChoicePush(pt1,(w->term-1)[i]);",
+           "ChoicePush(pt1,(w->x-1)[i]);",
            "--i"))),
       maybe_choice_overflow)),
     "w->next_alt = NULL;", fmt:nl.
@@ -3003,9 +3003,9 @@ proceed :-
 % TODO: this a new instruction really needed here? consider special builtin functions
 :- ins_op_format(restart_point, 262, [], [optional('PARBACK')]).
 restart_point :-
-    setmode_setH(r, "TaggedToPointer(w->choice->term[0])"),
+    setmode_setH(r, "TaggedToPointer(w->choice->x[0])"),
     setmode(w),
-    "P" <- "(bcp_t)*TaggedToPointer(w->choice->term[0])",
+    "P" <- "(bcp_t)*TaggedToPointer(w->choice->x[0])",
     "w->next_insn" <- "w->choice->next_insn",
     call('pop_choicept', ["Arg"]),
     goto('enter_predicate').
@@ -3622,24 +3622,24 @@ deep_backtrack :-
     % initial choicepoint of a concurrent goal was being accessed out of
     % the scope of the memory allocated for the choicepoint stack.  MCL.
     %
-    % % X(0) = B->term[0];
-    % % X(1) = B->term[1];
-    % % X(2) = B->term[2];
-    % % X(3) = B->term[3];
+    % % X(0) = B->x[0];
+    % % X(1) = B->x[1];
+    % % X(2) = B->x[2];
+    % % X(3) = B->x[3];
     % % i = ((try_node_t *)P)->choice_offset;
     % % w->previous_choice = ChoiceCharOffset(B,-i);
     % % if (i>ArityToOffset(3)) {
     % %   S = (tagged_t *)w->previous_choice;
     % %   i = OffsetToArity(i)-3;
     % %   do
-    % %     (w->term+2)[i] = ChoiceNext(S);
+    % %     (w->x+2)[i] = ChoiceNext(S);
     % %   while (--i);
     % % }
     %
     "i" <- "((try_node_t *)P)->choice_offset",
     "w->previous_choice" <- "ChoiceCharOffset(B,-i)",
     if("i>ArityToOffset(0)", (
-      "tagged_t *wt = w->term;", fmt:nl,
+      "tagged_t *wt = w->x;", fmt:nl,
       %
       "S" <- "(tagged_t *)w->previous_choice",
       "i" <- "OffsetToArity(i) - 1",
@@ -3684,7 +3684,7 @@ code_enter_pred :-
     %     for (i = 0; i < Func->arity; i++) HeapPush(H,X(i));
     %     w->heap_top = H;
     %     push_choicept(Arg,address_nd_suspension_point);
-    %     w->choice->term[0] = Tagp(HVA, Htmp);
+    %     w->choice->x[0] = Tagp(HVA, Htmp);
     %     //w->choice->next_insn = w->misc->backInsn;
     % 
     %     //No nore suspensions
@@ -3961,7 +3961,7 @@ pred_call_default :-
     label('default'),
     if("(t0 = Func->arity)",
       (setmode(r),
-       "pt1" <- "w->term",
+       "pt1" <- "w->x",
        "pt2" <- "w->structure",
        do_while(
          call('PushRefHeapNext', ["pt1","pt2"]),

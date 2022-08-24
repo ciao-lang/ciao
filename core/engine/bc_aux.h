@@ -408,7 +408,7 @@ CBOOL__PROTO(run_determ_c, tagged_t goal)
 
   if (func->enter_instr == ENTER_C) {
     for (i=func->arity, s=w->structure; --i>=0;)
-      RefHeap(w->term[i],HeapOffset(s,i));
+      RefHeap(w->x[i],HeapOffset(s,i));
     return (*(cbool0_t)func->code.proc)(Arg);
   } else {
     if (func->enter_instr == BUILTIN_CALL) {

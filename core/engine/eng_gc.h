@@ -82,7 +82,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);
 })
 
 /* TODO: improve LIVEINFO support? */
-/* TODO: document why a->term[0] is reserved for TaggedZero (see eng_gc.c) */
+/* TODO: document why a->x[0] is reserved for TaggedZero (see eng_gc.c) */
 /* TODO: use a frame instead of temporary X beyond liveinfo arity? */
 
 #define SAVE_XS0() {}
@@ -92,10 +92,10 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);
 #define RESTORE_XS1(V0) { V0=X(idx_); }
 #define RESTORE_XS2(V0,V1) { V0=X(idx_); V1=X(idx_+1); }
 
-#define SAVE_YS1(V0) { frame_t *a=w->frame; a->term[0]=TaggedZero; a->term[1]=V0; }
-#define SAVE_YS2(V0,V1) { frame_t *a=w->frame; a->term[0]=TaggedZero; a->term[1]=V0; a->term[2]=V1; }
-#define RESTORE_YS1(V0) { frame_t *a=w->frame; V0=a->term[1]; }
-#define RESTORE_YS2(V0,V1) { frame_t *a=w->frame; V0=a->term[1]; V1=a->term[2]; }
+#define SAVE_YS1(V0) { frame_t *a=w->frame; a->x[0]=TaggedZero; a->x[1]=V0; }
+#define SAVE_YS2(V0,V1) { frame_t *a=w->frame; a->x[0]=TaggedZero; a->x[1]=V0; a->x[2]=V1; }
+#define RESTORE_YS1(V0) { frame_t *a=w->frame; V0=a->x[1]; }
+#define RESTORE_YS2(V0,V1) { frame_t *a=w->frame; V0=a->x[1]; V1=a->x[2]; }
 
 #if defined(CONTCODE) /* TODO: always? */
 static inline CVOID__PROTO(push_gc_frame, intmach_t i) {

@@ -57,10 +57,10 @@ CVOID__PROTO(freeze_stacks, node_tr_t *orig_node_tr, node_tr_t *last_node_tr) {
         {
           printf("\nQue carajo\n");
           //is the generator in its original place? or was it swapped?
-          if (((struct gen*)ind->term[0])->answer_cp == PREV_CP(ind))
+          if (((struct gen*)ind->x[0])->answer_cp == PREV_CP(ind))
             {
-              ((struct gen*)ind->term[0])->last_node_tr = orig_node_tr;
-              ind = ((struct gen*)ind->term[0])->choice;
+              ((struct gen*)ind->x[0])->last_node_tr = orig_node_tr;
+              ind = ((struct gen*)ind->x[0])->choice;
             }
         }
 #endif
