@@ -139,15 +139,15 @@ CVOID__PROTO(wr_call, char *s, definition_t *func);
   Setfunc(ADDR);                                       \
 }
 
-#define ComputeE ComputeE_(E)
+#define ComputeE ComputeE_(pt1)
 /* Do not edit this defn - it's a special case of ComputeA. */
 #define ComputeE_(Frame) { \
   if (w->local_top) {                                        \
-    Frame = w->local_top;                                     \
+    Frame = (typeof(Frame))w->local_top;                     \
   } else {                                                   \
-    Frame = NodeLocalTop(w->choice);                              \
+    Frame = (typeof(Frame))NodeLocalTop(w->choice);           \
     if (!StackYounger(Frame,w->frame))                              \
-      Frame = StackCharOffset(w->frame,FrameSize(w->next_insn)); \
+      Frame = (typeof(Frame))StackCharOffset(w->frame,FrameSize(w->next_insn)); \
   }                                                     \
 }
 
