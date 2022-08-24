@@ -64,7 +64,7 @@ uintmach_t num_tasks_created(void);
 CFUN__PROTO(cross_copy_term, tagged_t, tagged_t remote_term);
 
 /* Support code for starting goal execution. */
-int call_firstgoal(goal_descriptor_t *firstworker, tagged_t goal_term);
+CFUN__PROTO(call_firstgoal, intmach_t, tagged_t goal, goal_descriptor_t *goal_desc);
 THREAD_RES_T startgoal(THREAD_ARG wo);
 THREAD_RES_T make_backtracking(THREAD_ARG wo);
 

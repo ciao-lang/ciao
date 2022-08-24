@@ -385,7 +385,7 @@ int engine_start(int argc, char **argv) {
   /* wam->next_insn set to boot code in local_init_each_time */
   /*w->choice->heap_top = w->heap_top;*/     /* Isn't this unnecessary? */
   /*  Fills in worker_entry */
-  return call_firstgoal(first_goal, GET_ATOM("internals:boot"));
+  return call_firstgoal(first_goal->worker_registers, GET_ATOM("internals:boot"), first_goal);
 }
 
 // #define USE_WINDOWS_REGISTRY 1

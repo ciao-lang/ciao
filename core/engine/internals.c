@@ -1558,28 +1558,25 @@ SIGJMP_BUF abort_env; /* Shared */
 
 CBOOL__PROTO(prolog_eng_killothers);
 
-int call_firstgoal(goal_descriptor_t *goal_desc, tagged_t goal_term) {
+CFUN__PROTO(call_firstgoal, intmach_t, tagged_t goal_term, goal_descriptor_t *goal_desc) {
   int i, exit_code;
-  worker_t *w;
 
-  Arg = goal_desc->worker_registers;
-  Arg->choice->x[0] = X(0) = goal_term;
-  Arg->next_insn = bootcode;
+  w->choice->x[0] = X(0) = goal_term;
+  w->next_insn = bootcode;
 
   while(TRUE) {
     i = SIGSETJMP(abort_env);
     if (i == 0){                /* Just made longjmp */
-      Arg->x[0] = Arg->choice->x[0];
+      w->x[0] = w->choice->x[0];
       wam_initialized = TRUE;
-      exit_code = wam(Arg, goal_desc);
-      Arg = goal_desc->worker_registers; /* segfault patch -- jf */
+      exit_code = wam(w, goal_desc);
+      w = goal_desc->worker_registers; /* segfault patch -- jf */
 #if 0
-      flush_output(Arg);
+      flush_output(w);
 #endif
       if (exit_code != WAM_ABORT) /* halting... */
         break;
-    }
-    else if (i == -1) {         /* SIGINT during I/O */
+    } else if (i == -1) {         /* SIGINT during I/O */
       tagged_t *pt1;
       /* No need to patch "p" here, since we are not exiting wam() */
       bcp_t p = (bcp_t)int_address;
@@ -1588,19 +1585,19 @@ int call_firstgoal(goal_descriptor_t *goal_desc, tagged_t goal_term) {
       continue;
     }
 #if defined(USE_THREADS)
-    prolog_eng_killothers(Arg);
+    prolog_eng_killothers(w);
 #endif
 
     {
       wam_initialized = FALSE;                    /* disable recursive aborts */
-      reinitialize_wam_areas(Arg); /* aborting... */
-      empty_gcdef_bin(Arg); /* TODO: here? */
+      reinitialize_wam_areas(w); /* aborting... */
+      empty_gcdef_bin(w); /* TODO: here? */
       fflush(stdout); /* TODO: here? */
       fflush(stderr); /* TODO: here? */
       wam_initialized = TRUE;
     }
 
-    init_each_time(Arg);                /* Sets X(0) to point to bootcode */
+    init_each_time(w);                /* Sets X(0) to point to bootcode */
     {
       /* Patch predicate call at bootcode */
       bcp_t P = bootcode;

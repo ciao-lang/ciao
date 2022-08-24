@@ -51,6 +51,12 @@
 # define MAXPATHLEN 1024
 #endif
 #define deffunctor(NAME, ARITY) SetArity(GET_ATOM((NAME)),(ARITY))
+#define SetChoice(Chpt) ({ \
+  w->previous_choice = (Chpt); /* needed? */ \
+  w->choice = (Chpt); \
+  SetShadowregs(w->choice); \
+  PROFILE__HOOK_CUT; \
+})
 #endif
 
 void ciao_exit(int result);
@@ -789,9 +795,11 @@ void ciao_exit(int result) {
 }
 
 int ciao_firstgoal(ciao_ctx ctx, ciao_term goal) {
-  goal_descriptor_t *goal_desc = ctx;
-  tagged_t goal_term = ciao_unref(ctx, goal);
-  return call_firstgoal(goal_desc, goal_term);
+  int i;
+  WITH_WORKER(ctx->worker_registers, {
+    i = CFUN__EVAL(call_firstgoal, ciao_unref(ctx, goal), ctx);
+  });
+  return i;
 }
 
 int ciao_boot(ciao_ctx ctx) {
@@ -961,10 +969,7 @@ void ciao_cut(ciao_ctx ctx, ciao_choice choice) {
   if (!ciao_more_solutions(ctx, choice)) return;
   WITH_WORKER(ctx->worker_registers, {
     choice_t *c = ChoiceFromTagged(choice);
-    w->previous_choice = c; /* needed? */
-    w->choice = c;
-    SetShadowregs(w->choice);
-    PROFILE__HOOK_CUT;
+    SetChoice(c);
   });
 }
 
