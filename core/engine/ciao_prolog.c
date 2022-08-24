@@ -50,6 +50,7 @@
 #if !defined(MAXPATHLEN)
 # define MAXPATHLEN 1024
 #endif
+#define deffunctor(NAME, ARITY) SetArity(GET_ATOM((NAME)),(ARITY))
 #endif
 
 void ciao_exit(int result);
@@ -125,6 +126,14 @@ void ciao_init(const char *boot_path) {
   engine_init(boot_path, NULL);
 }
 
+#if defined(OPTIM_COMP)
+void ciao_finish(ciao_ctx ctx) {
+  WITH_WORKER(ctx->worker_registers, {
+    CVOID__CALL(engine_finish);
+  });
+}
+#endif
+
 /* Reinitialization */
 
 void ciao_reinit(void) {
@@ -135,67 +144,57 @@ void ciao_reinit(void) {
 /* Ciao context creation */
 
 ciao_ctx ciao_ctx_new(void) {
+#if defined(OPTIM_COMP)
+  // TODO: see 'core' version
+  return gimme_a_new_gd();
+#else
   static int first = 1;
   if (first) {
     return init_first_gd_entry();
   } else {
     return gimme_a_new_gd();
   }
+#endif
 }
 
 void ciao_ctx_free(ciao_ctx ctx) {
+#if defined(OPTIM_COMP)
+  // TODO: see 'core' version
+  release_goal_desc(ctx);
+#else
   if ((ctx->state != PENDING_SOLS) &&
       (ctx->state != FAILED))
     return; /* Trying to release a worker either working or without assigned work */
 
   make_goal_desc_free(ctx);
+#endif
 }
 
 /* ------------------------------------------------------------------------- */
 /* Code loading operations */
 
-void ciao_load_ql_files(ciao_ctx ctx, FILE *qfile) {
-  worker_t *w = ctx->worker_registers;
-  load_ql_files(Arg, qfile);
-}
-
-/* Load a qfile */
-
+#if !defined(OPTIM_COMP)
 bool_t expand_file_name(const char *name, bool_t abs, char *target);
 
-FILE *ciao_open_qfile(const char *boot_path);
-
-void ciao_load_qfile_s(ciao_ctx ctx, const char *boot_path) {
-  FILE *qfile;
-  qfile = ciao_open_qfile(boot_path);
-  ciao_load_ql_files(ctx, qfile);
-  fclose(qfile);
-}
-
-void ciao_load_qfile(const char *boot_path) {
-  ciao_load_qfile_s(ciao_implicit_ctx, boot_path);
-}
-
 FILE *ciao_open_qfile(const char *boot_path) {
-  FILE *qfile = NULL;
-#if defined(Win32)
-  int i;
-#endif
-
   expand_file_name((char *)boot_path,TRUE,(char *)source_path);
 #if defined(Win32)
-  i = strlen(source_path)-4;
-  if (i > 0 && strcmp(source_path+i,".bat") == 0){
-    source_path[i+1] = 'c';
-    source_path[i+2] = 'p';
-    source_path[i+3] = 'x';
-  } else if (i > 0 && strcmp(source_path+i,".cpx") != 0)
-    strcat(source_path,".cpx");
+  {
+    int i = strlen(source_path)-4;
+    if (i > 0 && strcmp(source_path+i,".bat") == 0){
+      source_path[i+1] = 'c';
+      source_path[i+2] = 'p';
+      source_path[i+3] = 'x';
+    } else if (i > 0 && strcmp(source_path+i,".cpx") != 0) {
+      strcat(source_path,".cpx");
+    }
 
-  if (access(source_path,R_OK))
-    source_path[strlen(source_path)-4] = '\0'; /* Take out .cpx */
+    if (access(source_path,R_OK)) {
+      source_path[strlen(source_path)-4] = '\0'; /* Take out .cpx */
+    }
+  }
 #endif
-  if (qfile == NULL) qfile = fopen(source_path,"rb");
+  FILE *qfile = fopen(source_path,"rb");
   if (qfile == NULL) {
     fprintf(stderr, "%s: boot file not found\n", source_path);
     engine_exit(1);
@@ -205,15 +204,40 @@ FILE *ciao_open_qfile(const char *boot_path) {
   }
 }
 
+void ciao_load_qfile_s(ciao_ctx ctx, const char *boot_path) {
+  FILE *qfile;
+  qfile = ciao_open_qfile(boot_path);
+  load_ql_files(ctx->worker_registers, qfile);
+  fclose(qfile);
+}
+#endif
+
+#if defined(OPTIM_COMP)
+CBOOL__PROTO(load_boot, const char *boot_path); /* eng_start.c */
+
+void ciao_load_qfile_s(ciao_ctx ctx, const char *boot_path) {
+  WITH_WORKER(ctx->worker_registers, {
+    if (!CBOOL__SUCCEED(load_boot, boot_path)) {
+      PANIC_FAULT("cannot load boot file");
+    }
+  });
+}
+#endif
+
+void ciao_load_qfile(const char *boot_path) {
+  ciao_load_qfile_s(ciao_implicit_ctx, boot_path);
+}
+
 /* Load a qfile embedded in an executable */
 
+#if !defined(OPTIM_COMP)
 FILE *ciao_open_embedded_qfile(const char *program_name);
 void ciao_open_exec_skip_stub(const char *file, FILE **stream);
 
 void ciao_load_embedded_qfile_s(ciao_ctx ctx, const char *program_name) {
   FILE *qfile;
   qfile = ciao_open_embedded_qfile(program_name);
-  ciao_load_ql_files(ctx, qfile);
+  load_ql_files(ctx->worker_registers, qfile);
   fclose(qfile);
 }
 
@@ -236,6 +260,7 @@ void ciao_open_exec_skip_stub(const char *file, FILE **stream) {
   /* TODO: see open_exec_skip_stub() in eng_start.c */
   fprintf(stderr,"{ERROR: ciao_open_exec_skip_stub() is not implemented yet}\n");
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 /* Term creation */
@@ -243,11 +268,13 @@ void ciao_open_exec_skip_stub(const char *file, FILE **stream) {
 ciao_term ciao_var_s(ciao_ctx ctx) {
   tagged_t *pt;
   tagged_t to;
-  worker_t *w = ctx->worker_registers;
   ciao_ensure_heap(ctx, 1);
-  pt = w->heap_top;
-  HeapPush(pt, to = Tagp(HVA,pt));
-  w->heap_top = pt;  
+  WITH_WORKER(ctx->worker_registers, {
+    pt = G->heap_top;
+    to = Tagp(HVA, pt);
+    HeapPush(pt, to);
+    G->heap_top = pt;
+  });
   return ciao_ref(ctx, to);
 }
 
@@ -256,45 +283,59 @@ ciao_term ciao_var(void) {
 }
 
 ciao_term ciao_structure_a_s(ciao_ctx ctx, const char *name, int arity, ciao_term *args) {
-  worker_t *w = ctx->worker_registers;
-  if (arity == 0) {
-    return ciao_ref(ctx, GET_ATOM((char *)name));
-  } else if (strcmp(name, ".") == 0 && arity == 2) {
-    tagged_t list;
-    ciao_ensure_heap(ctx, 3);
-    MakeLST(list, ciao_unref(ctx, args[0]), ciao_unref(ctx, args[1]));
-    return ciao_ref(ctx, list);
-  } else {
-    int i;
-    tagged_t *pt;
-    tagged_t functor;
-    ciao_ensure_heap(ctx, 2 + arity);
-    functor = SetArity(GET_ATOM((char *)name), arity);
-    pt = w->heap_top;
-    HeapPush(pt, functor);
-    for (i = 0; i < arity; i++) {
-      HeapPush(pt, ciao_unref(ctx, args[i]));
+  tagged_t x;
+  WITH_WORKER(ctx->worker_registers, {
+    if (arity == 0) {
+      x = GET_ATOM((char *)name);
+    } else if (strcmp(name, ".") == 0 && arity == 2) {
+      tagged_t list;
+      ciao_ensure_heap(ctx, 3);
+      MakeLST(list, ciao_unref(ctx, args[0]), ciao_unref(ctx, args[1]));
+      x = list;
+    } else {
+      int i;
+      tagged_t *pt;
+      tagged_t *s;
+      tagged_t functor;
+      ciao_ensure_heap(ctx, 2 + arity);
+      functor = deffunctor((char *)name, arity);
+      pt = G->heap_top;
+      s = pt;
+      HeapPush(pt, functor);
+      for (i = 0; i < arity; i++) {
+        HeapPush(pt, ciao_unref(ctx, args[i]));
+      }
+      G->heap_top = pt;
+      x = Tagp(STR, s);
     }
-    w->heap_top = pt;  
-    return ciao_ref(ctx, Tagp(STR, HeapOffset(pt, -(arity+1))));
-  }
+  });
+  return ciao_ref(ctx, x);
 }
 
 ciao_term ciao_structure_a(const char *name, int arity, ciao_term *args) {
   return ciao_structure_a_s(ciao_implicit_ctx, name, arity, args);
 }
 
+#if defined(OPTIM_COMP)
+#define LongToTagged(X) IntmachToTagged((X))
+#define TaggedToLong(X) TaggedToIntmach((X))
+#define BlobFunctorFixLong BlobFunctorFixIntmach
+#endif
+
 #define Def_ciao_mk_X(CType, DeclType, Cells, Make, CastType) \
 ciao_term ciao_mk_##CType##_s(ciao_ctx ctx, DeclType x) {       \
-  worker_t *w = ctx->worker_registers;                          \
+  tagged_t t;                                                   \
   ciao_ensure_heap(ctx, Cells);                                 \
-  return ciao_ref(ctx, Make((CastType)x));                      \
+  WITH_WORKER(ctx->worker_registers, {                          \
+    t = Make((CastType)x);                                      \
+  });                                                           \
+  return ciao_ref(ctx, t);                                      \
 }                                                               \
 ciao_term ciao_mk_##CType(DeclType x) {                 \
   return ciao_mk_##CType##_s(ciao_implicit_ctx, x); \
 }
 
-/* TODO: Cells is probably wrong */
+/* TODO: make sure that estimation for Cells is right */
 Def_ciao_mk_X(c_short, short, 4, IntmachToTagged, intmach_t)
 Def_ciao_mk_X(c_int, int, 4, IntmachToTagged, intmach_t)
 Def_ciao_mk_X(c_long, long, 4, IntmachToTagged, intmach_t)
@@ -349,9 +390,13 @@ ciao_bool ciao_fits_in_c_long_s(ciao_ctx ctx, ciao_term term) {
   tagged_t t;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
+#if defined(OPTIM_COMP)
+  return TaggedIsSmall(t) || (TaggedIsSTR(t) && TaggedToHeadfunctor(t) == BlobFunctorFixLong);
+#else
   /* Pre: bignums is in canonical form (if more than one word is
      needed, it does not fit into an integer) */
   return TaggedIsSmall(t) || (IsInteger(t) && (bn_length(TaggedToBignum(t)) == 1));
+#endif
 }
 
 ciao_bool ciao_fits_in_c_long(ciao_term term) {
@@ -365,7 +410,11 @@ ciao_bool ciao_fits_in_c_int_s(ciao_ctx ctx, ciao_term term) {
   t = ciao_unref(ctx, term);
   DEREF(t, t);
   if (!TaggedIsSmall(t)) return FALSE;
+#if defined(OPTIM_COMP)
+  x = TaggedToIntmach(t);
+#else
   x = GetSmall(t);
+#endif
   return (x >= INT_MIN && x <= INT_MAX);
 }
 #else
@@ -424,14 +473,14 @@ ciao_bool ciao_is_float(ciao_term term) {
 char *ciao_get_number_chars_s(ciao_ctx ctx, ciao_term term) {
   tagged_t number;
   char *number_result;
-  worker_t *w = ctx->worker_registers;
-
-  number = ciao_unref(ctx, term);
-  /* number_to_string() handles all kinds of numbers; it leaves the result in
-     Atom_Buffer */
-  number_to_string(Arg, number, GetSmall(current_radix));
-  number_result = ciao_malloc(strlen(Atom_Buffer) + 1);
-  strcpy(number_result, Atom_Buffer);
+  WITH_WORKER(ctx->worker_registers, {
+    number = ciao_unref(ctx, term);
+    /* number_to_string() handles all kinds of numbers; it leaves the
+       result in Atom_Buffer */
+    CVOID__CALL(number_to_string, number, GetSmall(current_radix));
+    number_result = ciao_malloc(strlen(Atom_Buffer) + 1);
+    strcpy(number_result, Atom_Buffer);
+  });
   return number_result;
 }
 
@@ -440,14 +489,16 @@ char *ciao_get_number_chars(ciao_term term) {
 }
 
 /* PRECONDITION: number_result should really represent a number */
-/* TO DO: raise a proper exception */
+/* TODO: raise a proper exception */
 ciao_term ciao_put_number_chars_s(ciao_ctx ctx, char *number_string) {
   tagged_t result;
-  (void)string_to_number(ctx->worker_registers, 
+  WITH_WORKER(ctx->worker_registers, {
+    (void)CBOOL__SUCCEED(string_to_number,
                          number_string,
                          GetSmall(current_radix),
                          &result,
                          0);
+  });
   return ciao_ref(ctx, result);
 }
 
@@ -504,12 +555,8 @@ const char *ciao_structure_name_s(ciao_ctx ctx, ciao_term term) {
   if (!TaggedIsSTR(t)) {
     return (const char *)NULL;
   } else {
-    tagged_t f;
-    atom_t *atomptr;
-    f = TaggedToHeadfunctor(t);
-    t = SetArity(f,0);
-    atomptr = TaggedToAtom(t);
-    return atomptr->name;
+    tagged_t f = TaggedToHeadfunctor(t);
+    return GetString(f);
   }
 }
 
@@ -586,7 +633,7 @@ ciao_term ciao_list_head_s(ciao_ctx ctx, ciao_term term) {
   tagged_t a;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
-  RefCar(a, t);
+  a = *TaggedToCar(t);
   return ciao_ref(ctx, a);
 }
 
@@ -599,7 +646,7 @@ ciao_term ciao_list_tail_s(ciao_ctx ctx, ciao_term term) {
   tagged_t a;
   t = ciao_unref(ctx, term);
   DEREF(t, t);
-  RefCdr(a, t);
+  a = *TaggedToCdr(t);
   return ciao_ref(ctx, a);
 }
 
@@ -651,7 +698,7 @@ ciao_term ciao_dlist_a(int len, ciao_term *args, ciao_term tail) {
 }
 
 ciao_term ciao_listn_a_s(ciao_ctx ctx, int len, ciao_term *args) {
-  return ciao_dlist_a_s(ctx, len, args, ciao_empty_list());
+  return ciao_dlist_a_s(ctx, len, args, ciao_empty_list_s(ctx));
 }
 
 ciao_term ciao_listn_a(int len, ciao_term *args) {
@@ -701,9 +748,11 @@ ciao_term ciao_dlist(size_t length, ...) {
 
 
 ciao_term ciao_copy_term_s(ciao_ctx src_ctx, ciao_term src_term, ciao_ctx dst_ctx) {
-  worker_t *w;
-  w = dst_ctx->worker_registers;
-  return ciao_ref(dst_ctx, cross_copy_term(w, ciao_unref(dst_ctx, src_term)));
+  tagged_t x;
+  WITH_WORKER(dst_ctx->worker_registers, {
+    x = CFUN__EVAL(cross_copy_term, ciao_unref(dst_ctx, src_term));
+  });
+  return ciao_ref(dst_ctx, x);
 }
 
 ciao_term ciao_copy_term(ciao_term src_term) {
@@ -711,8 +760,11 @@ ciao_term ciao_copy_term(ciao_term src_term) {
 }
 
 ciao_bool ciao_unify_s(ciao_ctx ctx, ciao_term x, ciao_term y) {
-  worker_t *w = ctx->worker_registers;
-  return cunify(w, ciao_unref(ctx, x), ciao_unref(ctx, y));
+  ciao_bool ok;
+  WITH_WORKER(ctx->worker_registers, {
+    ok = CBOOL__SUCCEED(cunify, ciao_unref(ctx, x), ciao_unref(ctx, y));
+  });
+  return ok;
 }
 
 ciao_bool ciao_unify(ciao_term x, ciao_term y) {
@@ -841,16 +893,17 @@ TEMPLATE(ciao_get_c_double_array, double, ciao_get_c_double_array_l)
 
 #define TEMPLATE(Name, X, XC, XS) \
 ciao_term Name(ciao_ctx ctx, X *s, size_t length) { \
-  worker_t *w = ctx->worker_registers; \
   size_t i; \
   tagged_t cdr; \
-  ciao_ensure_heap(ctx, length * XS); \
-  cdr = atom_nil; \
-  s += length; \
-  for (i = 0; i < length; i++) { \
-    s--; \
-    MakeLST(cdr, XC, cdr); \
-  } \
+  WITH_WORKER(ctx->worker_registers, { \
+    ciao_ensure_heap(ctx, length * XS); \
+    cdr = atom_nil; \
+    s += length; \
+    for (i = 0; i < length; i++) { \
+      s--; \
+      MakeLST(cdr, XC, cdr); \
+    } \
+  }); \
   return ciao_ref(ctx, cdr); \
 }
 TEMPLATE(ciao_mk_c_uint8_list, const unsigned char, MakeSmall(*s), 2)
@@ -893,8 +946,11 @@ ciao_bool ciao_is_address(ciao_ctx ctx, ciao_term term) {
 /* ------------------------------------------------------------------------- */
 
 ciao_choice ciao_get_choice(ciao_ctx ctx) {
-  worker_t *w = ctx->worker_registers;
-  return ChoiceToTagged(w->choice);
+  ciao_choice c;
+  WITH_WORKER(ctx->worker_registers, {
+    c = ChoiceToTagged(w->choice);
+  });
+  return c;
 }
 
 ciao_bool ciao_more_solutions(ciao_ctx ctx, ciao_choice choice) {
@@ -902,12 +958,14 @@ ciao_bool ciao_more_solutions(ciao_ctx ctx, ciao_choice choice) {
 }
 
 void ciao_cut(ciao_ctx ctx, ciao_choice choice) {
-  worker_t *w = ctx->worker_registers;
   if (!ciao_more_solutions(ctx, choice)) return;
-  w->previous_choice = ChoiceFromTagged(choice); /* needed? */
-  w->choice = ChoiceFromTagged(choice);
-  SetShadowregs(w->choice);
-  PROFILE__HOOK_CUT;
+  WITH_WORKER(ctx->worker_registers, {
+    choice_t *c = ChoiceFromTagged(choice);
+    w->previous_choice = c; /* needed? */
+    w->choice = c;
+    SetShadowregs(w->choice);
+    PROFILE__HOOK_CUT;
+  });
 }
 
 void ciao_fail(ciao_ctx ctx) {
@@ -925,90 +983,88 @@ ciao_bool ciao_query_next(ciao_query *query) {
 }
 
 ciao_bool ciao_query_ok(ciao_query *query) {
-  try_node_t *next_alt;
-  ciao_ctx ctx = query->ctx;
-  worker_t *w = ctx->worker_registers;
-
-  next_alt = w->next_alt;
-  if (next_alt == NULL) next_alt = w->choice->next_alt;
-
-  if (next_alt == &nullgoal_alt) {
-    return FALSE;
-  } else {
-    return TRUE;
-  }
+  ciao_bool ok;
+  WITH_WORKER(query->ctx->worker_registers, {
+    try_node_t *alt = G->next_alt;
+    if (alt == &nullgoal_alt ||
+        (alt == NULL && w->choice->next_alt == &nullgoal_alt)) {
+      ok = FALSE;
+    } else {
+      ok = TRUE;
+    }
+  });
+  return ok;
 }
 
 void ciao_query_end(ciao_query *query) {
   choice_t *b;
   ciao_ctx ctx = query->ctx;
-  worker_t *w = ctx->worker_registers;
-
   if (ciao_query_ok(query)) {
     ciao_cut(ctx, query->base_choice);
   }
-
-  b = w->choice;
-  w->choice = b = ChoiceCont(b);
-  SetShadowregs(b);
-  w->next_alt = NULL;
-
+  WITH_WORKER(ctx->worker_registers, {
+    b = w->choice;
+    b = ChoiceCont(b);
+    w->choice = b;
+    SetShadowregs(b);
+    w->next_alt = NULL;
+  });
   ciao_free(query);
 }
 
 ciao_query *ciao_query_begin_term_s(ciao_ctx ctx, ciao_term goal) {
-  worker_t *w = ctx->worker_registers;
-  tagged_t *b0;
   choice_t *b;
   ciao_query *query;
 
   goal = ciao_structure_s(ctx, "hiord_rt:call", 1, goal);
 
-  DEREF(X(0), ciao_unref(ctx, goal));
+  WITH_WORKER(ctx->worker_registers, {
+    DEREF(X(0), ciao_unref(ctx, goal));
 
-  /* push null choice */
+    /* push null choice */
+    G->next_insn = default_code;
 
-  w->next_insn = default_code;
-  b0 = (tagged_t *)w->choice;
-  b = ChoiceCharOffset(b0, ArityToOffset(0));
-  ComputeA(w->local_top,w->choice);
-  w->choice = b;
-  NewShadowregs(w->heap_top);
+    tagged_t *b0 = (tagged_t *)w->choice;
+    b = ChoiceCharOffset(b0, ArityToOffset(0));
+    ComputeA(w->local_top,w->choice);
+    w->choice = b;
+    NewShadowregs(w->heap_top);
 
-  b->trail_top = w->trail_top;
-  SaveGtop(b,w->heap_top);
-  b->next_alt = &defaultgoal_alt;
-  b->frame = w->frame;
-  b->next_insn = w->next_insn;
-  SaveLtop(b);
-    
-  w->next_alt = NULL; 
+    b->trail_top = w->trail_top;
+    SaveGtop(b,w->heap_top);
+    b->next_alt = &defaultgoal_alt;
+    b->frame = G->frame;
+    b->next_insn = G->next_insn;
+    SaveLtop(b);
 
-  query = (ciao_query *)ciao_malloc(sizeof(ciao_query));
-  query->ctx = ctx;
-  query->base_choice = ciao_get_choice(ctx);
+    w->next_alt = NULL; 
+
+    query = (ciao_query *)ciao_malloc(sizeof(ciao_query));
+    query->ctx = ctx;
+    query->base_choice = ciao_get_choice(ctx);
+
+    /* push choice for starting goal */
+
+    w->next_insn = call_code;
+    b0 = (tagged_t *)w->choice;
+    b = ChoiceCharOffset(b0, ArityToOffset(1));
+    ComputeA(w->local_top,w->choice);
+    w->choice = b;
+    NewShadowregs(w->heap_top);
   
-  /* push choice for starting goal */
-  
-  w->next_insn = call_code;
-  b0 = (tagged_t *)w->choice;
-  b = ChoiceCharOffset(b0, ArityToOffset(1));
-  ComputeA(w->local_top,w->choice);
-  w->choice = b;
-  NewShadowregs(w->heap_top);
+    b->trail_top = w->trail_top;
+    SaveGtop(b,w->heap_top);
+    b->next_alt = &startgoal_alt;
+    b->frame = w->frame;
+    b->next_insn = w->next_insn;
+    SaveLtop(b);
+    b->term[0] = X(0);    /* Will be the arg. of a call/1 */
 
-  b->trail_top = w->trail_top;
-  SaveGtop(b,w->heap_top);
-  b->next_alt = &startgoal_alt;
-  b->frame = w->frame;
-  b->next_insn = w->next_insn;
-  SaveLtop(b);
-  b->term[0] = X(0);    /* Will be the arg. of a call/1 */
-    
-  w->next_alt = NULL; 
+    w->next_alt = NULL; 
 
-  ctx->action = BACKTRACKING | KEEP_STACKS;
-  wam(w, ctx);
+    ctx->action = BACKTRACKING | KEEP_STACKS;
+    wam(w, ctx);
+  });
   return query;
 }
 
@@ -1017,12 +1073,12 @@ ciao_query *ciao_query_begin_term(ciao_term goal) {
 }
 
 ciao_query *ciao_query_begin_s(ciao_ctx ctx, const char *name, int arity, ...) {
-  GETARGS(arity)
+  GETARGS(arity);
   return ciao_query_begin_term_s(ctx, ciao_structure_a_s(ctx, name, arity, args));
 }
 
 ciao_query *ciao_query_begin(const char *name, int arity, ...) {
-  GETARGS(arity)
+  GETARGS(arity);
   return ciao_query_begin_term(ciao_structure_a(name, arity, args));
 }
 
@@ -1053,6 +1109,7 @@ ciao_bool ciao_commit_call(const char *name, int arity, ...) {
 
 /* ------------------------------------------------------------------------- */
 
+#if !defined(OPTIM_COMP)
 /* True if this query has been suspended with internals:'$yield'/0 [EXPERIMENTAL] */
 bool_t ciao_query_suspended(ciao_query *query) {
   goal_descriptor_t *ctx = query->ctx;
@@ -1069,15 +1126,16 @@ void ciao_query_resume(ciao_query *query) {
   UnsetEvent(); // TODO: SetEvent() usage
   wam(w, ctx); // (continue with '$yield' alternative, resume execution)
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 
 jmp_buf ciao_gluecode_jmpbuf;
 
 void ciao_raise_exception_s(ciao_ctx ctx, ciao_term exception) {
-  worker_t *w = ctx->worker_registers;
-
-  X(0) = ciao_unref(ctx, exception);
+  WITH_WORKER(ctx->worker_registers, {
+    X(0) = ciao_unref(ctx, exception);
+  });
   longjmp(ciao_gluecode_jmpbuf, 1);
 }
 
@@ -1092,53 +1150,54 @@ void ciao_raise_exception(ciao_term exception) {
 #define REF_TABLE_CHUNKS 1
 
 tagged_t create_ref_table(ciao_ctx ctx, int chunks) {
-  worker_t *w = ctx->worker_registers;
   int i, j;
   tagged_t *pt, *pt0;
   tagged_t functor;
+  tagged_t x;
 
   ciao_ensure_heap(ctx, REF_TABLE_CHUNK_SIZE * chunks + 1);
-  functor = SetArity(GET_ATOM("$reftable"), (REF_TABLE_CHUNK_SIZE - 1));
-  pt = w->heap_top;
-  pt0 = pt;
-  for (j = 0; j < chunks - 1; j++) {
-    HeapPush(pt, functor);
-    for (i = 0; i < REF_TABLE_CHUNK_SIZE - 2; i++) {
-      HeapPush(pt, Tagp(HVA,pt));
+  WITH_WORKER(ctx->worker_registers, {
+    functor = deffunctor("$reftable", REF_TABLE_CHUNK_SIZE - 1); // TODO: GET_ATOM is slow
+    pt = G->heap_top;
+    pt0 = pt;
+    for (j = 0; j < chunks - 1; j++) {
+      HeapPush(pt, functor);
+      for (i = 0; i < REF_TABLE_CHUNK_SIZE - 2; i++) {
+        HeapPush(pt, Tagp(HVA, pt));
+      }
+      HeapPush(pt, Tagp(STR, pt + 1));
     }
-    HeapPush(pt, Tagp(STR, pt + 1));
-  }
-  if (chunks > 0) {
-    HeapPush(pt, functor);
-    for (i = 0; i < REF_TABLE_CHUNK_SIZE - 1; i++) {
-      HeapPush(pt, Tagp(HVA,pt));
+    if (chunks > 0) {
+      HeapPush(pt, functor);
+      for (i = 0; i < REF_TABLE_CHUNK_SIZE - 1; i++) {
+        HeapPush(pt, Tagp(HVA, pt));
+      }
     }
-  }
-  w->heap_top = pt;  
-  return Tagp(STR, pt0);
+    G->heap_top = pt;
+    x = Tagp(STR, pt0);
+  });
+  return x;
 }
 
-ciao_term ciao_ref(ciao_ctx ctx, tagged_t x) {
-  worker_t *w = ctx->worker_registers;
-  tagged_t *pt1;
+CFUN__PROTO(ciao_ref_w, ciao_term, ciao_ctx ctx, tagged_t x) {
   ciao_term term;
+  frame_t *frame;
   int next, chunks;
 
-  SetE(w->frame);
+  frame = G->frame;
 
-  next = GetSmall(Y(0));
+  next = GetSmall(frame->term[0]);
   {
     tagged_t ta;
-    ta = *TaggedToArg(Y(2), next);
-
+    ta = *TaggedToArg(frame->term[2], next);
     if (ta!=x) {
-      if (!CBOOL__SUCCEED(cunify,ta,x)) goto fail;
+      if (!CBOOL__SUCCEED(cunify,ta,x)) { goto fail; }
     }
     goto ok;
   }
  fail:
-    /* fatal error */
-    SERIOUS_FAULT("Error registering term");
+  /* fatal error */
+  SERIOUS_FAULT("Error registering term");
  ok:
   term = next;
   next++;
@@ -1146,19 +1205,20 @@ ciao_term ciao_ref(ciao_ctx ctx, tagged_t x) {
     next++; /* skip functor */
   if ((next & (REF_TABLE_CHUNK_SIZE - 1)) == 0) 
     next++; /* skip str tag */
-  Y(0) = MakeSmall(next);
+  frame->term[0] = MakeSmall(next);
 
-  chunks = GetSmall(Y(1));
-  if (chunks * REF_TABLE_CHUNK_SIZE - next < REF_TABLE_PAD) { /* chunk overflow! */
+  chunks = GetSmall(frame->term[1]);
+  if (chunks * REF_TABLE_CHUNK_SIZE - next < REF_TABLE_PAD) {
+    /* chunk overflow! */
     tagged_t *x, *y;
     tagged_t new_table;
     int i, j, new_chunks, k;
 
     new_chunks = chunks * 2;
-    /* old table is in Y(2) so don't care about gc here */  
+    /* old table is in frame->term[2] so don't care about gc here */  
     new_table = create_ref_table(ctx, new_chunks); 
 
-    x = TaggedToArg(Y(2), 0);
+    x = TaggedToArg(frame->term[2], 0);
     y = TaggedToArg(new_table, 0);
     k = 0;
     for (j = 0; j < chunks - 1; j++) {
@@ -1179,21 +1239,26 @@ ciao_term ciao_ref(ciao_ctx ctx, tagged_t x) {
       }
     }
   end:
-    Y(2) = new_table;
-    Y(1) = MakeSmall(new_chunks);
+    frame->term[2] = new_table;
+    frame->term[1] = MakeSmall(new_chunks);
   }
+  CFUN__PROCEED(term);
+}
 
+ciao_term ciao_ref(ciao_ctx ctx, tagged_t x) {
+  ciao_term term;
+  WITH_WORKER(ctx->worker_registers, {
+    term = CFUN__EVAL(ciao_ref_w, ctx, x);
+  });
   return term;
 }
 
 tagged_t ciao_unref(ciao_ctx ctx, ciao_term term) {
-  worker_t *w = ctx->worker_registers;
-  tagged_t *pt1;
   tagged_t x;
-
-  SetE(w->frame);
-
-  x = *TaggedToArg(Y(2), term);
+  WITH_WORKER(ctx->worker_registers, {
+    frame_t *frame = G->frame;
+    x = *TaggedToArg(frame->term[2], term);
+  });
   return x;
 }
 
@@ -1206,21 +1271,20 @@ tagged_t ciao_unrefer(ciao_term term) {
 }
 
 void ciao_frame_begin_s(ciao_ctx ctx) {
-  tagged_t *pt1;
-  worker_t *w = ctx->worker_registers;
-  int arity;
-
-  arity = 3;
-
-  ComputeE;             
-  E->next_insn = w->next_insn;
-  E->frame = w->frame;
-  w->frame = E;
-  w->next_insn = CONTCODE(arity);
-  w->local_top = (frame_t *)Offset(E,EToY0+arity);
-  Y(0) = MakeSmall(1); /* next free ref */
-  Y(1) = MakeSmall(REF_TABLE_CHUNKS); /* chunks */
-  Y(2) = create_ref_table(ctx, REF_TABLE_CHUNKS);
+  WITH_WORKER(ctx->worker_registers, {
+    frame_t *frame;
+    int arity;
+    arity = 3;
+    ComputeE_(frame);
+    frame->next_insn = w->next_insn;
+    frame->frame = w->frame;
+    w->frame = frame;
+    w->next_insn = CONTCODE(arity);
+    w->local_top = (frame_t *)Offset(frame,EToY0+arity);
+    frame->term[0] = MakeSmall(1); /* next free ref */
+    frame->term[1] = MakeSmall(REF_TABLE_CHUNKS); /* chunks */
+    frame->term[2] = create_ref_table(ctx, REF_TABLE_CHUNKS);
+  });
 }
 
 void ciao_frame_begin(void) {
@@ -1228,14 +1292,13 @@ void ciao_frame_begin(void) {
 }
 
 void ciao_frame_end_s(ciao_ctx ctx) {
-  worker_t *w = ctx->worker_registers;
-  tagged_t *pt1;
-
-  SetE(w->frame); 
-
-  w->local_top = NULL;
-  w->frame = E->frame;
-  w->next_insn = E->next_insn;
+  WITH_WORKER(ctx->worker_registers, {
+    frame_t *a;
+    a = G->frame; 
+    w->local_top = NULL;
+    G->frame = a->frame;
+    w->next_insn = a->next_insn;
+  });
 }
 
 void ciao_frame_end(void) {

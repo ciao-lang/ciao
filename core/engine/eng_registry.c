@@ -779,10 +779,7 @@ static CBOOL__PROTO(prolog_ciao_c_headers_dir)
   CBOOL__LASTUNIFY(X(0), atom_default_c_headers_dir);
 }
 
-static definition_t *define_builtin(char *pname,
-                                    int instr,
-                                    int arity)
-{
+static definition_t *define_builtin(char *pname, int instr, int arity) {
   definition_t *func;
   intmach_t current_mem = total_mem_count;
   
@@ -792,8 +789,7 @@ static definition_t *define_builtin(char *pname,
   return func;
 }
 
-static tagged_t deffunctor(char *pname, int arity)
-{
+static tagged_t deffunctor(char *pname, int arity) {
   return SetArity(GET_ATOM(pname),arity);
 }
 

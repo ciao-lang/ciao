@@ -42,10 +42,4 @@ extern jmp_buf ciao_gluecode_jmpbuf;
 
 ciao_term ciao_ref(ciao_ctx ctx, tagged_t x);
 
-// TODO: moved from ciao_prolog.h
-// /* tagged_t <-> ciao_term */
-// 
-// ciao_term ciao_refer(tagged_t x);
-// tagged_t ciao_unrefer(ciao_term term);
-
 #endif /* _CIAO_GLUECODE_H */
