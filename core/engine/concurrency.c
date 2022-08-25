@@ -686,7 +686,8 @@ CBOOL__PROTO(prolog_eng_cut)
     ConcChptCleanUp(TopConcChpt, w->previous_choice);
   }
 
-  if (wam(goal_desc->worker_registers, goal_desc) == WAM_ABORT)
+  wam(goal_desc->worker_registers, goal_desc);
+  if (goal_desc->worker_registers->misc->exit_code == WAM_ABORT)
     MAJOR_FAULT("Cut in wam finished with abort");
 
   Wait_Acquire_slock(goal_desc->goal_lock_l);

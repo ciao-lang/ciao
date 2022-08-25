@@ -12,7 +12,7 @@
 
 #include <ciao/eng_registry.h>
 
-CFUN__PROTO(wam, int, goal_descriptor_t *);
+CVOID__PROTO(wam, goal_descriptor_t *);
 
 /* ------------------------------------------------------------------------- */
 /* Support bytecode */

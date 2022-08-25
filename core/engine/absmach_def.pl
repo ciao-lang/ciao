@@ -3261,9 +3261,8 @@ wam_loop_defs :-
 
 :- pred(wam_def/0, [unfold]).
 wam_def :-
-    "CFUN__PROTO(",
+    "CVOID__PROTO(",
     "wam", ",",
-    "int", ",",
     argdecl("goal_descriptor_t *", "desc"),
     ")", " ",
     "{", fmt:nl,
@@ -3275,7 +3274,8 @@ wam_def :-
     goto('again'),
     label('again'),
     "EXCEPTION__CATCH({", fmt:nl, % try
-    "return wam__2(Arg, desc, func);", fmt:nl,
+    "CVOID__CALL(wam__2, desc, func);", fmt:nl,
+    "return;", fmt:nl,
     "}, {", fmt:nl, % catch
     "tagged_t *pt1; int i;", fmt:nl,
     code_neck, % Force neck if not done
@@ -3291,18 +3291,16 @@ wam_def :-
 
 :- pred(wam__2_proto/0, [unfold]).
 wam__2_proto :-
-    "CFUN__PROTO(",
+    "CVOID__PROTO(",
     "wam__2", ",",
-    "int", ",",
     argdecl("goal_descriptor_t *", "desc"), ",",
     argdecl("definition_t *", "start_func"),
     ");", fmt:nl.
 
 :- pred(wam__2_def/0, [unfold]).
 wam__2_def :-
-    "CFUN__PROTO(",
+    "CVOID__PROTO(",
     "wam__2", ",",
-    "int", ",",
     argdecl("goal_descriptor_t *", "desc"), ",",
     argdecl("definition_t *", "start_func"),
     ")", " ",
@@ -3363,7 +3361,6 @@ wam_loop_decls :-
     vardecl("tagged_t", "t3"),
     vardecl("bcp_t", "ptemp", "NULL"), % reg. decl. not critical
     %
-    vardecl("int", "wam_exit_code", "0"), % halt/0, abort/0, reinitialise/0
     vardecl("instance_t *", "ins"), % clause/2, instance/2
     vardecl("worker_t *", "new_worker"), % Temp - for changes in regbanksize
     %
@@ -4005,7 +4002,7 @@ pred_enter_builtin_abort :-
     pred_trace("\"B\""),
     "t0" <- "X(0)",
     deref_sw("t0","t1",";"),
-    "wam_exit_code" <- "GetSmall(t0)",
+    "w->misc->exit_code" <- "GetSmall(t0)",
     "w->previous_choice" <- "InitialNode",
     do_cut,
     goto('fail').
@@ -4123,9 +4120,9 @@ code_exit_toplevel :-
        call0('SAVE_WAM_STATE'))),
     % We may have been signaled and jumped here from enter_predicate:
     if("Stop_This_Goal(Arg)",
-      "wam_exit_code" <- "WAM_INTERRUPTED"),
+      "w->misc->exit_code" <- "WAM_INTERRUPTED"),
     trace(wam_loop_exit),
-    "return wam_exit_code;".
+    "return;".
 
 :- pred(code_illop/0, [unfold]).
 code_illop :-

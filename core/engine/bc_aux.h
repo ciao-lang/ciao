@@ -33,7 +33,6 @@ extern definition_t *address_ucc;
   SAVE_FIELD(t2);\
   SAVE_FIELD(t3);\
   SAVE_FIELD(ptemp);\
-  SAVE_FIELD(wam_exit_code);\
   SAVE_FIELD(ins)
 
 #define RECOVER_FIELD(Name) Name = desc->wam_private_state.Name
@@ -48,7 +47,6 @@ extern definition_t *address_ucc;
   RECOVER_FIELD(t2);\
   RECOVER_FIELD(t3);\
   RECOVER_FIELD(ptemp);\
-  RECOVER_FIELD(wam_exit_code);\
   RECOVER_FIELD(ins)
 
 /* Macros for conditional code inside other macros */

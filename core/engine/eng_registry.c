@@ -1946,6 +1946,7 @@ CVOID__PROTO(local_init_each_time)
   TopConcChpt = b; /* Initialize concurrent topmost choicepoint */
 
   Arg->next_insn = bootcode;
+  Arg->misc->exit_code = 0;
   Stop_This_Goal(Arg) = FALSE;
   UnsetEvent();
 

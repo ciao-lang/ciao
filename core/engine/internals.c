@@ -1569,8 +1569,9 @@ CFUN__PROTO(call_firstgoal, intmach_t, tagged_t goal_term, goal_descriptor_t *go
     if (i == 0){                /* Just made longjmp */
       w->x[0] = w->choice->x[0];
       wam_initialized = TRUE;
-      exit_code = wam(w, goal_desc);
+      wam(w, goal_desc);
       w = goal_desc->worker_registers; /* segfault patch -- jf */
+      exit_code = w->misc->exit_code;
 #if 0
       flush_output(w);
 #endif
@@ -1630,7 +1631,9 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
            (int)goal_desc, (int)X(0));
 #endif
 
-  wam_result = wam(Arg, goal_desc);    /* segfault patch -- jf */
+  wam(Arg, goal_desc);    /* segfault patch -- jf */
+  Arg = goal_desc->worker_registers;
+  wam_result = w->misc->exit_code;
 
 #if defined(DEBUG) && defined(USE_THREADS)
   if (debug_threads)
@@ -1642,12 +1645,11 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
   if (wam_result == WAM_ABORT) {
     MAJOR_FAULT("Wam aborted!");
   }
-  Arg = goal_desc->worker_registers;
   
 #if defined(DEBUG) && defined(USE_THREADS)
-      if (debug_threads)
-        printf("%d (%d) Goal %x exited wam()\n", 
-               (int)Thread_Id, (int)GET_INC_COUNTER, (int)goal_desc);
+  if (debug_threads)
+    printf("%d (%d) Goal %x exited wam()\n", 
+           (int)Thread_Id, (int)GET_INC_COUNTER, (int)goal_desc);
 #endif
 #if 0
   flush_output(Arg);
@@ -1708,11 +1710,12 @@ THREAD_RES_T make_backtracking(THREAD_ARG wo)
   worker_t *w = goal_desc->worker_registers;
 
   /* segfault patch -- jf */
-  wam_result = wam(Arg, goal_desc);
+  wam(Arg, goal_desc);
+  Arg = goal_desc->worker_registers;
+  wam_result = goal_desc->worker_registers->misc->exit_code;
   if (wam_result == WAM_ABORT) {
     MAJOR_FAULT("Wam aborted while doing backtracking");
   }
-  Arg = goal_desc->worker_registers;
 
 #if 0
   flush_output(Arg);

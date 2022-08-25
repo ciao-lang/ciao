@@ -16,14 +16,15 @@
 #define PoffR(X) BCoff(P, ((X)-1)*FTYPE_size(f_o))
 #define BcOPCODE BcFetchOPCODE()
 #define BcP(Ty,X) (*(FTYPE_ctype(Ty) *)PoffR((X)))
-CFUN__PROTO(wam__2,int,goal_descriptor_t * desc,definition_t * start_func);
-CFUN__PROTO(wam,int,goal_descriptor_t * desc) {
+CVOID__PROTO(wam__2,goal_descriptor_t * desc,definition_t * start_func);
+CVOID__PROTO(wam,goal_descriptor_t * desc) {
 definition_t *func;
 func = (definition_t *)NULL;
 goto again;
 again:
 EXCEPTION__CATCH({
-return wam__2(Arg, desc, func);
+wam__2(Arg, desc, func);
+return;
 }, {
 tagged_t *pt1; int i;
 if (w->next_alt) {
@@ -62,7 +63,7 @@ func = address_error;
 goto again;
 });
 }
-CFUN__PROTO(wam__2,int,goal_descriptor_t * desc,definition_t * start_func) {
+CVOID__PROTO(wam__2,goal_descriptor_t * desc,definition_t * start_func) {
 CIAO_REG_1(bcp_t, p);
 CIAO_REG_2(tagged_t *, pt1);
 CIAO_REG_3(tagged_t *, pt2);
@@ -72,7 +73,6 @@ tagged_t t1;
 tagged_t t2;
 tagged_t t3;
 bcp_t ptemp = NULL;
-int wam_exit_code = 0;
 instance_t * ins;
 worker_t * new_worker;
 pt1 = NULL;
@@ -587,7 +587,7 @@ PredTrace("B",Func);
 t0 = X(0);
 DerefSwitch(t0,t1, {
 ;});
-wam_exit_code = GetSmall(t0);
+w->misc->exit_code = GetSmall(t0);
 w->previous_choice = InitialNode;
 PROFILE__HOOK_CUT;
 SetB(w->previous_choice);
@@ -4388,10 +4388,10 @@ if (desc && (desc->action & KEEP_STACKS)) {
 SAVE_WAM_STATE;
                   }
 if (Stop_This_Goal(Arg)) {
-wam_exit_code = WAM_INTERRUPTED;
+w->misc->exit_code = WAM_INTERRUPTED;
                   }
 ON_DEBUG({
 });
-return wam_exit_code;illop:
+return;illop:
 SERIOUS_FAULT("unimplemented WAM instruction");
 }

@@ -1209,6 +1209,8 @@ struct misc_info_ {
   /* Available workers are enqueued in a list. */
   worker_t *next_worker;
 
+  /* exit code */
+  intmach_t exit_code;
   /* This goal should stop right now! */
   bool_t stop_this_goal;
 
@@ -1324,7 +1326,6 @@ struct wam_private_ {
   int i;
   tagged_t *pt1, *pt2, t0, t1, t2, t3;
   bcp_t ptemp;
-  int wam_exit_code;
   instance_t *ins;      
 };
 
