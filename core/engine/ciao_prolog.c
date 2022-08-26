@@ -862,9 +862,12 @@ ciao_bool ciao_is_num_list(ciao_ctx ctx, ciao_term term) {
 CFUN__PROTO(c_list_length, int, tagged_t list);
 
 int ciao_list_length(ciao_ctx ctx, ciao_term term) {
-  worker_t *w = ctx->worker_registers;
-  tagged_t cdr = ciao_unref(ctx, term);
-  CFUN__LASTCALL(c_list_length, cdr);
+  int len;
+  WITH_WORKER(ctx->worker_registers, {
+    tagged_t cdr = ciao_unref(ctx, term);
+    len = CFUN__EVAL(c_list_length, cdr);
+  });
+  return len;
 }
 
 #define TEMPLATE(Name, X, XC) \
@@ -974,8 +977,9 @@ void ciao_cut(ciao_ctx ctx, ciao_choice choice) {
 }
 
 void ciao_fail(ciao_ctx ctx) {
-  worker_t *w = ctx->worker_registers;
-  wam(w, ctx);
+  WITH_WORKER(ctx->worker_registers, {
+    CVOID__CALL(wam, ctx);
+  });
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1118,18 +1122,22 @@ ciao_bool ciao_commit_call(const char *name, int arity, ...) {
 /* True if this query has been suspended with internals:'$yield'/0 [EXPERIMENTAL] */
 bool_t ciao_query_suspended(ciao_query *query) {
   goal_descriptor_t *ctx = query->ctx;
-  worker_t *w = ctx->worker_registers;
-  return IsSuspendedGoal(w);
+  bool_t b;
+  WITH_WORKER(ctx->worker_registers, {
+    b = IsSuspendedGoal(w);
+  });
+  return b;
 }
 
 /* Resume the execution of query suspended with internals:'$yield'/0 [EXPERIMENTAL] */
 void ciao_query_resume(ciao_query *query) {
   goal_descriptor_t *ctx = query->ctx;
-  worker_t *w = ctx->worker_registers;
-  Stop_This_Goal(w) = FALSE;
-  SetSuspendedGoal(w, FALSE);
-  UnsetEvent(); // TODO: SetEvent() usage
-  wam(w, ctx); // (continue with '$yield' alternative, resume execution)
+  WITH_WORKER(ctx->worker_registers, {
+    Stop_This_Goal(w) = FALSE;
+    SetSuspendedGoal(w, FALSE);
+    UnsetEvent(); // TODO: SetEvent() usage
+    CVOID__CALL(wam, ctx); // (continue with '$yield' alternative, resume execution)
+  });
 }
 #endif
 
