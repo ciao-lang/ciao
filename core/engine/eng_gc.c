@@ -955,7 +955,7 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
     b->next_alt = w->next_alt; /* 4 contiguous moves */
     b->frame = w->frame;
     b->next_insn = w->next_insn;
-    SaveLtop(b);
+    b->local_top = w->local_top;
     i=OffsetToArity(b->next_alt->choice_offset);
     if (i>0) {
       tagged_t *t = (tagged_t *)w->previous_choice;
@@ -1102,7 +1102,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad) {
 
   if (!(next_alt = w->choice->next_alt)) { /* ensure A', P' exist */
     w->choice->next_alt = w->next_alt;
-    SaveLtop(w->choice);
+    w->choice->local_top = w->local_top;
   }
 
   if (pad<0) {

@@ -1440,7 +1440,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   w->choice = b = ChoiceCharOffset(b,ArityToOffset(0));
   b->next_alt = NULL;
   b->trail_top = w->trail_top;
-  SaveGtop(b,w->heap_top);
+  b->heap_top = w->heap_top;
   NewShadowregs(w->heap_top);
   
   if (cunify(Arg,X(0),X(1))) /* this could use AB, HB, TR, B. */

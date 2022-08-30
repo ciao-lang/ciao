@@ -43,11 +43,11 @@ CVOID__PROTO(push_choicept, try_node_t *alt)
   NewShadowregs(w->heap_top);
 
   b->trail_top = w->trail_top;
-  SaveGtop(b,w->heap_top);
+  b->heap_top = w->heap_top;
   b->next_alt = alt;
   b->frame = w->frame;
   b->next_insn = w->next_insn;
-  SaveLtop(b);
+  b->local_top = w->local_top;
   n = OffsetToArity(n);
   while (n>0)
     ChoicePush(b0,X(--n));

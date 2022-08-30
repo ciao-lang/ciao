@@ -35,7 +35,7 @@ B->next_alt = w->next_alt;
 B->next_alt = w->next_alt; /* 4 contiguous moves */
 B->frame = w->frame;
 B->next_insn = w->next_insn;
-SaveLtop(B);
+B->local_top = w->local_top;
 i=B->next_alt->choice_offset;
 if (i>ArityToOffset(0)) {
 i = OffsetToArity(i);
@@ -674,7 +674,7 @@ ON_DEBUG_NODE({B->functor = NULL;
 });
 B->next_alt = NULL;
 B->trail_top = w->trail_top;
-SaveGtop(B,w->heap_top);
+B->heap_top = w->heap_top;
 NewShadowregs(w->heap_top);
 ON_DEBUG({
 if (debug_choicepoints) {
@@ -2192,7 +2192,7 @@ B->next_alt = w->next_alt;
 B->next_alt = w->next_alt; /* 4 contiguous moves */
 B->frame = w->frame;
 B->next_insn = w->next_insn;
-SaveLtop(B);
+B->local_top = w->local_top;
 i=B->next_alt->choice_offset;
 if (i>ArityToOffset(0)) {
 i = OffsetToArity(i);
@@ -2256,7 +2256,7 @@ ON_DEBUG_NODE({B->functor = NULL;
 });
 B->next_alt = NULL;
 B->trail_top = w->trail_top;
-SaveGtop(B,H);
+B->heap_top = H;
 NewShadowregs(H);
 ON_DEBUG({
 if (debug_choicepoints) {
@@ -4290,7 +4290,7 @@ B->next_alt = w->next_alt;
 B->next_alt = w->next_alt; /* 4 contiguous moves */
 B->frame = w->frame;
 B->next_insn = w->next_insn;
-SaveLtop(B);
+B->local_top = w->local_top;
 i=B->next_alt->choice_offset;
 if (i>ArityToOffset(0)) {
 i = OffsetToArity(i);
@@ -4339,7 +4339,7 @@ B->next_alt = w->next_alt;
 B->next_alt = w->next_alt; /* 4 contiguous moves */
 B->frame = w->frame;
 B->next_insn = w->next_insn;
-SaveLtop(B);
+B->local_top = w->local_top;
 i=B->next_alt->choice_offset;
 if (i>ArityToOffset(0)) {
 i = OffsetToArity(i);

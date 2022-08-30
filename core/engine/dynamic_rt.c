@@ -182,7 +182,7 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
     w->choice = ChoiceCharOffset(w->choice,ArityToOffset(DynamicPreserved));
     w->choice->next_alt = NULL;
     w->choice->trail_top = w->trail_top;
-    SaveGtop(w->choice,w->heap_top);
+    w->choice->heap_top = w->heap_top;
     NewShadowregs(w->heap_top);
   } else {
     /* Cleanup unused registers */
@@ -526,7 +526,7 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
     TopConcChpt = (choice_t *)w->choice;  /* Update dynamic top */
     w->choice->next_alt = NULL;
     w->choice->trail_top = w->trail_top;
-    SaveGtop(w->choice,w->heap_top);
+    w->choice->heap_top = w->heap_top;
     NewShadowregs(w->heap_top);
 
 #if defined(DEBUG)

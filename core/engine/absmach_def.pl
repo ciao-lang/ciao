@@ -494,7 +494,7 @@ do_neck :-
       ("B->next_alt = w->next_alt; /* 4 contiguous moves */", fmt:nl,
       "B->frame = w->frame;", fmt:nl,
       "B->next_insn = w->next_insn;", fmt:nl,
-      "SaveLtop(B);", fmt:nl,
+      "B->local_top = w->local_top;", fmt:nl,
       "i=B->next_alt->choice_offset;", fmt:nl,
       if("i>ArityToOffset(0)",
         ("i = OffsetToArity(i);", fmt:nl,
@@ -4168,7 +4168,7 @@ alt_dispatcher :-
       "B->next_alt" <- "NULL",
       "B->trail_top" <- "w->trail_top",
       cachedreg('H',H),
-      call('SaveGtop', ["B", H]),
+      "B->heap_top" <- H,
       call('NewShadowregs', [H]),
       trace(create_choicepoint),
       % segfault patch -- jf

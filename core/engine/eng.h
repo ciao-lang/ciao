@@ -460,16 +460,10 @@
   w->local_uncond = Tagp(SVA,NodeLocalTop(Chpt));      \
 }
 
-#define SaveGtop(Chpt,Gtop) \
-  (Chpt)->heap_top = (Gtop);
-
 #define RestoreGtop(Chpt) \
 { \
   w->heap_top = NodeGlobalTop(Chpt); \
 }
-
-#define SaveLtop(Chpt) \
-  (Chpt)->local_top = w->local_top;
 
 #define RestoreLtop(Chpt) \
   w->local_top = NodeLocalTop(Chpt);

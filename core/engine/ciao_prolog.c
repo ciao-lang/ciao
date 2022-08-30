@@ -57,6 +57,41 @@
   SetShadowregs(w->choice); \
   PROFILE__HOOK_CUT; \
 })
+#define SetDeep() ({ w->next_alt = NULL; })
+// TODO: missing test_choice_overflow
+#define CODE_CHOICE_NEW(B, ALT) ({ \
+  ComputeA(w->local_top,w->choice); /* get_frame_top */ \
+  G->next_alt = (ALT); \
+  (B) = ChoiceCharOffset((tagged_t *)w->choice, G->next_alt->choice_offset); \
+  w->choice = (B); \
+  NewShadowregs(G->heap_top); \
+  (B)->trail_top = G->trail_top; \
+  (B)->heap_top = G->heap_top; \
+  (B)->local_top = G->local_top; \
+})
+#define CODE_NECK_TRY(B) ({ \
+  (B)->frame = G->frame; \
+  (B)->next_insn = G->next_insn; \
+  (B)->next_alt = G->next_alt; \
+  intmach_t arity = OffsetToArity((B)->next_alt->choice_offset); \
+  for (int i = 0; i < arity; i++) { \
+    (B)->x[i] = w->x[i]; \
+  } \
+})
+#define CODE_ALLOC(Frame) ComputeE_((Frame))
+// TODO: missing set event on frame overflow
+#define CODE_CFRAME(Frame, NextInsn) ({ \
+  (Frame)->next_insn = G->next_insn; \
+  (Frame)->frame = G->frame; \
+  G->frame = (Frame); \
+  G->next_insn = (NextInsn); \
+  G->local_top = (frame_t *)StackCharOffset((Frame),FrameSize(G->next_insn)); \
+})
+#define DEALLOCATE(Frame) ({ \
+  G->next_insn = (Frame)->next_insn; \
+  G->frame = (Frame)->frame; \
+})
+#define InvalidateLocalTop() G->local_top = NULL
 #endif
 
 void ciao_exit(int result);
@@ -1014,9 +1049,8 @@ void ciao_query_end(ciao_query *query) {
   WITH_WORKER(ctx->worker_registers, {
     b = w->choice;
     b = ChoiceCont(b);
-    w->choice = b;
-    SetShadowregs(b);
-    w->next_alt = NULL;
+    SetChoice(b);
+    SetDeep();
   });
   ciao_free(query);
 }
@@ -1028,51 +1062,26 @@ ciao_query *ciao_query_begin_term_s(ciao_ctx ctx, ciao_term goal) {
   goal = ciao_structure_s(ctx, "hiord_rt:call", 1, goal);
 
   WITH_WORKER(ctx->worker_registers, {
-    DEREF(X(0), ciao_unref(ctx, goal));
+    DEREF(X(0), ciao_unref(ctx, goal)); /* Will be the arg. of a call/1 */
 
     /* push null choice */
     G->next_insn = default_code;
-
-    tagged_t *b0 = (tagged_t *)w->choice;
-    b = ChoiceCharOffset(b0, ArityToOffset(0));
-    ComputeA(w->local_top,w->choice);
-    w->choice = b;
-    NewShadowregs(w->heap_top);
-
-    b->trail_top = w->trail_top;
-    SaveGtop(b,w->heap_top);
-    b->next_alt = &defaultgoal_alt;
-    b->frame = G->frame;
-    b->next_insn = G->next_insn;
-    SaveLtop(b);
-
-    w->next_alt = NULL; 
+    CODE_CHOICE_NEW(b, &defaultgoal_alt);
+    CODE_NECK_TRY(b);
+    SetDeep();
 
     query = (ciao_query *)ciao_malloc(sizeof(ciao_query));
     query->ctx = ctx;
     query->base_choice = ciao_get_choice(ctx);
 
     /* push choice for starting goal */
-
-    w->next_insn = call_code;
-    b0 = (tagged_t *)w->choice;
-    b = ChoiceCharOffset(b0, ArityToOffset(1));
-    ComputeA(w->local_top,w->choice);
-    w->choice = b;
-    NewShadowregs(w->heap_top);
-  
-    b->trail_top = w->trail_top;
-    SaveGtop(b,w->heap_top);
-    b->next_alt = &startgoal_alt;
-    b->frame = w->frame;
-    b->next_insn = w->next_insn;
-    SaveLtop(b);
-    b->x[0] = X(0);    /* Will be the arg. of a call/1 */
-
-    w->next_alt = NULL; 
+    G->next_insn = call_code;
+    CODE_CHOICE_NEW(b, &startgoal_alt);
+    CODE_NECK_TRY(b);
+    SetDeep();
 
     ctx->action = BACKTRACKING | KEEP_STACKS;
-    wam(w, ctx);
+    CVOID__CALL(wam, ctx);
   });
   return query;
 }
@@ -1288,12 +1297,8 @@ void ciao_frame_begin_s(ciao_ctx ctx) {
     frame_t *frame;
     int arity;
     arity = 3;
-    ComputeE_(frame);
-    frame->next_insn = w->next_insn;
-    frame->frame = w->frame;
-    w->frame = frame;
-    w->next_insn = CONTCODE(arity);
-    w->local_top = (frame_t *)Offset(frame,EToY0+arity);
+    CODE_ALLOC(frame);
+    CODE_CFRAME(frame, CONTCODE(arity));
     frame->x[0] = MakeSmall(1); /* next free ref */
     frame->x[1] = MakeSmall(REF_TABLE_CHUNKS); /* chunks */
     frame->x[2] = create_ref_table(ctx, REF_TABLE_CHUNKS);
@@ -1308,9 +1313,8 @@ void ciao_frame_end_s(ciao_ctx ctx) {
   WITH_WORKER(ctx->worker_registers, {
     frame_t *a;
     a = G->frame; 
-    w->local_top = NULL;
-    G->frame = a->frame;
-    w->next_insn = a->next_insn;
+    InvalidateLocalTop(); /* SetLocalTop(a); <= only if there are no pendign choices */
+    DEALLOCATE(a);
   });
 }
 
