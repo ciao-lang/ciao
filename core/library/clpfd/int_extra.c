@@ -41,7 +41,7 @@
 
 /* The 2 next lines are form eng_bignum.c */
 #define BignumRawLength(b) (b)[0]
-#define BignumLength(B) GetBignumLength(BignumRawLength(B))
+#define BignumLength(B) FunctorBignumValue(BignumRawLength(B))
 
 #define WRAPPER_INT_TO_SMALL(WName, PlName, SmallFun, BnFun)            \
   CBOOL__PROTO(WName)                                                   \

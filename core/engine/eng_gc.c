@@ -651,7 +651,7 @@ static CVOID__PROTO(compressHeap) {
       }
       if (gc_IsMarked(cv)) {
         if (garbage_words) {
-          curr[extra+1] = MakeLength(garbage_words - 2);
+          curr[extra+1] = BlobFunctorBignum(garbage_words - 2);
           garbage_words = 0;
         }
         HeapDecr(dest);

@@ -317,7 +317,7 @@ CFUN__PROTO(bc_make_blob, tagged_t, tagged_t *ptr) {
       return MakeSmall(ptr[1]);
     }
     // fprintf(stderr, "BC_MakeBlob->bignum\n");
-    f = MakeLength(len);
+    f = BlobFunctorBignum(len);
   }
 
   /* Copy blob into the heap */
@@ -389,30 +389,27 @@ intmach_t get_integer(tagged_t t) {
   }
 }
 
+#define TaggedToArg(X,N) HeapOffset(TagpPtr(STR,X),N)
+#define TaggedToHeadfunctor(X) (*TagpPtr(STR,X))
+#define BignumRawLength(b) (*(functor_t *)(b))
+#define BignumLength(b) FunctorBignumValue(BignumRawLength(b))
+
+#if 0
+  SwBlob(t, functor, { /* STR(blob(float)) */
+    flt64_t f;
+    UnboxFlt64(HeapCharOffset(TagpPtr(STR, t), sizeof(functor_t)), f);
+    return f;
+  }, { /* STR(blob(bignum)) */
+    return bn_to_float((bignum_t *)TagpPtr(STR, t));
+  });
+#endif
+
+flt64_t bn_to_float(bignum_t *bn);
+
 /* Pre: !IsSmall(t) (small int's taken care of by TaggedToFloat()) */
 flt64_t blob_to_flt64(tagged_t t) {
   if (!LargeIsFloat(t)) {
-    intmach_t ar = LargeArity(TaggedToHeadfunctor(t))-1;
-    flt64_t f = (intmach_t)*TaggedToArg(t,ar);
-
-    while (ar>1) {
-      const bignum_t sbit = (bignum_t)1<<(8*sizeof(bignum_t)-1);
-#if LOG2_bignum_size == 5
-      const flt64_t norm2 = 4294967296.0; /* 2**32 */
-      const flt64_t norm2m1 = 2147483648.0; /* 2**31 */
-#elif LOG2_bignum_size == 6
-      const flt64_t p32 = 4294967296.0; /* 2**32 */
-      const flt64_t norm2 = p32*p32; /* 2**64 */
-      const flt64_t norm2m1 = p32*2147483648.0; /* 2**63 */
-#endif
-      bignum_t u = *TaggedToArg(t,--ar);
-      if (u & sbit) { /* trouble on some machines */
-        f = f*norm2 + norm2m1 + (u - sbit);
-      } else {
-        f = f*norm2 + u;
-      }
-    }
-    return f;
+    return bn_to_float(TagpPtr(STR, t));
   } else { /* LargeIsFloat(t) */
     union {
       flt64_t i;

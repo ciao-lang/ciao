@@ -826,10 +826,10 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 /* LargeArity() in bytes */
 #define LargeSize(X)    ((PointerPart(X)>>tagged__atm_offset)*sizeof(tagged_t))
 
-#define MakeLength(L) ((bignum_t)(TagIndexDiff((L))+TagIndex(ATM,1)+QMask))
-#define GetBignumLength(T) (((T) - MakeLength(0))>>tagged__atm_offset)
+#define BlobFunctorBignum(L) ((bignum_t)(TagIndexDiff((L))+TagIndex(ATM,1)+QMask))
+#define FunctorBignumValue(T) (((T) - BlobFunctorBignum(0))>>tagged__atm_offset)
 
-#define MakeFunctorFix   MakeLength(1)
+#define MakeFunctorFix   BlobFunctorBignum(1)
 #define BlobFunctorFlt64 (TagIndex(NUM,3) + QMask)
 #define LargeIsFloat(X)  FunctorIsFloat(TaggedToHeadfunctor(X))
 #define FunctorIsFloat(X) (!((X)&TagBitFunctor))
