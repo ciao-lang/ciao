@@ -1454,9 +1454,7 @@ void init_once(void)
   atom_default_ciaoroot = GET_ATOM(ciaoroot_directory);
   atom_default_c_headers_dir = GET_ATOM(c_headers_directory);
 
-  current_gcmode = atom_on;
-  current_gctrace = atom_off;
-  current_gcmargin = MakeSmall(500); /* Quintus has 1024 */
+  init_gc();
   current_unknown = atom_error;
 /*   current_leash_mode = MakeSmall(0xf); */
 /*   current_maxdepth = MakeSmall(100000); */

@@ -15,6 +15,9 @@ CBOOL__PROTO(gc_usage);
 CBOOL__PROTO(gc_mode);
 CBOOL__PROTO(gc_trace);
 CBOOL__PROTO(gc_margin);
+
+void init_gc(void);
+
 CVOID__PROTO(compressTrail, bool_t from_gc);
 CVOID__PROTO(GarbageCollect);
 

@@ -1563,3 +1563,10 @@ CVOID__PROTO(trail_gc) {
   b = w->choice;
   SetShadowregs(b);
 }
+
+void init_gc(void) {
+  current_gcmode = atom_on;
+  current_gctrace = atom_off;
+  current_gcmargin = MakeSmall(500); /* Quintus has 1024 */
+}
+
