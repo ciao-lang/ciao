@@ -288,9 +288,6 @@ tagged_t current_unknown;
 tagged_t current_compiling;
 tagged_t current_ferror_flag;
 tagged_t current_quiet_flag;
-tagged_t current_gcmode;
-tagged_t current_gctrace;
-tagged_t current_gcmargin;
 /* tagged_t current_debugger_state; */ /* Now private */
 /* tagged_t current_debugger_mode;  */  /* Now private */
 tagged_t current_radix;

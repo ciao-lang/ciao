@@ -1236,7 +1236,14 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
   }
 }
 
+/* ------------------------------------------------------------------------- */
 
+/* TODO: per worker? */
+tagged_t current_gcmode;
+tagged_t current_gctrace;
+tagged_t current_gcmargin;
+
+/* TODO: per worker? */
 static bool_t gcexplicit = FALSE;       /* Shared, no locked --- global flag */
 
 CBOOL__PROTO(gc_start) {

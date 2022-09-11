@@ -11,10 +11,9 @@
 
 #include <ciao/eng.h>
 
-CBOOL__PROTO(gc_usage);
-CBOOL__PROTO(gc_mode);
-CBOOL__PROTO(gc_trace);
-CBOOL__PROTO(gc_margin);
+extern tagged_t current_gcmode;
+extern tagged_t current_gctrace;
+extern tagged_t current_gcmargin;
 
 void init_gc(void);
 
@@ -27,11 +26,6 @@ CBOOL__PROTO(gc_start);
 CVOID__PROTO(heap_overflow, intmach_t pad);
 CVOID__PROTO(collect_goals_from_trail, intmach_t wake_count);
 CVOID__PROTO(trail_gc);
-CBOOL__PROTO(stack_shift_usage);
-CBOOL__PROTO(termheap_usage);
-CBOOL__PROTO(envstack_usage);
-CBOOL__PROTO(choice_usage);
-CBOOL__PROTO(trail_usage);
 CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity);
 
 CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);

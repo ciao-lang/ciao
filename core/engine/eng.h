@@ -2191,9 +2191,6 @@ extern tagged_t current_compiling;
 extern tagged_t current_ferror_flag;
 /* extern tagged_t current_discontiguous_flag; */
 extern tagged_t current_quiet_flag;
-extern tagged_t current_gcmode;
-extern tagged_t current_gctrace;
-extern tagged_t current_gcmargin;
 /*extern tagged_t current_debugger_state;*/  /* Now private */
 /*extern tagged_t current_debugger_mode;*/   /* Now private */
 extern tagged_t current_radix;
