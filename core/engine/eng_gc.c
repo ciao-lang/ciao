@@ -90,40 +90,6 @@ static CVOID__PROTO(sweepChoicepoints);
 static CVOID__PROTO(compressHeap);
 
 /* ------------------------------------------------------------------------- */
-/* GARBAGE COLLECTION BUILTINS */
-
-CBOOL__PROTO(gc_usage) {
-  flt64_t t;
-  tagged_t x;
-
-  t = (flt64_t)ciao_stats.gc_tick*1000/RunClockFreq(ciao_stats);
-  MakeLST(x,BoxFloat(t),atom_nil);
-  t = ciao_stats.gc_acc*sizeof(tagged_t);
-  MakeLST(x,IntmachToTagged((intmach_t)t),x);
-  t = ciao_stats.gc_count;
-  MakeLST(x,IntmachToTagged((intmach_t)t),x);
-  CBOOL__LASTUNIFY(x,X(0));
-}
-
-CBOOL__PROTO(gc_mode) {
-  CBOOL__UnifyCons(current_gcmode,X(0));
-  DEREF(current_gcmode,X(1));
-  return TRUE;
-}
-
-CBOOL__PROTO(gc_trace) {
-  CBOOL__UnifyCons(current_gctrace,X(0));
-  DEREF(current_gctrace,X(1));
-  return TRUE;
-}
-
-CBOOL__PROTO(gc_margin) {
-  CBOOL__UnifyCons(current_gcmargin,X(0));
-  DEREF(current_gcmargin,X(1));
-  return TRUE;
-}
-
-/* ------------------------------------------------------------------------- */
 /* GARBAGE COLLECTION ROUTINES */
 
 /* Based on the algorithms described in:
@@ -872,70 +838,6 @@ CVOID__PROTO(GarbageCollect) {
 /* Code for growing areas when full. */
 
 static CVOID__PROTO(calculate_segment_choice);
-
-/* stack_shift_usage: [global shifts,local+control/trail shifts,time spent] */
-
-CBOOL__PROTO(stack_shift_usage) {
-  tagged_t x;
-  inttime_t time = (ciao_stats.ss_tick*1000)/RunClockFreq(ciao_stats);
-  
-  MakeLST(x,IntmachToTagged(time),atom_nil);
-  time = ciao_stats.ss_local+ciao_stats.ss_control;
-  MakeLST(x,IntmachToTagged(time),x);
-  time = ciao_stats.ss_global;
-  MakeLST(x,IntmachToTagged(time),x);
-  CBOOL__LASTUNIFY(X(0),x);
-}
-
-/* termheap_usage: [sizeof_used_space, sizeof_free_space] */
-CBOOL__PROTO(termheap_usage) {
-  intmach_t used, free;
-  tagged_t x;
-  
-  used = HeapCharDifference(Heap_Start,w->heap_top);
-  free = HeapCharDifference(w->heap_top,Heap_End);
-  MakeLST(x,IntmachToTagged(free),atom_nil);
-  MakeLST(x,IntmachToTagged(used),x);
-  CBOOL__LASTUNIFY(X(0),x);
-}
-
-/* envstack_usage: [sizeof_used_space, sizeof_free_space] */
-CBOOL__PROTO(envstack_usage) {
-  intmach_t used, free;
-  tagged_t x;
-  frame_t *newa;
-
-  ComputeA(newa,w->choice);
-  used = StackCharDifference(Stack_Start,newa);
-  free = StackCharDifference(newa,Stack_End);
-  MakeLST(x,IntmachToTagged(free),atom_nil);
-  MakeLST(x,IntmachToTagged(used),x);
-  CBOOL__LASTUNIFY(X(0),x);
-}
-
-/* choice_usage: [sizeof_used_space, sizeof_free_space] */
-CBOOL__PROTO(choice_usage) {
-  intmach_t used, free;
-  tagged_t x;
-  
-  used = ChoiceCharDifference(Choice_Start,w->choice);
-  free = ChoiceCharDifference(w->choice,w->trail_top)/2;
-  MakeLST(x,IntmachToTagged(free),atom_nil);
-  MakeLST(x,IntmachToTagged(used),x);
-  CBOOL__LASTUNIFY(X(0),x);
-}
-
-/* trail_usage: [sizeof_used_space, sizeof_free_space] */
-CBOOL__PROTO(trail_usage) {
-  intmach_t used, free;
-  tagged_t x;
-  
-  used = TrailCharDifference(Trail_Start,w->trail_top);
-  free = TrailCharDifference(w->trail_top,w->choice)/2;
-  MakeLST(x,IntmachToTagged(free),atom_nil);
-  MakeLST(x,IntmachToTagged(used),x);
-  CBOOL__LASTUNIFY(X(0),x);
-}
 
 /* Service routine for HEAPMARGIN* instructions.
  * pad - required amount of heap space.

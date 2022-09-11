@@ -9,6 +9,8 @@
 #ifndef _CIAO_ENG_GC_H
 #define _CIAO_ENG_GC_H
 
+#include <ciao/eng.h>
+
 CBOOL__PROTO(gc_usage);
 CBOOL__PROTO(gc_mode);
 CBOOL__PROTO(gc_trace);
@@ -92,10 +94,10 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);
 #define RESTORE_XS1(V0) { V0=X(idx_); }
 #define RESTORE_XS2(V0,V1) { V0=X(idx_); V1=X(idx_+1); }
 
-#define SAVE_YS1(V0) { frame_t *a=w->frame; a->x[0]=TaggedZero; a->x[1]=V0; }
-#define SAVE_YS2(V0,V1) { frame_t *a=w->frame; a->x[0]=TaggedZero; a->x[1]=V0; a->x[2]=V1; }
-#define RESTORE_YS1(V0) { frame_t *a=w->frame; V0=a->x[1]; }
-#define RESTORE_YS2(V0,V1) { frame_t *a=w->frame; V0=a->x[1]; V1=a->x[2]; }
+#define SAVE_YS1(V0) { frame_t *a=G->frame; a->x[0]=TaggedZero; a->x[1]=V0; }
+#define SAVE_YS2(V0,V1) { frame_t *a=G->frame; a->x[0]=TaggedZero; a->x[1]=V0; a->x[2]=V1; }
+#define RESTORE_YS1(V0) { frame_t *a=G->frame; V0=a->x[1]; }
+#define RESTORE_YS2(V0,V1) { frame_t *a=G->frame; V0=a->x[1]; V1=a->x[2]; }
 
 #if defined(CONTCODE) /* TODO: always? */
 static inline CVOID__PROTO(push_gc_frame, intmach_t i) {
