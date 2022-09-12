@@ -702,46 +702,49 @@ CVOID__PROTO(GarbageCollect) {
   cz = ChoiceDifference(Choice_Start,w->heap_top); /*  choicep size */
   tz = TrailDifference(Trail_Start,w->heap_top); /* current trail size */
 #endif
-  if (current_gctrace != atom_off) {
-    if (current_gctrace == atom_terse) {
-      CVOID__CALL(print_string, Error_Stream_Ptr, "{GC}");
-    } else {
-      StreamPrintf(Error_Stream_Ptr, "\n{GC}  Heap GC started\n");
-      StreamPrintf(Error_Stream_Ptr, "Heap:   from %p to %p (total size = %" PRIdm ")\n",
-                   Heap_Start, 
-                   Heap_End,
-                   (intmach_t)HeapDifference(Heap_Start, Heap_End));
-      StreamPrintf(Error_Stream_Ptr, "        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
-                   w->heap_top,  
-                   (intmach_t)HeapDifference(Heap_Start, w->heap_top),
-                   (intmach_t)HeapDifference(w->heap_top, Heap_End));
-      StreamPrintf(Error_Stream_Ptr, "        GC start at %p\n", 
-                   gc_HeapStart);
+  switch (current_gctrace) {
+  case GCTRACE__OFF:
+    break;
+  case GCTRACE__TERSE:
+    CVOID__CALL(print_string, Error_Stream_Ptr, "{GC}");
+    break;
+  case GCTRACE__VERBOSE:
+    StreamPrintf(Error_Stream_Ptr, "\n{GC}  Heap GC started\n");
+    StreamPrintf(Error_Stream_Ptr, "Heap:   from %p to %p (total size = %" PRIdm ")\n",
+                 Heap_Start, 
+                 Heap_End,
+                 (intmach_t)HeapDifference(Heap_Start, Heap_End));
+    StreamPrintf(Error_Stream_Ptr, "        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
+                 w->heap_top,  
+                 (intmach_t)HeapDifference(Heap_Start, w->heap_top),
+                 (intmach_t)HeapDifference(w->heap_top, Heap_End));
+    StreamPrintf(Error_Stream_Ptr, "        GC start at %p\n", 
+                 gc_HeapStart);
 
-      StreamPrintf(Error_Stream_Ptr, "Stack:  from %p to %p (total size = %" PRIdm ")\n",
-                   Stack_Start, 
-                   Stack_End,
-                   (intmach_t)StackDifference(Stack_Start, Stack_End));
-      StreamPrintf(Error_Stream_Ptr, "        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
-                   w->local_top, 
-                   (intmach_t)StackDifference(Stack_Start,w->local_top),
-                   (intmach_t)StackDifference(w->local_top, Stack_End));
-      StreamPrintf(Error_Stream_Ptr, "        GC start at %p\n", 
-                   gc_StackStart);
+    StreamPrintf(Error_Stream_Ptr, "Stack:  from %p to %p (total size = %" PRIdm ")\n",
+                 Stack_Start, 
+                 Stack_End,
+                 (intmach_t)StackDifference(Stack_Start, Stack_End));
+    StreamPrintf(Error_Stream_Ptr, "        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
+                 w->local_top, 
+                 (intmach_t)StackDifference(Stack_Start,w->local_top),
+                 (intmach_t)StackDifference(w->local_top, Stack_End));
+    StreamPrintf(Error_Stream_Ptr, "        GC start at %p\n", 
+                 gc_StackStart);
 
-      StreamPrintf(Error_Stream_Ptr, "Choice/Trail: from %p to %p (total size = %" PRIdm ")\n",
-                   Choice_Start, 
-                   Choice_End,
-                   (intmach_t)ChoiceDifference(Choice_Start,Choice_End));
-      StreamPrintf(Error_Stream_Ptr, "        Ch. top at %p (used = %" PRIdm ")\n", 
-                   w->choice, 
-                   (intmach_t)ChoiceDifference(Choice_Start, w->choice));
-      StreamPrintf(Error_Stream_Ptr, "        Tr. top at %p (used = %" PRIdm ")\n", 
-                   w->trail_top, 
-                   (intmach_t)TrailDifference(Trail_Start,w->trail_top));
-      StreamPrintf(Error_Stream_Ptr, "        Ch./Tr. free %" PRIdm "\n",
-                   (intmach_t)ChoiceDifference(w->choice, w->trail_top));
-    }
+    StreamPrintf(Error_Stream_Ptr, "Choice/Trail: from %p to %p (total size = %" PRIdm ")\n",
+                 Choice_Start, 
+                 Choice_End,
+                 (intmach_t)ChoiceDifference(Choice_Start,Choice_End));
+    StreamPrintf(Error_Stream_Ptr, "        Ch. top at %p (used = %" PRIdm ")\n", 
+                 w->choice, 
+                 (intmach_t)ChoiceDifference(Choice_Start, w->choice));
+    StreamPrintf(Error_Stream_Ptr, "        Tr. top at %p (used = %" PRIdm ")\n", 
+                 w->trail_top, 
+                 (intmach_t)TrailDifference(Trail_Start,w->trail_top));
+    StreamPrintf(Error_Stream_Ptr, "        Ch./Tr. free %" PRIdm "\n",
+                 (intmach_t)ChoiceDifference(w->choice, w->trail_top));
+    break;
   }
 
   t1 = RunTickFunc();
@@ -769,7 +772,8 @@ CVOID__PROTO(GarbageCollect) {
   Cvas_Found = atom_nil;
 
   if (WakeCount()) {
-    if (current_gctrace == atom_verbose) {
+    /* TODO: why? */
+    if (current_gctrace == GCTRACE__VERBOSE) {
       StreamPrintf(Error_Stream_Ptr, "{GC}  Shunting disabled due to pending unifications\n");
     }
   } else {
@@ -782,7 +786,7 @@ CVOID__PROTO(GarbageCollect) {
 
   Gc_Total_Grey += Gcgrey;
   t1 = (t2 = RunTickFunc())-t1;
-  if (current_gctrace == atom_verbose) {
+  if (current_gctrace == GCTRACE__VERBOSE) {
     StreamPrintf(Error_Stream_Ptr, "        mark: %" PRIdm " cells marked in %.3f sec\n",
                  Total_Found,((flt64_t)(t1))/RunClockFreq(ciao_stats));
 #if defined(SEGMENTED_GC)
@@ -811,7 +815,7 @@ CVOID__PROTO(GarbageCollect) {
   ciao_stats.lasttick  += t1+t2;
   ciao_stats.gc_count++;
   ciao_stats.gc_acc+= hz-HeapDifference(Heap_Start,w->heap_top);
-  if (current_gctrace==atom_verbose) {
+  if (current_gctrace == GCTRACE__VERBOSE) {
     StreamPrintf(Error_Stream_Ptr, "        Heap: %" PRIdm " cells reclaimed in %.3f sec\n",
                  (intmach_t)(hz-HeapDifference(Heap_Start,w->heap_top)),
                  ((flt64_t)(t2))/RunClockFreq(ciao_stats));
@@ -1239,9 +1243,9 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
 /* ------------------------------------------------------------------------- */
 
 /* TODO: per worker? */
-tagged_t current_gcmode;
-tagged_t current_gctrace;
-tagged_t current_gcmargin;
+bool_t current_gcmode;
+intmach_t current_gctrace;
+intmach_t current_gcmargin;
 
 /* TODO: per worker? */
 static bool_t gcexplicit = FALSE;       /* Shared, no locked --- global flag */
@@ -1281,15 +1285,15 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
   gcexplicit = FALSE;
   calculate_segment_choice(Arg);
   if (gc ||
-      (current_gcmode != atom_off &&
-       HeapCharDifference(Heap_Start,oldh) >= GetSmall(current_gcmargin)*1024)) {
+      (current_gcmode == TRUE &&
+       HeapCharDifference(Heap_Start,oldh) >= GCMARGIN_CHARS)) {
     GarbageCollect(Arg);
     newh = w->heap_top;
     lowboundh = newh-Gc_Total_Grey;
     if (!gc &&
-        (HeapCharDifference(newh,oldh) < GetSmall(current_gcmargin)*1024 ||
+        (HeapCharDifference(newh,oldh) < GCMARGIN_CHARS ||
          HeapYounger(HeapCharOffset(newh,2*pad),Heap_End)) &&
-        !(HeapCharDifference(lowboundh,oldh) < GetSmall(current_gcmargin)*1024 ||
+        !(HeapCharDifference(lowboundh,oldh) < GCMARGIN_CHARS ||
           HeapYounger(HeapCharOffset(lowboundh,2*pad),Heap_End))) {
       /* garbage collect the entire heap */
       w->segment_choice = InitialNode;
@@ -1298,7 +1302,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     }
   }
   if ((!gc &&
-       HeapCharDifference(newh,oldh) < GetSmall(current_gcmargin)*1024) ||
+       HeapCharDifference(newh,oldh) < GCMARGIN_CHARS) ||
       HeapYounger(HeapCharOffset(newh,2*pad),Heap_End)) {
     flt64_t tick0 = RunTickFunc();
     /* increase heapsize */
@@ -1508,7 +1512,7 @@ CVOID__PROTO(trail_gc) {
   Gc_Choice_Start = w->segment_choice;
   Gc_Trail_Start = TaggedToPointer(w->segment_choice->trail_top);
   
-  if (current_gctrace == atom_verbose) {
+  if (current_gctrace == GCTRACE__VERBOSE) {
     StreamPrintf(Error_Stream_Ptr, "{GC}  Trail GC started\n");
   }
 
@@ -1572,8 +1576,8 @@ CVOID__PROTO(trail_gc) {
 }
 
 void init_gc(void) {
-  current_gcmode = atom_on;
-  current_gctrace = atom_off;
-  current_gcmargin = MakeSmall(500); /* Quintus has 1024 */
+  current_gcmode = TRUE;
+  current_gctrace = GCTRACE__OFF;
+  current_gcmargin = 500; /* Quintus has 1024 */
 }
 

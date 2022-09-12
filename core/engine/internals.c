@@ -117,22 +117,61 @@ CBOOL__PROTO(gc_usage) {
   CBOOL__LASTUNIFY(x,X(0));
 }
 
+tagged_t gcmode_to_term(bool_t gcmode) {
+  if (gcmode == TRUE) {
+    return atom_on;
+  } else {
+    return atom_off;
+  }
+}
+
+bool_t gcmode_from_term(tagged_t mode) {
+  if (mode == atom_on) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+tagged_t gctrace_to_term(intmach_t gctrace) {
+  if (gctrace == GCTRACE__OFF) {
+    return atom_off;
+  } else if (gctrace == GCTRACE__TERSE) {
+    return atom_terse;
+  } else {
+    return atom_verbose;
+  }
+}
+
+intmach_t gctrace_from_term(tagged_t trace) {
+  if (trace == atom_off) {
+    return GCTRACE__OFF;
+  } else if (trace == atom_terse) {
+    return GCTRACE__TERSE;
+  } else {
+    return GCTRACE__VERBOSE;
+  }
+}
+
 CBOOL__PROTO(gc_mode) {
-  CBOOL__UnifyCons(current_gcmode,X(0));
-  DEREF(current_gcmode,X(1));
-  return TRUE;
+  CBOOL__UnifyCons(gcmode_to_term(current_gcmode),X(0));
+  DEREF(X(1), X(1));
+  current_gcmode = gcmode_from_term(X(1));
+  CBOOL__PROCEED;
 }
 
 CBOOL__PROTO(gc_trace) {
-  CBOOL__UnifyCons(current_gctrace,X(0));
-  DEREF(current_gctrace,X(1));
-  return TRUE;
+  CBOOL__UnifyCons(gctrace_to_term(current_gctrace),X(0));
+  DEREF(X(1), X(1));
+  current_gctrace = gctrace_from_term(X(1));
+  CBOOL__PROCEED;
 }
 
 CBOOL__PROTO(gc_margin) {
-  CBOOL__UnifyCons(current_gcmargin,X(0));
-  DEREF(current_gcmargin,X(1));
-  return TRUE;
+  CBOOL__UnifyCons(MakeSmall(current_gcmargin),X(0));
+  DEREF(X(1), X(1));
+  current_gcmargin = GetSmall(X(1));
+  CBOOL__PROCEED;
 }
 
 /*-------------------------------------------------------*/

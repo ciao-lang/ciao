@@ -11,9 +11,17 @@
 
 #include <ciao/eng.h>
 
-extern tagged_t current_gcmode;
-extern tagged_t current_gctrace;
-extern tagged_t current_gcmargin;
+extern bool_t current_gcmode;
+#define GCTRACE__OFF 0
+#define GCTRACE__TERSE 1
+#define GCTRACE__VERBOSE 2
+extern intmach_t current_gctrace;
+extern intmach_t current_gcmargin;
+#if defined(OPTIM_COMP)
+#define GCMARGIN_CHARS ((intmach_t)(current_gcmargin*1024*(sizeof(tagged_t)/4)))
+#else
+#define GCMARGIN_CHARS ((intmach_t)(current_gcmargin*1024))
+#endif
 
 void init_gc(void);
 
