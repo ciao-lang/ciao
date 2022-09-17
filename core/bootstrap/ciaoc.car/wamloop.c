@@ -48,7 +48,7 @@ fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_cho
 do {
 ChoicePush(pt1,(w->x-1)[i]);} while (--i);      }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD);
+choice_overflow(Arg,CHOICEPAD,TRUE);
       }
     }
 w->next_alt = NULL;
