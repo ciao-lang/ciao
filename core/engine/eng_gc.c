@@ -6,8 +6,6 @@
  *  See Copyright Notice in ciaoengine.pl
  */
 
-#include <stddef.h> /* ptrdiff_t */
-
 #include <ciao/eng.h>
 #include <ciao/basiccontrol.h>
 #include <ciao/io_basic.h>
@@ -15,7 +13,13 @@
 #include <ciao/eng_start.h>
 #include <ciao/timing.h>
 
-/* #defines MUST precede #includes here. */
+/* TODO: move USE_* options to eng_definitions header */
+
+#if defined(OPTIM_COMP)
+/* TODO: seems to work very well, but see if it can be handled without that tricky */
+#define USE_GC_SETARG 1 /* fix setarg when segmented GC is enabled. */ /* TODO: make setarg optional */
+#endif
+
 #define USE_SEGMENTED_GC 1
 #define USE_EARLY_RESET 1
 
@@ -29,9 +33,6 @@
 #define DEBUG__TRACE(COND, ...)
 #endif
 #endif
-
-#define PreHeapRead(X) (*++(X))
-#define HeapPop(X) (*--(X))
 
 /* =========================================================================== */
 /* Utility macros for heap GC. */
@@ -88,7 +89,7 @@ static CVOID__PROTO(mark_root, tagged_t *start);
 static void updateRelocationChain(tagged_t *curr, tagged_t *dest);
 static CVOID__PROTO(sweep_frames, choice_t *cp);
 static CVOID__PROTO(sweep_choicepoints);
-static CVOID__PROTO(compressHeap);
+static CVOID__PROTO(compress_heap);
 
 /* ------------------------------------------------------------------------- */
 /* GARBAGE COLLECTION ROUTINES */
@@ -423,8 +424,10 @@ static CVOID__PROTO(mark_root, tagged_t *start) {
       if (!gc_IsForM(*(next+2)))
         {                     /* no marking in progress as CVA nor as LST */
           /* treat as 3-cell tuple */
-          gc_MarkF(PreHeapRead(next));
-          gc_MarkF(PreHeapRead(next));
+          next++;
+          gc_MarkF(*next);
+          next++;
+          gc_MarkF(*next);
           gc_Reverse(current,next);
           goto forward;
         }                     /* otherwise, just treat the value cell */
@@ -435,9 +438,11 @@ static CVOID__PROTO(mark_root, tagged_t *start) {
     case LST:
       if (gc_IsFirst(*(next+1)) ||
           (gc_IsMarked(*next) &&
-           gc_IsMarked(*(next+1))))
+           gc_IsMarked(*(next+1)))) {
         goto backward;
-      gc_MarkF(PreHeapRead(next));
+      }
+      next++;
+      gc_MarkF(*next);
       gc_Reverse(current,next);
       goto forward;
     case STR:
@@ -449,7 +454,8 @@ static CVOID__PROTO(mark_root, tagged_t *start) {
       } else if (!gc_IsFirst(*(next+1))) {
         intmach_t n;
         for (n = Arity(*next); n>0; --n) {
-          gc_MarkF(PreHeapRead(next));
+          next++;
+          gc_MarkF(*next);
         }
         gc_Reverse(current,next);
         goto forward;
@@ -593,10 +599,10 @@ static CVOID__PROTO(sweep_choicepoints) {
   }
 }
 
-static CVOID__PROTO(compressHeap) {
+static CVOID__PROTO(compress_heap) {
   tagged_t cv;
   choice_t *cp = Gc_Aux_Node;
-  tagged_t *curr = w->heap_top;
+  tagged_t *curr = G->heap_top;
   tagged_t *dest = HeapOffset(Gc_Heap_Start,Total_Found);
   intmach_t garbage_words = 0;
   intmach_t extra;
@@ -607,7 +613,8 @@ static CVOID__PROTO(compressHeap) {
     cp=ChoiceCont(cp);
         
     while (HeapYounger(curr,NodeGlobalTop(cp))) {
-      cv = HeapPop(curr);
+      curr--;
+      cv = *curr;
       if (cv&QMask) {     /* skip to box header */
         extra = LargeArity(cv);
                 
@@ -653,7 +660,7 @@ static CVOID__PROTO(compressHeap) {
   /* The downward phase */
   /* curr and dest both point to the beginning of the heap */
   curr += garbage_words;
-  while (HeapYounger(w->heap_top,curr)) {
+  while (HeapYounger(G->heap_top,curr)) {
     cv = *curr;
     if (gc_IsMarked(cv)) {
       if (gc_IsFirst(cv)) {
@@ -684,22 +691,23 @@ static CVOID__PROTO(compressHeap) {
     }
     (void)HeapNext(curr);
   }
-  w->heap_top = dest;
+  G->heap_top = dest;
 }
 
 
-/**** The main garbage collection routine *****/
+/* ------------------------------------------------------------------------- */
+/* The main garbage collection routine */
 
+/* The X REGISTERS have been saved already in an frame */
+/* note: calculate_segment_choice has to be called before */
 CVOID__PROTO(gc__heap_collect) {
-  /* The X registers have been saved already in an frame */
-  ptrdiff_t hz;
-  flt64_t t1,t2;
   frame_t *newa;
 
   DEBUG__TRACE(debug_gc, "Thread %" PRIdm " enters gc__heap_collect\n", (intmach_t)Thread_Id);
 
   ComputeA(newa, w->choice);
-  hz = HeapDifference(Heap_Start,w->heap_top); /* current heap size */
+#if defined(USE_GC_STATS)
+  intmach_t hz = HeapDifference(Heap_Start,G->heap_top); /* current heap size */
   switch (current_gctrace) {
   case GCTRACE__OFF:
     break;
@@ -713,9 +721,9 @@ CVOID__PROTO(gc__heap_collect) {
                  Heap_End,
                  (intmach_t)HeapDifference(Heap_Start, Heap_End));
     TRACE_PRINTF("        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
-                 w->heap_top,  
-                 (intmach_t)HeapDifference(Heap_Start, w->heap_top),
-                 (intmach_t)HeapDifference(w->heap_top, Heap_End));
+                 G->heap_top,  
+                 (intmach_t)HeapDifference(Heap_Start, G->heap_top),
+                 (intmach_t)HeapDifference(G->heap_top, Heap_End));
     TRACE_PRINTF("        GC start at %p\n", 
                  gc_HeapStart);
 
@@ -744,8 +752,8 @@ CVOID__PROTO(gc__heap_collect) {
                  (intmach_t)ChoiceDifference(w->choice, w->trail_top));
     break;
   }
-
-  t1 = RunTickFunc();
+  flt64_t t1 = RunTickFunc();
+#endif
 
   /* push special registers on the trail stack */
 #if defined(USE_GLOBAL_VARS)
@@ -760,7 +768,7 @@ CVOID__PROTO(gc__heap_collect) {
   }
   trail_gc(Arg); /* sets Gc_Aux_Node, gc_Choice_Start, Gc_Trail_Start */
   Gc_Aux_Node->local_top = newa;
-  Gc_Aux_Node->heap_top = w->heap_top;
+  Gc_Aux_Node->heap_top = G->heap_top;
   Gc_Aux_Node->frame = w->frame;
   Gc_Aux_Node->next_insn = w->next_insn;
   Gc_Heap_Start = gc_HeapStart;
@@ -782,18 +790,21 @@ CVOID__PROTO(gc__heap_collect) {
   compressTrail(Arg,TRUE);
 
   Gc_Total_Grey += Gcgrey;
-  t1 = (t2 = RunTickFunc())-t1;
+#if defined(USE_GC_STATS)          
+  flt64_t t2 = RunTickFunc();
+  flt64_t mark_time = t2 - t1;
   if (current_gctrace == GCTRACE__VERBOSE) {
     TRACE_PRINTF("        mark: %" PRIdm " cells marked in %.3f sec\n",
-                 Total_Found,((flt64_t)(t1))/RunClockFreq(ciao_stats));
+                 Total_Found,((flt64_t)mark_time)/RunClockFreq(ciao_stats));
 #if defined(USE_SEGMENTED_GC)
     TRACE_PRINTF("        no more than %" PRIdm " garbage cells left\n",
                  Gcgrey);
 #endif
   }
+#endif
 
-  sweep_choicepoints(Arg);
-  compressHeap(Arg);
+  CVOID__CALL(sweep_choicepoints);
+  CVOID__CALL(compress_heap);
 
   /* pop special registers from the trail stack */
   TrailDec(w->trail_top);
@@ -804,34 +815,43 @@ CVOID__PROTO(gc__heap_collect) {
 #endif
     
   SetShadowregs(w->choice);     /* shadow regs may have changed */
-                                /* statistics */
-  t2 = RunTickFunc()-t2;
-  ciao_stats.gc_tick   += t1+t2;
-  ciao_stats.starttick += t1+t2;
-  ciao_stats.lasttick  += t1+t2;
+#if defined(USE_GC_STATS)
+  /* statistics */
+  flt64_t compress_time = RunTickFunc()-t2;
+  flt64_t gc_time = mark_time + compress_time;
+  ciao_stats.gc_tick  += gc_time;
+  ciao_stats.starttick += gc_time;
+  ciao_stats.lasttick += gc_time;
+#if defined(OPTIM_COMP)
+  if (ciao_stats.gc_longest_tick < gc_time) {
+    ciao_stats.gc_longest_tick = gc_time;
+  }
+#endif
   ciao_stats.gc_count++;
-  ciao_stats.gc_acc+= hz-HeapDifference(Heap_Start,w->heap_top);
+  intmach_t gc_reclaimed = hz-HeapDifference(Heap_Start,G->heap_top);
+  ciao_stats.gc_acc += gc_reclaimed;
   if (current_gctrace == GCTRACE__VERBOSE) {
     TRACE_PRINTF("        Heap: %" PRIdm " cells reclaimed in %.3f sec\n",
-                 (intmach_t)(hz-HeapDifference(Heap_Start,w->heap_top)),
-                 ((flt64_t)(t2))/RunClockFreq(ciao_stats));
+                 (intmach_t)gc_reclaimed,
+                 ((flt64_t)compress_time)/RunClockFreq(ciao_stats));
     TRACE_PRINTF("Heap:   from %p to %p (total size = %" PRIdm ")\n",
                  Heap_Start, 
                  Heap_End,
                  (intmach_t)HeapDifference(Heap_Start, Heap_End));
     TRACE_PRINTF("        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
-                 w->heap_top,  
-                 (intmach_t)HeapDifference(Heap_Start, w->heap_top),
-                 (intmach_t)HeapDifference(w->heap_top, Heap_End));
+                 G->heap_top,  
+                 (intmach_t)HeapDifference(Heap_Start, G->heap_top),
+                 (intmach_t)HeapDifference(G->heap_top, Heap_End));
     TRACE_PRINTF("        GC start at %p\n", 
                  gc_HeapStart);
 
     TRACE_PRINTF("        Total: %" PRIdm " cells reclaimed in %" PRIdm " gc's\n",
                  ciao_stats.gc_acc,ciao_stats.gc_count);
     TRACE_PRINTF("        GC time = %.6f  Total = %.6f\n\n",
-                 ((flt64_t)(t1+t2))/RunClockFreq(ciao_stats),
+                 ((flt64_t)gc_time)/RunClockFreq(ciao_stats),
                  ((flt64_t)ciao_stats.gc_tick)/RunClockFreq(ciao_stats));
   }
+#endif
 }
 
 /* =========================================================================== */
@@ -990,9 +1010,7 @@ CVOID__PROTO(resume_all) {
 
 /* Here when w->choice and w->trail_top are within CHOICEPAD from each other. */
 CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
-  inttime_t tick0;
   tagged_t *choice_top;
-  try_node_t *next_alt;
 
 #if defined(ANDPARALLEL)
   Suspend = WAITING;
@@ -1007,8 +1025,11 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
   CVOID__CALL(suspend_all);
 #endif
 
-  tick0 = RunTickFunc();
+#if defined(USE_GC_STATS)          
+  inttime_t tick0 = RunTickFunc();
+#endif
 
+  try_node_t *next_alt;
   if (!(next_alt = w->choice->next_alt)) { /* ensure A', P' exist */
     w->choice->next_alt = w->next_alt;
     w->choice->local_top = w->local_top;
@@ -1114,11 +1135,13 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
 
   w->choice->next_alt = next_alt;
 
+#if defined(USE_GC_STATS)          
   ciao_stats.ss_control++;
   tick0 = RunTickFunc()-tick0;
   ciao_stats.starttick += tick0;
   ciao_stats.lasttick += tick0;
   ciao_stats.ss_tick += tick0;
+#endif
 
 #if defined(ANDPARALLEL)
   CVOID__CALL(resume_all);
@@ -1130,7 +1153,10 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
 CVOID__PROTO(stack_overflow) {
   intmach_t count, reloc_factor;
   tagged_t *newh;
+
+#if defined(USE_GC_STATS)          
   flt64_t tick0 = RunTickFunc();
+#endif
   
 #if defined(ANDPARALLEL)
   Suspend = WAITING;
@@ -1147,28 +1173,30 @@ CVOID__PROTO(stack_overflow) {
 
   ComputeA(w->local_top,w->choice);
 
-  count = 2*StackDifference(Stack_Start,Stack_End);
+  count = StackDifference(Stack_Start,Stack_End);
   newh = checkrealloc_ARRAY(tagged_t,
                             count/2,
-                            count,
+                            2*count,
                             Stack_Start);
+  count = 2*StackDifference(Stack_Start,Stack_End);
   DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing STACK from %p to %p\n", (intmach_t)Thread_Id, Stack_Start, newh);
 
   reloc_factor = (char *)newh - (char *)Stack_Start;
 
   /* HH, AA and TR are free pointers;  BB is last used word. */
-
-  stack_overflow_adjust_wam(w,reloc_factor);
+  CVOID__CALL(stack_overflow_adjust_wam,reloc_factor);
 
   /* Final adjustments */
   Stack_Start = newh;           /* new low bound */
   Stack_End = newh+count;       /* new high bound */
   Stack_Warn = StackOffset(Stack_End,-STACKPAD);
+#if defined(USE_GC_STATS)          
   ciao_stats.ss_local++;
   tick0 = RunTickFunc()-tick0;
   ciao_stats.starttick += tick0;
   ciao_stats.lasttick += tick0;
   ciao_stats.ss_tick += tick0;
+#endif
 
 #if defined(ANDPARALLEL)
   CVOID__CALL(resume_all);
@@ -1177,69 +1205,69 @@ CVOID__PROTO(stack_overflow) {
 }
 
 CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
+  if (reloc_factor==0) return;
+
   choice_t *n, *n2;
+  choice_t *aux_node;
+  frame_t *frame;
+  intmach_t i;
+  //
   tagged_t t1;
   tagged_t *pt1;
-
-  if (reloc_factor!=0) {
-    choice_t *aux_node;
-    frame_t *frame;
-    intmach_t i;
     
-    aux_node = ChoiceCharOffset(w->choice,ArityToOffset(0));
-    aux_node->next_alt = fail_alt;
-    aux_node->frame = RelocPtr(w->frame, reloc_factor);
-    aux_node->next_insn = w->next_insn;
-    aux_node->local_top = RelocPtr(w->local_top, reloc_factor);
+  aux_node = ChoiceCharOffset(w->choice,ArityToOffset(0));
+  aux_node->next_alt = fail_alt;
+  aux_node->frame = RelocPtr(w->frame, reloc_factor);
+  aux_node->next_insn = w->next_insn;
+  aux_node->local_top = RelocPtr(w->local_top, reloc_factor);
 
-    /* relocate pointers in trail */
-    pt1 = Trail_Start;
-    while (TrailYounger(w->trail_top,pt1)) {
-      t1 = *pt1;
-      pt1++;
+  /* relocate pointers in trail */
+  pt1 = Trail_Start;
+  while (TrailYounger(w->trail_top,pt1)) {
+    t1 = *pt1;
+    pt1++;
+    if (TaggedIsSVA(t1)) {
+      *(pt1-1) += reloc_factor;
+    }
+  }
+
+  /* relocate pointers in choice&env stks */
+  for (n=aux_node; n!=InitialNode; n=n2){
+    n2 = ChoiceCont(n);
+    //Tabling --> How to translate?
+    AssignRelocPtr(n2->local_top, reloc_factor);
+    AssignRelocPtr(n2->frame, reloc_factor);
+
+    for (pt1=n->x; pt1!=(tagged_t *)n2;) {
+      t1 = ChoicePrev(pt1);
       if (TaggedIsSVA(t1)) {
         *(pt1-1) += reloc_factor;
       }
     }
-
-    /* relocate pointers in choice&env stks */
-    for (n=aux_node; n!=InitialNode; n=n2){
-      n2 = ChoiceCont(n);
-      //Tabling --> How to translate?
-      AssignRelocPtr(n2->local_top, reloc_factor);
-      AssignRelocPtr(n2->frame, reloc_factor);
-
-      for (pt1=n->x; pt1!=(tagged_t *)n2;) {
-        t1 = ChoicePrev(pt1);
+      
+    i = FrameSize(n->next_insn);
+    frame = n->frame;
+    while (frame >= (frame_t*) NodeLocalTop(n2)) {
+      pt1 = (tagged_t *)StackCharOffset(frame,i);
+      while (pt1!=frame->x){
+        t1 = *(--pt1);
         if (TaggedIsSVA(t1)) {
-          *(pt1-1) += reloc_factor;
+          *pt1 += reloc_factor;
         }
       }
-      
-      i = FrameSize(n->next_insn);
-      frame = n->frame;
-      while (frame >= (frame_t*) NodeLocalTop(n2)) {
-        pt1 = (tagged_t *)StackCharOffset(frame,i);
-        while (pt1!=frame->x){
-          t1 = *(--pt1);
-          if (TaggedIsSVA(t1)) {
-            *pt1 += reloc_factor;
-          }
-        }
-        if (frame->frame) {
-          AssignRelocPtr(frame->frame, reloc_factor);
-          i = FrameSize(frame->next_insn);
-          frame = frame->frame;
-        } else {
-          frame = NULL;
-        }
+      if (frame->frame) {
+        AssignRelocPtr(frame->frame, reloc_factor);
+        i = FrameSize(frame->next_insn);
+        frame = frame->frame;
+      } else {
+        frame = NULL;
       }
     }
-
-    w->frame = aux_node->frame;
-    w->local_top = NodeLocalTop(aux_node);
-    SetShadowregs(w->choice);
   }
+
+  w->frame = aux_node->frame;
+  w->local_top = NodeLocalTop(aux_node);
+  SetShadowregs(w->choice);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1258,11 +1286,11 @@ CBOOL__PROTO(gc_start) {
   return TRUE;
 }
 
-/* Here when w->heap_top and Heap_End are within CALLPAD from each other. */
+/* Here when G->heap_top and Heap_End are within CALLPAD from each other. */
 CVOID__PROTO(heap_overflow, intmach_t pad)
 {
-  tagged_t *oldh = w->heap_top;
-  tagged_t *newh = w->heap_top;
+  tagged_t *oldh = G->heap_top;
+  tagged_t *newh = G->heap_top;
   tagged_t *lowboundh;
   bool_t cint_event;
   bool_t event;
@@ -1290,7 +1318,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
       (current_gcmode == TRUE &&
        HeapCharDifference(Heap_Start,oldh) >= GCMARGIN_CHARS)) {
     CVOID__CALL(gc__heap_collect);
-    newh = w->heap_top;
+    newh = G->heap_top;
     lowboundh = newh-Gc_Total_Grey;
     if (!gc &&
         (HeapCharDifference(newh,oldh) < GCMARGIN_CHARS ||
@@ -1300,7 +1328,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
       /* garbage collect the entire heap */
       w->segment_choice = InitialNode;
       CVOID__CALL(gc__heap_collect);
-      newh = w->heap_top;
+      newh = G->heap_top;
     }
   }
   if ((!gc &&
@@ -1315,7 +1343,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
     
     ComputeA(w->local_top,w->choice);
     
-    mincount = 2*pad - HeapCharDifference(w->heap_top,Heap_End);
+    mincount = 2*pad - HeapCharDifference(G->heap_top,Heap_End);
     oldcount = HeapCharDifference(Heap_Start,Heap_End);
     newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
 
@@ -1388,7 +1416,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     aux_node->next_alt = fail_alt;
     aux_node->frame = w->frame;
     aux_node->next_insn = w->next_insn;
-    aux_node->heap_top = w->heap_top;
+    aux_node->heap_top = G->heap_top;
     aux_node->local_top = w->local_top; /* segfault patch -- jf */
 
     /* relocate pointers in global stk */
@@ -1398,8 +1426,8 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     pt1 = newh;
 #endif
 
-    AssignRelocPtrNotRemote(w->heap_top, reloc_factor);
-    while (HeapYounger(w->heap_top,pt1)) {
+    AssignRelocPtrNotRemote(G->heap_top, reloc_factor);
+    while (HeapYounger(G->heap_top,pt1)) {
       t1 = HeapNext(pt1);
       if (t1&QMask) {
         pt1 += LargeArity(t1);
@@ -1581,4 +1609,3 @@ void init_gc(void) {
   current_gctrace = GCTRACE__OFF;
   current_gcmargin = 500; /* Quintus has 1024 */
 }
-

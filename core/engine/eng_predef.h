@@ -20,6 +20,9 @@
 /* Automatically generated configuration and basic definitions */
 #include <ciao/configure.h>
 
+/* Collect garbage collection's statistics */
+#define USE_GC_STATS 1
+
 /* ------------------------------------------------------------------------- */
 /* Function and variable attributes */
 

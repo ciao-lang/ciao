@@ -956,6 +956,8 @@ typedef struct sw_on_key_ sw_on_key_t;
 
 #define TaggedToBignum(X) ((bignum_t *)TagpPtr(STR,(X)))
 
+/* --------------------------------------------------------------------------- */
+
 #if defined(TABLING)
 typedef struct node_tr_ node_tr_t;
 struct node_tr_ {
