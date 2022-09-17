@@ -419,7 +419,7 @@ CVOID__PROTO(trail_push_check, tagged_t x) {
   TrailPush(tr,x);
   w->trail_top = tr;
   if (ChoiceYounger(w->choice,TrailOffset(tr,CHOICEPAD)))
-    choice_overflow(Arg,CHOICEPAD);
+    choice_overflow(Arg,CHOICEPAD,TRUE);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -2022,7 +2022,7 @@ CBOOL__PROTO(setarg)
     TrailPush(w->trail_top,t1);
     
     if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
-      choice_overflow(Arg,CHOICEPAD);
+      choice_overflow(Arg,CHOICEPAD,TRUE);
   }
   
   return TRUE;
@@ -2042,7 +2042,7 @@ CBOOL__PROTO(undo)
   DerefSwitch(goal,t1,{MINOR_FAULT("$undo/1: invalid argument");});
   TrailPush(w->trail_top,goal);
   if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
-    choice_overflow(Arg,CHOICEPAD);
+    choice_overflow(Arg,CHOICEPAD,TRUE);
   return TRUE;
 }
 

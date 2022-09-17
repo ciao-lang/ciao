@@ -490,7 +490,7 @@ static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo) {
     tagged_t *tr = w->trail_top;
     int reloc;
 
-    choice_overflow(Arg,-CHOICEPAD);
+    choice_overflow(Arg,CHOICEPAD,FALSE);
     reloc = (char *)w->trail_top - (char *)tr;
     *trail_origo = (tagged_t *)((char *)*trail_origo + reloc);
     tr = w->trail_top;
@@ -1235,7 +1235,7 @@ static CBOOL__PROTO(cunify_args_aux,
 
   if (ChoiceYounger(ChoiceOffset(w->choice,2*CHOICEPAD-w->value_trail),w->trail_top))
                                 /* really: < 2*arity */
-    choice_overflow(Arg,2*CHOICEPAD);
+    choice_overflow(Arg,2*CHOICEPAD,TRUE);
   for (; arity>0; --arity) {
     t1 = *pt1, t2 = *pt2;
     if (t1 != t2) {
@@ -1269,7 +1269,7 @@ static CBOOL__PROTO(cunify_args_aux,
   *x1 = t1, *x2 = t2;
 
   if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD-w->value_trail),w->trail_top))
-    choice_overflow(Arg,CHOICEPAD);
+    choice_overflow(Arg,CHOICEPAD,TRUE);
   return TRUE;
 }
 
@@ -1524,7 +1524,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
               check_trail:
                 if (ChoiceYounger(w->choice,TrailOffset(pt1,CHOICEPAD)))
                   w->trail_top = pt1,
-                  choice_overflow(Arg,CHOICEPAD),
+                  choice_overflow(Arg,CHOICEPAD,TRUE),
                   pt1 = w->trail_top;
               }
             HeapPush(pt2,X(2));

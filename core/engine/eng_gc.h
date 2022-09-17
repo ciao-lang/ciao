@@ -26,9 +26,9 @@ extern intmach_t current_gcmargin;
 void init_gc(void);
 
 CVOID__PROTO(compressTrail, bool_t from_gc);
-CVOID__PROTO(GarbageCollect);
+CVOID__PROTO(gc__heap_collect);
 
-CVOID__PROTO(choice_overflow, intmach_t pad);
+CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond);
 CVOID__PROTO(stack_overflow);
 CBOOL__PROTO(gc_start);
 CVOID__PROTO(heap_overflow, intmach_t pad);

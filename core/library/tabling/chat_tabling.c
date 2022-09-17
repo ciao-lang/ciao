@@ -1689,7 +1689,7 @@ CBOOL__PROTO(initial_tabling_c) {
                   ChoiceDifference(Choice_Start, choice_top) -
                   TrailDifference(Trail_Start, w->trail_top)) / 2;
 
-      choice_overflow(Arg,size);
+      CVOID__CALL(choice_overflow,size,TRUE);
     }  
 
 

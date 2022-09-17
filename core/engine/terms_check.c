@@ -48,7 +48,7 @@ static CBOOL__PROTO(cinstance_args_aux,
 
   if (ChoiceYounger(ChoiceOffset(w->choice,2*CHOICEPAD),w->trail_top))
                                 /* really: < 2*arity */
-    choice_overflow(Arg,2*CHOICEPAD);
+    choice_overflow(Arg,2*CHOICEPAD,TRUE);
   for (; arity>0; --arity) {
     t1 = *pt1, t2 = *pt2;
     if (arity>1 && !cinstance_aux(Arg,t1,t2,n))
@@ -60,7 +60,7 @@ static CBOOL__PROTO(cinstance_args_aux,
   *x1 = t1, *x2 = t2;
 
   if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
-    choice_overflow(Arg,CHOICEPAD);
+    choice_overflow(Arg,CHOICEPAD,TRUE);
   return TRUE;
 }
 

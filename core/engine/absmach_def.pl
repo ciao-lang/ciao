@@ -510,7 +510,7 @@ do_neck :-
 maybe_choice_overflow :-
     if(callexp('ChoiceYounger',
         [callexp('ChoiceOffset', ["B","CHOICEPAD"]),"w->trail_top"]),
-      call('choice_overflow', ["Arg","CHOICEPAD"])).
+      call('choice_overflow', ["Arg","CHOICEPAD","TRUE"])).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Auxiliary macro definitions").
@@ -1597,7 +1597,7 @@ cute_neck :-
     % w->next_alt can't be NULL here
     "w->next_alt" <- "NULL",
     if(callexp('ChoiceYounger', [callexp('ChoiceOffset', ["B","CHOICEPAD"]),"w->trail_top"]),
-      call('choice_overflow', ["Arg","CHOICEPAD"])),
+      call('choice_overflow', ["Arg","CHOICEPAD","TRUE"])),
     call('SetE', ["w->local_top"]),
     dispatch("0").
 
@@ -3509,7 +3509,7 @@ code_suspend_t3_on_t1 :-
     label('check_trail'),
     "w->trail_top" <- "pt1",
     if("ChoiceYounger(w->choice,TrailOffset(pt1,CHOICEPAD))",
-      "choice_overflow(Arg,CHOICEPAD);"),
+      call('choice_overflow', ["Arg","CHOICEPAD","TRUE"])),
     goto('no_check_trail'),
     label('no_check_trail'),
     heap_push("t3"),

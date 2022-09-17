@@ -52,7 +52,7 @@ CVOID__PROTO(push_choicept, try_node_t *alt)
   while (n>0)
     ChoicePush(b0,X(--n));
   if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
-    choice_overflow(Arg,CHOICEPAD);
+    choice_overflow(Arg,CHOICEPAD,TRUE);
 }
 
 #if defined(PARBACK)

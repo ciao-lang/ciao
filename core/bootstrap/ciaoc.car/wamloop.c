@@ -244,7 +244,7 @@ goto check_trail;
 check_trail:
 w->trail_top = pt1;
 if (ChoiceYounger(w->choice,TrailOffset(pt1,CHOICEPAD))) {
-choice_overflow(Arg,CHOICEPAD);    }
+choice_overflow(Arg,CHOICEPAD,TRUE);    }
 goto no_check_trail;
 no_check_trail:
 HeapPush(H,t3);
@@ -682,7 +682,7 @@ fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->choice);
                 }
 });
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD);
+choice_overflow(Arg,CHOICEPAD,TRUE);
                 }
               }
 goto ReadMode;
@@ -1194,7 +1194,7 @@ ConcChptCleanUp(TopConcChpt, w->choice);
 if (w->next_alt) {
 w->next_alt = NULL;
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD);
+choice_overflow(Arg,CHOICEPAD,TRUE);
                   }
                 }
 P += 0;
@@ -1215,7 +1215,7 @@ ConcChptCleanUp(TopConcChpt, w->choice);
 if (w->next_alt) {
 w->next_alt = NULL;
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD);
+choice_overflow(Arg,CHOICEPAD,TRUE);
                   }
                 }
 goto r_proceed;
@@ -1250,7 +1250,7 @@ TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 w->next_alt = NULL;
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD);
+choice_overflow(Arg,CHOICEPAD,TRUE);
                 }
 SetE(w->local_top);
 P += 0;
@@ -2205,7 +2205,7 @@ fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_cho
 do {
 ChoicePush(pt1,(w->x-1)[i]);} while (--i);                      }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD);
+choice_overflow(Arg,CHOICEPAD,TRUE);
                       }
                     }
 w->next_alt = NULL;
@@ -2264,7 +2264,7 @@ fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->choice);
                   }
 });
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD);
+choice_overflow(Arg,CHOICEPAD,TRUE);
                   }
                 }
 goto WriteMode;
@@ -4303,7 +4303,7 @@ fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_cho
 do {
 ChoicePush(pt1,(w->x-1)[i]);} while (--i);                        }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD);
+choice_overflow(Arg,CHOICEPAD,TRUE);
                         }
                       }
 w->next_alt = NULL;
@@ -4352,7 +4352,7 @@ fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_cho
 do {
 ChoicePush(pt1,(w->x-1)[i]);} while (--i);                        }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD);
+choice_overflow(Arg,CHOICEPAD,TRUE);
                         }
                       }
 w->next_alt = NULL;

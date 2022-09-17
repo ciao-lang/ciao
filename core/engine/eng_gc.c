@@ -690,65 +690,57 @@ static CVOID__PROTO(compressHeap) {
 
 /**** The main garbage collection routine *****/
 
-CVOID__PROTO(GarbageCollect) {
+CVOID__PROTO(gc__heap_collect) {
   /* The X registers have been saved already in an frame */
   ptrdiff_t hz;
-#if 0
-  ptrdiff_t hz, sz, cz, tz;
-#endif
   flt64_t t1,t2;
   frame_t *newa;
 
-  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " enters GarbageCollect\n", (intmach_t)Thread_Id);
+  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " enters gc__heap_collect\n", (intmach_t)Thread_Id);
 
   ComputeA(newa, w->choice);
   hz = HeapDifference(Heap_Start,w->heap_top); /* current heap size */
-#if 0
-  sz = StackDifference(Stack_Start,w->heap_top); /* current stack size */
-  cz = ChoiceDifference(Choice_Start,w->heap_top); /*  choicep size */
-  tz = TrailDifference(Trail_Start,w->heap_top); /* current trail size */
-#endif
   switch (current_gctrace) {
   case GCTRACE__OFF:
     break;
   case GCTRACE__TERSE:
-    CVOID__CALL(print_string, Error_Stream_Ptr, "{GC}");
+    TRACE_PRINTF("{GC}\n");
     break;
   case GCTRACE__VERBOSE:
-    StreamPrintf(Error_Stream_Ptr, "\n{GC}  Heap GC started\n");
-    StreamPrintf(Error_Stream_Ptr, "Heap:   from %p to %p (total size = %" PRIdm ")\n",
+    TRACE_PRINTF("\n{GC}  Heap GC started\n");
+    TRACE_PRINTF("Heap:   from %p to %p (total size = %" PRIdm ")\n",
                  Heap_Start, 
                  Heap_End,
                  (intmach_t)HeapDifference(Heap_Start, Heap_End));
-    StreamPrintf(Error_Stream_Ptr, "        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
+    TRACE_PRINTF("        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
                  w->heap_top,  
                  (intmach_t)HeapDifference(Heap_Start, w->heap_top),
                  (intmach_t)HeapDifference(w->heap_top, Heap_End));
-    StreamPrintf(Error_Stream_Ptr, "        GC start at %p\n", 
+    TRACE_PRINTF("        GC start at %p\n", 
                  gc_HeapStart);
 
-    StreamPrintf(Error_Stream_Ptr, "Stack:  from %p to %p (total size = %" PRIdm ")\n",
+    TRACE_PRINTF("Stack:  from %p to %p (total size = %" PRIdm ")\n",
                  Stack_Start, 
                  Stack_End,
                  (intmach_t)StackDifference(Stack_Start, Stack_End));
-    StreamPrintf(Error_Stream_Ptr, "        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
+    TRACE_PRINTF("        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
                  w->local_top, 
                  (intmach_t)StackDifference(Stack_Start,w->local_top),
                  (intmach_t)StackDifference(w->local_top, Stack_End));
-    StreamPrintf(Error_Stream_Ptr, "        GC start at %p\n", 
+    TRACE_PRINTF("        GC start at %p\n", 
                  gc_StackStart);
 
-    StreamPrintf(Error_Stream_Ptr, "Choice/Trail: from %p to %p (total size = %" PRIdm ")\n",
+    TRACE_PRINTF("Choice/Trail: from %p to %p (total size = %" PRIdm ")\n",
                  Choice_Start, 
                  Choice_End,
                  (intmach_t)ChoiceDifference(Choice_Start,Choice_End));
-    StreamPrintf(Error_Stream_Ptr, "        Ch. top at %p (used = %" PRIdm ")\n", 
+    TRACE_PRINTF("        Ch. top at %p (used = %" PRIdm ")\n", 
                  w->choice, 
                  (intmach_t)ChoiceDifference(Choice_Start, w->choice));
-    StreamPrintf(Error_Stream_Ptr, "        Tr. top at %p (used = %" PRIdm ")\n", 
+    TRACE_PRINTF("        Tr. top at %p (used = %" PRIdm ")\n", 
                  w->trail_top, 
                  (intmach_t)TrailDifference(Trail_Start,w->trail_top));
-    StreamPrintf(Error_Stream_Ptr, "        Ch./Tr. free %" PRIdm "\n",
+    TRACE_PRINTF("        Ch./Tr. free %" PRIdm "\n",
                  (intmach_t)ChoiceDifference(w->choice, w->trail_top));
     break;
   }
@@ -779,7 +771,7 @@ CVOID__PROTO(GarbageCollect) {
   if (WakeCount()) {
     /* TODO: why? */
     if (current_gctrace == GCTRACE__VERBOSE) {
-      StreamPrintf(Error_Stream_Ptr, "{GC}  Shunting disabled due to pending unifications\n");
+      TRACE_PRINTF("{GC}  Shunting disabled due to pending unifications\n");
     }
   } else {
     shuntVariables(Arg);
@@ -792,10 +784,10 @@ CVOID__PROTO(GarbageCollect) {
   Gc_Total_Grey += Gcgrey;
   t1 = (t2 = RunTickFunc())-t1;
   if (current_gctrace == GCTRACE__VERBOSE) {
-    StreamPrintf(Error_Stream_Ptr, "        mark: %" PRIdm " cells marked in %.3f sec\n",
+    TRACE_PRINTF("        mark: %" PRIdm " cells marked in %.3f sec\n",
                  Total_Found,((flt64_t)(t1))/RunClockFreq(ciao_stats));
 #if defined(USE_SEGMENTED_GC)
-    StreamPrintf(Error_Stream_Ptr, "        no more than %" PRIdm " garbage cells left\n",
+    TRACE_PRINTF("        no more than %" PRIdm " garbage cells left\n",
                  Gcgrey);
 #endif
   }
@@ -820,23 +812,23 @@ CVOID__PROTO(GarbageCollect) {
   ciao_stats.gc_count++;
   ciao_stats.gc_acc+= hz-HeapDifference(Heap_Start,w->heap_top);
   if (current_gctrace == GCTRACE__VERBOSE) {
-    StreamPrintf(Error_Stream_Ptr, "        Heap: %" PRIdm " cells reclaimed in %.3f sec\n",
+    TRACE_PRINTF("        Heap: %" PRIdm " cells reclaimed in %.3f sec\n",
                  (intmach_t)(hz-HeapDifference(Heap_Start,w->heap_top)),
                  ((flt64_t)(t2))/RunClockFreq(ciao_stats));
-    StreamPrintf(Error_Stream_Ptr, "Heap:   from %p to %p (total size = %" PRIdm ")\n",
+    TRACE_PRINTF("Heap:   from %p to %p (total size = %" PRIdm ")\n",
                  Heap_Start, 
                  Heap_End,
                  (intmach_t)HeapDifference(Heap_Start, Heap_End));
-    StreamPrintf(Error_Stream_Ptr, "        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
+    TRACE_PRINTF("        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
                  w->heap_top,  
                  (intmach_t)HeapDifference(Heap_Start, w->heap_top),
                  (intmach_t)HeapDifference(w->heap_top, Heap_End));
-    StreamPrintf(Error_Stream_Ptr, "        GC start at %p\n", 
+    TRACE_PRINTF("        GC start at %p\n", 
                  gc_HeapStart);
 
-    StreamPrintf(Error_Stream_Ptr, "        Total: %" PRIdm " cells reclaimed in %" PRIdm " gc's\n",
+    TRACE_PRINTF("        Total: %" PRIdm " cells reclaimed in %" PRIdm " gc's\n",
                  ciao_stats.gc_acc,ciao_stats.gc_count);
-    StreamPrintf(Error_Stream_Ptr, "        GC time = %.6f  Total = %.6f\n\n",
+    TRACE_PRINTF("        GC time = %.6f  Total = %.6f\n\n",
                  ((flt64_t)(t1+t2))/RunClockFreq(ciao_stats),
                  ((flt64_t)ciao_stats.gc_tick)/RunClockFreq(ciao_stats));
   }
@@ -874,7 +866,7 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
       } while (i>0);
     }
     if (ChoiceYounger(ChoiceOffset(b,CHOICEPAD),w->trail_top)) {
-      choice_overflow(Arg,CHOICEPAD);
+      choice_overflow(Arg,CHOICEPAD,TRUE);
       b = w->choice;
     }
   }
@@ -997,7 +989,7 @@ CVOID__PROTO(resume_all) {
 #endif
 
 /* Here when w->choice and w->trail_top are within CHOICEPAD from each other. */
-CVOID__PROTO(choice_overflow, intmach_t pad) {
+CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
   inttime_t tick0;
   tagged_t *choice_top;
   try_node_t *next_alt;
@@ -1022,12 +1014,11 @@ CVOID__PROTO(choice_overflow, intmach_t pad) {
     w->choice->local_top = w->local_top;
   }
 
-  if (pad<0) {
-    pad = -pad; /* in compile_term: disable trail_gc */
-  } else {
-    calculate_segment_choice(Arg);
-    trail_gc(Arg);
-    compressTrail(Arg,FALSE);
+  if (remove_trail_uncond) {
+    /* note: trail__remove_uncond not executed in compile_term */
+    CVOID__CALL(calculate_segment_choice);
+    CVOID__CALL(trail_gc);
+    CVOID__CALL(compressTrail,FALSE);
   }
 
   /* ASSUMED: --CHOICE, TRAIL++ */
@@ -1298,7 +1289,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
   if (gc ||
       (current_gcmode == TRUE &&
        HeapCharDifference(Heap_Start,oldh) >= GCMARGIN_CHARS)) {
-    GarbageCollect(Arg);
+    CVOID__CALL(gc__heap_collect);
     newh = w->heap_top;
     lowboundh = newh-Gc_Total_Grey;
     if (!gc &&
@@ -1308,7 +1299,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad)
           HeapYounger(HeapCharOffset(lowboundh,2*pad),Heap_End))) {
       /* garbage collect the entire heap */
       w->segment_choice = InitialNode;
-      GarbageCollect(Arg);
+      CVOID__CALL(gc__heap_collect);
       newh = w->heap_top;
     }
   }
@@ -1524,7 +1515,7 @@ CVOID__PROTO(trail_gc) {
   Gc_Trail_Start = TaggedToPointer(w->segment_choice->trail_top);
   
   if (current_gctrace == GCTRACE__VERBOSE) {
-    StreamPrintf(Error_Stream_Ptr, "{GC}  Trail GC started\n");
+    TRACE_PRINTF("{GC}  Trail GC started\n");
   }
 
   while (!OffChoicetop(Gc_Choice_Start,b)) {

@@ -32,7 +32,7 @@
     if (HeapCharDifference(w->heap_top,Heap_End) < (Pad)*sizeof(tagged_t)) \
       heap_overflow(Arg,(Pad)*sizeof(tagged_t)); \
     if (ChoiceDifference(w->choice,w->trail_top) < (Pad)) \
-      choice_overflow(Arg,Pad); \
+      choice_overflow(Arg,Pad,TRUE); \
   }
 
 static CVOID__PROTO(copy_it, tagged_t *loc);
@@ -607,7 +607,7 @@ static CBOOL__PROTO(cunifyOC_args_aux,
 
   if (ChoiceYounger(ChoiceOffset(w->choice,2*CHOICEPAD-w->value_trail),w->trail_top)) {
     /* really: < 2*arity */
-    choice_overflow(Arg,2*CHOICEPAD);
+    choice_overflow(Arg,2*CHOICEPAD,TRUE);
   }
   for (; arity>0; --arity) {
     t1 = *pt1;
@@ -632,7 +632,7 @@ static CBOOL__PROTO(cunifyOC_args_aux,
   *x2 = t2;
 
   if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD-w->value_trail),w->trail_top))
-    choice_overflow(Arg,CHOICEPAD);
+    choice_overflow(Arg,CHOICEPAD,TRUE);
   return TRUE;
 }
 #endif 
