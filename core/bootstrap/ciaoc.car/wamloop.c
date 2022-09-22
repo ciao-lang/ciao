@@ -46,7 +46,7 @@ fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_cho
       }
 });
 do {
-ChoicePush(pt1,(w->x-1)[i]);} while (--i);      }
+*--(pt1) = (w->x-1)[i];} while (--i);      }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD,TRUE);
       }
@@ -331,7 +331,7 @@ if (debug_choicepoints) {
 fprintf(stderr, "Reloading %d words from node %x\n", i, (int)w->choice);
             }
 });
-while(i >= 0) wt[i--] = ChoiceNext(S);
+while(i >= 0) wt[i--] = *--(S);
           }
         }
 PROFILE__HOOK_REDO;
@@ -2203,7 +2203,7 @@ fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_cho
                       }
 });
 do {
-ChoicePush(pt1,(w->x-1)[i]);} while (--i);                      }
+*--(pt1) = (w->x-1)[i];} while (--i);                      }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD,TRUE);
                       }
@@ -4301,7 +4301,7 @@ fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_cho
                         }
 });
 do {
-ChoicePush(pt1,(w->x-1)[i]);} while (--i);                        }
+*--(pt1) = (w->x-1)[i];} while (--i);                        }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD,TRUE);
                         }
@@ -4350,7 +4350,7 @@ fprintf(stderr, "Storing %d registers (r) in node %x\n", i, (int)w->previous_cho
                         }
 });
 do {
-ChoicePush(pt1,(w->x-1)[i]);} while (--i);                        }
+*--(pt1) = (w->x-1)[i];} while (--i);                        }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD,TRUE);
                         }

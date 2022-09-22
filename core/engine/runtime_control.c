@@ -32,8 +32,7 @@ CVOID__PROTO(pop_choicept) {
   SetShadowregs(b);
 }
 
-CVOID__PROTO(push_choicept, try_node_t *alt)
-{
+CVOID__PROTO(push_choicept, try_node_t *alt) {
   intmach_t n = alt->choice_offset;
   tagged_t *b0 = (tagged_t *)w->choice;
   choice_t *b = ChoiceCharOffset(b0,n);
@@ -49,10 +48,12 @@ CVOID__PROTO(push_choicept, try_node_t *alt)
   b->next_insn = w->next_insn;
   b->local_top = w->local_top;
   n = OffsetToArity(n);
-  while (n>0)
-    ChoicePush(b0,X(--n));
-  if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
+  while (n>0) {
+    *--(b0) = X(--n);
+  }
+  if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top)) {
     choice_overflow(Arg,CHOICEPAD,TRUE);
+  }
 }
 
 #if defined(PARBACK)

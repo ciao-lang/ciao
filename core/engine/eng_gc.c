@@ -7,11 +7,13 @@
  */
 
 #include <ciao/eng.h>
+#if !defined(OPTIM_COMP)
 #include <ciao/basiccontrol.h>
-#include <ciao/io_basic.h>
 #include <ciao/eng_gc.h>
 #include <ciao/eng_start.h>
 #include <ciao/timing.h>
+#endif
+#include <ciao/io_basic.h>
 
 /* TODO: move USE_* options to eng_definitions header */
 
@@ -23,18 +25,26 @@
 #define USE_SEGMENTED_GC 1
 #define USE_EARLY_RESET 1
 
-// TODO: in eng_debug.h
-#if !defined(OPTIM_COMP)
-#if defined(DEBUG)
-#define DEBUG__TRACE(COND, ...) ({ \
-  if ((COND)) { TRACE_PRINTF(__VA_ARGS__); } \
-})
-#else
-#define DEBUG__TRACE(COND, ...)
-#endif
-#endif
+/* --------------------------------------------------------------------------- */
 
-/* =========================================================================== */
+// #define RelocateIfSVA(PTR, RelocFactor) \
+//   if (TaggedIsSVA(TG_Val(PTR))) { \
+//     RelocateTagged(PTR, RelocFactor); \
+//   }
+// #define RelocateIfHeapPtr(PTR, RelocFactor) \
+//   if (IsHeapPtr(TG_Val(PTR))) { \
+//     RelocateTagged(PTR, RelocFactor); \
+//   }
+#define RelocateIfSVAv(PTR, VAL, RelocFactor) \
+  if (TaggedIsSVA(VAL)) { \
+    *(PTR-1) += RelocFactor; \
+  }
+#define RelocateIfHeapPtrv(PTR, VAL, RelocFactor) \
+  if (IsHeapPtr(VAL)) { \
+    *(PTR-1) += RelocFactor; \
+  }
+
+/* --------------------------------------------------------------------------- */
 /* Utility macros for heap GC. */
 
 #define gc_Reverse(curr,next) { \
@@ -275,7 +285,7 @@ static CVOID__PROTO(mark_frames, choice_t *cp) {
         
       StackDecr(ev);
       if (gc_IsMarked(v = *ev)) return;
-      if (IsHeapTerm(v)) {
+      if (IsHeapPtr(v)) {
         MarkRoot(ev);
       } else {
         gc_MarkM(*ev);
@@ -304,7 +314,7 @@ static CVOID__PROTO(mark_choicepoints) {
           ((IsHeapVar(v) && !OffHeaptop(p,Gc_Heap_Start)) ||
            (IsStackVar(v) && !OffStacktop(p,Gc_Stack_Start)))) {
         gc_MarkM(*tr);                       /* so won't look at it again */
-        if (IsHeapTerm(*p) && !gc_IsMarked(*p) &&
+        if (IsHeapPtr(*p) && !gc_IsMarked(*p) &&
             OffHeaptop(TaggedToPointer(*p),Gc_Heap_Start)) {
           Gcgrey-= Total_Found;
           MarkRoot(p);
@@ -327,7 +337,7 @@ static CVOID__PROTO(mark_choicepoints) {
 
     CVOID__CALL(mark_frames, cp);
     while ((i--)>0) {
-      if (IsHeapTerm(cp->x[i])) {
+      if (IsHeapPtr(cp->x[i])) {
         MarkRoot(&cp->x[i]);
       }
     }
@@ -530,7 +540,7 @@ static CVOID__PROTO(sweep_frames, choice_t *cp) {
       if (!gc_IsMarked(v = *ev)) return;
       gc_UnmarkM(*ev);
       p = TaggedToPointer(v);
-      if (IsHeapTerm(v)
+      if (IsHeapPtr(v)
 #if defined(USE_SEGMENTED_GC)
           && OffHeaptop(p,Gc_Heap_Start)
 #endif
@@ -559,17 +569,17 @@ static CVOID__PROTO(sweep_choicepoints) {
     if ((IsHeapVar(v) && !OffHeaptop(p,Gc_Heap_Start)) ||
         (IsStackVar(v) && !OffStacktop(p,Gc_Stack_Start))) {
       tagged_t *p1 = TaggedToPointer(*p);
-      if (IsHeapTerm(*p) &&
+      if (IsHeapPtr(*p) &&
           gc_IsMarked(*p) &&
           OffHeaptop(p1,Gc_Heap_Start)) {
         gc_UnmarkM(*p);
         intoRelocationChain(p1,p);
       }
-    } else if (IsHeapTerm(v) && OffHeaptop(p,Gc_Heap_Start)) {
+    } else if (IsHeapPtr(v) && OffHeaptop(p,Gc_Heap_Start)) {
       intoRelocationChain(p,tr);
     }
 #else
-    if (IsHeapTerm(v)) {
+    if (IsHeapPtr(v)) {
       intoRelocationChain(p,tr);
     }
 #endif
@@ -587,7 +597,7 @@ static CVOID__PROTO(sweep_choicepoints) {
       tagged_t *p = TaggedToPointer(v);
         
       gc_UnmarkM(cp->x[i]);
-      if (IsHeapTerm(v)
+      if (IsHeapPtr(v)
 #if defined(USE_SEGMENTED_GC)
           && OffHeaptop(p,Gc_Heap_Start)
 #endif
@@ -638,7 +648,7 @@ static CVOID__PROTO(compress_heap) {
           updateRelocationChain(curr,dest);
           cv = *curr;
         }
-        if (IsHeapTerm(cv)) {
+        if (IsHeapPtr(cv)) {
           tagged_t *p = TaggedToPointer(cv);
                 
           if (HeapYounger(curr,p)
@@ -671,7 +681,7 @@ static CVOID__PROTO(compress_heap) {
       {
         tagged_t *p = TaggedToPointer(cv);
         
-        if (IsHeapTerm(cv) && HeapYounger(p,curr)) {              
+        if (IsHeapPtr(cv) && HeapYounger(p,curr)) {              
           /* move the current cell and insert into the reloc.chain */
           *dest = cv;
           intoRelocationChain(p,dest);
@@ -685,11 +695,11 @@ static CVOID__PROTO(compress_heap) {
           *dest = cv;
         }
       }
-      (void)HeapNext(dest);
+      dest++;
     } else { /* skip a box---all garbage is boxed */
       curr += LargeArity(cv);
     }
-    (void)HeapNext(curr);
+    curr++;
   }
   G->heap_top = dest;
 }
@@ -882,7 +892,7 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
     if (i>0) {
       tagged_t *t = (tagged_t *)w->previous_choice;
       do {
-        ChoicePush(t,X(--i));
+        *--(t) = X(--i);
       } while (i>0);
     }
     if (ChoiceYounger(ChoiceOffset(b,CHOICEPAD),w->trail_top)) {
@@ -942,9 +952,9 @@ CVOID__PROTO(heap_overflow_adjust_wam, intmach_t reloc_factor, tagged_t *newh);
 #endif
 
 #if defined(ANDPARALLEL)
-#define IsHeapTermAndNeedsReloc(T) (IsHeapTerm((T)) && HeapTermNeedsReloc((T)))
+#define IsHeapPtrAndNeedsReloc(T) (IsHeapPtr((T)) && HeapTermNeedsReloc((T)))
 #else
-#define IsHeapTermAndNeedsReloc(T) IsHeapTerm((T))
+#define IsHeapPtrAndNeedsReloc(T) IsHeapPtr((T))
 #endif
 
 #if defined(ANDPARALLEL)
@@ -998,9 +1008,6 @@ CVOID__PROTO(resume_all) {
   }
 }
 #endif
-
-#define RelocPtr(P,Offset) ((typeof(P))((char *)(P)+(Offset)))
-#define AssignRelocPtr(P,Offset) (P) = RelocPtr((P), (Offset))
 
 #if defined(ANDPARALLEL)
 #define AssignRelocPtrNotRemote(P,Offset) if (!remote_reloc) AssignRelocPtr((P),(Offset)) 
@@ -1085,7 +1092,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
         
         x = Choice_Start;                  /* Copy the new choicepoint stack */
         while (OffChoicetop(trb,tr)) {
-          ChoicePush(x,ChoiceNext(tr));
+          *(--x) = *--(tr);
         }
         w->choice = b = (choice_t *)(x-w->value_trail);
 
@@ -1239,7 +1246,8 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
     AssignRelocPtr(n2->frame, reloc_factor);
 
     for (pt1=n->x; pt1!=(tagged_t *)n2;) {
-      t1 = ChoicePrev(pt1);
+      t1 = *pt1;
+      pt1++;
       if (TaggedIsSVA(t1)) {
         *(pt1-1) += reloc_factor;
       }
@@ -1250,7 +1258,8 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
     while (frame >= (frame_t*) NodeLocalTop(n2)) {
       pt1 = (tagged_t *)StackCharOffset(frame,i);
       while (pt1!=frame->x){
-        t1 = *(--pt1);
+        pt1--;
+        t1 = *pt1;
         if (TaggedIsSVA(t1)) {
           *pt1 += reloc_factor;
         }
@@ -1428,17 +1437,18 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 
     AssignRelocPtrNotRemote(G->heap_top, reloc_factor);
     while (HeapYounger(G->heap_top,pt1)) {
-      t1 = HeapNext(pt1);
+      t1 = *pt1;
+      pt1++;
       if (t1&QMask) {
         pt1 += LargeArity(t1);
-      } else if (IsHeapTermAndNeedsReloc(t1)) {
+      } else if (IsHeapPtrAndNeedsReloc(t1)) {
         *(pt1-1) += reloc_factor;
       }
     }
 
 #if defined(USE_GLOBAL_VARS)
     /* relocate pointers in global vars root */
-    if (IsHeapTerm(GLOBAL_VARS_ROOT)) {
+    if (IsHeapPtr(GLOBAL_VARS_ROOT)) {
       GLOBAL_VARS_ROOT += reloc_factor;
     }
 #endif
@@ -1449,7 +1459,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     while (TrailYounger(w->trail_top,pt1)) {
       t1 = *pt1;
       pt1++;
-      if (IsHeapTermAndNeedsReloc(t1)) {
+      if (IsHeapPtrAndNeedsReloc(t1)) {
         *(pt1-1) += reloc_factor;
       }
     }
@@ -1496,8 +1506,9 @@ CVOID__PROTO(heap_overflow_adjust_wam,
       if (n->next_alt != NULL) {
         n2 = ChoiceCont(n);
         for (pt1=n->x; pt1!=(tagged_t *)n2;) {
-          t1 = ChoicePrev(pt1);
-          if (IsHeapTermAndNeedsReloc(t1)) {
+          t1 = *pt1;
+          pt1++;
+          if (IsHeapPtrAndNeedsReloc(t1)) {
             *(pt1-1) += reloc_factor;
           }
         }
@@ -1506,8 +1517,9 @@ CVOID__PROTO(heap_overflow_adjust_wam,
         while ((frame >= (frame_t*) NodeLocalTop(n2)) && frame->next_insn != NULL) {
           pt1 = (tagged_t *)StackCharOffset(frame,i);
           while (pt1!=frame->x) {
-            t1 = *(--pt1);
-            if (IsHeapTermAndNeedsReloc(t1)) {
+            --pt1;
+            t1 = *pt1;
+            if (IsHeapPtrAndNeedsReloc(t1)) {
               *pt1 += reloc_factor;
             }
           }

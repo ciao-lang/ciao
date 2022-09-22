@@ -640,6 +640,9 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #error "Unsupported SMALLPTR_UPPERBITS"
 #endif
 
+#define RelocPtr(P,Offset) ((typeof(P))((char *)(P)+(Offset)))
+#define AssignRelocPtr(P,Offset) (P) = RelocPtr((P), (Offset))
+
 /* ------------------------------------------------------------------------- */
 /*** tagged_t DATATYPES --------------------------------***/
 
@@ -732,9 +735,9 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 
 /* Test for HVA, CVA, LST, STR i.e. 0, 1, 6, 7 (and LNUM)*/
 /* This works for some machines, but not for others...
-   #define IsHeapTerm(A)        ((stagged_t)(A)+(SVA<<TAGOFFSET)>=0)
+   #define IsHeapPtr(A)        ((stagged_t)(A)+(SVA<<TAGOFFSET)>=0)
 */
-#define IsHeapTerm(A)   ((tagged_t)(A)+(SVA<<TAGOFFSET) < (NUM<<TAGOFFSET))
+#define IsHeapPtr(A)   ((tagged_t)(A)+(SVA<<TAGOFFSET) < (NUM<<TAGOFFSET))
 
 #define IsHeapVar(X)    ((X) < (SVA<<TAGOFFSET))
 #define IsStackVar(X)   ((stagged_t)(X) >= (stagged_t)(SVA<<TAGOFFSET))
@@ -1581,9 +1584,6 @@ struct marker_ {
 #define ChoiceCharOffset(X,O)   ((choice_t *)((char *)(X) - (O)))
 #define ChoiceDifference(X,Y)   ((tagged_t *)(X) - (tagged_t *)(Y))
 #define ChoiceCharDifference(X,Y)       ((char *)(X) - (char *)(Y))
-#define ChoicePrev(P)           (*(P)++)
-#define ChoiceNext(P)           (*--(P))
-#define ChoicePush(P,X)         (*--(P) = (X))
 
 #define ChoiceCont(B) ChoiceCharOffset((B), -(B)->next_alt->choice_offset)
 

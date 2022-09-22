@@ -13,6 +13,11 @@
 extern bool_t stop_on_pred_calls;
 #endif
 
+// TODO: set this flag?
+#if !defined(OPTIM_COMP) && defined(DEBUG)
+#define DEBUG_TRACE 1
+#endif
+
 /* ------------------------------------------------------------------------- */
 /* INSCOUNT (instruction-level profiler) */
 
@@ -66,14 +71,17 @@ CVOID__PROTO(dump_call, char *s, definition_t *func);
 })
 #endif
 
-#if defined(OPTIM_COMP)
-
 #if defined(DEBUG_TRACE)
-
-/* TODO: move tracing outside the debug code? add tracing levels? */
 #define DEBUG__TRACE(COND, ...) ({ \
   if ((COND)) { TRACE_PRINTF(__VA_ARGS__); } \
 })
+#else
+#define DEBUG__TRACE(COND, ...)
+#endif
+
+#if defined(OPTIM_COMP)
+
+#if defined(DEBUG_TRACE)
 /* debug_trace options */
 extern bool_t debug_predtrace;
 extern bool_t debug_dynlink;
@@ -85,16 +93,13 @@ extern bool_t debug_mem;
 extern bool_t debug_conc;
 extern bool_t debug_setarg;
 extern bool_t debug_atomgc;
-
+//
 bool_t debug_trace__get_opt(const char *arg);
-
-#else
-#define DEBUG__TRACE(COND, ...)
 #endif
 
 #else /* !defined(OPTIM_COMP) */
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 extern bool_t debug_dynlink;
 extern bool_t debug_gc;
 extern bool_t debug_threads;

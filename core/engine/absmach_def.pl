@@ -501,7 +501,7 @@ do_neck :-
          call('SetB', ["w->previous_choice"]),
          trace(neck("i")),
          do_while(
-           "ChoicePush(pt1,(w->x-1)[i]);",
+           "*--(pt1) = (w->x-1)[i];",
            "--i"))),
       maybe_choice_overflow)),
     "w->next_alt = NULL;", fmt:nl.
@@ -3629,7 +3629,7 @@ deep_backtrack :-
     % %   S = (tagged_t *)w->previous_choice;
     % %   i = OffsetToArity(i)-3;
     % %   do
-    % %     (w->x+2)[i] = ChoiceNext(S);
+    % %     (w->x+2)[i] = (*--S);
     % %   while (--i);
     % % }
     %
@@ -3641,7 +3641,7 @@ deep_backtrack :-
       "S" <- "(tagged_t *)w->previous_choice",
       "i" <- "OffsetToArity(i) - 1",
       trace(restore_xregs_choicepoint("i")),
-      "while(i >= 0) ", "wt[i--]" <- "ChoiceNext(S)")).
+      "while(i >= 0) ", "wt[i--]" <- "(*--(S))")).
 
 :- pred(code_enter_pred/0, [unfold]).
 code_enter_pred :-
