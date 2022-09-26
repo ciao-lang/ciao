@@ -643,6 +643,9 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define RelocPtr(P,Offset) ((typeof(P))((char *)(P)+(Offset)))
 #define AssignRelocPtr(P,Offset) (P) = RelocPtr((P), (Offset))
 
+// TODO: compare with OC version
+#define RelocateTagged(X, FACTOR) *(X) += (FACTOR)
+
 /* ------------------------------------------------------------------------- */
 /*** tagged_t DATATYPES --------------------------------***/
 
