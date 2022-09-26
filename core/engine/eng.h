@@ -401,9 +401,8 @@
 #define Gcgrey           (w->misc->gcgrey)
 #define Total_Found      (w->misc->total_found)
 #define Cvas_Found       (w->misc->cvas_found)
-#define Gc_Aux_Node      (w->misc->gc_aux_node)
+#define Gc_Aux_Choice      (w->misc->gc_aux_node)
 #define Gc_Choice_Start  (w->misc->gc_choice_start)
-#define Gc_Trail_Start   (w->misc->gc_trail_start)
 #define Gc_Heap_Start    (w->misc->gc_heap_start)
 #define Gc_Stack_Start   (w->misc->gc_stack_start)
 
@@ -1188,7 +1187,7 @@ struct misc_info_ {
   tagged_t cvas_found;                 /* the last CVA found while shunting */
   choice_t *gc_aux_node;     /* aux. choicepoint for the WAM registers */
   choice_t *gc_choice_start;
-  tagged_t *gc_trail_start;
+  tagged_t *gc_trail_start; /* TODO: unused! */
   tagged_t *gc_heap_start;
   frame_t *gc_stack_start;
   choice_t *top_conc_chpt;  /* Topmost chicepoint for concurrent facts */
