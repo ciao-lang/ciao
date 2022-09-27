@@ -179,7 +179,7 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
 
     w->next_alt = address_nd_current_instance; /* establish skeletal node */
     w->previous_choice = w->choice;
-    w->choice = ChoiceCharOffset(w->choice,ArityToOffset(DynamicPreserved));
+    w->choice = ChoiceNext0(w->choice,DynamicPreserved);
     w->choice->next_alt = NULL;
     w->choice->trail_top = w->trail_top;
     w->choice->heap_top = w->heap_top;
@@ -522,7 +522,7 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
     X(PrevDynChpt) = PointerToTermOrZero(TopConcChpt); 
     w->next_alt = address_nd_current_instance; /* establish skeletal node */
     w->previous_choice = w->choice;
-    w->choice = ChoiceCharOffset(w->choice,ArityToOffset(DynamicPreserved));
+    w->choice = ChoiceNext0(w->choice,DynamicPreserved);
     TopConcChpt = (choice_t *)w->choice;  /* Update dynamic top */
     w->choice->next_alt = NULL;
     w->choice->trail_top = w->trail_top;

@@ -161,8 +161,6 @@ bool_t is_remote_HeapTerm(tagged_t term, worker_t *w, worker_t *remote_w) {
 
 #if defined(OPTIM_COMP)
 #define TryNodeArity(ALT) ((ALT)->arity)
-#else
-#define TryNodeArity(ALT) OffsetToArity((ALT)->choice_offset)
 #endif
 
 /* TODO: document: Gc_Aux_Choice is the newest choice and Gc_Choice_Start the oldest */
@@ -189,7 +187,7 @@ bool_t is_remote_HeapTerm(tagged_t term, worker_t *w, worker_t *remote_w) {
   cp = prevcp; \
   alt = cp->next_alt; \
   cp->next_alt = m_alt; \
-  prevcp = ChoiceCharOffset(cp,-alt->choice_offset); \
+  prevcp = GEN_ChoiceCont00(cp,GEN_TryNodeOffset(alt)); \
 }
 
 #define CHOICE_PASS__UndoChoice(cp,prevcp,alt) { \
@@ -197,7 +195,7 @@ bool_t is_remote_HeapTerm(tagged_t term, worker_t *w, worker_t *remote_w) {
   prevcp = cp; \
   alt = cp->next_alt; \
   cp->next_alt = m_alt; \
-  cp = ChoiceCharOffset(cp,alt->choice_offset); \
+  cp = GEN_ChoiceNext00(cp,GEN_TryNodeOffset(alt)); \
 }
 
 /* =========================================================================== */
@@ -589,8 +587,8 @@ static CVOID__PROTO(mark_choicepoints) {
   tagged_t *limit;
 
   while (ChoiceYounger(cp,Gc_Choice_Start)) {
-    intmach_t n = cp->next_alt->choice_offset;
-    intmach_t i = OffsetToArity(n);
+    intmach_t n = GEN_ChoiceSize0(cp);
+    intmach_t i = GEN_OffsetToArity(n);
 
     CVOID__CALL(mark_frames, cp);
     while ((i--)>0) {
@@ -598,7 +596,7 @@ static CVOID__PROTO(mark_choicepoints) {
         MarkRoot(&cp->x[i]);
       }
     }
-    cp = ChoiceCharOffset(cp, -n);
+    cp = GEN_ChoiceCont00(cp, n);
 
     /* mark goals and unbound constrained variables;
        reset unmarked bound variables
@@ -760,8 +758,8 @@ static CVOID__PROTO(sweep_choicepoints) {
   choice_t *cp = Gc_Aux_Choice;
 
   while (ChoiceYounger(cp,Gc_Choice_Start)) {
-    intmach_t n = cp->next_alt->choice_offset;
-    intmach_t i = OffsetToArity(n);
+    intmach_t n = GEN_ChoiceSize0(cp);
+    intmach_t i = GEN_OffsetToArity(n);
 
     sweep_frames(Arg, cp);
     while ((i--)>0) {
@@ -773,7 +771,7 @@ static CVOID__PROTO(sweep_choicepoints) {
         intoRelocationChain(p, &cp->x[i]);
       }
     }
-    cp = ChoiceCharOffset(cp, -n);
+    cp = GEN_ChoiceCont00(cp, n);
   }
 }
 
@@ -1052,7 +1050,7 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
     b->frame = w->frame;
     b->next_insn = w->next_insn;
     b->local_top = w->local_top;
-    i=OffsetToArity(b->next_alt->choice_offset);
+    i=ChoiceArity(b);
     if (i>0) {
       tagged_t *t = (tagged_t *)w->previous_choice;
       do {
@@ -1357,7 +1355,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
   frame_t *frame;
   intmach_t i;
 
-  aux_node = ChoiceCharOffset(w->choice,ArityToOffset(0));
+  aux_node = ChoiceNext0(w->choice,0);
   aux_node->next_alt = fail_alt;
   aux_node->frame = RelocPtr(w->frame, reloc_factor);
   aux_node->next_insn = w->next_insn;
@@ -1556,7 +1554,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
   frame_t *frame;
   intmach_t i;
 
-  aux_node = ChoiceCharOffset(w->choice,ArityToOffset(0));
+  aux_node = ChoiceNext0(w->choice,0);
   aux_node->next_alt = fail_alt;
   aux_node->frame = w->frame;
   aux_node->next_insn = w->next_insn;
@@ -1683,7 +1681,7 @@ CVOID__PROTO(trail_gc) {
   /*extern choice_t *gc_aux_node;*/ /* Now in a register */
   /*extern choice_t *gc_choice_start;*/ /* No in a register */
 
-  Gc_Aux_Choice = ChoiceCharOffset(b,ArityToOffset(0));
+  Gc_Aux_Choice = ChoiceNext0(b,0);
   Gc_Aux_Choice->next_alt = fail_alt;
   Gc_Aux_Choice->trail_top = tr;
   Gc_Choice_Start = w->segment_choice;

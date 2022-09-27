@@ -397,7 +397,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
     {
       //do I have to freeze oldGen->newCons - check if previous cp is frozen
       //next cp is back_answer -> arity = 1
-      inode = ChoiceCharOffset(oldGen->choice,ArityToOffset(1));
+      inode = ChoiceNext0(oldGen->choice,1);
       if (inode->heap_top == (tagged_t*)(&(HeapFReg)))
         {
           oldGen->choice->heap_top = (tagged_t*)(&(HeapFReg));

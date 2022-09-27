@@ -33,9 +33,9 @@ CVOID__PROTO(pop_choicept) {
 }
 
 CVOID__PROTO(push_choicept, try_node_t *alt) {
-  intmach_t n = alt->choice_offset;
+  intmach_t n = GEN_TryNodeOffset(alt);
   tagged_t *b0 = (tagged_t *)w->choice;
-  choice_t *b = ChoiceCharOffset(b0,n);
+  choice_t *b = GEN_ChoiceNext00(b0,n);
 
   ComputeA(w->local_top,w->choice);
   w->choice = b;
@@ -47,7 +47,7 @@ CVOID__PROTO(push_choicept, try_node_t *alt) {
   b->frame = w->frame;
   b->next_insn = w->next_insn;
   b->local_top = w->local_top;
-  n = OffsetToArity(n);
+  n = GEN_OffsetToArity(n);
   while (n>0) {
     *--(b0) = X(--n);
   }

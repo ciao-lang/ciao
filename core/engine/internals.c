@@ -687,7 +687,7 @@ static void incore_insert(try_node_t **t0,
 
   /* Init the try_node to insert. */
   t = checkalloc_TYPE(try_node_t);
-  t->choice_offset = ArityToOffset(effar);
+  t->choice_offset = GEN_ChoiceSize(effar);
   /* Last "next" is num. of clauses: we are inserting at the end of the chain */
   t->number = ref->next.number;
   t->emul_p = BCoff(ref->emulcode, BCOp(ref->emulcode, FTYPE_ctype(f_i), 0)); /* initial p: det case */
@@ -2163,7 +2163,7 @@ CFUN__PROTO(find_constraints, intmach_t, tagged_t *limit)
   choice_t *cp;
   intmach_t found = 0;
   
-  cp = purecp = ChoiceCharOffset(w->choice,ArityToOffset(0));
+  cp = purecp = ChoiceNext0(w->choice,0);
   cp->next_alt = fail_alt;
   cp->trail_top = w->trail_top;
   cp->heap_top = w->heap_top;
@@ -2432,15 +2432,14 @@ CVOID__PROTO(show_nodes, choice_t *cp_younger, choice_t *cp_older)
   else
     next_alt = w->next_alt;
   number = next_alt->number;
-  cp_younger = ChoiceCharOffset(cp_younger, -next_alt->choice_offset);
+  cp_younger = GEN_ChoiceCont00(cp_younger, GEN_TryNodeOffset(next_alt));
   while(ChoiceYounger(cp_younger, cp_older)) {
     fprintf(stderr,"\n  ");
     fprintf(stderr,"0x%p:",cp_younger);
     DisplayCPFunctor(cp_younger);
     fprintf(stderr, "/%" PRIdm ",", number);
     number = cp_younger->next_alt->number;
-    cp_younger = ChoiceCharOffset(cp_younger,
-                                  -cp_younger->next_alt->choice_offset);
+    cp_younger = GEN_ChoiceCont00(cp_younger, GEN_ChoiceSize0(cp_younger));
   }
   if (!ChoiceYounger(cp_older, cp_younger)) {
     fprintf(stderr,"\n  ");

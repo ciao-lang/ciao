@@ -36,9 +36,9 @@ B->next_alt = w->next_alt; /* 4 contiguous moves */
 B->frame = w->frame;
 B->next_insn = w->next_insn;
 B->local_top = w->local_top;
-i=B->next_alt->choice_offset;
-if (i>ArityToOffset(0)) {
-i = OffsetToArity(i);
+i=GEN_ChoiceSize0(B);
+if (i>GEN_ChoiceSize(0)) {
+i = GEN_OffsetToArity(i);
 SetB(w->previous_choice);
 ON_DEBUG({
 if (debug_choicepoints) {
@@ -320,12 +320,12 @@ P = (bcp_t)B->next_alt;
 w->frame = B->frame;
 w->next_insn = B->next_insn;
 RestoreLtop(B);
-i = ((try_node_t *)P)->choice_offset;
-w->previous_choice = ChoiceCharOffset(B,-i);
-if (i>ArityToOffset(0)) {
+i = GEN_TryNodeOffset((try_node_t *)P);
+w->previous_choice = GEN_ChoiceCont00(B,i);
+if (i>GEN_ChoiceSize(0)) {
 tagged_t *wt = w->x;
 S = (tagged_t *)w->previous_choice;
-i = OffsetToArity(i) - 1;
+i = GEN_OffsetToArity(i) - 1;
 ON_DEBUG({
 if (debug_choicepoints) {
 fprintf(stderr, "Reloading %d words from node %x\n", i, (int)w->choice);
@@ -668,7 +668,7 @@ if (w->local_top) {
 ;                } else if (!StackYounger(w->local_top = NodeLocalTop(B),w->frame)) {
 w->local_top = StackCharOffset(w->frame,FrameSize(w->next_insn));
                 }
-SetB(ChoiceCharOffset(B,w->next_alt->choice_offset));
+SetB(GEN_ChoiceNext00(B,GEN_ChoiceSize0(w)));
 w->choice = B;
 ON_DEBUG_NODE({B->functor = NULL;
 });
@@ -2193,9 +2193,9 @@ B->next_alt = w->next_alt; /* 4 contiguous moves */
 B->frame = w->frame;
 B->next_insn = w->next_insn;
 B->local_top = w->local_top;
-i=B->next_alt->choice_offset;
-if (i>ArityToOffset(0)) {
-i = OffsetToArity(i);
+i=GEN_ChoiceSize0(B);
+if (i>GEN_ChoiceSize(0)) {
+i = GEN_OffsetToArity(i);
 SetB(w->previous_choice);
 ON_DEBUG({
 if (debug_choicepoints) {
@@ -2250,7 +2250,7 @@ if (w->local_top) {
 ;                  } else if (!StackYounger(w->local_top = NodeLocalTop(B),w->frame)) {
 w->local_top = StackCharOffset(w->frame,FrameSize(w->next_insn));
                   }
-SetB(ChoiceCharOffset(B,w->next_alt->choice_offset));
+SetB(GEN_ChoiceNext00(B,GEN_ChoiceSize0(w)));
 w->choice = B;
 ON_DEBUG_NODE({B->functor = NULL;
 });
@@ -4291,9 +4291,9 @@ B->next_alt = w->next_alt; /* 4 contiguous moves */
 B->frame = w->frame;
 B->next_insn = w->next_insn;
 B->local_top = w->local_top;
-i=B->next_alt->choice_offset;
-if (i>ArityToOffset(0)) {
-i = OffsetToArity(i);
+i=GEN_ChoiceSize0(B);
+if (i>GEN_ChoiceSize(0)) {
+i = GEN_OffsetToArity(i);
 SetB(w->previous_choice);
 ON_DEBUG({
 if (debug_choicepoints) {
@@ -4340,9 +4340,9 @@ B->next_alt = w->next_alt; /* 4 contiguous moves */
 B->frame = w->frame;
 B->next_insn = w->next_insn;
 B->local_top = w->local_top;
-i=B->next_alt->choice_offset;
-if (i>ArityToOffset(0)) {
-i = OffsetToArity(i);
+i=GEN_ChoiceSize0(B);
+if (i>GEN_ChoiceSize(0)) {
+i = GEN_OffsetToArity(i);
 SetB(w->previous_choice);
 ON_DEBUG({
 if (debug_choicepoints) {

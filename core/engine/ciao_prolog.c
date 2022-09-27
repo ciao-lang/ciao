@@ -62,7 +62,7 @@
 #define CODE_CHOICE_NEW(B, ALT) ({ \
   ComputeA(w->local_top,w->choice); /* get_frame_top */ \
   G->next_alt = (ALT); \
-  (B) = ChoiceCharOffset((tagged_t *)w->choice, G->next_alt->choice_offset); \
+  (B) = GEN_ChoiceNext00(w->choice, GEN_ChoiceSize0(G)); \
   w->choice = (B); \
   NewShadowregs(G->heap_top); \
   (B)->trail_top = G->trail_top; \
@@ -73,7 +73,7 @@
   (B)->frame = G->frame; \
   (B)->next_insn = G->next_insn; \
   (B)->next_alt = G->next_alt; \
-  intmach_t arity = OffsetToArity((B)->next_alt->choice_offset); \
+  intmach_t arity = ChoiceArity(B); \
   for (int i = 0; i < arity; i++) { \
     (B)->x[i] = w->x[i]; \
   } \

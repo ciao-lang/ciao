@@ -495,9 +495,9 @@ do_neck :-
       "B->frame = w->frame;", fmt:nl,
       "B->next_insn = w->next_insn;", fmt:nl,
       "B->local_top = w->local_top;", fmt:nl,
-      "i=B->next_alt->choice_offset;", fmt:nl,
-      if("i>ArityToOffset(0)",
-        ("i = OffsetToArity(i);", fmt:nl,
+      "i=GEN_ChoiceSize0(B);", fmt:nl,
+      if("i>GEN_ChoiceSize(0)",
+        ("i = GEN_OffsetToArity(i);", fmt:nl,
          call('SetB', ["w->previous_choice"]),
          trace(neck("i")),
          do_while(
@@ -3623,23 +3623,23 @@ deep_backtrack :-
     % % X(1) = B->x[1];
     % % X(2) = B->x[2];
     % % X(3) = B->x[3];
-    % % i = ((try_node_t *)P)->choice_offset;
-    % % w->previous_choice = ChoiceCharOffset(B,-i);
-    % % if (i>ArityToOffset(3)) {
+    % % i = GEN_TryNodeOffset((try_node_t *)P);
+    % % w->previous_choice = GEN_ChoiceCont00(B,i);
+    % % if (i>ChoiceSize(3)) {
     % %   S = (tagged_t *)w->previous_choice;
-    % %   i = OffsetToArity(i)-3;
+    % %   i = GEN_OffsetToArity(i)-3;
     % %   do
     % %     (w->x+2)[i] = (*--S);
     % %   while (--i);
     % % }
     %
-    "i" <- "((try_node_t *)P)->choice_offset",
-    "w->previous_choice" <- "ChoiceCharOffset(B,-i)",
-    if("i>ArityToOffset(0)", (
+    "i" <- "GEN_TryNodeOffset((try_node_t *)P)",
+    "w->previous_choice" <- "GEN_ChoiceCont00(B,i)",
+    if("i>GEN_ChoiceSize(0)", (
       "tagged_t *wt = w->x;", fmt:nl,
       %
       "S" <- "(tagged_t *)w->previous_choice",
-      "i" <- "OffsetToArity(i) - 1",
+      "i" <- "GEN_OffsetToArity(i) - 1",
       trace(restore_xregs_choicepoint("i")),
       "while(i >= 0) ", "wt[i--]" <- "(*--(S))")).
 
@@ -4160,7 +4160,7 @@ alt_dispatcher :-
     if(("(w->next_alt","=",Alts,"->next)!=NULL"),
       (call('SetB', ["w->choice"]),
       compute_Ltop("B"),
-      call('SetB', ["ChoiceCharOffset(B,w->next_alt->choice_offset)"]),
+      call('SetB', ["GEN_ChoiceNext00(B,GEN_ChoiceSize0(w))"]),
       "w->choice" <- "B",
       "ON_DEBUG_NODE({",
       "B->functor" <- "NULL",
