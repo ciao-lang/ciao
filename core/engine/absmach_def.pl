@@ -495,14 +495,20 @@ do_neck :-
       "B->frame = w->frame;", fmt:nl,
       "B->next_insn = w->next_insn;", fmt:nl,
       "B->local_top = w->local_top;", fmt:nl,
-      "i=GEN_ChoiceSize0(B);", fmt:nl,
-      if("i>GEN_ChoiceSize(0)",
-        ("i = GEN_OffsetToArity(i);", fmt:nl,
-         call('SetB', ["w->previous_choice"]),
-         trace(neck("i")),
-         do_while(
-           "*--(pt1) = (w->x-1)[i];",
-           "--i"))),
+      %
+%%% BEGIN simplify choice copy    
+%       "i=GEN_ChoiceSize0(B);", fmt:nl,
+%       if("i>GEN_ChoiceSize(0)",
+%         ("i = GEN_OffsetToArity(i);", fmt:nl,
+%          call('SetB', ["w->previous_choice"]),
+%          trace(neck("i")),
+%          do_while(
+%            "*--(pt1) = (w->x-1)[i];",
+%            "--i"))),
+%%% END simplify choice copy    
+      "i=ChoiceArity(B);", fmt:nl,
+      for("intmach_t k=0; k<i; k++",
+        ("B->x[k]" <- "w->x[k]")),
       maybe_choice_overflow)),
     "w->next_alt = NULL;", fmt:nl.
 
@@ -3633,15 +3639,22 @@ deep_backtrack :-
     % %   while (--i);
     % % }
     %
-    "i" <- "GEN_TryNodeOffset((try_node_t *)P)",
-    "w->previous_choice" <- "GEN_ChoiceCont00(B,i)",
-    if("i>GEN_ChoiceSize(0)", (
-      "tagged_t *wt = w->x;", fmt:nl,
-      %
-      "S" <- "(tagged_t *)w->previous_choice",
-      "i" <- "GEN_OffsetToArity(i) - 1",
-      trace(restore_xregs_choicepoint("i")),
-      "while(i >= 0) ", "wt[i--]" <- "(*--(S))")).
+%%% BEGIN simplify choice copy    
+%    "i" <- "GEN_TryNodeOffset((try_node_t *)P)",
+%    "w->previous_choice" <- "GEN_ChoiceCont00(B,i)",
+%    if("i>GEN_ChoiceSize(0)", (
+%      "tagged_t *wt = w->x;", fmt:nl,
+%      %
+%      "S" <- "(tagged_t *)w->previous_choice",
+%      "i" <- "GEN_OffsetToArity(i) - 1",
+%      trace(restore_xregs_choicepoint("i")),
+%      "while(i >= 0) ", "wt[i--]" <- "(*--(S))")).
+%%% END simplify choice copy    
+    %
+    "i" <- "TryNodeArity((try_node_t *)P)",
+    "w->previous_choice" <- "ChoiceCont0(B,i)",
+    for("intmach_t k=0; k<i; k++",
+      ("w->x[k]" <- "B->x[k]")).
 
 :- pred(code_enter_pred/0, [unfold]).
 code_enter_pred :-

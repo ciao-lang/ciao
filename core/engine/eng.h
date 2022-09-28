@@ -1402,7 +1402,6 @@ struct worker_ {
   tagged_t *heap_start;
   tagged_t *heap_end;
   tagged_t *heap_warn_soft;
-  tagged_t *dummy4; // TODO: was heap_warn
   tagged_t *int_heap_warn; /* Heap_Start if ^C was hit, else Heap_Warn */ // TODO: it could be a bit!
     
   tagged_t *stack_start;
@@ -1427,9 +1426,10 @@ struct worker_ {
   intmach_t value_trail;                /* size of value_trail extension of w->choice */
 
   /* incidentally, the rest is similar to a choice_t */
+  try_node_t *next_alt; /* next clause at predicate entry */
+  intmach_t flags;
   tagged_t *trail_top;          /* trail pointer */
   tagged_t *heap_top;         /* heap pointer */
-  try_node_t *next_alt; /* next clause at predicate entry */
   frame_t *frame;               /* environment pointer */
   bcp_t next_insn;              /* continuation */
   frame_t *local_top;   /* local stack pointer, or NULL if invalid */
@@ -1449,9 +1449,10 @@ struct choice_ {                  /* a.k.a. marker. Collapsed with a Chpt? */
 /* #if defined(MARKERS) */
   /*  node_type type_of_node;*/
 /* #endif */
+  try_node_t *next_alt;
+  intmach_t flags;
   tagged_t *trail_top;
   tagged_t *heap_top;
-  try_node_t *next_alt;
   frame_t *frame;
   bcp_t next_insn;
   frame_t *local_top;
@@ -1871,8 +1872,8 @@ struct try_node_ {
   try_node_t *next;                      /* Next alternative or NULL */
   bcp_t emul_p;                    /* write mode or not first alternative */
   bcp_t emul_p2;                          /* read mode, first alternative */
-  short choice_offset;                   /* offset from choicepoint to next */
-  //intmach_t choice_offset;                 /* offset from choicepoint to next */
+  //short choice_offset;                   /* offset from choicepoint to next */
+  intmach_t choice_offset;                 /* offset from choicepoint to next */
   /*short number;*/
   uintmach_t number;                /* clause number for this alternative */
                              /* Gauge specific fields MUST come after this*/
