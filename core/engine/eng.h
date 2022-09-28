@@ -1580,7 +1580,7 @@ struct marker_ {
 
 /* assuming choicestack growth in negative direction */
 
-#define USE_CHOICE_OFFSET 1 /* comment to use arity instead of choice_offset */
+//#define USE_CHOICE_OFFSET 1 /* comment to use arity instead of choice_offset */
 
 #define OnChoice(t) (ChoiceYounger(t,Choice_Start) && !ChoiceYounger(t,Choice_End))
 #define OffChoicetop(t,B)       ChoiceYounger(t,B)
