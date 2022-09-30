@@ -16,7 +16,7 @@
 /* (default options) */
 
 /* (for some reason this makes the engine around 6% faster) */
-#define USE_TAGGED_CHOICE_START
+//#define USE_TAGGED_CHOICE_START
 
 // uncomment to enable C version of the multi-attributes accessors.
 // #define USE_FAST_MULTIATTR 1
