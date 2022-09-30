@@ -25,7 +25,7 @@ extern intmach_t current_gcmargin;
 
 void init_gc(void);
 
-CVOID__PROTO(compress_trail, bool_t from_gc);
+CVOID__PROTO(trail__compress, bool_t from_gc);
 CVOID__PROTO(gc__heap_collect);
 
 CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond);

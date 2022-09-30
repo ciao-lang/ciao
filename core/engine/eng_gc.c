@@ -26,6 +26,49 @@
 #define USE_EARLY_RESET 1
 
 /* --------------------------------------------------------------------------- */
+
+#if !defined(OPTIM_COMP)
+
+#define CODE_MAYBE_NECK_TRY() do { \
+  choice_t *b = w->choice; \
+  if (!b->next_alt) { /* try */ \
+    b->next_alt = w->next_alt; /* 4 contiguous moves */ \
+    b->frame = w->frame; \
+    b->next_insn = w->next_insn; \
+    b->local_top = w->local_top; \
+    intmach_t i=ChoiceArity(b); \
+    if (i>0) { \
+      tagged_t *t = (tagged_t *)w->previous_choice; \
+      do { \
+        t--; \
+        i--; \
+        *t = X(i); \
+      } while (i>0); \
+    } \
+    if (ChoiceYounger(ChoiceOffset(b,CHOICEPAD),w->trail_top)) { \
+      CVOID__CALL(choice_overflow,CHOICEPAD,TRUE); \
+    } \
+  } \
+} while(0)
+#define CODE_ALLOC(a) do { \
+  ComputeA(a,w->choice); \
+} while(0)
+#define CODE_CFRAME(Frame, NextInsn) ({ \
+  (Frame)->next_insn = G->next_insn; \
+  (Frame)->frame = G->frame; \
+  G->frame = (Frame); \
+  G->next_insn = (NextInsn); \
+  G->local_top = (frame_t *)StackCharOffset((Frame),FrameSize(G->next_insn)); \
+})
+#define SetLocalTop(A) G->local_top = (A)
+#define DEALLOCATE(Frame) ({ \
+  G->next_insn = (Frame)->next_insn; \
+  G->frame = (Frame)->frame; \
+})
+
+#endif
+
+/* --------------------------------------------------------------------------- */
 /* Switch on tag (special for GC) */
 
 #if defined(OPTIM_COMP)
@@ -182,40 +225,237 @@ bool_t is_remote_HeapTerm(tagged_t term, worker_t *w, worker_t *remote_w) {
   } \
 }
 
-#define CHOICE_PASS__ReverseChoice(cp,prevcp,alt) { \
-  try_node_t *m_alt = alt; \
-  cp = prevcp; \
-  alt = cp->next_alt; \
-  cp->next_alt = m_alt; \
-  prevcp = GEN_ChoiceCont00(cp,GEN_TryNodeOffset(alt)); \
+#define CHOICE_PASS__ReverseChoice(CP,PREVCP,ALT) { \
+  try_node_t *m_alt = (ALT); \
+  (CP) = (PREVCP); \
+  (ALT) = (CP)->next_alt; \
+  (PREVCP) = ChoiceCont((CP)); \
+  (CP)->next_alt = m_alt; \
 }
 
-#define CHOICE_PASS__UndoChoice(cp,prevcp,alt) { \
-  try_node_t *m_alt = alt; \
-  prevcp = cp; \
-  alt = cp->next_alt; \
-  cp->next_alt = m_alt; \
-  cp = GEN_ChoiceNext00(cp,GEN_TryNodeOffset(alt)); \
+#define CHOICE_PASS__UndoChoice(CP,PREVCP,ALT) { \
+  try_node_t *m_alt = (ALT); \
+  (PREVCP) = (CP); \
+  (ALT) = (PREVCP)->next_alt; \
+  (CP) = ChoiceNext0((PREVCP), TryNodeArity((ALT))); \
+  (PREVCP)->next_alt = m_alt; \
+}
+
+/* ------------------------------------------------------------------------- */
+
+#if defined(OPTIM_COMP)
+/* Do DO for each frame variable (*PTR) of each frame between the
+   initial frame in CP and END_FRAME. */
+#define ForEachChoiceFrameX(CP, END_FRAME, PTR, DO) { \
+  frame_t *FRAME = (CP)->frame; \
+  intmach_t FRAME_SIZE = FrameSize((CP)->next_insn); \
+  while (OffStacktop((FRAME), (END_FRAME))) { \
+    ForEachFrameX((FRAME), (FRAME_SIZE), PTR, DO); \
+    (FRAME_SIZE) = FrameSize((FRAME)->next_insn); \
+    (FRAME) = (FRAME)->frame; \
+  } \
+}
+
+/* Do DO for each frame variable (*PTR) */
+#define ForEachFrameX(FRAME, FRAME_SIZE, PTR, DO) { \
+  TG_Let(PTR, (tagged_t *)StackCharOffset((FRAME), (FRAME_SIZE))); \
+  while (PTR != (FRAME)->x) { \
+    PTR += -StackDir; \
+    DO; \
+  } \
+}
+
+/* Do DO for each variable CHOICE->x[I] in the choice point */
+#define ForEachChoiceX(CHOICE, PTR, DO) ({ \
+  intmach_t i; \
+  i = ChoiceArity((CHOICE)); \
+  TG_Let(PTR, &(CHOICE)->x[i]); \
+  for (;;) { \
+    if (i <= 0) break; \
+    i--; \
+    PTR--; \
+    DO; \
+  } \
+})
+// TODO: use this one?
+// #define ForEachChoiceX(CHOICE, PTR, DO) ForEachChoiceX2(CHOICE, ChoiceArity((CHOICE)), PTR, DO) 
+/* Do DO for each variable CHOICE->x[I] in the choice point */
+#define ForEachChoiceX2(CHOICE, ARITY, PTR, DO) ({ \
+  TG_Let(PTR, (CHOICE)->x + (ARITY)); \
+  while (PTR != (CHOICE->x)) { \
+    PTR--; \
+    DO; \
+  } \
+})
+#endif
+
+/* ------------------------------------------------------------------------- */
+
+/* TODO: is this test correct? */
+#if defined(USE_LOWRTCHECKS)
+static inline bool_t rtcheck__is_M(tagged_t *t0) {
+  TG_Let(t, t0);
+  TG_Fetch(t);
+  return TG_IsM(t);
+}
+/* must be inside the heap */
+#define ASSERT__INTORC0(X, EV) { \
+  if (!OnHeap(X)) { \
+    TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: %p out of heap cannot be relocated into %p}\n", (long)debug_inscount, (long)__LINE__, (X), (EV)); \
+  } \
+}
+/* must be inside the heap and not marked */
+#define ASSERT__INTORC(X, EV) ({ \
+  ASSERT__INTORC0((X), (EV)); \
+  if (!rtcheck__is_M((X))) { \
+    TG_Fetch(X); \
+    TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: should be marked 0x%lx (at %p)}\n", (long)debug_inscount, (long)__LINE__, (long)(TG_Val(X)), (X)); \
+  } \
+  if (rtcheck__is_M((EV))) { \
+    TG_Fetch(EV); \
+    TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: cannot relocate into marked 0x%lx (at %p)}\n", (long)debug_inscount, (long)__LINE__, (long)(TG_Val(EV)), (EV)); \
+  } \
+})
+#define ASSERT__VALID_TAGGED(X) ({ \
+  if (IsHeapPtr((X)) && !OnHeap(TaggedToPointer((X)))) { \
+    TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: out of heap cell 0x%lx wrote}\n", (long)debug_inscount, (long)__LINE__, (long)(X)); \
+  } \
+})
+#define ASSERT__NO_MARK(X) ({ \
+  if (rtcheck__is_M((X))) { \
+    TG_Fetch(X); \
+    TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: cell 0x%lx at %p is marked}\n", (long)debug_inscount, (long)__LINE__, (long)(TG_Val(X)), (X)); \
+  } \
+})
+#else
+#define ASSERT__INTORC0(X, EV)
+#define ASSERT__INTORC(X, EV)
+#define ASSERT__VALID_TAGGED(X)
+#define ASSERT__NO_MARK(X)
+#endif
+
+/* ------------------------------------------------------------------------- */
+/* Service routine for HEAPMARGIN* instructions.
+ * pad - required amount of heap space.
+ * arity - number of live X regs at this point.
+ */
+CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
+  intmach_t i;
+  frame_t *a;
+
+  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling explicit_heap_overflow\n", (intmach_t)Thread_Id);
+
+  /* ensure that w->choice is fleshed out fully i.e. do a "neck" */
+  /* arity of choicept could be greater than arity of clause */
+  /* We are still in "shallow mode" */
+  /* Pre: !IsDeep() */
+  CODE_MAYBE_NECK_TRY();
+  /* TODO: OPTIM_COMP version does not test choice overflow here! correct? */
+  
+  /* ensure that X regs are seen by heap_overflow(): make a frame */
+  CODE_ALLOC(a);
+  a->x[0] = TaggedZero;
+  for (i=0; i<arity; i++) {
+    a->x[i+1] = X(i);
+  }
+  CODE_CFRAME(a, CONTCODE(arity+1));
+
+  CVOID__CALL(heap_overflow,pad);
+  for (i=0; i<arity; i++) {
+    X(i) = a->x[i+1];
+  }
+  SetLocalTop(a);
+  DEALLOCATE(a);
+}
+
+/* ------------------------------------------------------------------------- */
+
+/* Set w->segment_choice to most recent choicept which is marked as pure. */
+static CVOID__PROTO(calculate_segment_choice) {
+#if defined(USE_SEGMENTED_GC)
+  choice_t *n;
+  w->segment_choice = NULL;
+  for (n=w->choice;
+       w->segment_choice==NULL;
+       n=ChoiceCont(n)) {
+    if (ChoiceptTestPure(n)) {
+      w->segment_choice = n;
+    }
+  }
+#else
+  w->segment_choice=InitialChoice;
+#endif
+}
+
+/* ------------------------------------------------------------------------- */
+/* Support for ANDPARALLEL (suspend/resume all WAMs) */
+
+#if defined(ANDPARALLEL)
+/* Suspend the rest of the agents and wait until that happens completely */
+CVOID__PROTO(suspend_all) {
+  worker_t *aux;
+  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
+    if (Suspend_Of(aux) == RELEASED) {
+      Suspend_Of(aux) = TOSUSPEND;
+    }
+  }
+  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
+    while (Suspend_Of(aux) == RELEASED) {
+      if (Suspend_Of(aux) == RELEASED) {
+        Suspend_Of(aux) = TOSUSPEND;
+      }
+    }
+  }
+}
+#endif
+
+#if defined(ANDPARALLEL)
+/* Wake up the rest of the agents! */
+CVOID__PROTO(resume_all) {
+  worker_t *aux;
+  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
+    if (Suspend_Of(aux) == SUSPENDED) {
+      Wait_Acquire_lock(Waiting_For_Work_Lock_Of(aux));
+      Cond_Var_Broadcast(Waiting_For_Work_Cond_Var_Of(aux));
+      Release_lock(Waiting_For_Work_Lock_Of(aux));
+    }
+  }
+}
+#endif
+
+/* =========================================================================== */
+/* Trail GC (both for gc__heap_collect and choice_overflow) */
+
+/* delete 0's from the trail of several choice points */
+CVOID__PROTO(trail__compress, bool_t from_gc) {
+  tagged_t *curr;
+  tagged_t *dest;
+  choice_t *cp;
+  choice_t *prevcp;
+  intmach_t arity MAYBE_UNUSED;
+
+  dest = TaggedToPointer(Gc_Choice_Start->trail_top);
+  curr = dest;
+  CHOICE_PASS(cp, prevcp, arity, {
+  }, {
+    tagged_t *limit;
+    limit = TaggedToPointer(cp->trail_top);
+    while (TrailYounger(limit,curr)) {
+      tagged_t cv;
+      cv = *curr;
+      curr++;
+      if (cv != (tagged_t)0) {
+        TrailPush(dest,cv);
+      }
+    }
+    cp->trail_top -= limit-dest;
+    if (from_gc) ChoiceptMarkPure(cp);
+  });
+
+  w->trail_top = dest;
 }
 
 /* =========================================================================== */
-
-static CVOID__PROTO(shunt_variables);
-static CVOID__PROTO(mark_trail_cva);
-static CVOID__PROTO(mark_frames, choice_t *cp);
-static CVOID__PROTO(mark_choicepoints);
-static CVOID__PROTO(mark_root, tagged_t *start);
-static void updateRelocationChain(tagged_t *curr, tagged_t *dest);
-static CVOID__PROTO(sweep_frames, choice_t *cp);
-static CVOID__PROTO(sweep_choicepoints);
-static CVOID__PROTO(compress_heap);
-
-#define gc_TrailStart TaggedToPointer(w->segment_choice->trail_top)
-#define gc_HeapStart (NodeGlobalTop(w->segment_choice))
-#define gc_StackStart (NodeLocalTop(w->segment_choice))
-#define gc_ChoiceStart (w->segment_choice)
-
-/* ------------------------------------------------------------------------- */
 /* GARBAGE COLLECTION ROUTINES */
 
 /* Based on the algorithms described in:
@@ -228,24 +468,24 @@ static CVOID__PROTO(compress_heap);
    (constrained variables), and undo/1 (goals on the trail).
 */
 
-/* gc global variables */
+static CVOID__PROTO(shunt_variables);
+static CVOID__PROTO(mark_trail_cva);
+static CVOID__PROTO(mark_frames, choice_t *cp);
+static CVOID__PROTO(mark_choicepoints);
+static CVOID__PROTO(mark_root, tagged_t *start);
+static CVOID__PROTO(sweep_frames, choice_t *cp);
+static CVOID__PROTO(sweep_choicepoints);
+static CVOID__PROTO(compress_heap);
 
-/*  These were shared, and a lot of havoc when concurrent GC was taking place.
-
-ptrdiff_t gc_total_grey=0;
-choice_t *gc_aux_node;
-choice_t *gc_choice_start;
-
-static tagged_t *gc_heap_start;
-static frame_t *gc_stack_start;
-static ptrdiff_t gcgrey;
-static ptrdiff_t total_found;
-static tagged_t cvas_found;
-
-*/
+#define gc_TrailStart TaggedToPointer(w->segment_choice->trail_top)
+#define gc_HeapStart (NodeGlobalTop(w->segment_choice))
+#define gc_StackStart (NodeLocalTop(w->segment_choice))
+#define gc_ChoiceStart (w->segment_choice)
 
 /* --------------------------------------------------------------------------- */
 /* The Shunting Phase */
+
+/* invariant: in shunting phase only variables are marked */
 
 #define gc_shuntVariable(shunt_dest) { \
   tagged_t shunt_src; \
@@ -326,7 +566,8 @@ static CVOID__PROTO(shunt_variables) {
     while (OffStacktop(frame,NodeLocalTop(prevcp))) {
       pt = (tagged_t *)StackCharOffset(frame,i);
       while (pt!=frame->x) {
-        if (!gc_IsMarked(*(--pt))) {
+        pt--;
+        if (!gc_IsMarked(*pt)) {
           gc_shuntVariable(*pt);
         }
       }
@@ -633,35 +874,6 @@ static CVOID__PROTO(mark_choicepoints) {
   }
 }
 
-/* delete 0's from the trail */
-CVOID__PROTO(compress_trail, bool_t from_gc) {
-  tagged_t *curr;
-  tagged_t *dest;
-  choice_t *cp;
-  choice_t *prevcp;
-  intmach_t arity MAYBE_UNUSED;
-
-  dest = TaggedToPointer(Gc_Choice_Start->trail_top);
-  curr = dest;
-  CHOICE_PASS(cp, prevcp, arity, {
-  }, {
-    tagged_t *limit;
-    limit = TaggedToPointer(cp->trail_top);
-    while (TrailYounger(limit,curr)) {
-      tagged_t cv;
-      cv = *curr;
-      curr++;
-      if (cv != (tagged_t)0) {
-        TrailPush(dest,cv);
-      }
-    }
-    cp->trail_top -= limit-dest;
-    if (from_gc) ChoiceptMarkPure(cp);
-  });
-
-  w->trail_top = dest;
-}
-
 /* --------------------------------------------------------------------------- */
 /* The Compaction Phase */
 
@@ -959,7 +1171,7 @@ CVOID__PROTO(gc__heap_collect) {
 
   CVOID__CALL(mark_trail_cva);
   CVOID__CALL(mark_choicepoints);
-  CVOID__CALL(compress_trail, TRUE);
+  CVOID__CALL(trail__compress, TRUE);
 
   Gc_Total_Grey += Gcgrey;
 #if defined(USE_GC_STATS)          
@@ -1027,120 +1239,8 @@ CVOID__PROTO(gc__heap_collect) {
 }
 
 /* =========================================================================== */
-/* Code for growing areas when full. */
-
-static CVOID__PROTO(calculate_segment_choice);
-
-/* Service routine for HEAPMARGIN* instructions.
- * pad - required amount of heap space.
- * arity - number of live X regs at this point.
- */
-CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
-  choice_t *b = w->choice;
-  intmach_t i;
-  frame_t *a;
-
-  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling explicit_heap_overflow\n", (intmach_t)Thread_Id);
-  
-  /* ensure that w->choice is fleshed out fully i.e. do a "neck" */
-  /* arity of choicept could be greater than arity of clause */
-  /* DO NOT clear w->next_alt -- we are still in "shallow mode" */
-  if (!b->next_alt) {                   /* try */
-    b->next_alt = w->next_alt; /* 4 contiguous moves */
-    b->frame = w->frame;
-    b->next_insn = w->next_insn;
-    b->local_top = w->local_top;
-    i=ChoiceArity(b);
-    if (i>0) {
-      tagged_t *t = (tagged_t *)w->previous_choice;
-      do {
-        *--(t) = X(--i);
-      } while (i>0);
-    }
-    if (ChoiceYounger(ChoiceOffset(b,CHOICEPAD),w->trail_top)) {
-      choice_overflow(Arg,CHOICEPAD,TRUE);
-      b = w->choice;
-    }
-  }
-  
-  /* ensure that X regs are seen by heap_overflow(): make a frame */
-  ComputeA(a,b);
-  a->x[0] = TaggedZero;
-  for (i=0; i<arity; i++) {
-    a->x[i+1] = X(i);
-  }
-  a->frame = w->frame;
-  a->next_insn = w->next_insn;
-  w->frame = a;
-  w->next_insn = CONTCODE(i+1);
-  w->local_top = (frame_t *)Offset(a,EToY0+i+1);
-
-  heap_overflow(Arg,pad);
-
-  for (i=0; i<arity; i++) {
-    X(i) = a->x[i+1];
-  }
-  w->local_top = a;
-  w->frame = a->frame;
-  w->next_insn = a->next_insn;
-}
-
-/* ------------------------------------------------------------------------- */
-
-/* Set w->segment_choice to most recent choicept which is marked as pure. */
-static CVOID__PROTO(calculate_segment_choice) {
-#if defined(USE_SEGMENTED_GC)
-  choice_t *n;
-  w->segment_choice = NULL;
-  for (n=w->choice;
-       w->segment_choice==NULL;
-       n=ChoiceCont(n)) {
-    if (ChoiceptTestPure(n)) {
-      w->segment_choice = n;
-    }
-  }
-#else
-  w->segment_choice=InitialChoice;
-#endif
-}
-
-/* ------------------------------------------------------------------------- */
-/* Support for ANDPARALLEL (suspend/resume all WAMs) */
-
-#if defined(ANDPARALLEL)
-/* Suspend the rest of the agents and wait until that happens completely */
-CVOID__PROTO(suspend_all) {
-  worker_t *aux;
-  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-    if (Suspend_Of(aux) == RELEASED) {
-      Suspend_Of(aux) = TOSUSPEND;
-    }
-  }
-  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-    while (Suspend_Of(aux) == RELEASED) {
-      if (Suspend_Of(aux) == RELEASED) {
-        Suspend_Of(aux) = TOSUSPEND;
-      }
-    }
-  }
-}
-#endif
-
-#if defined(ANDPARALLEL)
-/* Wake up the rest of the agents! */
-CVOID__PROTO(resume_all) {
-  worker_t *aux;
-  for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-    if (Suspend_Of(aux) == SUSPENDED) {
-      Wait_Acquire_lock(Waiting_For_Work_Lock_Of(aux));
-      Cond_Var_Broadcast(Waiting_For_Work_Cond_Var_Of(aux));
-      Release_lock(Waiting_For_Work_Lock_Of(aux));
-    }
-  }
-}
-#endif
-
-/* ------------------------------------------------------------------------- */
+/* Growing heap/choice/stack memory areas when full */
+/* (heap_overflow attempts gc__heap_collect first) */
 
 #if defined(ANDPARALLEL)
 CVOID__PROTO(heap_overflow_adjust_wam,
@@ -1182,7 +1282,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
     /* note: trail__remove_uncond not executed in compile_term */
     CVOID__CALL(calculate_segment_choice);
     CVOID__CALL(trail_gc);
-    CVOID__CALL(compress_trail,FALSE);
+    CVOID__CALL(trail__compress,FALSE);
   }
 
   /* ASSUMED: --CHOICE, TRAIL++ */
@@ -1228,7 +1328,9 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
         
         x = Choice_Start;                  /* Copy the new choicepoint stack */
         while (OffChoicetop(trb,tr)) {
-          *(--x) = *--(tr);
+          x--;
+          tr--;
+          *x = *tr;
         }
         w->choice = b = (choice_t *)(x-w->value_trail);
 
@@ -1747,6 +1849,8 @@ CVOID__PROTO(trail_gc) {
   b = w->choice;
   SetShadowregs(b);
 }
+
+/* --------------------------------------------------------------------------- */
 
 void init_gc(void) {
   current_gcmode = TRUE;
