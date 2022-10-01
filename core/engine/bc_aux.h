@@ -100,7 +100,7 @@ void ciao_initcode(void) {
     EMIT_e((EToY0+frame_size)*sizeof(tagged_t));                    /* initial FrameSize */
     EMIT_o(EXIT_TOPLEVEL);
 
-    startgoal_alt.choice_offset = GEN_ChoiceSize(1);
+    startgoal_alt.arity = 1;
     startgoal_alt.number = 0;
     startgoal_alt.emul_p = call_code;
     startgoal_alt.emul_p2 = call_code;
@@ -113,7 +113,7 @@ void ciao_initcode(void) {
     P = null_code;
     EMIT_o(EXIT_TOPLEVEL);
 
-    nullgoal_alt.choice_offset = GEN_ChoiceSize(0);
+    nullgoal_alt.arity = 0;
     nullgoal_alt.number = 0;
     nullgoal_alt.emul_p = null_code;
     nullgoal_alt.emul_p2 = null_code;
@@ -129,7 +129,7 @@ void ciao_initcode(void) {
     default_code = P;
     EMIT_o(EXIT_TOPLEVEL);
 
-    defaultgoal_alt.choice_offset = GEN_ChoiceSize(0);
+    defaultgoal_alt.arity = 0;
     defaultgoal_alt.number = 0;
     defaultgoal_alt.emul_p = default_code;
     defaultgoal_alt.emul_p2 = default_code;
@@ -162,8 +162,9 @@ static try_node_t *get_null_alt(int arity)
   try_node_t *a;
   intmach_t current_mem = total_mem_count;
 
-  for (a = null_alt; a; a = (a+1)->next)
-    if (a->choice_offset == GEN_ChoiceSize(arity)) return a;
+  for (a = null_alt; a; a = (a+1)->next) {
+    if (a->arity == arity) return a;
+  }
 
   a = (try_node_t *)checkalloc(sizeof(try_node_t)
                                + sizeof(try_node_t *)
@@ -174,7 +175,7 @@ static try_node_t *get_null_alt(int arity)
 
   INC_MEM_PROG(total_mem_count - current_mem);
 
-  a->choice_offset = GEN_ChoiceSize(arity);
+  a->arity = arity;
   a->number = 0;
   a->emul_p = insnfail;
   a->emul_p2 = insnfail;
@@ -228,7 +229,7 @@ try_node_t *def_retry_c(cbool0_t proc, int arity)
                         +2*sizeof(intmach_t)
 #endif
                         );
-  item->choice_offset = GEN_ChoiceSize(arity);
+  item->arity = arity;
   item->number = 0;
   P = item->emul_p = (bcp_t )(((char *)item)+sizeof(try_node_t));
   item->emul_p2 = P;

@@ -687,7 +687,7 @@ static void incore_insert(try_node_t **t0,
 
   /* Init the try_node to insert. */
   t = checkalloc_TYPE(try_node_t);
-  t->choice_offset = GEN_ChoiceSize(effar);
+  t->arity = effar;
   /* Last "next" is num. of clauses: we are inserting at the end of the chain */
   t->number = ref->next.number;
   t->emul_p = BCoff(ref->emulcode, BCOp(ref->emulcode, FTYPE_ctype(f_i), 0)); /* initial p: det case */
@@ -715,7 +715,7 @@ static try_node_t *incore_copy(try_node_t *from)
 
   for (; !ISNOTRY(from); from=from->next) {
     (*to) = checkalloc_TYPE(try_node_t);
-    (*to)->choice_offset = from->choice_offset;
+    (*to)->arity = from->arity;
     (*to)->number = from->number;
     (*to)->emul_p = from->emul_p;
     (*to)->emul_p2 = from->emul_p2;
@@ -2432,14 +2432,14 @@ CVOID__PROTO(show_nodes, choice_t *cp_younger, choice_t *cp_older)
   else
     next_alt = w->next_alt;
   number = next_alt->number;
-  cp_younger = GEN_ChoiceCont00(cp_younger, GEN_TryNodeOffset(next_alt));
+  cp_younger = ChoiceCont0(cp_younger, next_alt->arity);
   while(ChoiceYounger(cp_younger, cp_older)) {
     fprintf(stderr,"\n  ");
     fprintf(stderr,"0x%p:",cp_younger);
     DisplayCPFunctor(cp_younger);
     fprintf(stderr, "/%" PRIdm ",", number);
     number = cp_younger->next_alt->number;
-    cp_younger = GEN_ChoiceCont00(cp_younger, GEN_ChoiceSize0(cp_younger));
+    cp_younger = ChoiceCont0(cp_younger, ChoiceArity(cp_younger));
   }
   if (!ChoiceYounger(cp_older, cp_younger)) {
     fprintf(stderr,"\n  ");

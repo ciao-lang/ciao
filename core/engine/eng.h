@@ -1580,60 +1580,20 @@ struct marker_ {
 
 /* assuming choicestack growth in negative direction */
 
-//#define USE_CHOICE_OFFSET 1 /* comment to use arity instead of choice_offset */
-
 #define OnChoice(t) (ChoiceYounger(t,Choice_Start) && !ChoiceYounger(t,Choice_End))
 #define OffChoicetop(t,B)       ChoiceYounger(t,B)
 #define ChoiceYounger(X,Y)      ((tagged_t *)(X)<(tagged_t *)(Y))
-#define ChoiceOffset(X,O)       ((tagged_t *)(X) - (O))
 #define ChoiceCharOffset(X,O)   ((choice_t *)((char *)(X) - (O)))
-#define ChoiceDifference(X,Y)   ((tagged_t *)(X) - (tagged_t *)(Y))
 #define ChoiceCharDifference(X,Y)       ((char *)(X) - (char *)(Y))
-
-#if defined(USE_CHOICE_OFFSET)
-#define TryNodeArity(ALT) GEN_OffsetToArity((ALT)->choice_offset)
-
-#define ChoiceArity(B) OffsetToArity(ChoiceSize0((B)))
-#define ChoiceSize0(B) (B)->next_alt->choice_offset
-#define ChoiceCont(B) ChoiceCharOffset((B), -ChoiceSize0((B)))
-
-#define ChoiceSize(A)  \
-  (((A)+(SIZEOF_FLEXIBLE_STRUCT(choice_t, tagged_t, 0)/sizeof(tagged_t))) * sizeof(tagged_t))
-#define OffsetToArity(O)                                                \
-  (((O)/sizeof(tagged_t))-(SIZEOF_FLEXIBLE_STRUCT(choice_t, tagged_t, 0)/sizeof(tagged_t)))
-
+#define ChoiceArity(B) ((B)->next_alt->arity)
+#define ChoiceCont(B)           ChoiceCont0((B), ChoiceArity((B)))
 #define ChoiceCont0(B,A)        ChoiceCharOffset((B),-ChoiceSize((A)))
 #define ChoiceNext0(B,A)        ChoiceCharOffset((B),ChoiceSize((A)))
-/* (dummy for transition from choice_offset to arity) */
-#define GEN_ChoiceCont00(B,A)   ChoiceCharOffset((B),-((A))) // TODO: will be ChoiceCont0
-#define GEN_ChoiceNext00(B,A)   ChoiceCharOffset((B),((A))) // TODO: will be ChoiceNext0
-#define GEN_ChoiceSize0(X) ChoiceSize0((X)) // TODO: will be ChoiceArity
-#define GEN_ChoiceSize(X) ChoiceSize((X)) // TODO: will be identity
-#define GEN_OffsetToArity(X) OffsetToArity((X)) // TODO: will be identity
-#define GEN_TryNodeOffset(X) ((X)->choice_offset) // TODO: will be TryNodeArity
-#else
-//#define ChoiceArity(B) ((B)->next_alt->arity)
-//#define ChoiceSize(ARITY) (sizeof(choice_t) + (ARITY)*sizeof(tagged_t))
-//#define ChoiceCont(B)           ChoiceCont0((B), ChoiceArity((B)))
-// TODO: rename choice_offset to arity
-#define TryNodeArity(ALT) ((ALT)->choice_offset)
 
-#define ChoiceArity(B) ((B)->next_alt->choice_offset)
-#define ChoiceCont(B) ChoiceCont0((B), ChoiceArity((B)))
+#define ChoiceSize(A) SIZEOF_FLEXIBLE_STRUCT(choice_t, tagged_t, (A))
 
-#define ChoiceSize(A) ((A)*sizeof(tagged_t)+(SIZEOF_FLEXIBLE_STRUCT(choice_t, tagged_t, 0)))
-
-#define ChoiceCont0(B,A)        ChoiceCharOffset((B),-ChoiceSize((A)))
-#define ChoiceNext0(B,A)        ChoiceCharOffset((B),ChoiceSize((A)))
-/* (dummy for transition from choice_offset to arity) */
-#define GEN_ChoiceCont00(B,A)   ChoiceCont0((B),((A))) // TODO: will be ChoiceCont0 [OK]
-#define GEN_ChoiceNext00(B,A)   ChoiceNext0((B),((A))) // TODO: will be ChoiceNext0 [OK]
-#define GEN_ChoiceSize0(X) ChoiceArity((X)) // TODO: will be ChoiceArity [OK]
-#define GEN_ChoiceSize(X) (X) // TODO: will be identity [OK]
-#define GEN_OffsetToArity(X) (X) // TODO: will be identity
-#define GEN_TryNodeOffset(X) TryNodeArity((X)) // TODO: will be TryNodeArity
-
-#endif
+#define ChoiceOffset(X,O)       ((tagged_t *)(X) - (O))
+#define ChoiceDifference(X,Y)   ((tagged_t *)(X) - (tagged_t *)(Y))
 
 #if defined(USE_TAGGED_CHOICE_START)
 #define ChoiceFromTagged(Y) (ChoiceCharOffset(Tagged_Choice_Start,Y))
@@ -1872,8 +1832,7 @@ struct try_node_ {
   try_node_t *next;                      /* Next alternative or NULL */
   bcp_t emul_p;                    /* write mode or not first alternative */
   bcp_t emul_p2;                          /* read mode, first alternative */
-  //short choice_offset;                   /* offset from choicepoint to next */
-  intmach_t choice_offset;                 /* offset from choicepoint to next */
+  intmach_t arity;                 /* arity of this choicepoint */
   /*short number;*/
   uintmach_t number;                /* clause number for this alternative */
                              /* Gauge specific fields MUST come after this*/

@@ -202,25 +202,21 @@ bool_t is_remote_HeapTerm(tagged_t term, worker_t *w, worker_t *remote_w) {
 /* --------------------------------------------------------------------------- */
 /* Do a backward and forward pass over the choice stack */
 
-#if defined(OPTIM_COMP)
-#define TryNodeArity(ALT) ((ALT)->arity)
-#endif
-
 /* TODO: document: Gc_Aux_Choice is the newest choice and Gc_Choice_Start the oldest */
 #define CHOICE_PASS(CP, PREVCP, ARITY, BACKWARD, FORWARD) { \
   try_node_t *ALT; \
   (CP) = Gc_Aux_Choice; \
   (PREVCP) = w->choice; \
   (ALT) = fail_alt; \
-  (ARITY) = TryNodeArity((ALT)); \
+  (ARITY) = (ALT)->arity; \
   while (ChoiceYounger((CP),Gc_Choice_Start)) { \
     BACKWARD; \
     CHOICE_PASS__ReverseChoice((CP),(PREVCP),(ALT)); \
-    (ARITY) = TryNodeArity((ALT)); \
+    (ARITY) = (ALT)->arity; \
   } \
   while (ChoiceYounger(Gc_Aux_Choice,(CP))) { \
     CHOICE_PASS__UndoChoice((CP),(PREVCP),(ALT)); \
-    (ARITY) = TryNodeArity((ALT)); \
+    (ARITY) = (ALT)->arity; \
     FORWARD; \
   } \
 }
@@ -237,7 +233,7 @@ bool_t is_remote_HeapTerm(tagged_t term, worker_t *w, worker_t *remote_w) {
   try_node_t *m_alt = (ALT); \
   (PREVCP) = (CP); \
   (ALT) = (PREVCP)->next_alt; \
-  (CP) = ChoiceNext0((PREVCP), TryNodeArity((ALT))); \
+  (CP) = ChoiceNext0((PREVCP), (ALT)->arity); \
   (PREVCP)->next_alt = m_alt; \
 }
 
@@ -828,8 +824,8 @@ static CVOID__PROTO(mark_choicepoints) {
   tagged_t *limit;
 
   while (ChoiceYounger(cp,Gc_Choice_Start)) {
-    intmach_t n = GEN_ChoiceSize0(cp);
-    intmach_t i = GEN_OffsetToArity(n);
+    intmach_t n = ChoiceArity(cp);
+    intmach_t i = n;
 
     CVOID__CALL(mark_frames, cp);
     while ((i--)>0) {
@@ -837,7 +833,7 @@ static CVOID__PROTO(mark_choicepoints) {
         MarkRoot(&cp->x[i]);
       }
     }
-    cp = GEN_ChoiceCont00(cp, n);
+    cp = ChoiceCont0(cp, n);
 
     /* mark goals and unbound constrained variables;
        reset unmarked bound variables
@@ -970,8 +966,8 @@ static CVOID__PROTO(sweep_choicepoints) {
   choice_t *cp = Gc_Aux_Choice;
 
   while (ChoiceYounger(cp,Gc_Choice_Start)) {
-    intmach_t n = GEN_ChoiceSize0(cp);
-    intmach_t i = GEN_OffsetToArity(n);
+    intmach_t n = ChoiceArity(cp);
+    intmach_t i = n;
 
     sweep_frames(Arg, cp);
     while ((i--)>0) {
@@ -983,7 +979,7 @@ static CVOID__PROTO(sweep_choicepoints) {
         intoRelocationChain(p, &cp->x[i]);
       }
     }
-    cp = GEN_ChoiceCont00(cp, n);
+    cp = ChoiceCont0(cp, n);
   }
 }
 
