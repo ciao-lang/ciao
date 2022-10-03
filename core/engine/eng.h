@@ -1480,20 +1480,36 @@ struct marker_ {
 
 #endif
 
+#define USE_TRAIL_TOP_MARKS 1
+
+#if defined(USE_TRAIL_TOP_MARKS)
+#define CHPTFLG(X) 
+#define TrailTopUnmark(X) TaggedToPointer((X))
+//
 #define ChoiceptMarkPure(b) (*(tagged_t *)(&(b)->trail_top) |= 1)
 #define ChoiceptTestPure(b) ((tagged_t)(b)->trail_top & 1)
-
+//
 #define ChoiceptMarkStatic(b) (*(tagged_t *)(&(b)->trail_top) |= 2)
 #define ChoiceptTestStatic(b) ((tagged_t)(b)->trail_top & 2)
-
+//
 #define NoCVA_MARK ((tagged_t)1<<(tagged__size-1))
-
+//
 #if (SMALLPTR_BASE>>(tagged__size-1) & 0x1)
 #define ChoiceptMarkNoCVA(b) (*(tagged_t *)(&(b)->trail_top) &= ~NoCVA_MARK)
 #define ChoiceptTestNoCVA(b) (!((tagged_t)(b)->trail_top & NoCVA_MARK))
 #else
 #define ChoiceptMarkNoCVA(b) (*(tagged_t *)(&(b)->trail_top) |= NoCVA_MARK)
 #define ChoiceptTestNoCVA(b) ((tagged_t)(b)->trail_top & NoCVA_MARK)
+#endif
+#else
+#define CHPTFLG(X) X
+#define TrailTopUnmark(X) ((X))
+#define ChoiceptMarkPure(B) ((B)->flags |= 1)
+#define ChoiceptTestPure(B) ((B)->flags & 1)
+#define ChoiceptMarkStatic(B) ((B)->flags |= 2)
+#define ChoiceptTestStatic(B) ((B)->flags & 2)
+#define ChoiceptMarkNoCVA(B) ((B)->flags |= 4)
+#define ChoiceptTestNoCVA(B) ((B)->flags & 4)
 #endif
 
 /* ------------------------------------------------------------------------- */

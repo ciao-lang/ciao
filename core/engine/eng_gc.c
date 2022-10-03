@@ -427,12 +427,12 @@ CVOID__PROTO(trail__compress, bool_t from_gc) {
   choice_t *prevcp;
   intmach_t arity MAYBE_UNUSED;
 
-  dest = TaggedToPointer(Gc_Choice_Start->trail_top);
+  dest = TrailTopUnmark(Gc_Choice_Start->trail_top);
   curr = dest;
   CHOICE_PASS(cp, prevcp, arity, {
   }, {
     tagged_t *limit;
-    limit = TaggedToPointer(cp->trail_top);
+    limit = TrailTopUnmark(cp->trail_top);
     while (TrailYounger(limit,curr)) {
       tagged_t cv;
       cv = *curr;
@@ -470,7 +470,7 @@ static CVOID__PROTO(sweep_frames, choice_t *cp);
 static CVOID__PROTO(sweep_choicepoints);
 static CVOID__PROTO(compress_heap);
 
-#define gc_TrailStart TaggedToPointer(w->segment_choice->trail_top)
+#define gc_TrailStart TrailTopUnmark(w->segment_choice->trail_top)
 #define gc_HeapStart (NodeGlobalTop(w->segment_choice))
 #define gc_StackStart (NodeLocalTop(w->segment_choice))
 #define gc_ChoiceStart (w->segment_choice)
@@ -502,7 +502,7 @@ static CVOID__PROTO(shunt_variables) {
     /* backward pass */
     /* all variables in the trail has a value given in the future */
     /* (leave unmarked only the more recent trail entry for each variable) */
-    limit = TaggedToPointer(prevcp->trail_top);
+    limit = TrailTopUnmark(prevcp->trail_top);
     while (TrailYounger(pt,limit)) {
       TrailDec(pt);
       tagged_t v = *pt; // (pt points to the popped element)
@@ -517,8 +517,8 @@ static CVOID__PROTO(shunt_variables) {
     /* forward pass */
     /* variables trailed in this choicepoint do not have a value given
        in the future */
-    limit = TaggedToPointer(cp->trail_top);
-    pt = TaggedToPointer(prevcp->trail_top);
+    limit = TrailTopUnmark(cp->trail_top);
+    pt = TrailTopUnmark(prevcp->trail_top);
     while (TrailYounger(limit,pt)) {
       tagged_t v = *pt++;
 
@@ -528,7 +528,7 @@ static CVOID__PROTO(shunt_variables) {
     }
     /* shunt variables trailed in this choicepoint (may point out of
        the choice heap segment) */
-    pt = TaggedToPointer(prevcp->trail_top);
+    pt = TrailTopUnmark(prevcp->trail_top);
     while (TrailYounger(limit,pt)) {
       tagged_t v = *pt++;
       if (gc_IsMarked(v)) {
@@ -792,7 +792,7 @@ static CVOID__PROTO(mark_choicepoints) {
   {
     /* First mark all trailed old variables */
     tagged_t *tr = w->trail_top;
-    tagged_t *limit = TaggedToPointer(Gc_Choice_Start->trail_top);
+    tagged_t *limit = TrailTopUnmark(Gc_Choice_Start->trail_top);
     while (TrailYounger(tr,limit)) {
       TrailDec(tr);
       tagged_t v = *tr; // (tr points to the popped element)
@@ -836,7 +836,7 @@ static CVOID__PROTO(mark_choicepoints) {
        reset unmarked bound variables
        between cp->trail_top and tr */
 
-    limit = TaggedToPointer(cp->trail_top);
+    limit = TrailTopUnmark(cp->trail_top);
     while (TrailYounger(tr,limit)) {
       TrailDec(tr);
       tagged_t v = *tr; // (tr points to the popped element)
@@ -933,7 +933,7 @@ static CVOID__PROTO(sweep_choicepoints) {
   tagged_t v, *p;
 
   tr = w->trail_top;
-  tagged_t *limit = TaggedToPointer(Gc_Choice_Start->trail_top);
+  tagged_t *limit = TrailTopUnmark(Gc_Choice_Start->trail_top);
   while (TrailYounger(tr,limit)) {
     TrailDec(tr);
     v = *tr; // (tr points to the popped element)
@@ -1778,6 +1778,7 @@ CVOID__PROTO(trail_gc) {
   /*extern choice_t *gc_choice_start;*/ /* No in a register */
 
   Gc_Aux_Choice = ChoiceNext0(b,0);
+  CHPTFLG(Gc_Aux_Choice->flags = 0);
   Gc_Aux_Choice->next_alt = fail_alt;
   Gc_Aux_Choice->trail_top = tr;
   Gc_Choice_Start = w->segment_choice;
@@ -1792,7 +1793,7 @@ CVOID__PROTO(trail_gc) {
     tagged_t *x;
     tagged_t t1;
       
-    for (x=TaggedToPointer(b->trail_top); TrailYounger(tr,x); x++) {
+    for (x=TrailTopUnmark(b->trail_top); TrailYounger(tr,x); x++) {
       if (TaggedIsHVA(t1 = *x)) {
         if (*TagpPtr(HVA,t1) & 1) {
           *TrailOffset(x,-1) = *x = heap_last;
@@ -1806,7 +1807,7 @@ CVOID__PROTO(trail_gc) {
        Keep count of relevant entries.  Turn mark bits off.
        Go from new to old. */
     SetShadowregs(b);
-    x=TaggedToPointer(b->trail_top);
+    x=TrailTopUnmark(b->trail_top);
     while (TrailYounger(tr,x)){
       tagged_t t1;
 

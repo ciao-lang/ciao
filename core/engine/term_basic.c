@@ -109,7 +109,7 @@ CBOOL__PROTO(prolog_copy_term) {
 
   copy_it(Arg,&w->frame->x[0]); /* do the copying */
 
-  pt1 = pt2 = TaggedToPointer(w->choice->trail_top); /* untrail */
+  pt1 = pt2 = TrailTopUnmark(w->choice->trail_top); /* untrail */
   while (TrailYounger(w->trail_top,pt2)) {
     t1 = *pt2; /* old var */
     pt2++;
@@ -204,7 +204,7 @@ CBOOL__PROTO(prolog_copy_term_nat)
 
   copy_it_nat(Arg,&w->frame->x[0]); /* do the copying */
 
-  pt1 = pt2 = TaggedToPointer(w->choice->trail_top); /* untrail */
+  pt1 = pt2 = TrailTopUnmark(w->choice->trail_top); /* untrail */
   while (TrailYounger(w->trail_top,pt2)) {
     t1 = *pt2; /* old var */
     pt2++;
@@ -478,11 +478,11 @@ CBOOL__PROTO(prolog_unifiable)
 
   /* Makes sure there is enough place in the heap to construct the
      unfiers list. */
-  GCTEST((w->trail_top - TaggedToPointer(w->choice->trail_top)) * 5);
+  GCTEST((w->trail_top - TrailTopUnmark(w->choice->trail_top)) * 5);
 
   t = atom_nil;
   tr = w->trail_top;
-  limit = TaggedToPointer(w->choice->trail_top);
+  limit = TrailTopUnmark(w->choice->trail_top);
    
   while (TrailYounger(tr, limit)) {
     TrailDec(tr);

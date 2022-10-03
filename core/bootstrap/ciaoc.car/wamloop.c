@@ -301,7 +301,7 @@ fprintf(stderr, "********** what happened here?\n");
 });
 ResetWakeCount();SetB(w->choice);
 ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );
-if (TrailYounger(pt2=w->trail_top,t1=(tagged_t)TaggedToPointer(B->trail_top))) {
+if (TrailYounger(pt2=w->trail_top,t1=(tagged_t)TrailTopUnmark(B->trail_top))) {
 do {
 PlainUntrail(pt2,t0,{
 goto undo;
@@ -669,6 +669,7 @@ w->choice = B;
 ON_DEBUG_NODE({B->functor = NULL;
 });
 B->next_alt = NULL;
+CHPTFLG(B->flags = 0);
 B->trail_top = w->trail_top;
 B->heap_top = w->heap_top;
 NewShadowregs(w->heap_top);
@@ -2247,6 +2248,7 @@ w->choice = B;
 ON_DEBUG_NODE({B->functor = NULL;
 });
 B->next_alt = NULL;
+B->flags = 0;
 B->trail_top = w->trail_top;
 B->heap_top = H;
 NewShadowregs(H);

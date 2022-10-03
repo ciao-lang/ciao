@@ -65,6 +65,7 @@
   (B) = ChoiceNext0(w->choice, ChoiceArity(G)); \
   w->choice = (B); \
   NewShadowregs(G->heap_top); \
+  CHPTFLG((B)->flags = 0); \
   (B)->trail_top = G->trail_top; \
   (B)->heap_top = G->heap_top; \
   (B)->local_top = G->local_top; \

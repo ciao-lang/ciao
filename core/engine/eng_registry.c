@@ -1865,9 +1865,7 @@ void glb_init_each_time(void)
   compute_cwd();
 }
 
-CVOID__PROTO(local_init_each_time)
-{
-                
+CVOID__PROTO(local_init_each_time) {
   /* Debugger state globals moved to per-thread variables because of
      reallocations of the atoms they point to when expanding the heap
      --- this caused the program to break, since a C variable could be
@@ -1888,8 +1886,8 @@ CVOID__PROTO(local_init_each_time)
   Gc_Total_Grey = 0;
 
   /* Initialize some top registers */
-  Arg->heap_top = Heap_Start;
-  Arg->trail_top = Trail_Start;
+  w->heap_top = Heap_Start;
+  w->trail_top = Trail_Start;
 
 #if defined(USE_GLOBAL_VARS)
   /* Initialize heap region for global variables (make sure this is
@@ -1912,21 +1910,22 @@ CVOID__PROTO(local_init_each_time)
 #endif
 
   /* Setup initial frame */
-  Arg->frame = (frame_t *)Stack_Start;
-  Arg->local_top = (frame_t *)Offset(Arg->frame,EToY0);
-  Arg->frame->next_insn = NULL;   
-  Arg->frame->frame = NULL;
+  w->frame = (frame_t *)Stack_Start;
+  w->local_top = (frame_t *)Offset(w->frame,EToY0);
+  w->frame->next_insn = NULL;   
+  w->frame->frame = NULL;
 
   /* Setup initial choicepoint */
   choice_t *b = InitialNode;
-  Arg->choice = b;                            
-  b->frame = Arg->frame;
+  w->choice = b;                            
+  b->frame = w->frame;
 
   b->next_alt = termcode;
 
-  b->local_top = Arg->local_top;
-  b->heap_top = Arg->heap_top;
-  b->trail_top = Arg->trail_top;
+  b->local_top = w->local_top;
+  b->heap_top = w->heap_top;
+  CHPTFLG(b->flags = 0);
+  b->trail_top = w->trail_top;
   b->next_insn = exitcode;
   b->x[0] = atom_nil;
 
@@ -1934,14 +1933,14 @@ CVOID__PROTO(local_init_each_time)
   ChoiceptMarkStatic(b);
   ChoiceptMarkNoCVA(b);
                                 
-  NewShadowregs(Arg->heap_top);
-  Arg->next_alt = NULL;
+  NewShadowregs(w->heap_top);
+  w->next_alt = NULL;
 
-  Arg->value_trail = (int)InitialValueTrail;
+  w->value_trail = (int)InitialValueTrail;
   TopConcChpt = b; /* Initialize concurrent topmost choicepoint */
 
-  Arg->next_insn = bootcode;
-  Arg->misc->exit_code = 0;
+  w->next_insn = bootcode;
+  w->misc->exit_code = 0;
   Stop_This_Goal(Arg) = FALSE;
   UnsetEvent();
 
@@ -1951,7 +1950,7 @@ CVOID__PROTO(local_init_each_time)
   if (debug_threads)
     printf("%d (%d) Initializing WAM %x: node = %x, trail = %x, frame = %x\n",
            (int)Thread_Id, (int)GET_INC_COUNTER, (int)Arg,
-           (int)b, (int)Arg->trail_top, (int)Arg->frame);
+           (int)b, (int)w->trail_top, (int)w->frame);
 #endif
   init_streams_each_time(Arg);       /* set misc. variables, handle signals */
   control_c_normal(Arg);                               /* For threads also? */

@@ -3565,7 +3565,7 @@ code_fail :-
     %
     "ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );", fmt:nl,
     %
-    if("TrailYounger(pt2=w->trail_top,t1=(tagged_t)TaggedToPointer(B->trail_top))",
+    if("TrailYounger(pt2=w->trail_top,t1=(tagged_t)TrailTopUnmark(B->trail_top))",
       (do_while(
         ("PlainUntrail(", "pt2", ",", "t0", ",", "{", fmt:nl,
          goto('undo'),

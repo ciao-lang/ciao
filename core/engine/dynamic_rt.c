@@ -181,6 +181,7 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
     w->previous_choice = w->choice;
     w->choice = ChoiceNext0(w->choice,DynamicPreserved);
     w->choice->next_alt = NULL;
+    CHPTFLG(w->choice->flags = 0);
     w->choice->trail_top = w->trail_top;
     w->choice->heap_top = w->heap_top;
     NewShadowregs(w->heap_top);
@@ -525,6 +526,7 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
     w->choice = ChoiceNext0(w->choice,DynamicPreserved);
     TopConcChpt = (choice_t *)w->choice;  /* Update dynamic top */
     w->choice->next_alt = NULL;
+    CHPTFLG(w->choice->flags = 0);
     w->choice->trail_top = w->trail_top;
     w->choice->heap_top = w->heap_top;
     NewShadowregs(w->heap_top);

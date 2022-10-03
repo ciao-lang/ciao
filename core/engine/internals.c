@@ -1996,7 +1996,7 @@ CBOOL__PROTO(setarg)
   
   if ((X(3)==atom_on) && CondHVA(Tagp(HVA,ptr))) {
     /* undo setarg upon backtracking */
-    tagged_t *limit = TaggedToPointer(w->choice->trail_top);
+    tagged_t *limit = TrailTopUnmark(w->choice->trail_top);
     
     /* check first if location already trailed is same segment */
     t1 = Tagp(HVA,ptr);
@@ -2165,6 +2165,7 @@ CFUN__PROTO(find_constraints, intmach_t, tagged_t *limit)
   
   cp = purecp = ChoiceNext0(w->choice,0);
   cp->next_alt = fail_alt;
+  CHPTFLG(cp->flags = 0);
   cp->trail_top = w->trail_top;
   cp->heap_top = w->heap_top;
   *w->trail_top = atom_nil;

@@ -967,7 +967,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
       *TaggedToPointer(t0) = t0;
     }
   }
-  Arg->trail_top = pt2;
+  w->trail_top = pt2;
   x_variables = pt2-trail_origo;
 
                                 /* ensure enough X registers */
@@ -1061,7 +1061,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   }
 
   pt2 = Arg->trail_top;
-  Arg->trail_top = trail_origo+DynamicPreserved;
+  w->trail_top = trail_origo+DynamicPreserved;
   while (TrailYounger(pt2,Arg->trail_top)) {
     PlainUntrail(pt2,t0,{});
   }
@@ -1440,6 +1440,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   GetFrameTop(w->local_top,b,G->frame);
   w->choice = b = ChoiceNext0(b,0);
   b->next_alt = NULL;
+  CHPTFLG(b->flags = 0);
   b->trail_top = w->trail_top;
   b->heap_top = w->heap_top;
   NewShadowregs(w->heap_top);
@@ -1454,7 +1455,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   
   ResetWakeCount();
   b = w->choice;
-  t2 = (tagged_t)TaggedToPointer(b->trail_top);
+  t2 = (tagged_t)TrailTopUnmark(b->trail_top);
   pt1 = w->trail_top;
   if (TrailYounger(pt1, t2)) {
     do {

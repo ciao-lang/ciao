@@ -41,6 +41,7 @@ CVOID__PROTO(push_choicept, try_node_t *alt) {
   w->choice = b;
   NewShadowregs(w->heap_top);
 
+  CHPTFLG(b->flags = 0);
   b->trail_top = w->trail_top;
   b->heap_top = w->heap_top;
   b->next_alt = alt;

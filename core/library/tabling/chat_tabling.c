@@ -198,7 +198,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
         {
           printf("\nNode %p=%p trail value %p=%p\n",
                  inode,inode->next_alt,inode->trail_top,
-                 (void*)*TaggedToPointer(inode->trail_top));
+                 (void*)*TrailTopUnmark(inode->trail_top));
         }
       for (itrail = Arg->trail_top; 
            !TrailYounger(oldGen->choice->trail_top,itrail); itrail--)
@@ -378,7 +378,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
         {
           printf("\nNode %p=%p trail value %p=%p\n",
                  inode,inode->next_alt,inode->trail_top,
-                 (void*)*TaggedToPointer(inode->trail_top));
+                 (void*)*TrailTopUnmark(inode->trail_top));
         }
       for (itrail = Arg->trail_top; 
            !TrailYounger(oldGen->choice->trail_top,itrail); itrail--)
