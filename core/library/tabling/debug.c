@@ -123,7 +123,7 @@ CBOOL__PROTO(tabling_stats_c){
 
   /* printf("Heap   (%p-%p)  heap_top  = (%p) %d \n", */
   /*     Heap_Start, Heap_End, w->heap_top, (int)HeapDifference(Heap_Start, w->heap_top)); */
-  /* ComputeA(newa,w->choice); */
+  /* GetFrameTop(newa,w->choice,G->frame); */
   /* printf("Stack  (%p-%p)  local_top   = (%p) %d \n", */
   /*     Stack_Start, Stack_End, newa, (int)StackDifference(Stack_Start, newa)); */
   /* printf("Trail  (%p-%p)  trail_top   = (%p) %d \n", */

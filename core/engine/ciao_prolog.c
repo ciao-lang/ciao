@@ -60,7 +60,7 @@
 #define SetDeep() ({ w->next_alt = NULL; })
 // TODO: missing test_choice_overflow
 #define CODE_CHOICE_NEW(B, ALT) ({ \
-  ComputeA(w->local_top,w->choice); /* get_frame_top */ \
+  GetFrameTop(w->local_top,w->choice,G->frame); /* get_frame_top */ \
   G->next_alt = (ALT); \
   (B) = ChoiceNext0(w->choice, ChoiceArity(G)); \
   w->choice = (B); \
@@ -78,7 +78,6 @@
     (B)->x[i] = w->x[i]; \
   } \
 })
-#define CODE_ALLOC(Frame) ComputeE_((Frame))
 // TODO: missing set event on frame overflow
 #define CODE_CFRAME(Frame, NextInsn) ({ \
   (Frame)->next_insn = G->next_insn; \

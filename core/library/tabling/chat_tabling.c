@@ -181,7 +181,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
   Arg->choice = PREV_CP(Arg->choice);
 
   //Computing local_top
-  ComputeA(Arg->local_top,Arg->choice);
+  GetFrameTop(Arg->local_top,Arg->choice,G->frame);
   
   //Check if last execution path has to be swapped.
   if (oldGen->answer_cp != NULL) 
@@ -549,7 +549,7 @@ CBOOL__PROTO(abolish_all_tables_c) {
   DEALLOC_GLOBAL_TABLE;
 
 //  printf("\nTOTAL MEMORY %g\n",(total_memory-24816)/(double)1024);
-//  ComputeA(Arg->local_top,Arg->choice);
+//  GetFrameTop(Arg->local_top,Arg->choice,G->frame);
 //  printf("\nINIT %d %d %d %d %d\n",
 //       HeapCharDifference(Arg->heap_start,Arg->heap_top),
 //       StackCharDifference(Arg->stack_start,Arg->local_top),
@@ -627,7 +627,7 @@ CBOOL__PROTO(tabled_call_c) {
       //TODO - replicate for constraints
 #if defined(SWAPPING)
       //tricky frame for swapping
-      ComputeA(Arg->local_top,Arg->choice);
+      GetFrameTop(Arg->local_top,Arg->choice,G->frame);
       Arg->local_top->next_insn = &dummy_frame_op;
       Arg->local_top->frame = Arg->frame;
       Arg->frame = Arg->local_top;
@@ -894,7 +894,7 @@ CBOOL__PROTO(execute_call_c)
 
 #if defined(SWAPPING)
       //tricky frame for swapping
-      ComputeA(Arg->local_top,Arg->choice);
+      GetFrameTop(Arg->local_top,Arg->choice,G->frame);
       Arg->local_top->next_insn = &dummy_frame_op;
       Arg->local_top->frame = Arg->frame;
       Arg->frame = Arg->local_top;
@@ -1321,7 +1321,7 @@ CBOOL__PROTO(new_answer_c) {
   printf("\nnew_answer START\n"); fflush(stdout);
 #endif
 
-//  ComputeA(Arg->local_top,Arg->choice);
+//  GetFrameTop(Arg->local_top,Arg->choice,G->frame);
 //  int current_memory = HeapCharDifference(Arg->heap_start,Arg->heap_top);
 //  current_memory += StackCharDifference(Arg->stack_start,Arg->local_top);
 //  current_memory += TrailCharDifference(Arg->trail_start,Arg->trail_top);

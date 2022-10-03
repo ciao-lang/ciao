@@ -123,32 +123,17 @@ CVOID__PROTO(wr_call, char *s, definition_t *func);
 /* ------------------------------------------------------------------------- */
 
 #define Setfunc(X)      { P = (bcp_t)(X); }
-#define SetA(Frame,Ptr) { \
-  w->local_top = (frame_t *)(Ptr); \
-}
 
 #define SETUP_PENDING_CALL(ADDR) { \
-  ComputeE;                           \
+  CODE_ALLOC(pt1);                                    \
   Y(0) = PointerToTerm(Func);                         \
   for(i=0; i<Func->arity; i++) Y(i+1) = X(i);         \
   E->next_insn = w->next_insn;                        \
   E->frame = w->frame;                                \
   w->frame = E;                                        \
   w->next_insn = CONTCODE(i+1);                        \
-  SetA(E,Offset(E,EToY0+i+1));                         \
+  w->local_top = (frame_t *)Offset(E,EToY0+i+1); \
   Setfunc(ADDR);                                       \
-}
-
-#define ComputeE ComputeE_(pt1)
-/* Do not edit this defn - it's a special case of ComputeA. */
-#define ComputeE_(Frame) { \
-  if (w->local_top) {                                        \
-    Frame = (typeof(Frame))w->local_top;                     \
-  } else {                                                   \
-    Frame = (typeof(Frame))NodeLocalTop(w->choice);           \
-    if (!StackYounger(Frame,w->frame))                              \
-      Frame = (typeof(Frame))StackCharOffset(w->frame,FrameSize(w->next_insn)); \
-  }                                                     \
 }
 
 /* ------------------------------------------------------------------------- */

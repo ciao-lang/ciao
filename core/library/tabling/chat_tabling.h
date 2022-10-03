@@ -67,7 +67,7 @@ extern tagged_t atom_gen_tree_backtracking;
     (*(CALLID))->last_ans = NULL;                                       \
     (*(CALLID))->first_cons = NULL;                                     \
     (*(CALLID))->last_cons = NULL;                                      \
-    ComputeA(Arg->local_top,Arg->choice);                                 \
+    GetFrameTop(Arg->local_top,Arg->choice,G->frame);                   \
     (*(CALLID))->local_top = Arg->local_top;                            \
     (*(CALLID))->heap_top = Arg->heap_top;                              \
     (*(CALLID))->stack_freg = StackFReg;                                \

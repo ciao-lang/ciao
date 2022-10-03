@@ -2325,7 +2325,7 @@ CBOOL__PROTO(statistics)
              "   global stack   %10" PRIdm " bytes:%" PRIdm " in use,%10" PRIdm " free\n",
              used+free, used, free);
 
-  ComputeA(newa,w->choice);
+  GetFrameTop(newa,w->choice,G->frame);
   used = StackCharDifference(Stack_Start,newa);
   free = StackCharDifference(newa,Stack_End);
   StreamPrintf(s,

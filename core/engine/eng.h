@@ -427,25 +427,25 @@
 #define NodeLocalTop(Node)                                      \
   (((Node)->heap_top != (tagged_t*)(&(HeapFReg))) ?           \
    (Node)->local_top : StackFReg)
-
 #define NodeGlobalTop(Node)                                     \
   (((Node)->heap_top != (tagged_t*)(&(HeapFReg))) ?           \
    (Node)->heap_top : HeapFReg)
-
 #else
 #define NodeLocalTop(Node)  (Node)->local_top
-
 #define NodeGlobalTop(Node) (Node)->heap_top
 #endif
 
-/* If you edit this defn you must update ComputeE as well. */
-#define ComputeA(A,B) \
-{ \
-  if (w->local_top) \
-    (A) = w->local_top; \
-  else if (!StackYounger((A) = NodeLocalTop(B),w->frame)) \
-    (A) = StackCharOffset(w->frame,FrameSize(w->next_insn)); \
-}
+#define GetFrameTop(A,B,Frame) do { \
+  if (w->local_top) { \
+    (A) = (typeof(A))w->local_top; \
+  } else { \
+    (A) = (typeof(A))NodeLocalTop(B); \
+    if (!StackYounger((A),(Frame))) { \
+      (A) = (typeof(A))StackCharOffset((Frame),FrameSize(w->next_insn)); \
+    } \
+  } \
+} while(0);
+#define CODE_ALLOC(Frame) GetFrameTop((Frame),w->choice,G->frame)
 
 #define NewShadowregs(Gtop) \
 { \

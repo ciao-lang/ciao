@@ -108,7 +108,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);
 static inline CVOID__PROTO(push_gc_frame, intmach_t i) {
   choice_t *b = w->choice;
   frame_t *a;
-  ComputeA(a,b);
+  GetFrameTop(a,b,G->frame);
   a->frame = w->frame;
   a->next_insn = w->next_insn;
   w->frame = a;

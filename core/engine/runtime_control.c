@@ -37,7 +37,7 @@ CVOID__PROTO(push_choicept, try_node_t *alt) {
   tagged_t *b0 = (tagged_t *)w->choice;
   choice_t *b = ChoiceNext0(b0,n);
 
-  ComputeA(w->local_top,w->choice);
+  GetFrameTop(w->local_top,w->choice,G->frame);
   w->choice = b;
   NewShadowregs(w->heap_top);
 

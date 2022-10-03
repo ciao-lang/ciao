@@ -285,7 +285,7 @@ E->frame = w->frame;
 E->next_insn = w->next_insn;
 w->frame = E;
 w->next_insn = failcode;
-SetA(E,Offset(E,EToY0));
+w->local_top = (frame_t *)Offset(E,EToY0);
 LoadH;
 X(0) = t0;
 goto call1;
@@ -663,10 +663,7 @@ P = Alts->emul_p2;
 w->previous_choice = w->choice;
 if ((w->next_alt=Alts->next)!=NULL) {
 SetB(w->choice);
-if (w->local_top) {
-;                } else if (!StackYounger(w->local_top = NodeLocalTop(B),w->frame)) {
-w->local_top = StackCharOffset(w->frame,FrameSize(w->next_insn));
-                }
+GetFrameTop(w->local_top,B,G->frame);
 SetB(ChoiceNext0(B,ChoiceArity(w)));
 w->choice = B;
 ON_DEBUG_NODE({B->functor = NULL;
@@ -1289,7 +1286,7 @@ Xb(BcP(f_x, 1)) = ChoiceToTagged(w->previous_choice);
 P += FTYPE_size(f_x);
 goto ReadMode;
 case CHOICE_YF:
-ComputeE;
+CODE_ALLOC(pt1);
 goto r_choice_y;
 r_choice_y:
 case CHOICE_Y:
@@ -1386,7 +1383,7 @@ Xb(BcP(f_x, 2)) = Xb(BcP(f_x, 1));
 P += (FTYPE_size(f_x)+FTYPE_size(f_x));
 goto ReadMode;
 case GET_Y_FIRST_VARIABLE:
-ComputeE;
+CODE_ALLOC(pt1);
 goto r_get_y_variable;
 r_get_y_variable:
 case GET_Y_VARIABLE:
@@ -1394,7 +1391,7 @@ Yb(BcP(f_y, 2)) = Xb(BcP(f_x, 1));
 P += (FTYPE_size(f_x)+FTYPE_size(f_y));
 goto ReadMode;
 case GET_YFVAR_YVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto r_get_yvar_yvar;
 r_get_yvar_yvar:
 case GET_YVAR_YVAR:
@@ -1571,7 +1568,7 @@ t0 = Xb(BcP(f_x, 1));
 P += FTYPE_size(f_x);
 goto unify_t0_t1;
 case UNIFY_Y_FIRST_VARIABLE:
-ComputeE;
+CODE_ALLOC(pt1);
 goto r_unify_y_variable;
 r_unify_y_variable:
 case UNIFY_Y_VARIABLE:
@@ -1723,7 +1720,7 @@ RefHeapNext(Xb(BcP(f_x, 2)),S);
 P += (FTYPE_size(f_i)+FTYPE_size(f_x));
 goto ReadMode;
 case U2_VOID_YFVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto r_u2_void_yvar;
 r_u2_void_yvar:
 case U2_VOID_YVAR:
@@ -1776,7 +1773,7 @@ RefHeapNext(Xb(BcP(f_x, 2)),S);
 P += (FTYPE_size(f_x)+FTYPE_size(f_x));
 goto ReadMode;
 case U2_XVAR_YFVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto r_u2_xvar_yvar;
 r_u2_xvar_yvar:
 case U2_XVAR_YVAR:
@@ -1814,7 +1811,7 @@ RefStack(t0,&Yb(BcP(f_y, 2)));
 P += (FTYPE_size(f_x)+FTYPE_size(f_y));
 goto unify_t0_t1;
 case U2_YFVAR_VOID:
-ComputeE;
+CODE_ALLOC(pt1);
 goto r_u2_yvar_void;
 r_u2_yvar_void:
 case U2_YVAR_VOID:
@@ -1824,7 +1821,7 @@ S = HeapOffset(S,BcP(f_i, 2));
 P += (FTYPE_size(f_y)+FTYPE_size(f_i));
 goto ReadMode;
 case U2_YFVAR_XVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto r_u2_yvar_xvar;
 r_u2_yvar_xvar:
 case U2_YVAR_XVAR:
@@ -1833,7 +1830,7 @@ RefHeapNext(Xb(BcP(f_x, 2)),S);
 P += (FTYPE_size(f_y)+FTYPE_size(f_x));
 goto ReadMode;
 case U2_YFVAR_YVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto r_u2_yvar_yvar;
 r_u2_yvar_yvar:
 case U2_YVAR_YVAR:
@@ -1845,7 +1842,7 @@ case U2_YFVAR_XVAL:
 goto r_u2_yfvar_xlval;
 r_u2_yfvar_xlval:
 case U2_YFVAR_XLVAL:
-ComputeE;
+CODE_ALLOC(pt1);
 goto r_u2_yvar_xlval;
 case U2_YVAR_XVAL:
 goto r_u2_yvar_xlval;
@@ -1860,7 +1857,7 @@ case U2_YFVAR_YVAL:
 goto r_u2_yfvar_ylval;
 r_u2_yfvar_ylval:
 case U2_YFVAR_YLVAL:
-ComputeE;
+CODE_ALLOC(pt1);
 goto r_u2_yvar_ylval;
 case U2_YVAR_YVAL:
 goto r_u2_yvar_ylval;
@@ -1964,7 +1961,7 @@ case U2_XVAL_YFVAR:
 goto r_u2_xlval_yfvar;
 r_u2_xlval_yfvar:
 case U2_XLVAL_YFVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto r_u2_xlval_yvar;
 case U2_XVAL_YVAR:
 goto r_u2_xlval_yvar;
@@ -2244,10 +2241,7 @@ P = Alts->emul_p;
 w->previous_choice = w->choice;
 if ((w->next_alt=Alts->next)!=NULL) {
 SetB(w->choice);
-if (w->local_top) {
-;                  } else if (!StackYounger(w->local_top = NodeLocalTop(B),w->frame)) {
-w->local_top = StackCharOffset(w->frame,FrameSize(w->next_insn));
-                  }
+GetFrameTop(w->local_top,B,G->frame);
 SetB(ChoiceNext0(B,ChoiceArity(w)));
 w->choice = B;
 ON_DEBUG_NODE({B->functor = NULL;
@@ -2270,7 +2264,7 @@ WriteMode:
 switch (BcOPCODE) {
 w_inittrue:
 case INITTRUE:
-ComputeE;
+CODE_ALLOC(pt1);
 for (t0 = BcP(f_e, 1)-sizeof(tagged_t); t0 >= EToY0*sizeof(tagged_t); t0 -= sizeof(tagged_t)) {
 LoadSVA(Yb(t0));
 }
@@ -2300,7 +2294,7 @@ P += FTYPE_size(f_Q);
 goto w_initcall;
 w_initcall:
 case INITCALL:
-ComputeE;
+CODE_ALLOC(pt1);
 for (t0 = BcP(f_e,3)-sizeof(tagged_t); t0 >= EToY0*sizeof(tagged_t); t0 -= sizeof(tagged_t)) {
 LoadSVA(Yb(t0));
 }
@@ -2924,7 +2918,7 @@ P += (FTYPE_size(f_x)+FTYPE_size(f_x));
 goto WriteMode;
 w_put_y_first_variable:
 case PUT_Y_FIRST_VARIABLE:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_put_y_variable;
 w_put_y_variable:
 case PUT_Y_VARIABLE:
@@ -2934,7 +2928,7 @@ P += (FTYPE_size(f_x)+FTYPE_size(f_y));
 goto WriteMode;
 w_put_yfvar_yvar:
 case PUT_YFVAR_YVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_put_yvar_yvar;
 w_put_yvar_yvar:
 case PUT_YVAR_YVAR:
@@ -3163,7 +3157,7 @@ Xb(BcP(f_x, 1)) = ChoiceToTagged(w->previous_choice);
 P += FTYPE_size(f_x);
 goto WriteMode;
 case CHOICE_YF:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_choice_y;
 w_choice_y:
 case CHOICE_Y:
@@ -3269,7 +3263,7 @@ Xb(BcP(f_x, 2)) = Xb(BcP(f_x, 1));
 P += (FTYPE_size(f_x)+FTYPE_size(f_x));
 goto WriteMode;
 case GET_Y_FIRST_VARIABLE:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_get_y_variable;
 w_get_y_variable:
 case GET_Y_VARIABLE:
@@ -3277,7 +3271,7 @@ Yb(BcP(f_y, 2)) = Xb(BcP(f_x, 1));
 P += (FTYPE_size(f_x)+FTYPE_size(f_y));
 goto WriteMode;
 case GET_YFVAR_YVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_get_yvar_yvar;
 w_get_yvar_yvar:
 case GET_YVAR_YVAR:
@@ -3386,7 +3380,7 @@ HeapPush(H,t1);
 P += FTYPE_size(f_x);
 goto WriteMode;
 case UNIFY_Y_FIRST_VARIABLE:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_unify_y_variable;
 w_unify_y_variable:
 case UNIFY_Y_VARIABLE:
@@ -3472,7 +3466,7 @@ ConstrHVA(H);} while (--i);LoadHVA(Xb(BcP(f_x, 2)),H);
 P += (FTYPE_size(f_i)+FTYPE_size(f_x));
 goto WriteMode;
 case U2_VOID_YFVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_u2_void_yvar;
 w_u2_void_yvar:
 case U2_VOID_YVAR:
@@ -3549,7 +3543,7 @@ LoadHVA(Xb(BcP(f_x, 2)),H);
 P += (FTYPE_size(f_x)+FTYPE_size(f_x));
 goto WriteMode;
 case U2_XVAR_YFVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_u2_xvar_yvar;
 w_u2_xvar_yvar:
 case U2_XVAR_YVAR:
@@ -3609,7 +3603,7 @@ HeapPush(H,t1);
 P += (FTYPE_size(f_x)+FTYPE_size(f_y));
 goto WriteMode;
 case U2_YFVAR_VOID:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_u2_yvar_void;
 w_u2_yvar_void:
 case U2_YVAR_VOID:
@@ -3619,7 +3613,7 @@ do {
 ConstrHVA(H);} while (--i);P += (FTYPE_size(f_y)+FTYPE_size(f_i));
 goto WriteMode;
 case U2_YFVAR_XVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_u2_yvar_xvar;
 w_u2_yvar_xvar:
 case U2_YVAR_XVAR:
@@ -3628,7 +3622,7 @@ LoadHVA(Xb(BcP(f_x, 2)),H);
 P += (FTYPE_size(f_y)+FTYPE_size(f_x));
 goto WriteMode;
 case U2_YFVAR_YVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_u2_yvar_yvar;
 w_u2_yvar_yvar:
 case U2_YVAR_YVAR:
@@ -3637,7 +3631,7 @@ LoadHVA(Yb(BcP(f_y, 2)),H);
 P += (FTYPE_size(f_y)+FTYPE_size(f_y));
 goto WriteMode;
 case U2_YFVAR_XVAL:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_u2_yvar_xval;
 w_u2_yvar_xval:
 case U2_YVAR_XVAL:
@@ -3646,7 +3640,7 @@ HeapPush(H,Xb(BcP(f_x, 2)));
 P += (FTYPE_size(f_y)+FTYPE_size(f_x));
 goto WriteMode;
 case U2_YFVAR_XLVAL:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_u2_yvar_xlval;
 w_u2_yvar_xlval:
 case U2_YVAR_XLVAL:
@@ -3665,7 +3659,7 @@ HeapPush(H,t1);
 P += (FTYPE_size(f_y)+FTYPE_size(f_x));
 goto WriteMode;
 case U2_YFVAR_YVAL:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_u2_yvar_yval;
 w_u2_yvar_yval:
 case U2_YVAR_YVAL:
@@ -3674,7 +3668,7 @@ HeapPushRefStack(H,&Yb(BcP(f_y, 2)));
 P += (FTYPE_size(f_y)+FTYPE_size(f_y));
 goto WriteMode;
 case U2_YFVAR_YLVAL:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_u2_yvar_ylval;
 w_u2_yvar_ylval:
 case U2_YVAR_YLVAL:
@@ -3839,7 +3833,7 @@ LoadHVA(Xb(BcP(f_x, 2)),H);
 P += (FTYPE_size(f_x)+FTYPE_size(f_x));
 goto WriteMode;
 case U2_XVAL_YFVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_u2_xval_yvar;
 w_u2_xval_yvar:
 case U2_XVAL_YVAR:
@@ -3848,7 +3842,7 @@ LoadHVA(Yb(BcP(f_y, 2)),H);
 P += (FTYPE_size(f_x)+FTYPE_size(f_y));
 goto WriteMode;
 case U2_XLVAL_YFVAR:
-ComputeE;
+CODE_ALLOC(pt1);
 goto w_u2_xlval_yvar;
 w_u2_xlval_yvar:
 case U2_XLVAL_YVAR:

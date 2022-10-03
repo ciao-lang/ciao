@@ -168,7 +168,7 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
      that HEAPMARGIN_CALL does not break during GC */
 
   if (x2_next || x5_next) {
-    ComputeA(w->local_top,w->choice);
+    GetFrameTop(w->local_top,w->choice,G->frame);
     X(X2_CHN) = PointerToTermOrZero(x2_next);
     X(ClockSlot) = MakeSmall(use_clock);
     X(X5_CHN) = PointerToTermOrZero(x5_next);
@@ -504,7 +504,7 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
 
     x2_next = make_handle_to(x2_n, root, X(0), X2);
     x5_next = make_handle_to(x5_n, root, X(0), X5);
-    ComputeA(w->local_top,w->choice);
+    GetFrameTop(w->local_top,w->choice,G->frame);
     X(X2_CHN) = PointerToTermOrZero(x2_next);
     X(ClockSlot) = MakeSmall(use_clock);
     X(X5_CHN) = PointerToTermOrZero(x5_next);

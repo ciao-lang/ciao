@@ -460,12 +460,13 @@ deallocate :-
     "w->frame" <- "E->frame".
 
 % Do not edit this defn - it's the special case 
-%   ComputeA(w->local_top,B)
+%   GetFrameTop(w->local_top,B,G->frame)
 :- pred(compute_Ltop/1, [unfold]).
 compute_Ltop(B) :-
-    if("w->local_top", ";",
-      if("!StackYounger(w->local_top = NodeLocalTop(B),w->frame)",
-        "w->local_top" <- "StackCharOffset(w->frame,FrameSize(w->next_insn))")).
+    call('GetFrameTop', ["w->local_top","B","G->frame"]).
+%    if("w->local_top", ";",
+%      if("!StackYounger(w->local_top = NodeLocalTop(B),w->frame)",
+%        "w->local_top" <- "StackCharOffset(w->frame,FrameSize(w->next_insn))")).
 
 :- pred(code_neck/0, [unfold]).
 code_neck :-
@@ -793,8 +794,8 @@ u1_dispatch(U, OpsSize) :-
     u1(U),
     dispatch(OpsSize).
 
-:- pred(computeE/0, [unfold]).
-computeE :- call0('ComputeE').
+:- pred(alloc/0, [unfold]).
+alloc :- call('CODE_ALLOC', ["pt1"]).
     
 % Emit the initialization of Y variables
 :- pred(init_yvars/1, [unfold]).
@@ -863,7 +864,7 @@ ins_in_mode(Ins, Mode) :-
 :- ins_op_format(inittrue, 260, [f_e], [label(w)]).
 :- ins_in_mode(inittrue, w).
 inittrue :-
-    computeE,
+    alloc,
     init_yvars("BcP(f_e, 1)"),
     goto('firsttrue').
 
@@ -890,7 +891,7 @@ initcallq :- shift(f_Q), goto_ins(initcall).
 :- ins_op_format(initcall, 1, [f_E,f_e], [label(_)]).
 :- ins_in_mode(initcall, w).
 initcall :-
-    computeE,
+    alloc,
     init_yvars("BcP(f_e,3)"),
     goto_ins(firstcall).
 
@@ -1279,7 +1280,7 @@ put_x_unsafe_value :-
 :- ins_op_format(put_y_first_variable, 73, [f_x,f_y], [label(w)]).
 :- ins_in_mode(put_y_first_variable, w).
 put_y_first_variable :-
-    computeE,
+    alloc,
     goto_ins(put_y_variable).
 
 :- ins_op_format(put_y_variable, 74, [f_x,f_y], [label(w)]).
@@ -1294,7 +1295,7 @@ put_y_variable :-
 :- ins_op_format(put_yfvar_yvar, 83, [f_x,f_y,f_x,f_y], [label(w)]).
 :- ins_in_mode(put_yfvar_yvar, w).
 put_yfvar_yvar :-
-    computeE,
+    alloc,
     goto_ins(put_yvar_yvar).
 
 :- ins_op_format(put_yvar_yvar, 84, [f_x,f_y,f_x,f_y], [label(w)]).
@@ -1640,7 +1641,7 @@ choice_x :-
 
 :- ins_op_format(choice_yf, 220, [f_y]).
 choice_yf :-
-    computeE,
+    alloc,
     goto_ins(choice_y).
 
 :- ins_op_format(choice_y, 221, [f_y], [label(_)]).
@@ -1831,7 +1832,7 @@ get_x_variable :-
 
 :- ins_op_format(get_y_first_variable, 92, [f_x,f_y]).
 get_y_first_variable :-
-    computeE,
+    alloc,
     goto_ins(get_y_variable).
 
 :- ins_op_format(get_y_variable, 93, [f_x,f_y], [label(_)]).
@@ -1843,7 +1844,7 @@ get_y_variable :-
 
 :- ins_op_format(get_yfvar_yvar, 109, [f_x,f_y,f_x,f_y]).
 get_yfvar_yvar :-
-    computeE,
+    alloc,
     goto_ins(get_yvar_yvar).
 
 :- ins_op_format(get_yvar_yvar, 110, [f_x,f_y,f_x,f_y], [label(_)]).
@@ -2080,7 +2081,7 @@ unify_x_local_value :-
 
 :- ins_op_format(unify_y_first_variable, 122, [f_y]).
 unify_y_first_variable :-
-    computeE,
+    alloc,
     goto_ins(unify_y_variable).
 
 :- ins_op_format(unify_y_variable, 123, [f_y], [label(_)]).
@@ -2258,7 +2259,7 @@ u2_void_xvar :-
 
 :- ins_op_format(u2_void_yfvar, 139, [f_i,f_y]).
 u2_void_yfvar :-
-    computeE,
+    alloc,
     goto_ins(u2_void_yvar).
 
 :- ins_op_format(u2_void_yvar, 140, [f_i,f_y], [label(_)]).
@@ -2326,7 +2327,7 @@ u2_xvar_xvar :-
 
 :- ins_op_format(u2_xvar_yfvar, 148, [f_x,f_y]).
 u2_xvar_yfvar :-
-    computeE,
+    alloc,
     goto_ins(u2_xvar_yvar).
 
 :- ins_op_format(u2_xvar_yvar, 149, [f_x,f_y], [label(_)]).
@@ -2385,7 +2386,7 @@ u2_xvar_ylval :-
 
 :- ins_op_format(u2_yfvar_void, 153, [f_y,f_i]).
 u2_yfvar_void :-
-    computeE,
+    alloc,
     goto_ins(u2_yvar_void).
 
 :- ins_op_format(u2_yvar_void, 154, [f_y,f_i], [label(_)]).
@@ -2397,7 +2398,7 @@ u2_yvar_void :-
 
 :- ins_op_format(u2_yfvar_xvar, 155, [f_y,f_x]).
 u2_yfvar_xvar :-
-    computeE,
+    alloc,
     goto_ins(u2_yvar_xvar).
 
 :- ins_op_format(u2_yvar_xvar, 156, [f_y,f_x], [label(_)]).
@@ -2410,7 +2411,7 @@ u2_yvar_xvar :-
 
 :- ins_op_format(u2_yfvar_yvar, 157, [f_y,f_y]).
 u2_yfvar_yvar :-
-    computeE,
+    alloc,
     goto_ins(u2_yvar_yvar).
 
 :- ins_op_format(u2_yvar_yvar, 158, [f_y,f_y], [label(_)]).
@@ -2427,12 +2428,12 @@ u2_yfvar_xval :-
     goto_ins(u2_yfvar_xlval).
 u2_yfvar_xval :-
     [[mode(w)]],
-    computeE,
+    alloc,
     goto_ins(u2_yvar_xval).
 
 :- ins_op_format(u2_yfvar_xlval, 161, [f_y,f_x], [label(r)]).
 u2_yfvar_xlval :-
-    computeE,
+    alloc,
     goto_ins(u2_yvar_xlval).
 
 :- ins_op_format(u2_yvar_xval, 160, [f_y,f_x], [label(w)]).
@@ -2460,12 +2461,12 @@ u2_yfvar_yval :-
     goto_ins(u2_yfvar_ylval).
 u2_yfvar_yval :-
     [[mode(w)]],
-    computeE,
+    alloc,
     goto_ins(u2_yvar_yval).
 
 :- ins_op_format(u2_yfvar_ylval, 165, [f_y,f_y], [label(r)]).
 u2_yfvar_ylval :-
-    computeE,
+    alloc,
     goto_ins(u2_yvar_ylval).
 
 :- ins_op_format(u2_yvar_yval, 164, [f_y,f_y], [label(w)]).
@@ -2611,12 +2612,12 @@ u2_xval_yfvar :-
     goto_ins(u2_xlval_yfvar).
 u2_xval_yfvar :-
     [[mode(w)]],
-    computeE,
+    alloc,
     goto_ins(u2_xval_yvar).
 
 :- ins_op_format(u2_xlval_yfvar, 172, [f_x,f_y], [label(r)]).
 u2_xlval_yfvar :-
-    computeE,
+    alloc,
     goto_ins(u2_xlval_yvar).
 
 :- ins_op_format(u2_xval_yvar, 173, [f_x,f_y], [label(w)]).
@@ -3547,7 +3548,7 @@ code_undo :-
     "E->next_insn" <- "w->next_insn",
     "w->frame" <- "E",
     "w->next_insn" <- "failcode",
-    call('SetA', ["E","Offset(E,EToY0)"]),
+    "w->local_top" <- "(frame_t *)Offset(E,EToY0)",
     setmode(w),
     "X(0)" <- "t0",
     goto('call1').

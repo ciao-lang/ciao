@@ -56,7 +56,7 @@ CBOOL__PROTO(envstack_usage) {
   tagged_t x;
   frame_t *newa;
 
-  ComputeA(newa,w->choice);
+  GetFrameTop(newa,w->choice,G->frame);
   used = StackCharDifference(Stack_Start,newa);
   free = StackCharDifference(newa,Stack_End);
   MakeLST(x,IntmachToTagged(free),atom_nil);

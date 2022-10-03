@@ -1437,7 +1437,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
                                 /* establish skeletal choicepoint */
   b = w->choice;
   w->next_alt = address_nd_repeat; /* arity=0 */
-  ComputeA(w->local_top,b);
+  GetFrameTop(w->local_top,b,G->frame);
   w->choice = b = ChoiceNext0(b,0);
   b->next_alt = NULL;
   b->trail_top = w->trail_top;

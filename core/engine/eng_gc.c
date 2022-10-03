@@ -50,9 +50,6 @@
     } \
   } \
 } while(0)
-#define CODE_ALLOC(a) do { \
-  ComputeA(a,w->choice); \
-} while(0)
 #define CODE_CFRAME(Frame, NextInsn) ({ \
   (Frame)->next_insn = G->next_insn; \
   (Frame)->frame = G->frame; \
@@ -1085,7 +1082,7 @@ CVOID__PROTO(gc__heap_collect) {
 
   DEBUG__TRACE(debug_gc, "Thread %" PRIdm " enters gc__heap_collect\n", (intmach_t)Thread_Id);
 
-  ComputeA(newa, w->choice);
+  GetFrameTop(newa, w->choice,G->frame);
 #if defined(USE_GC_STATS)
   intmach_t hz = HeapDifference(Heap_Start,G->heap_top); /* current heap size */
   switch (current_gctrace) {
@@ -1269,7 +1266,8 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
 #endif
 
   try_node_t *next_alt;
-  if (!(next_alt = w->choice->next_alt)) { /* ensure A', P' exist */
+  next_alt = w->choice->next_alt;
+  if (next_alt == NULL) { /* ensure A', P' exist */
     w->choice->next_alt = w->next_alt;
     w->choice->local_top = w->local_top;
   }
@@ -1412,7 +1410,7 @@ CVOID__PROTO(stack_overflow) {
   CVOID__CALL(suspend_all);
 #endif
 
-  ComputeA(w->local_top,w->choice);
+  GetFrameTop(w->local_top,w->choice,G->frame);
 
   count = StackDifference(Stack_Start,Stack_End);
   newh = checkrealloc_ARRAY(tagged_t,
@@ -1583,7 +1581,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
     
     intmach_t wake_count = WakeCount();
     
-    ComputeA(w->local_top,w->choice);
+    GetFrameTop(w->local_top,w->choice,G->frame);
     
     mincount = 2*pad - HeapCharDifference(G->heap_top,Heap_End);
     oldcount = HeapCharDifference(Heap_Start,Heap_End);
