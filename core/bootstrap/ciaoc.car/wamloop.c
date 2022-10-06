@@ -308,7 +308,7 @@ goto undo;
 });
 } while (TrailYounger(pt2,t1));w->trail_top = pt2;
         }
-RestoreGtop(B);
+w->heap_top = NodeGlobalTop(B);
 if ((P = (bcp_t)w->next_alt) == NULL) {
 ON_DEBUG({
 if (debug_choicepoints) {
@@ -318,7 +318,7 @@ fprintf(stderr, "deep backtracking, node = %x\n", (int)w->choice);
 P = (bcp_t)B->next_alt;
 w->frame = B->frame;
 w->next_insn = B->next_insn;
-RestoreLtop(B);
+w->local_top = NodeLocalTop(B);
 i = ((try_node_t *)P)->arity;
 w->previous_choice = ChoiceCont0(B,i);
 if (i>0) {

@@ -57,7 +57,6 @@
   SetShadowregs(w->choice); \
   PROFILE__HOOK_CUT; \
 })
-#define SetDeep() ({ w->next_alt = NULL; })
 // TODO: missing test_choice_overflow
 #define CODE_CHOICE_NEW(B, ALT) ({ \
   GetFrameTop(w->local_top,w->choice,G->frame); /* get_frame_top */ \

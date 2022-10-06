@@ -3573,7 +3573,7 @@ code_fail :-
         "TrailYounger(pt2,t1)"),
       "w->trail_top" <- "pt2")),
     %
-    "RestoreGtop(B);", fmt:nl,
+    "w->heap_top" <- "NodeGlobalTop(B)",
     %
     if("(P = (bcp_t)w->next_alt) == NULL",
       deep_backtrack),
@@ -3616,7 +3616,7 @@ deep_backtrack :-
     "P" <- "(bcp_t)B->next_alt",
     "w->frame" <- "B->frame",
     "w->next_insn" <- "B->next_insn",
-    "RestoreLtop(B);", fmt:nl,
+    "w->local_top" <- "NodeLocalTop(B)",
     %
     % Dirty hack: always pop n registers (heuristic measure, I guess) and
     % see later if we need to reload more; had we needed less, we simply do

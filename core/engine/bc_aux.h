@@ -1468,7 +1468,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
     w->trail_top = pt1;
   }
   
-  RestoreGtop(b);
+  w->heap_top = NodeGlobalTop(b);
   w->choice = b = ChoiceCont0(b,0);
   w->next_alt = NULL;
   SetShadowregs(b);

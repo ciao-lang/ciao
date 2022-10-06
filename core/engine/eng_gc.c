@@ -1265,9 +1265,9 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
   inttime_t tick0 = RunTickFunc();
 #endif
 
-  try_node_t *next_alt;
-  next_alt = w->choice->next_alt;
-  if (next_alt == NULL) { /* ensure A', P' exist */
+  bool_t shallow_try = FALSE;
+  if (w->choice->next_alt == NULL) { /* ensure A', P' exist */
+    shallow_try = TRUE;
     w->choice->next_alt = w->next_alt;
     w->choice->local_top = w->local_top;
   }
@@ -1372,7 +1372,9 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
     }
   }
 
-  w->choice->next_alt = next_alt;
+  if (shallow_try == TRUE) {
+    w->choice->next_alt = NULL;
+  }
 
 #if defined(USE_GC_STATS)          
   ciao_stats.ss_control++;

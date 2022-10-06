@@ -459,14 +459,6 @@
   w->local_uncond = Tagp(SVA,NodeLocalTop(Chpt));      \
 }
 
-#define RestoreGtop(Chpt) \
-{ \
-  w->heap_top = NodeGlobalTop(Chpt); \
-}
-
-#define RestoreLtop(Chpt) \
-  w->local_top = NodeLocalTop(Chpt);
-
 #if defined(ANDPARALLEL) && defined(VISANDOR)
 /* Event output macros for tracing tool VisAndOr */
 
@@ -1510,6 +1502,23 @@ struct marker_ {
 #define ChoiceptTestStatic(B) ((B)->flags & 2)
 #define ChoiceptMarkNoCVA(B) ((B)->flags |= 4)
 #define ChoiceptTestNoCVA(B) ((B)->flags & 4)
+#endif
+
+/* ------------------------------------------------------------------------- */
+
+//#define USE_DEEP_FLAGS 1
+
+#if defined(USE_DEEP_FLAGS)
+/* TODO: union for 'flags'? (different meaning than ChoiceptMarkPure, etc.) */
+#define IsDeep() (G->flags == 0)
+//
+#define IsShallowTry() (G->flags == 1)
+//
+#define SetDeep() { G->flags = 0; }
+#define SetShallowTry() { G->flags = 1; }
+#define SetShallowRetry() { G->flags = 2; }
+#else
+#define SetDeep() ({ w->next_alt = NULL; })
 #endif
 
 /* ------------------------------------------------------------------------- */
