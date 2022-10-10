@@ -501,6 +501,50 @@
   } \
 })
 
+tagged_t deffunctor(char *pname, int arity); /* eng_registry.c */
+#define SetChoice(Chpt) ({ \
+  w->previous_choice = (Chpt); /* needed? */ \
+  w->choice = (Chpt); \
+  SetShadowregs(w->choice); \
+  PROFILE__HOOK_CUT; \
+})
+// TODO: missing test_choice_overflow
+// TODO: OPTIM_COMP saves local_top here, not in NECK_TRY
+#define CODE_CHOICE_NEW(B, ALT) ({ \
+  GetFrameTop(w->local_top,w->choice,G->frame); /* get_frame_top */ \
+  G->next_alt = (ALT); \
+  (B) = ChoiceNext0(w->choice, ChoiceArity(G)); \
+  SetShallowTry0((B)); \
+  CHPTFLG((B)->flags = 0); \
+  (B)->trail_top = G->trail_top; \
+  (B)->heap_top = G->heap_top; \
+  w->choice = (B); \
+  NewShadowregs(G->heap_top); \
+})
+#define CODE_NECK_TRY(B) ({ \
+  (B)->frame = G->frame; \
+  (B)->next_insn = G->next_insn; \
+  (B)->next_alt = G->next_alt; \
+  (B)->local_top = G->local_top; \
+  intmach_t arity = ChoiceArity(B); \
+  for (int i = 0; i < arity; i++) { \
+    (B)->x[i] = w->x[i]; \
+  } \
+})
+// TODO: missing set event on frame overflow
+#define CODE_CFRAME(Frame, NextInsn) ({ \
+  (Frame)->next_insn = G->next_insn; \
+  (Frame)->frame = G->frame; \
+  G->frame = (Frame); \
+  G->next_insn = (NextInsn); \
+  G->local_top = (frame_t *)StackCharOffset((Frame),FrameSize(G->next_insn)); \
+})
+#define DEALLOCATE(Frame) ({ \
+  G->next_insn = (Frame)->next_insn; \
+  G->frame = (Frame)->frame; \
+})
+#define InvalidateLocalTop() G->local_top = NULL
+
 /* ------------------------------------------------------------------------- */
 /* Events (WakeCount and interrupts) based on heap limit checks */
 
@@ -1472,7 +1516,9 @@ struct marker_ {
 
 #endif
 
-#define USE_TRAIL_TOP_MARKS 1
+#define USE_TRAIL_TOP_MARKS 1 // TODO:[oc-merge] disable
+//#define USE_DEEP_FLAGS 1 // TODO:[oc-merge] enable {PORT INCOMPLETE!}
+#define USE_RETRY_PATCH 1 // TODO:[oc-merge] disable
 
 #if defined(USE_TRAIL_TOP_MARKS)
 #define CHPTFLG(X) 
@@ -1506,19 +1552,37 @@ struct marker_ {
 
 /* ------------------------------------------------------------------------- */
 
-//#define USE_DEEP_FLAGS 1
+// TODO: document deep, shallowtry, shallowretry
+//   deep: registers saved in choicept
+//   shallowtry: registers not saved in choicept yet, no need to restore
+//   shallowretry: registers saved in choicept, no need to restore
+//   where registers are X regs, frame, next_insn, local_top
 
 #if defined(USE_DEEP_FLAGS)
 /* TODO: union for 'flags'? (different meaning than ChoiceptMarkPure, etc.) */
 #define IsDeep() (G->flags == 0)
 //
 #define IsShallowTry() (G->flags == 1)
+#define IsShallowTry0(B) IsShallowTry()
 //
 #define SetDeep() { G->flags = 0; }
 #define SetShallowTry() { G->flags = 1; }
 #define SetShallowRetry() { G->flags = 2; }
+#define SetShallowTry0(B) SetShallowTry() 
 #else
+#define IsDeep() (w->next_alt == NULL)
+#define IsShallowTry() (B->next_alt == NULL)
+#define IsShallowTry0(B) (B->next_alt == NULL)
 #define SetDeep() ({ w->next_alt = NULL; })
+#define SetShallowTry0(B) do { B->next_alt = NULL; } while(0)
+#endif
+
+#if defined(USE_RETRY_PATCH) /* patch choice next_alt in neck retry; otherwise on failure */
+#define NECK_RETRY_PATCH(B) do { B->next_alt = w->next_alt; } while(0)
+#define CHOICE_PATCH0() do {} while(0)
+#else
+#define NECK_RETRY_PATCH(B) do {} while(0)
+#define CHOICE_PATCH0() do { if (w->choice->next_alt != NULL) w->choice->next_alt = w->next_alt; } while(0)
 #endif
 
 /* ------------------------------------------------------------------------- */

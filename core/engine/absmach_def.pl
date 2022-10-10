@@ -470,14 +470,14 @@ compute_Ltop(B) :-
 
 :- pred(code_neck/0, [unfold]).
 code_neck :-
-    if("w->next_alt",
+    if("!IsDeep()",
       (do_neck,
        % OK even before allocate
        call('SetE', ["w->local_top"]))).
 
 :- pred(code_neck_proceed/0, [unfold]).
 code_neck_proceed :-
-    if("w->next_alt",
+    if("!IsDeep()",
       do_neck,
       "w->local_top" <- 0),
     call('SetE', ["w->frame"]),
@@ -485,32 +485,24 @@ code_neck_proceed :-
     profile_hook(neck_proceed),
     "goto WriteMode;", fmt:nl.
 
+% TODO:[oc-merge] CODE_MAYBE_NECK_TRY
 :- pred(do_neck/0, [unfold]).
-do_neck :-
+do_neck :- % (assume !IsDeep())
     call('SetB', ["w->choice"]),
-    if("B->next_alt",
+    if("!IsShallowTry()",
       % retry
-      ("B->next_alt = w->next_alt;", fmt:nl),
+      ("NECK_RETRY_PATCH(B);", fmt:nl), % TODO:[oc-merge] this is not in OC
       % try
-      ("B->next_alt = w->next_alt; /* 4 contiguous moves */", fmt:nl,
-      "B->frame = w->frame;", fmt:nl,
-      "B->next_insn = w->next_insn;", fmt:nl,
-      "B->local_top = w->local_top;", fmt:nl,
-      %
-%%% BEGIN simplify choice copy    
-%       "i=ChoiceArity(B);", fmt:nl,
-%       if("i>0",
-%          call('SetB', ["w->previous_choice"]),
-%          trace(neck("i")),
-%          do_while(
-%            "*--(pt1) = (w->x-1)[i];",
-%            "--i"))),
-%%% END simplify choice copy    
-      "i=ChoiceArity(B);", fmt:nl,
-      for("intmach_t k=0; k<i; k++",
-        ("B->x[k]" <- "w->x[k]")),
-      maybe_choice_overflow)),
-    "w->next_alt = NULL;", fmt:nl.
+      ("B->next_alt" <- "w->next_alt", %  /* 4 contiguous moves */
+       "B->frame" <- "w->frame",
+       "B->next_insn" <- "w->next_insn",
+       "B->local_top" <- "w->local_top",
+       "i" <- "ChoiceArity(B)",
+       for("intmach_t k=0; k<i; k++",
+         ("B->x[k]" <- "w->x[k]")),
+       maybe_choice_overflow)
+    ),
+    "SetDeep();", fmt:nl.
 
 :- pred(maybe_choice_overflow/0, [unfold]).
 maybe_choice_overflow :-
@@ -1572,8 +1564,8 @@ cutb_neck_proceed :-
 :- pred(do_cutb_neck/0, [unfold]).
 do_cutb_neck :-
     do_cut,
-    if("w->next_alt",
-      ("w->next_alt" <- "NULL",
+    if("!IsDeep()",
+      ("SetDeep();", fmt:nl,
        % TODO: if neck is not pending, then choice overflow has already been checked?
        maybe_choice_overflow)).
 
@@ -1601,7 +1593,7 @@ cute_neck :-
     "w->local_top" <- "E", %  w->local_top may be 0 here.
     do_cut,
     % w->next_alt can't be NULL here
-    "w->next_alt" <- "NULL",
+    "SetDeep();", fmt:nl,
     if(callexp('ChoiceYounger', [callexp('ChoiceOffset', ["B","CHOICEPAD"]),"w->trail_top"]),
       call('choice_overflow', ["Arg","CHOICEPAD","TRUE"])),
     call('SetE', ["w->local_top"]),
@@ -1676,18 +1668,18 @@ exit_toplevel :-
 :- ins_op_format(retry_cq, 237, [f_Q,f_C], [label(r)]).
 :- ins_in_mode(retry_cq, r).
 retry_cq :-
-    if("w->next_alt",
+    if("!IsDeep()",
       ("B->next_alt" <- "w->next_alt",
-       "w->next_alt" <- "NULL")),
+       "SetDeep();", fmt:nl)),
     if(("!","((cbool0_t)BcP(f_C, 2))(Arg)"), goto('fail')),
     goto_ins(proceed).
 
 :- ins_op_format(retry_c, 238, [f_C], [label(r)]).
 :- ins_in_mode(retry_c, r).
 retry_c :-
-    if("w->next_alt",
+    if("!IsDeep()",
       ("B->next_alt" <- "w->next_alt",
-       "w->next_alt" <- "NULL")),
+       "SetDeep();", fmt:nl)),
     if(("!","((cbool0_t)BcP(f_C, 1))(Arg)"), goto('fail')),
     goto_ins(proceed).
 
@@ -1969,7 +1961,7 @@ retry_instance :-
         "||", fmt:nl,
         "(TaggedToRoot(X(RootArg))->behavior_on_failure == DYNAMIC &&", fmt:nl,
         "!next_instance(Arg, &ins))", fmt:nl),
-      ("w->next_alt = NULL;", fmt:nl,
+      ("SetDeep();", fmt:nl,
        call('SetB', ["w->previous_choice"]),
        "w->choice" <- "B",
        "SetShadowregs(B);", fmt:nl)),
@@ -2941,9 +2933,9 @@ counted_neckq :- shift(f_Q), goto_ins(counted_neck).
 :- ins_op_format(counted_neck, 251, [f_l,f_l], [label(_)]).
 counted_neck :-
     cpp_if_defined('GAUGE'),
-    if("w->next_alt", (
+    if("!IsDeep()", (
       call('SetB', ["w->choice"]),
-      if("B->next_alt", (
+      if("!IsShallowTry()", (
         % retry counter
         gauge_incr_counter(t1)
       ),(
@@ -2984,9 +2976,10 @@ neck :-
 :- ins_in_mode(dynamic_neck_proceed, w).
 dynamic_neck_proceed :-
     unify_atom_internal(callexp('PointerToTerm',["ins"]),"X(3)"),
-    if("!w->next_alt", goto_ins(proceed)),
+    if("IsDeep()", goto_ins(proceed)),
     call('SetB', ["w->choice"]),
-    if("!B->next_alt && (def_clock = use_clock+1)==0xffff",(
+    % (assume w->next_alt != NULL)
+    if("IsShallowTry() && (def_clock = use_clock+1)==0xffff",(
       setmode(r),
       call('clock_overflow', ["Arg"]),
       setmode(w)
@@ -3575,12 +3568,14 @@ code_fail :-
     %
     "w->heap_top" <- "NodeGlobalTop(B)",
     %
-    if("(P = (bcp_t)w->next_alt) == NULL",
+    "P" <- "(bcp_t)w->next_alt",
+    if("IsDeep()",
       deep_backtrack),
     %
     profile_hook(redo),
     %
-    if("(w->next_alt = ((try_node_t *)P)->next)==NULL",
+    "w->next_alt" <- "((try_node_t *)P)->next",
+    if("w->next_alt == NULL", % TODO: This one is not a deep check! (see line above)
       (call('SetB', ["w->previous_choice"]),
        "w->choice" <- "B",
       "ON_TABLING({", fmt:nl,
@@ -3589,7 +3584,8 @@ code_fail :-
       if("FrozenChpt(B)",
         call('push_choicept', ["w","address_nd_fake_choicept"])),
       "});", fmt:nl,
-      "SetShadowregs(B);", fmt:nl)),
+      "SetShadowregs(B);", fmt:nl),
+      ("CHOICE_PATCH0();", fmt:nl)), % TODO:[oc-merge] choice_patch also modified w->choice->next_alt in OPTIM_COMP
     %
     "P" <- "((try_node_t *)P)->emul_p",
     "t0" <- "X(0)",
@@ -3638,18 +3634,6 @@ deep_backtrack :-
     % %     (w->x+2)[i] = (*--S);
     % %   while (--i);
     % % }
-    %
-%%% BEGIN simplify choice copy    
-%    "i" <- "((try_node_t *)P)->arity",
-%    "w->previous_choice" <- "ChoiceCont0(B,i)",
-%    if("i>0", (
-%      "tagged_t *wt = w->x;", fmt:nl,
-%      %
-%      "S" <- "(tagged_t *)w->previous_choice",
-%      "i" <- "i - 1",
-%      trace(restore_xregs_choicepoint("i")),
-%      "while(i >= 0) ", "wt[i--]" <- "(*--(S))")).
-%%% END simplify choice copy    
     %
     "i" <- "((try_node_t *)P)->arity",
     "w->previous_choice" <- "ChoiceCont0(B,i)",
@@ -4170,7 +4154,10 @@ alt_dispatcher :-
     "P" <- EmulP,
     %
     "w->previous_choice" <- "w->choice",
-    if(("(w->next_alt","=",Alts,"->next)!=NULL"),
+    "w->next_alt" <- (Alts,"->next"),
+    if(("w->next_alt != NULL"), % TODO: This one is not a deep check! (see line above)
+      % TODO: new_choice?
+      % TODO: OPTIM_COMP saves local_top here, not in NECK_TRY
       (call('SetB', ["w->choice"]),
       compute_Ltop("B"),
       call('SetB', ["ChoiceNext0(B,ChoiceArity(w))"]),

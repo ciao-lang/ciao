@@ -50,47 +50,6 @@
 #if !defined(MAXPATHLEN)
 # define MAXPATHLEN 1024
 #endif
-#define deffunctor(NAME, ARITY) SetArity(GET_ATOM((NAME)),(ARITY))
-#define SetChoice(Chpt) ({ \
-  w->previous_choice = (Chpt); /* needed? */ \
-  w->choice = (Chpt); \
-  SetShadowregs(w->choice); \
-  PROFILE__HOOK_CUT; \
-})
-// TODO: missing test_choice_overflow
-#define CODE_CHOICE_NEW(B, ALT) ({ \
-  GetFrameTop(w->local_top,w->choice,G->frame); /* get_frame_top */ \
-  G->next_alt = (ALT); \
-  (B) = ChoiceNext0(w->choice, ChoiceArity(G)); \
-  w->choice = (B); \
-  NewShadowregs(G->heap_top); \
-  CHPTFLG((B)->flags = 0); \
-  (B)->trail_top = G->trail_top; \
-  (B)->heap_top = G->heap_top; \
-  (B)->local_top = G->local_top; \
-})
-#define CODE_NECK_TRY(B) ({ \
-  (B)->frame = G->frame; \
-  (B)->next_insn = G->next_insn; \
-  (B)->next_alt = G->next_alt; \
-  intmach_t arity = ChoiceArity(B); \
-  for (int i = 0; i < arity; i++) { \
-    (B)->x[i] = w->x[i]; \
-  } \
-})
-// TODO: missing set event on frame overflow
-#define CODE_CFRAME(Frame, NextInsn) ({ \
-  (Frame)->next_insn = G->next_insn; \
-  (Frame)->frame = G->frame; \
-  G->frame = (Frame); \
-  G->next_insn = (NextInsn); \
-  G->local_top = (frame_t *)StackCharOffset((Frame),FrameSize(G->next_insn)); \
-})
-#define DEALLOCATE(Frame) ({ \
-  G->next_insn = (Frame)->next_insn; \
-  G->frame = (Frame)->frame; \
-})
-#define InvalidateLocalTop() G->local_top = NULL
 #endif
 
 void ciao_exit(int result);
@@ -1029,6 +988,7 @@ ciao_bool ciao_query_ok(ciao_query *query) {
   ciao_bool ok;
   WITH_WORKER(query->ctx->worker_registers, {
     try_node_t *alt = G->next_alt;
+    // TODO: use IsDeep?
     if (alt == &nullgoal_alt ||
         (alt == NULL && w->choice->next_alt == &nullgoal_alt)) {
       ok = FALSE;

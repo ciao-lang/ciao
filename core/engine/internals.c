@@ -1761,10 +1761,10 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
   int result_state;
   int wam_result;
 
-  Arg = goal_desc->worker_registers;
-  Arg->next_insn = startgoalcode;
-  Arg->next_alt = NULL;  /* Force backtracking after alts. exahusted */
-  Arg->choice->x[0] = X(0);    /* Will be the arg. of a call/1 */
+  w = goal_desc->worker_registers;
+  w->next_insn = startgoalcode;
+  SetDeep();  /* Force backtracking after alts. exahusted */
+  w->choice->x[0] = X(0);    /* Will be the arg. of a call/1 */
  
 #if defined(DEBUG) && defined(USE_THREADS)
   if (debug_threads)
@@ -1774,7 +1774,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
 #endif
 
   wam(Arg, goal_desc);    /* segfault patch -- jf */
-  Arg = goal_desc->worker_registers;
+  w = goal_desc->worker_registers;
   wam_result = w->misc->exit_code;
 
 #if defined(DEBUG) && defined(USE_THREADS)
@@ -2416,8 +2416,7 @@ void display_functor(definition_t *functor)
 # define DisplayCPFunctor(cp) fprintf(stderr, "_N")
 #endif
 
-CVOID__PROTO(show_nodes, choice_t *cp_younger, choice_t *cp_older)
-{
+CVOID__PROTO(show_nodes, choice_t *cp_younger, choice_t *cp_older) {
   intmach_t number;
   try_node_t *next_alt;
 #if !defined(DEBUG_NODE)
@@ -2428,10 +2427,11 @@ CVOID__PROTO(show_nodes, choice_t *cp_younger, choice_t *cp_older)
   DisplayCPFunctor(cp_younger);
   fprintf(stderr, ", ");
   fprintf(stderr, "[");
-  if (cp_younger->next_alt)
-    next_alt = cp_younger->next_alt;
-  else
+  if (IsShallowTry0(cp_younger)) {
     next_alt = w->next_alt;
+  } else {
+    next_alt = cp_younger->next_alt;
+  }
   number = next_alt->number;
   cp_younger = ChoiceCont0(cp_younger, next_alt->arity);
   while(ChoiceYounger(cp_younger, cp_older)) {

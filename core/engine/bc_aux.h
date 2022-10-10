@@ -1439,7 +1439,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   w->next_alt = address_nd_repeat; /* arity=0 */
   GetFrameTop(w->local_top,b,G->frame);
   w->choice = b = ChoiceNext0(b,0);
-  b->next_alt = NULL;
+  SetShallowTry0(b);
   CHPTFLG(b->flags = 0);
   b->trail_top = w->trail_top;
   b->heap_top = w->heap_top;
@@ -1470,7 +1470,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   
   w->heap_top = NodeGlobalTop(b);
   w->choice = b = ChoiceCont0(b,0);
-  w->next_alt = NULL;
+  SetDeep();
   SetShadowregs(b);
 
                                 /* succeed, fail, or suspend */

@@ -31,7 +31,7 @@
 
 #define CODE_MAYBE_NECK_TRY() do { \
   choice_t *b = w->choice; \
-  if (!b->next_alt) { /* try */ \
+  if (IsShallowTry0(b)) { /* try */ \
     b->next_alt = w->next_alt; /* 4 contiguous moves */ \
     b->frame = w->frame; \
     b->next_insn = w->next_insn; \
@@ -1266,7 +1266,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
 #endif
 
   bool_t shallow_try = FALSE;
-  if (w->choice->next_alt == NULL) { /* ensure A', P' exist */
+  if (IsShallowTry0(w->choice)) { /* ensure A', P' exist */
     shallow_try = TRUE;
     w->choice->next_alt = w->next_alt;
     w->choice->local_top = w->local_top;
@@ -1373,7 +1373,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
   }
 
   if (shallow_try == TRUE) {
-    w->choice->next_alt = NULL;
+    SetShallowTry0(w->choice);
   }
 
 #if defined(USE_GC_STATS)          
@@ -1736,33 +1736,31 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 
   /* relocate pointers in choice&env stks */
   n2 = NULL;
-  for (n=aux_node; n!=InitialNode && n->next_alt!=NULL; n=n2) {
-    if (n->next_alt != NULL) { // TODO: can be null?
-      n2 = ChoiceCont(n);
-      {
-        TG_Let(pt1, n->x);
-        for (; pt1!=(tagged_t *)n2;) {
-          TG_Fetch(pt1);
-          RelocateIfHeapPtr(pt1, reloc_factor);
-          pt1++;
-        }
+  for (n=aux_node; n!=InitialNode && n->next_alt!=NULL; n=n2) { // TODO: can n->next_alt  be NULL?
+    n2 = ChoiceCont(n);
+    {
+      TG_Let(pt1, n->x);
+      for (; pt1!=(tagged_t *)n2;) {
+        TG_Fetch(pt1);
+        RelocateIfHeapPtr(pt1, reloc_factor);
+        pt1++;
       }
-      i = FrameSize(n->next_insn);
-      frame = n->frame;
-      while ((frame >= (frame_t*) NodeLocalTop(n2)) && frame->next_insn != NULL) {
-        TG_Let(pt1, (tagged_t *)StackCharOffset(frame,i));
-        while (pt1!=frame->x) {
-          --pt1;
-          TG_Fetch(pt1);
-          RelocateIfHeapPtr(pt1, reloc_factor);
-        }
-        i = FrameSize(frame->next_insn);
-        frame = frame->frame;
-      } 
-
-      // TODO: TABLING ->> How to translate???
-      AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
     }
+    i = FrameSize(n->next_insn);
+    frame = n->frame;
+    while ((frame >= (frame_t*) NodeLocalTop(n2)) && frame->next_insn != NULL) {
+      TG_Let(pt1, (tagged_t *)StackCharOffset(frame,i));
+      while (pt1!=frame->x) {
+        --pt1;
+        TG_Fetch(pt1);
+        RelocateIfHeapPtr(pt1, reloc_factor);
+      }
+      i = FrameSize(frame->next_insn);
+      frame = frame->frame;
+    } 
+
+    // TODO: TABLING ->> How to translate???
+    AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
   }
 
   // TODO: TABLING ->> How to translate???

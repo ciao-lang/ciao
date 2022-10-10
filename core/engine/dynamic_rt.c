@@ -168,7 +168,6 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
      that HEAPMARGIN_CALL does not break during GC */
 
   if (x2_next || x5_next) {
-    GetFrameTop(w->local_top,w->choice,G->frame);
     X(X2_CHN) = PointerToTermOrZero(x2_next);
     X(ClockSlot) = MakeSmall(use_clock);
     X(X5_CHN) = PointerToTermOrZero(x5_next);
@@ -177,14 +176,9 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
     X(InvocationAttr) = MakeSmall(0); 
     X(PrevDynChpt) = MakeSmall(0); 
 
-    w->next_alt = address_nd_current_instance; /* establish skeletal node */
     w->previous_choice = w->choice;
-    w->choice = ChoiceNext0(w->choice,DynamicPreserved);
-    w->choice->next_alt = NULL;
-    CHPTFLG(w->choice->flags = 0);
-    w->choice->trail_top = w->trail_top;
-    w->choice->heap_top = w->heap_top;
-    NewShadowregs(w->heap_top);
+
+    CODE_CHOICE_NEW(w->choice, address_nd_current_instance); /* establish skeletal node */
   } else {
     /* Cleanup unused registers */
     X(X5_CHN) = MakeSmall(0);
@@ -505,7 +499,6 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
 
     x2_next = make_handle_to(x2_n, root, X(0), X2);
     x5_next = make_handle_to(x5_n, root, X(0), X5);
-    GetFrameTop(w->local_top,w->choice,G->frame);
     X(X2_CHN) = PointerToTermOrZero(x2_next);
     X(ClockSlot) = MakeSmall(use_clock);
     X(X5_CHN) = PointerToTermOrZero(x5_next);
@@ -513,23 +506,20 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
     /* pass root to RETRY_INSTANCE (MCL) */
     X(RootArg) = PointerToTermOrZero(root);  
     X(InvocationAttr) = MakeSmall(0); /* avoid garbage */
-    if (block == BLOCK)
+    if (block == BLOCK) {
       SET_BLOCKING(X(InvocationAttr));
-    else
+    } else {
       SET_NONBLOCKING(X(InvocationAttr));
+    }
     SET_EXECUTING(X(InvocationAttr));
 
     /* Save last dynamic top */
     X(PrevDynChpt) = PointerToTermOrZero(TopConcChpt); 
-    w->next_alt = address_nd_current_instance; /* establish skeletal node */
     w->previous_choice = w->choice;
-    w->choice = ChoiceNext0(w->choice,DynamicPreserved);
+    //
+    CODE_CHOICE_NEW(w->choice, address_nd_current_instance); /* establish skeletal node */
+    //
     TopConcChpt = (choice_t *)w->choice;  /* Update dynamic top */
-    w->choice->next_alt = NULL;
-    CHPTFLG(w->choice->flags = 0);
-    w->choice->trail_top = w->trail_top;
-    w->choice->heap_top = w->heap_top;
-    NewShadowregs(w->heap_top);
 
 #if defined(DEBUG)
     if (debug_concchoicepoints)
@@ -1671,8 +1661,9 @@ CFUN__PROTO(active_instance,
   instance_clock_t lotime = time;
   tagged_t lorank = TaggedIntMax;
 
-  if (!latest_static->next_alt)                   /* if called from wam() */
+  if (latest_static->next_alt == NULL) { /* if called from wam() */ // TODO: IsShallowTry0(latest_static)?
     latest_static = w->previous_choice;
+  }
 
   for (b=latest_static; !ChoiceptTestStatic(b); b=b2)  {
     b2=ChoiceCont(b);

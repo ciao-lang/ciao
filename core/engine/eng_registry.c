@@ -786,7 +786,7 @@ static definition_t *define_builtin(char *pname, int instr, int arity) {
   return func;
 }
 
-static tagged_t deffunctor(char *pname, int arity) {
+tagged_t deffunctor(char *pname, int arity) {
   return SetArity(GET_ATOM(pname),arity);
 }
 
@@ -1934,7 +1934,7 @@ CVOID__PROTO(local_init_each_time) {
   ChoiceptMarkNoCVA(b);
                                 
   NewShadowregs(w->heap_top);
-  w->next_alt = NULL;
+  SetDeep();
 
   w->value_trail = (int)InitialValueTrail;
   TopConcChpt = b; /* Initialize concurrent topmost choicepoint */
