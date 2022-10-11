@@ -49,32 +49,6 @@ extern definition_t *address_ucc;
   RECOVER_FIELD(ptemp);\
   RECOVER_FIELD(ins)
 
-/* Macros for conditional code inside other macros */
-
-#if defined(TABLING)
-#define ON_TABLING(X) X
-#else
-#define ON_TABLING(X)
-#endif
-
-#if defined(ANDPARALLEL)
-#define ON_ANDPARALLEL(X) X
-#else
-#define ON_ANDPARALLEL(X)
-#endif
-
-#if defined(DEBUG)
-#define ON_DEBUG(X) X
-#else
-#define ON_DEBUG(X)
-#endif
-
-#if defined(DEBUG_NODE)
-#define ON_DEBUG_NODE(X) X
-#else
-#define ON_DEBUG_NODE(X)
-#endif
-
 /* ------------------------------------------------------------------------- */
 
 bcp_t call_code;

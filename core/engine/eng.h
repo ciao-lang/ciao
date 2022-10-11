@@ -495,6 +495,30 @@
  }
 #endif
 
+#if defined(TABLING)
+#define ON_TABLING(X) X
+#else
+#define ON_TABLING(X)
+#endif
+
+#if defined(ANDPARALLEL)
+#define ON_ANDPARALLEL(X) X
+#else
+#define ON_ANDPARALLEL(X)
+#endif
+
+#if defined(DEBUG)
+#define ON_DEBUG(X) X
+#else
+#define ON_DEBUG(X)
+#endif
+
+#if defined(DEBUG_NODE)
+#define ON_DEBUG_NODE(X) X
+#else
+#define ON_DEBUG_NODE(X)
+#endif
+
 #define TEST_CHOICE_OVERFLOW(B, AMOUNT) ({ \
   if (ChoiceYounger((B),TrailOffset(w->trail_top,(AMOUNT)))) { \
     CVOID__CALL(choice_overflow, (AMOUNT), TRUE); \
@@ -512,15 +536,20 @@ tagged_t deffunctor(char *pname, int arity); /* eng_registry.c */
 // TODO: OPTIM_COMP saves local_top here, not in NECK_TRY
 #define CODE_CHOICE_NEW(B, ALT) ({ \
   GetFrameTop(w->local_top,w->choice,G->frame); /* get_frame_top */ \
-  G->next_alt = (ALT); \
-  (B) = ChoiceNext0(w->choice, ChoiceArity(G)); \
-  SetShallowTry0((B)); \
-  CHPTFLG((B)->flags = 0); \
-  (B)->trail_top = G->trail_top; \
-  (B)->heap_top = G->heap_top; \
-  w->choice = (B); \
-  NewShadowregs(G->heap_top); \
+  CODE_CHOICE_NEW0(B, w->choice, ALT, G->heap_top); \
 })
+// TODO: ON_DEBUG_NODE was not in OPTIM_COMP and only in 'alt_dispatcher'
+#define CODE_CHOICE_NEW0(B, B0, ALT, H) do { \
+  G->next_alt = (ALT); \
+  (B) = (typeof(B))ChoiceNext0(B0, ChoiceArity(G)); \
+  ON_DEBUG_NODE({ ((choice_t *)(B))->functor=NULL; }); \
+  SetShallowTry0(((choice_t *)(B))); \
+  CHPTFLG(((choice_t *)(B))->flags = 0); \
+  ((choice_t *)(B))->trail_top = G->trail_top; \
+  ((choice_t *)(B))->heap_top = (H); \
+  w->choice = ((choice_t *)(B)); \
+  NewShadowregs((H)); \
+} while(0)
 #define CODE_NECK_TRY(B) ({ \
   (B)->frame = G->frame; \
   (B)->next_insn = G->next_insn; \

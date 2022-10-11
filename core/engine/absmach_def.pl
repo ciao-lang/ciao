@@ -459,15 +459,6 @@ deallocate :-
     "w->next_insn" <- "E->next_insn",
     "w->frame" <- "E->frame".
 
-% Do not edit this defn - it's the special case 
-%   GetFrameTop(w->local_top,B,G->frame)
-:- pred(compute_Ltop/1, [unfold]).
-compute_Ltop(B) :-
-    call('GetFrameTop', ["w->local_top","B","G->frame"]).
-%    if("w->local_top", ";",
-%      if("!StackYounger(w->local_top = NodeLocalTop(B),w->frame)",
-%        "w->local_top" <- "StackCharOffset(w->frame,FrameSize(w->next_insn))")).
-
 :- pred(code_neck/0, [unfold]).
 code_neck :-
     if("!IsDeep()",
@@ -3384,7 +3375,7 @@ code_loop_begin :-
       "P" <- "(bcp_t)start_func",
       call('SetB', ["w->choice"]),
       % TODO: this should not be necessary, right?
-      % compute_Ltop("B"),
+      % call('GetFrameTop', ["w->local_top","B","G->frame"]),
       setmode(w), % switch_on_pred expects we are in write mode, load H
       goto('switch_on_pred')
     )),
@@ -3567,13 +3558,15 @@ code_fail :-
       "w->trail_top" <- "pt2")),
     %
     "w->heap_top" <- "NodeGlobalTop(B)",
-    %
+    %OO{
     "P" <- "(bcp_t)w->next_alt",
-    if("IsDeep()",
-      deep_backtrack),
-    %
+    if("IsDeep()", deep_backtrack), % (stores B->next_alt in P)
     profile_hook(redo),
-    %
+    %}OO{
+%    if("IsDeep()", deep_backtrack),
+%    profile_hook(redo),
+%    "P" <- "(bcp_t)w->next_alt",
+    %}OO
     "w->next_alt" <- "((try_node_t *)P)->next",
     if("w->next_alt == NULL", % TODO: This one is not a deep check! (see line above)
       (call('SetB', ["w->previous_choice"]),
@@ -3604,15 +3597,23 @@ code_fail :-
 % :- pred(bug_nosol/0, [unfold]).
 % bug_nosol :- [[ 1 = 2 ]]. % (force fail)
 
+% TODO:[oc-merge] part of code_restore_args0
 :- pred(deep_backtrack/0, [unfold]).
-deep_backtrack :-
+deep_backtrack :- %%%%OO (stores B->next_alt in P)
     % deep backtracking
     trace(deep_backtracking),
     % 7-8 contiguous moves
+    %OO{
     "P" <- "(bcp_t)B->next_alt",
     "w->frame" <- "B->frame",
     "w->next_insn" <- "B->next_insn",
     "w->local_top" <- "NodeLocalTop(B)",
+    %}OO{
+%    "w->frame" <- "B->frame",
+%    "w->next_insn" <- "B->next_insn",
+%    "w->next_alt" <- "B->next_alt",
+%    "w->local_top" <- "NodeLocalTop(B)",
+    %}OO
     %
     % Dirty hack: always pop n registers (heuristic measure, I guess) and
     % see later if we need to reload more; had we needed less, we simply do
@@ -3635,7 +3636,11 @@ deep_backtrack :-
     % %   while (--i);
     % % }
     %
+    %OO{
     "i" <- "((try_node_t *)P)->arity",
+    %}OO{
+    %"i" <- "B->next_alt->arity",
+    %}OO
     "w->previous_choice" <- "ChoiceCont0(B,i)",
     for("intmach_t k=0; k<i; k++",
       ("w->x[k]" <- "B->x[k]")).
@@ -4156,20 +4161,10 @@ alt_dispatcher :-
     "w->previous_choice" <- "w->choice",
     "w->next_alt" <- (Alts,"->next"),
     if(("w->next_alt != NULL"), % TODO: This one is not a deep check! (see line above)
-      % TODO: new_choice?
-      % TODO: OPTIM_COMP saves local_top here, not in NECK_TRY
       (call('SetB', ["w->choice"]),
-      compute_Ltop("B"),
-      call('SetB', ["ChoiceNext0(B,ChoiceArity(w))"]),
-      "w->choice" <- "B",
-      "ON_DEBUG_NODE({",
-      "B->functor" <- "NULL",
-      "});", fmt:nl,
-      "B->next_alt" <- "NULL",
-      "B->trail_top" <- "w->trail_top",
+      call('GetFrameTop', ["w->local_top","B","G->frame"]),
       cachedreg('H',H),
-      "B->heap_top" <- H,
-      call('NewShadowregs', [H]),
+      call('CODE_CHOICE_NEW0', ["pt1", "B", "w->next_alt", H]), % B is 'pt1'
       trace(create_choicepoint),
       % segfault patch -- jf
       maybe_choice_overflow)),
