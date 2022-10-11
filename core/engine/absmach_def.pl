@@ -3559,13 +3559,13 @@ code_fail :-
     %
     "w->heap_top" <- "NodeGlobalTop(B)",
     %OO{
-    "P" <- "(bcp_t)w->next_alt",
-    if("IsDeep()", deep_backtrack), % (stores B->next_alt in P)
-    profile_hook(redo),
-    %}OO{
-%    if("IsDeep()", deep_backtrack),
-%    profile_hook(redo),
 %    "P" <- "(bcp_t)w->next_alt",
+%    if("IsDeep()", deep_backtrack), % (stores B->next_alt in P)
+%    profile_hook(redo),
+    %}OO{
+    if("IsDeep()", deep_backtrack),
+    profile_hook(redo),
+    "P" <- "(bcp_t)w->next_alt",
     %}OO
     "w->next_alt" <- "((try_node_t *)P)->next",
     if("w->next_alt == NULL", % TODO: This one is not a deep check! (see line above)
@@ -3599,47 +3599,25 @@ code_fail :-
 
 % TODO:[oc-merge] part of code_restore_args0
 :- pred(deep_backtrack/0, [unfold]).
-deep_backtrack :- %%%%OO (stores B->next_alt in P)
+deep_backtrack :-
     % deep backtracking
     trace(deep_backtracking),
     % 7-8 contiguous moves
     %OO{
-    "P" <- "(bcp_t)B->next_alt",
-    "w->frame" <- "B->frame",
-    "w->next_insn" <- "B->next_insn",
-    "w->local_top" <- "NodeLocalTop(B)",
-    %}OO{
+%    "P" <- "(bcp_t)B->next_alt",
 %    "w->frame" <- "B->frame",
 %    "w->next_insn" <- "B->next_insn",
-%    "w->next_alt" <- "B->next_alt",
 %    "w->local_top" <- "NodeLocalTop(B)",
-    %}OO
-    %
-    % Dirty hack: always pop n registers (heuristic measure, I guess) and
-    % see later if we need to reload more; had we needed less, we simply do
-    % not use the additional ones.  I have simplified the code (see below),
-    % in part because it was giving problems in some architectures: the
-    % initial choicepoint of a concurrent goal was being accessed out of
-    % the scope of the memory allocated for the choicepoint stack.  MCL.
-    %
-    % % X(0) = B->x[0];
-    % % X(1) = B->x[1];
-    % % X(2) = B->x[2];
-    % % X(3) = B->x[3];
-    % % i = ((try_node_t *)P)->arity;
-    % % w->previous_choice = ChoiceCont0(B,i);
-    % % if (i>ChoiceSize(3)) {
-    % %   S = (tagged_t *)w->previous_choice;
-    % %   i = i-3;
-    % %   do
-    % %     (w->x+2)[i] = (*--S);
-    % %   while (--i);
-    % % }
-    %
-    %OO{
-    "i" <- "((try_node_t *)P)->arity",
     %}OO{
-    %"i" <- "B->next_alt->arity",
+    "w->frame" <- "B->frame",
+    "w->next_insn" <- "B->next_insn",
+    "w->next_alt" <- "B->next_alt",
+    "w->local_top" <- "NodeLocalTop(B)",
+    %}OO
+    %OO{
+    %"i" <- "((try_node_t *)P)->arity",
+    %}OO{
+    "i" <- "B->next_alt->arity",
     %}OO
     "w->previous_choice" <- "ChoiceCont0(B,i)",
     for("intmach_t k=0; k<i; k++",
