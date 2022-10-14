@@ -3566,18 +3566,20 @@ code_fail :-
 jump_fail_cont :-
     "P" <- "(bcp_t)w->next_alt",
     "w->next_alt" <- "((try_node_t *)P)->next",
-    if("w->next_alt == NULL", % TODO: This one is not a deep check! (see line above)
-      ("SetDeep0();", fmt:nl,
-       call('SetB', ["w->previous_choice"]),
-       "w->choice" <- "B",
+    if("w->next_alt == NULL", ( % TODO: This one is not a deep check! (see line above)
+      "SetDeep0();", fmt:nl,
+      call('SetB', ["w->previous_choice"]),
+      "w->choice" <- "B",
       "ON_TABLING({", fmt:nl,
       % To avoid sharing wrong trail - it might be associated to the
       % previous frozen choice point
       if("FrozenChpt(B)",
         call('push_choicept', ["w","address_nd_fake_choicept"])),
       "});", fmt:nl,
-      "SetShadowregs(B);", fmt:nl),
-      ("CHOICE_PATCH0();", fmt:nl)), % TODO:[oc-merge] choice_patch also modified w->choice->next_alt in OPTIM_COMP
+      "SetShadowregs(B);", fmt:nl
+    ), (
+      "CHOICE_PATCH0();", fmt:nl
+    )), % TODO:[oc-merge] choice_patch also modified w->choice->next_alt in OPTIM_COMP
     %
     "P" <- "((try_node_t *)P)->emul_p",
     "t0" <- "X(0)",
@@ -4128,17 +4130,20 @@ alt_dispatcher :-
     ; [[ mode(w) ]], [[ EmulP = (Alts, "->emul_p") ]]
     ),
     "P" <- EmulP,
-    %
+    % TODO:[merge-oc] try_alt/1
     "w->previous_choice" <- "w->choice",
     "w->next_alt" <- (Alts,"->next"),
-    if(("w->next_alt != NULL"), % TODO: This one is not a deep check! (see line above)
-      (call('SetB', ["w->choice"]),
+    if("w->next_alt != NULL", ( % TODO: This one is not a deep check! (see line above)
+      call('SetB', ["w->choice"]),
       call('GetFrameTop', ["w->local_top","B","G->frame"]),
       cachedreg('H',H),
       call('CODE_CHOICE_NEW0', ["pt1", "B", "w->next_alt", H]), % B is 'pt1'
       trace(create_choicepoint),
       % segfault patch -- jf
-      maybe_choice_overflow)),
+      maybe_choice_overflow
+    ),(
+      "SetDeep0();", fmt:nl
+    )),
     goto_ins_dispatch.
 
 :- pred(goto_ins_dispatch/0, [unfold]).
