@@ -556,7 +556,7 @@ tagged_t deffunctor(char *pname, int arity); /* eng_registry.c */
   (B)->next_alt = G->next_alt; \
   (B)->local_top = G->local_top; \
   intmach_t arity = ChoiceArity(B); \
-  for (int i = 0; i < arity; i++) { \
+  for (intmach_t i = 0; i < arity; i++) { \
     (B)->x[i] = w->x[i]; \
   } \
 })
@@ -573,6 +573,21 @@ tagged_t deffunctor(char *pname, int arity); /* eng_registry.c */
   G->frame = (Frame)->frame; \
 })
 #define InvalidateLocalTop() G->local_top = NULL
+
+#define CODE_MAYBE_NECK_TRY() do { \
+  if (IsShallowTry0(w->choice)) { /* try */ \
+    choice_t *b = w->choice; \
+    CODE_NECK_TRY(b); \
+  } \
+} while(0)
+#define CODE_CFRAME(Frame, NextInsn) ({ \
+  (Frame)->next_insn = G->next_insn; \
+  (Frame)->frame = G->frame; \
+  G->frame = (Frame); \
+  G->next_insn = (NextInsn); \
+  G->local_top = (frame_t *)StackCharOffset((Frame),FrameSize(G->next_insn)); \
+})
+#define SetLocalTop(A) G->local_top = (A)
 
 /* ------------------------------------------------------------------------- */
 /* Events (WakeCount and interrupts) based on heap limit checks */

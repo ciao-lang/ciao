@@ -26,46 +26,6 @@
 #define USE_EARLY_RESET 1
 
 /* --------------------------------------------------------------------------- */
-
-#if !defined(OPTIM_COMP)
-
-#define CODE_MAYBE_NECK_TRY() do { \
-  choice_t *b = w->choice; \
-  if (IsShallowTry0(b)) { /* try */ \
-    b->next_alt = w->next_alt; /* 4 contiguous moves */ \
-    b->frame = w->frame; \
-    b->next_insn = w->next_insn; \
-    b->local_top = w->local_top; \
-    intmach_t i=ChoiceArity(b); \
-    if (i>0) { \
-      tagged_t *t = (tagged_t *)w->previous_choice; \
-      do { \
-        t--; \
-        i--; \
-        *t = X(i); \
-      } while (i>0); \
-    } \
-    if (ChoiceYounger(ChoiceOffset(b,CHOICEPAD),w->trail_top)) { \
-      CVOID__CALL(choice_overflow,CHOICEPAD,TRUE); \
-    } \
-  } \
-} while(0)
-#define CODE_CFRAME(Frame, NextInsn) ({ \
-  (Frame)->next_insn = G->next_insn; \
-  (Frame)->frame = G->frame; \
-  G->frame = (Frame); \
-  G->next_insn = (NextInsn); \
-  G->local_top = (frame_t *)StackCharOffset((Frame),FrameSize(G->next_insn)); \
-})
-#define SetLocalTop(A) G->local_top = (A)
-#define DEALLOCATE(Frame) ({ \
-  G->next_insn = (Frame)->next_insn; \
-  G->frame = (Frame)->frame; \
-})
-
-#endif
-
-/* --------------------------------------------------------------------------- */
 /* Switch on tag (special for GC) */
 
 #if defined(OPTIM_COMP)
@@ -342,8 +302,20 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
   /* arity of choicept could be greater than arity of clause */
   /* We are still in "shallow mode" */
   /* Pre: !IsDeep() */
+#if !defined(OPTIM_COMP)
+  bool_t was_shallow = IsShallowTry0(w->choice);
+#endif
   CODE_MAYBE_NECK_TRY();
-  /* TODO: OPTIM_COMP version does not test choice overflow here! correct? */
+#if !defined(OPTIM_COMP)
+  /* TODO: OPTIM_COMP version does not test choice overflow here! Does
+     it make sense? Choice stack space should be already reserved
+     before neck. */
+  if (was_shallow) {
+    if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top)) {
+      CVOID__CALL(choice_overflow,CHOICEPAD,TRUE);
+    }
+  }
+#endif
   
   /* ensure that X regs are seen by heap_overflow(): make a frame */
   CODE_ALLOC(a);

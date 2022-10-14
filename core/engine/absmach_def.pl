@@ -3558,15 +3558,13 @@ code_fail :-
       "w->trail_top" <- "pt2")),
     %
     "w->heap_top" <- "NodeGlobalTop(B)",
-    %OO{
-%    "P" <- "(bcp_t)w->next_alt",
-%    if("IsDeep()", deep_backtrack), % (stores B->next_alt in P)
-%    profile_hook(redo),
-    %}OO{
-    if("IsDeep()", deep_backtrack),
+    code_restore_args,
     profile_hook(redo),
+    jump_fail_cont.
+
+:- pred(jump_fail_cont/0, [unfold]).
+jump_fail_cont :-
     "P" <- "(bcp_t)w->next_alt",
-    %}OO
     "w->next_alt" <- "((try_node_t *)P)->next",
     if("w->next_alt == NULL", % TODO: This one is not a deep check! (see line above)
       (call('SetB', ["w->previous_choice"]),
@@ -3597,29 +3595,22 @@ code_fail :-
 % :- pred(bug_nosol/0, [unfold]).
 % bug_nosol :- [[ 1 = 2 ]]. % (force fail)
 
+:- pred(code_restore_args/0, [unfold]).
+code_restore_args :-
+    if("IsDeep()", deep_backtrack).
+
 % TODO:[oc-merge] part of code_restore_args0
 :- pred(deep_backtrack/0, [unfold]).
 deep_backtrack :-
     % deep backtracking
     trace(deep_backtracking),
-    % 7-8 contiguous moves
-    %OO{
-%    "P" <- "(bcp_t)B->next_alt",
-%    "w->frame" <- "B->frame",
-%    "w->next_insn" <- "B->next_insn",
-%    "w->local_top" <- "NodeLocalTop(B)",
-    %}OO{
     "w->frame" <- "B->frame",
     "w->next_insn" <- "B->next_insn",
     "w->next_alt" <- "B->next_alt",
     "w->local_top" <- "NodeLocalTop(B)",
-    %}OO
-    %OO{
-    %"i" <- "((try_node_t *)P)->arity",
-    %}OO{
     "i" <- "B->next_alt->arity",
-    %}OO
     "w->previous_choice" <- "ChoiceCont0(B,i)",
+    % TODO:[oc-merge] set_shallow_retry here?
     for("intmach_t k=0; k<i; k++",
       ("w->x[k]" <- "B->x[k]")).
 
