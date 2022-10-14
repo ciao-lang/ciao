@@ -1609,6 +1609,7 @@ struct marker_ {
 #define IsShallowTry() (G->flags == 1)
 #define IsShallowTry0(B) IsShallowTry()
 //
+#define SetDeep0() { G->flags = 0; }
 #define SetDeep() { G->flags = 0; }
 #define SetShallowTry() { G->flags = 1; }
 #define SetShallowRetry() { G->flags = 2; }
@@ -1617,7 +1618,9 @@ struct marker_ {
 #define IsDeep() (w->next_alt == NULL)
 #define IsShallowTry() (B->next_alt == NULL)
 #define IsShallowTry0(B) (B->next_alt == NULL)
+#define SetDeep0() do {} while(0)
 #define SetDeep() ({ w->next_alt = NULL; })
+#define SetShallowRetry() do {} while(0)
 #define SetShallowTry0(B) do { B->next_alt = NULL; } while(0)
 #endif
 

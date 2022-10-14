@@ -1660,7 +1660,7 @@ exit_toplevel :-
 :- ins_in_mode(retry_cq, r).
 retry_cq :-
     if("!IsDeep()",
-      ("B->next_alt" <- "w->next_alt",
+      ("NECK_RETRY_PATCH(B);", fmt:nl,
        "SetDeep();", fmt:nl)),
     if(("!","((cbool0_t)BcP(f_C, 2))(Arg)"), goto('fail')),
     goto_ins(proceed).
@@ -1669,7 +1669,7 @@ retry_cq :-
 :- ins_in_mode(retry_c, r).
 retry_c :-
     if("!IsDeep()",
-      ("B->next_alt" <- "w->next_alt",
+      ("NECK_RETRY_PATCH(B);", fmt:nl,
        "SetDeep();", fmt:nl)),
     if(("!","((cbool0_t)BcP(f_C, 1))(Arg)"), goto('fail')),
     goto_ins(proceed).
@@ -3567,7 +3567,8 @@ jump_fail_cont :-
     "P" <- "(bcp_t)w->next_alt",
     "w->next_alt" <- "((try_node_t *)P)->next",
     if("w->next_alt == NULL", % TODO: This one is not a deep check! (see line above)
-      (call('SetB', ["w->previous_choice"]),
+      ("SetDeep0();", fmt:nl,
+       call('SetB', ["w->previous_choice"]),
        "w->choice" <- "B",
       "ON_TABLING({", fmt:nl,
       % To avoid sharing wrong trail - it might be associated to the
@@ -3611,6 +3612,7 @@ deep_backtrack :-
     "i" <- "B->next_alt->arity",
     "w->previous_choice" <- "ChoiceCont0(B,i)",
     % TODO:[oc-merge] set_shallow_retry here?
+    "SetShallowRetry();", fmt:nl,
     for("intmach_t k=0; k<i; k++",
       ("w->x[k]" <- "B->x[k]")).
 
