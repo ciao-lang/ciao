@@ -667,6 +667,8 @@ fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->choice);
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD,TRUE);
               }
+            } else {
+SetDeep0();
             }
 goto ReadMode;
 ReadMode:
@@ -2233,6 +2235,8 @@ fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->choice);
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD,TRUE);
                 }
+              } else {
+SetDeep0();
               }
 goto WriteMode;
 WriteMode:
