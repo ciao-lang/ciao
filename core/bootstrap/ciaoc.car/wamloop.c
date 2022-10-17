@@ -323,9 +323,11 @@ w->x[k] = B->x[k];
       }
 PROFILE__HOOK_REDO;
 P = (bcp_t)w->next_alt;
-w->next_alt = ((try_node_t *)P)->next;
-if (w->next_alt == NULL) {
-SetDeep0();
+{
+try_node_t * alt;
+alt = ((try_node_t *)P)->next;
+if (alt == NULL) {
+SetDeep();
 SetB(w->previous_choice);
 w->choice = B;
 ON_TABLING({
@@ -334,16 +336,24 @@ push_choicept(w,address_nd_fake_choicept);
         }
 });
 SetShadowregs(B);
-      } else {
-CHOICE_PATCH0();
-      }
 P = ((try_node_t *)P)->emul_p;
 t0 = X(0);
 if (!IsVar(t0)) {
 goto ReadMode;
-      }
+        }
 LoadH;
 goto WriteMode;
+      } else {
+CODE_CHOICE_PATCH(w->choice, alt);
+P = ((try_node_t *)P)->emul_p;
+t0 = X(0);
+if (!IsVar(t0)) {
+goto ReadMode;
+        }
+LoadH;
+goto WriteMode;
+      }
+}
 enter_predicate:
 ON_ANDPARALLEL({
 if (Suspend == TOSUSPEND) {
@@ -654,11 +664,13 @@ INCR_COUNTER(Alts->entry_counter+1);
 #endif
 P = Alts->emul_p2;
 w->previous_choice = w->choice;
-w->next_alt = Alts->next;
-if (w->next_alt != NULL) {
+{
+try_node_t * alt;
+alt = Alts->next;
+if (alt != NULL) {
 SetB(w->choice);
 GetFrameTop(w->local_top,B,G->frame);
-CODE_CHOICE_NEW0(pt1,B,w->next_alt,w->heap_top);
+CODE_CHOICE_NEW0(pt1,B,alt,w->heap_top);
 ON_DEBUG({
 if (debug_choicepoints) {
 fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->choice);
@@ -668,8 +680,9 @@ if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD,TRUE);
               }
             } else {
-SetDeep0();
+SetDeep();
             }
+}
 goto ReadMode;
 ReadMode:
 switch (BcOPCODE) {
@@ -2222,11 +2235,13 @@ INCR_COUNTER(Alts->entry_counter);
 #endif
 P = Alts->emul_p;
 w->previous_choice = w->choice;
-w->next_alt = Alts->next;
-if (w->next_alt != NULL) {
+{
+try_node_t * alt;
+alt = Alts->next;
+if (alt != NULL) {
 SetB(w->choice);
 GetFrameTop(w->local_top,B,G->frame);
-CODE_CHOICE_NEW0(pt1,B,w->next_alt,H);
+CODE_CHOICE_NEW0(pt1,B,alt,H);
 ON_DEBUG({
 if (debug_choicepoints) {
 fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->choice);
@@ -2236,8 +2251,9 @@ if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
 choice_overflow(Arg,CHOICEPAD,TRUE);
                 }
               } else {
-SetDeep0();
+SetDeep();
               }
+}
 goto WriteMode;
 WriteMode:
 switch (BcOPCODE) {
