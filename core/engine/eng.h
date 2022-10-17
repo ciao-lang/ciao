@@ -1624,12 +1624,25 @@ struct marker_ {
 #define SetShallowTry0(B) do { B->next_alt = NULL; } while(0)
 #endif
 
+// TODO:[oc-merge] absmach_def:choice_patch/2
 #if defined(USE_RETRY_PATCH) /* patch choice next_alt in neck retry; otherwise on failure */
 #define NECK_RETRY_PATCH(B) do { B->next_alt = w->next_alt; } while(0)
-#define CHOICE_PATCH0() do {} while(0)
+#define CODE_CHOICE_PATCH(B, Alt) do { \
+  G->next_alt = (Alt); \
+} while(0)
 #else
 #define NECK_RETRY_PATCH(B) do {} while(0)
-#define CHOICE_PATCH0() do { if (w->choice->next_alt != NULL) w->choice->next_alt = w->next_alt; } while(0)
+#if defined(USE_DEEP_FLAGS)
+#define CODE_CHOICE_PATCH(B, Alt) do { \
+  G->next_alt = (Alt); \
+  (B)->next_alt = G->next_alt; \
+} while(0)
+#else
+#define CODE_CHOICE_PATCH(B, Alt) do { \
+  G->next_alt = (Alt); \
+  if ((B)->next_alt != NULL) (B)->next_alt = G->next_alt; \
+} while(0)
+#endif
 #endif
 
 /* ------------------------------------------------------------------------- */

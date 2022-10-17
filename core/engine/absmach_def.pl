@@ -3539,6 +3539,12 @@ code_undo :-
 
 :- pred(code_fail/0, [unfold]).
 code_fail :-
+    altcont0.
+
+% Restore state and jump to next alternative instructions
+% TODO:[oc-merge] altcont/1
+:- pred(altcont0/0, [unfold]).
+altcont0 :-
     [[update(mode(r))]],
     % The profiling code must be here
     profile_hook(fail),
@@ -3547,6 +3553,11 @@ code_fail :-
     "ResetWakeCount();",
     call('SetB', ["w->choice"]),
     %
+    untrail.
+
+% (continues at backtrack_ or undo_goal)
+:- pred(untrail/0, [unfold]).
+untrail :-
     "ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );", fmt:nl,
     %
     if("TrailYounger(pt2=w->trail_top,t1=(tagged_t)TrailTopUnmark(B->trail_top))",
@@ -3557,31 +3568,52 @@ code_fail :-
         "TrailYounger(pt2,t1)"),
       "w->trail_top" <- "pt2")),
     %
+    backtrack_.
+
+:- pred(backtrack_, [unfold]).
+backtrack_ :-
     "w->heap_top" <- "NodeGlobalTop(B)",
     code_restore_args,
     profile_hook(redo),
-    jump_fail_cont.
-
-:- pred(jump_fail_cont/0, [unfold]).
-jump_fail_cont :-
     "P" <- "(bcp_t)w->next_alt",
-    "w->next_alt" <- "((try_node_t *)P)->next",
-    if("w->next_alt == NULL", ( % TODO: This one is not a deep check! (see line above)
-      "SetDeep0();", fmt:nl,
-      call('SetB', ["w->previous_choice"]),
-      "w->choice" <- "B",
-      "ON_TABLING({", fmt:nl,
-      % To avoid sharing wrong trail - it might be associated to the
-      % previous frozen choice point
-      if("FrozenChpt(B)",
-        call('push_choicept', ["w","address_nd_fake_choicept"])),
-      "});", fmt:nl,
-      "SetShadowregs(B);", fmt:nl
+    "{", fmt:nl,
+    vardecl("try_node_t *", "alt"),
+    "alt" <- "((try_node_t *)P)->next",
+    [[mode(M)]],
+    if("alt == NULL", ( % TODO: This one is not a deep check! (see line above)
+      % TODO:[oc-merge] 'altmode.jump_fail_cont'(_,no_alt)
+      [[update(mode(M))]],
+      jump_fail_cont(no_alt)
     ), (
-      "CHOICE_PATCH0();", fmt:nl
+      [[update(mode(M))]],
+      jump_fail_cont(next_alt)
     )), % TODO:[oc-merge] choice_patch also modified w->choice->next_alt in OPTIM_COMP
-    %
-    "P" <- "((try_node_t *)P)->emul_p",
+    "}", fmt:nl,
+    % Make sure that no mode dependant code appears next
+    % TODO: better way?
+    [[update(mode('?'))]].
+
+:- pred(jump_fail_cont/1, [unfold]).
+jump_fail_cont(AltMode) :- [[ AltMode = no_alt ]],
+    "SetDeep();", fmt:nl,
+    call('SetB', ["w->previous_choice"]),
+    "w->choice" <- "B",
+    "ON_TABLING({", fmt:nl,
+    % To avoid sharing wrong trail - it might be associated to the
+    % previous frozen choice point
+    if("FrozenChpt(B)",
+      call('push_choicept', ["w","address_nd_fake_choicept"])),
+    "});", fmt:nl,
+    "SetShadowregs(B);", fmt:nl,
+    jump_alt_code("P").
+jump_fail_cont(AltMode) :- [[ AltMode = next_alt ]],
+    % TODO:[oc-merge] 'altmode.jump_fail_cont'(_,next_alt)
+    "CODE_CHOICE_PATCH(w->choice, alt);", fmt:nl,
+    jump_alt_code("P").
+
+:- pred(jump_alt_code/1, [unfold]).
+jump_alt_code(Alt) :-
+    "P" <- ("((try_node_t *)", Alt, ")->emul_p"),
     "t0" <- "X(0)",
     if("!IsVar(t0)", goto_ins_dispatch),
     setmode(w),
@@ -4132,18 +4164,21 @@ alt_dispatcher :-
     "P" <- EmulP,
     % TODO:[merge-oc] try_alt/1
     "w->previous_choice" <- "w->choice",
-    "w->next_alt" <- (Alts,"->next"),
-    if("w->next_alt != NULL", ( % TODO: This one is not a deep check! (see line above)
+    "{", fmt:nl,
+    vardecl("try_node_t *", "alt"),
+    "alt" <- (Alts,"->next"),
+    if("alt != NULL", ( % TODO: This one is not a deep check! (see line above)
       call('SetB', ["w->choice"]),
       call('GetFrameTop', ["w->local_top","B","G->frame"]),
       cachedreg('H',H),
-      call('CODE_CHOICE_NEW0', ["pt1", "B", "w->next_alt", H]), % B is 'pt1'
+      call('CODE_CHOICE_NEW0', ["pt1", "B", "alt", H]), % B is 'pt1'
       trace(create_choicepoint),
       % segfault patch -- jf
       maybe_choice_overflow
     ),(
-      "SetDeep0();", fmt:nl
+      "SetDeep();", fmt:nl
     )),
+    "}", fmt:nl,
     goto_ins_dispatch.
 
 :- pred(goto_ins_dispatch/0, [unfold]).
