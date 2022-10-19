@@ -27,7 +27,8 @@ extern definition_t *address_ucc;
   SAVE_FIELD(p); \
   SAVE_FIELD(i);\
   SAVE_FIELD(pt1);\
-  SAVE_FIELD(pt2);\
+  SAVE_FIELD(cached_r_h);\
+  SAVE_FIELD(r_s);\
   SAVE_FIELD(t0);\
   SAVE_FIELD(t1);\
   SAVE_FIELD(t2);\
@@ -41,7 +42,8 @@ extern definition_t *address_ucc;
   RECOVER_FIELD(p);\
   RECOVER_FIELD(i);\
   RECOVER_FIELD(pt1);\
-  RECOVER_FIELD(pt2);\
+  RECOVER_FIELD(cached_r_h);\
+  RECOVER_FIELD(r_s);\
   RECOVER_FIELD(t0);\
   RECOVER_FIELD(t1);\
   RECOVER_FIELD(t2);\

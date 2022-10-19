@@ -3344,8 +3344,9 @@ wam_loop_decls :-
     % Seemingly available registers in an i386 processor: ebx esi edi
     "CIAO_REG_1(bcp_t, p);", fmt:nl,
 %       "bcp_t p;", fmt:nl,
-    "CIAO_REG_2(tagged_t *, pt1);", fmt:nl,
-    "CIAO_REG_3(tagged_t *, pt2);", fmt:nl,
+    "CIAO_REG_2(tagged_t *, pt1);", fmt:nl, % TODO:[merge-oc] for Alts, Htab, B
+    "tagged_t *cached_r_h;", fmt:nl, % TODO:[merge-oc] H
+    "tagged_t *r_s;", fmt:nl, % TODO:[merge-oc] S
     %
     vardecl("intmach_t", "i"), % TODO: refine?
     % temps for terms (decreasing importance) 
@@ -3359,7 +3360,8 @@ wam_loop_decls :-
     vardecl("worker_t *", "new_worker"), % Temp - for changes in regbanksize
     %
     "pt1" <- "NULL",
-    "pt2" <- "NULL",
+    "cached_r_h" <- "NULL",
+    "r_s" <- "NULL",
     %
     "t0" <- "~0",
     "t1" <- "~0",
@@ -3394,6 +3396,7 @@ code_loop_begin :-
 % TODO:[merge-oc] do not unfold unify
 :- pred(code_unify_t0t1/0, [unfold]).
 code_unify_t0t1 :-
+    [[update(mode(r))]],
     sw_on_var("t0","i",
       goto('t0_is_hva'),
       goto('t0_is_cva'),
@@ -3529,7 +3532,6 @@ escape_to_p :-
 :- pred(code_undo/0, [unfold]).
 code_undo :-
     [[update(mode(r))]],
-    "w->trail_top" <- "pt2",
     "w->frame" <- "B->frame",
     "w->next_insn" <- "B->next_insn",
     call('SetE', ["NodeLocalTop(B)"]),
@@ -3565,13 +3567,17 @@ altcont0 :-
 untrail :-
     "ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );", fmt:nl,
     %
+    "{", fmt:nl,
+    "tagged_t *pt2;", fmt:nl,
     if("TrailYounger(pt2=w->trail_top,t1=(tagged_t)TrailTopUnmark(B->trail_top))",
       (do_while(
         ("PlainUntrail(", "pt2", ",", "t0", ",", "{", fmt:nl,
-         goto('undo'),
+           "w->trail_top" <- "pt2",
+           goto('undo'),
          "});", fmt:nl),
         "TrailYounger(pt2,t1)"),
       "w->trail_top" <- "pt2")),
+    "}", fmt:nl,
     %
     backtrack_.
 
@@ -3968,14 +3974,19 @@ pred_call5 :-
 pred_call_default :-
     [[update(mode(w))]],
     label('default'),
-    if("(t0 = Func->arity)",
-      (setmode(r),
+    "{", fmt:nl,
+    "intmach_t t0 = Func->arity;", fmt:nl,
+    if("t0 != 0",
+       (
+       "tagged_t *pt1;", fmt:nl,
+       "tagged_t *pt2;", fmt:nl,
        "pt1" <- "w->x",
        "pt2" <- "w->structure",
        do_while(
          call('PushRefHeapNext', ["pt1","pt2"]),
-         "--t0"),
-       setmode(w))),
+         "--t0")
+      )),
+    "}", fmt:nl,
     goto('switch_on_pred_sub').
 
 % NOTE: see prolog_dif

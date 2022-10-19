@@ -116,8 +116,8 @@ CVOID__PROTO(wr_call, char *s, definition_t *func);
 #define B               ((choice_t *)pt1)
 #define E               ((frame_t *)pt1)
 #define SetE(X)         (pt1 = (tagged_t *)(X))
-#define H               pt2
-#define S               pt2
+#define H               cached_r_h
+#define S               r_s
 #define Func            ((definition_t *)P)
 
 /* ------------------------------------------------------------------------- */

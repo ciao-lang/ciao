@@ -103,7 +103,7 @@ extern tagged_t *tabling_stack_end;
         if (NODE_TR_SIZE(t0))                                           \
           {                                                             \
             tagged_t *pt3 = NODE_TR_TRAIL_SG(t0);               \
-            for (pt2 = w->trail_top-1,                                  \
+            for (tagged_t *pt2 = w->trail_top-1,                                  \
                    t2=(tagged_t)TrailTopUnmark(B->trail_top);             \
                  !TrailYounger(t2,pt2); pt2--)                          \
               {                                                         \

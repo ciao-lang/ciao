@@ -1405,7 +1405,7 @@ typedef struct wam_private_ wam_private_t;
 struct wam_private_ {
   bcp_t p;                                             /* program counter */
   int i;
-  tagged_t *pt1, *pt2, t0, t1, t2, t3;
+  tagged_t *pt1, *cached_r_h, *r_s, t0, t1, t2, t3;
   bcp_t ptemp;
   instance_t *ins;      
 };
