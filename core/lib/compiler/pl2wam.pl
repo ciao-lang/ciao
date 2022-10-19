@@ -970,6 +970,16 @@ index_insn(get_large(K,0), get_large_x0(K), Type, Key) :-
 index_insn(get_structure(S,0), get_structure_x0(S), 2'10001, S).
 index_insn(get_nil(0), get_nil_x0, 2'101, []).
 index_insn(get_list(0), get_list_x0, 2'1001, '.'/2).
+% TODO:[merge-oc] disable X0 optimization?
+%%% index_insn(get_constant(K,0), get_constant(K,0), Type, Key) :- 
+%%%     type_of_constant(K, Type),
+%%%     key_of_constant(K, Key).
+%%% index_insn(get_large(K,0), get_large(K,0), Type, Key) :- 
+%%%     type_of_constant(K, Type),
+%%%     key_of_constant(K, Key).
+%%% index_insn(get_structure(S,0), get_structure(S,0), 2'10001, S).
+%%% index_insn(get_nil(0), get_nil(0), 2'101, []).
+%%% index_insn(get_list(0), get_list(0), 2'1001, '.'/2).
 
 
 /*  extract_index(C0, C1, TK0, TK, Y0, Y) :-

@@ -750,7 +750,11 @@ eunify(U, V, OpsSize) :-
     assign_noself(T0, U),
     assign_noself(T1, V),
     inc("P", OpsSize),
-    goto('unify_t0_t1').
+    goto('unify_t0_t1'). % code_unify_t0t1
+    % TODO:[merge-oc] do not unfold unify
+%    if(("t0", "!=", "t1"), 
+%      if("!CBOOL__SUCCEED(cunify,t0,t1)", goto('fail'))),
+%    dispatch(OpsSize).
 
 % u1 + dispatch
 :- pred(u1_dispatch/2, [unfold]).
@@ -3304,7 +3308,7 @@ wam_loop :-
     code_loop_begin,
     % MISCELLANEOUS SUPPORT
     %
-    labeled_block('unify_t0_t1', code_unify_t0t1),
+    labeled_block('unify_t0_t1', code_unify_t0t1), % TODO:[merge-oc] do not unfold unify
     %
     % Func, H must be live.
     labeled_block('suspend_on_t1', code_suspend_on_t1),
@@ -3387,6 +3391,7 @@ code_loop_begin :-
     )),
     goto_ins(proceed).
 
+% TODO:[merge-oc] do not unfold unify
 :- pred(code_unify_t0t1/0, [unfold]).
 code_unify_t0t1 :-
     sw_on_var("t0","i",
@@ -4159,6 +4164,7 @@ alt_dispatcher :-
     %
     [[ Alts = "Alts" ]],
     ( [[ mode(r) ]], [[ EmulP = (Alts, "->emul_p2") ]]
+%%%    ( [[ mode(r) ]], [[ EmulP = (Alts, "->emul_p") ]] % TODO:[merge-oc] no p2 optimization, disable X0 optimization?
     ; [[ mode(w) ]], [[ EmulP = (Alts, "->emul_p") ]]
     ),
     "P" <- EmulP,
