@@ -18,7 +18,11 @@ function modif_time() {
 # Size of a file
 
 function size_of_file() { # file
-    size_of_file0 `ls -la $1`
+    if [ -r "$1" ]; then
+        size_of_file0 `ls -la $1`
+    else
+        echo "NA"
+    fi
 }
 function size_of_file0() {
     echo "$5"
