@@ -59,7 +59,8 @@ goto again;
 CVOID__PROTO(wam__2,goal_descriptor_t * desc,definition_t * start_func) {
 CIAO_REG_1(bcp_t, p);
 CIAO_REG_2(tagged_t *, pt1);
-CIAO_REG_3(tagged_t *, pt2);
+tagged_t *cached_r_h;
+tagged_t *r_s;
 intmach_t i;
 tagged_t t0;
 tagged_t t1;
@@ -69,7 +70,8 @@ bcp_t ptemp = NULL;
 instance_t * ins;
 worker_t * new_worker;
 pt1 = NULL;
-pt2 = NULL;
+cached_r_h = NULL;
+r_s = NULL;
 t0 = ~0;
 t1 = ~0;
 t2 = ~0;
@@ -272,7 +274,6 @@ X(0) = t3;
 X(1) = t2;
 goto switch_on_pred;
 undo:
-w->trail_top = pt2;
 w->frame = B->frame;
 w->next_insn = B->next_insn;
 SetE(NodeLocalTop(B));
@@ -296,13 +297,17 @@ fprintf(stderr, "********** what happened here?\n");
 });
 ResetWakeCount();SetB(w->choice);
 ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );
+{
+tagged_t *pt2;
 if (TrailYounger(pt2=w->trail_top,t1=(tagged_t)TrailTopUnmark(B->trail_top))) {
 do {
 PlainUntrail(pt2,t0,{
+w->trail_top = pt2;
 goto undo;
 });
 } while (TrailYounger(pt2,t1));w->trail_top = pt2;
       }
+}
 w->heap_top = NodeGlobalTop(B);
 if (IsDeep()) {
 ON_DEBUG({
@@ -549,14 +554,17 @@ call5:
 i = Func->predtyp;
 goto call4;
 default:
-if ((t0 = Func->arity)) {
-StoreH;
+{
+intmach_t t0 = Func->arity;
+if (t0 != 0) {
+tagged_t *pt1;
+tagged_t *pt2;
 pt1 = w->x;
 pt2 = w->structure;
 do {
 PushRefHeapNext(pt1,pt2);
-} while (--t0);LoadH;
-            }
+} while (--t0);            }
+}
 goto switch_on_pred_sub;
 }case BUILTIN_DIF:
 PredTrace("B",Func);
