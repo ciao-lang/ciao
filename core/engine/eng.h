@@ -1274,6 +1274,9 @@ struct misc_info_ {
 #if defined(USE_GLOBAL_VARS)
   tagged_t global_vars_root;
 #endif
+
+  /* For dynamic_neck_proceed */
+  instance_t *ins; /* clause/2, instance/2 */
   
    /* For error handling through exceptions */
   int errargno;
@@ -1411,7 +1414,6 @@ struct wam_private_ {
   tagged_t *r_s;
   tagged_t t0, t1, t2, t3; // TODO:[merge-oc] avoid saving?
   bcp_t ptemp; // TODO:[merge-oc] avoid saving?
-  instance_t *ins; // TODO:[merge-oc] avoid saving?
 };
 
 /* Possible actions requested from the toplevel. */

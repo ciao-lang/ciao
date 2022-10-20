@@ -34,8 +34,7 @@ extern definition_t *address_ucc;
   SAVE_FIELD(t1);\
   SAVE_FIELD(t2);\
   SAVE_FIELD(t3);\
-  SAVE_FIELD(ptemp);\
-  SAVE_FIELD(ins)
+  SAVE_FIELD(ptemp);
 
 #define RECOVER_FIELD(Name) Name = desc->wam_private_state.Name
 
@@ -50,8 +49,7 @@ extern definition_t *address_ucc;
   RECOVER_FIELD(t1);\
   RECOVER_FIELD(t2);\
   RECOVER_FIELD(t3);\
-  RECOVER_FIELD(ptemp);\
-  RECOVER_FIELD(ins)
+  RECOVER_FIELD(ptemp);
 
 /* ------------------------------------------------------------------------- */
 

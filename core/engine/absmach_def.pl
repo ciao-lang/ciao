@@ -1953,15 +1953,15 @@ retry_instance :-
     % If there is *definitely* no next instance, remove choicepoint
     if(("(TaggedToRoot(X(RootArg))->behavior_on_failure != DYNAMIC &&", fmt:nl,
         % Wait and removes handle if needed
-        "!next_instance_conc(Arg, &ins))", fmt:nl,
+        "!next_instance_conc(Arg, &w->misc->ins))", fmt:nl,
         "||", fmt:nl,
         "(TaggedToRoot(X(RootArg))->behavior_on_failure == DYNAMIC &&", fmt:nl,
-        "!next_instance(Arg, &ins))", fmt:nl),
+        "!next_instance(Arg, &w->misc->ins))", fmt:nl),
       ("SetDeep();", fmt:nl,
        "B" <- "w->previous_choice",
        "w->choice" <- "B",
        "SetShadowregs(B);", fmt:nl)),
-    if("!ins",
+    if("!w->misc->ins",
       % A conc. predicate has been closed, or a non-blocking call was made (MCL)
       (trace(retry_instance_debug_1),
        "TopConcChpt = (choice_t *)TermToPointerOrNull(X(PrevDynChpt));", fmt:nl,
@@ -1969,7 +1969,7 @@ retry_instance :-
        % But fail anyway
        goto('fail'))),
     trace(retry_instance_debug_3),
-    "P" <- "(bcp_t)ins->emulcode",
+    "P" <- "(bcp_t)w->misc->ins->emulcode",
     goto_ins_dispatch.
 
 :- ins_op_format(get_constraint, 247, [f_x], [label(w)]).
@@ -2970,8 +2970,8 @@ neck :-
 
 :- ins_op_format(dynamic_neck_proceed, 236, [], [label(w)]).
 :- ins_in_mode(dynamic_neck_proceed, w).
-dynamic_neck_proceed :-
-    unify_atom_internal(callexp('PointerToTerm',["ins"]),"X(3)"),
+dynamic_neck_proceed :- % (needs: ins)
+    unify_atom_internal(callexp('PointerToTerm',["w->misc->ins"]),"X(3)"),
     if("IsDeep()", goto_ins(proceed)),
     "B" <- "w->choice",
     % (assume w->next_alt != NULL)
@@ -3350,9 +3350,7 @@ wam_loop_decls :-
     vardecl("tagged_t", "t3"),
     vardecl("bcp_t", "ptemp", "NULL"), % reg. decl. not critical
     %
-    vardecl("instance_t *", "ins"), % clause/2, instance/2
-    vardecl("worker_t *", "new_worker"), % Temp - for changes in regbanksize
-    %
+    "alts" <- "NULL",
     "b" <- "NULL",
     "e" <- "NULL",
     "cached_r_h" <- "NULL",
@@ -3473,7 +3471,7 @@ code_suspend_on_t1 :-
       call('RefSVA', ["t1","X(0)"])). % TODO: continue on code_suspend_t3_on_t1?
 
 :- pred(code_suspend_t3_on_t1/0, [unfold]).
-code_suspend_t3_on_t1 :-
+code_suspend_t3_on_t1 :- % (needs: t3 t1)
     [[update(mode(w))]],
     % suspend the goal  t3  on  t1.  Func, H must be live.
     if(callexp('TaggedIsHVA', ["t1"]),
@@ -3507,13 +3505,13 @@ code_suspend_t3_on_t1 :-
     goto_ins(proceed).
 
 :- pred(escape_to_p2/0, [unfold]).
-escape_to_p2 :-
+escape_to_p2 :- % (needs: ptemp t3)
     [[update(mode(w))]],
     "t2" <- "PointerToTerm(Func->code.intinfo)",
     goto('escape_to_p').
 
 :- pred(escape_to_p/0, [unfold]).
-escape_to_p :-  
+escape_to_p :- % (needs: ptemp t3 t2)
     [[update(mode(w))]],
     emul_to_goal,
     "P" <- "ptemp",
@@ -3806,9 +3804,9 @@ pred_enter_builtin_current_instance :-
     case('BUILTIN_CURRENT_INSTANCE'),
     pred_trace("\"B\""),
     setmode(r),
-    "ins" <- "current_instance(Arg)",
-    if("!ins", goto('fail')),
-    "P" <- "(bcp_t)ins->emulcode",
+    "w->misc->ins" <- "current_instance(Arg)",
+    if("!w->misc->ins", goto('fail')),
+    "P" <- "(bcp_t)w->misc->ins->emulcode",
     goto_ins_dispatch.
 
 :- pred(pred_enter_builtin_compile_term/0, [unfold]).
@@ -3817,6 +3815,8 @@ pred_enter_builtin_compile_term :-
     case('BUILTIN_COMPILE_TERM'),
     pred_trace("\"B\""),
     setmode(r),
+    "{", fmt:nl,
+    vardecl("worker_t *", "new_worker"), % Temp - for changes in regbanksize
     if("!compile_term(Arg, &new_worker)",goto('fail')),
     if("new_worker",
       (if("desc == NULL",
@@ -3825,6 +3825,7 @@ pred_enter_builtin_compile_term :-
          "abort();", fmt:nl)),
       "desc->worker_registers = Arg = new_worker;", fmt:nl,
       trace(worker_expansion_cterm))),
+    "}", fmt:nl,
     goto_ins(proceed).
 
 :- pred(pred_enter_builtin_instance/0, [unfold]).
@@ -3834,8 +3835,8 @@ pred_enter_builtin_instance :-
     % ASSERT: X(2) is a dereferenced integer
     pred_trace("\"B\""),
     load(hva, "X(3)"),
-    "ins" <- "TaggedToInstance(X(2))",
-    "P" <- "(bcp_t)ins->emulcode",
+    "w->misc->ins" <- "TaggedToInstance(X(2))",
+    "P" <- "(bcp_t)w->misc->ins->emulcode",
     goto_ins_dispatch.
 
 :- pred(pred_enter_builtin_geler/0, [unfold]).
