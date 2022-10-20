@@ -428,7 +428,7 @@ unify_local_value(T1) :-
 :- pred(do_cut/0, [unfold]).
 do_cut :-
     profile_hook(cut),
-    call('SetB', ["w->previous_choice"]),
+    "B" <- "w->previous_choice",
     "w->choice" <- "B",
     "SetShadowregs(B);", fmt:nl,
     "TRACE_CHPT_CUT(w->choice);", fmt:nl,
@@ -479,7 +479,7 @@ code_neck_proceed :-
 % TODO:[oc-merge] CODE_MAYBE_NECK_TRY
 :- pred(do_neck/0, [unfold]).
 do_neck :- % (assume !IsDeep())
-    call('SetB', ["w->choice"]),
+    "B" <- "w->choice",
     if("!IsShallowTry()",
       % retry
       ("NECK_RETRY_PATCH(B);", fmt:nl), % TODO:[oc-merge] this is not in OC
@@ -749,6 +749,7 @@ eunify(U, V, OpsSize) :-
     t0(T0), t1(T1),
     assign_noself(T0, U),
     assign_noself(T1, V),
+    %
     inc("P", OpsSize),
     goto('unify_t0_t1'). % code_unify_t0t1
     % TODO:[merge-oc] do not unfold unify
@@ -782,7 +783,7 @@ u1_dispatch(U, OpsSize) :-
     dispatch(OpsSize).
 
 :- pred(alloc/0, [unfold]).
-alloc :- call('CODE_ALLOC', ["pt1"]).
+alloc :- call('CODE_ALLOC', ["E"]).
     
 % Emit the initialization of Y variables
 :- pred(init_yvars/1, [unfold]).
@@ -1957,7 +1958,7 @@ retry_instance :-
         "(TaggedToRoot(X(RootArg))->behavior_on_failure == DYNAMIC &&", fmt:nl,
         "!next_instance(Arg, &ins))", fmt:nl),
       ("SetDeep();", fmt:nl,
-       call('SetB', ["w->previous_choice"]),
+       "B" <- "w->previous_choice",
        "w->choice" <- "B",
        "SetShadowregs(B);", fmt:nl)),
     if("!ins",
@@ -2929,7 +2930,7 @@ counted_neckq :- shift(f_Q), goto_ins(counted_neck).
 counted_neck :-
     cpp_if_defined('GAUGE'),
     if("!IsDeep()", (
-      call('SetB', ["w->choice"]),
+      "B" <- "w->choice",
       if("!IsShallowTry()", (
         % retry counter
         gauge_incr_counter(t1)
@@ -2972,7 +2973,7 @@ neck :-
 dynamic_neck_proceed :-
     unify_atom_internal(callexp('PointerToTerm',["ins"]),"X(3)"),
     if("IsDeep()", goto_ins(proceed)),
-    call('SetB', ["w->choice"]),
+    "B" <- "w->choice",
     % (assume w->next_alt != NULL)
     if("IsShallowTry() && (def_clock = use_clock+1)==0xffff",(
       setmode(r),
@@ -3108,7 +3109,7 @@ gauge_incr_counter(t3) :- % Counter in bytecode "BcP(f_l, 3)"
     call('INCR_COUNTER', ["BcP(f_l, 3)"]),
     cpp_endif.
 gauge_incr_counter(alts) :- % Counter in Alts
-    [[ Alts = "Alts" ]],
+    [[ Alts = "alts" ]],
     ( [[ mode(r) ]], [[ EntryCounter = (Alts, "->entry_counter+1") ]]
     ; [[ mode(w) ]], [[ EntryCounter = (Alts, "->entry_counter") ]]
     ),
@@ -3228,15 +3229,8 @@ autogen_warning_comment :-
 
 :- pred(op_macros/0, [unfold]).
 op_macros :-
-    cpp_define('SetB(X)', "(pt1 = (tagged_t *)(X))"),
     cpp_define('LoadH',"(H = w->heap_top)"),
     cpp_define('StoreH',"(w->heap_top = H)"),
-    cpp_define('Htab',"((sw_on_key_t *)pt1)"),
-    cpp_define('SetHtab(X)',"(pt1 = (tagged_t *)(X))"),
-    cpp_define('HtabNode',"((sw_on_key_node_t *)P)"),
-    cpp_define('SetHtabNode(X)',"(P = (bcp_t)(X))"),
-    cpp_define('Alts',"((try_node_t *)pt1)"),
-    cpp_define('SetAlts(X)',"(pt1 = (tagged_t *)(X))"),
     %
     % address for a bytecode operand (offset measured in multiples of f_o)
     cpp_define('PoffR(X)',"BCoff(P, ((X)-1)*FTYPE_size(f_o))"),
@@ -3271,7 +3265,7 @@ wam_def :-
     "CVOID__CALL(wam__2, desc, func);", fmt:nl,
     "return;", fmt:nl,
     "}, {", fmt:nl, % catch
-    "tagged_t *pt1; int i;", fmt:nl,
+    "choice_t *b; frame_t *e; int i;", fmt:nl,
     code_neck, % Force neck if not done
     "X(0) = MakeSmall(ErrCode);", fmt:nl, % Error code
     "X(1) = GET_ATOM(ErrFuncName);", fmt:nl, % Builtin name
@@ -3341,10 +3335,10 @@ wam_loop :-
 % Local variable declarations for the WAM loop
 :- pred(wam_loop_decls/0, [unfold]).
 wam_loop_decls :-
-    % Seemingly available registers in an i386 processor: ebx esi edi
-    "CIAO_REG_1(bcp_t, p);", fmt:nl,
-%       "bcp_t p;", fmt:nl,
-    "CIAO_REG_2(tagged_t *, pt1);", fmt:nl, % TODO:[merge-oc] for Alts, Htab, B
+    "bcp_t p;", fmt:nl,
+    "try_node_t *alts;", fmt:nl,
+    "choice_t *b;", fmt:nl, % TODO:[merge-oc] B
+    "frame_t *e;", fmt:nl, % TODO:[merge-oc] E
     "tagged_t *cached_r_h;", fmt:nl, % TODO:[merge-oc] H
     "tagged_t *r_s;", fmt:nl, % TODO:[merge-oc] S
     %
@@ -3359,7 +3353,8 @@ wam_loop_decls :-
     vardecl("instance_t *", "ins"), % clause/2, instance/2
     vardecl("worker_t *", "new_worker"), % Temp - for changes in regbanksize
     %
-    "pt1" <- "NULL",
+    "b" <- "NULL",
+    "e" <- "NULL",
     "cached_r_h" <- "NULL",
     "r_s" <- "NULL",
     %
@@ -3379,7 +3374,7 @@ code_loop_begin :-
       % Directly execute a predicate (used to call from an exception 
       % throwed from C)
       "P" <- "(bcp_t)start_func",
-      call('SetB', ["w->choice"]),
+      "B" <- "w->choice",
       % TODO: this should not be necessary, right?
       % call('GetFrameTop', ["w->local_top","B","G->frame"]),
       setmode(w), % switch_on_pred expects we are in write mode, load H
@@ -3483,9 +3478,8 @@ code_suspend_t3_on_t1 :-
     % suspend the goal  t3  on  t1.  Func, H must be live.
     if(callexp('TaggedIsHVA', ["t1"]),
       (load(cva, "t0"),
-       "pt1" <- "w->trail_top",
        if(callexp('CondHVA', ["t1"]),
-         ("TrailPush(pt1,t1);",
+         ("TrailPush(w->trail_top,t1);",
           "*TagpPtr(HVA,t1)" <- "t0"),
          "*TagpPtr(HVA,t1)" <- "t0"),
        goto('check_trail')),
@@ -3500,13 +3494,11 @@ code_suspend_t3_on_t1 :-
          heap_push(callexp('Tagp', ["LST", callexp('TaggedToGoal', ["t1"])])),
          cachedreg('H', H),
          heap_push(callexp('Tagp', ["LST", callexp('HeapOffset', [H,1])])),
-         "pt1" <- "w->trail_top",
-         "TrailPush(pt1,t1);",
+         "TrailPush(w->trail_top,t1);",
          "*TagpPtr(CVA,t1)" <- "t0",
          goto('check_trail')))),
     label('check_trail'),
-    "w->trail_top" <- "pt1",
-    if("ChoiceYounger(w->choice,TrailOffset(pt1,CHOICEPAD))",
+    if("ChoiceYounger(w->choice,TrailOffset(w->trail_top,CHOICEPAD))",
       call('choice_overflow', ["Arg","CHOICEPAD","TRUE"])),
     goto('no_check_trail'),
     label('no_check_trail'),
@@ -3558,7 +3550,7 @@ altcont0 :-
     % (w->choice->next_alt!=NULL);
     trace(failing_choicepoint),
     "ResetWakeCount();",
-    call('SetB', ["w->choice"]),
+    "B" <- "w->choice",
     %
     untrail.
 
@@ -3607,7 +3599,7 @@ backtrack_ :-
 :- pred(jump_fail_cont/1, [unfold]).
 jump_fail_cont(AltMode) :- [[ AltMode = no_alt ]],
     "SetDeep();", fmt:nl,
-    call('SetB', ["w->previous_choice"]),
+    "B" <- "w->previous_choice",
     "w->choice" <- "B",
     "ON_TABLING({", fmt:nl,
     % To avoid sharing wrong trail - it might be associated to the
@@ -3721,13 +3713,13 @@ code_enter_pred :-
       "wake_count" <- "WakeCount()",
       %
       if("HeapCharAvailable(H) <= CALLPAD+4*wake_count*sizeof(tagged_t)", % TODO: It was OffHeaptop(H+4*wake_count,Heap_Warn), equivalent to '<='; but '<' should work?! (also in TestEventOrHeapWarnOverflow?)
-        ("SETUP_PENDING_CALL(address_true);",
+        ("SETUP_PENDING_CALL(E, address_true);",
          setmode(r),
          "heap_overflow(Arg,CALLPAD+4*wake_count*sizeof(tagged_t));",
          setmode(w))),
       if("wake_count>0",
         if("wake_count==1",
-          ("SETUP_PENDING_CALL(address_uvc);",
+          ("SETUP_PENDING_CALL(E, address_uvc);",
           "collect_one_pending_unification(Arg);", % does not touch H
           "DEREF(t0,X(1));",
           if(callexp('TaggedIsCVA', ["t0"]),
@@ -3737,16 +3729,16 @@ code_enter_pred :-
              call('Setfunc', ["address_ucc"])))),
           % wake_count > 1
           ([[update(mode(w))]],
-           "SETUP_PENDING_CALL(address_pending_unifications);",
+           "SETUP_PENDING_CALL(E, address_pending_unifications);",
            setmode(r),
            "collect_pending_unifications(Arg,wake_count);",
            setmode(w)))),
       if("OffStacktop(w->frame,Stack_Warn)",
-        ("SETUP_PENDING_CALL(address_true);",
+        ("SETUP_PENDING_CALL(E, address_true);",
          "stack_overflow(Arg);")),
       "UnsetEvent();", fmt:nl,
       if("TestCIntEvent()",
-        ("SETUP_PENDING_CALL(address_help);",
+        ("SETUP_PENDING_CALL(E, address_help);",
          "control_c_normal(Arg);")))),
     goto('switch_on_pred').
 
@@ -3941,11 +3933,14 @@ pred_call_builtin_dif :-
     [[update(mode(w))]],
     case('BUILTIN_DIF'),
     pred_trace("\"B\""),
+    "{", fmt:nl,
+    "tagged_t *pt1;", fmt:nl, % TODO:[merge-oc] make it local
     "pt1" <- "w->structure",
     call('RefHeapNext', ["t0","pt1"]),
     deref_heap_sw("t0","t2",";"),
     call('RefHeapNext', ["t1","pt1"]),
     deref_heap_sw("t1","t2",";"),
+    "}", fmt:nl,
     goto('dif1').
 
 :- pred(pred_call_spypoint/0, [unfold]).
@@ -4079,14 +4074,16 @@ pred_enter_compactcode_indexed :-
          tryeach("Func->code.incoreinfo->lstcase"))),
        "t1" <- "t0"),
     %
-    call('SetHtab', ["Func->code.incoreinfo->othercase"]),
+    "{", fmt:nl,
+    vardecl("sw_on_key_t *", "Htab", "Func->code.incoreinfo->othercase"),
     %
     for(("i=0, t2=t1, t1 &= Htab->mask;",
          ";",
          "i+=sizeof(sw_on_key_node_t), t1=(t1+i) & Htab->mask"),
-        (call('SetHtabNode', ["SW_ON_KEY_NODE_FROM_OFFSET(Htab, t1)"]),
+        (vardecl("sw_on_key_node_t *", "HtabNode", "SW_ON_KEY_NODE_FROM_OFFSET(Htab, t1)"),
          if("HtabNode->key==t2 || !HtabNode->key", 
-           tryeach("HtabNode->value.try_chain")))).
+           tryeach("HtabNode->value.try_chain")))),
+    "}", fmt:nl.
 
 :- pred(pred_enter_compactcode/0, [unfold]).
 pred_enter_compactcode :-
@@ -4102,7 +4099,7 @@ pred_enter_compactcode :-
 :- pred(tryeach/1, [unfold]).
 tryeach(Alts) :-
     "{",
-    call('SetAlts', [Alts]),
+    "alts" <- Alts,
     ( [[ mode(r) ]], goto('tryeach_r')
     ; [[ mode(w) ]], goto('tryeach_w')
     ),
@@ -4173,7 +4170,7 @@ alt_dispatcher :-
     %
     gauge_incr_counter(alts),
     %
-    [[ Alts = "Alts" ]],
+    [[ Alts = "alts" ]],
     ( [[ mode(r) ]], [[ EmulP = (Alts, "->emul_p2") ]]
 %%%    ( [[ mode(r) ]], [[ EmulP = (Alts, "->emul_p") ]] % TODO:[merge-oc] no p2 optimization, disable X0 optimization?
     ; [[ mode(w) ]], [[ EmulP = (Alts, "->emul_p") ]]
@@ -4182,13 +4179,12 @@ alt_dispatcher :-
     % TODO:[merge-oc] try_alt/1
     "w->previous_choice" <- "w->choice",
     "{", fmt:nl,
-    vardecl("try_node_t *", "alt"),
-    "alt" <- (Alts,"->next"),
+    vardecl("try_node_t *", "alt", (Alts,"->next")),
     if("alt != NULL", ( % TODO: This one is not a deep check! (see line above)
-      call('SetB', ["w->choice"]),
+      "B" <- "w->choice",
       call('GetFrameTop', ["w->local_top","B","G->frame"]),
       cachedreg('H',H),
-      call('CODE_CHOICE_NEW0', ["pt1", "B", "alt", H]), % B is 'pt1'
+      call('CODE_CHOICE_NEW0', ["B", "B", "alt", H]),
       trace(create_choicepoint),
       % segfault patch -- jf
       maybe_choice_overflow

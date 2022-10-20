@@ -42,20 +42,12 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc);
    FRAME MANIPULATIONS
    ----------------------------------------------------------------------*/
 
-CVOID__PROTO(pop_frame)
-{
-  tagged_t *pt1;
-
+CVOID__PROTO(pop_frame) {
+  frame_t *e;
   SetE(w->frame);
-  {
-    int arity;
-
-    arity = FrameSizeToCount(FrameSize(w->next_insn));
-    {
-      int i;
-
-      for(i=0; i<arity; i++) X(i) = Y(i);
-    }
+  intmach_t arity = FrameSizeToCount(FrameSize(w->next_insn));
+  for(intmach_t i=0; i<arity; i++) {
+    X(i) = Y(i);
   }
   w->local_top = E;
   w->frame = E->frame;
@@ -63,19 +55,17 @@ CVOID__PROTO(pop_frame)
 }
 
 /* this assumes w->local_top has been computed! */
-CVOID__PROTO(push_frame, int arity)
-{
-  tagged_t *pt1;
-  int i;
-
+CVOID__PROTO(push_frame, int arity) {
+  frame_t *e;
   SetE(w->local_top);
   E->next_insn = w->next_insn;
   E->frame = w->frame;
   w->frame = E;
   w->next_insn = CONTCODE(arity);
   w->local_top = (frame_t *)Offset(E,EToY0+arity);
-  for(i=0; i<arity; i++)
+  for(intmach_t i=0; i<arity; i++) {
     Y(i) = X(i);
+  }
 }
 
 /* --------------------------------------------------------------------------- */

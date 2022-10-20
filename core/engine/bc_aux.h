@@ -26,7 +26,8 @@ extern definition_t *address_ucc;
 #define SAVE_WAM_STATE \
   SAVE_FIELD(p); \
   SAVE_FIELD(i);\
-  SAVE_FIELD(pt1);\
+  SAVE_FIELD(b);\
+  SAVE_FIELD(e);\
   SAVE_FIELD(cached_r_h);\
   SAVE_FIELD(r_s);\
   SAVE_FIELD(t0);\
@@ -41,7 +42,8 @@ extern definition_t *address_ucc;
 #define RECOVER_WAM_STATE \
   RECOVER_FIELD(p);\
   RECOVER_FIELD(i);\
-  RECOVER_FIELD(pt1);\
+  RECOVER_FIELD(b);\
+  RECOVER_FIELD(e);\
   RECOVER_FIELD(cached_r_h);\
   RECOVER_FIELD(r_s);\
   RECOVER_FIELD(t0);\

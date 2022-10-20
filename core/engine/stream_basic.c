@@ -148,19 +148,15 @@ CBOOL__PROTO(is_var_or_alias_or_stream, tagged_t Cell)
 /* ------------------------------------------------------------------------- */
 /* '$stream'(<address>,<id>) <-- (stream_node_t *) */
 
-CFUN__PROTO(ptr_to_stream_noalias, tagged_t, stream_node_t *n)
-{
+CFUN__PROTO(ptr_to_stream_noalias, tagged_t, stream_node_t *n) {
+  // printf("(int)n is %ud\n", (int)n);
+  // printf("n->label is %ud\n", n->label);
   tagged_t *pt1 = w->heap_top;
-
-  /*
-  printf("(int)n is %ud\n", (int)n);
-  printf("n->label is %ud\n", n->label);
-  */
-
   HeapPush(pt1,functor_Dstream);
   HeapPush(pt1,PointerToTerm(n));
   HeapPush(pt1,n->label);
-  return (w->heap_top=pt1, Tagp(STR,HeapOffset(pt1,-3)));
+  w->heap_top = pt1;
+  return Tagp(STR,HeapOffset(pt1,-3));
 }
 
 /* ------------------------------------------------------------------------- */

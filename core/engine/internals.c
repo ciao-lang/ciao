@@ -1720,11 +1720,11 @@ CFUN__PROTO(call_firstgoal, intmach_t, tagged_t goal_term, goal_descriptor_t *go
       if (exit_code != WAM_ABORT) /* halting... */
         break;
     } else if (i == -1) {         /* SIGINT during I/O */
-      tagged_t *pt1;
+      frame_t *e;
       /* No need to patch "p" here, since we are not exiting wam() */
       bcp_t p = (bcp_t)int_address;
       int_address = NULL;
-      SETUP_PENDING_CALL(address_true);
+      SETUP_PENDING_CALL(E, address_true);
       continue;
     }
 #if defined(USE_THREADS)

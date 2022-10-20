@@ -1404,10 +1404,14 @@ typedef enum {
 typedef struct wam_private_ wam_private_t;
 struct wam_private_ {
   bcp_t p;                                             /* program counter */
-  int i;
-  tagged_t *pt1, *cached_r_h, *r_s, t0, t1, t2, t3;
-  bcp_t ptemp;
-  instance_t *ins;      
+  int i; // TODO:[merge-oc] avoid saving?
+  choice_t *b;
+  frame_t *e;
+  tagged_t *cached_r_h;
+  tagged_t *r_s;
+  tagged_t t0, t1, t2, t3; // TODO:[merge-oc] avoid saving?
+  bcp_t ptemp; // TODO:[merge-oc] avoid saving?
+  instance_t *ins; // TODO:[merge-oc] avoid saving?
 };
 
 /* Possible actions requested from the toplevel. */

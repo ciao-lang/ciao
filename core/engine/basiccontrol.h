@@ -113,9 +113,9 @@ CVOID__PROTO(wr_call, char *s, definition_t *func);
 /* ------------------------------------------------------------------------- */
 
 #define P               p
-#define B               ((choice_t *)pt1)
-#define E               ((frame_t *)pt1)
-#define SetE(X)         (pt1 = (tagged_t *)(X))
+#define B               b
+#define E               e
+#define SetE(X)         (e = (X))
 #define H               cached_r_h
 #define S               r_s
 #define Func            ((definition_t *)P)
@@ -124,8 +124,8 @@ CVOID__PROTO(wr_call, char *s, definition_t *func);
 
 #define Setfunc(X)      { P = (bcp_t)(X); }
 
-#define SETUP_PENDING_CALL(ADDR) { \
-  CODE_ALLOC(pt1);                                    \
+#define SETUP_PENDING_CALL(E, ADDR) { \
+  CODE_ALLOC(E);                                      \
   Y(0) = PointerToTerm(Func);                         \
   for(i=0; i<Func->arity; i++) Y(i+1) = X(i);         \
   E->next_insn = w->next_insn;                        \
