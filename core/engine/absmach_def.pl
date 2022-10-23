@@ -450,7 +450,7 @@ emul_to_goal :-
       (cachedreg('H', H),
        "t3" <- callexp('Tagp', ["STR", H]),
        heap_push("SetArity(Func->printname,Func->arity)"),
-       for("i=0; i<Func->arity; i++",
+       for("intmach_t i=0; i<Func->arity; i++",
          ("t1" <- "X(i)",
           unify_local_value("t1"))))).
 
@@ -488,6 +488,7 @@ do_neck :- % (assume !IsDeep())
        "B->frame" <- "w->frame",
        "B->next_insn" <- "w->next_insn",
        "B->local_top" <- "w->local_top",
+       vardecl("intmach_t", "i"),
        "i" <- "ChoiceArity(B)",
        for("intmach_t k=0; k<i; k++",
          ("B->x[k]" <- "w->x[k]")),
@@ -690,8 +691,11 @@ u1(void(X)) :-
     "S" <- call('HeapOffset', ["S", X]).
 u1(void(X)) :-
     [[mode(w)]],
+    "{", fmt:nl,
+    vardecl("intmach_t", "i"),
     "i" <- ["(FTYPE_ctype(f_i_signed))", X],
-    do_while("ConstrHVA(H);", "--i").
+    do_while("ConstrHVA(H);", "--i"),
+    "}", fmt:nl.
 u1(var(X)) :-
     [[mode(r)]],
     ref_heap_next(X).
@@ -859,9 +863,12 @@ inittrue :-
 :- ins_op_format(firsttrue_n, 261, [f_Y,f_e], [label(w)]).
 :- ins_in_mode(firsttrue_n, w).
 firsttrue_n :-
+    "{", fmt:nl,
+    vardecl("intmach_t", "i"),
     "i" <- ["(FTYPE_ctype(f_i_signed))", "BcP(f_i, 1)"],
     shift(f_i),
     for("; i>0; --i", put_yvoid),
+    "}", fmt:nl,
     goto('firsttrue'),
     label('firsttrue'),
     "E->next_insn" <- "w->next_insn",
@@ -889,9 +896,12 @@ firstcall_nq :- shift(f_Q), goto_ins(firstcall_n).
 :- ins_op_format(firstcall_n, 21, [f_Y,f_E,f_e], [label(_)]).
 :- ins_in_mode(firstcall_n, w).
 firstcall_n :-
+    "{", fmt:nl,
+    vardecl("intmach_t", "i"),
     "i" <- ["(FTYPE_ctype(f_i_signed))", "BcP(f_i, 1)"],
     shift(f_i),
     for("; i>8; --i", put_yvoid),
+    "}", fmt:nl,
     goto_ins(firstcall_8).
 
 :- ins_op_format(firstcall_8q, 18, [f_Q,f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e]).
@@ -972,6 +982,8 @@ call_nq :- shift(f_Q), goto_ins(call_n).
 :- ins_op_format(call_n, 41, [f_Z,f_E,f_e], [label(_)]).
 :- ins_in_mode(call_n, w).
 call_n :-
+    "{", fmt:nl,
+    vardecl("intmach_t", "i"),
     "i" <- ["(FTYPE_ctype(f_i_signed))", "BcP(f_i, 1)"],
     shift(f_i),
     for("; i>8; --i",
@@ -979,6 +991,7 @@ call_n :-
        T1 <- "BcP(f_z, 1)",
        shift(f_z),
        putarg(T1,"i-1"))),
+    "}", fmt:nl,
     goto_ins(call_8).
 
 :- ins_op_format(call_8q, 38, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e]).
@@ -1093,6 +1106,8 @@ lastcall_nq :- shift(f_Q), goto_ins(lastcall_n).
 :- ins_op_format(lastcall_n, 61, [f_Z,f_E], [label(_)]).
 :- ins_in_mode(lastcall_n, w).
 lastcall_n :-
+    "{", fmt:nl,
+    vardecl("intmach_t", "i"),
     "i" <- ["(FTYPE_ctype(f_i_signed))", "BcP(f_i, 1)"],
     shift(f_i),
     for("; i>8; --i",
@@ -1100,6 +1115,7 @@ lastcall_n :-
        T1 <- "BcP(f_z, 1)",
        shift(f_z),
        putarg(T1,"i-1"))),
+    "}", fmt:nl,
     goto_ins(lastcall_8).
 
 :- ins_op_format(lastcall_8q, 58, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E]).
@@ -1644,7 +1660,7 @@ kontinue :-
     % after wakeup, write mode!
     y("0",Y0),
     call('Setfunc', [callexp('TaggedToFunctor', [Y0])]),
-    for("i=0; i<Func->arity; i++", (
+    for("intmach_t i=0; i<Func->arity; i++", (
       x("i",Xi),
       y("i+1",Yi1),
       Xi <- Yi1)),
@@ -1995,11 +2011,14 @@ unify_void :-
     dispatch("FTYPE_size(f_i)").
 unify_void :-
     [[mode(w)]],
+    "{", fmt:nl,
+    vardecl("intmach_t", "i"),
     "i" <- ["(FTYPE_ctype(f_i_signed))", "BcP(f_i, 1)"],
     shift(f_i),
     for("; i>4; --i",
       (cachedreg('H', H),
        call('ConstrHVA', [H]))),
+    "}", fmt:nl,
     goto_ins(unify_void_4).
 
 :- ins_op_format(unify_void_1, 115, [], [label(w)]).
@@ -3265,7 +3284,7 @@ wam_def :-
     "CVOID__CALL(wam__2, desc, func);", fmt:nl,
     "return;", fmt:nl,
     "}, {", fmt:nl, % catch
-    "choice_t *b; frame_t *e; int i;", fmt:nl,
+    "choice_t *b; frame_t *e;", fmt:nl,
     code_neck, % Force neck if not done
     "X(0) = MakeSmall(ErrCode);", fmt:nl, % Error code
     "X(1) = GET_ATOM(ErrFuncName);", fmt:nl, % Builtin name
@@ -3342,7 +3361,7 @@ wam_loop_decls :-
     "tagged_t *cached_r_h;", fmt:nl, % TODO:[merge-oc] H
     "tagged_t *r_s;", fmt:nl, % TODO:[merge-oc] S
     %
-    vardecl("intmach_t", "i"), % TODO: refine?
+    vardecl("intmach_t", "ei"),
     % temps for terms (decreasing importance) 
     vardecl("tagged_t", "t0"),
     vardecl("tagged_t", "t1"),
@@ -3356,11 +3375,11 @@ wam_loop_decls :-
     "cached_r_h" <- "NULL",
     "r_s" <- "NULL",
     %
+    "ei" <- "~0",
     "t0" <- "~0",
     "t1" <- "~0",
     "t2" <- "~0",
-    "t3" <- "~0",
-    "i" <- "~0".
+    "t3" <- "~0".
 
 % Begin emulation in WAM loop
 :- pred(code_loop_begin/0, [unfold]).
@@ -3390,6 +3409,8 @@ code_loop_begin :-
 :- pred(code_unify_t0t1/0, [unfold]).
 code_unify_t0t1 :-
     [[update(mode(r))]],
+    "{", fmt:nl,
+    vardecl("intmach_t", "i"),
     sw_on_var("t0","i",
       goto('t0_is_hva'),
       goto('t0_is_cva'),
@@ -3460,6 +3481,7 @@ code_unify_t0t1 :-
           goto('unify_t0t1_done'))))),
     bind(sva,"t0","t1"),
     goto('unify_t0t1_done'),
+    "}", fmt:nl,
     label('unify_t0t1_done'),
     goto_ins_dispatch.
 
@@ -3644,12 +3666,15 @@ deep_backtrack :-
     "w->next_insn" <- "B->next_insn",
     "w->next_alt" <- "B->next_alt",
     "w->local_top" <- "NodeLocalTop(B)",
+    "{", fmt:nl,
+    vardecl("intmach_t", "i"),
     "i" <- "B->next_alt->arity",
     "w->previous_choice" <- "ChoiceCont0(B,i)",
     % TODO:[oc-merge] set_shallow_retry here?
     "SetShallowRetry();", fmt:nl,
     for("intmach_t k=0; k<i; k++",
-      ("w->x[k]" <- "B->x[k]")).
+      ("w->x[k]" <- "B->x[k]")),
+    "}", fmt:nl.
 
 :- pred(code_enter_pred/0, [unfold]).
 code_enter_pred :-
@@ -3742,7 +3767,7 @@ code_enter_pred :-
 
 :- pred(switch_on_pred/0, [unfold]).
 switch_on_pred :-
-    "i" <- "Func->enter_instr",
+    "ei" <- "Func->enter_instr",
     goto('switch_on_pred_sub').
 
 :- pred(pred_enter_undefined/0, [unfold]).
@@ -3773,6 +3798,8 @@ pred_enter_c :-
     pred_trace("\"C\""),
     setmode(r),
     % Changed by DCG to handle errors in Prolog
+    "{", fmt:nl,
+    vardecl("intmach_t", "i"),
     "i" <- "(*(cbool0_t)Func->code.proc)(Arg)",
     if("Expanded_Worker",
       (trace(worker_expansion_blt),
@@ -3782,7 +3809,8 @@ pred_enter_c :-
          "abort();", fmt:nl)),
       "desc->worker_registers = Arg = Expanded_Worker;", fmt:nl,
       "Expanded_Worker" <- "NULL")),
-    if("i",goto_ins(proceed),goto('fail')).
+    if("i",goto_ins(proceed),goto('fail')),
+    "}", fmt:nl.
 
 :- pred(pred_enter_builtin_true/0, [unfold]).
 pred_enter_builtin_true :-
@@ -3906,13 +3934,13 @@ do_builtin_call(CallMode) :-
          goto('switch_on_pred')))
     ),
     %
-    "i" <- "Func->enter_instr",
+    "ei" <- "Func->enter_instr",
     goto('call4').
 
 :- pred(pred_call4/0, [unfold]).
 pred_call4 :-
     label('call4'),
-    switch("i", 
+    switch("ei", 
       (pred_call_interpreted,
       pred_call_builtin_dif,
       pred_call_spypoint,
@@ -3963,7 +3991,7 @@ pred_call_waitpoint :-
 :- pred(pred_call5/0, [unfold]).
 pred_call5 :-
     label('call5'),
-    "i" <- "Func->predtyp",
+    "ei" <- "Func->predtyp",
     goto('call4').
 
 :- pred(pred_call_default/0, [unfold]).
@@ -4045,14 +4073,14 @@ pred_enter_waitpoint :-
     deref_sw("t1","X(0)",goto('suspend_on_t1')),
     goto('nowait'),
     label('nowait'),
-    "i" <- "Func->predtyp",
+    "ei" <- "Func->predtyp",
     goto('switch_on_pred_sub').
 
 :- pred(pred_enter_breakpoint/0, [unfold]).
 pred_enter_breakpoint :-
     [[update(mode(w))]],
     case('BREAKPOINT'),
-    "i" <- "Func->predtyp",
+    "ei" <- "Func->predtyp",
     goto('switch_on_pred_sub').
 
 :- pred(pred_enter_compactcode_indexed/0, [unfold]).
@@ -4076,6 +4104,7 @@ pred_enter_compactcode_indexed :-
        "t1" <- "t0"),
     %
     "{", fmt:nl,
+    vardecl("intmach_t", "i"),
     vardecl("sw_on_key_t *", "Htab", "Func->code.incoreinfo->othercase"),
     %
     for(("i=0, t2=t1, t1 &= Htab->mask;",
@@ -4108,7 +4137,7 @@ tryeach(Alts) :-
 
 :- pred(code_switch_on_pred_sub/0, [unfold]).
 code_switch_on_pred_sub :-
-    switch("i",
+    switch("ei",
       (pred_enter_undefined,
       pred_enter_interpreted,
       pred_enter_c,
@@ -4185,7 +4214,7 @@ alt_dispatcher :-
       "B" <- "w->choice",
       call('GetFrameTop', ["w->local_top","B","G->frame"]),
       cachedreg('H',H),
-      call('CODE_CHOICE_NEW0', ["B", "B", "alt", H]),
+      call('CODE_CHOICE_NEW0', ["B", "alt", H]),
       trace(create_choicepoint),
       % segfault patch -- jf
       maybe_choice_overflow

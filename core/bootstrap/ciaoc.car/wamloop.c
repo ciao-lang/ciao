@@ -578,7 +578,7 @@ try_node_t * alt = alts->next;
 if (alt != NULL) {
 B = w->choice;
 GetFrameTop(w->local_top,B,G->frame);
-CODE_CHOICE_NEW0(B,B,alt,w->heap_top);
+CODE_CHOICE_NEW0(B,alt,w->heap_top);
 ON_DEBUG({
 if (debug_choicepoints) {
 fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->choice);
@@ -2248,7 +2248,7 @@ try_node_t * alt = alts->next;
 if (alt != NULL) {
 B = w->choice;
 GetFrameTop(w->local_top,B,G->frame);
-CODE_CHOICE_NEW0(B,B,alt,H);
+CODE_CHOICE_NEW0(B,alt,H);
 ON_DEBUG({
 if (debug_choicepoints) {
 fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->choice);

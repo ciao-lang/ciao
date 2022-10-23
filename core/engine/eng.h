@@ -536,10 +536,11 @@ tagged_t deffunctor(char *pname, int arity); /* eng_registry.c */
 // TODO: OPTIM_COMP saves local_top here, not in NECK_TRY
 #define CODE_CHOICE_NEW(B, ALT) ({ \
   GetFrameTop(w->local_top,w->choice,G->frame); /* get_frame_top */ \
-  CODE_CHOICE_NEW0(B, w->choice, ALT, G->heap_top); \
+  CODE_CHOICE_NEW00(B, w->choice, ALT, G->heap_top); \
 })
+#define CODE_CHOICE_NEW0(B, ALT, H) CODE_CHOICE_NEW00(B, B, ALT, H)
 // TODO: ON_DEBUG_NODE was not in OPTIM_COMP and only in 'alt_dispatcher'
-#define CODE_CHOICE_NEW0(B, B0, ALT, H) do { \
+#define CODE_CHOICE_NEW00(B, B0, ALT, H) do { \
   G->next_alt = (ALT); \
   (B) = (typeof(B))ChoiceNext0(B0, ChoiceArity(G)); \
   ON_DEBUG_NODE({ ((choice_t *)(B))->functor=NULL; }); \
@@ -1407,7 +1408,7 @@ typedef enum {
 typedef struct wam_private_ wam_private_t;
 struct wam_private_ {
   bcp_t p;                                             /* program counter */
-  int i; // TODO:[merge-oc] avoid saving?
+  intmach_t ei; // TODO:[merge-oc] avoid saving?
   choice_t *b;
   frame_t *e;
   tagged_t *cached_r_h;
@@ -1566,6 +1567,7 @@ struct marker_ {
 
 #endif
 
+// TODO: oc-merge version still segfaults
 #define USE_TRAIL_TOP_MARKS 1 // TODO:[oc-merge] disable
 //#define USE_DEEP_FLAGS 1 // TODO:[oc-merge] enable {PORT INCOMPLETE!}
 #define USE_RETRY_PATCH 1 // TODO:[oc-merge] disable

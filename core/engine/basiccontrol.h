@@ -125,15 +125,16 @@ CVOID__PROTO(wr_call, char *s, definition_t *func);
 #define Setfunc(X)      { P = (bcp_t)(X); }
 
 #define SETUP_PENDING_CALL(E, ADDR) { \
+  intmach_t i; \
   CODE_ALLOC(E);                                      \
   Y(0) = PointerToTerm(Func);                         \
-  for(i=0; i<Func->arity; i++) Y(i+1) = X(i);         \
+  for (i=0; i<Func->arity; i++) Y(i+1) = X(i);        \
   E->next_insn = w->next_insn;                        \
   E->frame = w->frame;                                \
-  w->frame = E;                                        \
-  w->next_insn = CONTCODE(i+1);                        \
-  w->local_top = (frame_t *)Offset(E,EToY0+i+1); \
-  Setfunc(ADDR);                                       \
+  w->frame = E;                                       \
+  w->next_insn = CONTCODE(i+1);                       \
+  w->local_top = (frame_t *)Offset(E,EToY0+i+1);      \
+  Setfunc(ADDR);                                      \
 }
 
 /* ------------------------------------------------------------------------- */
