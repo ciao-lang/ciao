@@ -993,7 +993,7 @@ CBOOL__PROTO(bc_eq_blob, tagged_t t, tagged_t *ptr);
 #define BC_MakeBlob(ARG, Ptr) make_blob(ARG,(tagged_t *)(Ptr))
 #define BC_EqBlob(T, Ptr, FailCode) {                                  \
     if (!TaggedIsSTR((T))) FailCode;                                    \
-    for (i=LargeArity(*(tagged_t *)(Ptr)); i>0; i--) {                  \
+    for (intmach_t i=LargeArity(*(tagged_t *)(Ptr)); i>0; i--) {                  \
       if (((tagged_t *)(Ptr))[i-1] != *TaggedToArg((T),i-1)) FailCode;  \
     }                                                                   \
   }
