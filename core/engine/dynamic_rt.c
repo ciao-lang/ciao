@@ -1661,7 +1661,15 @@ CFUN__PROTO(active_instance,
   instance_clock_t lotime = time;
   tagged_t lorank = TaggedIntMax;
 
-  if (latest_static->next_alt == NULL) { /* if called from wam() */ // TODO: IsShallowTry0(latest_static)?
+#if defined(OPTIM_COMP) || defined(USE_DEEP_FLAGS)
+  /* ensure that w->choice is fleshed out fully i.e. do a "neck" */
+  /* arity of choicept could be greater than arity of clause */
+  /* We are still in "shallow mode" */
+  /* Pre: !IsDeep() */
+  CODE_MAYBE_NECK_TRY();
+#endif
+
+  if (latest_static->next_alt == NULL) { /* if called from wam() */ // TODO: IsShallowTry0(latest_static)? // TODO: [oc-merge] disable, never happens with 'flags'
     latest_static = w->previous_choice;
   }
 

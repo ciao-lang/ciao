@@ -492,7 +492,7 @@ do_neck :- % (assume !IsDeep())
        "i" <- "ChoiceArity(B)",
        for("intmach_t k=0; k<i; k++",
          ("B->x[k]" <- "w->x[k]")),
-       maybe_choice_overflow)
+       maybe_choice_overflow) % TODO:[oc-merge] check for choice overflow needed here?
     ),
     "SetDeep();", fmt:nl.
 
@@ -1578,7 +1578,7 @@ do_cutb_neck :-
     do_cut,
     if("!IsDeep()",
       ("SetDeep();", fmt:nl,
-       % TODO: if neck is not pending, then choice overflow has already been checked?
+       % TODO:[merge-oc] if neck is not pending, then choice overflow has already been checked?
        maybe_choice_overflow)).
 
 :- ins_op_format(cute_x, 214, [f_x], [label(r)]).
