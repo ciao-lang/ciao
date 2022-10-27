@@ -403,21 +403,12 @@ CVOID__PROTO(trail__compress, bool_t from_gc) {
   curr = dest;
   CHOICE_PASS(cp, prevcp, arity, {
   }, {
-    tagged_t *limit;
-    limit = TrailTopUnmark(cp->trail_top);
-    while (TrailYounger(limit,curr)) {
-      tagged_t cv;
-      cv = *curr;
-      curr++;
-      if (cv != (tagged_t)0) {
-        TrailPush(dest,cv);
-      }
-    }
-    cp->trail_top -= limit-dest;
+    COMPRESS_TRAIL(cp, curr, dest);
+    CHPTFLG(cp->flags = 0);
     if (from_gc) ChoiceptMarkPure(cp);
   });
 
-  w->trail_top = dest;
+  G->trail_top = dest;
 }
 
 /* =========================================================================== */
@@ -1421,15 +1412,15 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
   if (reloc_factor==0) return;
 
   choice_t *n, *n2;
-  choice_t *aux_node;
+  choice_t *aux_choice;
   frame_t *frame;
   intmach_t i;
 
-  aux_node = ChoiceNext0(w->choice,0);
-  aux_node->next_alt = fail_alt;
-  aux_node->frame = RelocPtr(w->frame, reloc_factor);
-  aux_node->next_insn = w->next_insn;
-  aux_node->local_top = RelocPtr(w->local_top, reloc_factor);
+  aux_choice = ChoiceNext0(w->choice,0);
+  aux_choice->next_alt = fail_alt;
+  aux_choice->frame = RelocPtr(w->frame, reloc_factor);
+  aux_choice->next_insn = w->next_insn;
+  aux_choice->local_top = RelocPtr(w->local_top, reloc_factor);
 
   /* relocate pointers in trail */
   {
@@ -1442,7 +1433,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
   }
 
   /* relocate pointers in choice&env stks */
-  for (n=aux_node; n!=InitialNode; n=n2){
+  for (n=aux_choice; n!=InitialNode; n=n2){
     n2 = ChoiceCont(n);
     //Tabling --> How to translate?
     AssignRelocPtr(n2->local_top, reloc_factor);
@@ -1478,8 +1469,8 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
     }
   }
 
-  w->frame = aux_node->frame;
-  w->local_top = NodeLocalTop(aux_node);
+  w->frame = aux_choice->frame;
+  w->local_top = NodeLocalTop(aux_choice);
   SetShadowregs(w->choice);
 }
 
@@ -1493,13 +1484,14 @@ intmach_t current_gcmargin;
 /* TODO: per worker? */
 static bool_t gcexplicit = FALSE;       /* Shared, no locked --- global flag */
 
+/* Explicit GC */
 CBOOL__PROTO(gc_start) {
   gcexplicit = TRUE;
-  heap_overflow(Arg,CALLPAD);
-  return TRUE;
+  CVOID__CALL(heap_overflow,CALLPAD);
+  CBOOL__PROCEED;
 }
 
-/* Here when G->heap_top and Heap_End are within CALLPAD from each other. */
+/* PRE: G->heap_top and Heap_End are within CALLPAD from each other. */
 CVOID__PROTO(heap_overflow, intmach_t pad) {
   tagged_t *oldh = G->heap_top;
   tagged_t *newh = G->heap_top;
@@ -1552,7 +1544,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
     /* increase heapsize */
     intmach_t mincount, newcount, oldcount, reloc_factor;
     tagged_t *newh;
-    
+
     intmach_t wake_count = WakeCount();
     
     GetFrameTop(w->local_top,w->choice,G->frame);
@@ -1566,7 +1558,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
     DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing HEAP from %p to %p\n", (intmach_t)Thread_Id, Heap_Start, newh);
 
     reloc_factor = (char *)newh - (char *)Heap_Start;
-    
+
     /* AA, HH and TR are free pointers;  BB is last used word. */
 #if defined(ANDPARALLEL)
     /* Adjust remote pointers in other agents */
@@ -1620,16 +1612,16 @@ CVOID__PROTO(heap_overflow_adjust_wam,
   if (reloc_factor==0) return;
 
   choice_t *n, *n2;
-  choice_t *aux_node;
+  choice_t *aux_choice;
   frame_t *frame;
   intmach_t i;
 
-  aux_node = ChoiceNext0(w->choice,0);
-  aux_node->next_alt = fail_alt;
-  aux_node->frame = w->frame;
-  aux_node->next_insn = w->next_insn;
-  aux_node->heap_top = G->heap_top;
-  aux_node->local_top = w->local_top; /* segfault patch -- jf */
+  aux_choice = ChoiceNext0(w->choice,0);
+  aux_choice->next_alt = fail_alt;
+  aux_choice->frame = w->frame;
+  aux_choice->next_insn = w->next_insn;
+  aux_choice->heap_top = G->heap_top;
+  aux_choice->local_top = w->local_top; /* segfault patch -- jf */
 
   /* relocate pointers in global stk */
   {
@@ -1708,7 +1700,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 
   /* relocate pointers in choice&env stks */
   n2 = NULL;
-  for (n=aux_node; n!=InitialNode && n->next_alt!=NULL; n=n2) { // TODO: can n->next_alt  be NULL?
+  for (n=aux_choice; n!=InitialNode && n->next_alt!=NULL; n=n2) { // TODO: can n->next_alt  be NULL?
     n2 = ChoiceCont(n);
     {
       TG_Let(pt1, n->x);
@@ -1746,15 +1738,16 @@ CVOID__PROTO(trail_gc) {
   choice_t *b = w->choice;
   intmach_t wake_count = WakeCount();
   tagged_t heap_last = Tagp(HVA,HeapOffset(Heap_End,-1));
-  /*extern choice_t *gc_aux_node;*/ /* Now in a register */
+  /*extern choice_t *gc_aux_choice;*/ /* Now in a register */
   /*extern choice_t *gc_choice_start;*/ /* No in a register */
 
+  /* TODO: move to a macro and call before this function */
   Gc_Aux_Choice = ChoiceNext0(b,0);
   CHPTFLG(Gc_Aux_Choice->flags = 0);
   Gc_Aux_Choice->next_alt = fail_alt;
   Gc_Aux_Choice->trail_top = tr;
   Gc_Choice_Start = w->segment_choice;
-  
+
   if (current_gctrace == GCTRACE__VERBOSE) {
     TRACE_PRINTF("{GC}  Trail GC started\n");
   }
@@ -1764,7 +1757,8 @@ CVOID__PROTO(trail_gc) {
        trailings of the same location.  Go from old to new. */
     tagged_t *x;
     tagged_t t1;
-      
+
+    // TODO:[oc-merge] not in OC
     for (x=TrailTopUnmark(b->trail_top); TrailYounger(tr,x); x++) {
       if (TaggedIsHVA(t1 = *x)) {
         if (*TagpPtr(HVA,t1) & 1) {

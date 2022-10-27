@@ -2656,6 +2656,20 @@ CVOID__PROTO(trail_push_check, tagged_t x);
       *TaggedToPointer(Ref) = Ref;                                         \
   } 
 
+#define COMPRESS_TRAIL(CP, CURR, DEST) do { \
+  tagged_t *limit; \
+  limit = TrailTopUnmark((CP)->trail_top); \
+  while (TrailYounger(limit,(CURR))) { \
+    tagged_t cv; \
+    cv = *(CURR); \
+    (CURR)++; \
+    if (cv != (tagged_t)0) { \
+      TrailPush((DEST),cv); \
+    } \
+  } \
+  (CP)->trail_top -= limit-(DEST); \
+} while(0);
+
 #define CompressTrailNoGC(tr0) ({ \
   tagged_t *h; \
   tagged_t *tr; \
