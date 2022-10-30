@@ -36,7 +36,7 @@ CBOOL__PROTO(retry_cut)
         {
           nd->x[1] = X(1);   /* always dereferenced */
           w->choice = nd;
-          SetShadowregs(nd);
+          SetShadowregsF(w->choice);
           break;
         }
     }

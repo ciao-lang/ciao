@@ -430,7 +430,7 @@ do_cut :-
     profile_hook(cut),
     "B" <- "w->previous_choice",
     "w->choice" <- "B",
-    "SetShadowregs(B);", fmt:nl,
+    "SetShadowregsF(w->choice);", fmt:nl,
     "TRACE_CHPT_CUT(w->choice);", fmt:nl,
     "ConcChptCleanUp(TopConcChpt, w->choice);", fmt:nl.
 
@@ -1976,7 +1976,7 @@ retry_instance :-
       ("SetDeep();", fmt:nl,
        "B" <- "w->previous_choice",
        "w->choice" <- "B",
-       "SetShadowregs(B);", fmt:nl)),
+       "SetShadowregsF(w->choice);", fmt:nl)),
     if("!w->misc->ins",
       % A conc. predicate has been closed, or a non-blocking call was made (MCL)
       (trace(retry_instance_debug_1),
@@ -3621,13 +3621,13 @@ jump_fail_cont(AltMode) :- [[ AltMode = no_alt ]],
     "SetDeep();", fmt:nl,
     "B" <- "w->previous_choice",
     "w->choice" <- "B",
+    "SetShadowregsF(w->choice);", fmt:nl,
     "ON_TABLING({", fmt:nl,
     % To avoid sharing wrong trail - it might be associated to the
     % previous frozen choice point
     if("FrozenChpt(B)",
       call('push_choicept', ["w","address_nd_fake_choicept"])),
     "});", fmt:nl,
-    "SetShadowregs(B);", fmt:nl,
     jump_alt_code("P").
 jump_fail_cont(AltMode) :- [[ AltMode = next_alt ]],
     % TODO:[oc-merge] 'altmode.jump_fail_cont'(_,next_alt)
@@ -3689,7 +3689,7 @@ code_enter_pred :-
     % if (Cancel_Goal_Exec && Safe_To_Cancel) {
     %   Cancel_Goal_Exec = FALSE;
     %   Safe_To_Cancel = FALSE;
-    %   SetShadowregs(w->choice);
+    %   SetShadowregsF(w->choice);
     %   goto fail;
     % }
     % 
@@ -3699,7 +3699,7 @@ code_enter_pred :-
     %   // Metacut
     %   w->choice = Current_Init_ChP;
     %   w->trail_top = Current_Trail_Top;
-    %   SetShadowregs(w->choice);
+    %   SetShadowregsF(w->choice);
     %   goto fail;
     % }
     "});",

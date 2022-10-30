@@ -1154,7 +1154,7 @@ CVOID__PROTO(gc__heap_collect) {
   GLOBAL_VARS_ROOT = *(w->trail_top); // (w->trail_top points to the popped element)
 #endif
     
-  SetShadowregs(w->choice);     /* shadow regs may have changed */
+  SetShadowregsF(w->choice);     /* shadow regs may have changed */
 #if defined(USE_GC_STATS)
   /* statistics */
   flt64_t compress_time = RunTickFunc()-t2;
@@ -1471,7 +1471,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
 
   w->frame = aux_choice->frame;
   w->local_top = NodeLocalTop(aux_choice);
-  SetShadowregs(w->choice);
+  SetShadowregsF(w->choice);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1729,29 +1729,37 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 
   // TODO: TABLING ->> How to translate???
   AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
-  SetShadowregs(w->choice);
+  SetShadowregsF(w->choice);
 }
 
 /* Tidy new half of trail exhaustively. */
 CVOID__PROTO(trail_gc) {
-  tagged_t *tr = w->trail_top;
-  choice_t *b = w->choice;
-  intmach_t wake_count = WakeCount();
+  tagged_t *tr;
+  choice_t *orig_b;
+  choice_t *b;
+  intmach_t wake_count;
   tagged_t heap_last = Tagp(HVA,HeapOffset(Heap_End,-1));
   /*extern choice_t *gc_aux_choice;*/ /* Now in a register */
   /*extern choice_t *gc_choice_start;*/ /* No in a register */
+
+  orig_b = w->choice;
+
+  b = w->choice;
 
   /* TODO: move to a macro and call before this function */
   Gc_Aux_Choice = ChoiceNext0(b,0);
   CHPTFLG(Gc_Aux_Choice->flags = 0);
   Gc_Aux_Choice->next_alt = fail_alt;
-  Gc_Aux_Choice->trail_top = tr;
+  Gc_Aux_Choice->trail_top = G->trail_top;
   Gc_Choice_Start = w->segment_choice;
+
+  wake_count = WakeCount();
 
   if (current_gctrace == GCTRACE__VERBOSE) {
     TRACE_PRINTF("{GC}  Trail GC started\n");
   }
 
+  tr = w->trail_top;
   while (!OffChoicetop(Gc_Choice_Start,b)) {
     /* sweep trail segment to get rid of multiple 'undo setarg'
        trailings of the same location.  Go from old to new. */
@@ -1772,7 +1780,8 @@ CVOID__PROTO(trail_gc) {
     /* sweep trail segment to get rid of unconditional entries.
        Keep count of relevant entries.  Turn mark bits off.
        Go from new to old. */
-    SetShadowregs(b);
+    w->choice = b;
+    SetShadowregsF(w->choice);
     x=TrailTopUnmark(b->trail_top);
     while (TrailYounger(tr,x)){
       tagged_t t1;
@@ -1807,8 +1816,8 @@ CVOID__PROTO(trail_gc) {
   }
   
   /* restore misc. registers used above */
-  b = w->choice;
-  SetShadowregs(b);
+  w->choice = orig_b;
+  SetShadowregsF(w->choice);
 }
 
 /* --------------------------------------------------------------------------- */

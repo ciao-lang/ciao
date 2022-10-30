@@ -334,12 +334,12 @@ if (alt == NULL) {
 SetDeep();
 B = w->previous_choice;
 w->choice = B;
+SetShadowregsF(B);
 ON_TABLING({
 if (FrozenChpt(B)) {
 push_choicept(w,address_nd_fake_choicept);
         }
 });
-SetShadowregs(B);
 P = ((try_node_t *)P)->emul_p;
 t0 = X(0);
 if (!IsVar(t0)) {
@@ -610,7 +610,7 @@ w->previous_choice = InitialNode;
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
 w->choice = B;
-SetShadowregs(B);
+SetShadowregsF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 goto fail;
@@ -1187,7 +1187,7 @@ w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
 w->choice = B;
-SetShadowregs(B);
+SetShadowregsF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 P += FTYPE_size(f_x);
@@ -1204,7 +1204,7 @@ case CUTB_NECK:
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
 w->choice = B;
-SetShadowregs(B);
+SetShadowregsF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 if (!IsDeep()) {
@@ -1225,7 +1225,7 @@ case CUTB_NECK_PROCEED:
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
 w->choice = B;
-SetShadowregs(B);
+SetShadowregsF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 if (!IsDeep()) {
@@ -1243,7 +1243,7 @@ w->local_top = E;
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
 w->choice = B;
-SetShadowregs(B);
+SetShadowregsF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 SetE(w->local_top);
@@ -1261,7 +1261,7 @@ w->local_top = E;
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
 w->choice = B;
-SetShadowregs(B);
+SetShadowregsF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 SetDeep();
@@ -1282,7 +1282,7 @@ case CUTF:
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
 w->choice = B;
-SetShadowregs(B);
+SetShadowregsF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 SetE(w->frame);
@@ -1295,7 +1295,7 @@ w->previous_choice = ChoiceFromTagged(t1);
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
 w->choice = B;
-SetShadowregs(B);
+SetShadowregsF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 SetE(w->frame);
@@ -1508,7 +1508,7 @@ if ((TaggedToRoot(X(RootArg))->behavior_on_failure != DYNAMIC &&
 SetDeep();
 B = w->previous_choice;
 w->choice = B;
-SetShadowregs(B);
+SetShadowregsF(B);
               }
 if (!w->misc->ins) {
 ON_DEBUG({

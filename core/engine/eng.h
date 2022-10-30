@@ -423,6 +423,7 @@
 #define ErrFuncArity w->misc->errfuncarity
 #define Culprit w->misc->culprit
 
+/* TODO:[ec-merge] try another way and measure performance impact */
 #if defined(TABLING)
 #define NodeLocalTop(Node)                                      \
   (((Node)->heap_top != (tagged_t*)(&(HeapFReg))) ?           \
@@ -453,7 +454,7 @@
   w->local_uncond = Tagp(SVA,w->local_top); \
 }
 
-#define SetShadowregs(Chpt) \
+#define SetShadowregsF(Chpt) \
 { \
   w->global_uncond = Tagp(HVA,NodeGlobalTop(Chpt));     \
   w->local_uncond = Tagp(SVA,NodeLocalTop(Chpt));      \
@@ -529,9 +530,13 @@ tagged_t deffunctor(char *pname, int arity); /* eng_registry.c */
 #define SetChoice(Chpt) ({ \
   w->previous_choice = (Chpt); /* needed? */ \
   w->choice = (Chpt); \
-  SetShadowregs(w->choice); \
+  SetShadowregsF(w->choice); \
   PROFILE__HOOK_CUT; \
 })
+#define SetChoiceF(Chpt) do { \
+  w->choice = (Chpt); \
+  SetShadowregsF(w->choice); \
+} while(0)
 // TODO: missing test_choice_overflow
 // TODO: OPTIM_COMP saves local_top here, not in NECK_TRY
 #define CODE_CHOICE_NEW(B, ALT) ({ \

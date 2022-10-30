@@ -1155,7 +1155,7 @@ CBOOL__PROTO(metacut)
 {
   DEREF(X(0),X(0));
   w->choice = ChoiceFromTagged(X(0));
-  SetShadowregs(w->choice);
+  SetShadowregsF(w->choice);
   /*  ConcChptCleanUp(TopConcChpt, w->choice);*/
   PROFILE__HOOK_CUT;
   return TRUE;
@@ -1421,11 +1421,12 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   b->heap_top = w->heap_top;
   NewShadowregs(w->heap_top);
   
-  if (cunify(Arg,X(0),X(1))) /* this could use AB, HB, TR, B. */
-    item = atom_equal,
+  if (cunify(Arg,X(0),X(1))) { /* this could use AB, HB, TR, B. */
+    item = atom_equal;
     other = Tagp(HVA,w->heap_top);
-  else
+  } else {
     item = other = atom_lessthan;
+  }
   
   /* quasi failure */
   
@@ -1445,9 +1446,10 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   }
   
   w->heap_top = NodeGlobalTop(b);
-  w->choice = b = ChoiceCont0(b,0);
+  b = ChoiceCont0(b,0);
+  w->choice = b;
+  SetShadowregsF(w->choice);
   SetDeep();
-  SetShadowregs(b);
 
                                 /* succeed, fail, or suspend */
   if (item==atom_lessthan)

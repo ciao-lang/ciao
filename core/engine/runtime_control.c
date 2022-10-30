@@ -28,14 +28,15 @@
 
 CVOID__PROTO(pop_choicept) {
   choice_t *b = w->choice;
-  w->choice = b = ChoiceCont(b);
-  SetShadowregs(b);
+  b = ChoiceCont(b);
+  w->choice = b;
+  SetShadowregsF(w->choice);
+  // TODO:[oc-merge] missing reset G->next_alt from b->next_alt
 }
 
 CVOID__PROTO(push_choicept, try_node_t *alt) {
-  intmach_t n = alt->arity;
   tagged_t *b0 = (tagged_t *)w->choice;
-  choice_t *b = ChoiceNext0(b0,n);
+  choice_t *b = ChoiceNext0(b0,alt->arity);
 
   GetFrameTop(w->local_top,w->choice,G->frame);
   w->choice = b;
@@ -48,6 +49,7 @@ CVOID__PROTO(push_choicept, try_node_t *alt) {
   b->frame = w->frame;
   b->next_insn = w->next_insn;
   b->local_top = w->local_top;
+  intmach_t n = alt->arity;
   while (n>0) {
     *--(b0) = X(--n);
   }
