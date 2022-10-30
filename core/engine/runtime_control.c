@@ -29,8 +29,7 @@
 CVOID__PROTO(pop_choicept) {
   choice_t *b = w->choice;
   b = ChoiceCont(b);
-  w->choice = b;
-  SetShadowregsF(w->choice);
+  SetChoiceF(b);
   // TODO:[oc-merge] missing reset G->next_alt from b->next_alt
 }
 

@@ -1154,7 +1154,7 @@ CVOID__PROTO(gc__heap_collect) {
   GLOBAL_VARS_ROOT = *(w->trail_top); // (w->trail_top points to the popped element)
 #endif
     
-  SetShadowregsF(w->choice);     /* shadow regs may have changed */
+  SetChoiceF(w->choice);     /* shadow regs may have changed */
 #if defined(USE_GC_STATS)
   /* statistics */
   flt64_t compress_time = RunTickFunc()-t2;
@@ -1471,7 +1471,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
 
   w->frame = aux_choice->frame;
   w->local_top = NodeLocalTop(aux_choice);
-  SetShadowregsF(w->choice);
+  SetChoiceF(w->choice);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1729,7 +1729,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 
   // TODO: TABLING ->> How to translate???
   AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
-  SetShadowregsF(w->choice);
+  SetChoiceF(w->choice);
 }
 
 /* Tidy new half of trail exhaustively. */
@@ -1780,8 +1780,7 @@ CVOID__PROTO(trail_gc) {
     /* sweep trail segment to get rid of unconditional entries.
        Keep count of relevant entries.  Turn mark bits off.
        Go from new to old. */
-    w->choice = b;
-    SetShadowregsF(w->choice);
+    SetChoiceF(b);
     x=TrailTopUnmark(b->trail_top);
     while (TrailYounger(tr,x)){
       tagged_t t1;
@@ -1816,8 +1815,7 @@ CVOID__PROTO(trail_gc) {
   }
   
   /* restore misc. registers used above */
-  w->choice = orig_b;
-  SetShadowregsF(w->choice);
+  SetChoiceF(orig_b);
 }
 
 /* --------------------------------------------------------------------------- */

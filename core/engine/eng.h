@@ -454,11 +454,16 @@
   w->local_uncond = Tagp(SVA,w->local_top); \
 }
 
-#define SetShadowregsF(Chpt) \
-{ \
-  w->global_uncond = Tagp(HVA,NodeGlobalTop(Chpt));     \
-  w->local_uncond = Tagp(SVA,NodeLocalTop(Chpt));      \
-}
+#define SetChoice(Chpt) ({ \
+  w->previous_choice = (Chpt); /* needed? */ \
+  SetChoiceF((Chpt)); \
+  PROFILE__HOOK_CUT; \
+})
+#define SetChoiceF(Chpt) do { \
+  w->choice = (Chpt); \
+  w->global_uncond = Tagp(HVA,NodeGlobalTop(w->choice)); \
+  w->local_uncond = Tagp(SVA,NodeLocalTop(w->choice)); \
+} while(0)
 
 #if defined(ANDPARALLEL) && defined(VISANDOR)
 /* Event output macros for tracing tool VisAndOr */
@@ -527,16 +532,7 @@
 })
 
 tagged_t deffunctor(char *pname, int arity); /* eng_registry.c */
-#define SetChoice(Chpt) ({ \
-  w->previous_choice = (Chpt); /* needed? */ \
-  w->choice = (Chpt); \
-  SetShadowregsF(w->choice); \
-  PROFILE__HOOK_CUT; \
-})
-#define SetChoiceF(Chpt) do { \
-  w->choice = (Chpt); \
-  SetShadowregsF(w->choice); \
-} while(0)
+
 // TODO: missing test_choice_overflow
 // TODO: OPTIM_COMP saves local_top here, not in NECK_TRY
 #define CODE_CHOICE_NEW(B, ALT) ({ \

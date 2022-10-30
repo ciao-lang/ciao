@@ -35,8 +35,7 @@ CBOOL__PROTO(retry_cut)
       if (nd->x[3]==atom_retry_hook && number<=X(0))
         {
           nd->x[1] = X(1);   /* always dereferenced */
-          w->choice = nd;
-          SetShadowregsF(w->choice);
+          SetChoiceF(nd);
           break;
         }
     }
