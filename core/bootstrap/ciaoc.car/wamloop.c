@@ -333,8 +333,7 @@ alt = ((try_node_t *)P)->next;
 if (alt == NULL) {
 SetDeep();
 B = w->previous_choice;
-w->choice = B;
-SetShadowregsF(B);
+SetChoiceF(B);
 ON_TABLING({
 if (FrozenChpt(B)) {
 push_choicept(w,address_nd_fake_choicept);
@@ -609,8 +608,7 @@ w->misc->exit_code = GetSmall(t0);
 w->previous_choice = InitialNode;
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
-w->choice = B;
-SetShadowregsF(B);
+SetChoiceF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 goto fail;
@@ -1186,8 +1184,7 @@ w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 ;
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
-w->choice = B;
-SetShadowregsF(B);
+SetChoiceF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 P += FTYPE_size(f_x);
@@ -1203,8 +1200,7 @@ r_cutb_neck:
 case CUTB_NECK:
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
-w->choice = B;
-SetShadowregsF(B);
+SetChoiceF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 if (!IsDeep()) {
@@ -1224,8 +1220,7 @@ r_cutb_neck_proceed:
 case CUTB_NECK_PROCEED:
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
-w->choice = B;
-SetShadowregsF(B);
+SetChoiceF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 if (!IsDeep()) {
@@ -1242,8 +1237,7 @@ w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x, 1)));
 w->local_top = E;
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
-w->choice = B;
-SetShadowregsF(B);
+SetChoiceF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 SetE(w->local_top);
@@ -1260,8 +1254,7 @@ case CUTE_NECK:
 w->local_top = E;
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
-w->choice = B;
-SetShadowregsF(B);
+SetChoiceF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 SetDeep();
@@ -1281,8 +1274,7 @@ r_cutf:
 case CUTF:
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
-w->choice = B;
-SetShadowregsF(B);
+SetChoiceF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 SetE(w->frame);
@@ -1294,8 +1286,7 @@ RefStack(t1,&Yb(BcP(f_y, 1)));
 w->previous_choice = ChoiceFromTagged(t1);
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
-w->choice = B;
-SetShadowregsF(B);
+SetChoiceF(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 SetE(w->frame);
@@ -1507,8 +1498,7 @@ if ((TaggedToRoot(X(RootArg))->behavior_on_failure != DYNAMIC &&
 ) {
 SetDeep();
 B = w->previous_choice;
-w->choice = B;
-SetShadowregsF(B);
+SetChoiceF(B);
               }
 if (!w->misc->ins) {
 ON_DEBUG({
