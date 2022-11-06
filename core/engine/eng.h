@@ -455,9 +455,7 @@
 }
 
 #define SetChoice(Chpt) ({ \
-  w->previous_choice = (Chpt); /* needed? */ \
   SetChoiceF((Chpt)); \
-  PROFILE__HOOK_CUT; \
 })
 #define SetChoiceF(Chpt) do { \
   w->choice = (Chpt); \

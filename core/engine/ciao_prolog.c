@@ -965,6 +965,7 @@ void ciao_cut(ciao_ctx ctx, ciao_choice choice) {
   if (!ciao_more_solutions(ctx, choice)) return;
   WITH_WORKER(ctx->worker_registers, {
     choice_t *c = ChoiceFromTagged(choice);
+    w->previous_choice = c; /* TODO:[oc-merge] not in OC */
     SetChoice(c);
   });
 }
@@ -1008,6 +1009,7 @@ void ciao_query_end(ciao_query *query) {
   WITH_WORKER(ctx->worker_registers, {
     b = w->choice;
     b = ChoiceCont(b);
+    w->previous_choice = b; /* TODO:[oc-merge] not in OC */
     SetChoice(b);
     SetDeep();
   });
