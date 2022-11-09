@@ -30,31 +30,14 @@ CVOID__PROTO(pop_choicept) {
   choice_t *b = w->choice;
   b = ChoiceCont(b);
   SetChoiceF(b);
-  // TODO:[oc-merge] missing reset G->next_alt from b->next_alt
 }
 
 CVOID__PROTO(push_choicept, try_node_t *alt) {
-  tagged_t *b0 = (tagged_t *)w->choice;
-  choice_t *b = ChoiceNext0(b0,alt->arity);
-
-  GetFrameTop(w->local_top,w->choice,G->frame);
-  w->choice = b;
-  NewShadowregs(w->heap_top);
-
-  CHPTFLG(b->flags = 0);
-  b->trail_top = w->trail_top;
-  b->heap_top = w->heap_top;
-  b->next_alt = alt;
-  b->frame = w->frame;
-  b->next_insn = w->next_insn;
-  b->local_top = w->local_top;
-  intmach_t n = alt->arity;
-  while (n>0) {
-    *--(b0) = X(--n);
-  }
-  if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top)) {
-    choice_overflow(Arg,CHOICEPAD,TRUE);
-  }
+  choice_t *b;
+  CODE_CHOICE_NEW(b, alt);
+  CODE_NECK_TRY(b);
+  SetDeep();
+  TEST_CHOICE_OVERFLOW(w->choice, CHOICEPAD);
 }
 
 #if defined(PARBACK)
