@@ -457,7 +457,19 @@
 #define SetChoice(Chpt) ({ \
   SetChoiceF((Chpt)); \
 })
+// TODO:[oc-merge] rename by SetChoice
+// TODO:[oc-merge] G->next_alt must be up to date when failcont uses it (not merged yet)
+#if defined(USE_DEEP_FLAGS)
 #define SetChoiceF(Chpt) do { \
+  G->next_alt = (Chpt)->next_alt; \
+  SetChoice0((Chpt)); \
+} while(0)
+#else
+#define SetChoiceF(Chpt) do { \
+  SetChoice0((Chpt)); \
+} while(0)
+#endif
+#define SetChoice0(Chpt) do { \
   w->choice = (Chpt); \
   w->global_uncond = Tagp(HVA,NodeGlobalTop(w->choice)); \
   w->local_uncond = Tagp(SVA,NodeLocalTop(w->choice)); \
@@ -1566,9 +1578,8 @@ struct marker_ {
 
 #endif
 
-// TODO: oc-merge version still segfaults
 #define USE_TRAIL_TOP_MARKS 1 // TODO:[oc-merge] disable
-//#define USE_DEEP_FLAGS 1 // TODO:[oc-merge] enable {PORT INCOMPLETE!}
+//#define USE_DEEP_FLAGS 1 // TODO:[oc-merge] enable
 #define USE_RETRY_PATCH 1 // TODO:[oc-merge] disable
 
 #if defined(USE_TRAIL_TOP_MARKS)
