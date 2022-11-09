@@ -429,7 +429,7 @@ unify_local_value(T1) :-
 do_cut :-
     profile_hook(cut),
     "B" <- "w->previous_choice",
-    "SetChoiceF(B);", fmt:nl,
+    "SetChoice(B);", fmt:nl,
     "TRACE_CHPT_CUT(w->choice);", fmt:nl,
     "ConcChptCleanUp(TopConcChpt, w->choice);", fmt:nl.
 
@@ -1974,7 +1974,7 @@ retry_instance :-
         "!next_instance(Arg, &w->misc->ins))", fmt:nl),
       ("SetDeep();", fmt:nl,
        "B" <- "w->previous_choice",
-       "SetChoiceF(B);", fmt:nl)),
+       "SetChoice(B);", fmt:nl)),
     if("!w->misc->ins",
       % A conc. predicate has been closed, or a non-blocking call was made (MCL)
       (trace(retry_instance_debug_1),
@@ -3618,7 +3618,7 @@ backtrack_ :-
 jump_fail_cont(AltMode) :- [[ AltMode = no_alt ]],
     "SetDeep();", fmt:nl,
     "B" <- "w->previous_choice",
-    "SetChoiceF(B);", fmt:nl,
+    "SetChoice(B);", fmt:nl,
     "ON_TABLING({", fmt:nl,
     % To avoid sharing wrong trail - it might be associated to the
     % previous frozen choice point
@@ -3686,7 +3686,7 @@ code_enter_pred :-
     % if (Cancel_Goal_Exec && Safe_To_Cancel) {
     %   Cancel_Goal_Exec = FALSE;
     %   Safe_To_Cancel = FALSE;
-    %   SetChoiceF(w->choice);
+    %   SetChoice(w->choice);
     %   goto fail;
     % }
     % 
@@ -3696,7 +3696,7 @@ code_enter_pred :-
     %   // Metacut
     %   w->choice = Current_Init_ChP;
     %   w->trail_top = Current_Trail_Top;
-    %   SetChoiceF(w->choice);
+    %   SetChoice(w->choice);
     %   goto fail;
     % }
     "});",

@@ -29,7 +29,7 @@
 CVOID__PROTO(pop_choicept) {
   choice_t *b = w->choice;
   b = ChoiceCont(b);
-  SetChoiceF(b);
+  SetChoice(b);
 }
 
 CVOID__PROTO(push_choicept, try_node_t *alt) {

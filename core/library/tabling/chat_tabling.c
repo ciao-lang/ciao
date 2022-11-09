@@ -405,7 +405,7 @@ CVOID__PROTO(swapping, struct gen *oldGen) {
         }
     }
 
-  SetChoiceF(w->choice);
+  SetChoice(w->choice);
   //Push new gen!
   push_choicept(Arg, address_nd_resume_cons_c);
   inode = Arg->choice;

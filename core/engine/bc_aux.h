@@ -1155,7 +1155,7 @@ CBOOL__PROTO(metacut)
 {
   DEREF(X(0),X(0));
   choice_t *b = ChoiceFromTagged(X(0));
-  SetChoiceF(b);
+  SetChoice(b);
   /*  ConcChptCleanUp(TopConcChpt, w->choice);*/
   PROFILE__HOOK_CUT;
   return TRUE;
@@ -1447,7 +1447,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
   
   w->heap_top = NodeGlobalTop(b);
   b = ChoiceCont0(b,0);
-  SetChoiceF(b);
+  SetChoice(b);
   SetDeep();
 
                                 /* succeed, fail, or suspend */

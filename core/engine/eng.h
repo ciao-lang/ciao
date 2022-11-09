@@ -454,18 +454,14 @@
   w->local_uncond = Tagp(SVA,w->local_top); \
 }
 
-#define SetChoice(Chpt) ({ \
-  SetChoiceF((Chpt)); \
-})
-// TODO:[oc-merge] rename by SetChoice
 // TODO:[oc-merge] G->next_alt must be up to date when failcont uses it (not merged yet)
 #if defined(USE_DEEP_FLAGS)
-#define SetChoiceF(Chpt) do { \
+#define SetChoice(Chpt) do { \
   G->next_alt = (Chpt)->next_alt; \
   SetChoice0((Chpt)); \
 } while(0)
 #else
-#define SetChoiceF(Chpt) do { \
+#define SetChoice(Chpt) do { \
   SetChoice0((Chpt)); \
 } while(0)
 #endif
