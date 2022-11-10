@@ -26,14 +26,12 @@ extern intmach_t current_gcmargin;
 void init_gc(void);
 
 CVOID__PROTO(trail__compress, bool_t from_gc);
-CVOID__PROTO(gc__heap_collect);
 
 CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond);
 CVOID__PROTO(stack_overflow);
 CBOOL__PROTO(gc_start);
 CVOID__PROTO(heap_overflow, intmach_t pad);
 CVOID__PROTO(collect_goals_from_trail, intmach_t wake_count);
-CVOID__PROTO(trail_gc);
 CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity);
 
 CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);

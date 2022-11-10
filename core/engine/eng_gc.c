@@ -22,6 +22,10 @@
 #define USE_GC_SETARG 1 /* fix setarg when segmented GC is enabled. */ /* TODO: make setarg optional */
 #endif
 
+#if !defined(OPTIM_COMP)
+#define RTCHECK(X)
+#endif
+
 #define USE_SEGMENTED_GC 1
 #define USE_EARLY_RESET 1
 
@@ -412,6 +416,639 @@ CVOID__PROTO(trail__compress, bool_t from_gc) {
 }
 
 /* =========================================================================== */
+/* Growing heap/choice/stack memory areas when full */
+/* (heap_overflow attempts gc__heap_collect first) */
+
+#if defined(ANDPARALLEL)
+CVOID__PROTO(heap_overflow_adjust_wam,
+             intmach_t reloc_factor, tagged_t *newh, bool_t remote_reloc, worker_t *remote_worker);
+#else
+CVOID__PROTO(heap_overflow_adjust_wam, intmach_t reloc_factor, tagged_t *newh);
+#endif
+
+CVOID__PROTO(trail__remove_uncond);
+CVOID__PROTO(gc__heap_collect);
+#if defined(OPTIM_COMP) && defined(USE_GC_STATS)
+inttime_t usertick(void);
+#endif
+
+/* --------------------------------------------------------------------------- */
+
+/* Here when w->choice and G->trail_top are within CHOICEPAD from each other. */
+CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
+  tagged_t *choice_top;
+
+#if defined(ANDPARALLEL)
+  Suspend = WAITING;
+  Wait_Acquire_slock(stackset_expansion_l);
+  Suspend = RELEASED;
+#endif
+
+  RTCHECK(CBOOL__SUCCEED(proofread, "Before choice_overflow", 0, TRUE));
+  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling choice overflow\n", (intmach_t)Thread_Id);
+
+#if defined(ANDPARALLEL)
+  DEBUG__TRACE(debug_threads, "WAM %p is in choice_overflow!\n", w);
+  CVOID__CALL(suspend_all);
+#endif
+
+#if defined(USE_GC_STATS)          
+  inttime_t tick0 = RunTickFunc();
+#endif
+
+  bool_t shallow_try = FALSE;
+  if (IsShallowTry0(w->choice)) { /* ensure A', P' exist */
+    shallow_try = TRUE;
+    w->choice->next_alt = w->next_alt;
+    w->choice->local_top = w->local_top;
+  }
+
+  if (remove_trail_uncond) {
+    /* note: trail__remove_uncond not executed in compile_term */
+    CVOID__CALL(calculate_segment_choice);
+    CVOID__CALL(trail__remove_uncond);
+    CVOID__CALL(trail__compress,FALSE);
+  }
+
+  /* ASSUMED: --CHOICE, TRAIL++ */
+
+  choice_top = (tagged_t *)w->choice+w->value_trail;
+  if (ChoiceYounger(ChoiceOffset(choice_top,2*pad),w->trail_top)) {
+    choice_t *b;
+    tagged_t *newtr;
+    intmach_t mincount, newcount, oldcount, reloc_factor, chpt_reloc_factor;
+    
+    {
+      mincount = 2*pad - ChoiceDifference(choice_top,w->trail_top);
+      oldcount = ChoiceDifference(Choice_Start,Choice_End);
+      newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
+      newtr = checkrealloc_ARRAY(tagged_t,
+                                 oldcount,
+                                 newcount,
+                                 Trail_Start);
+      DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing TRAIL from %p to %p\n", (intmach_t)Thread_Id, Trail_Start, newtr);
+    }
+    reloc_factor = (char *)newtr - (char *)Trail_Start;
+    chpt_reloc_factor = reloc_factor + (newcount-oldcount)*sizeof(tagged_t);
+    {
+      tagged_t *tr;
+      tagged_t *trb;
+      
+      tr = RelocPtr(Choice_Start, reloc_factor);
+      trb = RelocPtr(choice_top, reloc_factor);
+      Trail_Start = Choice_End = newtr;                /* new low bound */
+      Choice_Start = Trail_End = newtr+newcount;      /* new high bound */
+
+#if defined(USE_TAGGED_CHOICE_START)
+      /* Do not take out (tagged_t) casting, or the engine will break!! */
+      Tagged_Choice_Start = (tagged_t *)((tagged_t)Choice_Start + TaggedZero);
+#endif
+
+      {
+        tagged_t *x;
+        /* We have to relocate the concurrent topmost choicepoint */
+#if defined(USE_THREADS)
+        choice_t *concchpt;
+#endif
+        
+        x = Choice_Start;                  /* Copy the new choicepoint stack */
+        while (OffChoicetop(trb,tr)) {
+          x--;
+          tr--;
+          *x = *tr;
+        }
+        w->choice = b = (choice_t *)(x-w->value_trail);
+
+#if defined(USE_THREADS)
+        /* The chain of concurrent dynamic choicepoints has to be
+           relocated as well.  The initial TopConcChpt was set to be
+           the initial choice node.  MCL. */
+        concchpt = TopConcChpt = RelocPtr(TopConcChpt, chpt_reloc_factor);
+
+        while(concchpt != InitialNode) {
+          DEBUG__TRACE(debug_concchoicepoints || debug_gc,
+                       "*** %" PRIdm "(%" PRIdm ") Changing dynamic chpt@%x\n",
+                       (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
+                       (unsigned int)concchpt);
+          // TODO: wrong if it is Zero (null)? (JFMC)
+          choice_t *prev = (choice_t *)TermToPointerOrNull(concchpt->x[PrevDynChpt]);
+          AssignRelocPtr(prev, chpt_reloc_factor);
+          concchpt->x[PrevDynChpt] = PointerToTermOrZero(prev);
+          concchpt = prev;
+        }
+#endif
+      }
+    }
+    AssignRelocPtr(w->previous_choice, chpt_reloc_factor);
+    AssignRelocPtr(w->trail_top, reloc_factor);
+
+#if defined(ANDPARALLEL)
+    /* relocate pointer in handlers */
+    parallel_exec_entry_t *lpe = Last_Parallel_Exec;
+    while (lpe != NULL) {
+      if (lpe->init != NULL) {
+        AssignRelocPtr(lpe->init, chpt_reloc_factor);
+      }
+      if (lpe->end != NULL) {
+        AssignRelocPtr(lpe->end, chpt_reloc_factor);
+      }
+      lpe = lpe->prev;
+    }
+
+#endif
+
+    while (OffChoicetop(b,Choice_Start)) {
+      AssignRelocPtr(b->trail_top, reloc_factor);
+      b = ChoiceCont(b);
+    }
+  }
+
+  if (shallow_try == TRUE) {
+    SetShallowTry0(w->choice);
+  }
+
+#if defined(USE_GC_STATS)          
+  ciao_stats.ss_control++;
+  tick0 = RunTickFunc()-tick0;
+  ciao_stats.starttick += tick0;
+  ciao_stats.lasttick += tick0;
+  ciao_stats.ss_tick += tick0;
+#endif
+
+#if defined(ANDPARALLEL)
+  CVOID__CALL(resume_all);
+  Release_slock(stackset_expansion_l);
+#endif
+}
+
+/* Here when w->local_top and Stack_End are within STACKAD from each other. */
+CVOID__PROTO(stack_overflow) {
+  intmach_t count, reloc_factor;
+  tagged_t *newh;
+
+#if defined(USE_GC_STATS)          
+  flt64_t tick0 = RunTickFunc();
+#endif
+  
+#if defined(ANDPARALLEL)
+  Suspend = WAITING;
+  Wait_Acquire_slock(stackset_expansion_l);
+  Suspend = RELEASED;
+#endif
+
+  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling stack overflow\n", (intmach_t)Thread_Id);
+
+#if defined(ANDPARALLEL)
+  DEBUG__TRACE(debug_threads, "WAM %p is in stack_overflow!\n", w);
+  CVOID__CALL(suspend_all);
+#endif
+
+  GetFrameTop(w->local_top,w->choice,G->frame);
+
+  count = StackDifference(Stack_Start,Stack_End);
+  newh = checkrealloc_ARRAY(tagged_t,
+                            count/2,
+                            2*count,
+                            Stack_Start);
+  count = 2*StackDifference(Stack_Start,Stack_End);
+  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing STACK from %p to %p\n", (intmach_t)Thread_Id, Stack_Start, newh);
+
+  reloc_factor = (char *)newh - (char *)Stack_Start;
+
+  /* HH, AA and TR are free pointers;  BB is last used word. */
+  CVOID__CALL(stack_overflow_adjust_wam,reloc_factor);
+
+  /* Final adjustments */
+  Stack_Start = newh;           /* new low bound */
+  Stack_End = newh+count;       /* new high bound */
+  Stack_Warn = StackOffset(Stack_End,-STACKPAD);
+#if defined(USE_GC_STATS)          
+  ciao_stats.ss_local++;
+  tick0 = RunTickFunc()-tick0;
+  ciao_stats.starttick += tick0;
+  ciao_stats.lasttick += tick0;
+  ciao_stats.ss_tick += tick0;
+#endif
+
+#if defined(ANDPARALLEL)
+  CVOID__CALL(resume_all);
+  Release_slock(stackset_expansion_l);
+#endif
+}
+
+CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
+  if (reloc_factor==0) return;
+
+  choice_t *n, *n2;
+  choice_t *aux_choice;
+  frame_t *frame;
+  intmach_t i;
+
+  aux_choice = ChoiceNext0(w->choice,0);
+  aux_choice->next_alt = fail_alt;
+  aux_choice->frame = RelocPtr(w->frame, reloc_factor);
+  aux_choice->next_insn = w->next_insn;
+  aux_choice->local_top = RelocPtr(w->local_top, reloc_factor);
+
+  /* relocate pointers in trail */
+  {
+    TG_Let(pt1, Trail_Start);
+    while (TrailYounger(w->trail_top,pt1)) {
+      TG_Fetch(pt1);
+      RelocateIfSVA(pt1, reloc_factor);
+      pt1++;
+    }
+  }
+
+  /* relocate pointers in choice&env stks */
+  for (n=aux_choice; n!=InitialNode; n=n2){
+    n2 = ChoiceCont(n);
+    //Tabling --> How to translate?
+    AssignRelocPtr(n2->local_top, reloc_factor);
+    AssignRelocPtr(n2->frame, reloc_factor);
+
+    {
+      TG_Let(pt1, n->x);
+      for (; pt1!=(tagged_t *)n2;) {
+        TG_Fetch(pt1);
+        RelocateIfSVA(pt1, reloc_factor);
+        pt1++;
+      }
+    }
+      
+    i = FrameSize(n->next_insn);
+    frame = n->frame;
+    while (frame >= (frame_t*) NodeLocalTop(n2)) {
+      {
+        TG_Let(pt1, (tagged_t *)StackCharOffset(frame,i));
+        while (pt1!=frame->x){
+          pt1--;
+          TG_Fetch(pt1);
+          RelocateIfSVA(pt1, reloc_factor);
+        }
+      }
+      if (frame->frame) {
+        AssignRelocPtr(frame->frame, reloc_factor);
+        i = FrameSize(frame->next_insn);
+        frame = frame->frame;
+      } else {
+        frame = NULL;
+      }
+    }
+  }
+
+  w->frame = aux_choice->frame;
+  w->local_top = NodeLocalTop(aux_choice);
+  SetChoice(w->choice);
+}
+
+/* ------------------------------------------------------------------------- */
+
+/* TODO: per worker? */
+bool_t current_gcmode;
+intmach_t current_gctrace;
+intmach_t current_gcmargin;
+
+/* TODO: per worker? */
+static bool_t gcexplicit = FALSE;       /* Shared, no locked --- global flag */
+
+/* Explicit GC */
+CBOOL__PROTO(gc_start) {
+  gcexplicit = TRUE;
+  CVOID__CALL(heap_overflow,CALLPAD);
+  CBOOL__PROCEED;
+}
+
+/* PRE: G->heap_top and Heap_End are within CALLPAD from each other. */
+CVOID__PROTO(heap_overflow, intmach_t pad) {
+  tagged_t *oldh = G->heap_top;
+  tagged_t *newh = G->heap_top;
+  tagged_t *lowboundh;
+  bool_t cint_event;
+  bool_t event;
+  bool_t gc = gcexplicit;
+
+  event = TestEvent();
+  cint_event = TestCIntEvent();
+
+#if defined(ANDPARALLEL)
+  Suspend = WAITING;
+  Wait_Acquire_slock(stackset_expansion_l);
+  Suspend = RELEASED;
+#endif
+
+  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling heap_overflow\n", (intmach_t)Thread_Id);
+
+#if defined(ANDPARALLEL)
+  DEBUG__TRACE(debug_threads, "WAM %x is in heap_overflow!\n", w);
+  CVOID__CALL(suspend_all);
+#endif
+
+  gcexplicit = FALSE;
+  CVOID__CALL(calculate_segment_choice);
+  if (gc ||
+      (current_gcmode == TRUE &&
+       HeapCharDifference(Heap_Start,oldh) >= GCMARGIN_CHARS)) {
+    CVOID__CALL(gc__heap_collect);
+    newh = G->heap_top;
+    lowboundh = newh-Gc_Total_Grey;
+    if (!gc &&
+        (HeapCharDifference(newh,oldh) < GCMARGIN_CHARS ||
+         HeapYounger(HeapCharOffset(newh,2*pad),Heap_End)) &&
+        !(HeapCharDifference(lowboundh,oldh) < GCMARGIN_CHARS ||
+          HeapYounger(HeapCharOffset(lowboundh,2*pad),Heap_End))) {
+      /* garbage collect the entire heap */
+      w->segment_choice = InitialNode;
+      CVOID__CALL(gc__heap_collect);
+      newh = G->heap_top;
+    }
+  }
+  if ((!gc &&
+       HeapCharDifference(newh,oldh) < GCMARGIN_CHARS) ||
+      HeapYounger(HeapCharOffset(newh,2*pad),Heap_End)) {
+#if defined(USE_GC_STATS)          
+    flt64_t tick0 = RunTickFunc();
+#endif
+    /* increase heapsize */
+    intmach_t mincount, newcount, oldcount, reloc_factor;
+    tagged_t *newh;
+
+    intmach_t wake_count = WakeCount();
+    
+    GetFrameTop(w->local_top,w->choice,G->frame);
+    
+    mincount = 2*pad - HeapCharDifference(G->heap_top,Heap_End);
+    oldcount = HeapCharDifference(Heap_Start,Heap_End);
+    newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
+
+    newh = (tagged_t *)checkrealloc_ARRAY(char, oldcount, newcount, Heap_Start);
+
+    DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing HEAP from %p to %p\n", (intmach_t)Thread_Id, Heap_Start, newh);
+
+    reloc_factor = (char *)newh - (char *)Heap_Start;
+
+    /* AA, HH and TR are free pointers;  BB is last used word. */
+#if defined(ANDPARALLEL)
+    /* Adjust remote pointers in other agents */
+    CVOID__CALL(heap_overflow_adjust_wam,reloc_factor,newh,FALSE,NULL);
+    for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
+      heap_overflow_adjust_wam(aux,reloc_factor,newh,TRUE,w);
+    }
+#else
+    CVOID__CALL(heap_overflow_adjust_wam,reloc_factor,newh);
+#endif
+
+    Heap_Start = newh; /* new low bound */
+    Heap_End = HeapCharOffset(newh, newcount); /* new high bound */
+
+    UnsetEvent();
+    UnsetCIntEvent();
+    if (event) {
+      SetWakeCount(wake_count);
+    }
+    if (cint_event) {
+      SetCIntEvent();
+    }
+
+#if defined(USE_GC_STATS)          
+    ciao_stats.ss_global++;
+    tick0 = RunTickFunc()-tick0;
+    ciao_stats.starttick += tick0;
+    ciao_stats.lasttick += tick0;
+    ciao_stats.ss_tick += tick0;
+#endif
+  }
+
+#if defined(ANDPARALLEL)
+  CVOID__CALL(resume_all);
+  Release_slock(stackset_expansion_l);
+#endif
+}
+
+#if defined(ANDPARALLEL)
+CVOID__PROTO(heap_overflow_adjust_wam,
+             intmach_t reloc_factor,
+             tagged_t *newh,
+             bool_t remote_reloc,
+             worker_t *rem_w)
+#else
+CVOID__PROTO(heap_overflow_adjust_wam,
+             intmach_t reloc_factor,
+             tagged_t *newh)
+#endif
+{
+  if (reloc_factor==0) return;
+
+  choice_t *n, *n2;
+  choice_t *aux_choice;
+  frame_t *frame;
+  intmach_t i;
+
+  aux_choice = ChoiceNext0(w->choice,0);
+  aux_choice->next_alt = fail_alt;
+  aux_choice->frame = w->frame;
+  aux_choice->next_insn = w->next_insn;
+  aux_choice->heap_top = G->heap_top;
+  aux_choice->local_top = w->local_top; /* segfault patch -- jf */
+
+  /* relocate pointers in global stk */
+  {
+#if defined(ANDPARALLEL)
+    TG_Let(pt1, remote_reloc ? Heap_Start : newh);
+#else
+    TG_Let(pt1, newh);
+#endif
+
+    AssignRelocPtrNotRemote(G->heap_top, reloc_factor);
+    while (HeapYounger(G->heap_top,pt1)) {
+      TG_Fetch(pt1);
+      if (TG_Val(pt1)&QMask) {
+        pt1 += LargeArity(TG_Val(pt1)) + 1;
+      } else {
+        RelocateIfHeapPtr(pt1, reloc_factor);
+        pt1++;
+      }
+    }
+  }
+
+#if defined(USE_GLOBAL_VARS)
+  /* relocate pointers in global vars root */
+  if (IsHeapPtr(GLOBAL_VARS_ROOT)) {
+    GLOBAL_VARS_ROOT += reloc_factor;
+  }
+#endif
+
+  /* relocate pointers in trail stk */
+  {
+    TG_Let(pt1, Trail_Start);
+    TrailPush(w->trail_top,Current_Debugger_State);
+    while (TrailYounger(w->trail_top,pt1)) {
+      TG_Fetch(pt1);
+      RelocateIfHeapPtr(pt1, reloc_factor);
+      pt1++;
+    }
+  }
+  TrailDec(w->trail_top);
+  Current_Debugger_State = *(w->trail_top); // (w->trail_top points to the popped element)
+
+#if defined(ANDPARALLEL)
+  /* relocate pointers in goal list */
+  handler_entry_t *gle = Goal_List_Start;
+  tagged_t x1 = (tagged_t)NULL;
+  if (gle != NULL) {
+    if (IsHeapPtrAndNeedsReloc(gle->handler)) {
+      DerefArg(x1,gle->handler,1);
+      ((par_handler_t *) TermToPointer(x1))->goal += reloc_factor;
+      gle->handler += reloc_factor;
+    }
+    while (gle != Goal_List_Top) {
+      gle = gle->next;
+      if (IsHeapPtrAndNeedsReloc(gle->handler)) {
+        DerefArg(x1,gle->handler,1);
+        ((par_handler_t *) TermToPointer(x1))->goal += reloc_factor;
+        gle->handler += reloc_factor;
+      }
+    }
+  }
+
+  /* relocate pointers in event queue */
+  event_entry_t *eqe = Event_Queue_Start;
+  if (eqe != NULL) {
+    if (IsHeapPtrAndNeedsReloc(eqe->handler)) {
+      eqe->handler += reloc_factor;
+    }
+    while (eqe != Event_Queue_Top) {
+      eqe = eqe->next;
+      if (IsHeapPtrAndNeedsReloc(eqe->handler)) {
+        eqe->handler += reloc_factor;
+      }
+    }
+  }
+#endif
+
+  /* relocate pointers in choice&env stks */
+  n2 = NULL;
+  for (n=aux_choice; n!=InitialNode && n->next_alt!=NULL; n=n2) { // TODO: can n->next_alt  be NULL?
+    n2 = ChoiceCont(n);
+    {
+      TG_Let(pt1, n->x);
+      for (; pt1!=(tagged_t *)n2;) {
+        TG_Fetch(pt1);
+        RelocateIfHeapPtr(pt1, reloc_factor);
+        pt1++;
+      }
+    }
+    i = FrameSize(n->next_insn);
+    frame = n->frame;
+    while ((frame >= (frame_t*) NodeLocalTop(n2)) && frame->next_insn != NULL) {
+      TG_Let(pt1, (tagged_t *)StackCharOffset(frame,i));
+      while (pt1!=frame->x) {
+        --pt1;
+        TG_Fetch(pt1);
+        RelocateIfHeapPtr(pt1, reloc_factor);
+      }
+      i = FrameSize(frame->next_insn);
+      frame = frame->frame;
+    } 
+
+    // TODO: TABLING ->> How to translate???
+    AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
+  }
+
+  // TODO: TABLING ->> How to translate???
+  AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
+  SetChoice(w->choice);
+}
+
+/* Tidy new half of trail exhaustively. */
+CVOID__PROTO(trail__remove_uncond) { // TODO:[oc-merge] was trail_gc
+  tagged_t *tr;
+  choice_t *orig_b;
+  choice_t *b;
+  intmach_t wake_count;
+  tagged_t heap_last = Tagp(HVA,HeapOffset(Heap_End,-1));
+  /*extern choice_t *gc_aux_choice;*/ /* Now in a register */
+  /*extern choice_t *gc_choice_start;*/ /* No in a register */
+
+  orig_b = w->choice;
+
+  b = w->choice;
+
+  /* TODO: move to a macro and call before this function */
+  Gc_Aux_Choice = ChoiceNext0(b,0);
+  CHPTFLG(Gc_Aux_Choice->flags = 0);
+  Gc_Aux_Choice->next_alt = fail_alt;
+  Gc_Aux_Choice->trail_top = G->trail_top;
+  Gc_Choice_Start = w->segment_choice;
+
+  wake_count = WakeCount();
+
+  if (current_gctrace == GCTRACE__VERBOSE) {
+    TRACE_PRINTF("{GC}  Trail GC started\n");
+  }
+
+  tr = w->trail_top;
+  while (!OffChoicetop(Gc_Choice_Start,b)) {
+    tagged_t *x;
+
+    /* sweep trail segment to get rid of multiple 'undo setarg'
+       trailings of the same location.  Go from old to new. */
+    // TODO:[oc-merge] this was removed from OC, why?
+    for (x=TrailTopUnmark(b->trail_top); TrailYounger(tr,x); x++) {
+      tagged_t t1;
+      t1 = *x;
+      if (TaggedIsHVA(t1)) {
+        if (*TagpPtr(HVA,t1) & 1) {
+          *x = heap_last;
+          *TrailOffset(x,-1) = heap_last;
+        } else {
+          *TagpPtr(HVA,t1) ^= 1; /* turn mark bit on */
+        }
+      }
+    }
+
+    /* sweep trail segment to get rid of unconditional entries.
+       Keep count of relevant entries.  Turn mark bits off.
+       Go from new to old. */
+    SetChoice(b);
+    x=TrailTopUnmark(b->trail_top);
+    while (TrailYounger(tr,x)){
+      tagged_t t1;
+
+      TrailDec(tr);
+      t1 = *tr; // (tr points to the popped element)
+      if (!IsVar(t1)) {
+        /* kill unconditional 'undo setarg' */
+        if (TaggedIsSTR(t1) &&
+            TaggedToHeadfunctor(t1)==functor_Dsetarg &&
+            !CondHVA(Tagp(HVA,TaggedToPointer(*TaggedToArg(t1,2))))) {
+          *tr = 0;
+        }
+      } else {
+        if (t1 & TagBitSVA) {
+          if (!CondSVA(t1)) {
+            *tr = 0;
+          }
+        } else if (!(t1 & TagBitCVA)) {
+          *TagpPtr(HVA,t1) ^= 1; /* turn mark bit off */
+          if (!CondHVA(t1)) {
+            *tr = 0;
+          }
+        } else if (wake_count>0) {
+          --wake_count;
+        } else if (!CondCVA(t1)) {
+          *tr = 0;
+        }
+      }
+    }
+    b = ChoiceCont(b);
+  }
+  
+  /* restore misc. registers used above */
+  SetChoice(orig_b);
+}
+
+/* =========================================================================== */
 /* GARBAGE COLLECTION ROUTINES */
 
 /* Based on the algorithms described in:
@@ -571,7 +1208,6 @@ static CVOID__PROTO(shunt_variables) {
    pre: IsHeapPtr(TG_Val(start))
 */
 static CVOID__PROTO(mark_root, tagged_t *start) {
-#if defined(OPTIM_COMP)
   RTCHECK({
     TG_Let(pt, start);
     if (OnHeap(pt) && GC_HEAP_IN_SEGMENT(pt)) {
@@ -592,7 +1228,6 @@ static CVOID__PROTO(mark_root, tagged_t *start) {
       TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: marking a non heap term 0x%lx at %p}\n", (long)debug_inscount, (long)__LINE__, (long)(TG_Val(pt)), pt);
     }
   });
-#endif
 
   intmach_t found = 0;
   tagged_t *current = start;
@@ -1106,7 +1741,7 @@ CVOID__PROTO(gc__heap_collect) {
   if (w->segment_choice == InitialNode) {
     Gc_Total_Grey = 0;
   }
-  CVOID__CALL(trail_gc); /* sets Gc_Aux_Choice, gc_Choice_Start */
+  CVOID__CALL(trail__remove_uncond); /* sets Gc_Aux_Choice, gc_Choice_Start */
   Gc_Aux_Choice->local_top = newa;
   Gc_Aux_Choice->heap_top = G->heap_top;
   Gc_Aux_Choice->frame = w->frame;
@@ -1192,630 +1827,6 @@ CVOID__PROTO(gc__heap_collect) {
                  ((flt64_t)ciao_stats.gc_tick)/RunClockFreq(ciao_stats));
   }
 #endif
-}
-
-/* =========================================================================== */
-/* Growing heap/choice/stack memory areas when full */
-/* (heap_overflow attempts gc__heap_collect first) */
-
-#if defined(ANDPARALLEL)
-CVOID__PROTO(heap_overflow_adjust_wam,
-             intmach_t reloc_factor, tagged_t *newh, bool_t remote_reloc, worker_t *remote_worker);
-#else
-CVOID__PROTO(heap_overflow_adjust_wam, intmach_t reloc_factor, tagged_t *newh);
-#endif
-
-/* --------------------------------------------------------------------------- */
-
-/* Here when w->choice and w->trail_top are within CHOICEPAD from each other. */
-CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
-  tagged_t *choice_top;
-
-#if defined(ANDPARALLEL)
-  Suspend = WAITING;
-  Wait_Acquire_slock(stackset_expansion_l);
-  Suspend = RELEASED;
-#endif
-
-  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling choice overflow\n", (intmach_t)Thread_Id);
-
-#if defined(ANDPARALLEL)
-  DEBUG__TRACE(debug_threads, "WAM %p is in choice_overflow!\n", w);
-  CVOID__CALL(suspend_all);
-#endif
-
-#if defined(USE_GC_STATS)          
-  inttime_t tick0 = RunTickFunc();
-#endif
-
-  bool_t shallow_try = FALSE;
-  if (IsShallowTry0(w->choice)) { /* ensure A', P' exist */
-    shallow_try = TRUE;
-    w->choice->next_alt = w->next_alt;
-    w->choice->local_top = w->local_top;
-  }
-
-  if (remove_trail_uncond) {
-    /* note: trail__remove_uncond not executed in compile_term */
-    CVOID__CALL(calculate_segment_choice);
-    CVOID__CALL(trail_gc);
-    CVOID__CALL(trail__compress,FALSE);
-  }
-
-  /* ASSUMED: --CHOICE, TRAIL++ */
-
-  choice_top = (tagged_t *)w->choice+w->value_trail;
-  if (ChoiceYounger(ChoiceOffset(choice_top,2*pad),w->trail_top)) {
-    choice_t *b;
-    tagged_t *newtr;
-    intmach_t mincount, newcount, oldcount, reloc_factor, chpt_reloc_factor;
-    
-    {
-      mincount = 2*pad - ChoiceDifference(choice_top,w->trail_top);
-      oldcount = ChoiceDifference(Choice_Start,Choice_End);
-      newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
-      newtr = checkrealloc_ARRAY(tagged_t,
-                                 oldcount,
-                                 newcount,
-                                 Trail_Start);
-      DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing TRAIL from %p to %p\n", (intmach_t)Thread_Id, Trail_Start, newtr);
-    }
-    reloc_factor = (char *)newtr - (char *)Trail_Start;
-    chpt_reloc_factor = reloc_factor + (newcount-oldcount)*sizeof(tagged_t);
-    {
-      tagged_t *tr;
-      tagged_t *trb;
-      
-      tr = RelocPtr(Choice_Start, reloc_factor);
-      trb = RelocPtr(choice_top, reloc_factor);
-      Trail_Start = Choice_End = newtr;                /* new low bound */
-      Choice_Start = Trail_End = newtr+newcount;      /* new high bound */
-
-#if defined(USE_TAGGED_CHOICE_START)
-      /* Do not take out (tagged_t) casting, or the engine will break!! */
-      Tagged_Choice_Start = (tagged_t *)((tagged_t)Choice_Start + TaggedZero);
-#endif
-
-      {
-        tagged_t *x;
-        /* We have to relocate the concurrent topmost choicepoint */
-#if defined(USE_THREADS)
-        choice_t *concchpt;
-#endif
-        
-        x = Choice_Start;                  /* Copy the new choicepoint stack */
-        while (OffChoicetop(trb,tr)) {
-          x--;
-          tr--;
-          *x = *tr;
-        }
-        w->choice = b = (choice_t *)(x-w->value_trail);
-
-#if defined(USE_THREADS)
-        /* The chain of concurrent dynamic choicepoints has to be
-           relocated as well.  The initial TopConcChpt was set to be
-           the initial choice node.  MCL. */
-        concchpt = TopConcChpt = RelocPtr(TopConcChpt, chpt_reloc_factor);
-
-        while(concchpt != InitialNode) {
-          DEBUG__TRACE(debug_concchoicepoints || debug_gc,
-                       "*** %" PRIdm "(%" PRIdm ") Changing dynamic chpt@%x\n",
-                       (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-                       (unsigned int)concchpt);
-          // TODO: wrong if it is Zero (null)? (JFMC)
-          choice_t *prev = (choice_t *)TermToPointerOrNull(concchpt->x[PrevDynChpt]);
-          AssignRelocPtr(prev, chpt_reloc_factor);
-          concchpt->x[PrevDynChpt] = PointerToTermOrZero(prev);
-          concchpt = prev;
-        }
-#endif
-      }
-    }
-    AssignRelocPtr(w->previous_choice, chpt_reloc_factor);
-    AssignRelocPtr(w->trail_top, reloc_factor);
-
-#if defined(ANDPARALLEL)
-    /* relocate pointer in handlers */
-    parallel_exec_entry_t *lpe = Last_Parallel_Exec;
-    while (lpe != NULL) {
-      if (lpe->init != NULL) {
-        AssignRelocPtr(lpe->init, chpt_reloc_factor);
-      }
-      if (lpe->end != NULL) {
-        AssignRelocPtr(lpe->end, chpt_reloc_factor);
-      }
-      lpe = lpe->prev;
-    }
-
-#endif
-
-    while (OffChoicetop(b,Choice_Start)) {
-      AssignRelocPtr(b->trail_top, reloc_factor);
-      b = ChoiceCont(b);
-    }
-  }
-
-  if (shallow_try == TRUE) {
-    SetShallowTry0(w->choice);
-  }
-
-#if defined(USE_GC_STATS)          
-  ciao_stats.ss_control++;
-  tick0 = RunTickFunc()-tick0;
-  ciao_stats.starttick += tick0;
-  ciao_stats.lasttick += tick0;
-  ciao_stats.ss_tick += tick0;
-#endif
-
-#if defined(ANDPARALLEL)
-  CVOID__CALL(resume_all);
-  Release_slock(stackset_expansion_l);
-#endif
-}
-
-/* Here when w->local_top and Stack_End are within STACKAD from each other. */
-CVOID__PROTO(stack_overflow) {
-  intmach_t count, reloc_factor;
-  tagged_t *newh;
-
-#if defined(USE_GC_STATS)          
-  flt64_t tick0 = RunTickFunc();
-#endif
-  
-#if defined(ANDPARALLEL)
-  Suspend = WAITING;
-  Wait_Acquire_slock(stackset_expansion_l);
-  Suspend = RELEASED;
-#endif
-
-  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling stack overflow\n", (intmach_t)Thread_Id);
-
-#if defined(ANDPARALLEL)
-  DEBUG__TRACE(debug_threads, "WAM %p is in stack_overflow!\n", w);
-  CVOID__CALL(suspend_all);
-#endif
-
-  GetFrameTop(w->local_top,w->choice,G->frame);
-
-  count = StackDifference(Stack_Start,Stack_End);
-  newh = checkrealloc_ARRAY(tagged_t,
-                            count/2,
-                            2*count,
-                            Stack_Start);
-  count = 2*StackDifference(Stack_Start,Stack_End);
-  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing STACK from %p to %p\n", (intmach_t)Thread_Id, Stack_Start, newh);
-
-  reloc_factor = (char *)newh - (char *)Stack_Start;
-
-  /* HH, AA and TR are free pointers;  BB is last used word. */
-  CVOID__CALL(stack_overflow_adjust_wam,reloc_factor);
-
-  /* Final adjustments */
-  Stack_Start = newh;           /* new low bound */
-  Stack_End = newh+count;       /* new high bound */
-  Stack_Warn = StackOffset(Stack_End,-STACKPAD);
-#if defined(USE_GC_STATS)          
-  ciao_stats.ss_local++;
-  tick0 = RunTickFunc()-tick0;
-  ciao_stats.starttick += tick0;
-  ciao_stats.lasttick += tick0;
-  ciao_stats.ss_tick += tick0;
-#endif
-
-#if defined(ANDPARALLEL)
-  CVOID__CALL(resume_all);
-  Release_slock(stackset_expansion_l);
-#endif
-}
-
-CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
-  if (reloc_factor==0) return;
-
-  choice_t *n, *n2;
-  choice_t *aux_choice;
-  frame_t *frame;
-  intmach_t i;
-
-  aux_choice = ChoiceNext0(w->choice,0);
-  aux_choice->next_alt = fail_alt;
-  aux_choice->frame = RelocPtr(w->frame, reloc_factor);
-  aux_choice->next_insn = w->next_insn;
-  aux_choice->local_top = RelocPtr(w->local_top, reloc_factor);
-
-  /* relocate pointers in trail */
-  {
-    TG_Let(pt1, Trail_Start);
-    while (TrailYounger(w->trail_top,pt1)) {
-      TG_Fetch(pt1);
-      RelocateIfSVA(pt1, reloc_factor);
-      pt1++;
-    }
-  }
-
-  /* relocate pointers in choice&env stks */
-  for (n=aux_choice; n!=InitialNode; n=n2){
-    n2 = ChoiceCont(n);
-    //Tabling --> How to translate?
-    AssignRelocPtr(n2->local_top, reloc_factor);
-    AssignRelocPtr(n2->frame, reloc_factor);
-
-    {
-      TG_Let(pt1, n->x);
-      for (; pt1!=(tagged_t *)n2;) {
-        TG_Fetch(pt1);
-        RelocateIfSVA(pt1, reloc_factor);
-        pt1++;
-      }
-    }
-      
-    i = FrameSize(n->next_insn);
-    frame = n->frame;
-    while (frame >= (frame_t*) NodeLocalTop(n2)) {
-      {
-        TG_Let(pt1, (tagged_t *)StackCharOffset(frame,i));
-        while (pt1!=frame->x){
-          pt1--;
-          TG_Fetch(pt1);
-          RelocateIfSVA(pt1, reloc_factor);
-        }
-      }
-      if (frame->frame) {
-        AssignRelocPtr(frame->frame, reloc_factor);
-        i = FrameSize(frame->next_insn);
-        frame = frame->frame;
-      } else {
-        frame = NULL;
-      }
-    }
-  }
-
-  w->frame = aux_choice->frame;
-  w->local_top = NodeLocalTop(aux_choice);
-  SetChoice(w->choice);
-}
-
-/* ------------------------------------------------------------------------- */
-
-/* TODO: per worker? */
-bool_t current_gcmode;
-intmach_t current_gctrace;
-intmach_t current_gcmargin;
-
-/* TODO: per worker? */
-static bool_t gcexplicit = FALSE;       /* Shared, no locked --- global flag */
-
-/* Explicit GC */
-CBOOL__PROTO(gc_start) {
-  gcexplicit = TRUE;
-  CVOID__CALL(heap_overflow,CALLPAD);
-  CBOOL__PROCEED;
-}
-
-/* PRE: G->heap_top and Heap_End are within CALLPAD from each other. */
-CVOID__PROTO(heap_overflow, intmach_t pad) {
-  tagged_t *oldh = G->heap_top;
-  tagged_t *newh = G->heap_top;
-  tagged_t *lowboundh;
-  bool_t cint_event;
-  bool_t event;
-  bool_t gc = gcexplicit;
-
-  event = TestEvent();
-  cint_event = TestCIntEvent();
-
-#if defined(ANDPARALLEL)
-  Suspend = WAITING;
-  Wait_Acquire_slock(stackset_expansion_l);
-  Suspend = RELEASED;
-#endif
-
-  DEBUG__TRACE(debug_gc, "Thread %" PRIdm " calling heap_overflow\n", (intmach_t)Thread_Id);
-
-#if defined(ANDPARALLEL)
-  DEBUG__TRACE(debug_threads, "WAM %x is in heap_overflow!\n", w);
-  CVOID__CALL(suspend_all);
-#endif
-
-  gcexplicit = FALSE;
-  CVOID__CALL(calculate_segment_choice);
-  if (gc ||
-      (current_gcmode == TRUE &&
-       HeapCharDifference(Heap_Start,oldh) >= GCMARGIN_CHARS)) {
-    CVOID__CALL(gc__heap_collect);
-    newh = G->heap_top;
-    lowboundh = newh-Gc_Total_Grey;
-    if (!gc &&
-        (HeapCharDifference(newh,oldh) < GCMARGIN_CHARS ||
-         HeapYounger(HeapCharOffset(newh,2*pad),Heap_End)) &&
-        !(HeapCharDifference(lowboundh,oldh) < GCMARGIN_CHARS ||
-          HeapYounger(HeapCharOffset(lowboundh,2*pad),Heap_End))) {
-      /* garbage collect the entire heap */
-      w->segment_choice = InitialNode;
-      CVOID__CALL(gc__heap_collect);
-      newh = G->heap_top;
-    }
-  }
-  if ((!gc &&
-       HeapCharDifference(newh,oldh) < GCMARGIN_CHARS) ||
-      HeapYounger(HeapCharOffset(newh,2*pad),Heap_End)) {
-#if defined(USE_GC_STATS)          
-    flt64_t tick0 = RunTickFunc();
-#endif
-    /* increase heapsize */
-    intmach_t mincount, newcount, oldcount, reloc_factor;
-    tagged_t *newh;
-
-    intmach_t wake_count = WakeCount();
-    
-    GetFrameTop(w->local_top,w->choice,G->frame);
-    
-    mincount = 2*pad - HeapCharDifference(G->heap_top,Heap_End);
-    oldcount = HeapCharDifference(Heap_Start,Heap_End);
-    newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
-
-    newh = (tagged_t *)checkrealloc_ARRAY(char, oldcount, newcount, Heap_Start);
-
-    DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing HEAP from %p to %p\n", (intmach_t)Thread_Id, Heap_Start, newh);
-
-    reloc_factor = (char *)newh - (char *)Heap_Start;
-
-    /* AA, HH and TR are free pointers;  BB is last used word. */
-#if defined(ANDPARALLEL)
-    /* Adjust remote pointers in other agents */
-    CVOID__CALL(heap_overflow_adjust_wam,reloc_factor,newh,FALSE,NULL);
-    for (aux = Next_Wam_Of(w); aux != w; aux = Next_Wam_Of(aux)) {
-      heap_overflow_adjust_wam(aux,reloc_factor,newh,TRUE,w);
-    }
-#else
-    CVOID__CALL(heap_overflow_adjust_wam,reloc_factor,newh);
-#endif
-
-    Heap_Start = newh; /* new low bound */
-    Heap_End = HeapCharOffset(newh, newcount); /* new high bound */
-
-    UnsetEvent();
-    UnsetCIntEvent();
-    if (event) {
-      SetWakeCount(wake_count);
-    }
-    if (cint_event) {
-      SetCIntEvent();
-    }
-
-#if defined(USE_GC_STATS)          
-    ciao_stats.ss_global++;
-    tick0 = RunTickFunc()-tick0;
-    ciao_stats.starttick += tick0;
-    ciao_stats.lasttick += tick0;
-    ciao_stats.ss_tick += tick0;
-#endif
-  }
-
-#if defined(ANDPARALLEL)
-  CVOID__CALL(resume_all);
-  Release_slock(stackset_expansion_l);
-#endif
-}
-
-#if defined(ANDPARALLEL)
-CVOID__PROTO(heap_overflow_adjust_wam,
-             intmach_t reloc_factor,
-             tagged_t *newh,
-             bool_t remote_reloc,
-             worker_t *rem_w)
-#else
-CVOID__PROTO(heap_overflow_adjust_wam,
-             intmach_t reloc_factor,
-             tagged_t *newh)
-#endif
-{
-  if (reloc_factor==0) return;
-
-  choice_t *n, *n2;
-  choice_t *aux_choice;
-  frame_t *frame;
-  intmach_t i;
-
-  aux_choice = ChoiceNext0(w->choice,0);
-  aux_choice->next_alt = fail_alt;
-  aux_choice->frame = w->frame;
-  aux_choice->next_insn = w->next_insn;
-  aux_choice->heap_top = G->heap_top;
-  aux_choice->local_top = w->local_top; /* segfault patch -- jf */
-
-  /* relocate pointers in global stk */
-  {
-#if defined(ANDPARALLEL)
-    TG_Let(pt1, remote_reloc ? Heap_Start : newh);
-#else
-    TG_Let(pt1, newh);
-#endif
-
-    AssignRelocPtrNotRemote(G->heap_top, reloc_factor);
-    while (HeapYounger(G->heap_top,pt1)) {
-      TG_Fetch(pt1);
-      if (TG_Val(pt1)&QMask) {
-        pt1 += LargeArity(TG_Val(pt1)) + 1;
-      } else {
-        RelocateIfHeapPtr(pt1, reloc_factor);
-        pt1++;
-      }
-    }
-  }
-
-#if defined(USE_GLOBAL_VARS)
-  /* relocate pointers in global vars root */
-  if (IsHeapPtr(GLOBAL_VARS_ROOT)) {
-    GLOBAL_VARS_ROOT += reloc_factor;
-  }
-#endif
-
-  /* relocate pointers in trail stk */
-  {
-    TG_Let(pt1, Trail_Start);
-    TrailPush(w->trail_top,Current_Debugger_State);
-    while (TrailYounger(w->trail_top,pt1)) {
-      TG_Fetch(pt1);
-      RelocateIfHeapPtr(pt1, reloc_factor);
-      pt1++;
-    }
-  }
-  TrailDec(w->trail_top);
-  Current_Debugger_State = *(w->trail_top); // (w->trail_top points to the popped element)
-
-#if defined(ANDPARALLEL)
-  /* relocate pointers in goal list */
-  handler_entry_t *gle = Goal_List_Start;
-  tagged_t x1 = (tagged_t)NULL;
-  if (gle != NULL) {
-    if (IsHeapPtrAndNeedsReloc(gle->handler)) {
-      DerefArg(x1,gle->handler,1);
-      ((par_handler_t *) TermToPointer(x1))->goal += reloc_factor;
-      gle->handler += reloc_factor;
-    }
-    while (gle != Goal_List_Top) {
-      gle = gle->next;
-      if (IsHeapPtrAndNeedsReloc(gle->handler)) {
-        DerefArg(x1,gle->handler,1);
-        ((par_handler_t *) TermToPointer(x1))->goal += reloc_factor;
-        gle->handler += reloc_factor;
-      }
-    }
-  }
-
-  /* relocate pointers in event queue */
-  event_entry_t *eqe = Event_Queue_Start;
-  if (eqe != NULL) {
-    if (IsHeapPtrAndNeedsReloc(eqe->handler)) {
-      eqe->handler += reloc_factor;
-    }
-    while (eqe != Event_Queue_Top) {
-      eqe = eqe->next;
-      if (IsHeapPtrAndNeedsReloc(eqe->handler)) {
-        eqe->handler += reloc_factor;
-      }
-    }
-  }
-#endif
-
-  /* relocate pointers in choice&env stks */
-  n2 = NULL;
-  for (n=aux_choice; n!=InitialNode && n->next_alt!=NULL; n=n2) { // TODO: can n->next_alt  be NULL?
-    n2 = ChoiceCont(n);
-    {
-      TG_Let(pt1, n->x);
-      for (; pt1!=(tagged_t *)n2;) {
-        TG_Fetch(pt1);
-        RelocateIfHeapPtr(pt1, reloc_factor);
-        pt1++;
-      }
-    }
-    i = FrameSize(n->next_insn);
-    frame = n->frame;
-    while ((frame >= (frame_t*) NodeLocalTop(n2)) && frame->next_insn != NULL) {
-      TG_Let(pt1, (tagged_t *)StackCharOffset(frame,i));
-      while (pt1!=frame->x) {
-        --pt1;
-        TG_Fetch(pt1);
-        RelocateIfHeapPtr(pt1, reloc_factor);
-      }
-      i = FrameSize(frame->next_insn);
-      frame = frame->frame;
-    } 
-
-    // TODO: TABLING ->> How to translate???
-    AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
-  }
-
-  // TODO: TABLING ->> How to translate???
-  AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
-  SetChoice(w->choice);
-}
-
-/* Tidy new half of trail exhaustively. */
-CVOID__PROTO(trail_gc) {
-  tagged_t *tr;
-  choice_t *orig_b;
-  choice_t *b;
-  intmach_t wake_count;
-  tagged_t heap_last = Tagp(HVA,HeapOffset(Heap_End,-1));
-  /*extern choice_t *gc_aux_choice;*/ /* Now in a register */
-  /*extern choice_t *gc_choice_start;*/ /* No in a register */
-
-  orig_b = w->choice;
-
-  b = w->choice;
-
-  /* TODO: move to a macro and call before this function */
-  Gc_Aux_Choice = ChoiceNext0(b,0);
-  CHPTFLG(Gc_Aux_Choice->flags = 0);
-  Gc_Aux_Choice->next_alt = fail_alt;
-  Gc_Aux_Choice->trail_top = G->trail_top;
-  Gc_Choice_Start = w->segment_choice;
-
-  wake_count = WakeCount();
-
-  if (current_gctrace == GCTRACE__VERBOSE) {
-    TRACE_PRINTF("{GC}  Trail GC started\n");
-  }
-
-  tr = w->trail_top;
-  while (!OffChoicetop(Gc_Choice_Start,b)) {
-    /* sweep trail segment to get rid of multiple 'undo setarg'
-       trailings of the same location.  Go from old to new. */
-    tagged_t *x;
-    tagged_t t1;
-
-    // TODO:[oc-merge] not in OC
-    for (x=TrailTopUnmark(b->trail_top); TrailYounger(tr,x); x++) {
-      if (TaggedIsHVA(t1 = *x)) {
-        if (*TagpPtr(HVA,t1) & 1) {
-          *TrailOffset(x,-1) = *x = heap_last;
-        } else {
-          *TagpPtr(HVA,t1) ^= 1; /* turn mark bit on */
-        }
-      }
-    }
-
-    /* sweep trail segment to get rid of unconditional entries.
-       Keep count of relevant entries.  Turn mark bits off.
-       Go from new to old. */
-    SetChoice(b);
-    x=TrailTopUnmark(b->trail_top);
-    while (TrailYounger(tr,x)){
-      tagged_t t1;
-
-      TrailDec(tr);
-      t1 = *tr; // (tr points to the popped element)
-      if (!IsVar(t1)) {
-        /* kill unconditional 'undo setarg' */
-        if (TaggedIsSTR(t1) &&
-            TaggedToHeadfunctor(t1)==functor_Dsetarg &&
-            !CondHVA(Tagp(HVA,TaggedToPointer(*TaggedToArg(t1,2))))) {
-          *tr = 0;
-        }
-      } else {
-        if (t1 & TagBitSVA) {
-          if (!CondSVA(t1)) {
-            *tr = 0;
-          }
-        } else if (!(t1 & TagBitCVA)) {
-          *TagpPtr(HVA,t1) ^= 1; /* turn mark bit off */
-          if (!CondHVA(t1)) {
-            *tr = 0;
-          }
-        } else if (wake_count>0) {
-          --wake_count;
-        } else if (!CondCVA(t1)) {
-          *tr = 0;
-        }
-      }
-    }
-    b = ChoiceCont(b);
-  }
-  
-  /* restore misc. registers used above */
-  SetChoice(orig_b);
 }
 
 /* --------------------------------------------------------------------------- */
