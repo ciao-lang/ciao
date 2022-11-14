@@ -2427,7 +2427,8 @@ CVOID__PROTO(show_nodes, choice_t *cp_younger, choice_t *cp_older) {
   DisplayCPFunctor(cp_younger);
   fprintf(stderr, ", ");
   fprintf(stderr, "[");
-  if (IsShallowTry0(cp_younger)) {
+  // TODO:[oc-merge] was "cp_younger == w->choice && IsShallowTry(cp_younger)"
+  if (cp_younger == w->choice && !IsDeep()) {
     next_alt = w->next_alt;
   } else {
     next_alt = cp_younger->next_alt;

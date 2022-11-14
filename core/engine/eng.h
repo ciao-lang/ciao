@@ -583,8 +583,8 @@ tagged_t deffunctor(char *pname, int arity); /* eng_registry.c */
 #define InvalidateLocalTop() G->local_top = NULL
 
 #define CODE_MAYBE_NECK_TRY() do { \
-  if (IsShallowTry0(w->choice)) { /* try */ \
-    choice_t *b = w->choice; \
+  choice_t *b = w->choice; \
+  if (IsShallowTry()) { /* try */ \
     CODE_NECK_TRY(b); \
   } \
 } while(0)
@@ -1621,7 +1621,6 @@ struct marker_ {
 #define IsDeep() (G->flags == 0)
 //
 #define IsShallowTry() (G->flags == 1)
-#define IsShallowTry0(B) IsShallowTry()
 //
 #define SetDeep0() { G->flags = 0; }
 #define SetDeep() { G->flags = 0; }
@@ -1631,7 +1630,6 @@ struct marker_ {
 #else
 #define IsDeep() (w->next_alt == NULL)
 #define IsShallowTry() (B->next_alt == NULL)
-#define IsShallowTry0(B) (B->next_alt == NULL)
 #define SetDeep0() do {} while(0)
 #define SetDeep() ({ w->next_alt = NULL; })
 #define SetShallowRetry() do {} while(0)
