@@ -245,7 +245,7 @@ static CFUN__PROTO(compare_args_aux, int,
   
   if (ChoiceYounger(ChoiceOffset(w->choice,2*CHOICEPAD-w->value_trail),w->trail_top))
                                 /* really: < 2*arity */
-    choice_overflow(Arg,2*CHOICEPAD,TRUE);
+    choice_overflow(Arg,2*2*CHOICEPAD,TRUE);
   for (result=0; !result && arity>0; --arity) {
     t1 = *pt1;
     t2 = *pt2;
@@ -279,7 +279,7 @@ static CFUN__PROTO(compare_args_aux, int,
   if (!result) *x1 = t1, *x2 = t2;
   
   if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD-w->value_trail),w->trail_top))
-    choice_overflow(Arg,CHOICEPAD,TRUE);
+    choice_overflow(Arg,2*CHOICEPAD,TRUE);
   
   return result;
 }

@@ -499,7 +499,7 @@ do_neck :- % (assume !IsDeep())
 maybe_choice_overflow :-
     if(callexp('ChoiceYounger',
         [callexp('ChoiceOffset', ["B","CHOICEPAD"]),"w->trail_top"]),
-      call('choice_overflow', ["Arg","CHOICEPAD","TRUE"])).
+      call('choice_overflow', ["Arg","2*CHOICEPAD","TRUE"])).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Auxiliary macro definitions").
@@ -1606,7 +1606,7 @@ cute_neck :-
     % w->next_alt can't be NULL here
     "SetDeep();", fmt:nl,
     if(callexp('ChoiceYounger', [callexp('ChoiceOffset', ["B","CHOICEPAD"]),"w->trail_top"]),
-      call('choice_overflow', ["Arg","CHOICEPAD","TRUE"])),
+      call('choice_overflow', ["Arg","2*CHOICEPAD","TRUE"])),
     call('SetE', ["w->local_top"]),
     dispatch("0").
 
@@ -3517,7 +3517,7 @@ code_suspend_t3_on_t1 :- % (needs: t3 t1)
          goto('check_trail')))),
     label('check_trail'),
     if("ChoiceYounger(w->choice,TrailOffset(w->trail_top,CHOICEPAD))",
-      call('choice_overflow', ["Arg","CHOICEPAD","TRUE"])),
+      call('choice_overflow', ["Arg","2*CHOICEPAD","TRUE"])),
     goto('no_check_trail'),
     label('no_check_trail'),
     heap_push("t3"),

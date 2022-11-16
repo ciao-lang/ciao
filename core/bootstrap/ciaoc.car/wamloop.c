@@ -35,7 +35,7 @@ for (intmach_t k=0; k<i; k++) {
 B->x[k] = w->x[k];
 }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD,TRUE);
+choice_overflow(Arg,2*CHOICEPAD,TRUE);
     }
   }
 SetDeep();
@@ -235,7 +235,7 @@ goto check_trail;
   }
 check_trail:
 if (ChoiceYounger(w->choice,TrailOffset(w->trail_top,CHOICEPAD))) {
-choice_overflow(Arg,CHOICEPAD,TRUE);
+choice_overflow(Arg,2*CHOICEPAD,TRUE);
   }
 goto no_check_trail;
 no_check_trail:
@@ -693,7 +693,7 @@ fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->choice);
               }
 });
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD,TRUE);
+choice_overflow(Arg,2*CHOICEPAD,TRUE);
               }
             } else {
 SetDeep();
@@ -1206,7 +1206,7 @@ ConcChptCleanUp(TopConcChpt, w->choice);
 if (!IsDeep()) {
 SetDeep();
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD,TRUE);
+choice_overflow(Arg,2*CHOICEPAD,TRUE);
                 }
               }
 P += 0;
@@ -1226,7 +1226,7 @@ ConcChptCleanUp(TopConcChpt, w->choice);
 if (!IsDeep()) {
 SetDeep();
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD,TRUE);
+choice_overflow(Arg,2*CHOICEPAD,TRUE);
                 }
               }
 goto r_proceed;
@@ -1259,7 +1259,7 @@ TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt, w->choice);
 SetDeep();
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD,TRUE);
+choice_overflow(Arg,2*CHOICEPAD,TRUE);
               }
 SetE(w->local_top);
 P += 0;
@@ -2205,7 +2205,7 @@ for (intmach_t k=0; k<i; k++) {
 B->x[k] = w->x[k];
 }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD,TRUE);
+choice_overflow(Arg,2*CHOICEPAD,TRUE);
                   }
                 }
 SetDeep();
@@ -2256,7 +2256,7 @@ fprintf(stderr, "WAM created choicepoint (r), node = %x\n", (int)w->choice);
                 }
 });
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD,TRUE);
+choice_overflow(Arg,2*CHOICEPAD,TRUE);
                 }
               } else {
 SetDeep();
@@ -4349,7 +4349,7 @@ for (intmach_t k=0; k<i; k++) {
 B->x[k] = w->x[k];
 }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD,TRUE);
+choice_overflow(Arg,2*CHOICEPAD,TRUE);
                     }
                   }
 SetDeep();
@@ -4392,7 +4392,7 @@ for (intmach_t k=0; k<i; k++) {
 B->x[k] = w->x[k];
 }
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
-choice_overflow(Arg,CHOICEPAD,TRUE);
+choice_overflow(Arg,2*CHOICEPAD,TRUE);
                     }
                   }
 SetDeep();

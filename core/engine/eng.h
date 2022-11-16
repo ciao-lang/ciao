@@ -533,7 +533,7 @@
 
 #define TEST_CHOICE_OVERFLOW(B, AMOUNT) ({ \
   if (ChoiceYounger((B),TrailOffset(w->trail_top,(AMOUNT)))) { \
-    CVOID__CALL(choice_overflow, (AMOUNT), TRUE); \
+    CVOID__CALL(choice_overflow, 2*(AMOUNT), TRUE); \
   } \
 })
 

@@ -296,7 +296,6 @@ static inline bool_t rtcheck__is_M(tagged_t *t0) {
  * pad - required amount of heap space.
  * arity - number of live X regs at this point.
  */
-
 CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
   intmach_t i;
   frame_t *a;
@@ -320,7 +319,7 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
      before neck. */
   if (was_shallow) {
     if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top)) {
-      CVOID__CALL(choice_overflow,CHOICEPAD,TRUE);
+      CVOID__CALL(choice_overflow,2*CHOICEPAD,TRUE);
     }
   }
 #endif
@@ -479,13 +478,13 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
   /* ASSUMED: --CHOICE, TRAIL++ */
 
   choice_top = (tagged_t *)w->choice+w->value_trail;
-  if (ChoiceYounger(ChoiceOffset(choice_top,2*pad),w->trail_top)) {
+  if (ChoiceYounger(ChoiceOffset(choice_top,pad),w->trail_top)) {
     choice_t *b;
     tagged_t *newtr;
     intmach_t mincount, newcount, oldcount, trail_reloc_factor, choice_reloc_factor;
     
     {
-      mincount = 2*pad - ChoiceDifference(choice_top,w->trail_top);
+      mincount = pad - ChoiceDifference(choice_top,w->trail_top);
       oldcount = ChoiceDifference(Choice_Start,Choice_End);
       newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
       newtr = checkrealloc_ARRAY(tagged_t,
