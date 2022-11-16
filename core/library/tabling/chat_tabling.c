@@ -1660,7 +1660,7 @@ CBOOL__PROTO(initial_tabling_c) {
     {
       intmach_t size = (TABLING_GLOBALSTKSIZE*sizeof(tagged_t) -
                   HeapCharDifference(Heap_Start, w->heap_top))/2;
-      heap_overflow(Arg,size);
+      heap_overflow(Arg,2*size); // TODO:[oc-merge] pad was multiplied inside heap_overflow
     }
 
   if (Stack_End != StackOffset(Stack_Start, TABLING_LOCALSTKSIZE))

@@ -516,7 +516,7 @@ CBOOL__PROTO(prolog_socket_receive) {
   */
 
   if (HeapCharAvailable(w->heap_top) < CONTPAD+(bytes_read<<1)*sizeof(tagged_t)) {
-    explicit_heap_overflow(Arg, CONTPAD+(bytes_read<<1)*sizeof(tagged_t),2);
+    explicit_heap_overflow(Arg, (CONTPAD+(bytes_read<<1)*sizeof(tagged_t))*2, 2);
   }
     
   buffpt = &buffer[bytes_read-1];

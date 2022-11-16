@@ -2140,7 +2140,7 @@ CBOOL__PROTO(constraint_list)
     }
     /* TODO: use pad<<=1 here or recompute available? */
     pad <<= 1;
-    explicit_heap_overflow(Arg,pad,2);
+    explicit_heap_overflow(Arg,pad*2,2);
   }
   h = w->heap_top;
   l = *w->trail_top;

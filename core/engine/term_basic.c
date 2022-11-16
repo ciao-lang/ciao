@@ -30,7 +30,7 @@
 
 #define GCTEST(Pad) { \
     if (HeapCharDifference(w->heap_top,Heap_End) < (Pad)*sizeof(tagged_t)) \
-      heap_overflow(Arg,(Pad)*sizeof(tagged_t)); \
+      heap_overflow(Arg,2*((Pad)*sizeof(tagged_t))); \
     if (ChoiceDifference(w->choice,w->trail_top) < (Pad)) \
       choice_overflow(Arg,Pad,TRUE); \
   }

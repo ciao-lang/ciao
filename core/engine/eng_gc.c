@@ -296,6 +296,7 @@ static inline bool_t rtcheck__is_M(tagged_t *t0) {
  * pad - required amount of heap space.
  * arity - number of live X regs at this point.
  */
+
 CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
   intmach_t i;
   frame_t *a;
@@ -725,7 +726,7 @@ static bool_t gcexplicit = FALSE;       /* Shared, no locked --- global flag */
 /* Explicit GC */
 CBOOL__PROTO(gc_start) {
   gcexplicit = TRUE;
-  CVOID__CALL(heap_overflow,CALLPAD);
+  CVOID__CALL(heap_overflow,CALLPAD*2);
   CBOOL__PROCEED;
 }
 
@@ -765,9 +766,9 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
     lowboundh = newh-Gc_Total_Grey;
     if (!gc &&
         (HeapCharDifference(newh,oldh) < GCMARGIN_CHARS ||
-         HeapYounger(HeapCharOffset(newh,2*pad),Heap_End)) &&
+         HeapYounger(HeapCharOffset(newh,pad),Heap_End)) &&
         !(HeapCharDifference(lowboundh,oldh) < GCMARGIN_CHARS ||
-          HeapYounger(HeapCharOffset(lowboundh,2*pad),Heap_End))) {
+          HeapYounger(HeapCharOffset(lowboundh,pad),Heap_End))) {
       /* garbage collect the entire heap */
       w->segment_choice = InitialNode;
       CVOID__CALL(gc__heap_collect);
@@ -776,7 +777,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
   }
   if ((!gc &&
        HeapCharDifference(newh,oldh) < GCMARGIN_CHARS) ||
-      HeapYounger(HeapCharOffset(newh,2*pad),Heap_End)) {
+      HeapYounger(HeapCharOffset(newh,pad),Heap_End)) {
 #if defined(USE_GC_STATS)          
     flt64_t tick0 = RunTickFunc();
 #endif
@@ -788,7 +789,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
     
     GetFrameTop(w->local_top,w->choice,G->frame);
     
-    mincount = 2*pad - HeapCharDifference(G->heap_top,Heap_End);
+    mincount = pad - HeapCharDifference(G->heap_top,Heap_End);
     oldcount = HeapCharDifference(Heap_Start,Heap_End);
     newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
 

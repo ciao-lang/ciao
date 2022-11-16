@@ -174,12 +174,6 @@ static inline CFUN__PROTO(bn_finish, tagged_t) {
 }
 #endif
 
-#if defined(OPTIM_COMP)
-#define BN_OC_SCALE 2 /* TODO: check, probably not needed now */
-#else
-#define BN_OC_SCALE 1
-#endif
-
 /* `Out` is the large or small int from `Str` in base `Base`.
  * `Arity` is the number of live X registers (in case of heap GC).
  * (assumes `Str` represents a number)
@@ -189,7 +183,7 @@ static inline CFUN__PROTO(bn_finish, tagged_t) {
                                      (bignum_t *)G->heap_top,           \
                                      (bignum_t *)Heap_Warn_Pad(CONTPAD), (Base)); \
   if (req != 0) {                                                       \
-    CVOID__CALL(explicit_heap_overflow, (req*sizeof(tagged_t)+CONTPAD)*BN_OC_SCALE, (Arity)); \
+    CVOID__CALL(explicit_heap_overflow, (req*sizeof(tagged_t)+CONTPAD)*2, (Arity)); \
     if (bn_from_string((Str),                                           \
                        (bignum_t *)G->heap_top,                         \
                        (bignum_t *)Heap_Warn_Pad(CONTPAD), (Base))) {   \

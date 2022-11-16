@@ -426,7 +426,7 @@ CFUN__PROTO(flt64_to_blob_GC, tagged_t, flt64_t i) {
 //   ENSURE_LIVEINFO;
 //   h = G->heap_top;
 //   if (HeapCharDifference(h, Heap_End) < (intmach_t)LIVEINFO__HEAP(w->liveinfo)+3*sizeof(tagged_t)) {
-//     explicit_heap_overflow(Arg, LIVEINFO__HEAP(w->liveinfo)+3*sizeof(tagged_t), (short)LIVEINFO__ARITY(w->liveinfo));
+//     explicit_heap_overflow(Arg, 2*(LIVEINFO__HEAP(w->liveinfo)+3*sizeof(tagged_t)), (short)LIVEINFO__ARITY(w->liveinfo));
 //     h = G->heap_top;
 //   }
 //   G->heap_top = h+3;

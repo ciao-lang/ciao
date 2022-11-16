@@ -44,7 +44,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);
 #define TEST_HEAP_OVERFLOW(H, AMOUNT, ARITY) ({ \
   if (HeapCharAvailable((H)) < (AMOUNT)) { \
     G->heap_top = (H); \
-    CVOID__CALL(explicit_heap_overflow, (AMOUNT), (ARITY)); \
+    CVOID__CALL(explicit_heap_overflow, (AMOUNT)*2, (ARITY)); \
     (H) = G->heap_top; \
   } \
 })
@@ -82,7 +82,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);
 #define HeapOverflow_GC_(REQ, GCLen, GCRegs) ({ \
   intmach_t idx_ MAYBE_UNUSED = LIVEINFO__ARITY(w->liveinfo); \
   CONCAT(SAVE_XS,GCLen) GCRegs; \
-  CVOID__CALL(explicit_heap_overflow, (REQ)+LIVEINFO__HEAP(w->liveinfo), LIVEINFO__ARITY(w->liveinfo) + GCLen); \
+  CVOID__CALL(explicit_heap_overflow, 2*((REQ)+LIVEINFO__HEAP(w->liveinfo)), LIVEINFO__ARITY(w->liveinfo) + GCLen); \
   CONCAT(RESTORE_XS,GCLen) GCRegs; \
 })
 
