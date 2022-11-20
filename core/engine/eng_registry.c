@@ -1936,7 +1936,7 @@ CVOID__PROTO(local_init_each_time) {
   NewShadowregs(w->heap_top);
   SetDeep();
 
-  w->value_trail = (int)InitialValueTrail;
+  VALUETRAIL__INIT;
   TopConcChpt = b; /* Initialize concurrent topmost choicepoint */
 
   w->next_insn = bootcode;

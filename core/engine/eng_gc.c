@@ -477,7 +477,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
 
   /* ASSUMED: --CHOICE, TRAIL++ */
 
-  choice_top = (tagged_t *)w->choice+w->value_trail;
+  choice_top = ChoiceTopFromChoice(w->choice);
   if (ChoiceYounger(ChoiceOffset(choice_top,pad),w->trail_top)) {
     choice_t *b;
     tagged_t *newtr;
@@ -522,7 +522,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
           tr--;
           *x = *tr;
         }
-        w->choice = b = (choice_t *)(x-w->value_trail);
+        w->choice = b = ChoiceFromChoiceTop(x);
 
 #if defined(USE_THREADS)
         /* The chain of concurrent dynamic choicepoints has to be

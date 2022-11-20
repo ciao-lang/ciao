@@ -129,7 +129,7 @@ CBOOL__PROTO(tabling_stats_c){
   /* printf("Trail  (%p-%p)  trail_top   = (%p) %d \n", */
   /*     Trail_Start, Trail_End, w->trail_top, (int)TrailDifference(Trail_Start, w->trail_top)); */
   /* printf("Choice (%p-%p)  choice_top  = (%p) %d \n", */
-  /*     Choice_Start, Choice_End, w->choice+w->value_trail, (int)ChoiceDifference(Choice_Start, w->choice+w->value_trail)); */
+  /*     Choice_Start, Choice_End, w->choice+w->value_trail, (int)ChoiceDifference(Choice_Start, ChoiceTopFromChoice(w->choice))); */
 
   printf("TABLING_GLOBAL_TABLE (%p-%p) size = %lu\n\n",
          global_table, global_table_end, (global_table_free-global_table));

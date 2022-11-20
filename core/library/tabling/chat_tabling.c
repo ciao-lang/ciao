@@ -1683,12 +1683,10 @@ CBOOL__PROTO(initial_tabling_c) {
   if (Trail_End != TrailOffset(Trail_Start, TABLING_CHOICESTKSIZE +
                                TABLING_TRAILSTKSIZE))
     {
-      tagged_t *choice_top = (tagged_t *)w->choice+w->value_trail;
-
+      tagged_t *choice_top = ChoiceTopFromChoice(w->choice);
       intmach_t size = (TABLING_CHOICESTKSIZE + TABLING_TRAILSTKSIZE -
                   ChoiceDifference(Choice_Start, choice_top) -
                   TrailDifference(Trail_Start, w->trail_top)) / 2;
-
       CVOID__CALL(choice_overflow,2*size,TRUE);
     }  
 

@@ -1173,35 +1173,14 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2);
  * pt2 - second argument list.
  * arity - number of arguments.
  */
-CBOOL__PROTO(cunify_args, 
-             int arity,
-             tagged_t *pt1,
-             tagged_t *pt2)
-{
+CBOOL__PROTO(cunify_args, int arity, tagged_t *pt1, tagged_t *pt2) {
   tagged_t x1, x2;
-  bool_t result =
-    (cunify_args_aux(Arg,arity,pt1,pt2,&x1,&x2) && cunify_aux(Arg,x1,x2));
-  intmach_t i = w->value_trail;
-
-  if (i<InitialValueTrail) {
-    pt2 = (tagged_t *)w->choice;
-    do {
-      pt1 = (tagged_t *)pt2[i++];
-      *pt1 = pt2[i++];
-    } while (i<InitialValueTrail);
-    w->value_trail = (intmach_t)InitialValueTrail;
-  }
-
+  bool_t result = (cunify_args_aux(Arg,arity,pt1,pt2,&x1,&x2) && cunify_aux(Arg,x1,x2));
+  VALUETRAIL__UNDO();
   return result;
 }
 
-static CBOOL__PROTO(cunify_args_aux, 
-                    int arity,
-                    tagged_t *pt1,
-                    tagged_t *pt2,
-                    tagged_t *x1,
-                    tagged_t *x2)
-{
+static CBOOL__PROTO(cunify_args_aux, int arity, tagged_t *pt1, tagged_t *pt2, tagged_t *x1, tagged_t *x2) {
   tagged_t t1 = ~0;
   tagged_t t2 = ~0;
   tagged_t t3;
@@ -1210,9 +1189,7 @@ static CBOOL__PROTO(cunify_args_aux,
      args of pt1 using choice stack as value cell.  When done, reinstall
      values. */
 
-  if (ChoiceYounger(ChoiceOffset(w->choice,2*CHOICEPAD-w->value_trail),w->trail_top))
-                                /* really: < 2*arity */
-    choice_overflow(Arg,2*2*CHOICEPAD,TRUE);
+  VALUETRAIL__TEST_OVERFLOW(2*CHOICEPAD);
   for (; arity>0; --arity) {
     t1 = *pt1, t2 = *pt2;
     if (t1 != t2) {
@@ -1221,18 +1198,11 @@ static CBOOL__PROTO(cunify_args_aux,
       if (t1!=t2 && IsComplex(t1&t2)) {
         /* replace smaller value by larger value,
            using choice stack as value trail */
-        tagged_t *b = (tagged_t *)w->choice;
-        intmach_t i = w->value_trail;
-
-        if (t1>t2)
-          b[--i] = *pt1,
-            b[--i] = (tagged_t)pt1,
-            *pt1 = t2;
-        else
-          b[--i] = *pt2,
-            b[--i] = (tagged_t)pt2,
-            *pt2 = t1;
-        w->value_trail = i;
+        if (t1>t2) {
+          VALUETRAIL__SET(pt1, t2);
+        } else {
+          VALUETRAIL__SET(pt2, t1);
+        }
       noforward:
         if (arity>1 && !cunify_aux(Arg,t1,t2))
           return FALSE;
@@ -1243,10 +1213,10 @@ static CBOOL__PROTO(cunify_args_aux,
     (void)HeapNext(pt2);
   }
 
-  *x1 = t1, *x2 = t2;
+  *x1 = t1;
+  *x2 = t2;
 
-  if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD-w->value_trail),w->trail_top))
-    choice_overflow(Arg,2*CHOICEPAD,TRUE);
+  VALUETRAIL__TEST_OVERFLOW(CHOICEPAD);
   return TRUE;
 }
 
@@ -1258,22 +1228,9 @@ static CBOOL__PROTO(cunify_args_aux,
 /* NOTE: This is a recursive version of Robinson's 1965 unification
    algorithm without occurs check */
 
-CBOOL__PROTO(cunify, tagged_t x1, tagged_t x2)
-{
+CBOOL__PROTO(cunify, tagged_t x1, tagged_t x2) {
   bool_t result = cunify_aux(Arg,x1,x2);
-  intmach_t i = w->value_trail;
-
-  if (i<InitialValueTrail) {
-    tagged_t *pt1, *pt2;
-
-    pt2 = (tagged_t *)w->choice;
-    do {
-      pt1 = (tagged_t *)pt2[i++];
-      *pt1 = pt2[i++];
-    } while (i<InitialValueTrail);
-    w->value_trail = (intmach_t)InitialValueTrail;
-  }
-
+  VALUETRAIL__UNDO();
   return result;
 }
 

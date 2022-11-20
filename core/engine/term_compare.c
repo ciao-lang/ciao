@@ -73,27 +73,9 @@ static CFUN__PROTO(compare_args_aux, int,
  * returns  0 if u == v
  * returns +1 if u @> v
  */
-CFUN__PROTO(compare__1, int, tagged_t x1, tagged_t x2)
-{
+CFUN__PROTO(compare__1, int, tagged_t x1, tagged_t x2) {
   int result = compare_aux(Arg,x1,x2);
-  intmach_t i;
-  i = w->value_trail;
-
-  if (i<InitialValueTrail)
-    {
-      CIAO_REG_2(tagged_t *, pt1);
-      CIAO_REG_3(tagged_t *, pt2);
-      
-      pt2 = (tagged_t *)w->choice;
-      do
-        {
-          pt1 = (tagged_t *)pt2[i++];
-          *pt1 = pt2[i++];
-        }
-      while (i<InitialValueTrail);
-      w->value_trail = (intmach_t)InitialValueTrail;
-    }
-
+  VALUETRAIL__UNDO();
   return result;
 }
 
@@ -243,9 +225,7 @@ static CFUN__PROTO(compare_args_aux, int,
   /* Adapted from terminating unification of complex structures:
      See cunify_args(). */
   
-  if (ChoiceYounger(ChoiceOffset(w->choice,2*CHOICEPAD-w->value_trail),w->trail_top))
-                                /* really: < 2*arity */
-    choice_overflow(Arg,2*2*CHOICEPAD,TRUE);
+  VALUETRAIL__TEST_OVERFLOW(2*CHOICEPAD);
   for (result=0; !result && arity>0; --arity) {
     t1 = *pt1;
     t2 = *pt2;
@@ -255,18 +235,11 @@ static CFUN__PROTO(compare_args_aux, int,
       if (t1!=t2 && IsComplex(t1&t2)) {
         /* replace smaller value by larger value,
            using choice stack as value trail */
-        tagged_t *b = (tagged_t *)w->choice;
-        intmach_t i = w->value_trail;
-        
-        if (t1>t2)
-          b[--i] = *pt1,
-            b[--i] = (tagged_t)pt1,
-            *pt1 = t2;
-        else
-          b[--i] = *pt2,
-            b[--i] = (tagged_t)pt2,
-            *pt2 = t1;
-        w->value_trail = i;
+        if (t1>t2) {
+          VALUETRAIL__SET(pt1, t2);
+        } else {
+          VALUETRAIL__SET(pt2, t1);
+        }
       }
     noforward:
       if (arity>1 && t1!=t2)
@@ -278,8 +251,7 @@ static CFUN__PROTO(compare_args_aux, int,
   
   if (!result) *x1 = t1, *x2 = t2;
   
-  if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD-w->value_trail),w->trail_top))
-    choice_overflow(Arg,2*CHOICEPAD,TRUE);
+  VALUETRAIL__TEST_OVERFLOW(CHOICEPAD);
   
   return result;
 }

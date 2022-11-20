@@ -189,9 +189,6 @@
 /* initial choicepoint */
 #define InitialNode ChoiceNext0(Choice_Start,1)
 
-/* initial value_trail size: leave room for an extra choicept */
-#define InitialValueTrail (-(ChoiceSize(0)/sizeof(tagged_t)))
-
 #define EToY0           (SIZEOF_FLEXIBLE_STRUCT(frame_t, tagged_t, 0)/sizeof(tagged_t))
 #define Yb(I)           (*CharOffset(E,I)) /* I as bytecode operand */
 #define Y(I)            (E->x[I]) /* I as zero-based */
@@ -596,6 +593,64 @@ tagged_t deffunctor(char *pname, int arity); /* eng_registry.c */
   G->local_top = (frame_t *)StackCharOffset((Frame),FrameSize(G->next_insn)); \
 })
 #define SetLocalTop(A) G->local_top = (A)
+
+/* ------------------------------------------------------------------------- */
+/* Value trail */
+
+/* note: shares memory with the choice stack */
+/* note: only usable in some built-ins, see unify and compare to check
+   usage */
+/* note: it is mandatory to check if enough space is available in the
+   value trail before using it */
+
+/* initial value_trail size: leave room for an extra choicept */
+//#define InitialValueTrail (-ChoiceSize(0))
+#define InitialValueTrail (-(ChoiceSize(0)/sizeof(tagged_t)))
+
+/* initialize value_trail (do it one time for each worker) */
+#define VALUETRAIL__INIT do { \
+  w->value_trail = InitialValueTrail; \
+} while(0)
+
+/* (private) trail a value in the value trail */
+#define VALUETRAIL__TRAIL(X) do { \
+  tagged_t *b = (tagged_t *)w->choice; \
+  intmach_t i = w->value_trail; \
+  b[--i] = *(X); \
+  b[--i] = (tagged_t)(X); \
+  w->value_trail = i; \
+} while(0)
+
+/* set trail X and *X = Value */
+#define VALUETRAIL__SET(X, Value) do { \
+  VALUETRAIL__TRAIL((X)); \
+  *(X) = Value; \
+} while(0)
+
+/* undo all the updates done using VALUETRAIL__SET */
+#define VALUETRAIL__UNDO() do { \
+  intmach_t i = w->value_trail; \
+  if (i<InitialValueTrail) { \
+    tagged_t *pt1; \
+    tagged_t *pt2; \
+    pt2 = (tagged_t *)w->choice; \
+    do { \
+      pt1 = (tagged_t *)pt2[i++]; \
+      *pt1 = pt2[i++]; \
+    } while (i<InitialValueTrail); \
+    w->value_trail = (intmach_t)InitialValueTrail; \
+  } \
+} while(0)
+
+// TODO:[oc-merge]: call to choice_overflow is different in OC!?
+#define VALUETRAIL__TEST_OVERFLOW(AMOUNT) do { \
+  if (ChoiceYounger(ChoiceCharOffset(w->choice,((AMOUNT)-w->value_trail)*sizeof(tagged_t)),w->trail_top)) { /* really: < 2*arity */ \
+    CVOID__CALL(choice_overflow,2*(AMOUNT),TRUE); \
+  } \
+} while(0)
+
+#define ChoiceFromChoiceTop(BT) ((choice_t *)(((char *)(BT))-w->value_trail*sizeof(tagged_t)))
+#define ChoiceTopFromChoice(B) ((tagged_t *)(((char *)(B))+w->value_trail*sizeof(tagged_t)))
 
 /* ------------------------------------------------------------------------- */
 /* Events (WakeCount and interrupts) based on heap limit checks */
