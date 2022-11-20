@@ -419,7 +419,7 @@ CVOID__PROTO(trail_push_check, tagged_t x) {
   TrailPush(tr,x);
   w->trail_top = tr;
   if (ChoiceYounger(w->choice,TrailOffset(tr,CHOICEPAD)))
-    choice_overflow(Arg,2*CHOICEPAD,TRUE);
+    choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -1593,7 +1593,7 @@ void unlink_wam(goal_descriptor_t *goal)
   w = goal->worker_registers;
   if (w != NULL) {
 #if defined(USE_THREADS)            /* Clean the possible conc. chpt. */
-    remove_link_chains(&TopConcChpt, InitialNode);
+    remove_link_chains(&TopConcChpt, InitialChoice);
 #endif
     dissociate_wam_goal(w, goal);
     release_wam(w);
@@ -2022,7 +2022,7 @@ CBOOL__PROTO(setarg)
     TrailPush(w->trail_top,t1);
     
     if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
-      choice_overflow(Arg,2*CHOICEPAD,TRUE);
+      choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE);
   }
   
   return TRUE;
@@ -2042,7 +2042,7 @@ CBOOL__PROTO(undo)
   DerefSwitch(goal,t1,{MINOR_FAULT("$undo/1: invalid argument");});
   TrailPush(w->trail_top,goal);
   if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
-    choice_overflow(Arg,2*CHOICEPAD,TRUE);
+    choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE);
   return TRUE;
 }
 
@@ -2385,7 +2385,7 @@ CBOOL__PROTO(prolog_show_nodes)
 
 CBOOL__PROTO(prolog_show_all_nodes)
 {
-  show_nodes(w, w->choice, InitialNode);
+  show_nodes(w, w->choice, InitialChoice);
   return TRUE;
 }
 
@@ -2393,7 +2393,7 @@ CBOOL__PROTO(prolog_show_all_nodes)
 CBOOL__PROTO(start_node)
 {
   DEREF(X(0),X(0));
-  CBOOL__UnifyCons(ChoiceToTagged(InitialNode),X(0));
+  CBOOL__UnifyCons(ChoiceToTagged(InitialChoice),X(0));
   return TRUE;
 }
 

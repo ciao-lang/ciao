@@ -1687,7 +1687,7 @@ CBOOL__PROTO(initial_tabling_c) {
       intmach_t size = (TABLING_CHOICESTKSIZE + TABLING_TRAILSTKSIZE -
                   ChoiceDifference(Choice_Start, choice_top) -
                   TrailDifference(Trail_Start, w->trail_top)) / 2;
-      CVOID__CALL(choice_overflow,2*size,TRUE);
+      CVOID__CALL(choice_overflow,2*size*sizeof(tagged_t),TRUE);
     }  
 
 

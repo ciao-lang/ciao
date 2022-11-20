@@ -187,7 +187,7 @@
 
 
 /* initial choicepoint */
-#define InitialNode ChoiceNext0(Choice_Start,1)
+#define InitialChoice ChoiceNext0(Choice_Start,1)
 
 #define EToY0           (SIZEOF_FLEXIBLE_STRUCT(frame_t, tagged_t, 0)/sizeof(tagged_t))
 #define Yb(I)           (*CharOffset(E,I)) /* I as bytecode operand */
@@ -530,7 +530,7 @@
 
 #define TEST_CHOICE_OVERFLOW(B, AMOUNT) ({ \
   if (ChoiceYounger((B),TrailOffset(w->trail_top,(AMOUNT)))) { \
-    CVOID__CALL(choice_overflow, 2*(AMOUNT), TRUE); \
+    CVOID__CALL(choice_overflow, 2*(AMOUNT)*sizeof(tagged_t), TRUE); \
   } \
 })
 
@@ -645,7 +645,7 @@ tagged_t deffunctor(char *pname, int arity); /* eng_registry.c */
 // TODO:[oc-merge]: call to choice_overflow is different in OC!?
 #define VALUETRAIL__TEST_OVERFLOW(AMOUNT) do { \
   if (ChoiceYounger(ChoiceCharOffset(w->choice,((AMOUNT)-w->value_trail)*sizeof(tagged_t)),w->trail_top)) { /* really: < 2*arity */ \
-    CVOID__CALL(choice_overflow,2*(AMOUNT),TRUE); \
+    CVOID__CALL(choice_overflow,2*(AMOUNT)*sizeof(tagged_t),TRUE); \
   } \
 } while(0)
 
@@ -968,6 +968,8 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #else
 #define GetAtomLen(X)   (strlen(GetString((X))))
 #endif
+
+#define REALLOC_AREA(START, OLDCOUNT, NEWCOUNT) ((tagged_t *)checkrealloc_ARRAY(char, (OLDCOUNT), (NEWCOUNT), (char *)(START)))
 
 /* 1 + no. untyped words */
 #define LargeArity(X)   (PointerPart(X)>>tagged__atm_offset)
@@ -1807,6 +1809,8 @@ struct marker_ {
 #define ChoiceNext0(B,A)        ChoiceCharOffset((B),ChoiceSize((A)))
 
 #define ChoiceSize(A) SIZEOF_FLEXIBLE_STRUCT(choice_t, tagged_t, (A))
+
+#define ChoiceCharAvailable(B) ChoiceCharDifference((B), G->trail_top)
 
 #define ChoiceOffset(X,O)       ((tagged_t *)(X) - (O))
 #define ChoiceDifference(X,Y)   ((tagged_t *)(X) - (tagged_t *)(Y))

@@ -32,7 +32,7 @@
     if (HeapCharDifference(w->heap_top,Heap_End) < (Pad)*sizeof(tagged_t)) \
       heap_overflow(Arg,2*((Pad)*sizeof(tagged_t))); \
     if (ChoiceDifference(w->choice,w->trail_top) < (Pad)) \
-      choice_overflow(Arg,2*(Pad),TRUE); \
+      choice_overflow(Arg,2*(Pad)*sizeof(tagged_t),TRUE); \
   }
 
 static CVOID__PROTO(copy_it, tagged_t *loc);

@@ -318,8 +318,8 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
      it make sense? Choice stack space should be already reserved
      before neck. */
   if (was_shallow) {
-    if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top)) {
-      CVOID__CALL(choice_overflow,2*CHOICEPAD,TRUE);
+    if (ChoiceYounger(ChoiceCharOffset(w->choice,CHOICEPAD*sizeof(tagged_t)),w->trail_top)) {
+      CVOID__CALL(choice_overflow,2*CHOICEPAD*sizeof(tagged_t),TRUE);
     }
   }
 #endif
@@ -478,23 +478,20 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
   /* ASSUMED: --CHOICE, TRAIL++ */
 
   choice_top = ChoiceTopFromChoice(w->choice);
-  if (ChoiceYounger(ChoiceOffset(choice_top,pad),w->trail_top)) {
+  if (ChoiceCharAvailable(choice_top) < pad) {
     choice_t *b;
     tagged_t *newtr;
     intmach_t mincount, newcount, oldcount, trail_reloc_factor, choice_reloc_factor;
     
     {
-      mincount = pad - ChoiceDifference(choice_top,w->trail_top);
-      oldcount = ChoiceDifference(Choice_Start,Choice_End);
+      mincount = pad - ChoiceCharDifference(choice_top,G->trail_top);
+      oldcount = ChoiceCharDifference(Choice_Start,Choice_End);
       newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
-      newtr = checkrealloc_ARRAY(tagged_t,
-                                 oldcount,
-                                 newcount,
-                                 Trail_Start);
+      newtr = REALLOC_AREA(Trail_Start, oldcount, newcount);
       DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing TRAIL from %p to %p\n", (intmach_t)Thread_Id, Trail_Start, newtr);
     }
     trail_reloc_factor = (char *)newtr - (char *)Trail_Start;
-    choice_reloc_factor = trail_reloc_factor + (newcount-oldcount)*sizeof(tagged_t);
+    choice_reloc_factor = trail_reloc_factor + (newcount-oldcount);
     {
       tagged_t *tr;
       tagged_t *trb;
@@ -502,7 +499,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
       tr = RelocPtr(Choice_Start, trail_reloc_factor);
       trb = RelocPtr(choice_top, trail_reloc_factor);
       Trail_Start = Choice_End = newtr;                /* new low bound */
-      Choice_Start = Trail_End = newtr+newcount;      /* new high bound */
+      Choice_Start = Trail_End = (tagged_t *)TrailCharOffset(newtr, newcount);      /* new high bound */
 
 #if defined(USE_TAGGED_CHOICE_START)
       /* Do not take out (tagged_t) casting, or the engine will break!! */
@@ -510,27 +507,26 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
 #endif
 
       {
-        tagged_t *x;
-        /* We have to relocate the concurrent topmost choicepoint */
-#if defined(USE_THREADS)
-        choice_t *concchpt;
-#endif
-        
-        x = Choice_Start;                  /* Copy the new choicepoint stack */
+        /* Copy the new choicepoint stack */
+        /* TODO: move this copy loop to basiccontrol.h */
+        tagged_t *x = Choice_Start;
         while (OffChoicetop(trb,tr)) {
           x--;
           tr--;
           *x = *tr;
         }
         w->choice = b = ChoiceFromChoiceTop(x);
+      }
 
 #if defined(USE_THREADS)
+      /* We have to relocate the concurrent topmost choicepoint */
+      do {
         /* The chain of concurrent dynamic choicepoints has to be
            relocated as well.  The initial TopConcChpt was set to be
            the initial choice node.  MCL. */
-        concchpt = TopConcChpt = RelocPtr(TopConcChpt, choice_reloc_factor);
+        choice_t *concchpt = TopConcChpt = RelocPtr(TopConcChpt, choice_reloc_factor);
 
-        while(concchpt != InitialNode) {
+        while(concchpt != InitialChoice) {
           DEBUG__TRACE(debug_concchoicepoints || debug_gc,
                        "*** %" PRIdm "(%" PRIdm ") Changing dynamic chpt@%x\n",
                        (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
@@ -541,11 +537,11 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
           concchpt->x[PrevDynChpt] = PointerToTermOrZero(prev);
           concchpt = prev;
         }
+      } while(0);
 #endif
-      }
     }
     AssignRelocPtr(w->previous_choice, choice_reloc_factor);
-    AssignRelocPtr(w->trail_top, trail_reloc_factor);
+    AssignRelocPtr(G->trail_top, trail_reloc_factor);
 
 #if defined(ANDPARALLEL)
     /* relocate pointer in handlers */
@@ -671,7 +667,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
   }
 
   /* relocate pointers in choice&env stks */
-  for (n=aux_choice; n!=InitialNode; n=n2){
+  for (n=aux_choice; n!=InitialChoice; n=n2){
     n2 = ChoiceCont(n);
     //Tabling --> How to translate?
     AssignRelocPtr(n2->local_top, reloc_factor);
@@ -769,7 +765,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
         !(HeapCharDifference(lowboundh,oldh) < GCMARGIN_CHARS ||
           HeapYounger(HeapCharOffset(lowboundh,pad),Heap_End))) {
       /* garbage collect the entire heap */
-      w->segment_choice = InitialNode;
+      w->segment_choice = InitialChoice;
       CVOID__CALL(gc__heap_collect);
       newh = G->heap_top;
     }
@@ -939,7 +935,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 
   /* relocate pointers in choice&env stks */
   n2 = NULL;
-  for (n=aux_choice; n!=InitialNode && n->next_alt!=NULL; n=n2) { // TODO: can n->next_alt  be NULL?
+  for (n=aux_choice; n!=InitialChoice && n->next_alt!=NULL; n=n2) { // TODO: can n->next_alt  be NULL?
     n2 = ChoiceCont(n);
     {
       TG_Let(pt1, n->x);
@@ -1749,7 +1745,7 @@ CVOID__PROTO(gc__heap_collect) {
 
   Total_Found = 0;
   Gcgrey = 0;
-  if (w->segment_choice == InitialNode) {
+  if (w->segment_choice == InitialChoice) {
     Gc_Total_Grey = 0;
   }
   CVOID__CALL(trail__remove_uncond); /* sets Gc_Aux_Choice, gc_Choice_Start */

@@ -681,7 +681,7 @@ CBOOL__PROTO(prolog_eng_cut)
 
   {
     worker_t *w = goal_desc->worker_registers;
-    w->choice = InitialNode;            /* DOCUT to the initial choicepoint */
+    w->choice = InitialChoice;            /* DOCUT to the initial choicepoint */
             /* For concurrent goals, erase the concurrent data structures */
     ConcChptCleanUp(TopConcChpt, w->previous_choice);
   }

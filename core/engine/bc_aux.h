@@ -467,7 +467,7 @@ static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo) {
     tagged_t *tr = w->trail_top;
     int reloc;
 
-    choice_overflow(Arg,2*CHOICEPAD,FALSE);
+    choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),FALSE);
     reloc = (char *)w->trail_top - (char *)tr;
     *trail_origo = (tagged_t *)((char *)*trail_origo + reloc);
     tr = w->trail_top;
@@ -1460,7 +1460,7 @@ CBOOL__PROTO(prolog_dif, definition_t *address_dif)
               check_trail:
                 if (ChoiceYounger(w->choice,TrailOffset(pt1,CHOICEPAD)))
                   w->trail_top = pt1,
-                  choice_overflow(Arg,2*CHOICEPAD,TRUE),
+                  choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE),
                   pt1 = w->trail_top;
               }
             HeapPush(pt2,X(2));

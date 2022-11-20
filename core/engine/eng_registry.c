@@ -1916,7 +1916,7 @@ CVOID__PROTO(local_init_each_time) {
   w->frame->frame = NULL;
 
   /* Setup initial choicepoint */
-  choice_t *b = InitialNode;
+  choice_t *b = InitialChoice;
   w->choice = b;                            
   b->frame = w->frame;
 
