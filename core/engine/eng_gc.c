@@ -509,35 +509,19 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
       {
         /* Copy the new choicepoint stack */
         /* TODO: move this copy loop to basiccontrol.h */
-        tagged_t *x = Choice_Start;
-        while (OffChoicetop(trb,tr)) {
+        tagged_t *x = (tagged_t *)Choice_Start;
+        tagged_t *y = (tagged_t *)tr;
+        while ((tagged_t *)trb < y) {
+          y--;
           x--;
-          tr--;
-          *x = *tr;
+          *x = *y;
         }
         w->choice = b = ChoiceFromChoiceTop(x);
       }
 
 #if defined(USE_THREADS)
       /* We have to relocate the concurrent topmost choicepoint */
-      do {
-        /* The chain of concurrent dynamic choicepoints has to be
-           relocated as well.  The initial TopConcChpt was set to be
-           the initial choice node.  MCL. */
-        choice_t *concchpt = TopConcChpt = RelocPtr(TopConcChpt, choice_reloc_factor);
-
-        while(concchpt != InitialChoice) {
-          DEBUG__TRACE(debug_concchoicepoints || debug_gc,
-                       "*** %" PRIdm "(%" PRIdm ") Changing dynamic chpt@%x\n",
-                       (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-                       (unsigned int)concchpt);
-          // TODO: wrong if it is Zero (null)? (JFMC)
-          choice_t *prev = (choice_t *)TermToPointerOrNull(concchpt->x[PrevDynChpt]);
-          AssignRelocPtr(prev, choice_reloc_factor);
-          concchpt->x[PrevDynChpt] = PointerToTermOrZero(prev);
-          concchpt = prev;
-        }
-      } while(0);
+      RelocateConcChptChain(choice_reloc_factor);
 #endif
     }
     AssignRelocPtr(w->previous_choice, choice_reloc_factor);
@@ -565,7 +549,7 @@ CVOID__PROTO(choice_overflow, intmach_t pad, bool_t remove_trail_uncond) {
   }
 
   if (shallow_try) { /* ShallowTry was on */
-    SetShallowTry0(w->choice);
+    SetShallowTry();
   }
 
 #if defined(USE_GC_STATS)          
@@ -609,9 +593,10 @@ CVOID__PROTO(stack_overflow) {
   CVOID__CALL(suspend_all);
 #endif
 
-  GetFrameTop(w->local_top,w->choice,G->frame);
+  UpdateLocalTop(w->choice,G->frame);
 
   count = StackDifference(Stack_Start,Stack_End);
+
   newh = checkrealloc_ARRAY(tagged_t,
                             count/2,
                             2*count,
@@ -640,6 +625,7 @@ CVOID__PROTO(stack_overflow) {
   CVOID__CALL(resume_all);
   Release_slock(stackset_expansion_l);
 #endif
+  RTCHECK(CBOOL__SUCCEED(proofread, "After stack_overflow", 0, TRUE));
 }
 
 CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
@@ -782,7 +768,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
 
     intmach_t wake_count = WakeCount();
     
-    GetFrameTop(w->local_top,w->choice,G->frame);
+    UpdateLocalTop(w->choice,G->frame);
     
     mincount = pad - HeapCharDifference(G->heap_top,Heap_End);
     oldcount = HeapCharDifference(Heap_Start,Heap_End);

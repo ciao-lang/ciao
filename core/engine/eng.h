@@ -445,6 +445,8 @@
 } while(0);
 #define CODE_ALLOC(Frame) GetFrameTop((Frame),w->choice,G->frame)
 
+#define UpdateLocalTop(B,Frame) GetFrameTop(w->local_top,(B),(Frame))
+
 #define NewShadowregs(Gtop) \
 { \
   w->global_uncond = Tagp(HVA,Gtop); \
@@ -1682,15 +1684,16 @@ struct marker_ {
 #define SetDeep0() { G->flags = 0; }
 #define SetDeep() { G->flags = 0; }
 #define SetShallowTry() { G->flags = 1; }
-#define SetShallowRetry() { G->flags = 2; }
 #define SetShallowTry0(B) SetShallowTry() 
+#define SetShallowRetry() { G->flags = 2; }
 #else
 #define IsDeep() (w->next_alt == NULL)
 #define IsShallowTry() (B->next_alt == NULL)
 #define SetDeep0() do {} while(0)
 #define SetDeep() ({ w->next_alt = NULL; })
-#define SetShallowRetry() do {} while(0)
+#define SetShallowTry() SetShallowTry0(w->choice) 
 #define SetShallowTry0(B) do { B->next_alt = NULL; } while(0)
+#define SetShallowRetry() do {} while(0)
 #endif
 
 // TODO:[oc-merge] absmach_def:choice_patch/2

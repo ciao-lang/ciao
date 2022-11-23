@@ -111,6 +111,28 @@ CVOID__PROTO(wr_call, char *s, definition_t *func);
 #endif
 
 /* ------------------------------------------------------------------------- */
+/* ConcChpt relocation (support for GC) */
+
+/* Relocate the concurrent topmost choicepoint */
+/* The chain of concurrent dynamic choicepoints has to be
+   relocated as well.  The initial TopConcChpt was set to be
+   the initial choice node.  MCL. */
+#define RelocateConcChptChain(choice_reloc_factor) do { \
+  choice_t *concchpt = TopConcChpt = RelocPtr(TopConcChpt, choice_reloc_factor); \
+  while(concchpt != InitialChoice) { \
+    DEBUG__TRACE(debug_concchoicepoints || debug_gc, \
+                 "*** %" PRIdm "(%" PRIdm ") Changing dynamic chpt@%x\n", \
+                 (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, \
+                 (unsigned int)concchpt); \
+    /* TODO: wrong if it is Zero (null)? (JFMC) */ \
+    choice_t *prev = (choice_t *)TermToPointerOrNull(concchpt->x[PrevDynChpt]); \
+    AssignRelocPtr(prev, choice_reloc_factor); \
+    concchpt->x[PrevDynChpt] = PointerToTermOrZero(prev); \
+    concchpt = prev; \
+  } \
+} while(0);
+
+/* ------------------------------------------------------------------------- */
 
 #define P               p
 #define B               b
