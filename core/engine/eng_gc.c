@@ -598,7 +598,7 @@ CVOID__PROTO(stack_overflow) {
   count = StackDifference(Stack_Start,Stack_End);
 
   newh = checkrealloc_ARRAY(tagged_t,
-                            count/2,
+                            count,
                             2*count,
                             Stack_Start);
   count = 2*StackDifference(Stack_Start,Stack_End);
