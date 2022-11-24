@@ -2183,7 +2183,6 @@ CVOID__PROTO(create_wam_areas)
   GETENV(i,cp,"LOCALSTKSIZE",LOCALSTKSIZE);
   Stack_Start  = checkalloc_ARRAY(tagged_t, i);
   Stack_End =  StackOffset(Stack_Start,i);
-  Stack_Warn = StackOffset(Stack_End,-STACKPAD);
 
   /* trail pointer is first free cell, grows ++ */
   /* choice pointer is last busy cell, grows -- */
@@ -2237,8 +2236,6 @@ CVOID__PROTO(reinitialize_wam_areas)
   }
 
   UnsetEvent();
-
-  Stack_Warn = StackOffset(Stack_End,-STACKPAD);
 }
 
 /*static char *mem_start; */  /* beginning of our virtual memory -- Shared */

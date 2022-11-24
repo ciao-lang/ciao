@@ -342,7 +342,8 @@
 #define Heap_End            w->heap_end
 #define Stack_Start         w->stack_start
 #define Stack_End           w->stack_end
-#define Stack_Warn          w->stack_warn
+#define Stack_Warn          ((tagged_t *)StackOffset(Stack_End,-STACKPAD))
+//#define Stack_Warn          w->stack_warn
 #define Choice_End          w->choice_end
 #define Choice_Start        w->choice_start
 
@@ -1559,7 +1560,7 @@ struct worker_ {
     
   tagged_t *stack_start;
   tagged_t *stack_end;
-  tagged_t *stack_warn;
+  tagged_t *dummy4; // TODO:[oc-merge] was stack_warn
     
   tagged_t *choice_end;
   tagged_t *choice_start;

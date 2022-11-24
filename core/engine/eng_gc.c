@@ -612,7 +612,6 @@ CVOID__PROTO(stack_overflow) {
   /* Final adjustments */
   Stack_Start = newh; /* new low bound */
   Stack_End = newh+count; /* new high bound */
-  Stack_Warn = StackOffset(Stack_End,-STACKPAD);
 #if defined(USE_GC_STATS)          
   ciao_stats.ss_local++;
   tick0 = RunTickFunc()-tick0;
