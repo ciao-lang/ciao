@@ -1779,8 +1779,7 @@ struct marker_ {
 #define StackCharDifference(X,Y)        ((char *)(Y) - (char *)(X))
 #define StackOffset(X,O)        ((tagged_t *)(X) + (O))
 #define StackCharOffset(X,O)    ((frame_t *)((char *)(X) + (O)))
-#define StackNext(P)            (*(P)++)
-#define StackDecr(P)            (--(P))
+#define StackDir 1
 
 #define StackCharAvailable(Top) StackCharDifference((Top), Stack_End)
 #define StackCharUsed(Top) StackCharDifference(Stack_Start, (Top))
@@ -1801,6 +1800,7 @@ struct marker_ {
 //#define TrailPop(P)             (*--(P))
 #define TrailPush(P,X)          (*(P)++ = (X))
 #define TrailPushCheck(P,X)     trail_push_check(Arg,X)
+#define TrailDir 1
 
 /* THE CHOICEPOINT STACK */
 

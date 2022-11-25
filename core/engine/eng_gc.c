@@ -29,6 +29,15 @@
 #define USE_SEGMENTED_GC 1
 #define USE_EARLY_RESET 1
 
+// TODO:[oc-merge] tabling replaced some ->local_top and ->heap_top by these macros; does it make sense doing it here? (some pointers may not be relocated) (JF)
+#if !defined(OPTIM_COMP)
+#define GCNodeLocalTop(X) NodeLocalTop(X)
+#define GCNodeGlobalTop(X) NodeGlobalTop(X)
+#else
+#define GCNodeLocalTop(X) (X->local_top)
+#define GCNodeGlobalTop(X) (X->heap_top)
+#endif
+
 /* --------------------------------------------------------------------------- */
 /* Switch on tag (special for GC) */
 
@@ -643,7 +652,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
     while (TrailYounger(G->trail_top,pt1)) {
       TG_Fetch(pt1);
       RelocateIfSVA(pt1, reloc_factor);
-      pt1++;
+      pt1 += TrailDir;
     }
   }
 
@@ -654,6 +663,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
     AssignRelocPtr(n2->local_top, reloc_factor);
     AssignRelocPtr(n2->frame, reloc_factor);
 
+    //use ForEachChoiceX
     {
       TG_Let(pt1, n->x);
       for (; pt1!=(tagged_t *)n2;) {
@@ -665,7 +675,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
       
     i = FrameSize(n->next_insn);
     frame = n->frame;
-    while (frame >= (frame_t*) NodeLocalTop(n2)) {
+    while (frame >= (frame_t*)GCNodeLocalTop(n2)) {
       {
         TG_Let(pt1, (tagged_t *)StackCharOffset(frame,i));
         while (pt1!=frame->x){
@@ -685,7 +695,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
   }
 
   G->frame = aux_choice->frame;
-  G->local_top = NodeLocalTop(aux_choice);
+  G->local_top = GCNodeLocalTop(aux_choice);
   SetChoice(w->choice);
 }
 
@@ -928,7 +938,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     }
     i = FrameSize(n->next_insn);
     frame = n->frame;
-    while ((frame >= (frame_t*) NodeLocalTop(n2)) && frame->next_insn != NULL) {
+    while ((frame >= (frame_t*)GCNodeLocalTop(n2)) && frame->next_insn != NULL) {
       TG_Let(pt1, (tagged_t *)StackCharOffset(frame,i));
       while (pt1!=frame->x) {
         --pt1;
@@ -1059,8 +1069,8 @@ static CVOID__PROTO(sweep_choicepoints);
 static CVOID__PROTO(compress_heap);
 
 #define gc_TrailStart TrailTopUnmark(w->segment_choice->trail_top)
-#define gc_HeapStart (NodeGlobalTop(w->segment_choice))
-#define gc_StackStart (NodeLocalTop(w->segment_choice))
+#define gc_HeapStart (GCNodeGlobalTop(w->segment_choice))
+#define gc_StackStart (GCNodeLocalTop(w->segment_choice))
 #define gc_ChoiceStart (w->segment_choice)
 
 /* --------------------------------------------------------------------------- */
@@ -1125,8 +1135,8 @@ static CVOID__PROTO(shunt_variables) {
         gc_shuntVariable(*TaggedToPointer(v));
       }
     }
-    pt = NodeGlobalTop(prevcp);
-    while (HeapYounger(NodeGlobalTop(cp),pt)) {
+    pt = GCNodeGlobalTop(prevcp);
+    while (HeapYounger(GCNodeGlobalTop(cp),pt)) {
       tagged_t v = *pt++;
       if (v&QMask) {
         pt += LargeArity(v);
@@ -1144,7 +1154,7 @@ static CVOID__PROTO(shunt_variables) {
     /* shunt frame vars */
     i = FrameSize(cp->next_insn);
     frame = cp->frame;
-    while (OffStacktop(frame,NodeLocalTop(prevcp))) {
+    while (OffStacktop(frame,GCNodeLocalTop(prevcp))) {
       pt = (tagged_t *)StackCharOffset(frame,i);
       while (pt!=frame->x) {
         pt--;
@@ -1356,8 +1366,9 @@ static CVOID__PROTO(mark_frames, choice_t *cp) {
     while (ev!=frame->x) {
       tagged_t v;
         
-      StackDecr(ev);
-      if (gc_IsMarked(v = *ev)) return;
+      ev += -StackDir;
+      v = *ev;
+      if (gc_IsMarked(v)) return;
       if (IsHeapPtr(v)) {
         MarkRoot(ev);
       } else {
@@ -1500,8 +1511,9 @@ static CVOID__PROTO(sweep_frames, choice_t *cp) {
     while (ev!=frame->x) {
       tagged_t v, *p;
         
-      StackDecr(ev);
-      if (!gc_IsMarked(v = *ev)) return;
+      ev += -StackDir;
+      v = *ev;
+      if (!gc_IsMarked(v)) return;
       gc_UnmarkM(*ev);
       p = TaggedToPointer(v);
       if (IsHeapPtr(v) && GC_HEAP_IN_SEGMENT(p)) {
@@ -1579,7 +1591,7 @@ static CVOID__PROTO(compress_heap) {
     cp->heap_top = dest;
     cp=ChoiceCont(cp);
         
-    while (HeapYounger(curr,NodeGlobalTop(cp))) {
+    while (HeapYounger(curr,GCNodeGlobalTop(cp))) {
       curr--;
       cv = *curr;
       if (cv&QMask) {     /* skip to box header */
