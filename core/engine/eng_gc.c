@@ -595,13 +595,9 @@ CVOID__PROTO(stack_overflow) {
 
   UpdateLocalTop(w->choice,G->frame);
 
-  count = StackDifference(Stack_Start,Stack_End);
-
-  newh = checkrealloc_ARRAY(tagged_t,
-                            count,
-                            2*count,
-                            Stack_Start);
-  count = 2*StackDifference(Stack_Start,Stack_End);
+  count = StackCharSize();
+  newh = REALLOC_AREA(Stack_Start, count, 2*count);
+  count = 2*StackCharSize();
   DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing STACK from %p to %p\n", (intmach_t)Thread_Id, Stack_Start, newh);
 
   reloc_factor = (char *)newh - (char *)Stack_Start;
@@ -611,7 +607,7 @@ CVOID__PROTO(stack_overflow) {
 
   /* Final adjustments */
   Stack_Start = newh; /* new low bound */
-  Stack_End = newh+count; /* new high bound */
+  Stack_End = (tagged_t *)StackCharOffset(newh, count); /* new high bound */
 #if defined(USE_GC_STATS)          
   ciao_stats.ss_local++;
   tick0 = RunTickFunc()-tick0;
@@ -1697,11 +1693,11 @@ CVOID__PROTO(gc__heap_collect) {
     TRACE_PRINTF("Stack:  from %p to %p (total size = %" PRIdm ")\n",
                  Stack_Start, 
                  Stack_End,
-                 (intmach_t)StackDifference(Stack_Start, Stack_End));
+                 (intmach_t)StackCharSize());
     TRACE_PRINTF("        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
                  w->local_top, 
-                 (intmach_t)StackDifference(Stack_Start,w->local_top),
-                 (intmach_t)StackDifference(w->local_top, Stack_End));
+                 (intmach_t)StackCharUsed(w->local_top),
+                 (intmach_t)StackCharAvailable(w->local_top));
     TRACE_PRINTF("        GC start at %p\n", 
                  gc_StackStart);
 

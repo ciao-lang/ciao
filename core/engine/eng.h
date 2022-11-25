@@ -1782,6 +1782,10 @@ struct marker_ {
 #define StackNext(P)            (*(P)++)
 #define StackDecr(P)            (--(P))
 
+#define StackCharAvailable(Top) StackCharDifference((Top), Stack_End)
+#define StackCharUsed(Top) StackCharDifference(Stack_Start, (Top))
+#define StackCharSize() StackCharAvailable(Stack_Start)
+
 /* THE TRAIL */
 
 /* assuming trail growth in positive direction */
