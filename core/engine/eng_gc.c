@@ -209,7 +209,6 @@ bool_t is_remote_HeapTerm(tagged_t term, worker_t *w, worker_t *remote_w) {
 
 /* ------------------------------------------------------------------------- */
 
-#if defined(OPTIM_COMP)
 /* Do DO for each frame variable (*PTR) of each frame between the
    initial frame in CP and END_FRAME. */
 #define ForEachChoiceFrameX(CP, END_FRAME, PTR, DO) { \
@@ -253,7 +252,6 @@ bool_t is_remote_HeapTerm(tagged_t term, worker_t *w, worker_t *remote_w) {
     DO; \
   } \
 })
-#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -676,14 +674,10 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
     i = FrameSize(n->next_insn);
     frame = n->frame;
     while (frame >= (frame_t*)GCNodeLocalTop(n2)) {
-      {
-        TG_Let(pt1, (tagged_t *)StackCharOffset(frame,i));
-        while (pt1!=frame->x){
-          pt1--;
-          TG_Fetch(pt1);
-          RelocateIfSVA(pt1, reloc_factor);
-        }
-      }
+      ForEachFrameX(frame, i, pt1, {
+        TG_Fetch(pt1);
+        RelocateIfSVA(pt1, reloc_factor);
+      });
       if (frame->frame) {
         AssignRelocPtr(frame->frame, reloc_factor);
         i = FrameSize(frame->next_insn);
@@ -939,12 +933,10 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     i = FrameSize(n->next_insn);
     frame = n->frame;
     while ((frame >= (frame_t*)GCNodeLocalTop(n2)) && frame->next_insn != NULL) {
-      TG_Let(pt1, (tagged_t *)StackCharOffset(frame,i));
-      while (pt1!=frame->x) {
-        --pt1;
+      ForEachFrameX(frame, i, pt1, {
         TG_Fetch(pt1);
         RelocateIfHeapPtr(pt1, reloc_factor);
-      }
+      });
       i = FrameSize(frame->next_insn);
       frame = frame->frame;
     } 
@@ -1080,9 +1072,11 @@ static CVOID__PROTO(compress_heap);
 
 #define gc_shuntVariable(shunt_dest) { \
   tagged_t shunt_src; \
-  while (IsVar(shunt_dest) && \
-         !gc_IsMarked(shunt_src = *TaggedToPointer(shunt_dest)) && \
-         shunt_src!=shunt_dest) { \
+  while (1) { \
+    if (!IsVar(shunt_dest)) break; \
+    shunt_src = *TaggedToPointer(shunt_dest); \
+    if (gc_IsMarked(shunt_src)) break; \
+    if (shunt_src==shunt_dest) break; \
     shunt_dest = shunt_src; \
   } \
 }
@@ -1155,13 +1149,12 @@ static CVOID__PROTO(shunt_variables) {
     i = FrameSize(cp->next_insn);
     frame = cp->frame;
     while (OffStacktop(frame,GCNodeLocalTop(prevcp))) {
-      pt = (tagged_t *)StackCharOffset(frame,i);
-      while (pt!=frame->x) {
-        pt--;
-        if (!gc_IsMarked(*pt)) {
+      ForEachFrameX(frame, i, pt, {
+        ptval = *pt;
+        if (!gc_IsMarked(ptval)) {
           gc_shuntVariable(*pt);
         }
-      }
+      });
       i = FrameSize(frame->next_insn);
       frame = frame->frame;
     }
@@ -1359,22 +1352,17 @@ static CVOID__PROTO(mark_frames, choice_t *cp) {
   frame_t *frame = cp->frame;
   bcp_t l = cp->next_insn;
   /* Mark frame chain */
-  tagged_t *ev;
 
   while (OffStacktop(frame,Gc_Stack_Start)) {
-    ev = (tagged_t *)StackCharOffset(frame,FrameSize(l));
-    while (ev!=frame->x) {
-      tagged_t v;
-        
-      ev += -StackDir;
-      v = *ev;
-      if (gc_IsMarked(v)) return;
-      if (IsHeapPtr(v)) {
+    ForEachFrameX(frame, FrameSize(l), ev, {
+      evval = *ev;
+      if (gc_IsMarked(evval)) return;
+      if (IsHeapPtr(evval)) {
         MarkRoot(ev);
       } else {
         gc_MarkM(*ev);
       }
-    }
+    });
     l = frame->next_insn;
     frame = frame->frame;
   }
@@ -1504,22 +1492,18 @@ static CVOID__PROTO(sweep_frames, choice_t *cp) {
   frame_t *frame = cp->frame;
   bcp_t l = cp->next_insn;
   /* sweep frame chain */
-  tagged_t *ev;
 
   while (OffStacktop(frame,Gc_Stack_Start)) {
-    ev = (tagged_t *)StackCharOffset(frame,FrameSize(l));
-    while (ev!=frame->x) {
-      tagged_t v, *p;
-        
-      ev += -StackDir;
-      v = *ev;
-      if (!gc_IsMarked(v)) return;
+    ForEachFrameX(frame, FrameSize(l), ev, {
+      tagged_t *p;
+      evval = *ev;
+      if (!gc_IsMarked(evval)) return;
       gc_UnmarkM(*ev);
-      p = TaggedToPointer(v);
-      if (IsHeapPtr(v) && GC_HEAP_IN_SEGMENT(p)) {
+      p = TaggedToPointer(evval);
+      if (IsHeapPtr(evval) && GC_HEAP_IN_SEGMENT(p)) {
         intoRelocationChain(p,ev);
       }
-    }
+    });
     l = frame->next_insn;
     frame = frame->frame;
   }
