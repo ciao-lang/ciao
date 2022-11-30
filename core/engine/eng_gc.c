@@ -656,21 +656,15 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
 
   /* relocate pointers in choice&env stks */
   for (n=aux_choice; n!=InitialChoice; n=n2){
+    ForEachChoiceX(n, ptr, {
+      TG_Fetch(ptr);
+      RelocateIfSVA(ptr, reloc_factor);
+    });
+      
     n2 = ChoiceCont(n);
     //Tabling --> How to translate?
     AssignRelocPtr(n2->local_top, reloc_factor);
     AssignRelocPtr(n2->frame, reloc_factor);
-
-    //use ForEachChoiceX
-    {
-      TG_Let(pt1, n->x);
-      for (; pt1!=(tagged_t *)n2;) {
-        TG_Fetch(pt1);
-        RelocateIfSVA(pt1, reloc_factor);
-        pt1++;
-      }
-    }
-      
     i = FrameSize(n->next_insn);
     frame = n->frame;
     while (frame >= (frame_t*)GCNodeLocalTop(n2)) {
@@ -678,13 +672,16 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
         TG_Fetch(pt1);
         RelocateIfSVA(pt1, reloc_factor);
       });
-      if (frame->frame) {
-        AssignRelocPtr(frame->frame, reloc_factor);
-        i = FrameSize(frame->next_insn);
-        frame = frame->frame;
-      } else {
-        frame = NULL;
+      if (!frame->frame) {
+        /* TODO:[oc-merge] this is never reached in practice since the
+           youngest GCNodeLocalTop(n2) is Offset(Stack_Start,EToY0)
+           and not Stack_Start (see local_init_each_time at
+           eng_registry.c) */
+        break;
       }
+      AssignRelocPtr(frame->frame, reloc_factor);
+      i = FrameSize(frame->next_insn);
+      frame = frame->frame;
     }
   }
 
@@ -1489,12 +1486,11 @@ static void updateRelocationChain(tagged_t *curr, tagged_t *dest) {
 }
 
 static CVOID__PROTO(sweep_frames, choice_t *cp) {
-  frame_t *frame = cp->frame;
-  bcp_t l = cp->next_insn;
   /* sweep frame chain */
-
+  frame_t *frame = cp->frame;
+  intmach_t FRAME_SIZE = FrameSize(cp->next_insn);
   while (OffStacktop(frame,Gc_Stack_Start)) {
-    ForEachFrameX(frame, FrameSize(l), ev, {
+    ForEachFrameX(frame, FRAME_SIZE, ev, {
       tagged_t *p;
       evval = *ev;
       if (!gc_IsMarked(evval)) return;
@@ -1504,7 +1500,7 @@ static CVOID__PROTO(sweep_frames, choice_t *cp) {
         intoRelocationChain(p,ev);
       }
     });
-    l = frame->next_insn;
+    FRAME_SIZE = FrameSize(frame->next_insn);
     frame = frame->frame;
   }
 }
