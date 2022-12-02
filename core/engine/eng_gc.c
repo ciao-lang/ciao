@@ -211,7 +211,7 @@ bool_t is_remote_HeapTerm(tagged_t term, worker_t *w, worker_t *remote_w) {
 
 /* Do DO for each frame variable (*PTR) of each frame between the
    initial frame in CP and END_FRAME. */
-#define ForEachChoiceFrameX(CP, END_FRAME, PTR, DO) { \
+#define ForEachChoiceFrameX(CP, END_FRAME, PTR, DO) do { \
   frame_t *FRAME = (CP)->frame; \
   intmach_t FRAME_SIZE = FrameSize((CP)->next_insn); \
   while (OffStacktop((FRAME), (END_FRAME))) { \
@@ -219,19 +219,31 @@ bool_t is_remote_HeapTerm(tagged_t term, worker_t *w, worker_t *remote_w) {
     (FRAME_SIZE) = FrameSize((FRAME)->next_insn); \
     (FRAME) = (FRAME)->frame; \
   } \
-}
+} while(0)
+
+/* (same with optional code after each frame) */
+#define ForEachChoiceFrameXf(CP, END_FRAME, PTR, DO, FRAME, DOFrame) do { \
+  frame_t *FRAME = (CP)->frame; \
+  intmach_t FRAME_SIZE = FrameSize((CP)->next_insn); \
+  while ((FRAME) >= (END_FRAME)) { \
+    ForEachFrameX((FRAME), (FRAME_SIZE), PTR, DO); \
+    DOFrame; \
+    (FRAME_SIZE) = FrameSize((FRAME)->next_insn); \
+    (FRAME) = (FRAME)->frame; \
+  } \
+} while(0)
 
 /* Do DO for each frame variable (*PTR) */
-#define ForEachFrameX(FRAME, FRAME_SIZE, PTR, DO) { \
+#define ForEachFrameX(FRAME, FRAME_SIZE, PTR, DO) do { \
   TG_Let(PTR, (tagged_t *)StackCharOffset((FRAME), (FRAME_SIZE))); \
   while (PTR != (FRAME)->x) { \
     PTR += -StackDir; \
     DO; \
   } \
-}
+} while(0)
 
 /* Do DO for each variable CHOICE->x[I] in the choice point */
-#define ForEachChoiceX(CHOICE, PTR, DO) ({ \
+#define ForEachChoiceX(CHOICE, PTR, DO) do { \
   intmach_t i; \
   i = ChoiceArity((CHOICE)); \
   TG_Let(PTR, &(CHOICE)->x[i]); \
@@ -241,17 +253,17 @@ bool_t is_remote_HeapTerm(tagged_t term, worker_t *w, worker_t *remote_w) {
     PTR--; \
     DO; \
   } \
-})
+} while(0)
 // TODO: use this one?
 // #define ForEachChoiceX(CHOICE, PTR, DO) ForEachChoiceX2(CHOICE, ChoiceArity((CHOICE)), PTR, DO) 
 /* Do DO for each variable CHOICE->x[I] in the choice point */
-#define ForEachChoiceX2(CHOICE, ARITY, PTR, DO) ({ \
+#define ForEachChoiceX2(CHOICE, ARITY, PTR, DO) do { \
   TG_Let(PTR, (CHOICE)->x + (ARITY)); \
   while (PTR != (CHOICE->x)) { \
     PTR--; \
     DO; \
   } \
-})
+} while(0)
 
 /* ------------------------------------------------------------------------- */
 
@@ -635,8 +647,6 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
 
   choice_t *n, *n2;
   choice_t *aux_choice;
-  frame_t *frame;
-  intmach_t i;
 
   aux_choice = ChoiceNext0(w->choice,0);
   aux_choice->next_alt = fail_alt;
@@ -655,7 +665,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
   }
 
   /* relocate pointers in choice&env stks */
-  for (n=aux_choice; n!=InitialChoice; n=n2){
+  for (n=aux_choice; n!=InitialChoice; n=n2) {
     ForEachChoiceX(n, ptr, {
       TG_Fetch(ptr);
       RelocateIfSVA(ptr, reloc_factor);
@@ -665,13 +675,10 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
     //Tabling --> How to translate?
     AssignRelocPtr(n2->local_top, reloc_factor);
     AssignRelocPtr(n2->frame, reloc_factor);
-    i = FrameSize(n->next_insn);
-    frame = n->frame;
-    while (frame >= (frame_t*)GCNodeLocalTop(n2)) {
-      ForEachFrameX(frame, i, pt1, {
-        TG_Fetch(pt1);
-        RelocateIfSVA(pt1, reloc_factor);
-      });
+    ForEachChoiceFrameXf(n, GCNodeLocalTop(n2), pt1, {
+      TG_Fetch(pt1);
+      RelocateIfSVA(pt1, reloc_factor);
+    }, frame, {
       if (!frame->frame) {
         /* TODO:[oc-merge] this is never reached in practice since the
            youngest GCNodeLocalTop(n2) is Offset(Stack_Start,EToY0)
@@ -680,9 +687,7 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor) {
         break;
       }
       AssignRelocPtr(frame->frame, reloc_factor);
-      i = FrameSize(frame->next_insn);
-      frame = frame->frame;
-    }
+    });
   }
 
   G->frame = aux_choice->frame;
@@ -831,8 +836,6 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 
   choice_t *n, *n2;
   choice_t *aux_choice;
-  frame_t *frame;
-  intmach_t i;
 
   aux_choice = ChoiceNext0(w->choice,0);
   aux_choice->next_alt = fail_alt;
@@ -916,8 +919,11 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 #endif
 
   /* relocate pointers in choice&env stks */
+  //  HERE use macros (see FrameSize) and check if next_alt and next_insn can be null
+
   n2 = NULL;
-  for (n=aux_choice; n!=InitialChoice && n->next_alt!=NULL; n=n2) { // TODO: can n->next_alt  be NULL?
+  for (n=aux_choice; n!=InitialChoice; n=n2) { // TODO: can n->next_alt  be NULL?
+    if (n->next_alt == NULL) { fprintf(stderr, "{BUG: this should not happen}\n"); break; }
     n2 = ChoiceCont(n);
     {
       TG_Let(pt1, n->x);
@@ -927,16 +933,22 @@ CVOID__PROTO(heap_overflow_adjust_wam,
         pt1++;
       }
     }
-    i = FrameSize(n->next_insn);
-    frame = n->frame;
-    while ((frame >= (frame_t*)GCNodeLocalTop(n2)) && frame->next_insn != NULL) {
-      ForEachFrameX(frame, i, pt1, {
-        TG_Fetch(pt1);
-        RelocateIfHeapPtr(pt1, reloc_factor);
-      });
-      i = FrameSize(frame->next_insn);
-      frame = frame->frame;
-    } 
+    {
+      // SEE: which introdices NodeLocalTop https://gitlab.software.imdea.org/ciao-lang/ciao-devel/-/commit/821b021450194cd45897964b27416b524204b0f2
+      // Useless checks introduced here: https://gitlab.software.imdea.org/ciao-lang/ciao-devel/-/commit/e295deb5cf06f7cf4a55ef9d7c17ec291c93b1b1 (n->next_alt == NULL and frame->next_insn == NULL
+
+      frame_t *frame = n->frame;
+      intmach_t i = FrameSize(n->next_insn);
+      while ((frame >= (frame_t*)GCNodeLocalTop(n2))) {
+        if (frame->next_insn == NULL) { fprintf(stderr, "{BUG: this should not happen}\n"); break; }
+        ForEachFrameX(frame, i, pt1, {
+            TG_Fetch(pt1);
+            RelocateIfHeapPtr(pt1, reloc_factor);
+          });
+        i = FrameSize(frame->next_insn);
+        frame = frame->frame;
+      } 
+    }
 
     // TODO: TABLING ->> How to translate???
     AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
@@ -1083,9 +1095,7 @@ static CVOID__PROTO(shunt_variables) {
   choice_t *cp;
   choice_t *prevcp;
   intmach_t arity MAYBE_UNUSED;
-  intmach_t i;
   tagged_t *limit;
-  frame_t *frame;
 
   CHOICE_PASS(cp, prevcp, arity, {
     /* backward pass */
@@ -1143,18 +1153,12 @@ static CVOID__PROTO(shunt_variables) {
       }
     }
     /* shunt frame vars */
-    i = FrameSize(cp->next_insn);
-    frame = cp->frame;
-    while (OffStacktop(frame,GCNodeLocalTop(prevcp))) {
-      ForEachFrameX(frame, i, pt, {
-        ptval = *pt;
-        if (!gc_IsMarked(ptval)) {
-          gc_shuntVariable(*pt);
-        }
-      });
-      i = FrameSize(frame->next_insn);
-      frame = frame->frame;
-    }
+    ForEachChoiceFrameX(cp, GCNodeLocalTop(prevcp), pt, {
+      ptval = *pt;
+      if (!gc_IsMarked(ptval)) {
+        gc_shuntVariable(*pt);
+      }
+    });
         
     /* shunt choice vars */
     pt = cp->x+arity;
@@ -1346,23 +1350,16 @@ static CVOID__PROTO(mark_trail_cva) {
 /* A frame slot is marked iff it is in the chain of environments for
    one of the frozen execution states, regardless of contents. */
 static CVOID__PROTO(mark_frames, choice_t *cp) {
-  frame_t *frame = cp->frame;
-  bcp_t l = cp->next_insn;
   /* Mark frame chain */
-
-  while (OffStacktop(frame,Gc_Stack_Start)) {
-    ForEachFrameX(frame, FrameSize(l), ev, {
-      evval = *ev;
-      if (gc_IsMarked(evval)) return;
-      if (IsHeapPtr(evval)) {
-        MarkRoot(ev);
-      } else {
-        gc_MarkM(*ev);
-      }
-    });
-    l = frame->next_insn;
-    frame = frame->frame;
-  }
+  ForEachChoiceFrameX(cp, Gc_Stack_Start, ev, {
+    evval = *ev;
+    if (gc_IsMarked(evval)) return;
+    if (IsHeapPtr(evval)) {
+      MarkRoot(ev);
+    } else {
+      gc_MarkM(*ev);
+    }
+  });
 }
 
 /* A choicepoint slot is marked iff it contains a heap reference. */
@@ -1487,22 +1484,16 @@ static void updateRelocationChain(tagged_t *curr, tagged_t *dest) {
 
 static CVOID__PROTO(sweep_frames, choice_t *cp) {
   /* sweep frame chain */
-  frame_t *frame = cp->frame;
-  intmach_t FRAME_SIZE = FrameSize(cp->next_insn);
-  while (OffStacktop(frame,Gc_Stack_Start)) {
-    ForEachFrameX(frame, FRAME_SIZE, ev, {
-      tagged_t *p;
-      evval = *ev;
-      if (!gc_IsMarked(evval)) return;
-      gc_UnmarkM(*ev);
-      p = TaggedToPointer(evval);
-      if (IsHeapPtr(evval) && GC_HEAP_IN_SEGMENT(p)) {
-        intoRelocationChain(p,ev);
-      }
-    });
-    FRAME_SIZE = FrameSize(frame->next_insn);
-    frame = frame->frame;
-  }
+  ForEachChoiceFrameX(cp, Gc_Stack_Start, ev, {
+    tagged_t *p;
+    evval = *ev;
+    if (!gc_IsMarked(evval)) return;
+    gc_UnmarkM(*ev);
+    p = TaggedToPointer(evval);
+    if (IsHeapPtr(evval) && GC_HEAP_IN_SEGMENT(p)) {
+      intoRelocationChain(p,ev);
+    }
+  });
 }
 
 /* Sweep choicepoints, corresponding chains of frames and trail */
