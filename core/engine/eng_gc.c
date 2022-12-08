@@ -745,7 +745,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
        HeapCharDifference(Heap_Start,oldh) >= GCMARGIN_CHARS)) {
     CVOID__CALL(gc__heap_collect);
     newh = G->heap_top;
-    lowboundh = newh-Gc_Total_Grey;
+    lowboundh = HeapCharOffset(newh, -Gc_Total_Grey);
     if (!gc &&
         (HeapCharDifference(newh,oldh) < GCMARGIN_CHARS ||
          HeapYounger(HeapCharOffset(newh,pad),Heap_End)) &&
@@ -776,7 +776,6 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
     newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
 
     newh = (tagged_t *)checkrealloc_ARRAY(char, oldcount, newcount, Heap_Start);
-
     DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing HEAP from %p to %p\n", (intmach_t)Thread_Id, Heap_Start, newh);
 
     reloc_factor = (char *)newh - (char *)Heap_Start;
@@ -858,6 +857,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
         pt1 += LargeArity(TG_Val(pt1)) + 1;
       } else {
         RelocateIfHeapPtr(pt1, reloc_factor);
+        /* TODO: check that the written tagged is ok? */
         pt1++;
       }
     }
@@ -1227,7 +1227,7 @@ static CVOID__PROTO(mark_root, tagged_t *start) {
   goto first_forward;
  forward:
   if (gc_IsMarked(*current)) goto backward;
-  found++;
+  found += sizeof(tagged_t);
  first_forward:
   gc_MarkM(*current);
   if (GC_HEAP_IN_SEGMENT(next)) {
@@ -1267,11 +1267,12 @@ static CVOID__PROTO(mark_root, tagged_t *start) {
       TG_Reverse(current,next);
       goto forward;
     case STR:
-      if (gc_IsMarked(*next)) {
-      } else if (*next&QMask) { /* box */
+      if (gc_IsMarked(*next)) goto backward;
+      if (*next&QMask) { /* box */
         intmach_t ar = LargeArity(*next);
         gc_MarkM(*next);
-        found += ar+1;
+        found += (ar+1)*sizeof(tagged_t);
+        goto backward;
       } else if (!gc_IsFirst(*(next+1))) {
         intmach_t n;
         for (n = Arity(*next); n>0; --n) {
@@ -1280,6 +1281,8 @@ static CVOID__PROTO(mark_root, tagged_t *start) {
         }
         TG_Reverse(current,next);
         goto forward;
+      } else {
+        goto backward;
       }
     default: /* all other treated as constants */
       goto backward;
@@ -1552,7 +1555,7 @@ static CVOID__PROTO(compress_heap) {
   tagged_t cv;
   choice_t *cp = Gc_Aux_Choice;
   tagged_t *curr = G->heap_top;
-  tagged_t *dest = HeapOffset(Gc_Heap_Start,Total_Found);
+  tagged_t *dest = HeapCharOffset(Gc_Heap_Start,Total_Found);
   intmach_t garbage_words = 0;
   intmach_t extra;
 
@@ -1739,11 +1742,10 @@ CVOID__PROTO(gc__heap_collect) {
   flt64_t t2 = RunTickFunc();
   flt64_t mark_time = t2 - t1;
   if (current_gctrace == GCTRACE__VERBOSE) {
-    TRACE_PRINTF("        mark: %" PRIdm " cells marked in %.3f sec\n",
+    TRACE_PRINTF("        mark: %" PRIdm " bytes marked in %.3f sec\n",
                  Total_Found,((flt64_t)mark_time)/RunClockFreq(ciao_stats));
 #if defined(USE_SEGMENTED_GC)
-    TRACE_PRINTF("        no more than %" PRIdm " garbage cells left\n",
-                 Gcgrey);
+    TRACE_PRINTF("{GC}  no more than %" PRIdm " garbage bytes left\n", Gcgrey);
 #endif
   }
 #endif
