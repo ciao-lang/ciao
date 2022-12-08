@@ -918,12 +918,15 @@ CVOID__PROTO(heap_overflow_adjust_wam,
   }
 #endif
 
+#if defined(ANDPARALLEL)
+#warning "Superfluous checks introduced in 821b021450194cd45897964b27416b524204b0f2 and e295deb5cf06f7cf4a55ef9d7c17ec291c93b1b1 were removed (please check)"
+#endif
+
   /* relocate pointers in choice&env stks */
   //  HERE use macros (see FrameSize) and check if next_alt and next_insn can be null
 
   n2 = NULL;
   for (n=aux_choice; n!=InitialChoice; n=n2) { // TODO: can n->next_alt  be NULL?
-    if (n->next_alt == NULL) { fprintf(stderr, "{BUG: this should not happen}\n"); break; }
     n2 = ChoiceCont(n);
     {
       TG_Let(pt1, n->x);
@@ -934,13 +937,9 @@ CVOID__PROTO(heap_overflow_adjust_wam,
       }
     }
     {
-      // SEE: which introdices NodeLocalTop https://gitlab.software.imdea.org/ciao-lang/ciao-devel/-/commit/821b021450194cd45897964b27416b524204b0f2
-      // Useless checks introduced here: https://gitlab.software.imdea.org/ciao-lang/ciao-devel/-/commit/e295deb5cf06f7cf4a55ef9d7c17ec291c93b1b1 (n->next_alt == NULL and frame->next_insn == NULL
-
       frame_t *frame = n->frame;
       intmach_t i = FrameSize(n->next_insn);
       while ((frame >= (frame_t*)GCNodeLocalTop(n2))) {
-        if (frame->next_insn == NULL) { fprintf(stderr, "{BUG: this should not happen}\n"); break; }
         ForEachFrameX(frame, i, pt1, {
             TG_Fetch(pt1);
             RelocateIfHeapPtr(pt1, reloc_factor);
