@@ -443,7 +443,7 @@ CFUN__PROTO(rewrite_instr, bcp_t, bcp_t p, bcp_t begin) {
         w->heap_top = h;
       });
       //      p = BCoff(p, BlobFunctorSizeAligned(*(tagged_t *)p)+sizeof(functor_t));
-      p = BCoff(p, BlobFunctorSizeAligned((tagged_t *)p));
+      p = BCoff(p, BlobFunctorSizeAligned(*(tagged_t *)p)+sizeof(functor_t));
       break;
     default:
       TRACE_REWRITE({ fprintf(stderr, "?"); });
@@ -605,7 +605,7 @@ CVOID__PROTO(dump_instr, bcp_t p) {
         w->heap_top = h;
       }
       fprintf(stderr, "%llx\n", *(tagged_t *)p);
-      p = BCoff(p, BlobFunctorSizeAligned((tagged_t *)p));
+      p = BCoff(p, BlobFunctorSizeAligned(*(tagged_t *)p)+sizeof(functor_t));
       break;
     default:
       fprintf(stderr, "?");

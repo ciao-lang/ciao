@@ -979,6 +979,9 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 /* LargeArity() in bytes */
 #define LargeSize(X)    ((PointerPart(X)>>tagged__atm_offset)*sizeof(tagged_t))
 
+/* Pre: any tagged; Post: a functor for STR(blob(bignum)) or STR(blob(float)) */
+#define BlobHF(F) ((F) & QMask)
+
 #define BlobFunctorBignum(L) ((bignum_t)(TagIndexDiff((L))+TagIndex(ATM,1)+QMask))
 #define FunctorBignumValue(T) (((T) - BlobFunctorBignum(0))>>tagged__atm_offset)
 
@@ -1042,8 +1045,9 @@ CFUN__PROTO(make_structure, tagged_t, tagged_t functor);
 #define BignumFunctorSizeAligned(X) BignumFunctorSize((X))
 #endif
 
-/* TODO: hack */
-#define BlobFunctorSize(X) (LargeArity(*((tagged_t *)(X))) * sizeof(tagged_t))
+/* Length in bytes of unboxed data */
+/* TODO:[oc-merge] LargeArity is 1+no of untyped words, must substract 1 */
+#define BlobFunctorSize(X) (LargeArity((X)) * sizeof(tagged_t) - sizeof(tagged_t))
 
 /* Create and compare large numbers from bytecode.
 
@@ -1765,6 +1769,8 @@ struct marker_ {
 
 /* H: heap top */
 #define HeapCharAvailable(H) HeapCharDifference((H),Heap_End)
+
+#define HeapCharSize() HeapCharAvailable(Heap_Start)
 
 #define Heap_Warn_Pad(PAD) HeapCharOffset(Heap_End,-(PAD))
 

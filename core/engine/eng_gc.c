@@ -121,6 +121,8 @@
 
 /* --------------------------------------------------------------------------- */
 
+#define PtrCharInc(X,I) (X) = CharOffset((X), (I))
+
 #define RelocateIfSVA(PTR, RelocFactor) \
   if (TaggedIsSVA(TG_Val(PTR))) { \
     RelocateTagged(PTR, RelocFactor); \
@@ -748,9 +750,9 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
     lowboundh = HeapCharOffset(newh, -Gc_Total_Grey);
     if (!gc &&
         (HeapCharDifference(newh,oldh) < GCMARGIN_CHARS ||
-         HeapYounger(HeapCharOffset(newh,pad),Heap_End)) &&
+         HeapCharAvailable(newh) < pad) &&
         !(HeapCharDifference(lowboundh,oldh) < GCMARGIN_CHARS ||
-          HeapYounger(HeapCharOffset(lowboundh,pad),Heap_End))) {
+          HeapCharAvailable(lowboundh) < pad)) {
       /* garbage collect the entire heap */
       w->segment_choice = InitialChoice;
       CVOID__CALL(gc__heap_collect);
@@ -759,7 +761,7 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
   }
   if ((!gc &&
        HeapCharDifference(newh,oldh) < GCMARGIN_CHARS) ||
-      HeapYounger(HeapCharOffset(newh,pad),Heap_End)) {
+      HeapCharAvailable(newh) < pad) {
 #if defined(USE_GC_STATS)          
     flt64_t tick0 = RunTickFunc();
 #endif
@@ -771,11 +773,11 @@ CVOID__PROTO(heap_overflow, intmach_t pad) {
     
     UpdateLocalTop(w->choice,G->frame);
     
-    mincount = pad - HeapCharDifference(G->heap_top,Heap_End);
-    oldcount = HeapCharDifference(Heap_Start,Heap_End);
+    mincount = pad - HeapCharAvailable(G->heap_top);
+    oldcount = HeapCharSize();
     newcount = oldcount + (oldcount<mincount ? mincount : oldcount);
 
-    newh = (tagged_t *)checkrealloc_ARRAY(char, oldcount, newcount, Heap_Start);
+    newh = REALLOC_AREA(Heap_Start, oldcount, newcount);
     DEBUG__TRACE(debug_gc, "Thread %" PRIdm " is reallocing HEAP from %p to %p\n", (intmach_t)Thread_Id, Heap_Start, newh);
 
     reloc_factor = (char *)newh - (char *)Heap_Start;
@@ -853,8 +855,8 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     AssignRelocPtrNotRemote(G->heap_top, reloc_factor);
     while (HeapYounger(G->heap_top,pt1)) {
       TG_Fetch(pt1);
-      if (TG_Val(pt1)&QMask) {
-        pt1 += LargeArity(TG_Val(pt1)) + 1;
+      if (BlobHF(TG_Val(pt1))) {
+        PtrCharInc(pt1, BlobFunctorSizeAligned(TG_Val(pt1))+2*sizeof(functor_t));
       } else {
         RelocateIfHeapPtr(pt1, reloc_factor);
         /* TODO: check that the written tagged is ok? */
@@ -865,23 +867,33 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 
 #if defined(USE_GLOBAL_VARS)
   /* relocate pointers in global vars root */
-  if (IsHeapPtr(GLOBAL_VARS_ROOT)) {
-    GLOBAL_VARS_ROOT += reloc_factor;
+  {
+    TG_Let(pt1, &GLOBAL_VARS_ROOT);
+    TG_Fetch(pt1);
+    RelocateIfHeapPtr(pt1, reloc_factor);
   }
+#endif
+
+  /* push special registers on the trail stack */
+#if !defined(OPTIM_COMP)
+  TrailPush(G->trail_top,Current_Debugger_State);
 #endif
 
   /* relocate pointers in trail stk */
   {
     TG_Let(pt1, Trail_Start);
-    TrailPush(w->trail_top,Current_Debugger_State);
-    while (TrailYounger(w->trail_top,pt1)) {
+    while (TrailYounger(G->trail_top,pt1)) {
       TG_Fetch(pt1);
       RelocateIfHeapPtr(pt1, reloc_factor);
-      pt1++;
+      pt1 += TrailDir;
     }
   }
-  TrailDec(w->trail_top);
-  Current_Debugger_State = *(w->trail_top); // (w->trail_top points to the popped element)
+
+  /* pop special registers from the trail stack */
+#if !defined(OPTIM_COMP)
+  TrailDec(G->trail_top);
+  Current_Debugger_State = *(G->trail_top); // (w->trail_top points to the popped element)
+#endif
 
 #if defined(ANDPARALLEL)
   /* relocate pointers in goal list */
@@ -923,19 +935,22 @@ CVOID__PROTO(heap_overflow_adjust_wam,
 #endif
 
   /* relocate pointers in choice&env stks */
-  //  HERE use macros (see FrameSize) and check if next_alt and next_insn can be null
+  for (n=aux_choice; n!=InitialChoice; n=n2) {
+    ForEachChoiceX(n, ptr, {
+      TG_Fetch(ptr);
+      RelocateIfHeapPtr(ptr, reloc_factor);
+    });
 
-  n2 = NULL;
-  for (n=aux_choice; n!=InitialChoice; n=n2) { // TODO: can n->next_alt  be NULL?
     n2 = ChoiceCont(n);
-    {
-      TG_Let(pt1, n->x);
-      for (; pt1!=(tagged_t *)n2;) {
-        TG_Fetch(pt1);
-        RelocateIfHeapPtr(pt1, reloc_factor);
-        pt1++;
-      }
-    }
+//    n2 = ChoiceCont(n);
+//    {
+//      TG_Let(pt1, n->x);
+//      for (; pt1!=(tagged_t *)n2;) {
+//        TG_Fetch(pt1);
+//        RelocateIfHeapPtr(pt1, reloc_factor);
+//        pt1++;
+//      }
+//    }
     {
       frame_t *frame = n->frame;
       intmach_t i = FrameSize(n->next_insn);
@@ -1641,7 +1656,6 @@ static CVOID__PROTO(compress_heap) {
   }
   G->heap_top = dest;
 }
-
 
 /* ------------------------------------------------------------------------- */
 /* The main garbage collection routine */
