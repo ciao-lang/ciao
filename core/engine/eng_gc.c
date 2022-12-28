@@ -125,35 +125,6 @@
 
 /* --------------------------------------------------------------------------- */
 
-#if !defined(OPTIM_COMP)
-#define TG_Let(X, Ptr) tagged_t *X=(Ptr); tagged_t X##val
-#define TG_Val(X) X##val
-#define TG_Fetch(X) ({ TG_Val(X) = *(X); })
-//
-#define TG_Put(V,X) ({ *(X) = (V); })
-#define TG_PutPtr(p,dest) ({ \
-  TG_Put(gc_PutValue((tagged_t)p,*dest), dest); \
-})
-
-#define TG_SetR(X) gc_MarkF(*(X))
-#define TG_UnsetR(X) gc_UnmarkF(*(X))
-
-#define TG_SetM(X) gc_MarkM(*(X))
-#define TG_IsM(X) gc_IsMarked(TG_Val(X))
-#define TG_IsR(X) gc_IsFirst(TG_Val(X))
-#define TG_IsROrM(X) gc_IsForM(TG_Val(X))
-#define TG_UnsetM(X) gc_UnmarkM(*(X))
-#define TG_SetAll_SetM(T, X) do { gc_MarkM(T); *(X) = (T); } while(0)
-
-#define TG_MoveUNMARKED_M_UnsetM(src,dest) ({ \
-  TG_Put(src, dest); \
-})
-#define TG_MoveValue_MoveR(j,curr) TG_Put(gc_PutValueFirst(TG_Val(j),TG_Val(curr)), curr)
-#define TG_PutPtr_SetR(curr,j) TG_Put(gc_PutValueFirst((tagged_t)curr|GC_FIRSTMASK,TG_Val(j)), j)
-#endif
-
-/* --------------------------------------------------------------------------- */
-
 #define PtrCharInc(X,I) (X) = CharOffset((X), (I))
 
 #define RelocateIfSVA(PTR, RelocFactor) \
@@ -1805,7 +1776,7 @@ static CVOID__PROTO(mark_choicepoints) {
 
 #define intoRelocationChain(j,curr) do { \
   TG_Fetch(curr); \
-  TG_MoveValue_MoveR(j,curr); \
+  TG_MoveValue_MoveR(TG_Val(j),curr); \
   TG_PutPtr_SetR(curr,j); \
 } while(0)
 
@@ -1841,18 +1812,25 @@ static CVOID__PROTO(mark_choicepoints) {
 } while(0)
 #endif
 
+/* R-bit is set in *curr */
 static void updateRelocationChain(tagged_t *curr, tagged_t *dest) {
-  /* F-bit is set in *curr */
-  tagged_t c1 = *curr;
+  TG_Let(A, curr);
+  TG_Fetch(A);
+  TG_Let(j, TaggedToPointer(TG_Val(A)));
   for (;;) {
-    tagged_t *j = TaggedToPointer(c1);
-    tagged_t j1 = *j;
-    c1 = gc_PutValueFirst(j1,c1);
-    *(j) = gc_PutValueFirst((tagged_t)dest,j1);
-    /* dest is a pointer, i.e its F-bit is FALSE */
-    if (!gc_IsFirst(c1)) break;
+    TG_Fetch(j);
+    if (!TG_IsR(j)) break;
+    tagged_t c1 = TG_Val(j);
+    TG_PutPtr_UnsetR(dest,j);
+    ASSERT__VALID_TAGGED(*j);
+    j = TaggedToPointer(c1);
   }
-  *curr = c1;
+  tagged_t c1 = TG_Val(j);
+  TG_PutPtr(dest,j); /* R-bit not set in j */
+  ASSERT__VALID_TAGGED(*j);
+  TG_Fetch(A);
+  TG_MoveValue_UnsetR(c1,A);
+  ASSERT__VALID_TAGGED(*(A));
 }
 
 /* sweep frame chain */

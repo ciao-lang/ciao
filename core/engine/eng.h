@@ -1723,7 +1723,7 @@ struct marker_ {
 #endif
 
 /* ------------------------------------------------------------------------- */
-/* Extra tagged word bits for heap GC (and in term_support.c) */
+/* Pointers to tagged words with GC marks */
 
 /* Deposit Source into Mask:ed portion of Dest */
 #define Deposit(Source,Mask,Dest) (((Source)&(Mask))|((Dest)& ~(Mask)))
@@ -1745,6 +1745,34 @@ struct marker_ {
 #define gc_UnmarkF(x)  ((x)&=(~GC_FIRSTMASK))
 #define gc_PutValue(p,x) Deposit(p,POINTERMASK,x)
 #define gc_PutValueFirst(p,x) Deposit(p,POINTERMASK|GC_FIRSTMASK,x)
+
+#if !defined(OPTIM_COMP)
+#define TG_Let(X, Ptr) tagged_t *X=(Ptr); tagged_t X##val
+#define TG_Val(X) X##val
+#define TG_Fetch(X) ({ TG_Val(X) = *(X); })
+//
+#define TG_Put(V,X) ({ *(X) = (V); })
+#define TG_PutPtr(p,dest) TG_Put(gc_PutValue((tagged_t)p,TG_Val(dest)), dest)
+#define TG_PutPtr_SetR(curr,j) TG_Put(gc_PutValueFirst((tagged_t)curr|GC_FIRSTMASK,TG_Val(j)), j)
+#define TG_PutPtr_UnsetR(dest,j) TG_Put(Deposit((tagged_t)dest,POINTERMASK|GC_FIRSTMASK,TG_Val(j)), j)
+
+#define TG_SetR(X) gc_MarkF(*(X))
+#define TG_UnsetR(X) gc_UnmarkF(*(X))
+
+#define TG_SetM(X) gc_MarkM(*(X))
+#define TG_IsM(X) gc_IsMarked(TG_Val(X))
+#define TG_IsR(X) gc_IsFirst(TG_Val(X))
+#define TG_IsROrM(X) gc_IsForM(TG_Val(X))
+#define TG_UnsetM(X) gc_UnmarkM(*(X))
+#define TG_SetAll_SetM(T, X) do { gc_MarkM(T); *(X) = (T); } while(0)
+
+#define TG_MoveUNMARKED_M_UnsetM(src,dest) ({ \
+  TG_Put(src, dest); \
+})
+#define TG_MoveValue_MoveR(val,curr) TG_Put(gc_PutValueFirst(val,TG_Val(curr)), curr)
+#define TG_MoveValue_UnsetR(c1,A) TG_Put(Deposit(c1,POINTERMASK|GC_FIRSTMASK,TG_Val(A)), A)
+#endif
+
 
 #if !defined(OPTIM_COMP)
 #define ASSERT__INTORC0(X, EV)
