@@ -1730,6 +1730,11 @@ struct marker_ {
 
 #define GC_MARKMASK  ((tagged_t)2)
 #define GC_FIRSTMASK ((tagged_t)1)
+#define GC_ANYMASK (GC_MARKMASK|GC_FIRSTMASK)
+
+/* Get a tagged ensuring that it does not have gc marks */
+#define GC_UNMARKED(X) ((X)&(~(GC_ANYMASK)))
+#define GC_UNMARKED_M(X) ((X)&(~(GC_MARKMASK)))
 
 #define gc_IsMarked(x)  ((x)&GC_MARKMASK)
 #define gc_IsFirst(x)   ((x)&GC_FIRSTMASK)
@@ -1740,6 +1745,13 @@ struct marker_ {
 #define gc_UnmarkF(x)  ((x)&=(~GC_FIRSTMASK))
 #define gc_PutValue(p,x) Deposit(p,POINTERMASK,x)
 #define gc_PutValueFirst(p,x) Deposit(p,POINTERMASK|GC_FIRSTMASK,x)
+
+#if !defined(OPTIM_COMP)
+#define ASSERT__INTORC0(X, EV)
+#define ASSERT__INTORC(X, EV)
+#define ASSERT__VALID_TAGGED(X)
+#define ASSERT__NO_MARK(X)
+#endif
 
 /* ------------------------------------------------------------------------- */
 /* Alignment operations */
@@ -2643,7 +2655,19 @@ labelend: {} \
         } \
 }
 
-
+#define Sw_HVA_CVA_SVA_Other(T, HVACode, CVACode, SVACode, NONVARCode) do { \
+  if (!IsVar((T))) { \
+    NONVARCode; \
+  } else { \
+    if ((T) & TagBitSVA) { \
+      SVACode; \
+    } else if (!((T) & TagBitCVA)) { \
+      HVACode; \
+    } else { \
+      CVACode; \
+    } \
+  } \
+} while(0);
 
 #define DerefSwitch(Reg,Aux,VarCode) \
 { \

@@ -84,6 +84,23 @@
 
 #endif /* OPTIM_COMP */
 
+#if !defined(OPTIM_COMP)
+/* TODO:[oc-merge] SetArgCode ignored */
+#define SwOnTrTag(X, VARCode, SetArgCode, UndoGoalCode) do { \
+  if (IsVar(X)) { VARCode; } else { UndoGoalCode; } \
+} while(0);
+#define SwOnTrTagT(X, HVACode, SVACode, SetArgCode, UndoCode) do { \
+  if (IsHeapVar((X))) { \
+    HVACode; \
+  } else if (IsStackVar((X))) { \
+    SVACode; \
+  } else { \
+    UndoCode; \
+  } \
+} while(0);
+#define SwOnTrTagTU(X, HVACode, SVACode, SetArgCode, UndoCode) SwOnTrTagT(X, HVACode, SVACode, SetArgCode, UndoCode) 
+#endif
+
 /* --------------------------------------------------------------------------- */
 
 #if defined(OPTIM_COMP)
@@ -117,6 +134,22 @@
 #define TG_PutPtr(p,dest) ({ \
   TG_Put(gc_PutValue((tagged_t)p,*dest), dest); \
 })
+
+#define TG_SetR(X) gc_MarkF(*(X))
+#define TG_UnsetR(X) gc_UnmarkF(*(X))
+
+#define TG_SetM(X) gc_MarkM(*(X))
+#define TG_IsM(X) gc_IsMarked(TG_Val(X))
+#define TG_IsR(X) gc_IsFirst(TG_Val(X))
+#define TG_IsROrM(X) gc_IsForM(TG_Val(X))
+#define TG_UnsetM(X) gc_UnmarkM(*(X))
+#define TG_SetAll_SetM(T, X) do { gc_MarkM(T); *(X) = (T); } while(0)
+
+#define TG_MoveUNMARKED_M_UnsetM(src,dest) ({ \
+  TG_Put(src, dest); \
+})
+#define TG_MoveValue_MoveR(j,curr) TG_Put(gc_PutValueFirst(TG_Val(j),TG_Val(curr)), curr)
+#define TG_PutPtr_SetR(curr,j) TG_Put(gc_PutValueFirst((tagged_t)curr|GC_FIRSTMASK,TG_Val(j)), j)
 #endif
 
 /* --------------------------------------------------------------------------- */
@@ -942,19 +975,10 @@ CVOID__PROTO(heap_overflow_adjust_wam,
     });
 
     n2 = ChoiceCont(n);
-//    n2 = ChoiceCont(n);
-//    {
-//      TG_Let(pt1, n->x);
-//      for (; pt1!=(tagged_t *)n2;) {
-//        TG_Fetch(pt1);
-//        RelocateIfHeapPtr(pt1, reloc_factor);
-//        pt1++;
-//      }
-//    }
     {
       frame_t *frame = n->frame;
       intmach_t i = FrameSize(n->next_insn);
-      while ((frame >= (frame_t*)GCNodeLocalTop(n2))) {
+      while (frame >= (frame_t*)GCNodeLocalTop(n2)) {
         ForEachFrameX(frame, i, pt1, {
             TG_Fetch(pt1);
             RelocateIfHeapPtr(pt1, reloc_factor);
@@ -963,25 +987,30 @@ CVOID__PROTO(heap_overflow_adjust_wam,
         frame = frame->frame;
       } 
     }
-
     // TODO: TABLING ->> How to translate???
     AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
   }
-
   // TODO: TABLING ->> How to translate???
   AssignRelocPtrNotRemote(n->heap_top, reloc_factor);
-  SetChoice(w->choice);
+  SetChoice(w->choice); /* update cond registers */
 }
 
-/* Tidy new half of trail exhaustively. */
-CVOID__PROTO(trail__remove_uncond) { // TODO:[oc-merge] was trail_gc
+/* ------------------------------------------------------------------------- */
+/* sweep trail segment to get rid of unconditional entries */
+/* (cut transforms some conditional trails in unconditional ones, this
+   pass removes the unneeded unconditional trails) */
+// TODO:[oc-merge] was trail_gc before: "Tidy new half of trail exhaustively."
+
+CVOID__PROTO(trail__remove_uncond) {
   tagged_t *tr;
   choice_t *orig_b;
   choice_t *b;
   intmach_t wake_count;
+#if !defined(OPTIM_COMP)
   tagged_t heap_last = Tagp(HVA,HeapOffset(Heap_End,-1));
-  /*extern choice_t *gc_aux_choice;*/ /* Now in a register */
-  /*extern choice_t *gc_choice_start;*/ /* No in a register */
+#endif
+
+  RTCHECK(CBOOL__SUCCEED(proofread, "Before trail__remove_uncond", 0, TRUE));
 
   orig_b = w->choice;
 
@@ -996,17 +1025,24 @@ CVOID__PROTO(trail__remove_uncond) { // TODO:[oc-merge] was trail_gc
 
   wake_count = WakeCount();
 
+#if !defined(OPTIM_COMP)
   if (current_gctrace == GCTRACE__VERBOSE) {
     TRACE_PRINTF("{GC}  Trail GC started\n");
   }
+#endif
 
-  tr = w->trail_top;
+  /* Go from new to old. */
+  tr = G->trail_top;
+#if defined(OPTIM_COMP)
+  b = Gc_Aux_Choice;
+#endif
   while (!OffChoicetop(Gc_Choice_Start,b)) {
     tagged_t *x;
 
+    // TODO:[oc-merge] this was removed from OC, why?
+#if !defined(OPTIM_COMP)
     /* sweep trail segment to get rid of multiple 'undo setarg'
        trailings of the same location.  Go from old to new. */
-    // TODO:[oc-merge] this was removed from OC, why?
     for (x=TrailTopUnmark(b->trail_top); TrailYounger(tr,x); x++) {
       tagged_t t1;
       t1 = *x;
@@ -1019,46 +1055,47 @@ CVOID__PROTO(trail__remove_uncond) { // TODO:[oc-merge] was trail_gc
         }
       }
     }
-
     /* sweep trail segment to get rid of unconditional entries.
        Keep count of relevant entries.  Turn mark bits off.
        Go from new to old. */
-    SetChoice(b);
+#endif
+    SetChoice(b); /* set cond registers */
     x=TrailTopUnmark(b->trail_top);
-    while (TrailYounger(tr,x)){
+    while (TrailYounger(tr,x)) {
       tagged_t t1;
 
       TrailDec(tr);
       t1 = *tr; // (tr points to the popped element)
-      if (!IsVar(t1)) {
+      Sw_HVA_CVA_SVA_Other(t1, { /* HVA */
+#if !defined(OPTIM_COMP)
+        *TagpPtr(HVA,t1) ^= 1; /* turn mark bit off */
+#endif
+        if (!CondHVA(t1)) *tr = 0;
+      }, { /* CVA */
+        if (wake_count>0) {
+          wake_count--; /* do not remove any wake goal */
+        } else {
+          if (!CondCVA(t1)) *tr = 0;
+        }
+      }, { /* SVA */
+        if (!CondSVA(t1)) *tr = 0;
+      }, { /* nonvar */
         /* kill unconditional 'undo setarg' */
-        if (TaggedIsSTR(t1) &&
-            TaggedToHeadfunctor(t1)==functor_Dsetarg &&
-            !CondHVA(Tagp(HVA,TaggedToPointer(*TaggedToArg(t1,2))))) {
-          *tr = 0;
-        }
-      } else {
-        if (t1 & TagBitSVA) {
-          if (!CondSVA(t1)) {
-            *tr = 0;
+        if (TaggedIsSTR(t1)) {
+          if (TaggedToHeadfunctor(t1)==functor_Dsetarg) {
+            tagged_t mutated = *TaggedToArg(t1,2);
+            if (!CondHVA(Tagp(HVA, TaggedToPointer(mutated)))) *tr = 0;
           }
-        } else if (!(t1 & TagBitCVA)) {
-          *TagpPtr(HVA,t1) ^= 1; /* turn mark bit off */
-          if (!CondHVA(t1)) {
-            *tr = 0;
-          }
-        } else if (wake_count>0) {
-          --wake_count;
-        } else if (!CondCVA(t1)) {
-          *tr = 0;
         }
-      }
+      });
     }
     b = ChoiceCont(b);
   }
   
-  /* restore misc. registers used above */
+  /* restore choice and shadow registers */
   SetChoice(orig_b);
+
+  RTCHECK(CBOOL__SUCCEED(proofread, "After trail__remove_uncond", 0, TRUE));
 }
 
 /* =========================================================================== */
@@ -1093,38 +1130,114 @@ static CVOID__PROTO(compress_heap);
 
 /* invariant: in shunting phase only variables are marked */
 
-#define gc_shuntVariable(shunt_dest) { \
-  tagged_t shunt_src; \
+#define shunt__ensure_unmarked(X) GC_UNMARKED_M(X)
+
+/* marks in trail entries for variable shunting (using M marks) */
+#define shunt__ignoreTrailEntry(X) TG_SetM(X)
+#define shunt__cleanTrailEntry(X) TG_UnsetM(X)
+/* marks in variables for variables whose value was given in the future */
+/* TODO: is correct its use for trailed cva? */
+#define shunt__setTrailed(X) TG_SetM(X)
+#define shunt__cleanTrailed(X) TG_UnsetM(X)
+#define shunt__setAll_setTrailed(T, X) TG_SetAll_SetM(T, X)
+
+/* marks in trail entries for variable shunting (using M marks) */
+#define shunt__ignoredTrailEntry(X) TG_IsM(X)
+/* marks in variables for variables whose value was given in the
+   future */
+/* TODO: is correct its use for trailed cva? */
+#define shunt__isTrailed(X) TG_IsM(X)
+
+/* Copy a tagged (without marks) to ptr and clean the trailed mark */
+/* pre: shunt__ensure_unmarked(v) */
+/* post: TG_Val(ptr) == v && !shunt__isTrailed(ptr) */
+#define shunt__copyNoTrailed_cleanTrailed(v, ptr) TG_MoveUNMARKED_M_UnsetM(v, ptr)
+
+/* TODO:[oc-merge] in oc DEST is written at the end (even if not
+   needed); in core DEST is written at every iteration; which is
+   better? */
+
+/* dereference *DEST until the cell pointed by DEST is not a variable
+   or is marked */
+/* postcondition: shunt__isTrailed(DEST) */
+/* TODO: this postcondition is not right since DEST is a pointer... 
+   postcondition: *TaggedToPointer(DEST) is marked or !IsVar(DEST) */
+#if defined(OPTIM_COMP)
+#define gc_shuntVariable(DEST) do { \
+  tagged_t shunt__x; \
+  ASSERT__NO_MARK(DEST); \
+  shunt__x = TG_Val(DEST); \
   while (1) { \
-    if (!IsVar(shunt_dest)) break; \
-    shunt_src = *TaggedToPointer(shunt_dest); \
-    if (gc_IsMarked(shunt_src)) break; \
-    if (shunt_src==shunt_dest) break; \
-    shunt_dest = shunt_src; \
+    if (!IsVar(shunt__x)) break; \
+    TG_Let(shunt__xp, TaggedToPointer(shunt__x)); \
+    TG_Fetch(shunt__xp); \
+    if (shunt__isTrailed(shunt__xp)) break; \
+    if (TG_Val(shunt__xp) == shunt__x) break; \
+    shunt__x = TG_Val(shunt__xp); \
   } \
-}
+  TG_Put(shunt__x, DEST); \
+} while(0);
+#else
+#define gc_shuntVariable(DEST) do { \
+  tagged_t shunt__x; \
+  ASSERT__NO_MARK(DEST); \
+  shunt__x = TG_Val(DEST); \
+  while (1) { \
+    if (!IsVar(shunt__x)) break; \
+    TG_Let(shunt__xp, TaggedToPointer(shunt__x)); \
+    TG_Fetch(shunt__xp); \
+    if (shunt__isTrailed(shunt__xp)) break; \
+    if (TG_Val(shunt__xp) == shunt__x) break; \
+    shunt__x = TG_Val(shunt__xp); \
+    TG_Put(shunt__x, DEST); \
+  } \
+} while(0);
+#endif
 
 static CVOID__PROTO(shunt_variables) {
-  tagged_t *pt = w->trail_top;
   choice_t *cp;
   choice_t *prevcp;
-  intmach_t arity MAYBE_UNUSED;
+  intmach_t arity;
   tagged_t *limit;
-
+  TG_Let(pt, G->trail_top);
   CHOICE_PASS(cp, prevcp, arity, {
     /* backward pass */
     /* all variables in the trail has a value given in the future */
     /* (leave unmarked only the more recent trail entry for each variable) */
     limit = TrailTopUnmark(prevcp->trail_top);
     while (TrailYounger(pt,limit)) {
-      TrailDec(pt);
-      tagged_t v = *pt; // (pt points to the popped element)
-
-      if (v!=0 && IsVar(v) && !gc_IsMarked(*TaggedToPointer(v))) {
-        gc_MarkM(*TaggedToPointer(v));
-      } else {
-        gc_MarkM(pt[0]);
-      }
+      pt += -TrailDir;
+      TG_Fetch(pt);
+      /* TODO: precondition !shunt__ignoredTrailEntry(pt); ? */
+      if (TG_Val(pt) == 0) goto ignore_trail_entry;
+      SwOnTrTag(TG_Val(pt), { /* var */
+        TG_Let(ptr, TaggedToPointer(TG_Val(pt)));
+        TG_Fetch(ptr);
+        if (shunt__isTrailed(ptr)) {
+          RTCHECK(TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: variable shunting detected that a variable at %p was trailed twice}\n", (long)debug_inscount, (long)__LINE__, ptr));
+          goto ignore_trail_entry;
+        } else {
+          shunt__setTrailed(ptr);
+          /* TODO: trust !shunt__ignoredTrailEntry(pt); */
+        }
+      }, { /* Dsetarg */
+#if defined(OPTIM_COMP)
+        tagged_t *ptr;
+        MutatedPtr(TG_Val(pt), ptr);
+        shunt__setTrailed(ptr);
+        OldvarPtr(TG_Val(pt), ptr);
+        shunt__setTrailed(ptr); /* avoid shunting of the oldvar */
+#else
+        goto ignore_trail_entry;
+#endif
+      }, { /* undo goal */
+#if !defined(OPTIM_COMP)
+        goto ignore_trail_entry;
+#endif
+      });
+      continue;
+    ignore_trail_entry:
+      shunt__ignoreTrailEntry(pt);
     }
   }, {
     /* forward pass */
@@ -1133,75 +1246,192 @@ static CVOID__PROTO(shunt_variables) {
     limit = TrailTopUnmark(cp->trail_top);
     pt = TrailTopUnmark(prevcp->trail_top);
     while (TrailYounger(limit,pt)) {
-      tagged_t v = *pt++;
-
-      if (!gc_IsMarked(v)) {
-        gc_UnmarkM(*TaggedToPointer(v));
+      TG_Fetch(pt);
+      if (!shunt__ignoredTrailEntry(pt)) {
+#if defined(OPTIM_COMP)
+        SwOnTrTag(TG_Val(pt), { /* var */
+#endif
+          tagged_t *ptr;
+          ptr = TaggedToPointer(TG_Val(pt));
+          shunt__cleanTrailed(ptr);
+#if defined(OPTIM_COMP)
+        }, { /* Dsetarg */
+          tagged_t *mptr;
+          tagged_t *ptr;
+          MutatedPtr(TG_Val(pt), mptr);
+          ptr = mptr;
+          shunt__cleanTrailed(ptr);
+        }, { /* undo goal */
+          tagged_t *ptr;
+          ptr = TaggedToPointer(TG_Val(pt));
+          shunt__cleanTrailed(ptr);
+        });
+#endif
       }
+      pt++;
     }
     /* shunt variables trailed in this choicepoint (may point out of
        the choice heap segment) */
     pt = TrailTopUnmark(prevcp->trail_top);
     while (TrailYounger(limit,pt)) {
-      tagged_t v = *pt++;
-      if (gc_IsMarked(v)) {
-        gc_UnmarkM(pt[-1]);
+      TG_Fetch(pt);
+      if (!shunt__ignoredTrailEntry(pt)) {
+#if defined(OPTIM_COMP)
+        SwOnTrTag(TG_Val(pt), { /* var */
+#endif
+          /* TODO: trust *TaggedToPointer(v) is not marked (we have
+             unmarked it in the previous loop) */
+          /* shunt it: the var may be out of the choice heap segment */
+          TG_Let(ptr, TaggedToPointer(TG_Val(pt)));
+          TG_Fetch(ptr);
+          gc_shuntVariable(ptr);
+#if defined(OPTIM_COMP)
+        }, { /* Dsetarg */
+          tagged_t *mptr;
+          MutatedPtr(TG_Val(pt), mptr);
+          TG_Let(ptr, mptr);
+          TG_Fetch(ptr);
+          gc_shuntVariable(ptr);
+        }, { /* undo goal */
+          TG_Let(ptr, TaggedToPointer(TG_Val(pt)));
+          TG_Fetch(ptr);
+          gc_shuntVariable(ptr);
+        });
+#endif
       } else {
-        gc_shuntVariable(*TaggedToPointer(v));
+        shunt__cleanTrailEntry(pt); /* ignore mark bits of this entry */
       }
+      pt++;
     }
     pt = GCNodeGlobalTop(prevcp);
     while (HeapYounger(GCNodeGlobalTop(cp),pt)) {
-      tagged_t v = *pt++;
-      if (v&QMask) {
-        pt += LargeArity(v);
-      } else if (!gc_IsMarked(v)) {
-        if (v==Tagp(CVA,pt-1)) {
-          gc_MarkM(Cvas_Found);
-          pt[-1] = Cvas_Found;
-          Cvas_Found = v;
-          pt += 2;
-        } else {
-          gc_shuntVariable(pt[-1]);
+      TG_Fetch(pt);
+      if (BlobHF(TG_Val(pt))) {
+        PtrCharInc(pt, BlobFunctorSizeAligned(TG_Val(pt))+2*sizeof(functor_t));
+      } else {
+        if (!shunt__isTrailed(pt)) {
+          if (TG_Val(pt) == Tagp(CVA, pt)) { /* v is an unbound CVA */
+#if defined(OPTIM_COMP)
+            /* TODO: document this... */
+            pt += 2;
+            TG_Fetch(pt);
+            tagged_t cva_susp = TG_Val(pt);
+            if (cva_susp == MakeSmall(0)) {
+              /* do nothing, see bu2_attach_attribute_weak */
+              //fprintf(stderr, "weak %p\n", pt);
+            } else {
+              /* go back and link the CVA so that it is not lost */
+              //fprintf(stderr, "strong %p\n", pt);
+              pt -= 2;
+              TG_Fetch(pt);
+              tagged_t v = TG_Val(pt);
+              shunt__setAll_setTrailed(Cvas_Found, pt);
+              Cvas_Found = v;
+              pt += 2;
+            }
+#else
+            tagged_t v = TG_Val(pt);
+            shunt__setAll_setTrailed(Cvas_Found, pt);
+            Cvas_Found = v;
+            pt += 2;
+#endif
+          } else {
+            gc_shuntVariable(pt);
+          }
         }
+        pt++;
       }
     }
+    /* unset marks to avoid shunting of setarg oldvar: has to be done
+       after the heap is shunt because the setarg entries are inside
+       the heap */
+    /* TODO: move those entries to the trail? it will need taking them
+       into account in all the trail passes (forward is easy, but
+       backward is not) */
+#if defined(USE_GC_SETARG)
+    pt = prevcp->trail_top;
+    while (TrailYounger(limit,pt)) {
+      TG_Fetch(pt);
+      if (!shunt__ignoredTrailEntry(pt)) {
+        SwOnTrTag(TG_Val(pt), { /* var */
+        }, { /* Dsetarg */
+          tagged_t *ptr;
+          OldvarPtr(TG_Val(pt), ptr);
+          shunt__cleanTrailed(ptr);
+        }, { /* undo goal */
+        });
+      }
+      pt++;
+    }
+#endif
     /* shunt frame vars */
     ForEachChoiceFrameX(cp, GCNodeLocalTop(prevcp), pt, {
-      ptval = *pt;
-      if (!gc_IsMarked(ptval)) {
-        gc_shuntVariable(*pt);
+      TG_Fetch(pt);
+      if (!shunt__isTrailed(pt)) {
+        gc_shuntVariable(pt);
       }
     });
-        
+
     /* shunt choice vars */
-    pt = cp->x+arity;
-    while (pt!=cp->x) {
-      --pt;
-      gc_shuntVariable(*pt);
-    }
+    ForEachChoiceX2(cp, arity, pt, {
+      /* TODO: trust ASSERT__NO_MARK(pt); */
+      TG_Fetch(pt);
+      gc_shuntVariable(pt);
+    });
   });
+
+#if defined(USE_LOWRTCHECKS)
+  /* postcondition: no variable in frame is marked at end of shunting */
+  /* TODO: CVAs may be marked... I don't know, see Cvas_Found */
+  CHOICE_PASS(cp, prevcp, arity, {
+  }, {
+    /* forward pass */
+    limit = cp->trail_top;
+    pt = prevcp->trail_top;
+    while (TrailYounger(limit, pt)) {
+      ASSERT__NO_MARK(pt);
+      pt++;
+    }
+    pt = prevcp->heap_top;
+    while (HeapYounger(cp->heap_top, pt)) {
+      TG_Fetch(pt);
+      if (BlobHF(TG_Val(pt))) {
+        PtrCharInc(pt, BlobFunctorSizeAligned(TG_Val(pt))+2*sizeof(functor_t));
+      } else {
+        ASSERT__NO_MARK(pt);
+        pt++;
+      }
+    }
+    ForEachChoiceFrameX(cp, prevcp->local_top, pt, {
+      ASSERT__NO_MARK(pt);
+    });
+    ForEachChoiceX2(cp, arity, pt, {
+      ASSERT__NO_MARK(pt);
+    });
+  });
+#endif
 }
 
 /* ------------------------------------------------------------------------- */
 /* The Marking Phase */
 
+/* needs TG_Fetch(next) */
 #define TG_Reverse(curr,next) { \
-  tagged_t *temp; \
-  temp = TaggedToPointer(*next); \
+  tagged_t *temp = TaggedToPointer(TG_Val(next)); \
   TG_PutPtr(curr,next); \
   curr = next; \
   next = temp; \
 }
 
+/* needs TG_Fetch(curr) */
 #define TG_Undo(curr,next) TG_Reverse(next,curr)
 
 #define TG_Advance(curr,next) { \
-  tagged_t *temp; \
-  temp = TaggedToPointer(*curr); \
+  tagged_t *temp = TaggedToPointer(TG_Val(curr)); \
   TG_PutPtr(next,curr); \
   curr--; \
-  next = TaggedToPointer(*curr); \
+  TG_Fetch(curr); \
+  next = TaggedToPointer(TG_Val(curr)); \
   TG_PutPtr(temp,curr); \
 }
 
@@ -1236,69 +1466,95 @@ static CVOID__PROTO(mark_root, tagged_t *start) {
   });
 
   intmach_t found = 0;
-  tagged_t *current = start;
-  tagged_t *next = TaggedToPointer(*current);
-  gc_MarkF(*current);
+  TG_Let(current, start);
+  TG_Fetch(current);
+  TG_Let(next, TaggedToPointer(TG_Val(current)));
+  TG_SetR(current);
   goto first_forward;
  forward:
-  if (gc_IsMarked(*current)) goto backward;
+  TG_Fetch(current);
+  if (TG_IsM(current)) goto backward;
   found += sizeof(tagged_t);
  first_forward:
-  gc_MarkM(*current);
+  TG_SetM(current);
   if (GC_HEAP_IN_SEGMENT(next)) {
-    switch(TagOf(*current)) {
+    TG_Fetch(current);
+    switch(TagOf(TG_Val(current))) {
     case SVA: /* No pointers from heap to stack */
-      SERIOUS_FAULT("GC: stack variable in heap");
+      PANIC_FAULT("GC: stack variable in heap");
     case CVA: /* new 3-field CVA */
-      /* N.B. there can be LST pointers to the second cell as well */
-      if (!gc_IsForM(*(next+2))) { 
-        /* no marking in progress as CVA nor as LST */
-        /* treat as 3-cell tuple */
-        next++;
-        gc_MarkF(*next);
-        next++;
-        gc_MarkF(*next);
-        TG_Reverse(current,next);
-        goto forward;
-      } else {
-        /* otherwise, just treat the value cell */
-        goto treat_value_cell;
+      {
+        /* N.B. there can be LST pointers to the second cell as well */
+        TG_Let(next2, next + 2);
+        TG_Fetch(next2);
+        if (!TG_IsROrM(next2)) {
+          /* no marking in progress as CVA nor as LST */
+          /* treat as 3-cell tuple */
+          next++;
+          TG_SetR(next);
+          next++;
+          TG_SetR(next);
+          TG_Fetch(next);
+          TG_Reverse(current,next);
+          goto forward;
+        } else {
+          /* otherwise, just treat the value cell */
+          goto treat_value_cell;
+        }
       }
     case HVA:
     treat_value_cell:
-      if (gc_IsForM(*next)) goto backward;
-      TG_Reverse(current,next);
-      /* note: next may be something that is not a valid pointer
-         (i.e. part of a non-pointer tagged) */
-      goto forward;
-    case LST:
-      if (gc_IsFirst(*(next+1)) ||
-          (gc_IsMarked(*next) &&
-           gc_IsMarked(*(next+1)))) {
+      TG_Fetch(next);
+      if (TG_IsROrM(next)) {
         goto backward;
-      }
-      next++;
-      gc_MarkF(*next);
-      TG_Reverse(current,next);
-      goto forward;
-    case STR:
-      if (gc_IsMarked(*next)) goto backward;
-      if (*next&QMask) { /* box */
-        intmach_t ar = LargeArity(*next);
-        gc_MarkM(*next);
-        found += (ar+1)*sizeof(tagged_t);
-        goto backward;
-      } else if (!gc_IsFirst(*(next+1))) {
-        intmach_t n;
-        for (n = Arity(*next); n>0; --n) {
-          next++;
-          gc_MarkF(*next);
-        }
-        TG_Reverse(current,next);
-        goto forward;
       } else {
-        goto backward;
+        TG_Reverse(current,next);
+        /* note: next may be something that is not a valid pointer
+           (i.e. part of a non-pointer tagged) */
+        goto forward;
       }
+    case LST:
+      {
+        /* TODO: equivalence with next case? */
+        TG_Let(next1, next + 1);
+        TG_Fetch(next1);
+        if (TG_IsR(next1)) goto backward;
+        TG_Fetch(next);
+        if ((TG_IsM(next) && TG_IsM(next1))) {
+          goto backward;
+        } else {
+          next++;
+          TG_SetR(next);
+          TG_Fetch(next);
+          TG_Reverse(current,next);
+          goto forward;
+        }
+      }
+    case STR: {
+      TG_Fetch(next);
+      if (TG_IsM(next)) goto backward;
+      if (BlobHF(TG_Val(next))) {
+        /* box */
+        intmach_t size = BlobFunctorSizeAligned(TG_Val(next))+2*sizeof(functor_t);
+        TG_SetM(next);
+        found += size;
+        goto backward;
+      } else {
+        TG_Let(next1, next + 1);
+        TG_Fetch(next1);
+        if (!TG_IsR(next1)) {
+          intmach_t n;
+          for (n = Arity(TG_Val(next)); n>0; --n) {
+            next++;
+            TG_SetR(next);
+          }
+          TG_Fetch(next);
+          TG_Reverse(current,next);
+          goto forward;
+        } else {
+          goto backward;
+        }
+      } }
     default: /* all other treated as constants */
       goto backward;
     }
@@ -1307,17 +1563,19 @@ static CVOID__PROTO(mark_root, tagged_t *start) {
   }
  backward:
   for (;;) {
-    if (gc_IsFirst(*current)) break;
+    TG_Fetch(current);
+    if (TG_IsR(current)) break;
     /* internal cell */
     /* note: next may be something that is not a valid pointer
        (i.e. part of a non-pointer tagged) */
     TG_Undo(current,next);
   }
   /* head of chain */
-  gc_UnmarkF(*current);
+  TG_UnsetR(current);
   if (current != start) {
     /* note: next may be something that is not a valid pointer
        (i.e. part of a non-pointer tagged) */
+    TG_Fetch(current);
     TG_Advance(current,next);
     goto forward;
   }
@@ -1326,39 +1584,44 @@ static CVOID__PROTO(mark_root, tagged_t *start) {
 
 /* mark all unbound/newly bound constraint variables */
 static CVOID__PROTO(mark_trail_cva) {
-  tagged_t *tr = w->trail_top;
-  tagged_t v;
+  TG_Let(tr, G->trail_top);
   intmach_t wake_count = WakeCount();
 
-  while (Cvas_Found!=atom_nil) { /* mark unbound CVAs */
-    *tr = v = Cvas_Found;
-    Cvas_Found = *TagpPtr(CVA,v);
-    gc_UnmarkM(Cvas_Found);
-    *TagpPtr(CVA,v) = v;
+  /* mark unbound CVAs */
+  while (Cvas_Found != atom_nil) {
+    tagged_t v;
+    v = Cvas_Found;
+    //    fprintf(stderr, "marking unbound CVA %x\n", v);
+    TG_Put(v, tr);
+    /* TODO: trust IsHeapPtr(*tr) */
+    TG_Let(ptr, TagpPtr(CVA, v));
+    TG_Fetch(ptr);
+    Cvas_Found = shunt__ensure_unmarked(TG_Val(ptr));
+    shunt__copyNoTrailed_cleanTrailed(v, ptr);
     MarkRoot(tr);
   }
 
-  /* find_constraints(Arg,Gc_Choice_Start);
-     mark_root(tr);
-     {
-       tagged_t l = *tr;
-       tagged_t v;
-
-       while (TaggedIsCVA(l)) {
-         v = l;
-         l = *TaggedToPointer(v);
-         *TaggedToPointer(v) = v;
-       }
-     }
-     */
+  /* TODO:[oc-merge] this was commented in core */
+  // find_constraints(Arg,Gc_Choice_Start);
+  // mark_root(tr);
+  // {
+  //   tagged_t l = *tr;
+  //   tagged_t v;
+  //
+  //   while (TaggedIsCVA(l)) {
+  //     v = l;
+  //     l = *TaggedToPointer(v);
+  //     *TaggedToPointer(v) = v;
+  //   }
+  // }
 
   /* mark newly bound CVAs */
+  /* TODO: put asserts to ensure that we do not run off of trail */
   while (wake_count>0) {
-    TrailDec(tr);
-    tagged_t v = *tr; // (tr points to the popped element)
-
-    if (TaggedIsCVA(v)) {
-      --wake_count;
+    tr += -TrailDir;
+    TG_Fetch(tr);
+    if (TaggedIsCVA(TG_Val(tr))) {
+      wake_count--;
       MarkRoot(tr);
     }
   }
@@ -1367,18 +1630,18 @@ static CVOID__PROTO(mark_trail_cva) {
 /* A frame slot is marked iff it is in the chain of environments for
    one of the frozen execution states, regardless of contents. */
 static CVOID__PROTO(mark_frames, choice_t *cp) {
-  /* Mark frame chain */
   ForEachChoiceFrameX(cp, Gc_Stack_Start, ev, {
-    evval = *ev;
-    if (gc_IsMarked(evval)) return;
-    if (IsHeapPtr(evval)) {
+    TG_Fetch(ev);
+    if (TG_IsM(ev)) return; /* finish, rest of frames are marked */
+    if (IsHeapPtr(TG_Val(ev))) {
       MarkRoot(ev);
     } else {
-      gc_MarkM(*ev);
+      TG_SetM(ev); /* mark everything to remember that this frame is done */
     }
   });
 }
 
+/* Mark choicepoints, corresponding chains of frames and trail */
 /* A choicepoint slot is marked iff it contains a heap reference. */
 /* A trail slot is marked iff it contains
    an unbound constrained variable reference or a goal.
@@ -1387,23 +1650,61 @@ static CVOID__PROTO(mark_choicepoints) {
 #if defined(USE_SEGMENTED_GC)
   {
     /* First mark all trailed old variables */
-    tagged_t *tr = w->trail_top;
+    TG_Let(tr, G->trail_top);
     tagged_t *limit = TrailTopUnmark(Gc_Choice_Start->trail_top);
     while (TrailYounger(tr,limit)) {
-      TrailDec(tr);
-      tagged_t v = *tr; // (tr points to the popped element)
-      tagged_t *p = TaggedToPointer(v);
+      tr += -TrailDir;
+      TG_Fetch(tr);
+      /* TODO: trust IsHeapPtr(*tr) <- sure?? */
+      // TODO: 0 here is ERRORTAG?
+      if (TG_Val(tr)==0) continue;
+      if (TG_IsM(tr)) continue;
 
+      TG_Let(p, NULL);
       /* TODO: why?? Must be done before any early reset is done.  why?? */
-      if (v!=0 && !gc_IsMarked(v) &&
-          ((IsHeapVar(v) && !GC_HEAP_IN_SEGMENT(p)) ||
-           (IsStackVar(v) && !GC_STACK_IN_SEGMENT(p)))) {
-        gc_MarkM(*tr);                       /* so won't look at it again */
-        if (IsHeapPtr(*p) && !gc_IsMarked(*p) &&
-            GC_HEAP_IN_SEGMENT(TaggedToPointer(*p))) {
-          Gcgrey-= Total_Found;
-          MarkRoot(p);
-          Gcgrey+= Total_Found;
+      SwOnTrTagT(TG_Val(tr), { /* HVA CVA */
+        p = TaggedToPointer(TG_Val(tr));
+        if (!GC_HEAP_IN_SEGMENT(p)) goto mark_not_in_segment;
+      }, { /* SVA */
+        p = TaggedToPointer(TG_Val(tr));
+        if (!GC_STACK_IN_SEGMENT(p)) goto mark_not_in_segment;
+      }, { /* Dsetarg */
+        tagged_t *ptr_;
+        MutatedPtr(TG_Val(tr), ptr_);
+        TG_Let(ptr, ptr_);
+        if (!GC_HEAP_IN_SEGMENT(ptr)) {
+          TG_Fetch(ptr);
+          if (IsHeapPtr(TG_Val(ptr))) {
+            TG_Fetch(ptr); // TODO: not needed
+            if (!TG_IsM(ptr)) {
+              Gcgrey -= Total_Found;
+              MarkRoot(ptr);
+              Gcgrey += Total_Found;
+            }
+          }
+        }
+      }, { /* undo goal */
+      });
+      continue;
+
+    mark_not_in_segment:
+      /* v is a heap or stack variable which points to a tagged not
+         in the segment */
+      TG_SetM(tr); /* so won't look at it again */
+      TG_Fetch(p);
+      if (IsHeapPtr(TG_Val(p))) {
+        if (!TG_IsM(p)) {
+          /* mark (*p), because it is a heap term, it is not marked,
+             and it may point to something in the segment */
+#if !defined(OPTIM_COMP) /* TODO:[oc-merge] why? */
+          if (GC_HEAP_IN_SEGMENT(TaggedToPointer(TG_Val(p)))) {
+#endif
+            Gcgrey-= Total_Found;
+            MarkRoot(p);
+            Gcgrey+= Total_Found;
+#if !defined(OPTIM_COMP)
+          }
+#endif
         }
       }
     }
@@ -1412,53 +1713,89 @@ static CVOID__PROTO(mark_choicepoints) {
 
   /* Mark choicepoints and corresponding chains of frames */
   /* and mark remaining trail entries */
+  /* (Go from new to old) */  
+  TG_Let(tr, G->trail_top);
   choice_t *cp = Gc_Aux_Choice;
-  tagged_t *tr = w->trail_top;
-  tagged_t *limit;
-
-  while (ChoiceYounger(cp,Gc_Choice_Start)) {
-    intmach_t n = ChoiceArity(cp);
-    intmach_t i = n;
-
+  while (ChoiceYounger(cp, Gc_Choice_Start)) {
     CVOID__CALL(mark_frames, cp);
-    while ((i--)>0) {
-      if (IsHeapPtr(cp->x[i])) {
-        MarkRoot(&cp->x[i]);
-      }
-    }
-    cp = ChoiceCont0(cp, n);
-
-    /* mark goals and unbound constrained variables;
-       reset unmarked bound variables
-       between cp->trail_top and tr */
-
-    limit = TrailTopUnmark(cp->trail_top);
-    while (TrailYounger(tr,limit)) {
-      TrailDec(tr);
-      tagged_t v = *tr; // (tr points to the popped element)
-        
-      if (v==(tagged_t)NULL || gc_IsMarked(v)) {
-      } else if (!IsVar(v)) {
-        MarkRoot(tr);
-      }
-#if defined(USE_EARLY_RESET)
-      else if (TaggedIsCVA(v)) {
-        if (!gc_IsMarked(*TagpPtr(CVA,v))) {
-          *TagpPtr(CVA,v) = v;
-          MarkRoot(tr);
-          *tr = 0;
-        }
-      } else {
-        if (!gc_IsMarked(*TaggedToPointer(v))) {
-          *TaggedToPointer(v) = v;
-          *tr = 0;
-        }
-      }
-#else
-      else if (TaggedIsCVA(v)) {
-          MarkRoot(tr);
-      }
+    ForEachChoiceX(cp, ptr, {
+      TG_Fetch(ptr);
+#if defined(OPTIM_COMP)
+      if (TG_IsM(ptr)) continue; /* TODO: why?? why not a precond? */
 #endif
+      if (IsHeapPtr(TG_Val(ptr))) {
+        MarkRoot(ptr);
+      }
+    });
+    cp = ChoiceCont(cp);
+
+    /* Consider values of trailed variables which are not in the
+       segment: they might point to heap terms in the segment. We
+       don't know if these values are globally alive or not, but we
+       must be conservative since we are only collecting a segment of
+       heap */
+    tagged_t *limit = TrailTopUnmark(cp->trail_top);
+    while (TrailYounger(tr,limit)) {
+      tr += -TrailDir;
+      /* TODO: trust IsHeapPtr(*tr) <- sure?? */
+      TG_Fetch(tr);
+      if (TG_Val(tr)==0) continue;
+      if (TG_IsM(tr)) continue;
+
+      /* mark goals and unbound constrained variables;
+         reset unmarked bound variables
+         between cp->trail_top and tr */
+
+      /* TODO: early reset of setarg? */
+      
+      /* TODO: rest of trail entries (HVA or SVA) remains unmarked:
+         what happens with them? -- see shunt_variable */
+
+      /* TODO: document: without early reset the bn.pl benchmark does
+         not work */
+      
+      /* Early reset: "a trailed heap or local stack entry which is not
+         reachable for the forward continuation of the active computation
+         (but might be for its alternative branches, i.e. on backtracking)
+         can be set to unbound during garbage collection and the trail
+         entry itself can be discarded as well" (see Heap Garbage
+         Collection in XSB: Practice and Experience). */
+
+      if (!IsVar(TG_Val(tr))) { /* undo goal or Dsetarg */
+        MarkRoot(tr);
+      } else { /* IsVar(TG_Val(tr)) */
+#if defined(USE_EARLY_RESET)
+        if (TaggedIsCVA(TG_Val(tr))) {
+          TG_Let(ptr, TagpPtr(CVA, TG_Val(tr)));
+          TG_Fetch(ptr);
+          if (!TG_IsM(ptr)) {
+            /* TODO: which one of these is correct? */
+#if 1 && defined(OPTIM_COMP)
+            TG_Put(atom_nil, ptr);
+            MarkRoot(tr);
+#else
+            TG_Put(TG_Val(tr), ptr);
+            MarkRoot(tr);
+            TG_Put(0, tr);
+#endif
+          }
+        } else {
+          /* precondition: no future marking will reach *TaggedToPointer(TG_Val(tr)) */
+          TG_Let(ptr, TaggedToPointer(TG_Val(tr)));
+          TG_Fetch(ptr);
+          if (!TG_IsM(ptr)) {
+            /* early untrail (it is not used in this choice) */
+            TG_Put(TG_Val(tr), ptr);
+            /* disable trail entry */
+            TG_Put(0, tr);
+          }
+        }
+#else /* !defined(USE_EARLY_RESET) */
+        if (TaggedIsCVA(TG_Val(tr))) {
+          MarkRoot(tr);
+        }
+#endif
+      }
     }
   }
 }
@@ -1466,111 +1803,139 @@ static CVOID__PROTO(mark_choicepoints) {
 /* --------------------------------------------------------------------------- */
 /* The Compaction Phase */
 
-#define intoRelocationChain(j,curr) { \
-  *(curr) = gc_PutValueFirst(*(j),*(curr)); \
-  *(j) = gc_PutValueFirst((tagged_t)curr|GC_FIRSTMASK,*(j)); \
-}
+#define intoRelocationChain(j,curr) do { \
+  TG_Fetch(curr); \
+  TG_MoveValue_MoveR(j,curr); \
+  TG_PutPtr_SetR(curr,j); \
+} while(0)
 
-#if defined(DEBUG)
-/*static int upcount = 0;*/
+#define HeapTermIntoRelocChain(ht__ev) do { \
+  TG_UnsetM(ht__ev); \
+  TG_Fetch(ht__ev); \
+  if (IsHeapPtr(TG_Val(ht__ev))) { \
+    TG_Let(ht__p, TaggedToPointer(TG_Val(ht__ev))); \
+    if (GC_HEAP_IN_SEGMENT(ht__p)) { \
+      ASSERT__INTORC(ht__p,ht__ev); \
+      TG_Fetch(ht__p); \
+      intoRelocationChain(ht__p,ht__ev); \
+    } \
+  } \
+} while(0)
+/* TODO:[oc-merge] MarkedHeapTermIntoRelocChain was not in OC; this
+   version only adds to the relocation chain if the cell at ht__ev was
+   marked */
+#if defined(OPTIM_COMP)
+#define MarkedHeapTermIntoRelocChain(ht__ev) HeapTermIntoRelocChain(ht__ev)
+#else
+#define MarkedHeapTermIntoRelocChain(ht__ev) do { \
+  TG_Fetch(ht__ev); \
+  if (IsHeapPtr(TG_Val(ht__ev)) && TG_IsM(ht__ev)) { \
+    TG_Let(ht__p, TaggedToPointer(TG_Val(ht__ev))); \
+    if (GC_HEAP_IN_SEGMENT(ht__p)) { \
+      TG_UnsetM(ht__ev); \
+      ASSERT__INTORC(ht__p,ht__ev); \
+      TG_Fetch(ht__p); \
+      intoRelocationChain(ht__p,ht__ev); \
+    } \
+  } \
+} while(0)
 #endif
 
 static void updateRelocationChain(tagged_t *curr, tagged_t *dest) {
-  tagged_t *j;
-  tagged_t j1,c1;
-
-#if defined(DEBUG)
-    /* Make it go slower to trace it with TOP tool */
-    /* struct timespec delay = {0, 0} ;*/
-    /* upcount++; */
-    /* printf("%d\n", upcount); */
-    /* nanosleep(&delay, NULL); */
-#endif
-
   /* F-bit is set in *curr */
-  c1 = *curr;
-  do {
-    j = TaggedToPointer(c1);
-    j1 = *j;
+  tagged_t c1 = *curr;
+  for (;;) {
+    tagged_t *j = TaggedToPointer(c1);
+    tagged_t j1 = *j;
     c1 = gc_PutValueFirst(j1,c1);
     *(j) = gc_PutValueFirst((tagged_t)dest,j1);
     /* dest is a pointer, i.e its F-bit is FALSE */
-  } while (gc_IsFirst(c1));
+    if (!gc_IsFirst(c1)) break;
+  }
   *curr = c1;
 }
 
+/* sweep frame chain */
 static CVOID__PROTO(sweep_frames, choice_t *cp) {
-  /* sweep frame chain */
   ForEachChoiceFrameX(cp, Gc_Stack_Start, ev, {
-    tagged_t *p;
-    evval = *ev;
-    if (!gc_IsMarked(evval)) return;
-    gc_UnmarkM(*ev);
-    p = TaggedToPointer(evval);
-    if (IsHeapPtr(evval) && GC_HEAP_IN_SEGMENT(p)) {
-      intoRelocationChain(p,ev);
-    }
+    TG_Fetch(ev);
+    if (!TG_IsM(ev)) return; /* finish, rest of frames are swept */
+    HeapTermIntoRelocChain(ev);
   });
 }
 
 /* Sweep choicepoints, corresponding chains of frames and trail */
 static CVOID__PROTO(sweep_choicepoints) {
-  tagged_t *tr;
-  tagged_t v, *p;
+  TG_Let(tr, G->trail_top);
+  tagged_t *tr_start = TrailTopUnmark(Gc_Choice_Start->trail_top);
+  while (TrailYounger(tr, tr_start)) {
+    tr += -TrailDir;
+    TG_Fetch(tr);
+    if (TG_Val(tr) == 0) continue;
 
-  tr = w->trail_top;
-  tagged_t *limit = TrailTopUnmark(Gc_Choice_Start->trail_top);
-  while (TrailYounger(tr,limit)) {
-    TrailDec(tr);
-    v = *tr; // (tr points to the popped element)
-    if (v==0) continue;
-    gc_UnmarkM(*tr);
-    p = TaggedToPointer(v);
+    tagged_t v = GC_UNMARKED(TG_Val(tr));
+    SwOnTrTagTU(v, { /* HVA CVA */
 #if defined(USE_SEGMENTED_GC)
-    if ((IsHeapVar(v) && !GC_HEAP_IN_SEGMENT(p)) ||
-        (IsStackVar(v) && !GC_STACK_IN_SEGMENT(p))) {
-      tagged_t *p1 = TaggedToPointer(*p);
-      if (IsHeapPtr(*p) &&
-          gc_IsMarked(*p) &&
-          GC_HEAP_IN_SEGMENT(p1)) {
-        gc_UnmarkM(*p);
-        intoRelocationChain(p1,p);
+      TG_Let(p, TaggedToPointer(v));
+      if (!GC_HEAP_IN_SEGMENT(p)) {
+        /* (See the equivalent code in mark_trail) */
+        MarkedHeapTermIntoRelocChain(p);
+        goto sw_next;
       }
-    } else if (IsHeapPtr(v) && GC_HEAP_IN_SEGMENT(p)) {
-      intoRelocationChain(p,tr);
-    }
-#else
-    if (IsHeapPtr(v)) {
-      intoRelocationChain(p,tr);
-    }
 #endif
+      goto sw_default;
+    }, { /* SVA */
+#if defined(USE_SEGMENTED_GC)
+      TG_Let(p, TaggedToPointer(v));
+      if (!GC_STACK_IN_SEGMENT(p)) {
+        /* (See the equivalent code in mark_trail) */
+        MarkedHeapTermIntoRelocChain(p);
+        goto sw_next;
+      }
+#endif
+      goto sw_default;
+    }, { /* Dsetarg */
+      /* (See the equivalent code in mark_trail) */
+      tagged_t *ptr_;
+      MutatedPtrU(v, ptr_);
+      TG_Let(ptr, ptr_);
+      if (!GC_HEAP_IN_SEGMENT(ptr)) {
+        /* the mutated arg was treated in mark_trail so we need to put
+           it in the relocation chain */
+        TG_Fetch(ptr);
+        if (TG_IsM(ptr)) { /* avoid puting into relocation chain twice */
+          HeapTermIntoRelocChain(ptr);
+        }
+      }
+      /* TODO: this is needed because of marking in mark_choicepoints */
+      goto sw_default;
+    }, { /* undo goal */
+      goto sw_default;
+    });
+  sw_default:
+    HeapTermIntoRelocChain(tr);
+    continue;
+  sw_next:
+    TG_UnsetM(tr);
+    continue;
   }
 
   choice_t *cp = Gc_Aux_Choice;
-
   while (ChoiceYounger(cp,Gc_Choice_Start)) {
-    intmach_t n = ChoiceArity(cp);
-    intmach_t i = n;
-
-    sweep_frames(Arg, cp);
-    while ((i--)>0) {
-      tagged_t v = cp->x[i];
-      tagged_t *p = TaggedToPointer(v);
-        
-      gc_UnmarkM(cp->x[i]);
-      if (IsHeapPtr(v) && GC_HEAP_IN_SEGMENT(p)) {
-        intoRelocationChain(p, &cp->x[i]);
-      }
-    }
-    cp = ChoiceCont0(cp, n);
+    CVOID__CALL(sweep_frames, cp);
+    ForEachChoiceX(cp, ptr, {
+      /* TODO: some x are not marked... right? (see line 972) */
+      HeapTermIntoRelocChain(ptr);
+    });
+    cp = ChoiceCont(cp);
   }
 }
 
 static CVOID__PROTO(compress_heap) {
   tagged_t cv;
   choice_t *cp = Gc_Aux_Choice;
-  tagged_t *curr = G->heap_top;
-  tagged_t *dest = HeapCharOffset(Gc_Heap_Start,Total_Found);
+  TG_Let(curr, G->heap_top);
+  TG_Let(dest, HeapCharOffset(Gc_Heap_Start,Total_Found));
   intmach_t garbage_words = 0;
   intmach_t extra;
 
@@ -1606,9 +1971,9 @@ static CVOID__PROTO(compress_heap) {
           cv = *curr;
         }
         if (IsHeapPtr(cv)) {
-          tagged_t *p = TaggedToPointer(cv);
-                
+          TG_Let(p, TaggedToPointer(cv));
           if (HeapYounger(curr,p) && GC_HEAP_IN_SEGMENT(p)) {
+            TG_Fetch(p);
             intoRelocationChain(p,curr);
           } else if (p==curr) { /* a cell pointing to itself */
             *curr = gc_PutValue((tagged_t)dest,cv);
@@ -1632,11 +1997,12 @@ static CVOID__PROTO(compress_heap) {
       }
       gc_UnmarkM(cv);  /* M and F-flags off */
       {
-        tagged_t *p = TaggedToPointer(cv);
+        TG_Let(p, TaggedToPointer(cv));
         
         if (IsHeapPtr(cv) && HeapYounger(p,curr)) {              
           /* move the current cell and insert into the reloc.chain */
           *dest = cv;
+          TG_Fetch(p);
           intoRelocationChain(p,dest);
         } else if (cv&QMask) { /* move a box */
           *curr = cv;
@@ -1667,7 +2033,8 @@ CVOID__PROTO(gc__heap_collect) {
 
   DEBUG__TRACE(debug_gc, "Thread %" PRIdm " enters gc__heap_collect\n", (intmach_t)Thread_Id);
 
-  GetFrameTop(newa, w->choice,G->frame);
+  GetFrameTop(newa, w->choice, G->frame);
+
 #if defined(USE_GC_STATS)
   intmach_t hz = HeapDifference(Heap_Start,G->heap_top); /* current heap size */
   switch (current_gctrace) {
@@ -1719,9 +2086,11 @@ CVOID__PROTO(gc__heap_collect) {
 
   /* push special registers on the trail stack */
 #if defined(USE_GLOBAL_VARS)
-  TrailPush(w->trail_top,GLOBAL_VARS_ROOT);
+  TrailPush(G->trail_top,GLOBAL_VARS_ROOT);
 #endif
+#if !defined(OPTIM_COMP)
   TrailPush(w->trail_top,Current_Debugger_State);
+#endif
 
   Total_Found = 0;
   Gcgrey = 0;
@@ -1731,8 +2100,8 @@ CVOID__PROTO(gc__heap_collect) {
   CVOID__CALL(trail__remove_uncond); /* sets Gc_Aux_Choice, gc_Choice_Start */
   Gc_Aux_Choice->local_top = newa;
   Gc_Aux_Choice->heap_top = G->heap_top;
-  Gc_Aux_Choice->frame = w->frame;
-  Gc_Aux_Choice->next_insn = w->next_insn;
+  Gc_Aux_Choice->frame = G->frame;
+  Gc_Aux_Choice->next_insn = G->next_insn;
   Gc_Heap_Start = gc_HeapStart;
   Gc_Stack_Start = gc_StackStart;
 
@@ -1768,19 +2137,21 @@ CVOID__PROTO(gc__heap_collect) {
   CVOID__CALL(compress_heap);
 
   /* pop special registers from the trail stack */
+#if !defined(OPTIM_COMP)
   TrailDec(w->trail_top);
   Current_Debugger_State = *(w->trail_top); // (w->trail_top points to the popped element)
+#endif
 #if defined(USE_GLOBAL_VARS)
   TrailDec(w->trail_top);
   GLOBAL_VARS_ROOT = *(w->trail_top); // (w->trail_top points to the popped element)
 #endif
     
-  SetChoice(w->choice);     /* shadow regs may have changed */
+  SetChoice(w->choice); /* shadow regs may have changed */
 #if defined(USE_GC_STATS)
   /* statistics */
-  flt64_t compress_time = RunTickFunc()-t2;
+  flt64_t compress_time = RunTickFunc() - t2;
   flt64_t gc_time = mark_time + compress_time;
-  ciao_stats.gc_tick  += gc_time;
+  ciao_stats.gc_tick += gc_time;
   ciao_stats.starttick += gc_time;
   ciao_stats.lasttick += gc_time;
 #if defined(OPTIM_COMP)
