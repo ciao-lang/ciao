@@ -1942,8 +1942,13 @@ static CVOID__PROTO(compress_heap) {
         extra = 0;
       }
       if (TG_IsM(curr)) {
-        if (garbage_words) {
-          curr[extra+1] = BlobFunctorBignum(garbage_words - 2);
+        if (garbage_words >= 2) {
+          curr[extra+1] = BlobFunctorBignum((garbage_words - 2));
+          //fprintf(stderr, "%llx %llx\n", (garbage_words - 2)*sizeof(tagged_t)/sizeof(bignum_t), (garbage_words - 2));
+          garbage_words = 0;
+        } else {
+          /* do not box the garbage (i.e. it is shorter than the
+             smallest bignum) */
           garbage_words = 0;
         }
         dest--;
@@ -1999,10 +2004,15 @@ static CVOID__PROTO(compress_heap) {
         }
       }
       PtrCharInc(dest, sizeof(tagged_t));
+      curr++;
     } else { /* skip a box---all garbage is boxed */
-      curr += LargeArity(TG_Val(curr));
+      if (BlobHF(TG_Val(curr))) {
+        curr += LargeArity(TG_Val(curr));
+        curr++;
+      } else {
+        curr++;
+      }
     }
-    curr++;
   }
   G->heap_top = dest;
 }
