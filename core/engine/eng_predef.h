@@ -88,6 +88,8 @@ typedef int32_t bool_t; /* TODO: Make it like 'char' */
 /* Type to hold time values (ticks, etc.) */
 typedef int64_t inttime_t;
 
+typedef tagged_t blob_unit_t; // TODO:[oc-merge] make OC use this def?
+
 /* ------------------------------------------------------------------------- */
 /* Macros for formatting integers */
 

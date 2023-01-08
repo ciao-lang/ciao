@@ -1910,27 +1910,30 @@ static CVOID__PROTO(sweep_choicepoints) {
 }
 
 static CVOID__PROTO(compress_heap) {
-  tagged_t cv;
   choice_t *cp = Gc_Aux_Choice;
+  intmach_t garbage_words = 0;
+
   TG_Let(curr, G->heap_top);
   TG_Let(dest, HeapCharOffset(Gc_Heap_Start,Total_Found));
-  intmach_t garbage_words = 0;
-  intmach_t extra;
-
   /* the upward phase */
   while (ChoiceYounger(cp,Gc_Choice_Start)) {
     cp->heap_top = dest;
-    cp=ChoiceCont(cp);
+    cp = ChoiceCont(cp);
         
     while (HeapYounger(curr,GCNodeGlobalTop(cp))) {
+      intmach_t extra;
       curr--;
-      cv = *curr;
-      if (cv&QMask) {     /* skip to box header */
-        extra = LargeArity(cv);
-                
+      TG_Fetch(curr);
+#if (!defined(OPTIM_COMP))||defined(ABSMACH_OPT__qtag)
+      if (BlobHF(TG_Val(curr))) { /* a box tail */
+#else
+      if ((!TG_IsR(curr)) && BlobHF(TG_Val(curr))) { /* a box tail */
+#endif
+        extra = LargeArity(TG_Val(curr));
+        /* skip to box header */
         curr -= extra;
-        cv = *curr;
-        if (gc_IsMarked(cv)) {
+        TG_Fetch(curr);
+        if (TG_IsM(curr)) {
           dest -= extra;
         } else {
           garbage_words += extra;
@@ -1938,23 +1941,23 @@ static CVOID__PROTO(compress_heap) {
       } else {
         extra = 0;
       }
-      if (gc_IsMarked(cv)) {
+      if (TG_IsM(curr)) {
         if (garbage_words) {
           curr[extra+1] = BlobFunctorBignum(garbage_words - 2);
           garbage_words = 0;
         }
         dest--;
-        if (gc_IsFirst(cv)) {
+        if (TG_IsR(curr)) {
           updateRelocationChain(curr,dest);
-          cv = *curr;
+          TG_Fetch(curr);
         }
-        if (IsHeapPtr(cv)) {
-          TG_Let(p, TaggedToPointer(cv));
+        if (IsHeapPtr(TG_Val(curr))) {
+          TG_Let(p, TaggedToPointer(TG_Val(curr)));
           if (HeapYounger(curr,p) && GC_HEAP_IN_SEGMENT(p)) {
             TG_Fetch(p);
             intoRelocationChain(p,curr);
           } else if (p==curr) { /* a cell pointing to itself */
-            *curr = gc_PutValue((tagged_t)dest,cv);
+            *curr = gc_PutValue((tagged_t)dest,TG_Val(curr));
           }
         }
       } else {
@@ -1967,13 +1970,13 @@ static CVOID__PROTO(compress_heap) {
   /* curr and dest both point to the beginning of the heap */
   curr += garbage_words;
   while (HeapYounger(G->heap_top,curr)) {
-    cv = *curr;
-    if (gc_IsMarked(cv)) {
-      if (gc_IsFirst(cv)) {
+    TG_Fetch(curr);
+    if (TG_IsM(curr)) {
+      if (TG_IsR(curr)) {
         updateRelocationChain(curr,dest);
-        cv = *curr;
+        TG_Fetch(curr);
       }
-      gc_UnmarkM(cv);  /* M and F-flags off */
+      tagged_t cv = GC_UNMARKED_M(TG_Val(curr));  /* M and R-bit off */
       {
         TG_Let(p, TaggedToPointer(cv));
         
@@ -1982,19 +1985,22 @@ static CVOID__PROTO(compress_heap) {
           *dest = cv;
           TG_Fetch(p);
           intoRelocationChain(p,dest);
-        } else if (cv&QMask) { /* move a box */
+        } else if (BlobHF(cv)) { /* move a box */
           *curr = cv;
-          for (extra = LargeArity(cv); extra>0; extra--) {
-            *dest++ = *curr++;
+          for (intmach_t extra = LargeArity(cv); extra>0; extra--) {
+            blob_unit_t t = *((blob_unit_t *)curr);
+            PtrCharInc(curr, sizeof(blob_unit_t));
+            *((blob_unit_t *)dest) = t;
+            PtrCharInc(dest, sizeof(blob_unit_t));
           }
           *dest = cv;
         } else { /* just move the current cell */
           *dest = cv;
         }
       }
-      dest++;
+      PtrCharInc(dest, sizeof(tagged_t));
     } else { /* skip a box---all garbage is boxed */
-      curr += LargeArity(cv);
+      curr += LargeArity(TG_Val(curr));
     }
     curr++;
   }
