@@ -1911,7 +1911,7 @@ static CVOID__PROTO(sweep_choicepoints) {
 
 static CVOID__PROTO(compress_heap) {
   choice_t *cp = Gc_Aux_Choice;
-  intmach_t garbage_words = 0;
+  intmach_t garbage_bytes = 0;
 
   TG_Let(curr, G->heap_top);
   TG_Let(dest, HeapCharOffset(Gc_Heap_Start,Total_Found));
@@ -1929,29 +1929,35 @@ static CVOID__PROTO(compress_heap) {
 #else
       if ((!TG_IsR(curr)) && BlobHF(TG_Val(curr))) { /* a box tail */
 #endif
-        extra = LargeArity(TG_Val(curr));
-        /* skip to box header */
-        curr -= extra;
+        extra = LargeArity(TG_Val(curr))*sizeof(tagged_t);
+        PtrCharInc(curr, -extra); /* skip to box header */
         TG_Fetch(curr);
         if (TG_IsM(curr)) {
-          dest -= extra;
+          PtrCharInc(dest, -extra);
         } else {
-          garbage_words += extra;
+          garbage_bytes += extra;
         }
       } else {
         extra = 0;
       }
       if (TG_IsM(curr)) {
-        if (garbage_words >= 2) {
-          curr[extra+1] = BlobFunctorBignum((garbage_words - 2));
-          //fprintf(stderr, "%llx %llx\n", (garbage_words - 2)*sizeof(tagged_t)/sizeof(bignum_t), (garbage_words - 2));
-          garbage_words = 0;
-        } else {
+        if (garbage_bytes >= 2*sizeof(functor_t)) {
+          /* box the garbage as a bignum (whose bits must be ignored) */
+          /* note: garbage starts at extra+sizeof(tagged_t) (or
+             extra+sizeof(functor_t)) */
+          /* todo[ts]: garbage_bytes may be greater than the maximum
+             length of a bignum!! (when USE_ATMQMASK is on) */
+          tagged_t cv2 = BlobFunctorBignum((garbage_bytes-2*sizeof(functor_t))/sizeof(bignum_t));
+          tagged_t *ptr = curr;
+          PtrCharInc(ptr, extra+sizeof(tagged_t));
+          *ptr = cv2;
+          garbage_bytes = 0;
+        } else if (garbage_bytes) {
           /* do not box the garbage (i.e. it is shorter than the
              smallest bignum) */
-          garbage_words = 0;
+          garbage_bytes = 0;
         }
-        dest--;
+        PtrCharInc(dest, -sizeof(tagged_t));
         if (TG_IsR(curr)) {
           updateRelocationChain(curr,dest);
           TG_Fetch(curr);
@@ -1959,21 +1965,23 @@ static CVOID__PROTO(compress_heap) {
         if (IsHeapPtr(TG_Val(curr))) {
           TG_Let(p, TaggedToPointer(TG_Val(curr)));
           if (HeapYounger(curr,p) && GC_HEAP_IN_SEGMENT(p)) {
+            ASSERT__INTORC0(p,curr);
             TG_Fetch(p);
             intoRelocationChain(p,curr);
-          } else if (p==curr) { /* a cell pointing to itself */
-            *curr = gc_PutValue((tagged_t)dest,TG_Val(curr));
+          } else if (p==curr) {
+            /* a cell pointing to itself */
+            TG_PutPtr(dest,curr);
           }
         }
       } else {
-        garbage_words++;
+        garbage_bytes += sizeof(tagged_t);
       }
     }
   }
 
   /* The downward phase */
   /* curr and dest both point to the beginning of the heap */
-  curr += garbage_words;
+  PtrCharInc(curr, garbage_bytes);
   while (HeapYounger(G->heap_top,curr)) {
     TG_Fetch(curr);
     if (TG_IsM(curr)) {
@@ -1983,37 +1991,52 @@ static CVOID__PROTO(compress_heap) {
       }
       tagged_t cv = GC_UNMARKED_M(TG_Val(curr));  /* M and R-bit off */
       {
-        TG_Let(p, TaggedToPointer(cv));
-        
-        if (IsHeapPtr(cv) && HeapYounger(p,curr)) {              
-          /* move the current cell and insert into the reloc.chain */
-          *dest = cv;
-          TG_Fetch(p);
-          intoRelocationChain(p,dest);
-        } else if (BlobHF(cv)) { /* move a box */
-          *curr = cv;
-          for (intmach_t extra = LargeArity(cv); extra>0; extra--) {
+        if (BlobHF(cv)) { /* move a box */
+          TG_MoveUNMARKED_M_UnsetM(cv, curr);
+          for (intmach_t i = LargeArity(cv); i>0; i--) {
             blob_unit_t t = *((blob_unit_t *)curr);
             PtrCharInc(curr, sizeof(blob_unit_t));
             *((blob_unit_t *)dest) = t;
             PtrCharInc(dest, sizeof(blob_unit_t));
           }
-          *dest = cv;
+          TG_MoveUNMARKED_M_UnsetM(cv, dest);
+        } else if (IsHeapPtr(cv)) {
+          TG_Let(p, TaggedToPointer(cv));
+          if (HeapYounger(p,curr)) {
+            /* move the current cell and insert into the reloc.chain */
+            TG_MoveUNMARKED_M_UnsetM(cv, dest);
+            ASSERT__INTORC(p,dest);
+            TG_Fetch(p);
+            intoRelocationChain(p,dest);
+          } else { /* just move the current cell */
+            TG_MoveUNMARKED_M_UnsetM(cv, dest);
+          }
         } else { /* just move the current cell */
-          *dest = cv;
+          TG_MoveUNMARKED_M_UnsetM(cv, dest);
         }
       }
       PtrCharInc(dest, sizeof(tagged_t));
-      curr++;
-    } else { /* skip a box---all garbage is boxed */
+      PtrCharInc(curr, sizeof(tagged_t));
+    } else {
       if (BlobHF(TG_Val(curr))) {
-        curr += LargeArity(TG_Val(curr));
-        curr++;
+        /* skip a box, of at least 2*sizeof(functor_t) size (garbage
+           has been boxed in the upward phase) */
+        PtrCharInc(curr, LargeArity(TG_Val(curr))*sizeof(tagged_t)+sizeof(tagged_t));
       } else {
-        curr++;
+        /* skip a single tagged */
+        PtrCharInc(curr, sizeof(tagged_t));
       }
     }
   }
+#if defined(USE_LOWRTCHECKS)
+  /* clean freed section to catch bugs */
+  curr = dest;
+  while (curr < G->heap_top) {
+    TG_MoveUNMARKED_M_UnsetM(atom_nil, curr);
+    PtrCharInc(curr, sizeof(tagged_t));
+  }
+#endif
+
   G->heap_top = dest;
 }
 
@@ -2112,7 +2135,7 @@ CVOID__PROTO(gc__heap_collect) {
 
   CVOID__CALL(mark_trail_cva);
   CVOID__CALL(mark_choicepoints);
-  CVOID__CALL(trail__compress, TRUE);
+  CVOID__CALL(trail__compress, TRUE); /* remove holes put by trail__remove_uncond and early reset in mark_choicepoints */
 
   Gc_Total_Grey += Gcgrey;
 #if defined(USE_GC_STATS)          
@@ -2136,10 +2159,10 @@ CVOID__PROTO(gc__heap_collect) {
   Current_Debugger_State = *(w->trail_top); // (w->trail_top points to the popped element)
 #endif
 #if defined(USE_GLOBAL_VARS)
-  TrailDec(w->trail_top);
-  GLOBAL_VARS_ROOT = *(w->trail_top); // (w->trail_top points to the popped element)
+  TrailDec(G->trail_top);
+  GLOBAL_VARS_ROOT = *(G->trail_top); // (w->trail_top points to the popped element)
 #endif
-    
+
   SetChoice(w->choice); /* shadow regs may have changed */
 #if defined(USE_GC_STATS)
   /* statistics */
