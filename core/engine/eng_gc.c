@@ -1929,7 +1929,7 @@ static CVOID__PROTO(compress_heap) {
 #else
       if ((!TG_IsR(curr)) && BlobHF(TG_Val(curr))) { /* a box tail */
 #endif
-        extra = LargeArity(TG_Val(curr))*sizeof(tagged_t);
+        extra = BlobFunctorSizeAligned(TG_Val(curr))+sizeof(functor_t);
         PtrCharInc(curr, -extra); /* skip to box header */
         TG_Fetch(curr);
         if (TG_IsM(curr)) {
@@ -1950,7 +1950,7 @@ static CVOID__PROTO(compress_heap) {
           tagged_t cv2 = BlobFunctorBignum((garbage_bytes-2*sizeof(functor_t))/sizeof(bignum_t));
           tagged_t *ptr = curr;
           PtrCharInc(ptr, extra+sizeof(tagged_t));
-          *ptr = cv2;
+          TG_MoveUNMARKED_M_UnsetM(cv2, ptr);
           garbage_bytes = 0;
         } else if (garbage_bytes) {
           /* do not box the garbage (i.e. it is shorter than the
@@ -1993,7 +1993,7 @@ static CVOID__PROTO(compress_heap) {
       {
         if (BlobHF(cv)) { /* move a box */
           TG_MoveUNMARKED_M_UnsetM(cv, curr);
-          for (intmach_t i = LargeArity(cv); i>0; i--) {
+          for (intmach_t i = BlobFunctorSizeAligned(cv)+sizeof(functor_t); i > 0; i -= sizeof(blob_unit_t)) {
             blob_unit_t t = *((blob_unit_t *)curr);
             PtrCharInc(curr, sizeof(blob_unit_t));
             *((blob_unit_t *)dest) = t;
@@ -2021,7 +2021,7 @@ static CVOID__PROTO(compress_heap) {
       if (BlobHF(TG_Val(curr))) {
         /* skip a box, of at least 2*sizeof(functor_t) size (garbage
            has been boxed in the upward phase) */
-        PtrCharInc(curr, LargeArity(TG_Val(curr))*sizeof(tagged_t)+sizeof(tagged_t));
+        PtrCharInc(curr, BlobFunctorSizeAligned(TG_Val(curr))+2*sizeof(functor_t));
       } else {
         /* skip a single tagged */
         PtrCharInc(curr, sizeof(tagged_t));
