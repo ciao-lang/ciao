@@ -2349,7 +2349,7 @@ CBOOL__PROTO(statistics)
              " %10.6f sec. for %" PRIdm " garbage collections which collected %" PRIdm " bytes\n\n",
              ((flt64_t)ciao_stats.gc_tick)/RunClockFreq(ciao_stats),
              ciao_stats.gc_count,
-             (intmach_t)(ciao_stats.gc_acc*sizeof(tagged_t)));
+             (intmach_t)ciao_stats.gc_acc);
 
 #if !defined(EMSCRIPTEN) /* not supported by emscripten */
   StreamPrintf(s,

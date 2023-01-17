@@ -110,7 +110,7 @@ CBOOL__PROTO(gc_usage) {
 
   t = (flt64_t)ciao_stats.gc_tick*1000/RunClockFreq(ciao_stats);
   MakeLST(x,BoxFloat(t),atom_nil);
-  t = ciao_stats.gc_acc*sizeof(tagged_t);
+  t = ciao_stats.gc_acc;
   MakeLST(x,IntmachToTagged((intmach_t)t),x);
   t = ciao_stats.gc_count;
   MakeLST(x,IntmachToTagged((intmach_t)t),x);
