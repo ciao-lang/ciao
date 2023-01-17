@@ -343,7 +343,7 @@ CVOID__PROTO(explicit_heap_overflow, intmach_t pad, intmach_t arity) {
      it make sense? Choice stack space should be already reserved
      before neck. */
   if (was_shallow) {
-    if (ChoiceYounger(ChoiceCharOffset(w->choice,CHOICEPAD*sizeof(tagged_t)),w->trail_top)) {
+    if (ChoiceYounger(ChoiceCharOffset(w->choice,CHOICEPAD*sizeof(tagged_t)),G->trail_top)) {
       CVOID__CALL(choice_overflow,2*CHOICEPAD*sizeof(tagged_t),TRUE);
     }
   }
@@ -896,7 +896,7 @@ CVOID__PROTO(heap_overflow_adjust_wam,
   /* pop special registers from the trail stack */
 #if !defined(OPTIM_COMP)
   TrailDec(G->trail_top);
-  Current_Debugger_State = *(G->trail_top); // (w->trail_top points to the popped element)
+  Current_Debugger_State = *(G->trail_top); // (G->trail_top points to the popped element)
 #endif
 
 #if defined(ANDPARALLEL)
@@ -995,12 +995,6 @@ CVOID__PROTO(trail__remove_uncond) {
   Gc_Choice_Start = w->segment_choice;
 
   wake_count = WakeCount();
-
-#if !defined(OPTIM_COMP)
-  if (current_gctrace == GCTRACE__VERBOSE) {
-    TRACE_PRINTF("{GC}  Trail GC started\n");
-  }
-#endif
 
   /* Go from new to old. */
   tr = G->trail_top;
@@ -2053,49 +2047,53 @@ CVOID__PROTO(gc__heap_collect) {
   GetFrameTop(newa, w->choice, G->frame);
 
 #if defined(USE_GC_STATS)
-  intmach_t hz = HeapDifference(Heap_Start,G->heap_top); /* current heap size */
+  intmach_t hz = HeapCharUsed(G->heap_top); /* current heap size */
   switch (current_gctrace) {
   case GCTRACE__OFF:
     break;
   case GCTRACE__TERSE:
-    TRACE_PRINTF("{GC}\n");
+    TRACE_PRINTF("{GC} heap GC started\n");
     break;
   case GCTRACE__VERBOSE:
-    TRACE_PRINTF("\n{GC}  Heap GC started\n");
-    TRACE_PRINTF("Heap:   from %p to %p (total size = %" PRIdm ")\n",
+    TRACE_PRINTF("{GC} heap GC started\n");
+    TRACE_PRINTF("{GC}   heap: %p-%p (size = %" PRIdm ")\n",
                  Heap_Start, 
                  Heap_End,
-                 (intmach_t)HeapDifference(Heap_Start, Heap_End));
-    TRACE_PRINTF("        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
+                 (intmach_t)HeapCharSize());
+    TRACE_PRINTF("{GC}   heap top = %p (used = %" PRIdm ", free = %" PRIdm ")\n",
                  G->heap_top,  
-                 (intmach_t)HeapDifference(Heap_Start, G->heap_top),
-                 (intmach_t)HeapDifference(G->heap_top, Heap_End));
-    TRACE_PRINTF("        GC start at %p\n", 
+                 (intmach_t)HeapCharUsed(G->heap_top),
+                 (intmach_t)HeapCharAvailable(G->heap_top));
+    TRACE_PRINTF("{GC}   heap segment start = %p\n", 
                  gc_HeapStart);
 
-    TRACE_PRINTF("Stack:  from %p to %p (total size = %" PRIdm ")\n",
+    TRACE_PRINTF("{GC}   stack: %p-%p (size = %" PRIdm ")\n",
                  Stack_Start, 
                  Stack_End,
                  (intmach_t)StackCharSize());
-    TRACE_PRINTF("        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
-                 w->local_top, 
-                 (intmach_t)StackCharUsed(w->local_top),
-                 (intmach_t)StackCharAvailable(w->local_top));
-    TRACE_PRINTF("        GC start at %p\n", 
+    TRACE_PRINTF("{GC}   stack top = %p (used = %" PRIdm ", free = %" PRIdm ")\n",
+                 G->local_top, 
+                 (intmach_t)StackCharUsed(G->local_top),
+                 (intmach_t)StackCharAvailable(G->local_top));
+    TRACE_PRINTF("{GC}   stack segment start = %p\n", 
                  gc_StackStart);
 
-    TRACE_PRINTF("Choice/Trail: from %p to %p (total size = %" PRIdm ")\n",
+    TRACE_PRINTF("{GC}   choice/trail: %p-%p (size = %" PRIdm ")\n",
                  Choice_Start, 
                  Choice_End,
-                 (intmach_t)ChoiceDifference(Choice_Start,Choice_End));
-    TRACE_PRINTF("        Ch. top at %p (used = %" PRIdm ")\n", 
+                 (intmach_t)ChoiceCharDifference(Choice_Start,Choice_End));
+    TRACE_PRINTF("{GC}   choice top = %p (used = %" PRIdm ")\n", 
                  w->choice, 
-                 (intmach_t)ChoiceDifference(Choice_Start, w->choice));
-    TRACE_PRINTF("        Tr. top at %p (used = %" PRIdm ")\n", 
-                 w->trail_top, 
-                 (intmach_t)TrailDifference(Trail_Start,w->trail_top));
-    TRACE_PRINTF("        Ch./Tr. free %" PRIdm "\n",
-                 (intmach_t)ChoiceDifference(w->choice, w->trail_top));
+                 (intmach_t)ChoiceCharDifference(Choice_Start, w->choice));
+    TRACE_PRINTF("{GC}   choice segment start = %p\n", 
+                 gc_ChoiceStart);
+    TRACE_PRINTF("{GC}   trail top = %p (used = %" PRIdm ")\n", 
+                 G->trail_top, 
+                 (intmach_t)TrailCharDifference(Trail_Start,G->trail_top));
+    TRACE_PRINTF("{GC}   trail segment start = %p\n", 
+                 gc_TrailStart);
+    TRACE_PRINTF("{GC}   choice/trail free %" PRIdm "\n",
+                 (intmach_t)ChoiceCharDifference(w->choice, G->trail_top));
     break;
   }
   flt64_t t1 = RunTickFunc();
@@ -2106,7 +2104,7 @@ CVOID__PROTO(gc__heap_collect) {
   TrailPush(G->trail_top,GLOBAL_VARS_ROOT);
 #endif
 #if !defined(OPTIM_COMP)
-  TrailPush(w->trail_top,Current_Debugger_State);
+  TrailPush(G->trail_top,Current_Debugger_State);
 #endif
 
   Total_Found = 0;
@@ -2127,7 +2125,7 @@ CVOID__PROTO(gc__heap_collect) {
   if (WakeCount()) {
     /* TODO: why? */
     if (current_gctrace == GCTRACE__VERBOSE) {
-      TRACE_PRINTF("{GC}  Shunting disabled due to pending unifications\n");
+      TRACE_PRINTF("{GC}   shunting disabled due to pending unifications\n");
     }
   } else {
     CVOID__CALL(shunt_variables);
@@ -2142,10 +2140,10 @@ CVOID__PROTO(gc__heap_collect) {
   flt64_t t2 = RunTickFunc();
   flt64_t mark_time = t2 - t1;
   if (current_gctrace == GCTRACE__VERBOSE) {
-    TRACE_PRINTF("        mark: %" PRIdm " bytes marked in %.3f sec\n",
+    TRACE_PRINTF("{GC}   mark: %" PRIdm " bytes marked in %.3f sec\n",
                  Total_Found,((flt64_t)mark_time)/RunClockFreq(ciao_stats));
 #if defined(USE_SEGMENTED_GC)
-    TRACE_PRINTF("{GC}  no more than %" PRIdm " garbage bytes left\n", Gcgrey);
+    TRACE_PRINTF("{GC}   no more than %" PRIdm " garbage bytes left\n", Gcgrey);
 #endif
   }
 #endif
@@ -2155,12 +2153,12 @@ CVOID__PROTO(gc__heap_collect) {
 
   /* pop special registers from the trail stack */
 #if !defined(OPTIM_COMP)
-  TrailDec(w->trail_top);
-  Current_Debugger_State = *(w->trail_top); // (w->trail_top points to the popped element)
+  TrailDec(G->trail_top);
+  Current_Debugger_State = *(G->trail_top); // (G->trail_top points to the popped element)
 #endif
 #if defined(USE_GLOBAL_VARS)
   TrailDec(G->trail_top);
-  GLOBAL_VARS_ROOT = *(G->trail_top); // (w->trail_top points to the popped element)
+  GLOBAL_VARS_ROOT = *(G->trail_top); // (G->trail_top points to the popped element)
 #endif
 
   SetChoice(w->choice); /* shadow regs may have changed */
@@ -2177,26 +2175,26 @@ CVOID__PROTO(gc__heap_collect) {
   }
 #endif
   ciao_stats.gc_count++;
-  intmach_t gc_reclaimed = hz-HeapDifference(Heap_Start,G->heap_top);
+  intmach_t gc_reclaimed = hz-HeapCharUsed(G->heap_top);
   ciao_stats.gc_acc += gc_reclaimed;
   if (current_gctrace == GCTRACE__VERBOSE) {
-    TRACE_PRINTF("        Heap: %" PRIdm " cells reclaimed in %.3f sec\n",
+    TRACE_PRINTF("{GC}   compress: %" PRIdm " bytes reclaimed in %.3f sec\n",
                  (intmach_t)gc_reclaimed,
                  ((flt64_t)compress_time)/RunClockFreq(ciao_stats));
-    TRACE_PRINTF("Heap:   from %p to %p (total size = %" PRIdm ")\n",
-                 Heap_Start, 
-                 Heap_End,
-                 (intmach_t)HeapDifference(Heap_Start, Heap_End));
-    TRACE_PRINTF("        top at %p (used = %" PRIdm ", free = %" PRIdm ")\n",
-                 G->heap_top,  
-                 (intmach_t)HeapDifference(Heap_Start, G->heap_top),
-                 (intmach_t)HeapDifference(G->heap_top, Heap_End));
-    TRACE_PRINTF("        GC start at %p\n", 
-                 gc_HeapStart);
-
-    TRACE_PRINTF("        Total: %" PRIdm " cells reclaimed in %" PRIdm " gc's\n",
+    // // [already shown]
+    // TRACE_PRINTF("{GC}   heap: %p-%p (size = %" PRIdm ")\n",
+    //              Heap_Start, 
+    //              Heap_End,
+    //              (intmach_t)HeapDifference(Heap_Start, Heap_End));
+    // TRACE_PRINTF("{GC}   heap top = %p (used = %" PRIdm ", free = %" PRIdm ")\n",
+    //              G->heap_top,  
+    //              (intmach_t)HeapDifference(Heap_Start, G->heap_top),
+    //              (intmach_t)HeapDifference(G->heap_top, Heap_End));
+    // TRACE_PRINTF("{GC}   heap segment start = %p\n", 
+    //              gc_HeapStart);
+    TRACE_PRINTF("{GC}   acc reclaimed: %" PRIdm " bytes in %" PRIdm " gc's\n",
                  ciao_stats.gc_acc,ciao_stats.gc_count);
-    TRACE_PRINTF("        GC time = %.6f  Total = %.6f\n\n",
+    TRACE_PRINTF("{GC}   GC time = %.6f  Total = %.6f\n\n",
                  ((flt64_t)gc_time)/RunClockFreq(ciao_stats),
                  ((flt64_t)ciao_stats.gc_tick)/RunClockFreq(ciao_stats));
   }

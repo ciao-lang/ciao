@@ -1814,6 +1814,8 @@ struct marker_ {
 
 #define Heap_Warn_Pad(PAD) HeapCharOffset(Heap_End,-(PAD))
 
+#define HeapCharUsed(H) HeapCharDifference(Heap_Start, (H))
+
 /* THE FRAME STACK */
 
 /* assuming stack growth in positive direction */
