@@ -125,7 +125,7 @@ CVOID__PROTO(wr_call, char *s, definition_t *func);
                  (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, \
                  (unsigned int)concchpt); \
     /* TODO: wrong if it is Zero (null)? (JFMC) */ \
-    choice_t *prev = (choice_t *)TermToPointerOrNull(concchpt->x[PrevDynChpt]); \
+    choice_t *prev = TermToPointerOrNull(choice_t, concchpt->x[PrevDynChpt]); \
     AssignRelocPtr(prev, choice_reloc_factor); \
     concchpt->x[PrevDynChpt] = PointerToTermOrZero(prev); \
     concchpt = prev; \

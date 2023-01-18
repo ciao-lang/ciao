@@ -30,7 +30,7 @@ CBOOL__PROTO(counter_values)
   tagged_t values;
 
   DEREF(X(0),X(0));
-  current_counter = (intmach_t *)TermToPointer(X(0));
+  current_counter = TermToPointer(intmach_t, X(0));
 
   DEREF(X(1),X(1));
   count = TaggedToIntmach(X(1));
@@ -62,7 +62,7 @@ CBOOL__PROTO(reset_counters)
   intmach_t *current_counter, *max_counter;
 
   DEREF(X(0),X(0));
-  current_counter = (intmach_t *)TermToPointer(X(0));
+  current_counter = TermToPointer(intmach_t, X(0));
   DEREF(X(1),X(1));
   max_counter = current_counter + TaggedToIntmach(X(1));
 

@@ -50,7 +50,7 @@ CBOOL__PROTO(current_predicate)
 
 CBOOL__PROTO(nd_current_predicate)
 {
-  sw_on_key_t *table = (sw_on_key_t *)TermToPointer(X(3));
+  sw_on_key_t *table = TermToPointer(sw_on_key_t, X(3));
   sw_on_key_node_t *keyval;
   intmach_t j = GetSmall(X(2));
   definition_t *d;
@@ -114,7 +114,7 @@ CBOOL__PROTO(predicate_property)
 
 CBOOL__PROTO(nd_predicate_property)
 {
-  sw_on_key_t *table = (sw_on_key_t *)TermToPointer(X(4));
+  sw_on_key_t *table = TermToPointer(sw_on_key_t, X(4));
   intmach_t j = GetSmall(X(3));
   sw_on_key_node_t *keyval;
   definition_t *d;

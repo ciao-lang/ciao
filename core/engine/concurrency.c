@@ -304,7 +304,7 @@ void reset_counter(void) {
 int killing_threads = FALSE;  /* Set to TRUE when killing other threads to
                                  disable fast spawning of new threads. */
 
-#define TermToGoalDesc(term) (goal_descriptor_t *)TermToPointer(term)
+#define TermToGoalDesc(term) TermToPointer(goal_descriptor_t, term)
 #define GoalDescToTerm(goal) PointerToTerm(goal)
 
 /* POSIX defines a maximum (_PTHREAD_THREADS_MAX) on the number of threads

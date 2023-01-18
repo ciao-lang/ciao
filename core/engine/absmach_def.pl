@@ -1978,7 +1978,7 @@ retry_instance :-
     if("!w->misc->ins",
       % A conc. predicate has been closed, or a non-blocking call was made (MCL)
       (trace(retry_instance_debug_1),
-       "TopConcChpt = (choice_t *)TermToPointerOrNull(X(PrevDynChpt));", fmt:nl,
+       "TopConcChpt = TermToPointerOrNull(choice_t, X(PrevDynChpt));", fmt:nl,
        trace(retry_instance_debug_2),
        % But fail anyway
        goto('fail'))),

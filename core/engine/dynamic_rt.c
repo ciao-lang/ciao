@@ -1022,7 +1022,7 @@ void remove_link_chains(choice_t **topdynamic,
 
     Broadcast_Cond(TaggedToRoot(movingtop->x[RootArg])->clause_insertion_cond);
 
-    movingtop=(choice_t *)TermToPointerOrNull(movingtop->x[PrevDynChpt]);
+    movingtop=TermToPointerOrNull(choice_t, movingtop->x[PrevDynChpt]);
   }
 #if defined(DEBUG) && defined(USE_THREADS)
   if (debug_conc)

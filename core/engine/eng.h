@@ -861,15 +861,15 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 /* NOTE: pointers must be in the SMALLPTR_BASE range and they must be
    aligned to 1<<tagged__num_offset (32-bits) */
 #if SMALLPTR_BASE
-#define TermToPointer(X)        ((tagged_t *)((X) ^ (TaggedZero^SMALLPTR_BASE)))
-#define TermToPointerOrNull(X)  ((tagged_t *)((X)==TaggedZero ? 0 : \
+#define TermToPointer(T, X)        ((T *)((X) ^ (TaggedZero^SMALLPTR_BASE)))
+#define TermToPointerOrNull(T, X)  ((T *)((X)==TaggedZero ? 0 : \
                                             (X) ^ (TaggedZero^SMALLPTR_BASE)))
 #define PointerToTerm(X)        ((tagged_t)(X) ^ (TaggedZero^SMALLPTR_BASE))
 #define PointerToTermOrZero(X)  (!(X) ? TaggedZero : \
                                  (tagged_t)(X) ^ (TaggedZero^SMALLPTR_BASE))
 #else
-#define TermToPointer(X)        ((tagged_t *)((X) ^ TaggedZero))
-#define TermToPointerOrNull(X)  ((tagged_t *)((X) ^ TaggedZero))
+#define TermToPointer(T, X)        ((T *)((X) ^ TaggedZero))
+#define TermToPointerOrNull(T, X)  ((T *)((X) ^ TaggedZero))
 #define PointerToTerm(X)        ((tagged_t)(X) ^ TaggedZero)
 #define PointerToTermOrZero(X)  ((tagged_t)(X) ^ TaggedZero)
 #endif
@@ -1100,16 +1100,16 @@ typedef struct instance_ instance_t;
 typedef struct int_info_ int_info_t;
 typedef struct sw_on_key_ sw_on_key_t;
 
-#define TaggedToInstance(X)        ((instance_t *)TermToPointerOrNull(X))
-#define TaggedToInstHandle(X)      ((instance_handle_t *) TermToPointerOrNull(X))
-#define TaggedToInstancePtr(X)     ((instance_t **)TermToPointerOrNull(X))
-#define TaggedToStream(X)  ((stream_node_t *)TermToPointer(X))
-#define TaggedToLock(X)    ((LOCK *)TermToPointer(X))
-#define TaggedToSLock(X)   ((SLOCK *)TermToPointer(X))
-#define TaggedToBool(X)    ((bool_t *)TermToPointer(X))
-#define TaggedToRoot(X)    ((int_info_t *)TermToPointer(X))
-#define TaggedToEmul(X)    ((emul_info_t *)TermToPointer(X))
-#define TaggedToFunctor(X) ((definition_t *)TermToPointer(X))
+#define TaggedToInstance(X)    TermToPointerOrNull(instance_t, X)
+#define TaggedToInstHandle(X)  TermToPointerOrNull(instance_handle_t, X)
+#define TaggedToInstancePtr(X) TermToPointerOrNull(instance_t *, X)
+#define TaggedToStream(X)      TermToPointer(stream_node_t, X)
+#define TaggedToLock(X)        TermToPointer(LOCK, X)
+#define TaggedToSLock(X)       TermToPointer(SLOCK, X)
+#define TaggedToBool(X)        TermToPointer(bool_t, X)
+#define TaggedToRoot(X)        TermToPointer(int_info_t, X)
+#define TaggedToEmul(X)        TermToPointer(emul_info_t, X)
+#define TaggedToFunctor(X)     TermToPointer(definition_t, X)
 
 #define TaggedToBignum(X) ((bignum_t *)TagpPtr(STR,(X)))
 

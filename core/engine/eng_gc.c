@@ -906,14 +906,14 @@ CVOID__PROTO(heap_overflow_adjust_wam,
   if (gle != NULL) {
     if (IsHeapPtrAndNeedsReloc(gle->handler)) {
       DerefArg(x1,gle->handler,1);
-      ((par_handler_t *) TermToPointer(x1))->goal += reloc_factor;
+      (TermToPointer(par_handler_t, x1))->goal += reloc_factor;
       gle->handler += reloc_factor;
     }
     while (gle != Goal_List_Top) {
       gle = gle->next;
       if (IsHeapPtrAndNeedsReloc(gle->handler)) {
         DerefArg(x1,gle->handler,1);
-        ((par_handler_t *) TermToPointer(x1))->goal += reloc_factor;
+        (TermToPointer(par_handler_t, x1))->goal += reloc_factor;
         gle->handler += reloc_factor;
       }
     }
