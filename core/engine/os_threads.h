@@ -18,7 +18,7 @@
 
 #if !defined(OPTIM_COMP)
 /* If we undefine this, only binary semaphores will be available */
-#define GENERAL_LOCKS
+#define ABSMACH_OPT__general_locks
 #endif
 
 #if !defined(NULL)

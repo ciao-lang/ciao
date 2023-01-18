@@ -2090,7 +2090,7 @@ struct atom_ {
                                /* support for locking on atom names. MCL. */
 #if defined(USE_THREADS)                    /* Do not waste space otherwise */
   LOCK atom_lock_l;                      /* May be held for a long time */
-#if defined(GENERAL_LOCKS)
+#if defined(ABSMACH_OPT__general_locks)
   volatile intmach_t atom_lock_counter;         /* For general semaphores */
   SLOCK counter_lock;                            /* Held for a short time */
 #endif

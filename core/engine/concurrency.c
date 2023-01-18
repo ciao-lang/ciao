@@ -4,9 +4,8 @@
  *  See Copyright Notice in ciaoengine.pl
  */
 
-#include <unistd.h>
-
 #include <ciao/eng.h>
+#if !defined(OPTIM_COMP)
 #include <ciao/dynamic_rt.h>
 #include <ciao/basiccontrol.h>
 #include <ciao/internals.h>
@@ -15,6 +14,9 @@
 #include <ciao/eng_start.h>
 #include <ciao/eng_registry.h>
 #include <ciao/stream_basic.h>
+#endif
+
+#include <unistd.h>
 
 // /* In order to define whether a lock is a SPIN-lock or a POSIX-lock */
 // #define SPIN     0
@@ -86,11 +88,10 @@
 //   }
 // }
 
-#if defined(HAVE_LIB_LOCKS) && defined(DEBUG)
+#if defined(HAVE_LIB_LOCKS) && (defined(USE_LOWRTCHECKS) || defined(DEBUG_TRACE))
 int lock_is_unset(LOCK *p) {
 #if defined(Win32)
-  fprintf(stderr,
-          "testing lock unset in Win32: TryEnterCriticalSection may not be supported!\n");
+  fprintf(stderr, "testing lock unset in Win32: TryEnterCriticalSection may not be supported!\n");
   return FALSE;
 #else
   int value;
@@ -102,21 +103,20 @@ int lock_is_unset(LOCK *p) {
 #endif
 
 #if defined(USE_LOCKS)
-#if defined(GENERAL_LOCKS)
- /* Implementation of general locks based on binary ones (Barz, 1983,
-    SIGPLAN Notices) */
+#if defined(ABSMACH_OPT__general_locks)
+/* Implementation of general locks based on binary ones (Barz, 1983,
+   SIGPLAN Notices) */
 
 /* lock_atom/1: puts a lock on X(0), which must be an atom */
 
-CBOOL__PROTO(prolog_lock_atom)
-{
+CBOOL__PROTO(prolog_lock_atom) {
   ERR__FUNCTOR("concurrency:lock_atom", 1);
   tagged_t term;
   atom_t *atomptr;
 
   DEREF(term, X(0));
 
-  if (TaggedIsATM(term)) {                                    /* Atom -- lock */
+  if (TaggedIsATM(term)) { /* Atom -- lock */
     atomptr = TaggedToAtom(term);
     Wait_Acquire_lock(atomptr->atom_lock_l);
     Wait_Acquire_slock(atomptr->counter_lock);
@@ -126,11 +126,10 @@ CBOOL__PROTO(prolog_lock_atom)
     Release_slock(atomptr->counter_lock);
   } else BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(0),1);
 
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
-CBOOL__PROTO(prolog_unlock_atom)
-{
+CBOOL__PROTO(prolog_unlock_atom) {
   ERR__FUNCTOR("concurrency:unlock_atom", 1);
   tagged_t term;
   atom_t *atomptr;
@@ -146,15 +145,14 @@ CBOOL__PROTO(prolog_unlock_atom)
     Release_slock(atomptr->counter_lock);
   } else BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(0),1);
 
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
-CBOOL__PROTO(prolog_lock_atom_state)
-{
+CBOOL__PROTO(prolog_lock_atom_state) {
   ERR__FUNCTOR("concurrency:atom_lock_state", 2);
   tagged_t term, value;
   atom_t *atomptr;
-  int lock_value;
+  intmach_t lock_value;
 
   DEREF(term, X(0));
 
@@ -165,26 +163,29 @@ CBOOL__PROTO(prolog_lock_atom_state)
       Wait_Acquire_slock(atomptr->counter_lock);
       atomptr->atom_lock_counter = GetSmall(value);
       Release_slock(atomptr->counter_lock);
-      return TRUE;
+      CBOOL__PROCEED;
     } else if (IsVar(value)) {
       Wait_Acquire_slock(atomptr->counter_lock);
       lock_value = atomptr->atom_lock_counter;
       Release_slock(atomptr->counter_lock);
       CBOOL__LASTUNIFY(X(1), MakeSmall(lock_value));
     } else {
+#if defined(OPTIM_COMP)
+      BUILTIN_ERROR(TYPE_ERROR(VARIABLE),X(1),2);
+#else
       BUILTIN_ERROR(UNINSTANTIATION_ERROR,X(1),2);
+#endif
     }
   } else {
     BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(0),1);
   }
 }
 
-#else                                                    /* GENERAL_LOCKS */
+#else /* ABSMACH_OPT__general_locks */
 
 /* lock_atom/1: puts a lock on X(0), which must be an atom */
 
-CBOOL__PROTO(prolog_lock_atom_bin)
-{
+CBOOL__PROTO(prolog_lock_atom_bin) {
   ERR__FUNCTOR("concurrency:lock_atom", 1);
   tagged_t term;
   atom_t *atomptr;
@@ -196,11 +197,10 @@ CBOOL__PROTO(prolog_lock_atom_bin)
     Wait_Acquire_lock(atomptr->atom_lock_l);
   } else BUILTIN_ERROR(TYPE_ERROR(ATOM),X(0),1);
 
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
-CBOOL__PROTO(prolog_unlock_atom_bin)
-{
+CBOOL__PROTO(prolog_unlock_atom_bin) {
   ERR__FUNCTOR("concurrency:unlock_atom", 1);
   tagged_t term;
   atom_t *atomptr;
@@ -212,16 +212,33 @@ CBOOL__PROTO(prolog_unlock_atom_bin)
     Release_lock(atomptr->atom_lock_l);
   } else BUILTIN_ERROR(TYPE_ERROR(ATOM),X(0),1);
 
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
-#endif                                                   /* GENERAL_LOCKS */
+#endif /* ABSMACH_OPT__general_locks */
 
- /* Releases the lock on a predicate; this is needed to ensure that a clause
-    will not be changed while it is being executed. */
+#else /* !USE_LOCKS */
 
-CBOOL__PROTO(prolog_unlock_predicate)
-{
+/* lock_atom/1: puts a lock on X(0), which must be an atom */
+
+CBOOL__PROTO(prolog_lock_atom) {
+  CBOOL__PROCEED;
+}
+CBOOL__PROTO(prolog_lock_atom_state) {
+  CBOOL__PROCEED;
+}
+CBOOL__PROTO(prolog_unlock_atom) {
+  CBOOL__PROCEED;
+}
+#endif
+
+/* ------------------------------------------------------------------------- */
+
+#if defined(USE_LOCKS)
+/* Releases the lock on a predicate; this is needed to ensure that a clause
+   will not be changed while it is being executed. */
+
+CBOOL__PROTO(prolog_unlock_predicate) {
   int_info_t *root = TaggedToRoot(X(0));
 
 #if defined(DEBUG)
@@ -248,23 +265,7 @@ CBOOL__PROTO(prolog_unlock_predicate)
 
   return TRUE;
 }
-
-#else                                                        /* !USE_LOCKS */
-
-/* lock_atom/1: puts a lock on X(0), which must be an atom */
-
-CBOOL__PROTO(prolog_lock_atom)
-{
-  return TRUE;
-}
-CBOOL__PROTO(prolog_lock_atom_state)
-{
-  return TRUE;
-}
-CBOOL__PROTO(prolog_unlock_atom)
-{
-  return TRUE;
-}
+#else
 CBOOL__PROTO(prolog_unlock_predicate)
 {
 #if defined(DEBUG)
@@ -272,12 +273,11 @@ CBOOL__PROTO(prolog_unlock_predicate)
 #endif
   return TRUE;
 }
-
 #endif
 
 /* ------------------------------------------------------------------------- */
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 
 /* Counts mutually exclusive operations */
 size_t ops_counter = 0;
@@ -301,31 +301,16 @@ void reset_counter(void) {
 
 /* --------------------------------------------------------------------------- */
 
-CBOOL__PROTO(prolog_eng_kill);
-CBOOL__PROTO(prolog_eng_killothers);
-CBOOL__PROTO(prolog_eng_wait);
-CBOOL__PROTO(prolog_eng_self);
-CBOOL__PROTO(prolog_eng_status);
-CBOOL__PROTO(prolog_eng_status1);
-CBOOL__PROTO(prolog_eng_backtrack);
-CBOOL__PROTO(prolog_eng_release);
-CBOOL__PROTO(prolog_eng_cut);
-intmach_t goal_from_thread_id(THREAD_ID id);
-
-/* --------------------------------------------------------------------------- */
-
-/* local declarations */
-
 int killing_threads = FALSE;  /* Set to TRUE when killing other threads to
                                  disable fast spawning of new threads. */
 
 #define TermToGoalDesc(term) (goal_descriptor_t *)TermToPointer(term)
 #define GoalDescToTerm(goal) PointerToTerm(goal)
 
- /* POSIX defines a maximum (_PTHREAD_THREADS_MAX) on the number of threads
-    per process --- 64, I think .  Implementations can go beyond this
-    number.  I will allow 1024 simultaneous threads.  After the death of a
-    thread, more can (if the implementation supports it) be created*/
+/* POSIX defines a maximum (_PTHREAD_THREADS_MAX) on the number of threads
+   per process --- 64, I think .  Implementations can go beyond this
+   number.  I will allow 1024 simultaneous threads.  After the death of a
+   thread, more can (if the implementation supports it) be created */
 
 /* Kill a thread.  We need cooperation from the thread! */
 
