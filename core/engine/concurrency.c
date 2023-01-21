@@ -450,9 +450,10 @@ CBOOL__PROTO(prolog_eng_cut) {
     /* For concurrent goals, erase the concurrent data structures */
     ConcChptCleanUp(TopConcChpt, w->previous_choice);
 #endif
+    //
+    CVOID__CALL(wam, goal_desc);
   });
 
-  CVOID__CALL(wam, goal_desc);
   if (goal_desc->worker_registers->misc->exit_code == WAM_ABORT) {
     MAJOR_FAULT("Cut in wam finished with abort");
   }
@@ -558,10 +559,9 @@ CBOOL__PROTO(prolog_eng_kill) {
     }
 
     if (goal_to_kill->state == WORKING) {
-      CVOID__WITH_WORKER(goal_to_kill->worker_registers, {
-        Stop_This_Goal(w) = TRUE;
-        SetWakeCount(1); /* TODO: correct? why not a CInt? */
-      });
+      w = goal_to_kill->worker_registers;
+      Stop_This_Goal(w) = TRUE;
+      SetWakeCount(1); /* TODO: correct? why not a CInt? */
     }
     CBOOL__PROCEED;
   }
