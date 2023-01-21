@@ -1516,7 +1516,7 @@ fprintf(stderr,
         (TaggedToRoot(X(RootArg))->behavior_on_failure));                  }
                 }
 });
-TopConcChpt = (choice_t *)TermToPointerOrNull(X(PrevDynChpt));
+TopConcChpt = TermToPointerOrNull(choice_t, X(PrevDynChpt));
 ON_DEBUG({
 if (debug_concchoicepoints) {
   fprintf(stderr,"New topmost concurrent chpt = %x\n", (int)TopConcChpt);
