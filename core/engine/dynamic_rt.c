@@ -532,6 +532,47 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
   return current_one;
 }
 
+#if defined(USE_LOCKS)
+/* Releases the lock on a predicate; this is needed to ensure that a clause
+   will not be changed while it is being executed. */
+
+CBOOL__PROTO(prolog_unlock_predicate) {
+  int_info_t *root = TaggedToRoot(X(0));
+
+#if defined(DEBUG)
+  if (debug_conc) {
+    fprintf(stderr, "*** %d(%d) unlocking predicate, root is %x\n",
+            (int)Thread_Id, (int)GET_INC_COUNTER, (unsigned int)root);
+
+    if (root->behavior_on_failure == CONC_OPEN &&
+        Cond_Lock_is_unset(root->clause_insertion_cond))
+      fprintf(stderr,
+      "WARNING: In unlock_predicate, root is %x, predicate is unlocked!!!!\n", 
+              (unsigned int)root);
+  }
+#endif
+  
+  /* We have just finished executing an operation on a locked predicate;
+     unlock the predicate and make sure the choicepoint is not marked as
+     executing. */
+
+  if (root->behavior_on_failure != DYNAMIC){
+    SET_NONEXECUTING((TopConcChpt->x[InvocationAttr])); 
+    Wait_For_Cond_End(root->clause_insertion_cond);
+  }
+
+  return TRUE;
+}
+#else
+CBOOL__PROTO(prolog_unlock_predicate)
+{
+#if defined(DEBUG)
+  if (debug_conc) fprintf(stderr, "Using fake unlock_predicate!!!!\n");
+#endif
+  return TRUE;
+}
+#endif
+
 static bool_t wait_for_an_instance_pointer(instance_t **inst_pptr1,
                                            instance_t **inst_pptr2,
                                            int_info_t *root,

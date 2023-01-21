@@ -23,6 +23,9 @@
 /* Collect garbage collection's statistics */
 #define USE_GC_STATS 1
 
+/* TODO: hmmm ... makes abort much slower */ /* TODO:[oc-merge] disabled in OC, probably not in the right way */
+#define WAIT_THREAD_CANCELLED 1
+
 /* ------------------------------------------------------------------------- */
 /* Function and variable attributes */
 
