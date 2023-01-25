@@ -3258,6 +3258,9 @@ op_macros :-
 :- pred(wam_loop_defs/0, [unfold]).
 wam_loop_defs :-
     autogen_warning_comment,
+    % TODO: move somewhere else
+    "extern instance_clock_t def_clock", ";", fmt:nl,
+    "extern instance_clock_t use_clock", ";", fmt:nl,
     %
     op_macros,
     wam__2_proto,

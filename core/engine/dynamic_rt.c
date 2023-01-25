@@ -1,30 +1,37 @@
 /*
  *  dynamic_rt.c
  *
- *  Database management support code.
- *
- *  Copyright (C) 1996-2002 UPM-CLIP
+ *  See Copyright Notice in ciaoengine.pl
  */
 
-#include <unistd.h>
-#include <stddef.h> /* ptrdiff_t */
-
 #include <ciao/eng.h>
+#include <ciao/dynamic_rt.h>
+#if !defined(OPTIM_COMP)
 #include <ciao/eng_registry.h>
 #include <ciao/rt_exp.h>
 #include <ciao/runtime_control.h>
-#include <ciao/dynamic_rt.h>
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_gc.h>
 #include <ciao/internals.h>
 #include <ciao/eng_start.h>
 #include <ciao/basiccontrol.h>
+#include <unistd.h>
+#include <stddef.h> /* ptrdiff_t */
+#endif
 
-/* ------------------------------------------------------------------
-   THE BUILTIN C-PREDICATE       $CURRENT_INSTANCE/5
-   -----------------------------------------------------------------------*/
+#if defined(OPTIM_COMP)
+#define DYNAMIC BEHAVIOR(dynamic)
+#define CONC_OPEN BEHAVIOR(conc_open)
+#define CONC_CLOSED BEHAVIOR(conc_closed)
+#endif
 
-typedef enum {BLOCK, NO_BLOCK} BlockingType;
+/* --------------------------------------------------------------------------- */
+/* current_instance */
+
+/* Shared? Not easy: they have to do with the lifetime of dyn. predicates  */
+instance_clock_t def_clock=0;
+instance_clock_t use_clock=0;
+
 typedef enum {X5, X2} WhichChain;
 
 static bool_t wait_for_an_instance_pointer(instance_t **ins_pptr1,
@@ -59,6 +66,34 @@ static void link_handle(instance_handle_t *handle,
                         instance_t *inst,
                         int_info_t *root,
                         WhichChain chain);
+
+/* --------------------------------------------------------------------------- */
+
+/* Define an interpreted predicate.  It is open iff it is concurrent. */
+void init_interpreted(definition_t *f) {
+  int_info_t *d = checkalloc_TYPE(int_info_t);
+  f->code.intinfo = d;
+  //  f->code.intinfo = checkalloc_TYPE(int_info_t);
+
+  /* By default, make it DYNAMIC.  
+     set_property() may change this behavior later. MCL. */
+
+  f->code.intinfo->behavior_on_failure = DYNAMIC;
+
+  Init_Cond(f->code.intinfo->clause_insertion_cond);
+
+  /*  MCL added on 26 Nov 98 */
+  f->code.intinfo->x2_pending_on_instance = NULL;
+  f->code.intinfo->x5_pending_on_instance = NULL;
+
+  f->code.intinfo->first = NULL;
+  f->code.intinfo->varcase = NULL;
+  f->code.intinfo->lstcase = NULL;
+  f->code.intinfo->indexer = new_switch_on_key(2,NULL);
+  SetEnterInstr(f,ENTER_INTERPRETED);
+}
+
+/* --------------------------------------------------------------------------- */
 
 static CFUN__PROTO(current_instance_noconc, instance_t *);
 static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block);
@@ -1074,6 +1109,35 @@ void remove_link_chains(choice_t **topdynamic,
   *topdynamic = movingtop;
 }
 
+/* called from make_undefined() */
+CVOID__PROTO(erase_interpreted, definition_t *f) {
+  /* erase as much as possible */
+  instance_t *i, *j;
+
+  for (i = f->code.intinfo->first; i; i=j) {
+    j = i->forward;
+    if (i->death==0xffff) {
+      i->death = use_clock = def_clock;
+      if (i->birth==i->death) { 
+        /* make_undefined() is called from abolish() and
+           define_predicate(), which in turn are called directly from
+           Prolog and do not put any lock.  When reloading Prolog
+           code, the existent clauses (including those of concurrent
+           predicates) are erased, so we better put a lock on those
+           predicates.  MCL.
+        */
+        Cond_Begin(f->code.intinfo->clause_insertion_cond);
+        expunge_instance(i);
+        Broadcast_Cond(f->code.intinfo->clause_insertion_cond);
+      }
+    }
+  }
+
+  Cond_Begin(f->code.intinfo->clause_insertion_cond);
+  (void)ACTIVE_INSTANCE(Arg,f->code.intinfo->first,use_clock,TRUE);
+  Broadcast_Cond(f->code.intinfo->clause_insertion_cond);
+}
+
 /* --------------------------------------------------------------------------- */
 
 static void relocate_table_clocks(sw_on_key_t *sw, instance_clock_t *clocks);
@@ -1440,6 +1504,48 @@ CBOOL__PROTO(insertz)
 
     Broadcast_Cond(root->clause_insertion_cond);
 
+    INC_MEM_PROG(total_mem_count - current_mem);
+    return TRUE;
+}
+
+bool_t insertz_aux(int_info_t *root, instance_t *n)
+{
+    instance_t **loc;
+    intmach_t current_mem = total_mem_count;
+
+    if (!root->first) {
+      n->rank = TaggedZero;
+      n->backward = n;
+      root->first = n;
+    }
+    else if (root->first->backward->rank == TaggedIntMax)
+      SERIOUS_FAULT("database node full in assert or record")
+    else {
+      n->rank = root->first->backward->rank+MakeSmallDiff(1);
+      n->backward = root->first->backward;
+      root->first->backward->forward = n;
+      root->first->backward = n;
+    }
+
+    n->root = root;
+    n->birth = use_clock = def_clock;
+    n->death = 0xffff;
+    n->forward = NULL;
+    n->next_forward = NULL;
+
+    loc = (n->key==ERRORTAG ? &root->varcase :
+           n->key==functor_list ? &root->lstcase :
+           &dyn_puthash(&root->indexer,n->key)->value.instp);
+    
+    if (!(*loc)){
+      n->next_backward = n;
+      (*loc) = n;
+    } else {
+      n->next_backward = (*loc)->next_backward;
+      (*loc)->next_backward->next_forward = n;
+      (*loc)->next_backward = n;
+    }
+    
     INC_MEM_PROG(total_mem_count - current_mem);
     return TRUE;
 }
@@ -1872,11 +1978,9 @@ void relocate_clocks(instance_t *inst,
     }
 }
 
-
-void expunge_instance(instance_t *i)
-{
-    instance_t **loc;
-    int_info_t *root = i->root;
+void expunge_instance(instance_t *i) {
+  instance_t **loc;
+  int_info_t *root = i->root;
 
 #if defined(DEBUG)  && defined(USE_THREADS)
     if (root->behavior_on_failure != DYNAMIC && debug_conc) 

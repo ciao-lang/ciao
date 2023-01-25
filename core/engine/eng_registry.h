@@ -10,9 +10,6 @@ extern bool_t trace_calls;
 extern bool_t trace_instr;
 #endif
 
-extern instance_clock_t def_clock;
-extern instance_clock_t use_clock;
-
 extern sw_on_key_t *switch_on_function;
 
 intmach_t lookup_atom_idx(char *str);

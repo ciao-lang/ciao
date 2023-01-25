@@ -63,13 +63,6 @@
 #include <ciao/eng_registry.h>
 #endif
 
-#if defined(OPTIM_COMP)
-/* TODO:[oc-merge] merge, swap order? */
-#define checkdealloc_ARRAY(T,Size,Ptr) CHECKDEALLOC0_ARRAY(T,(Ptr),(Size))
-/* TODO:[oc-merge] merge */
-#define checkalloc_ARRAY CHECKALLOC_ARRAY
-#endif
-
 /* --------------------------------------------------------------------------- */
 
 /* TODO: move somewhere else */

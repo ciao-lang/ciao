@@ -619,7 +619,7 @@ static void free_emulinfo(emul_info_t *cl);
 static void free_incoreinfo(incore_info_t **p);
 static CVOID__PROTO(make_undefined, definition_t *f);
 static void free_info(enter_instr_t enter_instr, char *info);
-static void init_interpreted(definition_t *f);
+void init_interpreted(definition_t *f);
 
 
 #define ISNOTRY(T)              (((T)==NULL) || ((T)==fail_alt))
@@ -928,37 +928,13 @@ void leave_to_gc(enter_instr_t type, char *info) {
   gcdef_count++;
 }
 
-static CVOID__PROTO(make_undefined, definition_t *f)
-{
+CVOID__PROTO(erase_interpreted, definition_t *f);
+
+static CVOID__PROTO(make_undefined, definition_t *f) {
   /*Wait_Acquire_slock(prolog_predicates_l);*/
   leave_to_gc(f->predtyp, (char *)f->code.intinfo);
   if (f->predtyp==ENTER_INTERPRETED) {
-    /* erase as much as possible */
-    instance_t *i, *j;
-
-    for (i = f->code.intinfo->first; i; i=j) {
-      j = i->forward;
-      if (i->death==0xffff) {
-        i->death = use_clock = def_clock;
-        if (i->birth==i->death) { 
-
-/* make_undefined() is called from abolish() and define_predicate(),
-   which in turn are called directly from Prolog and do not put any
-   lock.  When reloading Prolog code, the existent clauses (including
-   those of concurrent predicates) are erased, so we better put a lock
-   on those predicates.   MCL.
-*/
-
-          Cond_Begin(f->code.intinfo->clause_insertion_cond);
-          expunge_instance(i);
-          Broadcast_Cond(f->code.intinfo->clause_insertion_cond);
-        }
-      }
-    }
-
-    Cond_Begin(f->code.intinfo->clause_insertion_cond);
-    (void)ACTIVE_INSTANCE(Arg,f->code.intinfo->first,use_clock,TRUE);
-    Broadcast_Cond(f->code.intinfo->clause_insertion_cond);
+    CVOID__CALL(erase_interpreted, f);
   }
 
   /*f->properties.public = 0;*/
@@ -1085,30 +1061,6 @@ CBOOL__PROTO(abolish, definition_t *f)
   }
   INC_MEM_PROG(total_mem_count - current_mem);
   return TRUE;
-}
-
-/* Define an interpreted predicate.  It is open iff it is concurrent. */
-
-static void init_interpreted(definition_t *f)
-{
-  f->code.intinfo = checkalloc_TYPE(int_info_t);
-
-  /* By default, make it DYNAMIC.  
-     set_property() may change this behavior later. MCL. */
-
-  f->code.intinfo->behavior_on_failure = DYNAMIC;
-
-  Init_Cond(f->code.intinfo->clause_insertion_cond);
-
-  /*  MCL added on 26 Nov 98 */
-  f->code.intinfo->x2_pending_on_instance = NULL;
-  f->code.intinfo->x5_pending_on_instance = NULL;
-
-  f->code.intinfo->first = NULL;
-  f->code.intinfo->varcase = NULL;
-  f->code.intinfo->lstcase = NULL;
-  f->code.intinfo->indexer = new_switch_on_key(2,NULL);
-  SetEnterInstr(f,ENTER_INTERPRETED);
 }
 
 CBOOL__PROTO(define_predicate)
@@ -2177,48 +2129,6 @@ int_info_t *current_clauses_aux(tagged_t head)
       return d->code.intinfo;
   }
   return NULL; 
-}
-
-bool_t insertz_aux(int_info_t *root, instance_t *n)
-{
-    instance_t **loc;
-    intmach_t current_mem = total_mem_count;
-
-    if (!root->first) {
-      n->rank = TaggedZero;
-      n->backward = n;
-      root->first = n;
-    }
-    else if (root->first->backward->rank == TaggedIntMax)
-      SERIOUS_FAULT("database node full in assert or record")
-    else {
-      n->rank = root->first->backward->rank+MakeSmallDiff(1);
-      n->backward = root->first->backward;
-      root->first->backward->forward = n;
-      root->first->backward = n;
-    }
-
-    n->root = root;
-    n->birth = use_clock = def_clock;
-    n->death = 0xffff;
-    n->forward = NULL;
-    n->next_forward = NULL;
-
-    loc = (n->key==ERRORTAG ? &root->varcase :
-           n->key==functor_list ? &root->lstcase :
-           &dyn_puthash(&root->indexer,n->key)->value.instp);
-    
-    if (!(*loc)){
-      n->next_backward = n;
-      (*loc) = n;
-    } else {
-      n->next_backward = (*loc)->next_backward;
-      (*loc)->next_backward->next_forward = n;
-      (*loc)->next_backward = n;
-    }
-    
-    INC_MEM_PROG(total_mem_count - current_mem);
-    return TRUE;
 }
 
 /* --------------------------------------------------------------------------- */

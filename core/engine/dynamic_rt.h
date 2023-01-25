@@ -10,6 +10,8 @@
 #ifndef _CIAO_DYNAMIC_RT_H
 #define _CIAO_DYNAMIC_RT_H
 
+typedef enum {BLOCK, NO_BLOCK} BlockingType;
+
 // TODO: move to dynamic_rt.c
 CFUN__PROTO(current_instance, instance_t *);
 CBOOL__PROTO(first_instance);

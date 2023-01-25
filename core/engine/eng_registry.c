@@ -122,10 +122,6 @@ CVOID__PROTO((*profile__hook_neck_proceed)) = profile__hook_nop;
 #endif
 #endif
 
-/* Shared? Not easy: they have to do with the lifetime of dyn. predicates  */
-instance_clock_t def_clock = 0;
-instance_clock_t use_clock = 0;
-
 /* tagged_t *heap_start , *heap_end, *heap_warn, *heap_warn_soft, stack_start,
    *stack_end, *stack_warn, tagged_choice_start, choice_start, choice_end,
    *trail_start, *trail_end; */
