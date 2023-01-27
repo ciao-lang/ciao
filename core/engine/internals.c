@@ -1246,8 +1246,8 @@ CBOOL__PROTO(set_property)
   enter_instr_t type;
 
   DEREF(X(0),X(0));
-  if (!(f = find_definition(predicates_location,X(0),&junk,FALSE)))
-    return FALSE;
+  f = find_definition(predicates_location,X(0),&junk,FALSE);
+  if (f == NULL) return FALSE;
   type = f->predtyp;
   if ((type > ENTER_FASTCODE_INDEXED && type != ENTER_INTERPRETED) ||
       (type <= ENTER_FASTCODE_INDEXED && f->code.incoreinfo->clauses.ptr != NULL) ||
@@ -1264,7 +1264,7 @@ CBOOL__PROTO(set_property)
   if (X(1)==atom_wait) {
     f->properties.wait = 1;
     SetEnterInstr(f,type);
-  } else if ( (X(1)==atom_dynamic) || (X(1) == atom_concurrent)){  /* MCL */
+  } else if ((X(1)==atom_dynamic) || (X(1) == atom_concurrent)) {  /* MCL */
     f->properties.dynamic = 1;
     f->properties.concurrent = X(1) == atom_concurrent;            /* MCL */
 
@@ -1280,9 +1280,9 @@ CBOOL__PROTO(set_property)
 #else
       DYNAMIC;
 #endif
-  }
-  else if (X(1)==atom_multifile)
+  } else if (X(1)==atom_multifile) {
     f->properties.multifile = 1;
+  }
 
   return TRUE;
 }

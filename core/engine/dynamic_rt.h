@@ -13,7 +13,7 @@
 typedef enum {BLOCK, NO_BLOCK} BlockingType;
 
 // TODO: move to dynamic_rt.c
-CFUN__PROTO(current_instance, instance_t *);
+CFUN__PROTO(current_instance0, instance_t *);
 CBOOL__PROTO(first_instance);
 CBOOL__PROTO(close_predicate);
 CBOOL__PROTO(open_predicate);

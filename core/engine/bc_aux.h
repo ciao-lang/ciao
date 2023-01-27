@@ -825,8 +825,7 @@ static CBOOL__PROTO(c_term,
       if (i>=reg_bank_size) {
         EMITtok(f_x, Xop(i-decr)); /* TODO: patch? */
         DerefHeapNext(t,s);
-        if (!c_term(Arg,t,i-decr,i-decr,x_variables,
-                    trail_origo,current_insn))
+        if (!CBOOL__SUCCEED(c_term,t,i-decr,i-decr,x_variables,trail_origo,current_insn))
           return FALSE;
         break;
       }
@@ -987,14 +986,12 @@ CFUN__PROTO(compile_term_aux, instance_t *,
     current_insn = P;
   }
 
-  if (!IsVar(head) &&
-      !c_term(Arg,head,0,reg_bank_size-1,x_variables,
-              &trail_origo,&current_insn))
-    goto sizebomb;
-  if (!IsVar(body) &&
-      !c_term(Arg,body,1,reg_bank_size-1,x_variables,
-              &trail_origo,&current_insn))
-    goto sizebomb;
+  if (!IsVar(head)) {
+    if (!CBOOL__SUCCEED(c_term,head,0,reg_bank_size-1,x_variables,&trail_origo,&current_insn)) goto sizebomb;
+  }
+  if (!IsVar(body)) {
+    if (!CBOOL__SUCCEED(c_term,body,1,reg_bank_size-1,x_variables,&trail_origo,&current_insn)) goto sizebomb;
+  }
 
   while (TrailGetTop(Arg->trail_top) & QMask) {
     bcp_t P = current_insn;
@@ -1003,13 +1000,13 @@ CFUN__PROTO(compile_term_aux, instance_t *,
       break;
     TrailDec(Arg->trail_top);
     t0 = *(Arg->trail_top); // (Arg->trail_top points to the popped element)
-    if (!c_term(Arg,
-                Tagp(LST,TaggedToGoal(*TaggedToPointer(t0))),
-                TaggedToPointer(t0)-trail_origo,
-                  reg_bank_size-1,
-                x_variables,
-                &trail_origo,
-                &current_insn))
+    if (!CBOOL__SUCCEED(c_term,
+                        Tagp(LST,TaggedToGoal(*TaggedToPointer(t0))),
+                        TaggedToPointer(t0)-trail_origo,
+                        reg_bank_size-1,
+                        x_variables,
+                        &trail_origo,
+                        &current_insn))
       goto sizebomb;
     BCOp(P, FTYPE_ctype(f_o), 0) = GET_CONSTRAINT;
   }

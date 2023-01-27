@@ -3832,7 +3832,7 @@ pred_enter_builtin_current_instance :-
     case('BUILTIN_CURRENT_INSTANCE'),
     pred_trace("\"B\""),
     setmode(r),
-    "w->misc->ins" <- "current_instance(Arg)",
+    "w->misc->ins" <- "CFUN__EVAL(current_instance0)",
     if("!w->misc->ins", goto('fail')),
     "P" <- "(bcp_t)w->misc->ins->emulcode",
     goto_ins_dispatch.

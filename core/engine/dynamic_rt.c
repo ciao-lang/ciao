@@ -72,24 +72,24 @@ static void link_handle(instance_handle_t *handle,
 /* Define an interpreted predicate.  It is open iff it is concurrent. */
 void init_interpreted(definition_t *f) {
   int_info_t *d = checkalloc_TYPE(int_info_t);
-  f->code.intinfo = d;
-  //  f->code.intinfo = checkalloc_TYPE(int_info_t);
+
+  Init_Cond(d->clause_insertion_cond);
 
   /* By default, make it DYNAMIC.  
      set_property() may change this behavior later. MCL. */
-
-  f->code.intinfo->behavior_on_failure = DYNAMIC;
-
-  Init_Cond(f->code.intinfo->clause_insertion_cond);
+  d->behavior_on_failure = DYNAMIC;
 
   /*  MCL added on 26 Nov 98 */
-  f->code.intinfo->x2_pending_on_instance = NULL;
-  f->code.intinfo->x5_pending_on_instance = NULL;
+  d->x2_pending_on_instance = NULL;
+  d->x5_pending_on_instance = NULL;
 
-  f->code.intinfo->first = NULL;
-  f->code.intinfo->varcase = NULL;
-  f->code.intinfo->lstcase = NULL;
-  f->code.intinfo->indexer = new_switch_on_key(2,NULL);
+  d->first = NULL;
+  d->varcase = NULL;
+  d->lstcase = NULL;
+  d->indexer = new_switch_on_key(2,NULL);
+
+  f->code.intinfo = d;
+
   SetEnterInstr(f,ENTER_INTERPRETED);
 }
 
@@ -108,8 +108,7 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block);
    specifies whether the predicate must block or not on concurrent
    predicates. */
 
-CFUN__PROTO(current_instance, instance_t *)
-{
+CFUN__PROTO(current_instance0, instance_t *) {
   int_info_t *root;
   BlockingType block;
 #if defined(PROFILE)
@@ -118,9 +117,9 @@ CFUN__PROTO(current_instance, instance_t *)
 #endif
   PredTrace("I",w->choice->functor);
   root = TaggedToRoot(X(2));
-  if (root->behavior_on_failure == DYNAMIC)
-    return current_instance_noconc(Arg);
-  else {
+  if (root->behavior_on_failure == DYNAMIC) {
+    return CFUN__EVAL(current_instance_noconc);
+  } else {
     DEREF(X(4), X(4));                                   /* Blocking? (MCL) */
 #if defined(DEBUG)
     if (X(4) != atom_block && X(4) != atom_no_block) {
@@ -129,12 +128,11 @@ CFUN__PROTO(current_instance, instance_t *)
     }
 #endif
     block = X(4) == atom_block ? BLOCK : NO_BLOCK;
-    return current_instance_conc(Arg, block);
+    return CFUN__EVAL(current_instance_conc, block);
   }
 }
 
-
- /* Take time into account, do not wait for predicates. */
+/* Take time into account, do not wait for predicates. */
 
 static CFUN__PROTO(current_instance_noconc, instance_t *)
 {
@@ -142,7 +140,6 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
   instance_t *x2_next=NULL, *x5_next=NULL;
   int_info_t *root = TaggedToRoot(X(2));
   tagged_t head;
-
 
   Wait_Acquire_Cond_lock(root->clause_insertion_cond);
   head=X(0); 
@@ -230,13 +227,11 @@ static CFUN__PROTO(current_instance_noconc, instance_t *)
     return x2_chain;
 }
 
-
 /* First-solution special case of the above. */
 /* ASSERT: X(0) is a dereferenced small integer,
            X(1) is a dereferenced unconditional unbound */
 /* Adapted to concurrent predicates (MCL) */
-CBOOL__PROTO(first_instance)
-{
+CBOOL__PROTO(first_instance) {
   int_info_t *root = TaggedToRoot(X(0));
   instance_t *inst;
 
