@@ -446,7 +446,7 @@ goto fail;
 case BUILTIN_CURRENT_INSTANCE:
 PredTrace("B",Func);
 StoreH;
-w->misc->ins = current_instance(Arg);
+w->misc->ins = CFUN__EVAL(current_instance0);
 if (!w->misc->ins) {
 goto fail;
         }
