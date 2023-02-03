@@ -26,6 +26,13 @@
 /* TODO: hmmm ... makes abort much slower */ /* TODO:[oc-merge] disabled in OC, probably not in the right way */
 #define WAIT_THREAD_CANCELLED 1
 
+#if !defined(OPTIM_COMP) && defined(DEBUG)
+#define DEBUG_TRACE 1
+#if !defined(USE_LOWRTCHECKS)
+#define USE_LOWRTCHECKS 1
+#endif
+#endif
+
 /* ------------------------------------------------------------------------- */
 /* Function and variable attributes */
 

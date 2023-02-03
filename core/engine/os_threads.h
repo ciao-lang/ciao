@@ -9,10 +9,6 @@
 #ifndef _CIAO_OS_THREADS_H
 #define _CIAO_OS_THREADS_H
 
-#if (!defined(OPTIM_COMP))&&(!defined(USE_LOWRTCHECKS))&&defined(DEBUG)
-#define USE_LOWRTCHECKS
-#endif
-
 /* ------------------------------------------------------------------------- */
 /* Locks and conditional variables */
 

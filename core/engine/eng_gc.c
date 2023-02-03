@@ -22,10 +22,6 @@
 #define USE_GC_SETARG 1 /* fix setarg when segmented GC is enabled. */ /* TODO: make setarg optional */
 #endif
 
-#if !defined(OPTIM_COMP)
-#define RTCHECK(X)
-#endif
-
 #define USE_SEGMENTED_GC 1
 #define USE_EARLY_RESET 1
 
@@ -36,6 +32,11 @@
 #else
 #define GCNodeLocalTop(X) (X->local_top)
 #define GCNodeGlobalTop(X) (X->heap_top)
+#endif
+
+#if !defined(OPTIM_COMP) && defined(USE_LOWRTCHECKS)
+/* TODO:[oc-merge] port */
+static CBOOL__PROTO(proofread, char *text, intmach_t arity, bool_t force) {}
 #endif
 
 /* --------------------------------------------------------------------------- */
@@ -1409,6 +1410,7 @@ static CVOID__PROTO(shunt_variables) {
    pre: IsHeapPtr(TG_Val(start))
 */
 static CVOID__PROTO(mark_root, tagged_t *start) {
+#if defined(OPTIM_COMP)
   RTCHECK({
     TG_Let(pt, start);
     if (OnHeap(pt) && GC_HEAP_IN_SEGMENT(pt)) {
@@ -1429,6 +1431,7 @@ static CVOID__PROTO(mark_root, tagged_t *start) {
       TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: marking a non heap term 0x%lx at %p}\n", (long)debug_inscount, (long)__LINE__, (long)(TG_Val(pt)), pt);
     }
   });
+#endif
 
   intmach_t found = 0;
   TG_Let(current, start);

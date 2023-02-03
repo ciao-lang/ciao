@@ -1953,19 +1953,6 @@ typedef short enter_instr_t;
 
 typedef unsigned short int instance_clock_t;
 
-#define ACTIVE_INSTANCE(ARG,I,TIME,CHAINP) \
-  ((I)==NULL ? NULL : \
-   ((TIME) >= (I)->birth && (TIME) < (I)->death) ? (I) : \
-   active_instance(ARG,I,TIME,CHAINP))
-
-
- /* This one does not look at time creation of clauses. */
-
-#define ACTIVE_INSTANCE_conc(ARG,I,ROOT)  \
-     active_instance_conc(ARG,I,ROOT) 
-
-CFUN__PROTO(active_instance, instance_t *, instance_t *i,int time,bool_t normal);
-
 /* p->count = (intmach_t *)((char *)p + objsize) - p->counters */
 
 #define NumberOfCounters(cl) \

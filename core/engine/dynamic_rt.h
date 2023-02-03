@@ -40,11 +40,9 @@ size_t compile_large(tagged_t t, bcp_t p);
 size_t compile_large_bc32(tagged_t t, bcp_t p);
 #endif
 CBOOL__PROTO(make_bytecode_object);
-CFUN__PROTO(active_instance, instance_t *, instance_t *i, int itime, bool_t normal);
 CVOID__PROTO(clock_overflow);
 void relocate_clocks(instance_t *inst,  instance_clock_t *clocks);
 void expunge_instance(instance_t *i);
-CFUN__PROTO(active_instance_conc, instance_t *, instance_t *i, int_info_t *pred_root);
 
 void remove_link_chains(choice_t **topdynamic, choice_t *chpttoclear);
 

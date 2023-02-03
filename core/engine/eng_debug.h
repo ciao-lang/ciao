@@ -13,11 +13,6 @@
 extern bool_t stop_on_pred_calls;
 #endif
 
-// TODO: set this flag?
-#if !defined(OPTIM_COMP) && defined(DEBUG)
-#define DEBUG_TRACE 1
-#endif
-
 /* ------------------------------------------------------------------------- */
 /* INSCOUNT (instruction-level profiler) */
 
@@ -39,17 +34,19 @@ void init_debug_inscount(void);
 /* ------------------------------------------------------------------------- */
 /* Low-level runtime checks (debugging) */
 
+#if defined(USE_LOWRTCHECKS)
+#define RTCHECK(X) X
+#else
+#define RTCHECK(X) {}
+#endif 
+
 #if defined(OPTIM_COMP)
 
 #if defined(USE_LOWRTCHECKS)
 CBOOL__PROTO(proofread, char *text, intmach_t arity, bool_t force);
 void dump_tagged(tagged_t t);
 CVOID__PROTO(dump_call, char *s, definition_t *func);
-
-#define RTCHECK(X) X
-#else
-#define RTCHECK(X) {}
-#endif 
+#endif
 
 /* TODO: give good definitions */
 #define RTERROR() {}
@@ -65,16 +62,16 @@ CVOID__PROTO(dump_call, char *s, definition_t *func);
 /* Debug trace */
 
 #if !defined(OPTIM_COMP)
-#define TRACE_PRINTF(...) ({ \
+#define TRACE_PRINTF(...) do { \
   fprintf(stderr, __VA_ARGS__); \
   fflush(stderr); \
-})
+} while(0)
 #endif
 
 #if defined(DEBUG_TRACE)
-#define DEBUG__TRACE(COND, ...) ({ \
+#define DEBUG__TRACE(COND, ...) do { \
   if ((COND)) { TRACE_PRINTF(__VA_ARGS__); } \
-})
+} while(0)
 #else
 #define DEBUG__TRACE(COND, ...)
 #endif
