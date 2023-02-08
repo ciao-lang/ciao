@@ -25,6 +25,14 @@
 #define CONC_CLOSED BEHAVIOR(conc_closed)
 #endif
 
+/* TODO: use to simplify code */
+/* Debug trace for concurrency (show Thread_Id) */
+#define DEBUG__TRACEconc(COND, FMT, ...) \
+  DEBUG__TRACE((COND), \
+               "***(%" PRIdm "d)(%" PRIdm ") " (FMT), \
+               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, \
+               __VA_ARGS__);
+
 /* --------------------------------------------------------------------------- */
 /* current_instance */
 
@@ -720,8 +728,8 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp) {
     change_handle_to_instance(x2_ins_h, x2_insp, root, X2);
     change_handle_to_instance(x5_ins_h, x5_insp, root, X5);
 
-#if defined(DEBUG) && defined(USE_THREADS)
-    if (!root->first) {
+#if defined(USE_THREADS) && defined(DEBUG_TRACE)
+    if (!root->first) { /* TODO: RTCHECK or trace? */
       DEBUG__TRACE(debug_conc,
                    "*** %" PRIdm "(%" PRIdm ") after jumping without first instance.\n",
                    (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
@@ -732,12 +740,14 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp) {
       Wait_For_Cond_End(root->clause_insertion_cond);
   } while (!*ipp);
 
-#if defined(DEBUG) && defined(USE_THREADS)
-  if (!root->first) {
+#if defined(USE_THREADS) && defined(DEBUG_TRACE)
+  if (!root->first) { /* TODO: RTCHECK or trace? */
     DEBUG__TRACE(debug_conc,
                  "*** %" PRIdm "(%" PRIdm ") exiting n_i without first instance.\n",
                  (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
   }
+#endif
+#if defined(USE_THREADS)
   DEBUG__TRACE(debug_conc,
                "*** %" PRIdm "(%" PRIdm ") exiting n_i with instance %p.\n",
                (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, *ipp);
@@ -1426,8 +1436,8 @@ CBOOL__PROTO(insertz) {
            &dyn_puthash(&root->indexer,n->key)->value.instp);
     
     if (!(*loc)) {
-        n->next_backward = n;
-        (*loc) = n;
+      n->next_backward = n;
+      (*loc) = n;
     } else {
       n->next_backward = (*loc)->next_backward;
       (*loc)->next_backward->next_forward = n;
