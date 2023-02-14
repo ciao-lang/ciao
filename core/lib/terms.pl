@@ -72,7 +72,9 @@ args(X, M, T, A) :-
    contain free variables.").
 
 :- pred atom_concat(Atms, Atm) : list(atm, Atms) => atm(Atm).
-:- pred atom_concat(Atms, Atm) :: list(atm, Atms) : atm(Atm) => list(atm, Atms).
+:- pred atom_concat(Atms, Atm) : atm(Atm) => list(atm, Atms).
+% TODO: disabled by now, review rtchecks of compat properties and the interaction with unittests (JF)
+%:- pred atom_concat(Atms, Atm) :: list(atm, Atms) : atm(Atm) => list(atm, Atms).
 
 atom_concat([], '') :- !.
 atom_concat(L,  Atom) :-
