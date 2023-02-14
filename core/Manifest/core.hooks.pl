@@ -196,8 +196,12 @@ ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 
 '$builder_hook'(test) :- !,
+    % Runtests_dir fails after executing all tests in a directory,
+    % whenever one of the tests is detected to fail.
+    % This allows '$builder_hook'(test) to fail, and exit `ciao test core` with a non-zero errcode.
     runtests_dir(core, 'lib'),
     runtests_dir(core, 'library'),
+    % TODO: allow failure (e.g. using status in ciaosh call) to catch failing tests in CI jobs
     runtests_ciaotests_hook. % integration tests
 
 :- use_module(library(system), [working_directory/2]).
