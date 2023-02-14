@@ -511,21 +511,23 @@ take_n(I, [X|Xs], [X|As], Bs) :- I > 0,
 
 :- export(runtests_dir/2).
 % Call unittests on directory Dir (recursive) of bundle Bundle
+% Fails whenever a test failure is detected after executing all tests
 runtests_dir(Bundle, Dir) :-
     runtests_dir(Bundle, Dir, [rtc_entry]).
 
 :- export(runtests_dir/3).
 % Call unittests on directory Dir (recursive) of bundle Bundle
+% Fails whenever a test failure is detected after executing all tests
 runtests_dir(Bundle, Dir, Opts) :-
     AbsDir = ~bundle_path(Bundle, Dir),
     exists_and_compilable(AbsDir),
     !,
     normal_message("running tests at ~w/", [Dir]),
     invoke_ciaosh_batch([
-      use_module(library(unittest), [run_tests_in_dir_rec/2]),
-      run_tests_in_dir_rec(AbsDir, Opts)
-    ]).
-runtests_dir(_, _, _).
+      use_module(library(unittest), [run_tests_in_dir_rec/3]),
+      (run_tests_in_dir_rec(AbsDir, Opts, St), halt(St))
+    ], [status(S)]),
+    S = 0.
 
 :- use_module(library(system), [file_exists/1]).
 
