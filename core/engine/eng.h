@@ -171,21 +171,6 @@
 #define PrevDynChpt 8
 #define DynamicPreserved 9
 
-/* NOTE: was 1<<0 and 1<<1; avoid reserved bits */
-#define BLOCKIDX ((intmach_t)1<<tagged__num_offset)
-#define EXECIDX  ((intmach_t)1<<(tagged__num_offset+1))
-
-#define SET_BLOCKING(arg) (arg) = ((arg) | BLOCKIDX)
-#define SET_NONBLOCKING(arg) (arg) = ((arg) & ~BLOCKIDX)
-#define IS_BLOCKING(arg) ((arg) & BLOCKIDX)
-#define IS_NONBLOCKING(arg) !((arg) & BLOCKIDX)
-
-#define SET_EXECUTING(arg) (arg) = ((arg) | EXECIDX)
-#define SET_NONEXECUTING(arg) (arg) = ((arg) & ~EXECIDX)
-#define EXECUTING(arg) ((arg) & EXECIDX)
-#define NONEXECUTING(arg) !((arg) & EXECIDX)
-
-
 /* initial choicepoint */
 #define InitialChoice ChoiceNext0(Choice_Start,1)
 
@@ -2121,6 +2106,7 @@ struct sw_on_key_node_ {
     int_info_t *irootp;                             /* indexer info? */
     atom_t *atomp;               /* Info on atoms and main functors  */
     void *proc;                /* C function pointer (CFUN or CBOOL) */
+    void *as_ptr;                /* C pointer (needs casting) */
   } value;
 };
 
@@ -2592,7 +2578,7 @@ module_t *define_c_static_mod(char *module_name);
   Xderef = m_i; \
 }
 
-#define DerefSw_HVAorCVAorSVA_Other(Reg,CODE_HVAorCVAorSVA,CODE_Other) ({ \
+#define DerefSw_HVAorCVAorSVA_Other(Reg,CODE_HVAorCVAorSVA,CODE_Other) do { \
   __label__ labelend; \
   if (IsVar(Reg)) { \
     for(;;) { \
@@ -2608,7 +2594,7 @@ module_t *define_c_static_mod(char *module_name);
   } \
   CODE_Other; \
 labelend: {} \
-})
+} while(0)
 
 #define DerefSw_CVA_Other(X, CODE_CVA, CODE_Other) { \
   __label__ derefsw_cva; \

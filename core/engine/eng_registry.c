@@ -289,7 +289,6 @@ tagged_t current_quiet_flag;
 tagged_t current_radix;
 
 try_node_t *address_nd_repeat;
-try_node_t *address_nd_current_instance;
 try_node_t *address_nd_current_atom;
 try_node_t *address_nd_current_predicate;
 try_node_t *address_nd_predicate_property;

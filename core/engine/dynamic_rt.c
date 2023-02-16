@@ -25,13 +25,33 @@
 #define CONC_CLOSED BEHAVIOR(conc_closed)
 #endif
 
-/* TODO: use to simplify code */
-/* Debug trace for concurrency (show Thread_Id) */
-#define DEBUG__TRACEconc(COND, FMT, ...) \
-  DEBUG__TRACE((COND), \
-               "***(%" PRIdm "d)(%" PRIdm ") " (FMT), \
-               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, \
-               __VA_ARGS__);
+#if !defined(OPTIM_COMP)
+#define PointerOrNullToTerm PointerToTermOrZero
+#define TermNull MakeSmall(0)
+#endif
+
+/* --------------------------------------------------------------------------- */
+/* Debug/trace messages (for concurrency,show Thread_Id) */
+
+#define TRACEconc(FMT, ...) \
+  TRACE_PRINTF("***(%" PRIdm "d)(%" PRIdm ") %s:%d: " FMT, \
+               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, __func__, __LINE__, \
+               ## __VA_ARGS__);
+
+#if defined(DEBUG_TRACE)
+#define DEBUG__TRACEconc(COND, ...) do { if ((COND)) { TRACEconc(__VA_ARGS__); } } while(0)
+#else
+#define DEBUG__TRACEconc(COND, ...)
+#endif
+
+/* TODO: only when defined(USE_THREADS)? */
+#if defined(USE_THREADS)
+#define RTCHECK_concwarn(COND, FMT, ...) RTCHECK({ if ((COND)) TRACEconc(FMT, ## __VA_ARGS__); })
+#else
+#define RTCHECK_concwarn(COND, FMT, ...)
+#endif
+#define RTCHECK_lockset(ROOT) RTCHECK_concwarn(Cond_Lock_is_unset((ROOT)->clause_insertion_cond), "lock is unset!\n")
+#define RTCHECK_firstset(ROOT) RTCHECK_concwarn(!(ROOT)->first, "no first instance!\n")
 
 /* --------------------------------------------------------------------------- */
 /* current_instance */
@@ -78,6 +98,37 @@ static void link_handle(instance_handle_t *handle,
 /* --------------------------------------------------------------------------- */
 
 /* Define an interpreted predicate.  It is open iff it is concurrent. */
+#if defined(OPTIM_COMP)
+void predicate_def__interpreted(definition_t *f, bool_t concurrent) {
+  int_info_t *d = checkalloc_TYPE(int_info_t);
+
+  Init_Cond(d->clause_insertion_cond);
+
+  /*  MCL added on 26 Nov 98 */
+  d->x2_pending_on_instance = NULL;
+  d->x5_pending_on_instance = NULL;
+
+  d->first = NULL;
+  d->varcase = NULL;
+  d->lstcase = NULL;
+  d->indexer = HASHTAB_NEW(2);
+
+  f->code.intinfo = d;
+
+  f->properties.dynamic = 1;
+  f->properties.concurrent = (concurrent != 0);
+  /* set the runtime behavior */
+  f->code.intinfo->behavior_on_failure =
+#if defined(USE_THREADS)
+    concurrent ? CONC_OPEN : DYNAMIC;
+#else
+    DYNAMIC;
+#endif
+
+  f->predtyp = ENTER_INTERPRETED;
+  f->enterop = OPCODEenc(func__enter_interpreted);
+}
+#else
 void init_interpreted(definition_t *f) {
   int_info_t *d = checkalloc_TYPE(int_info_t);
 
@@ -100,10 +151,49 @@ void init_interpreted(definition_t *f) {
 
   SetEnterInstr(f,ENTER_INTERPRETED);
 }
+#endif
 
 /* --------------------------------------------------------------------------- */
 
-CFUN__PROTO(active_instance, instance_t *, instance_t *i, int itime, bool_t normal);
+#if defined(OPTIM_COMP)
+int_info_t *find_int_info(tagged_t head);
+
+/* builtin '$current_clauses'/2 */
+/* This used to be nondeterministic. */
+/* ASSERT: X1 is always unbound, unconditional. */
+CBOOL__PROTO(current_clauses) {
+  int_info_t *root;
+  DEREF(X(0),X(0));
+  root = find_int_info(X(0));
+  CBOOL__TEST(root != NULL); /* Fails if not interpreted */
+  *TaggedToPointer(X(1)) = PointerToTerm(root);
+  CBOOL__PROCEED;
+}
+
+int_info_t *find_int_info(tagged_t head) {
+  if (!IsVar(head)) {
+    tagged_t *junk;
+    definition_t *d;
+
+    d = find_definition(head, &junk, FALSE);
+    if ((d!=NULL) && (d->predtyp==ENTER_INTERPRETED)) {
+      return d->code.intinfo;
+    }
+  }
+  return NULL; 
+}
+#endif
+
+/* --------------------------------------------------------------------------- */
+
+#if defined(OPTIM_COMP)
+static CINSNP__PROTO(next_instance_conc);
+static CINSNP__PROTO(next_instance_noconc);
+#endif
+
+try_node_t *address_nd_current_instance;
+
+static CFUN__PROTO(active_instance, instance_t *, instance_t *i, int/*instance_clock_t*/ itime, bool_t normal);
 
 /* TODO: better name? */
 #define DUMMY_ACTIVE_INSTANCE(I,TIME,CHAINP) (I)
@@ -113,11 +203,58 @@ CFUN__PROTO(active_instance, instance_t *, instance_t *i, int itime, bool_t norm
    ((TIME) >= (I)->birth && (TIME) < (I)->death) ? (I) : \
    CFUN__EVAL(active_instance,I,TIME,CHAINP))
 
+#if defined(OPTIM_COMP)
+/* TODO: trick to avoid incorrect nondet macros - do not emit a macro! */
+CINSNP__PROTO(next_instance) {
+  CODE_NEXT_INSTANCE();
+}
+#endif
+
+/* --------------------------------------------------------------------------- */
+/* current_instance */
+
+/* ASSERT: X(0) is head, X(1) is body */
+
+#if defined(OPTIM_COMP)
+#define BLOCKIDX (1<<0)
+#define EXECIDX  (1<<1)
+#else /* TODO: backport? */
+/* NOTE: was 1<<0 and 1<<1; avoid reserved bits */
+#define BLOCKIDX ((intmach_t)1<<tagged__num_offset)
+#define EXECIDX  ((intmach_t)1<<(tagged__num_offset+1))
+#endif
+
+/* MCL: "Blocking" specifies whether the predicate must block or not
+   on concurrent predicates. */
+#define SET_BLOCKING(arg) (arg) = ((arg) | BLOCKIDX)
+#define SET_NONBLOCKING(arg) (arg) = ((arg) & ~BLOCKIDX)
+#define IS_BLOCKING(arg) ((arg) & BLOCKIDX)
+#define IS_NONBLOCKING(arg) !((arg) & BLOCKIDX)
+
+#define SET_EXECUTING(arg) (arg) = ((arg) | EXECIDX)
+#define SET_NONEXECUTING(arg) (arg) = ((arg) & ~EXECIDX)
+#define EXECUTING(arg) ((arg) & EXECIDX)
+#define NONEXECUTING(arg) !((arg) & EXECIDX)
+
+#if defined(OPTIM_COMP)
+static CINSNP__PROTO(current_instance_noconc, int_info_t *root);
+static CINSNP__PROTO(current_instance_conc, int_info_t *root, BlockingType block);
+#else
 static CFUN__PROTO(current_instance_noconc, instance_t *);
 static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block);
+#endif
 
+#if defined(OPTIM_COMP)
+/* precondition: X(3) is set */
+CINSNP__PROTO(current_instance, int_info_t *root, BlockingType block) {
+  if (root->behavior_on_failure == DYNAMIC) {
+    CINSNP__LASTCALL(current_instance_noconc, root);
+  } else {
+    CINSNP__LASTCALL(current_instance_conc, root, block);
+  }
+}
+#else
 /* ASSERT: X(2) is a dereferenced small integer */
-
 /* MCL: a typical call is '$current_instance'(Head, Body, Root, Ptr,
    Blocking) where Head is the head clause, Body is the body clause ("true"
    for facts), Root is a small integer denoting the root of the predicate
@@ -125,7 +262,6 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block);
    particular clause (i.e., a pointer to the instance_t). "Blocking"
    specifies whether the predicate must block or not on concurrent
    predicates. */
-
 CFUN__PROTO(current_instance0, instance_t *) {
   int_info_t *root;
   BlockingType block;
@@ -139,22 +275,34 @@ CFUN__PROTO(current_instance0, instance_t *) {
     return CFUN__EVAL(current_instance_noconc);
   } else {
     DEREF(X(4), X(4));                                   /* Blocking? (MCL) */
-#if defined(DEBUG)
-    if (X(4) != atom_block && X(4) != atom_no_block) {
-      failc("$current_instance called with unknown 5th argument");
-      return NULL;                         
-    }
-#endif
+    RTCHECK({
+      if (X(4) != atom_block && X(4) != atom_no_block) {
+        failc("$current_instance called with unknown 5th argument");
+        return NULL;                         
+      }
+    });
     block = X(4) == atom_block ? BLOCK : NO_BLOCK;
     return CFUN__EVAL(current_instance_conc, block);
   }
 }
+#endif
+
+#if defined(OPTIM_COMP)
+// TODO: update (Aux) = (X) before OnVar too?
+#define DerefSwitch(X, Aux, OnVar) DerefSw_HVAorCVAorSVA_Other(X, { OnVar; }, {}); (Aux) = (X)
+#endif
+
+#if !defined(OPTIM_COMP)
+#define hashtab_key_t tagged_t
+#define hashtab_node_t sw_on_key_node_t
+#define hashtab_get incore_gethash
+#endif
 
 #define CURRENT_INSTANCE(Head, Root, ActiveInstance, CODE_FAIL) do { \
   __label__ var_case_switch; \
   __label__ xn_switch; \
-  tagged_t head = (Head);  \
-  DerefSwitch(head,Head,goto var_case_switch;); \
+  tagged_t head = (Head); \
+  DerefSwitch(head, Head, { goto var_case_switch; }); \
   x2_next = NULL; \
   x5_next = NULL; \
   if (TaggedIsSTR(head)) { \
@@ -167,7 +315,7 @@ CFUN__PROTO(current_instance0, instance_t *) {
       } else { \
         CODE_FAIL; \
       } \
-    } else if (TaggedIsLST(head)){ \
+    } else if (TaggedIsLST(head)) { \
       x5_chain = ActiveInstance((Root)->lstcase,use_clock,FALSE); \
     xn_switch: \
       x2_chain = ActiveInstance((Root)->varcase,use_clock,FALSE); \
@@ -189,28 +337,42 @@ CFUN__PROTO(current_instance0, instance_t *) {
         CODE_FAIL; /* No solution */ \
       } \
     } else { \
-      tagged_t key = TaggedIsSTR(head) ? TaggedToHeadfunctor(head) : head; \
-      sw_on_key_node_t *hnode = incore_gethash((Root)->indexer,key); \
-      x5_chain = ActiveInstance(hnode->value.instp,use_clock,FALSE); \
+      hashtab_key_t k = TaggedIsSTR(head) ? \
+                        (hashtab_key_t)TaggedToHeadfunctor(head) : \
+                        (hashtab_key_t)head; \
+      hashtab_node_t *hnode = hashtab_get((Root)->indexer, k); \
+      x5_chain = ActiveInstance((instance_t *)hnode->value.as_ptr,use_clock,FALSE); \
       goto xn_switch; \
     } \
+  } else { \
+    goto var_case_switch; \
   } \
-  else goto var_case_switch; \
 } while(0);
 
 /* Take time into account, do not wait for predicates. */
-
-static CFUN__PROTO(current_instance_noconc, instance_t *) {
+#if defined(OPTIM_COMP)
+/* precondition: X(3) is set */
+static CINSNP__PROTO(current_instance_noconc, int_info_t *root)
+#else
+static CFUN__PROTO(current_instance_noconc, instance_t *)
+#endif
+{
   instance_t *x2_chain;
   instance_t *x5_chain;
   instance_t *x2_next;
   instance_t *x5_next;
+#if !defined(OPTIM_COMP)
   int_info_t *root = TaggedToRoot(X(2));
+#endif
 
   Wait_Acquire_Cond_lock(root->clause_insertion_cond);
   CURRENT_INSTANCE(X(0), root, ACTIVE_INSTANCE, { /* fail */
     Release_Cond_lock(root->clause_insertion_cond);
+#if defined(OPTIM_COMP)
+    CINSNP__FAIL;
+#else
     return NULL;
+#endif
   });
 
   /* NOTE: We must cleanup unused registers up to DynamicPreserved so
@@ -219,52 +381,85 @@ static CFUN__PROTO(current_instance_noconc, instance_t *) {
   if (x2_next || x5_next) {
     /* X(0) must be the head */
     /* X(1) must be the body */
-    X(X2_CHN) = PointerToTermOrZero(x2_next);
+    X(X2_CHN) = PointerOrNullToTerm(x2_next);
     /* X(3) - */
     X(ClockSlot) = MakeSmall(use_clock);
-    X(X5_CHN) = PointerToTermOrZero(x5_next);
-    X(RootArg) = PointerToTermOrZero(root);
+    X(X5_CHN) = PointerOrNullToTerm(x5_next);
+    X(RootArg) = PointerOrNullToTerm(root);
     /* Cleanup unused registers (JF & MCL) */
     X(InvocationAttr) = MakeSmall(0); 
-    X(PrevDynChpt) = MakeSmall(0); 
+    X(PrevDynChpt) = TermNull;
 
     w->previous_choice = w->choice;
 
     CODE_CHOICE_NEW(w->choice, address_nd_current_instance); /* establish skeletal node */
   } else {
-    /* Cleanup unused registers */
-    X(X5_CHN) = MakeSmall(0);
+    /* Initialize dynpreserved (to ensure heapmargin correctness) */
+    /* X(0) must be the head */
+    /* X(1) must be the body */
+    /* TODO: necessary? */
+#if defined(OPTIM_COMP)
+    X(X2_CHN) = TermNull;
+    /* X(3) - */
+    X(ClockSlot) = MakeSmall(use_clock);
+#endif
+    X(X5_CHN) = TermNull;
+#if defined(OPTIM_COMP)
+    X(RootArg) = PointerOrNullToTerm(root); /* necessary */
+#else
     X(RootArg) = MakeSmall(0);
+#endif
     X(InvocationAttr) = MakeSmall(0); 
-    X(PrevDynChpt) = MakeSmall(0); 
+    X(PrevDynChpt) = TermNull;
   }
 
   Release_Cond_lock(root->clause_insertion_cond);
 
-  if (!x2_chain)
-    return x5_chain;
-  else
+#if defined(OPTIM_COMP)
+  if (x2_chain != NULL) {
+    w->ins = x2_chain;
+    CINSNP__GOTO(w->ins->emulcode);
+  } else if (x5_chain != NULL) {
+    w->ins = x5_chain;
+    CINSNP__GOTO(w->ins->emulcode);
+  } else {
+    CINSNP__FAIL; /* fail */ /* TODO: is this case possible? */
+  }
+#else
+  if (x2_chain != NULL) {
     return x2_chain;
+  } else {
+    return x5_chain;
+  }
+#endif
 }
 
 /* First-solution special case of the above. */
+#if defined(OPTIM_COMP)
+/* ASSERT: X(0) is a small integer,
+           X(1) is a dereferenced unconditional unbound */
+#else
 /* ASSERT: X(0) is a dereferenced small integer,
            X(1) is a dereferenced unconditional unbound */
+#endif
 /* Adapted to concurrent predicates (MCL) */
 CBOOL__PROTO(first_instance) {
-  int_info_t *root = TaggedToRoot(X(0));
+  int_info_t *root;
   instance_t *inst;
 
-  if (root->behavior_on_failure == DYNAMIC) 
+#if defined(OPTIM_COMP) /* TODO: backport */
+  DEREF(X(0), X(0));
+#endif
+  root = TaggedToRoot(X(0));
+  if (root->behavior_on_failure == DYNAMIC) {
     inst = ACTIVE_INSTANCE(root->first,use_clock,TRUE);
-  else {
+  } else {
     Cond_Begin(root->clause_insertion_cond);
     inst = root->first;
     Broadcast_Cond(root->clause_insertion_cond);
   }
 
-  if (!inst)
-    return FALSE;                                         /* no solutions */
+  CBOOL__TEST(inst != NULL); /* has solutions */
   *TaggedToPointer(X(1)) = PointerToTerm(inst);
 
   CBOOL__PROCEED;
@@ -274,51 +469,78 @@ CBOOL__PROTO(first_instance) {
           NEXT_INSTANCE
    -----------------------------------------------------------------------*/
 
-CBOOL__PROTO(next_instance, instance_t **ipp) {
-    instance_t *x2_insp;
-    instance_t *x5_insp;
-    int_info_t *root;
-    instance_clock_t clock = GetSmall(X(4));
+#if defined(OPTIM_COMP)
+CINSNP__PROTO(next_instance_noconc)
+#else
+CBOOL__PROTO(next_instance, instance_t **ipp)
+#endif
+{
+  instance_t *x2_insp = TaggedToInstance(X(2));
+  instance_t *x5_insp = TaggedToInstance(X(5));
+  instance_clock_t clock = GetSmall(X(4));
+  int_info_t *root = TaggedToRoot(X(6));
 
-    x2_insp = *ipp = TaggedToInstance(X(2));
-    x5_insp = TaggedToInstance(X(5));
-    root = TaggedToRoot(X(6));
+  Wait_Acquire_Cond_lock(root->clause_insertion_cond);
 
-    Wait_Acquire_Cond_lock(root->clause_insertion_cond);
+  if (x2_insp == x5_insp) {
+#if defined(OPTIM_COMP)
+    w->ins = x2_insp;
+#else
+    *ipp = x2_insp;
+#endif
+    x2_insp = x5_insp = ACTIVE_INSTANCE(x2_insp->forward,clock,TRUE);
+  } else if (!x2_insp) {
+  x5_alt:
+#if defined(OPTIM_COMP)
+    w->ins = x5_insp;
+#else
+    *ipp = x5_insp;
+#endif
+    x5_insp = ACTIVE_INSTANCE(x5_insp->next_forward,clock,FALSE);
+  } else if (!x5_insp) {
+  x2_alt:
+#if defined(OPTIM_COMP)
+    w->ins = x2_insp;
+#else
+    *ipp = x2_insp;
+#endif
+    x2_insp = ACTIVE_INSTANCE(x2_insp->next_forward,clock,FALSE);
+  } else if (x2_insp->rank < x5_insp->rank) {
+    goto x2_alt;
+  } else {
+    goto x5_alt;
+  }
 
-    if (x2_insp == x5_insp)
-        x2_insp = x5_insp = ACTIVE_INSTANCE(x2_insp->forward,clock,TRUE);
-    else if (!x2_insp)
-    {
-    x5_alt:
-        *ipp = x5_insp;
-        x5_insp = ACTIVE_INSTANCE(x5_insp->next_forward,clock,FALSE);
-    }
-    else if (!x5_insp)
-    x2_alt:
-        x2_insp = ACTIVE_INSTANCE(x2_insp->next_forward,clock,FALSE);
+  Release_Cond_lock(root->clause_insertion_cond);
 
-    else if (x2_insp->rank < x5_insp->rank)
-        goto x2_alt;
-    else
-        goto x5_alt;
-
-    Release_Cond_lock(root->clause_insertion_cond);
-
-    if (!x2_insp && !x5_insp) {
-      return FALSE;
-    } else {
-      w->choice->x[X2_CHN] = X(X2_CHN) = PointerToTermOrZero(x2_insp);
-      w->choice->x[X5_CHN] = X(X5_CHN) = PointerToTermOrZero(x5_insp);
-      CBOOL__PROCEED;
-    }
+#if defined(OPTIM_COMP)
+  if (!x2_insp && !x5_insp) {
+    /* If there is *definitely* no next instance, remove choicepoint */
+    SetDeep();
+    SetChoice(w->previous_choice);
+  } else {
+    w->choice->x[X2_CHN] = X(X2_CHN) = PointerOrNullToTerm(x2_insp);
+    w->choice->x[X5_CHN] = X(X5_CHN) = PointerOrNullToTerm(x5_insp);
+  }
+  if (w->ins == NULL) {
+    TopConcChpt = TermToPointerOrNull(choice_t, X(PrevDynChpt));
+    CINSNP__FAIL;
+  } else {
+    CINSNP__GOTO(w->ins->emulcode);
+  }
+#else
+  if (!x2_insp && !x5_insp) {
+    CBOOL__FAIL;
+  } else {
+    w->choice->x[X2_CHN] = X(X2_CHN) = PointerOrNullToTerm(x2_insp);
+    w->choice->x[X5_CHN] = X(X5_CHN) = PointerOrNullToTerm(x5_insp);
+    CBOOL__PROCEED;
+  }
+#endif
 }
 
-
-#if defined(OLD_DATABASE)
-/* ------------------------------------------------------------------
-        $CURRENT_KEY/4
-   -----------------------------------------------------------------------*/
+#if !defined(OPTIM_COMP) && defined(OLD_DATABASE)
+/* $CURRENT_KEY/4 */
 
 tagged_t decode_instance_key(instance_t *);
 
@@ -404,39 +626,44 @@ CBOOL__PROTO(current_key) {
 }
 #endif
 
-#if defined(USE_THREADS)
-CBOOL__PROTO(close_predicate) {
+#if defined(OPTIM_COMP)
+CVOID__PROTO(close_predicate, int_info_t *root)
+#else
+CBOOL__PROTO(close_predicate)
+#endif
+{
+#if !defined(OPTIM_COMP)
   int_info_t *root = TaggedToRoot(X(0));
-
+#endif
+#if defined(USE_THREADS)
   Cond_Begin(root->clause_insertion_cond);
   if (root->behavior_on_failure == CONC_OPEN) 
     root->behavior_on_failure = CONC_CLOSED;
   Broadcast_Cond(root->clause_insertion_cond);
-
+#endif
+#if !defined(OPTIM_COMP)
   CBOOL__PROCEED;
+#endif
 }
-
-CBOOL__PROTO(open_predicate) {
+#if defined(OPTIM_COMP)
+CVOID__PROTO(open_predicate, int_info_t *root)
+#else
+CBOOL__PROTO(open_predicate)
+#endif
+{
+#if !defined(OPTIM_COMP)
   int_info_t *root = TaggedToRoot(X(0));
-
-
+#endif
+#if defined(USE_THREADS)
   Cond_Begin(root->clause_insertion_cond);
   if (root->behavior_on_failure == CONC_CLOSED) 
     root->behavior_on_failure = CONC_OPEN;
   Broadcast_Cond(root->clause_insertion_cond);
-
-  CBOOL__PROCEED;
-}
-#else /* !defined(USE_THREADS) */
-CBOOL__PROTO(close_predicate) {
-  CBOOL__PROCEED;
-}
-
-CBOOL__PROTO(open_predicate) {
-  CBOOL__PROCEED;
-}
 #endif
-
+#if !defined(OPTIM_COMP)
+  CBOOL__PROCEED;
+#endif
+}
 
 /* Similar to current_instance for concurrent predicates: wait if no clauses
    match and the predicate is not closed; also, handle the cases of
@@ -461,90 +688,72 @@ CBOOL__PROTO(open_predicate) {
 
 */
 
-static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
-{
+#if defined(OPTIM_COMP)
+/* precondition: X(3) is set */
+#endif
+static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block) {
   instance_t *x2_n = NULL, *x5_n = NULL;
   instance_t *current_one;
   bool_t try_instance;
   instance_handle_t *x2_next, *x5_next;
   int_info_t *root = TaggedToRoot(X(2));
 
-  DEBUG__TRACE(debug_concchoicepoints,
-               "** Entering current_instance_conc, choice = %p, previous_choice = %p, conc. = %p\n",
-               w->choice, w->previous_choice, TopConcChpt);
+  DEBUG__TRACEconc(debug_concchoicepoints,
+                   "entering, choice = %p, previous_choice = %p, conc. = %p\n",
+                   w->choice, w->previous_choice, TopConcChpt);
 
   do {
-    try_instance =
-     wait_for_an_instance_pointer(&(root->first), &(root->first), root, block);
+    try_instance = wait_for_an_instance_pointer(&(root->first), &(root->first), root, block);
 
- /* That was a non-blocking or concurrent predicate with no instance at all */
+    /* That was a non-blocking or concurrent predicate with no instance at all */
     if (!try_instance) {
       Wait_For_Cond_End(root->clause_insertion_cond);
-      DEBUG__TRACE(debug_concchoicepoints,
-                   "***(%" PRIdm "d)(%" PRIdm ") Exiting current_instance_conc with failure, choice = %p, previous_choice = %p, conc. choice = %p\n",
-                   (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-                   w->choice, w->previous_choice, TopConcChpt);
+      DEBUG__TRACEconc(debug_concchoicepoints,
+                       "exiting with failure, choice = %p, previous_choice = %p, conc. choice = %p\n",
+                       w->choice, w->previous_choice, TopConcChpt);
       return NULL;
     }
 
-/* If we are here, we have a lock for the predicate.  Get first possibly
-   matching instance */
-
+    /* If we are here, we have a lock for the predicate.  Get first
+       possibly matching instance */
     current_one = first_possible_instance(X(0), root, &x2_n, &x5_n);
     if (current_one == NULL) { /* Let others enter and update */
-        Wait_For_Cond_End(root->clause_insertion_cond);
+      Wait_For_Cond_End(root->clause_insertion_cond);
     }
   } while (!current_one && block == BLOCK);
 
-  /* Here with (current_one || block == NON_BLOCK).  current_one == NULL
-     implies that we do not have a lock --- but then block == NON_BLOCK, and
-     therefore we can return with a NULL */
-     
+  /* Here with (current_one || block == NON_BLOCK).  current_one ==
+     NULL implies that we do not have a lock --- but then block ==
+     NON_BLOCK, and therefore we can return with a NULL */
   if (!current_one) {
-    DEBUG__TRACE(debug_concchoicepoints,
-                 "***(%" PRIdm ")(%" PRIdm ") Exiting current_instance_conc with failure, choice = %p, previous_choice = %p, conc. choice = %p\n",
-                 (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-                 w->choice, w->previous_choice, TopConcChpt);
+    DEBUG__TRACEconc(debug_concchoicepoints,
+                     "exiting with failure, choice = %p, previous_choice = %p, conc. choice = %p\n",
+                     w->choice, w->previous_choice, TopConcChpt);
     return NULL;
   }
 
-#if defined(USE_THREADS)
-#if defined(DEBUG_TRACE)
-  /* TODO: if these tests are not trace messages, debug_conc and debug_concchoicepoints should always be true: IS THIS CODE A PRE/POSTCONDITION? */
-  if (Cond_Lock_is_unset(root->clause_insertion_cond)) {
-    DEBUG__TRACE(debug_concchoicepoints,
-                 "***%" PRIdm "(%" PRIdm ") current_instance_conc: putting chpt without locks!\n",
-                 (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
-  }
-  if (!root->first) {
-    DEBUG__TRACE(debug_conc,
-                 "*** current_instance_conc: no first instance!\n");
-  }
-#endif
-#endif
+  RTCHECK_lockset(root);
+  RTCHECK_firstset(root);
 
- /* We do NOT release the clause lock here: we must retain it until we
-    finish executing it.  It is released at Prolog level.  The same
-    for next instance: when it provides a possible solution, it leaves
-    a lock set, to be unset from Prolog.  If the Prolog unification
-    fails, the lock is anyway unset from wam(), right before
-    failure. */
+  /* We do NOT release the clause lock here: we must retain it until
+     we finish executing it.  It is released at Prolog level.  The
+     same for next instance: when it provides a possible solution, it
+     leaves a lock set, to be unset from Prolog.  If the Prolog
+     unification fails, the lock is anyway unset from wam(), right
+     before failure. */
 
-#if defined(USE_THREADS)
-  DEBUG__TRACE(debug_concchoicepoints,
-               "*** %" PRIdm "(%" PRIdm ") in c_i making chpt (now: choice = %p)., inst. is %p\n",
-               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
-               w->choice, current_one);
-#endif
+  DEBUG__TRACEconc(debug_concchoicepoints,
+                   "making chpt (now: choice = %p), inst. is %p\n",
+                   w->choice, current_one);
 
   x2_next = make_handle_to(x2_n, root, X(0), X2);
   x5_next = make_handle_to(x5_n, root, X(0), X5);
-  X(X2_CHN) = PointerToTermOrZero(x2_next);
+  X(X2_CHN) = PointerOrNullToTerm(x2_next);
   X(ClockSlot) = MakeSmall(use_clock);
-  X(X5_CHN) = PointerToTermOrZero(x5_next);
+  X(X5_CHN) = PointerOrNullToTerm(x5_next);
 
   /* pass root to RETRY_INSTANCE (MCL) */
-  X(RootArg) = PointerToTermOrZero(root);  
+  X(RootArg) = PointerOrNullToTerm(root);  
   X(InvocationAttr) = MakeSmall(0); /* avoid garbage */
   if (block == BLOCK) {
     SET_BLOCKING(X(InvocationAttr));
@@ -554,57 +763,54 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
   SET_EXECUTING(X(InvocationAttr));
 
   /* Save last dynamic top */
-  X(PrevDynChpt) = PointerToTermOrZero(TopConcChpt); 
+  X(PrevDynChpt) = PointerOrNullToTerm(TopConcChpt); 
   w->previous_choice = w->choice;
   //
   CODE_CHOICE_NEW(w->choice, address_nd_current_instance); /* establish skeletal node */
   //
   TopConcChpt = (choice_t *)w->choice;  /* Update dynamic top */
 
-  DEBUG__TRACE(debug_concchoicepoints,
-               "***(%" PRIdm ")(%" PRIdm ") Exiting current_instance_conc, choice = %p, previous_choice = %p, conc. choice = %p\n",
-               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-               w->choice, w->previous_choice, TopConcChpt);
+  DEBUG__TRACEconc(debug_concchoicepoints,
+                   "exiting, choice = %p, previous_choice = %p, conc. choice = %p\n",
+                   w->choice, w->previous_choice, TopConcChpt);
 
   return current_one;
 }
 
-#if defined(USE_LOCKS)
 /* Releases the lock on a predicate; this is needed to ensure that a clause
    will not be changed while it is being executed. */
-
-CBOOL__PROTO(prolog_unlock_predicate) {
-  int_info_t *root = TaggedToRoot(X(0));
-
-  DEBUG__TRACE(debug_conc,
-                "*** %d(%d) unlocking predicate, root is %x\n",
-                (int)Thread_Id, (int)GET_INC_COUNTER, (unsigned int)root);
-#if defined(DEBUG_TRACE)
-  if (root->behavior_on_failure == CONC_OPEN &&
-      Cond_Lock_is_unset(root->clause_insertion_cond)) {
-    /* TODO: remove debug_conc if this is a rtcheck and not a trace message */
-    DEBUG__TRACE(debug_conc,
-                 "WARNING: In unlock_predicate, root is %p, predicate is unlocked!!!!\n", 
-                 root);
-  }
+#if defined(OPTIM_COMP)
+CVOID__PROTO(prolog_unlock_predicate, int_info_t *root)
+#else
+CBOOL__PROTO(prolog_unlock_predicate)
 #endif
+{
+#if defined(USE_LOCKS)
+#if !defined(OPTIM_COMP)
+  int_info_t *root = TaggedToRoot(X(0));
+#endif
+
+  DEBUG__TRACEconc(debug_conc, "root is %p\n", root);
+  RTCHECK({ /* TODO: trace or rtcheck? */
+    if (root->behavior_on_failure == CONC_OPEN) {
+      RTCHECK_lockset(root);
+    }
+  });
   
-  /* We have just finished executing an operation on a locked predicate;
-     unlock the predicate and make sure the choicepoint is not marked as
-     executing. */
-  if (root->behavior_on_failure != DYNAMIC){
+  /* We have just finished executing an operation on a locked
+     predicate; unlock the predicate and make sure the choicepoint is
+     not marked as executing. */
+  if (root->behavior_on_failure != DYNAMIC) {
     SET_NONEXECUTING((TopConcChpt->x[InvocationAttr])); 
     Wait_For_Cond_End(root->clause_insertion_cond);
   }
-
-  CBOOL__PROCEED;
-}
 #else
-CBOOL__PROTO(prolog_unlock_predicate) {
-  DEBUG__TRACE(debug_conc, "Using fake unlock_predicate!!!!\n");
+  DEBUG__TRACEconc(debug_conc, "using fake unlock_predicate!\n");
+#endif /* USE_LOCKS */ 
+#if !defined(OPTIM_COMP)
   CBOOL__PROCEED;
-}
 #endif
+}
 
 static bool_t wait_for_an_instance_pointer(instance_t **inst_pptr1,
                                            instance_t **inst_pptr2,
@@ -646,7 +852,7 @@ static instance_t *first_possible_instance(tagged_t x0,
   instance_t *x2_next;
   instance_t *x5_next;
 
-  CURRENT_INSTANCE(x0, root, DUMMY_ACTIVE_INSTANCE, {  /* fail */
+  CURRENT_INSTANCE(x0, root, DUMMY_ACTIVE_INSTANCE, { /* fail */
     return NULL;
   });
 
@@ -656,6 +862,34 @@ static instance_t *first_possible_instance(tagged_t x0,
   return x2_chain ? x2_chain : x5_chain;
 }
 
+/* Current pointers to instances are x2_insp and x5_insp; look for a new
+   pointer which presumably matches the query. */
+static void jump_to_next_instance(instance_t *x2_insp, instance_t *x5_insp, instance_t **ipp, instance_t **x2_next, instance_t **x5_next) {
+  *ipp = *x2_next = x2_insp;
+  *x5_next = x5_insp;
+
+  if (!x2_insp && !x5_insp)                                        /* MCL */
+    return;
+
+  if (x2_insp == x5_insp) {
+    x2_insp = x5_insp = x2_insp->forward; /* normal = TRUE */
+  } else if (!x2_insp) {
+  x5_alt:
+    *ipp = x5_insp;
+    x5_insp = x5_insp->next_forward; /* normal = FALSE */
+  } else if (!x5_insp) {
+  x2_alt:
+    x2_insp = x2_insp->next_forward; /* normal = FALSE */
+  } else if (x2_insp->rank < x5_insp->rank) {
+    goto x2_alt;
+  } else {
+    goto x5_alt;
+  }
+
+  *x2_next = x2_insp;
+  *x5_next = x5_insp;
+}
+
 CBOOL__PROTO(next_instance_conc, instance_t **ipp) {
   int_info_t *root = TaggedToRoot(X(RootArg));
   BlockingType block;      
@@ -663,9 +897,9 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp) {
   bool_t next_instance_pointer;
   instance_t *x2_insp, *x5_insp;
 
-  DEBUG__TRACE(debug_concchoicepoints,
-               "*** Entering next_instance_conc, choice = %p, previous_choice = %p, conc. choice = %p\n",
-               w->choice, w->previous_choice, TopConcChpt);
+  DEBUG__TRACEconc(debug_concchoicepoints,
+                   "entering, choice = %p, previous_choice = %p, conc. choice = %p\n",
+                   w->choice, w->previous_choice, TopConcChpt);
 
   /* = X(7) == atom_block ? BLOCK : NO_BLOCK;*/
   block = IS_BLOCKING(X(InvocationAttr)) ? BLOCK : NO_BLOCK; 
@@ -674,8 +908,7 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp) {
      is still set. Unlock it before proceeding to the next clause. */
 
   if (EXECUTING(X(InvocationAttr))){
-    DEBUG__TRACE(debug_concchoicepoints,
-                 "*** in next_instance_conc changing to nonexecuting\n");
+    DEBUG__TRACEconc(debug_concchoicepoints, "changing to nonexecuting\n");
     SET_NONEXECUTING(X(InvocationAttr));
     Wait_For_Cond_End(root->clause_insertion_cond);
   }
@@ -688,19 +921,10 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp) {
    x5_insp are NULL pointer, they are automatically enqueued in root by
    change_handle_to_instance */
 
-#if defined(USE_THREADS)
-#if defined(DEBUG_TRACE)
-  if (!root->first) {
-    DEBUG__TRACE(debug_conc,
-                 "*** %" PRIdm "(%" PRIdm ") in next_instance_conc without first instance.\n",
-                 (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
-  }
-  DEBUG__TRACE(debug_conc,
-               "*** %" PRIdm "(%" PRIdm ") in next_instance_conc with x2 = %p, x5 = %p, block = %d\n",
-               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
-               x2_ins_h->inst_ptr, x5_ins_h->inst_ptr, (int)block);
-#endif
-#endif
+  RTCHECK_firstset(root);
+  DEBUG__TRACEconc(debug_conc,
+                   "with x2 = %p, x5 = %p, block = %d\n",
+                   x2_ins_h->inst_ptr, x5_ins_h->inst_ptr, (int)block);
 
   do {
     next_instance_pointer =
@@ -713,11 +937,10 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp) {
       *ipp = NULL;                                       /* Cause failure */
       /* Time for new assertions */
       Wait_For_Cond_End(root->clause_insertion_cond);
-      DEBUG__TRACE(debug_concchoicepoints,
-                   "***(%" PRIdm ")(%" PRIdm ") Exiting current_instance_conc with failure, choice = %p, previous_choice = %p, conc. choice = %p\n",
-                   (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-                   w->choice, w->previous_choice, TopConcChpt);
-      return FALSE;                                 /* Remove choicepoint */
+      DEBUG__TRACEconc(debug_concchoicepoints,
+                       "exiting with failure, choice = %p, previous_choice = %p, conc. choice = %p\n",
+                       w->choice, w->previous_choice, TopConcChpt);
+      return FALSE; /* Remove choicepoint */
     }
 
     /* Locate a satisfactory instance. */
@@ -728,75 +951,29 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp) {
     change_handle_to_instance(x2_ins_h, x2_insp, root, X2);
     change_handle_to_instance(x5_ins_h, x5_insp, root, X5);
 
-#if defined(USE_THREADS) && defined(DEBUG_TRACE)
-    if (!root->first) { /* TODO: RTCHECK or trace? */
-      DEBUG__TRACE(debug_conc,
-                   "*** %" PRIdm "(%" PRIdm ") after jumping without first instance.\n",
-                   (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
-    }
-#endif
+    RTCHECK_firstset(root); /* after jumping */
 
-    if (!*ipp) /* Not instance -> release lock, continue in loop */
+    if (!*ipp) { /* Not instance -> release lock, continue in loop */
       Wait_For_Cond_End(root->clause_insertion_cond);
+    }
   } while (!*ipp);
 
-#if defined(USE_THREADS) && defined(DEBUG_TRACE)
-  if (!root->first) { /* TODO: RTCHECK or trace? */
-    DEBUG__TRACE(debug_conc,
-                 "*** %" PRIdm "(%" PRIdm ") exiting n_i without first instance.\n",
-                 (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
-  }
-#endif
-#if defined(USE_THREADS)
-  DEBUG__TRACE(debug_conc,
-               "*** %" PRIdm "(%" PRIdm ") exiting n_i with instance %p.\n",
-               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, *ipp);
-#endif  
+  RTCHECK_firstset(root); /* exiting */
+  DEBUG__TRACEconc(debug_conc, "exiting with instance %p\n", *ipp);
 
   /* Here with a possibly matching instance,
      a possibly empty next instance,
      and the lock on the instance. */
 
-  w->choice->x[X2_CHN] = X(X2_CHN) = PointerToTermOrZero(x2_ins_h);
-  w->choice->x[X5_CHN] = X(X5_CHN) = PointerToTermOrZero(x5_ins_h);
+  w->choice->x[X2_CHN] = X(X2_CHN) = PointerOrNullToTerm(x2_ins_h);
+  w->choice->x[X5_CHN] = X(X5_CHN) = PointerOrNullToTerm(x5_ins_h);
   SET_EXECUTING(X(InvocationAttr));
-  DEBUG__TRACE(debug_concchoicepoints,
-               "***(%" PRIdm ")(%" PRIdm ") Exiting current_instance_conc, choice = %p, previous_choice = %p, conc. choice = %p\n",
-               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-               w->choice, w->previous_choice, TopConcChpt);
+  DEBUG__TRACEconc(debug_concchoicepoints,
+                   "exiting, choice = %p, previous_choice = %p, conc. choice = %p\n",
+                   w->choice, w->previous_choice, TopConcChpt);
 
   CBOOL__PROCEED;
 }
-
-
- /* Current pointers to instances are x2_insp and x5_insp; look for a new
-    pointer which presumably matches the query. */
-
-void jump_to_next_instance(instance_t *x2_insp, instance_t *x5_insp, instance_t **ipp, instance_t **x2_next, instance_t **x5_next) {
-  *ipp = *x2_next = x2_insp;
-  *x5_next = x5_insp;
-
-  if (!x2_insp && !x5_insp)                                        /* MCL */
-    return;
-
-  if (x2_insp == x5_insp)
-    x2_insp = x5_insp = x2_insp->forward;               /* normal = TRUE */
-  else if (!x2_insp) {
-  x5_alt:
-    *ipp = x5_insp;
-    x5_insp = x5_insp->next_forward;                    /* normal = FALSE */
-  } else if (!x5_insp)
-    x2_alt:
-  x2_insp = x2_insp->next_forward;                      /* normal = FALSE */
-  else if (x2_insp->rank < x5_insp->rank)
-    goto x2_alt;
-  else
-    goto x5_alt;
-
-  *x2_next = x2_insp;
-  *x5_next = x5_insp;
-}
-
 
 /* ------------------------------------------------------------------------- */
 /* Add an invocation as pending from an instance; if there is anyone else
@@ -820,11 +997,7 @@ instance_handle_t *make_handle_to(instance_t *inst,
   /* Allow re-indexation */
   this_handle->head = head;
   link_handle(this_handle, inst, root, chain);
-#if defined(USE_THREADS)
-  DEBUG__TRACE(debug_conc,
-               "*** %" PRIdm "(%" PRIdm ") made handle %p to instance %p\n", 
-               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, this_handle, inst);
-#endif
+  DEBUG__TRACEconc(debug_conc, "made handle %p to instance %p\n", this_handle, inst);
 
   return this_handle;
 }
@@ -837,12 +1010,7 @@ void remove_handle(instance_handle_t *xi,
                    WhichChain chain) {
   unlink_handle(xi, root, chain);
   checkdealloc_TYPE(instance_handle_t, xi);
-
-#if defined(USE_THREADS)
-  DEBUG__TRACE(debug_conc,
-               "*** %" PRIdm "(%" PRIdm ") removed handle %p (to instance %p)\n", 
-               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, xi, xi->inst_ptr);
-#endif
+  DEBUG__TRACEconc(debug_conc, "removed handle %p (to instance %p)\n", xi, xi->inst_ptr);
 }
 
 /* Make a handle to point to a new instance. */
@@ -852,10 +1020,7 @@ static void change_handle_to_instance(instance_handle_t *handle,
                                       int_info_t *root,
                                       WhichChain chain) {
   if (handle->inst_ptr != new_inst) {      /* Do not move if not necessary */
-    DEBUG__TRACE(debug_conc,
-                 "*** %" PRIdm "(%" PRIdm ") changes handle %p from instance %p to %p\n", 
-                 (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER,
-                 handle, handle->inst_ptr, new_inst);
+    DEBUG__TRACEconc(debug_conc, "changes handle %p from instance %p to %p\n", handle, handle->inst_ptr, new_inst);
     unlink_handle(handle, root, chain);
     link_handle(handle, new_inst, root, chain);
   }
@@ -870,13 +1035,7 @@ static void link_handle(instance_handle_t *handle,
                         instance_t *inst,
                         int_info_t *root,
                         WhichChain chain) {
-#if defined(DEBUG) 
-  if (Cond_Lock_is_unset(root->clause_insertion_cond)) {
-    DEBUG__TRACE(debug_conc,
-                 "*** Thread %" PRIdm "(%" PRIdm ") in link_handle() with lock unset!\n",
-                 (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
-  }
-#endif
+  RTCHECK_lockset(root);
 
   handle->inst_ptr = inst;             /* Instance we are looking at */
   handle->previous_handle = NULL;
@@ -906,38 +1065,23 @@ static void unlink_handle(instance_handle_t *xi,
                           WhichChain chain) {
   instance_t *inst;
 
-#if defined(DEBUG)
-  if (Cond_Lock_is_unset(root->clause_insertion_cond)) {
-    DEBUG__TRACE(debug_conc,
-                 "*** Thread_Id %" PRIdm "(%" PRIdm ") in unlink_handle() with lock unset!\n", 
-                 (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
-  }
-#endif
+  RTCHECK_lockset(root);
 
-/* A handle is enqueued in X2 (unindexed links) or X5 (indexed links) iff it
-   has a non-null instance pointer; otherwise, it must be enqueued in the
-   root queue. */
+  /* A handle is enqueued in X2 (unindexed links) or X5 (indexed
+     links) iff it has a non-null instance pointer; otherwise, it must
+     be enqueued in the root queue. */
 
   if ((inst = xi->inst_ptr)) {
-
-    if (chain == X2 && inst->pending_x2 == xi)          /* First in queue */
-      inst->pending_x2 = xi->next_handle;
-
-    if (chain == X5 && inst->pending_x5 == xi)
-      inst->pending_x5 = xi->next_handle;
-
-  } else if (chain == X2) {             /* xi->inst_ptr is a NULL pointer */
-    if (root->x2_pending_on_instance == xi)
-      root->x2_pending_on_instance = xi->next_handle;
+    if (chain == X2 && inst->pending_x2 == xi) inst->pending_x2 = xi->next_handle; /* First in queue */
+    if (chain == X5 && inst->pending_x5 == xi) inst->pending_x5 = xi->next_handle;
+  } else if (chain == X2) { /* xi->inst_ptr is a NULL pointer */
+    if (root->x2_pending_on_instance == xi) root->x2_pending_on_instance = xi->next_handle;
   } else {
-    if (root->x5_pending_on_instance == xi)
-      root->x5_pending_on_instance = xi->next_handle;
+    if (root->x5_pending_on_instance == xi) root->x5_pending_on_instance = xi->next_handle;
   }
 
-  if (xi->next_handle)
-    xi->next_handle->previous_handle = xi->previous_handle;
-  if (xi->previous_handle)
-    xi->previous_handle->next_handle = xi->next_handle;
+  if (xi->next_handle) xi->next_handle->previous_handle = xi->previous_handle;
+  if (xi->previous_handle) xi->previous_handle->next_handle = xi->next_handle;
 }
 
 void expunge_instance(instance_t *i) {
@@ -946,23 +1090,15 @@ void expunge_instance(instance_t *i) {
 
 #if defined(USE_THREADS) && defined(DEBUG_TRACE)
   if (root->behavior_on_failure != DYNAMIC)  {
-    DEBUG__TRACE(debug_conc, "*** %d(%d) expunge_instance: deleting instance %x!\n",
-                 (int)Thread_Id, (int)GET_INC_COUNTER, (int)i);
+    DEBUG__TRACEconc(debug_conc, "deleting instance %p!\n", i);
   }
 #endif
 #if defined(USE_THREADS)
   RTCHECK({
-    if (root->behavior_on_failure != DYNAMIC &&
-        Cond_Lock_is_unset(root->clause_insertion_cond)) {
-      TRACE_PRINTF("*** %d(%d) expunge_instance: lock not set!\n",
-                   (int)Thread_Id, (int)GET_INC_COUNTER);
-    }
-    if (!root->first) {
-      TRACE_PRINTF("*** %d(%d) expunge_instance: no first instance!\n",
-                   (int)Thread_Id, (int)GET_INC_COUNTER);
-    }
+    if (root->behavior_on_failure != DYNAMIC) RTCHECK_lockset(root);
   });
 #endif
+  RTCHECK_firstset(root);
   
   if (!i->forward) { /* last ? */
     root->first->backward = i->backward;
@@ -1008,29 +1144,16 @@ void remove_link_chains(choice_t **topdynamic,
                         choice_t *chpttoclear)
 {
   choice_t *movingtop = *topdynamic;
-#if defined(USE_THREADS)
-  DEBUG__TRACE(debug_conc, "*** %" PRIdm "(%" PRIdm ") removing from %p until %p\n", 
-               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
-               *topdynamic,
-               chpttoclear);
-#endif
+  DEBUG__TRACEconc(debug_conc, "removing from %p until %p\n", *topdynamic, chpttoclear);
   
   while (ChoiceYounger(movingtop, chpttoclear)){
-#if defined(USE_THREADS)
-    DEBUG__TRACE(debug_conc, "*** %" PRIdm "(%" PRIdm ") removing handle at (dynamic) node %p\n", 
-                 (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
-                 movingtop);
-#endif
+    DEBUG__TRACEconc(debug_conc, "removing handle at (dynamic) node %p\n", movingtop);
 
     Cond_Begin(TaggedToRoot(movingtop->x[RootArg])->clause_insertion_cond);
 
-#if defined(DEBUG)
-    if (TaggedToInstHandle(movingtop->x[X2_CHN]) == NULL)
-      fprintf(stderr, "*** %" PRIdm "(%" PRIdm ") remove_link_chains: X2 handle is NULL!!\n",
-              (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
-    if (TaggedToInstHandle(movingtop->x[X5_CHN]) == NULL)
-      fprintf(stderr, "*** %" PRIdm "(%" PRIdm ") remove_link_chains: X5 handle is NULL!!\n", (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER);
-#endif
+    RTCHECK_concwarn(TaggedToInstHandle(movingtop->x[X2_CHN]) == NULL, "X2 handle is NULL!\n");
+    RTCHECK_concwarn(TaggedToInstHandle(movingtop->x[X5_CHN]) == NULL, "X5 handle is NULL!\n");
+
     remove_handle(TaggedToInstHandle(movingtop->x[X2_CHN]), 
                   TaggedToRoot(movingtop->x[RootArg]),
                   X2);
@@ -1042,11 +1165,7 @@ void remove_link_chains(choice_t **topdynamic,
 
     movingtop=TermToPointerOrNull(choice_t, movingtop->x[PrevDynChpt]);
   }
-#if defined(USE_THREADS)
-  DEBUG__TRACE(debug_conc, "*** %" PRIdm "(%" PRIdm ") remove_link_chains: done at %p\n", 
-               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
-               movingtop);
-#endif
+  DEBUG__TRACEconc(debug_conc, "done at %p\n", movingtop);
   *topdynamic = movingtop;
 }
 
@@ -1110,23 +1229,22 @@ void move_queue(instance_handle_t **srcq,
                 instance_t *destinst) {
   instance_handle_t *last, *running = *srcq;
 
-#if defined(DEBUG) && defined(USE_THREADS)
-  int_info_t *root = *srcq && (*srcq)->inst_ptr ? (*srcq)->inst_ptr->root : NULL;
+#if defined(DEBUG_TRACE)
   int counter = 0;
-
-  if (root && Cond_Lock_is_unset(root->clause_insertion_cond)) {
-    DEBUG__TRACE(debug_conc, "*** in move_queue() with lock unset!\n");
-  }
-
-  DEBUG__TRACE(debug_conc,
-               "*** %" PRIdm "(%" PRIdm ") moving queue from %p to %p (-> instance %p)\n",
-               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
-               srcq, destq, destinst);
 #endif
+#if defined(USE_THREADS)
+  RTCHECK({
+    int_info_t *root = *srcq && (*srcq)->inst_ptr ? (*srcq)->inst_ptr->root : NULL;
+    if (root != NULL) RTCHECK_lockset(root);
+  });
+#endif
+  DEBUG__TRACEconc(debug_conc,
+                   "moving queue from %p to %p (-> instance %p)\n",
+                   srcq, destq, destinst);
 
-  if (running){
+  if (running) {
     while(running) {
-#if defined(DEBUG) && defined(USE_THREADS)
+#if defined(DEBUG_TRACE)
       counter++;
 #endif
       running->inst_ptr = destinst;
@@ -1139,11 +1257,7 @@ void move_queue(instance_handle_t **srcq,
     *destq = *srcq;
     *srcq = NULL;
   }
-#if defined(USE_THREADS)
-  DEBUG__TRACE(debug_conc,
-               "*** %" PRIdm "(%" PRIdm ") after moving queue made %d steps\n",
-               (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, counter);
-#endif
+  DEBUG__TRACEconc(debug_conc, "after moving queue made %d steps\n", counter);
 }
 
 /* Erase an instance. In the case of instances from concurrent predicates
@@ -1169,31 +1283,19 @@ CBOOL__PROTO(prolog_erase) {
   node = TaggedToInstance(X(0));
   root = node->root;
 
-#if defined(DEBUG) && defined(USE_THREADS)
-  DEBUG__TRACE(debug_conc, "*** %d(%d) entering prolog_erase()!\n",
-               (int)Thread_Id, (int)GET_INC_COUNTER);
-  if (!root->first) {
-    DEBUG__TRACE(debug_conc, "*** %d(%d) prolog_erase() without first instance!\n",
-                 (int)Thread_Id, (int)GET_INC_COUNTER);
-  }
-#endif
+  DEBUG__TRACEconc(debug_conc, "entering\n");
+  RTCHECK_firstset(root);
 
-#if defined(USE_THREADS)                                               /* MCL */
-
- /* An instance is about to be deleted.  If the predicate is
-    concurrent, and there are calls pointing at that instance, move
-    the queue of pending calls to the new available instance.  In
-    order to choose which clause is to be pointed at, any handle is
-    equally valid; we use the first one.  This call must not block if
-    no next instance exists: blocking is performed by
-    '$current_instance'/1 . */
-
+#if defined(USE_THREADS) /* MCL */
+  /* An instance is about to be deleted.  If the predicate is
+     concurrent, and there are calls pointing at that instance, move
+     the queue of pending calls to the new available instance.  In
+     order to choose which clause is to be pointed at, any handle is
+     equally valid; we use the first one.  This call must not block if
+     no next instance exists: blocking is performed by
+     '$current_instance'/1 . */
   if (root->behavior_on_failure != DYNAMIC) {
-#if defined(DEBUG) && defined(USE_THREADS)
-    if (Cond_Lock_is_unset(root->clause_insertion_cond)) {
-      DEBUG__TRACE(debug_conc, "prolog_erase: entering for conc. pred. without lock!\n");
-    }
-#endif
+    RTCHECK_lockset(root);
     x2_ins_h = node->pending_x2;
     x5_ins_h = node->pending_x5;
     if (x2_ins_h || x5_ins_h) {
@@ -1201,11 +1303,7 @@ CBOOL__PROTO(prolog_erase) {
                             InstOrNull(x5_ins_h), 
                             &ipp, &x2_insp, &x5_insp);
 
-#if defined(USE_THREADS)
-      DEBUG__TRACE(debug_conc,
-                   "*** %d(%d) moving handles hanging from %x\n",
-                   (int)Thread_Id, (int)GET_INC_COUNTER, (int)node);
-#endif
+      DEBUG__TRACEconc(debug_conc, "moving handles hanging from %p\n", node);
 
       if (ipp && (x2_insp || x5_insp)) {
         /* Make all the queues point to the next instance.  if x2_insp or
@@ -1243,10 +1341,7 @@ CBOOL__PROTO(prolog_erase) {
 
   INC_MEM_PROG(total_mem_count - current_mem);
 
-#if defined(USE_THREADS)
-  DEBUG__TRACE(debug_conc, "*** %d(%d) exiting prolog_erase()!\n",
-               (int)Thread_Id, (int)GET_INC_COUNTER);
-#endif
+  DEBUG__TRACEconc(debug_conc, "exiting!\n");
 
   CBOOL__PROCEED;
 }
@@ -1298,221 +1393,202 @@ CBOOL__PROTO(prolog_ptr_ref) {
    Unfortunately, this results in a lack of indexing. */
 
 CBOOL__PROTO(inserta) {
-    instance_t *n, **loc;
-    int_info_t *root = TaggedToRoot(X(0));
-    intmach_t current_mem = total_mem_count;
+  instance_t *n, **loc;
+  int_info_t *root = TaggedToRoot(X(0));
+  intmach_t current_mem = total_mem_count;
 #if defined(USE_THREADS)                                               /* MCL */
-    bool_t move_insts_to_new_clause = FALSE;
+  bool_t move_insts_to_new_clause = FALSE;
 #endif
 
-    Cond_Begin(root->clause_insertion_cond);
+  Cond_Begin(root->clause_insertion_cond);
 
-    DEBUG__TRACE(debug_conc,
-                 "*** %d(%d) in inserta (root = %x, first = %x, &first = %x)\n",
-                 (int)Thread_Id, (int)GET_INC_COUNTER, (unsigned int)root,
-                 (unsigned int)root->first, (unsigned int)&(root->first));
+  DEBUG__TRACEconc(debug_conc, "(root = %p, first = %p, &first = %p)\n", root, root->first, &(root->first));
 
 #if defined(USE_THREADS)
-    if (root->behavior_on_failure == CONC_CLOSED){                 /* MCL */
-      Broadcast_Cond(root->clause_insertion_cond);
-      USAGE_FAULT("$inserta in an already closed concurrent predicate");
-    }
-#endif
-
-    DEREF(X(1),X(1));
-    n = TaggedToInstance(X(1));
-    
-    /* (void)ACTIVE_INSTANCE(root->first,use_clock,TRUE); optional */
-    
-    if (!root->first){
-      n->rank = TaggedZero;
-      n->forward = NULL;
-      n->backward = n;
-#if defined(USE_THREADS)
-      if (root->behavior_on_failure == CONC_OPEN)
-        move_insts_to_new_clause = TRUE;    /* 'n' will be the new clause */
-#endif
-    } else if (root->first->rank == TaggedLow)
-      SERIOUS_FAULT("database node full in assert or record")
-    else {
-      n->rank = root->first->rank-MakeSmallDiff(1);
-      n->forward = root->first;
-      n->backward = root->first->backward;
-      root->first->backward = n;
-    }
-    root->first = n;    
-    
-    n->root = root;
-    n->birth = use_clock = def_clock;
-    n->death = 0xffff;
-
-#if defined(USE_THREADS)                                               /* MCL */
-    n->pending_x5 = n->pending_x2 = NULL;
-#endif
-    
-    loc = (n->key==ERRORTAG ? &root->varcase :
-           n->key==functor_list ? &root->lstcase :
-           &dyn_puthash(&root->indexer,n->key)->value.instp);
-    
-    if (!(*loc))
-        n->next_forward = NULL, n->next_backward = n;
-    else
-        n->next_forward = (*loc),
-        n->next_backward = (*loc)->next_backward,
-        (*loc)->next_backward = n;
-    (*loc) = n;
-    
-#if defined(USE_THREADS)
-    if (move_insts_to_new_clause) {
-      if (root->x2_pending_on_instance)
-        move_queue(&root->x2_pending_on_instance, &n->pending_x2, n);
-      if (root->x5_pending_on_instance)
-        move_queue(&root->x5_pending_on_instance, &n->pending_x5, n);
-    }
-#endif
-
-    DEBUG__TRACE(debug_conc,
-                 "*** %d(%d) leaving inserta (root = %x, first = %x, &first = %x)\n",
-                 (int)Thread_Id, (int)GET_INC_COUNTER, (unsigned int)root,
-                 (unsigned int)root->first, (unsigned int)&(root->first));
-
+  if (root->behavior_on_failure == CONC_CLOSED){                 /* MCL */
     Broadcast_Cond(root->clause_insertion_cond);
+    USAGE_FAULT("$inserta in an already closed concurrent predicate");
+  }
+#endif
+
+  DEREF(X(1),X(1));
+  n = TaggedToInstance(X(1));
     
-    INC_MEM_PROG(total_mem_count - current_mem);
-    CBOOL__PROCEED;
+  /* (void)ACTIVE_INSTANCE(root->first,use_clock,TRUE); optional */
+    
+  if (!root->first) {
+    n->rank = TaggedZero;
+    n->forward = NULL;
+    n->backward = n;
+#if defined(USE_THREADS)
+    if (root->behavior_on_failure == CONC_OPEN)
+      move_insts_to_new_clause = TRUE;    /* 'n' will be the new clause */
+#endif
+  } else if (root->first->rank == TaggedLow) {
+    SERIOUS_FAULT("database node full in assert or record");
+  } else {
+    n->rank = root->first->rank-MakeSmallDiff(1);
+    n->forward = root->first;
+    n->backward = root->first->backward;
+    root->first->backward = n;
+  }
+  root->first = n;    
+    
+  n->root = root;
+  n->birth = use_clock = def_clock;
+  n->death = 0xffff;
+
+#if defined(USE_THREADS)                                               /* MCL */
+  n->pending_x5 = n->pending_x2 = NULL;
+#endif
+    
+  loc = (n->key==ERRORTAG ? &root->varcase :
+         n->key==functor_list ? &root->lstcase :
+         &dyn_puthash(&root->indexer,n->key)->value.instp);
+    
+  if (!(*loc)) {
+    n->next_forward = NULL, n->next_backward = n;
+  } else {
+    n->next_forward = (*loc);
+    n->next_backward = (*loc)->next_backward;
+    (*loc)->next_backward = n;
+  }
+  (*loc) = n;
+    
+#if defined(USE_THREADS)
+  if (move_insts_to_new_clause) {
+    if (root->x2_pending_on_instance)
+      move_queue(&root->x2_pending_on_instance, &n->pending_x2, n);
+    if (root->x5_pending_on_instance)
+      move_queue(&root->x5_pending_on_instance, &n->pending_x5, n);
+  }
+#endif
+
+  DEBUG__TRACEconc(debug_conc, "leaving (root = %p, first = %p, &first = %p)\n", root, root->first, &(root->first));
+
+  Broadcast_Cond(root->clause_insertion_cond);
+    
+  INC_MEM_PROG(total_mem_count - current_mem);
+  CBOOL__PROCEED;
 }
 
 /* ASSERT: X(0) is a dereferenced integer */
 CBOOL__PROTO(insertz) {
-    instance_t *n, **loc;
-    int_info_t *root = TaggedToRoot(X(0));
-    intmach_t current_mem = total_mem_count;
+  instance_t *n, **loc;
+  int_info_t *root = TaggedToRoot(X(0));
+  intmach_t current_mem = total_mem_count;
 
-    Cond_Begin(root->clause_insertion_cond);
+  Cond_Begin(root->clause_insertion_cond);
 
-    DEBUG__TRACE(debug_conc,
-                 "*** %d(%d) in insertz (root = %x, first = %x, &first = %x)\n",
-                 (int)Thread_Id, (int)GET_INC_COUNTER,
-                 (unsigned int)root,
-                 (unsigned int)root->first,
-                 (unsigned int)&(root->first));
+  DEBUG__TRACEconc(debug_conc, "(root = %p, first = %p, &first = %p)\n", root, root->first, &(root->first));
 
-    if (root->behavior_on_failure == CONC_CLOSED){                 /* MCL */
-      Broadcast_Cond(root->clause_insertion_cond);
-      USAGE_FAULT("$inserta in an already closed concurrent predicate");
-    }
+  if (root->behavior_on_failure == CONC_CLOSED){                 /* MCL */
+    Broadcast_Cond(root->clause_insertion_cond);
+    USAGE_FAULT("$inserta in an already closed concurrent predicate");
+  }
 
-    DEREF(X(1),X(1));
-    n = TaggedToInstance(X(1));
+  DEREF(X(1),X(1));
+  n = TaggedToInstance(X(1));
     
-    /* (void)ACTIVE_INSTANCE(root->first,use_clock,TRUE); optional */
+  /* (void)ACTIVE_INSTANCE(root->first,use_clock,TRUE); optional */
     
-    if (!root->first){
-      n->rank = TaggedZero;
-      n->backward = n;
-      root->first = n;
-    }
-    else if (root->first->backward->rank == TaggedIntMax)
-      SERIOUS_FAULT("database node full in assert or record")
-    else {
-      n->rank = root->first->backward->rank+MakeSmallDiff(1);
-      n->backward = root->first->backward;
-      root->first->backward->forward = n;
-      root->first->backward = n;
-    }
+  if (!root->first) {
+    n->rank = TaggedZero;
+    n->backward = n;
+    root->first = n;
+  } else if (root->first->backward->rank == TaggedIntMax) {
+    SERIOUS_FAULT("database node full in assert or record");
+  } else {
+    n->rank = root->first->backward->rank+MakeSmallDiff(1);
+    n->backward = root->first->backward;
+    root->first->backward->forward = n;
+    root->first->backward = n;
+  }
 
-    n->root = root;
-    n->birth = use_clock = def_clock;
-    n->death = 0xffff;
-    n->forward = NULL;
-    n->next_forward = NULL;
+  n->root = root;
+  n->birth = use_clock = def_clock;
+  n->death = 0xffff;
+  n->forward = NULL;
+  n->next_forward = NULL;
 
 #if defined(USE_THREADS)                                               /* MCL */
-    n->pending_x5 = n->pending_x2 = NULL;
+  n->pending_x5 = n->pending_x2 = NULL;
 #endif
 
-    loc = (n->key==ERRORTAG ? &root->varcase :
-           n->key==functor_list ? &root->lstcase :
-           &dyn_puthash(&root->indexer,n->key)->value.instp);
+  loc = (n->key==ERRORTAG ? &root->varcase :
+         n->key==functor_list ? &root->lstcase :
+         &dyn_puthash(&root->indexer,n->key)->value.instp);
     
-    if (!(*loc)) {
-      n->next_backward = n;
-      (*loc) = n;
-    } else {
-      n->next_backward = (*loc)->next_backward;
-      (*loc)->next_backward->next_forward = n;
-      (*loc)->next_backward = n;
-    }
+  if (!(*loc)) {
+    n->next_backward = n;
+    (*loc) = n;
+  } else {
+    n->next_backward = (*loc)->next_backward;
+    (*loc)->next_backward->next_forward = n;
+    (*loc)->next_backward = n;
+  }
 
-#if defined(DEBUG) && defined(USE_THREADS)
-    if (root->behavior_on_failure != DYNAMIC) {
-      DEBUG__TRACE(debug_conc, "*** %d(%d) insertz'ed clause %x\n",
-              (int)Thread_Id, (int)GET_INC_COUNTER, (int)n);
-    }
+#if defined(DEBUG_TRACE) && defined(USE_THREADS)
+  if (root->behavior_on_failure != DYNAMIC) {
+    DEBUG__TRACEconc(debug_conc, "insertz'ed clause %p\n", n);
+  }
 #endif
     
 #if defined(USE_THREADS)
-    if (root->behavior_on_failure == CONC_OPEN){
-      if (root->x2_pending_on_instance)
-        move_queue(&root->x2_pending_on_instance, &n->pending_x2, n);
-      if (root->x5_pending_on_instance)
-        move_queue(&root->x5_pending_on_instance, &n->pending_x5, n);
-    }
+  if (root->behavior_on_failure == CONC_OPEN) {
+    if (root->x2_pending_on_instance)
+      move_queue(&root->x2_pending_on_instance, &n->pending_x2, n);
+    if (root->x5_pending_on_instance)
+      move_queue(&root->x5_pending_on_instance, &n->pending_x5, n);
+  }
 #endif
 
-    DEBUG__TRACE(debug_conc,
-                 "*** %d(%d) leaving insertz (root = %x, first = %x, &first = %x)\n",
-                 (int)Thread_Id, (int)GET_INC_COUNTER,
-                 (unsigned int)root,
-                 (unsigned int)root->first,
-                 (unsigned int)&(root->first));
+  DEBUG__TRACEconc(debug_conc, "leaving (root = %p, first = %p, &first = %p)\n", root, root->first, &(root->first));
 
-    Broadcast_Cond(root->clause_insertion_cond);
+  Broadcast_Cond(root->clause_insertion_cond);
 
-    INC_MEM_PROG(total_mem_count - current_mem);
-    CBOOL__PROCEED;
+  INC_MEM_PROG(total_mem_count - current_mem);
+  CBOOL__PROCEED;
 }
 
-bool_t insertz_aux(int_info_t *root, instance_t *n)
-{
-    instance_t **loc;
-    intmach_t current_mem = total_mem_count;
+bool_t insertz_aux(int_info_t *root, instance_t *n) {
+  instance_t **loc;
+  intmach_t current_mem = total_mem_count;
 
-    if (!root->first) {
-      n->rank = TaggedZero;
-      n->backward = n;
-      root->first = n;
-    }
-    else if (root->first->backward->rank == TaggedIntMax)
-      SERIOUS_FAULT("database node full in assert or record")
-    else {
-      n->rank = root->first->backward->rank+MakeSmallDiff(1);
-      n->backward = root->first->backward;
-      root->first->backward->forward = n;
-      root->first->backward = n;
-    }
+  if (!root->first) {
+    n->rank = TaggedZero;
+    n->backward = n;
+    root->first = n;
+  } else if (root->first->backward->rank == TaggedIntMax) {
+    SERIOUS_FAULT("database node full in assert or record");
+  } else {
+    n->rank = root->first->backward->rank+MakeSmallDiff(1);
+    n->backward = root->first->backward;
+    root->first->backward->forward = n;
+    root->first->backward = n;
+  }
 
-    n->root = root;
-    n->birth = use_clock = def_clock;
-    n->death = 0xffff;
-    n->forward = NULL;
-    n->next_forward = NULL;
+  n->root = root;
+  n->birth = use_clock = def_clock;
+  n->death = 0xffff;
+  n->forward = NULL;
+  n->next_forward = NULL;
 
-    loc = (n->key==ERRORTAG ? &root->varcase :
-           n->key==functor_list ? &root->lstcase :
-           &dyn_puthash(&root->indexer,n->key)->value.instp);
+  loc = (n->key==ERRORTAG ? &root->varcase :
+         n->key==functor_list ? &root->lstcase :
+         &dyn_puthash(&root->indexer,n->key)->value.instp);
     
-    if (!(*loc)){
-      n->next_backward = n;
-      (*loc) = n;
-    } else {
-      n->next_backward = (*loc)->next_backward;
-      (*loc)->next_backward->next_forward = n;
-      (*loc)->next_backward = n;
-    }
+  if (!(*loc)){
+    n->next_backward = n;
+    (*loc) = n;
+  } else {
+    n->next_backward = (*loc)->next_backward;
+    (*loc)->next_backward->next_forward = n;
+    (*loc)->next_backward = n;
+  }
     
-    INC_MEM_PROG(total_mem_count - current_mem);
-    CBOOL__PROCEED;
+  INC_MEM_PROG(total_mem_count - current_mem);
+  CBOOL__PROCEED;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1758,7 +1834,7 @@ CBOOL__PROTO(make_bytecode_object) {
   normal: if normal==TRUE follow first-chain else next_forward
 */
 
-CFUN__PROTO(active_instance, instance_t *, instance_t *i, int itime, bool_t normal) {
+CFUN__PROTO(active_instance, instance_t *, instance_t *i, int/*instance_clock_t*/ itime, bool_t normal) {
   choice_t *b;
   instance_t *j;
   choice_t *b2;
@@ -1856,9 +1932,7 @@ CVOID__PROTO(clock_overflow) {
   int count = 1;
   choice_t *b;
 
-#if defined(USE_THREADS)
-  DEBUG__TRACE(debug_conc, "*** in clock_overflow()\n");
-#endif
+  DEBUG__TRACEconc(debug_conc, "clock overflow\n");
 
   /* count # distinct clock values existing in choicepoints */
   for (b=w->previous_choice;
@@ -1898,8 +1972,7 @@ CVOID__PROTO(clock_overflow) {
 }
 
 static void relocate_table_clocks(sw_on_key_t *sw,
-                                  instance_clock_t *clocks)
-{
+                                  instance_clock_t *clocks) {
   sw_on_key_node_t *keyval;
   definition_t *d;
   intmach_t j = SwitchSize(sw);
@@ -1907,30 +1980,25 @@ static void relocate_table_clocks(sw_on_key_t *sw,
   for (--j; j>=0; --j) {
     keyval = &sw->node[j];
     if ((d = keyval->value.def) &&
-        d->predtyp==ENTER_INTERPRETED)
-      relocate_clocks(d->code.intinfo->first,clocks);   
+        d->predtyp==ENTER_INTERPRETED) {
+      relocate_clocks(d->code.intinfo->first,clocks);
+    }
   }
 }
 
 void relocate_clocks(instance_t *inst, instance_clock_t *clocks) {
   int i, j;
   instance_t *next;
-
-  for (; inst; inst=next)
-    {
-      next = inst->forward;
-      for (i=0; inst->birth>clocks[i]; i++)
-        ;
-      inst->birth = i;
-      if (inst->death!=0xffff)
-        {
-          for (j=i; inst->death>clocks[j]; j++)
-            ;
-          inst->death = j;
-          if (i==j)
-            expunge_instance(inst);
-        }
+  for (; inst; inst=next) {
+    next = inst->forward;
+    for (i=0; inst->birth>clocks[i]; i++) {}
+    inst->birth = i;
+    if (inst->death!=0xffff) {
+      for (j=i; inst->death>clocks[j]; j++) {}
+      inst->death = j;
+      if (i==j) expunge_instance(inst);
     }
+  }
 }
 
 #if defined(OPTIM_COMP)

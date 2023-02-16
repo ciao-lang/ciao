@@ -19,14 +19,6 @@ CBOOL__PROTO(close_predicate);
 CBOOL__PROTO(open_predicate);
 CBOOL__PROTO(next_instance, instance_t **ipp);
 CBOOL__PROTO(next_instance_conc, instance_t **ipp);
-void move_queue(instance_handle_t **srcq, 
-                instance_handle_t **destq,
-                instance_t *destinst);
-void jump_to_next_instance(instance_t *x2_p_insp,
-                           instance_t *x5_p_insp,
-                           instance_t **ipp,
-                           instance_t **x2,
-                           instance_t **x5);
 
 /* static void relocate_table_clocks(sw_on_key_t *sw, instance_clock_t *clocks) */
 
