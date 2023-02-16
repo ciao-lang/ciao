@@ -92,6 +92,16 @@ ciaopp_cost.test:
     - builder/etc/gitlab-ci.sh ciaopp_cost.test
   needs: [ciaopp]
 
+# This job should (probably) be removed once res_plai tests are fixed/checked/updated
+# It is created to have a small set of tests for which res_plai output is
+#  trusted to be correct and precise on 31/01/23.
+ciaopp_cost.test.smalltrustedtmp.resplai:
+  stage: test
+  allow_failure: true
+  script:
+    - builder/etc/gitlab-ci.sh ciaopp_cost.test.smalltrustedtmp.resplai
+  needs: [ciaopp]
+
 lpdoc:
   stage: basic-bundles
   script:
