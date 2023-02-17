@@ -297,6 +297,7 @@ CFUN__PROTO(current_instance0, instance_t *) {
 #define hashtab_key_t tagged_t
 #define hashtab_node_t sw_on_key_node_t
 #define hashtab_get incore_gethash
+#define hashtab_lookup dyn_puthash
 #define HASHTAB_SIZE(SW) SwitchSize((SW))
 #endif
 
@@ -1488,6 +1489,7 @@ static CFUN__PROTO(ref_to_instance, instance_t *, tagged_t x2) {
     CFUN__PROCEED(n);
   });
 }
+#if !defined(OPTIM_COMP)
 CBOOL__PROTO(prolog_ptr_ref) {
   DEREF(X(0),X(0));
   if (TaggedIsSmall(X(0))) {
@@ -1502,19 +1504,28 @@ CBOOL__PROTO(prolog_ptr_ref) {
     CBOOL__PROCEED;
   }
 }
-
-/* ASSERT: X(0) is a dereferenced integer. */
+#endif
 
 /* If the predicate is concurrent, it is still open, it has no clauses
    (i.e., this first clause is also the last one) and there are invocations
    waiting for a clause, wake them up and make them point to the new clause.
    Unfortunately, this results in a lack of indexing. */
-
-CBOOL__PROTO(inserta) {
-  instance_t *n, **loc;
+#if defined(OPTIM_COMP)
+CBOOL__PROTO(inserta, int_info_t *root, instance_t *n)
+#else
+/* ASSERT: X(0) is a dereferenced integer. */
+CBOOL__PROTO(inserta)
+#endif
+{
+#if !defined(OPTIM_COMP)
+  instance_t *n;
+#endif
+  instance_t **loc;
+#if !defined(OPTIM_COMP)
   int_info_t *root = TaggedToRoot(X(0));
+#endif
   intmach_t current_mem = total_mem_count;
-#if defined(USE_THREADS)                                               /* MCL */
+#if defined(USE_THREADS) /* MCL */
   bool_t move_insts_to_new_clause = FALSE;
 #endif
 
@@ -1523,15 +1534,17 @@ CBOOL__PROTO(inserta) {
   DEBUG__TRACEconc(debug_conc, "(root = %p, first = %p, &first = %p)\n", root, root->first, &(root->first));
 
 #if defined(USE_THREADS)
-  if (root->behavior_on_failure == CONC_CLOSED){                 /* MCL */
+  if (root->behavior_on_failure == CONC_CLOSED) { /* MCL */
     Broadcast_Cond(root->clause_insertion_cond);
     USAGE_FAULT("$inserta in an already closed concurrent predicate");
   }
 #endif
 
+#if !defined(OPTIM_COMP)
   DEREF(X(1),X(1));
   n = TaggedToInstance(X(1));
-    
+#endif
+
   /* (void)ACTIVE_INSTANCE(root->first,use_clock,TRUE); optional */
     
   if (!root->first) {
@@ -1544,9 +1557,13 @@ CBOOL__PROTO(inserta) {
     }
 #endif
   } else if (root->first->rank == TaggedLow) {
+#if defined(OPTIM_COMP)
+    PANIC_FAULT("database node full in assert or record");
+#else
     SERIOUS_FAULT("database node full in assert or record");
+#endif
   } else {
-    n->rank = root->first->rank-MakeSmallDiff(1);
+    n->rank = SmallSub(root->first->rank,1);
     n->forward = root->first;
     n->backward = root->first->backward;
     root->first->backward = n;
@@ -1557,16 +1574,17 @@ CBOOL__PROTO(inserta) {
   n->birth = use_clock = def_clock;
   n->death = 0xffff;
 
-#if defined(USE_THREADS)                                               /* MCL */
+#if defined(USE_THREADS) /* MCL */
   n->pending_x5 = n->pending_x2 = NULL;
 #endif
     
   loc = (n->key==ERRORTAG ? &root->varcase :
          n->key==functor_lst ? &root->lstcase :
-         &dyn_puthash(&root->indexer,n->key)->value.instp);
+         (instance_t **)&hashtab_lookup(&root->indexer,n->key)->value.as_ptr);
     
   if (!(*loc)) {
-    n->next_forward = NULL, n->next_backward = n;
+    n->next_forward = NULL;
+    n->next_backward = n;
   } else {
     n->next_forward = (*loc);
     n->next_backward = (*loc)->next_backward;
@@ -1591,24 +1609,38 @@ CBOOL__PROTO(inserta) {
   CBOOL__PROCEED;
 }
 
-/* ASSERT: X(0) is a dereferenced integer */
-CBOOL__PROTO(insertz) {
-  instance_t *n, **loc;
+/* ASSERT: X(0) is a (dereferenced) small integer */
+#if defined(OPTIM_COMP)
+CBOOL__PROTO(insertz, int_info_t *root, instance_t *n)
+#else
+CBOOL__PROTO(insertz)
+#endif
+{
+#if !defined(OPTIM_COMP)
+  instance_t *n;
+#endif
+  instance_t **loc;
+#if !defined(OPTIM_COMP)
   int_info_t *root = TaggedToRoot(X(0));
+#endif
   intmach_t current_mem = total_mem_count;
 
   Cond_Begin(root->clause_insertion_cond);
 
   DEBUG__TRACEconc(debug_conc, "(root = %p, first = %p, &first = %p)\n", root, root->first, &(root->first));
 
-  if (root->behavior_on_failure == CONC_CLOSED){                 /* MCL */
+#if defined(USE_THREADS)
+  if (root->behavior_on_failure == CONC_CLOSED) { /* MCL */
     Broadcast_Cond(root->clause_insertion_cond);
-    USAGE_FAULT("$inserta in an already closed concurrent predicate");
+    USAGE_FAULT("$insertz in an already closed concurrent predicate");
   }
+#endif
 
+#if !defined(OPTIM_COMP)
   DEREF(X(1),X(1));
   n = TaggedToInstance(X(1));
-    
+#endif
+
   /* (void)ACTIVE_INSTANCE(root->first,use_clock,TRUE); optional */
     
   if (!root->first) {
@@ -1616,9 +1648,13 @@ CBOOL__PROTO(insertz) {
     n->backward = n;
     root->first = n;
   } else if (root->first->backward->rank == TaggedIntMax) {
+#if defined(OPTIM_COMP)
+    PANIC_FAULT("database node full in assert or record");
+#else
     SERIOUS_FAULT("database node full in assert or record");
+#endif
   } else {
-    n->rank = root->first->backward->rank+MakeSmallDiff(1);
+    n->rank = SmallAdd(root->first->backward->rank,1);
     n->backward = root->first->backward;
     root->first->backward->forward = n;
     root->first->backward = n;
@@ -1630,13 +1666,13 @@ CBOOL__PROTO(insertz) {
   n->forward = NULL;
   n->next_forward = NULL;
 
-#if defined(USE_THREADS)                                               /* MCL */
+#if defined(USE_THREADS) /* MCL */
   n->pending_x5 = n->pending_x2 = NULL;
 #endif
 
   loc = (n->key==ERRORTAG ? &root->varcase :
          n->key==functor_lst ? &root->lstcase :
-         &dyn_puthash(&root->indexer,n->key)->value.instp);
+         (instance_t **)&hashtab_lookup(&root->indexer,n->key)->value.as_ptr);
     
   if (!(*loc)) {
     n->next_backward = n;
@@ -1670,6 +1706,9 @@ CBOOL__PROTO(insertz) {
   CBOOL__PROCEED;
 }
 
+#if !defined(OPTIM_COMP)
+/* used from internals.c prolog_interpreted_clause() */
+/* (like insertz() but without code for threads) */
 bool_t insertz_aux(int_info_t *root, instance_t *n) {
   instance_t **loc;
   intmach_t current_mem = total_mem_count;
@@ -1679,9 +1718,13 @@ bool_t insertz_aux(int_info_t *root, instance_t *n) {
     n->backward = n;
     root->first = n;
   } else if (root->first->backward->rank == TaggedIntMax) {
+#if defined(OPTIM_COMP)
+    PANIC_FAULT("database node full in assert or record");
+#else
     SERIOUS_FAULT("database node full in assert or record");
+#endif
   } else {
-    n->rank = root->first->backward->rank+MakeSmallDiff(1);
+    n->rank = SmallAdd(root->first->backward->rank,1);
     n->backward = root->first->backward;
     root->first->backward->forward = n;
     root->first->backward = n;
@@ -1695,9 +1738,9 @@ bool_t insertz_aux(int_info_t *root, instance_t *n) {
 
   loc = (n->key==ERRORTAG ? &root->varcase :
          n->key==functor_lst ? &root->lstcase :
-         &dyn_puthash(&root->indexer,n->key)->value.instp);
+         (instance_t **)&hashtab_lookup(&root->indexer,n->key)->value.as_ptr);
     
-  if (!(*loc)){
+  if (!(*loc)) {
     n->next_backward = n;
     (*loc) = n;
   } else {
@@ -1709,203 +1752,9 @@ bool_t insertz_aux(int_info_t *root, instance_t *n) {
   INC_MEM_PROG(total_mem_count - current_mem);
   CBOOL__PROCEED;
 }
-
-/* ------------------------------------------------------------------------- */
-
-/* TODO: reuse for copying Large (see globalize_bn) */
-size_t compile_large(tagged_t t, bcp_t p) {
-  intmach_t i;
-  intmach_t ar = LargeArity(TaggedToHeadfunctor(t));
-  tagged_t *tp = TagpPtr(STR,t);
-  tagged_t *pp = (tagged_t *)p;
-
-  for (i = 0; i < ar; i++)
-    *pp++ = *tp++;
-  return ar*sizeof(tagged_t);
-}
-
-#if BC_SCALE==2
-/* Copy a large into bytecode, scaling if needed (see
-   bn_scale_bc32()) */
-size_t compile_large_bc32(tagged_t t, bcp_t p) {
-  intmach_t sz;
-  // fprintf(stderr, "trace: compile_large_bc32\n");
-  if (TaggedIsSmall(t)) {
-    /* Force into a large, even if it fits in a small */
-    // fprintf(stderr, "trace: bc32 large stored as small needs fix\n");
-    intmach_t i = GetSmall(t);
-    if (IsInSmiValRange_BC32(i)) {
-      SERIOUS_FAULT("compile_large_bc32: int32 found in large!");
-    }
-    tagged_t xx[2];
-    xx[0] = MakeFunctorFix;
-    xx[1] = i;
-    tagged_t t1 = Tagp(STR, xx);
-    (void)compile_large(t1, p);
-    sz = bn_scale_bc32((bignum_t *)p);
-  } else if (LargeIsFloat(t)) {
-    sz = compile_large(t, p);
-  } else {
-    (void)compile_large(t, p);
-    sz = bn_scale_bc32((bignum_t *)p);
-  }
-  return sz;
-}
 #endif
 
-CBOOL__PROTO(make_bytecode_object) {
-  tagged_t num,list;
-  emul_info_t *object;
-  bcp_t P;
-#if defined(GAUGE)
-  tagged_t num1;
-#endif
-  /*unsigned int counter_cnt;*/
-  /*intmach_t *current_counter;*/
-  /*int i;*/
-  intmach_t current_mem = total_mem_count;
-  intmach_t bsize;
-
-  DEREF(num,X(0));              /* Must be PHYSICAL size in characters! */
-#if defined(GAUGE)
-  DEREF(num1,X(1));             /* Number of Counters */
-#endif
-  DEREF(list,X(2));
-
-  bsize = TaggedToIntmach(num) * BC_SCALE;
-
-#if defined(GAUGE)
-  counter_cnt = TaggedToIntmach(num1);
-  checkalloc_FLEXIBLE_S(emul_info_t,
-                        objsize,
-                        char,
-                        (bsize + counter_cnt*sizeof(intmach_t)),
-                        object);
-#else
-  checkalloc_FLEXIBLE_S(emul_info_t,
-                        objsize,
-                        char,
-                        bsize,
-                        object);
-#endif
-
-  object->next.ptr = NULL;
-  object->subdefs = NULL;
-#if defined(GAUGE)
-  object->counters = (intmach_t *)((char *)object+object->objsize)-counter_cnt;
-  for (i=0; i<counter_cnt; i++)
-    object->counters[i] = 0;
-  current_counter = object->counters + 2; /* Entry Counters */
-#endif
-  P = (bcp_t)object->emulcode;
-  while (list!=atom_nil) {
-    tagged_t car;
-
-    DerefCar(car,list);
-    DerefCdr(list,list);
-    switch(TagOf(car)) {
-    case NUM: /* TODO: assumes that f_o, f_x, f_y, etc. have all the same size */
-      {
-        EMIT_o((FTYPE_ctype(f_o))GetSmall(car));
-        break;
-      }
-#if defined(GAUGE)
-    case ATM:
-      {
-        if (car == atom_counter) {
-          /* NOTE: this is a pointer */
-          EMITtok(f_counter, (char *)current_counter);
-          current_counter++;
-          --counter_cnt;
-        } else {
-          USAGE_FAULT("make_bytecode_object: bad spec");
-        }
-        break;
-      }
-#endif
-    case STR:
-      {
-        tagged_t func;
-        
-        func=TaggedToHeadfunctor(car);
-        if(func==functor_functor) {
-          /* functor(Name/Arity) */
-          DerefArg(car,car,1);
-          if (TaggedIsSTR(car) && (TaggedToHeadfunctor(car)==functor_slash)) {
-            tagged_t t1, t2;
-            DerefArg(t1,car,1);
-            DerefArg(t2,car,2);
-            EMIT_f(SetArity(t1,GetSmall(t2)));
-          }
-          break;
-        }
-        
-        if(func==functor_tagged) {
-          /* TAGGED(Term) */
-          tagged_t t;
-          DerefArg(t,car,1);
-          EMIT_t(t);
-          break;
-        }
-        if(func==functor_emul_entry) {
-          /* label(PredicateSpec) */
-          DerefArg(car,car,1);
-          EMIT_E(parse_definition(car));
-          break;
-        }
-        if(func==functor_builtin) {
-          /* builtin(Integer) */
-          tagged_t t1;
-          DerefArg(t1,car,1);
-          EMIT_C(builtintab[GetSmall(t1)]);
-          break;
-        }
-        if (func==functor_large) {
-          DerefArg(car,car,1);
-          int sz;
-#if BC_SCALE==2
-          sz = compile_large_bc32(car, P);
-#else
-          sz = compile_large(car, P);
-#endif
-          P = BCoff(P, sz);
-          break;
-        }
-        if(func==functor_long) {
-          /* long(Num) */
-          tagged_t t1;
-          DerefArg(t1,car,1);
-          EMIT_l(TaggedToIntmach(t1));
-          break;
-        }
-        USAGE_FAULT("make_bytecode_object: bad spec");
-      }
-    }
-  }
-
-  ptrdiff_t truesize = (char *)P - (char *)object->emulcode;
-  if (truesize > bsize) {
-    SERIOUS_FAULT("bug: memory overrun in make_bytecode_object()");
-  }
-
-/* TODO: rename by patch_bytecode32 */
-#if defined(BC64)
-#define USE_REWRITE_BYTECODE 1
-#endif
-#if defined(USE_REWRITE_BYTECODE)
-  CVOID__PROTO(bytecode_rewrite, bcp_t begin, bcp_t end);
-  CVOID__CALL(bytecode_rewrite, object->emulcode, P);
-#endif
-
-#if defined(GAUGE)
-  if (counter_cnt != 2)
-    SERIOUS_FAULT("$make_bytecode_object: counter counts don't match");
-#endif
-  CBOOL__UnifyCons(PointerToTerm(object),X(3));
-  INC_MEM_PROG(total_mem_count - current_mem);
-  CBOOL__PROCEED;
-}
-
+/* --------------------------------------------------------------------------- */
 
 /* A LOGICAL VIEW OF DYNAMIC CODE UPDATES.
    Scheme adapted from
@@ -1949,10 +1798,7 @@ CBOOL__PROTO(make_bytecode_object) {
           (1c) it died before any such chpt.
           */
 
-/*
-  normal: if normal==TRUE follow first-chain else next_forward
-*/
-
+/* if normal==TRUE follow first-chain else next_forward */
 CFUN__PROTO(active_instance, instance_t *, instance_t *i, int/*instance_clock_t*/ itime, bool_t normal) {
   choice_t *b;
   instance_t *j;
@@ -1976,29 +1822,31 @@ CFUN__PROTO(active_instance, instance_t *, instance_t *i, int/*instance_clock_t*
 
   for (b=latest_static; !ChoiceptTestStatic(b); b=b2)  {
     b2=ChoiceCont(b);
-    if (b->next_alt==address_nd_current_instance) {
+    if (b->next_alt == address_nd_current_instance) {
       latest_static = b2;
-      j = TaggedToInstance(b->x[2]);
+      j = TaggedToInstance(b->x[X2_CHN]);
       if (j && (j->root==i->root)) {
-        lotime = GetSmall(b->x[4]);
+        lotime = GetSmall(b->x[ClockSlot]);
         if (lorank>j->rank) lorank=j->rank;
       }
-      j = TaggedToInstance(b->x[5]);
+      j = TaggedToInstance(b->x[X5_CHN]);
       if (j && (j->root==i->root)) {
-        lotime = GetSmall(b->x[4]);
+        lotime = GetSmall(b->x[ClockSlot]);
         if (lorank>j->rank) lorank=j->rank;
       }   
     }
   }
   
-                          /* Mark all chpt before latest_static as static */
+  /* Mark all chpt before latest_static as static */
 
   for (b=latest_static;
        !ChoiceptTestStatic(b);
-       b=ChoiceCont(b))
+       b=ChoiceCont(b)) {
     ChoiceptMarkStatic(b);
+  }
   
-  if (normal) {                                 /* Follow forward-chain ? */
+  if (normal) {
+    /* Follow forward-chain ? */
     while (i &&
            i->death != 0xffff &&
            (lotime >= i->death ||
@@ -2010,8 +1858,8 @@ CFUN__PROTO(active_instance, instance_t *, instance_t *i, int/*instance_clock_t*
     }
     
     while (i && (time < i->birth || time >= i->death)) i=i->forward;
-  }
-  else {                                   /* follow next_forward-chain ! */
+  } else {
+    /* follow next_forward-chain ! */
     while (i &&
            i->death != 0xffff &&
            (lotime >= i->death ||
@@ -2021,13 +1869,10 @@ CFUN__PROTO(active_instance, instance_t *, instance_t *i, int/*instance_clock_t*
       expunge_instance(i);
       i=j;
     }
-    
     while (i && (time < i->birth || time >= i->death)) i=i->next_forward;
   }
-  return i;
+  CFUN__PROCEED(i);
 }
-
-
 
 /* Called from wam() when X(4) = use_clock = 0xfffe;
    All timestamps have to be compressed.
@@ -2057,8 +1902,8 @@ CVOID__PROTO(clock_overflow) {
   for (b=w->previous_choice;
        !ChoiceptTestStatic(b);
        b=ChoiceCont(b)) {
-    if (b->next_alt==address_nd_current_instance) {
-      t = GetSmall(b->x[4]);
+    if (b->next_alt == address_nd_current_instance) {
+      t = GetSmall(b->x[ClockSlot]);
       if (current!=t) {
         current=t;
         count++;
@@ -2067,8 +1912,13 @@ CVOID__PROTO(clock_overflow) {
   }
 
   /* grab space for temporary array of clock values */
+#if defined(OPTIM_COMP)
+  /* TODO: macro to align word size */
+  TEST_HEAP_OVERFLOW(G->heap_top, ((count*sizeof(instance_clock_t)+sizeof(tagged_t)-1)/sizeof(tagged_t))*sizeof(tagged_t), DynamicPreserved);
+#else
   TEST_HEAP_OVERFLOW(G->heap_top, count*sizeof(instance_clock_t), DynamicPreserved);
-  clocks = (instance_clock_t *)w->heap_top;
+#endif
+  clocks = (instance_clock_t *)G->heap_top;
 
   /* fill in distinct chpt clock values, relocating them as we go */
   clockp = clocks+count;
@@ -2079,22 +1929,217 @@ CVOID__PROTO(clock_overflow) {
   
   for (b=w->previous_choice;
        !ChoiceptTestStatic(b);
-       b=ChoiceCont(b))
-    if (b->next_alt==address_nd_current_instance) {
-      t = GetSmall(b->x[4]);
+       b=ChoiceCont(b)) {
+    if (b->next_alt == address_nd_current_instance) {
+      t = GetSmall(b->x[ClockSlot]);
       if ((*clockp)!=t) *(--clockp)=t;
-      b->x[4] = MakeSmall(clockp-clocks);
+      b->x[ClockSlot] = MakeSmall(clockp-clocks);
     }
+  }
   /* relocate all instance clocks */
+#if defined(OPTIM_COMP)
+  relocate_table_clocks(predicates_location,clocks);
+#else
   relocate_table_clocks(prolog_predicates,clocks);
+#endif
   relocate_gcdef_clocks(clocks);
 }
 
+/* --------------------------------------------------------------------------- */
+
+#if defined(OPTIM_COMP) && defined(ABSMACH_OPT__regmod)
+CBOOL__PROTO(interpreted_drain_marked, definition_t *f, tagged_t mark) {
+  /* TODO: study if this code is correct --jf */
+  /* TODO: what happens with concurrent predicates? */
+  int_info_t *root;
+  instance_t *i, *j;
+
+  root = f->code.intinfo;
+  for (i = root->first; i; i=j) {
+    j = i->forward;
+    if (i->mark == mark) {
+      CVOID__CALL(prolog_erase_ptr, i);
+    }
+  }
+  /* TODO: necessary? */
+  CVOID__CALL(prolog_unlock_predicate, root);
+
+  /* TODO: check if it has any problems... */
+  /* Abolish if predicate is empty */
+  if (root->first == NULL) {
+    CBOOL__CALL(abolish, f);
+  }
+  CBOOL__PROCEED;
+}
+#endif
+
+/* --------------------------------------------------------------------------- */
+/* Dynamic prolog database update */
+/* (C coded) --jfran */
+
 #if defined(OPTIM_COMP)
+
+#define GET_ROOT(X) \
+  DEREF(X,X); \
+  int_info_t *root; \
+  root = TaggedToRoot(X);
+
+/* Fails if not interpreted */
+#define HEAD_ROOT(X) \
+  DEREF(X, X); \
+  int_info_t *root; \
+  root = find_int_info(X); \
+  CBOOL__TEST(root != NULL);
+
+/* Fails if not interpreted */
+#define HEAD_ROOT_INSNP(X) \
+  DEREF(X, X); \
+  int_info_t *root; \
+  root = find_int_info(X); \
+  if (root == NULL) CINSNP__FAIL;
+
+/* (from bc_aux.h) */
+CFUN__PROTO(compile_term_aux, instance_t *, tagged_t head, tagged_t body, tagged_t mark);
+#define COMPILE_TERM \
+  instance_t *ptr; \
+  ptr = CFUN__EVAL(compile_term_aux, X(0), X(1), ERRORTAG);
+
+// '$asserta_root'/3
+CBOOL__PROTO(prolog_asserta_root) {
+  GET_ROOT(X(2));
+  COMPILE_TERM;
+  CBOOL__CALL(inserta, root, ptr);
+  CBOOL__PROCEED;
+}
+// '$asserta'/2
+CBOOL__PROTO(prolog_asserta) {
+  HEAD_ROOT(X(0));
+  COMPILE_TERM;
+  CBOOL__CALL(inserta, root, ptr);
+  CBOOL__PROCEED;
+}
+// '$asserta_ref'/3
+CBOOL__PROTO(prolog_asserta_ref) {
+  HEAD_ROOT(X(0));
+  COMPILE_TERM;
+  CBOOL__CALL(inserta, root, ptr);
+  CBOOL__CALL(instance_to_ref, ptr, X(2));
+  CBOOL__PROCEED;
+}
+// '$assertz_root'/3
+CBOOL__PROTO(prolog_assertz_root) {
+  GET_ROOT(X(2));
+  COMPILE_TERM;
+  CBOOL__CALL(insertz, root, ptr);
+  CBOOL__PROCEED;
+}
+// '$assertz'/2
+CBOOL__PROTO(prolog_assertz) {
+  HEAD_ROOT(X(0));
+  COMPILE_TERM;
+  CBOOL__CALL(insertz, root, ptr);
+  CBOOL__PROCEED;
+}
+// '$assertz_ref'/3
+CBOOL__PROTO(prolog_assertz_ref) {
+  HEAD_ROOT(X(0));
+  COMPILE_TERM;
+  CBOOL__CALL(insertz, root, ptr);
+  CBOOL__CALL(instance_to_ref, ptr, X(2));
+  CBOOL__PROCEED;
+}
+
+// '$erase'/2
+CINSNP__PROTO(prolog_erase) {
+  HEAD_ROOT_INSNP(X(0));
+  X(3) = MakeSmall(0); /* erase */
+  CINSNP__LASTCALL(current_instance, root, BLOCK);
+}
+// '$erase_nb_root'/3
+CINSNP__PROTO(prolog_erase_nb_root) {
+  GET_ROOT(X(2));
+  X(3) = MakeSmall(0); /* erase */
+  CINSNP__LASTCALL(current_instance, root, NO_BLOCK);
+}
+// '$erase_nb'/2
+CINSNP__PROTO(prolog_erase_nb) {
+  HEAD_ROOT_INSNP(X(0));
+  X(3) = MakeSmall(0); /* erase */
+  CINSNP__LASTCALL(current_instance, root, NO_BLOCK);
+}
+// '$erase_ref'/1
+CBOOL__PROTO(prolog_erase_ref) {
+  tagged_t Ref;
+  instance_t *ptr;
+  DEREF(Ref, X(0));
+  ptr = CFUN__EVAL(ref_to_instance, Ref);
+  CBOOL__TEST(ptr != NULL); 
+  CVOID__CALL(prolog_erase_ptr, ptr);
+  CBOOL__PROCEED;
+}
+// '$current'/2
+CINSNP__PROTO(prolog_current) {
+  HEAD_ROOT_INSNP(X(0));
+  X(3) = MakeSmall(2); /* nothing */
+  CINSNP__LASTCALL(current_instance, root, BLOCK);
+}
+// '$current_nb_root'/3
+CINSNP__PROTO(prolog_current_nb_root) {
+  GET_ROOT(X(2));
+  X(3) = MakeSmall(2); /* nothing */
+  CINSNP__LASTCALL(current_instance, root, NO_BLOCK);
+}
+// '$current_nb'/2
+CINSNP__PROTO(prolog_current_nb) {
+  HEAD_ROOT_INSNP(X(0));
+  X(3) = MakeSmall(2); /* nothing */
+  CINSNP__LASTCALL(current_instance, root, NO_BLOCK);
+}
+// '$current_nb_ref'/3
+CINSNP__PROTO(prolog_current_nb_ref) {
+  tagged_t Ref;
+  DEREF(Ref, X(2));
+  if (!IsVar(Ref)) {
+    instance_t *ptr;
+    ptr = CFUN__EVAL(ref_to_instance, Ref);
+    if (ptr == NULL) CINSNP__FAIL; 
+    /* Initialize dynpreserved (to ensure heapmargin correctness) */
+    /* TODO: necessary? */
+    /* X(0) must be the head */
+    /* X(1) must be the body */
+    X(X2_CHN) = TermNull;
+    X(3) = MakeSmall(3); /* nothing, no unlock */
+    X(ClockSlot) = MakeSmall(0);
+    X(X5_CHN) = TermNull; 
+    X(RootArg) = TermNull; /* TODO: hmmm unknown, so no unlock_predicate can be done... is this correct? */
+    X(InvocationAttr) = MakeSmall(0);
+    X(PrevDynChpt) = TermNull;
+    w->ins = ptr;
+    CINSNP__GOTO(w->ins->emulcode);
+  } else {
+    HEAD_ROOT_INSNP(X(0));
+    X(3) = Ref; /* (variable) get ref */
+    CINSNP__LASTCALL(current_instance, root, NO_BLOCK);
+  }
+}
+// '$open_pred'/1
+CBOOL__PROTO(prolog_open_pred) {
+  HEAD_ROOT(X(0));
+  CVOID__CALL(open_predicate, root);
+  CBOOL__PROCEED;
+}
+// '$close_pred'/1
+CBOOL__PROTO(prolog_close_pred) {
+  HEAD_ROOT(X(0));
+  CVOID__CALL(close_predicate, root);
+  CBOOL__PROCEED;
+}
+
 CBOOL__PROTO(add_interpreted_clause, definition_t *d, tagged_t head, tagged_t body, tagged_t mark) {
   /* TODO: assert (d!=NULL) && (d->predtyp==ENTER_INTERPRETED) */
   instance_t *ptr;
   ptr = CFUN__EVAL(compile_term_aux, head, body, mark);
   CBOOL__LASTCALL(insertz, d->code.intinfo, ptr);
 }
+
 #endif
