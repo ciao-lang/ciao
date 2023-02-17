@@ -174,11 +174,11 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
       if (u & TagBitFunctor)
         pt1 = TagpPtr(STR,u), u = *pt1++, i = Arity(u);
       else
-        pt1 = TagpPtr(LST,u), u = functor_list, i = 2;
+        pt1 = TagpPtr(LST,u), u = functor_lst, i = 2;
       if (v & TagBitFunctor)
         pt2 = TagpPtr(STR,v), v = *pt2++, j = Arity(v);
       else
-        pt2 = TagpPtr(LST,v), v = functor_list, j = 2;
+        pt2 = TagpPtr(LST,v), v = functor_lst, j = 2;
       
       if (u==v)
         {

@@ -979,7 +979,7 @@ CBOOL__PROTO(bu2_univ,
     argp = TaggedToArg(term,1),
     argq = HeapOffset(argp,Arity(f));
   else
-    f = functor_list,
+    f = functor_lst,
     argp = TaggedToCar(term),
     argq = HeapOffset(argp,2);
 
@@ -1039,7 +1039,7 @@ CBOOL__PROTO(bu2_univ,
     BUILTIN_ERROR(TYPE_ERROR(LIST), list, 2);
   
   f = SetArity(f,arity);
-  if (f==functor_list)
+  if (f==functor_lst)
     {
       w->heap_top = argp;
       argq = HeapOffset(w->heap_top,1);
@@ -1085,7 +1085,7 @@ CBOOL__PROTO(bu2_univ,
     argp = TaggedToArg(term,1),
     argq = HeapOffset(argp,Arity(f));
   else
-    f = functor_list,
+    f = functor_lst,
     argp = TaggedToCar(term),
     argq = HeapOffset(argp,2);
   
@@ -1131,7 +1131,7 @@ CBOOL__PROTO(bu2_univ,
     MINOR_FAULT("=../2: incorrect 2nd argument");
   
   f = SetArity(f,arity);
-  if (f==functor_list)
+  if (f==functor_lst)
     {
       w->heap_top = argp;
       argq = HeapOffset(w->heap_top,1);

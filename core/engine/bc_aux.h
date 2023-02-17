@@ -1044,7 +1044,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
     if (TaggedIsSTR(t0)) {
       object->key = TaggedToHeadfunctor(t0);
     } else if (TaggedIsLST(t0)) {
-      object->key = functor_list;
+      object->key = functor_lst;
     } else if (!IsVar(t0)) {
       object->key = t0;
     } else {

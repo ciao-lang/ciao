@@ -581,7 +581,7 @@ CFUN__PROTO(make_structure, tagged_t,
 
   if (ar==0 || !TaggedIsATM(functor))
     return functor;
-  else if (functor==functor_list) {
+  else if (functor==functor_lst) {
     ConstrHVA(h);
     ConstrHVA(h);
     w->heap_top = h;

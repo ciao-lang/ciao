@@ -2413,7 +2413,7 @@ extern tagged_t atom_counter;
 #endif
 
 extern tagged_t functor_neck;
-extern tagged_t functor_list;
+extern tagged_t functor_lst;
 extern tagged_t functor_cut;
 extern tagged_t functor_minus;
 extern tagged_t functor_slash;

@@ -253,7 +253,7 @@ tagged_t atom_counter;           /* "counter" */
 #endif
 
 tagged_t functor_neck;
-tagged_t functor_list;
+tagged_t functor_lst;
 tagged_t functor_cut;
 tagged_t functor_minus;
 tagged_t functor_slash;
@@ -1458,7 +1458,7 @@ void init_once(void)
   init_streams();
 
   functor_neck = deffunctor(":-",2);
-  functor_list = deffunctor(".",2);
+  functor_lst = deffunctor(".",2);
   functor_cut = deffunctor("!",0);
   functor_minus = deffunctor("-",2);
   functor_slash = deffunctor("/",2);
