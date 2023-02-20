@@ -2343,8 +2343,8 @@ extern float time_at_event_start;
 extern SLOCK    ops_counter_l;
 #endif
 
-
-extern bool_t wam_initialized;/* Non-shared? --- set by each worker to decide whether re-initialize or exit after a failure */
+/* Non-shared? --- set by each worker to decide whether re-initialize or exit after a failure */
+extern bool_t in_abort_context;
 
 extern char *default_ciaoroot;
 extern char *default_c_headers_dir;

@@ -158,7 +158,7 @@ SLOCK    atom_id_l;
 /* The creation of new streams should be atomic. */
 LOCK stream_list_l;
 
-bool_t wam_initialized = FALSE;
+bool_t in_abort_context = FALSE;
 
 /* Event Tracing Flags etc */
 
@@ -579,7 +579,7 @@ void failc(char *mesg) {
       fprintf(stderr, "{ERROR: %s}\n", mesg);
     }
   }
-  if (!wam_initialized){
+  if (!in_abort_context){
     fprintf(stderr, "Wam not initialized, exiting!!!\n");
     engine_exit(-1);
   }

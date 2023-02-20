@@ -1571,7 +1571,7 @@ CFUN__PROTO(call_firstgoal, intmach_t, tagged_t goal_term, goal_descriptor_t *go
     i = SIGSETJMP(abort_env);
     if (i == 0){                /* Just made longjmp */
       w->x[0] = w->choice->x[0];
-      wam_initialized = TRUE;
+      in_abort_context = TRUE;
       wam(w, goal_desc);
       w = goal_desc->worker_registers; /* segfault patch -- jf */
       exit_code = w->misc->exit_code;
@@ -1593,12 +1593,12 @@ CFUN__PROTO(call_firstgoal, intmach_t, tagged_t goal_term, goal_descriptor_t *go
 #endif
 
     {
-      wam_initialized = FALSE;                    /* disable recursive aborts */
+      in_abort_context = FALSE;                    /* disable recursive aborts */
       reinitialize_wam_areas(w); /* aborting... */
       empty_gcdef_bin(w); /* TODO: here? */
       fflush(stdout); /* TODO: here? */
       fflush(stderr); /* TODO: here? */
-      wam_initialized = TRUE;
+      in_abort_context = TRUE;
     }
 
     init_each_time(w);                /* Sets X(0) to point to bootcode */
