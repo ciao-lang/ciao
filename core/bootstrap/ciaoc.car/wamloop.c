@@ -541,10 +541,10 @@ PredTrace("B",Func);
 tagged_t *pt1;
 pt1 = w->structure;
 RefHeapNext(t0,pt1);
-DerefHeapSwitch(t0,t2, {
+DerefSwitch(t0,t2, {
 ;});
 RefHeapNext(t1,pt1);
-DerefHeapSwitch(t1,t2, {
+DerefSwitch(t1,t2, {
 ;});
 }
 goto dif1;
@@ -554,7 +554,7 @@ goto call5;
           }
 case WAITPOINT:
 RefHeap(t0,w->structure);
-DerefHeapSwitch(t0,t1, {
+DerefSwitch(t0,t1, {
 t3 = X(0);
 goto suspend_t3_on_t1;
 });

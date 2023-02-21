@@ -235,12 +235,6 @@ deref_sw(Reg, Aux, VarCode) :-
     VarCode,
     "});", fmt:nl.
 
-:- pred(deref_heap_sw/3, [unfold]).
-deref_heap_sw(Reg, Aux, VarCode) :-
-    "DerefHeapSwitch(", Reg, ",", Aux, ", {", fmt:nl,
-    VarCode,
-    "});", fmt:nl.
-
 :- pred(unify_heap_atom/2, [unfold]).
 unify_heap_atom(U,V) :-
     t0(T0),
@@ -3966,9 +3960,9 @@ pred_call_builtin_dif :-
     "tagged_t *pt1;", fmt:nl, % TODO:[merge-oc] make it local
     "pt1" <- "w->structure",
     call('RefHeapNext', ["t0","pt1"]),
-    deref_heap_sw("t0","t2",";"),
+    deref_sw("t0","t2",";"),
     call('RefHeapNext', ["t1","pt1"]),
-    deref_heap_sw("t1","t2",";"),
+    deref_sw("t1","t2",";"),
     "}", fmt:nl,
     goto('dif1').
 
@@ -3983,7 +3977,7 @@ pred_call_waitpoint :-
     [[update(mode(w))]],
     case('WAITPOINT'),
     call('RefHeap', ["t0","w->structure"]),
-    deref_heap_sw("t0","t1",
+    deref_sw("t0","t1",
       ("t3" <- "X(0)",
        goto('suspend_t3_on_t1'))),
     goto('call5').

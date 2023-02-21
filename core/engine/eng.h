@@ -67,75 +67,6 @@
 
 /* Access macros for the principal WAM registers, bytecode offsets, etc. */
 
-/*
-  Macros CIAO_REG_n, used to declare a variable and its type, force
-  the GCC compiler to store a variable in a register.  In principle,
-  they are ranked in ascending order of effectiveness, according to
-  empiric measurements.  This can of course change if compilers (GCC,
-  in this case) change the way registers are assigned, and it makes
-  sense to have an order because there are processors whose
-  instruction set is not orthogonal to register names.  n currently
-  goes from 1 to 4, but it can be enlarged for additional
-  architectures.
-
-  Undefined the macro MAP_TO_HW_REGISTERS to disable this mapping a
-  fall back to what the compiler thinks is reasonable.
-
-  Register assignments (for registers 1 to 3) have been made for i686.
-*/
-
-#if defined(__clang__)
-/* clang/llvm does not yet support explicit registers variables */
-#else
-/* Temporarily DISABLED:
-
-   It seems to be broken in GCC 6 (Ubuntu 17). A fix consinst on
-   disabling the use of 'ebx' register:
-   
-     // #define CIAO_REG_2(Type, Var) register Type Var asm("ebx")
-     #define CIAO_REG_2(Type, Var) Type Var
-
-   However, performance (using ecrc benchmark) does not seem to be
-   better on the general case (although it makes some particular
-   benchmarks faster). E.g., geometrical average KLIPS
-
-     32bit with HW regs    -> 17533.91836
-     32bit without HW regs -> 19492.57422
-     64bit without HW regs -> 23928.04371
-
-   We will keep this optimization temporarily disabled until we find a
-   better assignment.
-
-   MCL & JF
-*/
-/* #define MAP_TO_HW_REGISTERS */
-#endif
-
-/* TODO: missing x86_64 */
-#if defined(__GNUC__) && defined(MAP_TO_HW_REGISTERS) 
-# if defined(i686) && (defined(LINUX) || defined(BSD))
-#  define CIAO_REG_1(Type, Var) register Type Var asm("esi")
-#  define CIAO_REG_2(Type, Var) register Type Var asm("ebx")
-#  define CIAO_REG_3(Type, Var) register Type Var asm("edi")
-#  define CIAO_REG_4(Type, Var) Type Var
-# elif defined(i686) && defined(DARWIN)
-#  define CIAO_REG_1(Type, Var) register Type Var asm("esi")
-#  define CIAO_REG_2(Type, Var) register Type Var asm("edi")
-#  define CIAO_REG_3(Type, Var) Type Var
-#  define CIAO_REG_4(Type, Var) Type Var
-# else
-#  define CIAO_REG_1(Type, Var) Type Var
-#  define CIAO_REG_2(Type, Var) Type Var
-#  define CIAO_REG_3(Type, Var) Type Var
-#  define CIAO_REG_4(Type, Var) Type Var
-# endif
-#else
-# define CIAO_REG_1(Type, Var) Type Var
-# define CIAO_REG_2(Type, Var) Type Var
-# define CIAO_REG_3(Type, Var) Type Var
-# define CIAO_REG_4(Type, Var) Type Var
-#endif
-
 #define Arg w
 #if defined(OPTIM_COMP)
 #define G (&w->g)
@@ -863,8 +794,10 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define VarIsCVA(X)     ((stagged_t)(X<<1) >= (stagged_t)(CVA<<1<<TAGOFFSET))
 
 /* Assuming !IsVar(X): */
-#define TermIsATM(X)    ((stagged_t)(X<<1) >= (stagged_t)(ATM<<1<<TAGOFFSET))
+#define IsNonvarAtom(X)    ((stagged_t)(X<<1) >= (stagged_t)(ATM<<1<<TAGOFFSET))
 #define TermIsLST(X)    ((stagged_t)(X<<1) < (stagged_t)(STR<<1<<TAGOFFSET))
+
+#define IsNonvarAtomic(X) (!(x0 & TagBitComplex) || TaggedIsLarge(x0))
 
 /* Test for HVA, CVA, LST, STR i.e. 0, 1, 6, 7 (and LNUM)*/
 /* This works for some machines, but not for others...
@@ -2520,50 +2453,40 @@ module_t *define_c_static_mod(char *module_name);
 #define DerefHeap(Xderef,Ptr) \
 { \
   tagged_t m_i; \
-  tagged_t m_j; \
- \
   RefHeap(m_i,Ptr); \
-  DerefHeapSwitch(m_i,m_j,{break;}) \
+  DerefSwitch0(m_i,{break;}) \
   Xderef = m_i; \
 }
 
 #define DerefCar(Xderef,Ptr) \
 { \
   tagged_t m_i; \
-  tagged_t m_j; \
- \
   RefCar(m_i,Ptr); \
-  DerefHeapSwitch(m_i,m_j,{break;}) \
+  DerefSwitch0(m_i,{break;}) \
   Xderef = m_i; \
 }
 
 #define DerefCdr(Xderef,Ptr) \
 { \
   tagged_t m_i; \
-  tagged_t m_j; \
- \
   RefCdr(m_i,Ptr); \
-  DerefHeapSwitch(m_i,m_j,{break;}) \
+  DerefSwitch0(m_i,{break;}) \
   Xderef = m_i; \
 }
 
 #define DerefArg(Xderef,Ptr,I) \
 { \
   tagged_t m_i; \
-  tagged_t m_j; \
- \
   m_i = *TaggedToArg(Ptr,I); \
-  DerefHeapSwitch(m_i,m_j,{break;}) \
+  DerefSwitch0(m_i,{break;}) \
   Xderef = m_i; \
 }
 
 #define DerefHeapNext(Xderef,Ptr) \
 { \
   tagged_t m_i; \
-  tagged_t m_j; \
- \
   RefHeapNext(m_i,Ptr); \
-  DerefHeapSwitch(m_i,m_j,{break;}) \
+  DerefSwitch0(m_i,{break;}) \
   Xderef = m_i; \
 }
 
@@ -2571,10 +2494,8 @@ module_t *define_c_static_mod(char *module_name);
 #define DEREF(Xderef,X) \
 { \
   tagged_t m_i; \
-  tagged_t m_j; \
- \
   m_i = X; \
-  DerefSwitch(m_i,m_j,;) \
+  DerefSwitch0(m_i,;) \
   Xderef = m_i; \
 }
 
@@ -2600,8 +2521,7 @@ labelend: {} \
   __label__ derefsw_cva; \
   __label__ derefsw_other; \
   __label__ derefsw_end; \
-  tagged_t t_; \
-  DerefSwitch((X),t_,{ if (VarIsCVA((X))) goto derefsw_cva; }); \
+  DerefSwitch0((X),{ if (VarIsCVA((X))) goto derefsw_cva; }); \
   goto derefsw_other; \
  derefsw_cva: \
   CODE_CVA; \
@@ -2672,16 +2592,30 @@ labelend: {} \
   } \
 } while(0);
 
-#define DerefSwitch(Reg,Aux,VarCode) \
-{ \
-  if (IsVar(Reg)) \
-    do \
-      if (Reg == (Aux = *TaggedToPointer(Reg))) \
-        {VarCode;break;} \
-    while (IsVar(Reg=Aux)); \
-}
-
-#define DerefHeapSwitch(Reg,Aux,VarCode) DerefSwitch(Reg,Aux,VarCode)
+#define DerefSwitch(Reg,Aux,VarCode) do { \
+  if (IsVar(Reg)) { \
+    do { \
+      Aux = *TaggedToPointer(Reg); \
+      if (Reg == Aux) { \
+        VarCode; \
+        break; \
+      } \
+    } while (IsVar(Reg=Aux)); \
+  } \
+} while(0);
+#define DerefSwitch0(Reg,VarCode) do { \
+  tagged_t Aux; \
+  if (IsVar(Reg)) { \
+    for(;;) { \
+      Aux = *TaggedToPointer(Reg); \
+      if (Reg == Aux) { \
+        VarCode; \
+        break; \
+      } \
+      if (!IsVar(Reg=Aux)) break; \
+    } \
+  } \
+} while(0);
 
 #define SwEval(V, HeadFunctor, NUMCode, LSTCode, BlobCode, STRCode, OtherCode) ({ \
   switch (TagOf((V))) { \

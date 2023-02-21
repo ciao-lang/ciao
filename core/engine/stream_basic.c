@@ -188,7 +188,7 @@ stream_node_t *stream_to_ptr(tagged_t t,
   stream_node_t *n = NULL;
   tagged_t x1, x2;
 
-  DerefSwitch(t,x1,;);
+  DerefSwitch0(t,;);
 
   if (TaggedIsATM(t))
     {
@@ -229,7 +229,7 @@ stream_node_t *stream_to_ptr_check(tagged_t t,
   stream_node_t *n = NULL;
   tagged_t x1, x2;
 
-  DerefSwitch(t,x1,{*errcode = INSTANTIATION_ERROR; return NULL;});
+  DerefSwitch0(t,{*errcode = INSTANTIATION_ERROR; return NULL;});
 
   if (TaggedIsATM(t))
     {

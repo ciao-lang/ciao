@@ -593,15 +593,14 @@ static CBOOL__PROTO(cunifyOC_args_aux,
                     tagged_t *x2) {
   tagged_t t1 = ~0;
   tagged_t t2 = ~0;
-  tagged_t t3;
 
   VALUETRAIL__TEST_OVERFLOW(2*CHOICEPAD);
   for (; arity>0; --arity) {
     t1 = *pt1;
     t2 = *pt2;
     if (t1 != t2) {
-      DerefHeapSwitch(t1,t3,{ goto noforward; });
-      DerefHeapSwitch(t2,t3,{ goto noforward; });
+      DerefSwitch0(t1,{ goto noforward; });
+      DerefSwitch0(t2,{ goto noforward; });
       if (t1!=t2 && IsComplex(t1&t2)) {
         /* NOTE: do forward args from pt2 to pt1 */ 
       noforward:
@@ -760,75 +759,72 @@ CBOOL__PROTO(prolog_unifyOC) {
 
 /* ------------------------------------------------------------------------- */
 
-/*
+// TODO: required for ISO compatibility (see another TODO note below); but we need to update our codebase
+// #define USE_FU2_ARG_EXCEPTIONS 1
+
 CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {  
+#if defined(USE_FU2_ARG_EXCEPTIONS)
   ERR__FUNCTOR("term_basic:arg", 3);
-  CIAO_REG_1(tagged_t, t0);
   intmach_t i;
 
-  DerefSwitch(number,t0, BUILTIN_ERROR(INSTANTIATION_ERROR, number, 1););
-  DerefSwitch(complex,t0, BUILTIN_ERROR(INSTANTIATION_ERROR, complex, 2););
+  DerefSwitch0(number, BUILTIN_ERROR(INSTANTIATION_ERROR, number, 1););
+  DerefSwitch0(complex, BUILTIN_ERROR(INSTANTIATION_ERROR, complex, 2););
 
-  if (TaggedIsSmall(number)) i = GetSmall(number);
-  else if (TaggedIsLarge(number) && !LargeIsFloat(number)) return FALSE;
-  else BUILTIN_ERROR(TYPE_ERROR(INTEGER), number, 1);
+  if (TaggedIsSmall(number)) {
+    i = GetSmall(number);
+  } else if (TaggedIsLarge(number) && !LargeIsFloat(number)) {
+    return FALSE;
+  } else {
+    BUILTIN_ERROR(TYPE_ERROR(INTEGER), number, 1);
+  }
 
-  if (i < 0)
+  if (i < 0) {
     BUILTIN_ERROR(DOMAIN_ERROR(NOT_LESS_THAN_ZERO), number, 1);
+  }
 
-  if (TaggedIsSTR(complex))
-    {
-      tagged_t f = TaggedToHeadfunctor(complex);
-
-      if (i == 0 || i > Arity(f) || f&QMask) return FALSE;
-
-      t0 = *TaggedToArg(complex,i);
+  if (TaggedIsSTR(complex)) {
+    tagged_t f = TaggedToHeadfunctor(complex);
+    if (i == 0 || i > Arity(f) || f&QMask) {
+      return FALSE;
+    }
+    return *TaggedToArg(complex,i);
+  } else if (IsComplex(complex)) { /* i.e. list */
+    if (i == 1) {
+      tagged_t t0;
+      RefCar(t0,complex);
       return t0;
+    } else if (i == 2) { 
+      tagged_t t0;
+      RefCdr(t0,complex);
+      return t0;
+    } else {
+      return FALSE;
     }
-  else if (IsComplex(complex))  /\* i.e. list *\/
-    {
-      if (i == 1)
-        {
-          RefCar(t0,complex);
-          return t0;
-        }
-      else if (i == 2)
-        {
-          RefCdr(t0,complex);
-          return t0;
-        }
-      else return FALSE;
+  } else {
+    if (TaggedIsATM(complex)) { // TODO: comment this case for full ISO compliance
+      return FALSE;      
+    } else {
+      BUILTIN_ERROR(TYPE_ERROR(COMPOUND), complex, 2);
     }
-  // comment next line for full ISO compliance
-  else if (TaggedIsATM(complex)) return FALSE;      
-  else  BUILTIN_ERROR(TYPE_ERROR(COMPOUND), complex, 2);
- 
-
-}
-*/
-
-// Old code without exception 
-CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
-  CIAO_REG_1(tagged_t, t0);
-  
-  DerefSwitch(number,t0,{goto barf1;});
-  DerefSwitch(complex,t0,{goto barf2;});
+  }
+#else
+  DerefSwitch0(number,{goto barf1;});
+  DerefSwitch0(complex,{goto barf2;});
 
   if (TaggedIsSTR(complex)) {
     intmach_t i = GetSmall(number);
     tagged_t f = TaggedToHeadfunctor(complex);
-
     if (i<=0 || i>Arity(f) || f&QMask) {
       goto barf1;
     }
-      
-    t0 = *TaggedToArg(complex,i);
-    return t0;
+    return *TaggedToArg(complex,i);
   } else if (IsComplex(complex)) { // i.e. list 
     if (number==MakeSmall(1))   {
+      tagged_t t0;
       RefCar(t0,complex);
       return t0;
     } else if (number==MakeSmall(2)) {
+      tagged_t t0;
       RefCdr(t0,complex);
       return t0;
     } else {
@@ -843,312 +839,221 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
 
  barf2:
   MINOR_FAULT("arg/3: incorrect 2nd argument");
+#endif
 }
 
 /*---------------------------------------------------------------*/
-/*
-CBOOL__PROTO(bu3_functor, 
-             tagged_t term,
-             tagged_t name,
-             tagged_t arity) {
+
+// TODO: required for ISO compatibility; but we need to update our codebase
+// #define USE_BU3_FUNCTOR_EXCEPTIONS 1
+
+CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
+#if defined(USE_BU3_FUNCTOR_EXCEPTIONS)
   ERR__FUNCTOR("term_basic:functor", 3);
-  tagged_t t0;
 
-  DerefSwitch(term,t0,{goto construct;});
-    {
-      tagged_t tagarity;
-      
-      if (TermIsAtomic(term))
-        tagarity = TaggedZero;
-      else if (!(term & TagBitFunctor))
-        term = atom_list,
-        tagarity = MakeSmall(2);
-      else
-        {
-          tagged_t f = TaggedToHeadfunctor(term);
-          
-          term = SetArity(f,0),
-          tagarity = MakeSmall(Arity(f));
-        }
-
-      CBOOL__UnifyCons(tagarity,arity);
-      CBOOL__LASTUNIFY(term,name);
+  DerefSwitch0(term,{goto construct;});
+  {
+    tagged_t tagarity;
+    if (TermIsAtomic(term)) {
+      tagarity = TaggedZero;
+    } else if (!(term & TagBitFunctor)) {
+      term = atom_list;
+      tagarity = MakeSmall(2);
+    } else {
+      tagged_t f = TaggedToHeadfunctor(term);
+      term = SetArity(f,0);
+      tagarity = MakeSmall(Arity(f));
     }
+    CBOOL__UnifyCons(tagarity,arity);
+    CBOOL__LASTUNIFY(term,name);
+  }
  construct:
-    {
-      DerefSwitch(name, t0, 
-                  BUILTIN_ERROR(INSTANTIATION_ERROR, name, 2););
-      DerefSwitch(arity, t0,
-                  BUILTIN_ERROR(INSTANTIATION_ERROR, arity, 3););
+  {
+    DerefSwitch0(name, BUILTIN_ERROR(INSTANTIATION_ERROR, name, 2););
+    DerefSwitch0(arity, BUILTIN_ERROR(INSTANTIATION_ERROR, arity, 3););
 
-      if (TermIsAtomic(name)) 
-        {
-          if (arity == TaggedZero) CBOOL__LASTUNIFY(name,term);
-          else if (arity > TaggedZero) 
-            {
-              if (TaggedIsATM(name)) 
-                {
-                  if (arity < MakeSmall(ARITYLIMIT))
-                    return 
-                      cunify(Arg, make_structure(Arg, SetArity(name,GetSmall(arity))), term);
-                  else if (IsInteger(arity)) 
-                    BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ARITY), arity, 3);
-                  else
-                    BUILTIN_ERROR(TYPE_ERROR(INTEGER),arity, 3);
-                }
-              else if (IsInteger(arity))
-                BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), name, 2);
-              else
-                BUILTIN_ERROR(TYPE_ERROR(INTEGER), arity, 3);
-            }
-          else
-            BUILTIN_ERROR(DOMAIN_ERROR(NOT_LESS_THAN_ZERO), arity, 3);
-        }
-      else
-        BUILTIN_ERROR(TYPE_ERROR(ATOMIC), name, 2);
-    }
-    
-}
-*/
-
-// Old code without exception
-CBOOL__PROTO(bu3_functor, 
-             tagged_t term,
-             tagged_t name,
-             tagged_t arity) {
-  tagged_t t0;
-  
-  DerefSwitch(term,t0,{goto construct;});
-    {
-      tagged_t tagarity;
-      
-      if (TermIsAtomic(term))
-        tagarity = TaggedZero;
-      else if (!(term & TagBitFunctor))
-        term = atom_list,
-        tagarity = MakeSmall(2);
-      else
-        {
-          tagged_t f = TaggedToHeadfunctor(term);
-          
-          term = SetArity(f,0),
-          tagarity = MakeSmall(Arity(f));
-        }
-
-      CBOOL__UnifyCons(tagarity,arity);
-      CBOOL__LASTUNIFY(term,name);
-    }
- construct:
-    {
-      DerefSwitch(name,t0,;);
-      DerefSwitch(arity,t0,;);
-      if (TermIsAtomic(name) && (arity==TaggedZero))
+    if (TermIsAtomic(name)) {
+      if (arity == TaggedZero) {
         CBOOL__LASTUNIFY(name,term);
-      else if (TaggedIsATM(name) &&
-               (arity>TaggedZero) && (arity<MakeSmall(ARITYLIMIT)))
-        CBOOL__LASTUNIFY(make_structure(Arg, SetArity(name,GetSmall(arity))), term);
-      else
-        return FALSE;
+      } else if (arity > TaggedZero) {
+        if (TaggedIsATM(name)) {
+          if (arity < MakeSmall(ARITYLIMIT)) {
+            return cunify(Arg, make_structure(Arg, SetArity(name,GetSmall(arity))), term);
+          } else if (IsInteger(arity)) {
+            BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ARITY), arity, 3);
+          } else {
+            BUILTIN_ERROR(TYPE_ERROR(INTEGER),arity, 3);
+          }
+        } else if (IsInteger(arity)) {
+          BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), name, 2);
+        } else {
+          BUILTIN_ERROR(TYPE_ERROR(INTEGER), arity, 3);
+        }
+      } else {
+        BUILTIN_ERROR(DOMAIN_ERROR(NOT_LESS_THAN_ZERO), arity, 3);
+      }
+    } else {
+      BUILTIN_ERROR(TYPE_ERROR(ATOMIC), name, 2);
     }
+  }
+#else
+  DerefSwitch0(term,{goto construct;});
+  {
+    tagged_t tagarity;
+    if (TermIsAtomic(term)) {
+      tagarity = TaggedZero;
+    } else if (!(term & TagBitFunctor)) {
+      term = atom_list;
+      tagarity = MakeSmall(2);
+    } else {
+      tagged_t f = TaggedToHeadfunctor(term);
+      term = SetArity(f,0);
+      tagarity = MakeSmall(Arity(f));
+    }
+    CBOOL__UnifyCons(tagarity,arity);
+    CBOOL__LASTUNIFY(term,name);
+  }
+  construct:
+  {
+    DerefSwitch0(name,;);
+    DerefSwitch0(arity,;);
+    if (TermIsAtomic(name) && (arity==TaggedZero)) {
+      CBOOL__LASTUNIFY(name,term);
+    } else if (TaggedIsATM(name) && (arity>TaggedZero) && (arity<MakeSmall(ARITYLIMIT))) {
+      CBOOL__LASTUNIFY(make_structure(Arg, SetArity(name,GetSmall(arity))), term);
+    } else {
+      return FALSE;
+    }
+  }
+#endif
 }
 
 /*---------------------------------------------------------------*/
 
-CBOOL__PROTO(bu2_univ, 
-             tagged_t term,
-             tagged_t list)
-{ 
+// TODO: required for ISO compatibility; this seems to be OK with our codebase
+#define USE_BU2_UNIV_EXCEPTIONS 1
+
+CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) { 
+#if defined(USE_BU2_UNIV_EXCEPTIONS)
   ERR__FUNCTOR("term_basic:=..", 2);
-  CIAO_REG_1(tagged_t, car);
-  CIAO_REG_2(tagged_t, cdr);
+#endif
+  tagged_t car;
+  tagged_t cdr;
   tagged_t *argp;
   tagged_t *argq;
   int arity;
   tagged_t f;
 
-  DerefSwitch(term,car,{goto construct;});
+  DerefSwitch0(term,{goto construct;});
   cdr = atom_nil;
-  if (TermIsAtomic(term))
-    {
-      MakeLST(cdr,term,cdr);
-      CBOOL__LASTUNIFY(cdr,list);
-    }
+  if (TermIsAtomic(term)) {
+    MakeLST(cdr,term,cdr);
+    CBOOL__LASTUNIFY(cdr,list);
+  }
   
-  if (term & TagBitFunctor)
-    f = TaggedToHeadfunctor(term),
-    argp = TaggedToArg(term,1),
+  if (term & TagBitFunctor) {
+    f = TaggedToHeadfunctor(term);
+    argp = TaggedToArg(term,1);
     argq = HeapOffset(argp,Arity(f));
-  else
-    f = functor_lst,
-    argp = TaggedToCar(term),
+  } else {
+    f = functor_lst;
+    argp = TaggedToCar(term);
     argq = HeapOffset(argp,2);
-
-  while HeapYounger(argq,argp)
-    {
-      HeapDecr(argq);
-      RefHeap(car,argq);
-      MakeLST(cdr,car,cdr);
-    }
+  }
+  while (HeapYounger(argq,argp)) {
+    HeapDecr(argq);
+    RefHeap(car,argq);
+    MakeLST(cdr,car,cdr);
+  }
   MakeLST(cdr,SetArity(f,0),cdr);
   CBOOL__LASTUNIFY(cdr,list);
 
  construct:
   cdr = list;
-  DerefSwitch(cdr,car, BUILTIN_ERROR(INSTANTIATION_ERROR, list, 2););
+#if defined(USE_BU2_UNIV_EXCEPTIONS)
+  DerefSwitch0(cdr, BUILTIN_ERROR(INSTANTIATION_ERROR, list, 2););
+#else
+  DerefSwitch0(cdr,;);
+#endif
   arity = 0;
 
-  if (IsVar(cdr))
-    goto bomb;
-  if (!TaggedIsLST(cdr))
-    {
-      if (cdr == atom_nil)
-        BUILTIN_ERROR(DOMAIN_ERROR(NON_EMPTY_LIST), list, 2); 
-      else
-        BUILTIN_ERROR(TYPE_ERROR(LIST), list, 2); 
+  if (IsVar(cdr)) goto bomb;
+  if (!TaggedIsLST(cdr)) {
+#if defined(USE_BU2_UNIV_EXCEPTIONS)
+    if (cdr == atom_nil) {
+      BUILTIN_ERROR(DOMAIN_ERROR(NON_EMPTY_LIST), list, 2); 
+    } else {
+      BUILTIN_ERROR(TYPE_ERROR(LIST), list, 2); 
     }
-
+#else
+    MINOR_FAULT("=../2: incorrect 2nd argument");
+#endif
+  }
   DerefCar(f,cdr);
   DerefCdr(cdr,cdr);
-  if (cdr==atom_nil)
-    {
-      if (TermIsAtomic(f))
-        CBOOL__LASTUNIFY(f,term);
-      else 
-        BUILTIN_ERROR(TYPE_ERROR(ATOMIC), f, 2); 
+#if defined(USE_BU2_UNIV_EXCEPTIONS)
+  if (cdr==atom_nil) {
+    if (TermIsAtomic(f)) {
+      CBOOL__LASTUNIFY(f,term);
+    } else {
+      BUILTIN_ERROR(TYPE_ERROR(ATOMIC), f, 2); 
     }
-  else if (IsVar(f))
+  } else if (IsVar(f)) {
     goto bomb;
-  else if (!TaggedIsATM(f))
+  } else if (!TaggedIsATM(f)) {
     BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), f, 2); 
-
-
-  argp = w->heap_top;
-  HeapPush(w->heap_top,f);
-  while (TaggedIsLST(cdr) && arity<ARITYLIMIT)
-    {
-      DerefCar(car,cdr);
-      DerefCdr(cdr,cdr);
-      HeapPush(w->heap_top,car);
-      arity++;
-    }
-  if (IsVar(cdr))
-    goto bomb;
-  if (arity==ARITYLIMIT)
-    BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ARITY), list, 2);
-  if (cdr!=atom_nil) 
-    BUILTIN_ERROR(TYPE_ERROR(LIST), list, 2);
-  
-  f = SetArity(f,arity);
-  if (f==functor_lst)
-    {
-      w->heap_top = argp;
-      argq = HeapOffset(w->heap_top,1);
-      RefHeapNext(car,argq);
-      RefHeapNext(cdr,argq);
-      HeapPush(w->heap_top,car);
-      HeapPush(w->heap_top,cdr);
-      CBOOL__LASTUNIFY(Tagp(LST,argp),term);
-    }
-  else
-    {
-      *argp = f;
-      CBOOL__LASTUNIFY(Tagp(STR,argp),term);
-    }
-
- bomb:
-  BUILTIN_ERROR(INSTANTIATION_ERROR,list, 2);
-}
-
-/*
-// Old code without exception
-CBOOL__PROTO(bu2_univ, 
-             tagged_t term,
-             tagged_t list)
-{
-  CIAO_REG_1(tagged_t, car);
-  CIAO_REG_2(tagged_t, cdr);
-  tagged_t *argp;
-  tagged_t *argq;
-  int arity;
-  tagged_t f;
-
-  DerefSwitch(term,car,{goto construct;});
-  cdr = atom_nil;
-  if (TermIsAtomic(term))
-    {
-      MakeLST(cdr,term,cdr);
-      CBOOL__LASTUNIFY(cdr,list);
-    }
-  
-  if (term & TagBitFunctor)
-    f = TaggedToHeadfunctor(term),
-    argp = TaggedToArg(term,1),
-    argq = HeapOffset(argp,Arity(f));
-  else
-    f = functor_lst,
-    argp = TaggedToCar(term),
-    argq = HeapOffset(argp,2);
-  
-  while HeapYounger(argq,argp)
-    {
-      HeapDecr(argq);
-      RefHeap(car,argq);
-      MakeLST(cdr,car,cdr);
-    }
-  MakeLST(cdr,SetArity(f,0),cdr);
-  CBOOL__LASTUNIFY(cdr,list);
-
- construct:
-  cdr = list;
-  DerefSwitch(cdr,car,;);
-  arity = 0;
-
-  if (IsVar(cdr))
-    goto bomb;
-  if (!TaggedIsLST(cdr))
-    MINOR_FAULT("=../2: incorrect 2nd argument");
-  DerefCar(f,cdr);
-  DerefCdr(cdr,cdr);
-  if (TermIsAtomic(f) && (cdr==atom_nil))
+  }
+#else
+  if (TermIsAtomic(f) && (cdr==atom_nil)) {
     CBOOL__LASTUNIFY(f,term);
-  else if (IsVar(f))
+  } else if (IsVar(f)) {
     goto bomb;
-  else if (!TaggedIsATM(f))
+  } else if (!TaggedIsATM(f)) {
     MINOR_FAULT("=../2: incorrect 2nd argument");
-  
+  }
+#endif
+
   argp = w->heap_top;
   HeapPush(w->heap_top,f);
-  while (TaggedIsLST(cdr) && arity<ARITYLIMIT)
-    {
-      DerefCar(car,cdr);
-      DerefCdr(cdr,cdr);
-      HeapPush(w->heap_top,car);
-      arity++;
-    }
-  if (IsVar(cdr))
-    goto bomb;
-  if (cdr!=atom_nil || arity==ARITYLIMIT)
+  while (TaggedIsLST(cdr) && arity<ARITYLIMIT) {
+    DerefCar(car,cdr);
+    DerefCdr(cdr,cdr);
+    HeapPush(w->heap_top,car);
+    arity++;
+  }
+  if (IsVar(cdr)) goto bomb;
+#if defined(USE_BU2_UNIV_EXCEPTIONS)
+  if (arity==ARITYLIMIT) {
+    BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ARITY), list, 2);
+  }
+  if (cdr!=atom_nil) {
+    BUILTIN_ERROR(TYPE_ERROR(LIST), list, 2);
+  }
+#else
+  if (cdr!=atom_nil || arity==ARITYLIMIT) {
     MINOR_FAULT("=../2: incorrect 2nd argument");
+  }
+#endif
   
   f = SetArity(f,arity);
-  if (f==functor_lst)
-    {
-      w->heap_top = argp;
-      argq = HeapOffset(w->heap_top,1);
-      RefHeapNext(car,argq);
-      RefHeapNext(cdr,argq);
-      HeapPush(w->heap_top,car);
-      HeapPush(w->heap_top,cdr);
-      CBOOL__LASTUNIFY(Tagp(LST,argp),term);
-    }
-  else
-    {
-      *argp = f;
-      CBOOL__LASTUNIFY(Tagp(STR,argp),term);
-    }
+  if (f==functor_lst) {
+    w->heap_top = argp;
+    argq = HeapOffset(w->heap_top,1);
+    RefHeapNext(car,argq);
+    RefHeapNext(cdr,argq);
+    HeapPush(w->heap_top,car);
+    HeapPush(w->heap_top,cdr);
+    CBOOL__LASTUNIFY(Tagp(LST,argp),term);
+  } else {
+    *argp = f;
+    CBOOL__LASTUNIFY(Tagp(STR,argp),term);
+  }
 
  bomb:
-    USAGE_FAULT("=../2: illegal arguments");
+#if defined(USE_BU2_UNIV_EXCEPTIONS)
+  BUILTIN_ERROR(INSTANTIATION_ERROR,list, 2);
+#else
+  USAGE_FAULT("=../2: illegal arguments");
+#endif
 }
-*/
 

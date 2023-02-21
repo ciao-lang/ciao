@@ -491,11 +491,11 @@ static CVOID__PROTO(c_term_mark,
                     intmach_t temps,
                     intmach_t *hsize, intmach_t *maxtemps, intmach_t *bsize,
                     tagged_t **trail_origo) {
-  CIAO_REG_2(tagged_t, t1);
+  tagged_t t1;
   int i, arity;
 
  start:
-  DerefHeapSwitch(t,t1,{goto var_size;});
+  DerefSwitch0(t,{goto var_size;});
   /* nonvar */
   if (!(t & TagBitComplex)) { /* NUM or ATM */
     if (t&QMask && t&TagBitFunctor) { /* ATM with QMask mark */
@@ -634,7 +634,6 @@ static CBOOL__PROTO(c_term,
   int i, ar = ~0, decr, Treg;
   bcp_t P = *current_insn;
   tagged_t *s = NULL;
-  tagged_t t1;
 
   /* Step 1: Emit GET instruction for term's principal functor. */
   switch (TagOf(t)) { /* t is already dereferenced */
@@ -709,7 +708,7 @@ static CBOOL__PROTO(c_term,
 
   for (i=1; i<=ar; i++) {
     RefHeapNext(t,s);
-    DerefHeapSwitch(t,t1,{ goto arg_is_void; });
+    DerefSwitch0(t,{ goto arg_is_void; });
     switch (TagOf(t)) {
     case LST:
       if ((i==ar) && (Treg==reg_bank_size)) {
@@ -894,10 +893,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
             tagged_t head, tagged_t body,
             worker_t **new_worker) {
   int truesize;
-  //  tagged_t t0, *pt1, *pt2;
-  CIAO_REG_1(tagged_t, t0);
-  CIAO_REG_2(tagged_t *, pt1);
-  CIAO_REG_3(tagged_t *, pt2);
+  tagged_t t0, *pt1, *pt2;
   instance_t *object = NULL;
   
   intmach_t x_variables, hsize, bsize, maxtemps;
@@ -910,13 +906,13 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   trail_origo = Arg->trail_top-DynamicPreserved;
 
   Tr("c_term_mark1");
-  DerefHeapSwitch(head,t0,{goto car_done;});
+  DerefSwitch0(head,{goto car_done;});
   Tr("m:o+x");
   bsize += FTYPE_size(f_o)+FTYPE_size(f_x); /* for "Step 1" of c_term (get + arg + ...) */
   c_term_mark(Arg, head, 0, &hsize, &maxtemps, &bsize, &trail_origo);
  car_done:
   Tr("c_term_mark2");
-  DerefHeapSwitch(body,t0,{goto cdr_done;});
+  DerefSwitch0(body,{goto cdr_done;});
   Tr("m:o+x");
   bsize += FTYPE_size(f_o)+FTYPE_size(f_x); /* for "Step 1" of c_term (get + arg + ...) */
   c_term_mark(Arg, body, 0, &hsize, &maxtemps, &bsize, &trail_origo);
@@ -1180,7 +1176,6 @@ CBOOL__PROTO(cunify_args, int arity, tagged_t *pt1, tagged_t *pt2) {
 static CBOOL__PROTO(cunify_args_aux, int arity, tagged_t *pt1, tagged_t *pt2, tagged_t *x1, tagged_t *x2) {
   tagged_t t1 = ~0;
   tagged_t t2 = ~0;
-  tagged_t t3;
 
   /* Terminating unification of complex structures: Forward args of pt2 to
      args of pt1 using choice stack as value cell.  When done, reinstall
@@ -1190,8 +1185,8 @@ static CBOOL__PROTO(cunify_args_aux, int arity, tagged_t *pt1, tagged_t *pt2, ta
   for (; arity>0; --arity) {
     t1 = *pt1, t2 = *pt2;
     if (t1 != t2) {
-      DerefHeapSwitch(t1,t3,goto noforward;);
-      DerefHeapSwitch(t2,t3,goto noforward;);
+      DerefSwitch0(t1,goto noforward;);
+      DerefSwitch0(t2,goto noforward;);
       if (t1!=t2 && IsComplex(t1&t2)) {
         /* replace smaller value by larger value,
            using choice stack as value trail */

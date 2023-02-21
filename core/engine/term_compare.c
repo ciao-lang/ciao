@@ -79,11 +79,10 @@ CFUN__PROTO(compare__1, int, tagged_t x1, tagged_t x2) {
   return result;
 }
 
-static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
-{
-  CIAO_REG_1(tagged_t, u);
-  CIAO_REG_2(tagged_t, v);
-  CIAO_REG_3(tagged_t, t1);
+static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2) {
+  tagged_t u;
+  tagged_t v;
+  tagged_t t1;
   tagged_t *pt1;
   tagged_t *pt2;
 
@@ -91,8 +90,8 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
 
  in:
   u=x1, v=x2;
-  DerefSwitch(u,t1,goto var_x;);
-  DerefSwitch(v,t1,return 1;);
+  DerefSwitch0(u,goto var_x;);
+  DerefSwitch0(v,return 1;);
   if (u==v) return 0;
   if (TaggedIsSmall(u) && TaggedIsSmall(v))
     goto var_var;
@@ -204,7 +203,7 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2)
   }
 
  var_x:
-  DerefSwitch(v,t1,goto var_var;);
+  DerefSwitch0(v,goto var_var;);
   return -1;
  var_var:
   return (u<v ? -1 : u>v ? 1 : 0);
@@ -218,9 +217,7 @@ static CFUN__PROTO(compare_args_aux, int,
                    tagged_t *x2)
 {
   int result;
-  tagged_t 
-    t1 = ~0, t2 = ~0,  /* Avoid compiler complaints */
-    t3;
+  tagged_t t1 = ~0, t2 = ~0; /* Avoid compiler complaints */
   
   /* Adapted from terminating unification of complex structures:
      See cunify_args(). */
@@ -230,8 +227,8 @@ static CFUN__PROTO(compare_args_aux, int,
     t1 = *pt1;
     t2 = *pt2;
     if (t1 != t2) {
-      DerefHeapSwitch(t1,t3,goto noforward;);
-      DerefHeapSwitch(t2,t3,goto noforward;);
+      DerefSwitch0(t1,goto noforward;);
+      DerefSwitch0(t2,goto noforward;);
       if (t1!=t2 && IsComplex(t1&t2)) {
         /* replace smaller value by larger value,
            using choice stack as value trail */

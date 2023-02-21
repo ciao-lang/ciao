@@ -413,7 +413,7 @@ definition_t *new_functor(tagged_t tagpname, int arity)
 
 /* segfault patch -- jf */
 CVOID__PROTO(trail_push_check, tagged_t x) {
-  CIAO_REG_1(tagged_t *, tr);
+  tagged_t *tr;
   tr = w->trail_top;
 
   TrailPush(tr,x);
@@ -730,12 +730,10 @@ static try_node_t *incore_copy(try_node_t *from)
 }
 
 /* get location of try chain for a key */
-sw_on_key_node_t *incore_gethash(sw_on_key_t *sw,
-                                 tagged_t key)
-{
-  CIAO_REG_2(sw_on_key_node_t *, hnode);
-  CIAO_REG_3(intmach_t, i);
-  CIAO_REG_4(tagged_t, t0);
+sw_on_key_node_t *incore_gethash(sw_on_key_t *sw, tagged_t key) {
+  sw_on_key_node_t *hnode;
+  intmach_t i;
+  tagged_t t0;
 
   for (i=0, t0=key & sw->mask;
        ;
@@ -1821,9 +1819,9 @@ CBOOL__PROTO(setarg)
   DEREF(X(3),X(3));
   
   if (X(3) != atom_off) {
-    DerefSwitch(number,t1,{goto barf1;});
-    DerefSwitch(complex,t1,{goto barf2;});
-    DerefSwitch(newarg,t1,{goto unsafe_value;});
+    DerefSwitch0(number,{goto barf1;});
+    DerefSwitch0(complex,{goto barf2;});
+    DerefSwitch0(newarg,{goto unsafe_value;});
   } else {
   unsafe_value:
     if (TaggedIsSVA(newarg)){
@@ -1897,10 +1895,10 @@ CBOOL__PROTO(setarg)
 
 CBOOL__PROTO(undo)
 {
-  tagged_t goal, t1;
+  tagged_t goal;
   
   goal = X(0);
-  DerefSwitch(goal,t1,{MINOR_FAULT("$undo/1: invalid argument");});
+  DerefSwitch0(goal,{MINOR_FAULT("$undo/1: invalid argument");});
   TrailPush(w->trail_top,goal);
   if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
     choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE);

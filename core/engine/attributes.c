@@ -219,9 +219,7 @@ CBOOL__PROTO(c_setarg, intmach_t, tagged_t, tagged_t, bool_t);
 #define CELL_NEXT(CELL) *TaggedToArg((CELL),3)
 
 #define DEREF_AND_ENSURE_ATOM_MODKEY(KEY) ({                        \
-  tagged_t  tmp;                                                    \
-  DerefSwitch((KEY),                                                \
-              tmp,                                                  \
+  DerefSwitch0((KEY),                                               \
               BUILTIN_ERROR(INSTANTIATION_ERROR, (KEY), 2););       \
   if (!TaggedIsATM((KEY))) {                                        \
     if ((!TaggedIsSTR((KEY))) ||                                    \
@@ -275,10 +273,10 @@ CBOOL__PROTO(get_attr__3) {
 CBOOL__PROTO(put_attr__3) {
   ERR__FUNCTOR("attr_rt:put_attr", 3);
 
-  tagged_t var, k, key, val, complex, prev, next, tmp, *ptr;
+  tagged_t var, k, key, val, complex, prev, next, *ptr;
 
   var=X(0); 
-  DerefSwitch(var, tmp, goto put_attr__3__var;);
+  DerefSwitch0(var, goto put_attr__3__var;);
   
   BUILTIN_ERROR(UNINSTANTIATION_ERROR, var, 1);
 

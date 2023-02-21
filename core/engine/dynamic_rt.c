@@ -288,8 +288,7 @@ CFUN__PROTO(current_instance0, instance_t *) {
 #endif
 
 #if defined(OPTIM_COMP)
-// TODO: update (Aux) = (X) before OnVar too?
-#define DerefSwitch(X, Aux, OnVar) DerefSw_HVAorCVAorSVA_Other(X, { OnVar; }, {}); (Aux) = (X)
+#define DerefSwitch0(X, OnVar) DerefSw_HVAorCVAorSVA_Other(X, { OnVar; }, {});
 #endif
 
 #if !defined(OPTIM_COMP)
@@ -301,11 +300,13 @@ CFUN__PROTO(current_instance0, instance_t *) {
 #define HASHTAB_SIZE(SW) SwitchSize((SW))
 #endif
 
+// TODO: always update (Head) = head? before OnVar too?
 #define CURRENT_INSTANCE(Head, Root, ActiveInstance, CODE_FAIL) do { \
   __label__ var_case_switch; \
   __label__ xn_switch; \
   tagged_t head = (Head); \
-  DerefSwitch(head, Head, { goto var_case_switch; }); \
+  DerefSwitch0(head, { (Head) = head; goto var_case_switch; }); \
+  (Head) = head; \
   x2_next = NULL; \
   x5_next = NULL; \
   if (TaggedIsSTR(head)) { \
@@ -1496,8 +1497,8 @@ CBOOL__PROTO(prolog_ptr_ref) {
     instance_t *ptr = TaggedToInstance(X(0));
     CBOOL__LASTCALL(instance_to_ref, ptr, X(1));
   } else {
-    tagged_t x1, x2;
-    x2=X(1); DerefSwitch(x2,x1,;);
+    tagged_t x2;
+    x2=X(1); DerefSwitch0(x2,;);
     instance_t *n = CFUN__EVAL(ref_to_instance, x2);
     CBOOL__TEST(n != NULL);
     CBOOL__UnifyCons(PointerToTerm(n),X(0));
