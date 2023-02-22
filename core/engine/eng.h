@@ -1402,7 +1402,6 @@ struct wam_private_ {
   frame_t *e;
   tagged_t *cached_r_h;
   tagged_t *r_s;
-  tagged_t t0, t1, t2, t3; // TODO:[merge-oc] avoid saving?
   bcp_t ptemp; // TODO:[merge-oc] avoid saving?
 };
 
