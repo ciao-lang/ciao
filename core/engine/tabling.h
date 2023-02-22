@@ -96,6 +96,8 @@ extern tagged_t *tabling_stack_end;
   {                                                                     \
     if (FrozenChpt(B) && (FirstNodeTR(B) != NULL))                      \
       {                                                                 \
+        tagged_t t0; \
+        tagged_t t1; \
         /* Create current node_trail */                                 \
         INIT_REG_NODE_TR(t0);                                           \
         /*printf("\nMAKING CACTUS STACK %p\n",t0);*/                    \
@@ -107,7 +109,7 @@ extern tagged_t *tabling_stack_end;
                    t2=(tagged_t)TrailTopUnmark(B->trail_top);             \
                  !TrailYounger(t2,pt2); pt2--)                          \
               {                                                         \
-                t3 = *pt2;                                              \
+                tagged_t t3 = *pt2;                                     \
                 if (IsVar(t3))                                          \
                   {                                                     \
                     *pt3 = t3; pt3++;                                   \

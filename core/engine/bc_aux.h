@@ -30,10 +30,6 @@ extern definition_t *address_ucc;
   SAVE_FIELD(e);\
   SAVE_FIELD(cached_r_h);\
   SAVE_FIELD(r_s);\
-  SAVE_FIELD(t0);\
-  SAVE_FIELD(t1);\
-  SAVE_FIELD(t2);\
-  SAVE_FIELD(t3);\
   SAVE_FIELD(ptemp);
 
 #define RECOVER_FIELD(Name) Name = desc->wam_private_state.Name
@@ -45,10 +41,6 @@ extern definition_t *address_ucc;
   RECOVER_FIELD(e);\
   RECOVER_FIELD(cached_r_h);\
   RECOVER_FIELD(r_s);\
-  RECOVER_FIELD(t0);\
-  RECOVER_FIELD(t1);\
-  RECOVER_FIELD(t2);\
-  RECOVER_FIELD(t3);\
   RECOVER_FIELD(ptemp);
 
 /* ------------------------------------------------------------------------- */
@@ -1328,6 +1320,79 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
 
  lose:
   return FALSE;
+}
+
+/* --------------------------------------------------------------------------- */
+
+// #define SUSPEND_T3_ON_T1() do { \
+//   if (TaggedIsHVA(t1)) { \
+//     LoadCVA(t0,H); \
+//     if (CondHVA(t1)) { \
+//       TrailPush(w->trail_top,t1); \
+//       *TagpPtr(HVA,t1) = t0; \
+//     } else { \
+//       *TagpPtr(HVA,t1) = t0; \
+//     } \
+//     goto check_trail; \
+//   } else if (!CondCVA(t1)) { \
+//     HeapPush(H,*TaggedToGoal(t1)); \
+//     HeapPush(H,*TaggedToDef(t1)); \
+//     *TaggedToGoal(t1) = Tagp(LST,HeapOffset(H,-2)); \
+//     *TaggedToDef(t1) = Tagp(LST,H); \
+//     goto no_check_trail; \
+//   } else { \
+//     LoadCVA(t0,H); \
+//     HeapPush(H,Tagp(LST,TaggedToGoal(t1))); \
+//     HeapPush(H,Tagp(LST,HeapOffset(H,1))); \
+//     TrailPush(w->trail_top,t1); \
+//     *TagpPtr(CVA,t1) = t0; \
+//     goto check_trail; \
+//   } \
+// check_trail: \
+//   if (ChoiceYounger(w->choice,TrailOffset(w->trail_top,CHOICEPAD))) { \
+//     choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE); \
+//   } \
+//   goto no_check_trail; \
+// no_check_trail: \
+//   HeapPush(H,t3); \
+//   HeapPush(H,PointerToTerm(Func)); \
+// } while(0);
+
+CVOID__PROTO(SUSPEND_T3_ON_T1, definition_t *func, tagged_t t3, tagged_t t1) {
+  tagged_t t0;
+  tagged_t *h = G->heap_top;
+  if (TaggedIsHVA(t1)) {
+    LoadCVA(t0,h);
+    if (CondHVA(t1)) {
+      TrailPush(w->trail_top,t1);
+      *TagpPtr(HVA,t1) = t0;
+    } else {
+      *TagpPtr(HVA,t1) = t0;
+    }
+    goto check_trail;
+  } else if (!CondCVA(t1)) {
+    HeapPush(h,*TaggedToGoal(t1));
+    HeapPush(h,*TaggedToDef(t1));
+    *TaggedToGoal(t1) = Tagp(LST,HeapOffset(h,-2));
+    *TaggedToDef(t1) = Tagp(LST,h);
+    goto no_check_trail;
+  } else {
+    LoadCVA(t0,h);
+    HeapPush(h,Tagp(LST,TaggedToGoal(t1)));
+    HeapPush(h,Tagp(LST,HeapOffset(h,1)));
+    TrailPush(w->trail_top,t1);
+    *TagpPtr(CVA,t1) = t0;
+    goto check_trail;
+  }
+check_trail:
+  if (ChoiceYounger(w->choice,TrailOffset(w->trail_top,CHOICEPAD))) {
+    choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE);
+  }
+  goto no_check_trail;
+no_check_trail:
+  HeapPush(h,t3);
+  HeapPush(h,PointerToTerm(func));
+  G->heap_top = h;
 }
 
 /* --------------------------------------------------------------------------- */
