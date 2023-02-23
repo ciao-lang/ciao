@@ -166,7 +166,7 @@ code_to_cexp(code(Code), M, CExp) :-
     emit_code(Code, M, [indent(0)], CExp, []).
 
 emit_code(G, M, Store) -->
-    { tr_solve_unique(G, M, Store, Body) },
+    { tr_solve_unique(G, M, Store, Body, _Store) },
     [Body].
 
 % ---------------------------------------------------------------------------
@@ -345,32 +345,39 @@ store_replace(Store0, Constr, Store) :-
 
 % ---------------------------------------------------------------------------
 % TODO: Implement better strategies
+% TODO: do something with final Store?
 
 % Do tr_solve_set and check that there exists a unique solution.
 % Throw exceptions for diagnosis.
-tr_solve_unique(G, M, Store0, Body) :-
-    tr_solve_set(G, M, Store0, positive, Bodies),
-    ( Bodies = [] ->
+tr_solve_unique(G, M, Store0, Body, Store) :-
+    tr_solve_set(G, M, Store0, positive, BodyStores),
+    ( BodyStores = [] ->
         % Repeat translation to collect all failed bodies
-        tr_solve_set(G, M, Store0, all, AllBodies),
-        throw(no_translation_for(AllBodies, Store0))
-    ; Bodies = [_,_|_] ->
-        throw(multiple_possible_translations(Bodies, Store0))
-    ; Bodies = [Body]
+        tr_solve_set(G, M, Store0, all, AllBodyStores),
+        unzip(AllBodyStores, Bodies, _),
+        throw(no_translation_for(Bodies, Store0))
+    ; BodyStores = [_,_|_] ->
+        throw(multiple_possible_translations(BodyStores, Store0))
+    ; BodyStores = [Body-Store]
     ).
 
 % Obtain the set of all translations to G, Store0
 % (see tr_solve_)
-tr_solve_set(G, M, Store, Sign, Bodies) :-
-    ( bagof(Body0, tr_solve_(G, M, Store, Sign, Body0), Bodies) ->
-        true
-    ; Bodies = []
+% TODO: try deterministically first?
+tr_solve_set(G, M, Store0, Sign, BodyStores) :-
+    ( bagof(Body-Store, tr_solve_(G, M, Store0, Store, Sign, Body), BodyStores0) ->
+        BodyStores = BodyStores0
+    ; BodyStores = []
     ).
+
+% unzip a list of pairs
+unzip([], [], []).
+unzip([X-Y|XYs], [X|Xs], [Y|Ys]) :- unzip(XYs, Xs, Ys).
 
 % Obtain translations (non-deterministically) to G given Store0.
 % If Sign=positive, we get successful translations.
 % If Sign=all, we get all translations (including failed). 
-tr_solve_(G, M, Store0, Sign, Body) :-
+tr_solve_(G, M, Store0, Store, Sign, Body) :-
     simp('$unfold'(G), M, Store0, Store, Body),
     ( Sign = positive -> \+ Store = '$fail'
     ; Sign = all -> true
@@ -404,14 +411,12 @@ simp_lit([As], M, Store0, Store, R) :- is_list(As), !, % [[...]] notation
 simp_lit('$unfold'(G), M, Store0, Store, R) :- !, % force unfolding
     unfold_lit(G, M, Store0, Store, R).
 simp_lit('$foreach'(Xs, P), M, Store0, Store, R) :- !,
-    foreach(Xs, P, M, Store0, Code, []),
-    Store = Store0, % TODO: wrong Store
+    foreach(Xs, P, M, Store0, Store, Code, []),
     R = Code.
 simp_lit('$foreach_sep'(Sep, Xs, P), M, Store0, Store, R) :- !,
     % TODO: improve
     % Like $foreach but emits Sep 
-    foreach_sep(Xs, Sep, P, M, Store0, Code, []),
-    Store = Store0, % TODO: wrong Store
+    foreach_sep(Xs, Sep, P, M, Store0, Store, Code, []),
     R = Code.
 simp_lit('$all_ins_op', M, Store0, Store, R) :- !,
     emit_all_ins_op(M, Code0, []),
@@ -433,25 +438,26 @@ simp_lit(G, M, Store0, Store, R) :-
 simp_lit(A, _M, Store, Store, A).
 
 % TODO: add a level to tr_solve
-foreach([], _P, _M, _Store) --> [].
-foreach([X|Xs], P, M, Store) -->
-    foreach_(X, P, M, Store),
-    foreach(Xs, P, M, Store).
+foreach([], _P, _M, Store, Store) --> [].
+foreach([X|Xs], P, M, Store0, Store) -->
+    foreach_(X, P, M, Store0, Store1),
+    foreach(Xs, P, M, Store1, Store).
 
-foreach_(X, P, M, Store) -->
+% (alternative translations are committed)
+foreach_(X, P, M, Store0, Store) -->
     { G =.. [P, X] },
     % TODO: tr_solve_unique here?
-    { tr_solve_unique(G, M, Store, Body) },
+    { tr_solve_unique(G, M, Store0, Body, Store) },
     [Body].
 
 % TODO: add a level to tr_solve
-foreach_sep([], _Sep, _P, _M, _Store) --> [].
-foreach_sep([X], _Sep, P, M, Store) --> !,
-    foreach_(X, P, M, Store).
-foreach_sep([X|Xs], Sep, P, M, Store) -->
-    foreach_(X, P, M, Store),
+foreach_sep([], _Sep, _P, _M, Store, Store) --> [].
+foreach_sep([X], _Sep, P, M, Store0, Store) --> !,
+    foreach_(X, P, M, Store0, Store).
+foreach_sep([X|Xs], Sep, P, M, Store0, Store) -->
+    foreach_(X, P, M, Store0, Store1),
     [Sep],
-    foreach_sep(Xs, Sep, P, M, Store).
+    foreach_sep(Xs, Sep, P, M, Store1, Store).
 
 unfold_lit(G, M, Store0, Store, R) :-
     ( pred_prop(G, M, grammar_level) ->
@@ -486,6 +492,16 @@ simp_constrs([C|Cs], M, Store0, Store) :-
 % TODO: use constraints and solve lazily
 simp_constr(update(Constraint), _M, Store0, Store) :- !,
     store_replace(Store0, Constraint, Store).
+simp_constr(newid(Prefix, Id), _M, Store0, Store) :- !,
+    ( store_tell(Store0, emugen_id_counter(N)) -> true
+    ; N = 0
+    ),
+    number_codes(N, NCs),
+    atom_codes(Prefix, PrefixCs),
+    append(PrefixCs, NCs, Id),
+    N1 is N + 1,
+    store_replace(Store0, emugen_id_counter(N1), Store).
+
 simp_constr(Constraint, M, Store0, Store) :-
     ( simp_constr_(Constraint, M, Store0) ->
         Store = Store0
@@ -558,7 +574,8 @@ all_insns(M, Store, Insns) :-
     ( iset(Name, M) -> true
     ; throw(no_iset)
     ),
-    tr_solve_set(Name, M, Store, positive, Bodies),
+    tr_solve_set(Name, M, Store, positive, BodyStores),
+    unzip(BodyStores, Bodies, _),
     ( collect_insns(Bodies, Insns) ->
         true
     ; throw(cannot_collect_insns(Bodies))
