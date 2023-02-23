@@ -9,46 +9,6 @@
 #include <ciao/eng.h>
 #include <ciao/eng_registry.h>
 #include <ciao/instrdefs.h>
-//   BRANCH
-//   CALLQ
-//   DYNAMIC_NECK_PROCEED
-//   EXECUTE
-//   EXIT_TOPLEVEL
-//   FAIL
-//   GET_CONSTANT
-//   GET_CONSTANT_X0
-//   GET_CONSTANT_X0Q
-//   GET_CONSTRAINT
-//   GET_LARGE
-//   GET_LIST
-//   GET_LIST_X0
-//   GET_NIL
-//   GET_NIL_X0
-//   GET_STRUCTURE
-//   GET_STRUCTURE_X0
-//   GET_STRUCTURE_X0Q
-//   GET_X_VALUE
-//   GET_X_VARIABLE
-//   HEAPMARGIN_CALL
-//   KONTINUE
-//   RETRY_CQ
-//   RETRY_INSTANCE
-//   UNIFY_CONSTANT
-//   UNIFY_CONSTANTQ
-//   UNIFY_LARGE
-//   UNIFY_LARGEQ
-//   UNIFY_LIST
-//   UNIFY_NIL
-//   UNIFY_STRUCTURE
-//   UNIFY_STRUCTUREQ
-//   UNIFY_VOID
-//   UNIFY_VOID_1
-//   UNIFY_VOID_2
-//   UNIFY_VOID_3
-//   UNIFY_VOID_4
-//   UNIFY_X_VALUE
-//   UNIFY_X_VARIABLE
-//   RESTART_POINT
 #include <ciao/internals.h>
 #include <ciao/io_basic.h>
 
@@ -70,6 +30,10 @@ extern definition_t *address_ucc;
   SAVE_FIELD(e);\
   SAVE_FIELD(cached_r_h);\
   SAVE_FIELD(r_s);\
+  SAVE_FIELD(t0);\
+  SAVE_FIELD(t1);\
+  SAVE_FIELD(t2);\
+  SAVE_FIELD(t3);\
   SAVE_FIELD(ptemp);
 
 #define RECOVER_FIELD(Name) Name = desc->wam_private_state.Name
@@ -81,6 +45,10 @@ extern definition_t *address_ucc;
   RECOVER_FIELD(e);\
   RECOVER_FIELD(cached_r_h);\
   RECOVER_FIELD(r_s);\
+  RECOVER_FIELD(t0);\
+  RECOVER_FIELD(t1);\
+  RECOVER_FIELD(t2);\
+  RECOVER_FIELD(t3);\
   RECOVER_FIELD(ptemp);
 
 /* ------------------------------------------------------------------------- */
@@ -1360,45 +1328,6 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
 
  lose:
   return FALSE;
-}
-
-/* --------------------------------------------------------------------------- */
-
-CVOID__PROTO(SUSPEND_T3_ON_T1, definition_t *func, tagged_t t3, tagged_t t1) {
-  tagged_t t0;
-  tagged_t *h = G->heap_top;
-  if (TaggedIsHVA(t1)) {
-    LoadCVA(t0,h);
-    if (CondHVA(t1)) {
-      TrailPush(w->trail_top,t1);
-      *TagpPtr(HVA,t1) = t0;
-    } else {
-      *TagpPtr(HVA,t1) = t0;
-    }
-    goto check_trail;
-  } else if (!CondCVA(t1)) {
-    HeapPush(h,*TaggedToGoal(t1));
-    HeapPush(h,*TaggedToDef(t1));
-    *TaggedToGoal(t1) = Tagp(LST,HeapOffset(h,-2));
-    *TaggedToDef(t1) = Tagp(LST,h);
-    goto no_check_trail;
-  } else {
-    LoadCVA(t0,h);
-    HeapPush(h,Tagp(LST,TaggedToGoal(t1)));
-    HeapPush(h,Tagp(LST,HeapOffset(h,1)));
-    TrailPush(w->trail_top,t1);
-    *TagpPtr(CVA,t1) = t0;
-    goto check_trail;
-  }
-check_trail:
-  if (ChoiceYounger(w->choice,TrailOffset(w->trail_top,CHOICEPAD))) {
-    choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE);
-  }
-  goto no_check_trail;
-no_check_trail:
-  HeapPush(h,t3);
-  HeapPush(h,PointerToTerm(func));
-  G->heap_top = h;
 }
 
 /* --------------------------------------------------------------------------- */

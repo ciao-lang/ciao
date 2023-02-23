@@ -269,7 +269,6 @@ is_susp_goal(G, M) :-
 conj_to_list(A, Xs) :-
     conj_to_list_(A, Xs, []).
 
-% conj_to_list_(A, Xs, Xs0) :- var(A), !, Xs = [A|Xs0]. % TODO: replace?
 conj_to_list_(A, Xs, Xs0) :- var(A), !, Xs = Xs0.
 conj_to_list_((A,B), Xs, Xs0) :- !,
     conj_to_list_(A, Xs, Xs1),

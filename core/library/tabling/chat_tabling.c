@@ -11,7 +11,7 @@
 #include <ciao/eng.h>
 #include <ciao/internals.h>
 #include <ciao/eng_gc.h>
-#include <ciao/instrdefs.h> /* LASTCALL */
+#include <ciao/instrdefs.h>
 #include <ciao/rt_exp.h>
 #include <ciao/runtime_control.h>
 #include <ciao/eng_start.h>

@@ -1402,6 +1402,7 @@ struct wam_private_ {
   frame_t *e;
   tagged_t *cached_r_h;
   tagged_t *r_s;
+  tagged_t t0, t1, t2, t3; // TODO:[merge-oc] avoid saving?
   bcp_t ptemp; // TODO:[merge-oc] avoid saving?
 };
 
@@ -1806,14 +1807,20 @@ struct marker_ {
 
 #define PushRefHeapNext(To,From) { *(To)++ = *(From)++; }
 
+#define RefStack(To,From) { To = *(From); }
+
+#define HeapPushRefStack(To,From) { *(To)++ = *(From); }
+
 #define RefHVA(To,From) { To = *TagpPtr(HVA,From); }
 
 #define RefSVA(To,From) { To = *TagpPtr(SVA,From); }
 
 #define LoadSVA(Y)              {Y = Tagp(SVA,&Y); }
+#define Load2SVA(X,Y)           {X = Y = Tagp(SVA,&Y); }
 #define PreLoadHVA(X,H)         {X = Tagp(HVA,H); }
 #define ConstrHVA(H)            {HeapPush(H,Tagp(HVA,H)); }
 #define LoadHVA(To,H)           {HeapPush(H,To = Tagp(HVA,H)); }
+#define Load2HVA(To1,To2,H)     {HeapPush(H,To1 = To2 = Tagp(HVA,H)); }
 #define LoadCVA(To,H)           {HeapPush(H,To = Tagp(CVA,H)); }
 
 /* =========================================================================== */

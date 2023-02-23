@@ -14,6 +14,7 @@
 
 #include <ciao/os_signal.h>
 #include <ciao/eng.h>
+#include <ciao/instrdefs.h>
 #include <ciao/basiccontrol.h>
 
 #include <ciao/attributes.h>

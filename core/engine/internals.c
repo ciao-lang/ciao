@@ -7,7 +7,6 @@
 
 #include <setjmp.h>
 #include <stdio.h>
-#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -2269,39 +2268,3 @@ CVOID__PROTO(show_nodes, choice_t *cp_younger, choice_t *cp_older) {
   }
   fprintf(stderr, "])\n");
 }
-
-/* ------------------------------------------------------------------------- */
-
-extern char *eng_architecture;
-extern char *eng_os;
-extern char *eng_debug_level;
-
-CBOOL__PROTO(prolog_print_emulator_version) {
-  CVOID__CALL(print_string, Output_Stream_Ptr, CIAO_VERSION_STRING);
-  CVOID__CALL(print_string, Output_Stream_Ptr, " [");
-  CVOID__CALL(print_string, Output_Stream_Ptr, eng_os);
-  CVOID__CALL(print_string, Output_Stream_Ptr, eng_architecture);
-  CVOID__CALL(print_string, Output_Stream_Ptr, "]");
-  if (strcmp(eng_debug_level, "nodebug") != 0) {
-    CVOID__CALL(print_string, Output_Stream_Ptr, " [");
-    CVOID__CALL(print_string, Output_Stream_Ptr, eng_debug_level);
-    CVOID__CALL(print_string, Output_Stream_Ptr, "]");
-  }
-  CVOID__CALL(print_string, Output_Stream_Ptr, "\n");
-  return TRUE;
-}
-
-/*
-CBOOL__PROTO(prolog_sourcepath)
-{
-  char cbuf[MAXPATHLEN];
-
-  DEREF(X(0),X(0));
-  strcpy(cbuf,source_path);
-  strcat(cbuf,"/");
-  strcat(cbuf,GetString(X(0)));
-  CBOOL__UnifyCons(GET_ATOM(cbuf),X(1));
-  return TRUE;
-}
-*/
-

@@ -10,6 +10,7 @@
 
 #include <ciao/eng.h>
 #include <ciao/basiccontrol.h>
+#include <ciao/instrdefs.h> /* TODO: required? */
 #include <ciao/dynamic_rt.h>
 #include <ciao/dtoa_ryu.h>
 #include <ciao/eng_start.h>
