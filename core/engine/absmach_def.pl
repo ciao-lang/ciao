@@ -92,11 +92,15 @@ for(Range, Code) :-
     fmt:nl, Code, 
     fmtdec, "}", fmt:nl.
 
+:- pred(foreach/4, [unfold, grammar_level]).
+foreach(Ty, V, range(To), Code) :- % V in [0,..., To-1]
+    for((vardecl(Ty, V, 0), (V, "<", To), ";", (V, "++")), Code).
+
 :- pred(do_while/2, [unfold, grammar_level]).
 do_while(Code, Cond) :-
     "do {", fmtinc,
     fmt:nl, Code, 
-    fmtdec, "} while (", Cond, ");", fmtinc.
+    fmtdec, "} while (", Cond, ");", fmt:nl.
 
 :- pred(if/2, [unfold, grammar_level]).
 if(Cond, Then) :-
@@ -135,6 +139,10 @@ vardecl(Type, V) :-
 :- pred(vardecl/3, [unfold, grammar_level]).
 vardecl(Type, V, A) :-
     Type, " ", V, " = ", A, ";", fmt:nl.
+
+:- pred(extern_vardecl/2, [unfold, grammar_level]).
+extern_vardecl(Type, V) :-
+    "extern ", Type, " ", V, ";", fmt:nl.
 
 :- pred(argdecl/2, [unfold, grammar_level]).
 argdecl(Type, V) :-
@@ -175,6 +183,10 @@ return(A) :-
 :- pred(call0/1, [unfold, grammar_level]).
 call0(X) :- fmt:atom(X), ";", fmt:nl.
 
+% new id for a variable
+:- pred(var_id/1, [unfold]).
+var_id(Id) :- [[ newid(vr,Id) ]].
+
 % ---------------------------------------------------------------------------
 :- doc(section, "C preprocessor macros").
 
@@ -200,9 +212,30 @@ labeled_block(Label, Code) :-
     label(Label),
     Code.
 
+% ---------------------------------------------------------------------------
+:- doc(section, "Terms").
+
+:- pred(localv/2, [unfold]).
+localv(tagged, V) :- var_id(V), vardecl("tagged_t", V).
+localv(ptr(tagged), V) :- var_id(V), vardecl("tagged_t *", V).
+localv(ptr(try_node), V) :- var_id(V), vardecl("try_node_t *", V).
+
+:- pred(localv/3, [unfold]).
+localv(Ty, V, Val) :- localv(Ty, V), V <- Val.
+
+:- pred(addr/1, [unfold]).
+addr(X) :- "(&", X, ")".
+
+:- pred(tagp/2, [unfold]).
+tagp(hva,Ptr) :- callexp('Tagp', ["HVA",Ptr]).
+tagp(sva,Ptr) :- callexp('Tagp', ["SVA",Ptr]).
+tagp(cva,Ptr) :- callexp('Tagp', ["CVA",Ptr]).
+tagp(str,Ptr) :- callexp('Tagp', ["STR",Ptr]).
+tagp(lst,Ptr) :- callexp('Tagp', ["LST",Ptr]).
+
 :- pred(sw_on_heap_var/4, [unfold]).
 sw_on_heap_var(Reg, HVACode, CVACode, NVACode) :-
-    "{", localtg(aux,Aux),
+    "{", localv(tagged, Aux),
     "SwitchOnHeapVar(", Reg, ",", Aux, ",{", fmt:nl,
     HVACode,
     "},{", fmt:nl,
@@ -213,7 +246,7 @@ sw_on_heap_var(Reg, HVACode, CVACode, NVACode) :-
 
 :- pred(sw_on_var/5, [unfold]).
 sw_on_var(Reg, HVACode, CVACode, SVACode, NVACode) :-
-    "{", localtg(aux,Aux),
+    "{", localv(tagged, Aux),
     "SwitchOnVar(", Reg, ",", Aux, ",{", fmt:nl,
     HVACode,
     "},{", fmt:nl,
@@ -224,6 +257,7 @@ sw_on_var(Reg, HVACode, CVACode, SVACode, NVACode) :-
     NVACode,
     "});", "}", fmt:nl.
 
+% TODO: deprecate
 :- pred(deref_sw/3, [unfold]).
 deref_sw(Reg, Aux, VarCode) :-
     "DerefSwitch(", Reg, ",", Aux, ", {", fmt:nl,
@@ -238,7 +272,7 @@ deref_sw0(Reg, VarCode) :-
 :- pred(unify_heap_atom/2, [unfold]).
 unify_heap_atom(U,V) :-
     "{",
-    localtg(aux2,T1), T1<-V,
+    localv(tagged, T1, V),
     sw_on_heap_var(T1,
       bind(hva, T1, U),
       bind(cva, T1, U),
@@ -248,7 +282,7 @@ unify_heap_atom(U,V) :-
 :- pred(unify_atom/2, [unfold]).
 unify_atom(U,V) :-
     "{",
-    localtg(aux2,T1), T1<-V,
+    localv(tagged, T1, V),
     sw_on_var(T1,
       bind(hva, T1, U),
       bind(cva, T1, U),
@@ -259,7 +293,7 @@ unify_atom(U,V) :-
 :- pred(unify_atom_internal/2, [unfold]).
 unify_atom_internal(Atom,Var) :-
     "{",
-    localtg(aux2,T1), T1<-Var,
+    localv(tagged, T1, Var),
     if((T1, "&", "TagBitSVA"),
       (bind(sva, T1, Atom)),
       (bind(hva, T1, Atom))),
@@ -268,21 +302,21 @@ unify_atom_internal(Atom,Var) :-
 :- pred(unify_heap_structure/3, [unfold]).
 unify_heap_structure(U,V,Cont) :-
     "{",
-    localtg(aux2,T1), T1<-V,
+    localv(tagged, T1, V),
     [[mode(M)]],
     sw_on_heap_var(T1,
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(hva, T1, callexp('Tagp', ["STR", H])), heap_push(U),
+       bind(hva, T1, tagp(str, H)), heap_push(U),
        Cont),
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(cva, T1, callexp('Tagp', ["STR", H])), heap_push(U),
+       bind(cva, T1, tagp(str, H)), heap_push(U),
        Cont),
       ([[update(mode(M))]],
-       "if(!TaggedIsSTR(", T1, ") || (TaggedToHeadfunctor(", T1, ")!=", U, ")) goto fail;",
+       if(("!TaggedIsSTR(", T1, ") || (TaggedToHeadfunctor(", T1, ")!=", U, ")"), goto('fail')),
        "S" <- callexp('TaggedToArg', [T1, 1]),
        Cont)),
     "}",
@@ -293,26 +327,26 @@ unify_heap_structure(U,V,Cont) :-
 :- pred(unify_structure/3, [unfold]).
 unify_structure(U,V,Cont) :-
     "{",
-    localtg(aux2,T1), T1<-V,
+    localv(tagged, T1, V),
     [[mode(M)]],
     sw_on_var(T1,
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(hva, T1, callexp('Tagp', ["STR", H])), heap_push(U),
+       bind(hva, T1, tagp(str, H)), heap_push(U),
        Cont),
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(cva, T1, callexp('Tagp', ["STR", H])), heap_push(U),
+       bind(cva, T1, tagp(str, H)), heap_push(U),
        Cont),
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(sva, T1, callexp('Tagp', ["STR", H])), heap_push(U),
+       bind(sva, T1, tagp(str, H)), heap_push(U),
        Cont),
       ([[update(mode(M))]],
-       "if(!TaggedIsSTR(", T1, ") || (TaggedToHeadfunctor(", T1, ")!=", U, ")) goto fail;",
+       if(("!TaggedIsSTR(", T1, ") || (TaggedToHeadfunctor(", T1, ")!=", U, ")"), goto('fail')),
        "S" <- callexp('TaggedToArg', [T1, 1]),
        Cont)),
     "}",
@@ -323,7 +357,7 @@ unify_structure(U,V,Cont) :-
 :- pred(unify_heap_large/3, [unfold]).
 unify_heap_large(ARG,P, T) :-
     "{",
-    localtg(aux2,T1), T1<-T,
+    localv(tagged, T1, T),
     sw_on_heap_var(T1,
       bind(hva, T1, callexp('BC_MakeBlob', [ARG, P])),
       bind(cva, T1, callexp('BC_MakeBlob', [ARG, P])),
@@ -335,7 +369,7 @@ unify_heap_large(ARG,P, T) :-
 :- pred(unify_large/3, [unfold]).
 unify_large(ARG,P, T) :-
     "{",
-    localtg(aux2,T1), T1<-T,
+    localv(tagged, T1), T1<-T,
     sw_on_var(T1,
       bind(hva, T1, callexp('BC_MakeBlob', [ARG, P])),
       bind(cva, T1, callexp('BC_MakeBlob', [ARG, P])),
@@ -348,18 +382,18 @@ unify_large(ARG,P, T) :-
 :- pred(unify_heap_list/2, [unfold]).
 unify_heap_list(V,Cont) :-
     "{",
-    localtg(aux2,T1), T1<-V,
+    localv(tagged, T1, V),
     [[mode(M)]],
     sw_on_heap_var(T1,
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(hva, T1, callexp('Tagp', ["LST", H])),
+       bind(hva, T1, tagp(lst, H)),
        Cont),
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(cva, T1, callexp('Tagp', ["LST", H])),
+       bind(cva, T1, tagp(lst, H)),
        Cont),
       ([[update(mode(M))]],
        if(("!TermIsLST(", T1, ")"), goto('fail')),
@@ -373,23 +407,23 @@ unify_heap_list(V,Cont) :-
 :- pred(unify_list/2, [unfold]).
 unify_list(V,Cont) :-
     "{",
-    localtg(aux2,T1), T1<-V,
+    localv(tagged, T1, V),
     [[mode(M)]],
     sw_on_var(T1,
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(hva, T1, callexp('Tagp', ["LST", H])),
+       bind(hva, T1, tagp(lst, H)),
        Cont),
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(cva, T1, callexp('Tagp', ["LST", H])),
+       bind(cva, T1, tagp(lst, H)),
        Cont),
       ([[update(mode(M))]],
        setmode(w),
        cachedreg('H', H),
-       bind(sva, T1, callexp('Tagp', ["LST", H])),
+       bind(sva, T1, tagp(lst, H)),
        Cont),
       ([[update(mode(M))]],
        if(("!TermIsLST(", T1, ")"), goto('fail')),
@@ -403,16 +437,19 @@ unify_list(V,Cont) :-
 :- pred(unify_local_value/1, [unfold]).
 unify_local_value(T1) :-
     if(callexp('TaggedIsSVA', [T1]),
-      (localtg(t0,T0),
+      (localv(tagged, T0),
        do_while(
         (call('RefSVA', [T0,T1]),
          if((T0," == ",T1), 
            (cachedreg('H', H),
-            bind(sva, T1, callexp('Tagp', ["HVA", H])),
+            bind(sva, T1, tagp(hva, H)),
             preload(hva, T1),
             break))),
         callexp('TaggedIsSVA', [(T1,"=",T0)])))),
     heap_push(T1).
+
+% ---------------------------------------------------------------------------
+:- doc(section, "Auxiliary macro definitions").
 
 % Concurrency: if we cut (therefore discarding intermediate
 % choicepoints), make sure we also get rid of the linked chains which
@@ -439,11 +476,12 @@ emul_to_goal(Ret) :- % (stores: Ret)
     if("Func->arity==0", 
       Ret <- "Func->printname",
       (cachedreg('H', H),
-       Ret <- callexp('Tagp', ["STR", H]),
+       Ret <- tagp(str, H),
        heap_push("SetArity(Func->printname,Func->arity)"),
-       for("intmach_t i=0; i<Func->arity; i++",
-         (localtg(t1,T1), T1 <- "X(i)",
-          unify_local_value(T1))))).
+       foreach("intmach_t", "i", range("Func->arity"),
+               (localv(tagged, T1, x("i")),
+                unify_local_value(T1)))
+      )).
 
 :- pred(deallocate/0, [unfold]).
 deallocate :-
@@ -465,7 +503,7 @@ code_neck_proceed :-
     call('SetE', ["w->frame"]),
     "P = w->next_insn;", fmt:nl,
     profile_hook(neck_proceed),
-    "goto WriteMode;", fmt:nl.
+    goto_ins_dispatch.
 
 % TODO:[oc-merge] CODE_MAYBE_NECK_TRY
 :- pred(do_neck/0, [unfold]).
@@ -493,39 +531,34 @@ maybe_choice_overflow :-
         [callexp('ChoiceOffset', ["B","CHOICEPAD"]),"w->trail_top"]),
       call('choice_overflow', ["Arg","2*CHOICEPAD*sizeof(tagged_t)","TRUE"])).
 
-% ---------------------------------------------------------------------------
-:- doc(section, "Auxiliary macro definitions").
-
-% Defs for pairs of UNIFYs
-
-% Local WAM loop function state
-
-% TODO: generate automatically
-:- pred(var_id/2, [unfold]).
-var_id(t0,T) :- [[ T = "var0" ]].
-var_id(t1,T) :- [[ T = "var1" ]].
-var_id(t2,T) :- [[ T = "var2" ]].
-var_id(aux,T) :- [[ T = "var3" ]].
-var_id(aux2,T) :- [[ T = "var4" ]].
-
-:- pred(localtg/2, [unfold]).
-localtg(Id,T) :- var_id(Id,T), vardecl("tagged_t", T).
-
 % Worker state
 
-:- pred(x/2, [unfold]).
-x(Xn,X) :- [[ X = callexp('X', [Xn]) ]].
-
-:- pred(y/2, [unfold]).
-y(Yn,Y) :- [[ Y = callexp('Y', [Yn]) ]].
+:- pred(x/1, [unfold]).
+x(Xn) :- callexp('X', [Xn]).
+:- pred(y/1, [unfold]).
+y(Yn) :- callexp('Y', [Yn]).
 
 % 'Decoding' a bytecode operand as an expression
+% TODO: use [[ ]]] counter for automatic N in dec
 :- pred(dec/2, [unfold]).
 dec(op(f_f,N),R) :- [[ R = N ]].
 dec(op(f_t,N),R) :- [[ R = N ]].
 dec(op(f_x,N),R) :- [[ R = callexp('Xb', [N]) ]].
 dec(op(f_y,N),R) :- [[ R = callexp('Yb', [N]) ]].
-dec(op(f_b,N),R) :- [[ R = ["&",N] ]]. % (a reference to the blob)
+dec(op(f_b,N),R) :- [[ R = addr(N) ]]. % (a reference to the blob)
+
+% (see op_macros/0)
+:- pred(bcp/2, [unfold]).
+bcp(f_C,N) :- callexp('BcP', ["f_C",N]).
+bcp(f_f,N) :- callexp('BcP', ["f_f",N]).
+bcp(f_t,N) :- callexp('BcP', ["f_t",N]).
+bcp(f_x,N) :- callexp('BcP', ["f_x",N]).
+bcp(f_y,N) :- callexp('BcP', ["f_y",N]).
+bcp(f_z,N) :- callexp('BcP', ["f_z",N]).
+bcp(f_e,N) :- callexp('BcP', ["f_e",N]).
+bcp(f_i,N) :- callexp('BcP', ["f_i",N]).
+bcp(f_l,N) :- callexp('BcP', ["f_l",N]).
+bcp(f_p,N) :- callexp('BcP', ["f_p",N]).
 
 % Like dec/2, but uses a temporary variable to cache the P address
 :- pred(dectmp/3, [unfold]).
@@ -535,16 +568,11 @@ dectmp(Tmp, op(FType,N), R) :-
 
 % Move the program counter to discard an argument
 :- pred(shift/1, [unfold]).
-shift(f_Q) :- 
-    inc("P","FTYPE_size(f_Q)").
-shift(f_x) :- 
-    inc("P","FTYPE_size(f_x)").
-shift(f_y) :- 
-    inc("P","FTYPE_size(f_y)").
-shift(f_z) :- 
-    inc("P","FTYPE_size(f_z)").
-shift(f_i) :- 
-    inc("P","FTYPE_size(f_i)").
+shift(f_Q) :- inc("P","FTYPE_size(f_Q)").
+shift(f_x) :- inc("P","FTYPE_size(f_x)").
+shift(f_y) :- inc("P","FTYPE_size(f_y)").
+shift(f_z) :- inc("P","FTYPE_size(f_z)").
+shift(f_i) :- inc("P","FTYPE_size(f_i)").
 
 % Jump to a given instruction keeping the same operand stream
 :- pred(goto_ins/1, [unfold]).
@@ -601,7 +629,7 @@ setmode_setH(r, NewH) :-
 :- pred(put_yvoid/0, [unfold]).
 put_yvoid :-
     "{",
-    localtg(t0,T0), T0 <- "BcP(f_y, 1)",
+    localv(tagged, T0, bcp(f_y,1)),
     shift(f_y),
     load(sva, callexp('Yb', [T0])),
     "}".
@@ -612,32 +640,30 @@ heap_push(X) :-
     call('HeapPush', [H, X]).
 
 :- pred(ref_stack/3, [unfold]).
-ref_stack(safe, A, B) :-
-    call('RefStack', [A,["&",B]]).
-ref_stack(unsafe, A, B) :-
-    ref_stack_unsafe(A,["&",B]).
+ref_stack(safe, A, B) :- call('RefStack', [A,addr(B)]).
+ref_stack(unsafe, A, B) :- ref_stack_unsafe(A,addr(B)).
 
 % NOTE: this is an expression!
 :- pred(unsafe_var_expr/1, [unfold]).
 unsafe_var_expr(X) :-
-    "(!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),", X, "))".
+    "(!", callexp('YoungerStackVar', [tagp(sva,"Offset(E,EToY0)"), X]), ")".
 
 :- pred(ref_stack_unsafe/2, [unfold]).
 ref_stack_unsafe(To,From) :-
     "{",
-    vardecl("tagged_t", "t0_"),
-    vardecl("tagged_t", "t1_"),
-    call('RefStack', ["t0_", From]),
-    if(callexp('TaggedIsSVA', ["t0_"]),
+    localv(tagged, T0),
+    localv(tagged, T1),
+    call('RefStack', [T0, From]),
+    if(callexp('TaggedIsSVA', [T0]),
       do_while(
-        ("RefSVA(t1_,t0_);", fmt:nl,
-         if("t1_ == t0_",
-           (if(unsafe_var_expr("t0_"),
-              (load(hva,"t0_"),
-               bind(sva, "t1_", "t0_"))),
+        (call('RefSVA', [T1,T0]),
+         if((T1, "==", T0),
+            (if(unsafe_var_expr(T0),
+                (load(hva, T0),
+                 bind(sva, T1, T0))),
            break))),
-        callexp('TaggedIsSVA', ["t0_=t1_"]))),
-    To <- "t0_",
+        callexp('TaggedIsSVA', [(T0,"=",T1)]))),
+    To <- T0,
     "}".
 
 :- pred(ref_heap_next/1, [unfold]).
@@ -679,7 +705,7 @@ bind(sva, T0, T1) :-
 :- pred(get_first_value/2, [unfold]).
 get_first_value(U, V) :-
     if(callexp('CondStackvar', [U]), (
-      call('TrailPushCheck', ["w->trail_top",callexp('Tagp', ["SVA", ("&",U)])]),
+      call('TrailPushCheck', ["w->trail_top",tagp(sva, addr(U))]),
       U <- V
     ), (
       U <- V
@@ -693,7 +719,7 @@ u1(void(X)) :-
     [[mode(w)]],
     "{", fmt:nl,
     vardecl("intmach_t", "i"),
-    "i" <- ["(FTYPE_ctype(f_i_signed))", X],
+    "i" <- ("(FTYPE_ctype(f_i_signed))", X),
     do_while("ConstrHVA(H);", "--i"),
     "}", fmt:nl.
 u1(var(X)) :-
@@ -705,20 +731,20 @@ u1(var(X)) :-
 u1(xval(X)) :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
+    localv(tagged, T1), ref_heap_next(T1),
     cunify(X, T1),
     "}".
 u1(yval(Y)) :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
-    localtg(t0,T0), ref_stack(safe, T0, Y),
+    localv(tagged, T1), ref_heap_next(T1),
+    localv(tagged, T0), ref_stack(safe, T0, Y),
     cunify(T0, T1),
     "}".
 u1(yfval(Y)) :-
     [[mode(r)]],
     "{",
-    localtg(t0,T0), ref_heap_next(T0),
+    localv(tagged, T0), ref_heap_next(T0),
     get_first_value(Y,T0),
     "}".
 u1(xval(X)) :-
@@ -727,11 +753,11 @@ u1(xval(X)) :-
 u1(yval(Y)) :-
     [[mode(w)]],
     cachedreg('H', H),
-    call('HeapPushRefStack', [H,["&",Y]]).
+    call('HeapPushRefStack', [H,addr(Y)]).
 u1(yfval(Y)) :-
     [[mode(w)]],
     "{",
-    localtg(t0,T0), load(hva,T0),
+    localv(tagged, T0), load(hva,T0),
     get_first_value(Y,T0),
     "}".
 u1(xlval(X)) :-
@@ -743,13 +769,13 @@ u1(ylval(Y)) :-
 u1(xlval(X)) :-
     [[mode(w)]],
     "{",
-    localtg(t1,T1), T1 <- X,
+    localv(tagged, T1, X),
     unify_local_value(T1),
     "}".
 u1(ylval(Y)) :-
     [[mode(w)]],
     "{",
-    localtg(t1,T1), ref_stack(safe, T1, Y),
+    localv(tagged, T1), ref_stack(safe, T1, Y),
     unify_local_value(T1),
     "}".
 
@@ -769,14 +795,14 @@ u1_dispatch(ylval(Y), OpsSize) :-
 u1_dispatch(xval(X), OpsSize) :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
+    localv(tagged, T1), ref_heap_next(T1),
     eunify(X, T1, OpsSize),
     "}".
 u1_dispatch(yval(Y), OpsSize) :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
-    localtg(t0,T0), ref_stack(safe, T0, Y),
+    localv(tagged, T1), ref_heap_next(T1),
+    localv(tagged, T0), ref_stack(safe, T0, Y),
     eunify(T0,T1,OpsSize),
     "}".
 u1_dispatch(U, OpsSize) :-
@@ -791,7 +817,7 @@ alloc :- call('CODE_ALLOC', ["E"]).
 :- pred(init_yvars/1, [unfold]).
 init_yvars(Count) :-
     "{",
-    localtg(aux,T),
+    localv(tagged, T),
     for(((T, "=", (Count,"-sizeof(tagged_t)")), ";", 
          (T, ">=", "EToY0*sizeof(tagged_t)"), ";", 
          (T, "-=", "sizeof(tagged_t)")),
@@ -802,17 +828,16 @@ init_yvars(Count) :-
 % Emit the code to put a Y argument (which may be 'unsafe')
 :- pred(putarg/2, [unfold]).
 putarg(Zn,Xn) :-
-    x(Xn,X),
     if((Zn, "&", "1"),
       (dec(op(f_y,(Zn,"+","1")),Y1),
-       ref_stack(unsafe, X, Y1)),
+       ref_stack(unsafe, x(Xn), Y1)),
       (dec(op(f_y,Zn),Y2),
-       ref_stack(safe, X, Y2))).
+       ref_stack(safe, x(Xn), Y2))).
 
 % Wrapper for execution of instruction G in the specified mode M
 :- pred(in_mode/3, [unfold]).
 in_mode(M, _, G) :- [[mode(M)]], G.
-in_mode(M, G, _) :- [[mode(M2)]], [[M \= M2]],
+in_mode(M, G, _) :- [[mode(M0)]], [[M \= M0]],
     setmode(M),
     goto_ins(G).
 
@@ -857,7 +882,7 @@ ins_in_mode(Ins, Mode) :-
 :- ins_in_mode(inittrue, w).
 inittrue :-
     alloc,
-    init_yvars("BcP(f_e, 1)"),
+    init_yvars(bcp(f_e,1)),
     goto('firsttrue').
 
 :- ins_op_format(firsttrue_n, 261, [f_Y,f_e], [label(w)]).
@@ -865,9 +890,9 @@ inittrue :-
 firsttrue_n :-
     "{", fmt:nl,
     vardecl("intmach_t", "i"),
-    "i" <- ["(FTYPE_ctype(f_i_signed))", "BcP(f_i, 1)"],
+    "i" <- ("(FTYPE_ctype(f_i_signed))", bcp(f_i,1)),
     shift(f_i),
-    for("; i>0; --i", put_yvoid),
+    for("intmach_t i0=i; i0>0; --i0", put_yvoid),
     "}", fmt:nl,
     goto('firsttrue'),
     label('firsttrue'),
@@ -875,7 +900,7 @@ firsttrue_n :-
     "E->frame" <- "w->frame",
     "w->frame" <- "E",
     "w->next_insn" <- "PoffR(2)",
-    "w->local_top" <- callexp('StackCharOffset', ["E","BcP(f_e, 1)"]),
+    "w->local_top" <- callexp('StackCharOffset', ["E",bcp(f_e,1)]),
     if(callexp('OffStacktop',["E","Stack_Warn"]),
       "SetEvent();"),
     dispatch("FTYPE_size(f_i)").
@@ -887,7 +912,7 @@ initcallq :- shift(f_Q), goto_ins(initcall).
 :- ins_in_mode(initcall, w).
 initcall :-
     alloc,
-    init_yvars("BcP(f_e,3)"),
+    init_yvars(bcp(f_e,3)),
     goto_ins(firstcall).
 
 :- ins_op_format(firstcall_nq, 20, [f_Q,f_Y,f_E,f_e]).
@@ -898,9 +923,9 @@ firstcall_nq :- shift(f_Q), goto_ins(firstcall_n).
 firstcall_n :-
     "{", fmt:nl,
     vardecl("intmach_t", "i"),
-    "i" <- ["(FTYPE_ctype(f_i_signed))", "BcP(f_i, 1)"],
+    "i" <- ("(FTYPE_ctype(f_i_signed))", bcp(f_i,1)),
     shift(f_i),
-    for("; i>8; --i", put_yvoid),
+    for("intmach_t i0=i; i0>8; --i0", put_yvoid),
     "}", fmt:nl,
     goto_ins(firstcall_8).
 
@@ -969,16 +994,16 @@ firstcall :-
     "E->next_insn" <- "w->next_insn",
     "E->frame" <- "w->frame",
     "w->frame" <- "E",
-    "w->next_insn" <- "BCoff(P, FTYPE_size(f_E)+FTYPE_size(f_e))",
-    "w->local_top" <- "StackCharOffset(E,BcP(f_e,3))",
-    "P" <- "BcP(f_p, 1)",
+    "w->next_insn" <- callexp('BCoff', ["P", "FTYPE_size(f_E)+FTYPE_size(f_e)"]),
+    "w->local_top" <- callexp('StackCharOffset', ["E",bcp(f_e,3)]),
+    "P" <- bcp(f_p,1),
     if(callexp('OffStacktop',["E","Stack_Warn"]),
       "SetEvent();"),
     goto('enter_predicate').
 
 :- pred(putarg_z_shift/1, [unfold]).
 putarg_z_shift(Xn) :-
-    "{", localtg(t1,T1), T1 <- "BcP(f_z, 1)", shift(f_z), putarg(T1,Xn), "}".
+    "{", localv(tagged, T1, bcp(f_z,1)), shift(f_z), putarg(T1,Xn), "}".
 
 :- ins_op_format(call_nq, 40, [f_Q,f_Z,f_E,f_e]).
 call_nq :- shift(f_Q), goto_ins(call_n).
@@ -988,9 +1013,9 @@ call_nq :- shift(f_Q), goto_ins(call_n).
 call_n :-
     "{", fmt:nl,
     vardecl("intmach_t", "i"),
-    "i" <- ["(FTYPE_ctype(f_i_signed))", "BcP(f_i, 1)"],
+    "i" <- ("(FTYPE_ctype(f_i_signed))", bcp(f_i,1)),
     shift(f_i),
-    for("; i>8; --i", putarg_z_shift("i-1")),
+    for("intmach_t i0=i; i0>8; --i0", putarg_z_shift("i0-1")),
     "}", fmt:nl,
     goto_ins(call_8).
 
@@ -1072,8 +1097,8 @@ callq :- shift(f_Q), goto_ins(call).
 :- ins_op_format(call, 23, [f_E,f_e], [label(_)]).
 :- ins_in_mode(call, w).
 call :-
-    "w->next_insn" <- "BCoff(P, FTYPE_size(f_E)+FTYPE_size(f_e))",
-    "P" <- "BcP(f_p, 1)",
+    "w->next_insn" <- callexp('BCoff', ["P", "FTYPE_size(f_E)+FTYPE_size(f_e)"]),
+    "P" <- bcp(f_p,1),
     goto('enter_predicate').
 
 :- ins_op_format(lastcall_nq, 60, [f_Q,f_Z,f_E]).
@@ -1084,9 +1109,9 @@ lastcall_nq :- shift(f_Q), goto_ins(lastcall_n).
 lastcall_n :-
     "{", fmt:nl,
     vardecl("intmach_t", "i"),
-    "i" <- ["(FTYPE_ctype(f_i_signed))", "BcP(f_i, 1)"],
+    "i" <- ("(FTYPE_ctype(f_i_signed))", bcp(f_i,1)),
     shift(f_i),
-    for("; i>8; --i", putarg_z_shift("i-1")),
+    for("intmach_t i0=i; i0>8; --i0", putarg_z_shift("i0-1")),
     "}", fmt:nl,
     goto_ins(lastcall_8).
 
@@ -1176,7 +1201,7 @@ executeq :-
     ( [[mode(r)]], setmode(w)
     ; [[mode(w)]]
     ),
-    "P" <- "BcP(f_p, 2)",
+    "P" <- bcp(f_p,2),
     goto('enter_predicate').
 
 :- ins_op_format(execute, 63, [f_E], [label(w)]).
@@ -1184,48 +1209,48 @@ execute :-
     ( [[mode(r)]], setmode(w)
     ; [[mode(w)]]
     ),
-    "P" <- "BcP(f_p, 1)",
+    "P" <- bcp(f_p,1),
     goto('enter_predicate').
 
 :- ins_op_format(put_x_void, 69, [f_x], [label(w)]).
 :- ins_in_mode(put_x_void, w).
 put_x_void :-
-    dec(op(f_x,"BcP(f_x, 1)"),X),
+    dec(op(f_x,bcp(f_x,1)),X),
     load(hva,X),
     dispatch("FTYPE_size(f_x)").
 
 :- ins_op_format(put_x_variable, 70, [f_x,f_x], [label(w)]).
 :- ins_in_mode(put_x_variable, w).
 put_x_variable :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     load2(hva, A, B),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))").
 
 :- ins_op_format(put_xval_xval, 85, [f_x,f_x,f_x,f_x]).
 put_xval_xval :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
-    dec(op(f_x,"BcP(f_x, 3)"),C),
-    dec(op(f_x,"BcP(f_x, 4)"),D),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
+    dec(op(f_x,bcp(f_x,3)),C),
+    dec(op(f_x,bcp(f_x,4)),D),
     A <- B,
     C <- D,
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))").
 
 :- ins_op_format(put_x_value, 71, [f_x,f_x]).
 put_x_value :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     A <- B,
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))").
 
 :- ins_op_format(put_x_unsafe_value, 72, [f_x,f_x], [label(w)]).
 :- ins_in_mode(put_x_unsafe_value, w).
 put_x_unsafe_value :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     "{",
-    localtg(t0,T0), ref_stack(unsafe,T0,B),
+    localv(tagged, T0), ref_stack(unsafe,T0,B),
     A <- T0,
     B <- T0,
     "}",
@@ -1240,9 +1265,9 @@ put_y_first_variable :-
 :- ins_op_format(put_y_variable, 74, [f_x,f_y], [label(w)]).
 :- ins_in_mode(put_y_variable, w).
 put_y_variable :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
+    dec(op(f_x,bcp(f_x,1)),A),
     "{",
-    localtg(t0,T0), dectmp(T0, op(f_y,"BcP(f_y, 2)"), B),
+    localv(tagged, T0), dectmp(T0, op(f_y,bcp(f_y,2)), B),
     load2(sva, A, B),
     "}",
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
@@ -1256,58 +1281,58 @@ put_yfvar_yvar :-
 :- ins_op_format(put_yvar_yvar, 84, [f_x,f_y,f_x,f_y], [label(w)]).
 :- ins_in_mode(put_yvar_yvar, w).
 put_yvar_yvar :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
+    dec(op(f_x,bcp(f_x,1)), A),
     "{",
-    localtg(t0,T0), dectmp(T0, op(f_y,"BcP(f_y, 2)"), B),
+    localv(tagged, T0), dectmp(T0, op(f_y,bcp(f_y,2)), B),
     load2(sva, A, B),
-    dec(op(f_x,"BcP(f_x, 3)"), C),
-    dectmp(T0, op(f_y,"BcP(f_y, 4)"), D),
+    dec(op(f_x,bcp(f_x,3)), C),
+    dectmp(T0, op(f_y,bcp(f_y,4)), D),
     load2(sva, C, D),
     "}",
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y)+FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(put_yval_yval, 86, [f_x,f_y,f_x,f_y]).
 put_yval_yval :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_y,"BcP(f_y, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_y,bcp(f_y,2)), B),
     ref_stack(safe,A,B),
-    dec(op(f_x,"BcP(f_x, 3)"), C),
-    dec(op(f_y,"BcP(f_y, 4)"), D),
+    dec(op(f_x,bcp(f_x,3)), C),
+    dec(op(f_y,bcp(f_y,4)), D),
     ref_stack(safe,C,D),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y)+FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(put_y_value, 75, [f_x,f_y]).
 put_y_value :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_y,"BcP(f_y, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_y,bcp(f_y,2)), B),
     ref_stack(safe,A,B),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(put_y_unsafe_value, 76, [f_x,f_y], [label(w)]).
 :- ins_in_mode(put_y_unsafe_value, w).
 put_y_unsafe_value :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_y,"BcP(f_y, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_y,bcp(f_y,2)), B),
     ref_stack(unsafe,A,B),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(put_constantq, 77, [f_Q,f_x,f_t]).
 put_constantq :-
-    dec(op(f_x,"BcP(f_x, 2)"), A),
-    dec(op(f_t,"BcP(f_t, 3)"), B),
+    dec(op(f_x,bcp(f_x,2)), A),
+    dec(op(f_t,bcp(f_t,3)), B),
     A <- B,
     dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x))+FTYPE_size(f_t)").
 
 :- ins_op_format(put_constant, 78, [f_x,f_t]).
 put_constant :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_t,"BcP(f_t, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_t,bcp(f_t,2)), B),
     A <- B,
     dispatch("FTYPE_size(f_x)+FTYPE_size(f_t)").
 
 :- ins_op_format(put_nil, 81, [f_x]).
 put_nil :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
+    dec(op(f_x,bcp(f_x,1)), A),
     get_atom([], Nil),
     A <- Nil,
     dispatch("FTYPE_size(f_x)").
@@ -1315,108 +1340,108 @@ put_nil :-
 :- ins_op_format(put_largeq, 252, [f_Q,f_x,f_b], [label(w)]).
 :- ins_in_mode(put_largeq, w).
 put_largeq :-
-    dec(op(f_x,"BcP(f_x, 2)"), A),
-    dec(op(f_b,"BcP(f_t, 3)"), B),
+    dec(op(f_x,bcp(f_x,2)), A),
+    dec(op(f_b,bcp(f_t,3)), B),
     [[mode(M)]],
     setmode(r),
     A <- callexp('BC_MakeBlob', ["Arg",B]),
     setmode(M),
-    dispatch(("(FTYPE_size(f_Q)+FTYPE_size(f_x))","+",callexp('LargeSize',["BcP(f_t, 3)"]),"")).
+    dispatch(("(FTYPE_size(f_Q)+FTYPE_size(f_x))","+",callexp('LargeSize',[bcp(f_t,3)]),"")).
 
 :- ins_op_format(put_large, 253, [f_x,f_b], [label(w)]).
 :- ins_in_mode(put_large, w).
 put_large :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_b,"BcP(f_t, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_b,bcp(f_t,2)), B),
     [[mode(M)]],
     setmode(r),
     A <- callexp('BC_MakeBlob', ["Arg",B]),
     setmode(M),
-    dispatch(("FTYPE_size(f_x)","+",callexp('LargeSize',["BcP(f_t, 2)"]),"")).
+    dispatch(("FTYPE_size(f_x)","+",callexp('LargeSize',[bcp(f_t,2)]),"")).
 
 :- ins_op_format(put_structureq, 79, [f_Q,f_x,f_f], [label(w)]).
 :- ins_in_mode(put_structureq, w).
 put_structureq :-
-    dec(op(f_x,"BcP(f_x, 2)"), A),
-    dec(op(f_f,"BcP(f_f, 3)"), B),
+    dec(op(f_x,bcp(f_x,2)), A),
+    dec(op(f_f,bcp(f_f,3)), B),
     cachedreg('H', H),
-    A <- callexp('Tagp', ["STR",H]),
+    A <- tagp(str, H),
     heap_push(B),
     dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x))+FTYPE_size(f_f)").
 
 :- ins_op_format(put_structure, 80, [f_x,f_f], [label(w)]).
 :- ins_in_mode(put_structure, w).
 put_structure :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
+    dec(op(f_x,bcp(f_x,1)), A),
     cachedreg('H', H),
-    A <- callexp('Tagp', ["STR",H]),
-    dec(op(f_f,"BcP(f_f, 2)"), B),
+    A <- tagp(str, H),
+    dec(op(f_f,bcp(f_f,2)), B),
     heap_push(B),
     dispatch("FTYPE_size(f_x)+FTYPE_size(f_f)").
 
 :- ins_op_format(put_list, 82, [f_x], [label(w)]).
 :- ins_in_mode(put_list, w).
 put_list :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
+    dec(op(f_x,bcp(f_x,1)), A),
     cachedreg('H', H),
-    A <- callexp('Tagp', ["LST",H]),
+    A <- tagp(lst, H),
     dispatch("FTYPE_size(f_x)").
 
 :- ins_op_format(put_yval_yuval, 87, [f_x,f_y,f_x,f_y], [label(w)]).
 :- ins_in_mode(put_yval_yuval, w).
 put_yval_yuval :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_y,"BcP(f_y, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_y,bcp(f_y,2)), B),
     ref_stack(safe,A,B),
-    dec(op(f_x,"BcP(f_x, 3)"), C),
-    dec(op(f_y,"BcP(f_y, 4)"), D),
+    dec(op(f_x,bcp(f_x,3)), C),
+    dec(op(f_y,bcp(f_y,4)), D),
     ref_stack(unsafe,C,D),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y)+FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(put_yuval_yval, 88, [f_x,f_y,f_x,f_y], [label(w)]).
 :- ins_in_mode(put_yuval_yval, w).
 put_yuval_yval :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_y,"BcP(f_y, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_y,bcp(f_y,2)), B),
     ref_stack(unsafe,A,B),
-    dec(op(f_x,"BcP(f_x, 3)"), C),
-    dec(op(f_y,"BcP(f_y, 4)"), D),
+    dec(op(f_x,bcp(f_x,3)), C),
+    dec(op(f_y,bcp(f_y,4)), D),
     ref_stack(safe,C,D),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y)+FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(put_yuval_yuval, 89, [f_x,f_y,f_x,f_y], [label(w)]).
 :- ins_in_mode(put_yuval_yuval, w).
 put_yuval_yuval :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_y,"BcP(f_y, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_y,bcp(f_y,2)), B),
     ref_stack(unsafe,A,B),
-    dec(op(f_x,"BcP(f_x, 3)"), C),
-    dec(op(f_y,"BcP(f_y, 4)"), D),
+    dec(op(f_x,bcp(f_x,3)), C),
+    dec(op(f_y,bcp(f_y,4)), D),
     ref_stack(unsafe,C,D),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y)+FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(get_x_value, 91, [f_x,f_x], [label(r)]).
 :- ins_in_mode(get_x_value, r).
 get_x_value :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_x,"BcP(f_x, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_x,bcp(f_x,2)), B),
     eunify(B,A,"(FTYPE_size(f_x)+FTYPE_size(f_x))").
 
 :- ins_op_format(get_y_first_value, 94, [f_x,f_y], [label(r)]).
 :- ins_in_mode(get_y_first_value, r).
 get_y_first_value :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_y,"BcP(f_y, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_y,bcp(f_y,2)), B),
     get_first_value(B,A),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(get_y_value, 95, [f_x,f_y], [label(r)]).
 :- ins_in_mode(get_y_value, r).
 get_y_value :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_y,"BcP(f_y, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_y,bcp(f_y,2)), B),
     "{",
-    localtg(t1,T1), ref_stack(safe,T1,B),
+    localv(tagged, T1), ref_stack(safe,T1,B),
     eunify(A,T1,"(FTYPE_size(f_x)+FTYPE_size(f_y))"),
     "}".
 
@@ -1426,8 +1451,8 @@ get_constantq :- shift(f_Q), goto_ins(get_constant).
 :- ins_op_format(get_constant, 97, [f_x,f_t], [label(_)]).
 :- ins_in_mode(get_constant, r).
 get_constant :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_t,"BcP(f_t, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_t,bcp(f_t,2)), B),
     unify_atom(B,A),
     dispatch("FTYPE_size(f_x)+FTYPE_size(f_t)").
 
@@ -1437,10 +1462,10 @@ get_largeq :- shift(f_Q), goto_ins(get_large).
 :- ins_op_format(get_large, 255, [f_x,f_b], [label(_)]).
 :- ins_in_mode(get_large, r).
 get_large :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_b,"BcP(f_t, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_b,bcp(f_t,2)), B),
     unify_large("Arg",B,A),
-    dispatch(("FTYPE_size(f_x)","+",callexp('LargeSize',["BcP(f_t, 2)"]),"")).
+    dispatch(("FTYPE_size(f_x)","+",callexp('LargeSize',[bcp(f_t,2)]),"")).
 
 :- ins_op_format(get_structureq, 98, [f_Q,f_x,f_f]).
 get_structureq :- shift(f_Q), goto_ins(get_structure).
@@ -1448,14 +1473,14 @@ get_structureq :- shift(f_Q), goto_ins(get_structure).
 :- ins_op_format(get_structure, 99, [f_x,f_f], [label(_)]).
 :- ins_in_mode(get_structure, r).
 get_structure :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_f,"BcP(f_f, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_f,bcp(f_f,2)), B),
     unify_structure(B,A,dispatch("FTYPE_size(f_x)+FTYPE_size(f_f)")).
 
 :- ins_op_format(get_nil, 100, [f_x], [label(r)]).
 :- ins_in_mode(get_nil, r).
 get_nil :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
+    dec(op(f_x,bcp(f_x,1)), A),
     get_atom([], Nil),
     unify_atom(Nil,A),
     dispatch("FTYPE_size(f_x)").
@@ -1463,7 +1488,7 @@ get_nil :-
 :- ins_op_format(get_list, 101, [f_x], [label(r)]).
 :- ins_in_mode(get_list, r).
 get_list :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
+    dec(op(f_x,bcp(f_x,1)), A),
     unify_list(A, dispatch("FTYPE_size(f_x)")).
 
 :- ins_op_format(get_constant_neck_proceedq, 111, [f_Q,f_x,f_t]).
@@ -1472,8 +1497,8 @@ get_constant_neck_proceedq :- shift(f_Q), goto_ins(get_constant_neck_proceed).
 :- ins_op_format(get_constant_neck_proceed, 112, [f_x,f_t], [label(_)]).
 :- ins_in_mode(get_constant_neck_proceed, r).
 get_constant_neck_proceed :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_t,"BcP(f_t, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_t,bcp(f_t,2)), B),
     unify_atom(B,A),
     setmode(w),
     goto_ins(neck_proceed).
@@ -1481,7 +1506,7 @@ get_constant_neck_proceed :-
 :- ins_op_format(get_nil_neck_proceed, 113, [f_x], [label(r)]).
 :- ins_in_mode(get_nil_neck_proceed, r).
 get_nil_neck_proceed :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
+    dec(op(f_x,bcp(f_x,1)), A),
     get_atom([], Nil),
     unify_atom(Nil,A),
     setmode(w),
@@ -1491,7 +1516,7 @@ get_nil_neck_proceed :-
 :- ins_in_mode(cutb_x, r).
 cutb_x :-
     "w->local_top" <- "0", % may get hole at top of local stack
-    dec(op(f_x,"BcP(f_x, 1)"), A),
+    dec(op(f_x,bcp(f_x,1)), A),
     "w->previous_choice" <- call('ChoiceFromTagged', [A]),
     do_cut,
     dispatch("FTYPE_size(f_x)").
@@ -1500,7 +1525,7 @@ cutb_x :-
 :- ins_in_mode(cutb_x_neck, r).
 cutb_x_neck :-
     "w->local_top" <- "0", % may get hole at top of local stack
-    dec(op(f_x,"BcP(f_x, 1)"),A),
+    dec(op(f_x,bcp(f_x,1)),A),
     "w->previous_choice" <- call('ChoiceFromTagged', [A]),
     shift(f_x),
     goto_ins(cutb_neck).
@@ -1514,7 +1539,7 @@ cutb_neck :-
 :- ins_op_format(cutb_x_neck_proceed, 212, [f_x], [label(r)]).
 :- ins_in_mode(cutb_x_neck_proceed, r).
 cutb_x_neck_proceed :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
+    dec(op(f_x,bcp(f_x,1)), A),
     "w->previous_choice" <- call('ChoiceFromTagged', [A]),
     % shift(f_x)
     % w->local_top <- 0 % done by CODE_PROCEED
@@ -1537,7 +1562,7 @@ do_cutb_neck :-
 :- ins_op_format(cute_x, 214, [f_x], [label(r)]).
 :- ins_in_mode(cute_x, r).
 cute_x :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
+    dec(op(f_x,bcp(f_x,1)), A),
     "w->previous_choice" <- call('ChoiceFromTagged', [A]),
     "w->local_top" <- "E", % w->local_top may be 0 here
     do_cut,
@@ -1547,7 +1572,7 @@ cute_x :-
 :- ins_op_format(cute_x_neck, 216, [f_x], [label(r)]).
 :- ins_in_mode(cute_x_neck, r).
 cute_x_neck :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
+    dec(op(f_x,bcp(f_x,1)),A),
     "w->previous_choice" <- call('ChoiceFromTagged', [A]),
     shift(f_x),
     goto_ins(cute_neck).
@@ -1567,7 +1592,7 @@ cute_neck :-
 :- ins_op_format(cutf_x, 215, [f_x], [label(r)]).
 :- ins_in_mode(cutf_x, r).
 cutf_x :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
+    dec(op(f_x,bcp(f_x,1)),A),
     "w->previous_choice" <- call('ChoiceFromTagged', [A]),
     shift(f_x),
     goto_ins(cutf).
@@ -1582,9 +1607,9 @@ cutf :-
 :- ins_op_format(cut_y, 218, [f_y], [label(r)]).
 :- ins_in_mode(cut_y, r).
 cut_y :-
-    dec(op(f_y,"BcP(f_y, 1)"), A),
+    dec(op(f_y,bcp(f_y,1)), A),
     "{",
-    localtg(t1,T1), ref_stack(safe,T1,A),
+    localv(tagged, T1), ref_stack(safe,T1,A),
     "w->previous_choice" <- callexp('ChoiceFromTagged', [T1]),
     "}",
     do_cut,
@@ -1593,7 +1618,7 @@ cut_y :-
 
 :- ins_op_format(choice_x, 219, [f_x]).
 choice_x :-
-    dec(op(f_x,"BcP(f_x, 1)"), X),
+    dec(op(f_x,bcp(f_x,1)), X),
     X <- callexp('ChoiceToTagged', ["w->previous_choice"]),
     dispatch("FTYPE_size(f_x)").
 
@@ -1604,7 +1629,7 @@ choice_yf :-
 
 :- ins_op_format(choice_y, 221, [f_y], [label(_)]).
 choice_y :-
-    dec(op(f_y,"BcP(f_y, 1)"), Y),
+    dec(op(f_y,bcp(f_y,1)), Y),
     Y <- callexp('ChoiceToTagged', ["w->previous_choice"]),
     dispatch("FTYPE_size(f_y)").
 
@@ -1612,12 +1637,8 @@ choice_y :-
 :- ins_in_mode(kontinue, w).
 kontinue :-
     % after wakeup, write mode!
-    y("0",Y0),
-    call('Setfunc', [callexp('TaggedToFunctor', [Y0])]),
-    for("intmach_t i=0; i<Func->arity; i++", (
-      x("i",Xi),
-      y("i+1",Yi1),
-      Xi <- Yi1)),
+    call('Setfunc', [callexp('TaggedToFunctor', [y("0")])]),
+    for("intmach_t i=0; i<Func->arity; i++", (x("i") <- y("i+1"))),
     deallocate,
     goto('enter_predicate').
 
@@ -1637,7 +1658,7 @@ retry_cq :-
     if("!IsDeep()",
       ("NECK_RETRY_PATCH(B);", fmt:nl,
        "SetDeep();", fmt:nl)),
-    if(("!","((cbool0_t)BcP(f_C, 2))(Arg)"), goto('fail')),
+    if(("!","((cbool0_t)",bcp(f_C,2),")(Arg)"), goto('fail')),
     goto_ins(proceed).
 
 :- ins_op_format(retry_c, 238, [f_C], [label(r)]).
@@ -1646,7 +1667,7 @@ retry_c :-
     if("!IsDeep()",
       ("NECK_RETRY_PATCH(B);", fmt:nl,
        "SetDeep();", fmt:nl)),
-    if(("!","((cbool0_t)BcP(f_C, 1))(Arg)"), goto('fail')),
+    if(("!","((cbool0_t)",bcp(f_C,1),")(Arg)"), goto('fail')),
     goto_ins(proceed).
 
 % _x0 instructions, where read-mode match has been done during indexing
@@ -1655,7 +1676,7 @@ retry_c :-
 get_structure_x0q :-
     [[mode(r)]],
     "{",
-    decl_x0_cached(T0),
+    localv(tagged, T0, x(0)),
     "S" <- callexp('TaggedToArg', [T0, "1"]),
     "}",
     dispatch("FTYPE_size(f_Q)+FTYPE_size(f_f)").
@@ -1667,7 +1688,7 @@ get_structure_x0q :-
 get_structure_x0 :-
     [[mode(r)]],
     "{",
-    decl_x0_cached(T0),
+    localv(tagged, T0, x(0)),
     "S" <- callexp('TaggedToArg', [T0, "1"]),
     "}",
     dispatch("FTYPE_size(f_f)").
@@ -1675,14 +1696,14 @@ get_structure_x0 :-
     [[mode(w)]],
     "{",
     cachedreg('H', H),
-    localtg(t1,T1), T1 <- callexp('Tagp', ["STR",H]),
-    decl_x0_cached(T0),
+    localv(tagged, T1, tagp(str, H)),
+    localv(tagged, T0, x(0)),
     if(callexp('TaggedIsHVA', [T0]),
       bind(hva,T0,T1),
       if((T0," & ", "TagBitSVA"),
         bind(sva,T0,T1),
         bind(cva,T0,T1))),
-    dec(op(f_f,"BcP(f_f, 1)"),A),
+    dec(op(f_f,bcp(f_f,1)),A),
     heap_push(A),
     "}",
     dispatch("FTYPE_size(f_f)").
@@ -1691,11 +1712,11 @@ get_structure_x0 :-
 get_large_x0q :-
     [[mode(r)]],
     "{",
-    decl_x0_cached(T0),
-    dec(op(f_b,"BcP(f_t, 2)"), A),
+    localv(tagged, T0, x(0)),
+    dec(op(f_b,bcp(f_t,2)), A),
     unify_large("Arg",A,T0),
     "}",
-    dispatch(("FTYPE_size(f_x)","+",callexp('LargeSize',["BcP(f_t, 2)"]),"")).
+    dispatch(("FTYPE_size(f_x)","+",callexp('LargeSize',[bcp(f_t,2)]),"")).
 get_large_x0q :-
     [[mode(w)]],
     shift(f_Q), goto_ins(get_large_x0).
@@ -1704,25 +1725,25 @@ get_large_x0q :-
 get_large_x0 :-
     [[mode(r)]],
     "{",
-    decl_x0_cached(T0),
-    dec(op(f_b,"BcP(f_t, 1)"), A),
+    localv(tagged, T0, x(0)),
+    dec(op(f_b,bcp(f_t,1)), A),
     unify_large("Arg",A,T0),
     "}",
-    dispatch((callexp('LargeSize',["BcP(f_t, 1)"]),"")).
+    dispatch((callexp('LargeSize',[bcp(f_t,1)]),"")).
 get_large_x0 :-
     [[mode(w)]],
     "{",
     setmode(r),
-    localtg(t1,T1), T1 <- callexp('BC_MakeBlob', ["Arg",["&","BcP(f_p, 1)"]]),
+    localv(tagged, T1, callexp('BC_MakeBlob', ["Arg",addr(bcp(f_p,1))])),
     setmode(w),
-    decl_x0_cached(T0),
+    localv(tagged, T0, x(0)),
     if(callexp('TaggedIsHVA', [T0]),
       bind(hva,T0,T1),
       if((T0," & ", "TagBitSVA"),
         bind(sva,T0,T1),
         bind(cva,T0,T1))),
     "}",
-    dispatch((callexp('LargeSize',["BcP(f_t, 1)"]),"")).
+    dispatch((callexp('LargeSize',[bcp(f_t,1)]),"")).
 
 :- ins_op_format(get_constant_x0q, 102, [f_Q,f_t]).
 get_constant_x0q :-
@@ -1739,8 +1760,8 @@ get_constant_x0 :-
 get_constant_x0 :-
     [[mode(w)]],
     "{",
-    decl_x0_cached(T0),
-    dec(op(f_t,"BcP(f_t, 1)"), A),
+    localv(tagged, T0, x(0)),
+    dec(op(f_t,bcp(f_t,1)), A),
     if(callexp('TaggedIsHVA', [T0]),
       bind(hva,T0,A),
       if((T0," & ", "TagBitSVA"),
@@ -1756,7 +1777,7 @@ get_nil_x0 :-
 get_nil_x0 :-
     [[mode(w)]],
     "{",
-    decl_x0_cached(T0),
+    localv(tagged, T0, x(0)),
     get_atom([], Nil),
     if(callexp('TaggedIsHVA', [T0]),
       bind(hva,T0,Nil),
@@ -1770,7 +1791,7 @@ get_nil_x0 :-
 get_list_x0 :-
     [[mode(r)]],
     "{",
-    decl_x0_cached(T0),
+    localv(tagged, T0, x(0)),
     "S" <- callexp('TagpPtr', ["LST", T0]),
     "}",
     dispatch("0").
@@ -1778,8 +1799,8 @@ get_list_x0 :-
     [[mode(w)]],
     "{",
     cachedreg('H', H),
-    localtg(t1,T1), T1 <- callexp('Tagp', ["LST",H]),
-    decl_x0_cached(T0),
+    localv(tagged, T1, tagp(lst, H)),
+    localv(tagged, T0, x(0)),
     if(callexp('TaggedIsHVA', [T0]),
       bind(hva,T0,T1),
       if((T0," & ", "TagBitSVA"),
@@ -1790,18 +1811,18 @@ get_list_x0 :-
 
 :- ins_op_format(get_xvar_xvar, 108, [f_x,f_x,f_x,f_x]).
 get_xvar_xvar :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_x,"BcP(f_x, 2)"), B),
-    dec(op(f_x,"BcP(f_x, 3)"), C),
-    dec(op(f_x,"BcP(f_x, 4)"), D),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_x,bcp(f_x,2)), B),
+    dec(op(f_x,bcp(f_x,3)), C),
+    dec(op(f_x,bcp(f_x,4)), D),
     B <- A,
     D <- C,
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))").
 
 :- ins_op_format(get_x_variable, 90, [f_x,f_x]).
 get_x_variable :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_x,"BcP(f_x, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_x,bcp(f_x,2)), B),
     B <- A,
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))").
 
@@ -1812,8 +1833,8 @@ get_y_first_variable :-
 
 :- ins_op_format(get_y_variable, 93, [f_x,f_y], [label(_)]).
 get_y_variable :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_y,"BcP(f_y, 2)"), B),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_y,bcp(f_y,2)), B),
     B <- A,
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
 
@@ -1824,17 +1845,17 @@ get_yfvar_yvar :-
 
 :- ins_op_format(get_yvar_yvar, 110, [f_x,f_y,f_x,f_y], [label(_)]).
 get_yvar_yvar :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_y,"BcP(f_y, 2)"), B),
-    dec(op(f_x,"BcP(f_x, 3)"), C),
-    dec(op(f_y,"BcP(f_y, 4)"), D),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_y,bcp(f_y,2)), B),
+    dec(op(f_x,bcp(f_x,3)), C),
+    dec(op(f_y,bcp(f_y,4)), D),
     B <- A,
     D <- C,
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y)+FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(branch, 68, [f_i]).
 branch :-
-    "P" <- "BCoff(P, BcP(f_i, 1))",
+    "P" <- callexp('BCoff', ["P", bcp(f_i,1)]),
     dispatch("0").
 
 % Call Expr function returning a tagged, goto fail on ERRORTAG
@@ -1842,94 +1863,112 @@ branch :-
 cfun_semidet(Target, Expr) :-
     if(("ERRORTAG==(", Target, " = (tagged_t)", Expr, ")"), goto('fail')).
 
+:- pred(call_f_C/3, [unfold]).
+call_f_C(Ty,F,X) :- "((", Ty, ")", F, ")", "(", "Arg", ",", X, ")".
+:- pred(call_f_C/4, [unfold]).
+call_f_C(Ty,F,X,Y) :- "((", Ty, ")", F, ")", "(", "Arg", ",", X, ",", Y, ")".
+:- pred(call_f_C/5, [unfold]).
+call_f_C(Ty,F,X,Y,Z) :- "((", Ty, ")", F, ")", "(", "Arg", ",", X, ",", Y, ",", Z, ")".
+
+:- pred(call_ctagged1/2, [unfold]).
+call_ctagged1(F,X) :- call_f_C("ctagged1_t", F,X).
+:- pred(call_ctagged2/3, [unfold]).
+call_ctagged2(F,X,Y) :- call_f_C("ctagged2_t", F,X,Y).
+
+:- pred(call_cbool1/2, [unfold]).
+call_cbool1(F,X) :- call_f_C("cbool1_t", F,X).
+:- pred(call_cbool2/3, [unfold]).
+call_cbool2(F,X,Y) :- call_f_C("cbool2_t", F,X,Y).
+:- pred(call_cbool3/4, [unfold]).
+call_cbool3(F,X,Y,Z) :- call_f_C("cbool3_t", F,X,Y,Z).
+
 :- pred(cblt_semidet/1, [unfold]).
-cblt_semidet(Expr) :-
-    if(("!", Expr), goto('fail')).
+cblt_semidet(Expr) :- if(("!", Expr), goto('fail')).
 
 :- ins_op_format(function_1q, 222, [f_Q,f_x,f_x,f_C,f_g], [label(r)]).
 :- ins_in_mode(function_1q, r).
 function_1q :-
-    dec(op(f_x,"BcP(f_x, 2)"), A),
-    dec(op(f_x,"BcP(f_x, 3)"), B),
-    "w->liveinfo" <- ["&","BcP(f_l, 6)"], % TODO: use f_g
-    cfun_semidet(A, callexp('((ctagged1_t)BcP(f_C, 4))', ["Arg",B])),
+    dec(op(f_x,bcp(f_x,2)), A),
+    dec(op(f_x,bcp(f_x,3)), B),
+    "w->liveinfo" <- addr(bcp(f_l,6)), % TODO: use f_g
+    cfun_semidet(A, call_ctagged1(bcp(f_C,4), B)),
     dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_g)").
 
 :- ins_op_format(function_1, 223, [f_x,f_x,f_C,f_g], [label(r)]).
 :- ins_in_mode(function_1, r).
 function_1 :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_x,"BcP(f_x, 2)"), B),
-    "w->liveinfo" <- ["&","BcP(f_l, 5)"], % TODO: use f_g
-    cfun_semidet(A, callexp('((ctagged1_t)BcP(f_C, 3))', ["Arg",B])),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_x,bcp(f_x,2)), B),
+    "w->liveinfo" <- addr(bcp(f_l,5)), % TODO: use f_g
+    cfun_semidet(A, call_ctagged1(bcp(f_C,3), B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_g)").
 
 :- ins_op_format(function_2q, 224, [f_Q,f_x,f_x,f_x,f_C,f_g], [label(r)]).
 :- ins_in_mode(function_2q, r).
 function_2q :-
-    dec(op(f_x,"BcP(f_x, 2)"), A),
-    dec(op(f_x,"BcP(f_x, 3)"), B),
-    dec(op(f_x,"BcP(f_x, 4)"), C),
-    "w->liveinfo" <- ["&","BcP(f_l, 7)"], % TODO: use f_g
-    cfun_semidet(A, callexp('((ctagged2_t)BcP(f_C, 5))', ["Arg",B,C])),
+    dec(op(f_x,bcp(f_x,2)), A),
+    dec(op(f_x,bcp(f_x,3)), B),
+    dec(op(f_x,bcp(f_x,4)), C),
+    "w->liveinfo" <- addr(bcp(f_l,7)), % TODO: use f_g
+    cfun_semidet(A, call_ctagged2(bcp(f_C,5),B,C)),
     dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_g)").
 
 :- ins_op_format(function_2, 225, [f_x,f_x,f_x,f_C,f_g], [label(r)]).
 :- ins_in_mode(function_2, r).
 function_2 :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_x,"BcP(f_x, 2)"), B),
-    dec(op(f_x,"BcP(f_x, 3)"), C),
-    "w->liveinfo" <- ["&","BcP(f_l, 6)"], % TODO: use f_g
-    cfun_semidet(A, callexp('((ctagged2_t)BcP(f_C, 4))', ["Arg",B,C])),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_x,bcp(f_x,2)), B),
+    dec(op(f_x,bcp(f_x,3)), C),
+    "w->liveinfo" <- addr(bcp(f_l,6)), % TODO: use f_g
+    cfun_semidet(A, call_ctagged2(bcp(f_C,4),B,C)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)+FTYPE_size(f_g)").
 
 :- ins_op_format(builtin_1q, 226, [f_Q,f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_1q, r).
 builtin_1q :-
-    dec(op(f_x,"BcP(f_x, 2)"), A),
-    cblt_semidet(callexp('((cbool1_t)BcP(f_C, 3))', ["Arg",A])),
+    dec(op(f_x,bcp(f_x,2)), A),
+    cblt_semidet(call_cbool1(bcp(f_C,3),A)),
     dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x))+FTYPE_size(f_C)").
 
 :- ins_op_format(builtin_1, 227, [f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_1, r).
 builtin_1 :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    cblt_semidet(callexp('((cbool1_t)BcP(f_C, 2))', ["Arg",A])),
+    dec(op(f_x,bcp(f_x,1)), A),
+    cblt_semidet(call_cbool1(bcp(f_C,2),A)),
     dispatch("FTYPE_size(f_x)+FTYPE_size(f_C)").
 
 :- ins_op_format(builtin_2q, 228, [f_Q,f_x,f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_2q, r).
 builtin_2q :-
-    dec(op(f_x,"BcP(f_x, 2)"), A),
-    dec(op(f_x,"BcP(f_x, 3)"), B),
-    cblt_semidet(callexp('((cbool2_t)BcP(f_C, 4))', ["Arg",A,B])),
+    dec(op(f_x,bcp(f_x,2)), A),
+    dec(op(f_x,bcp(f_x,3)), B),
+    cblt_semidet(call_cbool2(bcp(f_C,4),A,B)),
     dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)").
 
 :- ins_op_format(builtin_2, 229, [f_x,f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_2, r).
 builtin_2 :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_x,"BcP(f_x, 2)"), B),
-    cblt_semidet(callexp('((cbool2_t)BcP(f_C, 3))', ["Arg",A,B])),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_x,bcp(f_x,2)), B),
+    cblt_semidet(call_cbool2(bcp(f_C,3),A,B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)").
 
 :- ins_op_format(builtin_3q, 230, [f_Q,f_x,f_x,f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_3q, r).
 builtin_3q :-
-    dec(op(f_x,"BcP(f_x, 2)"), A),
-    dec(op(f_x,"BcP(f_x, 3)"), B),
-    dec(op(f_x,"BcP(f_x, 4)"), C),
-    cblt_semidet(callexp('((cbool3_t)BcP(f_C, 5))', ["Arg",A,B,C])),
+    dec(op(f_x,bcp(f_x,2)), A),
+    dec(op(f_x,bcp(f_x,3)), B),
+    dec(op(f_x,bcp(f_x,4)), C),
+    cblt_semidet(call_cbool3(bcp(f_C,5),A,B,C)),
     dispatch("(FTYPE_size(f_Q)+FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)").
 
 :- ins_op_format(builtin_3, 231, [f_x,f_x,f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_3, r).
 builtin_3 :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
-    dec(op(f_x,"BcP(f_x, 2)"), B),
-    dec(op(f_x,"BcP(f_x, 3)"), C),
-    cblt_semidet(callexp('((cbool3_t)BcP(f_C, 4))', ["Arg",A,B,C])),
+    dec(op(f_x,bcp(f_x,1)), A),
+    dec(op(f_x,bcp(f_x,2)), B),
+    dec(op(f_x,bcp(f_x,3)), C),
+    cblt_semidet(call_cbool3(bcp(f_C,4),A,B,C)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x)+FTYPE_size(f_x))+FTYPE_size(f_C)").
 
 % backtracking into clause/2
@@ -1961,10 +2000,10 @@ retry_instance :-
 :- ins_op_format(get_constraint, 247, [f_x], [label(w)]).
 :- ins_in_mode(get_constraint, w).
 get_constraint :-
-    dec(op(f_x,"BcP(f_x, 1)"), A),
+    dec(op(f_x,bcp(f_x,1)), A),
     "{", 
-    localtg(t1,T1), T1 <- A,
-    localtg(t2,T2), load(cva,T2),
+    localv(tagged, T1, A),
+    localv(tagged, T2), load(cva,T2),
     sw_on_var(T1,
       (bind(hva,T1,T2), A <- T2),
       bind(cva,T2,T1),
@@ -1976,15 +2015,15 @@ get_constraint :-
 :- ins_op_format(unify_void, 114, [f_i]).
 unify_void :-
     [[mode(r)]],
-    u1(void("BcP(f_i, 1)")),
+    u1(void(bcp(f_i,1))),
     dispatch("FTYPE_size(f_i)").
 unify_void :-
     [[mode(w)]],
     "{", fmt:nl,
     vardecl("intmach_t", "i"),
-    "i" <- ["(FTYPE_ctype(f_i_signed))", "BcP(f_i, 1)"],
+    "i" <- ("(FTYPE_ctype(f_i_signed))", bcp(f_i,1)),
     shift(f_i),
-    for("; i>4; --i",
+    for("intmach_t i0=i; i0>4; --i0",
       (cachedreg('H', H),
        call('ConstrHVA', [H]))),
     "}", fmt:nl,
@@ -2036,7 +2075,7 @@ unify_void_4 :-
 
 :- ins_op_format(unify_x_variable, 119, [f_x]).
 unify_x_variable :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
+    dec(op(f_x,bcp(f_x,1)),A),
     u1(var(A)),
     dispatch("FTYPE_size(f_x)").
 
@@ -2046,13 +2085,13 @@ unify_x_value :-
     goto_ins(unify_x_local_value).
 unify_x_value :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
+    dec(op(f_x,bcp(f_x,1)),A),
     u1(xval(A)),
     dispatch("FTYPE_size(f_x)").
 
 :- ins_op_format(unify_x_local_value, 121, [f_x], [label(r)]).
 unify_x_local_value :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
+    dec(op(f_x,bcp(f_x,1)),A),
     u1_dispatch(xlval(A), "FTYPE_size(f_x)").
 
 :- ins_op_format(unify_y_first_variable, 122, [f_y]).
@@ -2062,13 +2101,13 @@ unify_y_first_variable :-
 
 :- ins_op_format(unify_y_variable, 123, [f_y], [label(_)]).
 unify_y_variable :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
+    dec(op(f_y,bcp(f_y,1)),A),
     u1(var(A)),
     dispatch("FTYPE_size(f_y)").
 
 :- ins_op_format(unify_y_first_value, 124, [f_y]).
 unify_y_first_value :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
+    dec(op(f_y,bcp(f_y,1)),A),
     u1(yfval(A)),
     dispatch("FTYPE_size(f_y)").
 
@@ -2078,13 +2117,13 @@ unify_y_value :-
     goto_ins(unify_y_local_value).
 unify_y_value :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
+    dec(op(f_y,bcp(f_y,1)),A),
     u1(yval(A)),
     dispatch("FTYPE_size(f_y)").
 
 :- ins_op_format(unify_y_local_value, 126, [f_y], [label(r)]).
 unify_y_local_value :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
+    dec(op(f_y,bcp(f_y,1)),A),
     u1_dispatch(ylval(A), "FTYPE_size(f_y)").
 
 :- ins_op_format(unify_constantq, 127, [f_Q,f_t]).
@@ -2093,7 +2132,7 @@ unify_constantq :-
     shift(f_Q), goto_ins(unify_constant).
 unify_constantq :-
     [[mode(w)]],
-    dec(op(f_t,"BcP(f_t, 2)"), A),
+    dec(op(f_t,bcp(f_t,2)), A),
     heap_push(A),
     dispatch("FTYPE_size(f_Q)+FTYPE_size(f_t)").
 
@@ -2101,14 +2140,14 @@ unify_constantq :-
 unify_constant :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
-    dec(op(f_t,"BcP(f_t, 1)"), A),
+    localv(tagged, T1), ref_heap_next(T1),
+    dec(op(f_t,bcp(f_t,1)), A),
     unify_heap_atom(A,T1),
     "}",
     dispatch("FTYPE_size(f_t)").
 unify_constant :-
     [[mode(w)]],
-    dec(op(f_t,"BcP(f_t, 1)"), A),
+    dec(op(f_t,bcp(f_t,1)), A),
     heap_push(A),
     dispatch("FTYPE_size(f_t)").
 
@@ -2119,21 +2158,21 @@ unify_largeq :- shift(f_Q), goto_ins(unify_large).
 unify_large :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
-    dec(op(f_b,"BcP(f_t, 1)"), A),
+    localv(tagged, T1), ref_heap_next(T1),
+    dec(op(f_b,bcp(f_t,1)), A),
     unify_heap_large("Arg",A,T1),
     "}",
-    dispatch((callexp('LargeSize',["BcP(f_t, 1)"]),"")).
+    dispatch((callexp('LargeSize',[bcp(f_t,1)]),"")).
 unify_large :-
     [[mode(w)]],
     % TODO: try to switch to r mode properly (this code is tricky)
     % (this is 'heap_push and switch to read')
     cachedreg('H', H),
     "w->heap_top" <- callexp('HeapOffset', [H,"1"]),
-    dec(op(f_b,"BcP(f_t, 1)"), A),
+    dec(op(f_b,bcp(f_t,1)), A),
     "*H" <- callexp('BC_MakeBlob', ["Arg",A]),
     [[update(mode(r))]],
-    dispatch((callexp('LargeSize',["BcP(f_t, 1)"]),"")).
+    dispatch((callexp('LargeSize',[bcp(f_t,1)]),"")).
 
 :- ins_op_format(unify_structureq, 129, [f_Q,f_f]).
 unify_structureq :-
@@ -2142,8 +2181,8 @@ unify_structureq :-
 unify_structureq :-
     [[mode(w)]],
     cachedreg('H', H),
-    heap_push(callexp('Tagp', ["STR",callexp('HeapOffset', [H,"1"])])),
-    dec(op(f_f,"BcP(f_f, 2)"),A),
+    heap_push(tagp(str,callexp('HeapOffset', [H,"1"]))),
+    dec(op(f_f,bcp(f_f,2)),A),
     heap_push(A),
     dispatch("FTYPE_size(f_Q)+FTYPE_size(f_f)").
 
@@ -2151,15 +2190,15 @@ unify_structureq :-
 unify_structure :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
-    dec(op(f_f,"BcP(f_f, 1)"),A),
+    localv(tagged, T1), ref_heap_next(T1),
+    dec(op(f_f,bcp(f_f,1)),A),
     unify_heap_structure(A,T1,dispatch("FTYPE_size(f_f)")),
     "}".
 unify_structure :-
     [[mode(w)]],
     cachedreg('H', H),
-    heap_push(callexp('Tagp', ["STR",callexp('HeapOffset', [H,"1"])])),
-    dec(op(f_f,"BcP(f_f, 1)"),A),
+    heap_push(tagp(str,callexp('HeapOffset', [H,"1"]))),
+    dec(op(f_f,bcp(f_f,1)),A),
     heap_push(A),
     dispatch("FTYPE_size(f_f)").
 
@@ -2167,7 +2206,7 @@ unify_structure :-
 unify_nil :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
+    localv(tagged, T1), ref_heap_next(T1),
     get_atom([], Nil),
     unify_heap_atom(Nil, T1),
     "}",
@@ -2182,13 +2221,13 @@ unify_nil :-
 unify_list :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
+    localv(tagged, T1), ref_heap_next(T1),
     unify_heap_list(T1,dispatch("0")),
     "}".
 unify_list :-
     [[mode(w)]],
     cachedreg('H', H),
-    heap_push(callexp('Tagp', ["LST",callexp('HeapOffset', [H,"1"])])),
+    heap_push(tagp(lst,callexp('HeapOffset', [H,"1"]))),
     dispatch("0").
 
 :- ins_op_format(unify_constant_neck_proceedq, 133, [f_Q,f_t]).
@@ -2197,7 +2236,7 @@ unify_constant_neck_proceedq :-
     shift(f_Q), goto_ins(unify_constant_neck_proceed).
 unify_constant_neck_proceedq :-
     [[mode(w)]],
-    dec(op(f_t,"BcP(f_t, 2)"), A),
+    dec(op(f_t,bcp(f_t,2)), A),
     heap_push(A),
     goto_ins(neck_proceed).
 
@@ -2205,15 +2244,15 @@ unify_constant_neck_proceedq :-
 unify_constant_neck_proceed :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
-    dec(op(f_t,"BcP(f_t, 1)"), A),
+    localv(tagged, T1), ref_heap_next(T1),
+    dec(op(f_t,bcp(f_t,1)), A),
     unify_heap_atom(A,T1),
     "}",
     setmode(w),
     goto_ins(neck_proceed).
 unify_constant_neck_proceed :-
     [[mode(w)]],
-    dec(op(f_t,"BcP(f_t, 1)"), A),
+    dec(op(f_t,bcp(f_t,1)), A),
     heap_push(A),
     goto_ins(neck_proceed).
 
@@ -2221,7 +2260,7 @@ unify_constant_neck_proceed :-
 unify_nil_neck_proceed :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
+    localv(tagged, T1), ref_heap_next(T1),
     get_atom([], Nil),
     unify_heap_atom(Nil, T1),
     "}",
@@ -2235,8 +2274,8 @@ unify_nil_neck_proceed :-
 
 :- ins_op_format(u2_void_xvar, 136, [f_i,f_x]).
 u2_void_xvar :-
-    dec(op(f_x,"BcP(f_x, 2)"),B),
-    u1(void("BcP(f_i, 1)")),
+    dec(op(f_x,bcp(f_x,2)),B),
+    u1(void(bcp(f_i,1))),
     u1(var(B)),
     dispatch("(FTYPE_size(f_i)+FTYPE_size(f_x))").
 
@@ -2247,8 +2286,8 @@ u2_void_yfvar :-
 
 :- ins_op_format(u2_void_yvar, 140, [f_i,f_y], [label(_)]).
 u2_void_yvar :-
-    dec(op(f_y,"BcP(f_y, 2)"),B),
-    u1(void("BcP(f_i, 1)")),
+    dec(op(f_y,bcp(f_y,2)),B),
+    u1(void(bcp(f_i,1))),
     u1(var(B)),
     dispatch("(FTYPE_size(f_i)+FTYPE_size(f_y))").
 
@@ -2258,21 +2297,21 @@ u2_void_xval :-
     goto_ins(u2_void_xlval).
 u2_void_xval :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 2)"),B),
-    u1(void("BcP(f_i, 1)")),
+    dec(op(f_x,bcp(f_x,2)),B),
+    u1(void(bcp(f_i,1))),
     u1(xval(B)),
     dispatch("(FTYPE_size(f_i)+FTYPE_size(f_x))").
 
 :- ins_op_format(u2_void_xlval, 138, [f_i,f_x], [label(r)]).
 u2_void_xlval :-
-    dec(op(f_x,"BcP(f_x, 2)"),B),
-    u1(void("BcP(f_i, 1)")),
+    dec(op(f_x,bcp(f_x,2)),B),
+    u1(void(bcp(f_i,1))),
     u1_dispatch(xlval(B), "(FTYPE_size(f_i)+FTYPE_size(f_x))").
 
 :- ins_op_format(u2_void_yfval, 141, [f_i,f_y]).
 u2_void_yfval :-
-    dec(op(f_y,"BcP(f_y, 2)"),B),
-    u1(void("BcP(f_i, 1)")),
+    dec(op(f_y,bcp(f_y,2)),B),
+    u1(void(bcp(f_i,1))),
     u1(yfval(B)),
     dispatch("(FTYPE_size(f_i)+FTYPE_size(f_y))").
 
@@ -2282,28 +2321,28 @@ u2_void_yval :-
     goto_ins(u2_void_ylval).
 u2_void_yval :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 2)"),B),
-    u1(void("BcP(f_i, 1)")),
+    dec(op(f_y,bcp(f_y,2)),B),
+    u1(void(bcp(f_i,1))),
     u1(yval(B)),
     dispatch("(FTYPE_size(f_i)+FTYPE_size(f_y))").
 
 :- ins_op_format(u2_void_ylval, 143, [f_i,f_y], [label(r)]).
 u2_void_ylval :-
-    u1(void("BcP(f_i, 1)")),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    u1(void(bcp(f_i,1))),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1_dispatch(ylval(B), "(FTYPE_size(f_i)+FTYPE_size(f_y))").
 
 :- ins_op_format(u2_xvar_void, 144, [f_x,f_i]).
 u2_xvar_void :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
+    dec(op(f_x,bcp(f_x,1)),A),
     u1(var(A)),
-    u1(void("BcP(f_i, 2)")),
+    u1(void(bcp(f_i,2))),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_i))").
 
 :- ins_op_format(u2_xvar_xvar, 145, [f_x,f_x]).
 u2_xvar_xvar :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(var(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))").
@@ -2315,8 +2354,8 @@ u2_xvar_yfvar :-
 
 :- ins_op_format(u2_xvar_yvar, 149, [f_x,f_y], [label(_)]).
 u2_xvar_yvar :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(var(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
@@ -2327,23 +2366,23 @@ u2_xvar_xval :-
     goto_ins(u2_xvar_xlval).
 u2_xvar_xval :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(var(A)),
     u1(xval(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))").
 
 :- ins_op_format(u2_xvar_xlval, 147, [f_x,f_x], [label(r)]).
 u2_xvar_xlval :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(var(A)),
     u1_dispatch(xlval(B), "(FTYPE_size(f_x)+FTYPE_size(f_x))").
 
 :- ins_op_format(u2_xvar_yfval, 150, [f_x,f_y]).
 u2_xvar_yfval :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(var(A)),
     u1(yfval(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
@@ -2354,16 +2393,16 @@ u2_xvar_yval :-
     goto_ins(u2_xvar_ylval).
 u2_xvar_yval :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(var(A)),
     u1(yval(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(u2_xvar_ylval, 152, [f_x,f_y], [label(r)]).
 u2_xvar_ylval :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(var(A)),
     u1_dispatch(ylval(B), "(FTYPE_size(f_x)+FTYPE_size(f_y))").
 
@@ -2374,9 +2413,9 @@ u2_yfvar_void :-
 
 :- ins_op_format(u2_yvar_void, 154, [f_y,f_i], [label(_)]).
 u2_yvar_void :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
+    dec(op(f_y,bcp(f_y,1)),A),
     u1(var(A)),
-    u1(void("BcP(f_i, 2)")),
+    u1(void(bcp(f_i,2))),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_i))").
 
 :- ins_op_format(u2_yfvar_xvar, 155, [f_y,f_x]).
@@ -2386,8 +2425,8 @@ u2_yfvar_xvar :-
 
 :- ins_op_format(u2_yvar_xvar, 156, [f_y,f_x], [label(_)]).
 u2_yvar_xvar :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(var(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_x))").
@@ -2399,8 +2438,8 @@ u2_yfvar_yvar :-
 
 :- ins_op_format(u2_yvar_yvar, 158, [f_y,f_y], [label(_)]).
 u2_yvar_yvar :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(var(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_y))").
@@ -2425,16 +2464,16 @@ u2_yvar_xval :-
     goto_ins(u2_yvar_xlval).
 u2_yvar_xval :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(var(A)),
     u1(xval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_x))").
 
 :- ins_op_format(u2_yvar_xlval, 162, [f_y,f_x], [label(_)]).
 u2_yvar_xlval :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(var(A)),
     u1_dispatch(xlval(B), "(FTYPE_size(f_y)+FTYPE_size(f_x))").
 
@@ -2458,38 +2497,38 @@ u2_yvar_yval :-
     goto_ins(u2_yvar_ylval).
 u2_yvar_yval :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(var(A)),
     u1(yval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_y))").
 
 :- ins_op_format(u2_yvar_ylval, 166, [f_y,f_y], [label(_)]).
 u2_yvar_ylval :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(var(A)),
     u1_dispatch(ylval(B), "(FTYPE_size(f_y)+FTYPE_size(f_y))").
 
 :- ins_op_format(u2_yfval_void, 185, [f_y,f_i]).
 u2_yfval_void :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
+    dec(op(f_y,bcp(f_y,1)),A),
     u1(yfval(A)),
-    u1(void("BcP(f_i, 2)")),
+    u1(void(bcp(f_i,2))),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_i))").
 
 :- ins_op_format(u2_yfval_xvar, 188, [f_y,f_x]).
 u2_yfval_xvar :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(yfval(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_x))").
 
 :- ins_op_format(u2_yfval_yfval, 199, [f_y,f_y]).
 u2_yfval_yfval :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(yfval(A)),
     u1(yfval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_y))").
@@ -2500,16 +2539,16 @@ u2_yfval_xval :-
     goto_ins(u2_yfval_xlval).
 u2_yfval_xval :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(yfval(A)),
     u1(xval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_x))").
 
 :- ins_op_format(u2_yfval_xlval, 196, [f_y,f_x], [label(r)]).
 u2_yfval_xlval :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(yfval(A)),
     u1_dispatch(xlval(B), "(FTYPE_size(f_y)+FTYPE_size(f_x))").
 
@@ -2519,16 +2558,16 @@ u2_yfval_yval :-
     goto_ins(u2_yfval_ylval).
 u2_yfval_yval :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(yfval(A)),
     u1(yval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_y))").
 
 :- ins_op_format(u2_yfval_ylval, 205, [f_y,f_y], [label(r)]).
 u2_yfval_ylval :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(yfval(A)),
     u1_dispatch(ylval(B), "(FTYPE_size(f_y)+FTYPE_size(f_y))").
 
@@ -2538,25 +2577,25 @@ u2_xval_void :-
     goto_ins(u2_xlval_void).
 u2_xval_void :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
+    dec(op(f_x,bcp(f_x,1)),A),
     u1(xval(A)),
-    u1(void("BcP(f_i, 2)")),
+    u1(void(bcp(f_i,2))),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_i))").
 
 :- ins_op_format(u2_xlval_void, 168, [f_x,f_i], [label(r)]).
 u2_xlval_void :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
-    u1(void("BcP(f_i, 2)")),
-    dec(op(f_x,"BcP(f_x, 1)"), A),
+    localv(tagged, T1), ref_heap_next(T1),
+    u1(void(bcp(f_i,2))),
+    dec(op(f_x,bcp(f_x,1)), A),
     eunify(A,T1,"(FTYPE_size(f_x)+FTYPE_size(f_i))"),
     "}".
 u2_xlval_void :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
+    dec(op(f_x,bcp(f_x,1)),A),
     u1(xlval(A)),
-    u1(void("BcP(f_i, 2)")),
+    u1(void(bcp(f_i,2))),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_i))").
 
 :- ins_op_format(u2_xval_xvar, 169, [f_x,f_x]).
@@ -2565,8 +2604,8 @@ u2_xval_xvar :-
     goto_ins(u2_xlval_xvar).
 u2_xval_xvar :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(xval(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))").
@@ -2574,18 +2613,18 @@ u2_xval_xvar :-
 :- ins_op_format(u2_xlval_xvar, 170, [f_x,f_x], [label(r)]).
 u2_xlval_xvar :-
     [[mode(r)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     "{",
-    localtg(t0,T0), T0 <- A,
-    localtg(t1,T1), ref_heap_next(T1),
+    localv(tagged, T0, A),
+    localv(tagged, T1), ref_heap_next(T1),
     u1(var(B)),
     eunify(T0,T1,"(FTYPE_size(f_x)+FTYPE_size(f_x))"),
     "}".
 u2_xlval_xvar :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(xlval(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))").
@@ -2610,16 +2649,16 @@ u2_xval_yvar :-
     goto_ins(u2_xlval_yvar).
 u2_xval_yvar :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(xval(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(u2_xlval_yvar, 174, [f_x,f_y], [label(_)]).
 u2_xlval_yvar :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(xlval(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
@@ -2630,8 +2669,8 @@ u2_xval_xval :-
     goto_ins(u2_xval_xlval).
 u2_xval_xval :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(xval(A)),
     u1(xval(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))").
@@ -2642,8 +2681,8 @@ u2_xval_xlval :-
     goto_ins(u2_xlval_xval).
 u2_xval_xlval :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(xval(A)),
     u1(xlval(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))").
@@ -2654,16 +2693,16 @@ u2_xlval_xval :-
     goto_ins(u2_xlval_xlval).
 u2_xlval_xval :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(xlval(A)),
     u1(xval(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_x))").
 
 :- ins_op_format(u2_xlval_xlval, 178, [f_x,f_x], [label(r)]).
 u2_xlval_xlval :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(xlval(A)),
     u1_dispatch(xlval(B), "(FTYPE_size(f_x)+FTYPE_size(f_x))").
 
@@ -2673,16 +2712,16 @@ u2_xval_yfval :-
     goto_ins(u2_xlval_yfval).
 u2_xval_yfval :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(xval(A)),
     u1(yfval(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(u2_xlval_yfval, 180, [f_x,f_y], [label(r)]).
 u2_xlval_yfval :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(xlval(A)),
     u1(yfval(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
@@ -2693,8 +2732,8 @@ u2_xval_yval :-
     goto_ins(u2_xval_ylval).
 u2_xval_yval :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(xval(A)),
     u1(yval(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
@@ -2705,8 +2744,8 @@ u2_xval_ylval :-
     goto_ins(u2_xlval_yval).
 u2_xval_ylval :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(xval(A)),
     u1(ylval(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
@@ -2717,16 +2756,16 @@ u2_xlval_yval :-
     goto_ins(u2_xlval_ylval).
 u2_xlval_yval :-
     [[mode(w)]],
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(xlval(A)),
     u1(yval(B)),
     dispatch("(FTYPE_size(f_x)+FTYPE_size(f_y))").
 
 :- ins_op_format(u2_xlval_ylval, 184, [f_x,f_y], [label(r)]).
 u2_xlval_ylval :-
-    dec(op(f_x,"BcP(f_x, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_x,bcp(f_x,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(xlval(A)),
     u1_dispatch(ylval(B), "(FTYPE_size(f_x)+FTYPE_size(f_y))").
 
@@ -2736,25 +2775,25 @@ u2_yval_void :-
     goto_ins(u2_ylval_void).
 u2_yval_void :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
+    dec(op(f_y,bcp(f_y,1)),A),
     u1(yval(A)),
-    u1(void("BcP(f_i, 2)")),
+    u1(void(bcp(f_i,2))),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_i))").
 
 :- ins_op_format(u2_ylval_void, 187, [f_y,f_i], [label(r)]).
 u2_ylval_void :-
     [[mode(r)]],
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
-    u1(void("BcP(f_i, 2)")),
-    dec(op(f_y,"BcP(f_y, 1)"), A),
+    localv(tagged, T1), ref_heap_next(T1),
+    u1(void(bcp(f_i,2))),
+    dec(op(f_y,bcp(f_y,1)), A),
     eunify(A,T1,"(FTYPE_size(f_y)+FTYPE_size(f_i))"),
     "}".
 u2_ylval_void :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
+    dec(op(f_y,bcp(f_y,1)),A),
     u1(ylval(A)),
-    u1(void("BcP(f_i, 2)")),
+    u1(void(bcp(f_i,2))),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_i))").
 
 :- ins_op_format(u2_yval_xvar, 189, [f_y,f_x]).
@@ -2763,8 +2802,8 @@ u2_yval_xvar :-
     goto_ins(u2_ylval_xvar).
 u2_yval_xvar :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(yval(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_x))").
@@ -2772,17 +2811,17 @@ u2_yval_xvar :-
 :- ins_op_format(u2_ylval_xvar, 190, [f_y,f_x], [label(r)]).
 u2_ylval_xvar :-
     [[mode(r)]],
-    dec(op(f_y,"BcP(f_y, 1)"), A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)), A),
+    dec(op(f_x,bcp(f_x,2)),B),
     "{",
-    localtg(t1,T1), ref_heap_next(T1),
+    localv(tagged, T1), ref_heap_next(T1),
     u1(var(B)),
     eunify(A,T1,"(FTYPE_size(f_y)+FTYPE_size(f_x))"),
     "}".
 u2_ylval_xvar :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(ylval(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_x))").
@@ -2793,16 +2832,16 @@ u2_yval_yvar :-
     goto_ins(u2_ylval_yvar).
 u2_yval_yvar :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(yval(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_y))").
 
 :- ins_op_format(u2_ylval_yvar, 192, [f_y,f_y], [label(r)]).
 u2_ylval_yvar :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(ylval(A)),
     u1(var(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_y))").
@@ -2813,16 +2852,16 @@ u2_yval_yfval :-
     goto_ins(u2_ylval_yfval).
 u2_yval_yfval :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(yval(A)),
     u1(yfval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_y))").
 
 :- ins_op_format(u2_ylval_yfval, 201, [f_y,f_y], [label(r)]).
 u2_ylval_yfval :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(ylval(A)),
     u1(yfval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_y))").
@@ -2833,8 +2872,8 @@ u2_yval_xval :-
     goto_ins(u2_yval_xlval).
 u2_yval_xval :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(yval(A)),
     u1(xval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_x))").
@@ -2845,8 +2884,8 @@ u2_yval_xlval :-
     goto_ins(u2_ylval_xval).
 u2_yval_xlval :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(yval(A)),
     u1(xlval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_x))").
@@ -2857,16 +2896,16 @@ u2_ylval_xval :-
     goto_ins(u2_ylval_xlval).
 u2_ylval_xval :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(ylval(A)),
     u1(xval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_x))").
 
 :- ins_op_format(u2_ylval_xlval, 198, [f_y,f_x], [label(r)]).
 u2_ylval_xlval :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_x,"BcP(f_x, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_x,bcp(f_x,2)),B),
     u1(ylval(A)),
     u1_dispatch(xlval(B), "(FTYPE_size(f_y)+FTYPE_size(f_x))").
 
@@ -2876,8 +2915,8 @@ u2_yval_yval :-
     goto_ins(u2_yval_ylval).
 u2_yval_yval :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(yval(A)),
     u1(yval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_y))").
@@ -2888,8 +2927,8 @@ u2_yval_ylval :-
     goto_ins(u2_ylval_yval).
 u2_yval_ylval :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(yval(A)),
     u1(ylval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_y))").
@@ -2900,16 +2939,16 @@ u2_ylval_yval :-
     goto_ins(u2_ylval_ylval).
 u2_ylval_yval :-
     [[mode(w)]],
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(ylval(A)),
     u1(yval(B)),
     dispatch("(FTYPE_size(f_y)+FTYPE_size(f_y))").
 
 :- ins_op_format(u2_ylval_ylval, 207, [f_y,f_y], [label(r)]).
 u2_ylval_ylval :-
-    dec(op(f_y,"BcP(f_y, 1)"),A),
-    dec(op(f_y,"BcP(f_y, 2)"),B),
+    dec(op(f_y,bcp(f_y,1)),A),
+    dec(op(f_y,bcp(f_y,2)),B),
     u1(ylval(A)),
     u1_dispatch(ylval(B), "(FTYPE_size(f_y)+FTYPE_size(f_y))").
 
@@ -2951,16 +2990,13 @@ heapmargin_callq :- shift(f_Q), goto_ins(heapmargin_call).
 :- ins_op_format(heapmargin_call, 246, [f_g], [label(_)]).
 heapmargin_call :-
     cachedreg('H',H),
-    if((callexp('HeapCharDifference', [H, "Heap_End"]), " < ", ["(intmach_t)","BcP(f_l, 1)"]), % TODO: abstract code to use f_g
+    if((callexp('HeapCharDifference', [H, "Heap_End"]), " < ", ("(intmach_t)",bcp(f_l,1))), % TODO: abstract code to use f_g
       ([[mode(M)]],
        setmode(r),
-       call('explicit_heap_overflow', ["Arg",["(intmach_t)","BcP(f_l, 1)*2"],["(FTYPE_ctype(f_i_signed))","BcP(f_i, 3)"]]),
+       call('explicit_heap_overflow', ["Arg",("(intmach_t)",bcp(f_l,1),"*","2"),("(FTYPE_ctype(f_i_signed))",bcp(f_i,3))]),
        setmode(M)
        )),
     dispatch("FTYPE_size(f_g)").
-
-:- pred(decl_x0_cached/1, [unfold]).
-decl_x0_cached(T0) :- localtg(t0,T0), T0 <- "X(0)". % load X(0) into t0
 
 :- ins_op_format(neck, 65, [], [label(_)]).
 neck :-
@@ -2969,8 +3005,8 @@ neck :-
 
 :- ins_op_format(dynamic_neck_proceed, 236, [], [label(w)]).
 :- ins_in_mode(dynamic_neck_proceed, w).
-dynamic_neck_proceed :- % (needs: ins)
-    unify_atom_internal(callexp('PointerToTerm',["w->misc->ins"]),"X(3)"),
+dynamic_neck_proceed :- % (needs: w->misc->ins)
+    unify_atom_internal(callexp('PointerToTerm',["w->misc->ins"]),x(3)),
     if("IsDeep()", goto_ins(proceed)),
     "B" <- "w->choice",
     % (assume w->next_alt != NULL)
@@ -3099,13 +3135,13 @@ profile_hook(redo) :-
 :- doc(section, "Gauge (profiling counters)").
 
 :- pred(gauge_incr_counter/1, [unfold]).
-gauge_incr_counter(t1) :- % Counter in bytecode "BcP(f_l, 1)"
+gauge_incr_counter(t1) :- % Counter in bytecode bcp(f_l,1)
     cpp_if_defined('GAUGE'),
-    call('INCR_COUNTER', ["BcP(f_l, 1)"]),
+    call('INCR_COUNTER', [bcp(f_l,1)]),
     cpp_endif.
-gauge_incr_counter(t3) :- % Counter in bytecode "BcP(f_l, 3)"
+gauge_incr_counter(t3) :- % Counter in bytecode bcp(f_l,3)
     cpp_if_defined('GAUGE'),
-    call('INCR_COUNTER', ["BcP(f_l, 3)"]),
+    call('INCR_COUNTER', [bcp(f_l,3)]),
     cpp_endif.
 gauge_incr_counter(alts) :- % Counter in Alts
     [[ Alts = "alts" ]],
@@ -3241,8 +3277,8 @@ op_macros :-
 wam_loop_defs :-
     autogen_warning_comment,
     % TODO: move somewhere else
-    "extern instance_clock_t def_clock", ";", fmt:nl,
-    "extern instance_clock_t use_clock", ";", fmt:nl,
+    extern_vardecl("instance_clock_t", "def_clock"),
+    extern_vardecl("instance_clock_t", "use_clock"),
     %
     op_macros,
     wam__2_proto,
@@ -3269,13 +3305,13 @@ wam_def :-
     "}, {", fmt:nl, % catch
     "choice_t *b; frame_t *e;", fmt:nl,
     code_neck, % Force neck if not done
-    "X(0) = MakeSmall(ErrCode);", fmt:nl, % Error code
-    "X(1) = GET_ATOM(ErrFuncName);", fmt:nl, % Builtin name
-    "X(2) = MakeSmall(ErrFuncArity);", fmt:nl, % Builtin arity
-    "X(4) = Culprit;", fmt:nl, % Culprit arg.
-    "X(3) = MakeSmall(ErrArgNo);", fmt:nl, % w. number
-    "func = address_error;", fmt:nl,
-    "goto again;", fmt:nl,
+    x(0) <- "MakeSmall(ErrCode)", % Error code
+    x(1) <- "GET_ATOM(ErrFuncName)", % Builtin name
+    x(2) <- "MakeSmall(ErrFuncArity)", % Builtin arity
+    x(4) <- "Culprit", % Culprit arg.
+    x(3) <- "MakeSmall(ErrArgNo)", % w. number
+    "func" <- "address_error",
+    goto('again'),
     "});", fmt:nl,
     "}", fmt:nl.
 
@@ -3328,16 +3364,15 @@ wam_loop :-
 % Local variable declarations for the WAM loop
 :- pred(wam_loop_decls/0, [unfold]).
 wam_loop_decls :-
-    "bcp_t p;", fmt:nl,
-    "try_node_t *alts;", fmt:nl,
-    "choice_t *b;", fmt:nl, % TODO:[merge-oc] B
-    "frame_t *e;", fmt:nl, % TODO:[merge-oc] E
-    "tagged_t *cached_r_h;", fmt:nl, % TODO:[merge-oc] H
-    "tagged_t *r_s;", fmt:nl, % TODO:[merge-oc] S
+    vardecl("bcp_t", "p"),
+    vardecl("try_node_t *", "alts"),
+    vardecl("choice_t *", "b"), % TODO:[merge-oc] B
+    vardecl("frame_t *", "e"), % TODO:[merge-oc] E
+    vardecl("tagged_t *", "cached_r_h"), % TODO:[merge-oc] H
+    vardecl("tagged_t *", "r_s"), % TODO:[merge-oc] S
     %
-    vardecl("intmach_t", "ei"),
-    % temps for terms (decreasing importance) 
-    vardecl("bcp_t", "ptemp", "NULL"), % reg. decl. not critical
+    vardecl("intmach_t", "ei"), % (parameter of switch_on_pred, switch_on_pred_sub, call4)
+    vardecl("bcp_t", "ptemp", "NULL"), % (parameter of escape_to_p, escape_to_p2)
     %
     "alts" <- "NULL",
     "b" <- "NULL",
@@ -3375,13 +3410,13 @@ code_loop_begin :-
 escape_to_p2 :- % (needs: ptemp)
     [[update(mode(w))]],
     "{",
-    "tagged_t t2;",
-    "tagged_t t3;",
-    "t2" <- "PointerToTerm(Func->code.intinfo)",
-    emul_to_goal("t3"), % (stores: t3)
+    localv(tagged, T2),
+    localv(tagged, T3),
+    T2 <- "PointerToTerm(Func->code.intinfo)",
+    emul_to_goal(T3), % (stores: T3)
     "P" <- "ptemp",
-    "X(0)" <- "t3",
-    "X(1)" <- "t2",
+    x(0) <- T3,
+    x(1) <- T2,
     "}",
     goto('switch_on_pred').
 
@@ -3389,10 +3424,10 @@ escape_to_p2 :- % (needs: ptemp)
 escape_to_p :- % (needs: ptemp)
     [[update(mode(w))]],
     "{",
-    "tagged_t t3;",
-    emul_to_goal("t3"), % (stores: t3)
+    localv(tagged, T3),
+    emul_to_goal(T3), % (stores: T3)
     "P" <- "ptemp",
-    "X(0)" <- "t3",
+    x(0) <- T3,
     "}",
     goto('switch_on_pred').
 
@@ -3408,7 +3443,7 @@ code_undo(T0) :-
     "w->next_insn" <- "failcode",
     "w->local_top" <- "(frame_t *)Offset(E,EToY0)",
     setmode(w),
-    "X(0)" <- T0,
+    x(0) <- T0,
     do_builtin_call(syscall, T0).
 
 :- pred(code_fail/0, [unfold]).
@@ -3435,19 +3470,21 @@ untrail :-
     "ON_TABLING( MAKE_TRAIL_CACTUS_STACK; );", fmt:nl,
     %
     "{", fmt:nl,
-    localtg(t0,T0),
-    localtg(t1,T1),
-    "tagged_t *pt2;", fmt:nl,
-    if(("TrailYounger(pt2=w->trail_top,",T1,"=(tagged_t)TrailTopUnmark(B->trail_top))"),
+    localv(tagged, T0),
+    localv(tagged, T1),
+    localv(ptr(tagged), Pt2),
+    Pt2 <- "w->trail_top",
+    T1 <- "(tagged_t)TrailTopUnmark(B->trail_top)",
+    if(("TrailYounger(",Pt2,",",T1,")"),
       (do_while(
         ([[mode(M)]],
-         "PlainUntrail(", "pt2", ",", T0, ",", "{", fmt:nl,
-           "w->trail_top" <- "pt2",
+         "PlainUntrail(", Pt2, ",", T0, ",", "{", fmt:nl,
+           "w->trail_top" <- Pt2,
            code_undo(T0), 
          "});", fmt:nl,
          [[update(mode(M))]]),
-        ("TrailYounger(pt2,",T1,")")),
-      "w->trail_top" <- "pt2")),
+        (callexp('TrailYounger', [Pt2,T1]))),
+      "w->trail_top" <- Pt2)),
     "}", fmt:nl,
     %
     backtrack_.
@@ -3459,24 +3496,24 @@ backtrack_ :-
     profile_hook(redo),
     "P" <- "(bcp_t)w->next_alt",
     "{", fmt:nl,
-    vardecl("try_node_t *", "alt"),
-    "alt" <- "((try_node_t *)P)->next",
+    localv(ptr(try_node), Alt),
+    Alt <- "((try_node_t *)P)->next",
     [[mode(M)]],
-    if("alt == NULL", ( % TODO: This one is not a deep check! (see line above)
+    if((Alt, "==", "NULL"), ( % TODO: This one is not a deep check! (see line above)
       % TODO:[oc-merge] 'altmode.jump_fail_cont'(_,no_alt)
       [[update(mode(M))]],
-      jump_fail_cont(no_alt)
+      jump_fail_cont(no_alt, Alt)
     ), (
       [[update(mode(M))]],
-      jump_fail_cont(next_alt)
+      jump_fail_cont(next_alt, Alt)
     )), % TODO:[oc-merge] choice_patch also modified w->choice->next_alt in OPTIM_COMP
     "}", fmt:nl,
     % Make sure that no mode dependant code appears next
     % TODO: better way?
     [[update(mode('?'))]].
 
-:- pred(jump_fail_cont/1, [unfold]).
-jump_fail_cont(AltMode) :- [[ AltMode = no_alt ]],
+:- pred(jump_fail_cont/2, [unfold]).
+jump_fail_cont(AltMode, _Alt) :- [[ AltMode = no_alt ]],
     "SetDeep();", fmt:nl,
     "B" <- "w->previous_choice",
     "SetChoice(B);", fmt:nl,
@@ -3487,15 +3524,15 @@ jump_fail_cont(AltMode) :- [[ AltMode = no_alt ]],
       call('push_choicept', ["w","address_nd_fake_choicept"])),
     "});", fmt:nl,
     jump_alt_code("P").
-jump_fail_cont(AltMode) :- [[ AltMode = next_alt ]],
+jump_fail_cont(AltMode, Alt) :- [[ AltMode = next_alt ]],
     % TODO:[oc-merge] 'altmode.jump_fail_cont'(_,next_alt)
-    "CODE_CHOICE_PATCH(w->choice, alt);", fmt:nl,
+    call('CODE_CHOICE_PATCH', ["w->choice", Alt]),
     jump_alt_code("P").
 
 :- pred(jump_alt_code/1, [unfold]).
 jump_alt_code(Alt) :-
     "P" <- ("((try_node_t *)", Alt, ")->emul_p"),
-    if("!IsVar(X(0))", goto_ins_dispatch),
+    if(("!IsVar(",x(0),")"), goto_ins_dispatch),
     setmode(w),
     % TODO: check for emugen error reporting
     %bug_nondet,
@@ -3601,11 +3638,11 @@ code_enter_pred :-
         if("wake_count==1",
           ("SETUP_PENDING_CALL(E, address_uvc);",
           "collect_one_pending_unification(Arg);", % does not touch H
-          localtg(t0,T0),
-          call('DEREF', [T0,"X(1)"]),
+          localv(tagged, T0),
+          call('DEREF', [T0,x(1)]),
           if(callexp('TaggedIsCVA', [T0]),
             (% X(1)=*TaggedToGoal(t0);
-             "X(1)" <- T0,
+             x(1) <- T0,
              % patch prev. SETUP_PENDING_CALL
              call('Setfunc', ["address_ucc"])))),
           % wake_count > 1
@@ -3631,12 +3668,6 @@ switch_on_pred :-
 :- pred(pred_enter_undefined/0, [unfold]).
 pred_enter_undefined :-
     [[update(mode(w))]],
-    case('ENTER_FASTCODE_INDEXED'), fmt:nl,
-    goto('enter_undefined'),
-    case('ENTER_FASTCODE'), fmt:nl,
-    goto('enter_undefined'),
-    case('ENTER_UNDEFINED'), fmt:nl,
-    label('enter_undefined'),
     pred_trace("\"U\""),
     "ptemp" <- "(bcp_t)address_undefined_goal", % (arity 1)
     goto('escape_to_p').
@@ -3644,7 +3675,6 @@ pred_enter_undefined :-
 :- pred(pred_enter_interpreted/0, [unfold]).
 pred_enter_interpreted :-
     [[update(mode(w))]],
-    case('ENTER_INTERPRETED'), fmt:nl,
     % pred_trace("\"I\""),
     "ptemp" <- "(bcp_t)address_interpret_c_goal", % (arity 2)
     goto('escape_to_p2').
@@ -3652,7 +3682,6 @@ pred_enter_interpreted :-
 :- pred(pred_enter_c/0, [unfold]).
 pred_enter_c :-
     [[update(mode(w))]],
-    case('ENTER_C'), fmt:nl,
     pred_trace("\"C\""),
     setmode(r),
     % Changed by DCG to handle errors in Prolog
@@ -3673,21 +3702,18 @@ pred_enter_c :-
 :- pred(pred_enter_builtin_true/0, [unfold]).
 pred_enter_builtin_true :-
     [[update(mode(w))]],
-    case('BUILTIN_TRUE'),
     pred_trace("\"B\""),
     goto_ins(proceed).
 
 :- pred(pred_enter_builtin_fail/0, [unfold]).
 pred_enter_builtin_fail :-
     [[update(mode(w))]],
-    case('BUILTIN_FAIL'),
     pred_trace("\"B\""),
     goto('fail').
 
 :- pred(pred_enter_builtin_current_instance/0, [unfold]).
 pred_enter_builtin_current_instance :-
     [[update(mode(w))]],
-    case('BUILTIN_CURRENT_INSTANCE'),
     pred_trace("\"B\""),
     setmode(r),
     "w->misc->ins" <- "CFUN__EVAL(current_instance0)",
@@ -3698,7 +3724,6 @@ pred_enter_builtin_current_instance :-
 :- pred(pred_enter_builtin_compile_term/0, [unfold]).
 pred_enter_builtin_compile_term :-
     [[update(mode(w))]],
-    case('BUILTIN_COMPILE_TERM'),
     pred_trace("\"B\""),
     setmode(r),
     "{", fmt:nl,
@@ -3717,30 +3742,28 @@ pred_enter_builtin_compile_term :-
 :- pred(pred_enter_builtin_instance/0, [unfold]).
 pred_enter_builtin_instance :-
     [[update(mode(w))]],
-    case('BUILTIN_INSTANCE'),
     % ASSERT: X(2) is a dereferenced integer
     pred_trace("\"B\""),
-    load(hva, "X(3)"),
-    "w->misc->ins" <- "TaggedToInstance(X(2))",
+    load(hva, x(3)),
+    "w->misc->ins" <- callexp('TaggedToInstance', [x(2)]),
     "P" <- "(bcp_t)w->misc->ins->emulcode",
     goto_ins_dispatch.
 
 :- pred(pred_enter_builtin_geler/0, [unfold]).
 pred_enter_builtin_geler :-
     [[update(mode(w))]],
-    case('BUILTIN_GELER'),
     pred_trace("\"B\""),
     "{",
-    localtg(t1,T1), T1 <- "X(0)",
+    localv(tagged, T1, x(0)),
     deref_sw0(T1,";"),
-    "tagged_t t3; ",
-    "t3" <- "X(1)",
-    deref_sw0("t3",";"),
-    call('Setfunc', [callexp('find_definition', ["predicates_location","t3","&w->structure","TRUE"])]),
+    localv(tagged, T3),
+    T3 <- x(1),
+    deref_sw0(T3,";"),
+    call('Setfunc', [callexp('find_definition', ["predicates_location",T3,"&w->structure","TRUE"])]),
     % suspend the goal  t3  on  t1.  Func, must be live.
     [[mode(M)]],
     setmode(r),
-    call('CVOID__CALL', ["SUSPEND_T3_ON_T1", "Func", "t3", T1]),
+    call('CVOID__CALL', ["SUSPEND_T3_ON_T1", "Func", T3, T1]),
     setmode(M),
     "}",
     goto_ins(proceed).
@@ -3749,11 +3772,10 @@ pred_enter_builtin_geler :-
 :- pred(pred_enter_builtin_nodebugcall/0, [unfold]).
 pred_enter_builtin_nodebugcall :-
     [[update(mode(w))]],
-    case('BUILTIN_NODEBUGCALL'),
     pred_trace("\"B\""),
     "{",
-    localtg(t0,T0), T0 <- "X(0)",
-    deref_sw(T0,"X(0)",";"),
+    localv(tagged, T0, x(0)),
+    deref_sw(T0,x(0),";"),
     do_builtin_call(nodebugcall, T0),
     "}".
 
@@ -3761,22 +3783,20 @@ pred_enter_builtin_nodebugcall :-
 :- pred(pred_enter_builtin_syscall/0, [unfold]).
 pred_enter_builtin_syscall :-
     [[update(mode(w))]],
-    case('BUILTIN_SYSCALL'),
     pred_trace("\"B\""),
     "{",
-    localtg(t0,T0), T0 <- "X(0)", 
-    deref_sw(T0,"X(0)",";"),
+    localv(tagged, T0, x(0)), 
+    deref_sw(T0,x(0),";"),
     do_builtin_call(syscall, T0),
     "}".
 
 :- pred(pred_enter_builtin_call/0, [unfold]).
 pred_enter_builtin_call :-
     [[update(mode(w))]],
-    case('BUILTIN_CALL'),
     pred_trace("\"B\""),
     "{",
-    localtg(t0,T0), T0 <- "X(0)",
-    deref_sw(T0,"X(0)",";"),
+    localv(tagged, T0, x(0)),
+    deref_sw(T0,x(0),";"),
     do_builtin_call(call, T0),
     "}".
 
@@ -3808,33 +3828,31 @@ do_builtin_call(CallMode, T0) :-
 
 :- pred(pred_call4/0, [unfold]).
 pred_call4 :-
-    label('call4'),
-    switch("ei", 
-      (pred_call_interpreted,
-      pred_call_builtin_dif,
-      pred_call_spypoint,
-      pred_call_waitpoint,
-      pred_call5,
-      pred_call_default)).
+    switch("ei", (
+        case('ENTER_INTERPRETED'), pred_call_interpreted,
+        case('BUILTIN_DIF'), pred_call_builtin_dif,
+        case('SPYPOINT'), pred_call_spypoint,
+        case('WAITPOINT'), label('call_waitpoint'), pred_call_waitpoint,
+        label('call5'), pred_call5, % TODO: move outside switch?
+        label('default'), pred_call_default
+    )).
 
 :- pred(pred_call_interpreted/0, [unfold]).
 pred_call_interpreted :-
     [[update(mode(w))]],
-    case('ENTER_INTERPRETED'),
     % pred_trace("\"I\""),
-    "X(1)" <- "PointerToTerm(Func->code.intinfo)",
+    x(1) <- "PointerToTerm(Func->code.intinfo)",
     call('Setfunc', ["address_interpret_goal"]),
     goto('switch_on_pred').
 
 :- pred(pred_call_builtin_dif/0, [unfold]).
 pred_call_builtin_dif :-
     [[update(mode(w))]],
-    case('BUILTIN_DIF'),
     pred_trace("\"B\""),
     "{", fmt:nl,
-    "tagged_t *pt1;", "pt1" <- "w->structure",
-    localtg(t0,T0), call('RefHeapNext', [T0,"pt1"]), "X(0)" <- T0,
-    localtg(t1,T1), call('RefHeapNext', [T1,"pt1"]), "X(1)" <- T1,
+    vardecl("tagged_t *", "pt1"), "pt1" <- "w->structure",
+    localv(tagged, T0), call('RefHeapNext', [T0,"pt1"]), x(0) <- T0,
+    localv(tagged, T1), call('RefHeapNext', [T1,"pt1"]), x(1) <- T1,
     "}", fmt:nl,
     %goto('dif1').
     goto('dif0').
@@ -3842,26 +3860,23 @@ pred_call_builtin_dif :-
 :- pred(pred_call_spypoint/0, [unfold]).
 pred_call_spypoint :-
     [[update(mode(w))]],
-    case('SPYPOINT'),
     if("!Func->properties.wait", goto('call5')),
     goto('call_waitpoint').
 
 :- pred(pred_call_waitpoint/0, [unfold]).
 pred_call_waitpoint :-
     [[update(mode(w))]],
-    case('WAITPOINT'),
-    label('call_waitpoint'),
     "{",
-    localtg(t0,T0),
-    localtg(t1,T1),
+    localv(tagged, T0),
+    localv(tagged, T1),
     call('RefHeap', [T0,"w->structure"]),
     deref_sw(T0,T1,
-      ("tagged_t t3; ",
-       "t3" <- "X(0)",
+      (localv(tagged, T3),
+       T3 <- x(0),
        % suspend the goal  t3  on  t1.  Func, must be live.
        [[mode(M)]],
        setmode(r),
-       call('CVOID__CALL', ["SUSPEND_T3_ON_T1", "Func", "t3", T1]),
+       call('CVOID__CALL', ["SUSPEND_T3_ON_T1", "Func", T3, T1]),
        setmode(M),
        goto_ins(proceed)
       )),
@@ -3870,20 +3885,18 @@ pred_call_waitpoint :-
 
 :- pred(pred_call5/0, [unfold]).
 pred_call5 :-
-    label('call5'),
     "ei" <- "Func->predtyp",
     goto('call4').
 
 :- pred(pred_call_default/0, [unfold]).
 pred_call_default :-
     [[update(mode(w))]],
-    label('default'),
     "{", fmt:nl,
     "intmach_t i = Func->arity;", fmt:nl,
     if("i != 0",
        (
-       "tagged_t *pt1;", fmt:nl,
-       "tagged_t *pt2;", fmt:nl,
+       vardecl("tagged_t *", "pt1"),
+       vardecl("tagged_t *", "pt2"),
        "pt1" <- "w->x",
        "pt2" <- "w->structure",
        do_while(
@@ -3897,12 +3910,10 @@ pred_call_default :-
 :- pred(pred_enter_builtin_dif/0, [unfold]).
 pred_enter_builtin_dif :-
     [[update(mode(w))]],
-    case('BUILTIN_DIF'),
     pred_trace("\"B\""),
-    label('dif0'),
     "{",
-    localtg(t0,T0), T0 <- "X(0)", deref_sw0(T0,";"),
-    localtg(t1,T1), T1 <- "X(1)", deref_sw0(T1,";"),
+    localv(tagged, T0, x(0)), deref_sw0(T0,";"),
+    localv(tagged, T1, x(1)), deref_sw0(T1,";"),
     "w->structure" <- "NULL",
     %goto('dif1'),
     % check fast cases first
@@ -3912,8 +3923,8 @@ pred_enter_builtin_dif :-
       goto('fail'),
       if(("(!IsVar(", T0, "&", T1, ")) && (IsAtomic(",T0,") || IsAtomic(",T1,"))"),
         goto_ins(proceed),
-        ("X(0)" <- T0,
-         "X(1)" <- T1,
+        (x(0) <- T0,
+         x(1) <- T1,
          setmode(r),
          goto('dif2')))),
     "}",
@@ -3925,11 +3936,10 @@ pred_enter_builtin_dif :-
 :- pred(pred_enter_builtin_abort/0, [unfold]).
 pred_enter_builtin_abort :-
     [[update(mode(w))]],
-    case('BUILTIN_ABORT'),
     % cut all the way and fail, leaving wam with a return code
     pred_trace("\"B\""),
     "{",
-    localtg(t0,T0), T0 <- "X(0)", deref_sw0(T0,";"),
+    localv(tagged, T0, x(0)), deref_sw0(T0,";"),
     "w->misc->exit_code" <- callexp('GetSmall', [T0]),
     "}",
     "w->previous_choice" <- "InitialChoice",
@@ -3939,7 +3949,6 @@ pred_enter_builtin_abort :-
 :- pred(pred_enter_spypoint/0, [unfold]).
 pred_enter_spypoint :-
     [[update(mode(w))]],
-    case('SPYPOINT'),
     if("Current_Debugger_Mode != atom_off",
       ("ptemp" <- "(bcp_t)address_trace", % (arity 1)
        goto('escape_to_p'))),
@@ -3949,21 +3958,19 @@ pred_enter_spypoint :-
 :- pred(pred_enter_waitpoint/0, [unfold]).
 pred_enter_waitpoint :-
     [[update(mode(w))]],
-    case('WAITPOINT'),
-    label('waitpoint'),
     "{",
-    localtg(t1,T1), T1 <- "X(0)",
-    deref_sw(T1,"X(0)",(
+    localv(tagged, T1, x(0)),
+    deref_sw(T1,x(0),(
       "{",
-      "tagged_t t3; ",
-      emul_to_goal("t3"), % (stores: t3)
-      T1 <- "X(0)",
+      localv(tagged, T3),
+      emul_to_goal(T3), % (stores: t3)
+      T1 <- x(0),
       if(callexp('TaggedIsSVA', [T1]), % t1 may have been globalised
-        call('RefSVA', [T1,"X(0)"])),
+        call('RefSVA', [T1,x(0)])),
       % suspend the goal  t3  on  t1.  Func, must be live.
       [[mode(M)]],
       setmode(r),
-      call('CVOID__CALL', ["SUSPEND_T3_ON_T1", "Func", "t3", T1]),
+      call('CVOID__CALL', ["SUSPEND_T3_ON_T1", "Func", T3, T1]),
       setmode(M),
       "}",
       goto_ins(proceed)
@@ -3977,22 +3984,17 @@ pred_enter_waitpoint :-
 :- pred(pred_enter_breakpoint/0, [unfold]).
 pred_enter_breakpoint :-
     [[update(mode(w))]],
-    case('BREAKPOINT'),
     "ei" <- "Func->predtyp",
     goto('switch_on_pred_sub').
 
 :- pred(pred_enter_compactcode_indexed/0, [unfold]).
 pred_enter_compactcode_indexed :-
     [[update(mode(w))]],
-    case('ENTER_PROFILEDCODE_INDEXED'),
-    goto('enter_compactcode_indexed'),
-    case('ENTER_COMPACTCODE_INDEXED'),
-    label('enter_compactcode_indexed'),
     pred_trace("\"E\""),
     "{", fmt:nl,
-    localtg(t0,T0), T0 <- "X(0)",
-    deref_sw(T0,"X(0)", tryeach("Func->code.incoreinfo->varcase")),
-    localtg(t1,T1),
+    localv(tagged, T0, x(0)),
+    deref_sw(T0,x(0), tryeach("Func->code.incoreinfo->varcase")),
+    localv(tagged, T1),
     setmode(r),
     % non variable
     if((T0,"&","TagBitComplex"),
@@ -4007,57 +4009,52 @@ pred_enter_compactcode_indexed :-
     vardecl("intmach_t", "i"),
     vardecl("sw_on_key_t *", "Htab", "Func->code.incoreinfo->othercase"),
     %
-    for(("i=0, t2=",T1,", ",T1," &= Htab->mask;",
-         ";",
-         "i+=sizeof(sw_on_key_node_t), ",T1,"=(",T1,"+i) & Htab->mask"),
+    "i" <- 0,
+    "t2" <- T1,
+    (T1," &= Htab->mask;"),
+    for(";;",
         (vardecl("sw_on_key_node_t *", "HtabNode", ("SW_ON_KEY_NODE_FROM_OFFSET(Htab, ",T1,")")),
          if("HtabNode->key==t2 || !HtabNode->key", 
-           tryeach("HtabNode->value.try_chain")))),
+           tryeach("HtabNode->value.try_chain")), % (this will break the loop)
+         "i+=sizeof(sw_on_key_node_t);",
+         T1 <- ("(",T1,"+i) & Htab->mask"))),
     "}", fmt:nl.
 
 :- pred(pred_enter_compactcode/0, [unfold]).
 pred_enter_compactcode :-
     [[update(mode(w))]],
-    case('ENTER_PROFILEDCODE'),
-    goto('enter_compactcode'),
-    case('ENTER_COMPACTCODE'),
-    label('enter_compactcode'),
     pred_trace("\"E\""),
     [[update(mode(w))]],
     tryeach("Func->code.incoreinfo->varcase").
 
-:- pred(tryeach/1, [unfold]).
-tryeach(Alts) :-
-    "{",
-    "alts" <- Alts,
-    ( [[ mode(r) ]], goto('tryeach_r')
-    ; [[ mode(w) ]], goto('tryeach_w')
-    ),
-    "}".
-
 :- pred(code_switch_on_pred_sub/0, [unfold]).
-code_switch_on_pred_sub :-
-    switch("ei",
-      (pred_enter_undefined,
-      pred_enter_interpreted,
-      pred_enter_c,
-      pred_enter_builtin_true,
-      pred_enter_builtin_fail,
-      pred_enter_builtin_current_instance,
-      pred_enter_builtin_compile_term,
-      pred_enter_builtin_instance,
-      pred_enter_builtin_geler,
-      pred_enter_builtin_nodebugcall,
-      pred_enter_builtin_syscall,
-      pred_enter_builtin_call,
-      pred_call4,
-      pred_enter_builtin_dif,
-      pred_enter_builtin_abort,
-      pred_enter_spypoint,
-      pred_enter_waitpoint,
-      pred_enter_breakpoint,
-      pred_enter_compactcode_indexed,
-      pred_enter_compactcode)).
+code_switch_on_pred_sub :- % (needs: ei)
+    switch("ei", (
+        case('ENTER_FASTCODE_INDEXED'), goto('enter_undefined'),
+        case('ENTER_FASTCODE'), goto('enter_undefined'),
+        case('ENTER_UNDEFINED'), label('enter_undefined'), pred_enter_undefined,
+        case('ENTER_INTERPRETED'), pred_enter_interpreted,
+        case('ENTER_C'), pred_enter_c,
+        case('BUILTIN_TRUE'), pred_enter_builtin_true,
+        case('BUILTIN_FAIL'), pred_enter_builtin_fail,
+        case('BUILTIN_CURRENT_INSTANCE'), pred_enter_builtin_current_instance,
+        case('BUILTIN_COMPILE_TERM'), pred_enter_builtin_compile_term,
+        case('BUILTIN_INSTANCE'), pred_enter_builtin_instance,
+        case('BUILTIN_GELER'), pred_enter_builtin_geler,
+        case('BUILTIN_NODEBUGCALL'), pred_enter_builtin_nodebugcall,
+        case('BUILTIN_SYSCALL'), pred_enter_builtin_syscall,
+        label('call4'), pred_call4, % TODO: move outside switch?
+        case('BUILTIN_CALL'), pred_enter_builtin_call,
+        case('BUILTIN_DIF'), label('dif0'), pred_enter_builtin_dif,
+        case('BUILTIN_ABORT'), pred_enter_builtin_abort,
+        case('SPYPOINT'), pred_enter_spypoint,
+        case('WAITPOINT'), label('waitpoint'), pred_enter_waitpoint,
+        case('BREAKPOINT'), pred_enter_breakpoint,
+        case('ENTER_PROFILEDCODE_INDEXED'), goto('enter_compactcode_indexed'),
+        case('ENTER_COMPACTCODE_INDEXED'), label('enter_compactcode_indexed'), pred_enter_compactcode_indexed,
+        case('ENTER_PROFILEDCODE'), goto('enter_compactcode'),
+        case('ENTER_COMPACTCODE'), label('enter_compactcode'), pred_enter_compactcode
+    )).
 
 :- pred(code_exit_toplevel/0, [unfold]).
 code_exit_toplevel :-
@@ -4091,8 +4088,17 @@ alt_ins_dispatcher(Mode) :-
     alt_dispatcher,
     ins_dispatcher.
 
+:- pred(tryeach/1, [unfold]).
+tryeach(Alts) :-
+    "{",
+    "alts" <- Alts,
+    ( [[ mode(r) ]], goto('tryeach_r')
+    ; [[ mode(w) ]], goto('tryeach_w')
+    ),
+    "}".
+
 :- pred(alt_dispatcher/0, [unfold]).
-alt_dispatcher :-
+alt_dispatcher :- % (needs: alts)
     ( [[ mode(r) ]], [[ TryEach = 'tryeach_r' ]]
     ; [[ mode(w) ]], [[ TryEach = 'tryeach_w' ]]
     ),
@@ -4102,19 +4108,19 @@ alt_dispatcher :-
     %
     [[ Alts = "alts" ]],
     ( [[ mode(r) ]], [[ EmulP = (Alts, "->emul_p2") ]]
-%%%    ( [[ mode(r) ]], [[ EmulP = (Alts, "->emul_p") ]] % TODO:[merge-oc] no p2 optimization, disable X0 optimization?
+%%%    ( [[ mode(r) ]], [[ EmulP = (Alts, "->emul_p") ]] % TODO:[merge-oc] no p2 optimization, disable X0 optimization? (it runs slower)
     ; [[ mode(w) ]], [[ EmulP = (Alts, "->emul_p") ]]
     ),
     "P" <- EmulP,
     % TODO:[merge-oc] try_alt/1
     "w->previous_choice" <- "w->choice",
     "{", fmt:nl,
-    vardecl("try_node_t *", "alt", (Alts,"->next")),
-    if("alt != NULL", ( % TODO: This one is not a deep check! (see line above)
+    localv(ptr(try_node), Alt, (Alts,"->next")),
+    if((Alt, "!=", "NULL"), ( % TODO: This one is not a deep check! (see line above)
       "B" <- "w->choice",
       call('GetFrameTop', ["w->local_top","B","G->frame"]),
       cachedreg('H',H),
-      call('CODE_CHOICE_NEW0', ["B", "alt", H]),
+      call('CODE_CHOICE_NEW0', ["B", Alt, H]),
       trace(create_choicepoint),
       % segfault patch -- jf
       maybe_choice_overflow
@@ -4166,7 +4172,9 @@ inswrap_(I) :-
     [[ update(format(Format)) ]],
     ins_label(I),
     ins_case(I),
-    inswrap__(I).
+    [[ mode(M) ]],
+    inswrap__(I),
+    [[ update(mode(M)) ]].
 
 :- pred(inswrap__/1, [unfold]).
 inswrap__(I) :-

@@ -435,20 +435,24 @@ simp_lit(G, M, Store0, Store, R) :-
     pred_prop(G, M, unfold),
     !,
     unfold_lit(G, M, Store0, Store, R).
+simp_lit(callexp(N,Args), M, Store0, Store, R) :- !,
+    R = callexp(N,Args2),
+    simpargs(Args, M, Store0, Store, Args2).
+simp_lit(call(N,Args), M, Store0, Store, R) :- !,
+    R = call(N,Args2),
+    simpargs(Args, M, Store0, Store, Args2).
 simp_lit(A, _M, Store, Store, A).
+
+simpargs([], _M, Store, Store, []).
+simpargs([X|Xs], M, Store0, Store, [Y|Ys]) :-
+    simp(X, M, Store0, Store1, Y),
+    simpargs(Xs, M, Store1, Store, Ys).
 
 % TODO: add a level to tr_solve
 foreach([], _P, _M, Store, Store) --> [].
 foreach([X|Xs], P, M, Store0, Store) -->
     foreach_(X, P, M, Store0, Store1),
     foreach(Xs, P, M, Store1, Store).
-
-% (alternative translations are committed)
-foreach_(X, P, M, Store0, Store) -->
-    { G =.. [P, X] },
-    % TODO: tr_solve_unique here?
-    { tr_solve_unique(G, M, Store0, Body, Store) },
-    [Body].
 
 % TODO: add a level to tr_solve
 foreach_sep([], _Sep, _P, _M, Store, Store) --> [].
@@ -458,6 +462,13 @@ foreach_sep([X|Xs], Sep, P, M, Store0, Store) -->
     foreach_(X, P, M, Store0, Store1),
     [Sep],
     foreach_sep(Xs, Sep, P, M, Store1, Store).
+
+% (alternative translations are committed)
+foreach_(X, P, M, Store0, Store) -->
+    { G =.. [P, X] },
+    % TODO: tr_solve_unique here?
+    { tr_solve_unique(G, M, Store0, Body, Store) },
+    [Body].
 
 unfold_lit(G, M, Store0, Store, R) :-
     ( pred_prop(G, M, grammar_level) ->
