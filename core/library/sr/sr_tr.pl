@@ -18,8 +18,8 @@ decl_sr(F, A, M, SearchRule) :-
 
 % ---------------------------------------------------------------------------
 
-sr_runtime(bf, library(bf/bf_rt)).
-sr_runtime(af, library(bf/af_rt)).
+sr_runtime(bf, library(sr/bf_rt)).
+sr_runtime(af, library(sr/af_rt)).
 
 :- export(sent_tr/3).
 sent_tr(end_of_file, L, M) :-

@@ -1,4 +1,4 @@
-:- module(sublistapp, [test/0, sublistapp/2], ['bf/af']).
+:- module(sublistapp, [test/0, sublistapp/2], [sr/af]).
 
 test :- sublistapp([a], [b]).
 

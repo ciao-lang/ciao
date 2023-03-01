@@ -38,10 +38,10 @@
    will find the connection correctly:
 
 @begin{verbatim}
-@includeverbatim{bf/examples/chain.pl}
+@includeverbatim{sr/examples/chain.pl}
 @end{verbatim}
 
-   A second package, @lib{'bf/bfall'}, allows executing @em{all} the
+   A second package, @lib{'sr/bfall'}, allows executing @em{all} the
    predicates in a given module in breadth-first mode. In this case,
    predicates should be written using the standard syntax.  This is
    useful to be able to switch easily between depth-first and
@@ -51,21 +51,21 @@
    breadth-first:
 
 @begin{verbatim}
-@includeverbatim{bf/examples/chain_bfall.pl}
+@includeverbatim{sr/examples/chain_bfall.pl}
 @end{verbatim}
 
-   There is another version, package @lib{'bf/af'}, which ensures
+   There is another version, package @lib{'sr/af'}, which ensures
    AND-fairness by goal shuffling.  This reduces the number of cases
    in which an execution that is a failure loops instead (infinite
    failures) at a small additional cost. For example, by using
-   @lib{'bf/af'} the following code correctly answers ``@tt{no}'' when
+   @lib{'sr/af'} the following code correctly answers ``@tt{no}'' when
    executing @tt{test/0}:
 
 @begin{verbatim}
-@includeverbatim{bf/examples/sublistapp.pl}
+@includeverbatim{sr/examples/sublistapp.pl}
 @end{verbatim}
 
-   There is also a package @lib{'bf/afall'} which again allows
+   There is also a package @lib{'sr/afall'} which again allows
    executing @em{all} the predicates in a given module in
    breadth-first, and-fair mode, where also all predicates should be
    written using the standard syntax. This package offers (at a cost,
@@ -84,4 +84,4 @@
 
 :- doc(bug, "Does not correctly work in user files.").
 
-:- include(library(bf/ops)).
+:- include(library(sr/ops)).

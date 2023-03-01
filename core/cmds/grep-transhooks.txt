@@ -98,10 +98,10 @@
 %   750 (add_sentence_trans) - ./core/lib/compiler/emugen/emugen.pl
 %   750 (add_sentence_trans) - ./core/library/actmod/actmod.pl
 %   750 (add_sentence_trans) - ./core/library/andorra/andorra.pl
-%   750 (add_sentence_trans) - ./core/library/bf/af.pl
-%   750 (add_sentence_trans) - ./core/library/bf/afall.pl
-%   750 (add_sentence_trans) - ./core/library/bf/bf.pl
-%   750 (add_sentence_trans) - ./core/library/bf/bfall.pl
+%   750 (add_sentence_trans) - ./core/library/sr/af.pl
+%   750 (add_sentence_trans) - ./core/library/sr/afall.pl
+%   750 (add_sentence_trans) - ./core/library/sr/bf.pl
+%   750 (add_sentence_trans) - ./core/library/sr/bfall.pl
 %   750 (add_sentence_trans) - ./core/library/block/block.pl
 %   750 (add_sentence_trans) - ./core/library/factsdb/factsdb.pl
 %   750 (add_sentence_trans) - ./core/library/factsdb/static/cache.pl
