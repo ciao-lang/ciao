@@ -302,7 +302,9 @@ do_use_package_(F, _, _, Ln0, Ln1) :-
     compiler_error(Ln0, Ln1, bad_package_file(F)).
 
 package_file(F, P) :-
-    ( atom(F) -> P = library(F)
+    ( var(F) -> fail
+    ; atom(F) -> P = library(F)
+    ; F=(_/_) -> P = library(F)
     ; functor(F,_,1) -> P = F
     ).
 
