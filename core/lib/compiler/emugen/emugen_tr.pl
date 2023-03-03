@@ -25,8 +25,13 @@ emugen_sent(0, _, M) :- !,
     clean_db(M).
 emugen_sent((:- Decl), [], M) :- !,
     emugen_decl(Decl, M).
-emugen_sent((Head :- Body), [], M) :- !,
+emugen_sent((Head :- Body), [], M) :- nonvar(Head), !,
     assertz_fact(clause_def(Head, M, Body)).
+emugen_sent((GHead => Body), [], M) :- nonvar(GHead), !,
+    ( GHead = (Head, Guard0), nonvar(Guard0), Guard0=[Guard] -> true % guard uses [[_]] notation
+    ; Head = GHead, Guard = []
+    ),
+    assertz_fact(rule_def(Head, M, Guard, Body)).
 emugen_sent(end_of_file, _, M) :- !,
     generate_code(M).
 
@@ -77,7 +82,7 @@ exec_decl(G, M) :-
     % TODO: detect unfold_decl loops!
     pred_prop(G, M, unfold_decl),
     !,
-    clause_def(G, M, Def),
+    ( clause_def(G, M, Def) -> true ; fail ), % (once)
     exec_decl(Def, M).
 exec_decl(add(pred_prop(G, Prop)), M) :- !,
     add_pred_props(G, [Prop], M).
@@ -166,7 +171,7 @@ code_to_cexp(code(Code), M, CExp) :-
     emit_code(Code, M, [indent(0)], CExp, []).
 
 emit_code(G, M, Store) -->
-    { tr_solve_unique(G, M, Store, Body, _Store) },
+    { tr_solve(G, M, Store, Body, _Store) },
     [Body].
 
 % ---------------------------------------------------------------------------
@@ -230,6 +235,7 @@ cexp_to_str(X) --> { throw(internal_error_bad_cexp(X)) }.
 cexp_to_str_([]) --> [].
 cexp_to_str_([X|Xs]) --> cexp_to_str(X), cexp_to_str_(Xs).
 
+emit_args([]) --> !.
 emit_args([X]) --> !,
     cexp_to_str(X).
 emit_args([X|Xs]) --> 
@@ -271,8 +277,10 @@ emit_string([X|Xs]) --> [X], emit_string(Xs).
 
 % pred_prop(G, M, Prop)
 :- data pred_prop/3.
-% clause_def(Head, M, Body).
+% clause_def(Head, M, Body). % TODO: only for unfold_decl
 :- data clause_def/3.
+% rule_def(Head, M, Guard, Body). % (_ => _) rules
+:- data rule_def/4.
 
 % iset(Name, M).
 :- data iset/2.
@@ -295,6 +303,7 @@ clean_db(M) :-
     retractall_fact(op_ins(_,M,_)),
     retractall_fact(max_op(_,M)),
     retractall_fact(clause_def(_,M,_)),
+    retractall_fact(rule_def(_,M,_,_)),
     %
     retractall_fact(iset(_,M)),
     %
@@ -349,21 +358,37 @@ store_replace(Store0, Constr, Store) :-
 
 % Do tr_solve_set and check that there exists a unique solution.
 % Throw exceptions for diagnosis.
-tr_solve_unique(G, M, Store0, Body, Store) :-
+tr_solve(G, M, Store0, Body, Store) :-
+    '$metachoice'(Chpt0),
+    tr_solve_(G, M, Store0, Store1, positive, Body1), 
+    '$metachoice'(Chpt),
+    ChptDepth is Chpt-Chpt0,
+    ( ChptDepth > 0 -> message(note, ['nondet translation! (', ChptDepth, ') ', G]), fail
+    ; true
+    ),
+    !,
+    Store = Store1,
+    Body = Body1.
+tr_solve(G, M, Store0, Body, Store) :-
+    % TODO: more efficient?
     tr_solve_set(G, M, Store0, positive, BodyStores),
     ( BodyStores = [] ->
-        % Repeat translation to collect all failed bodies
+        % Repeat translation to collect all failed translations
         tr_solve_set(G, M, Store0, all, AllBodyStores),
         unzip(AllBodyStores, Bodies, _),
         throw(no_translation_for(Bodies, Store0))
     ; BodyStores = [_,_|_] ->
-        throw(multiple_possible_translations(BodyStores, Store0))
-    ; BodyStores = [Body-Store]
+        % Repeat translation to collect multiple translations
+        tr_solve_set(G, M, Store0, positive, AllBodyStores),
+        unzip(AllBodyStores, Bodies, _),
+        throw(multiple_possible_translations(Bodies, Store0))
+    ; BodyStores = [Body-Store],
+      throw(single_translation_multiple_choicepoints) % TODO: since first clause of tr_solve failed
     ).
 
-% Obtain the set of all translations to G, Store0
+% Obtain the set of all translations to G, Store0 (for error diagnosis)
 % (see tr_solve_)
-% TODO: try deterministically first?
+% TODO: rules should be deterministic; do not use bagof
 tr_solve_set(G, M, Store0, Sign, BodyStores) :-
     ( bagof(Body-Store, tr_solve_(G, M, Store0, Store, Sign, Body), BodyStores0) ->
         BodyStores = BodyStores0
@@ -378,7 +403,7 @@ unzip([X-Y|XYs], [X|Xs], [Y|Ys]) :- unzip(XYs, Xs, Ys).
 % If Sign=positive, we get successful translations.
 % If Sign=all, we get all translations (including failed). 
 tr_solve_(G, M, Store0, Store, Sign, Body) :-
-    simp('$unfold'(G), M, Store0, Store, Body),
+    simp(G, M, Store0, Store, Body),
     ( Sign = positive -> \+ Store = '$fail'
     ; Sign = all -> true
     ).
@@ -390,8 +415,14 @@ simp((A,B), M, Store0, Store, R) :- !,
     ; simp(B, M, Store1, Store, B1),
       simp_conj(A1, B1, R)
     ).
+% Constraint as guard (committed choice)
+simp((CA ; B), M, Store0, Store, R) :- nonvar(CA), CA = (C->A), nonvar(C), C = [C0], is_list(C0), !,
+    ( simp_constrs(C0, M, Store0, Store1), \+ Store1 = '$fail' ->
+        simp(A, M, Store1, Store, R)
+    ; simp(B, M, Store0, Store, R)
+    ).
 % Choose one alternative
-simp((A ; B), M, Store0, Store, R) :- !,
+simp((A ; B), M, Store0, Store, R) :- nonvar(A), !,
     ( simp(A, M, Store0, Store, R)
     ; simp(B, M, Store0, Store, R)
     ).
@@ -408,8 +439,6 @@ simp_lit([As], M, Store0, Store, R) :- is_list(As), !, % [[...]] notation
         R = '$fail_lit'
     ; R = true
     ).
-simp_lit('$unfold'(G), M, Store0, Store, R) :- !, % force unfolding
-    unfold_lit(G, M, Store0, Store, R).
 simp_lit('$foreach'(Xs, P), M, Store0, Store, R) :- !,
     foreach(Xs, P, M, Store0, Store, Code, []),
     R = Code.
@@ -426,22 +455,22 @@ simp_lit('$absmachdef', M, Store0, Store, R) :- !,
     emit_absmachdef(M, Code0, []),
     list_to_conj(Code0, Code),
     simp(Code, M, Store0, Store, R).
-simp_lit(G, M, Store0, Store, R) :- 
-    % TODO: detect unfold loops!
-    %
-    % TODO: allow multi-passes (delay translation if we do not
-    % have enough information)
-    %
-    pred_prop(G, M, unfold),
-    !,
-    unfold_lit(G, M, Store0, Store, R).
 simp_lit(callexp(N,Args), M, Store0, Store, R) :- !,
     R = callexp(N,Args2),
     simpargs(Args, M, Store0, Store, Args2).
 simp_lit(call(N,Args), M, Store0, Store, R) :- !,
     R = call(N,Args2),
     simpargs(Args, M, Store0, Store, Args2).
-simp_lit(A, _M, Store, Store, A).
+simp_lit(G, _M, Store0, Store, R) :-
+    ( G = [] ; G = [_|_] ; G = true ; G = fmt:_ ; integer(G) ; G = entry(_) ), % (no translation needed)
+    !,
+    Store = Store0,
+    R = G.
+simp_lit(G, M, Store0, Store, R) :- 
+    % TODO: detect unfold loops!
+    % TODO: allow multi-passes (delay translation if we do not
+    % have enough information)
+    unfold_lit(G, M, Store0, Store, R).
 
 simpargs([], _M, Store, Store, []).
 simpargs([X|Xs], M, Store0, Store, [Y|Ys]) :-
@@ -466,8 +495,7 @@ foreach_sep([X|Xs], Sep, P, M, Store0, Store) -->
 % (alternative translations are committed)
 foreach_(X, P, M, Store0, Store) -->
     { G =.. [P, X] },
-    % TODO: tr_solve_unique here?
-    { tr_solve_unique(G, M, Store0, Body, Store) },
+    { tr_solve(G, M, Store0, Body, Store) },
     [Body].
 
 unfold_lit(G, M, Store0, Store, R) :-
@@ -483,10 +511,11 @@ unfold_lit(G, M, Store0, Store, R) :-
     ),
     % Obtain clause definitions that match G
     % (or set store to '$fail' state if there is no one)
-    ( clause_def(G, M, _) ->
-        % there is at least one solution
-        clause_def(G, M, Def),
-        simp(Def, M, Store0, Store, R0)
+    ( rule_def(G, M, Guard, Def),
+      simp_constrs(Guard, M, Store0, Store1),
+      \+ Store1 = '$fail'
+      -> % (first where guard holds)
+        simp(Def, M, Store1, Store, R0)
     ; % no solution
       Store = '$fail',
       R0 = '$fail_lit'
@@ -585,11 +614,10 @@ all_insns(M, Store, Insns) :-
     ( iset(Name, M) -> true
     ; throw(no_iset)
     ),
-    tr_solve_set(Name, M, Store, positive, BodyStores),
-    unzip(BodyStores, Bodies, _),
-    ( collect_insns(Bodies, Insns) ->
+    tr_solve(Name, M, Store, Body, _),
+    ( clean_rs(Body,Body1), collect_insns(Body1, Insns, []) ->
         true
-    ; throw(cannot_collect_insns(Bodies))
+    ; throw(cannot_collect_insns(Body))
     ).
 
 clean_rs((A, B), R) :- !,
@@ -600,12 +628,12 @@ clean_rs('$rs'(_G, X), R) :- !,
     clean_rs(X, R).
 clean_rs(X, X).
 
-% collect insns from the alternatives (disjunction)
-collect_insns([X|Xs], Insns) :- !,
-    clean_rs(X, entry(Ins)),
-    Insns = [Ins|Insns1],
-    collect_insns(Xs, Insns1).
-collect_insns([], []).
+% collect insns
+collect_insns(true) --> !.
+collect_insns((A,B)) --> !,
+    collect_insns(A),
+    collect_insns(B).
+collect_insns(entry(Ins)) --> [Ins].
 
 emit_ins_op(Ins, M) -->
     { pred_prop(Ins, M, optional(Flag)) },
@@ -617,7 +645,7 @@ emit_ins_op(Ins, M) -->
     emit_ins_op_(Ins, M).
 
 emit_ins_op_(Ins, M) -->
-    { pred_prop(Ins, M, ins_op(Opcode)) },
+    { pred_prop(Ins, M, ins_op(Opcode)), ! },
     { emit_uppercase(Ins, InsUp, []) },
     { atom_codes(InsUp2, InsUp) },
     [cpp_define(InsUp2, Opcode)].
@@ -662,13 +690,15 @@ emit_absmach_insinfo_(_Op, _MaxOp, _M) --> [].
 
 emit_absmach_insinfo__(Op, MaxOp, M) -->
     { op_ins(Op, M, Ins) }, !,
-    { pred_prop(Ins, M, ins_op(Op)) },
-    { pred_prop(Ins, M, format(Format)) },
-    emit_ftype_(str(Format)),
+    { pred_prop(Ins, M, ins_op(Op)) -> true ; fail },
+    { pred_prop(Ins, M, format(Format)) -> true ; fail },
+    { emit_ftype_str(Format, R) },
+    [R],
     ( { Op < MaxOp } -> [","] ; [] ),
     [fmt:nl].
 emit_absmach_insinfo__(_Op, _MaxOp, _M) -->
-    emit_ftype_(str([])),
+    { emit_ftype_str([], R) },
+    [R],
     [",", fmt:nl].
 
 emit_ftype_info(M) -->
@@ -679,48 +709,32 @@ emit_ftype_info(M) -->
     [".ftype_n = "], [NumFType], [",", fmt:nl].
 
 emit_ftype_info_(Id, M, MaxFType) --> { Id =< MaxFType }, !,
-    ( { id_ftype(Id, M, FType) } ->
-        emit_ftype(FType, M)
-    ; emit_ftype_(str([]))
-    ),
+    { id_ftype(Id, M, FType) ->
+        R = ~emit_ftype(FType, M)
+    ; emit_ftype_str([], R)
+    },
+    [R],
     ( { Id < MaxFType } -> [","] ; [] ),
     [fmt:nl],
     { Id1 is Id + 1 },
     emit_ftype_info_(Id1, M, MaxFType).
 emit_ftype_info_(_Id, _M, _MaxFType) --> [].
 
-emit_ftype(FType, M) -->
-    { ftype_def(FType, M, _, Def) },
-    emit_ftype_(Def).
+emit_ftype(FType, M) := ~emit_ftype_(Def, FType) :-
+    ftype_def(FType, M, _, Def).
 
-emit_ftype_(str(Xs)) -->
-    emit_ftype_str(Xs).
-emit_ftype_(array(A,B)) -->
-    ["FTYPE_ARRAY("],
-    emit_ftype_id(A), [","],
-    emit_ftype_id(B),
-    [")"].
-emit_ftype_(basic(Size,SMethod,LMethod)) -->
-    ["FTYPE_BASIC("],
-    [Size], [","],
-    [SMethod], [","],
-    [LMethod],
-    [")"].
-emit_ftype_(blob) --> !,
-    ["FTYPE_BLOB()"].
+emit_ftype_(str(Xs), _FType) := ~emit_ftype_str(Xs).
+emit_ftype_(array(A,B), _FType) := callexp('FTYPE_ARRAY', ~map_ftype_id([A,B])).
+emit_ftype_(basic(SMethod,LMethod), FType) := callexp('FTYPE_BASIC', [Size,SMethod,LMethod]) :-
+    atom_codes(FType, FTypeCs),
+    Size = callexp('FTYPE_size', [FTypeCs]).
+emit_ftype_(blob, _FType) := callexp('FTYPE_BLOB', []).
 
-emit_ftype_str([]) --> !,
-    ["FTYPE_STR0()"].
-emit_ftype_str(Xs) -->
-    { length(Xs, N) },
-    ["FTYPE_STR("], [N], [","],
-    ["BRACES("], emit_ftype_args(Xs), [")"],
-    [")"].
+emit_ftype_str([]) := callexp('FTYPE_STR0', []) :- !.
+emit_ftype_str(Xs) := callexp('FTYPE_STR', [N, callexp('BRACES', Ys)]) :-
+    N = ~length(Xs),
+    Ys = ~map_ftype_id(Xs).
 
-emit_ftype_args([]) --> [].
-emit_ftype_args([X]) --> !, emit_ftype_id(X).
-emit_ftype_args([X|Xs]) -->
-    emit_ftype_id(X), [","], emit_ftype_args(Xs).
-
-emit_ftype_id(FType) --> [ftype_id(FType)].
+map_ftype_id([]) := [].
+map_ftype_id([X|Xs]) := [ftype_id(X)| ~map_ftype_id(Xs)].
 
