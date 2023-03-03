@@ -21,3 +21,6 @@
 :- op(40, yf, ['[]']).
 :- op(40, yf, ({})).
 
+% (see pmrule.pl)
+% TODO: conflic with priority in assertions! (fix assertions?)
+:- op(1150, xfx, [(=>)]). % between (:-) and (;)
