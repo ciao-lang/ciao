@@ -8,8 +8,10 @@
 :- op(40, yfx, [(.)]).
 :- push_prolog_flag(read_infix_dot, on).
 
-% Deref + accessor % TODO: like PASCAL to avoid conflicts with Prolo "->"
+% Deref + accessor % TODO: like PASCAL to avoid conflicts with Prolog "->"
 :- op(40, yfx, [(^.)]).
+% Deref % TODO: like PASCAL?
+:- op(40, yf, [(^)]).
 
 % Postfix blocks enable X[I] syntax
 :- push_prolog_flag(read_postfix_blocks, on).
