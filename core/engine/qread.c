@@ -155,7 +155,7 @@ static CFUN__PROTO(qr_string, char *, FILE *f) {
 
 #if defined(USE_REWRITE_BYTECODE) || defined(DUMP_INSTR)
 #include <ciao/absmachdef.h>
-#include <ciao/instrdefs.h>
+#include <ciao/instrdefs.h> /* BRANCH */
 #define FTYPE_name(ID) ftype_name[(intmach_t)(ID)]
 char *ftype_name[] = {
   [(intmach_t)FTYPE_id(f_o)]="o",

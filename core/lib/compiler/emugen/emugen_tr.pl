@@ -75,6 +75,7 @@ emugen_decl(Decl, M) :- !,
 %  - automatically maintain the reverse index AND
 %  - automatically maintain the max aggregate 
 
+exec_decl(true, _M) :- !.
 exec_decl((A,B), M) :- !,
     exec_decl(A, M),
     exec_decl(B, M).
@@ -213,6 +214,16 @@ emit_number(X) -->
     { Codes = ~number_codes(X) },
     emit_string(Codes).
 
+emit_qstring(X) -->
+    { transparent_string(X, X2) },
+    "\"", emit_string(X2), "\"". % TODO: better escape (see write_c.pl too)
+
+transparent_string([], []) :- !.
+transparent_string("\n"||Xs, "\\n"||Ys) :- !,
+    transparent_string(Xs, Ys).
+transparent_string([X|Xs], [X|Ys]) :- integer(X),
+    transparent_string(Xs, Ys).
+
 cexp_to_str(X) --> { is_string(X) }, !, emit_string(X). 
 cexp_to_str(X) --> { is_list(X) }, !, cexp_to_str_(X).
 % Annotation for resolution step (ignore)
@@ -225,6 +236,7 @@ cexp_to_str((A,B)) --> !, cexp_to_str(A), cexp_to_str(B).
 cexp_to_str(true) --> !.
 cexp_to_str(X) --> { number(X) }, !, emit_number(X).
 cexp_to_str(fmt:atom(X)) --> !, emit_atom(X).
+cexp_to_str(fmt:string(X)) --> !, emit_qstring(X).
 cexp_to_str(fmt:number(X)) --> !, emit_number(X).
 %
 cexp_to_str(call(N, Xs)) --> !, emit_atom(N), "(", emit_args(Xs), ");\n".
@@ -447,10 +459,6 @@ simp_lit('$foreach_sep'(Sep, Xs, P), M, Store0, Store, R) :- !,
     % Like $foreach but emits Sep 
     foreach_sep(Xs, Sep, P, M, Store0, Store, Code, []),
     R = Code.
-simp_lit('$all_ins_op', M, Store0, Store, R) :- !,
-    emit_all_ins_op(M, Code0, []),
-    list_to_conj(Code0, Code),
-    simp(Code, M, Store0, Store, R).
 simp_lit('$absmachdef', M, Store0, Store, R) :- !,
     emit_absmachdef(M, Code0, []),
     list_to_conj(Code0, Code),
@@ -462,7 +470,7 @@ simp_lit(call(N,Args), M, Store0, Store, R) :- !,
     R = call(N,Args2),
     simpargs(Args, M, Store0, Store, Args2).
 simp_lit(G, _M, Store0, Store, R) :-
-    ( G = [] ; G = [_|_] ; G = true ; G = fmt:_ ; integer(G) ; G = entry(_) ), % (no translation needed)
+    ( G = [] ; G = [_|_] ; G = true ; G = fmt:_ ; integer(G) ; G = entry(_) ; G = exported_ins(_,_) ), % (no translation needed)
     !,
     Store = Store0,
     R = G.
@@ -553,6 +561,8 @@ simp_constr(Constraint, M, Store0, Store) :-
 % TODO: Check negation
 simp_constr_(not(G), M, Store) :- !,
     \+ simp_constr_(G, M, Store).
+simp_constr_(integer(A), _M, _) :- !, integer(A).
+simp_constr_(atom(A), _M, _) :- !, atom(A).
 % TODO: Check arithmetic
 simp_constr_(A is B, _M, _) :- !,
     A is B.
@@ -574,9 +584,9 @@ simp_constr_(ftype_def(FType, Id, Format), M, _Store) :- !,
     ftype_def(FType, M, Id, Format).
 simp_constr_(op_ins(Op, Ins), M, _Store) :- !,
     op_ins(Op, M, Ins).
-simp_constr_(all_insns(Insns), M, Store) :- !,
+simp_constr_(all_insns(What, Insns), M, Store) :- !,
     % Note: the order of instructions may depend on the mode
-    all_insns(M, Store, Insns).
+    all_insns(M, What, Store, Insns).
 simp_constr_(G, M, _Store) :- decl_fact(G), !,
     fact_query(G, M).
 simp_constr_(findall(X, G, Xs), M, _Store) :- !,
@@ -610,14 +620,18 @@ simp_conj(A, B, (A, B)).
 get_label(Ins, r, Label) :- !, atom_concat('r_', Ins, Label).
 get_label(Ins, w, Label) :- !, atom_concat('w_', Ins, Label).
 
-all_insns(M, Store, Insns) :-
+all_insns(M, ins_op, _Store, Insns) :- !,
+    findall(Op, ins_decl(Op, M), Insns).
+all_insns(M, What, Store, Insns) :-
     ( iset(Name, M) -> true
     ; throw(no_iset)
     ),
     tr_solve(Name, M, Store, Body, _),
-    ( clean_rs(Body,Body1), collect_insns(Body1, Insns, []) ->
-        true
-    ; throw(cannot_collect_insns(Body))
+    ( clean_rs(Body,Body1) -> true
+    ; throw(bad_iset(Name))
+    ),
+    ( collect_insns(Body1, What, Insns, []) -> true
+    ; throw(cannot_collect_insns(What))
     ).
 
 clean_rs((A, B), R) :- !,
@@ -629,38 +643,16 @@ clean_rs('$rs'(_G, X), R) :- !,
 clean_rs(X, X).
 
 % collect insns
-collect_insns(true) --> !.
-collect_insns((A,B)) --> !,
-    collect_insns(A),
-    collect_insns(B).
-collect_insns(entry(Ins)) --> [Ins].
-
-emit_ins_op(Ins, M) -->
-    { pred_prop(Ins, M, optional(Flag)) },
-    !,
-    [cpp_if_defined(Flag)],
-    emit_ins_op_(Ins, M),
-    [cpp_endif].
-emit_ins_op(Ins, M) -->
-    emit_ins_op_(Ins, M).
-
-emit_ins_op_(Ins, M) -->
-    { pred_prop(Ins, M, ins_op(Opcode)), ! },
-    { emit_uppercase(Ins, InsUp, []) },
-    { atom_codes(InsUp2, InsUp) },
-    [cpp_define(InsUp2, Opcode)].
-
-emit_all_ins_op(M) -->
-    { findall(Op, ins_decl(Op, M), Insns) },
-    emit_all_ins_op_(Insns, M).
+collect_insns(true, _What) --> !.
+collect_insns((A,B), What) --> !,
+    collect_insns(A, What),
+    collect_insns(B, What).
+collect_insns(entry(Ins), entry) --> !, [Ins].
+collect_insns(exported_ins(Ins,Name), exported_ins) --> !, [exported_ins(Ins,Name)].
+collect_insns(_, _) --> [].
 
 ins_decl(Ins, M) :-
     pred_prop(Ins, M, ins_op(_)).
-
-emit_all_ins_op_([], _M) --> [].
-emit_all_ins_op_([Op|Ops], M) -->
-    emit_ins_op(Op, M),
-    emit_all_ins_op_(Ops, M).
 
 emit_absmachdef(M) -->
     { ftype_def(f_i, M, FId_i, _) },
