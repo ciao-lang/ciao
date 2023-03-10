@@ -1012,7 +1012,7 @@ CBOOL__PROTO(prolog_show_nodes);
 CBOOL__PROTO(prolog_show_all_nodes);
 CBOOL__PROTO(start_node);
 /* stream_basic.c */
-CBOOL__PROTO(prolog_bootversion);
+CBOOL__PROTO(prolog_print_emulator_version);
 CBOOL__PROTO(prolog_force_interactive);
 CBOOL__PROTO(prolog_sourcepath);
 CBOOL__PROTO(prolog_open);
@@ -1520,7 +1520,7 @@ void init_once(void)
   
   define_c_mod_predicate("internals","$force_interactive",0,prolog_force_interactive);
   define_c_mod_predicate("stream_basic","stream_code",2,prolog_stream_code);
-  define_c_mod_predicate("internals","$bootversion",0,prolog_bootversion);
+  define_c_mod_predicate("internals","$bootversion",0,prolog_print_emulator_version);
   define_c_mod_predicate("internals","$open",3,prolog_open);
   define_c_mod_predicate("stream_basic","close",1,prolog_close); 
   define_c_mod_predicate("stream_basic","character_count",2,character_count);
