@@ -100,6 +100,15 @@ exec_decl(update_max_op(Op), _M) :- !,
 exec_decl(update_op_ins(Op, Ins), M) :- !,
     % Update reverse index op_ins
     assertz_fact(op_ins(Op, M, Ins)).
+% TODO: Hack to prepare decls from rules
+exec_decl([As], M) :- is_list(As), !,
+    simp_constrs(As, M, [], _Store).
+% TODO: Hack to execute rules from list
+exec_decl('$exec_decls'(Xs), M) :- !,
+    list_to_conj(Xs, G),
+    exec_decl(G, M).
+% TODO: Hack to execute rules from lists
+exec_decl(decl(G), M) :- !, exec_decl(G, M).
 
 % ---------------------------------------------------------------------------
 % Code generation
@@ -459,10 +468,6 @@ simp_lit('$foreach_sep'(Sep, Xs, P), M, Store0, Store, R) :- !,
     % Like $foreach but emits Sep 
     foreach_sep(Xs, Sep, P, M, Store0, Store, Code, []),
     R = Code.
-simp_lit('$absmachdef', M, Store0, Store, R) :- !,
-    emit_absmachdef(M, Code0, []),
-    list_to_conj(Code0, Code),
-    simp(Code, M, Store0, Store, R).
 simp_lit(callexp(N,Args), M, Store0, Store, R) :- !,
     R = callexp(N,Args2),
     simpargs(Args, M, Store0, Store, Args2).
@@ -470,7 +475,7 @@ simp_lit(call(N,Args), M, Store0, Store, R) :- !,
     R = call(N,Args2),
     simpargs(Args, M, Store0, Store, Args2).
 simp_lit(G, _M, Store0, Store, R) :-
-    ( G = [] ; G = [_|_] ; G = true ; G = fmt:_ ; integer(G) ; G = entry(_) ; G = exported_ins(_,_) ), % (no translation needed)
+    prim_lit(G), % (primitive, no translation)
     !,
     Store = Store0,
     R = G.
@@ -479,6 +484,16 @@ simp_lit(G, M, Store0, Store, R) :-
     % TODO: allow multi-passes (delay translation if we do not
     % have enough information)
     unfold_lit(G, M, Store0, Store, R).
+
+prim_lit(G) :- integer(G).
+prim_lit([]).
+prim_lit([_|_]).
+prim_lit(true).
+prim_lit(fmt:_).
+prim_lit(entry(_)).
+prim_lit(entry(_,_)).
+prim_lit(exported_ins(_,_)).
+prim_lit(decl(_)).
 
 simpargs([], _M, Store, Store, []).
 simpargs([X|Xs], M, Store0, Store, [Y|Ys]) :-
@@ -511,8 +526,8 @@ unfold_lit(G, M, Store0, Store, R) :-
         % Do not annotate grammar_level
         R = R0
     ; % Mark resolution step
-      ( pred_prop(G, M, in_moded(G2)) ->
-          true % only store the input moded arguments
+      ( pred_prop(G, M, rs_mark(G2)) ->
+          true % allow storing only some arguments (e.g., input moded arguments)
       ; G2 = G
       ),
       R = '$rs'(G2, R0)
@@ -593,16 +608,24 @@ simp_constr_(findall(X, G, Xs), M, _Store) :- !,
     findall(X, findall_query(G, M), Xs).
 simp_constr_(range(First, Last, Xs), _M, _Store) :- !, % TODO: do checks
     range(First, Last, Xs).
+simp_constr_(map_ftype_id(Xs,Ys), _M, _Store) :- !,
+    map_ftype_id(Xs,Ys).
+simp_constr_(length(Xs,N), _M, _Store) :- !,
+    length(Xs,N).
 simp_constr_(Constraint, _M, Store) :-
     store_tell(Store, Constraint),
     !.
 
 % TODO: Generalize for other props
-decl_fact(max_op(_)).
-decl_fact(engine_stubmain(_)).
+decl_fact(max_op(_)). % max_op(-)
+decl_fact(max_ftype(_)). % max_ftype(-)
+decl_fact(id_ftype(_,_)). % id_ftype(+,-)
+decl_fact(engine_stubmain(_)). % engine_stubmain(-)
 
 % TODO: Generalize for other props
 fact_query(max_op(MaxOp), M) :- max_op(MaxOp, M).
+fact_query(max_ftype(MaxFType), M) :- max_ftype(MaxFType, M).
+fact_query(id_ftype(Id, FType), M) :- ( id_ftype(Id, M, FType0) -> FType=FType0 ; fail ).
 fact_query(engine_stubmain(A), M) :- engine_stubmain(A, M).
 
 % TODO: Generalize for other props
@@ -620,8 +643,6 @@ simp_conj(A, B, (A, B)).
 get_label(Ins, r, Label) :- !, atom_concat('r_', Ins, Label).
 get_label(Ins, w, Label) :- !, atom_concat('w_', Ins, Label).
 
-all_insns(M, ins_op, _Store, Insns) :- !,
-    findall(Op, ins_decl(Op, M), Insns).
 all_insns(M, What, Store, Insns) :-
     ( iset(Name, M) -> true
     ; throw(no_iset)
@@ -630,7 +651,7 @@ all_insns(M, What, Store, Insns) :-
     ( clean_rs(Body,Body1) -> true
     ; throw(bad_iset(Name))
     ),
-    ( collect_insns(Body1, What, Insns, []) -> true
+    ( collect_insns(Body1, M, What, Insns, []) -> true
     ; throw(cannot_collect_insns(What))
     ).
 
@@ -643,89 +664,22 @@ clean_rs('$rs'(_G, X), R) :- !,
 clean_rs(X, X).
 
 % collect insns
-collect_insns(true, _What) --> !.
-collect_insns((A,B), What) --> !,
-    collect_insns(A, What),
-    collect_insns(B, What).
-collect_insns(entry(Ins), entry) --> !, [Ins].
-collect_insns(exported_ins(Ins,Name), exported_ins) --> !, [exported_ins(Ins,Name)].
-collect_insns(_, _) --> [].
+collect_insns(true, _M, _What) --> !.
+collect_insns((A,B), M, What) --> !,
+    collect_insns(A, M, What),
+    collect_insns(B, M, What).
+collect_insns(decl(Decl), _M, decl) --> !,
+    [decl(Decl)].
+collect_insns(entry(Ins), M, entry) --> !,
+    { pred_prop(Ins, M, format(Format)) -> true ; fail },
+    [entry(Ins,Format)].
+collect_insns(entry(Ins,Format), _M, entry) --> !,
+    [entry(Ins,Format)].
+collect_insns(exported_ins(Ins,Name), _M, exported_ins) --> !, [exported_ins(Ins,Name)].
+collect_insns(_, _, _) --> [].
 
 ins_decl(Ins, M) :-
     pred_prop(Ins, M, ins_op(_)).
-
-emit_absmachdef(M) -->
-    { ftype_def(f_i, M, FId_i, _) },
-    { ftype_def(f_o, M, FId_o, _) },
-    [".ftype_id_i = "], [FId_i], [",", fmt:nl],
-    [".ftype_id_o = "], [FId_o], [",", fmt:nl],
-    [".ins_info = (ftype_base_t *[]){", fmt:nl],
-    emit_absmach_insinfo(M),
-    ["},", fmt:nl],
-    { max_op(MaxOp, M), NumOp is MaxOp + 1 },
-    [".ins_n = "], [NumOp], [",", fmt:nl],
-    emit_ftype_info(M),
-    [".q_pad1 = 128 * 4,", fmt:nl],
-    [".q_pad2 = 1152 * 4,", fmt:nl],
-    [".tagged_size = sizeof(tagged_t),", fmt:nl],
-    [".size_align = sizeof(tagged_t)", fmt:nl].
-
-emit_absmach_insinfo(M) -->
-    { max_op(MaxOp, M) },
-    emit_absmach_insinfo_(0, MaxOp, M).
-
-emit_absmach_insinfo_(Op, MaxOp, M) --> { Op =< MaxOp }, !,
-    emit_absmach_insinfo__(Op, MaxOp, M),
-    { Op1 is Op + 1 },
-    emit_absmach_insinfo_(Op1, MaxOp, M).
-emit_absmach_insinfo_(_Op, _MaxOp, _M) --> [].
-
-emit_absmach_insinfo__(Op, MaxOp, M) -->
-    { op_ins(Op, M, Ins) }, !,
-    { pred_prop(Ins, M, ins_op(Op)) -> true ; fail },
-    { pred_prop(Ins, M, format(Format)) -> true ; fail },
-    { emit_ftype_str(Format, R) },
-    [R],
-    ( { Op < MaxOp } -> [","] ; [] ),
-    [fmt:nl].
-emit_absmach_insinfo__(_Op, _MaxOp, _M) -->
-    { emit_ftype_str([], R) },
-    [R],
-    [",", fmt:nl].
-
-emit_ftype_info(M) -->
-    [".ftype_info = (ftype_base_t *[]){", fmt:nl],
-    { max_ftype(MaxFType, M), NumFType is MaxFType + 1 },
-    emit_ftype_info_(0, M, MaxFType),
-    ["},", fmt:nl],
-    [".ftype_n = "], [NumFType], [",", fmt:nl].
-
-emit_ftype_info_(Id, M, MaxFType) --> { Id =< MaxFType }, !,
-    { id_ftype(Id, M, FType) ->
-        R = ~emit_ftype(FType, M)
-    ; emit_ftype_str([], R)
-    },
-    [R],
-    ( { Id < MaxFType } -> [","] ; [] ),
-    [fmt:nl],
-    { Id1 is Id + 1 },
-    emit_ftype_info_(Id1, M, MaxFType).
-emit_ftype_info_(_Id, _M, _MaxFType) --> [].
-
-emit_ftype(FType, M) := ~emit_ftype_(Def, FType) :-
-    ftype_def(FType, M, _, Def).
-
-emit_ftype_(str(Xs), _FType) := ~emit_ftype_str(Xs).
-emit_ftype_(array(A,B), _FType) := callexp('FTYPE_ARRAY', ~map_ftype_id([A,B])).
-emit_ftype_(basic(SMethod,LMethod), FType) := callexp('FTYPE_BASIC', [Size,SMethod,LMethod]) :-
-    atom_codes(FType, FTypeCs),
-    Size = callexp('FTYPE_size', [FTypeCs]).
-emit_ftype_(blob, _FType) := callexp('FTYPE_BLOB', []).
-
-emit_ftype_str([]) := callexp('FTYPE_STR0', []) :- !.
-emit_ftype_str(Xs) := callexp('FTYPE_STR', [N, callexp('BRACES', Ys)]) :-
-    N = ~length(Xs),
-    Ys = ~map_ftype_id(Xs).
 
 map_ftype_id([]) := [].
 map_ftype_id([X|Xs]) := [ftype_id(X)| ~map_ftype_id(Xs)].

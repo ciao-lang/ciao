@@ -602,7 +602,7 @@ dec(op(_,N),R) => [[ R = N ]].
 :- pred(decops/1, []).
 decops(Xs) => [[ format(Fs) ]], decopsf(Fs, Xs).
 
-:- pred(decops/2, []). % TODO: explicit format (avoid it...)
+:- pred(decopsf/2, []). % TODO: explicit format (avoid it...)
 decopsf(Fs, Xs) => decops_(Fs, 0, Xs).
 
 decops_([], _, []) => true.
@@ -616,9 +616,29 @@ bcp(f_E,N) => callexp('BcP', ["f_p",N]). % TODO: treated as f_p
 bcp(f_g,N) => callexp('BcP', ["f_l",N]). % TODO: treated as f_l (for addr)
 bcp(FType,N) => [[ Id = fmt:atom(FType) ]], callexp('BcP', [Id,N]).
 
+% TODO: 'error' rewrite rule for compile-time errors?
+
 % Move the program counter to discard an argument
 :- pred(shiftf/1, []).
-shiftf(FType) => assign("P" + fsize(FType)).
+shiftf(f_i), [[ format([f_Y|Format]) ]] => [[ update(format([f_Yargs|Format])) ]],
+   shiftf_(f_i).
+shiftf(f_i), [[ format([f_Z|Format]) ]] => [[ update(format([f_Zargs|Format])) ]],
+   shiftf_(f_i).
+shiftf(f_y), [[ format([f_Yargs|_]) ]] =>
+   shiftf_(f_y).
+shiftf(f_z), [[ format([f_Zargs|_]) ]] =>
+   shiftf_(f_z).
+shiftf(_) => shiftf.
+
+shiftf =>
+   [[ format([F|Format]) ]],
+   [[ update(format(Format)) ]],
+   shiftf_(F).
+
+shiftf_nodec => % like shiftf but do not update P (it is going to be rewritten)
+   [[ update(format('?')) ]].
+
+shiftf_(FType) => assign("P" + fsize(FType)).
 
 % (fsize)
 :- pred(fsize/1, []).
@@ -662,7 +682,7 @@ regload('H') => call0('LoadH').
 regstore('H') => call0('StoreH').
 
 :- pred(cachedreg/2, []).
-:- pred(cachedreg(Reg,_), [in_moded('cachedreg/2'(Reg))]).
+:- pred(cachedreg(Reg,_), [rs_mark('cachedreg/2'(Reg))]). % (for trace only remember 1st arg)
 cachedreg('H',H), [[mode(r)]] => [[H = (~w)^.heap_top]].
 cachedreg('H',H), [[mode(w)]] => [[H = "H"]].
 
@@ -856,10 +876,6 @@ get_atom([], X) => [[ X = "atom_nil" ]].
 % ---------------------------------------------------------------------------
 %! # Declaration of instructions
 
-:- pred(ins_op_format/3, [unfold_decl]).
-ins_op_format(Ins, Op, Format) :-
-    ins_op_format(Ins, Op, Format, []).
-
 :- pred(ins_op_format/4, [unfold_decl]).
 ins_op_format(Ins, Op, Format, Props) :-
     add(pred_prop(Ins, ins_op(Op))),
@@ -886,14 +902,12 @@ ins_in_mode(Ins, Mode) :-
 % ---------------------------------------------------------------------------
 %! # Definition of the instruction set
 
-:- ins_op_format(inittrue, 260, [f_e], [label(w)]).
 :- ins_in_mode(inittrue, w).
 inittrue => decops([N]),
     alloc,
     init_yvars(N),
     goto('firsttrue').
 
-:- ins_op_format(firsttrue_n, 261, [f_Y,f_e], [label(w)]).
 :- ins_in_mode(firsttrue_n, w).
 firsttrue_n => decopsf([f_i],[N]),
     "{",
@@ -914,20 +928,16 @@ firsttrue_n => decopsf([f_i],[N]),
       call('SetEvent', [])),
     dispatchf(fsize_sum([f_e])). % (was f_i before)
 
-:- ins_op_format(initcallq, 0, [f_Q,f_E,f_e]).
-initcallq => shiftf(f_Q), goto_ins(initcall).
+initcallq => shiftf, goto_ins(initcall).
 
-:- ins_op_format(initcall, 1, [f_E,f_e], [label(_)]).
 :- ins_in_mode(initcall, w).
 initcall => decops([_,N]),
     alloc,
     init_yvars(N),
     goto_ins(firstcall).
 
-:- ins_op_format(firstcall_nq, 20, [f_Q,f_Y,f_E,f_e]).
-firstcall_nq => shiftf(f_Q), goto_ins(firstcall_n).
+firstcall_nq => shiftf, goto_ins(firstcall_n).
 
-:- ins_op_format(firstcall_n, 21, [f_Y,f_E,f_e], [label(_)]).
 :- ins_in_mode(firstcall_n, w).
 firstcall_n => decopsf([f_i],[N]),
     "{",
@@ -937,66 +947,48 @@ firstcall_n => decopsf([f_i],[N]),
     "}",
     goto_ins(firstcall_8).
 
-:- ins_op_format(firstcall_8q, 18, [f_Q,f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e]).
-firstcall_8q => shiftf(f_Q), goto_ins(firstcall_8).
+firstcall_8q => shiftf, goto_ins(firstcall_8).
 
-:- ins_op_format(firstcall_8, 19, [f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e], [label(_)]).
 :- ins_in_mode(firstcall_8, w).
 firstcall_8 => put_yvoid, goto_ins(firstcall_7).
 
-:- ins_op_format(firstcall_7q, 16, [f_Q,f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e]).
-firstcall_7q => shiftf(f_Q), goto_ins(firstcall_7).
+firstcall_7q => shiftf, goto_ins(firstcall_7).
 
-:- ins_op_format(firstcall_7, 17, [f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e], [label(_)]).
 :- ins_in_mode(firstcall_7, w).
 firstcall_7 => put_yvoid, goto_ins(firstcall_6).
 
-:- ins_op_format(firstcall_6q, 14, [f_Q,f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e]).
-firstcall_6q => shiftf(f_Q), goto_ins(firstcall_6).
+firstcall_6q => shiftf, goto_ins(firstcall_6).
 
-:- ins_op_format(firstcall_6, 15, [f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e], [label(_)]).
 :- ins_in_mode(firstcall_6, w).
 firstcall_6 => put_yvoid, goto_ins(firstcall_5).
 
-:- ins_op_format(firstcall_5q, 12, [f_Q,f_y,f_y,f_y,f_y,f_y,f_E,f_e]).
-firstcall_5q => shiftf(f_Q), goto_ins(firstcall_5).
+firstcall_5q => shiftf, goto_ins(firstcall_5).
 
-:- ins_op_format(firstcall_5, 13, [f_y,f_y,f_y,f_y,f_y,f_E,f_e], [label(_)]).
 :- ins_in_mode(firstcall_5, w).
 firstcall_5 => put_yvoid, goto_ins(firstcall_4).
 
-:- ins_op_format(firstcall_4q, 10, [f_Q,f_y,f_y,f_y,f_y,f_E,f_e]).
-firstcall_4q => shiftf(f_Q), goto_ins(firstcall_4).
+firstcall_4q => shiftf, goto_ins(firstcall_4).
 
-:- ins_op_format(firstcall_4, 11, [f_y,f_y,f_y,f_y,f_E,f_e], [label(_)]).
 :- ins_in_mode(firstcall_4, w).
 firstcall_4 => put_yvoid, goto_ins(firstcall_3).
 
-:- ins_op_format(firstcall_3q, 8, [f_Q,f_y,f_y,f_y,f_E,f_e]).
-firstcall_3q => shiftf(f_Q), goto_ins(firstcall_3).
+firstcall_3q => shiftf, goto_ins(firstcall_3).
 
-:- ins_op_format(firstcall_3, 9, [f_y,f_y,f_y,f_E,f_e], [label(_)]).
 :- ins_in_mode(firstcall_3, w).
 firstcall_3 => put_yvoid, goto_ins(firstcall_2).
 
-:- ins_op_format(firstcall_2q, 6, [f_Q,f_y,f_y,f_E,f_e]).
-firstcall_2q => shiftf(f_Q), goto_ins(firstcall_2).
+firstcall_2q => shiftf, goto_ins(firstcall_2).
 
-:- ins_op_format(firstcall_2, 7, [f_y,f_y,f_E,f_e], [label(_)]).
 :- ins_in_mode(firstcall_2, w).
 firstcall_2 => put_yvoid, goto_ins(firstcall_1).
 
-:- ins_op_format(firstcall_1q, 4, [f_Q,f_y,f_E,f_e]).
-firstcall_1q => shiftf(f_Q), goto_ins(firstcall_1).
+firstcall_1q => shiftf, goto_ins(firstcall_1).
 
-:- ins_op_format(firstcall_1, 5, [f_y,f_E,f_e], [label(_)]).
 :- ins_in_mode(firstcall_1, w).
 firstcall_1 => put_yvoid, goto_ins(firstcall).
 
-:- ins_op_format(firstcallq, 2, [f_Q,f_E,f_e]).
-firstcallq => shiftf(f_Q), goto_ins(firstcall).
+firstcallq => shiftf, goto_ins(firstcall).
 
-:- ins_op_format(firstcall, 3, [f_E,f_e], [label(_)]).
 :- ins_in_mode(firstcall, w).
 firstcall => decops([PredPtr,EnvSize]),
     "E"^.next_insn <- (~w)^.next_insn,
@@ -1017,10 +1009,8 @@ putarg_z_shift(Xn) =>
     putarg(T1,Xn),
     "}".
 
-:- ins_op_format(call_nq, 40, [f_Q,f_Z,f_E,f_e]).
-call_nq => shiftf(f_Q), goto_ins(call_n).
+call_nq => shiftf, goto_ins(call_n).
 
-:- ins_op_format(call_n, 41, [f_Z,f_E,f_e], [label(_)]).
 :- ins_in_mode(call_n, w).
 call_n => decopsf([f_i],[N]),
     "{",
@@ -1030,92 +1020,72 @@ call_n => decopsf([f_i],[N]),
     "}",
     goto_ins(call_8).
 
-:- ins_op_format(call_8q, 38, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e]).
-call_8q => shiftf(f_Q), goto_ins(call_8).
+call_8q => shiftf, goto_ins(call_8).
 
-:- ins_op_format(call_8, 39, [f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e], [label(_)]).
 :- ins_in_mode(call_8, w).
 call_8 =>
     putarg_z_shift(7),
     goto_ins(call_7).
 
-:- ins_op_format(call_7q, 36, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e]).
-call_7q => shiftf(f_Q), goto_ins(call_7).
+call_7q => shiftf, goto_ins(call_7).
 
-:- ins_op_format(call_7, 37, [f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e], [label(_)]).
 :- ins_in_mode(call_7, w).
 call_7 =>
     putarg_z_shift(6),
     goto_ins(call_6).
 
-:- ins_op_format(call_6q, 34, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e]).
-call_6q => shiftf(f_Q), goto_ins(call_6).
+call_6q => shiftf, goto_ins(call_6).
 
-:- ins_op_format(call_6, 35, [f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e], [label(_)]).
 :- ins_in_mode(call_6, w).
 call_6 =>
     putarg_z_shift(5),
     goto_ins(call_5).
 
-:- ins_op_format(call_5q, 32, [f_Q,f_z,f_z,f_z,f_z,f_z,f_E,f_e]).
-call_5q => shiftf(f_Q), goto_ins(call_5).
+call_5q => shiftf, goto_ins(call_5).
 
-:- ins_op_format(call_5, 33, [f_z,f_z,f_z,f_z,f_z,f_E,f_e], [label(_)]).
 :- ins_in_mode(call_5, w).
 call_5 =>
     putarg_z_shift(4),
     goto_ins(call_4).
 
-:- ins_op_format(call_4q, 30, [f_Q,f_z,f_z,f_z,f_z,f_E,f_e]).
-call_4q => shiftf(f_Q), goto_ins(call_4).
+call_4q => shiftf, goto_ins(call_4).
 
-:- ins_op_format(call_4, 31, [f_z,f_z,f_z,f_z,f_E,f_e], [label(_)]).
 :- ins_in_mode(call_4, w).
 call_4 =>
     putarg_z_shift(3),
     goto_ins(call_3).
 
-:- ins_op_format(call_3q, 28, [f_Q,f_z,f_z,f_z,f_E,f_e]).
-call_3q => shiftf(f_Q), goto_ins(call_3).
+call_3q => shiftf, goto_ins(call_3).
 
-:- ins_op_format(call_3, 29, [f_z,f_z,f_z,f_E,f_e], [label(_)]).
 :- ins_in_mode(call_3, w).
 call_3 =>
     putarg_z_shift(2),
     goto_ins(call_2).
 
-:- ins_op_format(call_2q, 26, [f_Q,f_z,f_z,f_E,f_e]).
-call_2q => shiftf(f_Q), goto_ins(call_2).
+call_2q => shiftf, goto_ins(call_2).
 
-:- ins_op_format(call_2, 27, [f_z,f_z,f_E,f_e], [label(_)]).
 :- ins_in_mode(call_2, w).
 call_2 =>
     putarg_z_shift(1),
     goto_ins(call_1).
 
-:- ins_op_format(call_1q, 24, [f_Q,f_z,f_E,f_e]).
-call_1q => shiftf(f_Q), goto_ins(call_1).
+call_1q => shiftf, goto_ins(call_1).
 
-:- ins_op_format(call_1, 25, [f_z,f_E,f_e], [label(_)]).
 :- ins_in_mode(call_1, w).
 call_1 =>
     putarg_z_shift(0),
     goto_ins(call).
 
-:- ins_op_format(callq, 22, [f_Q,f_E,f_e]).
-callq => shiftf(f_Q), goto_ins(call).
+callq => shiftf, goto_ins(call).
 
-:- ins_op_format(call, 23, [f_E,f_e], [label(_)]).
 :- ins_in_mode(call, w).
 call => decops([Pred,_]),
     (~w)^.next_insn <- callexp('BCoff', ["P", fsize_sum([f_E,f_e])]),
     "P" <- Pred,
     goto('enter_predicate').
 
-:- ins_op_format(lastcall_nq, 60, [f_Q,f_Z,f_E]).
-lastcall_nq => shiftf(f_Q), goto_ins(lastcall_n).
+lastcall_nq => shiftf, goto_ins(lastcall_n).
 
-:- ins_op_format(lastcall_n, 61, [f_Z,f_E], [label(_)]).
 :- ins_in_mode(lastcall_n, w).
 lastcall_n => decopsf([f_i],[N]),
     "{",
@@ -1125,123 +1095,98 @@ lastcall_n => decopsf([f_i],[N]),
     "}",
     goto_ins(lastcall_8).
 
-:- ins_op_format(lastcall_8q, 58, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E]).
-lastcall_8q => shiftf(f_Q), goto_ins(lastcall_8).
+lastcall_8q => shiftf, goto_ins(lastcall_8).
 
-:- ins_op_format(lastcall_8, 59, [f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E], [label(_)]).
 :- ins_in_mode(lastcall_8, w).
 lastcall_8 =>
     putarg_z_shift(7),
     goto_ins(lastcall_7).
 
-:- ins_op_format(lastcall_7q, 56, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E]).
-lastcall_7q => shiftf(f_Q), goto_ins(lastcall_7).
+lastcall_7q => shiftf, goto_ins(lastcall_7).
 
-:- ins_op_format(lastcall_7, 57, [f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E], [label(_)]).
 :- ins_in_mode(lastcall_7, w).
 lastcall_7 =>
     putarg_z_shift(6),
     goto_ins(lastcall_6).
 
-:- ins_op_format(lastcall_6q, 54, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_E]).
-lastcall_6q => shiftf(f_Q), goto_ins(lastcall_6).
+lastcall_6q => shiftf, goto_ins(lastcall_6).
 
-:- ins_op_format(lastcall_6, 55, [f_z,f_z,f_z,f_z,f_z,f_z,f_E], [label(_)]).
 :- ins_in_mode(lastcall_6, w).
 lastcall_6 =>
     putarg_z_shift(5),
     goto_ins(lastcall_5).
 
-:- ins_op_format(lastcall_5q, 52, [f_Q,f_z,f_z,f_z,f_z,f_z,f_E]).
-lastcall_5q => shiftf(f_Q), goto_ins(lastcall_5).
+lastcall_5q => shiftf, goto_ins(lastcall_5).
 
-:- ins_op_format(lastcall_5, 53, [f_z,f_z,f_z,f_z,f_z,f_E], [label(_)]).
 :- ins_in_mode(lastcall_5, w).
 lastcall_5 =>
     putarg_z_shift(4),
     goto_ins(lastcall_4).
 
-:- ins_op_format(lastcall_4q, 50, [f_Q,f_z,f_z,f_z,f_z,f_E]).
-lastcall_4q => shiftf(f_Q), goto_ins(lastcall_4).
+lastcall_4q => shiftf, goto_ins(lastcall_4).
 
-:- ins_op_format(lastcall_4, 51, [f_z,f_z,f_z,f_z,f_E], [label(_)]).
 :- ins_in_mode(lastcall_4, w).
 lastcall_4 =>
     putarg_z_shift(3),
     goto_ins(lastcall_3).
 
-:- ins_op_format(lastcall_3q, 48, [f_Q,f_z,f_z,f_z,f_E]).
-lastcall_3q => shiftf(f_Q), goto_ins(lastcall_3).
+lastcall_3q => shiftf, goto_ins(lastcall_3).
 
-:- ins_op_format(lastcall_3, 49, [f_z,f_z,f_z,f_E], [label(_)]).
 :- ins_in_mode(lastcall_3, w).
 lastcall_3 =>
     putarg_z_shift(2),
     goto_ins(lastcall_2).
 
-:- ins_op_format(lastcall_2q, 46, [f_Q,f_z,f_z,f_E]).
-lastcall_2q => shiftf(f_Q), goto_ins(lastcall_2).
+lastcall_2q => shiftf, goto_ins(lastcall_2).
 
-:- ins_op_format(lastcall_2, 47, [f_z,f_z,f_E], [label(_)]).
 :- ins_in_mode(lastcall_2, w).
 lastcall_2 =>
     putarg_z_shift(1),
     goto_ins(lastcall_1).
 
-:- ins_op_format(lastcall_1q, 44, [f_Q,f_z,f_E]).
-lastcall_1q => shiftf(f_Q), goto_ins(lastcall_1).
+lastcall_1q => shiftf, goto_ins(lastcall_1).
 
-:- ins_op_format(lastcall_1, 45, [f_z,f_E], [label(_)]).
 :- ins_in_mode(lastcall_1, w).
 lastcall_1 =>
     putarg_z_shift(0),
     goto_ins(lastcall).
 
-:- ins_op_format(lastcallq, 42, [f_Q,f_E]).
-lastcallq => shiftf(f_Q), goto_ins(lastcall).
+lastcallq => shiftf, goto_ins(lastcall).
 
-:- ins_op_format(lastcall, 43, [f_E], [label(_)]).
 :- ins_in_mode(lastcall, w).
 lastcall =>
     deallocate,
     goto_ins(execute).
 
-:- ins_op_format(executeq, 62, [f_Q,f_E]).
 executeq => decops([Pred]),
     setmode(w),
     "P" <- Pred,
     goto('enter_predicate').
 
-:- ins_op_format(execute, 63, [f_E], [label(w)]).
 execute => decops([Pred]),
     setmode(w),
     "P" <- Pred,
     goto('enter_predicate').
 
-:- ins_op_format(put_x_void, 69, [f_x], [label(w)]).
 :- ins_in_mode(put_x_void, w).
 put_x_void => decops([X]),
     load(hva,X),
     dispatch.
 
-:- ins_op_format(put_x_variable, 70, [f_x,f_x], [label(w)]).
 :- ins_in_mode(put_x_variable, w).
 put_x_variable => decops([A,B]),
     load2(hva, A, B),
     dispatch.
 
-:- ins_op_format(put_xval_xval, 85, [f_x,f_x,f_x,f_x]).
 put_xval_xval => decops([A,B,C,D]),
     A <- B,
     C <- D,
     dispatch.
 
-:- ins_op_format(put_x_value, 71, [f_x,f_x]).
 put_x_value => decops([A,B]),
     A <- B,
     dispatch.
 
-:- ins_op_format(put_x_unsafe_value, 72, [f_x,f_x], [label(w)]).
 :- ins_in_mode(put_x_unsafe_value, w).
 put_x_unsafe_value => decops([A,B]),
     "{",
@@ -1251,65 +1196,54 @@ put_x_unsafe_value => decops([A,B]),
     "}",
     dispatch.
 
-:- ins_op_format(put_y_first_variable, 73, [f_x,f_y], [label(w)]).
 :- ins_in_mode(put_y_first_variable, w).
 put_y_first_variable =>
     alloc,
     goto_ins(put_y_variable).
 
-:- ins_op_format(put_y_variable, 74, [f_x,f_y], [label(w)]).
 :- ins_in_mode(put_y_variable, w).
 put_y_variable => decops([A,B]),
     load2(sva, A, B),
     dispatch.
 
-:- ins_op_format(put_yfvar_yvar, 83, [f_x,f_y,f_x,f_y], [label(w)]).
 :- ins_in_mode(put_yfvar_yvar, w).
 put_yfvar_yvar =>
     alloc,
     goto_ins(put_yvar_yvar).
 
-:- ins_op_format(put_yvar_yvar, 84, [f_x,f_y,f_x,f_y], [label(w)]).
 :- ins_in_mode(put_yvar_yvar, w).
 put_yvar_yvar => decops([A,B,C,D]),
     load2(sva, A, B),
     load2(sva, C, D),
     dispatch.
 
-:- ins_op_format(put_yval_yval, 86, [f_x,f_y,f_x,f_y]).
 put_yval_yval => decops([A,B,C,D]),
     ref_stack(safe,A,B),
     ref_stack(safe,C,D),
     dispatch.
 
-:- ins_op_format(put_y_value, 75, [f_x,f_y]).
 put_y_value => decops([A,B]),
     ref_stack(safe,A,B),
     dispatch.
 
-:- ins_op_format(put_y_unsafe_value, 76, [f_x,f_y], [label(w)]).
 :- ins_in_mode(put_y_unsafe_value, w).
 put_y_unsafe_value => decops([A,B]),
     ref_stack(unsafe,A,B),
     dispatch.
 
-:- ins_op_format(put_constantq, 77, [f_Q,f_x,f_t]).
 put_constantq => decops([A,B]),
     A <- B,
     dispatch.
 
-:- ins_op_format(put_constant, 78, [f_x,f_t]).
 put_constant => decops([A,B]),
     A <- B,
     dispatch.
 
-:- ins_op_format(put_nil, 81, [f_x]).
 put_nil => decops([A]),
     get_atom([], Nil),
     A <- Nil,
     dispatch.
 
-:- ins_op_format(put_largeq, 252, [f_Q,f_x,f_b], [label(w)]).
 :- ins_in_mode(put_largeq, w).
 put_largeq => decops([A,B]),
     [[mode(M)]],
@@ -1318,7 +1252,6 @@ put_largeq => decops([A,B]),
     setmode(M),
     dispatchf(fsize_sum([f_Q,f_x])+callexp('LargeSize',[B^])).
 
-:- ins_op_format(put_large, 253, [f_x,f_b], [label(w)]).
 :- ins_in_mode(put_large, w).
 put_large => decops([A,B]),
     [[mode(M)]],
@@ -1327,7 +1260,6 @@ put_large => decops([A,B]),
     setmode(M),
     dispatchf(fsize_sum([f_x])+callexp('LargeSize',[B^])).
 
-:- ins_op_format(put_structureq, 79, [f_Q,f_x,f_f], [label(w)]).
 :- ins_in_mode(put_structureq, w).
 put_structureq => decops([A,B]),
     cachedreg('H', H),
@@ -1335,7 +1267,6 @@ put_structureq => decops([A,B]),
     heap_push(B),
     dispatch.
 
-:- ins_op_format(put_structure, 80, [f_x,f_f], [label(w)]).
 :- ins_in_mode(put_structure, w).
 put_structure => decops([A,B]),
     cachedreg('H', H),
@@ -1343,47 +1274,40 @@ put_structure => decops([A,B]),
     heap_push(B),
     dispatch.
 
-:- ins_op_format(put_list, 82, [f_x], [label(w)]).
 :- ins_in_mode(put_list, w).
 put_list => decops([A]),
     cachedreg('H', H),
     A <- tagp(lst, H),
     dispatch.
 
-:- ins_op_format(put_yval_yuval, 87, [f_x,f_y,f_x,f_y], [label(w)]).
 :- ins_in_mode(put_yval_yuval, w).
 put_yval_yuval => decops([A,B,C,D]),
     ref_stack(safe,A,B),
     ref_stack(unsafe,C,D),
     dispatch.
 
-:- ins_op_format(put_yuval_yval, 88, [f_x,f_y,f_x,f_y], [label(w)]).
 :- ins_in_mode(put_yuval_yval, w).
 put_yuval_yval => decops([A,B,C,D]),
     ref_stack(unsafe,A,B),
     ref_stack(safe,C,D),
     dispatch.
 
-:- ins_op_format(put_yuval_yuval, 89, [f_x,f_y,f_x,f_y], [label(w)]).
 :- ins_in_mode(put_yuval_yuval, w).
 put_yuval_yuval => decops([A,B,C,D]),
     ref_stack(unsafe,A,B),
     ref_stack(unsafe,C,D),
     dispatch.
 
-:- ins_op_format(get_x_value, 91, [f_x,f_x], [label(r)]).
 :- ins_in_mode(get_x_value, r).
 get_x_value => decops([A,B]),
     cunify(B,A),
     dispatch.
 
-:- ins_op_format(get_y_first_value, 94, [f_x,f_y], [label(r)]).
 :- ins_in_mode(get_y_first_value, r).
 get_y_first_value => decops([A,B]),
     get_first_value(B,A),
     dispatch.
 
-:- ins_op_format(get_y_value, 95, [f_x,f_y], [label(r)]).
 :- ins_in_mode(get_y_value, r).
 get_y_value => decops([A,B]),
     "{",
@@ -1392,55 +1316,44 @@ get_y_value => decops([A,B]),
     "}",
     dispatch.
 
-:- ins_op_format(get_constantq, 96, [f_Q,f_x,f_t]).
-get_constantq => shiftf(f_Q), goto_ins(get_constant).
+get_constantq => shiftf, goto_ins(get_constant).
 
-:- ins_op_format(get_constant, 97, [f_x,f_t], [label(_)]).
 :- ins_in_mode(get_constant, r).
 get_constant => decops([A,B]),
     unify_atom(B,A),
     dispatch.
 
-:- ins_op_format(get_largeq, 254, [f_Q,f_x,f_b]).
-get_largeq => shiftf(f_Q), goto_ins(get_large).
+get_largeq => shiftf, goto_ins(get_large).
 
-:- ins_op_format(get_large, 255, [f_x,f_b], [label(_)]).
 :- ins_in_mode(get_large, r).
 get_large => decops([A,B]),
     unify_large(B,A),
     dispatchf(fsize_sum([f_x])+callexp('LargeSize',[B^])).
 
-:- ins_op_format(get_structureq, 98, [f_Q,f_x,f_f]).
-get_structureq => shiftf(f_Q), goto_ins(get_structure).
+get_structureq => shiftf, goto_ins(get_structure).
 
-:- ins_op_format(get_structure, 99, [f_x,f_f], [label(_)]).
 :- ins_in_mode(get_structure, r).
 get_structure => decops([A,B]),
     unify_structure(B,A,dispatch).
 
-:- ins_op_format(get_nil, 100, [f_x], [label(r)]).
 :- ins_in_mode(get_nil, r).
 get_nil => decops([A]),
     get_atom([], Nil),
     unify_atom(Nil,A),
     dispatch.
 
-:- ins_op_format(get_list, 101, [f_x], [label(r)]).
 :- ins_in_mode(get_list, r).
 get_list => decops([A]),
     unify_list(A, dispatch).
 
-:- ins_op_format(get_constant_neck_proceedq, 111, [f_Q,f_x,f_t]).
-get_constant_neck_proceedq => shiftf(f_Q), goto_ins(get_constant_neck_proceed).
+get_constant_neck_proceedq => shiftf, goto_ins(get_constant_neck_proceed).
 
-:- ins_op_format(get_constant_neck_proceed, 112, [f_x,f_t], [label(_)]).
 :- ins_in_mode(get_constant_neck_proceed, r).
 get_constant_neck_proceed => decops([A,B]),
     unify_atom(B,A),
     setmode(w),
     goto_ins(neck_proceed).
 
-:- ins_op_format(get_nil_neck_proceed, 113, [f_x], [label(r)]).
 :- ins_in_mode(get_nil_neck_proceed, r).
 get_nil_neck_proceed => decops([A]),
     get_atom([], Nil),
@@ -1448,7 +1361,6 @@ get_nil_neck_proceed => decops([A]),
     setmode(w),
     goto_ins(neck_proceed).
 
-:- ins_op_format(cutb_x, 208, [f_x], [label(r)]).
 :- ins_in_mode(cutb_x, r).
 cutb_x => decops([A]),
     (~w)^.local_top <- 0, % may get hole at top of local stack
@@ -1456,29 +1368,25 @@ cutb_x => decops([A]),
     do_cut,
     dispatch.
 
-:- ins_op_format(cutb_x_neck, 210, [f_x], [label(r)]).
 :- ins_in_mode(cutb_x_neck, r).
 cutb_x_neck => decops([A]),
     (~w)^.local_top <- 0, % may get hole at top of local stack
     (~w)^.previous_choice <- call('ChoiceFromTagged', [A]),
-    shiftf(f_x),
+    shiftf,
     goto_ins(cutb_neck).
 
-:- ins_op_format(cutb_neck, 211, [], [label(r)]).
 :- ins_in_mode(cutb_neck, r).
 cutb_neck =>
     do_cutb_neck,
     dispatch.
 
-:- ins_op_format(cutb_x_neck_proceed, 212, [f_x], [label(r)]).
 :- ins_in_mode(cutb_x_neck_proceed, r).
 cutb_x_neck_proceed => decops([A]),
     (~w)^.previous_choice <- call('ChoiceFromTagged', [A]),
-    % shiftf(f_x)
+    shiftf_nodec,
     % w->local_top <- 0 % done by CODE_PROCEED
     goto_ins(cutb_neck_proceed).
 
-:- ins_op_format(cutb_neck_proceed, 213, [], [label(r)]).
 :- ins_in_mode(cutb_neck_proceed, r).
 cutb_neck_proceed =>
     do_cutb_neck,
@@ -1492,7 +1400,6 @@ do_cutb_neck =>
        % TODO:[merge-oc] if neck is not pending, then choice overflow has already been checked?
        maybe_choice_overflow)).
 
-:- ins_op_format(cute_x, 214, [f_x], [label(r)]).
 :- ins_in_mode(cute_x, r).
 cute_x => decops([A]),
     (~w)^.previous_choice <- call('ChoiceFromTagged', [A]),
@@ -1501,14 +1408,12 @@ cute_x => decops([A]),
     call('SetE', [(~w)^.local_top]),
     dispatch.
 
-:- ins_op_format(cute_x_neck, 216, [f_x], [label(r)]).
 :- ins_in_mode(cute_x_neck, r).
 cute_x_neck => decops([A]),
     (~w)^.previous_choice <- call('ChoiceFromTagged', [A]),
-    shiftf(f_x),
+    shiftf,
     goto_ins(cute_neck).
 
-:- ins_op_format(cute_neck, 217, [], [label(r)]).
 :- ins_in_mode(cute_neck, r).
 cute_neck =>
     (~w)^.local_top <- "E", %  w->local_top may be 0 here.
@@ -1520,21 +1425,18 @@ cute_neck =>
     call('SetE', [(~w)^.local_top]),
     dispatch.
 
-:- ins_op_format(cutf_x, 215, [f_x], [label(r)]).
 :- ins_in_mode(cutf_x, r).
 cutf_x => decops([A]),
     (~w)^.previous_choice <- call('ChoiceFromTagged', [A]),
-    shiftf(f_x),
-    goto_ins(cutf).
+    shiftf,
+    goto_ins(cutf). % TODO: check that pending 'format' after shift is the expected one
 
-:- ins_op_format(cutf, 209, [], [label(r)]).
 :- ins_in_mode(cutf, r).
 cutf =>
     do_cut,
     call('SetE', [(~w)^.frame]),
     dispatch.
 
-:- ins_op_format(cut_y, 218, [f_y], [label(r)]).
 :- ins_in_mode(cut_y, r).
 cut_y => decops([A]),
     "{",
@@ -1545,22 +1447,18 @@ cut_y => decops([A]),
     call('SetE', [(~w)^.frame]),
     dispatch.
 
-:- ins_op_format(choice_x, 219, [f_x]).
 choice_x => decops([X]),
     X <- callexp('ChoiceToTagged', [(~w)^.previous_choice]),
     dispatch.
 
-:- ins_op_format(choice_yf, 220, [f_y]).
 choice_yf =>
     alloc,
     goto_ins(choice_y).
 
-:- ins_op_format(choice_y, 221, [f_y], [label(_)]).
 choice_y => decops([Y]),
     Y <- callexp('ChoiceToTagged', [(~w)^.previous_choice]),
     dispatch.
 
-:- ins_op_format(kontinue, 233, [], [label(w)]).
 :- ins_in_mode(kontinue, w).
 kontinue =>
     % after wakeup, write mode!
@@ -1569,16 +1467,13 @@ kontinue =>
     deallocate,
     goto('enter_predicate').
 
-:- ins_op_format(leave, 234, [], [label(r)]).
 :- ins_in_mode(leave, r).
 leave => goto_ins(exit_toplevel).
 
-:- ins_op_format(exit_toplevel, 235, [], [label(r)]).
 :- ins_in_mode(exit_toplevel, r).
 exit_toplevel =>
     goto('exit_toplevel').
 
-:- ins_op_format(retry_cq, 237, [f_Q,f_C], [label(r)]).
 :- ins_in_mode(retry_cq, r).
 retry_cq => decops([A]),
     if(not(callexp('IsDeep',[])),
@@ -1587,7 +1482,6 @@ retry_cq => decops([A]),
     if(not(call_fC(cbool0,A,[])), jump_fail),
     goto_ins(proceed).
 
-:- ins_op_format(retry_c, 238, [f_C], [label(r)]).
 :- ins_in_mode(retry_c, r).
 retry_c => decops([A]),
     if(not(callexp('IsDeep',[])),
@@ -1598,7 +1492,6 @@ retry_c => decops([A]),
 
 % _x0 instructions, where read-mode match has been done during indexing
 
-:- ins_op_format(get_structure_x0q, 104, [f_Q,f_f]).
 get_structure_x0q, [[mode(r)]] =>
     "{",
     localv(tagged, T0, x(0)),
@@ -1606,9 +1499,8 @@ get_structure_x0q, [[mode(r)]] =>
     "}",
     dispatch.
 get_structure_x0q, [[mode(w)]] =>
-    shiftf(f_Q), goto_ins(get_structure_x0).
+    shiftf, goto_ins(get_structure_x0).
 
-:- ins_op_format(get_structure_x0, 105, [f_f], [label(w)]).
 get_structure_x0, [[mode(r)]] =>
     "{",
     localv(tagged, T0, x(0)),
@@ -1629,7 +1521,6 @@ get_structure_x0, [[mode(w)]] => decops([A]),
     "}",
     dispatch.
 
-:- ins_op_format(get_large_x0q, 256, [f_Q,f_b]).
 get_large_x0q, [[mode(r)]] => decops([A]),
     "{",
     localv(tagged, T0, x(0)),
@@ -1637,9 +1528,8 @@ get_large_x0q, [[mode(r)]] => decops([A]),
     "}",
     dispatchf(fsize_sum([f_x])+callexp('LargeSize',[A^])).
 get_large_x0q, [[mode(w)]] =>
-    shiftf(f_Q), goto_ins(get_large_x0).
+    shiftf, goto_ins(get_large_x0).
 
-:- ins_op_format(get_large_x0, 257, [f_b], [label(w)]).
 get_large_x0, [[mode(r)]] => decops([A]),
     "{",
     localv(tagged, T0, x(0)),
@@ -1660,13 +1550,11 @@ get_large_x0, [[mode(w)]] => decops([A]),
     "}",
     dispatchf(callexp('LargeSize',[A^])).
 
-:- ins_op_format(get_constant_x0q, 102, [f_Q,f_t]).
 get_constant_x0q, [[mode(r)]] =>
     dispatch.
 get_constant_x0q, [[mode(w)]] =>
-    shiftf(f_Q), goto_ins(get_constant_x0).
+    shiftf, goto_ins(get_constant_x0).
 
-:- ins_op_format(get_constant_x0, 103, [f_t], [label(w)]).
 get_constant_x0, [[mode(r)]] =>
     dispatch.
 get_constant_x0, [[mode(w)]] => decops([A]),
@@ -1680,7 +1568,6 @@ get_constant_x0, [[mode(w)]] => decops([A]),
     "}",
     dispatch.
 
-:- ins_op_format(get_nil_x0, 106, []).
 get_nil_x0, [[mode(r)]] =>
     dispatch.
 get_nil_x0, [[mode(w)]] =>
@@ -1695,7 +1582,6 @@ get_nil_x0, [[mode(w)]] =>
     "}",
     dispatch.
 
-:- ins_op_format(get_list_x0, 107, []).
 get_list_x0, [[mode(r)]] =>
     "{",
     localv(tagged, T0, x(0)),
@@ -1715,39 +1601,32 @@ get_list_x0, [[mode(w)]] =>
     "}",
     dispatch.
 
-:- ins_op_format(get_xvar_xvar, 108, [f_x,f_x,f_x,f_x]).
 get_xvar_xvar => decops([A,B,C,D]),
     B <- A,
     D <- C,
     dispatch.
 
-:- ins_op_format(get_x_variable, 90, [f_x,f_x]).
 get_x_variable => decops([A,B]),
     B <- A,
     dispatch.
 
-:- ins_op_format(get_y_first_variable, 92, [f_x,f_y]).
 get_y_first_variable =>
     alloc,
     goto_ins(get_y_variable).
 
-:- ins_op_format(get_y_variable, 93, [f_x,f_y], [label(_)]).
 get_y_variable => decops([A,B]),
     B <- A,
     dispatch.
 
-:- ins_op_format(get_yfvar_yvar, 109, [f_x,f_y,f_x,f_y]).
 get_yfvar_yvar =>
     alloc,
     goto_ins(get_yvar_yvar).
 
-:- ins_op_format(get_yvar_yvar, 110, [f_x,f_y,f_x,f_y], [label(_)]).
 get_yvar_yvar => decops([A,B,C,D]),
     B <- A,
     D <- C,
     dispatch.
 
-:- ins_op_format(branch, 68, [f_i]).
 branch => decops([Addr]),
     "P" <- callexp('BCoff', ["P", Addr]),
     dispatchf(0).
@@ -1764,72 +1643,61 @@ cfun_semidet(Target, Expr) =>
 :- pred(cblt_semidet/1, []).
 cblt_semidet(Expr) => if(not(Expr), jump_fail).
 
-:- ins_op_format(function_1q, 222, [f_Q,f_x,f_x,f_C,f_g], [label(r)]).
 :- ins_in_mode(function_1q, r).
 function_1q => decops([A,B,C,Li]),
     (~w)^.liveinfo <- Li,
     cfun_semidet(A, call_fC(ctagged1, C, [B])),
     dispatch.
 
-:- ins_op_format(function_1, 223, [f_x,f_x,f_C,f_g], [label(r)]).
 :- ins_in_mode(function_1, r).
 function_1 => decops([A,B,C,Li]),
     (~w)^.liveinfo <- Li,
     cfun_semidet(A, call_fC(ctagged1, C, [B])),
     dispatch.
 
-:- ins_op_format(function_2q, 224, [f_Q,f_x,f_x,f_x,f_C,f_g], [label(r)]).
 :- ins_in_mode(function_2q, r).
 function_2q => decops([A,B,C,D,Li]),
     (~w)^.liveinfo <- Li,
     cfun_semidet(A, call_fC(ctagged2, D, [B,C])),
     dispatch.
 
-:- ins_op_format(function_2, 225, [f_x,f_x,f_x,f_C,f_g], [label(r)]).
 :- ins_in_mode(function_2, r).
 function_2 => decops([A,B,C,D,Li]),
     (~w)^.liveinfo <- Li,
     cfun_semidet(A, call_fC(ctagged2, D, [B,C])),
     dispatch.
 
-:- ins_op_format(builtin_1q, 226, [f_Q,f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_1q, r).
 builtin_1q => decops([A,B]),
     cblt_semidet(call_fC(cbool1,B,[A])),
     dispatch.
 
-:- ins_op_format(builtin_1, 227, [f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_1, r).
 builtin_1 => decops([A,B]),
     cblt_semidet(call_fC(cbool1,B,[A])),
     dispatch.
 
-:- ins_op_format(builtin_2q, 228, [f_Q,f_x,f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_2q, r).
 builtin_2q => decops([A,B,C]),
     cblt_semidet(call_fC(cbool2,C,[A,B])),
     dispatch.
 
-:- ins_op_format(builtin_2, 229, [f_x,f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_2, r).
 builtin_2 => decops([A,B,C]),
     cblt_semidet(call_fC(cbool2,C,[A,B])),
     dispatch.
 
-:- ins_op_format(builtin_3q, 230, [f_Q,f_x,f_x,f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_3q, r).
 builtin_3q => decops([A,B,C,D]),
     cblt_semidet(call_fC(cbool3,D,[A,B,C])),
     dispatch.
 
-:- ins_op_format(builtin_3, 231, [f_x,f_x,f_x,f_C], [label(r)]).
 :- ins_in_mode(builtin_3, r).
 builtin_3 => decops([A,B,C,D]),
     cblt_semidet(call_fC(cbool3,D,[A,B,C])),
     dispatch.
 
 % backtracking into clause/2
-:- ins_op_format(retry_instance, 232, [], [label(r)]).
 :- ins_in_mode(retry_instance, r).
 retry_instance =>
     % Take into account 'open' predicates.  (MCL)
@@ -1854,7 +1722,6 @@ retry_instance =>
     "P" <- cast(bcp, (~w)^.misc^.ins^.emulcode),
     jump_ins_dispatch.
 
-:- ins_op_format(get_constraint, 247, [f_x], [label(w)]).
 :- ins_in_mode(get_constraint, w).
 get_constraint => decops([A]),
     "{", 
@@ -1868,7 +1735,6 @@ get_constraint => decops([A]),
     "}",
     dispatch.
 
-:- ins_op_format(unify_void, 114, [f_i]).
 unify_void, [[mode(r)]] => decops([N]),
     u1(void(N)),
     dispatch.
@@ -1882,7 +1748,6 @@ unify_void, [[mode(w)]] => decops([N]),
     "}",
     goto_ins(unify_void_4).
 
-:- ins_op_format(unify_void_1, 115, [], [label(w)]).
 unify_void_1, [[mode(r)]] =>
     u1(void(1)),
     dispatch.
@@ -1891,7 +1756,6 @@ unify_void_1, [[mode(w)]] =>
     call('ConstrHVA', [H]),
     dispatch.
 
-:- ins_op_format(unify_void_2, 116, [], [label(w)]).
 unify_void_2, [[mode(r)]] =>
     u1(void(2)),
     dispatch.
@@ -1900,7 +1764,6 @@ unify_void_2, [[mode(w)]] =>
     call('ConstrHVA', [H]),
     goto_ins(unify_void_1).
 
-:- ins_op_format(unify_void_3, 117, [], [label(w)]).
 unify_void_3, [[mode(r)]] =>
     u1(void(3)),
     dispatch.
@@ -1909,7 +1772,6 @@ unify_void_3, [[mode(w)]] =>
     call('ConstrHVA', [H]),
     goto_ins(unify_void_2).
 
-:- ins_op_format(unify_void_4, 118, [], [label(w)]).
 unify_void_4, [[mode(r)]] =>
     u1(void(4)),
     dispatch.
@@ -1918,56 +1780,46 @@ unify_void_4, [[mode(w)]] =>
     call('ConstrHVA', [H]),
     goto_ins(unify_void_3).
 
-:- ins_op_format(unify_x_variable, 119, [f_x]).
 unify_x_variable => decops([A]),
     u1(var(A)),
     dispatch.
 
-:- ins_op_format(unify_x_value, 120, [f_x]).
 unify_x_value, [[mode(r)]] => goto_ins(unify_x_local_value).
 unify_x_value, [[mode(w)]] => decops([A]),
     u1(xval(A)),
     dispatch.
 
-:- ins_op_format(unify_x_local_value, 121, [f_x], [label(r)]).
 unify_x_local_value => decops([A]),
     u1(xlval(A)),
     dispatch.
 
-:- ins_op_format(unify_y_first_variable, 122, [f_y]).
 unify_y_first_variable =>
     alloc,
     goto_ins(unify_y_variable).
 
-:- ins_op_format(unify_y_variable, 123, [f_y], [label(_)]).
 unify_y_variable => decops([A]),
     u1(var(A)),
     dispatch.
 
-:- ins_op_format(unify_y_first_value, 124, [f_y]).
 unify_y_first_value => decops([A]),
     u1(yfval(A)),
     dispatch.
 
-:- ins_op_format(unify_y_value, 125, [f_y]).
 unify_y_value, [[mode(r)]] => goto_ins(unify_y_local_value).
 unify_y_value, [[mode(w)]] => decops([A]),
     u1(yval(A)),
     dispatch.
 
-:- ins_op_format(unify_y_local_value, 126, [f_y], [label(r)]).
 unify_y_local_value => decops([A]),
     u1(ylval(A)),
     dispatch.
 
-:- ins_op_format(unify_constantq, 127, [f_Q,f_t]).
 unify_constantq, [[mode(r)]] =>
-    shiftf(f_Q), goto_ins(unify_constant).
+    shiftf, goto_ins(unify_constant).
 unify_constantq, [[mode(w)]] => decops([A]),
     heap_push(A),
     dispatch.
 
-:- ins_op_format(unify_constant, 128, [f_t], [label(r)]).
 unify_constant, [[mode(r)]] => decops([A]),
     "{",
     localv(tagged, T1), ref_heap_next(T1),
@@ -1978,10 +1830,8 @@ unify_constant, [[mode(w)]] => decops([A]),
     heap_push(A),
     dispatch.
 
-:- ins_op_format(unify_largeq, 258, [f_Q,f_b]).
-unify_largeq => shiftf(f_Q), goto_ins(unify_large).
+unify_largeq => shiftf, goto_ins(unify_large).
 
-:- ins_op_format(unify_large, 259, [f_b], [label(_)]).
 unify_large, [[mode(r)]] => decops([A]),
     "{",
     localv(tagged, T1), ref_heap_next(T1),
@@ -1997,16 +1847,14 @@ unify_large, [[mode(w)]] => decops([A]),
     [[update(mode(r))]],
     dispatchf(callexp('LargeSize',[A^])).
 
-:- ins_op_format(unify_structureq, 129, [f_Q,f_f]).
 unify_structureq, [[mode(r)]] =>
-    shiftf(f_Q), goto_ins(unify_structure).
+    shiftf, goto_ins(unify_structure).
 unify_structureq, [[mode(w)]] => decops([A]),
     cachedreg('H', H),
     heap_push(tagp(str,callexp('HeapOffset', [H,1]))),
     heap_push(A),
     dispatch.
 
-:- ins_op_format(unify_structure, 130, [f_f], [label(r)]).
 unify_structure, [[mode(r)]] => decops([A]),
     "{",
     localv(tagged, T1), ref_heap_next(T1),
@@ -2018,7 +1866,6 @@ unify_structure, [[mode(w)]] => decops([A]),
     heap_push(A),
     dispatch.
 
-:- ins_op_format(unify_nil, 131, []).
 unify_nil, [[mode(r)]] =>
     "{",
     localv(tagged, T1), ref_heap_next(T1),
@@ -2031,7 +1878,6 @@ unify_nil, [[mode(w)]] =>
     heap_push(Nil),
     dispatch.
 
-:- ins_op_format(unify_list, 132, []).
 unify_list, [[mode(r)]] =>
     "{",
     localv(tagged, T1), ref_heap_next(T1),
@@ -2042,14 +1888,12 @@ unify_list, [[mode(w)]] =>
     heap_push(tagp(lst,callexp('HeapOffset', [H,1]))),
     dispatch.
 
-:- ins_op_format(unify_constant_neck_proceedq, 133, [f_Q,f_t]).
 unify_constant_neck_proceedq, [[mode(r)]] =>
-    shiftf(f_Q), goto_ins(unify_constant_neck_proceed).
+    shiftf, goto_ins(unify_constant_neck_proceed).
 unify_constant_neck_proceedq, [[mode(w)]] => decops([A]),
     heap_push(A),
     goto_ins(neck_proceed).
 
-:- ins_op_format(unify_constant_neck_proceed, 134, [f_t], [label(r)]).
 unify_constant_neck_proceed, [[mode(r)]] => decops([A]),
     "{",
     localv(tagged, T1), ref_heap_next(T1),
@@ -2061,7 +1905,6 @@ unify_constant_neck_proceed, [[mode(w)]] => decops([A]),
     heap_push(A),
     goto_ins(neck_proceed).
 
-:- ins_op_format(unify_nil_neck_proceed, 135, []).
 unify_nil_neck_proceed, [[mode(r)]] =>
     "{",
     localv(tagged, T1), ref_heap_next(T1),
@@ -2075,470 +1918,394 @@ unify_nil_neck_proceed, [[mode(w)]] =>
     heap_push(Nil),
     goto_ins(neck_proceed).
 
-:- ins_op_format(u2_void_xvar, 136, [f_i,f_x]).
 u2_void_xvar => decops([N,B]),
     u1(void(N)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_void_yfvar, 139, [f_i,f_y]).
 u2_void_yfvar =>
     alloc,
     goto_ins(u2_void_yvar).
 
-:- ins_op_format(u2_void_yvar, 140, [f_i,f_y], [label(_)]).
 u2_void_yvar => decops([N,B]),
     u1(void(N)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_void_xval, 137, [f_i,f_x]).
 u2_void_xval, [[mode(r)]] => goto_ins(u2_void_xlval).
 u2_void_xval, [[mode(w)]] => decops([N,B]),
     u1(void(N)),
     u1(xval(B)),
     dispatch.
 
-:- ins_op_format(u2_void_xlval, 138, [f_i,f_x], [label(r)]).
 u2_void_xlval => decops([N,B]),
     u1(void(N)),
     u1(xlval(B)),
     dispatch.
 
-:- ins_op_format(u2_void_yfval, 141, [f_i,f_y]).
 u2_void_yfval => decops([N,B]),
     u1(void(N)),
     u1(yfval(B)),
     dispatch.
 
-:- ins_op_format(u2_void_yval, 142, [f_i,f_y]).
 u2_void_yval, [[mode(r)]] => goto_ins(u2_void_ylval).
 u2_void_yval, [[mode(w)]] => decops([N,B]),
     u1(void(N)),
     u1(yval(B)),
     dispatch.
 
-:- ins_op_format(u2_void_ylval, 143, [f_i,f_y], [label(r)]).
 u2_void_ylval => decops([N,B]),
     u1(void(N)),
     u1(ylval(B)),
     dispatch.
 
-:- ins_op_format(u2_xvar_void, 144, [f_x,f_i]).
 u2_xvar_void => decops([A,N]),
     u1(var(A)),
     u1(void(N)),
     dispatch.
 
-:- ins_op_format(u2_xvar_xvar, 145, [f_x,f_x]).
 u2_xvar_xvar => decops([A,B]),
     u1(var(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_xvar_yfvar, 148, [f_x,f_y]).
 u2_xvar_yfvar =>
     alloc,
     goto_ins(u2_xvar_yvar).
 
-:- ins_op_format(u2_xvar_yvar, 149, [f_x,f_y], [label(_)]).
 u2_xvar_yvar => decops([A,B]),
     u1(var(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_xvar_xval, 146, [f_x,f_x]).
 u2_xvar_xval, [[mode(r)]] => goto_ins(u2_xvar_xlval).
 u2_xvar_xval, [[mode(w)]] => decops([A,B]),
     u1(var(A)),
     u1(xval(B)),
     dispatch.
 
-:- ins_op_format(u2_xvar_xlval, 147, [f_x,f_x], [label(r)]).
 u2_xvar_xlval => decops([A,B]),
     u1(var(A)),
     u1(xlval(B)),
     dispatch.
 
-:- ins_op_format(u2_xvar_yfval, 150, [f_x,f_y]).
 u2_xvar_yfval => decops([A,B]),
     u1(var(A)),
     u1(yfval(B)),
     dispatch.
 
-:- ins_op_format(u2_xvar_yval, 151, [f_x,f_y]).
 u2_xvar_yval, [[mode(r)]] => goto_ins(u2_xvar_ylval).
 u2_xvar_yval, [[mode(w)]] => decops([A,B]),
     u1(var(A)),
     u1(yval(B)),
     dispatch.
 
-:- ins_op_format(u2_xvar_ylval, 152, [f_x,f_y], [label(r)]).
 u2_xvar_ylval => decops([A,B]),
     u1(var(A)),
     u1(ylval(B)),
     dispatch.
 
-:- ins_op_format(u2_yfvar_void, 153, [f_y,f_i]).
 u2_yfvar_void =>
     alloc,
     goto_ins(u2_yvar_void).
 
-:- ins_op_format(u2_yvar_void, 154, [f_y,f_i], [label(_)]).
 u2_yvar_void => decops([A,N]),
     u1(var(A)),
     u1(void(N)),
     dispatch.
 
-:- ins_op_format(u2_yfvar_xvar, 155, [f_y,f_x]).
 u2_yfvar_xvar =>
     alloc,
     goto_ins(u2_yvar_xvar).
 
-:- ins_op_format(u2_yvar_xvar, 156, [f_y,f_x], [label(_)]).
 u2_yvar_xvar => decops([A,B]),
     u1(var(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_yfvar_yvar, 157, [f_y,f_y]).
 u2_yfvar_yvar =>
     alloc,
     goto_ins(u2_yvar_yvar).
 
-:- ins_op_format(u2_yvar_yvar, 158, [f_y,f_y], [label(_)]).
 u2_yvar_yvar => decops([A,B]),
     u1(var(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_yfvar_xval, 159, [f_y,f_x]).
 u2_yfvar_xval, [[mode(r)]] => goto_ins(u2_yfvar_xlval).
 u2_yfvar_xval, [[mode(w)]] =>
     alloc,
     goto_ins(u2_yvar_xval).
 
-:- ins_op_format(u2_yfvar_xlval, 161, [f_y,f_x], [label(r)]).
 u2_yfvar_xlval =>
     alloc,
     goto_ins(u2_yvar_xlval).
 
-:- ins_op_format(u2_yvar_xval, 160, [f_y,f_x], [label(w)]).
 u2_yvar_xval, [[mode(r)]] => goto_ins(u2_yvar_xlval).
 u2_yvar_xval, [[mode(w)]] => decops([A,B]),
     u1(var(A)),
     u1(xval(B)),
     dispatch.
 
-:- ins_op_format(u2_yvar_xlval, 162, [f_y,f_x], [label(_)]).
 u2_yvar_xlval => decops([A,B]),
     u1(var(A)),
     u1(xlval(B)),
     dispatch.
 
-:- ins_op_format(u2_yfvar_yval, 163, [f_y,f_y]).
 u2_yfvar_yval, [[mode(r)]] => goto_ins(u2_yfvar_ylval).
 u2_yfvar_yval, [[mode(w)]] =>
     alloc,
     goto_ins(u2_yvar_yval).
 
-:- ins_op_format(u2_yfvar_ylval, 165, [f_y,f_y], [label(r)]).
 u2_yfvar_ylval =>
     alloc,
     goto_ins(u2_yvar_ylval).
 
-:- ins_op_format(u2_yvar_yval, 164, [f_y,f_y], [label(w)]).
 u2_yvar_yval, [[mode(r)]] => goto_ins(u2_yvar_ylval).
 u2_yvar_yval, [[mode(w)]] => decops([A,B]),
     u1(var(A)),
     u1(yval(B)),
     dispatch.
 
-:- ins_op_format(u2_yvar_ylval, 166, [f_y,f_y], [label(_)]).
 u2_yvar_ylval => decops([A,B]),
     u1(var(A)),
     u1(ylval(B)),
     dispatch.
 
-:- ins_op_format(u2_yfval_void, 185, [f_y,f_i]).
 u2_yfval_void => decops([A,N]),
     u1(yfval(A)),
     u1(void(N)),
     dispatch.
 
-:- ins_op_format(u2_yfval_xvar, 188, [f_y,f_x]).
 u2_yfval_xvar => decops([A,B]),
     u1(yfval(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_yfval_yfval, 199, [f_y,f_y]).
 u2_yfval_yfval => decops([A,B]),
     u1(yfval(A)),
     u1(yfval(B)),
     dispatch.
 
-:- ins_op_format(u2_yfval_xval, 193, [f_y,f_x]).
 u2_yfval_xval, [[mode(r)]] => goto_ins(u2_yfval_xlval).
 u2_yfval_xval, [[mode(w)]] => decops([A,B]),
     u1(yfval(A)),
     u1(xval(B)),
     dispatch.
 
-:- ins_op_format(u2_yfval_xlval, 196, [f_y,f_x], [label(r)]).
 u2_yfval_xlval => decops([A,B]),
     u1(yfval(A)),
     u1(xlval(B)),
     dispatch.
 
-:- ins_op_format(u2_yfval_yval, 202, [f_y,f_y]).
 u2_yfval_yval, [[mode(r)]] => goto_ins(u2_yfval_ylval).
 u2_yfval_yval, [[mode(w)]] => decops([A,B]),
     u1(yfval(A)),
     u1(yval(B)),
     dispatch.
 
-:- ins_op_format(u2_yfval_ylval, 205, [f_y,f_y], [label(r)]).
 u2_yfval_ylval => decops([A,B]),
     u1(yfval(A)),
     u1(ylval(B)),
     dispatch.
 
-:- ins_op_format(u2_xval_void, 167, [f_x,f_i]).
 u2_xval_void, [[mode(r)]] => goto_ins(u2_xlval_void).
 u2_xval_void, [[mode(w)]] => decops([A,N]),
     u1(xval(A)),
     u1(void(N)),
     dispatch.
 
-:- ins_op_format(u2_xlval_void, 168, [f_x,f_i], [label(r)]).
 u2_xlval_void => decops([A,N]),
     u1(xlval(A)),
     u1(void(N)),
     dispatch.
 
-:- ins_op_format(u2_xval_xvar, 169, [f_x,f_x]).
 u2_xval_xvar, [[mode(r)]] => goto_ins(u2_xlval_xvar).
 u2_xval_xvar, [[mode(w)]] => decops([A,B]),
     u1(xval(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_xlval_xvar, 170, [f_x,f_x], [label(r)]).
 u2_xlval_xvar => decops([A,B]),
     u1(xlval(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_xval_yfvar, 171, [f_x,f_y]).
 u2_xval_yfvar, [[mode(r)]] => goto_ins(u2_xlval_yfvar).
 u2_xval_yfvar, [[mode(w)]] =>
     alloc,
     goto_ins(u2_xval_yvar).
 
-:- ins_op_format(u2_xlval_yfvar, 172, [f_x,f_y], [label(r)]).
 u2_xlval_yfvar =>
     alloc,
     goto_ins(u2_xlval_yvar).
 
-:- ins_op_format(u2_xval_yvar, 173, [f_x,f_y], [label(w)]).
 u2_xval_yvar, [[mode(r)]] => goto_ins(u2_xlval_yvar).
 u2_xval_yvar, [[mode(w)]] => decops([A,B]),
     u1(xval(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_xlval_yvar, 174, [f_x,f_y], [label(_)]).
 u2_xlval_yvar => decops([A,B]),
     u1(xlval(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_xval_xval, 175, [f_x,f_x]).
 u2_xval_xval, [[mode(r)]] => goto_ins(u2_xval_xlval).
 u2_xval_xval, [[mode(w)]] => decops([A,B]),
     u1(xval(A)),
     u1(xval(B)),
     dispatch.
 
-:- ins_op_format(u2_xval_xlval, 177, [f_x,f_x], [label(r)]).
 u2_xval_xlval, [[mode(r)]] => goto_ins(u2_xlval_xval).
 u2_xval_xlval, [[mode(w)]] => decops([A,B]),
     u1(xval(A)),
     u1(xlval(B)),
     dispatch.
 
-:- ins_op_format(u2_xlval_xval, 176, [f_x,f_x], [label(r)]).
 u2_xlval_xval, [[mode(r)]] => goto_ins(u2_xlval_xlval).
 u2_xlval_xval, [[mode(w)]] => decops([A,B]),
     u1(xlval(A)),
     u1(xval(B)),
     dispatch.
 
-:- ins_op_format(u2_xlval_xlval, 178, [f_x,f_x], [label(r)]).
 u2_xlval_xlval => decops([A,B]),
     u1(xlval(A)),
     u1(xlval(B)),
     dispatch.
 
-:- ins_op_format(u2_xval_yfval, 179, [f_x,f_y]).
 u2_xval_yfval, [[mode(r)]] => goto_ins(u2_xlval_yfval).
 u2_xval_yfval, [[mode(w)]] => decops([A,B]),
     u1(xval(A)),
     u1(yfval(B)),
     dispatch.
 
-:- ins_op_format(u2_xlval_yfval, 180, [f_x,f_y], [label(r)]).
 u2_xlval_yfval => decops([A,B]),
     u1(xlval(A)),
     u1(yfval(B)),
     dispatch.
 
-:- ins_op_format(u2_xval_yval, 181, [f_x,f_y]).
 u2_xval_yval, [[mode(r)]] => goto_ins(u2_xval_ylval).
 u2_xval_yval, [[mode(w)]] => decops([A,B]),
     u1(xval(A)),
     u1(yval(B)),
     dispatch.
 
-:- ins_op_format(u2_xval_ylval, 183, [f_x,f_y], [label(r)]).
 u2_xval_ylval, [[mode(r)]] => goto_ins(u2_xlval_yval).
 u2_xval_ylval, [[mode(w)]] => decops([A,B]),
     u1(xval(A)),
     u1(ylval(B)),
     dispatch.
 
-:- ins_op_format(u2_xlval_yval, 182, [f_x,f_y], [label(r)]).
 u2_xlval_yval, [[mode(r)]] => goto_ins(u2_xlval_ylval).
 u2_xlval_yval, [[mode(w)]] => decops([A,B]),
     u1(xlval(A)),
     u1(yval(B)),
     dispatch.
 
-:- ins_op_format(u2_xlval_ylval, 184, [f_x,f_y], [label(r)]).
 u2_xlval_ylval => decops([A,B]),
     u1(xlval(A)),
     u1(ylval(B)),
     dispatch.
 
-:- ins_op_format(u2_yval_void, 186, [f_y,f_i]).
 u2_yval_void, [[mode(r)]] => goto_ins(u2_ylval_void).
 u2_yval_void, [[mode(w)]] => decops([A,N]),
     u1(yval(A)),
     u1(void(N)),
     dispatch.
 
-:- ins_op_format(u2_ylval_void, 187, [f_y,f_i], [label(r)]).
 u2_ylval_void => decops([A,N]),
     u1(ylval(A)),
     u1(void(N)),
     dispatch.
 
-:- ins_op_format(u2_yval_xvar, 189, [f_y,f_x]).
 u2_yval_xvar, [[mode(r)]] => goto_ins(u2_ylval_xvar).
 u2_yval_xvar, [[mode(w)]] => decops([A,B]),
     u1(yval(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_ylval_xvar, 190, [f_y,f_x], [label(r)]).
 u2_ylval_xvar => decops([A,B]),
     u1(ylval(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_yval_yvar, 191, [f_y,f_y]).
 u2_yval_yvar, [[mode(r)]] => goto_ins(u2_ylval_yvar).
 u2_yval_yvar, [[mode(w)]] => decops([A,B]),
     u1(yval(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_ylval_yvar, 192, [f_y,f_y], [label(r)]).
 u2_ylval_yvar => decops([A,B]),
     u1(ylval(A)),
     u1(var(B)),
     dispatch.
 
-:- ins_op_format(u2_yval_yfval, 200, [f_y,f_y]).
 u2_yval_yfval, [[mode(r)]] => goto_ins(u2_ylval_yfval).
 u2_yval_yfval, [[mode(w)]] => decops([A,B]),
     u1(yval(A)),
     u1(yfval(B)),
     dispatch.
 
-:- ins_op_format(u2_ylval_yfval, 201, [f_y,f_y], [label(r)]).
 u2_ylval_yfval => decops([A,B]),
     u1(ylval(A)),
     u1(yfval(B)),
     dispatch.
 
-:- ins_op_format(u2_yval_xval, 194, [f_y,f_x]).
 u2_yval_xval, [[mode(r)]] => goto_ins(u2_yval_xlval).
 u2_yval_xval, [[mode(w)]] => decops([A,B]),
     u1(yval(A)),
     u1(xval(B)),
     dispatch.
 
-:- ins_op_format(u2_yval_xlval, 197, [f_y,f_x], [label(r)]).
 u2_yval_xlval, [[mode(r)]] => goto_ins(u2_ylval_xval).
 u2_yval_xlval, [[mode(w)]] => decops([A,B]),
     u1(yval(A)),
     u1(xlval(B)),
     dispatch.
 
-:- ins_op_format(u2_ylval_xval, 195, [f_y,f_x], [label(r)]).
 u2_ylval_xval, [[mode(r)]] => goto_ins(u2_ylval_xlval).
 u2_ylval_xval, [[mode(w)]] => decops([A,B]),
     u1(ylval(A)),
     u1(xval(B)),
     dispatch.
 
-:- ins_op_format(u2_ylval_xlval, 198, [f_y,f_x], [label(r)]).
 u2_ylval_xlval => decops([A,B]),
     u1(ylval(A)),
     u1(xlval(B)),
     dispatch.
 
-:- ins_op_format(u2_yval_yval, 203, [f_y,f_y]).
 u2_yval_yval, [[mode(r)]] => goto_ins(u2_yval_ylval).
 u2_yval_yval, [[mode(w)]] => decops([A,B]),
     u1(yval(A)),
     u1(yval(B)),
     dispatch.
 
-:- ins_op_format(u2_yval_ylval, 206, [f_y,f_y], [label(r)]).
 u2_yval_ylval, [[mode(r)]] => goto_ins(u2_ylval_yval).
 u2_yval_ylval, [[mode(w)]] => decops([A,B]),
     u1(yval(A)),
     u1(ylval(B)),
     dispatch.
 
-:- ins_op_format(u2_ylval_yval, 204, [f_y,f_y], [label(r)]).
 u2_ylval_yval, [[mode(r)]] => goto_ins(u2_ylval_ylval).
 u2_ylval_yval, [[mode(w)]] => decops([A,B]),
     u1(ylval(A)),
     u1(yval(B)),
     dispatch.
 
-:- ins_op_format(u2_ylval_ylval, 207, [f_y,f_y], [label(r)]).
 u2_ylval_ylval => decops([A,B]),
     u1(ylval(A)),
     u1(ylval(B)),
     dispatch.
 
-:- ins_op_format(bump_counterq, 248, [f_Q,f_l]).
-bump_counterq => shiftf(f_Q), goto_ins(bump_counter).
+bump_counterq => shiftf, goto_ins(bump_counter).
 
-:- ins_op_format(bump_counter, 249, [f_l], [label(_)]).
 bump_counter => decops([A]),
     gauge_incr_counter(A),
     dispatch.
 
-:- ins_op_format(counted_neckq, 250, [f_Q,f_l,f_l]).
-counted_neckq => shiftf(f_Q), goto_ins(counted_neck).
+counted_neckq => shiftf, goto_ins(counted_neck).
 
-:- ins_op_format(counted_neck, 251, [f_l,f_l], [label(_)]).
 counted_neck => decops([A,B]),
     cpp_if_defined('GAUGE'),
     if(not(callexp('IsDeep',[])), (
@@ -2553,14 +2320,13 @@ counted_neck => decops([A,B]),
     assign("P" + fsize_sum([f_l,f_l])),
     goto_ins(neck).
 
-:- ins_op_format(fail, 67, []).
 fail =>
     jump_fail.
 
-:- ins_op_format(heapmargin_callq, 245, [f_Q,f_g]).
-heapmargin_callq => shiftf(f_Q), goto_ins(heapmargin_call).
+% TODO: PATCH_LIVEINFO requires f_g (we cannot expand to f_l,f_i in instruction format like in OC)
 
-:- ins_op_format(heapmargin_call, 246, [f_g], [label(_)]).
+heapmargin_callq => shiftf, goto_ins(heapmargin_call).
+
 heapmargin_call => decopsf([f_l,f_i],[A,B]), % TODO: abstract code to use f_g
     cachedreg('H',H),
     if(callexp('HeapCharDifference', [H, "Heap_End"]) < cast(intmach,A),
@@ -2571,12 +2337,10 @@ heapmargin_call => decopsf([f_l,f_i],[A,B]), % TODO: abstract code to use f_g
        )),
     dispatch.
 
-:- ins_op_format(neck, 65, [], [label(_)]).
 neck =>
     code_neck,
     dispatch.
 
-:- ins_op_format(dynamic_neck_proceed, 236, [], [label(w)]).
 :- ins_in_mode(dynamic_neck_proceed, w).
 dynamic_neck_proceed => % (needs: w->misc->ins)
     unify_atom_internal(callexp('PointerToTerm',[(~w)^.misc^.ins]),x(3)),
@@ -2593,12 +2357,10 @@ dynamic_neck_proceed => % (needs: w->misc->ins)
     )),
     goto_ins(neck_proceed).
 
-:- ins_op_format(neck_proceed, 66, [], [label(w)]).
 :- ins_in_mode(neck_proceed, w).
 neck_proceed =>
     code_neck_proceed.
 
-:- ins_op_format(proceed, 64, [], [label(_)]).
 proceed =>
     (~w)^.local_top <- 0,
     call('SetE', [(~w)^.frame]),
@@ -2607,7 +2369,6 @@ proceed =>
     dispatch.
 
 % TODO: this a new instruction really needed here? consider special builtin functions
-:- ins_op_format(restart_point, 262, [], [optional('PARBACK')]).
 restart_point =>
     setmode_setH(r, callexp('TaggedToPointer', [(~w)^.choice^.x[0]])),
     setmode(w),
@@ -2615,11 +2376,6 @@ restart_point =>
     (~w)^.next_insn <- (~w)^.choice^.next_insn,
     cvoid_call('pop_choicept', []),
     goto('enter_predicate').
-
-% :- ins_op_format(ci_call, 241, [f_i,f_i]).
-% :- ins_op_format(ci_inarg, 242, [f_i,f_i]).
-% :- ins_op_format(ci_outarg, 243, [f_i,f_i]).
-% :- ins_op_format(ci_retval, 244, [f_i,f_i]).
 
 % ---------------------------------------------------------------------------
 %! # WAM execution tracing
@@ -2780,12 +2536,64 @@ absmachdef =>
     [[ max_op(MaxOp) ]],
     [[ NumOp is MaxOp + 1 ]],
     cpp_define('INS_OPCOUNT', NumOp),
+    cpp_define('Fs(Ty)',"FTYPE_size(Ty)"), % (shorter name) % TODO: duplicated
     %
     "absmachdef_t abscurr = {", fmt:nl,
-    '$absmachdef',
+    [[ ftype_def(f_i, FId_i, _) ]],
+    [[ ftype_def(f_o, FId_o, _) ]],
+    ".ftype_id_i = ", FId_i, ",", fmt:nl,
+    ".ftype_id_o = ", FId_o, ",", fmt:nl,
+    ".ins_info = (ftype_base_t *[]){", fmt:nl,
+    absmach_insinfo,
+    "},", fmt:nl,
+    ".ins_n = ", NumOp, ",", fmt:nl,
+    ftype_info,
+    ".q_pad1 = 128 * 4,", fmt:nl,
+    ".q_pad2 = 1152 * 4,", fmt:nl,
+    ".tagged_size = sizeof(tagged_t),", fmt:nl,
+    ".size_align = sizeof(tagged_t)", fmt:nl,
     "}", stmtend,
     %
     insnames.
+
+absmach_insinfo =>
+    [[ max_op(MaxOp) ]],
+    [[ range(0, MaxOp, Ops) ]],
+    '$foreach_sep'(",\n", Ops, absmach_insinfo_).
+
+absmach_insinfo_(Op) =>
+    ( [[ op_ins(Op, Ins) ]] ->
+        [[ prop(Ins, format(Format)) ]],
+        ftype_info__str(Format)
+    ; ftype_info__str([])
+    ).
+
+ftype_info =>
+    [[ max_ftype(MaxFType) ]],
+    [[ NumFType is MaxFType + 1 ]],
+    [[ range(0, MaxFType, FTypes) ]],
+    ".ftype_info = (ftype_base_t *[]){", fmt:nl,
+    '$foreach_sep'(",\n", FTypes, ftype_info_),
+    "},", fmt:nl,
+    ".ftype_n = ", NumFType, ",", fmt:nl.
+
+ftype_info_(Id), [[ id_ftype(Id, FType) ]] =>
+    [[ ftype_def(FType, _, Def) ]],
+    ftype_info__(Def, FType).
+ftype_info_(_) => ftype_info__(str([]), none).
+
+ftype_info__(array(A,B), _FType) =>
+    [[ map_ftype_id([A,B], Ys) ]],
+    callexp('FTYPE_ARRAY', Ys).
+ftype_info__(str(Xs), _FType) => ftype_info__str(Xs).
+ftype_info__(basic(SMethod,LMethod), FType) => callexp('FTYPE_BASIC', [fsize(FType),SMethod,LMethod]).
+ftype_info__(blob, _) => callexp('FTYPE_BLOB', []).
+
+ftype_info__str([]) => callexp('FTYPE_STR0', []).
+ftype_info__str(Xs) =>
+    [[ length(Xs, N) ]],
+    [[ map_ftype_id(Xs, Ys) ]],
+    callexp('FTYPE_STR', [N, callexp('BRACES', Ys)]).
 
 :- pred(ftype_id/1, []).
 ftype_id(FType) =>
@@ -3705,7 +3513,7 @@ jump_ins_dispatch =>
 
 :- pred(ins_dispatch_label/1, []).
 % TODO: define special meta-predicates? (Label is a output meta-argument)
-:- pred(ins_dispatch_label(Label), [in_moded('ins_dispatch_label/1')]).
+:- pred(ins_dispatch_label(Label), [rs_mark('ins_dispatch_label/1')]).
 ins_dispatch_label(Label), [[ mode(r) ]] => [[ Label = 'ReadMode' ]]. /* Here with H in memory. */
 ins_dispatch_label(Label), [[ mode(w) ]] => [[ Label = 'WriteMode' ]]. /* Here with H in register. */
 
@@ -3721,15 +3529,14 @@ ins_dispatcher =>
       goto('illop'))).
 
 % Wrapper for instructions
-inswrap(I), [[ prop(I, optional(Flag)) ]] =>
+inswrap(entry(I,Format)), [[ prop(I, optional(Flag)) ]] =>
     % Emit optional instructions (based on C preprocessor flags)
     cpp_if_defined(Flag),
-    inswrap_(I),
+    inswrap_(I,Format),
     cpp_endif.
-inswrap(I) => inswrap_(I).
+inswrap(entry(I,Format)) => inswrap_(I,Format).
 
-inswrap_(I) =>
-    [[ prop(I, format(Format)) ]],
+inswrap_(I,Format) =>
     [[ update(format(Format)) ]],
     ins_label(I),
     ins_case(I),
@@ -3756,6 +3563,19 @@ ins_label(_) => true.
 %! # Instruction set switch
 % NOTE: declaration order is important (for performance)
 
+ins_entry(Ins,Opcode,Format) =>
+    decl(ins_op_format(Ins,Opcode,Format,[])),
+    entry(Ins,Format).
+
+ins_entry(Ins,Opcode,Format,Props) =>
+    decl(ins_op_format(Ins,Opcode,Format,Props)),
+    entry(Ins,Format).
+
+% :- ins_op_format(ci_call, 241, [f_i,f_i])),
+% :- ins_op_format(ci_inarg, 242, [f_i,f_i])),
+% :- ins_op_format(ci_outarg, 243, [f_i,f_i])),
+% :- ins_op_format(ci_retval, 244, [f_i,f_i])),
+
 :- iset(instruction_set/0).
 instruction_set =>
     iset_init,
@@ -3766,236 +3586,295 @@ instruction_set =>
     iset_choice,
     iset_misc1,
     iset_get2,
-    entry(branch),
+    ins_entry(branch, 68, [f_i]),
     iset_blt,
-    entry(get_constraint),
+    ins_entry(get_constraint, 247, [f_x], [label(w)]),
     iset_unify,
     iset_u2,
     iset_misc2,
     exported_insns.
 
 iset_init =>
-    entry(inittrue),
-    entry(firsttrue_n),
-    entry(initcallq), entry(initcall).
+    ins_entry(inittrue, 260, [f_e], [label(w)]),
+    ins_entry(firsttrue_n, 261, [f_Y,f_e], [label(w)]),
+    ins_entry(initcallq, 0, [f_Q,f_E,f_e]),
+    ins_entry(initcall, 1, [f_E,f_e], [label(_)]).
 
 iset_call =>
-    entry(firstcall_nq), entry(firstcall_n),
-    entry(firstcall_8q), entry(firstcall_8),
-    entry(firstcall_7q), entry(firstcall_7),
-    entry(firstcall_6q), entry(firstcall_6),
-    entry(firstcall_5q), entry(firstcall_5),
-    entry(firstcall_4q), entry(firstcall_4),
-    entry(firstcall_3q), entry(firstcall_3),
-    entry(firstcall_2q), entry(firstcall_2),
-    entry(firstcall_1q), entry(firstcall_1),
-    entry(firstcallq), entry(firstcall),
-    entry(call_nq), entry(call_n),
-    entry(call_8q), entry(call_8),
-    entry(call_7q), entry(call_7),
-    entry(call_6q), entry(call_6),
-    entry(call_5q), entry(call_5),
-    entry(call_4q), entry(call_4),
-    entry(call_3q), entry(call_3),
-    entry(call_2q), entry(call_2),
-    entry(call_1q), entry(call_1),
-    entry(callq), entry(call),
-    entry(lastcall_nq), entry(lastcall_n),
-    entry(lastcall_8q), entry(lastcall_8),
-    entry(lastcall_7q), entry(lastcall_7),
-    entry(lastcall_6q), entry(lastcall_6),
-    entry(lastcall_5q), entry(lastcall_5),
-    entry(lastcall_4q), entry(lastcall_4),
-    entry(lastcall_3q), entry(lastcall_3),
-    entry(lastcall_2q), entry(lastcall_2),
-    entry(lastcall_1q), entry(lastcall_1),
-    entry(lastcallq), entry(lastcall),
-    entry(executeq), entry(execute).
+    ins_entry(firstcall_nq, 20, [f_Q,f_Y,f_E,f_e]),
+    ins_entry(firstcall_n, 21, [f_Y,f_E,f_e], [label(_)]),
+    ins_entry(firstcall_8q, 18, [f_Q,f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e]),
+    ins_entry(firstcall_8, 19, [f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e], [label(_)]),
+    ins_entry(firstcall_7q, 16, [f_Q,f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e]),
+    ins_entry(firstcall_7, 17, [f_y,f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e], [label(_)]),
+    ins_entry(firstcall_6q, 14, [f_Q,f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e]),
+    ins_entry(firstcall_6, 15, [f_y,f_y,f_y,f_y,f_y,f_y,f_E,f_e], [label(_)]),
+    ins_entry(firstcall_5q, 12, [f_Q,f_y,f_y,f_y,f_y,f_y,f_E,f_e]),
+    ins_entry(firstcall_5, 13, [f_y,f_y,f_y,f_y,f_y,f_E,f_e], [label(_)]),
+    ins_entry(firstcall_4q, 10, [f_Q,f_y,f_y,f_y,f_y,f_E,f_e]),
+    ins_entry(firstcall_4, 11, [f_y,f_y,f_y,f_y,f_E,f_e], [label(_)]),
+    ins_entry(firstcall_3q, 8, [f_Q,f_y,f_y,f_y,f_E,f_e]),
+    ins_entry(firstcall_3, 9, [f_y,f_y,f_y,f_E,f_e], [label(_)]),
+    ins_entry(firstcall_2q, 6, [f_Q,f_y,f_y,f_E,f_e]),
+    ins_entry(firstcall_2, 7, [f_y,f_y,f_E,f_e], [label(_)]),
+    ins_entry(firstcall_1q, 4, [f_Q,f_y,f_E,f_e]),
+    ins_entry(firstcall_1, 5, [f_y,f_E,f_e], [label(_)]),
+    ins_entry(firstcallq, 2, [f_Q,f_E,f_e]),
+    ins_entry(firstcall, 3, [f_E,f_e], [label(_)]),
+    %
+    ins_entry(call_nq, 40, [f_Q,f_Z,f_E,f_e]),
+    ins_entry(call_n, 41, [f_Z,f_E,f_e], [label(_)]),
+    ins_entry(call_8q, 38, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e]),
+    ins_entry(call_8, 39, [f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e], [label(_)]),
+    ins_entry(call_7q, 36, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e]),
+    ins_entry(call_7, 37, [f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e], [label(_)]),
+    ins_entry(call_6q, 34, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e]),
+    ins_entry(call_6, 35, [f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e], [label(_)]),
+    ins_entry(call_5q, 32, [f_Q,f_z,f_z,f_z,f_z,f_z,f_E,f_e]),
+    ins_entry(call_5, 33, [f_z,f_z,f_z,f_z,f_z,f_E,f_e], [label(_)]),
+    ins_entry(call_4q, 30, [f_Q,f_z,f_z,f_z,f_z,f_E,f_e]),
+    ins_entry(call_4, 31, [f_z,f_z,f_z,f_z,f_E,f_e], [label(_)]),
+    ins_entry(call_3q, 28, [f_Q,f_z,f_z,f_z,f_E,f_e]),
+    ins_entry(call_3, 29, [f_z,f_z,f_z,f_E,f_e], [label(_)]),
+    ins_entry(call_2q, 26, [f_Q,f_z,f_z,f_E,f_e]),
+    ins_entry(call_2, 27, [f_z,f_z,f_E,f_e], [label(_)]),
+    ins_entry(call_1q, 24, [f_Q,f_z,f_E,f_e]),
+    ins_entry(call_1, 25, [f_z,f_E,f_e], [label(_)]),
+    ins_entry(callq, 22, [f_Q,f_E,f_e]),
+    ins_entry(call, 23, [f_E,f_e], [label(_)]),
+    %
+    ins_entry(lastcall_nq, 60, [f_Q,f_Z,f_E]),
+    ins_entry(lastcall_n, 61, [f_Z,f_E], [label(_)]),
+    ins_entry(lastcall_8q, 58, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E]),
+    ins_entry(lastcall_8, 59, [f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E], [label(_)]),
+    ins_entry(lastcall_7q, 56, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E]),
+    ins_entry(lastcall_7, 57, [f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E], [label(_)]),
+    ins_entry(lastcall_6q, 54, [f_Q,f_z,f_z,f_z,f_z,f_z,f_z,f_E]),
+    ins_entry(lastcall_6, 55, [f_z,f_z,f_z,f_z,f_z,f_z,f_E], [label(_)]),
+    ins_entry(lastcall_5q, 52, [f_Q,f_z,f_z,f_z,f_z,f_z,f_E]),
+    ins_entry(lastcall_5, 53, [f_z,f_z,f_z,f_z,f_z,f_E], [label(_)]),
+    ins_entry(lastcall_4q, 50, [f_Q,f_z,f_z,f_z,f_z,f_E]),
+    ins_entry(lastcall_4, 51, [f_z,f_z,f_z,f_z,f_E], [label(_)]),
+    ins_entry(lastcall_3q, 48, [f_Q,f_z,f_z,f_z,f_E]),
+    ins_entry(lastcall_3, 49, [f_z,f_z,f_z,f_E], [label(_)]),
+    ins_entry(lastcall_2q, 46, [f_Q,f_z,f_z,f_E]),
+    ins_entry(lastcall_2, 47, [f_z,f_z,f_E], [label(_)]),
+    ins_entry(lastcall_1q, 44, [f_Q,f_z,f_E]),
+    ins_entry(lastcall_1, 45, [f_z,f_E], [label(_)]),
+    ins_entry(lastcallq, 42, [f_Q,f_E]),
+    ins_entry(lastcall, 43, [f_E], [label(_)]),
+    %
+    ins_entry(executeq, 62, [f_Q,f_E]),
+    ins_entry(execute, 63, [f_E], [label(w)]).
 
 iset_put =>
-    entry(put_x_void),
-    entry(put_x_variable),
-    entry(put_xval_xval),
-    entry(put_x_value),
-    entry(put_x_unsafe_value),
-    entry(put_y_first_variable),
-    entry(put_y_variable),
-    entry(put_yfvar_yvar),
-    entry(put_yvar_yvar),
-    entry(put_y_value),
-    entry(put_y_unsafe_value),
-    entry(put_constantq), entry(put_constant),
-    entry(put_nil),
-    entry(put_largeq), entry(put_large),
-    entry(put_structureq), entry(put_structure),
-    entry(put_list),
-    entry(put_yval_yval),
-    entry(put_yval_yuval),
-    entry(put_yuval_yval),
-    entry(put_yuval_yuval).
+    ins_entry(put_x_void, 69, [f_x], [label(w)]),
+    ins_entry(put_x_variable, 70, [f_x,f_x], [label(w)]),
+    ins_entry(put_xval_xval, 85, [f_x,f_x,f_x,f_x]),
+    ins_entry(put_x_value, 71, [f_x,f_x]),
+    ins_entry(put_x_unsafe_value, 72, [f_x,f_x], [label(w)]),
+    ins_entry(put_y_first_variable, 73, [f_x,f_y], [label(w)]),
+    ins_entry(put_y_variable, 74, [f_x,f_y], [label(w)]),
+    ins_entry(put_yfvar_yvar, 83, [f_x,f_y,f_x,f_y], [label(w)]),
+    ins_entry(put_yvar_yvar, 84, [f_x,f_y,f_x,f_y], [label(w)]),
+    ins_entry(put_y_value, 75, [f_x,f_y]),
+    ins_entry(put_y_unsafe_value, 76, [f_x,f_y], [label(w)]),
+    ins_entry(put_constantq, 77, [f_Q,f_x,f_t]),
+    ins_entry(put_constant, 78, [f_x,f_t]),
+    ins_entry(put_nil, 81, [f_x]),
+    ins_entry(put_largeq, 252, [f_Q,f_x,f_b], [label(w)]),
+    ins_entry(put_large, 253, [f_x,f_b], [label(w)]),
+    ins_entry(put_structureq, 79, [f_Q,f_x,f_f], [label(w)]),
+    ins_entry(put_structure, 80, [f_x,f_f], [label(w)]),
+    ins_entry(put_list, 82, [f_x], [label(w)]),
+    ins_entry(put_yval_yval, 86, [f_x,f_y,f_x,f_y]),
+    ins_entry(put_yval_yuval, 87, [f_x,f_y,f_x,f_y], [label(w)]),
+    ins_entry(put_yuval_yval, 88, [f_x,f_y,f_x,f_y], [label(w)]),
+    ins_entry(put_yuval_yuval, 89, [f_x,f_y,f_x,f_y], [label(w)]).
 
 iset_blt =>
-    entry(function_1q), entry(function_1),
-    entry(function_2q), entry(function_2),
-    entry(builtin_1q), entry(builtin_1),
-    entry(builtin_2q), entry(builtin_2),
-    entry(builtin_3q), entry(builtin_3),
-    entry(retry_instance).
+    ins_entry(function_1q, 222, [f_Q,f_x,f_x,f_C,f_g], [label(r)]),
+    ins_entry(function_1, 223, [f_x,f_x,f_C,f_g], [label(r)]),
+    ins_entry(function_2q, 224, [f_Q,f_x,f_x,f_x,f_C,f_g], [label(r)]),
+    ins_entry(function_2, 225, [f_x,f_x,f_x,f_C,f_g], [label(r)]),
+    ins_entry(builtin_1q, 226, [f_Q,f_x,f_C], [label(r)]),
+    ins_entry(builtin_1, 227, [f_x,f_C], [label(r)]),
+    ins_entry(builtin_2q, 228, [f_Q,f_x,f_x,f_C], [label(r)]),
+    ins_entry(builtin_2, 229, [f_x,f_x,f_C], [label(r)]),
+    ins_entry(builtin_3q, 230, [f_Q,f_x,f_x,f_x,f_C], [label(r)]),
+    ins_entry(builtin_3, 231, [f_x,f_x,f_x,f_C], [label(r)]),
+    ins_entry(retry_instance, 232, [], [label(r)]).
 
 iset_get1 =>
-    entry(get_x_value),
-    entry(get_y_first_value),
-    entry(get_y_value),
-    entry(get_constantq), entry(get_constant),
-    entry(get_largeq), entry(get_large),
-    entry(get_structureq), entry(get_structure),
-    entry(get_nil),
-    entry(get_list),
-    entry(get_constant_neck_proceedq), entry(get_constant_neck_proceed),
-    entry(get_nil_neck_proceed).
+    ins_entry(get_x_value, 91, [f_x,f_x], [label(r)]),
+    ins_entry(get_y_first_value, 94, [f_x,f_y], [label(r)]),
+    ins_entry(get_y_value, 95, [f_x,f_y], [label(r)]),
+    ins_entry(get_constantq, 96, [f_Q,f_x,f_t]),
+    ins_entry(get_constant, 97, [f_x,f_t], [label(_)]),
+    ins_entry(get_largeq, 254, [f_Q,f_x,f_b]),
+    ins_entry(get_large, 255, [f_x,f_b], [label(_)]),
+    ins_entry(get_structureq, 98, [f_Q,f_x,f_f]),
+    ins_entry(get_structure, 99, [f_x,f_f], [label(_)]),
+    ins_entry(get_nil, 100, [f_x], [label(r)]),
+    ins_entry(get_list, 101, [f_x], [label(r)]),
+    ins_entry(get_constant_neck_proceedq, 111, [f_Q,f_x,f_t]),
+    ins_entry(get_constant_neck_proceed, 112, [f_x,f_t], [label(_)]),
+    ins_entry(get_nil_neck_proceed, 113, [f_x], [label(r)]).
 
 iset_cut =>
-    entry(cutb_x),
-    entry(cutb_x_neck),
-    entry(cutb_neck),
-    entry(cutb_x_neck_proceed),
-    entry(cutb_neck_proceed),
-    entry(cute_x),
-    entry(cute_x_neck),
-    entry(cute_neck),
-    entry(cutf_x),entry(cutf),
-    entry(cut_y).
+    ins_entry(cutb_x, 208, [f_x], [label(r)]),
+    ins_entry(cutb_x_neck, 210, [f_x], [label(r)]),
+    ins_entry(cutb_neck, 211, [], [label(r)]),
+    ins_entry(cutb_x_neck_proceed, 212, [f_x], [label(r)]),
+    ins_entry(cutb_neck_proceed, 213, [], [label(r)]),
+    ins_entry(cute_x, 214, [f_x], [label(r)]),
+    ins_entry(cute_x_neck, 216, [f_x], [label(r)]),
+    ins_entry(cute_neck, 217, [], [label(r)]),
+    ins_entry(cutf_x, 215, [f_x], [label(r)]),
+    ins_entry(cutf, 209, [], [label(r)]),
+    ins_entry(cut_y, 218, [f_y], [label(r)]).
 
 iset_choice =>
-    entry(choice_x),
-    entry(choice_yf),
-    entry(choice_y).
+    ins_entry(choice_x, 219, [f_x]),
+    ins_entry(choice_yf, 220, [f_y]),
+    ins_entry(choice_y, 221, [f_y], [label(_)]).
 
 iset_misc1 =>
-    entry(kontinue),
-    entry(leave),
-    entry(exit_toplevel),
-    entry(retry_cq), entry(retry_c).
+    ins_entry(kontinue, 233, [], [label(w)]),
+    ins_entry(leave, 234, [], [label(r)]),
+    ins_entry(exit_toplevel, 235, [], [label(r)]),
+    ins_entry(retry_cq, 237, [f_Q,f_C], [label(r)]),
+    ins_entry(retry_c, 238, [f_C], [label(r)]).
 
 iset_get2 =>
-    entry(get_structure_x0q), entry(get_structure_x0),
-    entry(get_large_x0q), entry(get_large_x0),
-    entry(get_constant_x0q), entry(get_constant_x0),
-    entry(get_nil_x0),
-    entry(get_list_x0),
-    entry(get_xvar_xvar),
-    entry(get_x_variable),
-    entry(get_y_first_variable),
-    entry(get_y_variable),
-    entry(get_yfvar_yvar),
-    entry(get_yvar_yvar).
+    ins_entry(get_structure_x0q, 104, [f_Q,f_f]),
+    ins_entry(get_structure_x0, 105, [f_f], [label(w)]),
+    ins_entry(get_large_x0q, 256, [f_Q,f_b]),
+    ins_entry(get_large_x0, 257, [f_b], [label(w)]),
+    ins_entry(get_constant_x0q, 102, [f_Q,f_t]),
+    ins_entry(get_constant_x0, 103, [f_t], [label(w)]),
+    ins_entry(get_nil_x0, 106, []),
+    ins_entry(get_list_x0, 107, []),
+    ins_entry(get_xvar_xvar, 108, [f_x,f_x,f_x,f_x]),
+    ins_entry(get_x_variable, 90, [f_x,f_x]),
+    ins_entry(get_y_first_variable, 92, [f_x,f_y]),
+    ins_entry(get_y_variable, 93, [f_x,f_y], [label(_)]),
+    ins_entry(get_yfvar_yvar, 109, [f_x,f_y,f_x,f_y]),
+    ins_entry(get_yvar_yvar, 110, [f_x,f_y,f_x,f_y], [label(_)]).
 
 iset_unify =>
-    entry(unify_void),
-    entry(unify_void_4),
-    entry(unify_void_3),
-    entry(unify_void_2),
-    entry(unify_void_1),
-    entry(unify_x_variable),
-    entry(unify_x_value),
-    entry(unify_x_local_value),
-    entry(unify_y_first_variable),
-    entry(unify_y_variable),
-    entry(unify_y_first_value),
-    entry(unify_y_value),
-    entry(unify_y_local_value),
-    entry(unify_constantq), entry(unify_constant),
-    entry(unify_largeq), entry(unify_large),
-    entry(unify_structureq), entry(unify_structure),
-    entry(unify_nil),
-    entry(unify_list),
-    entry(unify_constant_neck_proceedq), entry(unify_constant_neck_proceed),
-    entry(unify_nil_neck_proceed).
+    ins_entry(unify_void, 114, [f_i]),
+    ins_entry(unify_void_1, 115, [], [label(w)]),
+    ins_entry(unify_void_2, 116, [], [label(w)]),
+    ins_entry(unify_void_3, 117, [], [label(w)]),
+    ins_entry(unify_void_4, 118, [], [label(w)]),
+    ins_entry(unify_x_variable, 119, [f_x]),
+    ins_entry(unify_x_value, 120, [f_x]),
+    ins_entry(unify_x_local_value, 121, [f_x], [label(r)]),
+    ins_entry(unify_y_first_variable, 122, [f_y]),
+    ins_entry(unify_y_variable, 123, [f_y], [label(_)]),
+    ins_entry(unify_y_first_value, 124, [f_y]),
+    ins_entry(unify_y_value, 125, [f_y]),
+    ins_entry(unify_y_local_value, 126, [f_y], [label(r)]),
+    ins_entry(unify_constantq, 127, [f_Q,f_t]),
+    ins_entry(unify_constant, 128, [f_t], [label(r)]),
+    ins_entry(unify_largeq, 258, [f_Q,f_b]),
+    ins_entry(unify_large, 259, [f_b], [label(_)]),
+    ins_entry(unify_structureq, 129, [f_Q,f_f]),
+    ins_entry(unify_structure, 130, [f_f], [label(r)]),
+    ins_entry(unify_nil, 131, []),
+    ins_entry(unify_list, 132, []),
+    ins_entry(unify_constant_neck_proceedq, 133, [f_Q,f_t]),
+    ins_entry(unify_constant_neck_proceed, 134, [f_t], [label(r)]),
+    ins_entry(unify_nil_neck_proceed, 135, []).
 
 iset_u2 =>
-    entry(u2_void_xvar),
-    entry(u2_void_yfvar),
-    entry(u2_void_yvar),
-    entry(u2_void_xval),
-    entry(u2_void_xlval),
-    entry(u2_void_yfval),
-    entry(u2_void_yval),
-    entry(u2_void_ylval),
-    entry(u2_xvar_void),
-    entry(u2_xvar_xvar),
-    entry(u2_xvar_yfvar),
-    entry(u2_xvar_yvar),
-    entry(u2_xvar_xval),
-    entry(u2_xvar_xlval),
-    entry(u2_xvar_yfval),
-    entry(u2_xvar_yval),
-    entry(u2_xvar_ylval),
-    entry(u2_yfvar_void),
-    entry(u2_yvar_void),
-    entry(u2_yfvar_xvar),
-    entry(u2_yvar_xvar),
-    entry(u2_yfvar_yvar),
-    entry(u2_yvar_yvar),
-    entry(u2_yfvar_xval),
-    entry(u2_yfvar_xlval),
-    entry(u2_yvar_xval),
-    entry(u2_yvar_xlval),
-    entry(u2_yfvar_yval),
-    entry(u2_yfvar_ylval),
-    entry(u2_yvar_yval),
-    entry(u2_yvar_ylval),
-    entry(u2_yfval_void),
-    entry(u2_yfval_xvar),
-    entry(u2_yfval_yfval),
-    entry(u2_yfval_xval),
-    entry(u2_yfval_xlval),
-    entry(u2_yfval_yval),
-    entry(u2_yfval_ylval),
-    entry(u2_xval_void),
-    entry(u2_xlval_void),
-    entry(u2_xval_xvar),
-    entry(u2_xlval_xvar),
-    entry(u2_xval_yfvar),
-    entry(u2_xlval_yfvar),
-    entry(u2_xval_yvar),
-    entry(u2_xlval_yvar),
-    entry(u2_xval_xval),
-    entry(u2_xval_xlval),
-    entry(u2_xlval_xval),
-    entry(u2_xlval_xlval),
-    entry(u2_xval_yfval),
-    entry(u2_xlval_yfval),
-    entry(u2_xval_yval),
-    entry(u2_xval_ylval),
-    entry(u2_xlval_yval),
-    entry(u2_xlval_ylval),
-    entry(u2_yval_void),
-    entry(u2_ylval_void),
-    entry(u2_yval_xvar),
-    entry(u2_ylval_xvar),
-    entry(u2_yval_yvar),
-    entry(u2_ylval_yvar),
-    entry(u2_yval_yfval),
-    entry(u2_ylval_yfval),
-    entry(u2_yval_xval),
-    entry(u2_yval_xlval),
-    entry(u2_ylval_xval),
-    entry(u2_ylval_xlval),
-    entry(u2_yval_yval),
-    entry(u2_yval_ylval),
-    entry(u2_ylval_yval),
-    entry(u2_ylval_ylval).
+    ins_entry(u2_void_xvar, 136, [f_i,f_x]),
+    ins_entry(u2_void_yfvar, 139, [f_i,f_y]),
+    ins_entry(u2_void_yvar, 140, [f_i,f_y], [label(_)]),
+    ins_entry(u2_void_xval, 137, [f_i,f_x]),
+    ins_entry(u2_void_xlval, 138, [f_i,f_x], [label(r)]),
+    ins_entry(u2_void_yfval, 141, [f_i,f_y]),
+    ins_entry(u2_void_yval, 142, [f_i,f_y]),
+    ins_entry(u2_void_ylval, 143, [f_i,f_y], [label(r)]),
+    ins_entry(u2_xvar_void, 144, [f_x,f_i]),
+    ins_entry(u2_xvar_xvar, 145, [f_x,f_x]),
+    ins_entry(u2_xvar_yfvar, 148, [f_x,f_y]),
+    ins_entry(u2_xvar_yvar, 149, [f_x,f_y], [label(_)]),
+    ins_entry(u2_xvar_xval, 146, [f_x,f_x]),
+    ins_entry(u2_xvar_xlval, 147, [f_x,f_x], [label(r)]),
+    ins_entry(u2_xvar_yfval, 150, [f_x,f_y]),
+    ins_entry(u2_xvar_yval, 151, [f_x,f_y]),
+    ins_entry(u2_xvar_ylval, 152, [f_x,f_y], [label(r)]),
+    ins_entry(u2_yfvar_void, 153, [f_y,f_i]),
+    ins_entry(u2_yvar_void, 154, [f_y,f_i], [label(_)]),
+    ins_entry(u2_yfvar_xvar, 155, [f_y,f_x]),
+    ins_entry(u2_yvar_xvar, 156, [f_y,f_x], [label(_)]),
+    ins_entry(u2_yfvar_yvar, 157, [f_y,f_y]),
+    ins_entry(u2_yvar_yvar, 158, [f_y,f_y], [label(_)]),
+    ins_entry(u2_yfvar_xval, 159, [f_y,f_x]),
+    ins_entry(u2_yfvar_xlval, 161, [f_y,f_x], [label(r)]),
+    ins_entry(u2_yvar_xval, 160, [f_y,f_x], [label(w)]),
+    ins_entry(u2_yvar_xlval, 162, [f_y,f_x], [label(_)]),
+    ins_entry(u2_yfvar_yval, 163, [f_y,f_y]),
+    ins_entry(u2_yfvar_ylval, 165, [f_y,f_y], [label(r)]),
+    ins_entry(u2_yvar_yval, 164, [f_y,f_y], [label(w)]),
+    ins_entry(u2_yvar_ylval, 166, [f_y,f_y], [label(_)]),
+    ins_entry(u2_yfval_void, 185, [f_y,f_i]),
+    ins_entry(u2_yfval_xvar, 188, [f_y,f_x]),
+    ins_entry(u2_yfval_yfval, 199, [f_y,f_y]),
+    ins_entry(u2_yfval_xval, 193, [f_y,f_x]),
+    ins_entry(u2_yfval_xlval, 196, [f_y,f_x], [label(r)]),
+    ins_entry(u2_yfval_yval, 202, [f_y,f_y]),
+    ins_entry(u2_yfval_ylval, 205, [f_y,f_y], [label(r)]),
+    ins_entry(u2_xval_void, 167, [f_x,f_i]),
+    ins_entry(u2_xlval_void, 168, [f_x,f_i], [label(r)]),
+    ins_entry(u2_xval_xvar, 169, [f_x,f_x]),
+    ins_entry(u2_xlval_xvar, 170, [f_x,f_x], [label(r)]),
+    ins_entry(u2_xval_yfvar, 171, [f_x,f_y]),
+    ins_entry(u2_xlval_yfvar, 172, [f_x,f_y], [label(r)]),
+    ins_entry(u2_xval_yvar, 173, [f_x,f_y], [label(w)]),
+    ins_entry(u2_xlval_yvar, 174, [f_x,f_y], [label(_)]),
+    ins_entry(u2_xval_xval, 175, [f_x,f_x]),
+    ins_entry(u2_xval_xlval, 177, [f_x,f_x], [label(r)]),
+    ins_entry(u2_xlval_xval, 176, [f_x,f_x], [label(r)]),
+    ins_entry(u2_xlval_xlval, 178, [f_x,f_x], [label(r)]),
+    ins_entry(u2_xval_yfval, 179, [f_x,f_y]),
+    ins_entry(u2_xlval_yfval, 180, [f_x,f_y], [label(r)]),
+    ins_entry(u2_xval_yval, 181, [f_x,f_y]),
+    ins_entry(u2_xval_ylval, 183, [f_x,f_y], [label(r)]),
+    ins_entry(u2_xlval_yval, 182, [f_x,f_y], [label(r)]),
+    ins_entry(u2_xlval_ylval, 184, [f_x,f_y], [label(r)]),
+    ins_entry(u2_yval_void, 186, [f_y,f_i]),
+    ins_entry(u2_ylval_void, 187, [f_y,f_i], [label(r)]),
+    ins_entry(u2_yval_xvar, 189, [f_y,f_x]),
+    ins_entry(u2_ylval_xvar, 190, [f_y,f_x], [label(r)]),
+    ins_entry(u2_yval_yvar, 191, [f_y,f_y]),
+    ins_entry(u2_ylval_yvar, 192, [f_y,f_y], [label(r)]),
+    ins_entry(u2_yval_yfval, 200, [f_y,f_y]),
+    ins_entry(u2_ylval_yfval, 201, [f_y,f_y], [label(r)]),
+    ins_entry(u2_yval_xval, 194, [f_y,f_x]),
+    ins_entry(u2_yval_xlval, 197, [f_y,f_x], [label(r)]),
+    ins_entry(u2_ylval_xval, 195, [f_y,f_x], [label(r)]),
+    ins_entry(u2_ylval_xlval, 198, [f_y,f_x], [label(r)]),
+    ins_entry(u2_yval_yval, 203, [f_y,f_y]),
+    ins_entry(u2_yval_ylval, 206, [f_y,f_y], [label(r)]),
+    ins_entry(u2_ylval_yval, 204, [f_y,f_y], [label(r)]),
+    ins_entry(u2_ylval_ylval, 207, [f_y,f_y], [label(r)]).
 
 iset_misc2 =>
-    entry(bump_counterq), entry(bump_counter),
-    entry(counted_neckq), entry(counted_neck),
-    entry(fail),
-    entry(heapmargin_callq), entry(heapmargin_call),
-    entry(neck),
-    entry(dynamic_neck_proceed),
-    entry(neck_proceed),
-    entry(proceed),
-    entry(restart_point).
+    ins_entry(bump_counterq, 248, [f_Q,f_l]),
+    ins_entry(bump_counter, 249, [f_l], [label(_)]),
+    ins_entry(counted_neckq, 250, [f_Q,f_l,f_l]),
+    ins_entry(counted_neck, 251, [f_l,f_l], [label(_)]),
+    ins_entry(fail, 67, []),
+    ins_entry(heapmargin_callq, 245, [f_Q,f_g]),
+    ins_entry(heapmargin_call, 246, [f_g], [label(_)]),
+    ins_entry(neck, 65, [], [label(_)]),
+    ins_entry(dynamic_neck_proceed, 236, [], [label(w)]),
+    ins_entry(neck_proceed, 66, [], [label(w)]),
+    ins_entry(proceed, 64, [], [label(_)]),
+    ins_entry(restart_point, 262, [], [optional('PARBACK')]).
 
 % exported instructions
 exported_insns =>
@@ -4043,3 +3922,7 @@ exported_insns =>
     exported_ins(restart_point, restart_point),
     % needed for qread
     exported_ins(branch, branch).
+
+% TODO: horrible hack
+:- [[ all_insns(decl, G) ]], '$exec_decls'(G).
+
