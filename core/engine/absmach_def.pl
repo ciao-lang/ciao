@@ -3912,6 +3912,8 @@ exported_insns =>
     exported_ins(unify_void_4, unify_void_4),
     exported_ins(unify_x_value, unify_x_value),
     exported_ins(unify_x_variable, unify_x_variable),
+    % chat_tabling.c
+    exported_ins(lastcall, lastcall),
     % compile_term_aux
     exported_ins(heapmargin_call, heapmargin_call),
     exported_ins(get_constraint, get_constraint),
