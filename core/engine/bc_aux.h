@@ -1364,40 +1364,6 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
 
 /* --------------------------------------------------------------------------- */
 
-// #define SUSPEND_T3_ON_T1() do { \
-//   if (TaggedIsHVA(t1)) { \
-//     LoadCVA(t0,H); \
-//     if (CondHVA(t1)) { \
-//       TrailPush(w->trail_top,t1); \
-//       *TagpPtr(HVA,t1) = t0; \
-//     } else { \
-//       *TagpPtr(HVA,t1) = t0; \
-//     } \
-//     goto check_trail; \
-//   } else if (!CondCVA(t1)) { \
-//     HeapPush(H,*TaggedToGoal(t1)); \
-//     HeapPush(H,*TaggedToDef(t1)); \
-//     *TaggedToGoal(t1) = Tagp(LST,HeapOffset(H,-2)); \
-//     *TaggedToDef(t1) = Tagp(LST,H); \
-//     goto no_check_trail; \
-//   } else { \
-//     LoadCVA(t0,H); \
-//     HeapPush(H,Tagp(LST,TaggedToGoal(t1))); \
-//     HeapPush(H,Tagp(LST,HeapOffset(H,1))); \
-//     TrailPush(w->trail_top,t1); \
-//     *TagpPtr(CVA,t1) = t0; \
-//     goto check_trail; \
-//   } \
-// check_trail: \
-//   if (ChoiceYounger(w->choice,TrailOffset(w->trail_top,CHOICEPAD))) { \
-//     choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE); \
-//   } \
-//   goto no_check_trail; \
-// no_check_trail: \
-//   HeapPush(H,t3); \
-//   HeapPush(H,PointerToTerm(Func)); \
-// } while(0);
-
 CVOID__PROTO(SUSPEND_T3_ON_T1, definition_t *func, tagged_t t3, tagged_t t1) {
   tagged_t t0;
   tagged_t *h = G->heap_top;
