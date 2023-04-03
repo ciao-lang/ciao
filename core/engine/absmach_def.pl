@@ -712,9 +712,6 @@ heap_push(X) =>
     cachedreg('H', H),
     callstmt('HeapPush', [H, X]).
 
-ref_stack(safe, A, B) => callstmt('RefStack', [A,addr(B)]).
-ref_stack(unsafe, A, B) => ref_stack_unsafe(A,addr(B)).
-
 % TODO: expression vs statement
 unsafe_var_expr(X) => not(callexp('YoungerStackVar', [tagp(sva,callexp('Offset',[(~e),tk('EToY0')])), X])).
 
@@ -722,7 +719,7 @@ ref_stack_unsafe(To,From) =>
     '{',
     localv(tagged, T0),
     localv(tagged, T1),
-    callstmt('RefStack', [T0, From]),
+    T0 <- From,
     if(callexp('TaggedIsSVA', [T0]),
       do_while((
           callstmt('RefSVA', [T1,T0]),
@@ -797,7 +794,7 @@ u1(xval(X)), [[ mode(w) ]] =>
 u1(yval(Y)), [[ mode(r) ]] =>
     '{',
     localv(tagged, T1), ref_heap_next(T1),
-    localv(tagged, T0), ref_stack(safe, T0, Y),
+    localv(tagged, T0), T0 <- Y,
     cunify(T0, T1),
     '}'.
 u1(yval(Y)), [[ mode(w) ]] =>
@@ -827,7 +824,7 @@ u1(ylval(Y)), [[ mode(r) ]] =>
     u1(yval(Y)).
 u1(ylval(Y)), [[ mode(w) ]] =>
     '{',
-    localv(tagged, T1), ref_stack(safe, T1, Y),
+    localv(tagged, T1), T1 <- Y,
     unify_local_value(T1),
     '}'.
 
@@ -842,11 +839,13 @@ init_yvars(Count) =>
 
 % Emit the code to put a Y argument (which may be 'unsafe')
 putarg(Zn,Xn) =>
-    if(Zn/\1,
-      (dec(op(f_y,Zn+1),Y1),
-       ref_stack(unsafe, x(Xn), Y1)),
-      (dec(op(f_y,Zn),Y2),
-       ref_stack(safe, x(Xn), Y2))).
+    if(Zn/\1, (
+        dec(op(f_y,Zn+1),Y1),
+        ref_stack_unsafe(x(Xn), Y1)
+    ), (
+        dec(op(f_y,Zn),Y2),
+        x(Xn) <- Y2)
+    ).
 
 % Pre-registered atoms
 get_atom([], X) => [[ X = tk('atom_nil') ]].
@@ -982,7 +981,7 @@ put_x_value => decops([A,B]),
 
 put_x_unsafe_value => decops([A,B]),
     '{',
-    localv(tagged, T0), ref_stack(unsafe,T0,B),
+    localv(tagged, T0), ref_stack_unsafe(T0,B),
     A <- T0,
     B <- T0,
     '}',
@@ -1006,16 +1005,16 @@ put_yvar_yvar => decops([A,B,C,D]),
     dispatch.
 
 put_yval_yval => decops([A,B,C,D]),
-    ref_stack(safe,A,B),
-    ref_stack(safe,C,D),
+    A <- B,
+    C <- D,
     dispatch.
 
 put_y_value => decops([A,B]),
-    ref_stack(safe,A,B),
+    A <- B,
     dispatch.
 
 put_y_unsafe_value => decops([A,B]),
-    ref_stack(unsafe,A,B),
+    ref_stack_unsafe(A,B),
     dispatch.
 
 put_constantq => decops([A,B]),
@@ -1060,18 +1059,18 @@ put_list => decops([A]),
     dispatch.
 
 put_yval_yuval => decops([A,B,C,D]),
-    ref_stack(safe,A,B),
-    ref_stack(unsafe,C,D),
+    A <- B,
+    ref_stack_unsafe(C,D),
     dispatch.
 
 put_yuval_yval => decops([A,B,C,D]),
-    ref_stack(unsafe,A,B),
-    ref_stack(safe,C,D),
+    ref_stack_unsafe(A,B),
+    C <- D,
     dispatch.
 
 put_yuval_yuval => decops([A,B,C,D]),
-    ref_stack(unsafe,A,B),
-    ref_stack(unsafe,C,D),
+    ref_stack_unsafe(A,B),
+    ref_stack_unsafe(C,D),
     dispatch.
 
 get_x_value => decops([A,B]),
@@ -1084,7 +1083,7 @@ get_y_first_value => decops([A,B]),
 
 get_y_value => decops([A,B]),
     '{',
-    localv(tagged, T1), ref_stack(safe,T1,B),
+    localv(tagged, T1), T1 <- B,
     cunify(A,T1),
     '}',
     dispatch.
@@ -1186,7 +1185,7 @@ cutf =>
 
 cut_y => decops([A]),
     '{',
-    localv(tagged, T1), ref_stack(safe,T1,A),
+    localv(tagged, T1), T1 <- A,
     (~w)^.previous_choice <- callexp('ChoiceFromTagged', [T1]),
     '}',
     do_cut,
