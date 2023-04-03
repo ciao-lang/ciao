@@ -1806,9 +1806,9 @@ struct marker_ {
 
 #define PushRefHeapNext(To,From) { *(To)++ = *(From)++; }
 
-#define RefStack(To,From) { To = *(From); }
-
-#define HeapPushRefStack(To,From) { *(To)++ = *(From); }
+//#define HeapPushRefStack(To,From) { *(To)++ = *(From); }
+//#define HeapPush(H,X)           (*(H) = (X), (H)++) /* X often contains H */
+#define HeapPushRefStack(To,From) { *(To) = *(From), (To)++; }
 
 #define RefHVA(To,From) { To = *TagpPtr(HVA,From); }
 
