@@ -55,14 +55,8 @@ emugen_decl(native_export(Item, File), M) :- !,
     assertz_fact(native_export(Item, M, File)).
 emugen_decl(ftype_def(FType, Id, Format), M) :- !,
     add_ftype_def(FType, Id, Format, M).
-emugen_decl(pred(Head, Props), M) :- !,
-    ( Head = Name/Arity ->
-        functor(Head2, Name, Arity)
-    ; Head = Head2
-    ),
-    add_pred_props(Head2, Props, M).
-emugen_decl(iset(Name/0), M) :- !,
-    assertz_fact(iset(Name, M)).
+emugen_decl('$decl'(Spec), M) :- !,
+    put_tkval('\006\dot'(rule(Spec),level), M, decl).
 emugen_decl(engine_opts(Opts), M) :- !,
     assertz_fact(engine_opts(Opts, M)).
 emugen_decl(engine_stubmain(Opts), M) :- !,
@@ -80,26 +74,22 @@ exec_decl((A,B), M) :- !,
     exec_decl(A, M),
     exec_decl(B, M).
 exec_decl(G, M) :-
-    % TODO: detect unfold_decl loops!
-    pred_prop(G, M, unfold_decl),
+    % TODO: detect loops!
+    functor(G, F, N),
+    get_tkval('\006\dot'(rule(F/N),level), M, decl),
     !,
     ( clause_def(G, M, Def) -> true ; fail ), % (once)
     exec_decl(Def, M).
-exec_decl(add(pred_prop(G, Prop)), M) :- !,
-    add_pred_props(G, [Prop], M).
-exec_decl(update_max_op(Op), _M) :- !,
-    % Update max_op
-    ( max_op(MaxOp, M) -> true
-    ; MaxOp = -1
-    ),
-    ( Op > MaxOp ->
-        retractall_fact(max_op(_, M)),
-        assertz_fact(max_op(Op, M))
-    ; true
+exec_decl(put(K, V), M) :- !,
+    put_tkval(K, M, V).
+exec_decl(putmax(K, V), M) :- !,
+    ( get_tkval(K, M, V0) ->
+        ( V > V0 ->
+            put_tkval(K, M, V)
+        ; true
+        )
+    ; put_tkval(K, M, V)
     ).
-exec_decl(update_op_ins(Op, Ins), M) :- !,
-    % Update reverse index op_ins
-    assertz_fact(op_ins(Op, M, Ins)).
 % TODO: Hack to prepare decls from rules
 exec_decl([As], M) :- is_list(As), !,
     simp_constrs(As, M, [], _Store).
@@ -108,15 +98,15 @@ exec_decl('$exec_decls'(Xs), M) :- !,
     list_to_conj(Xs, G),
     exec_decl(G, M).
 % TODO: Hack to execute rules from lists
-exec_decl(decl(G), M) :- !, exec_decl(G, M).
+exec_decl('$decl'(G), M) :- !, exec_decl(G, M).
 
 % ---------------------------------------------------------------------------
 % Code generation
 
 :- use_module(engine(runtime_control), [statistics/2]).
 
-%emugen_statistics.
-emugen_statistics :- fail.
+emugen_statistics.
+%emugen_statistics :- fail.
 
 generate_code(M) :-
     ( emugen_statistics ->
@@ -233,22 +223,19 @@ transparent_string("\n"||Xs, "\\n"||Ys) :- !,
 transparent_string([X|Xs], [X|Ys]) :- integer(X),
     transparent_string(Xs, Ys).
 
-cexp_to_str(X) --> { is_string(X) }, !, emit_string(X). 
-cexp_to_str(X) --> { is_list(X) }, !, cexp_to_str_(X).
+cexp_to_str(X) --> { is_list(X) }, !, cexp_to_str_(X). % (flatten)
 % Annotation for resolution step (ignore)
 cexp_to_str('$rs'(_G,X)) --> !, cexp_to_str(X).
 % layout, tokens
-cexp_to_str(fmt:nl) --> !, "\n".
-cexp_to_str(fmt:bb) --> !, fmt_bb(2).
-cexp_to_str(fmt:bb(N)) --> !, fmt_bb(N).
 cexp_to_str((A,B)) --> !, cexp_to_str(A), cexp_to_str(B).
 cexp_to_str(true) --> !.
 cexp_to_str(X) --> { number(X) }, !, emit_number(X).
-cexp_to_str(fmt:atom(X)) --> !, emit_atom(X).
-cexp_to_str(fmt:string(X)) --> !, emit_qstring(X).
-cexp_to_str(fmt:number(X)) --> !, emit_number(X).
+cexp_to_str(tk(X)) --> !, emit_atom(X).
+cexp_to_str(tk_nl) --> !, "\n".
+cexp_to_str(tk_bb(N)) --> !, fmt_bb(N).
+cexp_to_str(tk_string(X)) --> !, emit_qstring(X).
+cexp_to_str(tk_number(X)) --> !, emit_number(X).
 %
-cexp_to_str(call(N, Xs)) --> !, emit_atom(N), "(", emit_args(Xs), ");\n".
 cexp_to_str(callexp(N, Xs)) --> !, emit_atom(N), "(", emit_args(Xs), ")".
 %
 cexp_to_str(X) --> { throw(internal_error_bad_cexp(X)) }.
@@ -291,20 +278,14 @@ emit_string([X|Xs]) --> [X], emit_string(Xs).
 % max_ftype(MaxId, M): Maximum Id for ftypes
 :- data max_ftype/2.
 
-% op_ins(Op, M, Ins)
-:- data op_ins/3.
-% max_op(MaxOp, M): Maximum opcode
-:- data max_op/2.
+% key/value table
+% tkval(Idx, M, Key, Val)
+:- data tkval/4.
 
-% pred_prop(G, M, Prop)
-:- data pred_prop/3.
-% clause_def(Head, M, Body). % TODO: only for unfold_decl
+% clause_def(Head, M, Body). % TODO: only for level=decl
 :- data clause_def/3.
 % rule_def(Head, M, Guard, Body). % (_ => _) rules
 :- data rule_def/4.
-
-% iset(Name, M).
-:- data iset/2.
 
 % engine_opts(Opts, M).
 :- data engine_opts/2.
@@ -320,28 +301,31 @@ clean_db(M) :-
     retractall_fact(id_ftype(_,M,_)),
     retractall_fact(max_ftype(_,M)),
     %
-    retractall_fact(pred_prop(_,M,_)),
-    retractall_fact(op_ins(_,M,_)),
-    retractall_fact(max_op(_,M)),
+    retractall_fact(tkval(_,M,_,_)),
     retractall_fact(clause_def(_,M,_)),
     retractall_fact(rule_def(_,M,_,_)),
-    %
-    retractall_fact(iset(_,M)),
     %
     retractall_fact(engine_opts(_,M)),
     retractall_fact(engine_stubmain(_,M)).
 
-add_pred_props(G, Props, M) :-
-    ( % (failure driven loop)
-      member(Prop, Props),
-        assertz_fact(pred_prop(G, M, Prop)),
-        fail
-    ; true
-    ).
+:- use_module(library(indexer/hash), [hash_term/2]). % TODO: slow, add C implementation
+
+tkhash('\006\dot'(G0,Key), Idx) :- !, hash_term(G0-Key,Idx).
+tkhash(Key, Idx) :- hash_term(Key, Idx).
+
+put_tkval(Key, M, Val) :-
+    tkhash(Key, Idx),
+    retractall_fact(tkval(Idx, M, Key, _)),
+    assertz_fact(tkval(Idx, M, Key, Val)).
+
+get_tkval(Key, M, Val) :-
+    tkhash(Key, Idx),
+    current_fact(tkval(Idx, M, Key, Val0)), !,
+    Val = Val0.
 
 add_ftype_def(FType, Id, Format, M) :-
     assertz_fact(ftype_def(FType, M, Id, Format)),
-    % Update max_op
+    % Update max_ftype
     ( max_ftype(MaxId, M) -> true
     ; MaxId = -1
     ),
@@ -377,7 +361,7 @@ store_replace(Store0, Constr, Store) :-
 % TODO: Implement better strategies
 % TODO: do something with final Store?
 
-% Do tr_solve_set and check that there exists a unique solution.
+% Rewrite G as Body
 % Throw exceptions for diagnosis.
 tr_solve(G, M, Store0, Body, Store) :-
     '$metachoice'(Chpt0),
@@ -471,29 +455,25 @@ simp_lit('$foreach_sep'(Sep, Xs, P), M, Store0, Store, R) :- !,
 simp_lit(callexp(N,Args), M, Store0, Store, R) :- !,
     R = callexp(N,Args2),
     simpargs(Args, M, Store0, Store, Args2).
-simp_lit(call(N,Args), M, Store0, Store, R) :- !,
-    R = call(N,Args2),
-    simpargs(Args, M, Store0, Store, Args2).
 simp_lit(G, _M, Store0, Store, R) :-
-    prim_lit(G), % (primitive, no translation)
+    prim_lit(G, G2), % (primitive, no translation)
     !,
     Store = Store0,
-    R = G.
+    R = G2.
 simp_lit(G, M, Store0, Store, R) :- 
     % TODO: detect unfold loops!
     % TODO: allow multi-passes (delay translation if we do not
     % have enough information)
     unfold_lit(G, M, Store0, Store, R).
 
-prim_lit(G) :- integer(G).
-prim_lit([]).
-prim_lit([_|_]).
-prim_lit(true).
-prim_lit(fmt:_).
-prim_lit(entry(_)).
-prim_lit(entry(_,_)).
-prim_lit(exported_ins(_,_)).
-prim_lit(decl(_)).
+prim_lit(G, G) :- integer(G).
+prim_lit(G, G) :- G = true.
+prim_lit(G, G) :- G = tk(_).
+prim_lit(G, G) :- G = tk_nl.
+prim_lit(G, G) :- G = tk_bb(_).
+prim_lit(G, G) :- G = tk_string(_).
+prim_lit(G, G) :- G = tk_number(_).
+prim_lit(prim(G), G).
 
 simpargs([], _M, Store, Store, []).
 simpargs([X|Xs], M, Store0, Store, [Y|Ys]) :-
@@ -512,7 +492,7 @@ foreach_sep([X], _Sep, P, M, Store0, Store) --> !,
     foreach_(X, P, M, Store0, Store).
 foreach_sep([X|Xs], Sep, P, M, Store0, Store) -->
     foreach_(X, P, M, Store0, Store1),
-    [Sep],
+    [tk(Sep)],
     foreach_sep(Xs, Sep, P, M, Store1, Store).
 
 % (alternative translations are committed)
@@ -522,15 +502,12 @@ foreach_(X, P, M, Store0, Store) -->
     [Body].
 
 unfold_lit(G, M, Store0, Store, R) :-
-    ( pred_prop(G, M, grammar_level) ->
-        % Do not annotate grammar_level
+    ( functor(G, F, N),
+      get_tkval('\006\dot'(rule(F/N),level), M, grammar) ->
+        % Do not annotate grammar level rules
         R = R0
     ; % Mark resolution step
-      ( pred_prop(G, M, rs_mark(G2)) ->
-          true % allow storing only some arguments (e.g., input moded arguments)
-      ; G2 = G
-      ),
-      R = '$rs'(G2, R0)
+      R = '$rs'(G, R0)
     ),
     % Obtain clause definitions that match G
     % (or set store to '$fail' state if there is no one)
@@ -561,7 +538,9 @@ simp_constr(newid(Prefix, Id), _M, Store0, Store) :- !,
     ),
     number_codes(N, NCs),
     atom_codes(Prefix, PrefixCs),
-    append(PrefixCs, NCs, Id),
+    append(PrefixCs, NCs, IdCs),
+    atom_codes(IdAtm, IdCs),
+    Id = tk(IdAtm),
     N1 is N + 1,
     store_replace(Store0, emugen_id_counter(N1), Store).
 
@@ -587,21 +566,17 @@ simp_constr_(A =< B, _M, _) :- !, A =< B.
 simp_constr_(A >= B, _M, _) :- !, A >= B.
 simp_constr_(A = B, _M, _) :- !, A = B.
 simp_constr_(A \= B, _M, _) :- !, A \= B.
-simp_constr_(get_ins_label(Ins, Mode, Label), _M, _) :- !,
-    get_label(Ins, Mode, Label).
+simp_constr_(atom_concat(A,B,C), _M, _) :- !,
+    atom_concat(A,B,C).
 simp_constr_(uppercase(Ins, InsUp), _M, _) :- !,
     emit_uppercase(Ins, InsUp0, []),
     atom_codes(InsUp, InsUp0).
-simp_constr_(prop(G,Prop), M, _Store) :-
-    pred_prop(G, M, Prop),
-    !.
+simp_constr_(get(K, V), M, _Store) :- !,
+    get_tkval(K, M, V).
 simp_constr_(ftype_def(FType, Id, Format), M, _Store) :- !,
     ftype_def(FType, M, Id, Format).
-simp_constr_(op_ins(Op, Ins), M, _Store) :- !,
-    op_ins(Op, M, Ins).
-simp_constr_(all_insns(What, Insns), M, Store) :- !,
-    % Note: the order of instructions may depend on the mode
-    all_insns(M, What, Store, Insns).
+simp_constr_(collect_and_filter(G, What, Xs), M, Store) :- !,
+    collect_and_filter(G, M, What, Store, Xs).
 simp_constr_(G, M, _Store) :- decl_fact(G), !,
     fact_query(G, M).
 simp_constr_(findall(X, G, Xs), M, _Store) :- !,
@@ -617,13 +592,11 @@ simp_constr_(Constraint, _M, Store) :-
     !.
 
 % TODO: Generalize for other props
-decl_fact(max_op(_)). % max_op(-)
 decl_fact(max_ftype(_)). % max_ftype(-)
 decl_fact(id_ftype(_,_)). % id_ftype(+,-)
 decl_fact(engine_stubmain(_)). % engine_stubmain(-)
 
 % TODO: Generalize for other props
-fact_query(max_op(MaxOp), M) :- max_op(MaxOp, M).
 fact_query(max_ftype(MaxFType), M) :- max_ftype(MaxFType, M).
 fact_query(id_ftype(Id, FType), M) :- ( id_ftype(Id, M, FType0) -> FType=FType0 ; fail ).
 fact_query(engine_stubmain(A), M) :- engine_stubmain(A, M).
@@ -640,19 +613,14 @@ simp_conj(true, A, R) :- !, R = A.
 simp_conj(A, true, R) :- !, R = A.
 simp_conj(A, B, (A, B)).
 
-get_label(Ins, r, Label) :- !, atom_concat('r_', Ins, Label).
-get_label(Ins, w, Label) :- !, atom_concat('w_', Ins, Label).
-
-all_insns(M, What, Store, Insns) :-
-    ( iset(Name, M) -> true
-    ; throw(no_iset)
-    ),
-    tr_solve(Name, M, Store, Body, _),
+% Reduce G and collect and filtered primitive elems
+collect_and_filter(G, M, What, Store, Insns) :-
+    tr_solve(G, M, Store, Body, _),
     ( clean_rs(Body,Body1) -> true
-    ; throw(bad_iset(Name))
+    ; throw(cannot_clean_rs(G, What))
     ),
-    ( collect_insns(Body1, M, What, Insns, []) -> true
-    ; throw(cannot_collect_insns(What))
+    ( collect_prims(Body1, M, What, Insns, []) -> true
+    ; throw(cannot_collect_prims(G, What))
     ).
 
 clean_rs((A, B), R) :- !,
@@ -663,23 +631,15 @@ clean_rs('$rs'(_G, X), R) :- !,
     clean_rs(X, R).
 clean_rs(X, X).
 
-% collect insns
-collect_insns(true, _M, _What) --> !.
-collect_insns((A,B), M, What) --> !,
-    collect_insns(A, M, What),
-    collect_insns(B, M, What).
-collect_insns(decl(Decl), _M, decl) --> !,
-    [decl(Decl)].
-collect_insns(entry(Ins), M, entry) --> !,
-    { pred_prop(Ins, M, format(Format)) -> true ; fail },
-    [entry(Ins,Format)].
-collect_insns(entry(Ins,Format), _M, entry) --> !,
-    [entry(Ins,Format)].
-collect_insns(exported_ins(Ins,Name), _M, exported_ins) --> !, [exported_ins(Ins,Name)].
-collect_insns(_, _, _) --> [].
+% collect primitives
+collect_prims(true, _M, _What) --> !.
+collect_prims((A,B), M, What) --> !,
+    collect_prims(A, M, What),
+    collect_prims(B, M, What).
+collect_prims(G, _M, What) --> { prim_filter(G, What) }, !, [G].
+collect_prims(_, _, _) --> [].
 
-ins_decl(Ins, M) :-
-    pred_prop(Ins, M, ins_op(_)).
+prim_filter(X, F/N) :- nonvar(X), functor(X, F, N).
 
 map_ftype_id([]) := [].
 map_ftype_id([X|Xs]) := [ftype_id(X)| ~map_ftype_id(Xs)].
